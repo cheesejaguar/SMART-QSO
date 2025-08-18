@@ -4,10 +4,24 @@
 #include <stdbool.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <termios.h>
+#include <errno.h>
 
 // Object-oriented-ish sensor framework with YAML configuration.
 // Aligns with CONOPS: always-on OBC monitors EPS & status; Jetson bursts are
 // simulated via current draw flags in the status bitmap.
+
+// UART configuration for Jetson communication (configurable via environment variables)
+#define UART_DEVICE_DEFAULT "/dev/ttyUSB0"  // Default UART device
+#define UART_BAUDRATE_DEFAULT B115200       // Default baud rate
+#define TELEMETRY_INTERVAL_MS_DEFAULT 60000 // Default: 60 seconds
+
+// Runtime configurable values
+static char uart_device[64] = UART_DEVICE_DEFAULT;
+static speed_t uart_baudrate = UART_BAUDRATE_DEFAULT;
+static uint32_t telemetry_interval_ms = TELEMETRY_INTERVAL_MS_DEFAULT;
 
 typedef enum {
   SENSOR_NUMERIC = 0,
@@ -35,6 +49,11 @@ typedef struct Sensor {
 static Sensor sensors[MAX_SENSORS];
 static size_t num_sensors = 0;
 
+// UART communication state
+static int uart_fd = -1;
+static uint64_t last_telemetry_ms = 0;
+static bool uart_initialized = false;
+
 // Simple mission state simulation
 static uint64_t program_start_ms;
 static bool sunlit = true;
@@ -49,6 +68,184 @@ static uint64_t now_ms(void) {
 
 static double rnd_unit(void) {
   return (double)rand() / (double)RAND_MAX;
+}
+
+// UART initialization and communication functions
+static bool init_uart(void) {
+  if (uart_initialized) return true;
+  
+  uart_fd = open(uart_device, O_RDWR | O_NOCTTY | O_SYNC);
+  if (uart_fd < 0) {
+    fprintf(stderr, "[UART] Failed to open %s: %s\n", uart_device, strerror(errno));
+    return false;
+  }
+  
+  struct termios tty;
+  if (tcgetattr(uart_fd, &tty) != 0) {
+    fprintf(stderr, "[UART] Failed to get attributes: %s\n", strerror(errno));
+    close(uart_fd);
+    uart_fd = -1;
+    return false;
+  }
+  
+  // Set baud rate
+  cfsetospeed(&tty, uart_baudrate);
+  cfsetispeed(&tty, uart_baudrate);
+  
+  // 8N1 configuration
+  tty.c_cflag = (tty.c_cflag & ~CSIZE) | CS8;
+  tty.c_cflag &= ~(PARENB | PARODD);
+  tty.c_cflag &= ~CSTOPB;
+  tty.c_cflag &= ~CRTSCTS;
+  tty.c_cflag |= CREAD | CLOCAL;
+  
+  // Raw input
+  tty.c_lflag &= ~(ICANON | ECHO | ECHOE | ISIG);
+  
+  // Raw output
+  tty.c_oflag &= ~OPOST;
+  
+  // Set attributes
+  if (tcsetattr(uart_fd, TCSANOW, &tty) != 0) {
+    fprintf(stderr, "[UART] Failed to set attributes: %s\n", strerror(errno));
+    close(uart_fd);
+    uart_fd = -1;
+    return false;
+  }
+  
+  uart_initialized = true;
+  fprintf(stderr, "[UART] Initialized %s at %lu baud\n", uart_device, (unsigned long)uart_baudrate);
+  return true;
+}
+
+static void close_uart(void) {
+  if (uart_fd >= 0) {
+    close(uart_fd);
+    uart_fd = -1;
+  }
+  uart_initialized = false;
+}
+
+// Parse environment variables for UART configuration
+static void parse_uart_config(void) {
+  const char *device = getenv("UART_DEVICE");
+  if (device && strlen(device) < sizeof(uart_device)) {
+    strncpy(uart_device, device, sizeof(uart_device) - 1);
+    uart_device[sizeof(uart_device) - 1] = '\0';
+  }
+  
+  const char *baudrate = getenv("UART_BAUDRATE");
+  if (baudrate) {
+    int baud = atoi(baudrate);
+    switch (baud) {
+      case 9600: uart_baudrate = B9600; break;
+      case 19200: uart_baudrate = B19200; break;
+      case 38400: uart_baudrate = B38400; break;
+      case 57600: uart_baudrate = B57600; break;
+      case 115200: uart_baudrate = B115200; break;
+      case 230400: uart_baudrate = B230400; break;
+      default: fprintf(stderr, "[UART] Invalid baudrate %s, using default\n", baudrate); break;
+    }
+  }
+  
+  const char *interval = getenv("TELEMETRY_INTERVAL_MS");
+  if (interval) {
+    int ms = atoi(interval);
+    if (ms > 0 && ms <= 3600000) { // 1ms to 1 hour
+      telemetry_interval_ms = (uint32_t)ms;
+    } else {
+      fprintf(stderr, "[UART] Invalid interval %s, using default\n", interval);
+    }
+  }
+  
+  printf("[UART] Configuration: device=%s, baudrate=%lu, interval=%ums\n", 
+         uart_device, (unsigned long)uart_baudrate, telemetry_interval_ms);
+}
+
+static bool send_uart_data(const char *data, size_t len) {
+  if (!uart_initialized || uart_fd < 0) return false;
+  
+  ssize_t written = write(uart_fd, data, len);
+  if (written != (ssize_t)len) {
+    fprintf(stderr, "[UART] Write failed: %s\n", strerror(errno));
+    // Try to reinitialize UART on error
+    close_uart();
+    if (init_uart()) {
+      // Retry once
+      written = write(uart_fd, data, len);
+      if (written != (ssize_t)len) {
+        fprintf(stderr, "[UART] Retry failed: %s\n", strerror(errno));
+        return false;
+      }
+    } else {
+      return false;
+    }
+  }
+  
+  // Ensure data is transmitted
+  tcdrain(uart_fd);
+  return true;
+}
+
+// Send telemetry data to Jetson
+static void send_telemetry_to_jetson(void) {
+  if (!jetson_enabled || !uart_initialized) return;
+  
+  char buffer[1024];
+  int offset = 0;
+  
+  // Start telemetry packet with timestamp and mission state
+  offset += snprintf(buffer + offset, sizeof(buffer) - offset, 
+                    "TELEMETRY,%llu,%s,%.3f,", 
+                    (unsigned long long)now_ms(),
+                    sunlit ? "SUNLIT" : "ECLIPSE",
+                    soc);
+  
+  // Add all sensor values
+  for (size_t i = 0; i < num_sensors; ++i) {
+    Sensor *s = &sensors[i];
+    if (s->value_type == SENSOR_NUMERIC) {
+      offset += snprintf(buffer + offset, sizeof(buffer) - offset,
+                        "%s=%.3f%s,", s->id, s->last_value, s->units);
+    } else {
+      offset += snprintf(buffer + offset, sizeof(buffer) - offset,
+                        "%s=%s%s,", s->id, s->last_text, s->units);
+    }
+  }
+  
+  // Add UART health status
+  offset += snprintf(buffer + offset, sizeof(buffer) - offset,
+                    "UART_HEALTH=%s,", uart_initialized ? "OK" : "FAIL");
+  
+  // Remove trailing comma and add newline
+  if (offset > 0 && buffer[offset-1] == ',') {
+    buffer[offset-1] = '\n';
+  } else {
+    buffer[offset] = '\n';
+    offset++;
+  }
+  
+  // Send via UART
+  if (send_uart_data(buffer, offset)) {
+    printf("[UART] Sent telemetry to Jetson (%d bytes): %s", offset, buffer);
+  } else {
+    fprintf(stderr, "[UART] Failed to send telemetry to Jetson\n");
+  }
+}
+
+// Check UART health and attempt recovery if needed
+static void check_uart_health(void) {
+  if (!uart_initialized) return;
+  
+  // Simple health check - try to get UART attributes
+  struct termios tty;
+  if (tcgetattr(uart_fd, &tty) != 0) {
+    fprintf(stderr, "[UART] Health check failed, attempting recovery\n");
+    close_uart();
+    if (jetson_enabled) {
+      init_uart(); // Try to reinitialize
+    }
+  }
 }
 
 // Sensor read implementations
@@ -230,6 +427,9 @@ int main(void) {
   srand((unsigned)time(NULL));
   program_start_ms = now_ms();
 
+  // Parse UART configuration from environment variables
+  parse_uart_config();
+
   const char *yaml = getenv("SENSORS_YAML");
   if (!yaml) yaml = "software/flight/sensors.yaml";
   if (!load_yaml_config(yaml)) {
@@ -240,10 +440,28 @@ int main(void) {
     sensors[i].next_poll_ms = program_start_ms; // poll immediately
   }
 
+  // Initialize UART for Jetson communication
+  if (!init_uart()) {
+    fprintf(stderr, "[WARN] UART initialization failed, telemetry disabled\n");
+  }
+
   // Main loop: simulate 1,000 ticks (~1 s cadence)
   for (uint64_t tick = 0; tick < 1000; ++tick) {
     update_mission_state(tick);
     uint64_t now = now_ms();
+    
+    // Check if it's time to send telemetry to Jetson
+    if (jetson_enabled && uart_initialized && 
+        (now - last_telemetry_ms) >= telemetry_interval_ms) {
+      send_telemetry_to_jetson();
+      last_telemetry_ms = now;
+    }
+    
+    // Periodic UART health check (every 10 seconds)
+    if (uart_initialized && (now % 10000) < 100) {
+      check_uart_health();
+    }
+    
     for (size_t i = 0; i < num_sensors; ++i) {
       Sensor *s = &sensors[i];
       if (now >= s->next_poll_ms) {
@@ -265,5 +483,8 @@ int main(void) {
     struct timespec ts = {.tv_sec=0, .tv_nsec=20000000L}; // ~20 ms
     nanosleep(&ts, NULL);
   }
+  
+  // Cleanup
+  close_uart();
   return 0;
 }
