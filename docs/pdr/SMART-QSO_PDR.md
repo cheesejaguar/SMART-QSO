@@ -30,7 +30,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 
 ### 2.2 Level‑2 (System) Requirements (selected)
 - 1U form factor, ≤1.80 kg wet mass; CG within CDS rail limits; deployables remain within envelope pre‑deploy.
-- Average orbit power **≥4 W** (sunlit average ≥8–10 W) using two deployable wings; energy storage ≥30 Wh.
+- Average orbit power **≥4 W** (sunlit average ≥8–10 W) using two deployable wings; energy storage ≥50 Wh.
 - RF: **Transmit‑only 2 m downlink 145.8–146 MHz** (final per IARU coordination). Beacon‑only operations via Stensat module; conducted power selectable; duty‑cycle adaptive.
 - **Payload computing:** Jetson Orin Nano Super (declocked to minimum stable clocks) for burst inference; MCU for background autonomy ≤50 mW average.
 - **Software:** RTOS on low‑power MCU; TinyML for detectors; TensorRT/ONNX Runtime INT8 on Jetson for TinyLM (~1 MB) when sun & thermal allow.
@@ -61,7 +61,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 
 ### 4.2 Electrical Power Subsystem (EPS)
 - **Generation:** body‑mounted + 2 deployables, ≥30% GaAs cells; **sunlit average** 8–10 W at nominal pointing; **orbit‑average target** 3.5–5 W (SSO).
-- **Storage:** 2‑s Li‑ion pack, **≥30 Wh**; battery protection & balancing; heaters with thermostat.
+- **Storage:** 4s Li‑ion pack, **≥50 Wh**; battery protection & balancing; heaters with thermostat.
 - **Power Mgmt:** MPPT + load‑shedding; AI and RF on separate power domains with supervised latching; inrush limiters for Jetson bursts.
 
 ### 4.3 Command & Data Handling (C&DH)
@@ -138,7 +138,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 | OBC (MCU board) | 0.06 |
 | **Jetson Orin Nano Super** | 0.10 |
 | EPS PCB & MPPT | 0.10 |
-| Battery pack (~30 Wh) | 0.20 |
+| Battery pack (~50 Wh) | 0.20 |
 | UHF/VHF radio & PA | 0.20 |
 | Antennas & HDRMs | 0.05 |
 | ADCS (magnetorquers+sensors) | 0.15 |
@@ -150,7 +150,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 | **PDR total** | **1.56** |
 
 ### 7.2 Power Modes & Budget
-**Generation assumptions:** two deployable wings + body panels; sunlit average 8–10 W; orbit‑average 3.5–5 W (SSO). Battery 30 Wh.
+**Generation assumptions:** two deployable wings + body panels; sunlit average 8–10 W; orbit‑average 3.5–5 W (SSO). Battery 50 Wh.
 
 | Mode | Load Elements | Power [W] | Notes |
 |---|---|---:|---|
@@ -208,7 +208,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 ## 11. Cost (ROM, hardware only)
 - Structure & mechanisms: $12k
 - Deployable arrays (2 wings, MPPT): $20k
-- EPS + battery (30 Wh): $12k
+- EPS + battery (50 Wh): $12k
 - UHF/VHF transceiver + PA + antennas: $25k
 - ADCS (mag torquers + sensors): $8k
 - **Jetson Orin Nano Super** + harness & rad mitigations: $0.5k–3k

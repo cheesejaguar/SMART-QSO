@@ -7,7 +7,7 @@ This document summarizes how SMART-QSO will comply with the NanoRacks CubeSat De
 ### Mission configuration
 - **Form factor**: 1U CubeSat (Cal Poly CDSS compliant) packaged for NRCSD Standard.
 - **Propulsion**: None (no pressure vessels or thrusters).
-- **Energy storage**: Li-ion pack, ≤ 30 Wh usable; below 80 Wh threshold noted in IDD safety notes.
+- **Energy storage**: 4S Li-ion 18650 pack, 50 Wh usable; below 80 Wh threshold noted in IDD safety notes.
 - **Ops inside NRCSD**: Fully passive; no RF emissions, no motion, no heating.
 
 ### Mechanical interface (IDD §4.1)
