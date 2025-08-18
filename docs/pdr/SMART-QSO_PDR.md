@@ -96,9 +96,9 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 1. **Intelligent Power Management Agent** (MCU; avg ~0.2 W ensemble with house‑keeping)
    - Learns per‑orbit insolation and seasonal drift; 90‑min ahead energy forecast; selects cadence and Jetson enablement.
 2. **Smart Beacon Agent** (Jetson when available; MCU fallback)
-   - Composes human‑readable telemetry using a **TinyLM (~1 MB)** with deterministic tail; template fallback when constrained.
+   - Composes human‑readable telemetry using a **TinyLM (eg. llama 3.2 3B)** with deterministic tail; template fallback when constrained.
 3. **Signal/Anomaly Classifier** (MCU; ~0.1 W when active)
-   - Tiny CNN/keyword model (<50 kB INT8) to detect interference/jamming patterns and adjust cadence if needed.
+   - Fine-tuned nano-model to detect signal anomalies, and performed limited FDIR (Fault Detection, Isolation & Recovery).
 
 ### 5.2 Edge LLM Design
 - **Model selection (off‑the‑shelf):** Llama 3.2 3B (Instruct) quantized (INT8/FP8) and compiled with TensorRT for the declocked Jetson Orin Nano Super. Treat as opportunistic: duty‑cycled and disabled under low‑power/thermal limits with template fallback.
@@ -110,7 +110,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 - **Tokenizer:** use the model’s native tokenizer (no custom tokens). Domain terms (callsigns, grids) are passed literally in the prompt.
 - **Latency/power target:** declocked Jetson with TensorRT INT8/FP8 aims for <250–400 ms per 24‑token generation at batch=1; disabled in eclipse/low‑SOC. MCU continues basic operations and can emit template beacons without the LLM.
 
-### 5.3 On‑Orbit Learning (No Uplink) - Stretch Go
+### 5.3 On‑Orbit Learning (No Uplink) - Stretch Goal
 - **Learning mode:** gradient accumulation on MCU with **very small steps**; apply during sunlit surplus only.
 - **No uplink updates:** no over‑the‑air model updates; models are fixed at launch with on‑orbit micro‑tuning only. All beacon content remains plain‑text and logged publicly.
 
