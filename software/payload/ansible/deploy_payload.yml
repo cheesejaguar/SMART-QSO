@@ -1,0 +1,44 @@
+---
+- name: Deploy SMART-QSO payload agent to Jetson
+  hosts: jetson
+  become: false
+  vars:
+    repo_src: "{{ playbook_dir }}/../../.."
+    dest_dir: "~/smart-qso"
+    venv_dir: "{{ dest_dir }}/.venv"
+  tasks:
+    - name: Ensure destination directory exists
+      ansible.builtin.file:
+        path: "{{ dest_dir }}"
+        state: directory
+
+    - name: Rsync payload code
+      ansible.builtin.synchronize:
+        src: "{{ repo_src }}/software/payload/"
+        dest: "{{ dest_dir }}/software/payload/"
+        rsync_opts:
+          - "--delete"
+
+    - name: Create Python venv
+      ansible.builtin.command: python3 -m venv {{ venv_dir }}
+      args:
+        creates: "{{ venv_dir }}/bin/activate"
+
+    - name: Install llama-cpp-python (GPU build optional)
+      ansible.builtin.shell: |
+        source {{ venv_dir }}/bin/activate
+        pip install --upgrade pip
+        pip install llama-cpp-python
+
+    - name: Create run script
+      ansible.builtin.copy:
+        dest: "{{ dest_dir }}/run_payload.sh"
+        mode: "0755"
+        content: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          source "{{ venv_dir }}/bin/activate"
+          export LLAMA_MODEL="${LLAMA_MODEL:-/models/Llama-3.2-3B-Instruct-Q4_K_M.gguf}"
+          exec python -m software.payload.agent
+
+

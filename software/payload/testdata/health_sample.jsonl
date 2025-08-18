@@ -1,0 +1,4 @@
+{"call":"SMARTQ-1","time":"2025-08-18Z","mode":"ACTIVE","soc":78,"sun":1,"rf":1,"pwr":"GOOD","qso":12}
+{"call":"SMARTQ-1","time":"2025-08-18Z","mode":"IDLE","soc":42,"sun":0,"rf":0,"pwr":"FAIR","qso":3}
+{"call":"SMARTQ-1","time":"2025-08-18Z","mode":"SAFE","soc":18,"sun":0,"rf":0,"pwr":"LOW","qso":0}
+
