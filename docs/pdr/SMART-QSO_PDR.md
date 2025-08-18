@@ -100,12 +100,17 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 3. **Signal/Anomaly Classifier** (MCU; ~0.1 W when active)
    - Tiny CNN/keyword model (<50 kB INT8) to detect interference/jamming patterns and adjust cadence if needed.
 
-### 5.2 TinyLM (GPT‑nano) Design
-- **Architecture target:** 4‑layer Transformer, d_model=128, 4 heads, seq_len=64, vocab≈96 (ASCII + ham tokens). **Params ~0.8 M** (INT8 ≈0.8 MB) + embeddings/heads ≈1.0 MB total.
-- **Runtime:** MCU‑only for shortest generations; **Jetson bursts** for personified text (duty‑cycled to meet thermal/power).
-- **Tokenizer:** deterministic ASCII/BPE with callsign & grid tokens.
+### 5.2 Edge LLM Design
+- **Model selection (off‑the‑shelf):** Llama 3.2 3B (Instruct) quantized (INT8/FP8) and compiled with TensorRT for the declocked Jetson Orin Nano Super. Treat as opportunistic: duty‑cycled and disabled under low‑power/thermal limits with template fallback.
+- **Prompting (system prompt):** Use a fixed system prompt that instructs the model to interpret CubeSat health inputs and output a single, friendly, first‑person sentence ≤120 ASCII bytes, suitable for AX.25 beacons, without emojis or non‑ASCII. Example (abridged):
+  - System: "You are SMART‑QSO, a 1U CubeSat. Given health fields (TIME, MODE, SOC, SUN, RF, PWR, QSO, CALL), write one short, human‑readable status line that begins with 'de <CALL>:' and ends with '73!' unless MODE=SAFE. Keep ≤120 ASCII bytes; no emojis; plain text."
+  - User: "CALL=SMARTQ-1 TIME=2025-08-18Z MODE=ACTIVE SOC=78 SUN=1 RF=1 PWR=GOOD QSO=12"
+- **Inputs (structured features):** CALL, TIME (UTC, ISO‑8601 Z), MODE {ACTIVE|IDLE|SAFE}, SOC (0–100), SUN {0|1}, RF {0|1}, PWR {GOOD|FAIR|LOW}, QSO (recent count). Passed as a concise text prefix to the model.
+- **Decoding constraints:** greedy or top‑k=3, temperature ≤0.7; enforce ASCII‑only and ≤120‑byte cap; reject/regen on violations; if constraints cannot be met within budget, fall back to the template per `docs/BEACON_SPEC.md`.
+- **Tokenizer:** use the model’s native tokenizer (no custom tokens). Domain terms (callsigns, grids) are passed literally in the prompt.
+- **Latency/power target:** declocked Jetson with TensorRT INT8/FP8 aims for <250–400 ms per 24‑token generation at batch=1; disabled in eclipse/low‑SOC. MCU continues basic operations and can emit template beacons without the LLM.
 
-### 5.3 On‑Orbit Learning (No Uplink)
+### 5.3 On‑Orbit Learning (No Uplink) - Stretch Go
 - **Learning mode:** gradient accumulation on MCU with **very small steps**; apply during sunlit surplus only.
 - **No uplink updates:** no over‑the‑air model updates; models are fixed at launch with on‑orbit micro‑tuning only. All beacon content remains plain‑text and logged publicly.
 
