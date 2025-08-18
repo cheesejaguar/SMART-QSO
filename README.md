@@ -14,7 +14,7 @@ An open, community‑driven **1U CubeSat** mission that experiments with onboard
 ## Quick Start
 ```bash
 # clone and enter
- git clone https://github.com/<your-org>/smart-qso.git
+ git clone https://github.com/cheesejaguar/SMART-QSO.git
  cd smart-qso
 
 # build (host) the flight skeleton to run unit tests

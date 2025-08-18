@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use SMART-QSO, please cite this repository."
 title: SMART-QSO: Self‑Managing Amateur Radio Transponder with TinyML/LLM
 authors:
-  - family-names: YourOrg
-    given-names: OpenSat
+  - family-names: Cohen
+    given-names: Aaron
 version: 0.1.0
-repository-code: https://github.com/your-org/smart-qso
+repository-code: https://github.com/cheesejaguar/smart-qso
 license: MIT
