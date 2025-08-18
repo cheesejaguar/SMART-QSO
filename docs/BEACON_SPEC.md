@@ -14,7 +14,7 @@ Reference: Stensat Radio Beacon — frequency bands 2 m/70 cm, UART data interfa
 
 ## AX.25 Envelope
 - Destination: `BEACON` (SSID `-0`)
-- Source: `<CALLSIGN>` (e.g., `SMARTQ-1`)
+- Source: `<CALLSIGN>` (TBD)
 - Path: none (space ops; no terrestrial digipeating)
 - Control: `0x03` (UI)
 - PID: `0xF0` (no L3)
