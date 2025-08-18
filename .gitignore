@@ -47,3 +47,42 @@ __pycache__/
 *.pyd
 .pytest_cache/
 
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Packaging / build artifacts
+dist/
+build/
+sdist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Coverage / test outputs
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# Type checkers
+.mypy_cache/
+.pyre/
+.pytype/
+
+# Tools / configs
+.python-version
+Pipfile.lock
+poetry.lock
+requirements*.txt.bak
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+
