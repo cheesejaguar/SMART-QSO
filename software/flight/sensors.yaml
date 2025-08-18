@@ -1,0 +1,54 @@
+sensors:
+  - id: SET
+    name: Spacecraft Elapsed Timer
+    type: software_timer
+    units: s
+    period_ms: 1000
+  - id: BV
+    name: Battery Voltage
+    type: eps_voltage
+    channel: battery
+    units: V
+    period_ms: 1000
+  - id: BT
+    name: Battery Temperature
+    type: eps_temperature
+    channel: battery
+    units: C
+    period_ms: 2000
+  - id: BUSV
+    name: Bus Voltage
+    type: eps_voltage
+    channel: bus
+    units: V
+    period_ms: 1000
+  - id: BDI
+    name: Battery Discharge Current
+    type: eps_current
+    channel: battery_discharge
+    units: A
+    period_ms: 1000
+  - id: JPC
+    name: Jetson Payload Current
+    type: eps_current
+    channel: jetson
+    units: A
+    period_ms: 1000
+  - id: SPV
+    name: Solar Panel Voltage
+    type: eps_voltage
+    channel: solar
+    units: V
+    period_ms: 1000
+  - id: SPC
+    name: Solar Panel Current
+    type: eps_current
+    channel: solar
+    units: A
+    period_ms: 1000
+  - id: ST
+    name: Status Hex
+    type: status_hex2
+    units: hex
+    period_ms: 1000
+
