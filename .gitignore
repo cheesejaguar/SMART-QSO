@@ -81,8 +81,8 @@ Pipfile.lock
 poetry.lock
 requirements*.txt.bak
 
-# Jupyter
+# Jupyter (allow tracked notebooks in simulation)
 .ipynb_checkpoints/
-*.ipynb
+software/simulation/notebooks/*.ipynb
 
 
