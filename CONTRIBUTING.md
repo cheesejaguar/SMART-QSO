@@ -11,7 +11,7 @@ Thanks for helping build an open, community‑taught satellite! Please:
 ## Development Environment
 - Toolchain: CMake + GCC/Clang for host; ARM GCC for target.
 - OBC RTOS: FreeRTOS (portable stubs in this repo).
-- Payload (Coral Micro): Edge TPU models run via TFLite‑int8; code stubs only.
+- Payload (Jetson Orin Nano Super): TensorRT/ONNX Runtime INT8 engines; declocked and power‑optimized; code stubs only.
 
 ## Style
 - C/C++: clang‑format (LLVM style).

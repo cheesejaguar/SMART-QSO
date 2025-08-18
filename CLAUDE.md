@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SMART-QSO is a 1U CubeSat mission experimenting with onboard agentic AI to manage an amateur radio transponder. The satellite uses TinyML/TinyLM models accelerated by a Google Coral Dev Board Micro (Edge TPU) to learn power availability, predict regional demand, prioritize QSOs fairly, and compose dynamic beacons. It fails gracefully to a conventional transponder if AI is unavailable.
+SMART-QSO is a 1U CubeSat mission experimenting with onboard agentic AI to manage an amateur radio transponder. The satellite uses TinyML/TinyLM models accelerated by a Jetson Orin Nano Super (declocked, DVFS‑limited) to learn power availability, predict regional demand, prioritize QSOs fairly, and compose dynamic beacons. It fails gracefully to a conventional transponder if AI is unavailable.
 
 ## Build Commands
 
@@ -26,7 +26,7 @@ rm -rf build
 1. **Bus**: 1U CubeSat with deployable solar wings, UHF/VHF transponder, magnetorquer ADCS
 2. **Compute**: 
    - Primary: Ultra-low-power OBC (Ambiq Apollo4/STM32L4) running FreeRTOS
-   - AI Payload: Google Coral Dev Board Micro (Edge TPU) - power-gated for burst inference
+   - AI Payload: Jetson Orin Nano Super - declocked and power-gated for burst inference
 3. **AI Agents** (power-aware):
    - Intelligent Power Management Agent (MCU, ~0.2W)
    - QSO Priority Agent (MCU, ~0.1W when active) - tiny CNN <50kB INT8
@@ -35,7 +35,7 @@ rm -rf build
 
 ### Software Architecture
 - **Flight** (`software/flight/`): OBC firmware skeleton with FreeRTOS tasks for power, QSO, and beacon management
-- **Payload** (`software/payload/`): Coral Micro integration for Edge TPU inference bursts
+- **Payload** (`software/payload/`): Jetson integration for TensorRT INT8 bursts
 - **Ground** (`software/ground/`): Tools for beacon processing, model frames, dashboards
 - **Simulation** (`software/simulation/`): Power/link notebooks and event replays
 

@@ -1,5 +1,6 @@
-# Coral Dev Board Micro Integration (Notes)
+# Jetson Orin Nano Super Integration (Notes)
 
-- Power‑gated 5V rail with inrush limiter; thermistor to throttle duty‑cycle.
-- TFLite‑int8 models with Edge TPU delegate where supported.
+- Declocked, DVFS‑limited profiles; aggressive power gating of GPU/CPU clusters.
+- TensorRT/ONNX Runtime INT8 engines; batch=1, low‑latency kernels.
 - IPC with OBC via UART/SPI; watchdog supervised; optional reboot on thermal trip.
+- Thermal: radiator strap + thermistor feedback; duty‑cycle heavy workloads.

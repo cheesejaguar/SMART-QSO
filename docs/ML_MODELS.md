@@ -9,9 +9,9 @@
 - Gradient accumulation with bounded steps; sunlit only; checkpoint to FRAM.
 - Federated updates: community submits small, bounded patches; sandbox validated.
 
-## TinyLM on Coral Dev Board Micro — Recommended Implementation
+## TinyLM on Jetson Orin Nano Super — Recommended Implementation
 
-Goal: Generate one‑sentence, first‑person status lines for 1200 bps AFSK beacons (see `docs/BEACON_SPEC.md`). Run fully on the Coral Dev Board Micro (Cortex‑M7 ~800 MHz, ~64 MB RAM) with optional Edge TPU acceleration when ops are supported. Reference prior art shows feasibility of tiny LMs on this board (e.g., llama4micro).
+Goal: Generate one‑sentence, first‑person status lines for 1200 bps AFSK beacons (see `docs/BEACON_SPEC.md`). Run on a declocked Jetson Orin Nano Super (DVFS‑limited, TensorRT INT8) with aggressive duty‑cycling. MCU provides fallback templates when Jetson is idle.
 
 ### Model choice
 - Primary: Micro‑Transformer decoder (causal)
@@ -20,7 +20,7 @@ Goal: Generate one‑sentence, first‑person status lines for 1200 bps AFSK bea
   - Architecture: 4 layers, d_model=128, n_heads=4, d_ff=256, rotary or learned pos‑emb
   - Params: ≈1.0–1.3 M unquantized; ≈0.8–1.2 MB INT8 weights
   - Output cap: ≤ 32 tokens (kept ≤ 120 ASCII bytes)
-- Fallback: Char‑RNN/GRU (1–2 layers, 256 units) if transformer ops are unavailable; smaller and simpler to port on TF Lite Micro.
+- Fallback: MCU template generation or micro‑RNN if Jetson is offline.
 
 Rationales and examples: nano LMs for edge (TinyLlama, Phi‑3 variants) and an existence proof on Coral Micro via llama4micro.
 
@@ -32,45 +32,46 @@ Rationales and examples: nano LMs for edge (TinyLlama, Phi‑3 variants) and an 
    - Sample teacher (desktop) responses from a small instruction model (e.g., TinyLlama or Phi‑3‑mini) using structured prompts containing the control tokens.
    - Train student micro‑Transformer on teacher pairs; KL loss on distributions + CE on tokens; enforce brevity via length penalties.
 3. Quantization & pruning
-   - Quantization‑aware training to INT8 (per‑channel for matmuls). Optionally prune 20–30% heads/neurons and fine‑tune.
+   - Quantization‑aware training to INT8; structured pruning 20–30%; fine‑tune.
 4. Export
-   - Convert to TFLite (INT8). Try compiling with Edge TPU compiler; fall back to CPU if ops aren’t supported.
+   - Convert to ONNX → TensorRT INT8 engine (calibration dataset from domain prompts).
 
-### On‑device runtime (Cortex‑M7, optional Edge TPU)
-- Inference library: TensorFlow Lite Micro for MCU portability; use Edge TPU delegate only if the compiled model maps supported ops.
+### On‑device runtime (Jetson declocked)
+- Inference library: TensorRT INT8 (batch=1, low‑latency tactics); ONNX Runtime as alternative.
 - Prompting: Build a short, deterministic prompt from current OBC state:
   - Prefix control tokens (discrete buckets for SOC, QSO, etc.)
   - Add a fixed textual prelude like: `de <CALL>:`
 - Decoding: Greedy or top‑k=3 with temperature 0.7; hard cap 32 tokens or 120 bytes; banned‑token list; fall back to a terse template if limits exceeded or invalid byte emitted.
-- Latency target: < 100 ms for 24 tokens on M7; schedule generation immediately prior to beacon transmit window.
+- Latency target: < 50–80 ms for 24 tokens at declocked settings; schedule generation just before beacon transmit window.
 
 Minimal host‑side sketch (Python; training/export side):
 ```python
 import tensorflow as tf
 
 # Assume a trained Keras micro-transformer
-converter = tf.lite.TFLiteConverter.from_keras_model(student_model)
-converter.optimizations = [tf.lite.Optimize.DEFAULT]
-converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-converter.inference_input_type = tf.uint8
-converter.inference_output_type = tf.uint8
-tflite_model = converter.convert()
-open('tinylm_beacon_int8.tflite', 'wb').write(tflite_model)
+import onnx
+import tensorrt as trt
+
+# export to ONNX then build INT8 engine with TensorRT (pseudo-code)
+onnx.save(student_onnx, 'tinylm_beacon_int8.onnx')
+builder = trt.Builder(trt.Logger(trt.Logger.WARNING))
+network = builder.create_network(1 << int(trt.NetworkDefinitionCreationFlag.EXPLICIT_BATCH))
+# ... parse ONNX, configure INT8 calibrator, set low-latency profile ...
+engine = builder.build_serialized_network(network, config)
+open('tinylm_beacon_int8.plan', 'wb').write(engine)
 ```
 
-On‑board invocation (C/TFLM pseudocode):
+On‑board invocation (Jetson, Python/C++):
 ```c
 // Setup once
-tflite_interpreter_t* it = tflm_create("/flash/tinylm_beacon_int8.tflite");
+engine = load_trt_engine('/flash/tinylm_beacon_int8.plan')
 
 // Build prompt tokens from telemetry
-uint8_t prompt[64]; size_t n = encode_control_tokens(prompt, state);
+prompt = encode_control_tokens(state)
 
 // Decode loop (greedy)
 for (int t = 0; t < MAX_STEPS && bytes_out < 120; ++t) {
-  tflm_set_input(it, prompt, n);
-  tflm_invoke(it);
-  uint8_t tok = tflm_get_next_token(it);
+  tok = trt_decode_step(engine, prompt)
   if (is_banned(tok)) break;
   append_ascii(tok, out_buf, &bytes_out);
   prompt[n++] = tok; // next‑token conditioning (windowed)
@@ -79,16 +80,16 @@ for (int t = 0; t < MAX_STEPS && bytes_out < 120; ++t) {
 
 ### Resource budgets (target)
 - Weights (flash): ≤ 1.2 MB (INT8)
-- Runtime arena (RAM): ≤ 2 MB TFLM arena for 64‑token context
-- Compute: < 5 GOPS per sentence; acceptable on 800 MHz M7 at low duty cycle
-- Power: generate only on beacon cadence; sleep otherwise
+- Runtime memory: ≤ 128 MB allocated; power‑saving via declocking/DVFS and process suspension
+- Compute: sized to run at declocked clocks within 50–80 ms per sentence
+- Power: generate only on beacon cadence; Jetson power‑gated otherwise
 
 ### Integration with Beacon Spec
 - Generator must always produce a second, machine‑parsable tail (key–values) as defined in `docs/BEACON_SPEC.md`.
 - If generation fails, use the SAFE template from the spec.
 
 ### References
-- Coral Dev Board Micro nano‑LLM demo: llama4micro on Coral Micro — [github.com/maxbbraun/llama4micro](https://github.com/maxbbraun/llama4micro)
+- Jetson runtime & TensorRT docs: NVIDIA developer resources
 - Edge/embedded LLM notes (TinyLlama, Phi‑3 on edge): [knowledgeinme.com](https://knowledgeinme.com/micro-llms/)
 - Edge AI quantization/pruning overview: [next.gr](https://next.gr/ai/edge-ai-iot/running-llms-on-raspberry-pi-and-microcontrollers)
 - TensorFlow Lite Micro (background): [arXiv:2010.08678](https://arxiv.org/abs/2010.08678)

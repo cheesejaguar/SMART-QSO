@@ -4,12 +4,12 @@
 
 **Spacecraft Class:** 1U CubeSat (10 × 10 × 11.35 cm max envelope per CDS)
 
-**Primary Novelty:** Autonomous, community‑taught amateur radio transponder using onboard TinyML/LLM models accelerated by a Google Coral Dev Board Micro. Operates as a conventional ham transponder if AI is unavailable (fail‑graceful).
+**Primary Novelty:** Autonomous, community‑taught amateur radio transponder using onboard TinyML/LLM models accelerated by a Jetson Orin Nano Super (declocked, power‑optimized). Operates as a conventional ham transponder if AI is unavailable (fail‑graceful).
 
 ---
 
 ## 1. Executive Summary
-SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an amateur radio linear/FM transponder in orbit. The satellite learns power availability, predicts regional demand, prioritizes QSOs fairly, and composes context‑aware telemetry beacons. A **Google Coral Dev Board Micro** (Edge TPU + RT1176 MCU) serves as the AI payload for bursty inference and offline micro‑training; everyday autonomy runs on an **ultra‑low‑power controller** (Ambiq Apollo4 or STM32L4 class) to preserve energy.
+SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an amateur radio linear/FM transponder in orbit. The satellite learns power availability, predicts regional demand, prioritizes QSOs fairly, and composes context‑aware telemetry beacons. A **Jetson Orin Nano Super** (declocked, DVFS‑limited) serves as the AI payload for bursty inference and offline micro‑training; everyday autonomy runs on an **ultra‑low‑power controller** (Ambiq Apollo4 or STM32L4 class) to preserve energy.
 
 **Key Outcomes at PDR:**
 - Mission concept validated by system budgets and regulatory path.
@@ -32,8 +32,8 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 - 1U form factor, ≤1.80 kg wet mass; CG within CDS rail limits; deployables remain within envelope pre‑deploy.
 - Average orbit power **≥4 W** (sunlit average ≥8–10 W) using two deployable wings; energy storage ≥30 Wh.
 - Transponder RF: **Uplink 435–438 MHz**, **Downlink 145.8–146 MHz** (final per IARU coordination). Downlink RF power selectable 0.5–2 W; linear or FM mode selectable.
-- **Payload computing:** Coral Dev Board Micro (65×30×6.8 mm) with Edge TPU for burst inference; MCU for background autonomy ≤50 mW average.
-- **Software:** RTOS on low‑power MCU; TinyML (TFLM) for detectors; TFLite‑int8 on Coral Edge TPU for TinyLM (~1 MB) when sun & thermal allow.
+- **Payload computing:** Jetson Orin Nano Super (declocked to minimum stable clocks) for burst inference; MCU for background autonomy ≤50 mW average.
+- **Software:** RTOS on low‑power MCU; TinyML for detectors; TensorRT/ONNX Runtime INT8 on Jetson for TinyLM (~1 MB) when sun & thermal allow.
 - **ADCS:** 3‑axis magnetorquers + coarse sun sensors; detumble ≤1 orbit; pointing knowledge ≤10° (for power biasing only; comms omni).
 - **Thermal:** keep Coral Edge TPU case ≤70 °C; battery 0–40 °C nominal; heaters allowed ≤1 W burst.
 - **Regulatory:** Amateur‑satellite service & IARU coordination; operations in the clear (no encryption); separate EOL compliance documentation.
@@ -85,8 +85,8 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 - **Modes:** Launch‑lock → Detumble → Power‑bias Sun‑seek → Safe → Nominal.
 
 ### 4.6 Thermal
-- Conductive paths from Coral and PA to radiator face; pyrolytic graphite sheet + aluminum spreader; black‑paint radiator.
-- Edge TPU duty‑cycle & throttling from onboard thermistors; battery insulated, kept 0–40 °C via heaters.
+- Conductive paths from Jetson module and PA to radiator face; pyrolytic graphite sheet + aluminum spreader; black‑paint radiator.
+- Jetson duty‑cycle & throttling from onboard thermistors; battery insulated, kept 0–40 °C via heaters.
 
 ### 4.7 Fault Mgmt & FDIR
 - **Hard partitions:** TT&C and transponder operate independent of AI.
@@ -103,12 +103,12 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
    - Tiny CNN/keyword model (<50 kB INT8) to detect distress patterns, rare grids, and jamming anomalies.
 3. **Adaptive Transponder Controller** (MCU supervising RF)
    - Schedules activation by learned regional demand; extends during active QSOs; ensures geographic fairness.
-4. **Smart Beacon Agent** (Coral when available; MCU fallback)
+4. **Smart Beacon Agent** (Jetson when available; MCU fallback)
    - Composes human‑readable telemetry using a **TinyLM (~1 MB)**; celebrates milestones; explains ops.
 
 ### 5.2 TinyLM (GPT‑nano) Design
 - **Architecture target:** 4‑layer Transformer, d_model=128, 4 heads, seq_len=64, vocab≈96 (ASCII + ham tokens). **Params ~0.8 M** (INT8 ≈0.8 MB) + embeddings/heads ≈1.0 MB total.
-- **Runtime:** MCU‑only for shortest generations; **Edge TPU bursts** for longer messages (duty‑cycled to meet thermal/power).
+- **Runtime:** MCU‑only for shortest generations; **Jetson bursts** for longer messages (duty‑cycled to meet thermal/power).
 - **Tokenizer:** deterministic ASCII/BPE with callsign & grid tokens.
 
 ### 5.3 Online Learning & Community Updates (Open Operation)
@@ -118,7 +118,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 
 ### 5.4 Software Stack
 - **RTOS:** FreeRTOS (OBC), baremetal control loops for power critical paths.
-- **ML runtimes:** TFLM on MCU; TFLite‑int8 on Coral Edge TPU for supported ops; custom kernels for tiny transformer.
+- **ML runtimes:** TFLM on MCU; TensorRT/ONNX Runtime INT8 on Jetson for supported ops; custom lightweight kernels as needed.
 - **Languages:** C/C++ for flight; Python only for ground tools.
 
 ---
@@ -138,7 +138,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 | Structure & rails | 0.18 |
 | Deployable panels & hinges | 0.12 |
 | OBC (MCU board) | 0.06 |
-| **Coral Dev Board Micro** | 0.01 |
+| **Jetson Orin Nano Super** | 0.10 |
 | EPS PCB & MPPT | 0.10 |
 | Battery pack (~30 Wh) | 0.20 |
 | UHF/VHF radio & PA | 0.20 |
@@ -157,7 +157,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 | Mode | Load Elements | Power [W] | Notes |
 |---|---|---:|---|
 | **Idle** | MCU sleep, RX monitor, 1/min TinyML ping | **0.3** | RX squelch duty‑cycled; MCU deep sleep <1 mW, wake housekeeping. |
-| **Active Transponder** | RF TX/RX 0.5–2 W RF (bus 2–3 W), AI bursts (Edge TPU), ADCS actuation | **~4.0 (avg)** | AI bursts ≤10–15% duty; magnetorquers ≤0.5 W avg during passes. |
+| **Active Transponder** | RF TX/RX 0.5–2 W RF (bus 2–3 W), AI bursts (Jetson), ADCS actuation | **~4.0 (avg)** | AI bursts ≤10–15% duty; magnetorquers ≤0.5 W avg during passes. |
 | **Learning** | MCU micro‑training + occasional TPU assist | **~1.0 (avg)** | Sunlit only; paused on battery <40%. |
 
 **Energy balance:** With orbit‑avg 4 W available, transponder can operate at **~20–30% duty per orbit** while preserving SOC; higher duty in continuous sun or with reduced PA power.
@@ -180,15 +180,15 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 - **Inspection (I):** fit checks to CDS; harness; workmanship.
 - **Demonstration (D):** over‑the‑air end‑to‑end passes with partner ground stations.
 
-**Qualification approach:** Proto‑flight at the unit level; development flatsat for software & ML regression; Coral thermal throttling characterization with radiator mock‑ups.
+**Qualification approach:** Proto‑flight at the unit level; development flatsat for software & ML regression; Jetson thermal throttling characterization with radiator mock‑ups and DVFS sweeps.
 
 ---
 
 ## 9. Risk Assessment (Top‑10)
 | ID | Risk | Likelihood | Consequence | Mitigation |
 |---|---|---|---|---|
-| R1 | **Coral Dev Board Micro** power spikes/thermal overlimit | M | H | Power‑gate with soft‑start; inrush limiters; radiator strap; temperature derates; inference duty‑cycle caps. |
-| R2 | Edge TPU not space‑qualified (TID/SEU) | M | H | Treat as opportunistic payload; watchdog‑supervised; reboot isolation; AI optional; flight software runs without it. |
+| R1 | **Jetson Orin Nano Super** power spikes/thermal overlimit | M | H | Declock + DVFS limiting; power‑gate with soft‑start; radiator strap; temperature derates; inference duty‑cycle caps. |
+| R2 | Jetson module not space‑qualified (TID/SEU) | M | H | Treat as opportunistic payload; watchdog‑supervised; reboot isolation; AI optional; flight software runs without it. |
 | R3 | Power shortfall vs ops demand | M | M | Deployables sized for ≥8 W sunlit; AI scheduler ensures energy‑positive plan; reduce PA power; shed learning mode. |
 | R4 | IARU frequency coordination changes | L | M | Wide‑tunable radio; reconfigurable beacons; finalize bands early; public documentation. |
 | R5 | Community updates abused (spam/poisoning) | M | M | Public, rate‑limited frames; bounded update schema; sandbox; quorum voting; quick rollback; logs in beacon. |
@@ -215,7 +215,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 - EPS + battery (30 Wh): $12k
 - UHF/VHF transceiver + PA + antennas: $25k
 - ADCS (mag torquers + sensors): $8k
-- **Coral Dev Board Micro** + harness & rad mitigations: $0.5k–1.5k
+- **Jetson Orin Nano Super** + harness & rad mitigations: $0.5k–3k
 - Deorbit device: $8k–15k
 - Misc (harnessing, machining, environmental test): $20k
 - **Total hardware ROM:** **$105k–$125k** (ex‑launch & ops)
@@ -233,10 +233,10 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 1. **Transponder architecture:** FM repeater vs. narrow linear; impact on PA power and user density.
 2. **Arrays:** 2‑wing vs. 3‑wing deployables; hinge torque margins.
 3. **Memory tech:** FRAM vs. MRAM for higher TID margin; vendor selection.
-4. **LLM runtime:** Edge TPU op coverage for transformer ops vs. MCU‑only kernels.
+4. **LLM runtime:** TensorRT/ONNX op coverage for tiny transformer ops vs. MCU‑only fallback.
 5. **Regulatory detail:** confirm acceptability of model‑update frames as “in the clear” amateur traffic; scope for non‑amateur backdoor telecommand (if needed).
 
 ---
 
 ### PDR Disposition
-The SMART‑QSO design is **feasible within a 1U** envelope with margin provided by deployable solar wings, strict power scheduling, and a fail‑graceful architecture that treats AI as an opportunistic enhancement to a conventional amateur transponder. The team recommends proceeding to CDR with focused engineering on EPS thermal‑power margins, Coral burst management, and regulatory confirmation of the open update workflow.
+The SMART‑QSO design is **feasible within a 1U** envelope with margin provided by deployable solar wings, strict power scheduling, and a fail‑graceful architecture that treats AI as an opportunistic enhancement to a conventional amateur transponder. The team recommends proceeding to CDR with focused engineering on EPS thermal‑power margins, Jetson DVFS/declocking management, and regulatory confirmation of the open update workflow.
