@@ -1,0 +1,28 @@
+# Simple Unit Tests CMakeLists.txt for SMART-QSO Flight Software
+# No external dependencies required
+
+cmake_minimum_required(VERSION 3.10)
+project(smart_qso_simple_tests)
+
+# Set C standard
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+
+# Create test executable
+add_executable(smart_qso_simple_tests
+    test_main_simple.c
+)
+
+# Add test
+add_test(NAME SimpleUnitTests COMMAND smart_qso_simple_tests)
+
+# Set test properties
+set_tests_properties(SimpleUnitTests PROPERTIES
+    TIMEOUT 300
+)
+
+# Enable testing
+enable_testing()
+
+# Print test information
+message(STATUS "Simple unit tests configured - no external dependencies required")
