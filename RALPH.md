@@ -53,6 +53,8 @@ All project documentation and processes shall comply with:
 11. [Hardware Abstraction & Portability](#11-hardware-abstraction--portability)
 12. [Verification & Validation](#12-verification--validation)
 13. [Lifecycle Phase Gate Requirements](#13-lifecycle-phase-gate-requirements)
+14. [CubeSat-Specific Requirements & Standards](#14-cubesat-specific-requirements--standards)
+15. [Additional Software Considerations for Space Environment](#15-additional-software-considerations-for-space-environment)
 
 ---
 
@@ -1147,6 +1149,271 @@ This section defines the requirements for each lifecycle phase gate per NPR 7120
 
 ---
 
+## 14. CubeSat-Specific Requirements & Standards
+
+This section covers CubeSat-specific standards, launch provider requirements, and regulatory compliance not addressed elsewhere. These are critical for mission success and launch approval.
+
+### 14.1 CubeSat Design Specification (CDS) Compliance
+
+#### 14.1.1 Cal Poly CubeSat Standard
+- [ ] **Verify CDS compliance**: Create `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:
+  - [ ] Mechanical dimensions compliance (100mm × 100mm × 113.5mm for 1U)
+  - [ ] Mass compliance (≤2.0 kg for 1U per Rev 14.1)
+  - [ ] Rail specifications and surface finish
+  - [ ] Center of gravity location (within 2cm of geometric center)
+  - [ ] Deployment switch locations and operation
+  - [ ] RBF (Remove Before Flight) pin requirements
+  - [ ] Separation spring requirements
+
+#### 14.1.2 Launch Provider Interface Requirements
+- [ ] **Create Launch Provider Compliance Matrix**: Create `docs/compliance/LAUNCH_PROVIDER_ICD.md`:
+  - [ ] Document target deployer (e.g., NanoRacks NRCSD, Rocket Lab Maxwell, ISIS QuadPack)
+  - [ ] Deployer-specific ICD compliance matrix
+  - [ ] Mechanical interface verification plan
+  - [ ] Electrical interface requirements (deployment switches, inhibits)
+  - [ ] Keep-out zones and protrusion limits
+  - [ ] Mass properties reporting format
+
+### 14.2 Environmental Testing Standards
+
+#### 14.2.1 GEVS Compliance
+- [ ] **Create Environmental Test Plan**: Create `docs/verification/ENVIRONMENTAL_TEST_PLAN.md` (per GSFC-STD-7000):
+  - [ ] Test article definition (EM, Protoflight, Flight)
+  - [ ] Test sequence and rationale
+  - [ ] Proto-flight vs. qualification levels selection
+  - [ ] Test facility requirements
+  - [ ] Success criteria for each test
+
+- [ ] **Vibration Testing**:
+  - [ ] Random vibration test specification
+  - [ ] Sine burst/sweep requirements
+  - [ ] Shock test requirements (if required by provider)
+  - [ ] Pre/post-test functional verification
+  - [ ] Notching strategy for sensitive components
+
+- [ ] **Thermal Vacuum Testing**:
+  - [ ] Temperature range (operational and survival)
+  - [ ] Number of thermal cycles
+  - [ ] Dwell times at temperature extremes
+  - [ ] Vacuum level requirements
+  - [ ] Thermal balance test requirements
+  - [ ] Functional test at temperature
+
+- [ ] **EMC/EMI Testing** (per MIL-STD-461G tailored):
+  - [ ] Conducted emissions (CE)
+  - [ ] Radiated emissions (RE)
+  - [ ] Conducted susceptibility (CS)
+  - [ ] Radiated susceptibility (RS)
+  - [ ] Launch provider EMC limits compliance
+
+#### 14.2.2 Outgassing Compliance
+- [ ] **Materials Outgassing**: Create `docs/compliance/MATERIALS_LIST.md`:
+  - [ ] ASTM E595 compliance for all materials
+  - [ ] TML < 1.0%, CVCM < 0.1% requirements
+  - [ ] NASA Outgassing Database cross-reference
+  - [ ] Non-compliant material waiver process
+
+### 14.3 Orbital Debris Requirements (NASA-STD-8719.14)
+
+- [ ] **Create Orbital Debris Assessment**: Create `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md`:
+  - [ ] 25-year deorbit compliance demonstration
+  - [ ] Deorbit analysis with drag device (reference `mission/CONOPS.md`)
+  - [ ] Casualty risk assessment (Dc < 1:10,000)
+  - [ ] Passivation plan (battery, propulsion, pressure vessels)
+  - [ ] Debris release assessment (no intentional debris)
+  - [ ] Collision avoidance capability (if any)
+
+- [ ] **Passivation Requirements**:
+  - [ ] Battery passivation procedure
+  - [ ] Stored energy depletion plan
+  - [ ] RF transmitter disable at EOL
+  - [ ] Documentation for launch provider
+
+### 14.4 Workmanship Standards (NASA-STD-8739 Family)
+
+- [ ] **Create Workmanship Plan**: Create `docs/manufacturing/WORKMANSHIP_PLAN.md`:
+  - [ ] Reference applicable NASA-STD-8739.x standards
+  - [ ] Inspection criteria and procedures
+  - [ ] Non-conformance handling
+
+- [ ] **Soldering/Wiring Standards**:
+  - [ ] NASA-STD-8739.3 (Soldered Electrical Connections) or IPC J-STD-001 Space
+  - [ ] NASA-STD-8739.4 (Crimping, Interconnecting Cables)
+  - [ ] IPC-A-610 Class 3 (Space Addendum) acceptability criteria
+  - [ ] Solder joint inspection requirements
+  - [ ] Wire harness documentation
+
+- [ ] **Conformal Coating & Staking**:
+  - [ ] NASA-STD-8739.1 (Workmanship for Staking and Conformal Coating)
+  - [ ] Coating material selection (polyurethane, silicone, etc.)
+  - [ ] Coverage requirements and keep-out areas
+
+- [ ] **ESD Control**:
+  - [ ] ANSI/ESD S20.20 compliance
+  - [ ] ESD-sensitive component handling procedures
+  - [ ] ESD training requirements
+
+### 14.5 Parts, Materials & Radiation
+
+#### 14.5.1 EEE Parts
+- [ ] **Create Parts List**: Create `docs/manufacturing/EEE_PARTS_LIST.md`:
+  - [ ] All electronic parts with manufacturer P/N
+  - [ ] Part classification (space-grade, hi-rel, COTS)
+  - [ ] Derating analysis per EEE-INST-002 (or project derating policy)
+  - [ ] Single-point failure identification
+  - [ ] Obsolescence assessment
+
+#### 14.5.2 Radiation Environment
+- [ ] **Create Radiation Analysis**: Create `docs/environment/RADIATION_ANALYSIS.md`:
+  - [ ] Mission orbital radiation environment (trapped protons, electrons, solar events)
+  - [ ] Total Ionizing Dose (TID) assessment for mission duration
+  - [ ] Single Event Effects (SEE) assessment
+  - [ ] Component TID/SEE tolerance summary
+  - [ ] Shielding analysis (if applicable)
+  - [ ] Radiation mitigation strategies (especially for Jetson - reference R2 in Risk Register)
+
+#### 14.5.3 Restricted/Prohibited Materials
+- [ ] **Materials Compliance**: Update `docs/compliance/MATERIALS_LIST.md`:
+  - [ ] No prohibited materials per launch provider
+  - [ ] Flammability requirements (NASA-STD-6001 if applicable)
+  - [ ] Magnetic materials assessment
+  - [ ] Hazardous materials identification
+
+### 14.6 RF & Spectrum Regulatory
+
+#### 14.6.1 IARU Coordination
+- [ ] **IARU Coordination Package**: Create `docs/regulatory/IARU_COORDINATION.md`:
+  - [ ] Coordination application status tracker
+  - [ ] Frequency coordination letter (when received)
+  - [ ] Coordinated parameters record
+  - [ ] Reference existing `docs/REGULATORY.md` for process
+
+#### 14.6.2 National Spectrum Authority
+- [ ] **National Licensing**: Create `docs/regulatory/SPECTRUM_LICENSE.md`:
+  - [ ] FCC Experimental License or Part 97 coordination (if US)
+  - [ ] National administration filing requirements
+  - [ ] ITU coordination/notification status
+  - [ ] Callsign assignment documentation
+
+#### 14.6.3 RF Compliance Testing
+- [ ] **RF Test Documentation**: Create `docs/verification/RF_TEST_RESULTS.md`:
+  - [ ] Transmitter power output verification
+  - [ ] Frequency accuracy and stability
+  - [ ] Modulation characteristics (deviation, bandwidth)
+  - [ ] Spurious emissions compliance
+  - [ ] Occupied bandwidth measurement
+  - [ ] EIRP calculation and verification
+
+### 14.7 Ground Segment Documentation
+
+#### 14.7.1 Ground Station Design
+- [ ] **Ground Station Documentation**: Create `docs/ground/GROUND_STATION_DESIGN.md`:
+  - [ ] Station architecture (antenna, TNC, software)
+  - [ ] Link budget analysis (uplink if applicable, downlink)
+  - [ ] Pass prediction and scheduling
+  - [ ] Data handling and archiving
+
+#### 14.7.2 Mission Operations
+- [ ] **Mission Operations Plan**: Create `docs/operations/MISSION_OPERATIONS_PLAN.md`:
+  - [ ] Operations team organization
+  - [ ] Shift schedules and coverage
+  - [ ] Nominal operations procedures
+  - [ ] Contingency operations procedures
+  - [ ] Handover procedures
+
+#### 14.7.3 Command & Telemetry
+- [ ] **Command/Telemetry Database**: Create `docs/operations/CMD_TLM_DATABASE.md`:
+  - [ ] Telemetry point definitions (ID, type, units, limits)
+  - [ ] Command definitions (if uplink capability added)
+  - [ ] Derived parameters and calculations
+  - [ ] Display page definitions
+
+### 14.8 Export Control & Technology Transfer
+
+- [ ] **Export Control Assessment**: Create `docs/compliance/EXPORT_CONTROL.md`:
+  - [ ] ITAR applicability assessment (if US)
+  - [ ] EAR/Commerce Control List review
+  - [ ] Technology Assessment/Jurisdiction determination
+  - [ ] Export license requirements (if any)
+  - [ ] Foreign person access controls
+  - [ ] International partner agreements (if applicable)
+
+### 14.9 End-of-Life & Disposal
+
+- [ ] **End-of-Life Plan**: Create `docs/operations/END_OF_LIFE_PLAN.md`:
+  - [ ] Mission termination criteria
+  - [ ] Passivation sequence
+  - [ ] Final beacon/goodbye message
+  - [ ] Battery discharge procedure
+  - [ ] RF transmitter disable command/timer
+  - [ ] Deorbit device activation (if applicable)
+  - [ ] Post-mission tracking coordination
+
+### 14.10 Pre-Launch & Launch Operations
+
+#### 14.10.1 Integration & Test at Launch Site
+- [ ] **Launch Site Operations Plan**: Create `docs/operations/LAUNCH_SITE_OPS.md`:
+  - [ ] Pre-shipment checklist
+  - [ ] Transport and handling procedures
+  - [ ] Launch site integration procedures
+  - [ ] Battery charging timeline
+  - [ ] Final functional test procedures
+  - [ ] RBF pin removal sequence
+  - [ ] Deployment switch arming verification
+  - [ ] Closeout inspection
+
+#### 14.10.2 Launch Campaign Documentation
+- [ ] **Launch Campaign Checklist**: Create `docs/operations/LAUNCH_CAMPAIGN_CHECKLIST.md`:
+  - [ ] Required deliverables to launch provider
+  - [ ] Safety data package
+  - [ ] Mass properties final report
+  - [ ] Frequency coordination confirmation
+  - [ ] Insurance documentation
+  - [ ] Flight prediction/TLE coordination
+
+---
+
+## 15. Additional Software Considerations for Space Environment
+
+### 15.1 Radiation Effects on Software
+
+- [ ] **Radiation Mitigation in Software**: Create `software/flight/docs/RADIATION_MITIGATION.md`:
+  - [ ] Memory scrubbing implementation plan
+  - [ ] EDAC (Error Detection and Correction) usage
+  - [ ] Critical data voting/TMR strategy
+  - [ ] Checkpoint and restart capability
+  - [ ] Watchdog response to radiation upsets
+  - [ ] Register refresh for configuration registers
+
+### 15.2 Bootloader & Software Update
+
+- [ ] **Bootloader Requirements**: Create `software/flight/docs/BOOTLOADER_REQUIREMENTS.md`:
+  - [ ] Bootloader architecture (if applicable)
+  - [ ] Golden image protection
+  - [ ] Software update mechanism (if uplink added)
+  - [ ] Rollback capability
+  - [ ] Boot sequence and timeout handling
+
+### 15.3 Time Management
+
+- [ ] **Time Management Design**: Create `software/flight/docs/TIME_MANAGEMENT.md`:
+  - [ ] Onboard time reference source
+  - [ ] Time synchronization with ground (if applicable)
+  - [ ] Time stamping of telemetry and events
+  - [ ] Leap second handling
+  - [ ] Time format standards (UTC, GPS, MET)
+
+### 15.4 Autonomous Operations
+
+- [ ] **Autonomy Design**: Create `software/flight/docs/AUTONOMY_DESIGN.md`:
+  - [ ] Autonomous safe mode entry conditions
+  - [ ] Beacon-only mode operation (no ground contact required)
+  - [ ] Power-based operational mode selection
+  - [ ] Thermal protection autonomous actions
+  - [ ] Communication loss response
+
+---
+
 ## Summary Checklist
 
 ### Phase 1: Immediate Code Quality (Priority: Critical)
@@ -1208,6 +1475,52 @@ This section defines the requirements for each lifecycle phase gate per NPR 7120
 | JPL D-60411 | JPL Institutional Coding Standard | C language coding rules (Power of Ten) |
 | MISRA C:2012 | Guidelines for C | Industry coding standard for safety-critical systems |
 
+### CubeSat & Launch Vehicle Standards
+
+| Standard | Title | Applicability |
+|----------|-------|---------------|
+| Cal Poly CDS Rev 14.1 | CubeSat Design Specification | Mechanical/electrical form factor requirements |
+| GSFC-STD-7000 (GEVS) | General Environmental Verification Standard | Environmental testing requirements |
+| NASA-STD-8719.14 | Process for Limiting Orbital Debris | Deorbit and passivation requirements |
+| MIL-STD-1540E | Test Requirements for Launch Vehicles | Environmental test levels |
+| MIL-STD-461G | EMI/EMC Requirements | Electromagnetic compatibility testing |
+
+### Workmanship & Manufacturing Standards
+
+| Standard | Title | Applicability |
+|----------|-------|---------------|
+| NASA-STD-8739.1 | Workmanship for Staking/Conformal Coating | PCB protection |
+| NASA-STD-8739.3 | Soldered Electrical Connections | Soldering workmanship |
+| NASA-STD-8739.4 | Crimping, Interconnecting Cables | Cable/harness assembly |
+| IPC J-STD-001 Space | Soldering for Electrical/Electronic Assemblies | Industry soldering standard |
+| IPC-A-610 Class 3 | Acceptability of Electronic Assemblies | Inspection criteria |
+| ANSI/ESD S20.20 | ESD Control Program | Electrostatic discharge protection |
+| ASTM E595 | Outgassing of Spacecraft Materials | Materials qualification |
+
+### Parts & Radiation Standards
+
+| Standard | Title | Applicability |
+|----------|-------|---------------|
+| EEE-INST-002 | Instructions for EEE Parts Selection | Parts derating and selection |
+| NASA-HDBK-4002A | Mitigating In-Space Charging Effects | Spacecraft charging |
+| ECSS-E-HB-10-12A | Calculation of Radiation Effects | Radiation environment analysis |
+
+### RF & Regulatory Standards
+
+| Standard | Title | Applicability |
+|----------|-------|---------------|
+| IARU Satellite Coordination | Amateur Satellite Frequency Coordination | Spectrum coordination |
+| ITU Radio Regulations | International Telecommunication Union | International spectrum rules |
+| FCC Part 97 | Amateur Radio Service Rules | US amateur radio regulations |
+| 47 CFR Part 25 | Satellite Communications (if non-amateur) | Commercial satellite licensing |
+
+### Export Control
+
+| Regulation | Title | Applicability |
+|------------|-------|---------------|
+| ITAR (22 CFR 120-130) | International Traffic in Arms Regulations | Defense articles/services |
+| EAR (15 CFR 730-774) | Export Administration Regulations | Dual-use items |
+
 ### NPR 7120.5 Key References
 
 | Section | Topic | Application to SMART-QSO |
@@ -1250,7 +1563,8 @@ This section defines the requirements for each lifecycle phase gate per NPR 7120
 
 ---
 
-*Document Version: 1.1*
+*Document Version: 1.2*
 *Generated: 2026-01-02*
-*Audit Scope: SMART-QSO Repository @ commit 883378e*
+*Audit Scope: SMART-QSO Repository @ commit f0186ce*
 *Governing Framework: NPR 7120.5 Rev. F, NPR 7123.1 Rev. E*
+*CubeSat Standard: Cal Poly CDS Rev 14.1*
