@@ -26,7 +26,7 @@ This document summarizes the Critical Design Review (CDR) readiness status for t
 | Requirements Documentation | Complete | 100% |
 | Interface Documentation | Complete | 100% |
 
-**Total Documentation: 85+ files | Test Procedures: 11 | Flight SW Modules: 11**
+**Total Documentation: 90+ files | Test Procedures: 11 | Flight SW Modules: 11 | Scripts: 2**
 
 ---
 
@@ -101,7 +101,7 @@ Build Result: SUCCESS (100%)
 | Software Version Description | docs/software/SOFTWARE_VERSION_DESCRIPTION.md | Complete |
 | Requirements Traceability | docs/requirements/REQUIREMENTS_TRACEABILITY.md | Complete |
 
-### 3.3 Flight Software Design Documents (9 documents)
+### 3.3 Flight Software Design Documents (10 documents)
 
 | Document | Location | Status |
 |----------|----------|--------|
@@ -114,6 +114,7 @@ Build Result: SUCCESS (100%)
 | Timing Analysis | software/flight/docs/TIMING_ANALYSIS.md | Complete |
 | Include Dependencies | software/flight/docs/INCLUDE_DEPENDENCIES.md | Complete |
 | Naming Convention | software/flight/docs/NAMING_CONVENTION.md | Complete |
+| MISRA Deviations | software/flight/docs/MISRA_DEVIATIONS.md | Complete |
 
 ### 3.4 Hardware Design Documents (5 documents)
 
@@ -392,7 +393,7 @@ Build Result: SUCCESS (100%)
 
 The SMART-QSO mission has achieved comprehensive CDR readiness with:
 
-- **85+ documentation files** covering all major NPR 7120.5/7123.1 requirements
+- **90+ documentation files** covering all major NPR 7120.5/7123.1 requirements
 - **11 flight software modules** with comprehensive HAL implementation
 - **11 test procedures** with complete coverage of required testing
 - **Complete safety documentation** including hazard analysis and FMEA
