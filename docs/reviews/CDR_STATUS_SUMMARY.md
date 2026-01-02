@@ -101,7 +101,7 @@ Build Result: SUCCESS (100%)
 | Software Version Description | docs/software/SOFTWARE_VERSION_DESCRIPTION.md | Complete |
 | Requirements Traceability | docs/requirements/REQUIREMENTS_TRACEABILITY.md | Complete |
 
-### 3.3 Flight Software Design Documents (10 documents)
+### 3.3 Flight Software Design Documents (11 documents)
 
 | Document | Location | Status |
 |----------|----------|--------|
@@ -115,6 +115,7 @@ Build Result: SUCCESS (100%)
 | Include Dependencies | software/flight/docs/INCLUDE_DEPENDENCIES.md | Complete |
 | Naming Convention | software/flight/docs/NAMING_CONVENTION.md | Complete |
 | MISRA Deviations | software/flight/docs/MISRA_DEVIATIONS.md | Complete |
+| RTOS Architecture | software/flight/docs/RTOS_ARCHITECTURE.md | Complete |
 
 ### 3.4 Hardware Design Documents (5 documents)
 
