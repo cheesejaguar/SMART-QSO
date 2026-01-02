@@ -1,0 +1,73 @@
+# SMART-QSO Pre-commit Configuration
+# NASA NPR 7150.2 Compliant
+# See https://pre-commit.com for more information
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  # C/C++ formatting and linting
+  - repo: https://github.com/pocc/pre-commit-hooks
+    rev: v1.3.5
+    hooks:
+      - id: clang-format
+        args: ['-i', '--style=file']
+        files: \.(c|h)$
+        exclude: ^software/flight/build/
+      - id: cppcheck
+        args:
+          - '--enable=all'
+          - '--inconclusive'
+          - '--std=c11'
+          - '--suppress=missingIncludeSystem'
+          - '--error-exitcode=1'
+        files: ^software/flight/src/.*\.c$
+
+  # Python hooks for payload software
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.8
+    hooks:
+      - id: ruff
+        args: ['--fix']
+        files: ^software/payload/.*\.py$
+      - id: ruff-format
+        files: ^software/payload/.*\.py$
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.38.0
+    hooks:
+      - id: markdownlint
+        args: ['--fix', '--disable', 'MD013', 'MD033', 'MD041']
+        files: \.(md|markdown)$
+
+  # YAML validation
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.33.0
+    hooks:
+      - id: yamllint
+        args: ['-d', 'relaxed']
+
+  # Shell script checking
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.6
+    hooks:
+      - id: shellcheck
+        args: ['--severity=warning']
+
+# CI configuration
+ci:
+  autofix_commit_msg: 'style: auto-fix pre-commit issues'
+  autofix_prs: true
+  autoupdate_commit_msg: 'chore: update pre-commit hooks'
