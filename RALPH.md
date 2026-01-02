@@ -3,16 +3,38 @@
 ## NASA Flight Software Code Quality Audit Report
 **Repository**: SMART-QSO
 **Audit Date**: 2026-01-02
-**Target Standards**: NPR 7150.2, NASA-STD-8719.13, NASA-STD-8739.8, JPL Institutional Coding Standard, MISRA C:2012
+**Governing Standards**: NPR 7120.5 (Program/Project Management), NPR 7123.1 (Systems Engineering)
+**Technical Standards**: NPR 7150.2, NASA-STD-8719.13, NASA-STD-8739.8, JPL Institutional Coding Standard, MISRA C:2012
 
 ---
 
 ## Executive Summary
 
-This document provides a comprehensive audit of the SMART-QSO flight software repository against NASA code quality standards. Each section contains actionable checklist items with detailed implementation instructions for a coding agent to bring this software to flight-ready status.
+This document provides a comprehensive audit of the SMART-QSO flight software repository against NASA code quality standards. All documentation, processes, and lifecycle activities follow **NPR 7120.5** (NASA Space Flight Program and Project Management Requirements) and **NPR 7123.1** (NASA Systems Engineering Processes and Requirements) as the governing project management and systems engineering framework.
+
+Each section contains actionable checklist items with detailed implementation instructions for a coding agent to bring this software to flight-ready status.
 
 **Current State**: Pre-CDR prototype with basic functionality
 **Target State**: Flight-qualified software per NASA Class C/D requirements (appropriate for CubeSat missions)
+**Lifecycle Phase**: Phase B (Preliminary Design) → Phase C (Final Design & Fabrication)
+
+---
+
+## Governing Framework: NPR 7120.5 & NPR 7123.1
+
+All project documentation and processes shall comply with:
+
+- **NPR 7120.5** - NASA Space Flight Program and Project Management Requirements
+  - Defines lifecycle phases, key decision points (KDPs), and required reviews
+  - Establishes project planning, control, and reporting requirements
+  - Mandates configuration management and risk management processes
+
+- **NPR 7123.1** - NASA Systems Engineering Processes and Requirements
+  - Defines the 17 SE processes and their required products
+  - Establishes technical review requirements (SRR, SDR, PDR, CDR, etc.)
+  - Mandates requirements development, verification, and validation processes
+
+**Project Classification**: Class D (per NPR 7120.5 Appendix G - appropriate for CubeSat/small satellite missions)
 
 ---
 
@@ -23,13 +45,14 @@ This document provides a comprehensive audit of the SMART-QSO flight software re
 3. [Static Analysis & Code Quality Tools](#3-static-analysis--code-quality-tools)
 4. [Testing Infrastructure](#4-testing-infrastructure)
 5. [Safety-Critical Software Requirements](#5-safety-critical-software-requirements)
-6. [Documentation Requirements](#6-documentation-requirements)
+6. [NPR 7120.5/7123.1 Documentation Requirements](#6-npr-712057123-documentation-requirements)
 7. [Configuration Management](#7-configuration-management)
 8. [Build System & CI/CD](#8-build-system--cicd)
 9. [Security & Data Integrity](#9-security--data-integrity)
 10. [Payload Software (Python)](#10-payload-software-python)
 11. [Hardware Abstraction & Portability](#11-hardware-abstraction--portability)
 12. [Verification & Validation](#12-verification--validation)
+13. [Lifecycle Phase Gate Requirements](#13-lifecycle-phase-gate-requirements)
 
 ---
 
@@ -408,56 +431,184 @@ This document provides a comprehensive audit of the SMART-QSO flight software re
 
 ---
 
-## 6. Documentation Requirements
+## 6. NPR 7120.5/7123.1 Documentation Requirements
 
-### 6.1 Software Development Plan (SDP)
-- [ ] **Create SDP**: Create `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md`:
-  - [ ] Development methodology
-  - [ ] Coding standards reference
-  - [ ] Review procedures
-  - [ ] Testing approach
-  - [ ] Configuration management
-  - [ ] Risk management
+All documentation shall comply with NPR 7120.5 (Program/Project Management) and NPR 7123.1 (Systems Engineering) requirements. Documentation is organized by lifecycle phase and SE process area.
 
-### 6.2 Software Requirements Specification (SRS)
-- [ ] **Create SRS**: Create `docs/software/SOFTWARE_REQUIREMENTS.md`:
+### 6.1 Project Planning Documents (NPR 7120.5 Chapter 3)
+
+#### 6.1.1 Project Plan
+- [ ] **Create Project Plan**: Create `docs/project/PROJECT_PLAN.md` (per NPR 7120.5 §3.3):
+  - [ ] Project objectives and success criteria
+  - [ ] Work Breakdown Structure (WBS)
+  - [ ] Schedule with milestones and KDPs
+  - [ ] Resource allocation
+  - [ ] Roles and responsibilities
+  - [ ] Communication plan
+  - [ ] Decision authority matrix
+
+#### 6.1.2 Software Development Plan (SDP)
+- [ ] **Create SDP**: Create `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` (per NPR 7150.2 §3.1):
+  - [ ] Development lifecycle model (tailored per NPR 7123.1)
+  - [ ] Software classification (Class C/D per NPR 7150.2)
+  - [ ] Coding standards reference (JPL/MISRA)
+  - [ ] Review procedures and entry/exit criteria
+  - [ ] Testing approach and coverage requirements
+  - [ ] Configuration management procedures
+  - [ ] Risk management approach
+  - [ ] Metrics collection plan
+  - [ ] Tool qualification requirements
+
+#### 6.1.3 Systems Engineering Management Plan (SEMP)
+- [ ] **Create SEMP**: Create `docs/project/SEMP.md` (per NPR 7123.1 §4.1):
+  - [ ] Technical approach
+  - [ ] SE process tailoring rationale
+  - [ ] Technical performance measures (TPMs)
+  - [ ] Technical review schedule
+  - [ ] Integration strategy
+  - [ ] Verification and validation approach
+
+### 6.2 Requirements Documentation (NPR 7123.1 SE Process 3)
+
+#### 6.2.1 Mission Requirements Document
+- [ ] **Create Mission Requirements**: Create `docs/requirements/MISSION_REQUIREMENTS.md`:
+  - [ ] Level 1 (Mission) requirements with unique IDs (MRD-xxx)
+  - [ ] Derived from ConOps and mission objectives
+  - [ ] Success criteria for each requirement
+  - [ ] Verification method assignment (A/I/D/T)
+
+#### 6.2.2 System Requirements Specification
+- [ ] **Create System Requirements**: Create `docs/requirements/SYSTEM_REQUIREMENTS.md`:
+  - [ ] Level 2 (System) requirements with unique IDs (SYS-xxx)
+  - [ ] Traceability to mission requirements
+  - [ ] Functional, performance, and interface requirements
+  - [ ] Environmental requirements
+  - [ ] Verification cross-reference matrix
+
+#### 6.2.3 Software Requirements Specification (SRS)
+- [ ] **Create SRS**: Create `docs/software/SOFTWARE_REQUIREMENTS.md` (per NPR 7150.2 §3.2):
+  - [ ] Level 3 (Software) requirements with unique IDs (SRS-xxx)
   - [ ] Extract requirements from ARCHITECTURE.md and CONOPS.md
-  - [ ] Assign unique requirement IDs (e.g., SRS-001)
-  - [ ] Classify requirements (functional, performance, safety)
-  - [ ] Define verification method for each requirement
+  - [ ] Classify requirements (functional, performance, safety, security)
+  - [ ] Define verification method for each requirement (A/I/D/T)
+  - [ ] Traceability to system requirements
+  - [ ] Safety-critical requirements flagged per NASA-STD-8719.13
 
-### 6.3 Requirements Traceability Matrix (RTM)
-- [ ] **Create RTM**: Create `docs/software/REQUIREMENTS_TRACEABILITY.md`:
+### 6.3 Requirements Traceability (NPR 7123.1 SE Process 4)
+- [ ] **Create RTM**: Create `docs/requirements/REQUIREMENTS_TRACEABILITY.md`:
+  - [ ] Bidirectional traceability: Mission → System → Software → Design → Code → Test
   - [ ] Map requirements to design elements
-  - [ ] Map requirements to code modules
+  - [ ] Map requirements to code modules (file:line references)
   - [ ] Map requirements to test cases
   - [ ] Ensure 100% requirements coverage
+  - [ ] Identify orphan requirements and orphan code
+  - [ ] Generate traceability metrics
 
-### 6.4 Interface Control Documents (ICDs)
+### 6.4 Design Documentation (NPR 7123.1 SE Process 5)
+
+#### 6.4.1 Software Design Description (SDD)
+- [ ] **Create SDD**: Create `docs/software/SOFTWARE_DESIGN.md` (per NPR 7150.2 §3.3):
+  - [ ] System context and boundaries
+  - [ ] Software architecture diagrams
+  - [ ] Module decomposition
+  - [ ] Data flow diagrams
+  - [ ] State machine definitions
+  - [ ] Algorithm descriptions
+  - [ ] Design rationale and trade studies
+  - [ ] Traceability to SRS
+
+#### 6.4.2 Interface Control Documents (ICDs)
+- [ ] **Create Master ICD**: Create `docs/interfaces/INTERFACE_CONTROL_MASTER.md`:
+  - [ ] Interface identification matrix
+  - [ ] Interface ownership assignments
+  - [ ] Change control procedures
+
 - [ ] **Create OBC-Jetson ICD**: Create `docs/interfaces/ICD_OBC_JETSON.md`:
-  - [ ] UART physical interface specification
-  - [ ] Message format specification
-  - [ ] Timing requirements
-  - [ ] Error handling
+  - [ ] UART physical interface specification (voltage, timing, pinout)
+  - [ ] Message format specification (header, payload, CRC)
+  - [ ] Protocol state machine
+  - [ ] Timing requirements and timeouts
+  - [ ] Error handling and recovery
 
 - [ ] **Create OBC-EPS ICD**: Create `docs/interfaces/ICD_OBC_EPS.md`:
   - [ ] Control interface specification
   - [ ] Telemetry interface specification
-  - [ ] Command set
+  - [ ] Command set with parameters
+  - [ ] Power sequencing requirements
 
 - [ ] **Create Beacon Format ICD**: Expand `docs/BEACON_SPEC.md`:
   - [ ] Add byte-level format specification
   - [ ] Add timing specification
   - [ ] Add error handling specification
+  - [ ] AX.25 compliance verification
 
-### 6.5 Software Version Description (SVD)
-- [ ] **Create SVD template**: Create `docs/software/SOFTWARE_VERSION_DESCRIPTION.md`:
-  - [ ] Version numbering scheme
-  - [ ] Change log format
+### 6.5 Verification & Validation Documentation (NPR 7123.1 SE Processes 13-14)
+
+#### 6.5.1 Software Test Plan
+- [ ] **Create Test Plan**: Create `docs/software/SOFTWARE_TEST_PLAN.md` (per NPR 7150.2 §3.5):
+  - [ ] Test strategy (unit, integration, system, acceptance)
+  - [ ] Test environment requirements
+  - [ ] Test case development procedures
+  - [ ] Entry and exit criteria for each test level
+  - [ ] Test data requirements
+  - [ ] Roles and responsibilities
+  - [ ] Schedule and resources
+
+#### 6.5.2 Software Test Procedures
+- [ ] **Create Test Procedures**: Create `docs/software/SOFTWARE_TEST_PROCEDURES.md`:
+  - [ ] Step-by-step test procedures for each test case
+  - [ ] Expected results and pass/fail criteria
+  - [ ] Test setup and teardown procedures
+  - [ ] Data recording requirements
+
+#### 6.5.3 Verification Cross-Reference Matrix (VCRM)
+- [ ] **Create VCRM**: Create `docs/verification/VERIFICATION_MATRIX.md`:
+  - [ ] Requirements to verification method mapping
+  - [ ] Verification status tracking
+  - [ ] Verification closure documentation
+  - [ ] Non-compliance tracking
+
+### 6.6 Configuration Management Documentation (NPR 7120.5 §3.4)
+
+#### 6.6.1 Configuration Management Plan
+- [ ] **Create CM Plan**: Create `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md`:
+  - [ ] Configuration identification procedures
+  - [ ] Configuration control procedures (change control board)
+  - [ ] Configuration status accounting
+  - [ ] Configuration audits (FCA/PCA)
+  - [ ] Baseline management
+
+#### 6.6.2 Software Version Description (SVD)
+- [ ] **Create SVD template**: Create `docs/software/SOFTWARE_VERSION_DESCRIPTION.md` (per NPR 7150.2):
+  - [ ] Version numbering scheme (semantic versioning)
+  - [ ] Build identification
+  - [ ] Change log from previous version
   - [ ] Known issues/limitations
-  - [ ] Build configuration
+  - [ ] Build configuration and environment
+  - [ ] Compiler/tool versions
 
-### 6.6 Code Documentation
+### 6.7 Risk Management Documentation (NPR 7120.5 §3.5)
+- [ ] **Enhance Risk Register**: Update `mission/RISK_REGISTER.md`:
+  - [ ] Add software-specific risks
+  - [ ] Add likelihood × consequence scoring
+  - [ ] Add risk mitigation plans with owners and due dates
+  - [ ] Add risk tracking and closure criteria
+  - [ ] Monthly risk status updates
+
+### 6.8 Safety Documentation (NPR 7120.5 §3.6, NASA-STD-8719.13)
+- [ ] **Create Software Safety Plan**: Create `docs/safety/SOFTWARE_SAFETY_PLAN.md`:
+  - [ ] Safety organization and responsibilities
+  - [ ] Hazard identification methodology
+  - [ ] Safety requirements flow-down
+  - [ ] Safety verification approach
+
+- [ ] **Create Hazard Analysis**: Create `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md`:
+  - [ ] Preliminary Hazard List (PHL)
+  - [ ] System Hazard Analysis (SHA) for software
+  - [ ] Subsystem Hazard Analysis (SSHA)
+  - [ ] Hazard tracking and closure
+
+### 6.9 Code Documentation
 - [ ] **Add Doxygen comments** to all public functions:
   ```c
   /**
@@ -469,6 +620,7 @@ This document provides a comprehensive audit of the SMART-QSO flight software re
    * @post Postconditions
    * @note Additional notes
    * @warning Warnings
+   * @requirement SRS-xxx
    */
   ```
 
@@ -476,8 +628,29 @@ This document provides a comprehensive audit of the SMART-QSO flight software re
   - [ ] Enable call graphs
   - [ ] Enable include dependency graphs
   - [ ] Generate PDF and HTML output
+  - [ ] Enable requirement tracing tags
 
 - [ ] **Generate API documentation**: Add Doxygen to build process
+
+### 6.10 Review Packages (NPR 7123.1 Appendix G)
+
+#### 6.10.1 PDR Package
+- [ ] **Prepare PDR Package**: Create `docs/reviews/PDR/` directory:
+  - [ ] System requirements baseline
+  - [ ] Preliminary design documentation
+  - [ ] Interface definitions
+  - [ ] Preliminary V&V approach
+  - [ ] Risk assessment
+  - [ ] Resource estimates
+
+#### 6.10.2 CDR Package
+- [ ] **Prepare CDR Package**: Create `docs/reviews/CDR/` directory:
+  - [ ] Final design documentation
+  - [ ] As-built interface documentation
+  - [ ] V&V plan and procedures
+  - [ ] Updated risk assessment
+  - [ ] Build/integration plan
+  - [ ] Test readiness assessment
 
 ---
 
@@ -804,6 +977,176 @@ This document provides a comprehensive audit of the SMART-QSO flight software re
 
 ---
 
+## 13. Lifecycle Phase Gate Requirements (NPR 7120.5/7123.1)
+
+This section defines the requirements for each lifecycle phase gate per NPR 7120.5 and NPR 7123.1. All items must be completed before proceeding to the next phase.
+
+### 13.1 Phase A Exit / Phase B Entry (SRR/MDR)
+*System Requirements Review / Mission Definition Review*
+
+- [ ] **Mission Requirements Complete**:
+  - [ ] Mission objectives defined and approved
+  - [ ] ConOps document approved (exists: `mission/CONOPS.md`)
+  - [ ] Preliminary mission requirements documented
+  - [ ] Stakeholder requirements captured
+
+- [ ] **Preliminary Technical Approach**:
+  - [ ] System architecture concept defined (exists: `docs/ARCHITECTURE.md`)
+  - [ ] Key trade studies documented
+  - [ ] Technology readiness assessed
+
+- [ ] **Project Planning**:
+  - [ ] Preliminary project plan
+  - [ ] Preliminary cost estimate
+  - [ ] Preliminary schedule
+
+### 13.2 Phase B Exit / Phase C Entry (PDR)
+*Preliminary Design Review*
+
+- [ ] **Requirements Baseline (NPR 7123.1 §4.3.1)**:
+  - [ ] System requirements specification complete and approved
+  - [ ] Software requirements specification complete
+  - [ ] All requirements have unique identifiers
+  - [ ] Requirements traceability matrix established
+  - [ ] All TBDs/TBRs identified with closure plans
+
+- [ ] **Preliminary Design Complete (NPR 7123.1 §4.4)**:
+  - [ ] System architecture defined
+  - [ ] Software design description complete
+  - [ ] Interface control documents defined
+  - [ ] FDIR design documented
+  - [ ] State machine diagrams complete
+
+- [ ] **Verification Approach (NPR 7123.1 §4.6)**:
+  - [ ] Verification and validation plan drafted
+  - [ ] Test strategy defined
+  - [ ] Verification methods assigned to all requirements
+
+- [ ] **Risk Assessment (NPR 7120.5 §3.5)**:
+  - [ ] Risk register populated (exists: `mission/RISK_REGISTER.md`)
+  - [ ] Software-specific risks identified
+  - [ ] Mitigation plans defined
+
+- [ ] **Safety Assessment (NASA-STD-8719.13)**:
+  - [ ] Preliminary hazard analysis complete
+  - [ ] Safety requirements identified
+
+- [ ] **Project Readiness**:
+  - [ ] Resource plan approved
+  - [ ] Development environment established
+  - [ ] Configuration management plan in place
+
+### 13.3 Phase C Milestones (CDR)
+*Critical Design Review*
+
+- [ ] **Design Complete (NPR 7123.1 §4.4)**:
+  - [ ] Detailed software design complete
+  - [ ] All modules designed to code level
+  - [ ] Interface specifications finalized
+  - [ ] Database schemas defined
+  - [ ] Design reviews completed for all modules
+
+- [ ] **Implementation Ready (NPR 7150.2)**:
+  - [ ] Coding standards documented and approved
+  - [ ] Development environment fully configured
+  - [ ] Build system verified
+  - [ ] CI/CD pipeline operational
+  - [ ] Static analysis tools configured
+
+- [ ] **Test Readiness (NPR 7123.1 §4.6)**:
+  - [ ] Test plan approved
+  - [ ] Test procedures documented
+  - [ ] Test environment specified
+  - [ ] Test data requirements defined
+
+- [ ] **Safety Analysis Complete (NASA-STD-8719.13)**:
+  - [ ] System hazard analysis complete
+  - [ ] Software hazard analysis complete
+  - [ ] All hazards have mitigation or controls
+
+- [ ] **Interfaces Finalized (NPR 7123.1 §4.5)**:
+  - [ ] All ICDs approved and baselined
+  - [ ] Interface verification approach defined
+
+### 13.4 Phase C/D Transition (TRR/ORR)
+*Test Readiness Review / Operational Readiness Review*
+
+- [ ] **Code Complete (NPR 7150.2)**:
+  - [ ] All flight code implemented
+  - [ ] Code reviews completed for all modules
+  - [ ] Static analysis clean (no critical/high findings)
+  - [ ] Unit test coverage ≥80%
+  - [ ] All code committed and baselined
+
+- [ ] **Integration Complete (NPR 7123.1 §4.5)**:
+  - [ ] Software integration testing complete
+  - [ ] Hardware/software integration verified
+  - [ ] All interfaces verified
+
+- [ ] **Verification Progress (NPR 7123.1 §4.6)**:
+  - [ ] All unit tests passing
+  - [ ] Integration tests passing
+  - [ ] System tests executed
+  - [ ] Verification matrix shows >90% complete
+
+- [ ] **Documentation Complete**:
+  - [ ] All design documents updated as-built
+  - [ ] User/operator documentation complete
+  - [ ] Maintenance documentation complete
+
+### 13.5 Phase D Exit (FRR/PSR)
+*Flight Readiness Review / Pre-Ship Review*
+
+- [ ] **Verification Complete (NPR 7123.1 §4.6.1)**:
+  - [ ] 100% of requirements verified
+  - [ ] All test procedures executed
+  - [ ] All anomalies resolved or waived
+  - [ ] Verification cross-reference matrix complete
+
+- [ ] **Validation Complete (NPR 7123.1 §4.6.2)**:
+  - [ ] System validates against ConOps
+  - [ ] End-to-end mission scenarios tested
+  - [ ] Operator training complete
+
+- [ ] **Configuration Audit (NPR 7120.5 §3.4)**:
+  - [ ] Functional Configuration Audit (FCA) complete
+  - [ ] Physical Configuration Audit (PCA) complete
+  - [ ] As-built documentation matches flight software
+
+- [ ] **Safety Closure (NASA-STD-8719.13)**:
+  - [ ] All hazards closed or accepted
+  - [ ] Safety verification complete
+  - [ ] Safety data package approved
+
+- [ ] **Flight Software Delivery**:
+  - [ ] Flight software version baselined
+  - [ ] Software Version Description complete
+  - [ ] Known issues documented and accepted
+  - [ ] Rollback/recovery procedures verified
+
+### 13.6 Documentation Checklist by Phase Gate
+
+| Document | SRR | PDR | CDR | TRR | FRR |
+|----------|:---:|:---:|:---:|:---:|:---:|
+| Project Plan | Draft | Approved | Updated | Updated | Final |
+| ConOps | Draft | Approved | — | — | — |
+| SEMP | Draft | Approved | Updated | — | Final |
+| Mission Requirements | Draft | Baselined | — | — | — |
+| System Requirements | — | Baselined | — | — | — |
+| Software Requirements | — | Draft | Baselined | — | — |
+| RTM | — | Draft | Complete | Verified | Closed |
+| Software Design | — | Preliminary | Complete | As-built | Final |
+| ICDs | — | Draft | Baselined | Verified | Final |
+| Test Plan | — | Draft | Approved | — | — |
+| Test Procedures | — | — | Draft | Approved | Executed |
+| VCRM | — | — | Draft | >90% | 100% |
+| Risk Register | Initial | Updated | Updated | Updated | Closed |
+| Hazard Analysis | PHL | SHA | Complete | Verified | Closed |
+| SVD | — | — | — | Draft | Final |
+| CM Plan | Draft | Approved | — | — | Audited |
+
+---
+
 ## Summary Checklist
 
 ### Phase 1: Immediate Code Quality (Priority: Critical)
@@ -847,14 +1190,48 @@ This document provides a comprehensive audit of the SMART-QSO flight software re
 
 ## Appendix A: NASA Standards Reference
 
+### Governing Standards (Project Management & Systems Engineering)
+
 | Standard | Title | Applicability |
 |----------|-------|---------------|
-| NPR 7150.2 | NASA Software Engineering Requirements | Overall software development |
-| NASA-STD-8719.13 | Software Safety Standard | Safety-critical aspects |
-| NASA-STD-8739.8 | Software Assurance Standard | Quality assurance |
-| GSFC-STD-1000 | Rules for Flight Systems | Flight systems design |
-| JPL D-60411 | JPL Institutional Coding Standard | C coding rules |
-| MISRA C:2012 | Guidelines for C | Industry coding standard |
+| **NPR 7120.5** | **NASA Space Flight Program and Project Management Requirements** | **Primary governing standard for all project activities, lifecycle phases, KDPs, and reviews** |
+| **NPR 7123.1** | **NASA Systems Engineering Processes and Requirements** | **Primary governing standard for all SE processes, technical reviews, and V&V activities** |
+
+### Technical Implementation Standards
+
+| Standard | Title | Applicability |
+|----------|-------|---------------|
+| NPR 7150.2 | NASA Software Engineering Requirements | Software development processes and products |
+| NASA-STD-8719.13 | Software Safety Standard | Safety-critical software requirements |
+| NASA-STD-8739.8 | Software Assurance Standard | Quality assurance processes |
+| GSFC-STD-1000 | Rules for Flight Systems | Flight systems design guidelines |
+| JPL D-60411 | JPL Institutional Coding Standard | C language coding rules (Power of Ten) |
+| MISRA C:2012 | Guidelines for C | Industry coding standard for safety-critical systems |
+
+### NPR 7120.5 Key References
+
+| Section | Topic | Application to SMART-QSO |
+|---------|-------|-------------------------|
+| Chapter 2 | Program/Project Life Cycle | Phase definitions (A-F), KDPs |
+| §3.3 | Project Planning | Project Plan requirements |
+| §3.4 | Configuration Management | CM Plan, baselines, audits |
+| §3.5 | Risk Management | Risk register, mitigation tracking |
+| §3.6 | Safety & Mission Assurance | Safety plans, hazard tracking |
+| Appendix G | Project Classification | Class D tailoring for CubeSats |
+| Appendix J | Technical Reviews | SRR, PDR, CDR, TRR, FRR requirements |
+
+### NPR 7123.1 Key References
+
+| Section | Topic | Application to SMART-QSO |
+|---------|-------|-------------------------|
+| §4.1 | SE Planning | SEMP requirements |
+| §4.2 | Requirements Development | Requirements documentation |
+| §4.3 | Technical Solution | Design process |
+| §4.4 | Design Solution | Design documentation |
+| §4.5 | Product Integration | Integration planning |
+| §4.6 | Verification & Validation | V&V plans, VCRM |
+| Appendix C | SE Products | Required work products by phase |
+| Appendix G | Technical Reviews | Review entry/exit criteria |
 
 ## Appendix B: Tool Requirements
 
@@ -873,6 +1250,7 @@ This document provides a comprehensive audit of the SMART-QSO flight software re
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 1.1*
 *Generated: 2026-01-02*
-*Audit Scope: SMART-QSO Repository @ commit 38370b1*
+*Audit Scope: SMART-QSO Repository @ commit 883378e*
+*Governing Framework: NPR 7120.5 Rev. F, NPR 7123.1 Rev. E*
