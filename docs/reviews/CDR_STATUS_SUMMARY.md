@@ -143,7 +143,7 @@ Build Result: SUCCESS (100%)
 | Software Hazard Analysis | docs/safety/SOFTWARE_HAZARD_ANALYSIS.md | Complete |
 | Software FMEA | docs/safety/SOFTWARE_FMEA.md | Complete |
 
-### 3.7 Compliance Documentation (4 documents)
+### 3.7 Compliance Documentation (5 documents)
 
 | Document | Location | Status |
 |----------|----------|--------|
@@ -151,6 +151,7 @@ Build Result: SUCCESS (100%)
 | Materials List | docs/compliance/MATERIALS_LIST.md | Complete |
 | Orbital Debris Assessment | docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md | Complete |
 | Export Control | docs/compliance/EXPORT_CONTROL.md | Complete |
+| Launch Provider ICD | docs/compliance/LAUNCH_PROVIDER_ICD.md | Complete |
 
 ### 3.8 Regulatory Documentation (2 documents)
 
@@ -166,7 +167,7 @@ Build Result: SUCCESS (100%)
 | Environmental Test Plan | docs/environment/ENVIRONMENTAL_TEST_PLAN.md | Complete |
 | Radiation Analysis | docs/environment/RADIATION_ANALYSIS.md | Complete |
 
-### 3.10 Operations Documentation (4 documents)
+### 3.10 Operations Documentation (5 documents)
 
 | Document | Location | Status |
 |----------|----------|--------|
@@ -174,6 +175,7 @@ Build Result: SUCCESS (100%)
 | CMD/TLM Database | docs/operations/CMD_TLM_DATABASE.md | Complete |
 | End of Life Plan | docs/operations/END_OF_LIFE_PLAN.md | Complete |
 | Launch Site Ops | docs/operations/LAUNCH_SITE_OPS.md | Complete |
+| Launch Campaign Checklist | docs/operations/LAUNCH_CAMPAIGN_CHECKLIST.md | Complete |
 
 ### 3.11 Integration Documentation (4 documents)
 
