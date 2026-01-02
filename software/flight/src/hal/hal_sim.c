@@ -248,6 +248,7 @@ SmartQsoResult_t hal_i2c_read(HalI2cBus_t bus, uint8_t addr,
 SmartQsoResult_t hal_i2c_write_read(HalI2cBus_t bus, uint8_t addr,
                                      const uint8_t *write_data, size_t write_len,
                                      uint8_t *read_data, size_t read_len) {
+    (void)bus;  /* Bus selection not used in simulation */
     if (!write_data || write_len == 0) return SMART_QSO_ERROR_NULL_PTR;
 
     SimI2cDevice_t *dev = find_i2c_device(addr);
@@ -298,6 +299,7 @@ SmartQsoResult_t hal_uart_write(HalUartPort_t port, const uint8_t *data, size_t 
 
 SmartQsoResult_t hal_uart_read(HalUartPort_t port, uint8_t *data, size_t len,
                                 uint32_t timeout_ms, size_t *bytes_read) {
+    (void)len;          /* Buffer length not used - no data in simulation */
     (void)timeout_ms;
 
     if (port >= UART_PORT_COUNT || !s_uart_initialized[port]) return SMART_QSO_ERROR;
@@ -345,6 +347,8 @@ SmartQsoResult_t hal_spi_init(HalSpiBus_t bus, const HalSpiConfig_t *config) {
 
 SmartQsoResult_t hal_spi_transfer(HalSpiBus_t bus, const uint8_t *tx_data,
                                    uint8_t *rx_data, size_t len) {
+    (void)tx_data;  /* TX data not processed in simulation */
+
     if (bus >= SPI_BUS_COUNT || !s_spi_initialized[bus]) return SMART_QSO_ERROR;
 
     /* In simulation, just return zeros for received data */
