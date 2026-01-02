@@ -1,0 +1,63 @@
+# SMART-QSO Flight Software Cppcheck Configuration
+# NASA/JPL-compliant static analysis
+# Reference: JPL D-60411, NASA-STD-8739.8
+
+# Enable all checks
+enable=all
+
+# Treat warnings as errors for CI/CD
+error-exitcode=1
+
+# Suppress specific false positives
+suppress=missingIncludeSystem
+suppress=unusedFunction:*test*.c
+suppress=unmatchedSuppression
+
+# MISRA C:2012 addon (requires premium)
+# addon=misra.json
+
+# Force checking of all configurations
+force
+
+# Number of threads
+-j 4
+
+# Include paths
+-I include
+-I include/hal
+
+# Platform specification (32-bit ARM)
+platform=unix32
+
+# C standard
+std=c11
+
+# Define macros for analysis
+-D__GNUC__
+-DUNIT_TEST
+
+# XML output for CI integration
+xml
+xml-version=2
+
+# Verbose output
+verbose
+
+# Inline suppressions allowed
+inline-suppr
+
+# Library configurations
+library=posix
+library=gnu
+
+# Check level (normal, exhaustive)
+check-level=exhaustive
+
+# Inconclusive warnings
+inconclusive
+
+# Template for error format
+template={file}:{line}: {severity}: {id}: {message}
+
+# Maximum configurations to check
+max-configs=12
