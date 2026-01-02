@@ -177,7 +177,7 @@ Build Result: SUCCESS (100%)
 | Launch Site Ops | docs/operations/LAUNCH_SITE_OPS.md | Complete |
 | Launch Campaign Checklist | docs/operations/LAUNCH_CAMPAIGN_CHECKLIST.md | Complete |
 
-### 3.11 Integration Documentation (4 documents)
+### 3.11 Integration Documentation (5 documents)
 
 | Document | Location | Status |
 |----------|----------|--------|
@@ -185,6 +185,7 @@ Build Result: SUCCESS (100%)
 | Flatsat Configuration | docs/integration/FLATSAT_CONFIGURATION.md | Complete |
 | Anomaly Resolution | docs/integration/ANOMALY_RESOLUTION.md | Complete |
 | Pre-Ship Checklist | docs/integration/PRE_SHIP_CHECKLIST.md | Complete |
+| Test Data Management | docs/integration/TEST_DATA_MANAGEMENT.md | Complete |
 
 ### 3.12 Development Standards (5 documents)
 
@@ -196,11 +197,12 @@ Build Result: SUCCESS (100%)
 | Commit Message Standard | docs/development/COMMIT_MESSAGES.md | Complete |
 | Release Procedure | docs/development/RELEASE_PROCEDURE.md | Complete |
 
-### 3.13 Manufacturing Documentation (1 document)
+### 3.13 Manufacturing Documentation (2 documents)
 
 | Document | Location | Status |
 |----------|----------|--------|
 | Workmanship Plan | docs/manufacturing/WORKMANSHIP_PLAN.md | Complete |
+| EEE Parts List | docs/manufacturing/EEE_PARTS_LIST.md | Complete |
 
 ### 3.14 Ground Segment Documentation (1 document)
 
