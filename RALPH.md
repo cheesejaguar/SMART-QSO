@@ -12,11 +12,14 @@
 
 This document provides a comprehensive audit of the SMART-QSO flight software repository against NASA code quality standards. All documentation, processes, and lifecycle activities follow **NPR 7120.5** (NASA Space Flight Program and Project Management Requirements) and **NPR 7123.1** (NASA Systems Engineering Processes and Requirements) as the governing project management and systems engineering framework.
 
+This audit draws process heritage from NASA Ames Research Center small satellite missions including **GeneSat-1**, **PharmaSat**, **O/OREOS**, and **EcAMSat**, which successfully demonstrated rigorous yet appropriately tailored approaches for CubeSat-class missions.
+
 Each section contains actionable checklist items with detailed implementation instructions for a coding agent to bring this software to flight-ready status.
 
 **Current State**: Pre-CDR prototype with basic functionality
 **Target State**: Flight-qualified software per NASA Class C/D requirements (appropriate for CubeSat missions)
 **Lifecycle Phase**: Phase B (Preliminary Design) → Phase C (Final Design & Fabrication)
+**Process Heritage**: NASA Ames Small Satellite Division (GeneSat, PharmaSat, O/OREOS, EcAMSat)
 
 ---
 
@@ -40,21 +43,36 @@ All project documentation and processes shall comply with:
 
 ## Table of Contents
 
+### Part I: Software Development
 1. [Code Architecture & Structure](#1-code-architecture--structure)
 2. [Coding Standards Compliance](#2-coding-standards-compliance)
 3. [Static Analysis & Code Quality Tools](#3-static-analysis--code-quality-tools)
 4. [Testing Infrastructure](#4-testing-infrastructure)
 5. [Safety-Critical Software Requirements](#5-safety-critical-software-requirements)
+
+### Part II: Project Documentation
 6. [NPR 7120.5/7123.1 Documentation Requirements](#6-npr-712057123-documentation-requirements)
 7. [Configuration Management](#7-configuration-management)
 8. [Build System & CI/CD](#8-build-system--cicd)
 9. [Security & Data Integrity](#9-security--data-integrity)
+
+### Part III: Payload & Platform Software
 10. [Payload Software (Python)](#10-payload-software-python)
 11. [Hardware Abstraction & Portability](#11-hardware-abstraction--portability)
+
+### Part IV: Verification & Lifecycle
 12. [Verification & Validation](#12-verification--validation)
 13. [Lifecycle Phase Gate Requirements](#13-lifecycle-phase-gate-requirements)
 14. [CubeSat-Specific Requirements & Standards](#14-cubesat-specific-requirements--standards)
 15. [Additional Software Considerations for Space Environment](#15-additional-software-considerations-for-space-environment)
+
+### Part V: Hardware & Software Design Completion
+16. [Hardware Subsystem Design Completion](#16-hardware-subsystem-design-completion)
+17. [Flight Software Implementation](#17-flight-software-implementation)
+
+### Part VI: Test Procedures & Integration (NASA Ames Heritage)
+18. [Hardware Verification Test Procedures](#18-hardware-verification-test-procedures)
+19. [System Integration & Test Campaign](#19-system-integration--test-campaign)
 
 ---
 
@@ -1411,6 +1429,877 @@ This section covers CubeSat-specific standards, launch provider requirements, an
   - [ ] Power-based operational mode selection
   - [ ] Thermal protection autonomous actions
   - [ ] Communication loss response
+
+---
+
+## 16. Hardware Subsystem Design Completion
+
+This section provides detailed design completion checklists for each hardware subsystem. Design artifacts shall be documented and reviewed per NPR 7123.1 before fabrication.
+
+### 16.1 Electrical Power Subsystem (EPS) Design
+
+#### 16.1.1 Solar Array Design
+- [ ] **Complete Solar Array Design**: Create `hardware/eps/SOLAR_ARRAY_DESIGN.md`:
+  - [ ] Solar cell selection and procurement specification
+  - [ ] String configuration (series/parallel) with voltage/current calculations
+  - [ ] Interconnect design (welded vs. soldered tabs)
+  - [ ] Coverglass selection and bonding
+  - [ ] Bypass diode placement and ratings
+  - [ ] Thermal expansion considerations
+  - [ ] Wiring harness design to MPPT
+  - [ ] Deployment mechanism interface (if deployable)
+  - [ ] Shadow analysis for deployed configuration
+
+#### 16.1.2 Battery Design
+- [ ] **Complete Battery Design**: Create `hardware/eps/BATTERY_DESIGN.md`:
+  - [ ] Cell selection (vendor, chemistry, capacity, cycle life)
+  - [ ] Pack configuration (series/parallel)
+  - [ ] Battery Management System (BMS) design
+    - [ ] Cell balancing approach
+    - [ ] Overcharge/overdischarge protection
+    - [ ] Temperature monitoring and protection
+    - [ ] Charge inhibit for launch
+  - [ ] Mechanical packaging and thermal interface
+  - [ ] Heater circuit design (if required)
+  - [ ] Wiring and connector selection
+  - [ ] Safety features (venting, fusing)
+
+#### 16.1.3 Power Distribution Unit (PDU) Design
+- [ ] **Complete PDU Design**: Create `hardware/eps/PDU_DESIGN.md`:
+  - [ ] Voltage rail definitions (3.3V, 5V, 12V, battery bus)
+  - [ ] Load switch design for each rail
+  - [ ] Current sensing circuit design
+  - [ ] Overcurrent protection sizing
+  - [ ] Inrush current limiting
+  - [ ] Power sequencing logic
+  - [ ] Connector and harness interface
+  - [ ] Telemetry points definition
+
+#### 16.1.4 EPS Schematics and Layout
+- [ ] **Complete EPS Electrical Design**:
+  - [ ] Schematic capture (all sheets)
+  - [ ] Bill of Materials (BOM) with alternates
+  - [ ] PCB layout with design rule check (DRC) clean
+  - [ ] Gerber files and fabrication notes
+  - [ ] Assembly drawings
+  - [ ] Thermal analysis of power dissipating components
+  - [ ] EMC considerations (filtering, grounding)
+
+### 16.2 Command & Data Handling (C&DH) / OBC Design
+
+#### 16.2.1 OBC Hardware Design
+- [ ] **Complete OBC Design**: Create `hardware/obc/OBC_DESIGN.md`:
+  - [ ] Microcontroller selection justification
+  - [ ] Memory architecture (RAM, Flash, FRAM/MRAM)
+  - [ ] Clock source and distribution
+  - [ ] Reset and watchdog circuitry
+  - [ ] Power supply design (LDOs/DC-DC)
+  - [ ] Debug and programming interface
+  - [ ] Peripheral interfaces:
+    - [ ] UART (to Jetson, to beacon TX)
+    - [ ] SPI (to sensors, to storage)
+    - [ ] I2C (to EPS, to ADCS)
+    - [ ] GPIO (deployment switches, status LEDs)
+    - [ ] ADC (analog telemetry)
+
+#### 16.2.2 Data Storage Design
+- [ ] **Complete Storage Design**: Create `hardware/obc/STORAGE_DESIGN.md`:
+  - [ ] Primary storage (FRAM/MRAM) sizing and interface
+  - [ ] Secondary storage (SD card or NAND) sizing
+  - [ ] Wear leveling considerations
+  - [ ] Data integrity features (ECC, CRC)
+  - [ ] File system selection
+
+#### 16.2.3 OBC Schematics and Layout
+- [ ] **Complete OBC Electrical Design**:
+  - [ ] Schematic capture (all sheets)
+  - [ ] BOM with alternates
+  - [ ] PCB layout (4-6 layer) with DRC clean
+  - [ ] Stack-up definition
+  - [ ] Impedance control for high-speed signals
+  - [ ] EMC filtering and grounding
+
+### 16.3 Communication Subsystem Design
+
+#### 16.3.1 Transmitter Design
+- [ ] **Complete TX Design**: Create `hardware/rf/TRANSMITTER_DESIGN.md`:
+  - [ ] Transceiver/transmitter module selection
+  - [ ] Frequency synthesizer/crystal reference
+  - [ ] Modulator configuration (AFSK 1200 bps)
+  - [ ] Power amplifier design/selection
+  - [ ] Output matching network
+  - [ ] Harmonic filtering (low-pass filter design)
+  - [ ] RF power detection/monitoring
+  - [ ] Temperature compensation
+
+#### 16.3.2 Antenna Design
+- [ ] **Complete Antenna Design**: Create `hardware/rf/ANTENNA_DESIGN.md`:
+  - [ ] Antenna type selection (quarter-wave monopole)
+  - [ ] Element material (tape spring, Nitinol, etc.)
+  - [ ] Deployment mechanism design
+  - [ ] Deployment actuation (burn wire, shape memory)
+  - [ ] RF matching to 50Ω
+  - [ ] Radiation pattern analysis
+  - [ ] Ground plane considerations
+
+#### 16.3.3 RF Schematics and Layout
+- [ ] **Complete RF Electrical Design**:
+  - [ ] Schematic capture
+  - [ ] BOM with RF-grade components
+  - [ ] PCB layout with RF design rules
+  - [ ] Controlled impedance traces (50Ω)
+  - [ ] Shielding considerations
+  - [ ] Connector selection (SMA, U.FL)
+
+### 16.4 Attitude Determination & Control System (ADCS) Design
+
+#### 16.4.1 Sensor Design
+- [ ] **Complete ADCS Sensor Design**: Create `hardware/adcs/SENSOR_DESIGN.md`:
+  - [ ] Magnetometer selection and placement
+  - [ ] Sun sensor design/selection (6-face coverage)
+  - [ ] Gyroscope (if included) selection
+  - [ ] Sensor interface circuits
+  - [ ] Calibration approach
+
+#### 16.4.2 Actuator Design
+- [ ] **Complete Actuator Design**: Create `hardware/adcs/ACTUATOR_DESIGN.md`:
+  - [ ] Magnetorquer coil design:
+    - [ ] Core material selection (air core vs. permalloy)
+    - [ ] Wire gauge and turns calculation
+    - [ ] Dipole moment requirement
+    - [ ] Driver circuit design (H-bridge)
+    - [ ] Current sensing
+  - [ ] Mechanical mounting and alignment
+
+#### 16.4.3 ADCS Electronics
+- [ ] **Complete ADCS Electrical Design**:
+  - [ ] Schematic capture
+  - [ ] BOM
+  - [ ] PCB layout
+  - [ ] Interface to OBC (I2C/SPI)
+
+### 16.5 AI Payload (Jetson) Integration Design
+
+#### 16.5.1 Jetson Integration
+- [ ] **Complete Jetson Integration Design**: Create `hardware/payload-jetson/INTEGRATION_DESIGN.md`:
+  - [ ] Carrier board design (if custom)
+  - [ ] Power supply design (5V @ 3A capability)
+  - [ ] Power gating circuit (enable/disable from OBC)
+  - [ ] UART interface to OBC (level shifting if needed)
+  - [ ] Storage interface (NVMe/SD)
+  - [ ] Thermal interface design:
+    - [ ] Heat spreader material selection
+    - [ ] Thermal path to chassis
+    - [ ] Thermal pad/paste selection
+  - [ ] EMC shielding considerations
+
+#### 16.5.2 Jetson Power Management
+- [ ] **Jetson Power Design**: Create `hardware/payload-jetson/POWER_MANAGEMENT.md`:
+  - [ ] DVFS profile configuration
+  - [ ] Power limit settings
+  - [ ] Fan disable/passive cooling verification
+  - [ ] Power monitoring points
+  - [ ] Soft shutdown sequence
+
+### 16.6 Structure and Thermal Design
+
+#### 16.6.1 Structural Design
+- [ ] **Complete Structural Design**: Create `hardware/structure/STRUCTURAL_DESIGN.md`:
+  - [ ] CAD model (STEP/IGES) of flight configuration
+  - [ ] Mass properties (mass, CG, MOI)
+  - [ ] Finite Element Analysis (FEA) for launch loads
+  - [ ] Fastener torque specifications
+  - [ ] Rail finish requirements
+  - [ ] Deployment mechanism design (solar panels, antenna)
+  - [ ] Venting paths for pressure equalization
+
+#### 16.6.2 Thermal Design
+- [ ] **Complete Thermal Design**: Create `hardware/structure/THERMAL_DESIGN.md`:
+  - [ ] Thermal model (nodes, conductances)
+  - [ ] Orbital thermal environment definition
+  - [ ] Worst-case hot/cold analysis
+  - [ ] Surface finish and coatings (α/ε selection)
+  - [ ] Heater sizing (if required)
+  - [ ] Thermal straps/interfaces
+  - [ ] Jetson thermal path analysis
+
+### 16.7 Harness and Interconnect Design
+
+- [ ] **Complete Harness Design**: Create `hardware/harness/HARNESS_DESIGN.md`:
+  - [ ] Harness block diagram
+  - [ ] Connector selection and pin assignments
+  - [ ] Wire gauge and insulation selection
+  - [ ] Wire routing and tie-down points
+  - [ ] Harness drawings with lengths
+  - [ ] Shielding and grounding scheme
+  - [ ] Harness mass budget
+
+---
+
+## 17. Flight Software Implementation
+
+This section details the complete flight software implementation tasks, organized by module. Each module shall be implemented, unit tested, and code reviewed before integration.
+
+### 17.1 OBC Flight Software Modules
+
+#### 17.1.1 System Initialization Module
+- [ ] **Implement `sw/flight/src/system_init.c`**:
+  - [ ] Hardware initialization sequence
+  - [ ] Clock configuration
+  - [ ] Peripheral initialization
+  - [ ] Watchdog initialization
+  - [ ] Memory test (optional, for SRAM)
+  - [ ] Load configuration from non-volatile storage
+  - [ ] Boot reason determination and logging
+  - [ ] Self-test execution
+  - [ ] Unit tests in `sw/flight/tests/test_system_init.c`
+
+#### 17.1.2 Scheduler/Executive Module
+- [ ] **Implement `sw/flight/src/scheduler.c`**:
+  - [ ] Time-triggered scheduler (if bare metal)
+  - [ ] Task table definition
+  - [ ] Task priority and period configuration
+  - [ ] Deadline monitoring
+  - [ ] CPU utilization measurement
+  - [ ] Idle task handling
+  - [ ] Unit tests in `sw/flight/tests/test_scheduler.c`
+
+#### 17.1.3 Sensor Management Module
+- [ ] **Implement `sw/flight/src/sensors.c`** (refactor from main.c):
+  - [ ] Sensor initialization
+  - [ ] Sensor polling (per configured period)
+  - [ ] Sensor data conversion (raw to engineering units)
+  - [ ] Sensor health monitoring (range checks)
+  - [ ] Sensor data averaging/filtering
+  - [ ] Sensor configuration from YAML
+  - [ ] Unit tests in `sw/flight/tests/test_sensors.c`
+
+#### 17.1.4 EPS Control Module
+- [ ] **Implement `sw/flight/src/eps_control.c`** (refactor from main.c):
+  - [ ] Power mode state machine (SAFE/IDLE/ACTIVE)
+  - [ ] Load switch control functions
+  - [ ] Battery SOC estimation
+  - [ ] Solar array power tracking
+  - [ ] Power budget enforcement
+  - [ ] Autonomous load shedding logic
+  - [ ] EPS telemetry collection
+  - [ ] Unit tests in `sw/flight/tests/test_eps_control.c`
+
+#### 17.1.5 Fault Management Module
+- [ ] **Implement `sw/flight/src/fault_mgmt.c`** (refactor from main.c):
+  - [ ] Fault detection functions
+  - [ ] Fault isolation logic
+  - [ ] Fault recovery procedures
+  - [ ] Fault logging (with timestamps)
+  - [ ] Fault persistence across resets
+  - [ ] Safe mode entry logic
+  - [ ] Fault counters and trending
+  - [ ] Unit tests in `sw/flight/tests/test_fault_mgmt.c`
+
+#### 17.1.6 Telemetry Module
+- [ ] **Implement `sw/flight/src/telemetry.c`**:
+  - [ ] Telemetry packet formatting
+  - [ ] Telemetry point registration
+  - [ ] Telemetry sampling
+  - [ ] Telemetry storage (circular buffer)
+  - [ ] Telemetry downlink interface
+  - [ ] Telemetry compression (if needed)
+  - [ ] Unit tests in `sw/flight/tests/test_telemetry.c`
+
+#### 17.1.7 Beacon Generation Module
+- [ ] **Implement `sw/flight/src/beacon.c`**:
+  - [ ] AX.25 frame formatting
+  - [ ] Callsign encoding
+  - [ ] Info field composition
+  - [ ] Beacon scheduling (adaptive cadence)
+  - [ ] Beacon transmission trigger
+  - [ ] Integration with Jetson-generated text
+  - [ ] Fallback to template text
+  - [ ] Unit tests in `sw/flight/tests/test_beacon.c`
+
+#### 17.1.8 UART Communication Module
+- [ ] **Implement `sw/flight/src/uart_comm.c`** (refactor from main.c):
+  - [ ] UART initialization
+  - [ ] Transmit buffer management
+  - [ ] Receive buffer management
+  - [ ] Protocol framing (if applicable)
+  - [ ] CRC calculation and verification
+  - [ ] Timeout handling
+  - [ ] Error recovery
+  - [ ] Unit tests in `sw/flight/tests/test_uart_comm.c`
+
+#### 17.1.9 ADCS Control Module
+- [ ] **Implement `sw/flight/src/adcs.c`**:
+  - [ ] Magnetometer driver
+  - [ ] Sun sensor driver
+  - [ ] Attitude determination (TRIAD or similar)
+  - [ ] B-dot detumble controller
+  - [ ] Sun-pointing controller
+  - [ ] Magnetorquer driver
+  - [ ] ADCS telemetry
+  - [ ] Unit tests in `sw/flight/tests/test_adcs.c`
+
+#### 17.1.10 Data Persistence Module
+- [ ] **Implement `sw/flight/src/persistence.c`** (refactor from main.c):
+  - [ ] Mission data structure definition
+  - [ ] Save to non-volatile storage
+  - [ ] Load from non-volatile storage
+  - [ ] CRC protection
+  - [ ] Redundant storage with voting
+  - [ ] Corruption detection and recovery
+  - [ ] Unit tests in `sw/flight/tests/test_persistence.c`
+
+#### 17.1.11 Watchdog Module
+- [ ] **Implement `sw/flight/src/watchdog.c`**:
+  - [ ] Hardware watchdog initialization
+  - [ ] Watchdog kick function
+  - [ ] Multi-task watchdog monitoring
+  - [ ] Watchdog timeout configuration
+  - [ ] Pre-reset data save
+  - [ ] Unit tests in `sw/flight/tests/test_watchdog.c`
+
+#### 17.1.12 Deployment Control Module
+- [ ] **Implement `sw/flight/src/deployment.c`**:
+  - [ ] Deployment timer (T+30min from separation)
+  - [ ] Deployment switch monitoring
+  - [ ] Antenna deployment actuation
+  - [ ] Solar panel deployment actuation (if applicable)
+  - [ ] Deployment status telemetry
+  - [ ] Deployment retry logic
+  - [ ] Unit tests in `sw/flight/tests/test_deployment.c`
+
+### 17.2 Payload (Jetson) Software Modules
+
+#### 17.2.1 Health Interface Module
+- [ ] **Implement `sw/payload/health_interface.py`**:
+  - [ ] UART receive from OBC
+  - [ ] Health data parsing (JSON)
+  - [ ] Health data validation
+  - [ ] Connection health monitoring
+  - [ ] Reconnection logic
+  - [ ] Unit tests in `sw/payload/tests/test_health_interface.py`
+
+#### 17.2.2 LLM Inference Module
+- [ ] **Enhance `sw/payload/llama_runner.py`**:
+  - [ ] Model loading with error handling
+  - [ ] Inference timeout enforcement
+  - [ ] Memory usage monitoring
+  - [ ] GPU utilization monitoring
+  - [ ] Temperature monitoring
+  - [ ] Graceful degradation on errors
+  - [ ] Unit tests in `sw/payload/tests/test_llama_runner.py`
+
+#### 17.2.3 Beacon Text Formatter
+- [ ] **Enhance `sw/payload/formatter.py`**:
+  - [ ] Output validation (ASCII only, length limit)
+  - [ ] Content filtering (no inappropriate content)
+  - [ ] Template fallback selection
+  - [ ] Info field composition
+  - [ ] Unit tests in `sw/payload/tests/test_formatter.py`
+
+#### 17.2.4 Payload Supervisor
+- [ ] **Implement `sw/payload/supervisor.py`**:
+  - [ ] Process lifecycle management
+  - [ ] Health reporting to OBC
+  - [ ] Graceful shutdown handling
+  - [ ] Power state awareness
+  - [ ] Thermal throttling response
+  - [ ] Unit tests in `sw/payload/tests/test_supervisor.py`
+
+### 17.3 Integration Software
+
+#### 17.3.1 OBC-Jetson Integration
+- [ ] **Implement integration layer**:
+  - [ ] Protocol definition (message types, formats)
+  - [ ] Handshaking sequence
+  - [ ] Health data transmission (OBC → Jetson)
+  - [ ] Beacon text reception (Jetson → OBC)
+  - [ ] Timeout handling
+  - [ ] Integration tests in `sw/tests/integration/test_obc_jetson.c`
+
+#### 17.3.2 End-to-End Beacon Flow
+- [ ] **Implement E2E beacon generation**:
+  - [ ] Sensor → Telemetry → Health data
+  - [ ] Health data → Jetson → Beacon text
+  - [ ] Beacon text → AX.25 frame → Transmitter
+  - [ ] E2E tests in `sw/tests/integration/test_beacon_e2e.c`
+
+### 17.4 Ground Software
+
+#### 17.4.1 Beacon Decoder
+- [ ] **Implement `sw/ground/beacon_decoder.py`**:
+  - [ ] AX.25 frame parsing
+  - [ ] Info field extraction
+  - [ ] Telemetry parsing from machine-readable tail
+  - [ ] Timestamp handling
+  - [ ] Database storage
+  - [ ] Unit tests in `sw/ground/tests/test_beacon_decoder.py`
+
+#### 17.4.2 Telemetry Display
+- [ ] **Implement `sw/ground/telemetry_display.py`**:
+  - [ ] Real-time telemetry display
+  - [ ] Historical trending
+  - [ ] Limit monitoring and alarms
+  - [ ] Export to CSV/JSON
+
+#### 17.4.3 Pass Prediction
+- [ ] **Implement `sw/ground/pass_prediction.py`**:
+  - [ ] TLE ingestion
+  - [ ] Pass calculation (using SGP4)
+  - [ ] AOS/LOS prediction
+  - [ ] Elevation/azimuth calculation
+
+---
+
+## 18. Hardware Verification Test Procedures
+
+This section provides detailed test procedures for hardware verification, following NASA Ames SmallSat heritage (GeneSat, PharmaSat, O/OREOS, EcAMSat protoflight approach).
+
+### 18.1 Test Procedure Documentation Standard
+
+All test procedures shall follow this format:
+
+```
+PROCEDURE: [Test Name]
+DOCUMENT: TP-[Subsystem]-[Number]
+REVISION: [Rev Letter]
+DATE: [Date]
+
+1. PURPOSE
+   [Why this test is performed]
+
+2. SCOPE
+   [What is tested, what is not]
+
+3. APPLICABLE DOCUMENTS
+   [Reference documents]
+
+4. TEST ARTICLE
+   [Description of unit under test]
+
+5. TEST EQUIPMENT
+   [List of required equipment with calibration requirements]
+
+6. PRECONDITIONS
+   [Required state before test]
+
+7. SAFETY
+   [Safety considerations]
+
+8. PROCEDURE
+   [Step-by-step instructions with expected results]
+
+9. PASS/FAIL CRITERIA
+   [Explicit criteria]
+
+10. DATA RECORDING
+    [What data to record]
+
+11. POST-TEST
+    [Actions after test completion]
+```
+
+### 18.2 Electrical Power Subsystem (EPS) Test Procedures
+
+#### 18.2.1 EPS Functional Test
+- [ ] **Create TP-EPS-001**: `docs/test_procedures/TP-EPS-001_Functional_Test.md`:
+  - [ ] Verify all voltage rails (3.3V, 5V, 12V, battery bus)
+  - [ ] Verify voltage regulation under load
+  - [ ] Verify load switch operation
+  - [ ] Verify current sensing accuracy
+  - [ ] Verify overcurrent protection
+  - [ ] Verify battery charging operation
+  - [ ] Verify MPPT tracking
+  - [ ] Verify telemetry accuracy
+
+#### 18.2.2 EPS Load Profile Test
+- [ ] **Create TP-EPS-002**: `docs/test_procedures/TP-EPS-002_Load_Profile.md`:
+  - [ ] Simulate mission power profile
+  - [ ] Verify power budget margins
+  - [ ] Verify load transient response
+  - [ ] Verify battery SOC tracking
+  - [ ] Verify power mode transitions
+
+#### 18.2.3 Battery Characterization Test
+- [ ] **Create TP-EPS-003**: `docs/test_procedures/TP-EPS-003_Battery_Characterization.md`:
+  - [ ] Measure cell capacity (C/5 discharge)
+  - [ ] Measure internal resistance
+  - [ ] Verify BMS protection functions
+  - [ ] Verify cell balancing
+  - [ ] Verify temperature protection
+  - [ ] Verify charge inhibit function
+
+#### 18.2.4 Solar Array Characterization
+- [ ] **Create TP-EPS-004**: `docs/test_procedures/TP-EPS-004_Solar_Array.md`:
+  - [ ] Measure I-V curve under sun simulator
+  - [ ] Verify bypass diode function
+  - [ ] Verify string isolation
+  - [ ] Verify power output at various angles
+
+### 18.3 Communication Subsystem Test Procedures
+
+#### 18.3.1 RF Functional Test
+- [ ] **Create TP-RF-001**: `docs/test_procedures/TP-RF-001_Functional_Test.md`:
+  - [ ] Verify transmitter power output
+  - [ ] Verify frequency accuracy
+  - [ ] Verify modulation (AFSK deviation)
+  - [ ] Verify AX.25 frame generation
+  - [ ] Verify beacon timing
+  - [ ] Verify callsign encoding
+
+#### 18.3.2 RF Conducted Power Test
+- [ ] **Create TP-RF-002**: `docs/test_procedures/TP-RF-002_Conducted_Power.md`:
+  - [ ] Measure output power at antenna connector
+  - [ ] Measure power at multiple temperatures
+  - [ ] Verify power control (if adjustable)
+  - [ ] Equipment: spectrum analyzer, power meter
+
+#### 18.3.3 RF Spurious Emissions Test
+- [ ] **Create TP-RF-003**: `docs/test_procedures/TP-RF-003_Spurious_Emissions.md`:
+  - [ ] Measure harmonic levels (2nd, 3rd, etc.)
+  - [ ] Measure out-of-band emissions
+  - [ ] Verify compliance with IARU limits
+  - [ ] Equipment: spectrum analyzer
+
+#### 18.3.4 RF Modulation Quality Test
+- [ ] **Create TP-RF-004**: `docs/test_procedures/TP-RF-004_Modulation.md`:
+  - [ ] Measure FM deviation
+  - [ ] Verify modulation index
+  - [ ] Measure occupied bandwidth
+  - [ ] Verify decodability with reference receiver
+
+#### 18.3.5 Antenna Deployment Test
+- [ ] **Create TP-RF-005**: `docs/test_procedures/TP-RF-005_Antenna_Deployment.md`:
+  - [ ] Verify deployment mechanism function
+  - [ ] Measure deployment time
+  - [ ] Verify deployed antenna position
+  - [ ] Verify antenna impedance (VNA measurement)
+  - [ ] Repeat for multiple deployment cycles
+
+### 18.4 OBC/C&DH Test Procedures
+
+#### 18.4.1 OBC Functional Test
+- [ ] **Create TP-OBC-001**: `docs/test_procedures/TP-OBC-001_Functional_Test.md`:
+  - [ ] Verify boot sequence
+  - [ ] Verify watchdog function
+  - [ ] Verify UART interfaces
+  - [ ] Verify SPI interfaces
+  - [ ] Verify I2C interfaces
+  - [ ] Verify GPIO functions
+  - [ ] Verify ADC accuracy
+  - [ ] Verify memory read/write
+
+#### 18.4.2 OBC Software Load Test
+- [ ] **Create TP-OBC-002**: `docs/test_procedures/TP-OBC-002_Software_Load.md`:
+  - [ ] Verify bootloader operation
+  - [ ] Verify software image loading
+  - [ ] Verify software version reporting
+  - [ ] Verify CRC verification
+
+#### 18.4.3 OBC Timing Test
+- [ ] **Create TP-OBC-003**: `docs/test_procedures/TP-OBC-003_Timing.md`:
+  - [ ] Verify RTC accuracy
+  - [ ] Verify task timing
+  - [ ] Verify beacon cadence accuracy
+  - [ ] Measure CPU utilization
+
+#### 18.4.4 Watchdog Test
+- [ ] **Create TP-OBC-004**: `docs/test_procedures/TP-OBC-004_Watchdog.md`:
+  - [ ] Verify watchdog timeout
+  - [ ] Verify reset recovery
+  - [ ] Verify state preservation across reset
+
+### 18.5 ADCS Test Procedures
+
+#### 18.5.1 ADCS Sensor Test
+- [ ] **Create TP-ADCS-001**: `docs/test_procedures/TP-ADCS-001_Sensor_Test.md`:
+  - [ ] Magnetometer calibration
+  - [ ] Magnetometer accuracy vs. reference
+  - [ ] Sun sensor calibration
+  - [ ] Sun sensor field-of-view verification
+
+#### 18.5.2 ADCS Actuator Test
+- [ ] **Create TP-ADCS-002**: `docs/test_procedures/TP-ADCS-002_Actuator_Test.md`:
+  - [ ] Magnetorquer polarity verification
+  - [ ] Magnetorquer dipole moment measurement
+  - [ ] Magnetorquer driver operation
+  - [ ] Equipment: Helmholtz cage or magnetometer
+
+#### 18.5.3 ADCS Algorithm Test
+- [ ] **Create TP-ADCS-003**: `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md`:
+  - [ ] B-dot algorithm verification (Helmholtz cage)
+  - [ ] Attitude determination verification
+  - [ ] Control law verification
+
+### 18.6 Jetson Payload Test Procedures
+
+#### 18.6.1 Jetson Power Test
+- [ ] **Create TP-JETSON-001**: `docs/test_procedures/TP-JETSON-001_Power_Test.md`:
+  - [ ] Measure idle power consumption
+  - [ ] Measure inference power consumption
+  - [ ] Measure peak power draw
+  - [ ] Verify power gating function
+  - [ ] Verify power sequencing
+
+#### 18.6.2 Jetson Thermal Test
+- [ ] **Create TP-JETSON-002**: `docs/test_procedures/TP-JETSON-002_Thermal_Test.md`:
+  - [ ] Measure steady-state temperature at idle
+  - [ ] Measure temperature during inference
+  - [ ] Verify thermal throttling behavior
+  - [ ] Verify thermal interface effectiveness
+
+#### 18.6.3 Jetson Functional Test
+- [ ] **Create TP-JETSON-003**: `docs/test_procedures/TP-JETSON-003_Functional_Test.md`:
+  - [ ] Verify boot sequence
+  - [ ] Verify UART communication with OBC
+  - [ ] Verify LLM model loading
+  - [ ] Verify inference operation
+  - [ ] Verify fallback behavior
+
+### 18.7 Mechanical/Deployment Test Procedures
+
+#### 18.7.1 Fit Check
+- [ ] **Create TP-MECH-001**: `docs/test_procedures/TP-MECH-001_Fit_Check.md`:
+  - [ ] Verify CubeSat rail dimensions
+  - [ ] Verify CG location
+  - [ ] Verify mass
+  - [ ] Verify fit in deployment pod mockup
+
+#### 18.7.2 Deployment Test
+- [ ] **Create TP-MECH-002**: `docs/test_procedures/TP-MECH-002_Deployment.md`:
+  - [ ] Antenna deployment functional test
+  - [ ] Solar panel deployment functional test (if applicable)
+  - [ ] Deployment timing measurement
+  - [ ] Multiple deployment cycle test
+
+#### 18.7.3 Deployment Switch Test
+- [ ] **Create TP-MECH-003**: `docs/test_procedures/TP-MECH-003_Deployment_Switches.md`:
+  - [ ] Verify switch actuation
+  - [ ] Verify switch inhibit function
+  - [ ] Verify switch electrical parameters
+
+---
+
+## 19. System Integration & Test Campaign
+
+This section describes the system-level integration and test campaign, following NASA Ames SmallSat heritage for protoflight testing.
+
+### 19.1 Integration Philosophy (NASA Ames Heritage)
+
+Following GeneSat/PharmaSat/O/OREOS/EcAMSat heritage:
+- **Flatsat First**: Develop and test software on flatsat before flight hardware
+- **Protoflight Approach**: Single flight unit tested to protoflight levels
+- **Day-in-the-Life Testing**: Extended functional testing simulating on-orbit operations
+- **Early Integration**: Start integration early to find issues early
+
+### 19.2 Flatsat Development and Testing
+
+#### 19.2.1 Flatsat Configuration
+- [ ] **Create Flatsat**: Create `docs/integration/FLATSAT_CONFIGURATION.md`:
+  - [ ] Engineering model or development boards for each subsystem
+  - [ ] Equivalent interfaces to flight configuration
+  - [ ] Ground support equipment (GSE) connections
+  - [ ] Telemetry monitoring capability
+  - [ ] Power supply configuration
+
+#### 19.2.2 Flatsat Software Development
+- [ ] **Flatsat Testing**: Create `docs/test_procedures/TP-FLATSAT-001_Software_Development.md`:
+  - [ ] OBC software execution on flatsat
+  - [ ] Subsystem interface verification
+  - [ ] Fault injection testing
+  - [ ] Regression testing
+  - [ ] Day-in-the-life testing (72+ hours)
+
+#### 19.2.3 Flatsat Test Campaign
+- [ ] **Execute Flatsat Tests**:
+  - [ ] Boot and initialization test
+  - [ ] Mode transition test
+  - [ ] Telemetry generation test
+  - [ ] Beacon generation test
+  - [ ] Fault response test
+  - [ ] Power mode test
+  - [ ] Extended duration test (week-long)
+
+### 19.3 Flight Unit Integration
+
+#### 19.3.1 Integration Sequence
+- [ ] **Create Integration Plan**: Create `docs/integration/INTEGRATION_PLAN.md`:
+  - [ ] Integration sequence (order of subsystem integration)
+  - [ ] Integration test at each step
+  - [ ] Acceptance criteria for each integration step
+  - [ ] Fallback/rework plan
+
+#### 19.3.2 Integration Procedures
+- [ ] **Create TP-INT-001**: `docs/test_procedures/TP-INT-001_EPS_Integration.md`:
+  - [ ] EPS to structure integration
+  - [ ] Power bus verification
+  - [ ] Load testing
+
+- [ ] **Create TP-INT-002**: `docs/test_procedures/TP-INT-002_OBC_Integration.md`:
+  - [ ] OBC to EPS integration
+  - [ ] Power verification
+  - [ ] Boot test
+  - [ ] Interface test
+
+- [ ] **Create TP-INT-003**: `docs/test_procedures/TP-INT-003_RF_Integration.md`:
+  - [ ] RF board integration
+  - [ ] Antenna cable routing
+  - [ ] RF power test
+  - [ ] Beacon test (into dummy load)
+
+- [ ] **Create TP-INT-004**: `docs/test_procedures/TP-INT-004_ADCS_Integration.md`:
+  - [ ] ADCS board integration
+  - [ ] Sensor verification
+  - [ ] Actuator verification
+
+- [ ] **Create TP-INT-005**: `docs/test_procedures/TP-INT-005_Jetson_Integration.md`:
+  - [ ] Jetson module integration
+  - [ ] Thermal interface verification
+  - [ ] Power gating verification
+  - [ ] UART interface test
+  - [ ] Inference test
+
+- [ ] **Create TP-INT-006**: `docs/test_procedures/TP-INT-006_Final_Assembly.md`:
+  - [ ] Final mechanical assembly
+  - [ ] Harness installation
+  - [ ] Antenna stowage
+  - [ ] Solar panel installation
+  - [ ] Mass properties measurement
+
+### 19.4 System Functional Test
+
+#### 19.4.1 Comprehensive Functional Test (CFT)
+- [ ] **Create TP-SYS-001**: `docs/test_procedures/TP-SYS-001_Comprehensive_Functional.md`:
+  - [ ] Boot and initialization
+  - [ ] All telemetry points verification
+  - [ ] All mode transitions
+  - [ ] Beacon generation (all modes)
+  - [ ] ADCS sensor verification
+  - [ ] ADCS actuator verification
+  - [ ] Power mode transitions
+  - [ ] Fault injection and recovery
+  - [ ] Deployment sequence (inhibited)
+
+#### 19.4.2 Day-in-the-Life (DITL) Test
+- [ ] **Create TP-SYS-002**: `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md`:
+  - [ ] 24-hour simulated mission operation
+  - [ ] Orbital light/dark cycling simulation
+  - [ ] Beacon cadence verification
+  - [ ] Power budget verification
+  - [ ] Thermal stability monitoring
+  - [ ] Anomaly response verification
+  - [ ] Data recording and analysis
+
+### 19.5 Environmental Test Campaign
+
+Following protoflight approach per GSFC-STD-7000 (GEVS).
+
+#### 19.5.1 Pre-Environmental Baseline
+- [ ] **Create TP-ENV-001**: `docs/test_procedures/TP-ENV-001_Pre_Environmental_Baseline.md`:
+  - [ ] Mass measurement
+  - [ ] CG measurement
+  - [ ] Full functional test
+  - [ ] RF characterization
+  - [ ] Photograph configuration
+
+#### 19.5.2 Vibration Test Procedure
+- [ ] **Create TP-ENV-002**: `docs/test_procedures/TP-ENV-002_Vibration.md`:
+  - [ ] Pre-test functional check
+  - [ ] Low-level sine sweep (signature)
+  - [ ] Random vibration (X, Y, Z axes):
+    - [ ] Workmanship level (1 minute/axis) or protoflight level
+    - [ ] Levels per launch provider spec
+  - [ ] Post-axis sine sweep (signature comparison)
+  - [ ] Post-axis functional check
+  - [ ] Post-test full functional test
+  - [ ] Post-test visual inspection
+
+#### 19.5.3 Thermal Vacuum Test Procedure
+- [ ] **Create TP-ENV-003**: `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md`:
+  - [ ] Pre-test functional check
+  - [ ] Chamber setup and configuration
+  - [ ] Pump-down and leak check
+  - [ ] Thermal cycling (protoflight: 4 cycles minimum):
+    - [ ] Hot operational plateau (+50°C or per spec)
+    - [ ] Cold operational plateau (-20°C or per spec)
+    - [ ] Hot survival plateau (if different)
+    - [ ] Cold survival plateau (if different)
+    - [ ] Dwell time at each plateau (2+ hours)
+  - [ ] Functional test at each temperature plateau:
+    - [ ] Abbreviated functional (boot, beacon, telemetry)
+    - [ ] Hot case Jetson operation
+  - [ ] Return to ambient and vent
+  - [ ] Post-test full functional test
+
+#### 19.5.4 EMC/EMI Test Procedure
+- [ ] **Create TP-ENV-004**: `docs/test_procedures/TP-ENV-004_EMC.md`:
+  - [ ] Pre-test functional check
+  - [ ] Radiated emissions test (RE102 tailored)
+  - [ ] Conducted emissions test (CE102 tailored)
+  - [ ] Radiated susceptibility test (RS103 tailored, if required)
+  - [ ] Self-compatibility test (all systems operating)
+  - [ ] Post-test functional check
+
+#### 19.5.5 Deployment Test (Post-Environmental)
+- [ ] **Create TP-ENV-005**: `docs/test_procedures/TP-ENV-005_Deployment_Post_Env.md`:
+  - [ ] Antenna deployment test (flight-like actuation)
+  - [ ] Solar panel deployment test (if applicable)
+  - [ ] Deployment sequence timing verification
+
+### 19.6 Final Acceptance Testing
+
+#### 19.6.1 Final Functional Test
+- [ ] **Create TP-FAT-001**: `docs/test_procedures/TP-FAT-001_Final_Functional.md`:
+  - [ ] Complete functional test
+  - [ ] RF characterization (final)
+  - [ ] Battery capacity verification
+  - [ ] Mass properties final measurement
+  - [ ] Configuration verification
+
+#### 19.6.2 Flight Configuration Verification
+- [ ] **Create TP-FAT-002**: `docs/test_procedures/TP-FAT-002_Flight_Config.md`:
+  - [ ] Software version verification
+  - [ ] Configuration parameter verification
+  - [ ] Callsign verification
+  - [ ] Beacon format verification
+  - [ ] All inhibits armed
+
+### 19.7 Test Data Management
+
+- [ ] **Create Test Data Management Plan**: Create `docs/integration/TEST_DATA_MANAGEMENT.md`:
+  - [ ] Data recording requirements
+  - [ ] Data format specifications
+  - [ ] Data storage and backup
+  - [ ] Test report template
+  - [ ] Anomaly reporting procedure
+  - [ ] Test log format
+
+### 19.8 Anomaly Resolution
+
+- [ ] **Create Anomaly Resolution Procedure**: Create `docs/integration/ANOMALY_RESOLUTION.md`:
+  - [ ] Anomaly identification and logging
+  - [ ] Anomaly categorization (severity, priority)
+  - [ ] Investigation process
+  - [ ] Root cause analysis requirements
+  - [ ] Corrective action tracking
+  - [ ] Verification of corrective action
+  - [ ] Anomaly closure criteria
+
+### 19.9 Pre-Ship Review Checklist
+
+- [ ] **Create Pre-Ship Checklist**: Create `docs/integration/PRE_SHIP_CHECKLIST.md`:
+  - [ ] All environmental tests complete and passed
+  - [ ] All anomalies resolved or waived
+  - [ ] All test data reviewed
+  - [ ] Flight software version verified
+  - [ ] Configuration baseline verified
+  - [ ] Mass properties final
+  - [ ] Frequency coordination confirmed
+  - [ ] All documentation complete
+  - [ ] Shipping container ready
+  - [ ] RBF pin installed
+  - [ ] Batteries charged to shipping SOC
+  - [ ] All required deliverables to launch provider complete
 
 ---
 
