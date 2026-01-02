@@ -26,7 +26,7 @@ This document summarizes the Critical Design Review (CDR) readiness status for t
 | Requirements Documentation | Complete | 100% |
 | Interface Documentation | Complete | 100% |
 
-**Total Documentation: 90+ files | Test Procedures: 11 | Flight SW Modules: 11 | Scripts: 2**
+**Total Documentation: 90+ files | Test Procedures: 11 | Flight SW Modules: 11 | Scripts: 4**
 
 ---
 
