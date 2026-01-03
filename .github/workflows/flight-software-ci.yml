@@ -51,6 +51,7 @@ jobs:
       working-directory: software/flight
       run: |
         cppcheck --enable=all --inconclusive --std=c11 \
+          --inline-suppr \
           --suppress=missingIncludeSystem \
           --suppress=unusedFunction \
           --suppress=knownConditionTrueFalse \
