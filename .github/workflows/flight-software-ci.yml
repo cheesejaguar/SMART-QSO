@@ -53,6 +53,7 @@ jobs:
         cppcheck --enable=all --inconclusive --std=c11 \
           --inline-suppr \
           --suppress=missingIncludeSystem \
+          --suppress=missingInclude \
           --suppress=unusedFunction \
           --suppress=knownConditionTrueFalse \
           --suppress=nullPointerRedundantCheck \
