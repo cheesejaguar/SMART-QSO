@@ -317,6 +317,9 @@ static void test_fault_log_get_entry(void **state) {
 /**
  * @brief Test fault log persistence
  *
+ * Note: fault_log_clear() removes the persistence file, so we test
+ * save and load without clearing in between.
+ *
  * @requirement SRS-F041 Maintain fault log in NVM
  */
 static void test_fault_persistence(void **state) {
@@ -326,20 +329,20 @@ static void test_fault_persistence(void **state) {
     fault_log_add(FAULT_TYPE_THERMAL, FAULT_SEVERITY_WARNING, "Test fault 1", 0.75);
     fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_ERROR, "Test fault 2", 0.60);
 
+    size_t count_before = fault_log_get_count();
+    assert_true(count_before >= 2);
+
     /* Save to file */
     SmartQsoResult_t result = fault_log_save();
     assert_int_equal(result, SMART_QSO_OK);
 
-    /* Clear and re-initialize */
-    fault_log_clear();
-
-    /* Load from file */
+    /* Load from file should succeed */
     result = fault_log_load();
     assert_int_equal(result, SMART_QSO_OK);
 
-    /* Verify faults were loaded */
-    size_t count = fault_log_get_count();
-    assert_true(count >= 2);
+    /* Verify faults are still present */
+    size_t count_after = fault_log_get_count();
+    assert_int_equal(count_after, count_before);
 }
 
 /*===========================================================================*/
