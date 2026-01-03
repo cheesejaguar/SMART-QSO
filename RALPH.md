@@ -1488,19 +1488,19 @@ This section provides detailed design completion checklists for each hardware su
 ### 16.2 Command & Data Handling (C&DH) / OBC Design
 
 #### 16.2.1 OBC Hardware Design
-- [ ] **Complete OBC Design**: Create `hardware/obc/OBC_DESIGN.md`:
-  - [ ] Microcontroller selection justification
-  - [ ] Memory architecture (RAM, Flash, FRAM/MRAM)
-  - [ ] Clock source and distribution
-  - [ ] Reset and watchdog circuitry
-  - [ ] Power supply design (LDOs/DC-DC)
-  - [ ] Debug and programming interface
-  - [ ] Peripheral interfaces:
-    - [ ] UART (to Jetson, to beacon TX)
-    - [ ] SPI (to sensors, to storage)
-    - [ ] I2C (to EPS, to ADCS)
-    - [ ] GPIO (deployment switches, status LEDs)
-    - [ ] ADC (analog telemetry)
+- [x] **Complete OBC Design**: Create `hardware/obc/OBC_DESIGN.md`:
+  - [x] Microcontroller selection justification
+  - [x] Memory architecture (RAM, Flash, FRAM/MRAM)
+  - [x] Clock source and distribution
+  - [x] Reset and watchdog circuitry
+  - [x] Power supply design (LDOs/DC-DC)
+  - [x] Debug and programming interface
+  - [x] Peripheral interfaces:
+    - [x] UART (to Jetson, to beacon TX)
+    - [x] SPI (to sensors, to storage)
+    - [x] I2C (to EPS, to ADCS)
+    - [x] GPIO (deployment switches, status LEDs)
+    - [x] ADC (analog telemetry)
 
 #### 16.2.2 Data Storage Design
 - [ ] **Complete Storage Design**: Create `hardware/obc/STORAGE_DESIGN.md`:
@@ -1522,25 +1522,25 @@ This section provides detailed design completion checklists for each hardware su
 ### 16.3 Communication Subsystem Design
 
 #### 16.3.1 Transmitter Design
-- [ ] **Complete TX Design**: Create `hardware/rf/TRANSMITTER_DESIGN.md`:
-  - [ ] Transceiver/transmitter module selection
-  - [ ] Frequency synthesizer/crystal reference
-  - [ ] Modulator configuration (AFSK 1200 bps)
-  - [ ] Power amplifier design/selection
-  - [ ] Output matching network
-  - [ ] Harmonic filtering (low-pass filter design)
-  - [ ] RF power detection/monitoring
-  - [ ] Temperature compensation
+- [x] **Complete TX Design**: Create `hardware/rf/TRANSMITTER_DESIGN.md`:
+  - [x] Transceiver/transmitter module selection
+  - [x] Frequency synthesizer/crystal reference
+  - [x] Modulator configuration (AFSK 1200 bps)
+  - [x] Power amplifier design/selection
+  - [x] Output matching network
+  - [x] Harmonic filtering (low-pass filter design)
+  - [x] RF power detection/monitoring
+  - [x] Temperature compensation
 
 #### 16.3.2 Antenna Design
-- [ ] **Complete Antenna Design**: Create `hardware/rf/ANTENNA_DESIGN.md`:
-  - [ ] Antenna type selection (quarter-wave monopole)
-  - [ ] Element material (tape spring, Nitinol, etc.)
-  - [ ] Deployment mechanism design
-  - [ ] Deployment actuation (burn wire, shape memory)
-  - [ ] RF matching to 50Ω
-  - [ ] Radiation pattern analysis
-  - [ ] Ground plane considerations
+- [x] **Complete Antenna Design**: Create `hardware/rf/ANTENNA_DESIGN.md`:
+  - [x] Antenna type selection (quarter-wave monopole)
+  - [x] Element material (tape spring, Nitinol, etc.)
+  - [x] Deployment mechanism design
+  - [x] Deployment actuation (burn wire, shape memory)
+  - [x] RF matching to 50Ω
+  - [x] Radiation pattern analysis
+  - [x] Ground plane considerations
 
 #### 16.3.3 RF Schematics and Layout
 - [ ] **Complete RF Electrical Design**:
@@ -1554,22 +1554,22 @@ This section provides detailed design completion checklists for each hardware su
 ### 16.4 Attitude Determination & Control System (ADCS) Design
 
 #### 16.4.1 Sensor Design
-- [ ] **Complete ADCS Sensor Design**: Create `hardware/adcs/SENSOR_DESIGN.md`:
-  - [ ] Magnetometer selection and placement
-  - [ ] Sun sensor design/selection (6-face coverage)
-  - [ ] Gyroscope (if included) selection
-  - [ ] Sensor interface circuits
-  - [ ] Calibration approach
+- [x] **Complete ADCS Sensor Design**: Create `hardware/adcs/SENSOR_DESIGN.md`:
+  - [x] Magnetometer selection and placement
+  - [x] Sun sensor design/selection (6-face coverage)
+  - [x] Gyroscope (if included) selection
+  - [x] Sensor interface circuits
+  - [x] Calibration approach
 
 #### 16.4.2 Actuator Design
-- [ ] **Complete Actuator Design**: Create `hardware/adcs/ACTUATOR_DESIGN.md`:
-  - [ ] Magnetorquer coil design:
-    - [ ] Core material selection (air core vs. permalloy)
-    - [ ] Wire gauge and turns calculation
-    - [ ] Dipole moment requirement
-    - [ ] Driver circuit design (H-bridge)
-    - [ ] Current sensing
-  - [ ] Mechanical mounting and alignment
+- [x] **Complete Actuator Design**: Create `hardware/adcs/ACTUATOR_DESIGN.md`:
+  - [x] Magnetorquer coil design:
+    - [x] Core material selection (air core vs. permalloy)
+    - [x] Wire gauge and turns calculation
+    - [x] Dipole moment requirement
+    - [x] Driver circuit design (H-bridge)
+    - [x] Current sensing
+  - [x] Mechanical mounting and alignment
 
 #### 16.4.3 ADCS Electronics
 - [ ] **Complete ADCS Electrical Design**:
@@ -1581,17 +1581,17 @@ This section provides detailed design completion checklists for each hardware su
 ### 16.5 AI Payload (Jetson) Integration Design
 
 #### 16.5.1 Jetson Integration
-- [ ] **Complete Jetson Integration Design**: Create `hardware/payload-jetson/INTEGRATION_DESIGN.md`:
-  - [ ] Carrier board design (if custom)
-  - [ ] Power supply design (5V @ 3A capability)
-  - [ ] Power gating circuit (enable/disable from OBC)
-  - [ ] UART interface to OBC (level shifting if needed)
-  - [ ] Storage interface (NVMe/SD)
-  - [ ] Thermal interface design:
-    - [ ] Heat spreader material selection
-    - [ ] Thermal path to chassis
-    - [ ] Thermal pad/paste selection
-  - [ ] EMC shielding considerations
+- [x] **Complete Jetson Integration Design**: Create `hardware/payload-jetson/INTEGRATION_DESIGN.md`:
+  - [x] Carrier board design (if custom)
+  - [x] Power supply design (5V @ 3A capability)
+  - [x] Power gating circuit (enable/disable from OBC)
+  - [x] UART interface to OBC (level shifting if needed)
+  - [x] Storage interface (NVMe/SD)
+  - [x] Thermal interface design:
+    - [x] Heat spreader material selection
+    - [x] Thermal path to chassis
+    - [x] Thermal pad/paste selection
+  - [x] EMC shielding considerations
 
 #### 16.5.2 Jetson Power Management
 - [ ] **Jetson Power Design**: Create `hardware/payload-jetson/POWER_MANAGEMENT.md`:
