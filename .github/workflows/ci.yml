@@ -65,7 +65,7 @@ jobs:
         working-directory: software/flight
         run: |
           lcov --capture --directory build --output-file coverage.info
-          lcov --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
+          lcov --ignore-errors unused --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
           lcov --list coverage.info
 
       - name: Upload coverage to Codecov
