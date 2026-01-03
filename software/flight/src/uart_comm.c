@@ -7,6 +7,9 @@
  * @requirement SRS-COMM-003 System shall support configurable UART parameters
  */
 
+/* Required for CRTSCTS and other BSD/POSIX extensions */
+#define _DEFAULT_SOURCE
+
 #include "uart_comm.h"
 #include "fault_mgmt.h"
 

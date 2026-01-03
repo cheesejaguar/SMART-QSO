@@ -5,6 +5,9 @@
  * Provides time-related utility functions for the flight software.
  */
 
+/* Required for clock_gettime on POSIX-compliant systems */
+#define _XOPEN_SOURCE 600
+
 #include "smart_qso.h"
 
 #include <time.h>
