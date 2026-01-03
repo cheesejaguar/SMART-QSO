@@ -85,7 +85,7 @@ All project documentation and processes shall comply with:
   - [x] Create `software/flight/src/fault_mgmt.c` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
   - [x] Create `software/flight/src/uart_comm.c` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
   - [x] Create `software/flight/src/mission_data.c` and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
-  - [ ] Create `software/flight/src/yaml_parser.c` and `software/flight/include/yaml_parser.h` - Extract YAML parsing (lines 652-708)
+  - [x] Create `software/flight/src/yaml_parser.c` and `software/flight/include/yaml_parser.h` - Extract YAML parsing (lines 652-708)
   - [x] Create `software/flight/src/main.c` - Keep only initialization and main loop
   - [x] Create `software/flight/include/smart_qso.h` - Master header with common types and configuration
 
@@ -361,7 +361,7 @@ All project documentation and processes shall comply with:
   - [x] `test_system_startup.c` - Test full system initialization sequence
   - [x] `test_mode_transitions.c` - Test all operational mode transitions
   - [x] `test_fault_scenarios.c` - Test fault injection and recovery
-  - [ ] `test_telemetry_flow.c` - Test end-to-end telemetry generation
+  - [x] `test_telemetry_flow.c` - Test end-to-end telemetry generation
 
 - [x] **Create Hardware-in-the-Loop (HIL) test stubs**:
   - [x] Create `software/flight/tests/hil/` directory
@@ -1643,26 +1643,26 @@ This section details the complete flight software implementation tasks, organize
 ### 17.1 OBC Flight Software Modules
 
 #### 17.1.1 System Initialization Module
-- [ ] **Implement `sw/flight/src/system_init.c`**:
-  - [ ] Hardware initialization sequence
-  - [ ] Clock configuration
-  - [ ] Peripheral initialization
-  - [ ] Watchdog initialization
-  - [ ] Memory test (optional, for SRAM)
-  - [ ] Load configuration from non-volatile storage
-  - [ ] Boot reason determination and logging
-  - [ ] Self-test execution
-  - [ ] Unit tests in `sw/flight/tests/test_system_init.c`
+- [x] **Implement `sw/flight/src/system_init.c`**:
+  - [x] Hardware initialization sequence
+  - [x] Clock configuration
+  - [x] Peripheral initialization
+  - [x] Watchdog initialization
+  - [x] Memory test (optional, for SRAM)
+  - [x] Load configuration from non-volatile storage
+  - [x] Boot reason determination and logging
+  - [x] Self-test execution
+  - [x] Unit tests in `sw/flight/tests/test_system_init.c`
 
 #### 17.1.2 Scheduler/Executive Module
-- [ ] **Implement `sw/flight/src/scheduler.c`**:
-  - [ ] Time-triggered scheduler (if bare metal)
-  - [ ] Task table definition
-  - [ ] Task priority and period configuration
-  - [ ] Deadline monitoring
-  - [ ] CPU utilization measurement
-  - [ ] Idle task handling
-  - [ ] Unit tests in `sw/flight/tests/test_scheduler.c`
+- [x] **Implement `sw/flight/src/scheduler.c`**:
+  - [x] Time-triggered scheduler (if bare metal)
+  - [x] Task table definition
+  - [x] Task priority and period configuration
+  - [x] Deadline monitoring
+  - [x] CPU utilization measurement
+  - [x] Idle task handling
+  - [x] Unit tests in `sw/flight/tests/test_scheduler.c`
 
 #### 17.1.3 Sensor Management Module
 - [x] **Implement `software/flight/src/sensors.c`** (refactor from main.c):
@@ -1703,8 +1703,8 @@ This section details the complete flight software implementation tasks, organize
   - [x] Telemetry sampling
   - [x] Telemetry storage (circular buffer)
   - [x] Telemetry downlink interface
-  - [ ] Telemetry compression (if needed)
-  - [ ] Unit tests in `software/flight/tests/test_telemetry.c`
+  - [x] Telemetry compression (if needed)
+  - [x] Unit tests in `software/flight/tests/test_telemetry.c`
 
 #### 17.1.7 Beacon Generation Module
 - [x] **Implement `software/flight/src/beacon.c`**:
@@ -1715,7 +1715,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Beacon transmission trigger
   - [x] Integration with Jetson-generated text
   - [x] Fallback to template text
-  - [ ] Unit tests in `software/flight/tests/test_beacon.c`
+  - [x] Unit tests in `software/flight/tests/test_beacon.c`
 
 #### 17.1.8 UART Communication Module
 - [x] **Implement `software/flight/src/uart_comm.c`** (refactor from main.c):
@@ -1737,7 +1737,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Sun-pointing controller
   - [x] Magnetorquer driver
   - [x] ADCS telemetry
-  - [ ] Unit tests in `sw/flight/tests/test_adcs.c`
+  - [x] Unit tests in `sw/flight/tests/test_adcs.c`
 
 #### 17.1.10 Data Persistence Module
 - [x] **Implement `software/flight/src/mission_data.c`** (refactor from main.c):
@@ -1771,23 +1771,23 @@ This section details the complete flight software implementation tasks, organize
 ### 17.2 Payload (Jetson) Software Modules
 
 #### 17.2.1 Health Interface Module
-- [ ] **Implement `software/payload/health_interface.py`**:
-  - [ ] UART receive from OBC
-  - [ ] Health data parsing (JSON)
-  - [ ] Health data validation
-  - [ ] Connection health monitoring
-  - [ ] Reconnection logic
-  - [ ] Unit tests in `software/payload/tests/test_health_interface.py`
+- [x] **Implement `software/payload/health_interface.py`**:
+  - [x] UART receive from OBC
+  - [x] Health data parsing (JSON)
+  - [x] Health data validation
+  - [x] Connection health monitoring
+  - [x] Reconnection logic
+  - [x] Unit tests in `software/payload/tests/test_health_interface.py`
 
 #### 17.2.2 LLM Inference Module
 - [x] **Enhance `software/payload/llama_runner.py`**:
   - [x] Model loading with error handling
   - [x] Inference timeout enforcement
-  - [ ] Memory usage monitoring
-  - [ ] GPU utilization monitoring
-  - [ ] Temperature monitoring
+  - [x] Memory usage monitoring
+  - [x] GPU utilization monitoring
+  - [x] Temperature monitoring
   - [x] Graceful degradation on errors
-  - [ ] Unit tests in `software/payload/tests/test_llama_runner.py`
+  - [x] Unit tests in `software/payload/tests/test_llama_runner.py`
 
 #### 17.2.3 Beacon Text Formatter
 - [x] **Enhance `software/payload/formatter.py`**:
@@ -1795,16 +1795,16 @@ This section details the complete flight software implementation tasks, organize
   - [x] Content filtering (no inappropriate content)
   - [x] Template fallback selection
   - [x] Info field composition
-  - [ ] Unit tests in `software/payload/tests/test_formatter.py`
+  - [x] Unit tests in `software/payload/tests/test_formatter.py`
 
 #### 17.2.4 Payload Supervisor
-- [ ] **Implement `software/payload/supervisor.py`**:
-  - [ ] Process lifecycle management
-  - [ ] Health reporting to OBC
-  - [ ] Graceful shutdown handling
-  - [ ] Power state awareness
-  - [ ] Thermal throttling response
-  - [ ] Unit tests in `software/payload/tests/test_supervisor.py`
+- [x] **Implement `software/payload/supervisor.py`**:
+  - [x] Process lifecycle management
+  - [x] Health reporting to OBC
+  - [x] Graceful shutdown handling
+  - [x] Power state awareness
+  - [x] Thermal throttling response
+  - [x] Unit tests in `software/payload/tests/test_supervisor.py`
 
 ### 17.3 Integration Software
 
@@ -1815,14 +1815,14 @@ This section details the complete flight software implementation tasks, organize
   - [x] Health data transmission (OBC → Jetson)
   - [x] Beacon text reception (Jetson → OBC)
   - [x] Timeout handling
-  - [ ] Integration tests in `software/tests/integration/test_obc_jetson.c`
+  - [x] Integration tests in `software/tests/integration/test_obc_jetson.c`
 
 #### 17.3.2 End-to-End Beacon Flow
-- [ ] **Implement E2E beacon generation**:
-  - [ ] Sensor → Telemetry → Health data
-  - [ ] Health data → Jetson → Beacon text
-  - [ ] Beacon text → AX.25 frame → Transmitter
-  - [ ] E2E tests in `software/tests/integration/test_beacon_e2e.c`
+- [x] **Implement E2E beacon generation**:
+  - [x] Sensor → Telemetry → Health data
+  - [x] Health data → Jetson → Beacon text
+  - [x] Beacon text → AX.25 frame → Transmitter
+  - [x] E2E tests in `software/tests/integration/test_beacon_e2e.c`
 
 ### 17.4 Ground Software
 
@@ -1833,14 +1833,14 @@ This section details the complete flight software implementation tasks, organize
   - [x] Telemetry parsing from machine-readable tail
   - [x] Timestamp handling
   - [x] JSON output and file export
-  - [ ] Unit tests in `software/ground/tests/test_beacon_decoder.py`
+  - [x] Unit tests in `software/ground/tests/test_beacon_decoder.py`
 
 #### 17.4.2 Telemetry Display
-- [ ] **Implement `software/ground/telemetry_display.py`**:
-  - [ ] Real-time telemetry display
-  - [ ] Historical trending
-  - [ ] Limit monitoring and alarms
-  - [ ] Export to CSV/JSON
+- [x] **Implement `software/ground/telemetry_display.py`**:
+  - [x] Real-time telemetry display
+  - [x] Historical trending
+  - [x] Limit monitoring and alarms
+  - [x] Export to CSV/JSON
 
 #### 17.4.3 Pass Prediction
 - [x] **Implement `software/ground/tools/pass_predictor.py`**:
