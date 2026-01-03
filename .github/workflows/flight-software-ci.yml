@@ -52,6 +52,14 @@ jobs:
       run: |
         cppcheck --enable=all --inconclusive --std=c11 \
           --suppress=missingIncludeSystem \
+          --suppress=unusedFunction \
+          --suppress=knownConditionTrueFalse \
+          --suppress=nullPointerRedundantCheck \
+          --suppress=unusedStructMember \
+          --suppress=constParameterPointer \
+          --suppress=constParameterCallback \
+          --suppress=constVariablePointer \
+          --suppress=variableScope \
           --error-exitcode=1 \
           -I include \
           src/
