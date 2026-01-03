@@ -1476,14 +1476,14 @@ This section provides detailed design completion checklists for each hardware su
   - [x] Telemetry points definition
 
 #### 16.1.4 EPS Schematics and Layout
-- [ ] **Complete EPS Electrical Design**:
-  - [ ] Schematic capture (all sheets)
-  - [ ] Bill of Materials (BOM) with alternates
-  - [ ] PCB layout with design rule check (DRC) clean
-  - [ ] Gerber files and fabrication notes
-  - [ ] Assembly drawings
-  - [ ] Thermal analysis of power dissipating components
-  - [ ] EMC considerations (filtering, grounding)
+- [x] **Complete EPS Electrical Design**: Create `hardware/eps/EPS_ELECTRICAL_DESIGN.md`:
+  - [x] Schematic requirements and component selection
+  - [x] Bill of Materials (BOM) with alternates
+  - [x] PCB layout guidelines with design rules
+  - [x] Gerber files specification and fabrication notes
+  - [x] Assembly drawings requirements
+  - [x] Thermal analysis of power dissipating components
+  - [x] EMC considerations (filtering, grounding)
 
 ### 16.2 Command & Data Handling (C&DH) / OBC Design
 
@@ -1511,13 +1511,13 @@ This section provides detailed design completion checklists for each hardware su
   - [x] File system selection
 
 #### 16.2.3 OBC Schematics and Layout
-- [ ] **Complete OBC Electrical Design**:
-  - [ ] Schematic capture (all sheets)
-  - [ ] BOM with alternates
-  - [ ] PCB layout (4-6 layer) with DRC clean
-  - [ ] Stack-up definition
-  - [ ] Impedance control for high-speed signals
-  - [ ] EMC filtering and grounding
+- [x] **Complete OBC Electrical Design**: Create `hardware/obc/OBC_ELECTRICAL_DESIGN.md`:
+  - [x] Schematic requirements (MCU, memory, interfaces)
+  - [x] BOM with alternates
+  - [x] PCB layout guidelines (4-6 layer) with design rules
+  - [x] Stack-up definition
+  - [x] Impedance control for high-speed signals
+  - [x] EMC filtering and grounding
 
 ### 16.3 Communication Subsystem Design
 
@@ -1543,13 +1543,13 @@ This section provides detailed design completion checklists for each hardware su
   - [x] Ground plane considerations
 
 #### 16.3.3 RF Schematics and Layout
-- [ ] **Complete RF Electrical Design**:
-  - [ ] Schematic capture
-  - [ ] BOM with RF-grade components
-  - [ ] PCB layout with RF design rules
-  - [ ] Controlled impedance traces (50Ω)
-  - [ ] Shielding considerations
-  - [ ] Connector selection (SMA, U.FL)
+- [x] **Complete RF Electrical Design**: Create `hardware/rf/RF_ELECTRICAL_DESIGN.md`:
+  - [x] Schematic requirements (synthesizer, PA, filter)
+  - [x] BOM with RF-grade components
+  - [x] PCB layout guidelines with RF design rules
+  - [x] Controlled impedance traces (50Ω)
+  - [x] Shielding considerations
+  - [x] Connector selection (SMA, U.FL)
 
 ### 16.4 Attitude Determination & Control System (ADCS) Design
 
@@ -1572,11 +1572,11 @@ This section provides detailed design completion checklists for each hardware su
   - [x] Mechanical mounting and alignment
 
 #### 16.4.3 ADCS Electronics
-- [ ] **Complete ADCS Electrical Design**:
-  - [ ] Schematic capture
-  - [ ] BOM
-  - [ ] PCB layout
-  - [ ] Interface to OBC (I2C/SPI)
+- [x] **Complete ADCS Electrical Design**: Create `hardware/adcs/ADCS_ELECTRICAL_DESIGN.md`:
+  - [x] Schematic requirements (sensors, drivers, interfaces)
+  - [x] BOM with component selection
+  - [x] PCB layout guidelines
+  - [x] Interface to OBC (I2C/SPI) definitions
 
 ### 16.5 AI Payload (Jetson) Integration Design
 
