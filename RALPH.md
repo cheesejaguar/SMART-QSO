@@ -1503,12 +1503,12 @@ This section provides detailed design completion checklists for each hardware su
     - [x] ADC (analog telemetry)
 
 #### 16.2.2 Data Storage Design
-- [ ] **Complete Storage Design**: Create `hardware/obc/STORAGE_DESIGN.md`:
-  - [ ] Primary storage (FRAM/MRAM) sizing and interface
-  - [ ] Secondary storage (SD card or NAND) sizing
-  - [ ] Wear leveling considerations
-  - [ ] Data integrity features (ECC, CRC)
-  - [ ] File system selection
+- [x] **Complete Storage Design**: Create `hardware/obc/STORAGE_DESIGN.md`:
+  - [x] Primary storage (FRAM/MRAM) sizing and interface
+  - [x] Secondary storage (SD card or NAND) sizing
+  - [x] Wear leveling considerations
+  - [x] Data integrity features (ECC, CRC)
+  - [x] File system selection
 
 #### 16.2.3 OBC Schematics and Layout
 - [ ] **Complete OBC Electrical Design**:
@@ -1594,12 +1594,12 @@ This section provides detailed design completion checklists for each hardware su
   - [x] EMC shielding considerations
 
 #### 16.5.2 Jetson Power Management
-- [ ] **Jetson Power Design**: Create `hardware/payload-jetson/POWER_MANAGEMENT.md`:
-  - [ ] DVFS profile configuration
-  - [ ] Power limit settings
-  - [ ] Fan disable/passive cooling verification
-  - [ ] Power monitoring points
-  - [ ] Soft shutdown sequence
+- [x] **Jetson Power Design**: Create `hardware/payload-jetson/POWER_MANAGEMENT.md`:
+  - [x] DVFS profile configuration
+  - [x] Power limit settings
+  - [x] Fan disable/passive cooling verification
+  - [x] Power monitoring points
+  - [x] Soft shutdown sequence
 
 ### 16.6 Structure and Thermal Design
 
@@ -1625,14 +1625,14 @@ This section provides detailed design completion checklists for each hardware su
 
 ### 16.7 Harness and Interconnect Design
 
-- [ ] **Complete Harness Design**: Create `hardware/harness/HARNESS_DESIGN.md`:
-  - [ ] Harness block diagram
-  - [ ] Connector selection and pin assignments
-  - [ ] Wire gauge and insulation selection
-  - [ ] Wire routing and tie-down points
-  - [ ] Harness drawings with lengths
-  - [ ] Shielding and grounding scheme
-  - [ ] Harness mass budget
+- [x] **Complete Harness Design**: Create `hardware/harness/HARNESS_DESIGN.md`:
+  - [x] Harness block diagram
+  - [x] Connector selection and pin assignments
+  - [x] Wire gauge and insulation selection
+  - [x] Wire routing and tie-down points
+  - [x] Harness drawings with lengths
+  - [x] Shielding and grounding scheme
+  - [x] Harness mass budget
 
 ---
 
@@ -2096,20 +2096,20 @@ Following GeneSat/PharmaSat/O/OREOS/EcAMSat heritage:
 ### 19.2 Flatsat Development and Testing
 
 #### 19.2.1 Flatsat Configuration
-- [ ] **Create Flatsat**: Create `docs/integration/FLATSAT_CONFIGURATION.md`:
-  - [ ] Engineering model or development boards for each subsystem
-  - [ ] Equivalent interfaces to flight configuration
-  - [ ] Ground support equipment (GSE) connections
-  - [ ] Telemetry monitoring capability
-  - [ ] Power supply configuration
+- [x] **Create Flatsat**: Create `docs/integration/FLATSAT_CONFIGURATION.md`:
+  - [x] Engineering model or development boards for each subsystem
+  - [x] Equivalent interfaces to flight configuration
+  - [x] Ground support equipment (GSE) connections
+  - [x] Telemetry monitoring capability
+  - [x] Power supply configuration
 
 #### 19.2.2 Flatsat Software Development
-- [ ] **Flatsat Testing**: Create `docs/test_procedures/TP-FLATSAT-001_Software_Development.md`:
-  - [ ] OBC software execution on flatsat
-  - [ ] Subsystem interface verification
-  - [ ] Fault injection testing
-  - [ ] Regression testing
-  - [ ] Day-in-the-life testing (72+ hours)
+- [x] **Flatsat Testing**: Create `docs/test_procedures/TP-FLATSAT-001_Software_Development.md`:
+  - [x] OBC software execution on flatsat
+  - [x] Subsystem interface verification
+  - [x] Fault injection testing
+  - [x] Regression testing
+  - [x] Day-in-the-life testing (72+ hours)
 
 #### 19.2.3 Flatsat Test Campaign
 - [ ] **Execute Flatsat Tests**:
@@ -2124,11 +2124,11 @@ Following GeneSat/PharmaSat/O/OREOS/EcAMSat heritage:
 ### 19.3 Flight Unit Integration
 
 #### 19.3.1 Integration Sequence
-- [ ] **Create Integration Plan**: Create `docs/integration/INTEGRATION_PLAN.md`:
-  - [ ] Integration sequence (order of subsystem integration)
-  - [ ] Integration test at each step
-  - [ ] Acceptance criteria for each integration step
-  - [ ] Fallback/rework plan
+- [x] **Create Integration Plan**: Create `docs/integration/INTEGRATION_PLAN.md`:
+  - [x] Integration sequence (order of subsystem integration)
+  - [x] Integration test at each step
+  - [x] Acceptance criteria for each integration step
+  - [x] Fallback/rework plan
 
 #### 19.3.2 Integration Procedures
 - [x] **Create TP-INT-001**: `docs/test_procedures/TP-INT-001_EPS_Integration.md`:
@@ -2242,65 +2242,65 @@ Following protoflight approach per GSFC-STD-7000 (GEVS).
   - [x] Post-test functional check
 
 #### 19.5.5 Deployment Test (Post-Environmental)
-- [ ] **Create TP-ENV-005**: `docs/test_procedures/TP-ENV-005_Deployment_Post_Env.md`:
-  - [ ] Antenna deployment test (flight-like actuation)
-  - [ ] Solar panel deployment test (if applicable)
-  - [ ] Deployment sequence timing verification
+- [x] **Create TP-ENV-005**: `docs/test_procedures/TP-ENV-005_Deployment_Post_Env.md`:
+  - [x] Antenna deployment test (flight-like actuation)
+  - [x] Solar panel deployment test (if applicable)
+  - [x] Deployment sequence timing verification
 
 ### 19.6 Final Acceptance Testing
 
 #### 19.6.1 Final Functional Test
-- [ ] **Create TP-FAT-001**: `docs/test_procedures/TP-FAT-001_Final_Functional.md`:
-  - [ ] Complete functional test
-  - [ ] RF characterization (final)
-  - [ ] Battery capacity verification
-  - [ ] Mass properties final measurement
-  - [ ] Configuration verification
+- [x] **Create TP-FAT-001**: `docs/test_procedures/TP-FAT-001_Final_Functional.md`:
+  - [x] Complete functional test
+  - [x] RF characterization (final)
+  - [x] Battery capacity verification
+  - [x] Mass properties final measurement
+  - [x] Configuration verification
 
 #### 19.6.2 Flight Configuration Verification
-- [ ] **Create TP-FAT-002**: `docs/test_procedures/TP-FAT-002_Flight_Config.md`:
-  - [ ] Software version verification
-  - [ ] Configuration parameter verification
-  - [ ] Callsign verification
-  - [ ] Beacon format verification
-  - [ ] All inhibits armed
+- [x] **Create TP-FAT-002**: `docs/test_procedures/TP-FAT-002_Flight_Config.md`:
+  - [x] Software version verification
+  - [x] Configuration parameter verification
+  - [x] Callsign verification
+  - [x] Beacon format verification
+  - [x] All inhibits armed
 
 ### 19.7 Test Data Management
 
-- [ ] **Create Test Data Management Plan**: Create `docs/integration/TEST_DATA_MANAGEMENT.md`:
-  - [ ] Data recording requirements
-  - [ ] Data format specifications
-  - [ ] Data storage and backup
-  - [ ] Test report template
-  - [ ] Anomaly reporting procedure
-  - [ ] Test log format
+- [x] **Create Test Data Management Plan**: Create `docs/integration/TEST_DATA_MANAGEMENT.md`:
+  - [x] Data recording requirements
+  - [x] Data format specifications
+  - [x] Data storage and backup
+  - [x] Test report template
+  - [x] Anomaly reporting procedure
+  - [x] Test log format
 
 ### 19.8 Anomaly Resolution
 
-- [ ] **Create Anomaly Resolution Procedure**: Create `docs/integration/ANOMALY_RESOLUTION.md`:
-  - [ ] Anomaly identification and logging
-  - [ ] Anomaly categorization (severity, priority)
-  - [ ] Investigation process
-  - [ ] Root cause analysis requirements
-  - [ ] Corrective action tracking
-  - [ ] Verification of corrective action
-  - [ ] Anomaly closure criteria
+- [x] **Create Anomaly Resolution Procedure**: Create `docs/integration/ANOMALY_RESOLUTION.md`:
+  - [x] Anomaly identification and logging
+  - [x] Anomaly categorization (severity, priority)
+  - [x] Investigation process
+  - [x] Root cause analysis requirements
+  - [x] Corrective action tracking
+  - [x] Verification of corrective action
+  - [x] Anomaly closure criteria
 
 ### 19.9 Pre-Ship Review Checklist
 
-- [ ] **Create Pre-Ship Checklist**: Create `docs/integration/PRE_SHIP_CHECKLIST.md`:
-  - [ ] All environmental tests complete and passed
-  - [ ] All anomalies resolved or waived
-  - [ ] All test data reviewed
-  - [ ] Flight software version verified
-  - [ ] Configuration baseline verified
-  - [ ] Mass properties final
-  - [ ] Frequency coordination confirmed
-  - [ ] All documentation complete
-  - [ ] Shipping container ready
-  - [ ] RBF pin installed
-  - [ ] Batteries charged to shipping SOC
-  - [ ] All required deliverables to launch provider complete
+- [x] **Create Pre-Ship Checklist**: Create `docs/integration/PRE_SHIP_CHECKLIST.md`:
+  - [x] All environmental tests complete and passed
+  - [x] All anomalies resolved or waived
+  - [x] All test data reviewed
+  - [x] Flight software version verified
+  - [x] Configuration baseline verified
+  - [x] Mass properties final
+  - [x] Frequency coordination confirmed
+  - [x] All documentation complete
+  - [x] Shipping container ready
+  - [x] RBF pin installed
+  - [x] Batteries charged to shipping SOC
+  - [x] All required deliverables to launch provider complete
 
 ---
 
