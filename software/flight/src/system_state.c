@@ -17,6 +17,8 @@
 /* For flight builds, use HAL flash interface instead */
 #ifdef SIMULATION_BUILD
 #include <stdio.h>
+/** Persistence file path (simulation only) */
+static const char *STATE_FILE = "/tmp/smart_qso_state.dat";
 #else
 #include "hal/hal_flash.h"
 #endif
@@ -27,9 +29,6 @@
 
 /** Single instance of system state - all access through accessors */
 static SystemState_t s_state;
-
-/** Persistence file path */
-static const char *STATE_FILE = "/tmp/smart_qso_state.dat";
 
 /*******************************************************************************
  * Private Functions

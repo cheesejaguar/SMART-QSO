@@ -11,6 +11,9 @@
  * @copyright NASA Ames Research Center Small Satellite Division Heritage
  */
 
+/* Required for usleep on POSIX-compliant systems */
+#define _DEFAULT_SOURCE
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
