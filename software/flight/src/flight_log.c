@@ -56,14 +56,18 @@ static bool s_initialized = false;
  ******************************************************************************/
 
 static void output_entry(const LogEntry_t *entry);
+
+#ifdef SIMULATION_BUILD
 static const char *level_to_string(LogLevel_t level);
+#endif
 
 /*******************************************************************************
  * Private Functions
  ******************************************************************************/
 
+#ifdef SIMULATION_BUILD
 /**
- * @brief Convert log level to string
+ * @brief Convert log level to string (simulation only)
  */
 static const char *level_to_string(LogLevel_t level)
 {
@@ -78,6 +82,7 @@ static const char *level_to_string(LogLevel_t level)
     }
     return "?????";
 }
+#endif
 
 /**
  * @brief Output a log entry to configured destinations

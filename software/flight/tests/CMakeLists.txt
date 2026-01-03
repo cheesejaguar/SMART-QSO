@@ -160,6 +160,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_uart_comm.c")
     add_executable(test_uart_comm
         test_uart_comm.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
