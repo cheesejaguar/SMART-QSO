@@ -460,6 +460,7 @@ void scheduler_delay_ms(uint32_t ms)
     uint32_t start_tick = g_sched.tick_count;
     uint32_t delay_ticks = ms / SCHED_TICK_PERIOD_MS;
 
+    /* cppcheck-suppress duplicateExpression ; tick_count changes over time */
     while ((g_sched.tick_count - start_tick) < delay_ticks) {
         /* Yield to other tasks */
         if (g_sched.running) {

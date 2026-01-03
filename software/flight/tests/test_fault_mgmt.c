@@ -32,11 +32,13 @@
 
 static int setup(void **state) {
     (void)state;
-    /* Clean up any existing fault log */
+    /* Clean up any existing fault log file first */
     unlink(FAULT_LOG_FILE);
-    /* Initialize fault management */
+    /* Initialize fault management - this will try to load but file is gone */
     SmartQsoResult_t result = fault_mgmt_init();
     assert_int_equal(result, SMART_QSO_OK);
+    /* Clear any loaded state to ensure clean slate for each test */
+    fault_log_clear();
     return 0;
 }
 
