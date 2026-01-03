@@ -2136,29 +2136,29 @@ Following GeneSat/PharmaSat/O/OREOS/EcAMSat heritage:
   - [x] Power bus verification
   - [x] Load testing
 
-- [ ] **Create TP-INT-002**: `docs/test_procedures/TP-INT-002_OBC_Integration.md`:
-  - [ ] OBC to EPS integration
-  - [ ] Power verification
-  - [ ] Boot test
-  - [ ] Interface test
+- [x] **Create TP-INT-002**: `docs/test_procedures/TP-INT-002_OBC_Integration.md`:
+  - [x] OBC to EPS integration
+  - [x] Power verification
+  - [x] Boot test
+  - [x] Interface test
 
-- [ ] **Create TP-INT-003**: `docs/test_procedures/TP-INT-003_RF_Integration.md`:
-  - [ ] RF board integration
-  - [ ] Antenna cable routing
-  - [ ] RF power test
-  - [ ] Beacon test (into dummy load)
+- [x] **Create TP-INT-003**: `docs/test_procedures/TP-INT-003_RF_Integration.md`:
+  - [x] RF board integration
+  - [x] Antenna cable routing
+  - [x] RF power test
+  - [x] Beacon test (into dummy load)
 
-- [ ] **Create TP-INT-004**: `docs/test_procedures/TP-INT-004_ADCS_Integration.md`:
-  - [ ] ADCS board integration
-  - [ ] Sensor verification
-  - [ ] Actuator verification
+- [x] **Create TP-INT-004**: `docs/test_procedures/TP-INT-004_ADCS_Integration.md`:
+  - [x] ADCS board integration
+  - [x] Sensor verification
+  - [x] Actuator verification
 
-- [ ] **Create TP-INT-005**: `docs/test_procedures/TP-INT-005_Jetson_Integration.md`:
-  - [ ] Jetson module integration
-  - [ ] Thermal interface verification
-  - [ ] Power gating verification
-  - [ ] UART interface test
-  - [ ] Inference test
+- [x] **Create TP-INT-005**: `docs/test_procedures/TP-INT-005_Jetson_Integration.md`:
+  - [x] Jetson module integration
+  - [x] Thermal interface verification
+  - [x] Power gating verification
+  - [x] UART interface test
+  - [x] Inference test
 
 - [x] **Create TP-INT-006**: `docs/test_procedures/TP-INT-006_Final_Assembly.md`:
   - [x] Final mechanical assembly
