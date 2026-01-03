@@ -1604,24 +1604,24 @@ This section provides detailed design completion checklists for each hardware su
 ### 16.6 Structure and Thermal Design
 
 #### 16.6.1 Structural Design
-- [ ] **Complete Structural Design**: Create `hardware/structure/STRUCTURAL_DESIGN.md`:
-  - [ ] CAD model (STEP/IGES) of flight configuration
-  - [ ] Mass properties (mass, CG, MOI)
-  - [ ] Finite Element Analysis (FEA) for launch loads
-  - [ ] Fastener torque specifications
-  - [ ] Rail finish requirements
-  - [ ] Deployment mechanism design (solar panels, antenna)
-  - [ ] Venting paths for pressure equalization
+- [x] **Complete Structural Design**: Create `hardware/structure/STRUCTURAL_DESIGN.md`:
+  - [x] CAD model (STEP/IGES) of flight configuration
+  - [x] Mass properties (mass, CG, MOI)
+  - [x] Finite Element Analysis (FEA) for launch loads
+  - [x] Fastener torque specifications
+  - [x] Rail finish requirements
+  - [x] Deployment mechanism design (solar panels, antenna)
+  - [x] Venting paths for pressure equalization
 
 #### 16.6.2 Thermal Design
-- [ ] **Complete Thermal Design**: Create `hardware/structure/THERMAL_DESIGN.md`:
-  - [ ] Thermal model (nodes, conductances)
-  - [ ] Orbital thermal environment definition
-  - [ ] Worst-case hot/cold analysis
-  - [ ] Surface finish and coatings (α/ε selection)
-  - [ ] Heater sizing (if required)
-  - [ ] Thermal straps/interfaces
-  - [ ] Jetson thermal path analysis
+- [x] **Complete Thermal Design**: Create `hardware/structure/THERMAL_DESIGN.md`:
+  - [x] Thermal model (nodes, conductances)
+  - [x] Orbital thermal environment definition
+  - [x] Worst-case hot/cold analysis
+  - [x] Surface finish and coatings (α/ε selection)
+  - [x] Heater sizing (if required)
+  - [x] Thermal straps/interfaces
+  - [x] Jetson thermal path analysis
 
 ### 16.7 Harness and Interconnect Design
 
