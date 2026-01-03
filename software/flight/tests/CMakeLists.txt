@@ -175,20 +175,22 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_uart_comm.c")
 endif()
 
 #===========================================================================
-# Test: Legacy Main Tests (if present)
+# Test: Legacy Main Tests (DISABLED - superseded by proper module tests)
 #===========================================================================
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_main.c")
-    add_executable(test_main_legacy
-        test_main.c
-    )
-    target_link_libraries(test_main_legacy ${CMOCKA_LIBRARIES})
-    target_compile_options(test_main_legacy PRIVATE ${TEST_COMPILE_OPTIONS})
-    add_test(NAME Legacy_Tests COMMAND test_main_legacy)
-    set_tests_properties(Legacy_Tests PROPERTIES
-        TIMEOUT 300
-        LABELS "unit;legacy"
-    )
-endif()
+# NOTE: test_main.c is obsolete legacy code with many issues.
+# Proper module-specific tests are now in test_*.c files.
+# if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_main.c")
+#     add_executable(test_main_legacy
+#         test_main.c
+#     )
+#     target_link_libraries(test_main_legacy ${CMOCKA_LIBRARIES})
+#     target_compile_options(test_main_legacy PRIVATE ${TEST_COMPILE_OPTIONS})
+#     add_test(NAME Legacy_Tests COMMAND test_main_legacy)
+#     set_tests_properties(Legacy_Tests PROPERTIES
+#         TIMEOUT 300
+#         LABELS "unit;legacy"
+#     )
+# endif()
 
 #===========================================================================
 # Coverage Target
