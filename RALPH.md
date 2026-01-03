@@ -1922,20 +1922,20 @@ DATE: [Date]
   - [x] Verify power mode transitions
 
 #### 18.2.3 Battery Characterization Test
-- [ ] **Create TP-EPS-003**: `docs/test_procedures/TP-EPS-003_Battery_Characterization.md`:
-  - [ ] Measure cell capacity (C/5 discharge)
-  - [ ] Measure internal resistance
-  - [ ] Verify BMS protection functions
-  - [ ] Verify cell balancing
-  - [ ] Verify temperature protection
-  - [ ] Verify charge inhibit function
+- [x] **Create TP-EPS-003**: `docs/test_procedures/TP-EPS-003_Battery_Characterization.md`:
+  - [x] Measure cell capacity (C/5 discharge)
+  - [x] Measure internal resistance
+  - [x] Verify BMS protection functions
+  - [x] Verify cell balancing
+  - [x] Verify temperature protection
+  - [x] Verify charge inhibit function
 
 #### 18.2.4 Solar Array Characterization
-- [ ] **Create TP-EPS-004**: `docs/test_procedures/TP-EPS-004_Solar_Array.md`:
-  - [ ] Measure I-V curve under sun simulator
-  - [ ] Verify bypass diode function
-  - [ ] Verify string isolation
-  - [ ] Verify power output at various angles
+- [x] **Create TP-EPS-004**: `docs/test_procedures/TP-EPS-004_Solar_Array.md`:
+  - [x] Measure I-V curve under sun simulator
+  - [x] Verify bypass diode function
+  - [x] Verify string isolation
+  - [x] Verify power output at various angles
 
 ### 18.3 Communication Subsystem Test Procedures
 
@@ -1949,33 +1949,33 @@ DATE: [Date]
   - [x] Verify callsign encoding
 
 #### 18.3.2 RF Conducted Power Test
-- [ ] **Create TP-RF-002**: `docs/test_procedures/TP-RF-002_Conducted_Power.md`:
-  - [ ] Measure output power at antenna connector
-  - [ ] Measure power at multiple temperatures
-  - [ ] Verify power control (if adjustable)
-  - [ ] Equipment: spectrum analyzer, power meter
+- [x] **Create TP-RF-002**: `docs/test_procedures/TP-RF-002_Conducted_Power.md`:
+  - [x] Measure output power at antenna connector
+  - [x] Measure power at multiple temperatures
+  - [x] Verify power control (if adjustable)
+  - [x] Equipment: spectrum analyzer, power meter
 
 #### 18.3.3 RF Spurious Emissions Test
-- [ ] **Create TP-RF-003**: `docs/test_procedures/TP-RF-003_Spurious_Emissions.md`:
-  - [ ] Measure harmonic levels (2nd, 3rd, etc.)
-  - [ ] Measure out-of-band emissions
-  - [ ] Verify compliance with IARU limits
-  - [ ] Equipment: spectrum analyzer
+- [x] **Create TP-RF-003**: `docs/test_procedures/TP-RF-003_Spurious_Emissions.md`:
+  - [x] Measure harmonic levels (2nd, 3rd, etc.)
+  - [x] Measure out-of-band emissions
+  - [x] Verify compliance with IARU limits
+  - [x] Equipment: spectrum analyzer
 
 #### 18.3.4 RF Modulation Quality Test
-- [ ] **Create TP-RF-004**: `docs/test_procedures/TP-RF-004_Modulation.md`:
-  - [ ] Measure FM deviation
-  - [ ] Verify modulation index
-  - [ ] Measure occupied bandwidth
-  - [ ] Verify decodability with reference receiver
+- [x] **Create TP-RF-004**: `docs/test_procedures/TP-RF-004_Modulation.md`:
+  - [x] Measure FM deviation
+  - [x] Verify modulation index
+  - [x] Measure occupied bandwidth
+  - [x] Verify decodability with reference receiver
 
 #### 18.3.5 Antenna Deployment Test
-- [ ] **Create TP-RF-005**: `docs/test_procedures/TP-RF-005_Antenna_Deployment.md`:
-  - [ ] Verify deployment mechanism function
-  - [ ] Measure deployment time
-  - [ ] Verify deployed antenna position
-  - [ ] Verify antenna impedance (VNA measurement)
-  - [ ] Repeat for multiple deployment cycles
+- [x] **Create TP-RF-005**: `docs/test_procedures/TP-RF-005_Antenna_Deployment.md`:
+  - [x] Verify deployment mechanism function
+  - [x] Measure deployment time
+  - [x] Verify deployed antenna position
+  - [x] Verify antenna impedance (VNA measurement)
+  - [x] Repeat for multiple deployment cycles
 
 ### 18.4 OBC/C&DH Test Procedures
 
@@ -1991,24 +1991,24 @@ DATE: [Date]
   - [x] Verify memory read/write
 
 #### 18.4.2 OBC Software Load Test
-- [ ] **Create TP-OBC-002**: `docs/test_procedures/TP-OBC-002_Software_Load.md`:
-  - [ ] Verify bootloader operation
-  - [ ] Verify software image loading
-  - [ ] Verify software version reporting
-  - [ ] Verify CRC verification
+- [x] **Create TP-OBC-002**: `docs/test_procedures/TP-OBC-002_Software_Load.md`:
+  - [x] Verify bootloader operation
+  - [x] Verify software image loading
+  - [x] Verify software version reporting
+  - [x] Verify CRC verification
 
 #### 18.4.3 OBC Timing Test
-- [ ] **Create TP-OBC-003**: `docs/test_procedures/TP-OBC-003_Timing.md`:
-  - [ ] Verify RTC accuracy
-  - [ ] Verify task timing
-  - [ ] Verify beacon cadence accuracy
-  - [ ] Measure CPU utilization
+- [x] **Create TP-OBC-003**: `docs/test_procedures/TP-OBC-003_Timing.md`:
+  - [x] Verify RTC accuracy
+  - [x] Verify task timing
+  - [x] Verify beacon cadence accuracy
+  - [x] Measure CPU utilization
 
 #### 18.4.4 Watchdog Test
-- [ ] **Create TP-OBC-004**: `docs/test_procedures/TP-OBC-004_Watchdog.md`:
-  - [ ] Verify watchdog timeout
-  - [ ] Verify reset recovery
-  - [ ] Verify state preservation across reset
+- [x] **Create TP-OBC-004**: `docs/test_procedures/TP-OBC-004_Watchdog.md`:
+  - [x] Verify watchdog timeout
+  - [x] Verify reset recovery
+  - [x] Verify state preservation across reset
 
 ### 18.5 ADCS Test Procedures
 
@@ -2020,17 +2020,17 @@ DATE: [Date]
   - [x] Sun sensor field-of-view verification
 
 #### 18.5.2 ADCS Actuator Test
-- [ ] **Create TP-ADCS-002**: `docs/test_procedures/TP-ADCS-002_Actuator_Test.md`:
-  - [ ] Magnetorquer polarity verification
-  - [ ] Magnetorquer dipole moment measurement
-  - [ ] Magnetorquer driver operation
-  - [ ] Equipment: Helmholtz cage or magnetometer
+- [x] **Create TP-ADCS-002**: `docs/test_procedures/TP-ADCS-002_Actuator_Test.md`:
+  - [x] Magnetorquer polarity verification
+  - [x] Magnetorquer dipole moment measurement
+  - [x] Magnetorquer driver operation
+  - [x] Equipment: Helmholtz cage or magnetometer
 
 #### 18.5.3 ADCS Algorithm Test
-- [ ] **Create TP-ADCS-003**: `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md`:
-  - [ ] B-dot algorithm verification (Helmholtz cage)
-  - [ ] Attitude determination verification
-  - [ ] Control law verification
+- [x] **Create TP-ADCS-003**: `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md`:
+  - [x] B-dot algorithm verification (Helmholtz cage)
+  - [x] Attitude determination verification
+  - [x] Control law verification
 
 ### 18.6 Jetson Payload Test Procedures
 
@@ -2043,41 +2043,41 @@ DATE: [Date]
   - [x] Verify power sequencing
 
 #### 18.6.2 Jetson Thermal Test
-- [ ] **Create TP-JETSON-002**: `docs/test_procedures/TP-JETSON-002_Thermal_Test.md`:
-  - [ ] Measure steady-state temperature at idle
-  - [ ] Measure temperature during inference
-  - [ ] Verify thermal throttling behavior
-  - [ ] Verify thermal interface effectiveness
+- [x] **Create TP-JETSON-002**: `docs/test_procedures/TP-JETSON-002_Thermal_Test.md`:
+  - [x] Measure steady-state temperature at idle
+  - [x] Measure temperature during inference
+  - [x] Verify thermal throttling behavior
+  - [x] Verify thermal interface effectiveness
 
 #### 18.6.3 Jetson Functional Test
-- [ ] **Create TP-JETSON-003**: `docs/test_procedures/TP-JETSON-003_Functional_Test.md`:
-  - [ ] Verify boot sequence
-  - [ ] Verify UART communication with OBC
-  - [ ] Verify LLM model loading
-  - [ ] Verify inference operation
-  - [ ] Verify fallback behavior
+- [x] **Create TP-JETSON-003**: `docs/test_procedures/TP-JETSON-003_Functional_Test.md`:
+  - [x] Verify boot sequence
+  - [x] Verify UART communication with OBC
+  - [x] Verify LLM model loading
+  - [x] Verify inference operation
+  - [x] Verify fallback behavior
 
 ### 18.7 Mechanical/Deployment Test Procedures
 
 #### 18.7.1 Fit Check
-- [ ] **Create TP-MECH-001**: `docs/test_procedures/TP-MECH-001_Fit_Check.md`:
-  - [ ] Verify CubeSat rail dimensions
-  - [ ] Verify CG location
-  - [ ] Verify mass
-  - [ ] Verify fit in deployment pod mockup
+- [x] **Create TP-MECH-001**: `docs/test_procedures/TP-MECH-001_Fit_Check.md`:
+  - [x] Verify CubeSat rail dimensions
+  - [x] Verify CG location
+  - [x] Verify mass
+  - [x] Verify fit in deployment pod mockup
 
 #### 18.7.2 Deployment Test
-- [ ] **Create TP-MECH-002**: `docs/test_procedures/TP-MECH-002_Deployment.md`:
-  - [ ] Antenna deployment functional test
-  - [ ] Solar panel deployment functional test (if applicable)
-  - [ ] Deployment timing measurement
-  - [ ] Multiple deployment cycle test
+- [x] **Create TP-MECH-002**: `docs/test_procedures/TP-MECH-002_Deployment.md`:
+  - [x] Antenna deployment functional test
+  - [x] Solar panel deployment functional test (if applicable)
+  - [x] Deployment timing measurement
+  - [x] Multiple deployment cycle test
 
 #### 18.7.3 Deployment Switch Test
-- [ ] **Create TP-MECH-003**: `docs/test_procedures/TP-MECH-003_Deployment_Switches.md`:
-  - [ ] Verify switch actuation
-  - [ ] Verify switch inhibit function
-  - [ ] Verify switch electrical parameters
+- [x] **Create TP-MECH-003**: `docs/test_procedures/TP-MECH-003_Deployment_Switches.md`:
+  - [x] Verify switch actuation
+  - [x] Verify switch inhibit function
+  - [x] Verify switch electrical parameters
 
 ---
 
