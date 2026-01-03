@@ -138,7 +138,7 @@ static void test_crc32_large_data(void **state) {
 static void test_crc32_structure(void **state) {
     (void)state;
 
-    /* Simulate a typical config structure */
+    /* Simulate a typical config structure with CRC at the end */
     typedef struct {
         uint32_t version;
         uint32_t reset_count;
@@ -153,11 +153,13 @@ static void test_crc32_structure(void **state) {
         .crc32 = 0
     };
 
-    /* Calculate CRC over data (excluding CRC field) */
-    size_t data_len = sizeof(config) - sizeof(uint32_t);
+    /* Calculate CRC over data fields only (excluding CRC field at the end).
+     * offsetof gives us the offset of crc32, which is the length to checksum.
+     */
+    size_t data_len = offsetof(TestConfig_t, crc32);
     config.crc32 = smart_qso_crc32(&config, data_len);
 
-    /* Verify */
+    /* Verify - should recalculate the same CRC since we're not including crc32 field */
     bool result = smart_qso_verify_crc32(&config, data_len, config.crc32);
     assert_true(result);
 }
