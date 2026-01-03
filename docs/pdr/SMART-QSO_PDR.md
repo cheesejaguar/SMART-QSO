@@ -1,4 +1,4 @@
-# SMART-QSO (Self‑Managing Amateur Radio Transponder with Quantum State Optimization)
+# SMART-QSO (Self‑Managing Amateur Radio Transponder — QSO)
 
 **Mission Phase:** Pre‑Phase B / Phase B — Preliminary Design Review (PDR)
 

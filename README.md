@@ -1,6 +1,6 @@
 # SMART-QSO CubeSat Mission
 
-**Self-Managing Amateur Radio Transponder with Quantum State Optimization**
+**Self-Managing Amateur Radio Transponder — QSO**
 
 A 1U CubeSat mission experimenting with onboard agentic AI to manage an amateur radio transponder. The satellite learns power availability and regional demand, prioritizes fair access, and composes dynamic beacons while always failing gracefully to a conventional transponder if AI is unavailable.
 
