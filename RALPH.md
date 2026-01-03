@@ -1217,12 +1217,12 @@ This section covers CubeSat-specific standards, launch provider requirements, an
   - [x] Thermal balance test requirements
   - [x] Functional test at temperature
 
-- [ ] **EMC/EMI Testing** (per MIL-STD-461G tailored):
-  - [ ] Conducted emissions (CE)
-  - [ ] Radiated emissions (RE)
-  - [ ] Conducted susceptibility (CS)
-  - [ ] Radiated susceptibility (RS)
-  - [ ] Launch provider EMC limits compliance
+- [x] **EMC/EMI Testing** (per MIL-STD-461G tailored):
+  - [x] Conducted emissions (CE)
+  - [x] Radiated emissions (RE)
+  - [x] Conducted susceptibility (CS)
+  - [x] Radiated susceptibility (RS)
+  - [x] Launch provider EMC limits compliance
 
 #### 14.2.2 Outgassing Compliance
 - [x] **Materials Outgassing**: Create `docs/compliance/MATERIALS_LIST.md`:
@@ -1291,11 +1291,11 @@ This section covers CubeSat-specific standards, launch provider requirements, an
   - [x] Radiation mitigation strategies (especially for Jetson - reference R2 in Risk Register)
 
 #### 14.5.3 Restricted/Prohibited Materials
-- [ ] **Materials Compliance**: Update `docs/compliance/MATERIALS_LIST.md`:
-  - [ ] No prohibited materials per launch provider
-  - [ ] Flammability requirements (NASA-STD-6001 if applicable)
-  - [ ] Magnetic materials assessment
-  - [ ] Hazardous materials identification
+- [x] **Materials Compliance**: Update `docs/compliance/MATERIALS_LIST.md`:
+  - [x] No prohibited materials per launch provider
+  - [x] Flammability requirements (NASA-STD-6001 if applicable)
+  - [x] Magnetic materials assessment
+  - [x] Hazardous materials identification
 
 ### 14.6 RF & Spectrum Regulatory
 
@@ -1314,13 +1314,13 @@ This section covers CubeSat-specific standards, launch provider requirements, an
   - [x] Callsign assignment documentation
 
 #### 14.6.3 RF Compliance Testing
-- [ ] **RF Test Documentation**: Create `docs/verification/RF_TEST_RESULTS.md`:
-  - [ ] Transmitter power output verification
-  - [ ] Frequency accuracy and stability
-  - [ ] Modulation characteristics (deviation, bandwidth)
-  - [ ] Spurious emissions compliance
-  - [ ] Occupied bandwidth measurement
-  - [ ] EIRP calculation and verification
+- [x] **RF Test Documentation**: Create `docs/verification/RF_TEST_RESULTS.md`:
+  - [x] Transmitter power output verification
+  - [x] Frequency accuracy and stability
+  - [x] Modulation characteristics (deviation, bandwidth)
+  - [x] Spurious emissions compliance
+  - [x] Occupied bandwidth measurement
+  - [x] EIRP calculation and verification
 
 ### 14.7 Ground Segment Documentation
 
@@ -1439,41 +1439,41 @@ This section provides detailed design completion checklists for each hardware su
 ### 16.1 Electrical Power Subsystem (EPS) Design
 
 #### 16.1.1 Solar Array Design
-- [ ] **Complete Solar Array Design**: Create `hardware/eps/SOLAR_ARRAY_DESIGN.md`:
-  - [ ] Solar cell selection and procurement specification
-  - [ ] String configuration (series/parallel) with voltage/current calculations
-  - [ ] Interconnect design (welded vs. soldered tabs)
-  - [ ] Coverglass selection and bonding
-  - [ ] Bypass diode placement and ratings
-  - [ ] Thermal expansion considerations
-  - [ ] Wiring harness design to MPPT
-  - [ ] Deployment mechanism interface (if deployable)
-  - [ ] Shadow analysis for deployed configuration
+- [x] **Complete Solar Array Design**: Create `hardware/eps/SOLAR_ARRAY_DESIGN.md`:
+  - [x] Solar cell selection and procurement specification
+  - [x] String configuration (series/parallel) with voltage/current calculations
+  - [x] Interconnect design (welded vs. soldered tabs)
+  - [x] Coverglass selection and bonding
+  - [x] Bypass diode placement and ratings
+  - [x] Thermal expansion considerations
+  - [x] Wiring harness design to MPPT
+  - [x] Deployment mechanism interface (if deployable)
+  - [x] Shadow analysis for deployed configuration
 
 #### 16.1.2 Battery Design
-- [ ] **Complete Battery Design**: Create `hardware/eps/BATTERY_DESIGN.md`:
-  - [ ] Cell selection (vendor, chemistry, capacity, cycle life)
-  - [ ] Pack configuration (series/parallel)
-  - [ ] Battery Management System (BMS) design
-    - [ ] Cell balancing approach
-    - [ ] Overcharge/overdischarge protection
-    - [ ] Temperature monitoring and protection
-    - [ ] Charge inhibit for launch
-  - [ ] Mechanical packaging and thermal interface
-  - [ ] Heater circuit design (if required)
-  - [ ] Wiring and connector selection
-  - [ ] Safety features (venting, fusing)
+- [x] **Complete Battery Design**: Create `hardware/eps/BATTERY_DESIGN.md`:
+  - [x] Cell selection (vendor, chemistry, capacity, cycle life)
+  - [x] Pack configuration (series/parallel)
+  - [x] Battery Management System (BMS) design
+    - [x] Cell balancing approach
+    - [x] Overcharge/overdischarge protection
+    - [x] Temperature monitoring and protection
+    - [x] Charge inhibit for launch
+  - [x] Mechanical packaging and thermal interface
+  - [x] Heater circuit design (if required)
+  - [x] Wiring and connector selection
+  - [x] Safety features (venting, fusing)
 
 #### 16.1.3 Power Distribution Unit (PDU) Design
-- [ ] **Complete PDU Design**: Create `hardware/eps/PDU_DESIGN.md`:
-  - [ ] Voltage rail definitions (3.3V, 5V, 12V, battery bus)
-  - [ ] Load switch design for each rail
-  - [ ] Current sensing circuit design
-  - [ ] Overcurrent protection sizing
-  - [ ] Inrush current limiting
-  - [ ] Power sequencing logic
-  - [ ] Connector and harness interface
-  - [ ] Telemetry points definition
+- [x] **Complete PDU Design**: Create `hardware/eps/PDU_DESIGN.md`:
+  - [x] Voltage rail definitions (3.3V, 5V, 12V, battery bus)
+  - [x] Load switch design for each rail
+  - [x] Current sensing circuit design
+  - [x] Overcurrent protection sizing
+  - [x] Inrush current limiting
+  - [x] Power sequencing logic
+  - [x] Connector and harness interface
+  - [x] Telemetry points definition
 
 #### 16.1.4 EPS Schematics and Layout
 - [ ] **Complete EPS Electrical Design**:
@@ -1759,14 +1759,14 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_watchdog_mgr.c`
 
 #### 17.1.12 Deployment Control Module
-- [ ] **Implement `software/flight/src/deployment.c`**:
-  - [ ] Deployment timer (T+30min from separation)
-  - [ ] Deployment switch monitoring
-  - [ ] Antenna deployment actuation
-  - [ ] Solar panel deployment actuation (if applicable)
-  - [ ] Deployment status telemetry
-  - [ ] Deployment retry logic
-  - [ ] Unit tests in `software/flight/tests/test_deployment.c`
+- [x] **Implement `software/flight/src/deployment.c`**:
+  - [x] Deployment timer (T+30min from separation)
+  - [x] Deployment switch monitoring
+  - [x] Antenna deployment actuation
+  - [x] Solar panel deployment actuation (if applicable)
+  - [x] Deployment status telemetry
+  - [x] Deployment retry logic
+  - [x] Unit tests in `software/flight/tests/test_deployment.c`
 
 ### 17.2 Payload (Jetson) Software Modules
 
@@ -2131,10 +2131,10 @@ Following GeneSat/PharmaSat/O/OREOS/EcAMSat heritage:
   - [ ] Fallback/rework plan
 
 #### 19.3.2 Integration Procedures
-- [ ] **Create TP-INT-001**: `docs/test_procedures/TP-INT-001_EPS_Integration.md`:
-  - [ ] EPS to structure integration
-  - [ ] Power bus verification
-  - [ ] Load testing
+- [x] **Create TP-INT-001**: `docs/test_procedures/TP-INT-001_EPS_Integration.md`:
+  - [x] EPS to structure integration
+  - [x] Power bus verification
+  - [x] Load testing
 
 - [ ] **Create TP-INT-002**: `docs/test_procedures/TP-INT-002_OBC_Integration.md`:
   - [ ] OBC to EPS integration
@@ -2160,12 +2160,12 @@ Following GeneSat/PharmaSat/O/OREOS/EcAMSat heritage:
   - [ ] UART interface test
   - [ ] Inference test
 
-- [ ] **Create TP-INT-006**: `docs/test_procedures/TP-INT-006_Final_Assembly.md`:
-  - [ ] Final mechanical assembly
-  - [ ] Harness installation
-  - [ ] Antenna stowage
-  - [ ] Solar panel installation
-  - [ ] Mass properties measurement
+- [x] **Create TP-INT-006**: `docs/test_procedures/TP-INT-006_Final_Assembly.md`:
+  - [x] Final mechanical assembly
+  - [x] Harness installation
+  - [x] Antenna stowage
+  - [x] Solar panel installation
+  - [x] Mass properties measurement
 
 ### 19.4 System Functional Test
 
@@ -2233,13 +2233,13 @@ Following protoflight approach per GSFC-STD-7000 (GEVS).
   - [x] Post-test full functional test
 
 #### 19.5.4 EMC/EMI Test Procedure
-- [ ] **Create TP-ENV-004**: `docs/test_procedures/TP-ENV-004_EMC.md`:
-  - [ ] Pre-test functional check
-  - [ ] Radiated emissions test (RE102 tailored)
-  - [ ] Conducted emissions test (CE102 tailored)
-  - [ ] Radiated susceptibility test (RS103 tailored, if required)
-  - [ ] Self-compatibility test (all systems operating)
-  - [ ] Post-test functional check
+- [x] **Create TP-ENV-004**: `docs/test_procedures/TP-ENV-004_EMC.md`:
+  - [x] Pre-test functional check
+  - [x] Radiated emissions test (RE102 tailored)
+  - [x] Conducted emissions test (CE102 tailored)
+  - [x] Radiated susceptibility test (RS103 tailored, if required)
+  - [x] Self-compatibility test (all systems operating)
+  - [x] Post-test functional check
 
 #### 19.5.5 Deployment Test (Post-Environmental)
 - [ ] **Create TP-ENV-005**: `docs/test_procedures/TP-ENV-005_Deployment_Post_Env.md`:
