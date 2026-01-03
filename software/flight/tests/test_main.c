@@ -1,3 +1,10 @@
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <stdbool.h>
+#include <setjmp.h>
+#include <cmocka.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -6,10 +13,6 @@
 #include <sys/stat.h>
 #include <assert.h>
 #include <time.h>
-
-// Test framework includes
-#include <setjmp.h>
-#include <cmocka.h>
 
 // Include the functions we want to test
 // Note: We'll need to extract some functions from main.c for testing
