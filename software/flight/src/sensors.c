@@ -155,8 +155,7 @@ static bool read_status_hex2(Sensor_t *self, double *out_value, char *out_text)
      * bit6: Fault detected
      * bit7: Recovery mode
      */
-    uint8_t bits = 0;
-    bits = (uint8_t)(bits | (1u << 0));  /* OBC on */
+    uint8_t bits = 1u;  /* OBC always on (bit 0) */
     bits = (uint8_t)(bits | ((eps_state.beacon_enabled ? 1u : 0u) << 1));
     bits = (uint8_t)(bits | ((payload_enabled ? 1u : 0u) << 2));
 
