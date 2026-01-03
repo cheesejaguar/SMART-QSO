@@ -1140,8 +1140,8 @@ This section defines the requirements for each lifecycle phase gate per NPR 7120
 
 - [ ] **Flight Software Delivery**:
   - [ ] Flight software version baselined
-  - [ ] Software Version Description complete
-  - [ ] Known issues documented and accepted
+  - [x] Software Version Description complete
+  - [x] Known issues documented and accepted
   - [ ] Rollback/recovery procedures verified
 
 ### 13.6 Documentation Checklist by Phase Gate
