@@ -100,6 +100,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_fault_mgmt.c")
     add_executable(test_fault_mgmt
         test_fault_mgmt.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
@@ -119,6 +120,8 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_sensors.c")
     add_executable(test_sensors
         test_sensors.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
