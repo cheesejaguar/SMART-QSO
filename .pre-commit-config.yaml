@@ -34,15 +34,15 @@ repos:
           - '--error-exitcode=1'
         files: ^software/flight/src/.*\.c$
 
-  # Python hooks for payload software
+  # Python hooks for payload and ground software
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.1.8
     hooks:
       - id: ruff
         args: ['--fix']
-        files: ^software/payload/.*\.py$
+        files: ^software/(payload|ground)/.*\.py$
       - id: ruff-format
-        files: ^software/payload/.*\.py$
+        files: ^software/(payload|ground)/.*\.py$
 
   # Markdown linting
   - repo: https://github.com/igorshubovych/markdownlint-cli

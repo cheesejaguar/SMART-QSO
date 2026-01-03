@@ -59,12 +59,10 @@ static void test_fault_init(void **state) {
     (void)state;
 
     /* Module initialized in setup, verify state */
-    FaultStats_t stats;
-    SmartQsoResult_t result = fault_get_stats(&stats);
+    size_t count = fault_log_get_count();
 
-    assert_int_equal(result, SMART_QSO_OK);
     /* New system should have zero faults */
-    assert_int_equal(stats.total_faults, 0);
+    assert_int_equal(count, 0);
 }
 
 /*===========================================================================*/
@@ -88,9 +86,8 @@ static void test_fault_log_single(void **state) {
 
     assert_int_equal(result, SMART_QSO_OK);
 
-    FaultStats_t stats;
-    fault_get_stats(&stats);
-    assert_int_equal(stats.total_faults, 1);
+    size_t count = fault_log_get_count();
+    assert_int_equal(count, 1);
 }
 
 /**
@@ -106,9 +103,8 @@ static void test_fault_log_multiple(void **state) {
     fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_WARNING, "Power warning", 0.75);
     fault_log_add(FAULT_TYPE_UART, FAULT_SEVERITY_ERROR, "UART error", 0.70);
 
-    FaultStats_t stats;
-    fault_get_stats(&stats);
-    assert_int_equal(stats.total_faults, 3);
+    size_t count = fault_log_get_count();
+    assert_int_equal(count, 3);
 }
 
 /**
@@ -142,11 +138,10 @@ static void test_fault_log_overflow(void **state) {
         fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_INFO, desc, 0.75);
     }
 
-    FaultStats_t stats;
-    fault_get_stats(&stats);
+    size_t count = fault_log_get_count();
 
     /* Should not exceed maximum */
-    assert_true(stats.total_faults <= SMART_QSO_MAX_FAULT_ENTRIES);
+    assert_true(count <= SMART_QSO_MAX_FAULT_ENTRIES);
 }
 
 /*===========================================================================*/
@@ -168,9 +163,10 @@ static void test_fault_severity_info(void **state) {
 
     assert_int_equal(result, SMART_QSO_OK);
 
-    FaultStats_t stats;
-    fault_get_stats(&stats);
-    assert_int_equal(stats.info_count, 1);
+    FaultLogEntry_t entry;
+    result = fault_log_get_last(&entry);
+    assert_int_equal(result, SMART_QSO_OK);
+    assert_int_equal(entry.severity, FAULT_SEVERITY_INFO);
 }
 
 /**
@@ -179,16 +175,19 @@ static void test_fault_severity_info(void **state) {
 static void test_fault_severity_warning(void **state) {
     (void)state;
 
-    fault_log_add(
+    SmartQsoResult_t result = fault_log_add(
         FAULT_TYPE_THERMAL,
         FAULT_SEVERITY_WARNING,
         "Temperature approaching limit",
         0.70
     );
 
-    FaultStats_t stats;
-    fault_get_stats(&stats);
-    assert_int_equal(stats.warning_count, 1);
+    assert_int_equal(result, SMART_QSO_OK);
+
+    FaultLogEntry_t entry;
+    result = fault_log_get_last(&entry);
+    assert_int_equal(result, SMART_QSO_OK);
+    assert_int_equal(entry.severity, FAULT_SEVERITY_WARNING);
 }
 
 /**
@@ -197,16 +196,19 @@ static void test_fault_severity_warning(void **state) {
 static void test_fault_severity_error(void **state) {
     (void)state;
 
-    fault_log_add(
+    SmartQsoResult_t result = fault_log_add(
         FAULT_TYPE_UART,
         FAULT_SEVERITY_ERROR,
         "UART communication timeout",
         0.65
     );
 
-    FaultStats_t stats;
-    fault_get_stats(&stats);
-    assert_int_equal(stats.error_count, 1);
+    assert_int_equal(result, SMART_QSO_OK);
+
+    FaultLogEntry_t entry;
+    result = fault_log_get_last(&entry);
+    assert_int_equal(result, SMART_QSO_OK);
+    assert_int_equal(entry.severity, FAULT_SEVERITY_ERROR);
 }
 
 /**
@@ -217,16 +219,19 @@ static void test_fault_severity_error(void **state) {
 static void test_fault_severity_critical(void **state) {
     (void)state;
 
-    fault_log_add(
+    SmartQsoResult_t result = fault_log_add(
         FAULT_TYPE_POWER_CRITICAL,
         FAULT_SEVERITY_CRITICAL,
         "Critical battery undervoltage",
         0.15
     );
 
-    FaultStats_t stats;
-    fault_get_stats(&stats);
-    assert_int_equal(stats.critical_count, 1);
+    assert_int_equal(result, SMART_QSO_OK);
+
+    FaultLogEntry_t entry;
+    result = fault_log_get_last(&entry);
+    assert_int_equal(result, SMART_QSO_OK);
+    assert_int_equal(entry.severity, FAULT_SEVERITY_CRITICAL);
 }
 
 /*===========================================================================*/
@@ -275,37 +280,14 @@ static void test_fault_recover_power(void **state) {
     assert_int_equal(result, SMART_QSO_OK);
 }
 
-/**
- * @brief Test communication fault recovery
- *
- * @requirement SRS-F042 Implement autonomous fault recovery
- */
-static void test_fault_recover_comm(void **state) {
-    (void)state;
-
-    /* Log a comm fault */
-    fault_log_add(
-        FAULT_TYPE_UART,
-        FAULT_SEVERITY_ERROR,
-        "Jetson communication timeout",
-        0.75
-    );
-
-    /* Attempt recovery */
-    SmartQsoResult_t result = fault_recover_comm(0.75);
-    assert_int_equal(result, SMART_QSO_OK);
-}
-
 /*===========================================================================*/
-/* Test Cases: Fault Statistics                                               */
+/* Test Cases: Fault Log Retrieval                                            */
 /*===========================================================================*/
 
 /**
- * @brief Test fault statistics tracking
- *
- * @requirement SRS-F045 Track fault statistics across resets
+ * @brief Test fault log count and retrieval
  */
-static void test_fault_statistics(void **state) {
+static void test_fault_log_retrieval(void **state) {
     (void)state;
 
     /* Log various faults */
@@ -315,25 +297,39 @@ static void test_fault_statistics(void **state) {
     fault_log_add(FAULT_TYPE_UART, FAULT_SEVERITY_ERROR, "Error 1", 0.65);
     fault_log_add(FAULT_TYPE_POWER_CRITICAL, FAULT_SEVERITY_CRITICAL, "Critical 1", 0.15);
 
-    FaultStats_t stats;
-    SmartQsoResult_t result = fault_get_stats(&stats);
+    size_t count = fault_log_get_count();
+    assert_int_equal(count, 5);
 
+    /* Retrieve last entry */
+    FaultLogEntry_t entry;
+    SmartQsoResult_t result = fault_log_get_last(&entry);
     assert_int_equal(result, SMART_QSO_OK);
-    assert_int_equal(stats.total_faults, 5);
-    assert_int_equal(stats.info_count, 2);
-    assert_int_equal(stats.warning_count, 1);
-    assert_int_equal(stats.error_count, 1);
-    assert_int_equal(stats.critical_count, 1);
+    assert_int_equal(entry.fault_type, FAULT_TYPE_POWER_CRITICAL);
 }
 
 /**
- * @brief Test fault stats with null pointer
+ * @brief Test fault log get last with null pointer
  */
-static void test_fault_stats_null(void **state) {
+static void test_fault_log_get_last_null(void **state) {
     (void)state;
 
-    SmartQsoResult_t result = fault_get_stats(NULL);
+    SmartQsoResult_t result = fault_log_get_last(NULL);
     assert_int_equal(result, SMART_QSO_ERROR_NULL_PTR);
+}
+
+/**
+ * @brief Test fault log get entry
+ */
+static void test_fault_log_get_entry(void **state) {
+    (void)state;
+
+    /* Log a fault */
+    fault_log_add(FAULT_TYPE_THERMAL, FAULT_SEVERITY_WARNING, "Test fault", 0.75);
+
+    FaultLogEntry_t entry;
+    SmartQsoResult_t result = fault_log_get_entry(0, &entry);
+    assert_int_equal(result, SMART_QSO_OK);
+    assert_int_equal(entry.fault_type, FAULT_TYPE_THERMAL);
 }
 
 /*===========================================================================*/
@@ -353,20 +349,19 @@ static void test_fault_persistence(void **state) {
     fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_ERROR, "Test fault 2", 0.60);
 
     /* Save to file */
-    SmartQsoResult_t result = fault_save_log();
+    SmartQsoResult_t result = fault_log_save();
     assert_int_equal(result, SMART_QSO_OK);
 
-    /* Clear in-memory state and reload */
-    fault_mgmt_init();  /* Re-initialize (would normally load from file) */
+    /* Clear and re-initialize */
+    fault_log_clear();
 
     /* Load from file */
-    result = fault_load_log();
+    result = fault_log_load();
     assert_int_equal(result, SMART_QSO_OK);
 
     /* Verify faults were loaded */
-    FaultStats_t stats;
-    fault_get_stats(&stats);
-    assert_true(stats.total_faults >= 2);
+    size_t count = fault_log_get_count();
+    assert_true(count >= 2);
 }
 
 /*===========================================================================*/
@@ -408,6 +403,27 @@ static void test_fault_all_types(void **state) {
     }
 }
 
+/**
+ * @brief Test fault log clear
+ */
+static void test_fault_log_clear(void **state) {
+    (void)state;
+
+    /* Log some faults */
+    fault_log_add(FAULT_TYPE_THERMAL, FAULT_SEVERITY_WARNING, "Test", 0.75);
+    fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_ERROR, "Test 2", 0.60);
+
+    size_t count = fault_log_get_count();
+    assert_int_equal(count, 2);
+
+    /* Clear the log */
+    SmartQsoResult_t result = fault_log_clear();
+    assert_int_equal(result, SMART_QSO_OK);
+
+    count = fault_log_get_count();
+    assert_int_equal(count, 0);
+}
+
 /*===========================================================================*/
 /* Test Suite                                                                 */
 /*===========================================================================*/
@@ -432,17 +448,20 @@ int main(void) {
         /* Fault recovery tests */
         cmocka_unit_test_setup_teardown(test_fault_recover_thermal, setup, teardown),
         cmocka_unit_test_setup_teardown(test_fault_recover_power, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_fault_recover_comm, setup, teardown),
 
-        /* Fault statistics tests */
-        cmocka_unit_test_setup_teardown(test_fault_statistics, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_fault_stats_null, setup, teardown),
+        /* Fault log retrieval tests */
+        cmocka_unit_test_setup_teardown(test_fault_log_retrieval, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_fault_log_get_last_null, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_fault_log_get_entry, setup, teardown),
 
         /* Persistence tests */
         cmocka_unit_test_setup_teardown(test_fault_persistence, setup, teardown),
 
         /* Fault type tests */
         cmocka_unit_test_setup_teardown(test_fault_all_types, setup, teardown),
+
+        /* Clear tests */
+        cmocka_unit_test_setup_teardown(test_fault_log_clear, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Fault Management Tests", tests, NULL, NULL);

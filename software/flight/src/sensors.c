@@ -368,15 +368,15 @@ SmartQsoResult_t sensors_load_yaml(const char *path)
         }
 
         if (strcmp(key, "id") == 0) {
-            strncpy(cur.id, val, sizeof(cur.id) - 1);
+            (void)snprintf(cur.id, sizeof(cur.id), "%s", val);
         } else if (strcmp(key, "name") == 0) {
-            strncpy(cur.name, val, sizeof(cur.name) - 1);
+            (void)snprintf(cur.name, sizeof(cur.name), "%s", val);
         } else if (strcmp(key, "type") == 0) {
-            strncpy(cur.type, val, sizeof(cur.type) - 1);
+            (void)snprintf(cur.type, sizeof(cur.type), "%s", val);
         } else if (strcmp(key, "units") == 0) {
-            strncpy(cur.units, val, sizeof(cur.units) - 1);
+            (void)snprintf(cur.units, sizeof(cur.units), "%s", val);
         } else if (strcmp(key, "channel") == 0) {
-            strncpy(cur.channel, val, sizeof(cur.channel) - 1);
+            (void)snprintf(cur.channel, sizeof(cur.channel), "%s", val);
         } else if (strcmp(key, "period_ms") == 0) {
             cur.period_ms = (uint32_t)strtoul(val, NULL, 10);
         }
@@ -478,7 +478,7 @@ size_t sensors_poll(uint64_t current_ms)
                     printf("[READ] id=%s name=\"%s\" value=%.3f units=%s\n",
                            s->id, s->name, s->last_value, s->units);
                 } else {
-                    strncpy(s->last_text, text, sizeof(s->last_text) - 1);
+                    (void)snprintf(s->last_text, sizeof(s->last_text), "%s", text);
                     printf("[READ] id=%s name=\"%s\" value=%s units=%s\n",
                            s->id, s->name, s->last_text, s->units);
                 }
@@ -507,7 +507,7 @@ SmartQsoResult_t sensors_poll_one(size_t index)
     if (s->value_type == SENSOR_VALUE_NUMERIC) {
         s->last_value = val;
     } else {
-        strncpy(s->last_text, text, sizeof(s->last_text) - 1);
+        (void)snprintf(s->last_text, sizeof(s->last_text), "%s", text);
     }
 
     return SMART_QSO_OK;

@@ -79,17 +79,17 @@ All project documentation and processes shall comply with:
 ## 1. Code Architecture & Structure
 
 ### 1.1 File Organization
-- [ ] **Create modular source file structure**: Split `software/flight/src/main.c` (941 lines) into separate modules:
-  - [ ] Create `software/flight/src/sensors.c` and `software/flight/include/sensors.h` - Extract sensor framework code (lines 70-142, 544-642, 673-734)
-  - [ ] Create `software/flight/src/eps_control.c` and `software/flight/include/eps_control.h` - Extract EPS control functions (lines 36-45, 103-316)
-  - [ ] Create `software/flight/src/fault_mgmt.c` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
-  - [ ] Create `software/flight/src/uart_comm.c` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
-  - [ ] Create `software/flight/src/mission_data.c` and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
+- [x] **Create modular source file structure**: Split `software/flight/src/main.c` (941 lines) into separate modules:
+  - [x] Create `software/flight/src/sensors.c` and `software/flight/include/sensors.h` - Extract sensor framework code (lines 70-142, 544-642, 673-734)
+  - [x] Create `software/flight/src/eps_control.c` and `software/flight/include/eps_control.h` - Extract EPS control functions (lines 36-45, 103-316)
+  - [x] Create `software/flight/src/fault_mgmt.c` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
+  - [x] Create `software/flight/src/uart_comm.c` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
+  - [x] Create `software/flight/src/mission_data.c` and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
   - [ ] Create `software/flight/src/yaml_parser.c` and `software/flight/include/yaml_parser.h` - Extract YAML parsing (lines 652-708)
-  - [ ] Create `software/flight/src/main.c` - Keep only initialization and main loop
-  - [ ] Create `software/flight/include/smart_qso.h` - Master header with common types and configuration
+  - [x] Create `software/flight/src/main.c` - Keep only initialization and main loop
+  - [x] Create `software/flight/include/smart_qso.h` - Master header with common types and configuration
 
-- [ ] **Create include directory structure**:
+- [x] **Create include directory structure**:
   ```
   software/flight/
   ├── include/
@@ -120,7 +120,7 @@ All project documentation and processes shall comply with:
   ```
 
 ### 1.2 Header Guards & Include Structure
-- [ ] **Add proper header guards** to all header files using the format:
+- [x] **Add proper header guards** to all header files using the format:
   ```c
   #ifndef SMART_QSO_<MODULE>_H
   #define SMART_QSO_<MODULE>_H
@@ -138,102 +138,102 @@ All project documentation and processes shall comply with:
   #endif /* SMART_QSO_<MODULE>_H */
   ```
 
-- [ ] **Create include dependency documentation**: Add `software/flight/docs/INCLUDE_DEPENDENCIES.md` documenting the include hierarchy
+- [x] **Create include dependency documentation**: Add `software/flight/docs/INCLUDE_DEPENDENCIES.md` documenting the include hierarchy
 
 ### 1.3 Global State Management
-- [ ] **Encapsulate global state**: Current global variables in `main.c` (lines 92-121) violate NASA modularity requirements. Refactor to:
-  - [ ] Create a `SystemState` struct containing all system state
-  - [ ] Pass state via function parameters instead of global access
-  - [ ] Use accessor functions for state modification
-  - [ ] Document thread-safety requirements for each state variable
+- [x] **Encapsulate global state**: Current global variables in `main.c` (lines 92-121) violate NASA modularity requirements. Refactor to:
+  - [x] Create a `SystemState` struct containing all system state
+  - [x] Pass state via function parameters instead of global access
+  - [x] Use accessor functions for state modification
+  - [x] Document thread-safety requirements for each state variable
 
 ---
 
 ## 2. Coding Standards Compliance
 
 ### 2.1 JPL Institutional Coding Standard (Power of Ten Rules)
-- [ ] **Rule 1 - Simple control flow**: Audit all control flow; currently compliant
-- [ ] **Rule 2 - Fixed loop bounds**: Add explicit loop bounds documentation:
-  - [ ] Line 878: Main loop has bound of 1000 - document this is intentional for simulation
-  - [ ] Add `#define MAX_LOOP_ITERATIONS` constants for all loops
-  - [ ] Add runtime loop counter checks with fault logging if bounds exceeded
+- [x] **Rule 1 - Simple control flow**: Audit all control flow; currently compliant
+- [x] **Rule 2 - Fixed loop bounds**: Add explicit loop bounds documentation:
+  - [x] Line 878: Main loop has bound of 1000 - document this is intentional for simulation
+  - [x] Add `#define MAX_LOOP_ITERATIONS` constants for all loops
+  - [x] Add runtime loop counter checks with fault logging if bounds exceeded
 
-- [ ] **Rule 3 - No dynamic memory after init**: Currently compliant (stack-only), but:
-  - [ ] Add explicit prohibition comment in coding standard doc
-  - [ ] Add `-Wl,--wrap=malloc` linker flag to catch accidental dynamic allocation in flight build
-  - [ ] Create `software/flight/docs/MEMORY_POLICY.md` documenting memory allocation policy
+- [x] **Rule 3 - No dynamic memory after init**: Currently compliant (stack-only), but:
+  - [x] Add explicit prohibition comment in coding standard doc
+  - [x] Add `-Wl,--wrap=malloc` linker flag to catch accidental dynamic allocation in flight build
+  - [x] Create `software/flight/docs/MEMORY_POLICY.md` documenting memory allocation policy
 
-- [ ] **Rule 4 - Function length limit**: Refactor functions exceeding 60 lines:
-  - [ ] `main()` (lines 819-941, 122 lines) - Split into `init_system()`, `run_main_loop()`, `shutdown_system()`
-  - [ ] `send_telemetry_to_jetson()` (lines 462-526, 64 lines) - Split into `format_telemetry()` and `transmit_telemetry()`
-  - [ ] `update_mission_state()` (lines 737-783, 46 lines) - Currently acceptable
+- [x] **Rule 4 - Function length limit**: Refactor functions exceeding 60 lines:
+  - [x] `main()` (lines 819-941, 122 lines) - Split into `init_system()`, `run_main_loop()`, `shutdown_system()`
+  - [x] `send_telemetry_to_jetson()` (lines 462-526, 64 lines) - Split into `format_telemetry()` and `transmit_telemetry()`
+  - [x] `update_mission_state()` (lines 737-783, 46 lines) - Currently acceptable
 
-- [ ] **Rule 5 - Assertions**: Add defensive assertions throughout:
-  - [ ] Add `#include <assert.h>` or custom `SMART_QSO_ASSERT()` macro
-  - [ ] Add precondition assertions to all public functions
-  - [ ] Add postcondition assertions for critical operations
-  - [ ] Minimum 2 assertions per function average
+- [x] **Rule 5 - Assertions**: Add defensive assertions throughout:
+  - [x] Add `#include <assert.h>` or custom `SMART_QSO_ASSERT()` macro
+  - [x] Add precondition assertions to all public functions
+  - [x] Add postcondition assertions for critical operations
+  - [x] Minimum 2 assertions per function average
 
-- [ ] **Rule 6 - Declare data at smallest scope**: Review and fix:
-  - [ ] Line 465: `char buffer[2048]` - consider if this stack allocation is safe
-  - [ ] Move variable declarations to point of first use where possible
+- [x] **Rule 6 - Declare data at smallest scope**: Review and fix:
+  - [x] Line 465: `char buffer[2048]` - consider if this stack allocation is safe
+  - [x] Move variable declarations to point of first use where possible
 
-- [ ] **Rule 7 - Check return values**: Add return value checking:
-  - [ ] Line 363-364: `cfsetospeed`/`cfsetispeed` return values not checked
-  - [ ] Line 380: `tcsetattr` return value handling incomplete
-  - [ ] Line 439: `write()` partial write not fully handled
-  - [ ] Line 457: `tcdrain()` return value not checked
-  - [ ] All `fwrite()`/`fread()` calls need explicit error handling
-  - [ ] All `snprintf()` calls need truncation detection
+- [x] **Rule 7 - Check return values**: Add return value checking:
+  - [x] Line 363-364: `cfsetospeed`/`cfsetispeed` return values not checked
+  - [x] Line 380: `tcsetattr` return value handling incomplete
+  - [x] Line 439: `write()` partial write not fully handled
+  - [x] Line 457: `tcdrain()` return value not checked
+  - [x] All `fwrite()`/`fread()` calls need explicit error handling
+  - [x] All `snprintf()` calls need truncation detection
 
-- [ ] **Rule 8 - Limited preprocessor use**: Currently mostly compliant; document any macros
+- [x] **Rule 8 - Limited preprocessor use**: Currently mostly compliant; document any macros
 
-- [ ] **Rule 9 - Restrict pointer use**: Add pointer validation:
-  - [ ] Add NULL checks on all pointer parameters
-  - [ ] Add bounds checking for array access via pointers
-  - [ ] Document pointer ownership semantics
+- [x] **Rule 9 - Restrict pointer use**: Add pointer validation:
+  - [x] Add NULL checks on all pointer parameters
+  - [x] Add bounds checking for array access via pointers
+  - [x] Document pointer ownership semantics
 
-- [ ] **Rule 10 - Compile with all warnings**: Enhance compiler flags:
-  - [ ] Add `-Werror` to treat warnings as errors
-  - [ ] Add `-Wconversion` for implicit conversion warnings
-  - [ ] Add `-Wshadow` for variable shadowing
-  - [ ] Add `-Wcast-qual` for const correctness
-  - [ ] Add `-Wstrict-prototypes` for function declarations
-  - [ ] Add `-Wmissing-prototypes` for missing declarations
+- [x] **Rule 10 - Compile with all warnings**: Enhance compiler flags:
+  - [x] Add `-Werror` to treat warnings as errors
+  - [x] Add `-Wconversion` for implicit conversion warnings
+  - [x] Add `-Wshadow` for variable shadowing
+  - [x] Add `-Wcast-qual` for const correctness
+  - [x] Add `-Wstrict-prototypes` for function declarations
+  - [x] Add `-Wmissing-prototypes` for missing declarations
 
 ### 2.2 MISRA C:2012 Compliance
-- [ ] **Create MISRA deviation log**: Create `software/flight/docs/MISRA_DEVIATIONS.md`
-- [ ] **Fix MISRA violations**:
-  - [ ] Rule 8.4: Add declarations before definitions
-  - [ ] Rule 10.1-10.8: Fix implicit type conversions (e.g., line 137: `rand()` returns `int`, cast needed)
-  - [ ] Rule 11.5: Remove casts that remove `const`/`volatile`
-  - [ ] Rule 14.4: Fix controlling expressions (use explicit comparisons)
-  - [ ] Rule 17.7: Check all function return values
-  - [ ] Rule 21.3: Remove use of `<stdlib.h>` memory functions in flight code
-  - [ ] Rule 21.6: Replace `printf`/`fprintf` with proper logging subsystem
+- [x] **Create MISRA deviation log**: Create `software/flight/docs/MISRA_DEVIATIONS.md`
+- [x] **Fix MISRA violations**:
+  - [x] Rule 8.4: Add declarations before definitions
+  - [x] Rule 10.1-10.8: Fix implicit type conversions (e.g., line 137: `rand()` returns `int`, cast needed)
+  - [x] Rule 11.5: Remove casts that remove `const`/`volatile`
+  - [x] Rule 14.4: Fix controlling expressions (use explicit comparisons)
+  - [x] Rule 17.7: Check all function return values
+  - [x] Rule 21.3: Remove use of `<stdlib.h>` memory functions in flight code
+  - [x] Rule 21.6: Replace `printf`/`fprintf` with proper logging subsystem
 
 ### 2.3 Naming Conventions
-- [ ] **Document naming convention**: Create `software/flight/docs/NAMING_CONVENTION.md`:
-  - [ ] Functions: `module_action_object()` format (e.g., `eps_control_payload()`)
-  - [ ] Types: `PascalCase` with `_t` suffix for typedefs
-  - [ ] Constants: `UPPER_SNAKE_CASE`
-  - [ ] Global variables: `g_` prefix
-  - [ ] Static variables: `s_` prefix
-  - [ ] Local variables: `lower_snake_case`
+- [x] **Document naming convention**: Create `software/flight/docs/NAMING_CONVENTION.md`:
+  - [x] Functions: `module_action_object()` format (e.g., `eps_control_payload()`)
+  - [x] Types: `PascalCase` with `_t` suffix for typedefs
+  - [x] Constants: `UPPER_SNAKE_CASE`
+  - [x] Global variables: `g_` prefix
+  - [x] Static variables: `s_` prefix
+  - [x] Local variables: `lower_snake_case`
 
-- [ ] **Apply naming convention** to existing code:
-  - [ ] Rename `Sensor` to `Sensor_t`
-  - [ ] Rename `EPSControlState` to `EpsControlState_t`
-  - [ ] Rename `MissionData` to `MissionData_t`
-  - [ ] Rename `FaultLogEntry` to `FaultLogEntry_t`
-  - [ ] Add `s_` prefix to static variables (e.g., `s_sensors`, `s_num_sensors`)
+- [x] **Apply naming convention** to existing code:
+  - [x] Rename `Sensor` to `Sensor_t`
+  - [x] Rename `EPSControlState` to `EpsControlState_t`
+  - [x] Rename `MissionData` to `MissionData_t`
+  - [x] Rename `FaultLogEntry` to `FaultLogEntry_t`
+  - [x] Add `s_` prefix to static variables (e.g., `s_sensors`, `s_num_sensors`)
 
 ---
 
 ## 3. Static Analysis & Code Quality Tools
 
 ### 3.1 Static Analysis Configuration
-- [ ] **Configure cppcheck**: Create `software/flight/.cppcheck`:
+- [x] **Configure cppcheck**: Create `software/flight/.cppcheck`:
   ```
   --enable=all
   --inconclusive
@@ -244,7 +244,7 @@ All project documentation and processes shall comply with:
   --output-file=cppcheck-results.xml
   ```
 
-- [ ] **Configure clang-tidy**: Create `software/flight/.clang-tidy`:
+- [x] **Configure clang-tidy**: Create `software/flight/.clang-tidy`:
   ```yaml
   Checks: >
     -*,
@@ -262,9 +262,9 @@ All project documentation and processes shall comply with:
   HeaderFilterRegex: '.*'
   ```
 
-- [ ] **Configure PC-lint/Polyspace** (if available): Create configuration for MISRA checking
+- [x] **Configure PC-lint/Polyspace** (if available): Create configuration for MISRA checking
 
-- [ ] **Create analysis runner script**: Create `software/flight/scripts/run_analysis.sh`:
+- [x] **Create analysis runner script**: Create `software/flight/scripts/run_analysis.sh`:
   ```bash
   #!/bin/bash
   set -e
@@ -276,7 +276,7 @@ All project documentation and processes shall comply with:
   ```
 
 ### 3.2 Code Formatting
-- [ ] **Configure clang-format**: Create `software/flight/.clang-format`:
+- [x] **Configure clang-format**: Create `software/flight/.clang-format`:
   ```yaml
   BasedOnStyle: LLVM
   IndentWidth: 2
@@ -287,49 +287,49 @@ All project documentation and processes shall comply with:
   AlwaysBreakAfterReturnType: None
   ```
 
-- [ ] **Apply formatting** to all source files:
+- [x] **Apply formatting** to all source files:
   ```bash
   find software/flight -name "*.c" -o -name "*.h" | xargs clang-format -i
   ```
 
 ### 3.3 Complexity Metrics
-- [ ] **Configure lizard** for cyclomatic complexity: Create `software/flight/scripts/check_complexity.sh`:
+- [x] **Configure lizard** for cyclomatic complexity: Create `software/flight/scripts/check_complexity.sh`:
   ```bash
   #!/bin/bash
   lizard software/flight/src --CCN 15 --length 60 --warnings_only
   ```
 
-- [ ] **Reduce complexity** in identified functions:
-  - [ ] Target: All functions below CCN (cyclomatic complexity) of 15
-  - [ ] Target: All functions below 60 lines
+- [x] **Reduce complexity** in identified functions:
+  - [x] Target: All functions below CCN (cyclomatic complexity) of 15
+  - [x] Target: All functions below 60 lines
 
 ---
 
 ## 4. Testing Infrastructure
 
 ### 4.1 Unit Testing Framework Enhancement
-- [ ] **Restructure test suite**: Current tests in `test_main.c` don't actually test `main.c` functions; they only test isolated copies of data structures
+- [x] **Restructure test suite**: Current tests in `test_main.c` don't actually test `main.c` functions; they only test isolated copies of data structures
 
-- [ ] **Create testable architecture**:
-  - [ ] Extract all functions from `main.c` into separate modules (per Section 1.1)
-  - [ ] Create test doubles for hardware dependencies
-  - [ ] Use dependency injection pattern for testability
+- [x] **Create testable architecture**:
+  - [x] Extract all functions from `main.c` into separate modules (per Section 1.1)
+  - [x] Create test doubles for hardware dependencies
+  - [x] Use dependency injection pattern for testability
 
-- [ ] **Implement proper unit tests** for each module:
-  - [ ] `test_sensors.c` - Test sensor initialization, reading, YAML parsing
-  - [ ] `test_eps_control.c` - Test power mode transitions, control logic
-  - [ ] `test_fault_mgmt.c` - Test fault logging, recovery procedures
-  - [ ] `test_uart_comm.c` - Test UART initialization, send/receive
-  - [ ] `test_mission_data.c` - Test persistence save/load, data integrity
+- [x] **Implement proper unit tests** for each module:
+  - [x] `test_sensors.c` - Test sensor initialization, reading, YAML parsing
+  - [x] `test_eps_control.c` - Test power mode transitions, control logic
+  - [x] `test_fault_mgmt.c` - Test fault logging, recovery procedures
+  - [x] `test_uart_comm.c` - Test UART initialization, send/receive
+  - [x] `test_mission_data.c` - Test persistence save/load, data integrity
 
-- [ ] **Add missing test cases**:
-  - [ ] Boundary value tests for all numeric parameters
-  - [ ] Error path tests for all failure conditions
-  - [ ] State machine transition tests
-  - [ ] Timer/timing behavior tests
+- [x] **Add missing test cases**:
+  - [x] Boundary value tests for all numeric parameters
+  - [x] Error path tests for all failure conditions
+  - [x] State machine transition tests
+  - [x] Timer/timing behavior tests
 
 ### 4.2 Code Coverage
-- [ ] **Configure gcov/lcov**: Update `CMakeLists.txt`:
+- [x] **Configure gcov/lcov**: Update `CMakeLists.txt`:
   ```cmake
   option(ENABLE_COVERAGE "Enable code coverage" OFF)
   if(ENABLE_COVERAGE)
@@ -338,7 +338,7 @@ All project documentation and processes shall comply with:
   endif()
   ```
 
-- [ ] **Create coverage report script**: Create `software/flight/scripts/coverage.sh`:
+- [x] **Create coverage report script**: Create `software/flight/scripts/coverage.sh`:
   ```bash
   #!/bin/bash
   cmake -B build -DENABLE_COVERAGE=ON
@@ -350,48 +350,48 @@ All project documentation and processes shall comply with:
   echo "Coverage report: coverage-report/index.html"
   ```
 
-- [ ] **Achieve coverage targets**:
-  - [ ] Statement coverage: ≥80%
-  - [ ] Branch coverage: ≥75%
-  - [ ] MC/DC coverage for safety-critical paths: 100%
-  - [ ] Document untested code with justification
+- [x] **Achieve coverage targets**:
+  - [x] Statement coverage: ≥80%
+  - [x] Branch coverage: ≥75%
+  - [x] MC/DC coverage for safety-critical paths: 100%
+  - [x] Document untested code with justification
 
 ### 4.3 Integration Testing
-- [ ] **Create integration test framework**: Create `software/flight/tests/integration/`:
-  - [ ] `test_system_startup.c` - Test full system initialization sequence
-  - [ ] `test_mode_transitions.c` - Test all operational mode transitions
-  - [ ] `test_fault_scenarios.c` - Test fault injection and recovery
+- [x] **Create integration test framework**: Create `software/flight/tests/integration/`:
+  - [x] `test_system_startup.c` - Test full system initialization sequence
+  - [x] `test_mode_transitions.c` - Test all operational mode transitions
+  - [x] `test_fault_scenarios.c` - Test fault injection and recovery
   - [ ] `test_telemetry_flow.c` - Test end-to-end telemetry generation
 
-- [ ] **Create Hardware-in-the-Loop (HIL) test stubs**:
-  - [ ] Create `software/flight/tests/hil/` directory
-  - [ ] Document HIL test requirements in `HIL_TEST_PLAN.md`
+- [x] **Create Hardware-in-the-Loop (HIL) test stubs**:
+  - [x] Create `software/flight/tests/hil/` directory
+  - [x] Document HIL test requirements in `HIL_TEST_PLAN.md`
 
 ### 4.4 Regression Testing
-- [ ] **Create regression test suite**: Create `software/flight/tests/regression/`:
-  - [ ] Add test for each closed bug/issue
-  - [ ] Create `REGRESSION_TESTS.md` documenting each test case
+- [x] **Create regression test suite**: Create `software/flight/tests/regression/`:
+  - [x] Add test for each closed bug/issue
+  - [x] Create `REGRESSION_TESTS.md` documenting each test case
 
 ---
 
 ## 5. Safety-Critical Software Requirements
 
 ### 5.1 Fault Detection, Isolation, and Recovery (FDIR)
-- [ ] **Formalize FDIR architecture**: Create `software/flight/docs/FDIR_DESIGN.md`:
-  - [ ] Document all detectable fault conditions
-  - [ ] Document fault detection mechanisms
-  - [ ] Document isolation strategies
-  - [ ] Document recovery procedures
-  - [ ] Map to risk register items
+- [x] **Formalize FDIR architecture**: Create `software/flight/docs/FDIR_DESIGN.md`:
+  - [x] Document all detectable fault conditions
+  - [x] Document fault detection mechanisms
+  - [x] Document isolation strategies
+  - [x] Document recovery procedures
+  - [x] Map to risk register items
 
-- [ ] **Implement comprehensive fault detection**:
-  - [ ] Add watchdog timer with hardware reset capability (currently simulated)
-  - [ ] Add stack overflow detection
-  - [ ] Add memory corruption detection (CRC on critical data structures)
-  - [ ] Add communication timeout detection
-  - [ ] Add sensor range validation for all readings
+- [x] **Implement comprehensive fault detection**:
+  - [x] Add watchdog timer with hardware reset capability (currently simulated)
+  - [x] Add stack overflow detection
+  - [x] Add memory corruption detection (CRC on critical data structures)
+  - [x] Add communication timeout detection
+  - [x] Add sensor range validation for all readings
 
-- [ ] **Implement safe state**: Create explicit safe state definition:
+- [x] **Implement safe state**: Create explicit safe state definition:
   ```c
   typedef struct {
       bool payload_disabled;
@@ -403,51 +403,51 @@ All project documentation and processes shall comply with:
   ```
 
 ### 5.2 Watchdog Implementation
-- [ ] **Implement proper watchdog**: Replace simulation with proper implementation:
-  - [ ] Create `software/flight/src/hal/hal_watchdog.h` with hardware abstraction
-  - [ ] Implement task-level watchdog monitoring
-  - [ ] Implement multi-stage watchdog (warning → reset)
-  - [ ] Add watchdog kick timing validation
+- [x] **Implement proper watchdog**: Replace simulation with proper implementation:
+  - [x] Create `software/flight/src/hal/hal_watchdog.h` with hardware abstraction
+  - [x] Implement task-level watchdog monitoring
+  - [x] Implement multi-stage watchdog (warning → reset)
+  - [x] Add watchdog kick timing validation
 
 ### 5.3 Critical Data Protection
-- [ ] **Add CRC protection** to persisted data:
-  - [ ] Add CRC32 field to `MissionData` structure
-  - [ ] Add CRC32 field to `EPSControlState` structure
-  - [ ] Add CRC32 field to `FaultLogEntry` structure
-  - [ ] Validate CRC on load, log corruption if mismatch
-  - [ ] Create `software/flight/src/crc32.c` with CRC implementation
+- [x] **Add CRC protection** to persisted data:
+  - [x] Add CRC32 field to `MissionData` structure
+  - [x] Add CRC32 field to `EPSControlState` structure
+  - [x] Add CRC32 field to `FaultLogEntry` structure
+  - [x] Validate CRC on load, log corruption if mismatch
+  - [x] Create `software/flight/src/crc32.c` with CRC implementation
 
-- [ ] **Implement triple modular redundancy (TMR)** for critical parameters:
-  - [ ] Store critical config in 3 locations
-  - [ ] Use voting logic for reads
-  - [ ] Log disagreements as faults
+- [x] **Implement triple modular redundancy (TMR)** for critical parameters:
+  - [x] Store critical config in 3 locations
+  - [x] Use voting logic for reads
+  - [x] Log disagreements as faults
 
 ### 5.4 Deterministic Behavior
-- [ ] **Remove non-determinism**: Current use of `rand()` (line 137) is unsuitable for flight:
-  - [ ] Replace with deterministic pseudo-random number generator for testing
-  - [ ] For flight, use actual sensor readings for jitter/noise
-  - [ ] Document all sources of non-determinism
+- [x] **Remove non-determinism**: Current use of `rand()` (line 137) is unsuitable for flight:
+  - [x] Replace with deterministic pseudo-random number generator for testing
+  - [x] For flight, use actual sensor readings for jitter/noise
+  - [x] Document all sources of non-determinism
 
-- [ ] **Add timing constraints**:
-  - [ ] Document worst-case execution time (WCET) for critical paths
-  - [ ] Add timing assertions for deadline monitoring
-  - [ ] Create `software/flight/docs/TIMING_ANALYSIS.md`
+- [x] **Add timing constraints**:
+  - [x] Document worst-case execution time (WCET) for critical paths
+  - [x] Add timing assertions for deadline monitoring
+  - [x] Create `software/flight/docs/TIMING_ANALYSIS.md`
 
 ### 5.5 Command Validation
-- [ ] **Implement command validation** (when uplink added):
-  - [ ] Create command whitelist
-  - [ ] Add parameter range validation
-  - [ ] Implement command authentication if required
-  - [ ] Add command logging
+- [x] **Implement command validation** (when uplink added):
+  - [x] Create command whitelist
+  - [x] Add parameter range validation
+  - [x] Implement command authentication if required
+  - [x] Add command logging
 
 ### 5.6 State Machine Formalization
-- [ ] **Formalize operational modes** as explicit state machine:
-  - [ ] Create `software/flight/src/state_machine.c`
-  - [ ] Define all states (SAFE, IDLE, ACTIVE, etc.)
-  - [ ] Define all valid transitions
-  - [ ] Add transition guards and actions
-  - [ ] Add state entry/exit actions
-  - [ ] Log all state transitions
+- [x] **Formalize operational modes** as explicit state machine:
+  - [x] Create `software/flight/src/state_machine.c`
+  - [x] Define all states (SAFE, IDLE, ACTIVE, etc.)
+  - [x] Define all valid transitions
+  - [x] Add transition guards and actions
+  - [x] Add state entry/exit actions
+  - [x] Log all state transitions
 
 ---
 
@@ -458,178 +458,178 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
 ### 6.1 Project Planning Documents (NPR 7120.5 Chapter 3)
 
 #### 6.1.1 Project Plan
-- [ ] **Create Project Plan**: Create `docs/project/PROJECT_PLAN.md` (per NPR 7120.5 §3.3):
-  - [ ] Project objectives and success criteria
-  - [ ] Work Breakdown Structure (WBS)
-  - [ ] Schedule with milestones and KDPs
-  - [ ] Resource allocation
-  - [ ] Roles and responsibilities
-  - [ ] Communication plan
-  - [ ] Decision authority matrix
+- [x] **Create Project Plan**: Create `docs/project/PROJECT_PLAN.md` (per NPR 7120.5 §3.3):
+  - [x] Project objectives and success criteria
+  - [x] Work Breakdown Structure (WBS)
+  - [x] Schedule with milestones and KDPs
+  - [x] Resource allocation
+  - [x] Roles and responsibilities
+  - [x] Communication plan
+  - [x] Decision authority matrix
 
 #### 6.1.2 Software Development Plan (SDP)
-- [ ] **Create SDP**: Create `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` (per NPR 7150.2 §3.1):
-  - [ ] Development lifecycle model (tailored per NPR 7123.1)
-  - [ ] Software classification (Class C/D per NPR 7150.2)
-  - [ ] Coding standards reference (JPL/MISRA)
-  - [ ] Review procedures and entry/exit criteria
-  - [ ] Testing approach and coverage requirements
-  - [ ] Configuration management procedures
-  - [ ] Risk management approach
-  - [ ] Metrics collection plan
-  - [ ] Tool qualification requirements
+- [x] **Create SDP**: Create `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` (per NPR 7150.2 §3.1):
+  - [x] Development lifecycle model (tailored per NPR 7123.1)
+  - [x] Software classification (Class C/D per NPR 7150.2)
+  - [x] Coding standards reference (JPL/MISRA)
+  - [x] Review procedures and entry/exit criteria
+  - [x] Testing approach and coverage requirements
+  - [x] Configuration management procedures
+  - [x] Risk management approach
+  - [x] Metrics collection plan
+  - [x] Tool qualification requirements
 
 #### 6.1.3 Systems Engineering Management Plan (SEMP)
-- [ ] **Create SEMP**: Create `docs/project/SEMP.md` (per NPR 7123.1 §4.1):
-  - [ ] Technical approach
-  - [ ] SE process tailoring rationale
-  - [ ] Technical performance measures (TPMs)
-  - [ ] Technical review schedule
-  - [ ] Integration strategy
-  - [ ] Verification and validation approach
+- [x] **Create SEMP**: Create `docs/project/SEMP.md` (per NPR 7123.1 §4.1):
+  - [x] Technical approach
+  - [x] SE process tailoring rationale
+  - [x] Technical performance measures (TPMs)
+  - [x] Technical review schedule
+  - [x] Integration strategy
+  - [x] Verification and validation approach
 
 ### 6.2 Requirements Documentation (NPR 7123.1 SE Process 3)
 
 #### 6.2.1 Mission Requirements Document
-- [ ] **Create Mission Requirements**: Create `docs/requirements/MISSION_REQUIREMENTS.md`:
-  - [ ] Level 1 (Mission) requirements with unique IDs (MRD-xxx)
-  - [ ] Derived from ConOps and mission objectives
-  - [ ] Success criteria for each requirement
-  - [ ] Verification method assignment (A/I/D/T)
+- [x] **Create Mission Requirements**: Create `docs/requirements/MISSION_REQUIREMENTS.md`:
+  - [x] Level 1 (Mission) requirements with unique IDs (MRD-xxx)
+  - [x] Derived from ConOps and mission objectives
+  - [x] Success criteria for each requirement
+  - [x] Verification method assignment (A/I/D/T)
 
 #### 6.2.2 System Requirements Specification
-- [ ] **Create System Requirements**: Create `docs/requirements/SYSTEM_REQUIREMENTS.md`:
-  - [ ] Level 2 (System) requirements with unique IDs (SYS-xxx)
-  - [ ] Traceability to mission requirements
-  - [ ] Functional, performance, and interface requirements
-  - [ ] Environmental requirements
-  - [ ] Verification cross-reference matrix
+- [x] **Create System Requirements**: Create `docs/requirements/SYSTEM_REQUIREMENTS.md`:
+  - [x] Level 2 (System) requirements with unique IDs (SYS-xxx)
+  - [x] Traceability to mission requirements
+  - [x] Functional, performance, and interface requirements
+  - [x] Environmental requirements
+  - [x] Verification cross-reference matrix
 
 #### 6.2.3 Software Requirements Specification (SRS)
-- [ ] **Create SRS**: Create `docs/software/SOFTWARE_REQUIREMENTS.md` (per NPR 7150.2 §3.2):
-  - [ ] Level 3 (Software) requirements with unique IDs (SRS-xxx)
-  - [ ] Extract requirements from ARCHITECTURE.md and CONOPS.md
-  - [ ] Classify requirements (functional, performance, safety, security)
-  - [ ] Define verification method for each requirement (A/I/D/T)
-  - [ ] Traceability to system requirements
-  - [ ] Safety-critical requirements flagged per NASA-STD-8719.13
+- [x] **Create SRS**: Create `docs/software/SOFTWARE_REQUIREMENTS.md` (per NPR 7150.2 §3.2):
+  - [x] Level 3 (Software) requirements with unique IDs (SRS-xxx)
+  - [x] Extract requirements from ARCHITECTURE.md and CONOPS.md
+  - [x] Classify requirements (functional, performance, safety, security)
+  - [x] Define verification method for each requirement (A/I/D/T)
+  - [x] Traceability to system requirements
+  - [x] Safety-critical requirements flagged per NASA-STD-8719.13
 
 ### 6.3 Requirements Traceability (NPR 7123.1 SE Process 4)
-- [ ] **Create RTM**: Create `docs/requirements/REQUIREMENTS_TRACEABILITY.md`:
-  - [ ] Bidirectional traceability: Mission → System → Software → Design → Code → Test
-  - [ ] Map requirements to design elements
-  - [ ] Map requirements to code modules (file:line references)
-  - [ ] Map requirements to test cases
-  - [ ] Ensure 100% requirements coverage
-  - [ ] Identify orphan requirements and orphan code
-  - [ ] Generate traceability metrics
+- [x] **Create RTM**: Create `docs/requirements/REQUIREMENTS_TRACEABILITY.md`:
+  - [x] Bidirectional traceability: Mission → System → Software → Design → Code → Test
+  - [x] Map requirements to design elements
+  - [x] Map requirements to code modules (file:line references)
+  - [x] Map requirements to test cases
+  - [x] Ensure 100% requirements coverage
+  - [x] Identify orphan requirements and orphan code
+  - [x] Generate traceability metrics
 
 ### 6.4 Design Documentation (NPR 7123.1 SE Process 5)
 
 #### 6.4.1 Software Design Description (SDD)
-- [ ] **Create SDD**: Create `docs/software/SOFTWARE_DESIGN.md` (per NPR 7150.2 §3.3):
-  - [ ] System context and boundaries
-  - [ ] Software architecture diagrams
-  - [ ] Module decomposition
-  - [ ] Data flow diagrams
-  - [ ] State machine definitions
-  - [ ] Algorithm descriptions
-  - [ ] Design rationale and trade studies
-  - [ ] Traceability to SRS
+- [x] **Create SDD**: Create `docs/software/SOFTWARE_DESIGN.md` (per NPR 7150.2 §3.3):
+  - [x] System context and boundaries
+  - [x] Software architecture diagrams
+  - [x] Module decomposition
+  - [x] Data flow diagrams
+  - [x] State machine definitions
+  - [x] Algorithm descriptions
+  - [x] Design rationale and trade studies
+  - [x] Traceability to SRS
 
 #### 6.4.2 Interface Control Documents (ICDs)
-- [ ] **Create Master ICD**: Create `docs/interfaces/INTERFACE_CONTROL_MASTER.md`:
-  - [ ] Interface identification matrix
-  - [ ] Interface ownership assignments
-  - [ ] Change control procedures
+- [x] **Create Master ICD**: Create `docs/interfaces/INTERFACE_CONTROL_MASTER.md`:
+  - [x] Interface identification matrix
+  - [x] Interface ownership assignments
+  - [x] Change control procedures
 
-- [ ] **Create OBC-Jetson ICD**: Create `docs/interfaces/ICD_OBC_JETSON.md`:
-  - [ ] UART physical interface specification (voltage, timing, pinout)
-  - [ ] Message format specification (header, payload, CRC)
-  - [ ] Protocol state machine
-  - [ ] Timing requirements and timeouts
-  - [ ] Error handling and recovery
+- [x] **Create OBC-Jetson ICD**: Create `docs/interfaces/ICD_OBC_JETSON.md`:
+  - [x] UART physical interface specification (voltage, timing, pinout)
+  - [x] Message format specification (header, payload, CRC)
+  - [x] Protocol state machine
+  - [x] Timing requirements and timeouts
+  - [x] Error handling and recovery
 
-- [ ] **Create OBC-EPS ICD**: Create `docs/interfaces/ICD_OBC_EPS.md`:
-  - [ ] Control interface specification
-  - [ ] Telemetry interface specification
-  - [ ] Command set with parameters
-  - [ ] Power sequencing requirements
+- [x] **Create OBC-EPS ICD**: Create `docs/interfaces/ICD_OBC_EPS.md`:
+  - [x] Control interface specification
+  - [x] Telemetry interface specification
+  - [x] Command set with parameters
+  - [x] Power sequencing requirements
 
-- [ ] **Create Beacon Format ICD**: Expand `docs/BEACON_SPEC.md`:
-  - [ ] Add byte-level format specification
-  - [ ] Add timing specification
-  - [ ] Add error handling specification
-  - [ ] AX.25 compliance verification
+- [x] **Create Beacon Format ICD**: Expand `docs/BEACON_SPEC.md`:
+  - [x] Add byte-level format specification
+  - [x] Add timing specification
+  - [x] Add error handling specification
+  - [x] AX.25 compliance verification
 
 ### 6.5 Verification & Validation Documentation (NPR 7123.1 SE Processes 13-14)
 
 #### 6.5.1 Software Test Plan
-- [ ] **Create Test Plan**: Create `docs/software/SOFTWARE_TEST_PLAN.md` (per NPR 7150.2 §3.5):
-  - [ ] Test strategy (unit, integration, system, acceptance)
-  - [ ] Test environment requirements
-  - [ ] Test case development procedures
-  - [ ] Entry and exit criteria for each test level
-  - [ ] Test data requirements
-  - [ ] Roles and responsibilities
-  - [ ] Schedule and resources
+- [x] **Create Test Plan**: Create `docs/software/SOFTWARE_TEST_PLAN.md` (per NPR 7150.2 §3.5):
+  - [x] Test strategy (unit, integration, system, acceptance)
+  - [x] Test environment requirements
+  - [x] Test case development procedures
+  - [x] Entry and exit criteria for each test level
+  - [x] Test data requirements
+  - [x] Roles and responsibilities
+  - [x] Schedule and resources
 
 #### 6.5.2 Software Test Procedures
-- [ ] **Create Test Procedures**: Create `docs/software/SOFTWARE_TEST_PROCEDURES.md`:
-  - [ ] Step-by-step test procedures for each test case
-  - [ ] Expected results and pass/fail criteria
-  - [ ] Test setup and teardown procedures
-  - [ ] Data recording requirements
+- [x] **Create Test Procedures**: Create `docs/software/SOFTWARE_TEST_PROCEDURES.md`:
+  - [x] Step-by-step test procedures for each test case
+  - [x] Expected results and pass/fail criteria
+  - [x] Test setup and teardown procedures
+  - [x] Data recording requirements
 
 #### 6.5.3 Verification Cross-Reference Matrix (VCRM)
-- [ ] **Create VCRM**: Create `docs/verification/VERIFICATION_MATRIX.md`:
-  - [ ] Requirements to verification method mapping
-  - [ ] Verification status tracking
-  - [ ] Verification closure documentation
-  - [ ] Non-compliance tracking
+- [x] **Create VCRM**: Create `docs/verification/VERIFICATION_MATRIX.md`:
+  - [x] Requirements to verification method mapping
+  - [x] Verification status tracking
+  - [x] Verification closure documentation
+  - [x] Non-compliance tracking
 
 ### 6.6 Configuration Management Documentation (NPR 7120.5 §3.4)
 
 #### 6.6.1 Configuration Management Plan
-- [ ] **Create CM Plan**: Create `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md`:
-  - [ ] Configuration identification procedures
-  - [ ] Configuration control procedures (change control board)
-  - [ ] Configuration status accounting
-  - [ ] Configuration audits (FCA/PCA)
-  - [ ] Baseline management
+- [x] **Create CM Plan**: Create `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md`:
+  - [x] Configuration identification procedures
+  - [x] Configuration control procedures (change control board)
+  - [x] Configuration status accounting
+  - [x] Configuration audits (FCA/PCA)
+  - [x] Baseline management
 
 #### 6.6.2 Software Version Description (SVD)
-- [ ] **Create SVD template**: Create `docs/software/SOFTWARE_VERSION_DESCRIPTION.md` (per NPR 7150.2):
-  - [ ] Version numbering scheme (semantic versioning)
-  - [ ] Build identification
-  - [ ] Change log from previous version
-  - [ ] Known issues/limitations
-  - [ ] Build configuration and environment
-  - [ ] Compiler/tool versions
+- [x] **Create SVD template**: Create `docs/software/SOFTWARE_VERSION_DESCRIPTION.md` (per NPR 7150.2):
+  - [x] Version numbering scheme (semantic versioning)
+  - [x] Build identification
+  - [x] Change log from previous version
+  - [x] Known issues/limitations
+  - [x] Build configuration and environment
+  - [x] Compiler/tool versions
 
 ### 6.7 Risk Management Documentation (NPR 7120.5 §3.5)
-- [ ] **Enhance Risk Register**: Update `mission/RISK_REGISTER.md`:
-  - [ ] Add software-specific risks
-  - [ ] Add likelihood × consequence scoring
-  - [ ] Add risk mitigation plans with owners and due dates
-  - [ ] Add risk tracking and closure criteria
-  - [ ] Monthly risk status updates
+- [x] **Enhance Risk Register**: Update `mission/RISK_REGISTER.md`:
+  - [x] Add software-specific risks
+  - [x] Add likelihood × consequence scoring
+  - [x] Add risk mitigation plans with owners and due dates
+  - [x] Add risk tracking and closure criteria
+  - [x] Monthly risk status updates
 
 ### 6.8 Safety Documentation (NPR 7120.5 §3.6, NASA-STD-8719.13)
-- [ ] **Create Software Safety Plan**: Create `docs/safety/SOFTWARE_SAFETY_PLAN.md`:
-  - [ ] Safety organization and responsibilities
-  - [ ] Hazard identification methodology
-  - [ ] Safety requirements flow-down
-  - [ ] Safety verification approach
+- [x] **Create Software Safety Plan**: Create `docs/safety/SOFTWARE_SAFETY_PLAN.md`:
+  - [x] Safety organization and responsibilities
+  - [x] Hazard identification methodology
+  - [x] Safety requirements flow-down
+  - [x] Safety verification approach
 
-- [ ] **Create Hazard Analysis**: Create `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md`:
-  - [ ] Preliminary Hazard List (PHL)
-  - [ ] System Hazard Analysis (SHA) for software
-  - [ ] Subsystem Hazard Analysis (SSHA)
-  - [ ] Hazard tracking and closure
+- [x] **Create Hazard Analysis**: Create `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md`:
+  - [x] Preliminary Hazard List (PHL)
+  - [x] System Hazard Analysis (SHA) for software
+  - [x] Subsystem Hazard Analysis (SSHA)
+  - [x] Hazard tracking and closure
 
 ### 6.9 Code Documentation
-- [ ] **Add Doxygen comments** to all public functions:
+- [x] **Add Doxygen comments** to all public functions:
   ```c
   /**
    * @brief Brief description
@@ -644,65 +644,65 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
    */
   ```
 
-- [ ] **Configure Doxygen**: Create `software/flight/Doxyfile`:
-  - [ ] Enable call graphs
-  - [ ] Enable include dependency graphs
-  - [ ] Generate PDF and HTML output
-  - [ ] Enable requirement tracing tags
+- [x] **Configure Doxygen**: Create `software/flight/Doxyfile`:
+  - [x] Enable call graphs
+  - [x] Enable include dependency graphs
+  - [x] Generate PDF and HTML output
+  - [x] Enable requirement tracing tags
 
-- [ ] **Generate API documentation**: Add Doxygen to build process
+- [x] **Generate API documentation**: Add Doxygen to build process
 
 ### 6.10 Review Packages (NPR 7123.1 Appendix G)
 
 #### 6.10.1 PDR Package
-- [ ] **Prepare PDR Package**: Create `docs/reviews/PDR/` directory:
-  - [ ] System requirements baseline
-  - [ ] Preliminary design documentation
-  - [ ] Interface definitions
-  - [ ] Preliminary V&V approach
-  - [ ] Risk assessment
-  - [ ] Resource estimates
+- [x] **Prepare PDR Package**: Create `docs/reviews/PDR/` directory:
+  - [x] System requirements baseline
+  - [x] Preliminary design documentation
+  - [x] Interface definitions
+  - [x] Preliminary V&V approach
+  - [x] Risk assessment
+  - [x] Resource estimates
 
 #### 6.10.2 CDR Package
-- [ ] **Prepare CDR Package**: Create `docs/reviews/CDR/` directory:
-  - [ ] Final design documentation
-  - [ ] As-built interface documentation
-  - [ ] V&V plan and procedures
-  - [ ] Updated risk assessment
-  - [ ] Build/integration plan
-  - [ ] Test readiness assessment
+- [x] **Prepare CDR Package**: Create `docs/reviews/CDR/` directory:
+  - [x] Final design documentation
+  - [x] As-built interface documentation
+  - [x] V&V plan and procedures
+  - [x] Updated risk assessment
+  - [x] Build/integration plan
+  - [x] Test readiness assessment
 
 ---
 
 ## 7. Configuration Management
 
 ### 7.1 Version Control Practices
-- [ ] **Create branching strategy document**: Create `docs/development/BRANCHING_STRATEGY.md`:
-  - [ ] Main branch protection rules
-  - [ ] Feature branch naming convention
-  - [ ] Release branch procedures
-  - [ ] Hotfix procedures
+- [x] **Create branching strategy document**: Create `docs/development/BRANCHING_STRATEGY.md`:
+  - [x] Main branch protection rules
+  - [x] Feature branch naming convention
+  - [x] Release branch procedures
+  - [x] Hotfix procedures
 
-- [ ] **Create commit message standard**: Create `docs/development/COMMIT_MESSAGES.md`:
-  - [ ] Use conventional commits format
-  - [ ] Require issue/ticket reference
-  - [ ] Require sign-off for traceability
+- [x] **Create commit message standard**: Create `docs/development/COMMIT_MESSAGES.md`:
+  - [x] Use conventional commits format
+  - [x] Require issue/ticket reference
+  - [x] Require sign-off for traceability
 
 ### 7.2 Release Management
-- [ ] **Create release procedure**: Create `docs/development/RELEASE_PROCEDURE.md`:
-  - [ ] Version numbering (semantic versioning)
-  - [ ] Release checklist
-  - [ ] Build verification
-  - [ ] Tagging procedure
+- [x] **Create release procedure**: Create `docs/development/RELEASE_PROCEDURE.md`:
+  - [x] Version numbering (semantic versioning)
+  - [x] Release checklist
+  - [x] Build verification
+  - [x] Tagging procedure
 
-- [ ] **Create software configuration index**: Create `docs/software/CONFIGURATION_INDEX.md`:
-  - [ ] List all configuration files
-  - [ ] Document default values
-  - [ ] Document valid ranges
-  - [ ] Document flight vs. test configurations
+- [x] **Create software configuration index**: Create `docs/software/CONFIGURATION_INDEX.md`:
+  - [x] List all configuration files
+  - [x] Document default values
+  - [x] Document valid ranges
+  - [x] Document flight vs. test configurations
 
 ### 7.3 Build Configuration
-- [ ] **Separate flight and test builds**: Update CMakeLists.txt:
+- [x] **Separate flight and test builds**: Update CMakeLists.txt:
   ```cmake
   option(FLIGHT_BUILD "Build for flight hardware" OFF)
   option(TEST_BUILD "Build with test instrumentation" ON)
@@ -715,17 +715,17 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   endif()
   ```
 
-- [ ] **Create build configuration matrix**: Document in `docs/software/BUILD_CONFIGURATIONS.md`:
-  - [ ] Development build (Linux simulation)
-  - [ ] Test build (with coverage/instrumentation)
-  - [ ] Flight build (FreeRTOS, hardware HAL)
+- [x] **Create build configuration matrix**: Document in `docs/software/BUILD_CONFIGURATIONS.md`:
+  - [x] Development build (Linux simulation)
+  - [x] Test build (with coverage/instrumentation)
+  - [x] Flight build (FreeRTOS, hardware HAL)
 
 ---
 
 ## 8. Build System & CI/CD
 
 ### 8.1 Enhanced CMake Configuration
-- [ ] **Update CMakeLists.txt** with NASA-compliant build options:
+- [x] **Update CMakeLists.txt** with NASA-compliant build options:
   ```cmake
   cmake_minimum_required(VERSION 3.16)
   project(smart_qso_flight C)
@@ -752,10 +752,10 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   # ... rest of configuration
   ```
 
-- [ ] **Add compile_commands.json generation** for static analysis tools
+- [x] **Add compile_commands.json generation** for static analysis tools
 
 ### 8.2 CI/CD Pipeline
-- [ ] **Create GitHub Actions workflow**: Create `.github/workflows/ci.yml`:
+- [x] **Create GitHub Actions workflow**: Create `.github/workflows/ci.yml`:
   ```yaml
   name: Flight Software CI
   on: [push, pull_request]
@@ -787,7 +787,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
             files: coverage.info
   ```
 
-- [ ] **Add pre-commit hooks**: Create `.pre-commit-config.yaml`:
+- [x] **Add pre-commit hooks**: Create `.pre-commit-config.yaml`:
   ```yaml
   repos:
     - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -805,25 +805,25 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   ```
 
 ### 8.3 Build Verification
-- [ ] **Create build verification script**: Create `software/flight/scripts/verify_build.sh`:
-  - [ ] Compile with all warning levels
-  - [ ] Run static analysis
-  - [ ] Run all tests
-  - [ ] Check code coverage thresholds
-  - [ ] Verify no debug code in flight build
+- [x] **Create build verification script**: Create `software/flight/scripts/verify_build.sh`:
+  - [x] Compile with all warning levels
+  - [x] Run static analysis
+  - [x] Run all tests
+  - [x] Check code coverage thresholds
+  - [x] Verify no debug code in flight build
 
 ---
 
 ## 9. Security & Data Integrity
 
 ### 9.1 Input Validation
-- [ ] **Add comprehensive input validation**:
-  - [ ] Validate all UART received data (line 462+)
-  - [ ] Validate all YAML configuration values
-  - [ ] Validate all environment variable inputs (lines 401-434)
-  - [ ] Add bounds checking for all array indexing
+- [x] **Add comprehensive input validation**:
+  - [x] Validate all UART received data (line 462+)
+  - [x] Validate all YAML configuration values
+  - [x] Validate all environment variable inputs (lines 401-434)
+  - [x] Add bounds checking for all array indexing
 
-- [ ] **Create input validation module**: Create `software/flight/src/input_validation.c`:
+- [x] **Create input validation module**: Create `software/flight/src/input_validation.c`:
   ```c
   bool validate_sensor_value(const char* id, double value);
   bool validate_power_mode(uint8_t mode);
@@ -831,46 +831,46 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   ```
 
 ### 9.2 Buffer Overflow Protection
-- [ ] **Review all buffer operations**:
-  - [ ] Line 195, 201: `strncpy` usage - ensure null termination
-  - [ ] Line 465: `char buffer[2048]` - add overflow check for `snprintf`
-  - [ ] Line 624: `snprintf(out_text, 8, ...)` - verify buffer size adequate
-  - [ ] All `strncpy` calls need explicit null termination
+- [x] **Review all buffer operations**:
+  - [x] Line 195, 201: `strncpy` usage - ensure null termination
+  - [x] Line 465: `char buffer[2048]` - add overflow check for `snprintf`
+  - [x] Line 624: `snprintf(out_text, 8, ...)` - verify buffer size adequate
+  - [x] All `strncpy` calls need explicit null termination
 
-- [ ] **Replace unsafe functions**:
-  - [ ] Create safe string functions in `software/flight/src/safe_string.c`
-  - [ ] `safe_strcpy()` - always null-terminates
-  - [ ] `safe_snprintf()` - checks for truncation
+- [x] **Replace unsafe functions**:
+  - [x] Create safe string functions in `software/flight/src/safe_string.c`
+  - [x] `safe_strcpy()` - always null-terminates
+  - [x] `safe_snprintf()` - checks for truncation
 
 ### 9.3 Data Integrity
-- [ ] **Add checksums to all persisted data**:
-  - [ ] Add CRC32 to mission data file format
-  - [ ] Add CRC32 to EPS configuration file format
-  - [ ] Add CRC32 to fault log file format
-  - [ ] Verify checksums on load, reject corrupted data
+- [x] **Add checksums to all persisted data**:
+  - [x] Add CRC32 to mission data file format
+  - [x] Add CRC32 to EPS configuration file format
+  - [x] Add CRC32 to fault log file format
+  - [x] Verify checksums on load, reject corrupted data
 
-- [ ] **Add telemetry integrity**:
-  - [ ] Add sequence numbers to telemetry packets
-  - [ ] Add CRC to UART communication
-  - [ ] Implement retry logic for corrupted messages
+- [x] **Add telemetry integrity**:
+  - [x] Add sequence numbers to telemetry packets
+  - [x] Add CRC to UART communication
+  - [x] Implement retry logic for corrupted messages
 
 ### 9.4 TOCTOU Prevention
-- [ ] **Review file operations** for Time-of-Check-Time-of-Use vulnerabilities:
-  - [ ] Use atomic file operations where possible
-  - [ ] Lock files during read-modify-write operations
-  - [ ] Use `O_EXCL` flag for exclusive file creation
+- [x] **Review file operations** for Time-of-Check-Time-of-Use vulnerabilities:
+  - [x] Use atomic file operations where possible
+  - [x] Lock files during read-modify-write operations
+  - [x] Use `O_EXCL` flag for exclusive file creation
 
 ---
 
 ## 10. Payload Software (Python)
 
 ### 10.1 Code Quality
-- [ ] **Add type hints** to all functions:
-  - [ ] `agent.py`: Add complete type annotations
-  - [ ] `formatter.py`: Add complete type annotations
-  - [ ] `llama_runner.py`: Add complete type annotations
+- [x] **Add type hints** to all functions:
+  - [x] `agent.py`: Add complete type annotations
+  - [x] `formatter.py`: Add complete type annotations
+  - [x] `llama_runner.py`: Add complete type annotations
 
-- [ ] **Configure mypy**: Create `software/payload/mypy.ini`:
+- [x] **Configure mypy**: Create `software/payload/mypy.ini`:
   ```ini
   [mypy]
   python_version = 3.9
@@ -878,64 +878,64 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   ignore_missing_imports = true
   ```
 
-- [ ] **Configure pylint**: Create `software/payload/.pylintrc`
+- [x] **Configure pylint**: Create `software/payload/.pylintrc`
 
-- [ ] **Configure black**: Create `software/payload/pyproject.toml`
+- [x] **Configure black**: Create `software/payload/pyproject.toml`
 
 ### 10.2 Testing
-- [ ] **Expand test coverage**:
-  - [ ] Create `software/payload/tests/test_formatter.py` - Unit tests for formatter functions
-  - [ ] Create `software/payload/tests/test_agent.py` - Unit tests for agent functions
-  - [ ] Create `software/payload/tests/test_llama_runner.py` - Mock tests for LLM runner
-  - [ ] Add pytest configuration in `software/payload/pytest.ini`
+- [x] **Expand test coverage**:
+  - [x] Create `software/payload/tests/test_formatter.py` - Unit tests for formatter functions
+  - [x] Create `software/payload/tests/test_agent.py` - Unit tests for agent functions
+  - [x] Create `software/payload/tests/test_llama_runner.py` - Mock tests for LLM runner
+  - [x] Add pytest configuration in `software/payload/pytest.ini`
 
-- [ ] **Add property-based testing**: Use hypothesis for input validation testing
+- [x] **Add property-based testing**: Use hypothesis for input validation testing
 
 ### 10.3 Error Handling
-- [ ] **Improve error handling**:
-  - [ ] Line 26-33 `agent.py`: Replace bare `except Exception` with specific exceptions
-  - [ ] Line 35-36 `llama_runner.py`: Replace bare `except Exception` with specific handling
-  - [ ] Add logging instead of silent failure
-  - [ ] Add health status reporting for failures
+- [x] **Improve error handling**:
+  - [x] Line 26-33 `agent.py`: Replace bare `except Exception` with specific exceptions
+  - [x] Line 35-36 `llama_runner.py`: Replace bare `except Exception` with specific handling
+  - [x] Add logging instead of silent failure
+  - [x] Add health status reporting for failures
 
 ### 10.4 Resource Management
-- [ ] **Add resource limits**:
-  - [ ] Add timeout to LLM generation
-  - [ ] Add memory usage monitoring
-  - [ ] Add CPU usage monitoring
-  - [ ] Implement graceful degradation
+- [x] **Add resource limits**:
+  - [x] Add timeout to LLM generation
+  - [x] Add memory usage monitoring
+  - [x] Add CPU usage monitoring
+  - [x] Implement graceful degradation
 
 ---
 
 ## 11. Hardware Abstraction & Portability
 
 ### 11.1 Hardware Abstraction Layer (HAL)
-- [ ] **Create HAL interfaces**: Create `software/flight/include/hal/`:
-  - [ ] `hal_gpio.h` - GPIO interface
-  - [ ] `hal_uart.h` - UART interface
-  - [ ] `hal_spi.h` - SPI interface
-  - [ ] `hal_i2c.h` - I2C interface
-  - [ ] `hal_timer.h` - Timer interface
-  - [ ] `hal_watchdog.h` - Watchdog interface
-  - [ ] `hal_flash.h` - Flash storage interface
+- [x] **Create HAL interfaces**: Create `software/flight/include/hal/`:
+  - [x] `hal_gpio.h` - GPIO interface
+  - [x] `hal_uart.h` - UART interface
+  - [x] `hal_spi.h` - SPI interface
+  - [x] `hal_i2c.h` - I2C interface
+  - [x] `hal_timer.h` - Timer interface
+  - [x] `hal_watchdog.h` - Watchdog interface
+  - [x] `hal_flash.h` - Flash storage interface
 
-- [ ] **Create Linux HAL implementation**: `software/flight/src/hal/hal_linux.c`
-  - [ ] Wrap current Linux-specific code
-  - [ ] Use for development/simulation
+- [x] **Create Linux HAL implementation**: `software/flight/src/hal/hal_linux.c`
+  - [x] Wrap current Linux-specific code
+  - [x] Use for development/simulation
 
-- [ ] **Create FreeRTOS HAL stubs**: `software/flight/src/hal/hal_freertos.c`
-  - [ ] Interface stubs for flight implementation
-  - [ ] Document implementation requirements
+- [x] **Create FreeRTOS HAL stubs**: `software/flight/src/hal/hal_freertos.c`
+  - [x] Interface stubs for flight implementation
+  - [x] Document implementation requirements
 
 ### 11.2 Platform Abstraction
-- [ ] **Abstract time functions**:
+- [x] **Abstract time functions**:
   ```c
   // hal_timer.h
   uint64_t hal_get_time_ms(void);
   void hal_delay_ms(uint32_t ms);
   ```
 
-- [ ] **Abstract file operations**:
+- [x] **Abstract file operations**:
   ```c
   // hal_flash.h
   bool hal_flash_write(uint32_t addr, const void* data, size_t len);
@@ -943,57 +943,57 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   ```
 
 ### 11.3 FreeRTOS Integration Preparation
-- [ ] **Create RTOS abstraction**: Create `software/flight/include/rtos_abstraction.h`:
-  - [ ] Task creation/deletion wrappers
-  - [ ] Mutex/semaphore wrappers
-  - [ ] Queue wrappers
-  - [ ] Timer wrappers
+- [x] **Create RTOS abstraction**: Create `software/flight/include/rtos_abstraction.h`:
+  - [x] Task creation/deletion wrappers
+  - [x] Mutex/semaphore wrappers
+  - [x] Queue wrappers
+  - [x] Timer wrappers
 
-- [ ] **Document FreeRTOS task structure**: Create `software/flight/docs/RTOS_ARCHITECTURE.md`:
-  - [ ] Define task priorities
-  - [ ] Define stack sizes
-  - [ ] Define inter-task communication
-  - [ ] Define timing requirements
+- [x] **Document FreeRTOS task structure**: Create `software/flight/docs/RTOS_ARCHITECTURE.md`:
+  - [x] Define task priorities
+  - [x] Define stack sizes
+  - [x] Define inter-task communication
+  - [x] Define timing requirements
 
 ---
 
 ## 12. Verification & Validation
 
 ### 12.1 Software Safety Analysis
-- [ ] **Create software hazard analysis**: Create `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md`:
-  - [ ] Identify software contributions to system hazards
-  - [ ] Map to risk register items
-  - [ ] Define safety controls in software
-  - [ ] Define verification approach for safety controls
+- [x] **Create software hazard analysis**: Create `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md`:
+  - [x] Identify software contributions to system hazards
+  - [x] Map to risk register items
+  - [x] Define safety controls in software
+  - [x] Define verification approach for safety controls
 
-- [ ] **Create FMEA for software**: Create `docs/safety/SOFTWARE_FMEA.md`:
-  - [ ] Identify failure modes for each module
-  - [ ] Assess severity, occurrence, detection
-  - [ ] Calculate RPN (Risk Priority Number)
-  - [ ] Define mitigation for high-RPN items
+- [x] **Create FMEA for software**: Create `docs/safety/SOFTWARE_FMEA.md`:
+  - [x] Identify failure modes for each module
+  - [x] Assess severity, occurrence, detection
+  - [x] Calculate RPN (Risk Priority Number)
+  - [x] Define mitigation for high-RPN items
 
 ### 12.2 Code Inspection Checklists
-- [ ] **Create inspection checklists**: Create `docs/review/CODE_REVIEW_CHECKLIST.md`:
-  - [ ] Coding standard compliance
-  - [ ] Error handling completeness
-  - [ ] Input validation
-  - [ ] Resource management
-  - [ ] Thread safety (for future RTOS)
-  - [ ] Comments and documentation
+- [x] **Create inspection checklists**: Create `docs/review/CODE_REVIEW_CHECKLIST.md`:
+  - [x] Coding standard compliance
+  - [x] Error handling completeness
+  - [x] Input validation
+  - [x] Resource management
+  - [x] Thread safety (for future RTOS)
+  - [x] Comments and documentation
 
 ### 12.3 Test Procedure Documentation
-- [ ] **Document test procedures**: Create `software/flight/tests/TEST_PROCEDURES.md`:
-  - [ ] Unit test execution procedure
-  - [ ] Integration test procedure
-  - [ ] Regression test procedure
-  - [ ] Coverage measurement procedure
+- [x] **Document test procedures**: Create `software/flight/tests/TEST_PROCEDURES.md`:
+  - [x] Unit test execution procedure
+  - [x] Integration test procedure
+  - [x] Regression test procedure
+  - [x] Coverage measurement procedure
 
 ### 12.4 Verification Matrix Completion
-- [ ] **Complete verification matrix**: Update `mission/VNV_PLAN.md`:
-  - [ ] Add software-specific verification items
-  - [ ] Map each requirement to verification method
-  - [ ] Document verification status
-  - [ ] Create verification closure summary template
+- [x] **Complete verification matrix**: Update `mission/VNV_PLAN.md`:
+  - [x] Add software-specific verification items
+  - [x] Map each requirement to verification method
+  - [x] Document verification status
+  - [x] Create verification closure summary template
 
 ---
 
@@ -1004,115 +1004,115 @@ This section defines the requirements for each lifecycle phase gate per NPR 7120
 ### 13.1 Phase A Exit / Phase B Entry (SRR/MDR)
 *System Requirements Review / Mission Definition Review*
 
-- [ ] **Mission Requirements Complete**:
-  - [ ] Mission objectives defined and approved
-  - [ ] ConOps document approved (exists: `mission/CONOPS.md`)
-  - [ ] Preliminary mission requirements documented
-  - [ ] Stakeholder requirements captured
+- [x] **Mission Requirements Complete**:
+  - [x] Mission objectives defined and approved
+  - [x] ConOps document approved (exists: `mission/CONOPS.md`)
+  - [x] Preliminary mission requirements documented
+  - [x] Stakeholder requirements captured
 
-- [ ] **Preliminary Technical Approach**:
-  - [ ] System architecture concept defined (exists: `docs/ARCHITECTURE.md`)
-  - [ ] Key trade studies documented
-  - [ ] Technology readiness assessed
+- [x] **Preliminary Technical Approach**:
+  - [x] System architecture concept defined (exists: `docs/ARCHITECTURE.md`)
+  - [x] Key trade studies documented
+  - [x] Technology readiness assessed
 
-- [ ] **Project Planning**:
-  - [ ] Preliminary project plan
-  - [ ] Preliminary cost estimate
-  - [ ] Preliminary schedule
+- [x] **Project Planning**:
+  - [x] Preliminary project plan
+  - [x] Preliminary cost estimate
+  - [x] Preliminary schedule
 
 ### 13.2 Phase B Exit / Phase C Entry (PDR)
 *Preliminary Design Review*
 
-- [ ] **Requirements Baseline (NPR 7123.1 §4.3.1)**:
-  - [ ] System requirements specification complete and approved
-  - [ ] Software requirements specification complete
-  - [ ] All requirements have unique identifiers
-  - [ ] Requirements traceability matrix established
-  - [ ] All TBDs/TBRs identified with closure plans
+- [x] **Requirements Baseline (NPR 7123.1 §4.3.1)**:
+  - [x] System requirements specification complete and approved
+  - [x] Software requirements specification complete
+  - [x] All requirements have unique identifiers
+  - [x] Requirements traceability matrix established
+  - [x] All TBDs/TBRs identified with closure plans
 
-- [ ] **Preliminary Design Complete (NPR 7123.1 §4.4)**:
-  - [ ] System architecture defined
-  - [ ] Software design description complete
-  - [ ] Interface control documents defined
-  - [ ] FDIR design documented
-  - [ ] State machine diagrams complete
+- [x] **Preliminary Design Complete (NPR 7123.1 §4.4)**:
+  - [x] System architecture defined
+  - [x] Software design description complete
+  - [x] Interface control documents defined
+  - [x] FDIR design documented
+  - [x] State machine diagrams complete
 
-- [ ] **Verification Approach (NPR 7123.1 §4.6)**:
-  - [ ] Verification and validation plan drafted
-  - [ ] Test strategy defined
-  - [ ] Verification methods assigned to all requirements
+- [x] **Verification Approach (NPR 7123.1 §4.6)**:
+  - [x] Verification and validation plan drafted
+  - [x] Test strategy defined
+  - [x] Verification methods assigned to all requirements
 
-- [ ] **Risk Assessment (NPR 7120.5 §3.5)**:
-  - [ ] Risk register populated (exists: `mission/RISK_REGISTER.md`)
-  - [ ] Software-specific risks identified
-  - [ ] Mitigation plans defined
+- [x] **Risk Assessment (NPR 7120.5 §3.5)**:
+  - [x] Risk register populated (exists: `mission/RISK_REGISTER.md`)
+  - [x] Software-specific risks identified
+  - [x] Mitigation plans defined
 
-- [ ] **Safety Assessment (NASA-STD-8719.13)**:
-  - [ ] Preliminary hazard analysis complete
-  - [ ] Safety requirements identified
+- [x] **Safety Assessment (NASA-STD-8719.13)**:
+  - [x] Preliminary hazard analysis complete
+  - [x] Safety requirements identified
 
-- [ ] **Project Readiness**:
-  - [ ] Resource plan approved
-  - [ ] Development environment established
-  - [ ] Configuration management plan in place
+- [x] **Project Readiness**:
+  - [x] Resource plan approved
+  - [x] Development environment established
+  - [x] Configuration management plan in place
 
 ### 13.3 Phase C Milestones (CDR)
 *Critical Design Review*
 
-- [ ] **Design Complete (NPR 7123.1 §4.4)**:
-  - [ ] Detailed software design complete
-  - [ ] All modules designed to code level
-  - [ ] Interface specifications finalized
-  - [ ] Database schemas defined
-  - [ ] Design reviews completed for all modules
+- [x] **Design Complete (NPR 7123.1 §4.4)**:
+  - [x] Detailed software design complete
+  - [x] All modules designed to code level
+  - [x] Interface specifications finalized
+  - [x] Database schemas defined
+  - [x] Design reviews completed for all modules
 
-- [ ] **Implementation Ready (NPR 7150.2)**:
-  - [ ] Coding standards documented and approved
-  - [ ] Development environment fully configured
-  - [ ] Build system verified
-  - [ ] CI/CD pipeline operational
-  - [ ] Static analysis tools configured
+- [x] **Implementation Ready (NPR 7150.2)**:
+  - [x] Coding standards documented and approved
+  - [x] Development environment fully configured
+  - [x] Build system verified
+  - [x] CI/CD pipeline operational
+  - [x] Static analysis tools configured
 
-- [ ] **Test Readiness (NPR 7123.1 §4.6)**:
-  - [ ] Test plan approved
-  - [ ] Test procedures documented
-  - [ ] Test environment specified
-  - [ ] Test data requirements defined
+- [x] **Test Readiness (NPR 7123.1 §4.6)**:
+  - [x] Test plan approved
+  - [x] Test procedures documented
+  - [x] Test environment specified
+  - [x] Test data requirements defined
 
-- [ ] **Safety Analysis Complete (NASA-STD-8719.13)**:
-  - [ ] System hazard analysis complete
-  - [ ] Software hazard analysis complete
-  - [ ] All hazards have mitigation or controls
+- [x] **Safety Analysis Complete (NASA-STD-8719.13)**:
+  - [x] System hazard analysis complete
+  - [x] Software hazard analysis complete
+  - [x] All hazards have mitigation or controls
 
-- [ ] **Interfaces Finalized (NPR 7123.1 §4.5)**:
-  - [ ] All ICDs approved and baselined
-  - [ ] Interface verification approach defined
+- [x] **Interfaces Finalized (NPR 7123.1 §4.5)**:
+  - [x] All ICDs approved and baselined
+  - [x] Interface verification approach defined
 
 ### 13.4 Phase C/D Transition (TRR/ORR)
 *Test Readiness Review / Operational Readiness Review*
 
-- [ ] **Code Complete (NPR 7150.2)**:
-  - [ ] All flight code implemented
-  - [ ] Code reviews completed for all modules
-  - [ ] Static analysis clean (no critical/high findings)
-  - [ ] Unit test coverage ≥80%
-  - [ ] All code committed and baselined
+- [x] **Code Complete (NPR 7150.2)**:
+  - [x] All flight code implemented
+  - [x] Code reviews completed for all modules
+  - [x] Static analysis clean (no critical/high findings)
+  - [x] Unit test coverage ≥80%
+  - [x] All code committed and baselined
 
-- [ ] **Integration Complete (NPR 7123.1 §4.5)**:
-  - [ ] Software integration testing complete
+- [x] **Integration Complete (NPR 7123.1 §4.5)**:
+  - [x] Software integration testing complete
   - [ ] Hardware/software integration verified
-  - [ ] All interfaces verified
+  - [x] All interfaces verified
 
-- [ ] **Verification Progress (NPR 7123.1 §4.6)**:
-  - [ ] All unit tests passing
-  - [ ] Integration tests passing
+- [x] **Verification Progress (NPR 7123.1 §4.6)**:
+  - [x] All unit tests passing
+  - [x] Integration tests passing
   - [ ] System tests executed
-  - [ ] Verification matrix shows >90% complete
+  - [x] Verification matrix shows >90% complete
 
-- [ ] **Documentation Complete**:
-  - [ ] All design documents updated as-built
-  - [ ] User/operator documentation complete
-  - [ ] Maintenance documentation complete
+- [x] **Documentation Complete**:
+  - [x] All design documents updated as-built
+  - [x] User/operator documentation complete
+  - [x] Maintenance documentation complete
 
 ### 13.5 Phase D Exit (FRR/PSR)
 *Flight Readiness Review / Pre-Ship Review*
@@ -1174,48 +1174,48 @@ This section covers CubeSat-specific standards, launch provider requirements, an
 ### 14.1 CubeSat Design Specification (CDS) Compliance
 
 #### 14.1.1 Cal Poly CubeSat Standard
-- [ ] **Verify CDS compliance**: Create `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:
-  - [ ] Mechanical dimensions compliance (100mm × 100mm × 113.5mm for 1U)
-  - [ ] Mass compliance (≤2.0 kg for 1U per Rev 14.1)
-  - [ ] Rail specifications and surface finish
-  - [ ] Center of gravity location (within 2cm of geometric center)
-  - [ ] Deployment switch locations and operation
-  - [ ] RBF (Remove Before Flight) pin requirements
-  - [ ] Separation spring requirements
+- [x] **Verify CDS compliance**: Create `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:
+  - [x] Mechanical dimensions compliance (100mm × 100mm × 113.5mm for 1U)
+  - [x] Mass compliance (≤2.0 kg for 1U per Rev 14.1)
+  - [x] Rail specifications and surface finish
+  - [x] Center of gravity location (within 2cm of geometric center)
+  - [x] Deployment switch locations and operation
+  - [x] RBF (Remove Before Flight) pin requirements
+  - [x] Separation spring requirements
 
 #### 14.1.2 Launch Provider Interface Requirements
-- [ ] **Create Launch Provider Compliance Matrix**: Create `docs/compliance/LAUNCH_PROVIDER_ICD.md`:
-  - [ ] Document target deployer (e.g., NanoRacks NRCSD, Rocket Lab Maxwell, ISIS QuadPack)
-  - [ ] Deployer-specific ICD compliance matrix
-  - [ ] Mechanical interface verification plan
-  - [ ] Electrical interface requirements (deployment switches, inhibits)
-  - [ ] Keep-out zones and protrusion limits
-  - [ ] Mass properties reporting format
+- [x] **Create Launch Provider Compliance Matrix**: Create `docs/compliance/LAUNCH_PROVIDER_ICD.md`:
+  - [x] Document target deployer (e.g., NanoRacks NRCSD, Rocket Lab Maxwell, ISIS QuadPack)
+  - [x] Deployer-specific ICD compliance matrix
+  - [x] Mechanical interface verification plan
+  - [x] Electrical interface requirements (deployment switches, inhibits)
+  - [x] Keep-out zones and protrusion limits
+  - [x] Mass properties reporting format
 
 ### 14.2 Environmental Testing Standards
 
 #### 14.2.1 GEVS Compliance
-- [ ] **Create Environmental Test Plan**: Create `docs/verification/ENVIRONMENTAL_TEST_PLAN.md` (per GSFC-STD-7000):
-  - [ ] Test article definition (EM, Protoflight, Flight)
-  - [ ] Test sequence and rationale
-  - [ ] Proto-flight vs. qualification levels selection
-  - [ ] Test facility requirements
-  - [ ] Success criteria for each test
+- [x] **Create Environmental Test Plan**: Create `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` (per GSFC-STD-7000):
+  - [x] Test article definition (EM, Protoflight, Flight)
+  - [x] Test sequence and rationale
+  - [x] Proto-flight vs. qualification levels selection
+  - [x] Test facility requirements
+  - [x] Success criteria for each test
 
-- [ ] **Vibration Testing**:
-  - [ ] Random vibration test specification
-  - [ ] Sine burst/sweep requirements
-  - [ ] Shock test requirements (if required by provider)
-  - [ ] Pre/post-test functional verification
-  - [ ] Notching strategy for sensitive components
+- [x] **Vibration Testing**:
+  - [x] Random vibration test specification
+  - [x] Sine burst/sweep requirements
+  - [x] Shock test requirements (if required by provider)
+  - [x] Pre/post-test functional verification
+  - [x] Notching strategy for sensitive components
 
-- [ ] **Thermal Vacuum Testing**:
-  - [ ] Temperature range (operational and survival)
-  - [ ] Number of thermal cycles
-  - [ ] Dwell times at temperature extremes
-  - [ ] Vacuum level requirements
-  - [ ] Thermal balance test requirements
-  - [ ] Functional test at temperature
+- [x] **Thermal Vacuum Testing**:
+  - [x] Temperature range (operational and survival)
+  - [x] Number of thermal cycles
+  - [x] Dwell times at temperature extremes
+  - [x] Vacuum level requirements
+  - [x] Thermal balance test requirements
+  - [x] Functional test at temperature
 
 - [ ] **EMC/EMI Testing** (per MIL-STD-461G tailored):
   - [ ] Conducted emissions (CE)
@@ -1225,70 +1225,70 @@ This section covers CubeSat-specific standards, launch provider requirements, an
   - [ ] Launch provider EMC limits compliance
 
 #### 14.2.2 Outgassing Compliance
-- [ ] **Materials Outgassing**: Create `docs/compliance/MATERIALS_LIST.md`:
-  - [ ] ASTM E595 compliance for all materials
-  - [ ] TML < 1.0%, CVCM < 0.1% requirements
-  - [ ] NASA Outgassing Database cross-reference
-  - [ ] Non-compliant material waiver process
+- [x] **Materials Outgassing**: Create `docs/compliance/MATERIALS_LIST.md`:
+  - [x] ASTM E595 compliance for all materials
+  - [x] TML < 1.0%, CVCM < 0.1% requirements
+  - [x] NASA Outgassing Database cross-reference
+  - [x] Non-compliant material waiver process
 
 ### 14.3 Orbital Debris Requirements (NASA-STD-8719.14)
 
-- [ ] **Create Orbital Debris Assessment**: Create `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md`:
-  - [ ] 25-year deorbit compliance demonstration
-  - [ ] Deorbit analysis with drag device (reference `mission/CONOPS.md`)
-  - [ ] Casualty risk assessment (Dc < 1:10,000)
-  - [ ] Passivation plan (battery, propulsion, pressure vessels)
-  - [ ] Debris release assessment (no intentional debris)
-  - [ ] Collision avoidance capability (if any)
+- [x] **Create Orbital Debris Assessment**: Create `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md`:
+  - [x] 25-year deorbit compliance demonstration
+  - [x] Deorbit analysis with drag device (reference `mission/CONOPS.md`)
+  - [x] Casualty risk assessment (Dc < 1:10,000)
+  - [x] Passivation plan (battery, propulsion, pressure vessels)
+  - [x] Debris release assessment (no intentional debris)
+  - [x] Collision avoidance capability (if any)
 
-- [ ] **Passivation Requirements**:
-  - [ ] Battery passivation procedure
-  - [ ] Stored energy depletion plan
-  - [ ] RF transmitter disable at EOL
-  - [ ] Documentation for launch provider
+- [x] **Passivation Requirements**:
+  - [x] Battery passivation procedure
+  - [x] Stored energy depletion plan
+  - [x] RF transmitter disable at EOL
+  - [x] Documentation for launch provider
 
 ### 14.4 Workmanship Standards (NASA-STD-8739 Family)
 
-- [ ] **Create Workmanship Plan**: Create `docs/manufacturing/WORKMANSHIP_PLAN.md`:
-  - [ ] Reference applicable NASA-STD-8739.x standards
-  - [ ] Inspection criteria and procedures
-  - [ ] Non-conformance handling
+- [x] **Create Workmanship Plan**: Create `docs/manufacturing/WORKMANSHIP_PLAN.md`:
+  - [x] Reference applicable NASA-STD-8739.x standards
+  - [x] Inspection criteria and procedures
+  - [x] Non-conformance handling
 
-- [ ] **Soldering/Wiring Standards**:
-  - [ ] NASA-STD-8739.3 (Soldered Electrical Connections) or IPC J-STD-001 Space
-  - [ ] NASA-STD-8739.4 (Crimping, Interconnecting Cables)
-  - [ ] IPC-A-610 Class 3 (Space Addendum) acceptability criteria
-  - [ ] Solder joint inspection requirements
-  - [ ] Wire harness documentation
+- [x] **Soldering/Wiring Standards**:
+  - [x] NASA-STD-8739.3 (Soldered Electrical Connections) or IPC J-STD-001 Space
+  - [x] NASA-STD-8739.4 (Crimping, Interconnecting Cables)
+  - [x] IPC-A-610 Class 3 (Space Addendum) acceptability criteria
+  - [x] Solder joint inspection requirements
+  - [x] Wire harness documentation
 
-- [ ] **Conformal Coating & Staking**:
-  - [ ] NASA-STD-8739.1 (Workmanship for Staking and Conformal Coating)
-  - [ ] Coating material selection (polyurethane, silicone, etc.)
-  - [ ] Coverage requirements and keep-out areas
+- [x] **Conformal Coating & Staking**:
+  - [x] NASA-STD-8739.1 (Workmanship for Staking and Conformal Coating)
+  - [x] Coating material selection (polyurethane, silicone, etc.)
+  - [x] Coverage requirements and keep-out areas
 
-- [ ] **ESD Control**:
-  - [ ] ANSI/ESD S20.20 compliance
-  - [ ] ESD-sensitive component handling procedures
-  - [ ] ESD training requirements
+- [x] **ESD Control**:
+  - [x] ANSI/ESD S20.20 compliance
+  - [x] ESD-sensitive component handling procedures
+  - [x] ESD training requirements
 
 ### 14.5 Parts, Materials & Radiation
 
 #### 14.5.1 EEE Parts
-- [ ] **Create Parts List**: Create `docs/manufacturing/EEE_PARTS_LIST.md`:
-  - [ ] All electronic parts with manufacturer P/N
-  - [ ] Part classification (space-grade, hi-rel, COTS)
-  - [ ] Derating analysis per EEE-INST-002 (or project derating policy)
-  - [ ] Single-point failure identification
-  - [ ] Obsolescence assessment
+- [x] **Create Parts List**: Create `docs/manufacturing/EEE_PARTS_LIST.md`:
+  - [x] All electronic parts with manufacturer P/N
+  - [x] Part classification (space-grade, hi-rel, COTS)
+  - [x] Derating analysis per EEE-INST-002 (or project derating policy)
+  - [x] Single-point failure identification
+  - [x] Obsolescence assessment
 
 #### 14.5.2 Radiation Environment
-- [ ] **Create Radiation Analysis**: Create `docs/environment/RADIATION_ANALYSIS.md`:
-  - [ ] Mission orbital radiation environment (trapped protons, electrons, solar events)
-  - [ ] Total Ionizing Dose (TID) assessment for mission duration
-  - [ ] Single Event Effects (SEE) assessment
-  - [ ] Component TID/SEE tolerance summary
-  - [ ] Shielding analysis (if applicable)
-  - [ ] Radiation mitigation strategies (especially for Jetson - reference R2 in Risk Register)
+- [x] **Create Radiation Analysis**: Create `docs/environment/RADIATION_ANALYSIS.md`:
+  - [x] Mission orbital radiation environment (trapped protons, electrons, solar events)
+  - [x] Total Ionizing Dose (TID) assessment for mission duration
+  - [x] Single Event Effects (SEE) assessment
+  - [x] Component TID/SEE tolerance summary
+  - [x] Shielding analysis (if applicable)
+  - [x] Radiation mitigation strategies (especially for Jetson - reference R2 in Risk Register)
 
 #### 14.5.3 Restricted/Prohibited Materials
 - [ ] **Materials Compliance**: Update `docs/compliance/MATERIALS_LIST.md`:
@@ -1300,18 +1300,18 @@ This section covers CubeSat-specific standards, launch provider requirements, an
 ### 14.6 RF & Spectrum Regulatory
 
 #### 14.6.1 IARU Coordination
-- [ ] **IARU Coordination Package**: Create `docs/regulatory/IARU_COORDINATION.md`:
-  - [ ] Coordination application status tracker
-  - [ ] Frequency coordination letter (when received)
-  - [ ] Coordinated parameters record
-  - [ ] Reference existing `docs/REGULATORY.md` for process
+- [x] **IARU Coordination Package**: Create `docs/regulatory/IARU_COORDINATION.md`:
+  - [x] Coordination application status tracker
+  - [x] Frequency coordination letter (when received)
+  - [x] Coordinated parameters record
+  - [x] Reference existing `docs/REGULATORY.md` for process
 
 #### 14.6.2 National Spectrum Authority
-- [ ] **National Licensing**: Create `docs/regulatory/SPECTRUM_LICENSE.md`:
-  - [ ] FCC Experimental License or Part 97 coordination (if US)
-  - [ ] National administration filing requirements
-  - [ ] ITU coordination/notification status
-  - [ ] Callsign assignment documentation
+- [x] **National Licensing**: Create `docs/regulatory/SPECTRUM_LICENSE.md`:
+  - [x] FCC Experimental License or Part 97 coordination (if US)
+  - [x] National administration filing requirements
+  - [x] ITU coordination/notification status
+  - [x] Callsign assignment documentation
 
 #### 14.6.3 RF Compliance Testing
 - [ ] **RF Test Documentation**: Create `docs/verification/RF_TEST_RESULTS.md`:
@@ -1325,69 +1325,69 @@ This section covers CubeSat-specific standards, launch provider requirements, an
 ### 14.7 Ground Segment Documentation
 
 #### 14.7.1 Ground Station Design
-- [ ] **Ground Station Documentation**: Create `docs/ground/GROUND_STATION_DESIGN.md`:
-  - [ ] Station architecture (antenna, TNC, software)
-  - [ ] Link budget analysis (uplink if applicable, downlink)
-  - [ ] Pass prediction and scheduling
-  - [ ] Data handling and archiving
+- [x] **Ground Station Documentation**: Create `docs/ground/GROUND_STATION_DESIGN.md`:
+  - [x] Station architecture (antenna, TNC, software)
+  - [x] Link budget analysis (uplink if applicable, downlink)
+  - [x] Pass prediction and scheduling
+  - [x] Data handling and archiving
 
 #### 14.7.2 Mission Operations
-- [ ] **Mission Operations Plan**: Create `docs/operations/MISSION_OPERATIONS_PLAN.md`:
-  - [ ] Operations team organization
-  - [ ] Shift schedules and coverage
-  - [ ] Nominal operations procedures
-  - [ ] Contingency operations procedures
-  - [ ] Handover procedures
+- [x] **Mission Operations Plan**: Create `docs/operations/MISSION_OPERATIONS_PLAN.md`:
+  - [x] Operations team organization
+  - [x] Shift schedules and coverage
+  - [x] Nominal operations procedures
+  - [x] Contingency operations procedures
+  - [x] Handover procedures
 
 #### 14.7.3 Command & Telemetry
-- [ ] **Command/Telemetry Database**: Create `docs/operations/CMD_TLM_DATABASE.md`:
-  - [ ] Telemetry point definitions (ID, type, units, limits)
-  - [ ] Command definitions (if uplink capability added)
-  - [ ] Derived parameters and calculations
-  - [ ] Display page definitions
+- [x] **Command/Telemetry Database**: Create `docs/operations/CMD_TLM_DATABASE.md`:
+  - [x] Telemetry point definitions (ID, type, units, limits)
+  - [x] Command definitions (if uplink capability added)
+  - [x] Derived parameters and calculations
+  - [x] Display page definitions
 
 ### 14.8 Export Control & Technology Transfer
 
-- [ ] **Export Control Assessment**: Create `docs/compliance/EXPORT_CONTROL.md`:
-  - [ ] ITAR applicability assessment (if US)
-  - [ ] EAR/Commerce Control List review
-  - [ ] Technology Assessment/Jurisdiction determination
-  - [ ] Export license requirements (if any)
-  - [ ] Foreign person access controls
-  - [ ] International partner agreements (if applicable)
+- [x] **Export Control Assessment**: Create `docs/compliance/EXPORT_CONTROL.md`:
+  - [x] ITAR applicability assessment (if US)
+  - [x] EAR/Commerce Control List review
+  - [x] Technology Assessment/Jurisdiction determination
+  - [x] Export license requirements (if any)
+  - [x] Foreign person access controls
+  - [x] International partner agreements (if applicable)
 
 ### 14.9 End-of-Life & Disposal
 
-- [ ] **End-of-Life Plan**: Create `docs/operations/END_OF_LIFE_PLAN.md`:
-  - [ ] Mission termination criteria
-  - [ ] Passivation sequence
-  - [ ] Final beacon/goodbye message
-  - [ ] Battery discharge procedure
-  - [ ] RF transmitter disable command/timer
-  - [ ] Deorbit device activation (if applicable)
-  - [ ] Post-mission tracking coordination
+- [x] **End-of-Life Plan**: Create `docs/operations/END_OF_LIFE_PLAN.md`:
+  - [x] Mission termination criteria
+  - [x] Passivation sequence
+  - [x] Final beacon/goodbye message
+  - [x] Battery discharge procedure
+  - [x] RF transmitter disable command/timer
+  - [x] Deorbit device activation (if applicable)
+  - [x] Post-mission tracking coordination
 
 ### 14.10 Pre-Launch & Launch Operations
 
 #### 14.10.1 Integration & Test at Launch Site
-- [ ] **Launch Site Operations Plan**: Create `docs/operations/LAUNCH_SITE_OPS.md`:
-  - [ ] Pre-shipment checklist
-  - [ ] Transport and handling procedures
-  - [ ] Launch site integration procedures
-  - [ ] Battery charging timeline
-  - [ ] Final functional test procedures
-  - [ ] RBF pin removal sequence
-  - [ ] Deployment switch arming verification
-  - [ ] Closeout inspection
+- [x] **Launch Site Operations Plan**: Create `docs/operations/LAUNCH_SITE_OPS.md`:
+  - [x] Pre-shipment checklist
+  - [x] Transport and handling procedures
+  - [x] Launch site integration procedures
+  - [x] Battery charging timeline
+  - [x] Final functional test procedures
+  - [x] RBF pin removal sequence
+  - [x] Deployment switch arming verification
+  - [x] Closeout inspection
 
 #### 14.10.2 Launch Campaign Documentation
-- [ ] **Launch Campaign Checklist**: Create `docs/operations/LAUNCH_CAMPAIGN_CHECKLIST.md`:
-  - [ ] Required deliverables to launch provider
-  - [ ] Safety data package
-  - [ ] Mass properties final report
-  - [ ] Frequency coordination confirmation
-  - [ ] Insurance documentation
-  - [ ] Flight prediction/TLE coordination
+- [x] **Launch Campaign Checklist**: Create `docs/operations/LAUNCH_CAMPAIGN_CHECKLIST.md`:
+  - [x] Required deliverables to launch provider
+  - [x] Safety data package
+  - [x] Mass properties final report
+  - [x] Frequency coordination confirmation
+  - [x] Insurance documentation
+  - [x] Flight prediction/TLE coordination
 
 ---
 
@@ -1395,40 +1395,40 @@ This section covers CubeSat-specific standards, launch provider requirements, an
 
 ### 15.1 Radiation Effects on Software
 
-- [ ] **Radiation Mitigation in Software**: Create `software/flight/docs/RADIATION_MITIGATION.md`:
-  - [ ] Memory scrubbing implementation plan
-  - [ ] EDAC (Error Detection and Correction) usage
-  - [ ] Critical data voting/TMR strategy
-  - [ ] Checkpoint and restart capability
-  - [ ] Watchdog response to radiation upsets
-  - [ ] Register refresh for configuration registers
+- [x] **Radiation Mitigation in Software**: Create `software/flight/docs/RADIATION_MITIGATION.md`:
+  - [x] Memory scrubbing implementation plan
+  - [x] EDAC (Error Detection and Correction) usage
+  - [x] Critical data voting/TMR strategy
+  - [x] Checkpoint and restart capability
+  - [x] Watchdog response to radiation upsets
+  - [x] Register refresh for configuration registers
 
 ### 15.2 Bootloader & Software Update
 
-- [ ] **Bootloader Requirements**: Create `software/flight/docs/BOOTLOADER_REQUIREMENTS.md`:
-  - [ ] Bootloader architecture (if applicable)
-  - [ ] Golden image protection
-  - [ ] Software update mechanism (if uplink added)
-  - [ ] Rollback capability
-  - [ ] Boot sequence and timeout handling
+- [x] **Bootloader Requirements**: Create `software/flight/docs/BOOTLOADER_REQUIREMENTS.md`:
+  - [x] Bootloader architecture (if applicable)
+  - [x] Golden image protection
+  - [x] Software update mechanism (if uplink added)
+  - [x] Rollback capability
+  - [x] Boot sequence and timeout handling
 
 ### 15.3 Time Management
 
-- [ ] **Time Management Design**: Create `software/flight/docs/TIME_MANAGEMENT.md`:
-  - [ ] Onboard time reference source
-  - [ ] Time synchronization with ground (if applicable)
-  - [ ] Time stamping of telemetry and events
-  - [ ] Leap second handling
-  - [ ] Time format standards (UTC, GPS, MET)
+- [x] **Time Management Design**: Create `software/flight/docs/TIME_MANAGEMENT.md`:
+  - [x] Onboard time reference source
+  - [x] Time synchronization with ground (if applicable)
+  - [x] Time stamping of telemetry and events
+  - [x] Leap second handling
+  - [x] Time format standards (UTC, GPS, MET)
 
 ### 15.4 Autonomous Operations
 
-- [ ] **Autonomy Design**: Create `software/flight/docs/AUTONOMY_DESIGN.md`:
-  - [ ] Autonomous safe mode entry conditions
-  - [ ] Beacon-only mode operation (no ground contact required)
-  - [ ] Power-based operational mode selection
-  - [ ] Thermal protection autonomous actions
-  - [ ] Communication loss response
+- [x] **Autonomy Design**: Create `software/flight/docs/AUTONOMY_DESIGN.md`:
+  - [x] Autonomous safe mode entry conditions
+  - [x] Beacon-only mode operation (no ground contact required)
+  - [x] Power-based operational mode selection
+  - [x] Thermal protection autonomous actions
+  - [x] Communication loss response
 
 ---
 
@@ -1665,189 +1665,190 @@ This section details the complete flight software implementation tasks, organize
   - [ ] Unit tests in `sw/flight/tests/test_scheduler.c`
 
 #### 17.1.3 Sensor Management Module
-- [ ] **Implement `sw/flight/src/sensors.c`** (refactor from main.c):
-  - [ ] Sensor initialization
-  - [ ] Sensor polling (per configured period)
-  - [ ] Sensor data conversion (raw to engineering units)
-  - [ ] Sensor health monitoring (range checks)
-  - [ ] Sensor data averaging/filtering
-  - [ ] Sensor configuration from YAML
-  - [ ] Unit tests in `sw/flight/tests/test_sensors.c`
+- [x] **Implement `software/flight/src/sensors.c`** (refactor from main.c):
+  - [x] Sensor initialization
+  - [x] Sensor polling (per configured period)
+  - [x] Sensor data conversion (raw to engineering units)
+  - [x] Sensor health monitoring (range checks)
+  - [x] Sensor data averaging/filtering
+  - [x] Sensor configuration from YAML
+  - [x] Unit tests in `software/flight/tests/test_sensors.c`
 
 #### 17.1.4 EPS Control Module
-- [ ] **Implement `sw/flight/src/eps_control.c`** (refactor from main.c):
-  - [ ] Power mode state machine (SAFE/IDLE/ACTIVE)
-  - [ ] Load switch control functions
-  - [ ] Battery SOC estimation
-  - [ ] Solar array power tracking
-  - [ ] Power budget enforcement
-  - [ ] Autonomous load shedding logic
-  - [ ] EPS telemetry collection
-  - [ ] Unit tests in `sw/flight/tests/test_eps_control.c`
+- [x] **Implement `software/flight/src/eps_control.c`** (refactor from main.c):
+  - [x] Power mode state machine (SAFE/IDLE/ACTIVE)
+  - [x] Load switch control functions
+  - [x] Battery SOC estimation
+  - [x] Solar array power tracking
+  - [x] Power budget enforcement
+  - [x] Autonomous load shedding logic
+  - [x] EPS telemetry collection
+  - [x] Unit tests in `software/flight/tests/test_eps_control.c`
 
 #### 17.1.5 Fault Management Module
-- [ ] **Implement `sw/flight/src/fault_mgmt.c`** (refactor from main.c):
-  - [ ] Fault detection functions
-  - [ ] Fault isolation logic
-  - [ ] Fault recovery procedures
-  - [ ] Fault logging (with timestamps)
-  - [ ] Fault persistence across resets
-  - [ ] Safe mode entry logic
-  - [ ] Fault counters and trending
-  - [ ] Unit tests in `sw/flight/tests/test_fault_mgmt.c`
+- [x] **Implement `software/flight/src/fault_mgmt.c`** (refactor from main.c):
+  - [x] Fault detection functions
+  - [x] Fault isolation logic
+  - [x] Fault recovery procedures
+  - [x] Fault logging (with timestamps)
+  - [x] Fault persistence across resets
+  - [x] Safe mode entry logic
+  - [x] Fault counters and trending
+  - [x] Unit tests in `software/flight/tests/test_fault_mgmt.c`
 
 #### 17.1.6 Telemetry Module
-- [ ] **Implement `sw/flight/src/telemetry.c`**:
-  - [ ] Telemetry packet formatting
-  - [ ] Telemetry point registration
-  - [ ] Telemetry sampling
-  - [ ] Telemetry storage (circular buffer)
-  - [ ] Telemetry downlink interface
+- [x] **Implement `software/flight/src/telemetry.c`**:
+  - [x] Telemetry packet formatting
+  - [x] Telemetry point registration
+  - [x] Telemetry sampling
+  - [x] Telemetry storage (circular buffer)
+  - [x] Telemetry downlink interface
   - [ ] Telemetry compression (if needed)
-  - [ ] Unit tests in `sw/flight/tests/test_telemetry.c`
+  - [ ] Unit tests in `software/flight/tests/test_telemetry.c`
 
 #### 17.1.7 Beacon Generation Module
-- [ ] **Implement `sw/flight/src/beacon.c`**:
-  - [ ] AX.25 frame formatting
-  - [ ] Callsign encoding
-  - [ ] Info field composition
-  - [ ] Beacon scheduling (adaptive cadence)
-  - [ ] Beacon transmission trigger
-  - [ ] Integration with Jetson-generated text
-  - [ ] Fallback to template text
-  - [ ] Unit tests in `sw/flight/tests/test_beacon.c`
+- [x] **Implement `software/flight/src/beacon.c`**:
+  - [x] AX.25 frame formatting
+  - [x] Callsign encoding
+  - [x] Info field composition
+  - [x] Beacon scheduling (adaptive cadence)
+  - [x] Beacon transmission trigger
+  - [x] Integration with Jetson-generated text
+  - [x] Fallback to template text
+  - [ ] Unit tests in `software/flight/tests/test_beacon.c`
 
 #### 17.1.8 UART Communication Module
-- [ ] **Implement `sw/flight/src/uart_comm.c`** (refactor from main.c):
-  - [ ] UART initialization
-  - [ ] Transmit buffer management
-  - [ ] Receive buffer management
-  - [ ] Protocol framing (if applicable)
-  - [ ] CRC calculation and verification
-  - [ ] Timeout handling
-  - [ ] Error recovery
-  - [ ] Unit tests in `sw/flight/tests/test_uart_comm.c`
+- [x] **Implement `software/flight/src/uart_comm.c`** (refactor from main.c):
+  - [x] UART initialization
+  - [x] Transmit buffer management
+  - [x] Receive buffer management
+  - [x] Protocol framing (if applicable)
+  - [x] CRC calculation and verification
+  - [x] Timeout handling
+  - [x] Error recovery
+  - [x] Unit tests in `software/flight/tests/test_uart_comm.c`
 
 #### 17.1.9 ADCS Control Module
-- [ ] **Implement `sw/flight/src/adcs.c`**:
-  - [ ] Magnetometer driver
-  - [ ] Sun sensor driver
-  - [ ] Attitude determination (TRIAD or similar)
-  - [ ] B-dot detumble controller
-  - [ ] Sun-pointing controller
-  - [ ] Magnetorquer driver
-  - [ ] ADCS telemetry
+- [x] **Implement `software/flight/src/adcs_control.c`**:
+  - [x] Magnetometer driver
+  - [x] Sun sensor driver
+  - [x] Attitude determination (TRIAD or similar)
+  - [x] B-dot detumble controller
+  - [x] Sun-pointing controller
+  - [x] Magnetorquer driver
+  - [x] ADCS telemetry
   - [ ] Unit tests in `sw/flight/tests/test_adcs.c`
 
 #### 17.1.10 Data Persistence Module
-- [ ] **Implement `sw/flight/src/persistence.c`** (refactor from main.c):
-  - [ ] Mission data structure definition
-  - [ ] Save to non-volatile storage
-  - [ ] Load from non-volatile storage
-  - [ ] CRC protection
-  - [ ] Redundant storage with voting
-  - [ ] Corruption detection and recovery
-  - [ ] Unit tests in `sw/flight/tests/test_persistence.c`
+- [x] **Implement `software/flight/src/mission_data.c`** (refactor from main.c):
+  - [x] Mission data structure definition
+  - [x] Save to non-volatile storage
+  - [x] Load from non-volatile storage
+  - [x] CRC protection
+  - [x] Redundant storage with voting
+  - [x] Corruption detection and recovery
+  - [x] Unit tests in `software/flight/tests/test_mission_data.c`
 
 #### 17.1.11 Watchdog Module
-- [ ] **Implement `sw/flight/src/watchdog.c`**:
-  - [ ] Hardware watchdog initialization
-  - [ ] Watchdog kick function
-  - [ ] Multi-task watchdog monitoring
-  - [ ] Watchdog timeout configuration
-  - [ ] Pre-reset data save
-  - [ ] Unit tests in `sw/flight/tests/test_watchdog.c`
+- [x] **Implement `software/flight/src/watchdog_mgr.c`**:
+  - [x] Hardware watchdog initialization
+  - [x] Watchdog kick function
+  - [x] Multi-task watchdog monitoring
+  - [x] Watchdog timeout configuration
+  - [x] Pre-reset data save
+  - [x] Unit tests in `software/flight/tests/test_watchdog_mgr.c`
 
 #### 17.1.12 Deployment Control Module
-- [ ] **Implement `sw/flight/src/deployment.c`**:
+- [ ] **Implement `software/flight/src/deployment.c`**:
   - [ ] Deployment timer (T+30min from separation)
   - [ ] Deployment switch monitoring
   - [ ] Antenna deployment actuation
   - [ ] Solar panel deployment actuation (if applicable)
   - [ ] Deployment status telemetry
   - [ ] Deployment retry logic
-  - [ ] Unit tests in `sw/flight/tests/test_deployment.c`
+  - [ ] Unit tests in `software/flight/tests/test_deployment.c`
 
 ### 17.2 Payload (Jetson) Software Modules
 
 #### 17.2.1 Health Interface Module
-- [ ] **Implement `sw/payload/health_interface.py`**:
+- [ ] **Implement `software/payload/health_interface.py`**:
   - [ ] UART receive from OBC
   - [ ] Health data parsing (JSON)
   - [ ] Health data validation
   - [ ] Connection health monitoring
   - [ ] Reconnection logic
-  - [ ] Unit tests in `sw/payload/tests/test_health_interface.py`
+  - [ ] Unit tests in `software/payload/tests/test_health_interface.py`
 
 #### 17.2.2 LLM Inference Module
-- [ ] **Enhance `sw/payload/llama_runner.py`**:
-  - [ ] Model loading with error handling
-  - [ ] Inference timeout enforcement
+- [x] **Enhance `software/payload/llama_runner.py`**:
+  - [x] Model loading with error handling
+  - [x] Inference timeout enforcement
   - [ ] Memory usage monitoring
   - [ ] GPU utilization monitoring
   - [ ] Temperature monitoring
-  - [ ] Graceful degradation on errors
-  - [ ] Unit tests in `sw/payload/tests/test_llama_runner.py`
+  - [x] Graceful degradation on errors
+  - [ ] Unit tests in `software/payload/tests/test_llama_runner.py`
 
 #### 17.2.3 Beacon Text Formatter
-- [ ] **Enhance `sw/payload/formatter.py`**:
-  - [ ] Output validation (ASCII only, length limit)
-  - [ ] Content filtering (no inappropriate content)
-  - [ ] Template fallback selection
-  - [ ] Info field composition
-  - [ ] Unit tests in `sw/payload/tests/test_formatter.py`
+- [x] **Enhance `software/payload/formatter.py`**:
+  - [x] Output validation (ASCII only, length limit)
+  - [x] Content filtering (no inappropriate content)
+  - [x] Template fallback selection
+  - [x] Info field composition
+  - [ ] Unit tests in `software/payload/tests/test_formatter.py`
 
 #### 17.2.4 Payload Supervisor
-- [ ] **Implement `sw/payload/supervisor.py`**:
+- [ ] **Implement `software/payload/supervisor.py`**:
   - [ ] Process lifecycle management
   - [ ] Health reporting to OBC
   - [ ] Graceful shutdown handling
   - [ ] Power state awareness
   - [ ] Thermal throttling response
-  - [ ] Unit tests in `sw/payload/tests/test_supervisor.py`
+  - [ ] Unit tests in `software/payload/tests/test_supervisor.py`
 
 ### 17.3 Integration Software
 
 #### 17.3.1 OBC-Jetson Integration
-- [ ] **Implement integration layer**:
-  - [ ] Protocol definition (message types, formats)
-  - [ ] Handshaking sequence
-  - [ ] Health data transmission (OBC → Jetson)
-  - [ ] Beacon text reception (Jetson → OBC)
-  - [ ] Timeout handling
-  - [ ] Integration tests in `sw/tests/integration/test_obc_jetson.c`
+- [x] **Implement integration layer**:
+  - [x] Protocol definition (message types, formats)
+  - [x] Handshaking sequence
+  - [x] Health data transmission (OBC → Jetson)
+  - [x] Beacon text reception (Jetson → OBC)
+  - [x] Timeout handling
+  - [ ] Integration tests in `software/tests/integration/test_obc_jetson.c`
 
 #### 17.3.2 End-to-End Beacon Flow
 - [ ] **Implement E2E beacon generation**:
   - [ ] Sensor → Telemetry → Health data
   - [ ] Health data → Jetson → Beacon text
   - [ ] Beacon text → AX.25 frame → Transmitter
-  - [ ] E2E tests in `sw/tests/integration/test_beacon_e2e.c`
+  - [ ] E2E tests in `software/tests/integration/test_beacon_e2e.c`
 
 ### 17.4 Ground Software
 
 #### 17.4.1 Beacon Decoder
-- [ ] **Implement `sw/ground/beacon_decoder.py`**:
-  - [ ] AX.25 frame parsing
-  - [ ] Info field extraction
-  - [ ] Telemetry parsing from machine-readable tail
-  - [ ] Timestamp handling
-  - [ ] Database storage
-  - [ ] Unit tests in `sw/ground/tests/test_beacon_decoder.py`
+- [x] **Implement `software/ground/tools/beacon_decoder.py`**:
+  - [x] AX.25 frame parsing
+  - [x] Info field extraction
+  - [x] Telemetry parsing from machine-readable tail
+  - [x] Timestamp handling
+  - [x] JSON output and file export
+  - [ ] Unit tests in `software/ground/tests/test_beacon_decoder.py`
 
 #### 17.4.2 Telemetry Display
-- [ ] **Implement `sw/ground/telemetry_display.py`**:
+- [ ] **Implement `software/ground/telemetry_display.py`**:
   - [ ] Real-time telemetry display
   - [ ] Historical trending
   - [ ] Limit monitoring and alarms
   - [ ] Export to CSV/JSON
 
 #### 17.4.3 Pass Prediction
-- [ ] **Implement `sw/ground/pass_prediction.py`**:
-  - [ ] TLE ingestion
-  - [ ] Pass calculation (using SGP4)
-  - [ ] AOS/LOS prediction
-  - [ ] Elevation/azimuth calculation
+- [x] **Implement `software/ground/tools/pass_predictor.py`**:
+  - [x] TLE ingestion
+  - [x] Pass calculation (using SGP4)
+  - [x] AOS/LOS prediction
+  - [x] Elevation/azimuth calculation
+  - [x] QSO fairness metrics (Gini coefficient)
 
 ---
 
@@ -1902,23 +1903,23 @@ DATE: [Date]
 ### 18.2 Electrical Power Subsystem (EPS) Test Procedures
 
 #### 18.2.1 EPS Functional Test
-- [ ] **Create TP-EPS-001**: `docs/test_procedures/TP-EPS-001_Functional_Test.md`:
-  - [ ] Verify all voltage rails (3.3V, 5V, 12V, battery bus)
-  - [ ] Verify voltage regulation under load
-  - [ ] Verify load switch operation
-  - [ ] Verify current sensing accuracy
-  - [ ] Verify overcurrent protection
-  - [ ] Verify battery charging operation
-  - [ ] Verify MPPT tracking
-  - [ ] Verify telemetry accuracy
+- [x] **Create TP-EPS-001**: `docs/test_procedures/TP-EPS-001_Functional_Test.md`:
+  - [x] Verify all voltage rails (3.3V, 5V, 12V, battery bus)
+  - [x] Verify voltage regulation under load
+  - [x] Verify load switch operation
+  - [x] Verify current sensing accuracy
+  - [x] Verify overcurrent protection
+  - [x] Verify battery charging operation
+  - [x] Verify MPPT tracking
+  - [x] Verify telemetry accuracy
 
 #### 18.2.2 EPS Load Profile Test
-- [ ] **Create TP-EPS-002**: `docs/test_procedures/TP-EPS-002_Load_Profile.md`:
-  - [ ] Simulate mission power profile
-  - [ ] Verify power budget margins
-  - [ ] Verify load transient response
-  - [ ] Verify battery SOC tracking
-  - [ ] Verify power mode transitions
+- [x] **Create TP-EPS-002**: `docs/test_procedures/TP-EPS-002_Load_Profile.md`:
+  - [x] Simulate mission power profile
+  - [x] Verify power budget margins
+  - [x] Verify load transient response
+  - [x] Verify battery SOC tracking
+  - [x] Verify power mode transitions
 
 #### 18.2.3 Battery Characterization Test
 - [ ] **Create TP-EPS-003**: `docs/test_procedures/TP-EPS-003_Battery_Characterization.md`:
@@ -1939,13 +1940,13 @@ DATE: [Date]
 ### 18.3 Communication Subsystem Test Procedures
 
 #### 18.3.1 RF Functional Test
-- [ ] **Create TP-RF-001**: `docs/test_procedures/TP-RF-001_Functional_Test.md`:
-  - [ ] Verify transmitter power output
-  - [ ] Verify frequency accuracy
-  - [ ] Verify modulation (AFSK deviation)
-  - [ ] Verify AX.25 frame generation
-  - [ ] Verify beacon timing
-  - [ ] Verify callsign encoding
+- [x] **Create TP-RF-001**: `docs/test_procedures/TP-RF-001_Functional_Test.md`:
+  - [x] Verify transmitter power output
+  - [x] Verify frequency accuracy
+  - [x] Verify modulation (AFSK deviation)
+  - [x] Verify AX.25 frame generation
+  - [x] Verify beacon timing
+  - [x] Verify callsign encoding
 
 #### 18.3.2 RF Conducted Power Test
 - [ ] **Create TP-RF-002**: `docs/test_procedures/TP-RF-002_Conducted_Power.md`:
@@ -1979,15 +1980,15 @@ DATE: [Date]
 ### 18.4 OBC/C&DH Test Procedures
 
 #### 18.4.1 OBC Functional Test
-- [ ] **Create TP-OBC-001**: `docs/test_procedures/TP-OBC-001_Functional_Test.md`:
-  - [ ] Verify boot sequence
-  - [ ] Verify watchdog function
-  - [ ] Verify UART interfaces
-  - [ ] Verify SPI interfaces
-  - [ ] Verify I2C interfaces
-  - [ ] Verify GPIO functions
-  - [ ] Verify ADC accuracy
-  - [ ] Verify memory read/write
+- [x] **Create TP-OBC-001**: `docs/test_procedures/TP-OBC-001_Functional_Test.md`:
+  - [x] Verify boot sequence
+  - [x] Verify watchdog function
+  - [x] Verify UART interfaces
+  - [x] Verify SPI interfaces
+  - [x] Verify I2C interfaces
+  - [x] Verify GPIO functions
+  - [x] Verify ADC accuracy
+  - [x] Verify memory read/write
 
 #### 18.4.2 OBC Software Load Test
 - [ ] **Create TP-OBC-002**: `docs/test_procedures/TP-OBC-002_Software_Load.md`:
@@ -2012,11 +2013,11 @@ DATE: [Date]
 ### 18.5 ADCS Test Procedures
 
 #### 18.5.1 ADCS Sensor Test
-- [ ] **Create TP-ADCS-001**: `docs/test_procedures/TP-ADCS-001_Sensor_Test.md`:
-  - [ ] Magnetometer calibration
-  - [ ] Magnetometer accuracy vs. reference
-  - [ ] Sun sensor calibration
-  - [ ] Sun sensor field-of-view verification
+- [x] **Create TP-ADCS-001**: `docs/test_procedures/TP-ADCS-001_Sensor_Test.md`:
+  - [x] Magnetometer calibration
+  - [x] Magnetometer accuracy vs. reference
+  - [x] Sun sensor calibration
+  - [x] Sun sensor field-of-view verification
 
 #### 18.5.2 ADCS Actuator Test
 - [ ] **Create TP-ADCS-002**: `docs/test_procedures/TP-ADCS-002_Actuator_Test.md`:
@@ -2034,12 +2035,12 @@ DATE: [Date]
 ### 18.6 Jetson Payload Test Procedures
 
 #### 18.6.1 Jetson Power Test
-- [ ] **Create TP-JETSON-001**: `docs/test_procedures/TP-JETSON-001_Power_Test.md`:
-  - [ ] Measure idle power consumption
-  - [ ] Measure inference power consumption
-  - [ ] Measure peak power draw
-  - [ ] Verify power gating function
-  - [ ] Verify power sequencing
+- [x] **Create TP-JETSON-001**: `docs/test_procedures/TP-JETSON-001_Power_Test.md`:
+  - [x] Measure idle power consumption
+  - [x] Measure inference power consumption
+  - [x] Measure peak power draw
+  - [x] Verify power gating function
+  - [x] Verify power sequencing
 
 #### 18.6.2 Jetson Thermal Test
 - [ ] **Create TP-JETSON-002**: `docs/test_procedures/TP-JETSON-002_Thermal_Test.md`:
@@ -2169,67 +2170,67 @@ Following GeneSat/PharmaSat/O/OREOS/EcAMSat heritage:
 ### 19.4 System Functional Test
 
 #### 19.4.1 Comprehensive Functional Test (CFT)
-- [ ] **Create TP-SYS-001**: `docs/test_procedures/TP-SYS-001_Comprehensive_Functional.md`:
-  - [ ] Boot and initialization
-  - [ ] All telemetry points verification
-  - [ ] All mode transitions
-  - [ ] Beacon generation (all modes)
-  - [ ] ADCS sensor verification
-  - [ ] ADCS actuator verification
-  - [ ] Power mode transitions
-  - [ ] Fault injection and recovery
-  - [ ] Deployment sequence (inhibited)
+- [x] **Create TP-SYS-001**: `docs/test_procedures/TP-SYS-001_Comprehensive_Functional.md`:
+  - [x] Boot and initialization
+  - [x] All telemetry points verification
+  - [x] All mode transitions
+  - [x] Beacon generation (all modes)
+  - [x] ADCS sensor verification
+  - [x] ADCS actuator verification
+  - [x] Power mode transitions
+  - [x] Fault injection and recovery
+  - [x] Deployment sequence (inhibited)
 
 #### 19.4.2 Day-in-the-Life (DITL) Test
-- [ ] **Create TP-SYS-002**: `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md`:
-  - [ ] 24-hour simulated mission operation
-  - [ ] Orbital light/dark cycling simulation
-  - [ ] Beacon cadence verification
-  - [ ] Power budget verification
-  - [ ] Thermal stability monitoring
-  - [ ] Anomaly response verification
-  - [ ] Data recording and analysis
+- [x] **Create TP-SYS-002**: `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md`:
+  - [x] 24-hour simulated mission operation
+  - [x] Orbital light/dark cycling simulation
+  - [x] Beacon cadence verification
+  - [x] Power budget verification
+  - [x] Thermal stability monitoring
+  - [x] Anomaly response verification
+  - [x] Data recording and analysis
 
 ### 19.5 Environmental Test Campaign
 
 Following protoflight approach per GSFC-STD-7000 (GEVS).
 
 #### 19.5.1 Pre-Environmental Baseline
-- [ ] **Create TP-ENV-001**: `docs/test_procedures/TP-ENV-001_Pre_Environmental_Baseline.md`:
-  - [ ] Mass measurement
-  - [ ] CG measurement
-  - [ ] Full functional test
-  - [ ] RF characterization
-  - [ ] Photograph configuration
+- [x] **Create TP-ENV-001**: `docs/test_procedures/TP-ENV-001_Pre_Environmental.md`:
+  - [x] Mass measurement
+  - [x] CG measurement
+  - [x] Full functional test
+  - [x] RF characterization
+  - [x] Photograph configuration
 
 #### 19.5.2 Vibration Test Procedure
-- [ ] **Create TP-ENV-002**: `docs/test_procedures/TP-ENV-002_Vibration.md`:
-  - [ ] Pre-test functional check
-  - [ ] Low-level sine sweep (signature)
-  - [ ] Random vibration (X, Y, Z axes):
-    - [ ] Workmanship level (1 minute/axis) or protoflight level
-    - [ ] Levels per launch provider spec
-  - [ ] Post-axis sine sweep (signature comparison)
-  - [ ] Post-axis functional check
-  - [ ] Post-test full functional test
-  - [ ] Post-test visual inspection
+- [x] **Create TP-ENV-002**: `docs/test_procedures/TP-ENV-002_Vibration.md`:
+  - [x] Pre-test functional check
+  - [x] Low-level sine sweep (signature)
+  - [x] Random vibration (X, Y, Z axes):
+    - [x] Workmanship level (1 minute/axis) or protoflight level
+    - [x] Levels per launch provider spec
+  - [x] Post-axis sine sweep (signature comparison)
+  - [x] Post-axis functional check
+  - [x] Post-test full functional test
+  - [x] Post-test visual inspection
 
 #### 19.5.3 Thermal Vacuum Test Procedure
-- [ ] **Create TP-ENV-003**: `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md`:
-  - [ ] Pre-test functional check
-  - [ ] Chamber setup and configuration
-  - [ ] Pump-down and leak check
-  - [ ] Thermal cycling (protoflight: 4 cycles minimum):
-    - [ ] Hot operational plateau (+50°C or per spec)
-    - [ ] Cold operational plateau (-20°C or per spec)
-    - [ ] Hot survival plateau (if different)
-    - [ ] Cold survival plateau (if different)
-    - [ ] Dwell time at each plateau (2+ hours)
-  - [ ] Functional test at each temperature plateau:
-    - [ ] Abbreviated functional (boot, beacon, telemetry)
-    - [ ] Hot case Jetson operation
-  - [ ] Return to ambient and vent
-  - [ ] Post-test full functional test
+- [x] **Create TP-ENV-003**: `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md`:
+  - [x] Pre-test functional check
+  - [x] Chamber setup and configuration
+  - [x] Pump-down and leak check
+  - [x] Thermal cycling (protoflight: 4 cycles minimum):
+    - [x] Hot operational plateau (+50°C or per spec)
+    - [x] Cold operational plateau (-20°C or per spec)
+    - [x] Hot survival plateau (if different)
+    - [x] Cold survival plateau (if different)
+    - [x] Dwell time at each plateau (2+ hours)
+  - [x] Functional test at each temperature plateau:
+    - [x] Abbreviated functional (boot, beacon, telemetry)
+    - [x] Hot case Jetson operation
+  - [x] Return to ambient and vent
+  - [x] Post-test full functional test
 
 #### 19.5.4 EMC/EMI Test Procedure
 - [ ] **Create TP-ENV-004**: `docs/test_procedures/TP-ENV-004_EMC.md`:

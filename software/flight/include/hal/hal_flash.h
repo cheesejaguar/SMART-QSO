@@ -40,6 +40,7 @@ typedef enum {
     FLASH_REGION_SENSOR_CONFIG  = 2,   /**< Sensor configuration */
     FLASH_REGION_FAULT_LOG      = 3,   /**< Fault log storage */
     FLASH_REGION_BACKUP         = 4,   /**< Backup storage */
+    FLASH_REGION_STATE          = 5,   /**< System state persistence */
     FLASH_REGION_COUNT
 } HalFlashRegion_t;
 

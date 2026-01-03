@@ -13,6 +13,9 @@
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat design patterns
  */
 
+/* Required for nanosleep and other POSIX functions */
+#define _XOPEN_SOURCE 600
+
 #include "smart_qso.h"
 #include "eps_control.h"
 #include "fault_mgmt.h"

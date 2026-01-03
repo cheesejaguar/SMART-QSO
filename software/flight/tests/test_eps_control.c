@@ -27,6 +27,17 @@
 /* Include the module under test */
 #include "smart_qso.h"
 #include "eps_control.h"
+#include <math.h>
+
+/*===========================================================================*/
+/* Helper Macros                                                              */
+/*===========================================================================*/
+
+/** Tolerance for floating-point comparisons */
+#define FLOAT_TOLERANCE 0.001
+
+/** Compare floats with tolerance */
+#define FLOAT_EQUAL(a, b) (fabs((a) - (b)) < FLOAT_TOLERANCE)
 
 /*===========================================================================*/
 /* Test Fixtures                                                              */
@@ -190,7 +201,7 @@ static void test_eps_payload_blocked_low_soc(void **state) {
     (void)state;
 
     double low_soc = 0.40;  /* Below payload threshold */
-    SmartQsoResult_t result = eps_control_payload(true, low_soc);
+    (void)eps_control_payload(true, low_soc);
 
     /* Should fail or be blocked */
     assert_false(eps_is_payload_enabled());
@@ -316,15 +327,15 @@ static void test_eps_power_limits(void **state) {
 
     /* SAFE mode */
     eps_set_power_mode(POWER_MODE_SAFE, 0.20);
-    assert_true(eps_get_power_limit() == EPS_POWER_LIMIT_SAFE_W);
+    assert_true(FLOAT_EQUAL(eps_get_power_limit(), EPS_POWER_LIMIT_SAFE_W));
 
     /* IDLE mode */
     eps_set_power_mode(POWER_MODE_IDLE, 0.50);
-    assert_true(eps_get_power_limit() == EPS_POWER_LIMIT_IDLE_W);
+    assert_true(FLOAT_EQUAL(eps_get_power_limit(), EPS_POWER_LIMIT_IDLE_W));
 
     /* ACTIVE mode */
     eps_set_power_mode(POWER_MODE_ACTIVE, 0.80);
-    assert_true(eps_get_power_limit() == EPS_POWER_LIMIT_ACTIVE_W);
+    assert_true(FLOAT_EQUAL(eps_get_power_limit(), EPS_POWER_LIMIT_ACTIVE_W));
 }
 
 /*===========================================================================*/

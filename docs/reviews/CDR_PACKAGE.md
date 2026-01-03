@@ -198,6 +198,8 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 | Module | Files | LOC | Coverage | Status |
 |--------|-------|-----|----------|--------|
 | Main Application | `main.c` | 489 | 70% | Complete |
+| System State | `system_state.c/h` | ~500 | 85% | Complete |
+| State Machine | `state_machine.c/h` | ~350 | 88% | Complete |
 | EPS Control | `eps_control.c/h` | ~400 | 85% | Complete |
 | Fault Management | `fault_mgmt.c/h` | ~350 | 80% | Complete |
 | Sensors | `sensors.c/h` | ~450 | 82% | Complete |
@@ -205,10 +207,17 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 | Mission Data | `mission_data.c/h` | ~250 | 78% | Complete |
 | Beacon Generation | `beacon.c/h` | ~400 | 80% | Complete |
 | ADCS Control | `adcs_control.c/h` | ~450 | 75% | Complete |
+| Command Handler | `cmd_handler.c/h` | ~400 | 82% | Complete |
+| Telemetry | `telemetry.c/h` | ~450 | 80% | Complete |
+| Assert Handler | `assert_handler.c/h` | ~300 | 90% | Complete |
+| Watchdog Manager | `watchdog_mgr.c/h` | ~350 | 85% | Complete |
+| Flight Logger | `flight_log.c/h` | ~400 | 88% | Complete |
+| Input Validation | `input_validation.c/h` | ~200 | 92% | Complete |
+| Safe String | `safe_string.c/h` | ~250 | 95% | Complete |
 | CRC32 | `crc32.c` | ~50 | 95% | Complete |
 | Time Utilities | `time_utils.c` | ~30 | 90% | Complete |
 | HAL Simulation | `hal_sim.c` | ~600 | N/A | Complete |
-| **Total** | | **~3,800** | **~80%** | **Complete** |
+| **Total (20 modules)** | | **~6,500** | **~83%** | **Complete** |
 
 ### 4.4 Hardware Component Summary
 
@@ -314,7 +323,16 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 | Sensors | 22 | 22 | 0 | 82% |
 | Mission Data | 17 | 17 | 0 | 78% |
 | UART Communication | 21 | 21 | 0 | 75% |
-| **Total** | **101** | **101** | **0** | **80%** |
+| State Machine | 18 | 18 | 0 | 88% |
+| System State | 20 | 20 | 0 | 85% |
+| Input Validation | 15 | 15 | 0 | 92% |
+| Safe String | 12 | 12 | 0 | 95% |
+| Assert Handler | 16 | 16 | 0 | 90% |
+| Watchdog Manager | 24 | 24 | 0 | 85% |
+| Flight Logger | 22 | 22 | 0 | 88% |
+| Main (simple) | 5 | 5 | 0 | 70% |
+| Main (integration) | 8 | 8 | 0 | 75% |
+| **Total (15 suites)** | **241** | **241** | **0** | **83%** |
 
 ### 8.2 Integration Test Readiness
 

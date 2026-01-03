@@ -111,6 +111,16 @@ set(FLIGHT_SOURCES
     src/time_utils.c
     src/beacon.c
     src/adcs_control.c
+    src/input_validation.c
+    src/safe_string.c
+    src/state_machine.c
+    src/system_state.c
+    src/cmd_handler.c
+    src/telemetry.c
+    src/assert_handler.c
+    src/watchdog_mgr.c
+    src/flight_log.c
+    src/deployment.c
     src/hal/hal_sim.c
 )
 
@@ -123,6 +133,16 @@ set(FLIGHT_HEADERS
     include/mission_data.h
     include/beacon.h
     include/adcs_control.h
+    include/input_validation.h
+    include/safe_string.h
+    include/state_machine.h
+    include/system_state.h
+    include/cmd_handler.h
+    include/telemetry.h
+    include/assert_handler.h
+    include/watchdog_mgr.h
+    include/flight_log.h
+    include/deployment.h
     include/hal/hal.h
     include/hal/hal_gpio.h
     include/hal/hal_i2c.h

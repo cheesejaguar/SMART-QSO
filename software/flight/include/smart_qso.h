@@ -42,10 +42,12 @@ extern "C" {
 #endif
 
 /** Enable/disable debug output */
-#ifndef NDEBUG
-#define SMART_QSO_DEBUG_ENABLED 1
-#else
-#define SMART_QSO_DEBUG_ENABLED 0
+#ifndef SMART_QSO_DEBUG_ENABLED
+#  ifndef NDEBUG
+#    define SMART_QSO_DEBUG_ENABLED 1
+#  else
+#    define SMART_QSO_DEBUG_ENABLED 0
+#  endif
 #endif
 
 /*===========================================================================*/
@@ -136,7 +138,12 @@ typedef enum {
     FAULT_TYPE_HEALTH_POWER    = 14,  /**< Health check power */
     FAULT_TYPE_HEALTH_COMM     = 15,  /**< Health check communication */
     FAULT_TYPE_INIT            = 16,  /**< Initialization fault */
-    FAULT_TYPE_ADCS            = 17   /**< ADCS fault */
+    FAULT_TYPE_ADCS            = 17,  /**< ADCS fault */
+    FAULT_TYPE_ASSERTION       = 18,  /**< Assertion failure (JPL Rule 5) */
+    FAULT_TYPE_COMMAND         = 19,  /**< Command processing fault */
+    FAULT_TYPE_TELEMETRY       = 20,  /**< Telemetry generation fault */
+    FAULT_TYPE_DEPLOYMENT      = 21,  /**< Deployment fault */
+    FAULT_TYPE_SW_INTERNAL     = 22   /**< Internal software fault */
 } FaultType_t;
 
 /*===========================================================================*/
@@ -166,49 +173,67 @@ typedef enum {
     SMART_QSO_ERROR_TIMEOUT   = -4,  /**< Operation timeout */
     SMART_QSO_ERROR_BUSY      = -5,  /**< Resource busy */
     SMART_QSO_ERROR_NO_MEM    = -6,  /**< Out of memory */
-    SMART_QSO_ERROR_IO        = -7   /**< I/O error */
+    SMART_QSO_ERROR_IO        = -7,  /**< I/O error */
+    SMART_QSO_ERROR_TRUNCATED = -8,  /**< Data was truncated */
+    SMART_QSO_ERROR_PARAM     = -9   /**< Invalid parameter */
 } SmartQsoResult_t;
+
+/* Convenience aliases for result codes */
+#define RESULT_OK               SMART_QSO_OK
+#define RESULT_ERROR            SMART_QSO_ERROR
+#define RESULT_ERROR_PARAM      SMART_QSO_ERROR_PARAM
+#define RESULT_ERROR_TRUNCATED  SMART_QSO_ERROR_TRUNCATED
 
 /*===========================================================================*/
 /* Assertion Macros (JPL Rule 5)                                              */
 /*===========================================================================*/
 
 /**
- * @brief Custom assertion macro for flight software
+ * @brief Legacy assertion macros for compatibility
  *
- * In flight builds, assertions log the fault and continue.
- * In debug builds, assertions may halt execution.
+ * For full assertion functionality including logging, safe mode transitions,
+ * and statistics, include "assert_handler.h" which provides:
+ * - SMART_QSO_REQUIRE(condition)       - Precondition check
+ * - SMART_QSO_ENSURE(condition)        - Postcondition check
+ * - SMART_QSO_INVARIANT(condition)     - Invariant check
+ * - SMART_QSO_REQUIRE_NOT_NULL(ptr)    - NULL pointer check (returns error)
+ * - SMART_QSO_REQUIRE_RANGE(val,min,max) - Range check
+ * - SMART_QSO_REQUIRE_BOUNDS(idx,size) - Bounds check
+ * - SMART_QSO_ASSERT(condition)        - General assertion
+ * - SMART_QSO_ASSERT_CRITICAL(condition) - Critical assertion (safe mode)
+ * - SMART_QSO_UNREACHABLE()            - Unreachable code marker
  *
- * @param condition The condition to assert
- * @param message   Error message if assertion fails
+ * @note Assertions are NEVER compiled out in flight builds per JPL Rule 5
  */
+
+/* Legacy macros for backward compatibility - prefer assert_handler.h */
 #if SMART_QSO_DEBUG_ENABLED
 #include <stdio.h>
-#define SMART_QSO_ASSERT(condition, message) \
+#define SMART_QSO_LEGACY_ASSERT(condition, message) \
     do { \
         if (!(condition)) { \
-            fprintf(stderr, "[ASSERT FAILED] %s:%d: %s\n", __FILE__, __LINE__, message); \
+            fprintf(stderr, "[ASSERT] %s:%d: %s\n", __FILE__, __LINE__, message); \
         } \
     } while (0)
 #else
-#define SMART_QSO_ASSERT(condition, message) ((void)0)
+#define SMART_QSO_LEGACY_ASSERT(condition, message) \
+    do { \
+        if (!(condition)) { \
+            /* Log to fault manager - silent in release */ \
+        } \
+    } while (0)
 #endif
 
-/**
- * @brief Precondition check macro
- */
-#define SMART_QSO_REQUIRE(condition, message) SMART_QSO_ASSERT(condition, message)
+/* Backward-compatible macros (two-argument version) */
+#define SMART_QSO_REQUIRE(condition, message) SMART_QSO_LEGACY_ASSERT(condition, message)
+#define SMART_QSO_ENSURE(condition, message)  SMART_QSO_LEGACY_ASSERT(condition, message)
+#define SMART_QSO_ASSERT_MSG(condition, message) SMART_QSO_LEGACY_ASSERT(condition, message)
 
-/**
- * @brief Postcondition check macro
- */
-#define SMART_QSO_ENSURE(condition, message) SMART_QSO_ASSERT(condition, message)
-
-/**
- * @brief Null pointer check macro
- */
+/* Null pointer check */
 #define SMART_QSO_REQUIRE_NOT_NULL(ptr) \
-    SMART_QSO_REQUIRE((ptr) != NULL, "Null pointer: " #ptr)
+    SMART_QSO_LEGACY_ASSERT((ptr) != NULL, "Null pointer: " #ptr)
+#define SMART_QSO_CHECK_NULL(ptr) \
+    SMART_QSO_LEGACY_ASSERT((ptr) != NULL, "Null pointer: " #ptr)
 
 /*===========================================================================*/
 /* Time Functions                                                             */
