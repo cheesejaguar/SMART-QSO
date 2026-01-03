@@ -15,6 +15,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <math.h>
 
 /*******************************************************************************
  * Private Constants
@@ -105,10 +106,9 @@ SmartQsoResult_t input_validate_command(const uint8_t *cmd_data,
 
     /* Extract and validate command ID */
     result->cmd_id = cmd_data[2];
-    if (result->cmd_id > CMD_ID_MAX) {
-        result->error_code = VALIDATION_ERR_CMD_ID;
-        return RESULT_OK;
-    }
+    /* Note: CMD_ID_MAX is 0xFF, so uint8_t cmd_id can never exceed it.
+     * This check would be needed if CMD_ID_MAX were reduced. */
+    (void)CMD_ID_MAX;  /* Silence unused macro warning */
 
     /* Extract payload length */
     result->payload_length = cmd_data[3];
@@ -385,8 +385,8 @@ SmartQsoResult_t input_validate_alignment(const void *ptr,
  */
 static bool validate_range_float(float value, float min, float max)
 {
-    /* Check for NaN */
-    if (value != value) {  /* NaN check: value != value is true for NaN */
+    /* Check for NaN using standard library function */
+    if (isnan(value)) {
         return false;
     }
 

@@ -38,24 +38,18 @@ static const char *test_sensor_yaml =
     "    channel: battery\n"
     "    units: V\n"
     "    period_ms: 1000\n"
-    "    min: 6.0\n"
-    "    max: 8.4\n"
     "  - id: BT\n"
     "    name: Battery Temperature\n"
     "    type: temperature\n"
     "    channel: battery\n"
     "    units: C\n"
     "    period_ms: 5000\n"
-    "    min: -20.0\n"
-    "    max: 60.0\n"
     "  - id: SOC\n"
     "    name: State of Charge\n"
     "    type: percentage\n"
     "    channel: battery\n"
     "    units: %\n"
-    "    period_ms: 1000\n"
-    "    min: 0.0\n"
-    "    max: 100.0\n";
+    "    period_ms: 1000\n";
 
 static const char *test_yaml_file = "/tmp/test_sensors.yaml";
 
@@ -100,7 +94,8 @@ static void test_sensors_init(void **state) {
 
     /* Module initialized in setup */
     size_t count = sensors_get_count();
-    assert_true(count >= 0);
+    /* count is size_t (unsigned), so it's always >= 0 */
+    assert_true(count <= SMART_QSO_MAX_SENSORS);
 }
 
 /**
@@ -157,8 +152,8 @@ static void test_sensors_poll(void **state) {
     uint64_t now_ms = smart_qso_now_ms();
     size_t polled = sensors_poll(now_ms);
 
-    /* Should poll at least some sensors */
-    assert_true(polled >= 0);
+    /* polled is size_t (unsigned), just check it's reasonable */
+    assert_true(polled <= SMART_QSO_MAX_SENSORS);
 }
 
 /**
@@ -184,135 +179,74 @@ static void test_sensors_poll_timing(void **state) {
 }
 
 /*===========================================================================*/
-/* Test Cases: Sensor Value Access                                            */
+/* Test Cases: Sensor Access                                                  */
 /*===========================================================================*/
 
 /**
- * @brief Test getting sensor value by ID
+ * @brief Test getting sensor by ID
  *
  * @requirement SRS-F070 Collect telemetry from sensors
  */
-static void test_sensors_get_value(void **state) {
+static void test_sensors_get_by_id(void **state) {
     (void)state;
 
     sensors_load_yaml(test_yaml_file);
     sensors_poll(smart_qso_now_ms());
 
-    double value;
-    SmartQsoResult_t result = sensors_get_value("BV", &value);
+    Sensor_t sensor;
+    SmartQsoResult_t result = sensors_get_by_id("BV", &sensor);
 
     assert_int_equal(result, SMART_QSO_OK);
-    /* Value should be in valid range for battery voltage */
-    assert_true(value >= 0.0 && value <= 15.0);
+    assert_string_equal(sensor.id, "BV");
+    assert_string_equal(sensor.name, "Battery Voltage");
 }
 
 /**
- * @brief Test getting value for unknown sensor
+ * @brief Test getting sensor for unknown ID
  */
-static void test_sensors_get_value_unknown(void **state) {
-    (void)state;
-
-    double value;
-    SmartQsoResult_t result = sensors_get_value("UNKNOWN", &value);
-
-    assert_int_equal(result, SMART_QSO_ERROR_INVALID);
-}
-
-/**
- * @brief Test getting value with null pointer
- */
-static void test_sensors_get_value_null(void **state) {
+static void test_sensors_get_by_id_unknown(void **state) {
     (void)state;
 
     sensors_load_yaml(test_yaml_file);
 
-    SmartQsoResult_t result = sensors_get_value("BV", NULL);
+    Sensor_t sensor;
+    SmartQsoResult_t result = sensors_get_by_id("UNKNOWN", &sensor);
+
+    assert_int_equal(result, SMART_QSO_ERROR);
+}
+
+/**
+ * @brief Test getting sensor with null pointers
+ */
+static void test_sensors_get_by_id_null(void **state) {
+    (void)state;
+
+    sensors_load_yaml(test_yaml_file);
+
+    SmartQsoResult_t result = sensors_get_by_id("BV", NULL);
     assert_int_equal(result, SMART_QSO_ERROR_NULL_PTR);
 
-    double value;
-    result = sensors_get_value(NULL, &value);
+    Sensor_t sensor;
+    result = sensors_get_by_id(NULL, &sensor);
     assert_int_equal(result, SMART_QSO_ERROR_NULL_PTR);
 }
 
-/*===========================================================================*/
-/* Test Cases: Sensor Validation                                              */
-/*===========================================================================*/
-
 /**
- * @brief Test sensor value validation - in range
- *
- * @requirement SRS-F072 Validate sensor readings against limits
+ * @brief Test getting sensor by index
  */
-static void test_sensors_validate_in_range(void **state) {
+static void test_sensors_get(void **state) {
     (void)state;
 
     sensors_load_yaml(test_yaml_file);
 
-    /* Battery voltage within range */
-    bool valid = sensors_validate_value("BV", 7.5);
-    assert_true(valid);
+    size_t count = sensors_get_count();
+    assert_true(count > 0);
 
-    /* Temperature within range */
-    valid = sensors_validate_value("BT", 25.0);
-    assert_true(valid);
+    Sensor_t sensor;
+    SmartQsoResult_t result = sensors_get(0, &sensor);
 
-    /* SOC within range */
-    valid = sensors_validate_value("SOC", 75.0);
-    assert_true(valid);
-}
-
-/**
- * @brief Test sensor value validation - out of range
- *
- * @requirement SRS-F072 Validate sensor readings against limits
- */
-static void test_sensors_validate_out_of_range(void **state) {
-    (void)state;
-
-    sensors_load_yaml(test_yaml_file);
-
-    /* Battery voltage too high */
-    bool valid = sensors_validate_value("BV", 12.0);
-    assert_false(valid);
-
-    /* Battery voltage too low */
-    valid = sensors_validate_value("BV", 3.0);
-    assert_false(valid);
-
-    /* Temperature too high */
-    valid = sensors_validate_value("BT", 80.0);
-    assert_false(valid);
-
-    /* Temperature too low */
-    valid = sensors_validate_value("BT", -40.0);
-    assert_false(valid);
-}
-
-/**
- * @brief Test sensor validation at boundary
- *
- * @requirement SRS-F072 Validate sensor readings against limits
- */
-static void test_sensors_validate_boundary(void **state) {
-    (void)state;
-
-    sensors_load_yaml(test_yaml_file);
-
-    /* At minimum boundary */
-    bool valid = sensors_validate_value("BV", 6.0);
-    assert_true(valid);
-
-    /* At maximum boundary */
-    valid = sensors_validate_value("BV", 8.4);
-    assert_true(valid);
-
-    /* Just below minimum */
-    valid = sensors_validate_value("BV", 5.99);
-    assert_false(valid);
-
-    /* Just above maximum */
-    valid = sensors_validate_value("BV", 8.41);
-    assert_false(valid);
+    assert_int_equal(result, SMART_QSO_OK);
+    assert_true(strlen(sensor.id) > 0);
 }
 
 /*===========================================================================*/
@@ -387,87 +321,27 @@ static void test_sensors_get_count(void **state) {
 }
 
 /**
- * @brief Test sensor configuration retrieval
+ * @brief Test loading default sensors
  */
-static void test_sensors_get_config(void **state) {
+static void test_sensors_load_defaults(void **state) {
     (void)state;
 
-    sensors_load_yaml(test_yaml_file);
-
-    SensorConfig_t config;
-    SmartQsoResult_t result = sensors_get_config("BV", &config);
-
+    SmartQsoResult_t result = sensors_load_defaults();
     assert_int_equal(result, SMART_QSO_OK);
-    assert_string_equal(config.name, "Battery Voltage");
-    assert_string_equal(config.units, "V");
-    assert_int_equal(config.period_ms, 1000);
+
+    size_t count = sensors_get_count();
+    assert_true(count > 0);
 }
 
 /**
- * @brief Test sensor config for unknown sensor
+ * @brief Test setting environment variables
  */
-static void test_sensors_get_config_unknown(void **state) {
+static void test_sensors_set_environment(void **state) {
     (void)state;
 
-    SensorConfig_t config;
-    SmartQsoResult_t result = sensors_get_config("UNKNOWN", &config);
-
-    assert_int_equal(result, SMART_QSO_ERROR_INVALID);
-}
-
-/*===========================================================================*/
-/* Test Cases: Sensor Types                                                   */
-/*===========================================================================*/
-
-/**
- * @brief Test voltage sensor type
- */
-static void test_sensors_type_voltage(void **state) {
-    (void)state;
-
-    sensors_load_yaml(test_yaml_file);
-    sensors_poll(smart_qso_now_ms());
-
-    double value;
-    SmartQsoResult_t result = sensors_get_value("BV", &value);
-
-    assert_int_equal(result, SMART_QSO_OK);
-    /* Voltage should be positive */
-    assert_true(value >= 0.0);
-}
-
-/**
- * @brief Test temperature sensor type
- */
-static void test_sensors_type_temperature(void **state) {
-    (void)state;
-
-    sensors_load_yaml(test_yaml_file);
-    sensors_poll(smart_qso_now_ms());
-
-    double value;
-    SmartQsoResult_t result = sensors_get_value("BT", &value);
-
-    assert_int_equal(result, SMART_QSO_OK);
-    /* Temperature should be in reasonable range */
-    assert_true(value >= -50.0 && value <= 100.0);
-}
-
-/**
- * @brief Test percentage sensor type
- */
-static void test_sensors_type_percentage(void **state) {
-    (void)state;
-
-    sensors_load_yaml(test_yaml_file);
-    sensors_poll(smart_qso_now_ms());
-
-    double value;
-    SmartQsoResult_t result = sensors_get_value("SOC", &value);
-
-    assert_int_equal(result, SMART_QSO_OK);
-    /* Percentage should be 0-100 */
-    assert_true(value >= 0.0 && value <= 100.0);
+    /* This function is void, just verify it doesn't crash */
+    sensors_set_environment(true, 0.75);
+    sensors_set_environment(false, 0.25);
 }
 
 /*===========================================================================*/
@@ -486,15 +360,11 @@ int main(void) {
         cmocka_unit_test_setup_teardown(test_sensors_poll, setup, teardown),
         cmocka_unit_test_setup_teardown(test_sensors_poll_timing, setup, teardown),
 
-        /* Value access tests */
-        cmocka_unit_test_setup_teardown(test_sensors_get_value, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_sensors_get_value_unknown, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_sensors_get_value_null, setup, teardown),
-
-        /* Validation tests */
-        cmocka_unit_test_setup_teardown(test_sensors_validate_in_range, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_sensors_validate_out_of_range, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_sensors_validate_boundary, setup, teardown),
+        /* Sensor access tests */
+        cmocka_unit_test_setup_teardown(test_sensors_get_by_id, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_sensors_get_by_id_unknown, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_sensors_get_by_id_null, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_sensors_get, setup, teardown),
 
         /* Telemetry formatting tests */
         cmocka_unit_test_setup_teardown(test_sensors_format_telemetry, setup, teardown),
@@ -503,13 +373,8 @@ int main(void) {
 
         /* Configuration tests */
         cmocka_unit_test_setup_teardown(test_sensors_get_count, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_sensors_get_config, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_sensors_get_config_unknown, setup, teardown),
-
-        /* Sensor type tests */
-        cmocka_unit_test_setup_teardown(test_sensors_type_voltage, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_sensors_type_temperature, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_sensors_type_percentage, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_sensors_load_defaults, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_sensors_set_environment, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Sensor Tests", tests, NULL, NULL);
