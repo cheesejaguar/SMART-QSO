@@ -156,30 +156,30 @@ static bool read_status_hex2(Sensor_t *self, double *out_value, char *out_text)
      * bit7: Recovery mode
      */
     uint8_t bits = 0;
-    bits |= 1u << 0;  /* OBC on */
-    bits |= (eps_state.beacon_enabled ? 1u : 0u) << 1;
-    bits |= (payload_enabled ? 1u : 0u) << 2;
+    bits = (uint8_t)(bits | (1u << 0));  /* OBC on */
+    bits = (uint8_t)(bits | ((eps_state.beacon_enabled ? 1u : 0u) << 1));
+    bits = (uint8_t)(bits | ((payload_enabled ? 1u : 0u) << 2));
 
     /* Occasional hot flag during sunlit periods */
     uint64_t now = smart_qso_now_ms();
     if (s_sunlit && (now / 1000ULL) % 300ULL > 240ULL) {
-        bits |= 1u << 3;
+        bits = (uint8_t)(bits | (1u << 3));
     }
 
     if (s_soc < 0.30) {
-        bits |= 1u << 4;  /* Battery low */
+        bits = (uint8_t)(bits | (1u << 4));  /* Battery low */
     }
 
     if (power_mode == POWER_MODE_SAFE) {
-        bits |= 1u << 5;  /* Safe mode */
+        bits = (uint8_t)(bits | (1u << 5));  /* Safe mode */
     }
 
     if (fault_log_get_count() > 0) {
-        bits |= 1u << 6;  /* Fault detected */
+        bits = (uint8_t)(bits | (1u << 6));  /* Fault detected */
     }
 
     if (fault_was_watchdog_triggered()) {
-        bits |= 1u << 7;  /* Recovery mode */
+        bits = (uint8_t)(bits | (1u << 7));  /* Recovery mode */
     }
 
     int written = snprintf(out_text, 8, "%02X", (unsigned)bits);
