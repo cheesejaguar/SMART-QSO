@@ -24,6 +24,7 @@
 #include "hal/hal.h"
 #include "hal/hal_sim.h"
 #include "hal/hal_radio.h"
+#include "hal/hal_reset.h"
 
 #ifdef HAL_TARGET_SIMULATION
 
@@ -92,7 +93,8 @@ static size_t s_flash_sizes[] = {
     512,    /* STATE (SystemState_t) */
     768,    /* AUTH (key table: CMD_AUTH_NVM_SIZE, six two-slot records) */
     256,    /* RF_CONTROL (TX latch and power-level records) */
-    256     /* CONTACT (loss-of-contact counter and timeout records) */
+    256,    /* CONTACT (loss-of-contact counter and timeout records) */
+    128     /* RF_SILENCE (post-deployment silence record) */
 };
 _Static_assert(sizeof(s_flash_sizes) / sizeof(s_flash_sizes[0]) == (size_t)FLASH_REGION_COUNT,
                "every flash region needs a simulated size");
@@ -609,6 +611,17 @@ SmartQsoResult_t hal_sim_radio_inject(const uint8_t *frame, size_t len) {
 void hal_sim_radio_clear(void) {
     s_radio_head = 0U;
     s_radio_count = 0U;
+}
+
+/* Reset cause (simulation: set by tests to model the next boot) */
+static HalResetCause_t s_reset_cause = HAL_RESET_POWER_ON;
+
+HalResetCause_t hal_reset_cause(void) {
+    return s_reset_cause;
+}
+
+void hal_sim_set_reset_cause(HalResetCause_t cause) {
+    s_reset_cause = cause;
 }
 
 void hal_sim_gpio_drive_input(HalGpioPin_t pin, bool state) {

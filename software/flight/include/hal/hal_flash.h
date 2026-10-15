@@ -44,6 +44,7 @@ typedef enum {
     FLASH_REGION_AUTH           = 6,   /**< Telecommand key and replay counter */
     FLASH_REGION_RF_CONTROL     = 7,   /**< Latched TX-OFF state */
     FLASH_REGION_CONTACT        = 8,   /**< Loss-of-contact counter and timeout */
+    FLASH_REGION_RF_SILENCE     = 9,   /**< Post-deployment RF-silence state */
     FLASH_REGION_COUNT
 } HalFlashRegion_t;
 

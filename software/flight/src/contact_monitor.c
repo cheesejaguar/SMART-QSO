@@ -55,7 +55,7 @@ static void evaluate(void)
                             "No contact: transmitters inhibited", (double)s_timeout_days);
     }
     s_inhibited = inhibit;
-    rf_control_set_contact_inhibit(inhibit);
+    rf_control_set_inhibit(RF_INHIBIT_CONTACT, inhibit);
 }
 
 /*******************************************************************************

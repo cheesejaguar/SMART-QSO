@@ -122,6 +122,7 @@ set(FLIGHT_SOURCES
     src/ax25.c
     src/uplink.c
     src/contact_monitor.c
+    src/rf_silence.c
     src/telemetry.c
     src/assert_handler.c
     src/watchdog_mgr.c

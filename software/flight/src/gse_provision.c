@@ -10,6 +10,7 @@
 
 #include "gse_provision.h"
 #include "cmd_auth.h"
+#include "rf_silence.h"
 #include "fault_mgmt.h"
 #include "safe_string.h"
 #include "hal/hal_gpio.h"
@@ -77,6 +78,9 @@ GseStatus_t gse_process_frame(const uint8_t *frame, size_t len)
             break;
         case GSE_OP_ZEROIZE:
             result = cmd_auth_zeroize();
+            break;
+        case GSE_OP_ARM_RF_SILENCE:
+            result = rf_silence_arm();
             break;
         default:
             return GSE_STATUS_BAD_OP;

@@ -12,10 +12,13 @@
  * Only rf_control_tx_on() clears it. The module has no dependency on the AI
  * payload.
  *
- * Telecommand reception is not switched by this module or by the EPS
- * "radio_enabled" flag, which controls the transponder path only: the command
- * receiver must stay powered in every mode so that TX-OFF can always be
- * received (47 CFR 97.207(b), ITU RR 22.1).
+ * Telecommand reception is not switched by TX-OFF, by the loss-of-contact
+ * inhibit or by the EPS "radio_enabled" flag (transponder path only): the
+ * command receiver stays powered so that TX-OFF can always be received
+ * (47 CFR 97.207(b), ITU RR 22.1). The one exception is the 45-minute
+ * post-deployment silence (rf_silence.c, CDS 2.4.5), when the whole radio is
+ * unpowered through GPIO_PIN_RADIO_EN, which this module owns; nothing can
+ * transmit then either.
  *
  * Fail-safe rules:
  *  - Before rf_control_init(), transmission is not permitted.
@@ -25,6 +28,7 @@
  *    still leaves the transmitter off.
  *
  * @requirement SYS-204 Cease emissions on telecommand; stay ceased across resets (97.207(b))
+ * @requirement SYS-224 No RF signal earlier than 45 minutes after deployment
  */
 
 #ifndef SMART_QSO_RF_CONTROL_H
@@ -92,12 +96,23 @@ SmartQsoResult_t rf_control_tx_on(void);
 bool rf_control_tx_permitted(void);
 
 /**
- * @brief Apply or lift the loss-of-contact inhibit (contact_monitor.c)
- *
- * Independent of the TX-OFF latch: transmission is permitted only when
- * neither inhibit is set. Clearing one never clears the other.
+ * @brief Automatic inhibits, independent of the TX-OFF latch and of each other
  */
-void rf_control_set_contact_inhibit(bool inhibit);
+typedef enum {
+    RF_INHIBIT_CONTACT    = 0x01U, /**< Loss of contact (contact_monitor.c): transmitters off */
+    RF_INHIBIT_RF_SILENCE = 0x02U  /**< Post-deployment silence (rf_silence.c): whole radio off */
+} RfInhibit_t;
+
+/**
+ * @brief Apply or lift one automatic inhibit
+ *
+ * Transmission is permitted only when the TX-OFF latch and every automatic
+ * inhibit are clear; clearing one never clears another. Only
+ * RF_INHIBIT_RF_SILENCE also removes radio power (GPIO_PIN_RADIO_EN), so the
+ * telecommand receiver stays on under TX-OFF and loss of contact. May be
+ * called before rf_control_init(); the lines are driven once initialized.
+ */
+void rf_control_set_inhibit(RfInhibit_t source, bool active);
 
 /**
  * @brief Select the downlink power level and persist it

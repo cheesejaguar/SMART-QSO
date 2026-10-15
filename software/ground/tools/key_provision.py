@@ -42,6 +42,7 @@ RECOVERY_SLOT = OP_SLOTS
 OP_PROVISION = 0x01
 OP_ACTIVATE = 0x02
 OP_ZEROIZE = 0x03
+OP_ARM_RF_SILENCE = 0x04
 
 
 def build_gse_frame(op: int, slot: int, key_id: int, key: bytes = b"") -> bytes:
@@ -113,6 +114,11 @@ def main(argv=None) -> int:
     zer = sub.add_parser("zeroize", help="build a frame that erases the key table")
     zer.add_argument("--out", type=Path, required=True)
 
+    arm = sub.add_parser("arm-rf-silence",
+                         help="build a frame that re-arms the 45-minute post-deployment silence "
+                              "(last powered action before shipping)")
+    arm.add_argument("--out", type=Path, required=True)
+
     opts = parser.parse_args(argv)
     try:
         if opts.action == "generate":
@@ -123,9 +129,12 @@ def main(argv=None) -> int:
             frames = provisioning_frames(opts.dir, opts.activate)
             write_frames(opts.out, frames)
             print(f"{len(frames)} frames written to {opts.out}; send over the umbilical UART, then delete")
-        else:
+        elif opts.action == "zeroize":
             write_frames(opts.out, [build_gse_frame(OP_ZEROIZE, 0, 0)])
             print(f"zeroize frame written to {opts.out}")
+        else:
+            write_frames(opts.out, [build_gse_frame(OP_ARM_RF_SILENCE, 0, 0)])
+            print(f"arm-rf-silence frame written to {opts.out}; send it last, check the reply, then power off")
     except (OSError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1

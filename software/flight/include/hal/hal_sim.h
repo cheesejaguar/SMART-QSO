@@ -22,6 +22,7 @@ extern "C" {
 #include "smart_qso.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_uart.h"
+#include "hal/hal_reset.h"
 
 /**
  * @brief Make every subsequent hal_flash_write() fail with SMART_QSO_ERROR_IO
@@ -62,6 +63,11 @@ SmartQsoResult_t hal_sim_radio_inject(const uint8_t *frame, size_t len);
  * @brief Drop every queued receiver frame
  */
 void hal_sim_radio_clear(void);
+
+/**
+ * @brief Set the cause hal_reset_cause() reports, modelling the next boot
+ */
+void hal_sim_set_reset_cause(HalResetCause_t cause);
 
 #ifdef __cplusplus
 }

@@ -24,6 +24,7 @@
 #include "mission_data.h"
 #include "rf_control.h"
 #include "contact_monitor.h"
+#include "rf_silence.h"
 #include "cmd_handler.h"
 #include "gse_provision.h"
 #include "uplink.h"
@@ -133,9 +134,10 @@ static SmartQsoResult_t init_system(void)
         /* Continue anyway - fault logging won't work but system can run */
     }
 
-    /* Loss-of-contact inhibit first, so the enable line is never driven high
-     * on a boot that should stay silent; then restore the latched TX-OFF
-     * state before anything can transmit (47 CFR 97.207(b)) */
+    /* Post-deployment silence (CDS 2.4.5) and loss-of-contact inhibit first,
+     * so the radio lines are never driven high on a boot that must stay
+     * silent; then restore the latched TX-OFF state (47 CFR 97.207(b)) */
+    (void)rf_silence_init();
     (void)contact_monitor_init();
     (void)rf_control_init();
 
@@ -466,9 +468,10 @@ static SmartQsoResult_t run_main_loop(void)
         (void)uplink_poll(NULL);
         (void)gse_poll();
 
-        /* Loss-of-contact timer. On target this needs a monotonic time base
+        /* Loss-of-contact and RF-silence timers. On target these need a monotonic time base
          * (smart_qso_now_ms() is not implemented there yet; SW-01) */
         contact_monitor_tick((uint32_t)(now - s_last_contact_tick_ms));
+        rf_silence_tick((uint32_t)(now - s_last_contact_tick_ms));
         s_last_contact_tick_ms = now;
 
         /* Periodic data persistence */

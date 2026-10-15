@@ -37,20 +37,31 @@
 static bool s_initialized = false;
 static bool s_inhibited = true;
 
-/** Loss-of-contact inhibit (contact_monitor.c); not reset by rf_control_init()
- *  so it can be set before the enable line is first driven */
-static bool s_contact_inhibit = false;
+/** Automatic inhibits (RfInhibit_t bits); not reset by rf_control_init() so
+ *  they can be set before the lines are first driven */
+static uint32_t s_auto_inhibits = 0U;
 static RfPowerLevel_t s_power_level = RF_POWER_0W5;
 
 /*******************************************************************************
  * Private Functions
  ******************************************************************************/
 
-/** Configure and drive the RF transmitter enable line */
-static void drive_tx_enable(bool enable)
+/** Drive the radio power and transmitter enable lines from the inhibits */
+static void drive_lines(void)
 {
+    bool radio_on = ((s_auto_inhibits & (uint32_t)RF_INHIBIT_RF_SILENCE) == 0U);
+    bool tx_on = radio_on && !s_inhibited && (s_auto_inhibits == 0U);
+
+    /* Transmitter first when turning off, radio power first when turning on */
     (void)hal_gpio_config(GPIO_PIN_RF_TX_EN, GPIO_DIR_OUTPUT, GPIO_PULL_DOWN);
-    (void)hal_gpio_set(GPIO_PIN_RF_TX_EN, enable);
+    (void)hal_gpio_config(GPIO_PIN_RADIO_EN, GPIO_DIR_OUTPUT, GPIO_PULL_DOWN);
+    if (!tx_on) {
+        (void)hal_gpio_set(GPIO_PIN_RF_TX_EN, false);
+    }
+    (void)hal_gpio_set(GPIO_PIN_RADIO_EN, radio_on);
+    if (tx_on) {
+        (void)hal_gpio_set(GPIO_PIN_RF_TX_EN, true);
+    }
 }
 
 static SmartQsoResult_t persist_state(uint32_t state_word)
@@ -87,7 +98,7 @@ SmartQsoResult_t rf_control_init(void)
         s_inhibited = (state_word != RF_STATE_PERMITTED);
     }
 
-    drive_tx_enable(!s_inhibited && !s_contact_inhibit);
+    drive_lines();
 
     /* Power level: default 0.5 W unless a valid record says otherwise */
     uint32_t power_word = (uint32_t)RF_POWER_0W5;
@@ -107,7 +118,7 @@ SmartQsoResult_t rf_control_tx_off(void)
 {
     /* Silence the hardware first so a flash failure cannot leave TX on */
     s_inhibited = true;
-    drive_tx_enable(false);
+    drive_lines();
 
     SmartQsoResult_t result = persist_state(RF_STATE_INHIBITED);
     (void)fault_log_add(FAULT_TYPE_COMMAND, FAULT_SEVERITY_WARNING,
@@ -122,7 +133,7 @@ SmartQsoResult_t rf_control_tx_on(void)
     SmartQsoResult_t result = persist_state(RF_STATE_PERMITTED);
 
     s_inhibited = false;
-    drive_tx_enable(!s_contact_inhibit);
+    drive_lines();
     (void)fault_log_add(FAULT_TYPE_COMMAND, FAULT_SEVERITY_INFO,
                         (result == SMART_QSO_OK) ? "TX enabled" : "TX enabled, not persisted",
                         0.0);
@@ -132,14 +143,18 @@ SmartQsoResult_t rf_control_tx_on(void)
 
 bool rf_control_tx_permitted(void)
 {
-    return s_initialized && !s_inhibited && !s_contact_inhibit;
+    return s_initialized && !s_inhibited && (s_auto_inhibits == 0U);
 }
 
-void rf_control_set_contact_inhibit(bool inhibit)
+void rf_control_set_inhibit(RfInhibit_t source, bool active)
 {
-    s_contact_inhibit = inhibit;
+    if (active) {
+        s_auto_inhibits |= (uint32_t)source;
+    } else {
+        s_auto_inhibits &= ~(uint32_t)source;
+    }
     if (s_initialized) {
-        drive_tx_enable(!s_inhibited && !s_contact_inhibit);
+        drive_lines();
     }
 }
 
