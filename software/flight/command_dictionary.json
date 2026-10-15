@@ -15,6 +15,7 @@
     {"name": "SET_BEACON", "id": "0x30", "c_name": "CMD_COMM_SET_BEACON", "min_args": 2, "max_args": 2, "key": "operational", "summary": "Set beacon interval, seconds big-endian, 10 to 120"},
     {"name": "TX_ENABLE", "id": "0x31", "c_name": "CMD_COMM_TX_ENABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Clear the latched TX-OFF"},
     {"name": "TX_DISABLE", "id": "0x32", "c_name": "CMD_COMM_TX_DISABLE", "min_args": 0, "max_args": 0, "key": "any", "without_key": true, "summary": "Latch TX-OFF in every state (47 CFR 97.207(b))"},
+    {"name": "SET_POWER", "id": "0x33", "c_name": "CMD_COMM_SET_POWER", "min_args": 1, "max_args": 1, "key": "operational", "summary": "Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the transmitter driver, TBD)"},
     {"name": "PLD_ENABLE", "id": "0x40", "c_name": "CMD_PLD_ENABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Enable payload"},
     {"name": "PLD_DISABLE", "id": "0x41", "c_name": "CMD_PLD_DISABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Disable payload"}
   ]

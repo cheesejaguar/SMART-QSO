@@ -493,6 +493,14 @@ static CmdResult_t handle_comm_cmd(const Command_t *cmd, CmdResponse_t *response
         case CMD_COMM_TX_ENABLE:
             return (rf_control_tx_on() == SMART_QSO_OK) ? CMD_RESULT_SUCCESS : CMD_RESULT_EXEC_FAIL;
 
+        case CMD_COMM_SET_POWER: {
+            SmartQsoResult_t set = rf_control_set_power_level((RfPowerLevel_t)cmd->payload[0]);
+            if (set == SMART_QSO_OK) {
+                return CMD_RESULT_SUCCESS;
+            }
+            return (set == SMART_QSO_ERROR_INVALID) ? CMD_RESULT_INVALID_PARAM : CMD_RESULT_EXEC_FAIL;
+        }
+
         default:
             return CMD_RESULT_INVALID_CMD;
     }

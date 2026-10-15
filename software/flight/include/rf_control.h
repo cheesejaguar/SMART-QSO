@@ -38,6 +38,23 @@ extern "C" {
 #include <stdbool.h>
 
 /*******************************************************************************
+ * Types
+ ******************************************************************************/
+
+/**
+ * @brief Downlink transmit power (BASELINE_PARAMETERS section 7: 0.5 W
+ *        nominal, 1 W maximum)
+ *
+ * The level is persisted and reported here; applying it to the PA is the
+ * transmitter driver's job, whose interface is TBD in the RF design.
+ */
+typedef enum {
+    RF_POWER_0W5 = 0,          /**< 0.5 W (default) */
+    RF_POWER_1W  = 1,          /**< 1 W */
+    RF_POWER_LEVEL_COUNT = 2
+} RfPowerLevel_t;
+
+/*******************************************************************************
  * Public Function Declarations
  ******************************************************************************/
 
@@ -73,6 +90,21 @@ SmartQsoResult_t rf_control_tx_on(void);
  * @return false before initialization or while TX-OFF is latched
  */
 bool rf_control_tx_permitted(void);
+
+/**
+ * @brief Select the downlink power level and persist it
+ *
+ * Never enables a transmitter that TX-OFF has latched off.
+ *
+ * @return SMART_QSO_OK; SMART_QSO_ERROR_INVALID for an unknown level;
+ *         SMART_QSO_ERROR_IO if persistence failed (applied until reset)
+ */
+SmartQsoResult_t rf_control_set_power_level(RfPowerLevel_t level);
+
+/**
+ * @brief Current downlink power level (0.5 W if never set or unreadable)
+ */
+RfPowerLevel_t rf_control_get_power_level(void);
 
 #ifdef __cplusplus
 }

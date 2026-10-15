@@ -33,6 +33,7 @@ COMMANDS: Dict[str, CommandSpec] = {
     "SET_BEACON": CommandSpec(0x30, 2, 2, "operational", "Set beacon interval, seconds big-endian, 10 to 120", without_key=False),
     "TX_ENABLE": CommandSpec(0x31, 0, 0, "operational", "Clear the latched TX-OFF", without_key=False),
     "TX_DISABLE": CommandSpec(0x32, 0, 0, "any", "Latch TX-OFF in every state (47 CFR 97.207(b))", without_key=True),
+    "SET_POWER": CommandSpec(0x33, 1, 1, "operational", "Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the transmitter driver, TBD)", without_key=False),
     "PLD_ENABLE": CommandSpec(0x40, 0, 0, "operational", "Enable payload", without_key=False),
     "PLD_DISABLE": CommandSpec(0x41, 0, 0, "operational", "Disable payload", without_key=False),
 }

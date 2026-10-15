@@ -172,6 +172,29 @@ static void test_beacon_transmit_refused_while_tx_off(void **state)
     assert_int_not_equal(beacon_transmit(&content), SMART_QSO_OK);
 }
 
+/** Transmit power level: default 0.5 W, persisted, range-checked, and
+ *  independent of the TX-OFF latch */
+static void test_power_level_persists_and_validates(void **state)
+{
+    (void)state;
+    assert_int_equal(rf_control_get_power_level(), RF_POWER_0W5);
+
+    assert_int_equal(rf_control_set_power_level(RF_POWER_1W), SMART_QSO_OK);
+    assert_int_equal(rf_control_get_power_level(), RF_POWER_1W);
+    assert_int_equal(rf_control_set_power_level((RfPowerLevel_t)RF_POWER_LEVEL_COUNT),
+                     SMART_QSO_ERROR_INVALID);
+    assert_int_equal(rf_control_get_power_level(), RF_POWER_1W);
+
+    /* Setting power never enables a latched-off transmitter */
+    assert_int_equal(rf_control_tx_off(), SMART_QSO_OK);
+    assert_int_equal(rf_control_set_power_level(RF_POWER_0W5), SMART_QSO_OK);
+    assert_false(rf_control_tx_permitted());
+
+    assert_int_equal(rf_control_init(), SMART_QSO_OK);  /* power cycle */
+    assert_int_equal(rf_control_get_power_level(), RF_POWER_0W5);
+    assert_false(rf_control_tx_permitted());
+}
+
 /*===========================================================================*/
 /* Test Suite                                                                 */
 /*===========================================================================*/
@@ -189,6 +212,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_safe_mode_does_not_clear_tx_off, setup_blank_nvm, teardown),
         cmocka_unit_test_setup_teardown(test_beacon_not_due_while_tx_off, setup_blank_nvm, teardown),
         cmocka_unit_test_setup_teardown(test_beacon_transmit_refused_while_tx_off, setup_blank_nvm, teardown),
+        cmocka_unit_test_setup_teardown(test_power_level_persists_and_validates, setup_blank_nvm, teardown),
     };
 
     return cmocka_run_group_tests_name("RF Control (TX-OFF) Tests", tests, NULL, NULL);

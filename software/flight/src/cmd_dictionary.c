@@ -22,6 +22,7 @@ const CmdDictEntry_t g_cmd_dictionary[] = {
     { (uint8_t)CMD_COMM_SET_BEACON, 2U, 2U, CMD_KEY_OPERATIONAL, false }, /* SET_BEACON */
     { (uint8_t)CMD_COMM_TX_ENABLE, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* TX_ENABLE */
     { (uint8_t)CMD_COMM_TX_DISABLE, 0U, 0U, CMD_KEY_ANY, true }, /* TX_DISABLE */
+    { (uint8_t)CMD_COMM_SET_POWER, 1U, 1U, CMD_KEY_OPERATIONAL, false }, /* SET_POWER */
     { (uint8_t)CMD_PLD_ENABLE, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* PLD_ENABLE */
     { (uint8_t)CMD_PLD_DISABLE, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* PLD_DISABLE */
 };

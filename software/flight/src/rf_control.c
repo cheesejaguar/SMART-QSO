@@ -21,6 +21,11 @@
 /** Persisted record identifier ("RFTX") */
 #define RF_RECORD_MAGIC         0x52465458U
 
+/** Persisted power-level record ("RFPL"), kept apart from the TX latch so a
+ *  power change can never disturb it */
+#define RF_POWER_MAGIC          0x5246504CU
+#define RF_POWER_BASE           NVM_RECORD_FOOTPRINT
+
 /** Persisted state words; any other value is treated as inhibited */
 #define RF_STATE_PERMITTED      0x5A5A5A5AU
 #define RF_STATE_INHIBITED      0xA5A5A5A5U
@@ -31,6 +36,7 @@
 
 static bool s_initialized = false;
 static bool s_inhibited = true;
+static RfPowerLevel_t s_power_level = RF_POWER_0W5;
 
 /*******************************************************************************
  * Private Functions
@@ -78,6 +84,16 @@ SmartQsoResult_t rf_control_init(void)
     }
 
     drive_tx_enable(!s_inhibited);
+
+    /* Power level: default 0.5 W unless a valid record says otherwise */
+    uint32_t power_word = (uint32_t)RF_POWER_0W5;
+    s_power_level = RF_POWER_0W5;
+    if ((nvm_record_load_at(FLASH_REGION_RF_CONTROL, RF_POWER_BASE, RF_POWER_MAGIC,
+                            &power_word, sizeof(power_word), &status) == SMART_QSO_OK) &&
+        (status == NVM_RECORD_VALID) && (power_word < (uint32_t)RF_POWER_LEVEL_COUNT)) {
+        s_power_level = (RfPowerLevel_t)power_word;
+    }
+
     s_initialized = true;
 
     return SMART_QSO_OK;
@@ -113,4 +129,22 @@ SmartQsoResult_t rf_control_tx_on(void)
 bool rf_control_tx_permitted(void)
 {
     return s_initialized && !s_inhibited;
+}
+
+SmartQsoResult_t rf_control_set_power_level(RfPowerLevel_t level)
+{
+    if ((uint32_t)level >= (uint32_t)RF_POWER_LEVEL_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
+
+    s_power_level = level;
+    uint32_t word = (uint32_t)level;
+    SmartQsoResult_t result = nvm_record_save_at(FLASH_REGION_RF_CONTROL, RF_POWER_BASE,
+                                                 RF_POWER_MAGIC, &word, sizeof(word));
+    return (result == SMART_QSO_OK) ? SMART_QSO_OK : SMART_QSO_ERROR_IO;
+}
+
+RfPowerLevel_t rf_control_get_power_level(void)
+{
+    return s_power_level;
 }

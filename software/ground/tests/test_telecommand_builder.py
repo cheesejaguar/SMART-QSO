@@ -132,7 +132,7 @@ class TestDictionary(unittest.TestCase):
     FLIGHT = {
         0x00: (0, 0), 0x01: (0, 0), 0x02: (1, 1), 0x03: (0, 0), 0x05: (0, 0), 0x06: (1, 1),
         0x10: (1, 1), 0x13: (0, 0), 0x21: (0, 0), 0x23: (0, 0),
-        0x30: (2, 2), 0x31: (0, 0), 0x32: (0, 0), 0x40: (0, 0), 0x41: (0, 0),
+        0x30: (2, 2), 0x31: (0, 0), 0x32: (0, 0), 0x33: (1, 1), 0x40: (0, 0), 0x41: (0, 0),
     }
 
     def test_matches_flight(self):
@@ -141,7 +141,7 @@ class TestDictionary(unittest.TestCase):
 
     def test_unimplemented_command_refused(self):
         with self.assertRaises(ValueError):
-            build_frame(TEST_KEY, 0x33, 1, b"\x01")  # SET_POWER has no flight handler
+            build_frame(TEST_KEY, 0x04, 1, b"\x00\x00\x00\x01")  # SET_TIME has no flight handler
 
 
 class TestKeyFile(unittest.TestCase):

@@ -378,11 +378,11 @@ static void test_every_dictionary_command(void **state)
         {CMD_EPS_SET_MODE, 1U}, {CMD_EPS_GET_TELEMETRY, 0U},
         {CMD_ADCS_DETUMBLE, 0U}, {CMD_ADCS_GET_ATTITUDE, 0U},
         {CMD_COMM_SET_BEACON, 2U}, {CMD_COMM_TX_ENABLE, 0U}, {CMD_COMM_TX_DISABLE, 0U},
-        {CMD_PLD_ENABLE, 0U}, {CMD_PLD_DISABLE, 0U},
+        {CMD_COMM_SET_POWER, 1U}, {CMD_PLD_ENABLE, 0U}, {CMD_PLD_DISABLE, 0U},
     };
     static const uint8_t unimplemented[] = {
         CMD_SYS_SET_TIME, CMD_EPS_ENABLE_HEATER, CMD_EPS_DISABLE_HEATER,
-        CMD_ADCS_SET_MODE, CMD_ADCS_POINT_SUN, CMD_COMM_SET_POWER,
+        CMD_ADCS_SET_MODE, CMD_ADCS_POINT_SUN,
         CMD_PLD_SEND_DATA, CMD_PLD_REQUEST_DATA, 0x7FU,
     };
     uint8_t args[CMD_AUTH_MAX_ARGS + 1U];
@@ -509,6 +509,27 @@ static void test_key_rotate_end_to_end(void **state)
                      CMD_RESULT_SUCCESS);
 }
 
+/** SET_POWER selects 0.5 W or 1 W (BASELINE section 7) and rejects other values */
+static void test_set_power(void **state)
+{
+    (void)state;
+    uint8_t payload[CMD_AUTH_OVERHEAD + 1U];
+    uint8_t key[CMD_AUTH_KEY_SIZE];
+    uint8_t level;
+
+    test_key_fill(key, 0x00U);
+    level = 1U;
+    assert_int_equal(send(CMD_COMM_SET_POWER, payload,
+                          test_auth_payload(key, CMD_COMM_SET_POWER, 1U, &level, 1U, payload)),
+                     CMD_RESULT_SUCCESS);
+    assert_int_equal(rf_control_get_power_level(), RF_POWER_1W);
+    level = 2U;
+    assert_int_equal(send(CMD_COMM_SET_POWER, payload,
+                          test_auth_payload(key, CMD_COMM_SET_POWER, 2U, &level, 1U, payload)),
+                     CMD_RESULT_INVALID_PARAM);
+    assert_int_equal(rf_control_get_power_level(), RF_POWER_1W);
+}
+
 static void test_authenticated_get_status(void **state)
 {
     (void)state;
@@ -542,6 +563,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_every_dictionary_command, setup, teardown),
         cmocka_unit_test_setup_teardown(test_set_mode_obeys_transition_table, setup, teardown),
         cmocka_unit_test_setup_teardown(test_key_rotate_end_to_end, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_set_power, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Command Handler (Telecommand Path) Tests", tests, NULL, NULL);
