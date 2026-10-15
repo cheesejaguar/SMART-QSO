@@ -10,10 +10,11 @@
 #include "mission_data.h"
 #include "fault_mgmt.h"
 #include "rf_control.h"
+#include "ax25.h"
+#include "station_id.h"
 
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 /*===========================================================================*/
 /* Module State                                                               */
@@ -48,28 +49,6 @@ const size_t beacon_template_count = sizeof(beacon_templates) / sizeof(beacon_te
 /*===========================================================================*/
 /* Helper Functions                                                           */
 /*===========================================================================*/
-
-/**
- * @brief Encode callsign for AX.25 address field
- */
-static void encode_ax25_address(const char *callsign, uint8_t ssid,
-                                 uint8_t *output, bool is_last)
-{
-    size_t len = strlen(callsign);
-    size_t i;
-
-    /* Pad with spaces and shift left by 1 */
-    for (i = 0; i < 6; i++) {
-        if (i < len) {
-            output[i] = (uint8_t)(toupper((unsigned char)callsign[i]) << 1);
-        } else {
-            output[i] = ' ' << 1;
-        }
-    }
-
-    /* SSID byte: bits 1-4 = SSID, bit 0 = end flag, bits 5-6 = reserved (11) */
-    output[6] = (uint8_t)(0x60 | ((ssid & 0x0F) << 1) | (is_last ? 0x01 : 0x00));
-}
 
 /*===========================================================================*/
 /* Beacon Functions                                                           */
@@ -228,10 +207,10 @@ SmartQsoResult_t beacon_build_ax25_frame(const BeaconContent_t *content,
     memset(frame, 0, sizeof(Ax25Frame_t));
 
     /* Encode destination address (CQ broadcast) */
-    encode_ax25_address("CQ", 0, frame->dest_addr, false);
+    ax25_encode_address("CQ", 0U, frame->dest_addr, false);
 
     /* Encode source address */
-    encode_ax25_address(BEACON_CALLSIGN, 1, frame->src_addr, true);
+    ax25_encode_address(SQSO_CALLSIGN, SQSO_SSID, frame->src_addr, true);
 
     /* Control and PID */
     frame->ctrl = AX25_CTRL_UI;
@@ -429,20 +408,7 @@ const char *beacon_get_template(void)
 
 uint16_t beacon_crc16(const uint8_t *data, size_t len)
 {
-    uint16_t crc = CRC16_INIT;
-
-    for (size_t i = 0; i < len; i++) {
-        crc ^= data[i];
-        for (int j = 0; j < 8; j++) {
-            if (crc & 0x0001) {
-                crc = (crc >> 1) ^ CRC16_POLY;
-            } else {
-                crc >>= 1;
-            }
-        }
-    }
-
-    return crc ^ 0xFFFF;
+    return ax25_fcs(data, len);
 }
 
 bool beacon_validate_text(const char *text, size_t len)

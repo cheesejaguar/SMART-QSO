@@ -23,6 +23,7 @@
 
 #include "hal/hal.h"
 #include "hal/hal_sim.h"
+#include "hal/hal_radio.h"
 
 #ifdef HAL_TARGET_SIMULATION
 
@@ -565,6 +566,48 @@ size_t hal_flash_region_size(HalFlashRegion_t region) {
 uint32_t hal_flash_region_base(HalFlashRegion_t region) {
     (void)region;
     return 0;  /* Not applicable in simulation */
+}
+
+/*===========================================================================*/
+/* Telecommand Receiver (simulation: frames injected by tests)                */
+/*===========================================================================*/
+
+#define SIM_RADIO_QUEUE 4U
+static uint8_t s_radio_frames[SIM_RADIO_QUEUE][HAL_RADIO_MAX_FRAME];
+static size_t s_radio_lens[SIM_RADIO_QUEUE];
+static size_t s_radio_head = 0U;
+static size_t s_radio_count = 0U;
+
+SmartQsoResult_t hal_radio_init(void) {
+    return SMART_QSO_OK;
+}
+
+SmartQsoResult_t hal_radio_receive(uint8_t *frame, size_t max_len, size_t *len) {
+    if ((frame == NULL) || (len == NULL)) return SMART_QSO_ERROR_NULL_PTR;
+    if (s_radio_count == 0U) return SMART_QSO_ERROR_TIMEOUT;
+    if (s_radio_lens[s_radio_head] > max_len) return SMART_QSO_ERROR_INVALID;
+
+    memcpy(frame, s_radio_frames[s_radio_head], s_radio_lens[s_radio_head]);
+    *len = s_radio_lens[s_radio_head];
+    s_radio_head = (s_radio_head + 1U) % SIM_RADIO_QUEUE;
+    s_radio_count--;
+    return SMART_QSO_OK;
+}
+
+SmartQsoResult_t hal_sim_radio_inject(const uint8_t *frame, size_t len) {
+    if ((frame == NULL) || (len > HAL_RADIO_MAX_FRAME)) return SMART_QSO_ERROR_INVALID;
+    if (s_radio_count >= SIM_RADIO_QUEUE) return SMART_QSO_ERROR_NO_MEM;
+
+    size_t tail = (s_radio_head + s_radio_count) % SIM_RADIO_QUEUE;
+    memcpy(s_radio_frames[tail], frame, len);
+    s_radio_lens[tail] = len;
+    s_radio_count++;
+    return SMART_QSO_OK;
+}
+
+void hal_sim_radio_clear(void) {
+    s_radio_head = 0U;
+    s_radio_count = 0U;
 }
 
 void hal_sim_gpio_drive_input(HalGpioPin_t pin, bool state) {

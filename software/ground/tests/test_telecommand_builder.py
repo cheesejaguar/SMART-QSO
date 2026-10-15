@@ -19,8 +19,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 from telecommand_builder import (  # noqa: E402
     COMMANDS,
     MAX_ARGS,
+    ax25_fcs,
+    ax25_ui_frame,
     build_frame,
     build_payload,
+    kiss_frame,
     load_key,
     next_counter,
 )
@@ -93,6 +96,34 @@ class TestLimits(unittest.TestCase):
     def test_dictionary_arg_length_enforced(self):
         with self.assertRaises(ValueError):
             build_frame(TEST_KEY, COMMANDS["TX_DISABLE"].cmd_id, 1, b"\x00", strict=True)
+
+
+UPLINK_TX_DISABLE = bytes.fromhex(
+    "A6A2A69E404062 9C608682989861 03F0"
+    "AA55321400000001 9A83F5C7B21F7511E82F5E94B9DE5851 09BF 6559")
+
+
+class TestAx25(unittest.TestCase):
+    """AX.25 UI framing matches software/flight/tests/test_ax25.c and test_uplink.c."""
+
+    def test_fcs_check_value(self):
+        self.assertEqual(ax25_fcs(b"123456789"), 0x906E)
+
+    def test_uplink_reference_frame(self):
+        frame = ax25_ui_frame("SQSO-1", "N0CALL", TX_DISABLE_CTR1_FRAME)
+        self.assertEqual(frame, UPLINK_TX_DISABLE)
+
+    def test_frame_without_fcs_for_tnc(self):
+        frame = ax25_ui_frame("SQSO-1", "N0CALL", TX_DISABLE_CTR1_FRAME, fcs=False)
+        self.assertEqual(frame, UPLINK_TX_DISABLE[:-2])
+
+    def test_bad_callsign_rejected(self):
+        for call in ("TOOLONGCALL", "SQ-SO", "SQSO-16", "SQ SO"):
+            with self.assertRaises(ValueError):
+                ax25_ui_frame(call, "N0CALL", b"x")
+
+    def test_kiss_escaping(self):
+        self.assertEqual(kiss_frame(b"\x01\xC0\xDB\x02"), b"\xC0\x00\x01\xDB\xDC\xDB\xDD\x02\xC0")
 
 
 class TestDictionary(unittest.TestCase):

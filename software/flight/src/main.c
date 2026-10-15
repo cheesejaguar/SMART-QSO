@@ -25,6 +25,8 @@
 #include "rf_control.h"
 #include "cmd_handler.h"
 #include "gse_provision.h"
+#include "uplink.h"
+#include "station_id.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_flash.h"
 
@@ -135,6 +137,11 @@ static SmartQsoResult_t init_system(void)
     result = cmd_handler_init();
     if (result != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Command handler init failed\n");
+    }
+
+    /* Telecommand receiver: AX.25 UI frames addressed to this station */
+    if (uplink_init(SQSO_CALLSIGN, SQSO_SSID) != SMART_QSO_OK) {
+        fprintf(stderr, "[SYSTEM] Telecommand receiver init failed\n");
     }
 
     /* Key provisioning port: honoured only while the GSE umbilical is present */
@@ -447,7 +454,9 @@ static SmartQsoResult_t run_main_loop(void)
         /* Sensor polling */
         (void)sensors_poll(now);
 
-        /* Key provisioning (umbilical only) */
+        /* Telecommands from the 435 MHz receiver, then key provisioning
+         * (umbilical only) */
+        (void)uplink_poll(NULL);
         (void)gse_poll();
 
         /* Periodic data persistence */

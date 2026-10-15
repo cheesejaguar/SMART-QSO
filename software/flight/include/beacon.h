@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include "smart_qso.h"
+#include "ax25.h"
 
 /*===========================================================================*/
 /* Beacon Configuration Constants                                             */
@@ -33,7 +34,7 @@ extern "C" {
 #define BEACON_MAX_PAYLOAD_LEN   256
 
 /** Callsign for beacon identification */
-#define BEACON_CALLSIGN          "SQSO-1"
+#define BEACON_CALLSIGN          "SQSO-1"   /* text form of station_id.h */
 
 /** Default beacon interval in ACTIVE mode (ms) */
 #define BEACON_INTERVAL_ACTIVE_MS   30000
@@ -44,16 +45,7 @@ extern "C" {
 /** Default beacon interval in SAFE mode (ms) */
 #define BEACON_INTERVAL_SAFE_MS     180000
 
-/** AX.25 frame constants */
-#define AX25_FLAG               0x7E
-#define AX25_CTRL_UI            0x03
-#define AX25_PID_NO_L3          0xF0
-#define AX25_ADDR_LEN           7
-#define AX25_MAX_FRAME_LEN      330
-
-/** CRC-16 CCITT constants */
-#define CRC16_INIT              0xFFFF
-#define CRC16_POLY              0x8408
+/** AX.25 constants: ax25.h */
 
 /*===========================================================================*/
 /* Beacon Types                                                               */

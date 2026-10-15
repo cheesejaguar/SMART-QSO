@@ -51,6 +51,18 @@ void hal_sim_gpio_drive_input(HalGpioPin_t pin, bool state);
  */
 SmartQsoResult_t hal_sim_uart_inject(HalUartPort_t port, const uint8_t *data, size_t len);
 
+/**
+ * @brief Queue a frame for hal_radio_receive(), as if received on the uplink
+ *
+ * @return SMART_QSO_OK, or SMART_QSO_ERROR_NO_MEM if the queue is full
+ */
+SmartQsoResult_t hal_sim_radio_inject(const uint8_t *frame, size_t len);
+
+/**
+ * @brief Drop every queued receiver frame
+ */
+void hal_sim_radio_clear(void);
+
 #ifdef __cplusplus
 }
 #endif

@@ -190,6 +190,8 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_handler.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_dictionary.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/gse_provision.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/ax25.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/uplink.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
@@ -230,6 +232,8 @@ set(MODULE_TESTS
     "test_cmd_auth\;security"
     "test_cmd_handler\;command"
     "test_gse_provision\;security"
+    "test_ax25\;rf"
+    "test_uplink\;rf"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)

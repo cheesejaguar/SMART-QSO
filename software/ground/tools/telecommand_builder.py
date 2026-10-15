@@ -84,6 +84,45 @@ def build_frame(key: bytes, cmd_id: int, counter: int, args: bytes = b"",
     return body + struct.pack(">H", sum(body) & 0xFFFF)
 
 
+def _parse_callsign(text: str):
+    """Split "CALL-SSID" (SSID optional) and validate it for AX.25."""
+    call, _, ssid_text = text.upper().partition("-")
+    ssid = int(ssid_text) if ssid_text else 0
+    if not (1 <= len(call) <= 6 and call.isalnum() and call.isascii()) or not 0 <= ssid <= 15:
+        raise ValueError(f"invalid AX.25 call sign {text!r}")
+    return call, ssid
+
+
+def _ax25_address(text: str, last: bool) -> bytes:
+    call, ssid = _parse_callsign(text)
+    return bytes(ord(c) << 1 for c in call.ljust(6)) + bytes([0x60 | (ssid << 1) | (1 if last else 0)])
+
+
+def ax25_fcs(data: bytes) -> int:
+    """AX.25 frame check sequence (CRC-16/X.25)."""
+    crc = 0xFFFF
+    for byte in data:
+        crc ^= byte
+        for _ in range(8):
+            crc = (crc >> 1) ^ 0x8408 if crc & 1 else crc >> 1
+    return crc ^ 0xFFFF
+
+
+def ax25_ui_frame(dest: str, src: str, info: bytes, fcs: bool = True) -> bytes:
+    """AX.25 UI frame (PID 0xF0) from the address field through the FCS.
+
+    Pass fcs=False for a KISS TNC, which appends the FCS itself.
+    """
+    body = _ax25_address(dest, False) + _ax25_address(src, True) + b"\x03\xF0" + info
+    return body + struct.pack("<H", ax25_fcs(body)) if fcs else body
+
+
+def kiss_frame(frame: bytes, port: int = 0) -> bytes:
+    """Wrap a frame for a KISS TNC (data frame on the given port)."""
+    escaped = frame.replace(b"\xDB", b"\xDB\xDD").replace(b"\xC0", b"\xDB\xDC")
+    return b"\xC0" + bytes([(port & 0x0F) << 4]) + escaped + b"\xC0"
+
+
 def load_key(path: Path) -> bytes:
     """Read a 32-byte key stored as 64 hex characters."""
     if os.name == "posix" and (path.stat().st_mode & 0o077):
@@ -122,6 +161,9 @@ def _parse_args(argv):
     counter = parser.add_mutually_exclusive_group()
     counter.add_argument("--counter-file", type=Path, help="Counter state file (reserved before use)")
     counter.add_argument("--counter", type=int, help="Explicit counter (testing only)")
+    parser.add_argument("--ax25", nargs=2, metavar=("DEST", "SRC"),
+                        help="Wrap in an AX.25 UI frame, e.g. --ax25 SQSO-1 N0CALL (call sign is decision D1)")
+    parser.add_argument("--kiss", action="store_true", help="With --ax25: KISS-encode for a TNC (TNC adds the FCS)")
     parser.add_argument("--out", type=Path, help="Write the binary frame here instead of printing hex")
     parser.add_argument("--list", action="store_true", help="List the command dictionary")
     return parser.parse_args(argv)
@@ -154,6 +196,12 @@ def main(argv=None) -> int:
         build_frame(key, spec.cmd_id, 1, args)
         counter = opts.counter if opts.counter is not None else next_counter(opts.counter_file)
         frame = build_frame(key, spec.cmd_id, counter, args)
+        if opts.ax25 is not None:
+            frame = ax25_ui_frame(opts.ax25[0], opts.ax25[1], frame, fcs=not opts.kiss)
+            if opts.kiss:
+                frame = kiss_frame(frame)
+        elif opts.kiss:
+            raise ValueError("--kiss needs --ax25")
     except (OSError, ValueError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
