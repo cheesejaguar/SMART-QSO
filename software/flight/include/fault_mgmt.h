@@ -25,8 +25,12 @@ extern "C" {
 /* Fault Management Constants                                                 */
 /*===========================================================================*/
 
-/** Fault log file path */
+/** Fault log file path (simulation); the SMART_QSO_FAULT_LOG environment
+ *  variable overrides it so parallel test processes do not share one file */
 #define FAULT_LOG_FILE "/tmp/fault_log.dat"
+
+/** Environment variable that overrides FAULT_LOG_FILE */
+#define FAULT_LOG_FILE_ENV "SMART_QSO_FAULT_LOG"
 
 /*===========================================================================*/
 /* Fault Log Entry Structure                                                  */

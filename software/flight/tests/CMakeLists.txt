@@ -276,6 +276,17 @@ endforeach()
 # endif()
 
 #===========================================================================
+# Test isolation
+#===========================================================================
+# The simulated fault log persists to a file. Give every test its own file so
+# parallel ctest runs (ci.yml uses --parallel) cannot interfere.
+get_property(_sqso_tests DIRECTORY PROPERTY TESTS)
+foreach(_sqso_test IN LISTS _sqso_tests)
+    set_property(TEST ${_sqso_test} APPEND PROPERTY ENVIRONMENT
+        "SMART_QSO_FAULT_LOG=${CMAKE_CURRENT_BINARY_DIR}/fault_log_${_sqso_test}.dat")
+endforeach()
+
+#===========================================================================
 # Coverage Target
 #===========================================================================
 if(ENABLE_COVERAGE)
