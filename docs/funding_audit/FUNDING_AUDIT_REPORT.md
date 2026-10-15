@@ -35,8 +35,8 @@ The concept is technically plausible as a duty-gated transponder with a power-ga
 under conditions this audit defines: deployable wings, ≤ 10 % AI duty, a ≤ 500 km orbit, and a demonstrated Jetson heat
 path. A credible path to a 2028 launch exists if funding and a launch reservation are secured by mid-2027 (§7).
 
-**Findings:** 103 total. 19 Critical, 46 High, 32 Medium, 6 Low. 8 are closed and 56 partially closed by this audit's
-changes; 38 remain open. Full register with file:line evidence: [FINDINGS_REGISTER.md](FINDINGS_REGISTER.md).
+**Findings:** 103 total. 19 Critical, 46 High, 32 Medium, 6 Low. 8 are closed and 59 partially closed by this audit's
+changes; 35 remain open. Full register with file:line evidence: [FINDINGS_REGISTER.md](FINDINGS_REGISTER.md).
 
 ## 2. Scope and Method
 
@@ -59,7 +59,7 @@ primary source are labeled ROM.
 | Program management & integrity | **Red** | No PI, licensee, team, budget or dated schedule; self-generated reviews; false affiliation and status claims (PI-01…PI-14) |
 | Mission definition & technical baseline | **Red → Amber** | Three mission definitions and four power families (PI-13, TB-01). The audit proposes a single baseline ([BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md)) pending PI approval |
 | Power / thermal feasibility of the AI payload | **Amber** | Closes on allocation with wings and ≤ 10 % duty (TB-02). The thermal path is unproven (≈ 0.44 W/K documented vs ≥ 1 W/K needed, TB-07) |
-| Flight software | **Red** | Host simulation only; no RTOS or target port; TX-OFF, authenticated telecommand and the 45-min RF silence are missing (SW-01…SW-05). After the audit: 14 suites, 243 tests passing, 44.5 % coverage |
+| Flight software | **Red** | Host simulation only; no RTOS or target port; no 45-min RF silence (SW-01…SW-05). Authenticated telecommand and a latched TX-OFF now exist in simulation, but no receive driver feeds them and they are untested on hardware. After the audit: 19 suites, 304 tests passing; overall line coverage was 44.5 % before the telecommand work (not re-measured on the same basis) |
 | Payload & ground software | **Amber** | 143 payload and 98 ground tests now pass in CI. The OBC–Jetson protocol is implemented three incompatible ways (SW-24); AI text needs content controls (SW-12) |
 | Verification & test program | **Red** | Hardware results claimed with no hardware; requirements traceability broken (2 of 29 trace cleanly); test levels inconsistent with GEVS/CDS/provider (VV-01, VV-06, VV-10) |
 | Safety & mission assurance | **Red** | Catastrophic battery hazard closed without test; inhibits do not meet CDS (3+3); no battery safety program (VV-03…VV-05) |
@@ -72,7 +72,7 @@ primary source are labeled ROM.
 | Theme | Findings | Summary |
 |-------|----------|---------|
 | Integrity of claims | PI-01, PI-02, PI-03, RG-02 | NASA named as operator, owner and copyright holder; Federal spectrum filings "Submitted/Complete"; reviews self-generated. *Corrected or relabeled by this audit; the real team and reviews remain open* |
-| Licensability | RG-01, RG-03, SW-02, SW-03, SW-05 | The beacon-only design has no receiver, so it cannot cease emissions by telecommand (97.207(b), RR 22.1). The TX-OFF command is unimplemented, authentication is a public constant, and there is no 45-min RF-silence gate. No licensee |
+| Licensability | RG-01, RG-03, SW-02, SW-03, SW-05 | The beacon-only design has no receiver, so it cannot cease emissions by telecommand (97.207(b), RR 22.1). The audit implemented authenticated TX-OFF in flight software, but it cannot be exercised until a receiver and receive driver exist, and it is unverified on hardware. There is no 45-min RF-silence gate. No licensee |
 | Flight software maturity | SW-01 | Host-only simulation; safety-critical modules never called |
 | Technical baseline | TB-01, TB-02, TB-03, TB-04 | Impossible battery figure; payload energy not closed; lifetime at 400 km shorter than design life; transponder undefined |
 | Launch-safety compliance | VV-01, VV-02, VV-03, VV-04, VV-05 | "Qualified/Tested" with no hardware; 30-min RF silence vs the required 45; inhibits below CDS; no battery safety program; catastrophic hazard closed without test |
@@ -172,6 +172,8 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
   - MRD-013 added (deployment altitude)
   - SYS-224 added (45-min RF silence)
   - SYS-225 added (three physical inhibits)
+  - SYS-204 added (cease emissions by authenticated telecommand, latched across resets)
+  - SYS-325 added (authenticated, replay-protected telecommand)
   - SYS-800 (permanent passivation) updated; SYS-802 drag device deleted
   - CDS matrix timer and inhibit rows corrected
 - **Software:**
@@ -179,6 +181,13 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
   - payload dependencies declared; a payload test corrected to fail safe
   - 8 existing flight test suites registered (6 → 14 suites; 76 → 243 tests; coverage 15.3 % → 44.5 %), including fixes to 2 incorrect test expectations
   - flight tests link via pkg-config's cmocka target
+  - authenticated telecommand and latched TX-OFF implemented in simulation (SW-02, SW-03 and SW-04 partially closed;
+    interface in [TELECOMMAND_AUTHENTICATION.md](../interfaces/TELECOMMAND_AUTHENTICATION.md)):
+    - HMAC-SHA-256 tags with a persisted replay counter; `0xDEADBEEF` removed
+    - TX-OFF latch that drops the TX-enable line before persisting, survives reset and fails safe
+    - two-slot power-fail-safe NVM records
+    - a ground telecommand builder whose bytes match the flight test vectors
+    - 5 new suites (14 → 19 suites; 243 → 304 tests); line coverage of the new modules 93–98 %, `cmd_handler.c` 73 %
 - **Analysis tools:** NRLMSIS 2.1 orbital lifetime estimator with tests (`software/simulation/orbit_lifetime/`).
 - **CI:** new "Program Checks" workflow runs payload, ground and simulation tests, plus a documentation-reference
   integrity check, on every pull request. Previously docs/payload/ground PRs ran no checks. The duplicate workflow name
@@ -188,7 +197,8 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
 
 **Flagged, not changed:**
 
-- Flight-software functional gaps (SW-01…SW-05, SW-08, SW-10, SW-13…SW-16)
+- Flight-software functional gaps (SW-01, SW-05, SW-08, SW-10, SW-13…SW-16; the open parts of SW-02…SW-04, chiefly
+  the missing 70 cm receive driver and the hardware-in-the-loop TX-OFF test)
 - The OBC–Jetson protocol mismatch (SW-24)
 - Subsystem design documents that still carry superseded values (TB findings)
 - Traceability (VV-06); test procedures and test levels (VV-09, VV-10); the hazard log (VV-05)

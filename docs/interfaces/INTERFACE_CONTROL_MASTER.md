@@ -43,6 +43,7 @@ This document covers all internal and external interfaces for the SMART-QSO spac
 | SQSO-ICD-010 | Launch Vehicle Interface | TBD | Systems |
 | SQSO-ICD-011 | Deployer Interface | TBD | Mechanical |
 | SQSO-ICD-012 | Ground Station Interface | Draft | Ground |
+| SQSO-ICD-013 | Telecommand Authentication and TX-OFF | Draft | C&DH |
 
 ### 3.3 Document Locations
 
@@ -51,6 +52,7 @@ This document covers all internal and external interfaces for the SMART-QSO spac
 | ICD OBC-Jetson | docs/interfaces/ICD_OBC_JETSON.md |
 | ICD OBC-EPS | docs/interfaces/ICD_OBC_EPS.md |
 | ICD Beacon Format | docs/interfaces/ICD_BEACON_FORMAT.md |
+| ICD Telecommand Authentication | docs/interfaces/TELECOMMAND_AUTHENTICATION.md |
 
 ---
 

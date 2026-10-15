@@ -124,7 +124,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 | 3 | FCC Space Bureau pre-filing consultation done (pathway D3) | ☐ |
 | 4 | Baseline RF parameters frozen (power, antenna, receiver) | ☐ |
 | 5 | Uplink link budget added to LINK_BUDGET_ANALYSIS.md | ☐ |
-| 6 | Telecommand authentication implemented as described in 7.7 (current code does not; see findings) | ☐ |
+| 6 | Telecommand authentication implemented as described in 7.7 (implemented and tested in flight-software simulation per `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`; receive driver and target-hardware verification open, findings SW-02/SW-03) | ☐ |
 | 7 | TX-OFF hardware path in RF design (7.8) | ☐ |
 | 8 | Signed by licensee | ☐ |
 

@@ -82,7 +82,8 @@ Address Range       | Size    | Content
 0x00000 - 0x000FF   | 256 B   | Boot configuration (A)
 0x00100 - 0x001FF   | 256 B   | Boot configuration (B)
 0x00200 - 0x002FF   | 256 B   | Boot configuration (C)
-0x00300 - 0x003FF   | 256 B   | Reserved
+0x00300 - 0x0037F   | 128 B   | Telecommand key and counter (two 64 B slots)
+0x00380 - 0x003FF   | 128 B   | TX-OFF latch (two 64 B slots)
 0x00400 - 0x043FF   | 16 KB   | Mission data (A)
 0x04400 - 0x083FF   | 16 KB   | Mission data (B)
 0x08400 - 0x0C3FF   | 16 KB   | Mission data (C)
@@ -367,6 +368,19 @@ Directory structure:
 | Endurance | 10^6 write cycles |
 | Power cycling | 10,000 cycles |
 
+### 6.5 Fail-Safe Records
+
+The telecommand key and counter (`FLASH_REGION_AUTH`) and the TX-OFF latch (`FLASH_REGION_RF_CONTROL`) use the two-slot form of §6.4, implemented in `software/flight/src/nvm_record.c`. Each slot is magic (4) | sequence (4) | payload (≤ 52) | CRC-32 (4). A save writes the slot that does not hold the newest valid copy and reads it back.
+
+Unlike the data in §6.3, these records do **not** fall back to defaults when corrupt:
+
+| Record | Blank (never written) | Corrupt |
+|--------|-----------------------|---------|
+| TX-OFF latch | Transmit permitted | Transmit inhibited |
+| Telecommand key | Unprovisioned: every command rejected | Every command rejected; fault logged |
+
+The interface is defined in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`). Only the simulation HAL implements these regions today. The FRAM driver must map them to the addresses in §3.3.
+
 ---
 
 ## Revision History
@@ -374,3 +388,4 @@ Directory structure:
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-15 | Allocated the telecommand key and TX-OFF latch records (§3.3, §6.5) |

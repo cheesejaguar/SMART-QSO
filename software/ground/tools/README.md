@@ -36,6 +36,23 @@ python fl_update_builder.py -i weights.bin --name "qso-priority" --version "1.2.
 python fl_update_builder.py --validate frame_001.bin
 ```
 
+### telecommand_builder.py
+Builds authenticated uplink telecommands (SQSO-ICD-013, `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`).
+The key file holds 64 hex characters and must be mode 600. Keys are never committed to any repository.
+The counter file is shared by every telecommand station; each counter is reserved on disk before its frame is produced.
+
+```bash
+# List the command dictionary
+python telecommand_builder.py --list
+
+# Latch the transmitter off (47 CFR 97.207(b))
+python telecommand_builder.py TX_DISABLE --key-file /secure/sqso.key --counter-file /secure/sqso.counter
+
+# Set the beacon interval to 60 s, writing the binary frame to a file
+python telecommand_builder.py SET_BEACON --args 003C --key-file /secure/sqso.key \
+    --counter-file /secure/sqso.counter --out set_beacon.bin
+```
+
 ### pass_predictor.py
 Predicts satellite passes and calculates QSO fairness metrics.
 

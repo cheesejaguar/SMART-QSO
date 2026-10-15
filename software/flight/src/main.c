@@ -22,6 +22,10 @@
 #include "sensors.h"
 #include "uart_comm.h"
 #include "mission_data.h"
+#include "rf_control.h"
+#include "cmd_handler.h"
+#include "hal/hal_gpio.h"
+#include "hal/hal_flash.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -110,11 +114,26 @@ static SmartQsoResult_t init_system(void)
     /* Record start time */
     s_program_start_ms = smart_qso_now_ms();
 
-    /* Initialize fault management first (for logging during init) */
+    /* Bring up the HAL before any module touches GPIO or non-volatile memory */
+    if ((hal_gpio_init() != SMART_QSO_OK) || (hal_flash_init() != SMART_QSO_OK)) {
+        fprintf(stderr, "[SYSTEM] GPIO/flash init failed\n");
+    }
+
+    /* Initialize fault management next (for logging during init) */
     result = fault_mgmt_init();
     if (result != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Fault management init failed\n");
         /* Continue anyway - fault logging won't work but system can run */
+    }
+
+    /* Restore the latched TX-OFF state before anything can transmit
+     * (47 CFR 97.207(b)); a corrupt latch keeps the transmitter off */
+    (void)rf_control_init();
+
+    /* Load the telecommand key; unprovisioned rejects every command */
+    result = cmd_handler_init();
+    if (result != SMART_QSO_OK) {
+        fprintf(stderr, "[SYSTEM] Command handler init failed\n");
     }
 
     /* Initialize mission data */

@@ -9,6 +9,7 @@
 #include "eps_control.h"
 #include "mission_data.h"
 #include "fault_mgmt.h"
+#include "rf_control.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -89,7 +90,7 @@ SmartQsoResult_t beacon_init(void)
 
 bool beacon_should_transmit(uint64_t now_ms)
 {
-    if (!s_initialized) {
+    if (!s_initialized || !rf_control_tx_permitted()) {
         return false;
     }
 
@@ -318,6 +319,11 @@ SmartQsoResult_t beacon_transmit(const BeaconContent_t *content)
 {
     if (content == NULL) {
         return SMART_QSO_ERROR_NULL_PTR;
+    }
+
+    /* Never radiate while TX-OFF is latched (47 CFR 97.207(b)) */
+    if (!rf_control_tx_permitted()) {
+        return SMART_QSO_ERROR;
     }
 
     /* Build AX.25 frame */

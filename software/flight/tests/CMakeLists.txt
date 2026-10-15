@@ -186,6 +186,7 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/adcs_control.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/assert_handler.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_auth.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_handler.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
@@ -194,9 +195,12 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/input_validation.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nvm_record.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_control.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/safe_string.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/scheduler.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/sha256.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/state_machine.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/system_state.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/telemetry.c
@@ -218,6 +222,11 @@ set(MODULE_TESTS
     "test_state_machine\;state"
     "test_system_state\;state"
     "test_watchdog_mgr\;watchdog"
+    "test_sha256\;security"
+    "test_nvm_record\;nvm"
+    "test_rf_control\;rf"
+    "test_cmd_auth\;security"
+    "test_cmd_handler\;command"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)

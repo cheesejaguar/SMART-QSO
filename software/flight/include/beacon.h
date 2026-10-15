@@ -148,7 +148,7 @@ SmartQsoResult_t beacon_init(void);
  * @brief Check if beacon should be transmitted
  *
  * @param now_ms Current time in milliseconds
- * @return true if beacon should be transmitted
+ * @return true if the interval has elapsed and rf_control permits transmission
  */
 bool beacon_should_transmit(uint64_t now_ms);
 
@@ -209,7 +209,8 @@ size_t beacon_serialize_ax25(const Ax25Frame_t *frame,
  * @brief Transmit beacon
  *
  * @param content Beacon content to transmit
- * @return SMART_QSO_OK on success
+ * @return SMART_QSO_OK on success; SMART_QSO_ERROR if transmission is not
+ *         permitted (rf_control: TX-OFF latched or not yet initialized)
  */
 SmartQsoResult_t beacon_transmit(const BeaconContent_t *content);
 

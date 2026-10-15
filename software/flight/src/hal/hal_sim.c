@@ -22,6 +22,7 @@
 #include <sys/time.h>
 
 #include "hal/hal.h"
+#include "hal/hal_sim.h"
 
 #ifdef HAL_TARGET_SIMULATION
 
@@ -75,13 +76,21 @@ static double s_adc_values[ADC_CHANNEL_COUNT] = {
 /* Flash simulation state */
 static bool s_flash_initialized = false;
 static uint8_t *s_flash_data[FLASH_REGION_COUNT];
-static size_t s_flash_sizes[FLASH_REGION_COUNT] = {
+static size_t s_flash_sizes[] = {
     512,    /* MISSION_DATA */
     256,    /* EPS_CONFIG */
     512,    /* SENSOR_CONFIG */
     4096,   /* FAULT_LOG */
-    1024    /* BACKUP */
+    1024,   /* BACKUP */
+    512,    /* STATE (SystemState_t) */
+    128,    /* AUTH (two 64-byte record slots) */
+    128     /* RF_CONTROL (two 64-byte record slots) */
 };
+_Static_assert(sizeof(s_flash_sizes) / sizeof(s_flash_sizes[0]) == (size_t)FLASH_REGION_COUNT,
+               "every flash region needs a simulated size");
+
+/* Fault injection: when set, hal_flash_write fails */
+static bool s_flash_fail_writes = false;
 
 /* Watchdog simulation state */
 static bool s_wdt_initialized = false;
@@ -512,6 +521,7 @@ SmartQsoResult_t hal_flash_read(HalFlashRegion_t region, uint32_t offset,
 SmartQsoResult_t hal_flash_write(HalFlashRegion_t region, uint32_t offset,
                                   const uint8_t *data, size_t len) {
     if (!s_flash_initialized) return SMART_QSO_ERROR;
+    if (s_flash_fail_writes) return SMART_QSO_ERROR_IO;
     if (!data) return SMART_QSO_ERROR_NULL_PTR;
     if (region >= FLASH_REGION_COUNT) return SMART_QSO_ERROR_INVALID;
     if (offset + len > s_flash_sizes[region]) return SMART_QSO_ERROR_INVALID;
@@ -536,6 +546,10 @@ size_t hal_flash_region_size(HalFlashRegion_t region) {
 uint32_t hal_flash_region_base(HalFlashRegion_t region) {
     (void)region;
     return 0;  /* Not applicable in simulation */
+}
+
+void hal_sim_flash_fail_writes(bool fail) {
+    s_flash_fail_writes = fail;
 }
 
 bool hal_flash_busy(void) {
