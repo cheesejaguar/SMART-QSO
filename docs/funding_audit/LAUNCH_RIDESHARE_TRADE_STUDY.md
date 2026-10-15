@@ -15,7 +15,7 @@ Evidence grades: **[P]** primary source read directly · **[S]** secondary (trad
 
 | Rank | Option | Verdict |
 |------|--------|---------|
-| **1 (baseline)** | **SpaceX Transporter SSO rideshare through a 1U-capable integrator**, contracted for a deployment altitude **≤ 525 km** | Only route with posted 2027 flights. Viable if: (a) booked by about Q2 2027 because of reported post-2028 booking limits, (b) the deployment altitude is held ≤ 525 km for FCC 5-year compliance, (c) the GNSS-ephemeris duty is met, (d) export/ITAR integration-service controls are handled. |
+| **1 (baseline)** | **SpaceX Transporter SSO rideshare through a 1U-capable integrator**, contracted for a deployment altitude **≤ 500 km** (hard limit 525 km) | Only route with posted 2027 flights. Viable if: (a) booked by about Q2 2027 because of reported post-2028 booking limits, (b) the deployment altitude is held ≤ 500 km so FCC 5-year disposal holds even if the solar wings fail to deploy (§3), (c) the GNSS-ephemeris duty is met, (d) export/ITAR integration-service controls are handled. |
 | 2 (backup) | ISS deployment via Voyager (Nanoracks) NRCSD | Simplest debris case and a U.S. integrator, but a 0.3–1.1 year orbital life puts mission success Level 2 (1 year) at risk. It also carries the heaviest battery-safety burden (JSC 20793 Rev D), and ISS retirement is planned for 2030. |
 | 3 (contingency only) | NASA CubeSat Launch Initiative (CSLI/ELaNa) | **Not available for a new 2027–28 launch**: NASA states the next solicitation is anticipated in **2028** [P]. Selection-to-launch has been 2–5 years [P], so launch would be about 2030 or later. Eligibility also needs a U.S. educational institution or nonprofit (e.g., a university or AMSAT partner). |
 | Not recommended | Electron, Firefly Alpha, Isar Spectrum, PSLV, Vega-C SSMS, RFA, Gilmour; any Chinese provider | No 1U-capable rideshare evidenced for 2027–28, unproven or grounded vehicles, or a foreign launch site (export license + ITAR TAA). Chinese launchers are barred: 22 CFR 126.1(d)(1) policy of denial [P]. |
@@ -53,7 +53,7 @@ within about 20 %. NASA DAS must be run before any filing.
 | 525 km | 7.1 / 21.4 yr | 5.8 / 12.5 yr | Yes | Marginal (nominal); bounding fails |
 | 550 km | 8.5 / 34.4 yr | 6.8 / 20.1 yr | Yes | **No** under bounding; marginal nominal |
 
-**Reading:** the sweet spot is a deployment altitude of **450–525 km**. SpaceX posts Transporter SSO flights at
+**Reading:** the sweet spot is a deployment altitude of **475–500 km**. With the baseline mass (1.6 kg, deployment mid-2028) the wings-failed case reaches 7.4 years at 525 km, beyond a 2-year mission plus 5 years, so 525 km is acceptable only with confirmed wing deployment ([BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) §3). SpaceX posts Transporter SSO flights at
 500–600 km [P], so the altitude must be negotiated with the integrator (orbit selection happens around L-5 months
 [P]). If only 550–600 km is available, SMART-QSO needs a drag-augmentation device with demonstrated ≥ 0.9 deployment
 reliability. That device is itself a deployable (3 inhibits, 30-min rule, SpaceX 7-day rule for secondary deployments
@@ -72,7 +72,7 @@ reliability. That device is itself a deployable (3 inhibits, 30-min rule, SpaceX
 | Environments | SpaceX User's Guide v11 (Jul/Aug 2026): random vibration required at no less than the 5.57 Grms MPE; **power-inhibit function verified during random vibe**; first mode > 40 Hz [P]. Integrator levels may be higher [U]. |
 | Space safety | UG v11 §9.5.7: forward-predicted **GNSS-based ephemerides with covariance** to Space-Track and SpaceX within 24 h of first contact. Spacecraft without GPS must arrange a third party before integration [P]. **SMART-QSO has no GNSS receiver in its baseline, so this is an open design/ops item.** Register with 18 SDS by L-2 months [P]. |
 | Deliverables | SpaceX Table G-3 via the integrator: export questionnaire/TAA, configuration webform, STEP CAD, mass properties, environmental test report, hazardous-systems declaration and SSCMAN 91-710 letter (L-6), FAA payload-review template and cross-waivers (L-5), battery-charge certificates, licensing letter with copies of all licenses (L-2) [P]. See [deliverables checklist](../regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md). |
-| Mission fit | SSO gives global coverage, and at ≤ 525 km meets Level 3 (≥ 2 years) and FCC disposal (nominal). |
+| Mission fit | SSO gives global coverage, and at 475–500 km meets Level 3 (≥ 2 years) and FCC disposal (nominal, including the wings-failed case). |
 
 ### 4.2 ISS deployment (Voyager/Nanoracks NRCSD) — BACKUP
 
@@ -123,7 +123,7 @@ Scores run 1 (poor) to 5 (good).
 
 | # | Action | By |
 |---|--------|----|
-| 1 | Request written quotes and 1U availability from Exolaunch and ISISPACE, plus SEOPS and Voyager. Ask for deployment altitude ≤ 525 km, the integrator's vibe levels, export path, and GNSS-ephemeris support | 2026-12-31 |
+| 1 | Request written quotes and 1U availability from Exolaunch and ISISPACE, plus SEOPS and Voyager. Ask for deployment altitude ≤ 500 km (hard limit 525 km), the integrator's vibe levels, export path, and GNSS-ephemeris support | 2026-12-31 |
 | 2 | Retain export counsel; decide whether a TAA is needed for the chosen integrator | 2027-01-31 |
 | 3 | Decide on GNSS (add a receiver vs. contract third-party ephemeris) to meet SpaceX UG §9.5.7 | 2027-01-31 |
 | 4 | Sign a launch reservation for a 2028 Transporter slot. This is the **launch-vehicle determination** that starts the 30-day FCC pre-space clock | ≤ 2027-06-30 |

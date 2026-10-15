@@ -41,7 +41,7 @@
 > |------|-------|
 > | Spacecraft | 1U CubeSat, 100 × 100 × 113.5 mm (CDS Rev 14.1), mass `[ ]` kg **(BL)**, no propulsion, no pressure vessels, no pyrotechnics |
 > | Launch | `[vehicle / mission]`, `[site]`, NET `[date]`; integrator `[ ]`; integration date `[ ]` |
-> | Orbit | Circular, `[altitude]` km **(BL: 450–525 km)**, inclination `[ ]`° **(BL: SSO ~97.4°)**; not maintained (no propulsion). Orbit decays naturally; see ODAR §6 |
+> | Orbit | Circular, `[altitude]` km **(BL: ≤ 500 km target, 525 km maximum)**, inclination `[ ]`° **(BL: SSO ~97.4°)**; not maintained (no propulsion). Orbit decays naturally; see ODAR §6 |
 > | Downlink | `[coordinated frequency]` MHz in 145.800–146.000 MHz; FM transponder downlink and AX.25 telemetry; max EIRP `[ ]` dBW **(BL)** |
 > | Uplink | `[coordinated frequency]` MHz in 435–438 MHz; FM transponder uplink and authenticated telecommand |
 > | Emissions | See ITU data sheet: transponder `16K0F3E`; telemetry `10K4F2D` (1200 bps AFSK/FM); telecommand `10K4F2D` (computed per ITU-R necessary-bandwidth formulas; confirm by measurement, TP-RF-004) |

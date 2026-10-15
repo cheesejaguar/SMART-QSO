@@ -92,7 +92,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **9.1 Launch agency:** `[integrator]` on SpaceX Transporter `[n]` **(BL)**; backup ISS/NRCSD
 - **9.2 Launch location:** Vandenberg SFB, California `[confirm]`
 - **9.3 Expected launch date:** `[2028]`
-- **9.4–9.7 Orbit:** apogee/perigee `[450–525]` km, inclination `[~97.4°]`, period `[93.6–95.1]` min
+- **9.4–9.7 Orbit:** apogee/perigee `[475–500]` km (not above 525 km), inclination `[~97.4°]`, period `[93.6–95.1]` min
 - **9.8 Other amateur satellites on the same launch:** `[if known]`
 
 ### 10. Typical transmitting earth station

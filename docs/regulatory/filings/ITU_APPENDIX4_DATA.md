@@ -32,7 +32,7 @@ fee of cost recovery" (IARU coordination instructions).
 | Number of orbital planes / satellites per plane | 1 / 1 |
 | Reference body | Earth |
 | Inclination | `[~97.4°]` SSO **(BL)**; backup ISS deployment 51.6° |
-| Apogee / perigee altitude | `[450–525]` km circular **(BL)**; backup 400–420 km |
+| Apogee / perigee altitude | `[475–500]` km circular, 525 km maximum **(BL)**; backup 400–420 km |
 | Period | `[93.6–95.1]` min (93.6 min at 450 km, 95.1 min at 525 km; 92.6 min at 400 km) |
 | Station-keeping | None (no propulsion); altitude decays |
 | Right ascension of ascending node / LTAN | `[per launch]` |

@@ -1,5 +1,14 @@
 ## ORBITAL ACCESS AND NRCSD IDD COMPLIANCE PLAN
 
+> **Funding audit notice (2026-10-14): backup path only.** ISS/NRCSD deployment (400–420 km) gives a 0.7–1.9 year
+> orbital life, too short for mission success Level 3. It is the **backup** launch path. The baseline is a commercial
+> SSO rideshare at ≤ 500 km (`docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md`). If the ISS path is used, note:
+> - The current reference is the Voyager (formerly Nanoracks) NRCSD IDD Rev A (2024-01-19). Section numbers below were
+>   written against an older IDD and are unverified.
+> - Batteries require JSC-20793 Rev D and Nanoracks NR-SRD-139 testing (the pack uses 18650 cells, not pouch cells).
+> - Three independent inhibit switches including a ground leg are required; RBF and timers do not count.
+> - The 25-year debris statement below is superseded by the FCC 5-year rule.
+
 This document summarizes how SMART-QSO will comply with the NanoRacks CubeSat Deployer (NRCSD) Interface Definition Document (IDD) for launch vehicle access and integration to ISS/JEM airlock deployment.
 
 - **Primary reference**: [NanoRacks CubeSat Deployer (NRCSD) IDD](https://nanoracks.com/wp-content/uploads/Nanoracks-CubeSat-Deployer-NRCSD-IDD.pdf)

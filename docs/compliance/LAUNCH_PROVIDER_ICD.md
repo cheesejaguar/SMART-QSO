@@ -1,10 +1,18 @@
 # Launch Provider Interface Control Document
 ## SMART-QSO CubeSat Mission
 
+> **Funding audit notice (2026-10-14): not an agreed ICD; statuses are design intent.**
+> No launch provider, integrator or dispenser has been selected, so no interface has been agreed. Entries marked
+> "Qualified", "Tested", "Complete" or given measured values (mass 1.075 kg, 185 Hz, 99.9 mm, shock 2500 g SRS, etc.)
+> are **not** supported by any test or inspection (finding VV-01). The 30-minute RF timer here is superseded by the
+> 45-minute rule (SYS-224). The provider deliverables checklist is
+> `docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md`; the launch path is in
+> `docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md`.
+
 **Document Number:** SQSO-ICD-004
 **Revision:** A
 **Date:** 2026-01-02
-**Reference:** Cal Poly CDS Rev 14.1, GSFC-STD-7000A, NASA Ames SmallSat Heritage
+**Reference:** Cal Poly CDS Rev 14.1, GSFC-STD-7000A (current revision: 7000B)
 
 ---
 

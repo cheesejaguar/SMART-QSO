@@ -2,9 +2,16 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-CDS-001
-**Revision:** A
+**Revision:** A1 (funding audit corrections, 2026-10-14)
 **Date:** 2026-01-02
 **Reference:** Cal Poly CubeSat Design Specification Rev 14.1
+
+> **Funding audit notice (2026-10-14): statuses are design intent, not verified.**
+> No hardware exists. "Compliant" entries and measured-looking values below are design intent or estimates until a test
+> or inspection report is referenced. Rev A also misstated several CDS Rev 14.1 requirements: it swapped the 30/45-minute
+> rules, required only 2 deployment inhibits, and treated the RBF pin and timers as inhibits. The rows in §4.3 and §5.1
+> are corrected below. The matrix still needs a clause-by-clause rebuild (finding VV-14 in
+> `docs/funding_audit/FINDINGS_REGISTER.md`). Governing values: `docs/BASELINE_PARAMETERS.md`.
 
 ---
 
@@ -92,9 +99,9 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 
 | Requirement | CDS Spec | SMART-QSO Design | Status |
 |-------------|----------|------------------|--------|
-| Deployment inhibits | Minimum 2 | 3 (RBF + 2 switches) | Compliant |
-| RF inhibit | Until 30 min after deploy | Timer-based | Compliant |
-| Inhibit independence | Independent mechanisms | Independent | Compliant |
+| Deployable inhibits (§2.3.8) | ≥ 3 independent physical inhibits per deployable; RBF and timers do not count (§2.3.7.1–2) | To be designed (SYS-225) | **Not compliant as documented** (RBF counted) |
+| RF inhibits (§2.3.7) | ≥ 3 independent physical RF inhibits; a timer is not an inhibit | To be designed (SYS-225) | **Not compliant as documented** (timer-based) |
+| Inhibit independence | Independent mechanisms | Inhibit architecture schematic required | Not verified |
 
 ## 5. Operational Requirements
 
@@ -102,9 +109,9 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 
 | Requirement | CDS Spec | SMART-QSO Design | Status |
 |-------------|----------|------------------|--------|
-| RF silence | 30 minutes minimum | 30 minutes (configurable) | Compliant |
-| Deployment timing | After RF silence | 45 minutes (configurable) | Compliant |
-| Timer implementation | Hardware or software | Software with HW backup | Compliant |
+| RF silence (§2.4.5) | No signal generated or transmitted earlier than **45 minutes** after on-orbit deployment | 45 minutes (SYS-224); not yet implemented in flight software (SW-05) | **Open** |
+| Deployables (§2.4.4) | Wait **≥ 30 minutes** after deployment-switch activation | 30 minutes (`software/flight/include/deployment.h`; SYS-221) | Design intent; not verified |
+| Timer reset (§2.3.2.4) | Switch toggle resets transmission and deployable timers | Not implemented (SYS-224) | **Open** |
 
 ### 5.2 RF Emissions
 
@@ -198,3 +205,4 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| A1 | 2026-10-14 | Inhibit and timer rows corrected to CDS Rev 14.1; audit notice | Funding audit |

@@ -1,6 +1,11 @@
 # Beacon-Only RF Design Summary
 ## AI-Powered Autonomous Command and Data Handling for SMART-QSO
 
+> **Funding audit notice (2026-10-14): superseded; not licensable as described.** A space station with "no receiver
+> chain" and "no uplink commands" cannot meet 47 CFR 97.207(b) or ITU RR 22.1 (cessation of emissions by telecommand), and
+> IARU coordination form items 7.8/7.9 cannot be answered. See `docs/RF_PLAN.md` and `docs/BASELINE_PARAMETERS.md` §7.
+> Even the beacon-only descope option (decision D4) keeps the receiver and TX-OFF path.
+
 ### Executive Summary
 
 SMART-QSO employs a **beacon-only RF architecture** that eliminates traditional uplink command capabilities in favor of autonomous AI-driven decision-making. This innovative approach leverages the Jetson Orin Nano Super AI payload to make intelligent operational decisions without ground intervention, while maintaining continuous mission status communication through intelligent beacon transmissions.

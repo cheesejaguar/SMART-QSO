@@ -151,6 +151,8 @@ SMART-QSO is a 1U CubeSat consisting of:
 | SYS-221 | Antenna deployment shall be inhibited until 30 minutes after deployment switch activation | MRD-080 | D |
 | SYS-222 | The antenna shall provide omnidirectional coverage | MRD-022 | A |
 | SYS-223 | Antenna VSWR shall be less than 2:1 at operating frequency | MRD-022 | T |
+| SYS-224 | The spacecraft shall not generate or transmit any RF signal earlier than 45 minutes after on-orbit deployment (CDS Rev 14.1 §2.4.5), and the timer shall reset if a deployment switch toggles (CDS §2.3.2.4) *(added by the funding audit, 2026-10-14)* | MRD-080 | T |
+| SYS-225 | The spacecraft shall have at least three independent physical inhibits between the battery and each RF transmitter, and between the battery and each deployable actuator; RBF pins and timers do not count (CDS Rev 14.1 §2.3.7, §2.3.8) *(added by the funding audit, 2026-10-14)* | MRD-080 | I,T |
 
 ---
 
@@ -285,10 +287,10 @@ SMART-QSO is a 1U CubeSat consisting of:
 
 | ID | Requirement | Parent | Verification |
 |----|-------------|--------|--------------|
-| SYS-800 | The spacecraft shall passivate batteries at end of life | MRD-082 | D |
+| SYS-800 | At end of mission the spacecraft shall permanently disconnect the battery charge path (non-resettable) and leave the battery in a permanent discharge state (47 CFR 97.207(g)(1)(iii)) | MRD-082 | D |
 | SYS-801 | The spacecraft shall disable RF transmitter at end of life | MRD-082 | D |
-| SYS-802 | The spacecraft shall deploy drag device for deorbit (if applicable) | MRD-083 | D |
-| SYS-803 | The spacecraft shall deorbit within 25 years | MRD-083 | A |
+| SYS-802 | *Deleted (funding audit, 2026-10-14):* no separate drag device; disposal is by natural decay with the solar wings deployed (`docs/BASELINE_PARAMETERS.md` §3) | — | — |
+| SYS-803 | The spacecraft shall re-enter no later than 5 years after completion of the mission, and within 25 years per NASA-STD-8719.14C (parent corrected from MRD-083) | MRD-003 | A |
 
 ---
 
@@ -299,13 +301,13 @@ SMART-QSO is a 1U CubeSat consisting of:
 | SYS-001-005 | 1 | 0 | 4 | 3 |
 | SYS-010-023 | 5 | 4 | 0 | 0 |
 | SYS-100-124 | 3 | 3 | 1 | 5 |
-| SYS-200-223 | 1 | 3 | 2 | 6 |
+| SYS-200-225 | 1 | 3 | 3 | 8 |
 | SYS-300-324 | 0 | 12 | 1 | 1 |
 | SYS-400-422 | 0 | 3 | 2 | 4 |
 | SYS-500-523 | 2 | 9 | 1 | 3 |
 | SYS-600-603 | 4 | 0 | 0 | 2 |
 | SYS-700-712 | 3 | 1 | 1 | 2 |
-| SYS-800-803 | 1 | 3 | 0 | 0 |
+| SYS-800-803 | 1 | 2 | 0 | 0 |
 
 ---
 

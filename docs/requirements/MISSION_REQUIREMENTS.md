@@ -64,7 +64,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 |----|-------------|--------------|----------|
 | MRD-001 | The mission shall have a design life of 12 months minimum | A | Critical |
 | MRD-002 | The spacecraft shall be capable of autonomous operations for up to 7 days without ground contact | D | Critical |
-| MRD-003 | The spacecraft shall deorbit within 25 years per NASA-STD-8719.14 | A | Critical |
+| MRD-003 | The spacecraft shall re-enter the atmosphere no later than 5 years after completion of the mission with disposal success probability ≥ 0.9 (47 CFR 97.207(g)(1)(vii)(D)(1)), and within 25 years after mission completion per NASA-STD-8719.14C. *(Changed from the 25-year rule by the funding audit, 2026-10-14; see `docs/regulatory/filings/ODAR_SMART-QSO.md`.)* | A | Critical |
 
 ### 5.2 Orbit Requirements
 
@@ -73,6 +73,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | MRD-010 | The mission shall operate in Low Earth Orbit (LEO) | A | Critical |
 | MRD-011 | The nominal orbit altitude shall be 400-500 km | A | Critical |
 | MRD-012 | The orbit inclination shall support global amateur radio coverage | A | High |
+| MRD-013 | The deployment altitude shall not exceed 500 km unless NASA DAS shows MRD-003 is met with the solar wings undeployed, and shall not exceed 525 km in any case. *(Added by the funding audit, 2026-10-14; see `docs/BASELINE_PARAMETERS.md` §3.)* | A | Critical |
 
 ### 5.3 Communication Requirements
 
