@@ -221,7 +221,7 @@ SMART-QSO implements a **beacon-only RF architecture**:
 ```
 
 **Deployment Sequence**:
-1. Separation detection (30-min timer or accelerometer)
+1. Separation detection; deployables wait ≥ 30 min (CDS §2.4.4). No RF signal before 45 min (CDS §2.4.5, SYS-224), enforced by `rf_silence.c`
 2. Burn-wire activation (2A, 3s pulse)
 3. Spring-loaded tape uncoils
 4. Deployment confirmation via status GPIO

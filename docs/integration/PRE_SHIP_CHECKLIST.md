@@ -105,7 +105,8 @@ This checklist ensures the SMART-QSO CubeSat is ready for shipment to the launch
 | # | Item | Verified | Date | Initials |
 |---|------|----------|------|----------|
 | 11 | 30-minute deploy inhibit configured | ☐ | | |
-| 12 | RF transmit inhibit configured | ☐ | | |
+| 12 | 45-minute RF silence ARMED through the umbilical as the last powered action (TP-FAT-002 §6.7); no power-up of 40 min or more since | ☐ | | |
+| 12a | Deployment switches released read released (RF-silence polarity, TBR) | ☐ | | |
 
 ---
 

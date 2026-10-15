@@ -59,7 +59,7 @@ primary source are labeled ROM.
 | Program management & integrity | **Red** | No PI, licensee, team, budget or dated schedule; self-generated reviews; false affiliation and status claims (PI-01…PI-14) |
 | Mission definition & technical baseline | **Red → Amber** | Three mission definitions and four power families (PI-13, TB-01). The audit proposes a single baseline ([BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md)) pending PI approval |
 | Power / thermal feasibility of the AI payload | **Amber** | Closes on allocation with wings and ≤ 10 % duty (TB-02). The thermal path is unproven (≈ 0.44 W/K documented vs ≥ 1 W/K needed, TB-07) |
-| Flight software | **Red** | Host simulation only; no RTOS or target port; no 45-min RF silence (SW-01, SW-05). Authenticated telecommand, key management and a latched TX-OFF now work end to end in simulation from the receiver HAL; the target receiver driver and hardware verification are open. After the audit: 23 suites, 343 tests passing; overall line coverage was 44.5 % before the telecommand work (not re-measured on the same basis) |
+| Flight software | **Red** | Host simulation only; no RTOS or target port (SW-01). The 45-min RF silence is now implemented in simulation (SW-05). Authenticated telecommand, key management and a latched TX-OFF now work end to end in simulation from the receiver HAL; the target receiver driver and hardware verification are open. After the audit: 24 suites, 354 tests passing; overall line coverage was 44.5 % before the telecommand work (not re-measured on the same basis) |
 | Payload & ground software | **Amber** | 143 payload and 98 ground tests now pass in CI. The OBC–Jetson protocol is implemented three incompatible ways (SW-24); AI text needs content controls (SW-12) |
 | Verification & test program | **Red** | Hardware results claimed with no hardware; requirements traceability broken (2 of 29 trace cleanly); test levels inconsistent with GEVS/CDS/provider (VV-01, VV-06, VV-10) |
 | Safety & mission assurance | **Red** | Catastrophic battery hazard closed without test; inhibits do not meet CDS (3+3); no battery safety program (VV-03…VV-05) |
@@ -72,7 +72,7 @@ primary source are labeled ROM.
 | Theme | Findings | Summary |
 |-------|----------|---------|
 | Integrity of claims | PI-01, PI-02, PI-03, RG-02 | NASA named as operator, owner and copyright holder; Federal spectrum filings "Submitted/Complete"; reviews self-generated. *Corrected or relabeled by this audit; the real team and reviews remain open* |
-| Licensability | RG-01, RG-03, SW-02, SW-05 | The beacon-only design has no receiver, so it cannot cease emissions by telecommand (97.207(b), RR 22.1). The audit implemented authenticated TX-OFF and its receive path in flight software (simulation). Exercising it needs a selected receiver, its driver and the TP-RF-006 hardware test. There is no 45-min RF-silence gate. No licensee |
+| Licensability | RG-01, RG-03, SW-02, SW-05 | The beacon-only design has no receiver, so it cannot cease emissions by telecommand (97.207(b), RR 22.1). The audit implemented authenticated TX-OFF and its receive path in flight software (simulation). Exercising it needs a selected receiver, its driver and the TP-RF-006 hardware test. The 45-min RF silence is implemented in simulation; hardware verification is pending. No licensee |
 | Flight software maturity | SW-01 | Host-only simulation; safety-critical modules never called |
 | Technical baseline | TB-01, TB-02, TB-03, TB-04 | Impossible battery figure; payload energy not closed; lifetime at 400 km shorter than design life; transponder undefined |
 | Launch-safety compliance | VV-01, VV-02, VV-03, VV-04, VV-05 | "Qualified/Tested" with no hardware; 30-min RF silence vs the required 45; inhibits below CDS; no battery safety program; catastrophic hazard closed without test |
@@ -198,7 +198,10 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
       receiver stays on; N is set by telecommand (1–90 days; the 14-day default is a placeholder pending D3); the
       M-day autonomous passivation is not implemented
     - TX-OFF hardware test procedure TP-RF-006 (not yet run)
-    - 9 new suites (14 → 23 suites; 243 → 343 tests)
+    - 45-minute post-deployment RF silence: whole radio unpowered; a power-on reset or switch toggle restarts it; a
+      watchdog reset never shortens it; no telecommand can shorten it; the GSE re-arms it as the last action before
+      shipping
+    - 10 new suites (14 → 24 suites; 243 → 354 tests)
 - **Analysis tools:** NRLMSIS 2.1 orbital lifetime estimator with tests (`software/simulation/orbit_lifetime/`).
 - **CI:** new "Program Checks" workflow runs payload, ground and simulation tests, plus a documentation-reference
   integrity check, on every pull request. Previously docs/payload/ground PRs ran no checks. The duplicate workflow name
@@ -208,7 +211,7 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
 
 **Flagged, not changed:**
 
-- Flight-software functional gaps (SW-01, SW-05, SW-08, SW-10, SW-13…SW-16; the open parts of SW-02 and SW-14, chiefly
+- Flight-software functional gaps (SW-01, SW-08, SW-10, SW-13…SW-16; the open parts of SW-02, SW-05 and SW-14, chiefly
   the target receiver driver, which waits on the transceiver selection, and running TP-RF-006 on hardware)
 - The OBC–Jetson protocol mismatch (SW-24)
 - Subsystem design documents that still carry superseded values (TB findings)

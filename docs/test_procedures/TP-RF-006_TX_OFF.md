@@ -11,7 +11,7 @@
 
 ## 1. Purpose
 
-Verify on hardware that an authenticated telecommand stops every emission at the antenna port, that the stop survives reset and safe mode, and that only authenticated commands can restart transmission. This verifies SYS-204, SYS-205 and SYS-325 and supports the cessation-of-emissions statements in the FCC pre-space notification (item 6 of its checklist) and in IARU form item 7.8.
+Verify on hardware that an authenticated telecommand stops every emission at the antenna port, that the stop survives reset and safe mode, and that only authenticated commands can restart transmission. This verifies SYS-204, SYS-205, SYS-224 and SYS-325 and supports the cessation-of-emissions statements in the FCC pre-space notification (item 6 of its checklist) and in IARU form item 7.8.
 
 ## 2. Scope
 
@@ -23,6 +23,7 @@ The test is conducted only: the RF output goes into an attenuator and a load, an
 - Replayed, forged and unauthenticated commands rejected
 - TX-OFF without any key material (key-loss rule)
 - Loss-of-contact inhibit (SYS-205) and its release by an authenticated command
+- Post-deployment 45-minute RF silence (SYS-224), including a mid-countdown watchdog reset and a power toggle
 - Key rotation with the recovery key
 
 ## 3. Applicable Documents
@@ -140,7 +141,21 @@ Each command below is built with `telecommand_builder.py <COMMAND> --key-file <k
 | 23e | Send NOP (operational key) | Beacons resume within one interval | |
 | 23f | Send SET_CONTACT_TIMEOUT back to the configured value | Accepted | |
 
-### 8.8 Completion
+### 8.8 Post-deployment RF silence (SYS-224)
+
+Monitor the downlink frequency and its harmonics, and the receiver's local-oscillator frequency, continuously (max hold).
+
+| Step | Action | Expected Result | P/F |
+|------|--------|-----------------|-----|
+| 23g | Send `arm-rf-silence` through the umbilical; power off; disconnect the umbilical | Reply `SQGR 00` before power-off | |
+| 23h | Apply power with the deployment switches released (simulated deployment); start a timer | Boot log `state=COUNTING elapsed=0s`; radio and transmitter unpowered; no signal | |
+| 23i | At 30 min, force a watchdog reset (debug command or by withholding the watchdog kick) | Silent; boot log shows the count resumed (about 1,800 s) | |
+| 23j | At 40 min, remove and restore power (switch toggle) | Silent; count restarts at 0 | |
+| 23k | Send TX_ENABLE (operational key) during the silence | No effect while the radio is off; still silent | |
+| 23l | Continue to 45 min after step 23j | First beacon no earlier than 45:00 after 23j | |
+| 23m | Re-arm (step 23g) before any further integration activity | `SQGR 00` | |
+
+### 8.9 Completion
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|

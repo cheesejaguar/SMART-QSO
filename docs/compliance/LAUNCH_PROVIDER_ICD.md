@@ -5,7 +5,7 @@
 > No launch provider, integrator or dispenser has been selected, so no interface has been agreed. Entries marked
 > "Qualified", "Tested", "Complete" or given measured values (mass 1.075 kg, 185 Hz, 99.9 mm, shock 2500 g SRS, etc.)
 > are **not** supported by any test or inspection (finding VV-01). The 30-minute RF timer here is superseded by the
-> 45-minute rule (SYS-224). The provider deliverables checklist is
+> 45-minute rule (SYS-224), now implemented in flight software (`rf_silence.c`; hardware test pending). The provider deliverables checklist is
 > `docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md`; the launch path is in
 > `docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md`.
 

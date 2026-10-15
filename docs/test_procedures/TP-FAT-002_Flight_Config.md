@@ -145,7 +145,7 @@ This procedure verifies that the flight unit is configured correctly for launch 
 | 3 | Verify separation switch | Not actuated | |
 | 4 | Remove RBF momentarily | Inhibit clears | |
 | 5 | Re-install RBF pin | Inhibit active | |
-| 6 | Verify RF inhibit (if applicable) | Per launch config | |
+| 6 | Verify deployment switches released read released (RF-silence count advances) | Polarity confirmed (SQSO-ICD-013 §6.3, TBR) | |
 
 ### 6.5 Pre-Ship Battery State
 
@@ -169,6 +169,16 @@ This procedure verifies that the flight unit is configured correctly for launch 
 | Mass Properties Report | | | |
 
 ---
+
+### 6.7 Flight Arming of the RF Silence (last powered action)
+
+Bench power-ups complete the 45-minute silence, and completion persists. Arm it last (SQSO-ICD-013 §6.3).
+
+| Step | Action | Expected | P/F |
+|------|--------|----------|-----|
+| 1 | With the umbilical connected, send `key_provision.py arm-rf-silence` frame | Reply `SQGR 00` | |
+| 2 | Power off | Done; time recorded | |
+| 3 | Any later power-up of 40 minutes or more | Repeat steps 1–2 before integration | |
 
 ## 7. PASS/FAIL CRITERIA
 

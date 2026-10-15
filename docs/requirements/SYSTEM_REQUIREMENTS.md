@@ -153,7 +153,7 @@ SMART-QSO is a 1U CubeSat consisting of:
 | SYS-221 | Antenna deployment shall be inhibited until 30 minutes after deployment switch activation | MRD-080 | D |
 | SYS-222 | The antenna shall provide omnidirectional coverage | MRD-022 | A |
 | SYS-223 | Antenna VSWR shall be less than 2:1 at operating frequency | MRD-022 | T |
-| SYS-224 | The spacecraft shall not generate or transmit any RF signal earlier than 45 minutes after on-orbit deployment (CDS Rev 14.1 §2.4.5), and the timer shall reset if a deployment switch toggles (CDS §2.3.2.4) *(added by the funding audit, 2026-10-14)* | MRD-080 | T |
+| SYS-224 | The spacecraft shall not generate or transmit any RF signal earlier than 45 minutes after on-orbit deployment (CDS Rev 14.1 §2.4.5), and the timer shall reset if a deployment switch toggles (CDS §2.3.2.4). A power-on, brownout or unknown reset shall restart the timer; a watchdog or software reset shall not shorten it; no telecommand shall shorten or clear it *(added by the funding audit, 2026-10-14; reset rules 2026-10-15; SQSO-ICD-013 §6.3)* | MRD-080 | T |
 | SYS-225 | The spacecraft shall have at least three independent physical inhibits between the battery and each RF transmitter, and between the battery and each deployable actuator; RBF pins and timers do not count (CDS Rev 14.1 §2.3.7, §2.3.8) *(added by the funding audit, 2026-10-14)* | MRD-080 | I,T |
 
 ---
