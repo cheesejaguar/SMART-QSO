@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -28,6 +29,7 @@ typedef struct {
     uint8_t min_args;        /**< Minimum argument bytes */
     uint8_t max_args;        /**< Maximum argument bytes */
     CmdKeyClass_t key;       /**< Authenticating key */
+    bool without_key;        /**< Accepted unauthenticated when no key is usable */
 } CmdDictEntry_t;
 
 /** The dictionary, in command-ID order */

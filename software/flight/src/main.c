@@ -24,6 +24,7 @@
 #include "mission_data.h"
 #include "rf_control.h"
 #include "cmd_handler.h"
+#include "gse_provision.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_flash.h"
 
@@ -130,10 +131,15 @@ static SmartQsoResult_t init_system(void)
      * (47 CFR 97.207(b)); a corrupt latch keeps the transmitter off */
     (void)rf_control_init();
 
-    /* Load the telecommand key; unprovisioned rejects every command */
+    /* Load the telecommand key table; with no key only TX-OFF is accepted */
     result = cmd_handler_init();
     if (result != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Command handler init failed\n");
+    }
+
+    /* Key provisioning port: honoured only while the GSE umbilical is present */
+    if (gse_init() != SMART_QSO_OK) {
+        fprintf(stderr, "[SYSTEM] GSE provisioning port init failed\n");
     }
 
     /* Initialize mission data */
@@ -440,6 +446,9 @@ static SmartQsoResult_t run_main_loop(void)
 
         /* Sensor polling */
         (void)sensors_poll(now);
+
+        /* Key provisioning (umbilical only) */
+        (void)gse_poll();
 
         /* Periodic data persistence */
         if (tick % PERSISTENCE_INTERVAL_TICKS == 0) {

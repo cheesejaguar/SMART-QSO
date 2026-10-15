@@ -48,6 +48,18 @@ def test_invalid_entries_rejected(change, message):
         gen.validate(dictionary({**ENTRY, **change}))
 
 
+def test_without_key_flag_emitted():
+    source = gen.render_c(gen.validate(dictionary({**ENTRY, "without_key": True})))
+    assert "CMD_KEY_ANY, true }" in source
+    module = gen.render_python(gen.validate(dictionary({**ENTRY, "without_key": True})))
+    assert "without_key=True" in module
+
+
+def test_without_key_requires_any_key():
+    with pytest.raises(ValueError, match="without_key"):
+        gen.validate(dictionary({**ENTRY, "key": "operational", "without_key": True}))
+
+
 def test_duplicate_id_rejected():
     other = {**ENTRY, "name": "OTHER", "c_name": "CMD_OTHER"}
     with pytest.raises(ValueError, match="duplicate"):

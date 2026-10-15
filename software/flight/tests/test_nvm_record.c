@@ -196,6 +196,49 @@ static void test_null_arguments(void **state)
                      SMART_QSO_ERROR_NULL_PTR);
 }
 
+/** Records at different base offsets in one region are independent */
+static void test_records_at_offsets_are_independent(void **state)
+{
+    (void)state;
+    TestPayload_t a = {1U, 2U};
+    TestPayload_t b = {3U, 4U};
+    TestPayload_t out = {0};
+    NvmRecordStatus_t status = NVM_RECORD_BLANK;
+
+    assert_int_equal(nvm_record_save_at(TEST_REGION, 0U, TEST_MAGIC, &a, sizeof(a)), SMART_QSO_OK);
+    assert_int_equal(nvm_record_save_at(TEST_REGION, NVM_RECORD_FOOTPRINT, TEST_MAGIC, &b, sizeof(b)),
+                     SMART_QSO_OK);
+    assert_int_equal(nvm_record_save_at(TEST_REGION, NVM_RECORD_FOOTPRINT, TEST_MAGIC, &b, sizeof(b)),
+                     SMART_QSO_OK);
+
+    assert_int_equal(nvm_record_load_at(TEST_REGION, 0U, TEST_MAGIC, &out, sizeof(out), &status),
+                     SMART_QSO_OK);
+    assert_int_equal(status, NVM_RECORD_VALID);
+    assert_int_equal(out.value, 1U);
+    assert_int_equal(nvm_record_load_at(TEST_REGION, NVM_RECORD_FOOTPRINT, TEST_MAGIC, &out,
+                                        sizeof(out), &status), SMART_QSO_OK);
+    assert_int_equal(status, NVM_RECORD_VALID);
+    assert_int_equal(out.value, 3U);
+    assert_int_equal(nvm_record_load_at(TEST_REGION, 2U * NVM_RECORD_FOOTPRINT, TEST_MAGIC, &out,
+                                        sizeof(out), &status), SMART_QSO_OK);
+    assert_int_equal(status, NVM_RECORD_BLANK);
+}
+
+/** The base-0 calls are the same record as the _at calls with base 0 */
+static void test_default_record_is_base_zero(void **state)
+{
+    (void)state;
+    TestPayload_t a = {7U, 8U};
+    TestPayload_t out = {0};
+    NvmRecordStatus_t status = NVM_RECORD_BLANK;
+
+    assert_int_equal(nvm_record_save(TEST_REGION, TEST_MAGIC, &a, sizeof(a)), SMART_QSO_OK);
+    assert_int_equal(nvm_record_load_at(TEST_REGION, 0U, TEST_MAGIC, &out, sizeof(out), &status),
+                     SMART_QSO_OK);
+    assert_int_equal(status, NVM_RECORD_VALID);
+    assert_int_equal(out.value, 7U);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -209,6 +252,8 @@ int main(void)
         cmocka_unit_test_setup(test_other_magic_is_not_this_record, setup),
         cmocka_unit_test_setup(test_rejects_oversized_payload, setup),
         cmocka_unit_test_setup(test_null_arguments, setup),
+        cmocka_unit_test_setup(test_records_at_offsets_are_independent, setup),
+        cmocka_unit_test_setup(test_default_record_is_base_zero, setup),
     };
 
     return cmocka_run_group_tests_name("NVM Record Tests", tests, NULL, NULL);

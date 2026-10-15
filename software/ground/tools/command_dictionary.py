@@ -16,21 +16,23 @@ class CommandSpec:
     max_args: int
     key: str
     summary: str
+    without_key: bool = False
 
 
 COMMANDS: Dict[str, CommandSpec] = {
-    "NOP": CommandSpec(0x00, 0, 0, "operational", "No operation"),
-    "RESET": CommandSpec(0x01, 0, 0, "operational", "System reset (logged only until a hardware reset exists)"),
-    "SET_MODE": CommandSpec(0x02, 1, 1, "operational", "Set mode through the transition table: 0 SAFE, 1 IDLE, 2 ACTIVE"),
-    "GET_STATUS": CommandSpec(0x03, 0, 0, "operational", "Get system status (4 bytes)"),
-    "CLEAR_FAULTS": CommandSpec(0x05, 0, 0, "operational", "Clear fault log"),
-    "EPS_SET_MODE": CommandSpec(0x10, 1, 1, "operational", "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE"),
-    "EPS_GET_TELEMETRY": CommandSpec(0x13, 0, 0, "operational", "Get EPS telemetry"),
-    "ADCS_DETUMBLE": CommandSpec(0x21, 0, 0, "operational", "Start detumble"),
-    "ADCS_GET_ATTITUDE": CommandSpec(0x23, 0, 0, "operational", "Get attitude"),
-    "SET_BEACON": CommandSpec(0x30, 2, 2, "operational", "Set beacon interval, seconds big-endian, 10 to 120"),
-    "TX_ENABLE": CommandSpec(0x31, 0, 0, "operational", "Clear the latched TX-OFF"),
-    "TX_DISABLE": CommandSpec(0x32, 0, 0, "any", "Latch TX-OFF in every state (47 CFR 97.207(b))"),
-    "PLD_ENABLE": CommandSpec(0x40, 0, 0, "operational", "Enable payload"),
-    "PLD_DISABLE": CommandSpec(0x41, 0, 0, "operational", "Disable payload"),
+    "NOP": CommandSpec(0x00, 0, 0, "operational", "No operation", without_key=False),
+    "RESET": CommandSpec(0x01, 0, 0, "operational", "System reset (logged only until a hardware reset exists)", without_key=False),
+    "SET_MODE": CommandSpec(0x02, 1, 1, "operational", "Set mode through the transition table: 0 SAFE, 1 IDLE, 2 ACTIVE", without_key=False),
+    "GET_STATUS": CommandSpec(0x03, 0, 0, "operational", "Get system status (4 bytes)", without_key=False),
+    "CLEAR_FAULTS": CommandSpec(0x05, 0, 0, "operational", "Clear fault log", without_key=False),
+    "KEY_ROTATE": CommandSpec(0x06, 1, 1, "recovery", "Activate spare operational key slot 0-3 and revoke the current key (recovery key only)", without_key=False),
+    "EPS_SET_MODE": CommandSpec(0x10, 1, 1, "operational", "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE", without_key=False),
+    "EPS_GET_TELEMETRY": CommandSpec(0x13, 0, 0, "operational", "Get EPS telemetry", without_key=False),
+    "ADCS_DETUMBLE": CommandSpec(0x21, 0, 0, "operational", "Start detumble", without_key=False),
+    "ADCS_GET_ATTITUDE": CommandSpec(0x23, 0, 0, "operational", "Get attitude", without_key=False),
+    "SET_BEACON": CommandSpec(0x30, 2, 2, "operational", "Set beacon interval, seconds big-endian, 10 to 120", without_key=False),
+    "TX_ENABLE": CommandSpec(0x31, 0, 0, "operational", "Clear the latched TX-OFF", without_key=False),
+    "TX_DISABLE": CommandSpec(0x32, 0, 0, "any", "Latch TX-OFF in every state (47 CFR 97.207(b))", without_key=True),
+    "PLD_ENABLE": CommandSpec(0x40, 0, 0, "operational", "Enable payload", without_key=False),
+    "PLD_DISABLE": CommandSpec(0x41, 0, 0, "operational", "Disable payload", without_key=False),
 }

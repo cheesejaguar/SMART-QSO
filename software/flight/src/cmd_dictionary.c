@@ -9,20 +9,21 @@
 #include "cmd_handler.h"
 
 const CmdDictEntry_t g_cmd_dictionary[] = {
-    { (uint8_t)CMD_SYS_NOP, 0U, 0U, CMD_KEY_OPERATIONAL }, /* NOP */
-    { (uint8_t)CMD_SYS_RESET, 0U, 0U, CMD_KEY_OPERATIONAL }, /* RESET */
-    { (uint8_t)CMD_SYS_SET_MODE, 1U, 1U, CMD_KEY_OPERATIONAL }, /* SET_MODE */
-    { (uint8_t)CMD_SYS_GET_STATUS, 0U, 0U, CMD_KEY_OPERATIONAL }, /* GET_STATUS */
-    { (uint8_t)CMD_SYS_CLEAR_FAULTS, 0U, 0U, CMD_KEY_OPERATIONAL }, /* CLEAR_FAULTS */
-    { (uint8_t)CMD_EPS_SET_MODE, 1U, 1U, CMD_KEY_OPERATIONAL }, /* EPS_SET_MODE */
-    { (uint8_t)CMD_EPS_GET_TELEMETRY, 0U, 0U, CMD_KEY_OPERATIONAL }, /* EPS_GET_TELEMETRY */
-    { (uint8_t)CMD_ADCS_DETUMBLE, 0U, 0U, CMD_KEY_OPERATIONAL }, /* ADCS_DETUMBLE */
-    { (uint8_t)CMD_ADCS_GET_ATTITUDE, 0U, 0U, CMD_KEY_OPERATIONAL }, /* ADCS_GET_ATTITUDE */
-    { (uint8_t)CMD_COMM_SET_BEACON, 2U, 2U, CMD_KEY_OPERATIONAL }, /* SET_BEACON */
-    { (uint8_t)CMD_COMM_TX_ENABLE, 0U, 0U, CMD_KEY_OPERATIONAL }, /* TX_ENABLE */
-    { (uint8_t)CMD_COMM_TX_DISABLE, 0U, 0U, CMD_KEY_ANY }, /* TX_DISABLE */
-    { (uint8_t)CMD_PLD_ENABLE, 0U, 0U, CMD_KEY_OPERATIONAL }, /* PLD_ENABLE */
-    { (uint8_t)CMD_PLD_DISABLE, 0U, 0U, CMD_KEY_OPERATIONAL }, /* PLD_DISABLE */
+    { (uint8_t)CMD_SYS_NOP, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* NOP */
+    { (uint8_t)CMD_SYS_RESET, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* RESET */
+    { (uint8_t)CMD_SYS_SET_MODE, 1U, 1U, CMD_KEY_OPERATIONAL, false }, /* SET_MODE */
+    { (uint8_t)CMD_SYS_GET_STATUS, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* GET_STATUS */
+    { (uint8_t)CMD_SYS_CLEAR_FAULTS, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* CLEAR_FAULTS */
+    { (uint8_t)CMD_SYS_KEY_ROTATE, 1U, 1U, CMD_KEY_RECOVERY, false }, /* KEY_ROTATE */
+    { (uint8_t)CMD_EPS_SET_MODE, 1U, 1U, CMD_KEY_OPERATIONAL, false }, /* EPS_SET_MODE */
+    { (uint8_t)CMD_EPS_GET_TELEMETRY, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* EPS_GET_TELEMETRY */
+    { (uint8_t)CMD_ADCS_DETUMBLE, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* ADCS_DETUMBLE */
+    { (uint8_t)CMD_ADCS_GET_ATTITUDE, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* ADCS_GET_ATTITUDE */
+    { (uint8_t)CMD_COMM_SET_BEACON, 2U, 2U, CMD_KEY_OPERATIONAL, false }, /* SET_BEACON */
+    { (uint8_t)CMD_COMM_TX_ENABLE, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* TX_ENABLE */
+    { (uint8_t)CMD_COMM_TX_DISABLE, 0U, 0U, CMD_KEY_ANY, true }, /* TX_DISABLE */
+    { (uint8_t)CMD_PLD_ENABLE, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* PLD_ENABLE */
+    { (uint8_t)CMD_PLD_DISABLE, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* PLD_DISABLE */
 };
 
 const size_t g_cmd_dictionary_count = sizeof(g_cmd_dictionary) / sizeof(g_cmd_dictionary[0]);

@@ -54,6 +54,12 @@ static SimI2cDevice_t s_i2c_devices[] = {
 /* UART simulation state */
 static bool s_uart_initialized[UART_PORT_COUNT];
 
+/* Simulated receive FIFO per port, filled by hal_sim_uart_inject() */
+#define SIM_UART_RX_SIZE 512U
+static uint8_t s_uart_rx[UART_PORT_COUNT][SIM_UART_RX_SIZE];
+static size_t s_uart_rx_head[UART_PORT_COUNT];
+static size_t s_uart_rx_count[UART_PORT_COUNT];
+
 /* SPI simulation state */
 static bool s_spi_initialized[SPI_BUS_COUNT];
 
@@ -83,7 +89,7 @@ static size_t s_flash_sizes[] = {
     4096,   /* FAULT_LOG */
     1024,   /* BACKUP */
     512,    /* STATE (SystemState_t) */
-    128,    /* AUTH (two 64-byte record slots) */
+    768,    /* AUTH (key table: CMD_AUTH_NVM_SIZE, six two-slot records) */
     128     /* RF_CONTROL (two 64-byte record slots) */
 };
 _Static_assert(sizeof(s_flash_sizes) / sizeof(s_flash_sizes[0]) == (size_t)FLASH_REGION_COUNT,
@@ -91,6 +97,9 @@ _Static_assert(sizeof(s_flash_sizes) / sizeof(s_flash_sizes[0]) == (size_t)FLASH
 
 /* Fault injection: when set, hal_flash_write fails */
 static bool s_flash_fail_writes = false;
+
+/* Fault injection: writes left before hal_flash_write starts failing (-1 = off) */
+static int32_t s_flash_writes_before_fail = -1;
 
 /* Watchdog simulation state */
 static bool s_wdt_initialized = false;
@@ -311,15 +320,21 @@ SmartQsoResult_t hal_uart_write(HalUartPort_t port, const uint8_t *data, size_t 
 
 SmartQsoResult_t hal_uart_read(HalUartPort_t port, uint8_t *data, size_t len,
                                 uint32_t timeout_ms, size_t *bytes_read) {
-    (void)len;          /* Buffer length not used - no data in simulation */
     (void)timeout_ms;
 
     if (port >= UART_PORT_COUNT || !s_uart_initialized[port]) return SMART_QSO_ERROR;
     if (!data || !bytes_read) return SMART_QSO_ERROR_NULL_PTR;
 
-    /* In simulation, return empty (no data available) */
-    *bytes_read = 0;
-    return SMART_QSO_ERROR_TIMEOUT;
+    /* Return injected bytes, if any; otherwise time out */
+    size_t n = 0U;
+    while ((n < len) && (s_uart_rx_count[port] > 0U)) {
+        data[n] = s_uart_rx[port][s_uart_rx_head[port]];
+        s_uart_rx_head[port] = (s_uart_rx_head[port] + 1U) % SIM_UART_RX_SIZE;
+        s_uart_rx_count[port]--;
+        n++;
+    }
+    *bytes_read = n;
+    return (n > 0U) ? SMART_QSO_OK : SMART_QSO_ERROR_TIMEOUT;
 }
 
 SmartQsoResult_t hal_uart_read_line(HalUartPort_t port, char *buffer,
@@ -335,12 +350,14 @@ SmartQsoResult_t hal_uart_read_line(HalUartPort_t port, char *buffer,
 }
 
 size_t hal_uart_available(HalUartPort_t port) {
-    (void)port;
-    return 0;  /* No data in simulation */
+    if (port >= UART_PORT_COUNT) return 0U;
+    return s_uart_rx_count[port];
 }
 
 SmartQsoResult_t hal_uart_flush(HalUartPort_t port) {
-    (void)port;
+    if (port >= UART_PORT_COUNT) return SMART_QSO_ERROR_INVALID;
+    s_uart_rx_head[port] = 0U;
+    s_uart_rx_count[port] = 0U;
     return SMART_QSO_OK;
 }
 
@@ -522,6 +539,8 @@ SmartQsoResult_t hal_flash_write(HalFlashRegion_t region, uint32_t offset,
                                   const uint8_t *data, size_t len) {
     if (!s_flash_initialized) return SMART_QSO_ERROR;
     if (s_flash_fail_writes) return SMART_QSO_ERROR_IO;
+    if (s_flash_writes_before_fail == 0) return SMART_QSO_ERROR_IO;
+    if (s_flash_writes_before_fail > 0) s_flash_writes_before_fail--;
     if (!data) return SMART_QSO_ERROR_NULL_PTR;
     if (region >= FLASH_REGION_COUNT) return SMART_QSO_ERROR_INVALID;
     if (offset + len > s_flash_sizes[region]) return SMART_QSO_ERROR_INVALID;
@@ -546,6 +565,27 @@ size_t hal_flash_region_size(HalFlashRegion_t region) {
 uint32_t hal_flash_region_base(HalFlashRegion_t region) {
     (void)region;
     return 0;  /* Not applicable in simulation */
+}
+
+void hal_sim_gpio_drive_input(HalGpioPin_t pin, bool state) {
+    if (pin < GPIO_PIN_COUNT) {
+        s_gpio_state[pin] = state;
+    }
+}
+
+SmartQsoResult_t hal_sim_uart_inject(HalUartPort_t port, const uint8_t *data, size_t len) {
+    if ((port >= UART_PORT_COUNT) || (data == NULL)) return SMART_QSO_ERROR_INVALID;
+    if (len > (SIM_UART_RX_SIZE - s_uart_rx_count[port])) return SMART_QSO_ERROR_NO_MEM;
+    for (size_t i = 0U; i < len; i++) {
+        size_t tail = (s_uart_rx_head[port] + s_uart_rx_count[port]) % SIM_UART_RX_SIZE;
+        s_uart_rx[port][tail] = data[i];
+        s_uart_rx_count[port]++;
+    }
+    return SMART_QSO_OK;
+}
+
+void hal_sim_flash_fail_writes_after(int32_t writes) {
+    s_flash_writes_before_fail = writes;
 }
 
 void hal_sim_flash_fail_writes(bool fail) {

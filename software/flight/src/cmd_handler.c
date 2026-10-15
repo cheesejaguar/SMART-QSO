@@ -159,7 +159,7 @@ SmartQsoResult_t cmd_process(const uint8_t *raw_data,
     /* Persist the counter before executing so a replay fails even after a
      * reset. TX-OFF still executes if persistence fails: reducing emissions
      * is always safe, and a replayed TX-OFF can only silence the station. */
-    if ((cmd_auth_commit(verified.counter) != SMART_QSO_OK) &&
+    if ((cmd_auth_commit(&verified) != SMART_QSO_OK) &&
         (validation.cmd_id != (uint8_t)CMD_COMM_TX_DISABLE)) {
         reject(response, CMD_RESULT_EXEC_FAIL, "Command counter not persisted");
         return SMART_QSO_OK;
@@ -261,8 +261,10 @@ bool cmd_is_allowed(uint8_t cmd_id)
         return true;
     }
 
-    /* Transmitter on/off must work in every state (47 CFR 97.207(b)) */
-    if ((cmd_id == CMD_COMM_TX_DISABLE) || (cmd_id == CMD_COMM_TX_ENABLE)) {
+    /* Transmitter on/off must work in every state (47 CFR 97.207(b)), and
+     * so must key rotation, which restores control after a key compromise */
+    if ((cmd_id == CMD_COMM_TX_DISABLE) || (cmd_id == CMD_COMM_TX_ENABLE) ||
+        (cmd_id == CMD_SYS_KEY_ROTATE)) {
         return true;
     }
 
@@ -399,6 +401,16 @@ static CmdResult_t handle_system_cmd(const Command_t *cmd, CmdResponse_t *respon
         case CMD_SYS_CLEAR_FAULTS:
             (void)fault_log_clear();
             return CMD_RESULT_SUCCESS;
+
+        case CMD_SYS_KEY_ROTATE: {
+            /* Authenticated by the recovery key (dictionary key class) */
+            SmartQsoResult_t rotated = cmd_auth_rotate(cmd->payload[0]);
+            if (rotated == SMART_QSO_OK) {
+                return CMD_RESULT_SUCCESS;
+            }
+            return (rotated == SMART_QSO_ERROR_INVALID) ? CMD_RESULT_INVALID_PARAM
+                                                        : CMD_RESULT_EXEC_FAIL;
+        }
 
         default:
             return CMD_RESULT_INVALID_CMD;

@@ -25,6 +25,7 @@
 #include "state_machine.h"
 #include "fault_mgmt.h"
 #include "sha256.h"
+#include "auth_test_helpers.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_flash.h"
 #include "hal/hal_sim.h"
@@ -220,15 +221,22 @@ static void test_tx_disable_accepted_in_every_state(void **state)
     }
 }
 
-static void test_unprovisioned_rejects_tx_disable(void **state)
+/** With no usable key, TX_DISABLE still silences the station (97.207(b)),
+ *  but nothing else is accepted, including TX_ENABLE */
+static void test_no_key_material_tx_disable_still_silences(void **state)
 {
     (void)state;
+    uint8_t forged[CMD_AUTH_OVERHEAD];
+
     assert_int_equal(hal_flash_erase(FLASH_REGION_AUTH), SMART_QSO_OK);
     assert_int_equal(cmd_handler_init(), SMART_QSO_OK);
+    memset(forged, 0xEE, sizeof(forged));
 
-    assert_int_equal(send(CMD_COMM_TX_DISABLE, TX_DISABLE_CTR1, sizeof(TX_DISABLE_CTR1)),
-                     CMD_RESULT_AUTH_FAIL);
-    assert_true(rf_control_tx_permitted());
+    assert_int_equal(send(CMD_SYS_GET_STATUS, forged, sizeof(forged)), CMD_RESULT_AUTH_FAIL);
+    assert_int_equal(send(CMD_COMM_TX_DISABLE, forged, sizeof(forged)), CMD_RESULT_SUCCESS);
+    assert_false(rf_control_tx_permitted());
+    assert_int_equal(send(CMD_COMM_TX_ENABLE, forged, sizeof(forged)), CMD_RESULT_AUTH_FAIL);
+    assert_false(rf_control_tx_permitted());
 }
 
 /** The old public constant no longer authorizes anything: a payload too
@@ -459,6 +467,48 @@ static void test_set_mode_obeys_transition_table(void **state)
     assert_int_equal(current_state(), STATE_ACTIVE);
 }
 
+/** KEY_ROTATE: recovery key only, spare target only, any state; afterwards
+ *  the old operational key is dead and the new one starts at counter 1 */
+static void test_key_rotate_end_to_end(void **state)
+{
+    (void)state;
+    uint8_t old_key[CMD_AUTH_KEY_SIZE];
+    uint8_t new_key[CMD_AUTH_KEY_SIZE];
+    uint8_t recovery_key[CMD_AUTH_KEY_SIZE];
+    uint8_t payload[CMD_AUTH_OVERHEAD + 1U];
+    uint8_t slot;
+
+    test_key_fill(old_key, 0x00U);
+    test_key_fill(new_key, 0x40U);
+    test_key_fill(recovery_key, 0x80U);
+    assert_int_equal(cmd_auth_provision_slot(1U, new_key, 11U), SMART_QSO_OK);
+    assert_int_equal(cmd_auth_provision_slot(CMD_AUTH_RECOVERY_SLOT, recovery_key, 99U), SMART_QSO_OK);
+    assert_int_equal(sm_force_state(sys_get_sm_context(), STATE_EMERGENCY), SMART_QSO_OK);
+
+    /* The operational key cannot rotate keys */
+    slot = 1U;
+    assert_int_equal(send(CMD_SYS_KEY_ROTATE, payload,
+                          test_auth_payload(old_key, CMD_SYS_KEY_ROTATE, 1U, &slot, 1U, payload)),
+                     CMD_RESULT_AUTH_FAIL);
+    /* Only a spare can be activated */
+    slot = 2U;
+    assert_int_equal(send(CMD_SYS_KEY_ROTATE, payload,
+                          test_auth_payload(recovery_key, CMD_SYS_KEY_ROTATE, 1U, &slot, 1U, payload)),
+                     CMD_RESULT_INVALID_PARAM);
+    slot = 1U;
+    assert_int_equal(send(CMD_SYS_KEY_ROTATE, payload,
+                          test_auth_payload(recovery_key, CMD_SYS_KEY_ROTATE, 2U, &slot, 1U, payload)),
+                     CMD_RESULT_SUCCESS);
+
+    assert_int_equal(sm_force_state(sys_get_sm_context(), STATE_IDLE), SMART_QSO_OK);
+    assert_int_equal(send(CMD_SYS_GET_STATUS, payload,
+                          test_auth_payload(old_key, CMD_SYS_GET_STATUS, 50U, NULL, 0U, payload)),
+                     CMD_RESULT_AUTH_FAIL);
+    assert_int_equal(send(CMD_SYS_GET_STATUS, payload,
+                          test_auth_payload(new_key, CMD_SYS_GET_STATUS, 1U, NULL, 0U, payload)),
+                     CMD_RESULT_SUCCESS);
+}
+
 static void test_authenticated_get_status(void **state)
 {
     (void)state;
@@ -480,7 +530,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_replayed_tx_enable_cannot_undo_tx_off, setup, teardown),
         cmocka_unit_test_setup_teardown(test_replay_rejected_after_reset, setup, teardown),
         cmocka_unit_test_setup_teardown(test_tx_disable_accepted_in_every_state, setup, teardown),
-        cmocka_unit_test_setup_teardown(test_unprovisioned_rejects_tx_disable, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_no_key_material_tx_disable_still_silences, setup, teardown),
         cmocka_unit_test_setup_teardown(test_legacy_static_code_rejected, setup, teardown),
         cmocka_unit_test_setup_teardown(test_relabelled_frame_rejected, setup, teardown),
         cmocka_unit_test_setup_teardown(test_unexpected_arguments_rejected, setup, teardown),
@@ -491,6 +541,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_forged_flood_logs_once, setup, teardown),
         cmocka_unit_test_setup_teardown(test_every_dictionary_command, setup, teardown),
         cmocka_unit_test_setup_teardown(test_set_mode_obeys_transition_table, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_key_rotate_end_to_end, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Command Handler (Telecommand Path) Tests", tests, NULL, NULL);

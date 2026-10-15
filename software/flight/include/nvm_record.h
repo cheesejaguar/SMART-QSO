@@ -39,6 +39,9 @@ extern "C" {
 /** Largest payload a slot can hold */
 #define NVM_RECORD_MAX_PAYLOAD      (NVM_RECORD_SLOT_SIZE - NVM_RECORD_OVERHEAD)
 
+/** Bytes one record (both slots) occupies; records in a region are spaced by this */
+#define NVM_RECORD_FOOTPRINT        (2U * NVM_RECORD_SLOT_SIZE)
+
 /*******************************************************************************
  * Types
  ******************************************************************************/
@@ -81,6 +84,22 @@ SmartQsoResult_t nvm_record_load(HalFlashRegion_t region, uint32_t magic,
  */
 SmartQsoResult_t nvm_record_save(HalFlashRegion_t region, uint32_t magic,
                                  const void *payload, size_t len);
+
+/**
+ * @brief nvm_record_load() for a record starting at a base offset
+ *
+ * @param[in] base Offset of the record's slot A; a multiple of
+ *                 NVM_RECORD_FOOTPRINT keeps records apart
+ */
+SmartQsoResult_t nvm_record_load_at(HalFlashRegion_t region, uint32_t base, uint32_t magic,
+                                    void *payload, size_t len,
+                                    NvmRecordStatus_t *status);
+
+/**
+ * @brief nvm_record_save() for a record starting at a base offset
+ */
+SmartQsoResult_t nvm_record_save_at(HalFlashRegion_t region, uint32_t base, uint32_t magic,
+                                    const void *payload, size_t len);
 
 #ifdef __cplusplus
 }

@@ -53,7 +53,7 @@ static bool sequence_newer(uint32_t a, uint32_t b)
 }
 
 /** Read one slot into buf and classify it */
-static SmartQsoResult_t read_slot(HalFlashRegion_t region, uint32_t slot,
+static SmartQsoResult_t read_slot(HalFlashRegion_t region, uint32_t base, uint32_t slot,
                                   uint32_t magic, size_t len,
                                   uint8_t buf[NVM_RECORD_SLOT_SIZE], SlotInfo_t *info)
 {
@@ -63,7 +63,7 @@ static SmartQsoResult_t read_slot(HalFlashRegion_t region, uint32_t slot,
     info->magic_present = false;
     info->sequence = 0U;
 
-    SmartQsoResult_t result = hal_flash_read(region, slot * NVM_RECORD_SLOT_SIZE,
+    SmartQsoResult_t result = hal_flash_read(region, base + (slot * NVM_RECORD_SLOT_SIZE),
                                              buf, record_len);
     if (result != SMART_QSO_OK) {
         return result;
@@ -104,6 +104,19 @@ SmartQsoResult_t nvm_record_load(HalFlashRegion_t region, uint32_t magic,
                                  void *payload, size_t len,
                                  NvmRecordStatus_t *status)
 {
+    return nvm_record_load_at(region, 0U, magic, payload, len, status);
+}
+
+SmartQsoResult_t nvm_record_save(HalFlashRegion_t region, uint32_t magic,
+                                 const void *payload, size_t len)
+{
+    return nvm_record_save_at(region, 0U, magic, payload, len);
+}
+
+SmartQsoResult_t nvm_record_load_at(HalFlashRegion_t region, uint32_t base, uint32_t magic,
+                                    void *payload, size_t len,
+                                    NvmRecordStatus_t *status)
+{
     uint8_t buf[SLOT_COUNT][NVM_RECORD_SLOT_SIZE];
     SlotInfo_t info[SLOT_COUNT];
 
@@ -115,7 +128,7 @@ SmartQsoResult_t nvm_record_load(HalFlashRegion_t region, uint32_t magic,
     }
 
     for (uint32_t i = 0U; i < SLOT_COUNT; i++) {
-        SmartQsoResult_t result = read_slot(region, i, magic, len, buf[i], &info[i]);
+        SmartQsoResult_t result = read_slot(region, base, i, magic, len, buf[i], &info[i]);
         if (result != SMART_QSO_OK) {
             return result;
         }
@@ -134,8 +147,8 @@ SmartQsoResult_t nvm_record_load(HalFlashRegion_t region, uint32_t magic,
     return SMART_QSO_OK;
 }
 
-SmartQsoResult_t nvm_record_save(HalFlashRegion_t region, uint32_t magic,
-                                 const void *payload, size_t len)
+SmartQsoResult_t nvm_record_save_at(HalFlashRegion_t region, uint32_t base, uint32_t magic,
+                                    const void *payload, size_t len)
 {
     uint8_t buf[SLOT_COUNT][NVM_RECORD_SLOT_SIZE];
     SlotInfo_t info[SLOT_COUNT];
@@ -150,7 +163,7 @@ SmartQsoResult_t nvm_record_save(HalFlashRegion_t region, uint32_t magic,
     }
 
     for (uint32_t i = 0U; i < SLOT_COUNT; i++) {
-        SmartQsoResult_t result = read_slot(region, i, magic, len, buf[i], &info[i]);
+        SmartQsoResult_t result = read_slot(region, base, i, magic, len, buf[i], &info[i]);
         if (result != SMART_QSO_OK) {
             return result;
         }
@@ -167,14 +180,14 @@ SmartQsoResult_t nvm_record_save(HalFlashRegion_t region, uint32_t magic,
     (void)safe_memcpy(&record[OFFSET_PAYLOAD], NVM_RECORD_MAX_PAYLOAD, payload, len);
     put_u32(&record[OFFSET_PAYLOAD + len], smart_qso_crc32(record, OFFSET_PAYLOAD + len));
 
-    SmartQsoResult_t result = hal_flash_write(region, target * NVM_RECORD_SLOT_SIZE,
-                                              record, record_len);
+    uint32_t offset = base + (target * NVM_RECORD_SLOT_SIZE);
+    SmartQsoResult_t result = hal_flash_write(region, offset, record, record_len);
     if (result != SMART_QSO_OK) {
         return result;
     }
 
     /* Verify the write landed */
-    result = hal_flash_read(region, target * NVM_RECORD_SLOT_SIZE, readback, record_len);
+    result = hal_flash_read(region, offset, readback, record_len);
     if (result != SMART_QSO_OK) {
         return result;
     }

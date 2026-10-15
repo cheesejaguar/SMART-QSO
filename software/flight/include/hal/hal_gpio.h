@@ -36,7 +36,8 @@ typedef enum {
     GPIO_PIN_RF_TX_EN      = 7,   /**< RF transmitter enable */
     GPIO_PIN_ALERT         = 8,   /**< EPS alert input */
     GPIO_PIN_DEPLOY_SENSE  = 9,   /**< Deployment sense input */
-    GPIO_PIN_COUNT         = 10
+    GPIO_PIN_UMBILICAL_SENSE = 10, /**< GSE umbilical present (high); pulled low in flight */
+    GPIO_PIN_COUNT         = 11
 } HalGpioPin_t;
 
 /**

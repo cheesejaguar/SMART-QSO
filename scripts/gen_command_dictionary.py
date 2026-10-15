@@ -48,11 +48,14 @@ def validate(data: Dict) -> List[Dict]:
             raise ValueError(f"{name}: args must satisfy 0 <= min <= max <= {MAX_ARGS}")
         if raw["key"] not in KEYS:
             raise ValueError(f"{name}: key must be one of {sorted(KEYS)}")
+        without_key = bool(raw.get("without_key", False))
+        if without_key and raw["key"] != "any":
+            raise ValueError(f"{name}: without_key is only allowed with key 'any'")
         if cmd_id in seen_ids or name in seen_names:
             raise ValueError(f"{name}: duplicate id or name")
         seen_ids.add(cmd_id)
         seen_names.add(name)
-        commands.append({**raw, "cmd_id": cmd_id})
+        commands.append({**raw, "cmd_id": cmd_id, "without_key": without_key})
     return sorted(commands, key=lambda c: c["cmd_id"])
 
 
@@ -71,6 +74,7 @@ def render_h(_commands: List[Dict]) -> str:
 extern "C" {{
 #endif
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -87,6 +91,7 @@ typedef struct {{
     uint8_t min_args;        /**< Minimum argument bytes */
     uint8_t max_args;        /**< Maximum argument bytes */
     CmdKeyClass_t key;       /**< Authenticating key */
+    bool without_key;        /**< Accepted unauthenticated when no key is usable */
 }} CmdDictEntry_t;
 
 /** The dictionary, in command-ID order */
@@ -105,7 +110,8 @@ extern const size_t g_cmd_dictionary_count;
 
 def render_c(commands: List[Dict]) -> str:
     rows = "\n".join(
-        f"    {{ (uint8_t){c['c_name']}, {c['min_args']}U, {c['max_args']}U, {KEYS[c['key']]} }}, /* {c['name']} */"
+        f"    {{ (uint8_t){c['c_name']}, {c['min_args']}U, {c['max_args']}U, {KEYS[c['key']]}, "
+        f"{'true' if c['without_key'] else 'false'} }}, /* {c['name']} */"
         for c in commands)
     return f"""/**
  * @file cmd_dictionary.c
@@ -128,7 +134,7 @@ const size_t g_cmd_dictionary_count = sizeof(g_cmd_dictionary) / sizeof(g_cmd_di
 def render_python(commands: List[Dict]) -> str:
     rows = "\n".join(
         f'    "{c["name"]}": CommandSpec({c["cmd_id"]:#04x}, {c["min_args"]}, {c["max_args"]}, '
-        f'"{c["key"]}", {json.dumps(c["summary"])}),'
+        f'"{c["key"]}", {json.dumps(c["summary"])}, without_key={c["without_key"]}),'
         for c in commands)
     return f'''"""
 Uplink command dictionary (SQSO-ICD-013 section 7).
@@ -148,6 +154,7 @@ class CommandSpec:
     max_args: int
     key: str
     summary: str
+    without_key: bool = False
 
 
 COMMANDS: Dict[str, CommandSpec] = {{

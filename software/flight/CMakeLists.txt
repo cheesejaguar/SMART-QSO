@@ -118,6 +118,7 @@ set(FLIGHT_SOURCES
     src/cmd_auth.c
     src/cmd_handler.c
     src/cmd_dictionary.c
+    src/gse_provision.c
     src/telemetry.c
     src/assert_handler.c
     src/watchdog_mgr.c
