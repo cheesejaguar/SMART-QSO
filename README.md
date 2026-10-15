@@ -11,25 +11,32 @@ A 1U CubeSat mission experimenting with onboard agentic AI to manage an amateur 
 
 ## Mission Status
 
+> **Funding audit (2026-10-14):** an independent audit for prospective funders is in
+> [docs/funding_audit/](docs/funding_audit/FUNDING_AUDIT_REPORT.md). It contains the verdict, 103 findings, the
+> launch/rideshare trade, a cost ROM, a standards matrix and draft regulatory filings. The single source of truth for
+> design values is [docs/BASELINE_PARAMETERS.md](docs/BASELINE_PARAMETERS.md).
+
 | Milestone | Status | Date |
 |-----------|--------|------|
-| System Requirements Review (SRR) | Complete | - |
-| Preliminary Design Review (PDR) | Complete | - |
-| Critical Design Review (CDR) | **Baseline** | 2026-01-02 |
-| Test Readiness Review (TRR) | Pending | - |
-| Flight Readiness Review (FRR) | Pending | - |
+| System Requirements Review (SRR) | Internal self-assessment only (no independent review) | 2026-01-02 |
+| Preliminary Design Review (PDR) | Internal self-assessment only (no independent review) | 2026-01-02 |
+| Critical Design Review (CDR) | Internal self-assessment only (no independent review) | 2026-01-02 |
+| Test Readiness Review (TRR) | Not held | - |
+| Flight Readiness Review (FRR) | Not held | - |
+| Regulatory filings (IARU, FCC Part 97, ITU) | Drafted, not submitted | - |
+| Hardware | None built | - |
 
-**Current Phase**: Phase C - Detailed Design & Development
+**Current Phase**: design-phase documentation baseline; pre-PDR in substance
 
 ---
 
 ## Key Technologies
 
-- **Compute**: Ultra-low-power OBC (STM32L4/Apollo4) + Jetson Orin Nano Super (declocked, power-gated)
-- **AI**: TinyML/TinyLM models for power-aware beacon generation
-- **RF**: VHF downlink (145.825 MHz), UHF uplink (435 MHz), AX.25 protocol
-- **ADCS**: Magnetorquer-based B-dot detumbling and sun-pointing
-- **Power**: Deployable solar arrays, 50Wh battery, MPPT charging
+- **Compute**: Ultra-low-power OBC (STM32L4R5) + Jetson Orin Nano module (7 W mode, power-gated, burst-only)
+- **AI**: onboard model (selected by measured energy per beacon) for transponder scheduling and plain-language beacons
+- **RF**: U/V FM transponder; downlink in 145.800–146.000 MHz and uplink in 435–438 MHz (to be IARU-coordinated); 1200 bps AX.25 telemetry; authenticated telecommand with hardware TX-OFF
+- **ADCS**: Magnetorquer-based B-dot detumbling and coarse sun-pointing
+- **Power**: Body-mounted cells plus two deployable solar wings, ≈ 50 Wh 4S 18650 battery, MPPT charging
 
 ---
 
@@ -91,7 +98,7 @@ SMART-QSO/
 
 ## Flight Software Architecture
 
-The flight software follows NASA Class C software standards with influences from NASA Ames SmallSat heritage (GeneSat, PharmaSat, O/OREOS, EcAMSat):
+The flight software applies tailored NASA practices (formal software classification per NPR 7150.2D is pending), with design ideas drawn from public NASA Ames SmallSat missions (GeneSat, PharmaSat, O/OREOS, EcAMSat). **Current state:** C modules running as a host simulation; there is no RTOS or target-hardware port yet, and the telecommand, TX-OFF and RF-silence functions are not implemented (see the findings register).
 
 - **Scheduler**: Cooperative task scheduling with priority levels
 - **State Machine**: INIT → SAFE → IDLE → ACTIVE → AI_BURST modes
@@ -101,14 +108,16 @@ The flight software follows NASA Class C software standards with influences from
 
 ### Software Modules
 
-| Module | Description | Test Coverage |
-|--------|-------------|---------------|
-| `eps_control` | Power management, battery protection | 90%+ |
-| `fault_mgmt` | Fault logging, recovery actions | 90%+ |
-| `beacon` | AX.25 frame generation | 85%+ |
-| `adcs_control` | B-dot and sun-pointing algorithms | 80%+ |
-| `state_machine` | Mode transitions, safe mode | 90%+ |
-| `scheduler` | Task scheduling, timing | 85%+ |
+Measured line coverage (14 registered CMocka suites, 243 test cases; Apple clang/llvm-cov, 2026-10-14). Overall: **44.5 %** of 3,685 executable lines in the 21 built flight sources.
+
+| Module | Description | Measured line coverage |
+|--------|-------------|------------------------|
+| `eps_control` | Power management, battery protection | 94.6 % |
+| `fault_mgmt` | Fault logging, recovery actions | 71.0 % |
+| `state_machine` | Mode transitions, safe mode | 79.2 % |
+| `beacon` | AX.25 frame generation | 0 % (tests use Unity, which is not vendored; not built) |
+| `adcs_control` | B-dot and sun-pointing algorithms | 0 % (tests use Unity; not built) |
+| `scheduler` | Task scheduling, timing | not compiled into the flight build |
 
 ---
 
@@ -135,16 +144,19 @@ The flight software follows NASA Class C software standards with influences from
 
 ---
 
-## NASA Standards Compliance
+## NASA Standards
 
-This project follows NASA software engineering standards:
+No standard has yet been demonstrated compliant, because no signed compliance matrices or verification evidence
+exist. Status per [docs/funding_audit/NASA_STANDARDS_COMPLIANCE_MATRIX.md](docs/funding_audit/NASA_STANDARDS_COMPLIANCE_MATRIX.md):
 
 | Standard | Description | Status |
 |----------|-------------|--------|
-| NPR 7150.2 | NASA Software Engineering Requirements | Compliant |
-| NPR 7123.1 | Systems Engineering Processes | Compliant |
-| NASA-STD-8719.13 | Software Safety Standard | Compliant |
-| JPL Power of Ten | Coding rules for safety-critical software | Audited |
+| NPR 7150.2D | NASA Software Engineering Requirements | Gap: classification and tailored compliance matrix needed |
+| NPR 7123.1D | Systems Engineering Processes and Requirements | Partial |
+| NASA-STD-8739.8B | Software Assurance and Software Safety (replaced the cancelled NASA-STD-8719.13) | Gap |
+| NASA-STD-8719.14C | Process for Limiting Orbital Debris | Tailored plan (ODAR drafted; DAS run pending) |
+| CDS Rev 14.1 | CubeSat Design Specification | Partial |
+| JPL Power of Ten | Coding rules | Not met: claims in the self-audit are contradicted by measurement |
 
 ---
 
@@ -164,9 +176,9 @@ All pull requests require:
 
 ## Governance & Safety
 
-- **Amateur-Satellite Service**: All frames transmitted in the clear (no encryption)
-- **Open Operations**: Beacons receivable by any licensed amateur station
-- **Federated Updates**: Bounded, rate-limited, sandboxed, publicly logged
+- **Amateur-Satellite Service (FCC Part 97)**: all downlink frames in the clear; only telecommand is authenticated (47 CFR 97.211(b)). See [licensing pathway](docs/regulatory/LICENSING_PATHWAY_DETERMINATION.md)
+- **Open Operations**: beacons and the transponder are usable by any licensed amateur station
+- **Community model updates**: not in the flight baseline. Any future experiment treats public uploads as data only; adoption requires authenticated telecommand from a designated station
 
 ---
 

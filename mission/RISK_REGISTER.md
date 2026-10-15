@@ -1,6 +1,8 @@
-# Risk Register (Top‑10)
+# Risk Register
 
-Style inspired by NASA Ames CubeSat missions (TechEdSat, GeneSat, O/OREOS). Tracked as issues with labels `risk/*` and fields (Likelihood, Consequence, Mitigation, Owner).
+This register is the single controlled risk list. Other risk tables in the PDR/CDR packages and the Executive Summary are
+superseded (finding PI-08 in `docs/funding_audit/FINDINGS_REGISTER.md`). It is **not** currently tracked as GitHub
+issues: no `risk/*` label exists. Owners are TBD until the team is named (decision D1).
 
 | ID | Risk | Likelihood | Consequence | Mitigation | Owner |
 |---|---|:--:|:--:|---|---|
@@ -14,6 +16,21 @@ Style inspired by NASA Ames CubeSat missions (TechEdSat, GeneSat, O/OREOS). Trac
 | R8 | Battery safety/low‑temp performance | M | M | BMS protections; charge inhibits; venting path; heater control with SOC gates; cold‑soak testing | EPS/Thermal |
 | R9 | Schedule compression / supply chain lead times | M | M | Parallel flatsat and PFU; COTS preference; second‑source parts; rolling FRR entry criteria; buffer for re‑test | PM/Systems |
 | R10 | Environmental test failure (vibe/TVAC/shock) | L | H | EM fit checks; protoflight test readiness reviews; workmanship audits; rework plan and re‑test time in schedule | Systems/Test |
+
+### Programmatic Risks (added by the funding audit, 2026-10-14)
+
+| ID | Risk | Likelihood | Consequence | Mitigation | Owner |
+|---|---|:--:|:--:|---|---|
+| R11 | **Funding** not secured in time to reserve a 2028 launch (SpaceX posted $7,500/kg for 2027; post-2028 booking limits reported) | H | H | Funding decision by Q2 2027; integrator quotes by 2026-12-31; phased funding tied to dated milestones (`docs/funding_audit/FUNDING_AUDIT_REPORT.md` §7) | PI |
+| R12 | **Part 97 validity** lost through funding terms (compensated operations, sponsor data rights, federal procurement contract), forcing a Part 5 pivot | M | H | Grant/donation instruments only; pathway conditions C1–C8 reviewed before accepting funds; FCC pre-filing consultation (D3) | PI |
+| R13 | **Launch capacity**: no 1U-capable integrator slot at ≤ 500 km before 2029 | M | H | Quotes from ≥ 2 integrators; ISS/NRCSD backup; CSLI 2028 solicitation as long-term contingency | PI |
+| R14 | **Key-person dependency**: one human contributor; no named PI, licensee or team | H | H | Name the team and licensee (D1); document onboarding; at least two trained control operators | PI |
+| R15 | **Export / ITAR**: foreign integrator requires a TAA (3–6 months) | M | M | Export counsel by 2027-01-31; prefer a U.S. integrator path if available | PI |
+| R16 | **Jetson feasibility in 1U** (power, thermal, radiation) fails at EM test | M | H | EM thermal and power test early; per-rail latch-up protection; descope trigger D4 (beacon-only) | Payload/Systems |
+| R17 | **ISS backup battery certification** (JSC-20793, NR-SRD-139) adds 3–6 months | M (if ISS) | M | Freeze cell part number early; budget battery test campaign | EPS |
+| R18 | **Flight software maturity**: host-simulation only; no RTOS/target HAL; telecommand, TX-OFF and RF-silence functions missing | H | H | FSW integration plan to target hardware; prioritize the regulatory functions (SW-02, SW-03, SW-05) | FSW |
+| R19 | **Regulatory schedule**: IARU coordination (months) and FCC pre-space notification (≥ 90 days before integration) on the critical path | M | H | Submit IARU request at least 12 months before integration; file the FCC notification within 30 days of LV determination | Licensee |
+| R20 | **Credibility**: unsubstantiated status claims in legacy documents reach a funder or regulator | M | H | Audit notices; findings register; no document cited externally unless its status is evidenced | PI |
 
 Notes:
 - Likelihood/Consequence levels: L (Low), M (Medium), H (High). Owners are accountable leads.
