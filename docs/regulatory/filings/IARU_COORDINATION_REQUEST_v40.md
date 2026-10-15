@@ -77,7 +77,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **7.3 Telecommand frequency:** the coordinated 435–438 MHz uplink frequency
 - **7.4 / 7.5 Emission:** 10K4F2D, 1200 bps AFSK on FM, AX.25 framing
 - **7.6 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` (uplink section, to be added; see findings register)
-- **7.7 Telecommand encryption:** Commands are authenticated, not encrypted: HMAC-SHA-256 with a secret key held only by the licensee, plus a monotonically increasing command counter for replay protection (permitted by 47 CFR 97.211(b)). Command content is otherwise in the clear.
+- **7.7 Telecommand encryption:** Commands are authenticated, not encrypted: HMAC-SHA-256 with a secret key held only by the licensee, plus a monotonically increasing command counter for replay protection (permitted by 47 CFR 97.211(b)). Command content is otherwise in the clear. Keys are loaded before launch through the umbilical; a compromised key is replaced on orbit by switching to a pre-loaded spare, so no key material is ever transmitted.
 - **7.8 How telecommand stations turn off the transmitter immediately, even with user traffic or computer failure:** A TX-OFF command is decoded by the radio/OBC command path, which removes power from the RF power amplifier through a hardware switch. This path does not depend on the AI payload or the transponder application. A second, independent path is the OBC watchdog-protected command that latches TX inhibit in non-volatile memory, so it persists across resets. Both are verified in `[TP-RF-00x]`.
 - **7.9 Mechanism if command contact is lost:** If no valid authenticated command is received for `[N]` days **(BL)**, flight software inhibits the transponder and beacon (receive-only). After a further `[M]` days the end-of-mission passivation sequence runs: battery charge path permanently disconnected, transmitter disabled.
 
@@ -124,7 +124,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 | 3 | FCC Space Bureau pre-filing consultation done (pathway D3) | ☐ |
 | 4 | Baseline RF parameters frozen (power, antenna, receiver) | ☐ |
 | 5 | Uplink link budget added to LINK_BUDGET_ANALYSIS.md | ☐ |
-| 6 | Telecommand authentication implemented as described in 7.7 (implemented and tested in flight-software simulation per `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`; receive driver and target-hardware verification open, findings SW-02/SW-03) | ☐ |
+| 6 | Telecommand authentication implemented as described in 7.7 (implemented and tested in flight-software simulation per `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`; target receiver driver and hardware test TP-RF-006 open, findings SW-02/SW-03) | ☐ |
 | 7 | TX-OFF hardware path in RF design (7.8) | ☐ |
 | 8 | Signed by licensee | ☐ |
 

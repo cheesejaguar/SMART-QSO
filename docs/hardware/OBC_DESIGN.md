@@ -265,6 +265,10 @@ The OBC implements a dual-processor architecture:
 | PC1 | EPS_INT | Input | - |
 | PC2 | WDT_KICK | Output | - |
 | PC3 | LED_STATUS | Output | LOW |
+| TBD | RF_TX_EN | Output, pull-down | LOW (PA off until `rf_control_init()` restores the TX-OFF latch) |
+| TBD | UMBILICAL_SENSE | Input, pull-down | GSE connector drives high; enables key provisioning (SQSO-ICD-013 §9.2) |
+
+*RF_TX_EN and UMBILICAL_SENSE added 2026-10-15 to match `hal_gpio.h`; pins to be assigned in the OBC schematic.*
 
 ### 4.5 ADC Channels
 

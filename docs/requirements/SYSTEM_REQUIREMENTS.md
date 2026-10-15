@@ -130,7 +130,7 @@ SMART-QSO is a 1U CubeSat consisting of:
 | SYS-201 | The transmitter shall support 0.5W to 2W selectable output power | MRD-022 | T |
 | SYS-202 | The transmitter shall support AFSK 1200 bps modulation | MRD-022 | T |
 | SYS-203 | Spurious emissions shall be at least 40 dB below carrier | MRD-024 | T |
-| SYS-204 | The spacecraft shall cease all RF emissions on an authenticated telecommand in every operating mode, shall keep them ceased across resets until an authenticated telecommand re-enables them, and shall keep the telecommand receiver powered while ceased (47 CFR 97.207(b); ITU RR 22.1) *(added 2026-10-15; SQSO-ICD-013)* | MRD-024 | T |
+| SYS-204 | The spacecraft shall cease all RF emissions on an authenticated telecommand in every operating mode, and also on an unauthenticated TX-OFF telecommand whenever no telecommand key is usable; shall keep emissions ceased across resets until an authenticated telecommand re-enables them; and shall keep the telecommand receiver powered while ceased (47 CFR 97.207(b); ITU RR 22.1) *(added 2026-10-15; SQSO-ICD-013)* | MRD-024 | T |
 | SYS-204 | Frequency accuracy shall be within 5 kHz | MRD-024 | T |
 
 ### 7.2 Beacon Requirements
@@ -188,7 +188,8 @@ SMART-QSO is a 1U CubeSat consisting of:
 | SYS-322 | The OBC shall control RF transmitter enable | MRD-020 | D |
 | SYS-323 | The OBC shall read ADCS sensors | MRD-060 | D |
 | SYS-324 | The OBC shall control ADCS actuators | MRD-062 | D |
-| SYS-325 | The OBC shall execute only telecommands that carry a valid HMAC-SHA-256 tag under the provisioned key and a counter greater than the last accepted counter; the accepted counter shall persist across resets (47 CFR 97.211(b)) *(added 2026-10-15; SQSO-ICD-013)* | MRD-024 | T |
+| SYS-325 | The OBC shall execute only telecommands that carry a valid HMAC-SHA-256 tag under the key the command dictionary assigns and a counter greater than the last accepted counter for that key; accepted counters shall persist across resets (47 CFR 97.211(b)). The sole exception is SYS-204's TX-OFF when no key is usable *(added 2026-10-15; SQSO-ICD-013)* | MRD-024 | T |
+| SYS-326 | Telecommand keys shall be loadable only through the GSE umbilical, never over RF; a recovery key shall be able to replace a compromised operational key on orbit with a pre-loaded spare, without sending key material *(added 2026-10-15; SQSO-ICD-013 §9)* | MRD-024 | T |
 
 ---
 

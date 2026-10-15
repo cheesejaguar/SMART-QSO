@@ -51,6 +51,22 @@ python telecommand_builder.py TX_DISABLE --key-file /secure/sqso.key --counter-f
 # Set the beacon interval to 60 s, writing the binary frame to a file
 python telecommand_builder.py SET_BEACON --args 003C --key-file /secure/sqso.key \
     --counter-file /secure/sqso.counter --out set_beacon.bin
+
+# Wrap in an AX.25 UI frame and KISS-encode it for a TNC (call signs are decision D1)
+python telecommand_builder.py TX_DISABLE --key-file /secure/sqso.key \
+    --counter-file /secure/sqso.counter --ax25 SQSO-1 N0CALL --kiss --out tx_off.kiss
+```
+
+Keep one counter file per key (operational and recovery), and start a new operational counter file after each KEY_ROTATE.
+
+### key_provision.py
+Generates a telecommand key set and the GSE frames that load it through the umbilical (integration only; SQSO-ICD-013 §9.2).
+Key files and frame files contain secrets: they are written mode 600 and are never overwritten. Keep `recovery.key` offline.
+
+```bash
+python key_provision.py generate --dir /secure/sqso-keys
+python key_provision.py frames --dir /secure/sqso-keys --out /secure/frames.bin   # send over the umbilical, then delete
+python key_provision.py zeroize --out /secure/zeroize.bin
 ```
 
 ### pass_predictor.py

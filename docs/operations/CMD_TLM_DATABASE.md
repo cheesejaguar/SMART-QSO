@@ -5,6 +5,12 @@
 **Revision:** A
 **Date:** 2026-01-02
 
+> **Funding audit notice (2026-10-15): command sections superseded.** The command IDs, arguments and
+> authentication below do not match the flight software. The uplink command dictionary is generated from
+> `software/flight/command_dictionary.json` and documented in SQSO-ICD-013
+> (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` §7); that governs. Telemetry sections are unchanged
+> pending review (finding SW-04).
+
 ---
 
 ## 1. Purpose

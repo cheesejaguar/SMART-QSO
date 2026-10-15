@@ -164,7 +164,7 @@ Bytes N-M:  AI-generated text (if ACTIVE mode)
 
 ### 6.3 Command Format
 
-*(Rev 1.1: superseded.)* The command frame, authentication, replay counter and TX-OFF command are defined in SQSO-ICD-013, [`TELECOMMAND_AUTHENTICATION.md`](TELECOMMAND_AUTHENTICATION.md), which governs. In summary:
+*(Rev 1.1: superseded.)* The command frame, authentication, replay counter and TX-OFF command are defined in SQSO-ICD-013, [`TELECOMMAND_AUTHENTICATION.md`](TELECOMMAND_AUTHENTICATION.md), which governs. In summary, each command is the information field of an AX.25 UI frame (PID 0xF0) addressed to the spacecraft:
 
 ```
 0xAA 0x55 | cmd_id | len | counter (4, BE) | args (N) | tag (16) | sum16 (2, BE)

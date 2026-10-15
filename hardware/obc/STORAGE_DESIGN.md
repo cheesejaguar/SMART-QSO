@@ -82,12 +82,12 @@ Address Range       | Size    | Content
 0x00000 - 0x000FF   | 256 B   | Boot configuration (A)
 0x00100 - 0x001FF   | 256 B   | Boot configuration (B)
 0x00200 - 0x002FF   | 256 B   | Boot configuration (C)
-0x00300 - 0x0037F   | 128 B   | Telecommand key and counter (two 64 B slots)
-0x00380 - 0x003FF   | 128 B   | TX-OFF latch (two 64 B slots)
+0x00300 - 0x003FF   | 256 B   | RF control: TX-OFF latch, TX power level (§6.5)
 0x00400 - 0x043FF   | 16 KB   | Mission data (A)
 0x04400 - 0x083FF   | 16 KB   | Mission data (B)
 0x08400 - 0x0C3FF   | 16 KB   | Mission data (C)
-0x0C400 - 0x0FFFF   | 15 KB   | Event log
+0x0C400 - 0x0C6FF   | 768 B   | Telecommand key table (§6.5)
+0x0C700 - 0x0FFFF   | 14.25 KB| Event log (reduced from 15 KB for the key table)
 0x10000 - 0x1FFFF   | 64 KB   | Telemetry buffer
 0x20000 - 0x3FFFF   | 128 KB  | Extended storage
 ```
@@ -370,14 +370,25 @@ Directory structure:
 
 ### 6.5 Fail-Safe Records
 
-The telecommand key and counter (`FLASH_REGION_AUTH`) and the TX-OFF latch (`FLASH_REGION_RF_CONTROL`) use the two-slot form of §6.4, implemented in `software/flight/src/nvm_record.c`. Each slot is magic (4) | sequence (4) | payload (≤ 52) | CRC-32 (4). A save writes the slot that does not hold the newest valid copy and reads it back.
+The telecommand key table (`FLASH_REGION_AUTH`, 768 B) and RF control (`FLASH_REGION_RF_CONTROL`, 256 B) use the two-slot form of §6.4, implemented in `software/flight/src/nvm_record.c`. Each record occupies 128 B (two 64 B slots); each slot is magic (4) | sequence (4) | payload (≤ 52) | CRC-32 (4). A save writes the slot that does not hold the newest valid copy and reads it back.
+
+| Region | Offset | Record |
+|--------|--------|--------|
+| RF control | 0 | TX-OFF latch |
+| RF control | 128 | TX power level |
+| Key table | 0 | State: active operational slot and its counter |
+| Key table | 128 | Recovery key, ID and counter |
+| Key table | 256 + 128 × n | Operational key n (0–3): key, ID, spare/active/revoked |
 
 Unlike the data in §6.3, these records do **not** fall back to defaults when corrupt:
 
 | Record | Blank (never written) | Corrupt |
 |--------|-----------------------|---------|
 | TX-OFF latch | Transmit permitted | Transmit inhibited |
-| Telecommand key | Unprovisioned: every command rejected | Every command rejected; fault logged |
+| TX power level | 0.5 W | 0.5 W |
+| Key-table state or active key | No operational key: operational commands rejected | Same; fault logged; recover with KEY_ROTATE (recovery key) |
+| Recovery key | No recovery key | Same; fault logged |
+| No usable key at all | Only TX_DISABLE accepted (unauthenticated) | Same |
 
 The interface is defined in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`). Only the simulation HAL implements these regions today. The FRAM driver must map them to the addresses in §3.3.
 
@@ -389,3 +400,4 @@ The interface is defined in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTIC
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-15 | Allocated the telecommand key and TX-OFF latch records (§3.3, §6.5) |
+| 1.2 | 2026-10-15 | Key table (768 B, carved from the event log) and TX power-level record (§3.3, §6.5) |

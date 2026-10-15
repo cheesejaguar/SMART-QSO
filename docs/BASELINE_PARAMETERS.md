@@ -127,7 +127,7 @@ receiver and TX-OFF path.
 | Emissions | 16K0F3E (transponder), 10K4F2D (telemetry and telecommand); confirm by measurement |
 | Spurious / harmonics | Meet 47 CFR 97.307(e) (≤ 25 µW and ≥ 40 dB below carrier; at 1 W that means ≥ 46 dBc). **Target ≥ 60 dB 3rd-harmonic suppression** to avoid desensing the uplink receiver |
 | Antennas | Separate deployable quarter-wave monopoles for 2 m (≈ 0.5 m) and 70 cm (≈ 0.17 m), with an RX filter; no shared diplexed element |
-| Telecommand authentication | HMAC-SHA-256 (truncated tag) with a persisted monotonic counter; keys never in the repository; required for every state-changing command (97.211(b)) |
+| Telecommand authentication | HMAC-SHA-256 (truncated tag) with a persisted monotonic counter per key; required for every command except TX-OFF when no key is usable (97.211(b)). Key table: 4 operational keys (1 active, 3 spares) and an offline recovery key that can rotate to a spare; keys loaded only through the umbilical and never in the repository (SQSO-ICD-013) |
 | Cessation of emissions | TX-OFF removes PA power through a hardware switch; latched in NVM; overrides SAFE-mode beacon; independent of the AI payload (97.207(b), RR 22.1) |
 | Loss of command contact | Transmit inhibit after N days without a valid command; end-of-mission passivation after M further days **[D3, values with FCC/IARU]** |
 | Link closure | 1200 bps beacon closes at 0.5 W with ≈ +6 dB at 5° elevation [A, TB-05]; to be re-issued in `docs/environment/LINK_BUDGET_ANALYSIS.md` with the corrected noise floor |
