@@ -19,6 +19,9 @@
 /* Include the module under test */
 #include "input_validation.h"
 
+/** Any command ID: framing does not interpret it */
+#define TEST_CMD_ID 0x02U
+
 /*===========================================================================*/
 /* Test Helpers                                                               */
 /*===========================================================================*/
@@ -64,14 +67,14 @@ static void test_validate_command_valid(void **state)
 
     uint8_t cmd_buffer[32];
     uint8_t payload[] = {0x01};  /* Mode 1 */
-    size_t cmd_len = build_test_command(cmd_buffer, CMD_ID_SET_MODE, payload, 1);
+    size_t cmd_len = build_test_command(cmd_buffer, TEST_CMD_ID, payload, 1);
 
     CommandValidation_t result;
     SmartQsoResult_t ret = input_validate_command(cmd_buffer, cmd_len, &result);
 
     assert_int_equal(ret, RESULT_OK);
     assert_true(result.is_valid);
-    assert_int_equal(result.cmd_id, CMD_ID_SET_MODE);
+    assert_int_equal(result.cmd_id, TEST_CMD_ID);
     assert_int_equal(result.payload_length, 1);
 }
 
@@ -137,7 +140,7 @@ static void test_validate_command_bad_checksum(void **state)
 
     uint8_t cmd_buffer[32];
     uint8_t payload[] = {0x01};
-    size_t cmd_len = build_test_command(cmd_buffer, CMD_ID_SET_MODE, payload, 1);
+    size_t cmd_len = build_test_command(cmd_buffer, TEST_CMD_ID, payload, 1);
 
     /* Corrupt checksum */
     cmd_buffer[cmd_len - 1] ^= 0xFF;
@@ -148,54 +151,6 @@ static void test_validate_command_bad_checksum(void **state)
     assert_int_equal(ret, RESULT_OK);
     assert_false(result.is_valid);
     assert_int_equal(result.error_code, VALIDATION_ERR_CHECKSUM);
-}
-
-/**
- * @brief Test command payload validation for SET_MODE
- */
-static void test_validate_payload_set_mode(void **state)
-{
-    (void)state;
-
-    bool is_valid;
-    uint8_t valid_payload[] = {0x02};  /* Valid mode */
-    uint8_t invalid_payload[] = {0x05};  /* Invalid mode */
-
-    /* Valid mode */
-    SmartQsoResult_t ret = input_validate_command_payload(
-        CMD_ID_SET_MODE, valid_payload, 1, &is_valid);
-    assert_int_equal(ret, RESULT_OK);
-    assert_true(is_valid);
-
-    /* Invalid mode */
-    ret = input_validate_command_payload(
-        CMD_ID_SET_MODE, invalid_payload, 1, &is_valid);
-    assert_int_equal(ret, RESULT_OK);
-    assert_false(is_valid);
-}
-
-/**
- * @brief Test command payload validation for SET_BEACON
- */
-static void test_validate_payload_set_beacon(void **state)
-{
-    (void)state;
-
-    bool is_valid;
-    uint8_t valid_payload[] = {0x00, 60};    /* 60 seconds - valid */
-    uint8_t invalid_payload[] = {0x01, 0x00}; /* 256 seconds - invalid */
-
-    /* Valid interval */
-    SmartQsoResult_t ret = input_validate_command_payload(
-        CMD_ID_SET_BEACON, valid_payload, 2, &is_valid);
-    assert_int_equal(ret, RESULT_OK);
-    assert_true(is_valid);
-
-    /* Invalid interval (too long) */
-    ret = input_validate_command_payload(
-        CMD_ID_SET_BEACON, invalid_payload, 2, &is_valid);
-    assert_int_equal(ret, RESULT_OK);
-    assert_false(is_valid);
 }
 
 /*===========================================================================*/
@@ -469,8 +424,6 @@ int main(void)
         cmocka_unit_test(test_validate_command_too_short),
         cmocka_unit_test(test_validate_command_invalid_sync),
         cmocka_unit_test(test_validate_command_bad_checksum),
-        cmocka_unit_test(test_validate_payload_set_mode),
-        cmocka_unit_test(test_validate_payload_set_beacon),
 
         /* Sensor validation tests */
         cmocka_unit_test(test_validate_voltage),

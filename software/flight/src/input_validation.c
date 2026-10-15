@@ -104,11 +104,9 @@ SmartQsoResult_t input_validate_command(const uint8_t *cmd_data,
         return RESULT_OK;
     }
 
-    /* Extract and validate command ID */
+    /* Extract command ID; the command dictionary validates it after
+     * authentication (cmd_handler.c) */
     result->cmd_id = cmd_data[2];
-    /* Note: CMD_ID_MAX is 0xFF, so uint8_t cmd_id can never exceed it.
-     * This check would be needed if CMD_ID_MAX were reduced. */
-    (void)CMD_ID_MAX;  /* Silence unused macro warning */
 
     /* Extract payload length */
     result->payload_length = cmd_data[3];
@@ -132,72 +130,6 @@ SmartQsoResult_t input_validate_command(const uint8_t *cmd_data,
 
     /* Command is valid */
     result->is_valid = true;
-    return RESULT_OK;
-}
-
-SmartQsoResult_t input_validate_command_payload(uint8_t cmd_id,
-                                                 const uint8_t *payload,
-                                                 size_t payload_length,
-                                                 bool *is_valid)
-{
-    /* Validate parameters */
-    if ((payload == NULL) || (is_valid == NULL)) {
-        return RESULT_ERROR_PARAM;
-    }
-
-    *is_valid = false;
-
-    /* Validate based on command type */
-    switch (cmd_id) {
-        case CMD_ID_SET_MODE:
-            /* Mode must be 0-3 */
-            if ((payload_length >= 1U) && (payload[0] <= 3U)) {
-                *is_valid = true;
-            }
-            break;
-
-        case CMD_ID_SET_POWER:
-            /* Power level must be 0-3 */
-            if ((payload_length >= 1U) && (payload[0] <= 3U)) {
-                *is_valid = true;
-            }
-            break;
-
-        case CMD_ID_SET_BEACON:
-            /* Beacon interval 10-120 seconds */
-            if (payload_length >= 2U) {
-                uint16_t interval = (uint16_t)(((uint16_t)payload[0] << 8) | (uint16_t)payload[1]);
-                if ((interval >= 10U) && (interval <= 120U)) {
-                    *is_valid = true;
-                }
-            }
-            break;
-
-        case CMD_ID_DEPLOY:
-            /* Deploy requires authorization code */
-            if (payload_length >= 4U) {
-                uint32_t auth_code = ((uint32_t)payload[0] << 24) |
-                                     ((uint32_t)payload[1] << 16) |
-                                     ((uint32_t)payload[2] << 8) |
-                                     (uint32_t)payload[3];
-                if (auth_code == DEPLOY_AUTH_CODE) {
-                    *is_valid = true;
-                }
-            }
-            break;
-
-        case CMD_ID_RESET:
-            /* Reset requires confirmation byte */
-            if ((payload_length >= 1U) && (payload[0] == 0xFFU)) {
-                *is_valid = true;
-            }
-            break;
-
-        default:
-            /* Unknown command */
-            break;
-    }
-
     return RESULT_OK;
 }
 
