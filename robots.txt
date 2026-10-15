@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://cheesejaguar.github.io/SMART-QSO/sitemap.xml

@@ -1,0 +1,72 @@
+{
+  "version": "1.0.0",
+  "effective_date": "2026-10-14",
+  "name": "SMART-QSO",
+  "form_factor": "3U",
+  "mission": "Public short-message store-and-forward for licensed amateur stations",
+  "nominal_life_months": 12,
+  "stage": "Repository demonstration",
+  "hardware_available": false,
+  "launch_secured": false,
+  "funding_secured": false,
+  "funding_target_usd": [
+    500000,
+    1500000
+  ],
+  "rf": {
+    "uplink_band_mhz": [
+      435,
+      438
+    ],
+    "downlink_band_mhz": [
+      144,
+      146
+    ],
+    "frequencies_coordinated": false,
+    "baud": 1200,
+    "modulation": "AFSK",
+    "link": "AX.25 UI",
+    "tnc": "KISS"
+  },
+  "reference_obc": "STM32L476RG / NUCLEO-L476RG",
+  "reference_payload": "Jetson Orin Nano module; 7 W mode subject to full-cycle measurement",
+  "queue": {
+    "capacity": 32,
+    "per_sender": 4,
+    "text_bytes": 128,
+    "ttl_max_s": 86400,
+    "retry_limit": 3,
+    "retry_interval_s": 60
+  },
+  "ai": {
+    "language_generation": true,
+    "authority": "Status explanation only",
+    "on_orbit_training": false,
+    "federated_updates": false,
+    "fallback": "Deterministic template",
+    "generation_max_bytes": 120
+  },
+  "safety": {
+    "soc_safe_permille": 250,
+    "soc_recover_permille": 400,
+    "payload_enable_permille": 650,
+    "payload_max_temp_c": 55,
+    "thermal_recover_c": 45,
+    "deployment_wait_s": 1800,
+    "tx_default": false
+  },
+  "success": {
+    "minimum_days": 30,
+    "full_messages": 1000,
+    "full_stations": 20,
+    "full_regions": 3,
+    "full_days": 90,
+    "research": "Predeclared matched comparison of delivered messages/Wh with uncertainty and zero safety-limit violations"
+  },
+  "assumptions": [
+    "Thresholds are demonstrator defaults, requiring measured hardware correlation",
+    "3U size is fixed pending an explicit scope change",
+    "No NASA affiliation or qualification is implied",
+    "No procurement, licensing or launch application is claimed"
+  ]
+}

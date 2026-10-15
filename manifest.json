@@ -1,0 +1,2613 @@
+{
+  "version": "1.0.0-development",
+  "built_at_utc": "2026-10-15T04:56:47.690507+00:00",
+  "original_source_commit": "05788335d09202c391f8d970e7d6562ebe315893",
+  "source_tree_sha256": "0a4ecf10c61cb6f1700a9ebac7e90db42fdf9fc4d3de25beccf6427bc293b011",
+  "source_files": [
+    {
+      "path": ".clang-format",
+      "sha256": "ba4740e592d3b2e8fde4f281e1b17a0f07e2cd19c060ec3fefadae1195b7be21"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "365c01c93c0d182433ffc0d28dc1e5e64871a2d68fd1a062756efc1b24b9eddd"
+    },
+    {
+      "path": ".github/workflows/flight-software-ci.yml",
+      "sha256": "1739bec3f590144f55bed2513f9ca4f5acc9e49112322930538c9812337a1b5f"
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "7d1ac12b397cde8c8b2304ceb4740f9525354d0717efec615b1ddd3a807e9b01"
+    },
+    {
+      "path": ".pre-commit-config.yaml",
+      "sha256": "cae3db1847418a8af758df8685b75071b32c11b4bc4d474d883f3bc15e165311"
+    },
+    {
+      "path": "AGENTS.md",
+      "sha256": "9a7396882211e4a48dc92b6f3693829e069e01f0240cdc717c011eab8ce88129"
+    },
+    {
+      "path": "CITATION.cff",
+      "sha256": "bb5c3a19c66cf066b9bec12556c105d5ef24b586d82119f3dc6a9d6236d85bb8"
+    },
+    {
+      "path": "CLAUDE.md",
+      "sha256": "8b09fe8edf8e787c9cbc9c927ddd2434471077d1d1d5e6c869471382fdc85dc4"
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "sha256": "dc0d2f31e0ac05b43cb2bd309c69aacdc27dfb84ef3dda9ca9b8428f4f497b50"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "sha256": "9fe3610cbbecdad421d22b281dad409abbd7b94ffdbcb663f119d7ab061bdf23"
+    },
+    {
+      "path": "DESIGN.md",
+      "sha256": "1e7c380d9843ac2dddb46f067f27451d960edf91945c4ded32b6637449250e76"
+    },
+    {
+      "path": "GOVERNANCE.md",
+      "sha256": "7d26cdd50009aa49f003b20b126755c231ce3d18c30bba313d4118c686c7e141"
+    },
+    {
+      "path": "LICENSE",
+      "sha256": "87dc222354118dcc7f0d8f43d669251d5ed3b949b10fcb194fff3eac00ad510e"
+    },
+    {
+      "path": "PRODUCT.md",
+      "sha256": "035be09382c1d0491877434f66a2830db72e5e47b30b940233f67b8b3bc21299"
+    },
+    {
+      "path": "RALPH.md",
+      "sha256": "fe2b0a4422c4b565c2b4beed588c9b23433256d308cfd9b0cde45607e9cac3bc"
+    },
+    {
+      "path": "README.md",
+      "sha256": "bacf91896d1a20d31ce999774999de124aed8221d95f92112510dbb6cca813d5"
+    },
+    {
+      "path": "SECURITY.md",
+      "sha256": "48605a7ba9064f15c33c067afec7df06c7e83b7ccb54a90d6cdfe35942567d5c"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "sha256": "e338fa81c8960d4d03dffd7ed3c24915731f473de3dc110c648a9f8adcc125d6"
+    },
+    {
+      "path": "docs/BEACON_SPEC.md",
+      "sha256": "715b84035549abbe1e0c5b7ceb93ca90b59f12dc67fad5b1d5e377132bae7637"
+    },
+    {
+      "path": "docs/CUBESAT_SURVEY.md",
+      "sha256": "53b9fa389d3c2e634bfe175e551bd4239af2239f28f4b86ea9097c26d494174d"
+    },
+    {
+      "path": "docs/ENVIRONMENT.md",
+      "sha256": "6f1c0bcf39cff45e055dba3f2eec9bdbb935ce3bfb3622a3e381a76b0217925a"
+    },
+    {
+      "path": "docs/EXECUTIVE_SUMMARY.md",
+      "sha256": "d8a294c97b840b8bdbddcec8c17f0ebb8f8c4a7f908179cbcc5dbe44e231b44d"
+    },
+    {
+      "path": "docs/ML_MODELS.md",
+      "sha256": "2ea60aa43431d915db81bd97cf51a277cee92d5a91964e233caaf8d2a8ca9441"
+    },
+    {
+      "path": "docs/ORBITAL_ACCESS.md",
+      "sha256": "0b4b382ff864cf22f7aa84df70e35a29e3c18f578b89565113ece63b20a305ed"
+    },
+    {
+      "path": "docs/REGULATORY.md",
+      "sha256": "a9c5a05a45ac451031bcf992f80b1a11545ce3aa7e94898c071a30d48fd55156"
+    },
+    {
+      "path": "docs/RF_PLAN.md",
+      "sha256": "898842cb64cbaf6bbad94d19c00820e241ad687d173404a21e1afd5ec9e923d3"
+    },
+    {
+      "path": "docs/compliance/CDS_COMPLIANCE_MATRIX.md",
+      "sha256": "def29d31df5da325060bd1e3cced81c98d073bc558cabaa124f5faac79ac2182"
+    },
+    {
+      "path": "docs/compliance/EXPORT_CONTROL.md",
+      "sha256": "55854cc28b21039d479d860b51fe405154c9d4bf970a497b85bcbab839832b1e"
+    },
+    {
+      "path": "docs/compliance/LAUNCH_PROVIDER_ICD.md",
+      "sha256": "06d6c616597998812c5d4e177f7807987d29d7f909dd70da19e27f783d159157"
+    },
+    {
+      "path": "docs/compliance/MATERIALS_LIST.md",
+      "sha256": "388b5ef4023f7fb603658b610aa5fc6d1e7fe11df64336c8adfaaaf51cac8fa3"
+    },
+    {
+      "path": "docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md",
+      "sha256": "2f5107476113facd6ec9c2c0bbb85f89bea1b01d183c2e96d99354466fe42c85"
+    },
+    {
+      "path": "docs/design/FINISH_REVIEW.md",
+      "sha256": "a17d56009e808aa1892f4f9552ad072afa698dec7ff42683b3d0ab40b3d4c31f"
+    },
+    {
+      "path": "docs/design/assets.json",
+      "sha256": "730a9555ea9c68f4bf0dc3284e2b6fbdbeea8a405c6c2a9ff1718139e9a84706"
+    },
+    {
+      "path": "docs/design/concept-seed-record.json",
+      "sha256": "0d439b218a40fd0afe8e706fb1d8bbbce2cb0ac387cb41b4fdc588e6b318d5e3"
+    },
+    {
+      "path": "docs/design/console-concept.png",
+      "sha256": "91cc868cbf09c3ea63ca56c75e6aa15b462207938f0eeb40ccd145b01975e7be"
+    },
+    {
+      "path": "docs/design/console-concept.png.prompt.txt",
+      "sha256": "bd454901c731600bd0ae71f046adf6cee9ceefd5795eb874ecbc099aaf8d18ce"
+    },
+    {
+      "path": "docs/design/public-concept.png",
+      "sha256": "bd7e21407c0c5cbdd8392ec9d1ca29c786f2b36392c17df70061bee7dd8547be"
+    },
+    {
+      "path": "docs/design/public-concept.png.prompt.txt",
+      "sha256": "8f8b653763ffd49d7cb4b4e3077ff6e4e98dba0c1c05795962ca2f70aa43b309"
+    },
+    {
+      "path": "docs/development/BRANCHING_STRATEGY.md",
+      "sha256": "9534ccf8abe25c706e11a7fc0216c867597c7a521eb59d9be9067e7c0cd2cc90"
+    },
+    {
+      "path": "docs/development/CODE_REVIEW_CHECKLIST.md",
+      "sha256": "efb901b439af4fae645d6da188a1dea5c559fa6b0a1d5502110ba06263fa9ecb"
+    },
+    {
+      "path": "docs/development/CODING_STANDARDS.md",
+      "sha256": "a8d6b254af6524bfbb533d53d2d83e441c3f5ddc62ebeaaef2658f1d62c7b70b"
+    },
+    {
+      "path": "docs/development/COMMIT_MESSAGES.md",
+      "sha256": "f4408c7a4b04db053e8de3637cad6bccb994e25c0eafa1638123115abeff3330"
+    },
+    {
+      "path": "docs/development/RELEASE_PROCEDURE.md",
+      "sha256": "e4c9f3396c87bf3db06f41808e8d450ce66cba20e58a76a73f3de46435aa7e16"
+    },
+    {
+      "path": "docs/environment/DATA_BUDGET.md",
+      "sha256": "332d07b397252047a9fcbd3205e306aa5e53c10bb5957320f9c807bcc114e4dd"
+    },
+    {
+      "path": "docs/environment/ENVIRONMENTAL_TEST_PLAN.md",
+      "sha256": "7b57898b621355db5f11c9d80a0582d840565b3abe72e62c23f3de40ca500bac"
+    },
+    {
+      "path": "docs/environment/LINK_BUDGET_ANALYSIS.md",
+      "sha256": "fcf484a5e05baedb3f762ffa8ae9bfda151f02bd8edcbb070c76ddc070299ac0"
+    },
+    {
+      "path": "docs/environment/MASS_BUDGET.md",
+      "sha256": "53d7129f5859836c61f11c226cb9b1f47ce7379fadb9487bcd46882d8ebb164d"
+    },
+    {
+      "path": "docs/environment/ORBIT_ANALYSIS.md",
+      "sha256": "ee5120dcfb0c2525d37998b09ccd2b38cb7ee65a5d6dd4bd9dca9f9784f88f31"
+    },
+    {
+      "path": "docs/environment/POWER_BUDGET_ANALYSIS.md",
+      "sha256": "b2ccc83b2f985f7f88f207a7a656b80377e70ce522e5c3deae311a9ce0008422"
+    },
+    {
+      "path": "docs/environment/RADIATION_ANALYSIS.md",
+      "sha256": "11f2b83f8cc4b12ab74917a77ff8515a1a2b042947b36f410571b80195d8f42b"
+    },
+    {
+      "path": "docs/environment/RELIABILITY_ANALYSIS.md",
+      "sha256": "99083381204dfdd5beb5be3ba4f7a7af75969f5b282a09e796b335651ef207a8"
+    },
+    {
+      "path": "docs/environment/THERMAL_ANALYSIS.md",
+      "sha256": "8250b9327b491b808ff0d3d45fa8ca64c2019b583648fcbf04c8bec9a02a5d4a"
+    },
+    {
+      "path": "docs/ground/GROUND_STATION_DESIGN.md",
+      "sha256": "63791cbc04770bc3154222829460a8a8e3106702474e2c3b7205cfb5f01e76fc"
+    },
+    {
+      "path": "docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md",
+      "sha256": "7bd0c5d19a297a2fa9fae3dcc9f6c26e9d91cf550eb5391688994e7104a2bcc3"
+    },
+    {
+      "path": "docs/hardware/ADCS_DESIGN.md",
+      "sha256": "990868b30e98b7f2a3e7f45b96fd39007d869d43488de34398afd8a6939b6fe5"
+    },
+    {
+      "path": "docs/hardware/EPS_DESIGN.md",
+      "sha256": "b7683ed19ab482d7ef61bd0dddb0e5806973b18523b1d3a3d5fb62d88f726bdc"
+    },
+    {
+      "path": "docs/hardware/HARDWARE_DEVELOPMENT_PLAN.md",
+      "sha256": "5554534a05f7b374806f8e15fc67e3ae1ea9882e1b8b43d402f90dcd418c06fe"
+    },
+    {
+      "path": "docs/hardware/OBC_DESIGN.md",
+      "sha256": "02f10b72fb71559f44703eccffbc76df2b5cfdd50926918b02844a0df31d4ead"
+    },
+    {
+      "path": "docs/hardware/PARTS_LIST.md",
+      "sha256": "6c30c4a1e8445af8c397f7ed279bc3b31b05da10e46d64705ed601c8142878af"
+    },
+    {
+      "path": "docs/hardware/PAYLOAD_DESIGN.md",
+      "sha256": "ffcd43f4fa963f052d01339681d43e13ebed31c53670a8f4f45c5e1dc5582a6a"
+    },
+    {
+      "path": "docs/hardware/RF_DESIGN.md",
+      "sha256": "e45bb59c926214acd01c08b301459279156998c9fce8aef80944c687f6d2a570"
+    },
+    {
+      "path": "docs/history/PAYLOAD_README.md",
+      "sha256": "c4fdeb82270f4a7ad2f24b01f9720a07a06331139f7eb4d830aad1f8ff1b98a2"
+    },
+    {
+      "path": "docs/history/legacy-tests/integration/test_fault_scenarios.c.txt",
+      "sha256": "ccb07751616bad94eecd6f62e9509b898d13e860f6c71255c9b22848975488f4"
+    },
+    {
+      "path": "docs/history/legacy-tests/integration/test_mode_transitions.c.txt",
+      "sha256": "c3531690af6db6ac4ba3e5c7f7ce6a5df5ed4f070ba65853fd99f7c3d7247ee8"
+    },
+    {
+      "path": "docs/history/legacy-tests/integration/test_system_startup.c.txt",
+      "sha256": "6f8195ed39f35df8722535dbbced565fa52e74c78c51ad35ca83870c034a0c3e"
+    },
+    {
+      "path": "docs/history/legacy-tests/regression/test_regression_suite.c.txt",
+      "sha256": "e12a85cbf0d812f37c1c9b188ba8e96e8fd446357f2569a47e1ad8a0a5f6ba19"
+    },
+    {
+      "path": "docs/history/legacy-tests/test_adcs.c.txt",
+      "sha256": "de82ac11d183791684d9fcb91b2419426d7dfc93c4c8abbc2d051a1c6d298d22"
+    },
+    {
+      "path": "docs/history/legacy-tests/test_beacon.c.txt",
+      "sha256": "fafc8071384c3593be10f0ad639b41dc6f8023390a2033c7f40fd8bb1f1725d0"
+    },
+    {
+      "path": "docs/history/legacy-tests/test_main.c.txt",
+      "sha256": "3a4edc5bb071a50d9f5dcdcfd82967a0f36b7f6a108a33009b1a6357a84d82b4"
+    },
+    {
+      "path": "docs/history/legacy-tests/test_main_simple.c.txt",
+      "sha256": "3a90f2e1ee53252944eead72f6fc13b11aedff5dec7237d49e0a160de3194e06"
+    },
+    {
+      "path": "docs/history/legacy-tests/test_scheduler.c.txt",
+      "sha256": "8a050b05261333c50f39099626638b077835374a64887ee3b64fb69a67b3a927"
+    },
+    {
+      "path": "docs/history/legacy-tests/test_system_init.c.txt",
+      "sha256": "ad75e5fecd9506690a203a604a115a535ba719e10fefcdc66b0508e8a6a3df49"
+    },
+    {
+      "path": "docs/history/legacy-tests/test_telemetry.c.txt",
+      "sha256": "54b02203e2ef25162270e8307a87835eddf02f24c11f7eff67c389643c5d5d39"
+    },
+    {
+      "path": "docs/history/legacy-tests/test_telemetry_flow.c.txt",
+      "sha256": "76531882a94ef5a98492a245a73bbcec93cd7031520892be1dc0358637170ad3"
+    },
+    {
+      "path": "docs/history/misra-initial-findings.json",
+      "sha256": "de593502a2b1a005e101969902f4080c0c936a52aabb86116dd1d17181fb9a22"
+    },
+    {
+      "path": "docs/integration/ANOMALY_RESOLUTION.md",
+      "sha256": "30dc936ff43b4c079fe0a758fbd49292d443207ad2e5f66e069ad5d17713bd84"
+    },
+    {
+      "path": "docs/integration/ASSEMBLY_PROCEDURE.md",
+      "sha256": "b14175d5766d4afd01dc3b168b3d117783d96f52908fa0b6c44f53e8b8dc2386"
+    },
+    {
+      "path": "docs/integration/CONTAMINATION_CONTROL_PLAN.md",
+      "sha256": "00d75ed97b4e42dce5175134816b737f6babd24ea877dac612227bb2d97138ea"
+    },
+    {
+      "path": "docs/integration/FLATSAT_CONFIGURATION.md",
+      "sha256": "390c1c37a7f733914a5f70cea526a23e8f8c4243c67be04924a4d6f115545126"
+    },
+    {
+      "path": "docs/integration/INTEGRATION_PLAN.md",
+      "sha256": "8301d49e7feb37a5fffa671b7464f94ecd08ccc0da5bfaf2b3f7c0882960777e"
+    },
+    {
+      "path": "docs/integration/PRE_SHIP_CHECKLIST.md",
+      "sha256": "4fe6a52d8c8960ff511451ab21fb9e46dda0d1132afe72be0bcc3d2fd4fb4094"
+    },
+    {
+      "path": "docs/integration/TEST_DATA_MANAGEMENT.md",
+      "sha256": "2a8d119e5fcd6125e6c964175bbf3b82be3ded163782a126205db36a205bed6f"
+    },
+    {
+      "path": "docs/interfaces/ICD_BEACON_FORMAT.md",
+      "sha256": "e4b5ce533bf8ece3fbf3211ecb11dc7e077169b72794b80587759683a2e3c3b9"
+    },
+    {
+      "path": "docs/interfaces/ICD_OBC_ADCS.md",
+      "sha256": "2d483edc988fc60265a7a092b0f7afb8e4bab9366ef05c2127b973dc6eb9eb5c"
+    },
+    {
+      "path": "docs/interfaces/ICD_OBC_EPS.md",
+      "sha256": "7a71c9c360c255a6ab00d1a2620329283ad98e9210f1b3be41bf51ed7e634c23"
+    },
+    {
+      "path": "docs/interfaces/ICD_OBC_JETSON.md",
+      "sha256": "5e51fd41b19ea662a79c02e15719035654f71ccd9a9e5cc82e0d2a0a76687495"
+    },
+    {
+      "path": "docs/interfaces/ICD_OBC_RF.md",
+      "sha256": "34816102c2441a3aaa1316fb2e206aaceb92f4e9edbd1cfa84195c57bdcb9da0"
+    },
+    {
+      "path": "docs/interfaces/ICD_SPACE_GROUND.md",
+      "sha256": "4931ab56f91abcfb6e91f8b5326b21f3ad782a09ee402e6f224014e3e469f4bf"
+    },
+    {
+      "path": "docs/interfaces/INTERFACE_CONTROL_MASTER.md",
+      "sha256": "2ec0fa0677f68aa9d07fc9f8cc18bc0a1ddd1dcf6db6ff8a9fd6325760842214"
+    },
+    {
+      "path": "docs/interfaces/INTERFACE_VERIFICATION_PLAN.md",
+      "sha256": "5c206eed01825e5f9df81878d596df589d2745f2c23d42f8721a91e149a45b9e"
+    },
+    {
+      "path": "docs/manufacturing/EEE_PARTS_LIST.md",
+      "sha256": "418b6b754d37084fe7579cfc0f563e8ebd8cf6e3e57d16391a9b1325a6655e99"
+    },
+    {
+      "path": "docs/manufacturing/WORKMANSHIP_PLAN.md",
+      "sha256": "cad8ca263abc483556347be9b081ac77b8647a8708b6f9a753766f969262e75d"
+    },
+    {
+      "path": "docs/manufacturing/WORKMANSHIP_STANDARDS.md",
+      "sha256": "214bf0c2fa86afdd7fcb7807b34cfad51086695f2afef7fd8a65c9c523ddd8f1"
+    },
+    {
+      "path": "docs/mission/MISSION_SUCCESS_CRITERIA.md",
+      "sha256": "cec33f6a4081e92835019753337ae336f6cb70ce9b28ded3f21f274d8a291438"
+    },
+    {
+      "path": "docs/operations/ANOMALY_REPORT_TEMPLATE.md",
+      "sha256": "febc831a2d3ccfbf287f1c7abf4d66b22ecad71a485a83b9e2345cf3ff5d9ade"
+    },
+    {
+      "path": "docs/operations/AS_RUN_PROCEDURE_TEMPLATE.md",
+      "sha256": "2dd0cdd68a6b98be9a800a6d77847c54cc016b929f7e6694a19f81236abe243d"
+    },
+    {
+      "path": "docs/operations/CMD_TLM_DATABASE.md",
+      "sha256": "0b8cb5eb6e0eb6e5276b7d1c104c43c968d5871c6efd8b71bacac3b8105b906e"
+    },
+    {
+      "path": "docs/operations/COMMAND_DICTIONARY.md",
+      "sha256": "10b4903025ad90f992849f40c118b3db250c6e44566cc3d97aa35e5d14859234"
+    },
+    {
+      "path": "docs/operations/COMMISSIONING_PLAN.md",
+      "sha256": "81cfa6920377506bb0040902b7f46f0c4b058bdec981fd9cb2db2d490439526b"
+    },
+    {
+      "path": "docs/operations/CONTINGENCY_PROCEDURES.md",
+      "sha256": "502599116876ed6a2ff97afb8d470d0b6af4153bfad6174f74e3ee136c72b17e"
+    },
+    {
+      "path": "docs/operations/END_OF_LIFE_PLAN.md",
+      "sha256": "d250e9a7317110c8d9697e8466e8e648c9ef5ba27ad1212df49dce54e1c58c06"
+    },
+    {
+      "path": "docs/operations/LAUNCH_CAMPAIGN_CHECKLIST.md",
+      "sha256": "27f7dbfefe119cd5869fd2dda2f49c43b606f05c8fab1ebdf5be75a5930caf27"
+    },
+    {
+      "path": "docs/operations/LAUNCH_SITE_OPS.md",
+      "sha256": "0246bf204d03681ffdc119cdce1706ceff5c628a056d8b14853f2928e73f4dc3"
+    },
+    {
+      "path": "docs/operations/MISSION_OPERATIONS_PLAN.md",
+      "sha256": "ecbbdfb13e0cb9239d79a9189e0e5f6d376a09f62e3f1f09a3487d3bbd63f104"
+    },
+    {
+      "path": "docs/operations/MISSION_RULES.md",
+      "sha256": "054dd7af5aedae76f2955b978e8a2c2a19f0fb78462c174f3356bfcc4ae02b03"
+    },
+    {
+      "path": "docs/operations/MISSION_TIMELINE.md",
+      "sha256": "6431558cccc981bb966caa6a762db4fc14331a5242b583a2e3d6cffbf98eabba"
+    },
+    {
+      "path": "docs/operations/OPERATOR_TRAINING_MATERIALS.md",
+      "sha256": "6333c10f9829c6224aa6f88bc3e26084a3613a7f561ad42366be23be6d2a6b29"
+    },
+    {
+      "path": "docs/operations/OPERATOR_TRAINING_PLAN.md",
+      "sha256": "04dd6be1f9653a6493231732ba1153e83f0f3e92fce6b2b399ce2496e0a93dfe"
+    },
+    {
+      "path": "docs/operations/SOFTWARE_ROLLBACK_PROCEDURES.md",
+      "sha256": "1955620fe70e621704a936233c4a3f04c60907623857840c6e506d583a9f4ab1"
+    },
+    {
+      "path": "docs/operations/TELEMETRY_DICTIONARY.md",
+      "sha256": "cc7a6ea440d504acad10083e7f713678278ed43dd697a673c4efe04852ed4d8a"
+    },
+    {
+      "path": "docs/pdr/AI-PDR-FEEDBACK.md",
+      "sha256": "5001242d6c9347c072daa86b65b2626290aa7d2351d6e8f83c50e50ea078a737"
+    },
+    {
+      "path": "docs/pdr/SMART-QSO_PDR.md",
+      "sha256": "c4a8041fcf5d1667fe3590e3aa8b580aaaea75b02a7d608a36096b0589d1733f"
+    },
+    {
+      "path": "docs/project/CONFIGURATION_MANAGEMENT_PLAN.md",
+      "sha256": "089f3528f7af76e31888f54257e06a4e4cfa611b131745a476e2f3737c154e2c"
+    },
+    {
+      "path": "docs/project/HARDWARE_READINESS_TRACKER.md",
+      "sha256": "5fd0f7625c8da587b76c459df2031e7cf5f2d242970684f21218cec316daeefb"
+    },
+    {
+      "path": "docs/project/HERITAGE_ASSESSMENT.md",
+      "sha256": "80ee071ca0f595474c54660dbe17d4a99c90db5947ca0d2a67125a37393afab7"
+    },
+    {
+      "path": "docs/project/LESSONS_LEARNED.md",
+      "sha256": "bff8850a880c009bad68c464b0b71b5d0ec6ebd6431a49326ffb288f8ce834a4"
+    },
+    {
+      "path": "docs/project/MISSION_ASSURANCE_PLAN.md",
+      "sha256": "1ec7a72cf8be11c03251e5eea331ff59025bbc5ca4f29a35f877ecccbc50923f"
+    },
+    {
+      "path": "docs/project/PROJECT_PLAN.md",
+      "sha256": "2dd372b18a9aba544c1f58f35ba56d8bc3c4bdb4200925910e6f314f498f82e0"
+    },
+    {
+      "path": "docs/project/SEMP.md",
+      "sha256": "43f20896e142eb5748296ee19d6bd839aa7b5f5f158dba2d6a6f64263157b9a3"
+    },
+    {
+      "path": "docs/regulatory/IARU_COORDINATION.md",
+      "sha256": "a1668b6b54268c21be0a78786b0998f62dffe7ac4da534af9c30e38d2e6fc8b9"
+    },
+    {
+      "path": "docs/regulatory/SPECTRUM_LICENSE.md",
+      "sha256": "08ba6aa521c55a106eeed9cb2ac9a748c884894bb84e3cea16f80a77e6df083a"
+    },
+    {
+      "path": "docs/requirements/MISSION_REQUIREMENTS.md",
+      "sha256": "36450430d44b53e9e3a3308ce0e972f692315a23ec75aad139fad6d1dd2b37eb"
+    },
+    {
+      "path": "docs/requirements/REQUIREMENTS_TRACEABILITY.md",
+      "sha256": "f66cb0509ebe43917014165cadbe0a552f41e012c3051778d4a5311ec0611f7d"
+    },
+    {
+      "path": "docs/requirements/SYSTEM_REQUIREMENTS.md",
+      "sha256": "b3eed80b184a26085cbd15b3cd9526f2c7de6d44dc1cc93dda98cddfcecd5c2c"
+    },
+    {
+      "path": "docs/resurrection/ARTIFACTS.md",
+      "sha256": "6ae4aff1cdb7cf8de4b86d3d86e14a6322009e8ae88154c838972f7dc67fc8cb"
+    },
+    {
+      "path": "docs/resurrection/ASSURANCE_PLAN.md",
+      "sha256": "08bffccd1a059b547b02e8fa33c37e3163d05f491b8bb378fdba7c575437bd0a"
+    },
+    {
+      "path": "docs/resurrection/EXPERIMENT_PLAN.md",
+      "sha256": "e977e34c21858ad38130874a215d9ecdc7a23217f2b1b6a563d84d4882fad5c0"
+    },
+    {
+      "path": "docs/resurrection/FINAL_REVIEW.md",
+      "sha256": "6619c2d95571319a21879aa74e9258cf6a3ab454df2e73f88ed9a37bf8646738"
+    },
+    {
+      "path": "docs/resurrection/FIRMWARE_UPDATES.md",
+      "sha256": "74d5693fd679514210e547c6ba514ae07d7efc9939d99e48f10c132fe20fca27"
+    },
+    {
+      "path": "docs/resurrection/HERITAGE_COMPARISON.md",
+      "sha256": "bed8bde850f8aac993bccd7f65bcd59277d9f857c33060717e34db704ce2206f"
+    },
+    {
+      "path": "docs/resurrection/IMPLEMENTATION_REPORT.md",
+      "sha256": "ca8548d188b80d492458a4166415f3b27bfa204310edd959c27de6f576f5ef68"
+    },
+    {
+      "path": "docs/resurrection/INTERFACES.md",
+      "sha256": "83052b9600cc30bae2727b39e5ada2236dad7130bcdc84670c4d8e07710e0c26"
+    },
+    {
+      "path": "docs/resurrection/MISRA_RESOLUTION.md",
+      "sha256": "9797365f581eaedfcdeca56e88953acfcf0b4da9b554ec364c88954a9f74bd2f"
+    },
+    {
+      "path": "docs/resurrection/PAYLOAD_INTEGRATION.md",
+      "sha256": "1de4858735cd9bbe68258c35e0c18bf1478e24901b9225d80d63c656958e199a"
+    },
+    {
+      "path": "docs/resurrection/SOFTWARE_CLOSURE.md",
+      "sha256": "f9030385512fbc63f218d0541f08edefd8a387d64644c9be29c2eb7aa04786e5"
+    },
+    {
+      "path": "docs/resurrection/VERIFICATION_CAMPAIGN.md",
+      "sha256": "e908980f7d1f419221a95f9c5e4eb8b301024bb28e3a0f6023efe341c269988b"
+    },
+    {
+      "path": "docs/reviews/CDR/CDR_REVIEW_MINUTES.md",
+      "sha256": "7f3967e13e915f1bcc8da1b336562ec35a65d920467ece52046453b8af2a2b74"
+    },
+    {
+      "path": "docs/reviews/CDR/CDR_TECHNICAL_BASELINE.md",
+      "sha256": "48abf52e4bb4065a487f1589493493f66737eb69a1b38ac134591ddc70e6f786"
+    },
+    {
+      "path": "docs/reviews/CDR_PACKAGE.md",
+      "sha256": "25407d76d7e75da8f9a95b969405c395f037987233f38333489594e26c454b38"
+    },
+    {
+      "path": "docs/reviews/CDR_STATUS_SUMMARY.md",
+      "sha256": "a9b79005f9a4b13ddc91602b64d5bf59bddd6103d28b944315eac0bf890e9b72"
+    },
+    {
+      "path": "docs/reviews/CONFIGURATION_AUDIT_CHECKLIST.md",
+      "sha256": "68d0178a3463792b80acbcde833fd817f0a6df28a2a67a96aed284e96e9f2b55"
+    },
+    {
+      "path": "docs/reviews/CONFIGURATION_AUDIT_CHECKLISTS.md",
+      "sha256": "62a62fd37707c35025ec6ebdb6a3be130eb1f654da5a9b1f292ff7cfdb3b26d4"
+    },
+    {
+      "path": "docs/reviews/FLIGHT_READINESS_REVIEW.md",
+      "sha256": "81b9b13cd8fddfb459cf49b30d4794b3fb61004605d4b6161d3cfa2b35befcb6"
+    },
+    {
+      "path": "docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md",
+      "sha256": "fd214d6d358b63bd6b370c17be75e4386f136bccf87843f331a03494347db508"
+    },
+    {
+      "path": "docs/reviews/FORMAL_INSPECTION_REPORT.md",
+      "sha256": "6d75b938a04ca4354d8ab587d1fef4d2342ca9721ab88fa20b3feb53c1f9aee5"
+    },
+    {
+      "path": "docs/reviews/KNOWN_ISSUES.md",
+      "sha256": "080329dbed2bf29e7966a867e20415344958a261c4d93f000882c0ff0bd7874b"
+    },
+    {
+      "path": "docs/reviews/LAUNCH_READINESS_REVIEW.md",
+      "sha256": "c5ee934887b6b29a737a9648dc03ec3bd7f083e61d318126db67484397bcc58f"
+    },
+    {
+      "path": "docs/reviews/MISSION_OPERATIONS_REVIEW.md",
+      "sha256": "e049bd3f60798870f07a4062f0b927ea08d990cde24b5ba0d6afa39dc496df2e"
+    },
+    {
+      "path": "docs/reviews/PDR/PDR_REVIEW_MINUTES.md",
+      "sha256": "4a5e276cdd9463cc1ea025ffab09b3524a291c1b0dc9544da03c20b353c0496c"
+    },
+    {
+      "path": "docs/reviews/PDR_PACKAGE.md",
+      "sha256": "d71f54a4dcee89324211010217dd777309feea4cad57ad6549c2f8f75ab6d087"
+    },
+    {
+      "path": "docs/reviews/POST_ENVIRONMENTAL_REVIEW.md",
+      "sha256": "4d7788c54934651de843cdde18102ff9e303474306422bd59928b3a263d91918"
+    },
+    {
+      "path": "docs/reviews/PRE_ENVIRONMENTAL_REVIEW.md",
+      "sha256": "92570827c7d14910e85275f55e51721761047b95ecbc8eb14cf571bdef6953df"
+    },
+    {
+      "path": "docs/reviews/SAFETY_REVIEW.md",
+      "sha256": "de62772cb518ccfc210c80441b5e32a27c87881c6863722facc9e3f0b7e6e87a"
+    },
+    {
+      "path": "docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md",
+      "sha256": "7c01f5ff7496c817ede908c1ba94ecdb46ba3123d0d08d286251a3ed2191a496"
+    },
+    {
+      "path": "docs/reviews/SYSTEM_REQUIREMENTS_REVIEW.md",
+      "sha256": "fb934689512bbc3394e6f0bb3054a366cc201309909feace7148a1bd3eaadfbc"
+    },
+    {
+      "path": "docs/reviews/TEST_READINESS_REVIEW.md",
+      "sha256": "a5caa55b34f590c307e6b1902de28c6e32db940262f41679c9315dc14bc7e2fa"
+    },
+    {
+      "path": "docs/reviews/VERIFICATION_VALIDATION_PACKAGE.md",
+      "sha256": "4e8fd9ae4557a6ad8128f4ac8c4e383f03c111faab84b06016f2ede0d0c4fc26"
+    },
+    {
+      "path": "docs/safety/SAFETY_DATA_PACKAGE.md",
+      "sha256": "c2ff8d3aeb75169e1dda3e024457e561040dc6f7c6cf1aae13df4f71bbeec9cb"
+    },
+    {
+      "path": "docs/safety/SOFTWARE_FMEA.md",
+      "sha256": "e9d31df44f346c06af32daf4ea9787f0ed8d7f98d3d074e4a1a7659477f369e6"
+    },
+    {
+      "path": "docs/safety/SOFTWARE_HAZARD_ANALYSIS.md",
+      "sha256": "d904c21461ee7f264972758e6db80168b6d632dcaf3f16a9e5ac561421a2315d"
+    },
+    {
+      "path": "docs/safety/SOFTWARE_SAFETY_PLAN.md",
+      "sha256": "1daaa062cb82aefcd9c351ccfcc06f280fe1020ae8878b405e2484b2ce66e916"
+    },
+    {
+      "path": "docs/software/BUILD_CONFIGURATIONS.md",
+      "sha256": "ad5a5647dc8e829c1086e5862a6480994a81bd91e49c5d097e2b81cffca41217"
+    },
+    {
+      "path": "docs/software/CONFIGURATION_INDEX.md",
+      "sha256": "aef981acd4f06304b66a329ec7c2e3145720c9693d3d6e389d5ea06541413b1f"
+    },
+    {
+      "path": "docs/software/ROLLBACK_RECOVERY_PROCEDURES.md",
+      "sha256": "d2606233511c5dc7c85d783801f4bf5485a480dbe0b2e1152f273fa8c2f085f6"
+    },
+    {
+      "path": "docs/software/SOFTWARE_DESIGN.md",
+      "sha256": "1a2f60e78c2e5962b85276304c3e703c4651eb4c34caf55834ba46b9e5ce43eb"
+    },
+    {
+      "path": "docs/software/SOFTWARE_DEVELOPMENT_PLAN.md",
+      "sha256": "7ef59dd1398ab3a66c29a5adb0bcdaa11c24b3878a4eeb10b9268d0a531c9a07"
+    },
+    {
+      "path": "docs/software/SOFTWARE_MAINTENANCE_PLAN.md",
+      "sha256": "27a5bf1a864fef7a68a8030fd6c536f8453d507743646b0b20045ec3a8450eb1"
+    },
+    {
+      "path": "docs/software/SOFTWARE_REQUIREMENTS.md",
+      "sha256": "11061292f9000a5a6eb644dbb4ca4ea1fe871d56e57d0ba0167e7f55c516995c"
+    },
+    {
+      "path": "docs/software/SOFTWARE_TEST_PLAN.md",
+      "sha256": "218a4ed0fbbb3926cb3207655957afa21830c22cfeec578d18c625ec019457ca"
+    },
+    {
+      "path": "docs/software/SOFTWARE_VERSION_DESCRIPTION.md",
+      "sha256": "cad6bf87c3fc2abc2908f3ff64d1f329667ce00a7c5fd2c8526ed9d69cd0baa1"
+    },
+    {
+      "path": "docs/test/END_TO_END_TEST_PLAN.md",
+      "sha256": "953a864dc14fdfc9f9d57058d895a96742ec4a7dbcd86783a0d47afd22e9b3e5"
+    },
+    {
+      "path": "docs/test/FLATSAT_TEST_EXECUTION_GUIDE.md",
+      "sha256": "864094944d879775dc3084d0e0bd4024ca6881b8dca6870b1510f4aafdbd2274"
+    },
+    {
+      "path": "docs/test/FLATSAT_TEST_PROCEDURES.md",
+      "sha256": "a842977e4d830000f0b02a21413ac28ea65d89ff0006bd9a53fa529ea5af21cb"
+    },
+    {
+      "path": "docs/test/SYSTEM_TEST_CASES.md",
+      "sha256": "69d6cb69d222bb83013092630867323bea1d1380cc9d13b41fdcef679c613759"
+    },
+    {
+      "path": "docs/test_procedures/ACCEPTANCE_TEST_PROCEDURE.md",
+      "sha256": "edbae7a26f4b202b2d87d93b5eda3385d2ab05259a7a5a403cc77ebc0ea57973"
+    },
+    {
+      "path": "docs/test_procedures/TP-ADCS-001_Sensor_Test.md",
+      "sha256": "a8199ad65a203af9e77e80c3cba28374eb1408628764d9b5f577a6df201c0c7f"
+    },
+    {
+      "path": "docs/test_procedures/TP-ADCS-002_Actuator_Test.md",
+      "sha256": "39800a3dd984844c63d4a3ec7192ccdf45173e94b24504f32f1cc22967a74c04"
+    },
+    {
+      "path": "docs/test_procedures/TP-ADCS-003_Algorithm_Test.md",
+      "sha256": "05ba1c0ded20a3a2cc4c1a17696995d1095161b6666e6a62ff31fec9c70712b5"
+    },
+    {
+      "path": "docs/test_procedures/TP-DITL-001_DAY_IN_THE_LIFE.md",
+      "sha256": "db12a05a2b9965cc410c289b76dbb94b45a55d9eb8e80288b7e3186f6fe0d9e7"
+    },
+    {
+      "path": "docs/test_procedures/TP-ENV-001_Pre_Environmental.md",
+      "sha256": "8e411ed2e08d3e85147f6ad7443bd9107e4f4b29bb6633a59195d8b4b3334c48"
+    },
+    {
+      "path": "docs/test_procedures/TP-ENV-002_Vibration.md",
+      "sha256": "b0d6c5b037549913689cb84f13d9357731a6f9cd8fbd835ade6bdc04fcb12cdb"
+    },
+    {
+      "path": "docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md",
+      "sha256": "fdfb2ef5bdfe91533daa4fe9d31987987f1b3fb565e5f4ab33d2b7c58127ab78"
+    },
+    {
+      "path": "docs/test_procedures/TP-ENV-004_EMC.md",
+      "sha256": "e488ce41b15fe912c11254fa40ac30a67a21272d6bcfd6f3e3800c55332427bc"
+    },
+    {
+      "path": "docs/test_procedures/TP-ENV-005_Deployment_Post_Env.md",
+      "sha256": "dd48da446ffe534e2ac3e24611d930384ca452c20778afbabdbd04bf3b333c6a"
+    },
+    {
+      "path": "docs/test_procedures/TP-EPS-001_Functional_Test.md",
+      "sha256": "bc445d604e22ebea1d701ab8bef0f9250eada00ed533ce35f946ce3a1aa0735e"
+    },
+    {
+      "path": "docs/test_procedures/TP-EPS-002_Load_Profile.md",
+      "sha256": "a67fc6f05cb812928e153bf7ef009f0ed5b4bcbb136ac7dc8836f8b5391d9d9d"
+    },
+    {
+      "path": "docs/test_procedures/TP-EPS-003_Battery_Characterization.md",
+      "sha256": "240d89108d71348c83fff4a2aabe747f46529cc8187d5d8258cdf4a92578a3a5"
+    },
+    {
+      "path": "docs/test_procedures/TP-EPS-004_Solar_Array.md",
+      "sha256": "ce78f02c7b97824125a3cc97d093bfe7aa99241dcea0ca99752c095d474695c3"
+    },
+    {
+      "path": "docs/test_procedures/TP-FAT-001_Final_Functional.md",
+      "sha256": "74734998997636b92eab19156d4090d80dd1c88f2c5f4a65c5e3f7c9797ed5ff"
+    },
+    {
+      "path": "docs/test_procedures/TP-FAT-002_Flight_Config.md",
+      "sha256": "bb6b4147475d2dd808018ab597399c6ba26d6fc78b7d54990613814472b9ac63"
+    },
+    {
+      "path": "docs/test_procedures/TP-FLATSAT-001_Software_Development.md",
+      "sha256": "87b3118fc1c69f8f96c176e487c7e9eb1457d5f4f9ef81fcce8bee9e48dfb867"
+    },
+    {
+      "path": "docs/test_procedures/TP-GS-001_Ground_Station_Validation.md",
+      "sha256": "08a71f8d41338e1c22c5adc426742b4bf7cfd9d9bf3ac6dc3f6ff8e5ee2b7205"
+    },
+    {
+      "path": "docs/test_procedures/TP-INT-001_EPS_Integration.md",
+      "sha256": "2461e7ca8be03e401c120657f08cce3a15ba45b752eed092d04532998167d369"
+    },
+    {
+      "path": "docs/test_procedures/TP-INT-002_OBC_Integration.md",
+      "sha256": "4a0c553943e242919ad8b02f2872ec06b8a96b66ceab6b3dc8e3b704853a9e9d"
+    },
+    {
+      "path": "docs/test_procedures/TP-INT-003_RF_Integration.md",
+      "sha256": "2cf7a3f25e7a604f27df97e31576aa8e31a19cdf9f532da38435ba2ff909cf0e"
+    },
+    {
+      "path": "docs/test_procedures/TP-INT-004_ADCS_Integration.md",
+      "sha256": "cce8ea8c5471098aa6c74ac14a040c7cd115c3d6562a1cd061928fa121b7cc93"
+    },
+    {
+      "path": "docs/test_procedures/TP-INT-005_Jetson_Integration.md",
+      "sha256": "7186184bc1258a7617493cbd216b906ed15b6b237ae44ce8be10bbd5fe137b56"
+    },
+    {
+      "path": "docs/test_procedures/TP-INT-006_Final_Assembly.md",
+      "sha256": "a436bd65fea361b73ae52a3ce57c525a18c2a0699aeb5ebe99010affa10611a3"
+    },
+    {
+      "path": "docs/test_procedures/TP-JETSON-001_Power_Test.md",
+      "sha256": "62ac1be044ce51a3e58375fb84b0b2824f46369b98bfa25f3c377ced070fbec5"
+    },
+    {
+      "path": "docs/test_procedures/TP-JETSON-002_Thermal_Test.md",
+      "sha256": "546f6cd26a756e7a99a80089d5386db91a26eebd7fed70f323746e4f7a815006"
+    },
+    {
+      "path": "docs/test_procedures/TP-JETSON-003_Functional_Test.md",
+      "sha256": "759c6544b39e302d777d0a59e20797d495ed2e317f6393a7cb48b4aa51331b4d"
+    },
+    {
+      "path": "docs/test_procedures/TP-MECH-001_Fit_Check.md",
+      "sha256": "eb1d063ef4e6e2f4fc280d0632314234a3e3423b9442349adbb0d28f1964e7f6"
+    },
+    {
+      "path": "docs/test_procedures/TP-MECH-002_Deployment.md",
+      "sha256": "02f297625be1f224a2fa65b0bafa199072aaca5a95ee553bd2b02492a27abd74"
+    },
+    {
+      "path": "docs/test_procedures/TP-MECH-003_Deployment_Switches.md",
+      "sha256": "c4d4e4375a028801e08d491c7fcae52722c99796aefd3c1776102ac2769f5712"
+    },
+    {
+      "path": "docs/test_procedures/TP-OBC-001_Functional_Test.md",
+      "sha256": "c77dc71e7ee6cd7e4fb6bf121d73238ce7a59a9170496891c8c16c019029cbf7"
+    },
+    {
+      "path": "docs/test_procedures/TP-OBC-002_Software_Load.md",
+      "sha256": "e5f2329dfac6b02d27c025db605b6b418d9d3513e369fcc5e5d21c28ecf0e3fc"
+    },
+    {
+      "path": "docs/test_procedures/TP-OBC-003_Timing.md",
+      "sha256": "3cacd867a712c83fa873b9af6530c4f00930d760b01507f37f9f1b201c3cf0c6"
+    },
+    {
+      "path": "docs/test_procedures/TP-OBC-004_Watchdog.md",
+      "sha256": "e408f6e6d0ca8c013a227fe3de65cf54cc2bcfef4bd21fb048c2adc542c958a3"
+    },
+    {
+      "path": "docs/test_procedures/TP-RF-001_Functional_Test.md",
+      "sha256": "63dcdb297f563bd4813ce0f944722a855e31ed41c17e83b888bc78fca3c91b53"
+    },
+    {
+      "path": "docs/test_procedures/TP-RF-002_Conducted_Power.md",
+      "sha256": "10386ce28408d44921ef655824584e5b6e34af2803c3f7f95fdd054f5834d0db"
+    },
+    {
+      "path": "docs/test_procedures/TP-RF-003_Spurious_Emissions.md",
+      "sha256": "6d8d762dba013368dffa10d9eac11daf0c2002fa73fa49f0f492718b72289164"
+    },
+    {
+      "path": "docs/test_procedures/TP-RF-004_Modulation.md",
+      "sha256": "6ba417ae350c06124777b4b0d20f879a663e6ac8a39781c9dc31654334269f12"
+    },
+    {
+      "path": "docs/test_procedures/TP-RF-005_Antenna_Deployment.md",
+      "sha256": "2abc01f8d2195f18946c759a2fe0cb92a693bae9504b6d593ee8a22c9d5c2a6c"
+    },
+    {
+      "path": "docs/test_procedures/TP-SYS-001_Comprehensive_Functional.md",
+      "sha256": "279883e82e1fdd4e839137d6d739450255c560764c5cdc493492b5ec6bbb31e1"
+    },
+    {
+      "path": "docs/test_procedures/TP-SYS-002_Day_In_The_Life.md",
+      "sha256": "4ee7cd2da57f22972c259d3054a11f14a78d49f71c9b8f871f9811694341cf32"
+    },
+    {
+      "path": "docs/verification/CONFIGURATION_AUDIT_PROCEDURES.md",
+      "sha256": "418c3351fac8a8eebac99ea74af72bc2b5ea94f3c89b8f8d6e8b8f87aa92b56a"
+    },
+    {
+      "path": "docs/verification/CONOPS_VALIDATION_MATRIX.md",
+      "sha256": "a51481b0ac89e708f96d86d3cabd691f4933e538b09156bf891d89dae4305d28"
+    },
+    {
+      "path": "docs/verification/REQUIREMENTS_TRACEABILITY_MATRIX.md",
+      "sha256": "5ec06384af4b8bb44c7e90f62be48721bab77b10f86b32a5a19e71bc7d0882f9"
+    },
+    {
+      "path": "docs/verification/RF_TEST_RESULTS.md",
+      "sha256": "363131d2e5fbaf4b5bd261e54ac8c5e7180c3107ac7599bbf873412e421cbfb6"
+    },
+    {
+      "path": "docs/verification/TEST_PROCEDURES.md",
+      "sha256": "e63464e042bcf6d400fce64083e0fabda4f5241386c2e8ea3d2aee5302aa13a7"
+    },
+    {
+      "path": "docs/verification/VERIFICATION_MATRIX.md",
+      "sha256": "95b863e42008c56bb3432fced767c1d66c1ed27282fa1af7eaa3dd8af12de7cf"
+    },
+    {
+      "path": "docs/verification/VERIFICATION_VALIDATION_PLAN.md",
+      "sha256": "e8ca8822fa15cfa67187ea81ae85219927992f5565b7378f82e5d0a428aa3b4e"
+    },
+    {
+      "path": "hardware/README.md",
+      "sha256": "29950bfb463c25cdde3ecf3a59f4f2d378a9250d173ca582caf4ca59a8e1efd8"
+    },
+    {
+      "path": "hardware/adcs/ACTUATOR_DESIGN.md",
+      "sha256": "e979a6b9bf1723536bb5d7952d805e760827b61b0cf5ef1d593058d2f12f7f97"
+    },
+    {
+      "path": "hardware/adcs/ADCS_ELECTRICAL_DESIGN.md",
+      "sha256": "d7401493d0a91bbe532be0d82a5b5ddecdad30581b9977d464d3a3de4ea3499c"
+    },
+    {
+      "path": "hardware/adcs/README.md",
+      "sha256": "d101e51833109c0c955e8d96313497e760ec761ee685ae29bfc936c05abe67b9"
+    },
+    {
+      "path": "hardware/adcs/SENSOR_DESIGN.md",
+      "sha256": "d5b98500f7c7fd77d6c8bd0547c70f059cba173d2385aaeaa99c484fbd4b5c01"
+    },
+    {
+      "path": "hardware/eps/BATTERY_DESIGN.md",
+      "sha256": "8a051cd61ca131f4331da9b58522f3df9d4ec468226fa440466e9503ee49d322"
+    },
+    {
+      "path": "hardware/eps/EPS_ELECTRICAL_DESIGN.md",
+      "sha256": "1225d571b95d0ccb38906f5346e408d7cec04beb06493acc73c9a5a12b3c58bb"
+    },
+    {
+      "path": "hardware/eps/PDU_DESIGN.md",
+      "sha256": "60a99ecb31b23a11b9cfd661c73967ca8ce3cc76089b4c7e51f7537b0ef999f4"
+    },
+    {
+      "path": "hardware/eps/README.md",
+      "sha256": "d308cdf98be33388975f77e2d806577e388d29337a6590ffd156eb5d0c43de56"
+    },
+    {
+      "path": "hardware/eps/SOLAR_ARRAY_DESIGN.md",
+      "sha256": "bd64d036815e0b40fb4e8927cfbcd51450ac35cd486191eb9f423740726d4b16"
+    },
+    {
+      "path": "hardware/harness/HARNESS_DESIGN.md",
+      "sha256": "e665fe4c3104eaebefae7c8900133c23eebcb3dca00cf4eca28dcfe4502241f0"
+    },
+    {
+      "path": "hardware/obc/OBC_DESIGN.md",
+      "sha256": "c1a0e8488ee2454e2994a5b3472a8c0e7f8c50fc237ea141c1c8dafe7e6482eb"
+    },
+    {
+      "path": "hardware/obc/OBC_ELECTRICAL_DESIGN.md",
+      "sha256": "0312d489a48c2d483024a860b3a70bd8fd64f124210c187c879e010a4a97de6e"
+    },
+    {
+      "path": "hardware/obc/STORAGE_DESIGN.md",
+      "sha256": "95759c7d6dda227884312ac2e7eeac5403d5f3c99f71c69526e39cf6e9e14689"
+    },
+    {
+      "path": "hardware/payload-jetson/INTEGRATION_DESIGN.md",
+      "sha256": "3460c6c8c4edaac59dcb16c388106c456a891395289b41b961fd230f1fc96975"
+    },
+    {
+      "path": "hardware/payload-jetson/OPTIMIZE_JETSON.md",
+      "sha256": "41dd0e033fc9406e00e1b2da7c378c99df86d2b061a60655048032477b9996fb"
+    },
+    {
+      "path": "hardware/payload-jetson/POWER_MANAGEMENT.md",
+      "sha256": "60229c42abaa6eadea769088031e84ba61527b295fdb063998e06ebaec56f99b"
+    },
+    {
+      "path": "hardware/payload-jetson/README.md",
+      "sha256": "f935a5675ba7671d4adb9c85bf1c3e6549d489621514f987073481d7b148e00b"
+    },
+    {
+      "path": "hardware/reference/README.md",
+      "sha256": "bb55eed2d6c761cb81a7091c6e9e5a91548f4bef696c94c77cc896c7ddc7bbb8"
+    },
+    {
+      "path": "hardware/reference/packaging.scad",
+      "sha256": "39313c22802f3f8138678df50fc5758fd2ee0b4d4268e649f6d503a7aa201a69"
+    },
+    {
+      "path": "hardware/rf/ANTENNA_DESIGN.md",
+      "sha256": "03ef3e0fb0af4874079ab6da046c0e2e8e9557d4fa37711065cdcfc243d869f9"
+    },
+    {
+      "path": "hardware/rf/BEACON_ONLY_DESIGN.md",
+      "sha256": "eb2600de52b7779a5c23b6b719a6a15d3eefd3927fe3a02ac9fbaea7e47da45f"
+    },
+    {
+      "path": "hardware/rf/RF_ELECTRICAL_DESIGN.md",
+      "sha256": "f9ee62fb35bb3482c8589ea64bf5b7d066d84482a46661d060ce098299c86120"
+    },
+    {
+      "path": "hardware/rf/TRANSMITTER_DESIGN.md",
+      "sha256": "257e9ac46a0fbe8179ed3bbd3f6bc695c7f515b43f8d865e26e8ab3b563c8bba"
+    },
+    {
+      "path": "hardware/solar/SOLAR.md",
+      "sha256": "d4524f28cfbfcac9e414e5746ceb4c180ea763360c1a3c902955e7afca097e75"
+    },
+    {
+      "path": "hardware/structure/README.md",
+      "sha256": "8166f0189384a16eefd272038d6c90b7d981f83223a4fbc8534d69cd54051c64"
+    },
+    {
+      "path": "hardware/structure/STRUCTURAL_DESIGN.md",
+      "sha256": "7e08a081a71f9f01622813d3c416273664eb5c769597dc27679fe1a43426ee1d"
+    },
+    {
+      "path": "hardware/structure/STRUCTURE.md",
+      "sha256": "a01d0c2cad83f16e64f774543ecc6d91a6b69399a79c678bc0c039194f50c39a"
+    },
+    {
+      "path": "hardware/structure/THERMAL_DESIGN.md",
+      "sha256": "9fa87d8f2d5672f09d1a304fbae2a2d3226f52e5ef0ecdca0ae909aebd1da204"
+    },
+    {
+      "path": "mission/CONOPS.md",
+      "sha256": "2b3f9e9b78c4afccc195caf40309774ad8e1b67189996d07201a7657968712ff"
+    },
+    {
+      "path": "mission/RISK_REGISTER.md",
+      "sha256": "cc261cf20500bb36e60b4d270347e3251146cd352bf279313e9c870dff2ee5e0"
+    },
+    {
+      "path": "mission/SCHEDULE.md",
+      "sha256": "4bd7554f1e90a3fe478a2d82f1dddf32af11ab365e965ecb811f54a28faf8398"
+    },
+    {
+      "path": "mission/VNV_PLAN.md",
+      "sha256": "903440669a1e398c214f912c08401965372ee4a204f0111a35cd77a7e40b6eca"
+    },
+    {
+      "path": "mission/current/BASELINE.md",
+      "sha256": "531dc293688fbed05cf43d962b85e502854fc5493f2a5563155b40ca137e5f45"
+    },
+    {
+      "path": "mission/current/baseline.json",
+      "sha256": "7e530c31f4feb3a0e18de2264bdbc1ee9653e7799950ae0b9650fe8cccbff0dc"
+    },
+    {
+      "path": "mission/current/budgets.json",
+      "sha256": "24bbb3a6ce0852b1189a975e9cef8f33fcd530718f2a1e993dc42b1db8f9eeec"
+    },
+    {
+      "path": "mission/current/final_review.json",
+      "sha256": "84d32dd2154b568386860bbb3c50e5c8c0c15b3cf2dfb5199344c6be01b8ad6e"
+    },
+    {
+      "path": "mission/current/findings.json",
+      "sha256": "5a6cc1d53fa15dcac7598c032cd7be991959edf74d3d4a045dccb4b0e3bd349f"
+    },
+    {
+      "path": "mission/current/funding.json",
+      "sha256": "5aa38236661a5c82f156bcae906cd94a1e3f17f259a0134aa486d7c9c6b801fe"
+    },
+    {
+      "path": "mission/current/gates.json",
+      "sha256": "c58d73d29ef15c2ae717821da77675d4db16e78fc19fd5d71b2ce69c5dacec80"
+    },
+    {
+      "path": "mission/current/hazards.json",
+      "sha256": "60b8b3a49f1b6529b9a4d6d089f9745a3fc99fa5ca4bf89ab09d9fd4108e1242"
+    },
+    {
+      "path": "mission/current/legacy_test_migration.json",
+      "sha256": "04d271aea64a1e7a2d2e4852f15271ec19be6535f0ec0a768baa2259037c8c5a"
+    },
+    {
+      "path": "mission/current/misra_findings.json",
+      "sha256": "e696971689ddf59959bedcde99afbcbc55b994556e4a7626034a31bf30b3fd69"
+    },
+    {
+      "path": "mission/current/misra_resolution.json",
+      "sha256": "878c021f0a1c0e5b7a3d2992454f89f2f488e195380203637d39eb200fbe9149"
+    },
+    {
+      "path": "mission/current/protocol.json",
+      "sha256": "bd62b849ff38d64c33d38fef3559649c0592c5e9b6d662902a95d6e7d086a973"
+    },
+    {
+      "path": "mission/current/protocol_fixtures.json",
+      "sha256": "79534ab276379dee15edef23f1a65077a7419de268889258bc15862cfd738014"
+    },
+    {
+      "path": "mission/current/requirements.json",
+      "sha256": "946c7c7d8ad8988c119d1e0098f7fe324199cc86b0ff54a18da6023c4633bf61"
+    },
+    {
+      "path": "mission/current/software_closure.json",
+      "sha256": "f18638a21e007d9126107818b1a28fc1d6fd9d699593007df35b82222c46a299"
+    },
+    {
+      "path": "mission/current/standards.json",
+      "sha256": "e2acba4bee5e64d4230fb6f9d015d0671d88185a48cf51782312cdb4bcb2022f"
+    },
+    {
+      "path": "mission/current/standards_tailoring.json",
+      "sha256": "76432a679c5df597b7646d18abca6d1c66f2abafe945e6f23cb172f9e9ed8b67"
+    },
+    {
+      "path": "mission/current/test_inventory.json",
+      "sha256": "67a639be217cdddb1aaf50a4e545ff0bebd328edc8edb4b8e11c8467413abb54"
+    },
+    {
+      "path": "mission/current/work_packages.json",
+      "sha256": "a96ed1c36e19ed2e6093ae4650850077dd3c52bade09c1ef69ecde07257b6515"
+    },
+    {
+      "path": "pyproject.toml",
+      "sha256": "2e75060ce964db5b41748f494b663d8da844bb4975ff890e5c840e7e0d264541"
+    },
+    {
+      "path": "software/README.md",
+      "sha256": "266fff91cd9029c56b6b5c67530273978577c5c94ae85213b6ea56d7cb69a295"
+    },
+    {
+      "path": "software/__init__.py",
+      "sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070"
+    },
+    {
+      "path": "software/common/__init__.py",
+      "sha256": "ae7ff14a1f6c7f3a97f2e7be840b4fcafe4eb30145bc5e027a5c244640f40649"
+    },
+    {
+      "path": "software/common/adcs.py",
+      "sha256": "ae96e901b82855863fb3be98df329c33708a0a2b80a605ebd8f1d9cc82797831"
+    },
+    {
+      "path": "software/common/core.py",
+      "sha256": "6debb909259dbc1ab104f223b783da1128a6eb99a193265deebc9b3eb013a368"
+    },
+    {
+      "path": "software/common/firmware_update.py",
+      "sha256": "02706bdca5619cd6a17a0a1e009af728f8313ece61e09d6937fcdcfc60bccc33"
+    },
+    {
+      "path": "software/common/obc_payload.py",
+      "sha256": "edf482d573cc87ee9d9f5a5faef0dce102af4fe8e3b16799fd587f832b524dc4"
+    },
+    {
+      "path": "software/common/payload_link.py",
+      "sha256": "a2e23c82da30b3854b11b25b39db8f8048548f126b50ebd014ce2f8f2771dc63"
+    },
+    {
+      "path": "software/common/protocol.py",
+      "sha256": "466f2a41f18415d786e001e4b14f93111984e64c00a86ba4af459a182ab34128"
+    },
+    {
+      "path": "software/common/protocol_generated.py",
+      "sha256": "81ae9f0b50c1e478aed866056873531878e1aef5191e403c0a2eb81944878b22"
+    },
+    {
+      "path": "software/common/tests/test_adcs_runtime.py",
+      "sha256": "35f978d680f9e5bf65dc825fe5a97e161439c5c0fe56d025580d1398afb31386"
+    },
+    {
+      "path": "software/common/tests/test_assurance_tools.py",
+      "sha256": "a70319779adc735eefe3cbfea5911d5469cda7cf2e6962065a70543205fc3a79"
+    },
+    {
+      "path": "software/common/tests/test_final_review.py",
+      "sha256": "d63680213fac9596657083b1297b95fa6fd7093ad390e1c1181b504b618b36c3"
+    },
+    {
+      "path": "software/common/tests/test_mission_system.py",
+      "sha256": "3c3f41be1f09e45422f33bf03f2f99a26f64949751cef606e8740bdd701ee508"
+    },
+    {
+      "path": "software/common/tests/test_public_site.py",
+      "sha256": "cfe10892078807aca2cbcd5b54563bd5a573ff5bd06505c6a156cd99bd49f1a3"
+    },
+    {
+      "path": "software/common/tests/test_release.py",
+      "sha256": "40bb1803383edc01257eec869d75f29fb27975b3de3205f36e83e44354404d97"
+    },
+    {
+      "path": "software/common/tests/test_update_payload.py",
+      "sha256": "cbd7e1385293afc0cf86817b9a39b0504b0c06794fb362ba512846fbf3b2e99c"
+    },
+    {
+      "path": "software/flight/.clang-format",
+      "sha256": "e6cc528ff3785a881985d27e3ae3b23b4ac7cb261274f24faec7405c5b26b4d8"
+    },
+    {
+      "path": "software/flight/.clang-tidy",
+      "sha256": "1b79541077b1754535a08abd8466183ab9788564cda1be59c44709d5286b2382"
+    },
+    {
+      "path": "software/flight/.cppcheck",
+      "sha256": "f8915b2c91cae7593bb036775e74672fc87df60875d19d9e8146d0404a5ff6b7"
+    },
+    {
+      "path": "software/flight/CMakeLists.txt",
+      "sha256": "8d0e795b2197e49392d8a1058ea6f53d3c7f59a9cd569f818281aa6d20cca158"
+    },
+    {
+      "path": "software/flight/Doxyfile",
+      "sha256": "f7b63d5e8a50caf6433c87c32991bd94820eac9a9bd756bc3a50ed2208c99f50"
+    },
+    {
+      "path": "software/flight/ENHANCEMENTS_SUMMARY.md",
+      "sha256": "9ebe25b8a345857793876ca5e196dea863d0c448ae6f104b012f983c75c2c254"
+    },
+    {
+      "path": "software/flight/UART_TELEMETRY.md",
+      "sha256": "f4321025f6065d2d5df2c74d80d499f6c3266f231358c14132658aefe31235b3"
+    },
+    {
+      "path": "software/flight/cmake/arm-none-eabi.cmake",
+      "sha256": "3950d585d3c833bfbf91e291f99915e5fb97624091fc5bdd93f3210e075c50b9"
+    },
+    {
+      "path": "software/flight/core/adcs.c",
+      "sha256": "382df31fb4f3f346f9f48e992ae39659a72493d5d6342da9c0cb2e61e9fe363f"
+    },
+    {
+      "path": "software/flight/core/adcs.h",
+      "sha256": "6df1b49173df41e3434e77f626a1c3d6591a0c27867bee40bbfea6fa59e20715"
+    },
+    {
+      "path": "software/flight/core/host_api.c",
+      "sha256": "ef8832f2a6ff4fe6e0b81e67ea851d246beccbd98663299827088911d37feee1"
+    },
+    {
+      "path": "software/flight/core/host_api.h",
+      "sha256": "025df751ced3c8095ca0a634b68047b0858ec3e18ec79000abcd75303802103a"
+    },
+    {
+      "path": "software/flight/core/journal.c",
+      "sha256": "05c8eeb41edb4083a41148a72811b141b96298f1cad724a546faedf36b8b39c7"
+    },
+    {
+      "path": "software/flight/core/journal.h",
+      "sha256": "b9e3a8f9ae34fda3f5d2f19bf29fc8c5a00da101f6f0b8e335c8018759b31e29"
+    },
+    {
+      "path": "software/flight/core/mission_core.c",
+      "sha256": "71c49b35415383fad8438f321b7055cb35a670d4655aa9451c594cbc08b76097"
+    },
+    {
+      "path": "software/flight/core/mission_core.h",
+      "sha256": "5dadbed5a93d2c3f04bf845f2514a384c8e7388cbbb99b22f915fc7a46e1c9c6"
+    },
+    {
+      "path": "software/flight/core/payload_link.c",
+      "sha256": "042a0f7744c3d9d1f46af66cccfb83a94327837a54f7c2a733c40023b8c974df"
+    },
+    {
+      "path": "software/flight/core/payload_link.h",
+      "sha256": "8a0be6778849abaeacbcae615c0986f3a586c0ff383560efe1d7564a0a7eb31d"
+    },
+    {
+      "path": "software/flight/core/protocol_generated.h",
+      "sha256": "402040837fc0d0e30fef4c0cc727a2f5bc3006e4df9dfa63e2025bd4ed6ff282"
+    },
+    {
+      "path": "software/flight/core/resource_advisor.c",
+      "sha256": "71f16aa554c6e8bdb5a80194f1cc186c00f14ea8509a84bbb585ae3e61a273b3"
+    },
+    {
+      "path": "software/flight/core/resource_advisor.h",
+      "sha256": "3b669a0fbd3551d62bf51354b515a7b745b0a659ff8693ee4f2ab65583b3d3ea"
+    },
+    {
+      "path": "software/flight/core/runtime.c",
+      "sha256": "3ba7c6ded11bcbb0b26c90ad6913a86f64cdeaf134917b4e05d85eff5174e198"
+    },
+    {
+      "path": "software/flight/core/runtime.h",
+      "sha256": "46acff8edefbc8b2a18e76322dfda67441598019412466a70ff05c40f92499bc"
+    },
+    {
+      "path": "software/flight/core/transport.c",
+      "sha256": "db8a4552c5cc2cb7426ab337efb61e04255f352dd144b1d0589815247fe27c61"
+    },
+    {
+      "path": "software/flight/core/transport.h",
+      "sha256": "7bed0eaee467c541a75da1981c59f86fb0b9ae294b33471bdcb867142a569524"
+    },
+    {
+      "path": "software/flight/core/update.c",
+      "sha256": "f5ce030cbd431ed68fc4f309cda565c251c1cd17e233f31f9c1c2fc109ab046b"
+    },
+    {
+      "path": "software/flight/core/update.h",
+      "sha256": "ba5404eac6564cc4c195d670672df744b25abb466be6ec1cadb3ae2fff50651a"
+    },
+    {
+      "path": "software/flight/core/update_stream.c",
+      "sha256": "52aa3182d9782f41b83bcd78fd9524737d464fc5de6f6aa952870a0251e3b676"
+    },
+    {
+      "path": "software/flight/core/update_stream.h",
+      "sha256": "6d549c14b451e4a0cf614e66b8ca7fff56ee58d3f6594a37a0c75b5031d65f8f"
+    },
+    {
+      "path": "software/flight/docs/AUTONOMY_DESIGN.md",
+      "sha256": "c4eb043ff8407be362719277489fba8e3737d75bb244104a6ea0cb5853d09f3c"
+    },
+    {
+      "path": "software/flight/docs/BOOTLOADER_REQUIREMENTS.md",
+      "sha256": "1190aa84443d624c42388a2e705fd3b27ebe27e0eeb413f4a3d6a9c8f7fb652d"
+    },
+    {
+      "path": "software/flight/docs/FDIR_DESIGN.md",
+      "sha256": "1558c74c689890bd0a5b7aff76d541444a84d567ff4501956dafb9df0ac6243e"
+    },
+    {
+      "path": "software/flight/docs/INCLUDE_DEPENDENCIES.md",
+      "sha256": "e739797d114cb26cac7666630be334204c78abbe57ec693e86dc667c77e9a924"
+    },
+    {
+      "path": "software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md",
+      "sha256": "2cab26fe1ce38c8f06701daaa65006c3ab8c95a7010861479a7ad3014b1db8d9"
+    },
+    {
+      "path": "software/flight/docs/LOOP_BOUNDS.md",
+      "sha256": "3888d4b5599719360760df59f659467e87396d50d35215a2b283b1b5208976fb"
+    },
+    {
+      "path": "software/flight/docs/MEMORY_POLICY.md",
+      "sha256": "29af2fd292a97654f25372cebea7ca17a00c8fb3ad2f9f9040c2c252c72bdc08"
+    },
+    {
+      "path": "software/flight/docs/MISRA_DEVIATIONS.md",
+      "sha256": "0bb421e10ae35c9d1e7e4e952cb713479cda85ca850b94c9949cebcc2a2e9c7c"
+    },
+    {
+      "path": "software/flight/docs/NAMING_CONVENTION.md",
+      "sha256": "c55dd16f33d652518bb45bd2ea6748cb0f6619f74c61f80aced161683376dc02"
+    },
+    {
+      "path": "software/flight/docs/RADIATION_MITIGATION.md",
+      "sha256": "3cf6d308027ba258aa629c7812959ad2c882121505c88de4368c3f090ef8869d"
+    },
+    {
+      "path": "software/flight/docs/README.md",
+      "sha256": "2e38bed06085b5c5ea4703d3f496f4647404c0c702bc5f4995794d185dde6b8a"
+    },
+    {
+      "path": "software/flight/docs/RTOS_ARCHITECTURE.md",
+      "sha256": "0af87b238d1d90984acc857be2be838fd0956a76b3eee8c9b4b01cf6917d9d92"
+    },
+    {
+      "path": "software/flight/docs/TIME_MANAGEMENT.md",
+      "sha256": "bc78e4894e6a7ecadce4a9f4ffcfa14ce78e37cf41e82cf1ba48bd3f6cce9afd"
+    },
+    {
+      "path": "software/flight/docs/TIMING_ANALYSIS.md",
+      "sha256": "d02bb519a633d6efed4eca6d44c7885030d09760114f11963cf53f57a8c5f870"
+    },
+    {
+      "path": "software/flight/examples/host_demo.c",
+      "sha256": "fd49381688ea7d68e217effe5957cfe771ea45bde53c97d99356099a30b594db"
+    },
+    {
+      "path": "software/flight/include/adcs_control.h",
+      "sha256": "75474208d473c0aa977c8efc90b6d21fa424f8b6a3dafece110d340d4ec2d93c"
+    },
+    {
+      "path": "software/flight/include/assert_handler.h",
+      "sha256": "2605ec83fa97005365aeb3ea1bbb1161d2161c3e78ae780ba3ff28cad94fd842"
+    },
+    {
+      "path": "software/flight/include/beacon.h",
+      "sha256": "c8bb3125706f2d7af2c69836a0730ffbb18ad3e41af38a17bbb542f7de7130b8"
+    },
+    {
+      "path": "software/flight/include/cmd_handler.h",
+      "sha256": "f3bbdd1b04c78c98430c6aa1436343ccb774a09c940c2953c8849773767eec29"
+    },
+    {
+      "path": "software/flight/include/crc32.h",
+      "sha256": "76670c5b8456f1f99a4d17398780f782357abda3d75c92628078474981368f15"
+    },
+    {
+      "path": "software/flight/include/deployment.h",
+      "sha256": "e4dae0040ab33b3d151bd76f24467ff97d6ea5ff9c13de1057e075e6d37cf048"
+    },
+    {
+      "path": "software/flight/include/eps_control.h",
+      "sha256": "f2fda8b1d63fefd70303f898b8eb5d1710e8c4432c494a902f33b8563ea92fc7"
+    },
+    {
+      "path": "software/flight/include/fault_mgmt.h",
+      "sha256": "f695c01cfa292d1a95780082d6c4ebd65677316fb125e8e41793bb9da3790f0f"
+    },
+    {
+      "path": "software/flight/include/flight_log.h",
+      "sha256": "ad36354e27b4dcb4d0b749355e33f2c8b531178ec329f54d9cefb910f739ee21"
+    },
+    {
+      "path": "software/flight/include/hal/hal.h",
+      "sha256": "d7463568b7c18c4890937cfdbeb36b91d571bae4ea562d003b7cbc4d7b675108"
+    },
+    {
+      "path": "software/flight/include/hal/hal_adc.h",
+      "sha256": "d0ff250d0c0d16c8e57dd75fbffdf5ae87427a1db5d2ca4db94d4dd7e52da890"
+    },
+    {
+      "path": "software/flight/include/hal/hal_flash.h",
+      "sha256": "f114195d3e0a1757b9ad41a6a7262c098cbb380bea3f401d9ac2e599b453685b"
+    },
+    {
+      "path": "software/flight/include/hal/hal_gpio.h",
+      "sha256": "4b012fc61a2c7e2c14832d45593898fce225db2410593a7edef393ea6979ba32"
+    },
+    {
+      "path": "software/flight/include/hal/hal_i2c.h",
+      "sha256": "b8a1a68e1087d004100682c5e9aabe7c87aa4b02aa34be1aa873e746aba9566f"
+    },
+    {
+      "path": "software/flight/include/hal/hal_spi.h",
+      "sha256": "b69a319b7ab58da597f4cdef8444a6ff9bba2b26ba8505640def41f5296a4925"
+    },
+    {
+      "path": "software/flight/include/hal/hal_timer.h",
+      "sha256": "6dec2c84c6dc50f09c5e68433c2ea63b79df9aa4d31a52c16f50b2c0815ca28c"
+    },
+    {
+      "path": "software/flight/include/hal/hal_uart.h",
+      "sha256": "6d2e8dab54f106c3599f88dc497d4b2e0b81c7c87ea73b4797267f35afa3bd1f"
+    },
+    {
+      "path": "software/flight/include/hal/hal_wdt.h",
+      "sha256": "2b573d3187b179106bfed802c75c3e044376432b67968c61f98af0cc05efe29a"
+    },
+    {
+      "path": "software/flight/include/input_validation.h",
+      "sha256": "3e0d5962c311efaf99a57c99c2dd0743375048043c931d6197420d09e32d693f"
+    },
+    {
+      "path": "software/flight/include/mission_data.h",
+      "sha256": "8d78141af669d4bbc7654cdb5022f6530c47e08900ffc21009acc1f60383d1cc"
+    },
+    {
+      "path": "software/flight/include/safe_string.h",
+      "sha256": "28f16756e948edc85dc8ba3cd8518748e184058e99dacfcaa79e90622a5f1097"
+    },
+    {
+      "path": "software/flight/include/scheduler.h",
+      "sha256": "ecc338f4a5d9bcc6838fc492219da41e58c5a9c6d216e8a6dcf866d7c41ab6ab"
+    },
+    {
+      "path": "software/flight/include/sensors.h",
+      "sha256": "055ae4195ea6b290d0fe2f377cc92e8064c3f700f42865ed8e8ecd74fdb9f494"
+    },
+    {
+      "path": "software/flight/include/smart_qso.h",
+      "sha256": "ae90829a53cdddf5ef7c153b2dc0acbd565a50a02e003e4449eb042086b7f269"
+    },
+    {
+      "path": "software/flight/include/state_machine.h",
+      "sha256": "9b26b7fc4a3be6f464e49de49f09328949e2e40e77ac97cf61a765495f13124c"
+    },
+    {
+      "path": "software/flight/include/system_init.h",
+      "sha256": "fd6fc566da7d04122ac7d9fa94814fdbf8631e7013ef4125dea34a25512ba3b4"
+    },
+    {
+      "path": "software/flight/include/system_state.h",
+      "sha256": "63810914538d0578233d4d7c9976368579e84ac4bafe11ee060607aec212ce59"
+    },
+    {
+      "path": "software/flight/include/telemetry.h",
+      "sha256": "4b4c55f7110cb05033cb73e6e5bd0aee26d91edf9dbdddaa51887770d8e76203"
+    },
+    {
+      "path": "software/flight/include/uart_comm.h",
+      "sha256": "67fb46e3ad1433558e42c04f366a8a5d3fe88cb897af705fd4246a1555f0680b"
+    },
+    {
+      "path": "software/flight/include/watchdog_mgr.h",
+      "sha256": "b123a032c19cd8983f70338005e36d4207f1fbc2f3ed228b64a2849186c99f82"
+    },
+    {
+      "path": "software/flight/include/yaml_parser.h",
+      "sha256": "7f153d6fcba62aa966c2ff503579f8718c88b6ed7e47852918192310d7d66bcb"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/CMakeLists.txt",
+      "sha256": "d3fd4bc1990bc050c2b23fc3711f0dd593382a35dee83ee46b2bf2f5c529d2ab"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/FreeRTOSConfig.h",
+      "sha256": "fdc642c5a6d5453ede818ad8f7547b76ce181c99871ca083ae7d23908eba9f66"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/README.md",
+      "sha256": "9911a446673f32fe5e8a1983bd9606a624ffb8f11ed8a01225f4a7a6c91e384c"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/app.ld",
+      "sha256": "96b5bfb18510c8a6e2587edf79bd68cd9f9e3953744e0facac6ddab40828d354"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/app_b.ld",
+      "sha256": "8df3b330cf2cd6b5361b550f937877351b99834a3e1dbb6175d49af7f31459ad"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/board.c",
+      "sha256": "b8c127fca5682baf036b1f77d21dba489eaa8965f9d5bcb8aede320fbcf6a8f3"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/board.h",
+      "sha256": "162fb127059c77acc795d1ffe9faddf45dbe7ab544ddcafb2eb8ffa5d90df7da"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/boot.c",
+      "sha256": "6b966be435f79f45d151cabef8b00923cdcce92339214f8120ae2ff87b169c8e"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/boot.ld",
+      "sha256": "01f7ffb7c47524c590e80f454fd0a1f5a349c39b2280172558114b9faaaed050"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/boot_startup.S",
+      "sha256": "20963dd78f47f3e95e44951739a5cce30dd7f89dfec6357e5e99796a770434f9"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/keys.h.in",
+      "sha256": "6bc835b06d3585da971b18f6f58f5fccb21c1385224ee45acd9313f0be737e1f"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/main.c",
+      "sha256": "b0060719b37ec9cbcf391b379cac06888c93aa91e2bfe5ba74a272d4ac201333"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/recovery.ld",
+      "sha256": "614d9fd610d4f94a18e756fe21dfb964b1c701a8c11169781c1601e24ac70079"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/startup.S",
+      "sha256": "4eb75790a223c717b54829de6dac9bf7942b8ea73bdb4da46bd57102ee4b12cb"
+    },
+    {
+      "path": "software/flight/scripts/check_complexity.sh",
+      "sha256": "0715443e7202b6604d1b1afab9fe019b6a28979c4dcb2a75a34c4740a9eac99e"
+    },
+    {
+      "path": "software/flight/scripts/coverage.sh",
+      "sha256": "2754cd79279108f28d2e5f7638e38b72aa25020ba76b431d9d6adf0d1e7a6c52"
+    },
+    {
+      "path": "software/flight/scripts/run_analysis.sh",
+      "sha256": "381b9b657931e13ad84d442d27a0d3d11259939be72d341850106a16e508fdba"
+    },
+    {
+      "path": "software/flight/scripts/verify_build.sh",
+      "sha256": "e9bb1bfa9cbff7a69be8b45bcebda92bc7c79fe27efb8ed2028343b5616e2d83"
+    },
+    {
+      "path": "software/flight/sensors.yaml",
+      "sha256": "72fecfe9a5dd10a781a637494d79e957a4a58c68963f6b7740576981ae743c9b"
+    },
+    {
+      "path": "software/flight/src/adcs_control.c",
+      "sha256": "76e83b0c7c4a251ee4a567d4f0f5972c5cf543a84ddc63920564dcda90193435"
+    },
+    {
+      "path": "software/flight/src/assert_handler.c",
+      "sha256": "7a91cd7f9e48b027a79c33be993a93245c9c490272fe585393ba9837de6d551a"
+    },
+    {
+      "path": "software/flight/src/beacon.c",
+      "sha256": "66bad2bd7aa27d245dc357426382e66d58a38014c6e2692d960df953cc491abf"
+    },
+    {
+      "path": "software/flight/src/cmd_handler.c",
+      "sha256": "193af436bfb362fc0e6b2bfd5a77e59c6b99b1676f4cbd7bb84bd780741e9bca"
+    },
+    {
+      "path": "software/flight/src/crc32.c",
+      "sha256": "a8654cd935e3cc57b758a660fd0aa4dab37ee1ca48b2929f03a20d618a72aee1"
+    },
+    {
+      "path": "software/flight/src/deployment.c",
+      "sha256": "a10e15174b6e400414333f6db9be02573fc0f832539fb99aedaa26ff64cbc06a"
+    },
+    {
+      "path": "software/flight/src/eps_control.c",
+      "sha256": "cd925a9185158837ebfd6e30240ef5f27300d146096de9d78343931e4f0bea03"
+    },
+    {
+      "path": "software/flight/src/fault_mgmt.c",
+      "sha256": "112b8054a4bb67637c8101427e5d7b8ffe91731fa501e5b783c69aad85035147"
+    },
+    {
+      "path": "software/flight/src/flight_log.c",
+      "sha256": "2406eb3dd67b6196cb0f2ce94658b44e3ea6b7cb4183e672f48035b4400b5826"
+    },
+    {
+      "path": "software/flight/src/hal/hal_sim.c",
+      "sha256": "88a1b43a69ea8dc7601e1d5555e13c47b756c22caeecc4930f9c4183b972f4e5"
+    },
+    {
+      "path": "software/flight/src/input_validation.c",
+      "sha256": "b1a5e1dcf6fb94dd0f4594dd43b15c66b9dc35cda4c23b5e3b362847e9a61d5b"
+    },
+    {
+      "path": "software/flight/src/main.c",
+      "sha256": "66f61b26fbad16b09f1a7bf13211c80f10366e202e3ce24fcbaea6a25db96355"
+    },
+    {
+      "path": "software/flight/src/mission_data.c",
+      "sha256": "52edd1c2e186ad80289f992d2ec65f015aa5c9ace1dee9bf2b366118b2d3fbb2"
+    },
+    {
+      "path": "software/flight/src/safe_string.c",
+      "sha256": "65eb9c069abfdf37230ca9a16e707348909f8472717675aba2cc11dce30a2b7c"
+    },
+    {
+      "path": "software/flight/src/scheduler.c",
+      "sha256": "c634185ab79e66ae3d243cbe69d3e7ed6cd3bd1da17f60b11f4b6e00b5819cff"
+    },
+    {
+      "path": "software/flight/src/sensors.c",
+      "sha256": "74411052ee146e680b22426d0d9dcd7aa294e12a4aa6c821c8d1d80703ee2b13"
+    },
+    {
+      "path": "software/flight/src/state_machine.c",
+      "sha256": "4b5b8c208b20029d6d1858f291ed8750cd35db00089af6a219180a3351d483b8"
+    },
+    {
+      "path": "software/flight/src/system_init.c",
+      "sha256": "0583680fb2e1a88190a15a2848b156c62a25893e7c8effc049631251a5f4743a"
+    },
+    {
+      "path": "software/flight/src/system_state.c",
+      "sha256": "22fa2236706db1c5ba62a882ac7a0343d307043237ec6a323fe50b4da23166ee"
+    },
+    {
+      "path": "software/flight/src/telemetry.c",
+      "sha256": "a56e367c6bd34332a6b2f6bf0678b864f46781f45a14ae1313831946ab8ca7a9"
+    },
+    {
+      "path": "software/flight/src/time_utils.c",
+      "sha256": "b1b38d63fd58657e135a9e0f0b8ef8d85fa738da866e3c074af80051cb4819d2"
+    },
+    {
+      "path": "software/flight/src/uart_comm.c",
+      "sha256": "6db5801e66db6f972da7acdc3ae0ae06df2358e4f7e7af970ef5959c0d10abf8"
+    },
+    {
+      "path": "software/flight/src/watchdog_mgr.c",
+      "sha256": "08a5c3a13b12532988bf5dd0eb30605a6dc998b91377cca8283eecab0ad82ae8"
+    },
+    {
+      "path": "software/flight/src/yaml_parser.c",
+      "sha256": "9007764cd1deece7f6daee979c57e474ba50d10263e9c621a2c362d9233d0d7d"
+    },
+    {
+      "path": "software/flight/tests/CMakeLists.txt",
+      "sha256": "70e6f0dcced8d7b6ca3b632d741ac01b7e8a5c69410a655eeddc7ff02a8e8243"
+    },
+    {
+      "path": "software/flight/tests/CMakeLists_simple.txt",
+      "sha256": "4be2a9941e3e2efa5010dce376a3342f9cce87bd2c12dabbd673426b08885c27"
+    },
+    {
+      "path": "software/flight/tests/IMPLEMENTATION_SUMMARY.md",
+      "sha256": "25fca806980799b18d4e3f9e2761e61fc9e23915a8a6ef2766c7b21d68fb0c0c"
+    },
+    {
+      "path": "software/flight/tests/README.md",
+      "sha256": "c90a809f0a2ae173b0975ca2759febaf456f6dcbfa65a6128f5064cef13498c3"
+    },
+    {
+      "path": "software/flight/tests/hil/HIL_TEST_PLAN.md",
+      "sha256": "e88221af3b85d1cfb9ad715bf90e34c7881892b5e295c00ccfbd90476ef5a240"
+    },
+    {
+      "path": "software/flight/tests/integration/test_fault_scenarios.c",
+      "sha256": "8224d680e599b2716fe906ddef7b8e096897602d3f6feb095d8b74e60b588d94"
+    },
+    {
+      "path": "software/flight/tests/integration/test_mode_transitions.c",
+      "sha256": "e781d83f12de75e615289abbffcf2731f5c6e5b4e8831116c89eb11a1a044d6f"
+    },
+    {
+      "path": "software/flight/tests/integration/test_system_startup.c",
+      "sha256": "d5986eb3b4915899a0e258b4c75db3aee9d44e0b6ff9af113a4ed4b14b571a96"
+    },
+    {
+      "path": "software/flight/tests/production_fixture.h",
+      "sha256": "f2f2b881fd38c9dd2919c098d0f1d85b7c93f020f131ae2efa4c9b4e62af2bab"
+    },
+    {
+      "path": "software/flight/tests/regression/REGRESSION_TESTS.md",
+      "sha256": "c2fc11a47f0c7495e2ebab50f532721e57287167d2213f03a65159113841cfd6"
+    },
+    {
+      "path": "software/flight/tests/regression/test_regression_suite.c",
+      "sha256": "200009eec1002546cfa8b77d0c70c6bf5c45140155febcb50e565fa8a604ad84"
+    },
+    {
+      "path": "software/flight/tests/test_adcs.c",
+      "sha256": "71090eee43812a46086f7728c7356674413fcabfbda187d9f98a93bd6fc41280"
+    },
+    {
+      "path": "software/flight/tests/test_assert_handler.c",
+      "sha256": "8760db43b2c00f83bc67aa1e4ad674fb27988dee51ef8011047280cc9f322cff"
+    },
+    {
+      "path": "software/flight/tests/test_beacon.c",
+      "sha256": "9b11d869d9af0ac8f7e0aef740d38ce9fa6ec90d03f5671782a9e8c1fa28fc59"
+    },
+    {
+      "path": "software/flight/tests/test_crc32.c",
+      "sha256": "ea297335c19b8cbfe9042943028eeeeb5aa55fe0d0bdbc7f37c16d8db606b862"
+    },
+    {
+      "path": "software/flight/tests/test_deployment.c",
+      "sha256": "ba706900c43adb7d4d8d9df21609290affc0e146ef6fc09e69f07bf813bdd16b"
+    },
+    {
+      "path": "software/flight/tests/test_eps_control.c",
+      "sha256": "2f4a0116f0f35b37764e3935dd4b36fd44b081ea8934681028ad2483fefeab10"
+    },
+    {
+      "path": "software/flight/tests/test_fault_mgmt.c",
+      "sha256": "213fff0d21884e8a66f9d9b4d689dc284babd0c7665a4efbcab129f1f26dca84"
+    },
+    {
+      "path": "software/flight/tests/test_flight_log.c",
+      "sha256": "46b380b9eec3c8feb854268531fcd98a95aaf68666e5411ea9aa1c6f638d8bd8"
+    },
+    {
+      "path": "software/flight/tests/test_input_validation.c",
+      "sha256": "d1ba6dfb795ec5dce780a56c3e023628700b6e6de93a598b7951718693ec716a"
+    },
+    {
+      "path": "software/flight/tests/test_main.c",
+      "sha256": "9c9a7ac8021ea310cf9563a6ed080813c9f207f50e989696f8bfe4ae199bcc4c"
+    },
+    {
+      "path": "software/flight/tests/test_main_simple.c",
+      "sha256": "995c7aee4608f8f6039a534e4db3f4ce390598693c3b23c24bc11d073919c5e6"
+    },
+    {
+      "path": "software/flight/tests/test_mission_core.c",
+      "sha256": "ed74016387a96d98d222d0e311c84ed0110505edb7d9cf5f24cb001985144f34"
+    },
+    {
+      "path": "software/flight/tests/test_mission_data.c",
+      "sha256": "ab6a386cc23f32c23b83d9c35fab2ffdd971c31e884b822f9d44dc602e867266"
+    },
+    {
+      "path": "software/flight/tests/test_parser_fuzz.c",
+      "sha256": "063b9a010a4f3a886b68ca465bc72c3363fda08746f4e349395d123103fd5c35"
+    },
+    {
+      "path": "software/flight/tests/test_payload_link.c",
+      "sha256": "7e0ffa625772bdc0a6382120f001a9f341e5c11c0604370d2b29935c23247ac8"
+    },
+    {
+      "path": "software/flight/tests/test_safe_string.c",
+      "sha256": "5b54e6084f494d90576076e952f2414c22e2eec67d66ad6318542835cebbcede"
+    },
+    {
+      "path": "software/flight/tests/test_scheduler.c",
+      "sha256": "b36df38a142349294ba0aae33c06df676823eb1f1504592e1b48d500e00c25d7"
+    },
+    {
+      "path": "software/flight/tests/test_sensors.c",
+      "sha256": "cca94b2fa894a54afd4fd1158cb9599dd8b0d05442f22ff328e6bf80620fe9c7"
+    },
+    {
+      "path": "software/flight/tests/test_software_boundaries.c",
+      "sha256": "b2a1f366288a933f778d5706595e5a8ec309ac48d8b8d3b030dda5981f8b6004"
+    },
+    {
+      "path": "software/flight/tests/test_state_machine.c",
+      "sha256": "25fb77e772c07bb73db6811c0e35a6916871468c9efa855297fa5f6666fffcd8"
+    },
+    {
+      "path": "software/flight/tests/test_system_init.c",
+      "sha256": "7e9d8d7de9b56508cd572d7f8e6df72225c933d6acbabb3fc491ebc56a23d234"
+    },
+    {
+      "path": "software/flight/tests/test_system_state.c",
+      "sha256": "715f3a63491852747d47fe10bf62e45c4cc820b1edc007efe92187d1ea661433"
+    },
+    {
+      "path": "software/flight/tests/test_telemetry.c",
+      "sha256": "60175ce81724efe29a3d2f45cfd6024531035076b8d4e070832f19c46a036284"
+    },
+    {
+      "path": "software/flight/tests/test_telemetry_flow.c",
+      "sha256": "22c7b9fd3a2cf45f1c2a93393bf0f573e773a6b602805f13f2c40e009d2db191"
+    },
+    {
+      "path": "software/flight/tests/test_uart_comm.c",
+      "sha256": "b0121a53a28f34a3fad7b6fa48d7e4eca1f82ca17aff875dafe8daa6c63107fa"
+    },
+    {
+      "path": "software/flight/tests/test_update_stream.c",
+      "sha256": "d03979bffe85ebfc84c3d9e9a8235c3b5128cc96b9e4051fe75ceff27a393bc9"
+    },
+    {
+      "path": "software/flight/tests/test_watchdog_mgr.c",
+      "sha256": "f4513a9b1b4835a781276c596600ccfa7fdd1df0fe18cff5b15b1d949a21e51e"
+    },
+    {
+      "path": "software/flight/vendor/MONOCYPHER_LICENSE.md",
+      "sha256": "5f8360e4c06ddcc584bdb4b210c6af824c4bb301e6a9a521869b6d90795ca4b3"
+    },
+    {
+      "path": "software/flight/vendor/monocypher-ed25519.c",
+      "sha256": "60fce3578fb00b00da96490653d993c4cb427b1e1be38183285c66e04d22cc18"
+    },
+    {
+      "path": "software/flight/vendor/monocypher-ed25519.h",
+      "sha256": "abc4fad381879f5c29176ebe014b9189956b3dfe0a3e36459b6990bc57212380"
+    },
+    {
+      "path": "software/flight/vendor/monocypher.c",
+      "sha256": "57eb914fc88136119bd41655cccb8c250048bf54d470540625186f8ab16f64be"
+    },
+    {
+      "path": "software/flight/vendor/monocypher.h",
+      "sha256": "c494da712122da7ff679fdcf318a5317e84972b6c950fe9d896212947797facd"
+    },
+    {
+      "path": "software/ground/README.md",
+      "sha256": "85f6478e36a1f2712fa21a839a07eed632e17dd0bb65d6c6eba24efa0b868955"
+    },
+    {
+      "path": "software/ground/__init__.py",
+      "sha256": "d12b15b3e2f604f1718be5b231d4e76e6bdf0b4c20ce4104aee213c4e01ae385"
+    },
+    {
+      "path": "software/ground/beacon_decoder.py",
+      "sha256": "e3629a87f93c3cc8a39bbba63dcddfbaaa8535157a2f1c03fa60738e24ccef9f"
+    },
+    {
+      "path": "software/ground/client/__init__.py",
+      "sha256": "696c1aa707b64d50e38ac8bc51f7d661ce8ee4f7c71931f99c1798ed58b9f04f"
+    },
+    {
+      "path": "software/ground/client/firmware.py",
+      "sha256": "a16d8d6a7189f51fde008c75d7b2e9670f4827d208705569903a526da09e7529"
+    },
+    {
+      "path": "software/ground/client/packet.py",
+      "sha256": "3bb590da8ae0df9c891fb500be7ca98b43481faf10774bd6d5d5d52b9895664c"
+    },
+    {
+      "path": "software/ground/service/__init__.py",
+      "sha256": "557b239aab500f741e44f5d0961067542f1df8965226880e0fe55bea2c535642"
+    },
+    {
+      "path": "software/ground/service/app.py",
+      "sha256": "8657197a875177a1a0c18f20ab6dc9936c34b5242c99cdf613d589b54297d371"
+    },
+    {
+      "path": "software/ground/service/passes.py",
+      "sha256": "3f5ff4f631d8ce3ffeb7f90c4fd50276848df71e384ecfa3cd859bc725d83d7d"
+    },
+    {
+      "path": "software/ground/service/signing.py",
+      "sha256": "bb9f22cfb664300833ec1cf4e67d3c18eec71ce718ce89283e455b9d5bb74d45"
+    },
+    {
+      "path": "software/ground/service/store.py",
+      "sha256": "2a2fbdc3b2735912490d8428f778911328465c40bf0635413dfa326d1af8b949"
+    },
+    {
+      "path": "software/ground/service/updates.py",
+      "sha256": "d1c9b295a3d8e0c74a791e392da45d4179c6574ced5310cb9c161d82d6f6a92f"
+    },
+    {
+      "path": "software/ground/telemetry_display.py",
+      "sha256": "e1ca2e978bf1f30418fab054741b1cb6d385440c3636564f34a0385331c9fd87"
+    },
+    {
+      "path": "software/ground/tests/__init__.py",
+      "sha256": "dfeff9f7acd6837513e43cdecf07b6ccb7cca9274bc97e59c88e42aee14bd0e9"
+    },
+    {
+      "path": "software/ground/tests/test_beacon_decoder.py",
+      "sha256": "b1c5a1febe7dc3f535df878e26f6d4d3c7699e4c15974075f6f17afd63c8b644"
+    },
+    {
+      "path": "software/ground/tests/test_passes.py",
+      "sha256": "2d48be563a355b048017178b02dc8e177e59a1d3f704188d31019fd0fcf5ad55"
+    },
+    {
+      "path": "software/ground/tests/test_telemetry_display.py",
+      "sha256": "9b774bc91bfa24754ce240b5a4078abf425ddcff12be8ce257fd9b58f5ddafa6"
+    },
+    {
+      "path": "software/ground/tools/README.md",
+      "sha256": "462c9197b8ce30015fa73d29a5f82665c2db6f72a43d37f4a516a5550d1a4e9f"
+    },
+    {
+      "path": "software/ground/tools/beacon_decoder.py",
+      "sha256": "bc52ffd4f0a68494a6d77be1632b38bd1dfab2426a6a30c887c774b9c3e1f9ad"
+    },
+    {
+      "path": "software/ground/tools/fl_update_builder.py",
+      "sha256": "523d80a4e15bebe1515bae90019d7d29f06748d29f207c0975438807d001e0f7"
+    },
+    {
+      "path": "software/ground/tools/pass_predictor.py",
+      "sha256": "ff64419840b2c6274ccf2c670160a96a13fb570c8a2593f8db2db067f6e67c17"
+    },
+    {
+      "path": "software/ground/tools/requirements.txt",
+      "sha256": "5649af4ac5ee33ea8a1cbcd0ec8a043275b3fa65ec6a6a6120f9292d55dcd040"
+    },
+    {
+      "path": "software/payload/README.md",
+      "sha256": "f65befaf5200f080dddaaff2fd3b6d5e5d5d47ab08cc919e4a5725439e08b39d"
+    },
+    {
+      "path": "software/payload/__init__.py",
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "software/payload/agent.py",
+      "sha256": "3d40885d3b4d2aa81a80188f9b30523c28e0dbfb91c3500757f0b9a86423cf60"
+    },
+    {
+      "path": "software/payload/ansible/deploy_payload.yml",
+      "sha256": "60bf333799c2dbbcc689c249528a7c7eef036832348184ebcf555c6992de02ea"
+    },
+    {
+      "path": "software/payload/bounded_worker.py",
+      "sha256": "5cc0f165bfff520a3db39e47fc484fa234dc011f7f0c57515605647a60a47329"
+    },
+    {
+      "path": "software/payload/bridge.py",
+      "sha256": "5c05d36bb998fac7eee163b83132e1f347d5e17c7473dcdc0105fc175ffe2fd3"
+    },
+    {
+      "path": "software/payload/formatter.py",
+      "sha256": "931be68eed548c71202d6b614df448373bc620f3ba17163ccc699e7d3d564818"
+    },
+    {
+      "path": "software/payload/health_interface.py",
+      "sha256": "760ac613be65c2b6742c1f83d0b256e69078dba2d17da5fd950fc513184f6eff"
+    },
+    {
+      "path": "software/payload/llama_runner.py",
+      "sha256": "1234484361299dcfd3bead41b3495a2770eeda052bfca271441384b9d4d46790"
+    },
+    {
+      "path": "software/payload/policy.py",
+      "sha256": "d0bd81d2db26df2cc42c3699f0086bec7ad4f5b83bdfcdea7c69627be123b051"
+    },
+    {
+      "path": "software/payload/pyproject.toml",
+      "sha256": "8a99e847fa56681ee883d0f4efe53f14925dac8faa6916dc17cd2bbcde1b247e"
+    },
+    {
+      "path": "software/payload/supervisor.py",
+      "sha256": "e06d63058f4e0aa2a3d3289579bdadedd9b75e2fcd50320cae8a122874b29889"
+    },
+    {
+      "path": "software/payload/testdata/health_sample.jsonl",
+      "sha256": "7af71163b96c13a557ef8c34da77ff69936970e938dd13b0146b92383c42f401"
+    },
+    {
+      "path": "software/payload/tests/test_agent.py",
+      "sha256": "a342abe33f82cb615176b9902323346c6cd88a1b394075955391800982b95abd"
+    },
+    {
+      "path": "software/payload/tests/test_formatter.py",
+      "sha256": "ac14b8f4b613da0a065b008a8468de937974ad8b0f8591e5c31ffe28c6866759"
+    },
+    {
+      "path": "software/payload/tests/test_health_interface.py",
+      "sha256": "12df5a37943ee7672c88f701f63d9c3b29bd2b3c13c2707aa1a1b361fef46440"
+    },
+    {
+      "path": "software/payload/tests/test_integration.py",
+      "sha256": "004efb72d5b081cd60058744ca9f4d424fcf78f2d412a256998a8c621dedc897"
+    },
+    {
+      "path": "software/payload/tests/test_llama_runner.py",
+      "sha256": "c714d9254bfcbe1cbaeae848369516837e975691a0f994261b29d458fcc85518"
+    },
+    {
+      "path": "software/payload/tests/test_supervisor.py",
+      "sha256": "ca03ac3004e3eaa9c0249950c48c92f462ea11f4dec925e76b17c477b97fa2a5"
+    },
+    {
+      "path": "software/simulation/__init__.py",
+      "sha256": "13e9c7ac2078dd774bec5482e1144da2d81b0bc6d3e4dc3e2ca26e140bd1329d"
+    },
+    {
+      "path": "software/simulation/mission.py",
+      "sha256": "249fb27dce60a95eb79bee4aaf7ae25f8134cbdd177f02599c28982575525aa7"
+    },
+    {
+      "path": "software/simulation/notebooks/README.md",
+      "sha256": "f00d6189cb17d114a391526895ceb84789dd4ca462d97245904d2e9d0fc548ff"
+    },
+    {
+      "path": "software/simulation/notebooks/power_energy_sim.ipynb",
+      "sha256": "22c509df3b1b8a31fd1bdcad0c1c129015f895ac5c854512fcce2625295b5b22"
+    },
+    {
+      "path": "software/simulation/notebooks/requirements.txt",
+      "sha256": "b63bbd931edf9d87761519157349dd9deb6799677adb9b5164145f80075bec88"
+    },
+    {
+      "path": "software/simulation/predictors.py",
+      "sha256": "a3340b9c4df3172f9ff28fc69f94719d5024bc1b0f546bc6a16f005034594932"
+    },
+    {
+      "path": "software/simulation/tests/test_engineering.py",
+      "sha256": "bb4d1a47c2e56602d5d339466a7081967ebd4a722ff092e6844732f615c865f8"
+    },
+    {
+      "path": "software/simulation/tests/test_predictors.py",
+      "sha256": "77b9bdf687e0c1c8b61be22f757298fa1ef5fd05cada6cd14c0273dcf25fcd70"
+    },
+    {
+      "path": "software/tests/integration/test_beacon_e2e.c",
+      "sha256": "601c13a9bb04adddfe294e2c11ef3017ebd9d1b8aeec511154deb44b00853c7f"
+    },
+    {
+      "path": "software/web/console/index.html",
+      "sha256": "dc17a5c5b6e70aaffddc5d88ec8d2b2207a9543abfc6ca3ae812f80e2cc84709"
+    },
+    {
+      "path": "software/web/console/package.json",
+      "sha256": "7591dda0ab72db0dd4a63477babc6964b2275b06b77423b87eac24d782feb485"
+    },
+    {
+      "path": "software/web/console/src/firmware.tsx",
+      "sha256": "da5b091a88dece9ee1f356d6a5a8b1cbc4a19203f443123291a65d4f1df14d10"
+    },
+    {
+      "path": "software/web/console/src/instruments.tsx",
+      "sha256": "3768fff47bb0591e4b089e27153ded1ece8f9fcb3a932259ebdf91a3a2ee4ec8"
+    },
+    {
+      "path": "software/web/console/src/main.tsx",
+      "sha256": "ac66b5ffc00eacddfe299a24172972f38f0cf4e7d294eb2f18193a9637359869"
+    },
+    {
+      "path": "software/web/console/src/style.css",
+      "sha256": "374ad234b65bd98c0ebd851c0d1eae15e71da5dff7e97c05aa5776aa76c8c892"
+    },
+    {
+      "path": "software/web/console/tsconfig.json",
+      "sha256": "21cae89c69292a18fe815c709e5b1cc595d169ecaef5314853287aa9214cce6f"
+    },
+    {
+      "path": "software/web/console/vite.config.ts",
+      "sha256": "0b46bdefd5c21c1a804fbd38cbcdd1793095b9033bbf8d95b177bbb96c058b54"
+    },
+    {
+      "path": "software/web/package-lock.json",
+      "sha256": "6efda13748564041cf6fbd3869903724b41cbf67c8a2e4f2744490316b6ee2fc"
+    },
+    {
+      "path": "software/web/package.json",
+      "sha256": "44453ba60d66274af3be9cbffe12770371a095a804e86f2f5151fda4f703f58b"
+    },
+    {
+      "path": "software/web/public/astro.config.mjs",
+      "sha256": "33b870de6ec792d732b4da219af39c3c9a2415ff58b6d9bb71313062c2e45f52"
+    },
+    {
+      "path": "software/web/public/package.json",
+      "sha256": "726be58796c07f7e3932b6265d75316d69e397434a923ec24ddbcea99a5979d7"
+    },
+    {
+      "path": "software/web/public/public/favicon.svg",
+      "sha256": "18cd69806045497b7d1e98f5dfead2ea4a053f38b531fc0fefebba8e962b18b8"
+    },
+    {
+      "path": "software/web/public/public/proposal.pdf",
+      "sha256": "bf9741fdbeba824f6b5d28bee24055b11a076062b90584afc0b3550e0c6150e3"
+    },
+    {
+      "path": "software/web/public/public/spacecraft-concept.png",
+      "sha256": "8bb1a08d83f9e7b8e501848e48bd4a7ce278e7db5db0513a9b0d2dfaafcfed40"
+    },
+    {
+      "path": "software/web/public/public/spacecraft-concept.png.prompt.txt",
+      "sha256": "aab2772e1bbd6b83de5c8cf6d4970b32e5f4fee86f474febc8ee1b1d1e7e28f3"
+    },
+    {
+      "path": "software/web/public/src/pages/engineering.astro",
+      "sha256": "066a62800044d6edfba56232cca26ad259bf73ffdb99f7fa88a63541534837a3"
+    },
+    {
+      "path": "software/web/public/src/pages/index.astro",
+      "sha256": "cff09210886ce4862e9a2465d35ce7140d39b82c0d32939ef1da592b767ad6ce"
+    },
+    {
+      "path": "software/web/public/src/pages/participate.astro",
+      "sha256": "ac8e7c76c10934c686c32baf5fb997528ee88c79466bfdb9286c6b412f97ddb7"
+    },
+    {
+      "path": "software/web/public/src/pages/research.astro",
+      "sha256": "8738f46455f2a1b9f69ca47244655cfc0aa304067b0b5f8af8fe878ca10a6296"
+    },
+    {
+      "path": "software/web/public/src/styles/global.css",
+      "sha256": "69fe7e11e5d62d8f0ad80e0c49aa6ab5ba5f36706b9d352171e9a07a4e0b8e16"
+    },
+    {
+      "path": "software/web/public/src/urls.ts",
+      "sha256": "db576fa7898575a54a8c20fcc24a8afebca438607ca332fbf9a1c2ee957b5884"
+    },
+    {
+      "path": "tools/__init__.py",
+      "sha256": "591b63e55578d321676a55ad0b15636802789cc730a22ee464e7fac1fe1aa88f"
+    },
+    {
+      "path": "tools/analyze_arm.py",
+      "sha256": "f8c329b43d8ddff50a17190921f1c0d87b4c3e47e9f4df6af533024cc77a4c08"
+    },
+    {
+      "path": "tools/assemble_web.mjs",
+      "sha256": "371db3c197f8ebfeb4843608c691d8321cbec7c5cc2ccc2b58acc24cb0ee4f6e"
+    },
+    {
+      "path": "tools/audit_repository.py",
+      "sha256": "06b6c2b312e6c714fa4a79d537b49bcc03b4281a33fac70d0298f4881e26d330"
+    },
+    {
+      "path": "tools/benchmark_payload.py",
+      "sha256": "019e69010e10296d51aa977fb7859c68a9df75b261c2949627838874a2d43502"
+    },
+    {
+      "path": "tools/build_deck.mjs",
+      "sha256": "eb3099d33273d1c34e74ffe11c9c8001b13adef2a3c440cd067ef31acd57b161"
+    },
+    {
+      "path": "tools/build_pdf.py",
+      "sha256": "0084f93b55a28e1f5bee4c24b09a1e04a20b9661f8c85172a1e20b1582c346b2"
+    },
+    {
+      "path": "tools/build_public_site.mjs",
+      "sha256": "f3681f593db4bec2d3d8afb01f742fc28ee050451149b83baec288d8595d70c4"
+    },
+    {
+      "path": "tools/build_release.py",
+      "sha256": "2d68574f368c4829eb6c3c33a9dad019a8de6f9be7ea780ffcbce7d60fd3d896"
+    },
+    {
+      "path": "tools/build_update.py",
+      "sha256": "51c33e7d585e7bfcd70f6ba5afccdf5e7d4430eeba6c62e96a3a0ea9cf6fafaf"
+    },
+    {
+      "path": "tools/check_firmware.py",
+      "sha256": "256d7fe9a8e6687791e67f0d6315b45907913fa69d687aefb089ba67561d65d6"
+    },
+    {
+      "path": "tools/check_key_configuration.py",
+      "sha256": "1824f4fd38ea84540d6c9db37a580c87c1a1679cfd1b3fcf39fd232736bd7bad"
+    },
+    {
+      "path": "tools/check_misra.py",
+      "sha256": "50427c7a0669d5739cee58242dc4948f19a605e4fd761ce591f5546519d2a0eb"
+    },
+    {
+      "path": "tools/check_program.py",
+      "sha256": "7d99d0de72fdcf9d3d17fb321584d9bec95be5669ecb1ed1afe512f3a4a68082"
+    },
+    {
+      "path": "tools/check_public_site.py",
+      "sha256": "d41fb21e095ad630b62b8e4c97fda2fb2d9c07336f7a9141290eb6b6577b358f"
+    },
+    {
+      "path": "tools/check_release.py",
+      "sha256": "d4dfbe11709bc3031b49433289228ed368f92682d1b89e1f58067102e84191f6"
+    },
+    {
+      "path": "tools/check_test_inventory.py",
+      "sha256": "45894059411dd7bb6888e60a5cf1d58c6bc9d824a607d6222f225a8af93da3d3"
+    },
+    {
+      "path": "tools/check_test_reports.py",
+      "sha256": "538bfc53d5a6d0c27bc76ccd6d1ebfd8d68639e78a65e7a046af1c10656e6852"
+    },
+    {
+      "path": "tools/generate_protocol.py",
+      "sha256": "5a12ea7a1b09765286ba731d87f3993e9bc3fbee078a2bad9a2ab55ac71bf252"
+    },
+    {
+      "path": "tools/import_standards.py",
+      "sha256": "033eb6bd1688cd23889a496a11311a24ebc9444523e466689de07b1a7111ecbf"
+    },
+    {
+      "path": "tools/provision_operator.py",
+      "sha256": "6496857d158416066b73cbf96430eef48ef8c4fef4a616eff8536604a1fa66f5"
+    },
+    {
+      "path": "tools/publish_pages.py",
+      "sha256": "0c9361a7ff8070ba331c9fd8b5aef3e7c15c9f57aa8b42a63a566c84b66d0067"
+    },
+    {
+      "path": "tools/summarize_verification.py",
+      "sha256": "6f1e2354a67ac847bfab795dbdeaf106608eb2b76f80c1f788e9dcbb315e204a"
+    },
+    {
+      "path": "tools/train_predictor.py",
+      "sha256": "9b263df076ffd30fd8ebe9730e2cb7b87bf72c6194cd2ba0d6dbaabf8d31b3d6"
+    },
+    {
+      "path": "uv.lock",
+      "sha256": "b5cd4a1dad4bbd07f8d3a75010ea84710a9f9eddd289bcb547b622bdfe8e8569"
+    }
+  ],
+  "source_tree_included": true,
+  "test_reports": {
+    "pytest": {
+      "tests": 404,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "path": "output/verification/pytest.xml",
+      "sha256": "f6b21f14a9b5cf4afed356415154dd04aaf8f8c57b7955be27d0330d00e7eaf4"
+    },
+    "ctest": {
+      "tests": 31,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "path": "output/verification/ctest.xml",
+      "sha256": "4c43c0f52e252283b89b9dfa7fe52d88b788e3c053a0ca6a559153c0bdf7fbbf"
+    },
+    "sanitizers": {
+      "tests": 17,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "disabled": 0,
+      "path": "output/verification/sanitizers.xml",
+      "sha256": "c076a79363bc04e6b66334a166ea84b0a55245a843c05512b122c37a0e1da003"
+    }
+  },
+  "target": "STM32L476RG development reference",
+  "command_and_update_keys": {
+    "COMMAND": "Unprovisioned; acceptance disabled",
+    "UPDATE": "Unprovisioned; acceptance disabled"
+  },
+  "toolchain_records": {
+    "arm_gcc": "arm-none-eabi-gcc (xPack GNU Arm Embedded GCC arm64) 14.2.1 20241119",
+    "cmake": "cmake version 4.3.0",
+    "host_clang": "Apple clang version 21.0.0 (clang-2100.3.34.2)",
+    "cppcheck": {
+      "version": "2.22.0",
+      "source_sha256": "d74945deb2d50393430e07596b766f8a779512c7f60dac2a30ea64e059ece57b",
+      "partial_misra_compliance": false,
+      "actionable_findings": 0,
+      "raw_context_diagnostics": 51
+    }
+  },
+  "model_artifacts": [],
+  "flight_accepted": false,
+  "hardware_execution_verified": false,
+  "misra_compliance_verified": false,
+  "qualification_gaps": [
+    "Selected EPS, ADCS, RF, RTC and deployment hardware/drivers",
+    "Protected option bytes and interrupted writes/updates HIL",
+    "Actual radio interoperability and cessation",
+    "Parts/radiation/thermal/environmental evidence",
+    "Independent reviews and institutional/regulatory/provider acceptance"
+  ],
+  "artifacts": [
+    {
+      "path": "output/release/sbom.cdx.json",
+      "bytes": 200789,
+      "sha256": "b52c0725ee1485bcb0fab270b6ca1a6f9a9cbbdd24f0a65c4c0e55408031b1bb"
+    },
+    {
+      "path": "uv.lock",
+      "bytes": 702615,
+      "sha256": "b5cd4a1dad4bbd07f8d3a75010ea84710a9f9eddd289bcb547b622bdfe8e8569"
+    },
+    {
+      "path": "software/web/package-lock.json",
+      "bytes": 196133,
+      "sha256": "6efda13748564041cf6fbd3869903724b41cbf67c8a2e4f2744490316b6ee2fc"
+    },
+    {
+      "path": "mission/current/protocol.json",
+      "bytes": 5638,
+      "sha256": "bd62b849ff38d64c33d38fef3559649c0592c5e9b6d662902a95d6e7d086a973"
+    },
+    {
+      "path": "output/engineering-analysis.json",
+      "bytes": 40599,
+      "sha256": "d43b3e19f616f6370ef0a5176f81d5e22707a3cc7a7c25f133c01c6668fd3d2b"
+    },
+    {
+      "path": "output/predictor-experiment.json",
+      "bytes": 23866,
+      "sha256": "abb14efa1a8fcb247af8e22fde78674fb9af15eb3c0b96b7ab8b2a5cc6a7a85e"
+    },
+    {
+      "path": "mission/current/misra_findings.json",
+      "bytes": 77102,
+      "sha256": "e696971689ddf59959bedcde99afbcbc55b994556e4a7626034a31bf30b3fd69"
+    },
+    {
+      "path": "mission/current/software_closure.json",
+      "bytes": 10373,
+      "sha256": "f18638a21e007d9126107818b1a28fc1d6fd9d699593007df35b82222c46a299"
+    },
+    {
+      "path": "mission/current/legacy_test_migration.json",
+      "bytes": 16932,
+      "sha256": "04d271aea64a1e7a2d2e4852f15271ec19be6535f0ec0a768baa2259037c8c5a"
+    },
+    {
+      "path": "mission/current/misra_resolution.json",
+      "bytes": 368871,
+      "sha256": "878c021f0a1c0e5b7a3d2992454f89f2f488e195380203637d39eb200fbe9149"
+    },
+    {
+      "path": "docs/resurrection/MISRA_RESOLUTION.md",
+      "bytes": 5927,
+      "sha256": "9797365f581eaedfcdeca56e88953acfcf0b4da9b554ec364c88954a9f74bd2f"
+    },
+    {
+      "path": "docs/resurrection/FIRMWARE_UPDATES.md",
+      "bytes": 7780,
+      "sha256": "74d5693fd679514210e547c6ba514ae07d7efc9939d99e48f10c132fe20fca27"
+    },
+    {
+      "path": "docs/resurrection/PAYLOAD_INTEGRATION.md",
+      "bytes": 4012,
+      "sha256": "1de4858735cd9bbe68258c35e0c18bf1478e24901b9225d80d63c656958e199a"
+    },
+    {
+      "path": "docs/resurrection/SOFTWARE_CLOSURE.md",
+      "bytes": 3983,
+      "sha256": "f9030385512fbc63f218d0541f08edefd8a387d64644c9be29c2eb7aa04786e5"
+    },
+    {
+      "path": "mission/current/artifact_inventory.json",
+      "bytes": 496233,
+      "sha256": "aa6d2d720b0fc92c5656d26c788b68744ce07037c64da66a677ebbdef02e249a"
+    },
+    {
+      "path": "docs/resurrection/AUDIT_REPORT.md",
+      "bytes": 18358,
+      "sha256": "5149721d5c0a30e0d42bf00f602d247dc8d7ca0ddc8275549fef6ccd38f5f5c1"
+    },
+    {
+      "path": "output/pdf/SMART-QSO-proposal.pdf",
+      "bytes": 2701709,
+      "sha256": "bf9741fdbeba824f6b5d28bee24055b11a076062b90584afc0b3550e0c6150e3"
+    },
+    {
+      "path": "output/presentation/SMART-QSO-funding.pptx",
+      "bytes": 1822688,
+      "sha256": "fca28f76764412967572148d93b6cfa8f1d1aeb6e1343a652d525d9fde491143"
+    },
+    {
+      "path": "build/arm-reference/smart_qso_boot.bin",
+      "bytes": 36596,
+      "sha256": "a4d1a987b3fdecb671d8dfe119bb5fcee7714ee1cdada4735b0d74efe0854be8"
+    },
+    {
+      "path": "build/arm-reference/smart_qso_boot.map",
+      "bytes": 38368,
+      "sha256": "c767045bc667d03c1a2e77b3a2369fb911c84a73bc2859afc2b43dbdc48dc7ec"
+    },
+    {
+      "path": "build/arm-reference/platform/stm32l476/smart_qso_boot.elf",
+      "bytes": 45248,
+      "sha256": "50c3c4233e57a05cff9ab96bc115e1d3d1da6b539b0320958ebae10987f8db43"
+    },
+    {
+      "path": "build/arm-reference/smart_qso_reference.bin",
+      "bytes": 54540,
+      "sha256": "7601baed74e9c74833a67cd4c988123c682458e432d2787166566c37764e168f"
+    },
+    {
+      "path": "build/arm-reference/smart_qso_reference.map",
+      "bytes": 57658,
+      "sha256": "7c8aff7a396fbe1ed06c101d74284a5de68083c2a5218dcddd13b24c7e59b3b7"
+    },
+    {
+      "path": "build/arm-reference/platform/stm32l476/smart_qso_reference.elf",
+      "bytes": 68804,
+      "sha256": "74b39781af93dbf35bfb1c723e711cff1278c8433d9effc824e7d6df4c54556c"
+    },
+    {
+      "path": "build/arm-reference/smart_qso_reference_b.bin",
+      "bytes": 54540,
+      "sha256": "93fdf30208a53316453982d07b8388dd4229b29b36cf78eb3b528909703cc3bb"
+    },
+    {
+      "path": "build/arm-reference/smart_qso_reference_b.map",
+      "bytes": 57820,
+      "sha256": "ac6fe255cedd0be243e063ad57a06a7f7f65914661f88c4b46bccf9df0c6841f"
+    },
+    {
+      "path": "build/arm-reference/platform/stm32l476/smart_qso_reference_b.elf",
+      "bytes": 68804,
+      "sha256": "29dfdc108cae8442ea993fb24c1aa025c18017697c834f5d46d2a36aa64be031"
+    },
+    {
+      "path": "build/arm-reference/smart_qso_reference_recovery.bin",
+      "bytes": 54540,
+      "sha256": "809034c58041109ec710186d1a664b674cdf29f558f47bfb2715725a498d8440"
+    },
+    {
+      "path": "build/arm-reference/smart_qso_reference_recovery.map",
+      "bytes": 58387,
+      "sha256": "0fe6fea1fc1ab5c7e93a152f00cbbe59d07d25d656daa5c404e6a76a27880ad4"
+    },
+    {
+      "path": "build/arm-reference/platform/stm32l476/smart_qso_reference_recovery.elf",
+      "bytes": 68804,
+      "sha256": "006b01f07da242a4e051ff7494c8790a0d00fbaaf7e4f892e6c2b9b6a1eab27b"
+    },
+    {
+      "path": "output/ui/firmware-mobile.png",
+      "bytes": 50417,
+      "sha256": "88b197431a6278150f7a1dbf958f6e2e9c7fcef7cbdc3c00a671a259a6b742ea"
+    },
+    {
+      "path": "output/ui/firmware-desktop.png",
+      "bytes": 116689,
+      "sha256": "9ea5e726a44703af0b5f87702dfd419dc4d14399a1367c0560f723afa05087f7"
+    },
+    {
+      "path": "output/ui/passes-desktop.png",
+      "bytes": 153600,
+      "sha256": "2fbb4971662f5a746105cbd96b575478d3ed5c28d78d8c9eadc7cd6d31e9a882"
+    },
+    {
+      "path": "output/ui/console-desktop.png",
+      "bytes": 141390,
+      "sha256": "ad87a81536f29bc7aa7f6caa3a21f4ce8e7cb2495647714bbc20149b7ff193fd"
+    },
+    {
+      "path": "output/ui/public-desktop.png",
+      "bytes": 53656,
+      "sha256": "1a403db6aa883aad798c60c384528412708b5ef3c922d771cd20181dd048bc96"
+    },
+    {
+      "path": "output/ui/console-mobile.png",
+      "bytes": 84352,
+      "sha256": "f8acb1cd5c44f40cd3558b7b6ef52fb679e181ae9f1ad536c5f09d920abff746"
+    },
+    {
+      "path": "output/ui/relay-desktop.png",
+      "bytes": 96146,
+      "sha256": "d9cacb66d677c6f7f8e546081191f4308804fb16d40ee7f01f47e5a2ff6b2777"
+    },
+    {
+      "path": "output/verification/npm-audit.json",
+      "bytes": 365,
+      "sha256": "73179e562a27b65b47e50f2f6384802a4ab2e73e761e15fc5b81503cfd190f4a"
+    },
+    {
+      "path": "output/verification/update-ui.json",
+      "bytes": 503,
+      "sha256": "4756e0e11489f4b1a036f833b925bce2cd67510a0a43f58751be7870bfa8d74b"
+    },
+    {
+      "path": "output/verification/misra-status.json",
+      "bytes": 77489,
+      "sha256": "369b71cb33d9ffe864ebdf6c92a6e9085b904d66d78aeea911ad1347ed3e79a4"
+    },
+    {
+      "path": "output/verification/pip-audit.json",
+      "bytes": 6311,
+      "sha256": "ea32843fed67eef6d68fb763c61a0041e907aea4fd67e024d1f5253ce5d99d8d"
+    },
+    {
+      "path": "output/verification/key-configuration.json",
+      "bytes": 471,
+      "sha256": "5f02a2cab544d5995ebddc774a9a39fa8c3e24e57cb76fe96d95033f25a55910"
+    },
+    {
+      "path": "output/verification/documents.json",
+      "bytes": 243,
+      "sha256": "487a8dfec8b535ff02c111e1bf24fb931bba9e61c5056d3f861eb992c7ecde57"
+    },
+    {
+      "path": "output/verification/coverage.json",
+      "bytes": 673940,
+      "sha256": "a4659f0e2d4c5e6d1269354c78fe07ce41b37e5fd52361796453211cac12ed38"
+    },
+    {
+      "path": "output/verification/verification.json",
+      "bytes": 3783,
+      "sha256": "5ac482a5cef31f034d86900fa7a2977fb32cfc01c734f195952aa4eac28e86b2"
+    },
+    {
+      "path": "output/verification/arm-analyzer.json",
+      "bytes": 3349,
+      "sha256": "5e6d60acd0ecb318ce7639588863be9a286f2a5672903dd9699a41fde529f7d7"
+    },
+    {
+      "path": "output/verification/presentation-validation.json",
+      "bytes": 3783,
+      "sha256": "fa2c2e9b8bb6536ef23eac41b8af9a9dc44dee5e81c9d601dbdde1fed136525a"
+    },
+    {
+      "path": "output/verification/pip-audit-python311.json",
+      "bytes": 6311,
+      "sha256": "8fa18edfe46685ac97ae09616a495f0bd45b87392deb0de93c4b9c588c6f26e9"
+    },
+    {
+      "path": "output/verification/ctest.xml",
+      "bytes": 21532,
+      "sha256": "4c43c0f52e252283b89b9dfa7fe52d88b788e3c053a0ca6a559153c0bdf7fbbf"
+    },
+    {
+      "path": "output/verification/cppcheck.xml",
+      "bytes": 132,
+      "sha256": "a93c095bf520a2f2b9eb07349a2f49108958fa57f16ae0542045b7cb6fba7775"
+    },
+    {
+      "path": "output/verification/sanitizers.xml",
+      "bytes": 4099,
+      "sha256": "c076a79363bc04e6b66334a166ea84b0a55245a843c05512b122c37a0e1da003"
+    },
+    {
+      "path": "output/verification/cppcheck-legacy.xml",
+      "bytes": 132,
+      "sha256": "a93c095bf520a2f2b9eb07349a2f49108958fa57f16ae0542045b7cb6fba7775"
+    },
+    {
+      "path": "output/verification/sanitizers-all.xml",
+      "bytes": 21493,
+      "sha256": "e31b6f4e15cb502aaf31deb9cfa73f3960b899a884fc8e13259bea15c0ac1597"
+    },
+    {
+      "path": "output/verification/pytest.xml",
+      "bytes": 57192,
+      "sha256": "f6b21f14a9b5cf4afed356415154dd04aaf8f8c57b7955be27d0330d00e7eaf4"
+    },
+    {
+      "path": "output/verification/coverage.xml",
+      "bytes": 119749,
+      "sha256": "8e2ef0d1a529b4c8d5d7831b10ced432a6081959d84ad9729faeb6ab321b9619"
+    },
+    {
+      "path": "output/verification/pytest-python311.xml",
+      "bytes": 57192,
+      "sha256": "bf69c7f92122c618437a531641f1143c15b83fc165a7471afc78b8b3b3564e03"
+    },
+    {
+      "path": "output/verification/misra.xml",
+      "bytes": 15969,
+      "sha256": "33f0702434b25aedd9567cc02c016a5a03e2e2793cb7c5f0e5c6e74532119dd3"
+    },
+    {
+      "path": "output/verification/analyzer/journal.plist",
+      "bytes": 367,
+      "sha256": "ba62c3a3ae15d311fcc5f8afb172769be49c7645aa7af5475d72a1b204112670"
+    },
+    {
+      "path": "output/verification/analyzer/host_api.plist",
+      "bytes": 367,
+      "sha256": "ba62c3a3ae15d311fcc5f8afb172769be49c7645aa7af5475d72a1b204112670"
+    },
+    {
+      "path": "output/verification/analyzer/mission_core.plist",
+      "bytes": 367,
+      "sha256": "ba62c3a3ae15d311fcc5f8afb172769be49c7645aa7af5475d72a1b204112670"
+    },
+    {
+      "path": "output/verification/analyzer/payload_link.plist",
+      "bytes": 367,
+      "sha256": "ba62c3a3ae15d311fcc5f8afb172769be49c7645aa7af5475d72a1b204112670"
+    },
+    {
+      "path": "output/verification/analyzer/adcs.plist",
+      "bytes": 367,
+      "sha256": "ba62c3a3ae15d311fcc5f8afb172769be49c7645aa7af5475d72a1b204112670"
+    },
+    {
+      "path": "output/verification/analyzer/resource_advisor.plist",
+      "bytes": 367,
+      "sha256": "ba62c3a3ae15d311fcc5f8afb172769be49c7645aa7af5475d72a1b204112670"
+    },
+    {
+      "path": "output/verification/analyzer/update_stream.plist",
+      "bytes": 367,
+      "sha256": "ba62c3a3ae15d311fcc5f8afb172769be49c7645aa7af5475d72a1b204112670"
+    },
+    {
+      "path": "output/verification/analyzer/transport.plist",
+      "bytes": 367,
+      "sha256": "ba62c3a3ae15d311fcc5f8afb172769be49c7645aa7af5475d72a1b204112670"
+    },
+    {
+      "path": "output/verification/analyzer/runtime.plist",
+      "bytes": 367,
+      "sha256": "ba62c3a3ae15d311fcc5f8afb172769be49c7645aa7af5475d72a1b204112670"
+    },
+    {
+      "path": "output/verification/analyzer/update.plist",
+      "bytes": 367,
+      "sha256": "ba62c3a3ae15d311fcc5f8afb172769be49c7645aa7af5475d72a1b204112670"
+    },
+    {
+      "path": "software/flight/vendor/MONOCYPHER_LICENSE.md",
+      "bytes": 9085,
+      "sha256": "5f8360e4c06ddcc584bdb4b210c6af824c4bb301e6a9a521869b6d90795ca4b3"
+    },
+    {
+      "path": "software/flight/platform/stm32l476/README.md",
+      "bytes": 4909,
+      "sha256": "9911a446673f32fe5e8a1983bd9606a624ffb8f11ed8a01225f4a7a6c91e384c"
+    }
+  ]
+}

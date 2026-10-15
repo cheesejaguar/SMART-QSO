@@ -1,0 +1,197 @@
+{
+  "scope": "Systematic repository-wide final development review: complete artifact inventory, high-risk current module/interface inspection, legacy claims/boundary review, executable verification and advisory scans. Not an independent line-by-line flight acceptance inspection.",
+  "findings": [
+    {
+      "id": "FR-01",
+      "title": "Known dependency advisories in locked development software",
+      "severity": "high",
+      "mission_consequence": "Advised framework/library versions can expose build/development systems; deployment should not retain them.",
+      "corrective_action": "Upgrade Astro to 7.3.8, cryptography to 50.0.2 and pytest to 9.1.1; retain frozen lockfiles and advisory gates.",
+      "owner": "Payload/ground software lead",
+      "evidence": [
+        "software/web/package-lock.json",
+        "uv.lock",
+        "output/verification/npm-audit.json",
+        "output/verification/pip-audit.json"
+      ],
+      "closure_criteria": "Both current active-environment advisory reports have zero findings; retest production builds/signatures.",
+      "dependencies": [
+        "Locked dependencies",
+        "CI"
+      ],
+      "state": "host-tested",
+      "accepted": false
+    },
+    {
+      "id": "FR-02",
+      "title": "Shared or zero operational verification-key configuration was allowed",
+      "severity": "high",
+      "mission_consequence": "One compromised authority could sign both commands and flight images.",
+      "corrective_action": "Reject shared keys in ARM CMake, service and serial sender; reject nonempty zero keys.",
+      "owner": "Flight software / security lead",
+      "evidence": [
+        "software/flight/platform/stm32l476/CMakeLists.txt",
+        "software/ground/service/app.py",
+        "software/ground/client/firmware.py",
+        "software/common/tests/test_update_payload.py",
+        "output/verification/key-configuration.json"
+      ],
+      "closure_criteria": "Four invalid ARM configurations rejected; HTTP and sender reject before any transport; independent key custody/security review remains open.",
+      "dependencies": [
+        "Command and firmware trust roots"
+      ],
+      "state": "host-tested",
+      "accepted": false
+    },
+    {
+      "id": "FR-03",
+      "title": "C and Python firmware acceptance differed",
+      "severity": "high",
+      "mission_consequence": "An image accepted by one interface could be rejected or unsafe at boot.",
+      "corrective_action": "Require canonical erased manifest padding and a stack pointer above SRAM start in the MCU validator.",
+      "owner": "Flight software lead",
+      "evidence": [
+        "software/flight/core/update.c",
+        "software/flight/core/update_stream.c",
+        "software/flight/tests/test_software_boundaries.c",
+        "software/common/tests/test_update_payload.py"
+      ],
+      "closure_criteria": "C/Python padding/vector regressions pass; actual flash/ECC/boot HIL remains open.",
+      "dependencies": [
+        "Signed image format"
+      ],
+      "state": "host-tested",
+      "accepted": false
+    },
+    {
+      "id": "FR-04",
+      "title": "Ground counter range and HTTP precision did not match the wire protocol",
+      "severity": "high",
+      "mission_consequence": "Large replay floors could exhaust the ground sender prematurely or lose precision in the browser.",
+      "corrective_action": "Migrate SQLite signing counters atomically to decimal text; preserve uint64 HTTP nonces as strings; reserve terminal sequence for retirement and report exhaustion without an internal error. Record the exact signed frame, parameters and public signer identity in HTTP/update/serial command histories without logging private keys or bearer tokens.",
+      "owner": "Ground software lead",
+      "evidence": [
+        "software/ground/service/store.py",
+        "software/ground/service/app.py",
+        "software/common/tests/test_final_review.py"
+      ],
+      "closure_criteria": "Signed-range migration, concurrent reservations, exact high counter, restart, exhaustion and terminal retirement pass. The archived SET_MODE frame is reconstructed and its signature/parameters verified by a regression test.",
+      "dependencies": [
+        "Persistent replay protection",
+        "Operator recovery"
+      ],
+      "state": "host-tested",
+      "accepted": false
+    },
+    {
+      "id": "FR-05",
+      "title": "Historical validation assertions only logged invalid inputs",
+      "severity": "high",
+      "mission_consequence": "Null pointers and invalid indices could reach dereferences or array accesses in host support.",
+      "corrective_action": "Add type-correct explicit null/range returns in five modules, current scenario tests and a 24-source Cppcheck gate; resolve assertion macro redefinitions.",
+      "owner": "Flight software maintainer",
+      "evidence": [
+        "software/flight/src/mission_data.c",
+        "software/flight/src/sensors.c",
+        "software/flight/src/uart_comm.c",
+        "software/flight/src/eps_control.c",
+        "software/flight/src/fault_mgmt.c",
+        "software/flight/tests/test_sensors.c",
+        "output/verification/cppcheck-legacy.xml"
+      ],
+      "closure_criteria": "Compatible historical-host scenarios pass; standard scan has no diagnostics; legacy code remains outside the current flight baseline.",
+      "dependencies": [
+        "Historical module inventory"
+      ],
+      "state": "host-tested",
+      "accepted": false
+    },
+    {
+      "id": "FR-06",
+      "title": "Static website was not deployable at a project URL",
+      "severity": "medium",
+      "mission_consequence": "Broken assets/routes and a console without its required local service would make the public mission unusable.",
+      "corrective_action": "Generate base-aware URLs, static evidence/research pages, local-console guidance and source downloads; validate all local assets/anchors; publish only read-only static files.",
+      "owner": "Ground/public software lead",
+      "evidence": [
+        "software/web/public/src/urls.ts",
+        "software/web/public/src/pages/research.astro",
+        "tools/check_public_site.py",
+        "tools/publish_pages.py",
+        "software/common/tests/test_public_site.py"
+      ],
+      "closure_criteria": "Project-path build and link checker pass; verify Pages build, live asset hashes and desktop/mobile navigation.",
+      "dependencies": [
+        "GitHub publishing access",
+        "Verified development archive"
+      ],
+      "state": "host-tested",
+      "accepted": false
+    },
+    {
+      "id": "FR-07",
+      "title": "Residual classification/compliance claims in historical code comments",
+      "severity": "medium",
+      "mission_consequence": "Readers could mistake legacy host scaffolding for accepted NASA flight implementation.",
+      "corrective_action": "Mark the legacy C/Python modules explicitly, preserve the old payload README and make protocol-v2 bridge the current entry point.",
+      "owner": "Assurance / configuration lead",
+      "evidence": [
+        "software/payload/README.md",
+        "docs/history/PAYLOAD_README.md",
+        "software/payload/health_interface.py",
+        "software/flight/include/smart_qso.h",
+        "tools/audit_repository.py"
+      ],
+      "closure_criteria": "Legacy artifacts inventoried as historical; formal classification/tailoring and independent review remain unaccepted.",
+      "dependencies": [
+        "Evidence-state policy"
+      ],
+      "state": "host-tested",
+      "accepted": false
+    },
+    {
+      "id": "FR-08",
+      "title": "Build caches and stale source archives could enter publication",
+      "severity": "medium",
+      "mission_consequence": "An unreproducible or outdated archive could undermine public engineering claims.",
+      "corrective_action": "Exclude Astro/TypeScript caches, verify exact current source/artifact digests and ZIP contents before publishing, and test tamper/missing-source/acceptance/key rejection.",
+      "owner": "Configuration / assurance lead",
+      "evidence": [
+        ".gitignore",
+        "tools/check_release.py",
+        "software/common/tests/test_release.py",
+        "tools/publish_pages.py"
+      ],
+      "closure_criteria": "Current source tree, ZIP CRCs, manifest and checksums must agree; operational key paths and unsupported acceptance fail publication.",
+      "dependencies": [
+        "Source fingerprint",
+        "Release evidence"
+      ],
+      "state": "host-tested",
+      "accepted": false
+    },
+    {
+      "id": "FR-09",
+      "title": "Watchdog decision preceded the boot-confirmation flash phase",
+      "severity": "high",
+      "mission_consequence": "A late or failed boot-state write could escape the cycle deadline decision.",
+      "corrective_action": "Recheck the runtime deadline after boot confirmation; a boot read/write failure latches unhealthy storage and prevents watchdog feeding.",
+      "owner": "Flight software lead",
+      "dependencies": [
+        "Persistent boot policy",
+        "Reference-board timing campaign"
+      ],
+      "evidence": [
+        "software/flight/platform/stm32l476/main.c",
+        "software/flight/tests/test_software_boundaries.c",
+        "output/verification/arm-analyzer.json"
+      ],
+      "closure_criteria": "Repeated runtime deadline regression, ARM build/compiler analysis; actual boot-write timing and watchdog reset remain HIL gates.",
+      "state": "host-tested",
+      "accepted": false
+    }
+  ],
+  "hardware_execution_verified": false,
+  "independent_review_accepted": false,
+  "publication_evidence": "output/verification/publication.json (generated after publication; not flight evidence)"
+}

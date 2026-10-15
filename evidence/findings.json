@@ -1,0 +1,589 @@
+[
+  {
+    "id": "A01",
+    "severity": "critical",
+    "title": "Mission baseline contradicts itself",
+    "evidence": [
+      "README.md",
+      "mission/CONOPS.md",
+      "docs/requirements/MISSION_REQUIREMENTS.md"
+    ],
+    "mission_consequence": "Incompatible architectures and untestable success criteria",
+    "corrective_action": "Replace active authority with versioned 3U relay baseline",
+    "owner": "Systems lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Approved requirements and consistent active documents",
+    "state": "implemented",
+    "closure_evidence": [
+      "mission/current/BASELINE.md"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G0"
+  },
+  {
+    "id": "A02",
+    "severity": "critical",
+    "title": "Host executable labeled flight build",
+    "evidence": [
+      "software/flight/CMakeLists.txt"
+    ],
+    "mission_consequence": "No executable firmware for selected MCU",
+    "corrective_action": "Separate host and ARM builds and forbid simulation linkage",
+    "owner": "Flight software lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "ARM ELF/map/bin and board HIL",
+    "state": "implemented",
+    "closure_evidence": [
+      "software/flight/platform/stm32l476",
+      "tools/check_firmware.py"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G0"
+  },
+  {
+    "id": "A03",
+    "severity": "critical",
+    "title": "Flight time and UART are placeholders",
+    "evidence": [
+      "software/flight/src/time_utils.c",
+      "software/flight/src/uart_comm.c"
+    ],
+    "mission_consequence": "Deadlines and command path cannot function",
+    "corrective_action": "Provide target BSP and monotonic time",
+    "owner": "Avionics lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Target timeout/UART/reset tests",
+    "state": "implemented",
+    "closure_evidence": [
+      "software/flight/core/runtime.c",
+      "software/flight/platform/stm32l476/board.c"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A04",
+    "severity": "critical",
+    "title": "RF transmitter is not integrated",
+    "evidence": [
+      "software/flight/src/beacon.c"
+    ],
+    "mission_consequence": "Printed beacon is not an RF transmission",
+    "corrective_action": "Implement KISS adapter, modem transport and independent inhibit",
+    "owner": "RF lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Conducted/RF-loop tests and cease-transmission demonstration",
+    "state": "implemented",
+    "closure_evidence": [
+      "software/flight/core/transport.c"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A05",
+    "severity": "critical",
+    "title": "Public fixed command authorization and conflicting IDs",
+    "evidence": [
+      "software/flight/src/cmd_handler.c",
+      "software/flight/include/input_validation.h"
+    ],
+    "mission_consequence": "Unauthenticated or misinterpreted control",
+    "corrective_action": "One protocol, Ed25519 commands, persistent replay floor",
+    "owner": "Flight software lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Bad-signature/replay/cross-language conformance tests and HIL",
+    "state": "host-tested",
+    "closure_evidence": [
+      "mission/current/protocol.json",
+      "software/common/tests/test_mission_system.py",
+      "software/common/tests/test_update_payload.py",
+      "software/flight/core/mission_core.c"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G0"
+  },
+  {
+    "id": "A06",
+    "severity": "high",
+    "title": "Operational modules absent from application",
+    "evidence": [
+      "software/flight/src/main.c",
+      "software/flight/CMakeLists.txt"
+    ],
+    "mission_consequence": "Safety features exist without runtime integration",
+    "corrective_action": "Integrate portable runtime and static RTOS supervisor",
+    "owner": "Flight software lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Boot-to-safe/deployment/FDIR/watchdog integrated evidence",
+    "state": "implemented",
+    "closure_evidence": [
+      "software/flight/platform/stm32l476/main.c"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A07",
+    "severity": "high",
+    "title": "Most tests not registered",
+    "evidence": [
+      "software/flight/tests/CMakeLists.txt"
+    ],
+    "mission_consequence": "Passing CI gives false assurance",
+    "corrective_action": "Register compatible tests; quarantine incompatible tests with reasons",
+    "owner": "Assurance lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Inventory-to-test map; no unexplained exclusions",
+    "state": "host-tested",
+    "closure_evidence": [
+      "mission/current/test_inventory.json",
+      "output/verification/ctest.xml",
+      "mission/current/legacy_test_migration.json",
+      "software/flight/tests/production_fixture.h",
+      "software/flight/tests/test_software_boundaries.c"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G0"
+  },
+  {
+    "id": "A08",
+    "severity": "high",
+    "title": "Health interface runtime fails",
+    "evidence": [
+      "software/payload/health_interface.py",
+      "software/payload/pyproject.toml"
+    ],
+    "mission_consequence": "Payload interface cannot initialize",
+    "corrective_action": "Replace dependency CRC with verified stdlib implementation and pin environment",
+    "owner": "Payload lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Entire payload/ground suite passes",
+    "state": "host-tested",
+    "closure_evidence": [
+      "software/common/tests/test_mission_system.py",
+      "software/common/tests/test_update_payload.py",
+      "software/flight/core/payload_link.c",
+      "software/payload/bridge.py",
+      "software/payload/health_interface.py"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G0"
+  },
+  {
+    "id": "A09",
+    "severity": "high",
+    "title": "Masked analysis and optional test discovery",
+    "evidence": [
+      ".github/workflows/ci.yml",
+      ".github/workflows/flight-software-ci.yml"
+    ],
+    "mission_consequence": "Defects can enter baseline unnoticed",
+    "corrective_action": "Single CI, mandatory tests, fail on analyzer/sanitizer errors",
+    "owner": "Assurance lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Demonstrated failing-negative CI gates",
+    "state": "host-tested",
+    "closure_evidence": [
+      ".github/workflows/ci.yml",
+      "mission/current/misra_findings.json",
+      "tools/check_misra.py",
+      "mission/current/misra_resolution.json",
+      "docs/resurrection/MISRA_RESOLUTION.md",
+      "tools/analyze_arm.py"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G0"
+  },
+  {
+    "id": "A10",
+    "severity": "critical",
+    "title": "Transmit-only ConOps cannot provide telecommand cessation",
+    "evidence": [
+      "mission/CONOPS.md",
+      "docs/RF_PLAN.md"
+    ],
+    "mission_consequence": "Regulatory/control failure",
+    "corrective_action": "Receiver/control path and retained TX-off command",
+    "owner": "RF lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "47 CFR 97.207 review and hardware cease test",
+    "state": "host-tested",
+    "closure_evidence": [
+      "mission/current/BASELINE.md",
+      "software/common/tests/test_mission_system.py"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A11",
+    "severity": "high",
+    "title": "Conflicting battery and energy assumptions",
+    "evidence": [
+      "docs/EXECUTIVE_SUMMARY.md",
+      "docs/environment/POWER_BUDGET_ANALYSIS.md",
+      "software/simulation/notebooks/power_energy_sim.ipynb"
+    ],
+    "mission_consequence": "Possible power-negative spacecraft",
+    "corrective_action": "Shared executable budget and measured whole-cycle loads",
+    "owner": "EPS lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Measured load profile plus worst-case/EOL closure",
+    "state": "proposed",
+    "closure_evidence": [],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A12",
+    "severity": "high",
+    "title": "Flash partition budget exceeds device capacity",
+    "evidence": [
+      "docs/environment/DATA_BUDGET.md"
+    ],
+    "mission_consequence": "Firmware/storage layout cannot fit",
+    "corrective_action": "Controlled reference memory map and linker limits",
+    "owner": "Avionics lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "632KB legacy allocation replaced; reference link map verified",
+    "state": "implemented",
+    "closure_evidence": [
+      "software/flight/platform/stm32l476/app.ld",
+      "mission/current/budgets.json"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A13",
+    "severity": "high",
+    "title": "LLM footprint and latency estimates contradict throughput",
+    "evidence": [
+      "docs/ML_MODELS.md"
+    ],
+    "mission_consequence": "Payload feasibility and proposal cost unreliable",
+    "corrective_action": "Measure candidate models including cold boot and KV cache",
+    "owner": "Payload lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Benchmarked artifacts with watts, seconds, joules and memory",
+    "state": "proposed",
+    "closure_evidence": [],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A14",
+    "severity": "high",
+    "title": "Energy notebook fails clean execution",
+    "evidence": [
+      "software/simulation/notebooks/power_energy_sim.ipynb"
+    ],
+    "mission_consequence": "Analysis cannot be reproduced",
+    "corrective_action": "Extract tested model modules and repair notebook cell order",
+    "owner": "Systems lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Clean-kernel run and physical-invariant tests",
+    "state": "host-tested",
+    "closure_evidence": [
+      "software/simulation/notebooks/power_energy_sim.ipynb"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G0"
+  },
+  {
+    "id": "A15",
+    "severity": "critical",
+    "title": "No fabrication-ready design sources",
+    "evidence": [
+      "hardware/"
+    ],
+    "mission_consequence": "Procurement and integration cannot proceed",
+    "corrective_action": "Reference CAD plus selected component drawings/schematics/BOM and vendor packages",
+    "owner": "Hardware lead",
+    "dependencies": [
+      "G1"
+    ],
+    "closure_criteria": "Independent hardware design review and released manufacturing package",
+    "state": "proposed",
+    "closure_evidence": [],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A16",
+    "severity": "high",
+    "title": "No measured thermal/radiation qualification",
+    "evidence": [
+      "docs/environment/THERMAL_ANALYSIS.md",
+      "docs/environment/RADIATION_ANALYSIS.md"
+    ],
+    "mission_consequence": "Compute may overheat or fail in orbit",
+    "corrective_action": "Vacuum conductive design, transient model, parts SEE/TID assessment",
+    "owner": "Thermal/radiation lead",
+    "dependencies": [
+      "G1"
+    ],
+    "closure_criteria": "Correlated TVAC results and reviewed radiation evidence",
+    "state": "proposed",
+    "closure_evidence": [],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A17",
+    "severity": "critical",
+    "title": "Deployment state lacks persistent hardware evidence",
+    "evidence": [
+      "software/flight/src/deployment.c"
+    ],
+    "mission_consequence": "Repeated actuation or premature transmission after reset",
+    "corrective_action": "Persistent guarded deployment and independent inhibits",
+    "owner": "Hardware lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Power-interrupted deployment/inhibit HIL tests",
+    "state": "proposed",
+    "closure_evidence": [],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A18",
+    "severity": "critical",
+    "title": "Reviews/compliance assert unsubstantiated acceptance",
+    "evidence": [
+      "docs/reviews/",
+      "RALPH.md"
+    ],
+    "mission_consequence": "Funders and reviewers receive incorrect maturity claims",
+    "corrective_action": "Preserve as unverified history; new evidence lifecycle",
+    "owner": "Program manager",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Named panel, actual artifacts, accepted actions",
+    "state": "implemented",
+    "closure_evidence": [
+      "mission/current/standards_tailoring.json",
+      "docs/resurrection/ASSURANCE_PLAN.md"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G0"
+  },
+  {
+    "id": "A19",
+    "severity": "high",
+    "title": "Coordination and government-band claims have no supporting records",
+    "evidence": [
+      "docs/regulatory/SPECTRUM_LICENSE.md"
+    ],
+    "mission_consequence": "Unauthorized architecture or spectrum assumptions",
+    "corrective_action": "Remove current claims; record amateur route pending sponsor and regulator",
+    "owner": "RF lead",
+    "dependencies": [
+      "G1"
+    ],
+    "closure_criteria": "Coordination letters and actual regulator filings",
+    "state": "proposed",
+    "closure_evidence": [],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A20",
+    "severity": "high",
+    "title": "Obsolete disposal requirement and unsupported passivation",
+    "evidence": [
+      "docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md"
+    ],
+    "mission_consequence": "Disposal/safety case may not be accepted",
+    "corrective_action": "Five-year analysis, uncertainty, independent battery safing",
+    "owner": "Mission assurance lead",
+    "dependencies": [
+      "G1"
+    ],
+    "closure_criteria": "Regulator/provider-reviewed ODAR and hardware passivation evidence",
+    "state": "implemented",
+    "closure_evidence": [
+      "mission/current/BASELINE.md",
+      "mission/current/standards.json",
+      "software/common/tests/test_mission_system.py",
+      "software/flight/core/mission_core.c"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A21",
+    "severity": "high",
+    "title": "Ground console/mission archive absent",
+    "evidence": [
+      "software/ground/"
+    ],
+    "mission_consequence": "Service cannot be operated or audited",
+    "corrective_action": "Local mission service, signing custody, archive and console",
+    "owner": "Operations lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "End-to-end station and backup recovery rehearsal",
+    "state": "host-tested",
+    "closure_evidence": [
+      "software/ground/service",
+      "software/web/console",
+      "docs/design/FINISH_REVIEW.md"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G0"
+  },
+  {
+    "id": "A22",
+    "severity": "high",
+    "title": "Funding/team/schedule not grounded",
+    "evidence": [
+      "docs/project/PROJECT_PLAN.md"
+    ],
+    "mission_consequence": "No executable flight program",
+    "corrective_action": "Work packages, gate funding, owner vacancies and quote log",
+    "owner": "Program manager",
+    "dependencies": [
+      "G1"
+    ],
+    "closure_criteria": "Named institution/team, quotes and resource-loaded schedule",
+    "state": "implemented",
+    "closure_evidence": [
+      "mission/current/funding.json",
+      "mission/current/gates.json"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A23",
+    "severity": "high",
+    "title": "No signed update/rollback implementation",
+    "evidence": [
+      "software/flight/docs/BOOTLOADER_REQUIREMENTS.md"
+    ],
+    "mission_consequence": "Loss of spacecraft during update",
+    "corrective_action": "Authenticated staging and protected recovery baseline",
+    "owner": "Flight software lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Interrupted-update/HIL tests, independently reviewed boot design",
+    "state": "host-tested",
+    "closure_evidence": [
+      "docs/resurrection/FIRMWARE_UPDATES.md",
+      "software/common/tests/test_mission_system.py",
+      "software/common/tests/test_update_payload.py",
+      "software/flight/core/update.c",
+      "software/flight/core/update_stream.c",
+      "software/flight/tests/test_update_stream.c",
+      "software/ground/service/updates.py"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A24",
+    "severity": "medium",
+    "title": "Python lint/type/package health not verified",
+    "evidence": [
+      "software/payload/pyproject.toml"
+    ],
+    "mission_consequence": "Deployment not reproducible",
+    "corrective_action": "Root package, uv lock, lint/type gates",
+    "owner": "Software lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Clean install and checks",
+    "state": "host-tested",
+    "closure_evidence": [
+      "pyproject.toml",
+      "uv.lock",
+      "output/verification/pytest.xml"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G0"
+  },
+  {
+    "id": "A25",
+    "severity": "high",
+    "title": "Model training/federated updates lack safety case",
+    "evidence": [
+      "docs/ML_MODELS.md",
+      "software/ground/tools/fl_update_builder.py"
+    ],
+    "mission_consequence": "Unbounded changes and weak benefit attribution",
+    "corrective_action": "Exclude from first flight baseline and mark tools research-only",
+    "owner": "Payload lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Current baseline and command surface exclude training/patch uploads",
+    "state": "implemented",
+    "closure_evidence": [
+      "mission/current/baseline.json"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  },
+  {
+    "id": "A26",
+    "severity": "high",
+    "title": "Autonomy value has no matched evidence",
+    "evidence": [
+      "software/simulation/notebooks/"
+    ],
+    "mission_consequence": "Funding claim lacks experimentally testable benefit",
+    "corrective_action": "Predeclare matched baseline comparison and publish null/negative results",
+    "owner": "Research lead",
+    "dependencies": [
+      "G0"
+    ],
+    "closure_criteria": "Reproducible experiment plus independent results review",
+    "state": "host-tested",
+    "closure_evidence": [
+      "docs/resurrection/EXPERIMENT_PLAN.md",
+      "output/predictor-experiment.json",
+      "software/flight/core/resource_advisor.c",
+      "software/simulation/mission.py",
+      "software/simulation/predictors.py",
+      "software/simulation/tests/test_predictors.py"
+    ],
+    "closure_status": "Open until full closure criteria and independent acceptance are met",
+    "priority_gate": "G1"
+  }
+]

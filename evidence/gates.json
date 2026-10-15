@@ -1,0 +1,94 @@
+[
+  {
+    "id": "G0",
+    "name": "Resurrection baseline",
+    "criteria": [
+      "controlled mission definition",
+      "complete artifact inventory",
+      "reproducible host software demo",
+      "audit and actionable findings"
+    ],
+    "state": "proposed",
+    "authority": "Named independent review board required",
+    "evidence": []
+  },
+  {
+    "id": "G1",
+    "name": "Feasibility / SRR",
+    "criteria": [
+      "closed preliminary 3U budgets",
+      "measured AI energy/thermal profiles",
+      "regulatory pathway",
+      "staffing and supplier estimates"
+    ],
+    "state": "proposed",
+    "authority": "Named independent review board required",
+    "evidence": []
+  },
+  {
+    "id": "G2",
+    "name": "PDR",
+    "criteria": [
+      "selected hardware and ICDs",
+      "credible packaging",
+      "flatsat evidence",
+      "funded engineering model"
+    ],
+    "state": "proposed",
+    "authority": "Named independent review board required",
+    "evidence": []
+  },
+  {
+    "id": "G3",
+    "name": "CDR",
+    "criteria": [
+      "fabrication package",
+      "target/HIL interfaces",
+      "hazard controls verified",
+      "review actions accepted"
+    ],
+    "state": "proposed",
+    "authority": "Named independent review board required",
+    "evidence": []
+  },
+  {
+    "id": "G4",
+    "name": "TRR / environmental",
+    "criteria": [
+      "engineering model",
+      "calibrated facilities",
+      "correlated budgets",
+      "controlled executable procedures"
+    ],
+    "state": "proposed",
+    "authority": "Named independent review board required",
+    "evidence": []
+  },
+  {
+    "id": "G5",
+    "name": "FRR / ORR",
+    "criteria": [
+      "flight unit acceptance",
+      "hazard closure",
+      "regulatory approval",
+      "operators rehearsed",
+      "provider acceptance"
+    ],
+    "state": "proposed",
+    "authority": "Named independent review board required",
+    "evidence": []
+  },
+  {
+    "id": "G6",
+    "name": "On-orbit / closure",
+    "criteria": [
+      "commissioning logs",
+      "acknowledged relay deliveries",
+      "matched research results",
+      "verified passivation and disposal reporting"
+    ],
+    "state": "proposed",
+    "authority": "Named independent review board required",
+    "evidence": []
+  }
+]

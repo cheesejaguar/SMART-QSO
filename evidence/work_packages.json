@@ -1,0 +1,143 @@
+[
+  {
+    "id": "SYS",
+    "name": "Systems engineering",
+    "owner": "Systems lead",
+    "deliverables": "Controlled architecture, executable budgets, interfaces, review decisions",
+    "closure": "mass,volume,energy,current,thermal,RF,radiation,disposal closure",
+    "state": "proposed",
+    "depends_on": []
+  },
+  {
+    "id": "MECH",
+    "name": "Structure and mechanisms",
+    "owner": "Mechanical lead",
+    "deliverables": "Parametric packaging CAD, drawings, structural analysis, deployer fit and inhibit design",
+    "closure": "selected deployer ICD, vendor mechanical models, inspected fabrication",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "EPS",
+    "name": "Electrical power",
+    "owner": "EPS lead",
+    "deliverables": "Battery selection, MPPT, protection, inrush, heaters, aging, independent passivation",
+    "closure": "supplier data, cell tests, measured loads, hazard closure",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "OBC",
+    "name": "Avionics",
+    "owner": "Avionics lead",
+    "deliverables": "Reference BSP, reset supervision, RTC, storage integrity, latch-up protection, harness",
+    "closure": "board verification, radiation assessment, target HIL",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "RF",
+    "name": "RF and spectrum",
+    "owner": "RF lead",
+    "deliverables": "TNC integration, antenna/deployment, receiver/PA, Doppler/desense and shutdown",
+    "closure": "link budget, calibrated emissions, coordinated frequencies",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "ADCS",
+    "name": "Attitude control",
+    "owner": "ADCS lead",
+    "deliverables": "Sensor calibration, magnetic actuation, B-dot dynamics and sun incidence",
+    "closure": "measured sensors, torquer current, dynamics validation",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "ENV",
+    "name": "Thermal and radiation",
+    "owner": "Thermal/radiation lead",
+    "deliverables": "Transient conductive thermal model, TVAC correlation, TID/SEE assessment",
+    "closure": "vacuum cooling evidence, materials/parts environment suitability",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "FSW",
+    "name": "Flight software",
+    "owner": "Flight software lead",
+    "deliverables": "Portable core, static RTOS tasks, recovery, protected updates, persistent state",
+    "closure": "software assurance, HIL, independent review",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "AI",
+    "name": "Language payload",
+    "owner": "Payload lead",
+    "deliverables": "Pinned models/runtime, bounded inference, power supervision, telemetry acceptance",
+    "closure": "cold-boot cycle energy, factuality corpus, thermal and radiation testing",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "GND",
+    "name": "Ground and operations",
+    "owner": "Operations lead",
+    "deliverables": "Packet client, telemetry archive, signing service, console, backup station",
+    "closure": "station interoperability and operator rehearsal",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "AIT",
+    "name": "Integration and support equipment",
+    "owner": "Integration lead",
+    "deliverables": "Flatsat, fixtures, calibrated instruments, assembly travelers and campaign data",
+    "closure": "funded hardware, test facilities, equipment calibration",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "REG",
+    "name": "Launch and disposal",
+    "owner": "Mission assurance lead",
+    "deliverables": "Spectrum filings, debris analysis, launch safety, transport, tracking and EOL",
+    "closure": "sponsoring organization, regulator/provider acceptance",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  },
+  {
+    "id": "PM",
+    "name": "Program and funding",
+    "owner": "Program manager",
+    "deliverables": "Named team, quotes, resource-loaded schedule, reserves, partnerships",
+    "closure": "committed institution, cash/in-kind agreements and independently reviewed estimate",
+    "state": "proposed",
+    "depends_on": [
+      "SYS"
+    ]
+  }
+]
