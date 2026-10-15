@@ -2,7 +2,7 @@
  * @file adcs_control.c
  * @brief SMART-QSO ADCS Control Module Implementation
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #include "adcs_control.h"

@@ -76,7 +76,7 @@ This comprehensive functional test verifies:
 | 10 | Verify boot sequence | LEDs indicate boot | | |
 | 11 | Wait for initialization | 30 seconds | | |
 | 12 | Verify safe mode entry | SAFE mode in TLM | | |
-| 13 | Verify beacon inhibit active | No RF for 30 min | | |
+| 13 | Verify RF silence active (`[RF_SILENCE] state=COUNTING` at boot) | No RF signal for 45 min (CDS §2.4.5, SYS-224); radio unpowered | | |
 
 ### 6.3 Subsystem Health Check
 

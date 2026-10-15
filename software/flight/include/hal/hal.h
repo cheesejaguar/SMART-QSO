@@ -10,7 +10,7 @@
  * @requirement SRS-Q021 Hardware dependencies shall be isolated in HAL layer
  * @requirement SRS-Q022 Software shall support simulation and flight builds
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat HAL patterns
  */
 

@@ -9,7 +9,7 @@
  * @requirement SRS-SYS-002 System shall run main control loop
  * @requirement SRS-SYS-003 System shall handle graceful shutdown
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat design patterns
  */
 
@@ -22,6 +22,16 @@
 #include "sensors.h"
 #include "uart_comm.h"
 #include "mission_data.h"
+#include "rf_control.h"
+#include "contact_monitor.h"
+#include "rf_silence.h"
+#include "deployment.h"
+#include "cmd_handler.h"
+#include "gse_provision.h"
+#include "uplink.h"
+#include "station_id.h"
+#include "hal/hal_gpio.h"
+#include "hal/hal_flash.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,6 +70,9 @@ static uint64_t s_last_telemetry_ms = 0;
 
 /** Last health check time */
 static uint64_t s_last_health_check_ms = 0;
+
+/** Last loss-of-contact tick */
+static uint64_t s_last_contact_tick_ms = 0;
 
 /** Last watchdog reset time */
 static uint64_t s_last_watchdog_reset_ms = 0;
@@ -110,11 +123,42 @@ static SmartQsoResult_t init_system(void)
     /* Record start time */
     s_program_start_ms = smart_qso_now_ms();
 
-    /* Initialize fault management first (for logging during init) */
+    /* Bring up the HAL before any module touches GPIO or non-volatile memory */
+    if ((hal_gpio_init() != SMART_QSO_OK) || (hal_flash_init() != SMART_QSO_OK)) {
+        fprintf(stderr, "[SYSTEM] GPIO/flash init failed\n");
+    }
+
+    /* Burn-wire lines low as early as possible */
+    (void)deployment_init();
+
+    /* Initialize fault management next (for logging during init) */
     result = fault_mgmt_init();
     if (result != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Fault management init failed\n");
         /* Continue anyway - fault logging won't work but system can run */
+    }
+
+    /* Post-deployment silence (CDS 2.4.5) and loss-of-contact inhibit first,
+     * so the radio lines are never driven high on a boot that must stay
+     * silent; then restore the latched TX-OFF state (47 CFR 97.207(b)) */
+    (void)rf_silence_init();
+    (void)contact_monitor_init();
+    (void)rf_control_init();
+
+    /* Load the telecommand key table; with no key only TX-OFF is accepted */
+    result = cmd_handler_init();
+    if (result != SMART_QSO_OK) {
+        fprintf(stderr, "[SYSTEM] Command handler init failed\n");
+    }
+
+    /* Telecommand receiver: AX.25 UI frames addressed to this station */
+    if (uplink_init(SQSO_CALLSIGN, SQSO_SSID) != SMART_QSO_OK) {
+        fprintf(stderr, "[SYSTEM] Telecommand receiver init failed\n");
+    }
+
+    /* Key provisioning port: honoured only while the GSE umbilical is present */
+    if (gse_init() != SMART_QSO_OK) {
+        fprintf(stderr, "[SYSTEM] GSE provisioning port init failed\n");
     }
 
     /* Initialize mission data */
@@ -166,6 +210,7 @@ static SmartQsoResult_t init_system(void)
     s_last_telemetry_ms = s_program_start_ms;
     s_last_health_check_ms = s_program_start_ms;
     s_last_watchdog_reset_ms = s_program_start_ms;
+    s_last_contact_tick_ms = s_program_start_ms;
 
     return SMART_QSO_OK;
 }
@@ -421,6 +466,18 @@ static SmartQsoResult_t run_main_loop(void)
 
         /* Sensor polling */
         (void)sensors_poll(now);
+
+        /* Telecommands from the 435 MHz receiver, then key provisioning
+         * (umbilical only) */
+        (void)uplink_poll(NULL);
+        (void)gse_poll();
+
+        /* Loss-of-contact, RF-silence and deployment timers. On target these need a monotonic time base
+         * (smart_qso_now_ms() is not implemented there yet; SW-01) */
+        contact_monitor_tick((uint32_t)(now - s_last_contact_tick_ms));
+        rf_silence_tick((uint32_t)(now - s_last_contact_tick_ms));
+        deployment_tick((uint32_t)(now - s_last_contact_tick_ms));
+        s_last_contact_tick_ms = now;
 
         /* Periodic data persistence */
         if (tick % PERSISTENCE_INTERVAL_TICKS == 0) {

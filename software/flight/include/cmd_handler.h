@@ -51,7 +51,9 @@ typedef enum {
     CMD_SYS_SET_MODE    = 0x02,  /**< Set operational mode */
     CMD_SYS_GET_STATUS  = 0x03,  /**< Get system status */
     CMD_SYS_SET_TIME    = 0x04,  /**< Set mission time */
-    CMD_SYS_CLEAR_FAULTS = 0x05  /**< Clear fault log */
+    CMD_SYS_CLEAR_FAULTS = 0x05, /**< Clear fault log */
+    CMD_SYS_KEY_ROTATE  = 0x06,  /**< Activate a spare telecommand key (recovery key) */
+    CMD_SYS_SET_CONTACT_TIMEOUT = 0x07 /**< Set the loss-of-contact timeout (days) */
 } CmdSystem_t;
 
 /**
@@ -116,7 +118,7 @@ typedef enum {
  */
 typedef struct {
     uint8_t cmd_id;             /**< Command ID */
-    uint8_t sequence_num;       /**< Sequence number */
+    uint8_t sequence_num;       /**< Low byte of the authenticated counter */
     uint8_t payload_len;        /**< Payload length */
     uint8_t payload[64];        /**< Command payload */
     uint32_t timestamp_ms;      /**< Reception timestamp */
@@ -157,26 +159,34 @@ typedef struct {
  ******************************************************************************/
 
 /**
- * @brief Initialize command handler
+ * @brief Initialize command handler and load the telecommand key
  *
  * @return SMART_QSO_OK on success
  */
 SmartQsoResult_t cmd_handler_init(void);
 
 /**
- * @brief Process a received command
+ * @brief Process a received uplink frame
  *
- * @param[in] raw_data Raw command data
- * @param[in] data_len Length of raw data
+ * Frame: 0xAA 0x55 | cmd_id | len | payload (len) | sum16 (big-endian).
+ * Every command is authenticated (cmd_auth.h); the counter is persisted
+ * before execution so a replay is rejected even after a reset. The argument
+ * length must match the command dictionary. TX_DISABLE executes in every
+ * state, even if the counter cannot be persisted (47 CFR 97.207(b)).
+ *
+ * @param[in] raw_data Raw frame
+ * @param[in] data_len Length of raw frame
  * @param[out] response Command response
- * @return SMART_QSO_OK on success
+ * @return SMART_QSO_OK if the frame was processed (see response->result)
  */
 SmartQsoResult_t cmd_process(const uint8_t *raw_data,
                               size_t data_len,
                               CmdResponse_t *response);
 
 /**
- * @brief Execute a validated command
+ * @brief Execute a command that is already authenticated or generated onboard
+ *
+ * Performs no authentication: uplinked frames must enter through cmd_process.
  *
  * @param[in] cmd Command to execute
  * @param[out] response Execution response
@@ -191,22 +201,6 @@ SmartQsoResult_t cmd_execute(const Command_t *cmd, CmdResponse_t *response);
  * @return true if command is allowed
  */
 bool cmd_is_allowed(uint8_t cmd_id);
-
-/**
- * @brief Check if command requires authorization
- *
- * @param[in] cmd_id Command ID
- * @return true if authorization required
- */
-bool cmd_requires_auth(uint8_t cmd_id);
-
-/**
- * @brief Verify command authorization
- *
- * @param[in] cmd Command with auth data
- * @return true if authorized
- */
-bool cmd_verify_auth(const Command_t *cmd);
 
 /**
  * @brief Get command statistics

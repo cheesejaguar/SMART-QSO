@@ -10,7 +10,7 @@
 - Build flight (host): `cmake -S software/flight -B build && cmake --build build`.
 - Run flight tests: `ctest --test-dir build`.
 - Run payload tests: `pytest software/payload -q`.
-- Llama.cpp (payload integration): see `README.md` for CUDA/Metal examples; typical server: `./build/bin/llama-server -m /models/Llama-3.2-3B-Instruct-Q4_K_M.gguf --gpu-layers 999`.
+- Llama.cpp (payload integration): see `README.md` for CUDA/Metal examples; typical server: `./build/bin/llama-server -m /models/Llama-3.2-3B-Instruct-Q4_K_M.gguf --gpu-layers 999`. The flight model is not yet selected (decision D5 in `docs/BASELINE_PARAMETERS.md`); the 3B model is a development placeholder.
 
 ## Coding Style & Naming Conventions
 - C (flight): C11, 2 or 4 spaces consistently; files in `software/flight/src`. Types `PascalCase` for structs, functions `snake_case`, macros `UPPER_SNAKE_CASE`.

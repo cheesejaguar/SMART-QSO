@@ -1,5 +1,5 @@
 # SMART-QSO Satellite Architecture
-## Detailed Hardware and Software Specification for NASA PDR
+## Detailed Hardware and Software Specification (PDR-level)
 
 ### Executive Summary
 
@@ -611,4 +611,4 @@ SMART-QSO's success will establish new benchmarks for AI integration in small sa
 *Prepared by: [Name]*  
 *Technical Review: [Name]*  
 *Management Approval: [Name]*  
-*NASA PDR Approval: [Name]*
+*PDR approval: [Name] — no independent review held (funding audit 2026-10-14)*

@@ -19,7 +19,8 @@ from typing import Optional, Callable, Dict, Any
 from dataclasses import dataclass
 from enum import IntEnum
 import struct
-import crc
+
+from crc16 import crc16_ccitt
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -104,8 +105,6 @@ class HealthInterface:
         self._rx_errors = 0
         self._crc_errors = 0
 
-        # CRC calculator
-        self._crc = crc.Calculator(crc.Crc16.CCITT)
 
     def connect(self) -> bool:
         """
@@ -294,7 +293,7 @@ class HealthInterface:
         # Extract and verify CRC
         payload = frame[:-2]
         received_crc = struct.unpack('>H', frame[-2:])[0]
-        calculated_crc = self._crc.checksum(payload)
+        calculated_crc = crc16_ccitt(payload)
 
         if received_crc != calculated_crc:
             logger.warning(f"CRC mismatch: {received_crc:04X} != {calculated_crc:04X}")
@@ -369,7 +368,7 @@ class HealthInterface:
 
     def _build_frame(self, payload: bytes) -> bytes:
         """Build a frame with start/end markers and CRC."""
-        crc_value = self._crc.checksum(payload)
+        crc_value = crc16_ccitt(payload)
         crc_bytes = struct.pack('>H', crc_value)
 
         frame = bytes([self.FRAME_START])

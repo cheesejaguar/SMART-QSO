@@ -164,26 +164,15 @@ Bytes N-M:  AI-generated text (if ACTIVE mode)
 
 ### 6.3 Command Format
 
-```
-COMMAND FRAME FORMAT
+*(Rev 1.1: superseded.)* The command frame, authentication, replay counter and TX-OFF command are defined in SQSO-ICD-013, [`TELECOMMAND_AUTHENTICATION.md`](TELECOMMAND_AUTHENTICATION.md), which governs. In summary, each command is the information field of an AX.25 UI frame (PID 0xF0) addressed to the spacecraft:
 
-Byte 0:     Command type
-Bytes 1-2:  Sequence number
-Bytes 3-N:  Command parameters
-Bytes N-2:  CRC-16 (over bytes 0 to N-3)
+```
+0xAA 0x55 | cmd_id | len | counter (4, BE) | args (N) | tag (16) | sum16 (2, BE)
 ```
 
 ### 6.4 Command Set
 
-| Command | Type | Parameters | Description |
-|---------|------|------------|-------------|
-| GET_TLM | 0x01 | None | Request telemetry |
-| SET_MODE | 0x02 | mode (1 byte) | Set operating mode |
-| SET_BEACON | 0x03 | period (2 bytes) | Set beacon period |
-| SET_POWER | 0x04 | level (1 byte) | Set TX power |
-| GET_LOG | 0x05 | count (1 byte) | Request log entries |
-| RESET | 0x10 | key (4 bytes) | System reset |
-| UPDATE_TLE | 0x20 | TLE (69 bytes) | Update orbital elements |
+*(Rev 1.1: superseded.)* The command dictionary is SQSO-ICD-013 Section 7. It includes `TX_DISABLE` (0x32) and `TX_ENABLE` (0x31), which cease and restore emissions per 47 CFR 97.207(b). The Rev 1.0 table that stood here did not match the flight software and has been removed.
 
 ### 6.5 Response Format
 
@@ -283,10 +272,11 @@ LOS:      Loss of Signal
 
 | Measure | Implementation |
 |---------|----------------|
-| Sequence number | Prevents replay attacks |
-| CRC validation | Data integrity |
-| Rate limiting | 1 command/s max |
-| Critical cmd protection | Reset requires key |
+| Authentication | Every command carries a 128-bit HMAC-SHA-256 tag (SQSO-ICD-013 Section 4) |
+| Replay protection | Strictly increasing 32-bit counter, persisted before execution (SQSO-ICD-013 Section 5) |
+| Integrity of framing | 16-bit additive checksum (error detection only) |
+| Key | 32 bytes per spacecraft, provisioned at integration, never in the repository |
+| Rate limiting | Not implemented |
 
 ### 9.3 Operational Security
 
@@ -329,13 +319,18 @@ LOS:      Loss of Signal
 
 ### 11.2 Command Errors
 
+Result codes are `CmdResult_t` in `software/flight/include/cmd_handler.h` (SQSO-ICD-013 Section 8):
+
 | Error | Code | Action |
 |-------|------|--------|
-| Invalid command | 0x01 | NAK, log |
-| Invalid parameter | 0x02 | NAK, log |
-| Wrong mode | 0x03 | NAK, log |
-| Sequence error | 0x04 | NAK, log |
-| CRC error | 0x05 | NAK, log |
+| Invalid command (framing, unknown ID) | 0x01 | Reject; counted |
+| Invalid parameter (argument length) | 0x02 | Reject; counted |
+| Authentication failure (tag, replay, no key) | 0x03 | Reject; counted |
+| Not allowed in current state | 0x04 | Reject; counted |
+| Execution failure | 0x05 | Counted |
+| Busy | 0x06 | Retry |
+
+Only the first rejection after an accepted command is written to the fault log.
 
 ## 12. Verification Requirements
 
@@ -362,3 +357,4 @@ LOS:      Loss of Signal
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-15 | Funding audit | §6.3, §6.4, §9.2 and §11.2 aligned with the flight software; command framing moved to SQSO-ICD-013 |

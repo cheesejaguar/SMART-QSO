@@ -1,6 +1,12 @@
 # Orbital Debris Assessment Report
 ## SMART-QSO CubeSat Mission
 
+> **Funding audit notice (2026-10-14): superseded.** Replaced by `docs/regulatory/filings/ODAR_SMART-QSO.md`.
+> This revision cited NASA-STD-8719.14A and 47 CFR Part 25 instead of NASA-STD-8719.14C and 47 CFR 97.207(g); applied a
+> 25-year rule instead of the FCC 5-year rule; listed component masses summing to 0.92 kg against 1.33 kg; omitted the
+> human cross-section from the casualty calculation; and reported an STK/GMAT analysis that is not in the repository
+> (finding RG-06). Do not submit it.
+
 **Document Number:** SQSO-ODAR-001
 **Revision:** A
 **Date:** 2026-01-02

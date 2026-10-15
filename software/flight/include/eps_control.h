@@ -9,7 +9,7 @@
  * @requirement SRS-EPS-002 System shall implement power mode state machine
  * @requirement SRS-EPS-003 System shall enforce power budget limits
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #ifndef SMART_QSO_EPS_CONTROL_H

@@ -66,7 +66,7 @@ INTERFACE BLOCK DIAGRAM
 | 7 | RF_SDN | OBC→RF | Shutdown control |
 | 8 | RF_GPIO0 | RF→OBC | CTS signal |
 | 9 | RF_GPIO1 | RF→OBC | TX/RX indicator |
-| 10 | NC | - | Reserved |
+| 10 | RF_TX_EN | OBC→RF | PA load-switch enable, high = PA powered. Pull-down on the RF side, so a reset or unpowered OBC leaves the PA off. Driven by `rf_control.c` (TX-OFF, SQSO-ICD-013 §6). *Proposed 2026-10-15; confirm in the RF schematic* |
 
 ### 4.3 Cable Requirements
 

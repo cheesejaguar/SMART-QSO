@@ -9,7 +9,7 @@
  * @requirement SRS-F072 Implement sun-pointing control
  * @requirement SRS-F073 Provide attitude telemetry
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat ADCS patterns
  */
 

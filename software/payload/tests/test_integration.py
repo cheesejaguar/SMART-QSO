@@ -4,16 +4,21 @@ import sys
 from pathlib import Path
 
 
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
 def run_agent_with_input(input_text: str) -> str:
     env = os.environ.copy()
     # Force fallback path (no llama_cpp installed)
     env.setdefault("LLAMA_MODEL", "/nonexistent/model.gguf")
+    # The agent runs as a package module from the repo root, as deployed.
     p = subprocess.Popen(
         [sys.executable, "-m", "software.payload.agent"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         env=env,
+        cwd=REPO_ROOT,
         text=True,
     )
     out, err = p.communicate(input=input_text, timeout=10)

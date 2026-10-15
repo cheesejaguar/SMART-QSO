@@ -15,7 +15,10 @@
 #include <cmocka.h>
 #include <string.h>
 
-/* Module under test - include after undefining conflicting macros */
+/* Module under test - include after undefining conflicting macros.
+ * smart_qso.h must be included first (as in assert_handler.c) so its
+ * include guard stops it redefining the legacy macros below. */
+#include "smart_qso.h"
 #undef SMART_QSO_REQUIRE
 #undef SMART_QSO_ENSURE
 #undef SMART_QSO_REQUIRE_NOT_NULL

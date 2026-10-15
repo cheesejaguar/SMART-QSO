@@ -2,17 +2,19 @@
  * @file beacon.c
  * @brief SMART-QSO Beacon Generation Module Implementation
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #include "beacon.h"
 #include "eps_control.h"
 #include "mission_data.h"
 #include "fault_mgmt.h"
+#include "rf_control.h"
+#include "ax25.h"
+#include "station_id.h"
 
 #include <stdio.h>
 #include <string.h>
-#include <ctype.h>
 
 /*===========================================================================*/
 /* Module State                                                               */
@@ -48,28 +50,6 @@ const size_t beacon_template_count = sizeof(beacon_templates) / sizeof(beacon_te
 /* Helper Functions                                                           */
 /*===========================================================================*/
 
-/**
- * @brief Encode callsign for AX.25 address field
- */
-static void encode_ax25_address(const char *callsign, uint8_t ssid,
-                                 uint8_t *output, bool is_last)
-{
-    size_t len = strlen(callsign);
-    size_t i;
-
-    /* Pad with spaces and shift left by 1 */
-    for (i = 0; i < 6; i++) {
-        if (i < len) {
-            output[i] = (uint8_t)(toupper((unsigned char)callsign[i]) << 1);
-        } else {
-            output[i] = ' ' << 1;
-        }
-    }
-
-    /* SSID byte: bits 1-4 = SSID, bit 0 = end flag, bits 5-6 = reserved (11) */
-    output[6] = (uint8_t)(0x60 | ((ssid & 0x0F) << 1) | (is_last ? 0x01 : 0x00));
-}
-
 /*===========================================================================*/
 /* Beacon Functions                                                           */
 /*===========================================================================*/
@@ -89,7 +69,7 @@ SmartQsoResult_t beacon_init(void)
 
 bool beacon_should_transmit(uint64_t now_ms)
 {
-    if (!s_initialized) {
+    if (!s_initialized || !rf_control_tx_permitted()) {
         return false;
     }
 
@@ -189,28 +169,49 @@ SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
     return SMART_QSO_OK;
 }
 
+/**
+ * Longest the fixed fields can be: "de " CALL ": " then " | T=" (uint32),
+ * " M=" (ACTIVE), " SOC=" (uint8), " BV=" (65.5), " SUN=" (uint8),
+ * " RF=" (uint8), " QSO=" (uint16). The text gets whatever space is left, so
+ * the information field always fits and the telemetry is never cut.
+ */
+#define BEACON_FIXED_MAX_LEN    (3U + (sizeof(BEACON_CALLSIGN) - 1U) + 2U + \
+                                 5U + 10U + 3U + 6U + 5U + 3U + 4U + 4U + \
+                                 5U + 3U + 4U + 3U + 5U + 5U)
+
 size_t beacon_format_payload(const BeaconContent_t *content,
                              char *buffer,
                              size_t buffer_len)
 {
-    if (content == NULL || buffer == NULL || buffer_len == 0) {
+    if ((content == NULL) || (buffer == NULL) || (buffer_len < (BEACON_FIXED_MAX_LEN + 1U))) {
         return 0;
     }
 
+    /* Cut the text, never the telemetry */
+    size_t room = buffer_len - BEACON_FIXED_MAX_LEN - 1U;
+    const char *nul = (const char *)memchr(content->text, '\0', sizeof(content->text));
+    size_t text_len = (nul != NULL) ? (size_t)(nul - content->text) : sizeof(content->text);
+    if (text_len > room) {
+        text_len = room;
+    }
+
+    /* Battery volts to one decimal, rounded, in integer arithmetic */
+    uint32_t tenths = ((uint32_t)content->telemetry.battery_mv + 50U) / 100U;
+
     int written = snprintf(buffer, buffer_len,
-        "de %s: %s | T=%u M=%s SOC=%u BV=%.1f SUN=%u RF=%u QSO=%u",
+        "de %s: %.*s | T=%u M=%s SOC=%u BV=%u.%u SUN=%u RF=%u QSO=%u",
         BEACON_CALLSIGN,
-        content->text,
-        content->telemetry.timestamp,
+        (int)text_len, content->text,
+        (unsigned int)content->telemetry.timestamp,
         content->telemetry.power_mode == 0 ? "SAFE" :
             (content->telemetry.power_mode == 1 ? "IDLE" : "ACTIVE"),
-        content->telemetry.soc,
-        content->telemetry.battery_mv / 1000.0,
-        content->telemetry.sunlit,
-        content->telemetry.rf_power,
-        content->telemetry.qso_count);
+        (unsigned int)content->telemetry.soc,
+        (unsigned int)(tenths / 10U), (unsigned int)(tenths % 10U),
+        (unsigned int)content->telemetry.sunlit,
+        (unsigned int)content->telemetry.rf_power,
+        (unsigned int)content->telemetry.qso_count);
 
-    if (written < 0 || (size_t)written >= buffer_len) {
+    if ((written < 0) || ((size_t)written >= buffer_len)) {
         return 0;
     }
 
@@ -227,10 +228,10 @@ SmartQsoResult_t beacon_build_ax25_frame(const BeaconContent_t *content,
     memset(frame, 0, sizeof(Ax25Frame_t));
 
     /* Encode destination address (CQ broadcast) */
-    encode_ax25_address("CQ", 0, frame->dest_addr, false);
+    ax25_encode_address("CQ", 0U, frame->dest_addr, false);
 
     /* Encode source address */
-    encode_ax25_address(BEACON_CALLSIGN, 1, frame->src_addr, true);
+    ax25_encode_address(SQSO_CALLSIGN, SQSO_SSID, frame->src_addr, true);
 
     /* Control and PID */
     frame->ctrl = AX25_CTRL_UI;
@@ -318,6 +319,11 @@ SmartQsoResult_t beacon_transmit(const BeaconContent_t *content)
 {
     if (content == NULL) {
         return SMART_QSO_ERROR_NULL_PTR;
+    }
+
+    /* Never radiate while TX-OFF is latched (47 CFR 97.207(b)) */
+    if (!rf_control_tx_permitted()) {
+        return SMART_QSO_ERROR;
     }
 
     /* Build AX.25 frame */
@@ -423,20 +429,7 @@ const char *beacon_get_template(void)
 
 uint16_t beacon_crc16(const uint8_t *data, size_t len)
 {
-    uint16_t crc = CRC16_INIT;
-
-    for (size_t i = 0; i < len; i++) {
-        crc ^= data[i];
-        for (int j = 0; j < 8; j++) {
-            if (crc & 0x0001) {
-                crc = (crc >> 1) ^ CRC16_POLY;
-            } else {
-                crc >>= 1;
-            }
-        }
-    }
-
-    return crc ^ 0xFFFF;
+    return ax25_fcs(data, len);
 }
 
 bool beacon_validate_text(const char *text, size_t len)

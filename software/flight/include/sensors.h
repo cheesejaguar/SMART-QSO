@@ -9,7 +9,7 @@
  * @requirement SRS-SENS-002 System shall poll sensors at configurable intervals
  * @requirement SRS-SENS-003 System shall validate sensor readings
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #ifndef SMART_QSO_SENSORS_H

@@ -182,8 +182,8 @@ static void test_sys_set_temperature(void **state)
     ThermalState_t thermal;
     ret = sys_get_thermal_state(&thermal);
     assert_int_equal(ret, SMART_QSO_OK);
-    assert_true(fabs(thermal.obc_temp_c - 35.0f) < 0.1f);
-    assert_true(fabs(thermal.eps_temp_c - 28.0f) < 0.1f);
+    assert_true(fabsf(thermal.obc_temp_c - 35.0f) < 0.1f);
+    assert_true(fabsf(thermal.eps_temp_c - 28.0f) < 0.1f);
 }
 
 /**
@@ -225,9 +225,9 @@ static void test_sys_set_magnetometer(void **state)
     AdcsState_t adcs;
     ret = sys_get_adcs_state(&adcs);
     assert_int_equal(ret, SMART_QSO_OK);
-    assert_true(fabs(adcs.mag_x_ut - 10.5f) < 0.1f);
-    assert_true(fabs(adcs.mag_y_ut - (-20.3f)) < 0.1f);
-    assert_true(fabs(adcs.mag_z_ut - 5.1f) < 0.1f);
+    assert_true(fabsf(adcs.mag_x_ut - 10.5f) < 0.1f);
+    assert_true(fabsf(adcs.mag_y_ut - (-20.3f)) < 0.1f);
+    assert_true(fabsf(adcs.mag_z_ut - 5.1f) < 0.1f);
 }
 
 /**
@@ -243,9 +243,9 @@ static void test_sys_set_gyroscope(void **state)
     AdcsState_t adcs;
     ret = sys_get_adcs_state(&adcs);
     assert_int_equal(ret, SMART_QSO_OK);
-    assert_true(fabs(adcs.gyro_x_dps - 1.0f) < 0.1f);
-    assert_true(fabs(adcs.gyro_y_dps - 2.0f) < 0.1f);
-    assert_true(fabs(adcs.gyro_z_dps - 3.0f) < 0.1f);
+    assert_true(fabsf(adcs.gyro_x_dps - 1.0f) < 0.1f);
+    assert_true(fabsf(adcs.gyro_y_dps - 2.0f) < 0.1f);
+    assert_true(fabsf(adcs.gyro_z_dps - 3.0f) < 0.1f);
 }
 
 /**

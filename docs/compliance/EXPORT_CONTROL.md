@@ -1,6 +1,11 @@
 # Export Control Assessment
 ## SMART-QSO CubeSat Mission
 
+> **Funding audit notice (2026-10-14): classifications superseded.**
+> This assessment's EAR99 classification of the spacecraft and the Jetson module, and its NASA Ames points of contact,
+> are withdrawn. See `docs/regulatory/filings/EXPORT_CLASSIFICATION_MEMO.md` (spacecraft ECCN 9A515.a.5, Jetson
+> 5A992.c, launch-integration services subject to the ITAR). The certification below was never signed.
+
 **Document Number:** SQSO-COMP-004
 **Revision:** A
 **Date:** 2026-01-02

@@ -266,7 +266,9 @@ static void test_stats_level_counts(void **state)
     LogStats_t stats;
     log_get_stats(&stats);
 
-    assert_int_equal(stats.trace_count, 1);
+    /* TRACE is below the compile-time minimum (LOG_MIN_LEVEL defaults to
+     * DEBUG in flight_log.h), so it is filtered even at runtime level TRACE */
+    assert_int_equal(stats.trace_count, 0);
     assert_int_equal(stats.debug_count, 2);
     assert_int_equal(stats.info_count, 3);
     assert_int_equal(stats.warning_count, 1);
@@ -282,8 +284,8 @@ static void test_buffer_wraps(void **state)
     (void)state;
 
     /* Fill the buffer beyond capacity */
-    for (int i = 0; i < LOG_BUFFER_SIZE + 10; i++) {
-        log_write(LOG_LEVEL_INFO, "TEST", "Message %d", i);
+    for (uint32_t i = 0U; i < (uint32_t)LOG_BUFFER_SIZE + 10U; i++) {
+        log_write(LOG_LEVEL_INFO, "TEST", "Message %u", (unsigned int)i);
     }
 
     /* Should still have LOG_BUFFER_SIZE entries */

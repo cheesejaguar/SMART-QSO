@@ -8,7 +8,7 @@
  * @requirement SRS-001 System shall provide modular flight software architecture
  * @requirement SRS-002 System shall comply with JPL Power of Ten coding rules
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat design patterns
  */
 

@@ -1,5 +1,11 @@
 # Radio Frequency (RF) Subsystem Design Document
 
+> **Funding audit notice (2026-10-14): architecture superseded.** This document's "beacon-only, no uplink command
+> capability" architecture cannot be authorized. 47 CFR 97.207(b) and ITU RR 22.1 require that transmissions can be
+> stopped by telecommand. The baseline adds a 435–438 MHz receiver, authenticated telecommand, a hardware TX-OFF path
+> and a duty-gated FM transponder (`docs/RF_PLAN.md`, `docs/BASELINE_PARAMETERS.md` §7). The 145.825 MHz frequency
+> (ARISS/APRS packet) and the link margins here are also superseded (findings RG-01, RG-09, TB-05).
+
 **Document Number**: SMART-QSO-RF-001
 **Version**: 1.0
 **Date**: 2026-01-02
@@ -215,7 +221,7 @@ SMART-QSO implements a **beacon-only RF architecture**:
 ```
 
 **Deployment Sequence**:
-1. Separation detection (30-min timer or accelerometer)
+1. Separation detection; deployables wait ≥ 30 min (CDS §2.4.4). No RF signal before 45 min (CDS §2.4.5, SYS-224), enforced by `rf_silence.c`
 2. Burn-wire activation (2A, 3s pulse)
 3. Spring-loaded tape uncoils
 4. Deployment confirmation via status GPIO

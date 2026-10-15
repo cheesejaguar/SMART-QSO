@@ -32,18 +32,6 @@ extern "C" {
 #define VALIDATION_ERR_CHECKSUM     6U
 #define VALIDATION_ERR_PAYLOAD      7U
 
-/** Command IDs */
-#define CMD_ID_NOP              0x00U
-#define CMD_ID_SET_MODE         0x01U
-#define CMD_ID_SET_POWER        0x02U
-#define CMD_ID_SET_BEACON       0x03U
-#define CMD_ID_DEPLOY           0x10U
-#define CMD_ID_RESET            0xFFU
-#define CMD_ID_MAX              0xFFU
-
-/** Authorization codes */
-#define DEPLOY_AUTH_CODE        0xDEADBEEFU
-
 /*******************************************************************************
  * Public Types
  ******************************************************************************/
@@ -82,20 +70,6 @@ typedef struct {
 SmartQsoResult_t input_validate_command(const uint8_t *cmd_data,
                                         size_t cmd_length,
                                         CommandValidation_t *result);
-
-/**
- * @brief Validate command payload for specific command
- *
- * @param[in] cmd_id Command ID
- * @param[in] payload Payload data
- * @param[in] payload_length Payload length
- * @param[out] is_valid True if payload is valid
- * @return RESULT_OK on success
- */
-SmartQsoResult_t input_validate_command_payload(uint8_t cmd_id,
-                                                 const uint8_t *payload,
-                                                 size_t payload_length,
-                                                 bool *is_valid);
 
 /**
  * @brief Validate voltage reading

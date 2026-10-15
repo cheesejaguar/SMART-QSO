@@ -1,5 +1,11 @@
 # SMART-QSO Verification and Validation Package
 
+> **Funding audit notice (2026-10-14): status claims not substantiated.**
+> Test counts, coverage, verification percentages and completion statements in this document were not
+> reproduced by the funding audit (measured: 14 registered unit-test suites, 44.5 % line coverage of the
+> flight sources after the audit's fixes; no hardware exists). See
+> `docs/funding_audit/FINDINGS_REGISTER.md` for the measured values.
+
 **Document ID**: SQSO-VVP-001
 **Version**: 1.0
 **Date**: 2026-01-02

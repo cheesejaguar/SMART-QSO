@@ -14,7 +14,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # Find cmocka package
 find_package(PkgConfig)
 if(PkgConfig_FOUND)
-    pkg_check_modules(CMOCKA cmocka)
+    pkg_check_modules(CMOCKA IMPORTED_TARGET cmocka)
 endif()
 
 if(NOT CMOCKA_FOUND)
@@ -64,7 +64,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_crc32.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_crc32 ${CMOCKA_LIBRARIES})
+    target_link_libraries(test_crc32 PkgConfig::CMOCKA)
     target_compile_options(test_crc32 PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME CRC32_Tests COMMAND test_crc32)
     set_tests_properties(CRC32_Tests PROPERTIES
@@ -84,7 +84,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_eps_control.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
     )
-    target_link_libraries(test_eps_control ${CMOCKA_LIBRARIES})
+    target_link_libraries(test_eps_control PkgConfig::CMOCKA)
     target_compile_options(test_eps_control PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME EPS_Control_Tests COMMAND test_eps_control)
     set_tests_properties(EPS_Control_Tests PROPERTIES
@@ -104,7 +104,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_fault_mgmt.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_fault_mgmt ${CMOCKA_LIBRARIES})
+    target_link_libraries(test_fault_mgmt PkgConfig::CMOCKA)
     target_compile_options(test_fault_mgmt PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME Fault_Mgmt_Tests COMMAND test_fault_mgmt)
     set_tests_properties(Fault_Mgmt_Tests PROPERTIES
@@ -125,7 +125,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_sensors.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_sensors ${CMOCKA_LIBRARIES} m)
+    target_link_libraries(test_sensors PkgConfig::CMOCKA m)
     target_compile_options(test_sensors PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME Sensor_Tests COMMAND test_sensors)
     set_tests_properties(Sensor_Tests PROPERTIES
@@ -144,7 +144,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_mission_data.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_mission_data ${CMOCKA_LIBRARIES})
+    target_link_libraries(test_mission_data PkgConfig::CMOCKA)
     target_compile_options(test_mission_data PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME Mission_Data_Tests COMMAND test_mission_data)
     set_tests_properties(Mission_Data_Tests PROPERTIES
@@ -165,7 +165,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_uart_comm.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_uart_comm ${CMOCKA_LIBRARIES})
+    target_link_libraries(test_uart_comm PkgConfig::CMOCKA)
     target_compile_options(test_uart_comm PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME UART_Comm_Tests COMMAND test_uart_comm)
     set_tests_properties(UART_Comm_Tests PROPERTIES
@@ -173,6 +173,95 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_uart_comm.c")
         LABELS "unit;uart"
     )
 endif()
+
+#===========================================================================
+# Shared flight library for module tests
+#
+# Tests below link against all flight sources except the executive
+# (main.c) and the two units that do not yet compile (system_init.c,
+# yaml_parser.c - see docs/funding_audit/FINDINGS_REGISTER.md). The
+# static library only pulls in the objects each test needs.
+#===========================================================================
+set(FLIGHT_LIB_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/adcs_control.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/assert_handler.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_auth.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_handler.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_dictionary.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/gse_provision.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/ax25.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/uplink.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/contact_monitor.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_silence.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/separation_switch.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/input_validation.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nvm_record.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_control.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/safe_string.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/scheduler.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/sha256.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/state_machine.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/system_state.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/telemetry.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/watchdog_mgr.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/hal/hal_sim.c
+)
+add_library(flight_test_lib STATIC ${FLIGHT_LIB_SOURCES})
+target_compile_options(flight_test_lib PRIVATE ${TEST_COMPILE_OPTIONS})
+
+# Module tests: name, label
+set(MODULE_TESTS
+    "test_assert_handler\;assert"
+    "test_deployment\;deployment"
+    "test_flight_log\;log"
+    "test_input_validation\;validation"
+    "test_safe_string\;string"
+    "test_state_machine\;state"
+    "test_system_state\;state"
+    "test_watchdog_mgr\;watchdog"
+    "test_sha256\;security"
+    "test_nvm_record\;nvm"
+    "test_rf_control\;rf"
+    "test_cmd_auth\;security"
+    "test_cmd_handler\;command"
+    "test_gse_provision\;security"
+    "test_ax25\;rf"
+    "test_uplink\;rf"
+    "test_contact_monitor\;rf"
+    "test_rf_silence\;rf"
+    "test_beacon_format\;rf"
+)
+foreach(entry ${MODULE_TESTS})
+    list(GET entry 0 test_name)
+    list(GET entry 1 test_label)
+    add_executable(${test_name} ${test_name}.c)
+    target_link_libraries(${test_name} flight_test_lib PkgConfig::CMOCKA m)
+    target_compile_options(${test_name} PRIVATE ${TEST_COMPILE_OPTIONS})
+    add_test(NAME ${test_name} COMMAND ${test_name})
+    set_tests_properties(${test_name} PROPERTIES
+        TIMEOUT 120
+        LABELS "unit;${test_label}"
+    )
+endforeach()
+
+#===========================================================================
+# Not registered (tracked in docs/funding_audit/FINDINGS_REGISTER.md):
+#   - test_adcs, test_beacon, test_scheduler, test_system_init,
+#     test_telemetry, test_telemetry_flow: written for Unity, which is not
+#     vendored; port to CMocka
+#   - integration/*, regression/*: reference APIs that no longer exist
+#   - test_main_simple.c: tests local copies of structs, not flight code
+#===========================================================================
 
 #===========================================================================
 # Test: Legacy Main Tests (DISABLED - superseded by proper module tests)
@@ -183,7 +272,7 @@ endif()
 #     add_executable(test_main_legacy
 #         test_main.c
 #     )
-#     target_link_libraries(test_main_legacy ${CMOCKA_LIBRARIES})
+#     target_link_libraries(test_main_legacy PkgConfig::CMOCKA)
 #     target_compile_options(test_main_legacy PRIVATE ${TEST_COMPILE_OPTIONS})
 #     add_test(NAME Legacy_Tests COMMAND test_main_legacy)
 #     set_tests_properties(Legacy_Tests PROPERTIES
@@ -191,6 +280,17 @@ endif()
 #         LABELS "unit;legacy"
 #     )
 # endif()
+
+#===========================================================================
+# Test isolation
+#===========================================================================
+# The simulated fault log persists to a file. Give every test its own file so
+# parallel ctest runs (ci.yml uses --parallel) cannot interfere.
+get_property(_sqso_tests DIRECTORY PROPERTY TESTS)
+foreach(_sqso_test IN LISTS _sqso_tests)
+    set_property(TEST ${_sqso_test} APPEND PROPERTY ENVIRONMENT
+        "SMART_QSO_FAULT_LOG=${CMAKE_CURRENT_BINARY_DIR}/fault_log_${_sqso_test}.dat")
+endforeach()
 
 #===========================================================================
 # Coverage Target

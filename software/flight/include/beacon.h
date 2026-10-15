@@ -9,7 +9,7 @@
  * @requirement SRS-F022 Support AI-generated beacon text
  * @requirement SRS-F023 Fallback to template text if AI unavailable
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat beacon patterns
  */
 
@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 #include "smart_qso.h"
+#include "ax25.h"
 
 /*===========================================================================*/
 /* Beacon Configuration Constants                                             */
@@ -33,7 +34,7 @@ extern "C" {
 #define BEACON_MAX_PAYLOAD_LEN   256
 
 /** Callsign for beacon identification */
-#define BEACON_CALLSIGN          "SQSO-1"
+#define BEACON_CALLSIGN          "SQSO-1"   /* text form of station_id.h */
 
 /** Default beacon interval in ACTIVE mode (ms) */
 #define BEACON_INTERVAL_ACTIVE_MS   30000
@@ -44,16 +45,7 @@ extern "C" {
 /** Default beacon interval in SAFE mode (ms) */
 #define BEACON_INTERVAL_SAFE_MS     180000
 
-/** AX.25 frame constants */
-#define AX25_FLAG               0x7E
-#define AX25_CTRL_UI            0x03
-#define AX25_PID_NO_L3          0xF0
-#define AX25_ADDR_LEN           7
-#define AX25_MAX_FRAME_LEN      330
-
-/** CRC-16 CCITT constants */
-#define CRC16_INIT              0xFFFF
-#define CRC16_POLY              0x8408
+/** AX.25 constants: ax25.h */
 
 /*===========================================================================*/
 /* Beacon Types                                                               */
@@ -148,7 +140,7 @@ SmartQsoResult_t beacon_init(void);
  * @brief Check if beacon should be transmitted
  *
  * @param now_ms Current time in milliseconds
- * @return true if beacon should be transmitted
+ * @return true if the interval has elapsed and rf_control permits transmission
  */
 bool beacon_should_transmit(uint64_t now_ms);
 
@@ -209,7 +201,8 @@ size_t beacon_serialize_ax25(const Ax25Frame_t *frame,
  * @brief Transmit beacon
  *
  * @param content Beacon content to transmit
- * @return SMART_QSO_OK on success
+ * @return SMART_QSO_OK on success; SMART_QSO_ERROR if transmission is not
+ *         permitted (rf_control: TX-OFF latched or not yet initialized)
  */
 SmartQsoResult_t beacon_transmit(const BeaconContent_t *content);
 

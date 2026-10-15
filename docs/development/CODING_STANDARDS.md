@@ -243,7 +243,7 @@ fault_mgmt.h
 /**
  * @file module_name.h
  * @brief Brief description of module
- * @copyright NASA Ames Research Center
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #ifndef SMART_QSO_MODULE_NAME_H

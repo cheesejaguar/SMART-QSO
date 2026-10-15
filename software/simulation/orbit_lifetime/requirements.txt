@@ -1,0 +1,4 @@
+# Orbital lifetime estimator dependencies
+numpy>=1.26
+pymsis>=0.10
+pytest>=8.0

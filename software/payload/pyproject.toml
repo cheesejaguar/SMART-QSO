@@ -26,12 +26,18 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
+# Runtime imports only: serial (health_interface), psutil (supervisor).
+# llama-cpp-python is installed on the Jetson by ansible/deploy_payload.yml;
+# without it llama_runner falls back to template beacons.
 dependencies = [
-    "numpy>=1.21.0",
-    "torch>=2.0.0",
+    "pyserial>=3.5",
+    "psutil>=5.9",
 ]
 
 [project.optional-dependencies]
+llm = [
+    "llama-cpp-python",
+]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",

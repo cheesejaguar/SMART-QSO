@@ -115,12 +115,23 @@ set(FLIGHT_SOURCES
     src/safe_string.c
     src/state_machine.c
     src/system_state.c
+    src/cmd_auth.c
     src/cmd_handler.c
+    src/cmd_dictionary.c
+    src/gse_provision.c
+    src/ax25.c
+    src/uplink.c
+    src/contact_monitor.c
+    src/rf_silence.c
+    src/separation_switch.c
     src/telemetry.c
     src/assert_handler.c
     src/watchdog_mgr.c
     src/flight_log.c
     src/deployment.c
+    src/sha256.c
+    src/nvm_record.c
+    src/rf_control.c
     src/hal/hal_sim.c
 )
 

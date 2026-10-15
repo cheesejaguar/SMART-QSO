@@ -1,206 +1,64 @@
-# Spectrum Authorization Documentation
+# Spectrum Authorization Status
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-002
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-14
 
 ---
 
 ## 1. Purpose
 
-This document summarizes the spectrum authorization requirements and status for the SMART-QSO CubeSat mission, covering both amateur and government frequency usage.
+This document records SMART-QSO's spectrum authorization approach and the **actual** status of each authorization.
+Rev A (2026-01-02) contained statements that were not true and has been withdrawn (see §6).
 
-## 2. Frequency Summary
+## 2. Authorization Regime
 
-### 2.1 Frequency Allocations
+SMART-QSO is a non-Federal **amateur space station under FCC Part 97**. The determination and its conditions are in
+[LICENSING_PATHWAY_DETERMINATION.md](LICENSING_PATHWAY_DETERMINATION.md). There is no Federal (NTIA) frequency use and no
+Federal sponsor.
 
-| Use | Frequency | Band | Allocation | Authorization |
-|-----|-----------|------|------------|---------------|
-| Beacon Downlink | 145.825 MHz | VHF | Amateur Satellite | FCC Part 97 |
-| Backup Downlink | 145.900 MHz | VHF | Amateur Satellite | FCC Part 97 |
-| TT&C Uplink | 449.x MHz | UHF | Government | NTIA |
-| TT&C Downlink | 401.x MHz | UHF | Government | NTIA |
+## 3. Frequency Plan (amateur bands only)
 
-### 2.2 Power and Bandwidth
+| Function | Band | Frequency | Emission | Authority |
+|----------|------|-----------|----------|-----------|
+| FM transponder downlink + AX.25 telemetry beacon | 144–146 MHz (IARU satellite sub-band 145.800–146.000 MHz) | To be coordinated by IARU. **Not 145.825 MHz** (ARISS/APRS packet) | 16K0F3E / 10K4F2D | 47 CFR 97.207(c)(2) |
+| FM transponder uplink + authenticated telecommand | 435–438 MHz | To be coordinated by IARU | 16K0F3E / 10K4F2D | 47 CFR 97.207(c)(2), 97.209(b)(2), 97.211(c)(2) |
 
-| Frequency | Power (EIRP) | Bandwidth | Modulation |
-|-----------|--------------|-----------|------------|
-| 145.825 MHz | 27 dBm | 15 kHz | FM/AFSK |
-| 449.x MHz | 30 dBm | 25 kHz | FSK |
-| 401.x MHz | 30 dBm | 25 kHz | FSK |
+Technical data: [ITU_APPENDIX4_DATA.md](filings/ITU_APPENDIX4_DATA.md). Baseline values: [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md).
 
-## 3. Amateur Radio Authorization
+## 4. Authorization Status (as of 2026-10-14)
 
-### 3.1 FCC Part 97 Requirements
+| Authorization | Status | Draft / reference |
+|---------------|--------|-------------------|
+| Space station licensee and call sign | **Not designated** (decision D1) | Pathway determination §8 |
+| IARU frequency coordination | **Not started** | [IARU_COORDINATION_REQUEST_v40.md](filings/IARU_COORDINATION_REQUEST_v40.md) |
+| FCC Part 97 pre-space notification (97.207(g)(1)) | **Not filed** | [FCC_97-207_PRE_SPACE_NOTIFICATION.md](filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md) |
+| ITU API / notification (filed by the FCC) | **Not filed** | [ITU_APPENDIX4_DATA.md](filings/ITU_APPENDIX4_DATA.md) |
+| Orbital debris assessment (DAS) | **Draft; DAS not yet run** | [ODAR_SMART-QSO.md](filings/ODAR_SMART-QSO.md) |
+| NOAA remote sensing | **No license required** (internal determination); NOAA confirmation not requested | [NOAA determination](filings/NOAA_REMOTE_SENSING_DETERMINATION.md) |
+| Export classification | **Self-classified, counsel review pending** | [Export memo](filings/EXPORT_CLASSIFICATION_MEMO.md) |
+| NTIA / NASA Form 1722 / DoD / NOAA spectrum coordination | **Not applicable** (no Federal frequencies) | — |
 
-| Requirement | Compliance |
-|-------------|------------|
-| Licensed operator | Required for all transmissions |
-| Callsign identification | Every 10 minutes and at end |
-| No encryption | All transmissions in clear |
-| Non-pecuniary interest | NASA research mission |
-| Technical standards | Per §97.307 |
+Timeline and deadlines: [REGULATORY_ROADMAP.md](REGULATORY_ROADMAP.md).
 
-### 3.2 Coordination Status
+## 5. RF Exposure
 
-| Organization | Status | Date |
-|--------------|--------|------|
-| IARU Region 2 | Application submitted | TBD |
-| AMSAT-NA | Coordination requested | TBD |
-| FCC | License pending | TBD |
+At ≤ 1 W into a ~0 dBi antenna from ≥ 400 km, the power density at the ground is many orders of magnitude below the
+FCC limits in 47 CFR 1.1310. Ground-test RF safety is covered by `docs/test_procedures/TP-RF-002_Conducted_Power.md`
+(conducted into a dummy load).
 
-### 3.3 Callsign
+## 6. Withdrawn Rev A Statements
 
-| Item | Value |
-|------|-------|
-| Requested Callsign | TBD |
-| Backup Callsign | TBD |
-| SSID | -1 (satellite) |
-
-## 4. Government Frequency Authorization
-
-### 4.1 NTIA Process
-
-| Step | Description | Status |
-|------|-------------|--------|
-| 1 | Agency frequency request | In progress |
-| 2 | NTIA SPS certification | Pending |
-| 3 | Frequency assignment | Pending |
-| 4 | ITU filing | Pending |
-
-### 4.2 NASA Frequency Management
-
-| Document | Status |
-|----------|--------|
-| NASA Form 1722 | Submitted |
-| RF Safety Analysis | Complete |
-| EMC Analysis | Complete |
-| Spectrum Support | Requested |
-
-## 5. ITU Filing Requirements
-
-### 5.1 API/CR Filing
-
-| Item | Value |
-|------|-------|
-| Administration | USA |
-| Network Name | SMART-QSO |
-| Filing Type | Non-GSO satellite |
-| Service | Amateur-satellite |
-
-### 5.2 Orbital Parameters for Filing
-
-| Parameter | Value |
-|-----------|-------|
-| Apogee | 500 km |
-| Perigee | 500 km |
-| Inclination | 51.6° |
-| Period | 94.5 min |
-| Number of satellites | 1 |
-
-## 6. Interference Analysis
-
-### 6.1 Amateur Band Analysis
-
-| Potential Interference | Mitigation |
-|-----------------------|------------|
-| Terrestrial repeaters | Low power, high altitude |
-| Other amateur satellites | Time/frequency coordination |
-| ISS amateur radio | Different frequencies |
-
-### 6.2 Government Band Analysis
-
-| Analysis | Result |
-|----------|--------|
-| SPS analysis | No interference predicted |
-| Coordination with DoD | Complete |
-| Coordination with NOAA | Complete |
-
-## 7. RF Safety
-
-### 7.1 Exposure Analysis
-
-| Scenario | Power Density | Limit | Compliant |
-|---------|---------------|-------|-----------|
-| Ground (nadir) | < 0.001 mW/cm² | 0.2 mW/cm² | Yes |
-| ISS proximity | < 0.01 mW/cm² | 0.2 mW/cm² | Yes |
-| Aircraft | < 0.0001 mW/cm² | 0.2 mW/cm² | Yes |
-
-### 7.2 Spacecraft RF Safety
-
-| Consideration | Mitigation |
-|---------------|------------|
-| On-orbit RF hazard | Antenna pattern, power limits |
-| Ground testing | Proper shielding, anechoic chamber |
-| Integration | TX disabled during handling |
-
-## 8. Export Control
-
-### 8.1 ITAR/EAR Assessment
-
-| Component | Classification | Export License |
-|-----------|----------------|----------------|
-| RF transmitter | EAR99 | NLR |
-| Software | EAR99 | NLR |
-| Frequency plan | Not controlled | N/A |
-
-### 8.2 Technology Transfer
-
-| Item | Restriction |
-|------|-------------|
-| Frequency assignments | Public after launch |
-| RF design details | NASA public release |
-| Ground station locations | Public information |
-
-## 9. Regulatory Compliance Checklist
-
-### 9.1 Pre-Launch Requirements
-
-- [ ] IARU coordination complete
-- [ ] FCC Part 97 license granted
-- [ ] NTIA frequency assignment
-- [ ] ITU API filed
-- [ ] RF safety analysis approved
-- [ ] Export control review complete
-
-### 9.2 Post-Launch Requirements
-
-- [ ] ITU notification filed (within 30 days)
-- [ ] FCC notification of operation
-- [ ] NORAD TLE published
-- [ ] Amateur callsign announced
-
-## 10. Points of Contact
-
-### 10.1 Regulatory Contacts
-
-| Role | Organization | Contact |
-|------|--------------|---------|
-| NASA Spectrum Manager | NASA HQ | spectrum@nasa.gov |
-| FCC Liaison | FCC | [contact] |
-| IARU Coordinator | AMSAT-NA | [contact] |
-
-### 10.2 Project Contacts
-
-| Role | Name | Email |
-|------|------|-------|
-| Project Manager | TBD | TBD |
-| RF Engineer | TBD | TBD |
-| Licensing Lead | TBD | TBD |
-
-## 11. Schedule
-
-| Milestone | Target Date | Status |
-|-----------|-------------|--------|
-| IARU application | L-18 months | TBD |
-| IARU coordination | L-12 months | TBD |
-| FCC application | L-12 months | TBD |
-| FCC license | L-6 months | TBD |
-| NTIA assignment | L-6 months | TBD |
-| ITU API | L-3 months | TBD |
-| Launch | L-0 | TBD |
-| ITU notification | L+30 days | TBD |
+| Rev A statement | Why withdrawn |
+|-----------------|---------------|
+| TT&C uplink "449.x MHz" and downlink "401.x MHz" (Government, NTIA) | A non-Federal Part 97 station cannot hold Federal assignments, and no Federal sponsor exists. Replaced by amateur telecommand (97.211). |
+| "NASA Form 1722 – Submitted"; "Coordination with DoD – Complete"; "Coordination with NOAA – Complete"; "SPS analysis – No interference predicted" | No evidence that any of these occurred. NASA Form 1722 is a NASA-internal spectrum form. |
+| "IARU Region 2 – Application submitted"; "AMSAT-NA – Coordination requested"; "FCC – License pending" | Nothing was submitted. IARU coordination is done by the IARU Satellite Advisor (satcoord@iaru.org), not by region. |
+| "Non-pecuniary interest: NASA research mission" | The project is not a NASA mission. A NASA research mission would not qualify as an amateur operation. |
+| "Callsign identification every 10 minutes" as a Part 97 requirement | Space stations are exempt from 97.119(a). SMART-QSO identifies anyway, as good practice. |
+| Orbit "500 km, 51.6°" for the ITU filing | Superseded by the baseline orbit from the launch trade. |
+| Export classification "EAR99" | Superseded by the export memo (ECCN 9A515.a.5). |
 
 ---
 
@@ -208,4 +66,5 @@ This document summarizes the spectrum authorization requirements and status for 
 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
-| A | 2026-01-02 | Initial release | SMART-QSO Team |
+| A | 2026-01-02 | Initial release (withdrawn) | SMART-QSO Team |
+| B | 2026-10-14 | Rewritten after funding audit: amateur-only frequency plan, actual status, withdrawn claims listed | Funding audit |

@@ -10,6 +10,7 @@
 #include "fault_mgmt.h"
 #include "eps_control.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /*===========================================================================*/
@@ -45,6 +46,13 @@ static uint32_t fault_entry_crc(const FaultLogEntry_t *entry)
 /*===========================================================================*/
 /* Public API Implementation                                                  */
 /*===========================================================================*/
+
+/** Persistent fault log file: FAULT_LOG_FILE unless overridden */
+static const char *fault_log_path(void)
+{
+    const char *path = getenv(FAULT_LOG_FILE_ENV);
+    return ((path != NULL) && (path[0] != '\0')) ? path : FAULT_LOG_FILE;
+}
 
 SmartQsoResult_t fault_mgmt_init(void)
 {
@@ -142,7 +150,7 @@ SmartQsoResult_t fault_log_mark_recovered(size_t index)
 
 SmartQsoResult_t fault_log_save(void)
 {
-    FILE *f = fopen(FAULT_LOG_FILE, "wb");
+    FILE *f = fopen(fault_log_path(), "wb");
     if (f == NULL) {
         return SMART_QSO_ERROR_IO;
     }
@@ -163,7 +171,7 @@ SmartQsoResult_t fault_log_save(void)
 
 SmartQsoResult_t fault_log_load(void)
 {
-    FILE *f = fopen(FAULT_LOG_FILE, "rb");
+    FILE *f = fopen(fault_log_path(), "rb");
     if (f == NULL) {
         return SMART_QSO_ERROR_IO;
     }
@@ -200,7 +208,7 @@ SmartQsoResult_t fault_log_clear(void)
     s_fault_log_count = 0;
 
     /* Remove persistent file */
-    (void)remove(FAULT_LOG_FILE);
+    (void)remove(fault_log_path());
 
     return SMART_QSO_OK;
 }
