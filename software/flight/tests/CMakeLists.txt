@@ -239,6 +239,7 @@ set(MODULE_TESTS
     "test_uplink\;rf"
     "test_contact_monitor\;rf"
     "test_rf_silence\;rf"
+    "test_beacon_format\;rf"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)

@@ -94,8 +94,11 @@ Status: **10 closed** and **59 partially closed** by this PR; **33 open**; 1 inf
 | SW-23 | High | **Payload health interface could not run**: `crc.Crc16.CCITT` was removed from the `crc` package, so 19 payload tests errored; the payload suite was in no CI | `software/payload/health_interface.py:22,108` | ICD CRC-16 implemented in-house with a check-value test; payload tests in CI | **Closed (this PR):** `software/payload/crc16.py` (check 0x29B1); 143 payload tests pass in CI; a latent test defect (a frame without a command accepted) corrected to fail safe |
 | SW-24 | High | **OBC–Jetson interface is implemented three incompatible ways**: the ICD specifies ASCII CSV with a CRC-16 field; the OBC sends ASCII CSV with **no CRC**; the payload health interface expects binary 0x7E/0x7F frames carrying JSON + CRC; the payload agent expects JSON lines | `docs/interfaces/ICD_OBC_JETSON.md:121,195-198`; `software/flight/src/main.c:314-372`; `software/payload/health_interface.py:68-69,290-300`; `software/payload/agent.py:19-31` | Pick one protocol in the ICD; implement it on both sides; end-to-end test → OBC↔payload loopback test in CI | Open |
 
-Additional observation: the flight build fails under GCC 16 with `-Werror` (`src/beacon.c:201` `-Wformat-truncation`), while CI's
-Ubuntu GCC passes. The toolchain is unpinned (see SW-17).
+Additional observation: the flight build failed under GCC 16 with `-Werror` (`src/beacon.c:201` `-Wformat-truncation`), while CI's
+Ubuntu GCC passed. The toolchain is unpinned (see SW-17). *Fixed in this PR:* the warning marked a real defect. A
+maximum-length beacon text overflowed the 256-byte information field, so the beacon was silently dropped. The text is now
+cut to the space left after the telemetry fields, and battery voltage is formatted in integer arithmetic
+(`test_beacon_format.c`). The GCC 16 flight build is clean.
 
 ## 3. RG — Regulatory
 

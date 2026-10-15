@@ -169,28 +169,49 @@ SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
     return SMART_QSO_OK;
 }
 
+/**
+ * Longest the fixed fields can be: "de " CALL ": " then " | T=" (uint32),
+ * " M=" (ACTIVE), " SOC=" (uint8), " BV=" (65.5), " SUN=" (uint8),
+ * " RF=" (uint8), " QSO=" (uint16). The text gets whatever space is left, so
+ * the information field always fits and the telemetry is never cut.
+ */
+#define BEACON_FIXED_MAX_LEN    (3U + (sizeof(BEACON_CALLSIGN) - 1U) + 2U + \
+                                 5U + 10U + 3U + 6U + 5U + 3U + 4U + 4U + \
+                                 5U + 3U + 4U + 3U + 5U + 5U)
+
 size_t beacon_format_payload(const BeaconContent_t *content,
                              char *buffer,
                              size_t buffer_len)
 {
-    if (content == NULL || buffer == NULL || buffer_len == 0) {
+    if ((content == NULL) || (buffer == NULL) || (buffer_len < (BEACON_FIXED_MAX_LEN + 1U))) {
         return 0;
     }
 
+    /* Cut the text, never the telemetry */
+    size_t room = buffer_len - BEACON_FIXED_MAX_LEN - 1U;
+    const char *nul = (const char *)memchr(content->text, '\0', sizeof(content->text));
+    size_t text_len = (nul != NULL) ? (size_t)(nul - content->text) : sizeof(content->text);
+    if (text_len > room) {
+        text_len = room;
+    }
+
+    /* Battery volts to one decimal, rounded, in integer arithmetic */
+    uint32_t tenths = ((uint32_t)content->telemetry.battery_mv + 50U) / 100U;
+
     int written = snprintf(buffer, buffer_len,
-        "de %s: %s | T=%u M=%s SOC=%u BV=%.1f SUN=%u RF=%u QSO=%u",
+        "de %s: %.*s | T=%u M=%s SOC=%u BV=%u.%u SUN=%u RF=%u QSO=%u",
         BEACON_CALLSIGN,
-        content->text,
-        content->telemetry.timestamp,
+        (int)text_len, content->text,
+        (unsigned int)content->telemetry.timestamp,
         content->telemetry.power_mode == 0 ? "SAFE" :
             (content->telemetry.power_mode == 1 ? "IDLE" : "ACTIVE"),
-        content->telemetry.soc,
-        content->telemetry.battery_mv / 1000.0,
-        content->telemetry.sunlit,
-        content->telemetry.rf_power,
-        content->telemetry.qso_count);
+        (unsigned int)content->telemetry.soc,
+        (unsigned int)(tenths / 10U), (unsigned int)(tenths % 10U),
+        (unsigned int)content->telemetry.sunlit,
+        (unsigned int)content->telemetry.rf_power,
+        (unsigned int)content->telemetry.qso_count);
 
-    if (written < 0 || (size_t)written >= buffer_len) {
+    if ((written < 0) || ((size_t)written >= buffer_len)) {
         return 0;
     }
 
