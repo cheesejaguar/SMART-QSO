@@ -14,7 +14,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # Find cmocka package
 find_package(PkgConfig)
 if(PkgConfig_FOUND)
-    pkg_check_modules(CMOCKA cmocka)
+    pkg_check_modules(CMOCKA IMPORTED_TARGET cmocka)
 endif()
 
 if(NOT CMOCKA_FOUND)
@@ -64,7 +64,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_crc32.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_crc32 ${CMOCKA_LIBRARIES})
+    target_link_libraries(test_crc32 PkgConfig::CMOCKA)
     target_compile_options(test_crc32 PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME CRC32_Tests COMMAND test_crc32)
     set_tests_properties(CRC32_Tests PROPERTIES
@@ -84,7 +84,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_eps_control.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
     )
-    target_link_libraries(test_eps_control ${CMOCKA_LIBRARIES})
+    target_link_libraries(test_eps_control PkgConfig::CMOCKA)
     target_compile_options(test_eps_control PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME EPS_Control_Tests COMMAND test_eps_control)
     set_tests_properties(EPS_Control_Tests PROPERTIES
@@ -104,7 +104,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_fault_mgmt.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_fault_mgmt ${CMOCKA_LIBRARIES})
+    target_link_libraries(test_fault_mgmt PkgConfig::CMOCKA)
     target_compile_options(test_fault_mgmt PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME Fault_Mgmt_Tests COMMAND test_fault_mgmt)
     set_tests_properties(Fault_Mgmt_Tests PROPERTIES
@@ -125,7 +125,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_sensors.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_sensors ${CMOCKA_LIBRARIES} m)
+    target_link_libraries(test_sensors PkgConfig::CMOCKA m)
     target_compile_options(test_sensors PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME Sensor_Tests COMMAND test_sensors)
     set_tests_properties(Sensor_Tests PROPERTIES
@@ -144,7 +144,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_mission_data.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_mission_data ${CMOCKA_LIBRARIES})
+    target_link_libraries(test_mission_data PkgConfig::CMOCKA)
     target_compile_options(test_mission_data PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME Mission_Data_Tests COMMAND test_mission_data)
     set_tests_properties(Mission_Data_Tests PROPERTIES
@@ -165,7 +165,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_uart_comm.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_uart_comm ${CMOCKA_LIBRARIES})
+    target_link_libraries(test_uart_comm PkgConfig::CMOCKA)
     target_compile_options(test_uart_comm PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME UART_Comm_Tests COMMAND test_uart_comm)
     set_tests_properties(UART_Comm_Tests PROPERTIES
@@ -183,7 +183,7 @@ endif()
 #     add_executable(test_main_legacy
 #         test_main.c
 #     )
-#     target_link_libraries(test_main_legacy ${CMOCKA_LIBRARIES})
+#     target_link_libraries(test_main_legacy PkgConfig::CMOCKA)
 #     target_compile_options(test_main_legacy PRIVATE ${TEST_COMPILE_OPTIONS})
 #     add_test(NAME Legacy_Tests COMMAND test_main_legacy)
 #     set_tests_properties(Legacy_Tests PROPERTIES

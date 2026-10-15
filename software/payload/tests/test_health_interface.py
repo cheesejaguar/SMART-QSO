@@ -250,12 +250,23 @@ class TestHealthDataParsing(unittest.TestCase):
         self.assertEqual(result.timestamp, 1234567890)
         self.assertEqual(result.command, HealthCommand.HEARTBEAT)
 
-    def test_parse_missing_fields(self):
-        """Test parsing with missing fields."""
+    def test_parse_missing_optional_fields(self):
+        """Missing optional fields take defaults when the command is valid."""
+        data = {"timestamp": 0, "command": HealthCommand.HEARTBEAT}
+        result = self.interface._parse_health_data(data)
+        self.assertIsNotNone(result)
+        self.assertEqual(result.command, HealthCommand.HEARTBEAT)
+        self.assertFalse(result.payload_enabled)
+
+    def test_parse_missing_command(self):
+        """A frame without a command is rejected, never defaulted.
+
+        Defaulting would let a malformed frame be treated as a valid command
+        (e.g. a heartbeat masking a dead link), so it must be dropped.
+        """
         data = {"timestamp": 0}
         result = self.interface._parse_health_data(data)
-        # Should handle missing fields gracefully
-        self.assertIsNotNone(result)
+        self.assertIsNone(result)
 
     def test_parse_invalid_command(self):
         """Test parsing with invalid command value."""
