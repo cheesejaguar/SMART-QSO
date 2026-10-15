@@ -1,8 +1,8 @@
 {
   "version": "1.0.0-development",
-  "built_at_utc": "2026-10-15T04:56:47.690507+00:00",
+  "built_at_utc": "2026-10-15T05:04:08.581654+00:00",
   "original_source_commit": "05788335d09202c391f8d970e7d6562ebe315893",
-  "source_tree_sha256": "0a4ecf10c61cb6f1700a9ebac7e90db42fdf9fc4d3de25beccf6427bc293b011",
+  "source_tree_sha256": "97a284626a1c6dce8ab552ef82911a7b8b94a112ecc8a3bb34ced003a50fb558",
   "source_files": [
     {
       "path": ".clang-format",
@@ -2190,7 +2190,7 @@
     },
     {
       "path": "tools/publish_pages.py",
-      "sha256": "0c9361a7ff8070ba331c9fd8b5aef3e7c15c9f57aa8b42a63a566c84b66d0067"
+      "sha256": "f059271d9bc40a4bd04f585729347db28b40680b0a8240293599089afc6dbb02"
     },
     {
       "path": "tools/summarize_verification.py",
@@ -2267,7 +2267,7 @@
     {
       "path": "output/release/sbom.cdx.json",
       "bytes": 200789,
-      "sha256": "b52c0725ee1485bcb0fab270b6ca1a6f9a9cbbdd24f0a65c4c0e55408031b1bb"
+      "sha256": "8c7d2d2087bc54ee0dc7c5e86980ac3f129c01f09ac9b8321f708dff8ceacee5"
     },
     {
       "path": "uv.lock",
@@ -2337,7 +2337,7 @@
     {
       "path": "mission/current/artifact_inventory.json",
       "bytes": 496233,
-      "sha256": "aa6d2d720b0fc92c5656d26c788b68744ce07037c64da66a677ebbdef02e249a"
+      "sha256": "ac1c9e056194f9ee59a7cdbc73d0ef61d63ccd7034b938df1eb153945a17a42d"
     },
     {
       "path": "docs/resurrection/AUDIT_REPORT.md",
