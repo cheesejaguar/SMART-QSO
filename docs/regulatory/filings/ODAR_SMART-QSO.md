@@ -150,9 +150,9 @@ Reproduce with:
 `python software/simulation/orbit_lifetime/orbit_lifetime.py --inc 97.4 --alt 475 500 525 --mass 1.6 --area 0.028 0.0164 --start 2028-06-01`.
 A 1.8 kg bounding run adds ≈ 0.2–0.5 yr.
 
-**4.6-1(a) (NASA: ≤ 25 yr after mission, ≤ 30 yr after launch):** compliant in all nominal cases. The bound case at
-525 km with wings failed (25.9 yr) would exceed 25 years after a 2-year mission, which is a further reason for the
-≤ 500 km baseline.
+**4.6-1(a) (NASA: ≤ 25 yr after mission, ≤ 30 yr after launch):** compliant in all cases tabulated. The tightest is the
+bound case at 525 km with wings failed: 25.9 yr after launch, which is 23.9 yr after a 2-year mission. That is inside
+both limits but close to the 25-year limit, a further reason for the ≤ 500 km baseline.
 
 **FCC 97.207(g)(1)(vii)(D)(1) (re-entry as soon as practicable, ≤ 5 yr after mission completion, P ≥ 0.9):** at
 ≤ 500 km, compliant in both cases on the nominal profile. At 525 km only Case 1 complies. The deployment altitude is

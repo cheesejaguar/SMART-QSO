@@ -17,7 +17,7 @@
   **Medium** = a correctness or process gap with bounded impact. **Low** = hygiene.
 - **Status:** **Open**; **Partially closed (this PR)**, meaning the audit fixed part of it and the rest remains;
   **Closed (this PR)**, meaning the audit fixed it and the closure criterion is met.
-- Each finding has file:line evidence. Measured values were reproduced by the audit on 2026-10-14 (Apple clang 17 and
+- Each finding has file:line evidence. Measured values were reproduced by the audit on 2026-10-14 (Apple clang 21 and
   GCC 16, CMocka 2.0.2, Python 3.14).
 
 ## Summary
