@@ -6,7 +6,28 @@
  * solar panel deployment, and deployment inhibit handling per CubeSat Design
  * Specification requirements.
  *
- * @requirement SRS-DEP-001 System shall wait 30 minutes after separation before deployment
+ * Timing uses elapsed ticks (deployment_tick()), not absolute timestamps, and
+ * the sequence is persisted (FLASH_REGION_DEPLOYMENT) so resets neither
+ * shorten the 30-minute wait nor repeat burns:
+ *  - 30-minute wait (CDS 2.4.4): a power-on, brownout, pin or unknown reset
+ *    restarts it (a separation-switch toggle removes power, CDS 2.3.2.4); a
+ *    watchdog or software reset resumes it; a stowed switch restarts it.
+ *  - Burns: each element has its own burn and sense pin; a burn needs the
+ *    master arm (GPIO_PIN_DEPLOY_EN) and the element pin. The attempt is
+ *    persisted before the pin is driven, and nothing fires if that fails.
+ *    An element whose sense reads deployed is never fired. A reset during a
+ *    burn spends the attempt. Attempts are bounded across resets.
+ *  - COMPLETE and FAILED ignore the switch (re-burning is not harmless); only
+ *    GSE ARM (deployment_arm()) resets them. ARMED does not progress while
+ *    powered; the next boot starts the sequence.
+ *  - Blank or corrupt record: start over with zero attempts (fault logged);
+ *    sense pins skip anything already deployed.
+ *
+ * Software is not the bench inhibit: with no dispenser the switches read
+ * released, so a powered unit fires burn wires 30 minutes after any boot
+ * unless the hardware inhibits (RBF, SYS-225) hold deployment power off.
+ *
+ * @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
  * @requirement SRS-DEP-002 System shall monitor deployment switch state
  * @requirement SRS-DEP-003 System shall provide deployment retry capability
  *
@@ -32,20 +53,23 @@ extern "C" {
 /** Deployment wait time after separation (ms) - CDS requirement */
 #define DEPLOYMENT_WAIT_TIME_MS         (30U * 60U * 1000U)  /* 30 minutes */
 
+/** Deployment wait time after separation (s) */
+#define DEPLOYMENT_WAIT_TIME_S          (DEPLOYMENT_WAIT_TIME_MS / 1000U)
+
 /** Antenna deployment burn time (ms) */
 #define ANTENNA_DEPLOY_BURN_TIME_MS     3000U
 
 /** Solar panel deployment burn time (ms) */
 #define SOLAR_DEPLOY_BURN_TIME_MS       5000U
 
-/** Maximum deployment retry attempts */
+/** Maximum deployment attempts per element (across resets) */
 #define DEPLOYMENT_MAX_RETRIES          3U
 
-/** Retry delay between attempts (ms) */
+/** Delay before retrying an unconfirmed deployment (ms) */
 #define DEPLOYMENT_RETRY_DELAY_MS       60000U  /* 1 minute */
 
-/** Deployment verification timeout (ms) */
-#define DEPLOYMENT_VERIFY_TIMEOUT_MS    10000U
+/** Wait-count persistence interval (s) */
+#define DEPLOYMENT_PERSIST_INTERVAL_S   60U
 
 /*===========================================================================*/
 /* Types                                                                      */
@@ -65,6 +89,7 @@ typedef enum {
     DEPLOY_STATE_SOLAR_VERIFY,     /**< Verifying solar panel deployment */
     DEPLOY_STATE_COMPLETE,         /**< All deployments successful */
     DEPLOY_STATE_FAILED,           /**< Deployment failed after retries */
+    DEPLOY_STATE_ARMED,            /**< GSE-armed for flight; starts at next boot */
     DEPLOY_STATE_COUNT
 } DeploymentState_t;
 
@@ -83,9 +108,9 @@ typedef enum {
 typedef struct {
     bool deployed;              /**< Deployment confirmed */
     bool deploy_attempted;      /**< At least one attempt made */
-    uint8_t attempt_count;      /**< Number of attempts */
-    uint32_t deploy_time_ms;    /**< Time when deployed (MET) */
-    bool switch_state;          /**< Current deployment switch state */
+    uint8_t attempt_count;      /**< Number of attempts (persisted) */
+    uint32_t deploy_time_s;     /**< Seconds after separation when confirmed */
+    bool switch_state;          /**< Current element sense reading */
 } DeploymentElementStatus_t;
 
 /**
@@ -93,13 +118,12 @@ typedef struct {
  */
 typedef struct {
     DeploymentState_t state;                    /**< Current state machine state */
-    uint32_t separation_time_ms;                /**< Time of separation detection */
-    uint32_t state_entry_time_ms;               /**< Time of last state entry */
-    uint32_t deploy_start_time_ms;              /**< Current deployment action start */
+    uint32_t wait_elapsed_s;                    /**< Seconds counted toward the 30-minute wait */
+    uint32_t state_elapsed_ms;                  /**< Time in the current state */
+    uint32_t since_separation_s;                /**< Seconds since separation (this boot) */
     DeploymentElementStatus_t elements[DEPLOY_ELEMENT_COUNT];
     bool separation_detected;                   /**< Deployment switch released */
     bool deployment_enabled;                    /**< Ground command enable */
-    uint32_t crc;                               /**< CRC for data integrity */
 } DeploymentStatus_t;
 
 /**
@@ -120,109 +144,91 @@ typedef struct {
 /*===========================================================================*/
 
 /**
- * @brief Initialize the deployment control module
+ * @brief Initialize at boot: drive every burn line low, load the persisted
+ *        sequence and apply the reset-cause rules. Safe to call again (a
+ *        simulated reset).
  *
- * @return true if initialization successful, false otherwise
- *
- * @pre None
- * @post Module state initialized to INHIBITED
+ * @return true if initialization successful
  */
 bool deployment_init(void);
 
 /**
- * @brief Process deployment state machine
+ * @brief Advance the sequence by elapsed time
  *
- * Must be called periodically (recommended: 100ms) to process deployment
- * state machine and manage deployment sequences.
- *
- * @param current_time_ms Current mission elapsed time in milliseconds
- *
- * @pre deployment_init() called
- * @post State machine advanced if conditions met
+ * @param[in] elapsed_ms Time since the previous tick
  */
-void deployment_process(uint32_t current_time_ms);
+void deployment_tick(uint32_t elapsed_ms);
 
 /**
- * @brief Check if deployment switch indicates separation
- *
- * @return true if deployment switch released (separation detected)
+ * @brief Re-arm for flight (GSE only): attempts and flags cleared; nothing
+ *        progresses until the next boot
+ */
+SmartQsoResult_t deployment_arm(void);
+
+/**
+ * @brief Check if separation has been detected
  */
 bool deployment_is_separated(void);
 
 /**
  * @brief Get current deployment state
- *
- * @return Current deployment state machine state
  */
 DeploymentState_t deployment_get_state(void);
 
 /**
- * @brief Get deployment status for specified element
+ * @brief Seconds counted toward the 30-minute wait
+ */
+uint32_t deployment_wait_elapsed_s(void);
+
+/**
+ * @brief Get deployment element status
  *
- * @param element Deployment element to query
- * @param status Pointer to status structure to fill
- *
- * @return true if status retrieved, false if invalid element
+ * @param[in] element Element to query
+ * @param[out] status Status structure to fill
+ * @return true if valid element
  */
 bool deployment_get_element_status(DeploymentElement_t element,
                                    DeploymentElementStatus_t *status);
 
 /**
- * @brief Get deployment telemetry packet
+ * @brief Get deployment telemetry
  *
- * @param telemetry Pointer to telemetry structure to fill
- *
- * @return true if telemetry retrieved
+ * @param[out] telemetry Telemetry structure to fill
+ * @return true if successful
  */
 bool deployment_get_telemetry(DeploymentTelemetry_t *telemetry);
 
 /**
- * @brief Enable or disable deployment (ground command)
- *
- * @param enable true to enable deployment, false to inhibit
- *
- * @return true if command accepted
+ * @brief Enable or inhibit deployment (ground command); persisted
  */
 bool deployment_set_enabled(bool enable);
 
 /**
- * @brief Force retry deployment of specified element (ground command)
+ * @brief Retry an element (ground command)
  *
- * @param element Element to retry
+ * Refused until the 30-minute wait has been served (CDS 2.4.4) and while a
+ * burn is in progress.
  *
- * @return true if retry initiated
+ * @return true if the retry was accepted
  */
 bool deployment_force_retry(DeploymentElement_t element);
 
 /**
- * @brief Get human-readable state name
- *
- * @param state Deployment state
- *
- * @return State name string
+ * @brief Get state name string
  */
 const char *deployment_state_name(DeploymentState_t state);
 
 /**
  * @brief Check if all deployments complete
- *
- * @return true if all elements successfully deployed
  */
 bool deployment_all_complete(void);
 
 /**
- * @brief Save deployment state to persistent storage
+ * @brief Persist the sequence state
  *
- * @return true if save successful
+ * @return true if saved
  */
 bool deployment_save_state(void);
-
-/**
- * @brief Load deployment state from persistent storage
- *
- * @return true if load successful and data valid
- */
-bool deployment_load_state(void);
 
 #ifdef __cplusplus
 }

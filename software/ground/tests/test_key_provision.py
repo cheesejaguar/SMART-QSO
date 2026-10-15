@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 from key_provision import (  # noqa: E402
     FRAME_SIZE,
     OP_ACTIVATE,
-    OP_ARM_RF_SILENCE,
+    OP_ARM_FLIGHT,
     OP_PROVISION,
     OP_ZEROIZE,
     RECOVERY_SLOT,
@@ -47,8 +47,8 @@ class TestFrame(unittest.TestCase):
             self.assertEqual(len(frame), FRAME_SIZE)
             self.assertEqual(frame[7:39], bytes(32))
 
-    def test_arm_rf_silence_frame(self):
-        frame = build_gse_frame(OP_ARM_RF_SILENCE, 0, 0)
+    def test_arm_flight_frame(self):
+        frame = build_gse_frame(OP_ARM_FLIGHT, 0, 0)
         self.assertEqual(frame[4], 0x04)
         self.assertEqual(frame[7:39], bytes(32))
 

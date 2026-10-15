@@ -30,14 +30,18 @@ typedef enum {
     GPIO_PIN_RADIO_EN      = 1,   /**< Radio/transponder power enable */
     GPIO_PIN_ADCS_EN       = 2,   /**< ADCS power enable */
     GPIO_PIN_HEATER_EN     = 3,   /**< Heater power enable */
-    GPIO_PIN_DEPLOY_EN     = 4,   /**< Deployment mechanism enable */
+    GPIO_PIN_DEPLOY_EN     = 4,   /**< Deployment master arm (a burn needs this and the element pin) */
     GPIO_PIN_LED_STATUS    = 5,   /**< Status LED */
     GPIO_PIN_JETSON_PWR    = 6,   /**< Jetson power control */
     GPIO_PIN_RF_TX_EN      = 7,   /**< RF transmitter enable */
     GPIO_PIN_ALERT         = 8,   /**< EPS alert input */
-    GPIO_PIN_DEPLOY_SENSE  = 9,   /**< Deployment sense input */
+    GPIO_PIN_DEPLOY_SENSE  = 9,   /**< Separation (deployment) switch sense input */
     GPIO_PIN_UMBILICAL_SENSE = 10, /**< GSE umbilical present (high); pulled low in flight */
-    GPIO_PIN_COUNT         = 11
+    GPIO_PIN_ANTENNA_BURN  = 11,  /**< Antenna burn-wire enable */
+    GPIO_PIN_SOLAR_BURN    = 12,  /**< Solar-array burn-wire enable */
+    GPIO_PIN_ANTENNA_SENSE = 13,  /**< Antenna deployed sense input */
+    GPIO_PIN_SOLAR_SENSE   = 14,  /**< Solar array deployed sense input */
+    GPIO_PIN_COUNT         = 15
 } HalGpioPin_t;
 
 /**

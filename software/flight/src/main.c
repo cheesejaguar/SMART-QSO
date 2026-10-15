@@ -25,6 +25,7 @@
 #include "rf_control.h"
 #include "contact_monitor.h"
 #include "rf_silence.h"
+#include "deployment.h"
 #include "cmd_handler.h"
 #include "gse_provision.h"
 #include "uplink.h"
@@ -126,6 +127,9 @@ static SmartQsoResult_t init_system(void)
     if ((hal_gpio_init() != SMART_QSO_OK) || (hal_flash_init() != SMART_QSO_OK)) {
         fprintf(stderr, "[SYSTEM] GPIO/flash init failed\n");
     }
+
+    /* Burn-wire lines low as early as possible */
+    (void)deployment_init();
 
     /* Initialize fault management next (for logging during init) */
     result = fault_mgmt_init();
@@ -468,10 +472,11 @@ static SmartQsoResult_t run_main_loop(void)
         (void)uplink_poll(NULL);
         (void)gse_poll();
 
-        /* Loss-of-contact and RF-silence timers. On target these need a monotonic time base
+        /* Loss-of-contact, RF-silence and deployment timers. On target these need a monotonic time base
          * (smart_qso_now_ms() is not implemented there yet; SW-01) */
         contact_monitor_tick((uint32_t)(now - s_last_contact_tick_ms));
         rf_silence_tick((uint32_t)(now - s_last_contact_tick_ms));
+        deployment_tick((uint32_t)(now - s_last_contact_tick_ms));
         s_last_contact_tick_ms = now;
 
         /* Periodic data persistence */

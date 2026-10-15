@@ -194,6 +194,7 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/uplink.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/contact_monitor.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_silence.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/separation_switch.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c

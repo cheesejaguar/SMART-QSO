@@ -25,6 +25,7 @@
 #include "hal/hal_sim.h"
 #include "auth_test_helpers.h"
 #include "rf_silence.h"
+#include "deployment.h"
 #include "rf_control.h"
 
 /** PROVISION slot 0, key ID 1, TEST-ONLY key 00..1F (Python reference) */
@@ -183,28 +184,32 @@ static void test_poll_reads_umbilical_uart(void **state)
     assert_true(cmd_auth_is_provisioned());
 }
 
-/** GSE ARM re-arms the post-deployment silence (umbilical only) */
-static void test_arm_rf_silence(void **state)
+/** GSE ARM_FLIGHT re-arms the post-deployment silence and the deployment
+ *  sequence in one action (umbilical only) */
+static void test_arm_flight(void **state)
 {
     (void)state;
     uint8_t frame[GSE_FRAME_SIZE];
 
     assert_int_equal(hal_flash_erase(FLASH_REGION_RF_SILENCE), SMART_QSO_OK);
+    assert_int_equal(hal_flash_erase(FLASH_REGION_DEPLOYMENT), SMART_QSO_OK);
     assert_int_equal(rf_silence_init(), SMART_QSO_OK);
+    assert_true(deployment_init());
     for (uint32_t m = 0U; m < 45U; m++) {
         rf_silence_tick(60U * 1000U);
     }
     assert_false(rf_silence_active());
 
-    make_frame(GSE_OP_ARM_RF_SILENCE, 0U, 0U, NULL, frame);
+    make_frame(GSE_OP_ARM_FLIGHT, 0U, 0U, NULL, frame);
     hal_sim_gpio_drive_input(GPIO_PIN_UMBILICAL_SENSE, false);
     assert_int_equal(gse_process_frame(frame, sizeof(frame)), GSE_STATUS_LOCKED);
     assert_false(rf_silence_active());
+    assert_int_not_equal(deployment_get_state(), DEPLOY_STATE_ARMED);
 
     hal_sim_gpio_drive_input(GPIO_PIN_UMBILICAL_SENSE, true);
     assert_int_equal(gse_process_frame(frame, sizeof(frame)), GSE_STATUS_OK);
-    assert_true(rf_silence_active());
     assert_int_equal(rf_silence_get_state(), RF_SILENCE_ARMED);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_ARMED);
 }
 
 int main(void)
@@ -216,7 +221,7 @@ int main(void)
         cmocka_unit_test_setup(test_bad_operation_and_slot, setup),
         cmocka_unit_test_setup(test_recovery_key_and_zeroize, setup),
         cmocka_unit_test_setup(test_poll_reads_umbilical_uart, setup),
-        cmocka_unit_test_setup(test_arm_rf_silence, setup),
+        cmocka_unit_test_setup(test_arm_flight, setup),
     };
 
     return cmocka_run_group_tests_name("GSE Key Provisioning Tests", tests, NULL, NULL);

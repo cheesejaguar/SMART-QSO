@@ -11,6 +11,7 @@
 #include "gse_provision.h"
 #include "cmd_auth.h"
 #include "rf_silence.h"
+#include "deployment.h"
 #include "fault_mgmt.h"
 #include "safe_string.h"
 #include "hal/hal_gpio.h"
@@ -79,8 +80,13 @@ GseStatus_t gse_process_frame(const uint8_t *frame, size_t len)
         case GSE_OP_ZEROIZE:
             result = cmd_auth_zeroize();
             break;
-        case GSE_OP_ARM_RF_SILENCE:
+        case GSE_OP_ARM_FLIGHT:
+            /* One action arms both: two steps would be two chances to ship a
+             * unit that completed its silence or deployment on the bench */
             result = rf_silence_arm();
+            if (deployment_arm() != SMART_QSO_OK) {
+                result = SMART_QSO_ERROR_IO;
+            }
             break;
         default:
             return GSE_STATUS_BAD_OP;

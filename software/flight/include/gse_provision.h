@@ -16,7 +16,9 @@
  * CRC-32 is IEEE 802.3 (zlib) over the first 39 bytes. Operations: PROVISION
  * writes a key into a slot (0-3 operational spares, 4 recovery); ACTIVATE makes
  * a spare the active operational key; ZEROIZE erases the key table;
- * ARM_RF_SILENCE re-arms the 45-minute post-deployment silence. The reply
+ * ARM_FLIGHT re-arms the 45-minute post-deployment silence and the
+ * deployment sequence in one action (the last powered action before
+ * integration). The reply
  * is "SQGR" | status (1).
  *
  * Ground tool: software/ground/tools/key_provision.py
@@ -46,7 +48,7 @@ typedef enum {
     GSE_OP_PROVISION = 0x01, /**< Write a key into a slot */
     GSE_OP_ACTIVATE  = 0x02, /**< Activate a spare operational key */
     GSE_OP_ZEROIZE   = 0x03, /**< Erase the key table */
-    GSE_OP_ARM_RF_SILENCE = 0x04 /**< Re-arm the post-deployment RF silence (last action before shipping) */
+    GSE_OP_ARM_FLIGHT = 0x04 /**< Re-arm RF silence and deployment (last action before shipping) */
 } GseOp_t;
 
 /** Outcome, also sent as the reply status byte */

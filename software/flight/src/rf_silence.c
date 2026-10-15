@@ -10,6 +10,7 @@
 
 #include "rf_silence.h"
 #include "rf_control.h"
+#include "separation_switch.h"
 #include "nvm_record.h"
 #include "fault_mgmt.h"
 #include "hal/hal_flash.h"
@@ -38,21 +39,6 @@ static bool s_initialized = false;
 /*******************************************************************************
  * Private Functions
  ******************************************************************************/
-
-/**
- * Whether the deployment switches read stowed (in the dispenser).
- *
- * TBR: polarity follows deployment.c (pull-up; the line reads high while
- * stowed) and must be confirmed against the separation-switch schematic
- * (finding SW-10: deployment.c reads this pin two ways). If inverted on
- * orbit, the count restarts forever and the spacecraft stays silent: fail
- * safe but mission-ending, so the pre-ship test checks "released reads
- * released".
- */
-static bool switch_stowed(void)
-{
-    return hal_gpio_get(GPIO_PIN_DEPLOY_SENSE);
-}
 
 static void save(void)
 {
@@ -86,7 +72,7 @@ SmartQsoResult_t rf_silence_init(void)
     HalResetCause_t cause = hal_reset_cause();
     bool resumable = (cause == HAL_RESET_WATCHDOG) || (cause == HAL_RESET_SOFTWARE);
 
-    (void)hal_gpio_config(GPIO_PIN_DEPLOY_SENSE, GPIO_DIR_INPUT, GPIO_PULL_UP);
+    separation_switch_init();
     s_unpersisted_s = 0U;
     restart_count();
 
@@ -125,7 +111,7 @@ void rf_silence_tick(uint32_t elapsed_ms)
         return;
     }
 
-    if (switch_stowed()) {
+    if (separation_switch_stowed()) {
         /* CDS 2.3.2.4: a switch toggle restarts the timer, even after completion */
         if ((s_state != RF_SILENCE_COUNTING) || (s_elapsed_s != 0U)) {
             restart_count();
