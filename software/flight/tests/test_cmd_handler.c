@@ -417,6 +417,48 @@ static void test_every_dictionary_command(void **state)
     }
 }
 
+static SmState_t current_state(void)
+{
+    SmState_t st = STATE_BOOT;
+    assert_int_equal(sm_get_state(sys_get_sm_context(), &st), SMART_QSO_OK);
+    return st;
+}
+
+static CmdResult_t send_set_mode(uint32_t counter, uint8_t mode)
+{
+    uint8_t payload[CMD_AUTH_OVERHEAD + 1U];
+    return send(CMD_SYS_SET_MODE, payload,
+                auth_payload(CMD_SYS_SET_MODE, counter, &mode, 1U, payload));
+}
+
+/** SET_MODE goes through the state machine's transition table: a ground
+ *  command cannot jump SAFE -> ACTIVE (must pass through IDLE) */
+static void test_set_mode_obeys_transition_table(void **state)
+{
+    (void)state;
+    assert_int_equal(current_state(), STATE_IDLE);
+
+    assert_int_equal(send_set_mode(1U, 0U), CMD_RESULT_SUCCESS);
+    assert_int_equal(current_state(), STATE_SAFE);
+
+    assert_int_equal(send_set_mode(2U, 2U), CMD_RESULT_NOT_ALLOWED);
+    assert_int_equal(current_state(), STATE_SAFE);
+
+    assert_int_equal(send_set_mode(3U, 1U), CMD_RESULT_SUCCESS);
+    assert_int_equal(current_state(), STATE_IDLE);
+
+    /* Already in the requested state */
+    assert_int_equal(send_set_mode(4U, 1U), CMD_RESULT_SUCCESS);
+    assert_int_equal(current_state(), STATE_IDLE);
+
+    assert_int_equal(send_set_mode(5U, 2U), CMD_RESULT_SUCCESS);
+    assert_int_equal(current_state(), STATE_ACTIVE);
+
+    /* Unknown mode value */
+    assert_int_equal(send_set_mode(6U, 7U), CMD_RESULT_INVALID_PARAM);
+    assert_int_equal(current_state(), STATE_ACTIVE);
+}
+
 static void test_authenticated_get_status(void **state)
 {
     (void)state;
@@ -448,6 +490,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_authenticated_get_status, setup, teardown),
         cmocka_unit_test_setup_teardown(test_forged_flood_logs_once, setup, teardown),
         cmocka_unit_test_setup_teardown(test_every_dictionary_command, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_set_mode_obeys_transition_table, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Command Handler (Telecommand Path) Tests", tests, NULL, NULL);

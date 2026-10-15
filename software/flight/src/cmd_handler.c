@@ -72,6 +72,7 @@ static CmdResult_t handle_comm_cmd(const Command_t *cmd, CmdResponse_t *response
 static CmdResult_t handle_payload_cmd(const Command_t *cmd, CmdResponse_t *response);
 static CmdHandlerFunc_t find_custom_handler(uint8_t cmd_id);
 static bool cmd_args_spec(uint8_t cmd_id, size_t *min_len, size_t *max_len);
+static CmdResult_t set_mode(const Command_t *cmd);
 static void reject(CmdResponse_t *response, CmdResult_t result, const char *reason);
 
 /*******************************************************************************
@@ -383,18 +384,7 @@ static CmdResult_t handle_system_cmd(const Command_t *cmd, CmdResponse_t *respon
             return CMD_RESULT_SUCCESS;
 
         case CMD_SYS_SET_MODE:
-            if (cmd->payload_len >= 1U) {
-                SmState_t new_state;
-                switch (cmd->payload[0]) {
-                    case 0: new_state = STATE_SAFE; break;
-                    case 1: new_state = STATE_IDLE; break;
-                    case 2: new_state = STATE_ACTIVE; break;
-                    default: return CMD_RESULT_INVALID_PARAM;
-                }
-                (void)sm_force_state(sys_get_sm_context(), new_state);
-                return CMD_RESULT_SUCCESS;
-            }
-            return CMD_RESULT_INVALID_PARAM;
+            return set_mode(cmd);
 
         case CMD_SYS_GET_STATUS:
             /* Return system status in response */
@@ -572,4 +562,43 @@ static void reject(CmdResponse_t *response, CmdResult_t result, const char *reas
         s_reject_logged = true;
         (void)fault_log_add(FAULT_TYPE_COMMAND, FAULT_SEVERITY_WARNING, reason, 0.0);
     }
+}
+
+/**
+ * Ground mode change through the state machine's transition table, so the
+ * ground obeys the same rules as onboard events (SAFE -> ACTIVE needs IDLE
+ * first). Requesting the current state succeeds without a transition.
+ */
+static CmdResult_t set_mode(const Command_t *cmd)
+{
+    SmState_t target;
+    SmEvent_t event;
+
+    if (cmd->payload_len != 1U) {
+        return CMD_RESULT_INVALID_PARAM;
+    }
+    switch (cmd->payload[0]) {
+        case 0U: target = STATE_SAFE;   event = EVENT_GROUND_CMD_SAFE;   break;
+        case 1U: target = STATE_IDLE;   event = EVENT_GROUND_CMD_IDLE;   break;
+        case 2U: target = STATE_ACTIVE; event = EVENT_GROUND_CMD_ACTIVE; break;
+        default: return CMD_RESULT_INVALID_PARAM;
+    }
+
+    SmContext_t *ctx = sys_get_sm_context();
+    SmState_t current = STATE_BOOT;
+    if (sm_get_state(ctx, &current) != SMART_QSO_OK) {
+        return CMD_RESULT_EXEC_FAIL;
+    }
+    if (current == target) {
+        return CMD_RESULT_SUCCESS;
+    }
+
+    SmResult_t sm_result = SM_RESULT_NO_TRANSITION;
+    if (sm_process_event(ctx, event, &sm_result) != SMART_QSO_OK) {
+        return CMD_RESULT_EXEC_FAIL;
+    }
+    if ((sm_result == SM_RESULT_NO_TRANSITION) || (sm_result == SM_RESULT_GUARD_FAILED)) {
+        return CMD_RESULT_NOT_ALLOWED;
+    }
+    return (sm_result == SM_RESULT_OK) ? CMD_RESULT_SUCCESS : CMD_RESULT_EXEC_FAIL;
 }
