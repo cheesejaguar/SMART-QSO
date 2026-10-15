@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "description": "SMART-QSO uplink command dictionary (SQSO-ICD-013 section 7). Single source for software/flight/src/cmd_dictionary.c and software/ground/tools/command_dictionary.py; regenerate with scripts/gen_command_dictionary.py. key: which telecommand key authenticates the command (operational, recovery, or any).",
+  "commands": [
+    {"name": "NOP", "id": "0x00", "c_name": "CMD_SYS_NOP", "min_args": 0, "max_args": 0, "key": "operational", "summary": "No operation"},
+    {"name": "RESET", "id": "0x01", "c_name": "CMD_SYS_RESET", "min_args": 0, "max_args": 0, "key": "operational", "summary": "System reset (logged only until a hardware reset exists)"},
+    {"name": "SET_MODE", "id": "0x02", "c_name": "CMD_SYS_SET_MODE", "min_args": 1, "max_args": 1, "key": "operational", "summary": "Set mode through the transition table: 0 SAFE, 1 IDLE, 2 ACTIVE"},
+    {"name": "GET_STATUS", "id": "0x03", "c_name": "CMD_SYS_GET_STATUS", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Get system status (4 bytes)"},
+    {"name": "CLEAR_FAULTS", "id": "0x05", "c_name": "CMD_SYS_CLEAR_FAULTS", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Clear fault log"},
+    {"name": "EPS_SET_MODE", "id": "0x10", "c_name": "CMD_EPS_SET_MODE", "min_args": 1, "max_args": 1, "key": "operational", "summary": "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE"},
+    {"name": "EPS_GET_TELEMETRY", "id": "0x13", "c_name": "CMD_EPS_GET_TELEMETRY", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Get EPS telemetry"},
+    {"name": "ADCS_DETUMBLE", "id": "0x21", "c_name": "CMD_ADCS_DETUMBLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Start detumble"},
+    {"name": "ADCS_GET_ATTITUDE", "id": "0x23", "c_name": "CMD_ADCS_GET_ATTITUDE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Get attitude"},
+    {"name": "SET_BEACON", "id": "0x30", "c_name": "CMD_COMM_SET_BEACON", "min_args": 2, "max_args": 2, "key": "operational", "summary": "Set beacon interval, seconds big-endian, 10 to 120"},
+    {"name": "TX_ENABLE", "id": "0x31", "c_name": "CMD_COMM_TX_ENABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Clear the latched TX-OFF"},
+    {"name": "TX_DISABLE", "id": "0x32", "c_name": "CMD_COMM_TX_DISABLE", "min_args": 0, "max_args": 0, "key": "any", "summary": "Latch TX-OFF in every state (47 CFR 97.207(b))"},
+    {"name": "PLD_ENABLE", "id": "0x40", "c_name": "CMD_PLD_ENABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Enable payload"},
+    {"name": "PLD_DISABLE", "id": "0x41", "c_name": "CMD_PLD_DISABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Disable payload"}
+  ]
+}

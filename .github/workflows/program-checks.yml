@@ -65,6 +65,9 @@ jobs:
       - name: Check documentation references
         run: python3 scripts/check_doc_references.py
 
+      - name: Check generated command dictionary is current
+        run: python3 scripts/gen_command_dictionary.py --check
+
   secret-scan:
     name: Secret Scan
     runs-on: ubuntu-latest

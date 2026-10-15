@@ -98,7 +98,7 @@ Because only authenticated commands are accepted, a replayed `TX_ENABLE` cannot 
 
 ## 7. Command Dictionary
 
-The argument length must match the dictionary exactly, or the command is rejected with `INVALID_PARAM` and its counter is not consumed. The single source of the onboard dictionary is `cmd_args_spec()` in `software/flight/src/cmd_handler.c`. `COMMANDS` in `software/ground/tools/telecommand_builder.py` mirrors it, and `test_every_dictionary_command` and `TestDictionary` check both sides.
+The argument length must match the dictionary exactly, or the command is rejected with `INVALID_PARAM` and its counter is not consumed. The single source is `software/flight/command_dictionary.json`. `scripts/gen_command_dictionary.py` generates the flight table (`src/cmd_dictionary.c`, used by `cmd_args_spec()`) and the ground module (`software/ground/tools/command_dictionary.py`, used by the builder). CI runs the generator with `--check` and fails if either output is stale; `test_every_dictionary_command` and `TestDictionary` independently check both sides.
 
 | ID | Name | Args (bytes) | Notes |
 |----|------|--------------|-------|

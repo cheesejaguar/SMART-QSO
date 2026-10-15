@@ -32,9 +32,9 @@ import hmac
 import os
 import struct
 import sys
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
+
+from command_dictionary import COMMANDS  # generated; see scripts/gen_command_dictionary.py
 
 DOMAIN = b"SQSO-TC-v1"
 KEY_SIZE = 32
@@ -43,35 +43,6 @@ MAX_ARGS = 64
 COUNTER_LIMIT = 0xFFFFFFFE  # UINT32_MAX is never accepted onboard
 SYNC = b"\xAA\x55"
 
-
-@dataclass(frozen=True)
-class CommandSpec:
-    """One entry of the command dictionary (mirrors cmd_args_spec())."""
-    cmd_id: int
-    min_args: int
-    max_args: int
-    summary: str
-
-
-# Only commands the flight software implements. IDs defined in cmd_handler.h
-# without a handler (SET_TIME, heaters, ADCS_SET_MODE, ADCS_POINT_SUN,
-# SET_POWER, PLD_SEND_DATA, PLD_REQUEST_DATA) are refused onboard.
-COMMANDS: Dict[str, CommandSpec] = {
-    "NOP": CommandSpec(0x00, 0, 0, "No operation"),
-    "RESET": CommandSpec(0x01, 0, 0, "System reset"),
-    "SET_MODE": CommandSpec(0x02, 1, 1, "Set mode: 0 SAFE, 1 IDLE, 2 ACTIVE"),
-    "GET_STATUS": CommandSpec(0x03, 0, 0, "Get system status"),
-    "CLEAR_FAULTS": CommandSpec(0x05, 0, 0, "Clear fault log"),
-    "EPS_SET_MODE": CommandSpec(0x10, 1, 1, "Set power mode"),
-    "EPS_GET_TELEMETRY": CommandSpec(0x13, 0, 0, "Get EPS telemetry"),
-    "ADCS_DETUMBLE": CommandSpec(0x21, 0, 0, "Start detumble"),
-    "ADCS_GET_ATTITUDE": CommandSpec(0x23, 0, 0, "Get attitude"),
-    "SET_BEACON": CommandSpec(0x30, 2, 2, "Set beacon interval (s, big-endian)"),
-    "TX_ENABLE": CommandSpec(0x31, 0, 0, "Clear the latched TX-OFF"),
-    "TX_DISABLE": CommandSpec(0x32, 0, 0, "Latch TX-OFF (47 CFR 97.207(b))"),
-    "PLD_ENABLE": CommandSpec(0x40, 0, 0, "Enable payload"),
-    "PLD_DISABLE": CommandSpec(0x41, 0, 0, "Disable payload"),
-}
 
 _BY_ID = {spec.cmd_id: spec for spec in COMMANDS.values()}
 

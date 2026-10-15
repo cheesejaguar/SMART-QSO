@@ -10,6 +10,7 @@
 
 #include "cmd_handler.h"
 #include "cmd_auth.h"
+#include "cmd_dictionary.h"
 #include "rf_control.h"
 #include "input_validation.h"
 #include "fault_mgmt.h"
@@ -504,52 +505,29 @@ static CmdResult_t handle_payload_cmd(const Command_t *cmd, CmdResponse_t *respo
 }
 
 /**
- * Allowed argument length for each implemented command (the uplink command
- * dictionary, SQSO-ICD-013 Section 7). IDs that are defined in cmd_handler.h
- * but have no handler (SET_TIME, EPS heaters, ADCS_SET_MODE, ADCS_POINT_SUN,
- * SET_POWER, PLD_SEND_DATA, PLD_REQUEST_DATA) are deliberately absent, so they
- * are refused before a counter is consumed.
+ * Allowed argument length for a command, from the generated dictionary
+ * (software/flight/command_dictionary.json, SQSO-ICD-013 Section 7). IDs that
+ * are defined in cmd_handler.h but have no handler are deliberately absent,
+ * so they are refused before a counter is consumed.
  */
 static bool cmd_args_spec(uint8_t cmd_id, size_t *min_len, size_t *max_len)
 {
-    size_t len = 0U;
-    bool known = true;
-
-    switch (cmd_id) {
-        case CMD_SYS_SET_MODE:
-        case CMD_EPS_SET_MODE:
-            len = 1U;
-            break;
-        case CMD_COMM_SET_BEACON:
-            len = 2U;
-            break;
-        case CMD_SYS_NOP:
-        case CMD_SYS_RESET:
-        case CMD_SYS_GET_STATUS:
-        case CMD_SYS_CLEAR_FAULTS:
-        case CMD_EPS_GET_TELEMETRY:
-        case CMD_ADCS_DETUMBLE:
-        case CMD_ADCS_GET_ATTITUDE:
-        case CMD_COMM_TX_ENABLE:
-        case CMD_COMM_TX_DISABLE:
-        case CMD_PLD_ENABLE:
-        case CMD_PLD_DISABLE:
-            len = 0U;
-            break;
-        default:
-            /* Run-time registered handlers define their own arguments */
-            known = (find_custom_handler(cmd_id) != NULL);
-            if (known) {
-                *min_len = 0U;
-                *max_len = CMD_AUTH_MAX_ARGS;
-                return true;
-            }
-            break;
+    for (size_t i = 0U; i < g_cmd_dictionary_count; i++) {
+        if (g_cmd_dictionary[i].cmd_id == cmd_id) {
+            *min_len = g_cmd_dictionary[i].min_args;
+            *max_len = g_cmd_dictionary[i].max_args;
+            return true;
+        }
     }
 
-    *min_len = len;
-    *max_len = len;
-    return known;
+    /* Run-time registered handlers define their own arguments */
+    if (find_custom_handler(cmd_id) != NULL) {
+        *min_len = 0U;
+        *max_len = CMD_AUTH_MAX_ARGS;
+        return true;
+    }
+
+    return false;
 }
 
 /** Record a rejected command; only the first of a run is logged */

@@ -188,6 +188,7 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_auth.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_handler.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_dictionary.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
