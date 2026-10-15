@@ -435,8 +435,8 @@ static void test_sm_mission_sequence(void **state)
     sm_process_event(&g_ctx, EVENT_RECOVERY_OK, NULL);
     assert_int_equal(g_ctx.current_state, STATE_IDLE);
 
-    /* Verify transition count */
-    assert_int_equal(g_ctx.transition_count, 8);
+    /* Verify transition count: one per event above (7) */
+    assert_int_equal(g_ctx.transition_count, 7);
 }
 
 /*===========================================================================*/

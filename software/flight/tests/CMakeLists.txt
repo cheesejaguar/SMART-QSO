@@ -175,6 +175,73 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_uart_comm.c")
 endif()
 
 #===========================================================================
+# Shared flight library for module tests
+#
+# Tests below link against all flight sources except the executive
+# (main.c) and the two units that do not yet compile (system_init.c,
+# yaml_parser.c - see docs/funding_audit/FINDINGS_REGISTER.md). The
+# static library only pulls in the objects each test needs.
+#===========================================================================
+set(FLIGHT_LIB_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/adcs_control.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/assert_handler.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_handler.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/input_validation.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/safe_string.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/scheduler.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/state_machine.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/system_state.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/telemetry.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/watchdog_mgr.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/hal/hal_sim.c
+)
+add_library(flight_test_lib STATIC ${FLIGHT_LIB_SOURCES})
+target_compile_options(flight_test_lib PRIVATE ${TEST_COMPILE_OPTIONS})
+
+# Module tests: name, label
+set(MODULE_TESTS
+    "test_assert_handler\;assert"
+    "test_deployment\;deployment"
+    "test_flight_log\;log"
+    "test_input_validation\;validation"
+    "test_safe_string\;string"
+    "test_state_machine\;state"
+    "test_system_state\;state"
+    "test_watchdog_mgr\;watchdog"
+)
+foreach(entry ${MODULE_TESTS})
+    list(GET entry 0 test_name)
+    list(GET entry 1 test_label)
+    add_executable(${test_name} ${test_name}.c)
+    target_link_libraries(${test_name} flight_test_lib PkgConfig::CMOCKA m)
+    target_compile_options(${test_name} PRIVATE ${TEST_COMPILE_OPTIONS})
+    add_test(NAME ${test_name} COMMAND ${test_name})
+    set_tests_properties(${test_name} PROPERTIES
+        TIMEOUT 120
+        LABELS "unit;${test_label}"
+    )
+endforeach()
+
+#===========================================================================
+# Not registered (tracked in docs/funding_audit/FINDINGS_REGISTER.md):
+#   - test_adcs, test_beacon, test_scheduler, test_system_init,
+#     test_telemetry, test_telemetry_flow: written for Unity, which is not
+#     vendored; port to CMocka
+#   - integration/*, regression/*: reference APIs that no longer exist
+#   - test_main_simple.c: tests local copies of structs, not flight code
+#===========================================================================
+
+#===========================================================================
 # Test: Legacy Main Tests (DISABLED - superseded by proper module tests)
 #===========================================================================
 # NOTE: test_main.c is obsolete legacy code with many issues.

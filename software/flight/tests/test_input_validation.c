@@ -374,7 +374,7 @@ static void test_validate_alignment(void **state)
     (void)state;
 
     bool is_valid;
-    uint32_t aligned_var;
+    uint32_t aligned_var = 0U;
     uint8_t byte_array[10];
 
     /* 4-byte aligned pointer */
