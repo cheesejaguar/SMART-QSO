@@ -7,6 +7,7 @@
 # - Payload (Jetson) and ground software unit tests
 # - Orbital lifetime estimator tests (supports the ODAR / 47 CFR 97.207(g))
 # - Documentation reference integrity (no links to non-existent artifacts)
+# - Secret scan (no keys or private-key material in tracked files)
 ###############################################################################
 
 name: Program Checks
@@ -50,6 +51,9 @@ jobs:
         working-directory: software/simulation/orbit_lifetime
         run: python -m pytest -q
 
+      - name: Repository script tests
+        run: python -m pytest -q scripts/tests
+
   docs-integrity:
     name: Documentation Reference Integrity
     runs-on: ubuntu-latest
@@ -60,3 +64,14 @@ jobs:
 
       - name: Check documentation references
         run: python3 scripts/check_doc_references.py
+
+  secret-scan:
+    name: Secret Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Scan tracked files for keys
+        run: python3 scripts/check_secrets.py

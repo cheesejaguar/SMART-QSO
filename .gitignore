@@ -85,4 +85,10 @@ requirements*.txt.bak
 .ipynb_checkpoints/
 software/simulation/notebooks/*.ipynb
 
-
+# Telecommand keys and other secrets must never be committed
+# (scripts/check_secrets.py enforces this in CI)
+*.key
+*.pem
+*.p12
+*.pfx
+keys/
