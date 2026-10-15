@@ -1,5 +1,9 @@
 # AI-PDR-FEEDBACK for SMART-QSO Mission
 
+> **Funding audit notice (2026-10-14):** this feedback was produced by an AI model, not by NASA or
+> any independent review board, and its findings were never dispositioned. It is retained as a record
+> of the design-risk concerns it raised (several remain open; see `docs/funding_audit/FINDINGS_REGISTER.md`).
+
 **To:** SMART-QSO Engineering Team
 **From:** NASA EDR Agent (AI Reviewer)
 **Date:** 2025-08-19

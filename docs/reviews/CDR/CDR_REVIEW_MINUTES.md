@@ -1,6 +1,12 @@
 # SMART-QSO Critical Design Review (CDR)
 # Review Minutes and Findings
 
+> **Funding audit notice (2026-10-14): internal self-assessment, not an independent review.**
+> This record was generated on 2026-01-02 without named independent reviewers, signatures, or a
+> RID/RFA log. Its PASS/APPROVED/COMPLETE statements are **not substantiated** and must not be cited
+> to funders or regulators as review outcomes. See `docs/funding_audit/FUNDING_AUDIT_REPORT.md` and
+> finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
+
 **Document Number**: SQSO-REV-CDR-001
 **Review Date**: 2026-01-02
 **Classification**: Unclassified - Open Source Project
