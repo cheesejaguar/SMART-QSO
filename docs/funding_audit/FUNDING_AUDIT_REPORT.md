@@ -35,8 +35,8 @@ The concept is technically plausible as a duty-gated transponder with a power-ga
 under conditions this audit defines: deployable wings, ≤ 10 % AI duty, a ≤ 500 km orbit, and a demonstrated Jetson heat
 path. A credible path to a 2028 launch exists if funding and a launch reservation are secured by mid-2027 (§7).
 
-**Findings:** 103 total. 19 Critical, 46 High, 32 Medium, 6 Low. 10 are closed and 58 partially closed by this audit's
-changes; 34 remain open. Full register with file:line evidence: [FINDINGS_REGISTER.md](FINDINGS_REGISTER.md).
+**Findings:** 103 total. 19 Critical, 46 High, 32 Medium, 6 Low. 10 are closed and 59 partially closed by this audit's
+changes; 33 remain open. Full register with file:line evidence: [FINDINGS_REGISTER.md](FINDINGS_REGISTER.md).
 
 ## 2. Scope and Method
 
@@ -59,7 +59,7 @@ primary source are labeled ROM.
 | Program management & integrity | **Red** | No PI, licensee, team, budget or dated schedule; self-generated reviews; false affiliation and status claims (PI-01…PI-14) |
 | Mission definition & technical baseline | **Red → Amber** | Three mission definitions and four power families (PI-13, TB-01). The audit proposes a single baseline ([BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md)) pending PI approval |
 | Power / thermal feasibility of the AI payload | **Amber** | Closes on allocation with wings and ≤ 10 % duty (TB-02). The thermal path is unproven (≈ 0.44 W/K documented vs ≥ 1 W/K needed, TB-07) |
-| Flight software | **Red** | Host simulation only; no RTOS or target port (SW-01). The 45-min RF silence is now implemented in simulation (SW-05). Authenticated telecommand, key management and a latched TX-OFF now work end to end in simulation from the receiver HAL; the target receiver driver and hardware verification are open. After the audit: 24 suites, 354 tests passing; overall line coverage was 44.5 % before the telecommand work (not re-measured on the same basis) |
+| Flight software | **Red** | Host simulation only; no RTOS or target port (SW-01). The 45-min RF silence is now implemented in simulation (SW-05). Authenticated telecommand, key management and a latched TX-OFF now work end to end in simulation from the receiver HAL; the target receiver driver and hardware verification are open. After the audit: 24 suites, 359 tests passing; overall line coverage was 44.5 % before the telecommand work (not re-measured on the same basis) |
 | Payload & ground software | **Amber** | 143 payload and 98 ground tests now pass in CI. The OBC–Jetson protocol is implemented three incompatible ways (SW-24); AI text needs content controls (SW-12) |
 | Verification & test program | **Red** | Hardware results claimed with no hardware; requirements traceability broken (2 of 29 trace cleanly); test levels inconsistent with GEVS/CDS/provider (VV-01, VV-06, VV-10) |
 | Safety & mission assurance | **Red** | Catastrophic battery hazard closed without test; inhibits do not meet CDS (3+3); no battery safety program (VV-03…VV-05) |
@@ -201,7 +201,10 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
     - 45-minute post-deployment RF silence: whole radio unpowered; a power-on reset or switch toggle restarts it; a
       watchdog reset never shortens it; no telecommand can shorten it; the GSE re-arms it as the last action before
       shipping
-    - 10 new suites (14 → 24 suites; 243 → 354 tests)
+    - deployment sequence (SW-10): persisted and reset-safe, separate burn and sense lines per element, attempts
+      persisted before each burn and bounded across resets, the 30-minute wait restarted by a power-on reset or switch
+      toggle; one GSE `ARM_FLIGHT` action re-arms the RF silence and the deployment
+    - 10 new suites (14 → 24 suites; 243 → 359 tests)
 - **Analysis tools:** NRLMSIS 2.1 orbital lifetime estimator with tests (`software/simulation/orbit_lifetime/`).
 - **CI:** new "Program Checks" workflow runs payload, ground and simulation tests, plus a documentation-reference
   integrity check, on every pull request. Previously docs/payload/ground PRs ran no checks. The duplicate workflow name
@@ -211,7 +214,7 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
 
 **Flagged, not changed:**
 
-- Flight-software functional gaps (SW-01, SW-08, SW-10, SW-13…SW-16; the open parts of SW-02, SW-05 and SW-14, chiefly
+- Flight-software functional gaps (SW-01, SW-08, SW-13…SW-16; the open parts of SW-02, SW-05, SW-10 and SW-14, chiefly
   the target receiver driver, which waits on the transceiver selection, and running TP-RF-006 on hardware)
 - The OBC–Jetson protocol mismatch (SW-24)
 - Subsystem design documents that still carry superseded values (TB findings)

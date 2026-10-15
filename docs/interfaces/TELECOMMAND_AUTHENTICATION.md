@@ -1,7 +1,7 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.4 (Draft)
+**Version**: 0.5 (Draft)
 **Date**: 2026-10-15
 **Status**: Draft. Implemented and tested in the host simulation. Not yet run on target hardware (Section 10).
 
@@ -159,10 +159,10 @@ No RF signal may be generated or transmitted until 45 minutes after deployment, 
 | Blank or corrupt record | Count from 0 |
 | Completion | Persists across later resets of any kind |
 | `hal_reset_cause()` | Read once after boot; the MCU's sticky reset flags are cleared and the result cached (`hal_reset.h`) |
-| Bench testing | Completes the silence, and completion persists. So **GSE `ARM_RF_SILENCE` (0x04, umbilical only; `key_provision.py arm-rf-silence`) must be the last powered action before integration** (TP-FAT-002 §6.7, PRE_SHIP_CHECKLIST). ARMED does not count while powered; the count starts at the next boot. Any power-up after ARM that lasts 40 minutes or more requires re-arming. The state is printed at every boot |
-| Switch polarity | Follows `deployment.c` (pull-up, high = stowed) and is **TBR** against the separation-switch schematic (SW-10). Inverted polarity on orbit would restart the count forever: fail safe, but mission-ending. The pre-ship check confirms that released switches read as released |
+| Bench testing | Completes the silence, and completion persists. So **GSE `ARM_FLIGHT` (0x04, umbilical only; `key_provision.py arm-flight`) must be the last powered action before integration**. It re-arms the silence and the deployment sequence together (TP-FAT-002 §6.7, PRE_SHIP_CHECKLIST). ARMED does not count while powered; the count starts at the next boot. Any power-up after ARM that lasts 25 minutes or more requires re-arming (the deployment wait is 30 minutes). The state is printed at every boot |
+| Switch polarity | Defined once in `separation_switch.c` (pull-up, high = stowed), shared with the deployment sequence, and **TBR** against the separation-switch schematic. Inverted polarity on orbit would restart the count forever: fail safe, but mission-ending. The pre-ship check confirms that released switches read as released |
 | Target | Same time-base dependency as Section 6.2 (SW-01) |
-| Not changed | `deployment.c`'s 30-minute deployable timer is also subject to CDS §2.3.2.4. That is finding SW-10 |
+| Deployables | The 30-minute deployable timer (`deployment.c`, SYS-221) follows the same reset rules and is persisted; burns are bounded across resets (finding SW-10) |
 
 `rf_control` combines three independent inhibits: the TX-OFF latch, loss of contact, and RF silence. The transmitter is enabled only when all three are clear. Only the silence removes radio power.
 | Target | `contact_monitor_tick()` needs a monotonic time source. `smart_qso_now_ms()` is not implemented on target yet (SW-01) |
@@ -258,7 +258,7 @@ reply: "SQGR" | status (1)    0 OK, 1 locked (no umbilical), 2 bad frame, 3 bad 
 | 0x01 PROVISION | Write a key: slots 0–3 as spares, slot 4 as the recovery key (recovery counter reset to 0) |
 | 0x02 ACTIVATE | Make a spare the active operational key, revoking any other active key (same code path as `KEY_ROTATE`) |
 | 0x03 ZEROIZE | Erase the key table |
-| 0x04 ARM_RF_SILENCE | Re-arm the 45-minute post-deployment silence (Section 6.3); last powered action before integration |
+| 0x04 ARM_FLIGHT | Re-arm the 45-minute post-deployment silence (Section 6.3) and the deployment sequence (`deployment.h`); last powered action before integration |
 
 Procedure:
 
@@ -369,7 +369,7 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | Receiver frame to TX-OFF end to end | Test (simulation) | `test_received_tx_disable_silences_station` |
 | Keys load only through the umbilical | Test (simulation) | `test_locked_without_umbilical`, `test_poll_reads_umbilical_uart` |
 | Loss-of-contact inhibit: timeout, contact rules, reset loop, corrupt counter | Test (simulation) | `test_contact_monitor.c`, `test_authentic_command_restores_contact`, `test_unauthenticated_frames_are_not_contact` |
-| RF silence: 45 min, reset rules, switch toggle, ARM, no command shortens it | Test (simulation) | `test_rf_silence.c`, `test_arm_rf_silence` |
+| RF silence: 45 min, reset rules, switch toggle, ARM, no command shortens it | Test (simulation) | `test_rf_silence.c`, `test_arm_flight` |
 | No RF for 45 min across a mid-countdown reset, at the antenna port | Test (HIL) | TP-RF-006 §8.8, **pending hardware** |
 | TX-OFF removes RF output at the antenna port | Test (HIL) | TP-RF-006, **pending hardware** |
 | Ground and flight agree byte for byte | Test | `test_frame_matches_ground_tool`, `TestAx25`, `TestFrame` |
@@ -382,3 +382,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.2 | 2026-10-15 | AX.25 receive path; key table, recovery key, KEY_ROTATE, GSE provisioning; TX-OFF without keys; generated dictionary; SET_MODE guards; SET_POWER |
 | 0.3 | 2026-10-15 | Loss-of-contact inhibit (Section 6.2) and SET_CONTACT_TIMEOUT |
 | 0.4 | 2026-10-15 | Post-deployment RF silence (Section 6.3) and GSE ARM_RF_SILENCE |
+| 0.5 | 2026-10-15 | GSE 0x04 renamed ARM_FLIGHT: arms the RF silence and the deployment sequence together |

@@ -258,8 +258,8 @@ The OBC implements a dual-processor architecture:
 | PA3 | HEATER_EN | Output | LOW |
 | PA4 | SENSOR_EN | Output | HIGH |
 | PA5 | SPARE_EN | Output | LOW |
-| PB0 | DEPLOY_1 | Output | LOW |
-| PB1 | DEPLOY_2 | Output | LOW |
+| PB0 | DEPLOY_1 (`GPIO_PIN_ANTENNA_BURN`, TBR) | Output, pull-down | LOW |
+| PB1 | DEPLOY_2 (`GPIO_PIN_SOLAR_BURN`, TBR) | Output, pull-down | LOW |
 | PB2 | DEPLOY_SENSE | Input | - |
 | PC0 | JETSON_RDY | Input | - |
 | PC1 | EPS_INT | Input | - |
@@ -267,8 +267,11 @@ The OBC implements a dual-processor architecture:
 | PC3 | LED_STATUS | Output | LOW |
 | TBD | RF_TX_EN | Output, pull-down | LOW (PA off until `rf_control_init()` restores the TX-OFF latch) |
 | TBD | UMBILICAL_SENSE | Input, pull-down | GSE connector drives high; enables key provisioning (SQSO-ICD-013 §9.2) |
+| TBD | DEPLOY_EN (master arm) | Output, pull-down | LOW; a burn needs this **and** DEPLOY_1/2 high |
+| TBD | ANTENNA_SENSE | Input, pull-down | High = antenna deployed (TBR) |
+| TBD | SOLAR_SENSE | Input, pull-down | High = solar array deployed (TBR) |
 
-*RF_TX_EN and UMBILICAL_SENSE added 2026-10-15 to match `hal_gpio.h`; pins to be assigned in the OBC schematic.*
+*RF_TX_EN, UMBILICAL_SENSE, DEPLOY_EN and the two deployment sense lines added 2026-10-15 to match `hal_gpio.h`; pins to be assigned in the OBC schematic. Before this, the software fired both burn wires from one line and read both deployables from the separation-switch line (finding SW-10).*
 
 ### 4.5 ADC Channels
 

@@ -89,7 +89,8 @@ Address Range       | Size    | Content
 0x0C400 - 0x0C6FF   | 768 B   | Telecommand key table (§6.5)
 0x0C700 - 0x0C7FF   | 256 B   | Loss-of-contact counter and timeout (§6.5)
 0x0C800 - 0x0C87F   | 128 B   | Post-deployment RF-silence state (§6.5)
-0x0C880 - 0x0FFFF   | 13.9 KB | Event log (reduced from 15 KB for the key table, contact and silence records)
+0x0C880 - 0x0C8FF   | 128 B   | Deployment sequence state (§6.5)
+0x0C900 - 0x0FFFF   | 13.75 KB| Event log (reduced from 15 KB for the key table, contact, silence and deployment records)
 0x10000 - 0x1FFFF   | 64 KB   | Telemetry buffer
 0x20000 - 0x3FFFF   | 128 KB  | Extended storage
 ```
@@ -381,6 +382,7 @@ The telecommand key table (`FLASH_REGION_AUTH`, 768 B) and RF control (`FLASH_RE
 | Contact | 0 | Seconds without contact (written every 60 s) |
 | Contact | 128 | Loss-of-contact timeout (days) |
 | RF silence | 0 | State (armed, counting, complete) and seconds counted (written every 60 s while counting) |
+| Deployment | 0 | State, attempts per element, deployed/enabled/separated flags, wait seconds (written on every transition, before every burn, and every 60 s while waiting) |
 | Key table | 0 | State: active operational slot and its counter |
 | Key table | 128 | Recovery key, ID and counter |
 | Key table | 256 + 128 × n | Operational key n (0–3): key, ID, spare/active/revoked |
@@ -394,6 +396,7 @@ Unlike the data in §6.3, these records do **not** fall back to defaults when co
 | Seconds without contact | 0 (first boot) | Timed out: transmitters inhibited until contact |
 | Contact timeout | Default (placeholder 14 days) | Default |
 | RF silence | Count from 0 (silent 45 min) | Count from 0 (silent 45 min) |
+| Deployment | Start over (30-min wait) | Start over with zero attempts, fault logged; sense lines skip deployed elements |
 | Key-table state or active key | No operational key: operational commands rejected | Same; fault logged; recover with KEY_ROTATE (recovery key) |
 | Recovery key | No recovery key | Same; fault logged |
 | No usable key at all | Only TX_DISABLE accepted (unauthenticated) | Same |
@@ -411,3 +414,4 @@ The interface is defined in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTIC
 | 1.2 | 2026-10-15 | Key table (768 B, carved from the event log) and TX power-level record (§3.3, §6.5) |
 | 1.3 | 2026-10-15 | Loss-of-contact records (256 B, carved from the event log) |
 | 1.4 | 2026-10-15 | RF-silence record (128 B, carved from the event log) |
+| 1.5 | 2026-10-15 | Deployment record (128 B, carved from the event log) |

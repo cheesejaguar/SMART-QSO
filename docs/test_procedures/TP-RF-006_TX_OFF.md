@@ -147,7 +147,7 @@ Monitor the downlink frequency and its harmonics, and the receiver's local-oscil
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 23g | Send `arm-rf-silence` through the umbilical; power off; disconnect the umbilical | Reply `SQGR 00` before power-off | |
+| 23g | Send `arm-flight` through the umbilical; power off; disconnect the umbilical | Reply `SQGR 00` before power-off | |
 | 23h | Apply power with the deployment switches released (simulated deployment); start a timer | Boot log `state=COUNTING elapsed=0s`; radio and transmitter unpowered; no signal | |
 | 23i | At 30 min, force a watchdog reset (debug command or by withholding the watchdog kick) | Silent; boot log shows the count resumed (about 1,800 s) | |
 | 23j | At 40 min, remove and restore power (switch toggle) | Silent; count restarts at 0 | |

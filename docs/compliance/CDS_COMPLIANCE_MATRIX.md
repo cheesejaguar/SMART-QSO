@@ -110,8 +110,8 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | Requirement | CDS Spec | SMART-QSO Design | Status |
 |-------------|----------|------------------|--------|
 | RF silence (§2.4.5) | No signal generated or transmitted earlier than **45 minutes** after on-orbit deployment | 45 minutes (SYS-224); implemented in flight software, whole radio unpowered (`rf_silence.c`, SQSO-ICD-013 §6.3). Simulation-tested; hardware test TP-RF-006 §8.8 pending (SW-05) | **Partial** |
-| Deployables (§2.4.4) | Wait **≥ 30 minutes** after deployment-switch activation | 30 minutes (`software/flight/include/deployment.h`; SYS-221) | Design intent; not verified |
-| Timer reset (§2.3.2.4) | Switch toggle resets transmission and deployable timers | Transmission timer: implemented (power-on reset or stowed switch restarts the count; SYS-224). Deployable timer (`deployment.c`): not implemented (SW-10) | **Partial** |
+| Deployables (§2.4.4) | Wait **≥ 30 minutes** after deployment-switch activation | 30 minutes (`deployment.c`, SYS-221): persisted, reset-safe and bounded across resets in simulation; burn-wire HIL pending (SW-10) | **Partial** |
+| Timer reset (§2.3.2.4) | Switch toggle resets transmission and deployable timers | Transmission timer (SYS-224) and deployable timer (SYS-221): implemented in simulation (power-on reset or stowed switch restarts the count); hardware verification pending | **Partial** |
 
 ### 5.2 RF Emissions
 

@@ -143,7 +143,7 @@ This procedure verifies that the flight unit is configured correctly for launch 
 | 1 | Verify RBF pin installed | Pin in place | |
 | 2 | Verify deployment inhibit | Status = inhibited | |
 | 3 | Verify separation switch | Not actuated | |
-| 4 | Remove RBF momentarily | Inhibit clears | |
+| 4 | Remove RBF momentarily (under 5 min; a powered unit fires burn wires 30 min after any boot unless the hardware inhibits hold deployment power off) | Inhibit clears | |
 | 5 | Re-install RBF pin | Inhibit active | |
 | 6 | Verify deployment switches released read released (RF-silence count advances) | Polarity confirmed (SQSO-ICD-013 §6.3, TBR) | |
 
@@ -170,15 +170,15 @@ This procedure verifies that the flight unit is configured correctly for launch 
 
 ---
 
-### 6.7 Flight Arming of the RF Silence (last powered action)
+### 6.7 Flight Arming of the RF Silence and Deployment (last powered action)
 
-Bench power-ups complete the 45-minute silence, and completion persists. Arm it last (SQSO-ICD-013 §6.3).
+Bench power-ups can complete the 45-minute silence and the deployment sequence, and both persist. Arm them last (SQSO-ICD-013 §6.3, `deployment.h`).
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | With the umbilical connected, send `key_provision.py arm-rf-silence` frame | Reply `SQGR 00` | |
+| 1 | With the umbilical connected, send the `key_provision.py arm-flight` frame (arms RF silence and deployment) | Reply `SQGR 00` | |
 | 2 | Power off | Done; time recorded | |
-| 3 | Any later power-up of 40 minutes or more | Repeat steps 1–2 before integration | |
+| 3 | Any later power-up of 25 minutes or more | Repeat steps 1–2 before integration | |
 
 ## 7. PASS/FAIL CRITERIA
 
