@@ -1,8 +1,8 @@
 {
   "version": "1.0.0-development",
-  "built_at_utc": "2026-10-15T05:14:45.901034+00:00",
+  "built_at_utc": "2026-10-15T05:23:17.090596+00:00",
   "original_source_commit": "05788335d09202c391f8d970e7d6562ebe315893",
-  "source_tree_sha256": "39314db73112ee6a42c773a0269efe742b79ad12a1c48f3bc2ae1e8ab1566c85",
+  "source_tree_sha256": "b1d5d2f5c748d5e46c2b1de775b7caaae864a4c130cbdaf15365b61155c28710",
   "source_files": [
     {
       "path": ".clang-format",
@@ -514,7 +514,7 @@
     },
     {
       "path": "docs/resurrection/FINAL_REVIEW.md",
-      "sha256": "1b1884c24630750e133ccec961d4048eaf5690aac1a2102d30eeed89c860dddb"
+      "sha256": "8e46c91b11b5a0611c77fe069291bc348225ac3682f61b957789339df7631268"
     },
     {
       "path": "docs/resurrection/FIRMWARE_UPDATES.md",
@@ -526,7 +526,7 @@
     },
     {
       "path": "docs/resurrection/IMPLEMENTATION_REPORT.md",
-      "sha256": "8801d82b1cf14826d055064218c435d749231de5dc84479af9d2b00fd8df2261"
+      "sha256": "840d7422cf782516d23c72a0feae915cfb754f15845f68c4a40c6332c766d726"
     },
     {
       "path": "docs/resurrection/INTERFACES.md",
@@ -534,7 +534,7 @@
     },
     {
       "path": "docs/resurrection/MISRA_RESOLUTION.md",
-      "sha256": "94c6dabd82bafeac262762bb389ab7f6a2795892efb4f0d8318dc0181ce2d5a5"
+      "sha256": "33a0c483c0beadc9e4e13f8707a96e40462e86caabcca1de80b93e3213962aad"
     },
     {
       "path": "docs/resurrection/PAYLOAD_INTEGRATION.md",
@@ -1038,7 +1038,7 @@
     },
     {
       "path": "mission/current/final_review.json",
-      "sha256": "4f284843c2ccd228adedb6cb2013410d5f50e8cd120e13e8bdc89aab9b8d3101"
+      "sha256": "ccffa1017838b9fb5815a42e4e601ccdbc19c1801e83eca92f84df8ecbd3dd7e"
     },
     {
       "path": "mission/current/findings.json",
@@ -1138,7 +1138,7 @@
     },
     {
       "path": "software/common/protocol.py",
-      "sha256": "466f2a41f18415d786e001e4b14f93111984e64c00a86ba4af459a182ab34128"
+      "sha256": "066ab9ad1f4e799bd68831e83561fe509ff2c49a4ea54cd1481b45c626925c6b"
     },
     {
       "path": "software/common/protocol_generated.py",
@@ -1154,7 +1154,7 @@
     },
     {
       "path": "software/common/tests/test_final_review.py",
-      "sha256": "38bd3168a2e8f8557ce0b82b46fded31d9a908758efbe35f2a5d5c3d1c75ebb2"
+      "sha256": "322261f1a03fb23ab35126ccacc57ce9fca87e0325e63088c5e93faa9c732fed"
     },
     {
       "path": "software/common/tests/test_mission_system.py",
@@ -2098,7 +2098,7 @@
     },
     {
       "path": "software/web/public/src/styles/global.css",
-      "sha256": "69fe7e11e5d62d8f0ad80e0c49aa6ab5ba5f36706b9d352171e9a07a4e0b8e16"
+      "sha256": "a977860a0d933bfa3f19bc7afe742ec70342c9bf6415a8485faa8b1e531e6214"
     },
     {
       "path": "software/web/public/src/urls.ts",
@@ -2208,13 +2208,13 @@
   "source_tree_included": true,
   "test_reports": {
     "pytest": {
-      "tests": 409,
+      "tests": 411,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
       "disabled": 0,
       "path": "output/verification/pytest.xml",
-      "sha256": "bd64f8476a1595c9398fe57f471383e5ed0d1c99b5a37b532419e166a615350a"
+      "sha256": "c8c168b13f05a2e072e29ff5afcfe1c439b98a05553af4460c54fc7f3358dc00"
     },
     "ctest": {
       "tests": 31,
@@ -2267,7 +2267,7 @@
     {
       "path": "output/release/sbom.cdx.json",
       "bytes": 200789,
-      "sha256": "452f757db52a960f0fd00050a89197cc1f002ceaf6fe3efe305feda34969a91e"
+      "sha256": "15dc0db740d01d86cbc435626b2a13b850dc84fb2dfd0227a8e72b6ceeff247b"
     },
     {
       "path": "uv.lock",
@@ -2317,7 +2317,7 @@
     {
       "path": "docs/resurrection/MISRA_RESOLUTION.md",
       "bytes": 5927,
-      "sha256": "94c6dabd82bafeac262762bb389ab7f6a2795892efb4f0d8318dc0181ce2d5a5"
+      "sha256": "33a0c483c0beadc9e4e13f8707a96e40462e86caabcca1de80b93e3213962aad"
     },
     {
       "path": "docs/resurrection/FIRMWARE_UPDATES.md",
@@ -2337,7 +2337,7 @@
     {
       "path": "mission/current/artifact_inventory.json",
       "bytes": 497287,
-      "sha256": "08052ca03d5ab5ca3ae0fa9dbecde9cef10a821f43b8b9cbfae603861af76bf8"
+      "sha256": "a2e37325f844989f18a8db6498f46ec710baa0f19152b49d76dc1bfb15c25e6e"
     },
     {
       "path": "docs/resurrection/AUDIT_REPORT.md",
@@ -2487,7 +2487,7 @@
     {
       "path": "output/verification/verification.json",
       "bytes": 3783,
-      "sha256": "aa74cf4941b481b41b52130b4a9b44b3d7610cf6b799e9bba1b5bd1ef0ea1336"
+      "sha256": "0729c4d8c8a4c90da64aaadab00ec506438d153b1d1f23902bba91e49003e161"
     },
     {
       "path": "output/verification/arm-analyzer.json",
@@ -2531,8 +2531,8 @@
     },
     {
       "path": "output/verification/pytest.xml",
-      "bytes": 57917,
-      "sha256": "bd64f8476a1595c9398fe57f471383e5ed0d1c99b5a37b532419e166a615350a"
+      "bytes": 58262,
+      "sha256": "c8c168b13f05a2e072e29ff5afcfe1c439b98a05553af4460c54fc7f3358dc00"
     },
     {
       "path": "output/verification/coverage.xml",
@@ -2541,8 +2541,8 @@
     },
     {
       "path": "output/verification/pytest-python311.xml",
-      "bytes": 57917,
-      "sha256": "cf0a110e22b6bca3be7857cfc230bd07a009a8d7f4e983b5e5b3be53209cd143"
+      "bytes": 58262,
+      "sha256": "775a06b62c92265bd3d68504ab00ccae368e7fe87c99e82ac85651a3222728d0"
     },
     {
       "path": "output/verification/misra.xml",

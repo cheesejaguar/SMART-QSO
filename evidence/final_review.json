@@ -111,7 +111,7 @@
       "title": "Static website was not deployable at a project URL",
       "severity": "medium",
       "mission_consequence": "Broken assets/routes and a console without its required local service would make the public mission unusable.",
-      "corrective_action": "Generate base-aware URLs, static evidence/research pages, local-console guidance and source downloads; validate all local assets/anchors; publish only read-only static files.",
+      "corrective_action": "Generate base-aware URLs, static evidence/research pages, local-console guidance and source downloads; validate all local assets/anchors; publish only read-only static files. Contain the decorative orbital paths after live Chromium found 43 pixels of desktop horizontal overflow.",
       "owner": "Ground/public software lead",
       "evidence": [
         "software/web/public/src/urls.ts",
