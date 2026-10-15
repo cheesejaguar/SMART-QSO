@@ -1,0 +1,62 @@
+###############################################################################
+# SMART-QSO Program Checks
+#
+# Runs on every pull request and on pushes to main, regardless of which paths
+# changed, so documentation-only and regulatory changes are also gated.
+#
+# - Payload (Jetson) and ground software unit tests
+# - Orbital lifetime estimator tests (supports the ODAR / 47 CFR 97.207(g))
+# - Documentation reference integrity (no links to non-existent artifacts)
+###############################################################################
+
+name: Program Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  python-tests:
+    name: Payload, Ground and Simulation Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -e software/payload
+          pip install -r software/simulation/orbit_lifetime/requirements.txt
+
+      - name: Payload tests
+        run: python -m pytest -q software/payload/tests
+
+      - name: Ground tests
+        run: python -m pytest -q software/ground/tests
+
+      - name: Orbital lifetime tests
+        working-directory: software/simulation/orbit_lifetime
+        run: python -m pytest -q
+
+  docs-integrity:
+    name: Documentation Reference Integrity
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check documentation references
+        run: python3 scripts/check_doc_references.py

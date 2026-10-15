@@ -9,7 +9,7 @@
 # - Unit test execution
 # - Code coverage reporting
 
-name: Flight Software CI
+name: Flight Software CI (Extended)
 
 on:
   push:
@@ -21,6 +21,7 @@ on:
     branches: [ main, develop ]
     paths:
       - 'software/flight/**'
+      - '.github/workflows/flight-software-ci.yml'
 
 env:
   BUILD_TYPE: Release

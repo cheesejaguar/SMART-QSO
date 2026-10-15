@@ -425,7 +425,7 @@ All project documentation and processes shall comply with:
 
 ### 5.2 Watchdog Implementation
 - [x] **Implement proper watchdog**: Replace simulation with proper implementation:
-  - [x] Create `software/flight/src/hal/hal_watchdog.h` with hardware abstraction
+  - [x] Create `software/flight/include/hal/hal_wdt.h` with hardware abstraction (path corrected by audit 2026-10-14)
   - [x] Implement task-level watchdog monitoring
   - [x] Implement multi-stage watchdog (warning → reset)
   - [x] Add watchdog kick timing validation
@@ -596,7 +596,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] Schedule and resources
 
 #### 6.5.2 Software Test Procedures
-- [x] **Create Test Procedures**: Create `docs/software/SOFTWARE_TEST_PROCEDURES.md`:
+- [x] **Create Test Procedures**: Create `docs/verification/TEST_PROCEDURES.md` (path corrected by audit 2026-10-14):
   - [x] Step-by-step test procedures for each test case
   - [x] Expected results and pass/fail criteria
   - [x] Test setup and teardown procedures
@@ -940,13 +940,13 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] `hal_watchdog.h` - Watchdog interface
   - [x] `hal_flash.h` - Flash storage interface
 
-- [x] **Create Linux HAL implementation**: `software/flight/src/hal/hal_linux.c`
+- [x] **Create Linux HAL implementation**: `software/flight/src/hal/hal_sim.c` (path corrected by audit 2026-10-14)
   - [x] Wrap current Linux-specific code
   - [x] Use for development/simulation
 
-- [x] **Create FreeRTOS HAL stubs**: `software/flight/src/hal/hal_freertos.c`
-  - [x] Interface stubs for flight implementation
-  - [x] Document implementation requirements
+- [ ] **Create FreeRTOS HAL stubs**: software/flight/src/hal/hal_freertos.c (audit 2026-10-14: file not present in repository; see docs/funding_audit/FINDINGS_REGISTER.md)
+  - [ ] Interface stubs for flight implementation
+  - [ ] Document implementation requirements
 
 ### 11.2 Platform Abstraction
 - [x] **Abstract time functions**:
@@ -964,11 +964,11 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   ```
 
 ### 11.3 FreeRTOS Integration Preparation
-- [x] **Create RTOS abstraction**: Create `software/flight/include/rtos_abstraction.h`:
-  - [x] Task creation/deletion wrappers
-  - [x] Mutex/semaphore wrappers
-  - [x] Queue wrappers
-  - [x] Timer wrappers
+- [ ] **Create RTOS abstraction**: Create software/flight/include/rtos_abstraction.h (audit 2026-10-14: file not present in repository; see docs/funding_audit/FINDINGS_REGISTER.md):
+  - [ ] Task creation/deletion wrappers
+  - [ ] Mutex/semaphore wrappers
+  - [ ] Queue wrappers
+  - [ ] Timer wrappers
 
 - [x] **Document FreeRTOS task structure**: Create `software/flight/docs/RTOS_ARCHITECTURE.md`:
   - [x] Define task priorities
@@ -994,7 +994,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] Define mitigation for high-RPN items
 
 ### 12.2 Code Inspection Checklists
-- [x] **Create inspection checklists**: Create `docs/review/CODE_REVIEW_CHECKLIST.md`:
+- [x] **Create inspection checklists**: Create `docs/development/CODE_REVIEW_CHECKLIST.md` (path corrected by audit 2026-10-14):
   - [x] Coding standard compliance
   - [x] Error handling completeness
   - [x] Input validation
@@ -1003,7 +1003,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] Comments and documentation
 
 ### 12.3 Test Procedure Documentation
-- [x] **Document test procedures**: Create `software/flight/tests/TEST_PROCEDURES.md`:
+- [x] **Document test procedures**: Create `software/flight/tests/README.md` (path corrected by audit 2026-10-14):
   - [x] Unit test execution procedure
   - [x] Integration test procedure
   - [x] Regression test procedure
@@ -1836,7 +1836,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Health data transmission (OBC → Jetson)
   - [x] Beacon text reception (Jetson → OBC)
   - [x] Timeout handling
-  - [x] Integration tests in `software/tests/integration/test_obc_jetson.c`
+  - [ ] Integration tests in software/tests/integration/test_obc_jetson.c (audit 2026-10-14: file not present in repository; see docs/funding_audit/FINDINGS_REGISTER.md)
 
 #### 17.3.2 End-to-End Beacon Flow
 - [x] **Implement E2E beacon generation**:
