@@ -21,6 +21,7 @@
 #include "cmd_handler.h"
 #include "cmd_auth.h"
 #include "rf_control.h"
+#include "contact_monitor.h"
 #include "system_state.h"
 #include "state_machine.h"
 #include "fault_mgmt.h"
@@ -114,9 +115,11 @@ static int setup(void **state)
     assert_int_equal(hal_flash_init(), SMART_QSO_OK);
     assert_int_equal(hal_flash_erase(FLASH_REGION_AUTH), SMART_QSO_OK);
     assert_int_equal(hal_flash_erase(FLASH_REGION_RF_CONTROL), SMART_QSO_OK);
+    assert_int_equal(hal_flash_erase(FLASH_REGION_CONTACT), SMART_QSO_OK);
     assert_int_equal(sys_state_init(), SMART_QSO_OK);
     assert_int_equal(sm_force_state(sys_get_sm_context(), STATE_IDLE), SMART_QSO_OK);
     assert_int_equal(rf_control_init(), SMART_QSO_OK);
+    assert_int_equal(contact_monitor_init(), SMART_QSO_OK);
     assert_int_equal(cmd_handler_init(), SMART_QSO_OK);
     provision_test_key();
     assert_true(rf_control_tx_permitted());
@@ -374,7 +377,7 @@ static void test_every_dictionary_command(void **state)
         uint8_t args_len;
     } dictionary[] = {
         {CMD_SYS_NOP, 0U}, {CMD_SYS_RESET, 0U}, {CMD_SYS_SET_MODE, 1U},
-        {CMD_SYS_GET_STATUS, 0U}, {CMD_SYS_CLEAR_FAULTS, 0U},
+        {CMD_SYS_GET_STATUS, 0U}, {CMD_SYS_CLEAR_FAULTS, 0U}, {CMD_SYS_SET_CONTACT_TIMEOUT, 2U},
         {CMD_EPS_SET_MODE, 1U}, {CMD_EPS_GET_TELEMETRY, 0U},
         {CMD_ADCS_DETUMBLE, 0U}, {CMD_ADCS_GET_ATTITUDE, 0U},
         {CMD_COMM_SET_BEACON, 2U}, {CMD_COMM_TX_ENABLE, 0U}, {CMD_COMM_TX_DISABLE, 0U},
@@ -400,6 +403,10 @@ static void test_every_dictionary_command(void **state)
         if (id == (uint8_t)CMD_COMM_SET_BEACON) {
             args[0] = 0x00U;
             args[1] = 0x3CU;
+        }
+        if (id == (uint8_t)CMD_SYS_SET_CONTACT_TIMEOUT) {
+            args[0] = 0x00U;
+            args[1] = 0x0EU;  /* 14 days */
         }
 
         counter++;
@@ -530,6 +537,89 @@ static void test_set_power(void **state)
     assert_int_equal(rf_control_get_power_level(), RF_POWER_1W);
 }
 
+/** Let the loss-of-contact timeout expire */
+static void lose_contact(void)
+{
+    for (uint32_t d = 0U; d < contact_monitor_get_timeout_days(); d++) {
+        contact_monitor_tick(86400U * 1000U);
+    }
+    assert_true(contact_monitor_inhibited());
+    assert_false(rf_control_tx_permitted());
+}
+
+/** Any authentic command is contact, even one refused in the current state */
+static void test_authentic_command_restores_contact(void **state)
+{
+    (void)state;
+    uint8_t payload[CMD_AUTH_OVERHEAD + 2U];
+    uint8_t key[CMD_AUTH_KEY_SIZE];
+    const uint8_t beacon[2] = {0x00U, 0x3CU};
+
+    test_key_fill(key, 0x00U);
+    lose_contact();
+    assert_int_equal(sm_force_state(sys_get_sm_context(), STATE_EMERGENCY), SMART_QSO_OK);
+    assert_int_equal(send(CMD_COMM_SET_BEACON, payload,
+                          test_auth_payload(key, CMD_COMM_SET_BEACON, 1U, beacon, 2U, payload)),
+                     CMD_RESULT_NOT_ALLOWED);
+    assert_false(contact_monitor_inhibited());
+    assert_true(rf_control_tx_permitted());
+}
+
+/** Forged frames and the keyless TX_DISABLE are not contact */
+static void test_unauthenticated_frames_are_not_contact(void **state)
+{
+    (void)state;
+    uint8_t forged[CMD_AUTH_OVERHEAD];
+
+    memset(forged, 0xEE, sizeof(forged));
+    lose_contact();
+    assert_int_equal(send(CMD_SYS_GET_STATUS, forged, sizeof(forged)), CMD_RESULT_AUTH_FAIL);
+    assert_true(contact_monitor_inhibited());
+
+    /* Authentic but rejected before its counter is spent (wrong argument
+     * length): replayable, so it must not count as contact */
+    {
+        uint8_t key[CMD_AUTH_KEY_SIZE];
+        uint8_t payload[CMD_AUTH_OVERHEAD + 1U];
+        const uint8_t extra = 0x00U;
+        test_key_fill(key, 0x00U);
+        assert_int_equal(send(CMD_SYS_GET_STATUS, payload,
+                              test_auth_payload(key, CMD_SYS_GET_STATUS, 1U, &extra, 1U, payload)),
+                         CMD_RESULT_INVALID_PARAM);
+        assert_true(contact_monitor_inhibited());
+    }
+
+    /* No key at all: TX_DISABLE executes, but is still not contact */
+    assert_int_equal(hal_flash_erase(FLASH_REGION_AUTH), SMART_QSO_OK);
+    assert_int_equal(cmd_handler_init(), SMART_QSO_OK);
+    assert_int_equal(send(CMD_COMM_TX_DISABLE, forged, sizeof(forged)), CMD_RESULT_SUCCESS);
+    assert_true(contact_monitor_inhibited());
+}
+
+static void test_set_contact_timeout(void **state)
+{
+    (void)state;
+    uint8_t payload[CMD_AUTH_OVERHEAD + 2U];
+    uint8_t key[CMD_AUTH_KEY_SIZE];
+    uint8_t days[2] = {0x00U, 30U};
+
+    test_key_fill(key, 0x00U);
+    assert_int_equal(send(CMD_SYS_SET_CONTACT_TIMEOUT, payload,
+                          test_auth_payload(key, CMD_SYS_SET_CONTACT_TIMEOUT, 1U, days, 2U, payload)),
+                     CMD_RESULT_SUCCESS);
+    assert_int_equal(contact_monitor_get_timeout_days(), 30U);
+
+    days[1] = 0U;
+    assert_int_equal(send(CMD_SYS_SET_CONTACT_TIMEOUT, payload,
+                          test_auth_payload(key, CMD_SYS_SET_CONTACT_TIMEOUT, 2U, days, 2U, payload)),
+                     CMD_RESULT_INVALID_PARAM);
+    days[1] = CONTACT_TIMEOUT_MAX_DAYS + 1U;
+    assert_int_equal(send(CMD_SYS_SET_CONTACT_TIMEOUT, payload,
+                          test_auth_payload(key, CMD_SYS_SET_CONTACT_TIMEOUT, 3U, days, 2U, payload)),
+                     CMD_RESULT_INVALID_PARAM);
+    assert_int_equal(contact_monitor_get_timeout_days(), 30U);
+}
+
 static void test_authenticated_get_status(void **state)
 {
     (void)state;
@@ -564,6 +654,9 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_set_mode_obeys_transition_table, setup, teardown),
         cmocka_unit_test_setup_teardown(test_key_rotate_end_to_end, setup, teardown),
         cmocka_unit_test_setup_teardown(test_set_power, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_authentic_command_restores_contact, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_unauthenticated_frames_are_not_contact, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_set_contact_timeout, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Command Handler (Telecommand Path) Tests", tests, NULL, NULL);

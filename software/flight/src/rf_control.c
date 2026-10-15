@@ -36,6 +36,10 @@
 
 static bool s_initialized = false;
 static bool s_inhibited = true;
+
+/** Loss-of-contact inhibit (contact_monitor.c); not reset by rf_control_init()
+ *  so it can be set before the enable line is first driven */
+static bool s_contact_inhibit = false;
 static RfPowerLevel_t s_power_level = RF_POWER_0W5;
 
 /*******************************************************************************
@@ -83,7 +87,7 @@ SmartQsoResult_t rf_control_init(void)
         s_inhibited = (state_word != RF_STATE_PERMITTED);
     }
 
-    drive_tx_enable(!s_inhibited);
+    drive_tx_enable(!s_inhibited && !s_contact_inhibit);
 
     /* Power level: default 0.5 W unless a valid record says otherwise */
     uint32_t power_word = (uint32_t)RF_POWER_0W5;
@@ -118,7 +122,7 @@ SmartQsoResult_t rf_control_tx_on(void)
     SmartQsoResult_t result = persist_state(RF_STATE_PERMITTED);
 
     s_inhibited = false;
-    drive_tx_enable(true);
+    drive_tx_enable(!s_contact_inhibit);
     (void)fault_log_add(FAULT_TYPE_COMMAND, FAULT_SEVERITY_INFO,
                         (result == SMART_QSO_OK) ? "TX enabled" : "TX enabled, not persisted",
                         0.0);
@@ -128,7 +132,15 @@ SmartQsoResult_t rf_control_tx_on(void)
 
 bool rf_control_tx_permitted(void)
 {
-    return s_initialized && !s_inhibited;
+    return s_initialized && !s_inhibited && !s_contact_inhibit;
+}
+
+void rf_control_set_contact_inhibit(bool inhibit)
+{
+    s_contact_inhibit = inhibit;
+    if (s_initialized) {
+        drive_tx_enable(!s_inhibited && !s_contact_inhibit);
+    }
 }
 
 SmartQsoResult_t rf_control_set_power_level(RfPowerLevel_t level)

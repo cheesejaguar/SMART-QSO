@@ -91,7 +91,8 @@ static size_t s_flash_sizes[] = {
     1024,   /* BACKUP */
     512,    /* STATE (SystemState_t) */
     768,    /* AUTH (key table: CMD_AUTH_NVM_SIZE, six two-slot records) */
-    256     /* RF_CONTROL (TX latch and power-level records) */
+    256,    /* RF_CONTROL (TX latch and power-level records) */
+    256     /* CONTACT (loss-of-contact counter and timeout records) */
 };
 _Static_assert(sizeof(s_flash_sizes) / sizeof(s_flash_sizes[0]) == (size_t)FLASH_REGION_COUNT,
                "every flash region needs a simulated size");

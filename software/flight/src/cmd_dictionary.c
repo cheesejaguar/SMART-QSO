@@ -15,6 +15,7 @@ const CmdDictEntry_t g_cmd_dictionary[] = {
     { (uint8_t)CMD_SYS_GET_STATUS, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* GET_STATUS */
     { (uint8_t)CMD_SYS_CLEAR_FAULTS, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* CLEAR_FAULTS */
     { (uint8_t)CMD_SYS_KEY_ROTATE, 1U, 1U, CMD_KEY_RECOVERY, false }, /* KEY_ROTATE */
+    { (uint8_t)CMD_SYS_SET_CONTACT_TIMEOUT, 2U, 2U, CMD_KEY_OPERATIONAL, false }, /* SET_CONTACT_TIMEOUT */
     { (uint8_t)CMD_EPS_SET_MODE, 1U, 1U, CMD_KEY_OPERATIONAL, false }, /* EPS_SET_MODE */
     { (uint8_t)CMD_EPS_GET_TELEMETRY, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* EPS_GET_TELEMETRY */
     { (uint8_t)CMD_ADCS_DETUMBLE, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* ADCS_DETUMBLE */

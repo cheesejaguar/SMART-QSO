@@ -12,6 +12,7 @@
 #include "cmd_auth.h"
 #include "cmd_dictionary.h"
 #include "rf_control.h"
+#include "contact_monitor.h"
 #include "input_validation.h"
 #include "fault_mgmt.h"
 #include "system_state.h"
@@ -159,7 +160,18 @@ SmartQsoResult_t cmd_process(const uint8_t *raw_data,
     /* Persist the counter before executing so a replay fails even after a
      * reset. TX-OFF still executes if persistence fails: reducing emissions
      * is always safe, and a replayed TX-OFF can only silence the station. */
-    if ((cmd_auth_commit(&verified) != SMART_QSO_OK) &&
+    SmartQsoResult_t committed = cmd_auth_commit(&verified);
+
+    /* An authenticated frame whose counter was just spent is contact with
+     * the ground, whatever the command's outcome. Earlier rejections do not
+     * count: their counter is unspent, so a replay could otherwise hold off
+     * the loss-of-contact inhibit indefinitely. The keyless TX_DISABLE never
+     * counts. */
+    if (verified.key != CMD_AUTH_KEY_NONE) {
+        contact_monitor_contact();
+    }
+
+    if ((committed != SMART_QSO_OK) &&
         (validation.cmd_id != (uint8_t)CMD_COMM_TX_DISABLE)) {
         reject(response, CMD_RESULT_EXEC_FAIL, "Command counter not persisted");
         return SMART_QSO_OK;
@@ -401,6 +413,15 @@ static CmdResult_t handle_system_cmd(const Command_t *cmd, CmdResponse_t *respon
         case CMD_SYS_CLEAR_FAULTS:
             (void)fault_log_clear();
             return CMD_RESULT_SUCCESS;
+
+        case CMD_SYS_SET_CONTACT_TIMEOUT: {
+            uint16_t days = (uint16_t)(((uint16_t)cmd->payload[0] << 8) | (uint16_t)cmd->payload[1]);
+            SmartQsoResult_t set = contact_monitor_set_timeout_days(days);
+            if (set == SMART_QSO_OK) {
+                return CMD_RESULT_SUCCESS;
+            }
+            return (set == SMART_QSO_ERROR_INVALID) ? CMD_RESULT_INVALID_PARAM : CMD_RESULT_EXEC_FAIL;
+        }
 
         case CMD_SYS_KEY_ROTATE: {
             /* Authenticated by the recovery key (dictionary key class) */

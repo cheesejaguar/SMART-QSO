@@ -92,6 +92,14 @@ SmartQsoResult_t rf_control_tx_on(void);
 bool rf_control_tx_permitted(void);
 
 /**
+ * @brief Apply or lift the loss-of-contact inhibit (contact_monitor.c)
+ *
+ * Independent of the TX-OFF latch: transmission is permitted only when
+ * neither inhibit is set. Clearing one never clears the other.
+ */
+void rf_control_set_contact_inhibit(bool inhibit);
+
+/**
  * @brief Select the downlink power level and persist it
  *
  * Never enables a transmitter that TX-OFF has latched off.

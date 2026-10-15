@@ -121,6 +121,7 @@ set(FLIGHT_SOURCES
     src/gse_provision.c
     src/ax25.c
     src/uplink.c
+    src/contact_monitor.c
     src/telemetry.c
     src/assert_handler.c
     src/watchdog_mgr.c

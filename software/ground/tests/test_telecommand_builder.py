@@ -130,7 +130,7 @@ class TestDictionary(unittest.TestCase):
     """The ground dictionary matches the flight cmd_args_spec() exactly."""
 
     FLIGHT = {
-        0x00: (0, 0), 0x01: (0, 0), 0x02: (1, 1), 0x03: (0, 0), 0x05: (0, 0), 0x06: (1, 1),
+        0x00: (0, 0), 0x01: (0, 0), 0x02: (1, 1), 0x03: (0, 0), 0x05: (0, 0), 0x06: (1, 1), 0x07: (2, 2),
         0x10: (1, 1), 0x13: (0, 0), 0x21: (0, 0), 0x23: (0, 0),
         0x30: (2, 2), 0x31: (0, 0), 0x32: (0, 0), 0x33: (1, 1), 0x40: (0, 0), 0x41: (0, 0),
     }

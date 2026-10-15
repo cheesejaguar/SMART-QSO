@@ -23,6 +23,7 @@
 #include "uart_comm.h"
 #include "mission_data.h"
 #include "rf_control.h"
+#include "contact_monitor.h"
 #include "cmd_handler.h"
 #include "gse_provision.h"
 #include "uplink.h"
@@ -67,6 +68,9 @@ static uint64_t s_last_telemetry_ms = 0;
 
 /** Last health check time */
 static uint64_t s_last_health_check_ms = 0;
+
+/** Last loss-of-contact tick */
+static uint64_t s_last_contact_tick_ms = 0;
 
 /** Last watchdog reset time */
 static uint64_t s_last_watchdog_reset_ms = 0;
@@ -129,8 +133,10 @@ static SmartQsoResult_t init_system(void)
         /* Continue anyway - fault logging won't work but system can run */
     }
 
-    /* Restore the latched TX-OFF state before anything can transmit
-     * (47 CFR 97.207(b)); a corrupt latch keeps the transmitter off */
+    /* Loss-of-contact inhibit first, so the enable line is never driven high
+     * on a boot that should stay silent; then restore the latched TX-OFF
+     * state before anything can transmit (47 CFR 97.207(b)) */
+    (void)contact_monitor_init();
     (void)rf_control_init();
 
     /* Load the telecommand key table; with no key only TX-OFF is accepted */
@@ -198,6 +204,7 @@ static SmartQsoResult_t init_system(void)
     s_last_telemetry_ms = s_program_start_ms;
     s_last_health_check_ms = s_program_start_ms;
     s_last_watchdog_reset_ms = s_program_start_ms;
+    s_last_contact_tick_ms = s_program_start_ms;
 
     return SMART_QSO_OK;
 }
@@ -458,6 +465,11 @@ static SmartQsoResult_t run_main_loop(void)
          * (umbilical only) */
         (void)uplink_poll(NULL);
         (void)gse_poll();
+
+        /* Loss-of-contact timer. On target this needs a monotonic time base
+         * (smart_qso_now_ms() is not implemented there yet; SW-01) */
+        contact_monitor_tick((uint32_t)(now - s_last_contact_tick_ms));
+        s_last_contact_tick_ms = now;
 
         /* Periodic data persistence */
         if (tick % PERSISTENCE_INTERVAL_TICKS == 0) {

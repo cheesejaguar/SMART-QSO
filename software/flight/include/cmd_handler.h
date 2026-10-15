@@ -52,7 +52,8 @@ typedef enum {
     CMD_SYS_GET_STATUS  = 0x03,  /**< Get system status */
     CMD_SYS_SET_TIME    = 0x04,  /**< Set mission time */
     CMD_SYS_CLEAR_FAULTS = 0x05, /**< Clear fault log */
-    CMD_SYS_KEY_ROTATE  = 0x06   /**< Activate a spare telecommand key (recovery key) */
+    CMD_SYS_KEY_ROTATE  = 0x06,  /**< Activate a spare telecommand key (recovery key) */
+    CMD_SYS_SET_CONTACT_TIMEOUT = 0x07 /**< Set the loss-of-contact timeout (days) */
 } CmdSystem_t;
 
 /**
