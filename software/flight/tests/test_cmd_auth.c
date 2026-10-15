@@ -35,6 +35,7 @@ static uint8_t s_recovery_key[CMD_AUTH_KEY_SIZE];
 #define CMD_TX_DISABLE  0x32U
 #define CMD_SET_BEACON  0x30U
 #define CMD_KEY_ROTATE  0x06U
+#define CMD_TX_ENABLE   0x31U
 
 /** TX_DISABLE, counter 1, no args (Python reference) */
 static const uint8_t TX_DISABLE_CTR1[] = {
@@ -356,6 +357,8 @@ static void test_recovery_key_scope(void **state)
     assert_int_equal(v.key, CMD_AUTH_KEY_RECOVERY);
 
     assert_int_equal(verify_with(s_recovery_key, CMD_SET_BEACON, 1U, beacon, 2U, &v), CMD_AUTH_ERR_TAG);
+    /* Restarting the transmitter needs the operational key */
+    assert_int_equal(verify_with(s_recovery_key, CMD_TX_ENABLE, 1U, NULL, 0U, &v), CMD_AUTH_ERR_TAG);
     /* The operational key cannot rotate keys */
     assert_int_equal(verify_with(s_test_key, CMD_KEY_ROTATE, 1U, &slot, 1U, &v), CMD_AUTH_ERR_TAG);
     /* Once any key exists, TX_DISABLE is no longer accepted unauthenticated */
