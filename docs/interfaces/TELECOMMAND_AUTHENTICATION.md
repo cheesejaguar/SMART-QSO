@@ -1,7 +1,7 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.2 (Draft)
+**Version**: 0.3 (Draft)
 **Date**: 2026-10-15
 **Status**: Draft. Implemented and tested in the host simulation. Not yet run on target hardware (Section 10).
 
@@ -128,6 +128,24 @@ MAC input = "SQSO-TC-v1" | cmd_id (1 B) | N (1 B) | counter (4 B, BE) | args (N 
 
 A replayed `TX_ENABLE` cannot undo a later `TX_DISABLE`. `test_replayed_tx_enable_cannot_undo_tx_off` covers this.
 
+### 6.2 Loss-of-Contact Inhibit
+
+If no authenticated telecommand is received for **N days**, every transmitter is inhibited and the receiver stays on (`contact_monitor.c`, SYS-205; IARU form item 7.9).
+
+| Property | Behavior |
+|----------|----------|
+| N | Persisted. Set by `SET_CONTACT_TIMEOUT` (0x07) to 1–90 days. **The 14-day default and the range are placeholders pending decision D3** (FCC/IARU consultation) |
+| Contact | An authenticated frame (operational or recovery key) whose counter was committed, whatever the command's result, including `NOT_ALLOWED` |
+| Not contact | Forged or replayed frames; the keyless `TX_DISABLE` (Section 6); authentic frames rejected before their counter is spent (for example a wrong argument length). These are replayable, so counting them would let a replay hold off the inhibit |
+| Lifting | The next contact lifts the inhibit. It never clears the TX-OFF latch, and `TX_ENABLE` does not lift the inhibit except by being contact itself. Transmission needs both inhibits clear |
+| Hardware path | The same `RF_TX_EN` line as TX-OFF: `rf_control` drives it high only when neither inhibit is set |
+| Time base | No reset-proof clock exists, so `contact_monitor_tick()` accumulates seconds without contact from the main loop. The counter is persisted every 60 s (1,440 writes a day to FRAM, which is rated for 10^14 writes) |
+| Boot | The inhibit is recomputed from the counter before `rf_control_init()` drives the line, so a silent spacecraft stays silent through a reset |
+| Errors make it come earlier | Each boot that finds a counter adds 60 s, so a reset loop still reaches N. A corrupt counter counts as timed out. Blank (first boot) starts at 0 |
+| Commissioning | The count starts at first boot. If first contact takes longer than N, the spacecraft falls silent until commanded. That is intended, and operations must plan for it |
+| Not implemented | The M-day autonomous end-of-mission passivation in IARU 7.9 and ODAR 4.4-2. It is irreversible, needs the passivation hardware path (SYS-800), and is a larger decision than D3 |
+| Target | `contact_monitor_tick()` needs a monotonic time source. `smart_qso_now_ms()` is not implemented on target yet (SW-01) |
+
 ## 7. Command Dictionary
 
 The argument length must match the dictionary exactly. If it doesn't, the command is rejected with `INVALID_PARAM` and its counter is not consumed.
@@ -147,6 +165,7 @@ CI runs the generator with `--check` and fails if either output is stale. `test_
 | 0x03 | GET_STATUS | 0 | operational | Returns 4 bytes |
 | 0x05 | CLEAR_FAULTS | 0 | operational | |
 | 0x06 | KEY_ROTATE | 1 | **recovery** | Activates spare operational slot 0–3 and revokes the current key (Section 9.3). Allowed in every state |
+| 0x07 | SET_CONTACT_TIMEOUT | 2 | operational | Loss-of-contact timeout in days, big-endian, 1–90 (Section 6.2; default and range are placeholders, D3) |
 | 0x10 | EPS_SET_MODE | 1 | operational | 0 = SAFE, 1 = IDLE, 2 = ACTIVE |
 | 0x13 | EPS_GET_TELEMETRY | 0 | operational | |
 | 0x21 | ADCS_DETUMBLE | 0 | operational | |
@@ -178,7 +197,7 @@ Any other ID is also rejected with `INVALID_CMD`, unless a handler was registere
 | 3 | Payload carries at least 20 bytes and at most 64 argument bytes | `INVALID_PARAM` | No |
 | 4 | Tag valid under the candidate key(s), then that key's counter not exhausted and fresh | `AUTH_FAIL` | No |
 | 5 | Argument length matches the dictionary | `INVALID_CMD` (unknown ID) or `INVALID_PARAM` | No |
-| 6 | Counter persisted for the authenticating key (`TX_DISABLE` continues regardless) | `EXEC_FAIL` | In memory only |
+| 6 | Counter persisted for the authenticating key (`TX_DISABLE` continues regardless). A keyed frame here is **contact** (Section 6.2) | `EXEC_FAIL` | In memory only |
 | 7 | Command allowed in the current state | `NOT_ALLOWED` | Yes |
 | 8 | Execute | Handler result | Yes |
 
@@ -262,7 +281,8 @@ Procedure:
 | Authentication, per-key counters, key table, rotation (`cmd_auth.c`) | Implemented (25 tests, including interrupted rotation and corrupt state) |
 | GSE provisioning (`gse_provision.c`) | Implemented (6 tests; the umbilical gate was mutation-checked) |
 | Latched TX-OFF, power level (`rf_control.c`), beacon gating | Implemented (11 tests) |
-| Command path (`cmd_handler.c`) | Implemented (19 tests, including every dictionary command, KEY_ROTATE and SET_MODE guards) |
+| Loss-of-contact inhibit (`contact_monitor.c`) | Implemented (10 tests, plus 3 handler tests; the contact hook's gate and placement were mutation-checked) |
+| Command path (`cmd_handler.c`) | Implemented (22 tests, including every dictionary command, KEY_ROTATE, SET_MODE guards and contact detection) |
 | AX.25 and receive path (`ax25.c`, `uplink.c`) | Implemented; end to end from receiver frame to TX-OFF (7 tests; the callsign filter was mutation-checked) |
 | Ground tools (`telecommand_builder.py`, `key_provision.py`) | Implemented; byte-identical to the flight vectors |
 | **Target receiver driver behind `hal_radio.h`** | **Not implemented.** Waits on transceiver selection (SQSO-ICD-005's SPI command set is a placeholder) |
@@ -270,6 +290,8 @@ Procedure:
 | **SET_POWER applied to the PA** | **Not implemented.** The level is persisted and reported; the actuator interface is TBD in the RF design |
 | FRAM driver for `FLASH_REGION_AUTH` and `FLASH_REGION_RF_CONTROL` | Allocated in SQSO-OBC-002 §3.3; simulation HAL only |
 | Station call sign | Placeholder `SQSO`-1 (decision D1) |
+| Loss-of-contact N and M | N: mechanism implemented; value a placeholder (D3). M (autonomous passivation): **not implemented** |
+| Monotonic time source on target | **Not implemented** (SW-01); the loss-of-contact timer depends on it |
 
 ## 11. Test Vectors
 
@@ -321,6 +343,7 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | TX-OFF accepted in every state, without keys, and survives a power cycle | Test (simulation) | `test_tx_disable_accepted_in_every_state`, `test_no_key_material_tx_disable_still_silences`, `test_rf_control.c` |
 | Receiver frame to TX-OFF end to end | Test (simulation) | `test_received_tx_disable_silences_station` |
 | Keys load only through the umbilical | Test (simulation) | `test_locked_without_umbilical`, `test_poll_reads_umbilical_uart` |
+| Loss-of-contact inhibit: timeout, contact rules, reset loop, corrupt counter | Test (simulation) | `test_contact_monitor.c`, `test_authentic_command_restores_contact`, `test_unauthenticated_frames_are_not_contact` |
 | TX-OFF removes RF output at the antenna port | Test (HIL) | TP-RF-006, **pending hardware** |
 | Ground and flight agree byte for byte | Test | `test_frame_matches_ground_tool`, `TestAx25`, `TestFrame` |
 
@@ -330,3 +353,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 |---------|------|-------------|
 | 0.1 | 2026-10-15 | Initial draft with the flight implementation (findings SW-02, SW-03, SW-04) |
 | 0.2 | 2026-10-15 | AX.25 receive path; key table, recovery key, KEY_ROTATE, GSE provisioning; TX-OFF without keys; generated dictionary; SET_MODE guards; SET_POWER |
+| 0.3 | 2026-10-15 | Loss-of-contact inhibit (Section 6.2) and SET_CONTACT_TIMEOUT |

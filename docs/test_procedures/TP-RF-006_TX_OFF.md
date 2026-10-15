@@ -11,7 +11,7 @@
 
 ## 1. Purpose
 
-Verify on hardware that an authenticated telecommand stops every emission at the antenna port, that the stop survives reset and safe mode, and that only authenticated commands can restart transmission. This verifies SYS-204 and SYS-325 and supports the cessation-of-emissions statements in the FCC pre-space notification (item 6 of its checklist) and in IARU form item 7.8.
+Verify on hardware that an authenticated telecommand stops every emission at the antenna port, that the stop survives reset and safe mode, and that only authenticated commands can restart transmission. This verifies SYS-204, SYS-205 and SYS-325 and supports the cessation-of-emissions statements in the FCC pre-space notification (item 6 of its checklist) and in IARU form item 7.8.
 
 ## 2. Scope
 
@@ -22,6 +22,7 @@ The test is conducted only: the RF output goes into an attenuator and a load, an
 - Safe mode and EPS beacon enables cannot override TX-OFF
 - Replayed, forged and unauthenticated commands rejected
 - TX-OFF without any key material (key-loss rule)
+- Loss-of-contact inhibit (SYS-205) and its release by an authenticated command
 - Key rotation with the recovery key
 
 ## 3. Applicable Documents
@@ -128,7 +129,18 @@ Each command below is built with `telecommand_builder.py <COMMAND> --key-file <k
 | 22 | Disconnect the umbilical sense line; send a PROVISION frame on the UART | No reply; key table unchanged (step 23 still works with the old key) | |
 | 23 | Send GET_STATUS with the current key | Accepted | |
 
-### 8.7 Completion
+### 8.7 Loss-of-contact inhibit
+
+| Step | Action | Expected Result | P/F |
+|------|--------|-----------------|-----|
+| 23a | Send SET_CONTACT_TIMEOUT 1 day (operational key); send no further commands | Accepted; beacons continue | |
+| 23b | Wait 24 h (monitor continuously) | Silent from the 24 h mark, within one beacon interval; `RF_TX_EN` low | |
+| 23c | Power cycle while silent | Still silent from power-on | |
+| 23d | Replay any earlier frame | Rejected; still silent | |
+| 23e | Send NOP (operational key) | Beacons resume within one interval | |
+| 23f | Send SET_CONTACT_TIMEOUT back to the configured value | Accepted | |
+
+### 8.8 Completion
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|

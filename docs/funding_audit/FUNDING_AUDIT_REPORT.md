@@ -59,7 +59,7 @@ primary source are labeled ROM.
 | Program management & integrity | **Red** | No PI, licensee, team, budget or dated schedule; self-generated reviews; false affiliation and status claims (PI-01…PI-14) |
 | Mission definition & technical baseline | **Red → Amber** | Three mission definitions and four power families (PI-13, TB-01). The audit proposes a single baseline ([BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md)) pending PI approval |
 | Power / thermal feasibility of the AI payload | **Amber** | Closes on allocation with wings and ≤ 10 % duty (TB-02). The thermal path is unproven (≈ 0.44 W/K documented vs ≥ 1 W/K needed, TB-07) |
-| Flight software | **Red** | Host simulation only; no RTOS or target port; no 45-min RF silence (SW-01, SW-05). Authenticated telecommand, key management and a latched TX-OFF now work end to end in simulation from the receiver HAL; the target receiver driver and hardware verification are open. After the audit: 22 suites, 330 tests passing; overall line coverage was 44.5 % before the telecommand work (not re-measured on the same basis) |
+| Flight software | **Red** | Host simulation only; no RTOS or target port; no 45-min RF silence (SW-01, SW-05). Authenticated telecommand, key management and a latched TX-OFF now work end to end in simulation from the receiver HAL; the target receiver driver and hardware verification are open. After the audit: 23 suites, 343 tests passing; overall line coverage was 44.5 % before the telecommand work (not re-measured on the same basis) |
 | Payload & ground software | **Amber** | 143 payload and 98 ground tests now pass in CI. The OBC–Jetson protocol is implemented three incompatible ways (SW-24); AI text needs content controls (SW-12) |
 | Verification & test program | **Red** | Hardware results claimed with no hardware; requirements traceability broken (2 of 29 trace cleanly); test levels inconsistent with GEVS/CDS/provider (VV-01, VV-06, VV-10) |
 | Safety & mission assurance | **Red** | Catastrophic battery hazard closed without test; inhibits do not meet CDS (3+3); no battery safety program (VV-03…VV-05) |
@@ -173,6 +173,7 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
   - SYS-224 added (45-min RF silence)
   - SYS-225 added (three physical inhibits)
   - SYS-204 added (cease emissions by authenticated telecommand, latched across resets)
+  - SYS-205 added (loss-of-contact transmit inhibit)
   - SYS-325 added (authenticated, replay-protected telecommand)
   - SYS-326 added (keys loaded only through the umbilical; on-orbit rotation to a spare)
   - SYS-800 (permanent passivation) updated; SYS-802 drag device deleted
@@ -193,8 +194,11 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
     - command dictionary generated from one JSON source for flight and ground, checked in CI
     - `SET_MODE` through the state-machine transition table; `SET_POWER` command
     - CI secret scan; ground telecommand and key-provisioning tools whose bytes match the flight vectors
+    - loss-of-contact transmit inhibit: after N days without an authenticated command the transmitters stop and the
+      receiver stays on; N is set by telecommand (1–90 days; the 14-day default is a placeholder pending D3); the
+      M-day autonomous passivation is not implemented
     - TX-OFF hardware test procedure TP-RF-006 (not yet run)
-    - 8 new suites (14 → 22 suites; 243 → 330 tests)
+    - 9 new suites (14 → 23 suites; 243 → 343 tests)
 - **Analysis tools:** NRLMSIS 2.1 orbital lifetime estimator with tests (`software/simulation/orbit_lifetime/`).
 - **CI:** new "Program Checks" workflow runs payload, ground and simulation tests, plus a documentation-reference
   integrity check, on every pull request. Previously docs/payload/ground PRs ran no checks. The duplicate workflow name
