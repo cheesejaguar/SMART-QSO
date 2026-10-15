@@ -2,7 +2,7 @@
  * @file beacon.c
  * @brief SMART-QSO Beacon Generation Module Implementation
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #include "beacon.h"

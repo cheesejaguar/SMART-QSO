@@ -9,7 +9,7 @@
  * @requirement SRS-FDIR-002 System shall implement autonomous fault recovery
  * @requirement SRS-FDIR-003 System shall persist fault log across resets
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #ifndef SMART_QSO_FAULT_MGMT_H

@@ -6,7 +6,7 @@
  * following CubeSat Design Specification requirements and NASA Ames
  * SmallSat heritage (GeneSat, PharmaSat, O/OREOS, EcAMSat).
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #include "deployment.h"

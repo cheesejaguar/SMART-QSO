@@ -348,7 +348,7 @@ static void test_validate_buffer(void **state)
     (void)state;
 
     bool is_valid;
-    uint8_t buffer[100];
+    uint8_t buffer[100] = {0};
 
     /* Sufficient buffer */
     SmartQsoResult_t ret = input_validate_buffer(buffer, 100, 50, &is_valid);

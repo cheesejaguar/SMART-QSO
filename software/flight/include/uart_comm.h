@@ -9,7 +9,7 @@
  * @requirement SRS-COMM-002 System shall detect and recover from UART failures
  * @requirement SRS-COMM-003 System shall support configurable UART parameters
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #ifndef SMART_QSO_UART_COMM_H

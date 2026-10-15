@@ -10,7 +10,7 @@
  * @requirement SRS-DEP-002 System shall monitor deployment switch state
  * @requirement SRS-DEP-003 System shall provide deployment retry capability
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat deployment patterns
  */
 

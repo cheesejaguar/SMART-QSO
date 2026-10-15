@@ -4,7 +4,7 @@
  *
  * Tests deployment sequencing, state machine transitions, and safety features.
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #include <stdarg.h>

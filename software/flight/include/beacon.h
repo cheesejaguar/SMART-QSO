@@ -9,7 +9,7 @@
  * @requirement SRS-F022 Support AI-generated beacon text
  * @requirement SRS-F023 Fallback to template text if AI unavailable
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat beacon patterns
  */
 

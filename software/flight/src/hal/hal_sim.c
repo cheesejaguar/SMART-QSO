@@ -8,7 +8,7 @@
  *
  * @requirement SRS-Q022 Software shall support simulation and flight builds
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 /* Required for usleep on POSIX-compliant systems */

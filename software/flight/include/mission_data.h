@@ -9,7 +9,7 @@
  * @requirement SRS-DATA-002 System shall protect data integrity with CRC
  * @requirement SRS-DATA-003 System shall track cumulative mission statistics
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 
 #ifndef SMART_QSO_MISSION_DATA_H

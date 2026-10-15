@@ -9,7 +9,7 @@
  * @requirement SRS-SYS-002 System shall run main control loop
  * @requirement SRS-SYS-003 System shall handle graceful shutdown
  *
- * @copyright NASA Ames Research Center Small Satellite Division Heritage
+ * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat design patterns
  */
 
