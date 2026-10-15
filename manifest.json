@@ -1,8 +1,8 @@
 {
   "version": "1.0.0-development",
-  "built_at_utc": "2026-10-15T05:04:08.581654+00:00",
+  "built_at_utc": "2026-10-15T05:14:45.901034+00:00",
   "original_source_commit": "05788335d09202c391f8d970e7d6562ebe315893",
-  "source_tree_sha256": "97a284626a1c6dce8ab552ef82911a7b8b94a112ecc8a3bb34ced003a50fb558",
+  "source_tree_sha256": "39314db73112ee6a42c773a0269efe742b79ad12a1c48f3bc2ae1e8ab1566c85",
   "source_files": [
     {
       "path": ".clang-format",
@@ -514,7 +514,7 @@
     },
     {
       "path": "docs/resurrection/FINAL_REVIEW.md",
-      "sha256": "6619c2d95571319a21879aa74e9258cf6a3ab454df2e73f88ed9a37bf8646738"
+      "sha256": "1b1884c24630750e133ccec961d4048eaf5690aac1a2102d30eeed89c860dddb"
     },
     {
       "path": "docs/resurrection/FIRMWARE_UPDATES.md",
@@ -526,7 +526,7 @@
     },
     {
       "path": "docs/resurrection/IMPLEMENTATION_REPORT.md",
-      "sha256": "ca8548d188b80d492458a4166415f3b27bfa204310edd959c27de6f576f5ef68"
+      "sha256": "8801d82b1cf14826d055064218c435d749231de5dc84479af9d2b00fd8df2261"
     },
     {
       "path": "docs/resurrection/INTERFACES.md",
@@ -534,7 +534,7 @@
     },
     {
       "path": "docs/resurrection/MISRA_RESOLUTION.md",
-      "sha256": "9797365f581eaedfcdeca56e88953acfcf0b4da9b554ec364c88954a9f74bd2f"
+      "sha256": "94c6dabd82bafeac262762bb389ab7f6a2795892efb4f0d8318dc0181ce2d5a5"
     },
     {
       "path": "docs/resurrection/PAYLOAD_INTEGRATION.md",
@@ -1038,7 +1038,7 @@
     },
     {
       "path": "mission/current/final_review.json",
-      "sha256": "84d32dd2154b568386860bbb3c50e5c8c0c15b3cf2dfb5199344c6be01b8ad6e"
+      "sha256": "4f284843c2ccd228adedb6cb2013410d5f50e8cd120e13e8bdc89aab9b8d3101"
     },
     {
       "path": "mission/current/findings.json",
@@ -1062,7 +1062,7 @@
     },
     {
       "path": "mission/current/misra_findings.json",
-      "sha256": "e696971689ddf59959bedcde99afbcbc55b994556e4a7626034a31bf30b3fd69"
+      "sha256": "d338eb7c4477b67e0f6715ba4b29dad85216abc6d32eeb354c6f341e5a5f2f73"
     },
     {
       "path": "mission/current/misra_resolution.json",
@@ -1070,11 +1070,11 @@
     },
     {
       "path": "mission/current/protocol.json",
-      "sha256": "bd62b849ff38d64c33d38fef3559649c0592c5e9b6d662902a95d6e7d086a973"
+      "sha256": "bd047484f7e2c8d61bedd2ebf9a32db778b120885d3caad09dc3ad077306c2ac"
     },
     {
       "path": "mission/current/protocol_fixtures.json",
-      "sha256": "79534ab276379dee15edef23f1a65077a7419de268889258bc15862cfd738014"
+      "sha256": "282e34bd1b79d806f44cadef236aafe4aef69ee2a3e593b6650f78b77e422465"
     },
     {
       "path": "mission/current/requirements.json",
@@ -1142,7 +1142,7 @@
     },
     {
       "path": "software/common/protocol_generated.py",
-      "sha256": "81ae9f0b50c1e478aed866056873531878e1aef5191e403c0a2eb81944878b22"
+      "sha256": "bb7fe55f2f09e9e88eb266bd7209085a0e78331624e5180655802d653d663753"
     },
     {
       "path": "software/common/tests/test_adcs_runtime.py",
@@ -1154,7 +1154,7 @@
     },
     {
       "path": "software/common/tests/test_final_review.py",
-      "sha256": "d63680213fac9596657083b1297b95fa6fd7093ad390e1c1181b504b618b36c3"
+      "sha256": "38bd3168a2e8f8557ce0b82b46fded31d9a908758efbe35f2a5d5c3d1c75ebb2"
     },
     {
       "path": "software/common/tests/test_mission_system.py",
@@ -1230,7 +1230,7 @@
     },
     {
       "path": "software/flight/core/mission_core.c",
-      "sha256": "71c49b35415383fad8438f321b7055cb35a670d4655aa9451c594cbc08b76097"
+      "sha256": "4ac723f99c904b88ac709f38ab6a274825286401f6e28d38c702535a131cb5b0"
     },
     {
       "path": "software/flight/core/mission_core.h",
@@ -2138,7 +2138,7 @@
     },
     {
       "path": "tools/build_release.py",
-      "sha256": "2d68574f368c4829eb6c3c33a9dad019a8de6f9be7ea780ffcbce7d60fd3d896"
+      "sha256": "799a410144e29c9fff517b1efe89ecd9dc29755ada1ae52ce1f7652fa670b222"
     },
     {
       "path": "tools/build_update.py",
@@ -2190,7 +2190,7 @@
     },
     {
       "path": "tools/publish_pages.py",
-      "sha256": "f059271d9bc40a4bd04f585729347db28b40680b0a8240293599089afc6dbb02"
+      "sha256": "b209101769e05bd1a8c4f820c61739936eff0a123dbe6f83fcca1118c0383189"
     },
     {
       "path": "tools/summarize_verification.py",
@@ -2208,13 +2208,13 @@
   "source_tree_included": true,
   "test_reports": {
     "pytest": {
-      "tests": 404,
+      "tests": 409,
       "failures": 0,
       "errors": 0,
       "skipped": 0,
       "disabled": 0,
       "path": "output/verification/pytest.xml",
-      "sha256": "f6b21f14a9b5cf4afed356415154dd04aaf8f8c57b7955be27d0330d00e7eaf4"
+      "sha256": "bd64f8476a1595c9398fe57f471383e5ed0d1c99b5a37b532419e166a615350a"
     },
     "ctest": {
       "tests": 31,
@@ -2223,7 +2223,7 @@
       "skipped": 0,
       "disabled": 0,
       "path": "output/verification/ctest.xml",
-      "sha256": "4c43c0f52e252283b89b9dfa7fe52d88b788e3c053a0ca6a559153c0bdf7fbbf"
+      "sha256": "2befe005a805c390b15b2dbe626ff7929725f0286cda328653f2cde1d128d135"
     },
     "sanitizers": {
       "tests": 17,
@@ -2232,7 +2232,7 @@
       "skipped": 0,
       "disabled": 0,
       "path": "output/verification/sanitizers.xml",
-      "sha256": "c076a79363bc04e6b66334a166ea84b0a55245a843c05512b122c37a0e1da003"
+      "sha256": "d3acb8dbed14e11e8fadb9e0ac4386c66edc4ce64c8a26d2d8a00cd79affb5ec"
     }
   },
   "target": "STM32L476RG development reference",
@@ -2267,7 +2267,7 @@
     {
       "path": "output/release/sbom.cdx.json",
       "bytes": 200789,
-      "sha256": "8c7d2d2087bc54ee0dc7c5e86980ac3f129c01f09ac9b8321f708dff8ceacee5"
+      "sha256": "452f757db52a960f0fd00050a89197cc1f002ceaf6fe3efe305feda34969a91e"
     },
     {
       "path": "uv.lock",
@@ -2281,8 +2281,8 @@
     },
     {
       "path": "mission/current/protocol.json",
-      "bytes": 5638,
-      "sha256": "bd62b849ff38d64c33d38fef3559649c0592c5e9b6d662902a95d6e7d086a973"
+      "bytes": 5895,
+      "sha256": "bd047484f7e2c8d61bedd2ebf9a32db778b120885d3caad09dc3ad077306c2ac"
     },
     {
       "path": "output/engineering-analysis.json",
@@ -2296,8 +2296,8 @@
     },
     {
       "path": "mission/current/misra_findings.json",
-      "bytes": 77102,
-      "sha256": "e696971689ddf59959bedcde99afbcbc55b994556e4a7626034a31bf30b3fd69"
+      "bytes": 77625,
+      "sha256": "d338eb7c4477b67e0f6715ba4b29dad85216abc6d32eeb354c6f341e5a5f2f73"
     },
     {
       "path": "mission/current/software_closure.json",
@@ -2317,7 +2317,7 @@
     {
       "path": "docs/resurrection/MISRA_RESOLUTION.md",
       "bytes": 5927,
-      "sha256": "9797365f581eaedfcdeca56e88953acfcf0b4da9b554ec364c88954a9f74bd2f"
+      "sha256": "94c6dabd82bafeac262762bb389ab7f6a2795892efb4f0d8318dc0181ce2d5a5"
     },
     {
       "path": "docs/resurrection/FIRMWARE_UPDATES.md",
@@ -2336,13 +2336,13 @@
     },
     {
       "path": "mission/current/artifact_inventory.json",
-      "bytes": 496233,
-      "sha256": "ac1c9e056194f9ee59a7cdbc73d0ef61d63ccd7034b938df1eb153945a17a42d"
+      "bytes": 497287,
+      "sha256": "08052ca03d5ab5ca3ae0fa9dbecde9cef10a821f43b8b9cbfae603861af76bf8"
     },
     {
       "path": "docs/resurrection/AUDIT_REPORT.md",
       "bytes": 18358,
-      "sha256": "5149721d5c0a30e0d42bf00f602d247dc8d7ca0ddc8275549fef6ccd38f5f5c1"
+      "sha256": "028b527108ed6ba494854be911ac9909c3aed264823fd913eb1de95bc605a43a"
     },
     {
       "path": "output/pdf/SMART-QSO-proposal.pdf",
@@ -2361,8 +2361,8 @@
     },
     {
       "path": "build/arm-reference/smart_qso_boot.map",
-      "bytes": 38368,
-      "sha256": "c767045bc667d03c1a2e77b3a2369fb911c84a73bc2859afc2b43dbdc48dc7ec"
+      "bytes": 38469,
+      "sha256": "80852e149ba36760d05d4ca131765c441d831ab272122037ae181592b11c6a77"
     },
     {
       "path": "build/arm-reference/platform/stm32l476/smart_qso_boot.elf",
@@ -2371,48 +2371,48 @@
     },
     {
       "path": "build/arm-reference/smart_qso_reference.bin",
-      "bytes": 54540,
-      "sha256": "7601baed74e9c74833a67cd4c988123c682458e432d2787166566c37764e168f"
+      "bytes": 55404,
+      "sha256": "d7d4d3e5aec31eadd1ddefb0986d221f1b08dd49de19f3840dbed72efd94441f"
     },
     {
       "path": "build/arm-reference/smart_qso_reference.map",
-      "bytes": 57658,
-      "sha256": "7c8aff7a396fbe1ed06c101d74284a5de68083c2a5218dcddd13b24c7e59b3b7"
+      "bytes": 57798,
+      "sha256": "6fd822f338327dfdf1bcb76b6365fa5adab79ca394a27ee55886102f6b76f6f9"
     },
     {
       "path": "build/arm-reference/platform/stm32l476/smart_qso_reference.elf",
-      "bytes": 68804,
-      "sha256": "74b39781af93dbf35bfb1c723e711cff1278c8433d9effc824e7d6df4c54556c"
+      "bytes": 72952,
+      "sha256": "0ce4444f2f5459857b08857a55b755beac01331a10e40a354735cec726c62810"
     },
     {
       "path": "build/arm-reference/smart_qso_reference_b.bin",
-      "bytes": 54540,
-      "sha256": "93fdf30208a53316453982d07b8388dd4229b29b36cf78eb3b528909703cc3bb"
+      "bytes": 55404,
+      "sha256": "b59bbded13b45ca7ae50109780cfdbfea85266420d5ca72e40ba3a52d7b0796e"
     },
     {
       "path": "build/arm-reference/smart_qso_reference_b.map",
-      "bytes": 57820,
-      "sha256": "ac6fe255cedd0be243e063ad57a06a7f7f65914661f88c4b46bccf9df0c6841f"
+      "bytes": 57960,
+      "sha256": "0454553c363e0909e1c21d98dea89c13d109e7d2abfb1fbf8e404d36b5ac790b"
     },
     {
       "path": "build/arm-reference/platform/stm32l476/smart_qso_reference_b.elf",
-      "bytes": 68804,
-      "sha256": "29dfdc108cae8442ea993fb24c1aa025c18017697c834f5d46d2a36aa64be031"
+      "bytes": 72952,
+      "sha256": "fcc1b413c7b9e85881bbb34b86f779f05d0b582d4395cdd3a4fe1cc784928d43"
     },
     {
       "path": "build/arm-reference/smart_qso_reference_recovery.bin",
-      "bytes": 54540,
-      "sha256": "809034c58041109ec710186d1a664b674cdf29f558f47bfb2715725a498d8440"
+      "bytes": 55404,
+      "sha256": "3bf89f23d36ab610e811a50be38ca942a8c3c56ad74b007598b055064e49364a"
     },
     {
       "path": "build/arm-reference/smart_qso_reference_recovery.map",
-      "bytes": 58387,
-      "sha256": "0fe6fea1fc1ab5c7e93a152f00cbbe59d07d25d656daa5c404e6a76a27880ad4"
+      "bytes": 58527,
+      "sha256": "93a2f93e4455b834203eb77a28459604e521207ddaffe49593150372d936b9df"
     },
     {
       "path": "build/arm-reference/platform/stm32l476/smart_qso_reference_recovery.elf",
-      "bytes": 68804,
-      "sha256": "006b01f07da242a4e051ff7494c8790a0d00fbaaf7e4f892e6c2b9b6a1eab27b"
+      "bytes": 72952,
+      "sha256": "f43afb91252f807005de1bb2d822a6049943b4f3c0c5e8df8c33475ccc3b913b"
     },
     {
       "path": "output/ui/firmware-mobile.png",
@@ -2461,8 +2461,8 @@
     },
     {
       "path": "output/verification/misra-status.json",
-      "bytes": 77489,
-      "sha256": "369b71cb33d9ffe864ebdf6c92a6e9085b904d66d78aeea911ad1347ed3e79a4"
+      "bytes": 77625,
+      "sha256": "d338eb7c4477b67e0f6715ba4b29dad85216abc6d32eeb354c6f341e5a5f2f73"
     },
     {
       "path": "output/verification/pip-audit.json",
@@ -2481,13 +2481,13 @@
     },
     {
       "path": "output/verification/coverage.json",
-      "bytes": 673940,
-      "sha256": "a4659f0e2d4c5e6d1269354c78fe07ce41b37e5fd52361796453211cac12ed38"
+      "bytes": 677310,
+      "sha256": "c197669f53e6090eaf3739d4d2ba3c187804244bea33d91a2a6248f3be028ee7"
     },
     {
       "path": "output/verification/verification.json",
       "bytes": 3783,
-      "sha256": "5ac482a5cef31f034d86900fa7a2977fb32cfc01c734f195952aa4eac28e86b2"
+      "sha256": "aa74cf4941b481b41b52130b4a9b44b3d7610cf6b799e9bba1b5bd1ef0ea1336"
     },
     {
       "path": "output/verification/arm-analyzer.json",
@@ -2506,8 +2506,8 @@
     },
     {
       "path": "output/verification/ctest.xml",
-      "bytes": 21532,
-      "sha256": "4c43c0f52e252283b89b9dfa7fe52d88b788e3c053a0ca6a559153c0bdf7fbbf"
+      "bytes": 21523,
+      "sha256": "2befe005a805c390b15b2dbe626ff7929725f0286cda328653f2cde1d128d135"
     },
     {
       "path": "output/verification/cppcheck.xml",
@@ -2516,8 +2516,8 @@
     },
     {
       "path": "output/verification/sanitizers.xml",
-      "bytes": 4099,
-      "sha256": "c076a79363bc04e6b66334a166ea84b0a55245a843c05512b122c37a0e1da003"
+      "bytes": 4100,
+      "sha256": "d3acb8dbed14e11e8fadb9e0ac4386c66edc4ce64c8a26d2d8a00cd79affb5ec"
     },
     {
       "path": "output/verification/cppcheck-legacy.xml",
@@ -2526,28 +2526,28 @@
     },
     {
       "path": "output/verification/sanitizers-all.xml",
-      "bytes": 21493,
-      "sha256": "e31b6f4e15cb502aaf31deb9cfa73f3960b899a884fc8e13259bea15c0ac1597"
+      "bytes": 21506,
+      "sha256": "86007b2d86a21fc548b17710d07cf0d670631c4f6b5878dad1692e574c5a3278"
     },
     {
       "path": "output/verification/pytest.xml",
-      "bytes": 57192,
-      "sha256": "f6b21f14a9b5cf4afed356415154dd04aaf8f8c57b7955be27d0330d00e7eaf4"
+      "bytes": 57917,
+      "sha256": "bd64f8476a1595c9398fe57f471383e5ed0d1c99b5a37b532419e166a615350a"
     },
     {
       "path": "output/verification/coverage.xml",
-      "bytes": 119749,
-      "sha256": "8e2ef0d1a529b4c8d5d7831b10ced432a6081959d84ad9729faeb6ab321b9619"
+      "bytes": 120174,
+      "sha256": "4d481aac095ee6985ff7a39199de0f22a69036c8d7d4de3aeb3ae078b3a342bf"
     },
     {
       "path": "output/verification/pytest-python311.xml",
-      "bytes": 57192,
-      "sha256": "bf69c7f92122c618437a531641f1143c15b83fc165a7471afc78b8b3b3564e03"
+      "bytes": 57917,
+      "sha256": "cf0a110e22b6bca3be7857cfc230bd07a009a8d7f4e983b5e5b3be53209cd143"
     },
     {
       "path": "output/verification/misra.xml",
       "bytes": 15969,
-      "sha256": "33f0702434b25aedd9567cc02c016a5a03e2e2793cb7c5f0e5c6e74532119dd3"
+      "sha256": "6f4cc4a976b6113130674431efc36b6b33210022cd3b02c06ea26d1f3db9aef5"
     },
     {
       "path": "output/verification/analyzer/journal.plist",

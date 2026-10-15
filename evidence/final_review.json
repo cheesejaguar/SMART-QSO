@@ -189,6 +189,26 @@
       "closure_criteria": "Repeated runtime deadline regression, ARM build/compiler analysis; actual boot-write timing and watchdog reset remain HIL gates.",
       "state": "host-tested",
       "accepted": false
+    },
+    {
+      "id": "FR-10",
+      "title": "C accepted station-field padding that Python could not decode",
+      "severity": "high",
+      "mission_consequence": "Malformed public packets could occupy relay storage and produce undecodable station messages; ambiguous ACK/contact fields could be accepted.",
+      "corrective_action": "Require canonical zero padding in every fixed station field at ingress, stored queue load, ACK and recipient contact; preserve ordinary NUL-terminated API arguments.",
+      "owner": "Flight / ground software lead",
+      "dependencies": [
+        "Protocol-v2 dictionary",
+        "Station interoperability"
+      ],
+      "evidence": [
+        "software/flight/core/mission_core.c",
+        "software/common/tests/test_final_review.py",
+        "mission/current/protocol.json"
+      ],
+      "closure_criteria": "C/Python malformed station agreement, no invalid ACK state change, no contact scheduling, CRC-correct corrupted storage rejection, sanitizers and firmware analyses pass; actual radio interoperability remains hardware evidence.",
+      "state": "host-tested",
+      "accepted": false
     }
   ],
   "hardware_execution_verified": false,
