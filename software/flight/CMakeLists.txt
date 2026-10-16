@@ -124,6 +124,7 @@ set(FLIGHT_SOURCES
     src/contact_monitor.c
     src/rf_silence.c
     src/separation_switch.c
+    src/jetson_link.c
     src/telemetry.c
     src/assert_handler.c
     src/watchdog_mgr.c

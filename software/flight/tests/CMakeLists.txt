@@ -195,6 +195,7 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/contact_monitor.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_silence.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/separation_switch.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/jetson_link.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
@@ -240,6 +241,7 @@ set(MODULE_TESTS
     "test_contact_monitor\;rf"
     "test_rf_silence\;rf"
     "test_beacon_format\;rf"
+    "test_jetson_link\;payload"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)

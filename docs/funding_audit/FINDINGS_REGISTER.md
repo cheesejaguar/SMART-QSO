@@ -32,7 +32,7 @@
 | VV — Verification, safety & standards | 5 | 9 | 6 | 1 | 21 |
 | **Total** | **19** | **46** | **32** | **6** | **103** |
 
-Status: **10 closed** and **59 partially closed** by this PR; **33 open**; 1 informational. Counts are generated from the rows below by script.
+Status: **10 closed** and **60 partially closed** by this PR; **32 open**; 1 informational. Counts are generated from the rows below by script.
 
 ---
 
@@ -92,7 +92,7 @@ Status: **10 closed** and **59 partially closed** by this PR; **33 open**; 1 inf
 | SW-21 | Low | Payload dependency declarations wrong (torch/numpy declared, unused; pyserial/psutil/crc used, undeclared) | `software/payload/pyproject.toml:31`; `health_interface.py:22`; `supervisor.py:23` | Declare real dependencies; payload CI | **Closed (this PR)** |
 | SW-22 | Low | Residual static-analysis defects hidden by blanket suppressions (304 findings in exhaustive cppcheck) | `src/mission_data.c:136`; `src/scheduler.c:464` | Triage; inline justified suppressions | Open |
 | SW-23 | High | **Payload health interface could not run**: `crc.Crc16.CCITT` was removed from the `crc` package, so 19 payload tests errored; the payload suite was in no CI | `software/payload/health_interface.py:22,108` | ICD CRC-16 implemented in-house with a check-value test; payload tests in CI | **Closed (this PR):** `software/payload/crc16.py` (check 0x29B1); 143 payload tests pass in CI; a latent test defect (a frame without a command accepted) corrected to fail safe |
-| SW-24 | High | **OBC–Jetson interface is implemented three incompatible ways**: the ICD specifies ASCII CSV with a CRC-16 field; the OBC sends ASCII CSV with **no CRC**; the payload health interface expects binary 0x7E/0x7F frames carrying JSON + CRC; the payload agent expects JSON lines | `docs/interfaces/ICD_OBC_JETSON.md:121,195-198`; `software/flight/src/main.c:314-372`; `software/payload/health_interface.py:68-69,290-300`; `software/payload/agent.py:19-31` | Pick one protocol in the ICD; implement it on both sides; end-to-end test → OBC↔payload loopback test in CI | Open |
+| SW-24 | High | **OBC–Jetson interface is implemented three incompatible ways**: the ICD specifies ASCII CSV with a CRC-16 field; the OBC sends ASCII CSV with **no CRC**; the payload health interface expects binary 0x7E/0x7F frames carrying JSON + CRC; the payload agent expects JSON lines | `docs/interfaces/ICD_OBC_JETSON.md:121,195-198`; `software/flight/src/main.c:314-372`; `software/payload/health_interface.py:68-69,290-300`; `software/payload/agent.py:19-31` | Pick one protocol in the ICD; implement it on both sides; end-to-end test → OBC↔payload loopback test in CI | **Partially closed (this PR):** one protocol: ICD_OBC_JETSON §4 Rev 1.1 (ASCII lines, CRC-16/CCITT-FALSE, 512-byte limit), implemented on both sides. OBC: `jetson_link.c`; TELEMETRY now carries its CRC; BEACON_REQ/BEACON_RSP and STATUS are handled in `main.c`. Jetson: `obc_link.py`; `health_interface.py`, `agent.py` and `supervisor.py` replace the binary-JSON and JSON-line variants. Interoperability is shown by the same golden lines in `test_jetson_link.c` and `test_obc_link.py`, plus an agent subprocess test. Open: the UART integration test on hardware (TP-INT-005) |
 
 Additional observation: the flight build failed under GCC 16 with `-Werror` (`src/beacon.c:201` `-Wformat-truncation`), while CI's
 Ubuntu GCC passed. The toolchain is unpinned (see SW-17). *Fixed in this PR:* the warning marked a real defect. A

@@ -2,6 +2,12 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from typing import Optional
+
+#: Space station identity (licensee KK6GDB, decision D1); matches station_id.h
+STATION_CALL = "KK6GDB-11"
+
+_MODES = {0: "SAFE", 1: "IDLE", 2: "ACTIVE"}
 
 
 @dataclass
@@ -82,3 +88,43 @@ def compose_info_field(h: Health, text: str) -> str:
 
 def now_iso_z() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dZ")
+
+
+def health_from_telemetry(t, call: str = STATION_CALL) -> Health:
+    """Health fields for the beacon prompt from an OBC TELEMETRY message."""
+    soc_pct = int(round(max(0.0, min(1.0, t.soc)) * 100))
+    pwr = "GOOD" if soc_pct >= 60 else ("FAIR" if soc_pct >= 30 else "LOW")
+    qso_text = t.extras.get("QSO", "0")
+    return Health(
+        call=call,
+        time_iso_z=now_iso_z(),
+        mode=_MODES.get(t.power_mode, "IDLE"),
+        soc=soc_pct,
+        sun=1 if t.sunlit else 0,
+        rf=0 if t.extras.get("EPS_RADIO") == "OFF" else 1,
+        pwr=pwr,
+        qso=int(qso_text) if qso_text.isdigit() else 0,
+    )
+
+
+def _printable(text: str) -> str:
+    text = to_ascii(text.replace("\u2014", " - ").replace("\u2013", "-"))
+    return "".join(ch for ch in text if " " <= ch <= "~").strip()
+
+
+def _strip_call(h: Health, text: str) -> str:
+    prefix = f"de {h.call}:"
+    if text.lower().startswith(prefix.lower()):
+        return text[len(prefix):].strip()
+    return text
+
+
+def beacon_text(h: Health, generated: Optional[str], max_len: int) -> str:
+    """Beacon text for a BEACON_RSP: printable ASCII, no call-sign prefix
+    (the OBC adds "de <CALL>:" and the telemetry), at most max_len characters.
+    Falls back to the template when generation is missing or empty."""
+    text = _strip_call(h, _printable(generated or ""))
+    if not text:
+        text = _strip_call(h, _printable(fallback_text(h)))
+    text = clamp_bytes(text, max_len).rstrip()
+    return text or "73"

@@ -113,89 +113,63 @@ T+100ms:  EPS disables 5V rail
 
 ## 4. Communication Protocol
 
-### 4.1 Protocol Overview
+*Rev 1.1 (2026-10-15): this section is now implemented on both sides, and both test suites check the same golden lines. The OBC side is `software/flight/src/jetson_link.c` (`test_jetson_link.c`). The Jetson side is `software/payload/obc_link.py`, used by `health_interface.py`, `agent.py` and `supervisor.py` (`test_obc_link.py`). Before this revision the OBC sent CSV with no CRC, the health interface expected binary 0x7E/0x7F frames carrying JSON, and the agent expected JSON lines (finding SW-24).*
 
-The OBC-Jetson protocol uses ASCII-based messages with the following structure:
+### 4.1 Line Format
+
+Every message is one line:
 
 ```
-<MSG_TYPE>,<FIELD1>,<FIELD2>,...<CRC16>\n
+<TYPE>,<field>,...,<field>,<CRC>\n
 ```
+
+| Rule | Value |
+|------|-------|
+| Characters | Printable ASCII 0x20–0x7E. The terminator is a single LF (0x0A) |
+| Length | At most 512 bytes, including the CRC field and the LF |
+| CRC | Four upper-case hex digits of CRC-16/CCITT-FALSE (§4.4) over every byte before the last comma |
+| Fields | Separated by commas, and a field never contains a comma. The one exception is the BEACON_RSP text (§4.3), which runs from after the sequence number to the last comma |
+| Receiver | Bad CRC: count it and drop the line (the Jetson answers `NACK,CRC`). Malformed line: count it and drop it (`NACK,FORMAT`). An overlong line is discarded up to its LF |
 
 ### 4.2 Message Types
 
-| Type | Direction | Description |
-|------|-----------|-------------|
-| TELEMETRY | OBC → Jetson | Health/status data |
-| BEACON_REQ | OBC → Jetson | Request beacon text |
-| BEACON_RSP | Jetson → OBC | Beacon text response |
-| STATUS | Jetson → OBC | Jetson status report |
-| SHUTDOWN | OBC → Jetson | Shutdown command |
-| ACK | Both | Acknowledgment |
-| NACK | Both | Negative acknowledgment |
+| Type | Direction | Fields |
+|------|-----------|--------|
+| TELEMETRY | OBC → Jetson | time_ms, SUNLIT/ECLIPSE, soc (0.000–1.000), power_mode (0 SAFE, 1 IDLE, 2 ACTIVE), power_limit_w, then any number of `KEY=VALUE` fields. Also serves as the heartbeat |
+| BEACON_REQ | OBC → Jetson | seq (0–65535), max_len (1–176) |
+| STATUS_REQ | OBC → Jetson | none |
+| SHUTDOWN | OBC → Jetson | reason |
+| BEACON_RSP | Jetson → OBC | seq (matching the request), text (1–max_len printable ASCII characters, without a call sign; the OBC adds `de <CALL>:` and the telemetry) |
+| STATUS | Jetson → OBC | health (0 OK, 1 WARNING, 2 ERROR, 3 CRITICAL), temp_c (−128–200), power_mw (0–100000), mem_pct (0–100), uptime_s |
+| ACK | Jetson → OBC | type acknowledged |
+| NACK | Jetson → OBC | reason (`CRC`, `FORMAT`) |
 
-### 4.3 Message Formats
+The OBC uses a beacon text only if its sequence number matches the latest request. The OBC's content checks (finding SW-12) apply to every text before it is transmitted.
 
-#### TELEMETRY (OBC → Jetson)
-```
-TELEMETRY,<timestamp_ms>,<sunlit>,<soc>,<power_mode>,<power_limit>,<sensors...>,<crc16>\n
-```
+### 4.3 Golden Lines
 
-Example:
-```
-TELEMETRY,1704153600000,SUNLIT,0.75,2,3.0,BV=8.1V,BT=22.5C,BUSV=5.0V,1A2B\n
-```
+Both test suites check these exact bytes:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| timestamp_ms | uint64 | Milliseconds since epoch |
-| sunlit | string | "SUNLIT" or "ECLIPSE" |
-| soc | float | State of charge (0.0-1.0) |
-| power_mode | int | 0=SAFE, 1=IDLE, 2=ACTIVE |
-| power_limit | float | Power limit in watts |
-| sensors | key=value | Sensor readings |
-| crc16 | hex | CRC-16 CCITT |
-
-#### BEACON_REQ (OBC → Jetson)
 ```
-BEACON_REQ,<seq>,<max_len>,<crc16>\n
+TELEMETRY,1704153600000,SUNLIT,0.750,2,3.0,BV=8.1,EPS_PAYLOAD=ON,9C86
+BEACON_REQ,42,176,5593
+BEACON_RSP,42,Hello, world from orbit,0784
+STATUS,0,45,6800,37,1234,D775
+STATUS_REQ,5D03
+SHUTDOWN,POWER,05D4
+ACK,BEACON_RSP,275C
+NACK,CRC,49EE
 ```
-
-| Field | Type | Description |
-|-------|------|-------------|
-| seq | uint16 | Sequence number |
-| max_len | uint16 | Maximum beacon length |
-| crc16 | hex | CRC-16 CCITT |
-
-#### BEACON_RSP (Jetson → OBC)
-```
-BEACON_RSP,<seq>,<text>,<crc16>\n
-```
-
-| Field | Type | Description |
-|-------|------|-------------|
-| seq | uint16 | Matching sequence number |
-| text | string | ASCII beacon text |
-| crc16 | hex | CRC-16 CCITT |
-
-#### STATUS (Jetson → OBC)
-```
-STATUS,<cpu_temp>,<gpu_temp>,<mem_used>,<uptime>,<crc16>\n
-```
-
-| Field | Type | Description |
-|-------|------|-------------|
-| cpu_temp | float | CPU temperature (°C) |
-| gpu_temp | float | GPU temperature (°C) |
-| mem_used | uint32 | Memory used (MB) |
-| uptime | uint32 | Uptime (seconds) |
-| crc16 | hex | CRC-16 CCITT |
 
 ### 4.4 CRC Calculation
 
-CRC-16 CCITT with:
+CRC-16/CCITT-FALSE (also catalogued as CRC-16/IBM-3740):
+
 - Polynomial: 0x1021
 - Initial value: 0xFFFF
 - Input/output reflected: No
+- Final XOR: none
+- Check value for `123456789`: 0x29B1
 
 ---
 
@@ -330,3 +304,4 @@ DORMANT ─────────> BOOT
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-15 | Funding audit | §4 made exact (line rules, 512-byte limit, STATUS_REQ, STATUS fields, BEACON_RSP text, NACK reasons, golden lines) and implemented on both sides (SW-24) |

@@ -1,41 +1,32 @@
+"""
+End to end: the deployed agent process speaks the ICD line protocol.
+
+Feeds OBC lines (testdata/obc_lines.txt, the golden vectors shared with the
+flight tests) to `python -m software.payload.agent` and checks the reply.
+"""
+
 import os
 import subprocess
 import sys
 from pathlib import Path
 
+import obc_link
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 
 
-def run_agent_with_input(input_text: str) -> str:
+def test_agent_answers_beacon_request():
     env = os.environ.copy()
-    # Force fallback path (no llama_cpp installed)
-    env.setdefault("LLAMA_MODEL", "/nonexistent/model.gguf")
-    # The agent runs as a package module from the repo root, as deployed.
-    p = subprocess.Popen(
+    env.setdefault("LLAMA_MODEL", "/nonexistent/model.gguf")  # force the fallback path
+    lines = (Path(__file__).parent.parent / "testdata" / "obc_lines.txt").read_bytes()
+    p = subprocess.run(
         [sys.executable, "-m", "software.payload.agent"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env=env,
-        cwd=REPO_ROOT,
-        text=True,
+        input=lines, capture_output=True, env=env, cwd=REPO_ROOT, timeout=20,
     )
-    out, err = p.communicate(input=input_text, timeout=10)
-    assert p.returncode == 0, (
-        f"agent exited with {p.returncode}: {err}"
-    )
-    return out.strip()
-
-
-def test_agent_processes_sample_jsonl():
-    sample = Path(__file__).parent.parent / "testdata" / "health_sample.jsonl"
-    data = sample.read_text().strip().splitlines()
-    outputs = []
-    for line in data:
-        outputs.append(run_agent_with_input(line))
-    # Ensure outputs look like AX.25 info field with ' | ' and tail keys
-    for out in outputs:
-        assert " | " in out
-        ok_tail = (("T=" in out) and ("M=" in out) and ("SOC=" in out))
-        assert ok_tail
+    assert p.returncode == 0, p.stderr.decode()
+    replies = [line + b"\n" for line in p.stdout.splitlines() if line]
+    assert len(replies) == 1
+    msg = obc_link.parse(replies[0])
+    assert msg.type == "BEACON_RSP"
+    assert msg.fields[0] == "42"
+    assert 0 < len(msg.fields[1]) <= obc_link.TEXT_MAX

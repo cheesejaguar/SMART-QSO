@@ -26,6 +26,7 @@
 #include "contact_monitor.h"
 #include "rf_silence.h"
 #include "deployment.h"
+#include "jetson_link.h"
 #include "cmd_handler.h"
 #include "gse_provision.h"
 #include "uplink.h"
@@ -346,80 +347,131 @@ static void monitor_system_health(void)
 /**
  * @brief Send telemetry to Jetson
  */
+/** Beacon text most recently received from the Jetson (empty: use a template) */
+static char s_ai_text[JETSON_TEXT_MAX + 1U];
+static uint16_t s_beacon_seq = 0U;
+static JetsonRx_t s_jetson_rx;
+
+/** Replace characters that would break the ICD's comma-separated fields */
+static void sanitize_field(char *text)
+{
+    for (char *p = text; *p != '\0'; p++) {
+        if ((*p == ',') || (*p < 0x20) || (*p > 0x7E)) {
+            *p = ';';
+        }
+    }
+}
+
+static void send_line(const char *line, size_t len, const char *what)
+{
+    if (len == 0U) {
+        fprintf(stderr, "[UART] %s line not built\n", what);
+    } else if (uart_send(line, len) != SMART_QSO_OK) {
+        fprintf(stderr, "[UART] Failed to send %s to Jetson\n", what);
+    } else {
+        printf("[UART] Sent %s to Jetson (%zu bytes)\n", what, len);
+    }
+}
+
 static void send_telemetry_to_jetson(void)
 {
     if (!eps_is_payload_enabled() || !uart_is_initialized()) {
         return;
     }
 
-    char buffer[UART_TX_BUFFER_SIZE];
-    int offset = 0;
-
-    /* Format header with mission state */
-    offset = snprintf(buffer, sizeof(buffer),
-                      "TELEMETRY,%llu,%s,%.3f,%d,%.1f,",
-                      (unsigned long long)smart_qso_now_ms(),
-                      s_sunlit ? "SUNLIT" : "ECLIPSE",
-                      s_soc,
-                      (int)eps_get_power_mode(),
-                      eps_get_power_limit());
-
-    if (offset < 0 || (size_t)offset >= sizeof(buffer)) {
-        return;  /* Truncation */
+    /* ICD_OBC_JETSON section 4: TELEMETRY,<fields...>,<CRC>\n */
+    char buffer[JETSON_LINE_MAX];
+    size_t room = sizeof(buffer) - 6U;  /* ",XXXX\n" */
+    int offset = snprintf(buffer, room,
+                          "TELEMETRY,%llu,%s,%.3f,%d,%.1f,",
+                          (unsigned long long)smart_qso_now_ms(),
+                          s_sunlit ? "SUNLIT" : "ECLIPSE",
+                          s_soc,
+                          (int)eps_get_power_mode(),
+                          eps_get_power_limit());
+    if ((offset < 0) || ((size_t)offset >= room)) {
+        return;
     }
 
-    /* Add sensor values */
-    size_t sensor_len = sensors_format_telemetry(buffer + offset,
-                                                  sizeof(buffer) - (size_t)offset);
-    offset += (int)sensor_len;
+    /* Sensor values */
+    offset += (int)sensors_format_telemetry(buffer + offset, room - (size_t)offset);
 
-    /* Add EPS state */
+    /* EPS state */
     EpsControlState_t eps_state;
     if (eps_get_state(&eps_state) == SMART_QSO_OK) {
-        int written = snprintf(buffer + offset, sizeof(buffer) - (size_t)offset,
+        int written = snprintf(buffer + offset, room - (size_t)offset,
                                "EPS_PAYLOAD=%s,EPS_RADIO=%s,EPS_ADCS=%s,EPS_BEACON=%s,",
                                eps_state.payload_enabled ? "ON" : "OFF",
                                eps_state.radio_enabled ? "ON" : "OFF",
                                eps_state.adcs_enabled ? "ON" : "OFF",
                                eps_state.beacon_enabled ? "ON" : "OFF");
-        if (written > 0 && (size_t)written < sizeof(buffer) - (size_t)offset) {
+        if ((written > 0) && ((size_t)written < (room - (size_t)offset))) {
             offset += written;
         }
     }
 
-    /* Add fault information */
+    /* Fault information (description sanitized: no commas inside a field) */
     FaultLogEntry_t last_fault;
     if (fault_log_get_last(&last_fault) == SMART_QSO_OK) {
-        int written = snprintf(buffer + offset, sizeof(buffer) - (size_t)offset,
+        char description[sizeof(last_fault.description)];
+        (void)snprintf(description, sizeof(description), "%s", last_fault.description);
+        sanitize_field(description);
+        int written = snprintf(buffer + offset, room - (size_t)offset,
                                "LAST_FAULT=%s,FAULT_COUNT=%zu,",
-                               last_fault.description,
-                               fault_log_get_count());
-        if (written > 0 && (size_t)written < sizeof(buffer) - (size_t)offset) {
+                               description, fault_log_get_count());
+        if ((written > 0) && ((size_t)written < (room - (size_t)offset))) {
             offset += written;
         }
     }
 
-    /* Add health status */
-    int written = snprintf(buffer + offset, sizeof(buffer) - (size_t)offset,
+    /* Health status */
+    int written = snprintf(buffer + offset, room - (size_t)offset,
                            "UART_HEALTH=%s,WATCHDOG=%s",
                            uart_is_initialized() ? "OK" : "FAIL",
                            fault_was_watchdog_triggered() ? "TRIGGERED" : "OK");
-    if (written > 0 && (size_t)written < sizeof(buffer) - (size_t)offset) {
+    if ((written > 0) && ((size_t)written < (room - (size_t)offset))) {
         offset += written;
     }
-
-    /* Finalize message */
-    if (offset > 0 && buffer[offset - 1] == ',') {
-        buffer[offset - 1] = '\n';
-    } else if ((size_t)offset < sizeof(buffer) - 1) {
-        buffer[offset++] = '\n';
+    if ((offset > 0) && (buffer[offset - 1] == ',')) {
+        offset--;
     }
 
-    /* Send via UART */
-    if (uart_send(buffer, (size_t)offset) == SMART_QSO_OK) {
-        printf("[UART] Sent telemetry to Jetson (%d bytes)\n", offset);
-    } else {
-        fprintf(stderr, "[UART] Failed to send telemetry to Jetson\n");
+    send_line(buffer, jetson_link_seal(buffer, (size_t)offset, sizeof(buffer)), "telemetry");
+
+    /* Ask for the next beacon text */
+    s_beacon_seq++;
+    char request[JETSON_LINE_MAX];
+    send_line(request, jetson_link_beacon_req(s_beacon_seq, (uint8_t)JETSON_TEXT_MAX,
+                                              request, sizeof(request)), "beacon request");
+}
+
+/** Read Jetson lines: keep the answer to our latest beacon request */
+static void poll_jetson(void)
+{
+    char chunk[64];
+    size_t received = 0U;
+
+    if (!uart_is_initialized() ||
+        (uart_receive(chunk, sizeof(chunk), &received) != SMART_QSO_OK)) {
+        return;
+    }
+    for (size_t i = 0U; i < received; i++) {
+        JetsonMsg_t msg;
+        JetsonStatus_t status = JETSON_OK;
+        if (!jetson_rx_feed(&s_jetson_rx, chunk[i], &msg, &status)) {
+            continue;
+        }
+        if (status != JETSON_OK) {
+            fprintf(stderr, "[UART] Rejected Jetson line (%d)\n", (int)status);
+        } else if ((msg.type == JETSON_MSG_BEACON_RSP) && (msg.seq == s_beacon_seq)) {
+            (void)snprintf(s_ai_text, sizeof(s_ai_text), "%s", msg.text);
+            printf("[UART] Beacon text from Jetson (%zu chars)\n", msg.text_len);
+        } else if (msg.type == JETSON_MSG_STATUS) {
+            printf("[UART] Jetson status: health=%u temp=%dC power=%umW\n",
+                   (unsigned)msg.health, (int)msg.temp_c, (unsigned)msg.power_mw);
+        } else {
+            /* Stale beacon answers, ACK and NACK need no action */
+        }
     }
 }
 
@@ -466,6 +518,9 @@ static SmartQsoResult_t run_main_loop(void)
 
         /* Sensor polling */
         (void)sensors_poll(now);
+
+        /* Jetson replies (beacon text, status) */
+        poll_jetson();
 
         /* Telecommands from the 435 MHz receiver, then key provisioning
          * (umbilical only) */

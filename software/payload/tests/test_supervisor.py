@@ -300,3 +300,26 @@ class TestProcessStatus(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestBeaconRequest(unittest.TestCase):
+    """The supervisor owns the UART and answers the OBC's BEACON_REQ."""
+
+    def test_beacon_request_answered_with_beacon_response(self):
+        from health_interface import HealthCommand, HealthData
+        import obc_link
+
+        sup = PayloadSupervisor()
+        sup._health = Mock()
+        sup._handle_health_command(HealthData(
+            timestamp=1, command=HealthCommand.HEARTBEAT, power_state=1, battery_soc=0.2,
+            obc_temp=20.0, payload_enabled=True, data={"sunlit": False}))
+        sup._handle_health_command(HealthData(
+            timestamp=2, command=HealthCommand.BEACON_REQUEST, power_state=0, battery_soc=0.0,
+            obc_temp=0.0, payload_enabled=True, data={"seq": 9, "max_len": 40}))
+
+        sup._health.send_line.assert_called_once()
+        msg = obc_link.parse(sup._health.send_line.call_args[0][0])
+        self.assertEqual(msg.type, "BEACON_RSP")
+        self.assertEqual(msg.fields[0], "9")
+        self.assertTrue(0 < len(msg.fields[1]) <= 40)
