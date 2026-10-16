@@ -30,6 +30,8 @@
 #include "beacon.h"
 #include "watchdog_mgr.h"
 #include "payload_guard.h"
+#include "system_state.h"
+#include "state_machine.h"
 #include "cmd_handler.h"
 #include "gse_provision.h"
 #include "uplink.h"
@@ -236,6 +238,17 @@ static SmartQsoResult_t init_system(void)
 
     payload_guard_init();
 
+    /* Operational state (one mode manager, SW-14): BOOT -> DETUMBLE -> IDLE.
+     * The host loop has no ADCS, so detumble completes at once; on the
+     * target the ADCS raises EVENT_DETUMBLE_COMPLETE */
+    eps_update_soc(s_soc);
+    if (sys_state_init() != SMART_QSO_OK) {
+        fprintf(stderr, "[SYSTEM] System state init failed\n");
+        return SMART_QSO_ERROR;
+    }
+    (void)sm_process_event(sys_get_sm_context(), EVENT_BOOT_COMPLETE, NULL);
+    (void)sm_process_event(sys_get_sm_context(), EVENT_DETUMBLE_COMPLETE, NULL);
+
     if (init_watchdog() != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Watchdog init failed\n");
         return SMART_QSO_ERROR;
@@ -292,35 +305,19 @@ static void update_mission_state(uint64_t tick)
         s_soc = 0.0;
     }
 
-    /* Power management with fault recovery */
-    PowerMode_t current_mode = eps_get_power_mode();
-
-    if (s_soc < EPS_SOC_SAFE_THRESHOLD) {
-        /* Critical power condition - enter SAFE mode */
-        if (current_mode != POWER_MODE_SAFE) {
-            (void)eps_set_power_mode(POWER_MODE_SAFE, s_soc);
+    /* Mode: the EPS holds the measured SOC; the state machine turns power
+     * conditions into transitions, and its entry actions set the EPS power
+     * mode (SW-14). In this simulation s_soc stands in for the EPS gauge */
+    eps_update_soc(s_soc);
+    SmState_t state = STATE_BOOT;
+    if (sm_get_state(sys_get_sm_context(), &state) == SMART_QSO_OK) {
+        SmEvent_t event = sm_power_event(state, s_soc, s_sunlit);
+        if (event != EVENT_NONE) {
+            (void)sm_process_event(sys_get_sm_context(), event, NULL);
         }
-    } else if (s_soc < EPS_SOC_IDLE_THRESHOLD) {
-        /* Low power condition - enter IDLE mode */
-        if (current_mode > POWER_MODE_IDLE) {
-            (void)eps_set_power_mode(POWER_MODE_IDLE, s_soc);
-        }
-    } else if (s_sunlit && s_soc > EPS_SOC_PAYLOAD_THRESHOLD && current_mode < POWER_MODE_ACTIVE) {
-        /* Good conditions - can enter ACTIVE mode */
-        (void)eps_set_power_mode(POWER_MODE_ACTIVE, s_soc);
     }
 
     uint64_t now = smart_qso_now_ms();
-
-    /* Periodic fault recovery checks */
-    if (tick % 50 == 0) {
-        if (current_mode == POWER_MODE_SAFE && s_soc > EPS_SOC_IDLE_THRESHOLD) {
-            /* Try to recover from SAFE mode */
-            (void)eps_set_power_mode(POWER_MODE_IDLE, s_soc);
-            fault_log_add(FAULT_TYPE_RECOVERY, FAULT_SEVERITY_INFO,
-                          "Recovered from SAFE mode", s_soc);
-        }
-    }
 
     /* Update mission data */
     (void)mission_data_update_uptime(now - s_program_start_ms);
@@ -355,7 +352,7 @@ static void monitor_system_health(void)
             if (strcmp(sensor.type, "eps_temperature") == 0 && sensor.last_value > 40.0) {
                 fault_log_add(FAULT_TYPE_HEALTH_THERMAL, FAULT_SEVERITY_WARNING,
                               "High temperature in health check", s_soc);
-                (void)fault_recover_thermal(s_soc);
+                (void)sm_process_event(sys_get_sm_context(), EVENT_THERMAL_FAULT, NULL);
             }
         }
     }
@@ -370,8 +367,7 @@ static void monitor_system_health(void)
     /* Check for power issues */
     if (s_soc < 0.30) {
         fault_log_add(FAULT_TYPE_HEALTH_POWER, FAULT_SEVERITY_WARNING,
-                      "Low SOC in health check", s_soc);
-        (void)fault_recover_power(s_soc);
+                      "Low SOC in health check", s_soc);  /* mode change: update_mission_state */
     }
 
     /* Check for communication issues */

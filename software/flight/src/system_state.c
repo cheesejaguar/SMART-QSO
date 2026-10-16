@@ -10,6 +10,7 @@
  */
 
 #include "system_state.h"
+#include "eps_control.h"
 #include "safe_string.h"
 #include <stddef.h>
 
@@ -52,10 +53,9 @@ SmartQsoResult_t sys_state_init(void)
     /* Clear all state to zero */
     (void)safe_memset(&s_state, sizeof(s_state), 0, sizeof(s_state));
 
-    /* Initialize power state defaults */
+    /* Initialize power state defaults. Power mode and SOC are held by the
+     * EPS (eps_control.c); this module reports them, never a copy (SW-14) */
     s_state.power.battery_voltage = 3.7;
-    s_state.power.state_of_charge = 0.5;
-    s_state.power.power_mode = POWER_MODE_SAFE;
     s_state.power.payload_enabled = false;
 
     /* Initialize thermal state defaults */
@@ -211,6 +211,8 @@ SmartQsoResult_t sys_get_power_state(PowerState_t *state)
     }
 
     (void)safe_memcpy(state, sizeof(*state), &s_state.power, sizeof(s_state.power));
+    state->power_mode = eps_get_power_mode();
+    state->state_of_charge = eps_get_soc();
     return SMART_QSO_OK;
 }
 
@@ -237,27 +239,29 @@ SmartQsoResult_t sys_set_state_of_charge(double soc)
         soc = 1.0;
     }
 
-    s_state.power.state_of_charge = soc;
+    eps_update_soc(soc);
     mark_dirty();
     return SMART_QSO_OK;
 }
 
 double sys_get_state_of_charge(void)
 {
-    return s_state.power.state_of_charge;
+    return eps_get_soc();
 }
 
 SmartQsoResult_t sys_set_power_mode(PowerMode_t mode)
 {
-    s_state.power.power_mode = mode;
+    /* Sets the EPS directly. Operational mode changes go through the state
+     * machine, whose entry actions set the EPS power mode */
+    SmartQsoResult_t result = eps_set_power_mode(mode, eps_get_soc());
     s_state.power.mode_entry_time_ms = (uint32_t)smart_qso_now_ms();
     mark_dirty();
-    return SMART_QSO_OK;
+    return result;
 }
 
 PowerMode_t sys_get_power_mode(void)
 {
-    return s_state.power.power_mode;
+    return eps_get_power_mode();
 }
 
 SmartQsoResult_t sys_set_payload_enabled(bool enabled)
@@ -540,5 +544,7 @@ SmartQsoResult_t sys_get_full_state(SystemState_t *state)
     }
 
     (void)safe_memcpy(state, sizeof(*state), &s_state, sizeof(s_state));
+    state->power.power_mode = eps_get_power_mode();
+    state->power.state_of_charge = eps_get_soc();
     return SMART_QSO_OK;
 }

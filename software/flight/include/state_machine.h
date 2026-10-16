@@ -175,6 +175,25 @@ SmartQsoResult_t sm_get_state(const SmContext_t *ctx, SmState_t *state);
 const char *sm_get_state_name(SmState_t state);
 
 /**
+ * @brief The event that power conditions call for in a state (SW-14)
+ *
+ * Hysteresis: ACTIVE at EPS_SOC_PAYLOAD_THRESHOLD (sunlit), back to IDLE
+ * below EPS_SOC_IDLE_THRESHOLD; SAFE below EPS_SOC_SAFE_THRESHOLD, back to
+ * IDLE above EPS_SOC_IDLE_THRESHOLD; EMERGENCY only if SOC keeps falling in
+ * SAFE (below EPS_SOC_EMERGENCY_THRESHOLD), back to SAFE at
+ * EPS_SOC_SAFE_THRESHOLD.
+ *
+ * @return EVENT_NONE if nothing should change
+ */
+SmEvent_t sm_power_event(SmState_t state, double soc, bool sunlit);
+
+/**
+ * @brief The transition table, read-only (for verification)
+ * @param count Set to the number of rows
+ */
+const SmTransition_t *sm_transitions(size_t *count);
+
+/**
  * @brief Get event name string
  *
  * @param[in] event Event to get name for

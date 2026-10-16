@@ -18,6 +18,7 @@
 
 /* Include the module under test */
 #include "system_state.h"
+#include "eps_control.h"
 
 /*===========================================================================*/
 /* Test Fixtures                                                              */
@@ -60,7 +61,8 @@ static void test_sys_state_defaults(void **state)
     /* Power defaults */
     assert_int_equal(sys_get_power_mode(), POWER_MODE_SAFE);
     assert_false(sys_is_payload_enabled());
-    assert_true(fabs(sys_get_state_of_charge() - 0.5) < 0.01);
+    /* SOC is the EPS's measured value, not a copy */
+    assert_true(fabs(sys_get_state_of_charge() - eps_get_soc()) < 1e-9);
 
     /* ADCS defaults */
     assert_false(sys_is_detumbled());

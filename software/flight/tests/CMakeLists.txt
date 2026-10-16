@@ -276,12 +276,15 @@ target_compile_definitions(test_beacon_filter PRIVATE
 #===========================================================================
 # Test isolation
 #===========================================================================
-# The simulated fault log persists to a file. Give every test its own file so
+# The simulated fault log, EPS configuration and mission data persist to
+# files. Give every test its own files so
 # parallel ctest runs (ci.yml uses --parallel) cannot interfere.
 get_property(_sqso_tests DIRECTORY PROPERTY TESTS)
 foreach(_sqso_test IN LISTS _sqso_tests)
     set_property(TEST ${_sqso_test} APPEND PROPERTY ENVIRONMENT
-        "SMART_QSO_FAULT_LOG=${CMAKE_CURRENT_BINARY_DIR}/fault_log_${_sqso_test}.dat")
+        "SMART_QSO_FAULT_LOG=${CMAKE_CURRENT_BINARY_DIR}/fault_log_${_sqso_test}.dat"
+        "SMART_QSO_EPS_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/eps_config_${_sqso_test}.dat"
+        "SMART_QSO_MISSION_DATA=${CMAKE_CURRENT_BINARY_DIR}/mission_data_${_sqso_test}.dat")
 endforeach()
 
 #===========================================================================

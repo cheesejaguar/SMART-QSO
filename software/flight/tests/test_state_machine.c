@@ -17,6 +17,8 @@
 
 /* Include the module under test */
 #include "state_machine.h"
+#include "eps_control.h"
+#include "payload_guard.h"
 
 /*===========================================================================*/
 /* Test Fixtures                                                              */
@@ -31,6 +33,10 @@ static int setup(void **state)
 {
     (void)state;
     memset(&g_ctx, 0, sizeof(g_ctx));
+    /* Healthy battery and payload unless a test says otherwise */
+    payload_guard_init();
+    (void)eps_init();
+    eps_update_soc(0.9);
     return 0;
 }
 
@@ -439,6 +445,141 @@ static void test_sm_mission_sequence(void **state)
     assert_int_equal(g_ctx.transition_count, 7);
 }
 
+
+/*===========================================================================*/
+/* Mode manager (SW-14)                                                       */
+/*===========================================================================*/
+
+/** Each (state, event) pair has at most one row, so no row is shadowed */
+static void test_sm_no_shadowed_rows(void **state)
+{
+    (void)state;
+    size_t count = 0U;
+    const SmTransition_t *table = sm_transitions(&count);
+    assert_non_null(table);
+    assert_true(count > 0U);
+    for (size_t i = 0U; i < count; i++) {
+        for (size_t j = i + 1U; j < count; j++) {
+            assert_false((table[i].from_state == table[j].from_state) &&
+                         (table[i].event == table[j].event));
+        }
+    }
+}
+
+/** Every state can be reached from BOOT */
+static void test_sm_every_state_reachable(void **state)
+{
+    (void)state;
+    size_t count = 0U;
+    const SmTransition_t *table = sm_transitions(&count);
+    bool reached[STATE_COUNT] = {false};
+    reached[STATE_BOOT] = true;
+    for (int pass = 0; pass < STATE_COUNT; pass++) {
+        for (size_t i = 0U; i < count; i++) {
+            if (reached[table[i].from_state]) {
+                reached[table[i].to_state] = true;
+            }
+        }
+    }
+    for (int st = 0; st < STATE_COUNT; st++) {
+        assert_true(reached[st]);
+    }
+}
+
+/** Critical power: IDLE/ACTIVE go to SAFE; SAFE goes to EMERGENCY; back on recovery */
+static void test_sm_critical_power(void **state)
+{
+    (void)state;
+    SmResult_t result;
+
+    sm_init(&g_ctx, STATE_IDLE);
+    sm_process_event(&g_ctx, EVENT_POWER_CRITICAL, &result);
+    assert_int_equal(g_ctx.current_state, STATE_SAFE);
+
+    sm_process_event(&g_ctx, EVENT_POWER_CRITICAL, &result);
+    assert_int_equal(result, SM_RESULT_OK);
+    assert_int_equal(g_ctx.current_state, STATE_EMERGENCY);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_SAFE);
+    assert_false(eps_is_beacon_enabled());     /* deeper load shed than SAFE */
+
+    sm_process_event(&g_ctx, EVENT_POWER_OK, &result);
+    assert_int_equal(g_ctx.current_state, STATE_SAFE);
+    assert_true(eps_is_beacon_enabled());      /* SAFE restores the beacon */
+}
+
+/** ACTIVE needs the battery above the payload threshold and the payload guard */
+static void test_sm_active_guard(void **state)
+{
+    (void)state;
+    SmResult_t result;
+
+    sm_init(&g_ctx, STATE_IDLE);
+    eps_update_soc(EPS_SOC_PAYLOAD_THRESHOLD - 0.01);
+    sm_process_event(&g_ctx, EVENT_GROUND_CMD_ACTIVE, &result);
+    assert_int_equal(result, SM_RESULT_GUARD_FAILED);
+    assert_int_equal(g_ctx.current_state, STATE_IDLE);
+
+    eps_update_soc(EPS_SOC_PAYLOAD_THRESHOLD);
+    PayloadSample_t hot;
+    memset(&hot, 0, sizeof(hot));
+    hot.power_valid = true;
+    hot.input_w = PG_LATCHUP_INPUT_W;
+    (void)payload_guard_step(&hot, true, smart_qso_now_ms());   /* trip: cool-down */
+    sm_process_event(&g_ctx, EVENT_AI_READY, &result);
+    assert_int_equal(result, SM_RESULT_GUARD_FAILED);
+
+    payload_guard_init();
+    sm_process_event(&g_ctx, EVENT_AI_READY, &result);
+    assert_int_equal(result, SM_RESULT_OK);
+    assert_int_equal(g_ctx.current_state, STATE_ACTIVE);
+}
+
+/** Entering a state sets the EPS power mode: one source of truth */
+static void test_sm_entry_sets_power_mode(void **state)
+{
+    (void)state;
+    sm_init(&g_ctx, STATE_IDLE);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_IDLE);
+    sm_process_event(&g_ctx, EVENT_AI_READY, NULL);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_ACTIVE);
+    sm_process_event(&g_ctx, EVENT_GROUND_CMD_SAFE, NULL);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_SAFE);
+    sm_process_event(&g_ctx, EVENT_GROUND_CMD_IDLE, NULL);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_IDLE);
+}
+
+
+/** Power conditions become events: hysteresis 0.40/0.55 for ACTIVE, 0.25/0.40
+ *  for SAFE, and EMERGENCY only if SOC keeps falling while SAFE */
+static void test_sm_power_event_policy(void **state)
+{
+    (void)state;
+    const struct {
+        SmState_t st; double soc; bool sun; SmEvent_t expect;
+    } cases[] = {
+        {STATE_ACTIVE, EPS_SOC_IDLE_THRESHOLD - 0.01, true, EVENT_POWER_LOW},
+        {STATE_ACTIVE, EPS_SOC_IDLE_THRESHOLD + 0.01, false, EVENT_NONE},
+        {STATE_ACTIVE, EPS_SOC_SAFE_THRESHOLD - 0.01, true, EVENT_POWER_CRITICAL},
+        {STATE_IDLE, EPS_SOC_SAFE_THRESHOLD - 0.01, true, EVENT_POWER_CRITICAL},
+        {STATE_IDLE, 0.30, true, EVENT_NONE},
+        {STATE_IDLE, EPS_SOC_PAYLOAD_THRESHOLD, true, EVENT_AI_READY},
+        {STATE_IDLE, EPS_SOC_PAYLOAD_THRESHOLD - 0.01, true, EVENT_NONE},
+        {STATE_IDLE, 0.90, false, EVENT_NONE},                      /* eclipse */
+        {STATE_SAFE, EPS_SOC_EMERGENCY_THRESHOLD - 0.01, true, EVENT_POWER_CRITICAL},
+        {STATE_SAFE, 0.20, true, EVENT_NONE},
+        {STATE_SAFE, EPS_SOC_IDLE_THRESHOLD, true, EVENT_NONE},
+        {STATE_SAFE, EPS_SOC_IDLE_THRESHOLD + 0.01, true, EVENT_POWER_OK},
+        {STATE_EMERGENCY, EPS_SOC_SAFE_THRESHOLD - 0.01, true, EVENT_NONE},
+        {STATE_EMERGENCY, EPS_SOC_SAFE_THRESHOLD, true, EVENT_POWER_OK},
+        {STATE_DETUMBLE, EPS_SOC_SAFE_THRESHOLD - 0.01, true, EVENT_POWER_CRITICAL},
+        {STATE_DETUMBLE, 0.90, true, EVENT_NONE},
+        {STATE_BOOT, 0.10, true, EVENT_POWER_CRITICAL},
+    };
+    for (size_t i = 0U; i < (sizeof(cases) / sizeof(cases[0])); i++) {
+        assert_int_equal(sm_power_event(cases[i].st, cases[i].soc, cases[i].sun), cases[i].expect);
+    }
+}
+
 /*===========================================================================*/
 /* Test Suite                                                                 */
 /*===========================================================================*/
@@ -480,6 +621,12 @@ int main(void)
 
         /* Integration test */
         cmocka_unit_test_setup(test_sm_mission_sequence, setup),
+        cmocka_unit_test_setup(test_sm_no_shadowed_rows, setup),
+        cmocka_unit_test_setup(test_sm_every_state_reachable, setup),
+        cmocka_unit_test_setup(test_sm_critical_power, setup),
+        cmocka_unit_test_setup(test_sm_active_guard, setup),
+        cmocka_unit_test_setup(test_sm_entry_sets_power_mode, setup),
+        cmocka_unit_test_setup(test_sm_power_event_policy, setup),
     };
 
     return cmocka_run_group_tests_name("State Machine Tests", tests, NULL, NULL);

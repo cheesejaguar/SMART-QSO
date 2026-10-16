@@ -28,6 +28,9 @@ extern "C" {
 /** EPS configuration file path */
 #define EPS_CONFIG_FILE "/tmp/eps_config.dat"
 
+/** Environment variable that overrides EPS_CONFIG_FILE (tests run in parallel) */
+#define EPS_CONFIG_FILE_ENV "SMART_QSO_EPS_CONFIG"
+
 /** Power limit for SAFE mode (Watts) */
 #define EPS_POWER_LIMIT_SAFE_W   0.5
 
@@ -49,6 +52,9 @@ extern "C" {
 
 /** SOC threshold for entering IDLE mode */
 #define EPS_SOC_IDLE_THRESHOLD    0.40
+
+/** SOC below which SAFE sheds the beacon too (state EMERGENCY) */
+#define EPS_SOC_EMERGENCY_THRESHOLD 0.15
 
 /*===========================================================================*/
 /* EPS Control State Structure                                                */
@@ -169,6 +175,25 @@ PowerMode_t eps_get_power_mode(void);
  * @return true if payload is enabled, false otherwise
  */
 bool eps_is_payload_enabled(void);
+
+/**
+ * @brief Is the beacon transmitter powered?
+ */
+bool eps_is_beacon_enabled(void);
+
+/**
+ * @brief Record the latest measured battery state of charge (0..1)
+ *
+ * The EPS holds the SOC that mode decisions use (state-machine guards and
+ * entry actions). Until the first update it is 0, so nothing that needs
+ * power is allowed. Values outside 0..1 are ignored.
+ */
+void eps_update_soc(double soc);
+
+/**
+ * @brief Latest measured state of charge (0..1)
+ */
+double eps_get_soc(void);
 
 /**
  * @brief Get current power limit

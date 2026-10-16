@@ -29,6 +29,14 @@
 #include "eps_control.h"
 #include <math.h>
 
+/** The file the module under test uses (EPS_CONFIG_FILE_ENV overrides EPS_CONFIG_FILE) */
+static const char *config_path(void)
+{
+    const char *path = getenv(EPS_CONFIG_FILE_ENV);
+    return ((path != NULL) && (path[0] != '\0')) ? path : EPS_CONFIG_FILE;
+}
+
+
 /*===========================================================================*/
 /* Helper Macros                                                              */
 /*===========================================================================*/
@@ -46,7 +54,7 @@
 static int setup(void **state) {
     (void)state;
     /* Remove any existing config file */
-    unlink(EPS_CONFIG_FILE);
+    unlink(config_path());
     /* Initialize EPS module */
     SmartQsoResult_t result = eps_init();
     assert_int_equal(result, SMART_QSO_OK);
@@ -56,7 +64,7 @@ static int setup(void **state) {
 static int teardown(void **state) {
     (void)state;
     /* Clean up config file */
-    unlink(EPS_CONFIG_FILE);
+    unlink(config_path());
     return 0;
 }
 
