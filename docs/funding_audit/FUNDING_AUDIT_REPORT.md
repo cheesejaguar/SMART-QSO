@@ -65,7 +65,7 @@ primary source are labeled ROM.
 | Safety & mission assurance | **Red** | Catastrophic battery hazard closed without test; inhibits do not meet CDS (3+3); no battery safety program (VV-03…VV-05) |
 | Regulatory / licensing | **Amber** | Part 97 path determined, with conditions on funding structure. All filings drafted on the correct forms. Nothing filed; licensee not named (RG-03) |
 | Launch access | **Amber** | Path identified (commercial SSO ≤ 500 km); no quotes; reported capacity limits after 2028 (LA-01…LA-03) |
-| Cost & schedule | **Red → Amber** | ROM produced ($0.27M–$1.98M cash depending on labor model); a dated plan exists (§7) but is not yet an owned schedule |
+| Cost & schedule | **Red → Amber** | ROM produced ($0.28M–$2.02M cash depending on labor model); a dated plan exists (§7) but is not yet an owned schedule |
 
 ## 4. Critical Findings (all 19)
 
@@ -77,17 +77,20 @@ primary source are labeled ROM.
 | Technical baseline | TB-01, TB-02, TB-03, TB-04 | Impossible battery figure; payload energy not closed; lifetime at 400 km shorter than design life; transponder undefined |
 | Launch-safety compliance | VV-01, VV-02, VV-03, VV-04, VV-05 | "Qualified/Tested" with no hardware; 30-min RF silence vs the required 45; inhibits below CDS; no battery safety program; catastrophic hazard closed without test |
 
-## 5. Decisions Required from the PI (before funding)
+## 5. Decisions from the PI
 
-| ID | Decision | Why it gates funding |
+The PI took D1–D7 on 2026-10-15. The decisions and their remaining actions are in `docs/BASELINE_PARAMETERS.md` §9; the
+research behind them is in [research/](research/).
+
+| ID | Decision (2026-10-15) | Why it gated funding |
 |----|----------|----------------------|
-| D1 | Name the licensee (call sign), control operators, ≥ 2 telecommand stations, and the legal entity / host organization | No filing can be signed; no award recipient |
-| D2 | Funding instruments compatible with Part 97: grants or donations, no compensated operations, no data rights | Otherwise Part 5 applies ([pathway §7](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)) |
-| D3 | FCC Space Bureau pre-filing consultation (AI experiment; loss-of-contact behavior) | Removes the largest licensing uncertainty |
-| D4 | Keep the duty-gated transponder (baseline) or descope to beacon-only if the rebuilt power budget or EM thermal test fails | Scope and cost |
-| D5 | AI model selected by measured energy per beacon | Power and thermal closure |
-| D6 | GNSS receiver vs. third-party ephemeris (SpaceX User's Guide v11 §9.5.7) | Launch-provider acceptance |
-| D7 | Integrator and flight at ≤ 500 km | Launch-vehicle determination starts the 30-day FCC clock |
+| D1 | Licensee KK6GDB, station KK6GDB-11; telecommand stations TBD (NASA Ames and Santa Clara University prospective partners only) | No filing can be signed without it |
+| D2 | Paid contracts allowed, but only on a separate Part 5 radio held by a separate licensee (HuskySat-1 pattern); the amateur station takes no compensation and carries no paid content. Grants and donations until a contract is signed | Otherwise Part 97 is lost ([pathway §7](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)) |
+| D3 | Loss-of-contact N = 30 days at launch, 14 after commissioning; M = 180 days proposed, not implemented; both to the FCC consultation | Removes the largest licensing uncertainty |
+| D4 | Keep the duty-gated transponder | Scope and cost |
+| D5 | OBC selector as the flight baseline; Jetson generation gated on measured ≤ 0.1 Wh per accepted beacon ([selection](../payload/AI_MODEL_SELECTION.md)) | Power and thermal closure |
+| D6 | Add a GNSS receiver (piNAV-NG/FM; Celeste alternate) | Launch-provider acceptance (SpaceX User's Guide v11 §9.5.7.2) |
+| D7 | Transporter-class SSO via a 1U integrator, contract by 2027-06-30 with a 525 km altitude cap; ROM $115k–250k all-in; NRCSD backup | Launch-vehicle determination starts the 30-day FCC clock |
 
 ## 6. Launch and Rideshare (summary)
 
@@ -120,13 +123,13 @@ the FCC 90-day rule or export lead times, and is superseded by this plan for fun
 ## 8. Cost (summary)
 
 Full ROM with basis: [LIFECYCLE_COST_ROM.md](LIFECYCLE_COST_ROM.md). Non-labor including a 30 % reserve is
-**$0.27M–$0.68M**. Labor is the dominant uncertainty, at ≈ 6.25 FTE-years to launch:
+**$0.28M–$0.72M**. Labor is the dominant uncertainty, at ≈ 6.25 FTE-years to launch:
 
 | Labor model | Total cash |
 |-------------|-----------|
-| Volunteer | $0.27M–$0.68M |
-| University | $0.57M–$1.28M |
-| Professional | $1.17M–$1.98M |
+| Volunteer | $0.28M–$0.72M |
+| University | $0.58M–$1.32M |
+| Professional | $1.18M–$2.02M |
 
 ## 9. Recommended Funding Structure
 
@@ -195,7 +198,7 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
     - `SET_MODE` through the state-machine transition table; `SET_POWER` command
     - CI secret scan; ground telecommand and key-provisioning tools whose bytes match the flight vectors
     - loss-of-contact transmit inhibit: after N days without an authenticated command the transmitters stop and the
-      receiver stays on; N is set by telecommand (1–90 days; the 14-day default is a placeholder pending D3); the
+      receiver stays on; N is set by telecommand (1–90 days; 30 days at launch, 14 after commissioning, D3); the
       M-day autonomous passivation is not implemented
     - TX-OFF hardware test procedure TP-RF-006 (not yet run)
     - 45-minute post-deployment RF silence: whole radio unpowered; a power-on reset or switch toggle restarts it; a

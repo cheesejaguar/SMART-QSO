@@ -101,7 +101,7 @@ This comprehensive functional test verifies:
 | 25 | Wait for inhibit timer | 30 minutes | | |
 | 26 | Verify first beacon TX | RF output detected | | |
 | 27 | Decode beacon | AX.25 frame decoded | | |
-| 28 | Verify callsign | [CALLSIGN] | | |
+| 28 | Verify callsign | KK6GDB-11 | | |
 | 29 | Verify telemetry in beacon | All fields present | | |
 | 30 | Record beacon interval | 120 sec (SAFE mode) | | |
 

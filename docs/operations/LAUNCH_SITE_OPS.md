@@ -143,7 +143,7 @@ This document defines the launch site operations for the SMART-QSO CubeSat, cove
 | Item | Configuration | Verified |
 |------|---------------|----------|
 | Flight software | v1.0.0 loaded | ______ |
-| Beacon callsign | [CALLSIGN] set | ______ |
+| Beacon callsign | KK6GDB-11 set | ______ |
 | Beacon interval | 60 seconds | ______ |
 | ADCS mode | Detumble on deploy | ______ |
 | Safe mode thresholds | Default | ______ |

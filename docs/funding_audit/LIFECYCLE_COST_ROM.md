@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-AUD-005
-**Revision:** A
-**Date:** 2026-10-14
+**Revision:** B
+**Date:** 2026-10-15
 **Status:** **ROM, not a budget.** No vendor quotes have been obtained. Ranges come from analogous COTS CubeSat
 pricing and engineering judgment unless a source is cited. Accuracy class: about −30 % / +60 %. Replace each line with
 a quote before any funding agreement is signed.
@@ -35,17 +35,19 @@ can be built.
 | 02 | Systems engineering (incl. DAS/ODAR, budgets) | in labor | in labor | See §4 |
 | 03 | Safety & mission assurance (battery screening, inspections) | $3k | $10k | Cell screening lot, inspection tools; JSC 20793 testing **adds $15k–$40k [U] if the ISS backup is used** |
 | 05 | AI payload: Jetson Orin Nano module, custom carrier, thermal strap, power switch | $2k | $10k | Module list price is in the hundreds of dollars [U]; carrier PCB design/fab dominates |
-| 06 | Spacecraft bus, PFU: structure, EPS + battery, solar (body + wings), OBC, UHF/VHF radio + transponder, antenna deploy, ADCS (MTQ + magnetometer + sun sensors), harness | $47k | $127k | Analogous COTS pricing [U]: structure $3–6k; EPS + battery $8–20k; solar $10–30k; OBC $4–12k; radio/transponder $5–15k; antenna system $3–8k; ADCS $5–15k; harness $1–3k; GNSS (if adopted) $2–8k |
+| 06 | Spacecraft bus, PFU: structure, EPS + battery, solar (body + wings), OBC, UHF/VHF radio + transponder, antenna deploy, ADCS (MTQ + magnetometer + sun sensors), harness | $45k | $119k | Analogous COTS pricing [U]: structure $3–6k; EPS + battery $8–20k; solar $10–30k; OBC $4–12k; radio/transponder $5–15k; antenna system $3–8k; ADCS $5–15k; harness $1–3k |
+| 06 | GNSS receiver and patch antenna, EM and FM sets (D6) | $9k | $19k | piNAV-NG/FM EUR 3.3–6.2k or Celeste EUR 5.2k, plus ZENITH patch EUR 0.8k (list prices, not quotes) [U]; Czech export licence handled by the vendor |
 | 06 | Flatsat / engineering-model hardware | $25k | $80k | ~50–70 % of PFU hardware |
 | 07 | Mission operations: control-station equipment, SatNOGS integration, 2 yr operations consumables | $5k | $15k | Yagi/rotator/SDR/LNA station; ops labor uncompensated (Part 97) |
-| 08 | Launch services (1U via integrator) | $90k | $150k | **[U]** No published per-U price. SpaceX base $7,500/kg (2027), 50 kg minimum [P]; historical ~$85k/unit anchor [U] |
+| 08 | Launch services (1U via integrator) | $85k | $150k | **[U]** No provider publishes a 1U price (seven checked, D7). SpaceX base $7,500/kg (2027), 50 kg minimum [P]; anchors: $86k (2026 community post), ~$85–90k (legacy Nanoracks) [U]. Hold 15 % of the slot price in the reserve for rebooking or storage |
 | 08 | Export counsel, classification, possible TAA | $10k | $40k | Needed if the integrator is foreign ([export memo](../regulatory/filings/EXPORT_CLASSIFICATION_MEMO.md)) [U] |
-| 09 | Ground data system (beacon decoder, dashboards; mostly existing software) | $0 | $5k | Existing `software/ground` tools |
+| 08 | Shipping, travel, customs, integration campaign | $5k | $15k | D7 research [U] |
+| 09 | Ground data system (beacon decoder, dashboards; mostly existing software) and orbit determination with CCSDS OEM upload for SpaceX UG §9.5.7.2 (D6) | $0 | $10k | Existing `software/ground` tools; open-source astrodynamics library; effort is in labor (§4) |
 | 10 | Integration & test: random vibe (≥ 5.57 Grms MPE), TVAC/bakeout, EMC pre-scan, fit check, test-pod rental | $23k | $78k | Commercial test-lab day rates [U] |
 | 11 | Education / public outreach (beacon decoder releases, documentation) | $0 | $10k | — |
-| — | **Subtotal, non-labor** | **$205k** | **$525k** | |
-| — | Reserve on non-labor (30 %) | $62k | $158k | Class D practice; reserve is held by the PI, not spread across lines |
-| — | **Total non-labor incl. reserve** | **$267k** | **$683k** | |
+| — | **Subtotal, non-labor** | **$212k** | **$556k** | |
+| — | Reserve on non-labor (30 %) | $64k | $167k | Class D practice; reserve is held by the PI, not spread across lines |
+| — | **Total non-labor incl. reserve** | **$276k** | **$723k** | |
 
 ## 4. Labor (the dominant uncertainty)
 
@@ -74,9 +76,9 @@ and no hardware (see findings register). Estimated effort to reach delivery and 
 
 | Scenario | Non-labor incl. reserve | Labor (cash) | **Total cash** |
 |----------|------------------------|--------------|----------------|
-| Volunteer build | $0.27M–$0.68M | $0 | **$0.27M–$0.68M** |
-| University build | $0.27M–$0.68M | $0.3M–$0.6M | **$0.57M–$1.28M** |
-| Professional build | $0.27M–$0.68M | $0.9M–$1.3M | **$1.17M–$1.98M** |
+| Volunteer build | $0.28M–$0.72M | $0 | **$0.28M–$0.72M** |
+| University build | $0.28M–$0.72M | $0.3M–$0.6M | **$0.58M–$1.32M** |
+| Professional build | $0.28M–$0.72M | $0.9M–$1.3M | **$1.18M–$2.02M** |
 
 ## 6. Funding Profile (volunteer/university case, by fiscal year)
 
@@ -92,6 +94,8 @@ and no hardware (see findings register). Estimated effort to reach delivery and 
 2. **Jetson thermal/power closure in 1U**: may force a redesign (larger form factor or a different AI compute), which would change every line above. See the findings register (technical budgets).
 3. **ISS fallback**: adds JSC 20793 battery testing and safety-review labor.
 4. **Export/TAA** with a foreign integrator.
+5. **A paid contract (D2)** would add a second radio (≈ $6k UHF, ≈ $13–15k S-band), a Part 5 filing and ITU cost
+   recovery. The contract would fund them; they are not in the totals above.
 
 ---
 
@@ -100,3 +104,4 @@ and no hardware (see findings register). Estimated effort to reach delivery and 
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial ROM (funding audit) |
+| B | 2026-10-15 | Decisions D6 and D7: GNSS receiver line (EM and FM), launch slot $85k–150k with rebooking reserve, shipping and campaign line, orbit-determination tooling; paid-contract (D2) costs noted as outside the totals |

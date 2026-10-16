@@ -2,9 +2,9 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-003
-**Revision:** A
-**Date:** 2026-10-14
-**Status:** Draft for licensee/PI decision — not legal advice; confirm with FCC Space Bureau staff before filing
+**Revision:** B
+**Date:** 2026-10-15
+**Status:** Decisions D1–D3 taken (§8) — not legal advice; confirm with FCC Space Bureau staff before filing
 **Baseline:** [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md)
 
 ---
@@ -74,13 +74,50 @@ These earlier statements are inconsistent with this determination and are correc
 | Federal procurement contract with research deliverables (e.g., data rights, sponsor-defined experiment objectives) | **No — triggers Part 5** | [R2] 5.3(c); [R3] notes "missions conducted under government contract" are experimental. |
 | Commercial sponsorship with paid placement or data rights | **No** | Pecuniary interest (C2, C3). |
 
+### 7.1 Paid Contracts (Decision D2)
+
+The PI decided to allow paid contracts while keeping the transponder (D4). Research
+([D2_LICENSING.md](../funding_audit/research/D2_LICENSING.md)) shows the two can coexist only as two separate stations
+on one spacecraft, as on HuskySat-1. There, the University of Washington held a Part 5 licence and AMSAT a Part 97
+transponder licence. Paid contracts are therefore allowed on these terms:
+
+1. **The amateur station stays clean.** The transponder, beacon and amateur telecommand remain Part 97 under KK6GDB.
+   - No compensation goes to the licensee or control operators (97.113(a)(2)).
+   - No paid deliverable, sponsor data or customer-directed content travels on an amateur frequency. That includes
+     beacon text produced for a customer (97.113(a)(3)).
+   - The amateur transponder relays no signal from the Part 5 station (97.113(c)).
+2. **The contract runs on a separate Part 5 station.** It uses its own radio, on non-amateur frequencies; the practical
+   UHF pair is 400.15–401 MHz down and 449.75–450.25 MHz up, which needs ITU RR 9.21 agreement. It has its own
+   telecommand and its own transmit-off, so neither operator can silence the other's radio. The licence is held by a
+   separate licensee, ideally the sponsor or its research partner.
+3. **Part 5 is also non-commercial.** A U.S. Government payer, such as a NASA Ames contract, fits 47 CFR 5.3(c), with
+   the agency and contract number disclosed. A private payer, such as a university, fits only if the research is its
+   own (5.3(a), (d)). Selling data as a service is Part 25.
+4. **The sponsor gets no control over transmissions.** If an agency can direct or stop the station, it becomes a
+   Federal station (NTIA Manual 8.2.17).
+5. **Until a contract is signed,** funding is grants and donations that require nothing in return (the table above).
+
+A signed contract triggers the following, before any money is accepted:
+
+| Item | ROM |
+|------|-----|
+| Second radio, UHF (e.g., 94 g, 30–33 dBm) | ≈ $6k, plus antenna |
+| S-band instead | ≈ $13–15k; non-Federal S-band is restricted (US94, US96) |
+| Power and volume trade on the 1U | A second transmitter at 5–10 % duty is ≈ 0.2–0.6 W orbit average. The headroom before the 20 % margin requirement is ≈ 0.19 W tumbling and ≈ 0.78 W sun-pointed (BASELINE §5), so it may reopen D4 |
+| Part 5 application | $140 FCC fee; ITU cost recovery (2013 schedule CHF 570 + 7,030; current schedule not checked); 45–180 days, plus NTIA time if a Federal band |
+| IARU | Coordinate as a combined mission, disclosing the separation |
+
+The questions for the FCC consultation (D3) are in the research §5 R6. Can one spacecraft carry a Part 97 station and a
+separately licensed Part 5 station? Does a licensee who also controls the contracting entity have a pecuniary interest?
+Is AI beacon text affected if the AI experiment is also a contract deliverable?
+
 ## 8. Decisions Required
 
-| ID | Decision | Owner | Needed by |
-|----|----------|-------|-----------|
-| D1 | Name the space station licensee (call sign, license class) and at least two control operators and telecommand stations | PI | Before IARU submission |
-| D2 | Confirm that all funding instruments meet §7 (no operations compensation, no data rights) | PI + funders | Before accepting funds |
-| D3 | Pre-filing consultation with FCC Space Bureau (amateur satellite staff) on the AI-experiment / federated-learning concept | Licensee | Before IARU submission |
+| ID | Decision (2026-10-15) | Remaining action | Needed by |
+|----|----------|----------|-----------|
+| D1 | Licensee KK6GDB; space station KK6GDB-11 | Name at least two control operators and telecommand stations (NASA Ames and Santa Clara University are prospective partners only) | Before IARU submission |
+| D2 | Paid contracts allowed on the terms of §7.1; grants and donations until one is signed | Apply §7.1 to any contract before accepting funds | Before accepting funds |
+| D3 | Consultation with FCC Space Bureau (amateur satellite staff): AI experiment, loss-of-contact values (N = 30/14 days, M = 180 days proposed), the §7.1 questions | Hold the consultation | Before IARU submission |
 
 ---
 
@@ -89,3 +126,4 @@ These earlier statements are inconsistent with this determination and are correc
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial determination (funding audit) |
+| B | 2026-10-15 | Decisions D1–D3 recorded; §7.1 paid-contract terms (D2) |

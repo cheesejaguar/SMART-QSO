@@ -117,7 +117,7 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 |------|------|----------|--------|-----|
 | 17 | Transmit test beacon | Frame generated | _______ | |
 | 18 | Verify destination callsign | "CQ" | _______ | |
-| 19 | Verify source callsign | [CALLSIGN] | _______ | |
+| 19 | Verify source callsign | KK6GDB-11 | _______ | |
 | 20 | Verify SSID | 1 | _______ | |
 | 21 | Verify control byte | 0x03 (UI) | _______ | |
 | 22 | Verify PID byte | 0xF0 (no L3) | _______ | |
@@ -128,7 +128,7 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 
 | Step | Field | Expected | Observed | P/F |
 |------|-------|----------|----------|-----|
-| 25 | Header | "de [CALLSIGN]:" | _______ | |
+| 25 | Header | "de KK6GDB-11:" | _______ | |
 | 26 | Text content | ASCII printable | _______ | |
 | 27 | Telemetry block | Present | _______ | |
 | 28 | Timestamp | Valid | _______ | |

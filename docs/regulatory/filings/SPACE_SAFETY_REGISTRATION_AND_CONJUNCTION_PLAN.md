@@ -2,8 +2,8 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-015
-**Revision:** A
-**Date:** 2026-10-14
+**Revision:** B
+**Date:** 2026-10-15
 **Status:** Plan. Registrations are not started.
 **Supports:** 47 CFR 97.207(g)(1)(iv)(A)(5) (conjunction-warning certification) and (g)(1)(v) (trackability, identification, 18 SDS registration, ephemeris sharing)
 
@@ -15,7 +15,7 @@
 |------|-----------|-------|
 | Smallest dimension, excluding deployables | 100 mm (1U, 10 × 10 × 11.35 cm) | CDS Rev 14.1 1U envelope |
 | Presumption | **Presumed trackable**: "Space station(s) operating in low-Earth orbit will be presumed trackable if each individual space station is 10 cm or larger in its smallest dimension, exclusive of deployable components." | 97.207(g)(1)(v) |
-| Tracking method | Passive (radar skin track by the U.S. Space Surveillance Network). No active tracking aid. | — |
+| Tracking method | Passive radar skin track by the U.S. Space Surveillance Network, plus the onboard GNSS receiver (decision D6, BASELINE §6) feeding operator ephemeris (§3a) | — |
 
 The 100 mm dimension is right at the presumption threshold. Do not reduce structure dimensions below the CDS 1U envelope.
 
@@ -36,6 +36,31 @@ Deployments from multi-payload rideshares release many similar objects. SMART-QS
 | R3 | Launch provider | Supply the provider's operator-contact form (24 h phone, email, call sign, beacon frequency) for its 18 SDS pre-launch submission | Per provider ICD (typ. L-1 month) | PI | Not started |
 | R4 | Public | Publish beacon frequency, format and decoder before launch (IARU form §6, RR 25.2A) | Before launch | Ops lead | Not started |
 
+## 3a. Operator Ephemeris (SpaceX User's Guide v11 §9.5.7.2; 97.207(g)(1)(v)(C))
+
+The launch contract requires forward-predicted GNSS-based ephemerides with covariance, published to Space-Track and to
+SpaceX Space Traffic Coordination:
+
+- the first within 24 h of first contact (best practice: within 3 h of deployment);
+- then after every pass and at least every 24 h until the 18 SDS has cataloged the object;
+- best practice afterwards is three times a day.
+
+A spacecraft without GNSS must arrange a third party before integration; failure can mean rebooking. Decision D6 adds a
+GNSS receiver:
+
+1. **Onboard:** the receiver is duty-cycled. During launch and early operations it takes a fix every orbit; afterwards
+   it runs 3–6 sessions a day, with the Jetson and PA off. The latest fix (ECEF position, GPS time, satellite count,
+   PDOP, fix age) is stored for downlink. Fixes marked as dead-reckoned (GGA quality 6) are discarded.
+2. **Ground:** orbit determination over the last 24–48 h of fixes, estimating a drag scale factor. Drag error, about
+   240–415 m along track after 24 h, dominates the covariance; receiver error does not.
+3. **Output:** CCSDS OEM in KVN format, UTC (convert from GPS time), ITRF or EME2000. State every 60 s over 3–7 days,
+   with covariance.
+4. **Contingency:** if the receiver fails, a third-party orbit-determination service, accepted in writing by SpaceX and
+   the integrator.
+
+Open: Space-Track operator file-naming rules (Spaceflight Safety Handbook for Operators), and SpaceX acceptance of a
+duty-cycled receiver.
+
 ## 4. Conjunction Response (97.207(g)(1)(iv)(A)(5))
 
 The FCC rule requires certification that "upon receipt of a space situational awareness conjunction warning, the
@@ -48,7 +73,7 @@ SMART-QSO has **no propulsion**, so it cannot maneuver. Mitigation options are l
 |------|--------|----------|
 | 1 | Receive a Conjunction Data Message (CDM) from Space-Track/TraCSS at the 24 h operator contact | Continuous |
 | 2 | Review miss distance, probability of collision (Pc) and covariance quality; log in the anomaly/ops log | ≤ 4 h of receipt |
-| 3 | If the other object is an **active, maneuverable** spacecraft: contact its operator (contact data via Space-Track), share SMART-QSO ephemeris (latest TLE plus GPS-free orbit estimate) and confirm SMART-QSO cannot maneuver | ≤ 12 h, or before time of closest approach (TCA) |
+| 3 | If the other object is an **active, maneuverable** spacecraft: contact its operator (contact data via Space-Track), share SMART-QSO ephemeris (latest operator OEM from GNSS fixes, §3a; TLE if no recent fix) and confirm SMART-QSO cannot maneuver | ≤ 12 h, or before time of closest approach (TCA) |
 | 4 | If Pc ≥ 1e-4 and the counterpart is crewed (ISS/CSS) or maneuverable: request that the counterpart maneuver; provide any data requested | Before TCA |
 | 5 | Operational mitigation: none available. (Attitude changes that alter drag are negligible on conjunction timescales.) | — |
 | 6 | Record the outcome and update the in-space notification if any disclosed parameter changed | After TCA |
@@ -76,3 +101,4 @@ Tiangong band (~380–390 km). Design and operational strategies to disclose:
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial plan (funding audit) |
+| B | 2026-10-15 | §3a operator ephemeris from the GNSS receiver (decision D6) |
