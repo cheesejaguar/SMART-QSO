@@ -6,6 +6,7 @@
  */
 
 #include "beacon.h"
+#include "beacon_filter.h"
 #include "eps_control.h"
 #include "mission_data.h"
 #include "fault_mgmt.h"
@@ -35,11 +36,11 @@ static bool s_initialized = false;
 
 const char *beacon_templates[] = {
     "SMART-QSO beacon - autonomous AI transponder demo",
-    "Hello from space! CubeSat systems nominal",
+    "Hello from space! SMART-QSO CubeSat",
     "Amateur radio in orbit - powered by AI",
     "SMART-QSO 1U - technology demonstration mission",
-    "Greetings from LEO! All systems go",
-    "CubeSat beacon - AI payload standby",
+    "Greetings from LEO! 73 to all",
+    "SMART-QSO CubeSat beacon - reports welcome",
     "SMART-QSO mission - thanks for listening!",
     "Amateur satellite beacon - 73 de KK6GDB-11"
 };
@@ -107,9 +108,13 @@ SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
 
     memset(content, 0, sizeof(BeaconContent_t));
 
-    /* Determine text source */
-    if (ai_text != NULL && ai_text_len > 0 &&
-        beacon_validate_text(ai_text, ai_text_len)) {
+    /* Determine text source: AI text only if it passes the content filter */
+    bool ai_ok = (ai_text != NULL) && (ai_text_len > 0U) &&
+                 beacon_validate_text(ai_text, ai_text_len);
+    if ((ai_text != NULL) && (ai_text_len > 0U) && !ai_ok) {
+        s_beacon_state.ai_rejected_count++;
+    }
+    if (ai_ok) {
         /* Use AI-generated text */
         size_t copy_len = ai_text_len;
         if (copy_len >= BEACON_MAX_TEXT_LEN) {
@@ -401,6 +406,7 @@ SmartQsoResult_t beacon_store_ai_text(const char *text, size_t len)
     }
 
     if (!beacon_validate_text(text, len)) {
+        s_beacon_state.ai_rejected_count++;
         return SMART_QSO_ERROR;
     }
 
@@ -434,26 +440,7 @@ uint16_t beacon_crc16(const uint8_t *data, size_t len)
 
 bool beacon_validate_text(const char *text, size_t len)
 {
-    if (text == NULL) {
-        return false;
-    }
-
-    if (len == 0 || len > BEACON_MAX_TEXT_LEN) {
-        return false;
-    }
-
-    /* Check for ASCII only */
-    for (size_t i = 0; i < len; i++) {
-        unsigned char c = (unsigned char)text[i];
-        /* Allow printable ASCII and common whitespace */
-        if (c < 0x20 || c > 0x7E) {
-            if (c != '\t' && c != '\n' && c != '\r') {
-                return false;
-            }
-        }
-    }
-
-    return true;
+    return beacon_filter_check(text, len) == BEACON_FILTER_OK;
 }
 
 uint32_t beacon_get_total_count(void)

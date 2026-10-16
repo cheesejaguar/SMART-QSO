@@ -67,35 +67,15 @@ class TestLlamaConfig(unittest.TestCase):
 
 
 class TestLlamaRunnerFallback(unittest.TestCase):
-    """Test LlamaRunner fallback behavior when llama_cpp unavailable."""
+    """Without a model the runner says nothing (SW-12): the caller falls back
+    to health-derived text instead of broadcasting an invented status."""
 
-    def test_fallback_without_llama_cpp(self):
-        """Test fallback text is returned when llama_cpp is not available."""
-        config = LlamaConfig(model_path="/nonexistent/model.gguf")
-        runner = LlamaRunner(config)
+    def test_no_model_no_text(self):
+        """No llama_cpp or no model: empty text, not a canned status."""
+        runner = LlamaRunner(LlamaConfig(model_path="/nonexistent/model.gguf"))
 
-        result = runner.generate_one_line(
-            system="You are a satellite.",
-            user="Status please"
-        )
-
-        # Should return deterministic fallback
-        self.assertIn("nominally", result)
-        self.assertIn("73!", result)
-
-    def test_fallback_text_format(self):
-        """Test fallback text is properly formatted."""
-        config = LlamaConfig(model_path="/test.gguf")
-        runner = LlamaRunner(config)
-
-        result = runner.generate_one_line(
-            system="Test system",
-            user="Test user"
-        )
-
-        # Verify text is reasonable length and valid string
-        self.assertLessEqual(len(result), 200)
-        self.assertIsInstance(result, str)
+        self.assertFalse(runner.loaded)
+        self.assertEqual(runner.generate_one_line("You are a satellite.", "Status please"), "")
 
     def test_internal_state_without_llama(self):
         """Test internal state when llama_cpp not available."""
@@ -106,35 +86,48 @@ class TestLlamaRunnerFallback(unittest.TestCase):
         self.assertEqual(runner._cfg, config)
 
 
-class TestLlamaRunnerWithMock(unittest.TestCase):
-    """Test LlamaRunner with mocked llama_cpp."""
+class _FakeLlama:
+    def __init__(self, text):
+        self.text = text
+        self.calls = []
 
-    def test_generate_with_fallback(self):
-        """Test text generation uses fallback."""
-        # This test verifies the generate_one_line interface
-        config = LlamaConfig(model_path="/test.gguf")
+    def create_completion(self, prompt, **kwargs):
+        self.calls.append((prompt, kwargs))
+        return {"choices": [{"text": self.text}]}
 
-        # Without llama_cpp installed, we get fallback
-        runner = LlamaRunner(config)
-        result = runner.generate_one_line(
-            system="You are SMART-QSO.",
-            user="Generate status"
-        )
 
-        self.assertIsInstance(result, str)
-        self.assertGreater(len(result), 0)
+class TestLlamaRunnerGeneration(unittest.TestCase):
+    """Generation settings that keep the output constrained (SW-12)."""
 
-    def test_max_tokens_parameter(self):
-        """Test max_tokens parameter is respected."""
-        config = LlamaConfig(model_path="/test.gguf")
-        runner = LlamaRunner(config)
+    def _runner(self, text="  Hello from orbit  "):
+        runner = LlamaRunner(LlamaConfig(model_path="/test.gguf"))
+        runner._ll = _FakeLlama(text)
+        runner._grammar = "GRAMMAR"
+        return runner
 
-        # With fallback, max_tokens doesn't affect output
-        result32 = runner.generate_one_line("sys", "usr", max_tokens=32)
-        result64 = runner.generate_one_line("sys", "usr", max_tokens=64)
+    def test_low_temperature_and_grammar(self):
+        runner = self._runner()
+        self.assertEqual(runner.generate_one_line("sys", "usr", max_tokens=40), "Hello from orbit")
+        prompt, kwargs = runner._ll.calls[0]
+        self.assertIn("sys", prompt)
+        self.assertIn("usr", prompt)
+        self.assertLessEqual(kwargs["temperature"], 0.3)
+        self.assertEqual(kwargs["grammar"], "GRAMMAR")
+        self.assertEqual(kwargs["max_tokens"], 40)
 
-        # Both should return same fallback text
-        self.assertEqual(result32, result64)
+    def test_no_grammar_when_unavailable(self):
+        runner = self._runner()
+        runner._grammar = None
+        runner.generate_one_line("sys", "usr")
+        self.assertNotIn("grammar", runner._ll.calls[0][1])
+
+    def test_grammar_admits_no_digits_or_field_separator(self):
+        from llama_runner import BEACON_GBNF
+        char_class = BEACON_GBNF[BEACON_GBNF.index("[") + 1:BEACON_GBNF.rindex("]")]
+        self.assertNotIn("0-9", char_class)
+        for ch in "0123456789|$@=*":
+            self.assertNotIn(ch, char_class)
+        self.assertIn("A-Za-z", char_class)
 
 
 class TestLlamaRunnerPromptBuilding(unittest.TestCase):

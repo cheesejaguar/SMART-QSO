@@ -110,6 +110,7 @@ set(FLIGHT_SOURCES
     src/crc32.c
     src/time_utils.c
     src/beacon.c
+    src/beacon_filter.c
     src/adcs_control.c
     src/input_validation.c
     src/safe_string.c
@@ -144,6 +145,7 @@ set(FLIGHT_HEADERS
     include/uart_comm.h
     include/mission_data.h
     include/beacon.h
+    include/beacon_filter.h
     include/adcs_control.h
     include/input_validation.h
     include/safe_string.h

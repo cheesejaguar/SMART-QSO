@@ -110,6 +110,7 @@ typedef struct {
     uint32_t sequence;            /**< Beacon sequence counter */
     uint32_t ai_beacon_count;     /**< Count of AI-generated beacons */
     uint32_t template_count;      /**< Count of template beacons */
+    uint32_t ai_rejected_count;   /**< AI texts refused by the content filter */
     uint32_t total_bytes_tx;      /**< Total bytes transmitted */
     bool     ai_available;        /**< AI text generation available */
     char     last_ai_text[BEACON_MAX_TEXT_LEN]; /**< Last AI text */
@@ -254,7 +255,7 @@ const char *beacon_get_template(void);
 uint16_t beacon_crc16(const uint8_t *data, size_t len);
 
 /**
- * @brief Validate beacon text (ASCII only, length check)
+ * @brief Validate beacon text with the content filter (beacon_filter.h)
  *
  * @param text Text to validate
  * @param len Text length

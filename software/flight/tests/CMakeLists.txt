@@ -186,6 +186,7 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/adcs_control.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/assert_handler.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon_filter.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_auth.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_handler.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_dictionary.c
@@ -242,6 +243,7 @@ set(MODULE_TESTS
     "test_rf_silence\;rf"
     "test_beacon_format\;rf"
     "test_jetson_link\;payload"
+    "test_beacon_filter\;rf"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)
@@ -255,6 +257,9 @@ foreach(entry ${MODULE_TESTS})
         LABELS "unit;${test_label}"
     )
 endforeach()
+# Accept/reject vectors shared with the Jetson-side filter
+target_compile_definitions(test_beacon_filter PRIVATE
+    BEACON_FILTER_VECTORS="${CMAKE_CURRENT_SOURCE_DIR}/vectors/beacon_filter_vectors.txt")
 
 #===========================================================================
 # Not registered (tracked in docs/funding_audit/FINDINGS_REGISTER.md):
