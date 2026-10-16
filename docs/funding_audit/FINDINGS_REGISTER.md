@@ -32,7 +32,7 @@
 | VV — Verification, safety & standards | 5 | 9 | 6 | 1 | 21 |
 | **Total** | **19** | **46** | **32** | **6** | **103** |
 
-Status: **10 closed** and **64 partially closed** by this PR; **28 open**; 1 informational. Counts are generated from the rows below by script.
+Status: **11 closed** and **73 partially closed**; **18 open**; 1 informational (2026-10-15). Counts are generated from the rows below by script.
 
 ---
 
