@@ -16,6 +16,21 @@
 /* Public API Implementation                                                  */
 /*===========================================================================*/
 
+#ifdef SIMULATION_BUILD
+/** Time added by tests (smart_qso_sim_advance_ms) */
+static uint64_t s_sim_offset_ms = 0U;
+
+void smart_qso_sim_advance_ms(uint64_t ms)
+{
+    s_sim_offset_ms += ms;
+}
+
+uint64_t smart_qso_sim_offset_ms(void)
+{
+    return s_sim_offset_ms;
+}
+#endif
+
 uint64_t smart_qso_now_ms(void)
 {
 #ifdef SIMULATION_BUILD
@@ -23,7 +38,7 @@ uint64_t smart_qso_now_ms(void)
     if (clock_gettime(CLOCK_REALTIME, &ts) != 0) {
         return 0;
     }
-    return (uint64_t)ts.tv_sec * 1000ULL + (uint64_t)(ts.tv_nsec / 1000000L);
+    return ((uint64_t)ts.tv_sec * 1000ULL) + (uint64_t)(ts.tv_nsec / 1000000L) + s_sim_offset_ms;
 #else
     /* Flight hardware implementation placeholder */
     /* TODO: Implement HAL-based time retrieval */

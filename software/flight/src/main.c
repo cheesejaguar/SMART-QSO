@@ -28,12 +28,14 @@
 #include "deployment.h"
 #include "jetson_link.h"
 #include "beacon.h"
+#include "watchdog_mgr.h"
 #include "cmd_handler.h"
 #include "gse_provision.h"
 #include "uplink.h"
 #include "station_id.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_flash.h"
+#include "hal/hal_timer.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -76,9 +78,6 @@ static uint64_t s_last_health_check_ms = 0;
 /** Last loss-of-contact tick */
 static uint64_t s_last_contact_tick_ms = 0;
 
-/** Last watchdog reset time */
-static uint64_t s_last_watchdog_reset_ms = 0;
-
 /** Sunlit state (for simulation) */
 static bool s_sunlit = true;
 
@@ -101,6 +100,37 @@ static void signal_handler(int sig)
 /*===========================================================================*/
 /* Initialization Functions                                                   */
 /*===========================================================================*/
+
+/**
+ * @brief Watchdog pre-reset action: persist state before the hardware resets
+ */
+static void save_state_before_reset(void)
+{
+    (void)mission_data_save();
+    (void)eps_save_config();
+}
+
+/**
+ * @brief Arm the supervised hardware watchdog (SW-15)
+ *
+ * The hardware watchdog is refreshed only while every stage of the main loop
+ * checks in (wdt_mgr_kick). A stalled stage stops the refresh and the
+ * hardware resets the OBC after saving state. On the target each stage
+ * becomes an RTOS task (SW-01).
+ */
+static SmartQsoResult_t init_watchdog(void)
+{
+    if ((hal_timer_init() != SMART_QSO_OK) || (wdt_mgr_init() != SMART_QSO_OK)) {
+        return SMART_QSO_ERROR;
+    }
+    (void)wdt_mgr_register_task(WDT_TASK_MAIN_LOOP, "main", 1000U);
+    (void)wdt_mgr_register_task(WDT_TASK_COMM, "uplink", 1000U);
+    (void)wdt_mgr_register_task(WDT_TASK_PAYLOAD, "payload", 1000U);
+    (void)wdt_mgr_register_task(WDT_TASK_BEACON, "beacon", 1000U);
+    (void)wdt_mgr_register_task(WDT_TASK_HEALTH, "health", 2U * HEALTH_CHECK_INTERVAL_MS);
+    (void)wdt_mgr_register_prereset_callback(save_state_before_reset);
+    return wdt_mgr_start();
+}
 
 /**
  * @brief Initialize system
@@ -203,6 +233,11 @@ static SmartQsoResult_t init_system(void)
     /* Beacon: templates until the Jetson supplies text that passes the filter */
     (void)beacon_init();
 
+    if (init_watchdog() != SMART_QSO_OK) {
+        fprintf(stderr, "[SYSTEM] Watchdog init failed\n");
+        return SMART_QSO_ERROR;
+    }
+
     /* Initialize UART for Jetson communication */
     result = uart_init();
     if (result != SMART_QSO_OK) {
@@ -214,7 +249,6 @@ static SmartQsoResult_t init_system(void)
     /* Initialize timing */
     s_last_telemetry_ms = s_program_start_ms;
     s_last_health_check_ms = s_program_start_ms;
-    s_last_watchdog_reset_ms = s_program_start_ms;
     s_last_contact_tick_ms = s_program_start_ms;
 
     return SMART_QSO_OK;
@@ -273,12 +307,7 @@ static void update_mission_state(uint64_t tick)
         (void)eps_set_power_mode(POWER_MODE_ACTIVE, s_soc);
     }
 
-    /* Watchdog management */
     uint64_t now = smart_qso_now_ms();
-    if ((now - s_last_watchdog_reset_ms) > SMART_QSO_WATCHDOG_TIMEOUT_MS) {
-        (void)fault_handle_watchdog(s_soc);
-        s_last_watchdog_reset_ms = now;
-    }
 
     /* Periodic fault recovery checks */
     if (tick % 50 == 0) {
@@ -340,8 +369,7 @@ static void monitor_system_health(void)
         (void)uart_init();
     }
 
-    /* Reset watchdog */
-    s_last_watchdog_reset_ms = now;
+    (void)wdt_mgr_checkin(WDT_TASK_HEALTH);
 }
 
 /*===========================================================================*/
@@ -432,7 +460,7 @@ static void send_telemetry_to_jetson(void)
     int written = snprintf(buffer + offset, room - (size_t)offset,
                            "UART_HEALTH=%s,WATCHDOG=%s",
                            uart_is_initialized() ? "OK" : "FAIL",
-                           fault_was_watchdog_triggered() ? "TRIGGERED" : "OK");
+                           (wdt_mgr_was_wdt_reset() || wdt_mgr_any_task_stalled()) ? "TRIGGERED" : "OK");
     if ((written > 0) && ((size_t)written < (room - (size_t)offset))) {
         offset += written;
     }
@@ -555,6 +583,7 @@ static SmartQsoResult_t run_main_loop(void)
 
         /* System health monitoring */
         monitor_system_health();
+        (void)wdt_mgr_checkin(WDT_TASK_MAIN_LOOP);
 
         /* Telemetry transmission */
         if (eps_is_payload_enabled() && uart_is_initialized() &&
@@ -573,15 +602,18 @@ static SmartQsoResult_t run_main_loop(void)
 
         /* Jetson replies (beacon text, status) */
         poll_jetson();
+        (void)wdt_mgr_checkin(WDT_TASK_PAYLOAD);
 
         /* Beacon (stays silent while TX-OFF, contact or RF-silence inhibits) */
         update_beacon_measurements(now);
         run_beacon(now);
+        (void)wdt_mgr_checkin(WDT_TASK_BEACON);
 
         /* Telecommands from the 435 MHz receiver, then key provisioning
          * (umbilical only) */
         (void)uplink_poll(NULL);
         (void)gse_poll();
+        (void)wdt_mgr_checkin(WDT_TASK_COMM);
 
         /* Loss-of-contact, RF-silence and deployment timers. On target these need a monotonic time base
          * (smart_qso_now_ms() is not implemented there yet; SW-01) */
@@ -595,6 +627,9 @@ static SmartQsoResult_t run_main_loop(void)
             (void)mission_data_save();
             (void)eps_save_config();
         }
+
+        /* Refresh the hardware watchdog if every stage checked in */
+        wdt_mgr_kick();
 
         /* Sleep */
         struct timespec ts = {.tv_sec = 0, .tv_nsec = MAIN_LOOP_SLEEP_NS};

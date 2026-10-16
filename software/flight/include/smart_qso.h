@@ -246,6 +246,19 @@ typedef enum {
  */
 uint64_t smart_qso_now_ms(void);
 
+#ifdef SIMULATION_BUILD
+/**
+ * @brief Simulation only: move the clock forward
+ *
+ * Shifts smart_qso_now_ms() and the simulated HAL timer together, so tests
+ * can run time-dependent code without sleeping.
+ */
+void smart_qso_sim_advance_ms(uint64_t ms);
+
+/** Simulation only: total time added by smart_qso_sim_advance_ms() */
+uint64_t smart_qso_sim_offset_ms(void);
+#endif
+
 /*===========================================================================*/
 /* CRC Functions                                                              */
 /*===========================================================================*/

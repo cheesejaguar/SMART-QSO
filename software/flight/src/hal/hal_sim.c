@@ -120,7 +120,9 @@ static bool s_wdt_reset_flag = false;
 static uint64_t get_time_us(void) {
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    return (uint64_t)tv.tv_sec * 1000000ULL + (uint64_t)tv.tv_usec;
+    /* Include time added by tests, so the HAL timer and smart_qso_now_ms() agree */
+    return ((uint64_t)tv.tv_sec * 1000000ULL) + (uint64_t)tv.tv_usec +
+           (smart_qso_sim_offset_ms() * 1000ULL);
 }
 
 /*===========================================================================*/
