@@ -159,13 +159,15 @@ jobs:
           while IFS= read -r f; do files+=("$f"); done < <(python3 -c 'import json; print("\n".join(sorted({e["file"] for e in json.load(open("build/compile_commands.json")) if "/software/flight/src/" in e["file"] and not e["directory"].endswith("/tests")})))')
           echo "clang-tidy: ${#files[@]} source files"
           [ "${#files[@]}" -gt 0 ] || { echo "::error::no sources in build/compile_commands.json"; exit 1; }
-          # A tool failure (including a compile error) fails the gate instead of counting as zero findings
+          # A tool failure (including a compile error) fails the gate instead of counting as zero findings.
+          # Configuration errors (.clang-tidy, .clang-format) go to stderr with exit 0, so check that too.
           status=0
           clang-tidy -p build "${files[@]}" > clang-tidy.txt 2> clang-tidy.log || status=$?
-          if [ "$status" -ne 0 ]; then
+          if [ "$status" -ne 0 ] || grep -q ': error:' clang-tidy.log; then
             grep -E ': error:' clang-tidy.txt | sort -u | head -20 || true
-            tail -20 clang-tidy.log
-            echo "::error::clang-tidy failed (exit ${status}); findings not counted"
+            grep -E ': error:' clang-tidy.log | sort -u | head -20 || true
+            tail -5 clang-tidy.log
+            echo "::error::clang-tidy reported errors (exit ${status}); findings not counted"
             exit 1
           fi
           count=$(grep -E '^/.*:[0-9]+:[0-9]+: (warning|error):' clang-tidy.txt | sort -u | wc -l)
