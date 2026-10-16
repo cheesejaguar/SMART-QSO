@@ -23,7 +23,7 @@ permissions:
 jobs:
   python-tests:
     name: Payload, Ground and Simulation Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
       - name: Checkout repository
@@ -56,7 +56,7 @@ jobs:
 
   docs-integrity:
     name: Documentation Reference Integrity
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
       - name: Checkout repository
@@ -70,7 +70,7 @@ jobs:
 
   secret-scan:
     name: Secret Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
       - name: Checkout repository

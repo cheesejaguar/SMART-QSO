@@ -21,6 +21,9 @@ on:
 
 env:
   BUILD_TYPE: Release
+  # Line coverage of software/flight/src must not fall below this (measured
+  # 84 % with GCC on 2026-10-15)
+  COVERAGE_MIN_LINE: 80
 
 jobs:
   ###########################################################################
@@ -28,7 +31,7 @@ jobs:
   ###########################################################################
   build-and-test:
     name: Build and Test
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: tool versions and quality baselines depend on it
 
     steps:
       - name: Checkout repository
@@ -68,6 +71,17 @@ jobs:
           lcov --ignore-errors unused --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
           lcov --list coverage.info
 
+      - name: Coverage gate
+        working-directory: software/flight
+        run: |
+          lcov --summary coverage.info | tee coverage-summary.txt
+          pct=$(awk '/lines\.+:/ { gsub("%", "", $2); print $2 }' coverage-summary.txt)
+          echo "Line coverage: ${pct}% (minimum ${COVERAGE_MIN_LINE}%)"
+          awk -v p="$pct" -v m="$COVERAGE_MIN_LINE" 'BEGIN { exit !(p + 0 >= m + 0) }' || {
+            echo "::error::Line coverage ${pct}% is below ${COVERAGE_MIN_LINE}%"
+            exit 1
+          }
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -81,7 +95,7 @@ jobs:
   ###########################################################################
   static-analysis:
     name: Static Analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: tool versions and quality baselines depend on it
 
     steps:
       - name: Checkout repository
@@ -91,6 +105,19 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake cppcheck clang-tidy
+
+      - name: Tool versions (pinned by the runner image)
+        run: |
+          cppcheck --version
+          clang-tidy --version
+          cppcheck --version | grep -q '^Cppcheck 2\.13\.' || {
+            echo "::error::cppcheck is not 2.13.x; update the pin and the quality baselines together"
+            exit 1
+          }
+          clang-tidy --version | grep -q 'version 18\.' || {
+            echo "::error::clang-tidy is not 18.x; update the pin and the quality baselines together"
+            exit 1
+          }
 
       - name: Configure CMake (for compile_commands.json)
         working-directory: software/flight
@@ -117,38 +144,66 @@ jobs:
             -I include \
             src/
 
-      - name: Run clang-tidy
+      - name: Run clang-tidy (no new findings)
         working-directory: software/flight
         run: |
-          clang-tidy \
-            -p build \
-            src/*.c \
-            --warnings-as-errors='*' \
-            || true  # Allow warnings for now during development
+          clang-tidy -p build src/*.c src/hal/*.c > clang-tidy.txt 2>/dev/null || true
+          count=$(grep -E '^/.*:[0-9]+:[0-9]+: (warning|error):' clang-tidy.txt | sort -u | wc -l)
+          ./scripts/ratchet.sh clang-tidy "$count"
+
+      - name: Upload clang-tidy report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clang-tidy-report
+          path: software/flight/clang-tidy.txt
 
   ###########################################################################
-  # MISRA Compliance Check Job (placeholder)
+  # MISRA C:2012 check (cppcheck MISRA addon; no new findings)
+  #
+  # An open-source checker, not a qualified MISRA tool. It shows the code is
+  # not yet compliant and stops new violations; the report is archived.
   ###########################################################################
   misra-check:
     name: MISRA C:2012 Check
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04   # pinned: tool versions and quality baselines depend on it
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: MISRA compliance note
+      - name: Install cppcheck
         run: |
-          echo "MISRA C:2012 compliance checking requires commercial tools"
-          echo "Deviations documented in docs/software/MISRA_DEVIATIONS.md"
+          sudo apt-get update
+          sudo apt-get install -y cppcheck
+          cppcheck --version | grep -q '^Cppcheck 2\.13\.' || {
+            echo "::error::cppcheck is not 2.13.x; update the pin and the quality baselines together"
+            exit 1
+          }
+
+      - name: Run the MISRA addon (no new findings)
+        working-directory: software/flight
+        run: |
+          cppcheck --addon=misra --std=c11 --quiet -I include \
+            --template='{file}:{line}:{column}: {id}' src/ 2> misra.txt || true
+          count=$(grep -cE ': misra-c2012-' misra.txt || true)
+          echo "MISRA findings by rule:"
+          grep -oE 'misra-c2012-[0-9.]+' misra.txt | sort | uniq -c | sort -rn | head -25
+          ./scripts/ratchet.sh misra "$count"
+
+      - name: Upload MISRA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: misra-report
+          path: software/flight/misra.txt
 
   ###########################################################################
   # Security Scan Job
   ###########################################################################
   security-scan:
     name: Security Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: tool versions and quality baselines depend on it
     permissions:
       contents: read
       security-events: write
@@ -179,7 +234,7 @@ jobs:
   ###########################################################################
   documentation:
     name: Generate Documentation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: tool versions and quality baselines depend on it
     if: github.ref == 'refs/heads/main'
 
     steps:
@@ -203,7 +258,7 @@ jobs:
   ###########################################################################
   flight-build:
     name: Flight Build Validation
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned: tool versions and quality baselines depend on it
 
     steps:
       - name: Checkout repository

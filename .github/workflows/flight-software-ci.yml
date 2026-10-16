@@ -29,7 +29,7 @@ env:
 jobs:
   build:
     name: Build and Static Analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
     - name: Checkout repository
@@ -74,7 +74,7 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
     needs: build
 
     steps:
@@ -113,7 +113,7 @@ jobs:
 
   sanitizers:
     name: Sanitizer Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
     needs: build
 
     steps:
@@ -133,15 +133,22 @@ jobs:
       working-directory: software/flight
       run: cmake --build build
 
-    - name: Run with sanitizers
+    - name: Run the tests with sanitizers
+      working-directory: software/flight
+      run: ctest --test-dir build --output-on-failure
+
+    - name: Run the simulation to completion with sanitizers
       working-directory: software/flight/build
+      env:
+        ASAN_OPTIONS: halt_on_error=1
+        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
       run: |
-        # Run the executable briefly to check for sanitizer issues
-        timeout 5 ./smart_qso_flight || true
+        # About 20 s of simulated operation; any sanitizer report fails the job
+        timeout 180 ./smart_qso_flight
 
   flight-build:
     name: Flight Configuration Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
     - name: Checkout repository
@@ -164,11 +171,14 @@ jobs:
       working-directory: software/flight
       run: |
         # Check that debug code is disabled in flight build
-        grep -q "NDEBUG" build/compile_commands.json || echo "NDEBUG check"
+        grep -q "NDEBUG" build/compile_commands.json || {
+          echo "::error::NDEBUG is not defined in the flight build"
+          exit 1
+        }
 
   documentation:
     name: Documentation Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
     - name: Checkout repository
