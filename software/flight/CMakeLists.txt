@@ -126,6 +126,7 @@ set(FLIGHT_SOURCES
     src/rf_silence.c
     src/separation_switch.c
     src/jetson_link.c
+    src/gnss.c
     src/telemetry.c
     src/assert_handler.c
     src/watchdog_mgr.c
@@ -146,6 +147,7 @@ set(FLIGHT_HEADERS
     include/mission_data.h
     include/beacon.h
     include/beacon_filter.h
+    include/gnss.h
     include/adcs_control.h
     include/input_validation.h
     include/safe_string.h
