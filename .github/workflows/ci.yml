@@ -13,11 +13,10 @@ on:
     paths:
       - 'software/flight/**'
       - '.github/workflows/ci.yml'
+  # Every PR, with no path filter: these jobs are required checks on main, and a
+  # required check from a workflow that never starts would block the PR
   pull_request:
     branches: [main, develop]
-    paths:
-      - 'software/flight/**'
-      - '.github/workflows/ci.yml'
 
 env:
   BUILD_TYPE: Release

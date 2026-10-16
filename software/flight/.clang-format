@@ -3,8 +3,8 @@
 # Based on LLVM style with NASA-specific modifications
 
 ---
-# Cpp covers C. "Language: C" exists only from clang-format 21, and older
-# versions (including the clang-tidy 18 in CI) reject the whole file
+# Cpp covers C. "Language: C" exists only from clang-format 20; 19 and older
+# (including the clang-tidy 18 in CI) reject the whole file
 Language: Cpp
 BasedOnStyle: LLVM
 
