@@ -135,12 +135,17 @@ jobs:
 
     - name: Run the tests with sanitizers
       working-directory: software/flight
+      env:
+        # Leak checking off: the simulated HAL emulates flash with heap buffers
+        # kept for the process lifetime, and flight code allocates nothing
+        # (ctest no_dynamic_memory). AddressSanitizer and UBSan stay fatal.
+        ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
       run: ctest --test-dir build --output-on-failure
 
     - name: Run the simulation to completion with sanitizers
       working-directory: software/flight/build
       env:
-        ASAN_OPTIONS: halt_on_error=1
+        ASAN_OPTIONS: detect_leaks=0:halt_on_error=1   # see the step above
         UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
       run: |
         # About 20 s of simulated operation; any sanitizer report fails the job

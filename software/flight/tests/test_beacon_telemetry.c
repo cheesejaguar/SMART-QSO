@@ -29,6 +29,8 @@ static int setup(void **state)
 {
     (void)state;
     assert_int_equal(beacon_init(), SMART_QSO_OK);
+    /* Beacon power on: EPS state persists between runs, so set it explicitly */
+    (void)eps_control_beacon(true);
     return 0;
 }
 
@@ -192,6 +194,30 @@ static void test_interval_with_epoch_time(void **state)
     assert_true(beacon_should_transmit(now + BEACON_INTERVAL_ACTIVE_MS));
 }
 
+/** EMERGENCY sheds the beacon: none is due, or sent, while the EPS has the
+ *  beacon powered off (state-machine entry action, SW-14) */
+static void test_no_beacon_while_eps_beacon_off(void **state)
+{
+    (void)state;
+    BeaconContent_t content;
+
+    assert_int_equal(hal_flash_init(), SMART_QSO_OK);
+    assert_int_equal(hal_flash_erase(FLASH_REGION_RF_CONTROL), SMART_QSO_OK);
+    assert_int_equal(rf_control_init(), SMART_QSO_OK);
+    assert_int_equal(eps_init(), SMART_QSO_OK);
+    uint64_t now = smart_qso_now_ms();
+    beacon_mark_transmitted(now);
+
+    assert_int_equal(eps_control_beacon(false), SMART_QSO_OK);
+    assert_false(beacon_should_transmit(now + BEACON_INTERVAL_SAFE_MS));
+    assert_int_equal(beacon_generate_content(&content, NULL, 0U), SMART_QSO_OK);
+    assert_int_not_equal(beacon_transmit(&content), SMART_QSO_OK);
+
+    assert_int_equal(eps_control_beacon(true), SMART_QSO_OK);
+    assert_true(beacon_should_transmit(now + BEACON_INTERVAL_SAFE_MS));
+    assert_int_equal(beacon_transmit(&content), SMART_QSO_OK);
+}
+
 /** No mode beacons more often than the baseline allows: the beacon power line
  *  (BASELINE_PARAMETERS.md section 3) assumes ~2 s of transmission per 60 s */
 static void test_interval_within_power_baseline(void **state)
@@ -223,6 +249,7 @@ int main(void)
         cmocka_unit_test_setup(test_update_rejects_bad_input, setup),
         cmocka_unit_test_setup(test_interval_with_epoch_time, setup),
         cmocka_unit_test_setup(test_interval_within_power_baseline, setup),
+        cmocka_unit_test_setup(test_no_beacon_while_eps_beacon_off, setup),
     };
 
     return cmocka_run_group_tests_name("Beacon Telemetry Tests", tests, NULL, NULL);

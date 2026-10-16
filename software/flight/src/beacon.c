@@ -77,7 +77,9 @@ SmartQsoResult_t beacon_init(void)
 
 bool beacon_should_transmit(uint64_t now_ms)
 {
-    if (!s_initialized || !rf_control_tx_permitted()) {
+    /* No beacon while a transmit inhibit is active or the EPS has shed the
+     * beacon (state EMERGENCY) */
+    if (!s_initialized || !rf_control_tx_permitted() || !eps_is_beacon_enabled()) {
         return false;
     }
 
@@ -368,8 +370,9 @@ SmartQsoResult_t beacon_transmit(const BeaconContent_t *content)
         return SMART_QSO_ERROR_NULL_PTR;
     }
 
-    /* Never radiate while TX-OFF is latched (47 CFR 97.207(b)) */
-    if (!rf_control_tx_permitted()) {
+    /* Never radiate while TX-OFF is latched (47 CFR 97.207(b)), nor while
+     * the EPS has the beacon powered off */
+    if (!rf_control_tx_permitted() || !eps_is_beacon_enabled()) {
         return SMART_QSO_ERROR;
     }
 
