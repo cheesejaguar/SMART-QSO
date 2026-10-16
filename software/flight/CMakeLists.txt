@@ -86,7 +86,8 @@ endif()
 
 # Sanitizer flags
 if(ENABLE_SANITIZERS)
-    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+    # Undefined behaviour aborts, so a test that triggers it fails
+    add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer)
     add_link_options(-fsanitize=address,undefined)
 endif()
 

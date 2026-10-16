@@ -144,8 +144,6 @@ static bool read_status_hex2(Sensor_t *self, double *out_value, char *out_text)
     (void)out_value;
     bool payload_enabled = eps_is_payload_enabled();
     PowerMode_t power_mode = eps_get_power_mode();
-    EpsControlState_t eps_state;
-    (void)eps_get_state(&eps_state);
 
     /* Enhanced bitmap (LSB..):
      * bit0: OBC on
@@ -158,7 +156,8 @@ static bool read_status_hex2(Sensor_t *self, double *out_value, char *out_text)
      * bit7: Recovery mode
      */
     uint8_t bits = 1u;  /* OBC always on (bit 0) */
-    bits = (uint8_t)(bits | ((eps_state.beacon_enabled ? 1u : 0u) << 1));
+    /* Accessor, not a copy of the state: a failed copy left it uninitialized */
+    bits = (uint8_t)(bits | ((eps_is_beacon_enabled() ? 1u : 0u) << 1));
     bits = (uint8_t)(bits | ((payload_enabled ? 1u : 0u) << 2));
 
     /* Occasional hot flag during sunlit periods */
