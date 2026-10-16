@@ -384,11 +384,54 @@ void cmd_auth_get_info(CmdAuthInfo_t *info)
     info->recovery_counter = s_rec.counter;
 }
 
+static void fill_verified(CmdAuthVerified_t *verified, uint32_t counter,
+                          const uint8_t *payload, size_t args_len, CmdAuthKey_t key)
+{
+    verified->counter = counter;
+    verified->args = &payload[CMD_AUTH_COUNTER_SIZE];
+    verified->args_len = args_len;
+    verified->key = key;
+}
+
+/** MAC input: domain | cmd_id | args_len | counter | args; returns its length */
+static size_t build_mac_input(uint8_t cmd_id, const uint8_t *payload, size_t args_len,
+                              uint8_t *mac_input)
+{
+    size_t pos = 0U;
+    for (size_t i = 0U; i < sizeof(AUTH_DOMAIN); i++) {
+        mac_input[pos] = AUTH_DOMAIN[i];
+        pos++;
+    }
+    mac_input[pos] = cmd_id;
+    pos++;
+    mac_input[pos] = (uint8_t)args_len;
+    pos++;
+    for (size_t i = 0U; i < (CMD_AUTH_COUNTER_SIZE + args_len); i++) {
+        mac_input[pos] = payload[i];
+        pos++;
+    }
+    return pos;
+}
+
+/** No key at all: only commands marked without_key (TX-OFF) proceed */
+static CmdAuthStatus_t verify_without_key(const CmdDictEntry_t *entry, const uint8_t *payload,
+                                          size_t payload_len, CmdAuthVerified_t *verified)
+{
+    if ((entry == NULL) || !entry->without_key) {
+        return CMD_AUTH_ERR_NOT_PROVISIONED;
+    }
+    if (!format_ok(payload, payload_len)) {
+        return CMD_AUTH_ERR_FORMAT;
+    }
+    fill_verified(verified, get_u32(payload), payload, payload_len - CMD_AUTH_OVERHEAD,
+                  CMD_AUTH_KEY_NONE);
+    return CMD_AUTH_OK;
+}
+
 CmdAuthStatus_t cmd_auth_verify(uint8_t cmd_id, const uint8_t *payload,
                                 size_t payload_len, CmdAuthVerified_t *verified)
 {
     uint8_t mac_input[MAC_INPUT_MAX];
-    size_t pos = 0U;
 
     if (verified == NULL) {
         return CMD_AUTH_ERR_FORMAT;
@@ -397,19 +440,8 @@ CmdAuthStatus_t cmd_auth_verify(uint8_t cmd_id, const uint8_t *payload,
     const CmdDictEntry_t *entry = dictionary_entry(cmd_id);
     CmdKeyClass_t key_class = (entry != NULL) ? entry->key : CMD_KEY_OPERATIONAL;
 
-    /* No key at all: only commands marked without_key (TX-OFF) proceed */
     if (!s_op.usable && !s_rec.usable) {
-        if ((entry == NULL) || !entry->without_key) {
-            return CMD_AUTH_ERR_NOT_PROVISIONED;
-        }
-        if (!format_ok(payload, payload_len)) {
-            return CMD_AUTH_ERR_FORMAT;
-        }
-        verified->counter = get_u32(payload);
-        verified->args = &payload[CMD_AUTH_COUNTER_SIZE];
-        verified->args_len = payload_len - CMD_AUTH_OVERHEAD;
-        verified->key = CMD_AUTH_KEY_NONE;
-        return CMD_AUTH_OK;
+        return verify_without_key(entry, payload, payload_len, verified);
     }
 
     bool try_op = s_op.usable && (key_class != CMD_KEY_RECOVERY);
@@ -423,27 +455,14 @@ CmdAuthStatus_t cmd_auth_verify(uint8_t cmd_id, const uint8_t *payload,
 
     size_t args_len = payload_len - CMD_AUTH_OVERHEAD;
     const uint8_t *tag = &payload[CMD_AUTH_COUNTER_SIZE + args_len];
-
-    /* MAC input: domain | cmd_id | args_len | counter | args */
-    for (size_t i = 0U; i < sizeof(AUTH_DOMAIN); i++) {
-        mac_input[pos] = AUTH_DOMAIN[i];
-        pos++;
-    }
-    mac_input[pos] = cmd_id;
-    pos++;
-    mac_input[pos] = (uint8_t)args_len;
-    pos++;
-    for (size_t i = 0U; i < (CMD_AUTH_COUNTER_SIZE + args_len); i++) {
-        mac_input[pos] = payload[i];
-        pos++;
-    }
+    size_t mac_len = build_mac_input(cmd_id, payload, args_len, mac_input);
 
     const KeyState_t *matched = NULL;
     CmdAuthKey_t which = CMD_AUTH_KEY_NONE;
-    if (try_op && tag_matches(&s_op, mac_input, pos, tag)) {
+    if (try_op && tag_matches(&s_op, mac_input, mac_len, tag)) {
         matched = &s_op;
         which = CMD_AUTH_KEY_OPERATIONAL;
-    } else if (try_rec && tag_matches(&s_rec, mac_input, pos, tag)) {
+    } else if (try_rec && tag_matches(&s_rec, mac_input, mac_len, tag)) {
         matched = &s_rec;
         which = CMD_AUTH_KEY_RECOVERY;
     } else {
@@ -459,11 +478,7 @@ CmdAuthStatus_t cmd_auth_verify(uint8_t cmd_id, const uint8_t *payload,
         return CMD_AUTH_ERR_REPLAY;
     }
 
-    verified->counter = counter;
-    verified->args = &payload[CMD_AUTH_COUNTER_SIZE];
-    verified->args_len = args_len;
-    verified->key = which;
-
+    fill_verified(verified, counter, payload, args_len, which);
     return CMD_AUTH_OK;
 }
 

@@ -140,107 +140,71 @@ static SmartQsoResult_t init_watchdog(void)
  *
  * @return SMART_QSO_OK on success, error code otherwise
  */
-static SmartQsoResult_t init_system(void)
+/**
+ * @brief Radio safety and telecommand: before anything can transmit
+ *
+ * Post-deployment silence (CDS 2.4.5) and the loss-of-contact inhibit come
+ * first, so the radio lines are never driven high on a boot that must stay
+ * silent; then the latched TX-OFF state (47 CFR 97.207(b)), the key table
+ * (with no key only TX-OFF is accepted), the receiver and the GSE port.
+ */
+static void init_rf_and_telecommand(void)
 {
-    SmartQsoResult_t result;
-
-    /* Set up signal handlers */
-    if (signal(SIGINT, signal_handler) == SIG_ERR) {
-        fprintf(stderr, "[SYSTEM] Failed to set SIGINT handler\n");
-    }
-    if (signal(SIGTERM, signal_handler) == SIG_ERR) {
-        fprintf(stderr, "[SYSTEM] Failed to set SIGTERM handler\n");
-    }
-
-    /* Seed random number generator (for simulation) */
-    srand((unsigned int)time(NULL));
-
-    /* Record start time */
-    s_program_start_ms = smart_qso_now_ms();
-
-    /* Bring up the HAL before any module touches GPIO or non-volatile memory */
-    if ((hal_gpio_init() != SMART_QSO_OK) || (hal_flash_init() != SMART_QSO_OK)) {
-        fprintf(stderr, "[SYSTEM] GPIO/flash init failed\n");
-    }
-
-    /* Burn-wire lines low as early as possible */
-    (void)deployment_init();
-
-    /* Initialize fault management next (for logging during init) */
-    result = fault_mgmt_init();
-    if (result != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Fault management init failed\n");
-        /* Continue anyway - fault logging won't work but system can run */
-    }
-
-    /* Post-deployment silence (CDS 2.4.5) and loss-of-contact inhibit first,
-     * so the radio lines are never driven high on a boot that must stay
-     * silent; then restore the latched TX-OFF state (47 CFR 97.207(b)) */
     (void)rf_silence_init();
     (void)contact_monitor_init();
     (void)rf_control_init();
 
-    /* Load the telecommand key table; with no key only TX-OFF is accepted */
-    result = cmd_handler_init();
-    if (result != SMART_QSO_OK) {
+    if (cmd_handler_init() != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Command handler init failed\n");
     }
-
-    /* Telecommand receiver: AX.25 UI frames addressed to this station */
     if (uplink_init(SQSO_CALLSIGN, SQSO_SSID) != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Telecommand receiver init failed\n");
     }
-
-    /* Key provisioning port: honoured only while the GSE umbilical is present */
     if (gse_init() != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] GSE provisioning port init failed\n");
     }
+}
 
-    /* Initialize mission data */
-    result = mission_data_init();
-    if (result != SMART_QSO_OK) {
+/**
+ * @brief Mission data, EPS and sensors (sensors.yaml, else the defaults)
+ */
+static SmartQsoResult_t init_power_and_sensors(void)
+{
+    if (mission_data_init() != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Mission data init failed\n");
-        /* Continue with defaults */
     }
-
-    /* Initialize EPS control */
-    result = eps_init();
-    if (result != SMART_QSO_OK) {
+    if (eps_init() != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] EPS init failed\n");
-        /* Continue with defaults */
     }
-
-    /* Initialize sensors */
-    result = sensors_init();
-    if (result != SMART_QSO_OK) {
+    if (sensors_init() != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Sensor init failed\n");
-        return result;
+        return SMART_QSO_ERROR;
     }
 
-    /* Load sensor configuration */
     const char *yaml_path = getenv("SENSORS_YAML");
     if (yaml_path == NULL) {
         yaml_path = "software/flight/sensors.yaml";
     }
-
-    result = sensors_load_yaml(yaml_path);
-    if (result != SMART_QSO_OK) {
+    if (sensors_load_yaml(yaml_path) != SMART_QSO_OK) {
         fprintf(stderr, "[WARN] Using default sensors (could not load %s)\n", yaml_path);
-        result = sensors_load_defaults();
-        if (result != SMART_QSO_OK) {
+        if (sensors_load_defaults() != SMART_QSO_OK) {
             fprintf(stderr, "[SYSTEM] Failed to load default sensors\n");
-            return result;
+            return SMART_QSO_ERROR;
         }
     }
+    return SMART_QSO_OK;
+}
 
-    /* Beacon: templates until the Jetson supplies text that passes the filter */
-    (void)beacon_init();
-
+/**
+ * @brief Operational state (one mode manager, SW-14): BOOT -> DETUMBLE -> IDLE
+ *
+ * The host loop has no ADCS, so detumble completes at once; on the target
+ * the ADCS raises EVENT_DETUMBLE_COMPLETE.
+ */
+static SmartQsoResult_t init_mode_manager(void)
+{
+    (void)beacon_init();   /* templates until the Jetson's text passes the filter */
     payload_guard_init();
-
-    /* Operational state (one mode manager, SW-14): BOOT -> DETUMBLE -> IDLE.
-     * The host loop has no ADCS, so detumble completes at once; on the
-     * target the ADCS raises EVENT_DETUMBLE_COMPLETE */
     eps_update_soc(s_soc);
     if (sys_state_init() != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] System state init failed\n");
@@ -248,25 +212,48 @@ static SmartQsoResult_t init_system(void)
     }
     (void)sm_process_event(sys_get_sm_context(), EVENT_BOOT_COMPLETE, NULL);
     (void)sm_process_event(sys_get_sm_context(), EVENT_DETUMBLE_COMPLETE, NULL);
+    return SMART_QSO_OK;
+}
 
+static SmartQsoResult_t init_system(void)
+{
+    if (signal(SIGINT, signal_handler) == SIG_ERR) {
+        fprintf(stderr, "[SYSTEM] Failed to set SIGINT handler\n");
+    }
+    if (signal(SIGTERM, signal_handler) == SIG_ERR) {
+        fprintf(stderr, "[SYSTEM] Failed to set SIGTERM handler\n");
+    }
+    srand((unsigned int)time(NULL));   /* simulation noise */
+    s_program_start_ms = smart_qso_now_ms();
+
+    /* HAL before any module touches GPIO or non-volatile memory; burn-wire
+     * lines low as early as possible; fault logging before the rest */
+    if ((hal_gpio_init() != SMART_QSO_OK) || (hal_flash_init() != SMART_QSO_OK)) {
+        fprintf(stderr, "[SYSTEM] GPIO/flash init failed\n");
+    }
+    (void)deployment_init();
+    if (fault_mgmt_init() != SMART_QSO_OK) {
+        fprintf(stderr, "[SYSTEM] Fault management init failed\n");
+    }
+
+    init_rf_and_telecommand();
+    if ((init_power_and_sensors() != SMART_QSO_OK) || (init_mode_manager() != SMART_QSO_OK)) {
+        return SMART_QSO_ERROR;
+    }
     if (init_watchdog() != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Watchdog init failed\n");
         return SMART_QSO_ERROR;
     }
 
-    /* Initialize UART for Jetson communication */
-    result = uart_init();
-    if (result != SMART_QSO_OK) {
+    if (uart_init() != SMART_QSO_OK) {
         fprintf(stderr, "[WARN] UART initialization failed, telemetry disabled\n");
         fault_log_add(FAULT_TYPE_INIT, FAULT_SEVERITY_WARNING,
                       "UART initialization failed", s_soc);
     }
 
-    /* Initialize timing */
     s_last_telemetry_ms = s_program_start_ms;
     s_last_health_check_ms = s_program_start_ms;
     s_last_contact_tick_ms = s_program_start_ms;
-
     return SMART_QSO_OK;
 }
 
@@ -418,29 +405,9 @@ static void send_line(const char *line, size_t len, const char *what)
     }
 }
 
-static void send_telemetry_to_jetson(void)
+/** Append ",key=value" fields for EPS switches, last fault and health */
+static int append_status_fields(char *buffer, size_t room, int offset)
 {
-    if (!eps_is_payload_enabled() || !uart_is_initialized()) {
-        return;
-    }
-
-    /* ICD_OBC_JETSON section 4: TELEMETRY,<fields...>,<CRC>\n */
-    char buffer[JETSON_LINE_MAX];
-    size_t room = sizeof(buffer) - 6U;  /* ",XXXX\n" */
-    int offset = snprintf(buffer, room,
-                          "TELEMETRY,%llu,%s,%.3f,%d,%.1f,",
-                          (unsigned long long)smart_qso_now_ms(),
-                          s_sunlit ? "SUNLIT" : "ECLIPSE",
-                          s_soc,
-                          (int)eps_get_power_mode(),
-                          eps_get_power_limit());
-    if ((offset < 0) || ((size_t)offset >= room)) {
-        return;
-    }
-
-    /* Sensor values */
-    offset += (int)sensors_format_telemetry(buffer + offset, room - (size_t)offset);
-
     /* EPS state */
     EpsControlState_t eps_state;
     if (eps_get_state(&eps_state) == SMART_QSO_OK) {
@@ -477,6 +444,33 @@ static void send_telemetry_to_jetson(void)
     if ((written > 0) && ((size_t)written < (room - (size_t)offset))) {
         offset += written;
     }
+    return offset;
+}
+
+static void send_telemetry_to_jetson(void)
+{
+    if (!eps_is_payload_enabled() || !uart_is_initialized()) {
+        return;
+    }
+
+    /* ICD_OBC_JETSON section 4: TELEMETRY,<fields...>,<CRC>\n */
+    char buffer[JETSON_LINE_MAX];
+    size_t room = sizeof(buffer) - 6U;  /* ",XXXX\n" */
+    int offset = snprintf(buffer, room,
+                          "TELEMETRY,%llu,%s,%.3f,%d,%.1f,",
+                          (unsigned long long)smart_qso_now_ms(),
+                          s_sunlit ? "SUNLIT" : "ECLIPSE",
+                          s_soc,
+                          (int)eps_get_power_mode(),
+                          eps_get_power_limit());
+    if ((offset < 0) || ((size_t)offset >= room)) {
+        return;
+    }
+
+    /* Sensor values */
+    offset += (int)sensors_format_telemetry(buffer + offset, room - (size_t)offset);
+
+    offset = append_status_fields(buffer, room, offset);
     if ((offset > 0) && (buffer[offset - 1] == ',')) {
         offset--;
     }
@@ -629,6 +623,62 @@ static void run_beacon(uint64_t now)
  *
  * @return SMART_QSO_OK on normal exit
  */
+/**
+ * @brief One pass of the main loop; each stage checks in with the watchdog
+ */
+static void run_tick(uint64_t tick, uint32_t telemetry_interval)
+{
+    update_mission_state(tick);
+    uint64_t now = smart_qso_now_ms();
+
+    monitor_system_health();
+    (void)wdt_mgr_checkin(WDT_TASK_MAIN_LOOP);
+
+    /* Telemetry and beacon request to the Jetson, and a periodic UART check */
+    if (eps_is_payload_enabled() && uart_is_initialized() &&
+        (now - s_last_telemetry_ms) >= telemetry_interval) {
+        send_telemetry_to_jetson();
+        s_last_telemetry_ms = now;
+    }
+    if (uart_is_initialized() && (now % 10000) < 100) {
+        (void)uart_check_health();
+    }
+    (void)sensors_poll(now);
+
+    /* Jetson replies (beacon text, status), then the OBC's payload limits */
+    poll_jetson();
+    guard_payload(now);
+    (void)wdt_mgr_checkin(WDT_TASK_PAYLOAD);
+
+    /* Beacon (stays silent while TX-OFF, contact or RF-silence inhibits) */
+    update_beacon_measurements(now);
+    run_beacon(now);
+    (void)wdt_mgr_checkin(WDT_TASK_BEACON);
+
+    /* Telecommands from the 435 MHz receiver, then key provisioning
+     * (umbilical only) */
+    (void)uplink_poll(NULL);
+    (void)gse_poll();
+    (void)wdt_mgr_checkin(WDT_TASK_COMM);
+
+    /* Loss-of-contact, RF-silence and deployment timers. On target these
+     * need a monotonic time base (smart_qso_now_ms() is not implemented
+     * there yet; SW-01) */
+    uint32_t elapsed = (uint32_t)(now - s_last_contact_tick_ms);
+    contact_monitor_tick(elapsed);
+    rf_silence_tick(elapsed);
+    deployment_tick(elapsed);
+    s_last_contact_tick_ms = now;
+
+    if (tick % PERSISTENCE_INTERVAL_TICKS == 0) {
+        (void)mission_data_save();
+        (void)eps_save_config();
+    }
+
+    /* Refresh the hardware watchdog if every stage checked in */
+    wdt_mgr_kick();
+}
+
 static SmartQsoResult_t run_main_loop(void)
 {
     MissionData_t mission;
@@ -640,68 +690,11 @@ static SmartQsoResult_t run_main_loop(void)
            mission.mission_phase, (int)eps_get_power_mode(), s_soc * 100.0);
 
     uint32_t telemetry_interval = uart_get_telemetry_interval();
-
-    /* Main loop */
     for (uint64_t tick = 0; tick < MAIN_LOOP_ITERATIONS && !s_shutdown_requested; ++tick) {
-        update_mission_state(tick);
-        uint64_t now = smart_qso_now_ms();
-
-        /* System health monitoring */
-        monitor_system_health();
-        (void)wdt_mgr_checkin(WDT_TASK_MAIN_LOOP);
-
-        /* Telemetry transmission */
-        if (eps_is_payload_enabled() && uart_is_initialized() &&
-            (now - s_last_telemetry_ms) >= telemetry_interval) {
-            send_telemetry_to_jetson();
-            s_last_telemetry_ms = now;
-        }
-
-        /* Periodic UART health check */
-        if (uart_is_initialized() && (now % 10000) < 100) {
-            (void)uart_check_health();
-        }
-
-        /* Sensor polling */
-        (void)sensors_poll(now);
-
-        /* Jetson replies (beacon text, status), then the OBC's payload limits */
-        poll_jetson();
-        guard_payload(now);
-        (void)wdt_mgr_checkin(WDT_TASK_PAYLOAD);
-
-        /* Beacon (stays silent while TX-OFF, contact or RF-silence inhibits) */
-        update_beacon_measurements(now);
-        run_beacon(now);
-        (void)wdt_mgr_checkin(WDT_TASK_BEACON);
-
-        /* Telecommands from the 435 MHz receiver, then key provisioning
-         * (umbilical only) */
-        (void)uplink_poll(NULL);
-        (void)gse_poll();
-        (void)wdt_mgr_checkin(WDT_TASK_COMM);
-
-        /* Loss-of-contact, RF-silence and deployment timers. On target these need a monotonic time base
-         * (smart_qso_now_ms() is not implemented there yet; SW-01) */
-        contact_monitor_tick((uint32_t)(now - s_last_contact_tick_ms));
-        rf_silence_tick((uint32_t)(now - s_last_contact_tick_ms));
-        deployment_tick((uint32_t)(now - s_last_contact_tick_ms));
-        s_last_contact_tick_ms = now;
-
-        /* Periodic data persistence */
-        if (tick % PERSISTENCE_INTERVAL_TICKS == 0) {
-            (void)mission_data_save();
-            (void)eps_save_config();
-        }
-
-        /* Refresh the hardware watchdog if every stage checked in */
-        wdt_mgr_kick();
-
-        /* Sleep */
+        run_tick(tick, telemetry_interval);
         struct timespec ts = {.tv_sec = 0, .tv_nsec = MAIN_LOOP_SLEEP_NS};
         nanosleep(&ts, NULL);
     }
-
     return SMART_QSO_OK;
 }
 

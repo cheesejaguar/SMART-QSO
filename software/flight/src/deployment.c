@@ -327,12 +327,9 @@ bool deployment_init(void)
     return true;
 }
 
-void deployment_tick(uint32_t elapsed_ms)
+/** Advance the timers and read the deploy-sense switches */
+static void update_timers_and_sensors(uint32_t elapsed_ms)
 {
-    if (!s_initialized) {
-        return;
-    }
-
     s_deploy.state_elapsed_ms = ((UINT32_MAX - s_deploy.state_elapsed_ms) < elapsed_ms)
                                     ? UINT32_MAX : (s_deploy.state_elapsed_ms + elapsed_ms);
     if (s_deploy.separation_detected) {
@@ -343,24 +340,11 @@ void deployment_tick(uint32_t elapsed_ms)
     for (uint32_t e = 0U; e < (uint32_t)DEPLOY_ELEMENT_COUNT; e++) {
         s_deploy.elements[e].switch_state = element_sensed((DeploymentElement_t)e);
     }
+}
 
-    /* Terminal states ignore the switch: re-burning is not harmless.
-     * ARMED waits for the next boot. */
-    if ((s_deploy.state == DEPLOY_STATE_COMPLETE) || (s_deploy.state == DEPLOY_STATE_FAILED) ||
-        (s_deploy.state == DEPLOY_STATE_ARMED)) {
-        return;
-    }
-
-    /* CDS 2.3.2.4: a stowed switch restarts the wait (and stops any burn) */
-    if (separation_switch_stowed()) {
-        if ((s_deploy.state != DEPLOY_STATE_INHIBITED) || (s_deploy.wait_elapsed_s != 0U)) {
-            burn_off();
-            restart_wait();
-            (void)save();
-        }
-        return;
-    }
-
+/** One step of the burn sequence for the current state */
+static void step_sequence(uint32_t elapsed_ms)
+{
     switch (s_deploy.state) {
         case DEPLOY_STATE_INHIBITED:
             s_deploy.separation_detected = true;
@@ -393,7 +377,7 @@ void deployment_tick(uint32_t elapsed_ms)
         case DEPLOY_STATE_COMPLETE:
         case DEPLOY_STATE_FAILED:
         case DEPLOY_STATE_ARMED:
-            break;  /* handled above */
+            break;  /* terminal or waiting for a boot: handled by the caller */
         case DEPLOY_STATE_COUNT:
         default:
             /* Invalid state: stop any burn and start over */
@@ -404,6 +388,33 @@ void deployment_tick(uint32_t elapsed_ms)
                                 "Invalid deployment state", 0.0);
             break;
     }
+}
+
+void deployment_tick(uint32_t elapsed_ms)
+{
+    if (!s_initialized) {
+        return;
+    }
+    update_timers_and_sensors(elapsed_ms);
+
+    /* Terminal states ignore the switch: re-burning is not harmless.
+     * ARMED waits for the next boot. */
+    if ((s_deploy.state == DEPLOY_STATE_COMPLETE) || (s_deploy.state == DEPLOY_STATE_FAILED) ||
+        (s_deploy.state == DEPLOY_STATE_ARMED)) {
+        return;
+    }
+
+    /* CDS 2.3.2.4: a stowed switch restarts the wait (and stops any burn) */
+    if (separation_switch_stowed()) {
+        if ((s_deploy.state != DEPLOY_STATE_INHIBITED) || (s_deploy.wait_elapsed_s != 0U)) {
+            burn_off();
+            restart_wait();
+            (void)save();
+        }
+        return;
+    }
+
+    step_sequence(elapsed_ms);
 }
 
 SmartQsoResult_t deployment_arm(void)

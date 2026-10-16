@@ -105,6 +105,78 @@ void beacon_update_interval(PowerMode_t power_mode)
     }
 }
 
+/** Beacon text: the given AI text if it passes the content filter, the
+ *  stored AI text if available, else the next template */
+static void select_text(BeaconContent_t *content, const char *ai_text, size_t ai_text_len)
+{
+    bool ai_ok = (ai_text != NULL) && (ai_text_len > 0U) &&
+                 beacon_validate_text(ai_text, ai_text_len);
+    if ((ai_text != NULL) && (ai_text_len > 0U) && !ai_ok) {
+        s_beacon_state.ai_rejected_count++;
+    }
+
+    if (ai_ok) {
+        size_t copy_len = ai_text_len;
+        if (copy_len >= BEACON_MAX_TEXT_LEN) {
+            copy_len = BEACON_MAX_TEXT_LEN - 1;
+        }
+        memcpy(content->text, ai_text, copy_len);
+        content->text[copy_len] = '\0';
+        content->text_len = copy_len;
+        content->source = BEACON_SOURCE_AI;
+    } else if (s_beacon_state.ai_available && (s_beacon_state.last_ai_text[0] != '\0')) {
+        size_t len = strlen(s_beacon_state.last_ai_text);
+        memcpy(content->text, s_beacon_state.last_ai_text, len + 1);
+        content->text_len = len;
+        content->source = BEACON_SOURCE_AI;
+    } else {
+        const char *tmpl = beacon_get_template();
+        size_t len = strlen(tmpl);
+        memcpy(content->text, tmpl, len + 1);
+        content->text_len = len;
+        content->source = BEACON_SOURCE_TEMPLATE;
+    }
+}
+
+/** Telemetry: measured values only, each with its validity flag (SW-13).
+ *  Fields not measured, or measured too long ago, are sent "-" */
+static void fill_telemetry(BeaconTelemetry_t *t)
+{
+    uint64_t now = smart_qso_now_ms();
+    t->timestamp = (uint32_t)(now / 1000U);
+    t->power_mode = (uint8_t)eps_get_power_mode();
+
+    if (s_meas_set && (now >= s_meas_ms) && ((now - s_meas_ms) <= BEACON_MEAS_MAX_AGE_MS)) {
+        uint8_t flags = s_meas.valid;
+        if ((flags & BEACON_TLM_SOC) != 0U) {
+            t->soc = s_meas.soc;
+        }
+        if ((flags & BEACON_TLM_BV) != 0U) {
+            t->battery_mv = s_meas.battery_mv;
+        }
+        if ((flags & BEACON_TLM_SUN) != 0U) {
+            t->sunlit = s_meas.sunlit;
+        }
+        if ((flags & BEACON_TLM_QSO) != 0U) {
+            t->qso_count = s_meas.qso_count;
+        }
+        t->valid = (uint8_t)(flags & (BEACON_TLM_SOC | BEACON_TLM_BV |
+                                      BEACON_TLM_SUN | BEACON_TLM_QSO));
+    }
+
+    /* Radio power switch state */
+    EpsControlState_t eps_state;
+    if (eps_get_state(&eps_state) == SMART_QSO_OK) {
+        t->rf_power = eps_state.radio_enabled ? 1U : 0U;
+        t->valid |= BEACON_TLM_RF;
+    }
+
+    FaultLogEntry_t last_fault;
+    if (fault_log_get_last(&last_fault) == SMART_QSO_OK) {
+        t->fault_flags = (uint8_t)(last_fault.severity >= FAULT_SEVERITY_ERROR ? 0x01 : 0x00);
+    }
+}
+
 SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
                                           const char *ai_text,
                                           size_t ai_text_len)
@@ -114,80 +186,11 @@ SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
     }
 
     memset(content, 0, sizeof(BeaconContent_t));
+    select_text(content, ai_text, ai_text_len);
+    fill_telemetry(&content->telemetry);
 
-    /* Determine text source: AI text only if it passes the content filter */
-    bool ai_ok = (ai_text != NULL) && (ai_text_len > 0U) &&
-                 beacon_validate_text(ai_text, ai_text_len);
-    if ((ai_text != NULL) && (ai_text_len > 0U) && !ai_ok) {
-        s_beacon_state.ai_rejected_count++;
-    }
-    if (ai_ok) {
-        /* Use AI-generated text */
-        size_t copy_len = ai_text_len;
-        if (copy_len >= BEACON_MAX_TEXT_LEN) {
-            copy_len = BEACON_MAX_TEXT_LEN - 1;
-        }
-        memcpy(content->text, ai_text, copy_len);
-        content->text[copy_len] = '\0';
-        content->text_len = copy_len;
-        content->source = BEACON_SOURCE_AI;
-    } else if (s_beacon_state.ai_available &&
-               s_beacon_state.last_ai_text[0] != '\0') {
-        /* Use stored AI text */
-        size_t len = strlen(s_beacon_state.last_ai_text);
-        memcpy(content->text, s_beacon_state.last_ai_text, len + 1);
-        content->text_len = len;
-        content->source = BEACON_SOURCE_AI;
-    } else {
-        /* Fallback to template */
-        const char *tmpl = beacon_get_template();
-        size_t len = strlen(tmpl);
-        memcpy(content->text, tmpl, len + 1);
-        content->text_len = len;
-        content->source = BEACON_SOURCE_TEMPLATE;
-    }
-
-    /* Populate telemetry: measured values only, each with its validity flag
-     * (SW-13). Fields not measured, or measured too long ago, are sent "-". */
-    uint64_t now = smart_qso_now_ms();
-    content->telemetry.timestamp = (uint32_t)(now / 1000U);
-    content->telemetry.power_mode = (uint8_t)eps_get_power_mode();
-
-    if (s_meas_set && (now >= s_meas_ms) && ((now - s_meas_ms) <= BEACON_MEAS_MAX_AGE_MS)) {
-        uint8_t flags = s_meas.valid;
-        if ((flags & BEACON_TLM_SOC) != 0U) {
-            content->telemetry.soc = s_meas.soc;
-        }
-        if ((flags & BEACON_TLM_BV) != 0U) {
-            content->telemetry.battery_mv = s_meas.battery_mv;
-        }
-        if ((flags & BEACON_TLM_SUN) != 0U) {
-            content->telemetry.sunlit = s_meas.sunlit;
-        }
-        if ((flags & BEACON_TLM_QSO) != 0U) {
-            content->telemetry.qso_count = s_meas.qso_count;
-        }
-        content->telemetry.valid = (uint8_t)(flags & (BEACON_TLM_SOC | BEACON_TLM_BV |
-                                                      BEACON_TLM_SUN | BEACON_TLM_QSO));
-    }
-
-    /* Radio power switch state */
-    EpsControlState_t eps_state;
-    if (eps_get_state(&eps_state) == SMART_QSO_OK) {
-        content->telemetry.rf_power = eps_state.radio_enabled ? 1U : 0U;
-        content->telemetry.valid |= BEACON_TLM_RF;
-    }
-
-    /* Get fault status */
-    FaultLogEntry_t last_fault;
-    if (fault_log_get_last(&last_fault) == SMART_QSO_OK) {
-        content->telemetry.fault_flags = (uint8_t)(last_fault.severity >= FAULT_SEVERITY_ERROR ? 0x01 : 0x00);
-    }
-
-    /* Increment sequence */
     s_beacon_state.sequence++;
     content->sequence = s_beacon_state.sequence;
-
     return SMART_QSO_OK;
 }
 

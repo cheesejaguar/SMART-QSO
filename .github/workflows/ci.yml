@@ -144,6 +144,12 @@ jobs:
             -I include \
             src/
 
+      - name: Function length (JPL rule 4; no new long functions)
+        working-directory: software/flight
+        run: |
+          python3 scripts/function_length.py src/*.c src/hal/*.c
+          ./scripts/ratchet.sh function-length "$(python3 scripts/function_length.py --count src/*.c src/hal/*.c)"
+
       - name: Run clang-tidy (no new findings)
         working-directory: software/flight
         run: |

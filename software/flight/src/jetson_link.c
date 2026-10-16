@@ -160,14 +160,9 @@ static size_t split(const char *body, size_t len, const char **start, size_t *fl
     return n;
 }
 
-JetsonStatus_t jetson_link_parse(const char *line, size_t len, JetsonMsg_t *msg)
+/** Check framing and CRC; on success *body_len is the length before ",XXXX" */
+static JetsonStatus_t check_frame(const char *line, size_t len, size_t *body_len)
 {
-    if ((line == NULL) || (msg == NULL) || (len == 0U)) {
-        return JETSON_ERR_FORMAT;
-    }
-    if (line[len - 1U] == '\n') {
-        len--;
-    }
     if ((len < (CRC_FIELD + 1U)) || (len >= JETSON_LINE_MAX) || !printable(line, len) ||
         (line[len - CRC_FIELD] != ',')) {
         return JETSON_ERR_FORMAT;
@@ -181,9 +176,88 @@ JetsonStatus_t jetson_link_parse(const char *line, size_t len, JetsonMsg_t *msg)
         }
         received = (uint16_t)((received << 4) | (uint16_t)d);
     }
-    size_t body_len = len - CRC_FIELD;
-    if (jetson_crc16((const uint8_t *)line, body_len) != received) {
-        return JETSON_ERR_CRC;
+    *body_len = len - CRC_FIELD;
+    return (jetson_crc16((const uint8_t *)line, *body_len) == received) ? JETSON_OK : JETSON_ERR_CRC;
+}
+
+/** BEACON_RSP,<seq>,<text>: the text may contain commas */
+static JetsonStatus_t parse_beacon_rsp(const char *rest, size_t rest_len, JetsonMsg_t *msg)
+{
+    const char *seq_end = memchr(rest, ',', rest_len);
+    uint32_t seq = 0U;
+    if ((seq_end == NULL) || !parse_uint(rest, (size_t)(seq_end - rest), 0xFFFFU, &seq)) {
+        return JETSON_ERR_FORMAT;
+    }
+    size_t text_len = rest_len - (size_t)(seq_end - rest) - 1U;
+    if ((text_len == 0U) || (text_len > JETSON_TEXT_MAX)) {
+        return JETSON_ERR_FORMAT;
+    }
+    msg->type = JETSON_MSG_BEACON_RSP;
+    msg->seq = (uint16_t)seq;
+    (void)memcpy(msg->text, seq_end + 1, text_len);
+    msg->text[text_len] = '\0';
+    msg->text_len = text_len;
+    return JETSON_OK;
+}
+
+/** STATUS,<health>,<temp_c>,<power_mw>,<mem_pct>,<uptime_s> */
+static JetsonStatus_t parse_status(const char *rest, size_t rest_len, JetsonMsg_t *msg)
+{
+    const char *f[5];
+    size_t fl[5];
+    uint32_t health = 0U;
+    uint32_t power = 0U;
+    uint32_t mem = 0U;
+    uint32_t uptime = 0U;
+    int32_t temp = 0;
+    if ((rest_len == 0U) || (split(rest, rest_len, f, fl, 5U) != 5U) ||
+        !parse_uint(f[0], fl[0], 3U, &health) ||
+        !parse_int(f[1], fl[1], -128, 200, &temp) ||
+        !parse_uint(f[2], fl[2], 100000U, &power) ||
+        !parse_uint(f[3], fl[3], 100U, &mem) ||
+        !parse_uint(f[4], fl[4], 0xFFFFFFFFU, &uptime)) {
+        return JETSON_ERR_FORMAT;
+    }
+    msg->type = JETSON_MSG_STATUS;
+    msg->health = (uint8_t)health;
+    msg->temp_c = temp;
+    msg->power_mw = power;
+    msg->mem_pct = (uint8_t)mem;
+    msg->uptime_s = uptime;
+    return JETSON_OK;
+}
+
+/** ACK,<what> or NACK,<reason>: one field, no commas */
+static JetsonStatus_t parse_ack(bool ack, const char *rest, size_t rest_len, JetsonMsg_t *msg)
+{
+    if ((rest_len == 0U) || (rest_len > JETSON_TEXT_MAX) || (memchr(rest, ',', rest_len) != NULL)) {
+        return JETSON_ERR_FORMAT;
+    }
+    msg->type = ack ? JETSON_MSG_ACK : JETSON_MSG_NACK;
+    (void)memcpy(msg->text, rest, rest_len);
+    msg->text[rest_len] = '\0';
+    msg->text_len = rest_len;
+    return JETSON_OK;
+}
+
+static bool type_is(const char *line, size_t type_len, const char *name)
+{
+    return (type_len == strlen(name)) && (memcmp(line, name, type_len) == 0);
+}
+
+JetsonStatus_t jetson_link_parse(const char *line, size_t len, JetsonMsg_t *msg)
+{
+    size_t body_len = 0U;
+
+    if ((line == NULL) || (msg == NULL) || (len == 0U)) {
+        return JETSON_ERR_FORMAT;
+    }
+    if (line[len - 1U] == '\n') {
+        len--;
+    }
+    JetsonStatus_t status = check_frame(line, len, &body_len);
+    if (status != JETSON_OK) {
+        return status;
     }
 
     (void)memset(msg, 0, sizeof(*msg));
@@ -192,62 +266,15 @@ JetsonStatus_t jetson_link_parse(const char *line, size_t len, JetsonMsg_t *msg)
     const char *rest = (type_end != NULL) ? (type_end + 1) : &line[body_len];
     size_t rest_len = (type_end != NULL) ? (body_len - type_len - 1U) : 0U;
 
-    if ((type_len == 10U) && (memcmp(line, "BEACON_RSP", 10U) == 0)) {
-        const char *seq_end = memchr(rest, ',', rest_len);
-        uint32_t seq = 0U;
-        if ((seq_end == NULL) || !parse_uint(rest, (size_t)(seq_end - rest), 0xFFFFU, &seq)) {
-            return JETSON_ERR_FORMAT;
-        }
-        size_t text_len = rest_len - (size_t)(seq_end - rest) - 1U;
-        if ((text_len == 0U) || (text_len > JETSON_TEXT_MAX)) {
-            return JETSON_ERR_FORMAT;
-        }
-        msg->type = JETSON_MSG_BEACON_RSP;
-        msg->seq = (uint16_t)seq;
-        (void)memcpy(msg->text, seq_end + 1, text_len);
-        msg->text[text_len] = '\0';
-        msg->text_len = text_len;
-        return JETSON_OK;
+    if (type_is(line, type_len, "BEACON_RSP")) {
+        return parse_beacon_rsp(rest, rest_len, msg);
     }
-
-    if ((type_len == 6U) && (memcmp(line, "STATUS", 6U) == 0)) {
-        const char *f[5];
-        size_t fl[5];
-        uint32_t health = 0U;
-        uint32_t power = 0U;
-        uint32_t mem = 0U;
-        uint32_t uptime = 0U;
-        int32_t temp = 0;
-        if ((rest_len == 0U) || (split(rest, rest_len, f, fl, 5U) != 5U) ||
-            !parse_uint(f[0], fl[0], 3U, &health) ||
-            !parse_int(f[1], fl[1], -128, 200, &temp) ||
-            !parse_uint(f[2], fl[2], 100000U, &power) ||
-            !parse_uint(f[3], fl[3], 100U, &mem) ||
-            !parse_uint(f[4], fl[4], 0xFFFFFFFFU, &uptime)) {
-            return JETSON_ERR_FORMAT;
-        }
-        msg->type = JETSON_MSG_STATUS;
-        msg->health = (uint8_t)health;
-        msg->temp_c = temp;
-        msg->power_mw = power;
-        msg->mem_pct = (uint8_t)mem;
-        msg->uptime_s = uptime;
-        return JETSON_OK;
+    if (type_is(line, type_len, "STATUS")) {
+        return parse_status(rest, rest_len, msg);
     }
-
-    bool ack = (type_len == 3U) && (memcmp(line, "ACK", 3U) == 0);
-    bool nack = (type_len == 4U) && (memcmp(line, "NACK", 4U) == 0);
-    if (ack || nack) {
-        if ((rest_len == 0U) || (rest_len > JETSON_TEXT_MAX) || (memchr(rest, ',', rest_len) != NULL)) {
-            return JETSON_ERR_FORMAT;
-        }
-        msg->type = ack ? JETSON_MSG_ACK : JETSON_MSG_NACK;
-        (void)memcpy(msg->text, rest, rest_len);
-        msg->text[rest_len] = '\0';
-        msg->text_len = rest_len;
-        return JETSON_OK;
+    if (type_is(line, type_len, "ACK") || type_is(line, type_len, "NACK")) {
+        return parse_ack(type_is(line, type_len, "ACK"), rest, rest_len, msg);
     }
-
     return JETSON_ERR_TYPE;
 }
 

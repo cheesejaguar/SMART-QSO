@@ -242,6 +242,12 @@ foreach(entry ${MODULE_TESTS})
         LABELS "unit;${test_label}"
     )
 endforeach()
+# JPL rule 3: no flight object references malloc/calloc/realloc/free
+add_test(NAME no_dynamic_memory
+         COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/check_no_dynamic_memory.sh
+                 $<TARGET_OBJECTS:flight_test_lib>)
+set_tests_properties(no_dynamic_memory PROPERTIES LABELS "static;jpl")
+
 # Accept/reject vectors shared with the Jetson-side filter
 target_compile_definitions(test_beacon_filter PRIVATE
     BEACON_FILTER_VECTORS="${CMAKE_CURRENT_SOURCE_DIR}/vectors/beacon_filter_vectors.txt")

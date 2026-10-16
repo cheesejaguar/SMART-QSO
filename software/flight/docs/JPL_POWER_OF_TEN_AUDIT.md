@@ -11,22 +11,27 @@ This document provides a comprehensive compliance audit of the SMART-QSO flight 
 
 **Reference**: Gerard J. Holzmann, "The Power of 10: Rules for Developing Safety-Critical Code", IEEE Computer, June 2006.
 
-## 2. Compliance Summary
+## 2. Compliance Summary (measured 2026-10-15)
+
+> **The "FULLY COMPLIANT" status of revision 1.0 is withdrawn** (FINDINGS_REGISTER SW-07). It was not supported by tool
+> output, and two of its claims were false: the `-Wl,--wrap=malloc` link option it cites did not exist in the build, and
+> 14 functions exceeded 60 lines. The table below is the measured status. Sections 3 onward are the original text, kept
+> for reference and superseded by this table where they disagree.
 
 | Rule | Description | Status | Evidence |
 |------|-------------|--------|----------|
-| 1 | Simple control flow | COMPLIANT | Code review, static analysis |
-| 2 | Fixed loop bounds | COMPLIANT | LOOP_BOUNDS.md, MAX_LOOP constants |
-| 3 | No dynamic memory after init | COMPLIANT | MEMORY_POLICY.md, -Wl,--wrap=malloc |
-| 4 | Function length limit (60 lines) | COMPLIANT | Modular design, function extraction |
-| 5 | Minimum 2 assertions per function | COMPLIANT | assert_handler.c/h framework |
-| 6 | Declare data at smallest scope | COMPLIANT | Code review |
-| 7 | Check all return values | COMPLIANT | SmartQsoResult_t pattern |
-| 8 | Limited preprocessor use | COMPLIANT | Header guards, simple macros only |
-| 9 | Restrict pointer use | COMPLIANT | NULL checks, bounds validation |
-| 10 | Compile with all warnings | COMPLIANT | -Wall -Wextra -Werror enabled |
+| 1 | Simple control flow | Partly verified: no `goto`, `setjmp` or `longjmp` in `src/`; recursion not checked by a tool | grep |
+| 2 | Fixed loop bounds | Not verified by a tool | LOOP_BOUNDS.md is a manual review |
+| 3 | No dynamic memory | **Met for flight code:** no flight object references `malloc`, `calloc`, `realloc` or `free` (the simulated HAL is excluded) | ctest `no_dynamic_memory` (`scripts/check_no_dynamic_memory.sh`) on every build |
+| 4 | Function length ≤ 60 lines | **Not met:** 10 of 629 functions are longer | `scripts/function_length.py`; CI allows no increase (`quality/function-length.baseline`) |
+| 5 | Two assertions per function | **Not met:** 30 assertion uses across 629 functions | Assertions are active in every build since SW-08 |
+| 6 | Smallest scope | Not verified by a tool | — |
+| 7 | Check return values | Partly: results are often discarded with `(void)` | cppcheck (blocking) and clang-tidy (no increase) in CI |
+| 8 | Limited preprocessor | Not verified by a tool | — |
+| 9 | Restrict pointers | Not verified by a tool | — |
+| 10 | All warnings, zero warnings | Met for the GCC and Clang `-Werror` builds; cppcheck blocking; clang-tidy and MISRA checker allow no increase | CI workflows |
 
-**Overall Status**: FULLY COMPLIANT
+**Overall status: not compliant.** CI gates now prevent regressions on rules 3, 4 and 10.
 
 ---
 

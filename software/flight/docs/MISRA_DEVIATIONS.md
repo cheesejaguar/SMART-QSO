@@ -24,7 +24,14 @@ This document covers:
 
 ## 3. MISRA Compliance Summary
 
-### 3.1 Compliance Level
+> **The compliance figures below (193 of 203 rules compliant, 8 deviations) are withdrawn** (FINDINGS_REGISTER SW-07).
+> No MISRA tool had been run. An indicative run of the cppcheck MISRA addon during the audit found about 1,520
+> findings, 1,187 of them not covered by any deviation below. CI now runs that checker on every change
+> (`.github/workflows/ci.yml`, job "MISRA C:2012 Check"). It allows no increase over `software/flight/quality/misra.baseline`
+> and archives the report. The cppcheck addon is not a qualified MISRA tool. The deviation records in §4 are proposals,
+> to be confirmed against a qualified tool's output.
+
+### 3.1 Compliance Level (withdrawn; kept for reference)
 
 | Category | Total Rules | Compliant | Deviations | N/A |
 |----------|-------------|-----------|------------|-----|
