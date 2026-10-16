@@ -162,7 +162,7 @@ def _parse_args(argv):
     counter.add_argument("--counter-file", type=Path, help="Counter state file (reserved before use)")
     counter.add_argument("--counter", type=int, help="Explicit counter (testing only)")
     parser.add_argument("--ax25", nargs=2, metavar=("DEST", "SRC"),
-                        help="Wrap in an AX.25 UI frame, e.g. --ax25 SQSO-1 N0CALL (call sign is decision D1)")
+                        help="Wrap in an AX.25 UI frame, e.g. --ax25 KK6GDB-11 N0CALL (spacecraft, then your station)")
     parser.add_argument("--kiss", action="store_true", help="With --ax25: KISS-encode for a TNC (TNC adds the FCS)")
     parser.add_argument("--out", type=Path, help="Write the binary frame here instead of printing hex")
     parser.add_argument("--list", action="store_true", help="List the command dictionary")

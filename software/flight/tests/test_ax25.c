@@ -15,12 +15,12 @@
 
 #include "ax25.h"
 
-/** UI frame SQSO-1 <- N0CALL-0 carrying TX_DISABLE counter 1 (TEST-ONLY key) */
+/** UI frame KK6GDB-11 <- N0CALL-0 carrying TX_DISABLE counter 1 (TEST-ONLY key) */
 static const uint8_t UPLINK_TX_DISABLE[] = {
-    0xA6, 0xA2, 0xA6, 0x9E, 0x40, 0x40, 0x62, 0x9C, 0x60, 0x86, 0x82, 0x98, 0x98, 0x61,
+    0x96, 0x96, 0x6C, 0x8E, 0x88, 0x84, 0x76, 0x9C, 0x60, 0x86, 0x82, 0x98, 0x98, 0x61,
     0x03, 0xF0, 0xAA, 0x55, 0x32, 0x14, 0x00, 0x00, 0x00, 0x01, 0x9A, 0x83, 0xF5, 0xC7,
     0xB2, 0x1F, 0x75, 0x11, 0xE8, 0x2F, 0x5E, 0x94, 0xB9, 0xDE, 0x58, 0x51, 0x09, 0xBF,
-    0x65, 0x59
+    0xC8, 0xB6
 };
 
 static void test_fcs_check_value(void **state)
@@ -46,9 +46,9 @@ static void test_parse_reference_frame(void **state)
     Ax25UiView_t view;
 
     assert_int_equal(ax25_parse_ui(UPLINK_TX_DISABLE, sizeof(UPLINK_TX_DISABLE), &view), AX25_OK);
-    assert_true(ax25_address_matches(view.dest, "SQSO", 1U));
-    assert_false(ax25_address_matches(view.dest, "SQSO", 2U));
-    assert_false(ax25_address_matches(view.dest, "SQSOX", 1U));
+    assert_true(ax25_address_matches(view.dest, "KK6GDB", 11U));
+    assert_false(ax25_address_matches(view.dest, "KK6GDB", 1U));
+    assert_false(ax25_address_matches(view.dest, "KK6GD", 11U));
     assert_true(ax25_address_matches(view.src, "N0CALL", 0U));
     assert_int_equal(view.info_len, 26U);
     assert_int_equal(view.info[0], 0xAAU);

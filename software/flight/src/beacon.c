@@ -41,7 +41,7 @@ const char *beacon_templates[] = {
     "Greetings from LEO! All systems go",
     "CubeSat beacon - AI payload standby",
     "SMART-QSO mission - thanks for listening!",
-    "Amateur satellite beacon - 73 de SQSO-1"
+    "Amateur satellite beacon - 73 de KK6GDB-11"
 };
 
 const size_t beacon_template_count = sizeof(beacon_templates) / sizeof(beacon_templates[0]);

@@ -210,7 +210,7 @@ This document defines the test procedures for flatsat (engineering development u
 | 1 | Enable beacon generation | Beacon every 60 seconds | |
 | 2 | Capture 5 beacon frames | All frames complete | |
 | 3 | Verify AX.25 structure | Flag, addresses, control, PID correct | |
-| 4 | Verify source callsign | "SQSO-1" in source field | |
+| 4 | Verify source callsign | "KK6GDB-11" in source field | |
 | 5 | Verify destination | "CQ" in destination field | |
 | 6 | Verify FCS | CRC-16 matches | |
 | 7 | Verify info field | Telemetry summary present | |
@@ -224,7 +224,7 @@ This document defines the test procedures for flatsat (engineering development u
 |-------|----------|--------|-----------|
 | Flag (start) | 0x7E | | |
 | Destination | "CQ    " (shifted) | | |
-| Source | "SQSO-1" (shifted) | | |
+| Source | "KK6GDB-11" (shifted) | | |
 | Control | 0x03 (UI) | | |
 | PID | 0xF0 (no L3) | | |
 | Info contains voltage | Yes | | |

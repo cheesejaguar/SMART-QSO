@@ -31,7 +31,7 @@ Where this document conflicts with SQSO-ICD-005 (`ICD_SPACE_GROUND.md`) or `docs
 
 Each telecommand is one AX.25 v2.2 UI frame (control `0x03`, PID `0xF0`) on the 435 MHz uplink. The destination address must be this station's call sign and SSID (`software/flight/include/station_id.h`). Frames addressed to any other station are dropped.
 
-- **Call sign:** the value in the repository, `SQSO`-1, is a placeholder until the licensee's call sign is issued (decision D1).
+- **Call sign:** `KK6GDB-11`, the licensee's call sign (decision D1, 2026-10-15) with SSID 11.
 - **Source address:** must be the sending telecommand station's own call sign.
 - **Digipeater paths:** parsed, but not needed.
 
@@ -312,7 +312,7 @@ Procedure:
 | **`RF_TX_EN` removes PA power at the antenna port** | **Not verified.** TP-RF-006 is written; it needs EM hardware |
 | **SET_POWER applied to the PA** | **Not implemented.** The level is persisted and reported; the actuator interface is TBD in the RF design |
 | FRAM driver for `FLASH_REGION_AUTH` and `FLASH_REGION_RF_CONTROL` | Allocated in SQSO-OBC-002 §3.3; simulation HAL only |
-| Station call sign | Placeholder `SQSO`-1 (decision D1) |
+| Station call sign | `KK6GDB-11` (licensee KK6GDB, decision D1) |
 | Loss-of-contact N and M | N: mechanism implemented; value a placeholder (D3). M (autonomous passivation): **not implemented** |
 | Monotonic time source on target | **Not implemented** (SW-01); the loss-of-contact and RF-silence timers depend on it |
 | Reset-cause register read on target (`hal_reset.h`) | **Not implemented**; simulation only |
@@ -340,10 +340,10 @@ TX_ENABLE, counter 3:
 AA55 31 14 00000003 64B167923681E291200754A1BB670845 080A
 ```
 
-AX.25 UI frame `SQSO-1` ← `N0CALL` carrying TX_DISABLE counter 1 (FCS last):
+AX.25 UI frame `KK6GDB-11` ← `N0CALL` carrying TX_DISABLE counter 1 (FCS last):
 
 ```
-A6A2A69E404062 9C608682989861 03 F0 AA553214000000019A83F5C7B21F7511E82F5E94B9DE585109BF 6559
+96966C8E888476 9C608682989861 03 F0 AA553214000000019A83F5C7B21F7511E82F5E94B9DE585109BF C8B6
 ```
 
 GSE frame PROVISION slot 0, key ID 1:
@@ -355,7 +355,7 @@ GSE frame PROVISION slot 0, key ID 1:
 Reproduce with the ground tools, using a scratch copy of the test key (mode 600):
 
 ```bash
-python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.key --counter 1 --ax25 SQSO-1 N0CALL
+python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.key --counter 1 --ax25 KK6GDB-11 N0CALL
 ```
 
 ## 12. Verification

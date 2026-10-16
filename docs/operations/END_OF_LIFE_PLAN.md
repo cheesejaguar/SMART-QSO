@@ -157,7 +157,7 @@ Final beacon transmitted before passivation:
 
 ```
 de [CALLSIGN]: SMART-QSO EOL - Mission Complete
-Thank you to all who listened! 73 de SQSO-1
+Thank you to all who listened! 73 de KK6GDB-11
 Final stats: [days] days, [beacons] beacons, [QSOs] QSOs
 T=[timestamp] EOL
 ```

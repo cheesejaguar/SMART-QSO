@@ -52,9 +52,9 @@ python telecommand_builder.py TX_DISABLE --key-file /secure/sqso.key --counter-f
 python telecommand_builder.py SET_BEACON --args 003C --key-file /secure/sqso.key \
     --counter-file /secure/sqso.counter --out set_beacon.bin
 
-# Wrap in an AX.25 UI frame and KISS-encode it for a TNC (call signs are decision D1)
+# Wrap in an AX.25 UI frame and KISS-encode it for a TNC (spacecraft KK6GDB-11; use your own station's call sign as the source)
 python telecommand_builder.py TX_DISABLE --key-file /secure/sqso.key \
-    --counter-file /secure/sqso.counter --ax25 SQSO-1 N0CALL --kiss --out tx_off.kiss
+    --counter-file /secure/sqso.counter --ax25 KK6GDB-11 N0CALL --kiss --out tx_off.kiss
 ```
 
 Keep one counter file per key (operational and recovery), and start a new operational counter file after each KEY_ROTATE.

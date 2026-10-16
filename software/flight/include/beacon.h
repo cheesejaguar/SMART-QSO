@@ -34,7 +34,7 @@ extern "C" {
 #define BEACON_MAX_PAYLOAD_LEN   256
 
 /** Callsign for beacon identification */
-#define BEACON_CALLSIGN          "SQSO-1"   /* text form of station_id.h */
+#define BEACON_CALLSIGN          "KK6GDB-11"   /* text form of station_id.h */
 
 /** Default beacon interval in ACTIVE mode (ms) */
 #define BEACON_INTERVAL_ACTIVE_MS   30000

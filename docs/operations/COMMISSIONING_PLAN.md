@@ -112,7 +112,7 @@ Pre-Pass:
 During Pass:
 [ ] Signal detected at AOS+___
 [ ] First beacon decoded at AOS+___
-[ ] Callsign verified: SQSO-1
+[ ] Callsign verified: KK6GDB-11
 [ ] STATE = SAFE confirmed
 [ ] Battery SOC = ___%
 [ ] Temperatures nominal

@@ -57,7 +57,7 @@ static void test_max_text_fits_frame(void **state)
     size_t len = beacon_format_payload(&content, buffer, sizeof(buffer));
     assert_true(len > 0U);
     assert_true(len < sizeof(buffer));
-    assert_int_equal(strncmp(buffer, "de " BEACON_CALLSIGN ": ", 11), 0);
+    assert_int_equal(strncmp(buffer, "de " BEACON_CALLSIGN ": ", sizeof("de " BEACON_CALLSIGN ": ") - 1U), 0);
     assert_true(ends_with(buffer, len, " BV=65.5 SUN=255 RF=255 QSO=65535"));
     assert_non_null(strstr(buffer, " | T=4294967295 M=ACTIVE SOC=255"));
 }

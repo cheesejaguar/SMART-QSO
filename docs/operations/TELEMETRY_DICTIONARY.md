@@ -169,11 +169,12 @@ TEMP (°C) = raw_value / 10.0
 The INFO field contains human-readable status and AI-generated content:
 
 ```
-SQSO-1 DE SMARTQ-1
-STATE:ACTIVE SOC:78% V:3.85
-SUN:Y RF:ON QSO:42
-[AI or template message up to 150 chars]
+de KK6GDB-11: <AI or template text> | T=<unix s> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<level> QSO=<count>
 ```
+
+This is the format `beacon_format_payload()` produces (`software/flight/src/beacon.c`). The text is cut to the space left in
+the 256-byte information field after the telemetry fields (at most 176 characters with this call sign); the telemetry
+fields are never cut.
 
 ### 4.3 Beacon Timing
 
