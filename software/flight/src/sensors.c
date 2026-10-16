@@ -200,7 +200,7 @@ static bool read_status_hex2(Sensor_t *self, double *out_value, char *out_text)
  */
 static bool bind_sensor_behavior(Sensor_t *s)
 {
-    SMART_QSO_REQUIRE_NOT_NULL(s);
+    SMART_QSO_REQUIRE_NOT_NULL_OR(s, false);
 
     if (strcmp(s->type, "software_timer") == 0) {
         s->value_type = SENSOR_VALUE_NUMERIC;
@@ -537,8 +537,8 @@ void sensors_set_environment(bool sunlit, double soc)
 
 size_t sensors_format_telemetry(char *buffer, size_t buffer_len)
 {
-    SMART_QSO_REQUIRE_NOT_NULL(buffer);
-    SMART_QSO_REQUIRE(buffer_len > 0, "Invalid buffer length");
+    SMART_QSO_REQUIRE_NOT_NULL_OR(buffer, 0U);
+    SMART_QSO_REQUIRE_OR(buffer_len > 0U, "Invalid buffer length", 0U);
 
     size_t offset = 0;
 

@@ -118,20 +118,6 @@ typedef struct {
  ******************************************************************************/
 
 /**
- * @brief Check precondition (function entry requirement)
- * @param condition Condition that must be true
- *
- * Use at the beginning of functions to validate parameters and state.
- */
-#define SMART_QSO_REQUIRE(condition) \
-    do { \
-        if (!(condition)) { \
-            (void)assert_handle_failure(__FILE__, __LINE__, \
-                ASSERT_TYPE_PRECONDITION, ASSERT_SEVERITY_ERROR, #condition); \
-        } \
-    } while (0)
-
-/**
  * @brief Check precondition with custom severity
  */
 #define SMART_QSO_REQUIRE_EX(condition, severity) \
@@ -139,20 +125,6 @@ typedef struct {
         if (!(condition)) { \
             (void)assert_handle_failure(__FILE__, __LINE__, \
                 ASSERT_TYPE_PRECONDITION, (severity), #condition); \
-        } \
-    } while (0)
-
-/**
- * @brief Check postcondition (function exit requirement)
- * @param condition Condition that must be true
- *
- * Use at the end of functions to validate return values and state.
- */
-#define SMART_QSO_ENSURE(condition) \
-    do { \
-        if (!(condition)) { \
-            (void)assert_handle_failure(__FILE__, __LINE__, \
-                ASSERT_TYPE_POSTCONDITION, ASSERT_SEVERITY_ERROR, #condition); \
         } \
     } while (0)
 
@@ -167,21 +139,6 @@ typedef struct {
         if (!(condition)) { \
             (void)assert_handle_failure(__FILE__, __LINE__, \
                 ASSERT_TYPE_INVARIANT, ASSERT_SEVERITY_ERROR, #condition); \
-        } \
-    } while (0)
-
-/**
- * @brief Check that pointer is not NULL
- * @param ptr Pointer to check
- *
- * Returns SMART_QSO_ERROR_NULL_PTR if the pointer is NULL.
- */
-#define SMART_QSO_REQUIRE_NOT_NULL(ptr) \
-    do { \
-        if ((ptr) == NULL) { \
-            (void)assert_handle_failure(__FILE__, __LINE__, \
-                ASSERT_TYPE_PARAM_NULL, ASSERT_SEVERITY_ERROR, #ptr " != NULL"); \
-            return SMART_QSO_ERROR_NULL_PTR; \
         } \
     } while (0)
 

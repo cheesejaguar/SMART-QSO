@@ -79,13 +79,8 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_eps_control.c")
     add_executable(test_eps_control
         test_eps_control.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
     )
-    target_link_libraries(test_eps_control PkgConfig::CMOCKA)
+    target_link_libraries(test_eps_control flight_test_lib PkgConfig::CMOCKA)
     target_compile_options(test_eps_control PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME EPS_Control_Tests COMMAND test_eps_control)
     set_tests_properties(EPS_Control_Tests PROPERTIES
@@ -100,13 +95,8 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_fault_mgmt.c")
     add_executable(test_fault_mgmt
         test_fault_mgmt.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_fault_mgmt PkgConfig::CMOCKA)
+    target_link_libraries(test_fault_mgmt flight_test_lib PkgConfig::CMOCKA)
     target_compile_options(test_fault_mgmt PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME Fault_Mgmt_Tests COMMAND test_fault_mgmt)
     set_tests_properties(Fault_Mgmt_Tests PROPERTIES
@@ -121,14 +111,8 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_sensors.c")
     add_executable(test_sensors
         test_sensors.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_sensors PkgConfig::CMOCKA m)
+    target_link_libraries(test_sensors flight_test_lib PkgConfig::CMOCKA m)
     target_compile_options(test_sensors PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME Sensor_Tests COMMAND test_sensors)
     set_tests_properties(Sensor_Tests PROPERTIES
@@ -143,11 +127,8 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_mission_data.c")
     add_executable(test_mission_data
         test_mission_data.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_mission_data PkgConfig::CMOCKA)
+    target_link_libraries(test_mission_data flight_test_lib PkgConfig::CMOCKA)
     target_compile_options(test_mission_data PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME Mission_Data_Tests COMMAND test_mission_data)
     set_tests_properties(Mission_Data_Tests PROPERTIES
@@ -162,14 +143,8 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_uart_comm.c")
     add_executable(test_uart_comm
         test_uart_comm.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_uart_comm PkgConfig::CMOCKA)
+    target_link_libraries(test_uart_comm flight_test_lib PkgConfig::CMOCKA)
     target_compile_options(test_uart_comm PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME UART_Comm_Tests COMMAND test_uart_comm)
     set_tests_properties(UART_Comm_Tests PROPERTIES
@@ -253,6 +228,7 @@ set(MODULE_TESTS
     "test_beacon_telemetry\;rf"
     "test_gnss\;gnss"
     "test_payload_guard\;payload"
+    "test_assert_release\;assert"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)
