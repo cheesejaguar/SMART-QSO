@@ -37,6 +37,10 @@ extern "C" {
 /** Power limit for ACTIVE mode (Watts) */
 #define EPS_POWER_LIMIT_ACTIVE_W 3.0
 
+/** 5 V bus regulation limits, checked on the measured bus voltage */
+#define EPS_BUS_MIN_V            4.5
+#define EPS_BUS_MAX_V            5.5
+
 /** SOC threshold for payload enable */
 #define EPS_SOC_PAYLOAD_THRESHOLD 0.55
 
@@ -172,6 +176,12 @@ bool eps_is_payload_enabled(void);
  * @return Current power limit in watts
  */
 double eps_get_power_limit(void);
+
+/**
+ * @brief Is a measured bus voltage within regulation? (FDIR, SW-16)
+ * @return false outside EPS_BUS_MIN_V..EPS_BUS_MAX_V, or for NaN
+ */
+bool eps_bus_voltage_ok(double volts);
 
 /**
  * @brief Save EPS configuration to persistent storage

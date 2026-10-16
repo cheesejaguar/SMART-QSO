@@ -29,6 +29,7 @@
 #include "jetson_link.h"
 #include "beacon.h"
 #include "watchdog_mgr.h"
+#include "payload_guard.h"
 #include "cmd_handler.h"
 #include "gse_provision.h"
 #include "uplink.h"
@@ -233,6 +234,8 @@ static SmartQsoResult_t init_system(void)
     /* Beacon: templates until the Jetson supplies text that passes the filter */
     (void)beacon_init();
 
+    payload_guard_init();
+
     if (init_watchdog() != SMART_QSO_OK) {
         fprintf(stderr, "[SYSTEM] Watchdog init failed\n");
         return SMART_QSO_ERROR;
@@ -331,6 +334,8 @@ static void update_mission_state(uint64_t tick)
 /* Health Monitoring                                                          */
 /*===========================================================================*/
 
+static bool fresh_sensor(const char *id, uint64_t now, uint32_t max_age_ms, double *value);
+
 /**
  * @brief Monitor system health and trigger fault recovery
  */
@@ -353,6 +358,13 @@ static void monitor_system_health(void)
                 (void)fault_recover_thermal(s_soc);
             }
         }
+    }
+
+    /* Bus regulation, on the measured value (SW-16) */
+    double bus_v = 0.0;
+    if (fresh_sensor("BUSV", now, HEALTH_CHECK_INTERVAL_MS, &bus_v) && !eps_bus_voltage_ok(bus_v)) {
+        fault_log_add(FAULT_TYPE_VOLTAGE_RANGE, FAULT_SEVERITY_ERROR,
+                      "Bus voltage out of range", s_soc);
     }
 
     /* Check for power issues */
@@ -379,6 +391,11 @@ static void monitor_system_health(void)
 /**
  * @brief Send telemetry to Jetson
  */
+/** Latest Jetson STATUS temperature (junction, as the Jetson reports it) */
+static int32_t s_jetson_temp_c = 0;
+static uint64_t s_jetson_status_ms = 0U;
+static bool s_jetson_status_seen = false;
+
 /** Beacon text most recently received from the Jetson (empty: use a template) */
 static char s_ai_text[JETSON_TEXT_MAX + 1U];
 static uint16_t s_beacon_seq = 0U;
@@ -499,11 +516,63 @@ static void poll_jetson(void)
             (void)snprintf(s_ai_text, sizeof(s_ai_text), "%s", msg.text);
             printf("[UART] Beacon text from Jetson (%zu chars)\n", msg.text_len);
         } else if (msg.type == JETSON_MSG_STATUS) {
+            s_jetson_temp_c = msg.temp_c;
+            s_jetson_status_ms = smart_qso_now_ms();
+            s_jetson_status_seen = true;
             printf("[UART] Jetson status: health=%u temp=%dC power=%umW\n",
                    (unsigned)msg.health, (int)msg.temp_c, (unsigned)msg.power_mw);
         } else {
             /* Stale beacon answers, ACK and NACK need no action */
         }
+    }
+}
+
+/** A sensor value read successfully within max_age_ms */
+static bool fresh_sensor(const char *id, uint64_t now, uint32_t max_age_ms, double *value)
+{
+    Sensor_t sensor;
+    if ((sensors_get_by_id(id, &sensor) != SMART_QSO_OK) || (sensor.last_read_ms == 0U) ||
+        (now < sensor.last_read_ms) || ((now - sensor.last_read_ms) > max_age_ms)) {
+        return false;
+    }
+    *value = sensor.last_value;
+    return true;
+}
+
+/**
+ * @brief OBC-enforced payload limits (SW-16)
+ *
+ * Input power is the bus voltage times the Jetson rail current; the spreader
+ * temperature is the OBC's own thermistor. The Jetson-reported junction
+ * temperature is a second, not the only, input.
+ */
+static void guard_payload(uint64_t now)
+{
+    PayloadSample_t sample;
+    double bus_v = 0.0;
+    double amps = 0.0;
+
+    (void)memset(&sample, 0, sizeof(sample));
+    if (fresh_sensor("BUSV", now, PG_TELEMETRY_TIMEOUT_MS, &bus_v) &&
+        fresh_sensor("JPC", now, PG_TELEMETRY_TIMEOUT_MS, &amps)) {
+        sample.power_valid = true;
+        sample.input_w = bus_v * amps;
+    }
+    sample.spreader_valid = fresh_sensor("PT", now, PG_TELEMETRY_TIMEOUT_MS, &sample.spreader_c);
+    if (s_jetson_status_seen && (now >= s_jetson_status_ms) &&
+        ((now - s_jetson_status_ms) <= PG_TELEMETRY_TIMEOUT_MS)) {
+        sample.junction_valid = true;
+        sample.junction_c = (double)s_jetson_temp_c;
+    }
+
+    PayloadGuardResult_t result = payload_guard_step(&sample, eps_is_payload_enabled(), now);
+    if (result != PG_OK) {
+        FaultType_t type = ((result == PG_TRIP_OVERPOWER) || (result == PG_TRIP_LATCHUP)) ?
+                           FAULT_TYPE_CURRENT_HIGH :
+                           (((result == PG_TRIP_SPREADER_TEMP) || (result == PG_TRIP_JUNCTION_TEMP)) ?
+                            FAULT_TYPE_TEMP_HIGH : FAULT_TYPE_POWER);
+        fault_log_add(type, FAULT_SEVERITY_ERROR, payload_guard_reason(result), s_soc);
+        (void)eps_control_payload(false, s_soc);
     }
 }
 
@@ -600,8 +669,9 @@ static SmartQsoResult_t run_main_loop(void)
         /* Sensor polling */
         (void)sensors_poll(now);
 
-        /* Jetson replies (beacon text, status) */
+        /* Jetson replies (beacon text, status), then the OBC's payload limits */
         poll_jetson();
+        guard_payload(now);
         (void)wdt_mgr_checkin(WDT_TASK_PAYLOAD);
 
         /* Beacon (stays silent while TX-OFF, contact or RF-silence inhibits) */

@@ -430,6 +430,18 @@ static void test_eps_soc_boundary_payload(void **state) {
 /* Test Suite                                                                 */
 /*===========================================================================*/
 
+/** Bus regulation check on the measured value (SW-16) */
+static void test_eps_bus_voltage_ok(void **state)
+{
+    (void)state;
+    assert_false(eps_bus_voltage_ok(EPS_BUS_MIN_V - 0.01));
+    assert_true(eps_bus_voltage_ok(EPS_BUS_MIN_V));
+    assert_true(eps_bus_voltage_ok(5.0));
+    assert_true(eps_bus_voltage_ok(EPS_BUS_MAX_V));
+    assert_false(eps_bus_voltage_ok(EPS_BUS_MAX_V + 0.01));
+    assert_false(eps_bus_voltage_ok((double)NAN));
+}
+
 int main(void) {
     const struct CMUnitTest tests[] = {
         /* Initialization tests */
@@ -461,6 +473,7 @@ int main(void) {
         /* Boundary condition tests */
         cmocka_unit_test_setup_teardown(test_eps_soc_boundary_safe, setup, teardown),
         cmocka_unit_test_setup_teardown(test_eps_soc_boundary_payload, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_eps_bus_voltage_ok, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("EPS Control Tests", tests, NULL, NULL);

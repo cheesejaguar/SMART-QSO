@@ -8,6 +8,7 @@
  */
 
 #include "eps_control.h"
+#include "payload_guard.h"
 #include "fault_mgmt.h"
 #include <stdio.h>
 #include <string.h>
@@ -89,6 +90,13 @@ SmartQsoResult_t eps_control_payload(bool enable, double soc)
 
     if (s_eps_state.payload_enabled == enable) {
         return SMART_QSO_OK;
+    }
+
+    /* The OBC's own power and temperature limits come first (SW-16) */
+    if (enable && !payload_guard_may_enable(smart_qso_now_ms())) {
+        fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_WARNING,
+                      "Payload enable blocked: guard cool-down or hot spreader", soc);
+        return SMART_QSO_ERROR;
     }
 
     /* Check power constraints for enable */
@@ -281,4 +289,10 @@ SmartQsoResult_t eps_load_config(void)
 
     s_eps_state = loaded_state;
     return SMART_QSO_OK;
+}
+
+bool eps_bus_voltage_ok(double volts)
+{
+    /* Written so that NaN fails both comparisons and is rejected */
+    return (volts >= EPS_BUS_MIN_V) && (volts <= EPS_BUS_MAX_V);
 }

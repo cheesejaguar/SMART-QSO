@@ -127,6 +127,7 @@ set(FLIGHT_SOURCES
     src/separation_switch.c
     src/jetson_link.c
     src/gnss.c
+    src/payload_guard.c
     src/telemetry.c
     src/assert_handler.c
     src/watchdog_mgr.c
@@ -148,6 +149,7 @@ set(FLIGHT_HEADERS
     include/beacon.h
     include/beacon_filter.h
     include/gnss.h
+    include/payload_guard.h
     include/adcs_control.h
     include/input_validation.h
     include/safe_string.h

@@ -34,6 +34,12 @@ sensors:
     channel: jetson
     units: A
     period_ms: 1000
+  - id: PT
+    name: Payload Heat Spreader Temperature
+    type: payload_temperature
+    channel: payload
+    units: C
+    period_ms: 1000
   - id: SPV
     name: Solar Panel Voltage
     type: eps_voltage

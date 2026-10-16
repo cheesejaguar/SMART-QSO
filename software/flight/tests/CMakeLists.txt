@@ -80,6 +80,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_eps_control.c")
     add_executable(test_eps_control
         test_eps_control.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
@@ -101,6 +102,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_fault_mgmt.c")
         test_fault_mgmt.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
@@ -121,6 +123,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_sensors.c")
         test_sensors.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
@@ -162,6 +165,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_uart_comm.c")
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
@@ -198,6 +202,7 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/separation_switch.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/jetson_link.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/gnss.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
@@ -247,6 +252,7 @@ set(MODULE_TESTS
     "test_beacon_filter\;rf"
     "test_beacon_telemetry\;rf"
     "test_gnss\;gnss"
+    "test_payload_guard\;payload"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)
