@@ -275,7 +275,8 @@ These cannot be done from the repository:
 10. Recruit independent reviewers.
 11. Execute funding agreements that meet the Part 97 conditions (and, for a paid contract, the Part 5 terms in the
     licensing pathway §7.1).
-12. Turn on branch protection so the CI gates are required before merge (a repository setting).
+12. ~~Turn on branch protection so the CI gates are required before merge.~~ Done 2026-10-16: a repository ruleset on
+    `main` requires the CI checks (SW-17).
 
 ---
 
