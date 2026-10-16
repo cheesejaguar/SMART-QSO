@@ -28,7 +28,7 @@ rm -rf build
 ### System Components
 1. **Bus**: 1U CubeSat with deployable solar wings, UHF/VHF transponder, magnetorquer ADCS
 2. **Compute**: 
-   - Primary: Ultra-low-power OBC (STM32L4R5ZI) running FreeRTOS (flight software is currently a host simulation; no target port yet)
+   - Primary: Ultra-low-power OBC (STM32L4R5ZI). Flight software runs as a host simulation; a compile-only STM32L4 port (register-level HAL, cross-compiled in CI) exists, with no RTOS, startup code or linker script yet
    - AI Payload: Jetson Orin Nano Super - declocked and power-gated for burst inference
 3. **AI Agents** (power-aware):
    - Intelligent Power Management Agent (MCU, ~0.2W)

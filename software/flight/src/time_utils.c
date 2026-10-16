@@ -9,6 +9,7 @@
 #define _XOPEN_SOURCE 600
 
 #include "smart_qso.h"
+#include "hal/hal_timer.h"
 
 #include <time.h>
 
@@ -40,8 +41,8 @@ uint64_t smart_qso_now_ms(void)
     }
     return ((uint64_t)ts.tv_sec * 1000ULL) + (uint64_t)(ts.tv_nsec / 1000000L) + s_sim_offset_ms;
 #else
-    /* Flight hardware implementation placeholder */
-    /* TODO: Implement HAL-based time retrieval */
-    return 0;
+    /* Milliseconds since boot from the HAL time base (SysTick on the
+     * STM32L4): monotonic, not wall-clock time */
+    return hal_timer_get_ms();
 #endif
 }

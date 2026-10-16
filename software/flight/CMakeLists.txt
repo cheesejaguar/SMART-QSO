@@ -32,6 +32,13 @@ option(ENABLE_COVERAGE "Enable code coverage" OFF)
 option(ENABLE_SANITIZERS "Enable address/UB sanitizers" OFF)
 option(ENABLE_WERROR "Treat warnings as errors" ON)
 
+# HAL target: SIM (host simulation, the default) or STM32L4 (cross-compile
+# with cmake/arm-none-eabi-stm32l4.cmake; a flight build of the library only)
+set(SMART_QSO_TARGET "SIM" CACHE STRING "HAL target: SIM or STM32L4")
+if(SMART_QSO_TARGET STREQUAL "STM32L4")
+    set(FLIGHT_BUILD ON CACHE BOOL "Build for flight hardware" FORCE)
+endif()
+
 ###############################################################################
 # Compiler Flags (NASA/JPL Standard)
 ###############################################################################
@@ -172,6 +179,24 @@ set(FLIGHT_HEADERS
     include/hal/hal_flash.h
     include/hal/hal_wdt.h
 )
+
+###############################################################################
+# STM32L4 target (SW-01): compile-only port
+#
+# The flight modules and the register-level HAL (src/hal/hal_stm32l4.c) as a
+# static library. No RTOS, startup code or linker script yet, so no image is
+# linked, and nothing host-specific below applies.
+###############################################################################
+
+if(SMART_QSO_TARGET STREQUAL "STM32L4")
+    set(TARGET_SOURCES ${FLIGHT_SOURCES})
+    list(REMOVE_ITEM TARGET_SOURCES src/main.c src/hal/hal_sim.c)
+    list(APPEND TARGET_SOURCES src/hal/hal_stm32l4.c)
+    add_library(smart_qso_target STATIC ${TARGET_SOURCES})
+    target_compile_definitions(smart_qso_target PRIVATE HAL_TARGET_STM32L4)
+    message(STATUS "  Target:            STM32L4 (library only)")
+    return()
+endif()
 
 ###############################################################################
 # Main Executable

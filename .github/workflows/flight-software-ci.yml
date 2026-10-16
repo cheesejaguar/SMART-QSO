@@ -176,6 +176,43 @@ jobs:
           exit 1
         }
 
+  target-build:
+    name: STM32L4 Cross-Compile (library)
+    runs-on: ubuntu-24.04   # pinned
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install the Arm GNU toolchain
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi
+        arm-none-eabi-gcc --version
+
+    - name: Configure (cmake/arm-none-eabi-stm32l4.cmake)
+      working-directory: software/flight
+      run: |
+        cmake -B build-arm -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-stm32l4.cmake \
+              -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON
+
+    - name: Build the flight library for Cortex-M4
+      working-directory: software/flight
+      run: cmake --build build-arm --parallel
+
+    - name: Check the library
+      working-directory: software/flight
+      run: |
+        arm-none-eabi-size --totals build-arm/libsmart_qso_target.a | tail -1
+        # Thumb-2 code for the target, with the register-level HAL and the flight modules
+        arm-none-eabi-objdump -f build-arm/libsmart_qso_target.a | grep -m1 'architecture: arm'
+        for sym in hal_gpio_init hal_wdt_kick hal_reset_cause beacon_filter_check jetson_link_parse sm_process_event; do
+          arm-none-eabi-nm --defined-only build-arm/libsmart_qso_target.a | grep -q " T ${sym}$" || {
+            echo "::error::${sym} missing from the target library"
+            exit 1
+          }
+        done
+
   documentation:
     name: Documentation Check
     runs-on: ubuntu-24.04   # pinned
