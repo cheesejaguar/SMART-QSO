@@ -8,6 +8,8 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 *.cmake
+# Hand-written CMake toolchain files are source
+!software/flight/cmake/*.cmake
 
 # Compiled object and binary files
 *.o

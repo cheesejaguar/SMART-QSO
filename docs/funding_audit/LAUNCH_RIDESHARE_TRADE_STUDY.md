@@ -2,9 +2,10 @@
 ## SMART-QSO 1U CubeSat — launch window 2027–2028
 
 **Document Number:** SQSO-AUD-004
-**Revision:** A
-**Date:** 2026-10-14
-**Status:** Recommendation for PI/funder decision. Prices are ROM unless a primary source is cited.
+**Revision:** B
+**Date:** 2026-10-15
+**Status:** Decision D7 taken 2026-10-15: rank 1 as primary, rank 2 as backup (`docs/BASELINE_PARAMETERS.md` §9). Updated from
+[D7 research](research/D7_LAUNCH_INTEGRATORS.md). Prices are ROM unless a primary source is cited.
 
 Evidence grades: **[P]** primary source read directly · **[S]** secondary (trade press) · **[A]** our own analysis ·
 **[U]** unverified/ROM. Do not quote [U] items to a funder as commitments.
@@ -18,7 +19,8 @@ Evidence grades: **[P]** primary source read directly · **[S]** secondary (trad
 | **1 (baseline)** | **SpaceX Transporter SSO rideshare through a 1U-capable integrator**, contracted for a deployment altitude **≤ 500 km** (hard limit 525 km) | Only route with posted 2027 flights. Viable if: (a) booked by about Q2 2027 because of reported post-2028 booking limits, (b) the deployment altitude is held ≤ 500 km so FCC 5-year disposal holds even if the solar wings fail to deploy (§3), (c) the GNSS-ephemeris duty is met, (d) export/ITAR integration-service controls are handled. |
 | 2 (backup) | ISS deployment via Voyager (Nanoracks) NRCSD | Simplest debris case and a U.S. integrator, but a 0.3–1.1 year orbital life puts mission success Level 2 (1 year) at risk. It also carries the heaviest battery-safety burden (JSC 20793 Rev D), and ISS retirement is planned for 2030. |
 | 3 (contingency only) | NASA CubeSat Launch Initiative (CSLI/ELaNa) | **Not available for a new 2027–28 launch**: NASA states the next solicitation is anticipated in **2028** [P]. Selection-to-launch has been 2–5 years [P], so launch would be about 2030 or later. Eligibility also needs a U.S. educational institution or nonprofit (e.g., a university or AMSAT partner). |
-| Not recommended | Electron, Firefly Alpha, Isar Spectrum, PSLV, Vega-C SSMS, RFA, Gilmour; any Chinese provider | No 1U-capable rideshare evidenced for 2027–28, unproven or grounded vehicles, or a foreign launch site (export license + ITAR TAA). Chinese launchers are barred: 22 CFR 126.1(d)(1) policy of denial [P]. |
+| Contingency (altitude control) | Rocket Lab Electron rideshare from New Zealand with a third-party 1U dispenser | The only route where a ≤ 500 km SSO is a design point rather than a menu choice. Price unpublished; New Zealand launch needs a spacecraft export licence (6+ months). One RFQ line. |
+| Not recommended | Firefly Alpha, Isar Spectrum, PSLV, Vega-C SSMS, RFA, Gilmour; any Chinese provider | No 1U-capable rideshare evidenced for 2027–28, unproven or grounded vehicles, or a foreign launch site (export license + ITAR TAA). Chinese launchers are barred: 22 CFR 126.1(d)(1) policy of denial [P]. |
 
 **The single most important funding fact in this study:** launch capacity for small CubeSats is tightening. SpaceX's
 posted price is $7,000/kg (2026) rising to **$7,500/kg (2027)** with a 50 kg minimum [P]. Trade press reports that
@@ -66,11 +68,12 @@ reliability. That device is itself a deployable (3 inhibits, 30-min rule, SpaceX
 | Factor | Assessment |
 |--------|-----------|
 | Availability | SpaceX posted SSO rideshare flights NET 2027-06-01 and 2027-10-01 (500–600 km) [P]. 2026 flew Transporter-16 (Mar 30), -17 (Jul 7) and -18 (Oct 1) [P/S]. Post-2028 booking limits reported [S]. |
-| Cost | SpaceX base $7,500/kg (2027 price year), 50 kg minimum = $375k [P], so a 1U is bought through an integrator. **No integrator publishes a per-U price** [U]. Budget ROM: **$90k–$150k per 1U including integration** [U]. A single historical anchor (Nanoracks ~$85k/unit, undated) [U] supports the lower end; obtain at least two written quotes before committing funds. |
-| 1U-capable integrators | Exolaunch EXOpod Nova (Germany), ISISPACE QuadPack/DuoPack (Netherlands), Voyager NRCSD (U.S., ISS only) per NASA SOA 2026 Table 10-2 [P]. Maverick (U.S.) and Rocket Lab dispensers list 3U+ only [P]. SEOPS (U.S.) 1U support unverified [U]. |
+| Cost | SpaceX base $7,500/kg (2027 price year), 50 kg minimum = $375k [P], so a 1U is bought through an integrator; at 1.6 kg the mass itself is worth only ≈ $12k, so the slot price is mostly integration and margin [A]. **None of the seven integrators checked publishes a 1U price** (D7 research) [P]. Budget ROM: **$85k–$150k per 1U including integration** [U]; anchors $86k (2026 community post) and ≈ $85–90k (legacy Nanoracks) [U]. **All-in $115k–$250k** with program-side tests, export counsel, logistics and an ephemeris service; central case ≈ $150–170k. Obtain at least two written quotes before committing funds. |
+| 1U-capable integrators | Exolaunch EXOpod Nova (Germany; SpaceX contracts through 2028; dedicated Exo-1 NET late 2027 and Exo-2 2028; EQT acquisition signed 2026-06-18, closing unverified), ISISPACE QuadPack/DuoPack (Netherlands; ISILaunch folded into isispace.nl), Voyager NRCSD (U.S., ISS only) per NASA SOA 2026 Table 10-2 [P]. Maverick (U.S.) and Rocket Lab dispensers list 3U+ only [P]. SEOPS (U.S.; Waymaker-1 dedicated Falcon 9 bookable from 2028) 1U support unverified [U]. D-Orbit ION placed customers at ≈ 510 km and ≈ 590 km; 1U acceptance unverified [P/S]. |
+| Altitude | SpaceX's posted 2027 flights offer 500–600 km. The orbit is chosen at L-5 months from a list SpaceX sets for that flight (UG v11 App. G) [P], so an integrator cannot promise ≤ 500 km on its own. **Contract language:** 500 km target, 525 km hard cap, and no-penalty rebooking to the next Transporter, Exo or Waymaker flight if the assigned flight offers nothing at or below the cap; ask for the drop-off altitudes of the last 4–6 Transporters. |
 | Export | Foreign integrator, so integration support is an ITAR defense service; SpaceX UG §9.2 requires a TAA or Export Compliance Agreement where foreign persons are involved [P]. Budget 3–6 months and counsel fees. |
 | Environments | SpaceX User's Guide v11 (Jul/Aug 2026): random vibration required at no less than the 5.57 Grms MPE; **power-inhibit function verified during random vibe**; first mode > 40 Hz [P]. Integrator levels may be higher [U]. |
-| Space safety | UG v11 §9.5.7: forward-predicted **GNSS-based ephemerides with covariance** to Space-Track and SpaceX within 24 h of first contact. Spacecraft without GPS must arrange a third party before integration [P]. **SMART-QSO has no GNSS receiver in its baseline, so this is an open design/ops item.** Register with 18 SDS by L-2 months [P]. |
+| Space safety | UG v11 §9.5.7.2: forward-predicted **GNSS-based ephemerides with covariance** to Space-Track and SpaceX within 24 h of first contact, then at least every 24 h until cataloged. Spacecraft without GPS must arrange a third party before integration [P]. **Decision D6: add a GNSS receiver** (piNAV-NG/FM, Celeste alternate; BASELINE §6), with third-party ephemeris as contingency. Register with 18 SDS by L-2 months [P]. |
 | Deliverables | SpaceX Table G-3 via the integrator: export questionnaire/TAA, configuration webform, STEP CAD, mass properties, environmental test report, hazardous-systems declaration and SSCMAN 91-710 letter (L-6), FAA payload-review template and cross-waivers (L-5), battery-charge certificates, licensing letter with copies of all licenses (L-2) [P]. See [deliverables checklist](../regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md). |
 | Mission fit | SSO gives global coverage, and at 475–500 km meets Level 3 (≥ 2 years) and FCC disposal (nominal, including the wings-failed case). |
 
@@ -78,9 +81,9 @@ reliability. That device is itself a deployable (3 inhibits, 30-min rule, SpaceX
 
 | Factor | Assessment |
 |--------|-----------|
-| Availability | NRCSD IDD Rev A (2024-01-19) current [P]. ISS deployments continue; Cygnus above-ISS deployment is "on hold" [P]. NASA plans ISS retirement in 2030 (extension bills pending, not enacted) [S/U]. |
+| Availability | NRCSD IDD Rev A (2024-01-19) current [P]; the D7 research (2026-10-15) could locate only the 2018 initial release, so obtain the current IDD from Voyager. ISS deployments continue; Cygnus above-ISS deployment is "on hold" [P]. NASA plans ISS retirement in 2030 (extension bills pending, not enacted) [S/U]. |
 | Orbit / life | 51.6°, 400–420 km [P], so 0.3–1.1 years nominal for SMART-QSO [A]. **Level 2 (1 year) at risk; Level 3 (2 years) not achievable.** |
-| Cost | Historical ~$85k per unit, undated [U]. Quote required. |
+| Cost | Historical ~$85k per unit, undated [U]. All-in ROM $120k–$250k: slot plus JSC 20793 battery acceptance and cell screening, ground-leg inhibit design and safety data package [U]. Quote required. **Trigger:** if no integrator commits in writing to ≤ 525 km by 2027-06-30, or the primary exceeds $250k all-in, request the NRCSD quote and decide by 2027-09. |
 | Safety burden | IDD: **≥ 3 independent inhibit switches including a ground-leg inhibit**, RBF/ABF, ≤ 6 in of ≥ 26 AWG wire from battery to first inhibit; batteries per **JSC 20793 Rev D**; Li-ion screening per NR-SRD-139; packs > 80 Wh need extra assessment [P]. Phase 0/I/II/III safety reviews from L-10 to L-3.5 months [P]. Mass limit 2.40 kg for 1U [P]. |
 | Export | U.S. integrator and NASA handover, so the lowest export burden. |
 
@@ -123,9 +126,9 @@ Scores run 1 (poor) to 5 (good).
 
 | # | Action | By |
 |---|--------|----|
-| 1 | Request written quotes and 1U availability from Exolaunch and ISISPACE, plus SEOPS and Voyager. Ask for deployment altitude ≤ 500 km (hard limit 525 km), the integrator's vibe levels, export path, and GNSS-ephemeris support | 2026-12-31 |
+| 1 | Request written quotes and 1U availability: Exolaunch (lead), ISISPACE (price check), SEOPS (US-owned; confirm 1U and LaunchLock terms), Voyager, and one question each to D-Orbit and Maverick. Ask for the 1U price and payment schedule, deployer and 1U envelope (113.5 mm, stowed wings), flight and its drop-off altitude list, the altitude clause above, vibe levels and unit-level testing, late access, ITAR path, ephemeris-service partner, and demanifest/rebook terms. Deal only with providers on NASA's dispenser list or SpaceX manifests | 2026-12-31 |
 | 2 | Retain export counsel; decide whether a TAA is needed for the chosen integrator | 2027-01-31 |
-| 3 | Decide on GNSS (add a receiver vs. contract third-party ephemeris) to meet SpaceX UG §9.5.7 | 2027-01-31 |
+| 3 | GNSS decided (D6: add a receiver). Quote piNAV-NG and Celeste EM units; confirm in writing with SpaceX and the integrator that a duty-cycled receiver plus ground orbit determination meets §9.5.7.2 | 2027-01-31 |
 | 4 | Sign a launch reservation for a 2028 Transporter slot. This is the **launch-vehicle determination** that starts the 30-day FCC pre-space clock | ≤ 2027-06-30 |
 | 5 | Keep the ISS NRCSD backup open: request the Voyager NRCSD schedule and JSC 20793 battery test plan cost | 2027-03-31 |
 | 6 | Track the 2028 CSLI solicitation; identify an eligible lead organization if CSLI becomes the path | 2028 |
@@ -147,3 +150,4 @@ SatNews 2026-07-20, AIAA 2026-07-21, SpaceQ 2026-08-06 (booking limits); Via Sat
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial trade (funding audit) |
+| B | 2026-10-15 | Decision D7 recorded; integrator, altitude-clause, cost and backup-trigger updates from the D7 research; Electron as altitude-control contingency; GNSS decided (D6) |

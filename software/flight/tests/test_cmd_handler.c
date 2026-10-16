@@ -28,6 +28,8 @@
 #include "sha256.h"
 #include "auth_test_helpers.h"
 #include "hal/hal_gpio.h"
+#include "eps_control.h"
+#include "payload_guard.h"
 #include "hal/hal_flash.h"
 #include "hal/hal_sim.h"
 
@@ -116,6 +118,8 @@ static int setup(void **state)
     assert_int_equal(hal_flash_erase(FLASH_REGION_AUTH), SMART_QSO_OK);
     assert_int_equal(hal_flash_erase(FLASH_REGION_RF_CONTROL), SMART_QSO_OK);
     assert_int_equal(hal_flash_erase(FLASH_REGION_CONTACT), SMART_QSO_OK);
+    payload_guard_init();
+    eps_update_soc(0.9);   /* healthy battery unless a test says otherwise */
     assert_int_equal(sys_state_init(), SMART_QSO_OK);
     assert_int_equal(sm_force_state(sys_get_sm_context(), STATE_IDLE), SMART_QSO_OK);
     assert_int_equal(rf_control_init(), SMART_QSO_OK);
@@ -466,12 +470,47 @@ static void test_set_mode_obeys_transition_table(void **state)
     assert_int_equal(send_set_mode(4U, 1U), CMD_RESULT_SUCCESS);
     assert_int_equal(current_state(), STATE_IDLE);
 
-    assert_int_equal(send_set_mode(5U, 2U), CMD_RESULT_SUCCESS);
+    /* ACTIVE powers the payload: refused while the battery is below the
+     * payload threshold (state-machine guard, SW-14) */
+    eps_update_soc(EPS_SOC_PAYLOAD_THRESHOLD - 0.05);
+    assert_int_equal(send_set_mode(5U, 2U), CMD_RESULT_NOT_ALLOWED);
+    assert_int_equal(current_state(), STATE_IDLE);
+    eps_update_soc(0.9);
+
+    assert_int_equal(send_set_mode(6U, 2U), CMD_RESULT_SUCCESS);
     assert_int_equal(current_state(), STATE_ACTIVE);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_ACTIVE);
 
     /* Unknown mode value */
-    assert_int_equal(send_set_mode(6U, 7U), CMD_RESULT_INVALID_PARAM);
+    assert_int_equal(send_set_mode(7U, 7U), CMD_RESULT_INVALID_PARAM);
     assert_int_equal(current_state(), STATE_ACTIVE);
+}
+
+/** EPS_SET_MODE takes the same path as SET_MODE, and GET_STATUS reports the
+ *  EPS power mode: one source of truth (SW-14) */
+static void test_eps_set_mode_uses_state_machine(void **state)
+{
+    (void)state;
+    uint8_t payload[CMD_AUTH_OVERHEAD + 1U];
+    uint8_t mode = 0U;
+
+    assert_int_equal(send(CMD_EPS_SET_MODE, payload,
+                          auth_payload(CMD_EPS_SET_MODE, 1U, &mode, 1U, payload)),
+                     CMD_RESULT_SUCCESS);
+    assert_int_equal(current_state(), STATE_SAFE);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_SAFE);
+
+    mode = 2U;   /* SAFE -> ACTIVE is not a transition */
+    assert_int_equal(send(CMD_EPS_SET_MODE, payload,
+                          auth_payload(CMD_EPS_SET_MODE, 2U, &mode, 1U, payload)),
+                     CMD_RESULT_NOT_ALLOWED);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_SAFE);
+
+    assert_int_equal(send(CMD_SYS_GET_STATUS, payload,
+                          auth_payload(CMD_SYS_GET_STATUS, 3U, NULL, 0U, payload)),
+                     CMD_RESULT_SUCCESS);
+    assert_int_equal(s_response.data[1], (uint8_t)eps_get_power_mode());
+    assert_int_equal(sys_get_power_mode(), eps_get_power_mode());
 }
 
 /** KEY_ROTATE: recovery key only, spare target only, any state; afterwards
@@ -652,6 +691,8 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_forged_flood_logs_once, setup, teardown),
         cmocka_unit_test_setup_teardown(test_every_dictionary_command, setup, teardown),
         cmocka_unit_test_setup_teardown(test_set_mode_obeys_transition_table, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_key_rotate_end_to_end, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_eps_set_mode_uses_state_machine, setup, teardown),
         cmocka_unit_test_setup_teardown(test_key_rotate_end_to_end, setup, teardown),
         cmocka_unit_test_setup_teardown(test_set_power, setup, teardown),
         cmocka_unit_test_setup_teardown(test_authentic_command_restores_contact, setup, teardown),

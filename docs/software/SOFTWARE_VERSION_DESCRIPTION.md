@@ -78,8 +78,8 @@ This Software Version Description (SVD) identifies and describes a specific vers
 |------|---------|---------|
 | GCC | 12.x | C compiler |
 | CMake | 3.20+ | Build system |
-| clang-tidy | 17.x | Static analysis |
-| cppcheck | 2.x | Static analysis |
+| clang-tidy | 18.x (CI: 18.1.3) | Static analysis |
+| cppcheck | 2.13 (CI: 2.13.0) | Static analysis and MISRA addon |
 
 ### 4.2 Compiler Flags
 
@@ -130,8 +130,11 @@ This Software Version Description (SVD) identifies and describes a specific vers
 
 | Tool | Findings | Resolved | Open |
 |------|----------|----------|------|
-| clang-tidy | TBD | TBD | 0 |
-| cppcheck | TBD | TBD | 0 |
+| clang-tidy | 741 | - | 741 |
+| cppcheck | 0 (with the CI suppression list) | - | 0 |
+| cppcheck MISRA addon | 1,458 | - | 1,458 |
+
+The open counts are CI's no-regression baselines (`software/flight/quality/`); CI allows no increase.
 
 ### 6.3 Code Coverage
 

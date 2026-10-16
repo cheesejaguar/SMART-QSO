@@ -6,8 +6,8 @@
  */
 
 #include "beacon.h"
+#include "beacon_filter.h"
 #include "eps_control.h"
-#include "mission_data.h"
 #include "fault_mgmt.h"
 #include "rf_control.h"
 #include "ax25.h"
@@ -29,19 +29,24 @@ static size_t s_template_index = 0;
 /** Module initialized flag */
 static bool s_initialized = false;
 
+/** Latest measurements and when they were taken (SW-13) */
+static BeaconMeasurements_t s_meas;
+static uint64_t s_meas_ms = 0U;
+static bool s_meas_set = false;
+
 /*===========================================================================*/
 /* Beacon Template Messages                                                   */
 /*===========================================================================*/
 
 const char *beacon_templates[] = {
     "SMART-QSO beacon - autonomous AI transponder demo",
-    "Hello from space! CubeSat systems nominal",
+    "Hello from space! SMART-QSO CubeSat",
     "Amateur radio in orbit - powered by AI",
     "SMART-QSO 1U - technology demonstration mission",
-    "Greetings from LEO! All systems go",
-    "CubeSat beacon - AI payload standby",
+    "Greetings from LEO! 73 to all",
+    "SMART-QSO CubeSat beacon - reports welcome",
     "SMART-QSO mission - thanks for listening!",
-    "Amateur satellite beacon - 73 de SQSO-1"
+    "Amateur satellite beacon - 73 de KK6GDB-11"
 };
 
 const size_t beacon_template_count = sizeof(beacon_templates) / sizeof(beacon_templates[0]);
@@ -61,6 +66,9 @@ SmartQsoResult_t beacon_init(void)
     s_beacon_state.interval_ms = BEACON_INTERVAL_ACTIVE_MS;
     s_beacon_state.ai_available = false;
     s_template_index = 0;
+    memset(&s_meas, 0, sizeof(s_meas));
+    s_meas_ms = 0U;
+    s_meas_set = false;
 
     s_initialized = true;
 
@@ -69,7 +77,9 @@ SmartQsoResult_t beacon_init(void)
 
 bool beacon_should_transmit(uint64_t now_ms)
 {
-    if (!s_initialized || !rf_control_tx_permitted()) {
+    /* No beacon while a transmit inhibit is active or the EPS has shed the
+     * beacon (state EMERGENCY) */
+    if (!s_initialized || !rf_control_tx_permitted() || !eps_is_beacon_enabled()) {
         return false;
     }
 
@@ -97,6 +107,78 @@ void beacon_update_interval(PowerMode_t power_mode)
     }
 }
 
+/** Beacon text: the given AI text if it passes the content filter, the
+ *  stored AI text if available, else the next template */
+static void select_text(BeaconContent_t *content, const char *ai_text, size_t ai_text_len)
+{
+    bool ai_ok = (ai_text != NULL) && (ai_text_len > 0U) &&
+                 beacon_validate_text(ai_text, ai_text_len);
+    if ((ai_text != NULL) && (ai_text_len > 0U) && !ai_ok) {
+        s_beacon_state.ai_rejected_count++;
+    }
+
+    if (ai_ok) {
+        size_t copy_len = ai_text_len;
+        if (copy_len >= BEACON_MAX_TEXT_LEN) {
+            copy_len = BEACON_MAX_TEXT_LEN - 1;
+        }
+        memcpy(content->text, ai_text, copy_len);
+        content->text[copy_len] = '\0';
+        content->text_len = copy_len;
+        content->source = BEACON_SOURCE_AI;
+    } else if (s_beacon_state.ai_available && (s_beacon_state.last_ai_text[0] != '\0')) {
+        size_t len = strlen(s_beacon_state.last_ai_text);
+        memcpy(content->text, s_beacon_state.last_ai_text, len + 1);
+        content->text_len = len;
+        content->source = BEACON_SOURCE_AI;
+    } else {
+        const char *tmpl = beacon_get_template();
+        size_t len = strlen(tmpl);
+        memcpy(content->text, tmpl, len + 1);
+        content->text_len = len;
+        content->source = BEACON_SOURCE_TEMPLATE;
+    }
+}
+
+/** Telemetry: measured values only, each with its validity flag (SW-13).
+ *  Fields not measured, or measured too long ago, are sent "-" */
+static void fill_telemetry(BeaconTelemetry_t *t)
+{
+    uint64_t now = smart_qso_now_ms();
+    t->timestamp = (uint32_t)(now / 1000U);
+    t->power_mode = (uint8_t)eps_get_power_mode();
+
+    if (s_meas_set && (now >= s_meas_ms) && ((now - s_meas_ms) <= BEACON_MEAS_MAX_AGE_MS)) {
+        uint8_t flags = s_meas.valid;
+        if ((flags & BEACON_TLM_SOC) != 0U) {
+            t->soc = s_meas.soc;
+        }
+        if ((flags & BEACON_TLM_BV) != 0U) {
+            t->battery_mv = s_meas.battery_mv;
+        }
+        if ((flags & BEACON_TLM_SUN) != 0U) {
+            t->sunlit = s_meas.sunlit;
+        }
+        if ((flags & BEACON_TLM_QSO) != 0U) {
+            t->qso_count = s_meas.qso_count;
+        }
+        t->valid = (uint8_t)(flags & (BEACON_TLM_SOC | BEACON_TLM_BV |
+                                      BEACON_TLM_SUN | BEACON_TLM_QSO));
+    }
+
+    /* Radio power switch state */
+    EpsControlState_t eps_state;
+    if (eps_get_state(&eps_state) == SMART_QSO_OK) {
+        t->rf_power = eps_state.radio_enabled ? 1U : 0U;
+        t->valid |= BEACON_TLM_RF;
+    }
+
+    FaultLogEntry_t last_fault;
+    if (fault_log_get_last(&last_fault) == SMART_QSO_OK) {
+        t->fault_flags = (uint8_t)(last_fault.severity >= FAULT_SEVERITY_ERROR ? 0x01 : 0x00);
+    }
+}
+
 SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
                                           const char *ai_text,
                                           size_t ai_text_len)
@@ -106,66 +188,11 @@ SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
     }
 
     memset(content, 0, sizeof(BeaconContent_t));
+    select_text(content, ai_text, ai_text_len);
+    fill_telemetry(&content->telemetry);
 
-    /* Determine text source */
-    if (ai_text != NULL && ai_text_len > 0 &&
-        beacon_validate_text(ai_text, ai_text_len)) {
-        /* Use AI-generated text */
-        size_t copy_len = ai_text_len;
-        if (copy_len >= BEACON_MAX_TEXT_LEN) {
-            copy_len = BEACON_MAX_TEXT_LEN - 1;
-        }
-        memcpy(content->text, ai_text, copy_len);
-        content->text[copy_len] = '\0';
-        content->text_len = copy_len;
-        content->source = BEACON_SOURCE_AI;
-    } else if (s_beacon_state.ai_available &&
-               s_beacon_state.last_ai_text[0] != '\0') {
-        /* Use stored AI text */
-        size_t len = strlen(s_beacon_state.last_ai_text);
-        memcpy(content->text, s_beacon_state.last_ai_text, len + 1);
-        content->text_len = len;
-        content->source = BEACON_SOURCE_AI;
-    } else {
-        /* Fallback to template */
-        const char *tmpl = beacon_get_template();
-        size_t len = strlen(tmpl);
-        memcpy(content->text, tmpl, len + 1);
-        content->text_len = len;
-        content->source = BEACON_SOURCE_TEMPLATE;
-    }
-
-    /* Populate telemetry */
-    content->telemetry.timestamp = (uint32_t)(smart_qso_now_ms() / 1000);
-    content->telemetry.power_mode = (uint8_t)eps_get_power_mode();
-
-    /* Get EPS state for telemetry */
-    EpsControlState_t eps_state;
-    if (eps_get_state(&eps_state) == SMART_QSO_OK) {
-        /* Note: EpsControlState_t doesn't have soc/sunlit - use power_mode */
-        content->telemetry.soc = 75;  /* Default - would come from actual EPS */
-        content->telemetry.battery_mv = 7400;  /* Default */
-        content->telemetry.sunlit = 1;  /* Default */
-        content->telemetry.rf_power = eps_state.radio_enabled ? 1 : 0;
-    }
-
-    /* Get mission data */
-    MissionData_t mission;
-    if (mission_data_get(&mission) == SMART_QSO_OK) {
-        content->telemetry.qso_count = (uint16_t)(mission.reset_count);
-        content->telemetry.orbit_number = (uint16_t)(mission.total_uptime_ms / 5400000UL);
-    }
-
-    /* Get fault status */
-    FaultLogEntry_t last_fault;
-    if (fault_log_get_last(&last_fault) == SMART_QSO_OK) {
-        content->telemetry.fault_flags = (uint8_t)(last_fault.severity >= FAULT_SEVERITY_ERROR ? 0x01 : 0x00);
-    }
-
-    /* Increment sequence */
     s_beacon_state.sequence++;
     content->sequence = s_beacon_state.sequence;
-
     return SMART_QSO_OK;
 }
 
@@ -178,6 +205,17 @@ SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
 #define BEACON_FIXED_MAX_LEN    (3U + (sizeof(BEACON_CALLSIGN) - 1U) + 2U + \
                                  5U + 10U + 3U + 6U + 5U + 3U + 4U + 4U + \
                                  5U + 3U + 4U + 3U + 5U + 5U)
+
+/** A telemetry value, or "-" when its flag is not set in valid */
+static void format_field(char *out, size_t out_len, uint8_t valid, uint8_t flag,
+                         uint32_t value)
+{
+    if ((valid & flag) != 0U) {
+        (void)snprintf(out, out_len, "%u", (unsigned int)value);
+    } else {
+        (void)snprintf(out, out_len, "-");
+    }
+}
 
 size_t beacon_format_payload(const BeaconContent_t *content,
                              char *buffer,
@@ -195,21 +233,32 @@ size_t beacon_format_payload(const BeaconContent_t *content,
         text_len = room;
     }
 
-    /* Battery volts to one decimal, rounded, in integer arithmetic */
-    uint32_t tenths = ((uint32_t)content->telemetry.battery_mv + 50U) / 100U;
+    const BeaconTelemetry_t *t = &content->telemetry;
+    char soc[16];
+    char bv[16];
+    char sun[16];
+    char rf[16];
+    char qso[16];
+    format_field(soc, sizeof(soc), t->valid, BEACON_TLM_SOC, t->soc);
+    format_field(sun, sizeof(sun), t->valid, BEACON_TLM_SUN, t->sunlit);
+    format_field(rf, sizeof(rf), t->valid, BEACON_TLM_RF, t->rf_power);
+    format_field(qso, sizeof(qso), t->valid, BEACON_TLM_QSO, t->qso_count);
+    if ((t->valid & BEACON_TLM_BV) != 0U) {
+        /* Battery volts to one decimal, rounded, in integer arithmetic */
+        uint32_t tenths = ((uint32_t)t->battery_mv + 50U) / 100U;
+        (void)snprintf(bv, sizeof(bv), "%u.%u",
+                       (unsigned int)(tenths / 10U), (unsigned int)(tenths % 10U));
+    } else {
+        (void)snprintf(bv, sizeof(bv), "-");
+    }
 
     int written = snprintf(buffer, buffer_len,
-        "de %s: %.*s | T=%u M=%s SOC=%u BV=%u.%u SUN=%u RF=%u QSO=%u",
+        "de %s: %.*s | T=%u M=%s SOC=%s BV=%s SUN=%s RF=%s QSO=%s",
         BEACON_CALLSIGN,
         (int)text_len, content->text,
-        (unsigned int)content->telemetry.timestamp,
-        content->telemetry.power_mode == 0 ? "SAFE" :
-            (content->telemetry.power_mode == 1 ? "IDLE" : "ACTIVE"),
-        (unsigned int)content->telemetry.soc,
-        (unsigned int)(tenths / 10U), (unsigned int)(tenths % 10U),
-        (unsigned int)content->telemetry.sunlit,
-        (unsigned int)content->telemetry.rf_power,
-        (unsigned int)content->telemetry.qso_count);
+        (unsigned int)t->timestamp,
+        t->power_mode == 0 ? "SAFE" : (t->power_mode == 1 ? "IDLE" : "ACTIVE"),
+        soc, bv, sun, rf, qso);
 
     if ((written < 0) || ((size_t)written >= buffer_len)) {
         return 0;
@@ -321,8 +370,9 @@ SmartQsoResult_t beacon_transmit(const BeaconContent_t *content)
         return SMART_QSO_ERROR_NULL_PTR;
     }
 
-    /* Never radiate while TX-OFF is latched (47 CFR 97.207(b)) */
-    if (!rf_control_tx_permitted()) {
+    /* Never radiate while TX-OFF is latched (47 CFR 97.207(b)), nor while
+     * the EPS has the beacon powered off */
+    if (!rf_control_tx_permitted() || !eps_is_beacon_enabled()) {
         return SMART_QSO_ERROR;
     }
 
@@ -364,7 +414,7 @@ void beacon_mark_transmitted(uint64_t now_ms)
         return;
     }
 
-    s_beacon_state.last_beacon_ms = (uint32_t)now_ms;
+    s_beacon_state.last_beacon_ms = now_ms;
 }
 
 SmartQsoResult_t beacon_get_state(BeaconState_t *state)
@@ -401,6 +451,7 @@ SmartQsoResult_t beacon_store_ai_text(const char *text, size_t len)
     }
 
     if (!beacon_validate_text(text, len)) {
+        s_beacon_state.ai_rejected_count++;
         return SMART_QSO_ERROR;
     }
 
@@ -432,28 +483,25 @@ uint16_t beacon_crc16(const uint8_t *data, size_t len)
     return ax25_fcs(data, len);
 }
 
+SmartQsoResult_t beacon_update_measurements(const BeaconMeasurements_t *m, uint64_t sample_ms)
+{
+    if (m == NULL) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
+    if ((((m->valid & BEACON_TLM_SOC) != 0U) && (m->soc > 100U)) ||
+        (((m->valid & BEACON_TLM_SUN) != 0U) && (m->sunlit > 1U))) {
+        return SMART_QSO_ERROR_INVALID;
+    }
+
+    s_meas = *m;
+    s_meas_ms = sample_ms;
+    s_meas_set = true;
+    return SMART_QSO_OK;
+}
+
 bool beacon_validate_text(const char *text, size_t len)
 {
-    if (text == NULL) {
-        return false;
-    }
-
-    if (len == 0 || len > BEACON_MAX_TEXT_LEN) {
-        return false;
-    }
-
-    /* Check for ASCII only */
-    for (size_t i = 0; i < len; i++) {
-        unsigned char c = (unsigned char)text[i];
-        /* Allow printable ASCII and common whitespace */
-        if (c < 0x20 || c > 0x7E) {
-            if (c != '\t' && c != '\n' && c != '\r') {
-                return false;
-            }
-        }
-    }
-
-    return true;
+    return beacon_filter_check(text, len) == BEACON_FILTER_OK;
 }
 
 uint32_t beacon_get_total_count(void)

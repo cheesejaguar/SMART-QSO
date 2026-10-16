@@ -32,6 +32,13 @@ option(ENABLE_COVERAGE "Enable code coverage" OFF)
 option(ENABLE_SANITIZERS "Enable address/UB sanitizers" OFF)
 option(ENABLE_WERROR "Treat warnings as errors" ON)
 
+# HAL target: SIM (host simulation, the default) or STM32L4 (cross-compile
+# with cmake/arm-none-eabi-stm32l4.cmake; a flight build of the library only)
+set(SMART_QSO_TARGET "SIM" CACHE STRING "HAL target: SIM or STM32L4")
+if(SMART_QSO_TARGET STREQUAL "STM32L4")
+    set(FLIGHT_BUILD ON CACHE BOOL "Build for flight hardware" FORCE)
+endif()
+
 ###############################################################################
 # Compiler Flags (NASA/JPL Standard)
 ###############################################################################
@@ -86,7 +93,8 @@ endif()
 
 # Sanitizer flags
 if(ENABLE_SANITIZERS)
-    add_compile_options(-fsanitize=address,undefined -fno-omit-frame-pointer)
+    # Undefined behaviour aborts, so a test that triggers it fails
+    add_compile_options(-fsanitize=address,undefined -fno-sanitize-recover=undefined -fno-omit-frame-pointer)
     add_link_options(-fsanitize=address,undefined)
 endif()
 
@@ -110,6 +118,7 @@ set(FLIGHT_SOURCES
     src/crc32.c
     src/time_utils.c
     src/beacon.c
+    src/beacon_filter.c
     src/adcs_control.c
     src/input_validation.c
     src/safe_string.c
@@ -124,6 +133,9 @@ set(FLIGHT_SOURCES
     src/contact_monitor.c
     src/rf_silence.c
     src/separation_switch.c
+    src/jetson_link.c
+    src/gnss.c
+    src/payload_guard.c
     src/telemetry.c
     src/assert_handler.c
     src/watchdog_mgr.c
@@ -143,6 +155,9 @@ set(FLIGHT_HEADERS
     include/uart_comm.h
     include/mission_data.h
     include/beacon.h
+    include/beacon_filter.h
+    include/gnss.h
+    include/payload_guard.h
     include/adcs_control.h
     include/input_validation.h
     include/safe_string.h
@@ -164,6 +179,24 @@ set(FLIGHT_HEADERS
     include/hal/hal_flash.h
     include/hal/hal_wdt.h
 )
+
+###############################################################################
+# STM32L4 target (SW-01): compile-only port
+#
+# The flight modules and the register-level HAL (src/hal/hal_stm32l4.c) as a
+# static library. No RTOS, startup code or linker script yet, so no image is
+# linked, and nothing host-specific below applies.
+###############################################################################
+
+if(SMART_QSO_TARGET STREQUAL "STM32L4")
+    set(TARGET_SOURCES ${FLIGHT_SOURCES})
+    list(REMOVE_ITEM TARGET_SOURCES src/main.c src/hal/hal_sim.c)
+    list(APPEND TARGET_SOURCES src/hal/hal_stm32l4.c)
+    add_library(smart_qso_target STATIC ${TARGET_SOURCES})
+    target_compile_definitions(smart_qso_target PRIVATE HAL_TARGET_STM32L4)
+    message(STATUS "  Target:            STM32L4 (library only)")
+    return()
+endif()
 
 ###############################################################################
 # Main Executable

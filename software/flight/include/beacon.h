@@ -34,18 +34,30 @@ extern "C" {
 #define BEACON_MAX_PAYLOAD_LEN   256
 
 /** Callsign for beacon identification */
-#define BEACON_CALLSIGN          "SQSO-1"   /* text form of station_id.h */
+#define BEACON_CALLSIGN          "KK6GDB-11"   /* text form of station_id.h */
 
-/** Default beacon interval in ACTIVE mode (ms) */
-#define BEACON_INTERVAL_ACTIVE_MS   30000
+/** Beacon interval in ACTIVE mode (ms): the baseline rate, one beacon per
+ *  60 s (BASELINE_PARAMETERS.md; the beacon power line assumes it) */
+#define BEACON_INTERVAL_ACTIVE_MS   60000
 
-/** Default beacon interval in IDLE mode (ms) */
-#define BEACON_INTERVAL_IDLE_MS     60000
+/** Beacon interval in IDLE mode (ms) */
+#define BEACON_INTERVAL_IDLE_MS     120000
 
 /** Default beacon interval in SAFE mode (ms) */
 #define BEACON_INTERVAL_SAFE_MS     180000
 
 /** AX.25 constants: ax25.h */
+
+/** Telemetry validity flags (BeaconTelemetry_t.valid, BeaconMeasurements_t.valid).
+ *  A field without its flag is sent as "-" (SW-13: no default values). */
+#define BEACON_TLM_SOC   0x01U
+#define BEACON_TLM_BV    0x02U
+#define BEACON_TLM_SUN   0x04U
+#define BEACON_TLM_RF    0x08U
+#define BEACON_TLM_QSO   0x10U
+
+/** Measurements older than this are not beaconed (ms) */
+#define BEACON_MEAS_MAX_AGE_MS   60000U
 
 /*===========================================================================*/
 /* Beacon Types                                                               */
@@ -73,9 +85,22 @@ typedef struct {
     uint8_t  sunlit;              /**< Sunlit flag */
     uint8_t  rf_power;            /**< RF power level (0-2) */
     uint16_t qso_count;           /**< Total QSO count */
-    uint16_t orbit_number;        /**< Current orbit number */
     uint8_t  fault_flags;         /**< Fault status bitmask */
+    uint8_t  valid;               /**< BEACON_TLM_* flags of the fields measured */
 } BeaconTelemetry_t;
+
+/**
+ * @brief Measurements the beacon reports, from the EPS and sensors
+ *
+ * Only fields whose BEACON_TLM_* flag is set in valid are reported.
+ */
+typedef struct {
+    uint8_t  soc;                 /**< State of charge (%, 0-100) */
+    uint16_t battery_mv;          /**< Battery voltage (mV) */
+    uint8_t  sunlit;              /**< 1 sunlit, 0 eclipse */
+    uint16_t qso_count;           /**< QSOs counted */
+    uint8_t  valid;               /**< BEACON_TLM_SOC | _BV | _SUN | _QSO */
+} BeaconMeasurements_t;
 
 /**
  * @brief Beacon content structure
@@ -105,11 +130,12 @@ typedef struct {
  * @brief Beacon state structure
  */
 typedef struct {
-    uint32_t last_beacon_ms;      /**< Last beacon transmission time */
+    uint64_t last_beacon_ms;      /**< Last beacon transmission time */
     uint32_t interval_ms;         /**< Current beacon interval */
     uint32_t sequence;            /**< Beacon sequence counter */
     uint32_t ai_beacon_count;     /**< Count of AI-generated beacons */
     uint32_t template_count;      /**< Count of template beacons */
+    uint32_t ai_rejected_count;   /**< AI texts refused by the content filter */
     uint32_t total_bytes_tx;      /**< Total bytes transmitted */
     bool     ai_available;        /**< AI text generation available */
     char     last_ai_text[BEACON_MAX_TEXT_LEN]; /**< Last AI text */
@@ -254,7 +280,17 @@ const char *beacon_get_template(void);
 uint16_t beacon_crc16(const uint8_t *data, size_t len);
 
 /**
- * @brief Validate beacon text (ASCII only, length check)
+ * @brief Record the latest measurements for the beacon telemetry
+ *
+ * @param m Measurements; only fields flagged in m->valid are reported
+ * @param sample_ms Time the measurements were taken (smart_qso_now_ms)
+ * @return SMART_QSO_OK, SMART_QSO_ERROR_NULL_PTR, or SMART_QSO_ERROR_INVALID
+ *         for a flagged value out of range (SOC > 100, sunlit > 1)
+ */
+SmartQsoResult_t beacon_update_measurements(const BeaconMeasurements_t *m, uint64_t sample_ms);
+
+/**
+ * @brief Validate beacon text with the content filter (beacon_filter.h)
  *
  * @param text Text to validate
  * @param len Text length

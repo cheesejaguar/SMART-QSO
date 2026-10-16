@@ -8,6 +8,8 @@
  */
 
 #include "mission_data.h"
+#include <inttypes.h>
+#include <stdlib.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -65,7 +67,7 @@ SmartQsoResult_t mission_data_init(void)
         s_mission_data.last_reset_ms = smart_qso_now_ms();
         mission_data_update_crc();
 
-        printf("[MISSION] Loaded mission data (reset #%u)\n",
+        printf("[MISSION] Loaded mission data (reset #%" PRIu32 ")\n",
                s_mission_data.reset_count);
     }
 
@@ -141,9 +143,16 @@ SmartQsoResult_t mission_data_record_fault(const char *description)
     return SMART_QSO_OK;
 }
 
+/** Persistent mission data file: MISSION_DATA_FILE unless overridden */
+static const char *mission_data_path(void)
+{
+    const char *path = getenv(MISSION_DATA_FILE_ENV);
+    return ((path != NULL) && (path[0] != '\0')) ? path : MISSION_DATA_FILE;
+}
+
 SmartQsoResult_t mission_data_save(void)
 {
-    FILE *f = fopen(MISSION_DATA_FILE, "wb");
+    FILE *f = fopen(mission_data_path(), "wb");
     if (f == NULL) {
         return SMART_QSO_ERROR_IO;
     }
@@ -164,7 +173,7 @@ SmartQsoResult_t mission_data_save(void)
 
 SmartQsoResult_t mission_data_load(void)
 {
-    FILE *f = fopen(MISSION_DATA_FILE, "rb");
+    FILE *f = fopen(mission_data_path(), "rb");
     if (f == NULL) {
         return SMART_QSO_ERROR_IO;
     }

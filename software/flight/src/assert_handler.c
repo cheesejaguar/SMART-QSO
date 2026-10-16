@@ -23,11 +23,8 @@
 #include "system_state.h"
 #include <stddef.h>
 
-/* Include assert_handler.h after smart_qso.h macros are undefined */
-#undef SMART_QSO_REQUIRE
-#undef SMART_QSO_ENSURE
-#undef SMART_QSO_REQUIRE_NOT_NULL
 #include "assert_handler.h"
+#include <stdio.h>
 
 /*******************************************************************************
  * Private Data
@@ -351,4 +348,15 @@ SmartQsoResult_t assert_register_reset_callback(void (*callback)(void))
 {
     s_reset_callback = callback;
     return SMART_QSO_OK;
+}
+
+void smart_qso_assert_failed(const char *file, uint32_t line, const char *message)
+{
+    uint16_t short_line = (line > (uint32_t)UINT16_MAX) ? UINT16_MAX : (uint16_t)line;
+    (void)assert_handle_failure(file, short_line, ASSERT_TYPE_PRECONDITION,
+                                ASSERT_SEVERITY_ERROR, message);
+#if SMART_QSO_DEBUG_ENABLED
+    fprintf(stderr, "[ASSERT] %s:%u: %s\n", (file != NULL) ? file : "?", (unsigned)line,
+            (message != NULL) ? message : "");
+#endif
 }

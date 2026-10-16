@@ -262,27 +262,10 @@ Test Cases (TC-xxx)
 
 ## 7. Verification Status Summary
 
-### 7.1 Requirements Coverage
+### 7.1 Verification Status
 
-| Category | Total | Verified | Partial | Pending |
-|----------|-------|----------|---------|---------|
-| Functional (F) | 45 | 38 | 4 | 3 |
-| Performance (P) | 8 | 1 | 0 | 7 |
-| Interface (I) | 12 | 5 | 0 | 7 |
-| Quality (Q) | 9 | 3 | 2 | 4 |
-| Safety (S) | 5 | 2 | 1 | 2 |
-| **Total** | **79** | **49** | **7** | **23** |
-
-### 7.2 Test Coverage
-
-| Level | Total Tests | Passed | Failed | Pending |
-|-------|-------------|--------|--------|---------|
-| Unit | 15 | 0 | 0 | 15 |
-| Integration | 4 | 0 | 0 | 4 |
-| System | 4 | 0 | 0 | 4 |
-| **Total** | **23** | **0** | **0** | **23** |
-
----
+Status figures removed (FINDINGS_REGISTER PI-06): verification status is kept only in the VCRM,
+[VERIFICATION_MATRIX.md](../verification/VERIFICATION_MATRIX.md).
 
 ## 8. TBD/TBR Items
 

@@ -365,7 +365,7 @@ SETUP:
 - Spacecraft should auto-transition to SAFE
 
 EXPECTED RESPONSE:
-1. Telemetry shows SOC < 20%
+1. Telemetry shows SOC < 25%
 2. Spacecraft transitions to SAFE (auto)
 3. FC confirms state change
 4. FC consults contingency procedures (CP-002)

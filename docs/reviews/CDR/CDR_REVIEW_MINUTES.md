@@ -44,16 +44,17 @@ The Critical Design Review (CDR) is the technical review to:
 
 | Criterion | Required | Status | Evidence |
 |-----------|----------|--------|----------|
-| PDR successfully completed | Yes | PASS | PDR_REVIEW_MINUTES.md |
-| All PDR action items closed | Yes | PASS | AI status reviewed |
-| Detailed design complete | Yes | PASS | 20 modules, 15 test suites |
-| All interfaces defined | Yes | PASS | 4 ICDs baselined |
-| Test procedures drafted | Yes | PASS | 11 procedures complete |
-| Safety analysis complete | Yes | PASS | FMEA, Hazard Analysis |
-| Risk register current | Yes | PASS | Updated 2026-01-02 |
-| CM baseline established | Yes | PASS | Git-based CM active |
+| PDR successfully completed | Yes | **Not met** | No independent PDR held; the PDR minutes are self-generated (FINDINGS_REGISTER PI-03) |
+| All PDR action items closed | Yes | **Not met** | No RID/RFA log exists |
+| Detailed design complete | Yes | **Not met** | No schematics, PCB layout or CAD in the repository; flight software runs as a host simulation with a compile-only target library (SW-01) |
+| All interfaces defined | Yes | **Not met** | Launch-provider ICDs are TBD (`docs/interfaces/INTERFACE_CONTROL_MASTER.md`); no integrator selected (D7) |
+| Test procedures drafted | Yes | Partly | Procedures exist; none has been run on hardware |
+| Safety analysis complete | Yes | **Not met** | Every hazard is open (`docs/safety/SAFETY_DATA_PACKAGE.md` §4.1, PI-07) |
+| Risk register current | Yes | Partly | Funding-audit findings register 2026-10-15 |
+| CM baseline established | Yes | **Not met** | No configuration baseline tag exists |
 
-**Entry Criteria Status: ALL PASS - CDR may proceed**
+**Entry Criteria Status: NOT MET.** Re-assessed 2026-10-15 (PI-04): the project is in Phase B (pre-PDR). The original
+status read "ALL PASS - CDR may proceed".
 
 ---
 
@@ -158,6 +159,9 @@ The Critical Design Review (CDR) is the technical review to:
 
 *Documented deviations with justification
 
+> Not substantiated (funding audit SW-07, SW-17): CI measures 741 clang-tidy findings and 1,458 MISRA-addon findings.
+> These are the no-regression baselines in `software/flight/quality/`.
+
 ### 6.3 Requirements Verification Status
 
 | Category | Total | Verified | Partial | Pending |
@@ -169,7 +173,7 @@ The Critical Design Review (CDR) is the technical review to:
 | Safety (SRS-S) | 5 | 5 | 0 | 0 |
 | **Total** | **79** | **70** | **9** | **0** |
 
-**Verification Status: 89% complete, 11% pending hardware integration**
+**Verification Status:** ~~89% complete~~ withdrawn; see the VCRM (`docs/verification/VERIFICATION_MATRIX.md`, PI-06)
 
 ---
 
@@ -177,13 +181,9 @@ The Critical Design Review (CDR) is the technical review to:
 
 ### 7.1 Hazard Status
 
-| Severity | Identified | Mitigated | Closed | Open |
-|----------|------------|-----------|--------|------|
-| Catastrophic | 0 | - | - | - |
-| Critical | 2 | 2 | 0 | 0 |
-| Moderate | 5 | 5 | 3 | 0 |
-| Minor | 3 | 3 | 3 | 0 |
-| **Total** | **10** | **10** | **6** | **0** |
+Withdrawn (FINDINGS_REGISTER PI-07): this table did not add up (6 closed and 0 open of 10 hazards; 3 of 5
+moderate closed and none open). All hazards are open until each control's verification is cited. The hazard log
+is `docs/safety/SAFETY_DATA_PACKAGE.md` §4.
 
 ### 7.2 Safety Controls Verification
 
@@ -252,15 +252,15 @@ The Critical Design Review (CDR) is the technical review to:
 
 | Criterion | Required | Status | Notes |
 |-----------|----------|--------|-------|
-| Design complete to fabrication level | Yes | PASS | All modules complete |
-| All interfaces defined and controlled | Yes | PASS | ICDs baselined |
-| Test procedures drafted | Yes | PASS | 11 procedures ready |
-| Safety analysis complete | Yes | PASS | All hazards addressed |
-| No Category 1 findings | Yes | PASS | None identified |
-| Risk register current | Yes | PASS | Updated today |
-| CM baseline established | Yes | PASS | Git-controlled |
-| Build system verified | Yes | PASS | CI/CD operational |
-| Team concurrence | Yes | PASS | Review complete |
+| Design complete to fabrication level | Yes | **Not met** | No fabrication data exists |
+| All interfaces defined and controlled | Yes | **Not met** | Launch ICDs TBD |
+| Test procedures drafted | Yes | Partly | Not run on hardware |
+| Safety analysis complete | Yes | **Not met** | All hazards open |
+| No Category 1 findings | Yes | **Not met** | The funding audit lists 19 critical findings (FINDINGS_REGISTER) |
+| Risk register current | Yes | Partly | See the findings register |
+| CM baseline established | Yes | **Not met** | No baseline tag |
+| Build system verified | Yes | Met for host builds | CI builds, tests and cross-compiles the flight software |
+| Team concurrence | Yes | **Not met** | No independent reviewers |
 
 ---
 

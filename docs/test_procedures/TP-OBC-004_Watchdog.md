@@ -6,6 +6,8 @@
 **Date:** 2026-01-02
 **Status:** CDR Baseline
 
+**Requirements verified:** SRS-F050, SRS-F051
+
 ---
 
 ## 1. PURPOSE

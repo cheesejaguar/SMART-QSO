@@ -99,8 +99,8 @@ class TestLimits(unittest.TestCase):
 
 
 UPLINK_TX_DISABLE = bytes.fromhex(
-    "A6A2A69E404062 9C608682989861 03F0"
-    "AA55321400000001 9A83F5C7B21F7511E82F5E94B9DE5851 09BF 6559")
+    "96966C8E888476 9C608682989861 03F0"
+    "AA55321400000001 9A83F5C7B21F7511E82F5E94B9DE5851 09BF C8B6")
 
 
 class TestAx25(unittest.TestCase):
@@ -110,11 +110,11 @@ class TestAx25(unittest.TestCase):
         self.assertEqual(ax25_fcs(b"123456789"), 0x906E)
 
     def test_uplink_reference_frame(self):
-        frame = ax25_ui_frame("SQSO-1", "N0CALL", TX_DISABLE_CTR1_FRAME)
+        frame = ax25_ui_frame("KK6GDB-11", "N0CALL", TX_DISABLE_CTR1_FRAME)
         self.assertEqual(frame, UPLINK_TX_DISABLE)
 
     def test_frame_without_fcs_for_tnc(self):
-        frame = ax25_ui_frame("SQSO-1", "N0CALL", TX_DISABLE_CTR1_FRAME, fcs=False)
+        frame = ax25_ui_frame("KK6GDB-11", "N0CALL", TX_DISABLE_CTR1_FRAME, fcs=False)
         self.assertEqual(frame, UPLINK_TX_DISABLE[:-2])
 
     def test_bad_callsign_rejected(self):

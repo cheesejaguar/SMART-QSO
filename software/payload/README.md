@@ -28,6 +28,10 @@ unless MODE=SAFE. Keep ≤120 ASCII bytes; no emojis; plain text.
 
 ## Concrete starting points
 
+> The examples below use a 3B model for development only. It exceeds the flight budget (8 W input, 0.1 Wh per
+> beacon). The flight candidates are SmolLM2-360M-Instruct and Qwen3-0.6B (decision D5,
+> `docs/payload/AI_MODEL_SELECTION.md`), and the agent defaults to the first.
+
 ### NVIDIA (CUDA)
 ```bash
 # build (one‑time)

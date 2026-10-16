@@ -115,6 +115,48 @@ static void test_sensors_poll_timing(void **state) {
     assert_true(second_poll <= first_poll);
 }
 
+/**
+ * @brief A sensor records when it was last read successfully (SW-13: the
+ * beacon reports only fresh readings)
+ */
+static void test_sensors_last_read_time(void **state) {
+    (void)state;
+    Sensor_t bv;
+
+    sensors_load_defaults();
+    assert_int_equal(sensors_get_by_id("BV", &bv), SMART_QSO_OK);
+    assert_true(bv.last_read_ms == 0U);  /* never read */
+
+    uint64_t now_ms = smart_qso_now_ms();
+    (void)sensors_poll(now_ms);
+    assert_int_equal(sensors_get_by_id("BV", &bv), SMART_QSO_OK);
+    assert_true(bv.last_read_ms == now_ms);
+
+    /* Not due: no new reading, time unchanged */
+    (void)sensors_poll(now_ms + 1U);
+    assert_int_equal(sensors_get_by_id("BV", &bv), SMART_QSO_OK);
+    assert_true(bv.last_read_ms == now_ms);
+}
+
+/**
+ * @brief The payload heat-spreader thermistor (PT) is read by the OBC for
+ * the payload guard, separately from the EPS temperatures (SW-16)
+ */
+static void test_payload_spreader_sensor(void **state) {
+    (void)state;
+    Sensor_t pt;
+
+    sensors_load_defaults();
+    assert_int_equal(sensors_get_by_id("PT", &pt), SMART_QSO_OK);
+    assert_string_equal(pt.type, "payload_temperature");
+    assert_string_equal(pt.units, "C");
+    assert_non_null(pt.read);
+    (void)sensors_poll(smart_qso_now_ms());
+    assert_int_equal(sensors_get_by_id("PT", &pt), SMART_QSO_OK);
+    assert_true(pt.last_read_ms != 0U);
+    assert_true((pt.last_value > -40.0) && (pt.last_value < 70.0));
+}
+
 /*===========================================================================*/
 /* Test Cases: Sensor Access                                                  */
 /*===========================================================================*/
@@ -255,6 +297,8 @@ int main(void) {
         cmocka_unit_test_setup_teardown(test_sensors_get_count, setup, teardown),
         cmocka_unit_test_setup_teardown(test_sensors_load_defaults, setup, teardown),
         cmocka_unit_test_setup_teardown(test_sensors_set_environment, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_sensors_last_read_time, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_payload_spreader_sensor, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Sensor Tests", tests, NULL, NULL);

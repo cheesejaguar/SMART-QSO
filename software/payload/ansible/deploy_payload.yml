@@ -38,7 +38,7 @@
           #!/usr/bin/env bash
           set -euo pipefail
           source "{{ venv_dir }}/bin/activate"
-          export LLAMA_MODEL="${LLAMA_MODEL:-/models/Llama-3.2-3B-Instruct-Q4_K_M.gguf}"
+          export LLAMA_MODEL="${LLAMA_MODEL:-/models/SmolLM2-360M-Instruct-Q4_K_M.gguf}"
           exec python -m software.payload.agent
 
 

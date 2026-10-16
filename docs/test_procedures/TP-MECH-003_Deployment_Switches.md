@@ -6,6 +6,8 @@
 **Date:** 2026-01-02
 **Status:** CDR Baseline
 
+**Requirements verified:** SYS-221, SYS-224, SYS-225
+
 ---
 
 ## 1. PURPOSE

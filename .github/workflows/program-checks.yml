@@ -23,7 +23,7 @@ permissions:
 jobs:
   python-tests:
     name: Payload, Ground and Simulation Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
       - name: Checkout repository
@@ -56,7 +56,7 @@ jobs:
 
   docs-integrity:
     name: Documentation Reference Integrity
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
       - name: Checkout repository
@@ -68,9 +68,15 @@ jobs:
       - name: Check generated command dictionary is current
         run: python3 scripts/gen_command_dictionary.py --check
 
+      - name: Check parameters agree across code and documents
+        run: python3 scripts/check_parameters.py
+
+      - name: Traceability (no new undefined, conflicting or uncited requirements)
+        run: python3 scripts/check_traceability.py --check
+
   secret-scan:
     name: Secret Scan
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
       - name: Checkout repository

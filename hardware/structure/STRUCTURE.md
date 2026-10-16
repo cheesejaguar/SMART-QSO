@@ -19,7 +19,7 @@ The SMART-QSO mission requires a robust 1U CubeSat structure that can accommodat
 
 ### 1.2 Mission Requirements
 - **Form Factor**: 1U CubeSat (100mm × 100mm × 113.5mm)
-- **Mass Budget**: ≤1.33 kg total (per Cal Poly CubeSat Design Specification)
+- **Mass Budget**: ≤ 2.00 kg limit (CDS Rev 14.1), MEV ≤ 1.75 kg (BASELINE §4: 2.00 kg, CDS Rev 14.1; the 1.33 kg figure is CDS Rev 13)
 - **Structural Integrity**: Launch vehicle vibration and shock environment
 - **Thermal Management**: Heat dissipation for AI payload (5-15W thermal load)
 - **Deployment Mechanisms**: Solar panel and antenna deployment support
@@ -368,7 +368,7 @@ The SMART-QSO mission requires a robust 1U CubeSat structure that can accommodat
 #### 5.3.1 NanoRacks NRCSD Requirements
 - **Form Factor**: 1U CubeSat (100mm × 100mm × 113.5mm)
 - **Corner Rails**: Standard 12.7 mm × 12.7 mm deployment springs
-- **Mass Limit**: ≤1.33 kg total satellite mass
+- **Mass Limit**: ≤ 2.00 kg total satellite mass (CDS Rev 14.1; BASELINE §4)
 - **Structural Integrity**: Launch vehicle vibration and shock environment
 
 #### 5.3.2 Environmental Requirements

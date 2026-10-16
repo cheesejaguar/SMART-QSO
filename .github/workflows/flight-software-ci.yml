@@ -29,7 +29,7 @@ env:
 jobs:
   build:
     name: Build and Static Analysis
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
     - name: Checkout repository
@@ -57,7 +57,6 @@ jobs:
           --suppress=missingInclude \
           --suppress=unusedFunction \
           --suppress=knownConditionTrueFalse \
-          --suppress=nullPointerRedundantCheck \
           --suppress=unusedStructMember \
           --suppress=constParameterCallback \
           --suppress=constVariablePointer \
@@ -74,7 +73,7 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
     needs: build
 
     steps:
@@ -113,7 +112,7 @@ jobs:
 
   sanitizers:
     name: Sanitizer Checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
     needs: build
 
     steps:
@@ -133,15 +132,27 @@ jobs:
       working-directory: software/flight
       run: cmake --build build
 
-    - name: Run with sanitizers
+    - name: Run the tests with sanitizers
+      working-directory: software/flight
+      env:
+        # Leak checking off: the simulated HAL emulates flash with heap buffers
+        # kept for the process lifetime, and flight code allocates nothing
+        # (ctest no_dynamic_memory). AddressSanitizer and UBSan stay fatal.
+        ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
+      run: ctest --test-dir build --output-on-failure
+
+    - name: Run the simulation to completion with sanitizers
       working-directory: software/flight/build
+      env:
+        ASAN_OPTIONS: detect_leaks=0:halt_on_error=1   # see the step above
+        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
       run: |
-        # Run the executable briefly to check for sanitizer issues
-        timeout 5 ./smart_qso_flight || true
+        # About 20 s of simulated operation; any sanitizer report fails the job
+        timeout 180 ./smart_qso_flight
 
   flight-build:
     name: Flight Configuration Build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
     - name: Checkout repository
@@ -164,11 +175,51 @@ jobs:
       working-directory: software/flight
       run: |
         # Check that debug code is disabled in flight build
-        grep -q "NDEBUG" build/compile_commands.json || echo "NDEBUG check"
+        grep -q "NDEBUG" build/compile_commands.json || {
+          echo "::error::NDEBUG is not defined in the flight build"
+          exit 1
+        }
+
+  target-build:
+    name: STM32L4 Cross-Compile (library)
+    runs-on: ubuntu-24.04   # pinned
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install the Arm GNU toolchain
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi
+        arm-none-eabi-gcc --version
+
+    - name: Configure (cmake/arm-none-eabi-stm32l4.cmake)
+      working-directory: software/flight
+      run: |
+        cmake -B build-arm -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-stm32l4.cmake \
+              -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON
+
+    - name: Build the flight library for Cortex-M4
+      working-directory: software/flight
+      run: cmake --build build-arm --parallel
+
+    - name: Check the library
+      working-directory: software/flight
+      run: |
+        arm-none-eabi-size --totals build-arm/libsmart_qso_target.a | tail -1
+        # Thumb-2 code for the target, with the register-level HAL and the flight modules
+        arm-none-eabi-objdump -f build-arm/libsmart_qso_target.a | grep -m1 'architecture: arm'
+        for sym in hal_gpio_init hal_wdt_kick hal_reset_cause beacon_filter_check jetson_link_parse sm_process_event; do
+          arm-none-eabi-nm --defined-only build-arm/libsmart_qso_target.a | grep -q " T ${sym}$" || {
+            echo "::error::${sym} missing from the target library"
+            exit 1
+          }
+        done
 
   documentation:
     name: Documentation Check
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # pinned
 
     steps:
     - name: Checkout repository

@@ -16,6 +16,8 @@
 #include <string.h>
 
 #include "watchdog_mgr.h"
+#include "smart_qso.h"
+#include "hal/hal_timer.h"
 
 /*******************************************************************************
  * Test Fixtures
@@ -292,6 +294,78 @@ static void test_time_remaining(void **state)
 }
 
 /*******************************************************************************
+ * Test Cases: Supervised refresh (SW-15)
+ *
+ * The hardware watchdog is refreshed only while every registered task checks
+ * in. A stalled task stops the refresh, so the hardware resets the OBC.
+ ******************************************************************************/
+
+static int s_prereset_count = 0;
+
+static void count_prereset(void)
+{
+    s_prereset_count++;
+}
+
+static int supervised_setup(void **state)
+{
+    (void)state;
+    assert_int_equal(hal_timer_init(), SMART_QSO_OK);
+    assert_int_equal(wdt_mgr_init(), SMART_QSO_OK);
+    assert_int_equal(wdt_mgr_start(), SMART_QSO_OK);
+    assert_int_equal(wdt_mgr_register_task(WDT_TASK_MAIN_LOOP, "main", 1000U), SMART_QSO_OK);
+    s_prereset_count = 0;
+    assert_int_equal(wdt_mgr_register_prereset_callback(count_prereset), SMART_QSO_OK);
+    return 0;
+}
+
+/** One second per step: optionally check in, then kick */
+static void run_seconds(uint32_t seconds, bool checkin)
+{
+    for (uint32_t i = 0U; i < seconds; i++) {
+        smart_qso_sim_advance_ms(1000U);
+        if (checkin) {
+            assert_int_equal(wdt_mgr_checkin(WDT_TASK_MAIN_LOOP), SMART_QSO_OK);
+        }
+        wdt_mgr_kick();
+    }
+}
+
+static void test_healthy_task_keeps_refreshing(void **state)
+{
+    (void)state;
+    run_seconds(60U, true);
+    assert_false(wdt_mgr_any_task_stalled());
+    assert_true(wdt_mgr_time_remaining() > (WDT_HW_TIMEOUT_MS - 2000U));
+    assert_int_equal(s_prereset_count, 0);
+}
+
+static void test_stalled_task_lets_hardware_reset(void **state)
+{
+    (void)state;
+    WdtStats_t before;
+    WdtStats_t after;
+
+    assert_int_equal(wdt_mgr_get_stats(&before), SMART_QSO_OK);
+    run_seconds((WDT_HW_TIMEOUT_MS / 1000U) + 10U, false);
+    assert_true(wdt_mgr_any_task_stalled());
+    assert_int_equal(wdt_mgr_time_remaining(), 0U);   /* hardware would reset */
+    assert_int_equal(s_prereset_count, 1);            /* state saved once, first */
+    assert_int_equal(wdt_mgr_get_stats(&after), SMART_QSO_OK);
+    assert_true((after.hw_kicks - before.hw_kicks) <= WDT_TASK_MISS_THRESHOLD);
+}
+
+static void test_recovered_task_resumes_refresh(void **state)
+{
+    (void)state;
+    run_seconds(5U, false);
+    assert_true(wdt_mgr_any_task_stalled());
+    run_seconds(2U, true);
+    assert_false(wdt_mgr_any_task_stalled());
+    assert_true(wdt_mgr_time_remaining() > (WDT_HW_TIMEOUT_MS - 2000U));
+}
+
+/*******************************************************************************
  * Test Runner
  ******************************************************************************/
 
@@ -357,6 +431,12 @@ int main(void)
                                         test_setup, test_teardown),
         cmocka_unit_test_setup_teardown(test_clear_reset_status,
                                         test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_healthy_task_keeps_refreshing,
+                                        supervised_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_stalled_task_lets_hardware_reset,
+                                        supervised_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_recovered_task_resumes_refresh,
+                                        supervised_setup, test_teardown),
         cmocka_unit_test_setup_teardown(test_time_remaining,
                                         test_setup, test_teardown),
     };

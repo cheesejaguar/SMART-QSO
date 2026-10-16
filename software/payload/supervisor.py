@@ -25,6 +25,9 @@ import psutil
 from health_interface import (
     HealthInterface, HealthData, HealthCommand, HealthStatus
 )
+import obc_link
+from agent import AgentState, handle_line as _agent_handle_line
+
 
 # Configure logging
 logging.basicConfig(
@@ -112,6 +115,9 @@ class PayloadSupervisor:
 
         # Health interface
         self._health: Optional[HealthInterface] = None
+
+        # Beacon agent state (latest OBC telemetry, optional language model)
+        self._agent = AgentState()
 
         # Managed processes
         self._processes: Dict[str, ProcessInfo] = {}
@@ -311,6 +317,10 @@ class PayloadSupervisor:
             # Update power state
             self._power_state = PowerState(data.power_state)
             self._handle_power_state_change()
+            self._update_agent_telemetry(data)
+
+        elif data.command == HealthCommand.BEACON_REQUEST:
+            self._answer_beacon_request(data)
 
         elif data.command == HealthCommand.STATUS_REQUEST:
             # Send full status
@@ -330,6 +340,25 @@ class PayloadSupervisor:
 
         elif data.command == HealthCommand.CONFIG_UPDATE:
             self._handle_config_update(data.data)
+
+    def _update_agent_telemetry(self, data: HealthData):
+        """Give the beacon agent the OBC's latest TELEMETRY."""
+        extras = {k: v for k, v in (data.data or {}).items() if isinstance(v, str)}
+        sun = "SUNLIT" if (data.data or {}).get("sunlit", True) else "ECLIPSE"
+        line = obc_link.seal(
+            f"TELEMETRY,{int(data.timestamp)},{sun},{float(data.battery_soc):.3f},"
+            f"{int(data.power_state)},{float((data.data or {}).get('power_limit_w', 0.0)):.1f}"
+            + "".join(f",{k}={v}" for k, v in extras.items() if "," not in k + v))
+        _agent_handle_line(line, self._agent)
+
+    def _answer_beacon_request(self, data: HealthData):
+        """Answer BEACON_REQ with BEACON_RSP through the agent."""
+        req = data.data or {}
+        reply = _agent_handle_line(
+            obc_link.seal(f"BEACON_REQ,{int(req.get('seq', 0))},{int(req.get('max_len', obc_link.TEXT_MAX))}"),
+            self._agent)
+        if reply and self._health:
+            self._health.send_line(reply)
 
     def _handle_obc_disconnect(self):
         """Handle OBC disconnection."""

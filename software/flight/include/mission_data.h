@@ -28,6 +28,9 @@ extern "C" {
 /** Mission data file path */
 #define MISSION_DATA_FILE "/tmp/mission_data.dat"
 
+/** Environment variable that overrides MISSION_DATA_FILE (tests run in parallel) */
+#define MISSION_DATA_FILE_ENV "SMART_QSO_MISSION_DATA"
+
 /*===========================================================================*/
 /* Mission Data Structure                                                     */
 /*===========================================================================*/

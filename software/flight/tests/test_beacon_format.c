@@ -25,6 +25,8 @@ static void fill(BeaconContent_t *content, size_t text_len)
     memset(content->text, 'A', text_len);
     content->text[text_len] = '\0';
     content->text_len = text_len;
+    content->telemetry.valid = BEACON_TLM_SOC | BEACON_TLM_BV | BEACON_TLM_SUN |
+                               BEACON_TLM_RF | BEACON_TLM_QSO;
 }
 
 static void set_max_telemetry(BeaconContent_t *content)
@@ -57,7 +59,7 @@ static void test_max_text_fits_frame(void **state)
     size_t len = beacon_format_payload(&content, buffer, sizeof(buffer));
     assert_true(len > 0U);
     assert_true(len < sizeof(buffer));
-    assert_int_equal(strncmp(buffer, "de " BEACON_CALLSIGN ": ", 11), 0);
+    assert_int_equal(strncmp(buffer, "de " BEACON_CALLSIGN ": ", sizeof("de " BEACON_CALLSIGN ": ") - 1U), 0);
     assert_true(ends_with(buffer, len, " BV=65.5 SUN=255 RF=255 QSO=65535"));
     assert_non_null(strstr(buffer, " | T=4294967295 M=ACTIVE SOC=255"));
 }

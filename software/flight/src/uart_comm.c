@@ -13,6 +13,7 @@
 #include "uart_comm.h"
 #include "fault_mgmt.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -105,7 +106,7 @@ static void parse_env_config(void)
         }
     }
 
-    printf("[UART] Configuration: device=%s, baudrate=%d, interval=%ums\n",
+    printf("[UART] Configuration: device=%s, baudrate=%d, interval=%" PRIu32 "ms\n",
            s_config.device, s_config.baudrate, s_telemetry_interval_ms);
 }
 

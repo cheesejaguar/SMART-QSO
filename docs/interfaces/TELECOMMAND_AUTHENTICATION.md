@@ -31,7 +31,7 @@ Where this document conflicts with SQSO-ICD-005 (`ICD_SPACE_GROUND.md`) or `docs
 
 Each telecommand is one AX.25 v2.2 UI frame (control `0x03`, PID `0xF0`) on the 435 MHz uplink. The destination address must be this station's call sign and SSID (`software/flight/include/station_id.h`). Frames addressed to any other station are dropped.
 
-- **Call sign:** the value in the repository, `SQSO`-1, is a placeholder until the licensee's call sign is issued (decision D1).
+- **Call sign:** `KK6GDB-11`, the licensee's call sign (decision D1, 2026-10-15) with SSID 11.
 - **Source address:** must be the sending telecommand station's own call sign.
 - **Digipeater paths:** parsed, but not needed.
 
@@ -134,7 +134,7 @@ If no authenticated telecommand is received for **N days**, every transmitter is
 
 | Property | Behavior |
 |----------|----------|
-| N | Persisted. Set by `SET_CONTACT_TIMEOUT` (0x07) to 1–90 days. **The 14-day default and the range are placeholders pending decision D3** (FCC/IARU consultation) |
+| N | Persisted. Set by `SET_CONTACT_TIMEOUT` (0x07) to 1–90 days. **30 days at launch**, so a late first contact does not find the spacecraft silent; operations set **14 days** once commissioning is complete (decision D3; values go to the FCC consultation) |
 | Contact | An authenticated frame (operational or recovery key) whose counter was committed, whatever the command's result, including `NOT_ALLOWED` |
 | Not contact | Forged or replayed frames; the keyless `TX_DISABLE` (Section 6); authentic frames rejected before their counter is spent (for example a wrong argument length). These are replayable, so counting them would let a replay hold off the inhibit |
 | Lifting | The next contact lifts the inhibit. It never clears the TX-OFF latch, and `TX_ENABLE` does not lift the inhibit except by being contact itself. Transmission needs both inhibits clear |
@@ -142,7 +142,8 @@ If no authenticated telecommand is received for **N days**, every transmitter is
 | Time base | No reset-proof clock exists, so `contact_monitor_tick()` accumulates seconds without contact from the main loop. The counter is persisted every 60 s (1,440 writes a day to FRAM, which is rated for 10^14 writes) |
 | Boot | The inhibit is recomputed from the counter before `rf_control_init()` drives the line, so a silent spacecraft stays silent through a reset |
 | Errors make it come earlier | Each boot that finds a counter adds 60 s, so a reset loop still reaches N. A corrupt counter counts as timed out. Blank (first boot) starts at 0 |
-| Commissioning | The count starts at first boot. If first contact takes longer than N, the spacecraft falls silent until commanded. That is intended, and operations must plan for it |
+| Commissioning | The count starts at first boot, about 45 minutes before the RF silence ends; that difference is negligible against N. If first contact takes longer than N, the spacecraft falls silent until commanded. That is intended, and operations must plan for it |
+| Passivation (M) | Not implemented. Proposed: after a further 180 days inhibited, never in the first year after launch, permanent passivation (BASELINE §7). For the FCC consultation (D3) |
 | Not implemented | The M-day autonomous end-of-mission passivation in IARU 7.9 and ODAR 4.4-2. It is irreversible, needs the passivation hardware path (SYS-800), and is a larger decision than D3 |
 
 ### 6.3 Post-Deployment RF Silence
@@ -312,7 +313,7 @@ Procedure:
 | **`RF_TX_EN` removes PA power at the antenna port** | **Not verified.** TP-RF-006 is written; it needs EM hardware |
 | **SET_POWER applied to the PA** | **Not implemented.** The level is persisted and reported; the actuator interface is TBD in the RF design |
 | FRAM driver for `FLASH_REGION_AUTH` and `FLASH_REGION_RF_CONTROL` | Allocated in SQSO-OBC-002 §3.3; simulation HAL only |
-| Station call sign | Placeholder `SQSO`-1 (decision D1) |
+| Station call sign | `KK6GDB-11` (licensee KK6GDB, decision D1) |
 | Loss-of-contact N and M | N: mechanism implemented; value a placeholder (D3). M (autonomous passivation): **not implemented** |
 | Monotonic time source on target | **Not implemented** (SW-01); the loss-of-contact and RF-silence timers depend on it |
 | Reset-cause register read on target (`hal_reset.h`) | **Not implemented**; simulation only |
@@ -340,10 +341,10 @@ TX_ENABLE, counter 3:
 AA55 31 14 00000003 64B167923681E291200754A1BB670845 080A
 ```
 
-AX.25 UI frame `SQSO-1` ← `N0CALL` carrying TX_DISABLE counter 1 (FCS last):
+AX.25 UI frame `KK6GDB-11` ← `N0CALL` carrying TX_DISABLE counter 1 (FCS last):
 
 ```
-A6A2A69E404062 9C608682989861 03 F0 AA553214000000019A83F5C7B21F7511E82F5E94B9DE585109BF 6559
+96966C8E888476 9C608682989861 03 F0 AA553214000000019A83F5C7B21F7511E82F5E94B9DE585109BF C8B6
 ```
 
 GSE frame PROVISION slot 0, key ID 1:
@@ -355,7 +356,7 @@ GSE frame PROVISION slot 0, key ID 1:
 Reproduce with the ground tools, using a scratch copy of the test key (mode 600):
 
 ```bash
-python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.key --counter 1 --ax25 SQSO-1 N0CALL
+python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.key --counter 1 --ax25 KK6GDB-11 N0CALL
 ```
 
 ## 12. Verification

@@ -36,7 +36,7 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 
 | Requirement | CDS Spec | SMART-QSO Design | Status |
 |-------------|----------|------------------|--------|
-| Maximum mass (1U) | 2.0 kg | 1.33 kg (est.) | Compliant |
+| Maximum mass (1U) | 2.0 kg | CBE ≈ 1.51 kg, MEV ≤ 1.75 kg (BASELINE §4) | Compliant by estimate; weigh the flight unit |
 | Mass margin | 10% recommended | 34% margin | Compliant |
 
 ### 2.3 Center of Gravity

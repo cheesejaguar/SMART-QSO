@@ -38,7 +38,7 @@ static bool s_initialized = false;
  */
 static uint32_t fault_entry_crc(const FaultLogEntry_t *entry)
 {
-    SMART_QSO_REQUIRE_NOT_NULL(entry);
+    SMART_QSO_REQUIRE_NOT_NULL_OR(entry, 0U);
     size_t crc_offset = offsetof(FaultLogEntry_t, crc32);
     return smart_qso_crc32(entry, crc_offset);
 }

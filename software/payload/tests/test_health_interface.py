@@ -1,7 +1,7 @@
 """
 Unit tests for Health Interface Module
 
-Tests UART communication, JSON parsing, health data validation,
+Tests UART communication, ICD line parsing, health data validation,
 and connection management for SMART-QSO Jetson payload.
 
 Author: SMART-QSO Team
@@ -190,97 +190,91 @@ class TestHealthInterface(unittest.TestCase):
         self.assertTrue(result)
 
 
-class TestFrameBuilding(unittest.TestCase):
-    """Test frame building and parsing."""
+class TestLineFraming(unittest.TestCase):
+    """ICD line framing (docs/interfaces/ICD_OBC_JETSON.md section 4)."""
 
     def setUp(self):
         self.interface = HealthInterface()
 
-    def test_build_frame_structure(self):
-        """Test frame structure with start/end markers."""
-        payload = b'{"test": "data"}'
-        frame = self.interface._build_frame(payload)
+    def test_extract_line_complete(self):
+        buffer = bytearray(b"STATUS_REQ,5D03\nTELE")
+        self.assertEqual(self.interface._extract_line(buffer), b"STATUS_REQ,5D03\n")
+        self.assertEqual(bytes(buffer), b"TELE")
 
-        # Check start marker
-        self.assertEqual(frame[0], 0x7E)
-        # Check end marker
-        self.assertEqual(frame[-1], 0x7F)
-        # Check payload is in frame
-        self.assertIn(payload, frame)
+    def test_extract_line_incomplete(self):
+        buffer = bytearray(b"STATUS_REQ,5D")
+        self.assertIsNone(self.interface._extract_line(buffer))
+        self.assertEqual(bytes(buffer), b"STATUS_REQ,5D")
 
-    def test_extract_frame_complete(self):
-        """Test extracting complete frame from buffer."""
-        buffer = bytearray([0x7E, 0x01, 0x02, 0x03, 0x7F])
-        frame = self.interface._extract_frame(buffer)
-        self.assertEqual(frame, bytes([0x01, 0x02, 0x03]))
+    def test_extract_line_overflow_discarded(self):
+        buffer = bytearray(b"X" * (HealthInterface.MAX_LINE_SIZE + 1))
+        self.assertIsNone(self.interface._extract_line(buffer))
         self.assertEqual(len(buffer), 0)
+        self.assertEqual(self.interface.get_statistics()["rx_errors"], 1)
 
-    def test_extract_frame_incomplete(self):
-        """Test extracting incomplete frame."""
-        buffer = bytearray([0x7E, 0x01, 0x02])  # No end marker
-        frame = self.interface._extract_frame(buffer)
-        self.assertIsNone(frame)
+    @patch('serial.Serial')
+    def test_send_response_writes_status_line(self, mock_serial):
+        """send_response emits the ICD STATUS line (golden vector shared with the OBC)."""
+        mock_instance = MagicMock()
+        mock_instance.is_open = True
+        mock_serial.return_value = mock_instance
+        self.interface.connect()
 
-    def test_extract_frame_no_start(self):
-        """Test buffer with no start marker."""
-        buffer = bytearray([0x01, 0x02, 0x03])
-        frame = self.interface._extract_frame(buffer)
-        self.assertIsNone(frame)
-        self.assertEqual(len(buffer), 0)
+        data = {"temperature_c": 45.2, "power_w": 6.8, "memory_percent": 37.4, "uptime_s": 1234}
+        self.assertTrue(self.interface.send_response(HealthStatus.OK, data))
+        mock_instance.write.assert_called_once_with(b"STATUS,0,45,6800,37,1234,D775\n")
+
+    @patch('serial.Serial')
+    def test_send_line(self, mock_serial):
+        mock_instance = MagicMock()
+        mock_instance.is_open = True
+        mock_serial.return_value = mock_instance
+        self.interface.connect()
+        self.assertTrue(self.interface.send_line(b"ACK,BEACON_RSP,275C\n"))
+        mock_instance.write.assert_called_once_with(b"ACK,BEACON_RSP,275C\n")
 
 
-class TestHealthDataParsing(unittest.TestCase):
-    """Test health data parsing."""
+class TestLineProcessing(unittest.TestCase):
+    """OBC lines become HealthData commands."""
 
     def setUp(self):
         self.interface = HealthInterface()
+        self.received = []
+        self.interface.register_command_callback(self.received.append)
 
-    def test_parse_valid_data(self):
-        """Test parsing valid health data."""
-        data = {
-            "timestamp": 1234567890,
-            "command": 1,
-            "power_state": 2,
-            "battery_soc": 85.5,
-            "obc_temp": 25.0,
-            "payload_enabled": True
-        }
-        result = self.interface._parse_health_data(data)
-        self.assertIsNotNone(result)
-        self.assertEqual(result.timestamp, 1234567890)
-        self.assertEqual(result.command, HealthCommand.HEARTBEAT)
+    def test_telemetry_is_heartbeat(self):
+        self.interface._process_line(
+            b"TELEMETRY,1704153600000,SUNLIT,0.750,2,3.0,BV=8.1,EPS_PAYLOAD=ON,9C86\n")
+        self.assertEqual(len(self.received), 1)
+        data = self.received[0]
+        self.assertEqual(data.command, HealthCommand.HEARTBEAT)
+        self.assertEqual(data.timestamp, 1704153600000)
+        self.assertEqual(data.power_state, 2)
+        self.assertAlmostEqual(data.battery_soc, 0.75)
+        self.assertTrue(data.payload_enabled)
+        self.assertTrue(data.data["sunlit"])
+        self.assertEqual(data.data["BV"], "8.1")
 
-    def test_parse_missing_optional_fields(self):
-        """Missing optional fields take defaults when the command is valid."""
-        data = {"timestamp": 0, "command": HealthCommand.HEARTBEAT}
-        result = self.interface._parse_health_data(data)
-        self.assertIsNotNone(result)
-        self.assertEqual(result.command, HealthCommand.HEARTBEAT)
-        self.assertFalse(result.payload_enabled)
+    def test_status_request_shutdown_beacon_request(self):
+        self.interface._process_line(b"STATUS_REQ,5D03\n")
+        self.interface._process_line(b"SHUTDOWN,POWER,05D4\n")
+        self.interface._process_line(b"BEACON_REQ,42,176,5593\n")
+        commands = [d.command for d in self.received]
+        self.assertEqual(commands, [HealthCommand.STATUS_REQUEST, HealthCommand.SHUTDOWN,
+                                    HealthCommand.BEACON_REQUEST])
+        self.assertEqual(self.received[1].data, {"reason": "POWER"})
+        self.assertEqual(self.received[2].data, {"seq": 42, "max_len": 176})
 
-    def test_parse_missing_command(self):
-        """A frame without a command is rejected, never defaulted.
+    def test_bad_crc_counted(self):
+        self.interface._process_line(b"STATUS_REQ,5D04\n")
+        self.assertEqual(self.received, [])
+        self.assertEqual(self.interface.get_statistics()["crc_errors"], 1)
 
-        Defaulting would let a malformed frame be treated as a valid command
-        (e.g. a heartbeat masking a dead link), so it must be dropped.
-        """
-        data = {"timestamp": 0}
-        result = self.interface._parse_health_data(data)
-        self.assertIsNone(result)
-
-    def test_parse_invalid_command(self):
-        """Test parsing with invalid command value."""
-        data = {
-            "timestamp": 0,
-            "command": 255,  # Invalid
-            "power_state": 0,
-            "battery_soc": 0,
-            "obc_temp": 0,
-            "payload_enabled": False
-        }
-        result = self.interface._parse_health_data(data)
-        # Should return None for invalid data
-        self.assertIsNone(result)
+    def test_malformed_and_wrong_direction_counted(self):
+        self.interface._process_line(b"garbage\n")
+        self.interface._process_line(b"BEACON_RSP,42,Hello, world from orbit,0784\n")
+        self.assertEqual(self.received, [])
+        self.assertEqual(self.interface.get_statistics()["rx_errors"], 2)
 
 
 class TestConvenienceFunction(unittest.TestCase):

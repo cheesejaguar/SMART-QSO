@@ -156,8 +156,8 @@ SMART-QSO relies on atmospheric drag for deorbit:
 Final beacon transmitted before passivation:
 
 ```
-de [CALLSIGN]: SMART-QSO EOL - Mission Complete
-Thank you to all who listened! 73 de SQSO-1
+de KK6GDB-11: SMART-QSO EOL - Mission Complete
+Thank you to all who listened! 73 de KK6GDB-11
 Final stats: [days] days, [beacons] beacons, [QSOs] QSOs
 T=[timestamp] EOL
 ```
@@ -167,7 +167,7 @@ T=[timestamp] EOL
 Last beacon before RF disable:
 
 ```
-de [CALLSIGN]: Goodbye from SMART-QSO
+de KK6GDB-11: Goodbye from SMART-QSO
 [AI-generated farewell message]
 73 and thanks for all the QSOs!
 ```

@@ -21,10 +21,10 @@ staff before the pre-space filing**, and use the same channel for these follow-u
 ## A. In-Space Station Notification — 47 CFR 97.207(g)(2)
 
 > **To:** Space Bureau, Federal Communications Commission
-> **Re:** In-space notification, amateur space station SMART-QSO (`[call sign]`)
+> **Re:** In-space notification, amateur space station SMART-QSO (KK6GDB)
 > **Date:** `[≤ 7 days after first transmission]`
 >
-> 1. **Licensee:** `[name]`, `[call sign]`, `[license class]`, `[address, phone, email]`
+> 1. **Licensee:** `[name]`, KK6GDB, `[license class]`, `[address, phone, email]`
 > 2. **Reference:** Pre-space notification dated `[date]` (and replacement dated `[date]`, if any); IARU coordination letter `[reference]`; ITU API/A special section `[number]`.
 > 3. **Launch:** `[launch vehicle / mission name]`, launched `[UTC date/time]` from `[site]`; deployed `[UTC date/time]` by `[dispenser]`.
 > 4. **Initiation of transmissions:** first space-station transmission at `[UTC date/time]` (from onboard log / first ground reception report).
@@ -44,10 +44,10 @@ procedure (`docs/operations/COMMISSIONING_PLAN.md`).
 ## B. Post-Space Station Notification — 47 CFR 97.207(g)(3)
 
 > **To:** Space Bureau, Federal Communications Commission
-> **Re:** Post-space notification, amateur space station SMART-QSO (`[call sign]`), NORAD `[number]`
+> **Re:** Post-space notification, amateur space station SMART-QSO (KK6GDB), NORAD `[number]`
 > **Date:** `[≤ 3 months after termination; ≤ 24 hours if termination was ordered by the FCC]`
 >
-> 1. **Licensee:** `[name]`, `[call sign]`
+> 1. **Licensee:** `[name]`, KK6GDB
 > 2. **Termination of transmissions:** `[UTC date/time]`; method `[telecommand TX-OFF / autonomous EOL passivation / loss of power / re-entry]`; confirmed by `[ground observation]`.
 > 3. **Reason:** `[end of mission / anomaly / FCC order dated ...]`
 > 4. **Passivation status** (compare pre-space disclosure 97.207(g)(1)(iii)): battery charge path `[permanently disabled at UTC ...]`; RF transmitters `[disabled]`; residual stored energy `[description]`.

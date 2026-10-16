@@ -5,22 +5,24 @@ This module provides the UART interface for receiving health commands
 and telemetry requests from the OBC. It handles connection management,
 data parsing, and validation per NPR 7150.2 Class B requirements.
 
+The link carries ICD lines (docs/interfaces/ICD_OBC_JETSON.md section 4,
+obc_link.py): TELEMETRY (heartbeat), STATUS_REQ, SHUTDOWN and BEACON_REQ
+from the OBC; STATUS, BEACON_RSP, ACK and NACK to it.
+
 Author: SMART-QSO Team
 Date: 2026-01-02
 Version: 1.0
 """
 
 import serial
-import json
 import threading
 import time
 import logging
 from typing import Optional, Callable, Dict, Any
 from dataclasses import dataclass
 from enum import IntEnum
-import struct
 
-from crc16 import crc16_ccitt
+import obc_link
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +37,7 @@ class HealthCommand(IntEnum):
     RESTART = 0x04
     POWER_STATE = 0x05
     CONFIG_UPDATE = 0x06
+    BEACON_REQUEST = 0x07
 
 
 class HealthStatus(IntEnum):
@@ -62,13 +65,11 @@ class HealthInterface:
     UART interface for health communication with OBC.
 
     This class manages the serial connection to the OBC, receives
-    health commands, parses JSON data, and validates messages.
+    ICD lines, checks their CRC, and turns them into commands.
     """
 
     # Protocol constants
-    FRAME_START = 0x7E
-    FRAME_END = 0x7F
-    MAX_FRAME_SIZE = 512
+    MAX_LINE_SIZE = obc_link.LINE_MAX
     HEARTBEAT_TIMEOUT_S = 30.0
     RECONNECT_INTERVAL_S = 5.0
 
@@ -181,34 +182,38 @@ class HealthInterface:
 
     def send_response(self, status: HealthStatus, data: Optional[Dict[str, Any]] = None) -> bool:
         """
-        Send response to OBC.
+        Send a STATUS line to the OBC.
 
         Args:
             status: Health status code
-            data: Optional response data
+            data: Supervisor metrics (temperature_c, power_w, memory_percent, uptime_s)
 
         Returns:
             True if send successful
         """
+        data = data or {}
+        try:
+            line = obc_link.status(
+                int(status),
+                int(round(float(data.get("temperature_c", 0.0)))),
+                int(round(float(data.get("power_w", 0.0)) * 1000.0)),
+                int(round(float(data.get("memory_percent", 0.0)))),
+                int(data.get("uptime_s", 0)),
+            )
+        except (obc_link.LinkError, TypeError, ValueError) as e:
+            logger.error(f"Cannot build STATUS line: {e}")
+            return False
+        return self.send_line(line)
+
+    def send_line(self, line: bytes) -> bool:
+        """Send one already-sealed ICD line to the OBC."""
         if not self.is_connected():
             return False
-
         try:
-            response = {
-                "status": int(status),
-                "timestamp": int(time.time()),
-            }
-            if data:
-                response["data"] = data
-
-            payload = json.dumps(response).encode('utf-8')
-            frame = self._build_frame(payload)
-
-            self._serial.write(frame)
+            self._serial.write(line)
             return True
-
         except (serial.SerialException, OSError) as e:
-            logger.error(f"Failed to send response: {e}")
+            logger.error(f"Failed to send line: {e}")
             self._handle_disconnect()
             return False
 
@@ -235,12 +240,12 @@ class HealthInterface:
                     data = self._serial.read(self._serial.in_waiting)
                     buffer.extend(data)
 
-                    # Process complete frames
+                    # Process complete lines
                     while True:
-                        frame = self._extract_frame(buffer)
-                        if frame is None:
+                        line = self._extract_line(buffer)
+                        if line is None:
                             break
-                        self._process_frame(frame)
+                        self._process_line(line)
 
                 # Check heartbeat timeout
                 if not self.is_healthy():
@@ -256,81 +261,66 @@ class HealthInterface:
                 logger.error(f"Unexpected error in receive loop: {e}")
                 self._rx_errors += 1
 
-    def _extract_frame(self, buffer: bytearray) -> Optional[bytes]:
-        """Extract a complete frame from buffer."""
-        # Find frame start
-        try:
-            start_idx = buffer.index(self.FRAME_START)
-        except ValueError:
-            buffer.clear()
-            return None
-
-        # Remove bytes before start
-        if start_idx > 0:
-            del buffer[:start_idx]
-
-        # Find frame end
-        try:
-            end_idx = buffer.index(self.FRAME_END, 1)
-        except ValueError:
-            # Check for buffer overflow
-            if len(buffer) > self.MAX_FRAME_SIZE:
+    def _extract_line(self, buffer: bytearray) -> Optional[bytes]:
+        """Take one complete line (through the newline) from the buffer."""
+        end = buffer.find(b"\n")
+        if end < 0:
+            if len(buffer) > self.MAX_LINE_SIZE:
                 buffer.clear()
+                self._rx_errors += 1
             return None
+        line = bytes(buffer[:end + 1])
+        del buffer[:end + 1]
+        return line
 
-        # Extract frame (excluding start/end markers)
-        frame = bytes(buffer[1:end_idx])
-        del buffer[:end_idx + 1]
-
-        return frame
-
-    def _process_frame(self, frame: bytes):
-        """Process a received frame."""
-        if len(frame) < 4:  # Minimum: 2 bytes CRC + some data
-            self._rx_errors += 1
-            return
-
-        # Extract and verify CRC
-        payload = frame[:-2]
-        received_crc = struct.unpack('>H', frame[-2:])[0]
-        calculated_crc = crc16_ccitt(payload)
-
-        if received_crc != calculated_crc:
-            logger.warning(f"CRC mismatch: {received_crc:04X} != {calculated_crc:04X}")
+    def _process_line(self, line: bytes):
+        """Check one ICD line and dispatch it as a command."""
+        try:
+            msg = obc_link.parse(line)
+            health_data = self._to_health_data(msg)
+        except obc_link.CrcError:
             self._crc_errors += 1
             return
-
-        # Parse JSON payload
-        try:
-            data = json.loads(payload.decode('utf-8'))
-            health_data = self._parse_health_data(data)
-
-            if health_data:
-                self._rx_count += 1
-                self._handle_command(health_data)
-
-        except json.JSONDecodeError as e:
-            logger.warning(f"JSON parse error: {e}")
+        except obc_link.LinkError as e:
+            logger.warning(f"Rejected line: {e}")
             self._rx_errors += 1
-        except Exception as e:
-            logger.error(f"Error processing frame: {e}")
-            self._rx_errors += 1
+            return
 
-    def _parse_health_data(self, data: Dict[str, Any]) -> Optional[HealthData]:
-        """Parse health data from JSON."""
-        try:
+        self._rx_count += 1
+        self._handle_command(health_data)
+
+    def _to_health_data(self, msg: obc_link.Message) -> HealthData:
+        """Map an OBC -> Jetson message to a command (LinkError if not one)."""
+        now = int(time.time() * 1000)
+        if msg.type == "TELEMETRY":
+            t = obc_link.parse_telemetry(msg)
+            extras: Dict[str, Any] = dict(t.extras)
+            extras["sunlit"] = t.sunlit
+            extras["power_limit_w"] = t.power_limit_w
+            obc_temp = 0.0
+            try:
+                obc_temp = float(t.extras.get("OBC_T", "0").rstrip("C"))
+            except ValueError:
+                pass
             return HealthData(
-                timestamp=data.get("timestamp", 0),
-                command=HealthCommand(data.get("command", 0)),
-                power_state=data.get("power_state", 0),
-                battery_soc=data.get("battery_soc", 0.0),
-                obc_temp=data.get("obc_temp", 0.0),
-                payload_enabled=data.get("payload_enabled", False),
-                data=data.get("data"),
+                timestamp=t.time_ms,
+                command=HealthCommand.HEARTBEAT,
+                power_state=t.power_mode,
+                battery_soc=t.soc,
+                obc_temp=obc_temp,
+                payload_enabled=t.extras.get("EPS_PAYLOAD", "ON") == "ON",
+                data=extras,
             )
-        except (KeyError, ValueError) as e:
-            logger.warning(f"Invalid health data: {e}")
-            return None
+        if msg.type == "STATUS_REQ" and not msg.fields:
+            return HealthData(now, HealthCommand.STATUS_REQUEST, 0, 0.0, 0.0, True)
+        if msg.type == "SHUTDOWN" and len(msg.fields) == 1:
+            return HealthData(now, HealthCommand.SHUTDOWN, 0, 0.0, 0.0, True,
+                              {"reason": msg.fields[0]})
+        if msg.type == "BEACON_REQ":
+            req = obc_link.parse_beacon_req(msg)
+            return HealthData(now, HealthCommand.BEACON_REQUEST, 0, 0.0, 0.0, True,
+                              {"seq": req.seq, "max_len": req.max_len})
+        raise obc_link.LinkError(f"{msg.type} is not an OBC -> Jetson message")
 
     def _handle_command(self, health_data: HealthData):
         """Handle received command."""
@@ -365,18 +355,6 @@ class HealthInterface:
         logger.info("Attempting reconnection...")
         time.sleep(self.RECONNECT_INTERVAL_S)
         self.connect()
-
-    def _build_frame(self, payload: bytes) -> bytes:
-        """Build a frame with start/end markers and CRC."""
-        crc_value = crc16_ccitt(payload)
-        crc_bytes = struct.pack('>H', crc_value)
-
-        frame = bytes([self.FRAME_START])
-        frame += payload
-        frame += crc_bytes
-        frame += bytes([self.FRAME_END])
-
-        return frame
 
 
 # Convenience function for testing

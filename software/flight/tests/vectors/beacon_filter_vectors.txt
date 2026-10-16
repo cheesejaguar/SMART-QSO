@@ -1,0 +1,51 @@
+# Beacon text content filter vectors (SW-12, docs/BEACON_SPEC.md section 6).
+# <EXPECTED>|<text>; the text runs from the first '|' to the end of the line.
+# EXPECTED: OK LENGTH CHARSET ENCODED NUMERIC CALLSIGN PROFANITY COMMERCIAL
+# Read by software/flight/tests/test_beacon_filter.c (OBC) and
+# software/payload/tests/test_content_filter.py (Jetson): both filters must agree.
+# Word-list rules (profanity, commercial words) are checked per list entry by
+# both suites, and the payload suite checks the two lists are identical.
+OK|Hello from orbit! Listening on the transponder tonight.
+OK|Hello, world from orbit
+OK|SMART-QSO 1U - technology demonstration mission
+OK|Amateur satellite beacon - 73 de KK6GDB-11
+OK|73 de kk6gdb-11, thanks for the contacts
+OK|Sunlit and conserving power; transponder off for now.
+OK|CubeSat greetings to all stations (TX/RX) & listeners
+OK|"Quiet pass," said the beacon: good night.
+OK|Classic assessment of the passband
+OK|Rhythm of the passes
+OK|hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello
+LENGTH|
+LENGTH|hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello hello
+CHARSET|Hello	world
+CHARSET|Hello | T=0 M=SAFE SOC=99
+CHARSET|Only $5 today
+CHARSET|Write to me @ home
+CHARSET|Half power left: 50%
+CHARSET|key=value
+CHARSET|Café in orbit
+CHARSET|Hello * world
+COMMERCIAL|See www.example.org for details
+COMMERCIAL|Visit http now
+COMMERCIAL|Details at example.com
+COMMERCIAL|Great deals on radios
+COMMERCIAL|Buy our kits
+ENCODED|Supercalifragilisticexpialidocious
+ENCODED|Key SGVsbG follows
+ENCODED|deadbeefcafe
+ENCODED|xQzRwPtY
+ENCODED|aGVsbGQgaGVyZQ
+NUMERIC|Battery at 99 percent
+NUMERIC|Orbit 12345 complete
+NUMERIC|73 de KK6GDB-123
+NUMERIC|KK6GDB 11 here
+NUMERIC|KK6GDB- 11 here
+NUMERIC|Pass 12AB done
+NUMERIC|aGVsbG8gd29ybGQ
+CALLSIGN|de W1AW: hello
+CALLSIGN|Greetings from KK6GDC
+CALLSIGN|Relay to 2E0ABC please
+CALLSIGN|vk3abc says hi
+CALLSIGN|Hello A61AB friends
+CALLSIGN|Hello from KK6GDB-12 too

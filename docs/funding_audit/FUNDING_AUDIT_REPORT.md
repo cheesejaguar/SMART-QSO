@@ -1,8 +1,8 @@
 # SMART-QSO Funding Audit Report
 
 **Document Number:** SQSO-AUD-001
-**Revision:** A
-**Date:** 2026-10-14
+**Revision:** B
+**Date:** 2026-10-15
 **Audience:** Prospective funders of design, construction, test and launch (e.g., NASA, NSF, amateur-radio foundations, university sponsors)
 **Basis:** NASA practice for a proposed Class D CubeSat (NPR 8705.4B), the Cal Poly CubeSat Design Specification Rev 14.1, and current U.S. regulations (47 CFR Part 97, 15 CFR 774/960, 14 CFR 450)
 **Baseline audited:** repository commit `0578833` (pre-audit). Corrections made by this audit are in later commits on the same branch.
@@ -65,7 +65,7 @@ primary source are labeled ROM.
 | Safety & mission assurance | **Red** | Catastrophic battery hazard closed without test; inhibits do not meet CDS (3+3); no battery safety program (VV-03…VV-05) |
 | Regulatory / licensing | **Amber** | Part 97 path determined, with conditions on funding structure. All filings drafted on the correct forms. Nothing filed; licensee not named (RG-03) |
 | Launch access | **Amber** | Path identified (commercial SSO ≤ 500 km); no quotes; reported capacity limits after 2028 (LA-01…LA-03) |
-| Cost & schedule | **Red → Amber** | ROM produced ($0.27M–$1.98M cash depending on labor model); a dated plan exists (§7) but is not yet an owned schedule |
+| Cost & schedule | **Red → Amber** | ROM produced ($0.28M–$2.02M cash depending on labor model); a dated plan exists (§7) but is not yet an owned schedule |
 
 ## 4. Critical Findings (all 19)
 
@@ -77,17 +77,20 @@ primary source are labeled ROM.
 | Technical baseline | TB-01, TB-02, TB-03, TB-04 | Impossible battery figure; payload energy not closed; lifetime at 400 km shorter than design life; transponder undefined |
 | Launch-safety compliance | VV-01, VV-02, VV-03, VV-04, VV-05 | "Qualified/Tested" with no hardware; 30-min RF silence vs the required 45; inhibits below CDS; no battery safety program; catastrophic hazard closed without test |
 
-## 5. Decisions Required from the PI (before funding)
+## 5. Decisions from the PI
 
-| ID | Decision | Why it gates funding |
+The PI took D1–D7 on 2026-10-15. The decisions and their remaining actions are in `docs/BASELINE_PARAMETERS.md` §9; the
+research behind them is in [research/](research/).
+
+| ID | Decision (2026-10-15) | Why it gated funding |
 |----|----------|----------------------|
-| D1 | Name the licensee (call sign), control operators, ≥ 2 telecommand stations, and the legal entity / host organization | No filing can be signed; no award recipient |
-| D2 | Funding instruments compatible with Part 97: grants or donations, no compensated operations, no data rights | Otherwise Part 5 applies ([pathway §7](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)) |
-| D3 | FCC Space Bureau pre-filing consultation (AI experiment; loss-of-contact behavior) | Removes the largest licensing uncertainty |
-| D4 | Keep the duty-gated transponder (baseline) or descope to beacon-only if the rebuilt power budget or EM thermal test fails | Scope and cost |
-| D5 | AI model selected by measured energy per beacon | Power and thermal closure |
-| D6 | GNSS receiver vs. third-party ephemeris (SpaceX User's Guide v11 §9.5.7) | Launch-provider acceptance |
-| D7 | Integrator and flight at ≤ 500 km | Launch-vehicle determination starts the 30-day FCC clock |
+| D1 | Licensee KK6GDB, station KK6GDB-11; telecommand stations TBD (NASA Ames and Santa Clara University prospective partners only) | No filing can be signed without it |
+| D2 | Paid contracts allowed, but only on a separate Part 5 radio held by a separate licensee (HuskySat-1 pattern); the amateur station takes no compensation and carries no paid content. Grants and donations until a contract is signed | Otherwise Part 97 is lost ([pathway §7](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)) |
+| D3 | Loss-of-contact N = 30 days at launch, 14 after commissioning; M = 180 days proposed, not implemented; both to the FCC consultation | Removes the largest licensing uncertainty |
+| D4 | Keep the duty-gated transponder | Scope and cost |
+| D5 | OBC selector as the flight baseline; Jetson generation gated on measured ≤ 0.1 Wh per accepted beacon ([selection](../payload/AI_MODEL_SELECTION.md)) | Power and thermal closure |
+| D6 | Add a GNSS receiver (piNAV-NG/FM; Celeste alternate) | Launch-provider acceptance (SpaceX User's Guide v11 §9.5.7.2) |
+| D7 | Transporter-class SSO via a 1U integrator, contract by 2027-06-30 with a 525 km altitude cap; ROM $115k–250k all-in; NRCSD backup | Launch-vehicle determination starts the 30-day FCC clock |
 
 ## 6. Launch and Rideshare (summary)
 
@@ -120,13 +123,13 @@ the FCC 90-day rule or export lead times, and is superseded by this plan for fun
 ## 8. Cost (summary)
 
 Full ROM with basis: [LIFECYCLE_COST_ROM.md](LIFECYCLE_COST_ROM.md). Non-labor including a 30 % reserve is
-**$0.27M–$0.68M**. Labor is the dominant uncertainty, at ≈ 6.25 FTE-years to launch:
+**$0.28M–$0.72M**. Labor is the dominant uncertainty, at ≈ 6.25 FTE-years to launch:
 
 | Labor model | Total cash |
 |-------------|-----------|
-| Volunteer | $0.27M–$0.68M |
-| University | $0.57M–$1.28M |
-| Professional | $1.17M–$1.98M |
+| Volunteer | $0.28M–$0.72M |
+| University | $0.58M–$1.32M |
+| Professional | $1.18M–$2.02M |
 
 ## 9. Recommended Funding Structure
 
@@ -195,7 +198,7 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
     - `SET_MODE` through the state-machine transition table; `SET_POWER` command
     - CI secret scan; ground telecommand and key-provisioning tools whose bytes match the flight vectors
     - loss-of-contact transmit inhibit: after N days without an authenticated command the transmitters stop and the
-      receiver stays on; N is set by telecommand (1–90 days; the 14-day default is a placeholder pending D3); the
+      receiver stays on; N is set by telecommand (1–90 days; 30 days at launch, 14 after commissioning, D3); the
       M-day autonomous passivation is not implemented
     - TX-OFF hardware test procedure TP-RF-006 (not yet run)
     - 45-minute post-deployment RF silence: whole radio unpowered; a power-on reset or switch toggle restarts it; a
@@ -223,11 +226,44 @@ Part 97 valid ([pathway §5](../regulatory/LICENSING_PATHWAY_DETERMINATION.md)).
 
 Fixing these needs design decisions or hardware, not documentation edits.
 
+### 11.1 Follow-on Closure Work (2026-10-15)
+
+After the PI's decisions D1–D7 (§5), a second pass closed or advanced most open items. The register status line
+gives the current counts.
+
+- **Flight software:**
+  - Beacon content filter on the OBC and the Jetson, with shared vectors (SW-12).
+  - Beacon telemetry from measurements with validity flags, and a beacon cycle in main (SW-13).
+  - A guarded mode manager as the single source of the power mode (SW-14).
+  - A supervised watchdog that stops refreshing when a task stalls (SW-15).
+  - OBC-enforced Jetson power and temperature limits (SW-16).
+  - Assertions active in flight builds (SW-08).
+  - Function-length and dynamic-memory gates (SW-07).
+  - A GNSS NMEA driver (D6).
+  - A compile-only STM32L4 port with a register-level HAL, cross-compiled in CI (SW-01).
+- **CI gates now block:**
+  - pinned tools, an 80 % coverage floor, and sanitizers with undefined behaviour fatal (this found a real bug);
+  - no-regression gates for clang-tidy, the MISRA checker and function length;
+  - parameter consistency between code and documents;
+  - requirements traceability (SW-17, VV-08, VV-06).
+- **Decisions recorded:**
+  - BASELINE Rev B, with research reports in [research/](research/);
+  - loss-of-contact timeout 30 days at launch (D3);
+  - AI model selection (D5);
+  - GNSS receiver (D6);
+  - integrator plan and cost (D7);
+  - paid-contract terms (D2).
+- **Integrity:**
+  - verification status consolidated in the VCRM (PI-06);
+  - unverified hazard closures reopened (PI-07);
+  - CDR criteria re-assessed, and the project stated as Phase B (PI-04);
+  - JPL and MISRA compliance claims withdrawn (SW-07).
+
 ## 12. Actions Only the Team Can Take
 
 These cannot be done from the repository:
 
-1. Designate the licensee, call sign, control operators and telecommand stations.
+1. Designate the control operators and at least two telecommand stations (licensee KK6GDB designated, D1).
 2. Consult the FCC Space Bureau.
 3. Submit the IARU request (satcoord@iaru.org).
 4. File the FCC pre-space notification.
@@ -237,7 +273,9 @@ These cannot be done from the repository:
 8. Request NOAA's written confirmation.
 9. Register on Space-Track.
 10. Recruit independent reviewers.
-11. Execute funding agreements that meet the Part 97 conditions.
+11. Execute funding agreements that meet the Part 97 conditions (and, for a paid contract, the Part 5 terms in the
+    licensing pathway §7.1).
+12. Turn on branch protection so the CI gates are required before merge (a repository setting).
 
 ---
 
@@ -246,3 +284,4 @@ These cannot be done from the repository:
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial funding audit report |
+| B | 2026-10-15 | §5 decisions D1–D7; §8 cost totals; §11.1 follow-on closure work; §12 updated |

@@ -192,7 +192,7 @@ This document defines contingency procedures for responding to off-nominal space
 
 2. IF confirmed undervoltage:
    [ ] Stop all non-essential commanding
-   [ ] Spacecraft should auto-enter SAFE mode at SOC < 20%
+   [ ] Spacecraft should auto-enter SAFE mode at SOC < 25%
 
 3. CALCULATE power budget:
    [ ] Current SOC

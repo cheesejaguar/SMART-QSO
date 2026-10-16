@@ -18,7 +18,7 @@
 >
 > | Item | Entry |
 > |------|-------|
-> | Space station licensee | `[full name]`, call sign `[call]`, license class `[class]`, FRN `[FRN]` |
+> | Space station licensee | `[full name]`, call sign KK6GDB (space station identifies as KK6GDB-11), license class `[class]`, FRN `[FRN]` |
 > | Address / phone / email | `[ ]` |
 > | 24-hour interference and space-safety contact | `[name, phone, email]` |
 > | Control operators (97.207(a)) | `[call signs]` |

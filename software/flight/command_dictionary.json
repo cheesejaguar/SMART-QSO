@@ -6,7 +6,7 @@
     {"name": "RESET", "id": "0x01", "c_name": "CMD_SYS_RESET", "min_args": 0, "max_args": 0, "key": "operational", "summary": "System reset (logged only until a hardware reset exists)"},
     {"name": "SET_MODE", "id": "0x02", "c_name": "CMD_SYS_SET_MODE", "min_args": 1, "max_args": 1, "key": "operational", "summary": "Set mode through the transition table: 0 SAFE, 1 IDLE, 2 ACTIVE"},
     {"name": "GET_STATUS", "id": "0x03", "c_name": "CMD_SYS_GET_STATUS", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Get system status (4 bytes)"},
-    {"name": "SET_CONTACT_TIMEOUT", "id": "0x07", "c_name": "CMD_SYS_SET_CONTACT_TIMEOUT", "min_args": 2, "max_args": 2, "key": "operational", "summary": "Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 14 is a placeholder, decision D3)"},
+    {"name": "SET_CONTACT_TIMEOUT", "id": "0x07", "c_name": "CMD_SYS_SET_CONTACT_TIMEOUT", "min_args": 2, "max_args": 2, "key": "operational", "summary": "Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 30 at launch, 14 after commissioning: decision D3)"},
     {"name": "CLEAR_FAULTS", "id": "0x05", "c_name": "CMD_SYS_CLEAR_FAULTS", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Clear fault log"},
     {"name": "KEY_ROTATE", "id": "0x06", "c_name": "CMD_SYS_KEY_ROTATE", "min_args": 1, "max_args": 1, "key": "recovery", "summary": "Activate spare operational key slot 0-3 and revoke the current key (recovery key only)"},
     {"name": "EPS_SET_MODE", "id": "0x10", "c_name": "CMD_EPS_SET_MODE", "min_args": 1, "max_args": 1, "key": "operational", "summary": "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE"},

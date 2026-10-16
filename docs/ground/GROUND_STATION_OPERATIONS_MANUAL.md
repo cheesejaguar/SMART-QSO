@@ -137,7 +137,7 @@ At AOS (elevation > 0°):
      □ Note signal strength (S-meter)
 
 □ 2. Confirm spacecraft identity
-     □ Verify callsign "SQSO-1" in beacon
+     □ Verify callsign "KK6GDB-11" in beacon
      □ Verify telemetry values reasonable
      □ Log AOS time and signal strength
 
@@ -459,7 +459,7 @@ If telemetry indicates emergency:
 │                                         │
 │ Mode: FM / 1200 baud AFSK              │
 │ Beacon: Every 60 seconds               │
-│ Callsign: SQSO-1                       │
+│ Callsign: KK6GDB-11                    │
 └─────────────────────────────────────────┘
 ```
 

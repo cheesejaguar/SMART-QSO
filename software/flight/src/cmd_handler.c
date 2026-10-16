@@ -442,14 +442,9 @@ static CmdResult_t handle_eps_cmd(const Command_t *cmd, CmdResponse_t *response)
 {
     switch (cmd->cmd_id) {
         case CMD_EPS_SET_MODE:
-            if (cmd->payload_len >= 1U) {
-                PowerMode_t mode = (PowerMode_t)cmd->payload[0];
-                if (mode <= POWER_MODE_ACTIVE) {
-                    (void)sys_set_power_mode(mode);
-                    return CMD_RESULT_SUCCESS;
-                }
-            }
-            return CMD_RESULT_INVALID_PARAM;
+            /* Power modes SAFE/IDLE/ACTIVE are the operational states of the
+             * same name: one path, through the state machine (SW-14) */
+            return set_mode(cmd);
 
         case CMD_EPS_GET_TELEMETRY:
             {

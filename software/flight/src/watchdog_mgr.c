@@ -107,6 +107,12 @@ static void check_task_watchdogs(void)
                                         FAULT_SEVERITY_WARNING,
                                         msg,
                                         0.0);
+
+                    /* The refresh stops now, so the hardware will reset the
+                     * OBC: save state while there is time (SRS-F051) */
+                    if (s_prereset_callback != NULL) {
+                        s_prereset_callback();
+                    }
                 }
             }
         } else {
@@ -170,15 +176,18 @@ void wdt_mgr_kick(void)
         return;
     }
 
-    /* Kick hardware watchdog */
-    hal_wdt_kick();
-    s_stats.hw_kicks++;
-
     /* Check task watchdogs periodically */
     uint64_t now = smart_qso_now_ms();
     if ((now - s_last_task_check_ms) >= WDT_TASK_CHECK_INTERVAL_MS) {
         check_task_watchdogs();
         s_last_task_check_ms = now;
+    }
+
+    /* Refresh the hardware watchdog only while every registered task is
+     * alive: a stalled task lets the hardware reset the OBC (SW-15) */
+    if (!wdt_mgr_any_task_stalled()) {
+        hal_wdt_kick();
+        s_stats.hw_kicks++;
     }
 }
 

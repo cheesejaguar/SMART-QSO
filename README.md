@@ -26,16 +26,17 @@ A 1U CubeSat mission experimenting with onboard agentic AI to manage an amateur 
 | Regulatory filings (IARU, FCC Part 97, ITU) | Drafted, not submitted | - |
 | Hardware | None built | - |
 
-**Current Phase**: design-phase documentation baseline; pre-PDR in substance
+**Current Phase**: Phase B (pre-PDR). Design decisions D1–D7 taken 2026-10-15 ([baseline](docs/BASELINE_PARAMETERS.md) §9). Flight software runs as a host simulation with a compile-only STM32L4 port; no hardware has been built.
 
 ---
 
 ## Key Technologies
 
 - **Compute**: Ultra-low-power OBC (STM32L4R5) + Jetson Orin Nano module (7 W mode, power-gated, burst-only)
-- **AI**: onboard model (selected by measured energy per beacon) for transponder scheduling and plain-language beacons
+- **AI**: a calibrated selector on the OBC chooses pre-approved beacon text and schedules the transponder (flight baseline); Jetson-generated text is a gated experiment, enabled only if measured energy per beacon is ≤ 0.1 Wh. All beacon text passes a deterministic content filter ([selection](docs/payload/AI_MODEL_SELECTION.md))
 - **RF**: U/V FM transponder; downlink in 145.800–146.000 MHz and uplink in 435–438 MHz (to be IARU-coordinated); 1200 bps AX.25 telemetry; authenticated telecommand with hardware TX-OFF
 - **ADCS**: Magnetorquer-based B-dot detumbling and coarse sun-pointing
+- **Navigation**: duty-cycled GNSS receiver for operator ephemeris (SpaceX rideshare requirement; decision D6)
 - **Power**: Body-mounted cells plus two deployable solar wings, ≈ 50 Wh 4S 18650 battery, MPPT charging
 
 ---

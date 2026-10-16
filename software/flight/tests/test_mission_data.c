@@ -25,6 +25,14 @@
 #include "smart_qso.h"
 #include "mission_data.h"
 
+/** The file the module under test uses (MISSION_DATA_FILE_ENV overrides MISSION_DATA_FILE) */
+static const char *data_path(void)
+{
+    const char *path = getenv(MISSION_DATA_FILE_ENV);
+    return ((path != NULL) && (path[0] != '\0')) ? path : MISSION_DATA_FILE;
+}
+
+
 /*===========================================================================*/
 /* Test Helpers                                                               */
 /*===========================================================================*/
@@ -39,7 +47,7 @@
 static int setup(void **state) {
     (void)state;
     /* Remove any existing data file */
-    unlink(MISSION_DATA_FILE);
+    unlink(data_path());
     /* Initialize mission data module */
     SmartQsoResult_t result = mission_data_init();
     assert_int_equal(result, SMART_QSO_OK);
@@ -48,7 +56,7 @@ static int setup(void **state) {
 
 static int teardown(void **state) {
     (void)state;
-    unlink(MISSION_DATA_FILE);
+    unlink(data_path());
     return 0;
 }
 
@@ -203,7 +211,7 @@ static void test_mission_data_save(void **state) {
     assert_int_equal(result, SMART_QSO_OK);
 
     /* Verify file exists */
-    FILE *f = fopen(MISSION_DATA_FILE, "rb");
+    FILE *f = fopen(data_path(), "rb");
     assert_non_null(f);
     fclose(f);
 }
@@ -281,7 +289,7 @@ static void test_mission_data_crc_protection(void **state) {
     mission_data_save();
 
     /* Read raw file and verify CRC is present */
-    FILE *f = fopen(MISSION_DATA_FILE, "rb");
+    FILE *f = fopen(data_path(), "rb");
     assert_non_null(f);
 
     fseek(f, 0, SEEK_END);
@@ -304,7 +312,7 @@ static void test_mission_data_corruption_detection(void **state) {
     mission_data_save();
 
     /* Corrupt the file */
-    FILE *f = fopen(MISSION_DATA_FILE, "r+b");
+    FILE *f = fopen(data_path(), "r+b");
     assert_non_null(f);
 
     /* Write garbage to the middle */

@@ -79,7 +79,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
-| MRD-020 | The spacecraft shall transmit a beacon at least every 60 seconds | T | Critical |
+| MRD-020 | The spacecraft shall transmit a beacon at least every 60 seconds in ACTIVE mode, and at least every 180 seconds in IDLE and SAFE to save power (`docs/BEACON_SPEC.md` §7), unless a transmit inhibit is active | T | Critical |
 | MRD-021 | The beacon shall include spacecraft health telemetry | T | Critical |
 | MRD-022 | The spacecraft shall be detectable by amateur ground stations | T | Critical |
 | MRD-023 | The downlink frequency shall be coordinated with IARU | I | Critical |

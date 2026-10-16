@@ -72,7 +72,8 @@ Per JPL Power of Ten Rule 3:
 #endif
 
 /* Link-time enforcement */
-/* Use --wrap=malloc linker flag to catch accidental allocations */
+/* Checked on every build: ctest no_dynamic_memory fails if any flight object
+ * references malloc, calloc, realloc or free (scripts/check_no_dynamic_memory.sh) */
 ```
 
 ---

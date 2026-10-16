@@ -8,6 +8,8 @@
  */
 
 #include "eps_control.h"
+#include <stdlib.h>
+#include "payload_guard.h"
 #include "fault_mgmt.h"
 #include <stdio.h>
 #include <string.h>
@@ -89,6 +91,13 @@ SmartQsoResult_t eps_control_payload(bool enable, double soc)
 
     if (s_eps_state.payload_enabled == enable) {
         return SMART_QSO_OK;
+    }
+
+    /* The OBC's own power and temperature limits come first (SW-16) */
+    if (enable && !payload_guard_may_enable(smart_qso_now_ms())) {
+        fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_WARNING,
+                      "Payload enable blocked: guard cool-down or hot spreader", soc);
+        return SMART_QSO_ERROR;
     }
 
     /* Check power constraints for enable */
@@ -231,9 +240,16 @@ double eps_get_power_limit(void)
     return s_eps_state.power_limit_w;
 }
 
+/** Persistent EPS configuration file: EPS_CONFIG_FILE unless overridden */
+static const char *eps_config_path(void)
+{
+    const char *path = getenv(EPS_CONFIG_FILE_ENV);
+    return ((path != NULL) && (path[0] != '\0')) ? path : EPS_CONFIG_FILE;
+}
+
 SmartQsoResult_t eps_save_config(void)
 {
-    FILE *f = fopen(EPS_CONFIG_FILE, "wb");
+    FILE *f = fopen(eps_config_path(), "wb");
     if (f == NULL) {
         return SMART_QSO_ERROR_IO;
     }
@@ -254,7 +270,7 @@ SmartQsoResult_t eps_save_config(void)
 
 SmartQsoResult_t eps_load_config(void)
 {
-    FILE *f = fopen(EPS_CONFIG_FILE, "rb");
+    FILE *f = fopen(eps_config_path(), "rb");
     if (f == NULL) {
         return SMART_QSO_ERROR_IO;
     }
@@ -281,4 +297,30 @@ SmartQsoResult_t eps_load_config(void)
 
     s_eps_state = loaded_state;
     return SMART_QSO_OK;
+}
+
+bool eps_bus_voltage_ok(double volts)
+{
+    /* Written so that NaN fails both comparisons and is rejected */
+    return (volts >= EPS_BUS_MIN_V) && (volts <= EPS_BUS_MAX_V);
+}
+
+/** Latest measured state of charge; 0 until the first measurement */
+static double s_soc = 0.0;
+
+bool eps_is_beacon_enabled(void)
+{
+    return s_eps_state.beacon_enabled;
+}
+
+void eps_update_soc(double soc)
+{
+    if ((soc >= 0.0) && (soc <= 1.0)) {
+        s_soc = soc;
+    }
+}
+
+double eps_get_soc(void)
+{
+    return s_soc;
 }

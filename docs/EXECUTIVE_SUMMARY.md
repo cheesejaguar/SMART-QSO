@@ -46,7 +46,7 @@ a conventional transponder and template beacon.
 | Regulatory filings | **None submitted.** Drafts exist for the IARU request, FCC Part 97 pre-space notification, ITU Appendix 4 data and ODAR |
 | Launch | **Not contracted.** Trade study recommends a commercial SSO rideshare in 2028 |
 | Licensee / team | **Not yet named** |
-| Budget | ROM only: $0.27M–$0.68M cash for a volunteer build, $0.57M–$1.28M for a university build ([cost ROM](funding_audit/LIFECYCLE_COST_ROM.md)) |
+| Budget | ROM only: $0.28M–$0.72M cash for a volunteer build, $0.58M–$1.32M for a university build ([cost ROM](funding_audit/LIFECYCLE_COST_ROM.md)) |
 
 ## Key Design Features
 

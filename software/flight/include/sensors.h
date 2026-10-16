@@ -62,6 +62,7 @@ typedef struct Sensor {
     SensorReadFn_t read;                       /**< Read function pointer */
     double last_value;                         /**< Last numeric reading */
     char last_text[8];                         /**< Last text reading */
+    uint64_t last_read_ms;                     /**< Last successful read (0: never) */
 } Sensor_t;
 
 /*===========================================================================*/

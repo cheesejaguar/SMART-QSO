@@ -155,7 +155,7 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | Test | Injection | Expected Response | Actual | Recovery | P/F |
 |------|-----------|-------------------|--------|----------|-----|
 | Sensor fail | Disable magnetometer | Use backup/degrade | ______ | ______ | |
-| Low battery | Force SOC < 20% | Enter safe mode | ______ | ______ | |
+| Low battery | Force SOC < 25% | Enter safe mode | ______ | ______ | |
 | Comm timeout | Block uplink | Continue autonomous | ______ | ______ | |
 | Watchdog | Delay kick | System reset | ______ | ______ | |
 | Memory error | Inject bit flip | CRC detect, recover | ______ | ______ | |

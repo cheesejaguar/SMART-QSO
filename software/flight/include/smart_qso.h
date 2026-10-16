@@ -189,51 +189,40 @@ typedef enum {
 /*===========================================================================*/
 
 /**
- * @brief Legacy assertion macros for compatibility
+ * @brief Assertions: one API, active in every build (SW-08, JPL Rule 5)
  *
- * For full assertion functionality including logging, safe mode transitions,
- * and statistics, include "assert_handler.h" which provides:
- * - SMART_QSO_REQUIRE(condition)       - Precondition check
- * - SMART_QSO_ENSURE(condition)        - Postcondition check
- * - SMART_QSO_INVARIANT(condition)     - Invariant check
- * - SMART_QSO_REQUIRE_NOT_NULL(ptr)    - NULL pointer check (returns error)
- * - SMART_QSO_REQUIRE_RANGE(val,min,max) - Range check
- * - SMART_QSO_REQUIRE_BOUNDS(idx,size) - Bounds check
- * - SMART_QSO_ASSERT(condition)        - General assertion
- * - SMART_QSO_ASSERT_CRITICAL(condition) - Critical assertion (safe mode)
- * - SMART_QSO_UNREACHABLE()            - Unreachable code marker
+ * A failed check is reported to the assertion handler (assert_handler.c:
+ * logged, counted, and fault-logged) in every build, flight included. The
+ * function then returns an error, so it never carries on with the bad value.
  *
- * @note Assertions are NEVER compiled out in flight builds per JPL Rule 5
+ * - SMART_QSO_REQUIRE(condition, message)   precondition; returns SMART_QSO_ERROR_INVALID
+ * - SMART_QSO_ENSURE(condition, message)    postcondition; returns SMART_QSO_ERROR
+ * - SMART_QSO_REQUIRE_NOT_NULL(ptr)         returns SMART_QSO_ERROR_NULL_PTR
+ * - SMART_QSO_REQUIRE_OR(condition, message, retval) and
+ *   SMART_QSO_REQUIRE_NOT_NULL_OR(ptr, retval) for functions that do not
+ *   return SmartQsoResult_t
+ *
+ * assert_handler.h adds checks with an explicit severity (critical: safe
+ * mode; fatal: reset).
  */
+void smart_qso_assert_failed(const char *file, uint32_t line, const char *message);
 
-/* Legacy macros for backward compatibility - prefer assert_handler.h */
-#if SMART_QSO_DEBUG_ENABLED
-#include <stdio.h>
-#define SMART_QSO_LEGACY_ASSERT(condition, message) \
+#define SMART_QSO_REQUIRE_OR(condition, message, retval) \
     do { \
         if (!(condition)) { \
-            fprintf(stderr, "[ASSERT] %s:%d: %s\n", __FILE__, __LINE__, message); \
+            smart_qso_assert_failed(__FILE__, (uint32_t)__LINE__, (message)); \
+            return (retval); \
         } \
     } while (0)
-#else
-#define SMART_QSO_LEGACY_ASSERT(condition, message) \
-    do { \
-        if (!(condition)) { \
-            /* Log to fault manager - silent in release */ \
-        } \
-    } while (0)
-#endif
 
-/* Backward-compatible macros (two-argument version) */
-#define SMART_QSO_REQUIRE(condition, message) SMART_QSO_LEGACY_ASSERT(condition, message)
-#define SMART_QSO_ENSURE(condition, message)  SMART_QSO_LEGACY_ASSERT(condition, message)
-#define SMART_QSO_ASSERT_MSG(condition, message) SMART_QSO_LEGACY_ASSERT(condition, message)
-
-/* Null pointer check */
+#define SMART_QSO_REQUIRE(condition, message) \
+    SMART_QSO_REQUIRE_OR((condition), (message), SMART_QSO_ERROR_INVALID)
+#define SMART_QSO_ENSURE(condition, message) \
+    SMART_QSO_REQUIRE_OR((condition), (message), SMART_QSO_ERROR)
+#define SMART_QSO_REQUIRE_NOT_NULL_OR(ptr, retval) \
+    SMART_QSO_REQUIRE_OR((ptr) != NULL, "Null pointer: " #ptr, (retval))
 #define SMART_QSO_REQUIRE_NOT_NULL(ptr) \
-    SMART_QSO_LEGACY_ASSERT((ptr) != NULL, "Null pointer: " #ptr)
-#define SMART_QSO_CHECK_NULL(ptr) \
-    SMART_QSO_LEGACY_ASSERT((ptr) != NULL, "Null pointer: " #ptr)
+    SMART_QSO_REQUIRE_NOT_NULL_OR((ptr), SMART_QSO_ERROR_NULL_PTR)
 
 /*===========================================================================*/
 /* Time Functions                                                             */
@@ -245,6 +234,19 @@ typedef enum {
  * @return Current time in milliseconds since epoch
  */
 uint64_t smart_qso_now_ms(void);
+
+#ifdef SIMULATION_BUILD
+/**
+ * @brief Simulation only: move the clock forward
+ *
+ * Shifts smart_qso_now_ms() and the simulated HAL timer together, so tests
+ * can run time-dependent code without sleeping.
+ */
+void smart_qso_sim_advance_ms(uint64_t ms);
+
+/** Simulation only: total time added by smart_qso_sim_advance_ms() */
+uint64_t smart_qso_sim_offset_ms(void);
+#endif
 
 /*===========================================================================*/
 /* CRC Functions                                                              */

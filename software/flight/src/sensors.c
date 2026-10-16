@@ -77,11 +77,8 @@ static bool read_eps_voltage(Sensor_t *self, double *out_value, char *out_text)
                           "Low battery voltage detected", s_soc);
         }
     } else if (strcmp(self->channel, "bus") == 0) {
+        /* Range check is FDIR on the measured value (main.c), not here */
         base = 5.0;
-        if (base < 4.5 || base > 5.5) {
-            fault_log_add(FAULT_TYPE_VOLTAGE_RANGE, FAULT_SEVERITY_ERROR,
-                          "Bus voltage out of range", s_soc);
-        }
     } else if (strcmp(self->channel, "solar") == 0) {
         base = s_sunlit ? 7.5 : 0.2;
     }
@@ -112,6 +109,19 @@ static bool read_eps_current(Sensor_t *self, double *out_value, char *out_text)
     return true;
 }
 
+/** Payload heat spreader (OBC thermistor): warms with the Jetson on */
+static bool read_payload_temperature(Sensor_t *self, double *out_value, char *out_text)
+{
+    (void)self;
+    (void)out_text;
+    double base = s_sunlit ? 22.0 : 14.0;
+    if (eps_is_payload_enabled()) {
+        base += 20.0;
+    }
+    *out_value = base + 0.5 * (rnd_unit() - 0.5);
+    return true;
+}
+
 static bool read_eps_temperature(Sensor_t *self, double *out_value, char *out_text)
 {
     (void)self;
@@ -122,15 +132,7 @@ static bool read_eps_temperature(Sensor_t *self, double *out_value, char *out_te
     if (payload_enabled) {
         base += 3.0;
     }
-
-    if (base > 45.0) {
-        fault_log_add(FAULT_TYPE_TEMP_HIGH, FAULT_SEVERITY_ERROR,
-                      "High temperature detected", s_soc);
-        (void)fault_recover_thermal(s_soc);
-    } else if (base < -10.0) {
-        fault_log_add(FAULT_TYPE_TEMP_LOW, FAULT_SEVERITY_WARNING,
-                      "Low temperature detected", s_soc);
-    }
+    /* Limits are checked on the measured value (main.c health check) */
 
     *out_value = base + 0.5 * (rnd_unit() - 0.5);
     return true;
@@ -142,8 +144,6 @@ static bool read_status_hex2(Sensor_t *self, double *out_value, char *out_text)
     (void)out_value;
     bool payload_enabled = eps_is_payload_enabled();
     PowerMode_t power_mode = eps_get_power_mode();
-    EpsControlState_t eps_state;
-    (void)eps_get_state(&eps_state);
 
     /* Enhanced bitmap (LSB..):
      * bit0: OBC on
@@ -156,7 +156,8 @@ static bool read_status_hex2(Sensor_t *self, double *out_value, char *out_text)
      * bit7: Recovery mode
      */
     uint8_t bits = 1u;  /* OBC always on (bit 0) */
-    bits = (uint8_t)(bits | ((eps_state.beacon_enabled ? 1u : 0u) << 1));
+    /* Accessor, not a copy of the state: a failed copy left it uninitialized */
+    bits = (uint8_t)(bits | ((eps_is_beacon_enabled() ? 1u : 0u) << 1));
     bits = (uint8_t)(bits | ((payload_enabled ? 1u : 0u) << 2));
 
     /* Occasional hot flag during sunlit periods */
@@ -198,7 +199,7 @@ static bool read_status_hex2(Sensor_t *self, double *out_value, char *out_text)
  */
 static bool bind_sensor_behavior(Sensor_t *s)
 {
-    SMART_QSO_REQUIRE_NOT_NULL(s);
+    SMART_QSO_REQUIRE_NOT_NULL_OR(s, false);
 
     if (strcmp(s->type, "software_timer") == 0) {
         s->value_type = SENSOR_VALUE_NUMERIC;
@@ -215,6 +216,10 @@ static bool bind_sensor_behavior(Sensor_t *s)
     } else if (strcmp(s->type, "eps_temperature") == 0) {
         s->value_type = SENSOR_VALUE_NUMERIC;
         s->read = read_eps_temperature;
+        return true;
+    } else if (strcmp(s->type, "payload_temperature") == 0) {
+        s->value_type = SENSOR_VALUE_NUMERIC;
+        s->read = read_payload_temperature;
         return true;
     } else if (strcmp(s->type, "status_hex2") == 0) {
         s->value_type = SENSOR_VALUE_HEX2;
@@ -416,6 +421,7 @@ SmartQsoResult_t sensors_load_defaults(void)
         {"BUSV", "Bus Voltage", "eps_voltage", "V", "bus", 1000},
         {"BDI", "Battery Discharge Current", "eps_current", "A", "battery_discharge", 1000},
         {"JPC", "Jetson Payload Current", "eps_current", "A", "jetson", 1000},
+        {"PT", "Payload Heat Spreader Temperature", "payload_temperature", "C", "payload", 1000},
         {"SPV", "Solar Panel Voltage", "eps_voltage", "V", "solar", 1000},
         {"SPC", "Solar Panel Current", "eps_current", "A", "solar", 1000},
         {"ST", "Status Hex", "status_hex2", "hex", "", 1000},
@@ -489,6 +495,7 @@ size_t sensors_poll(uint64_t current_ms)
                     printf("[READ] id=%s name=\"%s\" value=%s units=%s\n",
                            s->id, s->name, s->last_text, s->units);
                 }
+                s->last_read_ms = current_ms;
                 count++;
             }
 
@@ -516,6 +523,7 @@ SmartQsoResult_t sensors_poll_one(size_t index)
     } else {
         (void)snprintf(s->last_text, sizeof(s->last_text), "%s", text);
     }
+    s->last_read_ms = smart_qso_now_ms();
 
     return SMART_QSO_OK;
 }
@@ -528,8 +536,8 @@ void sensors_set_environment(bool sunlit, double soc)
 
 size_t sensors_format_telemetry(char *buffer, size_t buffer_len)
 {
-    SMART_QSO_REQUIRE_NOT_NULL(buffer);
-    SMART_QSO_REQUIRE(buffer_len > 0, "Invalid buffer length");
+    SMART_QSO_REQUIRE_NOT_NULL_OR(buffer, 0U);
+    SMART_QSO_REQUIRE_OR(buffer_len > 0U, "Invalid buffer length", 0U);
 
     size_t offset = 0;
 

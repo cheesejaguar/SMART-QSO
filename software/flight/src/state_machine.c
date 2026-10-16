@@ -11,6 +11,8 @@
 
 #include "state_machine.h"
 #include "fault_mgmt.h"
+#include "eps_control.h"
+#include "payload_guard.h"
 #include <stddef.h>
 
 /*******************************************************************************
@@ -24,16 +26,59 @@
  * Private Data
  ******************************************************************************/
 
+/*
+ * Entry actions: the operational state sets the EPS power mode, so the EPS
+ * holds one power mode and the state machine decides it (SW-14).
+ */
+static SmartQsoResult_t enter_safe(void)
+{
+    SmartQsoResult_t result = eps_set_power_mode(POWER_MODE_SAFE, eps_get_soc());
+    (void)eps_control_beacon(true);   /* SAFE keeps the beacon */
+    return result;
+}
+
+static SmartQsoResult_t enter_emergency(void)
+{
+    /* Battery critical while already SAFE: shed the beacon too. The receiver
+     * stays on for telecommand (47 CFR 97.207(b)) */
+    SmartQsoResult_t result = eps_set_power_mode(POWER_MODE_SAFE, eps_get_soc());
+    (void)eps_control_beacon(false);
+    return result;
+}
+
+static SmartQsoResult_t enter_detumble(void)
+{
+    /* ADCS on, payload off */
+    return eps_set_power_mode(POWER_MODE_IDLE, eps_get_soc());
+}
+
+static SmartQsoResult_t enter_idle(void)
+{
+    return eps_set_power_mode(POWER_MODE_IDLE, eps_get_soc());
+}
+
+static SmartQsoResult_t enter_active(void)
+{
+    return eps_set_power_mode(POWER_MODE_ACTIVE, eps_get_soc());
+}
+
+/** Guard: ACTIVE powers the payload, so the battery and the payload guard must allow it */
+static bool guard_active_allowed(void)
+{
+    return (eps_get_soc() >= EPS_SOC_PAYLOAD_THRESHOLD) &&
+           payload_guard_may_enable(smart_qso_now_ms());
+}
+
 /**
  * @brief State configuration table
  */
 static const SmStateConfig_t s_state_configs[STATE_COUNT] = {
-    { STATE_BOOT,      "BOOT",      NULL, NULL },
-    { STATE_SAFE,      "SAFE",      NULL, NULL },
-    { STATE_DETUMBLE,  "DETUMBLE",  NULL, NULL },
-    { STATE_IDLE,      "IDLE",      NULL, NULL },
-    { STATE_ACTIVE,    "ACTIVE",    NULL, NULL },
-    { STATE_EMERGENCY, "EMERGENCY", NULL, NULL }
+    { STATE_BOOT,      "BOOT",      enter_safe,      NULL },
+    { STATE_SAFE,      "SAFE",      enter_safe,      NULL },
+    { STATE_DETUMBLE,  "DETUMBLE",  enter_detumble,  NULL },
+    { STATE_IDLE,      "IDLE",      enter_idle,      NULL },
+    { STATE_ACTIVE,    "ACTIVE",    enter_active,    NULL },
+    { STATE_EMERGENCY, "EMERGENCY", enter_emergency, NULL }
 };
 
 /**
@@ -58,10 +103,11 @@ static const SmTransition_t s_transitions[] = {
     { STATE_SAFE, EVENT_POWER_OK, STATE_IDLE, NULL, NULL },
     { STATE_SAFE, EVENT_RECOVERY_OK, STATE_IDLE, NULL, NULL },
     { STATE_SAFE, EVENT_GROUND_CMD_IDLE, STATE_IDLE, NULL, NULL },
+    { STATE_SAFE, EVENT_POWER_CRITICAL, STATE_EMERGENCY, NULL, NULL },
 
-    /* From IDLE state */
-    { STATE_IDLE, EVENT_AI_READY, STATE_ACTIVE, NULL, NULL },
-    { STATE_IDLE, EVENT_GROUND_CMD_ACTIVE, STATE_ACTIVE, NULL, NULL },
+    /* From IDLE state: ACTIVE only if battery and payload guard allow */
+    { STATE_IDLE, EVENT_AI_READY, STATE_ACTIVE, guard_active_allowed, NULL },
+    { STATE_IDLE, EVENT_GROUND_CMD_ACTIVE, STATE_ACTIVE, guard_active_allowed, NULL },
     { STATE_IDLE, EVENT_POWER_LOW, STATE_SAFE, NULL, NULL },
     { STATE_IDLE, EVENT_POWER_CRITICAL, STATE_SAFE, NULL, NULL },
     { STATE_IDLE, EVENT_THERMAL_FAULT, STATE_SAFE, NULL, NULL },
@@ -79,13 +125,10 @@ static const SmTransition_t s_transitions[] = {
     { STATE_ACTIVE, EVENT_GROUND_CMD_IDLE, STATE_IDLE, NULL, NULL },
     { STATE_ACTIVE, EVENT_GROUND_CMD_SAFE, STATE_SAFE, NULL, NULL },
 
-    /* From EMERGENCY state */
+    /* From EMERGENCY state (reached from SAFE when power stays critical) */
+    { STATE_EMERGENCY, EVENT_POWER_OK, STATE_SAFE, NULL, NULL },
     { STATE_EMERGENCY, EVENT_RECOVERY_OK, STATE_SAFE, NULL, NULL },
-    { STATE_EMERGENCY, EVENT_GROUND_CMD_SAFE, STATE_SAFE, NULL, NULL },
-
-    /* Any state to EMERGENCY on critical events */
-    { STATE_IDLE, EVENT_POWER_CRITICAL, STATE_EMERGENCY, NULL, NULL },
-    { STATE_ACTIVE, EVENT_POWER_CRITICAL, STATE_EMERGENCY, NULL, NULL }
+    { STATE_EMERGENCY, EVENT_GROUND_CMD_SAFE, STATE_SAFE, NULL, NULL }
 };
 
 /** Number of transitions in the table */
@@ -289,6 +332,61 @@ SmartQsoResult_t sm_get_state(const SmContext_t *ctx, SmState_t *state)
 
     *state = ctx->current_state;
     return SMART_QSO_OK;
+}
+
+SmEvent_t sm_power_event(SmState_t state, double soc, bool sunlit)
+{
+    SmEvent_t event = EVENT_NONE;
+
+    switch (state) {
+        case STATE_ACTIVE:
+            if (soc < EPS_SOC_SAFE_THRESHOLD) {
+                event = EVENT_POWER_CRITICAL;
+            } else if (soc < EPS_SOC_IDLE_THRESHOLD) {
+                event = EVENT_POWER_LOW;
+            } else {
+                event = EVENT_NONE;
+            }
+            break;
+        case STATE_IDLE:
+            if (soc < EPS_SOC_SAFE_THRESHOLD) {
+                event = EVENT_POWER_CRITICAL;
+            } else if (sunlit && (soc >= EPS_SOC_PAYLOAD_THRESHOLD)) {
+                event = EVENT_AI_READY;
+            } else {
+                event = EVENT_NONE;
+            }
+            break;
+        case STATE_SAFE:
+            if (soc < EPS_SOC_EMERGENCY_THRESHOLD) {
+                event = EVENT_POWER_CRITICAL;
+            } else if (soc > EPS_SOC_IDLE_THRESHOLD) {
+                event = EVENT_POWER_OK;
+            } else {
+                event = EVENT_NONE;
+            }
+            break;
+        case STATE_EMERGENCY:
+            event = (soc >= EPS_SOC_SAFE_THRESHOLD) ? EVENT_POWER_OK : EVENT_NONE;
+            break;
+        case STATE_BOOT:
+        case STATE_DETUMBLE:
+            event = (soc < EPS_SOC_SAFE_THRESHOLD) ? EVENT_POWER_CRITICAL : EVENT_NONE;
+            break;
+        case STATE_COUNT:
+        default:
+            event = EVENT_NONE;
+            break;
+    }
+    return event;
+}
+
+const SmTransition_t *sm_transitions(size_t *count)
+{
+    if (count != NULL) {
+        *count = s_num_transitions;
+    }
+    return s_transitions;
 }
 
 const char *sm_get_state_name(SmState_t state)

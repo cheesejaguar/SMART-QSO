@@ -167,104 +167,65 @@ class TestBuildSystemPrompt(unittest.TestCase):
 class TestBuildUserPrompt(unittest.TestCase):
     """Test build_user_prompt function."""
 
-    def test_contains_all_fields(self):
-        """Test prompt contains all health fields."""
+    def test_health_in_words_only(self):
+        """Health appears as words; no numbers for the model to repeat."""
         health = Health(
             call="SQSO-1", time_iso_z="2026-01-02Z",
             mode="ACTIVE", soc=85, sun=1, rf=1, pwr="GOOD", qso=42
         )
         prompt = build_user_prompt(health)
 
-        self.assertIn("CALL=SQSO-1", prompt)
-        self.assertIn("TIME=2026-01-02Z", prompt)
         self.assertIn("MODE=ACTIVE", prompt)
-        self.assertIn("SOC=85", prompt)
-        self.assertIn("SUN=1", prompt)
-        self.assertIn("RF=1", prompt)
+        self.assertIn("SUN=sunlit", prompt)
+        self.assertIn("RF=on", prompt)
         self.assertIn("PWR=GOOD", prompt)
-        self.assertIn("QSO=42", prompt)
+        self.assertNotRegex(prompt, r"\d")
+
+    def test_eclipse_and_rf_off(self):
+        health = Health(
+            call="SQSO-1", time_iso_z="2026-01-02Z",
+            mode="IDLE", soc=40, sun=0, rf=0, pwr="FAIR", qso=0
+        )
+        prompt = build_user_prompt(health)
+        self.assertIn("SUN=eclipse", prompt)
+        self.assertIn("RF=off", prompt)
+
+
+def _h(**kw):
+    base = dict(call="SQSO-1", time_iso_z="2026-01-02Z", mode="ACTIVE", soc=85,
+                sun=1, rf=1, pwr="GOOD", qso=0)
+    base.update(kw)
+    return Health(**base)
 
 
 class TestFallbackText(unittest.TestCase):
-    """Test fallback_text function."""
+    """fallback_text: health in words, no telemetry values (SW-12)."""
 
     def test_safe_mode_text(self):
-        """Test SAFE mode fallback text."""
-        health = Health(
-            call="SQSO-1", time_iso_z="2026-01-02Z",
-            mode="SAFE", soc=50, sun=1, rf=1, pwr="LOW", qso=0
+        text = fallback_text(_h(mode="SAFE", soc=50, pwr="LOW"))
+        self.assertEqual(text, "de SQSO-1: Safe mode, conserving power.")
+        self.assertNotIn("73", text)  # No 73 in SAFE mode
+
+    def test_low_battery_text(self):
+        self.assertEqual(fallback_text(_h(soc=20, pwr="LOW")),
+                         "de SQSO-1: Battery low, conserving power.")
+        self.assertEqual(fallback_text(_h(soc=24, pwr="FAIR")),
+                         "de SQSO-1: Battery low, conserving power.")
+
+    def test_sun_and_transponder_states(self):
+        cases = (
+            (1, 1, "de SQSO-1: Sunlit, transponder on. 73!"),
+            (1, 0, "de SQSO-1: Sunlit, transponder off. 73!"),
+            (0, 1, "de SQSO-1: In eclipse, transponder on. 73!"),
+            (0, 0, "de SQSO-1: In eclipse, transponder off. 73!"),
         )
-        text = fallback_text(health)
-
-        self.assertIn("Conserving power", text)
-        self.assertIn("SQSO-1", text)
-        self.assertNotIn("73!", text)  # No 73! in SAFE mode
-
-    def test_low_soc_text(self):
-        """Test low SOC fallback text."""
-        health = Health(
-            call="SQSO-1", time_iso_z="2026-01-02Z",
-            mode="ACTIVE", soc=20, sun=1, rf=1, pwr="LOW", qso=0
-        )
-        text = fallback_text(health)
-
-        self.assertIn("Conserving power", text)
-
-    def test_sunlit_rf_active(self):
-        """Test sunlit with RF active."""
-        health = Health(
-            call="SQSO-1", time_iso_z="2026-01-02Z",
-            mode="ACTIVE", soc=85, sun=1, rf=1, pwr="GOOD", qso=0
-        )
-        text = fallback_text(health)
-
-        self.assertIn("sunlit", text)
-        self.assertIn("ACTIVE", text)
-        self.assertIn("73!", text)
-
-    def test_sunlit_rf_off(self):
-        """Test sunlit with RF off."""
-        health = Health(
-            call="SQSO-1", time_iso_z="2026-01-02Z",
-            mode="IDLE", soc=85, sun=1, rf=0, pwr="GOOD", qso=0
-        )
-        text = fallback_text(health)
-
-        self.assertIn("Sunlit", text)
-        self.assertIn("RF OFF", text)
-
-    def test_eclipse_rf_active(self):
-        """Test eclipse with RF active."""
-        health = Health(
-            call="SQSO-1", time_iso_z="2026-01-02Z",
-            mode="ACTIVE", soc=85, sun=0, rf=1, pwr="GOOD", qso=0
-        )
-        text = fallback_text(health)
-
-        self.assertIn("Eclipse", text)
-        self.assertIn("RF ACTIVE", text)
-
-    def test_eclipse_rf_off(self):
-        """Test eclipse with RF off."""
-        health = Health(
-            call="SQSO-1", time_iso_z="2026-01-02Z",
-            mode="IDLE", soc=85, sun=0, rf=0, pwr="GOOD", qso=0
-        )
-        text = fallback_text(health)
-
-        self.assertIn("eclipse", text)
-        self.assertIn("conserving power", text)
+        for sun, rf, expected in cases:
+            with self.subTest(sun=sun, rf=rf):
+                self.assertEqual(fallback_text(_h(sun=sun, rf=rf, soc=25, pwr="FAIR")), expected)
 
     def test_fallback_is_ascii(self):
         """Test fallback text is pure ASCII."""
-        health = Health(
-            call="SQSO-1", time_iso_z="2026-01-02Z",
-            mode="ACTIVE", soc=85, sun=1, rf=1, pwr="GOOD", qso=42
-        )
-        text = fallback_text(health)
-
-        # Should not raise
-        text.encode('ascii')
+        fallback_text(_h(qso=42)).encode("ascii")
 
 
 class TestBuildTail(unittest.TestCase):
