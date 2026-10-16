@@ -6,6 +6,8 @@
 **Date:** 2026-01-02
 **Status:** CDR Baseline
 
+**Requirements verified:** SYS-110, SYS-111, SYS-114
+
 ---
 
 ## 1. PURPOSE

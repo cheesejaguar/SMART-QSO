@@ -126,8 +126,8 @@ SMART-QSO is a 1U CubeSat consisting of:
 
 | ID | Requirement | Parent | Verification |
 |----|-------------|--------|--------------|
-| SYS-200 | The transmitter shall operate on 145.825 MHz (or IARU-coordinated frequency) | MRD-023 | T |
-| SYS-201 | The transmitter shall support 0.5W to 2W selectable output power | MRD-022 | T |
+| SYS-200 | The transmitter shall operate on one IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz (BASELINE §7) | MRD-023 | T |
+| SYS-201 | The transmitter shall support 0.5 W nominal output power and shall not exceed 1 W (BASELINE §7) | MRD-022 | T |
 | SYS-202 | The transmitter shall support AFSK 1200 bps modulation | MRD-022 | T |
 | SYS-203 | Spurious emissions shall be at least 40 dB below carrier | MRD-024 | T |
 | SYS-205 | If no authenticated telecommand is received for N days, the spacecraft shall cease all transmissions, keep the telecommand receiver on, and resume only after an authenticated telecommand; N shall be configurable by telecommand within 1–90 days (default and range TBR per decision D3), and the elapsed time shall persist across resets *(added 2026-10-15; SQSO-ICD-013 §6.2; IARU 7.9)* | MRD-024 | T |

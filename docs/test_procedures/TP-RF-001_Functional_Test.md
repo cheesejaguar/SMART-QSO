@@ -6,6 +6,8 @@
 **Date:** 2026-01-02
 **Classification:** Development/Qualification Test
 
+**Requirements verified:** SYS-202, SYS-210
+
 ---
 
 ## 1. Purpose

@@ -71,6 +71,9 @@ jobs:
       - name: Check parameters agree across code and documents
         run: python3 scripts/check_parameters.py
 
+      - name: Traceability (no new undefined, conflicting or uncited requirements)
+        run: python3 scripts/check_traceability.py --check
+
   secret-scan:
     name: Secret Scan
     runs-on: ubuntu-24.04   # pinned
