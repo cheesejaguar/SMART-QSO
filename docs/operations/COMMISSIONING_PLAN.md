@@ -323,6 +323,9 @@ Systems Engineer: __________ Date: ___
 Operations Lead: ___________ Date: ___
 ```
 
+On the transition, send `SET_CONTACT_TIMEOUT` with 14 days (decision D3; the launch default is 30 days) and confirm the
+value in telemetry. The command is itself a contact, so the count restarts from zero.
+
 ## 10. Commissioning Anomaly Handling
 
 ### 10.1 Anomaly Categories

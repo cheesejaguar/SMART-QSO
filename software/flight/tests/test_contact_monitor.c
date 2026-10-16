@@ -51,6 +51,18 @@ static void test_first_boot_starts_at_zero(void **state)
     assert_true(rf_control_tx_permitted());
 }
 
+/** Decision D3: 30 days at launch, leaving slack for a late first contact;
+ *  operations set 14 days by SET_CONTACT_TIMEOUT after commissioning */
+static void test_d3_launch_default(void **state)
+{
+    (void)state;
+    assert_int_equal(contact_monitor_get_timeout_days(), 30U);
+    advance_days(29U);
+    assert_false(contact_monitor_inhibited());
+    assert_int_equal(contact_monitor_set_timeout_days(14U), SMART_QSO_OK);
+    assert_true(contact_monitor_inhibited());  /* already past 14 days */
+}
+
 /** After N days without contact every transmitter is off and the pin is low */
 static void test_inhibits_after_timeout(void **state)
 {
@@ -197,6 +209,7 @@ int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup(test_first_boot_starts_at_zero, setup),
+        cmocka_unit_test_setup(test_d3_launch_default, setup),
         cmocka_unit_test_setup(test_inhibits_after_timeout, setup),
         cmocka_unit_test_setup(test_contact_clears_inhibit, setup),
         cmocka_unit_test_setup(test_independent_of_tx_off_latch, setup),

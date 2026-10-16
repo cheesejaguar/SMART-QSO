@@ -134,7 +134,7 @@ If no authenticated telecommand is received for **N days**, every transmitter is
 
 | Property | Behavior |
 |----------|----------|
-| N | Persisted. Set by `SET_CONTACT_TIMEOUT` (0x07) to 1–90 days. **The 14-day default and the range are placeholders pending decision D3** (FCC/IARU consultation) |
+| N | Persisted. Set by `SET_CONTACT_TIMEOUT` (0x07) to 1–90 days. **30 days at launch**, so a late first contact does not find the spacecraft silent; operations set **14 days** once commissioning is complete (decision D3; values go to the FCC consultation) |
 | Contact | An authenticated frame (operational or recovery key) whose counter was committed, whatever the command's result, including `NOT_ALLOWED` |
 | Not contact | Forged or replayed frames; the keyless `TX_DISABLE` (Section 6); authentic frames rejected before their counter is spent (for example a wrong argument length). These are replayable, so counting them would let a replay hold off the inhibit |
 | Lifting | The next contact lifts the inhibit. It never clears the TX-OFF latch, and `TX_ENABLE` does not lift the inhibit except by being contact itself. Transmission needs both inhibits clear |
@@ -142,7 +142,8 @@ If no authenticated telecommand is received for **N days**, every transmitter is
 | Time base | No reset-proof clock exists, so `contact_monitor_tick()` accumulates seconds without contact from the main loop. The counter is persisted every 60 s (1,440 writes a day to FRAM, which is rated for 10^14 writes) |
 | Boot | The inhibit is recomputed from the counter before `rf_control_init()` drives the line, so a silent spacecraft stays silent through a reset |
 | Errors make it come earlier | Each boot that finds a counter adds 60 s, so a reset loop still reaches N. A corrupt counter counts as timed out. Blank (first boot) starts at 0 |
-| Commissioning | The count starts at first boot. If first contact takes longer than N, the spacecraft falls silent until commanded. That is intended, and operations must plan for it |
+| Commissioning | The count starts at first boot, about 45 minutes before the RF silence ends; that difference is negligible against N. If first contact takes longer than N, the spacecraft falls silent until commanded. That is intended, and operations must plan for it |
+| Passivation (M) | Not implemented. Proposed: after a further 180 days inhibited, never in the first year after launch, permanent passivation (BASELINE §7). For the FCC consultation (D3) |
 | Not implemented | The M-day autonomous end-of-mission passivation in IARU 7.9 and ODAR 4.4-2. It is irreversible, needs the passivation hardware path (SYS-800), and is a larger decision than D3 |
 
 ### 6.3 Post-Deployment RF Silence

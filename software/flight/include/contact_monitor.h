@@ -18,8 +18,9 @@
  *  - a corrupt counter record counts as timed out (inhibited until contact).
  *
  * N is a persisted parameter, settable by telecommand within
- * CONTACT_TIMEOUT_MIN_DAYS..CONTACT_TIMEOUT_MAX_DAYS. The default is a
- * PLACEHOLDER pending decision D3 (FCC/IARU consultation).
+ * CONTACT_TIMEOUT_MIN_DAYS..CONTACT_TIMEOUT_MAX_DAYS. The default is 30 days
+ * (decision D3). End-of-mission passivation after a further M days is not
+ * implemented; it is a question for the FCC consultation.
  *
  * @requirement SYS-205 Cease transmissions after N days without an authenticated telecommand
  */
@@ -36,10 +37,13 @@ extern "C" {
 #include <stdbool.h>
 #include <stdint.h>
 
-/** Default contact timeout in days. PLACEHOLDER (TBR, decision D3) */
-#define CONTACT_TIMEOUT_DEFAULT_DAYS    14U
+/** Default contact timeout in days (decision D3): 30 days at launch, so a late
+ *  first contact does not find the spacecraft silent; operations set 14 days
+ *  by SET_CONTACT_TIMEOUT once commissioning is complete
+ *  (docs/funding_audit/research/D3_LOSS_OF_CONTACT.md) */
+#define CONTACT_TIMEOUT_DEFAULT_DAYS    30U
 
-/** Allowed range for the contact timeout (TBR, decision D3) */
+/** Allowed range for the contact timeout (decision D3) */
 #define CONTACT_TIMEOUT_MIN_DAYS        1U
 #define CONTACT_TIMEOUT_MAX_DAYS        90U
 
