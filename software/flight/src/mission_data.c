@@ -8,6 +8,7 @@
  */
 
 #include "mission_data.h"
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include <stdio.h>
@@ -66,7 +67,7 @@ SmartQsoResult_t mission_data_init(void)
         s_mission_data.last_reset_ms = smart_qso_now_ms();
         mission_data_update_crc();
 
-        printf("[MISSION] Loaded mission data (reset #%u)\n",
+        printf("[MISSION] Loaded mission data (reset #%" PRIu32 ")\n",
                s_mission_data.reset_count);
     }
 

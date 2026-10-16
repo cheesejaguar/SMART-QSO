@@ -14,6 +14,7 @@
 
 #include "flight_log.h"
 #include "safe_string.h"
+#include <inttypes.h>
 #include <stddef.h>
 #include <stdio.h>  /* Only for vsnprintf - can be removed in flight build */
 
@@ -96,7 +97,7 @@ static void output_entry(const LogEntry_t *entry)
     /* Output to UART (simulation only - would use HAL in flight) */
 #ifdef SIMULATION_BUILD
     if ((s_outputs & LOG_OUTPUT_UART) != 0) {
-        fprintf(stderr, "[%010u][%s][%s] %s\n",
+        fprintf(stderr, "[%010" PRIu32 "][%s][%s] %s\n",
                 entry->timestamp_ms,
                 level_to_string(entry->level),
                 entry->module,
