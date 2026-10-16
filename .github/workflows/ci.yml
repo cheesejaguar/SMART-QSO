@@ -135,7 +135,6 @@ jobs:
             --suppress=missingInclude \
             --suppress=unusedFunction \
             --suppress=knownConditionTrueFalse \
-            --suppress=nullPointerRedundantCheck \
             --suppress=unusedStructMember \
             --suppress=constParameterCallback \
             --suppress=constVariablePointer \
@@ -190,7 +189,8 @@ jobs:
       - name: Run the MISRA addon (no new findings)
         working-directory: software/flight
         run: |
-          cppcheck --addon=misra --std=c11 --quiet -I include \
+          # The addon reports at style severity, so style must be enabled
+          cppcheck --addon=misra --enable=style --std=c11 --quiet -I include \
             --template='{file}:{line}:{column}: {id}' src/ 2> misra.txt || true
           count=$(grep -cE ': misra-c2012-' misra.txt || true)
           echo "MISRA findings by rule:"
