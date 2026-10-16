@@ -147,9 +147,13 @@ SMART-QSO will utilize the SatNOGS global ground station network for:
 
 | Power Mode | Beacon Interval | Expected per Day |
 |------------|-----------------|------------------|
-| SAFE | 120 seconds | ~720 |
-| IDLE | 60 seconds | ~1440 |
-| ACTIVE | 30 seconds | ~2880 |
+| SAFE | 180 seconds | ~480 |
+| IDLE | 120 seconds | ~720 |
+| ACTIVE | 60 seconds | ~1440 |
+
+Intervals are `BEACON_INTERVAL_*_MS` in `software/flight/include/beacon.h`. ACTIVE is the baseline rate (one beacon per
+60 s, `docs/BASELINE_PARAMETERS.md`); no mode beacons faster. No beacon is sent while TX-OFF, loss of contact or the
+post-deployment RF silence inhibits the transmitter.
 
 ## 6. Contingency Operations
 

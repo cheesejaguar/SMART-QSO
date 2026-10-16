@@ -27,6 +27,7 @@
 #include "rf_silence.h"
 #include "deployment.h"
 #include "jetson_link.h"
+#include "beacon.h"
 #include "cmd_handler.h"
 #include "gse_provision.h"
 #include "uplink.h"
@@ -198,6 +199,9 @@ static SmartQsoResult_t init_system(void)
             return result;
         }
     }
+
+    /* Beacon: templates until the Jetson supplies text that passes the filter */
+    (void)beacon_init();
 
     /* Initialize UART for Jetson communication */
     result = uart_init();
@@ -475,6 +479,54 @@ static void poll_jetson(void)
     }
 }
 
+/**
+ * @brief Measurements for the beacon telemetry (SW-13)
+ *
+ * In this host simulation s_soc and s_sunlit are the EPS model; on the
+ * target the EPS driver supplies them (SW-01). Battery voltage is the BV
+ * sensor, only if read recently. There is no QSO detector yet, so the QSO
+ * count is not reported.
+ */
+static void update_beacon_measurements(uint64_t now)
+{
+    BeaconMeasurements_t m;
+    (void)memset(&m, 0, sizeof(m));
+    m.soc = (uint8_t)((s_soc * 100.0) + 0.5);
+    m.sunlit = s_sunlit ? 1U : 0U;
+    m.valid = BEACON_TLM_SOC | BEACON_TLM_SUN;
+
+    Sensor_t bv;
+    if ((sensors_get_by_id("BV", &bv) == SMART_QSO_OK) && (bv.last_read_ms != 0U) &&
+        ((now - bv.last_read_ms) <= BEACON_MEAS_MAX_AGE_MS) &&
+        (bv.last_value > 0.0) && (bv.last_value < 65.0)) {
+        m.battery_mv = (uint16_t)((bv.last_value * 1000.0) + 0.5);
+        m.valid |= BEACON_TLM_BV;
+    }
+    (void)beacon_update_measurements(&m, now);
+}
+
+/**
+ * @brief Send a beacon when one is due
+ *
+ * Uses the Jetson's latest text if the content filter passes it, otherwise
+ * a template. Each Jetson text is sent at most once.
+ */
+static void run_beacon(uint64_t now)
+{
+    beacon_update_interval(eps_get_power_mode());
+    if (!beacon_should_transmit(now)) {
+        return;
+    }
+
+    BeaconContent_t content;
+    size_t ai_len = strlen(s_ai_text);
+    if ((beacon_generate_content(&content, (ai_len > 0U) ? s_ai_text : NULL, ai_len) == SMART_QSO_OK) &&
+        (beacon_transmit(&content) == SMART_QSO_OK)) {
+        beacon_mark_transmitted(now);
+    }
+    s_ai_text[0] = '\0';
+}
+
 /*===========================================================================*/
 /* Main Loop                                                                  */
 /*===========================================================================*/
@@ -521,6 +573,10 @@ static SmartQsoResult_t run_main_loop(void)
 
         /* Jetson replies (beacon text, status) */
         poll_jetson();
+
+        /* Beacon (stays silent while TX-OFF, contact or RF-silence inhibits) */
+        update_beacon_measurements(now);
+        run_beacon(now);
 
         /* Telecommands from the 435 MHz receiver, then key provisioning
          * (umbilical only) */

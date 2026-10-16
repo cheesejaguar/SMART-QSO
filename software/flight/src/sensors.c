@@ -489,6 +489,7 @@ size_t sensors_poll(uint64_t current_ms)
                     printf("[READ] id=%s name=\"%s\" value=%s units=%s\n",
                            s->id, s->name, s->last_text, s->units);
                 }
+                s->last_read_ms = current_ms;
                 count++;
             }
 
@@ -516,6 +517,7 @@ SmartQsoResult_t sensors_poll_one(size_t index)
     } else {
         (void)snprintf(s->last_text, sizeof(s->last_text), "%s", text);
     }
+    s->last_read_ms = smart_qso_now_ms();
 
     return SMART_QSO_OK;
 }

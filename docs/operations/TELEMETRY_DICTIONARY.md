@@ -169,18 +169,27 @@ TEMP (°C) = raw_value / 10.0
 The INFO field contains human-readable status and AI-generated content:
 
 ```
-de KK6GDB-11: <AI or template text> | T=<unix s> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<level> QSO=<count>
+de KK6GDB-11: <AI or template text> | T=<unix s> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
 ```
 
 This is the format `beacon_format_payload()` produces (`software/flight/src/beacon.c`). The text is cut to the space left in
 the 256-byte information field after the telemetry fields (at most 176 characters with this call sign); the telemetry
 fields are never cut.
 
+Every telemetry value is a measurement. A field with no measurement, or one older than 60 s (`BEACON_MEAS_MAX_AGE_MS`), is
+sent as `-`, for example `SOC=- BV=-`. Decoders must treat `-` as "not measured", never as zero. `QSO` is `-` until a QSO
+detector exists. `RF` is the radio power switch state as the EPS reports it.
+
+Example: `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=8.1 SUN=1 RF=1 QSO=-`
+
+The text before ` | ` passes the content filter (`BEACON_SPEC.md` section 6). It never contains `|` or digits other than
+`73`, `1U` and the call sign, so the telemetry fields cannot be spoofed by the text.
+
 ### 4.3 Beacon Timing
 
 | Parameter | Value |
 |-----------|-------|
-| Interval | 60 seconds |
+| Interval | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (`BEACON_SPEC.md` section 7) |
 | Duration | ~2 seconds |
 | Frequency | 145.XXX MHz |
 

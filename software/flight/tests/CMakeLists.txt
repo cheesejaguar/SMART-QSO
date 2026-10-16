@@ -244,6 +244,7 @@ set(MODULE_TESTS
     "test_beacon_format\;rf"
     "test_jetson_link\;payload"
     "test_beacon_filter\;rf"
+    "test_beacon_telemetry\;rf"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)

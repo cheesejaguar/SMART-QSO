@@ -8,7 +8,6 @@
 #include "beacon.h"
 #include "beacon_filter.h"
 #include "eps_control.h"
-#include "mission_data.h"
 #include "fault_mgmt.h"
 #include "rf_control.h"
 #include "ax25.h"
@@ -29,6 +28,11 @@ static size_t s_template_index = 0;
 
 /** Module initialized flag */
 static bool s_initialized = false;
+
+/** Latest measurements and when they were taken (SW-13) */
+static BeaconMeasurements_t s_meas;
+static uint64_t s_meas_ms = 0U;
+static bool s_meas_set = false;
 
 /*===========================================================================*/
 /* Beacon Template Messages                                                   */
@@ -62,6 +66,9 @@ SmartQsoResult_t beacon_init(void)
     s_beacon_state.interval_ms = BEACON_INTERVAL_ACTIVE_MS;
     s_beacon_state.ai_available = false;
     s_template_index = 0;
+    memset(&s_meas, 0, sizeof(s_meas));
+    s_meas_ms = 0U;
+    s_meas_set = false;
 
     s_initialized = true;
 
@@ -140,25 +147,35 @@ SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
         content->source = BEACON_SOURCE_TEMPLATE;
     }
 
-    /* Populate telemetry */
-    content->telemetry.timestamp = (uint32_t)(smart_qso_now_ms() / 1000);
+    /* Populate telemetry: measured values only, each with its validity flag
+     * (SW-13). Fields not measured, or measured too long ago, are sent "-". */
+    uint64_t now = smart_qso_now_ms();
+    content->telemetry.timestamp = (uint32_t)(now / 1000U);
     content->telemetry.power_mode = (uint8_t)eps_get_power_mode();
 
-    /* Get EPS state for telemetry */
-    EpsControlState_t eps_state;
-    if (eps_get_state(&eps_state) == SMART_QSO_OK) {
-        /* Note: EpsControlState_t doesn't have soc/sunlit - use power_mode */
-        content->telemetry.soc = 75;  /* Default - would come from actual EPS */
-        content->telemetry.battery_mv = 7400;  /* Default */
-        content->telemetry.sunlit = 1;  /* Default */
-        content->telemetry.rf_power = eps_state.radio_enabled ? 1 : 0;
+    if (s_meas_set && (now >= s_meas_ms) && ((now - s_meas_ms) <= BEACON_MEAS_MAX_AGE_MS)) {
+        uint8_t flags = s_meas.valid;
+        if ((flags & BEACON_TLM_SOC) != 0U) {
+            content->telemetry.soc = s_meas.soc;
+        }
+        if ((flags & BEACON_TLM_BV) != 0U) {
+            content->telemetry.battery_mv = s_meas.battery_mv;
+        }
+        if ((flags & BEACON_TLM_SUN) != 0U) {
+            content->telemetry.sunlit = s_meas.sunlit;
+        }
+        if ((flags & BEACON_TLM_QSO) != 0U) {
+            content->telemetry.qso_count = s_meas.qso_count;
+        }
+        content->telemetry.valid = (uint8_t)(flags & (BEACON_TLM_SOC | BEACON_TLM_BV |
+                                                      BEACON_TLM_SUN | BEACON_TLM_QSO));
     }
 
-    /* Get mission data */
-    MissionData_t mission;
-    if (mission_data_get(&mission) == SMART_QSO_OK) {
-        content->telemetry.qso_count = (uint16_t)(mission.reset_count);
-        content->telemetry.orbit_number = (uint16_t)(mission.total_uptime_ms / 5400000UL);
+    /* Radio power switch state */
+    EpsControlState_t eps_state;
+    if (eps_get_state(&eps_state) == SMART_QSO_OK) {
+        content->telemetry.rf_power = eps_state.radio_enabled ? 1U : 0U;
+        content->telemetry.valid |= BEACON_TLM_RF;
     }
 
     /* Get fault status */
@@ -184,6 +201,17 @@ SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
                                  5U + 10U + 3U + 6U + 5U + 3U + 4U + 4U + \
                                  5U + 3U + 4U + 3U + 5U + 5U)
 
+/** A telemetry value, or "-" when its flag is not set in valid */
+static void format_field(char *out, size_t out_len, uint8_t valid, uint8_t flag,
+                         uint32_t value)
+{
+    if ((valid & flag) != 0U) {
+        (void)snprintf(out, out_len, "%u", (unsigned int)value);
+    } else {
+        (void)snprintf(out, out_len, "-");
+    }
+}
+
 size_t beacon_format_payload(const BeaconContent_t *content,
                              char *buffer,
                              size_t buffer_len)
@@ -200,21 +228,32 @@ size_t beacon_format_payload(const BeaconContent_t *content,
         text_len = room;
     }
 
-    /* Battery volts to one decimal, rounded, in integer arithmetic */
-    uint32_t tenths = ((uint32_t)content->telemetry.battery_mv + 50U) / 100U;
+    const BeaconTelemetry_t *t = &content->telemetry;
+    char soc[16];
+    char bv[16];
+    char sun[16];
+    char rf[16];
+    char qso[16];
+    format_field(soc, sizeof(soc), t->valid, BEACON_TLM_SOC, t->soc);
+    format_field(sun, sizeof(sun), t->valid, BEACON_TLM_SUN, t->sunlit);
+    format_field(rf, sizeof(rf), t->valid, BEACON_TLM_RF, t->rf_power);
+    format_field(qso, sizeof(qso), t->valid, BEACON_TLM_QSO, t->qso_count);
+    if ((t->valid & BEACON_TLM_BV) != 0U) {
+        /* Battery volts to one decimal, rounded, in integer arithmetic */
+        uint32_t tenths = ((uint32_t)t->battery_mv + 50U) / 100U;
+        (void)snprintf(bv, sizeof(bv), "%u.%u",
+                       (unsigned int)(tenths / 10U), (unsigned int)(tenths % 10U));
+    } else {
+        (void)snprintf(bv, sizeof(bv), "-");
+    }
 
     int written = snprintf(buffer, buffer_len,
-        "de %s: %.*s | T=%u M=%s SOC=%u BV=%u.%u SUN=%u RF=%u QSO=%u",
+        "de %s: %.*s | T=%u M=%s SOC=%s BV=%s SUN=%s RF=%s QSO=%s",
         BEACON_CALLSIGN,
         (int)text_len, content->text,
-        (unsigned int)content->telemetry.timestamp,
-        content->telemetry.power_mode == 0 ? "SAFE" :
-            (content->telemetry.power_mode == 1 ? "IDLE" : "ACTIVE"),
-        (unsigned int)content->telemetry.soc,
-        (unsigned int)(tenths / 10U), (unsigned int)(tenths % 10U),
-        (unsigned int)content->telemetry.sunlit,
-        (unsigned int)content->telemetry.rf_power,
-        (unsigned int)content->telemetry.qso_count);
+        (unsigned int)t->timestamp,
+        t->power_mode == 0 ? "SAFE" : (t->power_mode == 1 ? "IDLE" : "ACTIVE"),
+        soc, bv, sun, rf, qso);
 
     if ((written < 0) || ((size_t)written >= buffer_len)) {
         return 0;
@@ -369,7 +408,7 @@ void beacon_mark_transmitted(uint64_t now_ms)
         return;
     }
 
-    s_beacon_state.last_beacon_ms = (uint32_t)now_ms;
+    s_beacon_state.last_beacon_ms = now_ms;
 }
 
 SmartQsoResult_t beacon_get_state(BeaconState_t *state)
@@ -436,6 +475,22 @@ const char *beacon_get_template(void)
 uint16_t beacon_crc16(const uint8_t *data, size_t len)
 {
     return ax25_fcs(data, len);
+}
+
+SmartQsoResult_t beacon_update_measurements(const BeaconMeasurements_t *m, uint64_t sample_ms)
+{
+    if (m == NULL) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
+    if ((((m->valid & BEACON_TLM_SOC) != 0U) && (m->soc > 100U)) ||
+        (((m->valid & BEACON_TLM_SUN) != 0U) && (m->sunlit > 1U))) {
+        return SMART_QSO_ERROR_INVALID;
+    }
+
+    s_meas = *m;
+    s_meas_ms = sample_ms;
+    s_meas_set = true;
+    return SMART_QSO_OK;
 }
 
 bool beacon_validate_text(const char *text, size_t len)

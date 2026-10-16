@@ -25,6 +25,8 @@ static void fill(BeaconContent_t *content, size_t text_len)
     memset(content->text, 'A', text_len);
     content->text[text_len] = '\0';
     content->text_len = text_len;
+    content->telemetry.valid = BEACON_TLM_SOC | BEACON_TLM_BV | BEACON_TLM_SUN |
+                               BEACON_TLM_RF | BEACON_TLM_QSO;
 }
 
 static void set_max_telemetry(BeaconContent_t *content)

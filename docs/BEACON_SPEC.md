@@ -1,96 +1,120 @@
-# Stensat Beacon Spec — 1200 bps AFSK, Personified LLM Status
+# Beacon Specification: 1200 bps AX.25 Beacon with Filtered AI Text
 
-This document defines how SMART‑QSO uses a Stensat radio beacon to transmit AX.25 Unnumbered Information (UI) frames at 1200 bps AFSK that contain concise, personified LLM‑generated status updates, along with a compact key–value telemetry tail for machine parsing.
+This document defines the SMART-QSO telemetry beacon as the flight software builds it. It is an AX.25 UI frame carrying
+one short line of plain-language text, followed by measured telemetry. Design values come from
+`docs/BASELINE_PARAMETERS.md`, which governs where the two disagree. The information-field layout is also in
+`docs/operations/TELEMETRY_DICTIONARY.md` section 4.
 
-Reference: Stensat Radio Beacon — frequency bands 2 m/70 cm, UART data interface at 38.4 kbit/s, AX.25 UI at 1200 bps AFSK and 9600 bps FSK supported [link](http://www.stensat.org/products/product1.html).
+Implementation: `software/flight/src/beacon.c` (frame, telemetry, scheduling), `software/flight/src/beacon_filter.c`
+(content rules), `software/payload/formatter.py` and `software/payload/content_filter.py` (Jetson text).
 
-## Radio and Modem Settings
-- Data rate: 1200 bps AFSK (Bell 202 tones: 1200/2200 Hz); NRZI; HDLC flags 0x7E
-- Frame type: AX.25 UI (Control 0x03, PID 0xF0)
-- Preamble: 200 ms (flags), Tail: 50 ms (flags)
-- Beacon interval: adaptive 15–180 s (see Scheduling), default 60 s
-- Bands: 2 m or 70 cm per mission config; no digipeater path
-- Identification: Callsign embedded in AX.25 address fields and again in the human text body (every frame)
+## 1. Radio and Modem
 
-## AX.25 Envelope
-- Destination: `BEACON` (SSID `-0`)
-- Source: `<CALLSIGN>` (TBD)
-- Path: none (space ops; no terrestrial digipeating)
-- Control: `0x03` (UI)
-- PID: `0xF0` (no L3)
-- Info Field: ASCII, ≤ 200 bytes
+- 1200 bps AFSK (Bell 202, 1200/2200 Hz), NRZI, HDLC flags `0x7E`, on the 145.8–146.0 MHz downlink
+  (`docs/RF_PLAN.md`), 0.5 W nominal, 1 W maximum.
+- No beacon is sent while any transmit inhibit is active: TX-OFF (97.207(b)), loss of contact, or the 45-minute
+  post-deployment RF silence (`rf_control_tx_permitted()`).
 
-### Info Field Structure
-Human‑readable personified line, followed by a compact machine tail.
+## 2. AX.25 Envelope
+
+| Field | Value |
+|---|---|
+| Destination | `CQ`, SSID 0 |
+| Source | `KK6GDB-11` (licensee call sign KK6GDB, SSID 11; `software/flight/include/station_id.h`) |
+| Path | none (no digipeating) |
+| Control / PID | `0x03` (UI) / `0xF0` (no layer 3) |
+| Information field | ASCII, at most 256 bytes (section 3) |
+
+## 3. Information Field
 
 ```
-<TEXT> | T=<ISO8601Z> M=<MODE> SOC=<pct> SUN=<0|1> RF=<0|1> PWR=<GOOD|FAIR|LOW> QSO=<n>
+de KK6GDB-11: <text> | T=<unix s> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
 ```
 
-- <TEXT>: LLM‑personified status, ASCII, ≤ 120 bytes
-- Tail: space‑separated key–values, ≤ 80 bytes
-- Total Info length: ≤ 200 bytes (recommended) to ensure robust receive margins at 1200 bps
+Example: `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=8.1 SUN=1 RF=1 QSO=-`
 
-Examples of Info Field:
-```
-de SMARTQ-1: I’m sunlit and feeling energetic—SOC 78%, transponder ACTIVE. 73! | T=2025-08-18Z M=ACTIVE SOC=78 SUN=1 RF=1 PWR=GOOD QSO=12
-de SMARTQ-1: Coasting in eclipse, conserving power—SOC 34%. Back soon. | T=2025-08-18Z M=IDLE SOC=34 SUN=0 RF=0 PWR=LOW QSO=3
-```
+- The call sign appears in the source address and again at the start of every information field (97.119).
+- `<text>` is at most 176 characters, the room left after the telemetry fields at their widest. The text is cut if
+  needed; the telemetry is never cut.
+- Every telemetry value is a measurement (section 4). A field with no measurement, or a measurement older than 60 s, is
+  sent as `-`. Decoders treat `-` as "not measured", never as zero.
 
-## LLM‑Personified Message Generation
-Because 1200 bps AFSK has tight payload budgets, the onboard wording generator is constrained and deterministic:
+## 4. Telemetry Fields
 
-- Inputs: UTC time, `MODE` (ACTIVE/IDLE/SAFE), battery `SOC` (0–100), `SUN` (0/1), `RF` (0/1), short‑horizon power forecast class (`PWR`: GOOD/FAIR/LOW), recent `QSO` rate.
-- Output: one sentence, first‑person, ≤ 120 ASCII bytes; friendly but neutral, no emojis, no encoded punctuation beyond ASCII.
-- Style rules:
-  - Always begin with `de <CALLSIGN>:`
-  - Mention sun exposure or forecast and SOC where relevant
-  - If `MODE=SAFE` or `SOC<25`, emphasize conservation
-  - If `RF=1`, mention “transponder ACTIVE”
-  - End with `73!` when not in SAFE
-- Safety/fallback: if generator fails or would exceed 120 bytes, fall back to a compact template:
-  - `de <CALL>: SOC=<pct> <SUN|ECLIPSE> RF=<ON|OFF>. 73!`
+| Key | Meaning | Source |
+|---|---|---|
+| `T` | Seconds since the Unix epoch | OBC clock |
+| `M` | Power mode | EPS control (`eps_get_power_mode`) |
+| `SOC` | Battery state of charge, % | EPS battery measurement |
+| `BV` | Battery voltage, V to one decimal | `BV` sensor, if read within the last 60 s |
+| `SUN` | 1 sunlit, 0 eclipse | EPS (solar input) |
+| `RF` | Radio power switch, 1 on, 0 off | EPS switch state |
+| `QSO` | QSOs counted | Not measured yet: always `-` until a QSO detector exists |
 
-### Template Set (non‑exhaustive)
-- Sunlit, healthy: `de {CALL}: I’m sunlit and feeling energetic—SOC {SOC}%, transponder ACTIVE. 73!`
-- Sunlit, conserve: `de {CALL}: Sunlit but conserving—SOC {SOC}%. RF {RFSTATE}. 73!`
-- Eclipse: `de {CALL}: Coasting in eclipse, conserving power—SOC {SOC}%.`
-- Forecast low: `de {CALL}: Clouds ahead in the power budget—SOC {SOC}%, planning lighter ops. 73!`
+The OBC records measurements with `beacon_update_measurements()`, each field with a validity flag. In the host
+simulation the EPS model supplies SOC and SUN; on the target the EPS driver does (SW-01).
 
-## Scheduling and Rate Control
-- Base period: 60 s
-- Adaptive rules:
-  - If `MODE=SAFE` or `SOC<20%`: 180 s
-  - If `SOC 20–40%`: 120 s
-  - If eclipse (`SUN=0`) and `RF=0`: +30 s to the above
-  - Immediate beacon on `MODE` transition or first RF activation (debounced ≥ 10 s)
-- Quiet hours / regulatory: Ensure callsign present each frame; never encrypt; content strictly mission status
+## 5. Text Sources
 
-## UART Integration with Stensat Beacon
-- Physical link: UART 38.4 kbit/s, 8N1 (per Stensat spec) [link](http://www.stensat.org/products/product1.html)
-- Host (OBC) responsibilities:
-  - Construct AX.25 UI frame bytes (addresses → Control 0x03 → PID 0xF0 → Info → FCS) and supply them to the beacon module using the module’s UART command/API as documented in the vendor datasheet
-  - Manage preamble/tail timing if required by module firmware; otherwise rely on module defaults
-  - Rate‑limit messages per Scheduling
-- Implementation note: The exact UART command set/framing is vendor‑specific; integrate per the Stensat datasheet while keeping the Info payload and timing defined here.
+1. **Jetson text.** The OBC sends `BEACON_REQ` after each `TELEMETRY` line (`docs/interfaces/ICD_OBC_JETSON.md` §4).
+   The Jetson answers with `BEACON_RSP` text. Text whose sequence number matches the latest request is used for the next
+   beacon, once, if it passes the content rules (section 6).
+2. **OBC templates.** Otherwise the OBC sends the next of its fixed templates (`beacon_templates[]` in `beacon.c`). None of
+   them states a health condition; the telemetry fields carry the state.
 
-## Telemetry Mapping (Tail Fields)
-- **T**: ISO‑8601 UTC time truncated to seconds, e.g., `2025-08-18Z`
-- **M**: `ACTIVE|IDLE|SAFE`
-- **SOC**: integer percent (0–100)
-- **SUN**: `1` sunlit, `0` eclipse
-- **RF**: `1` transponder on, `0` off
-- **PWR**: `GOOD|FAIR|LOW` (short‑horizon energy forecast class)
-- **QSO**: recent QSO events (rolling minute)
+On the Jetson, text comes from the language model or, when the model is absent or its output fails the same content
+rules, from health in words: "Safe mode, conserving power.", "Battery low, conserving power.", or
+"<Sunlit | In eclipse>, transponder <on | off>. 73!". The model is prompted with health words only (no numbers),
+sampled at temperature 0.3, and held to a grammar that admits letters and plain punctuation only. Without a model the
+runner returns no text, never a canned status.
 
-## Example Packet (Field View)
-```
-DEST=BEACON SRC=SMARTQ-1 CTRL=0x03 PID=0xF0
-INFO="de SMARTQ-1: I’m sunlit and feeling energetic—SOC 78%, transponder ACTIVE. 73! | T=2025-08-18Z M=ACTIVE SOC=78 SUN=1 RF=1 PWR=GOOD QSO=12"
-```
+Model choice is decision D5 (`docs/payload/AI_MODEL_SELECTION.md`).
 
-## Compliance
-- Amateur‑Satellite Service: plain‑text status; no encryption
-- Callsign is present in AX.25 and again in the text line
-- Keep Info ≤ 200 bytes to preserve link margin at 1200 bps
+## 6. Content Rules
 
+Every beacon text not taken from the OBC's own templates must pass these rules. The OBC applies them to everything it
+receives (`beacon_filter_check()`); the Jetson applies the same rules to its own output first
+(`content_filter.check()`). A text is rejected for the first rule it breaks:
+
+| Order | Result | Rule | Basis |
+|---|---|---|---|
+| 1 | LENGTH | 1 to 176 characters | Frame size |
+| 2 | CHARSET | Letters, digits, space and `. , ! ? ' " : ; ( ) / - &` only. No `\|` (it separates the telemetry, so the text cannot spoof it), `$`, `@`, `%`, `=` or control characters | 97.113(a)(4) |
+| 3 | COMMERCIAL | No URL fragments: `http`, `www.`, `.com`, `.net`, `.org` | 97.113(a)(3) |
+
+Then, word by word (a word is a run of letters and digits):
+
+| Order | Result | Rule | Basis |
+|---|---|---|---|
+| 4 | ENCODED | More than 20 characters | 97.113(a)(4), obscured meaning |
+| 5 | CALLSIGN | Shaped like a call sign but not KK6GDB, or an SSID after `KK6GDB-` other than 11 | 97.113(a)(4), false identification; 97.119 |
+| 6 | NUMERIC | Digits anywhere except `73`, `1U`, the call sign and its SSID. Only the OBC writes numbers, from measurements, so the text cannot state a false value | 97.113(a)(4), false or deceptive messages |
+| 7 | ENCODED | Five or more letters with no vowel (a e i o u y), eight or more hex digits only, or more than two lower-to-upper case changes | 97.113(a)(4) |
+| 8 | PROFANITY | A word on the profanity list | 97.113(a)(4) |
+| 9 | COMMERCIAL | A word on the commercial list (buy, sell, price, sponsor and similar) | 97.113(a)(3) |
+
+- Word lists are whole-word and case-insensitive: `beacon_filter_profanity[]` and `beacon_filter_commercial[]` in
+  `beacon_filter.c`. The payload suite fails if `content_filter.py` differs.
+- Shared accept/reject vectors are in `software/flight/tests/vectors/beacon_filter_vectors.txt`, run by both suites, with
+  fuzz properties on each side.
+- The OBC counts rejected texts (`ai_rejected_count` in the beacon state) and sends a template instead.
+- Before flight, the licensee reviews the word lists, and the reject rate is measured on the selected model's output
+  (D5 gate).
+
+## 7. Scheduling
+
+| Power mode | Interval |
+|---|---|
+| ACTIVE | 60 s (the baseline rate; the beacon power line assumes ~2 s of transmission per 60 s) |
+| IDLE | 120 s |
+| SAFE | 180 s |
+
+`BEACON_INTERVAL_*_MS` in `beacon.h`; no mode beacons faster than ACTIVE.
+
+## 8. Compliance Summary
+
+- Plain text in the clear; nothing encrypted or encoded (97.113(a)(4); `docs/regulatory/`).
+- Station identification in every frame (97.119).
+- Content rules in section 6 cover obscene, commercial, encoded and false content mechanically. The licensee remains
+  responsible for content (97.103).
+- Transmitter can be stopped by telecommand, independent of the AI payload (97.207(b), 97.211(b)).
