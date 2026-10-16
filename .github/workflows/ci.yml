@@ -152,7 +152,21 @@ jobs:
       - name: Run clang-tidy (no new findings)
         working-directory: software/flight
         run: |
-          clang-tidy -p build src/*.c src/hal/*.c > clang-tidy.txt 2>/dev/null || true
+          # The sources the host build compiles. hal_stm32l4.c is compiled by the
+          # STM32L4 cross-compile; system_init.c and yaml_parser.c are not built.
+          files=()
+          while IFS= read -r f; do files+=("$f"); done < <(python3 -c 'import json; print("\n".join(sorted({e["file"] for e in json.load(open("build/compile_commands.json")) if "/software/flight/src/" in e["file"]})))')
+          echo "clang-tidy: ${#files[@]} source files"
+          [ "${#files[@]}" -gt 0 ] || { echo "::error::no sources in build/compile_commands.json"; exit 1; }
+          # A tool failure (including a compile error) fails the gate instead of counting as zero findings
+          status=0
+          clang-tidy -p build "${files[@]}" > clang-tidy.txt 2> clang-tidy.log || status=$?
+          if [ "$status" -ne 0 ]; then
+            grep -E ': error:' clang-tidy.txt | sort -u | head -20 || true
+            tail -20 clang-tidy.log
+            echo "::error::clang-tidy failed (exit ${status}); findings not counted"
+            exit 1
+          fi
           count=$(grep -E '^/.*:[0-9]+:[0-9]+: (warning|error):' clang-tidy.txt | sort -u | wc -l)
           ./scripts/ratchet.sh clang-tidy "$count"
 
@@ -161,7 +175,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: clang-tidy-report
-          path: software/flight/clang-tidy.txt
+          path: |
+            software/flight/clang-tidy.txt
+            software/flight/clang-tidy.log
 
   ###########################################################################
   # MISRA C:2012 check (cppcheck MISRA addon; no new findings)
@@ -190,8 +206,15 @@ jobs:
         working-directory: software/flight
         run: |
           # The addon reports at style severity, so style must be enabled
+          status=0
           cppcheck --addon=misra --enable=style --std=c11 --quiet -I include \
-            --template='{file}:{line}:{column}: {id}' src/ 2> misra.txt || true
+            --template='{file}:{line}:{column}: {id}' src/ 2> misra.txt || status=$?
+          # A failed addon run exits 0 and reports internalError, so check for both
+          if [ "$status" -ne 0 ] || grep -qE ': (internalError|internalAstError|syntaxError|cppcheckError)$' misra.txt; then
+            grep -E ': (internalError|internalAstError|syntaxError|cppcheckError)$' misra.txt | head -20 || true
+            echo "::error::cppcheck MISRA run failed (exit ${status}); findings not counted"
+            exit 1
+          fi
           count=$(grep -cE ': misra-c2012-' misra.txt || true)
           echo "MISRA findings by rule:"
           grep -oE 'misra-c2012-[0-9.]+' misra.txt | sort | uniq -c | sort -rn | head -25

@@ -197,8 +197,7 @@ jobs:
     - name: Configure (cmake/arm-none-eabi-stm32l4.cmake)
       working-directory: software/flight
       run: |
-        # Absolute path: CMake resolves a relative toolchain file against the build directory
-        cmake -B build-arm -DCMAKE_TOOLCHAIN_FILE="$PWD/cmake/arm-none-eabi-stm32l4.cmake" \
+        cmake -B build-arm -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-stm32l4.cmake \
               -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON
 
     - name: Build the flight library for Cortex-M4
