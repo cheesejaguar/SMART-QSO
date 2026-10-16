@@ -57,6 +57,16 @@ class TestBeaconText(unittest.TestCase):
         self.assertTrue(beacon_text(_health(), "éè", 176).isascii())
 
 
+class TestDefaultModel(unittest.TestCase):
+    """The default model is a D5 candidate (docs/payload/AI_MODEL_SELECTION.md),
+    not the 3B development model, which exceeds the 8 W budget."""
+
+    def test_default_is_d5_candidate(self):
+        import agent
+        name = agent.DEFAULT_MODEL.rsplit("/", 1)[-1]
+        self.assertTrue(name.startswith(("SmolLM2-360M-Instruct", "Qwen3-0.6B")), name)
+
+
 class TestHandleLine(unittest.TestCase):
 
     def test_telemetry_then_beacon_request(self):

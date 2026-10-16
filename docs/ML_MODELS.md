@@ -1,5 +1,10 @@
 # ML Models
 
+> **Superseded for model selection and energy by decision D5** (`docs/payload/AI_MODEL_SELECTION.md`, 2026-10-15). This
+> page estimates energy per beacon as tokens × J/token with no boot, load or shutdown term; a cold-started Jetson spends
+> 87–96 % of its energy on those, about 230 J per beacon rather than 5–38 J. The 3B model below exceeds the 8 W input
+> budget. The flight baseline is a selector on the OBC; Jetson generation is a gated experiment.
+
 - **Power Forecast (LSTM‑style, INT8, <100 kB)**
 - **Signal Classifier (tiny CNN, <50 kB)**
 - **Anomaly Detector (autoencoder, <50 kB)**

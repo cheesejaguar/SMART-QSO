@@ -34,7 +34,7 @@ rm -rf build
    - Intelligent Power Management Agent (MCU, ~0.2W)
    - QSO Priority Agent (MCU, ~0.1W when active) - tiny CNN <50kB INT8
    - Adaptive Transponder Controller (MCU supervising RF)
-   - Smart Beacon Agent (Jetson when available, template fallback on the MCU); model selected by measured energy per beacon (decision D5)
+   - Smart Beacon Agent: a selector on the MCU picks pre-approved templates (flight baseline, decision D5); Jetson-generated text is a gated experiment (SmolLM2-360M or Qwen3-0.6B), enabled only if measured energy per accepted beacon is ≤ 0.1 Wh. Both sides apply the same content filter (`docs/BEACON_SPEC.md` §6)
 
 ### Software Architecture
 - **Flight** (`software/flight/`): OBC firmware skeleton with FreeRTOS tasks for power, QSO, and beacon management

@@ -73,8 +73,14 @@ def handle_line(line: bytes, state: AgentState) -> Optional[bytes]:
     return None
 
 
+#: Default model: a candidate for the gated generative experiment (decision D5,
+#: docs/payload/AI_MODEL_SELECTION.md). Generation stays off in flight until the
+#: measured energy per accepted beacon passes; override with LLAMA_MODEL.
+DEFAULT_MODEL = "/models/SmolLM2-360M-Instruct-Q4_K_M.gguf"
+
+
 def _make_runner() -> Optional[object]:
-    model = os.environ.get("LLAMA_MODEL", "/models/Llama-3.2-3B-Instruct-Q4_K_M.gguf")
+    model = os.environ.get("LLAMA_MODEL", DEFAULT_MODEL)
     if not os.path.exists(model):
         return None
     return LlamaRunner(LlamaConfig(
