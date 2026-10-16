@@ -88,10 +88,10 @@ Hold requires:
 | Threshold | Action |
 |-----------|--------|
 | SOC < 30% | Reduce operations, no AI |
-| SOC < 20% | Transition to SAFE mode |
+| SOC < 25% | Transition to SAFE mode |
 | SOC < 15% | Absolute minimum, emergency only |
 
-Rationale: Battery damage below 15% SOC; reduced cycle life below 20%.
+Rationale: Battery damage below 15% SOC; reduced cycle life below 20%, so SAFE starts at 25% with margin (BASELINE §5; `EPS_SOC_SAFE_THRESHOLD`).
 
 ### FC-002: Temperature Limits
 **SPACECRAFT TEMPERATURES SHALL REMAIN WITHIN OPERATIONAL LIMITS**
@@ -246,7 +246,7 @@ Requirements:
 | IDLE | ACTIVE | SOC > 70%, power positive, no faults | FC |
 | ACTIVE | IDLE | SOC < 30% OR power negative OR fault | Automatic or FC |
 | ACTIVE | SAFE | Critical fault OR ground command | Automatic or FC + MD |
-| IDLE | SAFE | SOC < 20% OR critical fault OR cmd | Automatic or FC + MD |
+| IDLE | SAFE | SOC < 25% OR critical fault OR cmd | Automatic or FC + MD |
 
 ### 8.2 Response to Off-Nominal Conditions
 

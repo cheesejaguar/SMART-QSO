@@ -6,6 +6,11 @@
 **Date:** 2026-01-02
 **Reference:** NPR 7123.1 SE Process 13 (Verification)
 
+> **This VCRM is the only verification-status record** (FINDINGS_REGISTER PI-06). Other documents point here
+> instead of quoting percentages. A requirement counts as verified only when its row cites a committed artifact:
+> a test log, analysis or inspection record. As of 2026-10-15 the only automated evidence is the flight-software
+> unit-test suite in CI (32 suites); no hardware verification has been performed.
+
 ---
 
 ## 1. Purpose
@@ -151,13 +156,9 @@ This Verification Cross-Reference Matrix provides traceability from requirements
 
 ### 6.2 Overall Progress
 
-```
-Verification Progress: ████████████░░░░░░░░ 50%
-
-Complete: 28 requirements
-Pending:  28 requirements
-Total:    56 requirements
-```
+The "Complete" counts in §6.1 date from 2026-01-02 and are not linked to artifacts, so no completion percentage is
+stated. Until each verified row cites evidence, the status is **not verified**, apart from requirements covered by
+the CI unit tests.
 
 ### 6.3 By Verification Method
 

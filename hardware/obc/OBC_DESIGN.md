@@ -138,7 +138,7 @@ This document defines the On-Board Computer (OBC) design for the SMART-QSO 1U Cu
 |-----------|-------|
 | Type | Independent Watchdog (IWDG) |
 | Clock | LSI (32 kHz) |
-| Timeout | 4 seconds |
+| Timeout | 30 seconds (`WDT_HW_TIMEOUT_MS`; refreshed only while every task checks in) |
 | Prescaler | 256 |
 | Reload | 500 |
 
@@ -151,7 +151,7 @@ Per FDIR design, each task checks in:
 | Main loop | 100 ms | 500 ms |
 | Telemetry | 1 s | 5 s |
 | ADCS | 100 ms | 500 ms |
-| Beacon | 30 s | 60 s |
+| Beacon | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (`docs/BEACON_SPEC.md` §7) | — |
 
 ---
 

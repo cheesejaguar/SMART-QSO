@@ -103,7 +103,7 @@ SAFETY HIERARCHY
 
 **Residual Risk**: Remote (D) × Marginal (III) = Acceptable
 
-**Closure Status**: [ ] Open [x] Closed
+**Closure Status**: [x] Open [ ] Closed. *Reopened 2026-10-15 (PI-07): no verification test has been run (§8.1); the hazard log is `docs/safety/SAFETY_DATA_PACKAGE.md` §4.*
 
 ### 4.2 HZ-002: Battery Thermal Runaway
 
@@ -120,7 +120,7 @@ SAFETY HIERARCHY
 
 **Residual Risk**: Improbable (E) × Critical (II) = Acceptable
 
-**Closure Status**: [ ] Open [x] Closed
+**Closure Status**: [x] Open [ ] Closed. *Reopened 2026-10-15 (PI-07): no verification test has been run (§8.1); the hazard log is `docs/safety/SAFETY_DATA_PACKAGE.md` §4.*
 
 ### 4.3 HZ-003: Uncontrolled Deployment
 
@@ -136,7 +136,7 @@ SAFETY HIERARCHY
 
 **Residual Risk**: Remote (D) × Marginal (III) = Acceptable
 
-**Closure Status**: [ ] Open [x] Closed
+**Closure Status**: [x] Open [ ] Closed. *Reopened 2026-10-15 (PI-07): no verification test has been run (§8.1); the hazard log is `docs/safety/SAFETY_DATA_PACKAGE.md` §4.*
 
 ### 4.4 HZ-004: Orbital Debris Creation
 
@@ -152,7 +152,7 @@ SAFETY HIERARCHY
 
 **Residual Risk**: Improbable (E) × Critical (II) = Acceptable
 
-**Closure Status**: [ ] Open [x] Closed
+**Closure Status**: [x] Open [ ] Closed. *Reopened 2026-10-15 (PI-07): no verification test has been run (§8.1); the hazard log is `docs/safety/SAFETY_DATA_PACKAGE.md` §4.*
 
 ### 4.5 HZ-005: RF Interference
 
@@ -168,7 +168,7 @@ SAFETY HIERARCHY
 
 **Residual Risk**: Improbable (E) × Negligible (IV) = Acceptable
 
-**Closure Status**: [ ] Open [x] Closed
+**Closure Status**: [x] Open [ ] Closed. *Reopened 2026-10-15 (PI-07): no verification test has been run (§8.1); the hazard log is `docs/safety/SAFETY_DATA_PACKAGE.md` §4.*
 
 ### 4.6 HZ-006: Commanded Unsafe State
 
@@ -184,7 +184,7 @@ SAFETY HIERARCHY
 
 **Residual Risk**: Remote (D) × Negligible (IV) = Acceptable
 
-**Closure Status**: [ ] Open [x] Closed
+**Closure Status**: [x] Open [ ] Closed. *Reopened 2026-10-15 (PI-07): no verification test has been run (§8.1); the hazard log is `docs/safety/SAFETY_DATA_PACKAGE.md` §4.*
 
 ## 5. Software Safety
 

@@ -45,14 +45,20 @@ This document consolidates all safety-related information for the SMART-QSO miss
 
 ### 4.1 Hazard List
 
+This table is the **hazard log** (FINDINGS_REGISTER PI-07). Software hazards (SW-HAZ-*) are analysed in
+`SOFTWARE_HAZARD_ANALYSIS.md` and roll up here. A hazard closes only when every control has cited verification
+evidence: test log, analysis or inspection. Software unit tests already cover some controls. HZ-001: TX-OFF,
+RF-silence and loss-of-contact tests. HZ-004: the supervised watchdog test. HZ-006: telecommand-authentication
+tests. No hardware verification has been run, so every hazard is open.
+
 | ID | Hazard | Severity | Likelihood | Risk | Status |
 |----|--------|----------|------------|------|--------|
-| HZ-001 | Unintended RF Emission | III | C | Medium | Controlled |
-| HZ-002 | Battery Over-discharge | III | C | Medium | Controlled |
-| HZ-003 | Thermal Damage | III | D | Low | Controlled |
-| HZ-004 | Software Hang | III | C | Medium | Controlled |
-| HZ-005 | Memory Corruption | III | D | Low | Controlled |
-| HZ-006 | Command Injection | IV | E | Low | Controlled |
+| HZ-001 | Unintended RF Emission | III | C | Medium | Open: controls designed, not verified |
+| HZ-002 | Battery Over-discharge | III | C | Medium | Open: controls designed, not verified |
+| HZ-003 | Thermal Damage | III | D | Low | Open: controls designed, not verified |
+| HZ-004 | Software Hang | III | C | Medium | Open: controls designed, not verified |
+| HZ-005 | Memory Corruption | III | D | Low | Open: controls designed, not verified |
+| HZ-006 | Command Injection | IV | E | Low | Open: controls designed, not verified |
 
 ### 4.2 Severity Definitions
 

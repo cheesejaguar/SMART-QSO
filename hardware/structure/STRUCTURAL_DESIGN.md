@@ -17,7 +17,7 @@ This document defines the structural design for the SMART-QSO 1U CubeSat per Cub
 | Requirement | Value | Source |
 |-------------|-------|--------|
 | Form factor | 1U (100×100×113.5 mm) | CDS Rev 14.1 |
-| Mass | ≤ 1.33 kg | CDS Rev 14.1 |
+| Mass | ≤ 2.00 kg | CDS Rev 14.1 (BASELINE §4; MEV ≤ 1.75 kg) |
 | CG location | ≤ 2 cm from geometric center | CDS Rev 14.1 |
 | Rail dimensions | 8.5×8.5 mm | CDS Rev 14.1 |
 | Rail surface finish | Ra ≤ 1.6 µm | CDS Rev 14.1 |

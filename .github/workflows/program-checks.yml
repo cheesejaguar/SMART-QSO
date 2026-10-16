@@ -68,6 +68,9 @@ jobs:
       - name: Check generated command dictionary is current
         run: python3 scripts/gen_command_dictionary.py --check
 
+      - name: Check parameters agree across code and documents
+        run: python3 scripts/check_parameters.py
+
   secret-scan:
     name: Secret Scan
     runs-on: ubuntu-24.04   # pinned

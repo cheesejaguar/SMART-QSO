@@ -253,7 +253,7 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 | Safety (SRS-S) | 5 | 4 | 1 | 0 |
 | **Total** | **107** | **99** | **6** | **2** |
 
-**Verification Rate: 93% verified, 5% partial, 2% pending**
+**Verification Rate:** ~~93% verified~~ withdrawn; see the VCRM (`docs/verification/VERIFICATION_MATRIX.md`, PI-06)
 
 ### 5.2 Critical Requirements Status
 
@@ -378,7 +378,7 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 
 | Criterion | Status | Evidence |
 |-----------|--------|----------|
-| Design meets requirements | PASS | RTM shows 93% verified |
+| Design meets requirements | Not substantiated | Verification status: see the VCRM (PI-06) |
 | Hardware design ready for fab | PASS | Design documents complete |
 | Software implementation complete | PASS | All modules coded |
 | Test procedures finalized | PASS | TEST_PROCEDURES.md |

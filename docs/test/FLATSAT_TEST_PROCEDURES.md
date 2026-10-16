@@ -126,7 +126,7 @@ This document defines the test procedures for flatsat (engineering development u
 | SAFE | IDLE | SOC > 20% AND stable 60s | [ ] |
 | IDLE | ACTIVE | SOC > 70% AND power budget positive | [ ] |
 | ACTIVE | IDLE | SOC < 30% OR power budget negative | [ ] |
-| IDLE | SAFE | SOC < 20% OR ground command | [ ] |
+| IDLE | SAFE | SOC < 25% OR ground command | [ ] |
 | ANY | SAFE | Critical fault OR ground command | [ ] |
 
 **Success Criteria**:

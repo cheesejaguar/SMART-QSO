@@ -29,6 +29,7 @@ self-consistent baseline.
 | Telecommand stations | ≥ 2 designated amateur stations, geographically separated: **TBD [D1]**. NASA Ames Research Center and Santa Clara University are prospective partners; nothing is agreed |
 | Host organization | None yet. Needed only for routes that require an institution (for example NASA CSLI eligibility, §3) **[D1]** |
 | Operator compensation | None for operations (Part 97 condition C2) |
+| Project phase | **Phase B (pre-PDR).** No independent PDR or CDR has been held; earlier review records are self-assessments (FINDINGS_REGISTER PI-03, PI-04) |
 | Payload risk classification | Class D (NPR 8705.4B), proposed |
 | Software classification | Formal classification per NPR 7150.2D Appendix D **pending** (not yet determined) |
 
@@ -87,6 +88,7 @@ filing:
 | Generation, EOL orbit average | **2.39 W tumbling; 3.58 W sun-pointed** [A: audit calculation, TB-02] |
 | Battery | 4S1P Li-ion 18650, ≈ 3.5 Ah, 14.4 V nominal, **≈ 50 Wh** (below the 80 Wh ISS extra-assessment threshold and the 100 Wh FAA note in CDS 2.1.5) |
 | Depth of discharge | ≤ 10 % nominal per eclipse; ≤ 30 % contingency (SYS-112) |
+| Mode thresholds (SOC) | ACTIVE allowed at ≥ 55 % (sunlit); ACTIVE → IDLE below 40 %; → SAFE below 25 %; SAFE → EMERGENCY (beacon shed) below 15 %; back to SAFE at 25 %, to IDLE above 40 % (`eps_control.h`, `sm_power_event()`) |
 | Charge temperature window | **0 °C to +45 °C** (SYS-602; no charging below 0 °C) |
 | Cell over-voltage protection | ≤ 4.25 V/cell |
 | End-of-life passivation | Battery charge path permanently disconnected (non-resettable), transmitters disabled, battery left in a permanent discharge state (47 CFR 97.207(g)(1)(iii)) |
@@ -147,7 +149,7 @@ receiver and TX-OFF path.
 |-----------|----------|
 | ADCS | 3-axis air-core magnetorquers, one coil design delivering ≥ 0.15 A·m² per axis (ACTUATOR_DESIGN 250-turn coil); magnetometer, coarse sun sensors, MEMS gyro; B-dot detumble from 10°/s within 3 orbits; spin-stabilized coarse sun-pointing (statistics by simulation) |
 | Thermal cases | Hot = β at maximum (no eclipse) + maximum power; Cold = β = 0 (≈ 36 min eclipse) + safe mode; ≥ 10 °C model-uncertainty margin before EM correlation |
-| Data | Beacon every 60 s (~200 B, broadcast); housekeeping stored every 60 s; ≥ 7 days onboard storage |
+| Data | Beacon every 60 s in ACTIVE, 120 s in IDLE, 180 s in SAFE (~200 B, broadcast; MRD-020); housekeeping stored every 60 s; ≥ 7 days onboard storage |
 | Launch environments | Integrator/SpaceX levels. SpaceX v11: random vibe ≥ 5.57 Grms MPE with power-inhibit verification during vibe; first mode > 40 Hz (SpaceX) / per integrator. GSFC-STD-7000B as fallback |
 | Materials | TML ≤ 1.0 %, CVCM ≤ 0.1 % (CDS 2.1.7); thermal-vacuum bakeout per provider |
 

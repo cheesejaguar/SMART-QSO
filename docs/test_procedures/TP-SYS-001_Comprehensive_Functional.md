@@ -116,7 +116,7 @@ This comprehensive functional test verifies:
 | 35 | Verify ACTIVE beacon interval | 30 seconds | | | |
 | 36 | Verify Jetson power | Payload enabled | | | |
 | 37 | ACTIVE → IDLE | SOC < 70% | Mode change | | |
-| 38 | IDLE → SAFE | SOC < 40% | Mode change | | |
+| 38 | IDLE → SAFE | SOC < 25% | Mode change | | |
 | 39 | Verify load shedding | Payload off | | | |
 
 ### 6.6 ADCS Operation

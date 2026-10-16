@@ -184,14 +184,8 @@ Test Procedures (TP)
 
 ### 7.1 Status by Category
 
-| Category | Total | Verified | Pending | % Complete |
-|----------|-------|----------|---------|------------|
-| AI Payload | 7 | 0 | 7 | 0% |
-| RF System | 7 | 0 | 7 | 0% |
-| Power System | 6 | 0 | 6 | 0% |
-| Fault Tolerance | 7 | 5 | 2 | 71% |
-| Regulatory | 3 | 3 | 0 | 100% |
-| **Total** | **30** | **8** | **22** | **27%** |
+Status figures removed (FINDINGS_REGISTER PI-06): verification status is kept only in the VCRM,
+[VERIFICATION_MATRIX.md](VERIFICATION_MATRIX.md).
 
 *Note: Most verifications pending flatsat hardware testing*
 

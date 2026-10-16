@@ -119,7 +119,7 @@ Per NPR 7123.1 §4.6.1, verification methods are selected based on:
 | Interface | 6 | 0 | 6 | 0% |
 | Safety | 5 | 0 | 5 | 0% |
 | Software Quality | 5 | 5 | 0 | 100% |
-| **Total** | **36** | **5** | **31** | **14%** |
+| **Total** | **36** | **5** | **31** | see VCRM |
 
 *Note: Software quality requirements verified through CDR. Hardware-dependent verification pending flatsat testing.*
 

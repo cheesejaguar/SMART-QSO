@@ -330,12 +330,12 @@ This analysis covers all flight software components:
 |-----------|-------------|----------|------------|------|--------|
 | SW-HAZ-001 | EPS Control Failure | Critical | Remote | Medium | Open |
 | SW-HAZ-002 | ADCS Algorithm Failure | Major | Occasional | Medium | Open |
-| SW-HAZ-003 | Beacon Generation Failure | Major | Remote | Low | Closed |
+| SW-HAZ-003 | Beacon Generation Failure | Major | Remote | Low | Open (reopened: closure needs cited verification per control) |
 | SW-HAZ-004 | Watchdog Failure | Critical | Remote | Medium | Open |
-| SW-HAZ-005 | Data Persistence Corruption | Minor | Occasional | Low | Closed |
+| SW-HAZ-005 | Data Persistence Corruption | Minor | Occasional | Low | Open (reopened: closure needs cited verification per control) |
 | SW-HAZ-006 | Jetson Power Management | Major | Occasional | Medium | Open |
 | SW-HAZ-007 | Deployment Timer Error | Critical | Improbable | Low | Open |
-| SW-HAZ-008 | Safe Mode Entry Failure | Critical | Remote | Medium | Closed |
+| SW-HAZ-008 | Safe Mode Entry Failure | Critical | Remote | Medium | Open (reopened: closure needs cited verification per control) |
 
 ## 7. Hazard Closure Criteria
 

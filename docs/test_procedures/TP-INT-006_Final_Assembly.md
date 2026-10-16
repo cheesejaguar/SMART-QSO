@@ -150,7 +150,7 @@ All preceding integration tests must be complete:
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
-| 1 | Measure total mass | < 1.33 kg (1U limit) | | |
+| 1 | Measure total mass | ≤ 2.00 kg (CDS Rev 14.1 1U limit) or the integrator's lower limit; record against MEV 1.75 kg | | |
 | 2 | Measure CG X position | Within 2cm of center | | |
 | 3 | Measure CG Y position | Within 2cm of center | | |
 | 4 | Measure CG Z position | Within 2cm of center | | |

@@ -54,7 +54,7 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 
 #### 2.1.1 CubeSat Standard Compliance
 - **Form Factor**: 1U CubeSat (100mm × 100mm × 113.5mm)
-- **Mass**: ≤ 1.33 kg (per Cal Poly CubeSat Design Specification)
+- **Mass**: ≤ 2.00 kg limit, MEV ≤ 1.75 kg (BASELINE §4: 2.00 kg, CDS Rev 14.1; the 1.33 kg figure is CDS Rev 13)
 - **Material**: Aluminum 6061-T6 with thermal treatment
 - **Deployment Interface**: NanoRacks CubeSat Deployer (NRCSD) compliant
 

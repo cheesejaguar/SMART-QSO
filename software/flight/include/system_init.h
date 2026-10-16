@@ -39,7 +39,7 @@ extern "C" {
 #define SYSTEM_MAX_BOOT_COUNT       10U
 
 /** Watchdog timeout in milliseconds */
-#define SYSTEM_WATCHDOG_TIMEOUT_MS  5000U
+#define SYSTEM_WATCHDOG_TIMEOUT_MS  30000U   /* = WDT_HW_TIMEOUT_MS (watchdog_mgr.h) */
 
 /** Self-test timeout in milliseconds */
 #define SYSTEM_SELFTEST_TIMEOUT_MS  30000U
