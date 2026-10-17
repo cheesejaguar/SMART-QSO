@@ -2,13 +2,11 @@
 ## TP-FAT-002
 
 **Document Number:** SQSO-TP-FAT-002
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-01-02
 **Status:** CDR Baseline
 
-**Requirements verified:** SYS-001, SYS-004, SYS-005, SYS-221, SYS-224, SYS-225
-
-**Not cited until corrected:** §6.2.2 (145.825 MHz and 2.0 W conflict with SYS-200 and SYS-201; the beacon intervals omit the 180 s SAFE value of SYS-211) and §6.2.3 (10 % and 50 % SOC conflict with SRS-F013 and SRS-F015, which set 25 % and 55 %).
+**Requirements verified:** SYS-001, SYS-004, SYS-005, SYS-200, SYS-201, SYS-211, SYS-212, SYS-221, SYS-224, SYS-225, SRS-F013, SRS-F014, SRS-F015
 
 ---
 
@@ -76,34 +74,37 @@ This procedure verifies that the flight unit is configured correctly for launch 
 
 ### 6.2 Configuration Parameter Verification
 
-#### 6.2.1 Identification Parameters
+#### 6.2.1 Identification Parameters [SYS-212]
 
 | Parameter | Expected Value | Actual | P/F |
 |-----------|----------------|--------|-----|
-| Callsign | (Assigned callsign) | | |
+| Callsign | KK6GDB-11 (`docs/BASELINE_PARAMETERS.md` §1) | | |
 | NORAD ID | (If assigned) | | |
 | Mission ID | SMART-QSO | | |
 | Serial Number | FM-001 | | |
 
-#### 6.2.2 RF Configuration
+#### 6.2.2 RF Configuration [SYS-200, SYS-201, SYS-211]
 
 | Parameter | Expected Value | Actual | P/F |
 |-----------|----------------|--------|-----|
-| TX Frequency | 145.825 MHz | | |
-| TX Power (Low) | 0.5W | | |
-| TX Power (High) | 2.0W | | |
-| Beacon Interval (Normal) | 60 s | | |
-| Beacon Interval (Low Power) | 120 s | | |
+| TX Frequency | The IARU-coordinated downlink frequency (TBD until coordination, TBD-SYS-001; SYS-200) | | |
+| TX Power (Nominal) | 0.5W | | |
+| TX Power (Maximum) | ≤ 1.0 W (SYS-201) | | |
+| Beacon Interval (ACTIVE) | 60 s | | |
+| Beacon Interval (IDLE) | 120 s | | |
+| Beacon Interval (SAFE) | 180 s | | |
 | Modulation | AFSK 1200 | | |
 
-#### 6.2.3 Power Management Configuration
+#### 6.2.3 Power Management Configuration [SRS-F013, SRS-F014, SRS-F015]
 
 | Parameter | Expected Value | Actual | P/F |
 |-----------|----------------|--------|-----|
 | Battery Low Threshold | 3.3V | | |
 | Battery Critical Threshold | 3.1V | | |
-| Safe Mode Threshold | 10% SOC | | |
-| Jetson Enable Threshold | 50% SOC | | |
+| Safe Mode Threshold | 25% SOC (SRS-F013) | | |
+| Idle Mode Threshold | 40% SOC (SRS-F014) | | |
+| Emergency Threshold (beacon shed) | 15% SOC (`docs/BASELINE_PARAMETERS.md` §5) | | |
+| Jetson Enable Threshold | 55% SOC and sunlit (SRS-F015) | | |
 | Load Shed Sequence | Per FDIR | | |
 
 #### 6.2.4 ADCS Configuration
@@ -240,3 +241,4 @@ Bench power-ups can complete the 45-minute silence and the deployment sequence, 
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-16 | §6.2.1 to §6.2.3 corrected and cited: callsign KK6GDB-11; TX frequency the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); 0.5 W nominal and ≤ 1 W maximum (SYS-201; was a 2.0 W high mode); beacon 60/120/180 s in ACTIVE/IDLE/SAFE (SYS-211; SAFE was missing); SOC thresholds 25 % SAFE, 40 % IDLE, 15 % emergency, 55 % Jetson enable (SRS-F013 to SRS-F015, BASELINE §5; were 10 % and 50 %) (finding VV-06) |

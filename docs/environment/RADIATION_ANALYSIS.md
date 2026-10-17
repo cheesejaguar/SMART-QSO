@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ENV-002
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** NASA-HDBK-4002A
 
@@ -16,12 +16,19 @@ This document analyzes the radiation environment for the SMART-QSO CubeSat missi
 
 | Parameter | Value |
 |-----------|-------|
-| Altitude | 500 km |
-| Inclination | 51.6° (ISS orbit) |
-| Orbit type | LEO, circular |
-| Mission duration | 12 months (design life) |
-| Launch date | TBD |
-| Solar cycle | Approaching solar maximum |
+| Altitude | 500 km target, 525 km cap (`docs/BASELINE_PARAMETERS.md` §3) |
+| Inclination | ≈ 97.4° (sun-synchronous; BASELINE §3) |
+| Orbit type | LEO, circular SSO |
+| Mission duration | 2 years design life; 12 months minimum (BASELINE §2) |
+| Launch date | 2028, planned (BASELINE §3) |
+| Solar cycle | To be set for the 2028–2030 mission period when §3–§5 are re-run |
+
+> **Note (2026-10-16): §3–§5 not yet re-run.** The table above now gives the baseline orbit. The fluences, doses, SEE
+> rates and the dose-depth curve in §3–§5 were estimated for the earlier 500 km, 51.6° (ISS-inclination) orbit and a
+> 12-month mission. A sun-synchronous orbit at ≈ 97.4° crosses the polar regions, where exposure to solar particles,
+> cosmic rays and the outer electron belt is higher than at 51.6°, and the design life is now 2 years. The §3–§5 values
+> must therefore be re-run for the baseline orbit and design life (finding TB-03) before they are used. The 10 krad
+> design level of BASELINE §6 (at least twice the 2-year dose behind 2 mm Al) must be checked against that re-run.
 
 ## 3. Radiation Environment
 
@@ -269,3 +276,4 @@ Dose (krad/yr)
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | §2 orbit, design life and launch year from BASELINE §2 and §3 (SSO ≈ 97.4°, 500 km target, 525 km cap; was 51.6°, ISS); note that the §3–§5 values depend on the old orbit and must be re-run (finding TB-03). No analysis values changed | SMART-QSO Team |

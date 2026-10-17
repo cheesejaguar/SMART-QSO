@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-GND-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 
 ---
@@ -103,7 +103,7 @@ SatNOGS is a global network of open-source ground stations that will provide add
 | NORAD ID | TBD (after launch) |
 | Transmitter Entry | To be added to SatNOGS DB |
 | Mode | AFSK 1200 bps AX.25 |
-| Frequency | 145.825 MHz (TBD) |
+| Frequency | The IARU-coordinated downlink frequency in 145.800–146.000 MHz, not 145.825 MHz (SYS-200); TBD until coordination (TBD-SYS-001) |
 
 ### 4.3 Data Flow
 
@@ -356,3 +356,4 @@ Internet
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | A.1 | 2026-10-16 | §3.3 and §6 point to the re-issued link budget (TB-05) | Funding audit |
+| B | 2026-10-16 | §4.2 SatNOGS frequency: the IARU-coordinated frequency (SYS-200), tracked as TBD-SYS-001, replacing "145.825 MHz (TBD)". Header revision brought up to the history | SMART-QSO Team |

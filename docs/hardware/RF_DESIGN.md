@@ -8,7 +8,7 @@
 > link budget is `docs/environment/LINK_BUDGET_ANALYSIS.md` (v2.0).
 
 **Document Number**: SMART-QSO-RF-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 **Status**: Preliminary Design
 
@@ -87,7 +87,7 @@ SMART-QSO implements a **beacon-only RF architecture**:
 | Parameter | Operating | Non-Operating |
 |-----------|-----------|---------------|
 | Temperature | -40°C to +70°C | -55°C to +85°C |
-| Vibration | 14.1 Grms (random) | N/A |
+| Vibration | ≥ 5.57 Grms random, MPE (interim: SpaceX Rideshare User's Guide v11; `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1) | N/A |
 | Vacuum | 10⁻⁶ Torr | N/A |
 | Radiation | 10 krad TID | N/A |
 
@@ -586,3 +586,4 @@ uint16_t crc16_ccitt(const uint8_t *data, size_t len) {
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §9.2 test IDs aligned with the procedure files (finding VV-18) |
+| 1.2 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |

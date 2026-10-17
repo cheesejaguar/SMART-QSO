@@ -2,13 +2,11 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-EPS-002
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 **Reference:** GSFC-STD-7000, NASA Ames SmallSat Heritage
 
-**Requirements verified:** MRD-050, SYS-111, SYS-112, SYS-114, SYS-121, SYS-304, SRS-F010
-
-**Not cited until corrected:** steps 8.2.4 and 8.3.4 (beacon every 60 s in SAFE and 30 s in IDLE; SYS-211 sets 180 s and 120 s).
+**Requirements verified:** MRD-050, SYS-111, SYS-112, SYS-114, SYS-121, SYS-211, SYS-304, SRS-F010
 
 ---
 
@@ -83,24 +81,24 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 | 8.1.4 | Enable telemetry logging | Data recording active | |
 | 8.1.5 | Verify initial battery SOC | >95% | |
 
-### 8.2 Safe Mode Load Profile
+### 8.2 Safe Mode Load Profile [SYS-211]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
 | 8.2.1 | Set total load to 0.5W | Stable voltage on all rails | |
 | 8.2.2 | Maintain for 10 minutes | No anomalies | |
 | 8.2.3 | Record power consumption | <0.6W total | |
-| 8.2.4 | Verify beacon transmission | Every 60 seconds | |
+| 8.2.4 | Verify beacon transmission | Every 180 seconds (SAFE; SYS-211) | |
 | 8.2.5 | Record battery voltage trend | Stable or rising | |
 
-### 8.3 Idle Mode Load Profile
+### 8.3 Idle Mode Load Profile [SYS-211]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
 | 8.3.1 | Set total load to 1.5W | Stable voltage on all rails | |
 | 8.3.2 | Maintain for 10 minutes | No anomalies | |
 | 8.3.3 | Record power consumption | <1.8W total | |
-| 8.3.4 | Verify beacon timing | Every 30 seconds | |
+| 8.3.4 | Verify beacon timing | Every 120 seconds (IDLE; SYS-211) | |
 | 8.3.5 | Record battery voltage trend | Stable | |
 
 ### 8.4 Active Mode Load Profile
@@ -226,3 +224,4 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
+| C | 2026-10-16 | Steps 8.2.4 and 8.3.4 corrected to the SYS-211 beacon intervals (180 s in SAFE, 120 s in IDLE; were 60 s and 30 s) and cited (finding VV-06) | SMART-QSO Team |

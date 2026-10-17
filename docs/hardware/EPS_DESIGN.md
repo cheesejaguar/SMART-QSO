@@ -1,7 +1,7 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-01-02
 **Status**: Preliminary Design
 
@@ -81,7 +81,7 @@ The EPS encompasses:
 | Parameter | Operating | Non-Operating |
 |-----------|-----------|---------------|
 | Temperature | -20°C to +50°C | -40°C to +85°C |
-| Vibration | 14.1 Grms (random) | N/A |
+| Vibration | ≥ 5.57 Grms random, MPE (interim: SpaceX Rideshare User's Guide v11; `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1) | N/A |
 | Shock | 40g (half-sine) | N/A |
 | Radiation | 10 krad TID | N/A |
 
@@ -473,3 +473,4 @@ this table had numbered them differently). TP-EPS-005 and TP-EPS-006 have no pro
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §8.2 test IDs aligned with the procedure files (finding VV-18) |
 | 1.2 | 2026-10-16 | Funding audit | Generation (EPS-F001, EPS-F002, §3.2.1, §3.2.3), solar cells (§4.4) and BOM aligned with SOLAR_ARRAY_DESIGN v2.0 (TB-14); battery DoD limit (EPS-P004), sizing (§3.3) and charge-temperature rules (§6.2, §7.1) aligned with BASELINE §5 and BATTERY_DESIGN v2.0 (TB-08) |
+| 1.3 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |

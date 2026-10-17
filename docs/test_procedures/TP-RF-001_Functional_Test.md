@@ -2,13 +2,11 @@
 ## TP-RF-001
 
 **Document Number:** TP-RF-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-01-02
 **Classification:** Development/Qualification Test
 
-**Requirements verified:** SYS-202, SYS-206, SYS-210
-
-**To be corrected:** §8.3 step 10 gives the carrier as 145.825 MHz, which SYS-200 excludes; its ±1 kHz tolerance is within the ±5 kHz of SYS-206.
+**Requirements verified:** SYS-200, SYS-201, SYS-202, SYS-203, SYS-206, SYS-210, SYS-211, SYS-212
 
 ---
 
@@ -68,14 +66,14 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 
 ## 7. Safety
 
-- **RF Hazard:** Output up to 2W, use dummy load
+- **RF Hazard:** Output up to 1 W (SYS-201), use dummy load
 - **Electrical Hazard:** 12V supply to PA
 
 **Required PPE:** Safety glasses, ESD wrist strap
 
 **Emergency Procedures:**
 - Never transmit without load connected
-- Never exceed 2W output power
+- Never exceed 1 W output power (SYS-201)
 
 ## 8. Procedure
 
@@ -90,23 +88,23 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 | 5 | Power on OBC and RF subsystem | Subsystem powered | |
 | 6 | Verify RF subsystem in standby | No RF output | |
 
-### 8.2 Transmitter Power Output
+### 8.2 Transmitter Power Output [SYS-201]
 
 | Step | Power Setting | Expected | Measured | Tolerance | P/F |
 |------|---------------|----------|----------|-----------|-----|
 | 7 | Low (0.5W) | 27 dBm | _______ | ±1 dB | |
-| 8 | Medium (1W) | 30 dBm | _______ | ±1 dB | |
-| 9 | High (2W) | 33 dBm | _______ | ±1 dB | |
+| 8 | Maximum (1W) | 30 dBm | _______ | -1 / +0 dB (never above 1 W) | |
+| 9 | Highest setting the radio accepts | ≤ 30 dBm | _______ | Must not exceed 1 W | |
 
-### 8.3 Frequency Accuracy [SYS-206]
+### 8.3 Frequency Accuracy [SYS-200, SYS-206]
 
 | Step | Parameter | Expected | Measured | Tolerance | P/F |
 |------|-----------|----------|----------|-----------|-----|
-| 10 | Carrier frequency | 145.825 MHz | _______ | ±1 kHz | |
+| 10 | Carrier frequency | The IARU-coordinated downlink frequency (TBD until coordination, TBD-SYS-001; SYS-200) | _______ | ±1 kHz | |
 | 11 | Frequency stability (1 min) | < 100 Hz drift | _______ | | |
 | 12 | Frequency vs temperature | TBD | _______ | ±1 ppm/°C | |
 
-### 8.4 Modulation Quality
+### 8.4 Modulation Quality [SYS-202]
 
 | Step | Parameter | Expected | Measured | Tolerance | P/F |
 |------|-----------|----------|----------|-----------|-----|
@@ -115,14 +113,14 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 | 15 | Modulation index | 3.5-4.0 | _______ | | |
 | 16 | Audio bandpass (300-3000 Hz) | Pass | _______ | | |
 
-### 8.5 AX.25 Frame Generation
+### 8.5 AX.25 Frame Generation [SYS-210, SYS-212]
 
 | Step | Test | Expected | Result | P/F |
 |------|------|----------|--------|-----|
 | 17 | Transmit test beacon | Frame generated | _______ | |
 | 18 | Verify destination callsign | "CQ" | _______ | |
 | 19 | Verify source callsign | KK6GDB-11 | _______ | |
-| 20 | Verify SSID | 1 | _______ | |
+| 20 | Verify SSID | 11 (KK6GDB-11; `software/flight/include/station_id.h`) | _______ | |
 | 21 | Verify control byte | 0x03 (UI) | _______ | |
 | 22 | Verify PID byte | 0xF0 (no L3) | _______ | |
 | 23 | Verify FCS (CRC-16) | Correct | _______ | |
@@ -139,20 +137,20 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 | 29 | Power mode | SAFE/IDLE/ACTIVE | _______ | |
 | 30 | Total length | < 256 bytes | _______ | |
 
-### 8.7 Beacon Timing
+### 8.7 Beacon Timing [SYS-211]
 
 | Step | Mode | Expected Interval | Measured | Tolerance | P/F |
 |------|------|-------------------|----------|-----------|-----|
-| 31 | SAFE | 120 seconds | _______ | ±1 sec | |
-| 32 | IDLE | 60 seconds | _______ | ±1 sec | |
-| 33 | ACTIVE | 30 seconds | _______ | ±1 sec | |
+| 31 | SAFE | 180 seconds | _______ | ±1 sec | |
+| 32 | IDLE | 120 seconds | _______ | ±1 sec | |
+| 33 | ACTIVE | 60 seconds | _______ | ±1 sec | |
 
-### 8.8 Spurious Emissions
+### 8.8 Spurious Emissions [SYS-203]
 
 | Step | Frequency | Limit | Measured | P/F |
 |------|-----------|-------|----------|-----|
-| 34 | 2nd harmonic (291.65 MHz) | < -43 dBc | _______ | |
-| 35 | 3rd harmonic (437.475 MHz) | < -43 dBc | _______ | |
+| 34 | 2nd harmonic (2 × f_c, 291.6–292.0 MHz) | < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e): < -43 dBc at 0.5 W, < -46 dBc at 1 W) | _______ | |
+| 35 | 3rd harmonic (3 × f_c, 437.4–438.0 MHz) | As step 34; target < -60 dBc (`docs/BASELINE_PARAMETERS.md` §7) | _______ | |
 | 36 | Out-of-band (DC-30 MHz) | < -40 dBc | _______ | |
 | 37 | Out-of-band (300-1000 MHz) | < -40 dBc | _______ | |
 
@@ -187,7 +185,7 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 - Frequency within ±1 kHz
 - FM deviation within ±0.5 kHz of 3.5 kHz
 - All AX.25 frames decode correctly
-- Spurious emissions below IARU limits
+- Spurious emissions at least 40 dB below carrier (SYS-203) and ≤ 25 µW (47 CFR 97.307(e))
 - Beacon timing within ±1 second
 
 **Fail:** Any parameter outside specification.
@@ -230,3 +228,4 @@ Record all measurements in RF Test Data Log:
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Beacon Format ICD cited by its own number, SMART-QSO-ICD-006 (was SQSO-ICD-003, the OBC-to-RF ICD) (finding PI-17) | SMART-QSO Team |
 | C | 2026-10-16 | §8.3 cites SYS-206, frequency accuracy (formerly a duplicate ID); its 145.825 MHz carrier is flagged as conflicting with the frequency requirement (finding VV-06) | SMART-QSO Team |
+| D | 2026-10-16 | Steps corrected to the requirements and cited: carrier the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); power 0.5 W and 1 W maximum, the 2 W step and the 2 W safety limit removed (SYS-201); SSID 11 (was 1); beacon intervals 180/120/60 s in SAFE/IDLE/ACTIVE (SYS-211; were 120/60/30 s); harmonics as multiples of the carrier, < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e)) (finding VV-06) | SMART-QSO Team |

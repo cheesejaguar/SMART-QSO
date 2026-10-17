@@ -310,7 +310,7 @@ The modular EPS approach provides the optimal balance of performance, cost, and 
 
 #### 8.1 Environmental Testing
 - **Thermal**: -40°C to +85°C operating range
-- **Vibration**: Random vibration to 14.1 Grms (qualification level)
+- **Vibration**: Random vibration at the interim SpaceX Rideshare User's Guide v11 levels: 5.57 Grms MPE for protoflight, 7.87 Grms for a qualification unit (`docs/test_procedures/TP-ENV-002_Vibration.md` §4.1; was 14.1 Grms, tied to no provider)
 - **Shock**: 1500g peak acceleration
 - **Thermal Vacuum**: Space environment simulation
 - **Radiation**: Total ionizing dose testing (typically 10-50 krad)

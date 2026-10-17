@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document Number**: SMART-QSO-PDR-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 **Status**: Ready for Review
 
@@ -95,7 +95,7 @@ This PDR package demonstrates that:
 | Parameter | Value |
 |-----------|-------|
 | Form Factor | 1U CubeSat |
-| Mass Budget | < 1.5 kg (threshold), < 1.2 kg (goal) |
+| Mass Budget | < 1.5 kg (threshold), < 1.2 kg (goal) *(superseded 2026-10-16: limit 2.00 kg; bottom-up CBE 1.69 kg, predicted 1.92–2.00 kg, `docs/environment/MASS_BUDGET.md` v2.0; BASELINE §4 carries CBE ≈ 1.51 kg pending the PI)* |
 | Orbital Altitude | 400-500 km |
 | Design Life | 1 year (minimum) |
 | Deorbit | < 5 years (passive) |
@@ -190,11 +190,11 @@ This PDR package demonstrates that:
 
 | TPM | Threshold | Goal | Current | Status |
 |-----|-----------|------|---------|--------|
-| Total mass | < 1.5 kg | < 1.2 kg | TBD | On track |
+| Total mass | < 1.5 kg | < 1.2 kg | TBD *(superseded 2026-10-16: limit 2.00 kg; bottom-up CBE 1.69 kg, predicted 1.92–2.00 kg, `docs/environment/MASS_BUDGET.md` v2.0; BASELINE §4 carries CBE ≈ 1.51 kg pending the PI)* | On track |
 | Power generation (EOL) | > 2.0 W | > 2.5 W | TBD | On track |
-| Beacon interval | < 60 s | < 30 s | 30 s | Met |
+| Beacon interval | < 60 s | < 30 s | 30 s *(superseded 2026-10-16: 60 s ACTIVE, 120 s IDLE, 180 s SAFE, SYS-211)* | Met |
 | AI inference latency | < 10 s | < 5 s | TBD | On track |
-| Link margin (downlink) | > 6 dB | > 10 dB | TBD | On track |
+| Link margin (downlink) | > 6 dB | > 10 dB | TBD *(superseded 2026-10-16: 1200 bps beacon at 0.5 W, +7.7 dB at 5° elevation, analysis, `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0)* | On track |
 | Code coverage | > 80% | > 90% | 80%+ | On track |
 
 ---
@@ -352,3 +352,4 @@ Based on this PDR package, the SMART-QSO project is recommended to proceed to th
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial PDR release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Requirement rows use the SRS wording (finding VV-06) |
+| 1.2 | 2026-10-16 | SMART-QSO Team | Dated notes beside the superseded mass, beacon interval and link margin (MASS_BUDGET v2.0, SYS-211, LINK_BUDGET_ANALYSIS v2.0; findings TB-05, TB-06); recorded values kept |

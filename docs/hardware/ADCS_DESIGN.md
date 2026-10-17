@@ -1,7 +1,7 @@
 # Attitude Determination and Control Subsystem (ADCS) Design Document
 
 **Document Number**: SMART-QSO-ADCS-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 **Status**: Preliminary Design
 
@@ -78,7 +78,7 @@ SMART-QSO employs a passive/semi-active ADCS approach:
 |-----------|-----------|---------------|
 | Temperature | -40°C to +85°C | -55°C to +125°C |
 | Magnetic Field | 20-60 μT (Earth orbit) | N/A |
-| Vibration | 14.1 Grms (random) | N/A |
+| Vibration | ≥ 5.57 Grms random, MPE (interim: SpaceX Rideshare User's Guide v11; `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1) | N/A |
 | Radiation | 10 krad TID | N/A |
 
 ---
@@ -609,3 +609,4 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §8.2 test IDs aligned with the procedure files (finding VV-18) |
+| 1.2 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |

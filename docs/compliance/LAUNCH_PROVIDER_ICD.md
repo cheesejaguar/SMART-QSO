@@ -10,7 +10,7 @@
 > `docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md`.
 
 **Document Number:** SQSO-ICD-010
-**Revision:** C (draft)
+**Revision:** D (draft)
 **Date:** 2026-10-16
 **Reference:** Cal Poly CDS Rev 14.1; SpaceX Rideshare Payload User's Guide v11, Aug 2026 (interim provider, pending the launch contract and PI confirmation); GSFC-STD-7000B as fallback
 
@@ -55,7 +55,7 @@ This document covers:
 | Dimensions (X) | 100.0 ± 0.1 mm | 99.9 mm | Compliant |
 | Dimensions (Y) | 100.0 ± 0.1 mm | 99.9 mm | Compliant |
 | Dimensions (Z) | 113.5 ± 0.1 mm | 113.4 mm | Compliant |
-| Mass | ≤ 2.0 kg | 1.075 kg | Compliant |
+| Mass | ≤ 2.0 kg | Not weighed. Predicted 1.92–2.00 kg, CBE 1.69 kg (`docs/environment/MASS_BUDGET.md` v2.0, analysis); BASELINE §4 still carries CBE ≈ 1.51 kg pending the PI | Open |
 
 ### 4.2 Rail Requirements
 
@@ -105,7 +105,7 @@ One environment specification, from SpaceX UG v11 (interim provider). No analysi
 | Parameter | Requirement | SMART-QSO | Status |
 |-----------|-------------|-----------|--------|
 | Switch count | ≥ 2 | 2 | Compliant |
-| Switch type | Normally open | Normally open | Compliant |
+| Switch type | Per CDS Rev 14.1 and the dispenser ICD | Contact form and sense polarity open: TBR-CDS-005 (`docs/compliance/CDS_COMPLIANCE_MATRIX.md` §9) | Open |
 | Switch location | On rails | Both rails | Compliant |
 | Rating | ≥ 1A @ 30V | 3A @ 30V | Compliant |
 
@@ -174,17 +174,17 @@ Same environment as §4.5 (SpaceX UG v11, interim). Nothing has been tested.
 | Requirement | SMART-QSO Implementation |
 |-------------|--------------------------|
 | No RF emissions prior to deployment | Deployment switches inhibit RF |
-| Timer delay after deployment | 30 min minimum |
+| Timer delay after deployment | No RF before 45 min (SYS-224; CDS Rev 14.1 §2.4.5; `rf_silence.c`) |
 | RF power at inhibit | 0 W |
 
 ### 7.2 Post-Deployment RF
 
 | Parameter | Value |
 |-----------|-------|
-| Downlink frequency | 145.825 MHz |
-| Maximum TX power | 2 W |
+| Downlink frequency | One IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz (SYS-200; TBD-SYS-001) |
+| Maximum TX power | 1 W; 0.5 W nominal (SYS-201) |
 | Modulation | AFSK 1200 bps |
-| Spurious emissions | Per FCC Part 97 |
+| Spurious emissions | At least 40 dB below carrier (SYS-203) and ≤ 25 µW (47 CFR 97.307(e)) |
 
 ### 7.3 RF Test Data Required
 
@@ -338,3 +338,4 @@ SpaceX-side milestones).
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Document number changed from SQSO-ICD-004, which is the OBC-to-ADCS ICD (`docs/interfaces/ICD_OBC_ADCS.md`), to SQSO-ICD-010, the number `INTERFACE_CONTROL_MASTER.md` reserves for the launch vehicle interface (finding PI-17). No content change | SMART-QSO Team |
 | C (draft) | 2026-10-16 | Funding audit VV-21: umbilical access made consistent (no access after integration unless the dispenser has ports; RBF out at integration). VV-20: deliverable statuses corrected (no "Complete"); safety data package is a system-level skeleton. TB-15: one environment specification from SpaceX UG v11 (interim) in §4.5 and §6.2, replacing unsourced "Qualified" and "Compliant" entries; rail edge radius per CDS §2.2.7 | SMART-QSO Team |
+| D (draft) | 2026-10-16 | §4.1 mass from MASS_BUDGET v2.0 (was 1.075 kg, never weighed; TB-06); §5.1 switch type open as TBR-CDS-005 (was "normally open", against "normally closed" in the structural design); §7.1 timer 45 min (SYS-224; was 30 min); §7.2 frequency, power and spurious limits from SYS-200, SYS-201 and SYS-203 (were 145.825 MHz, 2 W, "Per FCC Part 97") | SMART-QSO Team |

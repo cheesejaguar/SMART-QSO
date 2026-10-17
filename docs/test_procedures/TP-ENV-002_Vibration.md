@@ -2,7 +2,7 @@
 ## TP-ENV-002
 
 **Document Number:** TP-ENV-002
-**Revision:** C (interim levels)
+**Revision:** D (interim levels)
 **Date:** 2026-10-16
 **Reference:** SpaceX Rideshare Payload User's Guide, Version 11, August 2026 ("UG v11",
 <https://storage.googleapis.com/rideshare-static/Rideshare_Payload_Users_Guide.pdf>): §4.1.6, Table 4-6, §6.1.2, §6.6,
@@ -21,8 +21,8 @@ Table 6-2, §6.7.1, Table 6-3, §6.7.6, §6.7.7. Fallback if no provider applies
 
 Verify the structural integrity and functional performance of the SMART-QSO CubeSat after random vibration at the
 interim provider's levels, and verify that the power inhibits work **during** random vibration (UG v11 §6.1.2,
-§6.7.7; inhibit requirement SYS-225; vibration requirement SYS-700, whose "GEVS protoflight" wording needs updating
-to the provider levels).
+§6.7.7; inhibit requirement SYS-225; vibration requirement SYS-700, amended on 2026-10-16 from "GEVS protoflight" to the launch provider's
+levels, with this guide as the interim provider, for the PI to ratify).
 
 ## 2. Test Approach
 
@@ -231,3 +231,4 @@ original burn wire did not fail in the test. Any other rework needs the integrat
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B (interim) | 2026-10-16 | Funding audit LA-05: levels re-baselined to SpaceX Rideshare Payload User's Guide v11 as the interim provider (MPE 5.57 Grms, Table 4-6; protoflight 1 min/axis, Table 6-2); power-inhibit verification during vibration added (§6.7.7); low-level sine criteria per Table 6-3; notching rules. Pending launch contract and PI confirmation | SMART-QSO Team |
 | C | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
+| D (interim) | 2026-10-16 | §1: SYS-700 now names the launch provider's levels (SQSO-REQ-002 Rev D, PI to ratify), so the note that its GEVS wording needed updating is replaced (finding LA-05) | SMART-QSO Team |

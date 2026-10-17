@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat
 
 **Document Number:** SQSO-VER-RF-001
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-16
 **Status:** Template - To be completed post-test
 
@@ -130,11 +130,13 @@ earlier revisions stated, would allow 140 kHz of drift over a 70 °C range and c
 
 ## 6. Spurious Emissions Compliance
 
-### 6.1 Requirements (IARU)
+### 6.1 Requirements
 
 | Frequency Range | Limit | Source |
 |-----------------|-------|--------|
-| Harmonics | < -43 dBc | IARU |
+| Harmonics and spurious | At least 40 dB below carrier (< -40 dBc) | SYS-203 |
+| Harmonics and spurious, absolute | ≤ 25 µW: < -43 dBc at 0.5 W, < -46 dBc at 1 W | 47 CFR 97.307(e); BASELINE §7 |
+| 3rd harmonic (falls in the 435–438 MHz uplink band) | Target < -60 dBc | BASELINE §7 |
 | Out-of-band | < -60 dBc | IARU |
 | Spurious (general) | < -60 dBc | ITU |
 
@@ -142,11 +144,14 @@ earlier revisions stated, would allow 140 kHz of drift over a 70 °C range and c
 
 | Harmonic | Frequency (MHz) | Level (dBc) | Limit (dBc) | Pass/Fail |
 |----------|-----------------|-------------|-------------|-----------|
-| Fundamental | 145.825 | 0 (ref) | - | - |
-| 2nd | 291.65 | TBD | -43 | TBD |
-| 3rd | 437.475 | TBD | -43 | TBD |
-| 4th | 583.3 | TBD | -43 | TBD |
-| 5th | 729.125 | TBD | -43 | TBD |
+| Fundamental | f_c: the IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz (SYS-200; TBD-SYS-001) | 0 (ref) | - | - |
+| 2nd | 2 f_c (291.6–292.0) | TBD | -46 | TBD |
+| 3rd | 3 f_c (437.4–438.0) | TBD | -46 (target -60) | TBD |
+| 4th | 4 f_c (583.2–584.0) | TBD | -46 | TBD |
+| 5th | 5 f_c (729.0–730.0) | TBD | -46 | TBD |
+
+Limits are for the 1 W maximum (SYS-201): < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e)), which at 1 W is
+< -46 dBc (`docs/BASELINE_PARAMETERS.md` §7).
 
 ### 6.3 Spurious Emissions Scan
 
@@ -257,3 +262,4 @@ earlier revisions stated, would allow 140 kHz of drift over a 70 °C range and c
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial template for CDR |
 | 1.1 | 2026-10-16 | Funding audit VV-21: frequency stability restated as total drift over the test range (± 2 kHz), within the ± 5 kHz accuracy; centre frequency per BASELINE §7 (not 145.825 MHz) in §4. Other 145.825 MHz values (§6.2) and the −43 dBc harmonic limit (BASELINE §7: ≥ 46 dBc at 1 W, target ≥ 60 dB) are not yet updated |
+| 1.2 | 2026-10-16 | §6.1 and §6.2: harmonic limits from SYS-203 and 47 CFR 97.307(e) (−46 dBc at 1 W; 3rd-harmonic target −60 dBc, BASELINE §7), replacing −43 dBc "IARU"; fundamental the IARU-coordinated frequency (SYS-200, TBD-SYS-001), harmonics as multiples of it, replacing 145.825 MHz (finding VV-21) |
