@@ -113,7 +113,7 @@ Per NPR 7123.1, the 17 SE processes are tailored for Class D CubeSat:
 
 | TPM | Threshold | Goal | Current |
 |-----|-----------|------|---------|
-| Total mass | < 1.5 kg | < 1.2 kg | TBD |
+| Total mass | ≤ 2.00 kg predicted (CDS Rev 14.1, BASELINE §4) | Margin > 9 % at PDR (AIAA S-120A guidance) | CBE 1.69 kg, predicted 1.92–2.00 kg (`docs/environment/MASS_BUDGET.md` v2.0) |
 | Power generation (EOL) | > 2.0 W | > 2.5 W | TBD |
 | Beacon interval | < 60 s | < 30 s | 30 s |
 | AI inference latency | < 10 s | < 5 s | TBD |
@@ -305,4 +305,4 @@ All interfaces are documented in ICDs and controlled through:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
-| 1.1 | 2026-10-16 | Funding audit | TPM table cites the controlled analyses (link margin: TB-05) |
+| 1.1 | 2026-10-16 | Funding audit | TPM table cites the controlled analyses (link margin: TB-05; mass: TB-06) |

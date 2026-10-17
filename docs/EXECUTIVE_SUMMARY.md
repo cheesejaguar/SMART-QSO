@@ -26,7 +26,7 @@ a conventional transponder and template beacon.
 | Feature | Baseline |
 |---------|----------|
 | Form factor | 1U CubeSat, 100 × 100 × 113.5 mm (CDS Rev 14.1) |
-| Mass | ≈ 1.44 kg CBE; ≤ 1.7 kg MEV; limit 2.00 kg or the dispenser limit |
+| Mass | Limit 2.00 kg or the dispenser limit. BASELINE §4: CBE ≈ 1.51 kg, MEV ≤ 1.75 kg. The bottom-up [mass budget](environment/MASS_BUDGET.md) v2.0 gives CBE 1.69 kg and a predicted 1.92–2.00 kg, leaving 0–4 % margin; PI decision pending |
 | Power | 16 triple-junction cells (body + two deployable wings): ≈ 2.4 W EOL orbit average tumbling, ≈ 3.6 W sun-pointed (audit estimate) |
 | Battery | 4S1P Li-ion 18650, ≈ 50 Wh |
 | Flight computer | STM32L4R5ZI, FreeRTOS (flight software currently runs only as a host simulation) |

@@ -200,7 +200,7 @@ Period             | 91.7 ± 0.6         | minutes
 - **Drag Coefficient**: 2.2 (typical CubeSat)
 - **Ballistic Coefficient**: 65 kg/m²
 - **Drag Area**: 0.01 m² (1U deployed configuration)
-- **Mass**: 1.33 kg (SMART-QSO estimated)
+- **Mass**: CBE 1.69 kg, predicted 1.92–2.00 kg (`docs/environment/MASS_BUDGET.md` v2.0); the lifetime analyses in BASELINE §3 use 1.6 kg with a 1.8 kg bound and need updating
 
 #### 3.3.2 Lifetime Projections
 ```
