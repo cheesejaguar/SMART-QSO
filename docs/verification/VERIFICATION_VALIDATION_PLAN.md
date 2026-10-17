@@ -1,7 +1,7 @@
 # SMART-QSO Verification and Validation Plan
 
 **Document ID**: SQSO-VVP-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -165,7 +165,7 @@ Validation confirms the system meets stakeholder needs and performs as intended 
 
 | Req ID | Requirement | Method | Procedure | Status |
 |--------|-------------|--------|-----------|--------|
-| SWR-101 | TinyLM inference | T | TP-FLAT-001 | [ ] |
+| SWR-101 | TinyLM inference | T | TP-FLATSAT-001 | [ ] |
 | SWR-201 | 60s beacon task | T | TP-004.10 | [ ] |
 | SWR-301 | SAFE mode power | T | TP-006.1 | [ ] |
 | SWR-401 | 5s watchdog | T | TP-005.1 | [x] |
@@ -222,9 +222,9 @@ Level 1: Component Test
 | TP-005 | Fault response | Flatsat |
 | TP-006 | Power modes | Flatsat, System |
 | TP-007 | Extended duration | Flatsat |
-| TP-ENV-001 | Vibration | Environmental |
-| TP-ENV-002 | Thermal vacuum | Environmental |
-| TP-ENV-003 | EMC/EMI | Environmental |
+| TP-ENV-002 | Vibration | Environmental |
+| TP-ENV-003 | Thermal vacuum | Environmental |
+| TP-ENV-004 | EMC/EMI | Environmental |
 | TP-E2E-001 | Nominal pass | System |
 | TP-DITL-001 | Day-in-the-life | System |
 
@@ -358,3 +358,4 @@ Level 1: Component Test
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-16 | SMART-QSO Team | Environmental procedure IDs aligned with `docs/test_procedures/` (vibration TP-ENV-002, thermal vacuum TP-ENV-003, EMC TP-ENV-004; TP-ENV-001 is the pre-environmental baseline); TP-FLAT-001 corrected to TP-FLATSAT-001 as in the RTM (finding VV-18) |

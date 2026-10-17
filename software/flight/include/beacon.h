@@ -257,6 +257,10 @@ void beacon_set_ai_available(bool available);
 /**
  * @brief Store AI-generated text for next beacon
  *
+ * The text is used for one beacon (while AI is available) and then
+ * discarded; later beacons use templates until new text is stored
+ * (BEACON_SPEC section 5).
+ *
  * @param text AI-generated text
  * @param len Text length
  * @return SMART_QSO_OK on success

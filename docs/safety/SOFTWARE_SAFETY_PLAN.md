@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SSP-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Classification:** Class D Mission (per NPR 7120.5)
 **Governing Standards:** NASA-STD-8719.13, NPR 7150.2
@@ -35,9 +35,9 @@ This plan applies to all software components of the SMART-QSO mission:
 ### 3.2 Project Documents
 | Document | Title |
 |----------|-------|
-| SQSO-SEMP-001 | Systems Engineering Management Plan |
-| SQSO-SDP-001 | Software Development Plan |
-| SQSO-SRS-001 | Software Requirements Specification |
+| SMART-QSO-SEMP-001 | Systems Engineering Management Plan |
+| SMART-QSO-SDP-001 | Software Development Plan |
+| SMART-QSO-SRS-001 | Software Requirements Specification |
 | SQSO-SHA-001 | Software Hazard Analysis |
 
 ## 4. Software Safety Organization
@@ -262,6 +262,7 @@ All personnel working on safety-critical software shall complete:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | §3.2 cites the numbers the documents carry: the Software Development Plan is SMART-QSO-SDP-001 (SQSO-SDP-001 is the Safety Data Package); SEMP and SRS likewise (finding PI-17) | SMART-QSO Team |
 
 ---
 

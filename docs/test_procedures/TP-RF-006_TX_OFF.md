@@ -31,7 +31,7 @@ The test is conducted only: the RF output goes into an attenuator and a load, an
 | Document | Title |
 |----------|-------|
 | SQSO-ICD-013 | Telecommand Authentication and TX-OFF (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`) |
-| SQSO-ICD-005 | OBC to RF Interface (`docs/interfaces/ICD_OBC_RF.md`) |
+| SQSO-ICD-003 | OBC to RF Interface (`docs/interfaces/ICD_OBC_RF.md`) |
 | SYS-204, SYS-325 | System requirements (`docs/requirements/SYSTEM_REQUIREMENTS.md`) |
 | 47 CFR 97.207(b), ITU RR 22.1 | Cessation of emissions by telecommand |
 
@@ -204,3 +204,4 @@ Monitor the downlink frequency and its harmonics, and the receiver's local-oscil
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | Draft | 2026-10-15 | Initial procedure for SYS-204 / SYS-325 hardware verification | Funding audit |
+| Draft | 2026-10-16 | OBC-to-RF ICD cited by its own number, SQSO-ICD-003 (was SQSO-ICD-005, the Space-to-Ground ICD) (finding PI-17) | SMART-QSO Team |

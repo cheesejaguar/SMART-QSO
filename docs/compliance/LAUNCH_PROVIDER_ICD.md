@@ -9,8 +9,8 @@
 > `docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md`; the launch path is in
 > `docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md`.
 
-**Document Number:** SQSO-ICD-004
-**Revision:** B (draft)
+**Document Number:** SQSO-ICD-010
+**Revision:** C (draft)
 **Date:** 2026-10-16
 **Reference:** Cal Poly CDS Rev 14.1; SpaceX Rideshare Payload User's Guide v11, Aug 2026 (interim provider, pending the launch contract and PI confirmation); GSFC-STD-7000B as fallback
 
@@ -336,4 +336,5 @@ SpaceX-side milestones).
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
-| B (draft) | 2026-10-16 | Funding audit VV-21: umbilical access made consistent (no access after integration unless the dispenser has ports; RBF out at integration). VV-20: deliverable statuses corrected (no "Complete"); safety data package is a system-level skeleton. TB-15: one environment specification from SpaceX UG v11 (interim) in §4.5 and §6.2, replacing unsourced "Qualified" and "Compliant" entries; rail edge radius per CDS §2.2.7 | SMART-QSO Team |
+| B | 2026-10-16 | Document number changed from SQSO-ICD-004, which is the OBC-to-ADCS ICD (`docs/interfaces/ICD_OBC_ADCS.md`), to SQSO-ICD-010, the number `INTERFACE_CONTROL_MASTER.md` reserves for the launch vehicle interface (finding PI-17). No content change | SMART-QSO Team |
+| C (draft) | 2026-10-16 | Funding audit VV-21: umbilical access made consistent (no access after integration unless the dispenser has ports; RBF out at integration). VV-20: deliverable statuses corrected (no "Complete"); safety data package is a system-level skeleton. TB-15: one environment specification from SpaceX UG v11 (interim) in §4.5 and §6.2, replacing unsourced "Qualified" and "Compliant" entries; rail edge radius per CDS §2.2.7 | SMART-QSO Team |

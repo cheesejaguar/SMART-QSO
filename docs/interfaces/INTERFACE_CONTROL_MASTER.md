@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ICD-000
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** NPR 7123.1, NASA Ames SmallSat Heritage
 
@@ -27,32 +27,42 @@ This document covers all internal and external interfaces for the SMART-QSO spac
 
 ### 3.1 Internal Hardware ICDs
 
+Numbers are the ones each ICD carries in its own header; `docs/DOCUMENT_REGISTER.md` is the controlled list. Revision A of this
+index numbered the ICDs differently (SQSO-ICD-001 OBC–Jetson, -002 OBC–EPS, -003 beacon format, -005 OBC–RF, -006 EPS
+power bus), so the same number meant two documents. Citations of the old numbers were corrected on 2026-10-16 (finding
+PI-17). Some ICDs carry the prefix SMART-QSO- and others SQSO-; both are listed as written.
+
 | ICD Number | Title | Status | Owner |
 |------------|-------|--------|-------|
-| SQSO-ICD-001 | OBC to Jetson Interface | Complete | C&DH |
-| SQSO-ICD-002 | OBC to EPS Interface | Complete | C&DH |
-| SQSO-ICD-003 | Beacon Format Interface | Complete | RF |
+| SMART-QSO-ICD-001 | OBC to EPS Interface | Draft | C&DH |
+| SMART-QSO-ICD-002 | OBC to Jetson Interface | Draft | C&DH |
+| SQSO-ICD-003 | OBC to RF Interface | Draft | RF |
 | SQSO-ICD-004 | OBC to ADCS Interface | Draft | ADCS |
-| SQSO-ICD-005 | OBC to RF Interface | Draft | RF |
-| SQSO-ICD-006 | EPS Power Bus Interface | Draft | EPS |
+| SMART-QSO-ICD-006 | Beacon Format Interface | Draft | RF |
+| — | EPS Power Bus Interface | Not written; no number assigned | EPS |
 
 ### 3.2 External ICDs
 
 | ICD Number | Title | Status | Owner |
 |------------|-------|--------|-------|
-| SQSO-ICD-010 | Launch Vehicle Interface | TBD | Systems |
-| SQSO-ICD-011 | Deployer Interface | TBD | Mechanical |
-| SQSO-ICD-012 | Ground Station Interface | Draft | Ground |
+| SQSO-ICD-005 | Space-to-Ground Interface | Draft | Ground |
+| SQSO-ICD-010 | Launch Vehicle Interface (Launch Provider ICD) | Draft; no provider selected | Systems |
+| SQSO-ICD-011 | Deployer Interface | Not written | Mechanical |
+| SQSO-ICD-012 | Ground Station Interface | Not written (the space-to-ground link is SQSO-ICD-005) | Ground |
 | SQSO-ICD-013 | Telecommand Authentication and TX-OFF | Draft | C&DH |
 
 ### 3.3 Document Locations
 
 | Document | Location |
 |----------|----------|
-| ICD OBC-Jetson | docs/interfaces/ICD_OBC_JETSON.md |
-| ICD OBC-EPS | docs/interfaces/ICD_OBC_EPS.md |
-| ICD Beacon Format | docs/interfaces/ICD_BEACON_FORMAT.md |
-| ICD Telecommand Authentication | docs/interfaces/TELECOMMAND_AUTHENTICATION.md |
+| ICD OBC-EPS (SMART-QSO-ICD-001) | docs/interfaces/ICD_OBC_EPS.md |
+| ICD OBC-Jetson (SMART-QSO-ICD-002) | docs/interfaces/ICD_OBC_JETSON.md |
+| ICD OBC-RF (SQSO-ICD-003) | docs/interfaces/ICD_OBC_RF.md |
+| ICD OBC-ADCS (SQSO-ICD-004) | docs/interfaces/ICD_OBC_ADCS.md |
+| ICD Space-to-Ground (SQSO-ICD-005) | docs/interfaces/ICD_SPACE_GROUND.md |
+| ICD Beacon Format (SMART-QSO-ICD-006) | docs/interfaces/ICD_BEACON_FORMAT.md |
+| Launch Provider ICD (SQSO-ICD-010) | docs/compliance/LAUNCH_PROVIDER_ICD.md |
+| ICD Telecommand Authentication (SQSO-ICD-013) | docs/interfaces/TELECOMMAND_AUTHENTICATION.md |
 
 ---
 
@@ -96,22 +106,22 @@ This document covers all internal and external interfaces for the SMART-QSO spac
 │                           │                                              │
 │                    ┌──────▼──────┐                                      │
 │                    │     EPS     │                                      │
-│                    │  (SQSO-ICD  │                                      │
-│                    │    -002)    │                                      │
+│                    │ (SMART-QSO  │                                      │
+│                    │  -ICD-001)  │                                      │
 │                    └──────┬──────┘                                      │
 │                           │ Power Bus                                   │
 │         ┌─────────────────┼─────────────────┬───────────────┐          │
 │         │                 │                 │               │          │
 │  ┌──────▼──────┐   ┌──────▼──────┐   ┌──────▼──────┐ ┌──────▼──────┐   │
 │  │    OBC      │   │    ADCS     │   │   RF TX     │ │   JETSON    │   │
-│  │             │◄──┤  (SQSO-ICD  │   │  (SQSO-ICD  │ │  (SQSO-ICD  │   │
-│  │             │   │    -004)    │   │    -005)    │ │    -001)    │   │
+│  │             │◄──┤  (SQSO-ICD  │   │  (SQSO-ICD  │ │ (SMART-QSO  │   │
+│  │             │   │    -004)    │   │    -003)    │ │  -ICD-002)  │   │
 │  └──────┬──────┘   └─────────────┘   └──────┬──────┘ └──────┬──────┘   │
 │         │                                   │               │          │
 │         │           SQSO-ICD-003            │               │          │
 │         └───────────────────────────────────┘               │          │
 │                           │                                 │          │
-│                           │ UART (SQSO-ICD-001)             │          │
+│                           │ UART (SMART-QSO-ICD-002)        │          │
 │                           └─────────────────────────────────┘          │
 │                                                                         │
 │  ┌─────────────┐                                                       │
@@ -210,10 +220,10 @@ This document covers all internal and external interfaces for the SMART-QSO spac
 
 | ICD | Requirement | Test Procedure | Status |
 |-----|-------------|----------------|--------|
-| ICD-001 | UART timing | TP-INT-005 | Planned |
-| ICD-002 | Power telemetry | TP-INT-001 | Planned |
-| ICD-003 | AX.25 format | TP-RF-001 | Planned |
-| ICD-010 | Mechanical fit | TP-MECH-001 | Planned |
+| SMART-QSO-ICD-002 | UART timing | TP-INT-005 | Planned |
+| SMART-QSO-ICD-001 | Power telemetry | TP-INT-001 | Planned |
+| SMART-QSO-ICD-006 | AX.25 format | TP-RF-001 | Planned |
+| SQSO-ICD-010 | Mechanical fit | TP-MECH-001 | Planned |
 
 ---
 
@@ -243,3 +253,4 @@ This document covers all internal and external interfaces for the SMART-QSO spac
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | §3 index renumbered to the IDs the ICDs carry; Space-to-Ground and Launch Provider ICDs added; statuses set to Draft or Not written; diagram and §8.2 numbers corrected (finding PI-17) | SMART-QSO Team |

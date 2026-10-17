@@ -1,7 +1,7 @@
 # SMART-QSO Requirements Traceability Matrix
 
 **Document ID**: SQSO-RTM-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -161,7 +161,7 @@ Test Procedures (TP)
 | SWR ID | Requirement | Method | Test Procedure |
 |--------|-------------|--------|----------------|
 | SWR-101 | Jetson TinyLM inference | T | TP-FLATSAT-001 |
-| SWR-102 | UART AI request | T | TP-INT-002 |
+| SWR-102 | UART AI request | T | TP-SWI-002 |
 | SWR-103 | Fallback templates | T | TP-004.9 |
 | SWR-104 | AI duty cycle limit | T | TP-006.5 |
 | SWR-201 | 60s beacon interval | T | TP-004.10 |
@@ -251,3 +251,4 @@ All test procedures trace backward to:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR baseline |
+| 1.1 | 2026-10-16 | SMART-QSO Team | SWR-102 procedure renumbered TP-SWI-002 (OBC + Jetson communication), as in TEST_PROCEDURES.md Version 1.1 (finding VV-18) |

@@ -123,7 +123,6 @@ Following NASA Ames Small Satellite heritage:
 software/flight/
 ├── tests/
 │   ├── CMakeLists.txt
-│   ├── test_main.c              # Test runner
 │   ├── test_eps_control.c       # EPS module tests
 │   ├── test_fault_mgmt.c        # Fault module tests
 │   ├── test_sensors.c           # Sensor module tests
