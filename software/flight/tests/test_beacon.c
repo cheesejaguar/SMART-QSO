@@ -327,6 +327,24 @@ static void test_stored_ai_text(void **state)
     assert_int_equal(content.source, BEACON_SOURCE_TEMPLATE);
 }
 
+/** Stored Jetson text is used for one beacon only (BEACON_SPEC section 5) */
+static void test_stored_ai_text_used_once(void **state)
+{
+    (void)state;
+    BeaconContent_t content;
+    const char text[] = "Hello from orbit";
+
+    beacon_set_ai_available(true);
+    assert_int_equal(beacon_store_ai_text(text, strlen(text)), SMART_QSO_OK);
+    assert_int_equal(beacon_generate_content(&content, NULL, 0U), SMART_QSO_OK);
+    assert_int_equal(content.source, BEACON_SOURCE_AI);
+
+    /* The next beacon has no new text: a template, not the same text again */
+    assert_int_equal(beacon_generate_content(&content, NULL, 0U), SMART_QSO_OK);
+    assert_int_equal(content.source, BEACON_SOURCE_TEMPLATE);
+    assert_string_not_equal(content.text, text);
+}
+
 /** Transmissions are counted by text source and size; reset clears them */
 static void test_transmit_statistics(void **state)
 {
@@ -417,6 +435,7 @@ int main(void)
         cmocka_unit_test_setup(test_serialize_buffer_size, setup),
         cmocka_unit_test_setup(test_template_fallback_cycles, setup),
         cmocka_unit_test_setup(test_stored_ai_text, setup),
+        cmocka_unit_test_setup(test_stored_ai_text_used_once, setup),
         cmocka_unit_test_setup(test_transmit_statistics, setup),
         cmocka_unit_test_setup(test_fault_flags_from_last_fault, setup),
         cmocka_unit_test_setup(test_null_arguments, setup),
