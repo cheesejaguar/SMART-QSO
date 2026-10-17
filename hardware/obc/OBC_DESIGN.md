@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-CDH-OBC-001
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-16
 **Status:** Draft
 **Supersedes:** `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), merged as Appendix A (finding PI-17)
@@ -32,16 +32,18 @@ This document defines the On-Board Computer (OBC) design for the SMART-QSO 1U Cu
 
 | Parameter | Value |
 |-----------|-------|
-| Manufacturer | STMicroelectronics / Ambiq |
-| Part Number | STM32L476RG or Apollo4 Blue |
+| Manufacturer | STMicroelectronics |
+| Part Number | STM32L4R5ZI (`docs/BASELINE_PARAMETERS.md` §6); STM32L4R5ZIT6 in `docs/manufacturing/EEE_PARTS_LIST.md` §4.1 |
 | Core | ARM Cortex-M4F |
-| Clock Speed | 80 MHz (STM32L4) / 96 MHz (Apollo4) |
-| Flash | 1 MB |
-| SRAM | 128 KB (STM32L4) / 2 MB (Apollo4) |
-| Package | LQFP-64 or BGA |
+| Clock Speed | Up to 120 MHz in voltage Range 1 boost mode (ST STM32L4R5xx datasheet). The flight image runs at 80 MHz, the top of Range 1 normal mode, from the internal MSI through the PLL (`software/flight/src/hal/stm32l4_clock.c`) |
+| Flash | 2 MB |
+| SRAM | 640 KB: SRAM1 192 KB at 0x20000000, SRAM2 64 KB at 0x20030000, SRAM3 384 KB at 0x20040000, contiguous (`software/flight/cmake/stm32l4r5zi.ld`) |
+| Package | LQFP144 (STM32L4R5ZIT6, `docs/manufacturing/EEE_PARTS_LIST.md` §4.1) |
 
-The baseline OBC is the **STM32L4R5ZI** (`docs/BASELINE_PARAMETERS.md` §6), which supersedes both parts above. This
-table and the part-specific values in §2–§4 have not yet been updated to it (Appendix A.1).
+The baseline OBC is the **STM32L4R5ZI** (`docs/BASELINE_PARAMETERS.md` §6). Version 1.1 of this table gave the
+superseded STM32L476RG or Apollo4 Blue (1 MB flash; 128 KB or 2 MB SRAM; 80 or 96 MHz). The memory (§3) and clock (§4)
+data now follow the STM32L4R5ZI. The currents in §2.3 and §6.3 are still the earlier figures and have not been checked
+against the STM32L4R5 datasheet.
 
 ### 2.2 Selection Justification
 
@@ -49,7 +51,7 @@ table and the part-specific values in §2–§4 have not yet been updated to it 
 - Extensive peripheral set (UART, SPI, I2C, ADC)
 - Hardware FPU for attitude calculations
 - Flight heritage on similar CubeSat missions
-- Wide temperature range (-40°C to +105°C)
+- Industrial temperature grade, -40°C to +85°C (STM32L4R5ZIT6, `docs/manufacturing/EEE_PARTS_LIST.md` §4.1)
 - Radiation tolerance adequate for LEO (TID > 10 krad with latchup immunity)
 
 ### 2.3 Operating Modes
@@ -72,14 +74,17 @@ table and the part-specific values in §2–§4 have not yet been updated to it 
 | Flash (Code) | 0x08000000 | 512 KB | Flight software |
 | Flash (Golden) | 0x08080000 | 256 KB | Backup image |
 | Flash (Data) | 0x080C0000 | 256 KB | Configuration, logs |
-| SRAM | 0x20000000 | 128 KB | Runtime data |
-| SRAM2 | 0x10000000 | 32 KB | Stack, critical data |
+| Flash (not allocated) | 0x08100000 | 1 MB | Not used by the plan above |
+| SRAM (SRAM1, SRAM2, SRAM3) | 0x20000000 | 640 KB | Data and bss from the bottom, stack down from the top; no heap |
+
+The code / golden / data flash partition is the plan for a bootloader, which does not exist yet. The flight image is
+linked for the start of flash and may use all 2 MB, and its RAM is one 640 KB region (`software/flight/cmake/stm32l4r5zi.ld`).
 
 ### 3.2 Non-Volatile Storage
 
 | Type | Size | Interface | Purpose |
 |------|------|-----------|---------|
-| Internal Flash | 1 MB | Direct | Code, config |
+| Internal Flash | 2 MB | Direct | Code, config |
 | FRAM | 256 KB | SPI | Critical state |
 | MRAM (optional) | 1 MB | SPI | Telemetry storage |
 
@@ -102,14 +107,16 @@ table and the part-specific values in §2–§4 have not yet been updated to it 
 
 | Source | Frequency | Accuracy | Purpose |
 |--------|-----------|----------|---------|
-| HSE (Crystal) | 8 MHz | ±20 ppm | Main clock source |
+| HSE (Crystal) | 8 MHz | ±20 ppm | Planned main clock source; a board decision, not used by the flight image (`software/flight/src/hal/stm32l4_clock.c`) |
 | LSE (Crystal) | 32.768 kHz | ±20 ppm | RTC, watchdog |
 | HSI | 16 MHz | ±1% | Backup oscillator |
 | LSI | 32 kHz | ±5% | Backup RTC |
 
 ### 4.2 Clock Distribution
 
-- System clock: PLL from HSE → 80 MHz
+- System clock: 80 MHz from the PLL, sourced from the internal MSI at 4 MHz (M = 1, N = 40, R = 2; `software/flight/src/hal/stm32l4_clock.c`). If the
+  PLL does not lock, the core stays on MSI at 4 MHz. Moving to the HSE is a board decision; above 80 MHz (up to 120 MHz)
+  would need Range 1 boost mode
 - Peripheral clocks: Divided from system clock
 - RTC: LSE direct (32.768 kHz)
 - Watchdog: LSI independent (32 kHz)
@@ -378,9 +385,9 @@ baseline OBC.
 
 | Item | This document (§) | Former SMART-QSO-OBC-001 (Appendix A §) | Baseline |
 |------|-------------------|------------------------------------------|----------|
-| MCU | STM32L476RG or Apollo4 Blue (§2.1) | STM32L476RG, Apollo4 Blue Plus alternate (former §3.2) | **STM32L4R5ZI**; STM32L476 and Apollo4 superseded (BASELINE §6) |
-| Apollo4 clock | 96 MHz (§2.1) | 192 MHz (former §3.2) | Superseded |
-| Flash layout | 512 KB code, 256 KB golden, 256 KB data (§3.1) | 512 KB main, 256 KB backup, 128 KB bootloader (A.4.3) | Not set |
+| MCU | STM32L4R5ZI from Version 1.2 (§2.1); was STM32L476RG or Apollo4 Blue | STM32L476RG, Apollo4 Blue Plus alternate (former §3.2) | **STM32L4R5ZI**; STM32L476 and Apollo4 superseded (BASELINE §6) |
+| Apollo4 clock | 96 MHz (§2.1 until Version 1.1) | 192 MHz (former §3.2) | Superseded |
+| Flash layout | 512 KB code, 256 KB golden, 256 KB data, a bootloader plan; 1 MB of the 2 MB not allocated (§3.1) | 512 KB main, 256 KB backup, 128 KB bootloader (A.4.3) | Not set |
 | FRAM | 256 KB (§3.2) | FM25V10, 1 Mbit (A.4.2) | Not set |
 | Bulk storage | MRAM 1 MB, optional (§3.2) | W25Q128 flash, 16 MB (A.4.2) | ≥ 7 days onboard storage (BASELINE §8) |
 | IWDG reload at prescaler 256 | 500 (§5.2) | 3750 (A.7.1) | Timeout 30 s in both (`WDT_HW_TIMEOUT_MS`). At LSI 32 kHz / 256, 500 counts is about 4 s and 3750 counts is 30 s |
@@ -441,11 +448,13 @@ baseline OBC.
 | Parameter | Operating | Non-Operating |
 |-----------|-----------|---------------|
 | Temperature | -40°C to +85°C | -55°C to +125°C |
-| Vibration | 14.1 Grms (random) | N/A |
+| Vibration | 14.1 Grms (random) *(superseded 2026-10-16: ≥ 5.57 Grms MPE, interim SpaceX UG v11 level, `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1)* | N/A |
 | Radiation | 10 krad TID | N/A |
 | SEU Rate | <10⁻⁹/bit/day | N/A |
 
 ### A.3 Block Diagram (former §3.1)
+
+*Superseded part (STM32L476RG, 1 MB flash, 128 KB RAM); the baseline STM32L4R5ZI is in §2.1 and §3.1.*
 
 ```
 +------------------------------------------------------------------+
@@ -488,6 +497,8 @@ baseline OBC.
 ### A.4 Memory Architecture (former §3.3)
 
 #### A.4.1 Memory Map (STM32L476)
+
+*Superseded part; the STM32L4R5ZI memory map is in §3.1.*
 
 | Region | Address | Size | Usage |
 |--------|---------|------|-------|
@@ -929,3 +940,4 @@ OpenOCD / STM32CubeProgrammer
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-16 | Merged `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), a second OBC design for the same board, as Appendix A without reconciling it; A.1 lists where the two disagree and what the baseline says; §2.1 notes the baseline MCU; test IDs in A.11.2 aligned with the procedure files; status changed from "CDR Baseline" to Draft, as no CDR has been held (findings PI-17, VV-18) |
+| 1.2 | 2026-10-16 | §2.1, §2.2, §3.1, §3.2, §4.1 and §4.2: part data for the baseline STM32L4R5ZI (2 MB flash, 640 KB SRAM, up to 120 MHz; flight image at 80 MHz from MSI), replacing the superseded STM32L476RG / Apollo4 values; flash partition kept and marked as a bootloader plan; A.1 rows updated; A.2.4 vibration and A.3 / A.4.1 carry dated notes (BASELINE §6; findings PI-14, LA-05) |
