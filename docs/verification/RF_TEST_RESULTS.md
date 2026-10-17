@@ -2,8 +2,8 @@
 ## SMART-QSO CubeSat
 
 **Document Number:** SQSO-VER-RF-001
-**Version:** 1.0
-**Date:** 2026-01-02
+**Version:** 1.1
+**Date:** 2026-10-16
 **Status:** Template - To be completed post-test
 
 ---
@@ -72,16 +72,20 @@ This document records the RF characterization and verification test results for 
 
 | Parameter | Requirement | Source |
 |-----------|-------------|--------|
-| Center Frequency | 145.825 MHz | IARU Coordination |
-| Frequency Accuracy | ± 5 kHz | Design |
-| Frequency Stability | ± 2 kHz/°C | Design |
+| Center Frequency (f<sub>c</sub>) | One IARU-coordinated frequency in 145.800–146.000 MHz, **not 145.825 MHz**; TBD until coordination | `docs/BASELINE_PARAMETERS.md` §7 |
+| Frequency Accuracy | ± 5 kHz from f<sub>c</sub> under all test conditions, including temperature drift (≈ ± 34 ppm at 145.9 MHz) | Design allocation (TBC) |
+| Frequency Stability | Drift ≤ ± 2 kHz from the +25 °C value over the whole −20 °C to +50 °C test range (total, not per °C) | Design allocation (TBC) |
+
+The stability line is a total over the temperature range, so it uses part of the ± 5 kHz accuracy budget: the setting
+error at +25 °C may be at most ± 3 kHz for the total to stay within ± 5 kHz. (A per-degree figure of ± 2 kHz/°C, as
+earlier revisions stated, would allow 140 kHz of drift over a 70 °C range and could never meet ± 5 kHz.)
 
 ### 4.2 Test Results - Accuracy
 
 | Condition | Expected (MHz) | Measured (MHz) | Error (kHz) | Pass/Fail |
 |-----------|----------------|----------------|-------------|-----------|
-| 25°C | 145.825 | TBD | TBD | TBD |
-| After warm-up | 145.825 | TBD | TBD | TBD |
+| 25°C | f<sub>c</sub> (TBD) | TBD | TBD | TBD |
+| After warm-up | f<sub>c</sub> (TBD) | TBD | TBD | TBD |
 
 ### 4.3 Test Results - Stability
 
@@ -252,3 +256,4 @@ This document records the RF characterization and verification test results for 
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial template for CDR |
+| 1.1 | 2026-10-16 | Funding audit VV-21: frequency stability restated as total drift over the test range (± 2 kHz), within the ± 5 kHz accuracy; centre frequency per BASELINE §7 (not 145.825 MHz) in §4. Other 145.825 MHz values (§6.2) and the −43 dBc harmonic limit (BASELINE §7: ≥ 46 dBc at 1 W, target ≥ 60 dB) are not yet updated |

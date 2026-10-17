@@ -229,6 +229,9 @@ set(MODULE_TESTS
     "test_assert_release\;assert"
     "test_scheduler\;scheduler"
     "test_beacon\;rf"
+    "test_telemetry\;telemetry"
+    "test_telemetry_flow\;integration"
+    "test_adcs\;adcs"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)
@@ -242,6 +245,26 @@ foreach(entry ${MODULE_TESTS})
         LABELS "unit;${test_label}"
     )
 endforeach()
+
+# Integration and regression suites: <directory>/<name>, labelled by directory
+set(SUITE_TESTS
+    "integration/test_mode_transitions"
+    "integration/test_fault_scenarios"
+    "integration/test_system_startup"
+    "regression/test_regression_suite"
+)
+foreach(entry ${SUITE_TESTS})
+    get_filename_component(test_name ${entry} NAME)
+    get_filename_component(test_label ${entry} DIRECTORY)
+    add_executable(${test_name} ${entry}.c)
+    target_link_libraries(${test_name} flight_test_lib PkgConfig::CMOCKA m)
+    target_compile_options(${test_name} PRIVATE ${TEST_COMPILE_OPTIONS})
+    add_test(NAME ${test_name} COMMAND ${test_name})
+    set_tests_properties(${test_name} PROPERTIES
+        TIMEOUT 120
+        LABELS "${test_label}"
+    )
+endforeach()
 # JPL rule 3: no flight object references malloc/calloc/realloc/free
 add_test(NAME no_dynamic_memory
          COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/check_no_dynamic_memory.sh
@@ -251,13 +274,6 @@ set_tests_properties(no_dynamic_memory PROPERTIES LABELS "static;jpl")
 # Accept/reject vectors shared with the Jetson-side filter
 target_compile_definitions(test_beacon_filter PRIVATE
     BEACON_FILTER_VECTORS="${CMAKE_CURRENT_SOURCE_DIR}/vectors/beacon_filter_vectors.txt")
-
-#===========================================================================
-# Not registered (tracked in docs/funding_audit/FINDINGS_REGISTER.md):
-#   - test_adcs, test_telemetry, test_telemetry_flow: written for Unity,
-#     which is not vendored; port to CMocka
-#   - integration/*, regression/*: reference APIs that no longer exist
-#===========================================================================
 
 #===========================================================================
 # Test isolation

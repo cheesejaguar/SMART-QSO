@@ -1,7 +1,7 @@
 # TP-GS-001: Ground Station Validation Test Procedure
 
 **Document ID**: SQSO-TP-GS-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -16,7 +16,7 @@ This procedure validates the complete ground station system for SMART-QSO missio
 |----------|-------|
 | SQSO-GSD-001 | Ground Station Design |
 | SQSO-MOP-001 | Mission Operations Plan |
-| SQSO-ICD-006 | Space-Ground Interface |
+| SQSO-ICD-005 | Space-Ground Interface |
 
 ## 3. Test Configuration
 
@@ -428,3 +428,4 @@ QA: _____________ Date: _______
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-16 | SMART-QSO Team | Space-to-Ground ICD cited by its own number, SQSO-ICD-005 (finding PI-17) |

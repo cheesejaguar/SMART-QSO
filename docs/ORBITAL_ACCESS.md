@@ -52,7 +52,7 @@ This document summarizes how SMART-QSO will comply with the NanoRacks CubeSat De
 - **Passivity (4.4.5)**: No activation inside NRCSD. Inhibits and timer logic enforce passivity until post-ejection + dwell time.
 - **Pyrotechnics (4.4.5)**: None. Use non-pyro (e.g., burn-wire) with redundant inhibits; inactive in deployer.
 - **Space debris (4.4.6)**: ODAR shows < 25-yr deorbit per NASA-STD-8719.14; no detachable parts in nominal ops.
-- **Batteries (4.4.7)**: Acceptance tested per NanoRacks battery SOW. Cell-level OVP/UVP/OCP; pack fuse near source; ≤ 6" of ≥ 26 AWG from pack to first inhibit; restrained to prevent pouch swelling; controlled charging.
+- **Batteries (4.4.7)**: Acceptance tested per NanoRacks battery SOW. Cell-level OVP/UVP/OCP; pack fuse near source; ≤ 6" of ≥ 26 AWG from pack to first inhibit; cells restrained against launch loads (the 18650 cells are cylindrical steel-can cells, not pouch cells, so no swelling allowance is needed); controlled charging.
 - **Pressure vessels (4.4.8)**: None.
 - **Propulsion (4.4.9)**: None.
 - **Materials/outgassing (4.4.10)**: Avoid prohibited materials; outgassing TML ≤ 1.0%, CVCM ≤ 0.1%. Evidence: BOM with E595 data.

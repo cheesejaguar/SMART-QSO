@@ -5,6 +5,14 @@ SMART-QSO Federated Learning Update Frame Builder
 Builds FL-UPDATE v0.2 frames for model updates via amateur radio uplink.
 Follows amateur radio regulations (no encryption, in-the-clear).
 
+Status: ground-side research tool only. Community model updates ("federated
+learning") are not in the flight baseline (docs/BASELINE_PARAMETERS.md section 2;
+finding SW-11). The flight software has no receiver for these frames, and the
+frames carry only a CRC-16, with no authentication. Any future upload would be
+data only, adopted solely by authenticated telecommand from a designated station
+(47 CFR 97.211), with no path to power, RF or mode control. Whether to keep or
+drop the idea is a PI decision.
+
 Document ID: SMART-QSO-GND-002
 Version: 1.0
 

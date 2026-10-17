@@ -1,8 +1,8 @@
 # Test Data Management Plan
 ## SMART-QSO CubeSat Mission
 
-**Document Number:** SQSO-INT-005
-**Revision:** A
+**Document Number:** SQSO-INT-006
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** NPR 7150.2, NPR 7123.1, NASA Ames SmallSat Heritage
 
@@ -353,3 +353,4 @@ AR-001/
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Document number changed from SQSO-INT-005, which `ANOMALY_RESOLUTION.md` also carried, to SQSO-INT-006 (finding PI-17). No content change | SMART-QSO Team |

@@ -1,7 +1,7 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Status**: Preliminary Design
 
@@ -393,12 +393,15 @@ Battery life: >3 years at 80% capacity
 
 | Test | Description | Equipment |
 |------|-------------|-----------|
-| TP-EPS-001 | MPPT efficiency | Solar simulator, power analyzer |
-| TP-EPS-002 | Battery capacity | Charge/discharge cycler |
-| TP-EPS-003 | Load regulation | Electronic load, oscilloscope |
-| TP-EPS-004 | Protection testing | Fault injection equipment |
+| TP-EPS-004 | MPPT efficiency | Solar simulator, power analyzer |
+| TP-EPS-003 | Battery capacity | Charge/discharge cycler |
+| TP-EPS-002 | Load regulation | Electronic load, oscilloscope |
+| TP-EPS-001 | Protection testing | Fault injection equipment |
 | TP-EPS-005 | Thermal cycling | Thermal chamber |
 | TP-EPS-006 | EMC testing | Shielded room, spectrum analyzer |
+
+IDs are those of the procedure files in `docs/test_procedures/` that cover each test (aligned 2026-10-16, finding VV-18;
+this table had numbered them differently). TP-EPS-005 and TP-EPS-006 have no procedure yet.
 
 ---
 
@@ -459,3 +462,4 @@ Battery life: >3 years at 80% capacity
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-16 | SMART-QSO Team | §8.2 test IDs aligned with the procedure files (finding VV-18) |

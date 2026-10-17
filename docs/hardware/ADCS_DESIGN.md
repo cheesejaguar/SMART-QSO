@@ -1,7 +1,7 @@
 # Attitude Determination and Control Subsystem (ADCS) Design Document
 
 **Document Number**: SMART-QSO-ADCS-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Status**: Preliminary Design
 
@@ -488,12 +488,15 @@ typedef struct {
 
 | Test | Description | Equipment |
 |------|-------------|-----------|
-| TP-ADCS-001 | Magnetorquer dipole moment | Helmholtz coils |
-| TP-ADCS-002 | Magnetometer calibration | Helmholtz coils |
-| TP-ADCS-003 | Sun sensor calibration | Solar simulator, rotary table |
-| TP-ADCS-004 | B-dot detumble simulation | Air bearing table |
-| TP-ADCS-005 | Sun-pointing simulation | Air bearing + lamp |
-| TP-ADCS-006 | Algorithm validation | HILS (MATLAB/Simulink) |
+| TP-ADCS-002 | Magnetorquer dipole moment | Helmholtz coils |
+| TP-ADCS-001 | Magnetometer calibration | Helmholtz coils |
+| TP-ADCS-001 | Sun sensor calibration | Solar simulator, rotary table |
+| TP-ADCS-003 | B-dot detumble simulation | Air bearing table |
+| TP-ADCS-003 | Sun-pointing simulation | Air bearing + lamp |
+| TP-ADCS-003 | Algorithm validation | HILS (MATLAB/Simulink) |
+
+IDs are those of the procedure files in `docs/test_procedures/` that cover each test (aligned 2026-10-16, finding VV-18;
+this table had numbered them TP-ADCS-001 to -006 in a different order).
 
 ### 8.3 Hardware-in-Loop Simulation
 
@@ -605,3 +608,4 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-16 | SMART-QSO Team | §8.2 test IDs aligned with the procedure files (finding VV-18) |

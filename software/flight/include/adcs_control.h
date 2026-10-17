@@ -168,7 +168,8 @@ SmartQsoResult_t adcs_update(uint64_t now_ms);
  * @brief Set ADCS operating mode
  *
  * @param mode Target mode
- * @return SMART_QSO_OK on success
+ * @return SMART_QSO_OK on success, SMART_QSO_ERROR_INVALID for a value
+ *         that is not an AdcsMode_t mode (the mode is then unchanged)
  */
 SmartQsoResult_t adcs_set_mode(AdcsMode_t mode);
 

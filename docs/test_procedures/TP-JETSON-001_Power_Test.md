@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-JETSON-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** NVIDIA Jetson Orin Nano Datasheet, NASA Ames SmallSat Heritage
 
@@ -26,7 +26,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | Document | Title |
 |----------|-------|
 | SQSO-HW-004 | Payload Design Document |
-| SQSO-ICD-001 | ICD OBC-Jetson |
+| SMART-QSO-ICD-002 | ICD OBC-Jetson |
 | NVIDIA | Jetson Orin Nano Datasheet |
 | SQSO-REQ-001 | System Requirements |
 
@@ -279,3 +279,4 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | OBC-Jetson ICD cited by its own number, SMART-QSO-ICD-002 (finding PI-17) | SMART-QSO Team |
