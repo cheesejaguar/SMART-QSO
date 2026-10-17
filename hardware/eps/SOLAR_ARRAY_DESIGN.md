@@ -60,7 +60,7 @@ A Spectrolab cell of the same size may be substituted after this analysis is rep
 
 ### 2.2 Procurement Specification
 
-- Qualified per MIL-PRF-38534 Class K or equivalent
+- Supplier qualification: the datasheet states ECSS-E-ST-20-08C (Rev. 1) qualification of the 3G30-Advanced cells and assemblies; obtain the qualification report before procurement
 - Lot acceptance testing required
 - ESD-sensitive handling per ANSI/ESD S20.20
 - Inspection per IPC-A-610 Class 3 Space Addendum
@@ -132,6 +132,8 @@ assumes. Antenna locations must be checked against the wings in the mechanical l
 
 ## 4. Interconnect Design
 
+Sections 4–8 and 10 carry Version 1.0 design values that have no source yet, except where a basis is given.
+
 ### 4.1 Cell Interconnects
 
 | Parameter | Specification |
@@ -139,7 +141,7 @@ assumes. Antenna locations must be checked against the wings in the mechanical l
 | Material | Silver-coated Kovar (supplied on the 3G30A assembly) |
 | Method | Welded (preferred) or high-rel solder |
 | Redundancy | Dual-tab interconnect |
-| Workmanship | Per NASA-STD-8739.3 |
+| Workmanship | Per the project's applicable-documents list (NASA-STD-8739.3 is cancelled; finding VV-11) |
 
 ### 4.2 String Wiring
 
@@ -332,7 +334,7 @@ Findings for the power budget (TB-02), reported rather than changed here:
 | BASELINE §5 array definition | 16 cells, §3.1 layout | Inspection |
 | BASELINE §5 generation (2.39 / 3.58 W) | §9.3 table | Analysis now; simulation (TB-02) and EM illumination test later |
 | BASELINE §4 deployables and inhibits | §8 | Inspection, test |
-| ENV-THERMAL-001 | Qualified cells | Test |
+| ENV-THERMAL-001 | Supplier qualification report (to be obtained) | Inspection, test |
 
 ---
 

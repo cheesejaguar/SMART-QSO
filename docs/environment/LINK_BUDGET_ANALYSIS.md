@@ -201,7 +201,7 @@ Margin                         +7.5 dB
 
 **Sensitivity of the 5° beacon margin (Station A, 0.5 W, −3 dBi) to the ground noise temperature:**
 
-| System noise temperature | 300 K (ITU §E value, cold sky) | 500 K (this budget) | 1,000 K (ITU §E upper value) | 1,540 K (ITU-R P.372 rural man-made noise median, 146 MHz) |
+| System noise temperature | 300 K (ITU §E value, cold sky) | 500 K (this budget) | 1,000 K (ITU §E upper value) | 1,540 K (ITU-R P.372 rural man-made noise median: F = 67.2 − 27.7·log f = 7.3 dB at 146 MHz, T = 290 × 10^(F/10)) |
 |--------------------------|--------------------------------|---------------------|------------------------------|-------------------------------------------------------------|
 | Margin | +9.9 dB | +7.7 dB | +4.7 dB | +2.8 dB |
 

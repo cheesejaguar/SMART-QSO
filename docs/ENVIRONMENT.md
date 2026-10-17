@@ -198,8 +198,8 @@ Period             | 91.7 ± 0.6         | minutes
 
 #### 3.3.1 Atmospheric Drag Effects
 - **Drag Coefficient**: 2.2 (typical CubeSat)
-- **Ballistic Coefficient**: 65 kg/m²
-- **Drag Area**: 0.01 m² (1U deployed configuration)
+- **Ballistic Coefficient**: 65 kg/m² (earlier value, not consistent with the current mass or drag area; to be recomputed, TB-03)
+- **Drag Area**: 0.01 m² (superseded: BASELINE §3 uses 0.028 m² wings deployed, 0.0164 m² wings failed)
 - **Mass**: CBE 1.69 kg, predicted 1.92–2.00 kg (`docs/environment/MASS_BUDGET.md` v2.0); the lifetime analyses in BASELINE §3 use 1.6 kg with a 1.8 kg bound and need updating
 
 #### 3.3.2 Lifetime Projections
