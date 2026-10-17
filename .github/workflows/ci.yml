@@ -131,7 +131,6 @@ jobs:
             --std=c11 \
             --inline-suppr \
             --suppress=missingIncludeSystem \
-            --suppress=missingInclude \
             --suppress=unusedFunction \
             --suppress=knownConditionTrueFalse \
             --suppress=unusedStructMember \
@@ -153,7 +152,7 @@ jobs:
         run: |
           # The sources the host flight build compiles; test-only targets are left out,
           # so the count does not depend on cmocka being installed. hal_stm32l4.c is
-          # compiled by the STM32L4 cross-compile; system_init.c and yaml_parser.c are not built.
+          # compiled by the STM32L4 cross-compile.
           files=()
           while IFS= read -r f; do files+=("$f"); done < <(python3 -c 'import json; print("\n".join(sorted({e["file"] for e in json.load(open("build/compile_commands.json")) if "/software/flight/src/" in e["file"] and not e["directory"].endswith("/tests")})))')
           echo "clang-tidy: ${#files[@]} source files"

@@ -37,10 +37,11 @@ def test_at_baseline_passes(tmp_path):
     assert code == 0
 
 
-def test_below_baseline_passes_and_asks_to_lower(tmp_path):
+def test_below_baseline_fails_until_the_baseline_is_lowered(tmp_path):
+    # A baseline left above the count would let that many findings come back
     code, out = run(tmp_path, 7, baseline=10)
-    assert code == 0
-    assert "Lower" in out
+    assert code == 1
+    assert "Lower" in out and "to 7" in out
 
 
 def test_zero_against_nonzero_baseline_fails(tmp_path):
