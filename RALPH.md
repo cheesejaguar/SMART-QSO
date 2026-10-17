@@ -120,12 +120,12 @@ All project documentation and processes shall comply with:
   │   ├── fault_mgmt.h
   │   ├── uart_comm.h
   │   ├── mission_data.h
-  │   ├── yaml_parser.h
+  │   ├── yaml_parser.h      (removed: unused)
   │   └── hal/               # Hardware abstraction
   │       ├── hal_gpio.h
   │       ├── hal_uart.h
   │       ├── hal_timer.h
-  │       └── hal_watchdog.h
+  │       └── hal_watchdog.h (created as hal_wdt.h)
   ├── src/
   │   ├── main.c
   │   ├── sensors.c
@@ -133,15 +133,15 @@ All project documentation and processes shall comply with:
   │   ├── fault_mgmt.c
   │   ├── uart_comm.c
   │   ├── mission_data.c
-  │   ├── yaml_parser.c
+  │   ├── yaml_parser.c      (removed: unused)
   │   └── hal/
-  │       ├── hal_linux.c    # Linux simulation HAL
-  │       └── hal_freertos.c # FreeRTOS flight HAL (stub)
+  │       ├── hal_linux.c    # Linux simulation HAL (created as hal_sim.c)
+  │       └── hal_freertos.c # FreeRTOS flight HAL (stub) (not created; see 11.1)
   └── tests/
   ```
 
 ### 1.2 Header Guards & Include Structure
-- [x] **Add proper header guards** to all header files using the format:
+- [ ] **Add proper header guards** to all header files using the format: (audit 2026-10-16, SW-19: 6 of 49 headers use other guard names: beacon_filter.h, gnss.h, payload_guard.h, scheduler.h, system_init.h, yaml_parser.h)
   ```c
   #ifndef SMART_QSO_<MODULE>_H
   #define SMART_QSO_<MODULE>_H
@@ -176,24 +176,24 @@ All project documentation and processes shall comply with:
 - [x] **Rule 1 - Simple control flow**: Audit all control flow; currently compliant
 - [x] **Rule 2 - Fixed loop bounds**: Add explicit loop bounds documentation:
   - [x] Line 878: Main loop has bound of 1000 - document this is intentional for simulation
-  - [x] Add `#define MAX_LOOP_ITERATIONS` constants for all loops
-  - [x] Add runtime loop counter checks with fault logging if bounds exceeded
+  - [ ] Add `#define MAX_LOOP_ITERATIONS` constants for all loops (audit 2026-10-16, SW-19: the MAX_*_ITERATIONS constants listed in software/flight/docs/LOOP_BOUNDS.md do not exist in the code)
+  - [ ] Add runtime loop counter checks with fault logging if bounds exceeded (audit 2026-10-16, SW-19: no loop-counter checks found in software/flight/src)
 
 - [x] **Rule 3 - No dynamic memory after init**: Currently compliant (stack-only), but:
   - [x] Add explicit prohibition comment in coding standard doc
-  - [x] Add `-Wl,--wrap=malloc` linker flag to catch accidental dynamic allocation in flight build
+  - [ ] Add `-Wl,--wrap=malloc` linker flag to catch accidental dynamic allocation in flight build (audit 2026-10-16, SW-19: not added; CMakeLists.txt line 83 says "Could add". The no_dynamic_memory CTest check (scripts/check_no_dynamic_memory.sh) covers the intent)
   - [x] Create `software/flight/docs/MEMORY_POLICY.md` documenting memory allocation policy
 
-- [x] **Rule 4 - Function length limit**: Refactor functions exceeding 60 lines:
+- [ ] **Rule 4 - Function length limit**: Refactor functions exceeding 60 lines: (audit 2026-10-16, SW-19: 10 functions still exceed 60 lines (software/flight/quality/function-length.baseline; scripts/function_length.py))
   - [x] `main()` (lines 819-941, 122 lines) - Split into `init_system()`, `run_main_loop()`, `shutdown_system()`
-  - [x] `send_telemetry_to_jetson()` (lines 462-526, 64 lines) - Split into `format_telemetry()` and `transmit_telemetry()`
+  - [x] `send_telemetry_to_jetson()` (lines 462-526, 64 lines) - Split into `format_telemetry()` and `transmit_telemetry()` (audit 2026-10-16: done differently; formatting moved to `sensors_format_telemetry()`, and the function is now under 60 lines)
   - [x] `update_mission_state()` (lines 737-783, 46 lines) - Currently acceptable
 
-- [x] **Rule 5 - Assertions**: Add defensive assertions throughout:
+- [ ] **Rule 5 - Assertions**: Add defensive assertions throughout: (audit 2026-10-16, SW-19: see the sub-items)
   - [x] Add `#include <assert.h>` or custom `SMART_QSO_ASSERT()` macro
-  - [x] Add precondition assertions to all public functions
-  - [x] Add postcondition assertions for critical operations
-  - [x] Minimum 2 assertions per function average
+  - [ ] Add precondition assertions to all public functions (audit 2026-10-16, SW-19: precondition macros (SMART_QSO_REQUIRE*) are used 30 times, in 5 of 40 source files)
+  - [ ] Add postcondition assertions for critical operations (audit 2026-10-16, SW-19: SMART_QSO_ENSURE is defined in smart_qso.h but never used)
+  - [ ] Minimum 2 assertions per function average (audit 2026-10-16, SW-19: about 30 assertion uses against more than 300 public functions)
 
 - [x] **Rule 6 - Declare data at smallest scope**: Review and fix:
   - [x] Line 465: `char buffer[2048]` - consider if this stack allocation is safe
@@ -224,14 +224,14 @@ All project documentation and processes shall comply with:
 
 ### 2.2 MISRA C:2012 Compliance
 - [x] **Create MISRA deviation log**: Create `software/flight/docs/MISRA_DEVIATIONS.md`
-- [x] **Fix MISRA violations**:
+- [ ] **Fix MISRA violations**: (audit 2026-10-16, SW-19: the CI MISRA baseline is 1,458 findings (software/flight/quality/misra.baseline, cppcheck 2.13 addon); counts below are from cppcheck 2.22 run locally on 2026-10-16)
   - [x] Rule 8.4: Add declarations before definitions
-  - [x] Rule 10.1-10.8: Fix implicit type conversions (e.g., line 137: `rand()` returns `int`, cast needed)
-  - [x] Rule 11.5: Remove casts that remove `const`/`volatile`
-  - [x] Rule 14.4: Fix controlling expressions (use explicit comparisons)
-  - [x] Rule 17.7: Check all function return values
+  - [ ] Rule 10.1-10.8: Fix implicit type conversions (e.g., line 137: `rand()` returns `int`, cast needed) (audit 2026-10-16, SW-19: 187 findings remain (10.4: 149, 10.8: 34, 10.1: 3, 10.6: 1))
+  - [ ] Rule 11.5: Remove casts that remove `const`/`volatile` (audit 2026-10-16, SW-19: 11 findings remain)
+  - [ ] Rule 14.4: Fix controlling expressions (use explicit comparisons) (audit 2026-10-16, SW-19: 5 findings remain)
+  - [ ] Rule 17.7: Check all function return values (audit 2026-10-16, SW-19: 156 findings remain)
   - [x] Rule 21.3: Remove use of `<stdlib.h>` memory functions in flight code
-  - [x] Rule 21.6: Replace `printf`/`fprintf` with proper logging subsystem
+  - [ ] Rule 21.6: Replace `printf`/`fprintf` with proper logging subsystem (audit 2026-10-16, SW-19: 121 findings remain; printf/fprintf are still called in main.c and at least nine other sources)
 
 ### 2.3 Naming Conventions
 - [x] **Document naming convention**: Create `software/flight/docs/NAMING_CONVENTION.md`:
@@ -283,7 +283,7 @@ All project documentation and processes shall comply with:
   HeaderFilterRegex: '.*'
   ```
 
-- [x] **Configure PC-lint/Polyspace** (if available): Create configuration for MISRA checking
+- [ ] **Configure PC-lint/Polyspace** (if available): Create configuration for MISRA checking (audit 2026-10-16, SW-19: no PC-lint or Polyspace configuration in the repository; MISRA checking is the cppcheck addon in CI)
 
 - [x] **Create analysis runner script**: Create `software/flight/scripts/run_analysis.sh`:
   ```bash
@@ -320,9 +320,9 @@ All project documentation and processes shall comply with:
   lizard software/flight/src --CCN 15 --length 60 --warnings_only
   ```
 
-- [x] **Reduce complexity** in identified functions:
+- [ ] **Reduce complexity** in identified functions: (audit 2026-10-16, SW-19: see the sub-items)
   - [x] Target: All functions below CCN (cyclomatic complexity) of 15
-  - [x] Target: All functions below 60 lines
+  - [ ] Target: All functions below 60 lines (audit 2026-10-16, SW-19: 10 functions exceed 60 lines (function-length.baseline))
 
 ---
 
@@ -371,26 +371,26 @@ All project documentation and processes shall comply with:
   echo "Coverage report: coverage-report/index.html"
   ```
 
-- [x] **Achieve coverage targets**:
-  - [x] Statement coverage: ≥80%
-  - [x] Branch coverage: ≥75%
-  - [x] MC/DC coverage for safety-critical paths: 100%
-  - [x] Document untested code with justification
+- [ ] **Achieve coverage targets**: (audit 2026-10-16, SW-19: see the sub-items)
+  - [ ] Statement coverage: ≥80% (audit 2026-10-16, SW-19: line coverage is 68.2 % by gcovr over every compiled source, as recorded in .github/workflows/ci.yml (CI floor 65 %))
+  - [ ] Branch coverage: ≥75% (audit 2026-10-16, SW-19: no branch-coverage figure is recorded in the repository)
+  - [ ] MC/DC coverage for safety-critical paths: 100% (audit 2026-10-16, SW-19: no MC/DC tool or report exists)
+  - [ ] Document untested code with justification (audit 2026-10-16, SW-19: no document lists untested code)
 
 ### 4.3 Integration Testing
-- [x] **Create integration test framework**: Create `software/flight/tests/integration/`:
-  - [x] `test_system_startup.c` - Test full system initialization sequence
-  - [x] `test_mode_transitions.c` - Test all operational mode transitions
-  - [x] `test_fault_scenarios.c` - Test fault injection and recovery
-  - [x] `test_telemetry_flow.c` - Test end-to-end telemetry generation
+- [ ] **Create integration test framework**: Create `software/flight/tests/integration/`: (audit 2026-10-16, SW-19: the files exist but are not built or run: they reference APIs that no longer exist (software/flight/tests/CMakeLists.txt; SW-09))
+  - [ ] `test_system_startup.c` - Test full system initialization sequence (audit 2026-10-16, SW-19: not built)
+  - [ ] `test_mode_transitions.c` - Test all operational mode transitions (audit 2026-10-16, SW-19: not built)
+  - [ ] `test_fault_scenarios.c` - Test fault injection and recovery (audit 2026-10-16, SW-19: not built)
+  - [ ] `test_telemetry_flow.c` - Test end-to-end telemetry generation (audit 2026-10-16, SW-19: a Unity suite in tests/, not built (Unity is not vendored))
 
 - [x] **Create Hardware-in-the-Loop (HIL) test stubs**:
   - [x] Create `software/flight/tests/hil/` directory
   - [x] Document HIL test requirements in `HIL_TEST_PLAN.md`
 
 ### 4.4 Regression Testing
-- [x] **Create regression test suite**: Create `software/flight/tests/regression/`:
-  - [x] Add test for each closed bug/issue
+- [ ] **Create regression test suite**: Create `software/flight/tests/regression/`: (audit 2026-10-16, SW-19: test_regression_suite.c is not built: it references APIs that no longer exist (SW-09))
+  - [ ] Add test for each closed bug/issue (audit 2026-10-16, SW-19: the suite is not built)
   - [x] Create `REGRESSION_TESTS.md` documenting each test case
 
 ---
@@ -405,14 +405,14 @@ All project documentation and processes shall comply with:
   - [x] Document recovery procedures
   - [x] Map to risk register items
 
-- [x] **Implement comprehensive fault detection**:
+- [ ] **Implement comprehensive fault detection**: (audit 2026-10-16, SW-19: stack-overflow detection is missing (below))
   - [x] Add watchdog timer with hardware reset capability (currently simulated)
-  - [x] Add stack overflow detection
+  - [ ] Add stack overflow detection (audit 2026-10-16, SW-19: no stack checking in software/flight/src; there is no RTOS yet)
   - [x] Add memory corruption detection (CRC on critical data structures)
   - [x] Add communication timeout detection
   - [x] Add sensor range validation for all readings
 
-- [x] **Implement safe state**: Create explicit safe state definition:
+- [x] **Implement safe state**: Create explicit safe state definition: (audit 2026-10-16: implemented as the SAFE state in `state_machine.c`; there is no `SafeStateConfig_t`)
   ```c
   typedef struct {
       bool payload_disabled;
@@ -438,19 +438,19 @@ All project documentation and processes shall comply with:
   - [x] Validate CRC on load, log corruption if mismatch
   - [x] Create `software/flight/src/crc32.c` with CRC implementation
 
-- [x] **Implement triple modular redundancy (TMR)** for critical parameters:
-  - [x] Store critical config in 3 locations
-  - [x] Use voting logic for reads
-  - [x] Log disagreements as faults
+- [ ] **Implement triple modular redundancy (TMR)** for critical parameters: (audit 2026-10-16, SW-19: not implemented: no triple storage or voting in software/flight/src (git grep for TMR, vote, voting, redundan finds nothing))
+  - [ ] Store critical config in 3 locations (audit 2026-10-16, SW-19: not implemented)
+  - [ ] Use voting logic for reads (audit 2026-10-16, SW-19: not implemented)
+  - [ ] Log disagreements as faults (audit 2026-10-16, SW-19: not implemented)
 
 ### 5.4 Deterministic Behavior
-- [x] **Remove non-determinism**: Current use of `rand()` (line 137) is unsuitable for flight:
-  - [x] Replace with deterministic pseudo-random number generator for testing
-  - [x] For flight, use actual sensor readings for jitter/noise
-  - [x] Document all sources of non-determinism
+- [ ] **Remove non-determinism**: Current use of `rand()` (line 137) is unsuitable for flight: (audit 2026-10-16, SW-19: not done: rand() is still used in sensors.c (rnd_unit) and seeded by srand() in main.c for simulation noise)
+  - [ ] Replace with deterministic pseudo-random number generator for testing (audit 2026-10-16, SW-19: no deterministic generator in the code)
+  - [ ] For flight, use actual sensor readings for jitter/noise (audit 2026-10-16, SW-19: no hardware sensor drivers yet (KNOWN_ISSUES KI-001))
+  - [ ] Document all sources of non-determinism (audit 2026-10-16, SW-19: no such document)
 
 - [x] **Add timing constraints**:
-  - [x] Document worst-case execution time (WCET) for critical paths
+  - [x] Document worst-case execution time (WCET) for critical paths (estimates, not measurements)
   - [x] Add timing assertions for deadline monitoring
   - [x] Create `software/flight/docs/TIMING_ANALYSIS.md`
 
@@ -861,7 +861,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
 - [x] **Replace unsafe functions**:
   - [x] Create safe string functions in `software/flight/src/safe_string.c`
   - [x] `safe_strcpy()` - always null-terminates
-  - [x] `safe_snprintf()` - checks for truncation
+  - [ ] `safe_snprintf()` - checks for truncation (audit 2026-10-16, SW-19: safe_string.h provides safe_strcpy() and safe_strncpy(); there is no safe_snprintf())
 
 ### 9.3 Data Integrity
 - [x] **Add checksums to all persisted data**:
@@ -876,10 +876,10 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] Implement retry logic for corrupted messages
 
 ### 9.4 TOCTOU Prevention
-- [x] **Review file operations** for Time-of-Check-Time-of-Use vulnerabilities:
-  - [x] Use atomic file operations where possible
-  - [x] Lock files during read-modify-write operations
-  - [x] Use `O_EXCL` flag for exclusive file creation
+- [ ] **Review file operations** for Time-of-Check-Time-of-Use vulnerabilities: (audit 2026-10-16, SW-19: see the sub-items)
+  - [ ] Use atomic file operations where possible (audit 2026-10-16, SW-19: no atomic rename or equivalent in software/flight/src)
+  - [ ] Lock files during read-modify-write operations (audit 2026-10-16, SW-19: no file locking in software/flight/src)
+  - [ ] Use `O_EXCL` flag for exclusive file creation (audit 2026-10-16, SW-19: O_EXCL is not used in software/flight/src)
 
 ---
 
@@ -937,7 +937,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] `hal_spi.h` - SPI interface
   - [x] `hal_i2c.h` - I2C interface
   - [x] `hal_timer.h` - Timer interface
-  - [x] `hal_watchdog.h` - Watchdog interface
+  - [x] `hal_wdt.h` - Watchdog interface (planned as hal_watchdog.h; name corrected by audit 2026-10-16)
   - [x] `hal_flash.h` - Flash storage interface
 
 - [x] **Create Linux HAL implementation**: `software/flight/src/hal/hal_sim.c` (path corrected by audit 2026-10-14)
@@ -1664,16 +1664,16 @@ This section details the complete flight software implementation tasks, organize
 ### 17.1 OBC Flight Software Modules
 
 #### 17.1.1 System Initialization Module
-- [x] **Implement `sw/flight/src/system_init.c`**:
-  - [x] Hardware initialization sequence
-  - [x] Clock configuration
-  - [x] Peripheral initialization
-  - [x] Watchdog initialization
-  - [x] Memory test (optional, for SRAM)
-  - [x] Load configuration from non-volatile storage
-  - [x] Boot reason determination and logging
-  - [x] Self-test execution
-  - [x] Unit tests in `sw/flight/tests/test_system_init.c`
+- [ ] **Implement sw/flight/src/system_init.c**: (audit 2026-10-16, SW-19: never compiled (it includes a nonexistent crc32.h, and CMakeLists.txt never built it); its self-tests were stubs hard-coded to pass; removed (SW-09/SW-16))
+  - [ ] Hardware initialization sequence (audit 2026-10-16, SW-19: see 17.1.1)
+  - [ ] Clock configuration (audit 2026-10-16, SW-19: see 17.1.1)
+  - [ ] Peripheral initialization (audit 2026-10-16, SW-19: see 17.1.1)
+  - [ ] Watchdog initialization (audit 2026-10-16, SW-19: see 17.1.1)
+  - [ ] Memory test (optional, for SRAM) (audit 2026-10-16, SW-19: see 17.1.1)
+  - [ ] Load configuration from non-volatile storage (audit 2026-10-16, SW-19: see 17.1.1)
+  - [ ] Boot reason determination and logging (audit 2026-10-16, SW-19: see 17.1.1)
+  - [ ] Self-test execution (audit 2026-10-16, SW-19: see 17.1.1)
+  - [ ] Unit tests in sw/flight/tests/test_system_init.c (audit 2026-10-16, SW-19: the Unity suite was never built; removed (SW-09/SW-16))
 
 #### 17.1.2 Scheduler/Executive Module
 - [x] **Implement `sw/flight/src/scheduler.c`**:
@@ -1683,7 +1683,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Deadline monitoring
   - [x] CPU utilization measurement
   - [x] Idle task handling
-  - [x] Unit tests in `sw/flight/tests/test_scheduler.c`
+  - [ ] Unit tests in `sw/flight/tests/test_scheduler.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (software/flight/tests/CMakeLists.txt; SW-09))
 
 #### 17.1.3 Sensor Management Module
 - [x] **Implement `software/flight/src/sensors.c`** (refactor from main.c):
@@ -1691,7 +1691,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Sensor polling (per configured period)
   - [x] Sensor data conversion (raw to engineering units)
   - [x] Sensor health monitoring (range checks)
-  - [x] Sensor data averaging/filtering
+  - [ ] Sensor data averaging/filtering (audit 2026-10-16, SW-19: no averaging or filtering in sensors.c)
   - [x] Sensor configuration from YAML
   - [x] Unit tests in `software/flight/tests/test_sensors.c`
 
@@ -1700,7 +1700,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Power mode state machine (SAFE/IDLE/ACTIVE)
   - [x] Load switch control functions
   - [x] Battery SOC estimation
-  - [x] Solar array power tracking
+  - [ ] Solar array power tracking (audit 2026-10-16, SW-19: no solar-array or MPPT code in eps_control.c)
   - [x] Power budget enforcement
   - [x] Autonomous load shedding logic
   - [x] EPS telemetry collection
@@ -1722,10 +1722,10 @@ This section details the complete flight software implementation tasks, organize
   - [x] Telemetry packet formatting
   - [x] Telemetry point registration
   - [x] Telemetry sampling
-  - [x] Telemetry storage (circular buffer)
+  - [ ] Telemetry storage (circular buffer) (audit 2026-10-16, SW-19: telemetry.c keeps no stored history; the ring buffer in flight_log.c holds log entries, not telemetry)
   - [x] Telemetry downlink interface
   - [x] Telemetry compression (if needed)
-  - [x] Unit tests in `software/flight/tests/test_telemetry.c`
+  - [ ] Unit tests in `software/flight/tests/test_telemetry.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (SW-09))
 
 #### 17.1.7 Beacon Generation Module
 - [x] **Implement `software/flight/src/beacon.c`**:
@@ -1736,7 +1736,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Beacon transmission trigger
   - [x] Integration with Jetson-generated text
   - [x] Fallback to template text
-  - [x] Unit tests in `software/flight/tests/test_beacon.c`
+  - [ ] Unit tests in `software/flight/tests/test_beacon.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (SW-09); beacon formatting, filtering and telemetry have registered CMocka suites (test_beacon_format.c, test_beacon_filter.c, test_beacon_telemetry.c))
 
 #### 17.1.8 UART Communication Module
 - [x] **Implement `software/flight/src/uart_comm.c`** (refactor from main.c):
@@ -1751,14 +1751,14 @@ This section details the complete flight software implementation tasks, organize
 
 #### 17.1.9 ADCS Control Module
 - [x] **Implement `software/flight/src/adcs_control.c`**:
-  - [x] Magnetometer driver
-  - [x] Sun sensor driver
-  - [x] Attitude determination (TRIAD or similar)
+  - [ ] Magnetometer driver (audit 2026-10-16, SW-19: stub: TODO at adcs_control.c:351 (KNOWN_ISSUES KI-001))
+  - [ ] Sun sensor driver (audit 2026-10-16, SW-19: stub: TODO at adcs_control.c:377 (KI-001))
+  - [ ] Attitude determination (TRIAD or similar) (audit 2026-10-16, SW-19: no attitude-determination algorithm; adcs_control.c estimates rate from B-dot only)
   - [x] B-dot detumble controller
   - [x] Sun-pointing controller
-  - [x] Magnetorquer driver
+  - [ ] Magnetorquer driver (audit 2026-10-16, SW-19: stub: TODOs at adcs_control.c:503 and :522 (KI-001))
   - [x] ADCS telemetry
-  - [x] Unit tests in `sw/flight/tests/test_adcs.c`
+  - [ ] Unit tests in `sw/flight/tests/test_adcs.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (SW-09))
 
 #### 17.1.10 Data Persistence Module
 - [x] **Implement `software/flight/src/mission_data.c`** (refactor from main.c):
@@ -1766,7 +1766,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Save to non-volatile storage
   - [x] Load from non-volatile storage
   - [x] CRC protection
-  - [x] Redundant storage with voting
+  - [ ] Redundant storage with voting (audit 2026-10-16, SW-19: not implemented: mission_data.c keeps one CRC-protected copy)
   - [x] Corruption detection and recovery
   - [x] Unit tests in `software/flight/tests/test_mission_data.c`
 

@@ -10,9 +10,14 @@
 - **Anomaly Detector (autoencoder, <50 kB)**
 - **TinyLM for Beacons (Transformer ~0.8–1.2 MB, INT8)**
 
-## On‑orbit Learning
-- Gradient accumulation with bounded steps; sunlit only; checkpoint to FRAM.
-- Federated updates: community submits small, bounded patches; sandbox validated.
+## On‑orbit Learning (not in the flight baseline)
+- On-orbit training (gradient accumulation with bounded steps, sunlit only, checkpoint to FRAM) is **not in the flight
+  baseline** and has no onboard implementation. The flight baseline is a calibrated selector on the OBC (decision D5).
+- Community model updates ("federated learning"): **not in the flight baseline**; ground-side research only
+  (`software/ground/tools/fl_update_builder.py`). There is no onboard receiver for these frames, and the frames carry
+  only a CRC-16, no authentication. Any future upload would be data only, adopted solely by authenticated telecommand
+  from a designated station (47 CFR 97.211), with no path to power, RF or mode control. Whether to keep or drop the idea
+  is a PI decision (`docs/BASELINE_PARAMETERS.md` §2; finding SW-11).
 
 ## Off‑the‑Shelf LLM on Jetson Orin Nano Super — Recommended Implementation
 
