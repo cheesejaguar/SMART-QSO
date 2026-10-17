@@ -127,7 +127,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-FRR-001 | SMART-QSO Flight Readiness Review Package | `docs/reviews/FLIGHT_READINESS_REVIEW.md` | 1.0 | Template |
 | SQSO-FSW-DEL-001 | SMART-QSO Flight Software Delivery Package | `docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` | 1.1 | Draft; status claims not substantiated (its notice) |
 | SQSO-FIR-001 | SMART-QSO Formal Inspection Report Template | `docs/reviews/FORMAL_INSPECTION_REPORT.md` | 1.0 | Template |
-| SQSO-KI-001 | SMART-QSO Known Issues Document | `docs/reviews/KNOWN_ISSUES.md` | 1.0 | Draft |
+| SQSO-KI-001 | SMART-QSO Known Issues Document | `docs/reviews/KNOWN_ISSUES.md` | 1.1 | Draft |
 | SQSO-LRR-001 | SMART-QSO Launch Readiness Review Package | `docs/reviews/LAUNCH_READINESS_REVIEW.md` | 1.0 | Template |
 | SQSO-MOR-001 | SMART-QSO Mission Operations Review Package | `docs/reviews/MISSION_OPERATIONS_REVIEW.md` | 1.0 | Template |
 | SQSO-REV-PDR-001 | SMART-QSO Preliminary Design Review (PDR) | `docs/reviews/PDR/PDR_REVIEW_MINUTES.md` | — | Self-assessment record; no independent PDR held |
