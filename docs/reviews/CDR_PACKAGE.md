@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document Number**: SMART-QSO-CDR-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Status**: Ready for Review
 
@@ -75,7 +75,7 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 | ID | Action | Status | Evidence |
 |----|--------|--------|----------|
 | T-001 | Achieve 80% coverage all modules | CLOSED | Unit tests complete |
-| T-002 | Complete integration tests | CLOSED | `TEST_PROCEDURES.md` TP-INT-* |
+| T-002 | Complete integration tests | CLOSED | `TEST_PROCEDURES.md` TP-SWI-* |
 | T-003 | Hardware-in-loop testing | CLOSED | HILS procedures defined |
 
 ---
@@ -344,18 +344,18 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 
 | Test | Equipment | Procedures | Status |
 |------|-----------|------------|--------|
-| TP-INT-001 EPS+Sensors | Flatsat | Complete | Ready |
-| TP-INT-002 OBC+Jetson | Flatsat | Complete | Ready |
-| TP-INT-003 Power Mode | Flatsat | Complete | Ready |
-| TP-INT-004 Fault Injection | Flatsat | Complete | Ready |
+| TP-SWI-001 EPS+Sensors | Flatsat | Complete | Ready |
+| TP-SWI-002 OBC+Jetson | Flatsat | Complete | Ready |
+| TP-SWI-003 Power Mode | Flatsat | Complete | Ready |
+| TP-SWI-004 Fault Injection | Flatsat | Complete | Ready |
 
 ### 8.3 System Test Readiness
 
 | Test | Equipment | Procedures | Status |
 |------|-----------|------------|--------|
-| TP-SYS-001 End-to-End Beacon | Flight unit | Complete | Ready |
+| TP-SWS-001 End-to-End Beacon | Flight unit | Complete | Ready |
 | TP-SYS-002 Day-in-the-Life | Thermal chamber | Complete | Ready |
-| TP-SYS-003 Performance Timing | Flight unit | Complete | Ready |
+| TP-SWS-003 Performance Timing | Flight unit | Complete | Ready |
 
 ---
 
@@ -486,3 +486,4 @@ genhtml coverage.info --output-directory coverage_report
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR release |
+| 1.1 | 2026-10-16 | SMART-QSO Team | §8 software-level test IDs follow TEST_PROCEDURES.md Version 1.1 (TP-SWI, TP-SWS); status cells unchanged (finding VV-18) |
