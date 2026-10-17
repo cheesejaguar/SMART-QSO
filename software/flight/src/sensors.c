@@ -292,10 +292,10 @@ static void parse_keyval(const char *line, char *key, size_t ksz,
 
     /* Remove quotes if present */
     if ((val[0] == '"' || val[0] == '\'') && strlen(val) >= 2) {
-        size_t L = strlen(val);
-        if (val[L - 1] == '"' || val[L - 1] == '\'') {
-            val[L - 1] = '\0';
-            memmove(val, val + 1, L - 1);
+        size_t len = strlen(val);
+        if (val[len - 1] == '"' || val[len - 1] == '\'') {
+            val[len - 1] = '\0';
+            memmove(val, val + 1, len - 1);
         }
     }
 }

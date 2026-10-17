@@ -141,8 +141,8 @@ static SmartQsoResult_t save_op(uint8_t slot, const uint8_t key[CMD_AUTH_KEY_SIZ
 
 static SmartQsoResult_t revoke_op(uint8_t slot)
 {
-    static const uint8_t zero_key[CMD_AUTH_KEY_SIZE] = {0U};
-    return save_op(slot, zero_key, 0U, KEY_REVOKED);
+    static const uint8_t s_zero_key[CMD_AUTH_KEY_SIZE] = {0U};
+    return save_op(slot, s_zero_key, 0U, KEY_REVOKED);
 }
 
 static SmartQsoResult_t save_state(uint8_t slot, uint32_t counter)

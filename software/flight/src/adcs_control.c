@@ -127,22 +127,22 @@ SmartQsoResult_t adcs_update(uint64_t now_ms)
         double dt = (double)(now_ms - s_mag_prev.timestamp_ms) / 1000.0;
         if (dt > 0.01) {
             /* Rate estimation from magnetic field rotation */
-            double B_mag = vec3_magnitude(&s_adcs_state.mag.field);
-            if (B_mag > 1.0) {
-                Vec3_t B_dot;
-                B_dot.x = (s_adcs_state.mag.field.x - s_mag_prev.field.x) / dt;
-                B_dot.y = (s_adcs_state.mag.field.y - s_mag_prev.field.y) / dt;
-                B_dot.z = (s_adcs_state.mag.field.z - s_mag_prev.field.z) / dt;
+            double b_mag = vec3_magnitude(&s_adcs_state.mag.field);
+            if (b_mag > 1.0) {
+                Vec3_t b_dot;
+                b_dot.x = (s_adcs_state.mag.field.x - s_mag_prev.field.x) / dt;
+                b_dot.y = (s_adcs_state.mag.field.y - s_mag_prev.field.y) / dt;
+                b_dot.z = (s_adcs_state.mag.field.z - s_mag_prev.field.z) / dt;
 
                 /* Store rate for telemetry */
-                s_adcs_state.mag.field_rate = B_dot;
+                s_adcs_state.mag.field_rate = b_dot;
 
                 /* Body rate across the field, per axis: an inertially fixed
                  * field gives B_dot = -omega x B, so omega = (B_dot x B) / |B|^2.
                  * The component along B is not observable. */
                 Vec3_t omega = {0.0, 0.0, 0.0};
-                double field_sq = B_mag * B_mag;
-                vec3_cross(&B_dot, &s_adcs_state.mag.field, &omega);
+                double field_sq = b_mag * b_mag;
+                vec3_cross(&b_dot, &s_adcs_state.mag.field, &omega);
                 s_adcs_state.angular_rate_est.x = omega.x / field_sq;
                 s_adcs_state.angular_rate_est.y = omega.y / field_sq;
                 s_adcs_state.angular_rate_est.z = omega.z / field_sq;
@@ -464,16 +464,16 @@ void adcs_compute_sunpoint(const SunSensorData_t *sun,
     torque.z = ADCS_SUNPOINT_KP * error.z;
 
     /* Convert torque to dipole using: m = (tau x B) / |B|^2 */
-    Vec3_t B = mag->field;
-    double B_mag_sq = vec3_dot(&B, &B);
+    Vec3_t b_field = mag->field;
+    double b_mag_sq = vec3_dot(&b_field, &b_field);
 
-    if (B_mag_sq > 1.0) {  /* Prevent divide by zero */
-        Vec3_t tau_cross_B;
-        vec3_cross(&torque, &B, &tau_cross_B);
+    if (b_mag_sq > 1.0) {  /* Prevent divide by zero */
+        Vec3_t tau_cross_b;
+        vec3_cross(&torque, &b_field, &tau_cross_b);
 
-        dipole->x = tau_cross_B.x / B_mag_sq * 1e6;  /* Convert from T to uT */
-        dipole->y = tau_cross_B.y / B_mag_sq * 1e6;
-        dipole->z = tau_cross_B.z / B_mag_sq * 1e6;
+        dipole->x = tau_cross_b.x / b_mag_sq * 1e6;  /* Convert from T to uT */
+        dipole->y = tau_cross_b.y / b_mag_sq * 1e6;
+        dipole->z = tau_cross_b.z / b_mag_sq * 1e6;
     } else {
         dipole->x = 0.0;
         dipole->y = 0.0;
