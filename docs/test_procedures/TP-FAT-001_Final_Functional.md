@@ -173,7 +173,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Measure total mass | Record value | |
-| 2 | Verify mass budget | < 1.33 kg | |
+| 2 | Verify mass budget | ≤ 2.00 kg (SYS-002; CDS Rev 14.1) or the integrator's lower limit; compare with `docs/environment/MASS_BUDGET.md` | |
 | 3 | Measure CG (X axis) | Record value | |
 | 4 | Measure CG (Y axis) | Record value | |
 | 5 | Measure CG (Z axis) | Record value | |
@@ -208,7 +208,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | All actuators | Correct response |
 | Jetson inference | Valid text output |
 | Battery capacity | > 95% of BOL |
-| Mass | < 1.33 kg |
+| Mass | ≤ 2.00 kg (SYS-002), or the integrator's lower limit |
 | CG offset | < 2 cm from center |
 | Configuration | Matches flight baseline |
 
@@ -242,3 +242,4 @@ This procedure defines the final acceptance functional test performed on the fli
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Mass limit 2.00 kg (SYS-002, CDS Rev 14.1) replaces 1.33 kg, the CDS Rev 13 value (TB-06) |

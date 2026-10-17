@@ -76,6 +76,7 @@ filing:
 | Form factor | 1U, 100 × 100 × 113.5 mm (CDS Rev 14.1) |
 | Mass | CBE ≈ 1.51 kg **[A]**: 1.44 kg provisional MEL ([ODAR §2](regulatory/filings/ODAR_SMART-QSO.md)) plus ≈ 0.07 kg GNSS receiver, patch antenna and cable **[D6]**; MEV ≤ 1.75 kg (15 % growth); limit **2.00 kg** (CDS Rev 14.1 Table 1) or the integrator's dispenser limit, whichever is lower. The NRCSD backup limit is 2.40 kg. Lifetime analyses use 1.6 kg, with 1.8 kg as the bound |
 | Mass basis | The prior 1.2 kg CBE omitted magnetorquers, wings/hinges and the heat spreader (TB-06). A controlled bottom-up MEL is required |
+| Mass, under review | The bottom-up MEL now exists (`docs/environment/MASS_BUDGET.md` v2.0, analysis): CBE 1.69 kg, predicted 1.92–2.00 kg against the 2.00 kg limit (0–4 % margin). The values above are unchanged until the PI decides between mass reduction and a higher limit |
 | Deployables | VHF antenna, UHF antenna, two solar wings |
 | Inhibits | **≥ 3 independent physical RF inhibits** and **≥ 3 independent physical inhibits per deployable** (CDS 2.3.7, 2.3.8). RBF and timers do not count |
 | Timers | Deployables ≥ 30 min after switch release (CDS 2.4.4); **no RF before 45 min** (CDS 2.4.5); timers reset on switch toggle (CDS 2.3.2.4) |
@@ -109,6 +110,10 @@ filing:
 
 The GNSS line is a flat allocation; the expected steady-state draw is 1–7 mW. Continuous operation (up to 0.32 W) would
 break the tumbling-case margin, so the receiver is always duty-cycled.
+
+**Under review:** counting the wings' self-shadowing (`hardware/eps/SOLAR_ARRAY_DESIGN.md` v2.0 §9, analysis), tumbling
+generation is 2.14 W and the tumbling margin +19 %, below the 20 % requirement. The table is unchanged until the PI
+decides (sun-pointing axis, cells on the ±Z ends or canted wings, or a smaller load).
 
 **Transponder (D4):** the PI decided to keep the duty-gated transponder. If the rebuilt power budget or engineering-model
 thermal test fails to close at these duty cycles, the PI revisits D4; the fallback is beacon-only (receiver retained for
@@ -176,3 +181,4 @@ change are marked there.
 |-----|------|-------------|
 | A | 2026-10-14 | Initial baseline proposed by the funding audit |
 | B | 2026-10-15 | Decisions D1–D7 recorded (§9): licensee, paid-contract structure, contact timeout, transponder kept, AI model selection, GNSS receiver (mass and power lines), integrator plan and cost |
+| B, note | 2026-10-16 | Notes on mass (§4) and the tumbling margin (§5) from the re-issued mass budget and solar-array analysis; values unchanged pending the PI |

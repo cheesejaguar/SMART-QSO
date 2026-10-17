@@ -34,8 +34,8 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
 │  │    OBC      │  │     EPS     │  │        ADCS         │ │
-│  │  Ambiq/STM  │  │   MPPT +    │  │    Magnetorquers    │ │
-│  │   Apollo4   │  │   Battery   │  │   + Sun Sensors     │ │
+│  │  STM32L4R5  │  │   MPPT +    │  │    Magnetorquers    │ │
+│  │   FreeRTOS  │  │   Battery   │  │   + Sun Sensors     │ │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘ │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────────────┐ │
@@ -65,36 +65,37 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 - **Thermal Interface**: Black anodized finish for thermal control
 
 #### 2.1.3 Deployable Solar Wings
-- **Configuration**: 2 deployable wings, 1 per side
-- **Wing Dimensions**: 100mm × 50mm × 2mm
+- **Configuration**: 2 deployable wings, hinged on the ±X/+Y edges; deployed, they lie in the plane of the +Y face (layout: `hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.1)
+- **Wing Dimensions**: One 1U face each (panel ≈ 83 × 98 mm, assumed), 2 cells per side
 - **Deployment Mechanism**: Spring-loaded with retention pins
 - **Hinge Design**: Frictionless bearings with deployment stops
-- **Stowed Position**: Parallel to CubeSat body
-- **Deployed Position**: 90° from body, locked in place
+- **Stowed Position**: Over the ±X faces, front cells outward
+- **Deployed Position**: 90° from the stowed position, into the +Y plane, locked in place
 
 ### 2.2 Electrical Power Subsystem (EPS)
 
 #### 2.2.1 Solar Array Configuration
-- **Total Solar Cells**: 8 cells (4 per wing)
-- **Cell Type**: Triple-junction GaAs (30% efficiency)
-- **Cell Dimensions**: 25mm × 25mm
-- **Cell Configuration**: 2S4P per wing, 4S4P total
-- **Peak Power**: 4.8W at beginning of life (BOL)
-- **End of Life Power**: 4.2W after 2 years
+- **Total Solar Cells**: 16: 2 on each of the 4 long body faces and 2 per side on each wing (BASELINE §5)
+- **Cell Type**: Triple-junction (AZUR SPACE 3G30A, 29.2 % at BOL, AM0, 28 °C)
+- **Cell Dimensions**: 40 mm × 80 mm (30.18 cm²)
+- **Cell Configuration**: 8 strings of 2 cells in series, one per panel side
+- **Orbit-Average Power (EOL, analysis)**: 2.39 W tumbling and 3.58 W sun-pointed (BASELINE §5); 2.14 W tumbling once self-shadowing is included (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.3)
+- **Maximum Instantaneous Power (EOL)**: 5.8 W, with the 6 cells of the +Y plane normal to the sun; the 16 cells never all face the sun at once
 
 #### 2.2.2 Power Management
 - **MPPT Controller**: GomSpace NanoPower MPPT
-- **Input Voltage Range**: 6.0V - 18.0V
+- **Input Voltage Range**: Must accept the 2-cell string voltage (≈ 4.2–4.8 V) and boost to the 12.0–16.8 V battery (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.2)
 - **MPPT Efficiency**: >95% at maximum power point
 - **Output Voltage**: 3.3V, 5.0V, 12.0V regulated rails
 
 #### 2.2.3 Energy Storage
 - **Battery Type**: 4S Li-ion 18650 pack
-- **Total Capacity**: 50 Wh (13.5 Ah at 3.7V nominal)
-- **Voltage Range**: 12.0V (0% SoC) to 14.8V (100% SoC)
+- **Total Capacity**: ≈ 50 Wh: 3.45 Ah at 14.4 V nominal, 49.7 Wh (BASELINE §5)
+- **Voltage Range**: 12.0 V (3.0 V/cell, operational floor) to 16.8 V (4.20 V/cell)
 - **Cell Configuration**: 4 cells in series
 - **Battery Management**: ISIS iBMS with overcharge/overdischarge protection
-- **Cycle Life**: >500 cycles to 80% capacity
+- **Cycle Life**: Eclipse DoD 1.3–2.0 % against a 10 % limit; 148–408 equivalent full cycles in 2 years against the cell specification's 500 (analysis, `hardware/eps/BATTERY_DESIGN.md` §3.3)
+- **Charging**: Only between 0 °C and +45 °C (BASELINE §5)
 
 #### 2.2.4 Power Distribution
 - **Power Distribution Unit**: GomSpace NanoPower PDU
@@ -172,18 +173,12 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 ### 2.6 Onboard Computer (OBC)
 
 #### 2.6.1 Primary OBC
-- **Processor**: Ambiq Apollo4 Blue (ARM Cortex-M4F)
-- **Clock Speed**: 96 MHz maximum
-- **Memory**: 1MB SRAM, 2MB flash
-- **Power Consumption**: <10 mW typical
+- **Processor**: STM32L4R5ZI (ARM Cortex-M4F) (BASELINE §6)
+- **Memory**: 640 KB RAM, 2 MB flash (`docs/software/BUILD_CONFIGURATIONS.md` §8.2)
 - **Operating System**: FreeRTOS
 
 #### 2.6.2 Secondary OBC
-- **Processor**: STM32L4 series (ARM Cortex-M4)
-- **Clock Speed**: 80 MHz maximum
-- **Memory**: 640KB SRAM, 1MB flash
-- **Power Consumption**: <50 mW typical
-- **Operating System**: FreeRTOS
+- None. The Ambiq Apollo4 and STM32L476 options in earlier documents are superseded (BASELINE §6).
 
 #### 2.6.3 OBC Functions
 - **System Control**: Overall satellite management

@@ -147,11 +147,11 @@ System reliability estimate: 0.60-0.80 for 2 years
 
 | Parameter | Value |
 |-----------|-------|
-| Orbital period | 92.6 minutes |
-| Eclipse duration | 0-35.5 minutes |
-| Cycles per day | ~15.5 |
-| Cycles per year | ~5,660 |
-| Cycles (2 years) | ~11,320 |
+| Orbital period | 94.6 minutes (500 km, BASELINE §3) |
+| Eclipse duration | 0-35.8 minutes (depends on β) |
+| Cycles per day | ~15.2 |
+| Cycles per year | ~5,559 |
+| Cycles (2 years) | ~11,118 |
 
 ### 5.2 Temperature Ranges
 
@@ -166,32 +166,37 @@ System reliability estimate: 0.60-0.80 for 2 years
 
 | Component | Qual Cycles | Mission Cycles | Margin |
 |-----------|-------------|----------------|--------|
-| Solder joints | 20,000 | 11,320 | 1.8× |
-| Connectors | 15,000 | 11,320 | 1.3× |
-| PCBs | 25,000 | 11,320 | 2.2× |
+| Solder joints | 20,000 | 11,118 | 1.8× |
+| Connectors | 15,000 | 11,118 | 1.3× |
+| PCBs | 25,000 | 11,118 | 2.2× |
 
 ## 6. Wear-Out Mechanisms
 
 ### 6.1 Battery Degradation
 
 ```
-BATTERY LIFE ANALYSIS
+BATTERY LIFE ANALYSIS (summary of BATTERY_DESIGN §3.3; analysis, not measured)
 
-Chemistry: Li-ion (LG MJ1 or equivalent)
-Capacity: 3500 mAh × 2 cells = 7000 mAh
+Cell: Samsung INR18650-35E (candidate), 4S1P, 3.45 Ah, 49.7 Wh (BASELINE §5)
 
 Cycling:
-- DOD per orbit: 10-15%
-- Cycles per year: 5,660
-- Cycle life at 15% DOD: >10,000 cycles
-- Margin: 1.8× for 2-year mission
+- Eclipses: 5,559 per year at 500 km; 11,118 in 2 years
+- DoD per eclipse: 1.3 % nominal, 2.0 % bounding (limit 10 %, BASELINE §5)
+- Equivalent full cycles in 2 years: 148 nominal, 408 bounding
+- Cell data: specification criterion, >= 60 % of minimum capacity after
+  500 full-depth 1C cycles; no shallow-DoD data found for this cell
+- Margin on charge throughput: 3.4x nominal, 1.2x bounding
+  (no credit taken for shallow cycling)
+- Capacity needed at end of life for the 10 % DoD limit: 20 % of BOL
 
-Calendar aging:
-- Capacity fade: ~3% per year at 25°C
-- 2-year capacity: ~94% of BOL
+Calendar aging: not quantified (no cell-specific data found); cell test
+required (BATTERY_DESIGN §9.3)
 
-End of Life Capacity: ~85% of BOL
-Status: ADEQUATE for 2-year mission
+Status: cycle count is not life-limiting by analysis; calendar aging
+and the cycle test are open
+
+Version 1.0 claimed ">10,000 cycles at 15 % DoD, 1.8x margin" with no
+source; 10,000 / 11,320 two-year cycles is 0.88x.
 ```
 
 ### 6.2 Solar Cell Degradation
@@ -217,7 +222,7 @@ Status: ADEQUATE for 2-year mission
 | Subsystem | Redundancy | Type |
 |-----------|------------|------|
 | Power paths | Partial | Dual solar strings |
-| Battery cells | Full | 2P configuration |
+| Battery cells | None | 4S1P single string (BASELINE §5); see SPF-001 |
 | OBC | None | Single string (Class D) |
 | RF | None | Single string |
 | AI Payload | Functional | Template fallback |
@@ -351,3 +356,4 @@ Status: RELIABILITY REQUIREMENTS MET
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-16 | Funding audit | §6.1 battery life replaced by a summary of BATTERY_DESIGN §3.3 (TB-08); orbit cycles at 500 km; battery redundancy corrected to 4S1P |
