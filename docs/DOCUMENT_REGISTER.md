@@ -158,7 +158,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-ATP-001 | SMART-QSO Acceptance Test Procedure | `docs/test_procedures/ACCEPTANCE_TEST_PROCEDURE.md` | 1.0 | Draft; no run recorded |
 | TP-ADCS-001 | Test Procedure: ADCS Sensor Test | `docs/test_procedures/TP-ADCS-001_Sensor_Test.md` | A | Draft; no run recorded |
 | SQSO-TP-ADCS-002 | Test Procedure: ADCS Actuator Test | `docs/test_procedures/TP-ADCS-002_Actuator_Test.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-ADCS-003 | Test Procedure: ADCS Algorithm Test | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` | 1.0 | Draft; no run recorded |
+| SQSO-TP-ADCS-003 | Test Procedure: ADCS Algorithm Test | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-DITL-001 | TP-DITL-001: Day-in-the-Life Test Procedure | `docs/test_procedures/TP-DITL-001_DAY_IN_THE_LIFE.md` | 1.0 | Draft; no run recorded |
 | TP-ENV-001 | Test Procedure: Pre-Environmental Baseline | `docs/test_procedures/TP-ENV-001_Pre_Environmental.md` | A | Draft; no run recorded |
 | TP-ENV-002 | Test Procedure: Vibration Test | `docs/test_procedures/TP-ENV-002_Vibration.md` | A | Draft; no run recorded |

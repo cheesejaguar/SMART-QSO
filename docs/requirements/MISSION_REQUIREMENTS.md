@@ -75,6 +75,8 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | MRD-012 | The orbit inclination shall support global amateur radio coverage | A | High |
 | MRD-013 | The deployment altitude shall not exceed 500 km unless NASA DAS shows MRD-003 is met with the solar wings undeployed, and shall not exceed 525 km in any case. *(Added by the funding audit, 2026-10-14; see `docs/BASELINE_PARAMETERS.md` §3.)* | A | Critical |
 
+**Proposed (PI to ratify), MRD-012, TBR-MRD-002:** "The orbit shall give every point on the Earth's surface at least two passes a day with a maximum elevation of at least 5°." Verification: Analysis. Propagate the baseline orbit (circular, sun-synchronous, ≈ 97.4°; `docs/BASELINE_PARAMETERS.md` §3) at 450 km and at the 525 km cap for 30 days and count, on a 5° latitude-longitude grid, the passes that reach 5° elevation, where the baseline beacon link closes (baseline §7). The ISS backup orbit (51.6°) reaches only about ±67° latitude and would not meet this wording.
+
 ### 5.3 Communication Requirements
 
 | ID | Requirement | Verification | Priority |
@@ -107,6 +109,10 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | MRD-044 | The AI shall compose dynamic beacon messages | D | Primary |
 | MRD-045 | AI operations shall not compromise spacecraft safety | A | Critical |
 
+**Proposed (PI to ratify), MRD-043, TBR-MRD-003:** "Over any 60 days of primary operations, the Gini coefficient across regions of the minutes the transponder is available while each region is in view shall be no more than 0.35, and no higher than that of a fixed transponder schedule using the same energy." Regions are those of the demand model of MRD-042. Verification: Analysis (in place of Demonstration). Before launch, a 60-day simulation of the scheduler with the baseline orbit and power model; after commissioning, the same calculation from the transponder on/off telemetry and the orbit. The 0.35 limit is mission objective 3 of `docs/pdr/SMART-QSO_PDR.md` §2.1. The transponder is a single-channel FM transponder (`docs/BASELINE_PARAMETERS.md` §2), so the spacecraft cannot choose between individual QSOs; what it controls is when the transponder is on.
+
+**Proposed (PI to ratify), MRD-045, TBR-MRD-004:** "No AI output shall be able to exceed a hard limit. The OBC shall enforce the hard limits independently of the AI, including while the AI is hung, faulted or off: Jetson bursts only in sunlight, at SOC ≥ 55 % and for no more than 120 s including boot; the per-rail current and temperature limits; the SOC mode thresholds; and TX-OFF (`docs/BASELINE_PARAMETERS.md` §5–§7)." Verification: Test (in place of Analysis). Fault injection on the flatsat: for each hard limit, AI requests that would exceed it; malformed and out-of-range AI outputs; and a hung or unpowered AI. Pass if no limit is exceeded and every beacon is sent on its interval.
+
 ### 5.6 Power Requirements
 
 | ID | Requirement | Verification | Priority |
@@ -123,6 +129,8 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | MRD-060 | The spacecraft shall detumble within 7 days of deployment | T | Critical |
 | MRD-061 | The spacecraft shall maintain attitude knowledge sufficient for antenna pointing | A | High |
 | MRD-062 | The spacecraft shall stabilize attitude for nominal operations | T | High |
+
+**Proposed (PI to ratify), MRD-060, TBR-MRD-005:** "From body rates of up to 10°/s about each axis at separation, the spacecraft shall reduce its body rate to below 0.5°/s, held for 5 minutes, within 3 orbits." Verification: Analysis and Test (in place of Test alone: a 1U with only magnetorquers cannot be detumbled on the ground without an air bearing). A Monte Carlo simulation of at least 100 runs of the flight B-dot code with a geomagnetic field model, the baseline orbit and 0.15 A·m² per axis, every run passing; a closed-loop hardware-in-the-loop run with simulated dynamics; and the sensor and magnetorquer checks of TP-ADCS-003 §3.2. Confirmed in flight during commissioning. The 10°/s and 3 orbits are the baseline (`docs/BASELINE_PARAMETERS.md` §8). 0.5°/s for 5 minutes is the detumble exit condition in `docs/hardware/ADCS_DESIGN.md` (mode table) and the 0.5°/s threshold in `software/flight/include/adcs_control.h`. The documents disagree today: SYS-420 says below 5°/s within 7 days, and others give 1 orbit, 2 orbits, 1°/s or 2°/s.
 
 ### 5.8 Ground Segment Requirements
 
@@ -195,6 +203,10 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | TBD-MRD-001 | Exact orbit parameters | Launch manifest assignment | TBD |
 | TBD-MRD-002 | IARU coordination confirmation | IARU process completion | TBD |
 | TBR-MRD-001 | AI model final selection | Closed (2026-10-16) by PI decision D5: the flight baseline is a calibrated selector on the OBC that chooses among pre-approved templates; generated text on the Jetson (SmolLM2-360M-Instruct or Qwen3-0.6B) is a gated experiment (`docs/BASELINE_PARAMETERS.md` §6, §9) | — |
+| TBR-MRD-002 | MRD-012 has no measure of "global coverage" | PI ratifies, amends or rejects the proposed wording beneath §5.2 (finding VV-16) | TBD |
+| TBR-MRD-003 | MRD-043 has no measure of "fairly" | PI ratifies, amends or rejects the proposed wording beneath §5.5 (finding VV-16) | TBD |
+| TBR-MRD-004 | MRD-045 ("shall not compromise spacecraft safety") has no pass criterion | PI ratifies, amends or rejects the proposed wording beneath §5.5 (finding VV-16) | TBD |
+| TBR-MRD-005 | MRD-060 does not say what "detumble" means, and Test alone is not feasible | PI ratifies, amends or rejects the proposed wording beneath §5.7 (finding VV-16) | TBD |
 
 ---
 
@@ -203,4 +215,4 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
-| B | 2026-10-16 | §8 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-MRD-001, TBD-MRD-002 and TBR-MRD-001. TBR-MRD-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §9) (finding VV-17) | SMART-QSO Team |
+| B | 2026-10-16 | §8 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-MRD-001, TBD-MRD-002 and TBR-MRD-001. TBR-MRD-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §9) (finding VV-17). Proposed testable wording, for the PI to ratify, beneath MRD-012, MRD-043, MRD-045 and MRD-060; requirement text unchanged; tracked as TBR-MRD-002 to TBR-MRD-005 (finding VV-16) | SMART-QSO Team |

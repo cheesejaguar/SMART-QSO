@@ -85,6 +85,8 @@ SMART-QSO is a 1U CubeSat consisting of:
 | SYS-022 | The spacecraft shall be capable of autonomous recovery from single-event upsets | MRD-002 | D |
 | SYS-023 | Critical data shall be protected by CRC or equivalent integrity mechanism | MRD-002 | D |
 
+**Proposed (PI to ratify), SYS-020, TBR-SYS-002:** "Each single-point failure found by the hardware and software FMEA shall be listed with either a mitigation or a retention rationale accepted by the PI. No single failure shall prevent TX-OFF from removing power from the transmitter's power amplifier." Verification: Inspection and Analysis. Inspection that every FMEA line is dispositioned in the single-point-failure list; analysis of the TX-OFF path. "Where practical" gives no pass criterion. A Class D mission (`docs/BASELINE_PARAMETERS.md` §1) may keep single-point failures it knows and accepts; the one it cannot keep is losing the ability to cease emissions (47 CFR 97.207(b); baseline §7).
+
 ---
 
 ## 6. Electrical Power Subsystem Requirements
@@ -155,6 +157,8 @@ SMART-QSO is a 1U CubeSat consisting of:
 | SYS-223 | Antenna VSWR shall be less than 2:1 at operating frequency | MRD-022 | T |
 | SYS-224 | The spacecraft shall not generate or transmit any RF signal earlier than 45 minutes after on-orbit deployment (CDS Rev 14.1 §2.4.5), and the timer shall reset if a deployment switch toggles (CDS §2.3.2.4). A power-on, brownout or unknown reset shall restart the timer; a watchdog or software reset shall not shorten it; no telecommand shall shorten or clear it *(added by the funding audit, 2026-10-14; reset rules 2026-10-15; SQSO-ICD-013 §6.3)* | MRD-080 | T |
 | SYS-225 | The spacecraft shall have at least three independent physical inhibits between the battery and each RF transmitter, and between the battery and each deployable actuator; RBF pins and timers do not count (CDS Rev 14.1 §2.3.7, §2.3.8) *(added by the funding audit, 2026-10-14)* | MRD-080 | I,T |
+
+**Proposed (PI to ratify), SYS-222, TBR-SYS-003:** "With the antennas deployed, the gain of each antenna (2 m and 70 cm) shall be at least −6 dBi over at least 90 % of the sphere." Verification: Analysis and Test. An electromagnetic model of each deployed monopole on the 1U body, and a pattern measurement of the engineering model in at least two orthogonal planes that agrees with the model within 2 dB. The link budget assumes 0 dBi and the baseline beacon margin is about +6 dB at 5° elevation (`docs/BASELINE_PARAMETERS.md` §7), so this keeps the beacon link closed at 5° elevation in at least 90 % of attitudes. A quarter-wave monopole (baseline §7) has a null along its axis, so coverage of the whole sphere ("omnidirectional") can be neither met nor verified.
 
 ---
 
@@ -254,6 +258,8 @@ SMART-QSO is a 1U CubeSat consisting of:
 | SYS-522 | AI failure shall not affect other spacecraft functions | MRD-034 | D |
 | SYS-523 | The OBC shall automatically power-cycle AI payload on repeated failures | MRD-034 | D |
 
+**Proposed (PI to ratify), SYS-522, TBR-SYS-004:** "If the Jetson hangs, latches up, fails to boot, sends malformed data or none, or loses power during a burst, the OBC shall power it off no later than 120 s after power-on, or at the per-rail current limit if that comes first. The OBC, EPS, telecommand receiver and telemetry beacon shall keep operating, and the transponder shall continue on the OBC's fixed schedule: no OBC reset, no missed beacon, and telecommands accepted throughout." Verification: Test (in place of Demonstration). Inject each failure at least three times on the flatsat or engineering model. The 120 s burst limit and the OBC-enforced per-rail current and temperature limits are in `docs/BASELINE_PARAMETERS.md` §6.
+
 ---
 
 ## 11. Thermal Requirements
@@ -322,6 +328,9 @@ SMART-QSO is a 1U CubeSat consisting of:
 | TBD-SYS-001 | Final IARU coordinated frequency | IARU coordination | TBD |
 | TBD-SYS-002 | Launch provider vibration spec | Manifest assignment | TBD |
 | TBR-SYS-001 | AI model final specification | Closed (2026-10-16) by PI decision D5: the AI model, AI burst and AI text-control rows of `docs/BASELINE_PARAMETERS.md` §6 specify it | — |
+| TBR-SYS-002 | SYS-020 ("mitigated where practical") has no pass criterion | PI ratifies, amends or rejects the proposed wording beneath §5.3 (finding VV-16) | TBD |
+| TBR-SYS-003 | SYS-222 ("omnidirectional coverage") can be neither met by a monopole nor verified | PI ratifies, amends or rejects the proposed wording beneath §7.3 (finding VV-16) | TBD |
+| TBR-SYS-004 | SYS-522 ("shall not affect other spacecraft functions") lists no failures and no pass criterion | PI ratifies, amends or rejects the proposed wording beneath §10.3 (finding VV-16) | TBD |
 
 ---
 
@@ -330,4 +339,4 @@ SMART-QSO is a 1U CubeSat consisting of:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
-| B | 2026-10-16 | §15 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SYS-001, TBD-SYS-002 and TBR-SYS-001. TBR-SYS-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §6) (finding VV-17) | SMART-QSO Team |
+| B | 2026-10-16 | §15 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SYS-001, TBD-SYS-002 and TBR-SYS-001. TBR-SYS-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §6) (finding VV-17). Proposed testable wording, for the PI to ratify, beneath SYS-020, SYS-222 and SYS-522; requirement text unchanged; tracked as TBR-SYS-002 to TBR-SYS-004 (finding VV-16) | SMART-QSO Team |
