@@ -40,6 +40,7 @@
 #include "hal/hal_flash.h"
 #include "hal/hal_timer.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -91,14 +92,16 @@ static double s_soc = 0.75;
 /* Signal Handlers                                                            */
 /*===========================================================================*/
 
+#ifndef HAL_TARGET_STM32L4
 /**
- * @brief Signal handler for graceful shutdown
+ * @brief Signal handler for graceful shutdown (host builds; the target has no signals)
  */
 static void signal_handler(int sig)
 {
     (void)sig;
     s_shutdown_requested = 1;
 }
+#endif
 
 /*===========================================================================*/
 /* Initialization Functions                                                   */
@@ -123,7 +126,7 @@ static void save_state_before_reset(void)
  */
 static SmartQsoResult_t init_watchdog(void)
 {
-    if ((hal_timer_init() != SMART_QSO_OK) || (wdt_mgr_init() != SMART_QSO_OK)) {
+    if (wdt_mgr_init() != SMART_QSO_OK) {
         return SMART_QSO_ERROR;
     }
     (void)wdt_mgr_register_task(WDT_TASK_MAIN_LOOP, "main", 1000U);
@@ -181,6 +184,12 @@ static SmartQsoResult_t init_power_and_sensors(void)
         return SMART_QSO_ERROR;
     }
 
+#ifdef HAL_TARGET_STM32L4
+    /* No file system on the target: the built-in sensor table */
+    if (sensors_load_defaults() != SMART_QSO_OK) {
+        return SMART_QSO_ERROR;
+    }
+#else
     const char *yaml_path = getenv("SENSORS_YAML");
     if (yaml_path == NULL) {
         yaml_path = "software/flight/sensors.yaml";
@@ -192,6 +201,7 @@ static SmartQsoResult_t init_power_and_sensors(void)
             return SMART_QSO_ERROR;
         }
     }
+#endif
     return SMART_QSO_OK;
 }
 
@@ -217,13 +227,24 @@ static SmartQsoResult_t init_mode_manager(void)
 
 static SmartQsoResult_t init_system(void)
 {
+#ifndef HAL_TARGET_STM32L4
     if (signal(SIGINT, signal_handler) == SIG_ERR) {
         fprintf(stderr, "[SYSTEM] Failed to set SIGINT handler\n");
     }
     if (signal(SIGTERM, signal_handler) == SIG_ERR) {
         fprintf(stderr, "[SYSTEM] Failed to set SIGTERM handler\n");
     }
+#endif
+#ifdef SIMULATION_BUILD
     srand((unsigned int)time(NULL));   /* simulation noise */
+#endif
+
+    /* Time base first: on the target every module's timestamps come from
+     * it (SysTick), so nothing may read the time before it runs */
+    if (hal_timer_init() != SMART_QSO_OK) {
+        (void)fprintf(stderr, "[SYSTEM] Timer init failed\n");
+        return SMART_QSO_ERROR;
+    }
     s_program_start_ms = smart_qso_now_ms();
 
     /* HAL before any module touches GPIO or non-volatile memory; burn-wire
@@ -679,6 +700,17 @@ static void run_tick(uint64_t tick, uint32_t telemetry_interval)
     wdt_mgr_kick();
 }
 
+/** Pause between main-loop ticks (~20 ms) */
+static void loop_sleep(void)
+{
+#ifdef HAL_TARGET_STM32L4
+    hal_timer_delay_ms((uint32_t)(MAIN_LOOP_SLEEP_NS / 1000000L));
+#else
+    struct timespec ts = {.tv_sec = 0, .tv_nsec = MAIN_LOOP_SLEEP_NS};
+    nanosleep(&ts, NULL);
+#endif
+}
+
 static SmartQsoResult_t run_main_loop(void)
 {
     MissionData_t mission;
@@ -690,10 +722,15 @@ static SmartQsoResult_t run_main_loop(void)
            mission.mission_phase, (int)eps_get_power_mode(), s_soc * 100.0);
 
     uint32_t telemetry_interval = uart_get_telemetry_interval();
+#ifdef SIMULATION_BUILD
     for (uint64_t tick = 0; tick < MAIN_LOOP_ITERATIONS && !s_shutdown_requested; ++tick) {
+#else
+    /* Flight: runs until power-off; the watchdog resets a stalled loop
+     * (docs/LOOP_BOUNDS.md) */
+    for (uint64_t tick = 0; !s_shutdown_requested; ++tick) {
+#endif
         run_tick(tick, telemetry_interval);
-        struct timespec ts = {.tv_sec = 0, .tv_nsec = MAIN_LOOP_SLEEP_NS};
-        nanosleep(&ts, NULL);
+        loop_sleep();
     }
     return SMART_QSO_OK;
 }
@@ -719,7 +756,7 @@ static void shutdown_system(void)
 
     MissionData_t mission;
     (void)mission_data_get(&mission);
-    printf("[SYSTEM] Shutdown complete. Total uptime: %llu ms, Faults: %u\n",
+    printf("[SYSTEM] Shutdown complete. Total uptime: %llu ms, Faults: %" PRIu32 "\n",
            (unsigned long long)mission.total_uptime_ms, mission.fault_count);
 }
 

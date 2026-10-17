@@ -309,9 +309,3 @@ jobs:
         working-directory: software/flight
         run: cmake --build build --parallel $(nproc)
 
-      - name: Verify no debug symbols
-        working-directory: software/flight
-        run: |
-          if nm build/smart_qso_flight | grep -q "printf"; then
-            echo "Note: printf symbols present (expected in simulation stub)"
-          fi
