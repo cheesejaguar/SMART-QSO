@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-CDS-001
-**Revision:** A4 (funding audit corrections, 2026-10-14 and 2026-10-16)
+**Revision:** A5 (funding audit corrections, 2026-10-14 and 2026-10-16)
 **Date:** 2026-01-02
 **Reference:** Cal Poly CubeSat Design Specification Rev 14.1
 
@@ -82,7 +82,7 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | Requirement | CDS Spec | SMART-QSO Design | Status |
 |-------------|----------|------------------|--------|
 | Switch quantity | Minimum 2 | 2 switches | Compliant |
-| Switch type | Mechanical, normally open | Mechanical NO | Compliant |
+| Switch type | Mechanical | Mechanical; contact form and sense polarity open (TBR-CDS-005) | TBR-CDS-005 |
 | Switch location | -Z rails | -Z rail pair | Compliant |
 | Circuit break | All power circuits | All circuits disabled | Compliant |
 
@@ -177,7 +177,7 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | Rails | 4 | 4 | 0 | 0 |
 | Protrusions | 4 | 4 | 0 | 0 |
 | Separation Springs | 3 | 2 | 1 | 0 |
-| Deployment Switches | 4 | 4 | 0 | 0 |
+| Deployment Switches | 4 | 3 | 1 | 0 |
 | RBF Pin | 4 | 4 | 0 | 0 |
 | Power Inhibits | 3 | 3 | 0 | 0 |
 | Post-Deployment | 3 | 3 | 0 | 0 |
@@ -185,9 +185,9 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | Vibration | 3 | 0 | 3 | 0 |
 | Thermal Vacuum | 3 | 0 | 3 | 0 |
 | Outgassing | 3 | 3 | 0 | 0 |
-| **Total** | **48** | **40** | **8** | **0** |
+| **Total** | **48** | **39** | **9** | **0** |
 
-**Compliance Rate:** 83% verified, 17% pending (TBR)
+**Compliance Rate:** 81% compliant by design intent (none verified; see the notice), 19% pending (TBR)
 
 ## 9. TBR/TBD Closure Plan
 
@@ -197,6 +197,7 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | TBR-CDS-002 | IARU frequency coordination | Complete coordination | TBD |
 | TBR-CDS-003 | Vibration test | Complete protoflight test | TBD |
 | TBR-CDS-004 | Thermal vacuum test | Complete protoflight test | TBD |
+| TBR-CDS-005 | Deployment-switch contact form and sense polarity. This matrix (§4.1) and `docs/compliance/LAUNCH_PROVIDER_ICD.md` §5.1 said "normally open", `hardware/structure/STRUCTURAL_DESIGN.md` §5.2 "normally closed"; none cites a part or a schematic, and `docs/BASELINE_PARAMETERS.md` does not set it. The documents may describe different contacts: the power-inhibit contact, which must be open while the switch is actuated in the dispenser (the switches are power inhibits, `software/flight/include/rf_silence.h`), and the OBC sense line, which the flight software reads as high (pulled up) while stowed, itself marked TBR in `software/flight/include/separation_switch.h` | Select the switch part and draw the separation-switch schematic; state the contact form of each contact and the sense polarity here, in the launch ICD §5.1, the structural design §5.2 and `separation_switch.h`; the pre-ship test checks that released switches read released | Separation-switch schematic |
 
 ---
 
@@ -209,3 +210,4 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | A2 | 2026-10-16 | Mass rows cite the bottom-up MEL (TB-06) | Funding audit |
 | A3 | 2026-10-16 | §9 TBR IDs made unique to this document: TBR-001 to TBR-004 became TBR-CDS-001 to TBR-CDS-004. Each matrix row marked TBR now names the §9 item that closes it (finding VV-17) | SMART-QSO Team |
 | A4 | 2026-10-16 | Local TBRs numbered TBR-CDS-001 to -004, so they do not collide with the specifications' TBR-001 (finding VV-06) | SMART-QSO Team |
+| A5 | 2026-10-16 | §4.1 switch type: "normally open" conflicted with the structural design's "normally closed" and nothing decides it; tracked as TBR-CDS-005 (§9), summary counts updated, compliance rate restated as design intent | SMART-QSO Team |
