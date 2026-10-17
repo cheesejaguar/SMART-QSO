@@ -10,8 +10,8 @@
 > `docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md`.
 
 **Document Number:** SQSO-ICD-004
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B (draft)
+**Date:** 2026-10-16
 **Reference:** Cal Poly CDS Rev 14.1, GSFC-STD-7000A (current revision: 7000B)
 
 ---
@@ -128,7 +128,7 @@ This document covers:
 | Parameter | Requirement | SMART-QSO |
 |-----------|-------------|-----------|
 | Signal type | N/A (passive) | N/A |
-| Notes | SMART-QSO uses deployment switches only | |
+| Notes | No electrical interface to the dispenser or launch vehicle once integrated; separation is sensed by the deployment switches only | The umbilical (charge, diagnostic and key-load) connector is used before integration only; see §9.2 |
 
 ---
 
@@ -225,23 +225,23 @@ See `docs/compliance/MATERIALS_LIST.md` for complete materials list.
 |-----------|--------|-------|
 | Documentation delivery | L-60 days | All ICDs and test reports |
 | Spacecraft delivery | L-14 days | Flight-ready configuration |
-| RBF removal | L-2 days | Per launch site procedures |
+| RBF removal | Before dispenser integration, unless the dispenser has an access port at the RBF location | CDS Rev 14.1 §2.3.5.1; integrator to confirm |
 | GO/NO-GO | L-1 day | Final readiness poll |
 
 ### 9.2 Access Requirements
 
 | Phase | Access Required |
 |-------|-----------------|
-| Pre-integration | Full access for checkout |
-| Post-integration | Umbilical access only |
-| RBF removal | RBF pin access |
+| Pre-integration | Full access for checkout, battery charging and key loading through the umbilical connector |
+| Post-integration | **None**, unless the integrator's dispenser has access ports at the umbilical and RBF locations (CDS Rev 14.1 §2.3.4, §2.3.5.1). SpaceX provides no Payload connectivity after mate except optional services (Rideshare Payload User's Guide v11 Table 7-4). Plan for no access |
+| RBF removal | At dispenser integration (or through an access port, if one exists) |
 | Post-RBF | No access |
 
 ### 9.3 State at Delivery
 
 | Parameter | Required State |
 |-----------|----------------|
-| Power | Inhibited (RBF in) |
+| Power | Inhibited: RBF in until dispenser integration; deployment switches held actuated once integrated |
 | Software | Flight version loaded |
 | Battery SOC | 50% ± 10% |
 | Configuration | Flight settings |
@@ -328,3 +328,4 @@ See `docs/compliance/MATERIALS_LIST.md` for complete materials list.
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B (draft) | 2026-10-16 | Funding audit VV-21: umbilical access made consistent (no access after integration unless the dispenser has ports; RBF out at integration) | SMART-QSO Team |
