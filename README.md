@@ -109,16 +109,21 @@ The flight software applies tailored NASA practices (formal software classificat
 
 ### Software Modules
 
-Measured line coverage (14 registered CMocka suites, 243 test cases; Apple clang/llvm-cov, 2026-10-14). Overall: **44.5 %** of 3,685 executable lines in the 21 built flight sources.
+Measured line coverage (31 registered CMocka suites, 428 test cases; GCC and gcovr 7.0, 2026-10-16): **68.2 %** of 5,249 executable lines across all 36 compiled flight sources. A source no test runs counts as 0 %. CI fails below 65 % (`COVERAGE_MIN_LINE` in `.github/workflows/ci.yml`); reproduce with `gcovr -r . --filter 'src/' build --print-summary` in `software/flight` after a coverage build and `ctest`.
 
 | Module | Description | Measured line coverage |
 |--------|-------------|------------------------|
-| `eps_control` | Power management, battery protection | 94.6 % |
-| `fault_mgmt` | Fault logging, recovery actions | 71.0 % |
-| `state_machine` | Mode transitions, safe mode | 79.2 % |
-| `beacon` | AX.25 frame generation | 0 % (tests use Unity, which is not vendored; not built) |
-| `adcs_control` | B-dot and sun-pointing algorithms | 0 % (tests use Unity; not built) |
-| `scheduler` | Task scheduling, timing | not compiled into the flight build |
+| `eps_control` | Power management, battery protection | 94 % |
+| `cmd_auth` | Telecommand authentication | 96 % |
+| `state_machine` | Mode transitions, safe mode | 87 % |
+| `beacon` | AX.25 frame generation | 78 % |
+| `fault_mgmt` | Fault logging, recovery actions | 76 % |
+| `sensors` | Sensor sampling | 60 % |
+| `uart_comm` | Serial link to the Jetson | 38 % |
+| `adcs_control` | B-dot and sun-pointing algorithms | 0 % (its tests use Unity, which is not vendored; not built) |
+| `telemetry` | Telemetry formatting | 0 % (its tests use Unity; not built) |
+| `scheduler` | Task scheduling, timing | 0 % (compiled only into the test library; its Unity tests are not built) |
+| `main` | Simulation main loop | 0 % in unit tests (the sanitizer job runs the whole simulation) |
 
 ---
 
