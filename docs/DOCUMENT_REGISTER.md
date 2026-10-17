@@ -194,7 +194,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-TP-RF-002 | Test Procedure: RF Conducted Power | `docs/test_procedures/TP-RF-002_Conducted_Power.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-RF-003 | Test Procedure: Spurious Emissions | `docs/test_procedures/TP-RF-003_Spurious_Emissions.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-RF-004 | Test Procedure: Modulation Quality | `docs/test_procedures/TP-RF-004_Modulation.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-RF-005 | Test Procedure: Antenna Deployment | `docs/test_procedures/TP-RF-005_Antenna_Deployment.md` | 1.0 | Draft; no run recorded |
+| SQSO-TP-RF-005 | Test Procedure: Antenna Deployment | `docs/test_procedures/TP-RF-005_Antenna_Deployment.md` | 1.1 | Draft; no run recorded |
 | TP-RF-006 | Test Procedure: Telecommand TX-OFF at the Antenna Port | `docs/test_procedures/TP-RF-006_TX_OFF.md` | Draft | Draft; no run recorded |
 | TP-SYS-001 | Test Procedure: Comprehensive Functional Test | `docs/test_procedures/TP-SYS-001_Comprehensive_Functional.md` | A | Draft; no run recorded |
 | TP-SYS-002 | Test Procedure: Day-In-The-Life Test | `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md` | C | Draft; no run recorded |
