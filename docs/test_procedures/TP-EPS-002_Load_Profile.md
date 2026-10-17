@@ -2,9 +2,13 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-EPS-002
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** GSFC-STD-7000, NASA Ames SmallSat Heritage
+
+**Requirements verified:** MRD-050, SYS-111, SYS-112, SYS-114, SYS-121, SYS-304, SRS-F010
+
+**Not cited until corrected:** steps 8.2.4 and 8.3.4 (beacon every 60 s in SAFE and 30 s in IDLE; SYS-211 sets 180 s and 120 s).
 
 ---
 
@@ -109,7 +113,7 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 | 8.4.4 | Verify all subsystems active | Telemetry nominal | |
 | 8.4.5 | Record battery voltage trend | Slight decline acceptable | |
 
-### 8.5 Burst Mode Load Profile (Jetson Active)
+### 8.5 Burst Mode Load Profile (Jetson Active) [SYS-121]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -129,7 +133,7 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 | 8.6.4 | Step load from 8W to 1.5W | Voltage spike <10% | |
 | 8.6.5 | Measure settling time | <100ms | |
 
-### 8.7 Eclipse Simulation
+### 8.7 Eclipse Simulation [SYS-111, SYS-112]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -142,7 +146,7 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 | 8.7.7 | Monitor recovery | SOC increasing | |
 | 8.7.8 | Calculate DOD during eclipse | <30% DOD | |
 
-### 8.8 Multi-Orbit Simulation
+### 8.8 Multi-Orbit Simulation [MRD-050, SYS-304]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -152,7 +156,7 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 | 8.8.4 | Verify power mode transitions | Automatic per power state | |
 | 8.8.5 | Verify end-of-test SOC | >80% (positive margin) | |
 
-### 8.9 Battery SOC Tracking
+### 8.9 Battery SOC Tracking [SYS-114, SRS-F010]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -221,3 +225,4 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |

@@ -2,9 +2,13 @@
 ## TP-ENV-003
 
 **Document Number:** TP-ENV-003
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** GSFC-STD-7000A (GEVS)
+
+**Requirements verified:** SYS-600, SYS-702
+
+**Not cited until corrected:** SYS-601 requires survival down to -40 °C; the survival limit in §3.1 is -30 °C.
 
 ---
 
@@ -26,7 +30,7 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 
 ## 3. Test Levels
 
-### 3.1 Temperature Limits
+### 3.1 Temperature Limits [SYS-600]
 
 | Parameter | Hot (°C) | Cold (°C) |
 |-----------|----------|-----------|
@@ -68,7 +72,7 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 | 4 | Connect GSE | All channels verified |
 | 5 | Verify data acquisition | All TCs reading |
 
-### 4.3 Pumpdown
+### 4.3 Pumpdown [SYS-702]
 
 | Step | Action | Result | P/F |
 |------|--------|--------|-----|
@@ -185,3 +189,4 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |

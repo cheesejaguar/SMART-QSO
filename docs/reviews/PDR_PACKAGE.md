@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document Number**: SMART-QSO-PDR-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Status**: Ready for Review
 
@@ -178,10 +178,10 @@ This PDR package demonstrates that:
 
 | Requirement | Description | Status |
 |-------------|-------------|--------|
-| SRS-F012 | Power mode state machine | Implemented |
+| SRS-F012 | Power modes SAFE, IDLE, ACTIVE (state machine) | Implemented |
 | SRS-F023 | AI-generated beacon text | Implemented |
-| SRS-F040 | Fault detection and logging | Implemented |
-| SRS-F050 | Watchdog implementation | Designed |
+| SRS-F040 | Detect and log all fault conditions | Implemented |
+| SRS-F050 | Kick hardware watchdog at least every 30 seconds | Designed |
 | SRS-S001 | RF after separation only | Design |
 
 ---
@@ -351,3 +351,4 @@ Based on this PDR package, the SMART-QSO project is recommended to proceed to th
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial PDR release |
+| 1.1 | 2026-10-16 | SMART-QSO Team | Requirement rows use the SRS wording (finding VV-06) |

@@ -2,9 +2,11 @@
 ## TP-JETSON-003
 
 **Document Number:** SQSO-TP-JETSON-003
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-510, SYS-512, SYS-513, SYS-514
 
 ---
 
@@ -24,7 +26,7 @@ Verify Jetson module AI inference and communication functions.
 
 ---
 
-## 3. PROCEDURE
+## 3. PROCEDURE [SYS-510, SYS-512, SYS-513, SYS-514]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -56,3 +58,4 @@ Verify Jetson module AI inference and communication functions.
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

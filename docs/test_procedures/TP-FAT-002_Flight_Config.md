@@ -2,9 +2,13 @@
 ## TP-FAT-002
 
 **Document Number:** SQSO-TP-FAT-002
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-001, SYS-004, SYS-005, SYS-221, SYS-224, SYS-225
+
+**Not cited until corrected:** §6.2.2 (145.825 MHz and 2.0 W conflict with SYS-200 and SYS-201; the beacon intervals omit the 180 s SAFE value of SYS-211) and §6.2.3 (10 % and 50 % SOC conflict with SRS-F013 and SRS-F015, which set 25 % and 55 %).
 
 ---
 
@@ -111,7 +115,7 @@ This procedure verifies that the flight unit is configured correctly for launch 
 | Control Mode | Sun-pointing | | |
 | Magnetometer Calibration | Applied | | |
 
-#### 6.2.5 Deployment Configuration
+#### 6.2.5 Deployment Configuration [SYS-221]
 
 | Parameter | Expected Value | Actual | P/F |
 |-----------|----------------|--------|-----|
@@ -121,7 +125,7 @@ This procedure verifies that the flight unit is configured correctly for launch 
 | Burn Wire Duration | 3 seconds | | |
 | Retry Attempts | 3 | | |
 
-### 6.3 Hardware Configuration Verification
+### 6.3 Hardware Configuration Verification [SYS-001, SYS-004, SYS-005]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -136,7 +140,7 @@ This procedure verifies that the flight unit is configured correctly for launch 
 | 9 | Verify harness routing | No pinch points | |
 | 10 | Verify markings | Visible and correct | |
 
-### 6.4 Inhibit State Verification
+### 6.4 Inhibit State Verification [SYS-005, SYS-225]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -170,7 +174,7 @@ This procedure verifies that the flight unit is configured correctly for launch 
 
 ---
 
-### 6.7 Flight Arming of the RF Silence and Deployment (last powered action)
+### 6.7 Flight Arming of the RF Silence and Deployment (last powered action) [SYS-221, SYS-224]
 
 Bench power-ups can complete the 45-minute silence and the deployment sequence, and both persist. Arm them last (SQSO-ICD-013 §6.3, `deployment.h`).
 
@@ -235,3 +239,4 @@ Bench power-ups can complete the 45-minute silence and the deployment sequence, 
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

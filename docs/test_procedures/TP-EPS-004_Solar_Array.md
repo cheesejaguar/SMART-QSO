@@ -2,9 +2,11 @@
 ## TP-EPS-004
 
 **Document Number:** SQSO-TP-EPS-004
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-102; SYS-100 and SYS-103 by analysis from the §3.1 I-V data
 
 ---
 
@@ -26,7 +28,7 @@ Characterize solar array I-V curves and verify MPPT performance.
 
 ## 3. PROCEDURE
 
-### 3.1 I-V Curve Measurement
+### 3.1 I-V Curve Measurement [SYS-100, SYS-103]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -35,7 +37,7 @@ Characterize solar array I-V curves and verify MPPT performance.
 | 3 | Measure Isc | Record short circuit I | |
 | 4 | Sweep I-V curve | Record Pmax, Vmpp, Impp | |
 
-### 3.2 MPPT Verification
+### 3.2 MPPT Verification [SYS-102]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -60,3 +62,4 @@ Characterize solar array I-V curves and verify MPPT performance.
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

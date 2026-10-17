@@ -2,9 +2,13 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-JETSON-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 **Reference:** NVIDIA Jetson Orin Nano Datasheet, NASA Ames SmallSat Heritage
+
+**Requirements verified:** SYS-501, SYS-502, SYS-503, SYS-514
+
+**To be corrected:** §8.4 characterizes a 15 W mode (8 to 15 W), above the 10 W peak of SYS-501; flight uses the 7 W mode (step 8.5.1).
 
 ---
 
@@ -103,7 +107,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | Boot time | < 30s | s | |
 | Boot current average | < 1.5A | A | |
 
-### 8.3 Idle Power Measurement
+### 8.3 Idle Power Measurement [SYS-502]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -143,7 +147,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | 15W mode (idle) | < 8W | W | |
 | 15W mode (load) | < 15W | W | |
 
-### 8.5 Inference Power Measurement
+### 8.5 Inference Power Measurement [SYS-501]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -187,7 +191,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | 25 | | | | |
 | 30 | | | | |
 
-### 8.7 Power Gating Test
+### 8.7 Power Gating Test [SYS-503]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -207,7 +211,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | 2 | | | | |
 | 3 | | | | |
 
-### 8.8 OBC Interface Power Control
+### 8.8 OBC Interface Power Control [SYS-503, SYS-514]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -280,3 +284,4 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | OBC-Jetson ICD cited by its own number, SMART-QSO-ICD-002 (finding PI-17) | SMART-QSO Team |
+| C | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |

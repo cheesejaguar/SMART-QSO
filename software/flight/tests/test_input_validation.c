@@ -4,8 +4,8 @@
  *
  * Tests input validation functions per NPR 7150.2 and MISRA C:2012.
  *
- * @requirement SRS-SEC-001 All external inputs shall be validated
- * @requirement SRS-SEC-002 Commands shall have checksum verification
+ * @requirement SRS-S004 Validate all commands before execution (framing and checksum)
+ * @requirement SRS-F072 Validate sensor readings against limits
  */
 
 #include <stdarg.h>

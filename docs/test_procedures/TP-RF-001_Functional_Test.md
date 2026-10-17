@@ -2,11 +2,13 @@
 ## TP-RF-001
 
 **Document Number:** TP-RF-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 **Classification:** Development/Qualification Test
 
-**Requirements verified:** SYS-202, SYS-210
+**Requirements verified:** SYS-202, SYS-206, SYS-210
+
+**To be corrected:** §8.3 step 10 gives the carrier as 145.825 MHz, which SYS-200 excludes; its ±1 kHz tolerance is within the ±5 kHz of SYS-206.
 
 ---
 
@@ -96,7 +98,7 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 | 8 | Medium (1W) | 30 dBm | _______ | ±1 dB | |
 | 9 | High (2W) | 33 dBm | _______ | ±1 dB | |
 
-### 8.3 Frequency Accuracy
+### 8.3 Frequency Accuracy [SYS-206]
 
 | Step | Parameter | Expected | Measured | Tolerance | P/F |
 |------|-----------|----------|----------|-----------|-----|
@@ -227,3 +229,4 @@ Record all measurements in RF Test Data Log:
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Beacon Format ICD cited by its own number, SMART-QSO-ICD-006 (was SQSO-ICD-003, the OBC-to-RF ICD) (finding PI-17) | SMART-QSO Team |
+| C | 2026-10-16 | §8.3 cites SYS-206, frequency accuracy (formerly a duplicate ID); its 145.825 MHz carrier is flagged as conflicting with the frequency requirement (finding VV-06) | SMART-QSO Team |

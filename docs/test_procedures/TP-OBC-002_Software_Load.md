@@ -2,9 +2,11 @@
 ## TP-OBC-002
 
 **Document Number:** SQSO-TP-OBC-002
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-300 (boot time); loading itself is a process step that no requirement covers
 
 ---
 
@@ -45,7 +47,7 @@ Verify OBC software loading, version verification, and configuration.
 | Flash program | Success |
 | Version match | SVD baseline |
 | CRC match | Build checksum |
-| Boot time | < 30 seconds |
+| Boot time | < 30 seconds (SYS-300) |
 
 ---
 
@@ -54,3 +56,4 @@ Verify OBC software loading, version verification, and configuration.
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

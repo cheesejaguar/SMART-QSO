@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-VCRM-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** NPR 7123.1 SE Process 13 (Verification)
 
@@ -30,11 +30,11 @@ This Verification Cross-Reference Matrix provides traceability from requirements
 
 | Req ID | Requirement | Method | Procedure | Status |
 |--------|-------------|--------|-----------|--------|
-| MRD-001 | Spacecraft shall operate in LEO (400-500 km) | A | Orbital analysis | Complete |
-| MRD-002 | Mission duration shall be ≥ 12 months | A | Power/thermal analysis | Complete |
-| MRD-003 | Spacecraft shall transmit beacons receivable by amateur stations | T | TP-RF-001 | Complete |
-| MRD-004 | Beacons shall include AI-generated content | T | TP-SYS-001 | Complete |
-| MRD-005 | Spacecraft shall deorbit within 25 years | A | ODAR analysis | Complete |
+| MRD-011 | The nominal orbit altitude shall be 400-500 km | A | Orbital analysis | Complete |
+| MRD-001 | The mission shall have a design life of 12 months minimum | A | Power/thermal analysis | Complete |
+| MRD-022 | The spacecraft shall be detectable by amateur ground stations | T | TP-RF-001 | Complete |
+| MRD-044 | The AI shall compose dynamic beacon messages | T | TP-SYS-001 | Complete |
+| MRD-003 | The spacecraft shall re-enter the atmosphere no later than 5 years after completion of the mission (disposal probability ≥ 0.9), and within 25 years per NASA-STD-8719.14C | A | ODAR analysis | Complete for the former 25-year rule only; not yet assessed against the 5-year rule (changed 2026-10-14) |
 
 ## 4. System Requirements Verification
 
@@ -211,3 +211,4 @@ All verification evidence shall be maintained in the project archive:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | §3 mission rows cite the MRD ID with the stated meaning, in its wording (MRD-011, MRD-001, MRD-022, MRD-044, MRD-003); MRD-003 status limited to the former 25-year rule (finding VV-06) | SMART-QSO Team |

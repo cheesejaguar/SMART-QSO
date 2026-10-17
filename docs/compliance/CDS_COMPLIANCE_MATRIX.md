@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-CDS-001
-**Revision:** A3 (unique item IDs, 2026-10-16)
+**Revision:** A4 (funding audit corrections, 2026-10-14 and 2026-10-16)
 **Date:** 2026-01-02
 **Reference:** Cal Poly CubeSat Design Specification Rev 14.1
 
@@ -208,3 +208,4 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | A1 | 2026-10-14 | Inhibit and timer rows corrected to CDS Rev 14.1; audit notice | Funding audit |
 | A2 | 2026-10-16 | Mass rows cite the bottom-up MEL (TB-06) | Funding audit |
 | A3 | 2026-10-16 | §9 TBR IDs made unique to this document: TBR-001 to TBR-004 became TBR-CDS-001 to TBR-CDS-004. Each matrix row marked TBR now names the §9 item that closes it (finding VV-17) | SMART-QSO Team |
+| A4 | 2026-10-16 | Local TBRs numbered TBR-CDS-001 to -004, so they do not collide with the specifications' TBR-001 (finding VV-06) | SMART-QSO Team |

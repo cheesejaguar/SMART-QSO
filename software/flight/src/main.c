@@ -5,9 +5,9 @@
  * This is the main entry point for the SMART-QSO CubeSat flight software.
  * It initializes all subsystems and runs the main control loop.
  *
- * @requirement SRS-SYS-001 System shall initialize all subsystems on startup
- * @requirement SRS-SYS-002 System shall run main control loop
- * @requirement SRS-SYS-003 System shall handle graceful shutdown
+ * @requirement SRS-F001 Initialize all subsystems within 30 seconds of power-on
+ * @requirement SRS-P001 Main control loop executes within 20 ms
+ * @note Host simulation only (not a flight requirement): SIGINT/SIGTERM end the loop; state is saved
  *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat design patterns

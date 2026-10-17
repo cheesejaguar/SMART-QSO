@@ -138,3 +138,12 @@ def test_check_flag_sets_exit_status(tmp_path, capsys):
     assert main(["--check"], root=tmp_path) == 1
     assert main([], root=tmp_path) == 0   # report only
     assert "SQSO-AAA-001" in capsys.readouterr().out
+
+
+def test_register_revision_must_match_the_document(tmp_path):
+    # A document bumped without its register row leaves the register wrong
+    path = doc(tmp_path, "docs/a.md", "SQSO-AAA-001")
+    path.write_text(path.read_text().replace("**Revision:** A", "**Revision:** B"))
+    register(tmp_path, [("SQSO-AAA-001", "docs/a.md")])
+    assert check(tmp_path) == ["docs/DOCUMENT_REGISTER.md: SQSO-AAA-001 is at revision A, "
+                               "but docs/a.md says B"]

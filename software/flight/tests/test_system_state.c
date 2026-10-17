@@ -4,8 +4,7 @@
  *
  * Tests centralized state management per NPR 7150.2 modularity requirements.
  *
- * @requirement SRS-MOD-001 All system state shall be encapsulated
- * @requirement SRS-MOD-002 State access shall be through accessor functions
+ * @requirement SRS-Q010 Modular software with defined interfaces (state encapsulated, accessors only)
  */
 
 #include <stdarg.h>

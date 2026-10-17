@@ -5,9 +5,9 @@
  * This module provides mission data storage and persistence functionality
  * including telemetry storage, state persistence, and data integrity.
  *
- * @requirement SRS-DATA-001 System shall persist mission data across resets
- * @requirement SRS-DATA-002 System shall protect data integrity with CRC
- * @requirement SRS-DATA-003 System shall track cumulative mission statistics
+ * @requirement SRS-F060 Persist mission data to non-volatile memory
+ * @requirement SRS-F061 Protect persisted data with CRC32
+ * @requirement SRS-F063 Maintain mission statistics across resets
  *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  */

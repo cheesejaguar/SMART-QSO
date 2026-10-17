@@ -28,8 +28,6 @@
  * unless the hardware inhibits (RBF, SYS-225) hold deployment power off.
  *
  * @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
- * @requirement SRS-DEP-002 System shall monitor deployment switch state
- * @requirement SRS-DEP-003 System shall provide deployment retry capability
  *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat deployment patterns

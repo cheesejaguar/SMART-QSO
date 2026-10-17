@@ -4,7 +4,7 @@
  *
  * Tests safe string and memory functions per NPR 7150.2 and MISRA C:2012.
  *
- * @requirement SRS-SEC-003 Safe string handling to prevent buffer overflows
+ * @note Bounded string and memory copies (MISRA C:2012, SQSO-CS-001); no requirement ID defines this
  */
 
 #include <stdarg.h>

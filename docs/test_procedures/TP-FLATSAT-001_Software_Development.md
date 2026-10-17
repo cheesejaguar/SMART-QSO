@@ -2,9 +2,11 @@
 ## TP-FLATSAT-001
 
 **Document Number:** SQSO-TP-FLATSAT-001
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SRS-F001, SRS-F011, SRS-F012, SRS-F013, SRS-F020, SRS-F023, SRS-F030, SRS-F031, SRS-F040, SRS-F042, SRS-F052, SRS-F062, SRS-I010, SRS-I021, SRS-Q011, SYS-304, SYS-323, SYS-324, SYS-523
 
 ---
 
@@ -58,7 +60,7 @@ This procedure defines the software development and verification testing on the 
 
 ## 6. PROCEDURE
 
-### 6.1 OBC Software Execution
+### 6.1 OBC Software Execution [SRS-F001, SRS-F020, SRS-I021]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -70,7 +72,7 @@ This procedure defines the software development and verification testing on the 
 | 6 | Verify nominal telemetry | Valid values | |
 | 7 | Verify beacon generation | AX.25 frame transmitted | |
 
-### 6.2 Subsystem Interface Verification
+### 6.2 Subsystem Interface Verification [SRS-F011, SRS-F023, SRS-F030, SRS-F031, SRS-I010, SYS-323, SYS-324]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -83,7 +85,7 @@ This procedure defines the software development and verification testing on the 
 | 7 | Trigger Jetson inference | Text generated | |
 | 8 | Verify RF beacon content | Contains Jetson text | |
 
-### 6.3 Mode Transition Test
+### 6.3 Mode Transition Test [SRS-F012, SRS-F013, SYS-304]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -95,7 +97,7 @@ This procedure defines the software development and verification testing on the 
 | 6 | Simulate low power | Auto-transition to SAFE | |
 | 7 | Recover power | Return to previous mode | |
 
-### 6.4 Fault Injection Testing
+### 6.4 Fault Injection Testing [SRS-F040, SRS-F042, SRS-F052, SRS-F062, SYS-523]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -108,7 +110,7 @@ This procedure defines the software development and verification testing on the 
 | 7 | Power cycle during write | Data integrity maintained | |
 | 8 | Simulate Jetson hang | Jetson power-cycled | |
 
-### 6.5 Regression Testing
+### 6.5 Regression Testing [SRS-Q011]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -164,3 +166,4 @@ This procedure defines the software development and verification testing on the 
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

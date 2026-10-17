@@ -2,9 +2,13 @@
 ## TP-FAT-001
 
 **Document Number:** SQSO-TP-FAT-001
-**Version:** 1.0
+**Version:** 1.2
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-003, SYS-021, SYS-102, SYS-110, SYS-120, SYS-121, SYS-122, SYS-124, SYS-202, SYS-210, SYS-215, SYS-221, SYS-223, SYS-300, SYS-304, SYS-322, SYS-323, SYS-324, SYS-400, SYS-402, SYS-410, SYS-503, SYS-512
+
+**Not cited until corrected:** §6.3.3 steps 3 and 5 and §6.4 steps 1 and 2 (145.825 MHz and a 2.0 W high mode; SYS-200 excludes 145.825 MHz and SYS-201 caps output at 1 W); §6.4 step 3 (2nd harmonic < -30 dBc; SYS-203 needs 40 dB); §6.6 step 2 (1.33 kg; SYS-002 allows 2.0 kg); §6.7 step 3 (N0CALL; the station identifier is in `docs/BASELINE_PARAMETERS.md` §1).
 
 ---
 
@@ -74,7 +78,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 5 | Connect ground station | Serial link active | |
 | 6 | Connect RF to spectrum analyzer | Via 30dB attenuator | |
 
-### 6.2 Power-On and Boot Verification
+### 6.2 Power-On and Boot Verification [SYS-300]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -86,7 +90,7 @@ This procedure defines the final acceptance functional test performed on the fli
 
 ### 6.3 Complete Functional Test
 
-#### 6.3.1 EPS Subsystem
+#### 6.3.1 EPS Subsystem [SYS-102, SYS-120, SYS-121, SYS-122, SYS-124, SYS-304]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -96,7 +100,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 4 | Verify solar array input | MPPT tracking | |
 | 5 | Verify power mode transitions | All modes functional | |
 
-#### 6.3.2 OBC Subsystem
+#### 6.3.2 OBC Subsystem [SYS-021, SYS-304]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -107,7 +111,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 5 | Verify watchdog function | Kick regular | |
 | 6 | Test all mode transitions | Correct behavior | |
 
-#### 6.3.3 RF Subsystem
+#### 6.3.3 RF Subsystem [SYS-202, SYS-210, SYS-322]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -120,7 +124,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 7 | Verify beacon content | Valid AX.25 frame | |
 | 8 | Command RF off | TX disabled | |
 
-#### 6.3.4 ADCS Subsystem
+#### 6.3.4 ADCS Subsystem [SYS-323, SYS-324, SYS-400, SYS-402, SYS-410]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -132,7 +136,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 6 | Command magnetorquer Z | Correct polarity/current | |
 | 7 | Verify ADCS mode transitions | Correct behavior | |
 
-#### 6.3.5 Payload Subsystem
+#### 6.3.5 Payload Subsystem [SYS-215, SYS-503, SYS-512]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -146,7 +150,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 8 | Command Jetson shutdown | Clean shutdown | |
 | 9 | Command power off | < 1 mA standby | |
 
-### 6.4 RF Characterization (Final)
+### 6.4 RF Characterization (Final) [SYS-223]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -158,7 +162,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 6 | Measure antenna VSWR | < 2:1 | |
 | 7 | Compare to pre-env baseline | Within 10% | |
 
-### 6.5 Battery Capacity Verification
+### 6.5 Battery Capacity Verification [SYS-110]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -168,7 +172,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 4 | Compare to BOL | > 95% of original | |
 | 5 | Recharge for flight | 100% SOC | |
 
-### 6.6 Mass Properties Measurement
+### 6.6 Mass Properties Measurement [SYS-003]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -180,7 +184,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 6 | Verify CG within 2 cm | Per CDS Rev 14.1 | |
 | 7 | Compare to pre-env | Within tolerance | |
 
-### 6.7 Configuration Verification
+### 6.7 Configuration Verification [SYS-221]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -243,3 +247,4 @@ This procedure defines the final acceptance functional test performed on the fli
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Mass limit 2.00 kg (SYS-002, CDS Rev 14.1) replaces 1.33 kg, the CDS Rev 13 value (TB-06) |
+| 1.2 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

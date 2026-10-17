@@ -2,9 +2,11 @@
 ## TP-INT-001
 
 **Document Number:** SQSO-TP-INT-001
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-120, SYS-121, SYS-122, SYS-124, SYS-320
 
 ---
 
@@ -94,7 +96,7 @@ This procedure defines the integration test for the Electrical Power Subsystem (
 | 5 | Connect solar array harness | Secure connection | | |
 | 6 | Route harness per ICD | No pinch, proper radius | | |
 
-### 8.2 Power Bus Verification
+### 8.2 Power Bus Verification [SYS-120, SYS-121, SYS-122]
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
@@ -104,7 +106,7 @@ This procedure defines the integration test for the Electrical Power Subsystem (
 | 4 | Measure no-load current | < 50 mA | | |
 | 5 | Verify all load switches OFF | No current draw | | |
 
-### 8.3 Load Testing
+### 8.3 Load Testing [SYS-120, SYS-121]
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
@@ -115,7 +117,7 @@ This procedure defines the integration test for the Electrical Power Subsystem (
 | 5 | Enable full mission load | All rails stable | | |
 | 6 | Monitor for 30 min | No anomalies | | |
 
-### 8.4 Telemetry Verification
+### 8.4 Telemetry Verification [SYS-124, SYS-320]
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
@@ -163,3 +165,4 @@ This procedure defines the integration test for the Electrical Power Subsystem (
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release for CDR |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

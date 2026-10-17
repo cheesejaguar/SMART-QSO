@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document ID**: SQSO-CDR-TB-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 
 > **Superseded values (funding audit, 2026-10-16, finding PI-14).** This record is kept as written on 2026-01-02, but it
@@ -43,10 +43,15 @@ SMART-QSO is a 1U CubeSat mission demonstrating AI-assisted amateur radio operat
 
 | ID | Objective | Success Measure |
 |----|-----------|-----------------|
-| MO-1 | Demonstrate AI-assisted amateur radio | AI-generated beacons transmitted |
-| MO-2 | Provide amateur radio service | Beacons received by community |
-| MO-3 | Operate autonomously for 2 years | Continuous operation |
-| MO-4 | Comply with amateur regulations | No violations |
+| MO-1 | Demonstrate AI-managed amateur radio operations from LEO | AI-generated beacons transmitted |
+| MO-2 | Provide amateur radio operators with transponder access | Beacons received by community |
+| MO-3 | Demonstrate graceful degradation to conventional operation | Transponder and template beacon continue with the AI payload off (SYS-521, SYS-522) |
+| MO-4 | Advance TinyML/TinyLM technology for space applications | Not stated in SQSO-REQ-001 |
+| MO-5 | Engage amateur radio community in space communications | Not stated in SQSO-REQ-001 |
+
+Objectives corrected 2026-10-16 to SQSO-REQ-001 §4.2. This baseline listed "operate autonomously for 2 years" and
+"comply with amateur regulations" as MO-3 and MO-4; those are mission requirements (MRD-001, MRD-002; MRD-024, MRD-090
+to MRD-092).
 
 ### 2.3 Mission Success Criteria
 
@@ -379,3 +384,4 @@ QA: _________________________ Date: _______
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.0a | 2026-10-16 | Funding audit | Superseded-values table added under the notice (PI-14); body unchanged |
+| 1.1 | 2026-10-16 | SMART-QSO Team | §2.2 objectives corrected to SQSO-REQ-001 §4.2; MO-5 added (finding VV-06) |

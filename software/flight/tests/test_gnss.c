@@ -8,7 +8,7 @@
  * latest GGA says it has a real fix, so dead-reckoned (DROP, quality 6)
  * output never reaches the ephemeris.
  *
- * @requirement SpaceX Rideshare User's Guide v11 §9.5.7.2 GNSS-based ephemeris
+ * @note SpaceX Rideshare User's Guide v11 §9.5.7.2 (launch-provider rule): GNSS-based ephemeris
  */
 
 #include <stdarg.h>

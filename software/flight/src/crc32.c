@@ -5,7 +5,7 @@
  * Provides CRC32 calculation for data integrity verification.
  * Uses the standard CRC32 polynomial (IEEE 802.3).
  *
- * @requirement SRS-DATA-002 System shall protect data integrity with CRC
+ * @requirement SRS-F061 Protect persisted data with CRC32
  */
 
 #include "smart_qso.h"

@@ -2,9 +2,9 @@
  * @file sensors.c
  * @brief Sensor Management Implementation
  *
- * @requirement SRS-SENS-001 System shall support configurable sensor framework
- * @requirement SRS-SENS-002 System shall poll sensors at configurable intervals
- * @requirement SRS-SENS-003 System shall validate sensor readings
+ * @requirement SRS-F070 Collect telemetry from all sensors
+ * @requirement SRS-F071 Sample sensors at configurable rates
+ * @requirement SRS-F072 Validate sensor readings against limits
  */
 
 #include "sensors.h"

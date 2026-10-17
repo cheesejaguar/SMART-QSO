@@ -2,9 +2,11 @@
 ## TP-INT-002
 
 **Document Number:** SQSO-TP-INT-002
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-021, SYS-300, SYS-302, SYS-320, SYS-321, SYS-323, SRS-F005
 
 ---
 
@@ -55,7 +57,7 @@ This procedure defines the integration test for the On-Board Computer (OBC) with
 
 ## 6. PROCEDURE
 
-### 6.1 Power Integration
+### 6.1 Power Integration [SYS-021]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -63,7 +65,7 @@ This procedure defines the integration test for the On-Board Computer (OBC) with
 | 2 | Measure OBC current | < 50 mA idle | |
 | 3 | Verify watchdog LED | Blinking | |
 
-### 6.2 Boot Test
+### 6.2 Boot Test [SYS-300, SRS-F005]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -72,7 +74,7 @@ This procedure defines the integration test for the On-Board Computer (OBC) with
 | 3 | Verify software version | Correct version | |
 | 4 | Check boot reason | Power-on reset | |
 
-### 6.3 Interface Verification
+### 6.3 Interface Verification [SYS-302, SYS-320, SYS-321, SYS-323]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -99,3 +101,4 @@ This procedure defines the integration test for the On-Board Computer (OBC) with
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

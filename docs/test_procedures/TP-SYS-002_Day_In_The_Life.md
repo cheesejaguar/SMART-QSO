@@ -2,8 +2,12 @@
 ## TP-SYS-002
 
 **Document Number:** TP-SYS-002
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
+
+**Requirements verified:** MRD-002, SYS-111, SYS-215, SYS-220, SYS-221, SYS-300, SYS-303, SYS-325, SYS-421, SYS-422, SYS-512, SRS-F013, SRS-F052, SRS-Q002
+
+**Not cited until corrected:** Orbit 1 "First beacon" at T+0:32 on 145.825 MHz (SYS-224 allows no RF before 45 minutes after deployment, and SYS-200 excludes 145.825 MHz), and §4.6 SAFE mode at SOC < 30 % (SRS-F013 sets 25 %).
 
 ---
 
@@ -48,7 +52,7 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 
 ## 4. Procedure
 
-### 4.1 Test Initialization
+### 4.1 Test Initialization [SYS-300]
 
 | Step | Action | Expected Result | Time | P/F |
 |------|--------|-----------------|------|-----|
@@ -60,7 +64,7 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 
 ### 4.2 LEOP Simulation (Orbits 1-2)
 
-#### Orbit 1: Deployment and Detumble
+#### Orbit 1: Deployment and Detumble [SYS-220, SYS-221, SYS-421]
 
 | Event | Time | Action | Expected | Actual | P/F |
 |-------|------|--------|----------|--------|-----|
@@ -71,7 +75,7 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | Eclipse entry | T+0:59 | Sun lost | Safe mode | ______ | |
 | Eclipse exit | T+1:34 | Sun acquired | Resume ops | ______ | |
 
-#### Orbit 2: Initial Checkout
+#### Orbit 2: Initial Checkout [SYS-303, SYS-422]
 
 | Event | Time | Action | Expected | Actual | P/F |
 |-------|------|--------|----------|--------|-----|
@@ -82,7 +86,7 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 
 ### 4.3 Normal Operations (Orbits 3-12)
 
-#### Beacon Generation Log
+#### Beacon Generation Log [SYS-215]
 
 | Orbit | Beacons | AI Generated | Template | Errors |
 |-------|---------|--------------|----------|--------|
@@ -121,7 +125,7 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | 9 | ______ | ______ | ______ |
 | 12 | ______ | ______ | ______ |
 
-### 4.4 Ground Pass Simulation
+### 4.4 Ground Pass Simulation [SYS-325]
 
 #### Pass 1 (Orbit 4)
 
@@ -150,7 +154,7 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | Verify | T+17:08 | Data integrity | ______ | |
 | LOS | T+17:10 | Pass complete | ______ | |
 
-### 4.5 Anomaly Response (Orbit 13)
+### 4.5 Anomaly Response (Orbit 13) [MRD-002, SRS-F013, SRS-F052, SRS-Q002]
 
 | Test | Injection | Expected Response | Actual | Recovery | P/F |
 |------|-----------|-------------------|--------|----------|-----|
@@ -160,7 +164,7 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | Watchdog | Delay kick | System reset | ______ | ______ | |
 | Memory error | Inject bit flip | CRC detect, recover | ______ | ______ | |
 
-### 4.6 Low Power Operations (Orbit 14)
+### 4.6 Low Power Operations (Orbit 14) [SYS-111]
 
 | Event | SOC | Mode | Load (mW) | Result | P/F |
 |-------|-----|------|-----------|--------|-----|
@@ -170,7 +174,7 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | Exit eclipse | ______ | ______ | ______ | ______ | |
 | Recovery | ______ | Normal | ______ | ______ | |
 
-### 4.7 AI Payload Operations
+### 4.7 AI Payload Operations [SYS-512]
 
 | Orbit | Jetson On | Generation Time (s) | Power (W) | Temperature (°C) | Output |
 |-------|-----------|--------------------:|-----------|------------------|--------|
@@ -224,3 +228,4 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) | SMART-QSO Team |

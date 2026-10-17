@@ -2,7 +2,7 @@
 ## TP-ENV-002
 
 **Document Number:** TP-ENV-002
-**Revision:** B (interim levels)
+**Revision:** C (interim levels)
 **Date:** 2026-10-16
 **Reference:** SpaceX Rideshare Payload User's Guide, Version 11, August 2026 ("UG v11",
 <https://storage.googleapis.com/rideshare-static/Rideshare_Payload_Users_Guide.pdf>): §4.1.6, Table 4-6, §6.1.2, §6.6,
@@ -12,6 +12,8 @@ Table 6-2, §6.7.1, Table 6-3, §6.7.6, §6.7.7. Fallback if no provider applies
 > rideshare through a 1U-capable integrator (`docs/BASELINE_PARAMETERS.md` §3, decision D7), so SpaceX UG v11 is used
 > as the interim provider. The integrator's user guide and ICD will supersede these levels. Revision A used a 14.1 Grms
 > profile tied to no provider (finding LA-05). No test has been run.
+
+**Requirements verified:** SYS-700
 
 ---
 
@@ -53,7 +55,7 @@ vibration and acoustic tests are not required for a containerized CubeSat, and s
 
 ## 4. Test Levels
 
-### 4.1 Random Vibration (UG v11 Table 4-6, MPE, P95/50, all axes)
+### 4.1 Random Vibration (UG v11 Table 4-6, MPE, P95/50, all axes) [SYS-700]
 
 | Frequency (Hz) | ASD (g²/Hz) |
 |----------------|-------------|
@@ -228,3 +230,4 @@ original burn wire did not fail in the test. Any other rework needs the integrat
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B (interim) | 2026-10-16 | Funding audit LA-05: levels re-baselined to SpaceX Rideshare Payload User's Guide v11 as the interim provider (MPE 5.57 Grms, Table 4-6; protoflight 1 min/axis, Table 6-2); power-inhibit verification during vibration added (§6.7.7); low-level sine criteria per Table 6-3; notching rules. Pending launch contract and PI confirmation | SMART-QSO Team |
+| C | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |

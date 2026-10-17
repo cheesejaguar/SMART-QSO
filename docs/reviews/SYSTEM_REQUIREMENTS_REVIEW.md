@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document ID**: SQSO-SRR-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: Completed (Reference)
@@ -45,10 +45,15 @@ This document provides the System Requirements Review (SRR) package for SMART-QS
 
 | ID | Objective | Verification |
 |----|-----------|--------------|
-| MO-1 | Demonstrate AI-assisted amateur radio | AI-generated beacons transmitted |
-| MO-2 | Provide amateur radio transponder | Successful QSOs logged |
-| MO-3 | Operate autonomously for 2 years | Continuous operation |
-| MO-4 | Comply with amateur regulations | No violations |
+| MO-1 | Demonstrate AI-managed amateur radio operations from LEO | AI-generated beacons transmitted |
+| MO-2 | Provide amateur radio operators with transponder access | Successful QSOs logged |
+| MO-3 | Demonstrate graceful degradation to conventional operation | Transponder and template beacon continue with the AI payload off (SYS-521, SYS-522) |
+| MO-4 | Advance TinyML/TinyLM technology for space applications | Not stated in SQSO-REQ-001 |
+| MO-5 | Engage amateur radio community in space communications | Not stated in SQSO-REQ-001 |
+
+Objectives corrected 2026-10-16 to SQSO-REQ-001 §4.2. This review listed "operate autonomously for 2 years" and "comply
+with amateur regulations" as MO-3 and MO-4; those are mission requirements (MRD-001, MRD-002; MRD-024, MRD-090 to
+MRD-092).
 
 ### 3.2 Mission Success Criteria
 
@@ -285,3 +290,4 @@ All actions resolved by PDR.
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Reference document |
+| 1.1 | 2026-10-16 | SMART-QSO Team | §3.1 objectives corrected to SQSO-REQ-001 §4.2; MO-5 added (finding VV-06) |

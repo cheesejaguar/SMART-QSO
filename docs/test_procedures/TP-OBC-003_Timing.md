@@ -2,9 +2,11 @@
 ## TP-OBC-003
 
 **Document Number:** SQSO-TP-OBC-003
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-301 (steps 1–3), SYS-211 (step 4, the 60 s ACTIVE beacon period)
 
 ---
 
@@ -24,7 +26,7 @@ Verify OBC real-time clock accuracy and task timing.
 
 ---
 
-## 3. PROCEDURE
+## 3. PROCEDURE [SYS-211, SYS-301]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -51,3 +53,4 @@ Verify OBC real-time clock accuracy and task timing.
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

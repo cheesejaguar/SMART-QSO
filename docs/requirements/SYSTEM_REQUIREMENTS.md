@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-002
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 **Reference:** NPR 7123.1, NASA Ames SmallSat Heritage
 
@@ -134,14 +134,14 @@ SMART-QSO is a 1U CubeSat consisting of:
 | SYS-203 | Spurious emissions shall be at least 40 dB below carrier | MRD-024 | T |
 | SYS-205 | If no authenticated telecommand is received for N days, the spacecraft shall cease all transmissions, keep the telecommand receiver on, and resume only after an authenticated telecommand; N shall be configurable by telecommand within 1–90 days (default and range TBR per decision D3), and the elapsed time shall persist across resets *(added 2026-10-15; SQSO-ICD-013 §6.2; IARU 7.9)* | MRD-024 | T |
 | SYS-204 | The spacecraft shall cease all RF emissions on an authenticated telecommand in every operating mode, and also on an unauthenticated TX-OFF telecommand whenever no telecommand key is usable; shall keep emissions ceased across resets until an authenticated telecommand re-enables them; and shall keep the telecommand receiver powered while ceased (47 CFR 97.207(b); ITU RR 22.1) *(added 2026-10-15; SQSO-ICD-013)* | MRD-024 | T |
-| SYS-204 | Frequency accuracy shall be within 5 kHz | MRD-024 | T |
+| SYS-206 | Frequency accuracy shall be within 5 kHz *(renumbered 2026-10-16 from a second SYS-204; SYS-204 is TX-OFF)* | MRD-024 | T |
 
 ### 7.2 Beacon Requirements
 
 | ID | Requirement | Parent | Verification |
 |----|-------------|--------|--------------|
 | SYS-210 | The spacecraft shall transmit AX.25 formatted beacons | MRD-022 | T |
-| SYS-211 | Beacon interval shall be configurable from 10 to 120 seconds | MRD-020 | D |
+| SYS-211 | Beacon interval shall be 60 s in ACTIVE, 120 s in IDLE and 180 s in SAFE, unless a transmit inhibit is active (`docs/BASELINE_PARAMETERS.md` §8) *[PI to ratify. Amended 2026-10-16 from "configurable from 10 to 120 seconds" to the baseline. The SET_BEACON telecommand still accepts only 10 to 120 s (SQSO-ICD-013 §7), so 180 s cannot be commanded]* | MRD-020 | D |
 | SYS-212 | Beacons shall include spacecraft callsign | MRD-024 | I,T |
 | SYS-213 | Beacons shall include health telemetry in machine-readable format | MRD-021 | D |
 | SYS-214 | Beacons shall include human-readable information field | MRD-044 | D |
@@ -340,3 +340,4 @@ SMART-QSO is a 1U CubeSat consisting of:
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §15 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SYS-001, TBD-SYS-002 and TBR-SYS-001. TBR-SYS-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §6) (finding VV-17). Proposed testable wording, for the PI to ratify, beneath SYS-020, SYS-222 and SYS-522; requirement text unchanged; tracked as TBR-SYS-002 to TBR-SYS-004 (finding VV-16) | SMART-QSO Team |
+| C | 2026-10-16 | Frequency accuracy renumbered SYS-206 (SYS-204 was defined twice; SYS-204 stays TX-OFF). SYS-211 amended to the BASELINE §8 beacon intervals, PI to ratify (finding VV-06) | SMART-QSO Team |

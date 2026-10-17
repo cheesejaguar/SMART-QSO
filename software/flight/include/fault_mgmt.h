@@ -5,9 +5,9 @@
  * This module provides fault management functionality including fault logging,
  * detection, isolation, and recovery procedures.
  *
- * @requirement SRS-FDIR-001 System shall detect and log all fault conditions
- * @requirement SRS-FDIR-002 System shall implement autonomous fault recovery
- * @requirement SRS-FDIR-003 System shall persist fault log across resets
+ * @requirement SRS-F040 Detect and log all fault conditions
+ * @requirement SRS-F042 Implement autonomous fault recovery
+ * @requirement SRS-F041 Maintain the fault log in non-volatile memory
  *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  */

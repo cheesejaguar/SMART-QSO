@@ -2,9 +2,11 @@
 ## TP-EPS-001
 
 **Document Number:** TP-EPS-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 **Classification:** Development/Qualification Test
+
+**Requirements verified:** SYS-102, SYS-113, SYS-120, SYS-121, SYS-122, SYS-123, SYS-124, SRS-F011, SRS-I011, SRS-I012
 
 ---
 
@@ -86,7 +88,7 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 | 5 | Connect data acquisition to telemetry | DAQ recording | |
 | 6 | Power on solar array simulator (Voc=8V, Isc=1A) | Power applied | |
 
-### 8.2 Voltage Rail Verification
+### 8.2 Voltage Rail Verification [SYS-120, SYS-121]
 
 | Step | Rail | Load | Expected V | Measured V | Tolerance | P/F |
 |------|------|------|------------|------------|-----------|-----|
@@ -99,7 +101,7 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 | 13 | 12V | 0mA | 12.0V | _______ | ±3% | |
 | 14 | 12V | 100mA | 12.0V | _______ | ±3% | |
 
-### 8.3 Load Switch Operation
+### 8.3 Load Switch Operation [SYS-122, SRS-F011]
 
 | Step | Switch | Command | Expected | Measured | P/F |
 |------|--------|---------|----------|----------|-----|
@@ -113,7 +115,7 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 | 22 | ADCS | ON | 3.3V output | _______ | |
 | 23 | ADCS | OFF | 0V output | _______ | |
 
-### 8.4 Current Sensing Accuracy
+### 8.4 Current Sensing Accuracy [SYS-124, SRS-I011]
 
 | Step | Rail | Set Current | Measured (DMM) | Reported (TLM) | Error | P/F |
 |------|------|-------------|----------------|----------------|-------|-----|
@@ -123,7 +125,7 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 | 27 | 5V | 1000mA | _______ | _______ | <5% | |
 | 28 | Battery | 500mA | _______ | _______ | <5% | |
 
-### 8.5 Battery Charging
+### 8.5 Battery Charging [SYS-113]
 
 | Step | Action | Expected | Measured | P/F |
 |------|--------|----------|----------|-----|
@@ -133,7 +135,7 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 | 32 | Verify charge taper (CV phase) | Current decreasing | _______ | |
 | 33 | Verify charge termination | I_chg < 50mA | _______ | |
 
-### 8.6 Battery Protection
+### 8.6 Battery Protection [SYS-113, SYS-123]
 
 | Step | Action | Expected | Result | P/F |
 |------|--------|----------|--------|-----|
@@ -143,7 +145,7 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 | 37 | Simulate over-temperature (60°C) | Charge disabled | _______ | |
 | 38 | Clear fault conditions | Normal operation | _______ | |
 
-### 8.7 MPPT Operation
+### 8.7 MPPT Operation [SYS-102]
 
 | Step | SA Condition | Expected Pmax | Measured | Efficiency | P/F |
 |------|--------------|---------------|----------|------------|-----|
@@ -151,7 +153,7 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 | 40 | Voc=6V, Isc=0.5A | ~2.25W | _______ | >95% | |
 | 41 | Voc=10V, Isc=2A | ~15W | _______ | >95% | |
 
-### 8.8 Telemetry Verification
+### 8.8 Telemetry Verification [SYS-124, SRS-I011, SRS-I012]
 
 | Step | Parameter | Reference | Reported | Error | P/F |
 |------|-----------|-----------|----------|-------|-----|
@@ -216,3 +218,4 @@ All test data shall be recorded in the EPS Test Data Log with:
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | OBC-EPS ICD cited by its own number, SMART-QSO-ICD-001 (finding PI-17) | SMART-QSO Team |
+| C | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) | SMART-QSO Team |

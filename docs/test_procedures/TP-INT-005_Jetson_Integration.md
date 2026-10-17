@@ -2,9 +2,11 @@
 ## TP-INT-005
 
 **Document Number:** SQSO-TP-INT-005
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-321, SYS-501, SYS-502, SYS-503, SYS-504, SYS-511, SYS-512, SYS-513, SRS-F030, SRS-F031
 
 ---
 
@@ -65,7 +67,7 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 | 4 | Connect power harness | 5V supply | |
 | 5 | Connect UART cable | To OBC USART1 | |
 
-### 6.2 Power Gating Verification
+### 6.2 Power Gating Verification [SYS-502, SYS-503]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -75,7 +77,7 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 | 4 | Measure boot current | < 2A peak | |
 | 5 | Measure idle current | < 1A | |
 
-### 6.3 UART Interface Test
+### 6.3 UART Interface Test [SYS-321, SYS-511, SRS-F030, SRS-F031]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -84,7 +86,7 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 | 3 | Jetson sends beacon text | Text received | |
 | 4 | Verify protocol | Per ICD | |
 
-### 6.4 Inference Test
+### 6.4 Inference Test [SYS-501, SYS-512, SYS-513]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -94,7 +96,7 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 | 4 | Verify content | Appropriate text | |
 | 5 | Measure inference time | < 10 s | |
 
-### 6.5 Thermal Verification
+### 6.5 Thermal Verification [SYS-504]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -103,7 +105,7 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 | 3 | Measure Jetson temp | < 70°C | |
 | 4 | Measure spreader temp | < 60°C | |
 
-### 6.6 Shutdown Test
+### 6.6 Shutdown Test [SYS-503]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -144,3 +146,4 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

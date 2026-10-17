@@ -2,9 +2,11 @@
 ## TP-INT-004
 
 **Document Number:** SQSO-TP-INT-004
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-323, SYS-324, SYS-400, SYS-402, SYS-410, SYS-412, SYS-421
 
 ---
 
@@ -63,7 +65,7 @@ This procedure defines the integration test for the Attitude Determination and C
 | 3 | Connect magnetorquer harness | All 3 axes | |
 | 4 | Connect sun sensor harness | All 6 faces | |
 
-### 6.2 Sensor Verification
+### 6.2 Sensor Verification [SYS-323, SYS-400, SYS-402]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -73,7 +75,7 @@ This procedure defines the integration test for the Attitude Determination and C
 | 4 | Illuminate sun sensor -X | -X highest | |
 | 5 | Repeat for Y and Z | Correct response | |
 
-### 6.3 Actuator Verification
+### 6.3 Actuator Verification [SYS-324, SYS-410, SYS-412]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -82,7 +84,7 @@ This procedure defines the integration test for the Attitude Determination and C
 | 3 | Command -X torquer -100% | Reversed | |
 | 4 | Repeat for Y and Z | All correct | |
 
-### 6.4 Control Loop Test
+### 6.4 Control Loop Test [SYS-421]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -108,3 +110,4 @@ This procedure defines the integration test for the Attitude Determination and C
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

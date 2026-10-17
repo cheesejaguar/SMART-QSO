@@ -2,8 +2,10 @@
 ## TP-ADCS-001
 
 **Document Number:** TP-ADCS-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
+
+**Requirements verified:** SYS-323, SYS-400, SYS-401, SYS-402, SYS-403
 
 ---
 
@@ -23,7 +25,7 @@ Verify calibration and accuracy of ADCS sensors (magnetometer and sun sensors).
 
 ## 3. Procedure
 
-### 3.1 Magnetometer Calibration
+### 3.1 Magnetometer Calibration [SYS-400, SYS-401]
 
 | Step | Field (µT) | Axis | Expected | Measured | Error | P/F |
 |------|------------|------|----------|----------|-------|-----|
@@ -35,7 +37,7 @@ Verify calibration and accuracy of ADCS sensors (magnetometer and sun sensors).
 | 6 | +50 | Z | +50 ± 1 | ______ | <2% | |
 | 7 | -50 | Z | -50 ± 1 | ______ | <2% | |
 
-### 3.2 Sun Sensor Test
+### 3.2 Sun Sensor Test [SYS-402, SYS-403]
 
 | Step | Face | Illumination | Expected | Measured | P/F |
 |------|------|--------------|----------|----------|-----|
@@ -60,3 +62,4 @@ Verify calibration and accuracy of ADCS sensors (magnetometer and sun sensors).
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) | SMART-QSO Team |
