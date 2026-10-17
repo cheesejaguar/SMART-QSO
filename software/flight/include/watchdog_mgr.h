@@ -14,7 +14,7 @@
  * @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
  * @requirement SRS-F051 Save state before watchdog reset
  * @requirement SRS-S003 Software shall implement hardware watchdog
- * @requirement NPR-7150.2 Watchdog timer requirement
+ * @note NPR 7150.2 (standard, not a requirement ID): watchdog timer
  *
  * Heritage: NASA Ames SmallSat Division (GeneSat, PharmaSat, O/OREOS)
  */

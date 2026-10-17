@@ -8,9 +8,9 @@
  * This module handles telemetry collection, formatting, and transmission.
  * Follows NASA Ames SmallSat heritage for telemetry design.
  *
- * @requirement SRS-TLM-001 System shall generate telemetry at configurable rate
- * @requirement SRS-TLM-002 Telemetry shall include all critical parameters
- * @requirement SRS-TLM-003 Telemetry shall be CRC protected
+ * @requirement SRS-F020 Transmit the AX.25 beacon at configurable intervals
+ * @requirement SYS-213 Beacons include health telemetry in machine-readable format
+ * @requirement SYS-023 Critical data protected by CRC
  */
 
 #ifndef SMART_QSO_TELEMETRY_H

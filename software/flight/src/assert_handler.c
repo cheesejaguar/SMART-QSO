@@ -14,8 +14,8 @@
  * 3. CRITICAL: Log, transition to safe mode
  * 4. FATAL: Log, persist state, trigger watchdog reset
  *
- * @requirement NPR-7150.2 Software safety requirements
- * @requirement JPL-POT-005 Minimum two assertions per function average
+ * @note NPR 7150.2 (standard, not a requirement ID): software safety
+ * @note JPL Power of Ten rule 5 (SQSO-CS-001 §3): at least two assertions per function on average
  */
 
 #include "safe_string.h"

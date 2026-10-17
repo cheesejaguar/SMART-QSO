@@ -9,7 +9,7 @@
  * All logs are stored in a fixed-size ring buffer and can be retrieved
  * for telemetry downlink.
  *
- * @requirement MISRA-C:2012 Rule 21.6 - No stdio.h in production code
+ * @note MISRA C:2012 Rule 21.6 (SQSO-CS-001): no stdio.h in production code
  */
 
 #include "flight_log.h"

@@ -8,9 +8,10 @@
  * This module handles all ground commands and internal command dispatching.
  * Follows NASA Ames SmallSat heritage (GeneSat, PharmaSat, EcAMSat).
  *
- * @requirement SRS-CMD-001 System shall process ground commands
- * @requirement SRS-CMD-002 Commands shall be validated before execution
- * @requirement SRS-CMD-003 Command execution shall be logged
+ * @requirement SYS-325 Execute only authenticated telecommands with a fresh counter
+ * @requirement SRS-S004 Validate all commands before execution
+ * @note Rejected telecommands are logged (the first after each accepted command) and all are counted;
+ *       no requirement covers command logging
  */
 
 #ifndef SMART_QSO_CMD_HANDLER_H

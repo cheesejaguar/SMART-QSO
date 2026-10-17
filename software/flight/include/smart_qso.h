@@ -5,8 +5,8 @@
  * This header provides common types, constants, and configuration for the
  * SMART-QSO CubeSat flight software. All modules should include this header.
  *
- * @requirement SRS-001 System shall provide modular flight software architecture
- * @requirement SRS-002 System shall comply with JPL Power of Ten coding rules
+ * @requirement SRS-Q010 Modular software with defined interfaces
+ * @note Coding standard SQSO-CS-001 (docs/development/CODING_STANDARDS.md): JPL Power of Ten rules
  *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @note Following GeneSat/PharmaSat/O/OREOS/EcAMSat design patterns

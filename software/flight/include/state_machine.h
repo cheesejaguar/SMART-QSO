@@ -8,8 +8,8 @@
  * This module implements a formal state machine for spacecraft operational modes.
  * Per NPR 7150.2 and NASA Ames SmallSat heritage (GeneSat, PharmaSat).
  *
- * @requirement SRS-030 System shall implement formal state machine for mode control
- * @requirement SRS-031 System shall log all state transitions
+ * @requirement SRS-F012 Implement power modes SAFE, IDLE, ACTIVE (formal state machine)
+ * @requirement SRS-F018 Log every operating-mode transition ([Proposed])
  */
 
 #ifndef SMART_QSO_STATE_MACHINE_H

@@ -2,9 +2,10 @@
  * @file uart_comm.c
  * @brief UART Communication Implementation
  *
- * @requirement SRS-COMM-001 System shall communicate with Jetson payload via UART
- * @requirement SRS-COMM-002 System shall detect and recover from UART failures
- * @requirement SRS-COMM-003 System shall support configurable UART parameters
+ * @requirement SRS-F030 Send health telemetry to Jetson via UART
+ * @requirement SRS-F031 Receive beacon text from Jetson via UART
+ * @requirement SYS-520 Detect AI payload failure or timeout (UART health check)
+ * @requirement SRS-I001 UART at 115200 baud, 8N1 (the host build may override device and baud)
  */
 
 /* Required for CRTSCTS and other BSD/POSIX extensions */

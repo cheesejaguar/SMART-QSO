@@ -4,8 +4,8 @@
  *
  * Tests state machine transitions and guards per NPR 7150.2.
  *
- * @requirement SRS-030 Formal state machine for mode control
- * @requirement SRS-031 All state transitions shall be logged
+ * @requirement SRS-F012 Implement power modes SAFE, IDLE, ACTIVE (formal state machine)
+ * @requirement SRS-F018 Log every operating-mode transition ([Proposed])
  */
 
 #include <stdarg.h>

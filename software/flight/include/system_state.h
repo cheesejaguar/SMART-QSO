@@ -9,9 +9,8 @@
  * modularity requirements. All state access is through accessor functions
  * to ensure thread-safety and proper isolation.
  *
- * @requirement SRS-MOD-001 All system state shall be encapsulated
- * @requirement SRS-MOD-002 State access shall be through accessor functions
- * @requirement SRS-MOD-003 State modifications shall be atomic
+ * @requirement SRS-Q010 Modular software with defined interfaces (state encapsulated, accessors only)
+ * @note Atomic state updates: no requirement defines this
  *
  * Thread Safety:
  * - All accessors are designed to be interrupt-safe

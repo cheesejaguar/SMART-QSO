@@ -13,8 +13,8 @@
  * - Thread-safe design for RTOS integration
  * - Zero dynamic memory allocation
  *
- * @requirement MISRA-C:2012 Rule 21.6 - No stdio.h in production code
- * @requirement NPR-7150.2 - Logging and telemetry requirements
+ * @note MISRA C:2012 Rule 21.6 (SQSO-CS-001): no stdio.h in production code
+ * @note NPR 7150.2 (standard, not a requirement ID): logging and telemetry
  *
  * Heritage: NASA Ames SmallSat Division logging patterns
  */

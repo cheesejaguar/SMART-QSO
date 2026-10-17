@@ -14,8 +14,8 @@
  * - All failures are logged with file/line information
  * - Supports preconditions, postconditions, and invariants
  *
- * @requirement NPR-7150.2 Software safety requirements
- * @requirement JPL-POT-005 Minimum two assertions per function average
+ * @note NPR 7150.2 (standard, not a requirement ID): software safety
+ * @note JPL Power of Ten rule 5 (SQSO-CS-001 §3): at least two assertions per function on average
  *
  * Inspired by NASA Ames heritage: GeneSat, PharmaSat, O/OREOS assertion patterns
  */

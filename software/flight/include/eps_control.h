@@ -5,9 +5,9 @@
  * This module provides power management functionality including load switching,
  * power mode control, and power budget enforcement.
  *
- * @requirement SRS-EPS-001 System shall manage power distribution to subsystems
- * @requirement SRS-EPS-002 System shall implement power mode state machine
- * @requirement SRS-EPS-003 System shall enforce power budget limits
+ * @requirement SRS-F011 Control power to subsystems via load switches
+ * @requirement SRS-F012 Implement power modes SAFE, IDLE, ACTIVE
+ * @requirement SRS-F016 Enforce power budget limits per mode
  *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  */
