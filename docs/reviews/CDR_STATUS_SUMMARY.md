@@ -62,9 +62,9 @@ This document summarizes the Critical Design Review (CDR) readiness status for t
 | Watchdog Manager | watchdog_mgr.c | Complete | Hardware/task watchdog management |
 | Flight Logger | flight_log.c | Complete | MISRA-compliant logging subsystem |
 | HAL Simulation | hal_sim.c | Complete | Hardware abstraction simulation |
-| System Init | system_init.c | Complete | Boot, clock, peripheral initialization |
+| System Init | system_init.c | Removed 2026-10-16 | Never compiled; its self-tests were stubs that always passed (SW-09, SW-16) |
 | Scheduler | scheduler.c | Complete | Time-triggered task scheduler |
-| YAML Parser | yaml_parser.c | Complete | Configuration file parsing |
+| YAML Parser | yaml_parser.c | Removed 2026-10-16 | Never compiled or used; `sensors.c` reads the sensor YAML itself (SW-09) |
 
 ### 2.2 Hardware Abstraction Layer
 
