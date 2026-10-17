@@ -42,7 +42,7 @@ a conventional transponder and template beacon.
 |------|--------|
 | Hardware | **None built or procured** |
 | Design reviews (SRR/PDR/CDR) | **No independent review held.** Existing records are internal self-assessments generated on 2026-01-02 |
-| Flight software | C modules plus a host simulation, and a compile-only STM32L4 port (no RTOS, startup code or linker script); 31 unit-test suites (428 cases) pass; 68 % line coverage, counting every compiled flight source (2026-10-16) |
+| Flight software | C modules plus a host simulation, and a compile-only STM32L4 port (no RTOS, startup code or linker script); 40 unit-test suites (596 cases) pass; 82.7 % line coverage, counting every compiled flight source (CI, 2026-10-16) |
 | Payload / ground software | Python; 143 payload and 98 ground unit tests pass in CI |
 | Regulatory filings | **None submitted.** Drafts exist for the IARU request, FCC Part 97 pre-space notification, ITU Appendix 4 data and ODAR |
 | Launch | **Not contracted.** Trade study recommends a commercial SSO rideshare in 2028 |
