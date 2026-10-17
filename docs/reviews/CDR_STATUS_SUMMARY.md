@@ -8,7 +8,7 @@
 > `docs/funding_audit/FINDINGS_REGISTER.md` for the measured values.
 
 **Document Number:** SQSO-REV-003
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 **Reference:** NPR 7120.5, NPR 7123.1, RALPH.md Audit
 
@@ -402,10 +402,10 @@ Build Result: SUCCESS (100%)
 
 | Parameter | Value |
 |-----------|-------|
-| Downlink frequency | 145.825 MHz |
-| TX power | 0.5-2W selectable |
+| Downlink frequency | 145.825 MHz *(superseded 2026-10-16: one IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz; SYS-200)* |
+| TX power | 0.5-2W selectable *(superseded 2026-10-16: 0.5 W nominal, 1 W maximum; SYS-201)* |
 | Modulation | AFSK 1200 bps |
-| Link margin | >10 dB |
+| Link margin | >10 dB *(superseded 2026-10-16: 1200 bps beacon at 0.5 W, +7.7 dB at 5° elevation, analysis, `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0)* |
 
 ---
 
@@ -490,3 +490,4 @@ The project is ready to proceed to Phase C (Final Design & Fabrication) with rem
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial CDR status summary | SMART-QSO Team |
 | B | 2026-10-16 | OBC design row points to `hardware/obc/OBC_DESIGN.md`, into which `docs/hardware/OBC_DESIGN.md` was merged (finding PI-17) | SMART-QSO Team |
+| C | 2026-10-16 | §6.3: dated notes beside the superseded frequency, TX power and link margin (SYS-200, SYS-201, LINK_BUDGET_ANALYSIS v2.0; finding TB-05); recorded values kept | SMART-QSO Team |

@@ -360,10 +360,10 @@ One row per line that has the words, in document order; Kind gives the number of
 
 | Kind | Text | Owner | Needed by |
 |------|------|-------|-----------|
-| TBD | Total mass \| < 1.5 kg \| < 1.2 kg \| TBD \| On track | PI | PI |
+| TBD | Total mass \| < 1.5 kg \| < 1.2 kg \| TBD *(superseded 2026-10-16: limit 2.00 kg; bottom-up CBE 1.69 kg, predicted 1.92–2.00 kg, docs/environment/MASS_BUDGET.md v2… | PI | PI |
 | TBD | Power generation (EOL) \| > 2.0 W \| > 2.5 W \| TBD \| On track | PI | PI |
 | TBD | AI inference latency \| < 10 s \| < 5 s \| TBD \| On track | PI | PI |
-| TBD | Link margin (downlink) \| > 6 dB \| > 10 dB \| TBD \| On track | PI | PI |
+| TBD | Link margin (downlink) \| > 6 dB \| > 10 dB \| TBD *(superseded 2026-10-16: 1200 bps beacon at 0.5 W, +7.7 dB at 5° elevation, analysis, docs/environment/LINK_BUDG… | PI | PI |
 | TBD | Team concurrence \| TBD \| PDR meeting | PI | PI |
 
 ### `docs/reviews/POST_ENVIRONMENTAL_REVIEW.md`

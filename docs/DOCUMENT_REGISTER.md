@@ -121,9 +121,9 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SMART-QSO-RTM-001 | Requirements Traceability Matrix (RTM) | `docs/requirements/REQUIREMENTS_TRACEABILITY.md` | 1.1 | Draft |
 | SQSO-REQ-002 | System Requirements Specification | `docs/requirements/SYSTEM_REQUIREMENTS.md` | D | Draft |
 | SQSO-REV-CDR-001 | SMART-QSO Critical Design Review (CDR) | `docs/reviews/CDR/CDR_REVIEW_MINUTES.md` | — | Self-assessment record; no independent CDR held |
-| SQSO-CDR-TB-001 | SMART-QSO CDR Technical Baseline | `docs/reviews/CDR/CDR_TECHNICAL_BASELINE.md` | 1.1 | Self-assessment; not an independent review (its notice) |
+| SQSO-CDR-TB-001 | SMART-QSO CDR Technical Baseline | `docs/reviews/CDR/CDR_TECHNICAL_BASELINE.md` | 1.2 | Self-assessment; not an independent review (its notice) |
 | SMART-QSO-CDR-001 | SMART-QSO Critical Design Review (CDR) Package | `docs/reviews/CDR_PACKAGE.md` | 1.4 | Self-assessment; not an independent review (its notice) |
-| SQSO-REV-003 | CDR Status Summary | `docs/reviews/CDR_STATUS_SUMMARY.md` | B | Draft; status claims not substantiated (its notice) |
+| SQSO-REV-003 | CDR Status Summary | `docs/reviews/CDR_STATUS_SUMMARY.md` | C | Draft; status claims not substantiated (its notice) |
 | SQSO-FRR-001 | SMART-QSO Flight Readiness Review Package | `docs/reviews/FLIGHT_READINESS_REVIEW.md` | 1.0 | Template |
 | SQSO-FSW-DEL-001 | SMART-QSO Flight Software Delivery Package | `docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` | 1.1 | Draft; status claims not substantiated (its notice) |
 | SQSO-FIR-001 | SMART-QSO Formal Inspection Report Template | `docs/reviews/FORMAL_INSPECTION_REPORT.md` | 1.0 | Template |
@@ -131,9 +131,9 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-LRR-001 | SMART-QSO Launch Readiness Review Package | `docs/reviews/LAUNCH_READINESS_REVIEW.md` | 1.0 | Template |
 | SQSO-MOR-001 | SMART-QSO Mission Operations Review Package | `docs/reviews/MISSION_OPERATIONS_REVIEW.md` | 1.0 | Template |
 | SQSO-REV-PDR-001 | SMART-QSO Preliminary Design Review (PDR) | `docs/reviews/PDR/PDR_REVIEW_MINUTES.md` | — | Self-assessment record; no independent PDR held |
-| SMART-QSO-PDR-001 | SMART-QSO Preliminary Design Review (PDR) Package | `docs/reviews/PDR_PACKAGE.md` | 1.1 | Self-assessment; not an independent review (its notice) |
-| SQSO-PSR-001 | SMART-QSO Post-Environmental Review Package | `docs/reviews/POST_ENVIRONMENTAL_REVIEW.md` | 1.0 | Template |
-| SQSO-PER-001 | SMART-QSO Pre-Environmental Review Package | `docs/reviews/PRE_ENVIRONMENTAL_REVIEW.md` | 1.0 | Template |
+| SMART-QSO-PDR-001 | SMART-QSO Preliminary Design Review (PDR) Package | `docs/reviews/PDR_PACKAGE.md` | 1.2 | Self-assessment; not an independent review (its notice) |
+| SQSO-PSR-001 | SMART-QSO Post-Environmental Review Package | `docs/reviews/POST_ENVIRONMENTAL_REVIEW.md` | 1.1 | Template |
+| SQSO-PER-001 | SMART-QSO Pre-Environmental Review Package | `docs/reviews/PRE_ENVIRONMENTAL_REVIEW.md` | 1.1 | Template |
 | SQSO-SR-001 | SMART-QSO Safety Review Package | `docs/reviews/SAFETY_REVIEW.md` | 1.0 | Self-assessment record; not an independent review (its notice) |
 | SQSO-SRR-001 | SMART-QSO System Requirements Review Package | `docs/reviews/SYSTEM_REQUIREMENTS_REVIEW.md` | 1.1 | Self-assessment record; no independent SRR held |
 | SQSO-TRR-001 | SMART-QSO Test Readiness Review Package | `docs/reviews/TEST_READINESS_REVIEW.md` | 1.0 | Template |

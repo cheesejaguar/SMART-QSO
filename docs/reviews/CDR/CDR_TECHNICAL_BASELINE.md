@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document ID**: SQSO-CDR-TB-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 
 > **Superseded values (funding audit, 2026-10-16, finding PI-14).** This record is kept as written on 2026-01-02, but it
@@ -25,6 +25,7 @@
 | TX power (§4.4) | 0.5–2 W | 0.5 W nominal, 1 W maximum | BASELINE §7 |
 | Link margin (§4.4) | VHF downlink +1.6 dB at 30°, 20° minimum elevation | 1200 bps beacon at 0.5 W: +7.7 dB at 5° elevation (+4.7 dB conservative pattern); telecommand +4.7 dB at 5° in 92 % of orientations | `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0 |
 | ADCS actuators (§4.6) | None (passive) | 3-axis magnetorquers | BASELINE §8 |
+| Vibration (§7.1) | 14.1 Grms proto-flight | ≥ 5.57 Grms MPE, protoflight 1 min/axis (interim provider SpaceX Rideshare User's Guide v11, pending the launch contract) | SYS-700; `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1 |
 
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -385,3 +386,4 @@ QA: _________________________ Date: _______
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.0a | 2026-10-16 | Funding audit | Superseded-values table added under the notice (PI-14); body unchanged |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §2.2 objectives corrected to SQSO-REQ-001 §4.2; MO-5 added (finding VV-06) |
+| 1.2 | 2026-10-16 | SMART-QSO Team | Superseded-values table: vibration row added (§7.1 14.1 Grms; interim TP-ENV-002 level) (finding LA-05); body unchanged |
