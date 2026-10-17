@@ -184,7 +184,7 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 
 | ID | Item | Owner | Closure Plan | Needed by |
 |----|------|-------|--------------|-----------|
-| TBR-TPENV003-001 | Cold survival limit: SYS-601 requires survival from -40 °C; Rev B of this procedure tested only to -30 °C | PI | The PI sets the survival range: test to -40 °C (SYS-601) or amend SYS-601. For the decision: the chamber in §2 reaches -40 °C, so -40 °C with the -5 °C protoflight margin of §3.1 is outside its range; the RF PA cold limit in §5 is -30 °C; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §3.2 also gives -30 °C. SYS-601 governs until it is amended | Before the thermal vacuum test |
+| TBR-TPENV003-001 | Cold survival limit: SYS-601 requires survival from -40 °C; Rev B of this procedure set its cold survival limit at -30 °C | PI | The PI sets the survival range: test to -40 °C (SYS-601) or amend SYS-601. For the decision: the chamber in §2 reaches -40 °C, so -40 °C with the -5 °C protoflight margin of §3.1 is outside its range; the RF PA cold limit in §5 is -30 °C; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §3.2 also gives -30 °C. SYS-601 governs until it is amended | Before the thermal vacuum test |
 
 ---
 

@@ -43,7 +43,7 @@ Open: **265 TBD** and **33 TBR** (finding VV-17). 28 of them are tracked items w
 | TBR | TBR-SYS-003 | SYS-222 ("omnidirectional coverage") can be neither met by a monopole nor verified | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md` |
 | TBR | TBR-SYS-004 | SYS-522 ("shall not affect other spacecraft functions") lists no failures and no pass criterion | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md` |
 | TBR | TBR-TPADCS003-001 | §3.2 and §4 give no pass values for detumble ("Rate detected", "Damping observed") | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` | PI | PI | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` |
-| TBR | TBR-TPENV003-001 | Cold survival limit: SYS-601 requires survival from -40 °C; Rev B of this procedure tested only to -30 °C | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | PI | Before the thermal vacuum test | `docs/environment/ENVIRONMENTAL_TEST_PLAN.md`, `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` |
+| TBR | TBR-TPENV003-001 | Cold survival limit: SYS-601 requires survival from -40 °C; Rev B of this procedure set its cold survival limit at -30 °C | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | PI | Before the thermal vacuum test | `docs/environment/ENVIRONMENTAL_TEST_PLAN.md`, `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` |
 
 ## 3. Closed Tracked Items
 
