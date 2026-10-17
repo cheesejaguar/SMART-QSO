@@ -40,6 +40,7 @@
 #include "hal/hal_flash.h"
 #include "hal/hal_timer.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -241,7 +242,7 @@ static SmartQsoResult_t init_system(void)
     /* Time base first: on the target every module's timestamps come from
      * it (SysTick), so nothing may read the time before it runs */
     if (hal_timer_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Timer init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Timer init failed\n");
         return SMART_QSO_ERROR;
     }
     s_program_start_ms = smart_qso_now_ms();
@@ -755,7 +756,7 @@ static void shutdown_system(void)
 
     MissionData_t mission;
     (void)mission_data_get(&mission);
-    printf("[SYSTEM] Shutdown complete. Total uptime: %llu ms, Faults: %u\n",
+    printf("[SYSTEM] Shutdown complete. Total uptime: %llu ms, Faults: %" PRIu32 "\n",
            (unsigned long long)mission.total_uptime_ms, mission.fault_count);
 }
 
