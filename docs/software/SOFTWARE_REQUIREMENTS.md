@@ -1,7 +1,7 @@
 # Software Requirements Specification (SRS)
 
 **Document Number**: SMART-QSO-SRS-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Status**: Preliminary
 
@@ -95,6 +95,7 @@ Requirements are identified as:
 | SRS-F015 | The software shall enable payload only when SOC > 55% and sunlit | T | High |
 | SRS-F016 | The software shall enforce power budget limits per mode | T | Medium |
 | SRS-F017 | The software shall persist EPS state across resets | T | Medium |
+| SRS-F018 | [Proposed] The software shall log every operating-mode transition | T | Medium |
 
 ### 3.3 Beacon Transmission
 
@@ -269,9 +270,9 @@ Requirements are identified as:
 
 | SRS ID | Parent (SYS) | Description |
 |--------|--------------|-------------|
-| SRS-F012 | SYS-020 | Power mode implementation |
-| SRS-F020 | SYS-030 | Beacon transmission |
-| SRS-F030 | SYS-040 | AI payload interface |
+| SRS-F012 | SYS-304 | Power mode implementation |
+| SRS-F020 | SYS-210 | Beacon transmission |
+| SRS-F030 | SYS-321 | AI payload interface |
 
 ### 9.2 Child Traceability
 
@@ -305,3 +306,4 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-16 | SMART-QSO Team | SRS-F018 added as [Proposed] (mode-transition logging, cited by state_machine.h); §9.1 parents corrected to defined system requirements (SYS-304, SYS-210, SYS-321) (findings VV-06, VV-19) |
