@@ -76,7 +76,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-ICD-000 | Interface Control Document - Master | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | C | Draft |
 | SQSO-IVP-001 | SMART-QSO Interface Verification Plan | `docs/interfaces/INTERFACE_VERIFICATION_PLAN.md` | 1.0 | Draft |
 | SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.6 | Draft |
-| SQSO-MFG-002 | EEE Parts List | `docs/manufacturing/EEE_PARTS_LIST.md` | A | Draft |
+| SQSO-MFG-002 | EEE Parts List | `docs/manufacturing/EEE_PARTS_LIST.md` | B | Draft |
 | SQSO-WP-001 | Workmanship Plan | `docs/manufacturing/WORKMANSHIP_PLAN.md` | A | Draft |
 | SQSO-WKS-001 | SMART-QSO Workmanship Standards | `docs/manufacturing/WORKMANSHIP_STANDARDS.md` | 1.0 | Draft |
 | SQSO-MSC-001 | SMART-QSO Mission Success Criteria | `docs/mission/MISSION_SUCCESS_CRITERIA.md` | 1.0 | Draft |

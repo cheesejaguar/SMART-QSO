@@ -194,7 +194,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 |----|------|--------------|-------------|
 | TBD-MRD-001 | Exact orbit parameters | Launch manifest assignment | TBD |
 | TBD-MRD-002 | IARU coordination confirmation | IARU process completion | TBD |
-| TBR-MRD-001 | AI model final selection | CDR | TBD |
+| TBR-MRD-001 | AI model final selection | Closed (2026-10-16) by PI decision D5: the flight baseline is a calibrated selector on the OBC that chooses among pre-approved templates; generated text on the Jetson (SmolLM2-360M-Instruct or Qwen3-0.6B) is a gated experiment (`docs/BASELINE_PARAMETERS.md` §6, §9) | — |
 
 ---
 
@@ -203,4 +203,4 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
-| B | 2026-10-16 | §8 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-MRD-001, TBD-MRD-002 and TBR-MRD-001 (finding VV-17) | SMART-QSO Team |
+| B | 2026-10-16 | §8 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-MRD-001, TBD-MRD-002 and TBR-MRD-001. TBR-MRD-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §9) (finding VV-17) | SMART-QSO Team |

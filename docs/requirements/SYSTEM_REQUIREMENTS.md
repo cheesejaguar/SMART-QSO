@@ -321,7 +321,7 @@ SMART-QSO is a 1U CubeSat consisting of:
 |----|------|--------------|--------|
 | TBD-SYS-001 | Final IARU coordinated frequency | IARU coordination | TBD |
 | TBD-SYS-002 | Launch provider vibration spec | Manifest assignment | TBD |
-| TBR-SYS-001 | AI model final specification | CDR | TBD |
+| TBR-SYS-001 | AI model final specification | Closed (2026-10-16) by PI decision D5: the AI model, AI burst and AI text-control rows of `docs/BASELINE_PARAMETERS.md` §6 specify it | — |
 
 ---
 
@@ -330,4 +330,4 @@ SMART-QSO is a 1U CubeSat consisting of:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
-| B | 2026-10-16 | §15 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SYS-001, TBD-SYS-002 and TBR-SYS-001 (finding VV-17) | SMART-QSO Team |
+| B | 2026-10-16 | §15 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SYS-001, TBD-SYS-002 and TBR-SYS-001. TBR-SYS-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §6) (finding VV-17) | SMART-QSO Team |
