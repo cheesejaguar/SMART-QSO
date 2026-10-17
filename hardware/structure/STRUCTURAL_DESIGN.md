@@ -2,9 +2,17 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-STR-001
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.1
+**Date:** 2026-10-16
+**Status:** Draft. No finite-element model (FEM), structural analysis or structural test exists
+
+> **Funding audit (2026-10-16, TB-15).** Launch environments in this document now come from one source: **SpaceX
+> Rideshare Payload User's Guide v11, August 2026** ("UG v11",
+> <https://storage.googleapis.com/rideshare-static/Rideshare_Payload_Users_Guide.pdf>) as the **interim provider,
+> pending the launch contract and PI confirmation** (BASELINE §3, decision D7). The integrator's ICD will supersede it.
+> Earlier values with no source (first mode > 90 Hz, ±10 g / ±6 g quasi-static, a 6.8 Grms profile, mode frequencies and
+> margins of safety) are removed or marked **analysis pending FEM**. The same environment is used by
+> `docs/test_procedures/TP-ENV-002_Vibration.md` and `docs/compliance/LAUNCH_PROVIDER_ICD.md` §4.5 and §6.2.
 
 ---
 
@@ -17,11 +25,14 @@ This document defines the structural design for the SMART-QSO 1U CubeSat per Cub
 | Requirement | Value | Source |
 |-------------|-------|--------|
 | Form factor | 1U (100×100×113.5 mm) | CDS Rev 14.1 |
-| Mass | ≤ 2.00 kg | CDS Rev 14.1 (BASELINE §4; MEV ≤ 1.75 kg) |
+| Mass | ≤ 2.00 kg | CDS Rev 14.1 Table 1 (BASELINE §4); estimate in `docs/environment/MASS_BUDGET.md` v2.0: CBE 1.69 kg, predicted 1.92–2.00 kg |
 | CG location | ≤ 2 cm from geometric center | CDS Rev 14.1 |
 | Rail dimensions | 8.5×8.5 mm | CDS Rev 14.1 |
 | Rail surface finish | Ra ≤ 1.6 µm | CDS Rev 14.1 |
-| First natural frequency | > 90 Hz | Launch provider |
+| First natural frequency | > 40 Hz (no elastic mode below 40 Hz) | SpaceX Rideshare Payload User's Guide v11 §4.1.1 (interim); BASELINE §8 |
+| Random vibration | ≥ 5.57 Grms MPE (§7.3) | SpaceX Rideshare Payload User's Guide v11 §4.1.6, Table 4-6 |
+| Quasi-static load | 10 g axial, 17 g lateral (RSS) (§7.2) | SpaceX Rideshare Payload User's Guide v11 Table 4-1 (interim; see §7.2) |
+| Factors of safety | 1.10 yield; 1.25 ultimate (flight); 1.40 ultimate (ground operations) | SpaceX Rideshare Payload User's Guide v11 Table 5-1 |
 
 ---
 
@@ -115,7 +126,7 @@ This document defines the structural design for the SMART-QSO 1U CubeSat per Cub
 | Rail height | 8.5 +0/-0.1 mm | 8.5 mm |
 | Rail length | 113.5 ±0.1 mm | 113.5 mm |
 | Surface finish | Ra ≤ 1.6 µm | Ra 0.8 µm |
-| Edge radius | 1.0 mm max | 0.5 mm |
+| Edge radius | Rounded to a radius of **at least 1 mm** (CDS Rev 14.1 §2.2.7, a "should" requirement) | ≥ 1.0 mm (to be shown on the drawings; the earlier 0.5 mm value did not meet the CDS) |
 | Material | 7075 Al anodized | Hard anodize |
 
 ### 5.2 Deployment Switch Interface
@@ -164,45 +175,74 @@ This document defines the structural design for the SMART-QSO 1U CubeSat per Cub
 
 ### 7.1 Load Cases
 
+Minimum factors of safety from UG v11 Table 5-1 (interim provider):
+
 | Load Case | Description | Factor of Safety |
 |-----------|-------------|------------------|
-| Launch | Quasi-static + random vibe | 1.25 (yield) |
-| Handling | Drop, shock | 2.0 (yield) |
-| Thermal | -40°C to +70°C | 1.0 |
+| Launch | Quasi-static (§7.2) and random vibration (§7.3) | 1.10 yield; 1.25 ultimate |
+| Joints | Gapping and slip at interfaces | 1.10 |
+| Ground operations | Handling and transport | 1.10 yield; 1.40 ultimate |
+| Thermal | Thermal stress over the predicted temperature range | TBD (range and factor to be set with the thermal analysis) |
 
 ### 7.2 Quasi-Static Loads
 
 | Axis | Load (g) | Notes |
 |------|----------|-------|
-| Axial | ±10 g | Launch axis |
-| Lateral | ±6 g | Perpendicular |
-| Combined | RSS | Worst case |
+| Axial | 10 | UG v11 Table 4-1 |
+| Lateral | 17 (RSS of the two lateral axes) | UG v11 Table 4-1 |
+
+These are the maximum predicted design load factors for an **integrated CubeSat dispenser assembly** with a combined mass
+of at least 20 kg (UG v11 §4.1.2.1), not CubeSat-level loads. They are used here as the interim design envelope at the
+CubeSat centre of gravity until the integrator supplies CubeSat-level loads. A quasi-static load **test** is not required
+for a fully containerized CubeSat (UG v11 Table 6-2). The earlier ±10 g / ±6 g values (this document) and "15 g all
+axes" (launch ICD) had no source and are withdrawn. **Open for the PI and the integrator:** confirm the design loads.
 
 ### 7.3 Random Vibration
+
+Design and test level: the UG v11 maximum predicted environment (Table 4-6), all axes. Protoflight test: MPE, 1 minute
+per axis (UG v11 Table 6-2; procedure `docs/test_procedures/TP-ENV-002_Vibration.md`).
 
 | Frequency | ASD (g²/Hz) | Notes |
 |-----------|-------------|-------|
 | 20 Hz | 0.01 | Start |
-| 50 Hz | 0.04 | Rise |
-| 800 Hz | 0.04 | Plateau |
-| 2000 Hz | 0.01 | Roll-off |
-| Overall | 6.8 grms | Duration: 2 min/axis |
+| 50 Hz | 0.015 | |
+| 700 Hz | 0.015 | |
+| 800 Hz | 0.03 | |
+| 925 Hz | 0.03 | |
+| 2000 Hz | 0.00644 | |
+| Overall | 5.57 Grms | Duration: 1 min/axis (protoflight) |
+
+**Correction of the earlier profile.** Version 1.0 gave 20 Hz 0.01, 50 Hz 0.04, 800 Hz 0.04, 2000 Hz 0.01 g²/Hz and
+called it 6.8 grms. Integrating that profile with straight lines between breakpoints on log-log axes gives segment areas
+of 0.716 g² (20–50 Hz), 30.000 g² (50–800 Hz) and 23.394 g² (800–2000 Hz), a total of 54.11 g², so the overall level
+was √54.11 = **7.36 Grms**, not 6.8. That is 2.4 dB above the UG v11 MPE (20 log₁₀(7.36/5.57)). The test procedure's
+revision A used yet another level, 14.1 Grms. Both are withdrawn in favour of the single provider level above.
 
 ### 7.4 FEA Results Summary
 
+**No finite-element model exists**, so there are no analysed mode frequencies. The values given in version 1.0
+(150, 155 and 210 Hz) had no model behind them and are withdrawn.
+
 | Mode | Frequency | Description |
 |------|-----------|-------------|
-| 1st mode | 150 Hz | X-axis bending |
-| 2nd mode | 155 Hz | Y-axis bending |
-| 3rd mode | 210 Hz | Torsion |
+| 1st mode | TBD (analysis pending FEM); requirement > 40 Hz | — |
+| 2nd mode | TBD (analysis pending FEM) | — |
+| 3rd mode | TBD (analysis pending FEM) | — |
+
+The first mode will be measured by the low-level sine sweep before and after random vibration (UG v11 §6.7.1,
+Table 6-3).
 
 ### 7.5 Margin Summary
 
+Margin of safety will be computed as MS = allowable / (FoS × applied stress) − 1, with the factors of safety in §7.1.
+**Every margin is analysis pending FEM.** The stresses and margins in version 1.0 (+2.3, +1.75, +3.5) had no model
+behind them and are withdrawn.
+
 | Location | Stress (MPa) | Allowable (MPa) | MS |
 |----------|--------------|-----------------|-----|
-| Rail root | 120 | 400 | +2.3 |
-| Bracket joint | 80 | 220 | +1.75 |
-| PCB mount | 40 | 180 | +3.5 |
+| Rail root | TBD | TBD | Analysis pending FEM |
+| Bracket joint | TBD | TBD | Analysis pending FEM |
+| PCB mount | TBD | TBD | Analysis pending FEM |
 
 ---
 
@@ -271,3 +311,4 @@ This document defines the structural design for the SMART-QSO 1U CubeSat per Cub
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-16 | Funding audit TB-15: one launch environment from SpaceX UG v11 (interim provider): first mode > 40 Hz, random vibration 5.57 Grms MPE, quasi-static 10 g / 17 g, factors of safety per Table 5-1. The old profile is shown to integrate to 7.36 Grms, not 6.8. Mode frequencies and margins withdrawn (analysis pending FEM). Rail edge radius ≥ 1 mm per CDS Rev 14.1 §2.2.7. Mass line (§1.1) and §4 mass properties not changed here |

@@ -84,8 +84,9 @@ spin-stabilized coarse sun-pointing. No momentum wheels.
 | **Total CBE** | | **1,443** | | |
 
 The previous assessment's demise table summed to 0.92 kg against a stated 1.33 kg (finding RG-06). This list is
-complete for the baseline configuration and must be kept consistent with `docs/environment/MASS_BUDGET.md` once that
-budget is re-issued.
+complete for the baseline configuration and must be kept consistent with `docs/environment/MASS_BUDGET.md`.
+*Update 2026-10-16:* the re-issued mass budget (v2.0, bottom-up MEL) gives CBE 1.69 kg and a predicted 1.92–2.00 kg,
+above this list's 1.44 kg and above the 1.8 kg bound used in §6. The DAS run (action 1) must use the controlled MEL.
 
 ## 3. Debris Released During Normal Operations (Req. 4.3-1, 4.3-2)
 
@@ -210,3 +211,4 @@ N/A. No tethers. The tether/drag-sail option in the superseded ODAR is removed f
 | Rev | Date | Description |
 |-----|------|-------------|
 | Draft A | 2026-10-14 | New ODAR (funding audit); supersedes SQSO-ODAR-001 Rev A |
+| Draft A.1 | 2026-10-16 | §2 notes the re-issued mass budget (TB-06) |

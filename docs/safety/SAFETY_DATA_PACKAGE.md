@@ -1,14 +1,21 @@
-# SMART-QSO Safety Data Package
+# SMART-QSO Software Safety Data Package
 
 **Document ID**: SQSO-SDP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-16
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft. Software hazards only; every hazard is open
+
+> **Scope (funding audit VV-20, 2026-10-16).** This package covers **flight software** only. It is not the mission
+> safety case and it is not a launch-provider deliverable on its own. The launch provider reviews a **system** safety
+> data package covering the whole spacecraft, its batteries, inhibits, structure, materials, ground equipment and
+> launch-site operations; its outline is [SYSTEM_SAFETY_DATA_PACKAGE.md](SYSTEM_SAFETY_DATA_PACKAGE.md) (skeleton,
+> incomplete). This document feeds section 13 of it.
 
 ## 1. Purpose
 
-This document consolidates all safety-related information for the SMART-QSO mission per NASA-STD-8719.13 requirements. It provides the complete safety case for flight software release authorization.
+This document consolidates the software safety information for SMART-QSO, following NASA-STD-8719.13 (software safety).
+It is one input to the system safety data package. It does not authorize release of flight software or flight.
 
 ## 2. Applicable Documents
 
@@ -27,8 +34,8 @@ This document consolidates all safety-related information for the SMART-QSO miss
 
 | Item | Classification | Rationale |
 |------|----------------|-----------|
-| Mission Category | Category III | Unmanned, low-cost |
-| Software Class | Class B | Mission critical |
+| Payload risk classification | Class D (NPR 8705.4B), proposed | BASELINE §1 |
+| Software Class | **Pending**: NPR 7150.2D Appendix D classification not yet determined | BASELINE §1 |
 | Safety-Critical Functions | Yes | RF, battery management |
 
 ### 3.2 Safety-Critical Software Identification
@@ -119,13 +126,14 @@ tests. No hardware verification has been run, so every hazard is open.
 | Control | Type | Implementation |
 |---------|------|----------------|
 | SOC Monitoring | Software | Continuous monitoring |
-| Low SOC Alarm | Software | Threshold at 30% |
-| Auto-SAFE Mode | Software | Trigger at 20% |
-| Absolute Cutoff | Hardware | EPS protection at 15% |
+| ACTIVE → IDLE | Software | SOC below 40 % (BASELINE §5) |
+| Auto-SAFE Mode | Software | SOC below 25 % |
+| EMERGENCY (beacon shed) | Software | SOC below 15 % |
+| Cell protection | Hardware | EPS cell over-voltage ≤ 4.25 V/cell; under-voltage threshold TBD |
 
 **Verification**:
 - [ ] SOC monitoring accurate (TP-003)
-- [ ] Auto-SAFE at 20% SOC (TP-002)
+- [ ] Auto-SAFE below 25 % SOC (TP-002)
 - [ ] Power budget positive (TP-006)
 - [ ] Extended operation test (TP-007)
 
@@ -146,7 +154,7 @@ tests. No hardware verification has been run, so every hazard is open.
 | Temperature Monitoring | Software | Multiple sensors |
 | Thermal Alarms | Software | Per-component limits |
 | Thermal Throttling | Software | Reduce operations |
-| AI Duty Cycle Limit | Software | Max 10% duty |
+| AI Duty Cycle Limit | Software | ≤ 5 % tumbling, ≤ 10 % sun-pointed (BASELINE §5) |
 
 **Verification**:
 - [ ] Temperature sensors read correctly (TP-003)
@@ -168,8 +176,8 @@ tests. No hardware verification has been run, so every hazard is open.
 **Controls**:
 | Control | Type | Implementation |
 |---------|------|----------------|
-| Watchdog Timer | Hardware | 5 second timeout |
-| Stack Checking | Software | FreeRTOS stack checks |
+| Watchdog Timer | Hardware | 30 second timeout, refreshed only while every main-loop stage checks in |
+| Stack Checking | Software | **Not implemented**: planned with the RTOS, which is not yet integrated |
 | Task Monitoring | Software | Health monitoring task |
 | Boot Counter | Software | Tracks resets |
 
@@ -194,7 +202,7 @@ tests. No hardware verification has been run, so every hazard is open.
 |---------|------|----------------|
 | ECC Memory | Hardware | OBC SRAM ECC |
 | CRC on Config | Software | Configuration checksums |
-| Defensive Coding | Software | MISRA C compliance |
+| Defensive Coding | Software | MISRA C:2012 checking in CI (not compliant: 1,458 findings, `software/flight/quality/misra.baseline`) |
 | Bounds Checking | Software | Array bounds checked |
 
 **Verification**:
@@ -216,10 +224,10 @@ tests. No hardware verification has been run, so every hazard is open.
 **Controls**:
 | Control | Type | Implementation |
 |---------|------|----------------|
-| Callsign Filter | Software | Source validation |
-| Sequence Counter | Software | Replay detection |
-| Command Validation | Software | Range/format checks |
-| Open Protocol | Design | No encryption per amateur rules |
+| Command Authentication | Software | HMAC-SHA-256 (truncated tag) with a persisted monotonic counter per key, from designated stations only (BASELINE §7; 47 CFR 97.211) |
+| Replay Protection | Software | Monotonic counter |
+| Command Validation | Software | Command dictionary and argument-length checks |
+| Open Content | Design | Telecommand authenticated, not encrypted; downlink in the clear |
 
 **Verification**:
 - [ ] Invalid callsign rejected (test)
@@ -264,7 +272,7 @@ tests. No hardware verification has been run, so every hazard is open.
 
 | Component | Failure | Response Time | Recovery |
 |-----------|---------|---------------|----------|
-| OBC | Watchdog reset | 5 seconds | Auto |
+| OBC | Watchdog reset | 30 seconds | Auto |
 | Battery | Low SOC | Immediate | Auto-SAFE |
 | RF TX | Over-temp | Immediate | Throttle |
 | Jetson | Timeout | 30 seconds | Fallback |
@@ -273,23 +281,19 @@ tests. No hardware verification has been run, so every hazard is open.
 
 ### 8.1 Software FMEA Results
 
-Total failure modes analyzed: 45
-- Critical: 0
-- High: 3 (all mitigated to Medium)
-- Medium: 12
-- Low: 30
+From `SOFTWARE_FMEA.md` §12: 43 failure modes analysed; 14 with RPN above 50; none above 100. (Version 1.0 of this
+package gave 45, a figure the FMEA does not contain.)
 
 ### 8.2 Fault Tree Analysis Results
 
-Top events analyzed: 5
-All top events show acceptably low probability with controls in place.
+No fault tree analysis exists yet. The software safety plan and hazard analysis call for one.
 
 ### 8.3 Software Hazard Analysis Results
 
 Hazards identified: 6
-Hazards controlled: 6
-Hazards accepted: 0
-Open hazards: 0
+Hazards with designed controls: 6
+Hazards with verified controls: 0
+Open hazards: 6 (see §4.1)
 
 ## 9. Safety Verification Status
 
@@ -297,8 +301,8 @@ Open hazards: 0
 
 | Item | Status | Evidence |
 |------|--------|----------|
-| Software Hazard Analysis complete | [x] | SQSO-SHA-001 |
-| FMEA complete | [x] | SQSO-FMEA-001 |
+| Software Hazard Analysis drafted (v1.0; not independently reviewed) | [x] | SQSO-SHA-001 |
+| Software FMEA drafted (v1.0; not independently reviewed) | [x] | SQSO-FMEA-001 |
 | Safety requirements verified | [ ] | Test reports |
 | Safety controls verified | [ ] | Test reports |
 | Residual risks accepted | [ ] | Risk register |
@@ -319,12 +323,13 @@ Open hazards: 0
 
 | Document | Version | Status |
 |----------|---------|--------|
-| Software Safety Plan | 1.0 | Complete |
-| Software Hazard Analysis | 1.0 | Complete |
-| Software FMEA | 1.0 | Complete |
-| Safety Data Package | 1.0 | Complete |
-| Safety Test Procedures | 1.0 | Complete |
-| Safety Test Reports | - | Pending execution |
+| Software Safety Plan | 1.0 | Draft |
+| Software Hazard Analysis | 1.0 | Draft |
+| Software FMEA | 1.0 | Draft |
+| Software Safety Data Package (this document) | 1.1 | Draft |
+| Safety Test Procedures | 1.0 | Draft; not executed |
+| Safety Test Reports | - | None; no tests run |
+| System Safety Data Package | 0.1 | Skeleton only (SQSO-SDP-002) |
 
 ### 10.2 Archive Location
 
@@ -340,12 +345,12 @@ All safety documentation archived in:
 SAFETY REVIEW BOARD FINDINGS
 
 Review Date: ___________
-Configuration: SQSO-FSW-1.0.0
+Configuration: repository commit ________ (no flight software release exists)
 
-FINDINGS:
-1. All identified hazards have appropriate controls
-2. All controls have verification methods
-3. Residual risk is acceptable per mission class
+FINDINGS (to be written by the board):
+1. _________________________________
+2. _________________________________
+3. _________________________________
 
 OPEN ITEMS:
 1. Complete flatsat safety testing (TP-005)
@@ -377,3 +382,4 @@ Member: _________________ Date: _____
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-16 | SMART-QSO Team | Funding audit VV-20: retitled Software Safety Data Package and scoped to software; system package split out as a skeleton (SQSO-SDP-002); "Complete" statuses, pre-written board findings and the zero-open-hazard summary removed; values aligned with BASELINE (SOC thresholds, watchdog 30 s, AI duty, software class pending); FMEA count corrected to 43 |

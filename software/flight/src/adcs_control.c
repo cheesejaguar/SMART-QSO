@@ -7,6 +7,7 @@
 
 #include "adcs_control.h"
 #include "fault_mgmt.h"
+#include "smart_qso.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -136,10 +137,15 @@ SmartQsoResult_t adcs_update(uint64_t now_ms)
                 /* Store rate for telemetry */
                 s_adcs_state.mag.field_rate = B_dot;
 
-                /* Estimate angular rate (simplified: omega ~ B_dot / |B|) */
-                s_adcs_state.angular_rate_est.x = B_dot.x / B_mag;
-                s_adcs_state.angular_rate_est.y = B_dot.y / B_mag;
-                s_adcs_state.angular_rate_est.z = B_dot.z / B_mag;
+                /* Body rate across the field, per axis: an inertially fixed
+                 * field gives B_dot = -omega x B, so omega = (B_dot x B) / |B|^2.
+                 * The component along B is not observable. */
+                Vec3_t omega = {0.0, 0.0, 0.0};
+                double field_sq = B_mag * B_mag;
+                vec3_cross(&B_dot, &s_adcs_state.mag.field, &omega);
+                s_adcs_state.angular_rate_est.x = omega.x / field_sq;
+                s_adcs_state.angular_rate_est.y = omega.y / field_sq;
+                s_adcs_state.angular_rate_est.z = omega.z / field_sq;
             }
         }
     }
@@ -160,7 +166,8 @@ SmartQsoResult_t adcs_update(uint64_t now_ms)
                 (now_ms - s_adcs_state.detumble_start_ms) > ADCS_DETUMBLE_TIMEOUT_MS) {
                 fault_log_add(FAULT_TYPE_ADCS, FAULT_SEVERITY_WARNING,
                               "Detumble timeout", 0.0);
-                s_adcs_state.detumble_complete = true;
+                s_adcs_state.fault_count++;
+                /* A fault, not a completed detumble (ADCS_DESIGN 5.2, 5.3) */
                 s_adcs_state.mode = ADCS_MODE_IDLE;
                 break;
             }
@@ -174,7 +181,8 @@ SmartQsoResult_t adcs_update(uint64_t now_ms)
                     s_adcs_state.settling_start_ms = now_ms;
                 } else if ((now_ms - s_adcs_state.settling_start_ms) > ADCS_DETUMBLE_SETTLING_MS) {
                     s_adcs_state.detumble_complete = true;
-                    s_adcs_state.mode = ADCS_MODE_IDLE;
+                    /* ADCS_DESIGN 5.1: detumble complete enters SUNPOINT */
+                    s_adcs_state.mode = ADCS_MODE_SUNPOINT;
                     printf("[ADCS] Detumble complete!\n");
                 }
             } else {
@@ -222,6 +230,11 @@ SmartQsoResult_t adcs_set_mode(AdcsMode_t mode)
 {
     if (!s_initialized) {
         return SMART_QSO_ERROR;
+    }
+
+    /* Only the five modes of ADCS_DESIGN 5.1 */
+    if (mode > ADCS_MODE_SAFE) {
+        return SMART_QSO_ERROR_INVALID;
     }
 
     AdcsMode_t prev_mode = s_adcs_state.mode;
@@ -366,7 +379,7 @@ SmartQsoResult_t adcs_read_sun_sensors(SunSensorData_t *data)
         data->sun_vector = s_sim_sun;
         vec3_normalize(&data->sun_vector);
         data->intensity = vec3_magnitude(&s_sim_sun);
-        data->sun_visible = (data->intensity > 0.1);
+        data->sun_visible = (data->intensity > 0.05);  /* eclipse below 5 % (ADCS_DESIGN 5.3) */
         data->timestamp_ms = smart_qso_now_ms();
 
         /* Simulate raw ADC values */
@@ -471,6 +484,24 @@ void adcs_compute_sunpoint(const SunSensorData_t *sun,
     adcs_saturate_dipole(dipole, ADCS_MAX_DIPOLE);
 }
 
+/**
+ * Duty cycle (-100 to +100 %) for one coil. Clamped before the conversion:
+ * converting an out-of-range double to int8_t is undefined (C11 6.3.1.4).
+ */
+static int8_t dipole_to_pwm(double dipole)
+{
+    double duty = (dipole / ADCS_MAX_DIPOLE) * 100.0;
+
+    if (duty > 100.0) {
+        duty = 100.0;
+    } else if (duty < -100.0) {
+        duty = -100.0;
+    } else {
+        /* within the duty-cycle limit */
+    }
+    return (int8_t)duty;
+}
+
 SmartQsoResult_t adcs_apply_dipole(const Vec3_t *dipole)
 {
     if (dipole == NULL) {
@@ -486,19 +517,9 @@ SmartQsoResult_t adcs_apply_dipole(const Vec3_t *dipole)
     s_adcs_state.mtq.enabled = true;
 
     /* Convert dipole to PWM (-100 to +100) */
-    s_adcs_state.mtq.pwm[0] = (int8_t)(dipole->x / ADCS_MAX_DIPOLE * 100.0);
-    s_adcs_state.mtq.pwm[1] = (int8_t)(dipole->y / ADCS_MAX_DIPOLE * 100.0);
-    s_adcs_state.mtq.pwm[2] = (int8_t)(dipole->z / ADCS_MAX_DIPOLE * 100.0);
-
-    /* Clamp PWM values */
-    for (int i = 0; i < 3; i++) {
-        if (s_adcs_state.mtq.pwm[i] > 100) {
-            s_adcs_state.mtq.pwm[i] = 100;
-        }
-        if (s_adcs_state.mtq.pwm[i] < -100) {
-            s_adcs_state.mtq.pwm[i] = -100;
-        }
-    }
+    s_adcs_state.mtq.pwm[0] = dipole_to_pwm(dipole->x);
+    s_adcs_state.mtq.pwm[1] = dipole_to_pwm(dipole->y);
+    s_adcs_state.mtq.pwm[2] = dipole_to_pwm(dipole->z);
 
     /* TODO: Apply via HAL GPIO/PWM */
 

@@ -138,7 +138,8 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-SRR-001 | SMART-QSO System Requirements Review Package | `docs/reviews/SYSTEM_REQUIREMENTS_REVIEW.md` | 1.1 | Self-assessment record; no independent SRR held |
 | SQSO-TRR-001 | SMART-QSO Test Readiness Review Package | `docs/reviews/TEST_READINESS_REVIEW.md` | 1.0 | Template |
 | SQSO-REV-004 | SMART-QSO Verification and Validation Package | `docs/reviews/VERIFICATION_VALIDATION_PACKAGE.md` | 1.1 | Draft; status claims not substantiated (its notice) |
-| SQSO-SDP-001 | SMART-QSO Safety Data Package | `docs/safety/SAFETY_DATA_PACKAGE.md` | 1.0 | Draft |
+| SQSO-SDP-001 | SMART-QSO Software Safety Data Package | `docs/safety/SAFETY_DATA_PACKAGE.md` | 1.1 | Draft |
+| SQSO-SDP-002 | SMART-QSO System Safety Data Package (skeleton) | `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` | 0.1 | Template |
 | SQSO-FMEA-001 | Software Failure Mode and Effects Analysis (FMEA) | `docs/safety/SOFTWARE_FMEA.md` | A | Draft |
 | SQSO-SHA-001 | Software Hazard Analysis | `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` | A | Draft |
 | SQSO-SSP-001 | Software Safety Plan | `docs/safety/SOFTWARE_SAFETY_PLAN.md` | B | Draft |

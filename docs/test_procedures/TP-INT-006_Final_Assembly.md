@@ -2,7 +2,7 @@
 ## TP-INT-006
 
 **Document Number:** SQSO-TP-INT-006
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-01-02
 **Status:** CDR Baseline
 
@@ -154,7 +154,7 @@ All preceding integration tests must be complete:
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
-| 1 | Measure total mass | ≤ 2.00 kg (CDS Rev 14.1 1U limit) or the integrator's lower limit; record against MEV 1.75 kg | | |
+| 1 | Measure total mass | ≤ 2.00 kg (SYS-002; CDS Rev 14.1 1U limit) or the integrator's lower limit; record against the predicted mass in `docs/environment/MASS_BUDGET.md` | | |
 | 2 | Measure CG X position | Within 2cm of center | | |
 | 3 | Measure CG Y position | Within 2cm of center | | |
 | 4 | Measure CG Z position | Within 2cm of center | | |
@@ -164,7 +164,7 @@ All preceding integration tests must be complete:
 
 | Parameter | Requirement | Measured | Margin |
 |-----------|-------------|----------|--------|
-| Total Mass | < 1.33 kg | _____ kg | _____ |
+| Total Mass | ≤ 2.00 kg (SYS-002), or the integrator's lower limit | _____ kg | _____ |
 | CG offset X | < ±2 cm | _____ cm | _____ |
 | CG offset Y | < ±2 cm | _____ cm | _____ |
 | CG offset Z | < ±2 cm | _____ cm | _____ |
@@ -197,7 +197,7 @@ All preceding integration tests must be complete:
 
 | Criterion | Requirement |
 |-----------|-------------|
-| Mass | < 1.33 kg |
+| Mass | ≤ 2.00 kg (SYS-002; CDS Rev 14.1), or the integrator's lower limit |
 | CG location | Within ±2 cm of geometric center |
 | Dimensions | Per CDS Rev 14.1 |
 | Rail finish | < 1.6 µm Ra |
@@ -260,4 +260,5 @@ Any non-conformance shall be:
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release for CDR |
-| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.1 | 2026-10-16 | Mass limit 2.00 kg (SYS-002, CDS Rev 14.1) replaces 1.33 kg, the CDS Rev 13 value (TB-06) |
+| 1.2 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

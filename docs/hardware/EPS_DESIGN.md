@@ -1,7 +1,7 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 **Status**: Preliminary Design
 
@@ -45,9 +45,9 @@ The EPS encompasses:
 
 | ID | Requirement | Verification |
 |----|-------------|--------------|
-| EPS-F001 | Generate minimum 4W orbit-average power | Analysis, Test |
-| EPS-F002 | Generate minimum 8W sunlit average power | Test |
-| EPS-F003 | Store minimum 50Wh usable energy | Test |
+| EPS-F001 | Generate the BASELINE §5 EOL orbit-average power: 2.39 W tumbling, 3.58 W sun-pointed (2.14 W tumbling with self-shadowing; `hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.3) | Analysis, Test |
+| EPS-F002 | Deliver, EOL, at least 3.4 W sunlit average tumbling and 5.4 W sun-pointed within 20° (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.3) | Analysis, Test |
+| EPS-F003 | Store ≈ 50 Wh (4S1P 18650, BASELINE §5); usable energy per eclipse limited by the DoD limit in EPS-P004 | Test |
 | EPS-F004 | Provide regulated 3.3V rail (OBC, sensors) | Test |
 | EPS-F005 | Provide regulated 5V rail (Jetson payload) | Test |
 | EPS-F006 | Provide regulated 12V rail (RF PA) | Test |
@@ -63,7 +63,7 @@ The EPS encompasses:
 | EPS-P001 | MPPT efficiency | >95% | >97% |
 | EPS-P002 | Power distribution efficiency | >90% | >92% |
 | EPS-P003 | Total system efficiency | >85% | >89% |
-| EPS-P004 | Battery depth of discharge | <70% | <60% |
+| EPS-P004 | Battery depth of discharge per eclipse | ≤ 10 % nominal, ≤ 30 % contingency (BASELINE §5; SYS-112) | Analysis: 1.3–2.0 % (`hardware/eps/BATTERY_DESIGN.md` §3.2) |
 | EPS-P005 | Voltage regulation accuracy | ±5% | ±3% |
 
 ### 2.3 Interface Requirements
@@ -149,14 +149,18 @@ The EPS encompasses:
 
 #### 3.2.1 Generation Budget
 
-| Source | Area (cm²) | Efficiency | Sunlit Power (W) | Orbit Avg (W) |
-|--------|------------|------------|------------------|---------------|
-| +X Panel | 100 | 30% | 4.1 | 2.3 |
-| -X Panel | 100 | 30% | 4.1 | 2.3 |
-| Body cells | 80 | 28% | 3.1 | 0.4 |
-| **Total** | **280** | | **11.3** | **5.0** |
+The array layout and the power-versus-attitude analysis are in `hardware/eps/SOLAR_ARRAY_DESIGN.md` (§3, §9). Summary (EOL, analysis):
 
-*Assumptions: 1361 W/m² solar constant, 35% eclipse, average orientation*
+| Case | Orbit average | Sunlit instantaneous | Basis |
+|------|---------------|----------------------|-------|
+| Tumbling, BASELINE method (no shadowing) | 2.39 W | 3.84 W | BASELINE §5; SOLAR_ARRAY_DESIGN §9.3 |
+| Tumbling, with self-shadowing | 2.14 W | 3.43 W | SOLAR_ARRAY_DESIGN §9.3 |
+| Sun-pointed (±Y face), no error / 20° error | 3.59 W / 3.38 W | 5.76 W / 5.44 W | SOLAR_ARRAY_DESIGN §9.3 |
+| Both wings stowed, tumbling | 1.20 W | 1.92 W | SOLAR_ARRAY_DESIGN §9.3 |
+
+*Assumptions (SOLAR_ARRAY_DESIGN §9.1–9.2): 16 cells, 1361 W/m², 500 km, β = 0 (35.8 min eclipse), cells at 60 °C,
+5E13 e/cm² at EOL, 0.903 for harness, MPPT and UV losses. The previous table (11.3 W sunlit, 5.0 W orbit average from
+280 cm²) assumed more cell area than the baseline array has and is withdrawn.*
 
 #### 3.2.2 Consumption Budget
 
@@ -175,7 +179,7 @@ The EPS encompasses:
 
 | Parameter | Value | Requirement | Margin |
 |-----------|-------|-------------|--------|
-| Generation (orbit avg) | 5.0 W | 4.0 W | +25% |
+| Generation (orbit avg) | 2.39 W tumbling / 3.58 W sun-pointed (BASELINE §5) | Load 1.80 W / 2.20 W | +33 % / +63 %; +19 % tumbling with self-shadowing (SOLAR_ARRAY_DESIGN §9.4) |
 | Consumption (orbit avg) | 2.45 W | 3.5 W | +30% |
 | Peak load | 11.3 W | 10.0 W | +13% |
 
@@ -190,20 +194,25 @@ The EPS encompasses:
 | Cell Type | Samsung INR18650-35E |
 | Nominal Voltage | 14.4V |
 | Voltage Range | 12.0V - 16.8V |
-| Capacity | 3.5 Ah (50.4 Wh) |
-| Mass | 200g |
+| Capacity | 3.45 Ah typical (49.7 Wh; ≈ 50 Wh, BASELINE §5) |
+| Mass | 249 g CBE including holder and interconnect board (`docs/environment/MASS_BUDGET.md` rows 7–9) |
 
 #### 3.3.2 Battery Sizing
 
+Summary of the cycle-life analysis in `hardware/eps/BATTERY_DESIGN.md` §3.2–§3.3 (analysis, not measured):
+
 ```
-Eclipse duration: 35 minutes (max)
-Eclipse power: 2.0 W (average)
-Energy required: 2.0 W × 0.58 hr = 1.17 Wh
-DOD per eclipse: 1.17 / 50.4 = 2.3%
-Cycles per year: 5,840
-Total DOD capacity: 2.3% × 5,840 = ~135 equivalent cycles
-Battery life: >3 years at 80% capacity
+Eclipse duration:   35.8 min (500 km, beta = 0)
+Eclipse load:       1.00 W nominal, 1.50 W with heater (0.90 conversion efficiency)
+DoD per eclipse:    1.3 % nominal, 2.0 % bounding (limit 10 %)
+Eclipses per year:  5,559
+Equivalent full
+cycles in 2 years:  148 nominal, 408 bounding, against 500 full-depth 1C cycles
+                    to 60 % capacity in the cell specification
+Calendar aging:     not quantified; cell test required
 ```
+
+The previous "> 3 years at 80 % capacity" had no cell data behind it and is withdrawn.
 
 ---
 
@@ -261,13 +270,14 @@ Battery life: >3 years at 80% capacity
 
 | Parameter | Specification |
 |-----------|---------------|
-| Cell Type | Triple-junction GaAs |
-| Efficiency (BOL) | 30.0% |
-| Efficiency (EOL) | 27.5% (1 year, 10 krad) |
-| Vmp | 2.41V |
-| Imp | 520 mA/cm² |
-| Temperature Coefficient | -0.18%/°C |
-| Cover Glass | CMX 100μm |
+| Cell Type | Triple-junction InGaP/GaAs/Ge, 40 × 80 mm (30.18 cm²), as 3G30A assembly |
+| Efficiency (BOL) | 29.2 % (assembly, AM0 1367 W/m², 28 °C) |
+| Efficiency (EOL) | 28.1 % at 5E13 e/cm², 25.9 % at 1E15 e/cm² (1-MeV electrons) |
+| Vmp | 2.411 V (BOL) |
+| Imp | 499 mA per cell (BOL) |
+| Temperature Coefficients | ΔVmp/ΔT −6.7 mV/°C, ΔImp/ΔT +0.24 mA/°C (BOL) |
+| Cover Glass | 100 µm, AR coated |
+| Source | AZUR SPACE datasheet DB 00010891-01 (2025); see `hardware/eps/SOLAR_ARRAY_DESIGN.md` §2 |
 
 ---
 
@@ -343,7 +353,7 @@ Battery life: >3 years at 80% capacity
 | Battery Undervoltage | VBATT < 12.0V | Enter SAFE mode |
 | Battery Overvoltage | VBATT > 17.0V | Disable charging |
 | Overcurrent | Any rail > limit | Disable load |
-| Overtemperature | TBATT > 50°C | Reduce charging |
+| Battery temperature outside the charge window | TBATT < 0°C or > 45°C | Inhibit charging (hardware; BASELINE §5) |
 | Solar Array Fault | I_solar < expected | Log fault |
 | MPPT Fault | No MPPT output | Switch to direct |
 
@@ -355,11 +365,10 @@ Battery life: >3 years at 80% capacity
 
 | Condition | Action |
 |-----------|--------|
-| T < -10°C | Enable heaters, disable charging |
-| -10°C < T < 0°C | Enable heaters, reduce charge rate |
-| 0°C < T < 45°C | Normal operation |
-| T > 45°C | Reduce charge rate |
-| T > 50°C | Disable charging, enter SAFE mode |
+| T < 0°C | Enable heaters, charging inhibited (SYS-602; BASELINE §5) |
+| 0°C ≤ T ≤ 45°C | Normal operation, charging allowed |
+| T > 45°C | Charging inhibited |
+| T > 60°C | Discharge cutoff (cell specification), enter SAFE mode |
 
 ### 7.2 Heat Dissipation
 
@@ -427,9 +436,9 @@ this table had numbered them differently). TP-EPS-005 and TP-EPS-006 have no pro
 | BMS | ISIS iBMS | 1 | $1,800 |
 | PDU | GomSpace NanoPower PDU | 1 | $1,700 |
 | Battery Cell | Samsung INR18650-35E | 4 | $15 |
-| Solar Cell | AzurSpace 3G30C | 8 | $400 |
+| Solar Cell | AzurSpace 3G30A (3G30C assembly) | 16 | $400 |
 | Harness | Custom | 1 | $500 |
-| **Total** | | | **$9,760** |
+| **Total** | | | **$12,960** |
 
 ---
 
@@ -463,3 +472,4 @@ this table had numbered them differently). TP-EPS-005 and TP-EPS-006 have no pro
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §8.2 test IDs aligned with the procedure files (finding VV-18) |
+| 1.2 | 2026-10-16 | Funding audit | Generation (EPS-F001, EPS-F002, §3.2.1, §3.2.3), solar cells (§4.4) and BOM aligned with SOLAR_ARRAY_DESIGN v2.0 (TB-14); battery DoD limit (EPS-P004), sizing (§3.3) and charge-temperature rules (§6.2, §7.1) aligned with BASELINE §5 and BATTERY_DESIGN v2.0 (TB-08) |

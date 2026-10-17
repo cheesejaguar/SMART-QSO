@@ -7,8 +7,8 @@
 #   cmake --build build-arm
 #
 # Builds the flight modules and the register-level STM32L4 HAL as a static
-# library (smart_qso_target). There is no RTOS, startup code or linker script
-# yet, so no flight image is linked.
+# library (smart_qso_target), and links the bare-metal flight image
+# smart_qso_flight.elf with cmake/stm32l4r5zi.ld. No RTOS yet.
 
 set(CMAKE_SYSTEM_NAME Generic)
 set(CMAKE_SYSTEM_PROCESSOR arm)

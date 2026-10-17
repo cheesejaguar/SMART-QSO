@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-CDS-001
-**Revision:** A2 (funding audit corrections, 2026-10-14 and 2026-10-16)
+**Revision:** A3 (funding audit corrections, 2026-10-14 and 2026-10-16)
 **Date:** 2026-01-02
 **Reference:** Cal Poly CubeSat Design Specification Rev 14.1
 
@@ -36,8 +36,8 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 
 | Requirement | CDS Spec | SMART-QSO Design | Status |
 |-------------|----------|------------------|--------|
-| Maximum mass (1U) | 2.0 kg | CBE ≈ 1.51 kg, MEV ≤ 1.75 kg (BASELINE §4) | Compliant by estimate; weigh the flight unit |
-| Mass margin | 10% recommended | 34% margin | Compliant |
+| Maximum mass (1U) | 2.0 kg | BASELINE §4: CBE ≈ 1.51 kg, MEV ≤ 1.75 kg. Bottom-up MEL (`docs/environment/MASS_BUDGET.md` v2.0): CBE 1.69 kg, predicted 1.92–2.00 kg | At the limit by estimate; PI decision pending; weigh the flight unit |
+| Mass margin | 10% recommended | 0–4 % (predicted mass against 2.00 kg) | Not met (estimate) |
 
 ### 2.3 Center of Gravity
 
@@ -206,4 +206,5 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | A1 | 2026-10-14 | Inhibit and timer rows corrected to CDS Rev 14.1; audit notice | Funding audit |
-| A2 | 2026-10-16 | Local TBRs numbered TBR-CDS-001 to -004, so they do not collide with the specifications' TBR-001 (finding VV-06) | SMART-QSO Team |
+| A2 | 2026-10-16 | Mass rows cite the bottom-up MEL (TB-06) | Funding audit |
+| A3 | 2026-10-16 | Local TBRs numbered TBR-CDS-001 to -004, so they do not collide with the specifications' TBR-001 (finding VV-06) | SMART-QSO Team |

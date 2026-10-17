@@ -109,20 +109,21 @@ The flight software applies tailored NASA practices (formal software classificat
 
 ### Software Modules
 
-Measured line coverage (31 registered CMocka suites, 428 test cases; GCC and gcovr 7.0, 2026-10-16): **68.2 %** of 5,249 executable lines across all 36 compiled flight sources. A source no test runs counts as 0 %. CI fails below 65 % (`COVERAGE_MIN_LINE` in `.github/workflows/ci.yml`); reproduce with `gcovr -r . --filter 'src/' build --print-summary` in `software/flight` after a coverage build and `ctest`.
+Measured line coverage (CI, 2026-10-16: the Release build with coverage, gcovr 7.0): **82.7 %** of 4,338 executable lines across every compiled flight source; 40 registered CMocka suites, 596 test cases, plus the no-dynamic-memory check. A source no test runs counts as 0 %. CI fails below 80 % (`COVERAGE_MIN_LINE` in `.github/workflows/ci.yml`); reproduce with `gcovr -r . --filter 'src/' build --print-summary` in `software/flight` after a coverage build and `ctest`.
 
 | Module | Description | Measured line coverage |
 |--------|-------------|------------------------|
-| `eps_control` | Power management, battery protection | 94 % |
-| `cmd_auth` | Telecommand authentication | 96 % |
-| `state_machine` | Mode transitions, safe mode | 87 % |
-| `beacon` | AX.25 frame generation | 78 % |
-| `fault_mgmt` | Fault logging, recovery actions | 76 % |
-| `sensors` | Sensor sampling | 60 % |
-| `uart_comm` | Serial link to the Jetson | 38 % |
-| `adcs_control` | B-dot and sun-pointing algorithms | 0 % (its tests use Unity, which is not vendored; not built) |
-| `telemetry` | Telemetry formatting | 0 % (its tests use Unity; not built) |
-| `scheduler` | Task scheduling, timing | 0 % (compiled only into the test library; its Unity tests are not built) |
+| `eps_control` | Power management, battery protection | 100 % |
+| `telemetry` | Telemetry frames | 100 % |
+| `adcs_control` | B-dot and sun-pointing algorithms | 99 % |
+| `cmd_auth` | Telecommand authentication | 99 % |
+| `beacon` | AX.25 beacon generation | 98 % |
+| `fault_mgmt` | Fault logging, recovery actions | 92 % |
+| `state_machine` | Mode transitions, safe mode | 91 % |
+| `scheduler` | Task scheduling, timing (test library only) | 87 % |
+| `cmd_handler` | Telecommand processing | 83 % |
+| `sensors` | Sensor sampling | 66 % |
+| `uart_comm` | Serial link to the Jetson | 43 % (opens a real serial device on the host) |
 | `main` | Simulation main loop | 0 % in unit tests (the sanitizer job runs the whole simulation) |
 
 ---
@@ -184,7 +185,7 @@ All pull requests require:
 
 - **Amateur-Satellite Service (FCC Part 97)**: all downlink frames in the clear; only telecommand is authenticated (47 CFR 97.211(b)). See [licensing pathway](docs/regulatory/LICENSING_PATHWAY_DETERMINATION.md)
 - **Open Operations**: beacons and the transponder are usable by any licensed amateur station
-- **Community model updates**: not in the flight baseline. Any future experiment treats public uploads as data only; adoption requires authenticated telecommand from a designated station
+- **Community model updates ("federated learning")**: not in the flight baseline and not implemented onboard; ground-side research only. Any future upload would be data only, adopted solely by authenticated telecommand from a designated station (47 CFR 97.211). Whether to keep or drop the idea is a PI decision
 
 ---
 

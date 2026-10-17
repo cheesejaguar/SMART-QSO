@@ -23,7 +23,7 @@ cat beacon.hex | python beacon_decoder.py --stdin
 ```
 
 ### fl_update_builder.py
-Builds FL-UPDATE v0.2 frames for federated learning model updates.
+Builds FL-UPDATE v0.2 frames for federated learning model updates. Ground-side research only: community model updates are not in the flight baseline, and the flight software has no receiver for these frames (SW-11).
 
 ```bash
 # Build frames from model data
