@@ -6,6 +6,10 @@
 > to funders or regulators as review outcomes. See `docs/funding_audit/FUNDING_AUDIT_REPORT.md` and
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
+**Document ID**: SQSO-CDR-TB-001
+**Version**: 1.0
+**Date**: 2026-01-02
+
 > **Superseded values (funding audit, 2026-10-16, finding PI-14).** This record is kept as written on 2026-01-02, but it
 > did not describe one configuration. `docs/BASELINE_PARAMETERS.md` governs every value in §3 and §4; the values below
 > replace those in the record:
@@ -22,9 +26,6 @@
 | Link margin (§4.4) | VHF downlink +1.6 dB at 30°, 20° minimum elevation | 1200 bps beacon at 0.5 W: +7.7 dB at 5° elevation (+4.7 dB conservative pattern); telecommand +4.7 dB at 5° in 92 % of orientations | `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0 |
 | ADCS actuators (§4.6) | None (passive) | 3-axis magnetorquers | BASELINE §8 |
 
-**Document ID**: SQSO-CDR-TB-001
-**Version**: 1.0
-**Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
 

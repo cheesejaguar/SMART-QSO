@@ -1,7 +1,7 @@
 # SMART-QSO Test Procedures
 
 **Document Number**: SMART-QSO-TP-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Status**: Preliminary
 
@@ -35,6 +35,25 @@ Procedures cover:
 | Integration | Module interactions | Flatsat |
 | System | End-to-end functionality | Flight unit |
 | Acceptance | Mission scenarios | Flight unit |
+
+### 1.4 Procedure Identifiers
+
+This document holds the software-level procedures: unit (TP-UNIT), software integration (TP-SWI), software system (TP-SWS)
+and acceptance (TP-ACC). Hardware-level procedures are separate files in `docs/test_procedures/`, each with its own ID.
+`docs/DOCUMENT_REGISTER.md` §3 lists every procedure ID and where it is defined; each ID means one procedure.
+
+Version 1.0 of this document used TP-INT-001 to -004 and TP-SYS-001 to -003, which are also the IDs of different
+procedures in `docs/test_procedures/` (finding VV-18). They were renumbered on 2026-10-16:
+
+| Version 1.0 ID | ID now | Procedure |
+|----------------|--------|-----------|
+| TP-INT-001 | TP-SWI-001 | EPS + Sensors Integration |
+| TP-INT-002 | TP-SWI-002 | OBC + Jetson Communication |
+| TP-INT-003 | TP-SWI-003 | Power Mode Sequence |
+| TP-INT-004 | TP-SWI-004 | Fault Injection |
+| TP-SYS-001 | TP-SWS-001 | End-to-End Beacon Generation |
+| TP-SYS-002 | TP-SYS-002 | Day-in-the-Life: the same test as `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md`, which now governs (§5.2) |
+| TP-SYS-003 | TP-SWS-003 | Performance Timing |
 
 ---
 
@@ -228,7 +247,7 @@ ctest --test-dir build --output-on-failure
 
 ## 4. Integration Test Procedures
 
-### 4.1 TP-INT-001: EPS + Sensors Integration
+### 4.1 TP-SWI-001: EPS + Sensors Integration
 
 **Purpose**: Verify EPS correctly reads sensor data
 
@@ -255,7 +274,7 @@ ctest --test-dir build --output-on-failure
 
 ---
 
-### 4.2 TP-INT-002: OBC + Jetson Communication
+### 4.2 TP-SWI-002: OBC + Jetson Communication
 
 **Purpose**: Verify UART communication per ICD-002
 
@@ -277,7 +296,7 @@ ctest --test-dir build --output-on-failure
 
 ---
 
-### 4.3 TP-INT-003: Power Mode Sequence
+### 4.3 TP-SWI-003: Power Mode Sequence
 
 **Purpose**: Verify power mode transitions work end-to-end
 
@@ -298,7 +317,7 @@ ctest --test-dir build --output-on-failure
 
 ---
 
-### 4.4 TP-INT-004: Fault Injection
+### 4.4 TP-SWI-004: Fault Injection
 
 **Purpose**: Verify fault handling
 
@@ -318,7 +337,7 @@ ctest --test-dir build --output-on-failure
 
 ## 5. System Test Procedures
 
-### 5.1 TP-SYS-001: End-to-End Beacon Generation
+### 5.1 TP-SWS-001: End-to-End Beacon Generation
 
 **Purpose**: Verify complete beacon chain from sensor to RF
 
@@ -341,35 +360,15 @@ ctest --test-dir build --output-on-failure
 
 ---
 
-### 5.2 TP-SYS-002: Day-in-the-Life Test
+### 5.2 Day-in-the-Life Test
 
-**Purpose**: Verify 24-hour autonomous operation
-
-**Equipment**: Flight unit in thermal chamber (optional)
-
-**Procedure**:
-
-| Step | Action | Expected Result | Pass/Fail |
-|------|--------|-----------------|-----------|
-| 1 | Configure orbital simulation | 90-min orbit | |
-| 2 | Start at full charge | SOC = 100% | |
-| 3 | Begin eclipse cycling | 35 min sunlit, 30 min eclipse | |
-| 4 | Monitor for 24 hours | | |
-| 5 | Record all beacons | Count, timing | |
-| 6 | Record mode transitions | Log entries | |
-| 7 | Inject fault at T+12h | | |
-| 8 | Verify recovery | System recovers | |
-| 9 | Check final state | No anomalies | |
-
-**Pass Criteria**:
-- No unplanned resets
-- All beacons transmitted
-- Fault recovery successful
-- Battery management nominal
+The day-in-the-life test is TP-SYS-002, `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md`. Version 1.0 of this
+document carried a shorter version of the same test under the same ID; the procedure file governs. The
+mission-operations rehearsal is a different procedure, TP-DITL-001 (`docs/test_procedures/TP-DITL-001_DAY_IN_THE_LIFE.md`).
 
 ---
 
-### 5.3 TP-SYS-003: Performance Timing
+### 5.3 TP-SWS-003: Performance Timing
 
 **Purpose**: Verify timing requirements
 
@@ -569,3 +568,4 @@ Status: Open/In Progress/Resolved/Closed
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-16 | SMART-QSO Team | TP-INT-001 to -004 renumbered TP-SWI-001 to -004 and TP-SYS-001, -003 renumbered TP-SWS-001, -003, because those IDs belong to different procedures in `docs/test_procedures/`; §5.2 now points to the TP-SYS-002 procedure file; §1.4 added (finding VV-18) |

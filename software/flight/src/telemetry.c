@@ -9,6 +9,7 @@
 #include "telemetry.h"
 #include "system_state.h"
 #include "safe_string.h"
+#include <math.h>
 #include <stddef.h>
 
 /*******************************************************************************
@@ -107,10 +108,10 @@ SmartQsoResult_t tlm_generate_housekeeping(TlmFrame_t *frame, size_t *frame_len)
     /* Fill housekeeping payload */
     TlmHousekeeping_t *hk = (TlmHousekeeping_t *)frame->payload;
 
-    /* Power */
-    hk->battery_voltage_mv = (uint16_t)(power.battery_voltage * 1000.0);
-    hk->battery_current_ma = (int16_t)(power.battery_current * 1000.0);
-    hk->state_of_charge = (uint8_t)(power.state_of_charge * 100.0);
+    /* Power (rounded: truncation sent values exact in the unit one unit low) */
+    hk->battery_voltage_mv = (uint16_t)lround(power.battery_voltage * 1000.0);
+    hk->battery_current_ma = (int16_t)lround(power.battery_current * 1000.0);
+    hk->state_of_charge = (uint8_t)lround(power.state_of_charge * 100.0);
     hk->power_mode = (uint8_t)power.power_mode;
 
     /* Thermal */
@@ -160,11 +161,11 @@ SmartQsoResult_t tlm_generate_eps(TlmFrame_t *frame, size_t *frame_len)
 
     TlmEps_t *eps = (TlmEps_t *)frame->payload;
 
-    eps->battery_voltage_mv = (uint16_t)(power.battery_voltage * 1000.0);
-    eps->battery_current_ma = (int16_t)(power.battery_current * 1000.0);
+    eps->battery_voltage_mv = (uint16_t)lround(power.battery_voltage * 1000.0);
+    eps->battery_current_ma = (int16_t)lround(power.battery_current * 1000.0);
     eps->solar_voltage_mv = (uint16_t)(power.solar_power * 100.0);  /* Simplified */
     eps->solar_current_ma = 0;
-    eps->state_of_charge = (uint8_t)(power.state_of_charge * 100.0);
+    eps->state_of_charge = (uint8_t)lround(power.state_of_charge * 100.0);
     eps->power_mode = (uint8_t)power.power_mode;
     eps->heater_enabled = thermal.heater_enabled ? 1U : 0U;
     eps->payload_enabled = power.payload_enabled ? 1U : 0U;
@@ -226,7 +227,7 @@ SmartQsoResult_t tlm_generate_beacon(TlmFrame_t *frame, size_t *frame_len)
     /* Minimal beacon payload */
     uint8_t *beacon = frame->payload;
     beacon[0] = (uint8_t)sys_get_operational_state();
-    beacon[1] = (uint8_t)(power.state_of_charge * 100.0);
+    beacon[1] = (uint8_t)lround(power.state_of_charge * 100.0);
     beacon[2] = (uint8_t)power.power_mode;
     beacon[3] = sys_has_thermal_fault() ? 0x01U : 0x00U;
 
@@ -286,8 +287,10 @@ SmartQsoResult_t tlm_serialize(const TlmFrame_t *frame,
         return SMART_QSO_ERROR_NULL_PTR;
     }
 
+    /* No more than the frame's payload (TLM_MAX_FRAME_SIZE in all): a longer
+     * one read past the frame, and one near SIZE_MAX wrapped total_len */
     size_t total_len = sizeof(TlmHeader_t) + payload_len + sizeof(uint32_t);
-    if (buffer_size < total_len) {
+    if ((payload_len > sizeof(frame->payload)) || (buffer_size < total_len)) {
         return SMART_QSO_ERROR_NO_MEM;
     }
 

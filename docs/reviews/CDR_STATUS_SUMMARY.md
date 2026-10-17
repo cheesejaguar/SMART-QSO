@@ -8,7 +8,7 @@
 > `docs/funding_audit/FINDINGS_REGISTER.md` for the measured values.
 
 **Document Number:** SQSO-REV-003
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** NPR 7120.5, NPR 7123.1, RALPH.md Audit
 
@@ -62,9 +62,9 @@ This document summarizes the Critical Design Review (CDR) readiness status for t
 | Watchdog Manager | watchdog_mgr.c | Complete | Hardware/task watchdog management |
 | Flight Logger | flight_log.c | Complete | MISRA-compliant logging subsystem |
 | HAL Simulation | hal_sim.c | Complete | Hardware abstraction simulation |
-| System Init | system_init.c | Complete | Boot, clock, peripheral initialization |
+| System Init | system_init.c | Removed 2026-10-16 | Never compiled; its self-tests were stubs that always passed (SW-09, SW-16) |
 | Scheduler | scheduler.c | Complete | Time-triggered task scheduler |
-| YAML Parser | yaml_parser.c | Complete | Configuration file parsing |
+| YAML Parser | yaml_parser.c | Removed 2026-10-16 | Never compiled or used; `sensors.c` reads the sensor YAML itself (SW-09) |
 
 ### 2.2 Hardware Abstraction Layer
 
@@ -143,7 +143,7 @@ Build Result: SUCCESS (100%)
 | Document | Location | Status |
 |----------|----------|--------|
 | EPS Design | docs/hardware/EPS_DESIGN.md | Complete |
-| OBC Design | docs/hardware/OBC_DESIGN.md | Complete |
+| OBC Design | hardware/obc/OBC_DESIGN.md | Complete |
 | ADCS Design | docs/hardware/ADCS_DESIGN.md | Complete |
 | RF Design | docs/hardware/RF_DESIGN.md | Complete |
 | Payload Design | docs/hardware/PAYLOAD_DESIGN.md | Complete |
@@ -489,3 +489,4 @@ The project is ready to proceed to Phase C (Final Design & Fabrication) with rem
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial CDR status summary | SMART-QSO Team |
+| B | 2026-10-16 | OBC design row points to `hardware/obc/OBC_DESIGN.md`, into which `docs/hardware/OBC_DESIGN.md` was merged (finding PI-17) | SMART-QSO Team |

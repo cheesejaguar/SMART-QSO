@@ -1,7 +1,7 @@
 # Interface Control Document: Space-to-Ground
 
 **Document ID**: SQSO-ICD-005
-**Version**: 1.0
+**Version**: 1.3
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -15,7 +15,7 @@ This document defines the interface between the SMART-QSO spacecraft and the Gro
 | Document | Title |
 |----------|-------|
 | SQSO-SRS-001 | System Requirements Specification |
-| SQSO-ICD-001 | Beacon Format ICD |
+| SMART-QSO-ICD-006 | Beacon Format ICD |
 | SQSO-GSD-001 | Ground Station Design |
 | SQSO-MOP-001 | Mission Operations Plan |
 | ITU Radio Regulations | Spectrum allocation |
@@ -355,4 +355,5 @@ Only the first rejection after an accepted command is written to the fault log.
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-15 | Funding audit | §6.3, §6.4, §9.2 and §11.2 aligned with the flight software; command framing moved to SQSO-ICD-013 |
-| 1.2 | 2026-10-16 | Funding audit (TB-05) | §4.3 cites the re-issued link budget (SQSO-LBA-001 v2.0) |
+| 1.2 | 2026-10-16 | SMART-QSO Team | Beacon Format ICD cited by its own number, SMART-QSO-ICD-006 (finding PI-17) |
+| 1.3 | 2026-10-16 | Funding audit (TB-05) | §4.3 cites the re-issued link budget (SQSO-LBA-001 v2.0) |

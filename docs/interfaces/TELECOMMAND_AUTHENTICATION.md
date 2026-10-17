@@ -1,7 +1,7 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.5 (Draft)
+**Version**: 0.6 (Draft)
 **Date**: 2026-10-15
 **Status**: Draft. Implemented and tested in the host simulation. Not yet run on target hardware (Section 10).
 
@@ -124,7 +124,7 @@ MAC input = "SQSO-TC-v1" | cmd_id (1 B) | N (1 B) | counter (4 B, BE) | args (N 
 | Corrupt or unreadable record | Transmit **inhibited** (fail safe) |
 | SAFE mode, EPS `beacon_enabled` | Cannot override the latch. `beacon_should_transmit()` and `beacon_transmit()` refuse while TX-OFF is latched |
 | Command receiver | Not switched by TX-OFF or by EPS `radio_enabled`. It stays powered so the station can still be commanded |
-| Hardware path | `RF_TX_EN` drives the PA load-switch enable and is pulled down, so a reset or unpowered OBC leaves the PA off (SQSO-ICD-005 §4.2, OBC_DESIGN §4.4). Verified by TP-RF-006 (pending hardware) |
+| Hardware path | `RF_TX_EN` drives the PA load-switch enable and is pulled down, so a reset or unpowered OBC leaves the PA off (SQSO-ICD-003 §4.2; `hardware/obc/OBC_DESIGN.md` Appendix A.5.4). Verified by TP-RF-006 (pending hardware) |
 
 A replayed `TX_ENABLE` cannot undo a later `TX_DISABLE`. `test_replayed_tx_enable_cannot_undo_tx_off` covers this.
 
@@ -309,7 +309,7 @@ Procedure:
 | Command path (`cmd_handler.c`) | Implemented (22 tests, including every dictionary command, KEY_ROTATE, SET_MODE guards and contact detection) |
 | AX.25 and receive path (`ax25.c`, `uplink.c`) | Implemented; end to end from receiver frame to TX-OFF (7 tests; the callsign filter was mutation-checked) |
 | Ground tools (`telecommand_builder.py`, `key_provision.py`) | Implemented; byte-identical to the flight vectors |
-| **Target receiver driver behind `hal_radio.h`** | **Not implemented.** Waits on transceiver selection (SQSO-ICD-005's SPI command set is a placeholder) |
+| **Target receiver driver behind `hal_radio.h`** | **Not implemented.** Waits on transceiver selection (SQSO-ICD-003's SPI command set is a placeholder) |
 | **`RF_TX_EN` removes PA power at the antenna port** | **Not verified.** TP-RF-006 is written; it needs EM hardware |
 | **SET_POWER applied to the PA** | **Not implemented.** The level is persisted and reported; the actuator interface is TBD in the RF design |
 | FRAM driver for `FLASH_REGION_AUTH` and `FLASH_REGION_RF_CONTROL` | Allocated in SQSO-OBC-002 §3.3; simulation HAL only |
@@ -384,3 +384,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.3 | 2026-10-15 | Loss-of-contact inhibit (Section 6.2) and SET_CONTACT_TIMEOUT |
 | 0.4 | 2026-10-15 | Post-deployment RF silence (Section 6.3) and GSE ARM_RF_SILENCE |
 | 0.5 | 2026-10-15 | GSE 0x04 renamed ARM_FLIGHT: arms the RF silence and the deployment sequence together |
+| 0.6 | 2026-10-16 | OBC-to-RF ICD cited by its own number, SQSO-ICD-003 (was SQSO-ICD-005, the Space-to-Ground ICD), and the OBC GPIO table by its new location after the OBC design merge (finding PI-17). No technical change |

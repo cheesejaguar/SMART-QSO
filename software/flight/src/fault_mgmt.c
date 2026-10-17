@@ -9,6 +9,8 @@
 
 #include "fault_mgmt.h"
 #include "eps_control.h"
+#include "state_machine.h"
+#include "system_state.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -213,31 +215,46 @@ SmartQsoResult_t fault_log_clear(void)
     return SMART_QSO_OK;
 }
 
+/*
+ * Mode changes go through the state machine, never eps_set_power_mode()
+ * (SW-14): its table and guards decide, and the entry action of the new
+ * state sets the EPS power mode.
+ */
 SmartQsoResult_t fault_recover_thermal(double soc)
 {
+    SmartQsoResult_t result = SMART_QSO_OK;
+
     if (eps_is_payload_enabled()) {
-        fault_log_add(FAULT_TYPE_THERMAL, FAULT_SEVERITY_WARNING,
-                      "Thermal fault recovery: disabling payload", soc);
+        (void)fault_log_add(FAULT_TYPE_THERMAL, FAULT_SEVERITY_WARNING,
+                            "Thermal fault recovery: disabling payload", soc);
         (void)eps_control_payload(false, soc);
-        (void)eps_set_power_mode(POWER_MODE_IDLE, soc);
+        result = sm_process_event(sys_get_sm_context(), EVENT_THERMAL_FAULT, NULL);
     }
 
-    return SMART_QSO_OK;
+    return result;
 }
 
 SmartQsoResult_t fault_recover_power(double soc)
 {
-    if (soc < EPS_SOC_SAFE_THRESHOLD) {
-        fault_log_add(FAULT_TYPE_POWER_CRITICAL, FAULT_SEVERITY_ERROR,
-                      "Critical power fault: entering SAFE mode", soc);
-        (void)eps_set_power_mode(POWER_MODE_SAFE, soc);
-    } else if (soc < EPS_SOC_IDLE_THRESHOLD) {
-        fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_WARNING,
-                      "Power fault recovery: entering IDLE mode", soc);
-        (void)eps_set_power_mode(POWER_MODE_IDLE, soc);
+    SmState_t state = STATE_BOOT;
+    SmartQsoResult_t result = sm_get_state(sys_get_sm_context(), &state);
+
+    /* Not sunlit: recovery sheds load or restores IDLE, never enters ACTIVE */
+    SmEvent_t event = (result == SMART_QSO_OK) ? sm_power_event(state, soc, false) : EVENT_NONE;
+    if (event == EVENT_POWER_CRITICAL) {
+        (void)fault_log_add(FAULT_TYPE_POWER_CRITICAL, FAULT_SEVERITY_ERROR,
+                            "Critical power fault: shedding load", soc);
+    } else if (event == EVENT_POWER_LOW) {
+        (void)fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_WARNING,
+                            "Power fault recovery: entering IDLE mode", soc);
+    } else {
+        /* EVENT_POWER_OK (SOC recovered) or nothing to do */
+    }
+    if (event != EVENT_NONE) {
+        result = sm_process_event(sys_get_sm_context(), event, NULL);
     }
 
-    return SMART_QSO_OK;
+    return result;
 }
 
 SmartQsoResult_t fault_handle_watchdog(double soc)

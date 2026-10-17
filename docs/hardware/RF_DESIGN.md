@@ -8,7 +8,7 @@
 > link budget is `docs/environment/LINK_BUDGET_ANALYSIS.md` (v2.0).
 
 **Document Number**: SMART-QSO-RF-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Status**: Preliminary Design
 
@@ -488,13 +488,16 @@ SMART-QSO beacons will be uploaded to SatNOGS network:
 
 | Test | Description | Equipment |
 |------|-------------|-----------|
-| TP-RF-001 | TX power measurement | Power meter, attenuator |
-| TP-RF-002 | Frequency accuracy | Spectrum analyzer |
-| TP-RF-003 | Modulation verification | Demodulator, BER tester |
-| TP-RF-004 | Spurious emissions | Spectrum analyzer |
+| TP-RF-002 | TX power measurement | Power meter, attenuator |
+| TP-RF-001 | Frequency accuracy | Spectrum analyzer |
+| TP-RF-004 | Modulation verification | Demodulator, BER tester |
+| TP-RF-003 | Spurious emissions | Spectrum analyzer |
 | TP-RF-005 | Antenna deployment | Visual, continuity test |
-| TP-RF-006 | Link test | RF test range |
+| No procedure yet | Link test | RF test range |
 | TP-RF-007 | TVAC operation | TVAC chamber |
+
+IDs are those of the procedure files in `docs/test_procedures/` that cover each test (aligned 2026-10-16, finding VV-18;
+this table had numbered them differently). TP-RF-006 is the telecommand TX-OFF test. TP-RF-007 has no procedure yet.
 
 ### 9.3 EMC Testing
 
@@ -582,3 +585,4 @@ uint16_t crc16_ccitt(const uint8_t *data, size_t len) {
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-16 | SMART-QSO Team | §9.2 test IDs aligned with the procedure files (finding VV-18) |

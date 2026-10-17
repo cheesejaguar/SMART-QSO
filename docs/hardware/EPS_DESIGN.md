@@ -1,7 +1,7 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 1.0
+**Version**: 1.2
 **Date**: 2026-01-02
 **Status**: Preliminary Design
 
@@ -402,12 +402,15 @@ The previous "> 3 years at 80 % capacity" had no cell data behind it and is with
 
 | Test | Description | Equipment |
 |------|-------------|-----------|
-| TP-EPS-001 | MPPT efficiency | Solar simulator, power analyzer |
-| TP-EPS-002 | Battery capacity | Charge/discharge cycler |
-| TP-EPS-003 | Load regulation | Electronic load, oscilloscope |
-| TP-EPS-004 | Protection testing | Fault injection equipment |
+| TP-EPS-004 | MPPT efficiency | Solar simulator, power analyzer |
+| TP-EPS-003 | Battery capacity | Charge/discharge cycler |
+| TP-EPS-002 | Load regulation | Electronic load, oscilloscope |
+| TP-EPS-001 | Protection testing | Fault injection equipment |
 | TP-EPS-005 | Thermal cycling | Thermal chamber |
 | TP-EPS-006 | EMC testing | Shielded room, spectrum analyzer |
+
+IDs are those of the procedure files in `docs/test_procedures/` that cover each test (aligned 2026-10-16, finding VV-18;
+this table had numbered them differently). TP-EPS-005 and TP-EPS-006 have no procedure yet.
 
 ---
 
@@ -468,4 +471,5 @@ The previous "> 3 years at 80 % capacity" had no cell data behind it and is with
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
-| 1.1 | 2026-10-16 | Funding audit | Generation (EPS-F001, EPS-F002, §3.2.1, §3.2.3), solar cells (§4.4) and BOM aligned with SOLAR_ARRAY_DESIGN v2.0 (TB-14); battery DoD limit (EPS-P004), sizing (§3.3) and charge-temperature rules (§6.2, §7.1) aligned with BASELINE §5 and BATTERY_DESIGN v2.0 (TB-08) |
+| 1.1 | 2026-10-16 | SMART-QSO Team | §8.2 test IDs aligned with the procedure files (finding VV-18) |
+| 1.2 | 2026-10-16 | Funding audit | Generation (EPS-F001, EPS-F002, §3.2.1, §3.2.3), solar cells (§4.4) and BOM aligned with SOLAR_ARRAY_DESIGN v2.0 (TB-14); battery DoD limit (EPS-P004), sizing (§3.3) and charge-temperature rules (§6.2, §7.1) aligned with BASELINE §5 and BATTERY_DESIGN v2.0 (TB-08) |

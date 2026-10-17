@@ -1,7 +1,7 @@
 # Interface Control Document: OBC to RF Subsystem
 
 **Document ID**: SQSO-ICD-003
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -17,7 +17,7 @@ This document defines the interface between the On-Board Computer (OBC) and the 
 | SQSO-SRS-001 | System Requirements Specification |
 | SQSO-HW-RF-001 | RF Subsystem Design |
 | SQSO-HW-OBC-001 | OBC Design |
-| SQSO-ICD-001 | Beacon Format ICD |
+| SMART-QSO-ICD-006 | Beacon Format ICD |
 
 ## 3. Interface Summary
 
@@ -298,3 +298,4 @@ PACKET RECEPTION PROCEDURE
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-16 | SMART-QSO Team | Beacon Format ICD cited by its own number, SMART-QSO-ICD-006 (finding PI-17) |

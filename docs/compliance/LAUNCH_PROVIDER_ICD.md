@@ -9,8 +9,8 @@
 > `docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md`; the launch path is in
 > `docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md`.
 
-**Document Number:** SQSO-ICD-004
-**Revision:** A
+**Document Number:** SQSO-ICD-010
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** Cal Poly CDS Rev 14.1, GSFC-STD-7000A (current revision: 7000B)
 
@@ -328,3 +328,4 @@ See `docs/compliance/MATERIALS_LIST.md` for complete materials list.
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Document number changed from SQSO-ICD-004, which is the OBC-to-ADCS ICD (`docs/interfaces/ICD_OBC_ADCS.md`), to SQSO-ICD-010, the number `INTERFACE_CONTROL_MASTER.md` reserves for the launch vehicle interface (finding PI-17). No content change | SMART-QSO Team |

@@ -2,17 +2,28 @@
  * @file test_scheduler.c
  * @brief Unit tests for time-triggered scheduler module
  *
- * Tests task registration, scheduling, priority handling,
- * deadline monitoring, and CPU utilization measurement.
+ * Tests task registration and lookup, enable/disable, suspend/resume,
+ * statistics accessors, period management, forced execution and the tick.
+ * Ported from Unity to CMocka (SW-09).
+ *
+ * Not exercised: deadline monitoring and CPU utilization. The scheduler's
+ * time source, sched_get_time_us(), returns 0 in this build, so no task can
+ * overrun its deadline and utilization stays 0.
  *
  * @author SMART-QSO Team
  * @date 2026-01-02
  * @version 1.0
  */
 
-#include "unity.h"
-#include "scheduler.h"
+#include <stdarg.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <setjmp.h>
+#include <cmocka.h>
+#include <stdio.h>
 #include <string.h>
+
+#include "scheduler.h"
 
 /*******************************************************************************
  * Test Data
@@ -47,7 +58,7 @@ static void deadline_miss_callback(task_handle_t handle, uint32_t overrun_us)
  * Test Fixtures
  ******************************************************************************/
 
-void setUp(void)
+static void setUp(void)
 {
     scheduler_init();
     g_task1_count = 0;
@@ -55,7 +66,7 @@ void setUp(void)
     g_deadline_miss_count = 0;
 }
 
-void tearDown(void)
+static void tearDown(void)
 {
     scheduler_stop();
 }
@@ -64,35 +75,40 @@ void tearDown(void)
  * Test Cases - Initialization
  ******************************************************************************/
 
-void test_scheduler_init_returns_ok(void)
+static void test_scheduler_init_returns_ok(void **cm_state)
 {
+    (void)cm_state;
     sched_status_t status = scheduler_init();
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
+    assert_int_equal(SCHED_OK, status);
 }
 
-void test_scheduler_not_running_initially(void)
+static void test_scheduler_not_running_initially(void **cm_state)
 {
-    TEST_ASSERT_FALSE(scheduler_is_running());
+    (void)cm_state;
+    assert_false(scheduler_is_running());
 }
 
-void test_scheduler_tick_count_zero(void)
+static void test_scheduler_tick_count_zero(void **cm_state)
 {
-    TEST_ASSERT_EQUAL(0, scheduler_get_tick_count());
+    (void)cm_state;
+    assert_int_equal(0, scheduler_get_tick_count());
 }
 
 /*******************************************************************************
  * Test Cases - Task Registration
  ******************************************************************************/
 
-void test_register_task_null_config(void)
+static void test_register_task_null_config(void **cm_state)
 {
+    (void)cm_state;
     task_handle_t handle;
     sched_status_t status = scheduler_register_task(NULL, &handle);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_INVALID_PARAM, status);
+    assert_int_equal(SCHED_ERROR_INVALID_PARAM, status);
 }
 
-void test_register_task_null_handle(void)
+static void test_register_task_null_handle(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Test",
         .func = test_task1_func,
@@ -100,11 +116,12 @@ void test_register_task_null_handle(void)
         .priority = SCHED_PRIORITY_NORMAL
     };
     sched_status_t status = scheduler_register_task(&config, NULL);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_INVALID_PARAM, status);
+    assert_int_equal(SCHED_ERROR_INVALID_PARAM, status);
 }
 
-void test_register_task_null_func(void)
+static void test_register_task_null_func(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Test",
         .func = NULL,
@@ -112,11 +129,12 @@ void test_register_task_null_func(void)
     };
     task_handle_t handle;
     sched_status_t status = scheduler_register_task(&config, &handle);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_INVALID_PARAM, status);
+    assert_int_equal(SCHED_ERROR_INVALID_PARAM, status);
 }
 
-void test_register_task_period_too_small(void)
+static void test_register_task_period_too_small(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Test",
         .func = test_task1_func,
@@ -124,11 +142,12 @@ void test_register_task_period_too_small(void)
     };
     task_handle_t handle;
     sched_status_t status = scheduler_register_task(&config, &handle);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_INVALID_PARAM, status);
+    assert_int_equal(SCHED_ERROR_INVALID_PARAM, status);
 }
 
-void test_register_task_period_too_large(void)
+static void test_register_task_period_too_large(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Test",
         .func = test_task1_func,
@@ -136,11 +155,12 @@ void test_register_task_period_too_large(void)
     };
     task_handle_t handle;
     sched_status_t status = scheduler_register_task(&config, &handle);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_INVALID_PARAM, status);
+    assert_int_equal(SCHED_ERROR_INVALID_PARAM, status);
 }
 
-void test_register_task_success(void)
+static void test_register_task_success(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -150,12 +170,13 @@ void test_register_task_success(void)
     };
     task_handle_t handle;
     sched_status_t status = scheduler_register_task(&config, &handle);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
-    TEST_ASSERT_NOT_EQUAL(SCHED_INVALID_HANDLE, handle);
+    assert_int_equal(SCHED_OK, status);
+    assert_int_not_equal(SCHED_INVALID_HANDLE, handle);
 }
 
-void test_register_duplicate_name(void)
+static void test_register_duplicate_name(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config1 = {
         .name = "Task1",
         .func = test_task1_func,
@@ -169,11 +190,12 @@ void test_register_duplicate_name(void)
     task_handle_t handle1, handle2;
     scheduler_register_task(&config1, &handle1);
     sched_status_t status = scheduler_register_task(&config2, &handle2);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_ALREADY_EXISTS, status);
+    assert_int_equal(SCHED_ERROR_ALREADY_EXISTS, status);
 }
 
-void test_register_max_tasks(void)
+static void test_register_max_tasks(void **cm_state)
 {
+    (void)cm_state;
     task_handle_t handles[SCHED_MAX_TASKS + 1];
     sched_status_t status;
 
@@ -184,7 +206,7 @@ void test_register_max_tasks(void)
         };
         snprintf(config.name, SCHED_MAX_TASK_NAME, "Task%d", i);
         status = scheduler_register_task(&config, &handles[i]);
-        TEST_ASSERT_EQUAL(SCHED_OK, status);
+        assert_int_equal(SCHED_OK, status);
     }
 
     /* One more should fail */
@@ -194,27 +216,30 @@ void test_register_max_tasks(void)
         .period_ms = 100
     };
     status = scheduler_register_task(&extra, &handles[SCHED_MAX_TASKS]);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_TABLE_FULL, status);
+    assert_int_equal(SCHED_ERROR_TABLE_FULL, status);
 }
 
 /*******************************************************************************
  * Test Cases - Task Unregistration
  ******************************************************************************/
 
-void test_unregister_invalid_handle(void)
+static void test_unregister_invalid_handle(void **cm_state)
 {
+    (void)cm_state;
     sched_status_t status = scheduler_unregister_task(SCHED_MAX_TASKS + 1);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_INVALID_PARAM, status);
+    assert_int_equal(SCHED_ERROR_INVALID_PARAM, status);
 }
 
-void test_unregister_not_registered(void)
+static void test_unregister_not_registered(void **cm_state)
 {
+    (void)cm_state;
     sched_status_t status = scheduler_unregister_task(0);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_NOT_FOUND, status);
+    assert_int_equal(SCHED_ERROR_NOT_FOUND, status);
 }
 
-void test_unregister_success(void)
+static void test_unregister_success(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -223,15 +248,16 @@ void test_unregister_success(void)
     task_handle_t handle;
     scheduler_register_task(&config, &handle);
     sched_status_t status = scheduler_unregister_task(handle);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
+    assert_int_equal(SCHED_OK, status);
 }
 
 /*******************************************************************************
  * Test Cases - Enable/Disable
  ******************************************************************************/
 
-void test_enable_task_success(void)
+static void test_enable_task_success(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -241,12 +267,13 @@ void test_enable_task_success(void)
     task_handle_t handle;
     scheduler_register_task(&config, &handle);
     sched_status_t status = scheduler_enable_task(handle);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
-    TEST_ASSERT_EQUAL(TASK_STATE_READY, scheduler_get_task_state(handle));
+    assert_int_equal(SCHED_OK, status);
+    assert_int_equal(TASK_STATE_READY, scheduler_get_task_state(handle));
 }
 
-void test_disable_task_success(void)
+static void test_disable_task_success(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -256,16 +283,17 @@ void test_disable_task_success(void)
     task_handle_t handle;
     scheduler_register_task(&config, &handle);
     sched_status_t status = scheduler_disable_task(handle);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
-    TEST_ASSERT_EQUAL(TASK_STATE_INACTIVE, scheduler_get_task_state(handle));
+    assert_int_equal(SCHED_OK, status);
+    assert_int_equal(TASK_STATE_INACTIVE, scheduler_get_task_state(handle));
 }
 
 /*******************************************************************************
  * Test Cases - Suspend/Resume
  ******************************************************************************/
 
-void test_suspend_task_success(void)
+static void test_suspend_task_success(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -275,12 +303,13 @@ void test_suspend_task_success(void)
     task_handle_t handle;
     scheduler_register_task(&config, &handle);
     sched_status_t status = scheduler_suspend_task(handle);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
-    TEST_ASSERT_EQUAL(TASK_STATE_SUSPENDED, scheduler_get_task_state(handle));
+    assert_int_equal(SCHED_OK, status);
+    assert_int_equal(TASK_STATE_SUSPENDED, scheduler_get_task_state(handle));
 }
 
-void test_resume_task_success(void)
+static void test_resume_task_success(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -291,16 +320,17 @@ void test_resume_task_success(void)
     scheduler_register_task(&config, &handle);
     scheduler_suspend_task(handle);
     sched_status_t status = scheduler_resume_task(handle);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
-    TEST_ASSERT_EQUAL(TASK_STATE_READY, scheduler_get_task_state(handle));
+    assert_int_equal(SCHED_OK, status);
+    assert_int_equal(TASK_STATE_READY, scheduler_get_task_state(handle));
 }
 
 /*******************************************************************************
  * Test Cases - Task Lookup
  ******************************************************************************/
 
-void test_get_handle_by_name_found(void)
+static void test_get_handle_by_name_found(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "MyTask",
         .func = test_task1_func,
@@ -310,23 +340,26 @@ void test_get_handle_by_name_found(void)
     scheduler_register_task(&config, &registered);
 
     task_handle_t found = scheduler_get_handle_by_name("MyTask");
-    TEST_ASSERT_EQUAL(registered, found);
+    assert_int_equal(registered, found);
 }
 
-void test_get_handle_by_name_not_found(void)
+static void test_get_handle_by_name_not_found(void **cm_state)
 {
+    (void)cm_state;
     task_handle_t found = scheduler_get_handle_by_name("NonExistent");
-    TEST_ASSERT_EQUAL(SCHED_INVALID_HANDLE, found);
+    assert_int_equal(SCHED_INVALID_HANDLE, found);
 }
 
-void test_get_handle_by_name_null(void)
+static void test_get_handle_by_name_null(void **cm_state)
 {
+    (void)cm_state;
     task_handle_t found = scheduler_get_handle_by_name(NULL);
-    TEST_ASSERT_EQUAL(SCHED_INVALID_HANDLE, found);
+    assert_int_equal(SCHED_INVALID_HANDLE, found);
 }
 
-void test_get_task_name_valid(void)
+static void test_get_task_name_valid(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "MyTask",
         .func = test_task1_func,
@@ -336,22 +369,24 @@ void test_get_task_name_valid(void)
     scheduler_register_task(&config, &handle);
 
     const char *name = scheduler_get_task_name(handle);
-    TEST_ASSERT_NOT_NULL(name);
-    TEST_ASSERT_EQUAL_STRING("MyTask", name);
+    assert_non_null(name);
+    assert_string_equal("MyTask", name);
 }
 
-void test_get_task_name_invalid(void)
+static void test_get_task_name_invalid(void **cm_state)
 {
+    (void)cm_state;
     const char *name = scheduler_get_task_name(SCHED_INVALID_HANDLE);
-    TEST_ASSERT_NULL(name);
+    assert_null(name);
 }
 
 /*******************************************************************************
  * Test Cases - Statistics
  ******************************************************************************/
 
-void test_get_task_stats_null(void)
+static void test_get_task_stats_null(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -360,11 +395,12 @@ void test_get_task_stats_null(void)
     task_handle_t handle;
     scheduler_register_task(&config, &handle);
     sched_status_t status = scheduler_get_task_stats(handle, NULL);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_INVALID_PARAM, status);
+    assert_int_equal(SCHED_ERROR_INVALID_PARAM, status);
 }
 
-void test_get_task_stats_success(void)
+static void test_get_task_stats_success(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -375,12 +411,13 @@ void test_get_task_stats_success(void)
 
     task_stats_t stats;
     sched_status_t status = scheduler_get_task_stats(handle, &stats);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
-    TEST_ASSERT_EQUAL(0, stats.run_count);
+    assert_int_equal(SCHED_OK, status);
+    assert_int_equal(0, stats.run_count);
 }
 
-void test_reset_task_stats(void)
+static void test_reset_task_stats(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -390,34 +427,38 @@ void test_reset_task_stats(void)
     scheduler_register_task(&config, &handle);
 
     sched_status_t status = scheduler_reset_task_stats(handle);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
+    assert_int_equal(SCHED_OK, status);
 }
 
-void test_get_scheduler_stats_null(void)
+static void test_get_scheduler_stats_null(void **cm_state)
 {
+    (void)cm_state;
     sched_status_t status = scheduler_get_stats(NULL);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_INVALID_PARAM, status);
+    assert_int_equal(SCHED_ERROR_INVALID_PARAM, status);
 }
 
-void test_get_scheduler_stats_success(void)
+static void test_get_scheduler_stats_success(void **cm_state)
 {
+    (void)cm_state;
     sched_stats_t stats;
     sched_status_t status = scheduler_get_stats(&stats);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
+    assert_int_equal(SCHED_OK, status);
 }
 
-void test_cpu_utilization_initial(void)
+static void test_cpu_utilization_initial(void **cm_state)
 {
+    (void)cm_state;
     uint32_t util = scheduler_get_cpu_utilization();
-    TEST_ASSERT_EQUAL(0, util);
+    assert_int_equal(0, util);
 }
 
 /*******************************************************************************
  * Test Cases - Period Management
  ******************************************************************************/
 
-void test_set_period_success(void)
+static void test_set_period_success(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -427,12 +468,13 @@ void test_set_period_success(void)
     scheduler_register_task(&config, &handle);
 
     sched_status_t status = scheduler_set_period(handle, 200);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
-    TEST_ASSERT_EQUAL(200, scheduler_get_period(handle));
+    assert_int_equal(SCHED_OK, status);
+    assert_int_equal(200, scheduler_get_period(handle));
 }
 
-void test_set_period_invalid(void)
+static void test_set_period_invalid(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -442,31 +484,34 @@ void test_set_period_invalid(void)
     scheduler_register_task(&config, &handle);
 
     sched_status_t status = scheduler_set_period(handle, 1); /* Too small */
-    TEST_ASSERT_EQUAL(SCHED_ERROR_INVALID_PARAM, status);
+    assert_int_equal(SCHED_ERROR_INVALID_PARAM, status);
 }
 
-void test_get_period_invalid_handle(void)
+static void test_get_period_invalid_handle(void **cm_state)
 {
+    (void)cm_state;
     uint32_t period = scheduler_get_period(SCHED_INVALID_HANDLE);
-    TEST_ASSERT_EQUAL(0, period);
+    assert_int_equal(0, period);
 }
 
 /*******************************************************************************
  * Test Cases - Deadline Callback
  ******************************************************************************/
 
-void test_register_deadline_callback(void)
+static void test_register_deadline_callback(void **cm_state)
 {
+    (void)cm_state;
     sched_status_t status = scheduler_register_deadline_callback(deadline_miss_callback);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
+    assert_int_equal(SCHED_OK, status);
 }
 
 /*******************************************************************************
  * Test Cases - Task Execution
  ******************************************************************************/
 
-void test_run_now_success(void)
+static void test_run_now_success(void **cm_state)
 {
+    (void)cm_state;
     task_config_t config = {
         .name = "Task1",
         .func = test_task1_func,
@@ -477,86 +522,83 @@ void test_run_now_success(void)
     scheduler_register_task(&config, &handle);
 
     sched_status_t status = scheduler_run_now(handle);
-    TEST_ASSERT_EQUAL(SCHED_OK, status);
-    TEST_ASSERT_EQUAL(1, g_task1_count);
+    assert_int_equal(SCHED_OK, status);
+    assert_int_equal(1, g_task1_count);
 }
 
-void test_run_now_invalid_handle(void)
+static void test_run_now_invalid_handle(void **cm_state)
 {
+    (void)cm_state;
     sched_status_t status = scheduler_run_now(SCHED_INVALID_HANDLE);
-    TEST_ASSERT_EQUAL(SCHED_ERROR_INVALID_PARAM, status);
+    assert_int_equal(SCHED_ERROR_INVALID_PARAM, status);
 }
 
-void test_scheduler_tick_increments_count(void)
+static void test_scheduler_tick_increments_count(void **cm_state)
 {
+    (void)cm_state;
     uint32_t initial = scheduler_get_tick_count();
     scheduler_tick();
-    TEST_ASSERT_EQUAL(initial + 1, scheduler_get_tick_count());
+    assert_int_equal(initial + 1, scheduler_get_tick_count());
 }
 
 /*******************************************************************************
  * Test Runner
  ******************************************************************************/
 
+static int fixture_setup(void **state)
+{
+    (void)state;
+    setUp();
+    return 0;
+}
+
+static int fixture_teardown(void **state)
+{
+    (void)state;
+    tearDown();
+    return 0;
+}
+
 int main(void)
 {
-    UNITY_BEGIN();
+    const struct CMUnitTest tests[] = {
+        cmocka_unit_test_setup_teardown(test_scheduler_init_returns_ok, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_scheduler_not_running_initially, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_scheduler_tick_count_zero, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_register_task_null_config, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_register_task_null_handle, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_register_task_null_func, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_register_task_period_too_small, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_register_task_period_too_large, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_register_task_success, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_register_duplicate_name, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_register_max_tasks, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_unregister_invalid_handle, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_unregister_not_registered, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_unregister_success, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_enable_task_success, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_disable_task_success, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_suspend_task_success, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_resume_task_success, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_get_handle_by_name_found, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_get_handle_by_name_not_found, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_get_handle_by_name_null, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_get_task_name_valid, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_get_task_name_invalid, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_get_task_stats_null, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_get_task_stats_success, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_reset_task_stats, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_get_scheduler_stats_null, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_get_scheduler_stats_success, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_cpu_utilization_initial, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_set_period_success, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_set_period_invalid, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_get_period_invalid_handle, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_register_deadline_callback, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_run_now_success, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_run_now_invalid_handle, fixture_setup, fixture_teardown),
+        cmocka_unit_test_setup_teardown(test_scheduler_tick_increments_count, fixture_setup, fixture_teardown),
+    };
 
-    /* Initialization */
-    RUN_TEST(test_scheduler_init_returns_ok);
-    RUN_TEST(test_scheduler_not_running_initially);
-    RUN_TEST(test_scheduler_tick_count_zero);
-
-    /* Task registration */
-    RUN_TEST(test_register_task_null_config);
-    RUN_TEST(test_register_task_null_handle);
-    RUN_TEST(test_register_task_null_func);
-    RUN_TEST(test_register_task_period_too_small);
-    RUN_TEST(test_register_task_period_too_large);
-    RUN_TEST(test_register_task_success);
-    RUN_TEST(test_register_duplicate_name);
-    RUN_TEST(test_register_max_tasks);
-
-    /* Task unregistration */
-    RUN_TEST(test_unregister_invalid_handle);
-    RUN_TEST(test_unregister_not_registered);
-    RUN_TEST(test_unregister_success);
-
-    /* Enable/Disable */
-    RUN_TEST(test_enable_task_success);
-    RUN_TEST(test_disable_task_success);
-
-    /* Suspend/Resume */
-    RUN_TEST(test_suspend_task_success);
-    RUN_TEST(test_resume_task_success);
-
-    /* Task lookup */
-    RUN_TEST(test_get_handle_by_name_found);
-    RUN_TEST(test_get_handle_by_name_not_found);
-    RUN_TEST(test_get_handle_by_name_null);
-    RUN_TEST(test_get_task_name_valid);
-    RUN_TEST(test_get_task_name_invalid);
-
-    /* Statistics */
-    RUN_TEST(test_get_task_stats_null);
-    RUN_TEST(test_get_task_stats_success);
-    RUN_TEST(test_reset_task_stats);
-    RUN_TEST(test_get_scheduler_stats_null);
-    RUN_TEST(test_get_scheduler_stats_success);
-    RUN_TEST(test_cpu_utilization_initial);
-
-    /* Period management */
-    RUN_TEST(test_set_period_success);
-    RUN_TEST(test_set_period_invalid);
-    RUN_TEST(test_get_period_invalid_handle);
-
-    /* Deadline callback */
-    RUN_TEST(test_register_deadline_callback);
-
-    /* Task execution */
-    RUN_TEST(test_run_now_success);
-    RUN_TEST(test_run_now_invalid_handle);
-    RUN_TEST(test_scheduler_tick_increments_count);
-
-    return UNITY_END();
+    return cmocka_run_group_tests_name("Scheduler Tests", tests, NULL, NULL);
 }
