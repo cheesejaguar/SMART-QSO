@@ -229,6 +229,7 @@ set(MODULE_TESTS
     "test_gnss\;gnss"
     "test_payload_guard\;payload"
     "test_assert_release\;assert"
+    "test_adcs\;adcs"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)
@@ -254,9 +255,9 @@ target_compile_definitions(test_beacon_filter PRIVATE
 
 #===========================================================================
 # Not registered (tracked in docs/funding_audit/FINDINGS_REGISTER.md):
-#   - test_adcs, test_beacon, test_scheduler, test_system_init,
-#     test_telemetry, test_telemetry_flow: written for Unity, which is not
-#     vendored; port to CMocka
+#   - test_beacon, test_scheduler, test_system_init, test_telemetry,
+#     test_telemetry_flow: written for Unity, which is not vendored; port
+#     to CMocka
 #   - integration/*, regression/*: reference APIs that no longer exist
 #   - test_main_simple.c: tests local copies of structs, not flight code
 #===========================================================================
