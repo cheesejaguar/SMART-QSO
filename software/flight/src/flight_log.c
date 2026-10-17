@@ -114,6 +114,75 @@ static void output_entry(const LogEntry_t *entry)
     }
 }
 
+/** Count a log call that passed the filters, by level */
+static void count_level(LogLevel_t level)
+{
+    switch (level) {
+        case LOG_LEVEL_TRACE:    s_stats.trace_count++;    break;
+        case LOG_LEVEL_DEBUG:    s_stats.debug_count++;    break;
+        case LOG_LEVEL_INFO:     s_stats.info_count++;     break;
+        case LOG_LEVEL_WARNING:  s_stats.warning_count++;  break;
+        case LOG_LEVEL_ERROR:    s_stats.error_count++;    break;
+        case LOG_LEVEL_CRITICAL: s_stats.critical_count++; break;
+        case LOG_LEVEL_OFF:      /* Should not happen */   break;
+    }
+}
+
+/** Copy the module name into the entry (empty if NULL) */
+static void set_module(LogEntry_t *entry, const char *module)
+{
+    if (module != NULL) {
+        (void)safe_strncpy(entry->module, sizeof(entry->module),
+                           module, LOG_MAX_MODULE_LEN - 1, NULL);
+    } else {
+        entry->module[0] = '\0';
+    }
+}
+
+/** Act on the vsnprintf result: empty on error, an ellipsis if truncated */
+static void finish_message(LogEntry_t *entry, int written)
+{
+    if (written < 0) {
+        entry->message[0] = '\0';
+    } else if ((size_t)written >= sizeof(entry->message)) {
+        /* Truncated - mark with ellipsis */
+        entry->message[sizeof(entry->message) - 4] = '.';
+        entry->message[sizeof(entry->message) - 3] = '.';
+        entry->message[sizeof(entry->message) - 2] = '.';
+        entry->message[sizeof(entry->message) - 1] = '\0';
+    } else {
+        /* message fits */
+    }
+}
+
+/** Advance the write index past the entry just written; overwrite the oldest when full */
+static void commit_entry(void)
+{
+    /* Advance write index */
+    s_write_index++;
+    if (s_write_index >= LOG_BUFFER_SIZE) {
+        s_write_index = 0;
+    }
+
+    /* Update entry count and handle overflow */
+    if (s_entry_count < LOG_BUFFER_SIZE) {
+        s_entry_count++;
+    } else {
+        /* Buffer full - overwrite oldest */
+        s_read_index++;
+        if (s_read_index >= LOG_BUFFER_SIZE) {
+            s_read_index = 0;
+        }
+        s_stats.dropped_logs++;
+    }
+
+    /* Update statistics */
+    s_stats.buffer_entries = s_entry_count;
+    if (s_entry_count > s_stats.buffer_high_water) {
+        s_stats.buffer_high_water = s_entry_count;
+    }
+}
+
 /*******************************************************************************
  * Public Functions
  ******************************************************************************/
@@ -209,15 +278,7 @@ SmartQsoResult_t log_vwrite(LogLevel_t level,
     }
 
     /* Update level-specific counts */
-    switch (level) {
-        case LOG_LEVEL_TRACE:    s_stats.trace_count++;    break;
-        case LOG_LEVEL_DEBUG:    s_stats.debug_count++;    break;
-        case LOG_LEVEL_INFO:     s_stats.info_count++;     break;
-        case LOG_LEVEL_WARNING:  s_stats.warning_count++;  break;
-        case LOG_LEVEL_ERROR:    s_stats.error_count++;    break;
-        case LOG_LEVEL_CRITICAL: s_stats.critical_count++; break;
-        case LOG_LEVEL_OFF:      /* Should not happen */   break;
-    }
+    count_level(level);
 
     /* Get buffer entry */
     LogEntry_t *entry = &s_buffer[s_write_index];
@@ -228,12 +289,7 @@ SmartQsoResult_t log_vwrite(LogLevel_t level,
     entry->sequence = s_sequence++;
 
     /* Copy module name */
-    if (module != NULL) {
-        (void)safe_strncpy(entry->module, sizeof(entry->module),
-                           module, LOG_MAX_MODULE_LEN - 1, NULL);
-    } else {
-        entry->module[0] = '\0';
-    }
+    set_module(entry, module);
 
     /* Format message */
     if (format != NULL) {
@@ -247,17 +303,7 @@ SmartQsoResult_t log_vwrite(LogLevel_t level,
         int written = vsnprintf(entry->message, sizeof(entry->message),
                                 format, args);
 #pragma GCC diagnostic pop
-        if (written < 0) {
-            entry->message[0] = '\0';
-        } else if ((size_t)written >= sizeof(entry->message)) {
-            /* Truncated - mark with ellipsis */
-            entry->message[sizeof(entry->message) - 4] = '.';
-            entry->message[sizeof(entry->message) - 3] = '.';
-            entry->message[sizeof(entry->message) - 2] = '.';
-            entry->message[sizeof(entry->message) - 1] = '\0';
-        } else {
-            /* message fits */
-        }
+        finish_message(entry, written);
     } else {
         entry->message[0] = '\0';
     }
@@ -265,29 +311,8 @@ SmartQsoResult_t log_vwrite(LogLevel_t level,
     /* Output immediately if configured */
     output_entry(entry);
 
-    /* Advance write index */
-    s_write_index++;
-    if (s_write_index >= LOG_BUFFER_SIZE) {
-        s_write_index = 0;
-    }
-
-    /* Update entry count and handle overflow */
-    if (s_entry_count < LOG_BUFFER_SIZE) {
-        s_entry_count++;
-    } else {
-        /* Buffer full - overwrite oldest */
-        s_read_index++;
-        if (s_read_index >= LOG_BUFFER_SIZE) {
-            s_read_index = 0;
-        }
-        s_stats.dropped_logs++;
-    }
-
-    /* Update statistics */
-    s_stats.buffer_entries = s_entry_count;
-    if (s_entry_count > s_stats.buffer_high_water) {
-        s_stats.buffer_high_water = s_entry_count;
-    }
+    /* Advance the ring buffer and update the statistics */
+    commit_entry();
 
     return SMART_QSO_OK;
 }

@@ -68,6 +68,25 @@ static speed_t baudrate_to_speed(int baudrate)
         default:     return B115200;
     }
 }
+
+/**
+ * @brief 8N1 framing without flow control, raw input and output
+ */
+static void set_raw_8n1(struct termios *tty)
+{
+    /* 8N1 configuration */
+    tty->c_cflag = (tty->c_cflag & ~(tcflag_t)CSIZE) | CS8;
+    tty->c_cflag &= ~(tcflag_t)(PARENB | PARODD);
+    tty->c_cflag &= ~(tcflag_t)CSTOPB;
+    tty->c_cflag &= ~(tcflag_t)CRTSCTS;
+    tty->c_cflag |= CREAD | CLOCAL;
+
+    /* Raw input */
+    tty->c_lflag &= ~(tcflag_t)(ICANON | ECHO | ECHOE | ISIG);
+
+    /* Raw output */
+    tty->c_oflag &= ~(tcflag_t)OPOST;
+}
 #endif
 
 /**
@@ -161,18 +180,8 @@ SmartQsoResult_t uart_init_with_config(const UartConfig_t *config)
         (void)fprintf(stderr, "[UART] Failed to set input speed\n");
     }
 
-    /* 8N1 configuration */
-    tty.c_cflag = (tty.c_cflag & ~(tcflag_t)CSIZE) | CS8;
-    tty.c_cflag &= ~(tcflag_t)(PARENB | PARODD);
-    tty.c_cflag &= ~(tcflag_t)CSTOPB;
-    tty.c_cflag &= ~(tcflag_t)CRTSCTS;
-    tty.c_cflag |= CREAD | CLOCAL;
-
-    /* Raw input */
-    tty.c_lflag &= ~(tcflag_t)(ICANON | ECHO | ECHOE | ISIG);
-
-    /* Raw output */
-    tty.c_oflag &= ~(tcflag_t)OPOST;
+    /* 8N1, raw input and output */
+    set_raw_8n1(&tty);
 
     if (tcsetattr(s_uart_fd, TCSANOW, &tty) != 0) {
         (void)fprintf(stderr, "[UART] Failed to set attributes: %s\n", strerror(errno));

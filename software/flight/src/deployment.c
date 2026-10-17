@@ -255,6 +255,48 @@ static void process_waiting(uint32_t elapsed_ms)
     }
 }
 
+/**
+ * @brief Resume from a valid persisted record
+ *
+ * ARMED starts fresh. COMPLETE and FAILED are kept. Other states resume
+ * unless power was lost (the wait restarts); a burn interrupted by a reset
+ * goes to its verify state, never re-fires.
+ */
+static void restore_record(const DeployRecord_t *rec, bool power_lost)
+{
+    DeploymentState_t state = (DeploymentState_t)rec->state;
+
+    if (state != DEPLOY_STATE_ARMED) {
+        /* ARMED: the sequence starts fresh at this boot */
+        for (uint32_t e = 0U; e < (uint32_t)DEPLOY_ELEMENT_COUNT; e++) {
+            s_deploy.elements[e].attempt_count = rec->attempts[e];
+            s_deploy.elements[e].deploy_attempted = (rec->attempts[e] > 0U);
+        }
+        s_deploy.elements[DEPLOY_ELEMENT_ANTENNA].deployed = ((rec->flags & FLAG_ANTENNA_DEPLOYED) != 0U);
+        s_deploy.elements[DEPLOY_ELEMENT_SOLAR_PANEL].deployed = ((rec->flags & FLAG_SOLAR_DEPLOYED) != 0U);
+        s_deploy.deployment_enabled = ((rec->flags & FLAG_ENABLED) != 0U);
+
+        if ((state == DEPLOY_STATE_COMPLETE) || (state == DEPLOY_STATE_FAILED)) {
+            s_deploy.state = state;
+            s_deploy.separation_detected = ((rec->flags & FLAG_SEPARATED) != 0U);
+        } else if (power_lost) {
+            /* Power removed (a switch toggle does this): the wait restarts */
+        } else {
+            s_deploy.separation_detected = ((rec->flags & FLAG_SEPARATED) != 0U);
+            s_deploy.wait_elapsed_s = rec->wait_elapsed_s;
+            /* A reset during a burn spends the attempt: verify, never re-fire */
+            if (state == DEPLOY_STATE_ANTENNA_ACTIVE) {
+                state = DEPLOY_STATE_ANTENNA_VERIFY;
+            } else if (state == DEPLOY_STATE_SOLAR_ACTIVE) {
+                state = DEPLOY_STATE_SOLAR_VERIFY;
+            } else {
+                /* Resume where it was */
+            }
+            s_deploy.state = state;
+        }
+    }
+}
+
 /*===========================================================================*/
 /* Public Functions                                                           */
 /*===========================================================================*/
@@ -284,37 +326,7 @@ bool deployment_init(void)
                                               &rec, sizeof(rec), &status);
     if ((result == SMART_QSO_OK) && (status == NVM_RECORD_VALID) &&
         (rec.state < (uint8_t)DEPLOY_STATE_COUNT)) {
-        DeploymentState_t state = (DeploymentState_t)rec.state;
-
-        if (state != DEPLOY_STATE_ARMED) {
-            /* ARMED: the sequence starts fresh at this boot */
-            for (uint32_t e = 0U; e < (uint32_t)DEPLOY_ELEMENT_COUNT; e++) {
-                s_deploy.elements[e].attempt_count = rec.attempts[e];
-                s_deploy.elements[e].deploy_attempted = (rec.attempts[e] > 0U);
-            }
-            s_deploy.elements[DEPLOY_ELEMENT_ANTENNA].deployed = ((rec.flags & FLAG_ANTENNA_DEPLOYED) != 0U);
-            s_deploy.elements[DEPLOY_ELEMENT_SOLAR_PANEL].deployed = ((rec.flags & FLAG_SOLAR_DEPLOYED) != 0U);
-            s_deploy.deployment_enabled = ((rec.flags & FLAG_ENABLED) != 0U);
-
-            if ((state == DEPLOY_STATE_COMPLETE) || (state == DEPLOY_STATE_FAILED)) {
-                s_deploy.state = state;
-                s_deploy.separation_detected = ((rec.flags & FLAG_SEPARATED) != 0U);
-            } else if (power_lost) {
-                /* Power removed (a switch toggle does this): the wait restarts */
-            } else {
-                s_deploy.separation_detected = ((rec.flags & FLAG_SEPARATED) != 0U);
-                s_deploy.wait_elapsed_s = rec.wait_elapsed_s;
-                /* A reset during a burn spends the attempt: verify, never re-fire */
-                if (state == DEPLOY_STATE_ANTENNA_ACTIVE) {
-                    state = DEPLOY_STATE_ANTENNA_VERIFY;
-                } else if (state == DEPLOY_STATE_SOLAR_ACTIVE) {
-                    state = DEPLOY_STATE_SOLAR_VERIFY;
-                } else {
-                    /* Resume where it was */
-                }
-                s_deploy.state = state;
-            }
-        }
+        restore_record(&rec, power_lost);
     } else if ((result != SMART_QSO_OK) || (status != NVM_RECORD_BLANK)) {
         (void)fault_log_add(FAULT_TYPE_DEPLOYMENT, FAULT_SEVERITY_ERROR,
                             "Deployment record unreadable: starting over", 0.0);

@@ -113,17 +113,15 @@ SmartQsoResult_t adcs_init(void)
     return SMART_QSO_OK;
 }
 
-SmartQsoResult_t adcs_update(uint64_t now_ms)
+/**
+ * @brief Estimate the body rate from the change in the magnetic field (B-dot)
+ *
+ * Updates mag.field_rate and angular_rate_est when two valid readings are
+ * far enough apart, saves the reading for the next cycle and recomputes
+ * rate_magnitude.
+ */
+static void adcs_estimate_rate(uint64_t now_ms)
 {
-    if (!s_initialized) {
-        return SMART_QSO_ERROR;
-    }
-
-    /* Read sensors */
-    adcs_read_magnetometer(&s_adcs_state.mag);
-    adcs_read_sun_sensors(&s_adcs_state.sun);
-
-    /* Estimate angular rate from B-dot (simplified) */
     if (s_mag_prev.valid && s_adcs_state.mag.valid) {
         double dt = (double)(now_ms - s_mag_prev.timestamp_ms) / 1000.0;
         if (dt > 0.01) {
@@ -156,41 +154,65 @@ SmartQsoResult_t adcs_update(uint64_t now_ms)
 
     /* Calculate rate magnitude */
     s_adcs_state.rate_magnitude = vec3_magnitude(&s_adcs_state.angular_rate_est);
+}
+
+/**
+ * @brief One DETUMBLE cycle: timeout check, B-dot control, rate convergence
+ *
+ * @param[in]  now_ms  Current time
+ * @param[out] dipole  B-dot dipole command (left unchanged on a timeout)
+ */
+static void adcs_detumble_step(uint64_t now_ms, Vec3_t *dipole)
+{
+    /* Check for detumble timeout */
+    if (s_adcs_state.detumble_start_ms > 0 &&
+        (now_ms - s_adcs_state.detumble_start_ms) > ADCS_DETUMBLE_TIMEOUT_MS) {
+        (void)fault_log_add(FAULT_TYPE_ADCS, FAULT_SEVERITY_WARNING,
+                            "Detumble timeout", 0.0);
+        s_adcs_state.fault_count++;
+        /* A fault, not a completed detumble (ADCS_DESIGN 5.2, 5.3) */
+        s_adcs_state.mode = ADCS_MODE_IDLE;
+    } else {
+        /* B-dot control */
+        adcs_compute_bdot(&s_adcs_state.mag, dipole);
+
+        /* Check for rate convergence */
+        if (s_adcs_state.rate_magnitude < ADCS_DETUMBLE_RATE_THRESHOLD) {
+            if (s_adcs_state.settling_start_ms == 0) {
+                s_adcs_state.settling_start_ms = now_ms;
+            } else if ((now_ms - s_adcs_state.settling_start_ms) > ADCS_DETUMBLE_SETTLING_MS) {
+                s_adcs_state.detumble_complete = true;
+                /* ADCS_DESIGN 5.1: detumble complete enters SUNPOINT */
+                s_adcs_state.mode = ADCS_MODE_SUNPOINT;
+                (void)printf("[ADCS] Detumble complete!\n");
+            } else {
+                /* still settling */
+            }
+        } else {
+            s_adcs_state.settling_start_ms = 0;
+        }
+    }
+}
+
+SmartQsoResult_t adcs_update(uint64_t now_ms)
+{
+    if (!s_initialized) {
+        return SMART_QSO_ERROR;
+    }
+
+    /* Read sensors */
+    adcs_read_magnetometer(&s_adcs_state.mag);
+    adcs_read_sun_sensors(&s_adcs_state.sun);
+
+    /* Estimate angular rate from B-dot (simplified) */
+    adcs_estimate_rate(now_ms);
 
     /* Mode-specific control */
     Vec3_t dipole = {0.0, 0.0, 0.0};
 
     switch (s_adcs_state.mode) {
         case ADCS_MODE_DETUMBLE:
-            /* Check for detumble timeout */
-            if (s_adcs_state.detumble_start_ms > 0 &&
-                (now_ms - s_adcs_state.detumble_start_ms) > ADCS_DETUMBLE_TIMEOUT_MS) {
-                (void)fault_log_add(FAULT_TYPE_ADCS, FAULT_SEVERITY_WARNING,
-                                    "Detumble timeout", 0.0);
-                s_adcs_state.fault_count++;
-                /* A fault, not a completed detumble (ADCS_DESIGN 5.2, 5.3) */
-                s_adcs_state.mode = ADCS_MODE_IDLE;
-                break;
-            }
-
-            /* B-dot control */
-            adcs_compute_bdot(&s_adcs_state.mag, &dipole);
-
-            /* Check for rate convergence */
-            if (s_adcs_state.rate_magnitude < ADCS_DETUMBLE_RATE_THRESHOLD) {
-                if (s_adcs_state.settling_start_ms == 0) {
-                    s_adcs_state.settling_start_ms = now_ms;
-                } else if ((now_ms - s_adcs_state.settling_start_ms) > ADCS_DETUMBLE_SETTLING_MS) {
-                    s_adcs_state.detumble_complete = true;
-                    /* ADCS_DESIGN 5.1: detumble complete enters SUNPOINT */
-                    s_adcs_state.mode = ADCS_MODE_SUNPOINT;
-                    (void)printf("[ADCS] Detumble complete!\n");
-                } else {
-                    /* still settling */
-                }
-            } else {
-                s_adcs_state.settling_start_ms = 0;
-            }
+            adcs_detumble_step(now_ms, &dipole);
             break;
 
         case ADCS_MODE_SUNPOINT:

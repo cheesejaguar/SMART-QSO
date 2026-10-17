@@ -23,7 +23,7 @@ This document provides a comprehensive compliance audit of the SMART-QSO flight 
 | 1 | Simple control flow | Partly verified: no `goto`, `setjmp` or `longjmp` in `src/`; recursion not checked by a tool | grep |
 | 2 | Fixed loop bounds | Not verified by a tool | LOOP_BOUNDS.md is a manual review |
 | 3 | No dynamic memory | **Met for flight code:** no flight object references `malloc`, `calloc`, `realloc` or `free` (the simulated HAL is excluded) | ctest `no_dynamic_memory` (`software/flight/scripts/check_no_dynamic_memory.sh`) on every build |
-| 4 | Function length ≤ 60 lines | **Not met:** 10 of 629 functions are longer | `software/flight/scripts/function_length.py`; CI allows no increase (`software/flight/quality/function-length.baseline`) |
+| 4 | Function length ≤ 60 lines | **Met:** none of the 681 functions in `src/` is longer (the last nine were split into helpers, 2026-10-16) | `software/flight/scripts/function_length.py`; CI holds the count at 0 (`software/flight/quality/function-length.baseline`) |
 | 5 | Two assertions per function | **Not met:** 30 assertion uses across 629 functions | Assertions are active in every build since SW-08 |
 | 6 | Smallest scope | Not verified by a tool | — |
 | 7 | Check return values | Partly: results are often discarded with `(void)` | cppcheck (blocking) and clang-tidy (no increase) in CI |

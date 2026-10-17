@@ -73,6 +73,8 @@ static sched_context_t g_sched;
 
 static uint32_t sched_get_time_us(void);
 static void sched_update_cpu_util(uint32_t task_time_us);
+static void sched_record_run_time(task_tcb_t *tcb, uint32_t run_time);
+static void sched_check_deadline(task_handle_t handle, task_tcb_t *tcb, uint32_t run_time);
 static void sched_run_task(task_handle_t handle);
 static task_handle_t sched_find_ready_task(void);
 static void sched_idle_task(void);
@@ -560,6 +562,52 @@ static void sched_update_cpu_util(uint32_t task_time_us)
 }
 
 /**
+ * @brief Record a task's execution time (count, last, min, max, average)
+ */
+static void sched_record_run_time(task_tcb_t *tcb, uint32_t run_time)
+{
+    tcb->stats.run_count++;
+    tcb->stats.last_run_time_us = run_time;
+
+    if (run_time > tcb->stats.max_run_time_us) {
+        tcb->stats.max_run_time_us = run_time;
+    }
+    if (run_time < tcb->stats.min_run_time_us) {
+        tcb->stats.min_run_time_us = run_time;
+    }
+
+    /* Exponential moving average */
+    tcb->stats.avg_run_time_us =
+        ((tcb->stats.avg_run_time_us * (STATS_AVG_FACTOR - 1U)) + run_time) /
+        STATS_AVG_FACTOR;
+}
+
+/**
+ * @brief Count a deadline miss, notify the callback, fault the task after
+ *        SCHED_DEADLINE_MISS_LIMIT consecutive misses
+ */
+static void sched_check_deadline(task_handle_t handle, task_tcb_t *tcb, uint32_t run_time)
+{
+    uint32_t deadline_us = tcb->config.deadline_ms * 1000U;
+    if (deadline_us > 0U && run_time > deadline_us) {
+        tcb->stats.deadline_misses++;
+        tcb->consecutive_misses++;
+
+        /* Notify via callback */
+        if (g_sched.deadline_cb != NULL) {
+            g_sched.deadline_cb(handle, run_time - deadline_us);
+        }
+
+        /* Check for fault condition */
+        if (tcb->consecutive_misses >= SCHED_DEADLINE_MISS_LIMIT) {
+            tcb->state = TASK_STATE_FAULT;
+        }
+    } else {
+        tcb->consecutive_misses = 0U;
+    }
+}
+
+/**
  * @brief Run a specific task
  */
 static void sched_run_task(task_handle_t handle)
@@ -582,39 +630,10 @@ static void sched_run_task(task_handle_t handle)
     uint32_t run_time = sched_get_time_us() - start_time;
 
     /* Update statistics */
-    tcb->stats.run_count++;
-    tcb->stats.last_run_time_us = run_time;
-
-    if (run_time > tcb->stats.max_run_time_us) {
-        tcb->stats.max_run_time_us = run_time;
-    }
-    if (run_time < tcb->stats.min_run_time_us) {
-        tcb->stats.min_run_time_us = run_time;
-    }
-
-    /* Exponential moving average */
-    tcb->stats.avg_run_time_us =
-        ((tcb->stats.avg_run_time_us * (STATS_AVG_FACTOR - 1U)) + run_time) /
-        STATS_AVG_FACTOR;
+    sched_record_run_time(tcb, run_time);
 
     /* Check deadline */
-    uint32_t deadline_us = tcb->config.deadline_ms * 1000U;
-    if (deadline_us > 0U && run_time > deadline_us) {
-        tcb->stats.deadline_misses++;
-        tcb->consecutive_misses++;
-
-        /* Notify via callback */
-        if (g_sched.deadline_cb != NULL) {
-            g_sched.deadline_cb(handle, run_time - deadline_us);
-        }
-
-        /* Check for fault condition */
-        if (tcb->consecutive_misses >= SCHED_DEADLINE_MISS_LIMIT) {
-            tcb->state = TASK_STATE_FAULT;
-        }
-    } else {
-        tcb->consecutive_misses = 0U;
-    }
+    sched_check_deadline(handle, tcb, run_time);
 
     /* Schedule next run */
     tcb->next_run_tick = g_sched.tick_count +

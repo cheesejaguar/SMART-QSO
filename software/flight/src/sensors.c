@@ -322,6 +322,36 @@ static void add_sensor_from_fields(Sensor_t *cur)
     s_sensors[s_num_sensors++] = *cur;
 }
 
+/**
+ * @brief Store one parsed key/value pair in the sensor being built
+ */
+static void set_sensor_field(Sensor_t *cur, const char *key, const char *val)
+{
+    /* Intentional truncation - values are validated externally */
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+#endif
+    if (strcmp(key, "id") == 0) {
+        (void)snprintf(cur->id, sizeof(cur->id), "%s", val);
+    } else if (strcmp(key, "name") == 0) {
+        (void)snprintf(cur->name, sizeof(cur->name), "%s", val);
+    } else if (strcmp(key, "type") == 0) {
+        (void)snprintf(cur->type, sizeof(cur->type), "%s", val);
+    } else if (strcmp(key, "units") == 0) {
+        (void)snprintf(cur->units, sizeof(cur->units), "%s", val);
+    } else if (strcmp(key, "channel") == 0) {
+        (void)snprintf(cur->channel, sizeof(cur->channel), "%s", val);
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+    } else if (strcmp(key, "period_ms") == 0) {
+        cur->period_ms = (uint32_t)strtoul(val, NULL, 10);
+    } else {
+        /* other keys are ignored */
+    }
+}
+
 /*===========================================================================*/
 /* Public API Implementation                                                  */
 /*===========================================================================*/
@@ -379,29 +409,7 @@ SmartQsoResult_t sensors_load_yaml(const char *path)
             continue;
         }
 
-        /* Intentional truncation - values are validated externally */
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-#endif
-        if (strcmp(key, "id") == 0) {
-            (void)snprintf(cur.id, sizeof(cur.id), "%s", val);
-        } else if (strcmp(key, "name") == 0) {
-            (void)snprintf(cur.name, sizeof(cur.name), "%s", val);
-        } else if (strcmp(key, "type") == 0) {
-            (void)snprintf(cur.type, sizeof(cur.type), "%s", val);
-        } else if (strcmp(key, "units") == 0) {
-            (void)snprintf(cur.units, sizeof(cur.units), "%s", val);
-        } else if (strcmp(key, "channel") == 0) {
-            (void)snprintf(cur.channel, sizeof(cur.channel), "%s", val);
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-        } else if (strcmp(key, "period_ms") == 0) {
-            cur.period_ms = (uint32_t)strtoul(val, NULL, 10);
-        } else {
-            /* other keys are ignored */
-        }
+        set_sensor_field(&cur, key, val);
     }
 
     if (have_item) {
