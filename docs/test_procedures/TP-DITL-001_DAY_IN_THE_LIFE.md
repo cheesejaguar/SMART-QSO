@@ -1,10 +1,12 @@
 # TP-DITL-001: Day-in-the-Life Test Procedure
 
 **Document ID**: SQSO-TP-DITL-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
+
+**Requirements exercised:** MRD-002 (autonomy; 24 hours of the 7 days), MRD-071, SYS-215, SYS-304, SRS-F013. This test validates operations procedures and team readiness; it verifies no requirement on its own.
 
 ## 1. Test Overview
 
@@ -352,7 +354,7 @@ NOTES:
 _________________________________
 ```
 
-### 6.2 Anomaly #2: Low Power
+### 6.2 Anomaly #2: Low Power [SRS-F013]
 
 ```
 ANOMALY INJECTION #2
@@ -527,3 +529,4 @@ ACTION ITEMS:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR baseline |
+| 1.1 | 2026-10-16 | SMART-QSO Team | Requirements it exercises listed in the header and §6.2 (finding VV-06) |

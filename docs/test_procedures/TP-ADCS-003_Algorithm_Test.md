@@ -2,9 +2,11 @@
 ## TP-ADCS-003
 
 **Document Number:** SQSO-TP-ADCS-003
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** MRD-061, SYS-421, SYS-422
 
 ---
 
@@ -26,7 +28,7 @@ Verify ADCS attitude determination and control algorithms.
 
 ## 3. PROCEDURE
 
-### 3.1 Attitude Determination (TRIAD)
+### 3.1 Attitude Determination (TRIAD) [MRD-061]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -34,7 +36,7 @@ Verify ADCS attitude determination and control algorithms.
 | 2 | Illuminate known sun angle | Sun sensor correct | |
 | 3 | Verify attitude solution | < 5° error | |
 
-### 3.2 B-dot Detumble
+### 3.2 B-dot Detumble [SYS-421]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -42,7 +44,7 @@ Verify ADCS attitude determination and control algorithms.
 | 2 | Enable B-dot controller | Actuators respond | |
 | 3 | Verify opposing torque | Correct direction | |
 
-### 3.3 Sun Pointing
+### 3.3 Sun Pointing [SYS-422]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -67,3 +69,4 @@ Verify ADCS attitude determination and control algorithms.
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

@@ -1,7 +1,7 @@
 # SMART-QSO Document Register
 
 **Document Number:** SQSO-DOC-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-10-16
 
 ---
@@ -31,7 +31,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | ID | Title | Path | Revision | Status |
 |----|-------|------|----------|--------|
 | SQSO-BL-001 | SMART-QSO Baseline Parameters (Single Source of Truth) | `docs/BASELINE_PARAMETERS.md` | B | Draft; governs where documents disagree (its §0). Records PI decisions D1–D7 |
-| SQSO-DOC-001 | SMART-QSO Document Register | `docs/DOCUMENT_REGISTER.md` | A | Draft |
+| SQSO-DOC-001 | SMART-QSO Document Register | `docs/DOCUMENT_REGISTER.md` | B | Draft |
 | SQSO-ES-001 | SMART-QSO Executive Summary | `docs/EXECUTIVE_SUMMARY.md` | 2.0 | Draft |
 | SQSO-CDS-001 | CubeSat Design Specification Compliance Matrix | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` | A2 | Draft; statuses are design intent, not verified (its notice) |
 | SQSO-COMP-004 | Export Control Assessment | `docs/compliance/EXPORT_CONTROL.md` | A | Draft; its system and Jetson classifications are superseded by SQSO-REG-012 |
@@ -156,47 +156,47 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-TP-001 | SMART-QSO Flatsat Test Procedures | `docs/test/FLATSAT_TEST_PROCEDURES.md` | 1.0 | Draft |
 | SQSO-STC-001 | SMART-QSO System Test Cases | `docs/test/SYSTEM_TEST_CASES.md` | 1.0 | Draft |
 | SQSO-ATP-001 | SMART-QSO Acceptance Test Procedure | `docs/test_procedures/ACCEPTANCE_TEST_PROCEDURE.md` | 1.0 | Draft; no run recorded |
-| TP-ADCS-001 | Test Procedure: ADCS Sensor Test | `docs/test_procedures/TP-ADCS-001_Sensor_Test.md` | A | Draft; no run recorded |
-| SQSO-TP-ADCS-002 | Test Procedure: ADCS Actuator Test | `docs/test_procedures/TP-ADCS-002_Actuator_Test.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-ADCS-003 | Test Procedure: ADCS Algorithm Test | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-DITL-001 | TP-DITL-001: Day-in-the-Life Test Procedure | `docs/test_procedures/TP-DITL-001_DAY_IN_THE_LIFE.md` | 1.0 | Draft; no run recorded |
+| TP-ADCS-001 | Test Procedure: ADCS Sensor Test | `docs/test_procedures/TP-ADCS-001_Sensor_Test.md` | B | Draft; no run recorded |
+| SQSO-TP-ADCS-002 | Test Procedure: ADCS Actuator Test | `docs/test_procedures/TP-ADCS-002_Actuator_Test.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-ADCS-003 | Test Procedure: ADCS Algorithm Test | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-DITL-001 | TP-DITL-001: Day-in-the-Life Test Procedure | `docs/test_procedures/TP-DITL-001_DAY_IN_THE_LIFE.md` | 1.1 | Draft; no run recorded |
 | TP-ENV-001 | Test Procedure: Pre-Environmental Baseline | `docs/test_procedures/TP-ENV-001_Pre_Environmental.md` | A | Draft; no run recorded |
 | TP-ENV-002 | Test Procedure: Vibration Test | `docs/test_procedures/TP-ENV-002_Vibration.md` | A | Draft; no run recorded |
 | TP-ENV-003 | Test Procedure: Thermal Vacuum Test | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | A | Draft; no run recorded |
-| SQSO-TP-ENV-004 | Test Procedure: EMC/EMI Test | `docs/test_procedures/TP-ENV-004_EMC.md` | 1.0 | Draft; no run recorded |
+| SQSO-TP-ENV-004 | Test Procedure: EMC/EMI Test | `docs/test_procedures/TP-ENV-004_EMC.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-ENV-005 | Test Procedure: Deployment Test (Post-Environmental) | `docs/test_procedures/TP-ENV-005_Deployment_Post_Env.md` | 1.0 | Draft; no run recorded |
-| TP-EPS-001 | Test Procedure: EPS Functional Test | `docs/test_procedures/TP-EPS-001_Functional_Test.md` | B | Draft; no run recorded |
+| TP-EPS-001 | Test Procedure: EPS Functional Test | `docs/test_procedures/TP-EPS-001_Functional_Test.md` | C | Draft; no run recorded |
 | TP-EPS-002 | Test Procedure: EPS Load Profile Test | `docs/test_procedures/TP-EPS-002_Load_Profile.md` | A | Draft; no run recorded |
 | SQSO-TP-EPS-003 | Test Procedure: Battery Characterization | `docs/test_procedures/TP-EPS-003_Battery_Characterization.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-EPS-004 | Test Procedure: Solar Array Characterization | `docs/test_procedures/TP-EPS-004_Solar_Array.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-FAT-001 | Test Procedure: Final Acceptance Functional Test | `docs/test_procedures/TP-FAT-001_Final_Functional.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-FAT-002 | Test Procedure: Flight Configuration Verification | `docs/test_procedures/TP-FAT-002_Flight_Config.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-FLATSAT-001 | Test Procedure: Flatsat Software Development | `docs/test_procedures/TP-FLATSAT-001_Software_Development.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-GS-001 | TP-GS-001: Ground Station Validation Test Procedure | `docs/test_procedures/TP-GS-001_Ground_Station_Validation.md` | 1.1 | Draft; no run recorded |
-| SQSO-TP-INT-001 | Test Procedure: EPS Integration | `docs/test_procedures/TP-INT-001_EPS_Integration.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-INT-002 | Test Procedure: OBC Integration | `docs/test_procedures/TP-INT-002_OBC_Integration.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-INT-003 | Test Procedure: RF Subsystem Integration | `docs/test_procedures/TP-INT-003_RF_Integration.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-INT-004 | Test Procedure: ADCS Integration | `docs/test_procedures/TP-INT-004_ADCS_Integration.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-INT-005 | Test Procedure: Jetson Payload Integration | `docs/test_procedures/TP-INT-005_Jetson_Integration.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-INT-006 | Test Procedure: Final Assembly Integration | `docs/test_procedures/TP-INT-006_Final_Assembly.md` | 1.0 | Draft; no run recorded |
+| SQSO-TP-EPS-004 | Test Procedure: Solar Array Characterization | `docs/test_procedures/TP-EPS-004_Solar_Array.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-FAT-001 | Test Procedure: Final Acceptance Functional Test | `docs/test_procedures/TP-FAT-001_Final_Functional.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-FAT-002 | Test Procedure: Flight Configuration Verification | `docs/test_procedures/TP-FAT-002_Flight_Config.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-FLATSAT-001 | Test Procedure: Flatsat Software Development | `docs/test_procedures/TP-FLATSAT-001_Software_Development.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-GS-001 | TP-GS-001: Ground Station Validation Test Procedure | `docs/test_procedures/TP-GS-001_Ground_Station_Validation.md` | 1.2 | Draft; no run recorded |
+| SQSO-TP-INT-001 | Test Procedure: EPS Integration | `docs/test_procedures/TP-INT-001_EPS_Integration.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-INT-002 | Test Procedure: OBC Integration | `docs/test_procedures/TP-INT-002_OBC_Integration.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-INT-003 | Test Procedure: RF Subsystem Integration | `docs/test_procedures/TP-INT-003_RF_Integration.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-INT-004 | Test Procedure: ADCS Integration | `docs/test_procedures/TP-INT-004_ADCS_Integration.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-INT-005 | Test Procedure: Jetson Payload Integration | `docs/test_procedures/TP-INT-005_Jetson_Integration.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-INT-006 | Test Procedure: Final Assembly Integration | `docs/test_procedures/TP-INT-006_Final_Assembly.md` | 1.1 | Draft; no run recorded |
 | TP-JETSON-001 | Test Procedure: Jetson Payload Power Test | `docs/test_procedures/TP-JETSON-001_Power_Test.md` | B | Draft; no run recorded |
-| SQSO-TP-JETSON-002 | Test Procedure: Jetson Thermal Test | `docs/test_procedures/TP-JETSON-002_Thermal_Test.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-JETSON-003 | Test Procedure: Jetson Functional Test | `docs/test_procedures/TP-JETSON-003_Functional_Test.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-MECH-001 | Test Procedure: Mechanical Fit Check | `docs/test_procedures/TP-MECH-001_Fit_Check.md` | 1.0 | Draft; no run recorded |
+| SQSO-TP-JETSON-002 | Test Procedure: Jetson Thermal Test | `docs/test_procedures/TP-JETSON-002_Thermal_Test.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-JETSON-003 | Test Procedure: Jetson Functional Test | `docs/test_procedures/TP-JETSON-003_Functional_Test.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-MECH-001 | Test Procedure: Mechanical Fit Check | `docs/test_procedures/TP-MECH-001_Fit_Check.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-MECH-002 | Test Procedure: Deployable Mechanism Test | `docs/test_procedures/TP-MECH-002_Deployment.md` | 1.0 | Draft; no run recorded |
 | SQSO-TP-MECH-003 | Test Procedure: Deployment Switch Test | `docs/test_procedures/TP-MECH-003_Deployment_Switches.md` | 1.0 | Draft; no run recorded |
-| TP-OBC-001 | Test Procedure: OBC Functional Test | `docs/test_procedures/TP-OBC-001_Functional_Test.md` | A | Draft; no run recorded |
-| SQSO-TP-OBC-002 | Test Procedure: OBC Software Load | `docs/test_procedures/TP-OBC-002_Software_Load.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-OBC-003 | Test Procedure: OBC Timing Verification | `docs/test_procedures/TP-OBC-003_Timing.md` | 1.0 | Draft; no run recorded |
+| TP-OBC-001 | Test Procedure: OBC Functional Test | `docs/test_procedures/TP-OBC-001_Functional_Test.md` | B | Draft; no run recorded |
+| SQSO-TP-OBC-002 | Test Procedure: OBC Software Load | `docs/test_procedures/TP-OBC-002_Software_Load.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-OBC-003 | Test Procedure: OBC Timing Verification | `docs/test_procedures/TP-OBC-003_Timing.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-OBC-004 | Test Procedure: Watchdog Verification | `docs/test_procedures/TP-OBC-004_Watchdog.md` | 1.0 | Draft; no run recorded |
-| TP-RF-001 | Test Procedure: RF Functional Test | `docs/test_procedures/TP-RF-001_Functional_Test.md` | B | Draft; no run recorded |
-| SQSO-TP-RF-002 | Test Procedure: RF Conducted Power | `docs/test_procedures/TP-RF-002_Conducted_Power.md` | 1.0 | Draft; no run recorded |
-| SQSO-TP-RF-003 | Test Procedure: Spurious Emissions | `docs/test_procedures/TP-RF-003_Spurious_Emissions.md` | 1.0 | Draft; no run recorded |
+| TP-RF-001 | Test Procedure: RF Functional Test | `docs/test_procedures/TP-RF-001_Functional_Test.md` | C | Draft; no run recorded |
+| SQSO-TP-RF-002 | Test Procedure: RF Conducted Power | `docs/test_procedures/TP-RF-002_Conducted_Power.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-RF-003 | Test Procedure: Spurious Emissions | `docs/test_procedures/TP-RF-003_Spurious_Emissions.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-RF-004 | Test Procedure: Modulation Quality | `docs/test_procedures/TP-RF-004_Modulation.md` | 1.0 | Draft; no run recorded |
 | SQSO-TP-RF-005 | Test Procedure: Antenna Deployment | `docs/test_procedures/TP-RF-005_Antenna_Deployment.md` | 1.0 | Draft; no run recorded |
 | TP-RF-006 | Test Procedure: Telecommand TX-OFF at the Antenna Port | `docs/test_procedures/TP-RF-006_TX_OFF.md` | Draft | Draft; no run recorded |
 | TP-SYS-001 | Test Procedure: Comprehensive Functional Test | `docs/test_procedures/TP-SYS-001_Comprehensive_Functional.md` | A | Draft; no run recorded |
-| TP-SYS-002 | Test Procedure: Day-In-The-Life Test | `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md` | A | Draft; no run recorded |
+| TP-SYS-002 | Test Procedure: Day-In-The-Life Test | `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md` | B | Draft; no run recorded |
 | SQSO-CAP-001 | Configuration Audit Procedures | `docs/verification/CONFIGURATION_AUDIT_PROCEDURES.md` | 1.1 | Draft |
 | SQSO-CVM-001 | SMART-QSO ConOps Validation Matrix | `docs/verification/CONOPS_VALIDATION_MATRIX.md` | 1.0 | Draft |
 | SQSO-RTM-001 | SMART-QSO Requirements Traceability Matrix | `docs/verification/REQUIREMENTS_TRACEABILITY_MATRIX.md` | 1.2 | Draft |
@@ -308,8 +308,9 @@ index and several citations used ICD numbers that belong to other ICDs; they now
   matrices. One prefix for all documents needs renumbering in `docs/requirements/` and `software/flight/`; decision for
   the PI.
 - **Two requirements traceability matrices**: `docs/requirements/REQUIREMENTS_TRACEABILITY.md` (SMART-QSO-RTM-001) and
-  `docs/verification/REQUIREMENTS_TRACEABILITY_MATRIX.md` (SQSO-RTM-001). To be resolved with the traceability work
-  (finding VV-06).
+  `docs/verification/REQUIREMENTS_TRACEABILITY_MATRIX.md` (SQSO-RTM-001). Both now point to the generated
+  `docs/verification/RTM.csv` (`scripts/gen_rtm.py`, kept current by CI) as the current traceability record; which
+  hand-written matrix to keep is the PI's decision (finding VV-06).
 - **Two rollback procedures**: `docs/operations/SOFTWARE_ROLLBACK_PROCEDURES.md` (SQSO-SRP-001) and
   `docs/software/ROLLBACK_RECOVERY_PROCEDURES.md` (SQSO-RRP-001) cover the same subject.
 - **Subsystem design pairs.** `docs/hardware/ADCS_DESIGN.md`, `EPS_DESIGN.md`, `RF_DESIGN.md` and `PAYLOAD_DESIGN.md`
@@ -328,3 +329,4 @@ index and several citations used ICD numbers that belong to other ICDs; they now
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-10-16 | Initial register (findings PI-17, VV-18) | SMART-QSO Team |
+| B | 2026-10-16 | Revisions of the documents changed by the traceability work; §5 names the generated RTM as the current record (finding VV-06) | SMART-QSO Team |

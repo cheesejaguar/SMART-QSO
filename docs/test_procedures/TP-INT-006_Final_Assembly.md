@@ -2,9 +2,13 @@
 ## TP-INT-006
 
 **Document Number:** SQSO-TP-INT-006
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-001, SYS-002, SYS-003, SYS-004, SYS-005
+
+**To be corrected:** the §8.6 requirement table and §9 still give the mass limit as < 1.33 kg; SYS-002 and §8.6 step 1 give 2.00 kg.
 
 ---
 
@@ -95,7 +99,7 @@ All preceding integration tests must be complete:
 
 ## 8. PROCEDURE
 
-### 8.1 Pre-Assembly Inspection
+### 8.1 Pre-Assembly Inspection [SYS-005]
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
@@ -146,7 +150,7 @@ All preceding integration tests must be complete:
 | 5 | Apply thread locker | Per drawing notes | | |
 | 6 | Final torque all fasteners | Per spec, witness marks | | |
 
-### 8.6 Mass Properties Measurement
+### 8.6 Mass Properties Measurement [SYS-002, SYS-003]
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
@@ -165,7 +169,7 @@ All preceding integration tests must be complete:
 | CG offset Y | < ±2 cm | _____ cm | _____ |
 | CG offset Z | < ±2 cm | _____ cm | _____ |
 
-### 8.7 Dimensional Verification
+### 8.7 Dimensional Verification [SYS-001]
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
@@ -176,7 +180,7 @@ All preceding integration tests must be complete:
 | 5 | Verify rail surface finish | < 1.6 µm Ra | | |
 | 6 | Check for protrusions | None beyond envelope | | |
 
-### 8.8 Deployer Fit Check
+### 8.8 Deployer Fit Check [SYS-001, SYS-004]
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
@@ -256,3 +260,4 @@ Any non-conformance shall be:
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release for CDR |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

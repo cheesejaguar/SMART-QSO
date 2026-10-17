@@ -2,9 +2,11 @@
 ## TP-JETSON-002
 
 **Document Number:** SQSO-TP-JETSON-002
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** SYS-504, SYS-603
 
 ---
 
@@ -24,7 +26,7 @@ Verify Jetson module thermal performance under load conditions.
 
 ---
 
-## 3. PROCEDURE
+## 3. PROCEDURE [SYS-504, SYS-603]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -54,3 +56,4 @@ Verify Jetson module thermal performance under load conditions.
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

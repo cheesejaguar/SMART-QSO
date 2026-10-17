@@ -2,8 +2,10 @@
 ## TP-OBC-001
 
 **Document Number:** TP-OBC-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
+
+**Requirements verified:** SYS-021, SYS-300, SYS-302, SYS-312, SRS-F001, SRS-F040, SRS-F043, SRS-F050, SRS-F052, SRS-F060, SRS-F061, SRS-F062, SRS-I001, SRS-S003, SRS-S004
 
 ---
 
@@ -31,7 +33,7 @@ Verify complete functionality of the On-Board Computer (OBC) subsystem including
 
 ## 4. Procedure
 
-### 4.1 Power-On Sequence
+### 4.1 Power-On Sequence [SYS-300, SRS-F001]
 
 | Step | Action | Expected Result | Measured | P/F |
 |------|--------|-----------------|----------|-----|
@@ -51,7 +53,7 @@ Verify complete functionality of the On-Board Computer (OBC) subsystem including
 | 4 | Check memory usage | < 90% RAM utilized | ______ % | |
 | 5 | Verify no stack overflow | Stack markers intact | ______ | |
 
-### 4.3 Watchdog Operation
+### 4.3 Watchdog Operation [SYS-021, SRS-F050, SRS-F052, SRS-S003]
 
 | Step | Action | Expected Result | Measured | P/F |
 |------|--------|-----------------|----------|-----|
@@ -60,7 +62,7 @@ Verify complete functionality of the On-Board Computer (OBC) subsystem including
 | 3 | Verify reset detection | Reset cause logged | ______ | |
 | 4 | Re-enable watchdog | Normal operation resumes | ______ | |
 
-### 4.4 Interface Tests
+### 4.4 Interface Tests [SYS-302, SRS-I001]
 
 #### 4.4.1 UART Interfaces
 
@@ -95,7 +97,7 @@ Verify complete functionality of the On-Board Computer (OBC) subsystem including
 | DEPLOY_SW | Input | Read | ______ | |
 | RBF_SW | Input | Read | ______ | |
 
-### 4.5 Data Persistence
+### 4.5 Data Persistence [SYS-312, SRS-F060, SRS-F061]
 
 | Step | Action | Expected Result | Measured | P/F |
 |------|--------|-----------------|----------|-----|
@@ -105,7 +107,7 @@ Verify complete functionality of the On-Board Computer (OBC) subsystem including
 | 4 | Power cycle OBC | Data retained | ______ | |
 | 5 | Verify data after reset | Data matches | ______ | |
 
-### 4.6 Fault Detection
+### 4.6 Fault Detection [SRS-F040, SRS-F043, SRS-F062, SRS-S004]
 
 | Step | Fault Injection | Expected Response | Result | P/F |
 |------|-----------------|-------------------|--------|-----|
@@ -151,3 +153,4 @@ Verify complete functionality of the On-Board Computer (OBC) subsystem including
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) | SMART-QSO Team |

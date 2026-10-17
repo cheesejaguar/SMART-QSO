@@ -2,9 +2,13 @@
 ## TP-ENV-004
 
 **Document Number:** SQSO-TP-ENV-004
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
+
+**Requirements verified:** MRD-080 (launch provider EMC), SYS-203
+
+**Not cited until corrected:** §8.3 gives the beacon as 145.825 MHz, which SYS-200 excludes.
 
 ---
 
@@ -129,7 +133,7 @@ This procedure defines the electromagnetic compatibility (EMC) and electromagnet
 - 500 kHz - 2 MHz: 94 - 20log(f/0.5) dBµV
 - 2 MHz - 10 MHz: 60 dBµV
 
-### 8.3 Radiated Emissions (RE102)
+### 8.3 Radiated Emissions (RE102) [SYS-203]
 
 | Step | Action | Pass Criteria |
 |------|--------|---------------|
@@ -242,3 +246,4 @@ Anomalies: ___________
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release for CDR |
+| 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |

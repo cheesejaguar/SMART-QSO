@@ -1,10 +1,12 @@
 # TP-GS-001: Ground Station Validation Test Procedure
 
 **Document ID**: SQSO-TP-GS-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
+
+**Requirements verified:** MRD-070, MRD-071 (ground segment)
 
 ## 1. Purpose
 
@@ -102,7 +104,7 @@ Signature: ___________ Time: ___________
 
 ## 5. Test Procedures
 
-### 5.1 Test 1: Receiver Verification
+### 5.1 Test 1: Receiver Verification [MRD-070]
 
 **Test ID**: GS-001-RX
 **Duration**: 30 minutes
@@ -148,7 +150,7 @@ Step 5: Adjacent channel rejection
 RESULT: [ ] PASS  [ ] FAIL
 ```
 
-### 5.2 Test 2: Packet Decoder Verification
+### 5.2 Test 2: Packet Decoder Verification [MRD-071]
 
 **Test ID**: GS-001-PKT
 **Duration**: 30 minutes
@@ -195,7 +197,7 @@ Step 5: Multiple frame test
 RESULT: [ ] PASS  [ ] FAIL
 ```
 
-### 5.3 Test 3: Telemetry Processing
+### 5.3 Test 3: Telemetry Processing [MRD-071]
 
 **Test ID**: GS-001-TLM
 **Duration**: 30 minutes
@@ -328,7 +330,7 @@ Step 5: Speed test
 RESULT: [ ] PASS  [ ] FAIL
 ```
 
-### 5.6 Test 6: End-to-End Validation
+### 5.6 Test 6: End-to-End Validation [MRD-070, MRD-071]
 
 **Test ID**: GS-001-E2E
 **Duration**: 60 minutes
@@ -429,3 +431,4 @@ QA: _____________ Date: _______
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Space-to-Ground ICD cited by its own number, SQSO-ICD-005 (finding PI-17) |
+| 1.2 | 2026-10-16 | SMART-QSO Team | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
