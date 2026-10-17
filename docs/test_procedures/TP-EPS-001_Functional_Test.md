@@ -2,7 +2,7 @@
 ## TP-EPS-001
 
 **Document Number:** TP-EPS-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Classification:** Development/Qualification Test
 
@@ -27,7 +27,7 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 | Document | Title |
 |----------|-------|
 | SQSO-EPS-001 | EPS Design Document |
-| SQSO-ICD-002 | OBC-EPS Interface Control Document |
+| SMART-QSO-ICD-001 | OBC-EPS Interface Control Document |
 | SQSO-SRS-001 | Software Requirements Specification |
 
 ## 4. Test Article
@@ -215,3 +215,4 @@ All test data shall be recorded in the EPS Test Data Log with:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | OBC-EPS ICD cited by its own number, SMART-QSO-ICD-001 (finding PI-17) | SMART-QSO Team |
