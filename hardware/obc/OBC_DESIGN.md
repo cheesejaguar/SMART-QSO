@@ -4,7 +4,7 @@
 **Document Number:** SQSO-CDH-OBC-001
 **Version:** 1.1
 **Date:** 2026-10-16
-**Status:** CDR Baseline
+**Status:** Draft
 **Supersedes:** `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), merged as Appendix A (finding PI-17)
 
 ---
@@ -928,4 +928,4 @@ OpenOCD / STM32CubeProgrammer
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
-| 1.1 | 2026-10-16 | Merged `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), a second OBC design for the same board, as Appendix A without reconciling it; A.1 lists where the two disagree and what the baseline says; §2.1 notes the baseline MCU; test IDs in A.11.2 aligned with the procedure files (findings PI-17, VV-18) |
+| 1.1 | 2026-10-16 | Merged `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), a second OBC design for the same board, as Appendix A without reconciling it; A.1 lists where the two disagree and what the baseline says; §2.1 notes the baseline MCU; test IDs in A.11.2 aligned with the procedure files; status changed from "CDR Baseline" to Draft, as no CDR has been held (findings PI-17, VV-18) |

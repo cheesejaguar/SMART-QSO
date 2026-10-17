@@ -315,8 +315,10 @@ index and several citations used ICD numbers that belong to other ICDs; they now
 - **Subsystem design pairs.** `docs/hardware/ADCS_DESIGN.md`, `EPS_DESIGN.md`, `RF_DESIGN.md` and `PAYLOAD_DESIGN.md`
   overlap the documents in `hardware/adcs/`, `hardware/eps/`, `hardware/rf/` and `hardware/payload-jetson/`, as the two
   OBC designs did.
-- **Numbers cited but carried by no document**, for example SQSO-SRS-001, SQSO-SDD-001, SQSO-SEMP-001 and SQSO-CMP-001
-  (the documents carry SMART-QSO- numbers), SQSO-EPS-001, SQSO-RF-001, SQSO-OBC-001, SQSO-VVM-001 and SQSO-GSD-001.
+- **Numbers cited but carried by no document**: SQSO-SRS-001 (cited in seven documents; the SRS carries
+  SMART-QSO-SRS-001), SQSO-EPS-001, SQSO-RF-001, SQSO-OBC-001, SQSO-VVM-001, SQSO-GSD-001, SQSO-HW-OBC-001,
+  SQSO-HW-ADCS-001, SQSO-HW-RF-001, SQSO-HW-001, SQSO-HW-004, SQSO-SW-001 and SMART-QSO-RISK-001. SQSO-ICD-011 and
+  SQSO-ICD-012 are reserved in the ICD master for interfaces not yet written.
 - **Test-procedure IDs cited with no procedure written**: TP-ENV-006, TP-EPS-005 and -006, TP-FLATSAT-002 to -007,
   TP-GSE-001, TP-OBC-005 to -007, TP-PAY-001 to -007, TP-REC-001 and -002, TP-RF-007. Other procedure-ID families
   (E2E-…, TP-E2E-…, STC-…) are not yet checked.

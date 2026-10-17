@@ -3,7 +3,7 @@
 **Document Number:** SQSO-CAP-001
 **Version:** 1.1
 **Date:** 2026-10-16
-**Status:** CDR Baseline
+**Status:** Draft
 **Reference:** NPR 7120.5 Section 3.4, NPR 7123.1 SE Process 13
 **Supersedes:** `docs/reviews/CONFIGURATION_AUDIT_CHECKLIST.md` (SQSO-CA-001) and `docs/reviews/CONFIGURATION_AUDIT_CHECKLISTS.md` (SQSO-CAC-001), merged here (finding PI-17)
 
@@ -798,4 +798,4 @@ Project Manager: _____________ Date: _______
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
-| 1.1 | 2026-10-16 | SMART-QSO Team | Merged SQSO-CA-001 and SQSO-CAC-001, which duplicated this document (finding PI-17): new FCA items 015–016, 050–065; new PCA items 006–007, 024–026, 040–065; combined report and finding templates (§7.3–7.5); resolution times (§8.3); system-level checklists (Appendix B), with values that disagreed with the baseline replaced by baseline values and the rest marked TBR. CMP and SRS cited by their own numbers |
+| 1.1 | 2026-10-16 | SMART-QSO Team | Merged SQSO-CA-001 and SQSO-CAC-001, which duplicated this document (finding PI-17): new FCA items 015–016, 050–065; new PCA items 006–007, 024–026, 040–065; combined report and finding templates (§7.3–7.5); resolution times (§8.3); system-level checklists (Appendix B), with values that disagreed with the baseline replaced by baseline values and the rest marked TBR. CMP and SRS cited by their own numbers. Status changed from "CDR Baseline" to Draft: no CDR has been held (BASELINE §1) |
