@@ -26,12 +26,13 @@ a conventional transponder and template beacon.
 | Feature | Baseline |
 |---------|----------|
 | Form factor | 1U CubeSat, 100 × 100 × 113.5 mm (CDS Rev 14.1) |
-| Mass | ≈ 1.44 kg CBE; ≤ 1.7 kg MEV; limit 2.00 kg or the dispenser limit |
-| Power | 16 triple-junction cells (body + two deployable wings): ≈ 2.4 W EOL orbit average tumbling, ≈ 3.6 W sun-pointed (audit estimate) |
-| Battery | 4S1P Li-ion 18650, ≈ 50 Wh |
+| Mass | Limit 2.00 kg or the dispenser limit. BASELINE §4: CBE ≈ 1.51 kg, MEV ≤ 1.75 kg. The bottom-up [mass budget](environment/MASS_BUDGET.md) v2.0 gives CBE 1.69 kg and a predicted 1.92–2.00 kg, leaving 0–4 % margin; PI decision pending |
+| Power | 16 triple-junction cells (body + two deployable wings): ≈ 2.4 W EOL orbit average tumbling, ≈ 3.6 W sun-pointed (audit estimate, BASELINE §5); 2.14 W tumbling once self-shadowing is included ([array analysis](../hardware/eps/SOLAR_ARRAY_DESIGN.md) §9) |
+| Battery | 4S1P Li-ion 18650, ≈ 50 Wh; eclipse depth of discharge 1.3–2.0 % against a 10 % limit ([battery design](../hardware/eps/BATTERY_DESIGN.md) §3) |
 | Flight computer | STM32L4R5ZI, FreeRTOS (flight software currently runs only as a host simulation) |
 | AI payload | Jetson Orin Nano 8 GB module, 7 W mode, bursts ≤ 120 s, duty ≤ 5–10 %; model to be selected by measured energy |
 | Radio | Downlink 145.800–146.000 MHz and uplink 435–438 MHz (IARU to coordinate); ≤ 1 W; FM transponder plus 1200 bps AX.25 beacon; authenticated telecommand with a hardware TX-OFF path |
+| Link | 1200 bps beacon at 0.5 W closes from 5° elevation with +7.7 dB for a 12 dBic station (+4.7 dB in the conservative antenna-pattern case); analysis, [link budget](environment/LINK_BUDGET_ANALYSIS.md) v2.0 |
 | Orbit | Sun-synchronous, ≤ 500 km deployment (525 km maximum); commercial rideshare in 2028 (ISS deployment as backup) |
 | Design life | 2 years (12 months minimum); passive re-entry within the FCC 5-year rule |
 
@@ -58,7 +59,7 @@ AI-scheduled transponder + AI beacon → Template beacon + scheduled transponder
 ### Power-aware operations
 - AI bursts only when sunlit, SOC ≥ 55 % and within temperature limits; duty ≤ 5 % tumbling, ≤ 10 % sun-pointed
 - Transponder duty ≤ 25 %, power-gated
-- Power allocation closes with +37 % (tumbling) and +67 % (sun-pointed) margin. This is an allocation, not yet a simulation
+- Power allocation closes with +33 % (tumbling) and +63 % (sun-pointed) margin (BASELINE §5). This is an allocation, not yet a simulation; with array self-shadowing the tumbling margin is +19 %, below the 20 % requirement
 
 ## Top Risks
 
@@ -97,3 +98,4 @@ NPR 7150.2D is pending. No standard is yet demonstrated compliant.
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | "CDR release" (status and budget figures withdrawn by the funding audit) |
 | 2.0 | 2026-10-14 | Funding audit | Rewritten from BASELINE_PARAMETERS with evidenced status |
+| 2.1 | 2026-10-16 | Funding audit | Link, mass, power and battery rows cite the re-issued budgets (TB-05, TB-06, TB-08, TB-14, PI-14); power margins updated to BASELINE Rev B |

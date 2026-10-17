@@ -1,6 +1,15 @@
 # Deployable Solar Panel Trade Study for SMART-QSO 1U CubeSat
 ## COTS Solutions Evaluation and Recommendation
 
+> **Funding audit notice (2026-10-16, finding TB-14): power figures superseded.** The governing array layout and
+> power-versus-attitude table are in `hardware/eps/SOLAR_ARRAY_DESIGN.md` (v2.0): 16 cells, 2 on each long body face
+> and 2 per side on two 1U-face wings, giving 2.14–2.39 W EOL orbit average tumbling and 3.38–3.59 W sun-pointed
+> (analysis). The vendor figures below were never sourced (no datasheets are in the repository) and several are
+> physically impossible: "2S4P per panel" puts 8 cells on a 100 × 50 mm panel, but one 40 × 80 mm cell is 30 cm²; and
+> 50 cm² of 30 % cells can deliver at most 1361 W/m² × 0.0050 m² × 0.30 = 2.0 W, so two such panels cannot give 4.8 W
+> (and are never both normal to the sun). The vendor comparison must be redone against the baseline layout with
+> datasheets before any selection.
+
 ### Executive Summary
 
 This trade study evaluates Commercial Off-The-Shelf (COTS) deployable solar panel solutions for the SMART-QSO 1U CubeSat mission. The analysis considers multiple vendors including GomSpace, ISIS, EnduroSat, and Pumpkin Space Systems, evaluating their solutions against mission requirements for power generation, deployment reliability, mass constraints, and cost. The study recommends the **GomSpace NanoPower Solar Panel System** as the optimal solution, providing the best balance of performance, reliability, and mission compatibility.
@@ -10,12 +19,12 @@ This trade study evaluates Commercial Off-The-Shelf (COTS) deployable solar pane
 ## 1.0 Introduction
 
 ### 1.1 Background
-The SMART-QSO mission requires deployable solar panels to provide sufficient power for the AI payload (Jetson Orin Nano Super) while maintaining the 1U CubeSat form factor. The mission's power requirements demand a solar array capable of generating 4.8W at beginning of life (BOL) with reliable deployment mechanisms.
+The SMART-QSO mission requires deployable solar panels to provide sufficient power for the AI payload (Jetson Orin Nano Super) while maintaining the 1U CubeSat form factor. The governing generation values are in `docs/BASELINE_PARAMETERS.md` §5 and `hardware/eps/SOLAR_ARRAY_DESIGN.md` §9 (the earlier 4.8 W BOL figure is withdrawn).
 
 ### 1.2 Mission Requirements
-- **Power Generation**: ≥4.8W BOL, ≥4.2W end of life (EOL)
+- **Power Generation**: EOL orbit average 2.39 W tumbling and 3.58 W sun-pointed (BASELINE §5; 2.14 W tumbling with self-shadowing, SOLAR_ARRAY_DESIGN §9.3)
 - **Form Factor**: 1U CubeSat (100mm × 100mm × 113.5mm)
-- **Mass Budget**: ≤200g for solar panel system
+- **Mass Budget**: cells, substrates and wing hinges ≈ 238 g CBE (`docs/environment/MASS_BUDGET.md` rows 3–5)
 - **Deployment Reliability**: >99% deployment success probability
 - **Mission Duration**: 2-year design life with 5-year goal
 - **Environmental**: Launch vehicle vibration, thermal vacuum, radiation
@@ -104,8 +113,8 @@ The SMART-QSO mission requires deployable solar panels to provide sufficient pow
 - **Panel Configuration**: 2 deployable panels, 1 per side
 - **Panel Dimensions**: 100mm × 50mm × 2mm per panel
 - **Solar Cell Type**: Triple-junction GaAs (30% efficiency)
-- **Cell Configuration**: 2S4P per panel, 4S4P total
-- **Peak Power**: 4.8W BOL, 4.2W EOL
+- **Cell Configuration**: ~~2S4P per panel, 4S4P total~~ withdrawn (8 cells do not fit on the stated panel; see notice)
+- **Peak Power**: ~~4.8W BOL, 4.2W EOL~~ withdrawn (exceeds what the stated panel area can deliver; see notice)
 - **Deployment Mechanism**: Spring-loaded with retention pins
 - **Deployment Time**: <5 seconds
 - **Mass**: 180g total system
@@ -138,8 +147,8 @@ The SMART-QSO mission requires deployable solar panels to provide sufficient pow
 - **Panel Configuration**: 2 deployable panels, 1 per side
 - **Panel Dimensions**: 100mm × 55mm × 2.5mm per panel
 - **Solar Cell Type**: Triple-junction GaAs (28% efficiency)
-- **Cell Configuration**: 2S4P per panel, 4S4P total
-- **Peak Power**: 4.6W BOL, 4.0W EOL
+- **Cell Configuration**: ~~2S4P per panel, 4S4P total~~ withdrawn (8 cells do not fit on the stated panel; see notice)
+- **Peak Power**: ~~4.6W BOL, 4.0W EOL~~ withdrawn (exceeds what the stated panel area can deliver; see notice)
 - **Deployment Mechanism**: Spring-loaded with cable release
 - **Deployment Time**: <3 seconds
 - **Mass**: 195g total system
@@ -172,8 +181,8 @@ The SMART-QSO mission requires deployable solar panels to provide sufficient pow
 - **Panel Configuration**: 2 deployable panels, 1 per side
 - **Panel Dimensions**: 100mm × 48mm × 2.2mm per panel
 - **Solar Cell Type**: Triple-junction GaAs (29% efficiency)
-- **Cell Configuration**: 2S4P per panel, 4S4P total
-- **Peak Power**: 4.5W BOL, 3.9W EOL
+- **Cell Configuration**: ~~2S4P per panel, 4S4P total~~ withdrawn (8 cells do not fit on the stated panel; see notice)
+- **Peak Power**: ~~4.5W BOL, 3.9W EOL~~ withdrawn (exceeds what the stated panel area can deliver; see notice)
 - **Deployment Mechanism**: Spring-loaded with retention pins
 - **Deployment Time**: <4 seconds
 - **Mass**: 175g total system
@@ -206,8 +215,8 @@ The SMART-QSO mission requires deployable solar panels to provide sufficient pow
 - **Panel Configuration**: 2 deployable panels, 1 per side
 - **Panel Dimensions**: 100mm × 52mm × 2.3mm per panel
 - **Solar Cell Type**: Triple-junction GaAs (27% efficiency)
-- **Cell Configuration**: 2S4P per panel, 4S4P total
-- **Peak Power**: 4.3W BOL, 3.7W EOL
+- **Cell Configuration**: ~~2S4P per panel, 4S4P total~~ withdrawn (8 cells do not fit on the stated panel; see notice)
+- **Peak Power**: ~~4.3W BOL, 3.7W EOL~~ withdrawn (exceeds what the stated panel area can deliver; see notice)
 - **Deployment Mechanism**: Spring-loaded with retention pins
 - **Deployment Time**: <6 seconds
 - **Mass**: 190g total system
@@ -241,6 +250,8 @@ The SMART-QSO mission requires deployable solar panels to provide sufficient pow
 ### 4.1 Performance Analysis
 
 #### 4.1.1 Power Generation Comparison
+
+*Superseded: the power values in this table are not physically possible (see the notice at the top).*
 | Vendor | BOL Power | EOL Power | Efficiency | Mission Compliance |
 |--------|-----------|-----------|------------|-------------------|
 | GomSpace | 4.8W | 4.2W | 30% | ✅ EXCELLENT |
