@@ -298,9 +298,9 @@ static void update_mission_state(uint64_t tick)
 
     /* Simple SOC integration */
     double discharge = eps_is_payload_enabled() ? 0.0040 : 0.0010;
-    double charge = 0.0020;
 
     if (s_sunlit) {
+        double charge = 0.0020;
         s_soc += charge;
     } else {
         s_soc -= discharge;
@@ -781,6 +781,7 @@ int main(void)
     }
 
     result = run_main_loop();
+    /* cppcheck-suppress knownConditionTrueFalse ; run_main_loop() returns only OK today; kept for when it can fail */
     if (result != SMART_QSO_OK) {
         (void)fprintf(stderr, "[SYSTEM] Main loop error\n");
     }

@@ -67,6 +67,7 @@ static bool read_software_timer(Sensor_t *self, double *out_value, char *out_tex
     return true;
 }
 
+/* cppcheck-suppress constParameterCallback ; SensorReadFn_t takes a non-const Sensor_t * */
 static bool read_eps_voltage(Sensor_t *self, double *out_value, char *out_text)
 {
     (void)out_text;
@@ -91,6 +92,7 @@ static bool read_eps_voltage(Sensor_t *self, double *out_value, char *out_text)
     return true;
 }
 
+/* cppcheck-suppress constParameterCallback ; SensorReadFn_t takes a non-const Sensor_t * */
 static bool read_eps_current(Sensor_t *self, double *out_value, char *out_text)
 {
     (void)out_text;
@@ -560,7 +562,7 @@ size_t sensors_format_telemetry(char *buffer, size_t buffer_len)
     size_t offset = 0;
 
     for (size_t i = 0; i < s_num_sensors; ++i) {
-        Sensor_t *s = &s_sensors[i];
+        const Sensor_t *s = &s_sensors[i];
         int written;
 
         if (s->value_type == SENSOR_VALUE_NUMERIC) {

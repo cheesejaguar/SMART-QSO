@@ -44,8 +44,11 @@ void SysTick_Handler(void);   /* hal_stm32l4.c */
 typedef void (*Vector_t)(void);
 
 typedef struct {
+    /* cppcheck-suppress unusedStructMember ; read by the core at reset, not by C code */
     const uint32_t *initial_sp;
+    /* cppcheck-suppress unusedStructMember ; read by the core on an exception */
     Vector_t core[15];
+    /* cppcheck-suppress unusedStructMember ; read by the core on an interrupt */
     Vector_t irq[IRQ_VECTOR_COUNT];
 } VectorTable_t;
 

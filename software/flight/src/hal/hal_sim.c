@@ -147,12 +147,14 @@ SmartQsoResult_t hal_init(void) {
 
     /* Initialize timer first (needed by other modules) */
     result = hal_timer_init();
+    /* cppcheck-suppress knownConditionTrueFalse ; the simulated timer cannot fail, the flight HAL's can */
     if (result != SMART_QSO_OK) {
         return result;
     }
 
     /* Initialize GPIO */
     result = hal_gpio_init();
+    /* cppcheck-suppress knownConditionTrueFalse ; the simulated GPIO cannot fail, the flight HAL's can */
     if (result != SMART_QSO_OK) {
         return result;
     }
@@ -312,7 +314,7 @@ SmartQsoResult_t hal_i2c_read(HalI2cBus_t bus, uint8_t addr,
         return SMART_QSO_ERROR_NULL_PTR;
     }
 
-    SimI2cDevice_t *dev = find_i2c_device(addr);
+    const SimI2cDevice_t *dev = find_i2c_device(addr);
     if (!dev) {
         return SMART_QSO_ERROR;
     }
@@ -330,7 +332,7 @@ SmartQsoResult_t hal_i2c_write_read(HalI2cBus_t bus, uint8_t addr,
         return SMART_QSO_ERROR_NULL_PTR;
     }
 
-    SimI2cDevice_t *dev = find_i2c_device(addr);
+    const SimI2cDevice_t *dev = find_i2c_device(addr);
     if (!dev) {
         return SMART_QSO_ERROR;
     }
