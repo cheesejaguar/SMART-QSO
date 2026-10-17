@@ -160,9 +160,9 @@ The two SVDs merged here gave different counts (42 unit tests; "22 suites, 300+ 
 
 | Tool | Findings | Resolved | Open |
 |------|----------|----------|------|
-| clang-tidy | 741 | - | 741 |
+| clang-tidy | 58 | - | 58 |
 | cppcheck | 0 (with the CI suppression list) | - | 0 |
-| cppcheck MISRA addon | 1,458 | - | 1,458 |
+| cppcheck MISRA addon | 1,190 | - | 1,190 |
 
 The open counts are CI's no-regression baselines (`software/flight/quality/`); CI allows no increase.
 

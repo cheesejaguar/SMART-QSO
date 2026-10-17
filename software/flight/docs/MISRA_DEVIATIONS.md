@@ -28,7 +28,7 @@ This document covers:
 > No MISRA tool had been run. An indicative run of the cppcheck MISRA addon during the audit found about 1,520
 > findings, 1,187 of them not covered by any deviation below. CI now runs that checker on every change
 > (`.github/workflows/ci.yml`, job "MISRA C:2012 Check"). It allows no increase over `software/flight/quality/misra.baseline`
-> and archives the report; the baseline, set from CI with cppcheck 2.13.0, is 1,458 findings. The cppcheck addon is
+> and archives the report; the baseline, set from CI with cppcheck 2.13.0, is 1,190 findings (1,458 before the 2026-10-16 cleanup). The cppcheck addon is
 > not a qualified MISRA tool. The deviation records in §4 are proposals,
 > to be confirmed against a qualified tool's output.
 

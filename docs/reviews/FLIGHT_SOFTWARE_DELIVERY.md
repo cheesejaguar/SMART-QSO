@@ -116,7 +116,7 @@ Every figure below comes from a CI configuration or a file in the repository, or
 | Unit tests | **31 CMocka suites, 428 test cases**, all passing, plus the `no_dynamic_memory` check (JPL rule 3): 32 CTest entries | `software/flight/tests/CMakeLists.txt`; reproduced locally on 2026-10-16 with `cmake -S software/flight -B <dir> && cmake --build <dir> && ctest --test-dir <dir>` (macOS, Apple clang, CMocka) |
 | Tests not run | Six Unity suites (`test_adcs`, `test_beacon`, `test_scheduler`, `test_system_init`, `test_telemetry`, `test_telemetry_flow`), the integration suites and the regression suite are not built (finding SW-09) | Comment block in `software/flight/tests/CMakeLists.txt` |
 | Line coverage | **68.2 %** over every compiled source in `software/flight/src` (gcovr 7.0, 2026-10-16). CI fails below **65 %** (`COVERAGE_MIN_LINE`). Branch and MC/DC coverage are not measured | `.github/workflows/ci.yml`, job "Build and Test", step "Coverage gate" |
-| Static analysis | Ratchets that block new findings; they do not show compliance. clang-tidy: **741** findings; MISRA C:2012 (cppcheck addon, not a qualified MISRA tool): **1,458** findings; functions over 60 lines: **10** | `software/flight/quality/clang-tidy.baseline`, `misra.baseline`, `function-length.baseline`; `.github/workflows/ci.yml` jobs "Static Analysis" and "MISRA C:2012 Check" |
+| Static analysis | Ratchets that block new findings; they do not show compliance. clang-tidy: **58** findings; MISRA C:2012 (cppcheck addon, not a qualified MISRA tool): **1,190** findings; functions over 60 lines: **0** | `software/flight/quality/clang-tidy.baseline`, `misra.baseline`, `function-length.baseline`; `.github/workflows/ci.yml` jobs "Static Analysis" and "MISRA C:2012 Check" |
 | Sanitizers | Address and undefined-behaviour sanitizers on the unit tests and on about 20 s of simulated operation | `.github/workflows/flight-software-ci.yml`, job "Sanitizer Checks" |
 | Target build | The flight library cross-compiles for Cortex-M4 with `-Werror`; CI checks that key symbols are present | `.github/workflows/flight-software-ci.yml`, job "STM32L4 Cross-Compile (library)" |
 | Integration / hardware tests | **None run.** No hardware exists | — |
@@ -183,7 +183,7 @@ loads the fault log; KI-003 says the beacon is fixed at 60 s, but the interval i
 |------------|-----------|
 | No RTOS, startup code or linker script; no linked flight image | `software/flight/CMakeLists.txt` (target section) |
 | Unity, integration and regression suites not built | SW-09 |
-| Static-analysis findings not yet worked down (741 clang-tidy, 1,458 MISRA) | `software/flight/quality/` |
+| Static-analysis findings not yet worked down (58 clang-tidy, 1,190 MISRA; most MISRA findings are rules 15.5 and 21.6, deviations awaiting the PI) | `software/flight/quality/` |
 | No hardware-in-the-loop or flatsat testing | `software/flight/tests/hil/HIL_TEST_PLAN.md` |
 
 ### 6.3 Accepted Deviations
