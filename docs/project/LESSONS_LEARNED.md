@@ -193,7 +193,7 @@ what is tested.
 
 **Recommendation**: Adopt the coding standard from day one; run static analysis in CI; fix findings as they appear.
 
-**Planned mitigation**: CI blocks new findings. The current baselines are 1,190 MISRA C:2012 findings (cppcheck addon, not
+**Planned mitigation**: CI blocks new findings. The current baselines are 1,189 MISRA C:2012 findings (cppcheck addon, not
 a qualified MISRA tool) and 58 clang-tidy findings (`software/flight/quality/`). The code is not MISRA-compliant.
 
 ---
