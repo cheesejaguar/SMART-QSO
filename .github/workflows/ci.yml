@@ -21,9 +21,10 @@ on:
 env:
   BUILD_TYPE: Release
   # Line coverage of software/flight/src must not fall below this. Every compiled
-  # source counts, including ones no test runs: measured 68.2 % with gcovr 7.0 on
-  # 2026-10-16. Raise it as tests land; never lower it to absorb a drop.
-  COVERAGE_MIN_LINE: 65
+  # source counts, including ones no test runs: measured 82.7 % in this job (the
+  # Release build with coverage, gcovr 7.0) on 2026-10-16. Raise it as tests land;
+  # never lower it to absorb a drop.
+  COVERAGE_MIN_LINE: 80
 
 jobs:
   ###########################################################################
