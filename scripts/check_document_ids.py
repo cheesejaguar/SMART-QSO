@@ -14,7 +14,8 @@ The check fails when:
   * one document ID is the header of more than one file;
   * one test-procedure ID is defined in more than one file;
   * a document or procedure with an ID is missing from docs/DOCUMENT_REGISTER.md;
-  * a register row names an ID that its file no longer carries (stale row).
+  * a register row names an ID that its file no longer carries (stale row);
+  * a register row's revision differs from the revision in its document's header.
 
 IDs are compared exactly as written: SMART-QSO-SDP-001 and SQSO-SDP-001 are
 different IDs (the two prefixes are a known inconsistency, listed in the
@@ -47,6 +48,9 @@ HEADER = re.compile(r"^\*\*Document (?:Number|ID)(?::\*\*|\*\*:)\s*(" + DOC_ID +
 TP_ID = re.compile(r"^(?:SQSO-)?(TP-[A-Z]+-\d{3})$")
 TP_HEADING = re.compile(r"^#{1,6}\s+(?:\d+(?:\.\d+)*\.?\s+)?(TP-(?:[A-Z]+-)?\d{3}):", re.M)
 REGISTER_ROW = re.compile(r"^\|\s*(" + DOC_ID + r")\s*\|.*?`([^`]+\.md)`", re.M)
+# ID | title | path | revision | ...: the revision cell, to compare with the document
+REGISTER_REVISION = re.compile(r"^\|\s*(" + DOC_ID + r")\s*\|[^|]*\|\s*`([^`]+\.md)`\s*\|\s*([^|\s(]+)", re.M)
+HEADER_REVISION = re.compile(r"^\*\*(?:Revision|Version)(?::\*\*|\*\*:)\s*([^\s(|]+)", re.M)
 FENCE = re.compile(r"```.*?```", re.S)
 
 
@@ -143,6 +147,20 @@ def check(root: Path = REPO) -> List[str]:
     for ident, rel in sorted(listed - items):
         problems.append(f"{REGISTER}: stale row {ident} `{rel}` "
                         f"(that file does not carry or define this ID)")
+
+    # A document's revision bumped without its register row
+    register_path = root / REGISTER
+    rows = REGISTER_REVISION.findall(register_path.read_text(encoding="utf-8")) if register_path.exists() else []
+    for ident, rel, rev in rows:
+        doc_path = root / rel
+        if not doc_path.exists():
+            continue
+        text = doc_path.read_text(encoding="utf-8", errors="replace")
+        if _header_id(text) != ident:
+            continue    # a procedure defined inside a larger document: the cell names its section
+        match = HEADER_REVISION.search("\n".join(text.splitlines()[:HEADER_LINES]))
+        if match and match.group(1) != rev:
+            problems.append(f"{REGISTER}: {ident} is at revision {rev}, but {rel} says {match.group(1)}")
     return problems
 
 

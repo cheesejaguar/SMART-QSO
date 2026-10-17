@@ -10,6 +10,7 @@
 # - Requirements traceability: counts may not change without the baseline;
 #   the generated RTM (docs/verification/RTM.csv) is current
 # - Document control: each document ID on one file, every ID in docs/DOCUMENT_REGISTER.md
+# - TBD/TBR register: docs/TBD_REGISTER.md current, each item ID unique, counts at baseline
 # - Secret scan (no keys or private-key material in tracked files)
 ###############################################################################
 
@@ -79,6 +80,9 @@ jobs:
 
       - name: RTM is current
         run: python3 scripts/gen_rtm.py --check
+
+      - name: TBD register is current
+        run: python3 scripts/tbd_register.py --check
 
       - name: Document IDs are unique and registered
         run: python3 scripts/check_document_ids.py --check

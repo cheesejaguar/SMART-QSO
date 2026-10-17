@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MFG-002
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** EEE-INST-002, MIL-STD-975, NASA Ames SmallSat Heritage
 
@@ -388,7 +388,7 @@ This document covers:
 | Parameter | Value |
 |-----------|-------|
 | Orbit altitude | 400-500 km |
-| Inclination | TBD (depends on launch) |
+| Inclination | ≈ 97.4°, sun-synchronous (`docs/BASELINE_PARAMETERS.md` §3) |
 | Mission duration | 12-18 months |
 | Total Ionizing Dose | ~5 krad (with 2mm Al) |
 | SEE flux | Low (LEO) |
@@ -423,3 +423,4 @@ This document covers:
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | A.1 | 2026-10-16 | §6.4 battery pack configuration aligned with BASELINE §5 (PI-14) | Funding audit |
+| B | 2026-10-16 | §13.1 inclination TBD replaced by the baseline value, ≈ 97.4° sun-synchronous (`docs/BASELINE_PARAMETERS.md` §3; finding VV-17) | SMART-QSO Team |

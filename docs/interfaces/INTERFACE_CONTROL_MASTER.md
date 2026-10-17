@@ -242,9 +242,9 @@ PI-17). Some ICDs carry the prefix SMART-QSO- and others SQSO-; both are listed 
 
 | ID | Item | Owner | Target |
 |----|------|-------|--------|
-| TBD-ICD-001 | Launch provider ICD | Systems | Manifest |
-| TBD-ICD-002 | Deployer interface | Mechanical | CDR+30d |
-| TBD-ICD-003 | Ground station protocol | Ground | CDR |
+| TBD-ICM-001 | Launch provider ICD | Systems | Manifest |
+| TBD-ICM-002 | Deployer interface | Mechanical | CDR+30d |
+| TBD-ICM-003 | Ground station protocol | Ground | CDR |
 
 ---
 
@@ -254,4 +254,4 @@ PI-17). Some ICDs carry the prefix SMART-QSO- and others SQSO-; both are listed 
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §3 index renumbered to the IDs the ICDs carry; Space-to-Ground and Launch Provider ICDs added; statuses set to Draft or Not written; diagram and §8.2 numbers corrected (finding PI-17) | SMART-QSO Team |
-| C | 2026-10-16 | Local TBDs numbered TBD-ICD-001 to -003, so they do not collide with the specifications' TBD-001 and TBD-002 (finding VV-06) | SMART-QSO Team |
+| C | 2026-10-16 | §10 TBD IDs made unique to this document: TBD-001 to TBD-003 became TBD-ICM-001 to TBD-ICM-003 (finding VV-17) | SMART-QSO Team |

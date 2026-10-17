@@ -1,7 +1,7 @@
 # Software Requirements Specification (SRS)
 
 **Document Number**: SMART-QSO-SRS-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 **Status**: Preliminary
 
@@ -129,6 +129,8 @@ Requirements are identified as:
 | SRS-F043 | The software shall enter SAFE mode on critical faults | T | High |
 | SRS-F044 | The software shall attempt recovery from SAFE mode when SOC improves | T | Medium |
 | SRS-F045 | The software shall track fault statistics across resets | T | Medium |
+
+**Proposed (PI to ratify), SRS-F040, TBR-SRS-002:** "The software shall detect each fault type in the fault response matrix (`docs/software/SOFTWARE_DESIGN.md` §3.3.3) and, within 10 s of the fault condition starting, write one fault-log entry with time, fault type, severity and data." Verification: Test. Inject each listed fault type in the software-in-the-loop build and on the flatsat; pass if each produces one entry with the right type and severity. "All fault conditions" cannot be tested because the set is open; the list makes it finite. 10 s is one health-check cycle in the current flight code. The matrix lists 9 fault types and the flight code (`software/flight/include/smart_qso.h`) has 22, so the list itself is part of this item.
 
 ### 3.6 Watchdog
 
@@ -284,9 +286,10 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 
 | ID | Item | Resolution Date |
 |----|------|-----------------|
-| TBD-001 | Exact beacon interval range | PDR |
-| TBD-002 | Uplink command set definition | CDR |
-| TBR-001 | Watchdog timeout value (currently 30s) | PDR |
+| TBD-SRS-001 | Exact beacon interval range | PDR |
+| TBD-SRS-002 | Uplink command set definition | CDR |
+| TBR-SRS-001 | Watchdog timeout value (currently 30s) | PDR |
+| TBR-SRS-002 | SRS-F040 ("all fault conditions") cannot be tested; PI ratifies, amends or rejects the proposed wording beneath §3.5 (finding VV-16) | TBD |
 
 ---
 
@@ -306,4 +309,5 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
-| 1.1 | 2026-10-16 | SMART-QSO Team | SRS-F018 added as [Proposed] (mode-transition logging, cited by state_machine.h); §9.1 parents corrected to defined system requirements (SYS-304, SYS-210, SYS-321) (findings VV-06, VV-19) |
+| 1.1 | 2026-10-16 | SMART-QSO Team | Appendix A TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SRS-001, TBD-SRS-002 and TBR-SRS-001 (finding VV-17). Proposed testable wording, for the PI to ratify, beneath SRS-F040; requirement text unchanged; tracked as TBR-SRS-002 (finding VV-16) |
+| 1.2 | 2026-10-16 | SMART-QSO Team | SRS-F018 added as [Proposed] (mode-transition logging, cited by state_machine.h); §9.1 parents corrected to defined system requirements (SYS-304, SYS-210, SYS-321) (findings VV-06, VV-19) |
