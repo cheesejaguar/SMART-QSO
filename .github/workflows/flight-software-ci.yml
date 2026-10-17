@@ -82,7 +82,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake build-essential libcmocka-dev lcov
+        sudo apt-get install -y cmake build-essential libcmocka-dev gcovr
 
     - name: Configure CMake with coverage
       working-directory: software/flight
@@ -96,18 +96,21 @@ jobs:
       working-directory: software/flight/build
       run: ctest --output-on-failure
 
+    # Report only; the gate is in ci.yml. gcovr counts sources no test runs as 0 %.
     - name: Generate coverage report
       working-directory: software/flight
       run: |
-        lcov --capture --directory build --output-file coverage.info
-        lcov --ignore-errors unused --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
-        lcov --list coverage.info
+        gcovr -r . --filter 'src/' build --print-summary \
+          --txt coverage.txt --html-details coverage.html
+        cat coverage.txt
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v4
       with:
         name: coverage-report
-        path: software/flight/coverage.info
+        path: |
+          software/flight/coverage.txt
+          software/flight/coverage*.html
 
   sanitizers:
     name: Sanitizer Checks

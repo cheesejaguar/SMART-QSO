@@ -20,9 +20,10 @@ on:
 
 env:
   BUILD_TYPE: Release
-  # Line coverage of software/flight/src must not fall below this (measured
-  # 84 % with GCC on 2026-10-15)
-  COVERAGE_MIN_LINE: 80
+  # Line coverage of software/flight/src must not fall below this. Every compiled
+  # source counts, including ones no test runs: measured 68.2 % with gcovr 7.0 on
+  # 2026-10-16. Raise it as tests land; never lower it to absorb a drop.
+  COVERAGE_MIN_LINE: 65
 
 jobs:
   ###########################################################################
@@ -44,7 +45,7 @@ jobs:
             libcmocka-dev \
             cppcheck \
             clang-tidy \
-            lcov \
+            gcovr \
             valgrind
 
       - name: Configure CMake
@@ -63,28 +64,27 @@ jobs:
         working-directory: software/flight
         run: ctest --test-dir build --output-on-failure --parallel $(nproc)
 
-      - name: Generate coverage report
-        working-directory: software/flight
-        run: |
-          lcov --capture --directory build --output-file coverage.info
-          lcov --ignore-errors unused --remove coverage.info '/usr/*' '*/tests/*' --output-file coverage.info
-          lcov --list coverage.info
-
+      # gcovr reads the .gcno files too, so a source no test runs counts as 0 %.
+      # (lcov --capture skipped such files: four sources, about 930 lines, were
+      # missing from the 84-85.5 % it reported.) Reproduce locally with
+      # gcovr -r . --filter 'src/' build --print-summary
       - name: Coverage gate
         working-directory: software/flight
         run: |
-          lcov --summary coverage.info | tee coverage-summary.txt
-          pct=$(awk '/lines\.+:/ { gsub("%", "", $2); print $2 }' coverage-summary.txt)
-          echo "Line coverage: ${pct}% (minimum ${COVERAGE_MIN_LINE}%)"
-          awk -v p="$pct" -v m="$COVERAGE_MIN_LINE" 'BEGIN { exit !(p + 0 >= m + 0) }' || {
-            echo "::error::Line coverage ${pct}% is below ${COVERAGE_MIN_LINE}%"
+          gcovr --version | head -1
+          gcovr -r . --filter 'src/' build --print-summary \
+            --txt coverage.txt --cobertura coverage.xml \
+            --fail-under-line "$COVERAGE_MIN_LINE" || {
+            cat coverage.txt
+            echo "::error::Line coverage is below ${COVERAGE_MIN_LINE}% (or gcovr failed)"
             exit 1
           }
+          cat coverage.txt
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: software/flight/coverage.info
+          files: software/flight/coverage.xml
           flags: flight-software
           name: flight-coverage
           fail_ci_if_error: false
