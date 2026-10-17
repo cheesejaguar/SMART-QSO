@@ -159,7 +159,7 @@ status read "ALL PASS - CDR may proceed".
 
 *Documented deviations with justification
 
-> Not substantiated (funding audit SW-07, SW-17): CI measures 58 clang-tidy findings and 1,190 MISRA-addon findings (2026-10-16, after cleanup; 741 and 1,458 before).
+> Not substantiated (funding audit SW-07, SW-17): CI measures 58 clang-tidy findings and 1,189 MISRA-addon findings (2026-10-16, after cleanup; 741 and 1,458 before).
 > These are the no-regression baselines in `software/flight/quality/`.
 
 ### 6.3 Requirements Verification Status

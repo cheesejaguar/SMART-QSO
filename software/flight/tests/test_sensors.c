@@ -79,6 +79,44 @@ static void test_sensors_load_yaml_missing(void **state) {
  *
  * @requirement SRS-F070 Collect telemetry from all sensors
  */
+/**
+ * The shipped sensors.yaml puts each id on the list-item line ("- id: BV").
+ * The loader used to start the item and drop the rest of that line, so
+ * every sensor had an empty id.
+ */
+static void test_sensors_load_yaml_keeps_ids(void **state) {
+    (void)state;
+    /* Standard C only (the suite builds with -std=c11): a fixed name in the
+     * test's working directory, removed below */
+    const char *path = "test_sensors_keeps_ids.yaml";
+    FILE *f = fopen(path, "w");
+    assert_non_null(f);
+    (void)fputs("sensors:\n"
+                "  - id: BV\n"
+                "    name: Battery Voltage\n"
+                "    type: eps_voltage\n"
+                "    channel: battery\n"
+                "    units: V\n"
+                "    period_ms: 1000\n"
+                "  - id: BT\n"
+                "    name: Battery Temperature\n"
+                "    type: eps_temperature\n"
+                "    channel: battery\n"
+                "    units: C\n"
+                "    period_ms: 2000\n", f);
+    assert_int_equal(fclose(f), 0);
+
+    assert_int_equal(sensors_load_yaml(path), SMART_QSO_OK);
+    (void)remove(path);
+
+    assert_int_equal(sensors_get_count(), 2);
+    Sensor_t sensor;
+    assert_int_equal(sensors_get_by_id("BV", &sensor), SMART_QSO_OK);
+    assert_string_equal(sensor.name, "Battery Voltage");
+    assert_int_equal(sensors_get_by_id("BT", &sensor), SMART_QSO_OK);
+    assert_int_equal(sensor.period_ms, 2000);
+}
+
 static void test_sensors_poll(void **state) {
     (void)state;
 
@@ -280,6 +318,7 @@ int main(void) {
         /* Initialization tests */
         cmocka_unit_test_setup_teardown(test_sensors_init, setup, teardown),
         cmocka_unit_test_setup_teardown(test_sensors_load_yaml_missing, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_sensors_load_yaml_keeps_ids, setup, teardown),
 
         /* Polling tests */
         cmocka_unit_test_setup_teardown(test_sensors_poll, setup, teardown),

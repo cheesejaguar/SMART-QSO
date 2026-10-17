@@ -311,6 +311,29 @@ static void parse_keyval(const char *line, char *key, size_t ksz,
 }
 
 /**
+ * @brief Strip a list-item marker from a trimmed line
+ *
+ * "- id: BV" leaves "id: BV" (the item's first field); a bare "-" leaves "".
+ *
+ * @return true if the line starts a new list item
+ */
+static bool take_item_marker(char *line)
+{
+    bool is_item = false;
+    if (strcmp(line, "-") == 0) {
+        line[0] = '\0';
+        is_item = true;
+    } else if (strncmp(line, "- ", 2) == 0) {
+        (void)memmove(line, &line[2], strlen(&line[2]) + 1U);
+        trim(line);
+        is_item = true;
+    } else {
+        /* Not a list item */
+    }
+    return is_item;
+}
+
+/**
  * @brief Add sensor from parsed fields
  */
 static void add_sensor_from_fields(Sensor_t *cur)
@@ -396,13 +419,12 @@ SmartQsoResult_t sensors_load_yaml(const char *path)
             continue;
         }
 
-        if (strncmp(line, "- ", 2) == 0 || strcmp(line, "-") == 0) {
+        if (take_item_marker(line)) {
             if (have_item) {
                 add_sensor_from_fields(&cur);
                 (void)memset(&cur, 0, sizeof(cur));
             }
             have_item = true;
-            continue;
         }
 
         char key[64], val[128];

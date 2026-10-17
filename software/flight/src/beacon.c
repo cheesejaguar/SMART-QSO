@@ -404,10 +404,8 @@ SmartQsoResult_t beacon_transmit(const BeaconContent_t *content)
     }
 
     /* Note: Actual RF transmission would be done via HAL/RF driver */
-    /* For simulation, just print the beacon content */
-    char payload[BEACON_MAX_PAYLOAD_LEN];
-    beacon_format_payload(content, payload, sizeof(payload));
-    (void)printf("[BEACON] TX: %s\n", payload);
+    /* For simulation, print the frame's info field: exactly what is sent */
+    (void)printf("[BEACON] TX: %.*s\n", (int)frame.info_len, (const char *)frame.info);
 
     return SMART_QSO_OK;
 }

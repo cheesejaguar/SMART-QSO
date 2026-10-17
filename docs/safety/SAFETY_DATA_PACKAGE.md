@@ -202,7 +202,7 @@ tests. No hardware verification has been run, so every hazard is open.
 |---------|------|----------------|
 | ECC Memory | Hardware | OBC SRAM ECC |
 | CRC on Config | Software | Configuration checksums |
-| Defensive Coding | Software | MISRA C:2012 checking in CI (not compliant: 1,190 findings, `software/flight/quality/misra.baseline`) |
+| Defensive Coding | Software | MISRA C:2012 checking in CI (not compliant: 1,189 findings, `software/flight/quality/misra.baseline`) |
 | Bounds Checking | Software | Array bounds checked |
 
 **Verification**:
