@@ -25,6 +25,10 @@ Requirement IDs cited but defined nowhere are reported by
 scripts/check_traceability.py, not listed here. Code locations are files,
 not lines, so the CSV does not go stale when unrelated lines move.
 
+A procedure line that starts with "**Not cited" or "**To be corrected"
+explains why a step does not verify a requirement (its value conflicts
+with it); IDs on such a line are not citations.
+
     python3 scripts/gen_rtm.py           # write docs/verification/RTM.csv
     python3 scripts/gen_rtm.py --check   # fail if the committed CSV is stale (CI)
 """
@@ -58,6 +62,7 @@ TEXT_COLUMNS = {"requirement", "objective", "constraint"}
 SKIP_DIRS = {"build", "node_modules", "venv", "__pycache__"}
 SEPARATOR = re.compile(r"^\|(\s*:?-+:?\s*\|)+\s*$")
 ROW_ID = re.compile(r"^" + ID + r"$")
+NOTE = re.compile(r"^\*\*(?:Not cited|To be corrected)\b.*$", re.M)
 
 
 def _cells(line: str) -> List[str]:
@@ -122,7 +127,8 @@ def rows(root: Path = REPO, specs: Sequence[str] = SPECS) -> List[Dict[str, str]
     procedures: Dict[str, set] = {}
     for path in _sources(root, "docs/test_procedures", (".md",), recursive=False):
         rel = path.relative_to(root).as_posix()
-        for rid in set(re.findall(ID, path.read_text(encoding="utf-8", errors="replace"))) & defined:
+        text = NOTE.sub("", path.read_text(encoding="utf-8", errors="replace"))
+        for rid in set(re.findall(ID, text)) & defined:
             procedures.setdefault(rid, set()).add(rel)
 
     for row in table:

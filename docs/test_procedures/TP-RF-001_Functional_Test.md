@@ -229,4 +229,4 @@ Record all measurements in RF Test Data Log:
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Beacon Format ICD cited by its own number, SMART-QSO-ICD-006 (was SQSO-ICD-003, the OBC-to-RF ICD) (finding PI-17) | SMART-QSO Team |
-| C | 2026-10-16 | §8.3 cites SYS-206 (frequency accuracy, renumbered from a duplicate SYS-204); its 145.825 MHz carrier flagged against SYS-200 (finding VV-06) | SMART-QSO Team |
+| C | 2026-10-16 | §8.3 cites SYS-206, frequency accuracy (formerly a duplicate ID); its 145.825 MHz carrier is flagged as conflicting with the frequency requirement (finding VV-06) | SMART-QSO Team |

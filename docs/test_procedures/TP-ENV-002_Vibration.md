@@ -2,9 +2,11 @@
 ## TP-ENV-002
 
 **Document Number:** TP-ENV-002
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** GSFC-STD-7000A (GEVS)
+
+**Requirements verified:** SYS-700
 
 ---
 
@@ -25,7 +27,7 @@ Verify structural integrity and functional performance of the SMART-QSO CubeSat 
 
 ## 3. Test Levels
 
-### 3.1 Random Vibration (Protoflight)
+### 3.1 Random Vibration (Protoflight) [SYS-700]
 
 | Frequency (Hz) | ASD (g²/Hz) |
 |----------------|-------------|
@@ -167,3 +169,4 @@ Verify structural integrity and functional performance of the SMART-QSO CubeSat 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |

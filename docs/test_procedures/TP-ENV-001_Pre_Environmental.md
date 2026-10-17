@@ -2,9 +2,13 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-ENV-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** GSFC-STD-7000 (GEVS), NASA Ames SmallSat Heritage
+
+**Requirements verified:** SYS-001, SYS-002, SYS-003, SYS-203, SYS-210
+
+**Not cited until corrected:** step 8.6.3 (145.825 MHz, which SYS-200 excludes) and step 8.6.4 (up to 2 W; SYS-201 caps output at 1 W).
 
 ---
 
@@ -84,7 +88,7 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 | 8.1.7 | Photograph all 6 faces | Document | |
 | 8.1.8 | Photograph any anomalies | Document | |
 
-### 8.2 Mass Measurement
+### 8.2 Mass Measurement [SYS-002]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -101,7 +105,7 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 | Total mass | < 2000g (1U) | g | |
 | Mass margin | > 10% | % | |
 
-### 8.3 Dimensional Verification
+### 8.3 Dimensional Verification [SYS-001]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -122,7 +126,7 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 | Rail straightness | Per CDS | | |
 | Surface finish | Per CDS | | |
 
-### 8.4 Center of Gravity Measurement
+### 8.4 Center of Gravity Measurement [SYS-003]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -155,7 +159,7 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 | 8.5.7 | Test all operational modes | Transitions correct | |
 | 8.5.8 | Reinstall RBF pin | Unit powers off | |
 
-### 8.6 RF Characterization
+### 8.6 RF Characterization [SYS-203, SYS-210]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -290,3 +294,4 @@ This matrix shall be completed after environmental testing by comparing pre- and
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |

@@ -124,6 +124,19 @@ def test_procedures_citing_each_requirement(tmp_path):
     assert rows["MRD-020"]["procedures"] == ""
 
 
+def test_correction_notes_are_not_citations(tmp_path):
+    procedures = {
+        # Says why it does not verify SYS-002: not a citation
+        "TP-A.md": "**Requirements verified:** SYS-001\n\n"
+                   "**Not cited until corrected:** step 3 (2 W; SYS-002 caps it)\n",
+        # Cites SYS-002 in a heading as well: still a citation
+        "TP-B.md": "**To be corrected:** step 4 conflicts with SYS-002\n### 3.1 Power [SYS-002]\n",
+    }
+    rows = by_id(tree(tmp_path, procedures=procedures))
+    assert rows["SYS-001"]["procedures"] == "docs/test_procedures/TP-A.md"
+    assert rows["SYS-002"]["procedures"] == "docs/test_procedures/TP-B.md"
+
+
 def test_render_is_csv_with_header(tmp_path):
     text = gen_rtm.render(tree(tmp_path), specs=SPECS)
     assert text.startswith("id,specification,parent,method,requirement,code,tests,procedures\n")

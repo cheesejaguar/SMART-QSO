@@ -160,13 +160,13 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-TP-ADCS-002 | Test Procedure: ADCS Actuator Test | `docs/test_procedures/TP-ADCS-002_Actuator_Test.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-ADCS-003 | Test Procedure: ADCS Algorithm Test | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-DITL-001 | TP-DITL-001: Day-in-the-Life Test Procedure | `docs/test_procedures/TP-DITL-001_DAY_IN_THE_LIFE.md` | 1.1 | Draft; no run recorded |
-| TP-ENV-001 | Test Procedure: Pre-Environmental Baseline | `docs/test_procedures/TP-ENV-001_Pre_Environmental.md` | A | Draft; no run recorded |
-| TP-ENV-002 | Test Procedure: Vibration Test | `docs/test_procedures/TP-ENV-002_Vibration.md` | A | Draft; no run recorded |
-| TP-ENV-003 | Test Procedure: Thermal Vacuum Test | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | A | Draft; no run recorded |
+| TP-ENV-001 | Test Procedure: Pre-Environmental Baseline | `docs/test_procedures/TP-ENV-001_Pre_Environmental.md` | B | Draft; no run recorded |
+| TP-ENV-002 | Test Procedure: Vibration Test | `docs/test_procedures/TP-ENV-002_Vibration.md` | B | Draft; no run recorded |
+| TP-ENV-003 | Test Procedure: Thermal Vacuum Test | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | B | Draft; no run recorded |
 | SQSO-TP-ENV-004 | Test Procedure: EMC/EMI Test | `docs/test_procedures/TP-ENV-004_EMC.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-ENV-005 | Test Procedure: Deployment Test (Post-Environmental) | `docs/test_procedures/TP-ENV-005_Deployment_Post_Env.md` | 1.0 | Draft; no run recorded |
 | TP-EPS-001 | Test Procedure: EPS Functional Test | `docs/test_procedures/TP-EPS-001_Functional_Test.md` | C | Draft; no run recorded |
-| TP-EPS-002 | Test Procedure: EPS Load Profile Test | `docs/test_procedures/TP-EPS-002_Load_Profile.md` | A | Draft; no run recorded |
+| TP-EPS-002 | Test Procedure: EPS Load Profile Test | `docs/test_procedures/TP-EPS-002_Load_Profile.md` | B | Draft; no run recorded |
 | SQSO-TP-EPS-003 | Test Procedure: Battery Characterization | `docs/test_procedures/TP-EPS-003_Battery_Characterization.md` | 1.0 | Draft; no run recorded |
 | SQSO-TP-EPS-004 | Test Procedure: Solar Array Characterization | `docs/test_procedures/TP-EPS-004_Solar_Array.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-FAT-001 | Test Procedure: Final Acceptance Functional Test | `docs/test_procedures/TP-FAT-001_Final_Functional.md` | 1.1 | Draft; no run recorded |
@@ -179,7 +179,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-TP-INT-004 | Test Procedure: ADCS Integration | `docs/test_procedures/TP-INT-004_ADCS_Integration.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-INT-005 | Test Procedure: Jetson Payload Integration | `docs/test_procedures/TP-INT-005_Jetson_Integration.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-INT-006 | Test Procedure: Final Assembly Integration | `docs/test_procedures/TP-INT-006_Final_Assembly.md` | 1.1 | Draft; no run recorded |
-| TP-JETSON-001 | Test Procedure: Jetson Payload Power Test | `docs/test_procedures/TP-JETSON-001_Power_Test.md` | B | Draft; no run recorded |
+| TP-JETSON-001 | Test Procedure: Jetson Payload Power Test | `docs/test_procedures/TP-JETSON-001_Power_Test.md` | C | Draft; no run recorded |
 | SQSO-TP-JETSON-002 | Test Procedure: Jetson Thermal Test | `docs/test_procedures/TP-JETSON-002_Thermal_Test.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-JETSON-003 | Test Procedure: Jetson Functional Test | `docs/test_procedures/TP-JETSON-003_Functional_Test.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-MECH-001 | Test Procedure: Mechanical Fit Check | `docs/test_procedures/TP-MECH-001_Fit_Check.md` | 1.1 | Draft; no run recorded |
