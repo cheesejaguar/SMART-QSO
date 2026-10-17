@@ -2,9 +2,10 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-CDH-OBC-001
-**Version:** 1.0
-**Date:** 2026-01-02
+**Version:** 1.1
+**Date:** 2026-10-16
 **Status:** CDR Baseline
+**Supersedes:** `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), merged as Appendix A (finding PI-17)
 
 ---
 
@@ -38,6 +39,9 @@ This document defines the On-Board Computer (OBC) design for the SMART-QSO 1U Cu
 | Flash | 1 MB |
 | SRAM | 128 KB (STM32L4) / 2 MB (Apollo4) |
 | Package | LQFP-64 or BGA |
+
+The baseline OBC is the **STM32L4R5ZI** (`docs/BASELINE_PARAMETERS.md` §6), which supersedes both parts above. This
+table and the part-specific values in §2–§4 have not yet been updated to it (Appendix A.1).
 
 ### 2.2 Selection Justification
 
@@ -361,8 +365,567 @@ The OBC hardware supports the HAL interfaces defined in:
 
 ---
 
+## Appendix A: Content Merged from docs/hardware/OBC_DESIGN.md
+
+`docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001) was a second OBC design document for the same board (finding PI-17). Its
+sections that are not in the body of this document are carried here unchanged, except for heading numbers and the
+test-procedure IDs in A.11.2. They have **not** been reconciled with §1–§12. Where the two documents disagree, A.1 lists
+both values; where `docs/BASELINE_PARAMETERS.md` speaks, it governs. Not carried: the introduction, the STM32L476RG and
+Apollo4 Blue Plus processor tables and the NUCLEO-L476RG development board, because both parts are superseded by the
+baseline OBC.
+
+### A.1 Disagreements Between the Two Documents
+
+| Item | This document (§) | Former SMART-QSO-OBC-001 (Appendix A §) | Baseline |
+|------|-------------------|------------------------------------------|----------|
+| MCU | STM32L476RG or Apollo4 Blue (§2.1) | STM32L476RG, Apollo4 Blue Plus alternate (former §3.2) | **STM32L4R5ZI**; STM32L476 and Apollo4 superseded (BASELINE §6) |
+| Apollo4 clock | 96 MHz (§2.1) | 192 MHz (former §3.2) | Superseded |
+| Flash layout | 512 KB code, 256 KB golden, 256 KB data (§3.1) | 512 KB main, 256 KB backup, 128 KB bootloader (A.4.3) | Not set |
+| FRAM | 256 KB (§3.2) | FM25V10, 1 Mbit (A.4.2) | Not set |
+| Bulk storage | MRAM 1 MB, optional (§3.2) | W25Q128 flash, 16 MB (A.4.2) | ≥ 7 days onboard storage (BASELINE §8) |
+| IWDG reload at prescaler 256 | 500 (§5.2) | 3750 (A.7.1) | Timeout 30 s in both (`WDT_HW_TIMEOUT_MS`). At LSI 32 kHz / 256, 500 counts is about 4 s and 3750 counts is 30 s |
+| Watchdog timeout test | 4 s ±10 % (§12.1) | — | 30 s (FINDINGS_REGISTER line 155 records the 4 s value) |
+| HSE accuracy | ±20 ppm (§4.1) | ±10 ppm (A.6.2) | Not set |
+| UART allocation | USART1 Jetson, USART2 RF TX 9600, USART3 debug 115200 (§8.1) | UART1 Jetson, UART2 debug 9600, UART3 RF spare (A.5.2) | Not set |
+| RF transceiver link | UART (§8.1) | SPI1, 1 MHz (A.5.3) | Not set |
+| I2C1 speed | 400 kHz (§8.3) | 100 kHz (A.5.1) | Not set |
+| GPIO allocation | §8.4 (PA0 deploy sense … PC1 watchdog kick) | A.5.4, including the 2026-10-15 rows for RF_TX_EN, UMBILICAL_SENSE, DEPLOY_EN and the deployment sense lines (finding SW-10) | Not set; pins to be assigned in the OBC schematic |
+| ADC channels | 4: battery, solar, two temperatures (§8.5) | 7: six sun sensors and internal temperature (A.5.5) | Not set |
+| Active power | < 100 mW (§1.1); 50 mW budget (§6.3) | < 200 mW threshold (A.2.2, OBC-P006) | Housekeeping allocation 0.70 W orbit average (BASELINE §5) |
+| Boot time | < 10 s (§12.2) | < 30 s requirement (A.2.2); < 500 ms budget (A.8.3) | Not set |
+| RTOS | — | FreeRTOS 10.4.3 configuration (A.9.1) | FreeRTOS (BASELINE §6). Not yet integrated: the flight software runs as a host simulation |
+
+### A.2 OBC Requirements (former §2)
+
+#### A.2.1 Functional Requirements
+
+| ID | Requirement | Verification |
+|----|-------------|--------------|
+| OBC-F001 | Execute flight software in FreeRTOS | Test |
+| OBC-F002 | Interface with EPS via I2C | Test |
+| OBC-F003 | Interface with Jetson via UART | Test |
+| OBC-F004 | Control subsystem power via GPIO | Test |
+| OBC-F005 | Store and retrieve persistent data | Test |
+| OBC-F006 | Implement hardware watchdog | Test |
+| OBC-F007 | Boot to safe mode on watchdog reset | Test |
+| OBC-F008 | Provide telemetry collection and formatting | Test |
+| OBC-F009 | Generate beacon at configurable intervals | Test |
+| OBC-F010 | Detect and log faults | Test |
+
+#### A.2.2 Performance Requirements
+
+| ID | Requirement | Threshold | Goal |
+|----|-------------|-----------|------|
+| OBC-P001 | Main loop execution | <20 ms | <10 ms |
+| OBC-P002 | Boot time | <30 s | <15 s |
+| OBC-P003 | Flash endurance | >10,000 cycles | >100,000 cycles |
+| OBC-P004 | RAM availability | >32 KB | >64 KB |
+| OBC-P005 | Flash availability | >128 KB | >256 KB |
+| OBC-P006 | Power consumption (active) | <200 mW | <150 mW |
+| OBC-P007 | Power consumption (sleep) | <10 mW | <5 mW |
+
+#### A.2.3 Interface Requirements
+
+| ID | Interface | Specification |
+|----|-----------|---------------|
+| OBC-I001 | I2C Bus 1 | 100 kHz, EPS + sensors |
+| OBC-I002 | I2C Bus 2 | 400 kHz, ADCS |
+| OBC-I003 | UART 1 | 115200 bps, Jetson |
+| OBC-I004 | UART 2 | 9600 bps, Debug |
+| OBC-I005 | SPI | 1 MHz, RF transceiver |
+| OBC-I006 | GPIO | 16 lines, load control |
+| OBC-I007 | ADC | 6 channels, 12-bit |
+
+#### A.2.4 Environmental Requirements
+
+| Parameter | Operating | Non-Operating |
+|-----------|-----------|---------------|
+| Temperature | -40°C to +85°C | -55°C to +125°C |
+| Vibration | 14.1 Grms (random) | N/A |
+| Radiation | 10 krad TID | N/A |
+| SEU Rate | <10⁻⁹/bit/day | N/A |
+
+### A.3 Block Diagram (former §3.1)
+
+```
++------------------------------------------------------------------+
+|                        OBC SUBSYSTEM                               |
+|                                                                    |
+|  +--------------------+         +--------------------+             |
+|  |    STM32L476RG     |         |   External Flash   |             |
+|  |    (Primary MCU)   |         |   (Mission Data)   |             |
+|  |                    |         |                    |             |
+|  | +----------------+ |   SPI   |   W25Q128JVSIQ     |             |
+|  | |  ARM Cortex-M4 | |=========|   (16 MB)          |             |
+|  | |  80 MHz        | |         +--------------------+             |
+|  | +----------------+ |                                            |
+|  |                    |         +--------------------+             |
+|  | +----------------+ |         |   External FRAM    |             |
+|  | |  Flash: 1 MB   | |   SPI   |   (Critical Data)  |             |
+|  | |  RAM: 128 KB   | |=========|   FM25V10          |             |
+|  | +----------------+ |         |   (1 Mbit)         |             |
+|  |                    |         +--------------------+             |
+|  | +----------------+ |                                            |
+|  | |  Peripherals   | |                                            |
+|  | | - I2C x2       | |                                            |
+|  | | - UART x3      |-+----> To EPS, ADCS, Jetson, Debug           |
+|  | | - SPI x2       | |                                            |
+|  | | - GPIO x16     | |                                            |
+|  | | - ADC x6       | |                                            |
+|  | | - IWDG         | |                                            |
+|  | +----------------+ |                                            |
+|  +--------------------+                                            |
+|                                                                    |
++------------------------------------------------------------------+
+           |              |              |              |
+           v              v              v              v
+      +--------+     +--------+     +--------+     +--------+
+      |  EPS   |     |  ADCS  |     | Jetson |     |   RF   |
+      | (I2C)  |     | (I2C)  |     | (UART) |     | (SPI)  |
+      +--------+     +--------+     +--------+     +--------+
+```
+
+### A.4 Memory Architecture (former §3.3)
+
+#### A.4.1 Memory Map (STM32L476)
+
+| Region | Address | Size | Usage |
+|--------|---------|------|-------|
+| Flash | 0x0800_0000 | 1 MB | Flight software |
+| SRAM1 | 0x2000_0000 | 96 KB | Runtime data |
+| SRAM2 | 0x1000_0000 | 32 KB | Stack, critical data |
+| EEPROM | 0x0808_0000 | 16 KB | Configuration |
+| Option | 0x1FFF_7800 | 1 KB | Boot config |
+
+#### A.4.2 External Memory
+
+| Device | Interface | Size | Usage |
+|--------|-----------|------|-------|
+| W25Q128 | SPI | 16 MB | Mission data, logs |
+| FM25V10 | SPI | 128 KB | Critical state, fault log |
+
+#### A.4.3 Memory Allocation
+
+```
++------------------+  0x0810_0000
+|  Reserved        |
++------------------+  0x080E_0000
+|  Bootloader      |  128 KB
++------------------+  0x080C_0000
+|  Flight SW       |  512 KB
+|  (Main Image)    |
++------------------+  0x0804_0000
+|  Flight SW       |  256 KB
+|  (Backup Image)  |
++------------------+  0x0800_0000
+
++------------------+  0x2001_8000
+|  Heap            |  32 KB
++------------------+  0x2001_0000
+|  Stack           |  8 KB
++------------------+  0x2000_E000
+|  FreeRTOS        |  24 KB
+|  Kernel          |
++------------------+  0x2000_8000
+|  Application     |  32 KB
+|  Data            |
++------------------+  0x2000_0000
+```
+
+### A.5 Peripheral Interfaces (former §4)
+
+#### A.5.1 I2C Bus Configuration
+
+##### A.5.1.1 I2C Bus 1 (Low Speed)
+
+| Device | Address | Speed | Function |
+|--------|---------|-------|----------|
+| EPS | 0x48 | 100 kHz | Power telemetry |
+| Battery | 0x55 | 100 kHz | SoC, voltage |
+| Solar | 0x40 | 100 kHz | Current, MPPT |
+| Temperature | 0x48 | 100 kHz | TMP117 sensors |
+
+##### A.5.1.2 I2C Bus 2 (ADCS)
+
+| Device | Address | Speed | Function |
+|--------|---------|-------|----------|
+| Magnetometer | 0x1E | 400 kHz | HMC5883L |
+| IMU (spare) | 0x68 | 400 kHz | MPU6050 |
+
+#### A.5.2 UART Configuration
+
+| Port | Baud | Connection | Protocol |
+|------|------|------------|----------|
+| UART1 | 115200 | Jetson | Custom (ICD-002) |
+| UART2 | 9600 | Debug | ASCII |
+| UART3 | 9600 | RF (spare) | AX.25 |
+
+#### A.5.3 SPI Configuration
+
+| Port | Speed | Connection | Mode |
+|------|-------|------------|------|
+| SPI1 | 1 MHz | RF Transceiver | Mode 0 |
+| SPI2 | 10 MHz | External Flash | Mode 0 |
+| SPI3 | 10 MHz | External FRAM | Mode 0 |
+
+#### A.5.4 GPIO Allocation
+
+| GPIO | Function | Direction | Default |
+|------|----------|-----------|---------|
+| PA0 | PAYLOAD_EN | Output | LOW |
+| PA1 | RADIO_EN | Output | LOW |
+| PA2 | ADCS_EN | Output | LOW |
+| PA3 | HEATER_EN | Output | LOW |
+| PA4 | SENSOR_EN | Output | HIGH |
+| PA5 | SPARE_EN | Output | LOW |
+| PB0 | DEPLOY_1 (`GPIO_PIN_ANTENNA_BURN`, TBR) | Output, pull-down | LOW |
+| PB1 | DEPLOY_2 (`GPIO_PIN_SOLAR_BURN`, TBR) | Output, pull-down | LOW |
+| PB2 | DEPLOY_SENSE | Input | - |
+| PC0 | JETSON_RDY | Input | - |
+| PC1 | EPS_INT | Input | - |
+| PC2 | WDT_KICK | Output | - |
+| PC3 | LED_STATUS | Output | LOW |
+| TBD | RF_TX_EN | Output, pull-down | LOW (PA off until `rf_control_init()` restores the TX-OFF latch) |
+| TBD | UMBILICAL_SENSE | Input, pull-down | GSE connector drives high; enables key provisioning (SQSO-ICD-013 §9.2) |
+| TBD | DEPLOY_EN (master arm) | Output, pull-down | LOW; a burn needs this **and** DEPLOY_1/2 high |
+| TBD | ANTENNA_SENSE | Input, pull-down | High = antenna deployed (TBR) |
+| TBD | SOLAR_SENSE | Input, pull-down | High = solar array deployed (TBR) |
+
+*RF_TX_EN, UMBILICAL_SENSE, DEPLOY_EN and the two deployment sense lines added 2026-10-15 to match `hal_gpio.h`; pins to be assigned in the OBC schematic. Before this, the software fired both burn wires from one line and read both deployables from the separation-switch line (finding SW-10).*
+
+#### A.5.5 ADC Channels
+
+| Channel | Signal | Range | Resolution |
+|---------|--------|-------|------------|
+| ADC1_IN0 | SUN_PX | 0-3.3V | 12-bit |
+| ADC1_IN1 | SUN_MX | 0-3.3V | 12-bit |
+| ADC1_IN2 | SUN_PY | 0-3.3V | 12-bit |
+| ADC1_IN3 | SUN_MY | 0-3.3V | 12-bit |
+| ADC1_IN4 | SUN_PZ | 0-3.3V | 12-bit |
+| ADC1_IN5 | SUN_MZ | 0-3.3V | 12-bit |
+| ADC1_IN6 | TEMP_INT | 0-3.3V | 12-bit |
+
+### A.6 Clock Configuration (former §5)
+
+#### A.6.1 Clock Tree
+
+```
+                   +--------+
+    HSE (8 MHz) -->|  PLL   |--> SYSCLK (80 MHz)
+                   +--------+
+                       |
+         +-------------+-------------+
+         |             |             |
+         v             v             v
+    +--------+    +--------+    +--------+
+    | APB1   |    | APB2   |    | AHB    |
+    | 80 MHz |    | 80 MHz |    | 80 MHz |
+    +--------+    +--------+    +--------+
+         |             |             |
+         v             v             v
+    UART, I2C    SPI, ADC      DMA, Flash
+```
+
+#### A.6.2 Clock Sources
+
+| Source | Frequency | Usage | Accuracy |
+|--------|-----------|-------|----------|
+| HSE | 8 MHz | PLL input | ±10 ppm |
+| LSE | 32.768 kHz | RTC | ±20 ppm |
+| HSI | 16 MHz | Backup | ±1% |
+| LSI | 32 kHz | IWDG | ±5% |
+
+#### A.6.3 Real-Time Clock
+
+| Parameter | Specification |
+|-----------|---------------|
+| Source | LSE (32.768 kHz) |
+| Battery | CR1220 backup |
+| Accuracy | ±2 s/day |
+| Epoch | Unix time (seconds since 1970) |
+| Calendar | BCD format |
+
+### A.7 Watchdog Design (former §6)
+
+#### A.7.1 Independent Watchdog (IWDG)
+
+| Parameter | Value |
+|-----------|-------|
+| Clock | LSI (32 kHz) |
+| Prescaler | 256 |
+| Reload | 3750 |
+| Timeout | 30 seconds |
+| Reset Type | System reset |
+
+#### A.7.2 Watchdog Kick Pattern
+
+```c
+// Main loop watchdog kick
+void main_loop(void) {
+    while (1) {
+        // Execute tasks
+        eps_task();
+        beacon_task();
+        telemetry_task();
+
+        // Kick watchdog only if all critical tasks complete
+        if (eps_healthy() && comms_healthy()) {
+            hal_wdt_kick();
+        }
+
+        // Sleep until next tick
+        vTaskDelay(pdMS_TO_TICKS(MAIN_LOOP_MS));
+    }
+}
+```
+
+#### A.7.3 Watchdog Reset Recovery
+
+```
+                   +-------------+
+                   | Watchdog    |
+                   | Reset       |
+                   +------+------+
+                          |
+                          v
+                   +-------------+
+                   | Bootloader  |
+                   | Check flags |
+                   +------+------+
+                          |
+          +---------------+---------------+
+          |                               |
+          v                               v
+   +-------------+                 +-------------+
+   | Normal Boot |                 | Safe Mode   |
+   | (reset_cnt  |                 | (reset_cnt  |
+   |    < 3)     |                 |    >= 3)    |
+   +-------------+                 +-------------+
+```
+
+### A.8 Boot Sequence (former §7)
+
+#### A.8.1 Normal Boot
+
+```
+1. Power On
+   |
+   v
+2. Hardware Init (HAL)
+   - Clock configuration
+   - GPIO defaults
+   - Watchdog start
+   |
+   v
+3. Memory Init
+   - Stack check
+   - Heap init
+   - FRAM read
+   |
+   v
+4. FreeRTOS Start
+   - Scheduler init
+   - Task creation
+   |
+   v
+5. Subsystem Init
+   - EPS interface
+   - Sensor init
+   - Comms init
+   |
+   v
+6. Main Application
+   - Enter SAFE mode
+   - Begin telemetry
+```
+
+#### A.8.2 Safe Mode Boot
+
+| Action | Description |
+|--------|-------------|
+| Disable Jetson | Keep payload off |
+| Disable RF | TX only essential beacons |
+| Minimum telemetry | Basic health only |
+| Extended beacon | 180s interval |
+| Wait for recovery | Power or thermal improvement |
+
+#### A.8.3 Boot Time Budget
+
+| Phase | Time | Cumulative |
+|-------|------|------------|
+| Reset vector | 1 ms | 1 ms |
+| Clock init | 10 ms | 11 ms |
+| HAL init | 50 ms | 61 ms |
+| FreeRTOS init | 20 ms | 81 ms |
+| Subsystem init | 200 ms | 281 ms |
+| FRAM load | 50 ms | 331 ms |
+| First beacon | 100 ms | 431 ms |
+| **Total** | | **<500 ms** |
+
+### A.9 Software Architecture (former §8)
+
+#### A.9.1 FreeRTOS Configuration
+
+| Parameter | Value |
+|-----------|-------|
+| Version | 10.4.3 |
+| Tick Rate | 1000 Hz |
+| Max Priorities | 8 |
+| Stack Size (default) | 256 words |
+| Heap Size | 32 KB |
+| Heap Algorithm | heap_4 (coalesce) |
+
+#### A.9.2 Task Configuration
+
+| Task | Priority | Stack | Period |
+|------|----------|-------|--------|
+| Main | 4 | 512 | 100 ms |
+| EPS | 5 | 256 | 1000 ms |
+| Beacon | 3 | 512 | 30-180 s |
+| Telemetry | 3 | 256 | 1000 ms |
+| ADCS | 4 | 256 | 1000 ms |
+| Jetson Comm | 2 | 512 | Event |
+| Fault Monitor | 6 | 256 | 100 ms |
+| Idle | 0 | 128 | N/A |
+
+#### A.9.3 Inter-Task Communication
+
+```
++------------+     +------------+
+|  EPS Task  |     | Main Task  |
++-----+------+     +-----+------+
+      |                  |
+      | PowerMode_t      | Commands
+      v                  v
++----------+        +----------+
+| EPS      |        | Command  |
+| Queue    |        | Queue    |
++----------+        +----------+
+      |                  |
+      +--------+---------+
+               |
+               v
+         +----------+
+         | Beacon   |
+         | Task     |
+         +----------+
+```
+
+### A.10 Telemetry Collection (former §9)
+
+#### A.10.1 Telemetry Structure
+
+```c
+typedef struct {
+    // Header
+    uint32_t timestamp;          // Unix time
+    uint16_t sequence;           // Packet sequence
+    uint8_t  power_mode;         // SAFE/IDLE/ACTIVE
+
+    // EPS Data
+    uint16_t battery_voltage_mv;  // mV
+    int16_t  battery_current_ma;  // mA
+    uint8_t  state_of_charge;     // %
+    uint16_t solar_current_ma;    // mA
+
+    // Thermal
+    int8_t   temp_obc;           // °C
+    int8_t   temp_battery;       // °C
+    int8_t   temp_payload;       // °C
+
+    // ADCS
+    int16_t  mag_x, mag_y, mag_z; // μT * 10
+    uint16_t sun_sensors[6];      // ADC counts
+
+    // Status
+    uint8_t  fault_flags;        // Bitmask
+    uint16_t reset_count;        // Total resets
+    uint32_t uptime_s;           // Seconds since boot
+
+    // CRC
+    uint32_t crc32;              // Data integrity
+} Telemetry_t;
+```
+
+#### A.10.2 Telemetry Rates
+
+| Data Type | Collection Rate | Downlink Rate |
+|-----------|-----------------|---------------|
+| Housekeeping | 1 Hz | Every beacon |
+| EPS | 1 Hz | Every beacon |
+| ADCS | 10 Hz | Averaged per beacon |
+| Thermal | 0.1 Hz | Every beacon |
+| Fault Log | Event | On change |
+
+### A.11 Verification (former §10)
+
+#### A.11.1 Verification Matrix
+
+| Requirement | Method | Status |
+|-------------|--------|--------|
+| OBC-F001 | Demonstration | Pending |
+| OBC-F002 | Test | Pending |
+| OBC-F003 | Test | Pending |
+| OBC-F004 | Test | Pending |
+| OBC-F005 | Test | Pending |
+| OBC-F006 | Test | Pending |
+| OBC-F007 | Test | Pending |
+| OBC-F008 | Test | Pending |
+| OBC-F009 | Test | Pending |
+| OBC-F010 | Test | Pending |
+
+#### A.11.2 Test Procedures
+
+| Test | Description | Equipment |
+|------|-------------|-----------|
+| TP-OBC-001 | Boot sequence timing | Logic analyzer |
+| TP-OBC-004 | Watchdog timeout | Oscilloscope |
+| TP-OBC-001 | I2C communication | Bus analyzer |
+| TP-OBC-001 | UART communication | Serial monitor |
+| TP-OBC-005 | Flash endurance | Cycle tester |
+| TP-OBC-006 | Power consumption | Power analyzer |
+| TP-OBC-007 | Thermal cycling | Thermal chamber |
+
+IDs are those of the procedure files in `docs/test_procedures/` that cover each test (aligned 2026-10-16, finding VV-18;
+the former document numbered TP-OBC-002 to -004 differently). TP-OBC-005 to -007 have no procedure yet.
+
+### A.12 Risk Assessment (former §11)
+
+#### A.12.1 OBC-Specific Risks
+
+| Risk ID | Description | L | C | Mitigation |
+|---------|-------------|---|---|------------|
+| OBC-R001 | Flash corruption | L | H | CRC, backup image |
+| OBC-R002 | SEU in RAM | M | M | Error detection, restart |
+| OBC-R003 | I2C bus lockup | L | M | Timeout, bus reset |
+| OBC-R004 | Clock failure | L | H | Fallback to HSI |
+| OBC-R005 | Watchdog failure | L | H | External WDT backup |
+
+### A.13 Programming Interface (former Appendix B)
+
+```
++----------+     SWD      +----------+
+|  Host    |==============|  STM32   |
+|  (USB)   |  SWCLK/SWDIO |  L476    |
++----------+              +----------+
+     |
+     v
+OpenOCD / STM32CubeProgrammer
+```
+
+**SWD Connections**:
+| Signal | Pin |
+|--------|-----|
+| SWCLK | PA14 |
+| SWDIO | PA13 |
+| NRST | NRST |
+| GND | GND |
+
+---
+
 ## Revision History
 
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-16 | Merged `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), a second OBC design for the same board, as Appendix A without reconciling it; A.1 lists where the two disagree and what the baseline says; §2.1 notes the baseline MCU; test IDs in A.11.2 aligned with the procedure files (findings PI-17, VV-18) |

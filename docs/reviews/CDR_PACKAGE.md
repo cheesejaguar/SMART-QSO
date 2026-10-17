@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document Number**: SMART-QSO-CDR-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 **Status**: Ready for Review
 
@@ -108,7 +108,7 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 | EPS Design | SMART-QSO-EPS-001 | Complete | `docs/hardware/EPS_DESIGN.md` |
 | ADCS Design | SMART-QSO-ADCS-001 | Complete | `docs/hardware/ADCS_DESIGN.md` |
 | RF Design | SMART-QSO-RF-001 | Complete | `docs/hardware/RF_DESIGN.md` |
-| OBC Design | SMART-QSO-OBC-001 | Complete | `docs/hardware/OBC_DESIGN.md` |
+| OBC Design | SQSO-CDH-OBC-001 | Complete | `hardware/obc/OBC_DESIGN.md` |
 | Payload Design | SMART-QSO-PAYLOAD-001 | Complete | `docs/hardware/PAYLOAD_DESIGN.md` |
 
 ### 3.4 Interface Control Documents
@@ -487,3 +487,4 @@ genhtml coverage.info --output-directory coverage_report
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §8 software-level test IDs follow TEST_PROCEDURES.md Version 1.1 (TP-SWI, TP-SWS); status cells unchanged (finding VV-18) |
+| 1.2 | 2026-10-16 | SMART-QSO Team | OBC design row points to `hardware/obc/OBC_DESIGN.md` (SQSO-CDH-OBC-001), into which SMART-QSO-OBC-001 was merged (finding PI-17) |
