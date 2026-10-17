@@ -6,6 +6,22 @@
 > to funders or regulators as review outcomes. See `docs/funding_audit/FUNDING_AUDIT_REPORT.md` and
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
+> **Superseded values (funding audit, 2026-10-16, finding PI-14).** This record is kept as written on 2026-01-02, but it
+> did not describe one configuration. `docs/BASELINE_PARAMETERS.md` governs every value in §3 and §4; the values below
+> replace those in the record:
+
+| Parameter (where in this record) | Value in this record | Governing value | Source |
+|----------------------------------|----------------------|-----------------|--------|
+| Battery (§3.1, §4.2) | 2× 18650 Li-ion, 7 Wh | 4S1P 18650, 14.4 V, ≈ 50 Wh (49.7 Wh) | BASELINE §5; `hardware/eps/BATTERY_DESIGN.md` v2.0 |
+| Solar array (§4.2) | 6 cells, 7 W BOL | 16 cells; EOL orbit average 2.39 W tumbling (2.14 W with self-shadowing), 3.58 W sun-pointed | BASELINE §5; `hardware/eps/SOLAR_ARRAY_DESIGN.md` v2.0 |
+| Mass (§3.2, §4.1) | 1.2 kg, "33 % to 2 kg limit"; structure 350 g | Limit 2.00 kg. BASELINE §4: CBE ≈ 1.51 kg, MEV ≤ 1.75 kg. Bottom-up MEL: CBE 1.69 kg, predicted 1.92–2.00 kg | BASELINE §4; `docs/environment/MASS_BUDGET.md` v2.0 |
+| Average power (§3.2) | 0.35 W, "128 % positive" | Load 1.80 W tumbling, 2.20 W sun-pointed; margin +33 % / +63 % (+19 % tumbling with self-shadowing) | BASELINE §5; SOLAR_ARRAY_DESIGN §9.4 |
+| Orbit (§3.2) | 400 km, 51.6° | Circular SSO, ≈ 97.4°, ≤ 500 km target, 525 km cap | BASELINE §3 |
+| OBC processor (§3.1, §4.3) | Ambiq Apollo4 Blue Plus | STM32L4R5ZI, FreeRTOS | BASELINE §6 |
+| TX power (§4.4) | 0.5–2 W | 0.5 W nominal, 1 W maximum | BASELINE §7 |
+| Link margin (§4.4) | VHF downlink +1.6 dB at 30°, 20° minimum elevation | 1200 bps beacon at 0.5 W: +7.7 dB at 5° elevation (+4.7 dB conservative pattern); telecommand +4.7 dB at 5° in 92 % of orientations | `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0 |
+| ADCS actuators (§4.6) | None (passive) | 3-axis magnetorquers | BASELINE §8 |
+
 **Document ID**: SQSO-CDR-TB-001
 **Version**: 1.0
 **Date**: 2026-01-02
@@ -361,3 +377,4 @@ QA: _________________________ Date: _______
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.0a | 2026-10-16 | Funding audit | Superseded-values table added under the notice (PI-14); body unchanged |

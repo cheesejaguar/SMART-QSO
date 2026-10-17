@@ -34,8 +34,8 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
 │  │    OBC      │  │     EPS     │  │        ADCS         │ │
-│  │  Ambiq/STM  │  │   MPPT +    │  │    Magnetorquers    │ │
-│  │   Apollo4   │  │   Battery   │  │   + Sun Sensors     │ │
+│  │  STM32L4R5  │  │   MPPT +    │  │    Magnetorquers    │ │
+│  │   FreeRTOS  │  │   Battery   │  │   + Sun Sensors     │ │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘ │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────────────────────────────────────────────────┐ │
@@ -173,18 +173,12 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 ### 2.6 Onboard Computer (OBC)
 
 #### 2.6.1 Primary OBC
-- **Processor**: Ambiq Apollo4 Blue (ARM Cortex-M4F)
-- **Clock Speed**: 96 MHz maximum
-- **Memory**: 1MB SRAM, 2MB flash
-- **Power Consumption**: <10 mW typical
+- **Processor**: STM32L4R5ZI (ARM Cortex-M4F) (BASELINE §6)
+- **Memory**: 640 KB RAM, 2 MB flash (`docs/software/BUILD_CONFIGURATIONS.md` §8.2)
 - **Operating System**: FreeRTOS
 
 #### 2.6.2 Secondary OBC
-- **Processor**: STM32L4 series (ARM Cortex-M4)
-- **Clock Speed**: 80 MHz maximum
-- **Memory**: 640KB SRAM, 1MB flash
-- **Power Consumption**: <50 mW typical
-- **Operating System**: FreeRTOS
+- None. The Ambiq Apollo4 and STM32L476 options in earlier documents are superseded (BASELINE §6).
 
 #### 2.6.3 OBC Functions
 - **System Control**: Overall satellite management

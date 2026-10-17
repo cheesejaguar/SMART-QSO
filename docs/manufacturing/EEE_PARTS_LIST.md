@@ -161,10 +161,10 @@ This document covers:
 
 | Parameter | Value |
 |-----------|-------|
-| Part Number | Custom 2S2P |
-| Cell Type | Panasonic NCR18650GA |
-| Capacity | 5200 mAh |
-| Voltage | 7.2V nominal |
+| Part Number | Custom 4S1P (BASELINE §5) |
+| Cell Type | Panasonic NCR18650GA; other documents name Samsung INR18650-35E (used in `hardware/eps/BATTERY_DESIGN.md`). PI to choose |
+| Capacity | ≈ 3.5 Ah (one string) |
+| Voltage | 14.4V nominal (≈ 50 Wh) |
 | Quantity | 1 pack (4 cells) |
 | Protection | OV, UV, OC, OT |
 
@@ -422,3 +422,4 @@ This document covers:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| A.1 | 2026-10-16 | §6.4 battery pack configuration aligned with BASELINE §5 (PI-14) | Funding audit |

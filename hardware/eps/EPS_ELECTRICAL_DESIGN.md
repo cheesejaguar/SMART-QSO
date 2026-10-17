@@ -4,7 +4,13 @@
 **Document Number:** SQSO-EPS-003
 **Version:** 1.0
 **Date:** 2026-01-02
-**Status:** CDR Baseline
+**Status:** CDR Baseline — **battery and array interfaces superseded** (see notice)
+
+> **Funding audit notice (2026-10-16, finding PI-14).** This design assumes a 2S1P battery, a 2-cell charger and six
+> solar channels. The baseline is a 4S1P battery (14.4 V nominal, 16.8 V full, ≈ 50 Wh; `docs/BASELINE_PARAMETERS.md` §5,
+> `hardware/eps/BATTERY_DESIGN.md`) fed by eight 2-cell strings of ≈ 4.2–4.8 V (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.2),
+> so the MPPT must boost and the charger must handle four series cells, with charging inhibited outside 0–45 °C. The
+> part selections in §2.1 must be redone for that configuration.
 
 ---
 
@@ -301,3 +307,4 @@ Total:             ~1.6mm
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.0a | 2026-10-16 | Funding audit notice: battery and array interfaces superseded by BASELINE §5 (PI-14) |

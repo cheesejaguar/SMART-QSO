@@ -6,6 +6,11 @@
 **Classification**: Unclassified
 **Status**: CDR Baseline
 
+> **Funding audit notice (2026-10-16, finding PI-14).** The spacecraft figures in Module 1 (7 W solar, 7 Wh battery,
+> Apollo4, 1.2 kg, 0.35 W average, 0.5–2 W, 7.4–8.4 V battery telemetry) predate the baseline. Until this document is
+> revised, use `docs/BASELINE_PARAMETERS.md`: 4S1P ≈ 50 Wh battery (14.4 V nominal), 16-cell array, STM32L4R5ZI OBC,
+> 0.5 W nominal and 1 W maximum transmit power; mass in `docs/environment/MASS_BUDGET.md`.
+
 ## 1. Purpose
 
 This document contains the detailed training materials for SMART-QSO operator training, providing content for all seven training modules defined in the Operator Training Plan.
@@ -637,3 +642,4 @@ STATUS: [Open/Investigating/Resolved/Closed]
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.0a | 2026-10-16 | Funding audit | Notice: Module 1 spacecraft figures superseded by BASELINE_PARAMETERS (PI-14) |
