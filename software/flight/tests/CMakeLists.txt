@@ -229,6 +229,8 @@ set(MODULE_TESTS
     "test_assert_release\;assert"
     "test_scheduler\;scheduler"
     "test_beacon\;rf"
+    "test_telemetry\;telemetry"
+    "test_telemetry_flow\;integration"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)
@@ -254,8 +256,7 @@ target_compile_definitions(test_beacon_filter PRIVATE
 
 #===========================================================================
 # Not registered (tracked in docs/funding_audit/FINDINGS_REGISTER.md):
-#   - test_adcs, test_telemetry, test_telemetry_flow: written for Unity,
-#     which is not vendored; port to CMocka
+#   - test_adcs: written for Unity, which is not vendored; port to CMocka
 #   - integration/*, regression/*: reference APIs that no longer exist
 #===========================================================================
 
