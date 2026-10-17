@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ICD-000
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 **Reference:** NPR 7123.1, NASA Ames SmallSat Heritage
 
@@ -242,9 +242,9 @@ PI-17). Some ICDs carry the prefix SMART-QSO- and others SQSO-; both are listed 
 
 | ID | Item | Owner | Target |
 |----|------|-------|--------|
-| TBD-001 | Launch provider ICD | Systems | Manifest |
-| TBD-002 | Deployer interface | Mechanical | CDR+30d |
-| TBD-003 | Ground station protocol | Ground | CDR |
+| TBD-ICM-001 | Launch provider ICD | Systems | Manifest |
+| TBD-ICM-002 | Deployer interface | Mechanical | CDR+30d |
+| TBD-ICM-003 | Ground station protocol | Ground | CDR |
 
 ---
 
@@ -254,3 +254,4 @@ PI-17). Some ICDs carry the prefix SMART-QSO- and others SQSO-; both are listed 
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §3 index renumbered to the IDs the ICDs carry; Space-to-Ground and Launch Provider ICDs added; statuses set to Draft or Not written; diagram and §8.2 numbers corrected (finding PI-17) | SMART-QSO Team |
+| C | 2026-10-16 | §10 TBD IDs made unique to this document: TBD-001 to TBD-003 became TBD-ICM-001 to TBD-ICM-003 (finding VV-17) | SMART-QSO Team |

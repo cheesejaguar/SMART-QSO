@@ -1,7 +1,7 @@
 # Software Requirements Specification (SRS)
 
 **Document Number**: SMART-QSO-SRS-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Status**: Preliminary
 
@@ -283,9 +283,9 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 
 | ID | Item | Resolution Date |
 |----|------|-----------------|
-| TBD-001 | Exact beacon interval range | PDR |
-| TBD-002 | Uplink command set definition | CDR |
-| TBR-001 | Watchdog timeout value (currently 30s) | PDR |
+| TBD-SRS-001 | Exact beacon interval range | PDR |
+| TBD-SRS-002 | Uplink command set definition | CDR |
+| TBR-SRS-001 | Watchdog timeout value (currently 30s) | PDR |
 
 ---
 
@@ -305,3 +305,4 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-16 | SMART-QSO Team | Appendix A TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SRS-001, TBD-SRS-002 and TBR-SRS-001 (finding VV-17) |

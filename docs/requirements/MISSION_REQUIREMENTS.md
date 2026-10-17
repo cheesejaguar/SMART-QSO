@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** NPR 7123.1, NASA Ames SmallSat Heritage
 
@@ -192,9 +192,9 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 
 | ID | Item | Closure Plan | Target Date |
 |----|------|--------------|-------------|
-| TBD-001 | Exact orbit parameters | Launch manifest assignment | TBD |
-| TBD-002 | IARU coordination confirmation | IARU process completion | TBD |
-| TBR-001 | AI model final selection | CDR | TBD |
+| TBD-MRD-001 | Exact orbit parameters | Launch manifest assignment | TBD |
+| TBD-MRD-002 | IARU coordination confirmation | IARU process completion | TBD |
+| TBR-MRD-001 | AI model final selection | CDR | TBD |
 
 ---
 
@@ -203,3 +203,4 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | §8 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-MRD-001, TBD-MRD-002 and TBR-MRD-001 (finding VV-17) | SMART-QSO Team |

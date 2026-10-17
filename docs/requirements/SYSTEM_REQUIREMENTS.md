@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-002
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** NPR 7123.1, NASA Ames SmallSat Heritage
 
@@ -319,9 +319,9 @@ SMART-QSO is a 1U CubeSat consisting of:
 
 | ID | Item | Closure Plan | Target |
 |----|------|--------------|--------|
-| TBD-001 | Final IARU coordinated frequency | IARU coordination | TBD |
-| TBD-002 | Launch provider vibration spec | Manifest assignment | TBD |
-| TBR-001 | AI model final specification | CDR | TBD |
+| TBD-SYS-001 | Final IARU coordinated frequency | IARU coordination | TBD |
+| TBD-SYS-002 | Launch provider vibration spec | Manifest assignment | TBD |
+| TBR-SYS-001 | AI model final specification | CDR | TBD |
 
 ---
 
@@ -330,3 +330,4 @@ SMART-QSO is a 1U CubeSat consisting of:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | §15 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SYS-001, TBD-SYS-002 and TBR-SYS-001 (finding VV-17) | SMART-QSO Team |
