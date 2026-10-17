@@ -47,7 +47,7 @@ The EPS encompasses:
 |----|-------------|--------------|
 | EPS-F001 | Generate the BASELINE §5 EOL orbit-average power: 2.39 W tumbling, 3.58 W sun-pointed (2.14 W tumbling with self-shadowing; `hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.3) | Analysis, Test |
 | EPS-F002 | Deliver, EOL, at least 3.4 W sunlit average tumbling and 5.4 W sun-pointed within 20° (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.3) | Analysis, Test |
-| EPS-F003 | Store minimum 50Wh usable energy | Test |
+| EPS-F003 | Store ≈ 50 Wh (4S1P 18650, BASELINE §5); usable energy per eclipse limited by the DoD limit in EPS-P004 | Test |
 | EPS-F004 | Provide regulated 3.3V rail (OBC, sensors) | Test |
 | EPS-F005 | Provide regulated 5V rail (Jetson payload) | Test |
 | EPS-F006 | Provide regulated 12V rail (RF PA) | Test |
@@ -63,7 +63,7 @@ The EPS encompasses:
 | EPS-P001 | MPPT efficiency | >95% | >97% |
 | EPS-P002 | Power distribution efficiency | >90% | >92% |
 | EPS-P003 | Total system efficiency | >85% | >89% |
-| EPS-P004 | Battery depth of discharge | <70% | <60% |
+| EPS-P004 | Battery depth of discharge per eclipse | ≤ 10 % nominal, ≤ 30 % contingency (BASELINE §5; SYS-112) | Analysis: 1.3–2.0 % (`hardware/eps/BATTERY_DESIGN.md` §3.2) |
 | EPS-P005 | Voltage regulation accuracy | ±5% | ±3% |
 
 ### 2.3 Interface Requirements
@@ -194,20 +194,25 @@ The array layout and the power-versus-attitude analysis are in `hardware/eps/SOL
 | Cell Type | Samsung INR18650-35E |
 | Nominal Voltage | 14.4V |
 | Voltage Range | 12.0V - 16.8V |
-| Capacity | 3.5 Ah (50.4 Wh) |
-| Mass | 200g |
+| Capacity | 3.45 Ah typical (49.7 Wh; ≈ 50 Wh, BASELINE §5) |
+| Mass | 249 g CBE including holder and interconnect board (`docs/environment/MASS_BUDGET.md` rows 7–9) |
 
 #### 3.3.2 Battery Sizing
 
+Summary of the cycle-life analysis in `hardware/eps/BATTERY_DESIGN.md` §3.2–§3.3 (analysis, not measured):
+
 ```
-Eclipse duration: 35 minutes (max)
-Eclipse power: 2.0 W (average)
-Energy required: 2.0 W × 0.58 hr = 1.17 Wh
-DOD per eclipse: 1.17 / 50.4 = 2.3%
-Cycles per year: 5,840
-Total DOD capacity: 2.3% × 5,840 = ~135 equivalent cycles
-Battery life: >3 years at 80% capacity
+Eclipse duration:   35.8 min (500 km, beta = 0)
+Eclipse load:       1.00 W nominal, 1.50 W with heater (0.90 conversion efficiency)
+DoD per eclipse:    1.3 % nominal, 2.0 % bounding (limit 10 %)
+Eclipses per year:  5,559
+Equivalent full
+cycles in 2 years:  148 nominal, 408 bounding, against 500 full-depth 1C cycles
+                    to 60 % capacity in the cell specification
+Calendar aging:     not quantified; cell test required
 ```
+
+The previous "> 3 years at 80 % capacity" had no cell data behind it and is withdrawn.
 
 ---
 
@@ -348,7 +353,7 @@ Battery life: >3 years at 80% capacity
 | Battery Undervoltage | VBATT < 12.0V | Enter SAFE mode |
 | Battery Overvoltage | VBATT > 17.0V | Disable charging |
 | Overcurrent | Any rail > limit | Disable load |
-| Overtemperature | TBATT > 50°C | Reduce charging |
+| Battery temperature outside the charge window | TBATT < 0°C or > 45°C | Inhibit charging (hardware; BASELINE §5) |
 | Solar Array Fault | I_solar < expected | Log fault |
 | MPPT Fault | No MPPT output | Switch to direct |
 
@@ -360,11 +365,10 @@ Battery life: >3 years at 80% capacity
 
 | Condition | Action |
 |-----------|--------|
-| T < -10°C | Enable heaters, disable charging |
-| -10°C < T < 0°C | Enable heaters, reduce charge rate |
-| 0°C < T < 45°C | Normal operation |
-| T > 45°C | Reduce charge rate |
-| T > 50°C | Disable charging, enter SAFE mode |
+| T < 0°C | Enable heaters, charging inhibited (SYS-602; BASELINE §5) |
+| 0°C ≤ T ≤ 45°C | Normal operation, charging allowed |
+| T > 45°C | Charging inhibited |
+| T > 60°C | Discharge cutoff (cell specification), enter SAFE mode |
 
 ### 7.2 Heat Dissipation
 
@@ -464,4 +468,4 @@ Battery life: >3 years at 80% capacity
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
-| 1.1 | 2026-10-16 | Funding audit | Generation (EPS-F001, EPS-F002, §3.2.1, §3.2.3), solar cells (§4.4) and BOM aligned with SOLAR_ARRAY_DESIGN v2.0 (TB-14) |
+| 1.1 | 2026-10-16 | Funding audit | Generation (EPS-F001, EPS-F002, §3.2.1, §3.2.3), solar cells (§4.4) and BOM aligned with SOLAR_ARRAY_DESIGN v2.0 (TB-14); battery DoD limit (EPS-P004), sizing (§3.3) and charge-temperature rules (§6.2, §7.1) aligned with BASELINE §5 and BATTERY_DESIGN v2.0 (TB-08) |

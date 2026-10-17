@@ -90,11 +90,12 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 
 #### 2.2.3 Energy Storage
 - **Battery Type**: 4S Li-ion 18650 pack
-- **Total Capacity**: 50 Wh (13.5 Ah at 3.7V nominal)
-- **Voltage Range**: 12.0V (0% SoC) to 14.8V (100% SoC)
+- **Total Capacity**: ≈ 50 Wh: 3.45 Ah at 14.4 V nominal, 49.7 Wh (BASELINE §5)
+- **Voltage Range**: 12.0 V (3.0 V/cell, operational floor) to 16.8 V (4.20 V/cell)
 - **Cell Configuration**: 4 cells in series
 - **Battery Management**: ISIS iBMS with overcharge/overdischarge protection
-- **Cycle Life**: >500 cycles to 80% capacity
+- **Cycle Life**: Eclipse DoD 1.3–2.0 % against a 10 % limit; 148–408 equivalent full cycles in 2 years against the cell specification's 500 (analysis, `hardware/eps/BATTERY_DESIGN.md` §3.3)
+- **Charging**: Only between 0 °C and +45 °C (BASELINE §5)
 
 #### 2.2.4 Power Distribution
 - **Power Distribution Unit**: GomSpace NanoPower PDU
