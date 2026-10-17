@@ -141,7 +141,7 @@ All project documentation and processes shall comply with:
   ```
 
 ### 1.2 Header Guards & Include Structure
-- [ ] **Add proper header guards** to all header files using the format: (audit 2026-10-16, SW-19: 6 of 38 headers use other guard names: beacon_filter.h, gnss.h, payload_guard.h, scheduler.h, system_init.h, yaml_parser.h)
+- [ ] **Add proper header guards** to all header files using the format: (audit 2026-10-16, SW-19: 6 of 49 headers use other guard names: beacon_filter.h, gnss.h, payload_guard.h, scheduler.h, system_init.h, yaml_parser.h)
   ```c
   #ifndef SMART_QSO_<MODULE>_H
   #define SMART_QSO_<MODULE>_H
@@ -191,7 +191,7 @@ All project documentation and processes shall comply with:
 
 - [ ] **Rule 5 - Assertions**: Add defensive assertions throughout: (audit 2026-10-16, SW-19: see the sub-items)
   - [x] Add `#include <assert.h>` or custom `SMART_QSO_ASSERT()` macro
-  - [ ] Add precondition assertions to all public functions (audit 2026-10-16, SW-19: precondition macros (SMART_QSO_REQUIRE*) are used 30 times, in 5 of 38 source files)
+  - [ ] Add precondition assertions to all public functions (audit 2026-10-16, SW-19: precondition macros (SMART_QSO_REQUIRE*) are used 30 times, in 5 of 40 source files)
   - [ ] Add postcondition assertions for critical operations (audit 2026-10-16, SW-19: SMART_QSO_ENSURE is defined in smart_qso.h but never used)
   - [ ] Minimum 2 assertions per function average (audit 2026-10-16, SW-19: about 30 assertion uses against more than 300 public functions)
 
