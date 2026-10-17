@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 **Reference:** NPR 7123.1, NASA Ames SmallSat Heritage
 
@@ -52,7 +52,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | Minimum | Beacon transmission received on ground |
 | Partial | Conventional transponder operation achieved |
 | Full | AI-managed transponder operation demonstrated |
-| Extended | Federated learning window operation demonstrated |
+| Extended | *Under review; the PI keeps or drops this criterion:* results from ground-side community-model ("federated learning") research using downlinked data. Federated learning is not in the flight baseline (`docs/BASELINE_PARAMETERS.md` §2) |
 
 ---
 
@@ -216,3 +216,4 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §8 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-MRD-001, TBD-MRD-002 and TBR-MRD-001. TBR-MRD-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §9) (finding VV-17). Proposed testable wording, for the PI to ratify, beneath MRD-012, MRD-043, MRD-045 and MRD-060; requirement text unchanged; tracked as TBR-MRD-002 to TBR-MRD-005 (finding VV-16) | SMART-QSO Team |
+| C | 2026-10-16 | §4.3 Extended success criterion reworded: federated learning is ground-side research only, not in the flight baseline (BASELINE §2); keeping or dropping the criterion is the PI's decision (finding PI-13) | SMART-QSO Team |
