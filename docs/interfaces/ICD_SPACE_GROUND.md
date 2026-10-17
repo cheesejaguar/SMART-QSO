@@ -1,7 +1,7 @@
 # Interface Control Document: Space-to-Ground
 
 **Document ID**: SQSO-ICD-005
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -84,17 +84,14 @@ SPACE-GROUND INTERFACE
 
 ### 4.3 Link Budget Summary
 
-| Parameter | Downlink | Uplink | Unit |
-|-----------|----------|--------|------|
-| TX Power | 30 | 40 | dBm |
-| TX Antenna | 0 | 12 | dBi |
-| Path Loss | -145 | -150 | dB |
-| RX Antenna | 12 | 0 | dBi |
-| System Noise | 290 | 500 | K |
-| Data Rate | 9600 | 9600 | bps |
-| Eb/N0 | 15 | 12 | dB |
-| Required Eb/N0 | 10 | 10 | dB |
-| **Margin** | **5** | **2** | **dB** |
+The controlled link budget is [LINK_BUDGET_ANALYSIS.md](../environment/LINK_BUDGET_ANALYSIS.md) (SQSO-LBA-001 v2.0,
+analysis, not measured). It replaces the 9600 bps table that was here (Eb/N0 15/12 dB, margins 5/2 dB), which did not
+match the baseline emissions. Headline values at 500 km, 5° elevation, reference telecommand station (12 dBic, 500 K):
+
+| Link | Margin | Pattern case (§2.4 of the budget) |
+|------|--------|-----------------------------------|
+| 1200 bps beacon downlink, 0.5 W | +7.7 dB / +4.7 dB | −3 dBi (63 % of orientations) / −6 dBi (81 %) |
+| 1200 bps telecommand uplink, 25 W | +4.7 dB | −10 dBi (92 % of orientations) |
 
 ## 5. Protocol Interface
 
@@ -359,3 +356,4 @@ Only the first rejection after an accepted command is written to the fault log.
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-15 | Funding audit | §6.3, §6.4, §9.2 and §11.2 aligned with the flight software; command framing moved to SQSO-ICD-013 |
 | 1.2 | 2026-10-16 | SMART-QSO Team | Beacon Format ICD cited by its own number, SMART-QSO-ICD-006 (finding PI-17) |
+| 1.3 | 2026-10-16 | Funding audit (TB-05) | §4.3 cites the re-issued link budget (SQSO-LBA-001 v2.0) |

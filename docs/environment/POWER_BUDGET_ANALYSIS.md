@@ -4,7 +4,14 @@
 **Version**: 1.0
 **Date**: 2026-01-02
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: CDR Baseline — **partly superseded** (see notice)
+
+> **Funding audit notice (2026-10-16).** §2.1 and §3 (a 0.06 m² array, 12.3 W peak, 6.2 W orbit average) are superseded
+> by `docs/BASELINE_PARAMETERS.md` §5 and the array analysis in `hardware/eps/SOLAR_ARRAY_DESIGN.md` §9: EOL orbit
+> average 2.39 W tumbling (2.14 W with self-shadowing) and 3.58 W sun-pointed (finding TB-14). The consumption and
+> energy-balance sections (§4–§7) are superseded by the BASELINE §5 load allocation until the multi-orbit
+> state-of-charge simulation is done (finding TB-02). §2.2 and §5.4 (battery) were corrected to BASELINE §5 and
+> `hardware/eps/BATTERY_DESIGN.md` in this revision (finding TB-08).
 
 ## 1. Purpose
 
@@ -28,13 +35,13 @@ This document provides the power budget analysis for the SMART-QSO mission, demo
 
 | Parameter | Value |
 |-----------|-------|
-| Chemistry | Li-ion (18650 cells) |
-| Configuration | 2S2P |
-| Capacity | 5.2 Ah @ 7.4V nominal |
-| Energy | 38.5 Wh |
-| Usable DOD | 70% (15% to 85% SOC) |
-| Usable Energy | 27.0 Wh |
-| Cycle Life | >500 cycles @ 70% DOD |
+| Chemistry | Li-ion 18650 (Samsung INR18650-35E candidate) |
+| Configuration | 4S1P (BASELINE §5) |
+| Capacity | 3.45 Ah @ 14.4V nominal |
+| Energy | 49.7 Wh (≈ 50 Wh, BASELINE §5) |
+| Depth of discharge limit | ≤ 10 % per eclipse nominal; ≤ 30 % contingency (BASELINE §5; SYS-112) |
+| Eclipse DoD (analysis) | 1.3–2.0 % (`hardware/eps/BATTERY_DESIGN.md` §3.2) |
+| Cycle Life | 148–408 equivalent full cycles in 2 years against the cell specification's 500 (`hardware/eps/BATTERY_DESIGN.md` §3.3; analysis) |
 
 ### 2.3 Power Conditioning
 
@@ -196,17 +203,15 @@ NET ENERGY:               +1.87 Wh/orbit ✓ POSITIVE (marginal)
 ### 5.4 Eclipse Survival
 
 ```
-ECLIPSE SURVIVAL ANALYSIS
+ECLIPSE SURVIVAL ANALYSIS (BATTERY_DESIGN §3.2; analysis)
 
-Battery capacity:         27.0 Wh (usable)
-Eclipse duration:         35 minutes
-SAFE mode power:          0.1 W
+Battery capacity:         49.7 Wh (4S1P, BASELINE §5)
+Eclipse duration:         35.8 minutes (500 km, beta = 0)
+Eclipse load:             1.00 W nominal (BASELINE §5 allocations
+                          not gated to sunlight); 1.50 W with heater
+Battery energy:           0.663-0.994 Wh (0.90 conversion efficiency)
 
-Energy required:          35 min × 0.1 W = 0.058 Wh
-Battery capacity:         27.0 Wh
-
-Eclipse cycles possible:  465 eclipses (at full DOD)
-Margin:                   99.8% ✓ EXCELLENT
+DoD per eclipse:          1.3-2.0 %   (limit: 10 % nominal, BASELINE §5)
 ```
 
 ## 6. Power Budget Summary
@@ -291,3 +296,4 @@ AI time allowed:           9.2 min/orbit
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-16 | Funding audit | Notice: generation superseded by SOLAR_ARRAY_DESIGN §9 (TB-14); battery §2.2 and §5.4 corrected to BASELINE §5 (TB-08) |

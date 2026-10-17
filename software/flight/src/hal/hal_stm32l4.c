@@ -4,7 +4,8 @@
  *
  * Implemented at register level (STM32L4 reference manual RM0432):
  *   - GPIO (RCC AHB2ENR, MODER, PUPDR, BSRR, IDR, ODR)
- *   - time base: SysTick at 1 kHz from the core clock
+ *   - time base: SysTick at 1 kHz from the core clock (stm32l4_clock.c sets
+ *     80 MHz before main; 4 MHz MSI if the PLL did not lock)
  *   - independent watchdog (IWDG, LSI 32 kHz)
  *   - reset cause (RCC CSR flags, read once and cleared)
  *
@@ -26,6 +27,8 @@
 #include "hal/hal_radio.h"
 
 #ifdef HAL_TARGET_STM32L4
+
+#include "hal/stm32l4_clock.h"
 
 #include <stddef.h>
 
@@ -66,8 +69,6 @@
 #define SYSTICK_LOAD           REG32(0xE000E014U)
 #define SYSTICK_VAL            REG32(0xE000E018U)
 
-/** Core clock: MSI 4 MHz after reset. PROVISIONAL until clock setup exists */
-#define SQSO_CORE_CLOCK_HZ     4000000U
 
 /*===========================================================================*/
 /* GPIO                                                                       */
@@ -178,7 +179,7 @@ void SysTick_Handler(void)
 
 SmartQsoResult_t hal_timer_init(void)
 {
-    SYSTICK_LOAD = (SQSO_CORE_CLOCK_HZ / 1000U) - 1U;
+    SYSTICK_LOAD = (stm32l4_core_clock_hz() / 1000U) - 1U;
     SYSTICK_VAL = 0U;
     SYSTICK_CTRL = 0x7U;   /* processor clock, interrupt, enable */
     s_timer_initialized = true;
@@ -199,7 +200,7 @@ uint64_t hal_timer_get_ms(void)
 
 uint64_t hal_timer_get_us(void)
 {
-    uint32_t ticks_per_us = SQSO_CORE_CLOCK_HZ / 1000000U;
+    uint32_t ticks_per_us = stm32l4_core_clock_hz() / 1000000U;
     uint32_t into_ms = (SYSTICK_LOAD - SYSTICK_VAL) / ticks_per_us;
     return (hal_timer_get_ms() * 1000U) + into_ms;
 }

@@ -242,7 +242,7 @@ gives the current counts.
   - A GNSS NMEA driver (D6).
   - A compile-only STM32L4 port with a register-level HAL, cross-compiled in CI (SW-01).
 - **CI gates now block:**
-  - pinned tools, a line-coverage floor (65 %; 68.2 % measured over every compiled source, 2026-10-16), and sanitizers
+  - pinned tools, a line-coverage floor (80 %; 82.7 % measured in CI over every compiled source, 2026-10-16), and sanitizers
     with undefined behaviour fatal (this found a real bug). The 80 % floor and 84 % first reported counted only the
     sources the tests ran, leaving out four with about 930 untested lines;
   - no-regression gates for clang-tidy, the MISRA checker and function length;

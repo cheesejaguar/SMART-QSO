@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document Number**: SMART-QSO-CDR-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-01-02
 **Status**: Ready for Review
 
@@ -282,14 +282,18 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 
 | TPM | Threshold | Goal | Measured | Status |
 |-----|-----------|------|----------|--------|
-| Total mass | < 1.5 kg | < 1.2 kg | 0.77 kg | MET |
-| Power generation (EOL) | > 2.0 W | > 2.5 W | 5.0 W | MET |
+| Total mass | < 1.5 kg | < 1.2 kg | Not measured (no hardware). Estimate: CBE 1.69 kg, predicted 1.92–2.00 kg against the 2.00 kg limit (`docs/environment/MASS_BUDGET.md` v2.0) | Not met (estimate) |
+| Power generation (EOL) | > 2.0 W | > 2.5 W | Not measured. Analysis: 2.14–2.39 W tumbling, 3.38–3.59 W sun-pointed orbit average (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.3) | Analysis only |
 | Power consumption (avg) | < 3.5 W | < 2.5 W | 2.45 W | MET |
 | Beacon interval | < 60 s | < 30 s | 30 s | MET |
 | AI inference latency | < 10 s | < 5 s | ~5 s | MET |
 | Detumble time | < 90 min | < 45 min | ~45 min | MET |
-| Link margin (downlink) | > 6 dB | > 10 dB | 13.4 dB | MET |
+| Link margin (downlink) | > 6 dB | > 10 dB | Not measured (no hardware). Analysis: +7.7 dB at 5° (`docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0) | Analysis only |
 | Code coverage | > 80% | > 90% | 80% | MET |
+
+*Funding audit, 2026-10-16: no hardware existed, so no value in the "Measured" column was measured. The mass, power
+generation and link-margin rows now cite the controlled analyses (findings TB-05, TB-06, TB-14); the other rows are
+unchanged and unverified.*
 
 ---
 
@@ -488,3 +492,4 @@ genhtml coverage.info --output-directory coverage_report
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §8 software-level test IDs follow TEST_PROCEDURES.md Version 1.1 (TP-SWI, TP-SWS); status cells unchanged (finding VV-18) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | OBC design row points to `hardware/obc/OBC_DESIGN.md` (SQSO-CDH-OBC-001), into which SMART-QSO-OBC-001 was merged (finding PI-17) |
+| 1.3 | 2026-10-16 | Funding audit | §6 mass, power-generation and link-margin rows cite the controlled analyses (TB-05, TB-06, TB-14) |

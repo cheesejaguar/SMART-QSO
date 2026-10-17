@@ -5,8 +5,13 @@
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @license MIT
  *
- * Each test case corresponds to a resolved defect to prevent regression.
- * See REGRESSION_TESTS.md for defect details.
+ * Each test case names the defect it guards against. DEF-xxx records are in
+ * REGRESSION_TESTS.md; SW-xx findings are in
+ * docs/funding_audit/FINDINGS_REGISTER.md.
+ *
+ * Not carried over from the original suite: REG-EPS-003 (DEF-012, integer
+ * overflow in eps_update_state()'s power calculation); that function and
+ * its calculation no longer exist.
  */
 
 #include <stdarg.h>
@@ -14,6 +19,9 @@
 #include <stdint.h>
 #include <setjmp.h>
 #include <cmocka.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "smart_qso.h"
@@ -21,8 +29,42 @@
 #include "fault_mgmt.h"
 #include "system_state.h"
 #include "state_machine.h"
+#include "payload_guard.h"
 #include "safe_string.h"
 #include "input_validation.h"
+#include "sensors.h"
+#include "beacon.h"
+#include "flight_log.h"
+
+/** SOC main.c's simulation starts with */
+#define START_SOC 0.75
+
+/*******************************************************************************
+ * Helpers
+ ******************************************************************************/
+
+/** Raise an event with the system's state machine; return the result */
+static SmResult_t raise_event(SmEvent_t event)
+{
+    SmResult_t result = SM_RESULT_INVALID_STATE;
+    assert_int_equal(sm_process_event(sys_get_sm_context(), event, &result), SMART_QSO_OK);
+    return result;
+}
+
+/** BOOT -> DETUMBLE -> IDLE, as main.c boots */
+static void boot_to_idle(void)
+{
+    assert_int_equal(raise_event(EVENT_BOOT_COMPLETE), SM_RESULT_OK);
+    assert_int_equal(raise_event(EVENT_DETUMBLE_COMPLETE), SM_RESULT_OK);
+    assert_int_equal(sys_get_operational_state(), STATE_IDLE);
+}
+
+static bool temperature_valid(float celsius)
+{
+    bool valid = false;
+    assert_int_equal(input_validate_temperature(celsius, &valid), SMART_QSO_OK);
+    return valid;
+}
 
 /*******************************************************************************
  * Test Fixtures
@@ -32,8 +74,11 @@ static int test_setup(void **state)
 {
     (void)state;
     (void)fault_mgmt_init();
-    (void)sys_state_init();
+    (void)fault_log_clear();
+    payload_guard_init();
     (void)eps_init();
+    eps_update_soc(START_SOC);
+    (void)sys_state_init();
     return 0;
 }
 
@@ -57,13 +102,13 @@ static int test_teardown(void **state)
 static void test_regression_eps_null_config(void **state)
 {
     (void)state;
+    const char *path = getenv(EPS_CONFIG_FILE_ENV);
+    (void)remove(((path != NULL) && (path[0] != '\0')) ? path : EPS_CONFIG_FILE);
 
-    /* Should not crash even if called multiple times */
-    SmartQsoResult_t result = eps_init();
-    assert_int_equal(result, SMART_QSO_OK);
-
-    result = eps_init();
-    assert_int_equal(result, SMART_QSO_OK);
+    /* No configuration saved: defaults, and safe to call again */
+    assert_int_equal(eps_init(), SMART_QSO_OK);
+    assert_false(eps_is_payload_enabled());
+    assert_int_equal(eps_init(), SMART_QSO_OK);
 }
 
 /**
@@ -71,43 +116,22 @@ static void test_regression_eps_null_config(void **state)
  *
  * Defect DEF-005: Setting low SOC didn't trigger mode transition
  * Root Cause: Update function not checking SOC thresholds
- * Fix: Added threshold checks in eps_update_state()
+ * Fix: Added threshold checks in eps_update_state(); since SW-14 the
+ *      thresholds are sm_power_event()'s and the state machine sets the mode
  */
 static void test_regression_eps_soc_mode_update(void **state)
 {
     (void)state;
+    boot_to_idle();
 
-    /* Set normal SOC */
-    (void)sys_set_state_of_charge(0.8);
-    (void)eps_update_state();
+    /* Main loop pass at 15 % SOC */
+    assert_int_equal(sys_set_state_of_charge(0.15), SMART_QSO_OK);
+    SmEvent_t event = sm_power_event(sys_get_operational_state(), sys_get_state_of_charge(), true);
+    assert_int_equal(event, EVENT_POWER_CRITICAL);
+    assert_int_equal(raise_event(event), SM_RESULT_OK);
 
-    /* Set low SOC - should trigger mode change */
-    (void)sys_set_state_of_charge(0.15);
-    (void)eps_update_state();
-
-    /* Power mode should reflect low SOC */
-    PowerMode_t mode = sys_get_power_mode();
-    assert_true(mode == POWER_MODE_SAFE || mode == POWER_MODE_IDLE);
-}
-
-/**
- * @brief REG-EPS-003: Integer overflow in power calculation
- *
- * Defect DEF-012: Large current values caused overflow
- * Root Cause: Using int16 for intermediate calculation
- * Fix: Changed to int32 with overflow check
- */
-static void test_regression_eps_power_overflow(void **state)
-{
-    (void)state;
-
-    /* Set maximum valid values */
-    (void)sys_set_battery_voltage(4.2);
-    (void)sys_set_battery_current(10.0);
-
-    /* Should handle without overflow */
-    SmartQsoResult_t result = eps_update_state();
-    assert_int_equal(result, SMART_QSO_OK);
+    assert_int_equal(sys_get_operational_state(), STATE_SAFE);
+    assert_int_equal(sys_get_power_mode(), POWER_MODE_SAFE);
 }
 
 /*******************************************************************************
@@ -119,25 +143,26 @@ static void test_regression_eps_power_overflow(void **state)
  *
  * Defect DEF-002: Adding faults beyond buffer size crashed
  * Root Cause: No bounds check on fault log index
- * Fix: Implemented circular buffer with overflow flag
+ * Fix: Full log drops its oldest entry for the new one
  */
 static void test_regression_fault_log_overflow(void **state)
 {
     (void)state;
+    char desc[SMART_QSO_FAULT_DESC_LEN];
 
-    /* Fill fault log beyond capacity */
-    for (int i = 0; i < MAX_FAULT_ENTRIES + 10; i++) {
-        SmartQsoResult_t result = fault_log_add(
-            FAULT_TYPE_EPS,
-            FAULT_SEV_WARNING,
-            "Test fault %d", i);
-        assert_int_equal(result, SMART_QSO_OK);
+    for (int i = 0; i < (SMART_QSO_MAX_FAULT_ENTRIES + 10); i++) {
+        (void)snprintf(desc, sizeof(desc), "Test fault %d", i);
+        assert_int_equal(fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_WARNING,
+                                       desc, START_SOC), SMART_QSO_OK);
     }
 
-    /* Should not crash, stats should reflect overflow */
-    FaultStats_t stats;
-    (void)fault_get_stats(&stats);
-    assert_true(stats.log_wrapped);
+    FaultLogEntry_t entry;
+    assert_int_equal(fault_log_get_count(), (size_t)SMART_QSO_MAX_FAULT_ENTRIES);
+    assert_int_equal(fault_log_get_entry(0U, &entry), SMART_QSO_OK);
+    assert_string_equal(entry.description, "Test fault 10");    /* oldest dropped */
+    assert_int_equal(fault_log_get_last(&entry), SMART_QSO_OK);
+    (void)snprintf(desc, sizeof(desc), "Test fault %d", SMART_QSO_MAX_FAULT_ENTRIES + 9);
+    assert_string_equal(entry.description, desc);
 }
 
 /**
@@ -146,20 +171,31 @@ static void test_regression_fault_log_overflow(void **state)
  * Defect DEF-008: Fault recovery was logged but not executed
  * Root Cause: Return value of recovery function ignored
  * Fix: Check and propagate recovery result
+ *
+ * Also SW-14 follow-up: fault_recover_thermal() and fault_recover_power()
+ * set the EPS power mode behind the state machine, so the two disagreed and
+ * the mode guards did not apply. Recovery must change the mode the state
+ * machine is in, and the EPS must follow.
  */
 static void test_regression_fault_recovery_called(void **state)
 {
     (void)state;
+    boot_to_idle();
 
-    /* Trigger recovery */
-    SmartQsoResult_t result = fault_recover_eps();
-    assert_int_equal(result, SMART_QSO_OK);
+    assert_int_equal(fault_recover_power(0.20), SMART_QSO_OK);
+    assert_int_equal(sys_get_operational_state(), STATE_SAFE);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_SAFE);
 
-    result = fault_recover_adcs();
-    assert_int_equal(result, SMART_QSO_OK);
+    assert_int_equal(fault_recover_power(START_SOC), SMART_QSO_OK);
+    assert_int_equal(sys_get_operational_state(), STATE_IDLE);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_IDLE);
 
-    result = fault_recover_comm();
-    assert_int_equal(result, SMART_QSO_OK);
+    assert_int_equal(raise_event(EVENT_AI_READY), SM_RESULT_OK);
+    assert_true(eps_is_payload_enabled());
+    assert_int_equal(fault_recover_thermal(START_SOC), SMART_QSO_OK);
+    assert_false(eps_is_payload_enabled());
+    assert_int_equal(sys_get_operational_state(), STATE_SAFE);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_SAFE);
 }
 
 /*******************************************************************************
@@ -181,17 +217,16 @@ static void test_regression_uart_buffer_overflow(void **state)
     char src[100];
 
     /* Fill source with long string */
-    (void)memset(src, 'A', sizeof(src) - 1);
-    src[sizeof(src) - 1] = '\0';
+    (void)memset(src, 'A', sizeof(src) - 1U);
+    src[sizeof(src) - 1U] = '\0';
 
     /* Should truncate safely */
-    size_t copied = 0;
-    SmartQsoResult_t result = safe_strncpy(dest, sizeof(dest),
-                                            src, sizeof(src), &copied);
+    size_t copied = 0U;
+    SmartQsoResult_t result = safe_strncpy(dest, sizeof(dest), src, sizeof(src), &copied);
 
     assert_int_equal(result, SMART_QSO_OK);
-    assert_true(copied < sizeof(dest));
-    assert_int_equal(dest[sizeof(dest) - 1], '\0');
+    assert_int_equal(copied, sizeof(dest) - 1U);
+    assert_int_equal(dest[sizeof(dest) - 1U], '\0');
 }
 
 /*******************************************************************************
@@ -199,7 +234,7 @@ static void test_regression_uart_buffer_overflow(void **state)
  ******************************************************************************/
 
 /**
- * @brief REG-SM-001: Invalid transition allowed BOOT→ACTIVE
+ * @brief REG-SM-001: Invalid transition allowed BOOT->ACTIVE
  *
  * Defect DEF-004: Direct BOOT to ACTIVE transition was possible
  * Root Cause: Missing transition validation
@@ -208,16 +243,15 @@ static void test_regression_uart_buffer_overflow(void **state)
 static void test_regression_sm_invalid_transition(void **state)
 {
     (void)state;
+    eps_update_soc(0.90);
+    assert_int_equal(sys_get_operational_state(), STATE_BOOT);
 
-    SmContext_t *ctx = sys_get_sm_context();
-    assert_int_equal(ctx->current_state, STATE_BOOT);
+    assert_int_equal(raise_event(EVENT_AI_READY), SM_RESULT_NO_TRANSITION);
+    assert_int_equal(raise_event(EVENT_GROUND_CMD_ACTIVE), SM_RESULT_NO_TRANSITION);
 
-    /* Try invalid transition */
-    SmartQsoResult_t result = sm_process_event(ctx, SM_EVENT_POWER_AVAILABLE);
-
-    /* Should either fail or stay in BOOT */
-    assert_true(result != SMART_QSO_OK ||
-                ctx->current_state == STATE_BOOT);
+    assert_int_equal(sys_get_operational_state(), STATE_BOOT);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_SAFE);
+    assert_false(eps_is_payload_enabled());
 }
 
 /**
@@ -226,18 +260,20 @@ static void test_regression_sm_invalid_transition(void **state)
  * Defect DEF-009: State lost on unexpected reset
  * Root Cause: State only saved periodically, not on transition
  * Fix: Mark state dirty on every transition
+ *
+ * The state that a transition changes and that survives a reset is the EPS
+ * state (power mode and load switches; the operational state restarts at
+ * BOOT on every boot). It must be saved by the transition itself, not later.
  */
 static void test_regression_sm_state_persisted(void **state)
 {
     (void)state;
+    boot_to_idle();
+    assert_int_equal(raise_event(EVENT_GROUND_CMD_SAFE), SM_RESULT_OK);
 
-    SmContext_t *ctx = sys_get_sm_context();
-
-    /* Transition to new state */
-    (void)sm_process_event(ctx, SM_EVENT_BOOT_COMPLETE);
-
-    /* State should be marked dirty for persistence */
-    assert_true(sys_state_is_dirty());
+    /* Read back what is in non-volatile storage now */
+    assert_int_equal(eps_load_config(), SMART_QSO_OK);
+    assert_int_equal(eps_get_power_mode(), POWER_MODE_SAFE);
 }
 
 /*******************************************************************************
@@ -255,12 +291,11 @@ static void test_regression_sensor_crc_validated(void **state)
 {
     (void)state;
 
-    /* Test CRC validation function exists and works */
-    uint8_t data[] = {0x01, 0x02, 0x03, 0x04};
+    uint8_t data[] = {0x01U, 0x02U, 0x03U, 0x04U};
     uint32_t crc1 = smart_qso_crc32(data, sizeof(data));
 
     /* Corrupt data */
-    data[0] = 0xFF;
+    data[0] = 0xFFU;
     uint32_t crc2 = smart_qso_crc32(data, sizeof(data));
 
     /* CRCs should differ */
@@ -273,22 +308,20 @@ static void test_regression_sensor_crc_validated(void **state)
  * Defect DEF-010: Temperature accepted outside valid range
  * Root Cause: Off-by-one error in bounds check
  * Fix: Corrected range validation logic
+ *
+ * The telemetry limits are -50 and +100 C, both inclusive
+ * (input_validation.c TLM_MIN_TEMP, TLM_MAX_TEMP).
  */
 static void test_regression_sensor_range_check(void **state)
 {
     (void)state;
 
-    /* Test range validation */
-    bool valid;
-
-    valid = validate_temperature(-50.0f);  /* Below min */
-    assert_false(valid);
-
-    valid = validate_temperature(25.0f);   /* Valid */
-    assert_true(valid);
-
-    valid = validate_temperature(100.0f);  /* Above max */
-    assert_false(valid);
+    assert_false(temperature_valid(-50.5f));   /* below min */
+    assert_true(temperature_valid(-50.0f));
+    assert_true(temperature_valid(25.0f));
+    assert_true(temperature_valid(100.0f));
+    assert_false(temperature_valid(100.5f));   /* above max */
+    assert_false(temperature_valid(NAN));
 }
 
 /*******************************************************************************
@@ -300,15 +333,24 @@ static void test_regression_sensor_range_check(void **state)
  *
  * Defect DEF-011: Large telemetry packet overflowed stack buffer
  * Root Cause: Buffer sized for average, not max packet
- * Fix: Sized buffer for MAX_BEACON_LENGTH
+ * Fix: Sized buffer for the maximum beacon length
  */
 static void test_regression_stack_buffer_size(void **state)
 {
     (void)state;
 
-    /* Verify buffer constants are adequate */
-    assert_true(MAX_BEACON_LENGTH >= 256);
-    assert_true(LOG_BUFFER_SIZE >= 64);
+    /* Buffer constants: the beacon info field holds 256 bytes (SRS-F025) */
+    assert_true(BEACON_MAX_PAYLOAD_LEN >= 256);
+    assert_true(LOG_BUFFER_SIZE >= 64U);
+
+    /* Formatting every sensor into a short buffer stays inside it */
+    assert_int_equal(sensors_init(), SMART_QSO_OK);
+    assert_int_equal(sensors_load_defaults(), SMART_QSO_OK);
+    char small[24];
+    (void)memset(small, 'Z', sizeof(small));
+    size_t written = sensors_format_telemetry(small, sizeof(small));
+    assert_true(written < sizeof(small));
+    assert_true(memchr(small, '\0', sizeof(small)) != NULL);
 }
 
 /**
@@ -324,11 +366,11 @@ static void test_regression_crc_length(void **state)
 
     /* CRC of partial data should differ from full data */
     uint8_t data[16] = {0};
-    data[0] = 0xAA;
-    data[8] = 0xBB;
+    data[0] = 0xAAU;
+    data[8] = 0xBBU;
 
-    uint32_t crc_8 = smart_qso_crc32(data, 8);
-    uint32_t crc_16 = smart_qso_crc32(data, 16);
+    uint32_t crc_8 = smart_qso_crc32(data, 8U);
+    uint32_t crc_16 = smart_qso_crc32(data, 16U);
 
     assert_int_not_equal(crc_8, crc_16);
 }
@@ -344,8 +386,6 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_regression_eps_null_config,
                                         test_setup, test_teardown),
         cmocka_unit_test_setup_teardown(test_regression_eps_soc_mode_update,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_regression_eps_power_overflow,
                                         test_setup, test_teardown),
 
         /* Fault Management Regressions */
@@ -377,5 +417,5 @@ int main(void)
                                         test_setup, test_teardown),
     };
 
-    return cmocka_run_group_tests(tests, NULL, NULL);
+    return cmocka_run_group_tests_name("Regression Suite", tests, NULL, NULL);
 }
