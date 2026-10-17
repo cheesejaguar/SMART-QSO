@@ -137,7 +137,7 @@ SYS-600,docs/requirements/SYSTEM_REQUIREMENTS.md,MRD-001,"A,T",All components sh
 SYS-601,docs/requirements/SYSTEM_REQUIREMENTS.md,MRD-001,"A,T",All components shall survive -40C to +60C,,,docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md
 SYS-602,docs/requirements/SYSTEM_REQUIREMENTS.md,MRD-051,A,Battery temperature shall be maintained above 0C for charging,,,
 SYS-603,docs/requirements/SYSTEM_REQUIREMENTS.md,MRD-001,A,AI payload thermal path shall be designed for passive cooling,,,docs/test_procedures/TP-JETSON-002_Thermal_Test.md
-SYS-700,docs/requirements/SYSTEM_REQUIREMENTS.md,MRD-080,T,The spacecraft shall survive launch vibration per GEVS protoflight levels,,,docs/test_procedures/TP-ENV-002_Vibration.md
+SYS-700,docs/requirements/SYSTEM_REQUIREMENTS.md,MRD-080,T,"The spacecraft shall survive launch vibration at the launch provider's levels (interim: SpaceX Rideshare User's Guide v11, pending the launch contract) *[PI to ratify. Amended 2026-10-16 from ""per GEVS protoflight levels"" to the launch environment of `docs/BASELINE_PARAMETERS.md` §8; interim levels in `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1; provider levels TBD-SYS-002]*",,,docs/test_procedures/TP-ENV-002_Vibration.md
 SYS-701,docs/requirements/SYSTEM_REQUIREMENTS.md,MRD-080,A,The spacecraft shall survive acoustic environment per launch provider spec,,,
 SYS-702,docs/requirements/SYSTEM_REQUIREMENTS.md,MRD-080,T,The spacecraft shall survive depressurization,,,docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md
 SYS-710,docs/requirements/SYSTEM_REQUIREMENTS.md,MRD-001,A,The spacecraft shall survive radiation environment for mission duration,,,

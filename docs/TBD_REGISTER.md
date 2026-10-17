@@ -37,12 +37,12 @@ Open: **267 TBD** and **32 TBR** (finding VV-17). 27 of them are tracked items w
 | TBR | TBR-SRS-001 | Watchdog timeout value (currently 30s) | `docs/software/SOFTWARE_REQUIREMENTS.md` | PI | PDR | — |
 | TBR | TBR-SRS-002 | SRS-F040 ("all fault conditions") cannot be tested; PI ratifies, amends or rejects the proposed wording beneath §3.5 (finding VV-16) | `docs/software/SOFTWARE_REQUIREMENTS.md` | PI | PI | `docs/software/SOFTWARE_REQUIREMENTS.md` |
 | TBD | TBD-SYS-001 | Final IARU coordinated frequency | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | `docs/test_procedures/TP-ENV-001_Pre_Environmental.md`, `docs/test_procedures/TP-ENV-004_EMC.md`, `docs/test_procedures/TP-FAT-001_Final_Functional.md`, `docs/test_procedures/TP-FAT-002_Flight_Config.md`, `docs/test_procedures/TP-INT-003_RF_Integration.md`, `docs/test_procedures/TP-RF-001_Functional_Test.md`, `docs/test_procedures/TP-RF-003_Spurious_Emissions.md`, `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md` |
-| TBD | TBD-SYS-002 | Launch provider vibration spec | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | — |
+| TBD | TBD-SYS-002 | Launch provider vibration spec | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md` |
 | TBR | TBR-SYS-002 | SYS-020 ("mitigated where practical") has no pass criterion | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md` |
 | TBR | TBR-SYS-003 | SYS-222 ("omnidirectional coverage") can be neither met by a monopole nor verified | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md` |
 | TBR | TBR-SYS-004 | SYS-522 ("shall not affect other spacecraft functions") lists no failures and no pass criterion | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md` |
 | TBR | TBR-TPADCS003-001 | §3.2 and §4 give no pass values for detumble ("Rate detected", "Damping observed") | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` | PI | PI | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` |
-| TBR | TBR-TPENV003-001 | Cold survival limit: SYS-601 requires survival from -40 °C; Rev B of this procedure tested only to -30 °C | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | PI | Before the thermal vacuum test | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` |
+| TBR | TBR-TPENV003-001 | Cold survival limit: SYS-601 requires survival from -40 °C; Rev B of this procedure tested only to -30 °C | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | PI | Before the thermal vacuum test | `docs/environment/ENVIRONMENTAL_TEST_PLAN.md`, `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` |
 
 ## 3. Closed Tracked Items
 
