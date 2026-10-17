@@ -184,17 +184,38 @@ set(FLIGHT_HEADERS
 # STM32L4 target (SW-01): compile-only port
 #
 # The flight modules and the register-level HAL (src/hal/hal_stm32l4.c) as a
-# static library. No RTOS, startup code or linker script yet, so no image is
-# linked, and nothing host-specific below applies.
+# static library, and a linked bare-metal image (cmake/stm32l4r5zi.ld). No
+# RTOS yet; nothing host-specific below applies.
 ###############################################################################
 
 if(SMART_QSO_TARGET STREQUAL "STM32L4")
     set(TARGET_SOURCES ${FLIGHT_SOURCES})
     list(REMOVE_ITEM TARGET_SOURCES src/main.c src/hal/hal_sim.c)
-    list(APPEND TARGET_SOURCES src/hal/hal_stm32l4.c)
+    list(APPEND TARGET_SOURCES src/hal/hal_stm32l4.c src/hal/stm32l4_clock.c)
     add_library(smart_qso_target STATIC ${TARGET_SOURCES})
     target_compile_definitions(smart_qso_target PRIVATE HAL_TARGET_STM32L4)
-    message(STATUS "  Target:            STM32L4 (library only)")
+
+    # Linked flight image: vector table and reset handler, newlib system
+    # calls (no heap, output discarded), and the main loop. Bare metal, one
+    # loop; the RTOS port follows (docs: RTOS_ARCHITECTURE.md).
+    add_executable(smart_qso_flight.elf
+        src/main.c
+        src/hal/stm32l4_startup.c
+        src/hal/stm32l4_syscalls.c
+    )
+    target_compile_definitions(smart_qso_flight.elf PRIVATE HAL_TARGET_STM32L4)
+    target_link_libraries(smart_qso_flight.elf smart_qso_target m)
+    target_link_options(smart_qso_flight.elf PRIVATE
+        -T${CMAKE_SOURCE_DIR}/cmake/stm32l4r5zi.ld
+        -nostartfiles
+        --specs=nano.specs
+        -Wl,--gc-sections
+        -Wl,-Map=${CMAKE_BINARY_DIR}/smart_qso_flight.map
+        -Wl,--print-memory-usage
+    )
+    set_target_properties(smart_qso_flight.elf PROPERTIES
+        LINK_DEPENDS ${CMAKE_SOURCE_DIR}/cmake/stm32l4r5zi.ld)
+    message(STATUS "  Target:            STM32L4 (library and linked image)")
     return()
 endif()
 

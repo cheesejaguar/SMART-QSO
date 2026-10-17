@@ -311,6 +311,27 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c,
 
 ---
 
+### 4.9 DEV-009: Target startup and C-library interface (rules 8.7, 8.11, 11.4, 11.6, 17.3)
+
+| Field | Value |
+|-------|-------|
+| Rules | 8.7, 8.11, 11.4, 11.6 (Advisory); 17.3 (Mandatory, reported by the addon for inline assembly) |
+| Category | Hardware access and C-library interface |
+| Location | `src/hal/stm32l4_startup.c`, `src/hal/stm32l4_syscalls.c`, `src/hal/stm32l4_clock.c` |
+| Approved By | Proposed, for the PI to ratify |
+| Date | 2026-10-16 |
+
+**Deviation and justification:**
+- **8.7** (external linkage used in one file): `Reset_Handler` is the image entry point named by the linker script, and `_write`, `_sbrk`, `_open` and the other system calls are the names newlib calls. They must be external.
+- **8.11** (extern array without a size): the linker-script symbols `_sdata`, `_edata`, `_sbss`, `_ebss`, `_sidata` and `_estack` have no size in C; only their addresses are used, and the section sizes are computed from them as integers.
+- **11.4** (pointer/integer conversion): memory-mapped registers at fixed addresses from ST's `stm32l4r5xx.h` (RCC, FLASH, SCB), and the linker-symbol address arithmetic. Same pattern as `hal_stm32l4.c`.
+- **11.6** (`(void *)-1`): `_sbrk` must return that value to report "no memory"; it is how the image has no heap.
+- **17.3**: the addon reports `__asm volatile ("dsb; isb")` as an undeclared function. The barrier is required after enabling the FPU (Arm Cortex-M4 FPU enable sequence) and is the only assembly in the image.
+
+**Risk assessment:** Low. Register addresses and bit positions are cited in each file; the linker script fails the link if sections overflow; CI checks the entry point, the vector table address and the reset vector.
+
+---
+
 ## 5. Deviation Approval Process
 
 ### 5.1 Required Information
@@ -364,3 +385,4 @@ Each deviation SHALL include:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | DEV-009 proposed for the STM32L4 startup, system calls and clock (SW-01) | Funding-audit follow-up |

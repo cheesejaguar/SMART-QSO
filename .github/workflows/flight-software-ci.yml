@@ -219,6 +219,30 @@ jobs:
           }
         done
 
+    - name: Check the linked flight image
+      working-directory: software/flight
+      run: |
+        elf=build-arm/smart_qso_flight.elf
+        arm-none-eabi-size -A -x "$elf"
+        # The linker already failed if flash or RAM (with the 16 KB minimum stack) overflowed
+        grep -A3 'Memory region' build-arm/smart_qso_flight.map || true
+        sym() { arm-none-eabi-nm "$elf" | awk -v s="$1" '$3 == s { print $1 }'; }
+        # Entry point is the reset handler (Thumb bit set)
+        entry=$(arm-none-eabi-readelf -h "$elf" | awk '/Entry point address/ { print $4 }')
+        [ $(( entry | 1 )) -eq $(( 0x$(sym Reset_Handler) | 1 )) ] || {
+          echo "::error::entry point $entry is not Reset_Handler"; exit 1; }
+        # Vector table at the start of flash; word 0 = top of RAM, word 1 = Reset_Handler | 1
+        vec=$(arm-none-eabi-objdump -h "$elf" | awk '$2 == ".isr_vector" { print $4 }')
+        [ "$vec" = "08000000" ] || { echo "::error::.isr_vector at $vec, not 08000000"; exit 1; }
+        words=$(arm-none-eabi-objcopy -O binary -j .isr_vector "$elf" /dev/stdout | od -An -tx4 -N8 | xargs)
+        sp=$(echo "$words" | cut -d' ' -f1); reset=$(echo "$words" | cut -d' ' -f2)
+        [ "$sp" = "200a0000" ] || { echo "::error::initial SP $sp, expected 200a0000"; exit 1; }
+        [ $(( 0x$reset )) -eq $(( 0x$(sym Reset_Handler) | 1 )) ] || {
+          echo "::error::reset vector $reset is not Reset_Handler | 1"; exit 1; }
+        # No heap: _sbrk is the stub that always fails, not newlib's
+        arm-none-eabi-nm "$elf" | grep -q ' T _sbrk$' || { echo "::error::_sbrk missing"; exit 1; }
+        echo "Image OK: entry $entry, vectors at 0x$vec, SP 0x$sp"
+
   documentation:
     name: Documentation Check
     runs-on: ubuntu-24.04   # pinned
