@@ -2,7 +2,7 @@
 
 **Self-Managing Amateur Radio Transponder — QSO**
 
-A 1U CubeSat mission experimenting with onboard agentic AI to manage an amateur radio transponder. The satellite learns power availability and regional demand, prioritizes fair access, and composes dynamic beacons while always failing gracefully to a conventional transponder if AI is unavailable.
+A 1U CubeSat (100 × 100 × 113.5 mm, CDS Rev 14.1; [baseline](docs/BASELINE_PARAMETERS.md) §4) mission experimenting with onboard agentic AI to manage an amateur radio transponder. The satellite learns power availability and regional demand, prioritizes fair access, and composes dynamic beacons while always failing gracefully to a conventional transponder if AI is unavailable.
 
 [![Flight Software CI](https://github.com/cheesejaguar/SMART-QSO/actions/workflows/ci.yml/badge.svg)](https://github.com/cheesejaguar/SMART-QSO/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
