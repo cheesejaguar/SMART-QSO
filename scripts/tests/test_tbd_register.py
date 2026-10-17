@@ -154,15 +154,15 @@ def test_register_rows(tmp_path):
           "| TBR-ABC-001 | Spring force | Mechanical | CDR |\n")
     text = render(scan(tmp_path))
     assert "](" not in text                       # links in quoted text would point elsewhere
-    assert "| 1 | TBD | Mass \\| TBD, see the budget and docs/sub/a.md | PI | PI |" in text
-    assert "| TBR | TBR-ABC-001 | Spring force | `docs/sub/a.md`:5 | Mechanical | CDR |" in text
+    assert "| TBD | Mass \\| TBD, see the budget and docs/sub/a.md | PI | PI |" in text
+    assert "| TBR | TBR-ABC-001 | Spring force | `docs/sub/a.md` | Mechanical | CDR |" in text
     assert "**1 TBD** and **1 TBR**" in text
 
 
 def test_long_lines_are_cut_around_the_word(tmp_path):
     write(tmp_path, "docs/a.md", "x" * 300 + " value TBR here " + "y" * 300 + "\n")
     text = render(scan(tmp_path))
-    row = next(line for line in text.splitlines() if line.startswith("| 1 |"))
+    row = next(line for line in text.splitlines() if "value TBR here" in line)
     assert "value TBR here" in row and len(row) < 260
 
 
@@ -191,3 +191,11 @@ def test_check_fails_on_id_problems(tmp_path):
     baseline(tmp_path, 1, 0)
     main([], root=tmp_path)
     assert main(["--check"], root=tmp_path) == 1
+
+
+def test_register_does_not_change_when_lines_shift(tmp_path):
+    # Line numbers would make every unrelated edit above a TBD fail the check
+    write(tmp_path, "docs/a.md", "Intro\n\nFrequency is TBD here\n")
+    before = render(scan(tmp_path))
+    write(tmp_path, "docs/a.md", "Intro\n\nA new paragraph.\n\nFrequency is TBD here\n")
+    assert render(scan(tmp_path)) == before

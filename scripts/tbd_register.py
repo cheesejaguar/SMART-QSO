@@ -290,20 +290,22 @@ def render(reg: Register) -> str:
         "|------|----|------|------------|-------|-----------|---------------|",
     ]
     for item in open_items:
-        cited = ", ".join(f"`{f}`:{n}" for f, n in item.refs) or "—"
+        cited = ", ".join(f"`{f}`" for f in sorted({f for f, _ in item.refs})) or "—"
         out.append(f"| {item.kind} | {item.ident} | {item.text.replace('|', chr(92) + '|')} | "
-                   f"`{item.file}`:{item.line} | {item.owner} | {item.needed_by} | {cited} |")
+                   f"`{item.file}` | {item.owner} | {item.needed_by} | {cited} |")
     out += ["", "## 3. Closed Tracked Items", ""]
     if closed_items:
         out += ["| Kind | ID | Item | Defined in | Closure |",
                 "|------|----|------|------------|---------|"]
         for item in closed_items:
-            out.append(f"| {item.kind} | {item.ident} | {item.text} | `{item.file}`:{item.line} | "
+            out.append(f"| {item.kind} | {item.ident} | {item.text} | `{item.file}` | "
                        f"{_plain(item.closed).replace('|', chr(92) + '|')} |")
     else:
         out.append("None.")
     out += ["", "## 4. Untracked Occurrences", "",
-            "One row per line; Kind gives the number of words on the line when it is more than one.", "",
+            "One row per line that has the words, in document order; Kind gives the number of words on the line "
+            "when it is more than one. Line numbers are left out so that unrelated edits do not make this file "
+            "stale.", "",
             "| Document | TBD | TBR |", "|----------|-----|-----|"]
     for rel, occs in sorted(by_file.items()):
         tbd = sum(o.counts.get("TBD", 0) for o in occs)
@@ -311,10 +313,10 @@ def render(reg: Register) -> str:
         out.append(f"| `{rel}` | {tbd} | {tbr} |")
     for rel, occs in sorted(by_file.items()):
         out += ["", f"### `{rel}`", "",
-                "| Line | Kind | Text | Owner | Needed by |",
-                "|------|------|------|-------|-----------|"]
+                "| Kind | Text | Owner | Needed by |",
+                "|------|------|-------|-----------|"]
         for occ in occs:
-            out.append(f"| {occ.line} | {_kind(occ)} | {occ.text} | {UNKNOWN} | {UNKNOWN} |")
+            out.append(f"| {_kind(occ)} | {occ.text} | {UNKNOWN} | {UNKNOWN} |")
     return "\n".join(out) + "\n"
 
 

@@ -16,43 +16,43 @@ Open: **267 TBD** and **31 TBR** (finding VV-17). 26 of them are tracked items w
 
 | Kind | ID | Item | Defined in | Owner | Needed by | Also cited at |
 |------|----|------|------------|-------|-----------|---------------|
-| TBR | TBR-CDS-001 | Separation spring force | `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:196 | PI | PI | `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:75 |
-| TBR | TBR-CDS-002 | IARU frequency coordination | `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:197 | PI | PI | `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:122 |
-| TBR | TBR-CDS-003 | Vibration test | `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:198 | PI | PI | `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:130, `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:131, `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:132 |
-| TBR | TBR-CDS-004 | Thermal vacuum test | `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:199 | PI | PI | `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:138, `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:139, `docs/compliance/CDS_COMPLIANCE_MATRIX.md`:140 |
-| TBD | TBD-ICM-001 | Launch provider ICD | `docs/interfaces/INTERFACE_CONTROL_MASTER.md`:245 | Systems | Manifest | — |
-| TBD | TBD-ICM-002 | Deployer interface | `docs/interfaces/INTERFACE_CONTROL_MASTER.md`:246 | Mechanical | CDR+30d | — |
-| TBD | TBD-ICM-003 | Ground station protocol | `docs/interfaces/INTERFACE_CONTROL_MASTER.md`:247 | Ground | CDR | — |
-| TBD | TBD-MRD-001 | Exact orbit parameters | `docs/requirements/MISSION_REQUIREMENTS.md`:203 | PI | PI | — |
-| TBD | TBD-MRD-002 | IARU coordination confirmation | `docs/requirements/MISSION_REQUIREMENTS.md`:204 | PI | PI | — |
-| TBR | TBR-MRD-002 | MRD-012 has no measure of "global coverage" | `docs/requirements/MISSION_REQUIREMENTS.md`:206 | PI | PI | `docs/requirements/MISSION_REQUIREMENTS.md`:78 |
-| TBR | TBR-MRD-003 | MRD-043 has no measure of "fairly" | `docs/requirements/MISSION_REQUIREMENTS.md`:207 | PI | PI | `docs/requirements/MISSION_REQUIREMENTS.md`:112 |
-| TBR | TBR-MRD-004 | MRD-045 ("shall not compromise spacecraft safety") has no pass criterion | `docs/requirements/MISSION_REQUIREMENTS.md`:208 | PI | PI | `docs/requirements/MISSION_REQUIREMENTS.md`:114 |
-| TBR | TBR-MRD-005 | MRD-060 does not say what "detumble" means, and Test alone is not feasible | `docs/requirements/MISSION_REQUIREMENTS.md`:209 | PI | PI | `docs/requirements/MISSION_REQUIREMENTS.md`:133 |
-| TBD | TBD-RTM-001 | Final line numbers after code freeze | `docs/requirements/REQUIREMENTS_TRACEABILITY.md`:274 | SW Lead | CDR | — |
-| TBD | TBD-RTM-002 | Test case procedures | `docs/requirements/REQUIREMENTS_TRACEABILITY.md`:275 | Test Lead | TRR | — |
-| TBR | TBR-RTM-001 | Performance test thresholds | `docs/requirements/REQUIREMENTS_TRACEABILITY.md`:276 | SE Lead | PDR | — |
-| TBD | TBD-SRS-001 | Exact beacon interval range | `docs/software/SOFTWARE_REQUIREMENTS.md`:288 | PI | PDR | — |
-| TBD | TBD-SRS-002 | Uplink command set definition | `docs/software/SOFTWARE_REQUIREMENTS.md`:289 | PI | CDR | — |
-| TBR | TBR-SRS-001 | Watchdog timeout value (currently 30s) | `docs/software/SOFTWARE_REQUIREMENTS.md`:290 | PI | PDR | — |
-| TBR | TBR-SRS-002 | SRS-F040 ("all fault conditions") cannot be tested; PI ratifies, amends or rejects the proposed wording beneath §3.5 (finding VV-16) | `docs/software/SOFTWARE_REQUIREMENTS.md`:291 | PI | PI | `docs/software/SOFTWARE_REQUIREMENTS.md`:132 |
-| TBD | TBD-SYS-001 | Final IARU coordinated frequency | `docs/requirements/SYSTEM_REQUIREMENTS.md`:328 | PI | PI | — |
-| TBD | TBD-SYS-002 | Launch provider vibration spec | `docs/requirements/SYSTEM_REQUIREMENTS.md`:329 | PI | PI | — |
-| TBR | TBR-SYS-002 | SYS-020 ("mitigated where practical") has no pass criterion | `docs/requirements/SYSTEM_REQUIREMENTS.md`:331 | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md`:88 |
-| TBR | TBR-SYS-003 | SYS-222 ("omnidirectional coverage") can be neither met by a monopole nor verified | `docs/requirements/SYSTEM_REQUIREMENTS.md`:332 | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md`:161 |
-| TBR | TBR-SYS-004 | SYS-522 ("shall not affect other spacecraft functions") lists no failures and no pass criterion | `docs/requirements/SYSTEM_REQUIREMENTS.md`:333 | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md`:261 |
-| TBR | TBR-TPADCS003-001 | §3.2 and §4 give no pass values for detumble ("Rate detected", "Damping observed") | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md`:71 | PI | PI | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md`:45 |
+| TBR | TBR-CDS-001 | Separation spring force | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` | PI | PI | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` |
+| TBR | TBR-CDS-002 | IARU frequency coordination | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` | PI | PI | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` |
+| TBR | TBR-CDS-003 | Vibration test | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` | PI | PI | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` |
+| TBR | TBR-CDS-004 | Thermal vacuum test | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` | PI | PI | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` |
+| TBD | TBD-ICM-001 | Launch provider ICD | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | Systems | Manifest | — |
+| TBD | TBD-ICM-002 | Deployer interface | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | Mechanical | CDR+30d | — |
+| TBD | TBD-ICM-003 | Ground station protocol | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | Ground | CDR | — |
+| TBD | TBD-MRD-001 | Exact orbit parameters | `docs/requirements/MISSION_REQUIREMENTS.md` | PI | PI | — |
+| TBD | TBD-MRD-002 | IARU coordination confirmation | `docs/requirements/MISSION_REQUIREMENTS.md` | PI | PI | — |
+| TBR | TBR-MRD-002 | MRD-012 has no measure of "global coverage" | `docs/requirements/MISSION_REQUIREMENTS.md` | PI | PI | `docs/requirements/MISSION_REQUIREMENTS.md` |
+| TBR | TBR-MRD-003 | MRD-043 has no measure of "fairly" | `docs/requirements/MISSION_REQUIREMENTS.md` | PI | PI | `docs/requirements/MISSION_REQUIREMENTS.md` |
+| TBR | TBR-MRD-004 | MRD-045 ("shall not compromise spacecraft safety") has no pass criterion | `docs/requirements/MISSION_REQUIREMENTS.md` | PI | PI | `docs/requirements/MISSION_REQUIREMENTS.md` |
+| TBR | TBR-MRD-005 | MRD-060 does not say what "detumble" means, and Test alone is not feasible | `docs/requirements/MISSION_REQUIREMENTS.md` | PI | PI | `docs/requirements/MISSION_REQUIREMENTS.md` |
+| TBD | TBD-RTM-001 | Final line numbers after code freeze | `docs/requirements/REQUIREMENTS_TRACEABILITY.md` | SW Lead | CDR | — |
+| TBD | TBD-RTM-002 | Test case procedures | `docs/requirements/REQUIREMENTS_TRACEABILITY.md` | Test Lead | TRR | — |
+| TBR | TBR-RTM-001 | Performance test thresholds | `docs/requirements/REQUIREMENTS_TRACEABILITY.md` | SE Lead | PDR | — |
+| TBD | TBD-SRS-001 | Exact beacon interval range | `docs/software/SOFTWARE_REQUIREMENTS.md` | PI | PDR | — |
+| TBD | TBD-SRS-002 | Uplink command set definition | `docs/software/SOFTWARE_REQUIREMENTS.md` | PI | CDR | — |
+| TBR | TBR-SRS-001 | Watchdog timeout value (currently 30s) | `docs/software/SOFTWARE_REQUIREMENTS.md` | PI | PDR | — |
+| TBR | TBR-SRS-002 | SRS-F040 ("all fault conditions") cannot be tested; PI ratifies, amends or rejects the proposed wording beneath §3.5 (finding VV-16) | `docs/software/SOFTWARE_REQUIREMENTS.md` | PI | PI | `docs/software/SOFTWARE_REQUIREMENTS.md` |
+| TBD | TBD-SYS-001 | Final IARU coordinated frequency | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | — |
+| TBD | TBD-SYS-002 | Launch provider vibration spec | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | — |
+| TBR | TBR-SYS-002 | SYS-020 ("mitigated where practical") has no pass criterion | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md` |
+| TBR | TBR-SYS-003 | SYS-222 ("omnidirectional coverage") can be neither met by a monopole nor verified | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md` |
+| TBR | TBR-SYS-004 | SYS-522 ("shall not affect other spacecraft functions") lists no failures and no pass criterion | `docs/requirements/SYSTEM_REQUIREMENTS.md` | PI | PI | `docs/requirements/SYSTEM_REQUIREMENTS.md` |
+| TBR | TBR-TPADCS003-001 | §3.2 and §4 give no pass values for detumble ("Rate detected", "Damping observed") | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` | PI | PI | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` |
 
 ## 3. Closed Tracked Items
 
 | Kind | ID | Item | Defined in | Closure |
 |------|----|------|------------|---------|
-| TBR | TBR-MRD-001 | AI model final selection | `docs/requirements/MISSION_REQUIREMENTS.md`:205 | Closed (2026-10-16) by PI decision D5: the flight baseline is a calibrated selector on the OBC that chooses among pre-approved templates; generated text on the Jetson (SmolLM2-360M-Instruct or Qwen3-0.6B) is a gated experiment (docs/BASELINE_PARAMETERS.md §6, §9) |
-| TBR | TBR-SYS-001 | AI model final specification | `docs/requirements/SYSTEM_REQUIREMENTS.md`:330 | Closed (2026-10-16) by PI decision D5: the AI model, AI burst and AI text-control rows of docs/BASELINE_PARAMETERS.md §6 specify it |
+| TBR | TBR-MRD-001 | AI model final selection | `docs/requirements/MISSION_REQUIREMENTS.md` | Closed (2026-10-16) by PI decision D5: the flight baseline is a calibrated selector on the OBC that chooses among pre-approved templates; generated text on the Jetson (SmolLM2-360M-Instruct or Qwen3-0.6B) is a gated experiment (docs/BASELINE_PARAMETERS.md §6, §9) |
+| TBR | TBR-SYS-001 | AI model final specification | `docs/requirements/SYSTEM_REQUIREMENTS.md` | Closed (2026-10-16) by PI decision D5: the AI model, AI burst and AI text-control rows of docs/BASELINE_PARAMETERS.md §6 specify it |
 
 ## 4. Untracked Occurrences
 
-One row per line; Kind gives the number of words on the line when it is more than one.
+One row per line that has the words, in document order; Kind gives the number of words on the line when it is more than one. Line numbers are left out so that unrelated edits do not make this file stale.
 
 | Document | TBD | TBR |
 |----------|-----|-----|
@@ -107,447 +107,447 @@ One row per line; Kind gives the number of words on the line when it is more tha
 
 ### `docs/BASELINE_PARAMETERS.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 29 | TBD | …lecommand stations \| ≥ 2 designated amateur stations, geographically separated: TBD [D1]. NASA Ames Research Center and Santa Clara University are prospective p… | PI | PI |
-| 168 | TBD | D1 \| Licensee KK6GDB (individual); station KK6GDB-11. Telecommand stations TBD; NASA Ames and Santa Clara University are prospective partners only \| — \| Name ≥… | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | …lecommand stations \| ≥ 2 designated amateur stations, geographically separated: TBD [D1]. NASA Ames Research Center and Santa Clara University are prospective p… | PI | PI |
+| TBD | D1 \| Licensee KK6GDB (individual); station KK6GDB-11. Telecommand stations TBD; NASA Ames and Santa Clara University are prospective partners only \| — \| Name ≥… | PI | PI |
 
 ### `docs/ENVIRONMENT.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 183 | TBD | Projected Initial Elements (Epoch: TBD) | PI | PI |
-| 190 | TBD | Right Ascension \| TBD ± 5.0 \| degrees | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Projected Initial Elements (Epoch: TBD) | PI | PI |
+| TBD | Right Ascension \| TBD ± 5.0 \| degrees | PI | PI |
 
 ### `docs/compliance/CDS_COMPLIANCE_MATRIX.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 157 | TBD | Mass properties report \| TBD \| Post-fabrication | PI | PI |
-| 158 | TBD | ICD verification \| TBD \| Post-integration | PI | PI |
-| 159 | TBD | Test reports \| TBD \| Post-testing | PI | PI |
-| 160 | TBD | Safety data package \| TBD \| Pre-ship | PI | PI |
-| 190 | TBR | Compliance Rate: 83% verified, 17% pending (TBR) | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Mass properties report \| TBD \| Post-fabrication | PI | PI |
+| TBD | ICD verification \| TBD \| Post-integration | PI | PI |
+| TBD | Test reports \| TBD \| Post-testing | PI | PI |
+| TBD | Safety data package \| TBD \| Pre-ship | PI | PI |
+| TBR | Compliance Rate: 83% verified, 17% pending (TBR) | PI | PI |
 
 ### `docs/compliance/LAUNCH_PROVIDER_ICD.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 94 | TBD | Fundamental frequency \| > 40 Hz, no elastic mode below (UG v11 §4.1.1) \| TBD: analysis pending FEM; low-level sine sweep at test \| Open | PI | PI |
-| 154 | TBD | Thermal (operational) \| -40°C to +60°C (source TBD) \| Thermal vacuum and cycling advised (UG v11 Table 6-2) \| Open | PI | PI |
-| 327 | TBD | Mission Manager \| SMART-QSO \| TBD | PI | PI |
-| 328 | TBD | Systems Engineer \| SMART-QSO \| TBD | PI | PI |
-| 329 | TBD ×2 | Launch Integration \| TBD \| TBD | PI | PI |
-| 330 | TBD ×2 | Safety \| TBD \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Fundamental frequency \| > 40 Hz, no elastic mode below (UG v11 §4.1.1) \| TBD: analysis pending FEM; low-level sine sweep at test \| Open | PI | PI |
+| TBD | Thermal (operational) \| -40°C to +60°C (source TBD) \| Thermal vacuum and cycling advised (UG v11 Table 6-2) \| Open | PI | PI |
+| TBD | Mission Manager \| SMART-QSO \| TBD | PI | PI |
+| TBD | Systems Engineer \| SMART-QSO \| TBD | PI | PI |
+| TBD ×2 | Launch Integration \| TBD \| TBD | PI | PI |
+| TBD ×2 | Safety \| TBD \| TBD | PI | PI |
 
 ### `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 45 | TBD | Launch Vehicle \| TBD (rideshare opportunity) | PI | PI |
-| 46 | TBD | Deployer \| TBD (NanoRacks NRCSD, Rocket Lab, etc.) | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Launch Vehicle \| TBD (rideshare opportunity) | PI | PI |
+| TBD | Deployer \| TBD (NanoRacks NRCSD, Rocket Lab, etc.) | PI | PI |
 
 ### `docs/environment/ORBIT_ANALYSIS.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 56 | TBD | Location \| TBD (Example: 37.4°N, 122.0°W) | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Location \| TBD (Example: 37.4°N, 122.0°W) | PI | PI |
 
 ### `docs/environment/RADIATION_ANALYSIS.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 23 | TBD | Launch date \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Launch date \| TBD | PI | PI |
 
 ### `docs/environment/RELIABILITY_ANALYSIS.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 307 | TBD | Code coverage \| >80% \| TBD | PI | PI |
-| 308 | TBD | Static analysis \| 0 critical \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Code coverage \| >80% \| TBD | PI | PI |
+| TBD | Static analysis \| 0 critical \| TBD | PI | PI |
 
 ### `docs/environment/THERMAL_ANALYSIS.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 259 | TBD | Thermal Desktop (if available) \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Thermal Desktop (if available) \| TBD | PI | PI |
 
 ### `docs/ground/GROUND_STATION_DESIGN.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 42 | TBD | Location \| TBD (targeting mid-latitude site) | PI | PI |
-| 43 | TBD | Coordinates \| TBD | PI | PI |
-| 103 | TBD | NORAD ID \| TBD (after launch) | PI | PI |
-| 106 | TBD | Frequency \| 145.825 MHz (TBD) | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Location \| TBD (targeting mid-latitude site) | PI | PI |
+| TBD | Coordinates \| TBD | PI | PI |
+| TBD | NORAD ID \| TBD (after launch) | PI | PI |
+| TBD | Frequency \| 145.825 MHz (TBD) | PI | PI |
 
 ### `docs/hardware/HARDWARE_DEVELOPMENT_PLAN.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 230 | TBD | Structure \| CNC machining \| TBD | PI | PI |
-| 231 | TBD | PCBs \| Standard FR-4 \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Structure \| CNC machining \| TBD | PI | PI |
+| TBD | PCBs \| Standard FR-4 \| TBD | PI | PI |
 
 ### `docs/hardware/PARTS_LIST.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 268 | TBD | Structure \| TBD \| SQSO-DWG-001 | PI | PI |
-| 269 | TBD | Antenna elements \| TBD \| SQSO-DWG-002 | PI | PI |
-| 270 | TBD | Carrier board \| TBD \| SQSO-PCB-001 | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Structure \| TBD \| SQSO-DWG-001 | PI | PI |
+| TBD | Antenna elements \| TBD \| SQSO-DWG-002 | PI | PI |
+| TBD | Carrier board \| TBD \| SQSO-PCB-001 | PI | PI |
 
 ### `docs/hardware/RF_DESIGN.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 180 | TBD | Nominal Frequency \| 145.xxx MHz (TBD after IARU) | PI | PI |
-| 421 | TBD | TCXO \| TBD \| 1 \| Reference oscillator | PI | PI |
-| 422 | TBD | PA Module \| TBD \| 1 \| Power amplifier | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Nominal Frequency \| 145.xxx MHz (TBD after IARU) | PI | PI |
+| TBD | TCXO \| TBD \| 1 \| Reference oscillator | PI | PI |
+| TBD | PA Module \| TBD \| 1 \| Power amplifier | PI | PI |
 
 ### `docs/integration/PRE_SHIP_CHECKLIST.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 109 | TBR | 12a \| Deployment switches released read released (separation_switch.c polarity, TBR) \| ☐ \| \| | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBR | 12a \| Deployment switches released read released (separation_switch.c polarity, TBR) \| ☐ \| \| | PI | PI |
 
 ### `docs/interfaces/ICD_SPACE_GROUND.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 252 | TBD | Primary \| TBD \| Full duplex | PI | PI |
-| 253 | TBD | Partner 1 \| TBD \| RX only | PI | PI |
-| 254 | TBD | Partner 2 \| TBD \| RX only | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Primary \| TBD \| Full duplex | PI | PI |
+| TBD | Partner 1 \| TBD \| RX only | PI | PI |
+| TBD | Partner 2 \| TBD \| RX only | PI | PI |
 
 ### `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 155 | TBR | …acceptable because nothing can transmit either. The reading of "generate any signal" as including the receiver is conservative and TBR with the launch provider | PI | PI |
-| 164 | TBR | …ion_switch.c (pull-up, high = stowed), shared with the deployment sequence, and TBR against the separation-switch schematic. Inverted polarity on orbit would re… | PI | PI |
-| 198 | TBD | …\| SET_POWER \| 1 \| operational \| 0 = 0.5 W, 1 = 1 W (BASELINE §7). Persisted and reported; applying it to the PA is the transmitter driver's job (interface TBD) | PI | PI |
-| 314 | TBD | SET_POWER applied to the PA \| Not implemented. The level is persisted and reported; the actuator interface is TBD in the RF design | PI | PI |
-| 320 | TBR | Deployment-switch polarity \| TBR against the schematic (SW-10) | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBR | …acceptable because nothing can transmit either. The reading of "generate any signal" as including the receiver is conservative and TBR with the launch provider | PI | PI |
+| TBR | …ion_switch.c (pull-up, high = stowed), shared with the deployment sequence, and TBR against the separation-switch schematic. Inverted polarity on orbit would re… | PI | PI |
+| TBD | …\| SET_POWER \| 1 \| operational \| 0 = 0.5 W, 1 = 1 W (BASELINE §7). Persisted and reported; applying it to the PA is the transmitter driver's job (interface TBD) | PI | PI |
+| TBD | SET_POWER applied to the PA \| Not implemented. The level is persisted and reported; the actuator interface is TBD in the RF design | PI | PI |
+| TBR | Deployment-switch polarity \| TBR against the schematic (SW-10) | PI | PI |
 
 ### `docs/operations/ANOMALY_REPORT_TEMPLATE.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 105 | TBD | [ ] TBD | PI | PI |
-| 119 | TBD | [ ] TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | [ ] TBD | PI | PI |
+| TBD | [ ] TBD | PI | PI |
 
 ### `docs/operations/CONTINGENCY_PROCEDURES.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 500 | TBD ×2 | Mission Director \| TBD \| TBD | PI | PI |
-| 501 | TBD ×2 | Flight Director \| TBD \| TBD | PI | PI |
-| 502 | TBD ×2 | Ground Station \| TBD \| TBD | PI | PI |
-| 503 | TBD ×2 | Safety Officer \| TBD \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD ×2 | Mission Director \| TBD \| TBD | PI | PI |
+| TBD ×2 | Flight Director \| TBD \| TBD | PI | PI |
+| TBD ×2 | Ground Station \| TBD \| TBD | PI | PI |
+| TBD ×2 | Safety Officer \| TBD \| TBD | PI | PI |
 
 ### `docs/operations/LAUNCH_SITE_OPS.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 204 | TBD | 1 \| Verify launch authorization \| L-TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | 1 \| Verify launch authorization \| L-TBD | PI | PI |
 
 ### `docs/operations/MISSION_OPERATIONS_PLAN.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 91 | TBD | Location \| TBD (university or amateur station) | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Location \| TBD (university or amateur station) | PI | PI |
 
 ### `docs/operations/MISSION_TIMELINE.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 24 | TBD | Launch \| TBD \| Dependent on rideshare | PI | PI |
-| 340 | TBD | Primary \| TBD \| All visible passes | PI | PI |
-| 341 | TBD | Backup \| TBD \| Critical passes | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Launch \| TBD \| Dependent on rideshare | PI | PI |
+| TBD | Primary \| TBD \| All visible passes | PI | PI |
+| TBD | Backup \| TBD \| Critical passes | PI | PI |
 
 ### `docs/operations/OPERATOR_TRAINING_MATERIALS.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 110 | TBD | EOL \| TBD \| Passivation, deorbit | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | EOL \| TBD \| Passivation, deorbit | PI | PI |
 
 ### `docs/project/HARDWARE_READINESS_TRACKER.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 31 | TBD | Parts Ordered \| TBD \| - \| Pending | PI | PI |
-| 32 | TBD | Parts Received \| TBD \| - \| Pending | PI | PI |
-| 33 | TBD | Flatsat Complete \| TBD \| - \| Pending | PI | PI |
-| 34 | TBD | EM Complete \| TBD \| - \| Pending | PI | PI |
-| 35 | TBD | Qualification Complete \| TBD \| - \| Pending | PI | PI |
-| 36 | TBD | Flight Complete \| TBD \| - \| Pending | PI | PI |
-| 37 | TBD | FRR \| TBD \| - \| Pending | PI | PI |
-| 55 | TBD | Rails (4) \| 1 set \| TBD \| Al 7075-T6 \| 3 wk \| Pending | PI | PI |
-| 56 | TBD | Side Panels (4) \| 1 set \| TBD \| Al 6061-T6 \| 3 wk \| Pending | PI | PI |
-| 57 | TBD | Top Panel \| 1 \| TBD \| Al 6061-T6 \| 3 wk \| Pending | PI | PI |
-| 58 | TBD | Bottom Panel \| 1 \| TBD \| Al 6061-T6 \| 3 wk \| Pending | PI | PI |
-| 59 | TBD | Antenna Mount \| 2 \| TBD \| Al 6061-T6 \| 3 wk \| Pending | PI | PI |
-| 162 | TBD | Vibration \| TBD \| No \| No | PI | PI |
-| 163 | TBD | Thermal Vacuum \| TBD \| No \| No | PI | PI |
-| 164 | TBD | EMC \| TBD \| No \| No | PI | PI |
-| 226 | TBD | Secure funding for parts \| PM \| TBD \| Open | PI | PI |
-| 227 | TBD | Order long-lead items \| Procurement \| TBD \| Open | PI | PI |
-| 228 | TBD | Finalize vendor selection \| SE \| TBD \| Open | PI | PI |
-| 229 | TBD | Reserve test facilities \| Test Lead \| TBD \| Open | PI | PI |
-| 235 | TBD | Complete Gerber files \| HW Lead \| TBD \| Open | PI | PI |
-| 236 | TBD | Order PCB fabrication \| Procurement \| TBD \| Open | PI | PI |
-| 237 | TBD | Procure assembly supplies \| Integration \| TBD \| Open | PI | PI |
-| 238 | TBD | Set up flatsat bench \| Integration \| TBD \| Open | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Parts Ordered \| TBD \| - \| Pending | PI | PI |
+| TBD | Parts Received \| TBD \| - \| Pending | PI | PI |
+| TBD | Flatsat Complete \| TBD \| - \| Pending | PI | PI |
+| TBD | EM Complete \| TBD \| - \| Pending | PI | PI |
+| TBD | Qualification Complete \| TBD \| - \| Pending | PI | PI |
+| TBD | Flight Complete \| TBD \| - \| Pending | PI | PI |
+| TBD | FRR \| TBD \| - \| Pending | PI | PI |
+| TBD | Rails (4) \| 1 set \| TBD \| Al 7075-T6 \| 3 wk \| Pending | PI | PI |
+| TBD | Side Panels (4) \| 1 set \| TBD \| Al 6061-T6 \| 3 wk \| Pending | PI | PI |
+| TBD | Top Panel \| 1 \| TBD \| Al 6061-T6 \| 3 wk \| Pending | PI | PI |
+| TBD | Bottom Panel \| 1 \| TBD \| Al 6061-T6 \| 3 wk \| Pending | PI | PI |
+| TBD | Antenna Mount \| 2 \| TBD \| Al 6061-T6 \| 3 wk \| Pending | PI | PI |
+| TBD | Vibration \| TBD \| No \| No | PI | PI |
+| TBD | Thermal Vacuum \| TBD \| No \| No | PI | PI |
+| TBD | EMC \| TBD \| No \| No | PI | PI |
+| TBD | Secure funding for parts \| PM \| TBD \| Open | PI | PI |
+| TBD | Order long-lead items \| Procurement \| TBD \| Open | PI | PI |
+| TBD | Finalize vendor selection \| SE \| TBD \| Open | PI | PI |
+| TBD | Reserve test facilities \| Test Lead \| TBD \| Open | PI | PI |
+| TBD | Complete Gerber files \| HW Lead \| TBD \| Open | PI | PI |
+| TBD | Order PCB fabrication \| Procurement \| TBD \| Open | PI | PI |
+| TBD | Procure assembly supplies \| Integration \| TBD \| Open | PI | PI |
+| TBD | Set up flatsat bench \| Integration \| TBD \| Open | PI | PI |
 
 ### `docs/project/PROJECT_PLAN.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 146 | TBD | Phase D \| Launch \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Phase D \| Launch \| TBD | PI | PI |
 
 ### `docs/project/SEMP.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 119 | TBD | AI inference latency \| < 10 s \| < 5 s \| TBD | PI | PI |
-| 260 | TBD | PDR \| TBD | PI | PI |
-| 261 | TBD | CDR \| TBD + 3 months | PI | PI |
-| 262 | TBD | Integration Complete \| TBD + 6 months | PI | PI |
-| 263 | TBD | Environmental Test \| TBD + 8 months | PI | PI |
-| 264 | TBD | Ship to Launch \| TBD + 10 months | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | AI inference latency \| < 10 s \| < 5 s \| TBD | PI | PI |
+| TBD | PDR \| TBD | PI | PI |
+| TBD | CDR \| TBD + 3 months | PI | PI |
+| TBD | Integration Complete \| TBD + 6 months | PI | PI |
+| TBD | Environmental Test \| TBD + 8 months | PI | PI |
+| TBD | Ship to Launch \| TBD + 10 months | PI | PI |
 
 ### `docs/requirements/SYSTEM_REQUIREMENTS.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 135 | TBR | …and; N shall be configurable by telecommand within 1–90 days (default and range TBR per decision D3), and the elapsed time shall persist across resets *(added 2… | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBR | …and; N shall be configurable by telecommand within 1–90 days (default and range TBR per decision D3), and the elapsed time shall persist across resets *(added 2… | PI | PI |
 
 ### `docs/reviews/CDR/CDR_REVIEW_MINUTES.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 50 | TBD | All interfaces defined \| Yes \| Not met \| Launch-provider ICDs are TBD (docs/interfaces/INTERFACE_CONTROL_MASTER.md); no integrator selected (D7) | PI | PI |
-| 256 | TBD | All interfaces defined and controlled \| Yes \| Not met \| Launch ICDs TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | All interfaces defined \| Yes \| Not met \| Launch-provider ICDs are TBD (docs/interfaces/INTERFACE_CONTROL_MASTER.md); no integrator selected (D7) | PI | PI |
+| TBD | All interfaces defined and controlled \| Yes \| Not met \| Launch ICDs TBD | PI | PI |
 
 ### `docs/reviews/CDR/CDR_TECHNICAL_BASELINE.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 265 | TBD | EOL \| TBD \| Passivation, deorbit | PI | PI |
-| 327 | TBD | Launch \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | EOL \| TBD \| Passivation, deorbit | PI | PI |
+| TBD | Launch \| TBD | PI | PI |
 
 ### `docs/reviews/CDR_PACKAGE.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 393 | TBD | Team concurrence \| TBD \| CDR meeting | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Team concurrence \| TBD \| CDR meeting | PI | PI |
 
 ### `docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 207 | TBD ×3 | Flash (code) \| TBD \| TBD (library size printed by CI; no linked image) \| TBD | PI | PI |
-| 208 | TBD ×3 | RAM (static) \| TBD \| TBD \| TBD | PI | PI |
-| 209 | TBD ×3 | RAM (stack) \| TBD \| TBD \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD ×3 | Flash (code) \| TBD \| TBD (library size printed by CI; no linked image) \| TBD | PI | PI |
+| TBD ×3 | RAM (static) \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×3 | RAM (stack) \| TBD \| TBD \| TBD | PI | PI |
 
 ### `docs/reviews/MISSION_OPERATIONS_REVIEW.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 261 | TBD | Launch Provider \| TBD \| [ ] | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Launch Provider \| TBD \| [ ] | PI | PI |
 
 ### `docs/reviews/PDR_PACKAGE.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 193 | TBD | Total mass \| < 1.5 kg \| < 1.2 kg \| TBD \| On track | PI | PI |
-| 194 | TBD | Power generation (EOL) \| > 2.0 W \| > 2.5 W \| TBD \| On track | PI | PI |
-| 196 | TBD | AI inference latency \| < 10 s \| < 5 s \| TBD \| On track | PI | PI |
-| 197 | TBD | Link margin (downlink) \| > 6 dB \| > 10 dB \| TBD \| On track | PI | PI |
-| 298 | TBD | Team concurrence \| TBD \| PDR meeting | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Total mass \| < 1.5 kg \| < 1.2 kg \| TBD \| On track | PI | PI |
+| TBD | Power generation (EOL) \| > 2.0 W \| > 2.5 W \| TBD \| On track | PI | PI |
+| TBD | AI inference latency \| < 10 s \| < 5 s \| TBD \| On track | PI | PI |
+| TBD | Link margin (downlink) \| > 6 dB \| > 10 dB \| TBD \| On track | PI | PI |
+| TBD | Team concurrence \| TBD \| PDR meeting | PI | PI |
 
 ### `docs/reviews/POST_ENVIRONMENTAL_REVIEW.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 385 | TBD | Ship to launch site \| Review complete \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Ship to launch site \| Review complete \| TBD | PI | PI |
 
 ### `docs/reviews/SYSTEM_REQUIREMENTS_REVIEW.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 107 | TBD | Boot time \| <5 s \| TBD | PI | PI |
-| 108 | TBD | Command latency \| <1 s \| TBD | PI | PI |
-| 210 | TBD | SRR-001 \| AI power TBD \| Analysis complete \| [x] Closed | PI | PI |
-| 212 | TBD | SRR-003 \| Link margin TBD \| Budget complete \| [x] Closed | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Boot time \| <5 s \| TBD | PI | PI |
+| TBD | Command latency \| <1 s \| TBD | PI | PI |
+| TBD | SRR-001 \| AI power TBD \| Analysis complete \| [x] Closed | PI | PI |
+| TBD | SRR-003 \| Link margin TBD \| Budget complete \| [x] Closed | PI | PI |
 
 ### `docs/reviews/VERIFICATION_VALIDATION_PACKAGE.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 62 | TBD | FR-009 \| Command processing \| T \| TBD \| [ ] \| | PI | PI |
-| 89 | TBD | IR-006 \| Ground command interface \| T \| TBD \| [ ] \| | PI | PI |
-| 266 | TBD | Build Date: TBD | PI | PI |
-| 267 | TBD | Build ID: TBD | PI | PI |
-| 269 | TBD | Git SHA: TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | FR-009 \| Command processing \| T \| TBD \| [ ] \| | PI | PI |
+| TBD | IR-006 \| Ground command interface \| T \| TBD \| [ ] \| | PI | PI |
+| TBD | Build Date: TBD | PI | PI |
+| TBD | Build ID: TBD | PI | PI |
+| TBD | Git SHA: TBD | PI | PI |
 
 ### `docs/safety/SAFETY_DATA_PACKAGE.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 132 | TBD | Cell protection \| Hardware \| EPS cell over-voltage ≤ 4.25 V/cell; under-voltage threshold TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Cell protection \| Hardware \| EPS cell over-voltage ≤ 4.25 V/cell; under-voltage threshold TBD | PI | PI |
 
 ### `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 353 | TBD | A-001 \| Complete EPS control fault injection tests \| SW Lead \| TBD \| Open | PI | PI |
-| 354 | TBD | A-002 \| Complete ADCS algorithm verification \| SW Lead \| TBD \| Open | PI | PI |
-| 355 | TBD | A-003 \| Verify watchdog operation on flight hardware \| SW Lead \| TBD \| Open | PI | PI |
-| 356 | TBD | A-004 \| Complete Jetson power management tests \| Payload Lead \| TBD \| Open | PI | PI |
-| 357 | TBD | A-005 \| Verify deployment timer on flight hardware \| SW Lead \| TBD \| Open | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | A-001 \| Complete EPS control fault injection tests \| SW Lead \| TBD \| Open | PI | PI |
+| TBD | A-002 \| Complete ADCS algorithm verification \| SW Lead \| TBD \| Open | PI | PI |
+| TBD | A-003 \| Verify watchdog operation on flight hardware \| SW Lead \| TBD \| Open | PI | PI |
+| TBD | A-004 \| Complete Jetson power management tests \| Payload Lead \| TBD \| Open | PI | PI |
+| TBD | A-005 \| Verify deployment timer on flight hardware \| SW Lead \| TBD \| Open | PI | PI |
 
 ### `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 42 | TBD | Integrator user guide and ICD \| TBD at contract | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Integrator user guide and ICD \| TBD at contract | PI | PI |
 
 ### `docs/software/SOFTWARE_VERSION_DESCRIPTION.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 35 | TBD | 1.0.0 \| TBD \| Flight \| Flight release | PI | PI |
-| 154 | TBD | Integration \| TBD \| - \| - \| - | PI | PI |
-| 155 | TBD | System \| TBD \| - \| - \| - | PI | PI |
-| 173 | TBD | Statement \| 80% \| TBD | PI | PI |
-| 174 | TBD | Branch \| 70% \| TBD | PI | PI |
-| 175 | TBD | Function \| 100% \| TBD | PI | PI |
-| 189 | TBD | Simulation only \| Not flight-ready \| Hardware integration TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | 1.0.0 \| TBD \| Flight \| Flight release | PI | PI |
+| TBD | Integration \| TBD \| - \| - \| - | PI | PI |
+| TBD | System \| TBD \| - \| - \| - | PI | PI |
+| TBD | Statement \| 80% \| TBD | PI | PI |
+| TBD | Branch \| 70% \| TBD | PI | PI |
+| TBD | Function \| 100% \| TBD | PI | PI |
+| TBD | Simulation only \| Not flight-ready \| Hardware integration TBD | PI | PI |
 
 ### `docs/test/FLATSAT_TEST_PROCEDURES.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 39 | TBD | Flight Software \| 1.0.0 \| TBD | PI | PI |
-| 40 | TBD | Payload Software \| 1.0.0 \| TBD | PI | PI |
-| 41 | TBD | Ground Software \| 1.0.0 \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Flight Software \| 1.0.0 \| TBD | PI | PI |
+| TBD | Payload Software \| 1.0.0 \| TBD | PI | PI |
+| TBD | Ground Software \| 1.0.0 \| TBD | PI | PI |
 
 ### `docs/test_procedures/TP-ENV-002_Vibration.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 51 | TBD | …\| Oscilloscope or data logger on the battery-to-load power path test points; RF sniffer antenna and spectrum analyser (instrumentation TBD with the integrator) | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | …\| Oscilloscope or data logger on the battery-to-load power path test points; RF sniffer antenna and spectrum analyser (instrumentation TBD with the integrator) | PI | PI |
 
 ### `docs/test_procedures/TP-FAT-002_Flight_Config.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 148 | TBR | 6 \| Verify deployment switches released read released (RF-silence count advances) \| Polarity confirmed (SQSO-ICD-013 §6.3, TBR) \| | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBR | 6 \| Verify deployment switches released read released (RF-silence count advances) \| Polarity confirmed (SQSO-ICD-013 §6.3, TBR) \| | PI | PI |
 
 ### `docs/test_procedures/TP-RF-001_Functional_Test.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 105 | TBD | 12 \| Frequency vs temperature \| TBD \| _______ \| ±1 ppm/°C \| | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | 12 \| Frequency vs temperature \| TBD \| _______ \| ±1 ppm/°C \| | PI | PI |
 
 ### `docs/test_procedures/TP-RF-006_TX_OFF.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 91 | TBR | 3 \| Send TX_DISABLE (operational key); start a timer at the end of the uplink frame \| RF_TX_EN low and PA supply off within 1 s (TBR); silent for 120 s \| | PI | PI |
-| 169 | TBR | - Every TX-OFF step is silent within 1 s (TBR) and for the whole observation period. | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBR | 3 \| Send TX_DISABLE (operational key); start a timer at the end of the uplink frame \| RF_TX_EN low and PA supply off within 1 s (TBR); silent for 120 s \| | PI | PI |
+| TBR | - Every TX-OFF step is silent within 1 s (TBR) and for the whole observation period. | PI | PI |
 
 ### `docs/verification/CONFIGURATION_AUDIT_PROCEDURES.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 568 | TBR | that disagreed with it. Values marked TBR come from SQSO-CAC-001, are not in the baseline, and are to be confirmed against the | PI | PI |
-| 607 | TBR | Power (Safe) \| ≤0.2 W (TBR) \| \| [ ] | PI | PI |
-| 608 | TBR | Power (Idle) \| ≤0.4 W (TBR) \| \| [ ] | PI | PI |
-| 609 | TBR | Power (Active) \| ≤0.8 W (TBR) \| \| [ ] | PI | PI |
-| 614 | TBR | Boot Time \| <30 s (TBR) \| \| [ ] | PI | PI |
-| 615 | TBR | Mode Transition \| <5 s (TBR) \| \| [ ] | PI | PI |
-| 616 | TBR | Fault Response \| <5 s (TBR) \| \| [ ] | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBR | that disagreed with it. Values marked TBR come from SQSO-CAC-001, are not in the baseline, and are to be confirmed against the | PI | PI |
+| TBR | Power (Safe) \| ≤0.2 W (TBR) \| \| [ ] | PI | PI |
+| TBR | Power (Idle) \| ≤0.4 W (TBR) \| \| [ ] | PI | PI |
+| TBR | Power (Active) \| ≤0.8 W (TBR) \| \| [ ] | PI | PI |
+| TBR | Boot Time \| <30 s (TBR) \| \| [ ] | PI | PI |
+| TBR | Mode Transition \| <5 s (TBR) \| \| [ ] | PI | PI |
+| TBR | Fault Response \| <5 s (TBR) \| \| [ ] | PI | PI |
 
 ### `docs/verification/RF_TEST_RESULTS.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 24 | TBD | Serial Number \| TBD | PI | PI |
-| 25 | TBD | Software Version \| TBD | PI | PI |
-| 32 | TBD ×3 | Spectrum Analyzer \| TBD \| TBD \| TBD | PI | PI |
-| 33 | TBD ×3 | Power Meter \| TBD \| TBD \| TBD | PI | PI |
-| 34 | TBD ×3 | Frequency Counter \| TBD \| TBD \| TBD | PI | PI |
-| 35 | TBD ×2 | Dummy Load (50Ω) \| TBD \| TBD \| N/A | PI | PI |
-| 36 | TBD ×3 | Attenuator \| TBD \| TBD \| TBD | PI | PI |
-| 37 | TBD ×3 | RF Cables \| TBD \| TBD \| TBD | PI | PI |
-| 55 | TBD ×2 | Low (0.5W) \| 27.0 ± 1.0 \| TBD \| TBD | PI | PI |
-| 56 | TBD ×2 | Medium (1.0W) \| 30.0 ± 1.0 \| TBD \| TBD | PI | PI |
-| 57 | TBD ×2 | High (2.0W) \| 33.0 ± 1.0 \| TBD \| TBD | PI | PI |
-| 63 | TBD ×2 | -20 \| TBD \| TBD | PI | PI |
-| 64 | TBD | +25 \| TBD \| Reference | PI | PI |
-| 65 | TBD ×2 | +50 \| TBD \| TBD | PI | PI |
-| 75 | TBD | …nter Frequency (f<sub>c</sub>) \| One IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz; TBD until coordination \| docs/BASELINE_PARAMETERS.md §7 | PI | PI |
-| 87 | TBD ×4 | 25°C \| f<sub>c</sub> (TBD) \| TBD \| TBD \| TBD | PI | PI |
-| 88 | TBD ×4 | After warm-up \| f<sub>c</sub> (TBD) \| TBD \| TBD \| TBD | PI | PI |
-| 94 | TBD ×3 | -20 \| TBD \| TBD \| TBD | PI | PI |
-| 95 | TBD ×3 | 0 \| TBD \| TBD \| TBD | PI | PI |
-| 96 | TBD ×2 | +25 \| TBD \| Reference \| TBD | PI | PI |
-| 97 | TBD ×3 | +50 \| TBD \| TBD \| TBD | PI | PI |
-| 117 | TBD ×2 | Mark Freq \| 1200 Hz \| TBD \| TBD | PI | PI |
-| 118 | TBD ×2 | Space Freq \| 2200 Hz \| TBD \| TBD | PI | PI |
-| 119 | TBD ×2 | Peak Deviation \| 3.5 kHz \| TBD \| TBD | PI | PI |
-| 120 | TBD ×2 | Modulation Index \| 1.0 - 1.5 \| TBD \| TBD | PI | PI |
-| 126 | TBD ×2 | Eye Opening \| > 80% \| TBD \| TBD | PI | PI |
-| 127 | TBD ×2 | BER (sensitivity) \| < 1E-5 \| TBD \| TBD | PI | PI |
-| 146 | TBD ×2 | 2nd \| 291.65 \| TBD \| -43 \| TBD | PI | PI |
-| 147 | TBD ×2 | 3rd \| 437.475 \| TBD \| -43 \| TBD | PI | PI |
-| 148 | TBD ×2 | 4th \| 583.3 \| TBD \| -43 \| TBD | PI | PI |
-| 149 | TBD ×2 | 5th \| 729.125 \| TBD \| -43 \| TBD | PI | PI |
-| 155 | TBD ×2 | 10 kHz - 145 MHz \| TBD \| TBD | PI | PI |
-| 156 | TBD ×2 | 146 - 292 MHz \| TBD \| TBD | PI | PI |
-| 157 | TBD ×2 | 292 - 1000 MHz \| TBD \| TBD | PI | PI |
-| 158 | TBD ×2 | 1 - 2 GHz \| TBD \| TBD | PI | PI |
-| 175 | TBD ×2 | -20 dB BW \| < 12 kHz \| TBD \| TBD | PI | PI |
-| 176 | TBD ×2 | 99% BW \| < 15 kHz \| TBD \| TBD | PI | PI |
-| 195 | TBD ×2 | Zenith \| +2.1 \| TBD \| TBD | PI | PI |
-| 196 | TBD ×2 | Horizon \| -3.0 \| TBD \| TBD | PI | PI |
-| 197 | TBD ×2 | -Z axis \| -10 \| TBD \| TBD | PI | PI |
-| 205 | TBD | - Reference receiver: TBD | PI | PI |
-| 213 | TBD ×2 | Callsign Decode \| Correct \| TBD \| TBD | PI | PI |
-| 214 | TBD ×2 | Packet CRC \| Valid \| TBD \| TBD | PI | PI |
-| 215 | TBD ×2 | Content Verify \| Per ICD \| TBD \| TBD | PI | PI |
-| 216 | TBD ×2 | Decode Rate \| > 95% \| TBD \| TBD | PI | PI |
-| 226 | TBD | Power Output \| TBD | PI | PI |
-| 227 | TBD | Frequency Accuracy \| TBD | PI | PI |
-| 228 | TBD | Frequency Stability \| TBD | PI | PI |
-| 229 | TBD | Modulation \| TBD | PI | PI |
-| 230 | TBD | Spurious Emissions \| TBD | PI | PI |
-| 231 | TBD | Occupied Bandwidth \| TBD | PI | PI |
-| 232 | TBD | EIRP \| TBD | PI | PI |
-| 233 | TBD | Beacon Decode \| TBD | PI | PI |
-| 234 | TBD | Overall \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | Serial Number \| TBD | PI | PI |
+| TBD | Software Version \| TBD | PI | PI |
+| TBD ×3 | Spectrum Analyzer \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×3 | Power Meter \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×3 | Frequency Counter \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×2 | Dummy Load (50Ω) \| TBD \| TBD \| N/A | PI | PI |
+| TBD ×3 | Attenuator \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×3 | RF Cables \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×2 | Low (0.5W) \| 27.0 ± 1.0 \| TBD \| TBD | PI | PI |
+| TBD ×2 | Medium (1.0W) \| 30.0 ± 1.0 \| TBD \| TBD | PI | PI |
+| TBD ×2 | High (2.0W) \| 33.0 ± 1.0 \| TBD \| TBD | PI | PI |
+| TBD ×2 | -20 \| TBD \| TBD | PI | PI |
+| TBD | +25 \| TBD \| Reference | PI | PI |
+| TBD ×2 | +50 \| TBD \| TBD | PI | PI |
+| TBD | …nter Frequency (f<sub>c</sub>) \| One IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz; TBD until coordination \| docs/BASELINE_PARAMETERS.md §7 | PI | PI |
+| TBD ×4 | 25°C \| f<sub>c</sub> (TBD) \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×4 | After warm-up \| f<sub>c</sub> (TBD) \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×3 | -20 \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×3 | 0 \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×2 | +25 \| TBD \| Reference \| TBD | PI | PI |
+| TBD ×3 | +50 \| TBD \| TBD \| TBD | PI | PI |
+| TBD ×2 | Mark Freq \| 1200 Hz \| TBD \| TBD | PI | PI |
+| TBD ×2 | Space Freq \| 2200 Hz \| TBD \| TBD | PI | PI |
+| TBD ×2 | Peak Deviation \| 3.5 kHz \| TBD \| TBD | PI | PI |
+| TBD ×2 | Modulation Index \| 1.0 - 1.5 \| TBD \| TBD | PI | PI |
+| TBD ×2 | Eye Opening \| > 80% \| TBD \| TBD | PI | PI |
+| TBD ×2 | BER (sensitivity) \| < 1E-5 \| TBD \| TBD | PI | PI |
+| TBD ×2 | 2nd \| 291.65 \| TBD \| -43 \| TBD | PI | PI |
+| TBD ×2 | 3rd \| 437.475 \| TBD \| -43 \| TBD | PI | PI |
+| TBD ×2 | 4th \| 583.3 \| TBD \| -43 \| TBD | PI | PI |
+| TBD ×2 | 5th \| 729.125 \| TBD \| -43 \| TBD | PI | PI |
+| TBD ×2 | 10 kHz - 145 MHz \| TBD \| TBD | PI | PI |
+| TBD ×2 | 146 - 292 MHz \| TBD \| TBD | PI | PI |
+| TBD ×2 | 292 - 1000 MHz \| TBD \| TBD | PI | PI |
+| TBD ×2 | 1 - 2 GHz \| TBD \| TBD | PI | PI |
+| TBD ×2 | -20 dB BW \| < 12 kHz \| TBD \| TBD | PI | PI |
+| TBD ×2 | 99% BW \| < 15 kHz \| TBD \| TBD | PI | PI |
+| TBD ×2 | Zenith \| +2.1 \| TBD \| TBD | PI | PI |
+| TBD ×2 | Horizon \| -3.0 \| TBD \| TBD | PI | PI |
+| TBD ×2 | -Z axis \| -10 \| TBD \| TBD | PI | PI |
+| TBD | - Reference receiver: TBD | PI | PI |
+| TBD ×2 | Callsign Decode \| Correct \| TBD \| TBD | PI | PI |
+| TBD ×2 | Packet CRC \| Valid \| TBD \| TBD | PI | PI |
+| TBD ×2 | Content Verify \| Per ICD \| TBD \| TBD | PI | PI |
+| TBD ×2 | Decode Rate \| > 95% \| TBD \| TBD | PI | PI |
+| TBD | Power Output \| TBD | PI | PI |
+| TBD | Frequency Accuracy \| TBD | PI | PI |
+| TBD | Frequency Stability \| TBD | PI | PI |
+| TBD | Modulation \| TBD | PI | PI |
+| TBD | Spurious Emissions \| TBD | PI | PI |
+| TBD | Occupied Bandwidth \| TBD | PI | PI |
+| TBD | EIRP \| TBD | PI | PI |
+| TBD | Beacon Decode \| TBD | PI | PI |
+| TBD | Overall \| TBD | PI | PI |
 
 ### `docs/verification/TEST_PROCEDURES.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 460 | TBD | eps_control.c \| 80% \| TBD | PI | PI |
-| 461 | TBD | fault_mgmt.c \| 80% \| TBD | PI | PI |
-| 462 | TBD | sensors.c \| 80% \| TBD | PI | PI |
-| 463 | TBD | mission_data.c \| 80% \| TBD | PI | PI |
-| 464 | TBD | uart_comm.c \| 80% \| TBD | PI | PI |
-| 465 | TBD | crc32.c \| 80% \| TBD | PI | PI |
-| 466 | TBD | Overall \| 80% \| TBD | PI | PI |
-| 547 | TBD | Multimeter \| Fluke 87V \| TBD | PI | PI |
-| 548 | TBD | Power Supply \| Keithley 2200 \| TBD | PI | PI |
-| 551 | TBD ×2 | Thermal Chamber \| TBD \| TBD | PI | PI |
-| 560 | TBD | Payload Software \| TBD | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | eps_control.c \| 80% \| TBD | PI | PI |
+| TBD | fault_mgmt.c \| 80% \| TBD | PI | PI |
+| TBD | sensors.c \| 80% \| TBD | PI | PI |
+| TBD | mission_data.c \| 80% \| TBD | PI | PI |
+| TBD | uart_comm.c \| 80% \| TBD | PI | PI |
+| TBD | crc32.c \| 80% \| TBD | PI | PI |
+| TBD | Overall \| 80% \| TBD | PI | PI |
+| TBD | Multimeter \| Fluke 87V \| TBD | PI | PI |
+| TBD | Power Supply \| Keithley 2200 \| TBD | PI | PI |
+| TBD ×2 | Thermal Chamber \| TBD \| TBD | PI | PI |
+| TBD | Payload Software \| TBD | PI | PI |
 
 ### `docs/verification/VERIFICATION_MATRIX.md`
 
-| Line | Kind | Text | Owner | Needed by |
-|------|------|------|-------|-----------|
-| 188 | TBD | CDR \| TBD \| 75% (42/56) | PI | PI |
-| 189 | TBD | TRR \| TBD \| 95% (53/56) | PI | PI |
-| 190 | TBD | FRR \| TBD \| 100% (56/56) | PI | PI |
+| Kind | Text | Owner | Needed by |
+|------|------|-------|-----------|
+| TBD | CDR \| TBD \| 75% (42/56) | PI | PI |
+| TBD | TRR \| TBD \| 95% (53/56) | PI | PI |
+| TBD | FRR \| TBD \| 100% (56/56) | PI | PI |
