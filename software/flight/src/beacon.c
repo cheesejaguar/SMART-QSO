@@ -127,10 +127,12 @@ static void select_text(BeaconContent_t *content, const char *ai_text, size_t ai
         content->text_len = copy_len;
         content->source = BEACON_SOURCE_AI;
     } else if (s_beacon_state.ai_available && (s_beacon_state.last_ai_text[0] != '\0')) {
+        /* Stored Jetson text is used for one beacon only (BEACON_SPEC section 5) */
         size_t len = strlen(s_beacon_state.last_ai_text);
         memcpy(content->text, s_beacon_state.last_ai_text, len + 1);
         content->text_len = len;
         content->source = BEACON_SOURCE_AI;
+        s_beacon_state.last_ai_text[0] = '\0';
     } else {
         const char *tmpl = beacon_get_template();
         size_t len = strlen(tmpl);

@@ -157,9 +157,7 @@ endif()
 # Shared flight library for module tests
 #
 # Tests below link against all flight sources except the executive
-# (main.c) and the two units that do not yet compile (system_init.c,
-# yaml_parser.c - see docs/funding_audit/FINDINGS_REGISTER.md). The
-# static library only pulls in the objects each test needs.
+# (main.c). The static library only pulls in the objects each test needs.
 #===========================================================================
 set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/adcs_control.c
@@ -229,6 +227,10 @@ set(MODULE_TESTS
     "test_gnss\;gnss"
     "test_payload_guard\;payload"
     "test_assert_release\;assert"
+    "test_scheduler\;scheduler"
+    "test_beacon\;rf"
+    "test_telemetry\;telemetry"
+    "test_telemetry_flow\;integration"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)
@@ -274,29 +276,8 @@ target_compile_definitions(test_beacon_filter PRIVATE
 
 #===========================================================================
 # Not registered (tracked in docs/funding_audit/FINDINGS_REGISTER.md):
-#   - test_adcs, test_beacon, test_scheduler, test_system_init,
-#     test_telemetry, test_telemetry_flow: written for Unity, which is not
-#     vendored; port to CMocka
-#   - test_main_simple.c: tests local copies of structs, not flight code
+#   - test_adcs: written for Unity, which is not vendored; port to CMocka
 #===========================================================================
-
-#===========================================================================
-# Test: Legacy Main Tests (DISABLED - superseded by proper module tests)
-#===========================================================================
-# NOTE: test_main.c is obsolete legacy code with many issues.
-# Proper module-specific tests are now in test_*.c files.
-# if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_main.c")
-#     add_executable(test_main_legacy
-#         test_main.c
-#     )
-#     target_link_libraries(test_main_legacy PkgConfig::CMOCKA)
-#     target_compile_options(test_main_legacy PRIVATE ${TEST_COMPILE_OPTIONS})
-#     add_test(NAME Legacy_Tests COMMAND test_main_legacy)
-#     set_tests_properties(Legacy_Tests PROPERTIES
-#         TIMEOUT 300
-#         LABELS "unit;legacy"
-#     )
-# endif()
 
 #===========================================================================
 # Test isolation
