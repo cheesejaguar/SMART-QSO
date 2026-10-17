@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-CDS-001
-**Revision:** A1 (funding audit corrections, 2026-10-14)
+**Revision:** A3 (unique item IDs, 2026-10-16)
 **Date:** 2026-01-02
 **Reference:** Cal Poly CubeSat Design Specification Rev 14.1
 
@@ -72,7 +72,7 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | Requirement | CDS Spec | SMART-QSO Design | Status |
 |-------------|----------|------------------|--------|
 | Spring plungers | 4 corners required | 4 corners | Compliant |
-| Spring force | Per deployer spec | TBD | TBR |
+| Spring force | Per deployer spec | TBD | TBR-CDS-001 |
 | Plunger material | Non-marring | Delrin | Compliant |
 
 ## 4. Electrical Requirements
@@ -119,7 +119,7 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 |-------------|----------|------------------|--------|
 | Pre-deployment emissions | None | Inhibited | Compliant |
 | Post-deployment power | Per license | 0.5W nominal, 2W max | Compliant |
-| Frequency coordination | IARU required | In progress | TBR |
+| Frequency coordination | IARU required | In progress | TBR-CDS-002 |
 
 ## 6. Environmental Requirements
 
@@ -127,17 +127,17 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 
 | Requirement | CDS Spec | SMART-QSO Design | Status |
 |-------------|----------|------------------|--------|
-| Random vibration | Per launch provider | Protoflight planned | TBR |
-| Sine vibration | Per launch provider | Protoflight planned | TBR |
-| Workmanship screening | Recommended | Planned | TBR |
+| Random vibration | Per launch provider | Protoflight planned | TBR-CDS-003 |
+| Sine vibration | Per launch provider | Protoflight planned | TBR-CDS-003 |
+| Workmanship screening | Recommended | Planned | TBR-CDS-003 |
 
 ### 6.2 Thermal Vacuum
 
 | Requirement | CDS Spec | SMART-QSO Design | Status |
 |-------------|----------|------------------|--------|
-| Temperature range | Per mission | -20C to +50C operational | TBR |
-| Thermal cycles | Minimum 4 protoflight | 4 cycles planned | TBR |
-| Vacuum level | < 10^-5 Torr | TBD | TBR |
+| Temperature range | Per mission | -20C to +50C operational | TBR-CDS-004 |
+| Thermal cycles | Minimum 4 protoflight | 4 cycles planned | TBR-CDS-004 |
+| Vacuum level | < 10^-5 Torr | TBD | TBR-CDS-004 |
 
 ### 6.3 Outgassing
 
@@ -193,10 +193,10 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 
 | Item | Description | Closure Activity | Target Date |
 |------|-------------|------------------|-------------|
-| TBR-001 | Separation spring force | Measure during integration | TBD |
-| TBR-002 | IARU frequency coordination | Complete coordination | TBD |
-| TBR-003 | Vibration test | Complete protoflight test | TBD |
-| TBR-004 | Thermal vacuum test | Complete protoflight test | TBD |
+| TBR-CDS-001 | Separation spring force | Measure during integration | TBD |
+| TBR-CDS-002 | IARU frequency coordination | Complete coordination | TBD |
+| TBR-CDS-003 | Vibration test | Complete protoflight test | TBD |
+| TBR-CDS-004 | Thermal vacuum test | Complete protoflight test | TBD |
 
 ---
 
@@ -207,3 +207,4 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | A1 | 2026-10-14 | Inhibit and timer rows corrected to CDS Rev 14.1; audit notice | Funding audit |
 | A2 | 2026-10-16 | Mass rows cite the bottom-up MEL (TB-06) | Funding audit |
+| A3 | 2026-10-16 | §9 TBR IDs made unique to this document: TBR-001 to TBR-004 became TBR-CDS-001 to TBR-CDS-004. Each matrix row marked TBR now names the §9 item that closes it (finding VV-17) | SMART-QSO Team |
