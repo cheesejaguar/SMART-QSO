@@ -253,15 +253,18 @@ See `docs/compliance/MATERIALS_LIST.md` for complete materials list.
 
 ### 10.1 Required Deliverables
 
+Due dates are placeholders until the integrator's schedule is known (SpaceX UG v11 Fig. 1-2 and Appendix G give the
+SpaceX-side milestones).
+
 | Document | Due Date | Status |
 |----------|----------|--------|
-| ICD (this document) | L-90 days | Complete |
-| Mass properties report | L-60 days | Complete |
+| ICD (this document) | L-90 days | Draft; not agreed with any provider |
+| Mass properties report | L-60 days | Not started: provisional mass list only (BASELINE §4) |
 | Environmental test report | L-60 days | Pending test |
-| Safety data package | L-60 days | Complete |
-| Flight software description | L-60 days | Complete |
+| System safety data package | Per integrator (range-safety submissions, UG v11 Appendix G) | **Skeleton only**: `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md`. The software safety data package (`docs/safety/SAFETY_DATA_PACKAGE.md`) is a draft input to it |
+| Flight software description | L-60 days | No release: `docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` records status only |
 | RF test report | L-60 days | Pending test |
-| Final as-built drawings | L-30 days | Complete |
+| Final as-built drawings | L-30 days | Not started: no hardware |
 
 ### 10.2 Required Certifications
 
@@ -328,4 +331,4 @@ See `docs/compliance/MATERIALS_LIST.md` for complete materials list.
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
-| B (draft) | 2026-10-16 | Funding audit VV-21: umbilical access made consistent (no access after integration unless the dispenser has ports; RBF out at integration) | SMART-QSO Team |
+| B (draft) | 2026-10-16 | Funding audit VV-21: umbilical access made consistent (no access after integration unless the dispenser has ports; RBF out at integration). VV-20: deliverable statuses corrected (no "Complete"); safety data package is a system-level skeleton | SMART-QSO Team |
