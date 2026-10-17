@@ -106,7 +106,7 @@ All project documentation and processes shall comply with:
   - [x] Create `software/flight/src/fault_mgmt.c` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
   - [x] Create `software/flight/src/uart_comm.c` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
   - [x] Create `software/flight/src/mission_data.c` and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
-  - [x] Create `software/flight/src/yaml_parser.c` and `software/flight/include/yaml_parser.h` - Extract YAML parsing (lines 652-708)
+  - [x] Create software/flight/src/yaml_parser.c and software/flight/include/yaml_parser.h - Extract YAML parsing (lines 652-708). (Removed 2026-10-16: never compiled or used; `sensors.c` reads the sensor YAML itself.)
   - [x] Create `software/flight/src/main.c` - Keep only initialization and main loop
   - [x] Create `software/flight/include/smart_qso.h` - Master header with common types and configuration
 
