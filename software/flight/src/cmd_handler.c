@@ -238,9 +238,9 @@ bool cmd_is_allowed(uint8_t cmd_id)
         }
     }
 
-    /* In EMERGENCY mode, very limited commands */
+    /* In EMERGENCY mode, very limited commands (status queries are allowed above) */
     if (state == STATE_EMERGENCY) {
-        return (cmd_id == CMD_SYS_GET_STATUS) || (cmd_id == CMD_SYS_RESET);
+        return cmd_id == CMD_SYS_RESET;
     }
 
     /* Most commands allowed in IDLE and ACTIVE */
