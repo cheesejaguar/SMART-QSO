@@ -4,7 +4,7 @@
  *
  * The flight modules log through printf/fprintf. On the target there is no
  * console yet, so output is discarded; a debug UART is a later driver.
- * There is no file system, so opens fail and the caller falls back.
+ * There is no file system, so opens and removes fail and the caller falls back.
  *
  * There is no heap: _sbrk always fails, so any malloc in the C library
  * returns NULL instead of taking memory (JPL rule 3; the flight objects
@@ -24,6 +24,7 @@ int _write(int fd, const char *buf, int len);
 int _read(int fd, char *buf, int len);
 int _open(const char *path, int flags, int mode);
 int _close(int fd);
+int _unlink(const char *path);
 int _fstat(int fd, struct stat *st);
 int _isatty(int fd);
 int _lseek(int fd, int offset, int whence);
@@ -66,6 +67,13 @@ int _close(int fd)
     (void)fd;
     errno = EBADF;
     return -1;
+}
+
+int _unlink(const char *path)
+{
+    (void)path;
+    errno = ENOENT;
+    return -1;   /* no file system */
 }
 
 int _fstat(int fd, struct stat *st)
