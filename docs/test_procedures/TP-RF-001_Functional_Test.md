@@ -2,7 +2,7 @@
 ## TP-RF-001
 
 **Document Number:** TP-RF-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Classification:** Development/Qualification Test
 
@@ -29,7 +29,7 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 | Document | Title |
 |----------|-------|
 | SQSO-RF-001 | RF Design Document |
-| SQSO-ICD-003 | Beacon Format ICD |
+| SMART-QSO-ICD-006 | Beacon Format ICD |
 | SQSO-REG-001 | Regulatory Compliance Document |
 
 ## 4. Test Article
@@ -226,3 +226,4 @@ Record all measurements in RF Test Data Log:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Beacon Format ICD cited by its own number, SMART-QSO-ICD-006 (was SQSO-ICD-003, the OBC-to-RF ICD) (finding PI-17) | SMART-QSO Team |
