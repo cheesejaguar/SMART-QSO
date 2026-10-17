@@ -1,8 +1,8 @@
 # Software Release Procedure
 ## SMART-QSO Flight Software
 
-**Document Number:** SQSO-DEV-004
-**Revision:** A
+**Document Number:** SQSO-DEV-005
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
@@ -312,3 +312,4 @@ cmake --build build
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Document number changed from SQSO-DEV-004, which `COMMIT_MESSAGES.md` also carried, to SQSO-DEV-005 (finding PI-17). No content change | SMART-QSO Team |

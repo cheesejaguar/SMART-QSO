@@ -2,15 +2,16 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SVD-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-16
 **Reference:** NPR 7150.2 §3.6
+**Supersedes:** `docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md`, which also carried SQSO-SVD-001 and is merged here (finding PI-17)
 
 ---
 
 ## 1. Purpose
 
-This Software Version Description (SVD) identifies and describes a specific version of the SMART-QSO flight software, documenting its contents, build configuration, and verification status.
+This Software Version Description (SVD) identifies and describes a specific version of the SMART-QSO flight software, documenting its contents, build configuration, and verification status. It also identifies the payload (Jetson) and ground software, which the superseded SVD covered.
 
 ## 2. Version Identification
 
@@ -19,10 +20,10 @@ This Software Version Description (SVD) identifies and describes a specific vers
 | Field | Value |
 |-------|-------|
 | Software Name | SMART-QSO Flight Software |
-| Version Number | 0.2.0 |
+| Version Number | 0.2.0 (`SMART_QSO_VERSION_STRING` is "0.2.0-dev" in `software/flight/include/smart_qso.h`) |
 | Version Type | Development |
 | Release Date | 2026-01-02 |
-| Git Tag | v0.2.0-dev |
+| Git Tag | None. The repository has no configuration tags yet; the first is created at PDR (finding PI-04) |
 | Git Commit | [commit hash] |
 
 ### 2.2 Version History
@@ -32,6 +33,15 @@ This Software Version Description (SVD) identifies and describes a specific vers
 | 0.1.0 | 2025-xx-xx | Development | Initial skeleton |
 | 0.2.0 | 2026-01-02 | Development | CDR candidate |
 | 1.0.0 | TBD | Flight | Flight release |
+
+### 2.3 Payload and Ground Software
+
+| Field | Payload (Jetson) | Ground |
+|-------|------------------|--------|
+| Software Name | SMART-QSO Payload Software | SMART-QSO Ground Software |
+| Version Number | 1.0.0 (`software/payload/pyproject.toml`) | Not assigned |
+| Git Tag | None (see §2.1) | None (see §2.1) |
+| Source | `software/payload/` | `software/ground/` |
 
 ## 3. Software Components
 
@@ -52,6 +62,8 @@ This Software Version Description (SVD) identifies and describes a specific vers
 | hal | hal/*.c/h | ~500 | Hardware abstraction |
 | **Total** | | **~4650** | |
 
+This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gained modules (for example `cmd_auth.c`, `rf_control.c`, `rf_silence.c`, `contact_monitor.c`); `software/flight/src/` is the current list.
+
 ### 3.2 Test Files
 
 | Test Module | Files | Tests | Coverage |
@@ -69,6 +81,13 @@ This Software Version Description (SVD) identifies and describes a specific vers
 | .clang-tidy | Static analysis rules |
 | .clang-format | Code formatting |
 | .cppcheck | Cppcheck configuration |
+
+### 3.4 Payload and Ground Source
+
+| Component | Files |
+|-----------|-------|
+| Payload | `agent.py`, `content_filter.py`, `crc16.py`, `formatter.py`, `health_interface.py`, `llama_runner.py`, `obc_link.py`, `supervisor.py`; tests in `software/payload/tests/` |
+| Ground | `beacon_decoder.py`, `telemetry_display.py`, `tools/`; tests in `software/ground/tests/` |
 
 ## 4. Build Configuration
 
@@ -99,6 +118,14 @@ This Software Version Description (SVD) identifies and describes a specific vers
 | Release | Test builds | No | Yes |
 | Flight | Flight software | No | Limited |
 
+### 4.4 Payload and Ground Build Environment
+
+| Tool | Version | Source |
+|------|---------|--------|
+| Python | ≥ 3.9 (`requires-python` in `software/payload/pyproject.toml`); CI runs 3.12 | `.github/workflows/program-checks.yml` |
+| pytest | As installed by CI | `.github/workflows/program-checks.yml` |
+| llama-cpp-python | Unpinned optional extra `llm` (gated generative-text experiment, BASELINE §6 [D5]) | `software/payload/pyproject.toml` |
+
 ## 5. Dependencies
 
 ### 5.1 External Libraries
@@ -122,9 +149,12 @@ This Software Version Description (SVD) identifies and describes a specific vers
 
 | Test Suite | Tests | Pass | Fail | Skip |
 |------------|-------|------|------|------|
-| Unit tests | 42 | 42 | 0 | 0 |
+| Flight unit tests (`ctest`) | Run by CI on every pull request (`.github/workflows/flight-software-ci.yml`); no test report is archived in the repository | - | - | - |
+| Payload and ground tests (pytest) | Run by CI on every pull request (`.github/workflows/program-checks.yml`); no test report is archived | - | - | - |
 | Integration | TBD | - | - | - |
 | System | TBD | - | - | - |
+
+The two SVDs merged here gave different counts (42 unit tests; "22 suites, 300+ tests"). Neither count is backed by a report in the repository, so neither is kept.
 
 ### 6.2 Static Analysis
 
@@ -150,7 +180,7 @@ The open counts are CI's no-regression baselines (`software/flight/quality/`); C
 
 | ID | Severity | Description | Workaround |
 |----|----------|-------------|------------|
-| None | - | No open issues | - |
+| — | — | Open issues are listed in SQSO-KI-001 (`docs/reviews/KNOWN_ISSUES.md`) and in `docs/funding_audit/FINDINGS_REGISTER.md` | — |
 
 ### 7.2 Limitations
 
@@ -158,6 +188,21 @@ The open counts are CI's no-regression baselines (`software/flight/quality/`); C
 |------------|--------|------------|
 | Simulation only | Not flight-ready | Hardware integration TBD |
 | No FreeRTOS | Single-threaded | Future integration |
+| Beacon interval | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (BASELINE §8) | Operating constraint |
+| Beacon text | At most 176 characters (`docs/BEACON_SPEC.md`) | Operating constraint |
+| Hardware watchdog | 30 s timeout (`WDT_HW_TIMEOUT_MS`) | Operating constraint |
+| Jetson duty | ≤ 5 % tumbling, ≤ 10 % sun-pointed; sunlit and SOC ≥ 55 % only (BASELINE §5, §6) | Power constraint |
+
+### 7.3 Content Not Carried from the Superseded SVD
+
+| Item in `docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md` | Reason |
+|---------------------------------------------------------|--------|
+| Version 1.0.0 and Git tag `v1.0.0-cdr` | No such tag exists; the code says 0.2.0-dev |
+| Flash and RAM memory map (1 MB / 256 KB) | Does not match the baseline OBC, STM32L4R5ZI (BASELINE §6); see SQSO-FSW-006 (`software/flight/docs/MEMORY_POLICY.md`) |
+| "5-second hardware watchdog", "200-byte beacon limit", "fixed 60-second beacon" | Conflict with the 30 s watchdog, the 176-character text limit and the per-mode beacon intervals above |
+| CDR memory and CPU estimates; 78 of 90 requirements verified; unit-test totals | No analysis or test report in the repository supports them |
+| FreeRTOS 10.5.1 in the build environment | No RTOS is integrated (§7.2) |
+| "No deviations" | MISRA deviations are logged in SQSO-FSW-010 (`software/flight/docs/MISRA_DEVIATIONS.md`) |
 
 ## 8. Change Summary
 
@@ -195,6 +240,10 @@ cmake --build build
 
 # Run tests
 ctest --test-dir build
+
+# Payload and ground tests
+python -m pytest -q software/payload/tests
+python -m pytest -q software/ground/tests
 ```
 
 ### 9.2 Deployment
@@ -261,3 +310,4 @@ software/flight/
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Merged with `docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md`, which carried the same number (finding PI-17): payload and ground identification, build environment and limitations added; Git tag corrected to none; unsupported test counts and open-issue claim removed; §7.3 lists what was not carried and why | SMART-QSO Team |

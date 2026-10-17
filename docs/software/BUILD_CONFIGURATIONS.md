@@ -1,8 +1,8 @@
 # Build Configurations
 ## SMART-QSO Flight Software
 
-**Document Number:** SQSO-SW-007
-**Revision:** A
+**Document Number:** SQSO-SW-008
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
@@ -353,3 +353,4 @@ Each flight release includes:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | Document number changed from SQSO-SW-007, which `software/flight/docs/LOOP_BOUNDS.md` also carries, to SQSO-SW-008 (finding PI-17). No content change | SMART-QSO Team |

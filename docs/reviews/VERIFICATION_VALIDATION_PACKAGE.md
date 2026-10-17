@@ -6,8 +6,8 @@
 > flight sources after the audit's fixes; no hardware exists). See
 > `docs/funding_audit/FINDINGS_REGISTER.md` for the measured values.
 
-**Document ID**: SQSO-VVP-001
-**Version**: 1.0
+**Document ID**: SQSO-REV-004
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -349,3 +349,4 @@ FLIGHT SOFTWARE ROLLBACK PROCEDURE
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-16 | SMART-QSO Team | Document ID changed from SQSO-VVP-001, which is the V&V Plan (`docs/verification/VERIFICATION_VALIDATION_PLAN.md`), to SQSO-REV-004 (finding PI-17). No content change |
