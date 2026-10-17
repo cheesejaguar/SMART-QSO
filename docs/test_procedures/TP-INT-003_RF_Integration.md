@@ -2,13 +2,11 @@
 ## TP-INT-003
 
 **Document Number:** SQSO-TP-INT-003
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-01-02
 **Status:** CDR Baseline
 
-**Requirements verified:** SYS-203, SYS-206, SYS-210, SYS-212, SYS-322
-
-**Not cited until corrected:** §6.2 step 3 and §7 (30 dBm ±1 dB allows more than the 1 W maximum of SYS-201); the 145.825 MHz nominal in §6.2 step 4 and §7 (SYS-200 excludes it; the ±5 kHz tolerance is SYS-206); §6.3 step 2 (30 s; SYS-211 sets 60, 120 and 180 s).
+**Requirements verified:** SYS-200, SYS-201, SYS-203, SYS-206, SYS-210, SYS-211, SYS-212, SYS-322
 
 ---
 
@@ -68,23 +66,23 @@ This procedure defines the integration test for the RF communication subsystem.
 | 3 | Connect power harness | Proper polarity | |
 | 4 | Connect UART cable | To OBC | |
 
-### 6.2 RF Power Test [SYS-206, SYS-322]
+### 6.2 RF Power Test [SYS-200, SYS-201, SYS-206, SYS-322]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Connect dummy load | 50Ω terminated | |
 | 2 | Command beacon TX | RF output | |
-| 3 | Measure power | 30 dBm ±1 dB | |
-| 4 | Measure frequency | 145.825 MHz ±5 kHz | |
+| 3 | Measure power | 27 dBm ±1 dB (0.5 W nominal); never above 30 dBm (1 W, SYS-201) | |
+| 4 | Measure frequency | The IARU-coordinated downlink frequency ±5 kHz (TBD until coordination, TBD-SYS-001; SYS-200, SYS-206) | |
 
-### 6.3 Beacon Test [SYS-210, SYS-212]
+### 6.3 Beacon Test [SYS-210, SYS-211, SYS-212]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Enable beacon mode | Periodic TX | |
-| 2 | Verify timing | 30s interval | |
+| 2 | Verify timing | 60 s in ACTIVE, 120 s in IDLE, 180 s in SAFE (SYS-211) | |
 | 3 | Decode beacon | Correct format | |
-| 4 | Verify callsign | Correct callsign | |
+| 4 | Verify callsign | KK6GDB-11 (`docs/BASELINE_PARAMETERS.md` §1) | |
 
 ---
 
@@ -92,10 +90,10 @@ This procedure defines the integration test for the RF communication subsystem.
 
 | Criterion | Requirement |
 |-----------|-------------|
-| RF power | 30 dBm ±1 dB |
-| Frequency | 145.825 MHz ±5 kHz |
+| RF power | 27 dBm ±1 dB (0.5 W nominal); ≤ 30 dBm (SYS-201) |
+| Frequency | The IARU-coordinated downlink frequency ±5 kHz (TBD until coordination, TBD-SYS-001; SYS-200, SYS-206) |
 | Beacon decode | 100% success |
-| Spurious | < -43 dBc (SYS-203: at least 40 dB below carrier) |
+| Spurious | < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e): < -43 dBc at 0.5 W, < -46 dBc at 1 W; `docs/BASELINE_PARAMETERS.md` §7) |
 
 ---
 
@@ -105,3 +103,4 @@ This procedure defines the integration test for the RF communication subsystem.
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-16 | Conflicting steps corrected and cited: RF power 27 dBm ±1 dB, never above 30 dBm (SYS-201; was 30 dBm ±1 dB); frequency the IARU-coordinated downlink frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); beacon timing 60/120/180 s (SYS-211; was 30 s); spurious limit restated as SYS-203 plus the 25 µW of 47 CFR 97.307(e) (finding VV-06) |

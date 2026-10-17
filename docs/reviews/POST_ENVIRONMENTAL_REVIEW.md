@@ -1,7 +1,7 @@
 # SMART-QSO Post-Environmental Review Package
 
 **Document ID**: SQSO-PSR-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: Template (Pre-PSR)
@@ -55,7 +55,7 @@ This document provides the Post-Environmental Review (PSR) package for SMART-QSO
 
 | Test | Specified | Achieved | Margin |
 |------|-----------|----------|--------|
-| Random Vibe | 14.1 Grms | | |
+| Random Vibe | 5.57 Grms MPE (interim: SpaceX Rideshare User's Guide v11; `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1) | | |
 | Sine Sweep | 0.25g | | |
 | TVAC Hot | +50°C | | |
 | TVAC Cold | -20°C | | |
@@ -398,3 +398,4 @@ QA: ___________________ Date: _____
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial template |
+| 1.1 | 2026-10-16 | SMART-QSO Team | §3.2 random vibration at the interim TP-ENV-002 level (was 14.1 Grms; LA-05) |

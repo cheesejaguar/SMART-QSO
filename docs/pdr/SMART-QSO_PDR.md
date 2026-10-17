@@ -162,6 +162,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 
 ### 7.3 RF Link Budget (indicative)
 - **Downlink 145.9 MHz (2 m):** TX 2 W (33 dBm) + antenna 2 dBi → EIRP 35 dBm. Slant range 1000 km → FSPL ≈135.7 dB. Ground Yagi 12 dBi; misc losses 4 dB → **Pr ≈ −92.7 dBm**, margin suitable for 1200 bps AFSK.
+  *(Note 2026-10-16: superseded. The baseline transmitter is 0.5 W nominal, 1 W maximum (SYS-201), and the controlled link budget is `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0: the 1200 bps beacon closes at 0.5 W with +7.7 dB at 5° elevation, analysis. The figures above are kept as recorded.)*
 
 ### 7.4 Data Handling
 - Housekeeping ≤50 kB/day; ML logs ≤1 MB/day (throttled). Beacons ≤1 kB/day. Storage headroom ≥128 MB.

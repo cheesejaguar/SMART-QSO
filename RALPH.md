@@ -16,12 +16,17 @@ This audit draws process heritage from NASA Ames Research Center small satellite
 
 Each section contains actionable checklist items with detailed implementation instructions for a coding agent to bring this software to flight-ready status.
 
-**Current State**: CDR Baseline - 97.8% complete (265/271 tasks)
+**Task-tracker state** (counted 2026-10-16): **249 of 271** top-level task boxes ticked, and **1,250 of 1,356** boxes
+in all (list items that begin with `[x]` or `[ ]`, outside code blocks; top level means not indented). A tick is a
+mark in this agent task list, not evidence that the work is complete or verified, and ticks with no artifact have
+been removed (findings PI-09, SW-19). The earlier headline, "97.8 % complete (265/271 tasks)", counted ticks.
 **Target State**: Flight-qualified software per NASA Class C/D requirements (appropriate for CubeSat missions)
-**Lifecycle Phase**: Phase C (Final Design & Fabrication) - CDR Complete
+**Lifecycle Phase**: Phase B (pre-PDR); no independent PDR or CDR has been held (`docs/BASELINE_PARAMETERS.md` §1)
 **Process Heritage**: NASA Ames Small Satellite Division (GeneSat, PharmaSat, O/OREOS, EcAMSat)
 
 ### CDR Baseline Status (2026-01-02)
+
+*As recorded on 2026-01-02. These statuses are not substantiated; see `docs/funding_audit/FINDINGS_REGISTER.md`.*
 
 | Category | Status |
 |----------|--------|

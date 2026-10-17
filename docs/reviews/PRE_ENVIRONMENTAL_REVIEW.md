@@ -1,7 +1,7 @@
 # SMART-QSO Pre-Environmental Review Package
 
 **Document ID**: SQSO-PER-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: Template (Pre-PER)
@@ -59,7 +59,7 @@ This document provides the Pre-Environmental Review (PER) package for SMART-QSO 
 
 | Item | As-Designed | As-Built | Delta |
 |------|-------------|----------|-------|
-| Mass | 1.2 kg | | |
+| Mass | CBE 1.69 kg, predicted 1.92–2.00 kg, limit 2.00 kg (`docs/environment/MASS_BUDGET.md` v2.0; BASELINE §4 carries CBE ≈ 1.51 kg pending the PI) | | |
 | CG Location | (0,0,57mm) | | |
 | Power Draw | 0.2W (SAFE) | | |
 | Dimensions | 100×100×113.5mm | | |
@@ -130,7 +130,7 @@ Signature: _________ Date: _____
 
 | Test | Level | Duration |
 |------|-------|----------|
-| Random Vibe | 14.1 Grms | 1 min/axis |
+| Random Vibe | 5.57 Grms MPE (interim: SpaceX Rideshare User's Guide v11; `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1) | 1 min/axis |
 | Sine Sweep | 0.25g | 4 oct/min |
 | TVAC Hot | +50°C | 2 hours |
 | TVAC Cold | -20°C | 2 hours |
@@ -322,3 +322,4 @@ QA: ___________________ Date: _____
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial template |
+| 1.1 | 2026-10-16 | SMART-QSO Team | §3.3 as-designed mass from MASS_BUDGET v2.0 (was 1.2 kg; TB-06); §5.2 random vibration at the interim TP-ENV-002 level (was 14.1 Grms; LA-05) |

@@ -2,13 +2,11 @@
 ## TP-FAT-001
 
 **Document Number:** SQSO-TP-FAT-001
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-01-02
 **Status:** CDR Baseline
 
-**Requirements verified:** SYS-003, SYS-021, SYS-102, SYS-110, SYS-120, SYS-121, SYS-122, SYS-124, SYS-202, SYS-210, SYS-215, SYS-221, SYS-223, SYS-300, SYS-304, SYS-322, SYS-323, SYS-324, SYS-400, SYS-402, SYS-410, SYS-503, SYS-512
-
-**Not cited until corrected:** §6.3.3 steps 3 and 5 and §6.4 steps 1 and 2 (145.825 MHz and a 2.0 W high mode; SYS-200 excludes 145.825 MHz and SYS-201 caps output at 1 W); §6.4 step 3 (2nd harmonic < -30 dBc; SYS-203 needs 40 dB); §6.6 step 2 (1.33 kg; SYS-002 allows 2.0 kg); §6.7 step 3 (N0CALL; the station identifier is in `docs/BASELINE_PARAMETERS.md` §1).
+**Requirements verified:** SYS-002, SYS-003, SYS-021, SYS-102, SYS-110, SYS-120, SYS-121, SYS-122, SYS-124, SYS-200, SYS-201, SYS-202, SYS-203, SYS-206, SYS-210, SYS-212, SYS-215, SYS-221, SYS-223, SYS-300, SYS-304, SYS-322, SYS-323, SYS-324, SYS-400, SYS-402, SYS-410, SYS-503, SYS-512
 
 ---
 
@@ -111,15 +109,15 @@ This procedure defines the final acceptance functional test performed on the fli
 | 5 | Verify watchdog function | Kick regular | |
 | 6 | Test all mode transitions | Correct behavior | |
 
-#### 6.3.3 RF Subsystem [SYS-202, SYS-210, SYS-322]
+#### 6.3.3 RF Subsystem [SYS-200, SYS-201, SYS-202, SYS-206, SYS-210, SYS-322]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Verify RF power off | No RF output | |
 | 2 | Command RF on | TX active | |
-| 3 | Measure TX frequency | 145.825 MHz ±2 kHz | |
-| 4 | Measure TX power | 0.5W ±0.1W (low mode) | |
-| 5 | Measure TX power | 2.0W ±0.2W (high mode) | |
+| 3 | Measure TX frequency | The IARU-coordinated downlink frequency ±2 kHz (TBD until coordination, TBD-SYS-001; SYS-200, within the ±5 kHz of SYS-206) | |
+| 4 | Measure TX power | 0.5W ±0.1W (nominal) | |
+| 5 | Measure TX power at the maximum setting | ≤ 1.0 W (SYS-201) | |
 | 6 | Verify modulation | AFSK 1200 baud | |
 | 7 | Verify beacon content | Valid AX.25 frame | |
 | 8 | Command RF off | TX disabled | |
@@ -150,14 +148,14 @@ This procedure defines the final acceptance functional test performed on the fli
 | 8 | Command Jetson shutdown | Clean shutdown | |
 | 9 | Command power off | < 1 mA standby | |
 
-### 6.4 RF Characterization (Final) [SYS-223]
+### 6.4 RF Characterization (Final) [SYS-201, SYS-203, SYS-223]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Measure TX power at 0.5W | 0.5W ±0.1W | |
-| 2 | Measure TX power at 2.0W | 2.0W ±0.2W | |
-| 3 | Measure harmonics | 2nd < -30 dBc | |
-| 4 | Measure harmonics | 3rd < -40 dBc | |
+| 2 | Measure TX power at the maximum setting | ≤ 1.0 W (SYS-201) | |
+| 3 | Measure harmonics | 2nd < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e): < -46 dBc at 1 W, `docs/BASELINE_PARAMETERS.md` §7) | |
+| 4 | Measure harmonics | 3rd as step 3; target < -60 dBc (`docs/BASELINE_PARAMETERS.md` §7) | |
 | 5 | Measure spurious | < -50 dBc | |
 | 6 | Measure antenna VSWR | < 2:1 | |
 | 7 | Compare to pre-env baseline | Within 10% | |
@@ -172,7 +170,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 4 | Compare to BOL | > 95% of original | |
 | 5 | Recharge for flight | 100% SOC | |
 
-### 6.6 Mass Properties Measurement [SYS-003]
+### 6.6 Mass Properties Measurement [SYS-002, SYS-003]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
@@ -184,13 +182,13 @@ This procedure defines the final acceptance functional test performed on the fli
 | 6 | Verify CG within 2 cm | Per CDS Rev 14.1 | |
 | 7 | Compare to pre-env | Within tolerance | |
 
-### 6.7 Configuration Verification [SYS-221]
+### 6.7 Configuration Verification [SYS-212, SYS-221]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Verify software version | Flight version | |
 | 2 | Verify configuration parameters | Per flight config | |
-| 3 | Verify callsign | N0CALL or assigned | |
+| 3 | Verify callsign | KK6GDB-11 (`docs/BASELINE_PARAMETERS.md` §1; `software/flight/include/station_id.h`) | |
 | 4 | Verify beacon text | Correct format | |
 | 5 | Verify ADCS parameters | Per mission config | |
 | 6 | Verify power thresholds | Per mission config | |
@@ -205,9 +203,9 @@ This procedure defines the final acceptance functional test performed on the fli
 |-----------|-------------|
 | Boot | < 30 seconds, no faults |
 | Power rails | ±5% of nominal |
-| TX frequency | 145.825 MHz ±2 kHz |
-| TX power | Per spec ±10% |
-| Harmonics | Per spec |
+| TX frequency | The IARU-coordinated downlink frequency ±2 kHz (TBD until coordination, TBD-SYS-001; SYS-200, SYS-206) |
+| TX power | 0.5 W ±0.1 W nominal; ≤ 1.0 W at the maximum setting (SYS-201) |
+| Harmonics | < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e)) |
 | All sensors | Valid readings |
 | All actuators | Correct response |
 | Jetson inference | Valid text output |
@@ -248,3 +246,4 @@ This procedure defines the final acceptance functional test performed on the fli
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Mass limit 2.00 kg (SYS-002, CDS Rev 14.1) replaces 1.33 kg, the CDS Rev 13 value (TB-06) |
 | 1.2 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.3 | 2026-10-16 | Conflicting steps corrected and cited: TX frequency the IARU-coordinated downlink frequency (SYS-200, TBD-SYS-001), not 145.825 MHz; TX power 0.5 W nominal and ≤ 1 W maximum (SYS-201), replacing the 2.0 W high mode; harmonics < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e)), replacing -30 dBc; callsign KK6GDB-11 (BASELINE §1), replacing N0CALL. The note on §6.6 was stale (2.00 kg since 1.1) (finding VV-06) |

@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-002
-**Revision:** C
+**Revision:** D
 **Date:** 2026-01-02
 **Reference:** NPR 7123.1, NASA Ames SmallSat Heritage
 
@@ -279,7 +279,7 @@ SMART-QSO is a 1U CubeSat consisting of:
 
 | ID | Requirement | Parent | Verification |
 |----|-------------|--------|--------------|
-| SYS-700 | The spacecraft shall survive launch vibration per GEVS protoflight levels | MRD-080 | T |
+| SYS-700 | The spacecraft shall survive launch vibration at the launch provider's levels (interim: SpaceX Rideshare User's Guide v11, pending the launch contract) *[PI to ratify. Amended 2026-10-16 from "per GEVS protoflight levels" to the launch environment of `docs/BASELINE_PARAMETERS.md` §8; interim levels in `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1; provider levels TBD-SYS-002]* | MRD-080 | T |
 | SYS-701 | The spacecraft shall survive acoustic environment per launch provider spec | MRD-080 | A |
 | SYS-702 | The spacecraft shall survive depressurization | MRD-080 | T |
 
@@ -341,3 +341,4 @@ SMART-QSO is a 1U CubeSat consisting of:
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §15 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SYS-001, TBD-SYS-002 and TBR-SYS-001. TBR-SYS-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §6) (finding VV-17). Proposed testable wording, for the PI to ratify, beneath SYS-020, SYS-222 and SYS-522; requirement text unchanged; tracked as TBR-SYS-002 to TBR-SYS-004 (finding VV-16) | SMART-QSO Team |
 | C | 2026-10-16 | Frequency accuracy renumbered SYS-206 (SYS-204 was defined twice; SYS-204 stays TX-OFF). SYS-211 amended to the BASELINE §8 beacon intervals, PI to ratify (finding VV-06) | SMART-QSO Team |
+| D | 2026-10-16 | SYS-700 amended from GEVS protoflight levels to the launch provider's levels, interim SpaceX Rideshare User's Guide v11 as used by TP-ENV-002, PI to ratify; ID kept (findings LA-05, VV-06) | SMART-QSO Team |

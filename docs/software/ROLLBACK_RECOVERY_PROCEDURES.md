@@ -1,7 +1,7 @@
 # SMART-QSO Rollback and Recovery Procedures
 
 **Document ID**: SQSO-RRP-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -189,7 +189,7 @@ If both primary and golden images are corrupt:
 |-------|-----------|--------------|
 | Battery SOC | ≥60% | Telemetry |
 | Thermal | Within limits | Telemetry |
-| Link margin | ≥3 dB | Link analysis |
+| Link margin | ≥3 dB predicted for the pass, uplink and downlink | `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0: telecommand +4.7 dB at 5° in 92 % of orientations (§4.5); beacon +7.7 dB at 5° (§3.5); analysis |
 | Pass duration | ≥10 min | Orbit prediction |
 | Backup verified | CRC match | Ground command |
 
@@ -435,3 +435,4 @@ RECOVERY OPERATIONS CHECKLIST
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-16 | SMART-QSO Team | §5.1 link-margin check cites LINK_BUDGET_ANALYSIS v2.0 for the predicted margins (finding TB-05) |

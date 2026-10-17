@@ -2,11 +2,11 @@
 ## TP-RF-005
 
 **Document Number:** SQSO-TP-RF-005
-**Version:** 1.0
+**Version:** 1.1
 **Date:** 2026-01-02
 **Status:** CDR Baseline
 
-**Requirements verified:** SYS-220, SYS-221
+**Requirements verified:** SYS-220, SYS-221, SYS-223
 
 ---
 
@@ -36,7 +36,7 @@ Verify antenna deployment mechanism and post-deployment RF performance.
 | 3 | Measure burn current | 0.5-1.0 A | |
 | 4 | Measure burn time | < 5 seconds | |
 | 5 | Verify full deployment | Elements extended | |
-| 6 | Measure VSWR | < 2:1 @ 145.825 MHz | |
+| 6 | Measure VSWR | < 2:1 (SYS-223) at the IARU-coordinated downlink frequency (TBD until coordination, TBD-SYS-001; SYS-200) | |
 
 ---
 
@@ -55,3 +55,4 @@ Verify antenna deployment mechanism and post-deployment RF performance.
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-16 | Step 6 VSWR at the IARU-coordinated downlink frequency (SYS-200, TBD-SYS-001), not 145.825 MHz; SYS-223 cited (finding VV-06) |

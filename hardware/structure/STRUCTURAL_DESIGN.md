@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-STR-001
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-16
 **Status:** Draft. No finite-element model (FEM), structural analysis or structural test exists
 
@@ -137,7 +137,7 @@ This document defines the structural design for the SMART-QSO 1U CubeSat per Cub
 | Location | -Z rail corners |
 | Actuation force | 0.5-2.0 N |
 | Travel | 1-2 mm |
-| Contact | Normally closed |
+| Contact | Open: TBR-CDS-005 (`docs/compliance/CDS_COMPLIANCE_MATRIX.md` §9). Revision 1.1 said normally closed and the launch ICD normally open; no part or schematic decides it. The flight software reads the sense line high (pulled up) while stowed, itself TBR (`software/flight/include/separation_switch.h`) |
 
 ### 5.3 Separation Springs
 
@@ -312,3 +312,4 @@ behind them and are withdrawn.
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-16 | Funding audit TB-15: one launch environment from SpaceX UG v11 (interim provider): first mode > 40 Hz, random vibration 5.57 Grms MPE, quasi-static 10 g / 17 g, factors of safety per Table 5-1. The old profile is shown to integrate to 7.36 Grms, not 6.8. Mode frequencies and margins withdrawn (analysis pending FEM). Rail edge radius ≥ 1 mm per CDS Rev 14.1 §2.2.7. Mass line (§1.1) and §4 mass properties not changed here |
+| 1.2 | 2026-10-16 | §5.2 deployment-switch contact: "normally closed" conflicted with "normally open" in the launch ICD and the CDS matrix, and nothing decides it; now open as TBR-CDS-005 (`docs/compliance/CDS_COMPLIANCE_MATRIX.md` §9) |

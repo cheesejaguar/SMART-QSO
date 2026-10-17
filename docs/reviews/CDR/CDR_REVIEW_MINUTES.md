@@ -268,10 +268,10 @@ is `docs/safety/SAFETY_DATA_PACKAGE.md` §4.
 
 | TPM | Threshold | Goal | CDR Status | Margin |
 |-----|-----------|------|------------|--------|
-| Mass | < 1.5 kg | < 1.2 kg | 1.08 kg est. | 28% |
+| Mass | < 1.5 kg | < 1.2 kg | 1.08 kg est. *(superseded 2026-10-16: limit 2.00 kg; bottom-up CBE 1.69 kg, predicted 1.92–2.00 kg, `docs/environment/MASS_BUDGET.md` v2.0; BASELINE §4 carries CBE ≈ 1.51 kg pending the PI)* | 28% |
 | Power (avg) | < 2.0 W | < 1.5 W | 1.3 W est. | 35% |
-| Beacon interval | < 60 s | < 30 s | 30 s | 50% |
-| Link margin | > 6 dB | > 10 dB | 12 dB est. | 100% |
+| Beacon interval | < 60 s | < 30 s | 30 s *(superseded 2026-10-16: 60 s ACTIVE, 120 s IDLE, 180 s SAFE, SYS-211)* | 50% |
+| Link margin | > 6 dB | > 10 dB | 12 dB est. *(superseded 2026-10-16: 1200 bps beacon at 0.5 W, +7.7 dB at 5° elevation, analysis, `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0)* | 100% |
 | Code coverage | > 80% | > 90% | 82.3% | Met |
 | Deorbit time | < 5 yr | < 3 yr | 2.5 yr est. | 50% |
 

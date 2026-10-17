@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ETP-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-01-02
 **Reference:** GSFC-STD-7000 (GEVS), MIL-STD-1540E
 
@@ -39,18 +39,20 @@ Post-Environmental Verification
 
 ## 3. Test Levels
 
-### 3.1 Vibration Levels
+### 3.1 Vibration Levels [SYS-700]
 
-| Axis | Frequency (Hz) | Level | Duration |
-|------|----------------|-------|----------|
-| All | 20-80 | +3 dB/oct | |
-| All | 80-500 | 0.04 g²/Hz | |
-| All | 500-2000 | -3 dB/oct | |
-| | | | |
-| **Protoflight** | | Grms = 6.8 | 1 min/axis |
-| **Acceptance** | | Grms = 5.1 | 1 min/axis |
+Interim levels: SpaceX Rideshare Payload User's Guide v11 (UG v11), pending the launch contract and the integrator's
+levels. The spectrum, its check and the test approach are in `docs/test_procedures/TP-ENV-002_Vibration.md` §2 and §4.1.
 
-*Note: Final levels per launch provider ICD*
+| Approach (UG v11 Table 6-2) | Level | Duration |
+|-----------------------------|-------|----------|
+| **Protoflight (planned)** | MPE, 5.57 Grms (UG v11 Table 4-6) | 1 min/axis |
+| Qualification (dedicated unit) | MPE + 3 dB, 7.87 Grms | 2 min/axis |
+| Acceptance (with a qualification unit) | MPE, 5.57 Grms | 1 min/axis |
+
+*Note (2026-10-16): Revision A gave a 20–2000 Hz profile with a 0.04 g²/Hz plateau and "Grms = 6.8" (protoflight) /
+"Grms = 5.1" (acceptance), tied to no provider (finding LA-05; `hardware/structure/STRUCTURAL_DESIGN.md` §7.3 shows the
+profile integrates to 7.36 Grms, not 6.8). It is withdrawn. Final levels per the launch provider ICD.*
 
 ### 3.2 Thermal Vacuum Levels
 
@@ -59,7 +61,7 @@ Post-Environmental Verification
 | Hot operational | +50°C | +45°C |
 | Cold operational | -20°C | -15°C |
 | Hot survival | +60°C | N/A |
-| Cold survival | -30°C | N/A |
+| Cold survival | -30°C (open: SYS-601 requires -40°C; TBR-TPENV003-001) | N/A |
 | Cycles | 4 minimum | 2 minimum |
 | Dwell time | 2 hours | 1 hour |
 | Vacuum level | < 10⁻⁵ Torr | < 10⁻⁵ Torr |
@@ -322,3 +324,4 @@ Ambient ──╱            ╲────────────────
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-16 | §3.1 vibration levels point to the interim SpaceX UG v11 levels of TP-ENV-002 (5.57 Grms MPE), replacing the unsourced 6.8 / 5.1 Grms profile (finding LA-05); §3.2 cold survival marked open against SYS-601 (TBR-TPENV003-001) | SMART-QSO Team |

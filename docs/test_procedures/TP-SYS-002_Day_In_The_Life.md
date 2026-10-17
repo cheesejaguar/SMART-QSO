@@ -2,12 +2,10 @@
 ## TP-SYS-002
 
 **Document Number:** TP-SYS-002
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 
-**Requirements verified:** MRD-002, SYS-111, SYS-215, SYS-220, SYS-221, SYS-300, SYS-303, SYS-325, SYS-421, SYS-422, SYS-512, SRS-F013, SRS-F052, SRS-Q002
-
-**Not cited until corrected:** Orbit 1 "First beacon" at T+0:32 on 145.825 MHz (SYS-224 allows no RF before 45 minutes after deployment, and SYS-200 excludes 145.825 MHz), and §4.6 SAFE mode at SOC < 30 % (SRS-F013 sets 25 %).
+**Requirements verified:** MRD-002, SYS-111, SYS-200, SYS-215, SYS-220, SYS-221, SYS-224, SYS-300, SYS-303, SYS-325, SYS-421, SYS-422, SYS-512, SRS-F013, SRS-F052, SRS-Q002
 
 ---
 
@@ -21,7 +19,7 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 |-----------|---------------|
 | Solar simulator | 1 sun AM0 equivalent |
 | Thermal shroud | Eclipse simulation |
-| RF receiver | 145.825 MHz |
+| RF receiver | The IARU-coordinated downlink frequency (TBD until coordination, TBD-SYS-001; SYS-200) |
 | Spectrum analyzer | 100-500 MHz |
 | Power analyzer | Continuous logging |
 | Time sync | GPS reference |
@@ -33,10 +31,10 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 
 | Parameter | Value |
 |-----------|-------|
-| Altitude | 500 km |
-| Inclination | 51.6° (ISS) |
-| Orbital period | 94.5 minutes |
-| Eclipse duration | ~35 minutes |
+| Altitude | 500 km (target; 525 km cap, `docs/BASELINE_PARAMETERS.md` §3) |
+| Inclination | ≈ 97.4° (circular SSO, `docs/BASELINE_PARAMETERS.md` §3) |
+| Orbital period | 94.6 minutes (`docs/environment/LINK_BUDGET_ANALYSIS.md` §2.1) |
+| Eclipse duration | ~36 minutes (β = 0, the cold case of `docs/BASELINE_PARAMETERS.md` §8) |
 | Sunlit duration | ~59 minutes |
 | Orbits per day | 15.2 |
 
@@ -52,26 +50,27 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 
 ## 4. Procedure
 
-### 4.1 Test Initialization [SYS-300]
+### 4.1 Test Initialization [SYS-224, SYS-300]
 
 | Step | Action | Expected Result | Time | P/F |
 |------|--------|-----------------|------|-----|
 | 1 | Power on spacecraft | Boot sequence | T+0:00 | |
 | 2 | Verify boot complete | < 30 seconds | T+0:00:30 | |
-| 3 | Verify beacon transmission | First beacon | T+0:01:00 | |
+| 3 | Verify beacon transmission | First beacon, only if the RF silence was already completed on the bench (`software/flight/include/rf_silence.h`); otherwise none before T+0:45 (SYS-224) | T+0:01:00 | |
 | 4 | Start data logging | All channels | T+0:01:00 | |
 | 5 | Sync test timeline | GPS time | T+0:02:00 | |
 
 ### 4.2 LEOP Simulation (Orbits 1-2)
 
-#### Orbit 1: Deployment and Detumble [SYS-220, SYS-221, SYS-421]
+#### Orbit 1: Deployment and Detumble [SYS-200, SYS-220, SYS-221, SYS-224, SYS-421]
 
 | Event | Time | Action | Expected | Actual | P/F |
 |-------|------|--------|----------|--------|-----|
 | Deploy | T+0:00 | Separation | 30-min inhibit start | ______ | |
+| RF silence | T+0:00 to T+0:45 | Monitor spectrum | No RF emission (SYS-224) | ______ | |
 | Antenna | T+0:30 | Deploy antenna | Successful deploy | ______ | |
 | Detumble | T+0:31 | Start B-dot | < 0.5°/s in 45 min | ______ | |
-| First beacon | T+0:32 | Transmit | 145.825 MHz received | ______ | |
+| First beacon | ≥ T+0:45 | Transmit | Received at the IARU-coordinated frequency (TBD-SYS-001; SYS-200), not before T+0:45 (SYS-224) | ______ | |
 | Eclipse entry | T+0:59 | Sun lost | Safe mode | ______ | |
 | Eclipse exit | T+1:34 | Sun acquired | Resume ops | ______ | |
 
@@ -164,13 +163,13 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | Watchdog | Delay kick | System reset | ______ | ______ | |
 | Memory error | Inject bit flip | CRC detect, recover | ______ | ______ | |
 
-### 4.6 Low Power Operations (Orbit 14) [SYS-111]
+### 4.6 Low Power Operations (Orbit 14) [SYS-111, SRS-F013]
 
 | Event | SOC | Mode | Load (mW) | Result | P/F |
 |-------|-----|------|-----------|--------|-----|
 | Enter eclipse | ______ | ______ | ______ | ______ | |
 | Mid-eclipse | ______ | ______ | ______ | ______ | |
-| SOC < 30% | ______ | Safe mode | ______ | ______ | |
+| SOC < 25% (SRS-F013) | ______ | Safe mode | ______ | ______ | |
 | Exit eclipse | ______ | ______ | ______ | ______ | |
 | Recovery | ______ | Normal | ______ | ______ | |
 
@@ -229,3 +228,4 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) | SMART-QSO Team |
+| C | 2026-10-16 | Conflicting steps corrected and cited: first beacon not before T+0:45, with a no-emission check from separation (SYS-224; was T+0:32), received at the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); §4.1 step 3 conditional on a completed bench RF silence; SAFE at SOC < 25 % (SRS-F013; was 30 %); simulated orbit SSO ≈ 97.4° (BASELINE §3; was 51.6°, ISS) (finding VV-06) | SMART-QSO Team |

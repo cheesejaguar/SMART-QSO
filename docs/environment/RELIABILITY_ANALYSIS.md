@@ -1,7 +1,7 @@
 # SMART-QSO Reliability Analysis
 
 **Document ID**: SQSO-REL-001
-**Version**: 1.0
+**Version**: 1.2
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -63,7 +63,8 @@ is acceptable with appropriate mitigation:
 
 3. Margin
    └─ Power budget: 28% margin minimum
-   └─ Link budget: 3 dB margin minimum
+   └─ Link budget: > 6 dB threshold, > 10 dB goal (SEMP §3.3); beacon +7.7 dB at 5° elevation
+      (docs/environment/LINK_BUDGET_ANALYSIS.md v2.0, analysis)
    └─ Thermal: 5°C margin to limits
 
 4. Graceful Degradation
@@ -357,3 +358,4 @@ Status: RELIABILITY REQUIREMENTS MET
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-16 | Funding audit | §6.1 battery life replaced by a summary of BATTERY_DESIGN §3.3 (TB-08); orbit cycles at 500 km; battery redundancy corrected to 4S1P |
+| 1.2 | 2026-10-16 | SMART-QSO Team | §3.2 link-budget margin: the SEMP threshold and goal and the LINK_BUDGET_ANALYSIS v2.0 result replace "3 dB margin minimum" (finding TB-05). Header revision brought up to the history (it still read 1.0 after 1.1) |
