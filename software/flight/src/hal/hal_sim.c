@@ -20,11 +20,21 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include <stdint.h>
 
 #include "hal/hal.h"
 #include "hal/hal_sim.h"
 #include "hal/hal_radio.h"
 #include "hal/hal_reset.h"
+#include "hal/hal_adc.h"
+#include "hal/hal_flash.h"
+#include "hal/hal_gpio.h"
+#include "hal/hal_i2c.h"
+#include "hal/hal_spi.h"
+#include "hal/hal_timer.h"
+#include "hal/hal_uart.h"
+#include "hal/hal_wdt.h"
+#include "smart_qso.h"
 
 #ifdef HAL_TARGET_SIMULATION
 
@@ -137,15 +147,23 @@ SmartQsoResult_t hal_init(void) {
 
     /* Initialize timer first (needed by other modules) */
     result = hal_timer_init();
-    if (result != SMART_QSO_OK) return result;
+    /* cppcheck-suppress knownConditionTrueFalse ; the simulated timer cannot fail, the flight HAL's can */
+    if (result != SMART_QSO_OK) {
+        return result;
+    }
 
     /* Initialize GPIO */
     result = hal_gpio_init();
-    if (result != SMART_QSO_OK) return result;
+    /* cppcheck-suppress knownConditionTrueFalse ; the simulated GPIO cannot fail, the flight HAL's can */
+    if (result != SMART_QSO_OK) {
+        return result;
+    }
 
     /* Initialize flash */
     result = hal_flash_init();
-    if (result != SMART_QSO_OK) return result;
+    if (result != SMART_QSO_OK) {
+        return result;
+    }
 
     return SMART_QSO_OK;
 }
@@ -153,7 +171,7 @@ SmartQsoResult_t hal_init(void) {
 SmartQsoResult_t hal_deinit(void) {
     /* Free flash simulation memory */
     for (int i = 0; i < FLASH_REGION_COUNT; i++) {
-        if (s_flash_data[i]) {
+        if (s_flash_data[i] != NULL) {
             free(s_flash_data[i]);
             s_flash_data[i] = NULL;
         }
@@ -171,7 +189,7 @@ SmartQsoResult_t hal_deinit(void) {
 /*===========================================================================*/
 
 SmartQsoResult_t hal_gpio_init(void) {
-    memset(s_gpio_state, 0, sizeof(s_gpio_state));
+    (void)memset(s_gpio_state, 0, sizeof(s_gpio_state));
     for (int i = 0; i < GPIO_PIN_COUNT; i++) {
         s_gpio_dir[i] = GPIO_DIR_INPUT;
     }
@@ -183,30 +201,46 @@ SmartQsoResult_t hal_gpio_config(HalGpioPin_t pin, HalGpioDir_t direction,
                                   HalGpioPull_t pull) {
     (void)pull;  /* Pull not simulated */
 
-    if (!s_gpio_initialized) return SMART_QSO_ERROR;
-    if (pin >= GPIO_PIN_COUNT) return SMART_QSO_ERROR_INVALID;
+    if (!s_gpio_initialized) {
+        return SMART_QSO_ERROR;
+    }
+    if (pin >= GPIO_PIN_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
     s_gpio_dir[pin] = direction;
     return SMART_QSO_OK;
 }
 
 SmartQsoResult_t hal_gpio_set(HalGpioPin_t pin, bool state) {
-    if (!s_gpio_initialized) return SMART_QSO_ERROR;
-    if (pin >= GPIO_PIN_COUNT) return SMART_QSO_ERROR_INVALID;
-    if (s_gpio_dir[pin] != GPIO_DIR_OUTPUT) return SMART_QSO_ERROR_INVALID;
+    if (!s_gpio_initialized) {
+        return SMART_QSO_ERROR;
+    }
+    if (pin >= GPIO_PIN_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
+    if (s_gpio_dir[pin] != GPIO_DIR_OUTPUT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
     s_gpio_state[pin] = state;
     return SMART_QSO_OK;
 }
 
 bool hal_gpio_get(HalGpioPin_t pin) {
-    if (!s_gpio_initialized || pin >= GPIO_PIN_COUNT) return false;
+    if (!s_gpio_initialized || pin >= GPIO_PIN_COUNT) {
+        return false;
+    }
     return s_gpio_state[pin];
 }
 
 SmartQsoResult_t hal_gpio_toggle(HalGpioPin_t pin) {
-    if (!s_gpio_initialized) return SMART_QSO_ERROR;
-    if (pin >= GPIO_PIN_COUNT) return SMART_QSO_ERROR_INVALID;
+    if (!s_gpio_initialized) {
+        return SMART_QSO_ERROR;
+    }
+    if (pin >= GPIO_PIN_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
     s_gpio_state[pin] = !s_gpio_state[pin];
     return SMART_QSO_OK;
@@ -219,11 +253,13 @@ SmartQsoResult_t hal_gpio_toggle(HalGpioPin_t pin) {
 SmartQsoResult_t hal_i2c_init(HalI2cBus_t bus, HalI2cSpeed_t speed) {
     (void)speed;
 
-    if (bus >= I2C_BUS_COUNT) return SMART_QSO_ERROR_INVALID;
+    if (bus >= I2C_BUS_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
     /* Initialize simulated device registers */
     for (size_t i = 0; i < SIM_I2C_DEVICE_COUNT; i++) {
-        memset(s_i2c_devices[i].registers, 0, sizeof(s_i2c_devices[i].registers));
+        (void)memset(s_i2c_devices[i].registers, 0, sizeof(s_i2c_devices[i].registers));
 
         /* Set some default values */
         if (s_i2c_devices[i].addr == I2C_ADDR_EPS_CONTROLLER) {
@@ -248,11 +284,17 @@ static SimI2cDevice_t* find_i2c_device(uint8_t addr) {
 
 SmartQsoResult_t hal_i2c_write(HalI2cBus_t bus, uint8_t addr,
                                 const uint8_t *data, size_t len) {
-    if (bus >= I2C_BUS_COUNT || !s_i2c_initialized[bus]) return SMART_QSO_ERROR;
-    if (!data || len == 0) return SMART_QSO_ERROR_NULL_PTR;
+    if (bus >= I2C_BUS_COUNT || !s_i2c_initialized[bus]) {
+        return SMART_QSO_ERROR;
+    }
+    if (!data || len == 0) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
 
     SimI2cDevice_t *dev = find_i2c_device(addr);
-    if (!dev) return SMART_QSO_ERROR;
+    if (!dev) {
+        return SMART_QSO_ERROR;
+    }
 
     /* First byte is register address */
     uint8_t reg = data[0];
@@ -265,14 +307,20 @@ SmartQsoResult_t hal_i2c_write(HalI2cBus_t bus, uint8_t addr,
 
 SmartQsoResult_t hal_i2c_read(HalI2cBus_t bus, uint8_t addr,
                                uint8_t *data, size_t len) {
-    if (bus >= I2C_BUS_COUNT || !s_i2c_initialized[bus]) return SMART_QSO_ERROR;
-    if (!data || len == 0) return SMART_QSO_ERROR_NULL_PTR;
+    if (bus >= I2C_BUS_COUNT || !s_i2c_initialized[bus]) {
+        return SMART_QSO_ERROR;
+    }
+    if (!data || len == 0) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
 
-    SimI2cDevice_t *dev = find_i2c_device(addr);
-    if (!dev) return SMART_QSO_ERROR;
+    const SimI2cDevice_t *dev = find_i2c_device(addr);
+    if (!dev) {
+        return SMART_QSO_ERROR;
+    }
 
     /* Read from register 0 by default */
-    memcpy(data, dev->registers, len);
+    (void)memcpy(data, dev->registers, len);
     return SMART_QSO_OK;
 }
 
@@ -280,14 +328,18 @@ SmartQsoResult_t hal_i2c_write_read(HalI2cBus_t bus, uint8_t addr,
                                      const uint8_t *write_data, size_t write_len,
                                      uint8_t *read_data, size_t read_len) {
     (void)bus;  /* Bus selection not used in simulation */
-    if (!write_data || write_len == 0) return SMART_QSO_ERROR_NULL_PTR;
+    if (!write_data || write_len == 0) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
 
-    SimI2cDevice_t *dev = find_i2c_device(addr);
-    if (!dev) return SMART_QSO_ERROR;
+    const SimI2cDevice_t *dev = find_i2c_device(addr);
+    if (!dev) {
+        return SMART_QSO_ERROR;
+    }
 
     /* First byte of write_data is register address */
     uint8_t reg = write_data[0];
-    memcpy(read_data, &dev->registers[reg], read_len);
+    (void)memcpy(read_data, &dev->registers[reg], read_len);
 
     return SMART_QSO_OK;
 }
@@ -309,20 +361,26 @@ SmartQsoResult_t hal_i2c_recover(HalI2cBus_t bus) {
 SmartQsoResult_t hal_uart_init(HalUartPort_t port, const HalUartConfig_t *config) {
     (void)config;
 
-    if (port >= UART_PORT_COUNT) return SMART_QSO_ERROR_INVALID;
+    if (port >= UART_PORT_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
     s_uart_initialized[port] = true;
     return SMART_QSO_OK;
 }
 
 SmartQsoResult_t hal_uart_write(HalUartPort_t port, const uint8_t *data, size_t len) {
-    if (port >= UART_PORT_COUNT || !s_uart_initialized[port]) return SMART_QSO_ERROR;
-    if (!data) return SMART_QSO_ERROR_NULL_PTR;
+    if (port >= UART_PORT_COUNT || !s_uart_initialized[port]) {
+        return SMART_QSO_ERROR;
+    }
+    if (!data) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
 
     /* In simulation, just log to stdout for debug port */
     if (port == UART_PORT_DEBUG) {
-        fwrite(data, 1, len, stdout);
-        fflush(stdout);
+        (void)fwrite(data, 1, len, stdout);
+        (void)fflush(stdout);
     }
 
     return SMART_QSO_OK;
@@ -332,8 +390,12 @@ SmartQsoResult_t hal_uart_read(HalUartPort_t port, uint8_t *data, size_t len,
                                 uint32_t timeout_ms, size_t *bytes_read) {
     (void)timeout_ms;
 
-    if (port >= UART_PORT_COUNT || !s_uart_initialized[port]) return SMART_QSO_ERROR;
-    if (!data || !bytes_read) return SMART_QSO_ERROR_NULL_PTR;
+    if (port >= UART_PORT_COUNT || !s_uart_initialized[port]) {
+        return SMART_QSO_ERROR;
+    }
+    if (!data || !bytes_read) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
 
     /* Return injected bytes, if any; otherwise time out */
     size_t n = 0U;
@@ -355,17 +417,23 @@ SmartQsoResult_t hal_uart_read_line(HalUartPort_t port, char *buffer,
     (void)buffer_len;
     (void)timeout_ms;
 
-    if (line_len) *line_len = 0;
+    if (line_len != NULL) {
+        *line_len = 0;
+    }
     return SMART_QSO_ERROR_TIMEOUT;
 }
 
 size_t hal_uart_available(HalUartPort_t port) {
-    if (port >= UART_PORT_COUNT) return 0U;
+    if (port >= UART_PORT_COUNT) {
+        return 0U;
+    }
     return s_uart_rx_count[port];
 }
 
 SmartQsoResult_t hal_uart_flush(HalUartPort_t port) {
-    if (port >= UART_PORT_COUNT) return SMART_QSO_ERROR_INVALID;
+    if (port >= UART_PORT_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
     s_uart_rx_head[port] = 0U;
     s_uart_rx_count[port] = 0U;
     return SMART_QSO_OK;
@@ -378,7 +446,9 @@ SmartQsoResult_t hal_uart_flush(HalUartPort_t port) {
 SmartQsoResult_t hal_spi_init(HalSpiBus_t bus, const HalSpiConfig_t *config) {
     (void)config;
 
-    if (bus >= SPI_BUS_COUNT) return SMART_QSO_ERROR_INVALID;
+    if (bus >= SPI_BUS_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
     s_spi_initialized[bus] = true;
     return SMART_QSO_OK;
@@ -388,11 +458,13 @@ SmartQsoResult_t hal_spi_transfer(HalSpiBus_t bus, const uint8_t *tx_data,
                                    uint8_t *rx_data, size_t len) {
     (void)tx_data;  /* TX data not processed in simulation */
 
-    if (bus >= SPI_BUS_COUNT || !s_spi_initialized[bus]) return SMART_QSO_ERROR;
+    if (bus >= SPI_BUS_COUNT || !s_spi_initialized[bus]) {
+        return SMART_QSO_ERROR;
+    }
 
     /* In simulation, just return zeros for received data */
-    if (rx_data) {
-        memset(rx_data, 0, len);
+    if (rx_data != NULL) {
+        (void)memset(rx_data, 0, len);
     }
 
     return SMART_QSO_OK;
@@ -427,12 +499,16 @@ SmartQsoResult_t hal_timer_init(void) {
 }
 
 uint64_t hal_timer_get_ms(void) {
-    if (!s_timer_initialized) return 0;
+    if (!s_timer_initialized) {
+        return 0;
+    }
     return (get_time_us() - s_timer_start_us) / 1000ULL;
 }
 
 uint64_t hal_timer_get_us(void) {
-    if (!s_timer_initialized) return 0;
+    if (!s_timer_initialized) {
+        return 0;
+    }
     return get_time_us() - s_timer_start_us;
 }
 
@@ -459,7 +535,9 @@ SmartQsoResult_t hal_timer_start_periodic(uint32_t period_ms,
     (void)period_ms;
     (void)callback;
     (void)context;
-    if (timer_id) *timer_id = 0;
+    if (timer_id != NULL) {
+        *timer_id = 0;
+    }
     return SMART_QSO_OK;  /* Not implemented in simulation */
 }
 
@@ -481,9 +559,15 @@ SmartQsoResult_t hal_adc_init(HalAdcResolution_t resolution, HalAdcRef_t referen
 }
 
 SmartQsoResult_t hal_adc_read_raw(HalAdcChannel_t channel, uint16_t *value) {
-    if (!s_adc_initialized) return SMART_QSO_ERROR;
-    if (!value) return SMART_QSO_ERROR_NULL_PTR;
-    if (channel >= ADC_CHANNEL_COUNT) return SMART_QSO_ERROR_INVALID;
+    if (!s_adc_initialized) {
+        return SMART_QSO_ERROR;
+    }
+    if (!value) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
+    if (channel >= ADC_CHANNEL_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
     /* Convert simulated voltage to raw ADC value (assuming 12-bit, 3.3V ref) */
     double voltage = s_adc_values[channel];
@@ -493,9 +577,15 @@ SmartQsoResult_t hal_adc_read_raw(HalAdcChannel_t channel, uint16_t *value) {
 }
 
 SmartQsoResult_t hal_adc_read_voltage(HalAdcChannel_t channel, double *voltage) {
-    if (!s_adc_initialized) return SMART_QSO_ERROR;
-    if (!voltage) return SMART_QSO_ERROR_NULL_PTR;
-    if (channel >= ADC_CHANNEL_COUNT) return SMART_QSO_ERROR_INVALID;
+    if (!s_adc_initialized) {
+        return SMART_QSO_ERROR;
+    }
+    if (!voltage) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
+    if (channel >= ADC_CHANNEL_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
     *voltage = s_adc_values[channel];
     return SMART_QSO_OK;
@@ -503,11 +593,15 @@ SmartQsoResult_t hal_adc_read_voltage(HalAdcChannel_t channel, double *voltage) 
 
 SmartQsoResult_t hal_adc_read_multiple(const HalAdcChannel_t *channels,
                                         uint16_t *values, size_t count) {
-    if (!channels || !values) return SMART_QSO_ERROR_NULL_PTR;
+    if (!channels || !values) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
 
     for (size_t i = 0; i < count; i++) {
         SmartQsoResult_t result = hal_adc_read_raw(channels[i], &values[i]);
-        if (result != SMART_QSO_OK) return result;
+        if (result != SMART_QSO_OK) {
+            return result;
+        }
     }
 
     return SMART_QSO_OK;
@@ -526,7 +620,9 @@ SmartQsoResult_t hal_flash_init(void) {
     for (int i = 0; i < FLASH_REGION_COUNT; i++) {
         if (!s_flash_data[i]) {
             s_flash_data[i] = (uint8_t *)calloc(1, s_flash_sizes[i]);
-            if (!s_flash_data[i]) return SMART_QSO_ERROR_NO_MEM;
+            if (!s_flash_data[i]) {
+                return SMART_QSO_ERROR_NO_MEM;
+            }
         }
     }
 
@@ -536,39 +632,67 @@ SmartQsoResult_t hal_flash_init(void) {
 
 SmartQsoResult_t hal_flash_read(HalFlashRegion_t region, uint32_t offset,
                                  uint8_t *data, size_t len) {
-    if (!s_flash_initialized) return SMART_QSO_ERROR;
-    if (!data) return SMART_QSO_ERROR_NULL_PTR;
-    if (region >= FLASH_REGION_COUNT) return SMART_QSO_ERROR_INVALID;
-    if (offset + len > s_flash_sizes[region]) return SMART_QSO_ERROR_INVALID;
+    if (!s_flash_initialized) {
+        return SMART_QSO_ERROR;
+    }
+    if (!data) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
+    if (region >= FLASH_REGION_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
+    if (offset + len > s_flash_sizes[region]) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
-    memcpy(data, &s_flash_data[region][offset], len);
+    (void)memcpy(data, &s_flash_data[region][offset], len);
     return SMART_QSO_OK;
 }
 
 SmartQsoResult_t hal_flash_write(HalFlashRegion_t region, uint32_t offset,
                                   const uint8_t *data, size_t len) {
-    if (!s_flash_initialized) return SMART_QSO_ERROR;
-    if (s_flash_fail_writes) return SMART_QSO_ERROR_IO;
-    if (s_flash_writes_before_fail == 0) return SMART_QSO_ERROR_IO;
-    if (s_flash_writes_before_fail > 0) s_flash_writes_before_fail--;
-    if (!data) return SMART_QSO_ERROR_NULL_PTR;
-    if (region >= FLASH_REGION_COUNT) return SMART_QSO_ERROR_INVALID;
-    if (offset + len > s_flash_sizes[region]) return SMART_QSO_ERROR_INVALID;
+    if (!s_flash_initialized) {
+        return SMART_QSO_ERROR;
+    }
+    if (s_flash_fail_writes) {
+        return SMART_QSO_ERROR_IO;
+    }
+    if (s_flash_writes_before_fail == 0) {
+        return SMART_QSO_ERROR_IO;
+    }
+    if (s_flash_writes_before_fail > 0) {
+        s_flash_writes_before_fail--;
+    }
+    if (!data) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
+    if (region >= FLASH_REGION_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
+    if (offset + len > s_flash_sizes[region]) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
-    memcpy(&s_flash_data[region][offset], data, len);
+    (void)memcpy(&s_flash_data[region][offset], data, len);
     return SMART_QSO_OK;
 }
 
 SmartQsoResult_t hal_flash_erase(HalFlashRegion_t region) {
-    if (!s_flash_initialized) return SMART_QSO_ERROR;
-    if (region >= FLASH_REGION_COUNT) return SMART_QSO_ERROR_INVALID;
+    if (!s_flash_initialized) {
+        return SMART_QSO_ERROR;
+    }
+    if (region >= FLASH_REGION_COUNT) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
-    memset(s_flash_data[region], 0xFF, s_flash_sizes[region]);
+    (void)memset(s_flash_data[region], 0xFF, s_flash_sizes[region]);
     return SMART_QSO_OK;
 }
 
 size_t hal_flash_region_size(HalFlashRegion_t region) {
-    if (region >= FLASH_REGION_COUNT) return 0;
+    if (region >= FLASH_REGION_COUNT) {
+        return 0;
+    }
     return s_flash_sizes[region];
 }
 
@@ -592,11 +716,17 @@ SmartQsoResult_t hal_radio_init(void) {
 }
 
 SmartQsoResult_t hal_radio_receive(uint8_t *frame, size_t max_len, size_t *len) {
-    if ((frame == NULL) || (len == NULL)) return SMART_QSO_ERROR_NULL_PTR;
-    if (s_radio_count == 0U) return SMART_QSO_ERROR_TIMEOUT;
-    if (s_radio_lens[s_radio_head] > max_len) return SMART_QSO_ERROR_INVALID;
+    if ((frame == NULL) || (len == NULL)) {
+        return SMART_QSO_ERROR_NULL_PTR;
+    }
+    if (s_radio_count == 0U) {
+        return SMART_QSO_ERROR_TIMEOUT;
+    }
+    if (s_radio_lens[s_radio_head] > max_len) {
+        return SMART_QSO_ERROR_INVALID;
+    }
 
-    memcpy(frame, s_radio_frames[s_radio_head], s_radio_lens[s_radio_head]);
+    (void)memcpy(frame, s_radio_frames[s_radio_head], s_radio_lens[s_radio_head]);
     *len = s_radio_lens[s_radio_head];
     s_radio_head = (s_radio_head + 1U) % SIM_RADIO_QUEUE;
     s_radio_count--;
@@ -604,11 +734,15 @@ SmartQsoResult_t hal_radio_receive(uint8_t *frame, size_t max_len, size_t *len) 
 }
 
 SmartQsoResult_t hal_sim_radio_inject(const uint8_t *frame, size_t len) {
-    if ((frame == NULL) || (len > HAL_RADIO_MAX_FRAME)) return SMART_QSO_ERROR_INVALID;
-    if (s_radio_count >= SIM_RADIO_QUEUE) return SMART_QSO_ERROR_NO_MEM;
+    if ((frame == NULL) || (len > HAL_RADIO_MAX_FRAME)) {
+        return SMART_QSO_ERROR_INVALID;
+    }
+    if (s_radio_count >= SIM_RADIO_QUEUE) {
+        return SMART_QSO_ERROR_NO_MEM;
+    }
 
     size_t tail = (s_radio_head + s_radio_count) % SIM_RADIO_QUEUE;
-    memcpy(s_radio_frames[tail], frame, len);
+    (void)memcpy(s_radio_frames[tail], frame, len);
     s_radio_lens[tail] = len;
     s_radio_count++;
     return SMART_QSO_OK;
@@ -637,8 +771,12 @@ void hal_sim_gpio_drive_input(HalGpioPin_t pin, bool state) {
 }
 
 SmartQsoResult_t hal_sim_uart_inject(HalUartPort_t port, const uint8_t *data, size_t len) {
-    if ((port >= UART_PORT_COUNT) || (data == NULL)) return SMART_QSO_ERROR_INVALID;
-    if (len > (SIM_UART_RX_SIZE - s_uart_rx_count[port])) return SMART_QSO_ERROR_NO_MEM;
+    if ((port >= UART_PORT_COUNT) || (data == NULL)) {
+        return SMART_QSO_ERROR_INVALID;
+    }
+    if (len > (SIM_UART_RX_SIZE - s_uart_rx_count[port])) {
+        return SMART_QSO_ERROR_NO_MEM;
+    }
     for (size_t i = 0U; i < len; i++) {
         size_t tail = (s_uart_rx_head[port] + s_uart_rx_count[port]) % SIM_UART_RX_SIZE;
         s_uart_rx[port][tail] = data[i];
@@ -681,7 +819,9 @@ SmartQsoResult_t hal_wdt_init(uint32_t timeout_ms, HalWdtMode_t mode) {
 }
 
 SmartQsoResult_t hal_wdt_start(void) {
-    if (!s_wdt_initialized) return SMART_QSO_ERROR;
+    if (!s_wdt_initialized) {
+        return SMART_QSO_ERROR;
+    }
 
     s_wdt_running = true;
     s_wdt_last_kick_ms = hal_timer_get_ms();
@@ -700,10 +840,14 @@ void hal_wdt_kick(void) {
 }
 
 uint32_t hal_wdt_remaining_ms(void) {
-    if (!s_wdt_running) return s_wdt_timeout_ms;
+    if (!s_wdt_running) {
+        return s_wdt_timeout_ms;
+    }
 
     uint64_t elapsed = hal_timer_get_ms() - s_wdt_last_kick_ms;
-    if (elapsed >= s_wdt_timeout_ms) return 0;
+    if (elapsed >= s_wdt_timeout_ms) {
+        return 0;
+    }
     return s_wdt_timeout_ms - (uint32_t)elapsed;
 }
 

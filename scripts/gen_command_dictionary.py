@@ -122,6 +122,7 @@ def render_c(commands: List[Dict]) -> str:
 
 #include "cmd_dictionary.h"
 #include "cmd_handler.h"
+#include <stdint.h>
 
 const CmdDictEntry_t g_cmd_dictionary[] = {{
 {rows}

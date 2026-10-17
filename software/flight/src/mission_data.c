@@ -8,11 +8,14 @@
  */
 
 #include "mission_data.h"
+#include "smart_qso.h"
 #include <inttypes.h>
 #include <stdlib.h>
 
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Module State                                                               */
@@ -55,20 +58,20 @@ SmartQsoResult_t mission_data_init(void)
         s_mission_data.total_energy_wh = 0.0;
         s_mission_data.fault_count = 0;
         s_mission_data.mission_phase = MISSION_PHASE_IDLE;
-        strncpy(s_mission_data.last_fault, "System startup",
-                sizeof(s_mission_data.last_fault) - 1);
+        (void)strncpy(s_mission_data.last_fault, "System startup",
+                      sizeof(s_mission_data.last_fault) - 1);
         s_mission_data.last_fault[sizeof(s_mission_data.last_fault) - 1] = '\0';
         mission_data_update_crc();
 
-        printf("[MISSION] Initialized new mission data\n");
+        (void)printf("[MISSION] Initialized new mission data\n");
     } else {
         /* Update for this session */
         s_mission_data.reset_count++;
         s_mission_data.last_reset_ms = smart_qso_now_ms();
         mission_data_update_crc();
 
-        printf("[MISSION] Loaded mission data (reset #%" PRIu32 ")\n",
-               s_mission_data.reset_count);
+        (void)printf("[MISSION] Loaded mission data (reset #%" PRIu32 ")\n",
+                     s_mission_data.reset_count);
     }
 
     s_initialized = true;
@@ -135,8 +138,8 @@ SmartQsoResult_t mission_data_record_fault(const char *description)
     SMART_QSO_REQUIRE_NOT_NULL(description);
 
     s_mission_data.fault_count++;
-    strncpy(s_mission_data.last_fault, description,
-            sizeof(s_mission_data.last_fault) - 1);
+    (void)strncpy(s_mission_data.last_fault, description,
+                  sizeof(s_mission_data.last_fault) - 1);
     s_mission_data.last_fault[sizeof(s_mission_data.last_fault) - 1] = '\0';
     mission_data_update_crc();
 
@@ -194,7 +197,7 @@ SmartQsoResult_t mission_data_load(void)
     uint32_t calculated_crc = smart_qso_crc32(&loaded_data, crc_offset);
 
     if (calculated_crc != loaded_data.crc32) {
-        printf("[MISSION] CRC mismatch in mission data, using defaults\n");
+        (void)printf("[MISSION] CRC mismatch in mission data, using defaults\n");
         return SMART_QSO_ERROR;
     }
 

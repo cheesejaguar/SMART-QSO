@@ -11,8 +11,10 @@
  */
 
 #include "safe_string.h"
+#include "smart_qso.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 /*******************************************************************************
  * Public Functions - Safe String Copy
@@ -304,8 +306,9 @@ SmartQsoResult_t safe_memmove(void *dest,
         for (size_t i = count; i > 0U; i--) {
             d[i - 1U] = s[i - 1U];
         }
+    } else {
+        /* d == s: no copy needed */
     }
-    /* If d == s, no copy needed */
 
     return RESULT_OK;
 }

@@ -46,6 +46,7 @@
 #include <string.h>
 #include <signal.h>
 #include <time.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Configuration Constants                                                    */
@@ -158,13 +159,13 @@ static void init_rf_and_telecommand(void)
     (void)rf_control_init();
 
     if (cmd_handler_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Command handler init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Command handler init failed\n");
     }
     if (uplink_init(SQSO_CALLSIGN, SQSO_SSID) != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Telecommand receiver init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Telecommand receiver init failed\n");
     }
     if (gse_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] GSE provisioning port init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] GSE provisioning port init failed\n");
     }
 }
 
@@ -174,13 +175,13 @@ static void init_rf_and_telecommand(void)
 static SmartQsoResult_t init_power_and_sensors(void)
 {
     if (mission_data_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Mission data init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Mission data init failed\n");
     }
     if (eps_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] EPS init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] EPS init failed\n");
     }
     if (sensors_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Sensor init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Sensor init failed\n");
         return SMART_QSO_ERROR;
     }
 
@@ -195,9 +196,9 @@ static SmartQsoResult_t init_power_and_sensors(void)
         yaml_path = "software/flight/sensors.yaml";
     }
     if (sensors_load_yaml(yaml_path) != SMART_QSO_OK) {
-        fprintf(stderr, "[WARN] Using default sensors (could not load %s)\n", yaml_path);
+        (void)fprintf(stderr, "[WARN] Using default sensors (could not load %s)\n", yaml_path);
         if (sensors_load_defaults() != SMART_QSO_OK) {
-            fprintf(stderr, "[SYSTEM] Failed to load default sensors\n");
+            (void)fprintf(stderr, "[SYSTEM] Failed to load default sensors\n");
             return SMART_QSO_ERROR;
         }
     }
@@ -217,7 +218,7 @@ static SmartQsoResult_t init_mode_manager(void)
     payload_guard_init();
     eps_update_soc(s_soc);
     if (sys_state_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] System state init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] System state init failed\n");
         return SMART_QSO_ERROR;
     }
     (void)sm_process_event(sys_get_sm_context(), EVENT_BOOT_COMPLETE, NULL);
@@ -229,10 +230,10 @@ static SmartQsoResult_t init_system(void)
 {
 #ifndef HAL_TARGET_STM32L4
     if (signal(SIGINT, signal_handler) == SIG_ERR) {
-        fprintf(stderr, "[SYSTEM] Failed to set SIGINT handler\n");
+        (void)fprintf(stderr, "[SYSTEM] Failed to set SIGINT handler\n");
     }
     if (signal(SIGTERM, signal_handler) == SIG_ERR) {
-        fprintf(stderr, "[SYSTEM] Failed to set SIGTERM handler\n");
+        (void)fprintf(stderr, "[SYSTEM] Failed to set SIGTERM handler\n");
     }
 #endif
 #ifdef SIMULATION_BUILD
@@ -250,11 +251,11 @@ static SmartQsoResult_t init_system(void)
     /* HAL before any module touches GPIO or non-volatile memory; burn-wire
      * lines low as early as possible; fault logging before the rest */
     if ((hal_gpio_init() != SMART_QSO_OK) || (hal_flash_init() != SMART_QSO_OK)) {
-        fprintf(stderr, "[SYSTEM] GPIO/flash init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] GPIO/flash init failed\n");
     }
     (void)deployment_init();
     if (fault_mgmt_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Fault management init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Fault management init failed\n");
     }
 
     init_rf_and_telecommand();
@@ -262,14 +263,14 @@ static SmartQsoResult_t init_system(void)
         return SMART_QSO_ERROR;
     }
     if (init_watchdog() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Watchdog init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Watchdog init failed\n");
         return SMART_QSO_ERROR;
     }
 
     if (uart_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[WARN] UART initialization failed, telemetry disabled\n");
-        fault_log_add(FAULT_TYPE_INIT, FAULT_SEVERITY_WARNING,
-                      "UART initialization failed", s_soc);
+        (void)fprintf(stderr, "[WARN] UART initialization failed, telemetry disabled\n");
+        (void)fault_log_add(FAULT_TYPE_INIT, FAULT_SEVERITY_WARNING,
+                            "UART initialization failed", s_soc);
     }
 
     s_last_telemetry_ms = s_program_start_ms;
@@ -297,9 +298,9 @@ static void update_mission_state(uint64_t tick)
 
     /* Simple SOC integration */
     double discharge = eps_is_payload_enabled() ? 0.0040 : 0.0010;
-    double charge = 0.0020;
 
     if (s_sunlit) {
+        double charge = 0.0020;
         s_soc += charge;
     } else {
         s_soc -= discharge;
@@ -358,8 +359,8 @@ static void monitor_system_health(void)
     for (size_t i = 0; i < sensors_get_count(); i++) {
         if (sensors_get(i, &sensor) == SMART_QSO_OK) {
             if (strcmp(sensor.type, "eps_temperature") == 0 && sensor.last_value > 40.0) {
-                fault_log_add(FAULT_TYPE_HEALTH_THERMAL, FAULT_SEVERITY_WARNING,
-                              "High temperature in health check", s_soc);
+                (void)fault_log_add(FAULT_TYPE_HEALTH_THERMAL, FAULT_SEVERITY_WARNING,
+                                    "High temperature in health check", s_soc);
                 (void)sm_process_event(sys_get_sm_context(), EVENT_THERMAL_FAULT, NULL);
             }
         }
@@ -368,20 +369,20 @@ static void monitor_system_health(void)
     /* Bus regulation, on the measured value (SW-16) */
     double bus_v = 0.0;
     if (fresh_sensor("BUSV", now, HEALTH_CHECK_INTERVAL_MS, &bus_v) && !eps_bus_voltage_ok(bus_v)) {
-        fault_log_add(FAULT_TYPE_VOLTAGE_RANGE, FAULT_SEVERITY_ERROR,
-                      "Bus voltage out of range", s_soc);
+        (void)fault_log_add(FAULT_TYPE_VOLTAGE_RANGE, FAULT_SEVERITY_ERROR,
+                            "Bus voltage out of range", s_soc);
     }
 
     /* Check for power issues */
     if (s_soc < 0.30) {
-        fault_log_add(FAULT_TYPE_HEALTH_POWER, FAULT_SEVERITY_WARNING,
-                      "Low SOC in health check", s_soc);  /* mode change: update_mission_state */
+        (void)fault_log_add(FAULT_TYPE_HEALTH_POWER, FAULT_SEVERITY_WARNING,
+                            "Low SOC in health check", s_soc);  /* mode change: update_mission_state */
     }
 
     /* Check for communication issues */
     if (eps_is_payload_enabled() && !uart_is_initialized()) {
-        fault_log_add(FAULT_TYPE_HEALTH_COMM, FAULT_SEVERITY_WARNING,
-                      "UART communication lost with payload", s_soc);
+        (void)fault_log_add(FAULT_TYPE_HEALTH_COMM, FAULT_SEVERITY_WARNING,
+                            "UART communication lost with payload", s_soc);
         (void)uart_init();
     }
 
@@ -418,11 +419,11 @@ static void sanitize_field(char *text)
 static void send_line(const char *line, size_t len, const char *what)
 {
     if (len == 0U) {
-        fprintf(stderr, "[UART] %s line not built\n", what);
+        (void)fprintf(stderr, "[UART] %s line not built\n", what);
     } else if (uart_send(line, len) != SMART_QSO_OK) {
-        fprintf(stderr, "[UART] Failed to send %s to Jetson\n", what);
+        (void)fprintf(stderr, "[UART] Failed to send %s to Jetson\n", what);
     } else {
-        printf("[UART] Sent %s to Jetson (%zu bytes)\n", what, len);
+        (void)printf("[UART] Sent %s to Jetson (%zu bytes)\n", what, len);
     }
 }
 
@@ -522,16 +523,16 @@ static void poll_jetson(void)
             continue;
         }
         if (status != JETSON_OK) {
-            fprintf(stderr, "[UART] Rejected Jetson line (%d)\n", (int)status);
+            (void)fprintf(stderr, "[UART] Rejected Jetson line (%d)\n", (int)status);
         } else if ((msg.type == JETSON_MSG_BEACON_RSP) && (msg.seq == s_beacon_seq)) {
             (void)snprintf(s_ai_text, sizeof(s_ai_text), "%s", msg.text);
-            printf("[UART] Beacon text from Jetson (%zu chars)\n", msg.text_len);
+            (void)printf("[UART] Beacon text from Jetson (%zu chars)\n", msg.text_len);
         } else if (msg.type == JETSON_MSG_STATUS) {
             s_jetson_temp_c = msg.temp_c;
             s_jetson_status_ms = smart_qso_now_ms();
             s_jetson_status_seen = true;
-            printf("[UART] Jetson status: health=%u temp=%dC power=%umW\n",
-                   (unsigned)msg.health, (int)msg.temp_c, (unsigned)msg.power_mw);
+            (void)printf("[UART] Jetson status: health=%u temp=%dC power=%umW\n",
+                         (unsigned)msg.health, (int)msg.temp_c, (unsigned)msg.power_mw);
         } else {
             /* Stale beacon answers, ACK and NACK need no action */
         }
@@ -582,7 +583,7 @@ static void guard_payload(uint64_t now)
                            FAULT_TYPE_CURRENT_HIGH :
                            (((result == PG_TRIP_SPREADER_TEMP) || (result == PG_TRIP_JUNCTION_TEMP)) ?
                             FAULT_TYPE_TEMP_HIGH : FAULT_TYPE_POWER);
-        fault_log_add(type, FAULT_SEVERITY_ERROR, payload_guard_reason(result), s_soc);
+        (void)fault_log_add(type, FAULT_SEVERITY_ERROR, payload_guard_reason(result), s_soc);
         (void)eps_control_payload(false, s_soc);
     }
 }
@@ -716,10 +717,10 @@ static SmartQsoResult_t run_main_loop(void)
     MissionData_t mission;
     (void)mission_data_get(&mission);
 
-    printf("[SYSTEM] SMART-QSO Flight Software Started\n");
-    printf("[SYSTEM] Version: %s\n", SMART_QSO_VERSION_STRING);
-    printf("[SYSTEM] Mission Phase: %d, Power Mode: %d, SOC: %.1f%%\n",
-           mission.mission_phase, (int)eps_get_power_mode(), s_soc * 100.0);
+    (void)printf("[SYSTEM] SMART-QSO Flight Software Started\n");
+    (void)printf("[SYSTEM] Version: %s\n", SMART_QSO_VERSION_STRING);
+    (void)printf("[SYSTEM] Mission Phase: %d, Power Mode: %d, SOC: %.1f%%\n",
+                 mission.mission_phase, (int)eps_get_power_mode(), s_soc * 100.0);
 
     uint32_t telemetry_interval = uart_get_telemetry_interval();
 #ifdef SIMULATION_BUILD
@@ -744,7 +745,7 @@ static SmartQsoResult_t run_main_loop(void)
  */
 static void shutdown_system(void)
 {
-    printf("[SYSTEM] Shutting down gracefully...\n");
+    (void)printf("[SYSTEM] Shutting down gracefully...\n");
 
     /* Save final state */
     (void)mission_data_save();
@@ -756,8 +757,8 @@ static void shutdown_system(void)
 
     MissionData_t mission;
     (void)mission_data_get(&mission);
-    printf("[SYSTEM] Shutdown complete. Total uptime: %llu ms, Faults: %" PRIu32 "\n",
-           (unsigned long long)mission.total_uptime_ms, mission.fault_count);
+    (void)printf("[SYSTEM] Shutdown complete. Total uptime: %llu ms, Faults: %" PRIu32 "\n",
+                 (unsigned long long)mission.total_uptime_ms, mission.fault_count);
 }
 
 /*===========================================================================*/
@@ -775,13 +776,14 @@ int main(void)
 
     result = init_system();
     if (result != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Initialization failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Initialization failed\n");
         return 1;
     }
 
     result = run_main_loop();
+    /* cppcheck-suppress knownConditionTrueFalse ; run_main_loop() returns only OK today; kept for when it can fail */
     if (result != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Main loop error\n");
+        (void)fprintf(stderr, "[SYSTEM] Main loop error\n");
     }
 
     shutdown_system();

@@ -229,7 +229,7 @@ All project documentation and processes shall comply with:
 
 ### 2.2 MISRA C:2012 Compliance
 - [x] **Create MISRA deviation log**: Create `software/flight/docs/MISRA_DEVIATIONS.md`
-- [ ] **Fix MISRA violations**: (audit 2026-10-16, SW-19: the CI MISRA baseline is 1,458 findings (software/flight/quality/misra.baseline, cppcheck 2.13 addon); counts below are from cppcheck 2.22 run locally on 2026-10-16)
+- [ ] **Fix MISRA violations**: (audit 2026-10-16, SW-19: the CI MISRA baseline is 1,190 findings (1,458 before the 2026-10-16 cleanup) (software/flight/quality/misra.baseline, cppcheck 2.13 addon); counts below are from cppcheck 2.22 run locally on 2026-10-16)
   - [x] Rule 8.4: Add declarations before definitions
   - [ ] Rule 10.1-10.8: Fix implicit type conversions (e.g., line 137: `rand()` returns `int`, cast needed) (audit 2026-10-16, SW-19: 187 findings remain (10.4: 149, 10.8: 34, 10.1: 3, 10.6: 1))
   - [ ] Rule 11.5: Remove casts that remove `const`/`volatile` (audit 2026-10-16, SW-19: 11 findings remain)

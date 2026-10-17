@@ -9,8 +9,10 @@
 #include "telemetry.h"
 #include "system_state.h"
 #include "safe_string.h"
+#include "smart_qso.h"
 #include <math.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Data
@@ -77,6 +79,8 @@ SmartQsoResult_t tlm_set_rate(uint32_t rate_ms)
         rate_ms = TLM_MIN_RATE_MS;
     } else if (rate_ms > TLM_MAX_RATE_MS) {
         rate_ms = TLM_MAX_RATE_MS;
+    } else {
+        /* in range */
     }
 
     s_rate_ms = rate_ms;
@@ -192,15 +196,15 @@ SmartQsoResult_t tlm_generate_adcs(TlmFrame_t *frame, size_t *frame_len)
 
     TlmAdcs_t *tlm_adcs = (TlmAdcs_t *)frame->payload;
 
-    tlm_adcs->mag_x_ut_x10 = (int16_t)(adcs.mag_x_ut * 10.0f);
-    tlm_adcs->mag_y_ut_x10 = (int16_t)(adcs.mag_y_ut * 10.0f);
-    tlm_adcs->mag_z_ut_x10 = (int16_t)(adcs.mag_z_ut * 10.0f);
-    tlm_adcs->gyro_x_dps_x10 = (int16_t)(adcs.gyro_x_dps * 10.0f);
-    tlm_adcs->gyro_y_dps_x10 = (int16_t)(adcs.gyro_y_dps * 10.0f);
-    tlm_adcs->gyro_z_dps_x10 = (int16_t)(adcs.gyro_z_dps * 10.0f);
-    tlm_adcs->sun_x_x100 = (int16_t)(adcs.sun_vector_x * 100.0f);
-    tlm_adcs->sun_y_x100 = (int16_t)(adcs.sun_vector_y * 100.0f);
-    tlm_adcs->sun_z_x100 = (int16_t)(adcs.sun_vector_z * 100.0f);
+    tlm_adcs->mag_x_ut_x10 = (int16_t)(adcs.mag_x_ut * 10.0F);
+    tlm_adcs->mag_y_ut_x10 = (int16_t)(adcs.mag_y_ut * 10.0F);
+    tlm_adcs->mag_z_ut_x10 = (int16_t)(adcs.mag_z_ut * 10.0F);
+    tlm_adcs->gyro_x_dps_x10 = (int16_t)(adcs.gyro_x_dps * 10.0F);
+    tlm_adcs->gyro_y_dps_x10 = (int16_t)(adcs.gyro_y_dps * 10.0F);
+    tlm_adcs->gyro_z_dps_x10 = (int16_t)(adcs.gyro_z_dps * 10.0F);
+    tlm_adcs->sun_x_x100 = (int16_t)(adcs.sun_vector_x * 100.0F);
+    tlm_adcs->sun_y_x100 = (int16_t)(adcs.sun_vector_y * 100.0F);
+    tlm_adcs->sun_z_x100 = (int16_t)(adcs.sun_vector_z * 100.0F);
     tlm_adcs->mode = 0;
     tlm_adcs->status = (adcs.detumbled ? 0x01U : 0x00U) |
                        (adcs.sun_acquired ? 0x02U : 0x00U);

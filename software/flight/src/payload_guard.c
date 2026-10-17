@@ -8,6 +8,7 @@
 #include "payload_guard.h"
 
 #include <stddef.h>
+#include <stdint.h>
 
 static bool     s_was_on = false;
 static uint64_t s_power_ms = 0U;      /**< Last valid power reading (or rail-on time) */

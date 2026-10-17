@@ -46,19 +46,6 @@
 #define CONFIG_MAX_ARRAY_SIZE   32U
 
 /*******************************************************************************
- * Private Types
- ******************************************************************************/
-
-/**
- * @brief Validation result with details
- */
-typedef struct {
-    bool is_valid;
-    uint32_t error_code;
-    uint32_t error_offset;
-} ValidationResult_t;
-
-/*******************************************************************************
  * Private Function Declarations
  ******************************************************************************/
 
@@ -318,7 +305,7 @@ SmartQsoResult_t input_validate_alignment(const void *ptr,
 static bool validate_range_float(float value, float min, float max)
 {
     /* Check for NaN using standard library function */
-    if (isnan(value)) {
+    if (isnan(value) != 0) {
         return false;
     }
 

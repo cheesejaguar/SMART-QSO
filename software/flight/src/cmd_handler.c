@@ -17,7 +17,10 @@
 #include "fault_mgmt.h"
 #include "system_state.h"
 #include "safe_string.h"
+#include "smart_qso.h"
+#include "state_machine.h"
 #include <stddef.h>
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Constants
@@ -76,6 +79,13 @@ static CmdHandlerFunc_t find_custom_handler(uint8_t cmd_id);
 static bool cmd_args_spec(uint8_t cmd_id, size_t *min_len, size_t *max_len);
 static CmdResult_t set_mode(const Command_t *cmd);
 static void reject(CmdResponse_t *response, CmdResult_t result, const char *reason);
+static bool authenticate(const CommandValidation_t *validation, const uint8_t *raw_data,
+                         CmdAuthVerified_t *verified, CmdResponse_t *response);
+static bool args_length_ok(uint8_t cmd_id, size_t args_len, CmdResponse_t *response);
+static bool commit_counter(const CmdAuthVerified_t *verified, uint8_t cmd_id,
+                           CmdResponse_t *response);
+static void build_command(Command_t *cmd, uint8_t cmd_id, const CmdAuthVerified_t *verified);
+static CmdResult_t route_command(const Command_t *cmd, CmdResponse_t *response);
 
 /*******************************************************************************
  * Public Functions
@@ -130,65 +140,26 @@ SmartQsoResult_t cmd_process(const uint8_t *raw_data,
 
     /* Authentication: tag over cmd_id, args and counter; fresh counter */
     CmdAuthVerified_t verified;
-    CmdAuthStatus_t auth = cmd_auth_verify(validation.cmd_id,
-                                           &raw_data[FRAME_PAYLOAD_OFFSET],
-                                           validation.payload_length, &verified);
-    if (auth == CMD_AUTH_ERR_FORMAT) {
-        reject(response, CMD_RESULT_INVALID_PARAM, "Telecommand payload malformed");
-        return SMART_QSO_OK;
-    }
-    if (auth != CMD_AUTH_OK) {
-        s_stats.auth_failures++;
-        reject(response, CMD_RESULT_AUTH_FAIL, "Telecommand authentication failed");
+    if (!authenticate(&validation, raw_data, &verified, response)) {
         return SMART_QSO_OK;
     }
 
     response->sequence_num = (uint8_t)verified.counter;
 
     /* Argument length must match the command dictionary */
-    size_t min_len = 0U;
-    size_t max_len = 0U;
-    if (!cmd_args_spec(validation.cmd_id, &min_len, &max_len)) {
-        reject(response, CMD_RESULT_INVALID_CMD, "Unknown command ID");
-        return SMART_QSO_OK;
-    }
-    if ((verified.args_len < min_len) || (verified.args_len > max_len)) {
-        reject(response, CMD_RESULT_INVALID_PARAM, "Command argument length");
+    if (!args_length_ok(validation.cmd_id, verified.args_len, response)) {
         return SMART_QSO_OK;
     }
 
-    /* Persist the counter before executing so a replay fails even after a
-     * reset. TX-OFF still executes if persistence fails: reducing emissions
-     * is always safe, and a replayed TX-OFF can only silence the station. */
-    SmartQsoResult_t committed = cmd_auth_commit(&verified);
-
-    /* An authenticated frame whose counter was just spent is contact with
-     * the ground, whatever the command's outcome. Earlier rejections do not
-     * count: their counter is unspent, so a replay could otherwise hold off
-     * the loss-of-contact inhibit indefinitely. The keyless TX_DISABLE never
-     * counts. */
-    if (verified.key != CMD_AUTH_KEY_NONE) {
-        contact_monitor_contact();
-    }
-
-    if ((committed != SMART_QSO_OK) &&
-        (validation.cmd_id != (uint8_t)CMD_COMM_TX_DISABLE)) {
-        reject(response, CMD_RESULT_EXEC_FAIL, "Command counter not persisted");
+    /* Spend the counter (persisted before executing) */
+    if (!commit_counter(&verified, validation.cmd_id, response)) {
         return SMART_QSO_OK;
     }
 
     s_reject_logged = false;
 
     Command_t cmd;
-    (void)safe_memset(&cmd, sizeof(cmd), 0, sizeof(cmd));
-    cmd.cmd_id = validation.cmd_id;
-    cmd.sequence_num = (uint8_t)verified.counter;
-    cmd.payload_len = (uint8_t)verified.args_len;
-    cmd.timestamp_ms = (uint32_t)smart_qso_now_ms();
-    cmd.requires_ack = true;
-    if (verified.args_len > 0U) {
-        (void)safe_memcpy(cmd.payload, sizeof(cmd.payload), verified.args, verified.args_len);
-    }
+    build_command(&cmd, validation.cmd_id, &verified);
 
     return cmd_execute(&cmd, response);
 }
@@ -214,40 +185,8 @@ SmartQsoResult_t cmd_execute(const Command_t *cmd, CmdResponse_t *response)
         return SMART_QSO_OK;
     }
 
-    /* Check for custom handler first */
-    CmdHandlerFunc_t custom = find_custom_handler(cmd->cmd_id);
-    if (custom != NULL) {
-        response->result = custom(cmd, response);
-    } else {
-        /* Route to category handler */
-        uint8_t category = cmd->cmd_id & 0xF0U;
-
-        switch (category) {
-            case CMD_CAT_SYSTEM:
-                response->result = handle_system_cmd(cmd, response);
-                break;
-
-            case CMD_CAT_EPS:
-                response->result = handle_eps_cmd(cmd, response);
-                break;
-
-            case CMD_CAT_ADCS:
-                response->result = handle_adcs_cmd(cmd, response);
-                break;
-
-            case CMD_CAT_COMM:
-                response->result = handle_comm_cmd(cmd, response);
-                break;
-
-            case CMD_CAT_PAYLOAD:
-                response->result = handle_payload_cmd(cmd, response);
-                break;
-
-            default:
-                response->result = CMD_RESULT_INVALID_CMD;
-                break;
-        }
-    }
+    /* Custom handler first, else the category handler */
+    response->result = route_command(cmd, response);
 
     /* Update statistics */
     s_stats.last_cmd_time_ms = cmd->timestamp_ms;
@@ -299,9 +238,9 @@ bool cmd_is_allowed(uint8_t cmd_id)
         }
     }
 
-    /* In EMERGENCY mode, very limited commands */
+    /* In EMERGENCY mode, very limited commands (status queries are allowed above) */
     if (state == STATE_EMERGENCY) {
-        return (cmd_id == CMD_SYS_GET_STATUS) || (cmd_id == CMD_SYS_RESET);
+        return cmd_id == CMD_SYS_RESET;
     }
 
     /* Most commands allowed in IDLE and ACTIVE */
@@ -576,6 +515,129 @@ static void reject(CmdResponse_t *response, CmdResult_t result, const char *reas
         s_reject_logged = true;
         (void)fault_log_add(FAULT_TYPE_COMMAND, FAULT_SEVERITY_WARNING, reason, 0.0);
     }
+}
+
+/**
+ * Verify the telecommand's authentication tag and counter. On failure the
+ * frame is rejected (and counted) and false is returned.
+ */
+static bool authenticate(const CommandValidation_t *validation, const uint8_t *raw_data,
+                         CmdAuthVerified_t *verified, CmdResponse_t *response)
+{
+    bool ok = false;
+    CmdAuthStatus_t auth = cmd_auth_verify(validation->cmd_id,
+                                           &raw_data[FRAME_PAYLOAD_OFFSET],
+                                           validation->payload_length, verified);
+    if (auth == CMD_AUTH_ERR_FORMAT) {
+        reject(response, CMD_RESULT_INVALID_PARAM, "Telecommand payload malformed");
+    } else if (auth != CMD_AUTH_OK) {
+        s_stats.auth_failures++;
+        reject(response, CMD_RESULT_AUTH_FAIL, "Telecommand authentication failed");
+    } else {
+        ok = true;
+    }
+    return ok;
+}
+
+/** Check the argument length against the command dictionary; reject if wrong */
+static bool args_length_ok(uint8_t cmd_id, size_t args_len, CmdResponse_t *response)
+{
+    bool ok = false;
+    size_t min_len = 0U;
+    size_t max_len = 0U;
+    if (!cmd_args_spec(cmd_id, &min_len, &max_len)) {
+        reject(response, CMD_RESULT_INVALID_CMD, "Unknown command ID");
+    } else if ((args_len < min_len) || (args_len > max_len)) {
+        reject(response, CMD_RESULT_INVALID_PARAM, "Command argument length");
+    } else {
+        ok = true;
+    }
+    return ok;
+}
+
+/**
+ * Spend the verified counter and record contact with the ground. Returns
+ * false (frame rejected) if the counter was not persisted, except for TX-OFF.
+ */
+static bool commit_counter(const CmdAuthVerified_t *verified, uint8_t cmd_id,
+                           CmdResponse_t *response)
+{
+    bool ok = true;
+
+    /* Persist the counter before executing so a replay fails even after a
+     * reset. TX-OFF still executes if persistence fails: reducing emissions
+     * is always safe, and a replayed TX-OFF can only silence the station. */
+    SmartQsoResult_t committed = cmd_auth_commit(verified);
+
+    /* An authenticated frame whose counter was just spent is contact with
+     * the ground, whatever the command's outcome. Earlier rejections do not
+     * count: their counter is unspent, so a replay could otherwise hold off
+     * the loss-of-contact inhibit indefinitely. The keyless TX_DISABLE never
+     * counts. */
+    if (verified->key != CMD_AUTH_KEY_NONE) {
+        contact_monitor_contact();
+    }
+
+    if ((committed != SMART_QSO_OK) &&
+        (cmd_id != (uint8_t)CMD_COMM_TX_DISABLE)) {
+        reject(response, CMD_RESULT_EXEC_FAIL, "Command counter not persisted");
+        ok = false;
+    }
+    return ok;
+}
+
+/** Fill a command from an authenticated frame */
+static void build_command(Command_t *cmd, uint8_t cmd_id, const CmdAuthVerified_t *verified)
+{
+    (void)safe_memset(cmd, sizeof(*cmd), 0, sizeof(*cmd));
+    cmd->cmd_id = cmd_id;
+    cmd->sequence_num = (uint8_t)verified->counter;
+    cmd->payload_len = (uint8_t)verified->args_len;
+    cmd->timestamp_ms = (uint32_t)smart_qso_now_ms();
+    cmd->requires_ack = true;
+    if (verified->args_len > 0U) {
+        (void)safe_memcpy(cmd->payload, sizeof(cmd->payload), verified->args, verified->args_len);
+    }
+}
+
+/** Run a custom handler if one is registered, else the category handler */
+static CmdResult_t route_command(const Command_t *cmd, CmdResponse_t *response)
+{
+    CmdResult_t result;
+    CmdHandlerFunc_t custom = find_custom_handler(cmd->cmd_id);
+    if (custom != NULL) {
+        result = custom(cmd, response);
+    } else {
+        /* Route to category handler */
+        uint8_t category = cmd->cmd_id & 0xF0U;
+
+        switch (category) {
+            case CMD_CAT_SYSTEM:
+                result = handle_system_cmd(cmd, response);
+                break;
+
+            case CMD_CAT_EPS:
+                result = handle_eps_cmd(cmd, response);
+                break;
+
+            case CMD_CAT_ADCS:
+                result = handle_adcs_cmd(cmd, response);
+                break;
+
+            case CMD_CAT_COMM:
+                result = handle_comm_cmd(cmd, response);
+                break;
+
+            case CMD_CAT_PAYLOAD:
+                result = handle_payload_cmd(cmd, response);
+                break;
+
+            default:
+                result = CMD_RESULT_INVALID_CMD;
+                break;
+        }
+    }
+    return result;
 }
 
 /**

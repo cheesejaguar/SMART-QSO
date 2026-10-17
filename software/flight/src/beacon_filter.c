@@ -41,10 +41,10 @@ const size_t beacon_filter_commercial_count =
     sizeof(beacon_filter_commercial) / sizeof(beacon_filter_commercial[0]);
 
 /** URL fragments (97.113(a)(3) advertising; checked anywhere in the text) */
-static const char *const k_url_marks[] = {"http", "www.", ".com", ".net", ".org"};
+static const char *const s_url_marks[] = {"http", "www.", ".com", ".net", ".org"};
 
 /** Punctuation allowed besides letters and digits */
-static const char k_punct[] = " .,!?'\":;()/-&";
+static const char s_punct[] = " .,!?'\":;()/-&";
 
 /*===========================================================================*/
 /* Character helpers (ASCII only, locale-independent)                        */
@@ -75,7 +75,7 @@ static bool is_hex(char c)
 
 static bool is_allowed(char c)
 {
-    return is_alnum(c) || ((c != '\0') && (strchr(k_punct, (int)c) != NULL));
+    return is_alnum(c) || ((c != '\0') && (strchr(s_punct, (int)c) != NULL));
 }
 
 /** Case-insensitive comparison of w[0..n) with a lower-case literal */
@@ -121,12 +121,12 @@ static bool text_has(const char *text, size_t len, const char *lit)
 /** This station's call sign without SSID, in lower case */
 static bool is_own_call(const char *w, size_t n)
 {
-    static const char call[] = SQSO_CALLSIGN;
-    if (n != (sizeof(call) - 1U)) {
+    static const char s_call[] = SQSO_CALLSIGN;
+    if (n != (sizeof(s_call) - 1U)) {
         return false;
     }
     for (size_t i = 0U; i < n; i++) {
-        if (to_lower(w[i]) != to_lower(call[i])) {
+        if (to_lower(w[i]) != to_lower(s_call[i])) {
             return false;
         }
     }
@@ -265,8 +265,8 @@ BeaconFilterResult_t beacon_filter_check(const char *text, size_t len)
             return BEACON_FILTER_CHARSET;
         }
     }
-    for (size_t i = 0U; i < (sizeof(k_url_marks) / sizeof(k_url_marks[0])); i++) {
-        if (text_has(text, len, k_url_marks[i])) {
+    for (size_t i = 0U; i < (sizeof(s_url_marks) / sizeof(s_url_marks[0])); i++) {
+        if (text_has(text, len, s_url_marks[i])) {
             return BEACON_FILTER_COMMERCIAL;
         }
     }

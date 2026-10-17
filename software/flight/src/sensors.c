@@ -10,10 +10,12 @@
 #include "sensors.h"
 #include "fault_mgmt.h"
 #include "eps_control.h"
+#include "smart_qso.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Module State                                                               */
@@ -65,6 +67,7 @@ static bool read_software_timer(Sensor_t *self, double *out_value, char *out_tex
     return true;
 }
 
+/* cppcheck-suppress constParameterCallback ; SensorReadFn_t takes a non-const Sensor_t * */
 static bool read_eps_voltage(Sensor_t *self, double *out_value, char *out_text)
 {
     (void)out_text;
@@ -73,20 +76,23 @@ static bool read_eps_voltage(Sensor_t *self, double *out_value, char *out_text)
     if (strcmp(self->channel, "battery") == 0) {
         base = 8.1 + 0.15 * (s_soc - 0.5);
         if (base < 7.0) {
-            fault_log_add(FAULT_TYPE_VOLTAGE_LOW, FAULT_SEVERITY_ERROR,
-                          "Low battery voltage detected", s_soc);
+            (void)fault_log_add(FAULT_TYPE_VOLTAGE_LOW, FAULT_SEVERITY_ERROR,
+                                "Low battery voltage detected", s_soc);
         }
     } else if (strcmp(self->channel, "bus") == 0) {
         /* Range check is FDIR on the measured value (main.c), not here */
         base = 5.0;
     } else if (strcmp(self->channel, "solar") == 0) {
         base = s_sunlit ? 7.5 : 0.2;
+    } else {
+        /* other channels: base stays 0.0 */
     }
 
     *out_value = base + 0.02 * (rnd_unit() - 0.5);
     return true;
 }
 
+/* cppcheck-suppress constParameterCallback ; SensorReadFn_t takes a non-const Sensor_t * */
 static bool read_eps_current(Sensor_t *self, double *out_value, char *out_text)
 {
     (void)out_text;
@@ -96,13 +102,15 @@ static bool read_eps_current(Sensor_t *self, double *out_value, char *out_text)
     if (strcmp(self->channel, "battery_discharge") == 0) {
         val = s_sunlit ? 0.05 : (payload_enabled ? 0.8 : 0.25);
         if (val > 1.0) {
-            fault_log_add(FAULT_TYPE_CURRENT_HIGH, FAULT_SEVERITY_ERROR,
-                          "Excessive battery discharge current", s_soc);
+            (void)fault_log_add(FAULT_TYPE_CURRENT_HIGH, FAULT_SEVERITY_ERROR,
+                                "Excessive battery discharge current", s_soc);
         }
     } else if (strcmp(self->channel, "jetson") == 0) {
         val = payload_enabled ? 0.7 + 0.05 * (rnd_unit() - 0.5) : 0.0;
     } else if (strcmp(self->channel, "solar") == 0) {
         val = s_sunlit ? (0.6 + 0.1 * (rnd_unit() - 0.5)) : 0.0;
+    } else {
+        /* other channels: val stays 0.0 */
     }
 
     *out_value = val;
@@ -155,31 +163,31 @@ static bool read_status_hex2(Sensor_t *self, double *out_value, char *out_text)
      * bit6: Fault detected
      * bit7: Recovery mode
      */
-    uint8_t bits = 1u;  /* OBC always on (bit 0) */
+    uint8_t bits = 1U;  /* OBC always on (bit 0) */
     /* Accessor, not a copy of the state: a failed copy left it uninitialized */
-    bits = (uint8_t)(bits | ((eps_is_beacon_enabled() ? 1u : 0u) << 1));
-    bits = (uint8_t)(bits | ((payload_enabled ? 1u : 0u) << 2));
+    bits = (uint8_t)(bits | ((eps_is_beacon_enabled() ? 1U : 0U) << 1));
+    bits = (uint8_t)(bits | ((payload_enabled ? 1U : 0U) << 2));
 
     /* Occasional hot flag during sunlit periods */
     uint64_t now = smart_qso_now_ms();
     if (s_sunlit && (now / 1000ULL) % 300ULL > 240ULL) {
-        bits = (uint8_t)(bits | (1u << 3));
+        bits = (uint8_t)(bits | (1U << 3));
     }
 
     if (s_soc < 0.30) {
-        bits = (uint8_t)(bits | (1u << 4));  /* Battery low */
+        bits = (uint8_t)(bits | (1U << 4));  /* Battery low */
     }
 
     if (power_mode == POWER_MODE_SAFE) {
-        bits = (uint8_t)(bits | (1u << 5));  /* Safe mode */
+        bits = (uint8_t)(bits | (1U << 5));  /* Safe mode */
     }
 
     if (fault_log_get_count() > 0) {
-        bits = (uint8_t)(bits | (1u << 6));  /* Fault detected */
+        bits = (uint8_t)(bits | (1U << 6));  /* Fault detected */
     }
 
     if (fault_was_watchdog_triggered()) {
-        bits = (uint8_t)(bits | (1u << 7));  /* Recovery mode */
+        bits = (uint8_t)(bits | (1U << 7));  /* Recovery mode */
     }
 
     int written = snprintf(out_text, 8, "%02X", (unsigned)bits);
@@ -225,6 +233,8 @@ static bool bind_sensor_behavior(Sensor_t *s)
         s->value_type = SENSOR_VALUE_HEX2;
         s->read = read_status_hex2;
         return true;
+    } else {
+        /* unknown type */
     }
 
     return false;
@@ -250,7 +260,7 @@ static void trim(char *s)
         i++;
     }
     if (i > 0) {
-        memmove(s, s + i, strlen(s + i) + 1);
+        (void)memmove(s, s + i, strlen(s + i) + 1);
     }
 }
 
@@ -292,10 +302,10 @@ static void parse_keyval(const char *line, char *key, size_t ksz,
 
     /* Remove quotes if present */
     if ((val[0] == '"' || val[0] == '\'') && strlen(val) >= 2) {
-        size_t L = strlen(val);
-        if (val[L - 1] == '"' || val[L - 1] == '\'') {
-            val[L - 1] = '\0';
-            memmove(val, val + 1, L - 1);
+        size_t len = strlen(val);
+        if (val[len - 1] == '"' || val[len - 1] == '\'') {
+            val[len - 1] = '\0';
+            (void)memmove(val, val + 1, len - 1);
         }
     }
 }
@@ -314,13 +324,43 @@ static void add_sensor_from_fields(Sensor_t *cur)
     s_sensors[s_num_sensors++] = *cur;
 }
 
+/**
+ * @brief Store one parsed key/value pair in the sensor being built
+ */
+static void set_sensor_field(Sensor_t *cur, const char *key, const char *val)
+{
+    /* Intentional truncation - values are validated externally */
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+#endif
+    if (strcmp(key, "id") == 0) {
+        (void)snprintf(cur->id, sizeof(cur->id), "%s", val);
+    } else if (strcmp(key, "name") == 0) {
+        (void)snprintf(cur->name, sizeof(cur->name), "%s", val);
+    } else if (strcmp(key, "type") == 0) {
+        (void)snprintf(cur->type, sizeof(cur->type), "%s", val);
+    } else if (strcmp(key, "units") == 0) {
+        (void)snprintf(cur->units, sizeof(cur->units), "%s", val);
+    } else if (strcmp(key, "channel") == 0) {
+        (void)snprintf(cur->channel, sizeof(cur->channel), "%s", val);
+#if defined(__GNUC__) && !defined(__clang__)
+#pragma GCC diagnostic pop
+#endif
+    } else if (strcmp(key, "period_ms") == 0) {
+        cur->period_ms = (uint32_t)strtoul(val, NULL, 10);
+    } else {
+        /* other keys are ignored */
+    }
+}
+
 /*===========================================================================*/
 /* Public API Implementation                                                  */
 /*===========================================================================*/
 
 SmartQsoResult_t sensors_init(void)
 {
-    memset(s_sensors, 0, sizeof(s_sensors));
+    (void)memset(s_sensors, 0, sizeof(s_sensors));
     s_num_sensors = 0;
     s_sunlit = true;
     s_soc = 0.75;
@@ -341,7 +381,7 @@ SmartQsoResult_t sensors_load_yaml(const char *path)
     bool in_list = false;
     bool have_item = false;
     Sensor_t cur;
-    memset(&cur, 0, sizeof(cur));
+    (void)memset(&cur, 0, sizeof(cur));
 
     while (fgets(line, sizeof(line), f) != NULL) {
         trim(line);
@@ -359,7 +399,7 @@ SmartQsoResult_t sensors_load_yaml(const char *path)
         if (strncmp(line, "- ", 2) == 0 || strcmp(line, "-") == 0) {
             if (have_item) {
                 add_sensor_from_fields(&cur);
-                memset(&cur, 0, sizeof(cur));
+                (void)memset(&cur, 0, sizeof(cur));
             }
             have_item = true;
             continue;
@@ -371,27 +411,7 @@ SmartQsoResult_t sensors_load_yaml(const char *path)
             continue;
         }
 
-        /* Intentional truncation - values are validated externally */
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wformat-truncation"
-#endif
-        if (strcmp(key, "id") == 0) {
-            (void)snprintf(cur.id, sizeof(cur.id), "%s", val);
-        } else if (strcmp(key, "name") == 0) {
-            (void)snprintf(cur.name, sizeof(cur.name), "%s", val);
-        } else if (strcmp(key, "type") == 0) {
-            (void)snprintf(cur.type, sizeof(cur.type), "%s", val);
-        } else if (strcmp(key, "units") == 0) {
-            (void)snprintf(cur.units, sizeof(cur.units), "%s", val);
-        } else if (strcmp(key, "channel") == 0) {
-            (void)snprintf(cur.channel, sizeof(cur.channel), "%s", val);
-#if defined(__GNUC__) && !defined(__clang__)
-#pragma GCC diagnostic pop
-#endif
-        } else if (strcmp(key, "period_ms") == 0) {
-            cur.period_ms = (uint32_t)strtoul(val, NULL, 10);
-        }
+        set_sensor_field(&cur, key, val);
     }
 
     if (have_item) {
@@ -430,12 +450,12 @@ SmartQsoResult_t sensors_load_defaults(void)
     size_t num_defs = sizeof(defs) / sizeof(defs[0]);
     for (size_t i = 0; i < num_defs; ++i) {
         Sensor_t s;
-        memset(&s, 0, sizeof(s));
-        strncpy(s.id, defs[i].id, sizeof(s.id) - 1);
-        strncpy(s.name, defs[i].name, sizeof(s.name) - 1);
-        strncpy(s.type, defs[i].type, sizeof(s.type) - 1);
-        strncpy(s.units, defs[i].units, sizeof(s.units) - 1);
-        strncpy(s.channel, defs[i].channel, sizeof(s.channel) - 1);
+        (void)memset(&s, 0, sizeof(s));
+        (void)strncpy(s.id, defs[i].id, sizeof(s.id) - 1);
+        (void)strncpy(s.name, defs[i].name, sizeof(s.name) - 1);
+        (void)strncpy(s.type, defs[i].type, sizeof(s.type) - 1);
+        (void)strncpy(s.units, defs[i].units, sizeof(s.units) - 1);
+        (void)strncpy(s.channel, defs[i].channel, sizeof(s.channel) - 1);
         s.period_ms = defs[i].period;
 
         if (bind_sensor_behavior(&s)) {
@@ -488,12 +508,12 @@ size_t sensors_poll(uint64_t current_ms)
             if (s->read != NULL && s->read(s, &val, text)) {
                 if (s->value_type == SENSOR_VALUE_NUMERIC) {
                     s->last_value = val;
-                    printf("[READ] id=%s name=\"%s\" value=%.3f units=%s\n",
-                           s->id, s->name, s->last_value, s->units);
+                    (void)printf("[READ] id=%s name=\"%s\" value=%.3f units=%s\n",
+                                 s->id, s->name, s->last_value, s->units);
                 } else {
                     (void)snprintf(s->last_text, sizeof(s->last_text), "%s", text);
-                    printf("[READ] id=%s name=\"%s\" value=%s units=%s\n",
-                           s->id, s->name, s->last_text, s->units);
+                    (void)printf("[READ] id=%s name=\"%s\" value=%s units=%s\n",
+                                 s->id, s->name, s->last_text, s->units);
                 }
                 s->last_read_ms = current_ms;
                 count++;
@@ -542,7 +562,7 @@ size_t sensors_format_telemetry(char *buffer, size_t buffer_len)
     size_t offset = 0;
 
     for (size_t i = 0; i < s_num_sensors; ++i) {
-        Sensor_t *s = &s_sensors[i];
+        const Sensor_t *s = &s_sensors[i];
         int written;
 
         if (s->value_type == SENSOR_VALUE_NUMERIC) {

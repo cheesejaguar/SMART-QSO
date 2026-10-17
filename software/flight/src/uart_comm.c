@@ -13,6 +13,7 @@
 
 #include "uart_comm.h"
 #include "fault_mgmt.h"
+#include "smart_qso.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -21,6 +22,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdint.h>
 
 #ifdef SIMULATION_BUILD
 #include <termios.h>
@@ -66,6 +68,25 @@ static speed_t baudrate_to_speed(int baudrate)
         default:     return B115200;
     }
 }
+
+/**
+ * @brief 8N1 framing without flow control, raw input and output
+ */
+static void set_raw_8n1(struct termios *tty)
+{
+    /* 8N1 configuration */
+    tty->c_cflag = (tty->c_cflag & ~(tcflag_t)CSIZE) | CS8;
+    tty->c_cflag &= ~(tcflag_t)(PARENB | PARODD);
+    tty->c_cflag &= ~(tcflag_t)CSTOPB;
+    tty->c_cflag &= ~(tcflag_t)CRTSCTS;
+    tty->c_cflag |= CREAD | CLOCAL;
+
+    /* Raw input */
+    tty->c_lflag &= ~(tcflag_t)(ICANON | ECHO | ECHOE | ISIG);
+
+    /* Raw output */
+    tty->c_oflag &= ~(tcflag_t)OPOST;
+}
 #endif
 
 /**
@@ -75,7 +96,7 @@ static void parse_env_config(void)
 {
     const char *device = getenv("UART_DEVICE");
     if (device != NULL && strlen(device) < UART_DEVICE_MAX_LEN) {
-        strncpy(s_config.device, device, UART_DEVICE_MAX_LEN - 1);
+        (void)strncpy(s_config.device, device, UART_DEVICE_MAX_LEN - 1);
         s_config.device[UART_DEVICE_MAX_LEN - 1] = '\0';
     }
 
@@ -92,7 +113,7 @@ static void parse_env_config(void)
                 s_config.baudrate = baud;
                 break;
             default:
-                fprintf(stderr, "[UART] Invalid baudrate %s, using default\n", baudrate);
+                (void)fprintf(stderr, "[UART] Invalid baudrate %s, using default\n", baudrate);
                 break;
         }
     }
@@ -103,12 +124,12 @@ static void parse_env_config(void)
         if (ms > 0 && ms <= 3600000) {
             s_telemetry_interval_ms = (uint32_t)ms;
         } else {
-            fprintf(stderr, "[UART] Invalid interval %s, using default\n", interval);
+            (void)fprintf(stderr, "[UART] Invalid interval %s, using default\n", interval);
         }
     }
 
-    printf("[UART] Configuration: device=%s, baudrate=%d, interval=%" PRIu32 "ms\n",
-           s_config.device, s_config.baudrate, s_telemetry_interval_ms);
+    (void)printf("[UART] Configuration: device=%s, baudrate=%d, interval=%" PRIu32 "ms\n",
+                 s_config.device, s_config.baudrate, s_telemetry_interval_ms);
 }
 
 /*===========================================================================*/
@@ -138,14 +159,14 @@ SmartQsoResult_t uart_init_with_config(const UartConfig_t *config)
 #ifdef SIMULATION_BUILD
     s_uart_fd = open(s_config.device, O_RDWR | O_NOCTTY | O_SYNC);
     if (s_uart_fd < 0) {
-        fprintf(stderr, "[UART] Failed to open %s: %s\n",
+        (void)fprintf(stderr, "[UART] Failed to open %s: %s\n",
                 s_config.device, strerror(errno));
         return SMART_QSO_ERROR_IO;
     }
 
     struct termios tty;
     if (tcgetattr(s_uart_fd, &tty) != 0) {
-        fprintf(stderr, "[UART] Failed to get attributes: %s\n", strerror(errno));
+        (void)fprintf(stderr, "[UART] Failed to get attributes: %s\n", strerror(errno));
         close(s_uart_fd);
         s_uart_fd = -1;
         return SMART_QSO_ERROR_IO;
@@ -153,27 +174,17 @@ SmartQsoResult_t uart_init_with_config(const UartConfig_t *config)
 
     speed_t speed = baudrate_to_speed(s_config.baudrate);
     if (cfsetospeed(&tty, speed) != 0) {
-        fprintf(stderr, "[UART] Failed to set output speed\n");
+        (void)fprintf(stderr, "[UART] Failed to set output speed\n");
     }
     if (cfsetispeed(&tty, speed) != 0) {
-        fprintf(stderr, "[UART] Failed to set input speed\n");
+        (void)fprintf(stderr, "[UART] Failed to set input speed\n");
     }
 
-    /* 8N1 configuration */
-    tty.c_cflag = (tty.c_cflag & ~(tcflag_t)CSIZE) | CS8;
-    tty.c_cflag &= ~(tcflag_t)(PARENB | PARODD);
-    tty.c_cflag &= ~(tcflag_t)CSTOPB;
-    tty.c_cflag &= ~(tcflag_t)CRTSCTS;
-    tty.c_cflag |= CREAD | CLOCAL;
-
-    /* Raw input */
-    tty.c_lflag &= ~(tcflag_t)(ICANON | ECHO | ECHOE | ISIG);
-
-    /* Raw output */
-    tty.c_oflag &= ~(tcflag_t)OPOST;
+    /* 8N1, raw input and output */
+    set_raw_8n1(&tty);
 
     if (tcsetattr(s_uart_fd, TCSANOW, &tty) != 0) {
-        fprintf(stderr, "[UART] Failed to set attributes: %s\n", strerror(errno));
+        (void)fprintf(stderr, "[UART] Failed to set attributes: %s\n", strerror(errno));
         close(s_uart_fd);
         s_uart_fd = -1;
         return SMART_QSO_ERROR_IO;
@@ -184,7 +195,7 @@ SmartQsoResult_t uart_init_with_config(const UartConfig_t *config)
 #endif
 
     s_initialized = true;
-    fprintf(stderr, "[UART] Initialized %s at %d baud\n",
+    (void)fprintf(stderr, "[UART] Initialized %s at %d baud\n",
             s_config.device, s_config.baudrate);
     return SMART_QSO_OK;
 }
@@ -215,7 +226,7 @@ SmartQsoResult_t uart_send(const char *data, size_t len)
 
     ssize_t written = write(s_uart_fd, data, len);
     if (written != (ssize_t)len) {
-        fprintf(stderr, "[UART] Write failed: %s\n", strerror(errno));
+        (void)fprintf(stderr, "[UART] Write failed: %s\n", strerror(errno));
 
         /* Try to reinitialize UART on error */
         (void)uart_close();
@@ -227,7 +238,7 @@ SmartQsoResult_t uart_send(const char *data, size_t len)
         /* Retry once */
         written = write(s_uart_fd, data, len);
         if (written != (ssize_t)len) {
-            fprintf(stderr, "[UART] Retry failed: %s\n", strerror(errno));
+            (void)fprintf(stderr, "[UART] Retry failed: %s\n", strerror(errno));
             return SMART_QSO_ERROR_IO;
         }
     }
@@ -235,7 +246,7 @@ SmartQsoResult_t uart_send(const char *data, size_t len)
 #ifdef SIMULATION_BUILD
     /* Ensure data is transmitted */
     if (tcdrain(s_uart_fd) != 0) {
-        fprintf(stderr, "[UART] tcdrain failed: %s\n", strerror(errno));
+        (void)fprintf(stderr, "[UART] tcdrain failed: %s\n", strerror(errno));
     }
 #endif
 
@@ -273,9 +284,9 @@ SmartQsoResult_t uart_check_health(void)
     /* Simple health check - try to get UART attributes */
     struct termios tty;
     if (tcgetattr(s_uart_fd, &tty) != 0) {
-        fprintf(stderr, "[UART] Health check failed, attempting recovery\n");
-        fault_log_add(FAULT_TYPE_UART, FAULT_SEVERITY_WARNING,
-                      "UART health check failed", 0.0);
+        (void)fprintf(stderr, "[UART] Health check failed, attempting recovery\n");
+        (void)fault_log_add(FAULT_TYPE_UART, FAULT_SEVERITY_WARNING,
+                            "UART health check failed", 0.0);
         (void)uart_close();
         return uart_init_with_config(&s_config);
     }

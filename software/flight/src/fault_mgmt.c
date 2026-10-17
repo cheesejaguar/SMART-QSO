@@ -11,9 +11,12 @@
 #include "eps_control.h"
 #include "state_machine.h"
 #include "system_state.h"
+#include "smart_qso.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Module State                                                               */
@@ -59,14 +62,14 @@ static const char *fault_log_path(void)
 SmartQsoResult_t fault_mgmt_init(void)
 {
     /* Clear log on init - will be populated from persistent storage if available */
-    memset(s_fault_log, 0, sizeof(s_fault_log));
+    (void)memset(s_fault_log, 0, sizeof(s_fault_log));
     s_fault_log_count = 0;
     s_watchdog_triggered = false;
 
     /* Try to load from persistent storage */
     SmartQsoResult_t result = fault_log_load();
     if (result == SMART_QSO_OK) {
-        printf("[FAULT] Loaded %zu fault log entries\n", s_fault_log_count);
+        (void)printf("[FAULT] Loaded %zu fault log entries\n", s_fault_log_count);
     }
 
     s_initialized = true;
@@ -84,8 +87,8 @@ SmartQsoResult_t fault_log_add(FaultType_t fault_type, FaultSeverity_t severity,
     /* Make room if log is full */
     if (s_fault_log_count >= SMART_QSO_MAX_FAULT_ENTRIES) {
         /* Shift entries to make room (lose oldest entry) */
-        memmove(&s_fault_log[0], &s_fault_log[1],
-                sizeof(FaultLogEntry_t) * (SMART_QSO_MAX_FAULT_ENTRIES - 1));
+        (void)memmove(&s_fault_log[0], &s_fault_log[1],
+                      sizeof(FaultLogEntry_t) * (SMART_QSO_MAX_FAULT_ENTRIES - 1));
         s_fault_log_count = SMART_QSO_MAX_FAULT_ENTRIES - 1;
     }
 
@@ -98,15 +101,15 @@ SmartQsoResult_t fault_log_add(FaultType_t fault_type, FaultSeverity_t severity,
     entry->recovered = false;
 
     /* Safe string copy with guaranteed null termination */
-    strncpy(entry->description, description, SMART_QSO_FAULT_DESC_LEN - 1);
+    (void)strncpy(entry->description, description, SMART_QSO_FAULT_DESC_LEN - 1);
     entry->description[SMART_QSO_FAULT_DESC_LEN - 1] = '\0';
 
     entry->crc32 = fault_entry_crc(entry);
     s_fault_log_count++;
 
     /* Print fault message */
-    printf("[FAULT] Type=%d Severity=%d: %s\n",
-           fault_type, severity, description);
+    (void)printf("[FAULT] Type=%d Severity=%d: %s\n",
+                 fault_type, severity, description);
 
     /* Save to persistent storage */
     (void)fault_log_save();
@@ -196,7 +199,7 @@ SmartQsoResult_t fault_log_load(void)
             }
             valid_count++;
         } else {
-            printf("[FAULT] Discarded corrupt entry %zu\n", i);
+            (void)printf("[FAULT] Discarded corrupt entry %zu\n", i);
         }
     }
     s_fault_log_count = valid_count;
@@ -206,7 +209,7 @@ SmartQsoResult_t fault_log_load(void)
 
 SmartQsoResult_t fault_log_clear(void)
 {
-    memset(s_fault_log, 0, sizeof(s_fault_log));
+    (void)memset(s_fault_log, 0, sizeof(s_fault_log));
     s_fault_log_count = 0;
 
     /* Remove persistent file */
@@ -259,8 +262,8 @@ SmartQsoResult_t fault_recover_power(double soc)
 
 SmartQsoResult_t fault_handle_watchdog(double soc)
 {
-    fault_log_add(FAULT_TYPE_WATCHDOG, FAULT_SEVERITY_ERROR,
-                  "Watchdog timeout: system reset", soc);
+    (void)fault_log_add(FAULT_TYPE_WATCHDOG, FAULT_SEVERITY_ERROR,
+                        "Watchdog timeout: system reset", soc);
     s_watchdog_triggered = true;
     /* In real implementation, this would trigger a system reset */
     /* For simulation, we just log it and continue */

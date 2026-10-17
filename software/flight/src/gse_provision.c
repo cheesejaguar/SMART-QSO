@@ -16,6 +16,9 @@
 #include "safe_string.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_uart.h"
+#include "smart_qso.h"
+#include <stddef.h>
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Constants

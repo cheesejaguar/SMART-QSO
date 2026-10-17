@@ -37,6 +37,12 @@ CheckOptions:
     value: lower_case
   - key: readability-identifier-naming.GlobalVariablePrefix
     value: 'g_'
+  # clang-tidy classes a file-scope 'static' variable as a global variable
+  # (StaticVariable* applies only to function-local statics), so without this
+  # every s_ variable would be reported for lacking g_. CODING_STANDARDS.md
+  # section 4.4: static variables use s_, global (extern) variables g_.
+  - key: readability-identifier-naming.GlobalVariableIgnoredRegexp
+    value: '^s_[a-z0-9_]+$'
   - key: readability-identifier-naming.StaticVariableCase
     value: lower_case
   - key: readability-identifier-naming.StaticVariablePrefix

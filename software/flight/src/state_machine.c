@@ -13,7 +13,9 @@
 #include "fault_mgmt.h"
 #include "eps_control.h"
 #include "payload_guard.h"
+#include "smart_qso.h"
 #include <stddef.h>
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Constants
@@ -206,6 +208,58 @@ static SmartQsoResult_t execute_entry_action(SmState_t state)
     return SMART_QSO_OK;
 }
 
+/**
+ * @brief Take a transition whose guard has passed
+ *
+ * Runs the exit action of the current state, the transition action, updates
+ * the context and runs the entry action of the new state. A failed exit or
+ * entry action is logged and the transition still completes.
+ *
+ * @return SM_RESULT_ACTION_FAILED if the transition action failed, else SM_RESULT_OK
+ */
+static SmResult_t perform_transition(SmContext_t *ctx, const SmTransition_t *trans)
+{
+    SmResult_t local_result = SM_RESULT_OK;
+
+    /* Execute exit action for current state */
+    SmartQsoResult_t action_result = execute_exit_action(ctx->current_state);
+    if (action_result != SMART_QSO_OK) {
+        /* Log but continue with transition */
+        (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_WARNING,
+                            "Exit action failed", 0.0);
+    }
+
+    /* Execute transition action if present */
+    if (trans->action != NULL) {
+        action_result = trans->action();
+        if (action_result != SMART_QSO_OK) {
+            local_result = SM_RESULT_ACTION_FAILED;
+            (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_WARNING,
+                                "Transition action failed", 0.0);
+        }
+    }
+
+    /* Update state */
+    ctx->previous_state = ctx->current_state;
+    ctx->current_state = trans->to_state;
+    ctx->transition_count++;
+    ctx->last_transition_ms = smart_qso_now_ms();
+    ctx->state_entry_ms = ctx->last_transition_ms;
+
+    /* Log the transition */
+    (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_INFO,
+                        sm_get_state_name(ctx->current_state), 0.0);
+
+    /* Execute entry action for new state */
+    action_result = execute_entry_action(ctx->current_state);
+    if (action_result != SMART_QSO_OK) {
+        (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_WARNING,
+                            "Entry action failed", 0.0);
+    }
+
+    return local_result;
+}
+
 /*******************************************************************************
  * Public Functions
  ******************************************************************************/
@@ -277,41 +331,8 @@ SmartQsoResult_t sm_process_event(SmContext_t *ctx,
         }
     }
 
-    /* Execute exit action for current state */
-    SmartQsoResult_t action_result = execute_exit_action(ctx->current_state);
-    if (action_result != SMART_QSO_OK) {
-        /* Log but continue with transition */
-        (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_WARNING,
-                            "Exit action failed", 0.0);
-    }
-
-    /* Execute transition action if present */
-    if (trans->action != NULL) {
-        action_result = trans->action();
-        if (action_result != SMART_QSO_OK) {
-            local_result = SM_RESULT_ACTION_FAILED;
-            (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_WARNING,
-                                "Transition action failed", 0.0);
-        }
-    }
-
-    /* Update state */
-    ctx->previous_state = ctx->current_state;
-    ctx->current_state = trans->to_state;
-    ctx->transition_count++;
-    ctx->last_transition_ms = smart_qso_now_ms();
-    ctx->state_entry_ms = ctx->last_transition_ms;
-
-    /* Log the transition */
-    (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_INFO,
-                        sm_get_state_name(ctx->current_state), 0.0);
-
-    /* Execute entry action for new state */
-    action_result = execute_entry_action(ctx->current_state);
-    if (action_result != SMART_QSO_OK) {
-        (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_WARNING,
-                            "Entry action failed", 0.0);
-    }
+    /* Exit action, transition action, state update, entry action */
+    local_result = perform_transition(ctx, trans);
 
     if (result != NULL) {
         *result = local_result;

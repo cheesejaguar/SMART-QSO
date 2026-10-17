@@ -18,8 +18,10 @@
 #include "hal/hal_wdt.h"
 #include "fault_mgmt.h"
 #include "safe_string.h"
+#include "smart_qso.h"
 #include <stddef.h>
 #include <stdio.h>
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Data

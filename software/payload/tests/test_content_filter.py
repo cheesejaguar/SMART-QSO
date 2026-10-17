@@ -56,7 +56,7 @@ class TestWordLists(unittest.TestCase):
     def test_lists_match_flight(self):
         self.assertEqual(PROFANITY, _c_list("beacon_filter_profanity"))
         self.assertEqual(COMMERCIAL, _c_list("beacon_filter_commercial"))
-        self.assertEqual(content_filter.URL_MARKS, _c_list("k_url_marks"))
+        self.assertEqual(content_filter.URL_MARKS, _c_list("s_url_marks"))
 
     def test_each_word_rejected_whole_word_any_case(self):
         for words, reason in ((PROFANITY, "PROFANITY"), (COMMERCIAL, "COMMERCIAL")):

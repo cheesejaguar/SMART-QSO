@@ -11,8 +11,11 @@
 #include <stdlib.h>
 #include "payload_guard.h"
 #include "fault_mgmt.h"
+#include "smart_qso.h"
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Module State                                                               */
@@ -66,7 +69,7 @@ SmartQsoResult_t eps_init(void)
         s_eps_state.last_control_ms = (uint32_t)smart_qso_now_ms();
         eps_update_crc();
 
-        printf("[EPS] Using default configuration\n");
+        (void)printf("[EPS] Using default configuration\n");
     }
 
     s_initialized = true;
@@ -95,15 +98,15 @@ SmartQsoResult_t eps_control_payload(bool enable, double soc)
 
     /* The OBC's own power and temperature limits come first (SW-16) */
     if (enable && !payload_guard_may_enable(smart_qso_now_ms())) {
-        fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_WARNING,
-                      "Payload enable blocked: guard cool-down or hot spreader", soc);
+        (void)fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_WARNING,
+                            "Payload enable blocked: guard cool-down or hot spreader", soc);
         return SMART_QSO_ERROR;
     }
 
     /* Check power constraints for enable */
     if (enable && soc < EPS_SOC_PAYLOAD_THRESHOLD) {
-        fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_WARNING,
-                      "Payload enable blocked: low SOC", soc);
+        (void)fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_WARNING,
+                            "Payload enable blocked: low SOC", soc);
         return SMART_QSO_ERROR;
     }
 
@@ -112,13 +115,13 @@ SmartQsoResult_t eps_control_payload(bool enable, double soc)
     eps_update_crc();
 
     if (enable) {
-        fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_INFO,
-                      "Payload enabled", soc);
-        printf("[EPS] Payload enabled\n");
+        (void)fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_INFO,
+                            "Payload enabled", soc);
+        (void)printf("[EPS] Payload enabled\n");
     } else {
-        fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_INFO,
-                      "Payload disabled", soc);
-        printf("[EPS] Payload disabled\n");
+        (void)fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_INFO,
+                            "Payload disabled", soc);
+        (void)printf("[EPS] Payload disabled\n");
     }
 
     (void)eps_save_config();
@@ -135,7 +138,7 @@ SmartQsoResult_t eps_control_radio(bool enable)
     s_eps_state.last_control_ms = (uint32_t)smart_qso_now_ms();
     eps_update_crc();
 
-    printf("[EPS] Radio %s\n", enable ? "enabled" : "disabled");
+    (void)printf("[EPS] Radio %s\n", enable ? "enabled" : "disabled");
 
     (void)eps_save_config();
     return SMART_QSO_OK;
@@ -151,7 +154,7 @@ SmartQsoResult_t eps_control_adcs(bool enable)
     s_eps_state.last_control_ms = (uint32_t)smart_qso_now_ms();
     eps_update_crc();
 
-    printf("[EPS] ADCS %s\n", enable ? "enabled" : "disabled");
+    (void)printf("[EPS] ADCS %s\n", enable ? "enabled" : "disabled");
 
     (void)eps_save_config();
     return SMART_QSO_OK;
@@ -167,7 +170,7 @@ SmartQsoResult_t eps_control_beacon(bool enable)
     s_eps_state.last_control_ms = (uint32_t)smart_qso_now_ms();
     eps_update_crc();
 
-    printf("[EPS] Beacon %s\n", enable ? "enabled" : "disabled");
+    (void)printf("[EPS] Beacon %s\n", enable ? "enabled" : "disabled");
 
     (void)eps_save_config();
     return SMART_QSO_OK;
@@ -191,8 +194,8 @@ SmartQsoResult_t eps_set_power_mode(PowerMode_t mode, double soc)
             (void)eps_control_adcs(false);
             (void)eps_control_beacon(true);  /* Keep beacon for emergency */
             s_eps_state.power_limit_w = EPS_POWER_LIMIT_SAFE_W;
-            fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_WARNING,
-                          "Entered SAFE mode", soc);
+            (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_WARNING,
+                                "Entered SAFE mode", soc);
             break;
 
         case POWER_MODE_IDLE:
@@ -201,8 +204,8 @@ SmartQsoResult_t eps_set_power_mode(PowerMode_t mode, double soc)
             (void)eps_control_adcs(true);
             (void)eps_control_beacon(true);
             s_eps_state.power_limit_w = EPS_POWER_LIMIT_IDLE_W;
-            fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_INFO,
-                          "Entered IDLE mode", soc);
+            (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_INFO,
+                                "Entered IDLE mode", soc);
             break;
 
         case POWER_MODE_ACTIVE:
@@ -211,8 +214,8 @@ SmartQsoResult_t eps_set_power_mode(PowerMode_t mode, double soc)
             (void)eps_control_adcs(true);
             (void)eps_control_beacon(true);
             s_eps_state.power_limit_w = EPS_POWER_LIMIT_ACTIVE_W;
-            fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_INFO,
-                          "Entered ACTIVE mode", soc);
+            (void)fault_log_add(FAULT_TYPE_MODE_CHANGE, FAULT_SEVERITY_INFO,
+                                "Entered ACTIVE mode", soc);
             break;
 
         default:
@@ -291,7 +294,7 @@ SmartQsoResult_t eps_load_config(void)
     uint32_t calculated_crc = smart_qso_crc32(&loaded_state, crc_offset);
 
     if (calculated_crc != loaded_state.crc32) {
-        printf("[EPS] CRC mismatch in config file, using defaults\n");
+        (void)printf("[EPS] CRC mismatch in config file, using defaults\n");
         return SMART_QSO_ERROR;
     }
 

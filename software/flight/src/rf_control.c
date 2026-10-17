@@ -13,6 +13,8 @@
 #include "fault_mgmt.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_flash.h"
+#include "smart_qso.h"
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Constants
