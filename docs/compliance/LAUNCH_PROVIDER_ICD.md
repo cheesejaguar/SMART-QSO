@@ -12,7 +12,7 @@
 **Document Number:** SQSO-ICD-004
 **Revision:** B (draft)
 **Date:** 2026-10-16
-**Reference:** Cal Poly CDS Rev 14.1, GSFC-STD-7000A (current revision: 7000B)
+**Reference:** Cal Poly CDS Rev 14.1; SpaceX Rideshare Payload User's Guide v11, Aug 2026 (interim provider, pending the launch contract and PI confirmation); GSFC-STD-7000B as fallback
 
 ---
 
@@ -37,6 +37,7 @@ This document covers:
 | Document | Title |
 |----------|-------|
 | CDS Rev 14.1 | CubeSat Design Specification |
+| SpaceX UG v11 | SpaceX Rideshare Payload User's Guide, Version 11, Aug 2026 (<https://storage.googleapis.com/rideshare-static/Rideshare_Payload_Users_Guide.pdf>); interim provider |
 | LSP-REQ-317 | NASA Launch Services Program Requirements |
 | GSFC-STD-7000A | GEVS Environmental Test Standard |
 | NASA-STD-5001 | Structural Design Standard |
@@ -64,7 +65,7 @@ This document covers:
 | Rail length | ≥ 75% of Z | 85 mm (75%) | Compliant |
 | Rail material | Hard anodized Al | 7075-T6 anodized | Compliant |
 | Surface roughness | ≤ 1.6 μm Ra | 0.8 μm Ra | Compliant |
-| Edge radius | 1.0 mm min | 1.0 mm | Compliant |
+| Edge radius | ≥ 1 mm (CDS Rev 14.1 §2.2.7, "should") | ≥ 1.0 mm by design (`hardware/structure/STRUCTURAL_DESIGN.md` §5.1); not yet drawn or inspected | Open |
 
 ### 4.3 Protrusion Limits
 
@@ -86,12 +87,14 @@ This document covers:
 
 ### 4.5 Structural Requirements
 
+One environment specification, from SpaceX UG v11 (interim provider). No analysis or test has been done.
+
 | Parameter | Requirement | SMART-QSO | Status |
 |-----------|-------------|-----------|--------|
-| Fundamental frequency | > 100 Hz | 185 Hz | Compliant |
-| Random vibration | Per GEVS | Qualified | Compliant |
-| Quasi-static load | 15 g all axes | Qualified | Compliant |
-| Shock | 2000 g SRS | Qualified | Compliant |
+| Fundamental frequency | > 40 Hz, no elastic mode below (UG v11 §4.1.1) | TBD: analysis pending FEM; low-level sine sweep at test | Open |
+| Random vibration | ≥ MPE 5.57 Grms, protoflight 1 min/axis, inhibits verified during the test (UG v11 Table 4-6, Table 6-2, §6.7.7) | Not tested (`docs/test_procedures/TP-ENV-002_Vibration.md`) | Open |
+| Quasi-static load | 10 g axial, 17 g lateral RSS for the integrated dispenser assembly (UG v11 Table 4-1); CubeSat-level loads from the integrator. No test required for a containerized CubeSat (Table 6-2) | Analysis pending FEM | Open |
+| Shock | MPE per UG v11 Table 4-5 (30 g at 100 Hz rising to 1000 g at 1000–10000 Hz, Q = 10); test advised, not required (Table 6-2) | Not tested | Open |
 
 ---
 
@@ -144,13 +147,15 @@ This document covers:
 
 ### 6.2 Launch Environment
 
-| Parameter | Requirement | Qualification | Status |
-|-----------|-------------|---------------|--------|
-| Thermal (operational) | -40°C to +60°C | -45°C to +65°C | Compliant |
-| Random vibration | Per LV ICD | +3 dB margin | Compliant |
-| Acoustic | Per LV ICD | GEVS levels | Compliant |
-| Shock | 2000 g SRS | 2500 g SRS | Compliant |
-| Depressurization | 7 kPa/s | Tested | Compliant |
+Same environment as §4.5 (SpaceX UG v11, interim). Nothing has been tested.
+
+| Parameter | Requirement | Test level | Status |
+|-----------|-------------|------------|--------|
+| Thermal (operational) | -40°C to +60°C (source TBD) | Thermal vacuum and cycling advised (UG v11 Table 6-2) | Open |
+| Random vibration | ≥ 5.57 Grms MPE (UG v11 Table 4-6) | Protoflight: MPE, 1 min/axis | Open |
+| Acoustic | — | Not required for a containerized CubeSat (UG v11 Table 6-2) | Not applicable |
+| Shock | MPE per UG v11 Table 4-5 | Advised only | Open |
+| Depressurization | Fairing pressure decay ≤ 2.8 kPa/s, ≤ 4.5 kPa/s for ≤ 5 s (UG v11 §4.1.8) | Venting analysis advised (UG v11 §6.7.9) | Open |
 
 ### 6.3 On-Orbit Environment
 
@@ -331,4 +336,4 @@ SpaceX-side milestones).
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
-| B (draft) | 2026-10-16 | Funding audit VV-21: umbilical access made consistent (no access after integration unless the dispenser has ports; RBF out at integration). VV-20: deliverable statuses corrected (no "Complete"); safety data package is a system-level skeleton | SMART-QSO Team |
+| B (draft) | 2026-10-16 | Funding audit VV-21: umbilical access made consistent (no access after integration unless the dispenser has ports; RBF out at integration). VV-20: deliverable statuses corrected (no "Complete"); safety data package is a system-level skeleton. TB-15: one environment specification from SpaceX UG v11 (interim) in §4.5 and §6.2, replacing unsourced "Qualified" and "Compliant" entries; rail edge radius per CDS §2.2.7 | SMART-QSO Team |
