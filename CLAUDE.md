@@ -46,7 +46,7 @@ rm -rf build
 - **Fail-graceful**: If AI payload is off or faults, revert to basic transponder + beacon
 - **Power-aware**: AI bursts only when power and thermal allow (duty-cycled)
 - **Open operation**: All frames in the clear (no encryption) per amateur radio regulations
-- **Community model updates**: not in the flight baseline; public uploads would be data only, adopted solely by authenticated telecommand from a designated station (47 CFR 97.211)
+- **Community model updates ("federated learning")**: not in the flight baseline and not implemented onboard; ground-side research only (`software/ground/tools/fl_update_builder.py`). Any future upload would be data only, adopted solely by authenticated telecommand from a designated station (47 CFR 97.211). Whether to keep or drop the idea is a PI decision
 
 ### RF Configuration
 - Uplink: 435-438 MHz (70cm)
@@ -56,7 +56,7 @@ rm -rf build
 
 ### Mission Phases
 1. Commissioning (~2 weeks): Detumble, basic beacon, power characterization
-2. Primary ops: Adaptive transponder control, QSO prioritization, smart beacons, federated learning windows
+2. Primary ops: Adaptive transponder control, QSO prioritization, smart beacons (no federated-learning windows: community model updates are not in the flight baseline)
 3. EOL: Permanent passivation (charge path disconnected, transmitters off); passive re-entry with solar wings deployed, no later than 5 years after mission end (no separate drag device)
 
 ## Repository Map

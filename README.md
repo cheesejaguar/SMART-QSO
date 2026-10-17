@@ -184,7 +184,7 @@ All pull requests require:
 
 - **Amateur-Satellite Service (FCC Part 97)**: all downlink frames in the clear; only telecommand is authenticated (47 CFR 97.211(b)). See [licensing pathway](docs/regulatory/LICENSING_PATHWAY_DETERMINATION.md)
 - **Open Operations**: beacons and the transponder are usable by any licensed amateur station
-- **Community model updates**: not in the flight baseline. Any future experiment treats public uploads as data only; adoption requires authenticated telecommand from a designated station
+- **Community model updates ("federated learning")**: not in the flight baseline and not implemented onboard; ground-side research only. Any future upload would be data only, adopted solely by authenticated telecommand from a designated station (47 CFR 97.211). Whether to keep or drop the idea is a PI decision
 
 ---
 
