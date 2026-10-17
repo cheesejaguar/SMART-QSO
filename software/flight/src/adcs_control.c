@@ -100,15 +100,15 @@ void adcs_saturate_dipole(Vec3_t *dipole, double max_dipole)
 
 SmartQsoResult_t adcs_init(void)
 {
-    memset(&s_adcs_state, 0, sizeof(s_adcs_state));
-    memset(&s_mag_prev, 0, sizeof(s_mag_prev));
+    (void)memset(&s_adcs_state, 0, sizeof(s_adcs_state));
+    (void)memset(&s_mag_prev, 0, sizeof(s_mag_prev));
 
     s_adcs_state.mode = ADCS_MODE_IDLE;
     s_adcs_state.detumble_complete = false;
 
     s_initialized = true;
 
-    printf("[ADCS] Initialized in IDLE mode\n");
+    (void)printf("[ADCS] Initialized in IDLE mode\n");
 
     return SMART_QSO_OK;
 }
@@ -165,8 +165,8 @@ SmartQsoResult_t adcs_update(uint64_t now_ms)
             /* Check for detumble timeout */
             if (s_adcs_state.detumble_start_ms > 0 &&
                 (now_ms - s_adcs_state.detumble_start_ms) > ADCS_DETUMBLE_TIMEOUT_MS) {
-                fault_log_add(FAULT_TYPE_ADCS, FAULT_SEVERITY_WARNING,
-                              "Detumble timeout", 0.0);
+                (void)fault_log_add(FAULT_TYPE_ADCS, FAULT_SEVERITY_WARNING,
+                                    "Detumble timeout", 0.0);
                 s_adcs_state.fault_count++;
                 /* A fault, not a completed detumble (ADCS_DESIGN 5.2, 5.3) */
                 s_adcs_state.mode = ADCS_MODE_IDLE;
@@ -184,7 +184,9 @@ SmartQsoResult_t adcs_update(uint64_t now_ms)
                     s_adcs_state.detumble_complete = true;
                     /* ADCS_DESIGN 5.1: detumble complete enters SUNPOINT */
                     s_adcs_state.mode = ADCS_MODE_SUNPOINT;
-                    printf("[ADCS] Detumble complete!\n");
+                    (void)printf("[ADCS] Detumble complete!\n");
+                } else {
+                    /* still settling */
                 }
             } else {
                 s_adcs_state.settling_start_ms = 0;
@@ -245,10 +247,10 @@ SmartQsoResult_t adcs_set_mode(AdcsMode_t mode)
         s_adcs_state.detumble_start_ms = smart_qso_now_ms();
         s_adcs_state.settling_start_ms = 0;
         s_adcs_state.detumble_complete = false;
-        printf("[ADCS] Starting detumble sequence\n");
+        (void)printf("[ADCS] Starting detumble sequence\n");
     }
 
-    printf("[ADCS] Mode changed: %d -> %d\n", prev_mode, mode);
+    (void)printf("[ADCS] Mode changed: %d -> %d\n", prev_mode, mode);
 
     return SMART_QSO_OK;
 }
@@ -272,7 +274,7 @@ SmartQsoResult_t adcs_get_state(AdcsState_t *state)
         return SMART_QSO_ERROR;
     }
 
-    memcpy(state, &s_adcs_state, sizeof(AdcsState_t));
+    (void)memcpy(state, &s_adcs_state, sizeof(AdcsState_t));
     return SMART_QSO_OK;
 }
 

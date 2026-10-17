@@ -79,6 +79,8 @@ SmartQsoResult_t tlm_set_rate(uint32_t rate_ms)
         rate_ms = TLM_MIN_RATE_MS;
     } else if (rate_ms > TLM_MAX_RATE_MS) {
         rate_ms = TLM_MAX_RATE_MS;
+    } else {
+        /* in range */
     }
 
     s_rate_ms = rate_ms;

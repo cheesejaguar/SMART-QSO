@@ -169,7 +169,7 @@ SmartQsoResult_t hal_init(void) {
 SmartQsoResult_t hal_deinit(void) {
     /* Free flash simulation memory */
     for (int i = 0; i < FLASH_REGION_COUNT; i++) {
-        if (s_flash_data[i]) {
+        if (s_flash_data[i] != NULL) {
             free(s_flash_data[i]);
             s_flash_data[i] = NULL;
         }
@@ -187,7 +187,7 @@ SmartQsoResult_t hal_deinit(void) {
 /*===========================================================================*/
 
 SmartQsoResult_t hal_gpio_init(void) {
-    memset(s_gpio_state, 0, sizeof(s_gpio_state));
+    (void)memset(s_gpio_state, 0, sizeof(s_gpio_state));
     for (int i = 0; i < GPIO_PIN_COUNT; i++) {
         s_gpio_dir[i] = GPIO_DIR_INPUT;
     }
@@ -257,7 +257,7 @@ SmartQsoResult_t hal_i2c_init(HalI2cBus_t bus, HalI2cSpeed_t speed) {
 
     /* Initialize simulated device registers */
     for (size_t i = 0; i < SIM_I2C_DEVICE_COUNT; i++) {
-        memset(s_i2c_devices[i].registers, 0, sizeof(s_i2c_devices[i].registers));
+        (void)memset(s_i2c_devices[i].registers, 0, sizeof(s_i2c_devices[i].registers));
 
         /* Set some default values */
         if (s_i2c_devices[i].addr == I2C_ADDR_EPS_CONTROLLER) {
@@ -318,7 +318,7 @@ SmartQsoResult_t hal_i2c_read(HalI2cBus_t bus, uint8_t addr,
     }
 
     /* Read from register 0 by default */
-    memcpy(data, dev->registers, len);
+    (void)memcpy(data, dev->registers, len);
     return SMART_QSO_OK;
 }
 
@@ -337,7 +337,7 @@ SmartQsoResult_t hal_i2c_write_read(HalI2cBus_t bus, uint8_t addr,
 
     /* First byte of write_data is register address */
     uint8_t reg = write_data[0];
-    memcpy(read_data, &dev->registers[reg], read_len);
+    (void)memcpy(read_data, &dev->registers[reg], read_len);
 
     return SMART_QSO_OK;
 }
@@ -415,7 +415,7 @@ SmartQsoResult_t hal_uart_read_line(HalUartPort_t port, char *buffer,
     (void)buffer_len;
     (void)timeout_ms;
 
-    if (line_len) {
+    if (line_len != NULL) {
         *line_len = 0;
     }
     return SMART_QSO_ERROR_TIMEOUT;
@@ -461,8 +461,8 @@ SmartQsoResult_t hal_spi_transfer(HalSpiBus_t bus, const uint8_t *tx_data,
     }
 
     /* In simulation, just return zeros for received data */
-    if (rx_data) {
-        memset(rx_data, 0, len);
+    if (rx_data != NULL) {
+        (void)memset(rx_data, 0, len);
     }
 
     return SMART_QSO_OK;
@@ -533,7 +533,7 @@ SmartQsoResult_t hal_timer_start_periodic(uint32_t period_ms,
     (void)period_ms;
     (void)callback;
     (void)context;
-    if (timer_id) {
+    if (timer_id != NULL) {
         *timer_id = 0;
     }
     return SMART_QSO_OK;  /* Not implemented in simulation */
@@ -643,7 +643,7 @@ SmartQsoResult_t hal_flash_read(HalFlashRegion_t region, uint32_t offset,
         return SMART_QSO_ERROR_INVALID;
     }
 
-    memcpy(data, &s_flash_data[region][offset], len);
+    (void)memcpy(data, &s_flash_data[region][offset], len);
     return SMART_QSO_OK;
 }
 
@@ -671,7 +671,7 @@ SmartQsoResult_t hal_flash_write(HalFlashRegion_t region, uint32_t offset,
         return SMART_QSO_ERROR_INVALID;
     }
 
-    memcpy(&s_flash_data[region][offset], data, len);
+    (void)memcpy(&s_flash_data[region][offset], data, len);
     return SMART_QSO_OK;
 }
 
@@ -683,7 +683,7 @@ SmartQsoResult_t hal_flash_erase(HalFlashRegion_t region) {
         return SMART_QSO_ERROR_INVALID;
     }
 
-    memset(s_flash_data[region], 0xFF, s_flash_sizes[region]);
+    (void)memset(s_flash_data[region], 0xFF, s_flash_sizes[region]);
     return SMART_QSO_OK;
 }
 
@@ -724,7 +724,7 @@ SmartQsoResult_t hal_radio_receive(uint8_t *frame, size_t max_len, size_t *len) 
         return SMART_QSO_ERROR_INVALID;
     }
 
-    memcpy(frame, s_radio_frames[s_radio_head], s_radio_lens[s_radio_head]);
+    (void)memcpy(frame, s_radio_frames[s_radio_head], s_radio_lens[s_radio_head]);
     *len = s_radio_lens[s_radio_head];
     s_radio_head = (s_radio_head + 1U) % SIM_RADIO_QUEUE;
     s_radio_count--;
@@ -740,7 +740,7 @@ SmartQsoResult_t hal_sim_radio_inject(const uint8_t *frame, size_t len) {
     }
 
     size_t tail = (s_radio_head + s_radio_count) % SIM_RADIO_QUEUE;
-    memcpy(s_radio_frames[tail], frame, len);
+    (void)memcpy(s_radio_frames[tail], frame, len);
     s_radio_lens[tail] = len;
     s_radio_count++;
     return SMART_QSO_OK;

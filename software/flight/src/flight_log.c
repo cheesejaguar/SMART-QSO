@@ -255,6 +255,8 @@ SmartQsoResult_t log_vwrite(LogLevel_t level,
             entry->message[sizeof(entry->message) - 3] = '.';
             entry->message[sizeof(entry->message) - 2] = '.';
             entry->message[sizeof(entry->message) - 1] = '\0';
+        } else {
+            /* message fits */
         }
     } else {
         entry->message[0] = '\0';

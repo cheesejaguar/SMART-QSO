@@ -63,12 +63,12 @@ const size_t beacon_template_count = sizeof(beacon_templates) / sizeof(beacon_te
 
 SmartQsoResult_t beacon_init(void)
 {
-    memset(&s_beacon_state, 0, sizeof(s_beacon_state));
+    (void)memset(&s_beacon_state, 0, sizeof(s_beacon_state));
 
     s_beacon_state.interval_ms = BEACON_INTERVAL_ACTIVE_MS;
     s_beacon_state.ai_available = false;
     s_template_index = 0;
-    memset(&s_meas, 0, sizeof(s_meas));
+    (void)memset(&s_meas, 0, sizeof(s_meas));
     s_meas_ms = 0U;
     s_meas_set = false;
 
@@ -124,21 +124,21 @@ static void select_text(BeaconContent_t *content, const char *ai_text, size_t ai
         if (copy_len >= BEACON_MAX_TEXT_LEN) {
             copy_len = BEACON_MAX_TEXT_LEN - 1;
         }
-        memcpy(content->text, ai_text, copy_len);
+        (void)memcpy(content->text, ai_text, copy_len);
         content->text[copy_len] = '\0';
         content->text_len = copy_len;
         content->source = BEACON_SOURCE_AI;
     } else if (s_beacon_state.ai_available && (s_beacon_state.last_ai_text[0] != '\0')) {
         /* Stored Jetson text is used for one beacon only (BEACON_SPEC section 5) */
         size_t len = strlen(s_beacon_state.last_ai_text);
-        memcpy(content->text, s_beacon_state.last_ai_text, len + 1);
+        (void)memcpy(content->text, s_beacon_state.last_ai_text, len + 1);
         content->text_len = len;
         content->source = BEACON_SOURCE_AI;
         s_beacon_state.last_ai_text[0] = '\0';
     } else {
         const char *tmpl = beacon_get_template();
         size_t len = strlen(tmpl);
-        memcpy(content->text, tmpl, len + 1);
+        (void)memcpy(content->text, tmpl, len + 1);
         content->text_len = len;
         content->source = BEACON_SOURCE_TEMPLATE;
     }
@@ -191,7 +191,7 @@ SmartQsoResult_t beacon_generate_content(BeaconContent_t *content,
         return SMART_QSO_ERROR_NULL_PTR;
     }
 
-    memset(content, 0, sizeof(BeaconContent_t));
+    (void)memset(content, 0, sizeof(BeaconContent_t));
     select_text(content, ai_text, ai_text_len);
     fill_telemetry(&content->telemetry);
 
@@ -278,7 +278,7 @@ SmartQsoResult_t beacon_build_ax25_frame(const BeaconContent_t *content,
         return SMART_QSO_ERROR_NULL_PTR;
     }
 
-    memset(frame, 0, sizeof(Ax25Frame_t));
+    (void)memset(frame, 0, sizeof(Ax25Frame_t));
 
     /* Encode destination address (CQ broadcast) */
     ax25_encode_address("CQ", 0U, frame->dest_addr, false);
@@ -303,13 +303,13 @@ SmartQsoResult_t beacon_build_ax25_frame(const BeaconContent_t *content,
     uint8_t fcs_data[AX25_ADDR_LEN * 2 + 2 + BEACON_MAX_PAYLOAD_LEN];
     size_t fcs_len = 0;
 
-    memcpy(fcs_data + fcs_len, frame->dest_addr, AX25_ADDR_LEN);
+    (void)memcpy(fcs_data + fcs_len, frame->dest_addr, AX25_ADDR_LEN);
     fcs_len += AX25_ADDR_LEN;
-    memcpy(fcs_data + fcs_len, frame->src_addr, AX25_ADDR_LEN);
+    (void)memcpy(fcs_data + fcs_len, frame->src_addr, AX25_ADDR_LEN);
     fcs_len += AX25_ADDR_LEN;
     fcs_data[fcs_len++] = frame->ctrl;
     fcs_data[fcs_len++] = frame->pid;
-    memcpy(fcs_data + fcs_len, frame->info, frame->info_len);
+    (void)memcpy(fcs_data + fcs_len, frame->info, frame->info_len);
     fcs_len += frame->info_len;
 
     frame->fcs = beacon_crc16(fcs_data, fcs_len);
@@ -343,11 +343,11 @@ size_t beacon_serialize_ax25(const Ax25Frame_t *frame,
     buffer[pos++] = AX25_FLAG;
 
     /* Destination address */
-    memcpy(buffer + pos, frame->dest_addr, AX25_ADDR_LEN);
+    (void)memcpy(buffer + pos, frame->dest_addr, AX25_ADDR_LEN);
     pos += AX25_ADDR_LEN;
 
     /* Source address */
-    memcpy(buffer + pos, frame->src_addr, AX25_ADDR_LEN);
+    (void)memcpy(buffer + pos, frame->src_addr, AX25_ADDR_LEN);
     pos += AX25_ADDR_LEN;
 
     /* Control and PID */
@@ -355,7 +355,7 @@ size_t beacon_serialize_ax25(const Ax25Frame_t *frame,
     buffer[pos++] = frame->pid;
 
     /* Info field */
-    memcpy(buffer + pos, frame->info, frame->info_len);
+    (void)memcpy(buffer + pos, frame->info, frame->info_len);
     pos += frame->info_len;
 
     /* FCS (little endian) */
@@ -407,7 +407,7 @@ SmartQsoResult_t beacon_transmit(const BeaconContent_t *content)
     /* For simulation, just print the beacon content */
     char payload[BEACON_MAX_PAYLOAD_LEN];
     beacon_format_payload(content, payload, sizeof(payload));
-    printf("[BEACON] TX: %s\n", payload);
+    (void)printf("[BEACON] TX: %s\n", payload);
 
     return SMART_QSO_OK;
 }
@@ -431,7 +431,7 @@ SmartQsoResult_t beacon_get_state(BeaconState_t *state)
         return SMART_QSO_ERROR;
     }
 
-    memcpy(state, &s_beacon_state, sizeof(BeaconState_t));
+    (void)memcpy(state, &s_beacon_state, sizeof(BeaconState_t));
     return SMART_QSO_OK;
 }
 
@@ -464,7 +464,7 @@ SmartQsoResult_t beacon_store_ai_text(const char *text, size_t len)
         copy_len = BEACON_MAX_TEXT_LEN - 1;
     }
 
-    memcpy(s_beacon_state.last_ai_text, text, copy_len);
+    (void)memcpy(s_beacon_state.last_ai_text, text, copy_len);
     s_beacon_state.last_ai_text[copy_len] = '\0';
 
     return SMART_QSO_OK;

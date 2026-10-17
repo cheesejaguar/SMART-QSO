@@ -87,7 +87,7 @@ static void sched_idle_task(void);
 sched_status_t scheduler_init(void)
 {
     /* Clear scheduler context */
-    memset(&g_sched, 0, sizeof(g_sched));
+    (void)memset(&g_sched, 0, sizeof(g_sched));
 
     /* Initialize all task slots */
     for (uint8_t i = 0U; i < SCHED_MAX_TASKS; i++) {
@@ -145,14 +145,14 @@ sched_status_t scheduler_register_task(const task_config_t *config,
 
     /* Initialize task */
     task_tcb_t *tcb = &g_sched.tasks[slot];
-    memcpy(&tcb->config, config, sizeof(task_config_t));
+    (void)memcpy(&tcb->config, config, sizeof(task_config_t));
     tcb->registered = true;
     tcb->state = config->enabled ? TASK_STATE_READY : TASK_STATE_INACTIVE;
     tcb->next_run_tick = g_sched.tick_count + (config->offset_ms / SCHED_TICK_PERIOD_MS);
     tcb->consecutive_misses = 0U;
 
     /* Reset statistics */
-    memset(&tcb->stats, 0, sizeof(task_stats_t));
+    (void)memset(&tcb->stats, 0, sizeof(task_stats_t));
     tcb->stats.min_run_time_us = UINT32_MAX;
 
     *handle = slot;
@@ -333,7 +333,7 @@ sched_status_t scheduler_get_task_stats(task_handle_t handle,
         return SCHED_ERROR_NOT_FOUND;
     }
 
-    memcpy(stats, &g_sched.tasks[handle].stats, sizeof(task_stats_t));
+    (void)memcpy(stats, &g_sched.tasks[handle].stats, sizeof(task_stats_t));
 
     return SCHED_OK;
 }
@@ -351,7 +351,7 @@ sched_status_t scheduler_reset_task_stats(task_handle_t handle)
         return SCHED_ERROR_NOT_FOUND;
     }
 
-    memset(&g_sched.tasks[handle].stats, 0, sizeof(task_stats_t));
+    (void)memset(&g_sched.tasks[handle].stats, 0, sizeof(task_stats_t));
     g_sched.tasks[handle].stats.min_run_time_us = UINT32_MAX;
 
     return SCHED_OK;

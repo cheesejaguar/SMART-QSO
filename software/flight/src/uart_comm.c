@@ -77,7 +77,7 @@ static void parse_env_config(void)
 {
     const char *device = getenv("UART_DEVICE");
     if (device != NULL && strlen(device) < UART_DEVICE_MAX_LEN) {
-        strncpy(s_config.device, device, UART_DEVICE_MAX_LEN - 1);
+        (void)strncpy(s_config.device, device, UART_DEVICE_MAX_LEN - 1);
         s_config.device[UART_DEVICE_MAX_LEN - 1] = '\0';
     }
 
@@ -109,8 +109,8 @@ static void parse_env_config(void)
         }
     }
 
-    printf("[UART] Configuration: device=%s, baudrate=%d, interval=%" PRIu32 "ms\n",
-           s_config.device, s_config.baudrate, s_telemetry_interval_ms);
+    (void)printf("[UART] Configuration: device=%s, baudrate=%d, interval=%" PRIu32 "ms\n",
+                 s_config.device, s_config.baudrate, s_telemetry_interval_ms);
 }
 
 /*===========================================================================*/
@@ -276,8 +276,8 @@ SmartQsoResult_t uart_check_health(void)
     struct termios tty;
     if (tcgetattr(s_uart_fd, &tty) != 0) {
         (void)fprintf(stderr, "[UART] Health check failed, attempting recovery\n");
-        fault_log_add(FAULT_TYPE_UART, FAULT_SEVERITY_WARNING,
-                      "UART health check failed", 0.0);
+        (void)fault_log_add(FAULT_TYPE_UART, FAULT_SEVERITY_WARNING,
+                            "UART health check failed", 0.0);
         (void)uart_close();
         return uart_init_with_config(&s_config);
     }

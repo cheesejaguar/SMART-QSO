@@ -100,9 +100,9 @@ SmartQsoResult_t rf_silence_init(void)
     apply();
 
     /* Observable at every boot (pre-ship check) */
-    printf("[RF_SILENCE] state=%s elapsed=%lus\n",
-           (s_state == RF_SILENCE_COMPLETE) ? "COMPLETE" : "COUNTING",
-           (unsigned long)s_elapsed_s);
+    (void)printf("[RF_SILENCE] state=%s elapsed=%lus\n",
+                 (s_state == RF_SILENCE_COMPLETE) ? "COMPLETE" : "COUNTING",
+                 (unsigned long)s_elapsed_s);
     return SMART_QSO_OK;
 }
 

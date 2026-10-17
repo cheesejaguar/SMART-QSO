@@ -269,8 +269,8 @@ static SmartQsoResult_t init_system(void)
 
     if (uart_init() != SMART_QSO_OK) {
         (void)fprintf(stderr, "[WARN] UART initialization failed, telemetry disabled\n");
-        fault_log_add(FAULT_TYPE_INIT, FAULT_SEVERITY_WARNING,
-                      "UART initialization failed", s_soc);
+        (void)fault_log_add(FAULT_TYPE_INIT, FAULT_SEVERITY_WARNING,
+                            "UART initialization failed", s_soc);
     }
 
     s_last_telemetry_ms = s_program_start_ms;
@@ -359,8 +359,8 @@ static void monitor_system_health(void)
     for (size_t i = 0; i < sensors_get_count(); i++) {
         if (sensors_get(i, &sensor) == SMART_QSO_OK) {
             if (strcmp(sensor.type, "eps_temperature") == 0 && sensor.last_value > 40.0) {
-                fault_log_add(FAULT_TYPE_HEALTH_THERMAL, FAULT_SEVERITY_WARNING,
-                              "High temperature in health check", s_soc);
+                (void)fault_log_add(FAULT_TYPE_HEALTH_THERMAL, FAULT_SEVERITY_WARNING,
+                                    "High temperature in health check", s_soc);
                 (void)sm_process_event(sys_get_sm_context(), EVENT_THERMAL_FAULT, NULL);
             }
         }
@@ -369,20 +369,20 @@ static void monitor_system_health(void)
     /* Bus regulation, on the measured value (SW-16) */
     double bus_v = 0.0;
     if (fresh_sensor("BUSV", now, HEALTH_CHECK_INTERVAL_MS, &bus_v) && !eps_bus_voltage_ok(bus_v)) {
-        fault_log_add(FAULT_TYPE_VOLTAGE_RANGE, FAULT_SEVERITY_ERROR,
-                      "Bus voltage out of range", s_soc);
+        (void)fault_log_add(FAULT_TYPE_VOLTAGE_RANGE, FAULT_SEVERITY_ERROR,
+                            "Bus voltage out of range", s_soc);
     }
 
     /* Check for power issues */
     if (s_soc < 0.30) {
-        fault_log_add(FAULT_TYPE_HEALTH_POWER, FAULT_SEVERITY_WARNING,
-                      "Low SOC in health check", s_soc);  /* mode change: update_mission_state */
+        (void)fault_log_add(FAULT_TYPE_HEALTH_POWER, FAULT_SEVERITY_WARNING,
+                            "Low SOC in health check", s_soc);  /* mode change: update_mission_state */
     }
 
     /* Check for communication issues */
     if (eps_is_payload_enabled() && !uart_is_initialized()) {
-        fault_log_add(FAULT_TYPE_HEALTH_COMM, FAULT_SEVERITY_WARNING,
-                      "UART communication lost with payload", s_soc);
+        (void)fault_log_add(FAULT_TYPE_HEALTH_COMM, FAULT_SEVERITY_WARNING,
+                            "UART communication lost with payload", s_soc);
         (void)uart_init();
     }
 
@@ -423,7 +423,7 @@ static void send_line(const char *line, size_t len, const char *what)
     } else if (uart_send(line, len) != SMART_QSO_OK) {
         (void)fprintf(stderr, "[UART] Failed to send %s to Jetson\n", what);
     } else {
-        printf("[UART] Sent %s to Jetson (%zu bytes)\n", what, len);
+        (void)printf("[UART] Sent %s to Jetson (%zu bytes)\n", what, len);
     }
 }
 
@@ -526,13 +526,13 @@ static void poll_jetson(void)
             (void)fprintf(stderr, "[UART] Rejected Jetson line (%d)\n", (int)status);
         } else if ((msg.type == JETSON_MSG_BEACON_RSP) && (msg.seq == s_beacon_seq)) {
             (void)snprintf(s_ai_text, sizeof(s_ai_text), "%s", msg.text);
-            printf("[UART] Beacon text from Jetson (%zu chars)\n", msg.text_len);
+            (void)printf("[UART] Beacon text from Jetson (%zu chars)\n", msg.text_len);
         } else if (msg.type == JETSON_MSG_STATUS) {
             s_jetson_temp_c = msg.temp_c;
             s_jetson_status_ms = smart_qso_now_ms();
             s_jetson_status_seen = true;
-            printf("[UART] Jetson status: health=%u temp=%dC power=%umW\n",
-                   (unsigned)msg.health, (int)msg.temp_c, (unsigned)msg.power_mw);
+            (void)printf("[UART] Jetson status: health=%u temp=%dC power=%umW\n",
+                         (unsigned)msg.health, (int)msg.temp_c, (unsigned)msg.power_mw);
         } else {
             /* Stale beacon answers, ACK and NACK need no action */
         }
@@ -583,7 +583,7 @@ static void guard_payload(uint64_t now)
                            FAULT_TYPE_CURRENT_HIGH :
                            (((result == PG_TRIP_SPREADER_TEMP) || (result == PG_TRIP_JUNCTION_TEMP)) ?
                             FAULT_TYPE_TEMP_HIGH : FAULT_TYPE_POWER);
-        fault_log_add(type, FAULT_SEVERITY_ERROR, payload_guard_reason(result), s_soc);
+        (void)fault_log_add(type, FAULT_SEVERITY_ERROR, payload_guard_reason(result), s_soc);
         (void)eps_control_payload(false, s_soc);
     }
 }
@@ -717,10 +717,10 @@ static SmartQsoResult_t run_main_loop(void)
     MissionData_t mission;
     (void)mission_data_get(&mission);
 
-    printf("[SYSTEM] SMART-QSO Flight Software Started\n");
-    printf("[SYSTEM] Version: %s\n", SMART_QSO_VERSION_STRING);
-    printf("[SYSTEM] Mission Phase: %d, Power Mode: %d, SOC: %.1f%%\n",
-           mission.mission_phase, (int)eps_get_power_mode(), s_soc * 100.0);
+    (void)printf("[SYSTEM] SMART-QSO Flight Software Started\n");
+    (void)printf("[SYSTEM] Version: %s\n", SMART_QSO_VERSION_STRING);
+    (void)printf("[SYSTEM] Mission Phase: %d, Power Mode: %d, SOC: %.1f%%\n",
+                 mission.mission_phase, (int)eps_get_power_mode(), s_soc * 100.0);
 
     uint32_t telemetry_interval = uart_get_telemetry_interval();
 #ifdef SIMULATION_BUILD
@@ -745,7 +745,7 @@ static SmartQsoResult_t run_main_loop(void)
  */
 static void shutdown_system(void)
 {
-    printf("[SYSTEM] Shutting down gracefully...\n");
+    (void)printf("[SYSTEM] Shutting down gracefully...\n");
 
     /* Save final state */
     (void)mission_data_save();
@@ -757,8 +757,8 @@ static void shutdown_system(void)
 
     MissionData_t mission;
     (void)mission_data_get(&mission);
-    printf("[SYSTEM] Shutdown complete. Total uptime: %llu ms, Faults: %" PRIu32 "\n",
-           (unsigned long long)mission.total_uptime_ms, mission.fault_count);
+    (void)printf("[SYSTEM] Shutdown complete. Total uptime: %llu ms, Faults: %" PRIu32 "\n",
+                 (unsigned long long)mission.total_uptime_ms, mission.fault_count);
 }
 
 /*===========================================================================*/

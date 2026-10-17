@@ -240,6 +240,8 @@ SmartQsoResult_t sys_set_state_of_charge(double soc)
         soc = 0.0;
     } else if (soc > 1.0) {
         soc = 1.0;
+    } else {
+        /* in range */
     }
 
     eps_update_soc(soc);
