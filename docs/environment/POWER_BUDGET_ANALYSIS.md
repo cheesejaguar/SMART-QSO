@@ -4,7 +4,13 @@
 **Version**: 1.0
 **Date**: 2026-01-02
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: CDR Baseline — **partly superseded** (see notice)
+
+> **Funding audit notice (2026-10-16).** §2.1 and §3 (a 0.06 m² array, 12.3 W peak, 6.2 W orbit average) are superseded
+> by `docs/BASELINE_PARAMETERS.md` §5 and the array analysis in `hardware/eps/SOLAR_ARRAY_DESIGN.md` §9: EOL orbit
+> average 2.39 W tumbling (2.14 W with self-shadowing) and 3.58 W sun-pointed (finding TB-14). The consumption and
+> energy-balance sections (§4–§7) are superseded by the BASELINE §5 load allocation until the multi-orbit
+> state-of-charge simulation is done (finding TB-02).
 
 ## 1. Purpose
 

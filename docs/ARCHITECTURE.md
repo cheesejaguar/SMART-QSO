@@ -65,26 +65,26 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 - **Thermal Interface**: Black anodized finish for thermal control
 
 #### 2.1.3 Deployable Solar Wings
-- **Configuration**: 2 deployable wings, 1 per side
-- **Wing Dimensions**: 100mm × 50mm × 2mm
+- **Configuration**: 2 deployable wings, hinged on the ±X/+Y edges; deployed, they lie in the plane of the +Y face (layout: `hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.1)
+- **Wing Dimensions**: One 1U face each (panel ≈ 83 × 98 mm, assumed), 2 cells per side
 - **Deployment Mechanism**: Spring-loaded with retention pins
 - **Hinge Design**: Frictionless bearings with deployment stops
-- **Stowed Position**: Parallel to CubeSat body
-- **Deployed Position**: 90° from body, locked in place
+- **Stowed Position**: Over the ±X faces, front cells outward
+- **Deployed Position**: 90° from the stowed position, into the +Y plane, locked in place
 
 ### 2.2 Electrical Power Subsystem (EPS)
 
 #### 2.2.1 Solar Array Configuration
-- **Total Solar Cells**: 8 cells (4 per wing)
-- **Cell Type**: Triple-junction GaAs (30% efficiency)
-- **Cell Dimensions**: 25mm × 25mm
-- **Cell Configuration**: 2S4P per wing, 4S4P total
-- **Peak Power**: 4.8W at beginning of life (BOL)
-- **End of Life Power**: 4.2W after 2 years
+- **Total Solar Cells**: 16: 2 on each of the 4 long body faces and 2 per side on each wing (BASELINE §5)
+- **Cell Type**: Triple-junction (AZUR SPACE 3G30A, 29.2 % at BOL, AM0, 28 °C)
+- **Cell Dimensions**: 40 mm × 80 mm (30.18 cm²)
+- **Cell Configuration**: 8 strings of 2 cells in series, one per panel side
+- **Orbit-Average Power (EOL, analysis)**: 2.39 W tumbling and 3.58 W sun-pointed (BASELINE §5); 2.14 W tumbling once self-shadowing is included (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.3)
+- **Maximum Instantaneous Power (EOL)**: 5.8 W, with the 6 cells of the +Y plane normal to the sun; the 16 cells never all face the sun at once
 
 #### 2.2.2 Power Management
 - **MPPT Controller**: GomSpace NanoPower MPPT
-- **Input Voltage Range**: 6.0V - 18.0V
+- **Input Voltage Range**: Must accept the 2-cell string voltage (≈ 4.2–4.8 V) and boost to the 12.0–16.8 V battery (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.2)
 - **MPPT Efficiency**: >95% at maximum power point
 - **Output Voltage**: 3.3V, 5.0V, 12.0V regulated rails
 
