@@ -231,6 +231,7 @@ set(MODULE_TESTS
     "test_beacon\;rf"
     "test_telemetry\;telemetry"
     "test_telemetry_flow\;integration"
+    "test_adcs\;adcs"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)
@@ -273,11 +274,6 @@ set_tests_properties(no_dynamic_memory PROPERTIES LABELS "static;jpl")
 # Accept/reject vectors shared with the Jetson-side filter
 target_compile_definitions(test_beacon_filter PRIVATE
     BEACON_FILTER_VECTORS="${CMAKE_CURRENT_SOURCE_DIR}/vectors/beacon_filter_vectors.txt")
-
-#===========================================================================
-# Not registered (tracked in docs/funding_audit/FINDINGS_REGISTER.md):
-#   - test_adcs: written for Unity, which is not vendored; port to CMocka
-#===========================================================================
 
 #===========================================================================
 # Test isolation
