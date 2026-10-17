@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document Number**: SMART-QSO-CDR-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-01-02
 **Status**: Ready for Review
 
@@ -259,11 +259,11 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 
 | Requirement | Description | Verification | Status |
 |-------------|-------------|--------------|--------|
-| SRS-F012 | Power mode state machine | Unit test | VERIFIED |
+| SRS-F012 | Power modes SAFE, IDLE, ACTIVE (state machine) | Unit test | VERIFIED |
 | SRS-F023 | AI-generated beacon text | Integration test | VERIFIED |
-| SRS-F040 | Fault detection and logging | Unit test | VERIFIED |
-| SRS-F050 | Watchdog implementation | Unit test | VERIFIED |
-| SRS-F070 | B-dot detumble algorithm | Analysis + HILS | VERIFIED |
+| SRS-F040 | Detect and log all fault conditions | Unit test | VERIFIED |
+| SRS-F050 | Kick hardware watchdog at least every 30 seconds | Unit test | VERIFIED |
+| SYS-421 | The ADCS shall implement B-dot detumble control | Analysis + HILS | VERIFIED |
 | SRS-S001 | RF after separation only | Design review | VERIFIED |
 | SRS-S003 | Hardware watchdog | Design review | VERIFIED |
 
@@ -271,10 +271,10 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 
 | Requirement | Verification Method | Planned |
 |-------------|---------------------|---------|
-| SRS-P002 | Beacon TX timing | System test |
+| SRS-P002 | Beacon transmission complete within 5 seconds | System test |
 | SRS-P003 | Fault detection latency | System test |
 | SRS-Q005 | Flash endurance | Qualification test |
-| SRS-S002 | Battery protection | Hardware test |
+| SYS-113 | The EPS shall provide battery charge and discharge protection | Hardware test |
 
 ---
 
@@ -488,3 +488,4 @@ genhtml coverage.info --output-directory coverage_report
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §8 software-level test IDs follow TEST_PROCEDURES.md Version 1.1 (TP-SWI, TP-SWS); status cells unchanged (finding VV-18) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | OBC design row points to `hardware/obc/OBC_DESIGN.md` (SQSO-CDH-OBC-001), into which SMART-QSO-OBC-001 was merged (finding PI-17) |
+| 1.3 | 2026-10-16 | SMART-QSO Team | Requirement rows use the specification wording; the B-dot and battery-protection rows cite SYS-421 and SYS-113 (SRS-F070 and SRS-S002 mean other requirements); status cells unchanged (finding VV-06) |

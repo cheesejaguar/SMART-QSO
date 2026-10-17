@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-CDS-001
-**Revision:** A1 (funding audit corrections, 2026-10-14)
+**Revision:** A2 (funding audit corrections, 2026-10-14 and 2026-10-16)
 **Date:** 2026-01-02
 **Reference:** Cal Poly CubeSat Design Specification Rev 14.1
 
@@ -193,10 +193,10 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 
 | Item | Description | Closure Activity | Target Date |
 |------|-------------|------------------|-------------|
-| TBR-001 | Separation spring force | Measure during integration | TBD |
-| TBR-002 | IARU frequency coordination | Complete coordination | TBD |
-| TBR-003 | Vibration test | Complete protoflight test | TBD |
-| TBR-004 | Thermal vacuum test | Complete protoflight test | TBD |
+| TBR-CDS-001 | Separation spring force | Measure during integration | TBD |
+| TBR-CDS-002 | IARU frequency coordination | Complete coordination | TBD |
+| TBR-CDS-003 | Vibration test | Complete protoflight test | TBD |
+| TBR-CDS-004 | Thermal vacuum test | Complete protoflight test | TBD |
 
 ---
 
@@ -206,3 +206,4 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | A1 | 2026-10-14 | Inhibit and timer rows corrected to CDS Rev 14.1; audit notice | Funding audit |
+| A2 | 2026-10-16 | Local TBRs numbered TBR-CDS-001 to -004, so they do not collide with the specifications' TBR-001 (finding VV-06) | SMART-QSO Team |

@@ -33,7 +33,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-BL-001 | SMART-QSO Baseline Parameters (Single Source of Truth) | `docs/BASELINE_PARAMETERS.md` | B | Draft; governs where documents disagree (its §0). Records PI decisions D1–D7 |
 | SQSO-DOC-001 | SMART-QSO Document Register | `docs/DOCUMENT_REGISTER.md` | A | Draft |
 | SQSO-ES-001 | SMART-QSO Executive Summary | `docs/EXECUTIVE_SUMMARY.md` | 2.0 | Draft |
-| SQSO-CDS-001 | CubeSat Design Specification Compliance Matrix | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` | A1 | Draft; statuses are design intent, not verified (its notice) |
+| SQSO-CDS-001 | CubeSat Design Specification Compliance Matrix | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` | A2 | Draft; statuses are design intent, not verified (its notice) |
 | SQSO-COMP-004 | Export Control Assessment | `docs/compliance/EXPORT_CONTROL.md` | A | Draft; its system and Jetson classifications are superseded by SQSO-REG-012 |
 | SQSO-ICD-010 | Launch Provider Interface Control Document | `docs/compliance/LAUNCH_PROVIDER_ICD.md` | B | Draft; not agreed with any provider (its notice) |
 | SQSO-MAT-001 | Materials and Outgassing Compliance List | `docs/compliance/MATERIALS_LIST.md` | A | Draft |
@@ -73,7 +73,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SMART-QSO-ICD-002 | Interface Control Document: OBC-Jetson | `docs/interfaces/ICD_OBC_JETSON.md` | 1.0 | Draft |
 | SQSO-ICD-003 | Interface Control Document: OBC to RF Subsystem | `docs/interfaces/ICD_OBC_RF.md` | 1.1 | Draft |
 | SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 1.2 | Draft |
-| SQSO-ICD-000 | Interface Control Document - Master | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | B | Draft |
+| SQSO-ICD-000 | Interface Control Document - Master | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | C | Draft |
 | SQSO-IVP-001 | SMART-QSO Interface Verification Plan | `docs/interfaces/INTERFACE_VERIFICATION_PLAN.md` | 1.0 | Draft |
 | SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.6 | Draft |
 | SQSO-MFG-002 | EEE Parts List | `docs/manufacturing/EEE_PARTS_LIST.md` | A | Draft |
@@ -118,11 +118,11 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-REG-018 | Orbital Debris Assessment Report (ODAR) | `docs/regulatory/filings/ODAR_SMART-QSO.md` | Draft A | Draft; NASA DAS not yet run (its header) |
 | SQSO-REG-015 | Space Safety Registration and Conjunction Response Plan | `docs/regulatory/filings/SPACE_SAFETY_REGISTRATION_AND_CONJUNCTION_PLAN.md` | B | Draft |
 | SQSO-REQ-001 | Mission Requirements Document | `docs/requirements/MISSION_REQUIREMENTS.md` | A | Draft |
-| SMART-QSO-RTM-001 | Requirements Traceability Matrix (RTM) | `docs/requirements/REQUIREMENTS_TRACEABILITY.md` | 1.0 | Draft |
+| SMART-QSO-RTM-001 | Requirements Traceability Matrix (RTM) | `docs/requirements/REQUIREMENTS_TRACEABILITY.md` | 1.1 | Draft |
 | SQSO-REQ-002 | System Requirements Specification | `docs/requirements/SYSTEM_REQUIREMENTS.md` | B | Draft |
 | SQSO-REV-CDR-001 | SMART-QSO Critical Design Review (CDR) | `docs/reviews/CDR/CDR_REVIEW_MINUTES.md` | — | Self-assessment record; no independent CDR held |
-| SQSO-CDR-TB-001 | SMART-QSO CDR Technical Baseline | `docs/reviews/CDR/CDR_TECHNICAL_BASELINE.md` | 1.0 | Self-assessment; not an independent review (its notice) |
-| SMART-QSO-CDR-001 | SMART-QSO Critical Design Review (CDR) Package | `docs/reviews/CDR_PACKAGE.md` | 1.2 | Self-assessment; not an independent review (its notice) |
+| SQSO-CDR-TB-001 | SMART-QSO CDR Technical Baseline | `docs/reviews/CDR/CDR_TECHNICAL_BASELINE.md` | 1.1 | Self-assessment; not an independent review (its notice) |
+| SMART-QSO-CDR-001 | SMART-QSO Critical Design Review (CDR) Package | `docs/reviews/CDR_PACKAGE.md` | 1.3 | Self-assessment; not an independent review (its notice) |
 | SQSO-REV-003 | CDR Status Summary | `docs/reviews/CDR_STATUS_SUMMARY.md` | B | Draft; status claims not substantiated (its notice) |
 | SQSO-FRR-001 | SMART-QSO Flight Readiness Review Package | `docs/reviews/FLIGHT_READINESS_REVIEW.md` | 1.0 | Template |
 | SQSO-FSW-DEL-001 | SMART-QSO Flight Software Delivery Package | `docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` | 1.0 | Draft; status claims not substantiated (its notice) |
@@ -131,11 +131,11 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-LRR-001 | SMART-QSO Launch Readiness Review Package | `docs/reviews/LAUNCH_READINESS_REVIEW.md` | 1.0 | Template |
 | SQSO-MOR-001 | SMART-QSO Mission Operations Review Package | `docs/reviews/MISSION_OPERATIONS_REVIEW.md` | 1.0 | Template |
 | SQSO-REV-PDR-001 | SMART-QSO Preliminary Design Review (PDR) | `docs/reviews/PDR/PDR_REVIEW_MINUTES.md` | — | Self-assessment record; no independent PDR held |
-| SMART-QSO-PDR-001 | SMART-QSO Preliminary Design Review (PDR) Package | `docs/reviews/PDR_PACKAGE.md` | 1.0 | Self-assessment; not an independent review (its notice) |
+| SMART-QSO-PDR-001 | SMART-QSO Preliminary Design Review (PDR) Package | `docs/reviews/PDR_PACKAGE.md` | 1.1 | Self-assessment; not an independent review (its notice) |
 | SQSO-PSR-001 | SMART-QSO Post-Environmental Review Package | `docs/reviews/POST_ENVIRONMENTAL_REVIEW.md` | 1.0 | Template |
 | SQSO-PER-001 | SMART-QSO Pre-Environmental Review Package | `docs/reviews/PRE_ENVIRONMENTAL_REVIEW.md` | 1.0 | Template |
 | SQSO-SR-001 | SMART-QSO Safety Review Package | `docs/reviews/SAFETY_REVIEW.md` | 1.0 | Self-assessment record; not an independent review (its notice) |
-| SQSO-SRR-001 | SMART-QSO System Requirements Review Package | `docs/reviews/SYSTEM_REQUIREMENTS_REVIEW.md` | 1.0 | Self-assessment record; no independent SRR held |
+| SQSO-SRR-001 | SMART-QSO System Requirements Review Package | `docs/reviews/SYSTEM_REQUIREMENTS_REVIEW.md` | 1.1 | Self-assessment record; no independent SRR held |
 | SQSO-TRR-001 | SMART-QSO Test Readiness Review Package | `docs/reviews/TEST_READINESS_REVIEW.md` | 1.0 | Template |
 | SQSO-REV-004 | SMART-QSO Verification and Validation Package | `docs/reviews/VERIFICATION_VALIDATION_PACKAGE.md` | 1.1 | Draft; status claims not substantiated (its notice) |
 | SQSO-SDP-001 | SMART-QSO Safety Data Package | `docs/safety/SAFETY_DATA_PACKAGE.md` | 1.0 | Draft |
@@ -199,11 +199,11 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | TP-SYS-002 | Test Procedure: Day-In-The-Life Test | `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md` | A | Draft; no run recorded |
 | SQSO-CAP-001 | Configuration Audit Procedures | `docs/verification/CONFIGURATION_AUDIT_PROCEDURES.md` | 1.1 | Draft |
 | SQSO-CVM-001 | SMART-QSO ConOps Validation Matrix | `docs/verification/CONOPS_VALIDATION_MATRIX.md` | 1.0 | Draft |
-| SQSO-RTM-001 | SMART-QSO Requirements Traceability Matrix | `docs/verification/REQUIREMENTS_TRACEABILITY_MATRIX.md` | 1.1 | Draft |
+| SQSO-RTM-001 | SMART-QSO Requirements Traceability Matrix | `docs/verification/REQUIREMENTS_TRACEABILITY_MATRIX.md` | 1.2 | Draft |
 | SQSO-VER-RF-001 | RF Test Results Document | `docs/verification/RF_TEST_RESULTS.md` | 1.0 | Template |
 | SMART-QSO-TP-001 | SMART-QSO Test Procedures | `docs/verification/TEST_PROCEDURES.md` | 1.1 | Draft |
-| SQSO-VCRM-001 | Verification Cross-Reference Matrix (VCRM) | `docs/verification/VERIFICATION_MATRIX.md` | A | Draft |
-| SQSO-VVP-001 | SMART-QSO Verification and Validation Plan | `docs/verification/VERIFICATION_VALIDATION_PLAN.md` | 1.1 | Draft |
+| SQSO-VCRM-001 | Verification Cross-Reference Matrix (VCRM) | `docs/verification/VERIFICATION_MATRIX.md` | B | Draft |
+| SQSO-VVP-001 | SMART-QSO Verification and Validation Plan | `docs/verification/VERIFICATION_VALIDATION_PLAN.md` | 1.2 | Draft |
 | SQSO-ADCS-ACT-001 | ADCS Actuator Design Document | `hardware/adcs/ACTUATOR_DESIGN.md` | 1.0 | Draft |
 | SQSO-ADCS-003 | ADCS Electrical Design Specification | `hardware/adcs/ADCS_ELECTRICAL_DESIGN.md` | 1.0 | Draft |
 | SQSO-ADCS-SEN-001 | ADCS Sensor Design Document | `hardware/adcs/SENSOR_DESIGN.md` | 1.0 | Draft |
