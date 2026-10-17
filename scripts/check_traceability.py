@@ -13,8 +13,8 @@ are worked down:
   procedures_without_ids  test procedures that cite no defined requirement
 
     python3 scripts/check_traceability.py            # report
-    python3 scripts/check_traceability.py --check    # fail if any count rose
-                                                     # above scripts/traceability_baseline.json
+    python3 scripts/check_traceability.py --check    # fail if any count differs from
+                                                     # scripts/traceability_baseline.json
 """
 
 from __future__ import annotations
@@ -98,10 +98,17 @@ def measure(root: Path = REPO, specs=SPECS) -> Dict[str, List[str]]:
 
 
 def compare(metrics: Dict[str, List[str]], baseline_path: Path) -> List[str]:
-    """Counts above the baseline, one line each."""
+    """Counts that differ from the baseline, one line each. A count above it
+    is a new defect; one below it means the baseline must be lowered with
+    the fix, so the fixed defects cannot come back."""
     baseline = json.loads(baseline_path.read_text())
-    return [f"{key}: {len(items)}, baseline {baseline[key]}"
-            for key, items in metrics.items() if len(items) > baseline[key]]
+    out = []
+    for key, items in metrics.items():
+        if len(items) > baseline[key]:
+            out.append(f"{key}: {len(items)}, baseline {baseline[key]}")
+        elif len(items) < baseline[key]:
+            out.append(f"{key}: {len(items)}, baseline {baseline[key]} (lower the baseline)")
+    return out
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -117,10 +124,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         if len(items) > 15:
             print(f"  ... {len(items) - 15} more")
     if args.check:
-        rises = compare(metrics, BASELINE)
-        for line in rises:
-            print(f"::error::traceability got worse: {line}")
-        return 1 if rises else 0
+        changes = compare(metrics, BASELINE)
+        for line in changes:
+            print(f"::error::traceability differs from {BASELINE.name}: {line}")
+        return 1 if changes else 0
     return 0
 
 
