@@ -149,20 +149,28 @@ SmartQsoResult_t fault_log_clear(void);
 /**
  * @brief Recover from thermal fault
  *
- * Disables payload and transitions to IDLE mode to reduce thermal load.
+ * If the payload is on, turns it off to reduce thermal load and raises
+ * EVENT_THERMAL_FAULT with the state machine, which decides the mode (from
+ * IDLE or ACTIVE: SAFE). The EPS power mode is never set directly (SW-14).
  *
  * @param soc Current state of charge
- * @return SMART_QSO_OK on success, error code otherwise
+ * @return SMART_QSO_OK on success; an error if the state machine is not
+ *         initialized (the payload is still turned off)
  */
 SmartQsoResult_t fault_recover_thermal(double soc);
 
 /**
  * @brief Recover from power fault
  *
- * Transitions to appropriate power mode based on current SOC.
+ * Raises the event sm_power_event() calls for at this SOC, through the
+ * state machine (SW-14), with its hysteresis: ACTIVE to IDLE below 40 %,
+ * to SAFE below 25 %, SAFE to EMERGENCY below 15 %, back to SAFE at 25 % and
+ * to IDLE above 40 %. Recovery never enters ACTIVE (evaluated as not
+ * sunlit). The EPS power mode is never set directly.
  *
  * @param soc Current state of charge
- * @return SMART_QSO_OK on success, error code otherwise
+ * @return SMART_QSO_OK on success; an error if the state machine is not
+ *         initialized (nothing is changed)
  */
 SmartQsoResult_t fault_recover_power(double soc);
 
