@@ -2,13 +2,11 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-ENV-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 **Reference:** GSFC-STD-7000 (GEVS), NASA Ames SmallSat Heritage
 
-**Requirements verified:** SYS-001, SYS-002, SYS-003, SYS-203, SYS-210
-
-**Not cited until corrected:** step 8.6.3 (145.825 MHz, which SYS-200 excludes) and step 8.6.4 (up to 2 W; SYS-201 caps output at 1 W).
+**Requirements verified:** SYS-001, SYS-002, SYS-003, SYS-200, SYS-201, SYS-203, SYS-206, SYS-210
 
 ---
 
@@ -159,14 +157,14 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 | 8.5.7 | Test all operational modes | Transitions correct | |
 | 8.5.8 | Reinstall RBF pin | Unit powers off | |
 
-### 8.6 RF Characterization [SYS-203, SYS-210]
+### 8.6 RF Characterization [SYS-200, SYS-201, SYS-203, SYS-206, SYS-210]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
 | 8.6.1 | Connect RF test cable to TX port | Secure connection | |
 | 8.6.2 | Command beacon transmission | TX active | |
-| 8.6.3 | Measure center frequency | 145.825 MHz 5kHz | |
-| 8.6.4 | Measure output power | 0.5W to 2W (as configured) | |
+| 8.6.3 | Measure center frequency | The IARU-coordinated downlink frequency ±5 kHz (TBD until coordination, TBD-SYS-001; SYS-200, SYS-206) | |
+| 8.6.4 | Measure output power | 0.5 W nominal (as configured); never above 1 W (SYS-201) | |
 | 8.6.5 | Measure spurious emissions | >40dB below carrier | |
 | 8.6.6 | Measure modulation deviation | 3.5kHz 0.5kHz | |
 | 8.6.7 | Verify AX.25 decode | Clean decode | |
@@ -176,8 +174,8 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 
 | Parameter | Requirement | Measured | P/F |
 |-----------|-------------|----------|-----|
-| Center frequency | 145.825 MHz 5kHz | MHz | |
-| Output power | 0.5-2W | W | |
+| Center frequency | IARU-coordinated frequency ±5 kHz (TBD-SYS-001; SYS-200, SYS-206) | MHz | |
+| Output power | 0.5 W nominal; ≤ 1 W (SYS-201) | W | |
 | Spurious emissions | >40dB suppression | dB | |
 | FM deviation | 3.5 0.5kHz | kHz | |
 | Occupied bandwidth | <16 kHz | kHz | |
@@ -295,3 +293,4 @@ This matrix shall be completed after environmental testing by comparing pre- and
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
+| C | 2026-10-16 | Steps 8.6.3 and 8.6.4 and their record rows corrected and cited: the IARU-coordinated downlink frequency ±5 kHz (SYS-200, SYS-206, TBD-SYS-001; was 145.825 MHz) and 0.5 W nominal, never above 1 W (SYS-201; was up to 2 W) (finding VV-06) | SMART-QSO Team |

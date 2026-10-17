@@ -2,13 +2,11 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-JETSON-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-01-02
 **Reference:** NVIDIA Jetson Orin Nano Datasheet, NASA Ames SmallSat Heritage
 
 **Requirements verified:** SYS-501, SYS-502, SYS-503, SYS-514
-
-**To be corrected:** §8.4 characterizes a 15 W mode (8 to 15 W), above the 10 W peak of SYS-501; flight uses the 7 W mode (step 8.5.1).
 
 ---
 
@@ -126,7 +124,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | Idle current | < 1A at 5V | A | |
 | Junction temp | < 50C (idle) | C | |
 
-### 8.4 DVFS Profile Verification
+### 8.4 DVFS Profile Verification [SYS-501]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
@@ -135,8 +133,8 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | 8.4.3 | Verify CPU frequency reduced | < 1.0 GHz | |
 | 8.4.4 | Verify GPU frequency reduced | < 400 MHz | |
 | 8.4.5 | Measure power in low-power mode | < 7W | |
-| 8.4.6 | Command nominal mode (15W) | Mode change confirmed | |
-| 8.4.7 | Measure power in nominal mode | 8-15W | |
+| 8.4.6 | Command a power mode above 7W (for example 15W) | Rejected; the 7W mode is retained, the only flight mode (`docs/BASELINE_PARAMETERS.md` §6) | |
+| 8.4.7 | Measure input power at the carrier in 7W mode under load | ≤ 8W including the carrier (`docs/BASELINE_PARAMETERS.md` §6); peak < 10W (SYS-501) | |
 
 **DVFS Record:**
 
@@ -144,8 +142,8 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 |------|----------|----------|-----|
 | 7W mode (idle) | < 5W | W | |
 | 7W mode (load) | < 7W | W | |
-| 15W mode (idle) | < 8W | W | |
-| 15W mode (load) | < 15W | W | |
+| 7W mode (load), carrier input | ≤ 8W | W | |
+| Mode above 7W commanded | Rejected, 7W retained | — | |
 
 ### 8.5 Inference Power Measurement [SYS-501]
 
@@ -285,3 +283,4 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | OBC-Jetson ICD cited by its own number, SMART-QSO-ICD-002 (finding PI-17) | SMART-QSO Team |
 | C | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
+| D | 2026-10-16 | §8.4 no longer characterizes a 15 W mode (8–15 W, above the 10 W peak of SYS-501): steps 8.4.6–8.4.7 and the record check that no mode above 7 W can be selected and that the carrier input stays ≤ 8 W in the 7 W mode (BASELINE §6); §8.4 cites SYS-501 (finding VV-06) | SMART-QSO Team |

@@ -161,26 +161,26 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-TP-ADCS-002 | Test Procedure: ADCS Actuator Test | `docs/test_procedures/TP-ADCS-002_Actuator_Test.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-ADCS-003 | Test Procedure: ADCS Algorithm Test | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-DITL-001 | TP-DITL-001: Day-in-the-Life Test Procedure | `docs/test_procedures/TP-DITL-001_DAY_IN_THE_LIFE.md` | 1.1 | Draft; no run recorded |
-| TP-ENV-001 | Test Procedure: Pre-Environmental Baseline | `docs/test_procedures/TP-ENV-001_Pre_Environmental.md` | B | Draft; no run recorded |
+| TP-ENV-001 | Test Procedure: Pre-Environmental Baseline | `docs/test_procedures/TP-ENV-001_Pre_Environmental.md` | C | Draft; no run recorded |
 | TP-ENV-002 | Test Procedure: Vibration Test | `docs/test_procedures/TP-ENV-002_Vibration.md` | C | Draft; no run recorded |
-| TP-ENV-003 | Test Procedure: Thermal Vacuum Test | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | B | Draft; no run recorded |
-| SQSO-TP-ENV-004 | Test Procedure: EMC/EMI Test | `docs/test_procedures/TP-ENV-004_EMC.md` | 1.1 | Draft; no run recorded |
+| TP-ENV-003 | Test Procedure: Thermal Vacuum Test | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | C | Draft; no run recorded |
+| SQSO-TP-ENV-004 | Test Procedure: EMC/EMI Test | `docs/test_procedures/TP-ENV-004_EMC.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-ENV-005 | Test Procedure: Deployment Test (Post-Environmental) | `docs/test_procedures/TP-ENV-005_Deployment_Post_Env.md` | 1.0 | Draft; no run recorded |
 | TP-EPS-001 | Test Procedure: EPS Functional Test | `docs/test_procedures/TP-EPS-001_Functional_Test.md` | C | Draft; no run recorded |
-| TP-EPS-002 | Test Procedure: EPS Load Profile Test | `docs/test_procedures/TP-EPS-002_Load_Profile.md` | B | Draft; no run recorded |
+| TP-EPS-002 | Test Procedure: EPS Load Profile Test | `docs/test_procedures/TP-EPS-002_Load_Profile.md` | C | Draft; no run recorded |
 | SQSO-TP-EPS-003 | Test Procedure: Battery Characterization | `docs/test_procedures/TP-EPS-003_Battery_Characterization.md` | 1.0 | Draft; no run recorded |
 | SQSO-TP-EPS-004 | Test Procedure: Solar Array Characterization | `docs/test_procedures/TP-EPS-004_Solar_Array.md` | 1.1 | Draft; no run recorded |
-| SQSO-TP-FAT-001 | Test Procedure: Final Acceptance Functional Test | `docs/test_procedures/TP-FAT-001_Final_Functional.md` | 1.2 | Draft; no run recorded |
-| SQSO-TP-FAT-002 | Test Procedure: Flight Configuration Verification | `docs/test_procedures/TP-FAT-002_Flight_Config.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-FAT-001 | Test Procedure: Final Acceptance Functional Test | `docs/test_procedures/TP-FAT-001_Final_Functional.md` | 1.3 | Draft; no run recorded |
+| SQSO-TP-FAT-002 | Test Procedure: Flight Configuration Verification | `docs/test_procedures/TP-FAT-002_Flight_Config.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-FLATSAT-001 | Test Procedure: Flatsat Software Development | `docs/test_procedures/TP-FLATSAT-001_Software_Development.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-GS-001 | TP-GS-001: Ground Station Validation Test Procedure | `docs/test_procedures/TP-GS-001_Ground_Station_Validation.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-INT-001 | Test Procedure: EPS Integration | `docs/test_procedures/TP-INT-001_EPS_Integration.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-INT-002 | Test Procedure: OBC Integration | `docs/test_procedures/TP-INT-002_OBC_Integration.md` | 1.1 | Draft; no run recorded |
-| SQSO-TP-INT-003 | Test Procedure: RF Subsystem Integration | `docs/test_procedures/TP-INT-003_RF_Integration.md` | 1.1 | Draft; no run recorded |
+| SQSO-TP-INT-003 | Test Procedure: RF Subsystem Integration | `docs/test_procedures/TP-INT-003_RF_Integration.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-INT-004 | Test Procedure: ADCS Integration | `docs/test_procedures/TP-INT-004_ADCS_Integration.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-INT-005 | Test Procedure: Jetson Payload Integration | `docs/test_procedures/TP-INT-005_Jetson_Integration.md` | 1.1 | Draft; no run recorded |
-| SQSO-TP-INT-006 | Test Procedure: Final Assembly Integration | `docs/test_procedures/TP-INT-006_Final_Assembly.md` | 1.2 | Draft; no run recorded |
-| TP-JETSON-001 | Test Procedure: Jetson Payload Power Test | `docs/test_procedures/TP-JETSON-001_Power_Test.md` | C | Draft; no run recorded |
+| SQSO-TP-INT-006 | Test Procedure: Final Assembly Integration | `docs/test_procedures/TP-INT-006_Final_Assembly.md` | 1.3 | Draft; no run recorded |
+| TP-JETSON-001 | Test Procedure: Jetson Payload Power Test | `docs/test_procedures/TP-JETSON-001_Power_Test.md` | D | Draft; no run recorded |
 | SQSO-TP-JETSON-002 | Test Procedure: Jetson Thermal Test | `docs/test_procedures/TP-JETSON-002_Thermal_Test.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-JETSON-003 | Test Procedure: Jetson Functional Test | `docs/test_procedures/TP-JETSON-003_Functional_Test.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-MECH-001 | Test Procedure: Mechanical Fit Check | `docs/test_procedures/TP-MECH-001_Fit_Check.md` | 1.1 | Draft; no run recorded |
@@ -190,14 +190,14 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-TP-OBC-002 | Test Procedure: OBC Software Load | `docs/test_procedures/TP-OBC-002_Software_Load.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-OBC-003 | Test Procedure: OBC Timing Verification | `docs/test_procedures/TP-OBC-003_Timing.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-OBC-004 | Test Procedure: Watchdog Verification | `docs/test_procedures/TP-OBC-004_Watchdog.md` | 1.0 | Draft; no run recorded |
-| TP-RF-001 | Test Procedure: RF Functional Test | `docs/test_procedures/TP-RF-001_Functional_Test.md` | C | Draft; no run recorded |
-| SQSO-TP-RF-002 | Test Procedure: RF Conducted Power | `docs/test_procedures/TP-RF-002_Conducted_Power.md` | 1.1 | Draft; no run recorded |
-| SQSO-TP-RF-003 | Test Procedure: Spurious Emissions | `docs/test_procedures/TP-RF-003_Spurious_Emissions.md` | 1.1 | Draft; no run recorded |
+| TP-RF-001 | Test Procedure: RF Functional Test | `docs/test_procedures/TP-RF-001_Functional_Test.md` | D | Draft; no run recorded |
+| SQSO-TP-RF-002 | Test Procedure: RF Conducted Power | `docs/test_procedures/TP-RF-002_Conducted_Power.md` | 1.2 | Draft; no run recorded |
+| SQSO-TP-RF-003 | Test Procedure: Spurious Emissions | `docs/test_procedures/TP-RF-003_Spurious_Emissions.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-RF-004 | Test Procedure: Modulation Quality | `docs/test_procedures/TP-RF-004_Modulation.md` | 1.0 | Draft; no run recorded |
 | SQSO-TP-RF-005 | Test Procedure: Antenna Deployment | `docs/test_procedures/TP-RF-005_Antenna_Deployment.md` | 1.0 | Draft; no run recorded |
 | TP-RF-006 | Test Procedure: Telecommand TX-OFF at the Antenna Port | `docs/test_procedures/TP-RF-006_TX_OFF.md` | Draft | Draft; no run recorded |
 | TP-SYS-001 | Test Procedure: Comprehensive Functional Test | `docs/test_procedures/TP-SYS-001_Comprehensive_Functional.md` | A | Draft; no run recorded |
-| TP-SYS-002 | Test Procedure: Day-In-The-Life Test | `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md` | B | Draft; no run recorded |
+| TP-SYS-002 | Test Procedure: Day-In-The-Life Test | `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md` | C | Draft; no run recorded |
 | SQSO-CAP-001 | Configuration Audit Procedures | `docs/verification/CONFIGURATION_AUDIT_PROCEDURES.md` | 1.1 | Draft |
 | SQSO-CVM-001 | SMART-QSO ConOps Validation Matrix | `docs/verification/CONOPS_VALIDATION_MATRIX.md` | 1.0 | Draft |
 | SQSO-RTM-001 | SMART-QSO Requirements Traceability Matrix | `docs/verification/REQUIREMENTS_TRACEABILITY_MATRIX.md` | 1.2 | Draft |

@@ -2,13 +2,11 @@
 ## TP-ENV-004
 
 **Document Number:** SQSO-TP-ENV-004
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-01-02
 **Status:** CDR Baseline
 
-**Requirements verified:** MRD-080 (launch provider EMC), SYS-203
-
-**Not cited until corrected:** §8.3 gives the beacon as 145.825 MHz, which SYS-200 excludes.
+**Requirements verified:** MRD-080 (launch provider EMC), SYS-200, SYS-203
 
 ---
 
@@ -133,14 +131,14 @@ This procedure defines the electromagnetic compatibility (EMC) and electromagnet
 - 500 kHz - 2 MHz: 94 - 20log(f/0.5) dBµV
 - 2 MHz - 10 MHz: 60 dBµV
 
-### 8.3 Radiated Emissions (RE102) [SYS-203]
+### 8.3 Radiated Emissions (RE102) [SYS-200, SYS-203]
 
 | Step | Action | Pass Criteria |
 |------|--------|---------------|
 | 1 | Configure UUT in Mode 1 | Stable operation |
 | 2 | Position antenna 1m from UUT | Correct orientation |
 | 3 | Scan 2 MHz - 18 GHz | Record emissions |
-| 4 | Note intentional transmissions | 145.825 MHz beacon |
+| 4 | Note intentional transmissions | Beacon at the IARU-coordinated downlink frequency (TBD until coordination, TBD-SYS-001; SYS-200) |
 | 5 | Configure UUT in Mode 4 | Jetson active |
 | 6 | Scan 2 MHz - 18 GHz | Record emissions |
 | 7 | Compare to limit | < RE102 limit - 6 dB |
@@ -151,8 +149,8 @@ This procedure defines the electromagnetic compatibility (EMC) and electromagnet
 - > 1 GHz: Launch provider specific
 
 **Exceptions:**
-- Intentional transmission at 145.825 MHz (coordinated)
-- Harmonics within IARU spurious limits (-43 dBc)
+- Intentional transmission at the IARU-coordinated downlink frequency in 145.800–146.000 MHz, not 145.825 MHz (SYS-200; TBD-SYS-001)
+- Harmonics at least 40 dB below carrier (SYS-203) and ≤ 25 µW (47 CFR 97.307(e): < -43 dBc at 0.5 W, < -46 dBc at 1 W)
 
 ### 8.4 Self-Compatibility Test
 
@@ -247,3 +245,4 @@ Anomalies: ___________
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release for CDR |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-16 | §8.3 step 4 and exceptions: beacon at the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); harmonic exception restated as SYS-203 plus the 25 µW of 47 CFR 97.307(e) (was -43 dBc, "IARU") (finding VV-06) |

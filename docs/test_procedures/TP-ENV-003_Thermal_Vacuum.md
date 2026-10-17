@@ -2,13 +2,11 @@
 ## TP-ENV-003
 
 **Document Number:** TP-ENV-003
-**Revision:** B
+**Revision:** C
 **Date:** 2026-01-02
 **Reference:** GSFC-STD-7000A (GEVS)
 
-**Requirements verified:** SYS-600, SYS-702
-
-**Not cited until corrected:** SYS-601 requires survival down to -40 °C; the survival limit in §3.1 is -30 °C.
+**Requirements verified:** SYS-600, SYS-601 (cold survival limit open, TBR-TPENV003-001), SYS-702
 
 ---
 
@@ -30,12 +28,12 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 
 ## 3. Test Levels
 
-### 3.1 Temperature Limits [SYS-600]
+### 3.1 Temperature Limits [SYS-600, SYS-601]
 
 | Parameter | Hot (°C) | Cold (°C) |
 |-----------|----------|-----------|
 | Operational | +50 | -20 |
-| Survival | +60 | -30 |
+| Survival | +60 | -40 (SYS-601) or -30 (Rev B of this procedure): TBR-TPENV003-001 |
 | Protoflight margin | +5 | -5 |
 
 ### 3.2 Test Profile
@@ -47,7 +45,7 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 | Hot survival | +60°C | 1 hour minimum | < 10⁻⁵ Torr |
 | Transition | +60°C to -20°C | Natural | < 10⁻⁵ Torr |
 | Cold operational | -20°C | 4 hours minimum | < 10⁻⁵ Torr |
-| Cold survival | -30°C | 1 hour minimum | < 10⁻⁵ Torr |
+| Cold survival | -40°C or -30°C (TBR-TPENV003-001) | 1 hour minimum | < 10⁻⁵ Torr |
 | **Cycles** | **4 complete** | | |
 
 ## 4. Procedure
@@ -107,8 +105,8 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 | 4 | Cold soak (4 hrs) | Maintain -20°C | ______ hrs | |
 | 5 | Functional test | TP-SYS-001 pass | ______ | |
 | 6 | Power off | Spacecraft safe | ______ | |
-| 7 | Ramp to -30°C | Survival temp | ______ °C | |
-| 8 | Survival soak (1 hr) | Maintain -30°C | ______ hrs | |
+| 7 | Ramp to the cold survival limit, -40°C or -30°C (TBR-TPENV003-001) | Survival temp | ______ °C | |
+| 8 | Survival soak (1 hr) | Maintain the cold survival limit (TBR-TPENV003-001) | ______ hrs | |
 
 ### 4.5 Thermal Cycles 2-4
 
@@ -175,12 +173,18 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 | Hot operational | +50°C ± 2°C | ______ | |
 | Hot survival | +60°C ± 2°C | ______ | |
 | Cold operational | -20°C ± 2°C | ______ | |
-| Cold survival | -30°C ± 2°C | ______ | |
+| Cold survival | -40°C or -30°C ± 2°C (TBR-TPENV003-001) | ______ | |
 | Cycles complete | 4 | ______ | |
 | Test pressure | < 10⁻⁵ Torr | ______ | |
 | Functional at hot | Pass | ______ | |
 | Functional at cold | Pass | ______ | |
 | Post-test functional | Pass | ______ | |
+
+## 9. TBD/TBR Items
+
+| ID | Item | Owner | Closure Plan | Needed by |
+|----|------|-------|--------------|-----------|
+| TBR-TPENV003-001 | Cold survival limit: SYS-601 requires survival from -40 °C; Rev B of this procedure tested only to -30 °C | PI | The PI sets the survival range: test to -40 °C (SYS-601) or amend SYS-601. For the decision: the chamber in §2 reaches -40 °C, so -40 °C with the -5 °C protoflight margin of §3.1 is outside its range; the RF PA cold limit in §5 is -30 °C; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §3.2 also gives -30 °C. SYS-601 governs until it is amended | Before the thermal vacuum test |
 
 ---
 
@@ -190,3 +194,4 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
+| C | 2026-10-16 | Cold survival limit marked open between -40 °C (SYS-601) and -30 °C (Rev B), tracked as TBR-TPENV003-001 in the new §9 for the PI; §3.1 cites SYS-601 (findings VV-06, VV-17) | SMART-QSO Team |
