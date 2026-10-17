@@ -288,7 +288,7 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 | Beacon interval | < 60 s | < 30 s | 30 s | MET |
 | AI inference latency | < 10 s | < 5 s | ~5 s | MET |
 | Detumble time | < 90 min | < 45 min | ~45 min | MET |
-| Link margin (downlink) | > 6 dB | > 10 dB | 13.4 dB | MET |
+| Link margin (downlink) | > 6 dB | > 10 dB | Not measured (no hardware). Analysis: +7.7 dB at 5° (`docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0) | Analysis only |
 | Code coverage | > 80% | > 90% | 80% | MET |
 
 ---

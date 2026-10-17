@@ -4,7 +4,8 @@
 > capability" architecture cannot be authorized. 47 CFR 97.207(b) and ITU RR 22.1 require that transmissions can be
 > stopped by telecommand. The baseline adds a 435–438 MHz receiver, authenticated telecommand, a hardware TX-OFF path
 > and a duty-gated FM transponder (`docs/RF_PLAN.md`, `docs/BASELINE_PARAMETERS.md` §7). The 145.825 MHz frequency
-> (ARISS/APRS packet) and the link margins here are also superseded (findings RG-01, RG-09, TB-05).
+> (ARISS/APRS packet) and the link margins here are also superseded (findings RG-01, RG-09, TB-05); the controlled
+> link budget is `docs/environment/LINK_BUDGET_ANALYSIS.md` (v2.0).
 
 **Document Number**: SMART-QSO-RF-001
 **Version**: 1.0

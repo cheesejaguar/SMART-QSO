@@ -117,7 +117,7 @@ Per NPR 7123.1, the 17 SE processes are tailored for Class D CubeSat:
 | Power generation (EOL) | > 2.0 W | > 2.5 W | TBD |
 | Beacon interval | < 60 s | < 30 s | 30 s |
 | AI inference latency | < 10 s | < 5 s | TBD |
-| Link margin (downlink) | > 6 dB | > 10 dB | TBD |
+| Link margin (downlink) | > 6 dB | > 10 dB | +7.7 dB at 5° elevation, 0.5 W, 12 dBic station (analysis, `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0) |
 
 ---
 
@@ -305,3 +305,4 @@ All interfaces are documented in ICDs and controlled through:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-16 | Funding audit | TPM table cites the controlled analyses (link margin: TB-05) |

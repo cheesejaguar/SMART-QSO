@@ -29,7 +29,7 @@ misrepresentation to the IARU, and it has been withdrawn:
 | Primary downlink 145.825 MHz | 145.825 MHz carries ARISS/ISS packet and APRS digipeater traffic. The v40 draft asks the panel to assign a frequency in 145.800–146.000 MHz. |
 | FCC Part 97 "Application pending"; NTIA "Coordination in progress" | Nothing was filed. Part 97 uses notifications, not a license application, and NTIA does not apply. |
 | "First Beacon: Launch + 30 minutes" | Violates the CDS Rev 14.1 §2.4.5 rule of no transmission earlier than **45 minutes** after deployment. |
-| Link margin 14 dB with −145 dB path loss | Superseded by `docs/environment/LINK_BUDGET_ANALYSIS.md` (recomputed for the baseline orbit; see the findings register). |
+| Link margin 14 dB with −145 dB path loss | Superseded by `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0 (analysis at the baseline orbit, 500 km): the 1200 bps beacon at 0.5 W closes from 5° elevation with +7.7 dB (+4.7 dB in the conservative antenna-pattern case), and telecommand at 25 W with +4.7 dB in 92 % of spacecraft orientations. Free-space loss at 145.9 MHz is 142.1 dB at 5° and 129.7 dB overhead. |
 
 ---
 
@@ -39,3 +39,4 @@ misrepresentation to the IARU, and it has been withdrawn:
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release (withdrawn) | SMART-QSO Team |
 | B | 2026-10-14 | Replaced by v40-form draft; Rev A errors listed | Funding audit |
+| C | 2026-10-16 | Link-margin correction cites the re-issued link budget (SQSO-LBA-001 v2.0) | Funding audit (TB-05) |

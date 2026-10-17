@@ -76,7 +76,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **7.2 Locations:** `[lat/long]`
 - **7.3 Telecommand frequency:** the coordinated 435–438 MHz uplink frequency
 - **7.4 / 7.5 Emission:** 10K4F2D, 1200 bps AFSK on FM, AX.25 framing
-- **7.6 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` (uplink section, to be added; see findings register)
+- **7.6 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` §4 (telecommand uplink: +4.7 dB at 5° elevation, 25 W, in 92 % of spacecraft orientations; analysis)
 - **7.7 Telecommand encryption:** Commands are authenticated, not encrypted: HMAC-SHA-256 with a secret key held only by the licensee, plus a monotonically increasing command counter for replay protection (permitted by 47 CFR 97.211(b)). Command content is otherwise in the clear. Keys are loaded before launch through the umbilical; a compromised key is replaced on orbit by switching to a pre-loaded spare, so no key material is ever transmitted.
 - **7.8 How telecommand stations turn off the transmitter immediately, even with user traffic or computer failure:** A TX-OFF command is decoded by the radio/OBC command path, which removes power from the RF power amplifier through a hardware switch. This path does not depend on the AI payload or the transponder application. A second, independent path is the OBC watchdog-protected command that latches TX inhibit in non-volatile memory, so it persists across resets. Both are verified in `[TP-RF-00x]`.
 - **7.9 Mechanism if command contact is lost:** If no valid authenticated command is received for N days, flight software inhibits the transponder and beacon (receive-only); the next authenticated command lifts the inhibit, and a reset does not. N is 30 days at launch and is set to 14 days by telecommand once commissioning is complete (settable 1–90 days). *(Proposed, subject to the FCC consultation: after a further 180 days, never within the first year after launch, the end-of-mission passivation sequence runs: battery charge path permanently disconnected, transmitter disabled. The autonomous passivation is not yet implemented.)*
@@ -85,7 +85,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **8.1 Telemetry frequency:** same as the 5.8 downlink
 - **8.2 Emission:** 10K4F2D
 - **8.3 Description:** 1200 bps AFSK AX.25 UI frames, plain ASCII
-- **8.4 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md`
+- **8.4 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` §3 (1200 bps beacon at 0.5 W: +7.7 dB at 5° elevation for a 12 dBic station; analysis)
 - **8.5 Format:** AX.25 UI; field definitions and engineering-unit conversions in `docs/BEACON_SPEC.md` and `docs/operations/TELEMETRY_DICTIONARY.md` (RR 25.2A). Decoder: `software/ground/beacon_decoder.py` (open source)
 
 ### 9. Launch plans
@@ -123,7 +123,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 | 2 | AMSAT-NA/ARRL consulted (4.8–4.9) | ☐ |
 | 3 | FCC Space Bureau pre-filing consultation done (pathway D3) | ☐ |
 | 4 | Baseline RF parameters frozen (power, antenna, receiver) | ☐ |
-| 5 | Uplink link budget added to LINK_BUDGET_ANALYSIS.md | ☐ |
+| 5 | Uplink link budget added to LINK_BUDGET_ANALYSIS.md | ☒ (v2.0 §4, analysis; replace assumptions with EM measurements, §7 of the budget) |
 | 6 | Telecommand authentication implemented as described in 7.7 (implemented and tested in flight-software simulation per `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`; target receiver driver and hardware test TP-RF-006 open, findings SW-02/SW-03) | ☐ |
 | 7 | TX-OFF hardware path in RF design (7.8) | ☐ |
 | 8 | Signed by licensee | ☐ |
@@ -135,3 +135,4 @@ Transfer each answer below into the corresponding numbered box of the official v
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial draft on v40 layout (funding audit) |
+| A.1 | 2026-10-16 | Items 7.6, 8.4 and checklist item 5 cite the re-issued link budget (TB-05) |

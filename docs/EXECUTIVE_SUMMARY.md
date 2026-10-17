@@ -32,6 +32,7 @@ a conventional transponder and template beacon.
 | Flight computer | STM32L4R5ZI, FreeRTOS (flight software currently runs only as a host simulation) |
 | AI payload | Jetson Orin Nano 8 GB module, 7 W mode, bursts ≤ 120 s, duty ≤ 5–10 %; model to be selected by measured energy |
 | Radio | Downlink 145.800–146.000 MHz and uplink 435–438 MHz (IARU to coordinate); ≤ 1 W; FM transponder plus 1200 bps AX.25 beacon; authenticated telecommand with a hardware TX-OFF path |
+| Link | 1200 bps beacon at 0.5 W closes from 5° elevation with +7.7 dB for a 12 dBic station (+4.7 dB in the conservative antenna-pattern case); analysis, [link budget](environment/LINK_BUDGET_ANALYSIS.md) v2.0 |
 | Orbit | Sun-synchronous, ≤ 500 km deployment (525 km maximum); commercial rideshare in 2028 (ISS deployment as backup) |
 | Design life | 2 years (12 months minimum); passive re-entry within the FCC 5-year rule |
 

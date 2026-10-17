@@ -68,7 +68,7 @@ Antenna → LNA → Bandpass Filter → SDR → Computer → Decoder
 | System Noise Temperature | 290 K (estimated) |
 | G/T | -15 dB/K (estimated) |
 | Sensitivity | -120 dBm for 1200 bps AFSK |
-| Link margin at 500 km | > 10 dB |
+| Link margin at 500 km | See `docs/environment/LINK_BUDGET_ANALYSIS.md` (v2.0): +7.7 dB at 5° elevation for a 12 dBic, 500 K station, 0.5 W beacon (analysis) |
 
 ### 3.4 Antenna System
 
@@ -215,6 +215,10 @@ CREATE TABLE telemetry (
 
 ## 6. Link Budget Analysis
 
+> **Superseded (2026-10-16, finding TB-05):** the controlled link budget is
+> [LINK_BUDGET_ANALYSIS.md](../environment/LINK_BUDGET_ANALYSIS.md) v2.0. The table below used a 1 kHz bandwidth for a
+> 10.4 kHz emission and a 290 K sky at 146 MHz, so its 14 dB margin is not valid. It is kept only as a record.
+
 ### 6.1 Downlink Budget (Beacon)
 
 | Parameter | Value | Notes |
@@ -351,3 +355,4 @@ Internet
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| A.1 | 2026-10-16 | §3.3 and §6 point to the re-issued link budget (TB-05) | Funding audit |
