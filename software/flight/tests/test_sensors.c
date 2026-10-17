@@ -86,10 +86,10 @@ static void test_sensors_load_yaml_missing(void **state) {
  */
 static void test_sensors_load_yaml_keeps_ids(void **state) {
     (void)state;
-    char path[] = "/tmp/sqso_sensors_XXXXXX";
-    int fd = mkstemp(path);
-    assert_true(fd >= 0);
-    FILE *f = fdopen(fd, "w");
+    /* Standard C only (the suite builds with -std=c11): a fixed name in the
+     * test's working directory, removed below */
+    const char *path = "test_sensors_keeps_ids.yaml";
+    FILE *f = fopen(path, "w");
     assert_non_null(f);
     (void)fputs("sensors:\n"
                 "  - id: BV\n"

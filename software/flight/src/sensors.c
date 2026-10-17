@@ -319,16 +319,18 @@ static void parse_keyval(const char *line, char *key, size_t ksz,
  */
 static bool take_item_marker(char *line)
 {
-    if ((strncmp(line, "- ", 2) != 0) && (strcmp(line, "-") != 0)) {
-        return false;
-    }
-    if (line[1] == '\0') {
+    bool is_item = false;
+    if (strcmp(line, "-") == 0) {
         line[0] = '\0';
-    } else {
+        is_item = true;
+    } else if (strncmp(line, "- ", 2) == 0) {
         (void)memmove(line, &line[2], strlen(&line[2]) + 1U);
         trim(line);
+        is_item = true;
+    } else {
+        /* Not a list item */
     }
-    return true;
+    return is_item;
 }
 
 /**
