@@ -12,9 +12,11 @@
 #include "rf_control.h"
 #include "ax25.h"
 #include "station_id.h"
+#include "smart_qso.h"
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Module State                                                               */

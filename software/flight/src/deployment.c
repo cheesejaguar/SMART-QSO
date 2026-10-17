@@ -24,6 +24,7 @@
 #include "hal/hal_reset.h"
 
 #include <string.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Private Constants                                                          */

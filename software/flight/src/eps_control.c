@@ -11,8 +11,11 @@
 #include <stdlib.h>
 #include "payload_guard.h"
 #include "fault_mgmt.h"
+#include "smart_qso.h"
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Module State                                                               */

@@ -7,6 +7,7 @@
 
 #include "cmd_dictionary.h"
 #include "cmd_handler.h"
+#include <stdint.h>
 
 const CmdDictEntry_t g_cmd_dictionary[] = {
     { (uint8_t)CMD_SYS_NOP, 0U, 0U, CMD_KEY_OPERATIONAL, false }, /* NOP */

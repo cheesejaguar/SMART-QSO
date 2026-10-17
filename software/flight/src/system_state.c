@@ -12,7 +12,10 @@
 #include "system_state.h"
 #include "eps_control.h"
 #include "safe_string.h"
+#include "smart_qso.h"
+#include "state_machine.h"
 #include <stddef.h>
+#include <stdint.h>
 
 /* For simulation builds, use standard file I/O for persistence */
 /* For flight builds, use HAL flash interface instead */
@@ -59,11 +62,11 @@ SmartQsoResult_t sys_state_init(void)
     s_state.power.payload_enabled = false;
 
     /* Initialize thermal state defaults */
-    s_state.thermal.obc_temp_c = 25.0f;
-    s_state.thermal.eps_temp_c = 25.0f;
-    s_state.thermal.battery_temp_c = 25.0f;
-    s_state.thermal.payload_temp_c = 25.0f;
-    s_state.thermal.external_temp_c = 0.0f;
+    s_state.thermal.obc_temp_c = 25.0F;
+    s_state.thermal.eps_temp_c = 25.0F;
+    s_state.thermal.battery_temp_c = 25.0F;
+    s_state.thermal.payload_temp_c = 25.0F;
+    s_state.thermal.external_temp_c = 0.0F;
 
     /* Initialize communications defaults */
     s_state.comm.beacon_interval_s = 60;
@@ -313,8 +316,8 @@ SmartQsoResult_t sys_set_temperature(uint8_t sensor, float temp_c)
     }
 
     /* Check thermal limits */
-    s_state.thermal.over_temp_flag = (temp_c > 60.0f);
-    s_state.thermal.under_temp_flag = (temp_c < -20.0f);
+    s_state.thermal.over_temp_flag = (temp_c > 60.0F);
+    s_state.thermal.under_temp_flag = (temp_c < -20.0F);
 
     mark_dirty();
     return SMART_QSO_OK;

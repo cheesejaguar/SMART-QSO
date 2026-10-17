@@ -8,6 +8,7 @@
 #include "gnss.h"
 
 #include <string.h>
+#include <stdint.h>
 
 /** GPS time of week wraps at one week */
 #define GNSS_TOW_LIMIT_S        604800.0

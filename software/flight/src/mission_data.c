@@ -8,11 +8,14 @@
  */
 
 #include "mission_data.h"
+#include "smart_qso.h"
 #include <inttypes.h>
 #include <stdlib.h>
 
 #include <stdio.h>
 #include <string.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Module State                                                               */

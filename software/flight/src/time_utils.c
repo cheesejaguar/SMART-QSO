@@ -12,6 +12,7 @@
 #include "hal/hal_timer.h"
 
 #include <time.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Public API Implementation                                                  */

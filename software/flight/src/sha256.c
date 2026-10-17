@@ -11,6 +11,9 @@
 
 #include "sha256.h"
 #include "safe_string.h"
+#include "smart_qso.h"
+#include <stddef.h>
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Constants

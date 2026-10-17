@@ -12,7 +12,10 @@
 #include "ax25.h"
 #include "safe_string.h"
 #include "hal/hal_radio.h"
+#include "cmd_handler.h"
+#include "smart_qso.h"
 #include <string.h>
+#include <stdint.h>
 
 static char s_callsign[7];
 static uint8_t s_ssid = 0U;

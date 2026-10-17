@@ -24,7 +24,9 @@
 #include <stddef.h>
 
 #include "assert_handler.h"
+#include "smart_qso.h"
 #include <stdio.h>
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Data
@@ -356,7 +358,7 @@ void smart_qso_assert_failed(const char *file, uint32_t line, const char *messag
     (void)assert_handle_failure(file, short_line, ASSERT_TYPE_PRECONDITION,
                                 ASSERT_SEVERITY_ERROR, message);
 #if SMART_QSO_DEBUG_ENABLED
-    fprintf(stderr, "[ASSERT] %s:%u: %s\n", (file != NULL) ? file : "?", (unsigned)line,
+    (void)fprintf(stderr, "[ASSERT] %s:%u: %s\n", (file != NULL) ? file : "?", (unsigned)line,
             (message != NULL) ? message : "");
 #endif
 }

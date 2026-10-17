@@ -14,6 +14,10 @@
 #include "fault_mgmt.h"
 #include "safe_string.h"
 #include "hal/hal_flash.h"
+#include "nvm_record.h"
+#include "smart_qso.h"
+#include <stddef.h>
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Constants

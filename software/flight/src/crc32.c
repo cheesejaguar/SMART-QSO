@@ -9,6 +9,8 @@
  */
 
 #include "smart_qso.h"
+#include <stddef.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* CRC32 Table (pre-computed for IEEE 802.3 polynomial)                       */

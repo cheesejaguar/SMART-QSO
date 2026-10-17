@@ -11,8 +11,10 @@
  */
 
 #include "safe_string.h"
+#include "smart_qso.h"
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 /*******************************************************************************
  * Public Functions - Safe String Copy

@@ -12,6 +12,9 @@
 #include "rf_control.h"
 #include "fault_mgmt.h"
 #include "hal/hal_flash.h"
+#include "nvm_record.h"
+#include "smart_qso.h"
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Constants and Data

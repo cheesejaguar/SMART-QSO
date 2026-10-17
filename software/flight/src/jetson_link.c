@@ -9,6 +9,7 @@
 #include "jetson_link.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #define CRC_INIT    0xFFFFU
 #define CRC_POLY    0x1021U

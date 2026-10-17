@@ -14,9 +14,10 @@
 #include "nvm_record.h"
 #include "fault_mgmt.h"
 #include "hal/hal_flash.h"
-#include "hal/hal_gpio.h"
 #include "hal/hal_reset.h"
+#include "smart_qso.h"
 #include <stdio.h>
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Constants and Data

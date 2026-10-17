@@ -9,6 +9,7 @@
 #include "ax25.h"
 #include <ctype.h>
 #include <string.h>
+#include <stdint.h>
 
 #define CALL_LEN        6U
 #define FCS_LEN         2U

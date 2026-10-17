@@ -11,9 +11,12 @@
 #include "eps_control.h"
 #include "state_machine.h"
 #include "system_state.h"
+#include "smart_qso.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Module State                                                               */

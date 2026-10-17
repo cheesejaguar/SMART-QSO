@@ -46,6 +46,7 @@
 #include <string.h>
 #include <signal.h>
 #include <time.h>
+#include <stdint.h>
 
 /*===========================================================================*/
 /* Configuration Constants                                                    */
@@ -158,13 +159,13 @@ static void init_rf_and_telecommand(void)
     (void)rf_control_init();
 
     if (cmd_handler_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Command handler init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Command handler init failed\n");
     }
     if (uplink_init(SQSO_CALLSIGN, SQSO_SSID) != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Telecommand receiver init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Telecommand receiver init failed\n");
     }
     if (gse_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] GSE provisioning port init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] GSE provisioning port init failed\n");
     }
 }
 
@@ -174,13 +175,13 @@ static void init_rf_and_telecommand(void)
 static SmartQsoResult_t init_power_and_sensors(void)
 {
     if (mission_data_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Mission data init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Mission data init failed\n");
     }
     if (eps_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] EPS init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] EPS init failed\n");
     }
     if (sensors_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Sensor init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Sensor init failed\n");
         return SMART_QSO_ERROR;
     }
 
@@ -195,9 +196,9 @@ static SmartQsoResult_t init_power_and_sensors(void)
         yaml_path = "software/flight/sensors.yaml";
     }
     if (sensors_load_yaml(yaml_path) != SMART_QSO_OK) {
-        fprintf(stderr, "[WARN] Using default sensors (could not load %s)\n", yaml_path);
+        (void)fprintf(stderr, "[WARN] Using default sensors (could not load %s)\n", yaml_path);
         if (sensors_load_defaults() != SMART_QSO_OK) {
-            fprintf(stderr, "[SYSTEM] Failed to load default sensors\n");
+            (void)fprintf(stderr, "[SYSTEM] Failed to load default sensors\n");
             return SMART_QSO_ERROR;
         }
     }
@@ -217,7 +218,7 @@ static SmartQsoResult_t init_mode_manager(void)
     payload_guard_init();
     eps_update_soc(s_soc);
     if (sys_state_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] System state init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] System state init failed\n");
         return SMART_QSO_ERROR;
     }
     (void)sm_process_event(sys_get_sm_context(), EVENT_BOOT_COMPLETE, NULL);
@@ -229,10 +230,10 @@ static SmartQsoResult_t init_system(void)
 {
 #ifndef HAL_TARGET_STM32L4
     if (signal(SIGINT, signal_handler) == SIG_ERR) {
-        fprintf(stderr, "[SYSTEM] Failed to set SIGINT handler\n");
+        (void)fprintf(stderr, "[SYSTEM] Failed to set SIGINT handler\n");
     }
     if (signal(SIGTERM, signal_handler) == SIG_ERR) {
-        fprintf(stderr, "[SYSTEM] Failed to set SIGTERM handler\n");
+        (void)fprintf(stderr, "[SYSTEM] Failed to set SIGTERM handler\n");
     }
 #endif
 #ifdef SIMULATION_BUILD
@@ -250,11 +251,11 @@ static SmartQsoResult_t init_system(void)
     /* HAL before any module touches GPIO or non-volatile memory; burn-wire
      * lines low as early as possible; fault logging before the rest */
     if ((hal_gpio_init() != SMART_QSO_OK) || (hal_flash_init() != SMART_QSO_OK)) {
-        fprintf(stderr, "[SYSTEM] GPIO/flash init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] GPIO/flash init failed\n");
     }
     (void)deployment_init();
     if (fault_mgmt_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Fault management init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Fault management init failed\n");
     }
 
     init_rf_and_telecommand();
@@ -262,12 +263,12 @@ static SmartQsoResult_t init_system(void)
         return SMART_QSO_ERROR;
     }
     if (init_watchdog() != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Watchdog init failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Watchdog init failed\n");
         return SMART_QSO_ERROR;
     }
 
     if (uart_init() != SMART_QSO_OK) {
-        fprintf(stderr, "[WARN] UART initialization failed, telemetry disabled\n");
+        (void)fprintf(stderr, "[WARN] UART initialization failed, telemetry disabled\n");
         fault_log_add(FAULT_TYPE_INIT, FAULT_SEVERITY_WARNING,
                       "UART initialization failed", s_soc);
     }
@@ -418,9 +419,9 @@ static void sanitize_field(char *text)
 static void send_line(const char *line, size_t len, const char *what)
 {
     if (len == 0U) {
-        fprintf(stderr, "[UART] %s line not built\n", what);
+        (void)fprintf(stderr, "[UART] %s line not built\n", what);
     } else if (uart_send(line, len) != SMART_QSO_OK) {
-        fprintf(stderr, "[UART] Failed to send %s to Jetson\n", what);
+        (void)fprintf(stderr, "[UART] Failed to send %s to Jetson\n", what);
     } else {
         printf("[UART] Sent %s to Jetson (%zu bytes)\n", what, len);
     }
@@ -522,7 +523,7 @@ static void poll_jetson(void)
             continue;
         }
         if (status != JETSON_OK) {
-            fprintf(stderr, "[UART] Rejected Jetson line (%d)\n", (int)status);
+            (void)fprintf(stderr, "[UART] Rejected Jetson line (%d)\n", (int)status);
         } else if ((msg.type == JETSON_MSG_BEACON_RSP) && (msg.seq == s_beacon_seq)) {
             (void)snprintf(s_ai_text, sizeof(s_ai_text), "%s", msg.text);
             printf("[UART] Beacon text from Jetson (%zu chars)\n", msg.text_len);
@@ -775,13 +776,13 @@ int main(void)
 
     result = init_system();
     if (result != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Initialization failed\n");
+        (void)fprintf(stderr, "[SYSTEM] Initialization failed\n");
         return 1;
     }
 
     result = run_main_loop();
     if (result != SMART_QSO_OK) {
-        fprintf(stderr, "[SYSTEM] Main loop error\n");
+        (void)fprintf(stderr, "[SYSTEM] Main loop error\n");
     }
 
     shutdown_system();

@@ -13,7 +13,9 @@
 #include "fault_mgmt.h"
 #include "eps_control.h"
 #include "payload_guard.h"
+#include "smart_qso.h"
 #include <stddef.h>
+#include <stdint.h>
 
 /*******************************************************************************
  * Private Constants
