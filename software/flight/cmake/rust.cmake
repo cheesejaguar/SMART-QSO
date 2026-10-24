@@ -43,13 +43,23 @@ set_target_properties(sqso_rust PROPERTIES IMPORTED_LOCATION "${SQSO_RUST_LIB}")
 add_dependencies(sqso_rust sqso_rust_build)
 
 # Link the Rust library into <target>, a static library of C flight code or
-# an executable. For a static library the dependency goes both ways, so
-# anything linking it gets both archives, repeated to resolve the cycle.
+# an executable. The Rust library calls back into the C library, so for a
+# static library the two depend on each other: <target> gets its own
+# imported copy of the Rust archive that depends on <target> in turn, and
+# CMake repeats the pair on the link line. (A per-library copy keeps the
+# cycle local: the shared sqso_rust target stays free of any one library.)
 function(link_rust target)
     get_target_property(kind ${target} TYPE)
-    target_link_libraries(${target} sqso_rust)
     if(kind STREQUAL "STATIC_LIBRARY")
-        set_property(TARGET sqso_rust APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${target})
+        set(rust sqso_rust_for_${target})
+        add_library(${rust} STATIC IMPORTED)
+        set_target_properties(${rust} PROPERTIES
+            IMPORTED_LOCATION "${SQSO_RUST_LIB}"
+            INTERFACE_LINK_LIBRARIES ${target})
+        add_dependencies(${rust} sqso_rust_build)
+        target_link_libraries(${target} ${rust})
         set_property(TARGET ${target} PROPERTY LINK_INTERFACE_MULTIPLICITY 3)
+    else()
+        target_link_libraries(${target} sqso_rust)
     endif()
 endfunction()
