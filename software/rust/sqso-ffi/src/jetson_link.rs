@@ -183,8 +183,8 @@ pub unsafe extern "C" fn jetson_rx_feed(
     else {
         return false;
     };
-    #[allow(clippy::cast_sign_loss)] // a C char is a byte
-    let Some(line) = rx(r).feed(c as u8) else { return false };
+    // A C char is a byte (signed on the host, unsigned on Arm)
+    let Some(line) = rx(r).feed(c.to_ne_bytes()[0]) else { return false };
     *status_out = match line.and_then(jetson::parse_from_jetson) {
         Ok(m) => {
             *msg = convert(m);

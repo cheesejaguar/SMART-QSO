@@ -36,9 +36,7 @@ include_directories(
 
 # Source files from main project needed for tests
 set(FLIGHT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_store.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
@@ -163,12 +161,10 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/contact_monitor.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_silence.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/separation_switch.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/gnss.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_store.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_control.c
@@ -177,7 +173,6 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/system_state.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/telemetry.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/watchdog_mgr.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/hal/hal_sim.c

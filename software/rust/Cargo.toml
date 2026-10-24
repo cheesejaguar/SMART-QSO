@@ -28,6 +28,7 @@ crc = { version = "3.4.0", default-features = false }
 hmac = { version = "0.13.0", default-features = false }
 sha2 = { version = "0.11.1", default-features = false }
 zeroize = { version = "1.9.1", default-features = false }
+libc = { version = "0.2", default-features = false }
 
 # Parsers on the uplink must not be able to panic: no indexing that can go
 # out of bounds, no unwrap. Enforced by `cargo clippy -- -D warnings` in CI.

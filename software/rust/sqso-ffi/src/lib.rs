@@ -45,13 +45,18 @@ pub mod input_validation;
 pub mod jetson_link;
 pub mod nvm_record;
 pub mod scheduler;
+pub mod separation_switch;
 pub mod sha256;
 pub mod state_machine;
+pub mod time;
 pub mod uplink;
 
 mod c;
 mod cell;
+#[cfg(not(target_os = "none"))]
+mod os;
 mod ptr;
+mod store;
 
 /// A Rust panic (an overflow or a broken invariant; the parsers have no
 /// panic paths) is a fatal assertion: reported to the C assertion handler,

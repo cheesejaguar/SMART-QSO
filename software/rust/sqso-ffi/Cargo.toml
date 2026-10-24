@@ -20,5 +20,10 @@ sqso-fsw.workspace = true
 sha2.workspace = true
 zeroize.workspace = true
 
+# The host simulation's operating-system calls (clock, files, environment,
+# console, serial port). Not used on the target (target_os = "none").
+[target.'cfg(not(target_os = "none"))'.dependencies]
+libc.workspace = true
+
 [lints]
 workspace = true

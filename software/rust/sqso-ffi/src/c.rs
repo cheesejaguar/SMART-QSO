@@ -84,15 +84,14 @@ unsafe extern "C" {
     #[cfg_attr(test, allow(dead_code))]
     pub(crate) fn smart_qso_rust_panic(file: *const c_char, line: u32) -> !;
 
-    // Time, assertions, fault-log storage and console
-    pub(crate) fn smart_qso_now_ms() -> u64;
+    // Assertions
     pub(crate) fn smart_qso_assert_failed(file: *const c_char, line: u32, message: *const c_char);
-    pub(crate) fn fault_store_save(data: *const u8, len: usize) -> i32;
-    pub(crate) fn fault_store_load(data: *mut u8, cap: usize, len: *mut usize) -> i32;
-    pub(crate) fn fault_store_erase();
-    pub(crate) fn smart_qso_console(line: *const c_char);
 
     // HAL
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_timer_get_ms() -> u64;
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_flash_region_size(region: u32) -> usize;
     pub(crate) fn hal_flash_read(region: u32, offset: u32, data: *mut u8, len: usize) -> i32;
     pub(crate) fn hal_flash_write(region: u32, offset: u32, data: *const u8, len: usize) -> i32;
     pub(crate) fn hal_flash_erase(region: u32) -> i32;
@@ -167,14 +166,12 @@ pub(crate) fn console(args: core::fmt::Arguments<'_>) {
     }
     let mut line = Line { buf: [0; 160], len: 0 };
     let _ = core::fmt::write(&mut line, args);
-    // SAFETY: buf is NUL-terminated (at most 159 bytes written, no NUL among them)
-    unsafe { smart_qso_console(line.buf.as_ptr().cast()) };
+    console_line(line.buf.get(..line.len).unwrap_or(&[]));
 }
 
 /// Current time, ms
 pub(crate) fn now_ms() -> u64 {
-    // SAFETY: no arguments; the C clock has no preconditions
-    unsafe { smart_qso_now_ms() }
+    crate::time::now_ms()
 }
 
 /// The flash HAL as an `sqso_fsw::nvm::Flash`
@@ -202,6 +199,22 @@ impl sqso_fsw::nvm::Flash for HalFlash {
         match unsafe { hal_flash_erase(region) } {
             rc::OK => Ok(()),
             code => Err(sqso_fsw::nvm::FlashError(code)),
+        }
+    }
+}
+
+/// Write one line to the console: stdout on the host, the debug UART on
+/// the target
+pub(crate) fn console_line(line: &[u8]) {
+    #[cfg(not(target_os = "none"))]
+    crate::os::print_line(line);
+    #[cfg(target_os = "none")]
+    {
+        const UART_PORT_DEBUG: u32 = 1;
+        // SAFETY: both are live slices. Console output is best effort
+        unsafe {
+            let _ = hal_uart_write(UART_PORT_DEBUG, line.as_ptr(), line.len());
+            let _ = hal_uart_write(UART_PORT_DEBUG, b"\r\n".as_ptr(), 2);
         }
     }
 }

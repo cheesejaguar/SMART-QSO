@@ -14,6 +14,7 @@ use sqso_fsw::mode::{self, Event};
 
 use crate::c::{self, fault_type, rc, severity};
 use crate::cell::Global;
+use crate::store::{self, Store};
 use crate::{ptr, state_machine};
 
 struct Faults {
@@ -39,10 +40,12 @@ fn as_bytes_mut(entries: &mut [Entry; MAX_ENTRIES]) -> &mut [u8] {
     unsafe { core::slice::from_raw_parts_mut(entries.as_mut_ptr().cast(), core::mem::size_of_val(entries)) }
 }
 
+/// Persist the log; where the store is smaller than the log (the target's
+/// flash region), the newest entries that fit
 fn save(log: &FaultLog) -> i32 {
-    let bytes = as_bytes(log.held());
-    // SAFETY: bytes is a live slice
-    unsafe { c::fault_store_save(bytes.as_ptr(), bytes.len()) }
+    let held = log.held();
+    let fit = store::capacity(Store::FaultLog) / core::mem::size_of::<Entry>();
+    store::save(Store::FaultLog, as_bytes(held.get(held.len().saturating_sub(fit)..).unwrap_or(&[])))
 }
 
 /// Add an entry (arguments already checked); prints and persists it
@@ -168,13 +171,10 @@ pub extern "C" fn fault_log_save() -> i32 {
 pub extern "C" fn fault_log_load() -> i32 {
     FAULTS
         .with(|f| {
-            let slots = as_bytes_mut(f.log.slots_mut());
-            let mut len = 0usize;
-            // SAFETY: slots is a live, writable buffer of slots.len() bytes
-            let result = unsafe { c::fault_store_load(slots.as_mut_ptr(), slots.len(), &mut len) };
-            if result != rc::OK {
-                return result;
-            }
+            let len = match store::load(Store::FaultLog, as_bytes_mut(f.log.slots_mut())) {
+                Ok(len) => len,
+                Err(e) => return e,
+            };
             f.log.adopt(len / ENTRY_SIZE, &mut |i| c::console(format_args!("[FAULT] Discarded corrupt entry {i}")));
             rc::OK
         })
@@ -185,8 +185,7 @@ pub extern "C" fn fault_log_load() -> i32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn fault_log_clear() -> i32 {
     let _ = FAULTS.with(|f| f.log.clear());
-    // SAFETY: no arguments
-    unsafe { c::fault_store_erase() };
+    store::erase(Store::FaultLog);
     rc::OK
 }
 
