@@ -172,7 +172,7 @@ The INFO field contains human-readable status and AI-generated content:
 de KK6GDB-11: <AI or template text> | T=<unix s> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
 ```
 
-This is the format `beacon_format_payload()` produces (`software/flight/src/beacon.c`). The text is cut to the space left in
+This is the format `beacon_format_payload()` produces (`software/rust/sqso-fsw/src/beacon.rs`). The text is cut to the space left in
 the 256-byte information field after the telemetry fields (at most 176 characters with this call sign); the telemetry
 fields are never cut.
 

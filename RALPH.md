@@ -1723,7 +1723,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_fault_mgmt.c`
 
 #### 17.1.6 Telemetry Module
-- [x] **Implement `software/flight/src/telemetry.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/telemetry.rs`**:
   - [x] Telemetry packet formatting
   - [x] Telemetry point registration
   - [x] Telemetry sampling
@@ -1733,7 +1733,7 @@ This section details the complete flight software implementation tasks, organize
   - [ ] Unit tests in `software/flight/tests/test_telemetry.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (SW-09))
 
 #### 17.1.7 Beacon Generation Module
-- [x] **Implement `software/flight/src/beacon.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/beacon.rs`**:
   - [x] AX.25 frame formatting
   - [x] Callsign encoding
   - [x] Info field composition
@@ -1755,7 +1755,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_uart_comm.c`
 
 #### 17.1.9 ADCS Control Module
-- [x] **Implement `software/flight/src/adcs_control.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/adcs_control.rs`**:
   - [ ] Magnetometer driver (audit 2026-10-16, SW-19: stub: TODO at adcs_control.c:351 (KNOWN_ISSUES KI-001))
   - [ ] Sun sensor driver (audit 2026-10-16, SW-19: stub: TODO at adcs_control.c:377 (KI-001))
   - [ ] Attitude determination (TRIAD or similar) (audit 2026-10-16, SW-19: no attitude-determination algorithm; adcs_control.c estimates rate from B-dot only)
@@ -1776,7 +1776,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_mission_data.c`
 
 #### 17.1.11 Watchdog Module
-- [x] **Implement `software/flight/src/watchdog_mgr.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/watchdog_mgr.rs`**:
   - [x] Hardware watchdog initialization
   - [x] Watchdog kick function
   - [x] Multi-task watchdog monitoring
