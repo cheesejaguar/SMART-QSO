@@ -5,7 +5,8 @@ use core::ffi::c_char;
 use core::mem::{align_of, size_of};
 
 use sqso_fsw::{
-    contact_monitor, deployment, fault_log, keys, mode, nvm, payload_guard, rf_control, rf_silence, scheduler,
+    contact_monitor, deployment, eps, fault_log, gnss, keys, mission_data, mode, nvm, payload_guard, rf_control,
+    rf_silence, scheduler, sensors,
 };
 use sqso_protocol::{auth, ax25, filter, gse, jetson, station};
 
@@ -51,6 +52,12 @@ pub unsafe extern "C" fn sqso_rust_layout(which: u32, size: *mut usize, align: *
         253 => layout::<sqso_fsw::flight_log::Stats>(),
         254 => layout::<crate::uart_comm::UartConfig>(),
         255 => layout::<crate::uart_comm::HalUartConfig>(),
+        // eps_control.h, sensors.h, mission_data.h, gnss.h
+        150 => layout::<eps::EpsState>(),
+        151 => layout::<crate::sensors::Sensor>(),
+        152 => layout::<mission_data::MissionData>(),
+        153 => layout::<gnss::Fix>(),
+        154 => layout::<gnss::Receiver>(),
         _ => return false,
     };
     // SAFETY: the C contract: NULL or pointers to size_t
@@ -158,6 +165,25 @@ pub extern "C" fn sqso_rust_constant(which: u32) -> f64 {
         260 => f64::from(sqso_fsw::uart_comm::TELEMETRY_INTERVAL_DEFAULT_MS),
         261 => f64::from(crate::assert_handler::FAULT_TYPE_ASSERTION),
         262 => sqso_fsw::uart_comm::DEVICE_DEFAULT.len() as f64,
+        // eps_control.h, sensors.h, mission_data.h, gnss.h
+        150 => eps::POWER_LIMIT_SAFE_W,
+        151 => eps::POWER_LIMIT_IDLE_W,
+        152 => eps::POWER_LIMIT_ACTIVE_W,
+        153 => eps::BUS_MIN_V,
+        154 => eps::BUS_MAX_V,
+        155 => sensors::MAX_SENSORS as f64,
+        156 => sensors::ID_LEN as f64,
+        157 => sensors::NAME_LEN as f64,
+        158 => sensors::UNITS_LEN as f64,
+        159 => sensors::TYPE_LEN as f64,
+        160 => sensors::CHANNEL_LEN as f64,
+        161 => mission_data::FAULT_DESC_LEN as f64,
+        162 => f64::from(mission_data::Phase::Eol as u32),
+        163 => gnss::LINE_MAX as f64,
+        164 => f64::from(gnss::GGA_MAX_AGE_MS),
+        165 => gnss::LEO_MIN_RADIUS_M,
+        166 => gnss::LEO_MAX_RADIUS_M,
+        167 => f64::from(gnss::MIN_SATS),
         _ => f64::NAN,
     }
 }

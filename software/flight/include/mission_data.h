@@ -2,6 +2,9 @@
  * @file mission_data.h
  * @brief Mission Data Persistence Interface
  *
+ * Implemented in Rust (software/rust/sqso-ffi/src/mission_data.rs, logic in
+ * software/rust/sqso-fsw/src/mission_data.rs).
+ *
  * This module provides mission data storage and persistence functionality
  * including telemetry storage, state persistence, and data integrity.
  *

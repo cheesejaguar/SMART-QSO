@@ -2,6 +2,9 @@
  * @file gnss.h
  * @brief GNSS receiver NMEA driver (decision D6)
  *
+ * Implemented in Rust (software/rust/sqso-ffi/src/gnss.rs, logic in
+ * software/rust/sqso-fsw/src/gnss.rs).
+ *
  * Parses the receiver's UART output, one NMEA 0183 sentence per line
  * ("$<body>*<XX>\r\n", XX = XOR of the body). Two sentences matter:
  *

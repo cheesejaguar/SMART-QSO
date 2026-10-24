@@ -117,13 +117,9 @@ include(${CMAKE_SOURCE_DIR}/cmake/rust.cmake)
 
 set(FLIGHT_SOURCES
     src/main.c
-    src/eps_control.c
-    src/sensors.c
-    src/mission_data.c
     src/beacon.c
     src/adcs_control.c
     src/system_state.c
-    src/gnss.c
     src/telemetry.c
     src/watchdog_mgr.c
     src/flight_log_fmt.c

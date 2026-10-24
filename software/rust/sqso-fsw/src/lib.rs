@@ -20,6 +20,10 @@
 //! - [`assert_handler`]: assertion failure log and response (`assert_handler.h`)
 //! - [`flight_log`]: flight log ring buffer (`flight_log.h`)
 //! - [`uart_comm`]: OBC–Jetson serial line settings (`uart_comm.h`)
+//! - [`eps`]: EPS power policy and its stored state (`eps_control.h`)
+//! - [`sensors`]: sensor configuration file, readings, telemetry text (`sensors.h`)
+//! - [`mission_data`]: mission statistics record (`mission_data.h`)
+//! - [`gnss`]: GNSS NMEA receiver and fix acceptance (`gnss.h`)
 
 #![no_std]
 #![forbid(unsafe_code)]
@@ -28,9 +32,12 @@
 pub mod assert_handler;
 pub mod contact_monitor;
 pub mod deployment;
+pub mod eps;
 pub mod fault_log;
 pub mod flight_log;
+pub mod gnss;
 pub mod keys;
+pub mod mission_data;
 pub mod mode;
 pub mod nvm;
 pub mod payload_guard;
@@ -38,5 +45,6 @@ pub mod rf_control;
 pub mod rf_silence;
 pub mod safe_string;
 pub mod scheduler;
+pub mod sensors;
 pub mod telecommand;
 pub mod uart_comm;
