@@ -239,6 +239,53 @@ mod tests {
         ));
     }
 
+    /// Mutation check: the contact hook's gate and placement. Contact is
+    /// reported only for a keyed frame whose counter was spent: never for
+    /// the keyless TX_DISABLE (gate), and never for a rejection before the
+    /// counter is spent (placement): framing, authentication, an unknown
+    /// command or the argument length. A spent counter that could not be
+    /// persisted is still contact.
+    #[test]
+    fn contact_hook_gate_and_placement() {
+        let contact = |a: Admission<'_>| match a {
+            Admission::Accepted { contact, .. } | Admission::Rejected { contact, .. } => contact,
+        };
+        // Gate: keyless TX_DISABLE on an unprovisioned table executes, no contact
+        let mut f = MemFlash::<1024>::new();
+        let mut empty = KeyTable::empty(6);
+        let (b, n) = frame(Command::TxDisable.id(), 1, &[]);
+        let a = admit(&b[..n], &mut empty, &mut f, |_| false);
+        assert!(matches!(a, Admission::Accepted { .. }));
+        assert!(!contact(a));
+
+        // Placement: rejections before the counter is spent are not contact
+        let (mut f, mut t) = setup();
+        let (b, n) = frame(Command::SetMode.id(), 3, &[1, 2]);
+        assert!(!contact(admit(&b[..n], &mut t, &mut f, |_| false)), "argument length");
+        let (b, n) = frame(0x7F, 3, &[]);
+        assert!(!contact(admit(&b[..n], &mut t, &mut f, |_| false)), "unknown command");
+        let (mut b, n) = frame(Command::Nop.id(), 3, &[]);
+        b[n - 3] ^= 0x01; // the tag's last byte; the checksum is fixed below
+        let sum = b[..n - 2].iter().fold(0u16, |s, x| s.wrapping_add(u16::from(*x)));
+        b[n - 2..n].copy_from_slice(&sum.to_be_bytes());
+        assert!(matches!(
+            admit(&b[..n], &mut t, &mut f, |_| false),
+            Admission::Rejected { why: Rejection::AuthFailed(_), contact: false, .. }
+        ));
+        assert!(!contact(admit(&b[..n - 1], &mut t, &mut f, |_| false)), "framing");
+        assert_eq!(t.info().operational_counter, 0, "no counter was spent above");
+
+        // Spent counter: contact, whether accepted or not persisted
+        let (b, n) = frame(Command::Nop.id(), 3, &[]);
+        assert!(contact(admit(&b[..n], &mut t, &mut f, |_| false)));
+        f.writes_left = Some(0);
+        let (b, n) = frame(Command::Nop.id(), 4, &[]);
+        assert!(matches!(
+            admit(&b[..n], &mut t, &mut f, |_| false),
+            Admission::Rejected { why: Rejection::CounterNotPersisted, contact: true, .. }
+        ));
+    }
+
     #[test]
     fn mode_policy() {
         use Command as C;

@@ -2,6 +2,9 @@
  * @file rf_control.h
  * @brief Transmitter permission and latched TX-OFF (cessation of emissions)
  *
+ * Implemented in Rust (software/rust/sqso-fsw/src/rf_control.rs,
+ * software/rust/sqso-ffi/src/rf_control.rs).
+ *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @license MIT
  *
@@ -16,7 +19,7 @@
  * inhibit or by the EPS "radio_enabled" flag (transponder path only): the
  * command receiver stays powered so that TX-OFF can always be received
  * (47 CFR 97.207(b), ITU RR 22.1). The one exception is the 45-minute
- * post-deployment silence (rf_silence.c, CDS 2.4.5), when the whole radio is
+ * post-deployment silence (rf_silence.h, CDS 2.4.5), when the whole radio is
  * unpowered through GPIO_PIN_RADIO_EN, which this module owns; nothing can
  * transmit then either.
  *
@@ -99,8 +102,8 @@ bool rf_control_tx_permitted(void);
  * @brief Automatic inhibits, independent of the TX-OFF latch and of each other
  */
 typedef enum {
-    RF_INHIBIT_CONTACT    = 0x01U, /**< Loss of contact (contact_monitor.c): transmitters off */
-    RF_INHIBIT_RF_SILENCE = 0x02U  /**< Post-deployment silence (rf_silence.c): whole radio off */
+    RF_INHIBIT_CONTACT    = 0x01U, /**< Loss of contact (contact_monitor.h): transmitters off */
+    RF_INHIBIT_RF_SILENCE = 0x02U  /**< Post-deployment silence (rf_silence.h): whole radio off */
 } RfInhibit_t;
 
 /**

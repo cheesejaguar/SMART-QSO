@@ -2,6 +2,9 @@
  * @file contact_monitor.h
  * @brief Loss-of-contact transmit inhibit
  *
+ * Implemented in Rust (software/rust/sqso-fsw/src/contact_monitor.rs,
+ * software/rust/sqso-ffi/src/contact_monitor.rs).
+ *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @license MIT
  *

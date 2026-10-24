@@ -2,6 +2,9 @@
  * @file payload_guard.h
  * @brief OBC-enforced Jetson power and temperature limits (SW-16)
  *
+ * Implemented in Rust (software/rust/sqso-fsw/src/payload_guard.rs,
+ * software/rust/sqso-ffi/src/payload_guard.rs).
+ *
  * The OBC decides from its own measurements whether the payload rail may be
  * on, whatever the Jetson reports about itself (BASELINE §6: per-rail current
  * and temperature limits independent of the Jetson). The rail must be off

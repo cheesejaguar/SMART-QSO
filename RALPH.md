@@ -1785,7 +1785,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_watchdog_mgr.c`
 
 #### 17.1.12 Deployment Control Module
-- [x] **Implement `software/flight/src/deployment.c`**:
+- [x] **Implement deployment.c (now `software/rust/sqso-fsw/src/deployment.rs`)**:
   - [x] Deployment timer (T+30min from separation)
   - [x] Deployment switch monitoring
   - [x] Antenna deployment actuation

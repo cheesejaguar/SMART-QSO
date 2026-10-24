@@ -4,7 +4,9 @@
 use core::ffi::c_char;
 use core::mem::{align_of, size_of};
 
-use sqso_fsw::{fault_log, keys, mode, nvm, scheduler};
+use sqso_fsw::{
+    contact_monitor, deployment, fault_log, keys, mode, nvm, payload_guard, rf_control, rf_silence, scheduler,
+};
 use sqso_protocol::{auth, ax25, filter, gse, jetson, station};
 
 use crate::ptr;
@@ -38,6 +40,10 @@ pub unsafe extern "C" fn sqso_rust_layout(which: u32, size: *mut usize, align: *
         18 => layout::<crate::scheduler::CTaskStats>(),
         19 => layout::<crate::scheduler::CSchedStats>(),
         20 => layout::<fault_log::Entry>(),
+        // 100-149: payload guard, deployment
+        100 => layout::<crate::payload_guard::PayloadSample>(),
+        101 => layout::<crate::deployment::DeploymentElementStatus>(),
+        102 => layout::<crate::deployment::DeploymentTelemetry>(),
         _ => return false,
     };
     // SAFETY: the C contract: NULL or pointers to size_t
@@ -79,6 +85,58 @@ pub extern "C" fn sqso_rust_constant(which: u32) -> f64 {
         20 => mode::State::ALL.len() as f64,
         21 => mode::Event::ALL.len() as f64,
         22 => f64::from(station::SSID),
+        // 100-149: RF control, RF silence, contact monitor, deployment,
+        // payload guard, and the HAL values they use
+        100 => payload_guard::MAX_INPUT_W,
+        101 => payload_guard::LATCHUP_INPUT_W,
+        102 => f64::from(payload_guard::OVERPOWER_SAMPLES),
+        103 => payload_guard::SPREADER_MAX_C,
+        104 => payload_guard::JUNCTION_MAX_C,
+        105 => payload_guard::RESTART_MARGIN_C,
+        106 => payload_guard::COOLDOWN_MS as f64,
+        107 => payload_guard::TELEMETRY_TIMEOUT_MS as f64,
+        108 => f64::from(payload_guard::Outcome::Cooldown as u32),
+        109 => f64::from(rf_control::POWER_LEVEL_COUNT),
+        110 => f64::from(rf_control::INHIBIT_CONTACT),
+        111 => f64::from(rf_control::INHIBIT_RF_SILENCE),
+        112 => f64::from(rf_silence::DURATION_S),
+        113 => f64::from(rf_silence::PERSIST_INTERVAL_S),
+        114 => f64::from(rf_silence::State::Armed as u32),
+        115 => f64::from(rf_silence::State::Complete as u32),
+        116 => f64::from(contact_monitor::TIMEOUT_DEFAULT_DAYS),
+        117 => f64::from(contact_monitor::TIMEOUT_MIN_DAYS),
+        118 => f64::from(contact_monitor::TIMEOUT_MAX_DAYS),
+        119 => f64::from(contact_monitor::PERSIST_INTERVAL_S),
+        120 => f64::from(contact_monitor::NVM_COUNTER),
+        121 => f64::from(contact_monitor::NVM_TIMEOUT),
+        122 => f64::from(deployment::WAIT_TIME_MS),
+        123 => f64::from(deployment::ANTENNA_BURN_TIME_MS),
+        124 => f64::from(deployment::SOLAR_BURN_TIME_MS),
+        125 => f64::from(deployment::MAX_RETRIES),
+        126 => f64::from(deployment::RETRY_DELAY_MS),
+        127 => f64::from(deployment::PERSIST_INTERVAL_S),
+        128 => f64::from(deployment::STATE_COUNT),
+        129 => f64::from(deployment::State::Armed as u32),
+        130 => f64::from(deployment::ELEMENT_COUNT),
+        131 => f64::from(crate::rf_control::FLASH_REGION_RF_CONTROL),
+        132 => f64::from(crate::contact_monitor::FLASH_REGION_CONTACT),
+        133 => f64::from(crate::rf_silence::FLASH_REGION_RF_SILENCE),
+        134 => f64::from(crate::deployment::FLASH_REGION_DEPLOYMENT),
+        135 => f64::from(crate::rf_control::GPIO_PIN_RADIO_EN),
+        136 => f64::from(crate::deployment::GPIO_PIN_DEPLOY_EN),
+        137 => f64::from(crate::rf_control::GPIO_PIN_RF_TX_EN),
+        138 => f64::from(crate::deployment::GPIO_PIN_ANTENNA_BURN),
+        139 => f64::from(crate::deployment::GPIO_PIN_SOLAR_BURN),
+        140 => f64::from(crate::deployment::GPIO_PIN_ANTENNA_SENSE),
+        141 => f64::from(crate::deployment::GPIO_PIN_SOLAR_SENSE),
+        142 => f64::from(crate::rf_control::GPIO_DIR_INPUT),
+        143 => f64::from(crate::rf_control::GPIO_DIR_OUTPUT),
+        144 => f64::from(crate::rf_control::GPIO_PULL_DOWN),
+        145 => f64::from(rf_silence::HAL_RESET_WATCHDOG),
+        146 => f64::from(rf_silence::HAL_RESET_SOFTWARE),
+        147 => f64::from(crate::deployment::FAULT_TYPE_DEPLOYMENT),
+        148 => f64::from(crate::deployment::LOG_LEVEL_DEBUG),
+        149 => f64::from(crate::deployment::LOG_LEVEL_INFO),
         _ => f64::NAN,
     }
 }

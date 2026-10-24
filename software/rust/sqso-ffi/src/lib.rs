@@ -27,6 +27,11 @@
 //! | `smart_qso.h` (mission clock) | [`time`] |
 //! | `separation_switch.h` | [`separation_switch`] |
 //! | `hal/*.h`, `hal/hal_sim.h` (host simulation) | `hal_sim` |
+//! | `rf_control.h` | [`rf_control`] |
+//! | `rf_silence.h` | [`rf_silence`] |
+//! | `contact_monitor.h` | [`contact_monitor`] |
+//! | `deployment.h` | [`deployment`] |
+//! | `payload_guard.h` | [`payload_guard`] |
 //!
 //! Struct layouts mirror the C headers (`#[repr(C)]`); the C contract test
 //! `tests/test_rust_contract.c` checks sizes and constants from the C side.
@@ -40,8 +45,10 @@ pub mod beacon_filter;
 pub mod cmd_auth;
 pub mod cmd_dictionary;
 pub mod cmd_handler;
+pub mod contact_monitor;
 pub mod contract;
 pub mod crc;
+pub mod deployment;
 pub mod fault_mgmt;
 pub mod gse_provision;
 #[cfg(not(target_os = "none"))]
@@ -49,6 +56,9 @@ pub mod hal_sim;
 pub mod input_validation;
 pub mod jetson_link;
 pub mod nvm_record;
+pub mod payload_guard;
+pub mod rf_control;
+pub mod rf_silence;
 pub mod scheduler;
 pub mod separation_switch;
 pub mod sha256;
