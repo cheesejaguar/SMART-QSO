@@ -3,7 +3,7 @@
 Generate the requirements traceability matrix (FINDINGS_REGISTER VV-06).
 
 Sources: the three requirement specifications (mission, system, software),
-         `@requirement ID` tags in software/ (.c, .h, .py),
+         `@requirement ID` tags in software/ (.c, .h, .py, .rs),
          requirement IDs cited in docs/test_procedures/*.md
 Output:  docs/verification/RTM.csv
 
@@ -59,7 +59,7 @@ COLUMNS = ("id", "specification", "parent", "method", "requirement", "code", "te
 
 #: A requirement table's header: first column "ID", second one of these
 TEXT_COLUMNS = {"requirement", "objective", "constraint"}
-SKIP_DIRS = {"build", "node_modules", "venv", "__pycache__"}
+SKIP_DIRS = {"build", "node_modules", "venv", "__pycache__", "target"}
 SEPARATOR = re.compile(r"^\|(\s*:?-+:?\s*\|)+\s*$")
 ROW_ID = re.compile(r"^" + ID + r"$")
 NOTE = re.compile(r"^\*\*(?:Not cited|To be corrected)\b.*$", re.M)
@@ -119,7 +119,7 @@ def rows(root: Path = REPO, specs: Sequence[str] = SPECS) -> List[Dict[str, str]
 
     code: Dict[str, set] = {}
     tests: Dict[str, set] = {}
-    for path in _sources(root, "software", (".c", ".h", ".py")):
+    for path in _sources(root, "software", (".c", ".h", ".py", ".rs")):
         rel = path.relative_to(root).as_posix()
         for rid in set(REF.findall(path.read_text(encoding="utf-8", errors="replace"))):
             (tests if _is_test(rel) else code).setdefault(rid, set()).add(rel)

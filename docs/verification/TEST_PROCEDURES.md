@@ -458,11 +458,11 @@ open coverage_report/index.html
 | Module | Target | Actual |
 |--------|--------|--------|
 | eps_control.c | 80% | TBD |
-| fault_mgmt.c | 80% | TBD |
+| fault_mgmt.rs (Rust) | 80% | TBD |
 | sensors.c | 80% | TBD |
 | mission_data.c | 80% | TBD |
 | uart_comm.c | 80% | TBD |
-| crc32.c | 80% | TBD |
+| checksum.rs (Rust) | 80% | TBD |
 | **Overall** | **80%** | **TBD** |
 
 ---

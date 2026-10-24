@@ -41,7 +41,7 @@ The test is conducted only: the RF output goes into an attenuator and a load, an
 |------|-------------|
 | Unit Under Test | OBC + RF board (transmitter, 435 MHz receiver, PA load switch) |
 | Serial Number | _____________ |
-| Flight software | Version/commit: _____________ (must include `uplink.c`, `rf_control.c`, `cmd_auth.c`, `gse_provision.c`) |
+| Flight software | Version/commit: _____________ (must include `software/rust/sqso-ffi/src/uplink.rs`, `rf_control.c`, `software/rust/sqso-fsw/src/keys.rs`, `software/rust/sqso-ffi/src/gse_provision.rs`) |
 | Configuration | GSE umbilical connected (sense line high); flight harness otherwise |
 
 ## 5. Test Equipment

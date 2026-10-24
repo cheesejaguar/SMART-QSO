@@ -4,6 +4,10 @@
 > earlier status claims (a v1.0.0 tag, "no known issues", "> 80 % line coverage", "MISRA C:2012 compliant") with facts
 > that can be checked in the repository. Sections 3, 5.3, 7 and 9 describe what a future delivery must contain; nothing
 > in them exists yet.
+>
+> Since 2026-10-24 the uplink, telecommand, Jetson-link, content-filter, mode-manager, scheduler and fault-log modules
+> are Rust (`software/rust/README.md`). The figures below are as of 2026-10-16; current static-analysis baselines are
+> in `software/flight/quality/`.
 
 **Document ID**: SQSO-FSW-DEL-001
 **Version**: 1.1

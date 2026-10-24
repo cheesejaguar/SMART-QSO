@@ -61,7 +61,7 @@ All loop bounds are defined as preprocessor constants in `smart_qso.h` or module
 | sensor_read_all() | for | 32 | Read all sensors | Hardware limit |
 | sensor_find_by_id() | for | 32 | Search sensor list | Array size limit |
 
-### 3.3 Fault Management (fault_mgmt.c)
+### 3.3 Fault Management (fault_mgmt.rs (Rust))
 
 | Location | Type | Bound | Purpose | Justification |
 |----------|------|-------|---------|---------------|
@@ -77,7 +77,7 @@ All loop bounds are defined as preprocessor constants in `smart_qso.h` or module
 | uart_receive_byte() | while | timeout | Wait for byte | Timeout-bounded |
 | uart_flush() | for | 256 | Flush buffer | Buffer size limit |
 
-### 3.5 Input Validation (input_validation.c)
+### 3.5 Input Validation (input_validation.rs (Rust))
 
 | Location | Type | Bound | Purpose | Justification |
 |----------|------|-------|---------|---------------|
@@ -92,7 +92,7 @@ All loop bounds are defined as preprocessor constants in `smart_qso.h` or module
 | safe_strlen() | while | max_length | Count chars | Parameter limit |
 | safe_memcpy() | for | count | Copy bytes | Parameter limit |
 
-### 3.7 State Machine (state_machine.c)
+### 3.7 State Machine (mode.rs (Rust))
 
 | Location | Type | Bound | Purpose | Justification |
 |----------|------|-------|---------|---------------|
@@ -250,11 +250,11 @@ for (uint32_t i = 0; i < count; i++) {
 |--------|-------|-------------|--------------|---------------|
 | main.c | 3 | Yes | Pass | Enabled |
 | sensors.c | 4 | Yes | Pass | Enabled |
-| fault_mgmt.c | 4 | Yes | Pass | Enabled |
+| fault_mgmt.rs (Rust) | 4 | Yes | Pass | Enabled |
 | uart_comm.c | 3 | Yes | Pass | Enabled |
-| input_validation.c | 2 | Yes | Pass | Enabled |
+| input_validation.rs (Rust) | 2 | Yes | Pass | Enabled |
 | safe_string.c | 8 | Yes | Pass | Enabled |
-| state_machine.c | 1 | Yes | Pass | Enabled |
+| mode.rs (Rust) | 1 | Yes | Pass | Enabled |
 | system_state.c | 0 | N/A | Pass | N/A |
 
 ---

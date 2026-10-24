@@ -12,6 +12,7 @@ on:
     branches: [main, develop, 'feature/**', 'release/**']
     paths:
       - 'software/flight/**'
+      - 'software/rust/**'
       - '.github/workflows/ci.yml'
   # Every PR, with no path filter: these jobs are required checks on main, and a
   # required check from a workflow that never starts would block the PR
@@ -89,6 +90,99 @@ jobs:
           flags: flight-software
           name: flight-coverage
           fail_ci_if_error: false
+
+  ###########################################################################
+  # Rust modules (software/rust): lint, test, target build, fuzz smoke
+  #
+  # The toolchain is pinned by software/rust/rust-toolchain.toml (rustup
+  # installs it on first use), as the C tools are pinned by the runner image.
+  ###########################################################################
+  rust:
+    name: Rust Modules
+    runs-on: ubuntu-24.04   # pinned
+    defaults:
+      run:
+        working-directory: software/rust
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Toolchain (rust-toolchain.toml)
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustc --version
+          cargo --version
+          rustc --version | grep -q '^rustc 1\.97\.0 ' || {
+            echo "::error::rustc is not the pinned 1.97.0 (software/rust/rust-toolchain.toml)"
+            exit 1
+          }
+
+      - name: Format
+        run: |
+          cargo fmt --all --check
+          (cd fuzz && cargo fmt --check)
+
+      # The workspace lints deny indexing that can panic, unwrap, expect and
+      # panic! in the parsers; with -D warnings every lint is an error
+      - name: Clippy (warnings are errors)
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Unit tests
+        run: cargo test --workspace --locked
+
+      - name: Cortex-M4F build (thumbv7em-none-eabihf)
+        run: cargo build --release --locked -p sqso-ffi --target thumbv7em-none-eabihf
+
+      - name: Unsafe code only in sqso-ffi
+        run: |
+          for crate in sqso-protocol sqso-fsw; do
+            grep -q '^#!\[forbid(unsafe_code)\]' "$crate/src/lib.rs" || {
+              echo "::error::$crate must keep #![forbid(unsafe_code)]"; exit 1; }
+          done
+          if grep -rn 'unsafe' sqso-py/src; then
+            echo "::error::sqso-py must not contain unsafe code"; exit 1
+          fi
+
+      - name: Minimum supported Rust version (rust-version in Cargo.toml)
+        run: |
+          msrv=$(sed -n 's/^rust-version = "\(.*\)"/\1/p' Cargo.toml)
+          rustup toolchain install "$msrv" --profile minimal
+          cargo "+$msrv" check --workspace --locked
+
+  rust-fuzz:
+    name: Rust Fuzz Smoke
+    runs-on: ubuntu-24.04   # pinned
+    needs: rust
+    defaults:
+      run:
+        working-directory: software/rust/fuzz
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Nightly toolchain and cargo-fuzz
+        run: |
+          rustup toolchain install nightly --profile minimal
+          cargo install cargo-fuzz --locked
+
+      # 30 s per target on every change; run longer locally or on a schedule
+      # (software/rust/README.md). Any assertion failure or crash fails the job.
+      - name: Fuzz every target
+        run: |
+          for target in $(cargo +nightly fuzz list); do
+            echo "::group::$target"
+            cargo +nightly fuzz run -O "$target" -- -max_total_time=30
+            echo "::endgroup::"
+          done
+
+      - name: Upload crashing inputs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-artifacts
+          path: software/rust/fuzz/artifacts
 
   ###########################################################################
   # Static Analysis Job

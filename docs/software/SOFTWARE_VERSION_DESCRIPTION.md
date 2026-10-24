@@ -54,15 +54,15 @@ This Software Version Description (SVD) identifies and describes a specific vers
 | eps_control | eps_control.c/h | ~400 | Power system control |
 | adcs_control | adcs_control.c/h | ~700 | Attitude control |
 | beacon | beacon.c/h | ~600 | Beacon generation |
-| fault_mgmt | fault_mgmt.c/h | ~400 | Fault management |
+| fault_mgmt | fault_mgmt.h, Rust `software/rust/sqso-ffi/src/fault_mgmt.rs` | ~400 | Fault management |
 | uart_comm | uart_comm.c/h | ~400 | UART communication |
 | mission_data | mission_data.c/h | ~300 | Data persistence |
-| crc32 | crc32.c/h | ~150 | CRC calculation |
+| crc32 | smart_qso.h, Rust `software/rust/sqso-protocol/src/checksum.rs` | ~150 | CRC calculation |
 | time_utils | time_utils.c/h | ~100 | Time utilities |
 | hal | hal/*.c/h | ~500 | Hardware abstraction |
 | **Total** | | **~4650** | |
 
-This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gained modules (for example `cmd_auth.c`, `rf_control.c`, `rf_silence.c`, `contact_monitor.c`); `software/flight/src/` is the current list.
+This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gained modules (for example `software/rust/sqso-fsw/src/keys.rs`, `rf_control.c`, `rf_silence.c`, `contact_monitor.c`); `software/flight/src/` is the current list.
 
 ### 3.2 Test Files
 
@@ -278,10 +278,10 @@ software/flight/
 │   ├── eps_control.c
 │   ├── adcs_control.c
 │   ├── beacon.c
-│   ├── fault_mgmt.c
+│   ├── fault_mgmt.rs (Rust)
 │   ├── uart_comm.c
 │   ├── mission_data.c
-│   ├── crc32.c
+│   ├── checksum.rs (Rust)
 │   ├── time_utils.c
 │   └── hal/
 ├── tests/

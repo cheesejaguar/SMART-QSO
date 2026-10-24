@@ -113,7 +113,7 @@ T+100ms:  EPS disables 5V rail
 
 ## 4. Communication Protocol
 
-*Rev 1.1 (2026-10-15): this section is now implemented on both sides, and both test suites check the same golden lines. The OBC side is `software/flight/src/jetson_link.c` (`test_jetson_link.c`). The Jetson side is `software/payload/obc_link.py`, used by `health_interface.py`, `agent.py` and `supervisor.py` (`test_obc_link.py`). Before this revision the OBC sent CSV with no CRC, the health interface expected binary 0x7E/0x7F frames carrying JSON, and the agent expected JSON lines (finding SW-24).*
+*Rev 1.1 (2026-10-15): this section is now implemented on both sides, and both test suites check the same golden lines. The OBC side is `software/rust/sqso-protocol/src/jetson.rs` (`test_jetson_link.c`). The Jetson side is `software/payload/obc_link.py`, used by `health_interface.py`, `agent.py` and `supervisor.py` (`test_obc_link.py`). Before this revision the OBC sent CSV with no CRC, the health interface expected binary 0x7E/0x7F frames carrying JSON, and the agent expected JSON lines (finding SW-24). Since 2026-10-24 both sides run one implementation: `obc_link.py` calls the same Rust code through the `sqso_protocol` Python module (`software/rust/sqso-py/src/lib.rs`).*
 
 ### 4.1 Line Format
 

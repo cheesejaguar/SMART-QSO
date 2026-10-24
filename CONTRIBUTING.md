@@ -9,7 +9,7 @@ Thanks for helping build an open, community‑taught satellite! Please:
 5. **PR**: link issues; describe motivation, design, and risks.
 
 ## Development Environment
-- Toolchain: CMake + GCC/Clang for host; ARM GCC for target.
+- Toolchain: CMake + GCC/Clang for host; ARM GCC for target; Rust (rustup; the version is pinned in `software/rust/rust-toolchain.toml`).
 - OBC RTOS: FreeRTOS (portable stubs in this repo).
 - Payload (Jetson Orin Nano Super): TensorRT/ONNX Runtime INT8 engines; declocked and power‑optimized; code stubs only.
 

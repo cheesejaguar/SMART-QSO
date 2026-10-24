@@ -108,7 +108,7 @@ All project documentation and processes shall comply with:
 - [x] **Create modular source file structure**: Split `software/flight/src/main.c` (941 lines) into separate modules:
   - [x] Create `software/flight/src/sensors.c` and `software/flight/include/sensors.h` - Extract sensor framework code (lines 70-142, 544-642, 673-734)
   - [x] Create `software/flight/src/eps_control.c` and `software/flight/include/eps_control.h` - Extract EPS control functions (lines 36-45, 103-316)
-  - [x] Create `software/flight/src/fault_mgmt.c` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
+  - [x] Create `software/rust/sqso-ffi/src/fault_mgmt.rs` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
   - [x] Create `software/flight/src/uart_comm.c` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
   - [x] Create `software/flight/src/mission_data.c` and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
   - [x] Create software/flight/src/yaml_parser.c and software/flight/include/yaml_parser.h - Extract YAML parsing (lines 652-708). (Removed 2026-10-16: never compiled or used; `sensors.c` reads the sensor YAML itself.)
@@ -135,7 +135,7 @@ All project documentation and processes shall comply with:
   │   ├── main.c
   │   ├── sensors.c
   │   ├── eps_control.c
-  │   ├── fault_mgmt.c
+  │   ├── fault_mgmt.rs (Rust)
   │   ├── uart_comm.c
   │   ├── mission_data.c
   │   ├── yaml_parser.c      (removed: unused)
@@ -417,7 +417,7 @@ All project documentation and processes shall comply with:
   - [x] Add communication timeout detection
   - [x] Add sensor range validation for all readings
 
-- [x] **Implement safe state**: Create explicit safe state definition: (audit 2026-10-16: implemented as the SAFE state in `state_machine.c`; there is no `SafeStateConfig_t`)
+- [x] **Implement safe state**: Create explicit safe state definition: (audit 2026-10-16: implemented as the SAFE state in `software/rust/sqso-fsw/src/mode.rs`; there is no `SafeStateConfig_t`)
   ```c
   typedef struct {
       bool payload_disabled;
@@ -441,7 +441,7 @@ All project documentation and processes shall comply with:
   - [x] Add CRC32 field to `EPSControlState` structure
   - [x] Add CRC32 field to `FaultLogEntry` structure
   - [x] Validate CRC on load, log corruption if mismatch
-  - [x] Create `software/flight/src/crc32.c` with CRC implementation
+  - [x] Create `software/rust/sqso-protocol/src/checksum.rs` with CRC implementation
 
 - [ ] **Implement triple modular redundancy (TMR)** for critical parameters: (audit 2026-10-16, SW-19: not implemented: no triple storage or voting in software/flight/src (git grep for TMR, vote, voting, redundan finds nothing))
   - [ ] Store critical config in 3 locations (audit 2026-10-16, SW-19: not implemented)
@@ -468,7 +468,7 @@ All project documentation and processes shall comply with:
 
 ### 5.6 State Machine Formalization
 - [x] **Formalize operational modes** as explicit state machine:
-  - [x] Create `software/flight/src/state_machine.c`
+  - [x] Create `software/rust/sqso-fsw/src/mode.rs`
   - [x] Define all states (SAFE, IDLE, ACTIVE, etc.)
   - [x] Define all valid transitions
   - [x] Add transition guards and actions
@@ -849,7 +849,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] Validate all environment variable inputs (lines 401-434)
   - [x] Add bounds checking for all array indexing
 
-- [x] **Create input validation module**: Create `software/flight/src/input_validation.c`:
+- [x] **Create input validation module**: Create `software/rust/sqso-ffi/src/input_validation.rs`:
   ```c
   bool validate_sensor_value(const char* id, double value);
   bool validate_power_mode(uint8_t mode);
@@ -1712,7 +1712,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_eps_control.c`
 
 #### 17.1.5 Fault Management Module
-- [x] **Implement `software/flight/src/fault_mgmt.c`** (refactor from main.c):
+- [x] **Implement `software/rust/sqso-ffi/src/fault_mgmt.rs`** (refactor from main.c):
   - [x] Fault detection functions
   - [x] Fault isolation logic
   - [x] Fault recovery procedures
@@ -2352,7 +2352,7 @@ Following protoflight approach per GSFC-STD-7000 (GEVS).
 ### Phase 3: Safety-Critical Features (Priority: High) ✅ COMPLETE
 - [x] Implement proper watchdog (Section 5.2) - watchdog_mgr.c with multi-task monitoring
 - [x] Add CRC protection to persisted data (Section 5.3) - CRC32 on all persistent data
-- [x] Formalize state machine (Section 5.6) - state_machine.c with all transitions
+- [x] Formalize state machine (Section 5.6) - mode.rs (Rust) with all transitions
 - [x] Create FDIR documentation (Section 5.1) - FDIR_DESIGN.md complete
 
 ### Phase 4: Documentation (Priority: Medium) ✅ COMPLETE

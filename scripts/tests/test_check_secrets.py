@@ -61,6 +61,15 @@ def test_binary_file_skipped(tmp_path):
     assert scan_paths([path], set()) == []
 
 
+def test_cargo_lock_checksums_pass_but_other_hex_does_not(tmp_path):
+    lock = write(tmp_path, "Cargo.lock",
+                 f'[[package]]\nname = "x"\nchecksum = "{RANDOM_KEY}"\nkey = "{RANDOM_KEY}"\n')
+    findings = scan_paths([lock], set())
+    assert [f.line for f in findings] == [4]
+    other = write(tmp_path, "notes.txt", f'checksum = "{RANDOM_KEY}"\n')
+    assert len(scan_paths([other], set())) == 1
+
+
 def test_allowlist_parsing(tmp_path):
     path = write(tmp_path, "allow.txt", f"# comment\n\n{RANDOM_KEY.upper()}  # FIPS vector\n")
     assert load_allowlist(path) == {RANDOM_KEY}

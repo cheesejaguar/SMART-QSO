@@ -90,8 +90,8 @@ PARAMETERS: Tuple[Parameter, ...] = (
     Parameter("beacon text maximum (characters)", "176", (
         (FLIGHT + "beacon_filter.h", r"BEACON_FILTER_MAX_LEN\s+(\d+)U"),
         (FLIGHT + "jetson_link.h", r"JETSON_TEXT_MAX\s+(\d+)U"),
-        ("software/payload/content_filter.py", r"^MAX_LEN = (\d+)"),
-        ("software/payload/obc_link.py", r"^TEXT_MAX = (\d+)"),
+        ("software/rust/sqso-protocol/src/filter.rs", r"pub const MAX_LEN: usize = (\d+);"),
+        ("software/rust/sqso-protocol/src/jetson.rs", r"pub const TEXT_MAX: usize = (\d+);"),
         ("docs/BEACON_SPEC.md", r"`<text>` is at most (\d+) characters"),
     )),
     Parameter("space station identifier", "KK6GDB-11", (

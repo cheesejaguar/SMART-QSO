@@ -11,6 +11,27 @@ This document provides a comprehensive compliance audit of the SMART-QSO flight 
 
 **Reference**: Gerard J. Holzmann, "The Power of 10: Rules for Developing Safety-Critical Code", IEEE Computer, June 2006.
 
+### 1.1 Rust modules (2026-10-24)
+
+The uplink, telecommand, Jetson-link, content-filter, mode-manager, scheduler and fault-log modules are Rust
+(`software/rust/README.md`). The rules were written for C; this is how each applies to that code. It is a description
+of the mechanisms, not a measured audit.
+
+| Rule | Rust mechanism | Checked by |
+|------|----------------|------------|
+| 1 | No `goto` in the language. No recursion in the crates | Review (no tool) |
+| 2 | Loops run over fixed-size arrays and slices (iterators); `while` loops are bounded by an index | Review (no tool); fuzzing |
+| 3 | `no_std` without `alloc`: nothing can allocate | ctest `no_dynamic_memory` on the Rust archive |
+| 4 | Not measured (`function_length.py` reads C) | — |
+| 5 | Bounds and integer-overflow checks are on in every build, flight included; a failure is a fatal assertion (`software/flight/src/rust_panic.c`). Parsers return `Result` rather than assume | Release profile `overflow-checks = true` |
+| 6 | Block scope; module state only in `sqso-ffi` (`cell::Global`) | Compiler |
+| 7 | `Result` is `#[must_use]`; a result discarded on purpose is written `let _ =` | Compiler (warning, an error in CI) |
+| 8 | No preprocessor; `cfg` only for tests | Review |
+| 9 | No raw pointers outside `sqso-ffi`: `#![forbid(unsafe_code)]` in `sqso-protocol` and `sqso-fsw` | Compiler; CI step |
+| 10 | rustc and clippy warnings are errors; clippy denies panicking indexing, `unwrap`, `expect` and `panic!` | CI job *Rust Modules* |
+
+Counts in §2 for rules 4 and 5 were measured on the C before the port; the C sources they cover have since shrunk.
+
 ## 2. Compliance Summary (measured 2026-10-15)
 
 > **The "FULLY COMPLIANT" status of revision 1.0 is withdrawn** (FINDINGS_REGISTER SW-07). It was not supported by tool
@@ -139,9 +160,9 @@ See: `software/flight/docs/MEMORY_POLICY.md` for complete policy.
 |--------|---------|---------------------|
 | main.c | Init, main loop | ~50 lines |
 | eps_control.c | Power management | ~45 lines |
-| state_machine.c | Mode transitions | ~40 lines |
+| mode.rs (Rust) | Mode transitions | ~40 lines |
 | telemetry.c | Frame generation | ~55 lines |
-| cmd_handler.c | Command routing | ~50 lines |
+| cmd_handler.rs (Rust) | Command routing | ~50 lines |
 
 **Refactoring Pattern**:
 ```c
@@ -420,10 +441,10 @@ Result: Build successful with zero warnings
 |--------|----|----|----|----|----|----|----|----|----|----|
 | main.c | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | eps_control.c | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| fault_mgmt.c | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| state_machine.c | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| fault_mgmt.rs (Rust) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| mode.rs (Rust) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | system_state.c | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
-| cmd_handler.c | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| cmd_handler.rs (Rust) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | telemetry.c | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | assert_handler.c | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 | watchdog_mgr.c | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |

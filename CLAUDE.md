@@ -8,9 +8,10 @@ SMART-QSO is a 1U CubeSat mission experimenting with onboard agentic AI to manag
 
 ## Build Commands
 
-### Flight Software (C/CMake)
+### Flight Software (C and Rust, CMake)
 ```bash
-# Build the flight software skeleton
+# Build the flight software skeleton (CMake runs cargo for software/rust;
+# the Rust toolchain is pinned by software/rust/rust-toolchain.toml)
 cmake -S software/flight -B build && cmake --build build
 
 # Run tests
@@ -18,6 +19,9 @@ ctest --test-dir build
 
 # Clean build
 rm -rf build
+
+# Rust modules alone
+(cd software/rust && cargo test --workspace && cargo clippy --workspace --all-targets -- -D warnings)
 ```
 
 ## High-Level Architecture
@@ -37,7 +41,8 @@ rm -rf build
    - Smart Beacon Agent: a selector on the MCU picks pre-approved templates (flight baseline, decision D5); Jetson-generated text is a gated experiment (SmolLM2-360M or Qwen3-0.6B), enabled only if measured energy per accepted beacon is ≤ 0.1 Wh. Both sides apply the same content filter (`docs/BEACON_SPEC.md` §6)
 
 ### Software Architecture
-- **Flight** (`software/flight/`): OBC firmware skeleton with FreeRTOS tasks for power, QSO, and beacon management
+- **Flight** (`software/flight/`): OBC firmware skeleton in C (the FreeRTOS tasks in the docs are not implemented); it links the Rust modules
+- **Rust** (`software/rust/`): the untrusted-input surface (AX.25 uplink, command frame, telecommand authentication and key table, OBC–Jetson link, GSE umbilical, beacon content filter), the mode manager, scheduler and fault log, behind the existing C headers. `sqso-protocol` and `sqso-fsw` are `no_std` with `unsafe` forbidden; `sqso-ffi` is the C ABI; `sqso-py` gives the payload and ground tools the same code. See `software/rust/README.md`
 - **Payload** (`software/payload/`): Jetson integration for TensorRT INT8 bursts
 - **Ground** (`software/ground/`): Tools for beacon processing, model frames, dashboards
 - **Simulation** (`software/simulation/`): Power/link notebooks and event replays

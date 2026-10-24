@@ -42,6 +42,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest
+          # The wire formats, from the Rust protocol crate (built with maturin;
+          # the runner image has Rust, pinned by software/rust/rust-toolchain.toml)
+          pip install ./software/rust/sqso-py
           pip install -e software/payload
           pip install -r software/simulation/orbit_lifetime/requirements.txt
 

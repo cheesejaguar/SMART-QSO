@@ -24,6 +24,9 @@ ALLOWLIST = REPO / "scripts" / "secret_scan_allowlist.txt"
 KEY_FILE = re.compile(r"(\.(key|pem|p12|pfx|jks|keystore)|^id_(rsa|dsa|ecdsa|ed25519)(\.pub)?)$", re.IGNORECASE)
 PRIVATE_KEY = re.compile(r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----")
 HEX_256 = re.compile(r"(?<![0-9A-Fa-f])[0-9A-Fa-f]{64,}(?![0-9A-Fa-f])")
+#: Cargo lockfiles pin each crate by the SHA-256 of its published archive
+#: (public); only those checksum lines are exempt, not the whole file
+LOCK_CHECKSUM = re.compile(r'^checksum = "[0-9a-f]{64}"$')
 
 
 @dataclass(frozen=True)
@@ -61,7 +64,10 @@ def scan_paths(paths: Iterable[Path], allowlist: Set[str]) -> List[Finding]:
         if b"\x00" in data:
             continue  # binary
         text = data.decode("utf-8", errors="replace")
+        lockfile = path.name == "Cargo.lock"
         for number, line in enumerate(text.splitlines(), start=1):
+            if lockfile and LOCK_CHECKSUM.match(line):
+                continue
             if PRIVATE_KEY.search(line):
                 findings.append(Finding(name, number, "private key block"))
             for match in HEX_256.finditer(line):

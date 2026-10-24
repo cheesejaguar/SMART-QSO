@@ -108,12 +108,12 @@ smart_qso
 ├── main.c                    # Application entry, scheduler
 ├── services/
 │   ├── eps_control.c         # Power management service
-│   ├── fault_mgmt.c          # FDIR service
+│   ├── fault_mgmt.rs (Rust)          # FDIR service
 │   ├── sensors.c             # Sensor polling service
 │   ├── mission_data.c        # Data persistence service
 │   └── uart_comm.c           # UART communication service
 ├── utilities/
-│   ├── crc32.c               # CRC32 calculation
+│   ├── checksum.rs (Rust)               # CRC32 calculation
 │   └── time_utils.c          # Time utilities
 └── hal/
     ├── hal_gpio.c            # GPIO abstraction
@@ -258,7 +258,7 @@ typedef struct {
 | eps_check_budget() | Verify power budget | SRS-F016 |
 | eps_save_config() | Save to NVM | SRS-F017 |
 
-### 3.3 Fault Management Module (fault_mgmt.c)
+### 3.3 Fault Management Module (fault_mgmt.rs (Rust))
 
 #### 3.3.1 Purpose
 Implements Fault Detection, Isolation, and Recovery (FDIR) per NASA heritage.
@@ -481,7 +481,7 @@ BEACON_RSP,42,Hello from SMART-QSO! AI-generated beacon text here.,C3D4\n
 | uart_check_health() | Check communication health | SRS-F032 |
 | uart_calculate_crc16() | Calculate CRC-16 CCITT | SRS-I005 |
 
-### 3.7 CRC32 Module (crc32.c)
+### 3.7 CRC32 Module (checksum.rs (Rust))
 
 #### 3.7.1 Purpose
 Provides IEEE 802.3 CRC32 calculation for data integrity.

@@ -126,11 +126,11 @@ From SQSO-REQ-001 §7.1. System requirements trace to these through their Parent
 
 | SWR ID | Design Element | File |
 |--------|----------------|------|
-| SWR-301 | SAFE state implementation | state_machine.c |
-| SWR-302 | IDLE state implementation | state_machine.c |
-| SWR-303 | ACTIVE state implementation | state_machine.c |
+| SWR-301 | SAFE state implementation | mode.rs (Rust) |
+| SWR-302 | IDLE state implementation | mode.rs (Rust) |
+| SWR-303 | ACTIVE state implementation | mode.rs (Rust) |
 | SWR-304 | SOC threshold logic | power_manager.c |
-| SWR-306 | Transition conditions | state_machine.c |
+| SWR-306 | Transition conditions | mode.rs (Rust) |
 
 ### 5.2 Beacon Design
 

@@ -16,6 +16,7 @@ on:
     branches: [ main, develop, 'feature/**', 'release/**' ]
     paths:
       - 'software/flight/**'
+      - 'software/rust/**'
       - '.github/workflows/flight-software-ci.yml'
   # Every PR, with no path filter: these jobs are required checks on main, and a
   # required check from a workflow that never starts would block the PR
@@ -206,9 +207,18 @@ jobs:
         arm-none-eabi-size --totals build-arm/libsmart_qso_target.a | tail -1
         # Thumb-2 code for the target, with the register-level HAL and the flight modules
         arm-none-eabi-objdump -f build-arm/libsmart_qso_target.a | grep -m1 'architecture: arm'
-        for sym in hal_gpio_init hal_wdt_kick hal_reset_cause beacon_filter_check jetson_link_parse sm_process_event; do
+        for sym in hal_gpio_init hal_wdt_kick hal_reset_cause; do
           arm-none-eabi-nm --defined-only build-arm/libsmart_qso_target.a | grep -q " T ${sym}$" || {
             echo "::error::${sym} missing from the target library"
+            exit 1
+          }
+        done
+        # The Rust modules, cross-compiled for the same core (software/rust)
+        rust=build-arm/cargo/thumbv7em-none-eabihf/release/libsqso_ffi.a
+        arm-none-eabi-objdump -f "$rust" | grep -m1 'architecture: arm'
+        for sym in cmd_process uplink_poll beacon_filter_check jetson_rx_feed sm_process_event fault_log_add; do
+          arm-none-eabi-nm build-arm/smart_qso_flight.elf | grep -q " T ${sym}$" || {
+            echo "::error::${sym} (Rust) missing from the linked flight image"
             exit 1
           }
         done

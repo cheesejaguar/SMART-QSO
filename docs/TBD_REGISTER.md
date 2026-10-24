@@ -527,11 +527,11 @@ One row per line that has the words, in document order; Kind gives the number of
 | Kind | Text | Owner | Needed by |
 |------|------|-------|-----------|
 | TBD | eps_control.c \| 80% \| TBD | PI | PI |
-| TBD | fault_mgmt.c \| 80% \| TBD | PI | PI |
+| TBD | fault_mgmt.rs (Rust) \| 80% \| TBD | PI | PI |
 | TBD | sensors.c \| 80% \| TBD | PI | PI |
 | TBD | mission_data.c \| 80% \| TBD | PI | PI |
 | TBD | uart_comm.c \| 80% \| TBD | PI | PI |
-| TBD | crc32.c \| 80% \| TBD | PI | PI |
+| TBD | checksum.rs (Rust) \| 80% \| TBD | PI | PI |
 | TBD | Overall \| 80% \| TBD | PI | PI |
 | TBD | Multimeter \| Fluke 87V \| TBD | PI | PI |
 | TBD | Power Supply \| Keithley 2200 \| TBD | PI | PI |

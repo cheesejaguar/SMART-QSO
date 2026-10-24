@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "description": "SMART-QSO uplink command dictionary (SQSO-ICD-013 section 7). Single source for software/flight/src/cmd_dictionary.c and software/ground/tools/command_dictionary.py; regenerate with scripts/gen_command_dictionary.py. key: which telecommand key authenticates the command (operational, recovery, or any). without_key: accepted without authentication only while no key is usable (TX-OFF can only reduce emissions).",
+  "description": "SMART-QSO uplink command dictionary (SQSO-ICD-013 section 7). Single source for software/rust/sqso-protocol/src/dictionary.rs and software/ground/tools/command_dictionary.py; regenerate with scripts/gen_command_dictionary.py. key: which telecommand key authenticates the command (operational, recovery, or any). without_key: accepted without authentication only while no key is usable (TX-OFF can only reduce emissions).",
   "commands": [
     {"name": "NOP", "id": "0x00", "c_name": "CMD_SYS_NOP", "min_args": 0, "max_args": 0, "key": "operational", "summary": "No operation"},
     {"name": "RESET", "id": "0x01", "c_name": "CMD_SYS_RESET", "min_args": 0, "max_args": 0, "key": "operational", "summary": "System reset (logged only until a hardware reset exists)"},

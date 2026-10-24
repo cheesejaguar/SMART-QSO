@@ -42,7 +42,7 @@ Each telecommand is one AX.25 v2.2 UI frame (control `0x03`, PID `0xF0`) on the 
 ```
 
 - **Receiver HAL contract (`hal_radio.h`):** each frame is delivered from the first address byte through the 2-byte FCS, with HDLC flags and bit stuffing already removed.
-- **Defence in depth:** `uplink.c` checks the FCS (CRC-16/X.25) again even if the transceiver already did.
+- **Defence in depth:** `software/rust/sqso-ffi/src/uplink.rs` checks the FCS (CRC-16/X.25) again even if the transceiver already did.
 - **KISS TNCs:** a TNC appends the FCS itself, so the ground tool's `--kiss` output leaves it out (Section 11).
 
 ### 3.2 Command frame
@@ -174,10 +174,13 @@ The argument length must match the dictionary exactly. If it doesn't, the comman
 
 **Single source:** `software/flight/command_dictionary.json`. `scripts/gen_command_dictionary.py` generates from it:
 
-- the flight table, `src/cmd_dictionary.c`, used by `cmd_args_spec()` and by `cmd_auth` to choose the key;
+- the Rust `Command` enum, `software/rust/sqso-protocol/src/dictionary.rs`. The flight argument check, the key choice and
+  the command dispatcher all use it, and the dispatcher is an exhaustive `match`: a command added to the JSON does not
+  build until it has a handler. The C table `g_cmd_dictionary` is built from it at compile time;
+- the C command-ID enum in `software/flight/include/cmd_dictionary.h`;
 - the ground module, `software/ground/tools/command_dictionary.py`.
 
-CI runs the generator with `--check` and fails if either output is stale. `test_every_dictionary_command` and `TestDictionary` check both sides independently.
+CI runs the generator with `--check` and fails if any output is stale. `test_every_dictionary_command` and `TestDictionary` check both sides independently.
 
 | ID | Name | Args (bytes) | Key | Notes |
 |----|------|--------------|-----|-------|
@@ -244,7 +247,7 @@ Every rejection is counted in `CmdStats_t`, and receive statistics are kept in `
 
 ### 9.2 Provisioning (integration only)
 
-Keys are loaded through the GSE umbilical UART by `gse_provision.c`.
+Keys are loaded through the GSE umbilical UART by `software/rust/sqso-ffi/src/gse_provision.rs`.
 
 - **Gate:** frames are honoured only while `GPIO_PIN_UMBILICAL_SENSE` is high. The GSE connector drives it high and the flight harness pulls it low. Bytes received without the umbilical are discarded.
 - **Not reachable over RF.** None of this path can be reached from the radio.
@@ -299,16 +302,17 @@ Procedure:
 
 | Item | Status |
 |------|--------|
-| SHA-256, HMAC-SHA-256 (`sha256.c`) | Implemented; FIPS 180-4 and RFC 4231 vectors (9 tests) |
-| Two-slot records with base offsets (`nvm_record.c`) | Implemented; power-fail and corruption cases (12 tests) |
-| Authentication, per-key counters, key table, rotation (`cmd_auth.c`) | Implemented (25 tests, including interrupted rotation and corrupt state) |
-| GSE provisioning (`gse_provision.c`) | Implemented (6 tests; the umbilical gate was mutation-checked) |
+| SHA-256, HMAC-SHA-256 (`software/rust/sqso-ffi/src/sha256.rs`) | Implemented; FIPS 180-4 and RFC 4231 vectors (9 tests) |
+| Two-slot records with base offsets (`software/rust/sqso-fsw/src/nvm.rs`) | Implemented; power-fail and corruption cases (12 tests) |
+| Authentication, per-key counters, key table, rotation (`software/rust/sqso-fsw/src/keys.rs`) | Implemented (25 tests, including interrupted rotation and corrupt state) |
+| GSE provisioning (`software/rust/sqso-ffi/src/gse_provision.rs`) | Implemented (6 tests; the umbilical gate was mutation-checked) |
 | Latched TX-OFF, power level (`rf_control.c`), beacon gating | Implemented (11 tests) |
 | Loss-of-contact inhibit (`contact_monitor.c`) | Implemented (10 tests, plus 3 handler tests; the contact hook's gate and placement were mutation-checked) |
 | Post-deployment RF silence (`rf_silence.c`), GSE ARM | Implemented (10 tests plus 1 GSE test; the reset-cause rule, completion persistence and switch reset were mutation-checked) |
-| Command path (`cmd_handler.c`) | Implemented (22 tests, including every dictionary command, KEY_ROTATE, SET_MODE guards and contact detection) |
-| AX.25 and receive path (`ax25.c`, `uplink.c`) | Implemented; end to end from receiver frame to TX-OFF (7 tests; the callsign filter was mutation-checked) |
+| Command path (`software/rust/sqso-ffi/src/cmd_handler.rs`) | Implemented (22 tests, including every dictionary command, KEY_ROTATE, SET_MODE guards and contact detection) |
+| AX.25 and receive path (`software/rust/sqso-protocol/src/ax25.rs`, `software/rust/sqso-ffi/src/uplink.rs`) | Implemented; end to end from receiver frame to TX-OFF (7 tests; the callsign filter was mutation-checked) |
 | Ground tools (`telecommand_builder.py`, `key_provision.py`) | Implemented; byte-identical to the flight vectors |
+| Rust implementation | Since 2026-10-24 the items with a `software/rust` path are Rust (`software/rust/README.md`). The C test suites counted here run unchanged against them, the parsers are fuzzed, and a differential fuzz against the former C agreed on 8.3 million inputs. The mutation checks were run on the C implementation and have not been repeated on the Rust one |
 | **Target receiver driver behind `hal_radio.h`** | **Not implemented.** Waits on transceiver selection (SQSO-ICD-003's SPI command set is a placeholder) |
 | **`RF_TX_EN` removes PA power at the antenna port** | **Not verified.** TP-RF-006 is written; it needs EM hardware |
 | **SET_POWER applied to the PA** | **Not implemented.** The level is persisted and reported; the actuator interface is TBD in the RF design |
