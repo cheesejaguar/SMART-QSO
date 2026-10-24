@@ -4,6 +4,8 @@
 //! On the host each is a file (an environment variable can override the
 //! path, so parallel tests do not share one). On the target each is a flash
 //! region holding a 4-byte length and the data.
+//!
+//! @requirement SRS-F041 Maintain the fault log in non-volatile memory
 
 #[cfg(not(target_os = "none"))]
 use core::ffi::CStr;
