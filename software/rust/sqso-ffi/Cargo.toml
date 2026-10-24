@@ -9,7 +9,7 @@ repository.workspace = true
 
 [lib]
 name = "sqso_ffi"
-crate-type = ["staticlib"]
+crate-type = ["staticlib", "rlib"]
 # Exercised through the C test suite (ctest), which links this library
 test = false
 doctest = false

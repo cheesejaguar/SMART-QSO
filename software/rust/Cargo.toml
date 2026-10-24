@@ -12,7 +12,7 @@
 resolver = "3"
 members = ["sqso-protocol", "sqso-fsw", "sqso-ffi", "sqso-py"]
 default-members = ["sqso-protocol", "sqso-fsw", "sqso-ffi", "sqso-py"]
-exclude = ["fuzz"]
+exclude = ["fuzz", "firmware"]
 
 [workspace.package]
 version = "0.2.0"

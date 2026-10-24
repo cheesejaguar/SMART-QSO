@@ -33,6 +33,7 @@ pub mod filter;
 pub mod frame;
 pub mod gse;
 pub mod jetson;
+pub mod kiss;
 pub mod station;
 
 mod write;
