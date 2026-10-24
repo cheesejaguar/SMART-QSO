@@ -6,7 +6,7 @@ This ConOps follows the lightweight style used by NASA Ames smallsat missions (e
 - Spacecraft: 1U CubeSat in ~500 km SSO
 - Primary objective: Operate a smart, power‑aware beacon that reports status and context in human‑readable form, with a deterministic machine‑parsable tail (see `docs/BEACON_SPEC.md`).
 - RF: Transmit‑only Stensat beacon on 2 m, AX.25 UI at 1200 bps AFSK (no uplink)
-- Autonomy: Low‑power OBC (FreeRTOS) + declocked Jetson Orin Nano Super for burst text generation when power/thermal allow; fail‑graceful templates otherwise
+- Autonomy: Low‑power OBC (Rust flight software on the Embassy executor; no RTOS, 2026-10-24) + declocked Jetson Orin Nano Super for burst text generation when power/thermal allow; fail‑graceful templates otherwise
 - Compliance: Amateur‑Satellite Service; callsign and plain‑text beacon each frame; no encryption
 
 ## 2. Operational Phases

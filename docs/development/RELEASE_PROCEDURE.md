@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-DEV-005
-**Revision:** B
-**Date:** 2026-01-02
+**Revision:** C
+**Date:** 2026-10-24
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -132,6 +132,23 @@ cmake --build build --target package
 # 7. Record build information
 ./scripts/record_build_info.sh > build_info.txt
 ```
+
+**As built (Revision C, 2026-10-24).** The flight software is Rust (`software/rust/README.md`), and the steps above
+need these changes before the first release:
+
+- **Version.** The version is in three places that must agree: `SMART_QSO_VERSION_STRING` in
+  `software/flight/include/smart_qso.h`, `VERSION` in `software/rust/sqso-ffi/src/executive.rs` (both "0.2.0-dev"), and
+  `version` in `software/rust/Cargo.toml` and `software/rust/firmware/Cargo.toml` (0.2.0). `CMakeLists.txt` has no
+  project version.
+- **Flight image.** `-DFLIGHT_BUILD=ON` builds the host simulation's flight configuration, not the image. The image is
+  built with `cd software/rust/firmware && cargo build --release --locked` and is the ELF
+  `software/rust/firmware/target/thumbv7em-none-eabihf/release/sqso-firmware`. A `.bin` must be made from it, for
+  example with `arm-none-eabi-objcopy -O binary`. The build does not produce one.
+- **Tests.** `ctest` as in step 5, plus `cargo test --workspace --locked` in `software/rust`. CI runs both, the coverage
+  gates, clippy, fuzzing and the image checks (`software/rust/README.md`, section CI).
+- **Not yet available.** There is no `package` target (step 6) and no build-info script (step 7). The
+  build information to record includes the toolchain (`rustc --version`, pinned by
+  `software/rust/rust-toolchain.toml`) and the two `Cargo.lock` files.
 
 ### 5.3 Release Verification
 
@@ -313,3 +330,4 @@ cmake --build build
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Document number changed from SQSO-DEV-004, which `COMMIT_MESSAGES.md` also carried, to SQSO-DEV-005 (finding PI-17). No content change | SMART-QSO Team |
+| C | 2026-10-24 | §5.2 note for the Rust flight software: where the version is set, how the image is built, the tests, and the steps not yet available (`package` target, build-info script) | SMART-QSO Team |

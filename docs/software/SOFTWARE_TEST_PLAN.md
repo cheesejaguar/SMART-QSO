@@ -1,8 +1,8 @@
 # Software Test Plan (STP)
 
 **Document Number**: SMART-QSO-STP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-24
 **Status**: Preliminary
 
 **Governing Standards**:
@@ -97,6 +97,17 @@ Following NASA Ames Small Satellite heritage:
 | Integration | Interface | 100% | Manual |
 | System | Requirements | 100% | RTM |
 
+**As implemented (Version 1.1, 2026-10-24).** The flight software is Rust (`software/rust/README.md`). CI (job Build and
+Test) gates line coverage:
+
+| Gate | Measured with | Minimum | Measured 2026-10-24 |
+|------|---------------|---------|---------------------|
+| Rust flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`): C suites and Rust unit tests together | LLVM source-based coverage (`software/flight/scripts/rust_coverage.sh`) | 90 % of lines | 92.1 % |
+| Flight software, C (`software/flight/src`, gcovr) and Rust together | gcovr and llvm-cov | 80 % of lines | 90.0 % |
+
+Branch coverage is neither measured nor gated yet, so the 75 % branch target above has no evidence. lcov is no longer
+used: gcovr counts sources that no test runs, and lcov did not.
+
 ### 3.3 Test Environment
 
 | Environment | Purpose | Configuration |
@@ -116,6 +127,21 @@ Following NASA Ames Small Satellite heritage:
 - **Build System**: CMake with CTest
 - **Coverage**: lcov/gcov
 - **Mocking**: CMocka mock functions
+
+**As implemented (Version 1.1).** The CMocka suites in `software/flight/tests` (42 suites, 630 cases, plus the
+`no_dynamic_memory` check: 43 ctest entries) are the specification of the flight software. They run unchanged against
+the Rust library through the C headers. The HAL is the simulated HAL `software/rust/sqso-ffi/src/hal_sim.rs`, whose
+`hal_sim_*` hooks inject inputs and faults; there is no `mocks/` directory. In addition:
+
+- **Rust unit tests**: 197, in `sqso-protocol` and `sqso-fsw` (`cargo test --workspace`).
+- **Fuzzing**: 11 cargo-fuzz targets, one per parser (`software/rust/fuzz/fuzz_targets`), 30 s each in CI with
+  property checks.
+- **Contract test**: `test_rust_contract.c` and `test_rust_contract_adcs.c` compare struct layouts and constants between
+  the C headers and the Rust.
+- **Sanitizers**: the C suites under AddressSanitizer and UBSan (CI job Sanitizer Checks).
+- **Mutation testing**: see `software/rust/mutants/`.
+
+The structure in §4.2 is the Revision 1.0 plan. `software/flight/tests/README.md` describes the suites as they are.
 
 ### 4.2 Unit Test Structure
 
@@ -227,6 +253,14 @@ ctest --test-dir build --output-on-failure
 # Generate coverage report
 lcov --capture --directory build --output-file coverage.info
 genhtml coverage.info --output-directory coverage_report
+```
+
+As implemented (Version 1.1), with the Rust coverage:
+
+```bash
+LLVM_PROFILE_FILE=$PWD/build/profraw/%p-%m.profraw ctest --test-dir build
+software/flight/scripts/rust_coverage.sh build 90
+(cd software/flight && gcovr -r . --filter 'src/' ../../build --print-summary)
 ```
 
 ---
@@ -489,6 +523,9 @@ All test failures tracked in GitHub Issues:
 | lcov | 1.16 | Coverage analysis |
 | gcov | 12.x | Coverage data |
 | Python | 3.10+ | Test automation |
+| Rust toolchain (cargo test, llvm-tools) | 1.97.0 (`software/rust/rust-toolchain.toml`) | Rust unit tests and coverage (added in Version 1.1) |
+| cargo-fuzz (nightly) | latest at CI run | Fuzzing (added in Version 1.1) |
+| gcovr | Ubuntu 24.04 | C coverage gate; replaces lcov (Version 1.1) |
 
 ---
 
@@ -525,3 +562,4 @@ Attachments:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: coverage gates as implemented (line, Rust ≥ 90 %, C and Rust ≥ 80 %; branch not measured); the C suites as the specification, Rust unit tests, fuzzing, contract test, sanitizers; Rust coverage commands and tools |

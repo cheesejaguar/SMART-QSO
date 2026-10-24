@@ -29,7 +29,7 @@ a conventional transponder and template beacon.
 | Mass | Limit 2.00 kg or the dispenser limit. BASELINE §4: CBE ≈ 1.51 kg, MEV ≤ 1.75 kg. The bottom-up [mass budget](environment/MASS_BUDGET.md) v2.0 gives CBE 1.69 kg and a predicted 1.92–2.00 kg, leaving 0–4 % margin; PI decision pending |
 | Power | 16 triple-junction cells (body + two deployable wings): ≈ 2.4 W EOL orbit average tumbling, ≈ 3.6 W sun-pointed (audit estimate, BASELINE §5); 2.14 W tumbling once self-shadowing is included ([array analysis](../hardware/eps/SOLAR_ARRAY_DESIGN.md) §9) |
 | Battery | 4S1P Li-ion 18650, ≈ 50 Wh; eclipse depth of discharge 1.3–2.0 % against a 10 % limit ([battery design](../hardware/eps/BATTERY_DESIGN.md) §3) |
-| Flight computer | STM32L4R5ZI, FreeRTOS (flight software currently runs only as a host simulation) |
+| Flight computer | STM32L4R5ZI, FreeRTOS in the baseline. As implemented (2026-10-24), the flight software is Rust on the Embassy executor, with no RTOS (BASELINE §6 note). It runs as a host simulation, and the image has not run on hardware |
 | AI payload | Jetson Orin Nano 8 GB module, 7 W mode, bursts ≤ 120 s, duty ≤ 5–10 %; model to be selected by measured energy |
 | Radio | Downlink 145.800–146.000 MHz and uplink 435–438 MHz (IARU to coordinate); ≤ 1 W; FM transponder plus 1200 bps AX.25 beacon; authenticated telecommand with a hardware TX-OFF path |
 | Link | 1200 bps beacon at 0.5 W closes from 5° elevation with +7.7 dB for a 12 dBic station (+4.7 dB in the conservative antenna-pattern case); analysis, [link budget](environment/LINK_BUDGET_ANALYSIS.md) v2.0 |
@@ -42,7 +42,7 @@ a conventional transponder and template beacon.
 |------|--------|
 | Hardware | **None built or procured** |
 | Design reviews (SRR/PDR/CDR) | **No independent review held.** Existing records are internal self-assessments generated on 2026-01-02 |
-| Flight software | C modules plus a host simulation, and a compile-only STM32L4 port (no RTOS, startup code or linker script); 40 unit-test suites (596 cases) pass; 82.7 % line coverage, counting every compiled flight source (CI, 2026-10-16) |
+| Flight software | Rust (2026-10-24; `software/rust/README.md`): a host simulation and an STM32L4R5ZI image on the Embassy executor that CI builds and checks but no hardware has run. 42 C test suites (630 cases) run against it, with 197 Rust unit tests and 11 fuzz targets. Line coverage 92.1 % (Rust) and 90.0 % (C and Rust together), counting every compiled line (CI, 2026-10-24). On 2026-10-16 it was C: 40 suites (596 cases) and 82.7 % |
 | Payload / ground software | Python; 143 payload and 98 ground unit tests pass in CI |
 | Regulatory filings | **None submitted.** Drafts exist for the IARU request, FCC Part 97 pre-space notification, ITU Appendix 4 data and ODAR |
 | Launch | **Not contracted.** Trade study recommends a commercial SSO rideshare in 2028 |
@@ -99,3 +99,4 @@ NPR 7150.2D is pending. No standard is yet demonstrated compliant.
 | 1.0 | 2026-01-02 | SMART-QSO Team | "CDR release" (status and budget figures withdrawn by the funding audit) |
 | 2.0 | 2026-10-14 | Funding audit | Rewritten from BASELINE_PARAMETERS with evidenced status |
 | 2.1 | 2026-10-16 | Funding audit | Link, mass, power and battery rows cite the re-issued budgets (TB-05, TB-06, TB-08, TB-14, PI-14); power margins updated to BASELINE Rev B |
+| 2.1, note | 2026-10-24 | SMART-QSO Team | Flight computer and flight software rows: the flight software is Rust on the Embassy executor (BASELINE §6 note); test counts and coverage of 2026-10-24 |

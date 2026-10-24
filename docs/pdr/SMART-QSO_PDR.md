@@ -1,5 +1,9 @@
 # SMART-QSO (Self‑Managing Amateur Radio Transponder — QSO)
 
+> **Note (2026-10-24):** a historical PDR-phase description, not updated. The OBC is the STM32L4R5ZI
+> (`docs/BASELINE_PARAMETERS.md` §6), and the flight software is Rust on the Embassy executor, with no FreeRTOS
+> (`software/rust/README.md`).
+
 **Mission Phase:** Pre‑Phase B / Phase B — Preliminary Design Review (PDR)
 
 **Spacecraft Class:** 1U CubeSat (10 × 10 × 11.35 cm max envelope per CDS)

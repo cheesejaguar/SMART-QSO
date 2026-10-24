@@ -66,7 +66,7 @@ INTERFACE BLOCK DIAGRAM
 | 7 | RF_SDN | OBC→RF | Shutdown control |
 | 8 | RF_GPIO0 | RF→OBC | CTS signal |
 | 9 | RF_GPIO1 | RF→OBC | TX/RX indicator |
-| 10 | RF_TX_EN | OBC→RF | PA load-switch enable, high = PA powered. Pull-down on the RF side, so a reset or unpowered OBC leaves the PA off. Driven by `rf_control.c` (TX-OFF, SQSO-ICD-013 §6). *Proposed 2026-10-15; confirm in the RF schematic* |
+| 10 | RF_TX_EN | OBC→RF | PA load-switch enable, high = PA powered. Pull-down on the RF side, so a reset or unpowered OBC leaves the PA off. Driven by `software/rust/sqso-fsw/src/rf_control.rs` (TX-OFF, SQSO-ICD-013 §6; pin in `software/rust/firmware/src/gpio.rs`, provisional). *Proposed 2026-10-15; confirm in the RF schematic* |
 
 ### 4.3 Cable Requirements
 
@@ -299,3 +299,4 @@ PACKET RECEPTION PROCEDURE
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Beacon Format ICD cited by its own number, SMART-QSO-ICD-006 (finding PI-17) |
+| 1.1, note | 2026-10-24 | SMART-QSO Team | RF_TX_EN row names the Rust file that replaced `rf_control.c` |

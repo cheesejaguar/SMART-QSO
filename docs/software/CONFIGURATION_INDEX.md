@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SW-006
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-24
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -20,6 +20,14 @@ This document covers:
 - Runtime configuration
 - Hardware-dependent configuration
 
+**Revision B (2026-10-24).** The flight software is Rust (`software/rust/README.md`). The parameter values in §4 to §9
+are unchanged. `docs/BASELINE_PARAMETERS.md` governs where they differ, and `scripts/check_parameters.py` checks the key
+ones against the code. In the code, a parameter is a constant in its C header (`software/flight/include`), mirrored by a
+Rust constant. `software/flight/tests/test_rust_contract.c` checks that the two agree. §3 is updated to the build as it
+is. The preprocessor defines in §3.2, the stack and heap sizes in §3.3, the storage map in §10.1 and the configuration
+commands in §10.2 are not in the code. The storage map as built is `software/flight/docs/MEMORY_POLICY.md` §8.1, and the
+telecommands are the ones in `software/flight/command_dictionary.json`.
+
 ---
 
 ## 3. Build-Time Configuration
@@ -32,6 +40,21 @@ This document covers:
 | ENABLE_COVERAGE | BOOL | OFF | Enable code coverage |
 | ENABLE_SANITIZERS | BOOL | OFF | Enable address sanitizers |
 | TARGET_PLATFORM | STRING | LINUX | Target: LINUX, STM32L4, FREERTOS |
+
+Revision B, as built (`software/flight/CMakeLists.txt`): `FLIGHT_BUILD`, `ENABLE_COVERAGE`, `ENABLE_SANITIZERS` and
+`ENABLE_WERROR` (ON). There is no `TARGET_PLATFORM`. The host build always targets Linux or macOS, and the STM32L4R5ZI
+image is built by cargo in `software/rust/firmware` (`docs/software/BUILD_CONFIGURATIONS.md` §2.1). Other build-time
+settings:
+
+| Setting | Where | Effect |
+|---------|-------|--------|
+| cargo feature `flight` (crate `sqso-sim`) | set by `FLIGHT_BUILD` | The host simulation runs until stopped instead of 1000 passes |
+| `target_os = "none"` | the target build | Selects the firmware HAL, FRAM storage and the debug-UART console instead of the host's files, termios and stderr |
+| Toolchain | `software/rust/rust-toolchain.toml` | rustc 1.97.0 |
+
+Host-only run-time settings (environment variables of the simulation and the tests): `SENSORS_YAML` (sensor table
+file), `SMART_QSO_FAULT_LOG`, `SMART_QSO_EPS_CONFIG` and `SMART_QSO_MISSION_DATA` (storage files), and `UART_DEVICE`,
+`UART_BAUDRATE` and `TELEMETRY_INTERVAL_MS` (Jetson serial line). The target has none of these.
 
 ### 3.2 Preprocessor Defines
 
@@ -276,3 +299,4 @@ This document covers:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-24 | The flight software is Rust: parameters are C header constants mirrored in Rust and checked by the contract test; §3 build-time settings as built (CMake options, cargo feature, host environment variables); items not in the code identified. No parameter value changed | SMART-QSO Team |

@@ -1,13 +1,19 @@
 # Regression Test Suite
 
 **Document ID**: SMART-QSO-REG-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-24
 **Classification**: Engineering
 
 ## 1. Purpose
 
 This document tracks regression tests added for each resolved defect or anomaly. Each test ensures the defect does not recur in future releases.
+
+**Version 1.1 (2026-10-24).** The flight software is Rust (`software/rust/README.md`). The regression suite
+`test_regression_suite.c` (11 CMocka cases) is C and runs unchanged against the Rust through the C headers, like the
+other C suites. A regression test for a new defect may be a case here, through the C ABI, or a Rust unit test in the
+crate that holds the fix. Either way it is listed in §4. Deliberate behaviour changes made in the port are not defects.
+They are numbered in `software/rust/README.md`.
 
 ## 2. Regression Test Policy
 
@@ -80,8 +86,9 @@ cmake -B build
 cmake --build build
 ctest --test-dir build -R regression
 
-# Run specific regression test
-ctest --test-dir build -R REG-EPS-001
+# The suite is one ctest entry (test_regression_suite); its output names each case.
+# ctest -R selects ctest entries, not CMocka cases, so -R REG-EPS-001 matches nothing
+ctest --test-dir build -R test_regression_suite --output-on-failure
 ```
 
 ## 6. Adding New Regression Tests
@@ -123,6 +130,7 @@ static void test_regression_DEFxxx_description(void **state)
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-24 | SMART-QSO Team | The suite runs against the Rust flight software; a regression test may also be a Rust unit test. §5: a single case cannot be selected with `ctest -R` |
 
 ---
 

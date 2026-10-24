@@ -68,7 +68,7 @@ SMART-QSO SPACECRAFT ARCHITECTURE
 | Subsystem | Function | Key Parameters |
 |-----------|----------|----------------|
 | EPS | Power generation/storage | 7W solar, 7Wh battery |
-| OBC | Command and control | Apollo4 MCU, FreeRTOS |
+| OBC | Command and control | STM32L4R5ZI MCU; Rust flight software on the Embassy executor, no RTOS (updated 2026-10-24) |
 | RF | Communications | 145/435 MHz, 0.5-2W |
 | AI Payload | Beacon generation | Jetson Orin Nano, TinyLM |
 | ADCS | Attitude sensing | Magnetometer, sun sensors |
@@ -643,3 +643,4 @@ STATUS: [Open/Investigating/Resolved/Closed]
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.0a | 2026-10-16 | Funding audit | Notice: Module 1 spacecraft figures superseded by BASELINE_PARAMETERS (PI-14) |
+| 1.0, note | 2026-10-24 | SMART-QSO Team | OBC row updated: STM32L4R5ZI, Rust on the Embassy executor. The diagrams in §2 and §4 still show the superseded Apollo4 and FreeRTOS tasks; `docs/BASELINE_PARAMETERS.md` and `software/flight/docs/RTOS_ARCHITECTURE.md` govern |

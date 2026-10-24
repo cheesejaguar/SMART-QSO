@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-009
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-24
 **Reference:** NPR 7150.2, MISRA C:2012, NASA Ames SmallSat Heritage
 
 ---
@@ -20,6 +20,12 @@ This document covers:
 - Type naming
 - Macro and preprocessor naming
 - File naming
+
+**Revision B (2026-10-24).** The flight software is Rust (`software/rust/README.md`). Sections 3 to 11 are the C
+conventions. They apply to the C headers in `software/flight/include`, which are the C ABI of the Rust modules and keep
+their names, to the remaining C file `software/flight/src/flight_log_fmt.c`, and to the C test suites. The Rust
+conventions are in §12.3. The C examples below, such as `hal_stm32l4.c`, name files that no longer exist and only
+illustrate the rules.
 
 ---
 
@@ -508,7 +514,7 @@ static SmartQsoResult_t sensors_read_raw(uint8_t reg, uint8_t *data, size_t len)
 | cppcheck | Identifier style |
 | Custom script | Prefix validation |
 
-### 12.2 clang-tidy Configuration
+### 12.2 clang-tidy Configuration (C)
 
 ```yaml
 # .clang-tidy excerpt
@@ -526,6 +532,20 @@ CheckOptions:
     value: '_t'
 ```
 
+### 12.3 Rust Naming
+
+| Item | Convention | Example |
+|------|------------|---------|
+| Crates | `sqso-` prefix, kebab-case | `sqso-protocol`, `sqso-fsw` |
+| Modules and files | snake_case. In `sqso-ffi`, one file per C header with the header's name | `sqso-ffi/src/eps_control.rs` for `eps_control.h` |
+| Types and traits | UpperCamelCase, without the C `_t` suffix | `Entry` (mirrors `FaultLogEntry_t`) |
+| Functions, variables | snake_case | `power_event`, `now_ms` |
+| Constants and statics | UPPER_SNAKE_CASE | `MAX_ENTRIES`, `HW_TIMEOUT_MS` |
+| C ABI exports | The exact C name from the header (`#[unsafe(no_mangle)]`). Exported C globals keep their C names under `#![allow(non_upper_case_globals)]` | `eps_init`, `wdt_mgr_kick` |
+
+Enforcement: rustc's `non_snake_case`, `non_camel_case_types` and `non_upper_case_globals` lints, which CI turns into
+errors (clippy with `-D warnings`). The C ABI names are checked by the C test suites, which link against them.
+
 ---
 
 ## 13. Revision History
@@ -533,3 +553,4 @@ CheckOptions:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-24 | The flight software is Rust: §2 scope (the C conventions cover the C headers, the flight-log shim and the tests); §12.3 Rust naming and its enforcement | SMART-QSO Team |

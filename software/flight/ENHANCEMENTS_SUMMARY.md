@@ -1,6 +1,13 @@
 # Flight Software Enhancements Summary
 ## Comprehensive Satellite Health Monitoring, EPS Control, and Fault Recovery
 
+> **Note (2026-10-24).** This is a historical record of enhancements made to the former C flight software. `main.c` and
+> every other C flight module have since been replaced by Rust. The executive is now
+> `software/rust/sqso-ffi/src/executive.rs`, and `software/rust/README.md` has the overview and a porting table from
+> each former C file to its Rust files. The behaviour described here was carried over unless that README lists a
+> change. Thresholds quoted below (SOC, voltages, temperatures) are those of the time. `docs/BASELINE_PARAMETERS.md`
+> governs where they differ.
+
 ### Executive Summary
 
 The SMART-QSO flight software (`main.c`) has been significantly enhanced to provide comprehensive satellite health monitoring, EPS control capabilities, fault recovery mechanisms, and data persistence. These enhancements ensure the satellite can operate autonomously with intelligent fault detection and recovery, while maintaining mission data across spacecraft resets.

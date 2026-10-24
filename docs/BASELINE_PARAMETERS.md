@@ -133,6 +133,11 @@ receiver and TX-OFF path.
 | GNSS | **Add a GNSS receiver [D6]:** SkyFox piNAV-NG/FM (24 g, 125 mW typical, UART NMEA, LEO cold start 80 s) with a 50 × 50 mm patch (Spacemanic ZENITH V3a); alternate Spacemanic Celeste. Non-critical: OBC load switch with latch-up trip, power-cycled on fault. Drives SpaceX User's Guide v11 §9.5.7.2: forward-predicted GNSS-based ephemeris with covariance within 24 h of first contact, then at least every 24 h until cataloged. Needs a ground orbit-determination and CCSDS OEM upload pipeline. Third-party ephemeris stays as the contingency. Open: patch location on the faces, Czech export licence, L1 noise test with Jetson, PA and magnetorquers |
 | Radiation | Design to 10 krad (≥ 2× the 2-year dose behind 2 mm Al); Jetson treated as non-critical and expendable |
 
+**Note (2026-10-24; no baseline value changed).** The flight software as implemented is Rust (`software/rust/README.md`).
+On the STM32L4R5ZI it runs on the Embassy executor with one task, with no RTOS. FreeRTOS was never integrated
+(`software/flight/docs/RTOS_ARCHITECTURE.md`). The "FreeRTOS" in the OBC row above is unchanged until the PI rebaselines
+it, so documents that describe the implementation now differ from this row on that point.
+
 ## 7. RF and Telecommand
 
 | Parameter | Baseline |
@@ -182,3 +187,4 @@ change are marked there.
 | A | 2026-10-14 | Initial baseline proposed by the funding audit |
 | B | 2026-10-15 | Decisions D1–D7 recorded (§9): licensee, paid-contract structure, contact timeout, transponder kept, AI model selection, GNSS receiver (mass and power lines), integrator plan and cost |
 | B, note | 2026-10-16 | Notes on mass (§4) and the tumbling margin (§5) from the re-issued mass budget and solar-array analysis; values unchanged pending the PI |
+| B, note | 2026-10-24 | Note beneath §6: the flight software is Rust on the Embassy executor, not FreeRTOS; the OBC row is unchanged pending the PI |

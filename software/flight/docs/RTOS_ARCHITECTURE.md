@@ -2,478 +2,213 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-011
-**Revision:** A
-**Date:** 2026-01-02
-**Reference:** NPR 7150.2, FreeRTOS Documentation, NASA Ames SmallSat Heritage
+**Revision:** B
+**Date:** 2026-10-24
+**Reference:** NPR 7150.2, Embassy (embassy-executor 0.10, embassy-stm32 0.6, embassy-time 0.5), NASA Ames SmallSat Heritage
 
 ---
 
 ## 1. Purpose
 
-This document defines the real-time operating system architecture for SMART-QSO flight software, including task structure, synchronization, and resource management.
+This document defines the run-time architecture of the SMART-QSO flight software on the OBC (STM32L4R5ZI): how the
+work is scheduled, which interrupts run, how the watchdog supervises the main loop, and the timing. There is no RTOS.
+The image runs on the Embassy async executor with one task. Revision A described a FreeRTOS design that was never
+implemented. §13 keeps a short history note on it.
 
 ## 2. Scope
 
 This document covers:
-- FreeRTOS configuration
-- Task architecture
-- Inter-task communication
-- Timing and scheduling
-- Resource management
+- The executor and why there is no RTOS (§3)
+- The task and the stages of the main loop (§4)
+- Interrupts and the data they hand to the loop (§5)
+- Timing and scheduling (§6)
+- Memory (§7)
+- Watchdog supervision (§8)
+- Power management, error handling and debugging (§9 to §11)
+
+Sources: `software/rust/firmware/src/main.rs` (the image), `software/rust/sqso-ffi/src/executive.rs` (the main loop,
+shared with the host simulation), `software/rust/sqso-ffi/src/watchdog_mgr.rs` and
+`software/rust/sqso-fsw/src/watchdog.rs` (supervision). Nothing here has been measured on hardware: no hardware has run
+the image.
 
 ---
 
 ## 3. RTOS Selection
 
-### 3.1 FreeRTOS Justification
+### 3.1 No RTOS: the Embassy executor
 
-| Criterion | FreeRTOS | Rationale |
-|-----------|----------|-----------|
-| Footprint | ~10 KB | Fits in constrained memory |
-| Real-time | Preemptive | Deterministic response |
-| Certification | SAFERTOS available | Safety-critical variant |
-| Heritage | Wide CubeSat use | GeneSat, PharmaSat heritage |
-| License | MIT | No export restrictions |
+FreeRTOS was never integrated and is not planned. The flight image (`software/rust/firmware`) uses:
 
-### 3.2 Version
+| Component | Version | Role |
+|-----------|---------|------|
+| embassy-executor | 0.10 (`platform-cortex-m`, `executor-thread`) | Runs the one async task; the core sleeps (WFE) when the task is waiting |
+| embassy-stm32 | 0.6 (`stm32l4r5zi`, `dual-bank`, `time-driver-any`, `memory-x`, `rt`, `exti`) | Chip bring-up, clocks, peripheral drivers, the time driver |
+| embassy-time | 0.5 (`tick-hz-32_768`) | `Timer::after_millis`; the HAL time base |
+| cortex-m-rt | 0.7 | Vector table, `Reset`, the linker script `link.x` |
 
-| Component | Version |
-|-----------|---------|
-| FreeRTOS Kernel | 10.5.1 |
-| CMSIS-RTOS2 | 2.1.3 |
-| Target | STM32L4R5 (Cortex-M4) |
+Reasons, from the design as built:
+- One loop already does all the work in a fixed order (§4.2), so preemptive tasks would add shared-state locking and no
+  function.
+- The flight software runs the same passes on the host simulation (`sqso-sim`) and on the target. Only the wait between
+  passes differs (§6.1), so the C test suites and the simulation exercise the target's control flow.
+- The executor and the drivers allocate nothing. The image links no heap and no C library (CI checks it).
+
+### 3.2 Target
+
+| Item | Value |
+|------|-------|
+| MCU | STM32L4R5ZI (Cortex-M4F) |
+| Core clock | 80 MHz: 4 MHz MSI through the PLL, M = 1, N = 40, R = 2; AHB and APB at the core clock (`clocks()` in `software/rust/firmware/src/main.rs`) |
+| Rust target | `thumbv7em-none-eabihf` |
+| Image (release) | text 120,884 B, data 18,840 B, bss 16,256 B; vector table at 0x08000000; initial SP 0x200A0000; entry `Reset` |
 
 ---
 
 ## 4. Task Architecture
 
-### 4.1 Task Overview
+### 4.1 One task
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        TASK HIERARCHY                        │
-├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  Priority 4 (Highest)                                        │
-│  ┌──────────────┐                                           │
-│  │  Watchdog    │  Period: 10s   Stack: 256B                │
-│  │  Task        │  Deadline: 10s                            │
-│  └──────────────┘                                           │
-│                                                              │
-│  Priority 3 (High)                                           │
-│  ┌──────────────┐  ┌──────────────┐                         │
-│  │   Sensor     │  │    ADCS      │                         │
-│  │   Task       │  │   Control    │                         │
-│  │ Period: 100ms│  │ Period: 1s   │                         │
-│  └──────────────┘  └──────────────┘                         │
-│                                                              │
-│  Priority 2 (Normal)                                         │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │    Main      │  │   Beacon     │  │   Command    │       │
-│  │    Loop      │  │  Generator   │  │   Handler    │       │
-│  │ Period: 100ms│  │ Period: var  │  │ Event-driven │       │
-│  └──────────────┘  └──────────────┘  └──────────────┘       │
-│                                                              │
-│  Priority 1 (Low)                                            │
-│  ┌──────────────┐  ┌──────────────┐                         │
-│  │  Telemetry   │  │ Housekeeping │                         │
-│  │  Collector   │  │    Task      │                         │
-│  │ Period: 5s   │  │ Period: 10s  │                         │
-│  └──────────────┘  └──────────────┘                         │
-│                                                              │
-│  Priority 0 (Idle)                                           │
-│  ┌──────────────┐                                           │
-│  │    Idle      │  Background scrubbing, power save         │
-│  │    Task      │                                           │
-│  └──────────────┘                                           │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
-```
+The image has one async task, `main` (`#[embassy_executor::main]`). It runs these steps in order:
 
-### 4.2 Task Table
+1. Start the IWDG at its longest timeout (about 32 s, `wdt::start_boot_watchdog`) before anything else, so a PLL that
+   never locks resets the OBC.
+2. `embassy_stm32::init(clocks())`: clocks, the time driver, the peripherals.
+3. Install the HAL drivers (GPIO first, with enable and burn lines low; FRAM; SPI; I2C; the three UARTs; the ADC).
+4. `Executive::start()`: bring the flight software up in the order of `init_system` (time base, GPIO and flash,
+   deployment, fault management, RF safety and telecommand, mission data, EPS, sensors, beacon, payload guard, system
+   state and mode manager, watchdog manager, Jetson UART). If it returns `None`, the processor resets.
+5. Loop: `flight.step()`, then `Timer::after_millis(20).await`.
 
-| Task | Priority | Period | Stack | Purpose |
-|------|----------|--------|-------|---------|
-| Watchdog | 4 | 10 s | 256 B | Kick hardware WDT |
-| Sensor | 3 | 100 ms | 1 KB | Sample all sensors |
-| ADCS Control | 3 | 1000 ms | 2 KB | Attitude control |
-| Main Loop | 2 | 100 ms | 4 KB | System management |
-| Beacon | 2 | Variable | 2 KB | Generate beacons |
-| Command | 2 | Event | 2 KB | Process uplinks |
-| Telemetry | 1 | 5000 ms | 1 KB | Collect telemetry |
-| Housekeeping | 1 | 10000 ms | 512 B | Maintenance |
-| Idle | 0 | - | 128 B | Background work |
+The task never ends. There is no other task, no queue, no mutex and no semaphore.
 
-### 4.3 Task Creation
+### 4.2 The stages of one pass
 
-```c
-/* Task handle declarations */
-static TaskHandle_t s_watchdog_task;
-static TaskHandle_t s_sensor_task;
-static TaskHandle_t s_adcs_task;
-static TaskHandle_t s_main_task;
-static TaskHandle_t s_beacon_task;
-static TaskHandle_t s_command_task;
-static TaskHandle_t s_telemetry_task;
-static TaskHandle_t s_housekeeping_task;
+`Executive::step()` (`software/rust/sqso-ffi/src/executive.rs`) runs these stages in this order. A stage checks in with
+the watchdog manager when it completes:
 
-/* Task creation in system_init() */
-void create_tasks(void)
-{
-    xTaskCreate(watchdog_task_fn, "WDT",
-                configMINIMAL_STACK_SIZE, NULL,
-                4, &s_watchdog_task);
-
-    xTaskCreate(sensor_task_fn, "SENS",
-                256, NULL,
-                3, &s_sensor_task);
-
-    xTaskCreate(adcs_task_fn, "ADCS",
-                512, NULL,
-                3, &s_adcs_task);
-
-    xTaskCreate(main_task_fn, "MAIN",
-                1024, NULL,
-                2, &s_main_task);
-
-    /* ... additional tasks ... */
-}
-```
+| # | Stage | Work | Watchdog check-in |
+|---|-------|------|-------------------|
+| 1 | Mission state | Power model step, SOC to the EPS, power event to the mode manager, uptime and payload energy | — |
+| 2 | Health (every 10 s) | Temperatures, bus voltage, SOC, Jetson link | `health` (period 20 s) |
+| 3 | Main | — | `main` (period 1 s) |
+| 4 | Jetson telemetry | When the payload is on and the telemetry interval (60 s default) has passed: TELEMETRY line and beacon request; UART health check; sensor polling | — |
+| 5 | Payload | Jetson replies; the OBC-enforced payload limits (`payload_guard`) | `payload` (period 1 s) |
+| 6 | Beacon | Beacon measurements; a beacon when one is due (silent while TX-OFF, loss-of-contact or RF-silence inhibits are set) | `beacon` (period 1 s) |
+| 7 | Uplink | Telecommands from the receiver (`uplink_poll`); GSE key provisioning (umbilical only) | `uplink` (period 1 s) |
+| 8 | Timers | Elapsed time to the contact monitor, RF silence and deployment | — |
+| 9 | Persistence (every 100 passes) | Mission data and EPS state saved | — |
+| 10 | Watchdog | `wdt_mgr_kick()`: task check once a second; hardware refresh unless a task is stalled (§8) | — |
 
 ---
 
-## 5. Inter-Task Communication
+## 5. Interrupts and Inter-Task Communication
 
-### 5.1 Communication Mechanisms
+There is one task, so there is no inter-task communication. Interrupts are bound in `software/rust/firmware/src/main.rs`
+(`bind_interrupts!`) or by the Embassy time driver:
 
-| Mechanism | Use Case | Tasks |
-|-----------|----------|-------|
-| Queue | Sensor data | Sensor → Main |
-| Queue | Commands | Command → Main |
-| Mutex | Telemetry buffer | All → Telemetry |
-| Semaphore | Beacon trigger | Main → Beacon |
-| Event Groups | Mode changes | Main → All |
-| Direct Notify | Watchdog kick | Watchdog → All |
+| Interrupt | Handler | Hands to the loop |
+|-----------|---------|-------------------|
+| USART1 (Jetson link, 115,200 baud) | embassy-stm32 `BufferedInterruptHandler` | Receive buffer 512 B, transmit buffer 256 B |
+| USART2 (TNC, KISS, 9600 baud) | `BufferedInterruptHandler` | Receive buffer 1,024 B; the loop decodes KISS frames (`sqso_protocol::kiss`) in `hal_radio_*` |
+| USART3 (debug console, 115,200 baud) | `BufferedInterruptHandler` | Receive buffer 64 B, transmit buffer 512 B |
+| Time driver timer | embassy-stm32 `time-driver-any` | Wakes the executor when `Timer::after_millis` expires; 64-bit tick count at 32,768 Hz |
 
-### 5.2 Queue Architecture
-
-```
-┌─────────────┐     ┌─────────────────┐     ┌─────────────┐
-│   Sensor    │────▶│  Sensor Queue   │────▶│    Main     │
-│    Task     │     │  Depth: 4       │     │    Task     │
-└─────────────┘     │  Item: 64 bytes │     └─────────────┘
-                    └─────────────────┘
-
-┌─────────────┐     ┌─────────────────┐     ┌─────────────┐
-│   Command   │────▶│  Command Queue  │────▶│    Main     │
-│    Task     │     │  Depth: 8       │     │    Task     │
-└─────────────┘     │  Item: 128 bytes│     └─────────────┘
-                    └─────────────────┘
-
-┌─────────────┐     ┌─────────────────┐     ┌─────────────┐
-│    Main     │────▶│  Beacon Queue   │────▶│   Beacon    │
-│    Task     │     │  Depth: 2       │     │    Task     │
-└─────────────┘     │  Item: 256 bytes│     └─────────────┘
-                    └─────────────────┘
-```
-
-### 5.3 Queue Definitions
-
-```c
-/* Queue handles */
-static QueueHandle_t s_sensor_queue;
-static QueueHandle_t s_command_queue;
-static QueueHandle_t s_beacon_queue;
-
-/* Queue item structures */
-typedef struct {
-    uint32_t timestamp;
-    Vector3_t magnetometer;
-    float sun_sensors[6];
-    float temperature;
-} SensorQueueItem_t;
-
-typedef struct {
-    uint8_t command_id;
-    uint8_t payload[127];
-} CommandQueueItem_t;
-
-/* Queue creation */
-void create_queues(void)
-{
-    s_sensor_queue = xQueueCreate(4, sizeof(SensorQueueItem_t));
-    s_command_queue = xQueueCreate(8, sizeof(CommandQueueItem_t));
-    s_beacon_queue = xQueueCreate(2, sizeof(BeaconData_t));
-}
-```
-
-### 5.4 Mutex Usage
-
-```c
-/* Telemetry buffer mutex */
-static SemaphoreHandle_t s_telemetry_mutex;
-
-/* Protected access */
-void telemetry_update(const TelemetryPacket_t *packet)
-{
-    if (xSemaphoreTake(s_telemetry_mutex, pdMS_TO_TICKS(100)) == pdTRUE) {
-        memcpy(&g_telemetry_buffer, packet, sizeof(TelemetryPacket_t));
-        xSemaphoreGive(s_telemetry_mutex);
-    } else {
-        fault_mgmt_report(FAULT_MUTEX_TIMEOUT);
-    }
-}
-```
+The interrupt handlers only move bytes between the peripheral and the buffers. The flight software reads the buffers
+from the loop, with no blocking wait. No flight-software code runs in interrupt context. The HAL's callback timers and
+the watchdog early-warning callback are not provided, because a callback from interrupt context would bypass the
+module-state rules (`software/rust/firmware/src/timer.rs`). Module state is held in a busy-flag cell, so a call that
+re-entered a module would get "busy" rather than alias its state (`docs/development/CODING_STANDARDS.md` §11.8).
 
 ---
 
 ## 6. Timing and Scheduling
 
-### 6.1 FreeRTOS Configuration
+### 6.1 Pass period
 
-```c
-/* FreeRTOSConfig.h key settings */
-#define configUSE_PREEMPTION                    1
-#define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
-#define configUSE_TICKLESS_IDLE                 0
-#define configCPU_CLOCK_HZ                      80000000
-#define configTICK_RATE_HZ                      1000
-#define configMAX_PRIORITIES                    5
-#define configMINIMAL_STACK_SIZE                128
-#define configTOTAL_HEAP_SIZE                   32768
-#define configMAX_TASK_NAME_LEN                 8
-#define configUSE_MUTEXES                       1
-#define configUSE_COUNTING_SEMAPHORES           1
-#define configUSE_QUEUE_SETS                    0
-#define configUSE_TASK_NOTIFICATIONS            1
-#define configTASK_NOTIFICATION_ARRAY_ENTRIES   1
-#define configUSE_TRACE_FACILITY                1
-#define configUSE_STATS_FORMATTING_FUNCTIONS    1
-```
+| Build | Wait between passes | Source |
+|-------|---------------------|--------|
+| Firmware | `Timer::after_millis(20).await`; the core sleeps in the executor | `software/rust/firmware/src/main.rs` (`TICK_MS`) |
+| Host simulation | `sleep_us(20,000)`; 1000 passes (about 20 s), or until stopped with feature `flight` | `software/rust/sqso-ffi/src/executive.rs` (`run_host`) |
 
-### 6.2 Periodic Task Pattern
+The 20 ms wait comes after the pass. The pass period is therefore 20 ms plus the time of the pass. It is not a fixed
+rate, and a long pass delays the next one instead of being skipped. SRS-P001 (main loop within 20 ms) is not verified
+on hardware: no execution time has been measured on the target (`software/flight/docs/TIMING_ANALYSIS.md`).
 
-```c
-/* Standard periodic task implementation */
-void sensor_task_fn(void *pvParameters)
-{
-    (void)pvParameters;
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xPeriod = pdMS_TO_TICKS(100);
+### 6.2 Slower activities
 
-    while (1) {
-        /* Wait for next period */
-        vTaskDelayUntil(&xLastWakeTime, xPeriod);
+Activities slower than one pass are timed from the mission clock (milliseconds since boot, 64-bit) inside the stages:
+the health check every 10 s, Jetson telemetry at the telemetry interval, the watchdog task check every 1 s, the beacon
+interval by power mode (`beacon.h`), and persistence every 100 passes. Elapsed-time arithmetic is 64-bit or saturating
+(`software/rust/README.md`, behaviour change 11).
 
-        /* Task work */
-        SensorQueueItem_t data;
-        if (sensors_read_all(&data) == RESULT_OK) {
-            xQueueSend(s_sensor_queue, &data, 0);
-        }
+### 6.3 Time-triggered scheduler
 
-        /* Notify watchdog */
-        xTaskNotify(s_watchdog_task, TASK_SENSOR_ALIVE, eSetBits);
-    }
-}
-```
-
-### 6.3 Event-Driven Task Pattern
-
-```c
-/* Event-driven task (command handler) */
-void command_task_fn(void *pvParameters)
-{
-    (void)pvParameters;
-    CommandQueueItem_t cmd;
-
-    while (1) {
-        /* Block on queue indefinitely */
-        if (xQueueReceive(s_command_queue, &cmd, portMAX_DELAY) == pdTRUE) {
-            process_command(&cmd);
-            xTaskNotify(s_watchdog_task, TASK_CMD_ALIVE, eSetBits);
-        }
-    }
-}
-```
+`scheduler.h` (`software/rust/sqso-fsw/src/scheduler.rs`) is a time-triggered task table with deadline monitoring. The
+C test suites exercise it. The executive does not use it: the main loop runs its stages directly in the order of §4.2.
 
 ---
 
 ## 7. Memory Management
 
-### 7.1 Heap Configuration
+| Item | Value |
+|------|-------|
+| Heap | None. No crate uses `alloc`; the image links no heap (CI checks for `malloc`, `free`, `_sbrk`) |
+| Task storage | Static, in the executor (`embassy-executor`) |
+| UART buffers | Static `ConstStaticCell` arrays (§5) |
+| Stack | One stack (cortex-m-rt), from the initial SP 0x200A0000 downward. Stack use has not been measured |
 
-| Setting | Value | Rationale |
-|---------|-------|-----------|
-| Heap scheme | heap_4.c | Coalescing, low fragmentation |
-| Total heap | 32 KB | Sufficient for all objects |
-| Stack overflow | Hook enabled | Detection and logging |
-
-### 7.2 Static Allocation
-
-```c
-/* Prefer static allocation for critical tasks */
-static StaticTask_t s_watchdog_tcb;
-static StackType_t s_watchdog_stack[configMINIMAL_STACK_SIZE];
-
-TaskHandle_t create_watchdog_task(void)
-{
-    return xTaskCreateStatic(
-        watchdog_task_fn,
-        "WDT",
-        configMINIMAL_STACK_SIZE,
-        NULL,
-        4,
-        s_watchdog_stack,
-        &s_watchdog_tcb
-    );
-}
-```
-
-### 7.3 Stack Monitoring
-
-```c
-/* Stack high water mark monitoring */
-void check_stack_usage(void)
-{
-    UBaseType_t high_water;
-
-    high_water = uxTaskGetStackHighWaterMark(s_main_task);
-    if (high_water < STACK_WARNING_THRESHOLD) {
-        log_warning("Main task stack low: %u words", high_water);
-    }
-}
-```
+`software/flight/docs/MEMORY_POLICY.md` has the policy.
 
 ---
 
 ## 8. Watchdog Integration
 
-### 8.1 Task Watchdog Pattern
+### 8.1 Stage supervision (SW-15)
 
-```c
-/* Watchdog notification bits */
-#define TASK_MAIN_ALIVE      (1 << 0)
-#define TASK_SENSOR_ALIVE    (1 << 1)
-#define TASK_ADCS_ALIVE      (1 << 2)
-#define TASK_BEACON_ALIVE    (1 << 3)
-#define TASK_ALL_ALIVE       0x0F
+The watchdog manager (`software/rust/sqso-ffi/src/watchdog_mgr.rs` on `software/rust/sqso-fsw/src/watchdog.rs`) keeps a
+table of the stages in §4.2. The executive registers them in `init_watchdog`: `main`, `uplink`, `payload` and `beacon`
+with a period of 1 s, and `health` with 20 s. Then it starts the hardware watchdog with a 30 s timeout
+(`WDT_HW_TIMEOUT_MS`).
 
-void watchdog_task_fn(void *pvParameters)
-{
-    (void)pvParameters;
-    uint32_t notification;
-    const TickType_t xPeriod = pdMS_TO_TICKS(10000);
+- Each pass ends with `wdt_mgr_kick()`. Once a second it checks every registered stage. A stage that has not checked in
+  within its period counts a miss. After 3 misses in a row (`MISS_THRESHOLD`) it is stalled. The stall is logged, and
+  the pre-reset callback saves mission data and the EPS state.
+- The hardware watchdog is refreshed on every pass while no stage is stalled. A stalled stage stops the refresh, and
+  the IWDG resets the OBC within its 30 s timeout.
+- If a pass never returns (a hang inside a stage), nothing refreshes the IWDG, and it resets the OBC after 30 s.
+- Before the flight software starts, the boot watchdog (§4.1) covers the clock set-up and the driver installation.
 
-    while (1) {
-        /* Wait for all tasks to check in */
-        if (xTaskNotifyWait(0, TASK_ALL_ALIVE, &notification, xPeriod) == pdTRUE) {
-            if ((notification & TASK_ALL_ALIVE) == TASK_ALL_ALIVE) {
-                hal_watchdog_kick();
-            } else {
-                /* Log which task(s) didn't respond */
-                log_fault(FAULT_TASK_TIMEOUT, ~notification & TASK_ALL_ALIVE);
-            }
-        } else {
-            /* Timeout - no notification received */
-            log_fault(FAULT_WATCHDOG_TIMEOUT, 0);
-            /* Allow hardware watchdog to reset */
-        }
-    }
-}
-```
+### 8.2 Hardware
+
+The IWDG runs on the 32 kHz LSI (`software/rust/firmware/src/wdt.rs`). It cannot be stopped once started, and it only
+resets (no interrupt mode). The reset cause is read from the RCC CSR flags (`hal_reset.h`).
 
 ---
 
 ## 9. Power Management
 
-### 9.1 Idle Task Hook
-
-```c
-/* Low power in idle */
-void vApplicationIdleHook(void)
-{
-    /* Enter sleep mode */
-    __WFI();  /* Wait for interrupt */
-}
-```
-
-### 9.2 Tickless Idle (Optional)
-
-```c
-/* For extended low power (not used in baseline) */
-#if configUSE_TICKLESS_IDLE
-void vPortSuppressTicksAndSleep(TickType_t xExpectedIdleTime)
-{
-    /* Configure RTC for wakeup */
-    enter_stop_mode(xExpectedIdleTime);
-}
-#endif
-```
+Between passes the task waits on `Timer::after_millis(20)`, and the executor puts the core to sleep until an interrupt
+(the time driver or a UART). No stop or standby mode is used. Power has not been measured on hardware.
 
 ---
 
 ## 10. Error Handling
 
-### 10.1 Stack Overflow Hook
-
-```c
-void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName)
-{
-    /* Log and attempt recovery */
-    fault_mgmt_report(FAULT_STACK_OVERFLOW);
-    log_critical("Stack overflow: %s", pcTaskName);
-
-    /* Reset via watchdog */
-    while (1) {
-        /* Wait for watchdog reset */
-    }
-}
-```
-
-### 10.2 Malloc Failed Hook
-
-```c
-void vApplicationMallocFailedHook(void)
-{
-    fault_mgmt_report(FAULT_MALLOC_FAILED);
-    log_critical("Malloc failed");
-
-    /* Attempt to continue - heap exhausted */
-}
-```
+| Event | Response |
+|-------|----------|
+| Rust panic (overflow check, broken invariant) | Fatal assertion: `report_panic` (`software/rust/sqso-ffi/src/lib.rs`) logs it and saves state through the assertion handler. Then the processor waits (WFI) for the IWDG, or resets itself through `SCB::sys_reset` if the IWDG was never started (`software/rust/firmware/src/main.rs`) |
+| Driver set-up fails (UART) or `Executive::start()` returns `None` | `SCB::sys_reset` |
+| Stage stalled or loop hung | IWDG reset (§8) |
+| Stack overflow | Not detected. There is no stack guard (the stack grows down from the top of RAM) |
 
 ---
 
 ## 11. Debugging Support
 
-### 11.1 Runtime Statistics
-
-```c
-/* Task runtime statistics */
-void print_task_stats(void)
-{
-    char buffer[512];
-    vTaskGetRunTimeStats(buffer);
-    log_info("Task Statistics:\n%s", buffer);
-}
-
-void print_task_list(void)
-{
-    char buffer[512];
-    vTaskList(buffer);
-    log_info("Task List:\n%s", buffer);
-}
-```
-
-### 11.2 Trace Hooks
-
-```c
-/* Optional: Task switch tracing */
-#if ENABLE_TRACE
-#define traceTASK_SWITCHED_IN() trace_task_in(pxCurrentTCB)
-#define traceTASK_SWITCHED_OUT() trace_task_out(pxCurrentTCB)
-#endif
-```
+- Console lines (`[SYSTEM]`, beacon TX, faults) go to the debug UART, USART3 (`software/rust/README.md`, behaviour
+  change 17).
+- `cargo run --release` in `software/rust/firmware` flashes and runs the image with probe-rs (runner in
+  `software/rust/firmware/.cargo/config.toml`). The release profile keeps debug information (`debug = 2`).
 
 ---
 
@@ -482,3 +217,15 @@ void print_task_list(void)
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-24 | Rewritten for the design as built: no RTOS; the Embassy executor with one task, interrupt-driven UARTs and the time driver; the stages of a pass and their watchdog supervision; timing. The FreeRTOS design of Revision A, never implemented, kept as a history note (§13) | SMART-QSO Team |
+
+---
+
+## 13. History Note: the FreeRTOS Design of Revision A (2026-01-02)
+
+Revision A specified FreeRTOS 10.5.1 with CMSIS-RTOS2. It had nine tasks at priorities 0 to 4 (watchdog, sensor, ADCS,
+main loop, beacon, command, telemetry, housekeeping, idle), queues between them, a telemetry mutex, a 1 kHz tick and a
+32 KB `heap_4` heap. None of it was implemented: no FreeRTOS source, configuration or task code was ever in the
+repository, and the C flight software ran one main loop until it was replaced by the Rust (2026-10-24). The heap in that
+design would have conflicted with the no-dynamic-memory rule (JPL rule 3). The Revision A text is in the repository
+history.

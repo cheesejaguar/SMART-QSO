@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat (proposed Class D, NPR 8705.4B)
 
 **Document Number:** SQSO-AUD-003
-**Revision:** A
-**Date:** 2026-10-14
+**Revision:** B
+**Date:** 2026-10-24
 
 ---
 
@@ -37,6 +37,21 @@ NPR 7150.2, NPR 7123.1 and NASA-STD-8719.13 with no supporting matrices (finding
 | NPR 8715.3 NASA General Safety Program | 8715.3E | Reference | Listed | Partial | — |
 | NPR 8715.6 Orbital Debris | Required by CDS Rev 14.1 §2.4.3 | Applicable | Never cited | Tailored-plan | ODAR per 8719.14C ([ODAR](../regulatory/filings/ODAR_SMART-QSO.md)) |
 | NASA-STD-8719.14 Process for Limiting Orbital Debris | **8719.14C**, 2021-11-05; DAS 3.2.6 (2024-02-05) | Applicable | Cited as "A"; 25-year rule; "Compliant" | Tailored-plan | Run DAS 3.2.6; finalize ODAR |
+
+### 1.1 NPR 7150.2: Software Implementation Items (update 2026-10-24)
+
+The NPR 7150.2 row above stays **Gap**: there is still no formal classification and no tailored compliance matrix. This
+table records the state of the software items that a tailored matrix would cover, after the flight software was ported
+from C to Rust on 2026-10-24 (`software/rust/README.md`). Each status uses the definitions above.
+
+| Item | State on 2026-10-24 | Status |
+|------|---------------------|--------|
+| Implementation language | Rust (2024 edition) for all flight code. The only C is the flight-log printf shim (`software/flight/src/flight_log_fmt.c`) and the test suites. SRS-C001 still says C11, so the implementation does not meet it as written; amending it or recording a waiver is a PI decision (`docs/software/SOFTWARE_REQUIREMENTS.md` §8.1) | Partial |
+| Coding standard | `docs/development/CODING_STANDARDS.md` Rev B: §11 for Rust (lints denied in CI, `unsafe` policy, no allocation, no panics on input, C ABI rules) and §3–§10 for the remaining C. The JPL Power of Ten mapping, with what is enforced by a tool and what by review, is `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1. MISRA C applies to the shim only (42-finding baseline, `software/flight/docs/MISRA_DEVIATIONS.md`) | Partial |
+| Static analysis | In CI on every change: clippy with warnings as errors (host and Cortex-M4F), the `#![forbid(unsafe_code)]` check, CodeQL for Rust and C/C++, `cargo audit`; cppcheck, clang-tidy (baseline 0) and the MISRA addon (baseline 42) on the remaining C. None of the tools is qualified | Partial |
+| Code coverage | Line coverage gated in CI: the Rust flight crates ≥ 90 % (92.1 % measured) and the flight software C and Rust together ≥ 80 % (90.0 %). Branch and MC/DC coverage are not measured | Partial |
+| Tools and toolchain | Rust 1.97.0 pinned (`software/rust/rust-toolchain.toml`), CI tool versions pinned by the runner image; no tool qualification. Whether a qualified compiler (for example Ferrocene) is needed depends on the classification | Gap |
+| Target verification | The STM32L4R5ZI image (`software/rust/firmware`) is built and checked in CI. No hardware has run it | Gap |
 
 ## 2. Workmanship, Parts, Materials, Structures, Environments
 
@@ -88,3 +103,4 @@ NPR 7150.2, NPR 7123.1 and NASA-STD-8719.13 with no supporting matrices (finding
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial matrix (funding audit) |
+| B | 2026-10-24 | §1.1: NPR 7150.2 implementation items (language, coding standard, static analysis, coverage, tools, target verification) after the port of the flight software to Rust. No status in §1 changed |

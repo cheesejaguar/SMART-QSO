@@ -1,8 +1,8 @@
 # Software Development Plan (SDP)
 
 **Document Number**: SMART-QSO-SDP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-24
 **Status**: Draft
 
 **Governing Standards**:
@@ -55,7 +55,7 @@ SMART-QSO is a 1U CubeSat experimenting with onboard agentic AI to manage an ama
 ```
 +------------------+     UART     +------------------+
 |   OBC (MCU)      |<------------>|   Jetson Orin    |
-|   FreeRTOS       |              |   AI Payload     |
+|   Rust, Embassy  |              |   AI Payload     |
 +------------------+              +------------------+
         |                                 |
         v                                 v
@@ -70,10 +70,14 @@ SMART-QSO is a 1U CubeSat experimenting with onboard agentic AI to manage an ama
 
 | Component | Language | Target | Classification |
 |-----------|----------|--------|----------------|
-| OBC Flight Software | C | STM32L4/Apollo4 | Class D |
+| OBC Flight Software | Rust (one C11 file, the flight-log shim) | STM32L4R5ZI | Class D |
 | Jetson Payload SW | Python | Jetson Orin Nano | Class D |
 | Ground Software | Python | Linux/Windows | Class E |
-| Simulation | Python/C | Linux | Class E |
+| Simulation | Python (`software/simulation`); the flight software's host simulation is Rust (`software/rust/sqso-sim`) | Linux | Class E |
+
+Version 1.1 (2026-10-24): the OBC flight software was ported from C to Rust (`software/rust/README.md`). The Jetson
+payload and ground tools use the same wire-format code through the Python module `sqso_protocol`
+(`software/rust/sqso-py`).
 
 ---
 
@@ -107,6 +111,11 @@ Per NPR 7150.2 Appendix C, the following tailoring is applied:
 | MC/DC coverage | Branch coverage | Class D missions |
 | Independent V&V | Team V&V | Limited budget |
 | Tool qualification | Documented tools | Class D |
+
+Version 1.1 notes. CI gates **line** coverage (Rust ≥ 90 %; C and Rust together ≥ 80 %). Branch coverage is neither
+measured nor gated, so the "branch coverage" tailoring above is not yet implemented. The Rust toolchain is pinned
+(1.97.0) and documented, but not qualified. Whether flight needs a qualified compiler (for example Ferrocene) is a PI
+decision (`software/rust/README.md`, Next steps).
 
 ---
 
@@ -165,7 +174,7 @@ Phase A ──> Phase B ──> Phase C ──> Phase D ──> Phase E
 | Platform | Purpose |
 |----------|---------|
 | Development PC | Code development, simulation |
-| STM32L4 NUCLEO | MCU firmware development |
+| STM32L4R5ZI development board | MCU firmware development (no hardware has run the firmware yet) |
 | Jetson Orin Nano Dev Kit | AI payload development |
 | Flatsat | System integration testing |
 
@@ -173,12 +182,18 @@ Phase A ──> Phase B ──> Phase C ──> Phase D ──> Phase E
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| GCC ARM | 12.x | Flight software compilation |
-| CMake | 3.16+ | Build system |
-| CMocka | 1.1+ | Unit testing framework |
-| LLVM/Clang | 15.x | Static analysis, formatting |
-| cppcheck | 2.10+ | Static analysis |
-| lcov | 1.16+ | Code coverage |
+| Rust toolchain (rustc, cargo, clippy, rustfmt, llvm-tools) | 1.97.0, pinned by `software/rust/rust-toolchain.toml`; minimum 1.88 | Flight software compilation (host and `thumbv7em-none-eabihf`), lints, formatting, coverage |
+| Embassy (embassy-stm32, embassy-executor, embassy-time) | 0.6, 0.10, 0.5 | Target bring-up, drivers, executor (`software/rust/firmware/Cargo.toml`) |
+| Rust nightly, cargo-fuzz | latest at CI run | Fuzzing (`software/rust/fuzz`) |
+| cargo-audit | latest at CI run | Known vulnerabilities in the Rust dependencies |
+| probe-rs | - | Flashing and running the image on a board |
+| GNU Arm binutils | Ubuntu 24.04 package | Image inspection in CI (no C cross-compiler is used) |
+| Host C compiler (GCC or Clang) | Ubuntu 24.04 | The C test suites and the flight-log shim |
+| CMake | 3.16+ | Build system (drives cargo) |
+| CMocka | 1.1+ | Unit testing framework (the C suites) |
+| clang-tidy | 18.x (pinned in CI) | Static analysis of the remaining C |
+| cppcheck | 2.13.x (pinned in CI) | Static analysis and the MISRA addon, remaining C |
+| gcovr | Ubuntu 24.04 | C coverage (the Rust uses llvm-cov) |
 | Git | 2.x | Version control |
 | GitHub Actions | - | CI/CD pipeline |
 
@@ -186,7 +201,7 @@ Phase A ──> Phase B ──> Phase C ──> Phase D ──> Phase E
 
 | Target | Processor | OS | Description |
 |--------|-----------|----|----|
-| OBC Flight | STM32L4 or Apollo4 | FreeRTOS | Primary flight computer |
+| OBC Flight | STM32L4R5ZI | None (Embassy executor, one task) | Primary flight computer |
 | AI Payload | Jetson Orin Nano | Linux | AI inference engine |
 | Ground | x86/ARM | Linux | Ground station software |
 
@@ -194,30 +209,43 @@ Phase A ──> Phase B ──> Phase C ──> Phase D ──> Phase E
 
 ## 6. Coding Standards
 
-### 6.1 C Language (OBC Flight Software)
+### 6.0 Rust (OBC Flight Software)
+
+The Rust coding standard is `docs/development/CODING_STANDARDS.md` §11: workspace lints with warnings as errors, no
+panics on input, overflow checks in flight builds, `unsafe` only in `sqso-ffi` and the firmware with SAFETY comments,
+no allocation, and the C ABI rules. The JPL Power of Ten rules apply as mapped in
+`software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1.
+
+### 6.1 C Language (the remaining C: flight-log shim and test suites)
 
 The following coding standards apply:
 
 1. **JPL Institutional Coding Standard** (Power of Ten Rules)
-2. **MISRA C:2012** Guidelines for critical sections
+2. **MISRA C:2012** Guidelines for critical sections (the shim; `software/flight/docs/MISRA_DEVIATIONS.md`)
 3. **CERT C** Secure coding guidelines
 
 ### 6.2 Key Rules
 
-| Rule | Description | Enforcement |
-|------|-------------|-------------|
-| JPL-1 | Simple control flow | Code review |
-| JPL-2 | Fixed loop bounds | Static analysis |
-| JPL-3 | No dynamic memory after init | Linker wrap |
-| JPL-4 | Function length < 60 lines | clang-tidy |
-| JPL-5 | Minimum 2 assertions per function | Code review |
-| JPL-6 | Smallest scope for data | clang-tidy |
-| JPL-7 | Check all return values | Compiler warnings |
-| JPL-8 | Limited preprocessor use | Code review |
-| JPL-9 | Restrict pointer use | Static analysis |
-| JPL-10 | Compile with all warnings | CMake |
+Enforcement as implemented (Version 1.1; Revision 1.0 named a linker wrap and clang-tidy checks that did not exist).
+Details are in `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1.
+
+| Rule | Description | Enforcement (Rust) | Enforcement (remaining C) |
+|------|-------------|--------------------|---------------------------|
+| JPL-1 | Simple control flow | Compiler (no `goto`); review (recursion) | Review |
+| JPL-2 | Fixed loop bounds | Review (`software/flight/docs/LOOP_BOUNDS.md`); fuzzing | Review |
+| JPL-3 | No dynamic memory after init | ctest `no_dynamic_memory`; CI image check | ctest `no_dynamic_memory` |
+| JPL-4 | Function length < 60 lines | clippy `too_many_lines` (two documented exceptions) | `function_length.py` ratchet |
+| JPL-5 | Minimum 2 assertions per function | Not measured; bounds and overflow checks | Not measured |
+| JPL-6 | Smallest scope for data | Compiler | Review |
+| JPL-7 | Check all return values | Lint for `Result`/`Option`; review for C-ABI codes | cppcheck, clang-tidy |
+| JPL-8 | Limited preprocessor use | Review | MISRA addon; review |
+| JPL-9 | Restrict pointer use | Compiler (`#![forbid(unsafe_code)]`); review (SAFETY comments) | Review |
+| JPL-10 | Compile with all warnings | clippy `-D warnings` | `-Werror` (CMake) |
 
 ### 6.3 Naming Conventions
+
+C conventions (the C headers, the shim and the tests). Rust naming is in
+`software/flight/docs/NAMING_CONVENTION.md` §12.3.
 
 | Element | Convention | Example |
 |---------|------------|---------|
@@ -422,3 +450,4 @@ See `docs/verification/VERIFICATION_MATRIX.md` for complete VCRM.
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-24 | SMART-QSO Team | The OBC flight software is Rust on the STM32L4R5ZI with the Embassy executor (no FreeRTOS): §2.2, §2.3, §5 (platforms, tools, targets) and §6 (Rust standard; JPL enforcement as implemented). §3.3 notes: line coverage is gated, branch coverage is not; the toolchain is not qualified |

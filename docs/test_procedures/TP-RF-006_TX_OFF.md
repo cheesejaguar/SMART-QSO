@@ -41,7 +41,7 @@ The test is conducted only: the RF output goes into an attenuator and a load, an
 |------|-------------|
 | Unit Under Test | OBC + RF board (transmitter, 435 MHz receiver, PA load switch) |
 | Serial Number | _____________ |
-| Flight software | Version/commit: _____________ (must include `software/rust/sqso-ffi/src/uplink.rs`, `rf_control.c`, `software/rust/sqso-fsw/src/keys.rs`, `software/rust/sqso-ffi/src/gse_provision.rs`) |
+| Flight software | Version/commit: _____________ (must include `software/rust/sqso-ffi/src/uplink.rs`, `software/rust/sqso-fsw/src/rf_control.rs`, `software/rust/sqso-fsw/src/keys.rs`, `software/rust/sqso-ffi/src/gse_provision.rs`) |
 | Configuration | GSE umbilical connected (sense line high); flight harness otherwise |
 
 ## 5. Test Equipment
@@ -205,3 +205,4 @@ Monitor the downlink frequency and its harmonics, and the receiver's local-oscil
 |-----|------|-------------|--------|
 | Draft | 2026-10-15 | Initial procedure for SYS-204 / SYS-325 hardware verification | Funding audit |
 | Draft | 2026-10-16 | OBC-to-RF ICD cited by its own number, SQSO-ICD-003 (was SQSO-ICD-005, the Space-to-Ground ICD) (finding PI-17) | SMART-QSO Team |
+| Draft | 2026-10-24 | Flight-software item names `rf_control.rs`, the Rust file that replaced `rf_control.c` | SMART-QSO Team |

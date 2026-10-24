@@ -1,8 +1,8 @@
 # JPL Power of Ten Rules Compliance Audit
 
 **Document ID**: SMART-QSO-JPL-POT-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-24
 **Classification**: Engineering
 
 ## 1. Introduction
@@ -11,28 +11,47 @@ This document provides a comprehensive compliance audit of the SMART-QSO flight 
 
 **Reference**: Gerard J. Holzmann, "The Power of 10: Rules for Developing Safety-Critical Code", IEEE Computer, June 2006.
 
-### 1.1 Rust modules (2026-10-24)
+### 1.1 Scope of revision 1.1 (2026-10-24)
 
-The uplink, telecommand, Jetson-link, content-filter, mode-manager, scheduler and fault-log modules are Rust
-(`software/rust/README.md`). The rules were written for C; this is how each applies to that code. It is a description
-of the mechanisms, not a measured audit.
+Since 2026-10-24 the flight software is Rust (`software/rust/README.md`). The only C left in the flight code is
+`software/flight/src/flight_log_fmt.c`, the printf-style shim of the flight log. §2 maps each rule to the Rust and to
+that shim and says how each is enforced:
 
-| Rule | Rust mechanism | Checked by |
-|------|----------------|------------|
-| 1 | No `goto` in the language. No recursion in the crates | Review (no tool) |
-| 2 | Loops run over fixed-size arrays and slices (iterators); `while` loops are bounded by an index | Review (no tool); fuzzing |
-| 3 | `no_std` without `alloc`: nothing can allocate | ctest `no_dynamic_memory` on the Rust archive |
-| 4 | Not measured (`function_length.py` reads C) | — |
-| 5 | Bounds and integer-overflow checks are on in every build, flight included; a failure is a fatal assertion (`report_panic` in `software/rust/sqso-ffi/src/lib.rs`). Parsers return `Result` rather than assume | Release profile `overflow-checks = true` |
-| 6 | Block scope; module state only in `sqso-ffi` (`cell::Global`) | Compiler |
-| 7 | `Result` is `#[must_use]`; a result discarded on purpose is written `let _ =` | Compiler (warning, an error in CI) |
-| 8 | No preprocessor; `cfg` only for tests | Review |
-| 9 | No raw pointers outside `sqso-ffi`: `#![forbid(unsafe_code)]` in `sqso-protocol` and `sqso-fsw` | Compiler; CI step |
-| 10 | rustc and clippy warnings are errors; clippy denies panicking indexing, `unwrap`, `expect` and `panic!` | CI job *Rust Modules* |
+- **compiler**: rustc or the C compiler refuses the code;
+- **lint**: a clippy or rustc lint, which CI runs with `-D warnings`, so a warning fails the build;
+- **CI**: a CI step or ctest entry outside the compiler and the lints;
+- **review**: no tool checks it, and code review is the only control.
 
-Counts in §2 for rules 4 and 5 were measured on the C before the port; the C sources they cover have since shrunk.
+The rules were written for C. Where a rule has no direct Rust meaning, the table says what stands in for it. This is a
+description of mechanisms and of what the tools check. It is not a certification. §2.2 keeps the measured status of the
+C code of 2026-10-15 as history. Sections 3 onward are the original text of revision 1.0.
 
-## 2. Compliance Summary (measured 2026-10-15)
+## 2. Compliance Summary
+
+### 2.1 The Rust flight software and the remaining C (2026-10-24)
+
+| Rule | Rust (`software/rust`) | Enforced by | Remaining C (`flight_log_fmt.c`) | Enforced by |
+|------|------------------------|-------------|----------------------------------|-------------|
+| 1. Simple control flow | Rust has no `goto`, `setjmp` or `longjmp`. No crate is meant to recurse, but no tool checks for recursion: rustc's `unconditional_recursion` lint catches only a function that always calls itself. Indirect recursion through registered C callbacks is possible by design. A flight-log callback may log, and the fault log or a callback may assert while an assertion is being handled (`software/rust/README.md`, behaviour change 15). In the flight configuration the executive registers only the watchdog pre-reset callback, which saves mission data and the EPS state | compiler (no `goto`); review (recursion) | Two functions, no `goto`, no recursion (`log_write` calls `log_vwrite`) | review |
+| 2. Fixed loop bounds | `for` loops run over fixed-size arrays, slices and constant ranges, and `while` loops over an index or a shrinking slice pattern. The other `loop`s end on a count, a deadline or the end of input. The exceptions are the main loops, which run until stopped, and the waits for the watchdog reset (panic handlers, `wdt_mgr_force_reset`). Inventory: `software/flight/docs/LOOP_BOUNDS.md` | review; fuzzing exercises the parser loops on arbitrary input | No loops | review |
+| 3. No dynamic memory | No crate uses `alloc`: the crates are `no_std` with no allocator, and the firmware links no heap and no C library | CI: ctest `no_dynamic_memory` (library); image check for `malloc`, `free`, `_sbrk`, `printf` (job STM32L4 Cross-Compile (library)) | No allocation (`vsnprintf` into a stack buffer) | CI: ctest `no_dynamic_memory` |
+| 4. Function length ≤ 60 lines | `clippy::too_many_lines`, denied, threshold 60 (`software/rust/clippy.toml`). Two documented exceptions, each one exhaustive `match`: `dispatch` (`sqso-ffi/src/cmd_handler.rs`) and `transition` (`sqso-fsw/src/mode.rs`) | lint | `software/flight/scripts/function_length.py`; count held at 0 | CI (ratchet `function-length.baseline` = 0) |
+| 5. Assertions | Assertion density is not measured. Indexing that can fail is denied by lint, and code uses `get()` and checked arithmetic. Integer overflow checks are on in the release profile (`overflow-checks = true`). A panic is a fatal assertion (`report_panic` in `sqso-ffi/src/lib.rs`). Parsers return `Result`/`Option` and are fuzzed with property checks | compiler (bounds, overflow at run time); lint (`indexing_slicing`, `unwrap_used`, `panic`); CI (fuzzing) | Not measured | — |
+| 6. Smallest scope | Block scope. Module state is private to its module, in one `cell::Global` per module in `sqso-ffi` | compiler (visibility, borrow rules) | One stack buffer in the block that uses it | review |
+| 7. Check return values | `Result` and `Option` are `#[must_use]`, and a value discarded on purpose is written `let _ =`. **Not covered by a tool:** the C-ABI functions return plain `i32` or `u32` codes, which are not `#[must_use]`, so a Rust call to one of them that ignores the code compiles without a warning | lint (`unused_must_use` for `Result`/`Option`); review (C-ABI codes) | The `vsnprintf` result is passed on; `flight_log_record` result returned | cppcheck, clang-tidy (baseline 0) |
+| 8. Limited preprocessor | No preprocessor. `#[cfg]` selects host or target (`target_os = "none"`), tests and the `flight` feature. One `macro_rules!` (`report!` in `sqso-ffi/src/uart_comm.rs`) | review | Includes and one `#pragma` pair around `vsnprintf` | MISRA addon (42 findings baseline); review |
+| 9. Restrict pointers | No raw-pointer dereference outside `sqso-ffi` and the firmware: `sqso-protocol` and `sqso-fsw` declare `#![forbid(unsafe_code)]`. In `sqso-ffi`, C pointers become references after a NULL check (`ptr.rs`). Each `unsafe` block carries a `// SAFETY:` comment | compiler; CI (forbid check); review (SAFETY comments) | Pointer arguments passed through to Rust, which checks them | review |
+| 10. All warnings, zero warnings | clippy with `-D warnings` for the workspace (host), for `sqso-ffi` on `thumbv7em-none-eabihf`, and for the firmware; `rustfmt --check` | CI (job Static Analysis; job STM32L4 Cross-Compile (library)) | `-Wall -Wextra -Wpedantic` and the further warning flags of `software/flight/CMakeLists.txt` with `-Werror`; cppcheck blocking; clang-tidy and the MISRA addon allow no increase | CI |
+
+**Deviations.** The two `too_many_lines` exceptions under rule 4. Rule 5 is not measured for the Rust. Rule 7 is not
+enforced by a tool for C-ABI result codes called from Rust.
+
+**Overall status: not certified compliant.** Rules 3, 4 and 10 are enforced by tools. Rule 9 is enforced by tools for
+the crates with `#![forbid(unsafe_code)]`. Rules 1, 2, 6, 7 and 8 rely on review in part or in full, as the table says.
+
+### 2.2 The C code, measured 2026-10-15 (history)
+
+The C sources this table measured were replaced by the Rust (2026-10-24). It is kept as the record of the C status.
 
 > **The "FULLY COMPLIANT" status of revision 1.0 is withdrawn** (FINDINGS_REGISTER SW-07). It was not supported by tool
 > output, and two of its claims were false: the `-Wl,--wrap=malloc` link option it cites did not exist in the build, and
@@ -463,7 +482,8 @@ No deviations from JPL Power of Ten rules are present in the codebase.
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial audit |
+| 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust. §1.1 and §2.1 map each rule to the Rust and the remaining C (the flight-log shim), with the enforcement of each (compiler, lint, CI or review). The 2026-10-15 measured C status is kept as §2.2 (history); §3 onward unchanged |
 
 ---
 
-*This document certifies JPL Power of Ten compliance for SMART-QSO flight software following NASA Ames SmallSat heritage patterns.*
+*This document certifies JPL Power of Ten compliance for SMART-QSO flight software following NASA Ames SmallSat heritage patterns.* (Revision 1.0 wording; the claim is withdrawn, see §2.)

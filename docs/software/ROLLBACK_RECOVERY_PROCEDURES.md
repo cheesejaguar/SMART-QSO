@@ -1,14 +1,28 @@
 # SMART-QSO Rollback and Recovery Procedures
 
 **Document ID**: SQSO-RRP-001
-**Version**: 1.1
-**Date**: 2026-01-02
+**Version**: 1.2
+**Date**: 2026-10-24
 **Classification**: Unclassified
 **Status**: CDR Baseline
 
 ## 1. Purpose
 
 This document defines the rollback and recovery procedures for SMART-QSO flight software per NPR 7150.2 §4.5.5, ensuring safe recovery from software faults or failed updates.
+
+**Version 1.2 (2026-10-24): what exists.** The OBC flight software is Rust (`software/rust/README.md`). The image
+(`software/rust/firmware`) starts from reset at 0x08000000. There is no bootloader, golden image, staging area or
+boot pointer, and the `CMD_SW_UPLOAD_*` commands of §5.3 are not in the command dictionary
+(`software/flight/command_dictionary.json`). The partition scheme, update flow and image rollback in §2 and §5 are
+therefore plans. The recovery that the software provides today:
+
+- the hardware watchdog (IWDG, 30 s), refreshed only while every main-loop stage checks in
+  (`software/flight/docs/RTOS_ARCHITECTURE.md` §8), with state saved before a stall reset;
+- safe mode and the mode manager's recovery events (`software/rust/sqso-fsw/src/mode.rs`);
+- records that survive resets and power loss: two-slot NVM records with CRC-32 for the TX-OFF latch, keys and replay
+  counters, contact, RF-silence and deployment state, and CRC-checked blobs for the fault log, mission data, EPS state
+  and system state (`software/flight/docs/MEMORY_POLICY.md` §8);
+- the RESET telecommand.
 
 ## 2. Rollback Architecture
 
@@ -436,3 +450,4 @@ RECOVERY OPERATIONS CHECKLIST
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §5.1 link-margin check cites LINK_BUDGET_ANALYSIS v2.0 for the predicted margins (finding TB-05) |
+| 1.2 | 2026-10-24 | SMART-QSO Team | §1 note: what recovery the Rust flight software provides; no bootloader, golden image or upload commands exist, so §2 and §5 are plans |

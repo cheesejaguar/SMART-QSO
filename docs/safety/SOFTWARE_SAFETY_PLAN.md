@@ -2,8 +2,8 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SSP-001
-**Revision:** B
-**Date:** 2026-01-02
+**Revision:** C
+**Date:** 2026-10-24
 **Classification:** Class D Mission (per NPR 7120.5)
 **Governing Standards:** NASA-STD-8719.13, NPR 7150.2
 
@@ -16,7 +16,8 @@ This Software Safety Plan establishes the software safety program for the SMART-
 ## 2. Scope
 
 This plan applies to all software components of the SMART-QSO mission:
-- OBC Flight Software (C, FreeRTOS)
+- OBC Flight Software (Rust on the Embassy executor since 2026-10-24; Revision B said C and FreeRTOS. FreeRTOS was never
+  integrated. See `software/rust/README.md`)
 - AI Payload Software (Python, Jetson)
 - Ground Support Software
 - Test and Simulation Software
@@ -170,6 +171,10 @@ All software hazards are tracked in the Software Hazard Analysis document (SQSO-
 Safety-critical software (Class B and C) requires:
 - 100% statement coverage
 - 100% branch coverage
+
+Status (2026-10-24): CI measures and gates line coverage only: the Rust flight crates at ≥ 90 % (92.1 % measured) and
+the flight software C and Rust together at ≥ 80 % (90.0 %). Branch coverage is not measured, and no coverage of the
+safety-critical functions has been measured separately. The 100 % targets above have no evidence yet.
 - Fault injection testing for all identified fault conditions
 - Boundary value testing for all safety parameters
 - Stress testing under worst-case conditions
@@ -204,6 +209,14 @@ Safety-critical software (Class B and C) requires:
 | Static analysis | cppcheck, clang-tidy |
 | Code review | Peer review for all changes |
 | Unit testing | cmocka framework, >80% coverage |
+
+As implemented (2026-10-24), for the Rust flight software: the coding standard is `docs/development/CODING_STANDARDS.md`
+§11 (MISRA C applies only to the remaining C shim). The JPL rules are mapped to the Rust in
+`software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1. Static analysis is clippy with warnings as errors, the
+`#![forbid(unsafe_code)]` check, CodeQL and `cargo audit`, plus cppcheck and clang-tidy on the remaining C. Every parser
+is fuzzed in CI. The CMocka suites run unchanged against the Rust, together with 197 Rust unit tests. Safety-relevant
+modules fail safe when re-entered: TX-OFF still drives the transmitter enable low, the RF silence reads as active, and
+the payload guard trips (`software/rust/README.md`, behaviour change 10).
 | Configuration management | Git, tagged releases |
 
 ## 10. Safety Waivers and Deviations
@@ -263,6 +276,7 @@ All personnel working on safety-critical software shall complete:
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §3.2 cites the numbers the documents carry: the Software Development Plan is SMART-QSO-SDP-001 (SQSO-SDP-001 is the Safety Data Package); SEMP and SRS likewise (finding PI-17) | SMART-QSO Team |
+| C | 2026-10-24 | The OBC flight software is Rust: §2 scope; §8.2 coverage status (line coverage gated, branch not measured); §9.2 process controls as implemented for the Rust | SMART-QSO Team |
 
 ---
 

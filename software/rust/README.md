@@ -1,131 +1,265 @@
-# SMART-QSO Rust modules
+# SMART-QSO flight software (Rust)
 
-The flight software's untrusted-input surface and its mode, scheduling and fault logic are written in Rust. The radio
-uplink (AX.25, the command frame, telecommand authentication, key table and replay counters), the OBC–Jetson link, the
-GSE umbilical and the beacon content filter all parse bytes from outside the spacecraft. In C, a parser bug there can
-crash the spacecraft or give an attacker control of it. In Rust the same mistake is a bounds-checked error, or at worst
-a controlled reset (see [Rules](#rules)).
+Since 2026-10-24 the SMART-QSO flight software is Rust. Every flight module, the executive (the main loop that replaced
+`main.c`), the simulated HAL of the host build and the STM32L4R5ZI firmware are in this directory. One C file is left in
+the flight code: `software/flight/src/flight_log_fmt.c`, about 70 lines that implement the printf-style `log_write()`
+and `log_vwrite()`, because stable Rust cannot define a C variadic function (see [What C remains](#what-c-remains)).
 
-The C flight software is unchanged around these modules. CMake builds this workspace as a static library and links it
-into the host simulation, the C test suites and the STM32L4 image, in place of the C files it replaced. The C headers
-stay the interface.
+The C headers in `software/flight/include` did not change. They are the C ABI of the Rust modules. The C test suites in
+`software/flight/tests` (CMocka) are the specification: they run unchanged against the Rust through that ABI.
+
+Parsers on the untrusted-input surface (the AX.25 uplink, the command frame, telecommand authentication and the key
+table, the OBC–Jetson link, the GSE umbilical, the beacon content filter, the sensor configuration file and the GNSS
+NMEA stream) are where a C bug could crash the spacecraft or give an attacker control of it. In Rust the same mistake is
+a bounds-checked error, or at worst a controlled reset (see [Rules](#rules)).
 
 ## Crates
 
 | Crate | What it is | `unsafe` |
 |-------|------------|----------|
-| `sqso-protocol` | Wire formats: the command dictionary (generated), uplink frame, telecommand authentication (RustCrypto HMAC-SHA-256), AX.25, the OBC–Jetson line protocol in both directions, the beacon content filter, the GSE frame, and CRCs from the `crc` crate's catalogue. `no_std`, no allocation | forbidden |
-| `sqso-fsw` | Flight logic: two-slot NVM records, key table and counters, telecommand admission, the mode manager, the scheduler and the fault log. I/O sits behind a trait or is returned to the caller. `no_std`, no allocation | forbidden |
-| `sqso-ffi` | The C ABI: implements the C headers listed below on top of the two crates above. The only crate with `unsafe` | pointer conversion, C calls, module state |
-| `sqso-py` | Python module `sqso_protocol` (PyO3, maturin) for the Jetson payload and the ground tools | none |
-| `fuzz` | cargo-fuzz targets for every parser (a separate workspace) | none |
+| `sqso-protocol` | Wire formats: the command dictionary (generated), uplink frame, telecommand authentication (RustCrypto HMAC-SHA-256), AX.25, KISS, the OBC–Jetson line protocol in both directions, the beacon content filter, the GSE frame, and CRCs from the `crc` crate's catalogue. `no_std`, no allocation | forbidden (`#![forbid(unsafe_code)]`) |
+| `sqso-fsw` | The flight logic of every module (list in `sqso-fsw/src/lib.rs`), with its I/O behind a trait or returned to the caller so it can be unit-tested and fuzzed on the host. `no_std`, no allocation | forbidden (`#![forbid(unsafe_code)]`) |
+| `sqso-ffi` | The flight software behind the C headers: the C ABI glue, each module's state, the executive (`executive.rs`), the simulated HAL of the host build (`hal_sim.rs`), host operating-system access through libc (`os.rs`, host only) and persistent storage (`store.rs`) | pointer conversion after NULL checks, C and HAL calls, module state |
+| `sqso-clib` | `sqso-ffi` as the static library `libsqso_flight.a` that the C test suites link; owns the panic handler there | none |
+| `sqso-sim` | The host simulation, the binary `smart_qso_flight`. Feature `flight` (the CMake `FLIGHT_BUILD`): run until stopped instead of 1000 passes | none |
+| `sqso-py` | Python module `sqso_protocol` (PyO3, maturin) for the Jetson payload and the ground tools | none (CI checks) |
+| `fuzz` | 11 cargo-fuzz targets, one per parser (`fuzz/fuzz_targets`), including `sensors_yaml`, `gnss_nmea` and `kiss_stream`. A separate workspace | none |
+| `firmware` | The STM32L4R5ZI image (Embassy). A separate workspace, built only for `thumbv7em-none-eabihf` | register access, HAL exports, driver state, the two calibration reads in `firmware/src/adc.rs` |
 
-### What is Rust and what is still C
+### The firmware
 
-| C header (unchanged interface) | Was | Now |
-|--------------------------------|-----|-----|
-| `ax25.h` | `ax25.c` | `sqso-protocol/src/ax25.rs` |
-| `input_validation.h` (command framing) | `input_validation.c` | `sqso-protocol/src/frame.rs`, `sqso-ffi/src/input_validation.rs` |
-| `cmd_dictionary.h` | `cmd_dictionary.c` | `sqso-protocol/src/dictionary.rs` (generated) |
-| `cmd_auth.h`, `sha256.h` | `cmd_auth.c`, `sha256.c` | `sqso-fsw/src/keys.rs`, `sqso-protocol/src/auth.rs`, RustCrypto `sha2` and `hmac` |
-| `nvm_record.h` | `nvm_record.c` | `sqso-fsw/src/nvm.rs` |
-| `cmd_handler.h` | `cmd_handler.c` | `sqso-fsw/src/telecommand.rs`, `sqso-ffi/src/cmd_handler.rs` |
-| `uplink.h` | `uplink.c` | `sqso-ffi/src/uplink.rs` |
-| `gse_provision.h` | `gse_provision.c` | `sqso-protocol/src/gse.rs`, `sqso-ffi/src/gse_provision.rs` |
-| `jetson_link.h` | `jetson_link.c` | `sqso-protocol/src/jetson.rs` |
-| `beacon_filter.h` | `beacon_filter.c` | `sqso-protocol/src/filter.rs` |
-| `state_machine.h` | `state_machine.c` | `sqso-fsw/src/mode.rs`, `sqso-ffi/src/state_machine.rs` |
-| `scheduler.h` | `scheduler.c` | `sqso-fsw/src/scheduler.rs`, `sqso-ffi/src/scheduler.rs` |
-| `fault_mgmt.h` | `fault_mgmt.c` | `sqso-fsw/src/fault_log.rs`, `sqso-ffi/src/fault_mgmt.rs`; storage stays in C (`fault_store.c`) |
-| `smart_qso.h` (CRC-32) | `crc32.c` | `sqso-protocol/src/checksum.rs` |
+`firmware/` is the flight image. It uses embassy-stm32 0.6 (features `stm32l4r5zi`, `dual-bank`, `time-driver-any`),
+embassy-executor 0.10, embassy-time 0.5 and cortex-m-rt. There is one async main task (`firmware/src/main.rs`). It
+starts the independent watchdog (IWDG) at its longest timeout (about 32 s) before the clock set-up, so a PLL that never
+locks resets the OBC. It then brings the chip up (80 MHz from the 4 MHz MSI through the PLL, M = 1, N = 40, R = 2),
+installs the HAL drivers and calls `Executive::start()`. After that it loops on `step()` and
+`Timer::after_millis(20).await`, and the core sleeps in the executor between passes. The watchdog manager sets the
+operating timeout (30 s, `WDT_HW_TIMEOUT_MS`).
 
-About 4,700 lines of C were replaced. Still C: the executive (`main.c`), EPS, sensors, beacon formatting, telemetry,
-ADCS, deployment, RF control and silence, contact monitor, payload guard, GNSS, mission data, flight log, watchdog
-manager, assertion handler, safe strings, the UART driver and the HAL (simulated and STM32L4). Two small C files are
-new: `rust_panic.c` (where a Rust panic ends) and `fault_store.c` (fault-log storage and console output).
+The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
+
+| HAL | File | What |
+|-----|------|------|
+| `hal_gpio.h` | `gpio.rs` | Provisional pin map. Heater and status LED on PD2/PD3, so that PC2/PC3 can be ADC inputs |
+| `hal_timer.h` | `timer.rs` | Time base from embassy-time (milliseconds since boot) |
+| `hal_wdt.h`, `hal_reset.h` | `wdt.rs` | IWDG; reset cause from the RCC CSR flags |
+| `hal_uart.h` | `uart.rs` | Buffered UARTs: Jetson USART1 (PA9/PA10), debug USART3 (PD8/PD9) |
+| `hal_i2c.h` | `i2c.rs` | I2C2 (EPS, PF1/PF0), I2C4 (ADCS, PD12/PD13) |
+| `hal_spi.h` | `spi.rs` | SPI2 (RF), SPI3 (auxiliary) |
+| `hal_adc.h` | `adc.rs` | ADC1, VDDA measured against VREFINT, MCU temperature from TS_CAL; front-end scaling provisional |
+| `hal_flash.h` | `fram.rs` | FM25V20A FRAM on SPI1 (PA5/PA6/PA7, CS PA4, WP PC0, HOLD PC1), regions at the `hardware/obc/STORAGE_DESIGN.md` §3.3 addresses; the fault log uses 9,728 B of the event log |
+| `hal_radio.h` | `radio.rs` | Telecommand receiver: KISS frames from the TNC on USART2 (PD5/PD6, 9600 baud), decoded by `sqso_protocol::kiss` |
+
+Not provided: the HAL's callback timers and the watchdog early-warning callback. Both are refused, as they were in the
+former C port. The release image is 120,884 B of text, 18,840 B of data and 16,256 B of bss. The vector table is at
+0x08000000, the initial SP is 0x200A0000 and the entry point is `Reset`. No hardware has run it. CI builds the image and
+checks those properties. The ADCS sensor and actuator drivers, and real sensor-table readings on the target, are not
+written because the parts are not selected (`docs/reviews/KNOWN_ISSUES.md` KI-001).
+
+## Porting table
+
+Every C source file of the flight software before the port (and `fault_store.c` and `rust_panic.c`, which existed only
+during it), and where it is now. The C headers kept their names and content. "fsw" is `sqso-fsw/src`, "ffi" is `sqso-ffi/src`, "protocol" is `sqso-protocol/src`.
+
+| Former C file | Rust |
+|---------------|------|
+| `adcs_control.c` | fsw `adcs.rs`, ffi `adcs_control.rs` |
+| `assert_handler.c` | fsw `assert_handler.rs`, ffi `assert_handler.rs` |
+| `ax25.c` | protocol `ax25.rs`, ffi `ax25.rs` |
+| `beacon.c` | fsw `beacon.rs`, ffi `beacon.rs` |
+| `beacon_filter.c` | protocol `filter.rs`, ffi `beacon_filter.rs` |
+| `cmd_auth.c` | fsw `keys.rs`, protocol `auth.rs`, ffi `cmd_auth.rs` |
+| `cmd_dictionary.c` | protocol `dictionary.rs` (generated) and `command.rs`, ffi `cmd_dictionary.rs` |
+| `cmd_handler.c` | fsw `telecommand.rs`, ffi `cmd_handler.rs` |
+| `contact_monitor.c` | fsw `contact_monitor.rs`, ffi `contact_monitor.rs` |
+| `crc32.c` | protocol `checksum.rs`, ffi `crc.rs` |
+| `deployment.c` | fsw `deployment.rs`, ffi `deployment.rs` |
+| `eps_control.c` | fsw `eps.rs`, ffi `eps_control.rs` |
+| `fault_mgmt.c` | fsw `fault_log.rs`, ffi `fault_mgmt.rs` |
+| `fault_store.c` (and `fault_store.h`) | ffi `store.rs` (storage), ffi `fault_mgmt.rs` (console output) |
+| `flight_log.c` | fsw `flight_log.rs`, ffi `flight_log.rs`; the printf entry points stay C (`software/flight/src/flight_log_fmt.c`) |
+| `gnss.c` | fsw `gnss.rs`, ffi `gnss.rs` |
+| `gse_provision.c` | protocol `gse.rs`, ffi `gse_provision.rs` |
+| `input_validation.c` | protocol `frame.rs`, ffi `input_validation.rs` |
+| `jetson_link.c` | protocol `jetson.rs`, ffi `jetson_link.rs` |
+| `main.c` | ffi `executive.rs` (bring-up, main loop, shutdown), fsw `executive.rs` (power model, field rules), `sqso-sim/src/main.rs` (host program), `firmware/src/main.rs` (target) |
+| `mission_data.c` | fsw `mission_data.rs`, ffi `mission_data.rs` |
+| `nvm_record.c` | fsw `nvm.rs`, ffi `nvm_record.rs` |
+| `payload_guard.c` | fsw `payload_guard.rs`, ffi `payload_guard.rs` |
+| `rf_control.c` | fsw `rf_control.rs`, ffi `rf_control.rs` |
+| `rf_silence.c` | fsw `rf_silence.rs`, ffi `rf_silence.rs` |
+| `rust_panic.c` | ffi `lib.rs` (`report_panic`); panic handlers in `sqso-clib/src/lib.rs` and `firmware/src/main.rs`, panic hook in `sqso-sim/src/main.rs` |
+| `safe_string.c` | fsw `safe_string.rs`, ffi `safe_string.rs` |
+| `scheduler.c` | fsw `scheduler.rs`, ffi `scheduler.rs` |
+| `sensors.c` | fsw `sensors.rs` (configuration parser, readings, telemetry text), ffi `sensors.rs` |
+| `separation_switch.c` | ffi `separation_switch.rs` |
+| `sha256.c` | ffi `sha256.rs` on RustCrypto `sha2` and `hmac` |
+| `state_machine.c` | fsw `mode.rs`, ffi `state_machine.rs` |
+| `system_state.c` | fsw `system_state.rs`, ffi `system_state.rs` |
+| `telemetry.c` | fsw `telemetry.rs`, ffi `telemetry.rs` |
+| `time_utils.c` | ffi `time.rs` (mission clock); host clock in ffi `os.rs` |
+| `uart_comm.c` | fsw `uart_comm.rs` (settings), ffi `uart_comm.rs` (termios on the host, the HAL on the target) |
+| `uplink.c` | ffi `uplink.rs` |
+| `watchdog_mgr.c` | fsw `watchdog.rs`, ffi `watchdog_mgr.rs` |
+| `hal/hal_sim.c` | ffi `hal_sim.rs` (host only) |
+| `hal/hal_stm32l4.c` | `firmware/src/`: `gpio.rs`, `timer.rs`, `wdt.rs`, `uart.rs`, `i2c.rs`, `spi.rs`, `adc.rs`, `fram.rs`, `radio.rs` |
+| `hal/stm32l4_clock.c` (and `hal/stm32l4_clock.h`) | `clocks()` in `firmware/src/main.rs` (embassy-stm32 RCC configuration) |
+| `hal/stm32l4_startup.c` | cortex-m-rt (vector table, `Reset`) |
+| `hal/stm32l4_syscalls.c` | not needed: the image links no C library |
+| `cmake/arm-none-eabi-stm32l4.cmake`, `cmake/stm32l4r5zi.ld` | `firmware/.cargo/config.toml`, cortex-m-rt `link.x` with the `memory.x` of embassy-stm32 (feature `memory-x`) |
+
+Two files that were in the tree until 2026-10-16, `system_init.c` and `yaml_parser.c`, were removed then as dead code and
+were not ported. The ports are commits 36c7b7b, 000fe0a, 4c2f0f7, 636b871, 9e7c95a, af06dbb, df3a9c2 and
+c56e5f4 (`git log --stat --diff-filter=D -- software/flight/src`).
+
+### What C remains
+
+- `software/flight/src/flight_log_fmt.c`: `log_write()` and `log_vwrite()` take a printf format and C variadic
+  arguments, which stable Rust can neither define nor read. The shim asks `flight_log_admit()` whether the level passes,
+  formats the message with `vsnprintf` and hands the text to `flight_log_record()`. It is compiled into the C test
+  library on the host. The firmware does not link it: the image has no C library and no `printf`.
+- The C headers in `software/flight/include` (the interface) and the C test suites in `software/flight/tests`.
 
 The Python payload and ground tools use `sqso_protocol` for the same formats: `obc_link.py`, `content_filter.py` and
 `crc16.py` (payload), and `telecommand_builder.py` and `key_provision.py` (ground). The OBC, the Jetson and the ground
-station now run one implementation of each format (findings SW-04, SW-24).
+station run one implementation of each format (findings SW-04, SW-24).
 
 ## Build and test
 
-The C build runs cargo itself (`software/flight/cmake/rust.cmake`), so the commands in the top-level README are
-unchanged. The toolchain is pinned in `rust-toolchain.toml`, and rustup installs it on first use.
-
 ```bash
-# Rust unit tests, lints and the Cortex-M4F build
+# Everything the C side needs: cargo builds the library (sqso-clib) and the
+# simulation (sqso-sim) through software/flight/cmake/rust.cmake; ctest runs
+# the C suites against the Rust
+cmake -S software/flight -B build && cmake --build build && ctest --test-dir build
+
+# Rust unit tests and lints (host)
 cd software/rust
 cargo test --workspace
 cargo clippy --workspace --all-targets -- -D warnings
+cargo fmt --all --check
+
+# The flight software library for the Cortex-M4F
 cargo build --release -p sqso-ffi --target thumbv7em-none-eabihf
 
+# The firmware image (its own workspace)
+cd firmware && cargo build --release && cargo clippy --release -- -D warnings
+# target/thumbv7em-none-eabihf/release/sqso-firmware; on a board: cargo run --release (probe-rs)
+
 # Fuzzing (nightly and cargo-fuzz: cargo install cargo-fuzz)
-cd fuzz
+cd software/rust/fuzz
 cargo +nightly fuzz list
 cargo +nightly fuzz run telecommand -- -max_total_time=300
 
+# Coverage of the Rust from the C suites and the Rust unit tests together
+cmake -S software/flight -B build -DENABLE_COVERAGE=ON && cmake --build build
+LLVM_PROFILE_FILE=$PWD/build/profraw/%p-%m.profraw ctest --test-dir build
+software/flight/scripts/rust_coverage.sh build 90
+
 # Python module for the payload and ground tools
 pip install software/rust/sqso-py
-
-# Rust unit-test coverage (cargo install cargo-llvm-cov)
-cargo llvm-cov --workspace --exclude sqso-py --exclude sqso-ffi --summary-only
 ```
 
-CI (`.github/workflows/ci.yml`, jobs *Rust Modules* and *Rust Fuzz Smoke*) runs formatting, clippy with warnings as
-errors, the unit tests, the target build, the minimum-Rust-version check, a check that `unsafe` stays in `sqso-ffi`,
-and 30 s of every fuzz target. The C jobs build and test the linked library as before.
+The toolchain is pinned in `rust-toolchain.toml` (1.97.0, with the `thumbv7em-none-eabihf` target), and rustup installs
+it on first use. The minimum supported Rust version is 1.88 (`rust-version` in `Cargo.toml`). Fuzzing uses nightly.
+There is no RTOS. FreeRTOS was never integrated and is not planned. The Embassy executor is the scheduler of the image
+(`software/flight/docs/RTOS_ARCHITECTURE.md`).
+
+### CI
+
+The Rust runs in the required jobs (`.github/workflows/ci.yml`, `.github/workflows/flight-software-ci.yml`). The
+separate Rust jobs were folded into them.
+
+| Job | Rust it runs |
+|-----|--------------|
+| Build and Test | ctest with the Rust library instrumented; `cargo test --workspace`; Rust line coverage ≥ 90 % (C suites and unit tests); flight-software line coverage, C and Rust together, ≥ 80 %; `cargo check` with Rust 1.88 |
+| Static Analysis | rustfmt; clippy with `-D warnings` for the host and for `thumbv7em-none-eabihf`; a check that `sqso-protocol` and `sqso-fsw` keep `#![forbid(unsafe_code)]` and `sqso-py` has no `unsafe`. cppcheck, clang-tidy and the function-length ratchet run on the remaining C |
+| MISRA C:2012 Check | The cppcheck MISRA addon on the remaining C (the shim): 42 findings, baseline `software/flight/quality/misra.baseline` |
+| Security Scan | CodeQL for c-cpp and rust; `cargo audit` for both workspaces |
+| Sanitizer Checks | The C suites against the Rust under ASan/UBSan; 30 s of every fuzz target; the simulation run to completion |
+| STM32L4 Cross-Compile (library) | `sqso-ffi` and `sqso-clib` for `thumbv7em-none-eabihf`; firmware rustfmt, clippy and release build; checks of the linked image (entry point, vector table, initial SP, flight symbols present, no `malloc`/`free`/`_sbrk`/`printf`) |
+| Flight Configuration Build, Flight Build Validation | The `FLIGHT_BUILD` configuration (simulation with feature `flight`) |
+| Unit Tests | ctest in a Debug build with a coverage report (the gate is in Build and Test) |
+| Documentation Check | The required software documents exist |
+
+The program checks (`.github/workflows/program-checks.yml`: Payload, Ground and Simulation Tests; Documentation Reference
+Integrity; Secret Scan) run the Python suites on `sqso_protocol` and the repository's document checks.
 
 ### Adding a command
 
 Add it to `software/flight/command_dictionary.json` and run `python3 scripts/gen_command_dictionary.py`. That
 regenerates the Rust `Command` enum, the C ID enum and the ground table. The flight software then stops compiling at
-the two places that must decide about the new command: the dispatcher in `sqso-ffi/src/cmd_handler.rs` (what it
-does) and `availability()` in `sqso-fsw/src/telecommand.rs` (the modes it may run in). Both `match` statements are
+the two places that must decide about the new command: the dispatcher in `sqso-ffi/src/cmd_handler.rs` (what it does)
+and `availability()` in `sqso-fsw/src/telecommand.rs` (the modes it may run in). Both `match` statements are
 exhaustive, with no wildcard arm.
 
 ## Rules
 
-- **No panics on input.** The workspace lints deny indexing that can go out of bounds, `unwrap`, `expect`, `panic!`
-  and `unreachable!`, and CI treats every warning as an error. Parsers use `get()` and slice patterns, and each one is
-  fuzzed with properties checked, not only "does not crash" (see `fuzz/fuzz_targets`).
-- **Checks stay on in flight builds (SW-08).** The release profile keeps integer overflow checks. A Rust panic is a
-  fatal assertion: it goes to the C assertion handler (`rust_panic.c`), then the target waits for the watchdog to
-  reset it and the host aborts, so the failing test fails.
-- **`unsafe` only in `sqso-ffi`.** `sqso-protocol` and `sqso-fsw` declare `#![forbid(unsafe_code)]`. In `sqso-ffi`,
-  `unsafe` does three things only: it turns C pointers into references after a NULL check (`ptr.rs`), calls C
-  functions, and holds each module's state in `cell::Global`. A nested call into the same module, from a C callback
-  or an interrupt, gets "busy" from `Global` instead of a second, aliasing reference.
-- **No allocation.** No crate uses `alloc`. The C test `no_dynamic_memory` now checks the Rust archive as well.
-- **Key material is zeroized** when dropped (`zeroize`), including the temporary copies. A plain `memset` before
-  free can be optimized away; `zeroize` cannot.
-- **One ABI.** C enums cross the boundary as 32-bit integers, and the STM32L4 C build uses `-fno-short-enums` so
-  they are 32 bits there too. Struct layouts are mirrored with `#[repr(C)]`. The C test `test_rust_contract.c`
-  compares the size and alignment of every mirrored struct, and every constant Rust keeps, with the C headers, so a
-  header change that Rust does not follow fails the suite.
+The full standard is the Rust section of `docs/development/CODING_STANDARDS.md`. The JPL Power of Ten mapping is
+`software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md`.
 
-## Evidence that the port behaves like the C
+- **No panics on input.** The workspace lints (`Cargo.toml`, the same in `firmware/Cargo.toml`) deny
+  `indexing_slicing`, `unwrap_used`, `expect_used`, `panic`, `unreachable`, `todo`, `unimplemented` and
+  `too_many_lines`, and warn on `cast_possible_truncation` and `missing_docs`. CI runs clippy with `-D warnings`, so
+  every warning is an error. Parsers use `get()` and slice patterns, and each one is fuzzed with its properties checked,
+  not only "does not crash". The 10 remaining `#[allow(clippy::indexing_slicing)]` are in `const` items and
+  `const fn`s, where `get()` is not available. Each index is bounded by its loop condition, and in a `const` item an
+  out-of-bounds index is a compile error.
+- **Short functions (JPL rule 4).** `too_many_lines` is denied at 60 lines (`clippy.toml`). There are two documented
+  exceptions, each one exhaustive `match`: `dispatch` in `sqso-ffi/src/cmd_handler.rs` and `transition` in
+  `sqso-fsw/src/mode.rs`.
+- **Checks stay on in flight builds (SW-08).** The release profile keeps `overflow-checks = true`, with
+  `panic = "abort"` and debug assertions off. A panic is a fatal assertion. `report_panic` in `sqso-ffi/src/lib.rs`
+  reports it to the assertion handler. Then the host aborts, so the failing test fails. The firmware waits for the IWDG
+  to reset it, or resets itself if the IWDG was never started.
+- **`unsafe` only in `sqso-ffi` and the firmware.** `sqso-protocol` and `sqso-fsw` declare `#![forbid(unsafe_code)]`.
+  In `sqso-ffi`, `unsafe` turns C pointers into references after a NULL check (`ptr.rs`), calls C and HAL functions, and
+  holds each module's state in `cell::Global`. In the firmware it is register access, the exported HAL functions,
+  driver state and the two factory-calibration reads in `adc.rs`. Each `unsafe` block is covered by a `// SAFETY:` comment.
+  In `dispatch` (`cmd_handler.rs`), one comment at the top covers all of the function's calls. Review checks this; no
+  lint enforces it. A scan on 2026-10-24 found all 415 `unsafe` blocks and impls covered.
+- **Module state in a busy-flag cell.** `cell::Global` hands out one `&mut` at a time. A nested call into the same
+  module, from a C callback or an interrupt, gets "busy" instead of a second, aliasing reference (behaviour changes 3
+  and 10).
+- **No allocation.** No crate uses `alloc`. The ctest `no_dynamic_memory` checks the library for
+  `malloc`/`calloc`/`realloc`/`free`. The firmware links no heap and no C library, and CI checks that the image has no
+  `malloc`, `free`, `_sbrk` or `printf`.
+- **Key material is zeroized** when dropped (`zeroize`), including the temporary copies. A plain `memset` before free can
+  be optimized away; `zeroize` cannot.
+- **One ABI.** C enums cross the boundary as `u32`, or `i32` where they have negative values. Struct layouts are mirrored
+  with `#[repr(C)]`. The C test `software/flight/tests/test_rust_contract.c` (with `test_rust_contract_adcs.c`) compares
+  the size and alignment of every mirrored struct, and every constant Rust keeps, with the C headers. A header change
+  that Rust does not follow therefore fails the suite. No C is cross-compiled any more, so the `-fno-short-enums` flag
+  of the former STM32L4 C build is no longer needed.
 
-- **The C suites as the specification.** All 41 CMocka suites (602 test cases) run unchanged against the Rust
-  modules. They pass on the host, under AddressSanitizer and UBSan, and in the full simulation. No existing test case
-  changed: the edits to existing suites are comments naming the Rust files, `test_crc32` linking the shared test
-  library instead of compiling `crc32.c`, and four new cases in `test_uart_comm.c`.
-- **Differential fuzzing against the original C.** A one-off harness, not kept in the tree, linked the C files this
-  port replaced. For 8.3 million fuzzed inputs (934 coverage edges), the Rust and C implementations returned the same
-  results, and the same output fields, for AX.25 parsing, command framing, Jetson line parsing and sealing, the
-  content filter, CRC-32, the AX.25 FCS, CRC-16 and HMAC-SHA-256.
-- **Same simulation output.** The host simulation prints the same 256 lines as the C build, apart from timestamps
-  and the order of one sensor read.
-- **Fuzzing.** Each of the 8 targets ran for 2–3 minutes during the port (about 140 million executions in all), with
-  no failures. The telecommand target builds genuine frames, then corrupts them, and checks two properties: nothing
-  is accepted without the key's tag or with a spent counter, and a genuine fresh command is always accepted.
-- **Unit tests** in `sqso-protocol` and `sqso-fsw`: 60 tests, 88 % line coverage of the two crates (cargo-llvm-cov).
-- **The Python suites** (payload 151 tests, ground 133) pass on `sqso_protocol`. Their golden lines and frames are
-  the ones the C suites check.
+## Evidence that the Rust behaves like the C
+
+Measured 2026-10-24.
+
+- **The C suites as the specification.** 43 ctest entries: 42 CMocka suites with 630 `cmocka_unit_test` cases, and
+  the `no_dynamic_memory` check. They run unchanged against the Rust on the host, under AddressSanitizer and UBSan,
+  and with the simulation.
+- **Coverage.** Rust line coverage is 92.1 %, from the C suites plus the 197 Rust unit tests (gate 90 %). Flight-software
+  line coverage, C and Rust together, is 90.0 % (gate 80 %).
+- **Same simulation output.** The host simulation prints the same 256 lines as the C build, apart from timestamps and
+  the order of one sensor read.
+- **Differential tests against the former C.** One-off harnesses, not kept in the tree, linked the C files each port
+  replaced and compared results and output fields. They covered 8.3 million fuzzed inputs for the protocol layer
+  (AX.25, command framing, Jetson lines, the content filter, CRC-32, the AX.25 FCS, CRC-16, HMAC-SHA-256), 13,000
+  inputs each for the sensor configuration parser and the GNSS driver, 2 million `safe_string` calls, and 300,000
+  operations on the flight log and the assertion handler. All results were identical, except for the deliberate
+  changes listed below.
+- **Fuzzing.** 11 targets. CI runs each for 30 s on every change. The telecommand target builds genuine frames, then
+  corrupts them. It checks two properties: nothing is accepted without the key's tag or with a spent counter, and a
+  genuine fresh command is always accepted.
+- **Dependencies.** `cargo audit` found RUSTSEC-2026-0385 (`ctutils` 0.4.2, non-constant-time comparisons, used under
+  the HMAC verification). `ctutils` was updated to 0.4.5.
+- **The Python suites** (payload and ground) pass on `sqso_protocol`. Their golden lines and frames are the ones the C
+  suites check.
+- **Mutation testing:** see `software/rust/mutants/`.
 
 ### Behaviour changes from the C
 
-The port keeps the C behaviour, apart from the following deliberate changes:
+The Rust keeps the C behaviour, apart from the following deliberate changes:
 
 1. `scheduler_delay_ms()` runs scheduler ticks until the delay has passed. The C version waited for something else to
    advance the tick count; nothing did, so any delay above 0 never returned.
@@ -145,19 +279,44 @@ The port keeps the C behaviour, apart from the following deliberate changes:
    infinite values, which Python's `float()` accepted.
 9. A loaded fault-log entry whose `recovered` flag is not 0 or 1 is discarded as corrupt (C would have read an
    invalid `bool`).
+10. Re-entering any module returns `SMART_QSO_ERROR_BUSY` (or the getter's default value). The safety-relevant ones fail
+    safe: `rf_control_tx_off()` still drives RF_TX_EN low, `rf_control_set_inhibit()` drops TX_EN (and RADIO_EN for the
+    silence), `payload_guard_step()` returns `PG_TRIP_NO_TELEMETRY`, `payload_guard_may_enable()` returns false and
+    `rf_silence_active()` returns true.
+11. Tick arithmetic (contact monitor, RF silence, deployment, the executive's elapsed time) is 64-bit or saturating
+    where the C wrapped near 2^32.
+12. The payload-guard cool-down end saturates.
+13. Deployment's invalid-state branch is gone: the state is an enum, and stored records are checked.
+14. `safe_strcpy()`, `safe_strncpy()` and `safe_strcat()` refuse a source that overlaps the destination
+    (`RESULT_ERROR_PARAM`).
+15. A log callback that logs gets its own entry. An assertion raised during assertion handling is counted.
+16. The host prints the `[ASSERT] file:line: msg` line in every build. Host builds always use termios and print log
+    lines to stderr.
+17. On the target, console lines (beacon TX, ADCS, UART configuration) go to the debug UART. Newlib discarded them.
+18. `sensors_load_defaults()` stops at 32 sensors. The C wrote past its table when called more than 3 times.
+19. A stored EPS record whose bool bytes are not 0 or 1 is refused. In a loaded system state such a byte is read as
+    true. C read an invalid `bool` in both cases. Padding is zeroed.
+20. Float-to-integer conversions saturate (NaN gives 0) instead of being C undefined behaviour.
+21. `beacon_serialize_ax25()` returns 0 if `info_len` > 256. The C read past the array.
+22. On the target, the fault log, EPS configuration, mission data and system state are stored in their FRAM regions,
+    each with a 4-byte length. The fault log keeps the newest entries that fit. The C on the target lost them.
+23. The simulated HAL refuses an I2C register read past register 0xFF instead of reading past its array.
+24. On the target, the simulated sensor noise comes from a xorshift generator, because there is no C library.
+25. `Sensor_t.read` with a NULL pointer returns false instead of crashing. `[READ]` lines are cut at 255 bytes.
 
 ## Next steps
 
-- **Bring-up on the STM32L4R5 with Embassy.** The C target port is compile-only: register-level HAL, no RTOS, no
-  startup checks. That bring-up has to happen anyway, and Embassy supports this chip (`embassy-stm32`, feature
-  `stm32l4r5zi`). The crates here are already `no_std` and cross-compile for `thumbv7em-none-eabihf`, so an Embassy
-  executable can use `sqso-protocol` and `sqso-fsw` directly, with no FFI. Doing it before flight hardware exists is
-  the cheapest point.
-- **Port more modules** in order of exposure: the payload guard and EPS policy (power and thermal limits), then the
-  watchdog manager, deployment and RF silence. Their C tests can serve as the specification again.
-- **Software assurance paperwork.** MISRA C does not apply to Rust code. The NPR 7150.2 classification, the coding
-  standard (`docs/development/CODING_STANDARDS.md`) and the JPL Power of Ten audit need a Rust section (see
-  `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §1.1). The Ferrocene toolchain is qualified (ISO 26262, IEC 61508)
-  if a qualified compiler is needed.
-- **Jetson deployment** now builds `sqso_protocol` on the Jetson, with Rust installed by
+Still open:
+
+- **Hardware bring-up.** Run the firmware on an STM32L4R5ZI board (the `probe-rs` runner is configured in
+  `firmware/.cargo/config.toml`). Measure the loop timing, the stack use and the power, and check every HAL driver
+  against the part (TP-FLATSAT-001).
+- **ADCS drivers and real sensor readings.** The magnetometer, sun sensor and magnetorquer drivers, and ADC-based
+  sensor-table readings with the real front-end scaling, wait for parts and the EPS sense circuits
+  (`docs/reviews/KNOWN_ISSUES.md` KI-001).
+- **Pin map.** `firmware/src/gpio.rs` is provisional until the OBC schematic baselines a pinout.
+  `hardware/obc/OBC_DESIGN.md` and `hardware/obc/STORAGE_DESIGN.md` disagree on PA4–PA7 and PC0–PC1.
+- **Qualified toolchain decision.** Whether flight needs a qualified compiler, for example Ferrocene (qualified for
+  ISO 26262 and IEC 61508), is a PI decision. The NPR 7150.2 classification determines it.
+- **Jetson deployment** builds `sqso_protocol` on the Jetson, with Rust installed by
   `software/payload/ansible/deploy_payload.yml`. Shipping a prebuilt aarch64 wheel would remove that step.
