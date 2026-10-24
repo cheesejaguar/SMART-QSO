@@ -1,14 +1,20 @@
 # SMART-QSO Software Maintenance Plan
 
 **Document ID**: SQSO-SMP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-24
 **Classification**: Unclassified
 **Status**: CDR Baseline
 
 ## 1. Purpose
 
 This document defines the Software Maintenance Plan for SMART-QSO per NPR 7150.2 §4.6, establishing procedures for maintaining flight software throughout the mission lifecycle.
+
+**Version 1.1 (2026-10-24).** The OBC flight software is Rust (`software/rust/README.md`) and runs on the Embassy
+executor, with no RTOS. Its version is 0.2.0-dev (`docs/software/SOFTWARE_VERSION_DESCRIPTION.md`); 1.0.0 in §2.1 is the
+planned flight version. **On-orbit update of the OBC software is not implemented.** There is no bootloader
+(`software/flight/docs/BOOTLOADER_REQUIREMENTS.md` §1.1), and the command dictionary has no upload commands. The OBC
+rows of §5 are plans. §11.2 and §12.1 are updated to the toolchain as built.
 
 ## 2. Scope
 
@@ -329,9 +335,10 @@ Examples:
 
 | Skill | Role |
 |-------|------|
-| C programming | Flight SW |
+| Rust programming (`no_std`, embedded; replaces C programming, 2026-10-24) | Flight SW |
+| C programming (the C ABI headers, the test suites, the flight-log shim) | Flight SW |
 | Python | Payload SW |
-| FreeRTOS | Flight SW |
+| Embassy (embassy-stm32, embassy-executor; replaces FreeRTOS, which was never integrated) | Flight SW |
 | Git | All |
 | Testing | All |
 
@@ -342,8 +349,9 @@ Examples:
 | Tool | Purpose |
 |------|---------|
 | Git | Version control |
-| CMake | Build system |
-| GCC ARM | Compiler |
+| CMake | Build system (host; drives cargo) |
+| Rust toolchain 1.97.0 (`software/rust/rust-toolchain.toml`) | Compiler (replaces GCC ARM, 2026-10-24) |
+| probe-rs | Flash and debug over SWD (`software/rust/firmware/.cargo/config.toml`) |
 | J-Link | Debug |
 | VS Code | IDE |
 
@@ -360,3 +368,4 @@ Examples:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust on the Embassy executor: on-orbit OBC update not implemented (no bootloader, no upload commands); skills and tools updated (Rust, Embassy, probe-rs) |

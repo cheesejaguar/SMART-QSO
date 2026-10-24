@@ -143,15 +143,15 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-FMEA-001 | Software Failure Mode and Effects Analysis (FMEA) | `docs/safety/SOFTWARE_FMEA.md` | A | Draft |
 | SQSO-SHA-001 | Software Hazard Analysis | `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` | A | Draft |
 | SQSO-SSP-001 | Software Safety Plan | `docs/safety/SOFTWARE_SAFETY_PLAN.md` | B | Draft |
-| SQSO-SW-008 | Build Configurations | `docs/software/BUILD_CONFIGURATIONS.md` | B | Draft |
-| SQSO-SW-006 | Software Configuration Index | `docs/software/CONFIGURATION_INDEX.md` | A | Draft |
-| SQSO-RRP-001 | SMART-QSO Rollback and Recovery Procedures | `docs/software/ROLLBACK_RECOVERY_PROCEDURES.md` | 1.1 | Draft |
-| SMART-QSO-SDD-001 | Software Design Description (SDD) | `docs/software/SOFTWARE_DESIGN.md` | 1.0 | Draft |
-| SMART-QSO-SDP-001 | Software Development Plan (SDP) | `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` | 1.0 | Draft |
-| SQSO-SMP-001 | SMART-QSO Software Maintenance Plan | `docs/software/SOFTWARE_MAINTENANCE_PLAN.md` | 1.0 | Draft |
-| SMART-QSO-SRS-001 | Software Requirements Specification (SRS) | `docs/software/SOFTWARE_REQUIREMENTS.md` | 1.2 | Draft |
-| SMART-QSO-STP-001 | Software Test Plan (STP) | `docs/software/SOFTWARE_TEST_PLAN.md` | 1.0 | Draft |
-| SQSO-SVD-001 | Software Version Description | `docs/software/SOFTWARE_VERSION_DESCRIPTION.md` | B | Draft |
+| SQSO-SW-008 | Build Configurations | `docs/software/BUILD_CONFIGURATIONS.md` | C | Draft |
+| SQSO-SW-006 | Software Configuration Index | `docs/software/CONFIGURATION_INDEX.md` | B | Draft |
+| SQSO-RRP-001 | SMART-QSO Rollback and Recovery Procedures | `docs/software/ROLLBACK_RECOVERY_PROCEDURES.md` | 1.2 | Draft |
+| SMART-QSO-SDD-001 | Software Design Description (SDD) | `docs/software/SOFTWARE_DESIGN.md` | 1.1 | Draft |
+| SMART-QSO-SDP-001 | Software Development Plan (SDP) | `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` | 1.1 | Draft |
+| SQSO-SMP-001 | SMART-QSO Software Maintenance Plan | `docs/software/SOFTWARE_MAINTENANCE_PLAN.md` | 1.1 | Draft |
+| SMART-QSO-SRS-001 | Software Requirements Specification (SRS) | `docs/software/SOFTWARE_REQUIREMENTS.md` | 1.3 | Draft |
+| SMART-QSO-STP-001 | Software Test Plan (STP) | `docs/software/SOFTWARE_TEST_PLAN.md` | 1.1 | Draft |
+| SQSO-SVD-001 | Software Version Description | `docs/software/SOFTWARE_VERSION_DESCRIPTION.md` | C | Draft |
 | SQSO-E2E-001 | SMART-QSO End-to-End Test Plan | `docs/test/END_TO_END_TEST_PLAN.md` | 1.0 | Draft |
 | SQSO-FTEG-001 | SMART-QSO Flatsat Test Execution Guide | `docs/test/FLATSAT_TEST_EXECUTION_GUIDE.md` | 1.0 | Draft |
 | SQSO-TP-001 | SMART-QSO Flatsat Test Procedures | `docs/test/FLATSAT_TEST_PROCEDURES.md` | 1.0 | Draft |

@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SW-008
-**Revision:** B
-**Date:** 2026-01-02
+**Revision:** C
+**Date:** 2026-10-24
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -19,6 +19,36 @@ This document covers:
 - Target platform configurations
 - Debug vs. flight settings
 - Test and coverage configurations
+
+### 2.1 Build Configurations as Built (Revision C, 2026-10-24)
+
+The flight software is Rust (`software/rust/README.md`). Sections 3 to 11 are the Revision A plan. Where they disagree
+with this section, this section describes the build. Revision A's `TARGET_PLATFORM`, `ENABLE_TESTS` and `BUILD_DOCS`
+options, the FreeRTOS configuration and the C cross build for the STM32L4 do not exist. The C cross build (toolchain
+file, linker script, `hal_stm32l4.c`, startup, clock and system calls) was removed on 2026-10-24.
+
+| Configuration | Command | Produces |
+|---------------|---------|----------|
+| Host build and tests | `cmake -S software/flight -B build && cmake --build build && ctest --test-dir build` | The Rust library `libsqso_flight.a` (crate `sqso-clib`), the C test suites linked against it, and the host simulation `build/smart_qso_flight` (crate `sqso-sim`, 1000 passes) |
+| Coverage | add `-DENABLE_COVERAGE=ON` | gcov on the C; the Rust library built with `-C instrument-coverage` (`software/flight/cmake/rust.cmake`) |
+| Sanitizers | add `-DENABLE_SANITIZERS=ON` | AddressSanitizer and UBSan on the C suites and the shim (the Rust library is not sanitized; its parsers are fuzzed under AddressSanitizer instead) |
+| Flight configuration (host) | add `-DFLIGHT_BUILD=ON` | `FLIGHT_BUILD` and `NDEBUG` defined for the C; the simulation built with the cargo feature `flight` (runs until stopped) |
+| Flight image (STM32L4R5ZI) | `cd software/rust/firmware && cargo build --release` | `target/thumbv7em-none-eabihf/release/sqso-firmware` (ELF) |
+| Flight software library for the target | `cd software/rust && cargo build --release -p sqso-ffi --target thumbv7em-none-eabihf` | CI checks that the library builds for the Cortex-M4F |
+
+CMake options (`software/flight/CMakeLists.txt`): `FLIGHT_BUILD` (OFF), `ENABLE_COVERAGE` (OFF), `ENABLE_SANITIZERS`
+(OFF), `ENABLE_WERROR` (ON). A `docs` target exists when Doxygen is found. CMake always builds the Rust with cargo's
+release profile, whatever `CMAKE_BUILD_TYPE` is.
+
+Rust release profile (`software/rust/Cargo.toml`; the firmware's `software/rust/firmware/Cargo.toml` is the same, plus
+`debug = 2`): `opt-level = "s"`, `lto = true`, `codegen-units = 1`, `overflow-checks = true`, `panic = "abort"`,
+`debug-assertions = false`. The toolchain is pinned by `software/rust/rust-toolchain.toml` (1.97.0, target
+`thumbv7em-none-eabihf`).
+
+Image (release, 2026-10-24): text 120,884 B, data 18,840 B, bss 16,256 B. Vector table at 0x08000000, initial SP
+0x200A0000, entry `Reset`. Linked with cortex-m-rt's `link.x` and the `memory.x` of embassy-stm32 (2 MB flash, 640 KB
+RAM). CI checks the entry point, the vector table, the initial SP, the presence of the flight symbols, and the absence
+of `malloc`, `free`, `_sbrk` and `printf` (job STM32L4 Cross-Compile (library)).
 
 ---
 
@@ -180,6 +210,9 @@ cmake -S software/flight -B build \
 
 ## 7. Flight Configuration
 
+Revision C: the flight image is built by cargo, not by CMake (§2.1). The C flags, linker flags and defines below were
+for the removed C cross build.
+
 ### 7.1 Purpose
 
 Flight builds are the certified release configuration for on-orbit operation.
@@ -254,7 +287,13 @@ cmake -S software/flight -B build \
 | Flash | 2 MB |
 | RAM | 640 KB |
 
+Revision C, as built: compiler rustc 1.97.0 for `thumbv7em-none-eabihf`; language Rust; HAL `software/rust/firmware/src`
+(Embassy); RTOS none (Embassy executor, one task; `software/flight/docs/RTOS_ARCHITECTURE.md`). The Linux platform's HAL
+in §8.1 is `software/rust/sqso-ffi/src/hal_sim.rs`.
+
 ### 8.3 FreeRTOS Configuration
+
+Revision C: not applicable. FreeRTOS was never integrated and is not planned.
 
 | Parameter | Value |
 |-----------|-------|
@@ -270,6 +309,10 @@ cmake -S software/flight -B build \
 ---
 
 ## 9. Memory Layout
+
+Revision C: the linker does not split SRAM or flash this way. RAM is one 640 KB region from 0x20000000, flash starts
+with the vector table at 0x08000000, and there is no bootloader or A/B image
+(`software/flight/docs/MEMORY_POLICY.md` §3, `software/flight/docs/BOOTLOADER_REQUIREMENTS.md` §1.1).
 
 ### 9.1 STM32L4 Memory Map
 
@@ -303,6 +346,9 @@ cmake -S software/flight -B build \
 | smart_qso.map | Linker map file | Yes |
 | size_report.txt | Section size report | Yes |
 
+Revision C: cargo produces the ELF `sqso-firmware`. CI prints its section sizes (`arm-none-eabi-size -A`). No HEX or
+BIN file and no map file are produced yet.
+
 ### 10.2 Size Limits
 
 | Section | Maximum | Purpose |
@@ -313,6 +359,10 @@ cmake -S software/flight -B build \
 | .bss | 30 KB | Uninitialized data |
 | Stack | 8 KB | Per task |
 | Heap | 32 KB | Dynamic allocation |
+
+Revision C: the limits are not checked by CI. The image measures text 120,884 B (code and constants together) and data
+18,840 B, both within the limits above. Its bss of 16,256 B is within the 30 KB limit. It has no heap, and its one stack
+has not been measured.
 
 ### 10.3 Build Verification Checklist
 
@@ -354,3 +404,4 @@ Each flight release includes:
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Document number changed from SQSO-SW-007, which `software/flight/docs/LOOP_BOUNDS.md` also carries, to SQSO-SW-008 (finding PI-17). No content change | SMART-QSO Team |
+| C | 2026-10-24 | The flight software is Rust: §2.1 the build configurations as built (CMake options, cargo builds, Rust release profile, image and its CI checks); notes on §7 to §10 where the Revision A plan (C cross build, FreeRTOS, memory split, artifacts) no longer applies | SMART-QSO Team |
