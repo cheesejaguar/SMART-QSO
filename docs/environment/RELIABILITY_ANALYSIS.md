@@ -310,6 +310,11 @@ until total system failure.
 | MISRA compliance | Required rules | Yes |
 | Cyclomatic complexity | <15 | Yes |
 
+Note (2026-10-24): the two "Yes" entries are not supported by any tool output. The flight software is Rust
+(`software/rust/README.md`). MISRA C applies only to the remaining C shim, which has 42 findings from the cppcheck addon
+(`software/flight/docs/MISRA_DEVIATIONS.md`), and cyclomatic complexity is not measured. Line coverage was 90.0 %, C and
+Rust together, on 2026-10-24.
+
 ## 10. Reliability Summary
 
 ### 10.1 Mission Reliability Prediction
@@ -359,3 +364,4 @@ Status: RELIABILITY REQUIREMENTS MET
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-16 | Funding audit | §6.1 battery life replaced by a summary of BATTERY_DESIGN §3.3 (TB-08); orbit cycles at 500 km; battery redundancy corrected to 4S1P |
 | 1.2 | 2026-10-16 | SMART-QSO Team | §3.2 link-budget margin: the SEMP threshold and goal and the LINK_BUDGET_ANALYSIS v2.0 result replace "3 dB margin minimum" (finding TB-05). Header revision brought up to the history (it still read 1.0 after 1.1) |
+| 1.2, note | 2026-10-24 | SMART-QSO Team | §9.3 note: the MISRA and complexity entries are unsupported; status for the Rust flight software |

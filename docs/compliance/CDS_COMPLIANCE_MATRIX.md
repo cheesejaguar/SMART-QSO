@@ -109,8 +109,8 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 
 | Requirement | CDS Spec | SMART-QSO Design | Status |
 |-------------|----------|------------------|--------|
-| RF silence (§2.4.5) | No signal generated or transmitted earlier than **45 minutes** after on-orbit deployment | 45 minutes (SYS-224); implemented in flight software, whole radio unpowered (`rf_silence.c`, SQSO-ICD-013 §6.3). Simulation-tested; hardware test TP-RF-006 §8.8 pending (SW-05) | **Partial** |
-| Deployables (§2.4.4) | Wait **≥ 30 minutes** after deployment-switch activation | 30 minutes (`deployment.c`, SYS-221): persisted, reset-safe and bounded across resets in simulation; burn-wire HIL pending (SW-10) | **Partial** |
+| RF silence (§2.4.5) | No signal generated or transmitted earlier than **45 minutes** after on-orbit deployment | 45 minutes (SYS-224); implemented in flight software, whole radio unpowered (`software/rust/sqso-fsw/src/rf_silence.rs`, SQSO-ICD-013 §6.3). Simulation-tested; hardware test TP-RF-006 §8.8 pending (SW-05) | **Partial** |
+| Deployables (§2.4.4) | Wait **≥ 30 minutes** after deployment-switch activation | 30 minutes (`software/rust/sqso-fsw/src/deployment.rs`, SYS-221): persisted, reset-safe and bounded across resets in simulation; burn-wire HIL pending (SW-10) | **Partial** |
 | Timer reset (§2.3.2.4) | Switch toggle resets transmission and deployable timers | Transmission timer (SYS-224) and deployable timer (SYS-221): implemented in simulation (power-on reset or stowed switch restarts the count); hardware verification pending | **Partial** |
 
 ### 5.2 RF Emissions
@@ -211,3 +211,4 @@ This document provides a compliance matrix against the Cal Poly CubeSat Design S
 | A3 | 2026-10-16 | §9 TBR IDs made unique to this document: TBR-001 to TBR-004 became TBR-CDS-001 to TBR-CDS-004. Each matrix row marked TBR now names the §9 item that closes it (finding VV-17) | SMART-QSO Team |
 | A4 | 2026-10-16 | Local TBRs numbered TBR-CDS-001 to -004, so they do not collide with the specifications' TBR-001 (finding VV-06) | SMART-QSO Team |
 | A5 | 2026-10-16 | §4.1 switch type: "normally open" conflicted with the structural design's "normally closed" and nothing decides it; tracked as TBR-CDS-005 (§9), summary counts updated, compliance rate restated as design intent | SMART-QSO Team |
+| A5, note | 2026-10-24 | §2.4.5 and §2.4.4 rows name the Rust files that replaced `rf_silence.c` and `deployment.c` | SMART-QSO Team |

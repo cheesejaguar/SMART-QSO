@@ -131,14 +131,14 @@ SRS-F041 requires the fault log in non-volatile memory; the code now does this o
 **Severity**: Low
 **Status**: Open
 **Component**: Flight Software
-**Affected Files**: `beacon.c`, `system_state.c`, `cmd_handler.c`
+**Affected Files**: `software/rust/sqso-ffi/src/beacon.rs`, `software/rust/sqso-ffi/src/system_state.rs`, `software/rust/sqso-ffi/src/cmd_handler.rs` (were `beacon.c`, `system_state.c`, `cmd_handler.c`)
 
 **Description**:
 Version 1.0 said the beacon interval is fixed at 60 seconds and not ground-commandable. In the code the interval follows
 the power mode: 60 s in ACTIVE, 120 s in IDLE and 180 s in SAFE (`BEACON_INTERVAL_*_MS` in
 `software/flight/include/beacon.h`, set by `beacon_update_interval()`), as `docs/BASELINE_PARAMETERS.md` §8 and SYS-211
 require. The SET_BEACON telecommand exists: it accepts 10 to 120 s and stores the value
-(`sys_set_beacon_interval()` in `system_state.c`), but the beacon schedule never reads the stored value, so the command
+(`sys_set_beacon_interval()` in `software/rust/sqso-ffi/src/system_state.rs`), but the beacon schedule never reads the stored value, so the command
 has no effect on timing. 180 s, the SAFE interval, cannot be commanded (the note on SYS-211).
 
 **Impact**:
@@ -280,3 +280,4 @@ The undersigned acknowledge and accept the known issues documented herein for fl
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR baseline |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Corrected from the code and the baseline. KI-001: the OBC is the STM32L4R5ZI, not the Apollo4; remaining stubs listed by function, without line numbers. KI-002: the fault log is saved and reloaded (`fault_mgmt.c`), but only to a host file; on the target it is not persistent until the FRAM driver exists; status Open (SRS-F041). KI-003: the interval is 60/120/180 s by mode (SYS-211), and SET_BEACON is accepted but has no effect; status Open. Summary tables updated |
+| 1.1, note | 2026-10-24 | SMART-QSO Team | KI-003 affected files name the Rust files of the 2026-10-24 port; the issue is unchanged |

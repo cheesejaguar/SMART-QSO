@@ -58,7 +58,7 @@ No SMART-QSO subsystem has been built or tested, so no subsystem has a TRL suppo
 |-----------|---------------------------------|--------------------------|-----------|------------------------------------|
 | Structure | 1U, CDS Rev 14.1 (§4) | M1, M3, M5 (1U) | Same form factor | Deployable solar wings on a 1U (no precedent cited yet) |
 | EPS | 16 triple-junction cells, 4S1P 18650 Li-ion ≈ 50 Wh (§5) | R1 (COTS Li-ion cells in CubeSats) | Cell type common; pack design is ours | Power closure with a duty-gated transponder and an 8 W Jetson burst; battery ageing (compare M1) |
-| OBC and flight software | STM32L4R5ZI; FreeRTOS planned (§6) | M4 (STM32F4 + FreeRTOS) | Same MCU family and RTOS, different part (L4, not F4) | Our software has not run on any target |
+| OBC and flight software | STM32L4R5ZI; FreeRTOS in the baseline (§6), but the flight software as implemented (2026-10-24) is Rust on the Embassy executor, with no RTOS | M4 (STM32F4 + FreeRTOS) | Same MCU family, different part (L4, not F4). The RTOS precedent no longer applies to the implementation | Our software has not run on any target |
 | RF: transponder | Single-channel U/V FM, 0.5–1 W, duty-gated (§2, §7) | M1 (1U, same band plan), M2 | Close; M1 is the same concept on a 1U | Duty gating by onboard AI; M1's later battery trouble shows the energy risk |
 | RF: telemetry | 1200 bps AX.25 AFSK beacon (§2) | M3 | Same modulation and protocol | — |
 | Telecommand | HMAC-SHA-256 with monotonic counter, TX-OFF (§7) | R3 (design study only) | No flown amateur-band precedent cited | Flight demonstration of authenticated amateur telecommand (search did not find one) |
@@ -180,3 +180,4 @@ found running on a CubeSat-class bus. That is why the flight baseline does not d
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 2.0 | 2026-10-16 | SMART-QSO Team | Funding audit PI-15: rewritten as a design-precedent survey with public citations, including the AI payload; unsourced NASA Ames heritage, TRLs and the 68 % heritage score removed; precedent counts shown with their method |
+| 2.0, note | 2026-10-24 | SMART-QSO Team | OBC row: the implementation is Rust on the Embassy executor, so M4's FreeRTOS precedent covers the MCU family only |

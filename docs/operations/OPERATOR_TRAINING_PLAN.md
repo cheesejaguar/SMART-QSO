@@ -74,7 +74,7 @@ Following NASA Ames SmallSat heritage (GeneSat, PharmaSat, O/OREOS, EcAMSat), th
   - Solar array operation
   - Power modes (SAFE/IDLE/ACTIVE)
 - [ ] On-Board Computer (OBC)
-  - FreeRTOS task architecture
+  - Flight software run-time architecture: one main loop on the Embassy executor, no RTOS (`software/flight/docs/RTOS_ARCHITECTURE.md`)
   - Watchdog operation
   - Fault management
 - [ ] AI Payload (Jetson)
@@ -354,3 +354,4 @@ All training records maintained in:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.0, note | 2026-10-24 | SMART-QSO Team | OBC topic: the run-time architecture as built (no FreeRTOS) |

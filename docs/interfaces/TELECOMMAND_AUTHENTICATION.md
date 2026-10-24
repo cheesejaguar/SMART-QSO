@@ -119,7 +119,7 @@ MAC input = "SQSO-TC-v1" | cmd_id (1 B) | N (1 B) | counter (4 B, BE) | args (N 
 | Allowed states | Every operating state: BOOT, SAFE, DETUMBLE, IDLE, ACTIVE, EMERGENCY |
 | Order of operations | `TX_DISABLE` drives `GPIO_PIN_RF_TX_EN` low first, then saves the latch. The transmitter is off even if the latch cannot be saved; the command still reports `SUCCESS`, and the fault log records the failure |
 | Persistence | Two-slot record with CRC-32 (`nvm_record`) in `FLASH_REGION_RF_CONTROL`, base 0 |
-| After reset | The latch is restored at boot, before anything can transmit (`rf_control_init()` in `main.c`) |
+| After reset | The latch is restored at boot, before anything can transmit (`rf_control_init()` in the executive, `software/rust/sqso-ffi/src/executive.rs`) |
 | Blank record (first boot) | Transmit permitted |
 | Corrupt or unreadable record | Transmit **inhibited** (fail safe) |
 | SAFE mode, EPS `beacon_enabled` | Cannot override the latch. `beacon_should_transmit()` and `beacon_transmit()` refuse while TX-OFF is latched |
@@ -130,7 +130,7 @@ A replayed `TX_ENABLE` cannot undo a later `TX_DISABLE`. `test_replayed_tx_enabl
 
 ### 6.2 Loss-of-Contact Inhibit
 
-If no authenticated telecommand is received for **N days**, every transmitter is inhibited and the receiver stays on (`contact_monitor.c`, SYS-205; IARU form item 7.9).
+If no authenticated telecommand is received for **N days**, every transmitter is inhibited and the receiver stays on (`software/rust/sqso-fsw/src/contact_monitor.rs`, SYS-205; IARU form item 7.9).
 
 | Property | Behavior |
 |----------|----------|
@@ -148,7 +148,7 @@ If no authenticated telecommand is received for **N days**, every transmitter is
 
 ### 6.3 Post-Deployment RF Silence
 
-No RF signal may be generated or transmitted until 45 minutes after deployment, and a deployment-switch toggle restarts the timer (CDS Rev 14.1 §2.4.5, §2.3.2.4; SYS-224; `rf_silence.c`).
+No RF signal may be generated or transmitted until 45 minutes after deployment, and a deployment-switch toggle restarts the timer (CDS Rev 14.1 §2.4.5, §2.3.2.4; SYS-224; `software/rust/sqso-fsw/src/rf_silence.rs`).
 
 | Property | Behavior |
 |----------|----------|
@@ -161,9 +161,9 @@ No RF signal may be generated or transmitted until 45 minutes after deployment, 
 | Completion | Persists across later resets of any kind |
 | `hal_reset_cause()` | Read once after boot; the MCU's sticky reset flags are cleared and the result cached (`hal_reset.h`) |
 | Bench testing | Completes the silence, and completion persists. So **GSE `ARM_FLIGHT` (0x04, umbilical only; `key_provision.py arm-flight`) must be the last powered action before integration**. It re-arms the silence and the deployment sequence together (TP-FAT-002 §6.7, PRE_SHIP_CHECKLIST). ARMED does not count while powered; the count starts at the next boot. Any power-up after ARM that lasts 25 minutes or more requires re-arming (the deployment wait is 30 minutes). The state is printed at every boot |
-| Switch polarity | Defined once in `separation_switch.c` (pull-up, high = stowed), shared with the deployment sequence, and **TBR** against the separation-switch schematic. Inverted polarity on orbit would restart the count forever: fail safe, but mission-ending. The pre-ship check confirms that released switches read as released |
+| Switch polarity | Defined once in `software/rust/sqso-ffi/src/separation_switch.rs` (pull-up, high = stowed), shared with the deployment sequence, and **TBR** against the separation-switch schematic. Inverted polarity on orbit would restart the count forever: fail safe, but mission-ending. The pre-ship check confirms that released switches read as released |
 | Target | Same time-base dependency as Section 6.2 (SW-01) |
-| Deployables | The 30-minute deployable timer (`deployment.c`, SYS-221) follows the same reset rules and is persisted; burns are bounded across resets (finding SW-10) |
+| Deployables | The 30-minute deployable timer (`software/rust/sqso-fsw/src/deployment.rs`, SYS-221) follows the same reset rules and is persisted; burns are bounded across resets (finding SW-10) |
 
 `rf_control` combines three independent inhibits: the TX-OFF latch, loss of contact, and RF silence. The transmitter is enabled only when all three are clear. Only the silence removes radio power.
 | Target | `contact_monitor_tick()` needs a monotonic time source. `smart_qso_now_ms()` is not implemented on target yet (SW-01) |
@@ -306,9 +306,9 @@ Procedure:
 | Two-slot records with base offsets (`software/rust/sqso-fsw/src/nvm.rs`) | Implemented; power-fail and corruption cases (12 tests) |
 | Authentication, per-key counters, key table, rotation (`software/rust/sqso-fsw/src/keys.rs`) | Implemented (25 tests, including interrupted rotation and corrupt state) |
 | GSE provisioning (`software/rust/sqso-ffi/src/gse_provision.rs`) | Implemented (6 tests; the umbilical gate was mutation-checked) |
-| Latched TX-OFF, power level (`rf_control.c`), beacon gating | Implemented (11 tests) |
-| Loss-of-contact inhibit (`contact_monitor.c`) | Implemented (10 tests, plus 3 handler tests; the contact hook's gate and placement were mutation-checked) |
-| Post-deployment RF silence (`rf_silence.c`), GSE ARM | Implemented (10 tests plus 1 GSE test; the reset-cause rule, completion persistence and switch reset were mutation-checked) |
+| Latched TX-OFF, power level (`software/rust/sqso-fsw/src/rf_control.rs`), beacon gating | Implemented (11 tests) |
+| Loss-of-contact inhibit (`software/rust/sqso-fsw/src/contact_monitor.rs`) | Implemented (10 tests, plus 3 handler tests; the contact hook's gate and placement were mutation-checked) |
+| Post-deployment RF silence (`software/rust/sqso-fsw/src/rf_silence.rs`), GSE ARM | Implemented (10 tests plus 1 GSE test; the reset-cause rule, completion persistence and switch reset were mutation-checked) |
 | Command path (`software/rust/sqso-ffi/src/cmd_handler.rs`) | Implemented (22 tests, including every dictionary command, KEY_ROTATE, SET_MODE guards and contact detection) |
 | AX.25 and receive path (`software/rust/sqso-protocol/src/ax25.rs`, `software/rust/sqso-ffi/src/uplink.rs`) | Implemented; end to end from receiver frame to TX-OFF (7 tests; the callsign filter was mutation-checked) |
 | Ground tools (`telecommand_builder.py`, `key_provision.py`) | Implemented; byte-identical to the flight vectors |
@@ -389,3 +389,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.4 | 2026-10-15 | Post-deployment RF silence (Section 6.3) and GSE ARM_RF_SILENCE |
 | 0.5 | 2026-10-15 | GSE 0x04 renamed ARM_FLIGHT: arms the RF silence and the deployment sequence together |
 | 0.6 | 2026-10-16 | OBC-to-RF ICD cited by its own number, SQSO-ICD-003 (was SQSO-ICD-005, the Space-to-Ground ICD), and the OBC GPIO table by its new location after the OBC design merge (finding PI-17). No technical change |
+| 0.6, note | 2026-10-24 | The C files named in §6, §7 and §10 were ported to Rust; references now name the Rust files (`software/rust/README.md`). The test suites named are unchanged and run against the Rust. No content change |

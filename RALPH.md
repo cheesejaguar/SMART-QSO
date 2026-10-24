@@ -1,5 +1,8 @@
 # RALPH.md - Repository Audit for Launch-ready Program Hardening
 
+> **Note (2026-10-24):** a dated log, not rewritten. Since 2026-10-24 all flight software is Rust; the C files named
+> below were replaced (porting table in `software/rust/README.md`), except `software/flight/src/flight_log_fmt.c`.
+
 ## NASA Flight Software Code Quality Audit Report
 **Repository**: SMART-QSO
 **Audit Date**: 2026-01-02

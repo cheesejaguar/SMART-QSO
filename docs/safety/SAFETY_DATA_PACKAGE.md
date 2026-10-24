@@ -202,7 +202,7 @@ tests. No hardware verification has been run, so every hazard is open.
 |---------|------|----------------|
 | ECC Memory | Hardware | OBC SRAM ECC |
 | CRC on Config | Software | Configuration checksums |
-| Defensive Coding | Software | MISRA C:2012 checking in CI (not compliant: 1,189 findings, `software/flight/quality/misra.baseline`) |
+| Defensive Coding | Software | MISRA C:2012 checking in CI (not compliant: 1,189 findings, `software/flight/quality/misra.baseline`). Since 2026-10-24 the flight software is Rust: MISRA applies to the remaining C shim only (42 findings), and the Rust lints are enforced in CI (`docs/development/CODING_STANDARDS.md` §11) |
 | Bounds Checking | Software | Array bounds checked |
 
 **Verification**:
@@ -383,3 +383,4 @@ Member: _________________ Date: _____
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Funding audit VV-20: retitled Software Safety Data Package and scoped to software; system package split out as a skeleton (SQSO-SDP-002); "Complete" statuses, pre-written board findings and the zero-open-hazard summary removed; values aligned with BASELINE (SOC thresholds, watchdog 30 s, AI duty, software class pending); FMEA count corrected to 43 |
+| 1.1, note | 2026-10-24 | SMART-QSO Team | Defensive-coding row: status after the port of the flight software to Rust |

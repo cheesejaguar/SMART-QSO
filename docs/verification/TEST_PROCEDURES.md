@@ -465,6 +465,10 @@ open coverage_report/index.html
 | checksum.rs (Rust) | 80% | TBD |
 | **Overall** | **80%** | **TBD** |
 
+Note (2026-10-24): every module above is now Rust (`software/rust/README.md`). CI measures line coverage of the Rust
+flight crates (92.1 % on 2026-10-24, gate 90 %) and of C and Rust together (90.0 %, gate 80 %). The per-file report is
+the CI artifact `rust-coverage`. The Actual column stays open until per-module figures are recorded against this table.
+
 ---
 
 ## 8. Test Data Recording
@@ -569,3 +573,4 @@ Status: Open/In Progress/Resolved/Closed
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | TP-INT-001 to -004 renumbered TP-SWI-001 to -004 and TP-SYS-001, -003 renumbered TP-SWS-001, -003, because those IDs belong to different procedures in `docs/test_procedures/`; §5.2 now points to the TP-SYS-002 procedure file; §1.4 added (finding VV-18) |
+| 1.1, note | 2026-10-24 | SMART-QSO Team | §7.2 note: the modules are Rust; line coverage as measured in CI |

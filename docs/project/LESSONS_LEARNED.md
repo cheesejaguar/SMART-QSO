@@ -196,6 +196,10 @@ what is tested.
 **Planned mitigation**: CI blocks new findings. The current baselines are 1,189 MISRA C:2012 findings (cppcheck addon, not
 a qualified MISRA tool) and 58 clang-tidy findings (`software/flight/quality/`). The code is not MISRA-compliant.
 
+Update (2026-10-24): the flight software was ported to Rust (`software/rust/README.md`). MISRA C now applies only to the
+remaining printf shim, at 42 findings, and clang-tidy is at 0. The Rust has its own standard
+(`docs/development/CODING_STANDARDS.md` §11), with the lints enforced in CI from the start of the port.
+
 ---
 
 #### LL-008: Documentation as Code
@@ -345,3 +349,4 @@ earlier plan to submit to the NASA Lessons Learned Information System is removed
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Funding audit PI-16: every lesson relabelled as anticipated; statements that phases or tests happened removed; false figures corrected (tests, coverage, MISRA, power margin); NASA Ames attributions and LLIS submission removed; lessons from other missions cited from public sources; summary corrected to 10 lessons |
+| 1.1, note | 2026-10-24 | SMART-QSO Team | LL-007: update for the Rust port (MISRA baseline 42, clang-tidy 0) |
