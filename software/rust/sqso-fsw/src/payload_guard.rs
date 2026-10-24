@@ -324,4 +324,21 @@ mod tests {
             assert_ne!(reason(o as u32), reason(99));
         }
     }
+
+    /// Mutation check: the cool-down ends exactly COOLDOWN_MS after the
+    /// trip, and every trip is counted
+    #[test]
+    fn cooldown_ends_exactly_and_trips_are_counted() {
+        let mut g = Guard::new();
+        let cool = sample(0.0, SPREADER_MAX_C - RESTART_MARGIN_C - 1.0);
+        assert_eq!(g.step(Some(&sample(LATCHUP_INPUT_W, 50.0)), true, T0), Outcome::Latchup);
+        assert_eq!(g.step(Some(&cool), true, T0 + COOLDOWN_MS - 1), Outcome::Cooldown);
+        assert!(!g.may_enable(T0 + COOLDOWN_MS - 1));
+        assert!(g.may_enable(T0 + COOLDOWN_MS));
+        assert_eq!(g.step(Some(&cool), true, T0 + COOLDOWN_MS), Outcome::Ok);
+        assert_eq!(g.trip_count(), 1);
+        assert_eq!(g.step(Some(&sample(LATCHUP_INPUT_W, 50.0)), true, T0 + COOLDOWN_MS + 1), Outcome::Latchup);
+        assert_eq!(g.trip_count(), 2);
+        assert_eq!(Guard::new().trip_count(), 0);
+    }
 }

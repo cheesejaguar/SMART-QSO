@@ -687,6 +687,31 @@ mod tests {
         persisted_at_burn: Option<u8>,
         reports: usize,
         last: Option<Report>,
+        /// Every flight-log line, newline-separated
+        text: Text,
+    }
+
+    struct Text {
+        buf: [u8; 4096],
+        len: usize,
+    }
+
+    impl fmt::Write for Text {
+        fn write_str(&mut self, s: &str) -> fmt::Result {
+            for b in s.bytes() {
+                if let Some(slot) = self.buf.get_mut(self.len) {
+                    *slot = b;
+                    self.len += 1;
+                }
+            }
+            Ok(())
+        }
+    }
+
+    impl Text {
+        fn contains(&self, needle: &[u8]) -> bool {
+            self.buf[..self.len].windows(needle.len()).any(|w| w == needle)
+        }
     }
 
     impl Flash for Bench {
@@ -723,7 +748,10 @@ mod tests {
         fn stowed(&mut self) -> bool {
             self.stowed
         }
-        fn log(&mut self, _level: Level, _message: fmt::Arguments<'_>) {}
+        fn log(&mut self, _level: Level, message: fmt::Arguments<'_>) {
+            let _ = fmt::Write::write_fmt(&mut self.text, message);
+            let _ = fmt::Write::write_str(&mut self.text, "\n");
+        }
         fn report(&mut self, report: Report) {
             self.reports += 1;
             self.last = Some(report);
@@ -741,6 +769,7 @@ mod tests {
                 persisted_at_burn: None,
                 reports: 0,
                 last: None,
+                text: Text { buf: [0; 4096], len: 0 },
             }
         }
         fn burning(&self, e: Element) -> bool {
@@ -991,5 +1020,105 @@ mod tests {
         let mut d = Deployment::new(10);
         d.tick(MINUTE_MS, &mut io);
         assert_eq!((d.state(), d.is_separated()), (State::Inhibited, false));
+    }
+
+    /// Mutation check: what a reset restores. The deployed flags (solar as
+    /// well as antenna), the attempted flags and the separation flag come
+    /// back from the record, in COMPLETE as in a resumed sequence.
+    #[test]
+    fn reset_restores_flags_attempts_and_separation() {
+        // Antenna out, solar not yet: both flags must survive a reset apart
+        let mut io = Bench::new();
+        io.sense[0] = true;
+        let mut d = boot(&mut io, Reset::PowerLost);
+        wait_out(&mut d, &mut io);
+        d.tick(SECOND_MS, &mut io);
+        d.tick(SECOND_MS, &mut io);
+        assert!(io.burning(Element::SolarPanel));
+        io.sense[0] = false; // the sense line no longer confirms it
+        let d = boot(&mut io, Reset::PowerKept);
+        let (antenna, solar) = (d.element_status(Element::Antenna), d.element_status(Element::SolarPanel));
+        assert!(antenna.deployed && !antenna.deploy_attempted);
+        assert!(!solar.deployed && solar.deploy_attempted);
+        assert_eq!(solar.attempt_count, 1);
+        assert!(d.is_separated());
+
+        // COMPLETE: both deployed flags and the separation flag are kept
+        let mut io = Bench::new();
+        io.sense = [true; 2];
+        let mut d = boot(&mut io, Reset::PowerLost);
+        wait_out(&mut d, &mut io);
+        advance(&mut d, &mut io, 5 * SECOND_MS, SECOND_MS);
+        assert_eq!(d.state(), State::Complete);
+        io.sense = [false; 2];
+        for reset in [Reset::PowerLost, Reset::PowerKept] {
+            let d = boot(&mut io, reset);
+            assert_eq!(d.state(), State::Complete);
+            assert!(d.all_complete(), "{reset:?}");
+            assert!(d.element_status(Element::SolarPanel).deployed);
+            assert!(d.is_separated(), "{reset:?}");
+        }
+
+        // The separation flag is read, not assumed: a stored COMPLETE or a
+        // resumed INHIBITED without it is not separated
+        let mut io = Bench::new();
+        let flags = FLAG_ANTENNA_DEPLOYED | FLAG_SOLAR_DEPLOYED | FLAG_ENABLED;
+        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &[State::Complete as u8, 1, 1, flags, 0, 0, 0, 0]).unwrap();
+        let d = boot(&mut io, Reset::PowerKept);
+        assert_eq!((d.state(), d.is_separated()), (State::Complete, false));
+        assert_eq!(d.telemetry().time_since_sep_s, 0);
+        let mut io = Bench::new();
+        let _ = boot(&mut io, Reset::PowerLost); // stores INHIBITED, not separated
+        let d = boot(&mut io, Reset::PowerKept);
+        assert_eq!((d.state(), d.is_separated()), (State::Inhibited, false));
+        let s = d.element_status(Element::Antenna);
+        assert!(!s.deploy_attempted && !s.deployed);
+    }
+
+    /// Mutation check: a stowed switch restarts a wait that has not yet
+    /// counted a second (WAITING at 0 s), and, once back in INHIBITED at
+    /// 0 s, writes nothing more however long it stays stowed
+    #[test]
+    fn stowed_restart_from_waiting_and_no_rewrites_while_stowed() {
+        let mut io = Bench::new();
+        let mut d = boot(&mut io, Reset::PowerLost);
+        d.tick(SECOND_MS, &mut io);
+        assert_eq!((d.state(), d.wait_elapsed_s()), (State::Waiting, 0));
+        io.stowed = true;
+        d.tick(SECOND_MS, &mut io);
+        assert_eq!((d.state(), d.is_separated()), (State::Inhibited, false));
+        let d2 = boot(&mut io, Reset::PowerKept);
+        assert_eq!((d2.state(), d2.is_separated()), (State::Inhibited, false), "the restart is persisted");
+
+        let flash = io.flash.bytes;
+        let log_len = io.text.len;
+        advance(&mut d, &mut io, 10 * MINUTE_MS, SECOND_MS);
+        assert!(io.flash.bytes == flash, "no flash writes while stowed and already restarted");
+        assert_eq!(io.text.len, log_len, "no state changes logged");
+    }
+
+    #[test]
+    fn save_state_reports_persistence() {
+        let mut io = Bench::new();
+        let mut d = boot(&mut io, Reset::PowerLost);
+        d.tick(SECOND_MS, &mut io);
+        advance(&mut d, &mut io, 10 * SECOND_MS, SECOND_MS);
+        assert!(d.save_state(&mut io.flash));
+        assert_eq!(boot(&mut io, Reset::PowerKept).wait_elapsed_s(), 10, "saved at once, not at the interval");
+        io.flash.writes_left = Some(0);
+        assert!(!d.save_state(&mut io.flash));
+    }
+
+    #[test]
+    fn log_names_the_states_and_elements() {
+        let mut io = Bench::new();
+        let mut d = boot(&mut io, Reset::PowerLost);
+        assert!(io.text.contains(b"Deployment initialized in INHIBITED\n"));
+        d.tick(SECOND_MS, &mut io);
+        assert!(io.text.contains(b"State: INHIBITED -> WAITING\n"));
+        assert!(io.text.contains(b"Separation detected\n"));
+        assert_eq!(Element::from_raw(0), Some(Element::Antenna));
+        assert_eq!(Element::from_raw(1), Some(Element::SolarPanel));
+        assert_eq!(State::Waiting.label(), "WAITING");
     }
 }

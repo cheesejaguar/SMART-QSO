@@ -269,4 +269,46 @@ mod tests {
         flag[20..].copy_from_slice(&crc);
         assert_eq!(EpsState::from_bytes(&flag), Err(RecordError::Corrupt));
     }
+
+    #[test]
+    fn every_power_mode_value() {
+        assert_eq!(power_mode(0), Some(PowerMode::Safe));
+        assert_eq!(power_mode(1), Some(PowerMode::Idle));
+        assert_eq!(power_mode(2), Some(PowerMode::Active));
+        for mode in [PowerMode::Safe, PowerMode::Idle, PowerMode::Active] {
+            assert_eq!(power_mode(mode as u32), Some(mode));
+        }
+    }
+
+    /// Mutation check: reset_defaults restores the power-on switches, mode
+    /// and limit, stamps the control time, keeps the padding (as the C
+    /// module did) and leaves a CRC that matches
+    #[test]
+    fn reset_defaults_restores_the_power_on_state() {
+        let mut s = EpsState {
+            payload_enabled: true,
+            radio_enabled: false,
+            adcs_enabled: false,
+            beacon_enabled: false,
+            power_mode: PowerMode::Active as u8,
+            pad: [7, 8, 9],
+            power_limit_w: POWER_LIMIT_ACTIVE_W,
+            last_control_ms: 5,
+            crc32: 0,
+        };
+        s.reset_defaults(4242);
+        assert_eq!(s, EpsState { pad: [7, 8, 9], last_control_ms: 4242, crc32: s.compute_crc(), ..EpsState::DEFAULT });
+        assert_ne!(s.crc32, 0);
+        assert_eq!(EpsState::from_bytes(&s.to_bytes()), Ok(s));
+    }
+
+    #[test]
+    fn record_with_switches_off_round_trips() {
+        let mut s = EpsState::DEFAULT; // payload off
+        s.radio_enabled = false;
+        s.update_crc();
+        let b = s.to_bytes();
+        assert_eq!(&b[..4], &[0, 0, 1, 1]);
+        assert_eq!(EpsState::from_bytes(&b), Ok(s));
+    }
 }

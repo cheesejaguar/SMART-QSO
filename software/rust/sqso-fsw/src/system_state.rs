@@ -742,4 +742,145 @@ mod tests {
         assert!(u.update(13_500, &mut m));
         assert_eq!(m.uptime_s, 3);
     }
+
+    fn distinct_comm() -> Comm {
+        Comm {
+            packets_sent: 11,
+            packets_received: 12,
+            packets_failed: 13,
+            last_ground_contact_ms: 14,
+            beacon_count: 15,
+            beacon_interval_s: 16,
+            comm_active: true,
+            rssi_dbm: -17,
+        }
+    }
+
+    fn distinct_mission() -> Mission {
+        Mission {
+            boot_count: 21,
+            uptime_s: 22,
+            total_uptime_s: 23,
+            mission_time_ms: 0x2424_2424_2424,
+            qso_count: 25,
+            command_count: 26,
+            anomaly_count: 27,
+            safe_mode_entry: true,
+        }
+    }
+
+    /// Every field distinct and non-zero
+    fn distinct() -> (SystemState, Sm) {
+        let s = SystemState {
+            power: Power {
+                battery_voltage: 7.25,
+                battery_current: -0.5,
+                state_of_charge: 0.625,
+                solar_power: 1.75,
+                total_energy_wh: 12.5,
+                power_mode: 2,
+                payload_enabled: true,
+                mode_entry_time_ms: 0x0102_0304,
+            },
+            thermal: Thermal {
+                obc_temp_c: 21.5,
+                eps_temp_c: 22.5,
+                battery_temp_c: 23.5,
+                payload_temp_c: 24.5,
+                external_temp_c: -40.5,
+                heater_enabled: true,
+                over_temp_flag: true,
+                under_temp_flag: true,
+            },
+            adcs: Adcs {
+                mag_ut: [1.0, 2.0, 3.0],
+                gyro_dps: [4.0, 5.0, 6.0],
+                sun_vector: [7.0, 8.0, 9.0],
+                detumbled: true,
+                sun_acquired: true,
+                last_update_ms: 0x1111_2222,
+            },
+            comm: distinct_comm(),
+            mission: distinct_mission(),
+            initialized: true,
+            watchdog_ok: true,
+            persistence_dirty: true,
+            last_update_ms: 0x3131_3131_3131,
+            last_persist_ms: 0x3232_3232_3232,
+            crc32: 0x3333_3333,
+        };
+        let sm = Sm {
+            current_state: 41,
+            previous_state: 42,
+            transition_count: 43,
+            last_transition_ms: 0x4444_4444_4444,
+            state_entry_ms: 0x4545_4545_4545,
+            is_initialized: true,
+        };
+        (s, sm)
+    }
+
+    /// Mutation check: every field at its own offset (all fields distinct
+    /// and non-zero, so a write to a wrong offset cannot round-trip)
+    #[test]
+    fn every_field_round_trips() {
+        let (s, sm) = distinct();
+        let image = s.image(&sm);
+        assert_eq!(SystemState::from_image(&image), (s, sm));
+        assert_eq!(&image.0[48..52], &0x0102_0304u32.to_ne_bytes());
+        assert_eq!(&image.0[72..76], &(-40.5f32).to_ne_bytes());
+        assert_eq!(&image.0[76..79], &[1, 1, 1]);
+        assert_eq!(&image.0[117..118], &[1]);
+        assert_eq!(&image.0[120..124], &0x1111_2222u32.to_ne_bytes());
+        assert_eq!(&image.0[168..176], &0x2424_2424_2424u64.to_ne_bytes());
+        assert_eq!(image.0[188], 1);
+        assert_eq!(&image.0[256..260], &0x3333_3333u32.to_ne_bytes());
+    }
+
+    #[test]
+    fn defaults_and_temperature_limits() {
+        let s = SystemState::defaults(9);
+        let t = s.thermal;
+        assert_eq!([t.obc_temp_c, t.eps_temp_c, t.battery_temp_c, t.payload_temp_c], [DEFAULT_TEMP_C; 4]);
+        assert_eq!(t.external_temp_c, 0.0);
+        assert!(!s.persistence_dirty && s.initialized && s.watchdog_ok);
+        assert_eq!((s.power.battery_voltage, s.comm.beacon_interval_s, s.last_update_ms), (3.7, 60, 9));
+        let mut s = s;
+        assert!(s.set_temperature(2, -19.5, 10));
+        assert!(!s.has_thermal_fault(), "-19.5 C is within limits");
+        assert!(s.set_temperature(2, -20.5, 11));
+        assert!(s.thermal.under_temp_flag);
+        assert!(s.set_temperature(2, 59.5, 12));
+        assert!(!s.has_thermal_fault());
+    }
+
+    /// Mutation check: each flag byte is read from its own offset (flags
+    /// set so that no flag equals the byte a wrong offset would give)
+    #[test]
+    fn flags_are_read_from_their_own_bytes() {
+        let (mut s, sm) = sample();
+        s.power.payload_enabled = false;
+        s.adcs.detumbled = true;
+        s.comm.comm_active = false;
+        s.adcs.gyro_dps = [4.0, 6.0, 5.0]; // non-zero bytes around comm_active's mirror offset
+        s.mission.safe_mode_entry = false;
+        s.initialized = false;
+        s.watchdog_ok = true;
+        let (back, _) = SystemState::from_image(&s.image(&sm));
+        assert!(back.adcs.detumbled && !back.comm.comm_active && !back.mission.safe_mode_entry);
+        assert!(!back.initialized && back.watchdog_ok);
+        assert_eq!(back, s);
+    }
+
+    #[test]
+    fn temperature_sensors_and_exact_limits() {
+        let mut s = SystemState::defaults(0);
+        assert!(s.set_temperature(3, 33.0, 1));
+        assert_eq!(s.thermal.payload_temp_c, 33.0);
+        assert!(s.set_temperature(3, OVER_TEMP_C, 2));
+        assert!(!s.has_thermal_fault(), "exactly the upper limit is within it");
+        assert!(s.set_temperature(3, UNDER_TEMP_C, 3));
+        assert!(!s.has_thermal_fault(), "exactly the lower limit is within it");
+        assert_eq!(s.thermal.payload_temp_c, UNDER_TEMP_C);
+    }
 }

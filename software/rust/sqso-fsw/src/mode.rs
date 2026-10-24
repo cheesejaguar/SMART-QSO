@@ -575,4 +575,33 @@ mod tests {
         assert_eq!(State::from_raw(6), None);
         assert_eq!(Event::from_raw(16), None);
     }
+
+    /// Mutation check: every power threshold is strict ("below"), so a SOC
+    /// exactly at a threshold calls for the milder event
+    #[test]
+    fn power_thresholds_are_strict() {
+        use Event as E;
+        use State as S;
+        let cases = [
+            (S::Active, SOC_SAFE, E::PowerLow),
+            (S::Active, SOC_IDLE, E::None),
+            (S::Idle, SOC_SAFE, E::None),
+            (S::Safe, SOC_EMERGENCY, E::None),
+            (S::Boot, SOC_SAFE, E::None),
+            (S::Detumble, SOC_SAFE, E::None),
+            (S::Detumble, 0.2, E::PowerCritical),
+        ];
+        for (s, soc, expected) in cases {
+            assert_eq!(power_event(s, soc, true), expected, "{s:?} {soc}");
+        }
+    }
+
+    #[test]
+    fn force_bypasses_the_table() {
+        let mut m = Machine::new(State::Boot, 10);
+        assert_eq!(transition(State::Boot, Event::GroundCmdIdle), None);
+        m.force(State::Idle, 20);
+        assert_eq!((m.current, m.previous, m.transitions), (State::Idle, State::Boot, 1));
+        assert_eq!((m.last_transition_ms, m.state_entry_ms), (20, 20));
+    }
 }

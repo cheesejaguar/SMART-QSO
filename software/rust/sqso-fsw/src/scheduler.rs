@@ -501,4 +501,125 @@ mod tests {
         assert_eq!(s.state(h), TaskState::Suspended);
         assert_eq!(s.unregister(h), Ok(()));
     }
+
+    #[test]
+    fn names_compare_to_the_nul() {
+        let mut s = Scheduler::<u8>::new();
+        s.init();
+        let abc = s.register(cfg(b"abc", 10, 0)).unwrap();
+        let abd = s.register(cfg(b"abd", 10, 0)).unwrap();
+        assert_eq!(s.register(cfg(b"abc", 10, 0)), Err(SchedError::AlreadyExists));
+        assert_eq!((s.handle_by_name(b"abc"), s.handle_by_name(b"abd")), (Some(abc), Some(abd)));
+        assert_eq!(s.handle_by_name(b"ab"), None);
+        assert_eq!(s.name(abd).map(|n| &n[..4]), Some(&b"abd\0"[..]));
+        assert_eq!(s.name(5), None);
+    }
+
+    #[test]
+    fn init_clears_and_start_needs_it() {
+        let mut s = Scheduler::<u8>::new();
+        assert!(!s.is_initialized());
+        assert_eq!(s.start(), Err(SchedError::NotRunning));
+        s.init();
+        assert!(s.is_initialized());
+        let h = s.register(cfg(b"t", 10, 0)).unwrap();
+        assert_eq!(s.tick(), Some(h));
+        s.init();
+        assert_eq!(s.state(h), TaskState::Inactive);
+        assert_eq!(s.stats(h), Err(SchedError::NotFound));
+        assert_eq!((s.tick_count(), s.tick()), (0, None));
+        assert_eq!(s.start(), Ok(()));
+        assert!(s.is_running());
+        s.stop();
+        assert!(!s.is_running());
+    }
+
+    /// Mutation check: the state, period and statistics requests do what
+    /// they say
+    #[test]
+    fn task_requests() {
+        let mut s = Scheduler::<u8>::new();
+        s.init();
+        let a = s.register(cfg(b"a", 10, 0)).unwrap();
+        let b = s.register(cfg(b"b", 30, 1)).unwrap();
+        assert_eq!(s.sched_stats().active_tasks, 2);
+        assert_eq!(s.disable(a), Ok(()));
+        assert_eq!(s.state(a), TaskState::Inactive);
+        assert_eq!(s.sched_stats().active_tasks, 1);
+        assert_eq!(s.tick(), Some(b), "a disabled task is not run");
+        assert_eq!(s.enable(a), Ok(()));
+        assert_eq!(s.state(a), TaskState::Ready);
+        assert_eq!(s.tick(), Some(a));
+        assert_eq!(s.disable(9), Err(SchedError::NotFound));
+        assert_eq!(s.enable(9), Err(SchedError::NotFound));
+
+        // Resume only lifts a suspension
+        s.suspend(b).unwrap();
+        assert_eq!(s.resume(b), Ok(()));
+        assert_eq!(s.state(b), TaskState::Ready);
+        for _ in 0..3 {
+            let _ = run(&mut s, b, 5000);
+        }
+        assert_eq!(s.state(b), TaskState::Fault);
+        assert_eq!(s.resume(b), Ok(()));
+        assert_eq!(s.state(b), TaskState::Fault, "resume does not clear a fault");
+        assert_eq!(s.resume(9), Err(SchedError::NotFound));
+
+        // Statistics
+        assert_eq!(s.stats(b).unwrap().run_count, 3);
+        assert_eq!(s.reset_stats(b), Ok(()));
+        assert_eq!(s.stats(b), Ok(TaskStats::NEW));
+        assert_eq!(s.reset_stats(9), Err(SchedError::NotFound));
+
+        // Period
+        assert_eq!((s.period(a), s.period(b), s.period(9)), (10, 30, 0));
+        assert_eq!(s.set_period(a, 25), Ok(()));
+        assert_eq!(s.period(a), 25);
+        assert_eq!(s.set_period(a, MIN_PERIOD_MS - 1), Err(SchedError::InvalidParam));
+        assert_eq!(s.set_period(a, MAX_PERIOD_MS + 1), Err(SchedError::InvalidParam));
+        assert_eq!(s.set_period(u8::try_from(MAX_TASKS).unwrap(), 25), Err(SchedError::InvalidParam));
+        assert_eq!(s.set_period(9, 25), Err(SchedError::NotFound));
+        assert_eq!(s.period(a), 25);
+    }
+
+    #[test]
+    fn cpu_utilization_over_the_window() {
+        let mut s = Scheduler::<u8>::new();
+        s.init();
+        let h = s.register(cfg(b"t", 10, 0)).unwrap();
+        for _ in 0..CPU_UTIL_WINDOW {
+            let _ = s.tick();
+        }
+        s.idle(750);
+        assert_eq!(run(&mut s, h, 250), None);
+        assert_eq!(s.cpu_utilization(), 25);
+        assert_eq!(s.sched_stats().cpu_utilization, 25);
+    }
+
+    /// Mutation check: run-time statistics, the deadline edges (none for
+    /// 0, met at exactly the deadline) and the tie-break of equal
+    /// priorities (the lower slot)
+    #[test]
+    fn run_statistics_and_edges() {
+        let mut s = Scheduler::<u8>::new();
+        s.init();
+        let first = s.register(cfg(b"first", 10, 2)).unwrap();
+        let second = s.register(cfg(b"second", 10, 2)).unwrap();
+        assert_eq!(s.tick(), Some(first), "equal priority: the lower slot");
+        assert_eq!(s.tick_count(), 1);
+        assert_eq!(run(&mut s, first, 1000), None, "exactly the deadline is met");
+        assert_eq!(s.tick(), Some(second));
+        assert_eq!(s.tick_count(), 2);
+        assert_eq!(run(&mut s, first, 800), None);
+        let st = s.stats(first).unwrap();
+        // Moving average over 8: (0 * 7 + 1000) / 8 = 125, then (125 * 7 + 800) / 8 = 209
+        assert_eq!((st.run_count, st.avg_run_time_us, st.min_run_time_us, st.max_run_time_us), (2, 209, 800, 1000));
+        assert_eq!((st.last_run_time_us, st.deadline_misses), (800, 0));
+
+        let mut none = cfg(b"nodeadline", 10, 0);
+        none.deadline_ms = 0;
+        let h = s.register(none).unwrap();
+        assert_eq!(run(&mut s, h, 5_000_000), None, "deadline 0: none");
+        assert_eq!(s.stats(h).unwrap().deadline_misses, 0);
+    }
 }

@@ -221,8 +221,9 @@ pub fn bdot(mag: &MagData) -> Vec3 {
 }
 
 /// Sun pointing: the torque that turns +X toward the sun, as a dipole
-/// m = (tau x B) / |B|^2, saturated; zero without sun, valid field or a
-/// field of at least 1 uT (`adcs_compute_sunpoint`)
+/// m = (tau x B) / |B|^2, saturated; zero without sun, without a valid
+/// field, or unless the field is stronger than 1 uT (|B|^2 > 1 uT^2)
+/// (`adcs_compute_sunpoint`)
 pub fn sunpoint(sun: &SunSensorData, mag: &MagData) -> Vec3 {
     if !sun.sun_visible || !mag.valid {
         return Vec3::ZERO;
@@ -351,7 +352,7 @@ impl Adcs {
     }
 
     /// Body rate from the change in the field between two valid readings
-    /// at least 10 ms apart: an inertially fixed field gives
+    /// more than 10 ms apart: an inertially fixed field gives
     /// dB/dt = -w x B, so w = (dB/dt x B) / |B|^2 (the component along B is
     /// not observable)
     fn estimate_rate(&mut self, now_ms: u64) {
@@ -378,7 +379,9 @@ impl Adcs {
         s.rate_magnitude = s.angular_rate_est.magnitude();
     }
 
-    /// One DETUMBLE cycle: timeout check, B-dot, rate convergence
+    /// One DETUMBLE cycle: timeout check, B-dot, rate convergence.
+    /// `detumble_start_ms` 0 means "not started", so a detumble that began
+    /// at time 0 is never timed out (as in the C)
     fn detumble_step(&mut self, now_ms: u64, dipole: &mut Vec3, cycle: &mut Cycle) {
         let s = &mut self.state;
         if s.detumble_start_ms > 0 && now_ms.wrapping_sub(s.detumble_start_ms) > DETUMBLE_TIMEOUT_MS {
@@ -657,5 +660,144 @@ mod tests {
         assert!(!a.state.mtq.enabled);
         let _ = a.update(t + 3000, t + 3000, field, Vec3::new(0.0, 1.0, 0.0));
         assert_eq!(a.mode(), mode::SUNPOINT);
+    }
+
+    /// Mutation check: the near-zero guards of normalize and saturate act
+    /// strictly above 1e-10 (as the C), and the eclipse threshold is
+    /// strictly above 5 %
+    #[test]
+    fn thresholds_are_strict() {
+        let tiny = Vec3::new(1e-10, 0.0, 0.0);
+        assert_eq!(tiny.magnitude(), 1e-10);
+        let mut v = tiny;
+        v.normalize();
+        assert_eq!(v, tiny, "a magnitude of exactly 1e-10 is left alone");
+        let mut v = tiny;
+        saturate_dipole(&mut v, 0.0);
+        assert_eq!(v, tiny, "nor is it scaled");
+        let mut v = Vec3::new(2e-10, 0.0, 0.0);
+        saturate_dipole(&mut v, 0.0);
+        assert_eq!(v, Vec3::ZERO);
+
+        let edge = Vec3::new(ECLIPSE_INTENSITY, 0.0, 0.0);
+        assert_eq!(edge.magnitude(), ECLIPSE_INTENSITY);
+        let mut sun = SunSensorData::default();
+        read_sun_sensors(&mut sun, edge, 1);
+        assert!(!sun.sun_visible, "exactly 5 % is eclipse");
+        read_sun_sensors(&mut sun, Vec3::new(0.0, 0.3, 0.4), 2);
+        assert_eq!((sun.intensity, sun.sun_visible), (0.5, true));
+        assert_eq!(sun.raw, [500; SUN_SENSOR_COUNT], "raw is 1000 x intensity");
+    }
+
+    /// Mutation check: the sun-pointing dipole's value, unsaturated, and
+    /// the |B|^2 > 1 uT^2 guard
+    #[test]
+    fn sunpoint_dipole_value() {
+        let sun = SunSensorData { sun_vector: Vec3::new(0.0, 0.6, 0.8), sun_visible: true, ..SunSensorData::default() };
+        let mag = MagData { field: Vec3::new(6000.0, 0.0, 8000.0), valid: true, ..MagData::default() };
+        // error = s x X = (0, 0.8, -0.6); tau = Kp error; m = (tau x B) / |B|^2 * 1e6
+        let m = sunpoint(&sun, &mag);
+        assert!(close(m.x, 0.064, 1e-12) && close(m.y, -0.036, 1e-12) && close(m.z, -0.048, 1e-12), "{m:?}");
+        let unit = MagData { field: Vec3::new(1.0, 0.0, 0.0), ..mag };
+        assert_eq!(sunpoint(&sun, &unit), Vec3::ZERO, "|B|^2 of exactly 1 is too weak");
+        let invisible = SunSensorData { sun_visible: false, ..sun };
+        assert_eq!(sunpoint(&invisible, &mag), Vec3::ZERO);
+    }
+
+    /// Mutation check: the rate estimate's value (dB/dt over a 2 s step,
+    /// w = dB/dt x B / |B|^2) and its guards: two valid readings, more
+    /// than 10 ms apart, |B| above 1 uT
+    #[test]
+    fn rate_estimate_value_and_guards() {
+        let mut a = Adcs::new();
+        a.init();
+        let _ = a.update(1000, 1000, Vec3::new(30.0, 0.0, 40.0), Vec3::ZERO);
+        assert_eq!((a.state.mag.field_rate, a.state.angular_rate_est), (Vec3::ZERO, Vec3::ZERO), "one reading");
+        let _ = a.update(3000, 3000, Vec3::new(32.0, 4.0, 34.0), Vec3::ZERO);
+        assert_eq!(a.state.mag.field_rate, Vec3::new(1.0, 2.0, -3.0));
+        let w = a.state.angular_rate_est;
+        // (1, 2, -3) x (32, 4, 34) = (80, -130, -60); |B|^2 = 2196
+        assert!(close(w.x, 80.0 / 2196.0, 1e-12) && close(w.y, -130.0 / 2196.0, 1e-12));
+        assert!(close(w.z, -60.0 / 2196.0, 1e-12), "{w:?}");
+
+        // 10 ms apart is too close; 11 ms is not
+        let mut a = Adcs::new();
+        a.init();
+        let _ = a.update(1000, 1000, Vec3::new(30.0, 0.0, 40.0), Vec3::ZERO);
+        let _ = a.update(1010, 1010, Vec3::new(31.0, 0.0, 40.0), Vec3::ZERO);
+        assert_eq!(a.state.mag.field_rate, Vec3::ZERO);
+        let _ = a.update(1021, 1021, Vec3::new(31.0, 1.0, 40.0), Vec3::ZERO);
+        assert_ne!(a.state.mag.field_rate, Vec3::ZERO);
+        assert_ne!(a.state.angular_rate_est, Vec3::ZERO);
+
+        // |B| of exactly 1 uT gives no estimate
+        let mut a = Adcs::new();
+        a.init();
+        let _ = a.update(1000, 1000, Vec3::new(1.0, 0.0, 0.0), Vec3::ZERO);
+        let _ = a.update(2000, 2000, Vec3::new(0.0, 1.0, 0.0), Vec3::ZERO);
+        assert_eq!((a.state.mag.field_rate, a.state.angular_rate_est), (Vec3::ZERO, Vec3::ZERO));
+    }
+
+    /// Mutation check: the detumble timeout is strictly after 90 min, is
+    /// not armed for a detumble whose clock reads 0, and a rate of exactly
+    /// the threshold does not settle
+    #[test]
+    fn detumble_timeout_and_threshold_edges() {
+        let field = Vec3::new(45.0, 0.0, 0.0);
+        let t0 = 1000u64;
+        let mut a = Adcs::new();
+        a.init();
+        assert!(a.set_mode(mode::DETUMBLE, t0).is_ok());
+        let c = a.update(t0 + DETUMBLE_TIMEOUT_MS, t0 + DETUMBLE_TIMEOUT_MS, field, Vec3::ZERO).unwrap();
+        assert!(!c.detumble_timeout);
+        assert_eq!(a.mode(), mode::DETUMBLE);
+        let c = a.update(t0 + DETUMBLE_TIMEOUT_MS + 1, t0 + DETUMBLE_TIMEOUT_MS + 1, field, Vec3::ZERO).unwrap();
+        assert!(c.detumble_timeout);
+        assert_eq!(a.mode(), mode::IDLE);
+
+        let mut a = Adcs::new();
+        a.init();
+        assert!(a.set_mode(mode::DETUMBLE, 0).is_ok());
+        let late = 2 * DETUMBLE_TIMEOUT_MS;
+        let c = a.update(late, late, field, Vec3::ZERO).unwrap();
+        assert!(!c.detumble_timeout, "a start time of 0 arms no timeout (as the C)");
+        assert_eq!(a.mode(), mode::DETUMBLE);
+
+        let mut a = Adcs::new();
+        a.init();
+        assert!(a.set_mode(mode::DETUMBLE, t0).is_ok());
+        a.state.angular_rate_est = Vec3::new(DETUMBLE_RATE_THRESHOLD, 0.0, 0.0);
+        let _ = a.update(t0 + 1000, t0 + 1000, field, Vec3::ZERO);
+        assert_eq!(a.state.rate_magnitude, DETUMBLE_RATE_THRESHOLD);
+        assert_eq!(a.state.settling_start_ms, 0, "exactly the threshold is not below it");
+    }
+
+    #[test]
+    fn modes_and_telemetry_scaling() {
+        let mut a = Adcs::new();
+        a.init();
+        assert_eq!(
+            a.set_mode(mode::SAFE, 5),
+            Ok(ModeChange { from: mode::IDLE, to: mode::SAFE, detumble_started: false })
+        );
+        assert_eq!(a.set_mode(mode::SAFE + 1, 5), Err(AdcsError::InvalidMode));
+        assert!(a.set_mode(mode::DETUMBLE, 6).unwrap().detumble_started);
+        let again = a.set_mode(mode::DETUMBLE, 7).unwrap();
+        assert!(!again.detumble_started);
+        assert_eq!(a.state.detumble_start_ms, 6);
+        assert!(!a.set_mode(mode::IDLE, 8).unwrap().detumble_started);
+
+        // ECLIPSE stays ECLIPSE while there is no sun
+        assert!(a.set_mode(mode::ECLIPSE, 9).is_ok());
+        let _ = a.update(10, 10, Vec3::new(30.0, 0.0, 40.0), Vec3::ZERO);
+        assert_eq!(a.mode(), mode::ECLIPSE);
+        assert!(!a.state.mtq.enabled);
+
+        // Field in 0.1 uT, sun vector in 0.01 (truncated, as the C)
+        let _ = a.update(20, 20, Vec3::new(12.3, -4.5, 6.7), Vec3::new(2.0, 3.0, 6.0));
+        let t = a.telemetry();
+        assert_eq!((t.mag_x, t.mag_y, t.mag_z), (123, -45, 67));
+        assert_eq!((t.sun_x, t.sun_y, t.sun_z), (28, 42, 85));
+        assert_eq!((t.mode, t.sun_visible), (u8::try_from(mode::SUNPOINT).unwrap(), 1));
     }
 }

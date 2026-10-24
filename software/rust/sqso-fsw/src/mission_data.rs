@@ -268,4 +268,11 @@ mod tests {
         assert_eq!(Phase::from_raw(3), Some(Phase::Eol));
         assert_eq!(Phase::from_raw(4), None);
     }
+
+    #[test]
+    fn every_phase_value() {
+        for p in [Phase::Commissioning, Phase::Idle, Phase::Active, Phase::Eol] {
+            assert_eq!(Phase::from_raw(p as u32), Some(p));
+        }
+    }
 }

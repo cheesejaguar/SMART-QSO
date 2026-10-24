@@ -323,4 +323,47 @@ mod tests {
         assert_eq!(&stall_message::<64>(b"main")[..18], b"Task main stalled\0");
         assert_eq!(&stall_message::<16>(b"main-loop")[..13], b"Task stalled\0");
     }
+
+    #[test]
+    fn ids_entries_and_stall_state() {
+        assert!(Watchdog::valid_id(0) && Watchdog::valid_id(7));
+        assert!(!Watchdog::valid_id(8) && !Watchdog::valid_id(u32::MAX));
+        let mut w = Watchdog::new();
+        assert!(w.register(2, b"comm", 1000, 0).is_ok());
+        assert_eq!(w.entry(2).map(TaskEntry::name), Some(&b"comm"[..]));
+        assert_eq!(w.entry(2).map(|e| e.expected_period_ms), Some(1000));
+        assert!(w.entry(8).is_none());
+        for s in 1..=4u64 {
+            let _ = w.check_task(2, s * 1000);
+        }
+        assert!(w.is_stalled(2));
+        assert!(!w.is_stalled(3) && !w.is_stalled(99));
+    }
+
+    /// Mutation check: the task check runs once per interval and is
+    /// counted; hardware refreshes are counted
+    #[test]
+    fn check_interval_and_counters() {
+        let mut w = Watchdog::new();
+        assert!(!w.check_due(TASK_CHECK_INTERVAL_MS - 1));
+        assert!(w.check_due(TASK_CHECK_INTERVAL_MS));
+        w.finish_check(5000);
+        assert_eq!((w.stats.task_check_runs, w.last_task_check_ms), (1, 5000));
+        assert!(!w.check_due(5000 + TASK_CHECK_INTERVAL_MS - 1));
+        assert!(w.check_due(5000 + TASK_CHECK_INTERVAL_MS));
+        w.count_kick();
+        w.count_kick();
+        assert_eq!(w.stats.hw_kicks, 2);
+    }
+
+    /// Mutation check: a message that would exactly fill the buffer (no
+    /// room for the NUL) falls back, and the fallback is cut to N - 1
+    /// bytes plus a NUL
+    #[test]
+    fn stall_message_bounds() {
+        // "Task abc stalled" is 16 bytes: it needs 17
+        assert_eq!(&stall_message::<16>(b"abc")[..13], b"Task stalled\0");
+        assert_eq!(&stall_message::<17>(b"abc"), b"Task abc stalled\0");
+        assert_eq!(&stall_message::<8>(b"abc"), b"Task st\0");
+    }
 }

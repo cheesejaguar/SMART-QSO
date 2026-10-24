@@ -294,4 +294,26 @@ mod tests {
         f.writes_left = Some(0);
         assert_eq!(save(&mut f, 0, 0, MAGIC, &[0; 4]), Err(NvmError::Flash(FlashError(-7))));
     }
+
+    /// Mutation check: exactly half the sequence space apart, neither copy
+    /// is newer (so load keeps slot A)
+    #[test]
+    fn half_range_is_not_newer() {
+        assert!(!newer(0x8000_0000, 0));
+        assert!(!newer(0, 0x8000_0000));
+        assert!(newer(0x7FFF_FFFF, 0));
+        let a = SlotInfo { valid: true, magic_present: true, sequence: 0 };
+        let b = SlotInfo { valid: true, magic_present: true, sequence: 0x8000_0000 };
+        assert_eq!(newest(&[a, b]), Some(0));
+    }
+
+    #[test]
+    fn mem_flash_out_of_range() {
+        let mut f = MemFlash::<16>::new();
+        let mut buf = [0u8; 4];
+        assert_eq!(f.read(0, 13, &mut buf), Err(FlashError(-3)));
+        assert_eq!(f.write(0, 13, &buf), Err(FlashError(-3)));
+        assert_eq!(f.read(0, 12, &mut buf), Ok(()));
+        assert_eq!(buf, [0xFF; 4]);
+    }
 }

@@ -467,4 +467,20 @@ mod tests {
         assert_eq!(t.next_sequence(), u16::MAX);
         assert_eq!(t.next_sequence(), 0);
     }
+
+    #[test]
+    fn eps_battery_and_adcs_status_bits() {
+        let e = eps(&inputs());
+        assert_eq!(u16::from_ne_bytes([e[0], e[1]]), 8100);
+        assert_eq!(i16::from_ne_bytes([e[2], e[3]]), -250);
+        let sun_only = Inputs { sun_acquired: true, detumbled: false, ..inputs() };
+        assert_eq!(&adcs(&sun_only)[18..20], &[0, 2]);
+        let both = Inputs { sun_acquired: true, ..inputs() };
+        assert_eq!(&adcs(&both)[18..20], &[0, 3]);
+        let mut t = Telemetry::new();
+        t.init();
+        t.count_frame();
+        t.count_frame();
+        assert_eq!(t.stats.frames_generated, 2);
+    }
 }

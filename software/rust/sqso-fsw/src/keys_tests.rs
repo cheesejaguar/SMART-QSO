@@ -115,3 +115,93 @@ fn corrupt_record_fails_closed() {
     assert!(!t.is_provisioned());
     assert!(t.has_key_material(), "recovery key still usable");
 }
+
+/// Mutation check: the state record must name an operational slot
+/// (below OP_SLOTS) that holds an ACTIVE key; anything else fails
+/// closed with a report
+#[test]
+fn state_must_point_at_an_active_operational_slot() {
+    // A state record pointing at a spare
+    let mut f = F::new();
+    let mut t = KeyTable::empty(6);
+    t.provision(&mut f, 1, &OP, 4).unwrap();
+    t.save_state(&mut f, 1, 0).unwrap();
+    let mut events = 0;
+    let t = KeyTable::load(&mut f, 6, &mut |_| events += 1);
+    assert!(!t.is_provisioned(), "a spare is not in force");
+    assert_eq!(events, 1);
+
+    // A state record naming slot OP_SLOTS, even with an active-marked
+    // record where that slot would be
+    let mut f = F::new();
+    let t = KeyTable::empty(6);
+    save_op(&mut f, 6, OP_SLOTS, OP.expose(), 5, KEY_ACTIVE).unwrap();
+    t.save_state(&mut f, OP_SLOTS, 0).unwrap();
+    let mut events = 0;
+    let t = KeyTable::load(&mut f, 6, &mut |_| events += 1);
+    assert!(!t.is_provisioned());
+    assert_eq!(events, 1);
+    let (p, n) = payload(&OP, Command::Nop, 1, &[]);
+    assert_eq!(t.verify(Command::Nop.id(), &p[..n]), Err(AuthError::NotProvisioned));
+}
+
+/// Mutation check: provisioning a spare leaves the active key in force;
+/// overwriting the active slot deactivates it
+#[test]
+fn provisioning_deactivates_only_the_active_slot() {
+    let (mut f, mut t) = provisioned();
+    assert!(t.is_provisioned());
+    t.provision(&mut f, 2, &Key::new([0x55; 32]), 7).unwrap();
+    assert!(t.is_provisioned(), "a spare slot does not touch the active key");
+    let (p, n) = payload(&OP, Command::Nop, 1, &[]);
+    assert!(t.verify(Command::Nop.id(), &p[..n]).is_ok());
+    t.provision(&mut f, 0, &Key::new([0x66; 32]), 8).unwrap();
+    assert!(!t.is_provisioned(), "overwriting the active slot deactivates it");
+    assert_eq!(t.verify(Command::Nop.id(), &p[..n]), Err(AuthError::NotProvisioned), "no operational key left");
+    assert_eq!(t.provision(&mut f, RECOVERY_SLOT + 1, &OP, 1), Err(KeyError::Invalid));
+}
+
+/// Mutation check: zeroize erases the flash as well as RAM
+#[test]
+fn zeroize_erases_flash() {
+    let (mut f, mut t) = provisioned();
+    assert_eq!(t.zeroize(&mut f), Ok(()));
+    assert!(!t.has_key_material());
+    assert!(f.bytes.iter().all(|b| *b == 0xFF));
+    let mut events = 0;
+    let t = KeyTable::load(&mut f, 6, &mut |_| events += 1);
+    assert!(!t.has_key_material() && !t.is_provisioned());
+    assert_eq!(events, 0, "blank, not corrupt");
+}
+
+/// Mutation check: the last counter, COUNTER_LIMIT itself, is accepted
+/// and committed; after it the key is exhausted
+#[test]
+fn counter_limit_is_the_last_accepted() {
+    let (mut f, mut t) = provisioned();
+    let (p, n) = payload(&OP, Command::Nop, COUNTER_LIMIT, &[]);
+    let v = t.verify(Command::Nop.id(), &p[..n]).unwrap();
+    assert_eq!(v.counter, COUNTER_LIMIT);
+    assert_eq!(t.commit(&mut f, &v), Ok(()));
+    assert_eq!(t.info().operational_counter, COUNTER_LIMIT);
+    assert_eq!(t.verify(Command::Nop.id(), &p[..n]), Err(AuthError::Exhausted));
+}
+
+/// Mutation check: commit refuses a counter that is not fresh, or beyond
+/// the limit, whichever check verify might have been bypassed
+#[test]
+fn commit_refuses_stale_and_out_of_range_counters() {
+    let (mut f, mut t) = provisioned();
+    let v = |counter| Verified { counter, args: &[], key: KeyUsed::Operational };
+    assert_eq!(t.commit(&mut f, &v(5)), Ok(()));
+    assert_eq!(t.commit(&mut f, &v(5)), Err(CommitError::Stale));
+    assert_eq!(t.commit(&mut f, &v(4)), Err(CommitError::Stale));
+    assert_eq!(t.commit(&mut f, &v(COUNTER_LIMIT + 1)), Err(CommitError::Stale));
+    assert_eq!(t.info().operational_counter, 5);
+    assert_eq!(t.commit(&mut f, &v(COUNTER_LIMIT)), Ok(()));
+    let rec = Verified { counter: 1, args: &[], key: KeyUsed::Recovery };
+    assert_eq!(t.commit(&mut f, &rec), Ok(()));
+    assert_eq!(t.commit(&mut f, &rec), Err(CommitError::Stale));
+    let mut empty = KeyTable::empty(6);
+    assert_eq!(empty.commit(&mut f, &v(1)), Err(CommitError::NotUsable));
+}
