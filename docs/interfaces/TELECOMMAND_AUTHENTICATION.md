@@ -312,7 +312,7 @@ Procedure:
 | Command path (`software/rust/sqso-ffi/src/cmd_handler.rs`) | Implemented (22 tests, including every dictionary command, KEY_ROTATE, SET_MODE guards and contact detection) |
 | AX.25 and receive path (`software/rust/sqso-protocol/src/ax25.rs`, `software/rust/sqso-ffi/src/uplink.rs`) | Implemented; end to end from receiver frame to TX-OFF (7 tests; the callsign filter was mutation-checked) |
 | Ground tools (`telecommand_builder.py`, `key_provision.py`) | Implemented; byte-identical to the flight vectors |
-| Rust implementation | Since 2026-10-24 the items with a `software/rust` path are Rust (`software/rust/README.md`). The C test suites counted here run unchanged against them, the parsers are fuzzed, and a differential fuzz against the former C agreed on 8.3 million inputs. The mutation checks were run on the C implementation and have not been repeated on the Rust one |
+| Rust implementation | Since 2026-10-24 every item above is Rust (`software/rust/README.md`). The C test suites counted here run unchanged against them, the parsers are fuzzed, and a differential fuzz against the former C agreed on 8.3 million inputs. The mutation checks were run on the C implementation; for mutation testing of the Rust, see `software/rust/mutants/` |
 | **Target receiver driver behind `hal_radio.h`** | **Not implemented.** Waits on transceiver selection (SQSO-ICD-003's SPI command set is a placeholder) |
 | **`RF_TX_EN` removes PA power at the antenna port** | **Not verified.** TP-RF-006 is written; it needs EM hardware |
 | **SET_POWER applied to the PA** | **Not implemented.** The level is persisted and reported; the actuator interface is TBD in the RF design |

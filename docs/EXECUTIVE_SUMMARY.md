@@ -42,7 +42,7 @@ a conventional transponder and template beacon.
 |------|--------|
 | Hardware | **None built or procured** |
 | Design reviews (SRR/PDR/CDR) | **No independent review held.** Existing records are internal self-assessments generated on 2026-01-02 |
-| Flight software | C modules plus a host simulation, and a compile-only STM32L4 port (no RTOS, startup code or linker script); 40 unit-test suites (596 cases) pass; 82.7 % line coverage, counting every compiled flight source (CI, 2026-10-16) |
+| Flight software | Rust (2026-10-24; `software/rust/README.md`): a host simulation and an STM32L4R5ZI image on the Embassy executor that CI builds and checks but no hardware has run. 42 C test suites (630 cases) run against it, with 197 Rust unit tests and 11 fuzz targets. Line coverage 92.1 % (Rust) and 90.0 % (C and Rust together), counting every compiled line (CI, 2026-10-24). On 2026-10-16 it was C: 40 suites (596 cases) and 82.7 % |
 | Payload / ground software | Python; 143 payload and 98 ground unit tests pass in CI |
 | Regulatory filings | **None submitted.** Drafts exist for the IARU request, FCC Part 97 pre-space notification, ITU Appendix 4 data and ODAR |
 | Launch | **Not contracted.** Trade study recommends a commercial SSO rideshare in 2028 |
@@ -99,4 +99,4 @@ NPR 7150.2D is pending. No standard is yet demonstrated compliant.
 | 1.0 | 2026-01-02 | SMART-QSO Team | "CDR release" (status and budget figures withdrawn by the funding audit) |
 | 2.0 | 2026-10-14 | Funding audit | Rewritten from BASELINE_PARAMETERS with evidenced status |
 | 2.1 | 2026-10-16 | Funding audit | Link, mass, power and battery rows cite the re-issued budgets (TB-05, TB-06, TB-08, TB-14, PI-14); power margins updated to BASELINE Rev B |
-| 2.1, note | 2026-10-24 | SMART-QSO Team | Flight computer row: the flight software is Rust on the Embassy executor (BASELINE §6 note) |
+| 2.1, note | 2026-10-24 | SMART-QSO Team | Flight computer and flight software rows: the flight software is Rust on the Embassy executor (BASELINE §6 note); test counts and coverage of 2026-10-24 |
