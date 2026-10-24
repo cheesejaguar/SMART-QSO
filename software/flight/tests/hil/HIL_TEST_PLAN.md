@@ -1,8 +1,8 @@
 # Hardware-in-the-Loop (HIL) Test Plan
 
 **Document ID**: SMART-QSO-HIL-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-24
 **Classification**: Engineering
 
 ## 1. Introduction
@@ -25,6 +25,25 @@ HIL testing covers:
 - NASA-STD-8739.8 - Software Assurance Standard
 - SMART-QSO-STP-001 - Software Test Plan
 - SMART-QSO-SDD-001 - Software Design Document
+
+### 1.4 Status and Target (Version 1.1, 2026-10-24)
+
+None of these tests has been run, and none of the software components in §2.3 exists yet: this directory holds only
+this plan. Changes since version 1.0:
+
+- **Target.** The OBC is the STM32L4R5ZI (`docs/BASELINE_PARAMETERS.md` §6). The STM32L476 Nucleo-64 and the Apollo4
+  in §2.2 and §7.1 are superseded. A development board with the STM32L4R5ZI is needed. Its pins must be mapped to the
+  provisional assignment in `software/rust/firmware/src/gpio.rs` until the OBC schematic baselines one.
+- **Image.** The flight software under test is the Rust firmware (`software/rust/firmware`). Build it with
+  `cargo build --release` in that directory, and flash and run it with `cargo run --release` (the probe-rs runner in
+  `software/rust/firmware/.cargo/config.toml`) instead of STM32CubeProgrammer. "Real HAL" in §2.1 is the firmware's
+  Rust HAL (`software/rust/README.md`, section The firmware).
+- **Interfaces.** The console is the debug UART (USART3, PD8/PD9). The Jetson link is USART1 (PA9/PA10). Telecommands
+  arrive as KISS frames from the TNC on USART2 (PD5/PD6, 9600 baud), so HIL-031 needs a KISS sender.
+- **Criteria to revisit before the campaign.** HIL-004 assumes a stack guard, but none is implemented
+  (`software/flight/docs/MEMORY_POLICY.md` §6.2). HIL-040 allows 100 ms per iteration, but SRS-P001 requires 20 ms.
+  HIL-043 expects a kick at least every 1 s; the firmware refreshes the IWDG on every pass while no stage is stalled
+  (`software/flight/docs/RTOS_ARCHITECTURE.md` §8).
 
 ## 2. HIL Test Architecture
 
@@ -225,6 +244,7 @@ python hil_executive.py --port /dev/ttyUSB0 --test HIL-001
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-24 | SMART-QSO Team | §1.4: the target is the STM32L4R5ZI and the image is the Rust firmware (cargo, probe-rs); interfaces of the firmware; criteria to revisit (HIL-004, HIL-040, HIL-043); nothing run or written yet |
 
 ---
 

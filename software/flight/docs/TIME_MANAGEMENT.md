@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-TIME-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-24
 **Reference:** NPR 7150.2, CCSDS 301.0-B-4
 
 ---
@@ -11,6 +11,24 @@
 ## 1. Purpose
 
 This document defines the time management architecture for the SMART-QSO CubeSat, including timekeeping, synchronization, and time-tagged operations.
+
+### 1.1 Implementation Status (Revision B, 2026-10-24)
+
+The flight software is Rust (`software/rust/README.md`). Implemented:
+
+| Item | Implementation |
+|------|----------------|
+| Time base (target) | The Embassy time driver: a hardware timer at 32,768 ticks per second, extended to 64 bits. `hal_timer_get_ms()` gives milliseconds since boot, monotonic (`software/rust/firmware/src/timer.rs`) |
+| Time base (host) | Wall-clock time plus the offset tests add with `smart_qso_sim_advance_ms()` (`software/rust/sqso-ffi/src/time.rs`, `software/rust/sqso-ffi/src/os.rs`) |
+| Mission clock | `smart_qso_now_ms()` (`smart_qso.h`): 64-bit milliseconds. On the target that is time since boot, not since an epoch |
+| Elapsed time | 64-bit or saturating arithmetic. The contact monitor, RF silence and deployment accumulate elapsed time and persist it, because there is no clock that survives a reset (`software/rust/README.md`, behaviour change 11) |
+| Telemetry times | Mission time in seconds (`timestamp_s`, `uptime_s` in `telemetry.h`) |
+
+Not implemented: the RTC, spacecraft time (UTC), ground time synchronization and slewing, time-tagged commands, time
+validity states, and the calendar and ISO 8601 functions of §4 to §9. There is no time-set telecommand in the command
+dictionary (`software/flight/command_dictionary.json`). The GNSS driver (`gnss.h`) parses the receiver's GPS time of
+week and week number, but nothing uses them as a time source yet. Sections 2 to 11 are the design of Revision A, kept as
+design intent. §3.2 is updated to the implementation.
 
 ## 2. Time System Overview
 
@@ -72,12 +90,12 @@ This document defines the time management architecture for the SMART-QSO CubeSat
 
 ### 3.2 System Timer
 
-| Parameter | Specification |
+| Parameter | Specification (Revision B: as implemented) |
 |-----------|---------------|
-| Clock source | MCU oscillator |
-| Tick rate | 1 kHz (1 ms resolution) |
-| Counter width | 32-bit |
-| Overflow | ~49.7 days |
+| Clock source | A hardware timer of the STM32L4R5 chosen by embassy-stm32 (`time-driver-any`), clocked from the 80 MHz system clock |
+| Tick rate | 32,768 Hz (`embassy-time` feature `tick-hz-32_768`); the HAL reports milliseconds and microseconds |
+| Counter width | 64-bit |
+| Overflow | None in practice (2^64 ticks at 32,768 Hz is about 17.8 million years) |
 
 ## 4. Time Data Structures
 
@@ -427,3 +445,4 @@ Drift rate: ~4.75 seconds/day maximum
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-24 | §1.1 implementation status of the Rust flight software: the Embassy time base (64-bit, 32,768 Hz), the 64-bit mission clock since boot, persisted elapsed-time counters; RTC, UTC, synchronization, time tags and validity not implemented. §3.2 updated to the implementation | SMART-QSO Team |
