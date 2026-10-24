@@ -40,7 +40,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-ODAR-001 | Orbital Debris Assessment Report | `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md` | A | Superseded by SQSO-REG-018 (its notice) |
 | SQSO-BS-001 | Branching Strategy | `docs/development/BRANCHING_STRATEGY.md` | A | Draft |
 | SQSO-DEV-003 | Code Review Checklist | `docs/development/CODE_REVIEW_CHECKLIST.md` | A | Draft |
-| SQSO-CS-001 | Coding Standards | `docs/development/CODING_STANDARDS.md` | A | Draft |
+| SQSO-CS-001 | Coding Standards | `docs/development/CODING_STANDARDS.md` | B | Draft |
 | SQSO-DEV-004 | Commit Message Standard | `docs/development/COMMIT_MESSAGES.md` | A | Draft |
 | SQSO-DEV-005 | Software Release Procedure | `docs/development/RELEASE_PROCEDURE.md` | B | Draft |
 | SQSO-DB-001 | SMART-QSO Data Budget | `docs/environment/DATA_BUDGET.md` | 1.0 | Draft |
@@ -227,14 +227,14 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-FSW-BOOT-001 | Bootloader Requirements | `software/flight/docs/BOOTLOADER_REQUIREMENTS.md` | A | Draft |
 | SQSO-FSW-FDIR-001 | Fault Detection, Isolation, and Recovery Design | `software/flight/docs/FDIR_DESIGN.md` | A | Draft |
 | SQSO-FSW-008 | Include Dependencies | `software/flight/docs/INCLUDE_DEPENDENCIES.md` | A | Draft |
-| SMART-QSO-JPL-POT-001 | JPL Power of Ten Rules Compliance Audit | `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` | 1.0 | Draft |
-| SQSO-SW-007 | Loop Bounds Documentation | `software/flight/docs/LOOP_BOUNDS.md` | A | Draft |
+| SMART-QSO-JPL-POT-001 | JPL Power of Ten Rules Compliance Audit | `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` | 1.1 | Draft |
+| SQSO-SW-007 | Loop Bounds Documentation | `software/flight/docs/LOOP_BOUNDS.md` | B | Draft |
 | SQSO-FSW-006 | Memory Allocation Policy | `software/flight/docs/MEMORY_POLICY.md` | A | Draft |
-| SQSO-FSW-010 | MISRA C:2012 Deviation Log | `software/flight/docs/MISRA_DEVIATIONS.md` | A | Draft |
+| SQSO-FSW-010 | MISRA C:2012 Deviation Log | `software/flight/docs/MISRA_DEVIATIONS.md` | C | Draft |
 | SQSO-FSW-009 | Naming Convention | `software/flight/docs/NAMING_CONVENTION.md` | A | Draft |
 | SQSO-FSW-RAD-001 | Radiation Mitigation Design | `software/flight/docs/RADIATION_MITIGATION.md` | A | Draft |
 | SMART-QSO-API-DOC-001 | SMART-QSO Flight Software API Documentation | `software/flight/docs/README.md` | 1.0 | Draft |
-| SQSO-FSW-011 | RTOS Architecture | `software/flight/docs/RTOS_ARCHITECTURE.md` | A | Draft |
+| SQSO-FSW-011 | RTOS Architecture | `software/flight/docs/RTOS_ARCHITECTURE.md` | B | Draft |
 | SQSO-FSW-TIME-001 | Time Management Design | `software/flight/docs/TIME_MANAGEMENT.md` | A | Draft |
 | SQSO-FSW-007 | Timing Analysis | `software/flight/docs/TIMING_ANALYSIS.md` | A | Draft |
 | SMART-QSO-HIL-001 | Hardware-in-the-Loop (HIL) Test Plan | `software/flight/tests/hil/HIL_TEST_PLAN.md` | 1.0 | Draft |

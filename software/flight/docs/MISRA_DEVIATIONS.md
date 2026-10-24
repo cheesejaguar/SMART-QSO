@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-010
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** C
+**Date:** 2026-10-24
 **Reference:** MISRA C:2012, NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -20,9 +20,31 @@ This document covers:
 - Risk mitigation measures
 - Approval chain
 
+**Applicability (Revision C, 2026-10-24).** The flight software is Rust (`software/rust/README.md`), and MISRA C does
+not apply to Rust code. The Rust coding rules are `docs/development/CODING_STANDARDS.md` §11. MISRA C:2012 now applies
+only to the C that remains in the flight code: `software/flight/src/flight_log_fmt.c`, the printf-style shim of the
+flight log (about 70 lines), and the C headers it includes. The C test suites in `software/flight/tests` stay excluded,
+as before: the CI check analyses `software/flight/src` only.
+
 ---
 
 ## 3. MISRA Compliance Summary
+
+**Current status (2026-10-24).** CI (job "MISRA C:2012 Check") runs the cppcheck 2.13 MISRA addon on
+`software/flight/src`. It reports 42 findings, and the baseline `software/flight/quality/misra.baseline` is 42. Six are
+in the shim itself and 36 in the headers it includes (`smart_qso.h` 27, `flight_log.h` 9). By rule:
+
+| Rule | Findings | Where | Assessment |
+|------|----------|-------|------------|
+| 2.5 (Advisory, unused macro) | 29 | `smart_qso.h`, `flight_log.h` | The headers are the whole C ABI. One translation unit uses few of their macros. Not a deviation; an artefact of analysing one file |
+| 2.3 (Advisory, unused type) | 5 | `smart_qso.h`, `flight_log.h` | As 2.5 |
+| 17.1 (Required, `<stdarg.h>`) | 5 | `flight_log_fmt.c`, `flight_log.h` (`log_vwrite`) | Inherent: the shim exists to implement the variadic `log_write()`. Proposed deviation DEV-010 |
+| 21.6 (Required, standard I/O) | 1 | `flight_log_fmt.c` (`<stdio.h>` for `vsnprintf`) | Proposed deviation DEV-010 |
+| 8.7 (Advisory, external linkage used in one file) | 1 | `flight_log_fmt.c` (`log_vwrite`) | `log_vwrite` is public API, declared in `flight_log.h` (the `va_list` form for callers that have one); only `log_write` calls it today |
+| 20.10 (Advisory, `#` operator) | 1 | `smart_qso.h` (`SMART_QSO_REQUIRE_NOT_NULL_OR` stringizes the pointer name) | Kept; the message names the NULL argument |
+
+The history below records how the count fell as the C was replaced: 1,458 findings before the 2026-10-16 clean-up,
+1,189 after it, 826 after the first Rust port, and lower with each later port, to 42 now that only the shim is left.
 
 > **The compliance figures below (193 of 203 rules compliant, 8 deviations) are withdrawn** (FINDINGS_REGISTER SW-07).
 > No MISRA tool had been run. An indicative run of the cppcheck MISRA addon during the audit found about 1,520
@@ -53,6 +75,11 @@ This document covers:
 ---
 
 ## 4. Deviation Records
+
+**Revision C note (2026-10-24).** DEV-001 to DEV-009 are kept as history. None of the code they cover exists any more:
+`hal_stm32l4.c`, the STM32L4 startup, system-call and clock files, `main.c`, `beacon.c` and `uart_comm.c` were
+replaced by Rust. FreeRTOS (DEV-003) was never integrated and is not planned. DEV-010 is the one record for the remaining
+C.
 
 ### 4.1 DEV-001: Rule 11.3 - Cast Between Pointer and Integer
 
@@ -332,6 +359,30 @@ HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c,
 
 ---
 
+### 4.10 DEV-010: Flight-log printf shim (rules 17.1, 21.6)
+
+| Field | Value |
+|-------|-------|
+| Rules | 17.1 (Required), 21.6 (Required) |
+| Category | Legacy Interface |
+| Location | `src/flight_log_fmt.c` (`log_write`, `log_vwrite`); `include/flight_log.h` (`log_vwrite` prototype) |
+| Approved By | Proposed, for the PI to ratify |
+| Date | 2026-10-24 |
+
+**Deviation and justification:**
+- **17.1** (`<stdarg.h>`): `log_write()` is the C flight log's printf-style interface, and `log_vwrite()` its `va_list`
+  form. Stable Rust can neither define a C variadic function nor read a `va_list`, so these two functions are the only
+  C left in the flight code. They exist only to accept the variadic arguments.
+- **21.6** (standard I/O): the message is formatted with `vsnprintf` into a stack buffer of `LOG_MAX_MESSAGE_LEN` bytes,
+  which is bounded and NUL-terminated. No other `<stdio.h>` function is used.
+
+**Risk assessment:** Low. The format string is the caller's (a deliberate `-Wformat-nonliteral` exception in the file).
+The formatted text goes to Rust (`flight_log_record`), which records and outputs it. The firmware image does not link
+the shim, and CI checks that it has no `printf`. On the target, the flight log is reached only through the Rust
+interface.
+
+---
+
 ## 5. Deviation Approval Process
 
 ### 5.1 Required Information
@@ -386,3 +437,4 @@ Each deviation SHALL include:
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | DEV-009 proposed for the STM32L4 startup, system calls and clock (SW-01) | Funding-audit follow-up |
+| C | 2026-10-24 | The flight software is Rust: MISRA C applies to the remaining C only (the flight-log shim and the headers it includes; tests excluded as before). §3 current status: 42 findings, baseline 42, by rule. DEV-001 to DEV-009 kept as history (their code is gone); DEV-010 proposed for the shim (17.1, 21.6). Header revision corrected from A | SMART-QSO Team |
