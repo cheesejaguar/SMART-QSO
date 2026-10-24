@@ -411,4 +411,20 @@ mod tests {
         s.tick(60_000, &mut io);
         assert_eq!(boot(&mut io, Reset::PowerKept).elapsed_seconds(), 60);
     }
+
+    /// Mutation check: a stowed switch also restarts an ARMED silence (the
+    /// count then runs while powered)
+    #[test]
+    fn stowed_switch_restarts_armed() {
+        let mut io = bench();
+        let mut s = boot(&mut io, Reset::PowerLost);
+        assert_eq!(s.arm(&mut io), Ok(()));
+        io.stowed = true;
+        s.tick(MINUTE_MS, &mut io);
+        assert_eq!((s.state(), s.elapsed_seconds()), (State::Counting, 0));
+        assert_eq!(boot(&mut io, Reset::PowerKept).state(), State::Counting, "persisted");
+        io.stowed = false;
+        minutes(&mut s, &mut io, 45);
+        assert_eq!(s.state(), State::Complete);
+    }
 }

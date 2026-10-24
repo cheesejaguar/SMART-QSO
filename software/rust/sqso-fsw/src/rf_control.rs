@@ -339,4 +339,15 @@ pub(crate) mod tests {
         nvm::save(&mut io, 7, POWER_BASE, POWER_MAGIC, &5u32.to_le_bytes()).unwrap();
         assert_eq!(booted(&mut io).power_level(), POWER_0W5);
     }
+
+    /// Mutation check: a stored level equal to the level count is out of
+    /// range and reads as 0.5 W
+    #[test]
+    fn stored_level_count_reads_as_half_watt() {
+        let mut io = Bench::new();
+        nvm::save(&mut io, 7, POWER_BASE, POWER_MAGIC, &POWER_LEVEL_COUNT.to_le_bytes()).unwrap();
+        assert_eq!(booted(&mut io).power_level(), POWER_0W5);
+        nvm::save(&mut io, 7, POWER_BASE, POWER_MAGIC, &POWER_1W.to_le_bytes()).unwrap();
+        assert_eq!(booted(&mut io).power_level(), POWER_1W);
+    }
 }

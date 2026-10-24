@@ -390,4 +390,29 @@ mod tests {
         assert!(!a.has_critical_failures());
         assert_eq!(a.stats(), Stats::default());
     }
+
+    /// Mutation check: a record carries its kind, severity and time; the
+    /// overflow and reset counts survive clear_stats; the init flag
+    #[test]
+    fn record_fields_and_kept_counts() {
+        let mut a = AssertLog::new();
+        assert!(!a.is_initialized());
+        assert!(a.is_empty());
+        a.init();
+        assert!(a.is_initialized());
+        let _ = a.handle(Some(b"k.c"), 9, 6, severity::CRITICAL, Some(b"m"), 1234);
+        assert!(!a.is_empty());
+        let r = a.record(0).unwrap();
+        assert_eq!(
+            (r.line, r.kind, r.severity, r.timestamp_s, r.occurrence_count),
+            (9, 6, severity::CRITICAL, 1234, 1)
+        );
+        for line in 0..20u16 {
+            let _ = a.handle(Some(b"w.c"), line, 7, severity::FATAL, None, 0);
+        }
+        a.clear_stats();
+        let s = a.stats();
+        assert_eq!((s.log_overflows, s.reset_triggers, s.safe_mode_triggers, s.log_count), (1, 20, 1, 0));
+        assert!(a.is_initialized());
+    }
 }

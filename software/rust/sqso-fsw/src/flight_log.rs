@@ -475,4 +475,50 @@ mod tests {
         assert_eq!(s.total_logs, 2);
         assert_eq!(s.critical_count + s.error_count + s.info_count, 0);
     }
+
+    #[test]
+    fn level_names() {
+        let names = ["TRACE", "DEBUG", "INFO ", "WARN ", "ERROR", "CRIT ", "OFF  "];
+        for (lv, name) in (level::TRACE..=level::OFF).zip(names) {
+            assert_eq!(level_name(lv), name);
+        }
+    }
+
+    /// Mutation check: init sets the outputs and the flag and clears the
+    /// log; the level and output setters
+    #[test]
+    fn init_level_and_outputs() {
+        let mut l = FlightLog::new();
+        assert!(!l.is_initialized());
+        assert_eq!(l.outputs(), output::BUFFER);
+        assert!(log(&mut l, level::INFO, b"before"));
+        assert!(l.set_level(level::ERROR));
+        l.init(output::UART | output::TELEMETRY);
+        assert!(l.is_initialized());
+        assert_eq!(l.outputs(), output::UART | output::TELEMETRY);
+        assert!(l.is_empty());
+        assert_eq!((l.level(), l.stats()), (level::DEBUG, Stats::default()));
+        l.set_outputs(output::BUFFER | output::UART);
+        assert_eq!(l.outputs(), output::BUFFER | output::UART);
+        assert!(l.set_level(level::OFF), "OFF is a level");
+        assert_eq!(l.level(), level::OFF);
+        assert!(!l.set_level(level::OFF + 1));
+        assert_eq!(l.level(), level::OFF);
+    }
+
+    /// Mutation check: DEBUG passes the compile-time minimum, and each
+    /// admitted level is counted under its own name
+    #[test]
+    fn admitted_levels_are_counted() {
+        let mut l = FlightLog::new();
+        l.init(output::BUFFER);
+        for lv in [level::DEBUG, level::INFO, level::INFO, level::WARNING, level::ERROR, level::CRITICAL] {
+            assert!(log(&mut l, lv, b"m"));
+        }
+        assert!(!l.is_empty());
+        let s = l.stats();
+        assert_eq!((s.debug_count, s.info_count, s.warning_count), (1, 2, 1));
+        assert_eq!((s.error_count, s.critical_count, s.trace_count, s.filtered_logs), (1, 1, 0, 0));
+        assert_eq!(l.len(), 6);
+    }
 }

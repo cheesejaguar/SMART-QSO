@@ -814,4 +814,97 @@ mod tests {
         b.reset_stats();
         assert_eq!((b.total_count(), b.ai_percentage(), b.state.sequence), (0, 0, 0));
     }
+
+    /// Mutation check: the range check looks only at flagged fields, and
+    /// 100 % is in range
+    #[test]
+    fn range_check_edges() {
+        let m = Measurements { soc: 100, sunlit: 1, valid: TLM_SOC | TLM_SUN, ..Measurements::default() };
+        assert!(m.in_range());
+        assert!(Measurements { sunlit: 5, valid: TLM_SOC, ..m }.in_range(), "sunlit not flagged");
+        assert!(!Measurements { sunlit: 5, valid: TLM_SUN, ..m }.in_range());
+    }
+
+    /// Mutation check: each field is copied only when flagged, and the
+    /// validity carries only the measured flags (never RF from a
+    /// measurement)
+    #[test]
+    fn telemetry_copies_flagged_fields_only() {
+        let all = Measurements { soc: 42, battery_mv: 8000, sunlit: 1, qso_count: 7, valid: 0 };
+        let src = Sources { now_ms: 1000, ..Sources::default() };
+        for flag in [TLM_SOC, TLM_BV, TLM_SUN, TLM_QSO] {
+            let mut b = Beacon::new();
+            b.init();
+            assert!(b.update_measurements(&Measurements { valid: flag | TLM_RF, ..all }, 1000));
+            let t = b.generate(None, &src).telemetry;
+            assert_eq!(t.valid, flag, "{flag:#x}");
+            assert_eq!(t.soc, if flag == TLM_SOC { 42 } else { 0 });
+            assert_eq!(t.battery_mv, if flag == TLM_BV { 8000 } else { 0 });
+            assert_eq!(t.sunlit, if flag == TLM_SUN { 1 } else { 0 });
+            assert_eq!(t.qso_count, if flag == TLM_QSO { 7 } else { 0 });
+            assert_eq!(t.rf_power, 0);
+        }
+    }
+
+    #[test]
+    fn accepted_texts_are_not_counted_as_rejected() {
+        let mut b = Beacon::new();
+        b.init();
+        let src = Sources::default();
+        assert_eq!(b.generate(Some(b"Hello from orbit"), &src).source, SOURCE_AI);
+        assert_eq!(b.generate(Some(b"Greetings from LEO"), &src).source, SOURCE_AI);
+        assert_eq!(b.state.ai_rejected_count, 0);
+    }
+
+    /// The text helper keeps at most 199 bytes and a NUL
+    #[test]
+    fn set_text_is_bounded() {
+        let mut c = Content::ZERO;
+        c.set_text(&[b'x'; 250], SOURCE_AI);
+        assert_eq!(c.text_len, MAX_TEXT_LEN - 1);
+        assert_eq!(c.text().len(), MAX_TEXT_LEN - 1);
+        assert_eq!(c.text[MAX_TEXT_LEN - 1], 0);
+    }
+
+    /// The snprintf helper writes what fits, a NUL after it, and counts
+    /// everything
+    #[test]
+    fn out_writes_what_fits() {
+        let mut buf = [0xFFu8; 4];
+        let mut out = Out { buf: &mut buf, len: 0 };
+        out.bytes(b"abcdef");
+        assert_eq!(out.finish(), 6);
+        assert_eq!(&buf, b"abc\0");
+    }
+
+    /// Mutation check: the longest information field gets the right FCS,
+    /// and serialization needs exactly the frame's size
+    #[test]
+    fn longest_frame_fcs_and_exact_buffer() {
+        let mut c = filled(MAX_TEXT_LEN - 1);
+        c.telemetry = Telemetry {
+            timestamp: u32::MAX,
+            power_mode: 2,
+            soc: u8::MAX,
+            battery_mv: u16::MAX,
+            sunlit: u8::MAX,
+            rf_power: u8::MAX,
+            qso_count: u16::MAX,
+            ..c.telemetry
+        };
+        let (frame, ok) = build_frame(&c);
+        assert!(ok);
+        assert!(frame.info_len >= MAX_PAYLOAD_LEN - 3, "{}", frame.info_len);
+        let mut out = [0u8; ax25::MAX_FRAME_LEN];
+        let n = serialize(&frame, &mut out);
+        assert_eq!(n, frame.info_len + 20);
+        assert_eq!(u16::from_le_bytes([out[n - 3], out[n - 2]]), ax25::fcs(&out[1..n - 3]));
+        let mut exact = [0u8; ax25::MAX_FRAME_LEN];
+        assert_eq!(serialize(&frame, &mut exact[..n]), n);
+        assert_eq!(&exact[..n], &out[..n]);
+        // A short frame fits its exact size too
+        let (short, _) = build_frame(&filled(1));
+        let m = short.info_len + 20;
+        assert_eq!(serialize(&short, &mut exact[..m]), m);
+    }
 }

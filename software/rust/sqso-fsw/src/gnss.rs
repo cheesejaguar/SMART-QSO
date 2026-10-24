@@ -436,4 +436,64 @@ mod tests {
         assert!(!plausible(&Fix { tow_s: -1.0, ..base }));
         assert!(!plausible(&Fix { pdop: f64::NAN, ..base }));
     }
+
+    /// Mutation check: a line of LINE_MAX - 1 bytes is kept, one byte more
+    /// is refused whole
+    #[test]
+    fn longest_line() {
+        let mut rx = Receiver::new();
+        // "$" body "*XX": a body of LINE_MAX - 5 bytes makes LINE_MAX - 1
+        let mut body = [b'A'; LINE_MAX - 4];
+        body[..6].copy_from_slice(b"GPTXT,");
+        let ok = sentence(core::str::from_utf8(&body[..LINE_MAX - 5]).unwrap());
+        assert_eq!(until_nul(&ok).len(), LINE_MAX - 1 + 2);
+        assert_eq!(feed(&mut rx, until_nul(&ok), 0), Some(Status::Ignored));
+        let long = sentence(core::str::from_utf8(&body).unwrap());
+        assert_eq!(feed(&mut rx, until_nul(&long), 0), Some(Status::ErrFormat));
+    }
+
+    /// Mutation check: the checksum digits must both be hex (else a format
+    /// error, not a checksum error), and lowercase hex is accepted
+    #[test]
+    fn checksum_digits() {
+        let mut rx = Receiver::new();
+        assert_eq!(feed(&mut rx, b"$GPTXT*G1\r\n", 0), Some(Status::ErrFormat));
+        assert_eq!(feed(&mut rx, b"$GPTXT*4G\r\n", 0), Some(Status::ErrFormat));
+        assert_eq!(feed(&mut rx, b"$GPTXT*00\r\n", 0), Some(Status::ErrChecksum));
+        // "GPTXp": the low nibble of its checksum is a letter
+        let sum = b"GPTXp".iter().fold(0u8, |a, b| a ^ b);
+        assert!(sum & 0x0F >= 10);
+        let hex = |d: u8, digits: &[u8; 16]| digits[usize::from(d)];
+        for digits in [b"0123456789ABCDEF", b"0123456789abcdef"] {
+            let line = [b'$', b'G', b'P', b'T', b'X', b'p', b'*', hex(sum >> 4, digits), hex(sum & 15, digits)];
+            assert!(checksum_ok(&line), "{}", core::str::from_utf8(&line).unwrap());
+            let mut framed = [0u8; 11];
+            framed[..9].copy_from_slice(&line);
+            framed[9..].copy_from_slice(b"\r\n");
+            assert_eq!(feed(&mut rx, &framed, 0), Some(Status::Ignored));
+        }
+        for (c, v) in [(b'a', 10), (b'f', 15), (b'A', 10), (b'F', 15), (b'0', 0), (b'9', 9)] {
+            assert_eq!(hex_value(c), Some(v));
+        }
+        assert_eq!(hex_value(b'g'), None);
+    }
+
+    #[test]
+    fn fix_age_is_measured_from_reception() {
+        let mut rx = Receiver::new();
+        assert_eq!(feed(&mut rx, GGA_REF, 1_000_000), Some(Status::Ok));
+        assert_eq!(feed(&mut rx, PSLSP_REF, 1_000_100), Some(Status::Ok));
+        assert!(rx.latest_fix(1_001_100, 1000).is_some());
+        assert!(rx.latest_fix(1_001_101, 1000).is_none());
+    }
+
+    #[test]
+    fn radius_uses_every_axis() {
+        let base =
+            Fix { valid: false, rx_ms: 0, tow_s: 10.0, week: 1, x_m: 0.0, y_m: 0.0, z_m: 0.0, sats: 7, pdop: 1.0 };
+        assert!(plausible(&Fix { y_m: 6.9e6, ..base }));
+        assert!(plausible(&Fix { z_m: -6.9e6, ..base }));
+        assert!(plausible(&Fix { x_m: 4.5e6, y_m: 4.5e6, z_m: 2.5e6, ..base }));
+        assert!(!plausible(&Fix { x_m: 5.0e6, y_m: 5.0e6, z_m: 5.0e6, ..base }), "8.7e6 m");
+    }
 }

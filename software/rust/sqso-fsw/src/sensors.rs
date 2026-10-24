@@ -756,4 +756,62 @@ units: V\n    period_ms: 1000\n  - id: BT\n    name: \"Battery Temperature\"\n  
         assert_eq!(w.finish(), 14);
         assert_eq!(&buf[..15], b"nan-0.0000.062\0");
     }
+
+    fn close(a: f64, b: f64) -> bool {
+        (a - b).abs() < 1e-12
+    }
+
+    /// Mutation check: the noise terms' sign and scale (noise 1.0 is the
+    /// top of each band), the solar current, the temperature offsets and
+    /// the alarm thresholds
+    #[test]
+    fn reading_models() {
+        let env = Environment { sunlit: true, soc: 0.5, payload_enabled: true };
+        let mut top = || 1.0;
+        assert!(close(eps_voltage(b"battery", &env, &mut top).value, 8.11));
+        assert!(close(eps_voltage(b"bus", &env, &mut top).value, 5.01));
+        assert!(close(eps_current(b"jetson", &env, &mut top).value, 0.725));
+        assert!(close(eps_current(b"solar", &env, &mut top).value, 0.65));
+        let dark = Environment { sunlit: false, payload_enabled: false, ..env };
+        assert_eq!(eps_current(b"solar", &dark, &mut top).value, 0.0);
+        assert_eq!(eps_current(b"jetson", &dark, &mut top).value, 0.0);
+        assert!(close(eps_temperature(&env, &mut top), 25.25));
+        assert!(close(payload_temperature(&env, &mut top), 42.25));
+        assert!(close(eps_temperature(&dark, &mut top), 14.25));
+        assert!(close(payload_temperature(&dark, &mut top), 14.25));
+        // No discharge current reaches the 1 A alarm
+        for e in [env, dark, Environment { sunlit: false, ..env }] {
+            assert_eq!(eps_current(b"battery_discharge", &e, &mut top).alarm, None);
+        }
+        assert_eq!(eps_current(b"battery_discharge", &dark, &mut top).value, 0.25);
+        // Exactly 7.0 V is not below the alarm level
+        let edge = Environment { soc: -6.833_333_333_333_334, ..env };
+        let mut half = || 0.5;
+        let v = eps_voltage(b"battery", &edge, &mut half);
+        assert_eq!((v.value, v.alarm), (7.0, None));
+    }
+
+    #[test]
+    fn status_thresholds_are_strict() {
+        let i = StatusInputs {
+            beacon_enabled: false,
+            payload_enabled: false,
+            now_ms: 240_999,
+            sunlit: true,
+            soc: 0.30,
+            safe_mode: false,
+            faults: false,
+            watchdog: false,
+        };
+        assert_eq!(status_bits(&i), 0x01, "240 s is not late; SOC 0.30 is not low");
+        assert_eq!(status_bits(&StatusInputs { soc: 0.299, now_ms: 299_999, ..i }), 0x19);
+    }
+
+    #[test]
+    fn items_before_the_list_are_ignored() {
+        let (defs, n) = parse(b"- id: X\n  name: early\nsensors:\n- id: A\n");
+        assert_eq!(n, 1);
+        assert_eq!(until_nul(&defs[0].id), b"A");
+        assert_eq!(until_nul(&defs[0].name), b"");
+    }
 }

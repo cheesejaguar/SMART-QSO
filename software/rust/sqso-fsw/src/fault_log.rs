@@ -247,4 +247,20 @@ mod tests {
         assert!(log.get(1).unwrap().recovered() && log.get(1).unwrap().is_intact());
         assert!(!log.mark_recovered(2));
     }
+
+    #[test]
+    fn empty_clear_and_recovered_flag() {
+        let mut log = FaultLog::new();
+        assert!(log.is_empty());
+        let e = Entry::new(7, 1, 2, b"fault", 0.5);
+        assert!(!e.recovered(), "a new fault is not recovered");
+        log.add(e);
+        assert!(!log.is_empty());
+        assert_eq!(log.len(), 1);
+        assert!(!log.get(0).unwrap().recovered());
+        log.clear();
+        assert!(log.is_empty());
+        assert_eq!((log.len(), log.get(0), log.last()), (0, None, None));
+        assert!(log.slots_mut().iter().all(|e| *e == Entry::ZERO), "cleared slots are zeroed");
+    }
 }
