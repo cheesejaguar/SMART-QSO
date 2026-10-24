@@ -328,22 +328,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # The flight software (Rust) and the C that remains (the test suites and
+      # the flight-log shim). Rust is analysed from source (build mode none),
+      # and C/C++ the same way, so no build step is needed.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: c-cpp
-
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake
-
-      - name: Build for analysis
-        working-directory: software/flight
-        run: |
-          cmake -B build
-          cmake --build build
+          languages: c-cpp, rust
+          build-mode: none
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+
+      # Known vulnerabilities in the Rust dependencies (RustSec advisory database)
+      - name: cargo audit
+        working-directory: software/rust
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+          (cd firmware && cargo audit)
 
   ###########################################################################
   # Documentation Generation Job

@@ -165,13 +165,13 @@ jobs:
         path: software/rust/fuzz/artifacts
         if-no-files-found: ignore
 
-    - name: Run the simulation to completion with sanitizers
+    # The simulation is the Rust flight software (sqso-sim, release profile:
+    # overflow checks on, a panic aborts); its unsafe code is in the library
+    # the sanitized C suites above link
+    - name: Run the simulation to completion
       working-directory: software/flight/build
-      env:
-        ASAN_OPTIONS: detect_leaks=0:halt_on_error=1   # see the step above
-        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
       run: |
-        # About 20 s of simulated operation; any sanitizer report fails the job
+        # About 20 s of simulated operation; a panic or a failed start fails the job
         timeout 180 ./smart_qso_flight
 
   flight-build:
