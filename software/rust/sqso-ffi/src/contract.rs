@@ -38,6 +38,13 @@ pub unsafe extern "C" fn sqso_rust_layout(which: u32, size: *mut usize, align: *
         18 => layout::<crate::scheduler::CTaskStats>(),
         19 => layout::<crate::scheduler::CSchedStats>(),
         20 => layout::<fault_log::Entry>(),
+        // assert_handler.h, flight_log.h, uart_comm.h, hal_uart.h
+        250 => layout::<sqso_fsw::assert_handler::Record>(),
+        251 => layout::<sqso_fsw::assert_handler::Stats>(),
+        252 => layout::<sqso_fsw::flight_log::Entry>(),
+        253 => layout::<sqso_fsw::flight_log::Stats>(),
+        254 => layout::<crate::uart_comm::UartConfig>(),
+        255 => layout::<crate::uart_comm::HalUartConfig>(),
         _ => return false,
     };
     // SAFETY: the C contract: NULL or pointers to size_t
@@ -79,6 +86,20 @@ pub extern "C" fn sqso_rust_constant(which: u32) -> f64 {
         20 => mode::State::ALL.len() as f64,
         21 => mode::Event::ALL.len() as f64,
         22 => f64::from(station::SSID),
+        // assert_handler.h, flight_log.h, uart_comm.h, smart_qso.h
+        250 => sqso_fsw::assert_handler::MAX_MSG_LEN as f64,
+        251 => sqso_fsw::assert_handler::MAX_FAILURE_LOG as f64,
+        252 => sqso_fsw::assert_handler::MAX_FILENAME_LEN as f64,
+        253 => sqso_fsw::flight_log::MAX_MESSAGE_LEN as f64,
+        254 => sqso_fsw::flight_log::BUFFER_SIZE as f64,
+        255 => sqso_fsw::flight_log::MAX_MODULE_LEN as f64,
+        256 => f64::from(sqso_fsw::flight_log::MIN_LEVEL),
+        257 => f64::from(sqso_fsw::flight_log::level::OFF),
+        258 => sqso_fsw::uart_comm::DEVICE_MAX_LEN as f64,
+        259 => f64::from(sqso_fsw::uart_comm::BAUDRATE_DEFAULT),
+        260 => f64::from(sqso_fsw::uart_comm::TELEMETRY_INTERVAL_DEFAULT_MS),
+        261 => f64::from(crate::assert_handler::FAULT_TYPE_ASSERTION),
+        262 => sqso_fsw::uart_comm::DEVICE_DEFAULT.len() as f64,
         _ => f64::NAN,
     }
 }

@@ -109,7 +109,7 @@ All project documentation and processes shall comply with:
   - [x] Create `software/flight/src/sensors.c` and `software/flight/include/sensors.h` - Extract sensor framework code (lines 70-142, 544-642, 673-734)
   - [x] Create `software/flight/src/eps_control.c` and `software/flight/include/eps_control.h` - Extract EPS control functions (lines 36-45, 103-316)
   - [x] Create `software/rust/sqso-ffi/src/fault_mgmt.rs` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
-  - [x] Create `software/flight/src/uart_comm.c` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
+  - [x] Create `software/rust/sqso-ffi/src/uart_comm.rs` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
   - [x] Create `software/flight/src/mission_data.c` and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
   - [x] Create software/flight/src/yaml_parser.c and software/flight/include/yaml_parser.h - Extract YAML parsing (lines 652-708). (Removed 2026-10-16: never compiled or used; `sensors.c` reads the sensor YAML itself.)
   - [x] Create `software/flight/src/main.c` - Keep only initialization and main loop
@@ -864,7 +864,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] All `strncpy` calls need explicit null termination
 
 - [x] **Replace unsafe functions**:
-  - [x] Create safe string functions in `software/flight/src/safe_string.c`
+  - [x] Create safe string functions in `software/rust/sqso-ffi/src/safe_string.rs`
   - [x] `safe_strcpy()` - always null-terminates
   - [ ] `safe_snprintf()` - checks for truncation (audit 2026-10-16, SW-19: safe_string.h provides safe_strcpy() and safe_strncpy(); there is no safe_snprintf())
 
@@ -1744,7 +1744,7 @@ This section details the complete flight software implementation tasks, organize
   - [ ] Unit tests in `software/flight/tests/test_beacon.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (SW-09); beacon formatting, filtering and telemetry have registered CMocka suites (test_beacon_format.c, test_beacon_filter.c, test_beacon_telemetry.c))
 
 #### 17.1.8 UART Communication Module
-- [x] **Implement `software/flight/src/uart_comm.c`** (refactor from main.c):
+- [x] **Implement `software/rust/sqso-ffi/src/uart_comm.rs`** (refactor from main.c):
   - [x] UART initialization
   - [x] Transmit buffer management
   - [x] Receive buffer management

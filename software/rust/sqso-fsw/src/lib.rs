@@ -11,14 +11,22 @@
 //! - [`mode`]: the guarded mode manager (`state_machine.h`, SW-14)
 //! - [`scheduler`]: time-triggered task table (`scheduler.h`)
 //! - [`fault_log`]: fault log ring with per-entry CRC (`fault_mgmt.h`)
+//! - [`safe_string`]: bounded string and memory operations (`safe_string.h`)
+//! - [`assert_handler`]: assertion failure log and response (`assert_handler.h`)
+//! - [`flight_log`]: flight log ring buffer (`flight_log.h`)
+//! - [`uart_comm`]: OBC–Jetson serial line settings (`uart_comm.h`)
 
 #![no_std]
 #![forbid(unsafe_code)]
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing, clippy::panic))]
 
+pub mod assert_handler;
 pub mod fault_log;
+pub mod flight_log;
 pub mod keys;
 pub mod mode;
 pub mod nvm;
+pub mod safe_string;
 pub mod scheduler;
 pub mod telecommand;
+pub mod uart_comm;

@@ -119,20 +119,17 @@ set(FLIGHT_SOURCES
     src/main.c
     src/eps_control.c
     src/sensors.c
-    src/uart_comm.c
     src/mission_data.c
     src/beacon.c
     src/adcs_control.c
-    src/safe_string.c
     src/system_state.c
     src/contact_monitor.c
     src/rf_silence.c
     src/gnss.c
     src/payload_guard.c
     src/telemetry.c
-    src/assert_handler.c
     src/watchdog_mgr.c
-    src/flight_log.c
+    src/flight_log_fmt.c
     src/deployment.c
     src/rf_control.c
     src/rust_panic.c

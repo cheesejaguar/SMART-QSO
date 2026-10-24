@@ -191,8 +191,9 @@ typedef enum {
 /**
  * @brief Assertions: one API, active in every build (SW-08, JPL Rule 5)
  *
- * A failed check is reported to the assertion handler (assert_handler.c:
- * logged, counted, and fault-logged) in every build, flight included. The
+ * A failed check is reported to the assertion handler (assert_handler.h,
+ * implemented in software/rust/sqso-ffi/src/assert_handler.rs: logged,
+ * counted, and fault-logged) in every build, flight included. The
  * function then returns an error, so it never carries on with the bad value.
  *
  * - SMART_QSO_REQUIRE(condition, message)   precondition; returns SMART_QSO_ERROR_INVALID

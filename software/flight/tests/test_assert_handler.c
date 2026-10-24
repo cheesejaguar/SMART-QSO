@@ -289,6 +289,97 @@ static void test_safe_mode_callback_called(void **state)
 }
 
 /*******************************************************************************
+ * Test Cases: reset, log order, re-entry
+ * (Rust port: software/rust/sqso-ffi/src/assert_handler.rs)
+ ******************************************************************************/
+
+static int s_reset_calls = 0;
+
+static void mock_reset_callback(void)
+{
+    s_reset_calls++;
+}
+
+static void test_fatal_triggers_reset_callback(void **state)
+{
+    (void)state;
+
+    s_reset_calls = 0;
+    assert_init();
+    assert_register_reset_callback(mock_reset_callback);
+
+    AssertAction_t action = assert_handle_failure("dir/fatal.c", 9, ASSERT_TYPE_INVARIANT,
+                                                  ASSERT_SEVERITY_FATAL, "fatal");
+    assert_int_equal(action, ASSERT_ACTION_RESET);
+    assert_int_equal(s_reset_calls, 1);
+    assert_true(assert_has_critical_failures());
+
+    AssertStats_t stats;
+    assert_get_stats(&stats);
+    assert_int_equal(stats.fatals, 1);
+    assert_int_equal(stats.reset_triggers, 1);
+
+    /* Clearing keeps the trigger counts for mission analysis */
+    assert_clear_stats();
+    assert_get_stats(&stats);
+    assert_int_equal(stats.fatals, 0);
+    assert_int_equal(stats.reset_triggers, 1);
+
+    AssertRecord_t record;
+    uint16_t count = 0;
+    assert_int_equal(assert_get_log(&record, 1, &count), SMART_QSO_OK);
+    assert_int_equal(count, 0);
+}
+
+static void test_log_wraps_oldest_first(void **state)
+{
+    (void)state;
+
+    assert_init();
+    for (uint16_t line = 0; line < (uint16_t)(ASSERT_MAX_FAILURE_LOG + 4U); line++) {
+        (void)assert_handle_failure("path/to/wrap.c", line, ASSERT_TYPE_INTERNAL,
+                                    ASSERT_SEVERITY_WARNING, NULL);
+    }
+
+    AssertRecord_t log[ASSERT_MAX_FAILURE_LOG];
+    uint16_t count = 0;
+    assert_int_equal(assert_get_log(log, ASSERT_MAX_FAILURE_LOG, &count), SMART_QSO_OK);
+    assert_int_equal(count, ASSERT_MAX_FAILURE_LOG);
+    assert_int_equal(log[0].line, 4);
+    assert_int_equal(log[ASSERT_MAX_FAILURE_LOG - 1U].line, ASSERT_MAX_FAILURE_LOG + 3U);
+    assert_string_equal(log[0].filename, "wrap.c");
+    assert_string_equal(log[0].message, "");
+
+    AssertStats_t stats;
+    assert_get_stats(&stats);
+    assert_int_equal(stats.log_overflows, 1);
+}
+
+/** A safe-mode callback that fails an assertion of its own */
+static void asserting_callback(void)
+{
+    (void)assert_handle_failure("callback.c", 1, ASSERT_TYPE_STATE,
+                                ASSERT_SEVERITY_ERROR, "inside callback");
+}
+
+static void test_callback_may_assert(void **state)
+{
+    (void)state;
+
+    assert_init();
+    assert_register_safe_mode_callback(asserting_callback);
+    assert_int_equal(assert_handle_failure("outer.c", 2, ASSERT_TYPE_STATE,
+                                           ASSERT_SEVERITY_CRITICAL, "outer"),
+                     ASSERT_ACTION_SAFE_MODE);
+
+    AssertStats_t stats;
+    assert_get_stats(&stats);
+    assert_int_equal(stats.total_failures, 2);
+    assert_int_equal(stats.criticals, 1);
+    assert_int_equal(stats.errors, 1);
+}
+
+/*******************************************************************************
  * Test Runner
  ******************************************************************************/
 
@@ -339,6 +430,14 @@ int main(void)
 
         /* Callbacks */
         cmocka_unit_test_setup_teardown(test_safe_mode_callback_called,
+                                        test_setup, test_teardown),
+
+        /* Reset, log order, re-entry */
+        cmocka_unit_test_setup_teardown(test_fatal_triggers_reset_callback,
+                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_log_wraps_oldest_first,
+                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_callback_may_assert,
                                         test_setup, test_teardown),
     };
 

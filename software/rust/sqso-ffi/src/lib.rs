@@ -24,6 +24,10 @@
 //! | `state_machine.h` | [`state_machine`] |
 //! | `scheduler.h` | [`scheduler`] |
 //! | `fault_mgmt.h` | [`fault_mgmt`] |
+//! | `safe_string.h` | [`safe_string`] |
+//! | `assert_handler.h` | [`assert_handler`] |
+//! | `flight_log.h` (with `flight_log_fmt.c`) | [`flight_log`] |
+//! | `uart_comm.h` | [`uart_comm`] |
 //!
 //! Struct layouts mirror the C headers (`#[repr(C)]`); the C contract test
 //! `tests/test_rust_contract.c` checks sizes and constants from the C side.
@@ -32,6 +36,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![allow(clippy::missing_safety_doc)] // every export documents its pointer contract in its C header
 
+pub mod assert_handler;
 pub mod ax25;
 pub mod beacon_filter;
 pub mod cmd_auth;
@@ -40,15 +45,18 @@ pub mod cmd_handler;
 pub mod contract;
 pub mod crc;
 pub mod fault_mgmt;
+pub mod flight_log;
 pub mod gse_provision;
 pub mod input_validation;
 pub mod jetson_link;
 pub mod nvm_record;
+pub mod safe_string;
 pub mod scheduler;
 pub mod separation_switch;
 pub mod sha256;
 pub mod state_machine;
 pub mod time;
+pub mod uart_comm;
 pub mod uplink;
 
 mod c;
