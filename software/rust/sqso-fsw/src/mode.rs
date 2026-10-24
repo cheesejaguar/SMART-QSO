@@ -518,6 +518,52 @@ mod tests {
         }
     }
 
+    /// Each state's entry action sets the EPS power mode; SAFE keeps the
+    /// beacon on, EMERGENCY sheds it, the others leave it
+    #[test]
+    fn entry_actions() {
+        let expected = [
+            (State::Boot, PowerMode::Safe, Some(true)),
+            (State::Safe, PowerMode::Safe, Some(true)),
+            (State::Emergency, PowerMode::Safe, Some(false)),
+            (State::Detumble, PowerMode::Idle, None),
+            (State::Idle, PowerMode::Idle, None),
+            (State::Active, PowerMode::Active, None),
+        ];
+        for (state, power_mode, beacon) in expected {
+            assert_eq!(entry(state), Entry { power_mode, beacon }, "{state:?}");
+        }
+    }
+
+    /// The policy table at each threshold: 0.15 (EMERGENCY), 0.25 (SAFE),
+    /// 0.40 (IDLE) and 0.55 (ACTIVE), with the hysteresis between them
+    #[test]
+    fn power_policy_thresholds() {
+        use Event as E;
+        use State as S;
+        let below = |x: f64| x - 1e-9;
+        let cases = [
+            (S::Active, SOC_SAFE, E::PowerLow),
+            (S::Active, below(SOC_SAFE), E::PowerCritical),
+            (S::Active, SOC_IDLE, E::None),
+            (S::Active, below(SOC_IDLE), E::PowerLow),
+            (S::Idle, SOC_SAFE, E::None),
+            (S::Idle, below(SOC_SAFE), E::PowerCritical),
+            (S::Idle, below(SOC_PAYLOAD), E::None),
+            (S::Idle, SOC_PAYLOAD, E::AiReady),
+            (S::Safe, SOC_EMERGENCY, E::None),
+            (S::Safe, below(SOC_EMERGENCY), E::PowerCritical),
+            (S::Safe, 0.20, E::None),
+            (S::Emergency, below(SOC_SAFE), E::None),
+            (S::Emergency, SOC_SAFE, E::PowerOk),
+            (S::Boot, SOC_SAFE, E::None),
+            (S::Detumble, below(SOC_SAFE), E::PowerCritical),
+        ];
+        for (s, soc, expected) in cases {
+            assert_eq!(power_event(s, soc, true), expected, "{s:?} {soc}");
+        }
+    }
+
     #[test]
     fn raw_values_round_trip() {
         for s in State::ALL {

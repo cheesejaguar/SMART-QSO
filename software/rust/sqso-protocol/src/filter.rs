@@ -323,6 +323,37 @@ mod tests {
         }
     }
 
+    /// LENGTH: 1 to MAX_LEN characters, both ends inclusive
+    #[test]
+    fn length_limit_is_inclusive() {
+        let mut text = [0u8; MAX_LEN + 1];
+        for (i, c) in text.iter_mut().enumerate() {
+            *c = b"ab "[i % 3];
+        }
+        text[MAX_LEN - 1] = b'.';
+        text[MAX_LEN] = b'.';
+        assert_eq!(check(&text[..MAX_LEN]), Verdict::Ok);
+        assert_eq!(check(&text), Verdict::Length);
+        assert_eq!(check(&text[..1]), Verdict::Ok);
+    }
+
+    /// CHARSET: '|' separates the telemetry fields, so it is refused alone
+    /// (the shared vector with '|' also holds '=')
+    #[test]
+    fn charset_excludes_the_field_separator() {
+        for text in [&b"Hello | world"[..], b"a|b", b"Pay $5", b"me @ home"] {
+            assert_eq!(check(text), Verdict::Charset, "{text:?}");
+        }
+    }
+
+    /// COMMERCIAL: URL fragments match in any letter case
+    #[test]
+    fn url_marks_in_any_letter_case() {
+        for text in [&b"See WWW.EXAMPLE.ORG today"[..], b"Visit HTTP now", b"Details at Example.Com", b"x.NeT"] {
+            assert_eq!(check(text), Verdict::Commercial, "{}", core::str::from_utf8(text).unwrap());
+        }
+    }
+
     #[test]
     fn ssid_rules() {
         assert_eq!(check(b"de KK6GDB-11"), Verdict::Ok);

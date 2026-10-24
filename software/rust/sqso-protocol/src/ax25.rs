@@ -222,6 +222,16 @@ mod tests {
         assert!(!address_matches(&encode_address(b"KK6GDB", 11, true), b"KK6GDBX", 11));
     }
 
+    /// The uplink's callsign filter: another call sign with this station's
+    /// SSID is not addressed to it, nor is a shorter or longer call
+    #[test]
+    fn other_call_with_our_ssid_does_not_match() {
+        for other in [&b"KK6GDC"[..], b"W1AW", b"KK6GD", b"AK6GDB"] {
+            assert!(!address_matches(&encode_address(other, 11, false), b"KK6GDB", 11), "{other:?}");
+        }
+        assert!(!address_matches(&encode_address(b"KK6GDB", 11, false), b"KK6GD", 11));
+    }
+
     #[test]
     fn round_trip() {
         let (buf, n) = ui(b"hello");
