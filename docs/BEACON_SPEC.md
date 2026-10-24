@@ -5,7 +5,7 @@ one short line of plain-language text, followed by measured telemetry. Design va
 `docs/BASELINE_PARAMETERS.md`, which governs where the two disagree. The information-field layout is also in
 `docs/operations/TELEMETRY_DICTIONARY.md` section 4.
 
-Implementation: `software/flight/src/beacon.c` (frame, telemetry, scheduling), `software/rust/sqso-protocol/src/filter.rs`
+Implementation: `software/rust/sqso-fsw/src/beacon.rs` (frame, telemetry, scheduling; C interface `software/rust/sqso-ffi/src/beacon.rs`), `software/rust/sqso-protocol/src/filter.rs`
 (content rules), `software/payload/formatter.py` and `software/payload/content_filter.py` (Jetson text).
 
 ## 1. Radio and Modem
@@ -59,7 +59,7 @@ simulation the EPS model supplies SOC and SUN; on the target the EPS driver does
 1. **Jetson text.** The OBC sends `BEACON_REQ` after each `TELEMETRY` line (`docs/interfaces/ICD_OBC_JETSON.md` §4).
    The Jetson answers with `BEACON_RSP` text. Text whose sequence number matches the latest request is used for the next
    beacon, once, if it passes the content rules (section 6).
-2. **OBC templates.** Otherwise the OBC sends the next of its fixed templates (`beacon_templates[]` in `beacon.c`). None of
+2. **OBC templates.** Otherwise the OBC sends the next of its fixed templates (`beacon_templates[]`, from `TEMPLATES` in `software/rust/sqso-fsw/src/beacon.rs`). None of
    them states a health condition; the telemetry fields carry the state.
 
 On the Jetson, text comes from the language model or, when the model is absent or its output fails the same content

@@ -152,13 +152,8 @@ endif()
 # (main.c). The static library only pulls in the objects each test needs.
 #===========================================================================
 set(FLIGHT_LIB_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/adcs_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log_fmt.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/rust_panic.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/system_state.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/telemetry.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/watchdog_mgr.c
 )
 add_library(flight_test_lib STATIC ${FLIGHT_LIB_SOURCES})
 target_compile_options(flight_test_lib PRIVATE ${TEST_COMPILE_OPTIONS})
@@ -198,6 +193,7 @@ set(MODULE_TESTS
     "test_telemetry_flow\;integration"
     "test_adcs\;adcs"
     "test_rust_contract\;rust"
+    "test_rust_contract_adcs\;rust"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)

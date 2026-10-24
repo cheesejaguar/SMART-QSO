@@ -106,11 +106,11 @@ All project documentation and processes shall comply with:
 
 ### 1.1 File Organization
 - [x] **Create modular source file structure**: Split `software/flight/src/main.c` (941 lines) into separate modules:
-  - [x] Create `software/flight/src/sensors.c` and `software/flight/include/sensors.h` - Extract sensor framework code (lines 70-142, 544-642, 673-734)
-  - [x] Create `software/flight/src/eps_control.c` and `software/flight/include/eps_control.h` - Extract EPS control functions (lines 36-45, 103-316)
+  - [x] Create sensors.c (now `software/rust/sqso-fsw/src/sensors.rs`) and `software/flight/include/sensors.h` - Extract sensor framework code (lines 70-142, 544-642, 673-734)
+  - [x] Create eps_control.c (now `software/rust/sqso-fsw/src/eps.rs`) and `software/flight/include/eps_control.h` - Extract EPS control functions (lines 36-45, 103-316)
   - [x] Create `software/rust/sqso-ffi/src/fault_mgmt.rs` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
   - [x] Create `software/rust/sqso-ffi/src/uart_comm.rs` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
-  - [x] Create `software/flight/src/mission_data.c` and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
+  - [x] Create mission_data.c (now `software/rust/sqso-fsw/src/mission_data.rs`) and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
   - [x] Create software/flight/src/yaml_parser.c and software/flight/include/yaml_parser.h - Extract YAML parsing (lines 652-708). (Removed 2026-10-16: never compiled or used; `sensors.c` reads the sensor YAML itself.)
   - [x] Create `software/flight/src/main.c` - Keep only initialization and main loop
   - [x] Create `software/flight/include/smart_qso.h` - Master header with common types and configuration
@@ -1691,7 +1691,7 @@ This section details the complete flight software implementation tasks, organize
   - [ ] Unit tests in `sw/flight/tests/test_scheduler.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (software/flight/tests/CMakeLists.txt; SW-09))
 
 #### 17.1.3 Sensor Management Module
-- [x] **Implement `software/flight/src/sensors.c`** (refactor from main.c):
+- [x] **Implement sensors.c (now `software/rust/sqso-fsw/src/sensors.rs`)** (refactor from main.c):
   - [x] Sensor initialization
   - [x] Sensor polling (per configured period)
   - [x] Sensor data conversion (raw to engineering units)
@@ -1701,7 +1701,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_sensors.c`
 
 #### 17.1.4 EPS Control Module
-- [x] **Implement `software/flight/src/eps_control.c`** (refactor from main.c):
+- [x] **Implement eps_control.c (now `software/rust/sqso-fsw/src/eps.rs`)** (refactor from main.c):
   - [x] Power mode state machine (SAFE/IDLE/ACTIVE)
   - [x] Load switch control functions
   - [x] Battery SOC estimation
@@ -1723,7 +1723,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_fault_mgmt.c`
 
 #### 17.1.6 Telemetry Module
-- [x] **Implement `software/flight/src/telemetry.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/telemetry.rs`**:
   - [x] Telemetry packet formatting
   - [x] Telemetry point registration
   - [x] Telemetry sampling
@@ -1733,7 +1733,7 @@ This section details the complete flight software implementation tasks, organize
   - [ ] Unit tests in `software/flight/tests/test_telemetry.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (SW-09))
 
 #### 17.1.7 Beacon Generation Module
-- [x] **Implement `software/flight/src/beacon.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/beacon.rs`**:
   - [x] AX.25 frame formatting
   - [x] Callsign encoding
   - [x] Info field composition
@@ -1755,7 +1755,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_uart_comm.c`
 
 #### 17.1.9 ADCS Control Module
-- [x] **Implement `software/flight/src/adcs_control.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/adcs_control.rs`**:
   - [ ] Magnetometer driver (audit 2026-10-16, SW-19: stub: TODO at adcs_control.c:351 (KNOWN_ISSUES KI-001))
   - [ ] Sun sensor driver (audit 2026-10-16, SW-19: stub: TODO at adcs_control.c:377 (KI-001))
   - [ ] Attitude determination (TRIAD or similar) (audit 2026-10-16, SW-19: no attitude-determination algorithm; adcs_control.c estimates rate from B-dot only)
@@ -1766,7 +1766,7 @@ This section details the complete flight software implementation tasks, organize
   - [ ] Unit tests in `sw/flight/tests/test_adcs.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (SW-09))
 
 #### 17.1.10 Data Persistence Module
-- [x] **Implement `software/flight/src/mission_data.c`** (refactor from main.c):
+- [x] **Implement mission_data.c (now `software/rust/sqso-fsw/src/mission_data.rs`)** (refactor from main.c):
   - [x] Mission data structure definition
   - [x] Save to non-volatile storage
   - [x] Load from non-volatile storage
@@ -1776,7 +1776,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_mission_data.c`
 
 #### 17.1.11 Watchdog Module
-- [x] **Implement `software/flight/src/watchdog_mgr.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/watchdog_mgr.rs`**:
   - [x] Hardware watchdog initialization
   - [x] Watchdog kick function
   - [x] Multi-task watchdog monitoring

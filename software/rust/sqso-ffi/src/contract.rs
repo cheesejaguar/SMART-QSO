@@ -4,9 +4,10 @@
 use core::ffi::c_char;
 use core::mem::{align_of, size_of};
 
+use sqso_fsw::telemetry as tlm;
 use sqso_fsw::{
-    contact_monitor, deployment, eps, fault_log, gnss, keys, mission_data, mode, nvm, payload_guard, rf_control,
-    rf_silence, scheduler, sensors,
+    adcs, beacon, contact_monitor, deployment, eps, fault_log, gnss, keys, mission_data, mode, nvm, payload_guard,
+    rf_control, rf_silence, scheduler, sensors, watchdog,
 };
 use sqso_protocol::{auth, ax25, filter, gse, jetson, station};
 
@@ -58,6 +59,27 @@ pub unsafe extern "C" fn sqso_rust_layout(which: u32, size: *mut usize, align: *
         152 => layout::<mission_data::MissionData>(),
         153 => layout::<gnss::Fix>(),
         154 => layout::<gnss::Receiver>(),
+        // system_state.h, telemetry.h, beacon.h, adcs_control.h, watchdog_mgr.h
+        200 => layout::<sqso_fsw::system_state::Thermal>(),
+        201 => layout::<sqso_fsw::system_state::Comm>(),
+        202 => layout::<sqso_fsw::system_state::Mission>(),
+        203 => layout::<sqso_fsw::system_state::Image>(),
+        204 => layout::<crate::telemetry::TlmFrame>(),
+        205 => layout::<sqso_fsw::telemetry::Stats>(),
+        206 => layout::<sqso_fsw::beacon::Telemetry>(),
+        207 => layout::<sqso_fsw::beacon::Measurements>(),
+        208 => layout::<sqso_fsw::beacon::Content>(),
+        209 => layout::<sqso_fsw::beacon::Frame>(),
+        210 => layout::<sqso_fsw::beacon::State>(),
+        211 => layout::<crate::beacon::EpsControlState>(),
+        212 => layout::<sqso_fsw::watchdog::TaskEntry>(),
+        213 => layout::<sqso_fsw::watchdog::Stats>(),
+        214 => layout::<sqso_fsw::adcs::Vec3>(),
+        215 => layout::<sqso_fsw::adcs::MagData>(),
+        216 => layout::<sqso_fsw::adcs::SunSensorData>(),
+        217 => layout::<sqso_fsw::adcs::MtqCommand>(),
+        218 => layout::<sqso_fsw::adcs::State>(),
+        219 => layout::<sqso_fsw::adcs::Telemetry>(),
         _ => return false,
     };
     // SAFETY: the C contract: NULL or pointers to size_t
@@ -184,6 +206,41 @@ pub extern "C" fn sqso_rust_constant(which: u32) -> f64 {
         165 => gnss::LEO_MIN_RADIUS_M,
         166 => gnss::LEO_MAX_RADIUS_M,
         167 => f64::from(gnss::MIN_SATS),
+        // system_state.h, telemetry.h, beacon.h, adcs_control.h, watchdog_mgr.h
+        200 => tlm::MAX_FRAME_SIZE as f64,
+        201 => f64::from(tlm::SYNC_WORD),
+        202 => f64::from(tlm::DEFAULT_RATE_MS),
+        203 => f64::from(tlm::MIN_RATE_MS),
+        204 => f64::from(tlm::MAX_RATE_MS),
+        205 => tlm::HEADER_SIZE as f64,
+        206 => tlm::HOUSEKEEPING_SIZE as f64,
+        207 => tlm::EPS_SIZE as f64,
+        208 => tlm::ADCS_SIZE as f64,
+        209 => beacon::MAX_TEXT_LEN as f64,
+        210 => beacon::MAX_PAYLOAD_LEN as f64,
+        211 => f64::from(beacon::INTERVAL_ACTIVE_MS),
+        212 => f64::from(beacon::INTERVAL_IDLE_MS),
+        213 => f64::from(beacon::INTERVAL_SAFE_MS),
+        214 => beacon::MEAS_MAX_AGE_MS as f64,
+        215 => f64::from(beacon::TLM_SOC),
+        216 => f64::from(beacon::TLM_BV),
+        217 => f64::from(beacon::TLM_SUN),
+        218 => f64::from(beacon::TLM_RF),
+        219 => f64::from(beacon::TLM_QSO),
+        220 => watchdog::MAX_TASKS as f64,
+        221 => watchdog::NAME_LEN as f64,
+        222 => f64::from(watchdog::HW_TIMEOUT_MS),
+        223 => watchdog::TASK_CHECK_INTERVAL_MS as f64,
+        224 => f64::from(watchdog::MISS_THRESHOLD),
+        225 => adcs::MAX_DIPOLE,
+        226 => adcs::BDOT_GAIN,
+        227 => adcs::SUNPOINT_KP,
+        228 => adcs::DETUMBLE_RATE_THRESHOLD,
+        229 => adcs::DETUMBLE_SETTLING_MS as f64,
+        230 => adcs::DETUMBLE_TIMEOUT_MS as f64,
+        231 => adcs::SUN_SENSOR_COUNT as f64,
+        232 => f64::from(adcs::mode::SAFE),
+        233 => f64::from(crate::adcs_control::FAULT_TYPE_ADCS),
         _ => f64::NAN,
     }
 }

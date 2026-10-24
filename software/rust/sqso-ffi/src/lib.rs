@@ -40,6 +40,11 @@
 //! | `sensors.h` | [`sensors`] |
 //! | `mission_data.h` | [`mission_data`] |
 //! | `gnss.h` | [`gnss`] |
+//! | `system_state.h` | [`system_state`] |
+//! | `telemetry.h` | [`telemetry`] |
+//! | `beacon.h` | [`beacon`] |
+//! | `adcs_control.h` | [`adcs_control`] |
+//! | `watchdog_mgr.h` | [`watchdog_mgr`] |
 //!
 //! Struct layouts mirror the C headers (`#[repr(C)]`); the C contract test
 //! `tests/test_rust_contract.c` checks sizes and constants from the C side.
@@ -48,8 +53,10 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 #![allow(clippy::missing_safety_doc)] // every export documents its pointer contract in its C header
 
+pub mod adcs_control;
 pub mod assert_handler;
 pub mod ax25;
+pub mod beacon;
 pub mod beacon_filter;
 pub mod cmd_auth;
 pub mod cmd_dictionary;
@@ -78,9 +85,12 @@ pub mod sensors;
 pub mod separation_switch;
 pub mod sha256;
 pub mod state_machine;
+pub mod system_state;
+pub mod telemetry;
 pub mod time;
 pub mod uart_comm;
 pub mod uplink;
+pub mod watchdog_mgr;
 
 mod c;
 mod cell;
