@@ -219,6 +219,7 @@ set(MODULE_TESTS
     "test_telemetry\;telemetry"
     "test_telemetry_flow\;integration"
     "test_adcs\;adcs"
+    "test_rust_contract\;rust"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)

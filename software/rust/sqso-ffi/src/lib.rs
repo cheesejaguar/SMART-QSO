@@ -37,6 +37,7 @@ pub mod beacon_filter;
 pub mod cmd_auth;
 pub mod cmd_dictionary;
 pub mod cmd_handler;
+pub mod contract;
 pub mod crc;
 pub mod fault_mgmt;
 pub mod gse_provision;
