@@ -1,0 +1,24 @@
+[package]
+name = "sqso-ffi"
+description = "C ABI of the SMART-QSO Rust modules, linked into the C flight software"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "sqso_ffi"
+crate-type = ["staticlib"]
+# Exercised through the C test suite (ctest), which links this library
+test = false
+doctest = false
+
+[dependencies]
+sqso-protocol.workspace = true
+sqso-fsw.workspace = true
+sha2.workspace = true
+zeroize.workspace = true
+
+[lints]
+workspace = true

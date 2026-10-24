@@ -1,0 +1,15 @@
+[package]
+name = "sqso-fsw"
+description = "SMART-QSO flight logic: NVM records, telecommand key table and admission, mode manager, scheduler, fault log"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+sqso-protocol.workspace = true
+zeroize.workspace = true
+
+[lints]
+workspace = true

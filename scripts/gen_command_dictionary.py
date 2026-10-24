@@ -4,7 +4,7 @@ Generate the uplink command dictionary for flight and ground software.
 
 Source:  software/flight/command_dictionary.json
 Outputs: software/flight/include/cmd_dictionary.h
-         software/flight/src/cmd_dictionary.c
+         software/rust/sqso-protocol/src/dictionary.rs
          software/ground/tools/command_dictionary.py
 
 Usage:
@@ -22,7 +22,7 @@ from typing import Dict, List
 REPO = Path(__file__).resolve().parents[1]
 SOURCE = REPO / "software" / "flight" / "command_dictionary.json"
 OUT_H = REPO / "software" / "flight" / "include" / "cmd_dictionary.h"
-OUT_C = REPO / "software" / "flight" / "src" / "cmd_dictionary.c"
+OUT_RS = REPO / "software" / "rust" / "sqso-protocol" / "src" / "dictionary.rs"
 OUT_PY = REPO / "software" / "ground" / "tools" / "command_dictionary.py"
 
 MAX_ARGS = 64
@@ -51,20 +51,32 @@ def validate(data: Dict) -> List[Dict]:
         without_key = bool(raw.get("without_key", False))
         if without_key and raw["key"] != "any":
             raise ValueError(f"{name}: without_key is only allowed with key 'any'")
-        if cmd_id in seen_ids or name in seen_names:
+        if cmd_id in seen_ids or name in seen_names or rust_variant(name) in seen_names:
             raise ValueError(f"{name}: duplicate id or name")
         seen_ids.add(cmd_id)
-        seen_names.add(name)
+        seen_names.update((name, rust_variant(name)))
         commands.append({**raw, "cmd_id": cmd_id, "without_key": without_key})
     return sorted(commands, key=lambda c: c["cmd_id"])
 
 
-def render_h(_commands: List[Dict]) -> str:
+def rust_variant(name: str) -> str:
+    """SET_CONTACT_TIMEOUT -> SetContactTimeout"""
+    return "".join(part.capitalize() for part in name.split("_"))
+
+
+def render_h(commands: List[Dict]) -> str:
+    ids = "\n".join(
+        f"    {c['c_name']} = 0x{c['cmd_id']:02X}, /**< {c['name']}: {c['summary']} */"
+        for c in commands)
     return f"""/**
  * @file cmd_dictionary.h
  * @brief Uplink command dictionary (SQSO-ICD-013 section 7)
  *
  * {BANNER}
+ *
+ * The table g_cmd_dictionary is defined by the Rust protocol crate
+ * (software/rust/sqso-protocol, generated from the same source), so the
+ * C and Rust views of the dictionary cannot differ.
  */
 
 #ifndef SMART_QSO_CMD_DICTIONARY_H
@@ -77,6 +89,14 @@ extern "C" {{
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
+
+/** Command IDs in the dictionary */
+typedef enum {{
+{ids}
+}} CmdId_t;
+
+/** Number of commands in the dictionary */
+#define CMD_DICTIONARY_COUNT {len(commands)}U
 
 /** Which telecommand key authenticates a command */
 typedef enum {{
@@ -108,27 +128,92 @@ extern const size_t g_cmd_dictionary_count;
 """
 
 
-def render_c(commands: List[Dict]) -> str:
-    rows = "\n".join(
-        f"    {{ (uint8_t){c['c_name']}, {c['min_args']}U, {c['max_args']}U, {KEYS[c['key']]}, "
-        f"{'true' if c['without_key'] else 'false'} }}, /* {c['name']} */"
+def render_rust(commands: List[Dict]) -> str:
+    keys = {"operational": "Operational", "recovery": "Recovery", "any": "Any"}
+    variants = "\n".join(
+        f"    /// {c['summary']}\n    {rust_variant(c['name'])} = 0x{c['cmd_id']:02X},"
         for c in commands)
-    return f"""/**
- * @file cmd_dictionary.c
- * @brief Uplink command dictionary (SQSO-ICD-013 section 7)
- *
- * {BANNER}
- */
+    all_list = ",\n".join(f"        Command::{rust_variant(c['name'])}" for c in commands)
+    from_id = "\n".join(
+        f"            0x{c['cmd_id']:02X} => Some(Command::{rust_variant(c['name'])}),"
+        for c in commands)
+    names = "\n".join(
+        f"            Command::{rust_variant(c['name'])} => c\"{c['name']}\","
+        for c in commands)
+    specs = "\n".join(
+        f"            Command::{rust_variant(c['name'])} => CommandSpec {{ min_args: {c['min_args']}, "
+        f"max_args: {c['max_args']}, key: KeyClass::{keys[c['key']]}, "
+        f"without_key: {'true' if c['without_key'] else 'false'} }},"
+        for c in commands)
+    summaries = "\n".join(
+        f"            Command::{rust_variant(c['name'])} => {json.dumps(c['summary'])},"
+        for c in commands)
+    return f"""//! Uplink command dictionary (SQSO-ICD-013 section 7).
+//!
+//! {BANNER}
 
-#include "cmd_dictionary.h"
-#include "cmd_handler.h"
-#include <stdint.h>
+use core::ffi::CStr;
 
-const CmdDictEntry_t g_cmd_dictionary[] = {{
-{rows}
-}};
+use crate::command::{{CommandSpec, KeyClass}};
 
-const size_t g_cmd_dictionary_count = sizeof(g_cmd_dictionary) / sizeof(g_cmd_dictionary[0]);
+/// Every uplink command in the dictionary. Adding one to
+/// `command_dictionary.json` adds a variant here, and every exhaustive
+/// `match` on `Command` (the flight dispatcher among them) stops compiling
+/// until it is handled.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[repr(u8)]
+pub enum Command {{
+{variants}
+}}
+
+impl Command {{
+    /// Every command, in ID order
+    pub const ALL: [Command; {len(commands)}] = [
+{all_list},
+    ];
+
+    /// The command with this ID, if the dictionary has one
+    pub const fn from_id(id: u8) -> Option<Command> {{
+        match id {{
+{from_id}
+            _ => None,
+        }}
+    }}
+
+    /// Command ID on the uplink
+    pub const fn id(self) -> u8 {{
+        self as u8
+    }}
+
+    /// Dictionary name
+    pub const fn name(self) -> &'static str {{
+        match self.c_name().to_str() {{
+            Ok(name) => name,
+            Err(_) => "",
+        }}
+    }}
+
+    /// Dictionary name, NUL-terminated for C
+    pub const fn c_name(self) -> &'static CStr {{
+        match self {{
+{names}
+        }}
+    }}
+
+    /// Argument bounds and authenticating key
+    pub const fn spec(self) -> CommandSpec {{
+        match self {{
+{specs}
+        }}
+    }}
+
+    /// One-line description
+    pub const fn summary(self) -> &'static str {{
+        match self {{
+{summaries}
+        }}
+    }}
+}}
 """
 
 
@@ -166,7 +251,7 @@ COMMANDS: Dict[str, CommandSpec] = {{
 
 def outputs() -> Dict[Path, str]:
     commands = validate(json.loads(SOURCE.read_text()))
-    return {OUT_H: render_h(commands), OUT_C: render_c(commands), OUT_PY: render_python(commands)}
+    return {OUT_H: render_h(commands), OUT_RS: render_rust(commands), OUT_PY: render_python(commands)}
 
 
 def check() -> List[Path]:

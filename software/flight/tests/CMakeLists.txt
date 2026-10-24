@@ -36,10 +36,9 @@ include_directories(
 
 # Source files from main project needed for tests
 set(FLIGHT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_store.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
@@ -61,10 +60,9 @@ enable_testing()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_crc32.c")
     add_executable(test_crc32
         test_crc32.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_crc32 PkgConfig::CMOCKA)
+    # CRC-32 is implemented in Rust (sqso_rust, through flight_test_lib)
+    target_link_libraries(test_crc32 flight_test_lib PkgConfig::CMOCKA)
     target_compile_options(test_crc32 PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME CRC32_Tests COMMAND test_crc32)
     set_tests_properties(CRC32_Tests PROPERTIES
@@ -163,33 +161,20 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/adcs_control.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/assert_handler.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon_filter.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_auth.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_handler.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_dictionary.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/gse_provision.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/ax25.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/uplink.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/contact_monitor.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_silence.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/separation_switch.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/jetson_link.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/gnss.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_store.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/input_validation.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nvm_record.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_control.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/rust_panic.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/safe_string.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/scheduler.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/sha256.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/state_machine.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/system_state.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/telemetry.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
@@ -199,6 +184,8 @@ set(FLIGHT_LIB_SOURCES
 )
 add_library(flight_test_lib STATIC ${FLIGHT_LIB_SOURCES})
 target_compile_options(flight_test_lib PRIVATE ${TEST_COMPILE_OPTIONS})
+# The Rust modules (cmake/rust.cmake); every test linking flight_test_lib gets them
+link_rust(flight_test_lib)
 
 # Module tests: name, label
 set(MODULE_TESTS

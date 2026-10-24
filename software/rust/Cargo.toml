@@ -1,0 +1,59 @@
+# SMART-QSO Rust workspace (see README.md)
+#
+#   sqso-protocol  wire formats on the untrusted-input surface (no_std, no unsafe)
+#   sqso-fsw       flight logic: key table, telecommand admission, state
+#                  machine, scheduler, fault log (no_std, no unsafe)
+#   sqso-ffi       C ABI for the existing C flight software (the only crate
+#                  with unsafe code); a static library linked by CMake
+#   sqso-py        Python bindings of sqso-protocol for the payload and
+#                  ground tools (built with maturin; not a default member)
+
+[workspace]
+resolver = "3"
+members = ["sqso-protocol", "sqso-fsw", "sqso-ffi"]
+default-members = ["sqso-protocol", "sqso-fsw", "sqso-ffi"]
+exclude = ["fuzz"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+repository = "https://github.com/cheesejaguar/SMART-QSO"
+
+[workspace.dependencies]
+sqso-protocol = { path = "sqso-protocol" }
+sqso-fsw = { path = "sqso-fsw" }
+crc = { version = "3.4.0", default-features = false }
+hmac = { version = "0.13.0", default-features = false }
+sha2 = { version = "0.11.1", default-features = false }
+zeroize = { version = "1.9.1", default-features = false }
+
+# Parsers on the uplink must not be able to panic: no indexing that can go
+# out of bounds, no unwrap. Enforced by `cargo clippy -- -D warnings` in CI.
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+indexing_slicing = "deny"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unreachable = "deny"
+todo = "deny"
+unimplemented = "deny"
+cast_possible_truncation = "warn"
+
+[profile.release]
+# Integer overflow is checked in flight builds too: a wrong length can only
+# stop the software (reset), never wrap into an out-of-bounds index (SW-08)
+overflow-checks = true
+debug-assertions = false
+panic = "abort"
+opt-level = "s"
+lto = true
+codegen-units = 1
+
+[profile.dev]
+panic = "abort"

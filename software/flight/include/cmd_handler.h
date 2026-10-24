@@ -23,6 +23,7 @@ extern "C" {
 
 #include "smart_qso.h"
 #include "input_validation.h"
+#include "cmd_dictionary.h"
 #include <stdint.h>
 #include <stdbool.h>
 
@@ -44,58 +45,22 @@ typedef enum {
 } CmdCategory_t;
 
 /**
- * @brief System commands
+ * @brief Command IDs that are reserved but not in the dictionary
+ *
+ * The dictionary IDs (CmdId_t, CMD_SYS_NOP and the rest) are generated into
+ * cmd_dictionary.h from command_dictionary.json, the same source as the
+ * Rust command enum and the ground tools (SW-04). These IDs have no
+ * handler: they are refused before a counter is spent.
  */
 typedef enum {
-    CMD_SYS_NOP         = 0x00,  /**< No operation */
-    CMD_SYS_RESET       = 0x01,  /**< System reset */
-    CMD_SYS_SET_MODE    = 0x02,  /**< Set operational mode */
-    CMD_SYS_GET_STATUS  = 0x03,  /**< Get system status */
-    CMD_SYS_SET_TIME    = 0x04,  /**< Set mission time */
-    CMD_SYS_CLEAR_FAULTS = 0x05, /**< Clear fault log */
-    CMD_SYS_KEY_ROTATE  = 0x06,  /**< Activate a spare telecommand key (recovery key) */
-    CMD_SYS_SET_CONTACT_TIMEOUT = 0x07 /**< Set the loss-of-contact timeout (days) */
-} CmdSystem_t;
-
-/**
- * @brief EPS commands
- */
-typedef enum {
-    CMD_EPS_SET_MODE    = 0x10,  /**< Set power mode */
-    CMD_EPS_ENABLE_HEATER = 0x11, /**< Enable heater */
-    CMD_EPS_DISABLE_HEATER = 0x12, /**< Disable heater */
-    CMD_EPS_GET_TELEMETRY = 0x13  /**< Get EPS telemetry */
-} CmdEps_t;
-
-/**
- * @brief ADCS commands
- */
-typedef enum {
-    CMD_ADCS_SET_MODE   = 0x20,  /**< Set ADCS mode */
-    CMD_ADCS_DETUMBLE   = 0x21,  /**< Start detumble */
-    CMD_ADCS_POINT_SUN  = 0x22,  /**< Point to sun */
-    CMD_ADCS_GET_ATTITUDE = 0x23 /**< Get attitude data */
-} CmdAdcs_t;
-
-/**
- * @brief Communications commands
- */
-typedef enum {
-    CMD_COMM_SET_BEACON = 0x30,  /**< Set beacon parameters */
-    CMD_COMM_TX_ENABLE  = 0x31,  /**< Enable transmitter */
-    CMD_COMM_TX_DISABLE = 0x32,  /**< Disable transmitter */
-    CMD_COMM_SET_POWER  = 0x33   /**< Set TX power */
-} CmdComm_t;
-
-/**
- * @brief Payload commands
- */
-typedef enum {
-    CMD_PLD_ENABLE      = 0x40,  /**< Enable Jetson payload */
-    CMD_PLD_DISABLE     = 0x41,  /**< Disable Jetson payload */
-    CMD_PLD_SEND_DATA   = 0x42,  /**< Send data to payload */
-    CMD_PLD_REQUEST_DATA = 0x43  /**< Request data from payload */
-} CmdPayload_t;
+    CMD_SYS_SET_TIME        = 0x04,  /**< Set mission time */
+    CMD_EPS_ENABLE_HEATER   = 0x11,  /**< Enable heater */
+    CMD_EPS_DISABLE_HEATER  = 0x12,  /**< Disable heater */
+    CMD_ADCS_SET_MODE       = 0x20,  /**< Set ADCS mode */
+    CMD_ADCS_POINT_SUN      = 0x22,  /**< Point to sun */
+    CMD_PLD_SEND_DATA       = 0x42,  /**< Send data to payload */
+    CMD_PLD_REQUEST_DATA    = 0x43   /**< Request data from payload */
+} CmdReserved_t;
 
 /**
  * @brief Command execution result

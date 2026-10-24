@@ -105,35 +105,31 @@ endif()
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 ###############################################################################
+# Rust modules (software/rust): the uplink, telecommand, Jetson-link and
+# content-filter code, as the static library sqso_rust
+###############################################################################
+
+include(${CMAKE_SOURCE_DIR}/cmake/rust.cmake)
+
+###############################################################################
 # Source Files
 ###############################################################################
 
 set(FLIGHT_SOURCES
     src/main.c
     src/eps_control.c
-    src/fault_mgmt.c
+    src/fault_store.c
     src/sensors.c
     src/uart_comm.c
     src/mission_data.c
-    src/crc32.c
     src/time_utils.c
     src/beacon.c
-    src/beacon_filter.c
     src/adcs_control.c
-    src/input_validation.c
     src/safe_string.c
-    src/state_machine.c
     src/system_state.c
-    src/cmd_auth.c
-    src/cmd_handler.c
-    src/cmd_dictionary.c
-    src/gse_provision.c
-    src/ax25.c
-    src/uplink.c
     src/contact_monitor.c
     src/rf_silence.c
     src/separation_switch.c
-    src/jetson_link.c
     src/gnss.c
     src/payload_guard.c
     src/telemetry.c
@@ -141,9 +137,8 @@ set(FLIGHT_SOURCES
     src/watchdog_mgr.c
     src/flight_log.c
     src/deployment.c
-    src/sha256.c
-    src/nvm_record.c
     src/rf_control.c
+    src/rust_panic.c
     src/hal/hal_sim.c
 )
 
@@ -159,7 +154,6 @@ set(FLIGHT_HEADERS
     include/gnss.h
     include/payload_guard.h
     include/adcs_control.h
-    include/input_validation.h
     include/safe_string.h
     include/state_machine.h
     include/system_state.h
@@ -194,6 +188,7 @@ if(SMART_QSO_TARGET STREQUAL "STM32L4")
     list(APPEND TARGET_SOURCES src/hal/hal_stm32l4.c src/hal/stm32l4_clock.c)
     add_library(smart_qso_target STATIC ${TARGET_SOURCES})
     target_compile_definitions(smart_qso_target PRIVATE HAL_TARGET_STM32L4)
+    link_rust(smart_qso_target)
 
     # Linked flight image: vector table and reset handler, newlib system
     # calls (no heap, output discarded), and the main loop. Bare metal, one
@@ -204,7 +199,7 @@ if(SMART_QSO_TARGET STREQUAL "STM32L4")
         src/hal/stm32l4_syscalls.c
     )
     target_compile_definitions(smart_qso_flight.elf PRIVATE HAL_TARGET_STM32L4)
-    target_link_libraries(smart_qso_flight.elf smart_qso_target m)
+    target_link_libraries(smart_qso_flight.elf smart_qso_target sqso_rust m)
     target_link_options(smart_qso_flight.elf PRIVATE
         -T${CMAKE_SOURCE_DIR}/cmake/stm32l4r5zi.ld
         -nostartfiles
@@ -212,6 +207,12 @@ if(SMART_QSO_TARGET STREQUAL "STM32L4")
         -Wl,--gc-sections
         -Wl,-Map=${CMAKE_BINARY_DIR}/smart_qso_flight.map
         -Wl,--print-memory-usage
+        # newlib is built with short enums; the flight code (C and Rust) uses
+        # 32-bit enums, and no enum crosses the newlib interface
+        -Wl,--no-enum-size-warning
+        # Rust objects carry a .note.GNU-stack section and newlib's do not;
+        # say explicitly that the stack is not executable
+        -Wl,-z,noexecstack
     )
     set_target_properties(smart_qso_flight.elf PROPERTIES
         LINK_DEPENDS ${CMAKE_SOURCE_DIR}/cmake/stm32l4r5zi.ld)
@@ -225,7 +226,8 @@ endif()
 
 add_executable(smart_qso_flight ${FLIGHT_SOURCES})
 
-# Link math library
+# Link the Rust modules and the math library
+link_rust(smart_qso_flight)
 target_link_libraries(smart_qso_flight m)
 
 ###############################################################################

@@ -20,8 +20,11 @@ set(CMAKE_RANLIB arm-none-eabi-ranlib)
 # A static library needs no startup code to link the compiler checks
 set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
+# -fno-short-enums: C enums are 32 bits, as on the host and in the Rust
+# modules (software/rust), so struct layouts shared with Rust match the ones
+# the host tests check
 set(CMAKE_C_FLAGS_INIT
-    "-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections")
+    "-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -fno-short-enums -ffunction-sections -fdata-sections")
 
 set(SMART_QSO_TARGET "STM32L4" CACHE STRING "HAL target" FORCE)
 
