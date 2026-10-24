@@ -3,6 +3,6 @@
 # (cargo +nightly fuzz), which overrides this file.
 [toolchain]
 channel = "1.97.0"
-components = ["clippy", "rustfmt"]
+components = ["clippy", "rustfmt", "llvm-tools"]
 targets = ["thumbv7em-none-eabihf"]
 profile = "minimal"

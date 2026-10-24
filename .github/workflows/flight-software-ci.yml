@@ -138,6 +138,33 @@ jobs:
         ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
       run: ctest --test-dir build --output-on-failure
 
+    # Every Rust parser (software/rust/fuzz): 30 s per target on every change;
+    # run longer locally or on a schedule (software/rust/README.md). Any
+    # assertion failure or crash fails the job. libFuzzer builds with
+    # AddressSanitizer, so this is the sanitizer run of the Rust parsers.
+    - name: Nightly toolchain and cargo-fuzz
+      working-directory: software/rust/fuzz
+      run: |
+        rustup toolchain install nightly --profile minimal
+        cargo install cargo-fuzz --locked
+
+    - name: Fuzz every Rust parser
+      working-directory: software/rust/fuzz
+      run: |
+        for target in $(cargo +nightly fuzz list); do
+          echo "::group::$target"
+          cargo +nightly fuzz run -O "$target" -- -max_total_time=30
+          echo "::endgroup::"
+        done
+
+    - name: Upload crashing inputs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: fuzz-artifacts
+        path: software/rust/fuzz/artifacts
+        if-no-files-found: ignore
+
     - name: Run the simulation to completion with sanitizers
       working-directory: software/flight/build
       env:
@@ -190,6 +217,15 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi
         arm-none-eabi-gcc --version
+
+    - name: Rust toolchain (software/rust/rust-toolchain.toml)
+      working-directory: software/rust
+      run: rustup show active-toolchain || rustup toolchain install
+
+    # The same Rust flight code, for the Cortex-M4F (hard float)
+    - name: Rust build for thumbv7em-none-eabihf
+      working-directory: software/rust
+      run: cargo build --release --locked -p sqso-ffi --target thumbv7em-none-eabihf
 
     - name: Configure (cmake/arm-none-eabi-stm32l4.cmake)
       working-directory: software/flight

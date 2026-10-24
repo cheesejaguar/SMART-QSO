@@ -25,10 +25,34 @@ else()
     set(SQSO_CARGO_TARGET_ARGS "")
 endif()
 
+# Coverage (ENABLE_COVERAGE, host only): the Rust library is instrumented
+# for LLVM source-based coverage. rustc adds the profiling runtime only when
+# it does the final link itself; here a C compiler links, so the runtime
+# (the toolchain's profiler_builtins) is added explicitly. Each test then
+# writes $LLVM_PROFILE_FILE; scripts/rust_coverage.sh merges and reports.
+set(SQSO_RUSTFLAGS "")
+add_library(sqso_rust_runtime INTERFACE)
+if(ENABLE_COVERAGE AND NOT SMART_QSO_TARGET STREQUAL "STM32L4")
+    set(SQSO_RUSTFLAGS "RUSTFLAGS=-C instrument-coverage")
+    find_program(RUSTC rustc HINTS "$ENV{CARGO_HOME}/bin" "$ENV{HOME}/.cargo/bin")
+    # Run in the workspace so rust-toolchain.toml selects the pinned toolchain
+    execute_process(COMMAND ${RUSTC} --print sysroot WORKING_DIRECTORY "${SQSO_RUST_DIR}"
+                    OUTPUT_VARIABLE SQSO_RUST_SYSROOT OUTPUT_STRIP_TRAILING_WHITESPACE)
+    execute_process(COMMAND ${RUSTC} --print host-tuple WORKING_DIRECTORY "${SQSO_RUST_DIR}"
+                    OUTPUT_VARIABLE SQSO_RUST_HOST OUTPUT_STRIP_TRAILING_WHITESPACE)
+    file(GLOB SQSO_PROFILER_RT "${SQSO_RUST_SYSROOT}/lib/rustlib/${SQSO_RUST_HOST}/lib/libprofiler_builtins-*.rlib")
+    if(NOT SQSO_PROFILER_RT)
+        message(FATAL_ERROR "Rust coverage: profiler_builtins not found in ${SQSO_RUST_SYSROOT}")
+    endif()
+    target_link_libraries(sqso_rust_runtime INTERFACE ${SQSO_PROFILER_RT})
+    target_link_options(sqso_rust_runtime INTERFACE "LINKER:-u,__llvm_profile_runtime")
+    message(STATUS "  Rust coverage:     on (${SQSO_PROFILER_RT})")
+endif()
+
 # cargo decides what to rebuild, so it runs on every build (a no-op when
 # nothing changed)
 add_custom_target(sqso_rust_build ALL
-    COMMAND ${CMAKE_COMMAND} -E env --unset=MAKEFLAGS --unset=MFLAGS
+    COMMAND ${CMAKE_COMMAND} -E env --unset=MAKEFLAGS --unset=MFLAGS ${SQSO_RUSTFLAGS}
             ${CARGO} build --release --locked -p sqso-ffi ${SQSO_CARGO_TARGET_ARGS}
             --target-dir "${SQSO_CARGO_TARGET_DIR}"
     WORKING_DIRECTORY "${SQSO_RUST_DIR}"
@@ -39,7 +63,8 @@ add_custom_target(sqso_rust_build ALL
 )
 
 add_library(sqso_rust STATIC IMPORTED GLOBAL)
-set_target_properties(sqso_rust PROPERTIES IMPORTED_LOCATION "${SQSO_RUST_LIB}")
+set_target_properties(sqso_rust PROPERTIES IMPORTED_LOCATION "${SQSO_RUST_LIB}"
+                                           INTERFACE_LINK_LIBRARIES sqso_rust_runtime)
 add_dependencies(sqso_rust sqso_rust_build)
 
 # Link the Rust library into <target>, a static library of C flight code or
@@ -55,7 +80,7 @@ function(link_rust target)
         add_library(${rust} STATIC IMPORTED)
         set_target_properties(${rust} PROPERTIES
             IMPORTED_LOCATION "${SQSO_RUST_LIB}"
-            INTERFACE_LINK_LIBRARIES ${target})
+            INTERFACE_LINK_LIBRARIES "${target};sqso_rust_runtime")
         add_dependencies(${rust} sqso_rust_build)
         target_link_libraries(${target} ${rust})
         set_property(TARGET ${target} PROPERTY LINK_INTERFACE_MULTIPLICITY 3)
