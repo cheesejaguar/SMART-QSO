@@ -159,7 +159,7 @@ else()
 endif()
 set(SQSO_SIM_BIN "${SQSO_CARGO_TARGET_DIR}/release/smart_qso_flight")
 add_custom_target(smart_qso_flight ALL
-    COMMAND ${CMAKE_COMMAND} -E env --unset=MAKEFLAGS --unset=MFLAGS
+    COMMAND ${CMAKE_COMMAND} -E env --unset=MAKEFLAGS --unset=MFLAGS ${SQSO_RUSTFLAGS}
             ${CARGO} build --release --locked -p sqso-sim ${SQSO_SIM_FEATURES}
             --target-dir "${SQSO_CARGO_TARGET_DIR}"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SQSO_SIM_BIN}" "${CMAKE_BINARY_DIR}/smart_qso_flight"

@@ -281,3 +281,21 @@ message(STATUS "==================================")
 message(STATUS "Test framework: CMocka ${CMOCKA_VERSION}")
 message(STATUS "Coverage target: ${ENABLE_COVERAGE}")
 message(STATUS "")
+
+#===========================================================================
+# The host simulation end to end: about 20 s of operation (1000 passes of
+# the executive) from the repository root, so sensors.yaml is loaded. It
+# must shut down cleanly. Its persistent files are its own, so it can run
+# beside the other suites. Not in the flight configuration, which runs
+# until stopped.
+#===========================================================================
+if(NOT FLIGHT_BUILD)
+    add_test(NAME Simulation_Run COMMAND ${CMAKE_BINARY_DIR}/smart_qso_flight)
+    set_tests_properties(Simulation_Run PROPERTIES
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/../.."
+        TIMEOUT 120
+        PASS_REGULAR_EXPRESSION "\\[SYSTEM\\] Shutdown complete"
+        FAIL_REGULAR_EXPRESSION "Initialization failed;Rust panic"
+        ENVIRONMENT "SMART_QSO_FAULT_LOG=${CMAKE_BINARY_DIR}/sim_fault_log.dat;SMART_QSO_EPS_CONFIG=${CMAKE_BINARY_DIR}/sim_eps_config.dat;SMART_QSO_MISSION_DATA=${CMAKE_BINARY_DIR}/sim_mission_data.dat;SMART_QSO_STATE_FILE=${CMAKE_BINARY_DIR}/sim_state.dat;SENSORS_YAML=${CMAKE_SOURCE_DIR}/sensors.yaml"
+        LABELS "integration")
+endif()

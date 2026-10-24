@@ -35,7 +35,7 @@ impl Store {
             Store::FaultLog => (Some(c"SMART_QSO_FAULT_LOG"), c"/tmp/fault_log.dat"),
             Store::EpsConfig => (Some(c"SMART_QSO_EPS_CONFIG"), c"/tmp/eps_config.dat"),
             Store::MissionData => (Some(c"SMART_QSO_MISSION_DATA"), c"/tmp/mission_data.dat"),
-            Store::SystemState => (None, c"/tmp/smart_qso_state.dat"),
+            Store::SystemState => (Some(c"SMART_QSO_STATE_FILE"), c"/tmp/smart_qso_state.dat"),
         };
         env.and_then(crate::os::env).unwrap_or(default)
     }

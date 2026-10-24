@@ -56,6 +56,8 @@ done
 # object); the unit-test binaries carry the crates' own test builds
 c_object=$(find "$build/tests" -maxdepth 1 -type f -name 'test_*' -perm -u+x | sort | head -1)
 objects=(-object "$c_object")
+# The host simulation (the executive and sqso-sim), run by ctest Simulation_Run
+[ -x "$build/smart_qso_flight" ] && objects+=(-object "$build/smart_qso_flight")
 for t in "${unit_tests[@]}"; do objects+=(-object "$t"); done
 
 ignore='/\.cargo/registry/|/rustc/|/library/|sqso-py/|/fuzz/|/firmware/|/tests?/|/target/'
