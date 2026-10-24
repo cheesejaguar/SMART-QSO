@@ -945,7 +945,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] `hal_wdt.h` - Watchdog interface (planned as hal_watchdog.h; name corrected by audit 2026-10-16)
   - [x] `hal_flash.h` - Flash storage interface
 
-- [x] **Create Linux HAL implementation**: `software/flight/src/hal/hal_sim.c` (path corrected by audit 2026-10-14)
+- [x] **Create Linux HAL implementation**: `software/rust/sqso-ffi/src/hal_sim.rs` (path corrected by audit 2026-10-14; ported from hal_sim.c to Rust 2026-10-24)
   - [x] Wrap current Linux-specific code
   - [x] Use for development/simulation
 
