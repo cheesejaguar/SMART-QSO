@@ -490,9 +490,10 @@ never started. Code must not use panics for control flow.
   busy-flag cell (§11.8), accessing registers, exporting the HAL functions, and the two factory-calibration reads in
   `firmware/src/adc.rs`.
 - Every `unsafe` block and `unsafe impl` has a `// SAFETY:` comment stating why the operation is sound at that point.
-  Every `unsafe fn` has a `# Safety` section stating the caller's obligations. Review checks both. No lint enforces
-  them.
-- An exported function's pointer contract is the one documented in its C header.
+  A single comment may cover the blocks of one statement, or of one function when it says so (`dispatch` in
+  `software/rust/sqso-ffi/src/cmd_handler.rs`). Every internal `unsafe fn` has a `# Safety` section stating the caller's
+  obligations. Exported `unsafe extern "C"` functions document theirs in the C header instead, which is why `sqso-ffi`
+  allows `clippy::missing_safety_doc`. Review checks both. No lint enforces them (`clippy::undocumented_unsafe_blocks` is not enabled).
 
 ### 11.7 No allocation
 

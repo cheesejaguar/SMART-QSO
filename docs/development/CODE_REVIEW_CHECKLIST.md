@@ -166,7 +166,7 @@ written to the remaining C (the flight-log shim and the test suites).
 | # | Check | Pass | N/A | Comments |
 |---|-------|------|-----|----------|
 | 5.4.1 | `unsafe` only in `sqso-ffi` or the firmware, and only for the purposes in `docs/development/CODING_STANDARDS.md` §11.6 | ☐ | ☐ | |
-| 5.4.2 | Every `unsafe` block has a `// SAFETY:` comment that is true at that point; every `unsafe fn` has a `# Safety` section | ☐ | ☐ | |
+| 5.4.2 | Every `unsafe` block has a `// SAFETY:` comment that is true at that point; every internal `unsafe fn` has a `# Safety` section (exports: the C header) | ☐ | ☐ | |
 | 5.4.3 | Every `#[allow(...)]` gives its reason; `indexing_slicing` allowed only in `const` code | ☐ | ☐ | |
 | 5.4.4 | No borrow of module state (`cell::Global`) is held while calling a callback, the fault log or another module | ☐ | ☐ | |
 | 5.4.5 | A re-entered safety-relevant export fails safe (behaviour change 10 in `software/rust/README.md`) | ☐ | ☐ | |

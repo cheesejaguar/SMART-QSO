@@ -178,6 +178,11 @@ separate Rust jobs were folded into them.
 | Sanitizer Checks | The C suites against the Rust under ASan/UBSan; 30 s of every fuzz target; the simulation run to completion |
 | STM32L4 Cross-Compile (library) | `sqso-ffi` and `sqso-clib` for `thumbv7em-none-eabihf`; firmware rustfmt, clippy and release build; checks of the linked image (entry point, vector table, initial SP, flight symbols present, no `malloc`/`free`/`_sbrk`/`printf`) |
 | Flight Configuration Build, Flight Build Validation | The `FLIGHT_BUILD` configuration (simulation with feature `flight`) |
+| Unit Tests | ctest in a Debug build with a coverage report (the gate is in Build and Test) |
+| Documentation Check | The required software documents exist |
+
+The program checks (`.github/workflows/program-checks.yml`: Payload, Ground and Simulation Tests; Documentation Reference
+Integrity; Secret Scan) run the Python suites on `sqso_protocol` and the repository's document checks.
 
 ### Adding a command
 
@@ -209,8 +214,9 @@ The full standard is the Rust section of `docs/development/CODING_STANDARDS.md`.
 - **`unsafe` only in `sqso-ffi` and the firmware.** `sqso-protocol` and `sqso-fsw` declare `#![forbid(unsafe_code)]`.
   In `sqso-ffi`, `unsafe` turns C pointers into references after a NULL check (`ptr.rs`), calls C and HAL functions, and
   holds each module's state in `cell::Global`. In the firmware it is register access, the exported HAL functions,
-  driver state and the two factory-calibration reads in `adc.rs`. Each `unsafe` block carries a `// SAFETY:` comment,
-  which review checks. No lint enforces it.
+  driver state and the two factory-calibration reads in `adc.rs`. Each `unsafe` block is covered by a `// SAFETY:` comment.
+  In `dispatch` (`cmd_handler.rs`), one comment at the top covers all of the function's calls. Review checks this; no
+  lint enforces it. A scan on 2026-10-24 found all 415 `unsafe` blocks and impls covered.
 - **Module state in a busy-flag cell.** `cell::Global` hands out one `&mut` at a time. A nested call into the same
   module, from a C callback or an interrupt, gets "busy" instead of a second, aliasing reference (behaviour changes 3
   and 10).
