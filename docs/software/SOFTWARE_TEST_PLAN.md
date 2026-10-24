@@ -102,8 +102,8 @@ Test) gates line coverage:
 
 | Gate | Measured with | Minimum | Measured 2026-10-24 |
 |------|---------------|---------|---------------------|
-| Rust flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`): C suites and Rust unit tests together | LLVM source-based coverage (`software/flight/scripts/rust_coverage.sh`) | 90 % of lines | 92.1 % |
-| Flight software, C (`software/flight/src`, gcovr) and Rust together | gcovr and llvm-cov | 80 % of lines | 90.0 % |
+| Rust flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`): C suites and Rust unit tests together | LLVM source-based coverage (`software/flight/scripts/rust_coverage.sh`) | 90 % of lines | 92.2 % |
+| Flight software, C (`software/flight/src`, gcovr) and Rust together | gcovr and llvm-cov | 80 % of lines | 92.2 % |
 
 Branch coverage is neither measured nor gated yet, so the 75 % branch target above has no evidence. lcov is no longer
 used: gcovr counts sources that no test runs, and lcov did not.
@@ -128,8 +128,8 @@ used: gcovr counts sources that no test runs, and lcov did not.
 - **Coverage**: lcov/gcov
 - **Mocking**: CMocka mock functions
 
-**As implemented (Version 1.1).** The CMocka suites in `software/flight/tests` (42 suites, 630 cases, plus the
-`no_dynamic_memory` check: 43 ctest entries) are the specification of the flight software. They run unchanged against
+**As implemented (Version 1.1).** The CMocka suites in `software/flight/tests` (42 suites, 631 cases, plus the
+`no_dynamic_memory` check and the `Simulation_Run` host simulation: 44 ctest entries) are the specification of the flight software. They run unchanged against
 the Rust library through the C headers. The HAL is the simulated HAL `software/rust/sqso-ffi/src/hal_sim.rs`, whose
 `hal_sim_*` hooks inject inputs and faults; there is no `mocks/` directory. In addition:
 

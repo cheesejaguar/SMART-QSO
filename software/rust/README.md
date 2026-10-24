@@ -235,11 +235,11 @@ The full standard is the Rust section of `docs/development/CODING_STANDARDS.md`.
 
 Measured 2026-10-24.
 
-- **The C suites as the specification.** 43 ctest entries: 42 CMocka suites with 630 `cmocka_unit_test` cases, and
-  the `no_dynamic_memory` check. They run unchanged against the Rust on the host, under AddressSanitizer and UBSan,
-  and with the simulation.
-- **Coverage.** Rust line coverage is 92.1 %, from the C suites plus the 197 Rust unit tests (gate 90 %). Flight-software
-  line coverage, C and Rust together, is 90.0 % (gate 80 %).
+- **The C suites as the specification.** 44 ctest entries: 42 CMocka suites with 631 `cmocka_unit_test` cases, the
+  `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
+  unchanged against the Rust on the host and under AddressSanitizer and UBSan.
+- **Coverage.** Rust line coverage is 92.2 %, from the C suites plus the 292 Rust unit tests (gate 90 %). Flight-software
+  line coverage, C and Rust together, is 92.2 % (gate 80 %).
 - **Same simulation output.** The host simulation prints the same 256 lines as the C build, apart from timestamps and
   the order of one sensor read.
 - **Differential tests against the former C.** One-off harnesses, not kept in the tree, linked the C files each port
@@ -255,7 +255,18 @@ Measured 2026-10-24.
   the HMAC verification). `ctutils` was updated to 0.4.5.
 - **The Python suites** (payload and ground) pass on `sqso_protocol`. Their golden lines and frames are the ones the C
   suites check.
-- **Mutation testing:** see `software/rust/mutants/`.
+- **Mutation testing.** The C mutation checks were repeated on the Rust code, with cargo-mutants 27.1 (Rust unit
+  tests, then each surviving mutant against the C suites with `mutants/ctest_missed.py`):
+
+  | Scope | Mutants | Caught | Missed | Unviable | Timeout |
+  |---|---|---|---|---|---|
+  | `sqso-protocol` | 498 | 433 | 9 | 53 | 3 |
+  | `sqso-fsw` | 2180 | 1991 | 35 | 153 | 1 |
+  | Targeted (the mutations the C commits and audit rows record) | 106 | 106 | 0 | 0 | 0 |
+
+  Every remaining survivor is argued equivalent, one by one, in `mutants/RESULTS-*.md`. None is in the key table,
+  telecommand authentication, mode manager, RF control, RF silence, contact monitor, payload guard, EPS, watchdog or
+  fault log.
 
 ### Behaviour changes from the C
 

@@ -172,8 +172,8 @@ Safety-critical software (Class B and C) requires:
 - 100% statement coverage
 - 100% branch coverage
 
-Status (2026-10-24): CI measures and gates line coverage only: the Rust flight crates at ≥ 90 % (92.1 % measured) and
-the flight software C and Rust together at ≥ 80 % (90.0 %). Branch coverage is not measured, and no coverage of the
+Status (2026-10-24): CI measures and gates line coverage only: the Rust flight crates at ≥ 90 % (92.2 % measured) and
+the flight software C and Rust together at ≥ 80 % (92.2 %). Branch coverage is not measured, and no coverage of the
 safety-critical functions has been measured separately. The 100 % targets above have no evidence yet.
 - Fault injection testing for all identified fault conditions
 - Boundary value testing for all safety parameters
@@ -214,7 +214,7 @@ As implemented (2026-10-24), for the Rust flight software: the coding standard i
 §11 (MISRA C applies only to the remaining C shim). The JPL rules are mapped to the Rust in
 `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1. Static analysis is clippy with warnings as errors, the
 `#![forbid(unsafe_code)]` check, CodeQL and `cargo audit`, plus cppcheck and clang-tidy on the remaining C. Every parser
-is fuzzed in CI. The CMocka suites run unchanged against the Rust, together with 197 Rust unit tests. Safety-relevant
+is fuzzed in CI. The CMocka suites run unchanged against the Rust, together with 292 Rust unit tests. Safety-relevant
 modules fail safe when re-entered: TX-OFF still drives the transmitter enable low, the RF silence reads as active, and
 the payload guard trips (`software/rust/README.md`, behaviour change 10).
 | Configuration management | Git, tagged releases |

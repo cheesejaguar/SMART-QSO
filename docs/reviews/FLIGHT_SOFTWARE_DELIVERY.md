@@ -131,8 +131,8 @@ Every figure below comes from a CI configuration or a file in the repository, or
 
 | Item | Value | Evidence |
 |------|-------|----------|
-| Unit tests | **42 CMocka suites, 630 test cases**, plus `no_dynamic_memory`: 43 ctest entries, run unchanged against the Rust. In addition, 197 Rust unit tests | `software/flight/tests/CMakeLists.txt`; `software/flight/tests/README.md` |
-| Line coverage | Rust flight crates **92.1 %** (CI fails below 90 %); C and Rust together **90.0 %** (CI fails below 80 %). Branch and MC/DC coverage are not measured | `.github/workflows/ci.yml`, job "Build and Test" |
+| Unit tests | **42 CMocka suites, 631 test cases**, plus `no_dynamic_memory` and the `Simulation_Run` host simulation: 44 ctest entries, run unchanged against the Rust. In addition, 292 Rust unit tests | `software/flight/tests/CMakeLists.txt`; `software/flight/tests/README.md` |
+| Line coverage | Rust flight crates **92.2 %** (CI fails below 90 %); C and Rust together **92.2 %** (CI fails below 80 %). Branch and MC/DC coverage are not measured | `.github/workflows/ci.yml`, job "Build and Test" |
 | Static analysis | clippy with warnings as errors (host and Cortex-M4F); clang-tidy **0**, MISRA addon **42**, functions over 60 lines **0** in the remaining C; CodeQL (Rust, C/C++); `cargo audit` (RUSTSEC-2026-0385 fixed by ctutils 0.4.5) | `software/flight/quality/`; jobs "Static Analysis", "MISRA C:2012 Check", "Security Scan" |
 | Fuzzing | 11 targets, 30 s each per CI run | Job "Sanitizer Checks" |
 | Equivalence with the former C | Simulation output identical (256 lines); differential tests on 8.3 million protocol inputs and on sensors, GNSS, safe strings, flight log and assertion handler | `software/rust/README.md`, section Evidence |

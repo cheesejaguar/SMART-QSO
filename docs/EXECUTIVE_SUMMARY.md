@@ -42,7 +42,7 @@ a conventional transponder and template beacon.
 |------|--------|
 | Hardware | **None built or procured** |
 | Design reviews (SRR/PDR/CDR) | **No independent review held.** Existing records are internal self-assessments generated on 2026-01-02 |
-| Flight software | Rust (2026-10-24; `software/rust/README.md`): a host simulation and an STM32L4R5ZI image on the Embassy executor that CI builds and checks but no hardware has run. 42 C test suites (630 cases) run against it, with 197 Rust unit tests and 11 fuzz targets. Line coverage 92.1 % (Rust) and 90.0 % (C and Rust together), counting every compiled line (CI, 2026-10-24). On 2026-10-16 it was C: 40 suites (596 cases) and 82.7 % |
+| Flight software | Rust (2026-10-24; `software/rust/README.md`): a host simulation and an STM32L4R5ZI image on the Embassy executor that CI builds and checks but no hardware has run. 42 C test suites (631 cases) run against it, with 292 Rust unit tests and 11 fuzz targets. Line coverage 92.2 % (Rust) and 92.2 % (C and Rust together), counting every compiled line (CI, 2026-10-24). On 2026-10-16 it was C: 40 suites (596 cases) and 82.7 % |
 | Payload / ground software | Python; 143 payload and 98 ground unit tests pass in CI |
 | Regulatory filings | **None submitted.** Drafts exist for the IARU request, FCC Part 97 pre-space notification, ITU Appendix 4 data and ODAR |
 | Launch | **Not contracted.** Trade study recommends a commercial SSO rideshare in 2028 |

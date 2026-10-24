@@ -5,8 +5,8 @@ The CMocka suites in this directory are the specification of the flight software
 in `software/flight/include`, which are the C ABI of the Rust modules. They run on the host, on the simulated HAL
 (`software/rust/sqso-ffi/src/hal_sim.rs`). They use the [CMocka](https://cmocka.org) framework.
 
-There are 43 ctest entries: 42 CMocka suites with 630 `cmocka_unit_test` cases, and the `no_dynamic_memory` check
-(2026-10-24).
+There are 44 ctest entries: 42 CMocka suites with 631 `cmocka_unit_test` cases, the `no_dynamic_memory` check, and
+`Simulation_Run`, the host simulation, which must reach a clean shutdown (2026-10-24).
 
 ## Running them
 
@@ -69,9 +69,9 @@ A change to existing behaviour belongs in the Rust and, when deliberate, in the 
 CI (job Build and Test) runs two gates:
 
 - **Rust**: line coverage of the flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`), from these suites and the
-  Rust unit tests together, must not fall below `RUST_COVERAGE_MIN_LINE` (90 %). It was 92.1 % on 2026-10-24.
+  Rust unit tests together, must not fall below `RUST_COVERAGE_MIN_LINE` (90 %). It was 92.2 % on 2026-10-24.
 - **Flight software**: the C in `src/` (gcovr) and the Rust together must not fall below `COVERAGE_MIN_LINE` (80 %). It
-  was 90.0 % on 2026-10-24.
+  was 92.2 % on 2026-10-24.
 
 To reproduce:
 

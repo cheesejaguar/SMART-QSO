@@ -75,8 +75,8 @@ the current source, and `software/rust/README.md` maps every former C file to it
 | test_crc32 | test_crc32.c | 5 | CRC validation |
 
 The table above is the 0.2.0 skeleton (history; `test_main.c` was removed on 2026-10-16). On 2026-10-24 there are 42
-CMocka suites with 630 cases, and 43 ctest entries with `no_dynamic_memory`, in `software/flight/tests`. They run
-against the Rust. There are also 197 Rust unit tests (`sqso-protocol` 37, `sqso-fsw` 160) and 11 fuzz targets.
+CMocka suites with 631 cases, and 44 ctest entries with `no_dynamic_memory` and `Simulation_Run`, in `software/flight/tests`. They run
+against the Rust. There are also 292 Rust unit tests (`sqso-protocol` 37, `sqso-fsw` 160) and 11 fuzz targets.
 
 ### 3.3 Configuration Files
 
@@ -221,8 +221,8 @@ updating to 0.4.5.
 | Branch | 70% | TBD |
 | Function | 100% | TBD |
 
-Measured 2026-10-24 (CI job Build and Test): line coverage of the Rust flight crates is 92.1 % (gate 90 %), and of the
-flight software C and Rust together 90.0 % (gate 80 %). Line coverage is not statement coverage. Branch and function
+Measured 2026-10-24 (CI job Build and Test): line coverage of the Rust flight crates is 92.2 % (gate 90 %), and of the
+flight software C and Rust together 92.2 % (gate 80 %). Line coverage is not statement coverage. Branch and function
 coverage are not measured, so the table above is left as it was.
 
 ## 7. Known Issues

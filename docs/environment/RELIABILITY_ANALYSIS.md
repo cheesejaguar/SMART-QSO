@@ -312,7 +312,7 @@ until total system failure.
 
 Note (2026-10-24): the two "Yes" entries are not supported by any tool output. The flight software is Rust
 (`software/rust/README.md`). MISRA C applies only to the remaining C shim, which has 42 findings from the cppcheck addon
-(`software/flight/docs/MISRA_DEVIATIONS.md`), and cyclomatic complexity is not measured. Line coverage was 90.0 %, C and
+(`software/flight/docs/MISRA_DEVIATIONS.md`), and cyclomatic complexity is not measured. Line coverage was 92.2 %, C and
 Rust together, on 2026-10-24.
 
 ## 10. Reliability Summary
