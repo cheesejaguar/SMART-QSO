@@ -153,4 +153,20 @@ mod tests {
         assert!(encode(1, &[0u8; 250], &mut out).is_ok());
         assert_eq!(encode(1, &[0u8; 10], &mut [0u8; 15]), Err(EncodeError));
     }
+
+    #[test]
+    fn longest_frame_is_accepted() {
+        let (buf, n) = frame(0x41, &[0x5A; MAX_LEN - HEADER_LEN - CHECKSUM_LEN]);
+        assert_eq!(n, MAX_LEN);
+        assert_eq!(parse(&buf[..n]).map(|f| (f.cmd_id, f.payload.len())), Ok((0x41, 250)));
+    }
+
+    #[test]
+    fn error_names_the_command_once_the_header_is_read() {
+        assert_eq!(FrameError::TooShort.cmd_id(), None);
+        assert_eq!(FrameError::TooLong.cmd_id(), None);
+        assert_eq!(FrameError::Sync.cmd_id(), None);
+        assert_eq!(parse(&[0xAA, 0x55, 7, 1, 0, 0]).unwrap_err().cmd_id(), Some(7));
+        assert_eq!(parse(&[0xAA, 0x55, 0x41, 0, 0, 0]).unwrap_err().cmd_id(), Some(0x41));
+    }
 }

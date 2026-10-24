@@ -528,4 +528,212 @@ mod tests {
         assert_eq!(rx.feed(b'\n'), Some(Err(LinkError::Format)));
         assert_eq!(rx.feed(b'\n'), Some(Ok(&b""[..])));
     }
+
+    /// `body,<CRC>\n` without any of the builders' checks
+    fn raw_line(body: &[u8], out: &mut [u8]) -> usize {
+        let crc = crc16_ccitt_false(body);
+        let n = body.len();
+        out[..n].copy_from_slice(body);
+        out[n] = b',';
+        for (i, shift) in [12u16, 8, 4, 0].into_iter().enumerate() {
+            out[n + 1 + i] = HEX[usize::from((crc >> shift) & 0xF)];
+        }
+        out[n + CRC_FIELD] = b'\n';
+        n + SEAL_LEN
+    }
+
+    #[test]
+    fn icd_golden_lines() {
+        // ICD_OBC_JETSON.md §4.3
+        let golden = |expected: &[u8], (b, n): ([u8; LINE_MAX], usize)| assert_eq!(&b[..n], expected);
+        golden(
+            b"TELEMETRY,1704153600000,SUNLIT,0.750,2,3.0,BV=8.1,EPS_PAYLOAD=ON,9C86\n",
+            line(|o| seal(b"TELEMETRY,1704153600000,SUNLIT,0.750,2,3.0,BV=8.1,EPS_PAYLOAD=ON", o)),
+        );
+        golden(b"BEACON_REQ,42,176,5593\n", line(|o| beacon_req(42, 176, o)));
+        golden(b"BEACON_RSP,42,Hello, world from orbit,0784\n", line(|o| beacon_rsp(42, "Hello, world from orbit", o)));
+        let s = Status { health: 0, temp_c: 45, power_mw: 6800, mem_pct: 37, uptime_s: 1234 };
+        golden(b"STATUS,0,45,6800,37,1234,D775\n", line(|o| status(&s, o)));
+        golden(b"STATUS_REQ,5D03\n", line(status_req));
+        golden(b"SHUTDOWN,POWER,05D4\n", line(|o| shutdown("POWER", o)));
+        golden(b"ACK,BEACON_RSP,275C\n", line(|o| ack("BEACON_RSP", o)));
+        golden(b"NACK,CRC,49EE\n", line(|o| nack("CRC", o)));
+        assert_eq!(parse_from_obc(b"STATUS_REQ,5D03\n"), Ok(FromObc::StatusReq));
+        assert_eq!(parse_from_jetson(b"NACK,CRC,49EE\n"), Ok(FromJetson::Nack("CRC")));
+    }
+
+    #[test]
+    fn line_length_limit() {
+        // At most 512 bytes, including the CRC field and the LF
+        let body_max = LINE_MAX - SEAL_LEN;
+        let mut buf = [b'A'; LINE_MAX + 8];
+        assert_eq!(seal_in_place(&mut buf, body_max), Some(LINE_MAX));
+        assert_eq!(check(&buf[..LINE_MAX]).map(<[u8]>::len), Ok(body_max));
+        let mut buf = [b'A'; LINE_MAX + 8];
+        assert_eq!(seal_in_place(&mut buf, body_max + 1), None);
+        let n = raw_line(&[b'A'; LINE_MAX - SEAL_LEN + 1], &mut buf);
+        assert_eq!(n, LINE_MAX + 1);
+        assert_eq!(check(&buf[..n]), Err(LinkError::Format));
+        assert_eq!(check(&buf[..n - 1]), Err(LinkError::Format)); // without the LF
+    }
+
+    #[test]
+    fn seal_refuses_empty_and_out_of_buffer_messages() {
+        assert_eq!(seal_in_place(&mut [b'A'; 16], 0), None);
+        assert_eq!(seal_in_place(&mut [b'A'; 4], 10), None);
+        assert_eq!(seal_in_place(&mut [b'A'; 16], 10), Some(16));
+    }
+
+    #[test]
+    fn shortest_line_has_a_one_byte_body() {
+        let (b, n) = line(|o| seal(b"x", o));
+        assert_eq!(n, 7);
+        assert_eq!(check(&b[..n]), Ok(&b"x"[..]));
+        assert_eq!(check(&b[..n - 1]), Ok(&b"x"[..]));
+    }
+
+    #[test]
+    fn non_printable_line_is_malformed() {
+        let mut buf = [0u8; 32];
+        let n = raw_line(b"ACK,A\x01B", &mut buf);
+        assert_eq!(check(&buf[..n]), Err(LinkError::Format));
+        let n = raw_line(b"ACK,\xC3\xA9", &mut buf);
+        assert_eq!(check(&buf[..n]), Err(LinkError::Format));
+        let n = raw_line(b"ACK,AB", &mut buf);
+        assert_eq!(check(&buf[..n]), Ok(&b"ACK,AB"[..]));
+    }
+
+    #[test]
+    fn empty_numeric_field_is_malformed() {
+        let (b, n) = line(|o| seal(b"BEACON_REQ,,5", o));
+        assert_eq!(parse_from_obc(&b[..n]), Err(LinkError::Format));
+        let (b, n) = line(|o| seal(b"STATUS,0,,0,0,0", o));
+        assert_eq!(parse_from_jetson(&b[..n]), Err(LinkError::Format));
+    }
+
+    #[test]
+    fn one_field_messages_take_1_to_text_max_characters() {
+        let long = [b'A'; TEXT_MAX + 1];
+        let max = core::str::from_utf8(&long[..TEXT_MAX]).unwrap();
+        let over = core::str::from_utf8(&long).unwrap();
+        let (b, n) = line(|o| ack(max, o));
+        assert_eq!(parse_from_jetson(&b[..n]), Ok(FromJetson::Ack(max)));
+        let (b, n) = line(|o| nack(max, o));
+        assert_eq!(parse_from_jetson(&b[..n]), Ok(FromJetson::Nack(max)));
+        let (b, n) = line(|o| shutdown(max, o));
+        assert_eq!(parse_from_obc(&b[..n]), Ok(FromObc::Shutdown(max)));
+        let mut out = [0u8; LINE_MAX];
+        for text in ["", over, "a,b"] {
+            assert_eq!(ack(text, &mut out), Err(LinkError::Format));
+            assert_eq!(nack(text, &mut out), Err(LinkError::Format));
+            assert_eq!(shutdown(text, &mut out), Err(LinkError::Format));
+        }
+        let (b, n) = line(|o| seal(b"ACK,", o));
+        assert_eq!(parse_from_jetson(&b[..n]), Err(LinkError::Format));
+        let mut body = [b'A'; 5 + TEXT_MAX + 1];
+        body[..5].copy_from_slice(b"NACK,");
+        let (b, n) = line(|o| seal(&body, o));
+        assert_eq!(parse_from_jetson(&b[..n]), Err(LinkError::Format));
+        let (b, n) = line(|o| seal(&body[..body.len() - 1], o));
+        assert_eq!(parse_from_jetson(&b[..n]), Ok(FromJetson::Nack(max)));
+    }
+
+    #[test]
+    fn beacon_text_takes_1_to_text_max_characters() {
+        let long = [b'B'; TEXT_MAX + 1];
+        let max = core::str::from_utf8(&long[..TEXT_MAX]).unwrap();
+        let over = core::str::from_utf8(&long).unwrap();
+        let (b, n) = line(|o| beacon_rsp(9, max, o));
+        assert_eq!(parse_from_jetson(&b[..n]), Ok(FromJetson::BeaconRsp { seq: 9, text: max }));
+        let mut out = [0u8; LINE_MAX];
+        assert_eq!(beacon_rsp(9, over, &mut out), Err(LinkError::Format));
+        assert_eq!(beacon_rsp(9, "", &mut out), Err(LinkError::Format));
+        let mut body = [b'B'; 13 + TEXT_MAX + 1];
+        body[..13].copy_from_slice(b"BEACON_RSP,9,");
+        let (b, n) = line(|o| seal(&body, o));
+        assert_eq!(parse_from_jetson(&b[..n]), Err(LinkError::Format));
+        let (b, n) = line(|o| seal(b"BEACON_RSP,9,", o));
+        assert_eq!(parse_from_jetson(&b[..n]), Err(LinkError::Format));
+    }
+
+    #[test]
+    fn beacon_req_max_len_is_1_to_text_max() {
+        let (b, n) = line(|o| beacon_req(7, 1, o));
+        assert_eq!(parse_from_obc(&b[..n]), Ok(FromObc::BeaconReq { seq: 7, max_len: 1 }));
+        assert_eq!(beacon_req(7, 177, &mut [0u8; 64]), Err(LinkError::Format));
+        assert_eq!(beacon_req(7, u8::MAX, &mut [0u8; 64]), Err(LinkError::Format));
+    }
+
+    #[test]
+    fn status_fields_in_range() {
+        let max = Status { health: 3, temp_c: 200, power_mw: 100_000, mem_pct: 100, uptime_s: u32::MAX };
+        let min = Status { health: 0, temp_c: -128, power_mw: 0, mem_pct: 0, uptime_s: 0 };
+        for s in [max, min] {
+            let (b, n) = line(|o| status(&s, o));
+            assert_eq!(parse_from_jetson(&b[..n]), Ok(FromJetson::Status(s)));
+        }
+        let out_of_range = [
+            Status { health: 4, ..max },
+            Status { temp_c: 201, ..max },
+            Status { temp_c: -129, ..min },
+            Status { power_mw: 100_001, ..max },
+            Status { mem_pct: 101, ..max },
+        ];
+        for s in out_of_range {
+            assert_eq!(status(&s, &mut [0u8; LINE_MAX]), Err(LinkError::Format), "{s:?}");
+        }
+    }
+
+    #[test]
+    fn status_req_takes_no_fields() {
+        let (b, n) = line(status_req);
+        assert_eq!(parse_from_obc(&b[..n]), Ok(FromObc::StatusReq));
+        let (b, n) = line(|o| seal(b"STATUS_REQ,x", o));
+        assert_eq!(parse_from_obc(&b[..n]), Err(LinkError::Format));
+        let (b, n) = line(|o| seal(b"STATUS_REQ,", o));
+        assert_eq!(parse_from_obc(&b[..n]), Err(LinkError::Format));
+    }
+
+    #[test]
+    fn telemetry_in_eclipse() {
+        let (b, n) = line(|o| seal(b"TELEMETRY,5,ECLIPSE,0.25,0,1.5", o));
+        let Ok(FromObc::Telemetry(t)) = parse_from_obc(&b[..n]) else { panic!() };
+        assert_eq!((t.time_ms, t.sunlit, t.soc, t.power_mode, t.power_limit_w), (5, false, 0.25, 0, 1.5));
+        assert_eq!(t.extras().next(), None);
+    }
+
+    #[test]
+    fn rx_holds_a_line_of_line_max_with_its_newline() {
+        let mut rx = LineRx::new();
+        for _ in 0..LINE_MAX - 1 {
+            assert!(rx.feed(b'A').is_none());
+        }
+        assert_eq!(rx.feed(b'\n').map(|r| r.map(<[u8]>::len)), Some(Ok(LINE_MAX - 1)));
+        for _ in 0..LINE_MAX {
+            assert!(rx.feed(b'A').is_none());
+        }
+        assert_eq!(rx.feed(b'\n'), Some(Err(LinkError::Format)));
+        assert_eq!(rx.feed(b'\n'), Some(Ok(&b""[..])));
+    }
+
+    #[test]
+    fn rx_reset_forgets_a_partial_or_overlong_line() {
+        let mut rx = LineRx::default();
+        for byte in b"partial" {
+            assert!(rx.feed(*byte).is_none());
+        }
+        rx.reset();
+        for byte in b"OK" {
+            assert!(rx.feed(*byte).is_none());
+        }
+        assert_eq!(rx.feed(b'\n'), Some(Ok(&b"OK"[..])));
+        for _ in 0..LINE_MAX {
+            assert!(rx.feed(b'A').is_none());
+        }
+        rx.reset();
+        for byte in b"OK" {
+            assert!(rx.feed(*byte).is_none());
+        }
+        assert_eq!(rx.feed(b'\n'), Some(Ok(&b"OK"[..])));
+    }
 }
