@@ -233,4 +233,26 @@ mod tests {
         write!(s, "{:?}", KEY).unwrap();
         assert_eq!(s.len(), "Key(..)".len());
     }
+
+    #[test]
+    fn key_from_slice_takes_exactly_key_size_bytes() {
+        let key = Key::from_slice(&[0x42; KEY_SIZE]).unwrap();
+        assert_eq!(key.expose(), KEY.expose());
+        assert!(Key::from_slice(&[0x42; KEY_SIZE - 1]).is_none());
+        assert!(Key::from_slice(&[0x42; KEY_SIZE + 1]).is_none());
+    }
+
+    #[test]
+    fn built_frame_carries_the_authenticated_payload() {
+        // sync | cmd_id | len | counter | args | tag | sum16 (SQSO-ICD-013 §3)
+        let mut out = [0u8; frame::MAX_LEN];
+        let n = build_frame(&KEY, 0x02, 7, &[1], &mut out).unwrap();
+        assert_eq!(n, frame::HEADER_LEN + OVERHEAD + 1 + frame::CHECKSUM_LEN);
+        let f = frame::parse(&out[..n]).unwrap();
+        assert_eq!(f.cmd_id, 0x02);
+        let block = split(f.payload).unwrap();
+        assert_eq!((block.counter, block.args), (7, &[1u8][..]));
+        assert!(verify(&KEY, 0x02, &block));
+        assert_eq!(build_frame(&KEY, 0x02, 7, &[1], &mut out[..n - 1]), Err(BuildError::Space));
+    }
 }

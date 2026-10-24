@@ -273,4 +273,72 @@ mod tests {
         let n = kiss_encode(&[0xC0, 0x01, 0xDB], 1, &mut out).unwrap();
         assert_eq!(&out[..n], &[0xC0, 0x10, 0xDB, 0xDC, 0x01, 0xDB, 0xDD, 0xC0]);
     }
+
+    #[test]
+    fn shortest_frame_has_an_empty_information_field() {
+        // Two addresses, control, PID and FCS: 18 bytes
+        let (buf, n) = ui(b"");
+        assert_eq!(n, 18);
+        let frame = parse_ui(&buf[..n]).unwrap();
+        assert!(frame.info.is_empty());
+        assert!(address_matches(frame.src, b"N0CALL", 0));
+    }
+
+    #[test]
+    fn digipeater_and_empty_information_field() {
+        let mut buf = [0u8; 25];
+        buf[..7].copy_from_slice(&encode_address(b"KK6GDB", 11, false));
+        buf[7..14].copy_from_slice(&encode_address(b"N0CALL", 0, false));
+        buf[14..21].copy_from_slice(&encode_address(b"RELAY", 1, true));
+        buf[21] = CTRL_UI;
+        buf[22] = PID_NO_L3;
+        let sum = fcs(&buf[..23]).to_le_bytes();
+        buf[23..].copy_from_slice(&sum);
+        let frame = parse_ui(&buf).unwrap();
+        assert_eq!(frame.digipeaters, &encode_address(b"RELAY", 1, true)[..]);
+        assert!(frame.info.is_empty());
+    }
+
+    #[test]
+    fn address_field_running_into_the_fcs_is_malformed() {
+        // Three entries fill 21 bytes, but a 22-byte frame has 20 before its
+        // FCS: the third entry's SSID byte (end bit set) is the first FCS byte
+        let mut tested = 0;
+        for last in (0..=0xFEu8).step_by(2) {
+            let mut buf = [0u8; 22];
+            buf[..7].copy_from_slice(&encode_address(b"KK6GDB", 11, false));
+            buf[7..14].copy_from_slice(&encode_address(b"N0CALL", 0, false));
+            buf[14..20].copy_from_slice(&encode_address(b"RELAY", 0, false)[..6]);
+            buf[19] = last;
+            let sum = fcs(&buf[..20]).to_le_bytes();
+            buf[20..].copy_from_slice(&sum);
+            if buf[20] & END_OF_ADDRESS == 0 {
+                continue;
+            }
+            assert_eq!(parse_ui(&buf), Err(Ax25Error::Format));
+            tested += 1;
+        }
+        assert!(tested > 0);
+    }
+
+    #[test]
+    fn ssid_15_is_the_highest() {
+        assert_eq!(Station::parse("KK6GDB-15"), Ok(Station { call: "KK6GDB", ssid: 15 }));
+        assert_eq!(Station::parse("A-0"), Ok(Station { call: "A", ssid: 0 }));
+    }
+
+    #[test]
+    fn longest_frame_is_max_frame_len() {
+        let mut out = [0u8; MAX_FRAME_LEN + 8];
+        let info = [b'x'; MAX_FRAME_LEN - 2 * ADDR_LEN - 2 - FCS_LEN];
+        assert_eq!(encode_ui(US, GROUND, &info, true, &mut out), Ok(MAX_FRAME_LEN));
+        assert_eq!(parse_ui(&out[..MAX_FRAME_LEN]).map(|f| f.info.len()), Ok(info.len()));
+        let info = [b'x'; MAX_FRAME_LEN - 2 * ADDR_LEN - 2 - FCS_LEN + 1];
+        assert_eq!(encode_ui(US, GROUND, &info, true, &mut out), Err(EncodeError));
+        // Without the FCS the information field may be two bytes longer
+        let info = [b'x'; MAX_FRAME_LEN - 2 * ADDR_LEN - 2];
+        assert_eq!(encode_ui(US, GROUND, &info, false, &mut out), Ok(MAX_FRAME_LEN));
+        let info = [b'x'; MAX_FRAME_LEN - 2 * ADDR_LEN - 1];
+        assert_eq!(encode_ui(US, GROUND, &info, false, &mut out), Err(EncodeError));
+    }
 }

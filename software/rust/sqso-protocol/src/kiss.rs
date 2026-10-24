@@ -163,4 +163,15 @@ mod tests {
         let (out, len) = decode_all(&mut d, &[0x00, 0x43, FEND]).unwrap();
         assert_eq!(&out[..len], b"C");
     }
+
+    #[test]
+    fn port_is_the_high_nibble_of_the_command_byte() {
+        let mut d = Decoder::<16>::new(1);
+        assert!(decode_all(&mut d, &[FEND, 0x00, 0x41, FEND]).is_none()); // port 0
+        let (out, len) = decode_all(&mut d, &[FEND, 0x10, 0x42, FEND]).unwrap();
+        assert_eq!(&out[..len], b"B");
+        let mut d = Decoder::<16>::new(15);
+        let (out, len) = decode_all(&mut d, &[FEND, 0xF0, 0x43, FEND]).unwrap();
+        assert_eq!(&out[..len], b"C");
+    }
 }

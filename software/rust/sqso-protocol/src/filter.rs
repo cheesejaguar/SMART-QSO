@@ -331,4 +331,55 @@ mod tests {
         assert_eq!(check(b"de W1AW"), Verdict::Callsign);
         assert_eq!(check(b"Hello\0"), Verdict::Charset);
     }
+
+    #[test]
+    fn from_raw_inverts_the_c_value() {
+        let all = [
+            Verdict::Ok,
+            Verdict::Length,
+            Verdict::Charset,
+            Verdict::Encoded,
+            Verdict::Numeric,
+            Verdict::Callsign,
+            Verdict::Profanity,
+            Verdict::Commercial,
+        ];
+        for (raw, verdict) in (0u32..).zip(all) {
+            assert_eq!(Verdict::from_raw(raw), Some(verdict));
+        }
+        assert_eq!(Verdict::from_raw(8), None);
+        assert_eq!(Verdict::from_raw(u32::MAX), None);
+    }
+
+    #[test]
+    fn text_of_max_len_passes() {
+        // "hi hi hi ..."
+        let mut text = [0u8; MAX_LEN + 1];
+        for (i, c) in text.iter_mut().enumerate() {
+            *c = b"hi "[i % 3];
+        }
+        assert_eq!(check(&text[..MAX_LEN]), Verdict::Ok);
+        assert_eq!(check(&text), Verdict::Length);
+    }
+
+    #[test]
+    fn word_of_max_word_passes() {
+        let word = b"abcdefghijklmnopqrstu";
+        assert_eq!(word.len(), MAX_WORD + 1);
+        assert_eq!(check(&word[..MAX_WORD]), Verdict::Ok);
+        assert_eq!(check(word), Verdict::Encoded);
+    }
+
+    #[test]
+    fn two_case_changes_pass_three_are_encoded() {
+        assert_eq!(check(b"iPoD"), Verdict::Ok);
+        assert_eq!(check(b"iPoDsT"), Verdict::Encoded);
+    }
+
+    #[test]
+    fn call_sign_shape_needs_one_to_four_final_letters() {
+        assert_eq!(check(b"W1ABCD"), Verdict::Callsign);
+        assert_eq!(check(b"W1ABCDE"), Verdict::Numeric); // five letters
+        assert_eq!(check(b"A12"), Verdict::Numeric); // no final letter
+    }
 }

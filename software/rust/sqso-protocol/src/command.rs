@@ -76,4 +76,39 @@ mod tests {
     fn key_rotation_needs_the_recovery_key() {
         assert_eq!(Command::KeyRotate.spec().key, KeyClass::Recovery);
     }
+
+    #[test]
+    fn accepts_len_is_inclusive_at_both_ends() {
+        let spec = crate::CommandSpec { min_args: 1, max_args: 2, key: KeyClass::Operational, without_key: false };
+        assert_eq!([0, 1, 2, 3].map(|n| spec.accepts_len(n)), [false, true, true, false]);
+        let timeout = Command::SetContactTimeout.spec();
+        assert_eq!([1, 2, 3].map(|n| timeout.accepts_len(n)), [false, true, false]);
+        assert!(Command::Nop.spec().accepts_len(0));
+        assert!(!Command::Nop.spec().accepts_len(1));
+    }
+
+    /// The generated table's source (scripts/gen_command_dictionary.py)
+    const DICTIONARY_JSON: &str = include_str!("../../../flight/command_dictionary.json");
+
+    /// The string value after `"<key>": "` on a JSON line
+    fn json_str<'a>(line: &'a str, key: &str) -> &'a str {
+        let (_, rest) = line.split_once(key).unwrap();
+        let rest = rest.trim_start_matches([':', ' ']).strip_prefix('"').unwrap();
+        rest.split_once('"').unwrap().0
+    }
+
+    #[test]
+    fn names_and_summaries_match_the_json_dictionary() {
+        let mut count = 0;
+        for line in DICTIONARY_JSON.lines().filter(|l| l.trim_start().starts_with("{\"name\"")) {
+            let name = json_str(line, "\"name\"");
+            let id = json_str(line, "\"id\"").strip_prefix("0x").unwrap();
+            let cmd = Command::from_id(u8::from_str_radix(id, 16).unwrap()).unwrap();
+            assert_eq!(cmd.name(), name);
+            assert_eq!(cmd.c_name().to_str(), Ok(name));
+            assert_eq!(cmd.summary(), json_str(line, "\"summary\""), "{name}");
+            count += 1;
+        }
+        assert_eq!(count, Command::ALL.len());
+    }
 }

@@ -142,4 +142,22 @@ mod tests {
         assert_eq!(parse(&frame[..42]), Err(GseError::BadFrame));
         assert_eq!(reply(4), *b"SQGR\x04");
     }
+
+    #[test]
+    fn every_operation_decodes() {
+        assert_eq!(parse(&encode(op::ACTIVATE, 2, 0, &[0; KEY_SIZE])), Ok(GseOp::Activate { slot: 2 }));
+        assert_eq!(parse(&encode(op::ARM_FLIGHT, 0, 0, &[0; KEY_SIZE])), Ok(GseOp::ArmFlight));
+        assert_eq!(parse(&encode(0, 0, 0, &[0; KEY_SIZE])), Err(GseError::BadOp));
+    }
+
+    #[test]
+    fn debug_hides_the_key() {
+        use core::fmt::Write;
+        let op = GseOp::Provision { slot: 4, key_id: 9, key: KeyBytes([0x77; KEY_SIZE]) };
+        let mut buf = [0u8; 64];
+        let mut s = crate::write::SliceWriter::new(&mut buf[..]);
+        write!(s, "{op:?}").unwrap();
+        let n = s.len();
+        assert_eq!(&buf[..n], b"Provision { slot: 4, key_id: 9, key: KeyBytes(..) }");
+    }
 }
