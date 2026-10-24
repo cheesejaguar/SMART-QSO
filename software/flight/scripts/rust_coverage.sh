@@ -60,7 +60,7 @@ objects=(-object "$c_object")
 [ -x "$build/smart_qso_flight" ] && objects+=(-object "$build/smart_qso_flight")
 for t in "${unit_tests[@]}"; do objects+=(-object "$t"); done
 
-ignore='/\.cargo/registry/|/rustc/|/library/|sqso-py/|/fuzz/|/firmware/|/tests?/|/target/'
+ignore='/\.cargo/registry/|/rustc/|/library/|sqso-py/|/fuzz/|/firmware/|/tests?/|/target/|_tests\.rs$'
 mkdir -p "$report"
 "$tools/llvm-cov" report "${objects[@]}" -instr-profile="$build/rust.profdata" \
     -ignore-filename-regex="$ignore" | tee "$report/report.txt"

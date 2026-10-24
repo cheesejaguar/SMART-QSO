@@ -336,6 +336,7 @@ jobs:
         with:
           languages: c-cpp, rust
           build-mode: none
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
