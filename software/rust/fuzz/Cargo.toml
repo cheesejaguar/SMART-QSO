@@ -95,3 +95,10 @@ path = "fuzz_targets/gnss_nmea.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "kiss_stream"
+path = "fuzz_targets/kiss_stream.rs"
+test = false
+doc = false
+bench = false
