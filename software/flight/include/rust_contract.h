@@ -136,6 +136,34 @@ typedef enum {
     RUST_CONST_RF_GROUP_END
 } RustConst_t;
 
+/** C types and constants of assert_handler.h, flight_log.h, uart_comm.h and
+ * hal_uart.h (ids 250-299; passed as RustLayout_t and RustConst_t) */
+enum {
+    RUST_LAYOUT_ASSERT_RECORD = 250,  /**< AssertRecord_t */
+    RUST_LAYOUT_ASSERT_STATS,         /**< AssertStats_t */
+    RUST_LAYOUT_LOG_ENTRY,            /**< LogEntry_t */
+    RUST_LAYOUT_LOG_STATS,            /**< LogStats_t */
+    RUST_LAYOUT_UART_CONFIG,          /**< UartConfig_t */
+    RUST_LAYOUT_HAL_UART_CONFIG,      /**< HalUartConfig_t */
+    RUST_LAYOUT_GROUP_250_END
+};
+enum {
+    RUST_CONST_ASSERT_MSG_LEN = 250,  /**< ASSERT_MAX_MSG_LEN */
+    RUST_CONST_ASSERT_LOG_SIZE,       /**< ASSERT_MAX_FAILURE_LOG */
+    RUST_CONST_ASSERT_FILENAME_LEN,   /**< ASSERT_MAX_FILENAME_LEN */
+    RUST_CONST_LOG_MESSAGE_LEN,       /**< LOG_MAX_MESSAGE_LEN */
+    RUST_CONST_LOG_BUFFER_SIZE,       /**< LOG_BUFFER_SIZE */
+    RUST_CONST_LOG_MODULE_LEN,        /**< LOG_MAX_MODULE_LEN */
+    RUST_CONST_LOG_MIN_LEVEL,         /**< LOG_MIN_LEVEL */
+    RUST_CONST_LOG_LEVEL_OFF,         /**< LOG_LEVEL_OFF */
+    RUST_CONST_UART_DEVICE_LEN,       /**< UART_DEVICE_MAX_LEN */
+    RUST_CONST_UART_BAUD_DEFAULT,     /**< UART_BAUDRATE_DEFAULT */
+    RUST_CONST_TELEMETRY_INTERVAL,    /**< SMART_QSO_TELEMETRY_INTERVAL_MS */
+    RUST_CONST_FAULT_TYPE_ASSERTION,  /**< FAULT_TYPE_ASSERTION */
+    RUST_CONST_UART_DEVICE_DEFAULT,   /**< strlen(UART_DEVICE_DEFAULT) */
+    RUST_CONST_GROUP_250_END
+};
+
 /**
  * @brief Size and alignment of the Rust mirror of a C type
  * @return false for an unknown id

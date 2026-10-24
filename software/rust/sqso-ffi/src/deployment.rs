@@ -38,11 +38,6 @@ pub type DeploymentElementStatus = ElementStatus;
 /// `DeploymentTelemetry_t`
 pub type DeploymentTelemetry = Telemetry;
 
-unsafe extern "C" {
-    // flight_log.h
-    fn log_write(level: u32, module: *const c_char, format: *const c_char, ...) -> i32;
-}
-
 static DEPLOY: Global<Deployment> = Global::new(Deployment::new(FLASH_REGION_DEPLOYMENT));
 
 const fn burn_pin(e: Element) -> u32 {
@@ -118,8 +113,7 @@ impl DeployIo for HalFlash {
             Level::Debug => LOG_LEVEL_DEBUG,
             Level::Info => LOG_LEVEL_INFO,
         };
-        // SAFETY: all three strings are NUL-terminated (m.len < 128)
-        let _ = unsafe { log_write(level, c"DEPLOY".as_ptr(), c"%s".as_ptr(), m.buf.as_ptr().cast::<c_char>()) };
+        let _ = crate::flight_log::write_str(level, b"DEPLOY", m.buf.get(..m.len).unwrap_or(&[]));
     }
 
     fn report(&mut self, report: Report) {

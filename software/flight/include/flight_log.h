@@ -17,6 +17,10 @@
  * @note NPR 7150.2 (standard, not a requirement ID): logging and telemetry
  *
  * Heritage: NASA Ames SmallSat Division logging patterns
+ *
+ * Implemented in Rust: software/rust/sqso-ffi/src/flight_log.rs and
+ * software/rust/sqso-fsw/src/flight_log.rs; log_write() and log_vwrite()
+ * (variadic) are in src/flight_log_fmt.c.
  */
 
 #ifndef SMART_QSO_FLIGHT_LOG_H

@@ -39,7 +39,6 @@ set(FLIGHT_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
 )
 
 # Common compile options for test builds
@@ -157,18 +156,15 @@ endif()
 #===========================================================================
 set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/adcs_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/assert_handler.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/gnss.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log_fmt.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/rust_panic.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/safe_string.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/system_state.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/telemetry.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/watchdog_mgr.c
 )
 add_library(flight_test_lib STATIC ${FLIGHT_LIB_SOURCES})

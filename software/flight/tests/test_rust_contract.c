@@ -48,6 +48,10 @@
 #include "hal/hal_flash.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_reset.h"
+#include "assert_handler.h"
+#include "flight_log.h"
+#include "uart_comm.h"
+#include "hal/hal_uart.h"
 
 typedef struct {
     RustLayout_t id;
@@ -293,6 +297,78 @@ static void test_dictionary_table_matches_header(void **state)
     assert_string_equal(cmd_get_name(CMD_COMM_TX_DISABLE), "TX_DISABLE");
 }
 
+/* assert_handler.h, flight_log.h, uart_comm.h, hal_uart.h (ids 250-299) */
+static const Layout_t k_layouts_250[] = {
+    LAYOUT((RustLayout_t)RUST_LAYOUT_ASSERT_RECORD, AssertRecord_t),
+    LAYOUT((RustLayout_t)RUST_LAYOUT_ASSERT_STATS, AssertStats_t),
+    LAYOUT((RustLayout_t)RUST_LAYOUT_LOG_ENTRY, LogEntry_t),
+    LAYOUT((RustLayout_t)RUST_LAYOUT_LOG_STATS, LogStats_t),
+    LAYOUT((RustLayout_t)RUST_LAYOUT_UART_CONFIG, UartConfig_t),
+    LAYOUT((RustLayout_t)RUST_LAYOUT_HAL_UART_CONFIG, HalUartConfig_t),
+};
+
+_Static_assert(sizeof(k_layouts_250) / sizeof(k_layouts_250[0]) ==
+                   (size_t)(RUST_LAYOUT_GROUP_250_END - RUST_LAYOUT_ASSERT_RECORD),
+               "every mirrored type of ids 250-299 is listed");
+
+static const Constant_t k_constants_250[] = {
+    CONSTANT((RustConst_t)RUST_CONST_ASSERT_MSG_LEN, ASSERT_MAX_MSG_LEN),
+    CONSTANT((RustConst_t)RUST_CONST_ASSERT_LOG_SIZE, ASSERT_MAX_FAILURE_LOG),
+    CONSTANT((RustConst_t)RUST_CONST_ASSERT_FILENAME_LEN, ASSERT_MAX_FILENAME_LEN),
+    CONSTANT((RustConst_t)RUST_CONST_LOG_MESSAGE_LEN, LOG_MAX_MESSAGE_LEN),
+    CONSTANT((RustConst_t)RUST_CONST_LOG_BUFFER_SIZE, LOG_BUFFER_SIZE),
+    CONSTANT((RustConst_t)RUST_CONST_LOG_MODULE_LEN, LOG_MAX_MODULE_LEN),
+    CONSTANT((RustConst_t)RUST_CONST_LOG_MIN_LEVEL, LOG_MIN_LEVEL),
+    CONSTANT((RustConst_t)RUST_CONST_LOG_LEVEL_OFF, LOG_LEVEL_OFF),
+    CONSTANT((RustConst_t)RUST_CONST_UART_DEVICE_LEN, UART_DEVICE_MAX_LEN),
+    CONSTANT((RustConst_t)RUST_CONST_UART_BAUD_DEFAULT, UART_BAUDRATE_DEFAULT),
+    CONSTANT((RustConst_t)RUST_CONST_TELEMETRY_INTERVAL, SMART_QSO_TELEMETRY_INTERVAL_MS),
+    CONSTANT((RustConst_t)RUST_CONST_FAULT_TYPE_ASSERTION, FAULT_TYPE_ASSERTION),
+    CONSTANT((RustConst_t)RUST_CONST_UART_DEVICE_DEFAULT, sizeof(UART_DEVICE_DEFAULT) - 1U),
+};
+
+_Static_assert(sizeof(k_constants_250) / sizeof(k_constants_250[0]) ==
+                   (size_t)(RUST_CONST_GROUP_250_END - RUST_CONST_ASSERT_MSG_LEN),
+               "every kept constant of ids 250-299 is listed");
+
+static void test_layouts_and_constants_250(void **state)
+{
+    (void)state;
+    for (size_t i = 0U; i < sizeof(k_layouts_250) / sizeof(k_layouts_250[0]); i++) {
+        size_t size = 0U;
+        size_t align = 0U;
+        assert_true(sqso_rust_layout(k_layouts_250[i].id, &size, &align));
+        if ((size != k_layouts_250[i].size) || (align != k_layouts_250[i].align)) {
+            print_error("%s: C %zu/%zu, Rust %zu/%zu (size/align)\n", k_layouts_250[i].name,
+                        k_layouts_250[i].size, k_layouts_250[i].align, size, align);
+        }
+        assert_int_equal(size, k_layouts_250[i].size);
+        assert_int_equal(align, k_layouts_250[i].align);
+    }
+    assert_false(sqso_rust_layout((RustLayout_t)RUST_LAYOUT_GROUP_250_END, NULL, NULL));
+
+    for (size_t i = 0U; i < sizeof(k_constants_250) / sizeof(k_constants_250[0]); i++) {
+        double rust = sqso_rust_constant(k_constants_250[i].id);
+        bool same = memcmp(&rust, &k_constants_250[i].value, sizeof(rust)) == 0;
+        if (!same) {
+            print_error("%s: C %g, Rust %g\n", k_constants_250[i].name, k_constants_250[i].value, rust);
+        }
+        assert_true(same);
+    }
+    assert_true(isnan(sqso_rust_constant((RustConst_t)RUST_CONST_GROUP_250_END)));
+}
+
+/** The UART defaults before any initialization are the header's */
+static void test_uart_defaults_match_header(void **state)
+{
+    (void)state;
+    UartConfig_t config;
+    assert_int_equal(uart_get_config(&config), SMART_QSO_OK);
+    assert_string_equal(config.device, UART_DEVICE_DEFAULT);
+    assert_int_equal(config.baudrate, UART_BAUDRATE_DEFAULT);
+    assert_int_equal(uart_get_telemetry_interval(), SMART_QSO_TELEMETRY_INTERVAL_MS);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -302,6 +378,8 @@ int main(void)
         cmocka_unit_test(test_rf_group_contract),
         cmocka_unit_test(test_station_identity_matches),
         cmocka_unit_test(test_dictionary_table_matches_header),
+        cmocka_unit_test(test_layouts_and_constants_250),
+        cmocka_unit_test(test_uart_defaults_match_header),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

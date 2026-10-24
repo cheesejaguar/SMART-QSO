@@ -16,19 +16,27 @@
 //! - [`contact_monitor`]: loss-of-contact transmit inhibit (`contact_monitor.h`)
 //! - [`deployment`]: deployment wait and burn sequence (`deployment.h`)
 //! - [`payload_guard`]: OBC-enforced Jetson power and temperature limits (`payload_guard.h`)
+//! - [`safe_string`]: bounded string and memory operations (`safe_string.h`)
+//! - [`assert_handler`]: assertion failure log and response (`assert_handler.h`)
+//! - [`flight_log`]: flight log ring buffer (`flight_log.h`)
+//! - [`uart_comm`]: OBC–Jetson serial line settings (`uart_comm.h`)
 
 #![no_std]
 #![forbid(unsafe_code)]
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing, clippy::panic))]
 
+pub mod assert_handler;
 pub mod contact_monitor;
 pub mod deployment;
 pub mod fault_log;
+pub mod flight_log;
 pub mod keys;
 pub mod mode;
 pub mod nvm;
 pub mod payload_guard;
 pub mod rf_control;
 pub mod rf_silence;
+pub mod safe_string;
 pub mod scheduler;
 pub mod telecommand;
+pub mod uart_comm;

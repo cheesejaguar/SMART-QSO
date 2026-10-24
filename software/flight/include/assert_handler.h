@@ -18,6 +18,9 @@
  * @note JPL Power of Ten rule 5 (SQSO-CS-001 §3): at least two assertions per function on average
  *
  * Inspired by NASA Ames heritage: GeneSat, PharmaSat, O/OREOS assertion patterns
+ *
+ * Implemented in Rust: software/rust/sqso-ffi/src/assert_handler.rs and
+ * software/rust/sqso-fsw/src/assert_handler.rs (smart_qso_assert_failed() too).
  */
 
 #ifndef SMART_QSO_ASSERT_HANDLER_H
