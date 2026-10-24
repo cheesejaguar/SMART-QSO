@@ -26,7 +26,7 @@ A 1U CubeSat mission experimenting with onboard agentic AI to manage an amateur 
 | Regulatory filings (IARU, FCC Part 97, ITU) | Drafted, not submitted | - |
 | Hardware | None built | - |
 
-**Current Phase**: Phase B (pre-PDR). Design decisions D1–D7 taken 2026-10-15 ([baseline](docs/BASELINE_PARAMETERS.md) §9). Flight software runs as a host simulation with a compile-only STM32L4 port; no hardware has been built.
+**Current Phase**: Phase B (pre-PDR). Design decisions D1–D7 taken 2026-10-15 ([baseline](docs/BASELINE_PARAMETERS.md) §9). The flight software is Rust. It runs as a host simulation and builds as an STM32L4R5ZI image (Embassy) that CI checks but no hardware has run; no hardware has been built.
 
 ---
 
@@ -48,19 +48,20 @@ A 1U CubeSat mission experimenting with onboard agentic AI to manage an amateur 
 git clone https://github.com/cheesejaguar/SMART-QSO.git
 cd SMART-QSO
 
-# Build flight software (C and Rust; needs CMake, a C compiler, CMocka for the
-# tests, and Rust from https://rustup.rs: software/rust/rust-toolchain.toml pins it)
+# Build the flight software (Rust, built by CMake through cargo; needs CMake, a C
+# compiler and CMocka for the C test suites, and Rust from https://rustup.rs:
+# software/rust/rust-toolchain.toml pins it)
 cmake -S software/flight -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 
-# Run unit tests
+# Run the C test suites (the specification) against the Rust
 ctest --test-dir build --output-on-failure
 
-# Run static analysis
-cppcheck --enable=all --std=c11 -I software/flight/include software/flight/src/
-
-# Rust modules: tests and lints (software/rust/README.md)
+# Rust: unit tests and lints (software/rust/README.md)
 (cd software/rust && cargo test --workspace && cargo clippy --workspace --all-targets -- -D warnings)
+
+# The STM32L4R5ZI image (Embassy firmware)
+(cd software/rust/firmware && cargo build --release)
 
 # Python payload and ground tests (they use the Rust wire formats)
 pip install software/rust/sqso-py && pip install -e software/payload
@@ -96,8 +97,8 @@ SMART-QSO/
 │   ├── RISK_REGISTER.md     # Risk management
 │   └── VNV_PLAN.md          # Verification & Validation
 ├── software/                # Source code
-│   ├── flight/              # OBC flight software (C, linking software/rust)
-│   ├── rust/                # Uplink, telecommand, Jetson link, mode manager (Rust)
+│   ├── flight/              # C headers (the ABI of the flight software), C test suites, CMake
+│   ├── rust/                # The flight software (Rust), the STM32L4R5ZI firmware, sqso_protocol
 │   ├── ground/              # Ground station tools (Python)
 │   ├── payload/             # Jetson payload software
 │   └── tests/               # Integration tests
@@ -108,32 +109,34 @@ SMART-QSO/
 
 ## Flight Software Architecture
 
-The flight software applies tailored NASA practices (formal software classification per NPR 7150.2D is pending), with design ideas drawn from public NASA Ames SmallSat missions (GeneSat, PharmaSat, O/OREOS, EcAMSat). **Current state:** C and Rust modules running as a host simulation; the STM32L4 build compiles and links, but there is no RTOS or hardware bring-up yet (see the findings register). Everything that parses input from outside the spacecraft (AX.25 uplink, telecommand authentication, the Jetson link, the GSE umbilical, beacon text) and the mode manager, scheduler and fault log are Rust (`software/rust/README.md`).
+The flight software applies tailored NASA practices (formal software classification per NPR 7150.2D is pending), with design ideas drawn from public NASA Ames SmallSat missions (GeneSat, PharmaSat, O/OREOS, EcAMSat). **Current state (2026-10-24):** all flight software is Rust (`software/rust/README.md`, with a porting table from every former C file). It runs as a host simulation and as the STM32L4R5ZI firmware on the Embassy executor (no RTOS), which CI builds and checks but no hardware has run. The only C left in the flight code is the flight log's printf shim. The C headers are the ABI of the Rust modules, and the C test suites run unchanged against it.
 
-- **Scheduler**: Cooperative task scheduling with priority levels
-- **State Machine**: INIT → SAFE → IDLE → ACTIVE → AI_BURST modes
+- **Executive**: one main loop of stages, every 20 ms, each stage supervised by the watchdog ([run-time architecture](software/flight/docs/RTOS_ARCHITECTURE.md))
+- **State Machine**: BOOT, SAFE, DETUMBLE, IDLE, ACTIVE and EMERGENCY modes (one guarded mode manager)
 - **FDIR**: Fault Detection, Isolation, and Recovery per NASA-STD-8719.13
 - **Watchdog**: Hardware and software watchdog management
 - **Telemetry**: AX.25 beacon generation with AI-enhanced content
 
 ### Software Modules
 
-Measured C line coverage (2026-10-24: the Release build with coverage, gcovr 7.0): **81.0 %** of 2,966 executable lines across every compiled C flight source; 41 registered CMocka suites, 602 test cases, plus the no-dynamic-memory check. A source no test runs counts as 0 %. CI fails below 80 % (`COVERAGE_MIN_LINE` in `.github/workflows/ci.yml`); reproduce with `gcovr -r . --filter 'src/' build --print-summary` in `software/flight` after a coverage build and `ctest`. The Rust modules are exercised by the same C suites through their C interfaces; their own unit tests cover 88 % of `sqso-protocol` and `sqso-fsw` (cargo-llvm-cov).
+Measured 2026-10-24 (CI job Build and Test): line coverage of the Rust flight crates is **92.1 %**, from the C suites
+and 197 Rust unit tests together (CI fails below 90 %), and of the flight software, C and Rust together, **90.0 %** (CI
+fails below 80 %). There are 42 CMocka suites with 630 test cases, plus the no-dynamic-memory check. Every line of the
+flight crates counts, including lines no test runs. The per-file report is the CI artifact `rust-coverage`. Reproduce
+it with `software/flight/scripts/rust_coverage.sh` after a coverage build (`software/flight/tests/README.md`). Branch
+coverage is not measured.
 
-| Module | Description | Measured line coverage |
-|--------|-------------|------------------------|
-| `eps_control` | Power management, battery protection | 100 % |
-| `telemetry` | Telemetry frames | 100 % |
-| `adcs_control` | B-dot and sun-pointing algorithms | 99 % |
-| `beacon` | AX.25 beacon generation | 98 % |
-| `sensors` | Sensor sampling | 89 % |
-| `uart_comm` | Serial link to the Jetson | 82 % (tested over a pseudo-terminal) |
-| `keys` (Rust) | Telecommand key table, replay counters | 90 % (Rust unit tests) |
-| `telecommand` (Rust) | Frame to authenticated command | 92 % (Rust unit tests) |
-| `mode` (Rust) | Mode transitions, safe mode | 80 % (Rust unit tests) |
-| `fault_log` (Rust) | Fault logging | 93 % (Rust unit tests) |
-| `scheduler` (Rust) | Task scheduling, timing (test library only) | 73 % (Rust unit tests) |
-| `main` | Simulation main loop | 0 % in unit tests (the sanitizer job runs the whole simulation) |
+| Module (Rust) | Description |
+|---------------|-------------|
+| `eps_control`, `payload_guard` | Power management, battery protection, OBC-enforced Jetson limits |
+| `telemetry`, `beacon` | Telemetry frames, AX.25 beacon generation |
+| `adcs_control` | B-dot and sun-pointing algorithms |
+| `sensors`, `gnss` | Sensor sampling, GNSS receiver |
+| `uart_comm`, `jetson_link` | Serial link to the Jetson |
+| `uplink`, `cmd_auth`, `cmd_handler` | Telecommand reception, authentication, dispatch |
+| `rf_control`, `rf_silence`, `contact_monitor`, `deployment` | TX-OFF, RF silence, loss-of-contact inhibit, deployment |
+| `state_machine`, `fault_mgmt`, `watchdog_mgr` | Mode manager, fault logging and recovery, supervised watchdog |
+| `executive` | Bring-up and main loop (was `main.c`); run by the simulation in CI |
 
 ---
 
