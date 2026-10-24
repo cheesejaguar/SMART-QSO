@@ -62,16 +62,10 @@ impl Key {
         &self.0
     }
 
-    fn mac(&self) -> HmacSha256 {
-        // A key shorter than the 64-byte block is zero-padded (RFC 2104), so
-        // padding it here is the same HMAC and cannot fail
-        let mut block = [0u8; 64];
-        for (dst, src) in block.iter_mut().zip(self.0.iter()) {
-            *dst = *src;
-        }
-        let mac = HmacSha256::new(&block.into());
-        block.zeroize();
-        mac
+    /// HMAC keyed with this key (HMAC takes a key of any length, so this
+    /// cannot fail; it reports one as `FormatError` all the same)
+    fn mac(&self) -> Result<HmacSha256, FormatError> {
+        HmacSha256::new_from_slice(&self.0).map_err(|_| FormatError)
     }
 }
 
@@ -113,7 +107,7 @@ fn keyed_mac(key: &Key, cmd_id: u8, counter: u32, args: &[u8]) -> Result<HmacSha
     if args.len() > MAX_ARGS {
         return Err(FormatError);
     }
-    let mut mac = key.mac();
+    let mut mac = key.mac()?;
     mac.update(DOMAIN);
     mac.update(&[cmd_id, args_len]);
     mac.update(&counter.to_be_bytes());
