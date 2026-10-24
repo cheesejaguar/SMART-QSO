@@ -136,7 +136,6 @@ set(FLIGHT_SOURCES
     src/deployment.c
     src/rf_control.c
     src/rust_panic.c
-    src/hal/hal_sim.c
 )
 
 set(FLIGHT_HEADERS
@@ -181,7 +180,7 @@ set(FLIGHT_HEADERS
 
 if(SMART_QSO_TARGET STREQUAL "STM32L4")
     set(TARGET_SOURCES ${FLIGHT_SOURCES})
-    list(REMOVE_ITEM TARGET_SOURCES src/main.c src/hal/hal_sim.c)
+    list(REMOVE_ITEM TARGET_SOURCES src/main.c)
     list(APPEND TARGET_SOURCES src/hal/hal_stm32l4.c src/hal/stm32l4_clock.c)
     add_library(smart_qso_target STATIC ${TARGET_SOURCES})
     target_compile_definitions(smart_qso_target PRIVATE HAL_TARGET_STM32L4)

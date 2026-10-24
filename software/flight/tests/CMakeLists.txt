@@ -175,7 +175,6 @@ set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/telemetry.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/watchdog_mgr.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/hal/hal_sim.c
 )
 add_library(flight_test_lib STATIC ${FLIGHT_LIB_SOURCES})
 target_compile_options(flight_test_lib PRIVATE ${TEST_COMPILE_OPTIONS})

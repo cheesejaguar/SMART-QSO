@@ -24,6 +24,9 @@
 //! | `state_machine.h` | [`state_machine`] |
 //! | `scheduler.h` | [`scheduler`] |
 //! | `fault_mgmt.h` | [`fault_mgmt`] |
+//! | `smart_qso.h` (mission clock) | [`time`] |
+//! | `separation_switch.h` | [`separation_switch`] |
+//! | `hal/*.h`, `hal/hal_sim.h` (host simulation) | `hal_sim` |
 //!
 //! Struct layouts mirror the C headers (`#[repr(C)]`); the C contract test
 //! `tests/test_rust_contract.c` checks sizes and constants from the C side.
@@ -41,6 +44,8 @@ pub mod contract;
 pub mod crc;
 pub mod fault_mgmt;
 pub mod gse_provision;
+#[cfg(not(target_os = "none"))]
+pub mod hal_sim;
 pub mod input_validation;
 pub mod jetson_link;
 pub mod nvm_record;

@@ -12,6 +12,8 @@ pub(crate) mod rc {
     pub(crate) const ERROR: i32 = -1;
     pub(crate) const NULL_PTR: i32 = -2;
     pub(crate) const INVALID: i32 = -3;
+    #[cfg_attr(target_os = "none", allow(dead_code))]
+    pub(crate) const TIMEOUT: i32 = -4;
     pub(crate) const BUSY: i32 = -5;
     pub(crate) const NO_MEM: i32 = -6;
     pub(crate) const IO: i32 = -7;
