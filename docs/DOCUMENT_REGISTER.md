@@ -39,10 +39,10 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-MAT-001 | Materials and Outgassing Compliance List | `docs/compliance/MATERIALS_LIST.md` | A | Draft |
 | SQSO-ODAR-001 | Orbital Debris Assessment Report | `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md` | A | Superseded by SQSO-REG-018 (its notice) |
 | SQSO-BS-001 | Branching Strategy | `docs/development/BRANCHING_STRATEGY.md` | A | Draft |
-| SQSO-DEV-003 | Code Review Checklist | `docs/development/CODE_REVIEW_CHECKLIST.md` | A | Draft |
+| SQSO-DEV-003 | Code Review Checklist | `docs/development/CODE_REVIEW_CHECKLIST.md` | B | Draft |
 | SQSO-CS-001 | Coding Standards | `docs/development/CODING_STANDARDS.md` | B | Draft |
 | SQSO-DEV-004 | Commit Message Standard | `docs/development/COMMIT_MESSAGES.md` | A | Draft |
-| SQSO-DEV-005 | Software Release Procedure | `docs/development/RELEASE_PROCEDURE.md` | B | Draft |
+| SQSO-DEV-005 | Software Release Procedure | `docs/development/RELEASE_PROCEDURE.md` | C | Draft |
 | SQSO-DB-001 | SMART-QSO Data Budget | `docs/environment/DATA_BUDGET.md` | 1.0 | Draft |
 | SQSO-ETP-001 | Environmental Test Plan | `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` | B | Draft |
 | SQSO-LBA-001 | SMART-QSO Link Budget Analysis | `docs/environment/LINK_BUDGET_ANALYSIS.md` | 2.0 | Draft |
@@ -125,7 +125,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SMART-QSO-CDR-001 | SMART-QSO Critical Design Review (CDR) Package | `docs/reviews/CDR_PACKAGE.md` | 1.4 | Self-assessment; not an independent review (its notice) |
 | SQSO-REV-003 | CDR Status Summary | `docs/reviews/CDR_STATUS_SUMMARY.md` | C | Draft; status claims not substantiated (its notice) |
 | SQSO-FRR-001 | SMART-QSO Flight Readiness Review Package | `docs/reviews/FLIGHT_READINESS_REVIEW.md` | 1.0 | Template |
-| SQSO-FSW-DEL-001 | SMART-QSO Flight Software Delivery Package | `docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` | 1.1 | Draft; status claims not substantiated (its notice) |
+| SQSO-FSW-DEL-001 | SMART-QSO Flight Software Delivery Package | `docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` | 1.2 | Draft; status claims not substantiated (its notice) |
 | SQSO-FIR-001 | SMART-QSO Formal Inspection Report Template | `docs/reviews/FORMAL_INSPECTION_REPORT.md` | 1.0 | Template |
 | SQSO-KI-001 | SMART-QSO Known Issues Document | `docs/reviews/KNOWN_ISSUES.md` | 1.1 | Draft |
 | SQSO-LRR-001 | SMART-QSO Launch Readiness Review Package | `docs/reviews/LAUNCH_READINESS_REVIEW.md` | 1.0 | Template |
@@ -142,7 +142,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-SDP-002 | SMART-QSO System Safety Data Package (skeleton) | `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` | 0.1 | Template |
 | SQSO-FMEA-001 | Software Failure Mode and Effects Analysis (FMEA) | `docs/safety/SOFTWARE_FMEA.md` | A | Draft |
 | SQSO-SHA-001 | Software Hazard Analysis | `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` | A | Draft |
-| SQSO-SSP-001 | Software Safety Plan | `docs/safety/SOFTWARE_SAFETY_PLAN.md` | B | Draft |
+| SQSO-SSP-001 | Software Safety Plan | `docs/safety/SOFTWARE_SAFETY_PLAN.md` | C | Draft |
 | SQSO-SW-008 | Build Configurations | `docs/software/BUILD_CONFIGURATIONS.md` | C | Draft |
 | SQSO-SW-006 | Software Configuration Index | `docs/software/CONFIGURATION_INDEX.md` | B | Draft |
 | SQSO-RRP-001 | SMART-QSO Rollback and Recovery Procedures | `docs/software/ROLLBACK_RECOVERY_PROCEDURES.md` | 1.2 | Draft |
