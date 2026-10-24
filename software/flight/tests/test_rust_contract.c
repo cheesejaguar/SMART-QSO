@@ -27,18 +27,27 @@
 #include "cmd_auth.h"
 #include "cmd_dictionary.h"
 #include "cmd_handler.h"
+#include "contact_monitor.h"
+#include "deployment.h"
 #include "eps_control.h"
 #include "fault_mgmt.h"
+#include "flight_log.h"
 #include "gse_provision.h"
 #include "input_validation.h"
 #include "jetson_link.h"
 #include "nvm_record.h"
+#include "payload_guard.h"
+#include "rf_control.h"
+#include "rf_silence.h"
 #include "scheduler.h"
 #include "sha256.h"
 #include "state_machine.h"
 #include "station_id.h"
 #include "system_state.h"
 #include "uplink.h"
+#include "hal/hal_flash.h"
+#include "hal/hal_gpio.h"
+#include "hal/hal_reset.h"
 
 typedef struct {
     RustLayout_t id;
@@ -156,6 +165,112 @@ static void test_constants_match(void **state)
     assert_true(isnan(sqso_rust_constant(RUST_CONST_COUNT)));
 }
 
+/* 100-149: RF control, RF silence, contact monitor, deployment, payload guard */
+
+static const Layout_t k_rf_layouts[] = {
+    LAYOUT(RUST_LAYOUT_PAYLOAD_SAMPLE, PayloadSample_t),
+    LAYOUT(RUST_LAYOUT_DEPLOY_ELEMENT_STATUS, DeploymentElementStatus_t),
+    LAYOUT(RUST_LAYOUT_DEPLOY_TELEMETRY, DeploymentTelemetry_t),
+};
+
+_Static_assert(sizeof(k_rf_layouts) / sizeof(k_rf_layouts[0]) ==
+               (size_t)(RUST_LAYOUT_RF_GROUP_END - RUST_LAYOUT_PAYLOAD_SAMPLE),
+               "every mirrored RF-group type is listed");
+
+static const Constant_t k_rf_constants[] = {
+    CONSTANT(RUST_CONST_PG_MAX_INPUT_W, PG_MAX_INPUT_W),
+    CONSTANT(RUST_CONST_PG_LATCHUP_INPUT_W, PG_LATCHUP_INPUT_W),
+    CONSTANT(RUST_CONST_PG_OVERPOWER_SAMPLES, PG_OVERPOWER_SAMPLES),
+    CONSTANT(RUST_CONST_PG_SPREADER_MAX_C, PG_SPREADER_MAX_C),
+    CONSTANT(RUST_CONST_PG_JUNCTION_MAX_C, PG_JUNCTION_MAX_C),
+    CONSTANT(RUST_CONST_PG_RESTART_MARGIN_C, PG_RESTART_MARGIN_C),
+    CONSTANT(RUST_CONST_PG_COOLDOWN_MS, PG_COOLDOWN_MS),
+    CONSTANT(RUST_CONST_PG_TELEMETRY_TIMEOUT_MS, PG_TELEMETRY_TIMEOUT_MS),
+    CONSTANT(RUST_CONST_PG_COOLDOWN, PG_COOLDOWN),
+    CONSTANT(RUST_CONST_RF_POWER_LEVEL_COUNT, RF_POWER_LEVEL_COUNT),
+    CONSTANT(RUST_CONST_RF_INHIBIT_CONTACT, RF_INHIBIT_CONTACT),
+    CONSTANT(RUST_CONST_RF_INHIBIT_RF_SILENCE, RF_INHIBIT_RF_SILENCE),
+    CONSTANT(RUST_CONST_RF_SILENCE_DURATION_S, RF_SILENCE_DURATION_S),
+    CONSTANT(RUST_CONST_RF_SILENCE_PERSIST_S, RF_SILENCE_PERSIST_INTERVAL_S),
+    CONSTANT(RUST_CONST_RF_SILENCE_ARMED, RF_SILENCE_ARMED),
+    CONSTANT(RUST_CONST_RF_SILENCE_COMPLETE, RF_SILENCE_COMPLETE),
+    CONSTANT(RUST_CONST_CONTACT_DEFAULT_DAYS, CONTACT_TIMEOUT_DEFAULT_DAYS),
+    CONSTANT(RUST_CONST_CONTACT_MIN_DAYS, CONTACT_TIMEOUT_MIN_DAYS),
+    CONSTANT(RUST_CONST_CONTACT_MAX_DAYS, CONTACT_TIMEOUT_MAX_DAYS),
+    CONSTANT(RUST_CONST_CONTACT_PERSIST_S, CONTACT_PERSIST_INTERVAL_S),
+    CONSTANT(RUST_CONST_CONTACT_NVM_COUNTER, CONTACT_NVM_COUNTER),
+    CONSTANT(RUST_CONST_CONTACT_NVM_TIMEOUT, CONTACT_NVM_TIMEOUT),
+    CONSTANT(RUST_CONST_DEPLOY_WAIT_MS, DEPLOYMENT_WAIT_TIME_MS),
+    CONSTANT(RUST_CONST_DEPLOY_ANTENNA_BURN_MS, ANTENNA_DEPLOY_BURN_TIME_MS),
+    CONSTANT(RUST_CONST_DEPLOY_SOLAR_BURN_MS, SOLAR_DEPLOY_BURN_TIME_MS),
+    CONSTANT(RUST_CONST_DEPLOY_MAX_RETRIES, DEPLOYMENT_MAX_RETRIES),
+    CONSTANT(RUST_CONST_DEPLOY_RETRY_DELAY_MS, DEPLOYMENT_RETRY_DELAY_MS),
+    CONSTANT(RUST_CONST_DEPLOY_PERSIST_S, DEPLOYMENT_PERSIST_INTERVAL_S),
+    CONSTANT(RUST_CONST_DEPLOY_STATE_COUNT, DEPLOY_STATE_COUNT),
+    CONSTANT(RUST_CONST_DEPLOY_STATE_ARMED, DEPLOY_STATE_ARMED),
+    CONSTANT(RUST_CONST_DEPLOY_ELEMENT_COUNT, DEPLOY_ELEMENT_COUNT),
+    CONSTANT(RUST_CONST_REGION_RF_CONTROL, FLASH_REGION_RF_CONTROL),
+    CONSTANT(RUST_CONST_REGION_CONTACT, FLASH_REGION_CONTACT),
+    CONSTANT(RUST_CONST_REGION_RF_SILENCE, FLASH_REGION_RF_SILENCE),
+    CONSTANT(RUST_CONST_REGION_DEPLOYMENT, FLASH_REGION_DEPLOYMENT),
+    CONSTANT(RUST_CONST_PIN_RADIO_EN, GPIO_PIN_RADIO_EN),
+    CONSTANT(RUST_CONST_PIN_DEPLOY_EN, GPIO_PIN_DEPLOY_EN),
+    CONSTANT(RUST_CONST_PIN_RF_TX_EN, GPIO_PIN_RF_TX_EN),
+    CONSTANT(RUST_CONST_PIN_ANTENNA_BURN, GPIO_PIN_ANTENNA_BURN),
+    CONSTANT(RUST_CONST_PIN_SOLAR_BURN, GPIO_PIN_SOLAR_BURN),
+    CONSTANT(RUST_CONST_PIN_ANTENNA_SENSE, GPIO_PIN_ANTENNA_SENSE),
+    CONSTANT(RUST_CONST_PIN_SOLAR_SENSE, GPIO_PIN_SOLAR_SENSE),
+    CONSTANT(RUST_CONST_GPIO_DIR_INPUT, GPIO_DIR_INPUT),
+    CONSTANT(RUST_CONST_GPIO_DIR_OUTPUT, GPIO_DIR_OUTPUT),
+    CONSTANT(RUST_CONST_GPIO_PULL_DOWN, GPIO_PULL_DOWN),
+    CONSTANT(RUST_CONST_RESET_WATCHDOG, HAL_RESET_WATCHDOG),
+    CONSTANT(RUST_CONST_RESET_SOFTWARE, HAL_RESET_SOFTWARE),
+    CONSTANT(RUST_CONST_FAULT_DEPLOYMENT, FAULT_TYPE_DEPLOYMENT),
+    CONSTANT(RUST_CONST_LOG_LEVEL_DEBUG, LOG_LEVEL_DEBUG),
+    CONSTANT(RUST_CONST_LOG_LEVEL_INFO, LOG_LEVEL_INFO),
+};
+
+_Static_assert(sizeof(k_rf_constants) / sizeof(k_rf_constants[0]) ==
+               (size_t)(RUST_CONST_RF_GROUP_END - RUST_CONST_PG_MAX_INPUT_W),
+               "every RF-group constant is listed");
+
+static void test_rf_group_contract(void **state)
+{
+    (void)state;
+    for (size_t i = 0U; i < sizeof(k_rf_layouts) / sizeof(k_rf_layouts[0]); i++) {
+        size_t size = 0U;
+        size_t align = 0U;
+        assert_true(sqso_rust_layout(k_rf_layouts[i].id, &size, &align));
+        if ((size != k_rf_layouts[i].size) || (align != k_rf_layouts[i].align)) {
+            print_error("%s: C %zu/%zu, Rust %zu/%zu (size/align)\n", k_rf_layouts[i].name,
+                        k_rf_layouts[i].size, k_rf_layouts[i].align, size, align);
+        }
+        assert_int_equal(size, k_rf_layouts[i].size);
+        assert_int_equal(align, k_rf_layouts[i].align);
+    }
+    assert_false(sqso_rust_layout(RUST_LAYOUT_RF_GROUP_END, NULL, NULL));
+
+    for (size_t i = 0U; i < sizeof(k_rf_constants) / sizeof(k_rf_constants[0]); i++) {
+        double rust = sqso_rust_constant(k_rf_constants[i].id);
+        bool same = memcmp(&rust, &k_rf_constants[i].value, sizeof(rust)) == 0;
+        if (!same) {
+            print_error("%s: C %g, Rust %g\n", k_rf_constants[i].name, k_rf_constants[i].value, rust);
+        }
+        assert_true(same);
+    }
+    assert_true(isnan(sqso_rust_constant(RUST_CONST_RF_GROUP_END)));
+
+    /* Enums crossing the boundary as 32-bit integers */
+    assert_int_equal(sizeof(RfPowerLevel_t), 4U);
+    assert_int_equal(sizeof(RfInhibit_t), 4U);
+    assert_int_equal(sizeof(RfSilenceState_t), 4U);
+    assert_int_equal(sizeof(DeploymentState_t), 4U);
+    assert_int_equal(sizeof(DeploymentElement_t), 4U);
+    assert_int_equal(sizeof(PayloadGuardResult_t), 4U);
+    assert_int_equal(sizeof(HalResetCause_t), 4U);
+    assert_int_equal(sizeof(LogLevel_t), 4U);
+}
+
 static void test_station_identity_matches(void **state)
 {
     (void)state;
@@ -184,6 +299,7 @@ int main(void)
         cmocka_unit_test(test_struct_layouts_match),
         cmocka_unit_test(test_enums_are_32_bit),
         cmocka_unit_test(test_constants_match),
+        cmocka_unit_test(test_rf_group_contract),
         cmocka_unit_test(test_station_identity_matches),
         cmocka_unit_test(test_dictionary_table_matches_header),
     };

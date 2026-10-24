@@ -5,8 +5,9 @@
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @license MIT
  *
- * Used by the RF silence (rf_silence.c) and the deployment sequence
- * (deployment.c), so the polarity is defined in exactly one place.
+ * Used by the RF silence (sqso-ffi/src/rf_silence.rs) and the deployment
+ * sequence (sqso-ffi/src/deployment.rs), so the polarity is defined in
+ * exactly one place.
  *
  * TBR: the line is pulled up and reads high while stowed (in the
  * dispenser). Confirm against the separation-switch schematic. If inverted on

@@ -125,16 +125,11 @@ set(FLIGHT_SOURCES
     src/adcs_control.c
     src/safe_string.c
     src/system_state.c
-    src/contact_monitor.c
-    src/rf_silence.c
     src/gnss.c
-    src/payload_guard.c
     src/telemetry.c
     src/assert_handler.c
     src/watchdog_mgr.c
     src/flight_log.c
-    src/deployment.c
-    src/rf_control.c
     src/rust_panic.c
     src/hal/hal_sim.c
 )

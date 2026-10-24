@@ -2,6 +2,9 @@
  * @file deployment.h
  * @brief SMART-QSO Deployment Control Module
  *
+ * Implemented in Rust (software/rust/sqso-fsw/src/deployment.rs,
+ * software/rust/sqso-ffi/src/deployment.rs).
+ *
  * Manages post-separation deployment sequences including antenna deployment,
  * solar panel deployment, and deployment inhibit handling per CubeSat Design
  * Specification requirements.
