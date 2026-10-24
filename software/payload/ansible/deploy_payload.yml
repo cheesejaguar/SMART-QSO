@@ -19,10 +19,35 @@
         rsync_opts:
           - "--delete"
 
+    - name: Rsync the Rust wire-format crates (built into the sqso_protocol module)
+      ansible.builtin.synchronize:
+        src: "{{ repo_src }}/software/rust/"
+        dest: "{{ dest_dir }}/software/rust/"
+        rsync_opts:
+          - "--delete"
+          - "--exclude=target"
+          - "--exclude=fuzz"
+
     - name: Create Python venv
       ansible.builtin.command: python3 -m venv {{ venv_dir }}
       args:
         creates: "{{ venv_dir }}/bin/activate"
+
+    - name: Install Rust (pinned by software/rust/rust-toolchain.toml)
+      ansible.builtin.shell: |
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain none
+      args:
+        creates: "~/.cargo/bin/rustup"
+
+    - name: Build and install sqso_protocol (the OBC's wire formats for the agent)
+      ansible.builtin.shell: |
+        source {{ venv_dir }}/bin/activate
+        source ~/.cargo/env
+        pip install --upgrade pip
+        pip install {{ dest_dir }}/software/rust/sqso-py
+        pip install -e {{ dest_dir }}/software/payload
+      args:
+        executable: /bin/bash
 
     - name: Install llama-cpp-python (GPU build optional)
       ansible.builtin.shell: |

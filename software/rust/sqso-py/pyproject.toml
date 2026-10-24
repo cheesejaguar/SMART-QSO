@@ -1,0 +1,27 @@
+# Python package of the SMART-QSO wire formats (the Rust crate sqso-protocol).
+#
+#   pip install software/rust/sqso-py        # builds with maturin (needs Rust)
+#
+# The payload (software/payload) and the ground tools (software/ground/tools)
+# use it, so the OBC, the Jetson and the ground station run one implementation
+# of each format.
+
+[build-system]
+requires = ["maturin>=1.15,<2"]
+build-backend = "maturin"
+
+[project]
+name = "sqso-protocol"
+version = "0.2.0"
+description = "SMART-QSO wire formats: telecommand, AX.25, OBC-Jetson link, beacon content filter"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+]
+
+[tool.maturin]
+features = ["extension-module"]
+module-name = "sqso_protocol"

@@ -1,0 +1,24 @@
+[package]
+name = "sqso-py"
+description = "Python bindings of sqso-protocol for the SMART-QSO payload and ground tools"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "sqso_protocol"
+crate-type = ["cdylib"]
+
+[dependencies]
+sqso-protocol.workspace = true
+pyo3 = { version = "0.30.1", features = ["abi3-py39"] }
+
+[features]
+# Set by maturin (pyproject.toml) when building the wheel
+extension-module = ["pyo3/extension-module"]
+
+[lints]
+workspace = true

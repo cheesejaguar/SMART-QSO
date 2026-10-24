@@ -26,12 +26,16 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-# Runtime imports only: serial (health_interface), psutil (supervisor).
-# llama-cpp-python is installed on the Jetson by ansible/deploy_payload.yml;
-# without it llama_runner falls back to template beacons.
+# Runtime imports only: serial (health_interface), psutil (supervisor), and
+# sqso_protocol (obc_link, content_filter, crc16): the OBC's Rust wire formats,
+# built from software/rust/sqso-py (pip install software/rust/sqso-py; it is
+# not on PyPI, so install it first). llama-cpp-python is installed on the
+# Jetson by ansible/deploy_payload.yml; without it llama_runner falls back to
+# template beacons.
 dependencies = [
     "pyserial>=3.5",
     "psutil>=5.9",
+    "sqso-protocol>=0.2",
 ]
 
 [project.optional-dependencies]

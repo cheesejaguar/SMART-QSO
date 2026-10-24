@@ -3,7 +3,7 @@
 SMART-QSO Telecommand Key Provisioning (GSE, integration only)
 
 Generates a key set and builds the frames that load it into the spacecraft
-over the GSE umbilical (software/flight/src/gse_provision.c). The flight
+over the GSE umbilical (software/rust/sqso-ffi/src/gse_provision.rs). The flight
 software accepts these frames only while the umbilical-sense line is high,
 so nothing here can be sent over RF.
 
@@ -26,11 +26,11 @@ import argparse
 import json
 import os
 import secrets
-import struct
 import sys
-import zlib
 from pathlib import Path
 from typing import Dict, List, Sequence
+
+import sqso_protocol
 
 from telecommand_builder import KEY_SIZE, load_key
 
@@ -51,8 +51,10 @@ def build_gse_frame(op: int, slot: int, key_id: int, key: bytes = b"") -> bytes:
         raise ValueError(f"slot must be 0..{RECOVERY_SLOT}")
     if op == OP_PROVISION and len(key) != KEY_SIZE:
         raise ValueError(f"PROVISION needs a {KEY_SIZE}-byte key")
-    body = MAGIC + bytes([op, slot, key_id]) + key.ljust(KEY_SIZE, b"\x00")
-    return body + struct.pack(">I", zlib.crc32(body) & 0xFFFFFFFF)
+    if key and len(key) != KEY_SIZE:
+        raise ValueError(f"key must be {KEY_SIZE} bytes")
+    # Built by sqso_protocol, the Rust code the spacecraft parses it with
+    return sqso_protocol.gse_frame(op, slot, key_id, bytes(key))
 
 
 def _write_private(path: Path, data: bytes) -> None:
