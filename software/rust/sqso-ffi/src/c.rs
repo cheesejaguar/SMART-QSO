@@ -1,8 +1,8 @@
 //! The C side: functions Rust calls, result codes, and C-owned structs.
 //!
-//! C enums are passed as `u32` (or `i32` where they have negative values).
-//! The STM32L4 build compiles C with `-fno-short-enums`, so C enums are
-//! 32 bits on every target, as on the host where the tests run.
+//! C enums are passed as `u32` (or `i32` where they have negative values),
+//! as they are 32 bits in the host C build where the test suites run
+//! (`test_rust_contract.c` checks it). No C is compiled for the target.
 
 use core::ffi::c_char;
 

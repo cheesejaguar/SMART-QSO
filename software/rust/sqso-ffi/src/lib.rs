@@ -1,11 +1,17 @@
-//! C ABI for the SMART-QSO Rust modules.
+//! The SMART-QSO flight software behind its C headers.
 //!
-//! This static library implements C headers of the flight software
-//! (`software/flight/include`) on top of `sqso-protocol` and `sqso-fsw`, so
-//! the existing C callers and the C test suite use it unchanged. It is the
-//! only crate in the workspace with `unsafe` code, and that code does only
-//! three things: turn C pointers into slices and references (after a NULL
-//! check), call C functions, and hold module state in [`cell::Global`].
+//! Each module implements one header of `software/flight/include` on top of
+//! `sqso-protocol` and `sqso-fsw`, so the C test suites (the specification)
+//! use it unchanged; the executive ([`executive`]) runs the main loop and
+//! the simulated HAL (`hal_sim`) stands in for the hardware on the host.
+//! `sqso-clib` builds it as the static library for the C suites, `sqso-sim`
+//! as the host simulation and the firmware links it for the STM32L4R5.
+//!
+//! With the firmware, this is the only crate with `unsafe` code, and here
+//! that code does only three things: turn C pointers into slices and
+//! references (after a NULL check), call functions through the C ABI (the
+//! HAL, other modules, libc on the host), and hold module state in
+//! [`cell::Global`].
 //!
 //! | C header | module |
 //! |----------|--------|

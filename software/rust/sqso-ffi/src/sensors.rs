@@ -3,7 +3,8 @@
 //! (`sqso_fsw::sensors`).
 //!
 //! The readings are simulated from the environment the executive sets,
-//! the EPS switches and C `rand()` noise, as before. The configuration file
+//! the EPS switches and noise (C `rand()` on the host, as before; a xorshift
+//! generator on the target, which has no C library). The configuration file
 //! is parsed by `sqso_fsw::sensors::YamlParser`, which is bounded and
 //! fuzzed; there is no file system on the target, where loading it fails
 //! with `SMART_QSO_ERROR_IO` (the target uses the built-in table).
@@ -212,6 +213,11 @@ fn read(kind: Kind, channel: &[u8]) -> Reading {
 
 /// `Sensor_t.read` for a kind: the sensor's channel (only the voltage and
 /// current kinds look at it), the value or text out
+///
+/// # Safety
+/// The C contract of `SensorReadFn_t`: `this` is NULL or a `Sensor_t`,
+/// `out_value` NULL or a writable `double`, `out_text` NULL or a writable
+/// buffer of 8 bytes (`Sensor_t.last_text`)
 unsafe fn read_into(kind: Kind, this: *mut Sensor, out_value: *mut f64, out_text: *mut c_char) -> bool {
     let channel = match kind {
         Kind::EpsVoltage | Kind::EpsCurrent => {

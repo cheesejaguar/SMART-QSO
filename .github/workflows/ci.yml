@@ -28,7 +28,7 @@ env:
   # to C and Rust together. Raise it as tests land; never lower it to absorb a drop.
   COVERAGE_MIN_LINE: 80
   # The Rust alone (C suites and Rust unit tests together, LLVM source-based
-  # coverage): measured 91.2 % on 2026-10-24
+  # coverage, the host simulation included): measured 90.8 % on 2026-10-24
   RUST_COVERAGE_MIN_LINE: 90
 
 jobs:

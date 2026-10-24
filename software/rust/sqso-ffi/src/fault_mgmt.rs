@@ -1,6 +1,7 @@
 //! `fault_mgmt.h`: the fault log (`sqso_fsw::fault_log`) and fault recovery.
 //!
-//! Storage and console output stay in C (`fault_store.h`). Recovery raises
+//! The log is stored through `store.rs` (a file on the host, its flash region
+//! on the target) and printed through the console. Recovery raises
 //! events through the mode manager and never sets the EPS power mode
 //! directly (SW-14).
 //!

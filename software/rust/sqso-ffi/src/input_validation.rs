@@ -68,6 +68,10 @@ fn in_range(value: f32, min: f32, max: f32) -> bool {
     !value.is_nan() && value >= min && value <= max
 }
 
+/// Write the verdict to the caller's flag
+///
+/// # Safety
+/// `is_valid` is NULL or points to a writable `bool`
 unsafe fn report(is_valid: *mut bool, valid: bool) -> i32 {
     // SAFETY: the C contract: is_valid points to a bool
     match unsafe { ptr::out(is_valid) } {

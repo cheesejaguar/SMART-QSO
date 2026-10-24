@@ -191,7 +191,7 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 ### 2.7 Data Storage and Management
 
 #### 2.7.1 Primary Storage
-- **FRAM**: 4MB ferroelectric RAM for critical data
+- **FRAM**: 256 KB ferroelectric RAM (FM25V20A) for critical data (`hardware/obc/STORAGE_DESIGN.md` §3)
 - **Purpose**: System state, configuration parameters, mission data
 - **Write Endurance**: 10^14 write cycles
 - **Data Retention**: 10 years at 85°C

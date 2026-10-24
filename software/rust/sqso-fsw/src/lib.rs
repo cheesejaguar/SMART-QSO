@@ -1,9 +1,9 @@
-//! SMART-QSO flight logic, independent of the C runtime.
+//! SMART-QSO flight logic, independent of any runtime.
 //!
 //! Each module is the decision logic of one flight module, with its I/O
 //! behind a trait (flash) or returned to the caller (log events), so it can
-//! be tested and fuzzed on the host. `sqso-ffi` connects it to the C flight
-//! software through the existing C headers.
+//! be tested and fuzzed on the host. `sqso-ffi` puts it behind the C headers
+//! and connects it to the HAL.
 //!
 //! - [`nvm`]: power-fail-safe two-slot records (`nvm_record.h`)
 //! - [`keys`]: telecommand key table and replay counters (`cmd_auth.h`)

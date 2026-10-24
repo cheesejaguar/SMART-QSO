@@ -1,8 +1,8 @@
 # SMART-QSO Rust workspace (see README.md)
 #
 #   sqso-protocol  wire formats on the untrusted-input surface (no_std, no unsafe)
-#   sqso-fsw       flight logic: key table, telecommand admission, state
-#                  machine, scheduler, fault log (no_std, no unsafe)
+#   sqso-fsw       flight logic of every module, testable on the host
+#                  (no_std, no unsafe)
 #   sqso-ffi       the flight software: the flight modules behind their C
 #                  headers, the executive and the simulated HAL (with the
 #                  firmware, the only crates with unsafe code)

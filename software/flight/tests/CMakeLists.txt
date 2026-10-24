@@ -148,8 +148,9 @@ endif()
 #===========================================================================
 # Shared flight library for module tests
 #
-# Tests below link against all flight sources except the executive
-# (main.c). The static library only pulls in the objects each test needs.
+# Tests below link this library and the flight software (Rust, sqso_rust).
+# Its only C source is the flight-log shim (stable Rust cannot define a C
+# variadic function).
 #===========================================================================
 set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log_fmt.c
