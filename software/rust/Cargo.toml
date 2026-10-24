@@ -10,14 +10,14 @@
 
 [workspace]
 resolver = "3"
-members = ["sqso-protocol", "sqso-fsw", "sqso-ffi"]
-default-members = ["sqso-protocol", "sqso-fsw", "sqso-ffi"]
+members = ["sqso-protocol", "sqso-fsw", "sqso-ffi", "sqso-py"]
+default-members = ["sqso-protocol", "sqso-fsw", "sqso-ffi", "sqso-py"]
 exclude = ["fuzz"]
 
 [workspace.package]
 version = "0.2.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 license = "MIT"
 repository = "https://github.com/cheesejaguar/SMART-QSO"
 

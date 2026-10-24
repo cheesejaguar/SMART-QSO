@@ -1,4 +1,6 @@
 //! `uplink.h`: receiver to AX.25 to command handler
+//!
+//! @requirement SYS-204 Cease emissions on telecommand; stay ceased across resets (97.207(b))
 
 use core::ffi::c_char;
 
@@ -67,7 +69,9 @@ fn count(f: impl FnOnce(&mut UplinkStats)) {
 /// Process at most one received frame; true if it reached the command handler
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn uplink_poll(response: *mut CmdResponse) -> bool {
-    let Some((callsign, len, ssid)) = UPLINK.with(|u| u.initialized.then_some((u.callsign, u.callsign_len, u.ssid))).flatten() else {
+    let Some((callsign, len, ssid)) =
+        UPLINK.with(|u| u.initialized.then_some((u.callsign, u.callsign_len, u.ssid))).flatten()
+    else {
         return false;
     };
     let mut frame = [0u8; MAX_FRAME_LEN];

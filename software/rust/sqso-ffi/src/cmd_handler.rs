@@ -27,7 +27,6 @@ mod result {
     pub(crate) const EXEC_FAIL: u32 = 5;
 }
 
-
 const MAX_CUSTOM_HANDLERS: usize = 16;
 
 /// `Command_t`
@@ -304,13 +303,19 @@ fn dispatch(command: Command, cmd: &CmdCommand, response: &mut CmdResponse) -> u
             result::SUCCESS
         }
         Command::KeyRotate => ok_invalid_or_fail(cmd_auth::rotate(cmd.payload[0])),
-        Command::SetContactTimeout => ok_invalid_or_fail(unsafe { c::contact_monitor_set_timeout_days(be16(&cmd.payload)) }),
+        Command::SetContactTimeout => {
+            ok_invalid_or_fail(unsafe { c::contact_monitor_set_timeout_days(be16(&cmd.payload)) })
+        }
         Command::EpsGetTelemetry => {
             let mut power = PowerState::default();
             let _ = unsafe { c::sys_get_power_state(&mut power) };
             // Saturating conversions (0.1 V and 1 % resolution)
             #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-            let packed = [(power.battery_voltage * 10.0) as u8, (power.state_of_charge * 100.0) as u8, power.power_mode.to_le_bytes()[0]];
+            let packed = [
+                (power.battery_voltage * 10.0) as u8,
+                (power.state_of_charge * 100.0) as u8,
+                power.power_mode.to_le_bytes()[0],
+            ];
             response.data[..3].copy_from_slice(&packed);
             response.data_len = 3;
             result::SUCCESS

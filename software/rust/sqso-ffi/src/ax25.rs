@@ -23,7 +23,12 @@ pub struct Ax25UiView {
 
 /// Encode a call sign and SSID as a 7-byte address
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn ax25_encode_address(callsign: *const c_char, ssid: u8, out: *mut [u8; ADDR_LEN], is_last: bool) {
+pub unsafe extern "C" fn ax25_encode_address(
+    callsign: *const c_char,
+    ssid: u8,
+    out: *mut [u8; ADDR_LEN],
+    is_last: bool,
+) {
     // SAFETY: the C contract: out points to 7 bytes; callsign is a C string or NULL
     if let Some(out) = unsafe { ptr::out(out) } {
         let call = unsafe { ptr::cstr(callsign) }.unwrap_or(&[]);
@@ -57,7 +62,12 @@ pub unsafe extern "C" fn ax25_parse_ui(frame: *const u8, len: usize, view: *mut 
     };
     match ax25::parse_ui(frame) {
         Ok(ui) => {
-            *view = Ax25UiView { dest: ui.dest.as_ptr(), src: ui.src.as_ptr(), info: ui.info.as_ptr(), info_len: ui.info.len() };
+            *view = Ax25UiView {
+                dest: ui.dest.as_ptr(),
+                src: ui.src.as_ptr(),
+                info: ui.info.as_ptr(),
+                info_len: ui.info.len(),
+            };
             AX25_OK
         }
         Err(Ax25Error::Format) => AX25_ERR_FORMAT,

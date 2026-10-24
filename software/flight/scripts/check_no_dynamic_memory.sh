@@ -3,7 +3,7 @@
 # Flight code allocates none at all. This fails if any flight object file
 # references malloc, calloc, realloc or free.
 #
-# Usage: check_no_dynamic_memory.sh <object files...>
+# Usage: check_no_dynamic_memory.sh <object files or archives...>
 #
 # The simulated HAL (hal_sim.c) is excluded: it emulates flash with heap
 # buffers on the host and is not flight code. Run by ctest

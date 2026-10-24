@@ -253,10 +253,11 @@ foreach(entry ${SUITE_TESTS})
         LABELS "${test_label}"
     )
 endforeach()
-# JPL rule 3: no flight object references malloc/calloc/realloc/free
+# JPL rule 3: no flight object references malloc/calloc/realloc/free (the
+# Rust library included: it is no_std without an allocator)
 add_test(NAME no_dynamic_memory
          COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/check_no_dynamic_memory.sh
-                 $<TARGET_OBJECTS:flight_test_lib>)
+                 $<TARGET_OBJECTS:flight_test_lib> ${SQSO_RUST_LIB})
 set_tests_properties(no_dynamic_memory PROPERTIES LABELS "static;jpl")
 
 # Accept/reject vectors shared with the Jetson-side filter

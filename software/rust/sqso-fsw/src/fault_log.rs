@@ -5,6 +5,9 @@
 //! fields, so every byte of an entry is initialized and the log can be
 //! stored as the raw array. It has no invalid bit patterns (the `recovered`
 //! flag is a byte, checked at load), so raw bytes can be loaded back into it.
+//!
+//! @requirement SRS-F040 Detect and log all fault conditions
+//! @requirement SRS-F041 Maintain the fault log in non-volatile memory
 
 use sqso_protocol::checksum::Crc32Digest;
 
@@ -36,7 +39,6 @@ pub struct Entry {
 
 /// Bytes of one entry
 pub const ENTRY_SIZE: usize = 96;
-const CRC_OFFSET: usize = 92;
 const _: () = assert!(core::mem::size_of::<Entry>() == ENTRY_SIZE);
 
 impl Entry {
@@ -93,7 +95,8 @@ impl Entry {
     }
 }
 
-const _: () = assert!(core::mem::offset_of!(Entry, crc32) == CRC_OFFSET);
+// The CRC covers the 92 bytes before its field
+const _: () = assert!(core::mem::offset_of!(Entry, crc32) == 92);
 
 /// The fault log
 #[derive(Clone, Debug)]

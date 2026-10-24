@@ -135,10 +135,7 @@ fn parse_uint(field: &[u8], max: u64, max_digits: usize) -> Result<u64, LinkErro
             b'0'..=b'9' => u64::from(d - b'0'),
             _ => return Err(LinkError::Format),
         };
-        v.checked_mul(10)
-            .and_then(|v| v.checked_add(digit))
-            .filter(|v| *v <= max)
-            .ok_or(LinkError::Format)
+        v.checked_mul(10).and_then(|v| v.checked_add(digit)).filter(|v| *v <= max).ok_or(LinkError::Format)
     })
 }
 
@@ -237,10 +234,7 @@ pub fn parse_from_jetson(line: &[u8]) -> Result<FromJetson<'_>, LinkError> {
             if text.is_empty() || text.len() > TEXT_MAX {
                 return Err(LinkError::Format);
             }
-            Ok(FromJetson::BeaconRsp {
-                seq: u16::try_from(seq).map_err(|_| LinkError::Format)?,
-                text: ascii(text)?,
-            })
+            Ok(FromJetson::BeaconRsp { seq: u16::try_from(seq).map_err(|_| LinkError::Format)?, text: ascii(text)? })
         }
         b"STATUS" => {
             let rest = rest.filter(|r| !r.is_empty()).ok_or(LinkError::Format)?;
@@ -280,10 +274,7 @@ impl<'a> Telemetry<'a> {
     /// The `key=value` extras (fields without `=` or with an empty key are
     /// skipped)
     pub fn extras(&self) -> impl Iterator<Item = (&'a str, &'a str)> + 'a {
-        self.extras
-            .split(',')
-            .filter_map(|item| item.split_once('='))
-            .filter(|(key, _)| !key.is_empty())
+        self.extras.split(',').filter_map(|item| item.split_once('=')).filter(|(key, _)| !key.is_empty())
     }
 }
 

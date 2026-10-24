@@ -158,7 +158,13 @@ pub struct EncodeError;
 
 /// Write a UI frame (PID 0xF0) from the address field through the FCS;
 /// with `with_fcs` false the FCS is left off (a KISS TNC appends it)
-pub fn encode_ui(dest: Station<'_>, src: Station<'_>, info: &[u8], with_fcs: bool, out: &mut [u8]) -> Result<usize, EncodeError> {
+pub fn encode_ui(
+    dest: Station<'_>,
+    src: Station<'_>,
+    info: &[u8],
+    with_fcs: bool,
+    out: &mut [u8],
+) -> Result<usize, EncodeError> {
     let mut w = SliceWriter::new(out);
     w.push(&encode_address(dest.call.as_bytes(), dest.ssid, false)).map_err(|_| EncodeError)?;
     w.push(&encode_address(src.call.as_bytes(), src.ssid, true)).map_err(|_| EncodeError)?;

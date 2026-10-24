@@ -1,0 +1,83 @@
+# Fuzz targets for the untrusted-input surface (cargo-fuzz, libFuzzer).
+#
+#   cargo +nightly fuzz run uplink_frame         # one target, until stopped
+#   cargo +nightly fuzz run telecommand -- -max_total_time=60
+#
+# Every target asserts properties beyond "does not crash": round trips,
+# agreement between parser and encoder, and that nothing without a valid
+# tag is ever accepted. See README.md in software/rust.
+
+[package]
+name = "sqso-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+sqso-protocol = { path = "../sqso-protocol" }
+sqso-fsw = { path = "../sqso-fsw" }
+
+[profile.release]
+debug = 1
+overflow-checks = true
+debug-assertions = true
+
+[[bin]]
+name = "uplink_frame"
+path = "fuzz_targets/uplink_frame.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "telecommand"
+path = "fuzz_targets/telecommand.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "ax25_ui"
+path = "fuzz_targets/ax25_ui.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "jetson_line"
+path = "fuzz_targets/jetson_line.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "jetson_stream"
+path = "fuzz_targets/jetson_stream.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "beacon_filter"
+path = "fuzz_targets/beacon_filter.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "gse_frame"
+path = "fuzz_targets/gse_frame.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "nvm_record"
+path = "fuzz_targets/nvm_record.rs"
+test = false
+doc = false
+bench = false

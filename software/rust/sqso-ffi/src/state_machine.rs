@@ -1,5 +1,7 @@
 //! `state_machine.h`: the guarded mode manager (`sqso_fsw::mode`) on the C
 //! context `SmContext_t`.
+//!
+//! @requirement SRS-F018 Log every operating-mode transition ([Proposed])
 
 use core::ffi::c_char;
 
@@ -279,7 +281,11 @@ pub unsafe extern "C" fn sm_force_state(ctx: *mut SmContext, new_state: u32) -> 
 
 /// Transitions taken and the previous state
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn sm_get_statistics(ctx: *const SmContext, transition_count: *mut u32, previous_state: *mut u32) -> i32 {
+pub unsafe extern "C" fn sm_get_statistics(
+    ctx: *const SmContext,
+    transition_count: *mut u32,
+    previous_state: *mut u32,
+) -> i32 {
     // SAFETY: the C contract
     let Some(ctx) = (unsafe { ptr::in_(ctx) }) else { return rc::NULL_PTR };
     if !ctx.is_initialized {

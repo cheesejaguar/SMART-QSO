@@ -304,7 +304,8 @@ impl<F: Copy> Scheduler<F> {
             tick_count: self.tick_count,
             cpu_utilization: self.cpu_utilization,
             idle_time_us: self.idle_time_us,
-            active_tasks: u32::try_from(tasks.clone().filter(|t| t.state == TaskState::Ready).count()).unwrap_or(u32::MAX),
+            active_tasks: u32::try_from(tasks.clone().filter(|t| t.state == TaskState::Ready).count())
+                .unwrap_or(u32::MAX),
             total_deadline_misses: tasks.fold(0u32, |sum, t| sum.wrapping_add(t.stats.deadline_misses)),
         }
     }
@@ -387,7 +388,8 @@ impl<F: Copy> Scheduler<F> {
             s.last_run_time_us = run_time_us;
             s.max_run_time_us = s.max_run_time_us.max(run_time_us);
             s.min_run_time_us = s.min_run_time_us.min(run_time_us);
-            let avg = (u64::from(s.avg_run_time_us) * u64::from(AVG_FACTOR - 1) + u64::from(run_time_us)) / u64::from(AVG_FACTOR);
+            let avg = (u64::from(s.avg_run_time_us) * u64::from(AVG_FACTOR - 1) + u64::from(run_time_us))
+                / u64::from(AVG_FACTOR);
             s.avg_run_time_us = u32::try_from(avg).unwrap_or(u32::MAX);
 
             let deadline_us = t.config.deadline_ms.saturating_mul(1000);
@@ -410,7 +412,7 @@ impl<F: Copy> Scheduler<F> {
         self.running_task = None;
 
         self.active_time_us = self.active_time_us.wrapping_add(run_time_us);
-        if tick % CPU_UTIL_WINDOW == 0 {
+        if tick.is_multiple_of(CPU_UTIL_WINDOW) {
             let total = u64::from(self.active_time_us) + u64::from(self.idle_time_us);
             if let Some(percent) = (u64::from(self.active_time_us) * 100).checked_div(total) {
                 self.cpu_utilization = u32::try_from(percent).unwrap_or(100);

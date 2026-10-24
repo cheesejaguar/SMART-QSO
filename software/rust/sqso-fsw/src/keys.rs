@@ -19,12 +19,14 @@
 //! | 0 | `SQTS` | active slot (1), reserved (3), operational counter (4) |
 //! | 128 | `SQTR` | key (32), key ID (1), reserved (3), counter (4) |
 //! | 256 + 128 s | `SQTK` | key (32), key ID (1), status (1), reserved (2) |
+//!
+//! @requirement SYS-325 Execute only authenticated, fresh telecommands (47 CFR 97.211(b))
 
 use sqso_protocol::auth::{self, COUNTER_LIMIT, KEY_SIZE, Key};
 use sqso_protocol::{Command, KeyClass};
 use zeroize::Zeroize;
 
-use crate::nvm::{self, Flash, FOOTPRINT, NvmError, RecordStatus};
+use crate::nvm::{self, FOOTPRINT, Flash, NvmError, RecordStatus};
 
 /// Operational key slots
 pub const OP_SLOTS: u8 = 4;
@@ -176,7 +178,6 @@ fn key_from(record: &[u8]) -> Key {
     key
 }
 
-
 fn load_op<F: Flash>(flash: &mut F, region: u32, slot: u8, rec: &mut [u8; OP_LEN]) -> Result<RecordStatus, NvmError> {
     nvm::load(flash, region, base_op(slot), MAGIC_OP_KEY, rec)
 }
@@ -311,7 +312,12 @@ impl KeyTable {
 
     /// Make a spare operational key active (counter 0) and revoke every
     /// other active key. Used by KEY_ROTATE and by activation at integration.
-    pub fn rotate<F: Flash>(&mut self, flash: &mut F, slot: u8, log: &mut impl FnMut(KeyEvent)) -> Result<(), KeyError> {
+    pub fn rotate<F: Flash>(
+        &mut self,
+        flash: &mut F,
+        slot: u8,
+        log: &mut impl FnMut(KeyEvent),
+    ) -> Result<(), KeyError> {
         if slot >= OP_SLOTS {
             return Err(KeyError::Invalid);
         }
@@ -325,8 +331,8 @@ impl KeyTable {
         // commit point). 3. Revoke the previous key. A power loss before step
         // 2 leaves the old key in force; load() revokes the half-activated one.
         let key_id = rec[32];
-        let persisted = save_op(flash, self.region, slot, &rec, key_id, KEY_ACTIVE)
-            .and_then(|()| self.save_state(flash, slot, 0));
+        let persisted =
+            save_op(flash, self.region, slot, &rec, key_id, KEY_ACTIVE).and_then(|()| self.save_state(flash, slot, 0));
         if persisted.is_err() {
             rec.zeroize();
             log(KeyEvent::RotationNotPersisted);

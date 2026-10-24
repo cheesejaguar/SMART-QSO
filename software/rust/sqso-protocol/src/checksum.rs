@@ -1,5 +1,7 @@
 //! Check sequences, from the `crc` crate's catalogue (each algorithm is
 //! named and has a published check value; no hand-written polynomial).
+//!
+//! @requirement SRS-F061 Protect persisted data with CRC32
 
 use ::crc::{CRC_16_IBM_3740, CRC_16_IBM_SDLC, CRC_32_ISO_HDLC, Crc};
 
@@ -11,6 +13,14 @@ const IEEE: Crc<u32> = Crc::<u32>::new(&CRC_32_ISO_HDLC);
 /// XOR; check 0x29B1): the OBC-Jetson line CRC (ICD_OBC_JETSON §4.4)
 pub fn crc16_ccitt_false(data: &[u8]) -> u16 {
     CCITT_FALSE.checksum(data)
+}
+
+/// [`crc16_ccitt_false`] continued from a previous value (this CRC has no
+/// reflection or final XOR, so the value is the running register)
+pub fn crc16_ccitt_false_from(crc: u16, data: &[u8]) -> u16 {
+    let mut digest = CCITT_FALSE.digest_with_initial(crc);
+    digest.update(data);
+    digest.finalize()
 }
 
 /// CRC-16/X.25 (check 0x906E): the AX.25 frame check sequence
@@ -67,6 +77,7 @@ mod tests {
         assert_eq!(crc16_x25(CHECK), 0x906E);
         assert_eq!(crc32(CHECK), 0xCBF4_3926);
         assert_eq!(crc32(b""), 0);
+        assert_eq!(crc16_ccitt_false_from(crc16_ccitt_false(b"1234"), b"56789"), 0x29B1);
     }
 
     #[test]

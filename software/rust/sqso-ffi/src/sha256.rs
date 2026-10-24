@@ -94,7 +94,13 @@ pub unsafe extern "C" fn sha256(data: *const u8, len: usize, digest: *mut [u8; 3
 
 /// HMAC-SHA-256 (RFC 2104)
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn hmac_sha256(key: *const u8, key_len: usize, msg: *const u8, msg_len: usize, mac: *mut [u8; 32]) -> i32 {
+pub unsafe extern "C" fn hmac_sha256(
+    key: *const u8,
+    key_len: usize,
+    msg: *const u8,
+    msg_len: usize,
+    mac: *mut [u8; 32],
+) -> i32 {
     // SAFETY: the C contract
     let Some(mac) = (unsafe { ptr::out(mac) }) else { return rc::NULL_PTR };
     // SAFETY: the C contract

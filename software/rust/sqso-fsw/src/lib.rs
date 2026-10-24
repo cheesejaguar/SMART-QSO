@@ -14,10 +14,7 @@
 
 #![no_std]
 #![forbid(unsafe_code)]
-#![cfg_attr(
-    test,
-    allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing, clippy::panic)
-)]
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing, clippy::panic))]
 
 pub mod fault_log;
 pub mod keys;

@@ -171,7 +171,12 @@ pub unsafe extern "C" fn jetson_rx_init(rx_state: *mut JetsonRx) {
 
 /// Feed one received byte; true when a line ended (then *status and *msg)
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn jetson_rx_feed(rx_state: *mut JetsonRx, c: c_char, msg: *mut JetsonMsg, status_out: *mut u32) -> bool {
+pub unsafe extern "C" fn jetson_rx_feed(
+    rx_state: *mut JetsonRx,
+    c: c_char,
+    msg: *mut JetsonMsg,
+    status_out: *mut u32,
+) -> bool {
     // SAFETY: the C contract: all three point to their structs
     let (Some(r), Some(msg), Some(status_out)) =
         (unsafe { ptr::out(rx_state) }, unsafe { ptr::out(msg) }, unsafe { ptr::out(status_out) })

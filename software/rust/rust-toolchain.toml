@@ -1,0 +1,8 @@
+# The Rust toolchain for the flight build, pinned like the C tools (CI checks
+# against it; rustup installs it on first use). Fuzzing uses nightly
+# (cargo +nightly fuzz), which overrides this file.
+[toolchain]
+channel = "1.97.0"
+components = ["clippy", "rustfmt"]
+targets = ["thumbv7em-none-eabihf"]
+profile = "minimal"

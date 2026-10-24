@@ -100,20 +100,78 @@ impl Verdict {
 
 /// Obscene or indecent words (lower case, whole-word match)
 pub const PROFANITY: &[&CStr] = &[
-    c"ass", c"asshole", c"bastard", c"bitch", c"bollocks", c"bullshit", c"cock",
-    c"cocksucker", c"crap", c"cunt", c"damn", c"dick", c"dickhead", c"dyke", c"fag",
-    c"faggot", c"fuck", c"fucked", c"fucker", c"fucking", c"goddamn", c"motherfucker",
-    c"nigga", c"nigger", c"piss", c"pissed", c"prick", c"pussy", c"retard", c"shit",
-    c"shitty", c"slut", c"spic", c"twat", c"wank", c"wanker", c"whore",
+    c"ass",
+    c"asshole",
+    c"bastard",
+    c"bitch",
+    c"bollocks",
+    c"bullshit",
+    c"cock",
+    c"cocksucker",
+    c"crap",
+    c"cunt",
+    c"damn",
+    c"dick",
+    c"dickhead",
+    c"dyke",
+    c"fag",
+    c"faggot",
+    c"fuck",
+    c"fucked",
+    c"fucker",
+    c"fucking",
+    c"goddamn",
+    c"motherfucker",
+    c"nigga",
+    c"nigger",
+    c"piss",
+    c"pissed",
+    c"prick",
+    c"pussy",
+    c"retard",
+    c"shit",
+    c"shitty",
+    c"slut",
+    c"spic",
+    c"twat",
+    c"wank",
+    c"wanker",
+    c"whore",
 ];
 
 /// Business, advertising or pecuniary words (lower case, whole-word match)
 pub const COMMERCIAL: &[&CStr] = &[
-    c"advert", c"advertise", c"advertisement", c"bitcoin", c"buy", c"buying", c"cheap",
-    c"coupon", c"crypto", c"deal", c"deals", c"discount", c"dollar", c"dollars",
-    c"invest", c"investment", c"price", c"prices", c"profit", c"promo", c"promotion",
-    c"purchase", c"sale", c"sales", c"sell", c"selling", c"shop", c"sponsor",
-    c"sponsored", c"subscribe", c"usd",
+    c"advert",
+    c"advertise",
+    c"advertisement",
+    c"bitcoin",
+    c"buy",
+    c"buying",
+    c"cheap",
+    c"coupon",
+    c"crypto",
+    c"deal",
+    c"deals",
+    c"discount",
+    c"dollar",
+    c"dollars",
+    c"invest",
+    c"investment",
+    c"price",
+    c"prices",
+    c"profit",
+    c"promo",
+    c"promotion",
+    c"purchase",
+    c"sale",
+    c"sales",
+    c"sell",
+    c"selling",
+    c"shop",
+    c"sponsor",
+    c"sponsored",
+    c"subscribe",
+    c"usd",
 ];
 
 /// URL fragments, matched anywhere in the text
@@ -171,10 +229,8 @@ fn looks_encoded(word: &[u8]) -> bool {
     let all_alpha = word.iter().all(u8::is_ascii_alphabetic);
     let all_hex = word.iter().all(u8::is_ascii_hexdigit);
     let vowel = word.iter().any(|c| is_vowel(*c));
-    let case_changes = word
-        .windows(2)
-        .filter(|w| matches!(w, [a, b] if a.is_ascii_lowercase() && b.is_ascii_uppercase()))
-        .count();
+    let case_changes =
+        word.windows(2).filter(|w| matches!(w, [a, b] if a.is_ascii_lowercase() && b.is_ascii_uppercase())).count();
     (all_alpha && word.len() >= 5 && !vowel) || (all_hex && word.len() >= 8) || case_changes > 2
 }
 

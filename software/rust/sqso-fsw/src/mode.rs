@@ -12,6 +12,8 @@
 //! powers the payload, so every way into ACTIVE carries
 //! [`Guard::ActiveAllowed`] (battery at or above the payload threshold and
 //! the payload guard's consent).
+//!
+//! @requirement SRS-F012 Implement power modes SAFE, IDLE, ACTIVE (formal state machine)
 
 /// Operational states (values are the C `SmState_t`)
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -33,7 +35,8 @@ pub enum State {
 
 impl State {
     /// Every state
-    pub const ALL: [State; 6] = [State::Boot, State::Safe, State::Detumble, State::Idle, State::Active, State::Emergency];
+    pub const ALL: [State; 6] =
+        [State::Boot, State::Safe, State::Detumble, State::Idle, State::Active, State::Emergency];
 
     /// From the C value
     pub const fn from_raw(raw: u32) -> Option<State> {
@@ -382,7 +385,13 @@ pub enum Step {
 impl Machine {
     /// Start in `initial` (the caller runs its entry action)
     pub const fn new(initial: State, now_ms: u64) -> Self {
-        Machine { current: initial, previous: initial, transitions: 0, last_transition_ms: now_ms, state_entry_ms: now_ms }
+        Machine {
+            current: initial,
+            previous: initial,
+            transitions: 0,
+            last_transition_ms: now_ms,
+            state_entry_ms: now_ms,
+        }
     }
 
     /// Process an event; `guard` evaluates a guard when one applies
@@ -428,11 +437,11 @@ mod tests {
                     continue;
                 }
                 for e in Event::ALL {
-                    if let Some(t) = transition(s, e) {
-                        if !seen[t.to as usize] {
-                            seen[t.to as usize] = true;
-                            changed = true;
-                        }
+                    if let Some(t) = transition(s, e)
+                        && !seen[t.to as usize]
+                    {
+                        seen[t.to as usize] = true;
+                        changed = true;
                     }
                 }
             }
@@ -472,7 +481,10 @@ mod tests {
         let mut m = Machine::new(State::Idle, 0);
         assert_eq!(m.process(Event::GroundCmdActive, 5, |_| false), Step::GuardFailed);
         assert_eq!(m.current, State::Idle);
-        assert_eq!(m.process(Event::GroundCmdActive, 6, |_| true), Step::Transitioned { from: State::Idle, to: State::Active });
+        assert_eq!(
+            m.process(Event::GroundCmdActive, 6, |_| true),
+            Step::Transitioned { from: State::Idle, to: State::Active }
+        );
         assert_eq!((m.previous, m.transitions, m.state_entry_ms), (State::Idle, 1, 6));
         assert_eq!(m.process(Event::BootComplete, 7, |_| true), Step::NoTransition);
     }

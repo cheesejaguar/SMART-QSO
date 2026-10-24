@@ -71,7 +71,12 @@ pub enum Admission<'a> {
 /// Check a received frame and spend its counter. `custom` says whether a
 /// handler is registered for an ID outside the dictionary (it may take up
 /// to [`MAX_ARGS`] argument bytes).
-pub fn admit<'a, F: Flash>(raw: &'a [u8], keys: &mut KeyTable, flash: &mut F, custom: impl Fn(u8) -> bool) -> Admission<'a> {
+pub fn admit<'a, F: Flash>(
+    raw: &'a [u8],
+    keys: &mut KeyTable,
+    flash: &mut F,
+    custom: impl Fn(u8) -> bool,
+) -> Admission<'a> {
     let reject = |cmd_id, counter, why, contact| Admission::Rejected { cmd_id, counter, why, contact };
 
     let parsed = match frame::parse(raw) {
@@ -204,12 +209,21 @@ mod tests {
     fn rejections_spend_no_counter() {
         let (mut f, mut t) = setup();
         let (b, n) = frame(Command::SetMode.id(), 3, &[1, 2]);
-        assert!(matches!(admit(&b[..n], &mut t, &mut f, |_| false), Admission::Rejected { why: Rejection::ArgLength, .. }));
+        assert!(matches!(
+            admit(&b[..n], &mut t, &mut f, |_| false),
+            Admission::Rejected { why: Rejection::ArgLength, .. }
+        ));
         let (b, n) = frame(0x7F, 4, &[]);
-        assert!(matches!(admit(&b[..n], &mut t, &mut f, |_| false), Admission::Rejected { why: Rejection::UnknownCommand, .. }));
+        assert!(matches!(
+            admit(&b[..n], &mut t, &mut f, |_| false),
+            Admission::Rejected { why: Rejection::UnknownCommand, .. }
+        ));
         assert!(matches!(admit(&b[..n], &mut t, &mut f, |id| id == 0x7F), Admission::Accepted { .. }));
         assert_eq!(t.info().operational_counter, 4);
-        assert!(matches!(admit(&[0xAA, 0x55, 9], &mut t, &mut f, |_| false), Admission::Rejected { cmd_id: 0, why: Rejection::InvalidFrame, .. }));
+        assert!(matches!(
+            admit(&[0xAA, 0x55, 9], &mut t, &mut f, |_| false),
+            Admission::Rejected { cmd_id: 0, why: Rejection::InvalidFrame, .. }
+        ));
     }
 
     #[test]

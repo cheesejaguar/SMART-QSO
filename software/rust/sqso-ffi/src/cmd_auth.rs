@@ -174,7 +174,12 @@ pub(crate) fn auth_status(e: AuthError) -> u32 {
 
 /// Verify a command payload; changes nothing
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn cmd_auth_verify(cmd_id: u8, payload: *const u8, payload_len: usize, verified: *mut CmdAuthVerified) -> u32 {
+pub unsafe extern "C" fn cmd_auth_verify(
+    cmd_id: u8,
+    payload: *const u8,
+    payload_len: usize,
+    verified: *mut CmdAuthVerified,
+) -> u32 {
     // SAFETY: the C contract
     let Some(out) = (unsafe { ptr::out(verified) }) else { return AUTH_ERR_FORMAT };
     // SAFETY: the C contract: payload has payload_len bytes (NULL is a format error)
@@ -182,7 +187,12 @@ pub unsafe extern "C" fn cmd_auth_verify(cmd_id: u8, payload: *const u8, payload
     read(
         |keys| match keys.verify(cmd_id, payload) {
             Ok(v) => {
-                *out = CmdAuthVerified { counter: v.counter, args: v.args.as_ptr(), args_len: v.args.len(), key: v.key as u32 };
+                *out = CmdAuthVerified {
+                    counter: v.counter,
+                    args: v.args.as_ptr(),
+                    args_len: v.args.len(),
+                    key: v.key as u32,
+                };
                 AUTH_OK
             }
             Err(e) => auth_status(e),

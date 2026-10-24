@@ -8,6 +8,8 @@
 //!
 //! Slot: `magic (4) | sequence (4) | payload (len) | CRC-32 (4)`, all
 //! big-endian, CRC over magic, sequence and payload.
+//!
+//! @requirement SRS-F061 Protect persisted data with CRC32
 
 use sqso_protocol::checksum::crc32;
 
@@ -135,7 +137,13 @@ fn read_both<F: Flash>(
 }
 
 /// Load the newest valid copy into `payload` (written only when `Valid`)
-pub fn load<F: Flash>(flash: &mut F, region: u32, base: u32, magic: u32, payload: &mut [u8]) -> Result<RecordStatus, NvmError> {
+pub fn load<F: Flash>(
+    flash: &mut F,
+    region: u32,
+    base: u32,
+    magic: u32,
+    payload: &mut [u8],
+) -> Result<RecordStatus, NvmError> {
     let mut bufs = [[0u8; SLOT_SIZE]; 2];
     let info = read_both(flash, region, base, magic, payload.len(), &mut bufs)?;
     let status = match newest(&info) {

@@ -8,7 +8,7 @@
  * Contract: hal_radio_receive() delivers one complete AX.25 frame per call,
  * from the first address byte through the 2-byte FCS, with HDLC flags and bit
  * stuffing removed. The FCS is delivered even if the transceiver has checked
- * it; the OBC checks it again (uplink.c).
+ * it; the OBC checks it again (software/rust/sqso-ffi/src/uplink.rs).
  *
  * Only the host simulation implements this today (src/hal/hal_sim.c). The
  * target driver depends on the transceiver selection (SQSO-ICD-005).

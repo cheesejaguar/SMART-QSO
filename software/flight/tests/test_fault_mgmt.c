@@ -65,7 +65,7 @@ static void start_in(SmState_t st) {
     assert_int_equal(sys_get_operational_state(), st);
 }
 
-/** The EPS power mode each operational state sets on entry (state_machine.c) */
+/** The EPS power mode each operational state sets on entry (software/rust/sqso-fsw/src/mode.rs) */
 static PowerMode_t power_mode_of(SmState_t st) {
     PowerMode_t mode = POWER_MODE_SAFE;
     if ((st == STATE_DETUMBLE) || (st == STATE_IDLE)) {

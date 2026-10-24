@@ -105,11 +105,7 @@ pub fn split(payload: &[u8]) -> Result<AuthBlock<'_>, FormatError> {
     }
     let (head, tag) = payload.split_at(COUNTER_SIZE + args_len);
     let (counter, args) = head.split_at(COUNTER_SIZE);
-    Ok(AuthBlock {
-        counter: be_u32(counter).ok_or(FormatError)?,
-        args,
-        tag: tag.try_into().map_err(|_| FormatError)?,
-    })
+    Ok(AuthBlock { counter: be_u32(counter).ok_or(FormatError)?, args, tag: tag.try_into().map_err(|_| FormatError)? })
 }
 
 fn keyed_mac(key: &Key, cmd_id: u8, counter: u32, args: &[u8]) -> Result<HmacSha256, FormatError> {

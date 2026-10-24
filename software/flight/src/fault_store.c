@@ -11,6 +11,7 @@
 #include "fault_store.h"
 #include "fault_mgmt.h"
 #include "smart_qso.h"
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
@@ -25,35 +26,34 @@ static const char *fault_log_path(void)
 
 SmartQsoResult_t fault_store_save(const uint8_t *data, size_t len)
 {
-    SmartQsoResult_t result = SMART_QSO_OK;
+    SmartQsoResult_t result = SMART_QSO_ERROR_IO;
     FILE *f = fopen(fault_log_path(), "wb");
-    if (f == NULL) {
-        return SMART_QSO_ERROR_IO;
-    }
-    if ((len > 0U) && ((data == NULL) || (fwrite(data, 1U, len, f) != len))) {
-        result = SMART_QSO_ERROR_IO;
-    }
-    if (fclose(f) != 0) {
-        result = SMART_QSO_ERROR_IO;
+
+    if (f != NULL) {
+        bool written = (len == 0U) || ((data != NULL) && (fwrite(data, 1U, len, f) == len));
+        bool closed = fclose(f) == 0;
+        result = (written && closed) ? SMART_QSO_OK : SMART_QSO_ERROR_IO;
     }
     return result;
 }
 
 SmartQsoResult_t fault_store_load(uint8_t *data, size_t cap, size_t *len)
 {
-    if ((data == NULL) || (len == NULL)) {
-        return SMART_QSO_ERROR_NULL_PTR;
+    SmartQsoResult_t result = SMART_QSO_ERROR_NULL_PTR;
+
+    if ((data != NULL) && (len != NULL)) {
+        FILE *f = fopen(fault_log_path(), "rb");
+        result = SMART_QSO_ERROR_IO;
+        if (f != NULL) {
+            *len = fread(data, 1U, cap, f);
+            if (fclose(f) == 0) {
+                result = SMART_QSO_OK;
+            } else {
+                *len = 0U;
+            }
+        }
     }
-    FILE *f = fopen(fault_log_path(), "rb");
-    if (f == NULL) {
-        return SMART_QSO_ERROR_IO;
-    }
-    *len = fread(data, 1U, cap, f);
-    if (fclose(f) != 0) {
-        *len = 0U;
-        return SMART_QSO_ERROR_IO;
-    }
-    return SMART_QSO_OK;
+    return result;
 }
 
 void fault_store_erase(void)

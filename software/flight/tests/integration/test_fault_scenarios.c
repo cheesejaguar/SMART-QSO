@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @license MIT
  *
- * FDIR across the fault log (fault_mgmt.c), the recovery functions, the mode
+ * FDIR across the fault log (software/rust/sqso-ffi/src/fault_mgmt.rs), the recovery functions, the mode
  * manager (state machine and EPS), the payload guard and the watchdog
  * manager. Mode changes from a fault go through the state machine (SW-14),
  * so after every recovery the EPS holds the mode the state machine is in.
@@ -42,7 +42,7 @@
  * Helpers
  ******************************************************************************/
 
-/** The EPS power mode each state's entry action sets (state_machine.c) */
+/** The EPS power mode each state's entry action sets (software/rust/sqso-fsw/src/mode.rs) */
 static PowerMode_t power_mode_of(SmState_t st)
 {
     PowerMode_t mode = POWER_MODE_SAFE;
@@ -91,7 +91,7 @@ static size_t count_type(FaultType_t type)
     return n;
 }
 
-/** Persistent fault log file, as fault_mgmt.c chooses it */
+/** Persistent fault log file, as software/rust/sqso-ffi/src/fault_mgmt.rs chooses it */
 static const char *fault_log_file(void)
 {
     const char *path = getenv(FAULT_LOG_FILE_ENV);

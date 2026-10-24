@@ -1,4 +1,6 @@
 //! `gse_provision.h`: key provisioning over the GSE umbilical (integration only)
+//!
+//! @requirement SYS-325 Execute only authenticated, fresh telecommands (47 CFR 97.211(b))
 
 use sqso_protocol::gse::{self, FRAME_SIZE, GseError, GseOp};
 
@@ -87,7 +89,9 @@ pub extern "C" fn gse_poll() -> bool {
         }
         let mut frame = [0u8; FRAME_SIZE];
         let mut got = 0usize;
-        if c::hal_uart_read(UART_PORT_DEBUG, frame.as_mut_ptr(), frame.len(), 0, &mut got) != rc::OK || got != FRAME_SIZE {
+        if c::hal_uart_read(UART_PORT_DEBUG, frame.as_mut_ptr(), frame.len(), 0, &mut got) != rc::OK
+            || got != FRAME_SIZE
+        {
             return false;
         }
         let status = gse_process_frame(frame.as_ptr(), got);

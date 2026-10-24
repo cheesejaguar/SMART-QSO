@@ -22,9 +22,17 @@ pub(crate) fn code(e: NvmError) -> i32 {
 
 /// Load the newest valid copy of the record at `base`
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn nvm_record_load_at(region: u32, base: u32, magic: u32, payload: *mut c_void, len: usize, status: *mut u32) -> i32 {
+pub unsafe extern "C" fn nvm_record_load_at(
+    region: u32,
+    base: u32,
+    magic: u32,
+    payload: *mut c_void,
+    len: usize,
+    status: *mut u32,
+) -> i32 {
     // SAFETY: the C contract: payload has len writable bytes
-    let (Some(payload), Some(status)) = (unsafe { ptr::bytes_mut(payload.cast(), len) }, unsafe { ptr::out(status) }) else {
+    let (Some(payload), Some(status)) = (unsafe { ptr::bytes_mut(payload.cast(), len) }, unsafe { ptr::out(status) })
+    else {
         return rc::NULL_PTR;
     };
     match nvm::load(&mut HalFlash, region, base, magic, payload) {
@@ -42,7 +50,13 @@ pub unsafe extern "C" fn nvm_record_load_at(region: u32, base: u32, magic: u32, 
 
 /// Save into the slot not holding the newest valid copy
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn nvm_record_save_at(region: u32, base: u32, magic: u32, payload: *const c_void, len: usize) -> i32 {
+pub unsafe extern "C" fn nvm_record_save_at(
+    region: u32,
+    base: u32,
+    magic: u32,
+    payload: *const c_void,
+    len: usize,
+) -> i32 {
     // SAFETY: the C contract: payload has len bytes
     let Some(payload) = (unsafe { ptr::bytes(payload.cast(), len) }) else { return rc::NULL_PTR };
     match nvm::save(&mut HalFlash, region, base, magic, payload) {
@@ -53,7 +67,13 @@ pub unsafe extern "C" fn nvm_record_save_at(region: u32, base: u32, magic: u32, 
 
 /// nvm_record_load_at() at base 0
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn nvm_record_load(region: u32, magic: u32, payload: *mut c_void, len: usize, status: *mut u32) -> i32 {
+pub unsafe extern "C" fn nvm_record_load(
+    region: u32,
+    magic: u32,
+    payload: *mut c_void,
+    len: usize,
+    status: *mut u32,
+) -> i32 {
     // SAFETY: forwarded C contract
     unsafe { nvm_record_load_at(region, 0, magic, payload, len, status) }
 }

@@ -21,15 +21,13 @@
 
 #![no_std]
 #![forbid(unsafe_code)]
-#![cfg_attr(
-    test,
-    allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing, clippy::panic)
-)]
+#![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing, clippy::panic))]
 
 pub mod auth;
 pub mod ax25;
 pub mod checksum;
 pub mod command;
+#[rustfmt::skip] // generated (scripts/gen_command_dictionary.py)
 pub mod dictionary;
 pub mod filter;
 pub mod frame;

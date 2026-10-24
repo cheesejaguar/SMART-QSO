@@ -14,7 +14,6 @@
  */
 
 #include "assert_handler.h"
-#include "smart_qso.h"
 #include <stdint.h>
 #include <stdlib.h>
 

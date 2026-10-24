@@ -31,7 +31,11 @@ pub struct Vector3 {
 
 /// Validate framing, length and checksum of an uplink frame
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn input_validate_command(cmd_data: *const u8, cmd_length: usize, result: *mut CommandValidation) -> i32 {
+pub unsafe extern "C" fn input_validate_command(
+    cmd_data: *const u8,
+    cmd_length: usize,
+    result: *mut CommandValidation,
+) -> i32 {
     // SAFETY: the C contract: cmd_data has cmd_length bytes
     let (Some(data), Some(result)) = (unsafe { ptr::bytes(cmd_data, cmd_length) }, unsafe { ptr::out(result) }) else {
         return rc::PARAM;
@@ -159,7 +163,12 @@ pub unsafe extern "C" fn input_validate_string(s: *const u8, max_length: usize, 
 
 /// Non-NULL buffer of at least required_size bytes
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn input_validate_buffer(buffer: *const core::ffi::c_void, buffer_size: usize, required_size: usize, is_valid: *mut bool) -> i32 {
+pub unsafe extern "C" fn input_validate_buffer(
+    buffer: *const core::ffi::c_void,
+    buffer_size: usize,
+    required_size: usize,
+    is_valid: *mut bool,
+) -> i32 {
     // SAFETY: forwarded C contract
     unsafe { report(is_valid, !buffer.is_null() && buffer_size >= required_size) }
 }
@@ -173,8 +182,12 @@ pub unsafe extern "C" fn input_validate_pointer(p: *const core::ffi::c_void, is_
 
 /// Pointer aligned to `alignment` bytes
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn input_validate_alignment(p: *const core::ffi::c_void, alignment: usize, is_valid: *mut bool) -> i32 {
-    let ok = !p.is_null() && alignment != 0 && (p as usize) % alignment == 0;
+pub unsafe extern "C" fn input_validate_alignment(
+    p: *const core::ffi::c_void,
+    alignment: usize,
+    is_valid: *mut bool,
+) -> i32 {
+    let ok = !p.is_null() && alignment != 0 && (p as usize).is_multiple_of(alignment);
     // SAFETY: forwarded C contract
     unsafe { report(is_valid, ok) }
 }

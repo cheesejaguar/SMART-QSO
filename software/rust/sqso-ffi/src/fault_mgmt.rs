@@ -3,6 +3,9 @@
 //! Storage and console output stay in C (`fault_store.h`). Recovery raises
 //! events through the mode manager and never sets the EPS power mode
 //! directly (SW-14).
+//!
+//! @requirement SRS-F040 Detect and log all fault conditions
+//! @requirement SRS-F042 Implement autonomous fault recovery
 
 use core::mem::size_of;
 
@@ -75,7 +78,12 @@ pub extern "C" fn fault_mgmt_init() -> i32 {
 
 /// Add a fault log entry
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn fault_log_add(fault_type: u32, severity: u32, description: *const core::ffi::c_char, soc: f64) -> i32 {
+pub unsafe extern "C" fn fault_log_add(
+    fault_type: u32,
+    severity: u32,
+    description: *const core::ffi::c_char,
+    soc: f64,
+) -> i32 {
     // SAFETY: the C contract: a C string
     let Some(description) = (unsafe { ptr::cstr(description) }) else {
         c::assert_failed(c"Null pointer: description", line!());
