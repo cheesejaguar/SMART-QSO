@@ -305,14 +305,14 @@ Procedure:
 | SHA-256, HMAC-SHA-256 (`software/rust/sqso-ffi/src/sha256.rs`) | Implemented; FIPS 180-4 and RFC 4231 vectors (9 tests) |
 | Two-slot records with base offsets (`software/rust/sqso-fsw/src/nvm.rs`) | Implemented; power-fail and corruption cases (12 tests) |
 | Authentication, per-key counters, key table, rotation (`software/rust/sqso-fsw/src/keys.rs`) | Implemented (25 tests, including interrupted rotation and corrupt state) |
-| GSE provisioning (`software/rust/sqso-ffi/src/gse_provision.rs`) | Implemented (6 tests; the umbilical gate was mutation-checked) |
+| GSE provisioning (`software/rust/sqso-ffi/src/gse_provision.rs`) | Implemented (6 tests; the umbilical gate was mutation-checked, on the C and again on the Rust) |
 | Latched TX-OFF, power level (`software/rust/sqso-fsw/src/rf_control.rs`), beacon gating | Implemented (11 tests) |
-| Loss-of-contact inhibit (`software/rust/sqso-fsw/src/contact_monitor.rs`) | Implemented (10 tests, plus 3 handler tests; the contact hook's gate and placement were mutation-checked) |
-| Post-deployment RF silence (`software/rust/sqso-fsw/src/rf_silence.rs`), GSE ARM | Implemented (10 tests plus 1 GSE test; the reset-cause rule, completion persistence and switch reset were mutation-checked) |
+| Loss-of-contact inhibit (`software/rust/sqso-fsw/src/contact_monitor.rs`) | Implemented (10 tests, plus 4 handler tests; the contact hook's gate and placement were mutation-checked, on the C and again on the Rust) |
+| Post-deployment RF silence (`software/rust/sqso-fsw/src/rf_silence.rs`), GSE ARM | Implemented (10 tests plus 1 GSE test; the reset-cause rule, completion persistence and switch reset were mutation-checked, on the C and again on the Rust) |
 | Command path (`software/rust/sqso-ffi/src/cmd_handler.rs`) | Implemented (22 tests, including every dictionary command, KEY_ROTATE, SET_MODE guards and contact detection) |
-| AX.25 and receive path (`software/rust/sqso-protocol/src/ax25.rs`, `software/rust/sqso-ffi/src/uplink.rs`) | Implemented; end to end from receiver frame to TX-OFF (7 tests; the callsign filter was mutation-checked) |
+| AX.25 and receive path (`software/rust/sqso-protocol/src/ax25.rs`, `software/rust/sqso-ffi/src/uplink.rs`) | Implemented; end to end from receiver frame to TX-OFF (7 tests; the callsign filter was mutation-checked, on the C and again on the Rust) |
 | Ground tools (`telecommand_builder.py`, `key_provision.py`) | Implemented; byte-identical to the flight vectors |
-| Rust implementation | Since 2026-10-24 every item above is Rust (`software/rust/README.md`). The C test suites counted here run unchanged against them, the parsers are fuzzed, and a differential fuzz against the former C agreed on 8.3 million inputs. The mutation checks were run on the C implementation; for mutation testing of the Rust, see `software/rust/mutants/` |
+| Rust implementation | Since 2026-10-24 every item above is Rust (`software/rust/README.md`). The C test suites counted here run unchanged against them, the parsers are fuzzed, and a differential fuzz against the former C agreed on 8.3 million inputs. The mutation checks in this table were first run on the C; on 2026-10-24 they were repeated on the Rust: every mutant is killed by a named test (`software/rust/mutants/RESULTS-targeted.md`; rerun with `software/rust/mutants/targeted.py`). Whole-crate mutation testing: `software/rust/mutants/` |
 | **Target receiver driver behind `hal_radio.h`** | **Not implemented.** Waits on transceiver selection (SQSO-ICD-003's SPI command set is a placeholder) |
 | **`RF_TX_EN` removes PA power at the antenna port** | **Not verified.** TP-RF-006 is written; it needs EM hardware |
 | **SET_POWER applied to the PA** | **Not implemented.** The level is persisted and reported; the actuator interface is TBD in the RF design |
