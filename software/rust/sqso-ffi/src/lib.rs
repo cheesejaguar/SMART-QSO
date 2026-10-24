@@ -24,6 +24,10 @@
 //! | `state_machine.h` | [`state_machine`] |
 //! | `scheduler.h` | [`scheduler`] |
 //! | `fault_mgmt.h` | [`fault_mgmt`] |
+//! | `eps_control.h` | [`eps_control`] |
+//! | `sensors.h` | [`sensors`] |
+//! | `mission_data.h` | [`mission_data`] |
+//! | `gnss.h` | [`gnss`] |
 //!
 //! Struct layouts mirror the C headers (`#[repr(C)]`); the C contract test
 //! `tests/test_rust_contract.c` checks sizes and constants from the C side.
@@ -39,12 +43,16 @@ pub mod cmd_dictionary;
 pub mod cmd_handler;
 pub mod contract;
 pub mod crc;
+pub mod eps_control;
 pub mod fault_mgmt;
+pub mod gnss;
 pub mod gse_provision;
 pub mod input_validation;
 pub mod jetson_link;
+pub mod mission_data;
 pub mod nvm_record;
 pub mod scheduler;
+pub mod sensors;
 pub mod separation_switch;
 pub mod sha256;
 pub mod state_machine;

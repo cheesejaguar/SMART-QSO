@@ -2,6 +2,9 @@
  * @file eps_control.h
  * @brief Electrical Power Subsystem (EPS) Control Interface
  *
+ * Implemented in Rust (software/rust/sqso-ffi/src/eps_control.rs, logic in
+ * software/rust/sqso-fsw/src/eps.rs).
+ *
  * This module provides power management functionality including load switching,
  * power mode control, and power budget enforcement.
  *

@@ -81,3 +81,17 @@ path = "fuzz_targets/nvm_record.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "sensors_yaml"
+path = "fuzz_targets/sensors_yaml.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "gnss_nmea"
+path = "fuzz_targets/gnss_nmea.rs"
+test = false
+doc = false
+bench = false

@@ -45,7 +45,14 @@ typedef enum {
     RUST_LAYOUT_TASK_STATS,
     RUST_LAYOUT_SCHED_STATS,
     RUST_LAYOUT_FAULT_LOG_ENTRY,
-    RUST_LAYOUT_COUNT
+    RUST_LAYOUT_COUNT,
+
+    /* eps_control.h, sensors.h, mission_data.h, gnss.h (ids 150-199) */
+    RUST_LAYOUT_EPS_CONTROL_STATE = 150,
+    RUST_LAYOUT_SENSOR,
+    RUST_LAYOUT_MISSION_DATA,
+    RUST_LAYOUT_GNSS_FIX,
+    RUST_LAYOUT_GNSS_RX
 } RustLayout_t;
 
 /** Constants the Rust library keeps */
@@ -73,7 +80,27 @@ typedef enum {
     RUST_CONST_STATE_COUNT,       /**< STATE_COUNT */
     RUST_CONST_EVENT_COUNT,       /**< EVENT_COUNT */
     RUST_CONST_SSID,              /**< SQSO_SSID */
-    RUST_CONST_COUNT
+    RUST_CONST_COUNT,
+
+    /* eps_control.h, sensors.h, mission_data.h, gnss.h (ids 150-199) */
+    RUST_CONST_EPS_LIMIT_SAFE = 150,  /**< EPS_POWER_LIMIT_SAFE_W */
+    RUST_CONST_EPS_LIMIT_IDLE,        /**< EPS_POWER_LIMIT_IDLE_W */
+    RUST_CONST_EPS_LIMIT_ACTIVE,      /**< EPS_POWER_LIMIT_ACTIVE_W */
+    RUST_CONST_EPS_BUS_MIN,           /**< EPS_BUS_MIN_V */
+    RUST_CONST_EPS_BUS_MAX,           /**< EPS_BUS_MAX_V */
+    RUST_CONST_MAX_SENSORS,           /**< SMART_QSO_MAX_SENSORS */
+    RUST_CONST_SENSOR_ID_LEN,         /**< SMART_QSO_SENSOR_ID_LEN */
+    RUST_CONST_SENSOR_NAME_LEN,       /**< SMART_QSO_SENSOR_NAME_LEN */
+    RUST_CONST_SENSOR_UNITS_LEN,      /**< SMART_QSO_SENSOR_UNITS_LEN */
+    RUST_CONST_SENSOR_TYPE_LEN,       /**< SMART_QSO_SENSOR_TYPE_LEN */
+    RUST_CONST_SENSOR_CHANNEL_LEN,    /**< SMART_QSO_SENSOR_CHANNEL_LEN */
+    RUST_CONST_MISSION_FAULT_LEN,     /**< sizeof(MissionData_t.last_fault) */
+    RUST_CONST_MISSION_PHASE_EOL,     /**< MISSION_PHASE_EOL */
+    RUST_CONST_GNSS_LINE_MAX,         /**< GNSS_LINE_MAX */
+    RUST_CONST_GNSS_GGA_MAX_AGE,      /**< GNSS_GGA_MAX_AGE_MS */
+    RUST_CONST_GNSS_LEO_MIN_RADIUS,   /**< GNSS_LEO_MIN_RADIUS_M */
+    RUST_CONST_GNSS_LEO_MAX_RADIUS,   /**< GNSS_LEO_MAX_RADIUS_M */
+    RUST_CONST_GNSS_MIN_SATS          /**< GNSS_MIN_SATS */
 } RustConst_t;
 
 /**

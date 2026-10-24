@@ -309,6 +309,56 @@ static void test_sensors_set_environment(void **state) {
     sensors_set_environment(false, 0.25);
 }
 
+/**
+ * @brief The table holds at most SMART_QSO_MAX_SENSORS: loading the
+ * defaults again adds sensors until it is full, never past it
+ */
+static void test_sensors_table_never_overflows(void **state) {
+    (void)state;
+
+    for (int i = 0; i < 5; i++) {
+        assert_int_equal(sensors_load_defaults(), SMART_QSO_OK);
+    }
+    assert_int_equal(sensors_get_count(), SMART_QSO_MAX_SENSORS);
+
+    Sensor_t last;
+    assert_int_equal(sensors_get(SMART_QSO_MAX_SENSORS - 1U, &last), SMART_QSO_OK);
+    assert_string_equal(last.id, "BV");   /* 3 x 10 defaults, then SET and BV */
+}
+
+/**
+ * @brief A sensor copy's read function still works from C, and the
+ * telemetry text and the status sensor have their C formats
+ */
+static void test_sensors_read_function_and_formats(void **state) {
+    (void)state;
+    Sensor_t st;
+    Sensor_t bv;
+    double value = 0.0;
+    char text[8] = {0};
+    char line[128];
+
+    sensors_load_defaults();
+    sensors_set_environment(true, 0.75);
+    assert_int_equal(sensors_get_by_id("ST", &st), SMART_QSO_OK);
+    assert_int_equal(st.value_type, SENSOR_VALUE_HEX2);
+    assert_true(st.read(&st, &value, text));
+    assert_int_equal(strlen(text), 2U);
+    assert_int_equal(sensors_get_by_id("BV", &bv), SMART_QSO_OK);
+    assert_true(bv.read(&bv, &value, text));
+    assert_true((value > 8.0) && (value < 8.2));
+
+    assert_int_equal(sensors_poll_one(1U), SMART_QSO_OK);   /* BV */
+    assert_int_equal(sensors_get_by_id("BV", &bv), SMART_QSO_OK);
+    size_t len = sensors_format_telemetry(line, sizeof(line));
+    char expected[32];
+    (void)snprintf(expected, sizeof(expected), "SET=0.000s,BV=%.3fV,", bv.last_value);
+    assert_true(len > strlen(expected));
+    assert_memory_equal(line, expected, strlen(expected));
+    assert_int_equal(line[len - 1U], ',');
+    assert_int_equal(line[len], '\0');
+}
+
 /*===========================================================================*/
 /* Test Suite                                                                 */
 /*===========================================================================*/
@@ -338,6 +388,8 @@ int main(void) {
         cmocka_unit_test_setup_teardown(test_sensors_set_environment, setup, teardown),
         cmocka_unit_test_setup_teardown(test_sensors_last_read_time, setup, teardown),
         cmocka_unit_test_setup_teardown(test_payload_spreader_sensor, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_sensors_table_never_overflows, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_sensors_read_function_and_formats, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Sensor Tests", tests, NULL, NULL);
