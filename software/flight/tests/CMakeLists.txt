@@ -153,7 +153,6 @@ endif()
 #===========================================================================
 set(FLIGHT_LIB_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log_fmt.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/rust_panic.c
 )
 add_library(flight_test_lib STATIC ${FLIGHT_LIB_SOURCES})
 target_compile_options(flight_test_lib PRIVATE ${TEST_COMPILE_OPTIONS})

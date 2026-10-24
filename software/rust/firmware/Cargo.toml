@@ -38,6 +38,8 @@ unreachable = "deny"
 todo = "deny"
 unimplemented = "deny"
 cast_possible_truncation = "warn"
+# JPL rule 4 (clippy.toml sets 60 lines)
+too_many_lines = "deny"
 
 [profile.release]
 overflow-checks = true

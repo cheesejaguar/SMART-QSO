@@ -62,32 +62,33 @@ This document tracks all known issues, limitations, and accepted risks for the S
 **Severity**: Medium
 **Status**: Accepted
 **Component**: Flight Software
-**Affected Files**: `uart_comm.c`, `adcs_control.c`, `assert_handler.c`, `hal/hal_stm32l4.c`
+**Affected Files**: `software/rust/sqso-ffi/src/adcs_control.rs`, `software/rust/firmware/src/`
 
 **Description**:
 The OBC is the STM32L4R5ZI (`docs/BASELINE_PARAMETERS.md` §6); the Apollo4 SDK named in Version 1.0 is superseded. The
-flight software runs as a host simulation. Its target port is a register-level HAL for the STM32L4R5ZI
-(`software/flight/src/hal/hal_stm32l4.c`), compiled by CI and not run on hardware. That HAL implements GPIO, the SysTick
-time base, the independent watchdog and the reset cause. Not yet written, and returning an error so that the software
-fails safe: the FRAM non-volatile memory driver (`hal_flash_*`), UART, I2C, SPI, ADC and the 435 MHz receiver
-(`hal_radio_*`). Above the HAL, these functions still carry TODO stubs for the target build:
+flight software is Rust (2026-10-24) and runs both as a host simulation and as the Embassy firmware for the STM32L4R5ZI
+(`software/rust/firmware`), which CI builds and checks but which has not run on hardware. The firmware's HAL drives
+GPIO, the time base, the independent watchdog and reset cause, the Jetson and debug UARTs, I2C, SPI, the ADC, the FM25V20A
+FRAM (`hal_flash_*`) and the telecommand receiver (KISS frames from the TNC UART, `hal_radio_*`). Its pin assignment is
+provisional until the OBC schematic baselines one (`software/rust/firmware/src/gpio.rs`).
+
+Not yet written, because the parts are not selected: the ADCS sensor and actuator drivers. On the target, as in the
+simulation, the ADCS reads its simulated field and sun vector:
 
 **Affected Functions**:
-- `uart_comm.c`, `uart_init_with_config()` - HAL-based UART initialization
-- `adcs_control.c`, `adcs_read_magnetometer()` - I2C magnetometer read
-- `adcs_control.c`, `adcs_read_sun_sensors()` - ADC sun sensor read
-- `adcs_control.c`, `adcs_apply_dipole()` - Magnetorquer PWM control
-- `adcs_control.c`, `adcs_disable_mtq()` - Magnetorquer disable
-- `assert_handler.c`, `trigger_reset()` - Watchdog reset trigger
+- `adcs_read_magnetometer()` - I2C magnetometer read (part not selected)
+- `adcs_read_sun_sensors()` - sun sensor read (part not selected)
+- `adcs_apply_dipole()`, `adcs_disable_mtq()` - magnetorquer drive (no PWM driver yet)
 
-(`time_utils.c` no longer has a stub: it reads the HAL time base.)
+The sensor table's readings (`sensors.rs`) are likewise the power model's, not ADC conversions, until the EPS sense
+circuits are designed (the ADC front-end scaling in `firmware/src/adc.rs` is provisional until then).
 
 **Impact**:
-On the target these functions do nothing or return an error. The logic above them runs in the host simulation build,
-where the unit tests in `software/flight/tests/` exercise it; nothing has run on hardware.
+On the target these functions return simulated values. The logic above them is exercised by the unit tests in
+`software/flight/tests/` and `software/rust`; nothing has run on hardware.
 
 **Workaround**:
-In the simulation build the stubs return simulated values. Each is replaced by a HAL call when its driver is written.
+None needed before hardware: each is replaced by a HAL call when its part is selected and its driver written.
 
 **Acceptance Rationale**:
 Expected before engineering-model hardware exists. HAL integration is a flatsat activity per standard development flow.
@@ -100,21 +101,20 @@ Complete during TP-FLATSAT-001 (Flatsat Software Development Unit Test).
 ### KI-002: Fault Log Not Persistent on the Target
 
 **Severity**: Medium
-**Status**: Open
+**Status**: Resolved in code (2026-10-24); to be verified on hardware
 **Component**: Flight Software
-**Affected Files**: `fault_mgmt.c`, `hal/stm32l4_syscalls.c`, `hal/hal_stm32l4.c`
+**Affected Files**: `software/rust/sqso-ffi/src/fault_mgmt.rs`, `software/rust/sqso-ffi/src/store.rs`,
+`software/rust/firmware/src/fram.rs`
 
 **Description**:
-Version 1.0 said the fault log is kept only in RAM, in `fault_handler.c`. The code is in `fault_mgmt.c`, and it saves the
-log after each new entry and reloads it at start-up, checking each entry's CRC and discarding corrupt ones
-(`fault_log_save()`, `fault_log_load()`; SRS-F041). The save and load are file operations. In the host simulation build
-they use a file, and the unit test `test_fault_persistence` in `software/flight/tests/test_fault_mgmt.c` saves and
-reloads a log. On the target there is no file system (`software/flight/src/hal/stm32l4_syscalls.c`: opens fail), and the
-FRAM driver that would hold the log is not written (`hal/hal_stm32l4.c`), so on the OBC the log is still lost on reset or
-power cycle.
+The fault log is saved after each new entry and reloaded at start-up, each entry's CRC checked and corrupt ones discarded
+(`fault_log_save()`, `fault_log_load()`; SRS-F041). In the host simulation it is a file, and `test_fault_persistence` in
+`software/flight/tests/test_fault_mgmt.c` saves and reloads a log. Until 2026-10-24 the target had no file system and no
+FRAM driver, so the log was lost on reset. The Rust port stores it in `FLASH_REGION_FAULT_LOG`, which the firmware maps to
+9,728 bytes of the FRAM event log (`STORAGE_DESIGN.md` §3.3), enough for all 100 entries.
 
 **Impact**:
-Post-anomaly analysis on orbit would lack the fault sequence from before a reset until the log is stored in FRAM.
+None expected once verified; until then post-anomaly analysis cannot rely on the stored sequence.
 
 **Workaround**:
 - Fault counts are telemetered each beacon
@@ -122,11 +122,7 @@ Post-anomaly analysis on orbit would lack the fault sequence from before a reset
 - Ground can reconstruct timeline from telemetry
 
 **Acceptance Rationale**:
-Not accepted: SRS-F041 requires the fault log in non-volatile memory, and the code intends it.
-
-**Closure Plan**:
-Store the fault log in FRAM through `hal_flash_*` on the target (FRAM allocation in `hardware/obc/OBC_DESIGN.md` §3.3),
-then show on the engineering model that the log survives a reset and a power cycle.
+SRS-F041 requires the fault log in non-volatile memory; the code now does this on both builds.
 
 ---
 

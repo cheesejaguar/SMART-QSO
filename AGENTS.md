@@ -34,4 +34,4 @@
 ## Security & Configuration Tips
 - Never ship secrets; all radio frames are in the clear by design.
 - Payload env vars: `LLAMA_MODEL`, `LLAMA_CTX`, `LLAMA_GPU_LAYERS`, `LLAMA_CACHE_K/V`.
-- Flight UART config by env (see `software/flight/src/main.c`); validate device paths like `/dev/ttyUSB0`.
+- Flight UART config by env (see `software/rust/sqso-ffi/src/uart_comm.rs`); validate device paths like `/dev/ttyUSB0`.

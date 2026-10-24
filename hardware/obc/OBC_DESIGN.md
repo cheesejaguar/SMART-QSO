@@ -35,7 +35,7 @@ This document defines the On-Board Computer (OBC) design for the SMART-QSO 1U Cu
 | Manufacturer | STMicroelectronics |
 | Part Number | STM32L4R5ZI (`docs/BASELINE_PARAMETERS.md` §6); STM32L4R5ZIT6 in `docs/manufacturing/EEE_PARTS_LIST.md` §4.1 |
 | Core | ARM Cortex-M4F |
-| Clock Speed | Up to 120 MHz in voltage Range 1 boost mode (ST STM32L4R5xx datasheet). The flight image runs at 80 MHz, the top of Range 1 normal mode, from the internal MSI through the PLL (`software/flight/src/hal/stm32l4_clock.c`) |
+| Clock Speed | Up to 120 MHz in voltage Range 1 boost mode (ST STM32L4R5xx datasheet). The flight image runs at 80 MHz, the top of Range 1 normal mode, from the internal MSI through the PLL (`clocks()` in `software/rust/firmware/src/main.rs`) |
 | Flash | 2 MB |
 | SRAM | 640 KB: SRAM1 192 KB at 0x20000000, SRAM2 64 KB at 0x20030000, SRAM3 384 KB at 0x20040000, contiguous (`software/flight/cmake/stm32l4r5zi.ld`) |
 | Package | LQFP144 (STM32L4R5ZIT6, `docs/manufacturing/EEE_PARTS_LIST.md` §4.1) |
@@ -107,15 +107,16 @@ linked for the start of flash and may use all 2 MB, and its RAM is one 640 KB re
 
 | Source | Frequency | Accuracy | Purpose |
 |--------|-----------|----------|---------|
-| HSE (Crystal) | 8 MHz | ±20 ppm | Planned main clock source; a board decision, not used by the flight image (`software/flight/src/hal/stm32l4_clock.c`) |
+| HSE (Crystal) | 8 MHz | ±20 ppm | Planned main clock source; a board decision, not used by the flight image (`clocks()` in `software/rust/firmware/src/main.rs`) |
 | LSE (Crystal) | 32.768 kHz | ±20 ppm | RTC, watchdog |
 | HSI | 16 MHz | ±1% | Backup oscillator |
 | LSI | 32 kHz | ±5% | Backup RTC |
 
 ### 4.2 Clock Distribution
 
-- System clock: 80 MHz from the PLL, sourced from the internal MSI at 4 MHz (M = 1, N = 40, R = 2; `software/flight/src/hal/stm32l4_clock.c`). If the
-  PLL does not lock, the core stays on MSI at 4 MHz. Moving to the HSE is a board decision; above 80 MHz (up to 120 MHz)
+- System clock: 80 MHz from the PLL, sourced from the internal MSI at 4 MHz (M = 1, N = 40, R = 2; `clocks()` in `software/rust/firmware/src/main.rs`). The
+  start-up waits for the PLL to lock; the independent watchdog, started first at its longest timeout (about 32.8 s),
+  resets the OBC if it never does. Moving to the HSE is a board decision; above 80 MHz (up to 120 MHz)
   would need Range 1 boost mode
 - Peripheral clocks: Divided from system clock
 - RTC: LSE direct (32.768 kHz)

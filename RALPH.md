@@ -105,14 +105,14 @@ All project documentation and processes shall comply with:
 ## 1. Code Architecture & Structure
 
 ### 1.1 File Organization
-- [x] **Create modular source file structure**: Split `software/flight/src/main.c` (941 lines) into separate modules:
+- [x] **Create modular source file structure**: Split main.c (941 lines; the executive is now `software/rust/sqso-ffi/src/executive.rs`) into separate modules:
   - [x] Create sensors.c (now `software/rust/sqso-fsw/src/sensors.rs`) and `software/flight/include/sensors.h` - Extract sensor framework code (lines 70-142, 544-642, 673-734)
   - [x] Create eps_control.c (now `software/rust/sqso-fsw/src/eps.rs`) and `software/flight/include/eps_control.h` - Extract EPS control functions (lines 36-45, 103-316)
   - [x] Create `software/rust/sqso-ffi/src/fault_mgmt.rs` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
   - [x] Create `software/rust/sqso-ffi/src/uart_comm.rs` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
   - [x] Create mission_data.c (now `software/rust/sqso-fsw/src/mission_data.rs`) and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
   - [x] Create software/flight/src/yaml_parser.c and software/flight/include/yaml_parser.h - Extract YAML parsing (lines 652-708). (Removed 2026-10-16: never compiled or used; `sensors.c` reads the sensor YAML itself.)
-  - [x] Create `software/flight/src/main.c` - Keep only initialization and main loop
+  - [x] Create main.c (now `software/rust/sqso-ffi/src/executive.rs`) - Keep only initialization and main loop
   - [x] Create `software/flight/include/smart_qso.h` - Master header with common types and configuration
 
 - [x] **Create include directory structure**:

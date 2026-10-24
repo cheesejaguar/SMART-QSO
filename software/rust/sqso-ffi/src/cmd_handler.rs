@@ -272,6 +272,9 @@ fn flag(b: bool) -> u8 {
 }
 
 /// One arm per dictionary command; no wildcard
+// JPL rule 4 deviation: one exhaustive match, one short arm per command.
+// Split up, the compiler could no longer show that every command is handled.
+#[allow(clippy::too_many_lines)]
 fn dispatch(command: Command, cmd: &CmdCommand, response: &mut CmdResponse) -> u32 {
     // SAFETY (all calls below): C functions taking no pointers or pointers
     // to locals that live for the call

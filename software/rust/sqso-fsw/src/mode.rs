@@ -186,6 +186,9 @@ const fn guarded(state: State, guard: Guard) -> Option<Transition> {
 }
 
 /// The transition table. `None`: the event is ignored in that state.
+// JPL rule 4 deviation: the table is one exhaustive match over every state
+// and event, which is what lets the compiler check that none is missing (SW-14).
+#[allow(clippy::too_many_lines)]
 pub const fn transition(state: State, event: Event) -> Option<Transition> {
     use Event as E;
     use State as S;

@@ -195,15 +195,21 @@ jobs:
       working-directory: software/flight
       run: cmake --build build
 
-    - name: Verify NDEBUG is defined
+    - name: Verify the flight configuration
       working-directory: software/flight
       run: |
-        # Check that debug code is disabled in flight build
-        grep -q "NDEBUG" build/compile_commands.json || {
-          echo "::error::NDEBUG is not defined in the flight build"
+        # The simulation binary was built with the flight feature (runs until
+        # stopped), from the release profile (overflow checks on, debug
+        # assertions off: software/rust/Cargo.toml)
+        grep -rq -- '--features flight' build/CMakeFiles/smart_qso_flight.dir/ || {
+          echo "::error::smart_qso_flight was not built with the flight feature"
           exit 1
         }
+        test -x build/smart_qso_flight
 
+  # The flight image for the STM32L4R5ZI: the Embassy firmware
+  # (software/rust/firmware), which runs the same flight software as the
+  # host builds on its own HAL. The job keeps its name: it is a required check.
   target-build:
     name: STM32L4 Cross-Compile (library)
     runs-on: ubuntu-24.04   # pinned
@@ -212,75 +218,59 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install the Arm GNU toolchain
+    - name: Arm binutils (image inspection only)
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi
-        arm-none-eabi-gcc --version
+        sudo apt-get install -y binutils-arm-none-eabi
 
     - name: Rust toolchain (software/rust/rust-toolchain.toml)
       working-directory: software/rust
       run: rustup show active-toolchain || rustup toolchain install
 
-    # The same Rust flight code, for the Cortex-M4F (hard float)
-    - name: Rust build for thumbv7em-none-eabihf
+    # The flight software alone for the Cortex-M4F (hard float)
+    - name: Flight software for thumbv7em-none-eabihf
       working-directory: software/rust
-      run: cargo build --release --locked -p sqso-ffi --target thumbv7em-none-eabihf
-
-    - name: Configure (cmake/arm-none-eabi-stm32l4.cmake)
-      working-directory: software/flight
       run: |
-        cmake -B build-arm -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-stm32l4.cmake \
-              -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON
+        cargo build --release --locked -p sqso-ffi --target thumbv7em-none-eabihf
+        cargo build --release --locked -p sqso-clib --target thumbv7em-none-eabihf
 
-    - name: Build the flight library for Cortex-M4
-      working-directory: software/flight
-      run: cmake --build build-arm --parallel
-
-    - name: Check the library
-      working-directory: software/flight
+    - name: Firmware format and clippy (warnings are errors)
+      working-directory: software/rust/firmware
       run: |
-        arm-none-eabi-size --totals build-arm/libsmart_qso_target.a | tail -1
-        # Thumb-2 code for the target, with the register-level HAL and the flight modules
-        arm-none-eabi-objdump -f build-arm/libsmart_qso_target.a | grep -m1 'architecture: arm'
-        for sym in hal_gpio_init hal_wdt_kick hal_reset_cause; do
-          arm-none-eabi-nm --defined-only build-arm/libsmart_qso_target.a | grep -q " T ${sym}$" || {
-            echo "::error::${sym} missing from the target library"
-            exit 1
-          }
-        done
-        # The Rust modules, cross-compiled for the same core (software/rust)
-        rust=build-arm/cargo/thumbv7em-none-eabihf/release/libsqso_ffi.a
-        arm-none-eabi-objdump -f "$rust" | grep -m1 'architecture: arm'
-        for sym in cmd_process uplink_poll beacon_filter_check jetson_rx_feed sm_process_event fault_log_add; do
-          arm-none-eabi-nm build-arm/smart_qso_flight.elf | grep -q " T ${sym}$" || {
-            echo "::error::${sym} (Rust) missing from the linked flight image"
-            exit 1
-          }
-        done
+        cargo fmt --check
+        cargo clippy --release --locked -- -D warnings
+
+    - name: Build the firmware image
+      working-directory: software/rust/firmware
+      run: cargo build --release --locked
 
     - name: Check the linked flight image
-      working-directory: software/flight
+      working-directory: software/rust/firmware
       run: |
-        elf=build-arm/smart_qso_flight.elf
+        elf=target/thumbv7em-none-eabihf/release/sqso-firmware
         arm-none-eabi-size -A -x "$elf"
-        # The linker already failed if flash or RAM (with the 16 KB minimum stack) overflowed
-        grep -A3 'Memory region' build-arm/smart_qso_flight.map || true
+        arm-none-eabi-objdump -f "$elf" | grep -m1 'architecture: arm'
         sym() { arm-none-eabi-nm "$elf" | awk -v s="$1" '$3 == s { print $1 }'; }
         # Entry point is the reset handler (Thumb bit set)
         entry=$(arm-none-eabi-readelf -h "$elf" | awk '/Entry point address/ { print $4 }')
-        [ $(( entry | 1 )) -eq $(( 0x$(sym Reset_Handler) | 1 )) ] || {
-          echo "::error::entry point $entry is not Reset_Handler"; exit 1; }
-        # Vector table at the start of flash; word 0 = top of RAM, word 1 = Reset_Handler | 1
-        vec=$(arm-none-eabi-objdump -h "$elf" | awk '$2 == ".isr_vector" { print $4 }')
-        [ "$vec" = "08000000" ] || { echo "::error::.isr_vector at $vec, not 08000000"; exit 1; }
-        words=$(arm-none-eabi-objcopy -O binary -j .isr_vector "$elf" /dev/stdout | od -An -tx4 -N8 | xargs)
+        [ $(( entry | 1 )) -eq $(( 0x$(sym Reset) | 1 )) ] || {
+          echo "::error::entry point $entry is not Reset"; exit 1; }
+        # Vector table at the start of flash; word 0 = top of RAM, word 1 = Reset | 1
+        vec=$(arm-none-eabi-objdump -h "$elf" | awk '$2 == ".vector_table" { print $4 }')
+        [ "$vec" = "08000000" ] || { echo "::error::.vector_table at $vec, not 08000000"; exit 1; }
+        words=$(arm-none-eabi-objcopy -O binary -j .vector_table "$elf" /dev/stdout | od -An -tx4 -N8 | xargs)
         sp=$(echo "$words" | cut -d' ' -f1); reset=$(echo "$words" | cut -d' ' -f2)
         [ "$sp" = "200a0000" ] || { echo "::error::initial SP $sp, expected 200a0000"; exit 1; }
-        [ $(( 0x$reset )) -eq $(( 0x$(sym Reset_Handler) | 1 )) ] || {
-          echo "::error::reset vector $reset is not Reset_Handler | 1"; exit 1; }
-        # No heap: _sbrk is the stub that always fails, not newlib's
-        arm-none-eabi-nm "$elf" | grep -q ' T _sbrk$' || { echo "::error::_sbrk missing"; exit 1; }
+        [ $(( 0x$reset )) -eq $(( 0x$(sym Reset) | 1 )) ] || {
+          echo "::error::reset vector $reset is not Reset | 1"; exit 1; }
+        # The flight software is in the image, on the firmware's HAL
+        for s in main cmd_process uplink_poll hal_flash_write hal_wdt_kick hal_reset_cause; do
+          [ -n "$(sym "$s")" ] || { echo "::error::$s missing from the image"; exit 1; }
+        done
+        # No heap and no C library
+        if arm-none-eabi-nm "$elf" | grep -Eq ' (malloc|free|_sbrk|printf)$'; then
+          echo "::error::the image links a heap or the C library"; exit 1
+        fi
         echo "Image OK: entry $entry, vectors at 0x$vec, SP 0x$sp"
 
   documentation:

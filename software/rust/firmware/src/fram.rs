@@ -70,7 +70,12 @@ pub(crate) struct Fram {
 
 static FRAM: Shared<Fram> = Shared::new();
 
-pub(crate) fn install(spi: Spi<'static, Blocking, Master>, cs: Output<'static>, wp: Output<'static>, hold: Output<'static>) {
+pub(crate) fn install(
+    spi: Spi<'static, Blocking, Master>,
+    cs: Output<'static>,
+    wp: Output<'static>,
+    hold: Output<'static>,
+) {
     FRAM.install(Fram { spi, cs, _wp: wp, _hold: hold, present: false });
 }
 

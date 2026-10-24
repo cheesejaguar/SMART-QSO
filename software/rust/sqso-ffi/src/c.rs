@@ -82,14 +82,13 @@ pub struct SmContext {
 }
 
 unsafe extern "C" {
-    // Rust panics end here (src/rust_panic.c)
-    #[cfg_attr(test, allow(dead_code))]
-    pub(crate) fn smart_qso_rust_panic(file: *const c_char, line: u32) -> !;
-
     // Assertions
     pub(crate) fn smart_qso_assert_failed(file: *const c_char, line: u32, message: *const c_char);
 
     // HAL
+    pub(crate) fn hal_timer_init() -> i32;
+    pub(crate) fn hal_gpio_init() -> i32;
+    pub(crate) fn hal_flash_init() -> i32;
     #[cfg_attr(not(target_os = "none"), allow(dead_code))]
     pub(crate) fn hal_timer_get_ms() -> u64;
     #[cfg_attr(not(target_os = "none"), allow(dead_code))]

@@ -36,6 +36,7 @@
 //! | `assert_handler.h` | [`assert_handler`] |
 //! | `flight_log.h` (with `flight_log_fmt.c`) | [`flight_log`] |
 //! | `uart_comm.h` | [`uart_comm`] |
+//! | (`main.c`) | [`executive`] |
 //! | `eps_control.h` | [`eps_control`] |
 //! | `sensors.h` | [`sensors`] |
 //! | `mission_data.h` | [`mission_data`] |
@@ -66,6 +67,7 @@ pub mod contract;
 pub mod crc;
 pub mod deployment;
 pub mod eps_control;
+pub mod executive;
 pub mod fault_mgmt;
 pub mod flight_log;
 pub mod gnss;
@@ -99,20 +101,38 @@ mod os;
 mod ptr;
 mod store;
 
-/// A Rust panic (an overflow or a broken invariant; the parsers have no
-/// panic paths) is a fatal assertion: reported to the C assertion handler,
-/// then the system stops for the watchdog to reset it.
-#[cfg(not(test))]
-#[panic_handler]
-fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
+/// Report a Rust panic (an overflow or a broken invariant; the parsers have
+/// no panic paths) as a fatal assertion. The crate that links the program
+/// owns the panic handler and calls this, then stops: `sqso-clib` (the C
+/// test suites), `sqso-sim` (the host simulation) and the firmware.
+pub fn report_panic(info: &core::panic::PanicInfo<'_>) {
+    report_panic_at(info.location());
+}
+
+/// [`report_panic`] for a panic at `location` (what a `std` panic hook has)
+pub fn report_panic_at(location: Option<&core::panic::Location<'_>>) {
     let mut file = [0u8; 64];
-    let mut line = 0;
-    if let Some(location) = info.location() {
+    let mut line = 0u16;
+    if let Some(location) = location {
         for (dst, src) in file.iter_mut().zip(location.file().bytes().take(63)) {
             *dst = src;
         }
-        line = location.line();
+        line = u16::try_from(location.line()).unwrap_or(u16::MAX);
     }
-    // SAFETY: file is NUL-terminated (at most 63 bytes copied into 64)
-    unsafe { c::smart_qso_rust_panic(file.as_ptr().cast(), line) }
+    // SAFETY: both strings are NUL-terminated (at most 63 bytes copied into 64)
+    let _ = unsafe {
+        assert_handler::assert_handle_failure(
+            file.as_ptr().cast(),
+            line,
+            assert_handler::ASSERT_TYPE_INVARIANT,
+            assert_handler::ASSERT_SEVERITY_FATAL,
+            c"Rust panic".as_ptr(),
+        )
+    };
+}
+
+/// Stop the host program (abort, so a test that panics fails)
+#[cfg(not(target_os = "none"))]
+pub fn abort() -> ! {
+    os::abort()
 }

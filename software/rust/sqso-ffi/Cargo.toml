@@ -1,6 +1,6 @@
 [package]
 name = "sqso-ffi"
-description = "C ABI of the SMART-QSO Rust modules, linked into the C flight software"
+description = "The SMART-QSO flight software: the C ABI of the flight modules, the executive and the simulated HAL"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -9,8 +9,9 @@ repository.workspace = true
 
 [lib]
 name = "sqso_ffi"
-crate-type = ["staticlib"]
-# Exercised through the C test suite (ctest), which links this library
+# A Rust library: sqso-clib links it into the static library for the C test
+# suites, sqso-sim into the host simulation, the firmware into the image.
+# Exercised through the C test suites (ctest)
 test = false
 doctest = false
 

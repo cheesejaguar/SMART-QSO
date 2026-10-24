@@ -28,7 +28,10 @@ pub(crate) struct Bus {
 
 static BUSES: [Shared<Bus>; 2] = [Shared::new(), Shared::new()];
 
-pub(crate) fn install(rf: (Spi<'static, Blocking, Master>, Output<'static>), aux: (Spi<'static, Blocking, Master>, Output<'static>)) {
+pub(crate) fn install(
+    rf: (Spi<'static, Blocking, Master>, Output<'static>),
+    aux: (Spi<'static, Blocking, Master>, Output<'static>),
+) {
     let [a, b] = &BUSES;
     a.install(Bus { spi: rf.0, cs: rf.1, ready: false });
     b.install(Bus { spi: aux.0, cs: aux.1, ready: false });

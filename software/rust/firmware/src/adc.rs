@@ -24,13 +24,13 @@ const SAMPLE: SampleTime = SampleTime::CYCLES247_5;
 
 /// Input = pin volts × gain + offset, per channel (TBR)
 const FRONT_END: [(f64, f64); CHANNELS] = [
-    (3.0, 0.0),      // VBATT: 1:3 divider (2S pack, 8.4 V max)
-    (2.0, -3.3),     // IBATT: bidirectional sense amplifier, 1.65 V at 0 A, 0.5 V/A
-    (4.0, 0.0),      // VSOLAR: 1:4 divider
-    (1.0, 0.0),      // ISOLAR: 1 V/A sense amplifier
-    (2.0, 0.0),      // VBUS: 1:2 divider (5 V bus)
-    (1.0, 0.0),      // TEMP_MCU: computed from TS_CAL (see temperature())
-    (100.0, -50.0),  // TEMP_BOARD: TMP36-style, 10 mV/°C, 0.5 V at 0 °C
+    (3.0, 0.0),     // VBATT: 1:3 divider (2S pack, 8.4 V max)
+    (2.0, -3.3),    // IBATT: bidirectional sense amplifier, 1.65 V at 0 A, 0.5 V/A
+    (4.0, 0.0),     // VSOLAR: 1:4 divider
+    (1.0, 0.0),     // ISOLAR: 1 V/A sense amplifier
+    (2.0, 0.0),     // VBUS: 1:2 divider (5 V bus)
+    (1.0, 0.0),     // TEMP_MCU: computed from TS_CAL (see temperature())
+    (100.0, -50.0), // TEMP_BOARD: TMP36-style, 10 mV/°C, 0.5 V at 0 °C
 ];
 
 pub(crate) struct Converter {

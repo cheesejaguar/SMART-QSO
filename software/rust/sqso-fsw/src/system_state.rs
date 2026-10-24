@@ -225,6 +225,11 @@ impl Writer<'_> {
 struct Reader<'a>(&'a [u8; IMAGE_SIZE]);
 
 impl Reader<'_> {
+    /// Element `i` of an f32 array at `base`
+    fn f32_at(&self, base: usize, i: usize) -> f32 {
+        self.f32(base + 4 * i)
+    }
+
     fn get<const N: usize>(&self, offset: usize) -> [u8; N] {
         let mut out = [0u8; N];
         if let Some(src) = self.0.get(offset..offset + N) {
@@ -414,56 +419,12 @@ impl SystemState {
     /// than 0 reads as true)
     pub fn from_image(image: &Image) -> (SystemState, Sm) {
         let r = Reader(&image.0);
-        let f32_at = |base: usize, i: usize| r.f32(base + 4 * i);
         let state = SystemState {
-            power: Power {
-                battery_voltage: r.f64(POWER),
-                battery_current: r.f64(POWER + 8),
-                state_of_charge: r.f64(POWER + 16),
-                solar_power: r.f64(POWER + 24),
-                total_energy_wh: r.f64(POWER + 32),
-                power_mode: r.u32(POWER + 40),
-                payload_enabled: r.bool(POWER + 44),
-                mode_entry_time_ms: r.u32(POWER + 48),
-            },
-            thermal: Thermal {
-                obc_temp_c: f32_at(THERMAL, 0),
-                eps_temp_c: f32_at(THERMAL, 1),
-                battery_temp_c: f32_at(THERMAL, 2),
-                payload_temp_c: f32_at(THERMAL, 3),
-                external_temp_c: f32_at(THERMAL, 4),
-                heater_enabled: r.bool(THERMAL + 20),
-                over_temp_flag: r.bool(THERMAL + 21),
-                under_temp_flag: r.bool(THERMAL + 22),
-            },
-            adcs: Adcs {
-                mag_ut: [f32_at(ADCS, 0), f32_at(ADCS, 1), f32_at(ADCS, 2)],
-                gyro_dps: [f32_at(ADCS, 3), f32_at(ADCS, 4), f32_at(ADCS, 5)],
-                sun_vector: [f32_at(ADCS, 6), f32_at(ADCS, 7), f32_at(ADCS, 8)],
-                detumbled: r.bool(ADCS + 36),
-                sun_acquired: r.bool(ADCS + 37),
-                last_update_ms: r.u32(ADCS + 40),
-            },
-            comm: Comm {
-                packets_sent: r.u32(COMM),
-                packets_received: r.u32(COMM + 4),
-                packets_failed: r.u32(COMM + 8),
-                last_ground_contact_ms: r.u32(COMM + 12),
-                beacon_count: r.u32(COMM + 16),
-                beacon_interval_s: r.u16(COMM + 20),
-                comm_active: r.bool(COMM + 22),
-                rssi_dbm: i8::from_ne_bytes([r.u8(COMM + 23)]),
-            },
-            mission: Mission {
-                boot_count: r.u32(MISSION),
-                uptime_s: r.u32(MISSION + 4),
-                total_uptime_s: r.u32(MISSION + 8),
-                mission_time_ms: r.u64(MISSION + 16),
-                qso_count: r.u32(MISSION + 24),
-                command_count: r.u32(MISSION + 28),
-                anomaly_count: r.u32(MISSION + 32),
-                safe_mode_entry: r.bool(MISSION + 36),
-            },
+            power: read_power(&r),
+            thermal: read_thermal(&r),
+            adcs: read_adcs(&r),
+            comm: read_comm(&r),
+            mission: read_mission(&r),
             initialized: r.bool(FLAGS),
             watchdog_ok: r.bool(FLAGS + 1),
             persistence_dirty: r.bool(FLAGS + 2),
@@ -471,15 +432,7 @@ impl SystemState {
             last_persist_ms: r.u64(LAST_PERSIST),
             crc32: r.u32(CRC_OFFSET),
         };
-        let sm = Sm {
-            current_state: r.u32(SM),
-            previous_state: r.u32(SM + 4),
-            transition_count: r.u32(SM + 8),
-            last_transition_ms: r.u64(SM + 16),
-            state_entry_ms: r.u64(SM + 24),
-            is_initialized: r.bool(SM + 32),
-        };
-        (state, sm)
+        (state, read_sm(&r))
     }
 
     /// CRC-32 of the record with its CRC field zero
@@ -580,6 +533,82 @@ impl Uptime {
         mission.mission_time_ms = mission.mission_time_ms.wrapping_add(elapsed_ms);
         self.last_ms = now_ms;
         true
+    }
+}
+
+// Sections of the image (SystemState::from_image)
+
+fn read_power(r: &Reader<'_>) -> Power {
+    Power {
+        battery_voltage: r.f64(POWER),
+        battery_current: r.f64(POWER + 8),
+        state_of_charge: r.f64(POWER + 16),
+        solar_power: r.f64(POWER + 24),
+        total_energy_wh: r.f64(POWER + 32),
+        power_mode: r.u32(POWER + 40),
+        payload_enabled: r.bool(POWER + 44),
+        mode_entry_time_ms: r.u32(POWER + 48),
+    }
+}
+
+fn read_thermal(r: &Reader<'_>) -> Thermal {
+    Thermal {
+        obc_temp_c: r.f32_at(THERMAL, 0),
+        eps_temp_c: r.f32_at(THERMAL, 1),
+        battery_temp_c: r.f32_at(THERMAL, 2),
+        payload_temp_c: r.f32_at(THERMAL, 3),
+        external_temp_c: r.f32_at(THERMAL, 4),
+        heater_enabled: r.bool(THERMAL + 20),
+        over_temp_flag: r.bool(THERMAL + 21),
+        under_temp_flag: r.bool(THERMAL + 22),
+    }
+}
+
+fn read_adcs(r: &Reader<'_>) -> Adcs {
+    Adcs {
+        mag_ut: [r.f32_at(ADCS, 0), r.f32_at(ADCS, 1), r.f32_at(ADCS, 2)],
+        gyro_dps: [r.f32_at(ADCS, 3), r.f32_at(ADCS, 4), r.f32_at(ADCS, 5)],
+        sun_vector: [r.f32_at(ADCS, 6), r.f32_at(ADCS, 7), r.f32_at(ADCS, 8)],
+        detumbled: r.bool(ADCS + 36),
+        sun_acquired: r.bool(ADCS + 37),
+        last_update_ms: r.u32(ADCS + 40),
+    }
+}
+
+fn read_comm(r: &Reader<'_>) -> Comm {
+    Comm {
+        packets_sent: r.u32(COMM),
+        packets_received: r.u32(COMM + 4),
+        packets_failed: r.u32(COMM + 8),
+        last_ground_contact_ms: r.u32(COMM + 12),
+        beacon_count: r.u32(COMM + 16),
+        beacon_interval_s: r.u16(COMM + 20),
+        comm_active: r.bool(COMM + 22),
+        rssi_dbm: i8::from_ne_bytes([r.u8(COMM + 23)]),
+    }
+}
+
+fn read_mission(r: &Reader<'_>) -> Mission {
+    Mission {
+        boot_count: r.u32(MISSION),
+        uptime_s: r.u32(MISSION + 4),
+        total_uptime_s: r.u32(MISSION + 8),
+        mission_time_ms: r.u64(MISSION + 16),
+        qso_count: r.u32(MISSION + 24),
+        command_count: r.u32(MISSION + 28),
+        anomaly_count: r.u32(MISSION + 32),
+        safe_mode_entry: r.bool(MISSION + 36),
+    }
+}
+
+fn read_sm(r: &Reader<'_>) -> Sm {
+    Sm {
+        current_state: r.u32(SM),
+        previous_state: r.u32(SM + 4),
+        transition_count: r.u32(SM + 8),
+        last_transition_ms: r.u64(SM + 16),
+        state_entry_ms: r.u64(SM + 24),
+        is_initialized: r.bool(SM + 32),
     }
 }
 

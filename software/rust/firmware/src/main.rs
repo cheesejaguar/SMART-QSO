@@ -49,15 +49,16 @@ bind_interrupts!(struct Irqs {
 /// Main-loop period (the simulation's MAIN_LOOP_SLEEP_NS)
 const TICK_MS: u64 = 20;
 
-/// 80 MHz from the 16 MHz HSI through the PLL (declocked from 120 MHz for
-/// power, as in the C port); AHB and APB at the core clock
+/// 80 MHz, the top of voltage range 1 normal mode (declocked from 120 MHz
+/// for power, as in hardware/obc/OBC_DESIGN.md): the 4 MHz MSI through the
+/// PLL, M = 1, N = 40, R = 2; AHB and APB at the core clock
 fn clocks() -> Config {
     let mut config = Config::default();
-    config.rcc.hsi = true;
+    config.rcc.msi = Some(rcc::MSIRange::RANGE4M);
     config.rcc.pll = Some(rcc::Pll {
-        source: rcc::PllSource::HSI,
+        source: rcc::PllSource::MSI,
         prediv: rcc::PllPreDiv::DIV1,
-        mul: rcc::PllMul::MUL10,
+        mul: rcc::PllMul::MUL40,
         divp: None,
         divq: None,
         divr: Some(rcc::PllRDiv::DIV2),
@@ -87,8 +88,24 @@ fn halt() -> ! {
     cortex_m::peripheral::SCB::sys_reset()
 }
 
+/// A Rust panic is a fatal assertion: reported to the assertion handler
+/// (which logs it and saves state), then the processor waits for the
+/// independent watchdog to reset it. If the watchdog was never started
+/// (a panic during bring-up), it resets itself instead.
+#[panic_handler]
+fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
+    sqso_ffi::report_panic(info);
+    if wdt::running() {
+        loop {
+            cortex_m::asm::wfi();
+        }
+    }
+    halt()
+}
+
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
+    wdt::start_boot_watchdog();
     let p = embassy_stm32::init(clocks());
 
     // Enable and burn lines low first
@@ -127,7 +144,14 @@ async fn main(_spawner: Spawner) {
 
     adc::install(
         Adc::new(p.ADC1),
-        [adc::input(p.PC2), adc::input(p.PC3), adc::input(p.PC4), adc::input(p.PC5), adc::input(p.PB0), adc::input(p.PB1)],
+        [
+            adc::input(p.PC2),
+            adc::input(p.PC3),
+            adc::input(p.PC4),
+            adc::input(p.PC5),
+            adc::input(p.PB0),
+            adc::input(p.PB1),
+        ],
     );
 
     let Some(mut flight) = sqso_ffi::executive::Executive::start() else { halt() };

@@ -1,8 +1,8 @@
 //! `hal_wdt.h` (the independent watchdog, IWDG, on the 32 kHz LSI) and
 //! `hal_reset.h` (the reset cause from the RCC CSR flags).
 
-use core::ffi::c_void;
 use core::cell::Cell;
+use core::ffi::c_void;
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use critical_section::Mutex;
@@ -47,6 +47,22 @@ fn divider_for(timeout_ms: u32) -> Option<(u8, u16)> {
         let ticks = u64::from(timeout_ms) * LSI_HZ / (1000 * divider);
         (1..=RELOAD_MAX + 1).contains(&ticks).then(|| (pr, u16::try_from(ticks - 1).unwrap_or(0)))
     })
+}
+
+/// Start the IWDG at its longest timeout (about 32.8 s) before anything
+/// else runs: the clock set-up waits for the PLL to lock, and a part that
+/// never locks must reset rather than hang. The flight software sets the
+/// operating timeout later (hal_wdt_init, hal_wdt_start).
+pub(crate) fn start_boot_watchdog() {
+    const BOOT_TIMEOUT_MS: u32 = 32_000;
+    if hal_wdt_init(BOOT_TIMEOUT_MS, MODE_RESET) == rc::OK {
+        let _ = hal_wdt_start();
+    }
+}
+
+/// Whether the IWDG has been started (it then cannot be stopped)
+pub(crate) fn running() -> bool {
+    RUNNING.load(Ordering::Relaxed)
 }
 
 /// Set the timeout; the IWDG only resets (no interrupt mode)

@@ -205,6 +205,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "sqso-clib"
+version = "0.2.0"
+dependencies = [
+ "sqso-ffi",
+]
+
+[[package]]
 name = "sqso-ffi"
 version = "0.2.0"
 dependencies = [
@@ -239,6 +246,13 @@ version = "0.2.0"
 dependencies = [
  "pyo3",
  "sqso-protocol",
+]
+
+[[package]]
+name = "sqso-sim"
+version = "0.2.0"
+dependencies = [
+ "sqso-ffi",
 ]
 
 [[package]]

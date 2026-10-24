@@ -15,7 +15,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(smart_qso_flight C)
 
-# C11 Standard (required by MISRA C:2012)
+# C11 Standard (the test suites and the flight-log shim; MISRA C:2012)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
@@ -32,12 +32,6 @@ option(ENABLE_COVERAGE "Enable code coverage" OFF)
 option(ENABLE_SANITIZERS "Enable address/UB sanitizers" OFF)
 option(ENABLE_WERROR "Treat warnings as errors" ON)
 
-# HAL target: SIM (host simulation, the default) or STM32L4 (cross-compile
-# with cmake/arm-none-eabi-stm32l4.cmake; a flight build of the library only)
-set(SMART_QSO_TARGET "SIM" CACHE STRING "HAL target: SIM or STM32L4")
-if(SMART_QSO_TARGET STREQUAL "STM32L4")
-    set(FLIGHT_BUILD ON CACHE BOOL "Build for flight hardware" FORCE)
-endif()
 
 ###############################################################################
 # Compiler Flags (NASA/JPL Standard)
@@ -105,20 +99,21 @@ endif()
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 ###############################################################################
-# Rust modules (software/rust): the uplink, telecommand, Jetson-link and
-# content-filter code, as the static library sqso_rust
+# The flight software (software/rust)
+#
+# The flight software is Rust. cmake/rust.cmake builds it with cargo as the
+# static library sqso_rust (libsqso_flight.a), which the C test suites link
+# through the C headers in include/, and builds the host simulation
+# smart_qso_flight. The STM32L4 image is the Embassy firmware
+# (software/rust/firmware, built with cargo for thumbv7em-none-eabihf).
 ###############################################################################
 
 include(${CMAKE_SOURCE_DIR}/cmake/rust.cmake)
 
-###############################################################################
-# Source Files
-###############################################################################
-
+# The only C left outside the tests: the printf-style entry points of the
+# flight log (stable Rust cannot define a C variadic function)
 set(FLIGHT_SOURCES
-    src/main.c
     src/flight_log_fmt.c
-    src/rust_panic.c
 )
 
 set(FLIGHT_HEADERS
@@ -154,72 +149,30 @@ set(FLIGHT_HEADERS
 )
 
 ###############################################################################
-# STM32L4 target (SW-01): compile-only port
-#
-# The flight modules and the register-level HAL (src/hal/hal_stm32l4.c) as a
-# static library, and a linked bare-metal image (cmake/stm32l4r5zi.ld). No
-# RTOS yet; nothing host-specific below applies.
+# Host simulation: smart_qso_flight (software/rust/sqso-sim)
 ###############################################################################
 
-if(SMART_QSO_TARGET STREQUAL "STM32L4")
-    set(TARGET_SOURCES ${FLIGHT_SOURCES})
-    list(REMOVE_ITEM TARGET_SOURCES src/main.c)
-    list(APPEND TARGET_SOURCES src/hal/hal_stm32l4.c src/hal/stm32l4_clock.c)
-    add_library(smart_qso_target STATIC ${TARGET_SOURCES})
-    target_compile_definitions(smart_qso_target PRIVATE HAL_TARGET_STM32L4)
-    link_rust(smart_qso_target)
-
-    # Linked flight image: vector table and reset handler, newlib system
-    # calls (no heap, output discarded), and the main loop. Bare metal, one
-    # loop; the RTOS port follows (docs: RTOS_ARCHITECTURE.md).
-    add_executable(smart_qso_flight.elf
-        src/main.c
-        src/hal/stm32l4_startup.c
-        src/hal/stm32l4_syscalls.c
-    )
-    target_compile_definitions(smart_qso_flight.elf PRIVATE HAL_TARGET_STM32L4)
-    target_link_libraries(smart_qso_flight.elf smart_qso_target sqso_rust m)
-    target_link_options(smart_qso_flight.elf PRIVATE
-        -T${CMAKE_SOURCE_DIR}/cmake/stm32l4r5zi.ld
-        -nostartfiles
-        --specs=nano.specs
-        -Wl,--gc-sections
-        -Wl,-Map=${CMAKE_BINARY_DIR}/smart_qso_flight.map
-        -Wl,--print-memory-usage
-        # newlib is built with short enums; the flight code (C and Rust) uses
-        # 32-bit enums, and no enum crosses the newlib interface
-        -Wl,--no-enum-size-warning
-        # Rust objects carry a .note.GNU-stack section and newlib's do not;
-        # say explicitly that the stack is not executable
-        -Wl,-z,noexecstack
-    )
-    set_target_properties(smart_qso_flight.elf PROPERTIES
-        LINK_DEPENDS ${CMAKE_SOURCE_DIR}/cmake/stm32l4r5zi.ld)
-    message(STATUS "  Target:            STM32L4 (library and linked image)")
-    return()
+if(FLIGHT_BUILD)
+    set(SQSO_SIM_FEATURES --features flight)   # runs until stopped
+else()
+    set(SQSO_SIM_FEATURES "")                  # 1000 passes, about 20 s
 endif()
-
-###############################################################################
-# Main Executable
-###############################################################################
-
-add_executable(smart_qso_flight ${FLIGHT_SOURCES})
-
-# Link the Rust modules and the math library
-link_rust(smart_qso_flight)
-target_link_libraries(smart_qso_flight m)
-
-###############################################################################
-# Post-Build Commands
-###############################################################################
-
-# Copy sensor config to build directory
-add_custom_command(TARGET smart_qso_flight POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_SOURCE_DIR}/sensors.yaml
-            $<TARGET_FILE_DIR:smart_qso_flight>/sensors.yaml
-    COMMENT "Copying sensor configuration"
+set(SQSO_SIM_BIN "${SQSO_CARGO_TARGET_DIR}/release/smart_qso_flight")
+add_custom_target(smart_qso_flight ALL
+    COMMAND ${CMAKE_COMMAND} -E env --unset=MAKEFLAGS --unset=MFLAGS
+            ${CARGO} build --release --locked -p sqso-sim ${SQSO_SIM_FEATURES}
+            --target-dir "${SQSO_CARGO_TARGET_DIR}"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SQSO_SIM_BIN}" "${CMAKE_BINARY_DIR}/smart_qso_flight"
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/sensors.yaml
+            ${CMAKE_BINARY_DIR}/sensors.yaml
+    WORKING_DIRECTORY "${SQSO_RUST_DIR}"
+    BYPRODUCTS "${CMAKE_BINARY_DIR}/smart_qso_flight"
+    COMMENT "Building the host simulation (sqso-sim)"
+    USES_TERMINAL
+    VERBATIM
 )
+# One cargo at a time in the shared target directory
+add_dependencies(smart_qso_flight sqso_rust_build)
 
 ###############################################################################
 # Testing Configuration
@@ -239,7 +192,7 @@ endif()
 # Installation
 ###############################################################################
 
-install(TARGETS smart_qso_flight DESTINATION bin)
+install(PROGRAMS ${CMAKE_BINARY_DIR}/smart_qso_flight DESTINATION bin)
 install(FILES sensors.yaml DESTINATION etc/smart_qso)
 
 ###############################################################################

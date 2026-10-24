@@ -21,6 +21,7 @@
 //! - [`flight_log`]: flight log ring buffer (`flight_log.h`)
 //! - [`uart_comm`]: OBC–Jetson serial line settings (`uart_comm.h`)
 //! - [`eps`]: EPS power policy and its stored state (`eps_control.h`)
+//! - [`executive`]: the main loop's power model and field rules (was `main.c`)
 //! - [`sensors`]: sensor configuration file, readings, telemetry text (`sensors.h`)
 //! - [`mission_data`]: mission statistics record (`mission_data.h`)
 //! - [`gnss`]: GNSS NMEA receiver and fix acceptance (`gnss.h`)
@@ -41,6 +42,7 @@ pub mod beacon;
 pub mod contact_monitor;
 pub mod deployment;
 pub mod eps;
+pub mod executive;
 pub mod fault_log;
 pub mod flight_log;
 pub mod fmath;

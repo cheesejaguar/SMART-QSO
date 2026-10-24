@@ -3,15 +3,18 @@
 #   sqso-protocol  wire formats on the untrusted-input surface (no_std, no unsafe)
 #   sqso-fsw       flight logic: key table, telecommand admission, state
 #                  machine, scheduler, fault log (no_std, no unsafe)
-#   sqso-ffi       C ABI for the existing C flight software (the only crate
-#                  with unsafe code); a static library linked by CMake
+#   sqso-ffi       the flight software: the flight modules behind their C
+#                  headers, the executive and the simulated HAL (with the
+#                  firmware, the only crates with unsafe code)
+#   sqso-clib      sqso-ffi as the static library the C test suites link
+#   sqso-sim       the host simulation (the executable smart_qso_flight)
 #   sqso-py        Python bindings of sqso-protocol for the payload and
 #                  ground tools (built with maturin; not a default member)
 
 [workspace]
 resolver = "3"
-members = ["sqso-protocol", "sqso-fsw", "sqso-ffi", "sqso-py"]
-default-members = ["sqso-protocol", "sqso-fsw", "sqso-ffi", "sqso-py"]
+members = ["sqso-protocol", "sqso-fsw", "sqso-ffi", "sqso-clib", "sqso-sim", "sqso-py"]
+default-members = ["sqso-protocol", "sqso-fsw", "sqso-ffi", "sqso-clib", "sqso-sim", "sqso-py"]
 exclude = ["fuzz", "firmware"]
 
 [workspace.package]
@@ -45,6 +48,8 @@ unreachable = "deny"
 todo = "deny"
 unimplemented = "deny"
 cast_possible_truncation = "warn"
+# JPL rule 4 (clippy.toml sets 60 lines)
+too_many_lines = "deny"
 
 [profile.release]
 # Integer overflow is checked in flight builds too: a wrong length can only

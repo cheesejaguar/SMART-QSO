@@ -22,6 +22,10 @@ pub type Callback = unsafe extern "C" fn();
 
 /// `FAULT_TYPE_ASSERTION` (smart_qso.h)
 pub(crate) const FAULT_TYPE_ASSERTION: u32 = 18;
+/// `ASSERT_TYPE_INVARIANT`
+pub(crate) const ASSERT_TYPE_INVARIANT: u32 = 2;
+/// `ASSERT_SEVERITY_FATAL`
+pub(crate) const ASSERT_SEVERITY_FATAL: u32 = 3;
 
 unsafe extern "C" {
     // system_state.c
@@ -83,7 +87,7 @@ pub unsafe extern "C" fn assert_handle_failure(
         Action::Reset => {
             c::log(FAULT_TYPE_ASSERTION, c::severity::CRITICAL, c"Assertion triggered reset", 0.0);
             // The callback persists state; the reset itself is the
-            // watchdog's (rust_panic.c waits for it after a Rust panic)
+            // watchdog's (the panic handler waits for it after a Rust panic)
             if let Some(cb) = reset {
                 // SAFETY: a registered C callback
                 unsafe { cb() };

@@ -23,7 +23,7 @@ of the mechanisms, not a measured audit.
 | 2 | Loops run over fixed-size arrays and slices (iterators); `while` loops are bounded by an index | Review (no tool); fuzzing |
 | 3 | `no_std` without `alloc`: nothing can allocate | ctest `no_dynamic_memory` on the Rust archive |
 | 4 | Not measured (`function_length.py` reads C) | — |
-| 5 | Bounds and integer-overflow checks are on in every build, flight included; a failure is a fatal assertion (`software/flight/src/rust_panic.c`). Parsers return `Result` rather than assume | Release profile `overflow-checks = true` |
+| 5 | Bounds and integer-overflow checks are on in every build, flight included; a failure is a fatal assertion (`report_panic` in `software/rust/sqso-ffi/src/lib.rs`). Parsers return `Result` rather than assume | Release profile `overflow-checks = true` |
 | 6 | Block scope; module state only in `sqso-ffi` (`cell::Global`) | Compiler |
 | 7 | `Result` is `#[must_use]`; a result discarded on purpose is written `let _ =` | Compiler (warning, an error in CI) |
 | 8 | No preprocessor; `cfg` only for tests | Review |

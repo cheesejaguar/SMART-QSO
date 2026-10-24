@@ -1,0 +1,25 @@
+[package]
+name = "sqso-sim"
+description = "The SMART-QSO host simulation: the flight software on the simulated HAL"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[[bin]]
+name = "smart_qso_flight"
+path = "src/main.rs"
+test = false
+
+[features]
+# The flight configuration (CMake FLIGHT_BUILD): run until stopped, as in
+# flight, instead of the simulation's 1000 passes
+flight = []
+
+[dependencies]
+sqso-ffi = { path = "../sqso-ffi" }
+
+[lints]
+workspace = true

@@ -22,15 +22,30 @@ const JETSON_ERR_TYPE: u32 = 3;
 /// `JetsonMsg_t`
 #[repr(C)]
 pub struct JetsonMsg {
-    msg_type: u32,
-    seq: u16,
-    text: [u8; TEXT_MAX + 1],
-    text_len: usize,
-    health: u8,
-    temp_c: i32,
-    power_mw: u32,
+    pub(crate) msg_type: u32,
+    pub(crate) seq: u16,
+    pub(crate) text: [u8; TEXT_MAX + 1],
+    pub(crate) text_len: usize,
+    pub(crate) health: u8,
+    pub(crate) temp_c: i32,
+    pub(crate) power_mw: u32,
     mem_pct: u8,
     uptime_s: u32,
+}
+
+impl JetsonMsg {
+    /// All zero
+    pub(crate) const ZERO: JetsonMsg = JetsonMsg {
+        msg_type: 0,
+        seq: 0,
+        text: [0; TEXT_MAX + 1],
+        text_len: 0,
+        health: 0,
+        temp_c: 0,
+        power_mw: 0,
+        mem_pct: 0,
+        uptime_s: 0,
+    };
 }
 
 /// `JetsonRx_t` is laid out as `LineRx` (line, len, overflow)
@@ -39,6 +54,11 @@ pub struct JetsonRx {
     line: [u8; jetson::LINE_MAX],
     len: usize,
     overflow: bool,
+}
+
+impl JetsonRx {
+    /// No line in progress
+    pub(crate) const EMPTY: JetsonRx = JetsonRx { line: [0; jetson::LINE_MAX], len: 0, overflow: false };
 }
 
 const _: () = assert!(size_of::<JetsonRx>() == size_of::<LineRx>());

@@ -16,7 +16,7 @@
 //! @requirement SRS-F071 Sample sensors at configurable rates
 //! @requirement SRS-F072 Validate sensor readings against limits
 
-use core::ffi::{c_char, c_int};
+use core::ffi::c_char;
 
 use sqso_fsw::sensors::{
     self, Alarm, CHANNEL_LEN, Environment, ID_LEN, Kind, MAX_SENSORS, NAME_LEN, SensorDef, Snprintf, StatusInputs,
@@ -27,12 +27,15 @@ use crate::c::{self, rc, severity};
 use crate::cell::Global;
 use crate::{eps_control, fault_mgmt, ptr};
 
+#[cfg(not(target_os = "none"))]
 unsafe extern "C" {
-    // C library pseudo-random numbers (seeded by main.c for simulation noise)
-    fn rand() -> c_int;
+    // C library pseudo-random numbers (seeded by the executive for
+    // simulation noise)
+    fn rand() -> core::ffi::c_int;
 }
 
-/// `RAND_MAX` of glibc and newlib
+/// `RAND_MAX` of glibc
+#[cfg(not(target_os = "none"))]
 const RAND_MAX: f64 = 2_147_483_647.0;
 
 /// `FaultType_t` values used here
@@ -49,19 +52,19 @@ pub struct Sensor {
     id: [u8; ID_LEN],
     name: [u8; NAME_LEN],
     units: [u8; UNITS_LEN],
-    type_: [u8; TYPE_LEN],
+    pub(crate) type_: [u8; TYPE_LEN],
     channel: [u8; CHANNEL_LEN],
     period_ms: u32,
     next_poll_ms: u64,
     value_type: u32,
     read: Option<SensorReadFn>,
-    last_value: f64,
+    pub(crate) last_value: f64,
     last_text: [u8; TEXT_LEN],
-    last_read_ms: u64,
+    pub(crate) last_read_ms: u64,
 }
 
 impl Sensor {
-    const ZERO: Sensor = Sensor {
+    pub(crate) const ZERO: Sensor = Sensor {
         id: [0; ID_LEN],
         name: [0; NAME_LEN],
         units: [0; UNITS_LEN],
@@ -127,9 +130,25 @@ fn add(def: &SensorDef) {
 }
 
 /// Noise in [0, 1]
+#[cfg(not(target_os = "none"))]
 fn rnd_unit() -> f64 {
     // SAFETY: no arguments
     f64::from(unsafe { rand() }) / RAND_MAX
+}
+
+/// Noise in [0, 1]: there is no C library on the target, so a xorshift32
+/// generator (the simulated readings are a stand-in until the sensor
+/// drivers exist, SW-01)
+#[cfg(target_os = "none")]
+fn rnd_unit() -> f64 {
+    use core::sync::atomic::{AtomicU32, Ordering};
+    static STATE: AtomicU32 = AtomicU32::new(0x2545_F491);
+    let mut x = STATE.load(Ordering::Relaxed);
+    x ^= x << 13;
+    x ^= x >> 17;
+    x ^= x << 5;
+    STATE.store(x, Ordering::Relaxed);
+    f64::from(x) / f64::from(u32::MAX)
 }
 
 /// A reading
