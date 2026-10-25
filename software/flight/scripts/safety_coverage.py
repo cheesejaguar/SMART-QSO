@@ -82,7 +82,7 @@ def parse_lcov(path: str) -> Dict[str, FileCoverage]:
 def test_module_start(source: List[str]) -> int:
     """First line (1-based) of the file's test module, or past the end"""
     for i, text in enumerate(source):
-        if text.strip() == "#[cfg(test)]" and i + 1 < len(source) and re.match(r"\s*(#\[path|mod\s)", source[i + 1]):
+        if text.strip() == "#[cfg(test)]" and i + 1 < len(source) and re.match(r"\s*(#\[path|(pub(\([^)]*\))?\s+)?mod\s)", source[i + 1]):
             return i + 1
     return len(source) + 1
 
