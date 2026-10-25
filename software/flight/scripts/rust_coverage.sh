@@ -6,10 +6,11 @@
 #
 # Branch coverage: with RUST_COVERAGE_MIN_BRANCH set, the branch column
 # must reach it too. Branches are only counted in a build made with
-# -Zcoverage-options=branch on a nightly toolchain: configure with
-# RUSTUP_TOOLCHAIN=<nightly> and -DSQSO_RUST_COVERAGE_FLAGS=-Zcoverage-options=branch,
-# and run this script with the same RUSTUP_TOOLCHAIN and
-# RUST_COVERAGE_FLAGS=-Zcoverage-options=branch (the unit tests' flag).
+# -Zcoverage-options=branch (or =condition, which also counts each condition)
+# on a nightly toolchain: configure with RUSTUP_TOOLCHAIN=<nightly> and
+# -DSQSO_RUST_COVERAGE_FLAGS=-Zcoverage-options=condition, and run this script
+# with the same RUSTUP_TOOLCHAIN and RUST_COVERAGE_FLAGS (the unit tests' flag).
+# scripts/safety_coverage.py then gates the safety-critical files on its lcov.
 #
 # The build dir must be configured with -DENABLE_COVERAGE=ON (the Rust
 # library is then instrumented) and its tests run with

@@ -125,15 +125,16 @@ jobs:
               raise SystemExit(1)
           PY
 
-      # Branch coverage (the SDP's tailoring of MC/DC, SOFTWARE_DEVELOPMENT_PLAN
-      # §3.3): the same suites in a second build with -Zcoverage-options=branch,
-      # on a pinned nightly. Only the measurement uses nightly; the flight
-      # image and the tests above use the pinned stable toolchain.
-      - name: Branch coverage gate (pinned nightly)
+      # Branch and condition coverage (SOFTWARE_DEVELOPMENT_PLAN §3.2 to §3.3):
+      # the same suites in a second build with -Zcoverage-options=condition (each
+      # condition's outcomes counted as branches), on a pinned nightly. Only the
+      # measurement uses nightly; the flight image and the tests above use the
+      # pinned stable toolchain.
+      - name: Branch and safety-critical coverage gates (pinned nightly)
         working-directory: software/flight
         env:
           RUSTUP_TOOLCHAIN: ${{ env.BRANCH_COVERAGE_TOOLCHAIN }}
-          RUST_COVERAGE_FLAGS: -Zcoverage-options=branch
+          RUST_COVERAGE_FLAGS: -Zcoverage-options=condition
           LLVM_PROFILE_FILE: ${{ github.workspace }}/software/flight/build-branch/profraw/%p-%m.profraw
         run: |
           rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal -c llvm-tools
@@ -143,6 +144,10 @@ jobs:
           ctest --test-dir build-branch --output-on-failure --parallel $(nproc)
           RUST_COVERAGE_MIN_BRANCH="$RUST_BRANCH_COVERAGE_MIN" \
             scripts/rust_coverage.sh build-branch "$RUST_COVERAGE_MIN_LINE" rust-branch-coverage
+          # The safety-critical components: every line and every condition
+          # outcome, file by file (SDP §3.2, CR-2026-003)
+          python3 scripts/safety_coverage.py rust-branch-coverage/lcov.info \
+            --report rust-branch-coverage/safety-critical.txt
 
       - name: Minimum supported Rust version (rust-version in Cargo.toml)
         working-directory: software/rust
