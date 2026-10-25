@@ -2,6 +2,13 @@
 //! (`sqso_fsw::rf_silence`), on the flash HAL, the reset cause and the
 //! separation switch.
 //!
+//! Coverage: only a nested call (an interrupt) finds `SILENCE` in use (busy:
+//! `Global::with` gives `None`); no C callback runs while it is held. The unit
+//! test `tests::busy_reads_as_silent` asserts what such a call gets, but the
+//! safety coverage gate cannot credit it: llvm-cov keeps one record per
+//! `#[no_mangle]` function name (the C library's, whose hash differs from the
+//! unit-test build's), so those lines are marked COVERAGE-EXEMPT.
+//!
 //! @requirement SYS-224 No RF signal earlier than 45 minutes after deployment; switch toggle resets the timer
 
 use sqso_fsw::rf_control::INHIBIT_RF_SILENCE;
@@ -57,10 +64,12 @@ impl SilenceIo for HalFlash {
 #[unsafe(no_mangle)]
 pub extern "C" fn rf_silence_init() -> i32 {
     let cause = reset();
+    // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
     let Some((state, elapsed)) = SILENCE.with(|s| {
         s.init(cause, &mut HalFlash);
         (s.state(), s.elapsed_seconds())
     }) else {
+        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         return rc::BUSY;
     };
     // Observable at every boot (pre-ship check)
@@ -83,6 +92,7 @@ pub extern "C" fn rf_silence_arm() -> i32 {
     match SILENCE.with(|s| s.arm(&mut HalFlash)) {
         Some(Ok(())) => rc::OK,
         Some(Err(_)) => rc::IO,
+        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
@@ -103,4 +113,26 @@ pub extern "C" fn rf_silence_get_state() -> u32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn rf_silence_elapsed_seconds() -> u32 {
     SILENCE.with(|s| s.elapsed_seconds()).unwrap_or(0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fault_mgmt::tests::serial;
+
+    /// A nested call (an interrupt) while the state is in use gets "busy",
+    /// and the silence reads as in force
+    #[test]
+    fn busy_reads_as_silent() {
+        let _serial = serial();
+        let nested = SILENCE.with(|_| {
+            (
+                [rf_silence_init(), rf_silence_arm()],
+                rf_silence_active(),
+                rf_silence_get_state(),
+                rf_silence_elapsed_seconds(),
+            )
+        });
+        assert_eq!(nested, Some(([rc::BUSY; 2], true, State::Counting as u32, 0)));
+    }
 }

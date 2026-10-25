@@ -5,6 +5,13 @@
 //! events through the mode manager and never sets the EPS power mode
 //! directly (SW-14).
 //!
+//! Coverage: only a nested call (an interrupt) finds `FAULTS` in use (busy:
+//! `Global::with` gives `None`); no C callback runs while it is held. The unit
+//! test `tests::busy_while_the_log_is_in_use` asserts what such a call gets,
+//! but the safety coverage gate cannot credit it: llvm-cov keeps one record per
+//! `#[no_mangle]` function name (the C library's, whose hash differs from the
+//! unit-test build's), so those lines are marked COVERAGE-EXEMPT.
+//!
 //! @requirement SRS-F040 Detect and log all fault conditions
 //! @requirement SRS-F042 Implement autonomous fault recovery
 
@@ -133,6 +140,7 @@ pub unsafe extern "C" fn fault_log_get_entry(index: usize, entry: *mut Entry) ->
             c::assert_failed(c"Index out of range", line!());
             rc::INVALID
         }
+        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
@@ -163,6 +171,7 @@ pub extern "C" fn fault_log_mark_recovered(index: usize) -> i32 {
             c::assert_failed(c"Index out of range", line!());
             rc::INVALID
         }
+        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
@@ -258,4 +267,42 @@ pub extern "C" fn fault_was_watchdog_triggered() -> bool {
 #[unsafe(no_mangle)]
 pub extern "C" fn fault_clear_watchdog_flag() {
     let _ = FAULTS.with(|f| f.watchdog_triggered = false);
+}
+
+#[cfg(test)]
+pub(crate) mod tests {
+    use std::sync::{Mutex, MutexGuard, PoisonError};
+
+    use super::*;
+
+    /// Module state, the fault log and the simulated HAL are process-wide:
+    /// the unit tests that use them hold this lock
+    static SERIAL: Mutex<()> = Mutex::new(());
+
+    pub(crate) fn serial() -> MutexGuard<'static, ()> {
+        SERIAL.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    /// The newest fault log entry's description
+    pub(crate) fn last_fault() -> Vec<u8> {
+        let mut entry = Entry::new(0, 0, 0, b"", 0.0);
+        // SAFETY: a live entry
+        assert_eq!(unsafe { fault_log_get_last(&mut entry) }, rc::OK);
+        entry.description().to_vec()
+    }
+
+    /// A nested call (an interrupt) while the log is in use gets "busy"
+    /// and changes nothing
+    #[test]
+    fn busy_while_the_log_is_in_use() {
+        let _serial = serial();
+        let mut entry = Entry::new(0, 0, 0, b"untouched", 0.0);
+        let nested = FAULTS.with(|_| {
+            // SAFETY: a live entry
+            let got = unsafe { fault_log_get_entry(0, &mut entry) };
+            (got, fault_log_mark_recovered(0), add(fault_type::POWER, severity::INFO, b"nested", 0.0))
+        });
+        assert_eq!(nested, Some((rc::BUSY, rc::BUSY, rc::BUSY)));
+        assert_eq!(entry.description(), b"untouched");
+    }
 }

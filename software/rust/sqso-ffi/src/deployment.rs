@@ -226,3 +226,28 @@ pub extern "C" fn deployment_all_complete() -> bool {
 pub extern "C" fn deployment_save_state() -> bool {
     DEPLOY.with(|d| d.save_state(&mut HalFlash)).unwrap_or(false)
 }
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::indexing_slicing)]
+
+    use core::fmt::Write;
+
+    use super::*;
+
+    fn text(m: &Message) -> &[u8] {
+        &m.buf[..m.len]
+    }
+
+    /// A flight-log message shows a NUL as '?' and is cut at 127 bytes,
+    /// leaving its terminating NUL
+    #[test]
+    fn message_is_cut_and_keeps_its_nul() {
+        let mut m = Message { buf: [0; 128], len: 0 };
+        assert!(m.write_str("a\0b").is_ok());
+        assert_eq!(text(&m), b"a?b");
+        assert!(m.write_str(&"x".repeat(200)).is_ok());
+        assert_eq!(m.len, 127);
+        assert_eq!(&m.buf[124..], b"xxx\0");
+    }
+}
