@@ -14,8 +14,15 @@
 #include <setjmp.h>
 #include <cmocka.h>
 #include <string.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include "watchdog_mgr.h"
+#include "fault_mgmt.h"
 #include "smart_qso.h"
 #include "hal/hal_timer.h"
 
@@ -366,79 +373,144 @@ static void test_recovered_task_resumes_refresh(void **state)
 }
 
 /*******************************************************************************
+ * Test Cases: Before initialization, forced reset
+ ******************************************************************************/
+
+/** Must run first: nothing has initialized the watchdog manager yet in this
+ *  process, so it neither starts the hardware nor refreshes it */
+static void test_start_and_kick_refused_before_init(void **state)
+{
+    (void)state;
+    WdtStats_t stats;
+
+    assert_int_equal(wdt_mgr_start(), SMART_QSO_ERROR);
+    wdt_mgr_kick();
+    assert_int_equal(wdt_mgr_get_stats(&stats), SMART_QSO_OK);
+    assert_int_equal(stats.hw_kicks, 0U);
+    assert_false(stats.hw_wdt_running);
+}
+
+/** Exit statuses of the forced-reset child process */
+#define CHILD_SAVED_STATE    42
+#define CHILD_STILL_WAITING  43
+
+/** The forced reset was fault-logged before anything else ran */
+static bool forced_reset_logged(void)
+{
+    FaultLogEntry_t entry;
+    return (fault_log_get_last(&entry) == SMART_QSO_OK) &&
+           (strcmp(entry.description, "Forced watchdog reset") == 0);
+}
+
+/** Pre-reset callback in the child: state is "saved" by ending the child */
+static void save_state_and_exit(void)
+{
+    exit(forced_reset_logged() ? CHILD_SAVED_STATE : EXIT_FAILURE);
+}
+
+/** The child's alarm: wdt_mgr_force_reset() was still waiting for the hardware */
+static void still_waiting(int sig)
+{
+    (void)sig;
+    exit(forced_reset_logged() ? CHILD_STILL_WAITING : EXIT_FAILURE);
+}
+
+/** Run wdt_mgr_force_reset() in a child process (it never returns); the
+ *  child's exit status */
+static int force_reset_in_child(WdtPreResetCallback_t callback)
+{
+    int status = 0;
+
+    (void)fflush(stdout);
+    (void)fflush(stderr);
+    pid_t pid = fork();
+    assert_true(pid >= 0);
+    if (pid == 0) {
+        (void)wdt_mgr_init();
+        (void)wdt_mgr_register_prereset_callback(callback);
+        (void)signal(SIGALRM, still_waiting);
+        (void)alarm(1U);
+        wdt_mgr_force_reset();
+        exit(EXIT_FAILURE);   /* it returned */
+    }
+    assert_int_equal(waitpid(pid, &status, 0), pid);
+    assert_true(WIFEXITED(status));
+    return WEXITSTATUS(status);
+}
+
+/** A forced reset is logged, then state is saved through the pre-reset
+ *  callback before the hardware resets the OBC
+ *
+ * (SRS-F051: save state before watchdog reset) */
+static void test_force_reset_logs_and_saves_state(void **state)
+{
+    (void)state;
+    assert_int_equal(force_reset_in_child(save_state_and_exit), CHILD_SAVED_STATE);
+}
+
+/** Without a pre-reset callback the forced reset is still logged, and it
+ *  never returns: it waits for the hardware watchdog */
+static void test_force_reset_waits_for_hardware(void **state)
+{
+    (void)state;
+    assert_int_equal(force_reset_in_child(NULL), CHILD_STILL_WAITING);
+}
+
+/*******************************************************************************
  * Test Runner
  ******************************************************************************/
 
 int main(void)
 {
     const struct CMUnitTest tests[] = {
+        /* Before initialization: must be first */
+        cmocka_unit_test(test_start_and_kick_refused_before_init),
+
         /* Initialization */
-        cmocka_unit_test_setup_teardown(test_wdt_init_success,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_wdt_start_success,
-                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_wdt_init_success, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_wdt_start_success, test_setup, test_teardown),
 
         /* Task Registration */
-        cmocka_unit_test_setup_teardown(test_register_task_success,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_register_task_invalid_id,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_register_task_null_name,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_register_task_zero_period,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_unregister_task_success,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_unregister_task_invalid_id,
-                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_register_task_success, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_register_task_invalid_id, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_register_task_null_name, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_register_task_zero_period, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_unregister_task_success, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_unregister_task_invalid_id, test_setup, test_teardown),
 
         /* Task Check-in */
-        cmocka_unit_test_setup_teardown(test_checkin_success,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_checkin_invalid_id,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_checkin_unregistered_task,
-                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_checkin_success, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_checkin_invalid_id, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_checkin_unregistered_task, test_setup, test_teardown),
 
         /* Stall Detection */
-        cmocka_unit_test_setup_teardown(test_task_not_stalled_initially,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_any_task_stalled_false_initially,
-                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_task_not_stalled_initially, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_any_task_stalled_false_initially, test_setup, test_teardown),
 
         /* Get Task Info */
-        cmocka_unit_test_setup_teardown(test_get_task_info_null_returns_error,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_get_task_info_invalid_id,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_get_task_info_success,
-                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_get_task_info_null_returns_error, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_get_task_info_invalid_id, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_get_task_info_success, test_setup, test_teardown),
 
         /* Get Stats */
-        cmocka_unit_test_setup_teardown(test_get_stats_null_returns_error,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_get_stats_success,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_kick_increments_hw_kicks,
-                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_get_stats_null_returns_error, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_get_stats_success, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_kick_increments_hw_kicks, test_setup, test_teardown),
 
         /* Callbacks */
-        cmocka_unit_test_setup_teardown(test_register_prereset_callback,
-                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_register_prereset_callback, test_setup, test_teardown),
 
         /* Reset Status */
-        cmocka_unit_test_setup_teardown(test_was_wdt_reset_returns_bool,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_clear_reset_status,
-                                        test_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_healthy_task_keeps_refreshing,
-                                        supervised_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_stalled_task_lets_hardware_reset,
-                                        supervised_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_recovered_task_resumes_refresh,
-                                        supervised_setup, test_teardown),
-        cmocka_unit_test_setup_teardown(test_time_remaining,
-                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_was_wdt_reset_returns_bool, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_clear_reset_status, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_healthy_task_keeps_refreshing, supervised_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_stalled_task_lets_hardware_reset, supervised_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_recovered_task_resumes_refresh, supervised_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_time_remaining, test_setup, test_teardown),
+
+        /* Forced reset (in a child process: it does not return) */
+        cmocka_unit_test_setup_teardown(test_force_reset_logs_and_saves_state, test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_force_reset_waits_for_hardware, test_setup, test_teardown),
     };
 
     return cmocka_run_group_tests(tests, NULL, NULL);

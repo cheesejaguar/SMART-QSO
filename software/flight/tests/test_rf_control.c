@@ -16,6 +16,7 @@
 #include "beacon.h"
 #include "eps_control.h"
 #include "fault_mgmt.h"
+#include "hal/hal.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_flash.h"
 #include "hal/hal_sim.h"
@@ -195,6 +196,46 @@ static void test_power_level_persists_and_validates(void **state)
     assert_false(rf_control_tx_permitted());
 }
 
+/** The newest fault log entry has this description */
+static void assert_last_fault(const char *description)
+{
+    FaultLogEntry_t entry;
+    assert_int_equal(fault_log_get_last(&entry), SMART_QSO_OK);
+    assert_string_equal(entry.description, description);
+}
+
+/** A record that cannot be read at boot cannot prove TX was permitted:
+ *  inhibited, and reported */
+static void test_unreadable_record_inhibits(void **state)
+{
+    (void)state;
+    assert_int_equal(hal_deinit(), SMART_QSO_OK);   /* flash not readable */
+    assert_int_equal(rf_control_init(), SMART_QSO_OK);
+    assert_false(rf_control_tx_permitted());
+    assert_last_fault("RF state unreadable: TX inhibited");
+
+    assert_int_equal(hal_init(), SMART_QSO_OK);     /* the simulation again, flash blank */
+}
+
+/** TX enable that cannot be persisted applies until the next reset, and is
+ *  reported; the latched TX-OFF in NVM comes back at boot */
+static void test_tx_on_not_persisted(void **state)
+{
+    (void)state;
+    assert_int_equal(rf_control_tx_off(), SMART_QSO_OK);
+    hal_sim_flash_fail_writes(true);
+
+    assert_int_equal(rf_control_tx_on(), SMART_QSO_ERROR_IO);
+    assert_true(rf_control_tx_permitted());
+    assert_true(hal_gpio_get(GPIO_PIN_RF_TX_EN));
+    assert_last_fault("TX enabled, not persisted");
+
+    hal_sim_flash_fail_writes(false);
+    power_cycle();
+    assert_false(rf_control_tx_permitted());
+    assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
+}
+
 /*===========================================================================*/
 /* Test Suite                                                                 */
 /*===========================================================================*/
@@ -213,6 +254,8 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_beacon_not_due_while_tx_off, setup_blank_nvm, teardown),
         cmocka_unit_test_setup_teardown(test_beacon_transmit_refused_while_tx_off, setup_blank_nvm, teardown),
         cmocka_unit_test_setup_teardown(test_power_level_persists_and_validates, setup_blank_nvm, teardown),
+        cmocka_unit_test_setup_teardown(test_unreadable_record_inhibits, setup_blank_nvm, teardown),
+        cmocka_unit_test_setup_teardown(test_tx_on_not_persisted, setup_blank_nvm, teardown),
     };
 
     return cmocka_run_group_tests_name("RF Control (TX-OFF) Tests", tests, NULL, NULL);
