@@ -1,6 +1,6 @@
 # Mutation testing: the SRS-C003 stack changes
 
-Scope: the functions added or changed to bring the worst-case stack under 8 KB (2026-10-25): `sqso_fsw::fixed`,
+Commands and numbers for each part follow. Scope: the functions added or changed to bring the worst-case stack under 8 KB (2026-10-25): `sqso_fsw::fixed`,
 `beacon::serialized_len` and `build_frame`, `checksum::crc16_x25_parts`, `ax25::fcs_parts`, `c::Line`,
 `console_parts`, `os::print_parts`, `sensors::poll_job`, `print_reading` and `reading_line`, `beacon_transmit`,
 `fault_mgmt::add`, and `Executive::start`, `step`, `send_telemetry_to_jetson` and `request_beacon_text`.
@@ -27,8 +27,13 @@ covered by `RESULTS-sqso-fsw.md` and the C suites.
 | Missed ones in the scope, against the C suites | 54 | 15 | 36 | 3 |
 | After the new tests (`ax25::fcs_parts`; `c::Line`, `reading_line` in sqso-ffi), Rust unit tests, `Line::` and `reading_line` | 36 | 20 | 14 (1 in scope) | 2 |
 
-`sqso_fsw::fixed`: every mutant caught (its tests compare with core's formatting for every tie, power of two and
-400,000 random values; the fuzz target `fixed_format` runs in CI).
+`sqso_fsw::fixed`, run by file (`-f sqso-fsw/src/fixed.rs`; the pattern above matches function names, not modules):
+91 mutants, 87 caught, 3 missed, 1 unviable. The three are equivalent:
+
+- `decompose`, `-1074` with its sign deleted: a subnormal is then taken as an integer shifted past the last limb and
+  prints as 0. Every subnormal is below 10^-307 and prints as 0 at nine decimals or fewer, so the text is the same.
+- `decompose`, `frac | (1 << 52)` with `^`: `frac` has no bit 52, so both are the same.
+- `div_chunk`, `(rem << 32) | limb` with `^`: the operands have no bit in common.
 
 ## Survivors
 
