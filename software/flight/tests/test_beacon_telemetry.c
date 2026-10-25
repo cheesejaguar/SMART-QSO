@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include "beacon.h"
+#include "downlink.h"
 #include "eps_control.h"
 #include "mission_data.h"
 #include "rf_control.h"
@@ -204,6 +205,7 @@ static void test_no_beacon_while_eps_beacon_off(void **state)
     assert_int_equal(hal_flash_init(), SMART_QSO_OK);
     assert_int_equal(hal_flash_erase(FLASH_REGION_RF_CONTROL), SMART_QSO_OK);
     assert_int_equal(rf_control_init(), SMART_QSO_OK);
+    assert_int_equal(downlink_init(), SMART_QSO_OK);
     assert_int_equal(eps_init(), SMART_QSO_OK);
     uint64_t now = smart_qso_now_ms();
     beacon_mark_transmitted(now);

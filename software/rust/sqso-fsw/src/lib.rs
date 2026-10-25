@@ -28,6 +28,7 @@
 //! - [`system_state`]: the system state record and its image (`system_state.h`)
 //! - [`telemetry`]: binary telemetry frames and schedule (`telemetry.h`)
 //! - [`beacon`]: beacon text, telemetry fields and AX.25 frame (`beacon.h`)
+//! - [`downlink`]: the downlink transmitter's gate, limits and monitors (`downlink.h`)
 //! - [`adcs`]: B-dot detumble, sun pointing and ADCS modes (`adcs_control.h`)
 //! - [`watchdog`]: the supervised watchdog's task table (`watchdog_mgr.h`)
 //! - [`fmath`]: C `sqrt` and `round` for `no_std`
@@ -42,6 +43,7 @@ pub mod assert_handler;
 pub mod beacon;
 pub mod contact_monitor;
 pub mod deployment;
+pub mod downlink;
 pub mod eps;
 pub mod executive;
 pub mod fault_log;

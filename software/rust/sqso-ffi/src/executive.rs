@@ -26,10 +26,14 @@ use crate::c::{fault_type, rc, severity};
 use crate::jetson_link::{JetsonMsg, JetsonRx};
 use crate::sensors::Sensor;
 use crate::{
-    beacon, cmd_handler, contact_monitor, deployment, eps_control, fault_mgmt, gse_provision, jetson_link,
+    beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, fault_mgmt, gse_provision, jetson_link,
     mission_data, payload_guard, rf_control, rf_silence, sensors, state_machine, system_state, uart_comm, uplink,
     watchdog_mgr,
 };
+
+/// `ADC_RESOLUTION_12BIT`, `ADC_REF_VDD` (hal_adc.h)
+const ADC_RESOLUTION_12BIT: u32 = 12;
+const ADC_REF_VDD: u32 = 2;
 
 // watchdog_mgr.h task ids
 const WDT_TASK_MAIN_LOOP: u32 = 0;
@@ -235,6 +239,11 @@ impl Executive {
         if unsafe { crate::c::hal_gpio_init() } != rc::OK || unsafe { crate::c::hal_flash_init() } != rc::OK {
             eprint(format_args!("[SYSTEM] GPIO/flash init failed"));
         }
+        // The ADC (the downlink transmitter's monitors): 12-bit, VDDA
+        // SAFETY: plain values (the HAL)
+        if unsafe { crate::c::hal_adc_init(ADC_RESOLUTION_12BIT, ADC_REF_VDD) } != rc::OK {
+            eprint(format_args!("[SYSTEM] ADC init failed"));
+        }
         let _ = deployment::deployment_init();
         if fault_mgmt::fault_mgmt_init() != rc::OK {
             eprint(format_args!("[SYSTEM] Fault management init failed"));
@@ -343,6 +352,7 @@ impl Executive {
         // Beacon (stays silent while TX-OFF, contact or RF-silence inhibits)
         self.update_beacon_measurements(now);
         self.run_beacon(now);
+        downlink::downlink_poll();
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_BEACON);
 
         // Telecommands from the 435 MHz receiver, then key provisioning
@@ -641,6 +651,9 @@ fn init_rf_and_telecommand() {
     let _ = rf_silence::rf_silence_init();
     let _ = contact_monitor::contact_monitor_init();
     let _ = rf_control::rf_control_init();
+    if downlink::downlink_init() != rc::OK {
+        eprint(format_args!("[SYSTEM] Downlink init failed"));
+    }
     if cmd_handler::cmd_handler_init() != rc::OK {
         eprint(format_args!("[SYSTEM] Command handler init failed"));
     }
@@ -764,6 +777,24 @@ mod host {
 
     static SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
+    /// `$SIM_RF_SILENCE_SERVED` set: boot as after a software reset with the
+    /// 45-minute post-deployment silence already served (a COMPLETE record
+    /// in the simulated FRAM), so that a 20 s run beacons. The silence's own
+    /// rules decide (`rf_silence_init()`); simulation only
+    pub(super) fn serve_rf_silence() {
+        use sqso_fsw::nvm;
+        use sqso_fsw::rf_silence::{DURATION_S, HAL_RESET_SOFTWARE, RECORD_MAGIC, RfSilence, State};
+        if crate::os::env(c"SIM_RF_SILENCE_SERVED").is_none() {
+            return;
+        }
+        // SAFETY: no arguments (the simulated HAL)
+        let _ = unsafe { crate::c::hal_flash_init() };
+        let record = RfSilence::record(State::Complete, DURATION_S);
+        let region = crate::rf_silence::FLASH_REGION_RF_SILENCE;
+        let _ = nvm::save(&mut crate::c::HalFlash, region, 0, RECORD_MAGIC, &record);
+        crate::hal_sim::hal_sim_set_reset_cause(HAL_RESET_SOFTWARE);
+    }
+
     extern "C" fn on_signal(_sig: libc::c_int) {
         SHUTDOWN.store(true, Ordering::Relaxed);
     }
@@ -800,6 +831,7 @@ mod host {
 pub fn run_host(max_ticks: Option<u64>) -> i32 {
     host::install_signal_handlers();
     host::seed_noise();
+    host::serve_rf_silence();
     let mut x = Executive::BOOT;
     if !x.start() {
         return 1;

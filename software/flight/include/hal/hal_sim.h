@@ -23,6 +23,7 @@ extern "C" {
 #include "hal/hal_gpio.h"
 #include "hal/hal_uart.h"
 #include "hal/hal_reset.h"
+#include "hal/hal_adc.h"
 
 /**
  * @brief Make every subsequent hal_flash_write() fail with SMART_QSO_ERROR_IO
@@ -63,6 +64,26 @@ SmartQsoResult_t hal_sim_radio_inject(const uint8_t *frame, size_t len);
  * @brief Drop every queued receiver frame
  */
 void hal_sim_radio_clear(void);
+
+/**
+ * @brief Take the oldest frame given to hal_radio_transmit() (the newest
+ *        four are kept)
+ *
+ * @return SMART_QSO_OK with a frame; SMART_QSO_ERROR_TIMEOUT if none
+ */
+SmartQsoResult_t hal_sim_radio_take_tx(uint8_t *frame, size_t max_len, size_t *len);
+
+/**
+ * @brief Make hal_radio_transmit() return @p result from now on
+ *        (SMART_QSO_OK: it takes frames again); kept frames are dropped
+ */
+void hal_sim_radio_tx_result(SmartQsoResult_t result);
+
+/**
+ * @brief Set one simulated ADC input, in its own unit, until hal_adc_init()
+ *        restores the defaults
+ */
+SmartQsoResult_t hal_sim_adc_set(HalAdcChannel_t channel, double value);
 
 /**
  * @brief Set the cause hal_reset_cause() reports, modelling the next boot

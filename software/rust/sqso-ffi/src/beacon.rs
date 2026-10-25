@@ -7,6 +7,7 @@
 use core::ffi::c_char;
 
 use sqso_fsw::beacon::{self as bcn, Beacon, Content, Frame, MAX_PAYLOAD_LEN, Measurements, Sources, State, TEMPLATES};
+use sqso_fsw::downlink;
 use sqso_fsw::fault_log::Entry;
 use sqso_protocol::{ax25, filter};
 
@@ -190,7 +191,10 @@ pub unsafe extern "C" fn beacon_serialize_ax25(frame: *const Frame, buffer: *mut
 }
 
 /// Transmit a beacon: never while TX-OFF is latched (47 CFR 97.207(b)) or
-/// the EPS has the beacon powered off
+/// the EPS has the beacon powered off. The frame goes to the downlink
+/// (`downlink.h`), which may still refuse it (an inhibit, the duty limit,
+/// the transmitter's protections); only a frame it takes is counted and
+/// shown on the console
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn beacon_transmit(content: *const Content) -> i32 {
     // SAFETY: the C contract: NULL or a BeaconContent_t
@@ -202,11 +206,16 @@ pub unsafe extern "C" fn beacon_transmit(content: *const Content) -> i32 {
     if !ok {
         return rc::ERROR;
     }
-    // No downlink driver takes the frame yet (KNOWN_ISSUES KI-001): its
-    // length on the air is counted, and the console shows the information
     let tx_len = bcn::serialized_len(&frame);
-    if tx_len == 0 {
+    let mut body = [0u8; downlink::MAX_FRAME_LEN];
+    let body_len = bcn::serialize_body(&frame, &mut body);
+    if tx_len == 0 || body_len == 0 {
         return rc::ERROR;
+    }
+    // SAFETY: body holds body_len bytes
+    let sent = unsafe { crate::downlink::downlink_transmit(body.as_ptr(), body_len) };
+    if sent != rc::OK {
+        return sent;
     }
     if BEACON.with(|b| b.count_transmit(tx_len, content.source)).is_none() {
         return rc::BUSY;

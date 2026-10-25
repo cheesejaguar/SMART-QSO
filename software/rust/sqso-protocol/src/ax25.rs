@@ -187,6 +187,18 @@ pub fn encode_ui(
     Ok(total)
 }
 
+/// `frame` (addresses through information, as a KISS TNC delivers it once it
+/// has checked the FCS) followed by its FCS, into `out`: the form
+/// [`parse_ui`] takes. Its length, or `None` if it does not fit
+pub fn append_fcs(frame: &[u8], out: &mut [u8]) -> Option<usize> {
+    let len = frame.len().checked_add(FCS_LEN)?;
+    let dst = out.get_mut(..len)?;
+    let (body, sum) = dst.split_at_mut(frame.len());
+    body.copy_from_slice(frame);
+    sum.copy_from_slice(&fcs(frame).to_le_bytes());
+    Some(len)
+}
+
 /// KISS framing: FEND, data-frame command for `port`, escaped frame, FEND
 pub fn kiss_encode(frame: &[u8], port: u8, out: &mut [u8]) -> Result<usize, EncodeError> {
     const FEND: u8 = 0xC0;
@@ -216,6 +228,25 @@ mod tests {
         let mut buf = [0u8; MAX_FRAME_LEN];
         let n = encode_ui(US, GROUND, info, true, &mut buf).unwrap();
         (buf, n)
+    }
+
+    #[test]
+    fn a_tnc_frame_with_its_fcs_appended_parses() {
+        // What the TNC delivers: the frame without its FCS
+        let mut sent = [0u8; MAX_FRAME_LEN];
+        let n = encode_ui(US, GROUND, b"TX-OFF", false, &mut sent).unwrap();
+        let mut out = [0u8; MAX_FRAME_LEN];
+        let m = append_fcs(&sent[..n], &mut out).unwrap();
+        assert_eq!(m, n + FCS_LEN);
+        let ui = parse_ui(&out[..m]).unwrap();
+        assert_eq!(ui.info, b"TX-OFF");
+        // The same as a frame encoded with its FCS
+        let mut full = [0u8; MAX_FRAME_LEN];
+        assert_eq!(encode_ui(US, GROUND, b"TX-OFF", true, &mut full), Ok(m));
+        assert_eq!(&out[..m], &full[..m]);
+        // Without room for the FCS: nothing
+        assert_eq!(append_fcs(&sent[..n], &mut out[..n + 1]), None);
+        assert_eq!(append_fcs(&sent[..n], &mut out[..n + 2]), Some(n + 2));
     }
 
     #[test]

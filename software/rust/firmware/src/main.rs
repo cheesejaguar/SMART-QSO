@@ -84,7 +84,10 @@ static JETSON_TX: ConstStaticCell<[u8; 256]> = ConstStaticCell::new([0; 256]);
 static DEBUG_RX: ConstStaticCell<[u8; 64]> = ConstStaticCell::new([0; 64]);
 static DEBUG_TX: ConstStaticCell<[u8; 512]> = ConstStaticCell::new([0; 512]);
 static RADIO_RX: ConstStaticCell<[u8; 1024]> = ConstStaticCell::new([0; 1024]);
-static RADIO_TX: ConstStaticCell<[u8; 16]> = ConstStaticCell::new([0; 16]);
+/// Holds the longest downlink stream, so `hal_radio_transmit()` never waits
+const RADIO_TX_LEN: usize = 1024;
+const _: () = assert!(RADIO_TX_LEN >= radio::STREAM_MAX);
+static RADIO_TX: ConstStaticCell<[u8; RADIO_TX_LEN]> = ConstStaticCell::new([0; RADIO_TX_LEN]);
 
 /// Stop and let the hardware watchdog reset the OBC (it was started by the
 /// flight software, or the boot failed before it could be: then the
@@ -149,17 +152,19 @@ fn bring_up() {
 
     // Enable and burn lines low first
     gpio::install(
-        p.PB4, p.PB5, p.PB6, p.PD2, p.PA1, p.PD3, p.PA2, p.PA3, p.PB7, p.PA0, p.PB8, p.PB9, p.PB10, p.PB11, p.PB12,
+        p.PB4, p.PB5, p.PB6, p.PD2, p.PA1, p.PD3, p.PA2, p.PA3, p.PB7, p.PE2, p.PB8, p.PB9, p.PB10, p.PB11, p.PB12,
+        p.PE3,
     );
 
     // FRAM: SPI mode 0 at 20 MHz (STORAGE_DESIGN §3.4); WP# and HOLD# high
+    // (on PE0/PE1, so that PC0/PC1 can be the downlink's ADC inputs)
     let mut fram_cfg = embassy_stm32::spi::Config::default();
     fram_cfg.frequency = Hertz(20_000_000);
     fram::install(
         Spi::new_blocking(p.SPI1, p.PA5, p.PA7, p.PA6, fram_cfg),
         Output::new(p.PA4, Level::High, Speed::VeryHigh),
-        Output::new(p.PC0, Level::High, Speed::Low),
-        Output::new(p.PC1, Level::High, Speed::Low),
+        Output::new(p.PE0, Level::High, Speed::Low),
+        Output::new(p.PE1, Level::High, Speed::Low),
     );
 
     let spi_cfg = embassy_stm32::spi::Config::default();
@@ -190,6 +195,9 @@ fn bring_up() {
             adc::input(p.PC5),
             adc::input(p.PB0),
             adc::input(p.PB1),
+            adc::input(p.PA0),
+            adc::input(p.PC0),
+            adc::input(p.PC1),
         ],
     );
 }

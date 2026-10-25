@@ -1,5 +1,5 @@
 //! `hal_flash.h`: the non-volatile memory is an FM25V20A FRAM (256 KB) on
-//! SPI1 (PA5 SCK / PA6 MISO / PA7 MOSI, CS# PA4, WP# PC0, HOLD# PC1;
+//! SPI1 (PA5 SCK / PA6 MISO / PA7 MOSI, CS# PA4, WP# PE0, HOLD# PE1;
 //! `hardware/obc/STORAGE_DESIGN.md` §3.4). FRAM writes take effect at once
 //! and need no erase, so a region "erase" writes 0xFF over it, matching the
 //! simulation.

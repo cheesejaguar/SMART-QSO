@@ -17,6 +17,64 @@ pub const TFEND: u8 = 0xDC;
 /// Escaped FESC
 pub const TFESC: u8 = 0xDD;
 
+/// Command nibble: a data frame
+pub const CMD_DATA: u8 = 0x00;
+/// Command nibble: keying delay before data, in 10 ms units
+pub const CMD_TXDELAY: u8 = 0x01;
+/// Command nibble: CSMA persistence (255: always transmit at once)
+pub const CMD_PERSIST: u8 = 0x02;
+/// Command nibble: CSMA slot time, in 10 ms units
+pub const CMD_SLOTTIME: u8 = 0x03;
+/// Command nibble: hold after the data, in 10 ms units
+pub const CMD_TXTAIL: u8 = 0x04;
+/// Command nibble: full duplex (nonzero: do not wait for a clear channel)
+pub const CMD_FULLDUPLEX: u8 = 0x05;
+
+/// The downlink TNC's keying delay, 10 ms units (300 ms, TBR with the
+/// transmitter: its lock and power-settle times, SQSO-RF-TX-001 §10.2)
+pub const TXDELAY_10MS: u8 = 30;
+/// The downlink TNC's tail, 10 ms units
+pub const TXTAIL_10MS: u8 = 1;
+
+/// The downlink TNC's parameters, sent before every frame because the TNC
+/// may have been powered off since the last one (the radio is unpowered
+/// during the RF silence). Full duplex: the downlink does not share the
+/// uplink channel, so the TNC must not hold off for its carrier detect; and
+/// persistence 255, slot time 0, for the same reason
+pub const DOWNLINK_PARAMS: [(u8, u8); 5] = [
+    (CMD_TXDELAY, TXDELAY_10MS),
+    (CMD_PERSIST, 255),
+    (CMD_SLOTTIME, 0),
+    (CMD_TXTAIL, TXTAIL_10MS),
+    (CMD_FULLDUPLEX, 1),
+];
+
+/// Most bytes a parameter command takes on the wire (the value escaped)
+pub const COMMAND_MAX_LEN: usize = 5;
+
+/// The bytes on the wire for a frame of `len` bytes, at most: every byte
+/// escaped, plus FEND, the command byte and FEND
+pub const fn frame_max_len(len: usize) -> usize {
+    2 * len + 3
+}
+
+/// A parameter command: FEND, `command` for `port`, `value` (escaped), FEND
+pub fn encode_command(command: u8, value: u8, port: u8, out: &mut [u8]) -> Result<usize, crate::ax25::EncodeError> {
+    let escaped: &[u8] = match value {
+        FEND => &[FESC, TFEND],
+        FESC => &[FESC, TFESC],
+        _ => core::slice::from_ref(&value),
+    };
+    let len = 3 + escaped.len();
+    let dst = out.get_mut(..len).ok_or(crate::ax25::EncodeError)?;
+    let [head @ .., end] = dst else { return Err(crate::ax25::EncodeError) };
+    let (fend_cmd, body) = head.split_at_mut(2);
+    fend_cmd.copy_from_slice(&[FEND, ((port & 0x0F) << 4) | (command & 0x0F)]);
+    body.copy_from_slice(escaped);
+    *end = FEND;
+    Ok(len)
+}
+
 /// What the decoder is doing
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum State {
@@ -110,6 +168,38 @@ mod tests {
             }
         }
         found
+    }
+
+    #[test]
+    fn commands_are_framed_and_escaped() {
+        let mut out = [0u8; COMMAND_MAX_LEN];
+        assert_eq!(encode_command(CMD_TXDELAY, 30, 0, &mut out), Ok(4));
+        assert_eq!(&out[..4], &[FEND, 0x01, 30, FEND]);
+        assert_eq!(encode_command(CMD_FULLDUPLEX, 1, 2, &mut out), Ok(4));
+        assert_eq!(&out[..4], &[FEND, 0x25, 1, FEND]);
+        assert_eq!(encode_command(CMD_PERSIST, FEND, 0, &mut out), Ok(5));
+        assert_eq!(out, [FEND, 0x02, FESC, TFEND, FEND]);
+        assert_eq!(encode_command(CMD_PERSIST, FESC, 0, &mut out), Ok(5));
+        assert_eq!(out, [FEND, 0x02, FESC, TFESC, FEND]);
+        // A command frame is never taken for data
+        let mut d = Decoder::<16>::new(0);
+        assert!(decode_all(&mut d, &out).is_none());
+    }
+
+    #[test]
+    fn a_command_needs_room() {
+        let mut out = [0u8; 4];
+        assert!(encode_command(CMD_TXDELAY, 30, 0, &mut out).is_ok());
+        assert!(encode_command(CMD_PERSIST, FEND, 0, &mut out).is_err());
+        assert!(encode_command(CMD_TXDELAY, 30, 0, &mut out[..3]).is_err());
+    }
+
+    #[test]
+    fn frame_max_len_bounds_the_encoder() {
+        let frame = [FEND; 40];
+        let mut wire = [0u8; 128];
+        assert_eq!(kiss_encode(&frame, 0, &mut wire), Ok(frame_max_len(frame.len())));
+        assert!(kiss_encode(&frame, 0, &mut wire[..frame_max_len(frame.len()) - 1]).is_err());
     }
 
     #[test]

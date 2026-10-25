@@ -114,7 +114,9 @@ impl RfSilence {
         }
     }
 
-    fn record(state: State, elapsed_s: u32) -> [u8; 8] {
+    /// The persisted record for `state` and `elapsed_s` (the simulation's
+    /// start-up hook writes one; `sqso_ffi::executive::run_host`)
+    pub fn record(state: State, elapsed_s: u32) -> [u8; 8] {
         let mut rec = [0u8; 8];
         let (s, e) = rec.split_at_mut(4);
         s.copy_from_slice(&(state as u32).to_le_bytes());

@@ -43,6 +43,7 @@
 
 #include "ax25.h"
 #include "beacon.h"
+#include "downlink.h"
 #include "eps_control.h"
 #include "hal/hal_flash.h"
 #include "jetson_link.h"
@@ -59,6 +60,7 @@ static int setup(void **cm_state)
     assert_int_equal(hal_flash_init(), SMART_QSO_OK);
     assert_int_equal(hal_flash_erase(FLASH_REGION_RF_CONTROL), SMART_QSO_OK);
     assert_int_equal(rf_control_init(), SMART_QSO_OK);
+    assert_int_equal(downlink_init(), SMART_QSO_OK);
     /* EPS state persists between runs: set what the tests rely on */
     assert_int_equal(eps_init(), SMART_QSO_OK);
     assert_int_equal(eps_control_beacon(true), SMART_QSO_OK);

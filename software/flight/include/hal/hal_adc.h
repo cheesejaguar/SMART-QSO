@@ -31,6 +31,9 @@ typedef enum {
     ADC_CHANNEL_VBUS        = 4,   /**< 5V bus voltage */
     ADC_CHANNEL_TEMP_MCU    = 5,   /**< MCU temperature */
     ADC_CHANNEL_TEMP_BOARD  = 6,   /**< Board temperature */
+    ADC_CHANNEL_TX_TEMP     = 7,   /**< Downlink transmitter (PA) temperature, °C */
+    ADC_CHANNEL_TX_FWD      = 8,   /**< Downlink forward power, W */
+    ADC_CHANNEL_TX_REV      = 9,   /**< Downlink reflected power, W */
     ADC_CHANNEL_COUNT
 } HalAdcChannel_t;
 

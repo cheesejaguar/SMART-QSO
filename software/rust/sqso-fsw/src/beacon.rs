@@ -393,6 +393,23 @@ pub fn serialized_len(frame: &Frame) -> usize {
     if size <= ax25::MAX_FRAME_LEN { size } else { 0 }
 }
 
+/// The frame as handed to the TNC (`downlink.h`): addresses, control, PID,
+/// information; no flags or FCS, which the TNC adds. 0 if `out` is too small
+/// (or the frame's information length is beyond its field)
+pub fn serialize_body(frame: &Frame, out: &mut [u8]) -> usize {
+    let Some(info) = frame.info.get(..frame.info_len) else { return 0 };
+    let size = 2 * ax25::ADDR_LEN + 2 + info.len();
+    let Some(dst) = out.get_mut(..size) else { return 0 };
+    let mut n = 0;
+    for part in [frame.dest_addr.as_slice(), frame.src_addr.as_slice(), &[frame.ctrl, frame.pid], info] {
+        if let Some(d) = dst.get_mut(n..n + part.len()) {
+            d.copy_from_slice(part);
+        }
+        n += part.len();
+    }
+    n
+}
+
 /// The frame on the air: flag, addresses, control, PID, information, FCS
 /// (little-endian), flag. 0 if `out` is too small (or the frame's
 /// information length is beyond its field)
@@ -733,6 +750,15 @@ mod tests {
         let bad = Frame { info_len: MAX_PAYLOAD_LEN + 1, ..frame };
         assert_eq!(serialize(&bad, &mut out), 0);
         assert_eq!(serialized_len(&bad), 0);
+
+        // What the TNC gets: the frame between the flags, less the FCS
+        let mut body = [0u8; ax25::MAX_FRAME_LEN];
+        let m = serialize_body(&frame, &mut body);
+        assert_eq!(m, n - 4);
+        assert_eq!(&body[..m], &out[1..n - 3]);
+        assert_eq!(serialize_body(&frame, &mut body[..m - 1]), 0);
+        assert_eq!(serialize_body(&frame, &mut body[..m]), m);
+        assert_eq!(serialize_body(&bad, &mut body), 0);
     }
 
     #[test]
