@@ -299,4 +299,22 @@ if(NOT FLIGHT_BUILD)
         FAIL_REGULAR_EXPRESSION "Initialization failed;Rust panic"
         ENVIRONMENT "SMART_QSO_FAULT_LOG=${CMAKE_BINARY_DIR}/sim_fault_log.dat;SMART_QSO_EPS_CONFIG=${CMAKE_BINARY_DIR}/sim_eps_config.dat;SMART_QSO_MISSION_DATA=${CMAKE_BINARY_DIR}/sim_mission_data.dat;SMART_QSO_STATE_FILE=${CMAKE_BINARY_DIR}/sim_state.dat;SENSORS_YAML=${CMAKE_SOURCE_DIR}/sensors.yaml"
         LABELS "integration")
+
+    # The executive's Jetson link: the same simulation with a pseudo-terminal
+    # as the Jetson port, the driver playing the Jetson (about 21 s each).
+    # The driver links no flight code: it checks the lines with its own CRC.
+    add_executable(test_executive_jetson integration/test_executive_jetson.c)
+    target_link_libraries(test_executive_jetson PkgConfig::CMOCKA)
+    target_compile_options(test_executive_jetson PRIVATE ${TEST_COMPILE_OPTIONS})
+    add_dependencies(test_executive_jetson smart_qso_flight)
+    foreach(_sqso_scenario link guard)
+        set(_sqso_test Executive_Jetson_${_sqso_scenario})
+        add_test(NAME ${_sqso_test}
+                 COMMAND test_executive_jetson ${CMAKE_BINARY_DIR}/smart_qso_flight ${_sqso_scenario}
+                         ${CMAKE_SOURCE_DIR}/sensors.yaml)
+        set_tests_properties(${_sqso_test} PROPERTIES
+            TIMEOUT 150
+            ENVIRONMENT "SMART_QSO_FAULT_LOG=${CMAKE_CURRENT_BINARY_DIR}/fault_log_${_sqso_test}.dat;SMART_QSO_EPS_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/eps_config_${_sqso_test}.dat;SMART_QSO_MISSION_DATA=${CMAKE_CURRENT_BINARY_DIR}/mission_data_${_sqso_test}.dat;SMART_QSO_STATE_FILE=${CMAKE_CURRENT_BINARY_DIR}/state_${_sqso_test}.dat"
+            LABELS "integration")
+    endforeach()
 endif()

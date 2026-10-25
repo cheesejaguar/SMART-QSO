@@ -48,4 +48,41 @@ covered by `RESULTS-sqso-fsw.md` and the C suites.
   Jetson UART does not open (no serial device), so the telemetry path never runs. These are a test gap of the
   executive (line coverage of `sqso-ffi/src/executive.rs` is 59 %), not of the stack changes, which moved code without
   changing its logic. Closing it needs a simulation run with a pseudo-terminal as the Jetson port and assertions on
-  the lines it sends (as `test_uart_comm` does for the UART driver).
+  the lines it sends (as `test_uart_comm` does for the UART driver). Done: see the next section.
+
+## The executive with a simulated Jetson (2026-10-25)
+
+The test gap in the last survivor above is closed by `software/flight/tests/integration/test_executive_jetson.c`
+(ctest `Executive_Jetson_link` and `Executive_Jetson_guard`): the host simulation runs with a pseudo-terminal as the
+Jetson port, the driver plays the Jetson and checks the lines sent, their timing and the console (see
+`software/flight/tests/README.md`). Rerun on a clean worktree of that commit:
+
+```bash
+cargo mutants -p sqso-ffi --in-place --profile release --timeout 120 \
+  -F 'Executive::(start|step|send_telemetry_to_jetson|request_beacon_text)' -o OUT   # in software/rust
+python3 software/rust/mutants/ctest_missed.py OUT/mutants.out BUILD                    # from the repository root
+```
+
+40 mutants, all missed by the Rust unit tests (the executive has none). Against the C suites:
+
+| Mutants | Caught | Missed |
+|---------|--------|--------|
+| In `Executive::start`, `step`, `send_telemetry_to_jetson`, `request_beacon_text` | 25 of 27 | 2 (equivalent) |
+| Matched by `-F` elsewhere (struct-field deletions) | 6 of 13 | 7 |
+
+Line coverage of `sqso-ffi/src/executive.rs` (`software/flight/scripts/rust_coverage.sh`): 59.3 % before, 87.8 % with
+the two entries; all Rust 92.3 % to 93.4 %.
+
+Survivors:
+
+- **`step`, `(now % 10_000) < 100` with `<=`**: the health check also runs at 100 ms past the window start, a
+  millisecond no 20 ms pass is guaranteed to hit, and the first pass in the window does the check either way.
+  Equivalent.
+- **`send_telemetry_to_jetson`, `!payload || !uart` with `&&`**: its only caller, `step`, calls it only when both are
+  true, so the early return never differs. Equivalent while the guard in `step` stays.
+- **`update_beacon_measurements`, `soc`, `sunlit` or `valid` deleted**: these feed the beacon, and no beacon is sent in
+  a simulation run (each boot starts the 45-minute RF silence, the simulated flash being RAM, and the beacon interval
+  is 60 s). Killing them needs a run whose RF silence is complete, for example a host-only hook in `hal_sim.rs` that
+  preloads a completed RF-silence record, and a beacon check on the `[BEACON] TX:` line.
+- **`sys_state_init` (`initialized`, `watchdog_ok`, `last_update_ms`) and `check_task_watchdogs` (`name`)**: outside
+  the executive, matched by the pattern; not in this scope.
