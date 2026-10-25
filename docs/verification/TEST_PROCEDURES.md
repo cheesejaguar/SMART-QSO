@@ -466,8 +466,8 @@ open coverage_report/index.html
 | **Overall** | **80%** | **TBD** |
 
 Note (2026-10-24): every module above is now Rust (`software/rust/README.md`). CI measures line coverage of the Rust
-flight crates (92.2 % on 2026-10-24, gate 90 %) and of C and Rust together (92.2 %, gate 80 %), and since 2026-10-25
-branch coverage of the Rust (76.3 %, gate 75 %). The per-file reports (`rust-coverage/`, `rust-branch-coverage/`) are in
+flight crates (94.4 % on 2026-10-25, gate 90 %) and of C and Rust together (94.4 %, gate 80 %), and since 2026-10-25
+branch coverage of the Rust (80.6 %, gate 80 %). The per-file reports (`rust-coverage/`, `rust-branch-coverage/`) are in
 the CI artifact `rust-coverage`. The Actual column stays open until per-module figures are recorded against this table.
 
 ---

@@ -5,7 +5,7 @@ The CMocka suites in this directory are the specification of the flight software
 in `software/flight/include`, which are the C ABI of the Rust modules. They run on the host, on the simulated HAL
 (`software/rust/sqso-ffi/src/hal_sim.rs`). They use the [CMocka](https://cmocka.org) framework.
 
-There are 46 ctest entries: 43 CMocka suites with 646 `cmocka_unit_test` cases (one of them,
+There are 46 ctest entries: 43 CMocka suites with 671 `cmocka_unit_test` cases (one of them,
 `integration/test_executive_jetson.c`, runs as two entries, `Executive_Jetson_link` and `Executive_Jetson_guard`), the
 `no_dynamic_memory` check, and `Simulation_Run`, the host simulation, which must reach a clean shutdown (2026-10-25).
 
@@ -86,12 +86,17 @@ A change to existing behaviour belongs in the Rust and, when deliberate, in the 
 
 ## Coverage
 
-CI (job Build and Test) runs two gates:
+CI (job Build and Test) runs these gates:
 
 - **Rust**: line coverage of the flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`), from these suites and the
-  Rust unit tests together, must not fall below `RUST_COVERAGE_MIN_LINE` (90 %). It was 92.2 % on 2026-10-24.
+  Rust unit tests together, must not fall below `RUST_COVERAGE_MIN_LINE` (90 %). It was 94.4 % on 2026-10-25.
 - **Flight software**: the C in `src/` (gcovr) and the Rust together must not fall below `COVERAGE_MIN_LINE` (80 %). It
-  was 92.2 % on 2026-10-24.
+  was 94.4 % on 2026-10-25.
+- **Branches and conditions** (a second build on the pinned nightly `BRANCH_COVERAGE_TOOLCHAIN`, with
+  `-Zcoverage-options=condition`): Rust branch and condition coverage must not fall below `RUST_BRANCH_COVERAGE_MIN`
+  (80 %); it was 80.6 %. Each safety-critical file (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) must reach
+  100 % of lines and conditions, except lines marked `// COVERAGE-EXEMPT: <reason>` (`../scripts/safety_coverage.py`,
+  CR-2026-003).
 
 To reproduce:
 

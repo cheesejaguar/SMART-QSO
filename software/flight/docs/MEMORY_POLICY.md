@@ -48,11 +48,11 @@ Measured from the release image (2026-10-25, `arm-none-eabi-size`; CI job STM32L
 
 | Category | Used | Available | Margin |
 |----------|------|-----------|--------|
-| Code and constants (text) | 110,236 B | 2 MB flash | 95 % |
-| Initialized data (data) | 19,624 B | (in SRAM; initial values in flash) | — |
+| Code and constants (text) | 110,388 B | 2 MB flash | 95 % |
+| Initialized data (data) | 19,648 B | (in SRAM; initial values in flash) | — |
 | Zeroed data (bss) | 15,488 B | (in SRAM) | — |
-| Static RAM (data + bss) | 35,112 B | 640 KB | 95 % |
-| Stack | Worst case 4,892 B (static analysis, §6.2) | 8 KB budget below 0x200A0000 (SRS-C003) | 40 % |
+| Static RAM (data + bss) | 35,136 B | 640 KB | 95 % |
+| Stack | Worst case 4,900 B (static analysis, §6.2) | 8 KB budget below 0x200A0000 (SRS-C003) | 40 % |
 | Heap | None | — | — |
 
 ---
@@ -120,7 +120,7 @@ SRS-C003: the stack shall not exceed 8 KB.
 There is one stack (cortex-m-rt), from the initial SP 0x200A0000 downward. The executor runs one task, and the
 interrupt handlers use the same stack. The Embassy task's state (the async main function's locals held across an
 `await`, including the executive's state) is static, in `.bss`, not on the stack. The budget is the 8 KB below the
-initial SP, 0x2009E000 to 0x2009FFFF; the static data end at `_stack_end` (0x20008928 on 2026-10-25), about 600 KB
+initial SP, 0x2009E000 to 0x2009FFFF; the static data end at `_stack_end` (0x20008940 on 2026-10-25), about 600 KB
 lower.
 
 ### 6.2 Worst Case (static analysis)
@@ -135,7 +135,7 @@ analysis counts it.
 
 | Date | Worst case | Of 8 KB | Deepest path |
 |------|------------|---------|--------------|
-| 2026-10-25 | 4,892 B (thread 3,368 B, handlers 1,524 B) | 59.7 % | `Executive::step` → beacon → `fmt` → a panic in the fault path, nested once |
+| 2026-10-25 | 4,900 B (thread 3,376 B, handlers 1,524 B) | 59.8 % | `Executive::step` → beacon → `fmt` → a panic in the fault path, nested once |
 
 The first run gave 12,820 B. The code changed to bring it down: core's exact float formatting (a 2 KB frame) replaced
 by `sqso_fsw::fixed`; the fault path's console line built without `core::fmt`; large locals moved out of the async main
@@ -256,7 +256,7 @@ Revision A's example scrubbed with a raw pointer loop, which the Rust rules woul
 ### 11.3 Testing
 
 - 12 fuzz targets: every parser, and the fixed-point formatter (30 s each in CI).
-- Worst-case stack by static analysis of the image, in CI (§6.2): 4,892 B of 8 KB.
+- Worst-case stack by static analysis of the image, in CI (§6.2): 4,900 B of 8 KB.
 - Stack overflow (HIL-004), high-water mark (HIL-044) and memory stress tests on hardware: not done (no hardware has run the image).
 
 ---

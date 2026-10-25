@@ -179,7 +179,7 @@ separate Rust jobs were folded into them.
 
 | Job | Rust it runs |
 |-----|--------------|
-| Build and Test | ctest with the Rust library instrumented; `cargo test --workspace`; Rust line coverage ≥ 90 % (C suites and unit tests); flight-software line coverage, C and Rust together, ≥ 80 %; Rust branch coverage ≥ 75 % (a second instrumented build on a pinned nightly, the only toolchain that counts branches); `cargo check` with Rust 1.88 |
+| Build and Test | ctest with the Rust library instrumented; `cargo test --workspace`; Rust line coverage ≥ 90 % (C suites and unit tests); flight-software line coverage, C and Rust together, ≥ 80 %; Rust branch and condition coverage ≥ 80 % and each safety-critical file at 100 % of lines and conditions (a second instrumented build on a pinned nightly, the only toolchain that counts branches; `software/flight/scripts/safety_coverage.py`); `cargo check` with Rust 1.88 |
 | Static Analysis | rustfmt; clippy with `-D warnings` for the host and for `thumbv7em-none-eabihf`; a check that `sqso-protocol` and `sqso-fsw` keep `#![forbid(unsafe_code)]` and `sqso-py` has no `unsafe`. cppcheck, clang-tidy and the function-length ratchet run on the remaining C |
 | MISRA C:2012 Check | The cppcheck MISRA addon on the remaining C (the shim): 42 findings, baseline `software/flight/quality/misra.baseline` |
 | Security Scan | CodeQL for c-cpp and rust; `cargo audit` for both workspaces |
@@ -251,13 +251,15 @@ The full standard is the Rust section of `docs/development/CODING_STANDARDS.md`.
 
 Measured 2026-10-24.
 
-- **The C suites as the specification.** 46 ctest entries: 43 CMocka suites with 646 `cmocka_unit_test` cases
+- **The C suites as the specification.** 46 ctest entries: 43 CMocka suites with 671 `cmocka_unit_test` cases
   (`test_executive_jetson`, which runs the host simulation with a pseudo-terminal as the Jetson port, is two of the
   entries), the `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
   unchanged against the Rust on the host and under AddressSanitizer and UBSan.
-- **Coverage.** Rust line coverage is 92.2 %, from the C suites plus the 299 Rust unit tests (gate 90 %). Flight-software
-  line coverage, C and Rust together, is 92.2 % (gate 80 %).
-- **Stack.** The image's worst case is 4,892 B of the 8 KB budget (SRS-C003; `scripts/stack_usage.py`, 2026-10-25):
+- **Coverage.** Rust line coverage is 94.4 %, from the C suites plus the 328 Rust unit tests (gate 90 %). Flight-software
+  line coverage, C and Rust together, is 94.4 % (gate 80 %). Branch and condition coverage is 80.6 % (gate 80 %). The
+  21 safety-critical files (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) are at 100 % of lines and conditions,
+  gated file by file, with 12 reviewed `// COVERAGE-EXEMPT:` lines (CR-2026-003, in place of MC/DC).
+- **Stack.** The image's worst case is 4,900 B of the 8 KB budget (SRS-C003; `scripts/stack_usage.py`, 2026-10-25):
   3,368 B in thread mode plus one handler per priority level. Every frame the script reads from the image agrees with
   LLVM's own `.stack_sizes` (303 functions; the other 34, compiler-builtins and assembly, are read from the image only).
   The call graph has no cycle except the panic handler's single nesting. Not yet measured on hardware (HIL-044).

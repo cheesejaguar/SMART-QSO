@@ -265,8 +265,8 @@ change request CR-2026-001, `docs/project/CHANGE_REQUEST_LOG.md`).
 |----|--------|
 | SRS-C001 | Met. The flight code is Rust (2024 edition), written to `docs/development/CODING_STANDARDS.md` §11. The C is `software/flight/src/flight_log_fmt.c` (C11, the printf-style flight-log shim, not linked into the image) and the C test suites |
 | SRS-C002 | Met: no dynamic allocation at any time. Checked by the ctest `no_dynamic_memory` and by CI's check that the image links no `malloc`, `free` or `_sbrk` (`software/flight/docs/MEMORY_POLICY.md`) |
-| SRS-C003 | Met by analysis: worst case 4,892 B of 8,192 B (2026-10-25), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
-| SRS-C004 | Release image text 110,236 B (2026-10-25, CI job STM32L4 Cross-Compile (library)), below 256 KB. Checked at each release (`docs/development/RELEASE_PROCEDURE.md` §5.3); not a CI gate |
+| SRS-C003 | Met by analysis: worst case 4,900 B of 8,192 B (2026-10-25), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
+| SRS-C004 | Release image text 110,388 B (2026-10-25, CI job STM32L4 Cross-Compile (library)), below 256 KB. Checked at each release (`docs/development/RELEASE_PROCEDURE.md` §5.3); not a CI gate |
 
 ### 8.2 External Constraints
 

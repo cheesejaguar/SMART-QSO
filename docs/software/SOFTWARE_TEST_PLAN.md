@@ -102,13 +102,14 @@ Test) gates line coverage:
 
 | Gate | Measured with | Minimum | Measured 2026-10-24 |
 |------|---------------|---------|---------------------|
-| Rust flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`): C suites and Rust unit tests together | LLVM source-based coverage (`software/flight/scripts/rust_coverage.sh`) | 90 % of lines | 92.2 % |
-| Flight software, C (`software/flight/src`, gcovr) and Rust together | gcovr and llvm-cov | 80 % of lines | 92.2 % |
-| Rust flight crates, branches (since 2026-10-25) | LLVM source-based coverage with `-Zcoverage-options=branch`, on a pinned nightly (stable rustc does not count branches) | 75 % of branches | 76.3 % (2026-10-25) |
+| Rust flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`): C suites and Rust unit tests together | LLVM source-based coverage (`software/flight/scripts/rust_coverage.sh`) | 90 % of lines | 94.4 % |
+| Flight software, C (`software/flight/src`, gcovr) and Rust together | gcovr and llvm-cov | 80 % of lines | 94.4 % |
+| Rust flight crates, branches (since 2026-10-25) | LLVM source-based coverage with `-Zcoverage-options=condition`, on a pinned nightly (stable rustc does not count branches) | 80 % of branches and conditions | 80.6 % (2026-10-25) |
 
-The 75 % branch target above is now gated. lcov is no longer used: gcovr counts sources that no test runs, and lcov
-did not. The safety-critical components and their coverage against SWE-219 are in
-`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2.
+The branch target above is now gated (80 %). lcov is no longer used: gcovr counts sources that no test runs, and lcov
+did not. The safety-critical components (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) are gated per file at
+100 % of lines and 100 % of conditions (CR-2026-003, in place of the MC/DC of SWE-219) by
+`software/flight/scripts/safety_coverage.py`, over the C suites and the Rust unit tests together.
 
 ### 3.3 Test Environment
 

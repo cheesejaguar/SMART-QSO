@@ -33,7 +33,7 @@ must contain. The flight software is NPR 7150.2D Class C (`docs/software/SOFTWAR
 | Git SHA | The commit being described; no release commit exists |
 | Host build | `smart_qso_flight`, a host simulation executable (Linux/macOS; crate `sqso-sim`), using the simulated HAL `software/rust/sqso-ffi/src/hal_sim.rs` |
 | Target build | The Embassy firmware `software/rust/firmware` (ELF `sqso-firmware`), linked for the STM32L4R5ZI and built and checked in CI. It has not run on hardware. (Until 2026-10-24 this was a C static library with a register-level HAL; it was removed) |
-| Binary size / checksum | Release image (2026-10-25): text 110,236 B, data 19,624 B, bss 15,488 B. No checksum is recorded because nothing is released. CI prints the section sizes on each run |
+| Binary size / checksum | Release image (2026-10-25): text 110,388 B, data 19,648 B, bss 15,488 B. No checksum is recorded because nothing is released. CI prints the section sizes on each run |
 
 ### 2.2 Payload Software (Jetson)
 
@@ -131,8 +131,8 @@ Every figure below comes from a CI configuration or a file in the repository, or
 
 | Item | Value | Evidence |
 |------|-------|----------|
-| Unit tests | **42 CMocka suites, 631 test cases**, plus `no_dynamic_memory` and the `Simulation_Run` host simulation: 44 ctest entries, run unchanged against the Rust. In addition, 299 Rust unit tests | `software/flight/tests/CMakeLists.txt`; `software/flight/tests/README.md` |
-| Line coverage | Rust flight crates **92.2 %** (CI fails below 90 %); C and Rust together **92.2 %** (CI fails below 80 %). Branch and MC/DC coverage are not measured | `.github/workflows/ci.yml`, job "Build and Test" |
+| Unit tests | **43 CMocka suites, 671 test cases**, plus `no_dynamic_memory`, the `Simulation_Run` host simulation and the two `Executive_Jetson` runs of the main loop against a simulated Jetson: 46 ctest entries, run unchanged against the Rust. In addition, 328 Rust unit tests | `software/flight/tests/CMakeLists.txt`; `software/flight/tests/README.md` |
+| Line coverage | Rust flight crates **94.4 %** (CI fails below 90 %); C and Rust together **94.4 %** (CI fails below 80 %). Branch and condition coverage **80.6 %** (CI fails below 80 %); the safety-critical files 100 % of lines and conditions, gated per file (CR-2026-003, in place of MC/DC) | `.github/workflows/ci.yml`, job "Build and Test" |
 | Static analysis | clippy with warnings as errors (host and Cortex-M4F); clang-tidy **0**, MISRA addon **42**, functions over 60 lines **0** in the remaining C; CodeQL (Rust, C/C++); `cargo audit` (RUSTSEC-2026-0385 fixed by ctutils 0.4.5) | `software/flight/quality/`; jobs "Static Analysis", "MISRA C:2012 Check", "Security Scan" |
 | Fuzzing | 12 targets, 30 s each per CI run | Job "Sanitizer Checks" |
 | Equivalence with the former C | Simulation output identical (256 lines); differential tests on 8.3 million protocol inputs and on sensors, GNSS, safe strings, flight log and assertion handler | `software/rust/README.md`, section Evidence |
@@ -227,8 +227,8 @@ heap (`software/flight/docs/MEMORY_POLICY.md` §3).
 | RAM (static) | TBD | TBD | TBD |
 | RAM (stack) | TBD | TBD | TBD |
 
-Measured 2026-10-25 from the release image (the table is left open until allocations are set): text 110,236 B in flash;
-static RAM 35,112 B (data 19,624 B, bss 15,488 B). Worst-case stack 4,892 B of 8 KB by static analysis
+Measured 2026-10-25 from the release image (the table is left open until allocations are set): text 110,388 B in flash;
+static RAM 35,136 B (data 19,648 B, bss 15,488 B). Worst-case stack 4,900 B of 8 KB by static analysis
 (`software/flight/docs/MEMORY_POLICY.md` §6).
 
 ### 8.2 CPU Utilization

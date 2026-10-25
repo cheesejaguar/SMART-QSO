@@ -75,8 +75,8 @@ the current source, and `software/rust/README.md` maps every former C file to it
 | test_crc32 | test_crc32.c | 5 | CRC validation |
 
 The table above is the 0.2.0 skeleton (history; `test_main.c` was removed on 2026-10-16). On 2026-10-24 there are 42
-CMocka suites with 631 cases, and 44 ctest entries with `no_dynamic_memory` and `Simulation_Run`, in `software/flight/tests`. They run
-against the Rust. There are also 299 Rust unit tests (`sqso-protocol` 74, `sqso-fsw` 225) and 12 fuzz targets.
+CMocka suites with 671 cases, and 46 ctest entries with `no_dynamic_memory`, `Simulation_Run` and the two `Executive_Jetson` runs, in `software/flight/tests`. They run
+against the Rust. There are also 328 Rust unit tests (`sqso-protocol` 75, `sqso-fsw` 239, `sqso-ffi` 14) and 12 fuzz targets.
 
 ### 3.3 Configuration Files
 
@@ -221,9 +221,10 @@ updating to 0.4.5.
 | Branch | 70% | TBD |
 | Function | 100% | TBD |
 
-Measured 2026-10-24 (CI job Build and Test): line coverage of the Rust flight crates is 92.2 % (gate 90 %), and of the
-flight software C and Rust together 92.2 % (gate 80 %). Line coverage is not statement coverage. Branch and function
-coverage are not measured, so the table above is left as it was.
+Measured 2026-10-25 (CI job Build and Test): line coverage of the Rust flight crates is 94.4 % (gate 90 %), and of the
+flight software C and Rust together 94.4 % (gate 80 %). Line coverage is not statement coverage. Branch and condition
+coverage of the Rust crates is 80.6 % (gate 80 %), and each safety-critical file is at 100 % of lines and conditions
+(CR-2026-003). Function coverage is not gated, so the table above is left as it was.
 
 ## 7. Known Issues
 
@@ -239,7 +240,7 @@ coverage are not measured, so the table above is left as it was.
 |------------|--------|------------|
 | Simulation only | Not flight-ready | Hardware integration TBD |
 | No RTOS (FreeRTOS was never integrated and is not planned) | One Embassy task; interrupts only for the UARTs and the time driver | By design; the baseline since 2026-10-25 (BASELINE §6, CR-2026-002; `software/flight/docs/RTOS_ARCHITECTURE.md`) |
-| Firmware not run on hardware | Pin map provisional; timing and power not measured; stack bounded by analysis only (4,892 B of 8 KB) | Hardware bring-up (`software/rust/README.md`, Next steps) |
+| Firmware not run on hardware | Pin map provisional; timing and power not measured; stack bounded by analysis only (4,900 B of 8 KB) | Hardware bring-up (`software/rust/README.md`, Next steps) |
 | Beacon interval | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (BASELINE §8) | Operating constraint |
 | Beacon text | At most 176 characters (`docs/BEACON_SPEC.md`) | Operating constraint |
 | Hardware watchdog | 30 s timeout (`WDT_HW_TIMEOUT_MS`) | Operating constraint |
