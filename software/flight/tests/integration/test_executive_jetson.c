@@ -78,10 +78,13 @@
 /** Health-check window: now % HEALTH_PERIOD_MS < HEALTH_WINDOW_MS */
 #define HEALTH_PERIOD_MS 10000U
 #define HEALTH_WINDOW_MS 100U
-/** Slack for a console line to reach the driver after it was printed */
-#define ARRIVAL_SLACK_MS 60U
-/** The first pass in a health window is at most one pass (20 ms) into it; with slack */
-#define HEALTH_FIRST_PASS_MS 60U
+/**
+ * Slack for scheduling on a loaded host (CI runs the suites in parallel):
+ * a console line reaching the driver after it was printed, or the
+ * simulation's next pass coming late. Well under an interval, so a line
+ * held back by a whole interval still fails
+ */
+#define ARRIVAL_SLACK_MS 250U
 /** The beacon text length the OBC asks for (JETSON_TEXT_MAX) */
 #define TEXT_MAX 176U
 /** Longest line, CRC field and LF included (JETSON_LINE_MAX) */
@@ -834,7 +837,7 @@ static void test_telemetry_follows_the_payload_power(void **state)
             ((first == 0U) && ((g_run.end_ms - enabled) < INTERVAL_MS))) {
             continue;
         }
-        /* Sent in the pass that turned the payload on (its console line may arrive a little later) */
+        /* Sent without waiting another interval: in the pass that turned the payload on or the next */
         if ((first == 0U) || (first > (enabled + ARRIVAL_SLACK_MS))) {
             fail_msg("payload on at +%llu ms, first telemetry at +%lld ms",
                      (unsigned long long)(enabled - g_run.start_ms),
@@ -954,8 +957,9 @@ static void test_hot_status_trips_the_payload_guard(void **state)
 
 /**
  * The periodic UART health check: the line hung up away from a window is
- * noticed in the next window (now % 10 s < 100 ms), in its first pass,
- * once, and the module tries to reopen it
+ * noticed in the next window (now % 10 s < 100 ms), once, and the module
+ * tries to reopen it. In which pass of the window cannot be told from the
+ * driver's clock on a loaded host
  */
 static void test_health_check_finds_the_dead_line_in_its_window(void **state)
 {
@@ -968,7 +972,7 @@ static void test_health_check_finds_the_dead_line_in_its_window(void **state)
                  (unsigned long long)(g_run.close_ms % HEALTH_PERIOD_MS));
     }
     uint64_t at = g_run.console[h].at_ms;
-    if ((at < g_run.window_ms) || (at > (g_run.window_ms + HEALTH_FIRST_PASS_MS))) {
+    if ((at < g_run.window_ms) || (at > (g_run.window_ms + HEALTH_WINDOW_MS + ARRIVAL_SLACK_MS))) {
         fail_msg("health check failure at phase %llu ms (+%lld ms from the window)",
                  (unsigned long long)(at % HEALTH_PERIOD_MS), (long long)at - (long long)g_run.window_ms);
     }

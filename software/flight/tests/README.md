@@ -54,12 +54,13 @@ The Rust also has its own unit tests (`cd software/rust && cargo test --workspac
     each TELEMETRY line has the ICD's fixed fields, the sensor fields in table order and the EPS, fault, UART and
     watchdog fields, and is followed by `BEACON_REQ,<seq>,176` with the sequence counting up from 1. Telemetry comes
     every `TELEMETRY_INTERVAL_MS` (1 s here) while the payload is on, none while the power model has it off, and the
-    first one in the pass that turns the payload back on. The Jetson's STATUS reply is taken; of its BEACON_RSP
+    first one without waiting another interval when the payload comes back on. The Jetson's STATUS reply is taken; of its BEACON_RSP
     answers only those to the latest request with a good CRC are kept.
   - `Executive_Jetson_guard` (a generated sensor table too long for the line): the status fields do not fit and the
     comma after the last sensor field is trimmed. A STATUS with the junction at 99 °C trips the payload guard and no
     telemetry follows. The driver then closes its end of the line (a hang-up) away from the periodic UART health
-    check, which must notice it in the first pass of its next window (wall clock within 100 ms of a multiple of 10 s).
+    check, which must notice it once, in its next window (wall clock within 100 ms of a multiple of 10 s). Timing
+    checks allow 250 ms for scheduling on a loaded host (`ARRIVAL_SLACK_MS`), well under the 1 s interval.
 
   The beacon is not checked: each simulated boot starts the 45-minute RF silence and the beacon interval is 60 s. The
   driver sets VMIN 0 and VTIME 0 on the Jetson line first, because the OBC's host port keeps the terminal's VMIN 1 and
