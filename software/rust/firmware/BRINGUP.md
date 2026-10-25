@@ -105,7 +105,7 @@ unreadable input). `$ELF` and `$PKG` are those of §4.
 | # | Check | How | Pass | HIL |
 |---|-------|-----|------|-----|
 | 1 | Probe and part | `probe-rs list`; `probe-rs info --chip STM32L4R5ZITx` | The probe is listed; the part answers on SWD (ARMv7-M core) | — |
-| 2 | Boot to the console banner | Start the console capture, then power-cycle the board (or press B2) and time it | `[SYSTEM] SMART-QSO Flight Software Started`, then `[SYSTEM] Version: 0.2.0-dev` and the mission phase, power mode and SOC line, within 5 s of power-on | HIL-001 |
+| 2 | Boot to the console banner | Start the console capture, then power-cycle the board (or press B2) and time it | `[SYSTEM] SMART-QSO Flight Software Started`, then `[SYSTEM] Version: 0.2.0-dev` and the mission phase, power mode and SOC line, within 30 s of power-on (SRS-F001) | HIL-001 |
 | 3 | Watchdog running and kicked | `arm-none-eabi-nm -S -C "$ELF" \| grep sqso_firmware::wdt::`; then `probe-rs read --chip STM32L4R5ZITx b32 <TIMEOUT_MS> 1` and `probe-rs read --chip STM32L4R5ZITx b8 <RUNNING> 1`; `probe-rs read --chip STM32L4R5ZITx b32 <LAST_KICK_MS> 2` five times, about 0.5 s apart | TIMEOUT_MS = 0x7530 (30,000 ms, the operating timeout); RUNNING = 01; LAST_KICK_MS (milliseconds since boot, low word first) changes between every two reads | HIL-043 |
 | 4 | Loop timing | `tools/loop_timing.py --elf "$ELF" --samples 5 --interval 10` (after at least a minute of running) | Longest pass ≤ 20 ms, no overruns, `passes` grows between samples | HIL-040 |
 | 5 | Stack high-water mark | `tools/stack_high_water.py --stack-usage "$PKG"/stack_usage.txt --elf "$ELF" --save stack_dump.txt` | Used ≤ the static worst case of the image (4,900 B on 2026-10-25) and < 8,192 B | HIL-044 |
@@ -118,12 +118,11 @@ unreadable input). `$ELF` and `$PKG` are those of §4.
 
 Notes on the steps:
 
-- **Step 2.** Lines the flight software prints before `gse_init()` opens the debug UART are not output on the target
-  (`hal_uart_write` refuses a port not yet opened): the `[RF_SILENCE] state=…` line and any `GPIO/flash init failed`,
-  fault-management or deployment line come before it in `Executive::start` (`software/rust/sqso-ffi/src/executive.rs`).
-  On the NUCLEO, with no FRAM, the flash initialization fails and the boot continues. HIL-001's criterion names SAFE
-  mode; the mode manager goes from BOOT through DETUMBLE to IDLE at once (no ADCS yet), so record the mode the
-  console reports and raise the difference against the HIL plan.
+- **Step 2.** The console port is ready from bring-up (`src/uart.rs`, `install`), so the lines printed before
+  `gse_init()` (the `[RF_SILENCE] state=…` line, any `GPIO/flash init failed`, fault-management or deployment line)
+  are output too. On the NUCLEO, with no FRAM, the flash initialization fails and the boot continues. Per HIL-001 the
+  mode manager goes from BOOT through DETUMBLE to IDLE at once (no ADCS yet), or to SAFE on low SOC; record the mode
+  the console reports.
 - **Step 4.** `SQSO_LOOP_TIMING` (`src/timing.rs`) holds the last and longest `Executive::step()` pass in core cycles
   (80 MHz), the passes over 20 ms and the passes recorded, counted from boot (step 9 reads it again after the
   interface checks). The cycle counter stops while the core is halted.
@@ -197,4 +196,3 @@ For every session, in the test record (`HIL_TEST_PLAN.md` §4.3):
 - The NUCLEO details marked *(UM2179)*.
 - The ADC front-end scaling (`src/adc.rs`).
 - The current limits in §3.
-- HIL-001's SAFE-mode criterion against the current mode manager (step 2 note).

@@ -102,7 +102,7 @@ this plan. Three probe scripts exist for HIL-004, HIL-040 and HIL-044 (§4.4). C
 
 | ID | Test | Description | Pass Criteria |
 |----|------|-------------|---------------|
-| HIL-001 | Cold Start | Power-on initialization | System reaches SAFE mode within 5s |
+| HIL-001 | Cold Start | Power-on initialization | Initialization completes within 30 s (SRS-F001); the mode manager leaves BOOT for DETUMBLE then IDLE, or for SAFE if SOC is below the SAFE threshold (`software/rust/sqso-fsw/src/mode.rs`); the reset count increments (SRS-F004) and the boot reason is logged (SRS-F005) |
 | HIL-002 | Warm Start | Reset after fault | State restored from NVM |
 | HIL-003 | Watchdog Timeout | No SW activity | Hardware reset occurs |
 | HIL-004 | Stack Overflow | Halt with the probe, set SP to 0x2009E010 (16 bytes above the guard at 0x2009DFE0), resume (§4.4, `guard_test.py`) | MPU guard faults; IWDG resets the processor; the next boot reports a watchdog reset (`hal_reset_cause`) |
@@ -273,7 +273,7 @@ the reset cause the firmware recorded, not IWDGRSTF. Without a board, `--dump` (
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | §1.4: the target is the STM32L4R5ZI and the image is the Rust firmware (cargo, probe-rs); interfaces of the firmware; criteria to revisit (HIL-004, HIL-040, HIL-043); nothing run or written yet |
 | 1.2 | 2026-10-25 | SMART-QSO Team | HIL-040 pass criterion 20 ms, as SRS-P001 requires (was 100 ms); HIL-004 against the MPU stack guard; HIL-044 stack high-water mark added (SRS-C003) |
-| 1.3 | 2026-10-25 | SMART-QSO Team | §4.4 probe procedures for HIL-004, HIL-040 and HIL-044 (scripts in `software/rust/firmware/tools/`); HIL-040 measured per `Executive::step()` pass with the DWT cycle counter, ≤ 20 ms and no overrun; §1.4 points to the bring-up checklist (`software/rust/firmware/BRINGUP.md`) |
+| 1.3 | 2026-10-25 | SMART-QSO Team | §4.4 probe procedures for HIL-004, HIL-040 and HIL-044 (scripts in `software/rust/firmware/tools/`); HIL-040 measured per `Executive::step()` pass with the DWT cycle counter, ≤ 20 ms and no overrun; §1.4 points to the bring-up checklist (`software/rust/firmware/BRINGUP.md`). HIL-001 criterion matches the mode manager (BOOT to DETUMBLE to IDLE, or SAFE on low SOC) and SRS-F001's 30 s (was SAFE within 5 s) |
 
 ---
 
