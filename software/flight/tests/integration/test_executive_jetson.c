@@ -31,10 +31,9 @@
  * post-deployment RF silence (the simulated flash is RAM) and the beacon
  * interval is 60 s, so no beacon is sent in a run.
  *
- * The OBC's host port leaves VMIN and VTIME as it finds them and a fresh
- * terminal has VMIN 1, so its non-blocking poll of the line would block
- * until the Jetson sends a byte. The driver sets VMIN 0 and VTIME 0 on the
- * line first, as the target's port behaves (read what has arrived).
+ * The driver's own end of each terminal is raw with VMIN 0 and VTIME 0, so
+ * its reads return what has arrived; the OBC's host port sets the same on
+ * its end (uart_comm.rs, set_raw_8n1), as the target's port behaves.
  *
  * Usage: test_executive_jetson <smart_qso_flight> link|guard <sensors.yaml>
  *

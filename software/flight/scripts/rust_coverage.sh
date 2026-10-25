@@ -62,7 +62,10 @@ done
 
 # One C test binary carries the whole library (it is linked as one LTO
 # object); the unit-test binaries carry the crates' own test builds
-c_object=$(find "$build/tests" -maxdepth 1 -type f -name 'test_*' -perm -u+x | sort | head -1)
+# (test_rust_contract: every C suite but the integration drivers links it the
+# same way; named so a driver that links no Rust can never be picked)
+c_object="$build/tests/test_rust_contract"
+[ -x "$c_object" ] || { echo "::error::$c_object missing (configure with -DENABLE_COVERAGE=ON and build)"; exit 1; }
 objects=(-object "$c_object")
 # The host simulation (the executive and sqso-sim), run by ctest Simulation_Run
 [ -x "$build/smart_qso_flight" ] && objects+=(-object "$build/smart_qso_flight")
