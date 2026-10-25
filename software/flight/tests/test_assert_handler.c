@@ -331,6 +331,23 @@ static void test_fatal_triggers_reset_callback(void **state)
     assert_int_equal(count, 0);
 }
 
+/** A fatal failure with no reset callback registered still calls for the
+ *  reset (the hardware watchdog performs it) and counts it */
+static void test_fatal_without_reset_callback(void **state)
+{
+    (void)state;
+    AssertStats_t stats;
+
+    assert_init();   /* no callbacks */
+    AssertAction_t action = assert_handle_failure("dir/fatal.c", 10, ASSERT_TYPE_INVARIANT,
+                                                  ASSERT_SEVERITY_FATAL, "fatal, no callback");
+    assert_int_equal(action, ASSERT_ACTION_RESET);
+    assert_int_equal(assert_get_stats(&stats), SMART_QSO_OK);
+    assert_int_equal(stats.fatals, 1);
+    assert_int_equal(stats.reset_triggers, 1);
+    assert_true(assert_has_critical_failures());
+}
+
 static void test_log_wraps_oldest_first(void **state)
 {
     (void)state;
@@ -435,6 +452,7 @@ int main(void)
         /* Reset, log order, re-entry */
         cmocka_unit_test_setup_teardown(test_fatal_triggers_reset_callback,
                                         test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_fatal_without_reset_callback, test_setup, test_teardown),
         cmocka_unit_test_setup_teardown(test_log_wraps_oldest_first,
                                         test_setup, test_teardown),
         cmocka_unit_test_setup_teardown(test_callback_may_assert,

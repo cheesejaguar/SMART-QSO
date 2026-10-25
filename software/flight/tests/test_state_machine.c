@@ -19,6 +19,7 @@
 #include "state_machine.h"
 #include "eps_control.h"
 #include "payload_guard.h"
+#include "smart_qso.h"
 
 /*===========================================================================*/
 /* Test Fixtures                                                              */
@@ -398,6 +399,132 @@ static void test_sm_null_params(void **state)
     assert_int_equal(ret, SMART_QSO_ERROR_NULL_PTR);
 }
 
+/**
+ * @brief An event on an uninitialized context is refused and the result
+ *        left alone
+ */
+static void test_sm_process_event_uninitialized(void **state)
+{
+    (void)state;
+    SmResult_t result = SM_RESULT_GUARD_FAILED;
+
+    assert_int_equal(sm_process_event(&g_ctx, EVENT_BOOT_COMPLETE, &result), SMART_QSO_ERROR_INVALID);
+    assert_int_equal(result, SM_RESULT_GUARD_FAILED);
+    assert_false(g_ctx.is_initialized);
+}
+
+/**
+ * @brief A context whose state is not a state (corrupted memory) takes no
+ *        transition and is left as it is
+ */
+static void test_sm_corrupt_state_takes_no_transition(void **state)
+{
+    (void)state;
+    SmResult_t result = SM_RESULT_OK;
+    bool is_valid = true;
+
+    sm_init(&g_ctx, STATE_BOOT);
+    g_ctx.current_state = (SmState_t)99;
+
+    assert_int_equal(sm_process_event(&g_ctx, EVENT_BOOT_COMPLETE, &result), SMART_QSO_OK);
+    assert_int_equal(result, SM_RESULT_NO_TRANSITION);
+    assert_int_equal(g_ctx.current_state, 99);
+    assert_int_equal(g_ctx.transition_count, 0);
+
+    assert_int_equal(sm_is_transition_valid(&g_ctx, EVENT_BOOT_COMPLETE, &is_valid), SMART_QSO_OK);
+    assert_false(is_valid);
+}
+
+/**
+ * @brief The transition table can be had without its length
+ */
+static void test_sm_transitions_without_count(void **state)
+{
+    (void)state;
+    size_t count = 0U;
+
+    const SmTransition_t *table = sm_transitions(&count);
+    assert_true(count > 0U);
+    assert_ptr_equal(sm_transitions(NULL), table);
+}
+
+/**
+ * @brief Time in the current state; NULL arguments and an uninitialized
+ *        context are refused
+ */
+static void test_sm_get_state_duration(void **state)
+{
+    (void)state;
+    uint64_t duration = 7U;
+    SmContext_t uninit_ctx;
+
+    memset(&uninit_ctx, 0, sizeof(uninit_ctx));
+    assert_int_equal(sm_get_state_duration(NULL, &duration), SMART_QSO_ERROR_NULL_PTR);
+    assert_int_equal(sm_get_state_duration(&uninit_ctx, &duration), SMART_QSO_ERROR_INVALID);
+    assert_int_equal(duration, 7U);
+
+    sm_init(&g_ctx, STATE_IDLE);
+    smart_qso_sim_advance_ms(250U);
+    assert_int_equal(sm_get_state_duration(&g_ctx, &duration), SMART_QSO_OK);
+    assert_in_range(duration, 250U, 250U + 1000U);   /* the host clock runs too */
+}
+
+/**
+ * @brief Transition check: NULL arguments and an uninitialized context are
+ *        refused; an unknown event has no transition
+ */
+static void test_sm_is_transition_valid_args(void **state)
+{
+    (void)state;
+    bool is_valid = true;
+    SmContext_t uninit_ctx;
+
+    memset(&uninit_ctx, 0, sizeof(uninit_ctx));
+    assert_int_equal(sm_is_transition_valid(NULL, EVENT_BOOT_COMPLETE, &is_valid), SMART_QSO_ERROR_NULL_PTR);
+    assert_int_equal(sm_is_transition_valid(&uninit_ctx, EVENT_BOOT_COMPLETE, &is_valid),
+                     SMART_QSO_ERROR_INVALID);
+
+    sm_init(&g_ctx, STATE_BOOT);
+    assert_int_equal(sm_is_transition_valid(&g_ctx, EVENT_BOOT_COMPLETE, NULL), SMART_QSO_ERROR_NULL_PTR);
+    assert_true(is_valid);
+    assert_int_equal(sm_is_transition_valid(&g_ctx, (SmEvent_t)99, &is_valid), SMART_QSO_OK);
+    assert_false(is_valid);
+}
+
+/**
+ * @brief Forcing a state needs a context
+ */
+static void test_sm_force_state_null(void **state)
+{
+    (void)state;
+    assert_int_equal(sm_force_state(NULL, STATE_SAFE), SMART_QSO_ERROR_NULL_PTR);
+}
+
+/**
+ * @brief Statistics: NULL context and an uninitialized one are refused;
+ *        either output may be omitted
+ */
+static void test_sm_get_statistics_args(void **state)
+{
+    (void)state;
+    uint32_t count = 7U;
+    SmState_t prev = STATE_EMERGENCY;
+    SmContext_t uninit_ctx;
+
+    memset(&uninit_ctx, 0, sizeof(uninit_ctx));
+    assert_int_equal(sm_get_statistics(NULL, &count, &prev), SMART_QSO_ERROR_NULL_PTR);
+    assert_int_equal(sm_get_statistics(&uninit_ctx, &count, &prev), SMART_QSO_ERROR_INVALID);
+    assert_int_equal(count, 7U);
+
+    sm_init(&g_ctx, STATE_BOOT);
+    sm_process_event(&g_ctx, EVENT_BOOT_COMPLETE, NULL);
+    assert_int_equal(sm_get_statistics(&g_ctx, &count, NULL), SMART_QSO_OK);
+    assert_int_equal(count, 1U);
+    assert_int_equal(prev, STATE_EMERGENCY);
+    assert_int_equal(sm_get_statistics(&g_ctx, NULL, &prev), SMART_QSO_OK);
+    assert_int_equal(prev, STATE_BOOT);
+}
+
 /*===========================================================================*/
 /* Full Mission Sequence Test                                                 */
 /*===========================================================================*/
@@ -618,6 +745,13 @@ int main(void)
         /* Error handling tests */
         cmocka_unit_test_setup(test_sm_uninitialized, setup),
         cmocka_unit_test_setup(test_sm_null_params, setup),
+        cmocka_unit_test_setup(test_sm_process_event_uninitialized, setup),
+        cmocka_unit_test_setup(test_sm_corrupt_state_takes_no_transition, setup),
+        cmocka_unit_test_setup(test_sm_transitions_without_count, setup),
+        cmocka_unit_test_setup(test_sm_get_state_duration, setup),
+        cmocka_unit_test_setup(test_sm_is_transition_valid_args, setup),
+        cmocka_unit_test_setup(test_sm_force_state_null, setup),
+        cmocka_unit_test_setup(test_sm_get_statistics_args, setup),
 
         /* Integration test */
         cmocka_unit_test_setup(test_sm_mission_sequence, setup),

@@ -254,6 +254,21 @@ static void test_completion_keeps_tx_off_latch(void **state)
     assert_true(hal_gpio_get(GPIO_PIN_RADIO_EN));  /* receiver back on */
 }
 
+/** GSE ARM that cannot be persisted reports the I/O error and still
+ *  silences the radio now */
+static void test_arm_not_persisted_still_silences(void **state)
+{
+    (void)state;
+    advance_minutes(45U);
+    assert_radiating_allowed();
+    hal_sim_flash_fail_writes(true);
+
+    assert_int_equal(rf_silence_arm(), SMART_QSO_ERROR_IO);
+    assert_silent();
+    assert_int_equal(rf_silence_get_state(), RF_SILENCE_ARMED);
+    hal_sim_flash_fail_writes(false);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -267,6 +282,7 @@ int main(void)
         cmocka_unit_test_setup(test_corrupt_record_is_armed, setup),
         cmocka_unit_test_setup(test_tx_enable_cannot_shorten_silence, setup),
         cmocka_unit_test_setup(test_completion_keeps_tx_off_latch, setup),
+        cmocka_unit_test_setup(test_arm_not_persisted_still_silences, setup),
     };
 
     return cmocka_run_group_tests_name("RF Silence Tests", tests, NULL, NULL);
