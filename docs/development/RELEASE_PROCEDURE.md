@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-DEV-005
-**Revision:** C
-**Date:** 2026-10-24
+**Revision:** D
+**Date:** 2026-10-25
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -109,57 +109,51 @@ Example: `v1.0.0-abc1234-20260102-FLIGHT`
 
 ### 5.2 Release Build
 
-```bash
-# 1. Ensure clean working directory
-git status  # Should show clean
+The flight software is Rust (`software/rust/README.md`); the flight image is the Embassy firmware for the STM32L4R5ZI.
 
-# 2. Checkout release branch
+```bash
+# 1. Clean working tree, on the release branch
+git status                      # must show nothing to commit
 git checkout release/v1.0.0
 
-# 3. Update version in CMakeLists.txt
-# project(smart_qso_flight VERSION 1.0.0)
+# 2. Set the version, the same in all four places (no "-dev" for a release):
+#    SMART_QSO_VERSION_STRING  software/flight/include/smart_qso.h
+#    VERSION                   software/rust/sqso-ffi/src/executive.rs
+#    version                   software/rust/Cargo.toml and software/rust/firmware/Cargo.toml
 
-# 4. Build flight configuration
-cmake -B build -DFLIGHT_BUILD=ON
-cmake --build build
-
-# 5. Run all tests
+# 3. Run all tests (CI runs the same, plus coverage, clippy, fuzzing and the image checks)
+cmake -S software/flight -B build && cmake --build build
 ctest --test-dir build --output-on-failure
+(cd software/rust && cargo test --workspace --locked)
 
-# 6. Generate build artifacts
-cmake --build build --target package
-
-# 7. Record build information
-./scripts/record_build_info.sh > build_info.txt
+# 4. Build and package the image, with its build information
+scripts/release_package.sh dist
 ```
 
-**As built (Revision C, 2026-10-24).** The flight software is Rust (`software/rust/README.md`), and the steps above
-need these changes before the first release:
+`scripts/release_package.sh` refuses a dirty tree or versions that disagree or end in "-dev". It builds the image with
+the pinned toolchain (`software/rust/rust-toolchain.toml`) and the locked dependencies, and writes to `dist/`:
 
-- **Version.** The version is in three places that must agree: `SMART_QSO_VERSION_STRING` in
-  `software/flight/include/smart_qso.h`, `VERSION` in `software/rust/sqso-ffi/src/executive.rs` (both "0.2.0-dev"), and
-  `version` in `software/rust/Cargo.toml` and `software/rust/firmware/Cargo.toml` (0.2.0). `CMakeLists.txt` has no
-  project version.
-- **Flight image.** `-DFLIGHT_BUILD=ON` builds the host simulation's flight configuration, not the image. The image is
-  built with `cd software/rust/firmware && cargo build --release --locked` and is the ELF
-  `software/rust/firmware/target/thumbv7em-none-eabihf/release/sqso-firmware`. A `.bin` must be made from it, for
-  example with `arm-none-eabi-objcopy -O binary`. The build does not produce one.
-- **Tests.** `ctest` as in step 5, plus `cargo test --workspace --locked` in `software/rust`. CI runs both, the coverage
-  gates, clippy, fuzzing and the image checks (`software/rust/README.md`, section CI).
-- **Not yet available.** There is no `package` target (step 6) and no build-info script (step 7). The
-  build information to record includes the toolchain (`rustc --version`, pinned by
-  `software/rust/rust-toolchain.toml`) and the two `Cargo.lock` files.
+| File | Contents |
+|------|----------|
+| `sqso-firmware-<version>.elf` | The image with symbols, for the debugger and probe-rs |
+| `sqso-firmware-<version>.bin` | The flash contents from 0x08000000 |
+| `build_info.txt` | Commit, toolchain (`rustc -vV`, `cargo -V`), the two `Cargo.lock` hashes, section sizes, worst-case stack |
+| `stack_usage.txt` | The worst-case stack analysis (`scripts/stack_usage.py`, SRS-C003) |
+| `SHA256SUMS` | Checksums of the four files above |
+
+CI runs `scripts/release_package.sh --dev dist` on every change (job STM32L4 Cross-Compile), which allows a dirty tree
+and a "-dev" version and keeps the package as an artifact.
 
 ### 5.3 Release Verification
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 1 | Compile with FLIGHT_BUILD=ON | No errors/warnings | [ ] |
+| 1 | `scripts/release_package.sh dist` | Completes; no errors or warnings | [ ] |
 | 2 | Execute unit tests | 100% pass | [ ] |
 | 3 | Execute integration tests | 100% pass | [ ] |
 | 4 | Verify version string | Correct version | [ ] |
-| 5 | Verify build info | Correct commit hash | [ ] |
-| 6 | Binary size check | Within limits | [ ] |
+| 5 | Verify `build_info.txt` | Release commit, "release: yes", pinned toolchain | [ ] |
+| 6 | Size and stack check (`build_info.txt`) | Text ≤ 256 KB (SRS-C004); worst-case stack ≤ 8 KB (SRS-C003) | [ ] |
 | 7 | Load on target hardware | Boots correctly | [ ] |
 | 8 | Execute functional test | All pass | [ ] |
 
@@ -223,11 +217,11 @@ git push origin --delete release/v1.0.0
 
 | Artifact | Format | Storage |
 |----------|--------|---------|
-| Binary image | .bin/.hex | Git release, backup |
+| Binary image | .bin and .elf (`scripts/release_package.sh`) | Git release, backup |
 | Source archive | .tar.gz | Git release |
 | Documentation | PDF | Git release |
 | Test report | PDF | Git release |
-| Build info | .txt | Git release |
+| Build info | `build_info.txt`, `stack_usage.txt`, `SHA256SUMS` | Git release |
 
 ### 7.2 Storage Locations
 
@@ -241,10 +235,8 @@ git push origin --delete release/v1.0.0
 
 ```bash
 # Generate checksums
-sha256sum smart_qso_flight.bin > checksums.txt
-
-# Verify checksums
-sha256sum -c checksums.txt
+# scripts/release_package.sh writes SHA256SUMS; verify a copy with
+sha256sum -c SHA256SUMS
 ```
 
 ---
@@ -331,3 +323,4 @@ cmake --build build
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Document number changed from SQSO-DEV-004, which `COMMIT_MESSAGES.md` also carried, to SQSO-DEV-005 (finding PI-17). No content change | SMART-QSO Team |
 | C | 2026-10-24 | §5.2 note for the Rust flight software: where the version is set, how the image is built, the tests, and the steps not yet available (`package` target, build-info script) | SMART-QSO Team |
+| D | 2026-10-25 | §5.2 rewritten for the Rust flight software: the release build packages the image with `scripts/release_package.sh` (the `package` target and build-info script it called did not exist); §7 artifacts and checksums to match | SMART-QSO Team |

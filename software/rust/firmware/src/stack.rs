@@ -10,7 +10,9 @@
 //!   about 600 KB below;
 //! - the budget painted with [`PAINT`], so a debug probe can read how much
 //!   of it was ever used: the stack high-water check of the hardware tests
-//!   (`docs/verification/TEST_PROCEDURES.md`).
+//!   (HIL-044, `software/flight/tests/hil/HIL_TEST_PLAN.md`).
+//!
+//! @requirement SRS-C003 Stack size shall not exceed 8 KB
 
 use cortex_m::peripheral::MPU;
 

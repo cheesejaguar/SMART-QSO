@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-006
-**Revision:** B
-**Date:** 2026-10-24
+**Revision:** C
+**Date:** 2026-10-25
 **Reference:** JPL D-60411 (Power of Ten), NPR 7150.2
 
 ---
@@ -14,8 +14,8 @@ This document defines the memory allocation policy for SMART-QSO flight software
 
 **Revision B (2026-10-24).** The flight software is Rust (`software/rust/README.md`). This revision states the policy as
 the code implements it. Revision A also described triple modular redundancy, buffer pools, stack canaries, an MPU stack
-guard and SRAM scrubbing. None of these exists in the code. §6.2, §7 and §10 say so, and they keep those items as
-design intent only.
+guard and SRAM scrubbing. None of these existed in the code. §7 and §10 say so, and they keep those items as design
+intent only. Revision C (2026-10-25) adds the MPU stack guard, a painted stack budget and the static worst case (§6).
 
 ## 2. Scope
 
@@ -113,20 +113,47 @@ The sizes are the constants of the C headers, mirrored in Rust and checked by
 
 ## 6. Stack Management
 
+SRS-C003: the stack shall not exceed 8 KB.
+
 ### 6.1 Stack Allocation
 
 There is one stack (cortex-m-rt), from the initial SP 0x200A0000 downward. The executor runs one task, and the
-interrupt handlers use the same stack. Stack use has not been measured.
+interrupt handlers use the same stack. The Embassy task's state (the async main function's locals held across an
+`await`, including the executive's state) is static, in `.bss`, not on the stack. The budget is the 8 KB below the
+initial SP, 0x2009E000 to 0x2009FFFF; the static data end at `_stack_end` (0x20008928 on 2026-10-25), about 600 KB
+lower.
 
-### 6.2 Stack Protection
+### 6.2 Worst Case (static analysis)
 
-None is implemented. There is no stack canary and no MPU guard region, and a stack overflow would run into `.bss` and
-`.data` undetected. Measuring the stack and adding protection (for example a guard region below the stack, or placing the
-stack below the static data) is open work for hardware bring-up.
+`scripts/stack_usage.py` computes the worst case from the image's machine code, and CI fails above 8 KB (job STM32L4
+Cross-Compile (library), step Worst-case stack). It sums each function's frame along the deepest call path from the
+reset handler, and adds one interrupt handler per priority level with a 108-byte exception frame (FPU state). The frames
+are cross-checked against LLVM's own `.stack_sizes` for every function LLVM reports. Indirect calls (trait objects,
+`core::fmt`, the Embassy task and waker, C callbacks) are resolved by a reviewed table in the script; a new function
+pointer fails the check until it is reviewed. The panic handler may nest once (a panic while one is reported) and the
+analysis counts it.
 
-### 6.3 Stack Monitoring
+| Date | Worst case | Of 8 KB | Deepest path |
+|------|------------|---------|--------------|
+| 2026-10-25 | 4,892 B (thread 3,368 B, handlers 1,524 B) | 59.7 % | `Executive::step` → beacon → `fmt` → a panic in the fault path, nested once |
 
-None is implemented. There is no high-watermark check.
+The first run gave 12,820 B. The code changed to bring it down: core's exact float formatting (a 2 KB frame) replaced
+by `sqso_fsw::fixed`; the fault path's console line built without `core::fmt`; large locals moved out of the async main
+task and out of `sensors_poll`, `send_telemetry_to_jetson` and the beacon path; and the panic handler made to report
+only the first panic.
+
+### 6.3 Stack Protection
+
+At boot (`software/rust/firmware/src/stack.rs`) an MPU region with no access covers the 32 bytes below the budget
+(0x2009DFE0). A stack that outgrows 8 KB faults there: MemManage escalates to HardFault, whose handler spins until the
+independent watchdog resets the processor. Without it the stack would run on toward the static data.
+
+### 6.4 Stack Monitoring
+
+At boot the unused part of the budget is painted with 0x57ACC0DE. Nothing in the flight software reads it back; a debug
+probe does: the used depth is 8192 bytes minus 4 per word still painted from the bottom of the budget up. The hardware
+test HIL-044 (`software/flight/tests/hil/HIL_TEST_PLAN.md`) compares it with the static worst case. Not yet measured
+(no hardware has run the image).
 
 ---
 
@@ -229,7 +256,8 @@ Revision A's example scrubbed with a raw pointer loop, which the Rust rules woul
 ### 11.3 Testing
 
 - 11 fuzz targets on every parser (30 s each in CI).
-- Stack overflow and memory stress tests on hardware: not done (no hardware has run the image).
+- Worst-case stack by static analysis of the image, in CI (§6.2): 4,892 B of 8 KB.
+- Stack overflow (HIL-004), high-water mark (HIL-044) and memory stress tests on hardware: not done (no hardware has run the image).
 
 ---
 
@@ -239,3 +267,4 @@ Revision A's example scrubbed with a raw pointer loop, which the Rust rules woul
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-24 | The flight software is Rust. Policy as implemented: no allocation at any time; enforcement by the `no_dynamic_memory` ctest, the image check and the compiler. Memory map and measured image budget; static buffers; FRAM regions. TMR, buffer pools, stack canary and guard, and scrubbing marked not implemented (design intent only) | SMART-QSO Team |
+| C | 2026-10-25 | §6 for SRS-C003: the worst case by static analysis (4,892 B of 8 KB, a CI gate), the MPU stack guard and the painted budget, now implemented | SMART-QSO Team |

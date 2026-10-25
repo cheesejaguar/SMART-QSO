@@ -30,6 +30,10 @@ env:
   # The Rust alone (C suites and Rust unit tests together, LLVM source-based
   # coverage, the host simulation included): measured 90.8 % on 2026-10-24
   RUST_COVERAGE_MIN_LINE: 90
+  # Branch coverage of the Rust flight crates (76.3 % on 2026-10-25), on the
+  # pinned nightly below: stable rustc does not count branches
+  RUST_COVERAGE_MIN_BRANCH: 75
+  BRANCH_COVERAGE_TOOLCHAIN: nightly-2026-10-24
 
 jobs:
   ###########################################################################
@@ -120,6 +124,25 @@ jobs:
               print(f"::error::Line coverage {pct:.1f}% is below {floor:.0f}%")
               raise SystemExit(1)
           PY
+
+      # Branch coverage (the SDP's tailoring of MC/DC, SOFTWARE_DEVELOPMENT_PLAN
+      # §3.3): the same suites in a second build with -Zcoverage-options=branch,
+      # on a pinned nightly. Only the measurement uses nightly; the flight
+      # image and the tests above use the pinned stable toolchain.
+      - name: Branch coverage gate (pinned nightly)
+        working-directory: software/flight
+        env:
+          RUSTUP_TOOLCHAIN: ${{ env.BRANCH_COVERAGE_TOOLCHAIN }}
+          RUST_COVERAGE_FLAGS: -Zcoverage-options=branch
+          LLVM_PROFILE_FILE: ${{ github.workspace }}/software/flight/build-branch/profraw/%p-%m.profraw
+        run: |
+          rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal -c llvm-tools
+          cmake -B build-branch -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DENABLE_COVERAGE=ON \
+            -DSQSO_RUST_COVERAGE_FLAGS="$RUST_COVERAGE_FLAGS"
+          cmake --build build-branch --parallel $(nproc)
+          ctest --test-dir build-branch --output-on-failure --parallel $(nproc)
+          RUST_COVERAGE_MIN_BRANCH="$RUST_COVERAGE_MIN_BRANCH" \
+            scripts/rust_coverage.sh build-branch "$RUST_COVERAGE_MIN_LINE" rust-branch-coverage
 
       - name: Minimum supported Rust version (rust-version in Cargo.toml)
         working-directory: software/rust

@@ -1,8 +1,8 @@
 # Software Requirements Specification (SRS)
 
 **Document Number**: SMART-QSO-SRS-001
-**Version**: 1.3
-**Date**: 2026-10-24
+**Version**: 1.4
+**Date**: 2026-10-25
 **Status**: Preliminary
 
 **Governing Standards**:
@@ -251,21 +251,22 @@ Requirements are identified as:
 
 | ID | Constraint |
 |----|------------|
-| SRS-C001 | OBC code shall be written in C conforming to C11 standard |
+| SRS-C001 | OBC code shall be written in Rust (2024 edition) or in C conforming to the C11 standard |
 | SRS-C002 | No dynamic memory allocation after initialization |
 | SRS-C003 | Stack size shall not exceed 8 KB |
 | SRS-C004 | Total code size shall not exceed 256 KB |
 
-**Implementation status of the design constraints (note added 2026-10-24; requirement text unchanged).** Since
-2026-10-24 the OBC flight software is Rust (`software/rust/README.md`). On the OBC there is no RTOS: the image runs on
-the Embassy executor (`software/flight/docs/RTOS_ARCHITECTURE.md`).
+**Implementation status of the design constraints (2026-10-25).** Since 2026-10-24 the OBC flight software is Rust
+(`software/rust/README.md`). On the OBC there is no RTOS: the image runs on the Embassy executor
+(`software/flight/docs/RTOS_ARCHITECTURE.md`). SRS-C001 was amended on 2026-10-25 by PI decision (it required C11 only;
+change request CR-2026-001, `docs/project/CHANGE_REQUEST_LOG.md`).
 
 | ID | Status |
 |----|--------|
-| SRS-C001 | **Not met as written.** The OBC code is Rust. The only C left is `software/flight/src/flight_log_fmt.c` (C11, the printf-style flight-log shim, not linked into the image) and the C test suites. Amending SRS-C001 to name Rust and its coding standard (`docs/development/CODING_STANDARDS.md` §11), or recording a waiver, is a PI decision |
+| SRS-C001 | Met. The flight code is Rust (2024 edition), written to `docs/development/CODING_STANDARDS.md` §11. The C is `software/flight/src/flight_log_fmt.c` (C11, the printf-style flight-log shim, not linked into the image) and the C test suites |
 | SRS-C002 | Met: no dynamic allocation at any time. Checked by the ctest `no_dynamic_memory` and by CI's check that the image links no `malloc`, `free` or `_sbrk` (`software/flight/docs/MEMORY_POLICY.md`) |
-| SRS-C003 | Not verified: stack use has not been measured (`software/flight/docs/MEMORY_POLICY.md` §6) |
-| SRS-C004 | Release image text 120,884 B (2026-10-24, CI job STM32L4 Cross-Compile (library)), below 256 KB. Not yet a CI gate |
+| SRS-C003 | Met by analysis: worst case 4,892 B of 8,192 B (2026-10-25), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
+| SRS-C004 | Release image text 120,884 B (2026-10-24, CI job STM32L4 Cross-Compile (library)), below 256 KB. Checked at each release (`docs/development/RELEASE_PROCEDURE.md` §5.3); not a CI gate |
 
 ### 8.2 External Constraints
 
@@ -323,3 +324,4 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | 1.1 | 2026-10-16 | SMART-QSO Team | Appendix A TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SRS-001, TBD-SRS-002 and TBR-SRS-001 (finding VV-17). Proposed testable wording, for the PI to ratify, beneath SRS-F040; requirement text unchanged; tracked as TBR-SRS-002 (finding VV-16) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | SRS-F018 added as [Proposed] (mode-transition logging, cited by state_machine.h); §9.1 parents corrected to defined system requirements (SYS-304, SYS-210, SYS-321) (findings VV-06, VV-19) |
 | 1.3 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: implementation status of SRS-C001 to SRS-C004 beneath §8.1 (SRS-C001 not met as written; PI decision); §2.1 OBC runs on the Embassy executor, not FreeRTOS. No requirement text changed |
+| 1.4 | 2026-10-25 | SMART-QSO Team | SRS-C001 amended by PI decision to Rust (2024 edition) or C11 (was C11 only; CR-2026-001). Status beneath §8.1: SRS-C001 met; SRS-C003 met by analysis (static worst case 4,892 B, CI gate; hardware measurement pending) |

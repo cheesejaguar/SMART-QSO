@@ -1,8 +1,8 @@
 # SMART-QSO Known Issues Document
 
 **Document ID**: SQSO-KI-001
-**Version**: 1.1
-**Date**: 2026-01-02
+**Version**: 1.2
+**Date**: 2026-10-25
 **Classification**: Unclassified
 **Status**: CDR Baseline
 
@@ -72,10 +72,14 @@ GPIO, the time base, the independent watchdog and reset cause, the Jetson and de
 FRAM (`hal_flash_*`) and the telecommand receiver (KISS frames from the TNC UART, `hal_radio_*`). Its pin assignment is
 provisional until the OBC schematic baselines one (`software/rust/firmware/src/gpio.rs`).
 
-Not yet written, because the parts are not selected: the ADCS sensor and actuator drivers. On the target, as in the
-simulation, the ADCS reads its simulated field and sun vector:
+Not yet written, because the parts are not selected: the downlink transmitter driver, and the ADCS sensor and actuator
+drivers. `hal_radio.h` has a receive side only (the transceiver is not selected, SQSO-ICD-005): a beacon frame is
+built, counted (`total_bytes_tx`) and shown on the console, but nothing hands it to a transmitter
+(`software/rust/sqso-ffi/src/beacon.rs`, `beacon_transmit`). On the target, as in the simulation, the ADCS reads its
+simulated field and sun vector:
 
 **Affected Functions**:
+- `beacon_transmit()` - no downlink HAL call (transceiver not selected)
 - `adcs_read_magnetometer()` - I2C magnetometer read (part not selected)
 - `adcs_read_sun_sensors()` - sun sensor read (part not selected)
 - `adcs_apply_dipole()`, `adcs_disable_mtq()` - magnetorquer drive (no PWM driver yet)
@@ -173,7 +177,7 @@ Cannot update model without Jetson restart.
 Model updates require Jetson power cycle, which can be commanded from ground.
 
 **Acceptance Rationale**:
-Model updates are rare. Power cycle is acceptable for Class III mission.
+Model updates are rare. A power cycle is acceptable for a Class D payload (NPR 8705.4B, `docs/BASELINE_PARAMETERS.md` §1).
 
 **Closure Plan**:
 Accepted as-is.
@@ -280,4 +284,5 @@ The undersigned acknowledge and accept the known issues documented herein for fl
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR baseline |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Corrected from the code and the baseline. KI-001: the OBC is the STM32L4R5ZI, not the Apollo4; remaining stubs listed by function, without line numbers. KI-002: the fault log is saved and reloaded (`fault_mgmt.c`), but only to a host file; on the target it is not persistent until the FRAM driver exists; status Open (SRS-F041). KI-003: the interval is 60/120/180 s by mode (SYS-211), and SET_BEACON is accepted but has no effect; status Open. Summary tables updated |
+| 1.2 | 2026-10-25 | SMART-QSO Team | KI-001: the downlink transmitter driver is missing too (`hal_radio.h` has a receive side only; beacon frames are counted and shown on the console, not transmitted). KI-004: "Class III mission" corrected to the Class D payload risk class (finding PI-18) |
 | 1.1, note | 2026-10-24 | SMART-QSO Team | KI-003 affected files name the Rust files of the 2026-10-24 port; the issue is unchanged |

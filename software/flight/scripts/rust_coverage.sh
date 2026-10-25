@@ -4,6 +4,13 @@
 #
 # Usage: rust_coverage.sh <cmake build dir> <minimum line %> [report dir]
 #
+# Branch coverage: with RUST_COVERAGE_MIN_BRANCH set, the branch column
+# must reach it too. Branches are only counted in a build made with
+# -Zcoverage-options=branch on a nightly toolchain: configure with
+# RUSTUP_TOOLCHAIN=<nightly> and -DSQSO_RUST_COVERAGE_FLAGS=-Zcoverage-options=branch,
+# and run this script with the same RUSTUP_TOOLCHAIN and
+# RUST_COVERAGE_FLAGS=-Zcoverage-options=branch (the unit tests' flag).
+#
 # The build dir must be configured with -DENABLE_COVERAGE=ON (the Rust
 # library is then instrumented) and its tests run with
 #   LLVM_PROFILE_FILE=<build dir>/profraw/%p-%m.profraw ctest ...
@@ -37,7 +44,7 @@ rm -rf "$build/profraw-unit"
 mkdir -p "$build/profraw-unit"
 mapfile -t unit_tests < <(
     cd "$rust_dir" &&
-    RUSTFLAGS="-C instrument-coverage" cargo test --workspace --exclude sqso-py --locked --no-run \
+    RUSTFLAGS="-C instrument-coverage ${RUST_COVERAGE_FLAGS:-}" cargo test --workspace --exclude sqso-py --locked --no-run \
         --target-dir "$unit_dir" --message-format=json 2>/dev/null |
     python3 -c 'import json, sys
 for line in sys.stdin:
@@ -73,3 +80,12 @@ awk -v t="$total" -v m="$min" 'BEGIN { exit !(t + 0 >= m + 0) }' || {
     echo "::error::Rust line coverage ${total}% is below ${min}%"
     exit 1
 }
+if [ -n "${RUST_COVERAGE_MIN_BRANCH:-}" ]; then
+    branch=$(awk '/^TOTAL/ { print $NF }' "$report/report.txt" | tr -d '%')
+    [ "$branch" != "-" ] || { echo "::error::no branches counted (build with -Zcoverage-options=branch)"; exit 1; }
+    echo "Rust branch coverage: ${branch}% (minimum ${RUST_COVERAGE_MIN_BRANCH}%)"
+    awk -v t="$branch" -v m="$RUST_COVERAGE_MIN_BRANCH" 'BEGIN { exit !(t + 0 >= m + 0) }' || {
+        echo "::error::Rust branch coverage ${branch}% is below ${RUST_COVERAGE_MIN_BRANCH}%"
+        exit 1
+    }
+fi

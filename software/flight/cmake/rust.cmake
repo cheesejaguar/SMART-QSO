@@ -24,9 +24,12 @@ set(SQSO_RUST_LIB "${SQSO_CARGO_TARGET_DIR}/release/libsqso_flight.a")
 # (the toolchain's profiler_builtins) is added explicitly. Each test then
 # writes $LLVM_PROFILE_FILE; scripts/rust_coverage.sh merges and reports.
 set(SQSO_RUSTFLAGS "")
+# Extra rustc flags for the coverage build: branch coverage needs
+# -Zcoverage-options=branch and a nightly toolchain (RUSTUP_TOOLCHAIN)
+set(SQSO_RUST_COVERAGE_FLAGS "" CACHE STRING "Extra rustc flags for the Rust coverage build")
 add_library(sqso_rust_runtime INTERFACE)
 if(ENABLE_COVERAGE)
-    set(SQSO_RUSTFLAGS "RUSTFLAGS=-C instrument-coverage")
+    set(SQSO_RUSTFLAGS "RUSTFLAGS=-C instrument-coverage ${SQSO_RUST_COVERAGE_FLAGS}")
     find_program(RUSTC rustc HINTS "$ENV{CARGO_HOME}/bin" "$ENV{HOME}/.cargo/bin")
     # Run in the workspace so rust-toolchain.toml selects the pinned toolchain
     execute_process(COMMAND ${RUSTC} --print sysroot WORKING_DIRECTORY "${SQSO_RUST_DIR}"

@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-CDH-OBC-001
-**Version:** 1.3
-**Date:** 2026-10-24
+**Version:** 1.4
+**Date:** 2026-10-25
 **Status:** Draft
 **Supersedes:** `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), merged as Appendix A (finding PI-17)
 
@@ -415,7 +415,7 @@ baseline OBC.
 | ADC channels | 4: battery, solar, two temperatures (§8.5) | 7: six sun sensors and internal temperature (A.5.5) | Not set |
 | Active power | < 100 mW (§1.1); 50 mW budget (§6.3) | < 200 mW threshold (A.2.2, OBC-P006) | Housekeeping allocation 0.70 W orbit average (BASELINE §5) |
 | Boot time | < 10 s (§12.2) | < 30 s requirement (A.2.2); < 500 ms budget (A.8.3) | Not set |
-| RTOS | — | FreeRTOS 10.4.3 configuration (A.9.1) | FreeRTOS (BASELINE §6). As implemented (2026-10-24): no RTOS; the Rust flight software runs on the Embassy executor (BASELINE §6 note) |
+| RTOS | — | FreeRTOS 10.4.3 configuration (A.9.1) | No RTOS: the Rust flight software runs on the Embassy executor (BASELINE §6, Revision C, 2026-10-25; CR-2026-002) |
 
 ### A.2 OBC Requirements (former §2)
 
@@ -423,7 +423,7 @@ baseline OBC.
 
 | ID | Requirement | Verification |
 |----|-------------|--------------|
-| OBC-F001 | Execute flight software in FreeRTOS | Test |
+| OBC-F001 | Execute flight software on the Embassy executor (Rust; no RTOS) | Test |
 | OBC-F002 | Interface with EPS via I2C | Test |
 | OBC-F003 | Interface with Jetson via UART | Test |
 | OBC-F004 | Control subsystem power via GPIO | Test |
@@ -434,9 +434,9 @@ baseline OBC.
 | OBC-F009 | Generate beacon at configurable intervals | Test |
 | OBC-F010 | Detect and log faults | Test |
 
-Note (2026-10-24; requirement text unchanged): OBC-F001 is not met as written. The flight software runs on the Embassy
-executor, without FreeRTOS (`software/flight/docs/RTOS_ARCHITECTURE.md`). Amending the requirement is a PI decision, as
-is the BASELINE §6 row.
+Note (2026-10-25): OBC-F001 required FreeRTOS until the PI rebaselined the OBC to the Embassy executor (BASELINE §6,
+Revision C; change request CR-2026-002, `docs/project/CHANGE_REQUEST_LOG.md`). The flight software runs that way
+(`software/flight/docs/RTOS_ARCHITECTURE.md`); verification on hardware is pending (A.11.1).
 
 #### A.2.2 Performance Requirements
 
@@ -561,6 +561,9 @@ is the BASELINE §6 row.
 |  Data            |
 +------------------+  0x2000_0000
 ```
+
+*(Superseded 2026-10-25: there is no FreeRTOS kernel and no heap. The RAM holds the static data from 0x20000000 and one
+8 KB stack below 0x200A0000 with an MPU guard; `software/flight/docs/MEMORY_POLICY.md` §3.1 and §6.)*
 
 ### A.5 Peripheral Interfaces (former §4)
 
@@ -795,7 +798,8 @@ void main_loop(void) {
 ### A.9 Software Architecture (former §8)
 
 Note (2026-10-24): A.8 and A.9 are the superseded design merged from SMART-QSO-OBC-001. FreeRTOS was never integrated.
-The software as built is in §10.2 and `software/flight/docs/RTOS_ARCHITECTURE.md`.
+The software as built is in §10.2 and `software/flight/docs/RTOS_ARCHITECTURE.md`. *(2026-10-25: the baseline is the
+Embassy executor with no RTOS; BASELINE §6, CR-2026-002.)*
 
 #### A.9.1 FreeRTOS Configuration
 
@@ -964,3 +968,4 @@ OpenOCD / STM32CubeProgrammer
 | 1.1 | 2026-10-16 | Merged `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), a second OBC design for the same board, as Appendix A without reconciling it; A.1 lists where the two disagree and what the baseline says; §2.1 notes the baseline MCU; test IDs in A.11.2 aligned with the procedure files; status changed from "CDR Baseline" to Draft, as no CDR has been held (findings PI-17, VV-18) |
 | 1.2 | 2026-10-16 | §2.1, §2.2, §3.1, §3.2, §4.1 and §4.2: part data for the baseline STM32L4R5ZI (2 MB flash, 640 KB SRAM, up to 120 MHz; flight image at 80 MHz from MSI), replacing the superseded STM32L476RG / Apollo4 values; flash partition kept and marked as a bootloader plan; A.1 rows updated; A.2.4 vibration and A.3 / A.4.1 carry dated notes (BASELINE §6; findings PI-14, LA-05) |
 | 1.3 | 2026-10-24 | Software sections for the Rust flight software: the removed C linker script replaced by the firmware's link configuration (§2.1, §3.1); §10.1 HAL headers as they are and their Rust implementation; §10.2 boot sequence as built; A.1 RTOS row; note that OBC-F001 (FreeRTOS) is not met as written; A.9 marked superseded |
+| 1.4 | 2026-10-25 | OBC-F001 rebaselined by the PI to the Embassy executor (was FreeRTOS; BASELINE §6 Revision C, CR-2026-002); A.1 RTOS row; superseded note on the A.4 RAM map |

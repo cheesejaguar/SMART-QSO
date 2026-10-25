@@ -1,8 +1,8 @@
 # Hardware-in-the-Loop (HIL) Test Plan
 
 **Document ID**: SMART-QSO-HIL-001
-**Version**: 1.1
-**Date**: 2026-10-24
+**Version**: 1.2
+**Date**: 2026-10-25
 **Classification**: Engineering
 
 ## 1. Introduction
@@ -40,10 +40,12 @@ this plan. Changes since version 1.0:
   Rust HAL (`software/rust/README.md`, section The firmware).
 - **Interfaces.** The console is the debug UART (USART3, PD8/PD9). The Jetson link is USART1 (PA9/PA10). Telecommands
   arrive as KISS frames from the TNC on USART2 (PD5/PD6, 9600 baud), so HIL-031 needs a KISS sender.
-- **Criteria to revisit before the campaign.** HIL-004 assumes a stack guard, but none is implemented
-  (`software/flight/docs/MEMORY_POLICY.md` §6.2). HIL-040 allows 100 ms per iteration, but SRS-P001 requires 20 ms.
-  HIL-043 expects a kick at least every 1 s; the firmware refreshes the IWDG on every pass while no stage is stalled
-  (`software/flight/docs/RTOS_ARCHITECTURE.md` §8).
+- **Stack (SRS-C003).** The firmware arms an MPU guard just below the 8 KB stack budget and paints the budget at boot
+  (`software/rust/firmware/src/stack.rs`, `software/flight/docs/MEMORY_POLICY.md` §6). HIL-004 overruns the budget;
+  HIL-044 reads the high-water mark through the probe and compares it with the static worst case
+  (`scripts/stack_usage.py`).
+- **Watchdog.** HIL-043 expects a kick at least every 1 s; the firmware refreshes the IWDG on every 20 ms pass while no
+  stage is stalled (`software/flight/docs/RTOS_ARCHITECTURE.md` §8), and a stalled stage stops the kicks on purpose.
 
 ## 2. HIL Test Architecture
 
@@ -99,7 +101,7 @@ this plan. Changes since version 1.0:
 | HIL-001 | Cold Start | Power-on initialization | System reaches SAFE mode within 5s |
 | HIL-002 | Warm Start | Reset after fault | State restored from NVM |
 | HIL-003 | Watchdog Timeout | No SW activity | Hardware reset occurs |
-| HIL-004 | Stack Overflow | Stack guard violation | Fault logged, safe mode entered |
+| HIL-004 | Stack Overflow | Halt with the probe, set SP to 0x2009E010 (16 bytes above the guard at 0x2009DFE0), resume | MPU guard faults; IWDG resets the processor; the next boot reports a watchdog reset (`hal_reset_cause`) |
 
 ### 3.2 EPS Interface Tests
 
@@ -132,10 +134,11 @@ this plan. Changes since version 1.0:
 
 | ID | Test | Description | Pass Criteria |
 |----|------|-------------|---------------|
-| HIL-040 | Main Loop Timing | Loop iteration time | < 100ms per iteration |
+| HIL-040 | Main Loop Timing | Loop iteration time | < 20 ms per iteration (SRS-P001) |
 | HIL-041 | Beacon Interval | Periodic beacon | Within ±1s of target |
 | HIL-042 | Telemetry Rate | Telemetry generation | 1Hz ± 10% |
 | HIL-043 | Watchdog Kick | WDT service interval | < 1s between kicks |
+| HIL-044 | Stack High Water | Run every timing and fault-injection test, then read the painted budget (0x2009E000-0x2009FFFF) with the probe; used bytes = 8192 - 4 x (leading words still 0x57ACC0DE) | Used ≤ the worst case in `stack_usage.txt` of the image under test, and ≤ 8 KB (SRS-C003) |
 
 ### 3.6 Fault Injection Tests
 
@@ -204,7 +207,7 @@ python hil_executive.py --port /dev/ttyUSB0 --test HIL-001
 |-------|-------|----------|
 | Setup Verification | HIL-001 to HIL-004 | 1 day |
 | Interface Tests | HIL-010 to HIL-033 | 2 days |
-| Timing Tests | HIL-040 to HIL-043 | 1 day |
+| Timing Tests | HIL-040 to HIL-044 | 1 day |
 | Fault Injection | HIL-050 to HIL-053 | 2 days |
 | Regression | All tests | 1 day |
 
@@ -245,6 +248,7 @@ python hil_executive.py --port /dev/ttyUSB0 --test HIL-001
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | §1.4: the target is the STM32L4R5ZI and the image is the Rust firmware (cargo, probe-rs); interfaces of the firmware; criteria to revisit (HIL-004, HIL-040, HIL-043); nothing run or written yet |
+| 1.2 | 2026-10-25 | SMART-QSO Team | HIL-040 pass criterion 20 ms, as SRS-P001 requires (was 100 ms); HIL-004 against the MPU stack guard; HIL-044 stack high-water mark added (SRS-C003) |
 
 ---
 

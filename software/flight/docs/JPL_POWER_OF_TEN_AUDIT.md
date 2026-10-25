@@ -1,8 +1,8 @@
 # JPL Power of Ten Rules Compliance Audit
 
 **Document ID**: SMART-QSO-JPL-POT-001
-**Version**: 1.1
-**Date**: 2026-10-24
+**Version**: 1.2
+**Date**: 2026-10-25
 **Classification**: Engineering
 
 ## 1. Introduction
@@ -32,7 +32,7 @@ C code of 2026-10-15 as history. Sections 3 onward are the original text of revi
 
 | Rule | Rust (`software/rust`) | Enforced by | Remaining C (`flight_log_fmt.c`) | Enforced by |
 |------|------------------------|-------------|----------------------------------|-------------|
-| 1. Simple control flow | Rust has no `goto`, `setjmp` or `longjmp`. No crate is meant to recurse, but no tool checks for recursion: rustc's `unconditional_recursion` lint catches only a function that always calls itself. Indirect recursion through registered C callbacks is possible by design. A flight-log callback may log, and the fault log or a callback may assert while an assertion is being handled (`software/rust/README.md`, behaviour change 15). In the flight configuration the executive registers only the watchdog pre-reset callback, which saves mission data and the EPS state | compiler (no `goto`); review (recursion) | Two functions, no `goto`, no recursion (`log_write` calls `log_vwrite`) | review |
+| 1. Simple control flow | Rust has no `goto`, `setjmp` or `longjmp`. Recursion is checked on the flight image: `scripts/stack_usage.py` builds the image's call graph (direct and tail calls, and indirect calls resolved by a reviewed table) and fails on any cycle. On 2026-10-25 the only cycle is the panic handler entered once more by a panic while it reports one; the firmware guards it (`PANICKING`, `software/rust/firmware/src/main.rs`) and the analysis bounds it at one nesting. The recursion that registered C callbacks allow by design (`software/rust/README.md`, behaviour change 15) is not in the image: the flight configuration registers only the watchdog pre-reset callback, which saves mission data and the EPS state | compiler (no `goto`); CI on the image (call-graph cycle check, STM32L4 Cross-Compile) | Two functions, no `goto`, no recursion (`log_write` calls `log_vwrite`) | review |
 | 2. Fixed loop bounds | `for` loops run over fixed-size arrays, slices and constant ranges, and `while` loops over an index or a shrinking slice pattern. The other `loop`s end on a count, a deadline or the end of input. The exceptions are the main loops, which run until stopped, and the waits for the watchdog reset (panic handlers, `wdt_mgr_force_reset`). Inventory: `software/flight/docs/LOOP_BOUNDS.md` | review; fuzzing exercises the parser loops on arbitrary input | No loops | review |
 | 3. No dynamic memory | No crate uses `alloc`: the crates are `no_std` with no allocator, and the firmware links no heap and no C library | CI: ctest `no_dynamic_memory` (library); image check for `malloc`, `free`, `_sbrk`, `printf` (job STM32L4 Cross-Compile (library)) | No allocation (`vsnprintf` into a stack buffer) | CI: ctest `no_dynamic_memory` |
 | 4. Function length ≤ 60 lines | `clippy::too_many_lines`, denied, threshold 60 (`software/rust/clippy.toml`). Two documented exceptions, each one exhaustive `match`: `dispatch` (`sqso-ffi/src/cmd_handler.rs`) and `transition` (`sqso-fsw/src/mode.rs`) | lint | `software/flight/scripts/function_length.py`; count held at 0 | CI (ratchet `function-length.baseline` = 0) |
@@ -483,6 +483,7 @@ No deviations from JPL Power of Ten rules are present in the codebase.
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial audit |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust. §1.1 and §2.1 map each rule to the Rust and the remaining C (the flight-log shim), with the enforcement of each (compiler, lint, CI or review). The 2026-10-15 measured C status is kept as §2.2 (history); §3 onward unchanged |
+| 1.2 | 2026-10-25 | SMART-QSO Team | §2.1 rule 1: recursion now checked by a tool, the call-graph cycle check of the stack analysis on the flight image; the one bounded nesting (the panic handler) |
 
 ---
 

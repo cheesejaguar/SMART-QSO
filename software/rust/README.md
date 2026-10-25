@@ -171,12 +171,12 @@ separate Rust jobs were folded into them.
 
 | Job | Rust it runs |
 |-----|--------------|
-| Build and Test | ctest with the Rust library instrumented; `cargo test --workspace`; Rust line coverage ≥ 90 % (C suites and unit tests); flight-software line coverage, C and Rust together, ≥ 80 %; `cargo check` with Rust 1.88 |
+| Build and Test | ctest with the Rust library instrumented; `cargo test --workspace`; Rust line coverage ≥ 90 % (C suites and unit tests); flight-software line coverage, C and Rust together, ≥ 80 %; Rust branch coverage ≥ 75 % (a second instrumented build on a pinned nightly, the only toolchain that counts branches); `cargo check` with Rust 1.88 |
 | Static Analysis | rustfmt; clippy with `-D warnings` for the host and for `thumbv7em-none-eabihf`; a check that `sqso-protocol` and `sqso-fsw` keep `#![forbid(unsafe_code)]` and `sqso-py` has no `unsafe`. cppcheck, clang-tidy and the function-length ratchet run on the remaining C |
 | MISRA C:2012 Check | The cppcheck MISRA addon on the remaining C (the shim): 42 findings, baseline `software/flight/quality/misra.baseline` |
 | Security Scan | CodeQL for c-cpp and rust; `cargo audit` for both workspaces |
 | Sanitizer Checks | The C suites against the Rust under ASan/UBSan; 30 s of every fuzz target; the simulation run to completion |
-| STM32L4 Cross-Compile (library) | `sqso-ffi` and `sqso-clib` for `thumbv7em-none-eabihf`; firmware rustfmt, clippy and release build; checks of the linked image (entry point, vector table, initial SP, flight symbols present, no `malloc`/`free`/`_sbrk`/`printf`) |
+| STM32L4 Cross-Compile (library) | `sqso-ffi` and `sqso-clib` for `thumbv7em-none-eabihf`; firmware rustfmt, clippy and release build; checks of the linked image (entry point, vector table, initial SP, flight symbols present, no `malloc`/`free`/`_sbrk`/`printf`); the worst-case stack ≤ 8 KB (`scripts/stack_usage.py`, frames cross-checked against LLVM's); the release package as a development build (`scripts/release_package.sh --dev`) |
 | Flight Configuration Build, Flight Build Validation | The `FLIGHT_BUILD` configuration (simulation with feature `flight`) |
 | Unit Tests | ctest in a Debug build with a coverage report (the gate is in Build and Test) |
 | Documentation Check | The required software documents exist |
@@ -210,7 +210,15 @@ The full standard is the Rust section of `docs/development/CODING_STANDARDS.md`.
 - **Checks stay on in flight builds (SW-08).** The release profile keeps `overflow-checks = true`, with
   `panic = "abort"` and debug assertions off. A panic is a fatal assertion. `report_panic` in `sqso-ffi/src/lib.rs`
   reports it to the assertion handler. Then the host aborts, so the failing test fails. The firmware waits for the IWDG
-  to reset it, or resets itself if the IWDG was never started.
+  to reset it, or resets itself if the IWDG was never started. The firmware reports only the first panic: a panic while
+  one is reported goes straight to the reset.
+- **Stack within 8 KB (SRS-C003).** `scripts/stack_usage.py` (CI) computes the image's worst case from its machine code
+  and fails above 8 KB, on a call-graph cycle, and on any new function pointer until its targets are reviewed (the
+  tables `INDIRECT` and `CLASSES` in the script). A large buffer in a function that calls deep paths counts in full:
+  keep big locals in a function of their own (`#[inline(never)]`) or in a static. Floats are formatted with
+  `sqso_fsw::fixed`, not `{:.N}` (core's exact float formatting takes 2 KB of stack). The fault path builds its lines
+  without `core::fmt` (`c::Line`). At boot the firmware paints the 8 KB and arms an MPU guard below it
+  (`firmware/src/stack.rs`).
 - **`unsafe` only in `sqso-ffi` and the firmware.** `sqso-protocol` and `sqso-fsw` declare `#![forbid(unsafe_code)]`.
   In `sqso-ffi`, `unsafe` turns C pointers into references after a NULL check (`ptr.rs`), calls C and HAL functions, and
   holds each module's state in `cell::Global`. In the firmware it is register access, the exported HAL functions,
@@ -240,6 +248,10 @@ Measured 2026-10-24.
   unchanged against the Rust on the host and under AddressSanitizer and UBSan.
 - **Coverage.** Rust line coverage is 92.2 %, from the C suites plus the 292 Rust unit tests (gate 90 %). Flight-software
   line coverage, C and Rust together, is 92.2 % (gate 80 %).
+- **Stack.** The image's worst case is 4,892 B of the 8 KB budget (SRS-C003; `scripts/stack_usage.py`, 2026-10-25):
+  3,368 B in thread mode plus one handler per priority level. Every frame the script reads from the image agrees with
+  LLVM's own `.stack_sizes` (303 functions; the other 34, compiler-builtins and assembly, are read from the image only).
+  The call graph has no cycle except the panic handler's single nesting. Not yet measured on hardware (HIL-044).
 - **Same simulation output.** The host simulation prints the same 256 lines as the C build, apart from timestamps and
   the order of one sensor read.
 - **Differential tests against the former C.** One-off harnesses, not kept in the tree, linked the C files each port
@@ -320,8 +332,10 @@ The Rust keeps the C behaviour, apart from the following deliberate changes:
 Still open:
 
 - **Hardware bring-up.** Run the firmware on an STM32L4R5ZI board (the `probe-rs` runner is configured in
-  `firmware/.cargo/config.toml`). Measure the loop timing, the stack use and the power, and check every HAL driver
-  against the part (TP-FLATSAT-001).
+  `firmware/.cargo/config.toml`). Measure the loop timing, the stack high-water mark (HIL-044, against the static
+  worst case) and the power, and check every HAL driver against the part (TP-FLATSAT-001).
+- **Downlink driver.** No HAL sends a beacon frame to a transmitter yet: `hal_radio.h` has a receive side only. The
+  transceiver selection (SQSO-ICD-005) decides the driver (`docs/reviews/KNOWN_ISSUES.md` KI-001).
 - **ADCS drivers and real sensor readings.** The magnetometer, sun sensor and magnetorquer drivers, and ADC-based
   sensor-table readings with the real front-end scaling, wait for parts and the EPS sense circuits
   (`docs/reviews/KNOWN_ISSUES.md` KI-001).

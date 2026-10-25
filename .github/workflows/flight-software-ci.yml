@@ -290,6 +290,17 @@ jobs:
           --llvm-elf target/stack-sizes/thumbv7em-none-eabihf/release/sqso-firmware \
           --firmware-src src --report stack-usage.txt
 
+    # The release package (docs/development/RELEASE_PROCEDURE.md §5.2) as a
+    # development build, so the script stays working between releases
+    - name: Release package (development build)
+      run: scripts/release_package.sh --dev dist
+
+    - name: Upload the development package
+      uses: actions/upload-artifact@v4
+      with:
+        name: sqso-firmware-dev
+        path: dist
+
   documentation:
     name: Documentation Check
     runs-on: ubuntu-24.04   # pinned

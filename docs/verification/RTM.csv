@@ -223,9 +223,9 @@ SRS-S002,docs/software/SOFTWARE_REQUIREMENTS.md,,T,The software shall disable al
 SRS-S003,docs/software/SOFTWARE_REQUIREMENTS.md,,T,The software shall implement hardware watchdog,software/flight/include/hal/hal_wdt.h; software/flight/include/watchdog_mgr.h,,docs/test_procedures/TP-OBC-001_Functional_Test.md
 SRS-S004,docs/software/SOFTWARE_REQUIREMENTS.md,,T,The software shall validate all commands before execution,software/flight/include/cmd_handler.h,software/flight/tests/test_adcs.c; software/flight/tests/test_input_validation.c,docs/test_procedures/TP-OBC-001_Functional_Test.md
 SRS-S005,docs/software/SOFTWARE_REQUIREMENTS.md,,T,The software shall limit power consumption to prevent thermal damage,,software/flight/tests/integration/test_fault_scenarios.c; software/flight/tests/test_fault_mgmt.c,
-SRS-C001,docs/software/SOFTWARE_REQUIREMENTS.md,,,OBC code shall be written in C conforming to C11 standard,,,
+SRS-C001,docs/software/SOFTWARE_REQUIREMENTS.md,,,OBC code shall be written in Rust (2024 edition) or in C conforming to the C11 standard,,,
 SRS-C002,docs/software/SOFTWARE_REQUIREMENTS.md,,,No dynamic memory allocation after initialization,,,
-SRS-C003,docs/software/SOFTWARE_REQUIREMENTS.md,,,Stack size shall not exceed 8 KB,,,
+SRS-C003,docs/software/SOFTWARE_REQUIREMENTS.md,,,Stack size shall not exceed 8 KB,software/rust/firmware/src/stack.rs; software/rust/sqso-fsw/src/fixed.rs,,
 SRS-C004,docs/software/SOFTWARE_REQUIREMENTS.md,,,Total code size shall not exceed 256 KB,,,
 SRS-C010,docs/software/SOFTWARE_REQUIREMENTS.md,,,Beacon transmissions shall comply with amateur radio regulations,,,
 SRS-C011,docs/software/SOFTWARE_REQUIREMENTS.md,,,RF transmissions shall not occur until deployment timer expires,,,
