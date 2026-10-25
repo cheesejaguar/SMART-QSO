@@ -213,8 +213,8 @@ static void test_runs_and_shuts_down_cleanly(void **state)
 static void test_nothing_reaches_the_tnc(void **state)
 {
     (void)state;
-    const char *texts[1];
-    size_t lens[1];
+    const char *texts[1] = {NULL};
+    size_t lens[1] = {0U};
     assert_non_null(strstr(g_run.console, "[RF_SILENCE] state=COUNTING"));
     assert_int_equal(g_run.stream_len, 0U);
     assert_int_equal(beacon_lines(texts, 1U, lens), 0U);
@@ -277,8 +277,8 @@ static void test_frames_are_ui_beacons(void **state)
 static void test_frames_are_the_console_beacons(void **state)
 {
     (void)state;
-    const char *texts[MAX_KISS];
-    size_t lens[MAX_KISS];
+    const char *texts[MAX_KISS] = {NULL};
+    size_t lens[MAX_KISS] = {0U};
     size_t lines = beacon_lines(texts, MAX_KISS, lens);
     size_t b = 0U;
     for (size_t i = 0U; i < g_run.n_kiss; i++) {
@@ -300,9 +300,10 @@ static void test_frames_are_the_console_beacons(void **state)
 static void test_beacon_carries_measurements(void **state)
 {
     (void)state;
-    const char *texts[1];
-    size_t lens[1];
+    const char *texts[1] = {NULL};
+    size_t lens[1] = {0U};
     assert_true(beacon_lines(texts, 1U, lens) >= 1U);
+    assert_non_null(texts[0]);
     char text[512];
     size_t n = (lens[0] < (sizeof(text) - 1U)) ? lens[0] : (sizeof(text) - 1U);
     memcpy(text, texts[0], n);
