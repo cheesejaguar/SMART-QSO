@@ -1,0 +1,49 @@
+# SQSO-HW-DIAG-001 W9: GNSS receiver (decision D6: pNAV-NG/FM). Neither the firmware nor any ICD gives it a
+# UART, an enable or a 1PPS input (finding F2). Proposed here: UART4 on PC10 TX / PC11 RX (the SPI3 pins, which
+# nothing uses), 1PPS to a timer input (pin TBD), 3V3 from SW7 on the EPS switched by GNSS_EN PE4.
+# The receiver's own connector and pin order are TBD (vendor ICD).
+metadata:
+  title: W9 GNSS receiver (SQSO-HW-DIAG-001, proposed, TBR)
+
+options:
+  fontname: Helvetica
+  bgcolor: WH
+  color_mode: SHORT
+
+connectors:
+  J_OBC_GNSS:
+    type: Molex Pico-Clasp header
+    subtype: 4 pos
+    notes: "OBC board: PC10, PC11, timer input (TBD)"
+    pinlabels: [UART4_TX, UART4_RX, PPS_IN, GND]
+  J_EPS_GNSS:
+    type: Molex Pico-Clasp header
+    subtype: 2 pos
+    notes: "EPS board: SW7 GNSS 3V3, latch-up trip"
+    pinlabels: [3V3_GNSS, GND]
+  J_GNSS:
+    type: pNAV-NG/FM interface (TBD, vendor ICD)
+    subtype: 6 pos
+    notes: receiver side
+    pinlabels: [RXD, TXD, 1PPS, GND, VIN 3V3, GND]
+
+cables:
+  W9A:
+    category: bundle
+    gauge: 28 AWG
+    length: 0.08
+    colors: [GN, YE, WH, BK]
+    notes: "Back-power: the OBC's TX must not drive an unpowered receiver (series 1 kOhm or buffer, TBR)"
+  W9B:
+    category: bundle
+    gauge: 26 AWG
+    length: 0.08
+    colors: [RD, BK]
+
+connections:
+  - - J_OBC_GNSS: [1-4]
+    - W9A: [1-4]
+    - J_GNSS: [1-4]
+  - - J_EPS_GNSS: [1-2]
+    - W9B: [1-2]
+    - J_GNSS: [5, 6]

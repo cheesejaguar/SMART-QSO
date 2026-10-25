@@ -1,0 +1,38 @@
+# SQSO-HW-DIAG-001 W8: GSE umbilical (access port) to the OBC. Integration only; not connected in flight.
+# The plug jumpers UMBILICAL_SENSE (PB8) to GND so the software knows the umbilical is present
+# (software/rust/firmware/src/gpio.rs). USART3 is the console and the only path for loading telecommand keys
+# (docs/BASELINE_PARAMETERS.md 7). 2.54 mm header per SQSO-HAR-001 3.1 (debug). Battery charging through the
+# access port is not documented (TBD). Pinout proposed, TBR.
+metadata:
+  title: W8 GSE umbilical (SQSO-HW-DIAG-001, proposed, TBR)
+
+options:
+  fontname: Helvetica
+  bgcolor: WH
+  color_mode: SHORT
+
+connectors:
+  J_ACCESS:
+    type: 2.54 mm shrouded header
+    subtype: 2x5, access port
+    notes: "OBC board via the structure's access window: PA13, PA14, NRST, PD8, PD9, PB8"
+    pinlabels: &w8 [VTREF 3V3_AO, SWDIO, GND, SWCLK, GND, NRST, USART3_TX, USART3_RX, UMBILICAL_SENSE, GND]
+  P_GSE:
+    type: IDC receptacle
+    subtype: 2x5
+    notes: "GSE cable: SWD probe and 3.3 V USB-UART; pins 9 and 10 jumpered in the plug"
+    pinlabels: *w8
+
+cables:
+  W8:
+    type: ribbon
+    category: bundle
+    gauge: 28 AWG
+    length: 1.0
+    colors: [RD, BU, BK, YE, BK, WH, GN, OG, VT, BK]
+    notes: "Ground support only; remove before flight with the RBF pin"
+
+connections:
+  - - J_ACCESS: [1-10]
+    - W8: [1-10]
+    - P_GSE: [1-10]

@@ -1,0 +1,74 @@
+# SQSO-HW-DIAG-001 W10: RF coaxial cables (SQSO-HAR-001 H7). Separate antennas for 2 m and 70 cm
+# (docs/BASELINE_PARAMETERS.md 7), so two antenna cables; the GNSS patch cable is added (D6, connector TBD).
+metadata:
+  title: W10 RF coaxial cables (SQSO-HW-DIAG-001, proposed, TBR)
+
+options:
+  fontname: Helvetica
+  bgcolor: WH
+  color_mode: SHORT
+
+connectors:
+  J_VHF:
+    type: SMA female
+    notes: "RF board, after the 7-pole LPF"
+    pinlabels: [RF, GND]
+  ANT_VHF:
+    type: solder / crimp
+    notes: 2 m tape monopole feed
+    pinlabels: [ELEMENT, GROUND PLANE]
+  J_UHF:
+    type: SMA female
+    notes: "RF board, before the SAW filter"
+    pinlabels: [RF, GND]
+  ANT_UHF:
+    type: solder / crimp
+    notes: 70 cm tape monopole feed
+    pinlabels: [ELEMENT, GROUND PLANE]
+  J_GNSS_RF:
+    type: U.FL or MMCX (TBD)
+    notes: "GNSS receiver RF in; active antenna bias from the receiver (TBR)"
+    pinlabels: [RF, GND]
+  ANT_GNSS:
+    type: GNSS L1 patch (TBD)
+    notes: zenith face
+    pinlabels: [RF, GND]
+
+cables:
+  C_VHF:
+    type: RG-316
+    wirecount: 1
+    shield: true
+    length: 0.12
+    notes: "50 Ohm, loss under 0.5 dB (H7)"
+  C_UHF:
+    type: RG-316
+    wirecount: 1
+    shield: true
+    length: 0.12
+    notes: "50 Ohm, loss under 0.5 dB (H7)"
+  C_GNSS:
+    type: 1.13 mm micro-coax (TBR)
+    wirecount: 1
+    shield: true
+    length: 0.10
+
+connections:
+  - - J_VHF: [1]
+    - C_VHF: [1]
+    - ANT_VHF: [1]
+  - - J_VHF: [2]
+    - C_VHF: [s]
+    - ANT_VHF: [2]
+  - - J_UHF: [1]
+    - C_UHF: [1]
+    - ANT_UHF: [1]
+  - - J_UHF: [2]
+    - C_UHF: [s]
+    - ANT_UHF: [2]
+  - - J_GNSS_RF: [1]
+    - C_GNSS: [1]
+    - ANT_GNSS: [1]
+  - - J_GNSS_RF: [2]
+    - C_GNSS: [s]
+    - ANT_GNSS: [2]

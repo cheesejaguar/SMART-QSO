@@ -1,0 +1,63 @@
+# SQSO-HW-DIAG-001 W1: battery pack to EPS (SQSO-HAR-001 H1, extended for 4S).
+# H1's six contacts are kept. The balance connector is proposed (finding F12): the 4S BMS (BQ76920 or eq.)
+# needs five cell taps, which H1 does not carry. Pinouts proposed, TBR. Wire gauges from SQSO-HAR-001 §5.2.
+metadata:
+  title: W1 Battery pack to EPS (SQSO-HW-DIAG-001, proposed, TBR)
+
+options:
+  fontname: Helvetica
+  bgcolor: WH
+  color_mode: SHORT
+
+connectors:
+  P1:
+    type: Molex Micro-Fit 3.0 receptacle
+    subtype: 6 pos, 2 rows
+    notes: battery side, H1
+    pinlabels: [VBAT+, VBAT+, VBAT-, VBAT-, TEMP1, TEMP2]
+  J1:
+    type: Molex Micro-Fit 3.0 header
+    subtype: 6 pos, 2 rows
+    notes: EPS board, H1
+    pinlabels: [VBAT+, VBAT+, VBAT-, VBAT-, TEMP1, TEMP2]
+  P2:
+    type: Molex Pico-Clasp receptacle
+    subtype: 5 pos
+    notes: battery side, balance (proposed)
+    pinlabels: [VC0 (cell 1-), VC1, VC2, VC3, VC4 (cell 4+)]
+  J2:
+    type: Molex Pico-Clasp header
+    subtype: 5 pos
+    notes: EPS board, to BMS VC0-VC4 via 1 kOhm + 0.1 uF filters (TBR)
+    pinlabels: [VC0, VC1, VC2, VC3, VC4]
+
+cables:
+  C1:
+    category: bundle
+    gauge: 20 AWG
+    length: 0.08
+    colors: [RD, RD, BK, BK]
+    notes: PTFE; 2 wires per pole, 3 A each derated (SQSO-HAR-001 5.2), above the 5 A pack fuse
+  C2:
+    category: bundle
+    gauge: 26 AWG
+    length: 0.08
+    colors: [WH, YE]
+    notes: two 10 kOhm NTCs, common return to VBAT- in the pack (TBR)
+  C3:
+    category: bundle
+    gauge: 28 AWG
+    length: 0.08
+    colors: [BK, BN, RD, OG, YE]
+    notes: sense only; fuse or 100 Ohm series at the pack end (TBR)
+
+connections:
+  - - P1: [1-4]
+    - C1: [1-4]
+    - J1: [1-4]
+  - - P1: [5, 6]
+    - C2: [1, 2]
+    - J1: [5, 6]
+  - - P2: [1-5]
+    - C3: [1-5]
+    - J2: [1-5]

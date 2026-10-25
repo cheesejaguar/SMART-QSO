@@ -209,6 +209,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-ADCS-ACT-001 | ADCS Actuator Design Document | `hardware/adcs/ACTUATOR_DESIGN.md` | 1.0 | Draft |
 | SQSO-ADCS-003 | ADCS Electrical Design Specification | `hardware/adcs/ADCS_ELECTRICAL_DESIGN.md` | 1.0 | Draft |
 | SQSO-ADCS-SEN-001 | ADCS Sensor Design Document | `hardware/adcs/SENSOR_DESIGN.md` | 1.0 | Draft |
+| SQSO-HW-DIAG-001 | System Diagrams: Block, Wiring and Schematic | `hardware/diagrams/README.md` | A | Draft; preliminary, parts not selected |
 | SQSO-EPS-BAT-001 | Battery Design Document | `hardware/eps/BATTERY_DESIGN.md` | 2.0 | Draft |
 | SQSO-EPS-003 | EPS Electrical Design Specification | `hardware/eps/EPS_ELECTRICAL_DESIGN.md` | 1.0 | Draft |
 | SQSO-EPS-PDU-001 | Power Distribution Unit (PDU) Design Document | `hardware/eps/PDU_DESIGN.md` | 1.0 | Draft |
