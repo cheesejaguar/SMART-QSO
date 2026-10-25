@@ -6,11 +6,10 @@
 //! directly (SW-14).
 //!
 //! Coverage: only a nested call (an interrupt) finds `FAULTS` in use (busy:
-//! `Global::with` gives `None`); no C callback runs while it is held. The unit
-//! test `tests::busy_while_the_log_is_in_use` asserts what such a call gets,
-//! but the safety coverage gate cannot credit it: llvm-cov keeps one record per
-//! `#[no_mangle]` function name (the C library's, whose hash differs from the
-//! unit-test build's), so those lines are marked COVERAGE-EXEMPT.
+//! `Global::with` gives `None`); no C callback runs while it is held. The
+//! unit test `tests::busy_while_the_log_is_in_use` covers those paths
+//! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
+//! export too).
 //!
 //! @requirement SRS-F040 Detect and log all fault conditions
 //! @requirement SRS-F042 Implement autonomous fault recovery
@@ -140,7 +139,6 @@ pub unsafe extern "C" fn fault_log_get_entry(index: usize, entry: *mut Entry) ->
             c::assert_failed(c"Index out of range", line!());
             rc::INVALID
         }
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
@@ -171,7 +169,6 @@ pub extern "C" fn fault_log_mark_recovered(index: usize) -> i32 {
             c::assert_failed(c"Index out of range", line!());
             rc::INVALID
         }
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }

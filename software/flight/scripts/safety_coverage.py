@@ -2,11 +2,16 @@
 """
 Coverage gate for the safety-critical components (SDP §3.2; CR-2026-003).
 
-    safety_coverage.py LCOV_INFO [--report FILE]
+    safety_coverage.py LCOV_INFO [LCOV_INFO ...] [--report FILE]
 
-LCOV_INFO is the lcov export of a coverage build made with
+LCOV_INFO is an lcov export of a coverage build made with
 -Zcoverage-options=condition (software/flight/scripts/rust_coverage.sh), so
-its branch records hold every condition's outcomes. Each file in
+its branch records hold every condition's outcomes. With several, a line or
+outcome counts as covered if any of them covers it: rust_coverage.sh writes
+lcov.info (the C suites, the simulation and the unit tests) and
+lcov-unit.info (the unit tests alone), because llvm-cov keeps one record per
+function name and a #[no_mangle] function's C-build record would otherwise
+hide what the unit tests ran. Each file in
 SAFETY_CRITICAL must have every line run and every branch and condition
 outcome taken, by the C suites and the Rust unit tests together.
 
@@ -57,11 +62,20 @@ EXEMPT = re.compile(r"//\s*COVERAGE-EXEMPT:\s*\S")
 class FileCoverage:
     def __init__(self) -> None:
         self.lines: Dict[int, int] = {}                       # line -> hits
-        self.outcomes: Dict[int, List[bool]] = defaultdict(list)  # line -> taken?
+        self.branches: Dict[Tuple[int, str, str], bool] = {}  # (line, block, branch) -> taken?
+
+    @property
+    def outcomes(self) -> Dict[int, List[bool]]:
+        """line -> taken? for each of its outcomes"""
+        out: Dict[int, List[bool]] = defaultdict(list)
+        for (line, _, _), taken in sorted(self.branches.items()):
+            out[line].append(taken)
+        return out
 
 
-def parse_lcov(path: str) -> Dict[str, FileCoverage]:
-    files: Dict[str, FileCoverage] = {}
+def parse_lcov(path: str, files: Optional[Dict[str, FileCoverage]] = None) -> Dict[str, FileCoverage]:
+    """Add one lcov file's records to `files` (union: covered if any covers)"""
+    files = {} if files is None else files
     cur: Optional[FileCoverage] = None
     for raw in Path(path).read_text().splitlines():
         if raw.startswith("SF:"):
@@ -72,8 +86,9 @@ def parse_lcov(path: str) -> Dict[str, FileCoverage]:
             line, hits = raw[3:].split(",")[:2]
             cur.lines[int(line)] = cur.lines.get(int(line), 0) + int(hits)
         elif raw.startswith("BRDA:"):
-            line, _block, _branch, taken = raw[5:].split(",")
-            cur.outcomes[int(line)].append(taken not in ("-", "0"))
+            line, block, branch, taken = raw[5:].split(",")
+            key = (int(line), block, branch)
+            cur.branches[key] = cur.branches.get(key, False) or taken not in ("-", "0")
         elif raw == "end_of_record":
             cur = None
     return files
@@ -117,10 +132,12 @@ def check(rel: str, cov: Optional[FileCoverage]) -> Tuple[List[str], Tuple[int, 
 
 def main(argv: Optional[List[str]] = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("lcov")
+    ap.add_argument("lcov", nargs="+")
     ap.add_argument("--report")
     args = ap.parse_args(argv)
-    data = parse_lcov(args.lcov)
+    data: Dict[str, FileCoverage] = {}
+    for path in args.lcov:
+        parse_lcov(path, data)
     by_rel = {}
     for path, cov in data.items():
         for rel in SAFETY_CRITICAL:

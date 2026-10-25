@@ -58,3 +58,15 @@ def test_check_reports_unrun_lines_and_untaken_outcomes(tmp_path, monkeypatch):
     assert any(":2: line not run" in p for p in problems)
     assert any(":1: 1 of 2 condition outcomes" in p for p in problems)
     assert sc.check("sqso-fsw/src/demo.rs", None)[0] == ["sqso-fsw/src/demo.rs: not in the coverage data"]
+
+
+def test_union_of_exports(tmp_path):
+    a = tmp_path / "a.info"
+    b = tmp_path / "b.info"
+    a.write_text("SF:/x/f.rs\nDA:1,0\nDA:2,3\nBRDA:1,0,0,-\nBRDA:1,0,1,2\nend_of_record\n")
+    b.write_text("SF:/x/f.rs\nDA:1,4\nBRDA:1,0,0,1\nBRDA:1,0,1,0\nend_of_record\n")
+    files = sc.parse_lcov(str(a))
+    sc.parse_lcov(str(b), files)
+    cov = files["/x/f.rs"]
+    assert cov.lines == {1: 4, 2: 3}
+    assert cov.outcomes[1] == [True, True]

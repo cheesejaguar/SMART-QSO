@@ -146,7 +146,7 @@ jobs:
             scripts/rust_coverage.sh build-branch "$RUST_COVERAGE_MIN_LINE" rust-branch-coverage
           # The safety-critical components: every line and every condition
           # outcome, file by file (SDP §3.2, CR-2026-003)
-          python3 scripts/safety_coverage.py rust-branch-coverage/lcov.info \
+          python3 scripts/safety_coverage.py rust-branch-coverage/lcov.info rust-branch-coverage/lcov-unit.info \
             --report rust-branch-coverage/safety-critical.txt
 
       - name: Minimum supported Rust version (rust-version in Cargo.toml)

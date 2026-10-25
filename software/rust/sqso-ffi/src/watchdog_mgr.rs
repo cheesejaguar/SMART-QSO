@@ -7,12 +7,10 @@
 //! the module state held (the callback may call back into this module).
 //!
 //! Coverage: only a nested call (an interrupt) finds `WDT` in use (busy:
-//! `Global::with` gives `None`); no C callback runs while it is held. The unit
-//! test `tests::hardware_refusal_busy_paths_and_early_warning` asserts what
-//! such a call gets, but the safety coverage gate cannot credit it: llvm-cov
-//! keeps one record per `#[no_mangle]` function name (the C library's, whose
-//! hash differs from the unit-test build's), so those lines are marked
-//! COVERAGE-EXEMPT.
+//! `Global::with` gives `None`); no C callback runs while it is held. The
+//! unit test `tests::hardware_refusal_busy_paths_and_early_warning` covers those paths
+//! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
+//! export too).
 //!
 //! @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
 //! @requirement SRS-F051 Save state before watchdog reset
@@ -91,9 +89,7 @@ pub extern "C" fn wdt_mgr_init() -> i32 {
         m.wdt.reset();
         m.callback = None;
     });
-    // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
     if cleared.is_none() {
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         return rc::BUSY;
     }
     // SAFETY: plain values
@@ -117,14 +113,12 @@ pub extern "C" fn wdt_mgr_start() -> i32 {
     }
     // SAFETY: no arguments
     let result = unsafe { hal_wdt_start() };
-    // COVERAGE-EXEMPT: the false branch: the simulated HAL refuses only before its init, which the check above rules out; tests::hardware_refuses_start asserts it (not credited, see "Coverage" in the module doc)
     if result == rc::OK {
         let now = c::now_ms();
         let _ = WDT.with(|m| {
             m.wdt.stats.hw_wdt_running = true;
             m.wdt.last_task_check_ms = now;
         });
-        // COVERAGE-EXEMPT: the implicit else, as above
     }
     result
 }
@@ -170,7 +164,6 @@ pub unsafe extern "C" fn wdt_mgr_register_task(task_id: u32, name: *const c_char
     match WDT.with(|m| m.wdt.register(task_id, copy.get(..len).unwrap_or(&[]), expected_period_ms, now)) {
         Some(Ok(())) => rc::OK,
         Some(Err(_)) => rc::PARAM,
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
@@ -181,7 +174,6 @@ pub extern "C" fn wdt_mgr_unregister_task(task_id: u32) -> i32 {
     match WDT.with(|m| m.wdt.unregister(task_id)) {
         Some(Ok(())) => rc::OK,
         Some(Err(_)) => rc::PARAM,
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
@@ -194,7 +186,6 @@ pub extern "C" fn wdt_mgr_checkin(task_id: u32) -> i32 {
         Some(Ok(())) => rc::OK,
         Some(Err(WdtError::Param)) => rc::PARAM,
         Some(Err(WdtError::NotRegistered)) => rc::ERROR,
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
@@ -222,7 +213,6 @@ pub unsafe extern "C" fn wdt_mgr_get_task_info(task_id: u32, entry: *mut TaskEnt
             rc::OK
         }
         Some(None) => rc::PARAM,
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
@@ -237,7 +227,6 @@ pub unsafe extern "C" fn wdt_mgr_get_stats(stats: *mut Stats) -> i32 {
             *out = s;
             rc::OK
         }
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }

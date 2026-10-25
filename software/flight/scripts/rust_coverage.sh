@@ -74,6 +74,14 @@ mkdir -p "$report"
     -ignore-filename-regex="$ignore" | tee "$report/report.txt"
 "$tools/llvm-cov" export "${objects[@]}" -instr-profile="$build/rust.profdata" \
     -ignore-filename-regex="$ignore" -format=lcov > "$report/lcov.info"
+# The unit-test binaries alone: llvm-cov keeps one record per function name,
+# and for a #[no_mangle] function the C test object's record (another build,
+# another hash) hides the unit tests' counts. safety_coverage.py takes the
+# union of the two exports.
+unit_objects=()
+for t in "${unit_tests[@]}"; do unit_objects+=(-object "$t"); done
+"$tools/llvm-cov" export "${unit_objects[@]}" -instr-profile="$build/rust.profdata" \
+    -ignore-filename-regex="$ignore" -format=lcov > "$report/lcov-unit.info"
 
 total=$(awk '/^TOTAL/ { print $(NF-3) }' "$report/report.txt" | tr -d '%')
 echo "Rust line coverage: ${total}% (minimum ${min}%)"

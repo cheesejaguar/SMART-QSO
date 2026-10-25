@@ -2,11 +2,10 @@
 //! (`sqso_fsw::contact_monitor`), on the flash HAL and rf_control.
 //!
 //! Coverage: only a nested call (an interrupt) finds `MONITOR` in use (busy:
-//! `Global::with` gives `None`); no C callback runs while it is held. The unit
-//! test `tests::busy_while_the_state_is_in_use` asserts what such a call gets,
-//! but the safety coverage gate cannot credit it: llvm-cov keeps one record per
-//! `#[no_mangle]` function name (the C library's, whose hash differs from the
-//! unit-test build's), so those lines are marked COVERAGE-EXEMPT.
+//! `Global::with` gives `None`); no C callback runs while it is held. The
+//! unit test `tests::busy_while_the_state_is_in_use` covers those paths
+//! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
+//! export too).
 //!
 //! @requirement SYS-205 Cease transmissions after N days without an authenticated telecommand
 
@@ -71,7 +70,6 @@ pub extern "C" fn contact_monitor_set_timeout_days(days: u16) -> i32 {
         Some(Ok(())) => rc::OK,
         Some(Err(Error::Invalid)) => rc::INVALID,
         Some(Err(Error::Io)) => rc::IO,
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }

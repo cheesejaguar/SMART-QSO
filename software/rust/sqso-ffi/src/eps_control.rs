@@ -8,11 +8,10 @@
 //! borrowed.
 //!
 //! Coverage: only a nested call (an interrupt) finds `EPS` in use (busy:
-//! `Global::with` gives `None`); no C callback runs while it is held. The unit
-//! test `tests::busy_while_the_state_is_in_use` asserts what such a call gets,
-//! but the safety coverage gate cannot credit it: llvm-cov keeps one record per
-//! `#[no_mangle]` function name (the C library's, whose hash differs from the
-//! unit-test build's), so those lines are marked COVERAGE-EXEMPT.
+//! `Global::with` gives `None`); no C callback runs while it is held. The
+//! unit test `tests::busy_while_the_state_is_in_use` covers those paths
+//! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
+//! export too).
 //!
 //! @requirement SRS-F011 Control power to subsystems via load switches
 //! @requirement SRS-F012 Implement power modes SAFE, IDLE, ACTIVE
@@ -112,10 +111,8 @@ pub extern "C" fn eps_init() -> i32 {
             e.state.reset_defaults(now);
             true
         });
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         if set {
             c::console(format_args!("[EPS] Using default configuration"));
-            // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         }
     }
     with(rc::BUSY, |e| {
@@ -138,7 +135,6 @@ pub unsafe extern "C" fn eps_get_state(state: *mut EpsState) -> i32 {
             rc::OK
         }
         Some(None) => rc::ERROR,
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
@@ -152,7 +148,6 @@ pub extern "C" fn eps_control_payload(enable: bool, soc: f64) -> i32 {
         return rc::INVALID;
     }
     match EPS.with(|e| e.state.payload_enabled == enable) {
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => return rc::BUSY,
         Some(true) => return rc::OK,
         Some(false) => {}
@@ -233,7 +228,6 @@ pub extern "C" fn eps_set_power_mode(mode: u32, soc: f64) -> i32 {
         Some(true)
     });
     match changed {
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => return rc::BUSY,
         Some(false) => return rc::OK,
         Some(true) => {}
@@ -304,12 +298,10 @@ pub extern "C" fn eps_bus_voltage_ok(volts: f64) -> bool {
 /// Persist the EPS state
 #[unsafe(no_mangle)]
 pub extern "C" fn eps_save_config() -> i32 {
-    // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
     let Some(bytes) = EPS.with(|e| {
         e.state.update_crc();
         e.state.to_bytes()
     }) else {
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         return rc::BUSY;
     };
     store::save(Store::EpsConfig, &bytes)

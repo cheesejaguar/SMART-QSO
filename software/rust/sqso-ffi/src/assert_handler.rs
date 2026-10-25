@@ -7,11 +7,10 @@
 //! borrowed, so the fault log or a callback may assert in turn.
 //!
 //! Coverage: only a nested call (an interrupt) finds `ASSERTS` in use (busy:
-//! `Global::with` gives `None`); no C callback runs while it is held. The unit
-//! test `tests::busy_while_the_state_is_in_use` asserts what such a call gets,
-//! but the safety coverage gate cannot credit it: llvm-cov keeps one record per
-//! `#[no_mangle]` function name (the C library's, whose hash differs from the
-//! unit-test build's), so those lines are marked COVERAGE-EXEMPT.
+//! `Global::with` gives `None`); no C callback runs while it is held. The
+//! unit test `tests::busy_while_the_state_is_in_use` covers those paths
+//! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
+//! export too).
 //!
 //! @note NPR 7150.2 (standard, not a requirement ID): software safety
 //! @note JPL Power of Ten rule 5 (SQSO-CS-001 §3): at least two assertions per function on average
@@ -115,7 +114,6 @@ pub unsafe extern "C" fn assert_get_stats(stats: *mut Stats) -> i32 {
             *out = s;
             rc::OK
         }
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
@@ -147,7 +145,6 @@ pub unsafe extern "C" fn assert_get_log(log: *mut Record, max_entries: u16, coun
             *count = u16::try_from(n).unwrap_or(max_entries);
             rc::OK
         }
-        // COVERAGE-EXEMPT: busy, only a nested call (an interrupt) gets here; see "Coverage" in the module doc
         None => rc::BUSY,
     }
 }
