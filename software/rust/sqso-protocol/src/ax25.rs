@@ -238,6 +238,16 @@ mod tests {
     }
 
     #[test]
+    fn fcs_over_parts_is_the_fcs_of_the_whole() {
+        let (buf, n) = ui(b"hello");
+        let body = &buf[..n - 2];
+        let expected = u16::from_le_bytes([buf[n - 2], buf[n - 1]]);
+        assert_eq!(fcs_parts(&[&body[..14], &body[14..16], &body[16..]]), expected);
+        assert_eq!(fcs_parts(&[body]), fcs(body));
+        assert_ne!(fcs_parts(&[&body[..14]]), expected);
+    }
+
+    #[test]
     fn round_trip() {
         let (buf, n) = ui(b"hello");
         let frame = parse_ui(&buf[..n]).unwrap();
