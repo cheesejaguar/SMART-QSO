@@ -558,3 +558,38 @@ pub unsafe extern "C" fn sensors_format_telemetry(buffer: *mut c_char, buffer_le
         sensors::format_telemetry(entries, buf)
     })
 }
+
+#[cfg(test)]
+#[allow(clippy::indexing_slicing)]
+mod tests {
+    use super::*;
+
+    fn sensor(value_type: ValueType) -> Sensor {
+        let mut s = Sensor::ZERO;
+        sensors::copy_cstr(&mut s.id, b"BV");
+        sensors::copy_cstr(&mut s.name, b"Battery Voltage");
+        sensors::copy_cstr(&mut s.units, b"V");
+        sensors::copy_cstr(&mut s.last_text, b"0F");
+        s.value_type = value_type as u32;
+        s.last_value = 8.1375;
+        s
+    }
+
+    #[test]
+    fn reading_lines() {
+        let mut line = [0u8; 256];
+        let n = reading_line(&sensor(ValueType::Numeric), &mut line);
+        assert_eq!(&line[..n], b"[READ] id=BV name=\"Battery Voltage\" value=8.137 units=V");
+        let n = reading_line(&sensor(ValueType::Hex2), &mut line);
+        assert_eq!(&line[..n], b"[READ] id=BV name=\"Battery Voltage\" value=0F units=V");
+    }
+
+    #[test]
+    fn reading_line_is_cut_at_255_bytes() {
+        let mut s = sensor(ValueType::Numeric);
+        s.name = [b'n'; NAME_LEN];
+        s.units = [b'u'; UNITS_LEN];
+        let mut line = [0u8; 256];
+        assert!(reading_line(&s, &mut line) <= 255);
+    }
+}

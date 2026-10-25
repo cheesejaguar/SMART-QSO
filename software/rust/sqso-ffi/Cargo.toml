@@ -11,8 +11,8 @@ repository.workspace = true
 name = "sqso_ffi"
 # A Rust library: sqso-clib links it into the static library for the C test
 # suites, sqso-sim into the host simulation, the firmware into the image.
-# Exercised through the C test suites (ctest)
-test = false
+# Exercised through the C test suites (ctest); the unit tests cover
+# internal helpers the C ABI does not expose (console lines)
 doctest = false
 
 [dependencies]

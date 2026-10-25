@@ -273,3 +273,39 @@ pub(crate) fn console_parts(parts: &[&[u8]]) {
         }
     }
 }
+
+#[cfg(test)]
+#[allow(clippy::indexing_slicing)]
+mod tests {
+    use super::Line;
+
+    fn text(line: &Line) -> &[u8] {
+        &line.buf[..line.len]
+    }
+
+    #[test]
+    fn fault_line_from_pieces() {
+        let mut line = Line::new();
+        line.text(b"[FAULT] Type=").dec(0).text(b" Severity=").dec(u32::MAX).text(b": a\0b");
+        assert_eq!(text(&line), b"[FAULT] Type=0 Severity=4294967295: a?b");
+    }
+
+    #[test]
+    fn decimal_digits() {
+        for (n, s) in [(0u32, &b"0"[..]), (7, b"7"), (10, b"10"), (909, b"909"), (1_234_567_890, b"1234567890")] {
+            let mut line = Line::new();
+            line.dec(n);
+            assert_eq!(text(&line), s, "{n}");
+        }
+    }
+
+    #[test]
+    fn cut_at_159_bytes() {
+        let mut line = Line::new();
+        line.text(&[b'x'; 158]).dec(42);
+        assert_eq!(line.len, 159);
+        assert_eq!(&text(&line)[157..], b"x4");
+        line.text(b"more");
+        assert_eq!(line.len, 159);
+    }
+}
