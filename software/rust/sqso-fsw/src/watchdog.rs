@@ -137,11 +137,9 @@ impl Watchdog {
             return Err(WdtError::Param);
         }
         let len = name.iter().take(NAME_LEN - 1).take_while(|b| **b != 0).count();
-        for (dst, src) in entry.name.iter_mut().zip(name.iter().take(len)) {
+        // The name and its NUL (len < NAME_LEN, so the NUL fits)
+        for (dst, src) in entry.name.iter_mut().zip(name.iter().take(len).chain(core::iter::once(&0))) {
             *dst = *src;
-        }
-        if let Some(nul) = entry.name.get_mut(len) {
-            *nul = 0;
         }
         entry.expected_period_ms = period_ms;
         entry.last_checkin_ms = now_ms;
@@ -252,14 +250,9 @@ pub fn stall_message<const N: usize>(name: &[u8]) -> [u8; N] {
     let parts: [&[u8]; 3] = [b"Task ", name, b" stalled"];
     let len: usize = parts.iter().map(|p| p.len()).sum();
     let parts: [&[u8]; 3] = if len < N { parts } else { [b"Task stalled", b"", b""] };
-    let mut n = 0;
-    for b in parts.iter().flat_map(|p| p.iter()) {
-        if n + 1 < N
-            && let Some(slot) = out.get_mut(n)
-        {
-            *slot = *b;
-            n += 1;
-        }
+    // At most N - 1 bytes: the rest stay NUL
+    for (slot, b) in out.iter_mut().take(N.saturating_sub(1)).zip(parts.iter().flat_map(|p| p.iter())) {
+        *slot = *b;
     }
     out
 }
@@ -365,5 +358,41 @@ mod tests {
         assert_eq!(&stall_message::<16>(b"abc")[..13], b"Task stalled\0");
         assert_eq!(&stall_message::<17>(b"abc"), b"Task abc stalled\0");
         assert_eq!(&stall_message::<8>(b"abc"), b"Task st\0");
+        assert_eq!(&stall_message::<1>(b"abc"), b"\0");
+        assert_eq!(&stall_message::<0>(b"abc"), b"");
+    }
+
+    /// A slot index past the table is never stalled and changes nothing
+    #[test]
+    fn check_task_out_of_range_is_not_a_stall() {
+        let mut w = Watchdog::new();
+        assert!(w.register(0, b"main", 1, 0).is_ok());
+        let before = w;
+        for now in [10_000, 20_000, 30_000, 40_000] {
+            assert!(!w.check_task(MAX_TASKS, now));
+            assert!(!w.check_task(usize::MAX, now));
+        }
+        assert_eq!(w, before);
+    }
+
+    /// The default watchdog is the one before `wdt_mgr_init()`
+    #[test]
+    fn default_is_uninitialized_and_empty() {
+        let w = Watchdog::default();
+        assert_eq!(w, Watchdog::new());
+        assert!(!w.initialized && !w.any_stalled());
+        assert!(w.tasks.iter().all(|t| !t.active));
+        assert_eq!(w.stats, Stats::default());
+    }
+
+    /// A name of exactly 15 bytes fills the field and ends in its NUL
+    #[test]
+    fn longest_name_keeps_its_nul() {
+        let mut w = Watchdog::new();
+        w.tasks[1].name = [b'#'; NAME_LEN];
+        assert!(w.register(1, b"fifteen-bytes!!", 10, 0).is_ok());
+        assert_eq!(&w.tasks[1].name, b"fifteen-bytes!!\0");
+        assert!(w.register(1, b"", 10, 0).is_ok());
+        assert_eq!(&w.tasks[1].name[..2], b"\0i");
     }
 }

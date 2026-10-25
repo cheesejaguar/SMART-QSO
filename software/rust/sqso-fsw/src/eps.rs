@@ -172,12 +172,9 @@ impl EpsState {
         ];
         let parts: [&[u8]; 4] =
             [&head, &self.power_limit_w.to_ne_bytes(), &self.last_control_ms.to_ne_bytes(), &self.crc32.to_ne_bytes()];
-        let mut at = 0;
-        for part in parts {
-            if let Some(dst) = b.get_mut(at..at + part.len()) {
-                dst.copy_from_slice(part);
-            }
-            at += part.len();
+        // 8 + 8 + 4 + 4 = RECORD_SIZE bytes, in field order
+        for (dst, src) in b.iter_mut().zip(parts.into_iter().flatten()) {
+            *dst = *src;
         }
         b
     }
@@ -310,5 +307,26 @@ mod tests {
         let b = s.to_bytes();
         assert_eq!(&b[..4], &[0, 0, 1, 1]);
         assert_eq!(EpsState::from_bytes(&b), Ok(s));
+    }
+
+    /// The stored bytes are the C struct's: four flags, the mode and the
+    /// padding, then the limit, the control time and the CRC at their
+    /// offsets, filling the record
+    #[test]
+    fn record_bytes_follow_the_c_layout() {
+        let mut s = EpsState {
+            power_mode: PowerMode::Safe as u8,
+            pad: [7, 8, 9],
+            power_limit_w: 2.25,
+            last_control_ms: 0xA1B2_C3D4,
+            ..EpsState::DEFAULT
+        };
+        s.update_crc();
+        let b = s.to_bytes();
+        assert_eq!(&b[..8], &[0, 1, 1, 1, 0, 7, 8, 9]);
+        assert_eq!(&b[8..16], &2.25f64.to_ne_bytes());
+        assert_eq!(&b[16..CRC_OFFSET], &0xA1B2_C3D4u32.to_ne_bytes());
+        assert_eq!(&b[CRC_OFFSET..], &s.crc32.to_ne_bytes());
+        assert_eq!(s.crc32, crc32(&b[..CRC_OFFSET]));
     }
 }
