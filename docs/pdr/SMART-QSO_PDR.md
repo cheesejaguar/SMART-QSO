@@ -2,7 +2,8 @@
 
 > **Note (2026-10-24):** a historical PDR-phase description, not updated. The OBC is the STM32L4R5ZI
 > (`docs/BASELINE_PARAMETERS.md` §6), and the flight software is Rust on the Embassy executor, with no FreeRTOS
-> (`software/rust/README.md`).
+> (`software/rust/README.md`). Since 2026-10-25 the Embassy executor with no RTOS is the baseline (BASELINE §6,
+> CR-2026-002); the FreeRTOS lines below are annotated.
 
 **Mission Phase:** Pre‑Phase B / Phase B — Preliminary Design Review (PDR)
 
@@ -35,7 +36,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 ### 2.2 Level‑2 (System) Requirements (selected)
 - 1U form factor, ≤1.80 kg wet mass; CG within CDS rail limits; deployables remain within envelope pre‑deploy.
 - Average orbit power **≥4 W** (sunlit average ≥8–10 W) using two deployable wings; energy storage ≥50 Wh.
-- RF: **Transmit‑only 2 m downlink 145.8–146 MHz** (final per IARU coordination). Beacon‑only operations via Stensat module; conducted power selectable; duty‑cycle adaptive.
+- RF: **Transmit‑only 2 m downlink 145.8–146 MHz** (final per IARU coordination). Beacon‑only operations via Stensat module; conducted power selectable; duty‑cycle adaptive. *(superseded 2026-10-14: 70 cm uplink, duty-gated FM transponder and authenticated telecommand with TX-OFF; BASELINE §2, §7; noted 2026-10-25)*
 - **Payload computing:** Jetson Orin Nano Super (declocked to minimum stable clocks) for burst inference; MCU for background autonomy ≤50 mW average.
 - **Software:** RTOS on low‑power MCU; TinyML for detectors; TensorRT/ONNX Runtime INT8 on Jetson for TinyLM (~1 MB) when sun & thermal allow.
 - **ADCS:** 3‑axis magnetorquers + coarse sun sensors; detumble ≤1 orbit; pointing knowledge ≤10° (for power biasing only; comms omni).
@@ -69,13 +70,13 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 - **Power Mgmt:** MPPT + load‑shedding; AI and RF on separate power domains with supervised latching; inrush limiters for Jetson bursts.
 
 ### 4.3 Command & Data Handling (C&DH)
-- **Low‑power OBC:** Ambiq Apollo4 (or STM32L4) running FreeRTOS; always‑on autonomy; <1 mA sleep; watchdog and brown‑out.
+- **Low‑power OBC:** Ambiq Apollo4 (or STM32L4) running FreeRTOS; always‑on autonomy; <1 mA sleep; watchdog and brown‑out. *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
 - **AI payload:** **Jetson Orin Nano Super** on isolated 5 V/12 V rails; UART/USB link to OBC; power‑gated by EPS; DVFS profiles managed by OBC.
 - **Mass memory:** FRAM for state/params (≥4 MB); microSD/NAND for logs (≥128 MB).
 
 ### 4.4 RF & Transponder
-- **Bands:** Downlink 2 m (145.8–146.0 MHz); no uplink.
-- **Mode:** Transmit‑only beacon — AX.25 UI at 1200 bps AFSK via Stensat beacon module.
+- **Bands:** Downlink 2 m (145.8–146.0 MHz); no uplink. *(superseded 2026-10-14: 70 cm uplink, duty-gated FM transponder and authenticated telecommand with TX-OFF; BASELINE §2, §7; noted 2026-10-25)*
+- **Mode:** Transmit‑only beacon — AX.25 UI at 1200 bps AFSK via Stensat beacon module. *(superseded 2026-10-14: 70 cm uplink, duty-gated FM transponder and authenticated telecommand with TX-OFF; BASELINE §2, §7; noted 2026-10-25)*
 - **Antennas:** deployable quarter‑wave tape monopole for 2 m (near‑omni pattern).
 - **Beacon:** 1200 bps AFSK every 60–120 s; adaptive cadence per power/thermal.
 
@@ -119,7 +120,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 - **No uplink updates:** no over‑the‑air model updates; models are fixed at launch with on‑orbit micro‑tuning only. All beacon content remains plain‑text and logged publicly.
 
 ### 5.4 Software Stack
-- **RTOS:** FreeRTOS (OBC), baremetal control loops for power critical paths.
+- **RTOS:** FreeRTOS (OBC), baremetal control loops for power critical paths. *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
 - **ML runtimes:** TFLM on MCU; TensorRT/ONNX Runtime INT8 on Jetson for supported ops; custom lightweight kernels as needed.
 - **Languages:** C/C++ for flight; Python only for ground tools.
 
@@ -235,7 +236,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 2. **Arrays:** 2‑wing vs. 3‑wing deployables; hinge torque margins.
 3. **Memory tech:** FRAM vs. MRAM for higher TID margin; vendor selection.
 4. **LLM runtime:** TensorRT/ONNX op coverage and latency vs. declocking levels; MCU fallback templates.
-5. **Regulatory detail:** finalize IARU frequency coordination specifics and any national administration requirements; no uplink operations.
+5. **Regulatory detail:** finalize IARU frequency coordination specifics and any national administration requirements; no uplink operations. *(superseded 2026-10-14: 70 cm uplink, duty-gated FM transponder and authenticated telecommand with TX-OFF; BASELINE §2, §7; noted 2026-10-25)*
 
 ---
 

@@ -234,7 +234,7 @@ is `docs/safety/SAFETY_DATA_PACKAGE.md` §4.
 | ID | Finding | Action Required | Owner | Due |
 |----|---------|-----------------|-------|-----|
 | F2-001 | 9 requirements pending HW verification | Complete with flatsat | Test | TRR |
-| F2-002 | FreeRTOS HAL implementation needed | Implement when HW arrives | SW | TRR-4w |
+| F2-002 | FreeRTOS HAL implementation needed *(superseded 2026-10-25: Embassy executor, no RTOS; the firmware drivers replace the FreeRTOS HAL; BASELINE §6, CR-2026-002)* | Implement when HW arrives | SW | TRR-4w |
 | F2-003 | Environmental test scheduling pending | Coordinate with facility | Test | TRR-8w |
 
 ### 9.3 Category 3 Findings (Observations)
@@ -299,7 +299,7 @@ Based on the comprehensive review of:
 
 The following conditions apply:
 1. Complete hardware procurement per approved parts list
-2. Implement FreeRTOS HAL when flight hardware arrives
+2. Implement FreeRTOS HAL when flight hardware arrives *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
 3. Execute hardware integration test campaign
 4. Complete environmental qualification testing
 5. Conduct Test Readiness Review (TRR) before flight operations
@@ -314,7 +314,7 @@ The following conditions apply:
 |----------|-------|--------|----------|
 | Procure flight hardware | Procurement | CDR+60d | High |
 | Assemble flatsat | Integration | CDR+45d | High |
-| Implement FreeRTOS HAL | SW | CDR+60d | High |
+| Implement FreeRTOS HAL *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)* | SW | CDR+60d | High |
 | Complete HW/SW integration | Integration | CDR+90d | High |
 | Execute environmental tests | Test | CDR+120d | High |
 | Conduct TRR | Project | CDR+120d | High |

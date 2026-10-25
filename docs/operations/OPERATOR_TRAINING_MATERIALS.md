@@ -49,8 +49,8 @@ SMART-QSO SPACECRAFT ARCHITECTURE
 │                                                             │
 │   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐      │
 │   │    EPS      │   │    OBC      │   │     RF      │      │
-│   │ 7W solar    │◄─►│  Apollo4    │◄─►│  Si4463     │      │
-│   │ 7Wh battery │   │  FreeRTOS   │   │  VHF/UHF    │      │
+│   │ 7W solar    │◄─►│  STM32L4R5  │◄─►│  Si4463     │      │
+│   │ 7Wh battery │   │ Rust/Embassy│   │  VHF/UHF    │      │
 │   └─────────────┘   └──────┬──────┘   └─────────────┘      │
 │                            │                                │
 │                     ┌──────┴──────┐                         │
@@ -68,7 +68,7 @@ SMART-QSO SPACECRAFT ARCHITECTURE
 | Subsystem | Function | Key Parameters |
 |-----------|----------|----------------|
 | EPS | Power generation/storage | 7W solar, 7Wh battery |
-| OBC | Command and control | STM32L4R5ZI MCU; Rust flight software on the Embassy executor, no RTOS (updated 2026-10-24) |
+| OBC | Command and control | STM32L4R5ZI MCU; Rust flight software on the Embassy executor, no RTOS (BASELINE §6, 2026-10-25) |
 | RF | Communications | 145/435 MHz, 0.5-2W |
 | AI Payload | Beacon generation | Jetson Orin Nano, TinyLM |
 | ADCS | Attitude sensing | Magnetometer, sun sensors |
@@ -175,22 +175,22 @@ Solar Arrays (6x)      Battery Pack          Power Distribution
 OBC ARCHITECTURE
 
 ┌─────────────────────────────────────────────────────────────┐
-│                    Apollo4 Blue Plus                        │
+│                    STM32L4R5ZI (Cortex-M4F)                 │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐       │
-│  │  Core   │  │  SRAM   │  │  Flash  │  │  FRAM   │       │
-│  │  96MHz  │  │  2MB    │  │  2+32MB │  │  128KB  │       │
-│  └─────────┘  └─────────┘  └─────────┘  └─────────┘       │
+│  ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐         │
+│  │  Core   │  │  SRAM   │  │  Flash  │  │  FRAM   │         │
+│  │  80MHz  │  │  640KB  │  │  2MB    │  │  256KB  │         │
+│  └─────────┘  └─────────┘  └─────────┘  └─────────┘         │
 │                                                             │
-│  ┌───────────────────────────────────────────────────────┐ │
-│  │                    FreeRTOS                           │ │
-│  │  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐       │ │
-│  │  │Beacon│ │ TLM  │ │ CMD  │ │ PWR  │ │ AI   │       │ │
-│  │  │ Task │ │ Task │ │ Task │ │ Task │ │ Task │       │ │
-│  │  └──────┘ └──────┘ └──────┘ └──────┘ └──────┘       │ │
-│  └───────────────────────────────────────────────────────┘ │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │  Embassy executor (Rust), no RTOS: one task           │  │
+│  │  Main loop every 20 ms, stages in order:              │  │
+│  │  mission state, health, Jetson TLM, payload,          │  │
+│  │  beacon, uplink, timers, persistence, watchdog        │  │
+│  │  UARTs interrupt-driven (Jetson, TNC, debug)          │  │
+│  └───────────────────────────────────────────────────────┘  │
 │                                                             │
-│  Watchdog: 5-second timeout                                │
+│  Watchdog: IWDG, 30-second timeout                          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -209,10 +209,10 @@ OBC ARCHITECTURE
 
 | Fault | Detection | Response |
 |-------|-----------|----------|
-| Watchdog timeout | 5s no kick | Reset, increment counter |
+| Watchdog timeout | Main loop hung: no IWDG refresh for 30 s | Reset, increment counter |
 | Low battery | SOC <20% | Transition to SAFE |
 | Over-temperature | Temp >50°C | Throttle, then SAFE |
-| Task failure | Health check | Restart task |
+| Stage stalled | A stage misses 3 check-ins in a row (checked every 1 s) | Stall logged, state saved; IWDG not refreshed, so the OBC resets within 30 s |
 
 ### 3.4 AI Payload (Jetson)
 
@@ -644,3 +644,4 @@ STATUS: [Open/Investigating/Resolved/Closed]
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.0a | 2026-10-16 | Funding audit | Notice: Module 1 spacecraft figures superseded by BASELINE_PARAMETERS (PI-14) |
 | 1.0, note | 2026-10-24 | SMART-QSO Team | OBC row updated: STM32L4R5ZI, Rust on the Embassy executor. The diagrams in §2 and §4 still show the superseded Apollo4 and FreeRTOS tasks; `docs/BASELINE_PARAMETERS.md` and `software/flight/docs/RTOS_ARCHITECTURE.md` govern |
+| 1.0, note | 2026-10-25 | SMART-QSO Team | Embassy executor, no RTOS, is the baseline (BASELINE §6, CR-2026-002): OBC in the §2.3 and §3.3 diagrams (part, memory, one task, 30 s IWDG) and the watchdog and stage-stall faults in §3.3 |

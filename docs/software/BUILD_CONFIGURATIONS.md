@@ -283,7 +283,7 @@ cmake -S software/flight -B build \
 | Compiler | arm-none-eabi-gcc |
 | C Standard | C11 |
 | HAL | hal_stm32l4.c |
-| RTOS | FreeRTOS 10.5.1 |
+| RTOS | FreeRTOS 10.5.1 *(superseded 2026-10-25: no RTOS, Embassy executor; BASELINE §6, CR-2026-002)* |
 | Flash | 2 MB |
 | RAM | 640 KB |
 
@@ -293,7 +293,8 @@ in §8.1 is `software/rust/sqso-ffi/src/hal_sim.rs`.
 
 ### 8.3 FreeRTOS Configuration
 
-Revision C: not applicable. FreeRTOS was never integrated and is not planned.
+Revision C: not applicable. FreeRTOS was never integrated. Since 2026-10-25 the baseline is the Embassy executor with no
+RTOS (BASELINE §6, CR-2026-002).
 
 | Parameter | Value |
 |-----------|-------|
@@ -405,3 +406,4 @@ Each flight release includes:
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Document number changed from SQSO-SW-007, which `software/flight/docs/LOOP_BOUNDS.md` also carries, to SQSO-SW-008 (finding PI-17). No content change | SMART-QSO Team |
 | C | 2026-10-24 | The flight software is Rust: §2.1 the build configurations as built (CMake options, cargo builds, Rust release profile, image and its CI checks); notes on §7 to §10 where the Revision A plan (C cross build, FreeRTOS, memory split, artifacts) no longer applies | SMART-QSO Team |
+| C, note | 2026-10-25 | §8.2 and §8.3: the Embassy executor with no RTOS is the baseline (BASELINE §6, CR-2026-002) | SMART-QSO Team |

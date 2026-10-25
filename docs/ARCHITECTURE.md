@@ -175,7 +175,7 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 #### 2.6.1 Primary OBC
 - **Processor**: STM32L4R5ZI (ARM Cortex-M4F) (BASELINE §6)
 - **Memory**: 640 KB RAM, 2 MB flash (`docs/software/BUILD_CONFIGURATIONS.md` §8.2)
-- **Operating System**: None. The flight software is Rust on the Embassy executor, with one task (`software/flight/docs/RTOS_ARCHITECTURE.md`; updated 2026-10-24, was FreeRTOS, which was never integrated)
+- **Operating System**: None. The flight software is Rust on the Embassy executor: one task running the 20 ms main loop, interrupt-driven UARTs, the independent watchdog (BASELINE §6, rebaselined 2026-10-25, CR-2026-002; `software/flight/docs/RTOS_ARCHITECTURE.md`). FreeRTOS was never integrated
 - **Flight software**: `software/rust` (overview and porting table in `software/rust/README.md`); image `software/rust/firmware`
 
 #### 2.6.2 Secondary OBC
@@ -209,7 +209,7 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 ### 3.1 System Software Architecture
 
 #### 3.1.1 Operating System Layer
-- **Primary OBC**: No RTOS: the Rust flight software runs on the Embassy executor (updated 2026-10-24; FreeRTOS v10.4.3 was never integrated)
+- **Primary OBC**: No RTOS: the Rust flight software runs on the Embassy executor (BASELINE §6, rebaselined 2026-10-25, CR-2026-002; FreeRTOS v10.4.3 was never integrated)
 - **Secondary OBC**: None (§2.6.2)
 - **AI Payload**: Ubuntu 20.04 LTS with real-time kernel patches
 - **Inter-Process Communication**: Shared memory and message queues
@@ -604,6 +604,7 @@ SMART-QSO's success will establish new benchmarks for AI integration in small sa
 
 *Document Version: 1.0*  
 *Updated 2026-10-24: the OBC software is Rust on the Embassy executor, not FreeRTOS (§2.6.1, §3.1.1, §1.1 figure)*  
+*Updated 2026-10-25: the baseline is the Embassy executor with no RTOS (BASELINE §6, CR-2026-002; §2.6.1, §3.1.1)*  
 *Date: [Current Date]*  
 *Prepared by: [Name]*  
 *Technical Review: [Name]*  

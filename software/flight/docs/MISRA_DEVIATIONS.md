@@ -81,6 +81,9 @@ The history below records how the count fell as the C was replaced: 1,458 findin
 replaced by Rust. FreeRTOS (DEV-003) was never integrated and is not planned. DEV-010 is the one record for the remaining
 C.
 
+**Note (2026-10-25).** The baseline is now the Embassy executor with no RTOS (BASELINE §6, CR-2026-002). DEV-003 has no
+RTOS interface to cover and stays as history only.
+
 ### 4.1 DEV-001: Rule 11.3 - Cast Between Pointer and Integer
 
 | Field | Value |
@@ -145,6 +148,8 @@ uint8_t *data_ptr = (uint8_t *)sector_addr;
 ---
 
 ### 4.3 DEV-003: Rule 11.5 - Cast from Void Pointer
+
+*(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002. History only.)*
 
 | Field | Value |
 |-------|-------|
@@ -438,3 +443,4 @@ Each deviation SHALL include:
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | DEV-009 proposed for the STM32L4 startup, system calls and clock (SW-01) | Funding-audit follow-up |
 | C | 2026-10-24 | The flight software is Rust: MISRA C applies to the remaining C only (the flight-log shim and the headers it includes; tests excluded as before). §3 current status: 42 findings, baseline 42, by rule. DEV-001 to DEV-009 kept as history (their code is gone); DEV-010 proposed for the shim (17.1, 21.6). Header revision corrected from A | SMART-QSO Team |
+| C, note | 2026-10-25 | §4 note and DEV-003: no RTOS (Embassy executor) is the baseline (BASELINE §6, CR-2026-002) | SMART-QSO Team |

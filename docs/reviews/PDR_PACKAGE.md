@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document Number**: SMART-QSO-PDR-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-01-02
 **Status**: Ready for Review
 
@@ -156,7 +156,7 @@ This PDR package demonstrates that:
 | AI Payload | Jetson Orin Nano Super | TensorRT INT8, power gating |
 | ADCS | Passive magnetic + B-dot | Simplicity, reliability |
 | RF | UHF downlink, VHF optional | Amateur band allocation |
-| Software Class | Class D | CubeSat risk tolerance |
+| Software Class | Class D *(superseded 2026-10-25: NPR 7150.2D Class C; Appendix D excludes flight software from Class D; `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1)* | CubeSat risk tolerance |
 | Test Approach | Protoflight | Cost and schedule |
 
 ---
@@ -353,3 +353,4 @@ Based on this PDR package, the SMART-QSO project is recommended to proceed to th
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial PDR release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Requirement rows use the SRS wording (finding VV-06) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | Dated notes beside the superseded mass, beacon interval and link margin (MASS_BUDGET v2.0, SYS-211, LINK_BUDGET_ANALYSIS v2.0; findings TB-05, TB-06); recorded values kept |
+| 1.3 | 2026-10-25 | SMART-QSO Team | Dated note beside the superseded software class in §3.4 (NPR 7150.2D Class C, SDP §3.1; findings PI-18, VV-12); recorded value kept |

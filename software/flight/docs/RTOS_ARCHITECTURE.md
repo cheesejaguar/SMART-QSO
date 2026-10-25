@@ -37,7 +37,9 @@ the image.
 
 ### 3.1 No RTOS: the Embassy executor
 
-FreeRTOS was never integrated and is not planned. The flight image (`software/rust/firmware`) uses:
+FreeRTOS was never integrated and is not planned. Since 2026-10-25 the baseline is the Embassy executor with no RTOS
+(`docs/BASELINE_PARAMETERS.md` §6 OBC row; requirement OBC-F001 in `hardware/obc/OBC_DESIGN.md`; change request
+CR-2026-002). The flight image (`software/rust/firmware`) uses:
 
 | Component | Version | Role |
 |-----------|---------|------|
@@ -218,6 +220,7 @@ Between passes the task waits on `Timer::after_millis(20)`, and the executor put
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-24 | Rewritten for the design as built: no RTOS; the Embassy executor with one task, interrupt-driven UARTs and the time driver; the stages of a pass and their watchdog supervision; timing. The FreeRTOS design of Revision A, never implemented, kept as a history note (§13) | SMART-QSO Team |
+| B, note | 2026-10-25 | §3.1: the Embassy executor with no RTOS is the baseline (BASELINE §6, OBC-F001, CR-2026-002) | SMART-QSO Team |
 
 ---
 

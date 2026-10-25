@@ -35,7 +35,7 @@ It is one input to the system safety data package. It does not authorize release
 | Item | Classification | Rationale |
 |------|----------------|-----------|
 | Payload risk classification | Class D (NPR 8705.4B), proposed | BASELINE §1 |
-| Software Class | **Pending**: NPR 7150.2D Appendix D classification not yet determined | BASELINE §1 |
+| Software Class | Class C (NPR 7150.2D Appendix D), determined 2026-10-25 | `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1 |
 | Safety-Critical Functions | Yes | RF, battery management |
 
 ### 3.2 Safety-Critical Software Identification
@@ -177,8 +177,8 @@ tests. No hardware verification has been run, so every hazard is open.
 | Control | Type | Implementation |
 |---------|------|----------------|
 | Watchdog Timer | Hardware | 30 second timeout, refreshed only while every main-loop stage checks in |
-| Stack Checking | Software | **Not implemented**: planned with the RTOS, which is not yet integrated |
-| Task Monitoring | Software | Health monitoring task |
+| Stack Checking | Software | No RTOS (Embassy executor; BASELINE §6, 2026-10-25). The worst-case stack is bounded statically from the image (`scripts/stack_usage.py`), and the firmware arms an MPU guard below the 8 KB stack budget (`software/rust/firmware/src/stack.rs`). Not run on hardware |
+| Task Monitoring | Software | The watchdog manager supervises each stage of the one main loop (`software/flight/docs/RTOS_ARCHITECTURE.md` §8) |
 | Boot Counter | Software | Tracks resets |
 
 **Verification**:
@@ -384,3 +384,4 @@ Member: _________________ Date: _____
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Funding audit VV-20: retitled Software Safety Data Package and scoped to software; system package split out as a skeleton (SQSO-SDP-002); "Complete" statuses, pre-written board findings and the zero-open-hazard summary removed; values aligned with BASELINE (SOC thresholds, watchdog 30 s, AI duty, software class pending); FMEA count corrected to 43 |
 | 1.1, note | 2026-10-24 | SMART-QSO Team | Defensive-coding row: status after the port of the flight software to Rust |
+| 1.1, note | 2026-10-25 | SMART-QSO Team | §3.1 software class: Class C (SDP §3.1). Watchdog-failure controls: stack checking and stage monitoring as built, with no RTOS (BASELINE §6, CR-2026-002) |

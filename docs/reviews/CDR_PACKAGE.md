@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document Number**: SMART-QSO-CDR-001
-**Version**: 1.4
+**Version**: 1.5
 **Date**: 2026-01-02
 **Status**: Ready for Review
 
@@ -168,6 +168,9 @@ SMART-QSO has completed the Preliminary Design Review (PDR) and is now ready for
 |                         +----------------+                        |
 +------------------------------------------------------------------+
 ```
+
+*(superseded 2026-10-25: the OBC is the STM32L4R5ZI, and its Rust flight software runs on the Embassy executor with one
+task, no RTOS; BASELINE §6, CR-2026-002)*
 
 ### 4.2 Software Architecture
 
@@ -494,3 +497,4 @@ genhtml coverage.info --output-directory coverage_report
 | 1.2 | 2026-10-16 | SMART-QSO Team | OBC design row points to `hardware/obc/OBC_DESIGN.md` (SQSO-CDH-OBC-001), into which SMART-QSO-OBC-001 was merged (finding PI-17) |
 | 1.3 | 2026-10-16 | Funding audit | §6 mass, power-generation and link-margin rows cite the controlled analyses (TB-05, TB-06, TB-14) |
 | 1.4 | 2026-10-16 | SMART-QSO Team | Requirement rows use the specification wording; the B-dot and battery-protection rows cite SYS-421 and SYS-113 (SRS-F070 and SRS-S002 mean other requirements); status cells unchanged (finding VV-06) |
+| 1.5 | 2026-10-25 | SMART-QSO Team | §4.1: dated note under the block diagram (OBC FreeRTOS superseded by the Embassy executor, no RTOS; CR-2026-002); diagrams unchanged |
