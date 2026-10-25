@@ -343,11 +343,5 @@ Still open:
   (`docs/reviews/KNOWN_ISSUES.md` KI-001).
 - **Pin map.** `firmware/src/gpio.rs` is provisional until the OBC schematic baselines a pinout.
   `hardware/obc/OBC_DESIGN.md` and `hardware/obc/STORAGE_DESIGN.md` disagree on PA4–PA7 and PC0–PC1.
-- **Qualified toolchain decision.** Whether flight needs a qualified compiler, for example Ferrocene (qualified for
-  ISO 26262 and IEC 61508), is a PI decision. The software is NPR 7150.2D Class C with safety-critical components
-  (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1 to §3.2).
-- **Coverage of the safety-critical components.** SWE-219 asks for 100 % MC/DC coverage of them; rustc cannot measure
-  MC/DC, and change request CR-2026-003 (open, PI decision) proposes 100 % line and condition coverage instead. They
-  measure 83–100 % of lines and 50–100 % of conditions today (SDP §3.2).
 - **Jetson deployment** builds `sqso_protocol` on the Jetson, with Rust installed by
   `software/payload/ansible/deploy_payload.yml`. Shipping a prebuilt aarch64 wheel would remove that step.

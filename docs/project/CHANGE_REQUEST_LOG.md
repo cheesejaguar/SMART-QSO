@@ -20,7 +20,8 @@ logged here; the Git history records them.
 |----|------|-------|------|--------|----------|--------|
 | CR-2026-001 | 2026-10-25 | I | SRS-C001 (`docs/software/SOFTWARE_REQUIREMENTS.md` §8.1) | "C conforming to C11" becomes "Rust (2024 edition) or C conforming to C11" | Approved, PI | Implemented, verified |
 | CR-2026-002 | 2026-10-25 | I | BASELINE §6 OBC row; OBC-F001 (`hardware/obc/OBC_DESIGN.md` A.2.1) | FreeRTOS becomes the Embassy executor, no RTOS | Approved, PI | Implemented; OBC-F001 verification pending (hardware) |
-| CR-2026-003 | 2026-10-25 | I | SWE-219 tailoring (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2 to §3.3) | MC/DC replaced by 100 % line and condition coverage of the safety-critical components | **Open: PI decision** | Proposed |
+| CR-2026-003 | 2026-10-25 | I | SWE-219 tailoring (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2 to §3.3) | MC/DC replaced by 100 % line and condition coverage of the safety-critical components | Approved, PI | Implemented: per-file CI gate |
+| CR-2026-004 | 2026-10-25 | II | Tool qualification (SDP §3.3) | The flight image stays on the pinned, unqualified rustc 1.97.0; no qualified compiler (Ferrocene) | Approved, PI | Implemented |
 
 ## 3. Change Requests
 
@@ -162,19 +163,48 @@ Submitter: Flight software
    A CI gate on the per-file condition coverage of the safety-critical components.
 
 7. CCB Decision:
-   [ ] Approved
-   [ ] Approved with conditions:
-   [ ] Rejected
-   Reason: open; PI decision with the safety lead.
+   [x] Approved
+   Reason: PI decision, 2026-10-25. The PI also concurred with the list of
+   safety-critical components (SDP §3.2).
 
 8. Implementation:
    Assigned to: Flight software
-   Due date: —
-   Completed: —
+   Completed: 2026-10-25: tests to 100 %, and a CI gate per safety-critical file
+   (software/flight/scripts/safety_coverage.py)
 
 9. Verification:
    Verified by: —
    Date: —
+```
+
+### CR-2026-004: tool qualification
+
+```
+Change Request Number: CR-2026-004
+Date Submitted: 2026-10-25
+Submitter: Flight software
+
+1. Configuration Item Affected:
+   CI ID: SMART-QSO-SDP-001 §3.3 (tool qualification)
+
+2. Description of Change:
+   Record the decision: the flight image is built with the pinned rustc 1.97.0
+   (software/rust/rust-toolchain.toml), which is not qualified. No qualified compiler.
+
+3. Reason for Change:
+   Class C software on a project outside NASA; a qualified toolchain (Ferrocene) is a
+   paid subscription. The compiler's output is checked by the tests on the host, the
+   image checks and static stack analysis in CI, and the hardware tests.
+
+4. Impact Assessment:
+   - Technical: a compiler defect would not be caught by tool qualification; it would
+     have to show in the tests, the image checks or the hardware tests.
+   - Schedule, cost: none.
+   - Risk: accepted by the PI.
+
+7. CCB Decision:
+   [x] Approved
+   Reason: PI decision, 2026-10-25.
 ```
 
 ---
@@ -183,4 +213,4 @@ Submitter: Flight software
 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
-| A | 2026-10-25 | Initial release: CR-2026-001, CR-2026-002, CR-2026-003 (open) | SMART-QSO Team |
+| A | 2026-10-25 | Initial release: CR-2026-001 to CR-2026-004 | SMART-QSO Team |

@@ -144,15 +144,16 @@ mission-critical, not safety-critical.
 
 Coverage is from the C suites and the Rust unit tests together, measured with `-Zcoverage-options=condition` on the
 pinned nightly (`software/flight/scripts/rust_coverage.sh`); "condition" counts each condition of a decision taken both
-ways. RF inhibit has no SW-HAZ entry of its own yet; adding one (with its controls and their verification) is an open
+ways. The PI concurred with this list on 2026-10-25. RF inhibit has no SW-HAZ entry of its own yet; adding one (with its controls and their verification) is an open
 action of the hazard analysis. The list agrees with the Safety Data Package (SQSO-SDP-001) §3.2. The determination
-goes to the PI with the safety lead for concurrence, as SWE-205 asks.
+was made with the PI, as SWE-205 asks; the safety lead's review is still to come when one is named.
 
 **What it requires.** SWE-219 (NPR 7150.2D §3.7.4) asks for 100 % code coverage by the MC/DC criterion for every
 safety-critical component, at every class. rustc cannot measure MC/DC (its MC/DC instrumentation was removed; the
-nearest measure it offers is condition coverage). Change request CR-2026-003 (`docs/project/CHANGE_REQUEST_LOG.md`)
-proposes 100 % line and condition coverage of the components above in place of MC/DC. Until the PI decides it, SWE-219
-is not met; either way the coverage in the table is short of 100 %.
+nearest measure it offers is condition coverage). By change request CR-2026-003 (`docs/project/CHANGE_REQUEST_LOG.md`,
+approved by the PI on 2026-10-25), the requirement for the components above is 100 % line and 100 % condition
+coverage, gated per file in CI (`software/flight/scripts/safety_coverage.py`). A line no test can reach (defensive code)
+counts only if it is marked `// COVERAGE-EXEMPT: <reason>`, which review checks.
 
 ### 3.3 Tailoring Rationale
 
@@ -163,9 +164,9 @@ Per NPR 7150.2D Appendix C, for Class C (§3.1); the mapping of every Class C re
 |-------------|------------|-----------|
 | Peer reviews and inspections | Reviewed pull requests; CI gates | Small team |
 | Code coverage | Gated in CI: Rust lines ≥ 90 %, C and Rust lines ≥ 80 %, Rust branches ≥ 75 % (76.3 % on 2026-10-25) | Measured on every change (`.github/workflows/ci.yml`) |
-| MC/DC for safety-critical components (SWE-219) | Proposed: 100 % line and condition coverage instead (CR-2026-003); not yet met | rustc cannot measure MC/DC (§3.2) |
+| MC/DC for safety-critical components (SWE-219) | 100 % line and condition coverage instead, gated per file (CR-2026-003, approved) | rustc cannot measure MC/DC (§3.2) |
 | Independent V&V | Team V&V | No IV&V designation (not a NASA project) |
-| Tool qualification | Pinned, documented toolchain (Rust 1.97.0), not qualified | Whether flight needs a qualified compiler (for example Ferrocene) is a PI decision (`software/rust/README.md`, Next steps) |
+| Tool qualification | Pinned, documented toolchain (Rust 1.97.0), not qualified | PI decision 2026-10-25 (CR-2026-004): no qualified compiler; the tests, image checks, stack analysis and hardware tests check the compiler's output |
 
 ---
 
