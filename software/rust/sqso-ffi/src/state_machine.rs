@@ -301,3 +301,33 @@ pub unsafe extern "C" fn sm_get_statistics(
     }
     rc::OK
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::eps_control::EPS;
+    use crate::fault_mgmt::tests::{last_fault, serial};
+
+    /// An entry action the EPS refuses (busy: an interrupt holds it) is
+    /// logged; the transition stands
+    #[test]
+    fn failed_entry_action_is_logged() {
+        let _serial = serial();
+        let mut ctx = SmContext {
+            current_state: 0,
+            previous_state: 0,
+            transition_count: 0,
+            last_transition_ms: 0,
+            state_entry_ms: 0,
+            is_initialized: false,
+        };
+        let outcome = EPS.with(|_| {
+            // SAFETY: a live context
+            assert_eq!(unsafe { sm_init(&mut ctx, State::Boot as u32) }, rc::OK);
+            process(&mut ctx, Event::BootComplete as u32)
+        });
+        assert_eq!(outcome, Some((rc::OK, sm_result::OK)));
+        assert_eq!(ctx.current_state, State::Detumble as u32);
+        assert_eq!(last_fault(), b"Entry action failed");
+    }
+}

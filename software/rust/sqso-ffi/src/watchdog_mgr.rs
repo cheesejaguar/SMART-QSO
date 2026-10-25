@@ -6,6 +6,12 @@
 //! The pre-reset callback and the fault log are called with no borrow of
 //! the module state held (the callback may call back into this module).
 //!
+//! Coverage: only a nested call (an interrupt) finds `WDT` in use (busy:
+//! `Global::with` gives `None`); no C callback runs while it is held. The
+//! unit test `tests::hardware_refusal_busy_paths_and_early_warning` covers those paths
+//! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
+//! export too).
+//!
 //! @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
 //! @requirement SRS-F051 Save state before watchdog reset
 
@@ -88,7 +94,9 @@ pub extern "C" fn wdt_mgr_init() -> i32 {
     }
     // SAFETY: plain values
     let result = unsafe { hal_wdt_init(HW_TIMEOUT_MS, WDT_MODE_RESET) };
+    // COVERAGE-EXEMPT: the simulated HAL refuses only a timeout outside its range (HW_TIMEOUT_MS is inside) or a re-entered HAL call; a failing init is target hardware only
     if result != rc::OK {
+        // COVERAGE-EXEMPT: as above
         return result;
     }
     // Early warning, if the hardware has it
@@ -261,5 +269,84 @@ pub extern "C" fn wdt_mgr_force_reset() {
     loop {
         // Wait for the hardware watchdog to reset the OBC
         core::hint::spin_loop();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use core::sync::atomic::{AtomicU32, Ordering};
+
+    use super::*;
+    use crate::fault_mgmt::tests::{last_fault, serial};
+
+    static SAVES: AtomicU32 = AtomicU32::new(0);
+
+    extern "C" fn save_state() {
+        SAVES.fetch_add(1, Ordering::SeqCst);
+    }
+
+    fn stats() -> Stats {
+        let mut s = Stats::default();
+        // SAFETY: a live Stats
+        assert_eq!(unsafe { wdt_mgr_get_stats(&mut s) }, rc::OK);
+        s
+    }
+
+    /// One test, in this order: the simulated hardware watchdog must not
+    /// have been initialized yet in this process
+    #[test]
+    fn hardware_refusal_busy_paths_and_early_warning() {
+        let _serial = serial();
+        hardware_refuses_start();
+        busy_while_the_state_is_in_use();
+        early_warning_saves_state_and_counts_the_reset();
+    }
+
+    /// The hardware refuses to start (here: its init has not run): the
+    /// error is passed on and the watchdog is not recorded as running
+    fn hardware_refuses_start() {
+        let _ = WDT.with(|m| m.wdt.initialized = true);
+        assert_eq!(wdt_mgr_start(), rc::ERROR);
+        assert!(!stats().hw_wdt_running);
+        let _ = WDT.with(|m| m.wdt.initialized = false);
+    }
+
+    /// A nested call (an interrupt) while the state is in use gets "busy",
+    /// changes nothing, and the queries answer "not stalled"
+    fn busy_while_the_state_is_in_use() {
+        let mut entry = TaskEntry { expected_period_ms: 7, ..TaskEntry::default() };
+        let mut s = Stats { hw_kicks: 7, ..Stats::default() };
+        let nested = WDT.with(|_| {
+            // SAFETY: a C string; live entry and stats
+            let (register, info, got) = unsafe {
+                (
+                    wdt_mgr_register_task(0, c"main".as_ptr(), 1000),
+                    wdt_mgr_get_task_info(0, &mut entry),
+                    wdt_mgr_get_stats(&mut s),
+                )
+            };
+            let calls = [wdt_mgr_init(), register, wdt_mgr_unregister_task(0), wdt_mgr_checkin(0), info, got];
+            let callback = wdt_mgr_register_prereset_callback(Some(save_state));
+            (calls, callback, wdt_mgr_start(), wdt_mgr_is_task_stalled(0), wdt_mgr_any_task_stalled())
+        });
+        assert_eq!(nested, Some(([rc::BUSY; 6], rc::BUSY, rc::ERROR, false, false)));
+        assert_eq!((entry.expected_period_ms, s.hw_kicks), (7, 7));
+        assert_eq!(WDT.with(|m| m.callback.is_none()), Some(true));
+    }
+
+    /// The hardware's early warning logs, calls the pre-reset callback (if
+    /// any) and counts the reset
+    fn early_warning_saves_state_and_counts_the_reset() {
+        let before = stats().resets_caused;
+        assert_eq!(wdt_mgr_register_prereset_callback(Some(save_state)), rc::OK);
+        hw_wdt_warning_handler(core::ptr::null_mut());
+        assert_eq!(SAVES.load(Ordering::SeqCst), 1);
+        assert_eq!(stats().resets_caused, before + 1);
+        assert_eq!(last_fault(), b"Hardware watchdog timeout imminent");
+
+        assert_eq!(wdt_mgr_register_prereset_callback(None), rc::OK);
+        hw_wdt_warning_handler(core::ptr::null_mut());
+        assert_eq!(SAVES.load(Ordering::SeqCst), 1);
+        assert_eq!(stats().resets_caused, before + 2);
     }
 }

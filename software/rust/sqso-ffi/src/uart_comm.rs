@@ -145,6 +145,13 @@ mod port {
         tty.c_cflag |= libc::CREAD | libc::CLOCAL;
         tty.c_lflag &= !(libc::ICANON | libc::ECHO | libc::ECHOE | libc::ISIG);
         tty.c_oflag &= !libc::OPOST;
+        // A read returns what has arrived, at once, as on the target: a fresh
+        // terminal has VMIN 1, which made the first read wait for the Jetson
+        for (i, v) in [(libc::VMIN, 0), (libc::VTIME, 0)] {
+            if let Some(cc) = tty.c_cc.get_mut(i) {
+                *cc = v;
+            }
+        }
     }
 
     /// Open and configure the line; the descriptor
@@ -217,7 +224,7 @@ mod port {
         }
     }
 
-    /// Read what is there (blocking as the line is configured); the count
+    /// Read what has arrived (the line is set not to wait: VMIN 0, VTIME 0); the count
     pub(super) fn read(fd: c_int, buf: &mut [u8]) -> Option<usize> {
         // SAFETY: buf is a live, writable slice
         let n = unsafe { libc::read(fd, buf.as_mut_ptr().cast(), buf.len()) };

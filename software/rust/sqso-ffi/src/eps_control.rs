@@ -7,6 +7,12 @@
 //! The payload guard and the fault log are called with no EPS state
 //! borrowed.
 //!
+//! Coverage: only a nested call (an interrupt) finds `EPS` in use (busy:
+//! `Global::with` gives `None`); no C callback runs while it is held. The
+//! unit test `tests::busy_while_the_state_is_in_use` covers those paths
+//! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
+//! export too).
+//!
 //! @requirement SRS-F011 Control power to subsystems via load switches
 //! @requirement SRS-F012 Implement power modes SAFE, IDLE, ACTIVE
 //! @requirement SRS-F016 Enforce power budget limits per mode
@@ -26,14 +32,14 @@ unsafe extern "C" {
     fn payload_guard_may_enable(now_ms: u64) -> bool;
 }
 
-struct Eps {
+pub(crate) struct Eps {
     state: EpsState,
     initialized: bool,
     /// Latest measured state of charge; 0 until the first measurement
     soc: f64,
 }
 
-static EPS: Global<Eps> = Global::new(Eps { state: EpsState::DEFAULT, initialized: false, soc: 0.0 });
+pub(crate) static EPS: Global<Eps> = Global::new(Eps { state: EpsState::DEFAULT, initialized: false, soc: 0.0 });
 
 fn with<R>(busy: R, f: impl FnOnce(&mut Eps) -> R) -> R {
     EPS.with(f).unwrap_or(busy)
@@ -166,12 +172,14 @@ pub extern "C" fn eps_control_payload(enable: bool, soc: f64) -> i32 {
         Ok(()) => {}
     }
     let now = now_low32();
+    // COVERAGE-EXEMPT: busy here needs a caller that takes the EPS state between the check at the top (busy there returns first) and this line; nothing in between borrows it, only an interrupt could
     if !with(false, |e| {
         e.state.payload_enabled = enable;
         e.state.last_control_ms = now;
         e.state.update_crc();
         true
     }) {
+        // COVERAGE-EXEMPT: as above (the EPS state is free between the two borrows)
         return rc::BUSY;
     }
     if enable {
@@ -316,4 +324,39 @@ pub extern "C" fn eps_load_config() -> i32 {
         e.state = loaded;
         rc::OK
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fault_mgmt::tests::serial;
+
+    /// A nested call (an interrupt) while the EPS state is in use gets
+    /// "busy", changes nothing, and readers get the safe defaults
+    #[test]
+    fn busy_while_the_state_is_in_use() {
+        let _serial = serial();
+        let mut copy = EpsState::DEFAULT;
+        copy.power_mode = 7;
+        let nested = EPS.with(|_| {
+            // SAFETY: a live EpsState
+            let got = unsafe { eps_get_state(&mut copy) };
+            let switches = [eps_control_radio(true), eps_control_adcs(false), eps_control_beacon(true)];
+            let modes = (eps_init(), eps_control_payload(true, 0.9), eps_set_power_mode(0, 0.5), eps_save_config());
+            let readers = (eps_get_power_mode(), eps_is_payload_enabled(), eps_is_beacon_enabled(), eps_get_soc());
+            (got, switches, modes, readers, eps_get_power_limit())
+        });
+        let busy = rc::BUSY;
+        assert_eq!(
+            nested,
+            Some((
+                busy,
+                [busy; 3],
+                (busy, busy, busy, busy),
+                (PowerMode::Idle as u32, false, false, 0.0),
+                eps::POWER_LIMIT_IDLE_W
+            ))
+        );
+        assert_eq!(copy.power_mode, 7);
+    }
 }

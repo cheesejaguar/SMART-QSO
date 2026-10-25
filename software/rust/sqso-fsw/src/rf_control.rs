@@ -188,30 +188,34 @@ impl RfControl {
 }
 
 #[cfg(test)]
-pub(crate) mod tests {
+mod tests {
     use super::*;
     use crate::nvm::{FlashError, MemFlash, SLOT_SIZE};
 
-    /// Flash plus the lines and reports, for this module's tests and the
-    /// modules that set its inhibits
-    pub(crate) struct Bench {
-        pub(crate) flash: MemFlash<512>,
-        pub(crate) lines: Option<(bool, bool)>,
-        pub(crate) reports: [Option<Report>; 8],
-        pub(crate) count: usize,
+    /// Flash plus the lines and reports
+    struct Bench {
+        flash: MemFlash<512>,
+        /// Every flash read fails (a bus error)
+        read_fails: bool,
+        lines: Option<(bool, bool)>,
+        reports: [Option<Report>; 8],
+        count: usize,
     }
 
     impl Bench {
-        pub(crate) fn new() -> Self {
-            Bench { flash: MemFlash::new(), lines: None, reports: [None; 8], count: 0 }
+        fn new() -> Self {
+            Bench { flash: MemFlash::new(), read_fails: false, lines: None, reports: [None; 8], count: 0 }
         }
-        pub(crate) fn last(&self) -> Option<Report> {
+        fn last(&self) -> Option<Report> {
             self.count.checked_sub(1).and_then(|i| self.reports[i % 8])
         }
     }
 
     impl Flash for Bench {
         fn read(&mut self, r: u32, o: u32, b: &mut [u8]) -> Result<(), FlashError> {
+            if self.read_fails {
+                return Err(FlashError(-5));
+            }
             self.flash.read(r, o, b)
         }
         fn write(&mut self, r: u32, o: u32, d: &[u8]) -> Result<(), FlashError> {
@@ -296,6 +300,22 @@ pub(crate) mod tests {
         let mut io = Bench::new();
         nvm::save(&mut io, 7, 0, RECORD_MAGIC, &0x1234u32.to_le_bytes()).unwrap();
         assert!(!booted(&mut io).permitted());
+    }
+
+    /// A latch that cannot be read is taken as TX-OFF (fail safe), reported
+    /// as unreadable, and the power level falls back to 0.5 W
+    #[test]
+    fn unreadable_record_inhibits_and_reports() {
+        let mut io = Bench::new();
+        let mut rf = booted(&mut io);
+        rf.tx_on(&mut io).unwrap();
+        rf.set_power_level(POWER_1W, &mut io.flash).unwrap();
+        io.read_fails = true;
+        let rf = booted(&mut io);
+        assert!(!rf.permitted());
+        assert_eq!(io.lines, Some((true, false)), "receiver powered, transmitter off");
+        assert_eq!(io.last(), Some(Report::Unreadable));
+        assert_eq!(rf.power_level(), POWER_0W5);
     }
 
     #[test]

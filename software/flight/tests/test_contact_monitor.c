@@ -205,6 +205,24 @@ static void test_persists_at_interval(void **state)
     assert_int_equal(contact_monitor_seconds_since_contact(), 3U * CONTACT_PERSIST_INTERVAL_S);
 }
 
+/** A timeout that cannot be persisted reports the I/O error but applies
+ *  until the next reset; the stored timeout comes back at boot */
+static void test_timeout_not_persisted_applies_until_reset(void **state)
+{
+    (void)state;
+    advance_days(5U);
+    hal_sim_flash_fail_writes(true);
+
+    assert_int_equal(contact_monitor_set_timeout_days(4U), SMART_QSO_ERROR_IO);
+    assert_int_equal(contact_monitor_get_timeout_days(), 4U);
+    assert_true(contact_monitor_inhibited());
+    assert_false(rf_control_tx_permitted());
+
+    hal_sim_flash_fail_writes(false);
+    assert_int_equal(contact_monitor_init(), SMART_QSO_OK);
+    assert_int_equal(contact_monitor_get_timeout_days(), CONTACT_TIMEOUT_DEFAULT_DAYS);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -219,6 +237,7 @@ int main(void)
         cmocka_unit_test_setup(test_corrupt_counter_inhibits, setup),
         cmocka_unit_test_setup(test_timeout_bounds_and_persistence, setup),
         cmocka_unit_test_setup(test_persists_at_interval, setup),
+        cmocka_unit_test_setup(test_timeout_not_persisted_applies_until_reset, setup),
     };
 
     return cmocka_run_group_tests_name("Loss-of-Contact Inhibit Tests", tests, NULL, NULL);

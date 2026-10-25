@@ -51,10 +51,18 @@ The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 | `hal_radio.h` | `radio.rs` | Telecommand receiver: KISS frames from the TNC on USART2 (PD5/PD6, 9600 baud), decoded by `sqso_protocol::kiss` |
 
 Not provided: the HAL's callback timers and the watchdog early-warning callback. Both are refused, as they were in the
-former C port. The release image is 110,236 B of text, 19,624 B of data and 15,488 B of bss. The vector table is at
+former C port. The release image is 110,396 B of text, 19,648 B of data and 15,488 B of bss. The vector table is at
 0x08000000, the initial SP is 0x200A0000 and the entry point is `Reset`. No hardware has run it. CI builds the image and
 checks those properties. The ADCS sensor and actuator drivers, and real sensor-table readings on the target, are not
 written because the parts are not selected (`docs/reviews/KNOWN_ISSUES.md` KI-001).
+
+For the first run on a board, `firmware/BRINGUP.md` gives the equipment, the NUCLEO-L4R5ZI's differences from the
+flight pin map (its ST-LINK virtual COM port is LPUART1, not the USART3 console), power, flashing, the order of the first
+checks with their HIL test IDs, and what to record. The firmware times every `step()` pass with the DWT cycle counter
+(`firmware/src/timing.rs`) and keeps the last and longest pass, the passes over 20 ms and the passes recorded in the
+`#[no_mangle]` static `SQSO_LOOP_TIMING`, which a probe reads by name (HIL-040); nothing on board reads it. The scripts in
+`firmware/tools/` read it, the painted stack budget (HIL-044) and run the stack-guard test (HIL-004) through the
+`probe-rs` command line; their unit tests (`python3 -m pytest -q firmware/tools/tests`) need no board.
 
 ## Porting table
 
@@ -243,8 +251,9 @@ The full standard is the Rust section of `docs/development/CODING_STANDARDS.md`.
 
 Measured 2026-10-24.
 
-- **The C suites as the specification.** 44 ctest entries: 42 CMocka suites with 631 `cmocka_unit_test` cases, the
-  `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
+- **The C suites as the specification.** 46 ctest entries: 43 CMocka suites with 646 `cmocka_unit_test` cases
+  (`test_executive_jetson`, which runs the host simulation with a pseudo-terminal as the Jetson port, is two of the
+  entries), the `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
   unchanged against the Rust on the host and under AddressSanitizer and UBSan.
 - **Coverage.** Rust line coverage is 92.2 %, from the C suites plus the 299 Rust unit tests (gate 90 %). Flight-software
   line coverage, C and Rust together, is 92.2 % (gate 80 %).

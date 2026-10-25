@@ -463,6 +463,36 @@ mod tests {
         }
     }
 
+    /// Each event's log name is its C enumerator without the `EVENT_`
+    /// prefix, and every C value maps back to its event
+    #[test]
+    fn event_names_and_values() {
+        let names: [&core::ffi::CStr; 16] = [
+            c"NONE",
+            c"BOOT_COMPLETE",
+            c"DETUMBLE_COMPLETE",
+            c"COMM_ACQUIRED",
+            c"POWER_OK",
+            c"POWER_LOW",
+            c"POWER_CRITICAL",
+            c"THERMAL_FAULT",
+            c"COMM_TIMEOUT",
+            c"WATCHDOG_TIMEOUT",
+            c"GROUND_CMD_SAFE",
+            c"GROUND_CMD_IDLE",
+            c"GROUND_CMD_ACTIVE",
+            c"AI_READY",
+            c"AI_FAULT",
+            c"RECOVERY_OK",
+        ];
+        for ((e, name), raw) in Event::ALL.into_iter().zip(names).zip(0u32..) {
+            assert_eq!(e as u32, raw);
+            assert_eq!(e.name(), name, "{e:?}");
+            assert_eq!(Event::from_raw(raw), Some(e));
+        }
+        assert_eq!(Event::from_raw(16), None);
+    }
+
     #[test]
     fn ground_cannot_jump_safe_to_active() {
         assert_eq!(transition(State::Safe, Event::GroundCmdActive), None);

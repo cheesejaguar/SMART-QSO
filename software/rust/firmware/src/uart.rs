@@ -63,10 +63,16 @@ impl Port {
 /// `HalUartPort_t` 0 (Jetson) and 1 (debug)
 static PORTS: [Shared<Port>; 2] = [Shared::new(), Shared::new()];
 
+/// The Jetson port opens with `hal_uart_init`. The debug port (the console)
+/// is ready at once, at the 115200 8N1 it was built with: the lines printed
+/// before `gse_init` opens it (the RF-silence state at every boot, an early
+/// init failure) would otherwise be lost
 pub(crate) fn install(jetson: BufferedUart<'static>, debug: BufferedUart<'static>) {
     let [j, d] = &PORTS;
     j.install(Port::new(jetson));
-    d.install(Port::new(debug));
+    let mut console = Port::new(debug);
+    console.ready = true;
+    d.install(console);
 }
 
 fn with_port<R>(port: u32, missing: R, f: impl FnOnce(&mut Port) -> R) -> R {

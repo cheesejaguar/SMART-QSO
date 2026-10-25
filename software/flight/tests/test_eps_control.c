@@ -91,8 +91,6 @@ static void test_eps_init_no_config(void **state) {
     assert_true(eps_state.beacon_enabled);
 }
 
-/* Note: Null pointer test removed - implementation uses defensive asserts */
-
 /*===========================================================================*/
 /* Test Cases: Power Mode Transitions                                         */
 /*===========================================================================*/
@@ -502,11 +500,38 @@ static void test_eps_corrupt_config_refused(void **state) {
     assert_true(now.adcs_enabled);
 }
 
+/** A NULL output is refused */
+static void test_eps_get_state_null(void **state) {
+    (void)state;
+    assert_int_equal(eps_get_state(NULL), SMART_QSO_ERROR_NULL_PTR);
+}
+
+/**
+ * @brief The latest state of charge is kept; a value outside 0..1 is not a
+ * measurement and is ignored
+ *
+ * @requirement SRS-F010 Monitor battery SOC
+ */
+static void test_eps_update_soc_ignores_out_of_range(void **state) {
+    (void)state;
+    eps_update_soc(0.5);
+    assert_true(FLOAT_EQUAL(eps_get_soc(), 0.5));
+    eps_update_soc(1.5);
+    assert_true(FLOAT_EQUAL(eps_get_soc(), 0.5));
+    eps_update_soc(-0.1);
+    assert_true(FLOAT_EQUAL(eps_get_soc(), 0.5));
+    eps_update_soc((double)NAN);
+    assert_true(FLOAT_EQUAL(eps_get_soc(), 0.5));
+    eps_update_soc(1.0);
+    assert_true(FLOAT_EQUAL(eps_get_soc(), 1.0));
+}
+
 int main(void) {
     const struct CMUnitTest tests[] = {
         /* Initialization tests */
         cmocka_unit_test_setup_teardown(test_eps_init_no_config, setup, teardown),
-        /* Note: Null pointer test removed - implementation uses defensive asserts */
+        cmocka_unit_test_setup_teardown(test_eps_get_state_null, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_eps_update_soc_ignores_out_of_range, setup, teardown),
 
         /* Power mode transition tests */
         cmocka_unit_test_setup_teardown(test_eps_set_mode_safe, setup, teardown),

@@ -130,8 +130,9 @@ did not. The safety-critical components and their coverage against SWE-219 are i
 - **Coverage**: lcov/gcov
 - **Mocking**: CMocka mock functions
 
-**As implemented (Version 1.1).** The CMocka suites in `software/flight/tests` (42 suites, 631 cases, plus the
-`no_dynamic_memory` check and the `Simulation_Run` host simulation: 44 ctest entries) are the specification of the flight software. They run unchanged against
+**As implemented (Version 1.1).** The CMocka suites in `software/flight/tests` (43 suites, 646 cases, plus the
+`no_dynamic_memory` check and the `Simulation_Run` host simulation: 46 ctest entries, as `test_executive_jetson` runs as
+two) are the specification of the flight software. They run unchanged against
 the Rust library through the C headers. The HAL is the simulated HAL `software/rust/sqso-ffi/src/hal_sim.rs`, whose
 `hal_sim_*` hooks inject inputs and faults; there is no `mocks/` directory. In addition:
 

@@ -148,7 +148,6 @@ static void test_fault_log_multiple(void **state) {
     assert_int_equal(count, 3);
 }
 
-/* Note: Null pointer test removed - implementation uses defensive asserts */
 
 /**
  * @brief Test fault log overflow handling
@@ -492,7 +491,6 @@ static void test_fault_log_retrieval(void **state) {
     assert_int_equal(entry.fault_type, FAULT_TYPE_POWER_CRITICAL);
 }
 
-/* Note: Null pointer test removed - implementation uses defensive asserts */
 
 /**
  * @brief Test fault log get entry
@@ -605,6 +603,125 @@ static void test_fault_log_clear(void **state) {
 }
 
 /*===========================================================================*/
+/* Test Cases: Argument checks, recovery marking, console line                */
+/*===========================================================================*/
+
+/**
+ * @brief Bad arguments are refused and nothing is logged: a NULL
+ *        description, fault type 0 or one beyond the stored 8-bit field, a
+ *        severity outside INFO..CRITICAL
+ *
+ * @requirement SRS-F040 Detect and log all fault conditions
+ */
+static void test_fault_log_add_rejects_bad_arguments(void **state) {
+    (void)state;
+
+    assert_int_equal(fault_log_add(FAULT_TYPE_POWER, FAULT_SEVERITY_INFO, NULL, 0.5),
+                     SMART_QSO_ERROR_NULL_PTR);
+    assert_int_equal(fault_log_add((FaultType_t)0, FAULT_SEVERITY_INFO, "type 0", 0.5),
+                     SMART_QSO_ERROR_INVALID);
+    assert_int_equal(fault_log_add((FaultType_t)256, FAULT_SEVERITY_INFO, "type 256", 0.5),
+                     SMART_QSO_ERROR_INVALID);
+    assert_int_equal(fault_log_add(FAULT_TYPE_POWER, (FaultSeverity_t)0, "severity 0", 0.5),
+                     SMART_QSO_ERROR_INVALID);
+    assert_int_equal(fault_log_add(FAULT_TYPE_POWER, (FaultSeverity_t)(FAULT_SEVERITY_CRITICAL + 1),
+                                   "severity 5", 0.5),
+                     SMART_QSO_ERROR_INVALID);
+
+    assert_int_equal(fault_log_get_count(), 0);
+}
+
+/**
+ * @brief Entry access refuses a NULL output and an index past the newest
+ *        entry, and leaves the output alone
+ */
+static void test_fault_get_entry_bad_arguments(void **state) {
+    (void)state;
+    FaultLogEntry_t entry;
+
+    assert_int_equal(fault_log_add(FAULT_TYPE_THERMAL, FAULT_SEVERITY_WARNING, "only", 0.75), SMART_QSO_OK);
+    memset(&entry, 0, sizeof(entry));
+
+    assert_int_equal(fault_log_get_entry(0, NULL), SMART_QSO_ERROR_NULL_PTR);
+    assert_int_equal(fault_log_get_last(NULL), SMART_QSO_ERROR_NULL_PTR);
+    assert_int_equal(fault_log_get_entry(1, &entry), SMART_QSO_ERROR_INVALID);
+    assert_int_equal(entry.fault_type, 0);
+}
+
+/**
+ * @brief Marking a fault recovered is stored with the entry and survives a
+ *        reload; an index past the newest entry is refused
+ *
+ * @requirement SRS-F041 Maintain fault log in NVM
+ * @requirement SRS-F042 Implement autonomous fault recovery
+ */
+static void test_fault_mark_recovered_persists(void **state) {
+    (void)state;
+    FaultLogEntry_t entry;
+
+    assert_int_equal(fault_log_add(FAULT_TYPE_THERMAL, FAULT_SEVERITY_ERROR, "Over temperature", 0.70),
+                     SMART_QSO_OK);
+    assert_int_equal(fault_log_get_entry(0, &entry), SMART_QSO_OK);
+    assert_false(entry.recovered);
+
+    assert_int_equal(fault_log_mark_recovered(0), SMART_QSO_OK);
+    assert_int_equal(fault_log_get_entry(0, &entry), SMART_QSO_OK);
+    assert_true(entry.recovered);
+
+    /* Persisted: a reload keeps the entry and its mark */
+    assert_int_equal(fault_log_load(), SMART_QSO_OK);
+    assert_int_equal(fault_log_get_count(), 1);
+    assert_int_equal(fault_log_get_entry(0, &entry), SMART_QSO_OK);
+    assert_true(entry.recovered);
+    assert_string_equal(entry.description, "Over temperature");
+
+    assert_int_equal(fault_log_mark_recovered(1), SMART_QSO_ERROR_INVALID);
+}
+
+/** What fn() writes to stdout, NUL-terminated in buf */
+static void capture_stdout(void (*fn)(void), char *buf, size_t len) {
+    int fds[2];
+    assert_int_equal(pipe(fds), 0);
+    (void)fflush(stdout);
+    int saved = dup(STDOUT_FILENO);
+    assert_true(saved >= 0);
+    assert_true(dup2(fds[1], STDOUT_FILENO) >= 0);
+    fn();
+    (void)fflush(stdout);
+    assert_true(dup2(saved, STDOUT_FILENO) >= 0);
+    (void)close(saved);
+    (void)close(fds[1]);
+    ssize_t n = read(fds[0], buf, len - 1U);
+    (void)close(fds[0]);
+    buf[(n > 0) ? (size_t)n : 0U] = '\0';
+}
+
+static void add_invalid_utf8_fault(void) {
+    assert_int_equal(fault_log_add(FAULT_TYPE_UART, FAULT_SEVERITY_ERROR, "\xff\xfe UART", 0.5), SMART_QSO_OK);
+}
+
+/**
+ * @brief A description that is not valid text is printed as "?" on the
+ *        console, and stored unchanged
+ *
+ * @requirement SRS-F040 Detect and log all fault conditions
+ */
+static void test_fault_console_line_hides_invalid_text(void **state) {
+    (void)state;
+    char out[256];
+    char expected[64];
+    FaultLogEntry_t entry;
+
+    capture_stdout(add_invalid_utf8_fault, out, sizeof(out));
+    (void)snprintf(expected, sizeof(expected), "[FAULT] Type=%d Severity=%d: ?\n",
+                   (int)FAULT_TYPE_UART, (int)FAULT_SEVERITY_ERROR);
+    assert_string_equal(out, expected);
+
+    assert_int_equal(fault_log_get_last(&entry), SMART_QSO_OK);
+    assert_string_equal(entry.description, "\xff\xfe UART");
+}
+
+/*===========================================================================*/
 /* Test Suite                                                                 */
 /*===========================================================================*/
 
@@ -616,7 +733,6 @@ int main(void) {
         /* Fault logging tests */
         cmocka_unit_test_setup_teardown(test_fault_log_single, setup, teardown),
         cmocka_unit_test_setup_teardown(test_fault_log_multiple, setup, teardown),
-        /* Note: Null pointer test removed - implementation uses defensive asserts */
         cmocka_unit_test_setup_teardown(test_fault_log_overflow, setup, teardown),
 
         /* Fault severity tests */
@@ -649,7 +765,6 @@ int main(void) {
 
         /* Fault log retrieval tests */
         cmocka_unit_test_setup_teardown(test_fault_log_retrieval, setup, teardown),
-        /* Note: Null pointer test removed - implementation uses defensive asserts */
         cmocka_unit_test_setup_teardown(test_fault_log_get_entry, setup, teardown),
 
         /* Persistence tests */
@@ -660,6 +775,12 @@ int main(void) {
 
         /* Clear tests */
         cmocka_unit_test_setup_teardown(test_fault_log_clear, setup, teardown),
+
+        /* Argument checks, recovery marking, console line */
+        cmocka_unit_test_setup_teardown(test_fault_log_add_rejects_bad_arguments, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_fault_get_entry_bad_arguments, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_fault_mark_recovered_persists, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_fault_console_line_hides_invalid_text, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Fault Management Tests", tests, NULL, NULL);

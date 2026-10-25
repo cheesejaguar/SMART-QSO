@@ -1,6 +1,12 @@
 //! `contact_monitor.h`: the loss-of-contact transmit inhibit
 //! (`sqso_fsw::contact_monitor`), on the flash HAL and rf_control.
 //!
+//! Coverage: only a nested call (an interrupt) finds `MONITOR` in use (busy:
+//! `Global::with` gives `None`); no C callback runs while it is held. The
+//! unit test `tests::busy_while_the_state_is_in_use` covers those paths
+//! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
+//! export too).
+//!
 //! @requirement SYS-205 Cease transmissions after N days without an authenticated telecommand
 
 use sqso_fsw::contact_monitor::{ContactIo, ContactMonitor, Error, Report, TIMEOUT_DEFAULT_DAYS};
@@ -84,4 +90,27 @@ pub extern "C" fn contact_monitor_seconds_since_contact() -> u32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn contact_monitor_inhibited() -> bool {
     MONITOR.with(|m| m.inhibited()).unwrap_or(false)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fault_mgmt::tests::serial;
+
+    /// A nested call (an interrupt) while the state is in use gets "busy"
+    /// and the defaults
+    #[test]
+    fn busy_while_the_state_is_in_use() {
+        let _serial = serial();
+        let nested = MONITOR.with(|_| {
+            let calls = [contact_monitor_init(), contact_monitor_set_timeout_days(14)];
+            (
+                calls,
+                contact_monitor_get_timeout_days(),
+                contact_monitor_seconds_since_contact(),
+                contact_monitor_inhibited(),
+            )
+        });
+        assert_eq!(nested, Some(([rc::BUSY; 2], TIMEOUT_DEFAULT_DAYS, 0, false)));
+    }
 }

@@ -110,13 +110,15 @@ pub extern "C" fn rf_control_tx_permitted() -> bool {
 /// Apply or lift one automatic inhibit (`RfInhibit_t`)
 #[unsafe(no_mangle)]
 pub extern "C" fn rf_control_set_inhibit(source: u32, active: bool) {
-    if RF.with(|rf| rf.set_inhibit(source, active, &mut HalFlash)).is_none() && active {
+    RF.with(|rf| rf.set_inhibit(source, active, &mut HalFlash)).unwrap_or_else(|| {
         // Busy (a nested call): an inhibit is never lost
-        gpio_set(GPIO_PIN_RF_TX_EN, false);
-        if source & rf_control::INHIBIT_RF_SILENCE != 0 {
-            gpio_set(GPIO_PIN_RADIO_EN, false);
+        if active {
+            gpio_set(GPIO_PIN_RF_TX_EN, false);
+            if source & rf_control::INHIBIT_RF_SILENCE != 0 {
+                gpio_set(GPIO_PIN_RADIO_EN, false);
+            }
         }
-    }
+    });
 }
 
 /// Select the downlink power level (`RfPowerLevel_t`) and persist it
@@ -129,4 +131,54 @@ pub extern "C" fn rf_control_set_power_level(level: u32) -> i32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn rf_control_get_power_level() -> u32 {
     RF.with(|rf| rf.power_level()).unwrap_or(rf_control::POWER_0W5)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fault_mgmt::tests::serial;
+
+    /// Radio and transmitter enables configured as outputs, both on
+    fn lines_on() {
+        for pin in [GPIO_PIN_RADIO_EN, GPIO_PIN_RF_TX_EN] {
+            gpio_config(pin, GPIO_DIR_OUTPUT);
+            gpio_set(pin, true);
+        }
+    }
+
+    /// (radio enable, transmitter enable)
+    fn lines() -> (bool, bool) {
+        // SAFETY: plain values
+        unsafe { (c::hal_gpio_get(GPIO_PIN_RADIO_EN), c::hal_gpio_get(GPIO_PIN_RF_TX_EN)) }
+    }
+
+    /// A nested call (an interrupt) while the state is in use gets "busy":
+    /// TX-OFF and an applied inhibit still drop the lines (the RF silence
+    /// the radio too); lifting an inhibit and enabling TX do nothing
+    #[test]
+    fn busy_still_silences() {
+        let _serial = serial();
+        // SAFETY: no arguments
+        assert_eq!(unsafe { c::hal_gpio_init() }, rc::OK);
+        let nested = RF.with(|_| {
+            let mut seen = [(true, true); 5];
+            lines_on();
+            let tx_off = rf_control_tx_off();
+            seen[0] = lines();
+            lines_on();
+            rf_control_set_inhibit(rf_control::INHIBIT_CONTACT, true);
+            seen[1] = lines();
+            lines_on();
+            rf_control_set_inhibit(rf_control::INHIBIT_RF_SILENCE, true);
+            seen[2] = lines();
+            lines_on();
+            rf_control_set_inhibit(rf_control::INHIBIT_RF_SILENCE, false);
+            seen[3] = lines();
+            let commands = [tx_off, rf_control_tx_on(), rf_control_init(), rf_control_set_power_level(0)];
+            seen[4] = lines();
+            (commands, seen, rf_control_tx_permitted(), rf_control_get_power_level())
+        });
+        let seen = [(true, false), (true, false), (false, false), (true, true), (true, true)];
+        assert_eq!(nested, Some(([rc::BUSY; 4], seen, false, rf_control::POWER_0W5)));
+    }
 }

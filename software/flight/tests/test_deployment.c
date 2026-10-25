@@ -16,6 +16,8 @@
 #include <cmocka.h>
 
 #include "deployment.h"
+#include "fault_mgmt.h"
+#include "flight_log.h"
 #include "nvm_record.h"
 #include "hal/hal_flash.h"
 #include "hal/hal_gpio.h"
@@ -431,6 +433,108 @@ static void test_force_retry_after_failure(void **state)
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
 }
 
+/** The solar panel never senses deployed: its retries run out, the
+ *  sequence ends FAILED and the failure is fault-logged */
+static void test_solar_failure_reported(void **state)
+{
+    (void)state;
+    FaultLogEntry_t entry;
+
+    hal_sim_gpio_drive_input(GPIO_PIN_ANTENNA_SENSE, true);
+    wait_out();
+    for (uint32_t i = 0U; i < 20U; i++) {
+        advance(2U * MINUTE_MS, SECOND_MS);
+    }
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_FAILED);
+    assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), DEPLOYMENT_MAX_RETRIES);
+    assert_no_burn();
+    assert_int_equal(fault_log_get_last(&entry), SMART_QSO_OK);
+    assert_string_equal(entry.description, "Solar panel deployment failed");
+}
+
+/** GSE ARM that cannot be persisted reports the I/O error; the burn lines
+ *  stay off */
+static void test_arm_not_persisted(void **state)
+{
+    (void)state;
+    hal_sim_flash_fail_writes(true);
+    assert_int_equal(deployment_arm(), SMART_QSO_ERROR_IO);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_ARMED);
+    assert_no_burn();
+}
+
+/** deployment_save_state() persists the wait count between the periodic
+ *  saves, so a watchdog reset resumes from it; it fails if flash does */
+static void test_save_state_persists_wait(void **state)
+{
+    (void)state;
+    deployment_tick(SECOND_MS);   /* separation seen */
+    advance(30U * SECOND_MS, SECOND_MS);
+    uint32_t saved = deployment_wait_elapsed_s();
+    assert_true(saved > 0U);
+    assert_true(deployment_save_state());
+
+    advance(20U * SECOND_MS, SECOND_MS);   /* not saved: the next periodic save is not due */
+    hal_sim_flash_fail_writes(true);
+    assert_false(deployment_save_state());
+    hal_sim_flash_fail_writes(false);
+
+    reboot(HAL_RESET_WATCHDOG);
+    assert_int_equal(deployment_wait_elapsed_s(), saved);
+}
+
+/** What calls back into deployment from the flight-log callback got */
+static struct {
+    int calls;
+    SmartQsoResult_t arm;
+    bool status;
+    bool telemetry;
+    bool saved;
+    uint8_t attempts_seen;
+} s_nested;
+
+/** Flight-log output callback: on the first DEPLOY entry, call back into
+ *  the deployment module (it is in the middle of a step) */
+static void call_back_into_deployment(const LogEntry_t *entry)
+{
+    DeploymentElementStatus_t status;
+    DeploymentTelemetry_t telemetry;
+
+    if ((strcmp(entry->module, "DEPLOY") != 0) || (s_nested.calls > 0)) {
+        return;
+    }
+    s_nested.calls++;
+    memset(&status, 0, sizeof(status));
+    status.attempt_count = 7U;
+    s_nested.arm = deployment_arm();
+    s_nested.status = deployment_get_element_status(DEPLOY_ELEMENT_ANTENNA, &status);
+    s_nested.attempts_seen = status.attempt_count;
+    s_nested.telemetry = deployment_get_telemetry(&telemetry);
+    s_nested.saved = deployment_save_state();
+}
+
+/** The flight log's output callback runs while a step is in progress: a
+ *  call back into deployment from it is refused (busy) and changes nothing */
+static void test_reentry_from_log_callback_refused(void **state)
+{
+    (void)state;
+    memset(&s_nested, 0, sizeof(s_nested));
+    assert_int_equal(log_init(), SMART_QSO_OK);
+    assert_int_equal(log_register_callback(call_back_into_deployment), SMART_QSO_OK);
+
+    deployment_tick(SECOND_MS);   /* separation: logged in the middle of the step */
+    assert_int_equal(log_register_callback(NULL), SMART_QSO_OK);
+
+    assert_int_equal(s_nested.calls, 1);
+    assert_int_equal(s_nested.arm, SMART_QSO_ERROR_BUSY);
+    assert_false(s_nested.status);
+    assert_int_equal(s_nested.attempts_seen, 7U);
+    assert_false(s_nested.telemetry);
+    assert_false(s_nested.saved);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_WAITING);   /* not ARMED */
+    assert_true(deployment_is_separated());
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -453,6 +557,10 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_corrupt_record_starts_over, setup, teardown),
         cmocka_unit_test_setup_teardown(test_disabled_holds, setup, teardown),
         cmocka_unit_test_setup_teardown(test_force_retry_after_failure, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_solar_failure_reported, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_arm_not_persisted, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_save_state_persists_wait, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_reentry_from_log_callback_refused, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Deployment Tests", tests, NULL, NULL);

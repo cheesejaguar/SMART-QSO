@@ -556,6 +556,7 @@ impl Deployment {
             State::SolarActive => self.process_active(io, Element::SolarPanel, State::SolarVerify),
             State::SolarVerify => self.process_verify(io, Element::SolarPanel),
             // Terminal or waiting for a boot: handled by the caller
+            // COVERAGE-EXEMPT: tick, the only caller, returns before this call in these states
             State::Complete | State::Failed | State::Armed => {}
         }
     }
@@ -1095,6 +1096,92 @@ mod tests {
         advance(&mut d, &mut io, 10 * MINUTE_MS, SECOND_MS);
         assert!(io.flash.bytes == flash, "no flash writes while stowed and already restarted");
         assert_eq!(io.text.len, log_len, "no state changes logged");
+    }
+
+    /// A solar panel not sensed after its burn is retried after the retry
+    /// delay, with the attempt counted, and is not fired again before it
+    #[test]
+    fn solar_panel_not_sensed_is_retried_after_the_delay() {
+        let mut io = Bench::new();
+        io.sense[0] = true;
+        let mut d = boot(&mut io, Reset::PowerLost);
+        wait_out(&mut d, &mut io);
+        d.tick(SECOND_MS, &mut io);
+        d.tick(SECOND_MS, &mut io);
+        assert!(io.burning(Element::SolarPanel));
+        advance(&mut d, &mut io, SOLAR_BURN_TIME_MS, SECOND_MS);
+        assert_eq!(d.state(), State::SolarVerify);
+        advance(&mut d, &mut io, RETRY_DELAY_MS - SECOND_MS, SECOND_MS);
+        assert_eq!(d.state(), State::SolarVerify);
+        assert!(io.no_burn());
+        d.tick(SECOND_MS, &mut io);
+        assert_eq!(d.state(), State::SolarPending);
+        assert!(io.no_burn());
+        d.tick(SECOND_MS, &mut io);
+        assert!(io.burning(Element::SolarPanel) && !io.burn[0]);
+        assert_eq!(d.element_status(Element::SolarPanel).attempt_count, 2);
+        assert_eq!(io.persisted_at_burn, Some(2));
+    }
+
+    /// Inhibited by command during verification: the retry waits in
+    /// PENDING without burning or spending an attempt until enabled again
+    #[test]
+    fn inhibited_during_verify_holds_the_retry() {
+        let mut io = Bench::new();
+        let mut d = boot(&mut io, Reset::PowerLost);
+        wait_out(&mut d, &mut io);
+        d.tick(SECOND_MS, &mut io);
+        d.tick(SECOND_MS, &mut io);
+        advance(&mut d, &mut io, ANTENNA_BURN_TIME_MS, SECOND_MS);
+        assert_eq!(d.state(), State::AntennaVerify);
+        assert!(d.set_enabled(false, &mut io));
+        advance(&mut d, &mut io, RETRY_DELAY_MS + 10 * MINUTE_MS, SECOND_MS);
+        assert_eq!(d.state(), State::AntennaPending);
+        assert!(io.no_burn());
+        assert_eq!(d.element_status(Element::Antenna).attempt_count, 1);
+        // The sense line still confirms a deployment while inhibited
+        io.sense[0] = true;
+        d.tick(SECOND_MS, &mut io);
+        assert_eq!(d.state(), State::SolarPending);
+        advance(&mut d, &mut io, 10 * MINUTE_MS, SECOND_MS);
+        assert!(io.no_burn());
+        assert!(d.set_enabled(true, &mut io));
+        d.tick(SECOND_MS, &mut io);
+        assert!(io.burning(Element::SolarPanel));
+    }
+
+    /// A resumed record that already marks the element deployed is never
+    /// fired, even with the sense line not confirming it
+    #[test]
+    fn stored_deployed_flag_is_never_fired() {
+        let mut io = Bench::new();
+        let flags = FLAG_ANTENNA_DEPLOYED | FLAG_ENABLED | FLAG_SEPARATED;
+        let rec = [State::AntennaPending as u8, 0, 0, flags, 0x08, 0x07, 0, 0];
+        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &rec).unwrap();
+        let mut d = boot(&mut io, Reset::PowerKept);
+        assert_eq!(d.state(), State::AntennaPending);
+        d.tick(SECOND_MS, &mut io);
+        assert_eq!(d.state(), State::SolarPending);
+        assert!(io.no_burn());
+        d.tick(SECOND_MS, &mut io);
+        assert!(io.burning(Element::SolarPanel) && !io.burn[0]);
+        assert_eq!(d.element_status(Element::Antenna).attempt_count, 0);
+    }
+
+    /// A stowed switch clears a stored wait count even in INHIBITED (a
+    /// resumed record), and persists the restart
+    #[test]
+    fn stowed_clears_a_resumed_wait_in_inhibited() {
+        let mut io = Bench::new();
+        let rec = [State::Inhibited as u8, 0, 0, FLAG_ENABLED, 0x2C, 0x01, 0, 0];
+        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &rec).unwrap();
+        let mut d = boot(&mut io, Reset::PowerKept);
+        assert_eq!((d.state(), d.wait_elapsed_s()), (State::Inhibited, 300));
+        io.stowed = true;
+        d.tick(SECOND_MS, &mut io);
+        assert_eq!((d.state(), d.wait_elapsed_s()), (State::Inhibited, 0));
+        assert!(io.no_burn());
+        assert_eq!(boot(&mut io, Reset::PowerKept).wait_elapsed_s(), 0, "the restart is persisted");
     }
 
     #[test]

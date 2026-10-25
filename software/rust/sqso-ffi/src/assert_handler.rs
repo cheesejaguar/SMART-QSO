@@ -6,6 +6,12 @@
 //! fault-logged and the registered callback called, with no assertion state
 //! borrowed, so the fault log or a callback may assert in turn.
 //!
+//! Coverage: only a nested call (an interrupt) finds `ASSERTS` in use (busy:
+//! `Global::with` gives `None`); no C callback runs while it is held. The
+//! unit test `tests::busy_while_the_state_is_in_use` covers those paths
+//! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
+//! export too).
+//!
 //! @note NPR 7150.2 (standard, not a requirement ID): software safety
 //! @note JPL Power of Ten rule 5 (SQSO-CS-001 §3): at least two assertions per function on average
 
@@ -127,10 +133,10 @@ pub unsafe extern "C" fn assert_get_log(log: *mut Record, max_entries: u16, coun
     let copied = ASSERTS.with(|a| {
         let n = a.log.len().min(usize::from(max_entries));
         for i in 0..n {
-            if let Some(r) = a.log.record(i) {
-                // SAFETY: the C contract: log has max_entries records (i < max_entries)
-                unsafe { log.add(i).write(*r) };
-            }
+            // COVERAGE-EXEMPT: record(i) is Some for every i below len() (n is at most len()), so the else never runs
+            let Some(r) = a.log.record(i) else { continue };
+            // SAFETY: the C contract: log has max_entries records (i < max_entries)
+            unsafe { log.add(i).write(*r) };
         }
         n
     });
@@ -184,5 +190,44 @@ pub unsafe extern "C" fn smart_qso_assert_failed(file: *const c_char, line: u32,
             let _ = core::fmt::write(out, format_args!(":{line}: "));
             out.push(message.unwrap_or(b""));
         });
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fault_mgmt::tests::serial;
+
+    /// A nested call (an interrupt) while the handler state is in use gets
+    /// "busy" and nothing is written; a nested failure still gets its
+    /// response
+    #[test]
+    fn busy_while_the_state_is_in_use() {
+        let _serial = serial();
+        let mut stats = Stats { fatals: 7, ..Stats::default() };
+        let mut count = 7u16;
+        // Never written: the call is refused before any record is copied
+        let log = core::ptr::NonNull::<Record>::dangling().as_ptr();
+        let nested = ASSERTS.with(|_| {
+            // SAFETY: live outputs; log is not written (busy)
+            let (got_stats, got_log, action) = unsafe {
+                (
+                    assert_get_stats(&mut stats),
+                    assert_get_log(log, 1, &mut count),
+                    assert_handle_failure(c"f.c".as_ptr(), 1, kind::PRECONDITION, severity::ERROR, c"m".as_ptr()),
+                )
+            };
+            let calls = [
+                got_stats,
+                got_log,
+                assert_init(),
+                assert_clear_stats(),
+                assert_register_safe_mode_callback(None),
+                assert_register_reset_callback(None),
+            ];
+            (calls, action, assert_has_critical_failures())
+        });
+        assert_eq!(nested, Some(([rc::BUSY; 6], Action::ReturnError as u32, false)));
+        assert_eq!((stats.fatals, count), (7, 7));
     }
 }

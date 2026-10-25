@@ -6,10 +6,11 @@
 #
 # Branch coverage: with RUST_COVERAGE_MIN_BRANCH set, the branch column
 # must reach it too. Branches are only counted in a build made with
-# -Zcoverage-options=branch on a nightly toolchain: configure with
-# RUSTUP_TOOLCHAIN=<nightly> and -DSQSO_RUST_COVERAGE_FLAGS=-Zcoverage-options=branch,
-# and run this script with the same RUSTUP_TOOLCHAIN and
-# RUST_COVERAGE_FLAGS=-Zcoverage-options=branch (the unit tests' flag).
+# -Zcoverage-options=branch (or =condition, which also counts each condition)
+# on a nightly toolchain: configure with RUSTUP_TOOLCHAIN=<nightly> and
+# -DSQSO_RUST_COVERAGE_FLAGS=-Zcoverage-options=condition, and run this script
+# with the same RUSTUP_TOOLCHAIN and RUST_COVERAGE_FLAGS (the unit tests' flag).
+# scripts/safety_coverage.py then gates the safety-critical files on its lcov.
 #
 # The build dir must be configured with -DENABLE_COVERAGE=ON (the Rust
 # library is then instrumented) and its tests run with
@@ -61,7 +62,10 @@ done
 
 # One C test binary carries the whole library (it is linked as one LTO
 # object); the unit-test binaries carry the crates' own test builds
-c_object=$(find "$build/tests" -maxdepth 1 -type f -name 'test_*' -perm -u+x | sort | head -1)
+# (test_rust_contract: every C suite but the integration drivers links it the
+# same way; named so a driver that links no Rust can never be picked)
+c_object="$build/tests/test_rust_contract"
+[ -x "$c_object" ] || { echo "::error::$c_object missing (configure with -DENABLE_COVERAGE=ON and build)"; exit 1; }
 objects=(-object "$c_object")
 # The host simulation (the executive and sqso-sim), run by ctest Simulation_Run
 [ -x "$build/smart_qso_flight" ] && objects+=(-object "$build/smart_qso_flight")
@@ -73,6 +77,14 @@ mkdir -p "$report"
     -ignore-filename-regex="$ignore" | tee "$report/report.txt"
 "$tools/llvm-cov" export "${objects[@]}" -instr-profile="$build/rust.profdata" \
     -ignore-filename-regex="$ignore" -format=lcov > "$report/lcov.info"
+# The unit-test binaries alone: llvm-cov keeps one record per function name,
+# and for a #[no_mangle] function the C test object's record (another build,
+# another hash) hides the unit tests' counts. safety_coverage.py takes the
+# union of the two exports.
+unit_objects=()
+for t in "${unit_tests[@]}"; do unit_objects+=(-object "$t"); done
+"$tools/llvm-cov" export "${unit_objects[@]}" -instr-profile="$build/rust.profdata" \
+    -ignore-filename-regex="$ignore" -format=lcov > "$report/lcov-unit.info"
 
 total=$(awk '/^TOTAL/ { print $(NF-3) }' "$report/report.txt" | tr -d '%')
 echo "Rust line coverage: ${total}% (minimum ${min}%)"

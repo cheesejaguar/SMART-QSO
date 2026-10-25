@@ -2,6 +2,12 @@
 //! (`sqso_fsw::rf_silence`), on the flash HAL, the reset cause and the
 //! separation switch.
 //!
+//! Coverage: only a nested call (an interrupt) finds `SILENCE` in use (busy:
+//! `Global::with` gives `None`); no C callback runs while it is held. The
+//! unit test `tests::busy_reads_as_silent` covers those paths
+//! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
+//! export too).
+//!
 //! @requirement SYS-224 No RF signal earlier than 45 minutes after deployment; switch toggle resets the timer
 
 use sqso_fsw::rf_control::INHIBIT_RF_SILENCE;
@@ -103,4 +109,26 @@ pub extern "C" fn rf_silence_get_state() -> u32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn rf_silence_elapsed_seconds() -> u32 {
     SILENCE.with(|s| s.elapsed_seconds()).unwrap_or(0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fault_mgmt::tests::serial;
+
+    /// A nested call (an interrupt) while the state is in use gets "busy",
+    /// and the silence reads as in force
+    #[test]
+    fn busy_reads_as_silent() {
+        let _serial = serial();
+        let nested = SILENCE.with(|_| {
+            (
+                [rf_silence_init(), rf_silence_arm()],
+                rf_silence_active(),
+                rf_silence_get_state(),
+                rf_silence_elapsed_seconds(),
+            )
+        });
+        assert_eq!(nested, Some(([rc::BUSY; 2], true, State::Counting as u32, 0)));
+    }
 }
