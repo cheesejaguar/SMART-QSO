@@ -70,6 +70,9 @@ python3 software/rust/mutants/ctest_missed.py OUT/mutants.out BUILD             
 | In `Executive::start`, `step`, `send_telemetry_to_jetson`, `request_beacon_text` | 25 of 27 | 2 (equivalent) |
 | Matched by `-F` elsewhere (struct-field deletions) | 6 of 13 | 7 |
 
+Rerun after the harness's timing slack was widened to 250 ms (`ARRIVAL_SLACK_MS`, for a loaded CI runner): the same
+result, the same nine survivors.
+
 Line coverage of `sqso-ffi/src/executive.rs` (`software/flight/scripts/rust_coverage.sh`): 59.3 % before, 87.8 % with
 the two entries; all Rust 92.3 % to 93.4 %.
 
