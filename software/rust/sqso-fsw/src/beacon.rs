@@ -376,21 +376,21 @@ pub fn build_frame(content: &Content) -> (Frame, bool) {
     if frame.info_len == 0 {
         return (frame, false);
     }
-    let mut fcs_data = [0u8; 2 * ax25::ADDR_LEN + 2 + MAX_PAYLOAD_LEN];
-    let mut n = 0;
-    for part in [
+    frame.fcs = ax25::fcs_parts(&[
         frame.dest_addr.as_slice(),
         frame.src_addr.as_slice(),
         &[frame.ctrl, frame.pid],
         frame.info.get(..frame.info_len).unwrap_or(&[]),
-    ] {
-        if let Some(dst) = fcs_data.get_mut(n..n + part.len()) {
-            dst.copy_from_slice(part);
-        }
-        n += part.len();
-    }
-    frame.fcs = ax25::fcs(fcs_data.get(..n).unwrap_or(&[]));
+    ]);
     (frame, true)
+}
+
+/// Length of the frame on the air ([`serialize`]'s result for a buffer of
+/// [`ax25::MAX_FRAME_LEN`]); 0 if the information length is beyond its field
+pub fn serialized_len(frame: &Frame) -> usize {
+    let Some(info) = frame.info.get(..frame.info_len) else { return 0 };
+    let size = 1 + 2 * ax25::ADDR_LEN + 2 + info.len() + 2 + 1;
+    if size <= ax25::MAX_FRAME_LEN { size } else { 0 }
 }
 
 /// The frame on the air: flag, addresses, control, PID, information, FCS
@@ -729,8 +729,10 @@ mod tests {
         let ui = ax25::parse_ui(&out[1..n - 1]).unwrap();
         assert_eq!(ui.info, &frame.info[..frame.info_len]);
         assert_eq!(serialize(&frame, &mut out[..n - 1]), 0);
+        assert_eq!(serialized_len(&frame), n);
         let bad = Frame { info_len: MAX_PAYLOAD_LEN + 1, ..frame };
         assert_eq!(serialize(&bad, &mut out), 0);
+        assert_eq!(serialized_len(&bad), 0);
     }
 
     #[test]

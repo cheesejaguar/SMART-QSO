@@ -25,9 +25,12 @@ mod i2c;
 mod radio;
 mod rc;
 mod spi;
+mod stack;
 mod timer;
 mod uart;
 mod wdt;
+
+use core::sync::atomic::{AtomicBool, Ordering};
 
 use embassy_executor::Spawner;
 use embassy_stm32::adc::Adc;
@@ -38,6 +41,7 @@ use embassy_stm32::time::Hertz;
 use embassy_stm32::usart::{self, BufferedUart};
 use embassy_stm32::{Config, bind_interrupts, peripherals, rcc};
 use embassy_time::Timer;
+use sqso_ffi::executive::Executive;
 use static_cell::ConstStaticCell;
 
 bind_interrupts!(struct Irqs {
@@ -88,13 +92,22 @@ fn halt() -> ! {
     cortex_m::peripheral::SCB::sys_reset()
 }
 
+/// Set by the first panic
+static PANICKING: AtomicBool = AtomicBool::new(false);
+
 /// A Rust panic is a fatal assertion: reported to the assertion handler
 /// (which logs it and saves state), then the processor waits for the
 /// independent watchdog to reset it. If the watchdog was never started
 /// (a panic during bring-up), it resets itself instead.
+///
+/// A panic while one is being reported (in the fault log or a callback) is
+/// not reported again, so the handler nests at most once; the stack
+/// analysis (`scripts/stack_usage.py`) counts that one nesting.
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
-    sqso_ffi::report_panic(info);
+    if !PANICKING.swap(true, Ordering::Relaxed) {
+        sqso_ffi::report_panic(info);
+    }
     if wdt::running() {
         loop {
             cortex_m::asm::wfi();
@@ -105,7 +118,29 @@ fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
 
 #[embassy_executor::main]
 async fn main(_spawner: Spawner) {
+    stack::protect();
     wdt::start_boot_watchdog();
+    bring_up();
+    let flight = FLIGHT.take();
+    if !flight.start() {
+        halt()
+    }
+    loop {
+        flight.step();
+        Timer::after_millis(TICK_MS).await;
+    }
+}
+
+/// The flight software's state, for the whole mission. Started in place:
+/// the async main task keeps only a reference, not the state's 800 bytes
+/// in its frame (SRS-C003)
+static FLIGHT: ConstStaticCell<Executive> = ConstStaticCell::new(Executive::BOOT);
+
+/// Clocks, pins and the HAL's peripherals. Not inlined: the async main
+/// task's frame would carry this one's temporaries for the whole mission
+/// (SRS-C003, `scripts/stack_usage.py`)
+#[inline(never)]
+fn bring_up() {
     let p = embassy_stm32::init(clocks());
 
     // Enable and burn lines low first
@@ -153,10 +188,4 @@ async fn main(_spawner: Spawner) {
             adc::input(p.PB1),
         ],
     );
-
-    let Some(mut flight) = sqso_ffi::executive::Executive::start() else { halt() };
-    loop {
-        flight.step();
-        Timer::after_millis(TICK_MS).await;
-    }
 }

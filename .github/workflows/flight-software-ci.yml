@@ -273,6 +273,23 @@ jobs:
         fi
         echo "Image OK: entry $entry, vectors at 0x$vec, SP 0x$sp"
 
+    # SRS-C003 (stack at most 8 KB): the worst case of the flight image,
+    # from its machine code (scripts/stack_usage.py). The second build adds
+    # LLVM's .stack_sizes section to cross-check the frames the script reads
+    # from the flight image: RUSTC_BOOTSTRAP lets the pinned stable compiler
+    # take -Z emit-stack-sizes, which adds a section and changes no code.
+    # CARGO_ENCODED_RUSTFLAGS replaces .cargo/config.toml's flags, so the
+    # link arguments are repeated.
+    - name: Worst-case stack (SRS-C003)
+      working-directory: software/rust/firmware
+      run: |
+        RUSTC_BOOTSTRAP=1 \
+        CARGO_ENCODED_RUSTFLAGS="$(printf '%s\x1f' -C link-arg=-Tlink.x -C link-arg=--nmagic -Z emit-stack-sizes | sed 's/\x1f$//')" \
+          cargo build --release --locked --target-dir target/stack-sizes
+        python3 ../../../scripts/stack_usage.py target/thumbv7em-none-eabihf/release/sqso-firmware \
+          --llvm-elf target/stack-sizes/thumbv7em-none-eabihf/release/sqso-firmware \
+          --firmware-src src --report stack-usage.txt
+
   documentation:
     name: Documentation Check
     runs-on: ubuntu-24.04   # pinned

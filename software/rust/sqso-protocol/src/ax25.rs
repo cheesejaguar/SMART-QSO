@@ -3,7 +3,7 @@
 //! Frames here run from the first address byte through the 2-byte FCS
 //! (little-endian); HDLC flags and bit stuffing belong to the modem.
 
-use crate::checksum::crc16_x25;
+use crate::checksum::{crc16_x25, crc16_x25_parts};
 use crate::write::SliceWriter;
 
 /// HDLC flag
@@ -50,6 +50,11 @@ pub fn address_matches(addr: &Address, callsign: &[u8], ssid: u8) -> bool {
 /// AX.25 frame check sequence (CRC-16/X.25)
 pub fn fcs(data: &[u8]) -> u16 {
     crc16_x25(data)
+}
+
+/// [`fcs`] of a frame given in parts (addresses, control and PID, information)
+pub fn fcs_parts(parts: &[&[u8]]) -> u16 {
+    crc16_x25_parts(parts)
 }
 
 /// Why a frame was not accepted, in the order the checks run

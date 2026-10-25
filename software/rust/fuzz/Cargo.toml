@@ -102,3 +102,10 @@ path = "fuzz_targets/kiss_stream.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "fixed_format"
+path = "fuzz_targets/fixed_format.rs"
+test = false
+doc = false
+bench = false

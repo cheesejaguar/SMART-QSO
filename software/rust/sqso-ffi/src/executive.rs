@@ -17,6 +17,7 @@ use sqso_fsw::beacon::{Content, Measurements, TLM_BV, TLM_SOC, TLM_SUN};
 use sqso_fsw::eps::EpsState;
 use sqso_fsw::executive::{self as exec, PowerModel};
 use sqso_fsw::fault_log::Entry;
+use sqso_fsw::fixed::Fixed;
 use sqso_fsw::mission_data::MissionData;
 use sqso_fsw::payload_guard::{Outcome, Sample, TELEMETRY_TIMEOUT_MS};
 use sqso_protocol::jetson::{LINE_MAX, TEXT_MAX};
@@ -185,29 +186,37 @@ pub struct Executive {
 }
 
 impl Executive {
-    /// Bring the system up; `None` (after reporting why) if it cannot run
-    pub fn start() -> Option<Executive> {
-        let mut x = Executive {
-            tick: 0,
-            telemetry_interval_ms: 0,
-            program_start_ms: 0,
-            last_telemetry_ms: 0,
-            last_health_check_ms: 0,
-            last_contact_tick_ms: 0,
-            power: PowerModel::START,
-            jetson_temp_c: 0,
-            jetson_status_ms: 0,
-            jetson_status_seen: false,
-            ai_text: [0; TEXT_MAX + 1],
-            beacon_seq: 0,
-            jetson_rx: JetsonRx::EMPTY,
-        };
-        if !x.init_system() {
+    /// The state before [`Executive::start`]. A constant, so the firmware
+    /// can place it in a `static` and start it in place: the state is about
+    /// 800 bytes, more than a stack frame should carry (SRS-C003)
+    pub const BOOT: Executive = Executive {
+        tick: 0,
+        telemetry_interval_ms: 0,
+        program_start_ms: 0,
+        last_telemetry_ms: 0,
+        last_health_check_ms: 0,
+        last_contact_tick_ms: 0,
+        power: PowerModel::START,
+        jetson_temp_c: 0,
+        jetson_status_ms: 0,
+        jetson_status_seen: false,
+        ai_text: [0; TEXT_MAX + 1],
+        beacon_seq: 0,
+        jetson_rx: JetsonRx::EMPTY,
+    };
+
+    /// Bring the system up from [`Executive::BOOT`]; false (after reporting
+    /// why) if it cannot run. Not inlined, here and in [`Executive::step`]:
+    /// the caller's frame (the firmware's async main task) would carry the
+    /// frames of both at once (SRS-C003)
+    #[inline(never)]
+    pub fn start(&mut self) -> bool {
+        if !self.init_system() {
             eprint(format_args!("[SYSTEM] Initialization failed"));
-            return None;
+            return false;
         }
-        x.announce();
-        Some(x)
+        self.announce();
+        true
     }
 
     fn init_system(&mut self) -> bool {
@@ -288,10 +297,10 @@ impl Executive {
         crate::c::console(format_args!("[SYSTEM] SMART-QSO Flight Software Started"));
         crate::c::console(format_args!("[SYSTEM] Version: {VERSION}"));
         crate::c::console(format_args!(
-            "[SYSTEM] Mission Phase: {}, Power Mode: {}, SOC: {:.1}%",
+            "[SYSTEM] Mission Phase: {}, Power Mode: {}, SOC: {}%",
             mission.mission_phase,
             eps_control::eps_get_power_mode(),
-            self.power.soc * 100.0
+            Fixed::new(self.power.soc * 100.0, 1)
         ));
     }
 
@@ -301,6 +310,7 @@ impl Executive {
     }
 
     /// One pass of the main loop; each stage checks in with the watchdog
+    #[inline(never)]
     pub fn step(&mut self) {
         let tick = self.tick;
         self.tick = self.tick.wrapping_add(1);
@@ -315,7 +325,9 @@ impl Executive {
             && uart_comm::uart_is_initialized()
             && now.wrapping_sub(self.last_telemetry_ms) >= u64::from(self.telemetry_interval_ms)
         {
-            self.send_telemetry_to_jetson();
+            if self.send_telemetry_to_jetson() {
+                self.request_beacon_text();
+            }
             self.last_telemetry_ms = now;
         }
         if uart_comm::uart_is_initialized() && (now % 10_000) < 100 {
@@ -357,6 +369,7 @@ impl Executive {
     }
 
     /// The stand-in power model, then mode changes and mission data
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn update_mission_state(&mut self, tick: u64) {
         let payload_on = eps_control::eps_is_payload_enabled();
         let discharge = self.power.step(tick, payload_on);
@@ -383,6 +396,7 @@ impl Executive {
     }
 
     /// Every 10 s: temperatures, bus voltage, SOC and the Jetson link
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn monitor_system_health(&mut self) {
         let now = crate::c::now_ms();
         if now.wrapping_sub(self.last_health_check_ms) < exec::HEALTH_CHECK_INTERVAL_MS {
@@ -423,9 +437,10 @@ impl Executive {
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_HEALTH);
     }
 
-    fn send_telemetry_to_jetson(&mut self) {
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn send_telemetry_to_jetson(&mut self) -> bool {
         if !eps_control::eps_is_payload_enabled() || !uart_comm::uart_is_initialized() {
-            return;
+            return false;
         }
 
         // ICD_OBC_JETSON section 4: TELEMETRY,<fields...>,<CRC>\n
@@ -434,15 +449,15 @@ impl Executive {
         if !line.append(
             room,
             format_args!(
-                "TELEMETRY,{},{},{:.3},{},{:.1},",
+                "TELEMETRY,{},{},{},{},{},",
                 crate::c::now_ms(),
                 if self.power.sunlit { "SUNLIT" } else { "ECLIPSE" },
-                self.power.soc,
+                Fixed::new(self.power.soc, 3),
                 eps_control::eps_get_power_mode(),
-                eps_control::eps_get_power_limit()
+                Fixed::new(eps_control::eps_get_power_limit(), 1)
             ),
         ) {
-            return;
+            return false;
         }
 
         // Sensor values
@@ -461,8 +476,15 @@ impl Executive {
         // SAFETY: line.buf holds line.len bytes and has room for the seal
         let sealed = unsafe { jetson_link::jetson_link_seal(line.buf.as_mut_ptr().cast(), line.len, LINE_MAX) };
         send_line(line.buf.get(..sealed).unwrap_or(&[]), "telemetry");
+        true
+    }
 
-        // Ask for the next beacon text
+    /// Ask the Jetson for the next beacon text (after the telemetry line).
+    /// Not inlined, and called by `step` rather than by
+    /// `send_telemetry_to_jetson`: its line buffer and the telemetry line's
+    /// are not on the stack together (SRS-C003)
+    #[inline(never)]
+    fn request_beacon_text(&mut self) {
         self.beacon_seq = self.beacon_seq.wrapping_add(1);
         let mut request = [0u8; LINE_MAX];
         #[allow(clippy::cast_possible_truncation)] // TEXT_MAX is 176
@@ -474,6 +496,7 @@ impl Executive {
     }
 
     /// Read Jetson lines: keep the answer to our latest beacon request
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn poll_jetson(&mut self) {
         let mut chunk = [0u8; 64];
         let mut received = 0usize;
@@ -518,6 +541,7 @@ impl Executive {
     /// times the Jetson rail current, the spreader temperature is the OBC's
     /// own thermistor; the Jetson-reported junction temperature is a
     /// second, not the only, input
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn guard_payload(&mut self, now: u64) {
         let mut sample = Sample::default();
         if let (Some(bus_v), Some(amps)) =
@@ -553,6 +577,7 @@ impl Executive {
     /// stands in for the EPS (SW-01); battery voltage is the BV sensor, only
     /// if read recently. There is no QSO detector yet, so the QSO count is
     /// not reported.
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn update_beacon_measurements(&mut self, now: u64) {
         let mut m = Measurements {
             soc: exec::soc_percent(self.power.soc),
@@ -571,6 +596,7 @@ impl Executive {
     /// Send a beacon when one is due: the Jetson's latest text if the content
     /// filter passes it, otherwise a template. Each Jetson text is sent at
     /// most once.
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn run_beacon(&mut self, now: u64) {
         beacon::beacon_update_interval(eps_control::eps_get_power_mode());
         if !beacon::beacon_should_transmit(now) {
@@ -774,7 +800,10 @@ mod host {
 pub fn run_host(max_ticks: Option<u64>) -> i32 {
     host::install_signal_handlers();
     host::seed_noise();
-    let Some(mut x) = Executive::start() else { return 1 };
+    let mut x = Executive::BOOT;
+    if !x.start() {
+        return 1;
+    }
     while max_ticks.is_none_or(|max| x.ticks() < max) && !host::shutdown_requested() {
         x.step();
         crate::os::sleep_us(exec::TICK_MS * 1000);

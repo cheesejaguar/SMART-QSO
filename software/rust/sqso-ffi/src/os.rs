@@ -109,6 +109,17 @@ pub(crate) fn print_line(line: &[u8]) {
     let _ = unsafe { libc::printf(c"%.*s\n".as_ptr(), len, line.as_ptr().cast::<c_char>()) };
 }
 
+/// Write the concatenation of `parts` and a newline to stdout
+pub(crate) fn print_parts(parts: &[&[u8]]) {
+    for part in parts {
+        let len = c_int::try_from(part.len()).unwrap_or(c_int::MAX);
+        // SAFETY: the format takes a length and a pointer to that many bytes
+        let _ = unsafe { libc::printf(c"%.*s".as_ptr(), len, part.as_ptr().cast::<c_char>()) };
+    }
+    // SAFETY: a NUL-terminated format with no arguments
+    let _ = unsafe { libc::printf(c"\n".as_ptr()) };
+}
+
 /// Write one line to stderr
 pub(crate) fn eprint_line(line: &[u8]) {
     // SAFETY: stdout is flushed first so the two streams stay in order

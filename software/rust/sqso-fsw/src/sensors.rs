@@ -530,7 +530,7 @@ impl<'a> Snprintf<'a> {
         if v.is_nan() {
             self.bytes(if v.is_sign_negative() { b"-nan" } else { b"nan" });
         } else {
-            let _ = write!(self, "{v:.3}");
+            let _ = write!(self, "{}", crate::fixed::Fixed::new(v, 3));
         }
     }
 

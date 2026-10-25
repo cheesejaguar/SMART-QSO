@@ -148,26 +148,63 @@ pub(crate) fn assert_failed(message: &core::ffi::CStr, line: u32) {
     unsafe { smart_qso_assert_failed(c"sqso-ffi".as_ptr(), line, message.as_ptr()) };
 }
 
+/// A console line (cut at 159 bytes; a NUL shows as '?'), built from
+/// pieces. The fault path builds its lines this way, without `core::fmt`,
+/// which keeps a fault report's stack small and bounded (SRS-C003)
+pub(crate) struct Line {
+    buf: [u8; 160],
+    len: usize,
+}
+
+impl Line {
+    pub(crate) const fn new() -> Self {
+        Line { buf: [0; 160], len: 0 }
+    }
+
+    /// Append bytes
+    pub(crate) fn text(&mut self, s: &[u8]) -> &mut Self {
+        for &b in s {
+            if let Some(slot) = self.buf.get_mut(self.len).filter(|_| self.len < 159) {
+                *slot = if b == 0 { b'?' } else { b };
+                self.len += 1;
+            }
+        }
+        self
+    }
+
+    /// Append `n` in decimal
+    pub(crate) fn dec(&mut self, mut n: u32) -> &mut Self {
+        let mut digits = [0u8; 10];
+        let mut count = 0;
+        for slot in digits.iter_mut().rev() {
+            *slot = b'0' + u8::try_from(n % 10).unwrap_or(0);
+            n /= 10;
+            count += 1;
+            if n == 0 {
+                break;
+            }
+        }
+        self.text(digits.get(digits.len() - count..).unwrap_or(&[]))
+    }
+
+    /// Write it to the console
+    pub(crate) fn print(&self) {
+        console_line(self.buf.get(..self.len).unwrap_or(&[]));
+    }
+}
+
+impl core::fmt::Write for Line {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        self.text(s.as_bytes());
+        Ok(())
+    }
+}
+
 /// Write one formatted line to the console (cut at 159 bytes)
 pub(crate) fn console(args: core::fmt::Arguments<'_>) {
-    struct Line {
-        buf: [u8; 160],
-        len: usize,
-    }
-    impl core::fmt::Write for Line {
-        fn write_str(&mut self, s: &str) -> core::fmt::Result {
-            for b in s.bytes() {
-                if let Some(slot) = self.buf.get_mut(self.len).filter(|_| self.len < 159) {
-                    *slot = if b == 0 { b'?' } else { b };
-                    self.len += 1;
-                }
-            }
-            Ok(())
-        }
-    }
-    let mut line = Line { buf: [0; 160], len: 0 };
+    let mut line = Line::new();
     let _ = core::fmt::write(&mut line, args);
-    console_line(line.buf.get(..line.len).unwrap_or(&[]));
+    line.print();
 }
 
 /// Current time, ms
@@ -215,6 +252,23 @@ pub(crate) fn console_line(line: &[u8]) {
         // SAFETY: both are live slices. Console output is best effort
         unsafe {
             let _ = hal_uart_write(UART_PORT_DEBUG, line.as_ptr(), line.len());
+            let _ = hal_uart_write(UART_PORT_DEBUG, b"\r\n".as_ptr(), 2);
+        }
+    }
+}
+
+/// [`console_line`] of the concatenation of `parts`, without copying them
+pub(crate) fn console_parts(parts: &[&[u8]]) {
+    #[cfg(not(target_os = "none"))]
+    crate::os::print_parts(parts);
+    #[cfg(target_os = "none")]
+    {
+        const UART_PORT_DEBUG: u32 = 1;
+        // SAFETY: all are live slices. Console output is best effort
+        unsafe {
+            for part in parts {
+                let _ = hal_uart_write(UART_PORT_DEBUG, part.as_ptr(), part.len());
+            }
             let _ = hal_uart_write(UART_PORT_DEBUG, b"\r\n".as_ptr(), 2);
         }
     }

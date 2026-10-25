@@ -28,6 +28,15 @@ pub fn crc16_x25(data: &[u8]) -> u16 {
     X25.checksum(data)
 }
 
+/// [`crc16_x25`] of the concatenation of `parts`, without copying them
+pub fn crc16_x25_parts(parts: &[&[u8]]) -> u16 {
+    let mut digest = X25.digest();
+    for part in parts {
+        digest.update(part);
+    }
+    digest.finalize()
+}
+
 /// CRC-32 (IEEE 802.3; check 0xCBF43926): persisted records, GSE frames
 pub fn crc32(data: &[u8]) -> u32 {
     IEEE.checksum(data)
@@ -78,6 +87,8 @@ mod tests {
         assert_eq!(crc32(CHECK), 0xCBF4_3926);
         assert_eq!(crc32(b""), 0);
         assert_eq!(crc16_ccitt_false_from(crc16_ccitt_false(b"1234"), b"56789"), 0x29B1);
+        assert_eq!(crc16_x25_parts(&[b"1234", b"", b"56789"]), 0x906E);
+        assert_eq!(crc16_x25_parts(&[]), crc16_x25(b""));
     }
 
     #[test]

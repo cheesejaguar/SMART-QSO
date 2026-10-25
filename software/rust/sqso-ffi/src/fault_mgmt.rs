@@ -53,10 +53,16 @@ fn save(log: &FaultLog) -> i32 {
 pub(crate) fn add(fault_type: u32, severity: u32, description: &[u8], soc: f64) -> i32 {
     let (Ok(ty), Ok(sev)) = (u8::try_from(fault_type), u8::try_from(severity)) else { return rc::INVALID };
     let entry = Entry::new(c::now_ms(), ty, sev, description, soc);
-    c::console(format_args!(
-        "[FAULT] Type={fault_type} Severity={severity}: {}",
-        core::str::from_utf8(entry.description()).unwrap_or("?")
-    ));
+    // Without core::fmt: this is the fault path (c::Line)
+    let text = entry.description();
+    c::Line::new()
+        .text(b"[FAULT] Type=")
+        .dec(fault_type)
+        .text(b" Severity=")
+        .dec(severity)
+        .text(b": ")
+        .text(if core::str::from_utf8(text).is_ok() { text } else { b"?" })
+        .print();
     FAULTS
         .with(|f| {
             f.log.add(entry);

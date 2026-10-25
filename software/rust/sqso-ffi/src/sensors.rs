@@ -296,10 +296,18 @@ fn store_reading(s: &mut Sensors, index: usize, reading: Reading, at_ms: u64) {
     }
 }
 
-/// The `[READ]` console line of a sensor
-fn print_reading(sensor: &Sensor) {
+/// The `[READ]` console line of sensor `index`, built from the table in
+/// place. Not inlined: its line buffer is not in `sensors_poll`'s frame
+#[inline(never)]
+fn print_reading(index: usize) {
     let mut line = [0u8; 256];
-    let mut w = Snprintf::new(&mut line);
+    let len = with(0, |s| s.table.get(index).map_or(0, |sensor| reading_line(sensor, &mut line)));
+    c::console_line(line.get(..len).unwrap_or(&[]));
+}
+
+/// Write the `[READ]` line of `sensor`; its length (at most 255)
+fn reading_line(sensor: &Sensor, line: &mut [u8; 256]) -> usize {
+    let mut w = Snprintf::new(line);
     w.bytes(b"[READ] id=");
     w.bytes(until_nul(&sensor.id));
     w.bytes(b" name=\"");
@@ -312,8 +320,7 @@ fn print_reading(sensor: &Sensor) {
     }
     w.bytes(b" units=");
     w.bytes(until_nul(&sensor.units));
-    let len = w.finish().min(line.len() - 1);
-    c::console_line(line.get(..len).unwrap_or(&[]));
+    w.finish().min(255)
 }
 
 /// Initialize: no sensors, sunlit, SOC 0.75
@@ -452,35 +459,47 @@ pub unsafe extern "C" fn sensors_get_by_id(id: *const c_char, sensor: *mut Senso
 pub extern "C" fn sensors_poll(current_ms: u64) -> usize {
     let mut polled = 0;
     let mut index = 0;
-    while let Some((sensor, kind)) =
-        with(
-            None,
-            |s| if index < s.count { s.table.get(index).copied().zip(s.kinds.get(index).copied()) } else { None },
-        )
-    {
-        if current_ms >= sensor.next_poll_ms {
-            let reading = kind.map(|k| read(k, &sensor.channel));
-            let next = current_ms.wrapping_add(u64::from(if sensor.period_ms > 0 {
-                sensor.period_ms
-            } else {
-                sensors::DEFAULT_PERIOD_MS
-            }));
-            let updated = with(None, |s| {
+    // Only what a read needs is copied out of the table, not the whole
+    // Sensor_t (SRS-C003); None: past the end of the table, or busy
+    while let Some(job) = with(None, |s| poll_job(s, index, current_ms)) {
+        if let Some(Job { kind, channel, period_ms }) = job {
+            let reading = kind.map(|k| read(k, &channel));
+            let next =
+                current_ms.wrapping_add(u64::from(if period_ms > 0 { period_ms } else { sensors::DEFAULT_PERIOD_MS }));
+            let updated = with(false, |s| {
                 if let Some(r) = reading {
                     store_reading(s, index, r, current_ms);
                 }
-                let slot = s.table.get_mut(index)?;
-                slot.next_poll_ms = next;
-                Some(*slot)
+                s.table.get_mut(index).map(|slot| slot.next_poll_ms = next).is_some()
             });
-            if let (Some(_), Some(after)) = (reading, updated) {
-                print_reading(&after);
+            if reading.is_some() && updated {
+                print_reading(index);
                 polled += 1;
             }
         }
         index += 1;
     }
     polled
+}
+
+/// What a poll needs of a due sensor
+struct Job {
+    kind: Option<Kind>,
+    channel: [u8; CHANNEL_LEN],
+    period_ms: u32,
+}
+
+/// Sensor `index`: None past the end of the table; Some(None) if it is not
+/// due at `current_ms`
+#[allow(clippy::option_option)] // the two levels are "end of table" and "not due"
+fn poll_job(s: &Sensors, index: usize, current_ms: u64) -> Option<Option<Job>> {
+    let sensor = s.table.get(..s.count)?.get(index)?;
+    let kind = s.kinds.get(index).copied().flatten();
+    Some((current_ms >= sensor.next_poll_ms).then_some(Job {
+        kind,
+        channel: sensor.channel,
+        period_ms: sensor.period_ms,
+    }))
 }
 
 /// Read sensor `index` now

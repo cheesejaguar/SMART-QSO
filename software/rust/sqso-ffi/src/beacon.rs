@@ -202,27 +202,16 @@ pub unsafe extern "C" fn beacon_transmit(content: *const Content) -> i32 {
     if !ok {
         return rc::ERROR;
     }
-    let mut tx = [0u8; ax25::MAX_FRAME_LEN];
-    let tx_len = bcn::serialize(&frame, &mut tx);
+    // No downlink driver takes the frame yet (KNOWN_ISSUES KI-001): its
+    // length on the air is counted, and the console shows the information
+    let tx_len = bcn::serialized_len(&frame);
     if tx_len == 0 {
         return rc::ERROR;
     }
     if BEACON.with(|b| b.count_transmit(tx_len, content.source)).is_none() {
         return rc::BUSY;
     }
-    // The radio driver sends the frame; the console shows its information
-    // field, exactly what is sent
-    const PREFIX: &[u8] = b"[BEACON] TX: ";
-    let mut line = [0u8; PREFIX.len() + MAX_PAYLOAD_LEN];
-    let info = frame.info.get(..frame.info_len).unwrap_or(&[]);
-    let mut n = 0;
-    for part in [PREFIX, info] {
-        if let Some(dst) = line.get_mut(n..n + part.len()) {
-            dst.copy_from_slice(part);
-            n += part.len();
-        }
-    }
-    c::console_line(line.get(..n).unwrap_or(&[]));
+    c::console_parts(&[b"[BEACON] TX: ", frame.info.get(..frame.info_len).unwrap_or(&[])]);
     rc::OK
 }
 

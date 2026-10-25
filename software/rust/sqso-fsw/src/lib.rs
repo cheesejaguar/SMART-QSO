@@ -31,6 +31,7 @@
 //! - [`adcs`]: B-dot detumble, sun pointing and ADCS modes (`adcs_control.h`)
 //! - [`watchdog`]: the supervised watchdog's task table (`watchdog_mgr.h`)
 //! - [`fmath`]: C `sqrt` and `round` for `no_std`
+//! - [`fixed`]: `{:.N}` text for an `f64` from a small stack frame (SRS-C003)
 
 #![no_std]
 #![forbid(unsafe_code)]
@@ -44,6 +45,7 @@ pub mod deployment;
 pub mod eps;
 pub mod executive;
 pub mod fault_log;
+pub mod fixed;
 pub mod flight_log;
 pub mod fmath;
 pub mod gnss;
