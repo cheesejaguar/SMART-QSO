@@ -296,7 +296,9 @@ static void test_frames_are_the_console_beacons(void **state)
     assert_true(lines >= 1U);
 }
 
-/** The beacon carries the power model's measurements, not dashes */
+/** The beacon carries the power model's measurements, not dashes or zeros:
+ *  the model starts sunlit at 75 % (sqso_fsw::executive::PowerModel::START)
+ *  and the first beacon goes in the first passes */
 static void test_beacon_carries_measurements(void **state)
 {
     (void)state;
@@ -314,6 +316,10 @@ static void test_beacon_carries_measurements(void **state)
         if ((at == NULL) || (at[strlen(fields[i])] < '0') || (at[strlen(fields[i])] > '9')) {
             fail_msg("no measured%s in \"%s\"", fields[i], text);
         }
+    }
+    long soc = strtol(strstr(text, " SOC=") + strlen(" SOC="), NULL, 10);
+    if ((soc < 70L) || (soc > 80L) || (strstr(text, " SUN=1 ") == NULL)) {
+        fail_msg("first beacon not sunlit at about 75 %%: \"%s\"", text);
     }
 }
 
