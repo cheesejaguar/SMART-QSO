@@ -264,7 +264,7 @@ jobs:
         [ $(( 0x$reset )) -eq $(( 0x$(sym Reset) | 1 )) ] || {
           echo "::error::reset vector $reset is not Reset | 1"; exit 1; }
         # The flight software is in the image, on the firmware's HAL
-        for s in main cmd_process uplink_poll hal_flash_write hal_wdt_kick hal_reset_cause; do
+        for s in main cmd_process uplink_poll hal_flash_write hal_wdt_kick hal_reset_cause downlink_transmit hal_radio_transmit; do
           [ -n "$(sym "$s")" ] || { echo "::error::$s missing from the image"; exit 1; }
         done
         # No heap and no C library

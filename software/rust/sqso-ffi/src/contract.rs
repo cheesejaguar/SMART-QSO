@@ -6,10 +6,10 @@ use core::mem::{align_of, size_of};
 
 use sqso_fsw::telemetry as tlm;
 use sqso_fsw::{
-    adcs, beacon, contact_monitor, deployment, eps, fault_log, gnss, keys, mission_data, mode, nvm, payload_guard,
-    rf_control, rf_silence, scheduler, sensors, watchdog,
+    adcs, beacon, contact_monitor, deployment, downlink, eps, fault_log, gnss, keys, mission_data, mode, nvm,
+    payload_guard, rf_control, rf_silence, scheduler, sensors, watchdog,
 };
-use sqso_protocol::{auth, ax25, filter, gse, jetson, station};
+use sqso_protocol::{auth, ax25, filter, gse, jetson, kiss, station};
 
 use crate::ptr;
 
@@ -51,6 +51,8 @@ const LAYOUTS: &[(u32, (usize, usize))] = &[
     (253, layout::<sqso_fsw::flight_log::Stats>()),
     (254, layout::<crate::uart_comm::UartConfig>()),
     (255, layout::<crate::uart_comm::HalUartConfig>()),
+    // downlink.h
+    (300, layout::<crate::downlink::DownlinkStatus>()),
     // eps_control.h, sensors.h, mission_data.h, gnss.h
     (150, layout::<eps::EpsState>()),
     (151, layout::<crate::sensors::Sensor>()),
@@ -241,6 +243,24 @@ const CONSTANTS: &[(u32, f64)] = &[
     (231, adcs::SUN_SENSOR_COUNT as f64),
     (232, (adcs::mode::SAFE) as f64),
     (233, (crate::adcs_control::FAULT_TYPE_ADCS) as f64),
+    // downlink.h and the HAL values it uses
+    (300, downlink::MAX_FRAME_LEN as f64),
+    (301, (downlink::MAX_KEYDOWN_MS) as f64),
+    (302, downlink::DUTY_PERCENT as f64),
+    (303, downlink::DUTY_WINDOW_MS as f64),
+    (304, downlink::VSWR_LIMIT_RATIO),
+    (305, downlink::RF_PRESENT_W),
+    (306, (downlink::VSWR_STRIKES) as f64),
+    (307, downlink::BACKOFF_MS as f64),
+    (308, downlink::TEMP_LIMIT_C),
+    (309, downlink::TEMP_RESUME_C),
+    (310, ((kiss::TXDELAY_10MS) as u32 * 10) as f64),
+    (311, (crate::downlink::GPIO_PIN_TX_PWR_SEL) as f64),
+    (312, (crate::downlink::ADC_CHANNEL_TX_TEMP) as f64),
+    (313, (crate::downlink::ADC_CHANNEL_TX_FWD) as f64),
+    (314, (crate::downlink::ADC_CHANNEL_TX_REV) as f64),
+    (315, (crate::downlink::FAULT_TYPE_RF_TX) as f64),
+    (316, (rf_control::POWER_1W) as f64),
 ];
 
 /// A constant this library keeps

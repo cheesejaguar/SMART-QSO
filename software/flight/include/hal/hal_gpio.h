@@ -41,7 +41,8 @@ typedef enum {
     GPIO_PIN_SOLAR_BURN    = 12,  /**< Solar-array burn-wire enable */
     GPIO_PIN_ANTENNA_SENSE = 13,  /**< Antenna deployed sense input */
     GPIO_PIN_SOLAR_SENSE   = 14,  /**< Solar array deployed sense input */
-    GPIO_PIN_COUNT         = 15
+    GPIO_PIN_TX_PWR_SEL    = 15,  /**< Downlink power select: low 0.5 W, high 1 W */
+    GPIO_PIN_COUNT         = 16
 } HalGpioPin_t;
 
 /**

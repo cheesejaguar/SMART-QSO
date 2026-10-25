@@ -252,6 +252,33 @@ enum {
     RUST_CONST_GROUP_250_END
 };
 
+/** downlink.h and the HAL values it uses (ids 300-349; passed as
+ * RustLayout_t and RustConst_t; checked in test_downlink.c) */
+enum {
+    RUST_LAYOUT_DOWNLINK_STATUS = 300, /**< DownlinkStatus_t */
+    RUST_LAYOUT_GROUP_300_END
+};
+enum {
+    RUST_CONST_DL_MAX_FRAME_LEN = 300, /**< DOWNLINK_MAX_FRAME_LEN */
+    RUST_CONST_DL_MAX_KEYDOWN_MS,      /**< DOWNLINK_MAX_KEYDOWN_MS */
+    RUST_CONST_DL_DUTY_PERCENT,        /**< DOWNLINK_DUTY_PERCENT */
+    RUST_CONST_DL_DUTY_WINDOW_MS,      /**< DOWNLINK_DUTY_WINDOW_MS */
+    RUST_CONST_DL_VSWR_LIMIT_RATIO,    /**< DOWNLINK_VSWR_LIMIT_RATIO */
+    RUST_CONST_DL_RF_PRESENT_W,        /**< DOWNLINK_RF_PRESENT_W */
+    RUST_CONST_DL_VSWR_STRIKES,        /**< DOWNLINK_VSWR_STRIKES */
+    RUST_CONST_DL_BACKOFF_MS,          /**< DOWNLINK_BACKOFF_MS */
+    RUST_CONST_DL_TEMP_LIMIT_C,        /**< DOWNLINK_TEMP_LIMIT_C */
+    RUST_CONST_DL_TEMP_RESUME_C,       /**< DOWNLINK_TEMP_RESUME_C */
+    RUST_CONST_DL_TXDELAY_MS,          /**< DOWNLINK_TXDELAY_MS */
+    RUST_CONST_DL_GPIO_TX_PWR_SEL,     /**< GPIO_PIN_TX_PWR_SEL */
+    RUST_CONST_DL_ADC_TX_TEMP,         /**< ADC_CHANNEL_TX_TEMP */
+    RUST_CONST_DL_ADC_TX_FWD,          /**< ADC_CHANNEL_TX_FWD */
+    RUST_CONST_DL_ADC_TX_REV,          /**< ADC_CHANNEL_TX_REV */
+    RUST_CONST_DL_FAULT_TYPE_RF_TX,    /**< FAULT_TYPE_RF_TX */
+    RUST_CONST_DL_POWER_1W,            /**< RF_POWER_1W */
+    RUST_CONST_GROUP_300_END
+};
+
 /**
  * @brief Size and alignment of the Rust mirror of a C type
  * @return false for an unknown id

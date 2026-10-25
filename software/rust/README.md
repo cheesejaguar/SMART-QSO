@@ -40,18 +40,18 @@ The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 
 | HAL | File | What |
 |-----|------|------|
-| `hal_gpio.h` | `gpio.rs` | Provisional pin map. Heater and status LED on PD2/PD3, so that PC2/PC3 can be ADC inputs |
+| `hal_gpio.h` | `gpio.rs` | Provisional pin map. Heater and status LED on PD2/PD3, so that PC2/PC3 can be ADC inputs; deployment sense on PE2 and the downlink power select (`TX_PWR_SEL`) on PE3, so that PA0 can be an ADC input |
 | `hal_timer.h` | `timer.rs` | Time base from embassy-time (milliseconds since boot) |
 | `hal_wdt.h`, `hal_reset.h` | `wdt.rs` | IWDG; reset cause from the RCC CSR flags |
 | `hal_uart.h` | `uart.rs` | Buffered UARTs: Jetson USART1 (PA9/PA10), debug USART3 (PD8/PD9) |
 | `hal_i2c.h` | `i2c.rs` | I2C2 (EPS, PF1/PF0), I2C4 (ADCS, PD12/PD13) |
 | `hal_spi.h` | `spi.rs` | SPI2 (RF), SPI3 (auxiliary) |
-| `hal_adc.h` | `adc.rs` | ADC1, VDDA measured against VREFINT, MCU temperature from TS_CAL; front-end scaling provisional |
-| `hal_flash.h` | `fram.rs` | FM25V20A FRAM on SPI1 (PA5/PA6/PA7, CS PA4, WP PC0, HOLD PC1), regions at the `hardware/obc/STORAGE_DESIGN.md` §3.3 addresses; the fault log uses 9,728 B of the event log |
-| `hal_radio.h` | `radio.rs` | Telecommand receiver: KISS frames from the TNC on USART2 (PD5/PD6, 9600 baud), decoded by `sqso_protocol::kiss` |
+| `hal_adc.h` | `adc.rs` | ADC1, VDDA measured against VREFINT, MCU temperature from TS_CAL; the downlink monitors TX_TEMP (PA0), TX_FWD (PC0) and TX_REV (PC1), the power ones square-law (an RMS detector); front-end scaling provisional (TBR-SRS-003) |
+| `hal_flash.h` | `fram.rs` | FM25V20A FRAM on SPI1 (PA5/PA6/PA7, CS PA4, WP PE0, HOLD PE1), regions at the `hardware/obc/STORAGE_DESIGN.md` §3.3 addresses; the fault log uses 9,728 B of the event log |
+| `hal_radio.h` | `radio.rs` | The KISS TNC on USART2 (PD5/PD6, 9600 baud) for both directions (CR-2026-005): received frames decoded by `sqso_protocol::kiss`, with the FCS the TNC removed appended again; downlink frames written after the TNC parameters, from a 1 KB buffer that holds the longest stream, so the write never waits |
 
 Not provided: the HAL's callback timers and the watchdog early-warning callback. Both are refused, as they were in the
-former C port. The release image is 110,396 B of text, 19,648 B of data and 15,488 B of bss. The vector table is at
+former C port. The release image is 115,876 B of text, 19,764 B of data and 16,496 B of bss. The vector table is at
 0x08000000, the initial SP is 0x200A0000 and the entry point is `Reset`. No hardware has run it. CI builds the image and
 checks those properties. The ADCS sensor and actuator drivers, and real sensor-table readings on the target, are not
 written because the parts are not selected (`docs/reviews/KNOWN_ISSUES.md` KI-001).
@@ -96,6 +96,7 @@ during it), and where it is now. The C headers kept their names and content. "fs
 | `payload_guard.c` | fsw `payload_guard.rs`, ffi `payload_guard.rs` |
 | `rf_control.c` | fsw `rf_control.rs`, ffi `rf_control.rs` |
 | `rf_silence.c` | fsw `rf_silence.rs`, ffi `rf_silence.rs` |
+| — (`downlink.h`, new 2026-10-25, no C original) | fsw `downlink.rs`, ffi `downlink.rs`, protocol `kiss.rs` (the TNC parameters) |
 | `rust_panic.c` | ffi `lib.rs` (`report_panic`); panic handlers in `sqso-clib/src/lib.rs` and `firmware/src/main.rs`, panic hook in `sqso-sim/src/main.rs` |
 | `safe_string.c` | fsw `safe_string.rs`, ffi `safe_string.rs` |
 | `scheduler.c` | fsw `scheduler.rs`, ffi `scheduler.rs` |
@@ -251,15 +252,15 @@ The full standard is the Rust section of `docs/development/CODING_STANDARDS.md`.
 
 Measured 2026-10-24.
 
-- **The C suites as the specification.** 46 ctest entries: 43 CMocka suites with 671 `cmocka_unit_test` cases
-  (`test_executive_jetson`, which runs the host simulation with a pseudo-terminal as the Jetson port, is two of the
-  entries), the `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
+- **The C suites as the specification.** 49 ctest entries: 45 CMocka suites with 695 `cmocka_unit_test` cases
+  (`test_executive_jetson`, which runs the host simulation with a pseudo-terminal as the Jetson port, and
+  `test_downlink_sim`, which decodes the simulation's beacons as the TNC gets them, are two entries each), the `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
   unchanged against the Rust on the host and under AddressSanitizer and UBSan.
-- **Coverage.** Rust line coverage is 94.4 %, from the C suites plus the 328 Rust unit tests (gate 90 %). Flight-software
-  line coverage, C and Rust together, is 94.4 % (gate 80 %). Branch and condition coverage is 80.6 % (gate 80 %). The
-  21 safety-critical files (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) are at 100 % of lines and conditions,
+- **Coverage.** Rust line coverage is 94.8 %, from the C suites plus the 358 Rust unit tests (gate 90 %). Flight-software
+  line coverage, C and Rust together, is 94.8 % (gate 80 %). Branch and condition coverage is 81.1 % (gate 80 %). The
+  23 safety-critical files (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) are at 100 % of lines and conditions,
   gated file by file, with 12 reviewed `// COVERAGE-EXEMPT:` lines (CR-2026-003, in place of MC/DC).
-- **Stack.** The image's worst case is 4,900 B of the 8 KB budget (SRS-C003; `scripts/stack_usage.py`, 2026-10-25):
+- **Stack.** The image's worst case is 5,004 B of the 8 KB budget (SRS-C003; `scripts/stack_usage.py`, 2026-10-25):
   3,368 B in thread mode plus one handler per priority level. Every frame the script reads from the image agrees with
   LLVM's own `.stack_sizes` (303 functions; the other 34, compiler-builtins and assembly, are read from the image only).
   The call graph has no cycle except the panic handler's single nesting. Not yet measured on hardware (HIL-044).
@@ -347,12 +348,14 @@ Still open:
 - **Hardware bring-up.** Run the firmware on an STM32L4R5ZI board (the `probe-rs` runner is configured in
   `firmware/.cargo/config.toml`). Measure the loop timing, the stack high-water mark (HIL-044, against the static
   worst case) and the power, and check every HAL driver against the part (TP-FLATSAT-001).
-- **Downlink driver.** No HAL sends a beacon frame to a transmitter yet: `hal_radio.h` has a receive side only. The
-  transceiver selection (SQSO-ICD-005) decides the driver (`docs/reviews/KNOWN_ISSUES.md` KI-001).
+- **Downlink hardware.** The downlink is written (`downlink.h`, CR-2026-005) but the TNC and transmitter are not
+  selected (SQSO-ICD-005): their parameters, the thresholds and the monitor scaling are TBR-SRS-003, checked by
+  HIL-060 to HIL-064 (`docs/reviews/KNOWN_ISSUES.md` KI-001).
 - **ADCS drivers and real sensor readings.** The magnetometer, sun sensor and magnetorquer drivers, and ADC-based
   sensor-table readings with the real front-end scaling, wait for parts and the EPS sense circuits
   (`docs/reviews/KNOWN_ISSUES.md` KI-001).
 - **Pin map.** `firmware/src/gpio.rs` is provisional until the OBC schematic baselines a pinout.
-  `hardware/obc/OBC_DESIGN.md` and `hardware/obc/STORAGE_DESIGN.md` disagree on PA4–PA7 and PC0–PC1.
+  `hardware/obc/OBC_DESIGN.md` and `hardware/obc/STORAGE_DESIGN.md` disagree on PA4–PA7 and PC0–PC1 (FRAM WP#/HOLD#,
+  now on PE0/PE1).
 - **Jetson deployment** builds `sqso_protocol` on the Jetson, with Rust installed by
   `software/payload/ansible/deploy_payload.yml`. Shipping a prebuilt aarch64 wheel would remove that step.

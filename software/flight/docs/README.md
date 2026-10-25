@@ -77,6 +77,7 @@ logic in `software/rust/sqso-fsw` or `software/rust/sqso-protocol`.
 ### Communication
 - **uplink**, **ax25**, **input_validation**, **cmd_auth**, **cmd_dictionary**, **cmd_handler** - Uplink command reception, authentication and dispatch
 - **rf_control**, **rf_silence**, **contact_monitor** - Transmitter permission and inhibits
+- **downlink** - The downlink transmitter: the gate before the KISS TNC, key-down and duty limits, power select, VSWR and thermal protection
 - **telemetry** - Downlink telemetry frame generation
 - **beacon**, **beacon_filter** - Beacon message composition and content filter
 - **jetson_link**, **uart_comm** - OBC–Jetson line protocol and serial line

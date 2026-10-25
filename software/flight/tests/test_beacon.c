@@ -28,6 +28,7 @@
 
 #include "ax25.h"
 #include "beacon.h"
+#include "downlink.h"
 #include "eps_control.h"
 #include "fault_mgmt.h"
 #include "rf_control.h"
@@ -55,6 +56,7 @@ static int setup(void **state)
     rf_control_set_inhibit(RF_INHIBIT_RF_SILENCE, false);
     assert_int_equal(rf_control_init(), SMART_QSO_OK);
     assert_true(rf_control_tx_permitted());
+    assert_int_equal(downlink_init(), SMART_QSO_OK);
     assert_int_equal(eps_init(), SMART_QSO_OK);
     /* EPS state persists between runs, so set the beacon switch explicitly */
     assert_int_equal(eps_control_beacon(true), SMART_QSO_OK);
@@ -359,14 +361,17 @@ static void test_transmit_statistics(void **state)
     size_t ai_bytes = frame_bytes(&ai);
     assert_true((tmpl_bytes > 0U) && (ai_bytes > 0U));
 
+    /* A beacon interval apart: the downlink sends one frame at a time */
     assert_int_equal(beacon_transmit(&tmpl), SMART_QSO_OK);
     assert_int_equal(beacon_get_total_count(), 1U);
     assert_int_equal(beacon_get_ai_percentage(), 0U);
 
+    smart_qso_sim_advance_ms(SPEC_INTERVAL_ACTIVE_MS);
     assert_int_equal(beacon_transmit(&ai), SMART_QSO_OK);
     assert_int_equal(beacon_get_total_count(), 2U);
     assert_int_equal(beacon_get_ai_percentage(), 50U);
 
+    smart_qso_sim_advance_ms(SPEC_INTERVAL_ACTIVE_MS);
     assert_int_equal(beacon_transmit(&ai), SMART_QSO_OK);
     assert_int_equal(beacon_get_ai_percentage(), 66U);
 

@@ -3,8 +3,10 @@
 //! The simulated peripherals behave like simple hardware: GPIO pins hold a
 //! level, three I2C devices have 256 registers each, UART ports have a
 //! receive FIFO that tests fill, the flash regions are RAM, the radio has a
-//! queue of injected frames, and the watchdog counts down on the HAL timer.
-//! Tests use the `hal_sim_*` hooks to inject inputs and faults.
+//! queue of injected frames and keeps the frames it was given to transmit
+//! (and writes them as KISS to `$TNC_DEVICE` if set, as to a TNC), and the
+//! watchdog counts down on the HAL timer. Tests use the `hal_sim_*` hooks to
+//! inject inputs and faults.
 //!
 //! Compiled only for the host; the firmware implements the same functions
 //! for the STM32L4 (`software/rust/firmware`).
@@ -17,14 +19,14 @@ use crate::c::rc;
 use crate::cell::Global;
 use crate::{os, ptr, time};
 
-const GPIO_PIN_COUNT: usize = 15;
+const GPIO_PIN_COUNT: usize = 16;
 const GPIO_DIR_INPUT: u32 = 0;
 const GPIO_DIR_OUTPUT: u32 = 1;
 const I2C_BUS_COUNT: usize = 2;
 const UART_PORT_COUNT: usize = 2;
 const UART_PORT_DEBUG: u32 = 1;
 const SPI_BUS_COUNT: usize = 2;
-const ADC_CHANNEL_COUNT: usize = 7;
+const ADC_CHANNEL_COUNT: usize = 10;
 const FLASH_REGION_COUNT: usize = 11;
 const RADIO_MAX_FRAME: usize = 330;
 const WDT_DEFAULT_TIMEOUT_MS: u32 = 30_000;
@@ -40,8 +42,10 @@ const UART_RX_SIZE: usize = 512;
 const RADIO_QUEUE: usize = 4;
 
 /// Simulated ADC inputs, volts (or the sensor's unit): VBATT, IBATT
-/// (discharging), VSOLAR, ISOLAR, VBUS, TEMP_MCU, TEMP_BOARD
-const ADC_VALUES: [f64; ADC_CHANNEL_COUNT] = [7.8, -0.5, 9.2, 0.45, 5.0, 35.0, 28.0];
+/// (discharging), VSOLAR, ISOLAR, VBUS, TEMP_MCU, TEMP_BOARD, and the
+/// downlink transmitter's TX_TEMP (°C), TX_FWD and TX_REV (W, matched at
+/// 0.5 W). `hal_adc_init()` restores these; `hal_sim_adc_set()` changes one
+const ADC_VALUES: [f64; ADC_CHANNEL_COUNT] = [7.8, -0.5, 9.2, 0.45, 5.0, 35.0, 28.0, 30.0, 0.5, 0.01];
 
 /// Region sizes, bytes, in `HalFlashRegion_t` order
 const FLASH_SIZES: [usize; FLASH_REGION_COUNT] = [
@@ -139,6 +143,48 @@ struct Radio {
     count: usize,
 }
 
+impl Radio {
+    const EMPTY: Radio =
+        Radio { frames: [[0; RADIO_MAX_FRAME]; RADIO_QUEUE], lens: [0; RADIO_QUEUE], head: 0, count: 0 };
+
+    /// Append `frame`; when full, the oldest is dropped if `overwrite`,
+    /// else nothing is stored
+    fn push(&mut self, frame: &[u8], overwrite: bool) -> bool {
+        if self.count >= RADIO_QUEUE {
+            if !overwrite {
+                return false;
+            }
+            self.head = (self.head + 1) % RADIO_QUEUE;
+            self.count -= 1;
+        }
+        let tail = (self.head + self.count) % RADIO_QUEUE;
+        let (Some(dst), Some(n)) =
+            (self.frames.get_mut(tail).and_then(|f| f.get_mut(..frame.len())), self.lens.get_mut(tail))
+        else {
+            return false;
+        };
+        dst.copy_from_slice(frame);
+        *n = frame.len();
+        self.count += 1;
+        true
+    }
+
+    /// Take the oldest frame into `buf`
+    fn pop(&mut self, buf: &mut [u8]) -> Result<usize, i32> {
+        if self.count == 0 {
+            return Err(rc::TIMEOUT);
+        }
+        let n = self.lens.get(self.head).copied().unwrap_or(0);
+        let (Some(dst), Some(src)) = (buf.get_mut(..n), self.frames.get(self.head).and_then(|f| f.get(..n))) else {
+            return Err(rc::INVALID);
+        };
+        dst.copy_from_slice(src);
+        self.head = (self.head + 1) % RADIO_QUEUE;
+        self.count -= 1;
+        Ok(n)
+    }
+}
+
 struct Sim {
     gpio_initialized: bool,
     gpio_state: [bool; GPIO_PIN_COUNT],
@@ -149,8 +195,13 @@ struct Sim {
     uart_rx: [Fifo<UART_RX_SIZE>; UART_PORT_COUNT],
     spi_initialized: [bool; SPI_BUS_COUNT],
     adc_initialized: bool,
+    adc_values: [f64; ADC_CHANNEL_COUNT],
     flash: Flash,
     radio: Radio,
+    radio_ready: bool,
+    radio_tx: Radio,
+    radio_tx_result: i32,
+    tnc_fd: i32,
     wdt: Wdt,
     reset_cause: u32,
 }
@@ -169,6 +220,7 @@ static SIM: Global<Sim> = Global::new(Sim {
     uart_rx: [Fifo::EMPTY, Fifo::EMPTY],
     spi_initialized: [false; SPI_BUS_COUNT],
     adc_initialized: false,
+    adc_values: ADC_VALUES,
     flash: Flash {
         allocated: false,
         initialized: false,
@@ -176,7 +228,11 @@ static SIM: Global<Sim> = Global::new(Sim {
         fail_writes: false,
         writes_before_fail: -1,
     },
-    radio: Radio { frames: [[0; RADIO_MAX_FRAME]; RADIO_QUEUE], lens: [0; RADIO_QUEUE], head: 0, count: 0 },
+    radio: Radio::EMPTY,
+    radio_ready: false,
+    radio_tx: Radio::EMPTY,
+    radio_tx_result: rc::OK,
+    tnc_fd: -1,
     wdt: Wdt {
         initialized: false,
         running: false,
@@ -659,15 +715,18 @@ pub extern "C" fn hal_timer_stop(_timer_id: u8) -> i32 {
 pub extern "C" fn hal_adc_init(_resolution: u32, _reference: u32) -> i32 {
     sim(rc::BUSY, |s| {
         s.adc_initialized = true;
+        s.adc_values = ADC_VALUES;
         rc::OK
     })
 }
 
 fn adc_value(channel: u32) -> Result<f64, i32> {
-    if !sim(false, |s| s.adc_initialized) {
-        return Err(rc::ERROR);
-    }
-    index(channel, ADC_CHANNEL_COUNT).and_then(|c| ADC_VALUES.get(c).copied()).ok_or(rc::INVALID)
+    sim(Err(rc::BUSY), |s| {
+        if !s.adc_initialized {
+            return Err(rc::ERROR);
+        }
+        index(channel, ADC_CHANNEL_COUNT).and_then(|c| s.adc_values.get(c).copied()).ok_or(rc::INVALID)
+    })
 }
 
 /// 12-bit reading of the simulated input against a 3.3 V reference
@@ -845,10 +904,60 @@ pub extern "C" fn hal_flash_wear_level(_region: u32) -> u8 {
 // ---------------------------------------------------------------------------
 // hal_radio.h and hal_reset.h
 
-/// The telecommand receiver (simulation: frames injected by tests)
+/// The TNC (simulation: received frames injected by tests; transmitted
+/// frames kept for them, and written as KISS to `$TNC_DEVICE` if set)
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_radio_init() -> i32 {
-    rc::OK
+    let device = os::env(c"TNC_DEVICE");
+    sim(rc::BUSY, |s| {
+        if s.tnc_fd < 0
+            && let Some(path) = device
+        {
+            // SAFETY: path is NUL-terminated
+            s.tnc_fd = unsafe { libc::open(path.as_ptr(), libc::O_WRONLY | libc::O_NOCTTY | libc::O_NONBLOCK) };
+        }
+        s.radio_ready = true;
+        rc::OK
+    })
+}
+
+/// The TNC's parameters and `frame` as KISS, into `out`
+fn kiss_stream(frame: &[u8], out: &mut [u8]) -> Option<usize> {
+    use sqso_protocol::kiss;
+    let mut n = 0;
+    for (command, value) in kiss::DOWNLINK_PARAMS {
+        n += kiss::encode_command(command, value, 0, out.get_mut(n..)?).ok()?;
+    }
+    n += sqso_protocol::ax25::kiss_encode(frame, 0, out.get_mut(n..)?).ok()?;
+    Some(n)
+}
+
+/// Keep the frame for `hal_sim_radio_take_tx()` (the newest four), and
+/// write it to the TNC device if one is open
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn hal_radio_transmit(frame: *const u8, len: usize) -> i32 {
+    // SAFETY: the C contract: frame points to len bytes
+    let Some(frame) = (unsafe { ptr::bytes(frame, len) }) else { return rc::NULL_PTR };
+    if frame.is_empty() || frame.len() > RADIO_MAX_FRAME - 2 {
+        return rc::INVALID;
+    }
+    sim(rc::BUSY, |s| {
+        if !s.radio_ready {
+            return rc::ERROR;
+        }
+        if s.radio_tx_result != rc::OK {
+            return s.radio_tx_result;
+        }
+        let _ = s.radio_tx.push(frame, true);
+        let mut wire = [0u8; 5 * 5 + 2 * RADIO_MAX_FRAME + 3];
+        if s.tnc_fd >= 0
+            && let Some(n) = kiss_stream(frame, &mut wire)
+        {
+            // SAFETY: wire holds n bytes; tnc_fd is an open descriptor
+            let _ = unsafe { libc::write(s.tnc_fd, wire.as_ptr().cast(), n) };
+        }
+        rc::OK
+    })
 }
 
 /// The next injected frame, or a timeout
@@ -857,20 +966,12 @@ pub unsafe extern "C" fn hal_radio_receive(frame: *mut u8, max_len: usize, len: 
     // SAFETY: the C contract: frame points to max_len writable bytes, len to a size_t
     let (buf, out) = unsafe { (ptr::bytes_mut(frame, max_len), ptr::out(len)) };
     let (Some(buf), Some(out)) = (buf, out) else { return rc::NULL_PTR };
-    sim(rc::BUSY, |s| {
-        let r = &mut s.radio;
-        if r.count == 0 {
-            return rc::TIMEOUT;
+    sim(rc::BUSY, |s| match s.radio.pop(buf) {
+        Ok(n) => {
+            *out = n;
+            rc::OK
         }
-        let n = r.lens.get(r.head).copied().unwrap_or(0);
-        let (Some(dst), Some(src)) = (buf.get_mut(..n), r.frames.get(r.head).and_then(|f| f.get(..n))) else {
-            return rc::INVALID;
-        };
-        dst.copy_from_slice(src);
-        *out = n;
-        r.head = (r.head + 1) % RADIO_QUEUE;
-        r.count -= 1;
-        rc::OK
+        Err(e) => e,
     })
 }
 
@@ -1014,22 +1115,7 @@ pub unsafe extern "C" fn hal_sim_radio_inject(frame: *const u8, len: usize) -> i
     let Some(frame) = (unsafe { ptr::bytes(frame, len) }).filter(|f| f.len() <= RADIO_MAX_FRAME) else {
         return rc::INVALID;
     };
-    sim(rc::BUSY, |s| {
-        let r = &mut s.radio;
-        if r.count >= RADIO_QUEUE {
-            return rc::NO_MEM;
-        }
-        let tail = (r.head + r.count) % RADIO_QUEUE;
-        let (Some(dst), Some(n)) =
-            (r.frames.get_mut(tail).and_then(|f| f.get_mut(..frame.len())), r.lens.get_mut(tail))
-        else {
-            return rc::INVALID;
-        };
-        dst.copy_from_slice(frame);
-        *n = frame.len();
-        r.count += 1;
-        rc::OK
-    })
+    sim(rc::BUSY, |s| if s.radio.push(frame, false) { rc::OK } else { rc::NO_MEM })
 }
 
 /// Drop every queued frame
@@ -1039,6 +1125,44 @@ pub extern "C" fn hal_sim_radio_clear() {
         s.radio.head = 0;
         s.radio.count = 0;
     });
+}
+
+/// The oldest frame given to `hal_radio_transmit()` and not yet taken
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn hal_sim_radio_take_tx(frame: *mut u8, max_len: usize, len: *mut usize) -> i32 {
+    // SAFETY: the C contract: frame points to max_len writable bytes, len to a size_t
+    let (buf, out) = unsafe { (ptr::bytes_mut(frame, max_len), ptr::out(len)) };
+    let (Some(buf), Some(out)) = (buf, out) else { return rc::NULL_PTR };
+    sim(rc::BUSY, |s| match s.radio_tx.pop(buf) {
+        Ok(n) => {
+            *out = n;
+            rc::OK
+        }
+        Err(e) => e,
+    })
+}
+
+/// What `hal_radio_transmit()` returns from now on (`SMART_QSO_OK`: it
+/// takes frames again); kept frames are dropped
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_radio_tx_result(result: i32) {
+    sim((), |s| {
+        s.radio_tx_result = result;
+        s.radio_tx.head = 0;
+        s.radio_tx.count = 0;
+    });
+}
+
+/// Set one simulated ADC input, in its own unit, until `hal_adc_init()`
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_adc_set(channel: u32, value: f64) -> i32 {
+    sim(rc::BUSY, |s| match index(channel, ADC_CHANNEL_COUNT).and_then(|c| s.adc_values.get_mut(c)) {
+        Some(v) => {
+            *v = value;
+            rc::OK
+        }
+        None => rc::INVALID,
+    })
 }
 
 /// The reset cause the next boot will see

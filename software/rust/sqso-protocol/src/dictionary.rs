@@ -41,7 +41,7 @@ pub enum Command {
     TxEnable = 0x31,
     /// Latch TX-OFF in every state (47 CFR 97.207(b))
     TxDisable = 0x32,
-    /// Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the transmitter driver, TBD)
+    /// Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the downlink, downlink.h)
     SetPower = 0x33,
     /// Enable payload
     PldEnable = 0x40,
@@ -171,7 +171,7 @@ impl Command {
             Command::SetBeacon => "Set beacon interval, seconds big-endian, 10 to 120",
             Command::TxEnable => "Clear the latched TX-OFF",
             Command::TxDisable => "Latch TX-OFF in every state (47 CFR 97.207(b))",
-            Command::SetPower => "Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the transmitter driver, TBD)",
+            Command::SetPower => "Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the downlink, downlink.h)",
             Command::PldEnable => "Enable payload",
             Command::PldDisable => "Disable payload",
         }

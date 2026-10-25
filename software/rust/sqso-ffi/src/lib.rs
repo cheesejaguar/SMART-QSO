@@ -72,6 +72,7 @@ pub mod contact_monitor;
 pub mod contract;
 pub mod crc;
 pub mod deployment;
+pub mod downlink;
 pub mod eps_control;
 pub mod executive;
 pub mod fault_mgmt;

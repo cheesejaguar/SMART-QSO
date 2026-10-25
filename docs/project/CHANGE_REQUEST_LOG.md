@@ -2,7 +2,7 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-CRL-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-10-25
 **Reference:** `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` §4.3 to §4.4, §6.3
 
@@ -22,6 +22,7 @@ logged here; the Git history records them.
 | CR-2026-002 | 2026-10-25 | I | BASELINE §6 OBC row; OBC-F001 (`hardware/obc/OBC_DESIGN.md` A.2.1) | FreeRTOS becomes the Embassy executor, no RTOS | Approved, PI | Implemented; OBC-F001 verification pending (hardware) |
 | CR-2026-003 | 2026-10-25 | I | SWE-219 tailoring (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2 to §3.3) | MC/DC replaced by 100 % line and condition coverage of the safety-critical components | Approved, PI | Implemented: per-file CI gate |
 | CR-2026-004 | 2026-10-25 | II | Tool qualification (SDP §3.3) | The flight image stays on the pinned, unqualified rustc 1.97.0; no qualified compiler (Ferrocene) | Approved, PI | Implemented |
+| CR-2026-005 | 2026-10-25 | I | OBC–transmitter interface (`hardware/obc/OBC_DESIGN.md` §8.1 and A.5; SQSO-RF-TX-001 §10.1; SRS §5.3) | The downlink goes to a KISS TNC on USART2, shared with the uplink receiver; power select on one GPIO line (0.5 W / 1 W); three ADC monitors; SRS-I023 to SRS-I027 | Approved, PI | Implemented; verification of the TNC and transmitter pending (hardware) |
 
 ## 3. Change Requests
 
@@ -207,6 +208,73 @@ Submitter: Flight software
    Reason: PI decision, 2026-10-25.
 ```
 
+### CR-2026-005: the downlink transmitter interface
+
+```
+Change Request Number: CR-2026-005
+Date Submitted: 2026-10-25
+Submitter: Flight software
+
+1. Configuration Item Affected:
+   CI ID: SQSO-CDH-OBC-001 §8.1 and A.5 (UART allocation, RF transceiver
+   link, GPIO, ADC: "Not set" in the conflicts table); SQSO-RF-TX-001
+   §10.1; SMART-QSO-SRS-001 §5.3
+
+2. Description of Change:
+   The OBC hands each downlink AX.25 frame (no FCS) to a KISS TNC on
+   USART2 at 9600 baud, the same TNC and UART as the 435 MHz receiver,
+   with the TNC's parameters before every frame. The TNC adds the FCS,
+   modulates AFSK 1200 and keys the 145.8 MHz transmitter. The OBC
+   selects the power on one GPIO line (TX_PWR_SEL: low 0.5 W, high 1 W;
+   BASELINE §7 allows no more than 1 W, so the RF design's third, 2 W,
+   level is not used) and reads three ADC monitors (TX_TEMP, TX_FWD,
+   TX_REV). The PA power stays on RF_TX_EN (rf_control, TX-OFF).
+   New requirements SRS-I023 to SRS-I027 (gate, limits, protection).
+
+3. Reason for Change:
+   No downlink driver existed (KNOWN_ISSUES KI-001): a beacon frame was
+   built and counted but sent nowhere. The OBC design gave the RF link
+   as a UART (§8.1) and as SPI (A.5.3); the RF design as audio from the
+   MCU's DAC (§5.3). A TNC keeps the OBC's part independent of the
+   transceiver chosen and matches the receive side, which already
+   takes KISS frames from a TNC.
+
+4. Impact Assessment:
+   - Technical: the transceiver must have, or be paired with, a KISS
+     TNC that can send while its receiver listens (full duplex). Pins
+     (provisional): TX_PWR_SEL PE3; TX_TEMP PA0, TX_FWD PC0, TX_REV PC1;
+     FRAM WP#/HOLD# move to PE0/PE1 and the deployment sense to PE2.
+   - Schedule: none to the software; the TNC is part of the transceiver
+     selection (SQSO-ICD-005).
+   - Cost: a TNC if the transceiver has none.
+   - Risk: the air-time estimates depend on the TNC's behaviour
+     (TBR-SRS-003).
+
+5. Affected Documents:
+   docs/software/SOFTWARE_REQUIREMENTS.md (1.5), hardware/obc/OBC_DESIGN.md,
+   hardware/rf/TRANSMITTER_DESIGN.md, docs/reviews/KNOWN_ISSUES.md (KI-001),
+   software/flight/tests/hil/HIL_TEST_PLAN.md, software/rust/firmware/BRINGUP.md.
+
+6. Verification Required:
+   Test: the C suites test_downlink and Downlink_TNC_served/_silent
+   (host); the hardware tests HIL-060 to HIL-064 with the TNC and
+   transmitter.
+
+7. CCB Decision:
+   [x] Approved
+   Reason: PI decision, 2026-10-25 (KISS to a TNC on the UART; beacon
+   and telemetry frames; the transponder's keying is separate).
+
+8. Implementation:
+   Assigned to: Flight software
+   Completed: 2026-10-25 (software/rust/sqso-fsw/src/downlink.rs,
+   software/flight/include/downlink.h, software/rust/firmware/src/radio.rs)
+
+9. Verification:
+   Verified by: host tests; hardware pending
+   Date: —
+```
+
 ---
 
 ## 4. Revision History
@@ -214,3 +282,4 @@ Submitter: Flight software
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-10-25 | Initial release: CR-2026-001 to CR-2026-004 | SMART-QSO Team |
+| B | 2026-10-25 | CR-2026-005: the downlink transmitter interface | SMART-QSO Team |

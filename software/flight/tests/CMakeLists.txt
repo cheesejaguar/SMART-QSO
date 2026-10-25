@@ -180,6 +180,7 @@ set(MODULE_TESTS
     "test_uplink\;rf"
     "test_contact_monitor\;rf"
     "test_rf_silence\;rf"
+    "test_downlink\;rf"
     "test_beacon_format\;rf"
     "test_jetson_link\;payload"
     "test_beacon_filter\;rf"
@@ -311,6 +312,24 @@ if(NOT FLIGHT_BUILD)
         set(_sqso_test Executive_Jetson_${_sqso_scenario})
         add_test(NAME ${_sqso_test}
                  COMMAND test_executive_jetson ${CMAKE_BINARY_DIR}/smart_qso_flight ${_sqso_scenario}
+                         ${CMAKE_SOURCE_DIR}/sensors.yaml)
+        set_tests_properties(${_sqso_test} PROPERTIES
+            TIMEOUT 150
+            ENVIRONMENT "SMART_QSO_FAULT_LOG=${CMAKE_CURRENT_BINARY_DIR}/fault_log_${_sqso_test}.dat;SMART_QSO_EPS_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/eps_config_${_sqso_test}.dat;SMART_QSO_MISSION_DATA=${CMAKE_CURRENT_BINARY_DIR}/mission_data_${_sqso_test}.dat;SMART_QSO_STATE_FILE=${CMAKE_CURRENT_BINARY_DIR}/state_${_sqso_test}.dat"
+            LABELS "integration")
+    endforeach()
+
+    # The downlink end to end: the simulation's beacons as the TNC gets
+    # them ($TNC_DEVICE a file), after the RF silence and during it (about
+    # 21 s each). The driver links no flight code.
+    add_executable(test_downlink_sim integration/test_downlink_sim.c)
+    target_link_libraries(test_downlink_sim PkgConfig::CMOCKA)
+    target_compile_options(test_downlink_sim PRIVATE ${TEST_COMPILE_OPTIONS})
+    add_dependencies(test_downlink_sim smart_qso_flight)
+    foreach(_sqso_scenario served silent)
+        set(_sqso_test Downlink_TNC_${_sqso_scenario})
+        add_test(NAME ${_sqso_test}
+                 COMMAND test_downlink_sim ${CMAKE_BINARY_DIR}/smart_qso_flight ${_sqso_scenario}
                          ${CMAKE_SOURCE_DIR}/sensors.yaml)
         set_tests_properties(${_sqso_test} PROPERTIES
             TIMEOUT 150

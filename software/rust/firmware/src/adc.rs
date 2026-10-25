@@ -1,6 +1,8 @@
 //! `hal_adc.h`: ADC1, 12-bit. External inputs (pins TBR, gpio.rs):
 //! VBATT PC2 (IN3), IBATT PC3 (IN4), VSOLAR PC4 (IN13), ISOLAR PC5 (IN14),
-//! VBUS PB0 (IN15), TEMP_BOARD PB1 (IN16); TEMP_MCU is the internal sensor.
+//! VBUS PB0 (IN15), TEMP_BOARD PB1 (IN16), and the downlink transmitter's
+//! TX_TEMP PA0 (IN5), TX_FWD PC0 (IN1), TX_REV PC1 (IN2); TEMP_MCU is the
+//! internal sensor.
 //!
 //! `hal_adc_read_voltage()` gives each input in its own unit (volts, amps or
 //! °C) as the simulation does: the pin voltage, with VDDA measured against
@@ -14,7 +16,7 @@ use crate::cell::Shared;
 use crate::rc;
 
 /// `HalAdcChannel_t` count
-const CHANNELS: usize = 7;
+const CHANNELS: usize = 10;
 const TEMP_MCU: usize = 5;
 const RESOLUTION_12BIT: u32 = 12;
 const FULL_SCALE: f64 = 4095.0;
@@ -22,20 +24,32 @@ const FULL_SCALE: f64 = 4095.0;
 const CAL_VDDA: f64 = 3.0;
 const SAMPLE: SampleTime = SampleTime::CYCLES247_5;
 
-/// Input = pin volts × gain + offset, per channel (TBR)
-const FRONT_END: [(f64, f64); CHANNELS] = [
-    (3.0, 0.0),     // VBATT: 1:3 divider (2S pack, 8.4 V max)
-    (2.0, -3.3),    // IBATT: bidirectional sense amplifier, 1.65 V at 0 A, 0.5 V/A
-    (4.0, 0.0),     // VSOLAR: 1:4 divider
-    (1.0, 0.0),     // ISOLAR: 1 V/A sense amplifier
-    (2.0, 0.0),     // VBUS: 1:2 divider (5 V bus)
-    (1.0, 0.0),     // TEMP_MCU: computed from TS_CAL (see temperature())
-    (100.0, -50.0), // TEMP_BOARD: TMP36-style, 10 mV/°C, 0.5 V at 0 °C
+/// How a pin voltage becomes the input's value
+#[derive(Clone, Copy)]
+enum Scale {
+    /// pin volts × gain + offset
+    Linear(f64, f64),
+    /// k × (pin volts)²: an RMS power detector behind a coupler
+    SquareLaw(f64),
+}
+
+/// Per channel (TBR)
+const FRONT_END: [Scale; CHANNELS] = [
+    Scale::Linear(3.0, 0.0),     // VBATT: 1:3 divider (2S pack, 8.4 V max)
+    Scale::Linear(2.0, -3.3),    // IBATT: bidirectional sense amplifier, 1.65 V at 0 A, 0.5 V/A
+    Scale::Linear(4.0, 0.0),     // VSOLAR: 1:4 divider
+    Scale::Linear(1.0, 0.0),     // ISOLAR: 1 V/A sense amplifier
+    Scale::Linear(2.0, 0.0),     // VBUS: 1:2 divider (5 V bus)
+    Scale::Linear(1.0, 0.0),     // TEMP_MCU: computed from TS_CAL (see temperature())
+    Scale::Linear(100.0, -50.0), // TEMP_BOARD: TMP36-style, 10 mV/°C, 0.5 V at 0 °C
+    Scale::Linear(100.0, -50.0), // TX_TEMP: TMP36-style on the PA
+    Scale::SquareLaw(0.16),      // TX_FWD: -20 dB coupler, RMS detector; 2.5 V at 1 W (SQSO-RF-TX-001 §8.1)
+    Scale::SquareLaw(0.16),      // TX_REV: the coupler's reverse port, same detector
 ];
 
 pub(crate) struct Converter {
     adc: Adc<'static, ADC1>,
-    inputs: [AnyAdcChannel<'static, ADC1>; 6],
+    inputs: [AnyAdcChannel<'static, ADC1>; CHANNELS - 1],
     temp: Temperature,
     vref: VrefInt,
     ready: bool,
@@ -43,7 +57,7 @@ pub(crate) struct Converter {
 
 static ADC: Shared<Converter> = Shared::new();
 
-pub(crate) fn install(adc: Adc<'static, ADC1>, inputs: [AnyAdcChannel<'static, ADC1>; 6]) {
+pub(crate) fn install(adc: Adc<'static, ADC1>, inputs: [AnyAdcChannel<'static, ADC1>; CHANNELS - 1]) {
     let temp = adc.enable_temperature();
     let vref = adc.enable_vrefint();
     ADC.install(Converter { adc, inputs, temp, vref, ready: false });
@@ -136,8 +150,11 @@ pub unsafe extern "C" fn hal_adc_read_voltage(channel: u32, voltage: *mut f64) -
         *out = if ch == TEMP_MCU {
             temperature(raw, vdda)
         } else {
-            let (gain, offset) = FRONT_END.get(ch).copied().unwrap_or((1.0, 0.0));
-            f64::from(raw) / FULL_SCALE * vdda * gain + offset
+            let volts = f64::from(raw) / FULL_SCALE * vdda;
+            match FRONT_END.get(ch).copied().unwrap_or(Scale::Linear(1.0, 0.0)) {
+                Scale::Linear(gain, offset) => volts * gain + offset,
+                Scale::SquareLaw(k) => k * volts * volts,
+            }
         };
         rc::OK
     })

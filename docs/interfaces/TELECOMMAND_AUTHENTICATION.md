@@ -307,6 +307,7 @@ Procedure:
 | Authentication, per-key counters, key table, rotation (`software/rust/sqso-fsw/src/keys.rs`) | Implemented (25 tests, including interrupted rotation and corrupt state) |
 | GSE provisioning (`software/rust/sqso-ffi/src/gse_provision.rs`) | Implemented (6 tests; the umbilical gate was mutation-checked, on the C and again on the Rust) |
 | Latched TX-OFF, power level (`software/rust/sqso-fsw/src/rf_control.rs`), beacon gating | Implemented (11 tests) |
+| The inhibits again at the downlink, when a frame is handed to the TNC (`software/rust/sqso-fsw/src/downlink.rs`) | Implemented (2026-10-25, CR-2026-005; `test_downlink.c`, and `Downlink_TNC_silent`: nothing reaches the TNC during the RF silence) |
 | Loss-of-contact inhibit (`software/rust/sqso-fsw/src/contact_monitor.rs`) | Implemented (10 tests, plus 4 handler tests; the contact hook's gate and placement were mutation-checked, on the C and again on the Rust) |
 | Post-deployment RF silence (`software/rust/sqso-fsw/src/rf_silence.rs`), GSE ARM | Implemented (10 tests plus 1 GSE test; the reset-cause rule, completion persistence and switch reset were mutation-checked, on the C and again on the Rust) |
 | Command path (`software/rust/sqso-ffi/src/cmd_handler.rs`) | Implemented (22 tests, including every dictionary command, KEY_ROTATE, SET_MODE guards and contact detection) |

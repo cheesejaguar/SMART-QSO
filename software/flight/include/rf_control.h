@@ -52,8 +52,9 @@ extern "C" {
  * @brief Downlink transmit power (BASELINE_PARAMETERS section 7: 0.5 W
  *        nominal, 1 W maximum)
  *
- * The level is persisted and reported here; applying it to the PA is the
- * transmitter driver's job, whose interface is TBD in the RF design.
+ * The level is persisted and reported here; the downlink applies it to the
+ * transmitter (GPIO_PIN_TX_PWR_SEL, downlink.h), capped at 0.5 W by its
+ * VSWR protection.
  */
 typedef enum {
     RF_POWER_0W5 = 0,          /**< 0.5 W (default) */

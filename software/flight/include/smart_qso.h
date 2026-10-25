@@ -143,7 +143,8 @@ typedef enum {
     FAULT_TYPE_COMMAND         = 19,  /**< Command processing fault */
     FAULT_TYPE_TELEMETRY       = 20,  /**< Telemetry generation fault */
     FAULT_TYPE_DEPLOYMENT      = 21,  /**< Deployment fault */
-    FAULT_TYPE_SW_INTERNAL     = 22   /**< Internal software fault */
+    FAULT_TYPE_SW_INTERNAL     = 22,  /**< Internal software fault */
+    FAULT_TYPE_RF_TX           = 23   /**< Downlink transmitter protection (downlink.h) */
 } FaultType_t;
 
 /*===========================================================================*/

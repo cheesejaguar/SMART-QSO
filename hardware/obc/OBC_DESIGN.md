@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-CDH-OBC-001
-**Version:** 1.4
+**Version:** 1.5
 **Date:** 2026-10-25
 **Status:** Draft
 **Supersedes:** `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), merged as Appendix A (finding PI-17)
@@ -229,7 +229,7 @@ Per FDIR design, each task checks in:
 | UART | Baud Rate | Connection | Purpose |
 |------|-----------|------------|---------|
 | USART1 | 115200 | Jetson | Payload data |
-| USART2 | 9600 | RF TX | Beacon data |
+| USART2 | 9600 | RF KISS TNC | Uplink frames in, downlink frames out (CR-2026-005) |
 | USART3 | 115200 | Debug | Console |
 
 ### 8.2 SPI Interfaces
@@ -258,6 +258,11 @@ Per FDIR design, each task checks in:
 | PB0-PB3 | ADC channels | Analog |
 | PC0 | Heater control | Output |
 | PC1 | Watchdog kick | Output |
+
+The firmware's provisional pin map (`software/rust/firmware/src/gpio.rs`, `adc.rs`) differs from this table until the
+schematic baselines one. For the downlink (CR-2026-005) it adds TX_PWR_SEL on PE3 (output, low = 0.5 W) and the
+transmitter monitors TX_TEMP on PA0, TX_FWD on PC0 and TX_REV on PC1 (ADC1 IN5, IN1, IN2); to free those ADC pins
+the deployment sense moves to PE2 and the FRAM WP#/HOLD# to PE0/PE1.
 
 ### 8.5 ADC Channels
 
@@ -408,8 +413,8 @@ baseline OBC.
 | IWDG reload at prescaler 256 | 500 (§5.2) | 3750 (A.7.1) | Timeout 30 s in both (`WDT_HW_TIMEOUT_MS`). At LSI 32 kHz / 256, 500 counts is about 4 s and 3750 counts is 30 s |
 | Watchdog timeout test | 4 s ±10 % (§12.1) | — | 30 s (FINDINGS_REGISTER line 155 records the 4 s value) |
 | HSE accuracy | ±20 ppm (§4.1) | ±10 ppm (A.6.2) | Not set |
-| UART allocation | USART1 Jetson, USART2 RF TX 9600, USART3 debug 115200 (§8.1) | UART1 Jetson, UART2 debug 9600, UART3 RF spare (A.5.2) | Not set |
-| RF transceiver link | UART (§8.1) | SPI1, 1 MHz (A.5.3) | Not set |
+| UART allocation | USART1 Jetson, USART2 RF TX 9600, USART3 debug 115200 (§8.1) | UART1 Jetson, UART2 debug 9600, UART3 RF spare (A.5.2) | RF: USART2 at 9600 baud to the KISS TNC, both directions (CR-2026-005); the rest not set |
+| RF transceiver link | UART (§8.1) | SPI1, 1 MHz (A.5.3) | UART to a KISS TNC (§8.1; CR-2026-005); A.5.3 superseded |
 | I2C1 speed | 400 kHz (§8.3) | 100 kHz (A.5.1) | Not set |
 | GPIO allocation | §8.4 (PA0 deploy sense … PC1 watchdog kick) | A.5.4, including the 2026-10-15 rows for RF_TX_EN, UMBILICAL_SENSE, DEPLOY_EN and the deployment sense lines (finding SW-10) | Not set; pins to be assigned in the OBC schematic |
 | ADC channels | 4: battery, solar, two temperatures (§8.5) | 7: six sun sensors and internal temperature (A.5.5) | Not set |
@@ -969,3 +974,4 @@ OpenOCD / STM32CubeProgrammer
 | 1.2 | 2026-10-16 | §2.1, §2.2, §3.1, §3.2, §4.1 and §4.2: part data for the baseline STM32L4R5ZI (2 MB flash, 640 KB SRAM, up to 120 MHz; flight image at 80 MHz from MSI), replacing the superseded STM32L476RG / Apollo4 values; flash partition kept and marked as a bootloader plan; A.1 rows updated; A.2.4 vibration and A.3 / A.4.1 carry dated notes (BASELINE §6; findings PI-14, LA-05) |
 | 1.3 | 2026-10-24 | Software sections for the Rust flight software: the removed C linker script replaced by the firmware's link configuration (§2.1, §3.1); §10.1 HAL headers as they are and their Rust implementation; §10.2 boot sequence as built; A.1 RTOS row; note that OBC-F001 (FreeRTOS) is not met as written; A.9 marked superseded |
 | 1.4 | 2026-10-25 | OBC-F001 rebaselined by the PI to the Embassy executor (was FreeRTOS; BASELINE §6 Revision C, CR-2026-002); A.1 RTOS row; superseded note on the A.4 RAM map |
+| 1.5 | 2026-10-25 | CR-2026-005: USART2 is the KISS TNC link for the uplink and the downlink (§8.1; conflicts table: UART allocation, RF transceiver link); §8.4 note on the firmware's downlink pins |

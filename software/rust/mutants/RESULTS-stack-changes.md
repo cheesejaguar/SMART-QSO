@@ -71,7 +71,8 @@ python3 software/rust/mutants/ctest_missed.py OUT/mutants.out BUILD             
 | Matched by `-F` elsewhere (struct-field deletions) | 6 of 13 | 7 |
 
 Rerun after the harness's timing slack was widened to 250 ms (`ARRIVAL_SLACK_MS`, for a loaded CI runner): the same
-result, the same nine survivors.
+result, the same nine survivors. The resume check's slack later became half an interval (`RESUME_SLACK_MS`, 2026-10-25),
+still well short of the whole interval a mutant that waits for the interval timer adds.
 
 Line coverage of `sqso-ffi/src/executive.rs` (`software/flight/scripts/rust_coverage.sh`): 59.3 % before, 87.8 % with
 the two entries; all Rust 92.3 % to 93.4 %.
@@ -86,6 +87,7 @@ Survivors:
 - **`update_beacon_measurements`, `soc`, `sunlit` or `valid` deleted**: these feed the beacon, and no beacon is sent in
   a simulation run (each boot starts the 45-minute RF silence, the simulated flash being RAM, and the beacon interval
   is 60 s). Killing them needs a run whose RF silence is complete, for example a host-only hook in `hal_sim.rs` that
-  preloads a completed RF-silence record, and a beacon check on the `[BEACON] TX:` line.
+  preloads a completed RF-silence record, and a beacon check on the `[BEACON] TX:` line. Done 2026-10-25 with the
+  downlink: `$SIM_RF_SILENCE_SERVED` and `Downlink_TNC_served` kill all three (`RESULTS-downlink.md`).
 - **`sys_state_init` (`initialized`, `watchdog_ok`, `last_update_ms`) and `check_task_watchdogs` (`name`)**: outside
   the executive, matched by the pattern; not in this scope.

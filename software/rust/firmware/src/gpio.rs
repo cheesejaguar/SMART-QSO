@@ -14,7 +14,7 @@ use crate::cell::Shared;
 use crate::rc;
 
 /// Pins, in `HalGpioPin_t` order
-pub(crate) const COUNT: usize = 15;
+pub(crate) const COUNT: usize = 16;
 
 const DIR_OUTPUT: u32 = 1;
 const PULL_UP: u32 = 1;
@@ -61,12 +61,13 @@ pub(crate) fn install(
     jetson_pwr: Peri<'static, impl Pin>,      // PA2
     rf_tx_en: Peri<'static, impl Pin>,        // PA3
     alert: Peri<'static, impl Pin>,           // PB7
-    deploy_sense: Peri<'static, impl Pin>,    // PA0
+    deploy_sense: Peri<'static, impl Pin>,    // PE2 (PA0 is the TX_TEMP ADC input)
     umbilical_sense: Peri<'static, impl Pin>, // PB8
     antenna_burn: Peri<'static, impl Pin>,    // PB9
     solar_burn: Peri<'static, impl Pin>,      // PB10
     antenna_sense: Peri<'static, impl Pin>,   // PB11
     solar_sense: Peri<'static, impl Pin>,     // PB12
+    tx_pwr_sel: Peri<'static, impl Pin>,      // PE3
 ) {
     GPIO.install(Gpio {
         pins: [
@@ -85,6 +86,7 @@ pub(crate) fn install(
             pin(solar_burn, Boot::OutputLow),
             pin(antenna_sense, Boot::Input(Pull::None)),
             pin(solar_sense, Boot::Input(Pull::None)),
+            pin(tx_pwr_sel, Boot::OutputLow),
         ],
     });
 }
