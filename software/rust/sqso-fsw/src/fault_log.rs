@@ -127,10 +127,10 @@ impl FaultLog {
             self.entries.copy_within(1.., 0);
             self.count = MAX_ENTRIES - 1;
         }
-        if let Some(slot) = self.entries.get_mut(self.count) {
-            *slot = entry;
-            self.count += 1;
-        }
+        // COVERAGE-EXEMPT: count < MAX_ENTRIES here (made so just above), so the slot exists
+        let Some(slot) = self.entries.get_mut(self.count) else { return };
+        *slot = entry;
+        self.count += 1;
     }
 
     /// The entry at `index` (0 is the oldest)
@@ -175,10 +175,13 @@ impl FaultLog {
     pub fn adopt(&mut self, loaded: usize, discarded: &mut impl FnMut(usize)) {
         let mut kept = 0;
         for i in 0..loaded.min(MAX_ENTRIES) {
+            // COVERAGE-EXEMPT: i < MAX_ENTRIES (the loop bound), so the slot exists
             let Some(entry) = self.entries.get(i).copied() else { break };
             if entry.is_intact() {
+                // COVERAGE-EXEMPT: kept <= i < MAX_ENTRIES, so the slot exists
                 if let Some(slot) = self.entries.get_mut(kept) {
                     *slot = entry;
+                    // COVERAGE-EXEMPT: (the brace below) the missing-slot path, as above
                 }
                 kept += 1;
             } else {
@@ -262,5 +265,32 @@ mod tests {
         assert!(log.is_empty());
         assert_eq!((log.len(), log.get(0), log.last()), (0, None, None));
         assert!(log.slots_mut().iter().all(|e| *e == Entry::ZERO), "cleared slots are zeroed");
+    }
+
+    #[test]
+    fn default_log_is_empty() {
+        let mut log = FaultLog::default();
+        assert!(log.is_empty());
+        assert_eq!((log.len(), log.held().len(), log.last()), (0, 0, None));
+        assert!(log.slots_mut().iter().all(|e| *e == Entry::ZERO));
+    }
+
+    /// Adopting more than the log holds keeps at most MAX_ENTRIES, and
+    /// clears the slots after the ones kept
+    #[test]
+    fn adopt_is_bounded_and_clears_the_rest() {
+        let mut log = FaultLog::new();
+        for (i, slot) in log.slots_mut().iter_mut().enumerate() {
+            *slot = Entry::new(i as u64, 1, 1, b"f", 0.0);
+        }
+        log.slots_mut()[MAX_ENTRIES - 1].crc32 ^= 1;
+        let mut dropped = 0;
+        log.adopt(MAX_ENTRIES + 5, &mut |i| {
+            assert_eq!(i, MAX_ENTRIES - 1);
+            dropped += 1;
+        });
+        assert_eq!((log.len(), dropped), (MAX_ENTRIES - 1, 1));
+        assert_eq!(log.last().unwrap().timestamp_ms, MAX_ENTRIES as u64 - 2);
+        assert_eq!(log.slots_mut()[MAX_ENTRIES - 1], Entry::ZERO);
     }
 }

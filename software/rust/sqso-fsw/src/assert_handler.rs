@@ -235,8 +235,10 @@ impl AssertLog {
         if let Some(m) = message {
             let _ = safe_string::copy(&mut record.message, m, MAX_MSG_LEN);
         }
+        // COVERAGE-EXEMPT: index < MAX_FAILURE_LOG always (it wraps to 0 below), so the slot exists
         if let Some(slot) = self.log.get_mut(usize::from(self.index)) {
             *slot = record;
+            // COVERAGE-EXEMPT: (the brace below) the missing-slot path, as above
         }
 
         self.index = self.index.saturating_add(1);
@@ -317,6 +319,16 @@ mod tests {
         assert_eq!(file_name(Some(b"a\\b.c")), b"b.c");
         assert_eq!(file_name(Some(b"x.c")), b"x.c");
         assert_eq!(file_name(Some(b"dir/")), b"");
+    }
+
+    /// The default log is the one before `assert_init()`: empty, no
+    /// critical failure, not initialized
+    #[test]
+    fn default_is_empty_and_uninitialized() {
+        let a = AssertLog::default();
+        assert!(!a.is_initialized() && a.is_empty() && !a.has_critical_failures());
+        assert_eq!((a.len(), a.stats()), (0, Stats::ZERO));
+        assert!(a.record(0).is_none());
     }
 
     #[test]

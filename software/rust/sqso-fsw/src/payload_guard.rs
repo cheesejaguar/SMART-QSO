@@ -314,6 +314,27 @@ mod tests {
         assert!(g.may_enable(T0 + TELEMETRY_TIMEOUT_MS + 1));
     }
 
+    /// A clock that steps back behind the last reading leaves the rail
+    /// unsupervised: it trips, and that reading is not recent enough to
+    /// show the spreader has cooled
+    #[test]
+    fn clock_stepping_back_counts_as_no_telemetry() {
+        let mut g = Guard::new();
+        let cool = sample(5.0, 30.0);
+        assert_eq!(g.step(Some(&cool), true, T0), Outcome::Ok);
+        assert_eq!(g.step(None, true, T0 - 1), Outcome::NoTelemetry);
+        assert_eq!(g.trip_count(), 1);
+
+        // After a trip and its cool-down, a cool reading stamped ahead of
+        // the clock does not yet allow a restart
+        let mut g = Guard::new();
+        assert_eq!(g.step(Some(&sample(LATCHUP_INPUT_W, 30.0)), true, T0), Outcome::Latchup);
+        let later = T0 + COOLDOWN_MS + 10;
+        assert_eq!(g.step(Some(&cool), false, later), Outcome::Ok);
+        assert!(!g.may_enable(later - 5));
+        assert!(g.may_enable(later));
+    }
+
     #[test]
     fn reasons() {
         assert_eq!(reason(0), c"OK");
