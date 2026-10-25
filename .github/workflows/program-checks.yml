@@ -61,6 +61,13 @@ jobs:
       - name: Repository script tests
         run: python -m pytest -q scripts/tests
 
+      # The hardware-test probe scripts (software/rust/firmware/BRINGUP.md):
+      # their parsers and the HIL-004 sequence against a simulated board
+      - name: Firmware probe tools
+        run: |
+          python -m pytest -q software/rust/firmware/tools/tests
+          python software/rust/firmware/tools/guard_test.py --dry-run
+
   docs-integrity:
     name: Documentation Reference Integrity
     runs-on: ubuntu-24.04   # pinned

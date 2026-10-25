@@ -261,10 +261,13 @@ def address_taken(funcs: Dict[int, Function], secs: Dict[str, Tuple[int, bytes]]
     """Functions whose address (with the Thumb bit) the image contains, and
     where: 'data' (.rodata or .data) or 'code' (literal pools, movw/movt)"""
     taken: Dict[int, Set[str]] = {}
-    for name, (_, blob) in secs.items():
+    for name, (vma, blob) in secs.items():
         if name == ".vector_table":
             continue
-        for i in range(0, len(blob) - 3, 2):   # halfword steps cover any 4-byte literal in Thumb code
+        # Word-aligned words only: a function pointer in data is 4-aligned, and
+        # so are LLVM's literal pools. Unaligned steps also matched pieces of
+        # strings that happened to look like a Thumb address.
+        for i in range((-vma) % 4, len(blob) - 3, 4):
             w = struct.unpack_from("<I", blob, i)[0]
             if w & 1 and (w & ~1) in funcs:
                 taken.setdefault(w & ~1, set()).add("code" if name == ".text" else "data")
