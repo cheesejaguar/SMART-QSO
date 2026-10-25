@@ -1,6 +1,6 @@
 # Mutation testing: the SRS-C003 stack changes
 
-Commands and numbers for each part follow. Scope: the functions added or changed to bring the worst-case stack under 8 KB (2026-10-25): `sqso_fsw::fixed`,
+Scope: the functions added or changed to bring the worst-case stack under 8 KB (2026-10-25): `sqso_fsw::fixed`,
 `beacon::serialized_len` and `build_frame`, `checksum::crc16_x25_parts`, `ax25::fcs_parts`, `c::Line`,
 `console_parts`, `os::print_parts`, `sensors::poll_job`, `print_reading` and `reading_line`, `beacon_transmit`,
 `fault_mgmt::add`, and `Executive::start`, `step`, `send_telemetry_to_jetson` and `request_beacon_text`.
