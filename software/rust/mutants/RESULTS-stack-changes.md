@@ -71,7 +71,8 @@ python3 software/rust/mutants/ctest_missed.py OUT/mutants.out BUILD             
 | Matched by `-F` elsewhere (struct-field deletions) | 6 of 13 | 7 |
 
 Rerun after the harness's timing slack was widened to 250 ms (`ARRIVAL_SLACK_MS`, for a loaded CI runner): the same
-result, the same nine survivors.
+result, the same nine survivors. The resume check's slack later became half an interval (`RESUME_SLACK_MS`, 2026-10-25),
+still well short of the whole interval a mutant that waits for the interval timer adds.
 
 Line coverage of `sqso-ffi/src/executive.rs` (`software/flight/scripts/rust_coverage.sh`): 59.3 % before, 87.8 % with
 the two entries; all Rust 92.3 % to 93.4 %.

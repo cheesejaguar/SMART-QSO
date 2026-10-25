@@ -61,7 +61,9 @@ The Rust also has its own unit tests (`cd software/rust && cargo test --workspac
     comma after the last sensor field is trimmed. A STATUS with the junction at 99 °C trips the payload guard and no
     telemetry follows. The driver then closes its end of the line (a hang-up) away from the periodic UART health
     check, which must notice it once, in its next window (wall clock within 100 ms of a multiple of 10 s). Timing
-    checks allow 250 ms for scheduling on a loaded host (`ARRIVAL_SLACK_MS`), well under the 1 s interval.
+    checks allow 250 ms for scheduling on a loaded host (`ARRIVAL_SLACK_MS`), and half an interval for the first
+    telemetry after the payload returns (`RESUME_SLACK_MS`), whose pass also writes files and console lines; a
+    telemetry that waited for the interval timer is a whole interval late.
 
   The beacon is not checked here: these boots start the 45-minute RF silence (`integration/test_downlink_sim.c` checks
   it). The driver sets VMIN 0 and VTIME 0 on the Jetson line first, because the OBC's host port keeps the terminal's VMIN 1 and

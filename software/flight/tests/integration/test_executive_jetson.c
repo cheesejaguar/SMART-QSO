@@ -85,6 +85,15 @@
  * held back by a whole interval still fails
  */
 #define ARRIVAL_SLACK_MS 250U
+/**
+ * The first telemetry after the payload comes back on: in that pass, but
+ * the pass also writes the fault log, the EPS configuration and console
+ * lines (a write that blocks while the driver is behind), so on a loaded
+ * host it may be stamped hundreds of ms after the driver saw the payload
+ * line (312 ms seen in CI). A telemetry that waited for the interval timer
+ * is a whole interval late
+ */
+#define RESUME_SLACK_MS (INTERVAL_MS / 2U)
 /** The beacon text length the OBC asks for (JETSON_TEXT_MAX) */
 #define TEXT_MAX 176U
 /** Longest line, CRC field and LF included (JETSON_LINE_MAX) */
@@ -837,8 +846,8 @@ static void test_telemetry_follows_the_payload_power(void **state)
             ((first == 0U) && ((g_run.end_ms - enabled) < INTERVAL_MS))) {
             continue;
         }
-        /* Sent without waiting another interval: in the pass that turned the payload on or the next */
-        if ((first == 0U) || (first > (enabled + ARRIVAL_SLACK_MS))) {
+        /* Sent without waiting another interval */
+        if ((first == 0U) || (first > (enabled + RESUME_SLACK_MS))) {
             fail_msg("payload on at +%llu ms, first telemetry at +%lld ms",
                      (unsigned long long)(enabled - g_run.start_ms),
                      (long long)first - (long long)g_run.start_ms);
