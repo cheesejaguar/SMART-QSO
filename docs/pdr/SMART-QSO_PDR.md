@@ -36,7 +36,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 ### 2.2 Level‑2 (System) Requirements (selected)
 - 1U form factor, ≤1.80 kg wet mass; CG within CDS rail limits; deployables remain within envelope pre‑deploy.
 - Average orbit power **≥4 W** (sunlit average ≥8–10 W) using two deployable wings; energy storage ≥50 Wh.
-- RF: **Transmit‑only 2 m downlink 145.8–146 MHz** (final per IARU coordination). Beacon‑only operations via Stensat module; conducted power selectable; duty‑cycle adaptive.
+- RF: **Transmit‑only 2 m downlink 145.8–146 MHz** (final per IARU coordination). Beacon‑only operations via Stensat module; conducted power selectable; duty‑cycle adaptive. *(superseded 2026-10-14: 70 cm uplink, duty-gated FM transponder and authenticated telecommand with TX-OFF; BASELINE §2, §7; noted 2026-10-25)*
 - **Payload computing:** Jetson Orin Nano Super (declocked to minimum stable clocks) for burst inference; MCU for background autonomy ≤50 mW average.
 - **Software:** RTOS on low‑power MCU; TinyML for detectors; TensorRT/ONNX Runtime INT8 on Jetson for TinyLM (~1 MB) when sun & thermal allow.
 - **ADCS:** 3‑axis magnetorquers + coarse sun sensors; detumble ≤1 orbit; pointing knowledge ≤10° (for power biasing only; comms omni).
@@ -75,8 +75,8 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 - **Mass memory:** FRAM for state/params (≥4 MB); microSD/NAND for logs (≥128 MB).
 
 ### 4.4 RF & Transponder
-- **Bands:** Downlink 2 m (145.8–146.0 MHz); no uplink.
-- **Mode:** Transmit‑only beacon — AX.25 UI at 1200 bps AFSK via Stensat beacon module.
+- **Bands:** Downlink 2 m (145.8–146.0 MHz); no uplink. *(superseded 2026-10-14: 70 cm uplink, duty-gated FM transponder and authenticated telecommand with TX-OFF; BASELINE §2, §7; noted 2026-10-25)*
+- **Mode:** Transmit‑only beacon — AX.25 UI at 1200 bps AFSK via Stensat beacon module. *(superseded 2026-10-14: 70 cm uplink, duty-gated FM transponder and authenticated telecommand with TX-OFF; BASELINE §2, §7; noted 2026-10-25)*
 - **Antennas:** deployable quarter‑wave tape monopole for 2 m (near‑omni pattern).
 - **Beacon:** 1200 bps AFSK every 60–120 s; adaptive cadence per power/thermal.
 
@@ -236,7 +236,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 2. **Arrays:** 2‑wing vs. 3‑wing deployables; hinge torque margins.
 3. **Memory tech:** FRAM vs. MRAM for higher TID margin; vendor selection.
 4. **LLM runtime:** TensorRT/ONNX op coverage and latency vs. declocking levels; MCU fallback templates.
-5. **Regulatory detail:** finalize IARU frequency coordination specifics and any national administration requirements; no uplink operations.
+5. **Regulatory detail:** finalize IARU frequency coordination specifics and any national administration requirements; no uplink operations. *(superseded 2026-10-14: 70 cm uplink, duty-gated FM transponder and authenticated telecommand with TX-OFF; BASELINE §2, §7; noted 2026-10-25)*
 
 ---
 
