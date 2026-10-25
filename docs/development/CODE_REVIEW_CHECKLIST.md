@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-DEV-003
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-24
 **Reference:** NPR 7150.2, JPL D-60411
 
 ---
@@ -11,6 +11,12 @@
 ## 1. Purpose
 
 This checklist ensures consistent, thorough code reviews for SMART-QSO flight software per NASA software assurance requirements.
+
+**Revision B (2026-10-24).** The flight software is Rust (`software/rust/README.md`). For Rust code, CI already enforces
+several §3 items: the lints deny panicking indexing, `unwrap`, `panic!` and functions over 60 lines; warnings are
+errors; and `#![forbid(unsafe_code)]` is checked (`software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1). The reviewer
+confirms that CI passed and spends the review on what no tool checks: §3 rules 1, 2, 5, 7 and 8, and §5.4. §3 applies as
+written to the remaining C (the flight-log shim and the test suites).
 
 ## 2. Review Information
 
@@ -156,6 +162,20 @@ This checklist ensures consistent, thorough code reviews for SMART-QSO flight so
 | 5.3.3 | Safe state reachable | ☐ | ☐ | |
 | 5.3.4 | Faults are logged | ☐ | ☐ | |
 
+### 5.4 Rust-Specific Checks (review only; no tool checks these)
+| # | Check | Pass | N/A | Comments |
+|---|-------|------|-----|----------|
+| 5.4.1 | `unsafe` only in `sqso-ffi` or the firmware, and only for the purposes in `docs/development/CODING_STANDARDS.md` §11.6 | ☐ | ☐ | |
+| 5.4.2 | Every `unsafe` block has a `// SAFETY:` comment that is true at that point; every internal `unsafe fn` has a `# Safety` section (exports: the C header) | ☐ | ☐ | |
+| 5.4.3 | Every `#[allow(...)]` gives its reason; `indexing_slicing` allowed only in `const` code | ☐ | ☐ | |
+| 5.4.4 | No borrow of module state (`cell::Global`) is held while calling a callback, the fault log or another module | ☐ | ☐ | |
+| 5.4.5 | A re-entered safety-relevant export fails safe (behaviour change 10 in `software/rust/README.md`) | ☐ | ☐ | |
+| 5.4.6 | C-ABI result codes (`i32`/`u32`, not `#[must_use]`) are checked or discarded with `let _ =` on purpose | ☐ | ☐ | |
+| 5.4.7 | A changed C header has its `#[repr(C)]` mirror and constants updated, and `test_rust_contract.c` covers them | ☐ | ☐ | |
+| 5.4.8 | A new parser of external input has a fuzz target with property checks (`software/rust/fuzz/fuzz_targets`) | ☐ | ☐ | |
+| 5.4.9 | A deliberate change of behaviour is added to the numbered list in `software/rust/README.md` | ☐ | ☐ | |
+| 5.4.10 | No `alloc`, no recursion, every loop bounded (`software/flight/docs/LOOP_BOUNDS.md`) | ☐ | ☐ | |
+
 ---
 
 ## 6. Documentation
@@ -220,3 +240,4 @@ This checklist ensures consistent, thorough code reviews for SMART-QSO flight so
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-24 | The flight software is Rust: §1 says which §3 items CI enforces for Rust; §5.4 Rust checks that only review covers | SMART-QSO Team |

@@ -7,7 +7,7 @@
 > finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document ID**: SQSO-CDR-TB-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-01-02
 
 > **Superseded values (funding audit, 2026-10-16, finding PI-14).** This record is kept as written on 2026-01-02, but it
@@ -21,7 +21,8 @@
 | Mass (§3.2, §4.1) | 1.2 kg, "33 % to 2 kg limit"; structure 350 g | Limit 2.00 kg. BASELINE §4: CBE ≈ 1.51 kg, MEV ≤ 1.75 kg. Bottom-up MEL: CBE 1.69 kg, predicted 1.92–2.00 kg | BASELINE §4; `docs/environment/MASS_BUDGET.md` v2.0 |
 | Average power (§3.2) | 0.35 W, "128 % positive" | Load 1.80 W tumbling, 2.20 W sun-pointed; margin +33 % / +63 % (+19 % tumbling with self-shadowing) | BASELINE §5; SOLAR_ARRAY_DESIGN §9.4 |
 | Orbit (§3.2) | 400 km, 51.6° | Circular SSO, ≈ 97.4°, ≤ 500 km target, 525 km cap | BASELINE §3 |
-| OBC processor (§3.1, §4.3) | Ambiq Apollo4 Blue Plus | STM32L4R5ZI, FreeRTOS | BASELINE §6 |
+| OBC processor (§3.1, §4.3) | Ambiq Apollo4 Blue Plus | STM32L4R5ZI | BASELINE §6 |
+| OBC run-time (§3.1 figure, §4.3, §5.1) | FreeRTOS, FreeRTOS 10.x, 6 tasks | No RTOS: the Rust flight software runs on the Embassy executor with one task (20 ms main loop); rebaselined 2026-10-25, CR-2026-002 | BASELINE §6; `software/flight/docs/RTOS_ARCHITECTURE.md` |
 | TX power (§4.4) | 0.5–2 W | 0.5 W nominal, 1 W maximum | BASELINE §7 |
 | Link margin (§4.4) | VHF downlink +1.6 dB at 30°, 20° minimum elevation | 1200 bps beacon at 0.5 W: +7.7 dB at 5° elevation (+4.7 dB conservative pattern); telecommand +4.7 dB at 5° in 92 % of orientations | `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0 |
 | ADCS actuators (§4.6) | None (passive) | 3-axis magnetorquers | BASELINE §8 |
@@ -387,3 +388,4 @@ QA: _________________________ Date: _______
 | 1.0a | 2026-10-16 | Funding audit | Superseded-values table added under the notice (PI-14); body unchanged |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §2.2 objectives corrected to SQSO-REQ-001 §4.2; MO-5 added (finding VV-06) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | Superseded-values table: vibration row added (§7.1 14.1 Grms; interim TP-ENV-002 level) (finding LA-05); body unchanged |
+| 1.3 | 2026-10-25 | SMART-QSO Team | Superseded-values table: OBC run-time row added (Embassy executor, no RTOS; BASELINE §6, CR-2026-002); body unchanged |

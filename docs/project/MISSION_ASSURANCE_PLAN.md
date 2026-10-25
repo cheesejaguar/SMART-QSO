@@ -47,8 +47,8 @@ Principles:
 | Item | Classification |
 |------|----------------|
 | Mission | Class D |
-| Safety | Non-hazardous |
-| Software | Class C |
+| Safety | The software has safety-critical components (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2; Safety Data Package §3.2) |
+| Software | Class C per NPR 7150.2D (flight software and ground software used in operations); Class D for research and analysis tools (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1) |
 | EEE Parts | Level 3 |
 
 ## 3. Organization
@@ -440,3 +440,4 @@ NONCONFORMANCE PROCESS
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.0, note | 2026-10-25 | SMART-QSO Team | §2.3 software row cites the NPR 7150.2D determination (SDP §3.1); the class is unchanged. Safety row: the software has safety-critical components (SDP §3.2), not "non-hazardous" |

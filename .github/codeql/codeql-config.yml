@@ -1,0 +1,10 @@
+# CodeQL (Security Scan job, ci.yml): analyse the flight software, not its
+# test fixtures. Test keys are constants by design (they are the expected
+# values of the tests), and the hard-coded-key query would report each one.
+# Flight keys are provisioned over the GSE umbilical and stored in FRAM; the
+# code holds none.
+paths-ignore:
+  # cargo-fuzz harnesses (test tooling, never linked into flight code)
+  - software/rust/fuzz
+  # Rust unit-test modules kept in their own files (`#[path = "x_tests.rs"]`)
+  - "software/rust/**/*_tests.rs"

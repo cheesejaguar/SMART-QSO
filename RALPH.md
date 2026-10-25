@@ -1,5 +1,11 @@
 # RALPH.md - Repository Audit for Launch-ready Program Hardening
 
+> **Note (2026-10-24):** a dated log, not rewritten. Since 2026-10-24 all flight software is Rust; the C files named
+> below were replaced (porting table in `software/rust/README.md`), except `software/flight/src/flight_log_fmt.c`.
+> **Note (2026-10-25):** the FreeRTOS items below are superseded: the baseline is the Embassy executor with no RTOS
+> (`docs/BASELINE_PARAMETERS.md` §6, CR-2026-002). The software class is NPR 7150.2D Class C
+> (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). Ticks are unchanged.
+
 ## NASA Flight Software Code Quality Audit Report
 **Repository**: SMART-QSO
 **Audit Date**: 2026-01-02
@@ -20,7 +26,7 @@ Each section contains actionable checklist items with detailed implementation in
 in all (list items that begin with `[x]` or `[ ]`, outside code blocks; top level means not indented). A tick is a
 mark in this agent task list, not evidence that the work is complete or verified, and ticks with no artifact have
 been removed (findings PI-09, SW-19). The earlier headline, "97.8 % complete (265/271 tasks)", counted ticks.
-**Target State**: Flight-qualified software per NASA Class C/D requirements (appropriate for CubeSat missions)
+**Target State**: Flight-qualified software per NASA Class C/D requirements (appropriate for CubeSat missions) *(superseded 2026-10-25: NPR 7150.2D Class C; `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1)*
 **Lifecycle Phase**: Phase B (pre-PDR); no independent PDR or CDR has been held (`docs/BASELINE_PARAMETERS.md` §1)
 **Process Heritage**: NASA Ames Small Satellite Division (GeneSat, PharmaSat, O/OREOS, EcAMSat)
 
@@ -105,14 +111,14 @@ All project documentation and processes shall comply with:
 ## 1. Code Architecture & Structure
 
 ### 1.1 File Organization
-- [x] **Create modular source file structure**: Split `software/flight/src/main.c` (941 lines) into separate modules:
-  - [x] Create `software/flight/src/sensors.c` and `software/flight/include/sensors.h` - Extract sensor framework code (lines 70-142, 544-642, 673-734)
-  - [x] Create `software/flight/src/eps_control.c` and `software/flight/include/eps_control.h` - Extract EPS control functions (lines 36-45, 103-316)
-  - [x] Create `software/flight/src/fault_mgmt.c` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
-  - [x] Create `software/flight/src/uart_comm.c` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
-  - [x] Create `software/flight/src/mission_data.c` and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
+- [x] **Create modular source file structure**: Split main.c (941 lines; the executive is now `software/rust/sqso-ffi/src/executive.rs`) into separate modules:
+  - [x] Create sensors.c (now `software/rust/sqso-fsw/src/sensors.rs`) and `software/flight/include/sensors.h` - Extract sensor framework code (lines 70-142, 544-642, 673-734)
+  - [x] Create eps_control.c (now `software/rust/sqso-fsw/src/eps.rs`) and `software/flight/include/eps_control.h` - Extract EPS control functions (lines 36-45, 103-316)
+  - [x] Create `software/rust/sqso-ffi/src/fault_mgmt.rs` and `software/flight/include/fault_mgmt.h` - Extract fault management (lines 59-67, 184-211, 318-342, 786-817)
+  - [x] Create `software/rust/sqso-ffi/src/uart_comm.rs` and `software/flight/include/uart_comm.h` - Extract UART communication (lines 344-459, 461-542)
+  - [x] Create mission_data.c (now `software/rust/sqso-fsw/src/mission_data.rs`) and `software/flight/include/mission_data.h` - Extract persistence functions (lines 47-57, 140-211)
   - [x] Create software/flight/src/yaml_parser.c and software/flight/include/yaml_parser.h - Extract YAML parsing (lines 652-708). (Removed 2026-10-16: never compiled or used; `sensors.c` reads the sensor YAML itself.)
-  - [x] Create `software/flight/src/main.c` - Keep only initialization and main loop
+  - [x] Create main.c (now `software/rust/sqso-ffi/src/executive.rs`) - Keep only initialization and main loop
   - [x] Create `software/flight/include/smart_qso.h` - Master header with common types and configuration
 
 - [x] **Create include directory structure**:
@@ -135,7 +141,7 @@ All project documentation and processes shall comply with:
   │   ├── main.c
   │   ├── sensors.c
   │   ├── eps_control.c
-  │   ├── fault_mgmt.c
+  │   ├── fault_mgmt.rs (Rust)
   │   ├── uart_comm.c
   │   ├── mission_data.c
   │   ├── yaml_parser.c      (removed: unused)
@@ -377,10 +383,10 @@ All project documentation and processes shall comply with:
   ```
 
 - [ ] **Achieve coverage targets**: (audit 2026-10-16, SW-19: see the sub-items)
-  - [ ] Statement coverage: ≥80% (audit 2026-10-16, SW-19: line coverage is 68.2 % by gcovr over every compiled source, as recorded in .github/workflows/ci.yml (CI floor 65 %))
-  - [ ] Branch coverage: ≥75% (audit 2026-10-16, SW-19: no branch-coverage figure is recorded in the repository)
-  - [ ] MC/DC coverage for safety-critical paths: 100% (audit 2026-10-16, SW-19: no MC/DC tool or report exists)
-  - [ ] Document untested code with justification (audit 2026-10-16, SW-19: no document lists untested code)
+  - [ ] Statement coverage: ≥80% (audit 2026-10-16, SW-19: line coverage is 68.2 % by gcovr over every compiled source, as recorded in .github/workflows/ci.yml (CI floor 65 %)) *(2026-10-25: line coverage 94.4 %, gate 80 % for C and Rust together, 90 % for the Rust crates; `software/flight/tests/README.md`)*
+  - [ ] Branch coverage: ≥75% (audit 2026-10-16, SW-19: no branch-coverage figure is recorded in the repository) *(2026-10-25: branch and condition coverage of the Rust crates 80.6 %, gated at 80 % in CI)*
+  - [ ] MC/DC coverage for safety-critical paths: 100% (audit 2026-10-16, SW-19: no MC/DC tool or report exists) *(2026-10-25: replaced by 100 % line and condition coverage per safety-critical file, gated in CI; CR-2026-003, `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2)*
+  - [ ] Document untested code with justification (audit 2026-10-16, SW-19: no document lists untested code) *(2026-10-25: in the safety-critical files, each untested line is marked `// COVERAGE-EXEMPT: <reason>` and listed by `software/flight/scripts/safety_coverage.py`)*
 
 ### 4.3 Integration Testing
 - [ ] **Create integration test framework**: Create `software/flight/tests/integration/`: (audit 2026-10-16, SW-19: the files exist but are not built or run: they reference APIs that no longer exist (software/flight/tests/CMakeLists.txt; SW-09))
@@ -417,7 +423,7 @@ All project documentation and processes shall comply with:
   - [x] Add communication timeout detection
   - [x] Add sensor range validation for all readings
 
-- [x] **Implement safe state**: Create explicit safe state definition: (audit 2026-10-16: implemented as the SAFE state in `state_machine.c`; there is no `SafeStateConfig_t`)
+- [x] **Implement safe state**: Create explicit safe state definition: (audit 2026-10-16: implemented as the SAFE state in `software/rust/sqso-fsw/src/mode.rs`; there is no `SafeStateConfig_t`)
   ```c
   typedef struct {
       bool payload_disabled;
@@ -441,7 +447,7 @@ All project documentation and processes shall comply with:
   - [x] Add CRC32 field to `EPSControlState` structure
   - [x] Add CRC32 field to `FaultLogEntry` structure
   - [x] Validate CRC on load, log corruption if mismatch
-  - [x] Create `software/flight/src/crc32.c` with CRC implementation
+  - [x] Create `software/rust/sqso-protocol/src/checksum.rs` with CRC implementation
 
 - [ ] **Implement triple modular redundancy (TMR)** for critical parameters: (audit 2026-10-16, SW-19: not implemented: no triple storage or voting in software/flight/src (git grep for TMR, vote, voting, redundan finds nothing))
   - [ ] Store critical config in 3 locations (audit 2026-10-16, SW-19: not implemented)
@@ -468,7 +474,7 @@ All project documentation and processes shall comply with:
 
 ### 5.6 State Machine Formalization
 - [x] **Formalize operational modes** as explicit state machine:
-  - [x] Create `software/flight/src/state_machine.c`
+  - [x] Create `software/rust/sqso-fsw/src/mode.rs`
   - [x] Define all states (SAFE, IDLE, ACTIVE, etc.)
   - [x] Define all valid transitions
   - [x] Add transition guards and actions
@@ -496,7 +502,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
 #### 6.1.2 Software Development Plan (SDP)
 - [x] **Create SDP**: Create `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` (per NPR 7150.2 §3.1):
   - [x] Development lifecycle model (tailored per NPR 7123.1)
-  - [x] Software classification (Class C/D per NPR 7150.2)
+  - [x] Software classification (Class C/D per NPR 7150.2) *(superseded 2026-10-25: NPR 7150.2D Class C; `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1)*
   - [x] Coding standards reference (JPL/MISRA)
   - [x] Review procedures and entry/exit criteria
   - [x] Testing approach and coverage requirements
@@ -744,7 +750,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
 - [x] **Create build configuration matrix**: Document in `docs/software/BUILD_CONFIGURATIONS.md`:
   - [x] Development build (Linux simulation)
   - [x] Test build (with coverage/instrumentation)
-  - [x] Flight build (FreeRTOS, hardware HAL)
+  - [x] Flight build (FreeRTOS, hardware HAL) *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
 
 ---
 
@@ -849,7 +855,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] Validate all environment variable inputs (lines 401-434)
   - [x] Add bounds checking for all array indexing
 
-- [x] **Create input validation module**: Create `software/flight/src/input_validation.c`:
+- [x] **Create input validation module**: Create `software/rust/sqso-ffi/src/input_validation.rs`:
   ```c
   bool validate_sensor_value(const char* id, double value);
   bool validate_power_mode(uint8_t mode);
@@ -864,7 +870,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] All `strncpy` calls need explicit null termination
 
 - [x] **Replace unsafe functions**:
-  - [x] Create safe string functions in `software/flight/src/safe_string.c`
+  - [x] Create safe string functions in `software/rust/sqso-ffi/src/safe_string.rs`
   - [x] `safe_strcpy()` - always null-terminates
   - [ ] `safe_snprintf()` - checks for truncation (audit 2026-10-16, SW-19: safe_string.h provides safe_strcpy() and safe_strncpy(); there is no safe_snprintf())
 
@@ -945,11 +951,11 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] `hal_wdt.h` - Watchdog interface (planned as hal_watchdog.h; name corrected by audit 2026-10-16)
   - [x] `hal_flash.h` - Flash storage interface
 
-- [x] **Create Linux HAL implementation**: `software/flight/src/hal/hal_sim.c` (path corrected by audit 2026-10-14)
+- [x] **Create Linux HAL implementation**: `software/rust/sqso-ffi/src/hal_sim.rs` (path corrected by audit 2026-10-14; ported from hal_sim.c to Rust 2026-10-24)
   - [x] Wrap current Linux-specific code
   - [x] Use for development/simulation
 
-- [ ] **Create FreeRTOS HAL stubs**: software/flight/src/hal/hal_freertos.c (audit 2026-10-14: file not present in repository; see docs/funding_audit/FINDINGS_REGISTER.md)
+- [ ] **Create FreeRTOS HAL stubs**: software/flight/src/hal/hal_freertos.c (audit 2026-10-14: file not present in repository; see docs/funding_audit/FINDINGS_REGISTER.md) *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
   - [ ] Interface stubs for flight implementation
   - [ ] Document implementation requirements
 
@@ -969,6 +975,9 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   ```
 
 ### 11.3 FreeRTOS Integration Preparation
+
+*(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
+
 - [ ] **Create RTOS abstraction**: Create software/flight/include/rtos_abstraction.h (audit 2026-10-14: file not present in repository; see docs/funding_audit/FINDINGS_REGISTER.md):
   - [ ] Task creation/deletion wrappers
   - [ ] Mutex/semaphore wrappers
@@ -1691,7 +1700,7 @@ This section details the complete flight software implementation tasks, organize
   - [ ] Unit tests in `sw/flight/tests/test_scheduler.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (software/flight/tests/CMakeLists.txt; SW-09))
 
 #### 17.1.3 Sensor Management Module
-- [x] **Implement `software/flight/src/sensors.c`** (refactor from main.c):
+- [x] **Implement sensors.c (now `software/rust/sqso-fsw/src/sensors.rs`)** (refactor from main.c):
   - [x] Sensor initialization
   - [x] Sensor polling (per configured period)
   - [x] Sensor data conversion (raw to engineering units)
@@ -1701,7 +1710,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_sensors.c`
 
 #### 17.1.4 EPS Control Module
-- [x] **Implement `software/flight/src/eps_control.c`** (refactor from main.c):
+- [x] **Implement eps_control.c (now `software/rust/sqso-fsw/src/eps.rs`)** (refactor from main.c):
   - [x] Power mode state machine (SAFE/IDLE/ACTIVE)
   - [x] Load switch control functions
   - [x] Battery SOC estimation
@@ -1712,7 +1721,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_eps_control.c`
 
 #### 17.1.5 Fault Management Module
-- [x] **Implement `software/flight/src/fault_mgmt.c`** (refactor from main.c):
+- [x] **Implement `software/rust/sqso-ffi/src/fault_mgmt.rs`** (refactor from main.c):
   - [x] Fault detection functions
   - [x] Fault isolation logic
   - [x] Fault recovery procedures
@@ -1723,7 +1732,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_fault_mgmt.c`
 
 #### 17.1.6 Telemetry Module
-- [x] **Implement `software/flight/src/telemetry.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/telemetry.rs`**:
   - [x] Telemetry packet formatting
   - [x] Telemetry point registration
   - [x] Telemetry sampling
@@ -1733,7 +1742,7 @@ This section details the complete flight software implementation tasks, organize
   - [ ] Unit tests in `software/flight/tests/test_telemetry.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (SW-09))
 
 #### 17.1.7 Beacon Generation Module
-- [x] **Implement `software/flight/src/beacon.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/beacon.rs`**:
   - [x] AX.25 frame formatting
   - [x] Callsign encoding
   - [x] Info field composition
@@ -1744,7 +1753,7 @@ This section details the complete flight software implementation tasks, organize
   - [ ] Unit tests in `software/flight/tests/test_beacon.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (SW-09); beacon formatting, filtering and telemetry have registered CMocka suites (test_beacon_format.c, test_beacon_filter.c, test_beacon_telemetry.c))
 
 #### 17.1.8 UART Communication Module
-- [x] **Implement `software/flight/src/uart_comm.c`** (refactor from main.c):
+- [x] **Implement `software/rust/sqso-ffi/src/uart_comm.rs`** (refactor from main.c):
   - [x] UART initialization
   - [x] Transmit buffer management
   - [x] Receive buffer management
@@ -1755,7 +1764,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_uart_comm.c`
 
 #### 17.1.9 ADCS Control Module
-- [x] **Implement `software/flight/src/adcs_control.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/adcs_control.rs`**:
   - [ ] Magnetometer driver (audit 2026-10-16, SW-19: stub: TODO at adcs_control.c:351 (KNOWN_ISSUES KI-001))
   - [ ] Sun sensor driver (audit 2026-10-16, SW-19: stub: TODO at adcs_control.c:377 (KI-001))
   - [ ] Attitude determination (TRIAD or similar) (audit 2026-10-16, SW-19: no attitude-determination algorithm; adcs_control.c estimates rate from B-dot only)
@@ -1766,7 +1775,7 @@ This section details the complete flight software implementation tasks, organize
   - [ ] Unit tests in `sw/flight/tests/test_adcs.c` (audit 2026-10-16, SW-19: a Unity suite that is not built or run (SW-09))
 
 #### 17.1.10 Data Persistence Module
-- [x] **Implement `software/flight/src/mission_data.c`** (refactor from main.c):
+- [x] **Implement mission_data.c (now `software/rust/sqso-fsw/src/mission_data.rs`)** (refactor from main.c):
   - [x] Mission data structure definition
   - [x] Save to non-volatile storage
   - [x] Load from non-volatile storage
@@ -1776,7 +1785,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_mission_data.c`
 
 #### 17.1.11 Watchdog Module
-- [x] **Implement `software/flight/src/watchdog_mgr.c`**:
+- [x] **Implement `software/rust/sqso-ffi/src/watchdog_mgr.rs`**:
   - [x] Hardware watchdog initialization
   - [x] Watchdog kick function
   - [x] Multi-task watchdog monitoring
@@ -1785,7 +1794,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Unit tests in `software/flight/tests/test_watchdog_mgr.c`
 
 #### 17.1.12 Deployment Control Module
-- [x] **Implement `software/flight/src/deployment.c`**:
+- [x] **Implement deployment.c (now `software/rust/sqso-fsw/src/deployment.rs`)**:
   - [x] Deployment timer (T+30min from separation)
   - [x] Deployment switch monitoring
   - [x] Antenna deployment actuation
@@ -2352,7 +2361,7 @@ Following protoflight approach per GSFC-STD-7000 (GEVS).
 ### Phase 3: Safety-Critical Features (Priority: High) ✅ COMPLETE
 - [x] Implement proper watchdog (Section 5.2) - watchdog_mgr.c with multi-task monitoring
 - [x] Add CRC protection to persisted data (Section 5.3) - CRC32 on all persistent data
-- [x] Formalize state machine (Section 5.6) - state_machine.c with all transitions
+- [x] Formalize state machine (Section 5.6) - mode.rs (Rust) with all transitions
 - [x] Create FDIR documentation (Section 5.1) - FDIR_DESIGN.md complete
 
 ### Phase 4: Documentation (Priority: Medium) ✅ COMPLETE
@@ -2364,7 +2373,7 @@ Following protoflight approach per GSFC-STD-7000 (GEVS).
 ### Phase 5: Hardware Abstraction (Priority: Medium) ✅ COMPLETE
 - [x] Create HAL layer (Section 11.1) - 9 HAL interfaces (GPIO, UART, SPI, I2C, etc.)
 - [x] Abstract platform dependencies (Section 11.2) - hal_sim.c for Linux simulation
-- [x] Prepare FreeRTOS integration (Section 11.3) - RTOS_ARCHITECTURE.md complete
+- [x] Prepare FreeRTOS integration (Section 11.3) - RTOS_ARCHITECTURE.md complete *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
 
 ### Phase 6: Final Verification (Priority: High) ✅ COMPLETE
 - [x] Complete software hazard analysis (Section 12.1) - SOFTWARE_HAZARD_ANALYSIS.md

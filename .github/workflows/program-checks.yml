@@ -42,6 +42,9 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest
+          # The wire formats, from the Rust protocol crate (built with maturin;
+          # the runner image has Rust, pinned by software/rust/rust-toolchain.toml)
+          pip install ./software/rust/sqso-py
           pip install -e software/payload
           pip install -r software/simulation/orbit_lifetime/requirements.txt
 
@@ -57,6 +60,13 @@ jobs:
 
       - name: Repository script tests
         run: python -m pytest -q scripts/tests
+
+      # The hardware-test probe scripts (software/rust/firmware/BRINGUP.md):
+      # their parsers and the HIL-004 sequence against a simulated board
+      - name: Firmware probe tools
+        run: |
+          python -m pytest -q software/rust/firmware/tools/tests
+          python software/rust/firmware/tools/guard_test.py --dry-run
 
   docs-integrity:
     name: Documentation Reference Integrity

@@ -12,33 +12,26 @@ may contain commas: it runs from after the sequence number to the last comma.
 OBC -> Jetson: TELEMETRY, BEACON_REQ, STATUS_REQ, SHUTDOWN
 Jetson -> OBC: BEACON_RSP, STATUS, ACK, NACK
 
-The OBC implementation is software/flight/src/jetson_link.c; both test suites
-check the same golden lines.
+Framing, CRC, field parsing and line building are the Rust implementation
+the OBC runs (software/rust/sqso-protocol/src/jetson.rs), through the
+sqso_protocol module; both test suites check the same golden lines.
 """
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from typing import Dict, List
 
-try:
-    from crc16 import crc16_ccitt
-except ImportError:  # running as software.payload.* from the repository root
-    from software.payload.crc16 import crc16_ccitt
+import sqso_protocol
 
-LINE_MAX = 512          # bytes, including the CRC field and the newline
-TEXT_MAX = 176          # longest beacon text the OBC accepts
-_PRINTABLE = re.compile(rb"^[\x20-\x7e]*$")
-_CRC_FIELD = re.compile(rb"^[0-9A-F]{4}$")
+LINE_MAX = sqso_protocol.LINE_MAX   # bytes, including the CRC field and the newline
+TEXT_MAX = sqso_protocol.TEXT_MAX   # longest beacon text the OBC accepts
 
+#: A line that does not follow the ICD (a ValueError)
+LinkError = sqso_protocol.LinkError
 
-class LinkError(ValueError):
-    """A line that does not follow the ICD."""
-
-
-class CrcError(LinkError):
-    """A well-formed line whose CRC does not match."""
+#: A well-formed line whose CRC does not match (a LinkError)
+CrcError = sqso_protocol.CrcError
 
 
 @dataclass
@@ -46,6 +39,10 @@ class Message:
     """A checked line: its type and the fields after it."""
     type: str
     fields: List[str] = field(default_factory=list)
+
+    def line(self) -> bytes:
+        """The message as a sealed line again."""
+        return seal(",".join([self.type, *self.fields]))
 
 
 @dataclass
@@ -68,28 +65,16 @@ class BeaconRequest:
 
 def seal(body: str) -> bytes:
     """Append ",<CRC>\\n" to a message body."""
-    data = body.encode("ascii")
-    if not data or not _PRINTABLE.match(data):
-        raise LinkError("line must be non-empty printable ASCII")
-    line = data + b"," + f"{crc16_ccitt(data):04X}".encode("ascii") + b"\n"
-    if len(line) > LINE_MAX:
-        raise LinkError(f"line longer than {LINE_MAX} bytes")
-    return line
+    try:
+        data = body.encode("ascii")
+    except UnicodeEncodeError as exc:
+        raise LinkError("line must be printable ASCII") from exc
+    return sqso_protocol.jetson_seal(data)
 
 
 def parse(line: bytes) -> Message:
     """Check one received line and split it into type and fields."""
-    if line.endswith(b"\n"):
-        line = line[:-1]
-    if not line or len(line) >= LINE_MAX or not _PRINTABLE.match(line):
-        raise LinkError("not a printable line of allowed length")
-    body, sep, crc = line.rpartition(b",")
-    if not sep or not body or not _CRC_FIELD.match(crc):
-        raise LinkError("missing or malformed CRC field")
-    if crc16_ccitt(body) != int(crc, 16):
-        raise CrcError("CRC mismatch")
-
-    text = body.decode("ascii")
+    text = sqso_protocol.jetson_check(bytes(line)).decode("ascii")
     msg_type, _, rest = text.partition(",")
     if msg_type == "BEACON_RSP":
         seq, _, beacon_text = rest.partition(",")
@@ -97,64 +82,37 @@ def parse(line: bytes) -> Message:
     return Message(msg_type, rest.split(",") if rest else [])
 
 
-def _uint(text: str, maximum: int) -> int:
-    if not text.isdigit() or int(text) > maximum:
-        raise LinkError(f"field {text!r} out of range 0..{maximum}")
-    return int(text)
-
-
 def parse_telemetry(msg: Message) -> Telemetry:
     """Interpret a TELEMETRY message."""
-    if msg.type != "TELEMETRY" or len(msg.fields) < 5:
+    if msg.type != "TELEMETRY":
         raise LinkError("not a TELEMETRY message")
-    time_ms, sun, soc, mode, limit = msg.fields[:5]
-    if sun not in ("SUNLIT", "ECLIPSE"):
-        raise LinkError("sunlit field must be SUNLIT or ECLIPSE")
-    extras = {}
-    for item in msg.fields[5:]:
-        key, eq, value = item.partition("=")
-        if eq and key:
-            extras[key] = value
-    try:
-        return Telemetry(_uint(time_ms, 2**64 - 1), sun == "SUNLIT", float(soc),
-                         _uint(mode, 2), float(limit), extras)
-    except ValueError as exc:
-        raise LinkError(str(exc)) from exc
+    _, time_ms, sunlit, soc, mode, limit, extras = sqso_protocol.jetson_parse_from_obc(msg.line())
+    return Telemetry(time_ms, sunlit, soc, mode, limit, extras)
 
 
 def parse_beacon_req(msg: Message) -> BeaconRequest:
     """Interpret a BEACON_REQ message."""
-    if msg.type != "BEACON_REQ" or len(msg.fields) != 2:
+    if msg.type != "BEACON_REQ":
         raise LinkError("not a BEACON_REQ message")
-    seq = _uint(msg.fields[0], 0xFFFF)
-    max_len = _uint(msg.fields[1], TEXT_MAX)
-    if max_len == 0:
-        raise LinkError("max_len must be at least 1")
+    _, seq, max_len = sqso_protocol.jetson_parse_from_obc(msg.line())
     return BeaconRequest(seq, max_len)
 
 
 def beacon_rsp(seq: int, text: str) -> bytes:
     """BEACON_RSP,<seq>,<text> (text: 1..TEXT_MAX printable ASCII characters)."""
-    if not 0 <= seq <= 0xFFFF:
-        raise LinkError("seq out of range")
-    if not 1 <= len(text) <= TEXT_MAX or not _PRINTABLE.match(text.encode("ascii", "replace")):
-        raise LinkError(f"beacon text must be 1..{TEXT_MAX} printable ASCII characters")
-    return seal(f"BEACON_RSP,{seq},{text}")
+    return sqso_protocol.jetson_beacon_rsp(seq, text)
 
 
 def status(health: int, temp_c: int, power_mw: int, mem_pct: int, uptime_s: int) -> bytes:
     """STATUS,<health 0-3>,<temp_c>,<power_mw>,<mem_pct>,<uptime_s>"""
-    if not (0 <= health <= 3 and -128 <= temp_c <= 200 and 0 <= power_mw <= 100000
-            and 0 <= mem_pct <= 100 and 0 <= uptime_s <= 0xFFFFFFFF):
-        raise LinkError("STATUS field out of range")
-    return seal(f"STATUS,{health},{temp_c},{power_mw},{mem_pct},{uptime_s}")
+    return sqso_protocol.jetson_status(health, temp_c, power_mw, mem_pct, uptime_s)
 
 
 def ack(what: str) -> bytes:
     """ACK,<message type acknowledged>"""
-    return seal(f"ACK,{what}")
+    return sqso_protocol.jetson_ack(what)
 
 
 def nack(reason: str) -> bytes:
     """NACK,<reason>"""
-    return seal(f"NACK,{reason}")
+    return sqso_protocol.jetson_nack(reason)

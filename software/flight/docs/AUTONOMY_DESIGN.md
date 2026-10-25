@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-AUTO-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-24
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -11,6 +11,24 @@
 ## 1. Purpose
 
 This document defines the autonomous operation capabilities of the SMART-QSO CubeSat, enabling extended periods of operation without ground contact while maintaining mission safety.
+
+### 1.1 Implementation (Revision B, 2026-10-24)
+
+The flight software is Rust (`software/rust/README.md`). The code blocks in this document are the Revision A design,
+written as C sketches. They are not the implementation, and some of their thresholds and intervals differ from the
+baseline. Where they disagree, `docs/BASELINE_PARAMETERS.md` governs. The autonomous functions as implemented:
+
+| Function | Implemented in | Note |
+|----------|----------------|------|
+| Power mode transitions (§3.1) | `software/rust/sqso-fsw/src/mode.rs` (guarded mode manager, `power_event`), `software/rust/sqso-fsw/src/eps.rs` (load switches and budgets per mode) | One mode manager. Its entry actions set the EPS power mode (SW-14) |
+| ADCS (§3.2) | `software/rust/sqso-fsw/src/adcs.rs` (B-dot detumble, sun pointing, mode logic) | Runs on simulated sensors until the drivers exist (`docs/reviews/KNOWN_ISSUES.md` KI-001) |
+| Beacon schedule (§3.3) | `software/rust/sqso-fsw/src/beacon.rs` | Interval by power mode. There is no ground-pass prediction |
+| Fault response (§3.4) | `software/rust/sqso-ffi/src/fault_mgmt.rs`, `software/rust/sqso-fsw/src/assert_handler.rs`, `software/rust/sqso-fsw/src/watchdog.rs` | Recovery raises events through the mode manager |
+| Loss of contact | `software/rust/sqso-fsw/src/contact_monitor.rs` | All transmitters are inhibited after the contact timeout without an authenticated telecommand (SYS-205). This replaces the "beacon-only, reset after 72 h" row of §3.4 |
+| Post-deployment RF silence, deployment sequence | `software/rust/sqso-fsw/src/rf_silence.rs`, `software/rust/sqso-fsw/src/deployment.rs` | SYS-224, SYS-221 |
+| Jetson power management (§5.1) | `software/rust/sqso-fsw/src/payload_guard.rs`, `software/rust/sqso-fsw/src/eps.rs` (payload enable rule) | The OBC's own measurements decide (SW-16) |
+| AI fallback and content filtering (§5.2, §5.3) | `software/rust/sqso-fsw/src/beacon.rs` (templates unless filtered Jetson text), `software/rust/sqso-protocol/src/filter.rs` | The Jetson runs the same filter through `sqso_protocol` |
+| Activity scheduling (§6) | `software/rust/sqso-fsw/src/scheduler.rs` exists, but the executive does not use it. The main loop runs its stages in a fixed order (`software/flight/docs/RTOS_ARCHITECTURE.md` §4.2) | — |
 
 ## 2. Autonomy Philosophy
 
@@ -413,3 +431,4 @@ void log_autonomous_decision(
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-24 | §1.1: where each autonomous function is implemented in the Rust flight software; the C sketches are marked as the Revision A design | SMART-QSO Team |

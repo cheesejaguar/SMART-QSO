@@ -58,7 +58,7 @@ No SMART-QSO subsystem has been built or tested, so no subsystem has a TRL suppo
 |-----------|---------------------------------|--------------------------|-----------|------------------------------------|
 | Structure | 1U, CDS Rev 14.1 (§4) | M1, M3, M5 (1U) | Same form factor | Deployable solar wings on a 1U (no precedent cited yet) |
 | EPS | 16 triple-junction cells, 4S1P 18650 Li-ion ≈ 50 Wh (§5) | R1 (COTS Li-ion cells in CubeSats) | Cell type common; pack design is ours | Power closure with a duty-gated transponder and an 8 W Jetson burst; battery ageing (compare M1) |
-| OBC and flight software | STM32L4R5ZI; FreeRTOS planned (§6) | M4 (STM32F4 + FreeRTOS) | Same MCU family and RTOS, different part (L4, not F4) | Our software has not run on any target |
+| OBC and flight software | STM32L4R5ZI; Rust flight software on the Embassy executor, no RTOS (§6, rebaselined 2026-10-25, CR-2026-002) | M4 (STM32F4 + FreeRTOS) | Same MCU family, different part (L4, not F4). M4's RTOS precedent does not apply: SMART-QSO has no RTOS | Our software has not run on any target |
 | RF: transponder | Single-channel U/V FM, 0.5–1 W, duty-gated (§2, §7) | M1 (1U, same band plan), M2 | Close; M1 is the same concept on a 1U | Duty gating by onboard AI; M1's later battery trouble shows the energy risk |
 | RF: telemetry | 1200 bps AX.25 AFSK beacon (§2) | M3 | Same modulation and protocol | — |
 | Telecommand | HMAC-SHA-256 with monotonic counter, TX-OFF (§7) | R3 (design study only) | No flown amateur-band precedent cited | Flight demonstration of authenticated amateur telecommand (search did not find one) |
@@ -82,8 +82,9 @@ No SMART-QSO subsystem has been built or tested, so no subsystem has a TRL suppo
 ### 4.2 Command and Data Handling
 
 - **Precedents.** M4 flew an STM32F4 with FreeRTOS on a 2U and published its flight software.
-- **Differences.** STM32L4R5ZI, not F4. No RTOS, startup code or linker script yet; the flight library cross-compiles
-  only (`docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md`).
+- **Differences.** STM32L4R5ZI, not F4. No RTOS: the Rust flight software runs on the Embassy executor with one task
+  (BASELINE §6, rebaselined 2026-10-25). CI builds and checks the image; it has not run on hardware
+  (`docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md`).
 - **Not covered.** Radiation behaviour of the specific part and board; our software on target hardware.
 
 ### 4.3 RF Communications
@@ -104,8 +105,9 @@ No SMART-QSO subsystem has been built or tested, so no subsystem has a TRL suppo
 ### 4.5 Software
 
 - **Precedents.** M4 published open flight software for an STM32 and FreeRTOS CubeSat.
-- **Differences.** Host-simulation flight software with a register-level STM32L4 HAL; CMocka unit tests
-  (31 suites, 428 cases); static-analysis findings not yet worked down (`docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` §4.2).
+- **Differences.** Rust flight software on the Embassy executor, no RTOS (2026-10-25: the earlier text described the C
+  host simulation, since replaced). It runs as a host simulation and as an image that has not run on hardware; the C
+  test suites specify it (`docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` §4).
 - **Not covered.** Software on the flight target; integration with the payload over the real link.
 
 ### 4.6 AI Payload
@@ -170,7 +172,7 @@ These counts show where precedent exists; they do not measure risk.
 ## 8. Conclusion
 
 The bus follows designs that have flown: a 1U U/V FM transponder (Fox-1A), 1200 bps AX.25 telemetry (CUTE-I), an
-STM32 with FreeRTOS (UPSat) and B-dot magnetorquer control (SwissCube). The AI payload is largely without precedent:
+STM32 on-board computer (UPSat, which ran FreeRTOS; SMART-QSO has no RTOS) and B-dot magnetorquer control (SwissCube). The AI payload is largely without precedent:
 one Jetson Orin-class module has flown on a small CubeSat with no published results, and no language model has been
 found running on a CubeSat-class bus. That is why the flight baseline does not depend on the payload.
 
@@ -180,3 +182,5 @@ found running on a CubeSat-class bus. That is why the flight baseline does not d
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 2.0 | 2026-10-16 | SMART-QSO Team | Funding audit PI-15: rewritten as a design-precedent survey with public citations, including the AI payload; unsourced NASA Ames heritage, TRLs and the 68 % heritage score removed; precedent counts shown with their method |
+| 2.0, note | 2026-10-24 | SMART-QSO Team | OBC row: the implementation is Rust on the Embassy executor, so M4's FreeRTOS precedent covers the MCU family only |
+| 2.0, note | 2026-10-25 | SMART-QSO Team | Embassy executor, no RTOS, is now the baseline (BASELINE §6, CR-2026-002): OBC row, §4.2, §4.5 and §8 |

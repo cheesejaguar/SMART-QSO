@@ -527,6 +527,84 @@ static void test_safe_utoa(void **state)
 }
 
 /*===========================================================================*/
+/* Edge cases (Rust port: software/rust/sqso-ffi/src/safe_string.rs)         */
+/*===========================================================================*/
+
+/**
+ * @brief strcat refuses a destination with no NUL in its size
+ */
+static void test_safe_strcat_unterminated(void **state)
+{
+    (void)state;
+
+    char dest[4] = {'a', 'b', 'c', 'd'};
+    size_t total = 99U;
+
+    assert_int_equal(safe_strcat(dest, sizeof(dest), "x", &total), RESULT_ERROR_PARAM);
+    assert_memory_equal(dest, "abcd", 4);
+    assert_int_equal(total, 99U);
+}
+
+/**
+ * @brief Comparison bounds: strcmp reports an exhausted bound, strncmp does not
+ */
+static void test_safe_compare_bounds(void **state)
+{
+    (void)state;
+
+    int result = 7;
+    assert_int_equal(safe_strcmp("Hello", "Help", 3, &result), RESULT_ERROR_TRUNCATED);
+    assert_int_equal(result, 0);
+    assert_int_equal(safe_strncmp("abc", "xyz", 0, &result), RESULT_OK);
+    assert_int_equal(result, 0);
+    assert_int_equal(safe_strncmp("abc", "abd", 3, &result), RESULT_OK);
+    assert_int_equal(result, -1);
+    assert_int_equal(safe_strcmp("abc", "ab", 10, &result), RESULT_OK);
+    assert_int_equal(result, 1);
+    assert_int_equal(safe_strcmp("a", NULL, 10, &result), RESULT_ERROR_PARAM);
+    assert_int_equal(safe_memcmp("a", "a", 1, NULL), RESULT_ERROR_PARAM);
+}
+
+/**
+ * @brief A string source overlapping its destination is refused
+ */
+static void test_safe_string_overlap_refused(void **state)
+{
+    (void)state;
+
+    char buffer[16] = "abcdef";
+    assert_int_equal(safe_strcpy(&buffer[2], 8, buffer, NULL), RESULT_ERROR_PARAM);
+    assert_int_equal(safe_strcat(buffer, sizeof(buffer), &buffer[1], NULL), RESULT_ERROR_PARAM);
+    assert_string_equal(buffer, "abcdef");
+
+    /* Adjacent buffers do not overlap */
+    char pair[8] = "abc";
+    assert_int_equal(safe_strcpy(&pair[4], 4, pair, NULL), RESULT_OK);
+    assert_string_equal(&pair[4], "abc");
+}
+
+/**
+ * @brief Integer conversion: buffer size limits and the minimum size
+ */
+static void test_safe_integer_buffer_sizes(void **state)
+{
+    (void)state;
+
+    char buffer[11] = "garbage";
+    size_t length = 99U;
+
+    assert_int_equal(safe_utoa(4294967295U, buffer, 10, &length), RESULT_ERROR_TRUNCATED);
+    assert_int_equal(buffer[0], '\0');
+    assert_int_equal(length, 99U);
+    assert_int_equal(safe_utoa(4294967295U, buffer, 11, &length), RESULT_OK);
+    assert_int_equal(length, 10U);
+    assert_int_equal(safe_itoa(-5, buffer, 2, NULL), RESULT_ERROR_TRUNCATED);
+    assert_int_equal(safe_itoa(7, buffer, 1, NULL), RESULT_ERROR_PARAM);
+    assert_int_equal(safe_itoa(7, buffer, 2, &length), RESULT_OK);
+    assert_string_equal(buffer, "7");
+}
+
+/*===========================================================================*/
 /* Test Suite                                                                 */
 /*===========================================================================*/
 
@@ -573,6 +651,12 @@ int main(void)
         cmocka_unit_test(test_safe_itoa_min_int32),
         cmocka_unit_test(test_safe_itoa_overflow),
         cmocka_unit_test(test_safe_utoa),
+
+        /* Edge cases */
+        cmocka_unit_test(test_safe_strcat_unterminated),
+        cmocka_unit_test(test_safe_compare_bounds),
+        cmocka_unit_test(test_safe_string_overlap_refused),
+        cmocka_unit_test(test_safe_integer_buffer_sizes),
     };
 
     return cmocka_run_group_tests_name("Safe String Tests", tests, NULL, NULL);

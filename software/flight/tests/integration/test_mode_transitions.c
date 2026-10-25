@@ -5,7 +5,7 @@
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @license MIT
  *
- * The state machine (state_machine.c), its power policy (sm_power_event())
+ * The state machine (software/rust/sqso-fsw/src/mode.rs), its power policy (sm_power_event())
  * and the EPS together, as main.c drives them: the EPS holds the measured
  * SOC, the policy turns it into an event, the transition table and guards
  * decide, and each state's entry action sets the EPS power mode (SW-14).
@@ -69,7 +69,7 @@ static void power_tick(double soc, bool sunlit)
     }
 }
 
-/** The EPS power mode each state's entry action sets (state_machine.c) */
+/** The EPS power mode each state's entry action sets (software/rust/sqso-fsw/src/mode.rs) */
 static PowerMode_t power_mode_of(SmState_t st)
 {
     PowerMode_t mode = POWER_MODE_SAFE;

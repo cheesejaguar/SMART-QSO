@@ -5,7 +5,7 @@ one short line of plain-language text, followed by measured telemetry. Design va
 `docs/BASELINE_PARAMETERS.md`, which governs where the two disagree. The information-field layout is also in
 `docs/operations/TELEMETRY_DICTIONARY.md` section 4.
 
-Implementation: `software/flight/src/beacon.c` (frame, telemetry, scheduling), `software/flight/src/beacon_filter.c`
+Implementation: `software/rust/sqso-fsw/src/beacon.rs` (frame, telemetry, scheduling; C interface `software/rust/sqso-ffi/src/beacon.rs`), `software/rust/sqso-protocol/src/filter.rs`
 (content rules), `software/payload/formatter.py` and `software/payload/content_filter.py` (Jetson text).
 
 ## 1. Radio and Modem
@@ -59,7 +59,7 @@ simulation the EPS model supplies SOC and SUN; on the target the EPS driver does
 1. **Jetson text.** The OBC sends `BEACON_REQ` after each `TELEMETRY` line (`docs/interfaces/ICD_OBC_JETSON.md` §4).
    The Jetson answers with `BEACON_RSP` text. Text whose sequence number matches the latest request is used for the next
    beacon, once, if it passes the content rules (section 6).
-2. **OBC templates.** Otherwise the OBC sends the next of its fixed templates (`beacon_templates[]` in `beacon.c`). None of
+2. **OBC templates.** Otherwise the OBC sends the next of its fixed templates (`beacon_templates[]`, from `TEMPLATES` in `software/rust/sqso-fsw/src/beacon.rs`). None of
    them states a health condition; the telemetry fields carry the state.
 
 On the Jetson, text comes from the language model or, when the model is absent or its output fails the same content
@@ -93,8 +93,8 @@ Then, word by word (a word is a run of letters and digits):
 | 8 | PROFANITY | A word on the profanity list | 97.113(a)(4) |
 | 9 | COMMERCIAL | A word on the commercial list (buy, sell, price, sponsor and similar) | 97.113(a)(3) |
 
-- Word lists are whole-word and case-insensitive: `beacon_filter_profanity[]` and `beacon_filter_commercial[]` in
-  `beacon_filter.c`. The payload suite fails if `content_filter.py` differs.
+- Word lists are whole-word and case-insensitive: `PROFANITY` and `COMMERCIAL` in
+  `software/rust/sqso-protocol/src/filter.rs`, the one filter the OBC and the Jetson (`content_filter.py`) both run.
 - Shared accept/reject vectors are in `software/flight/tests/vectors/beacon_filter_vectors.txt`, run by both suites, with
   fuzz properties on each side.
 - The OBC counts rejected texts (`ai_rejected_count` in the beacon state) and sends a template instead.

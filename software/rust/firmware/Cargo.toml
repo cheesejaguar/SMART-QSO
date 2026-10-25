@@ -1,0 +1,57 @@
+[package]
+name = "sqso-firmware"
+description = "SMART-QSO OBC firmware for the STM32L4R5ZI: Embassy, the HAL and the flight software"
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+publish = false
+
+[[bin]]
+name = "sqso-firmware"
+test = false
+bench = false
+
+[dependencies]
+sqso-ffi = { path = "../sqso-ffi" }
+embassy-stm32 = { version = "0.6", features = ["stm32l4r5zi", "time-driver-any", "memory-x", "rt", "exti", "dual-bank", "unstable-pac"] }
+embassy-executor = { version = "0.10", features = ["platform-cortex-m", "executor-thread"] }
+embassy-time = { version = "0.5", features = ["tick-hz-32_768"] }
+cortex-m = { version = "0.7", features = ["inline-asm", "critical-section-single-core"] }
+cortex-m-rt = "0.7"
+critical-section = "1.2"
+embedded-io = "0.7"
+embassy-embedded-hal = { version = "0.6", default-features = false }
+static_cell = "2"
+sqso-protocol = { path = "../sqso-protocol" }
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+missing_docs = "warn"
+
+[lints.clippy]
+indexing_slicing = "deny"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unreachable = "deny"
+todo = "deny"
+unimplemented = "deny"
+cast_possible_truncation = "warn"
+# JPL rule 4 (clippy.toml sets 60 lines)
+too_many_lines = "deny"
+
+[profile.release]
+overflow-checks = true
+panic = "abort"
+opt-level = "s"
+lto = true
+codegen-units = 1
+debug = 2
+
+[profile.dev]
+panic = "abort"
+opt-level = "s"
+
+# Its own workspace: built only for the target (software/rust is built for the host too)
+[workspace]

@@ -3,7 +3,7 @@
 SMART-QSO Authenticated Telecommand Builder
 
 Builds uplink command frames that the flight software accepts
-(software/flight/src/cmd_handler.c, cmd_auth.c).
+(software/rust/sqso-ffi/src/cmd_handler.rs, software/rust/sqso-fsw/src/keys.rs).
 
 Document ID: SMART-QSO-GND-005
 Interface: docs/interfaces/TELECOMMAND_AUTHENTICATION.md
@@ -24,23 +24,25 @@ Keys are never stored in the repository. The key file holds 64 hex
 characters and must not be readable by group or other. Each counter is
 reserved on disk before its frame is produced, so a crash can skip a
 counter but never reuse one.
+
+The MAC, the frame and the AX.25/KISS framing are built by sqso_protocol
+(software/rust/sqso-py), the Rust code the spacecraft uses to check them.
 """
 
 import argparse
-import hashlib
-import hmac
 import os
-import struct
 import sys
 from pathlib import Path
 
+import sqso_protocol
+
 from command_dictionary import COMMANDS  # generated; see scripts/gen_command_dictionary.py
 
-DOMAIN = b"SQSO-TC-v1"
-KEY_SIZE = 32
-TAG_SIZE = 16
-MAX_ARGS = 64
-COUNTER_LIMIT = 0xFFFFFFFE  # UINT32_MAX is never accepted onboard
+DOMAIN = sqso_protocol.TC_DOMAIN
+KEY_SIZE = sqso_protocol.TC_KEY_SIZE
+TAG_SIZE = sqso_protocol.TC_TAG_SIZE
+MAX_ARGS = sqso_protocol.TC_MAX_ARGS
+COUNTER_LIMIT = sqso_protocol.TC_COUNTER_LIMIT  # UINT32_MAX is never accepted onboard
 SYNC = b"\xAA\x55"
 
 
@@ -57,11 +59,7 @@ def build_payload(key: bytes, cmd_id: int, counter: int, args: bytes = b"") -> b
         raise ValueError(f"counter must be 1..{COUNTER_LIMIT:#x}")
     if len(args) > MAX_ARGS:
         raise ValueError(f"args must be at most {MAX_ARGS} bytes")
-
-    counter_bytes = struct.pack(">I", counter)
-    mac_input = DOMAIN + bytes([cmd_id, len(args)]) + counter_bytes + args
-    tag = hmac.new(key, mac_input, hashlib.sha256).digest()[:TAG_SIZE]
-    return counter_bytes + args + tag
+    return sqso_protocol.tc_payload(bytes(key), cmd_id, counter, bytes(args))
 
 
 def build_frame(key: bytes, cmd_id: int, counter: int, args: bytes = b"",
@@ -79,33 +77,13 @@ def build_frame(key: bytes, cmd_id: int, counter: int, args: bytes = b"",
             raise ValueError(
                 f"command {cmd_id:#04x} takes {spec.min_args}..{spec.max_args} argument bytes")
 
-    payload = build_payload(key, cmd_id, counter, args)
-    body = SYNC + bytes([cmd_id, len(payload)]) + payload
-    return body + struct.pack(">H", sum(body) & 0xFFFF)
-
-
-def _parse_callsign(text: str):
-    """Split "CALL-SSID" (SSID optional) and validate it for AX.25."""
-    call, _, ssid_text = text.upper().partition("-")
-    ssid = int(ssid_text) if ssid_text else 0
-    if not (1 <= len(call) <= 6 and call.isalnum() and call.isascii()) or not 0 <= ssid <= 15:
-        raise ValueError(f"invalid AX.25 call sign {text!r}")
-    return call, ssid
-
-
-def _ax25_address(text: str, last: bool) -> bytes:
-    call, ssid = _parse_callsign(text)
-    return bytes(ord(c) << 1 for c in call.ljust(6)) + bytes([0x60 | (ssid << 1) | (1 if last else 0)])
+    build_payload(key, cmd_id, counter, args)  # range checks with Python errors
+    return sqso_protocol.tc_frame(bytes(key), cmd_id, counter, bytes(args))
 
 
 def ax25_fcs(data: bytes) -> int:
     """AX.25 frame check sequence (CRC-16/X.25)."""
-    crc = 0xFFFF
-    for byte in data:
-        crc ^= byte
-        for _ in range(8):
-            crc = (crc >> 1) ^ 0x8408 if crc & 1 else crc >> 1
-    return crc ^ 0xFFFF
+    return sqso_protocol.ax25_fcs(bytes(data))
 
 
 def ax25_ui_frame(dest: str, src: str, info: bytes, fcs: bool = True) -> bytes:
@@ -113,14 +91,12 @@ def ax25_ui_frame(dest: str, src: str, info: bytes, fcs: bool = True) -> bytes:
 
     Pass fcs=False for a KISS TNC, which appends the FCS itself.
     """
-    body = _ax25_address(dest, False) + _ax25_address(src, True) + b"\x03\xF0" + info
-    return body + struct.pack("<H", ax25_fcs(body)) if fcs else body
+    return sqso_protocol.ax25_ui_frame(dest, src, bytes(info), fcs)
 
 
 def kiss_frame(frame: bytes, port: int = 0) -> bytes:
     """Wrap a frame for a KISS TNC (data frame on the given port)."""
-    escaped = frame.replace(b"\xDB", b"\xDB\xDD").replace(b"\xC0", b"\xDB\xDC")
-    return b"\xC0" + bytes([(port & 0x0F) << 4]) + escaped + b"\xC0"
+    return sqso_protocol.kiss_frame(bytes(frame), port & 0x0F)
 
 
 def load_key(path: Path) -> bytes:

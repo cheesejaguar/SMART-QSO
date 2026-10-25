@@ -1,0 +1,21 @@
+[package]
+name = "sqso-clib"
+description = "The SMART-QSO flight software as a static library, for the C test suites"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "sqso_flight"
+crate-type = ["staticlib"]
+test = false
+doctest = false
+
+[dependencies]
+sqso-ffi = { path = "../sqso-ffi" }
+
+[lints]
+workspace = true

@@ -61,7 +61,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 
 **Other information:**
 - **5.22 Physical structure:** 1U CubeSat 100 × 100 × 113.5 mm, mass `[ ]` kg **(BL)**; deployable VHF (and UHF) monopoles; `[body-mounted / deployable]` solar panels **(BL)**. Drawings: `[repository URL]/hardware/structure/`
-- **5.23 Functional description:** OBC (low-power MCU, FreeRTOS); EPS with Li-ion battery; VHF/UHF transceiver with FM transponder mode; magnetorquer ADCS; AI payload (NVIDIA Jetson Orin Nano, power-gated, burst-only). URL: `[repo]/docs/ARCHITECTURE.md`
+- **5.23 Functional description:** OBC (low-power MCU, FreeRTOS; *note 2026-10-24: the flight software as implemented runs on the Embassy executor with no RTOS; correct before submission. Note 2026-10-25: rebaselined (BASELINE §6, CR-2026-002); before submission write "STM32L4R5ZI MCU, no RTOS"*); EPS with Li-ion battery; VHF/UHF transceiver with FM transponder mode; magnetorquer ADCS; AI payload (NVIDIA Jetson Orin Nano, power-gated, burst-only). URL: `[repo]/docs/ARCHITECTURE.md`
 - **5.24 Power budget:** `[orbit-average generation / consumption by mode]` **(BL)**. URL: `[repo]/docs/environment/POWER_BUDGET_ANALYSIS.md`
 - **5.25 Attitude stabilization:** Magnetorquer B-dot detumble, then low-rate spin/coarse sun-pointing. No precision pointing.
 - **5.26 Service area:** Worldwide
@@ -136,3 +136,5 @@ Transfer each answer below into the corresponding numbered box of the official v
 |-----|------|-------------|
 | A | 2026-10-14 | Initial draft on v40 layout (funding audit) |
 | A.1 | 2026-10-16 | Items 7.6, 8.4 and checklist item 5 cite the re-issued link budget (TB-05) |
+| A.1, note | 2026-10-24 | Item 5.23: dated note that the OBC software has no RTOS (correct before submission) |
+| A.1, note | 2026-10-25 | Item 5.23: the note gives the rebaselined text (no RTOS; BASELINE §6, CR-2026-002). Not submitted |

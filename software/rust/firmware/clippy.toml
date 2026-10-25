@@ -1,0 +1,4 @@
+# JPL Power of Ten rule 4: no function longer than 60 lines (the C build's
+# function-length gate). clippy::too_many_lines is denied in Cargo.toml and
+# counts code lines, not blank lines or comments.
+too-many-lines-threshold = 60

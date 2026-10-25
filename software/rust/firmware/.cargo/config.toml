@@ -1,0 +1,8 @@
+[build]
+target = "thumbv7em-none-eabihf"
+
+[target.thumbv7em-none-eabihf]
+# cortex-m-rt's link.x (memory.x comes from embassy-stm32, feature memory-x)
+rustflags = ["-C", "link-arg=-Tlink.x", "-C", "link-arg=--nmagic"]
+# probe-rs run --chip STM32L4R5ZITx (for bring-up on a board)
+runner = "probe-rs run --chip STM32L4R5ZITx"

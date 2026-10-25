@@ -1,8 +1,8 @@
 # SMART-QSO Baseline Parameters (Single Source of Truth)
 
 **Document Number:** SQSO-BL-001
-**Revision:** B — *decisions D1–D7 taken by the PI (§9); the D2 structure and D3 values still go to the FCC consultation*
-**Date:** 2026-10-15
+**Revision:** C — *decisions D1–D7 taken by the PI (§9); the D2 structure and D3 values still go to the FCC consultation; §6 OBC software rebaselined (CR-2026-002)*
+**Date:** 2026-10-25
 
 ---
 
@@ -31,7 +31,7 @@ self-consistent baseline.
 | Operator compensation | None for operations (Part 97 condition C2) |
 | Project phase | **Phase B (pre-PDR).** No independent PDR or CDR has been held; earlier review records are self-assessments (FINDINGS_REGISTER PI-03, PI-04) |
 | Payload risk classification | Class D (NPR 8705.4B), proposed |
-| Software classification | Formal classification per NPR 7150.2D Appendix D **pending** (not yet determined) |
+| Software classification | **Class C** per NPR 7150.2D Appendix D (CubeSat mission software; software on a Class D payload); research and analysis tools Class D (`software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). Safety-critical components: SDP §3.2 |
 
 ## 2. Mission
 
@@ -124,7 +124,7 @@ receiver and TX-OFF path.
 
 | Parameter | Baseline |
 |-----------|----------|
-| OBC | **STM32L4R5ZI**, FreeRTOS. Flight-software memory, timing, build and radiation docs already target this part. Apollo4 and STM32L476 references are superseded |
+| OBC | **STM32L4R5ZI**; flight software in Rust on the **Embassy executor, no RTOS** (one task; `software/flight/docs/RTOS_ARCHITECTURE.md`). Flight-software memory, timing, build and radiation docs already target this part. Apollo4 and STM32L476 references are superseded |
 | AI module | NVIDIA **Jetson Orin Nano 8 GB module** (P/N 900-13767-0030-000) on a custom carrier, **7 W power mode**, ≤ 8 W input including carrier; no fan. NVIDIA lists the 7 W mode only for the original flash configuration, not "Super" (TB-13) |
 | AI burst | ≤ 120 s including boot; sunlit only; SOC ≥ 55 %; OBC-enforced per-rail current (latch-up) and temperature limits independent of the Jetson |
 | AI model | **Flight baseline:** a calibrated selector on the OBC (gradient-boosted trees or a tiny INT8 MLP, with abstention to fixed rules) that chooses among pre-approved templates and proposes power mode, transponder schedule and QSO priority; hard limits stay outside the model. About 45 µJ to 10 mJ per decision; the Jetson is not woken. **Gated experiment:** SmolLM2-360M-Instruct or Qwen3-0.6B (non-thinking), INT4, Apache 2.0, generating non-numeric lines in batches of ≥ 10. Enabled only when the measured p95 energy per *accepted* beacon at the carrier input, boot to power-off, is ≤ 0.1 Wh (360 J) and the ground filter sweep passes. Jev (TypeSafe AI) is ground-side only, after written terms allow training on its outputs ([selection](payload/AI_MODEL_SELECTION.md)) **[D5]** |
@@ -132,6 +132,10 @@ receiver and TX-OFF path.
 | Jetson heat path | ≥ 1 W/K to structure, demonstrated on the EM (audit estimate of the documented stack: ≈ 0.44 W/K, TB-07) |
 | GNSS | **Add a GNSS receiver [D6]:** SkyFox piNAV-NG/FM (24 g, 125 mW typical, UART NMEA, LEO cold start 80 s) with a 50 × 50 mm patch (Spacemanic ZENITH V3a); alternate Spacemanic Celeste. Non-critical: OBC load switch with latch-up trip, power-cycled on fault. Drives SpaceX User's Guide v11 §9.5.7.2: forward-predicted GNSS-based ephemeris with covariance within 24 h of first contact, then at least every 24 h until cataloged. Needs a ground orbit-determination and CCSDS OEM upload pipeline. Third-party ephemeris stays as the contingency. Open: patch location on the faces, Czech export licence, L1 noise test with Jetson, PA and magnetorquers |
 | Radiation | Design to 10 krad (≥ 2× the 2-year dose behind 2 mm Al); Jetson treated as non-critical and expendable |
+
+**Note (2026-10-25).** The OBC row was "FreeRTOS" until Revision C. FreeRTOS was never integrated; the flight software
+is Rust (`software/rust/README.md`) on the Embassy executor, and the PI rebaselined the row to match (change request
+CR-2026-002, `docs/project/CHANGE_REQUEST_LOG.md`).
 
 ## 7. RF and Telecommand
 
@@ -182,3 +186,5 @@ change are marked there.
 | A | 2026-10-14 | Initial baseline proposed by the funding audit |
 | B | 2026-10-15 | Decisions D1–D7 recorded (§9): licensee, paid-contract structure, contact timeout, transponder kept, AI model selection, GNSS receiver (mass and power lines), integrator plan and cost |
 | B, note | 2026-10-16 | Notes on mass (§4) and the tumbling margin (§5) from the re-issued mass budget and solar-array analysis; values unchanged pending the PI |
+| B, note | 2026-10-24 | Note beneath §6: the flight software is Rust on the Embassy executor, not FreeRTOS; the OBC row is unchanged pending the PI |
+| C | 2026-10-25 | §6 OBC: the flight software runs on the Embassy executor with no RTOS (was FreeRTOS), by PI decision (CR-2026-002). §1 software classification: Class C (NPR 7150.2D Appendix D) |

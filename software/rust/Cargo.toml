@@ -1,0 +1,65 @@
+# SMART-QSO Rust workspace (see README.md)
+#
+#   sqso-protocol  wire formats on the untrusted-input surface (no_std, no unsafe)
+#   sqso-fsw       flight logic of every module, testable on the host
+#                  (no_std, no unsafe)
+#   sqso-ffi       the flight software: the flight modules behind their C
+#                  headers, the executive and the simulated HAL (with the
+#                  firmware, the only crates with unsafe code)
+#   sqso-clib      sqso-ffi as the static library the C test suites link
+#   sqso-sim       the host simulation (the executable smart_qso_flight)
+#   sqso-py        Python bindings of sqso-protocol for the payload and
+#                  ground tools (built with maturin; not a default member)
+
+[workspace]
+resolver = "3"
+members = ["sqso-protocol", "sqso-fsw", "sqso-ffi", "sqso-clib", "sqso-sim", "sqso-py"]
+default-members = ["sqso-protocol", "sqso-fsw", "sqso-ffi", "sqso-clib", "sqso-sim", "sqso-py"]
+exclude = ["fuzz", "firmware"]
+
+[workspace.package]
+version = "0.2.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+repository = "https://github.com/cheesejaguar/SMART-QSO"
+
+[workspace.dependencies]
+sqso-protocol = { path = "sqso-protocol" }
+sqso-fsw = { path = "sqso-fsw" }
+crc = { version = "3.4.0", default-features = false }
+hmac = { version = "0.13.0", default-features = false }
+sha2 = { version = "0.11.1", default-features = false }
+zeroize = { version = "1.9.1", default-features = false }
+libc = { version = "0.2", default-features = false }
+
+# Parsers on the uplink must not be able to panic: no indexing that can go
+# out of bounds, no unwrap. Enforced by `cargo clippy -- -D warnings` in CI.
+[workspace.lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+indexing_slicing = "deny"
+unwrap_used = "deny"
+expect_used = "deny"
+panic = "deny"
+unreachable = "deny"
+todo = "deny"
+unimplemented = "deny"
+cast_possible_truncation = "warn"
+# JPL rule 4 (clippy.toml sets 60 lines)
+too_many_lines = "deny"
+
+[profile.release]
+# Integer overflow is checked in flight builds too: a wrong length can only
+# stop the software (reset), never wrap into an out-of-bounds index (SW-08)
+overflow-checks = true
+debug-assertions = false
+panic = "abort"
+opt-level = "s"
+lto = true
+codegen-units = 1
+
+[profile.dev]
+panic = "abort"

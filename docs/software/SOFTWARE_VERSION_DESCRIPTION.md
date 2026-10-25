@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SVD-001
-**Revision:** B
-**Date:** 2026-10-16
+**Revision:** C
+**Date:** 2026-10-24
 **Reference:** NPR 7150.2 §3.6
 **Supersedes:** `docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md`, which also carried SQSO-SVD-001 and is merged here (finding PI-17)
 
@@ -54,15 +54,16 @@ This Software Version Description (SVD) identifies and describes a specific vers
 | eps_control | eps_control.c/h | ~400 | Power system control |
 | adcs_control | adcs_control.c/h | ~700 | Attitude control |
 | beacon | beacon.c/h | ~600 | Beacon generation |
-| fault_mgmt | fault_mgmt.c/h | ~400 | Fault management |
+| fault_mgmt | fault_mgmt.h, Rust `software/rust/sqso-ffi/src/fault_mgmt.rs` | ~400 | Fault management |
 | uart_comm | uart_comm.c/h | ~400 | UART communication |
 | mission_data | mission_data.c/h | ~300 | Data persistence |
-| crc32 | crc32.c/h | ~150 | CRC calculation |
+| crc32 | smart_qso.h, Rust `software/rust/sqso-protocol/src/checksum.rs` | ~150 | CRC calculation |
 | time_utils | time_utils.c/h | ~100 | Time utilities |
 | hal | hal/*.c/h | ~500 | Hardware abstraction |
 | **Total** | | **~4650** | |
 
-This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gained modules (for example `cmd_auth.c`, `rf_control.c`, `rf_silence.c`, `contact_monitor.c`); `software/flight/src/` is the current list.
+This table and §10.1 describe the 0.2.0 skeleton (history). Since 2026-10-24 the flight software is Rust. §3.5 lists
+the current source, and `software/rust/README.md` maps every former C file to its Rust files.
 
 ### 3.2 Test Files
 
@@ -73,6 +74,10 @@ This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gai
 | test_eps | test_eps.c | 12 | EPS control |
 | test_crc32 | test_crc32.c | 5 | CRC validation |
 
+The table above is the 0.2.0 skeleton (history; `test_main.c` was removed on 2026-10-16). On 2026-10-24 there are 42
+CMocka suites with 671 cases, and 46 ctest entries with `no_dynamic_memory`, `Simulation_Run` and the two `Executive_Jetson` runs, in `software/flight/tests`. They run
+against the Rust. There are also 328 Rust unit tests (`sqso-protocol` 75, `sqso-fsw` 239, `sqso-ffi` 14) and 12 fuzz targets.
+
 ### 3.3 Configuration Files
 
 | File | Purpose |
@@ -81,6 +86,20 @@ This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gai
 | .clang-tidy | Static analysis rules |
 | .clang-format | Code formatting |
 | .cppcheck | Cppcheck configuration |
+
+### 3.5 Flight Software Source (Rust, 2026-10-24)
+
+| Component | Location | Lines (2026-10-24, including tests and comments) | Description |
+|-----------|----------|------|-------------|
+| `sqso-protocol` | `software/rust/sqso-protocol/src` | 2,291 | Wire formats (`no_std`, no `unsafe`) |
+| `sqso-fsw` | `software/rust/sqso-fsw/src` | 11,313 | Flight logic of every module (`no_std`, no `unsafe`) |
+| `sqso-ffi` | `software/rust/sqso-ffi/src` | 10,139 | The modules behind the C headers, the executive, the simulated HAL, storage |
+| `sqso-clib`, `sqso-sim` | `software/rust/sqso-clib`, `software/rust/sqso-sim` | 33, 24 | Static library for the C suites; host simulation `smart_qso_flight` |
+| firmware | `software/rust/firmware/src` | 1,553 | STM32L4R5ZI image: Embassy main task and the HAL |
+| `sqso-py` | `software/rust/sqso-py/src` | 346 | Python module `sqso_protocol` (payload, ground) |
+| Fuzz targets | `software/rust/fuzz/fuzz_targets` | 416 | 12 targets |
+| C interface | `software/flight/include` | — | The C headers: the C ABI of the Rust modules |
+| Remaining C | `software/flight/src/flight_log_fmt.c` | 67 | printf-style flight-log shim |
 
 ### 3.4 Payload and Ground Source
 
@@ -95,10 +114,11 @@ This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gai
 
 | Tool | Version | Purpose |
 |------|---------|---------|
-| GCC | 12.x | C compiler |
-| CMake | 3.20+ | Build system |
-| clang-tidy | 18.x (CI: 18.1.3) | Static analysis |
-| cppcheck | 2.13 (CI: 2.13.0) | Static analysis and MISRA addon |
+| Rust toolchain | 1.97.0 (`software/rust/rust-toolchain.toml`); minimum 1.88 | Flight software compiler (host and `thumbv7em-none-eabihf`), clippy, rustfmt, llvm-tools |
+| GCC | 12.x | C compiler (host only: the C test suites and the flight-log shim) |
+| CMake | 3.20+ | Build system (drives cargo through `software/flight/cmake/rust.cmake`) |
+| clang-tidy | 18.x (CI: 18.1.3) | Static analysis (remaining C) |
+| cppcheck | 2.13 (CI: 2.13.0) | Static analysis and MISRA addon (remaining C) |
 
 ### 4.2 Compiler Flags
 
@@ -110,6 +130,10 @@ This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gai
 -O2 (Release) / -O0 -g (Debug)
 ```
 
+These flags apply to the remaining C (the shim and the test suites). The Rust release profile
+(`software/rust/Cargo.toml`, `software/rust/firmware/Cargo.toml`): `opt-level = "s"`, `lto = true`,
+`codegen-units = 1`, `overflow-checks = true`, `panic = "abort"`, debug assertions off.
+
 ### 4.3 Build Variants
 
 | Variant | Purpose | Debug | Assertions |
@@ -117,6 +141,11 @@ This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gai
 | Debug | Development | Yes | Yes |
 | Release | Test builds | No | Yes |
 | Flight | Flight software | No | Limited |
+
+Since SW-08, assertions are active in every build, flight included, so "Limited" no longer applies. In Rust, bounds
+and overflow checks stay on in the release profile. The Flight variant (`-DFLIGHT_BUILD=ON`) builds the host simulation
+with the cargo feature `flight` (run until stopped). The flight image is the firmware, built with
+`cargo build --release` in `software/rust/firmware`.
 
 ### 4.4 Payload and Ground Build Environment
 
@@ -133,7 +162,16 @@ This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gai
 | Library | Version | License | Purpose |
 |---------|---------|---------|---------|
 | cmocka | 1.1.5 | Apache 2.0 | Unit testing |
-| (none runtime) | - | - | No runtime deps |
+| crc | 3.4.0 | MIT or Apache 2.0 | CRC catalogue (runtime) |
+| hmac, sha2 | 0.13.0, 0.11.1 | MIT or Apache 2.0 | HMAC-SHA-256 (runtime) |
+| zeroize | 1.9.1 | MIT or Apache 2.0 | Key material erasure (runtime) |
+| ctutils | 0.4.5 | MIT or Apache 2.0 | Constant-time comparison under the HMAC check (updated from 0.4.2 for RUSTSEC-2026-0385) |
+| embassy-stm32, embassy-executor, embassy-time | 0.6.0, 0.10.0, 0.5.1 | MIT or Apache 2.0 | Target bring-up, drivers, executor (firmware only) |
+| cortex-m, cortex-m-rt | 0.7.10, 0.7.7 | MIT or Apache 2.0 | Cortex-M support, vector table and `Reset` (firmware only) |
+| libc | 0.2.191 | MIT or Apache 2.0 | Host simulation only |
+
+Versions are those of `software/rust/Cargo.lock` and `software/rust/firmware/Cargo.lock` (2026-10-24). CI runs
+`cargo audit` on both. Licenses are as published by each crate; this table does not replace a license review.
 
 ### 5.2 Hardware Dependencies
 
@@ -142,6 +180,10 @@ This table and §10.1 describe the 0.2.0 skeleton. The source tree has since gai
 | STM32L4xx | HAL | Mfr provided |
 | SPI Flash | Custom | 1.0 |
 | I2C Sensors | Custom | 1.0 |
+
+As built (2026-10-24): the STM32L4R5ZI peripherals are driven through embassy-stm32 0.6. The non-volatile memory is an
+FM25V20A FRAM on SPI1 (`software/rust/firmware/src/fram.rs`), and the telecommand receiver is a TNC on USART2 (KISS).
+The ADCS sensors and actuators have no drivers yet (`docs/reviews/KNOWN_ISSUES.md` KI-001).
 
 ## 6. Verification Status
 
@@ -166,6 +208,11 @@ The two SVDs merged here gave different counts (42 unit tests; "22 suites, 300+ 
 
 The open counts are CI's no-regression baselines (`software/flight/quality/`); CI allows no increase.
 
+On 2026-10-24, after the port to Rust, the baselines are clang-tidy 0, function length 0 and MISRA addon 42 (all in
+the remaining C and the headers it includes; `software/flight/docs/MISRA_DEVIATIONS.md` §3). The Rust has no clippy
+warnings: CI runs clippy with `-D warnings`. `cargo audit` found RUSTSEC-2026-0385 (ctutils 0.4.2), which was fixed by
+updating to 0.4.5.
+
 ### 6.3 Code Coverage
 
 | Metric | Target | Achieved |
@@ -173,6 +220,11 @@ The open counts are CI's no-regression baselines (`software/flight/quality/`); C
 | Statement | 80% | TBD |
 | Branch | 70% | TBD |
 | Function | 100% | TBD |
+
+Measured 2026-10-25 (CI job Build and Test): line coverage of the Rust flight crates is 94.4 % (gate 90 %), and of the
+flight software C and Rust together 94.4 % (gate 80 %). Line coverage is not statement coverage. Branch and condition
+coverage of the Rust crates is 80.6 % (gate 80 %), and each safety-critical file is at 100 % of lines and conditions
+(CR-2026-003). Function coverage is not gated, so the table above is left as it was.
 
 ## 7. Known Issues
 
@@ -187,7 +239,8 @@ The open counts are CI's no-regression baselines (`software/flight/quality/`); C
 | Limitation | Impact | Mitigation |
 |------------|--------|------------|
 | Simulation only | Not flight-ready | Hardware integration TBD |
-| No FreeRTOS | Single-threaded | Future integration |
+| No RTOS (FreeRTOS was never integrated and is not planned) | One Embassy task; interrupts only for the UARTs and the time driver | By design; the baseline since 2026-10-25 (BASELINE §6, CR-2026-002; `software/flight/docs/RTOS_ARCHITECTURE.md`) |
+| Firmware not run on hardware | Pin map provisional; timing and power not measured; stack bounded by analysis only (4,900 B of 8 KB) | Hardware bring-up (`software/rust/README.md`, Next steps) |
 | Beacon interval | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (BASELINE §8) | Operating constraint |
 | Beacon text | At most 176 characters (`docs/BEACON_SPEC.md`) | Operating constraint |
 | Hardware watchdog | 30 s timeout (`WDT_HW_TIMEOUT_MS`) | Operating constraint |
@@ -214,6 +267,9 @@ The open counts are CI's no-regression baselines (`software/flight/quality/`); C
 | Bug Fixes | None (new code) |
 | Enhancements | Modular architecture |
 | Documentation | Complete design docs |
+
+2026-10-24 (still 0.2.0-dev): the flight software was ported from C to Rust. The behaviour is the same, apart from the
+deliberate changes numbered in `software/rust/README.md`. The STM32L4R5ZI image is now the Embassy firmware.
 
 ### 8.2 Requirements Implemented
 
@@ -253,9 +309,14 @@ python -m pytest -q software/ground/tests
 | Simulation | Direct execution |
 | Hardware | JTAG/SWD flash |
 
+The simulation is `build/smart_qso_flight`. On hardware, `cargo run --release` in `software/rust/firmware` flashes the
+image over SWD with probe-rs.
+
 ## 10. Configuration Items
 
 ### 10.1 Files in This Release
+
+The tree below is the 0.2.0 skeleton (history). The current flight software source is in §3.5.
 
 ```
 software/flight/
@@ -278,10 +339,10 @@ software/flight/
 │   ├── eps_control.c
 │   ├── adcs_control.c
 │   ├── beacon.c
-│   ├── fault_mgmt.c
+│   ├── fault_mgmt.rs (Rust)
 │   ├── uart_comm.c
 │   ├── mission_data.c
-│   ├── crc32.c
+│   ├── checksum.rs (Rust)
 │   ├── time_utils.c
 │   └── hal/
 ├── tests/
@@ -311,3 +372,5 @@ software/flight/
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Merged with `docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md`, which carried the same number (finding PI-17): payload and ground identification, build environment and limitations added; Git tag corrected to none; unsupported test counts and open-issue claim removed; §7.3 lists what was not carried and why | SMART-QSO Team |
+| C | 2026-10-24 | The flight software is Rust: §3.5 current source by crate; tests, tools, Rust release profile, runtime dependencies with versions, hardware drivers, static-analysis baselines, measured line coverage, limitations, change summary and deployment updated. Skeleton tables kept as history | SMART-QSO Team |
+| C, note | 2026-10-25 | §7.2: no RTOS (Embassy executor) is the baseline (BASELINE §6, CR-2026-002) | SMART-QSO Team |

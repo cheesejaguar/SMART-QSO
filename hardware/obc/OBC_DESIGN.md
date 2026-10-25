@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-CDH-OBC-001
-**Version:** 1.2
-**Date:** 2026-10-16
+**Version:** 1.4
+**Date:** 2026-10-25
 **Status:** Draft
 **Supersedes:** `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), merged as Appendix A (finding PI-17)
 
@@ -35,9 +35,9 @@ This document defines the On-Board Computer (OBC) design for the SMART-QSO 1U Cu
 | Manufacturer | STMicroelectronics |
 | Part Number | STM32L4R5ZI (`docs/BASELINE_PARAMETERS.md` §6); STM32L4R5ZIT6 in `docs/manufacturing/EEE_PARTS_LIST.md` §4.1 |
 | Core | ARM Cortex-M4F |
-| Clock Speed | Up to 120 MHz in voltage Range 1 boost mode (ST STM32L4R5xx datasheet). The flight image runs at 80 MHz, the top of Range 1 normal mode, from the internal MSI through the PLL (`software/flight/src/hal/stm32l4_clock.c`) |
+| Clock Speed | Up to 120 MHz in voltage Range 1 boost mode (ST STM32L4R5xx datasheet). The flight image runs at 80 MHz, the top of Range 1 normal mode, from the internal MSI through the PLL (`clocks()` in `software/rust/firmware/src/main.rs`) |
 | Flash | 2 MB |
-| SRAM | 640 KB: SRAM1 192 KB at 0x20000000, SRAM2 64 KB at 0x20030000, SRAM3 384 KB at 0x20040000, contiguous (`software/flight/cmake/stm32l4r5zi.ld`) |
+| SRAM | 640 KB: SRAM1 192 KB at 0x20000000, SRAM2 64 KB at 0x20030000, SRAM3 384 KB at 0x20040000, contiguous. The firmware links them as one 640 KB region (the `memory.x` of embassy-stm32 with cortex-m-rt's `link.x`; `software/rust/firmware/.cargo/config.toml`) |
 | Package | LQFP144 (STM32L4R5ZIT6, `docs/manufacturing/EEE_PARTS_LIST.md` §4.1) |
 
 The baseline OBC is the **STM32L4R5ZI** (`docs/BASELINE_PARAMETERS.md` §6). Version 1.1 of this table gave the
@@ -78,7 +78,8 @@ against the STM32L4R5 datasheet.
 | SRAM (SRAM1, SRAM2, SRAM3) | 0x20000000 | 640 KB | Data and bss from the bottom, stack down from the top; no heap |
 
 The code / golden / data flash partition is the plan for a bootloader, which does not exist yet. The flight image is
-linked for the start of flash and may use all 2 MB, and its RAM is one 640 KB region (`software/flight/cmake/stm32l4r5zi.ld`).
+linked for the start of flash and may use all 2 MB, and its RAM is one 640 KB region (the `memory.x` of embassy-stm32;
+the C linker script cited here until 2026-10-24 was removed with the C target build).
 
 ### 3.2 Non-Volatile Storage
 
@@ -107,15 +108,16 @@ linked for the start of flash and may use all 2 MB, and its RAM is one 640 KB re
 
 | Source | Frequency | Accuracy | Purpose |
 |--------|-----------|----------|---------|
-| HSE (Crystal) | 8 MHz | ±20 ppm | Planned main clock source; a board decision, not used by the flight image (`software/flight/src/hal/stm32l4_clock.c`) |
+| HSE (Crystal) | 8 MHz | ±20 ppm | Planned main clock source; a board decision, not used by the flight image (`clocks()` in `software/rust/firmware/src/main.rs`) |
 | LSE (Crystal) | 32.768 kHz | ±20 ppm | RTC, watchdog |
 | HSI | 16 MHz | ±1% | Backup oscillator |
 | LSI | 32 kHz | ±5% | Backup RTC |
 
 ### 4.2 Clock Distribution
 
-- System clock: 80 MHz from the PLL, sourced from the internal MSI at 4 MHz (M = 1, N = 40, R = 2; `software/flight/src/hal/stm32l4_clock.c`). If the
-  PLL does not lock, the core stays on MSI at 4 MHz. Moving to the HSE is a board decision; above 80 MHz (up to 120 MHz)
+- System clock: 80 MHz from the PLL, sourced from the internal MSI at 4 MHz (M = 1, N = 40, R = 2; `clocks()` in `software/rust/firmware/src/main.rs`). The
+  start-up waits for the PLL to lock; the independent watchdog, started first at its longest timeout (about 32.8 s),
+  resets the OBC if it never does. Moving to the HSE is a board decision; above 80 MHz (up to 120 MHz)
   would need Range 1 boost mode
 - Peripheral clocks: Divided from system clock
 - RTC: LSE direct (32.768 kHz)
@@ -317,6 +319,12 @@ The OBC hardware supports the HAL interfaces defined in:
 - `hal_flash.h` - Flash/FRAM access
 - `hal_adc.h` - ADC reading
 
+Update 2026-10-24: the headers are in `software/flight/include/hal`. The watchdog header is `hal_wdt.h` (there is no
+`hal_watchdog.h`), and there are also `hal_radio.h` (telecommand receiver) and `hal_reset.h` (reset cause). The flight
+software is Rust (`software/rust/README.md`). On this board the HAL is implemented in Rust on embassy-stm32 in
+`software/rust/firmware/src`, with the provisional pin assignment of `software/rust/firmware/src/gpio.rs`. No hardware
+has run it.
+
 ### 10.2 Boot Sequence
 
 1. Hardware reset
@@ -327,6 +335,13 @@ The OBC hardware supports the HAL interfaces defined in:
 6. Load configuration from FRAM
 7. Check boot reason
 8. Start scheduler
+
+As built (2026-10-24, `software/rust/firmware/src/main.rs`; nothing run on hardware): (1) the IWDG starts at its longest
+timeout, about 32 s; (2) clocks: MSI 4 MHz through the PLL to 80 MHz; (3) GPIO with the enable and burn lines low, then
+FRAM, SPI, I2C, the three UARTs and the ADC; (4) the flight software starts (`Executive::start()`): time base, GPIO and
+flash, deployment, fault management, RF safety and telecommand, mission data, EPS, sensors, the mode manager, then the
+watchdog manager, which sets the 30 s operating timeout; (5) the main loop, one pass every 20 ms on the Embassy
+executor. There is no RTOS scheduler and no memory test (`software/flight/docs/RTOS_ARCHITECTURE.md`).
 
 ---
 
@@ -400,7 +415,7 @@ baseline OBC.
 | ADC channels | 4: battery, solar, two temperatures (§8.5) | 7: six sun sensors and internal temperature (A.5.5) | Not set |
 | Active power | < 100 mW (§1.1); 50 mW budget (§6.3) | < 200 mW threshold (A.2.2, OBC-P006) | Housekeeping allocation 0.70 W orbit average (BASELINE §5) |
 | Boot time | < 10 s (§12.2) | < 30 s requirement (A.2.2); < 500 ms budget (A.8.3) | Not set |
-| RTOS | — | FreeRTOS 10.4.3 configuration (A.9.1) | FreeRTOS (BASELINE §6). Not yet integrated: the flight software runs as a host simulation |
+| RTOS | — | FreeRTOS 10.4.3 configuration (A.9.1) | No RTOS: the Rust flight software runs on the Embassy executor (BASELINE §6, Revision C, 2026-10-25; CR-2026-002) |
 
 ### A.2 OBC Requirements (former §2)
 
@@ -408,7 +423,7 @@ baseline OBC.
 
 | ID | Requirement | Verification |
 |----|-------------|--------------|
-| OBC-F001 | Execute flight software in FreeRTOS | Test |
+| OBC-F001 | Execute flight software on the Embassy executor (Rust; no RTOS) | Test |
 | OBC-F002 | Interface with EPS via I2C | Test |
 | OBC-F003 | Interface with Jetson via UART | Test |
 | OBC-F004 | Control subsystem power via GPIO | Test |
@@ -418,6 +433,10 @@ baseline OBC.
 | OBC-F008 | Provide telemetry collection and formatting | Test |
 | OBC-F009 | Generate beacon at configurable intervals | Test |
 | OBC-F010 | Detect and log faults | Test |
+
+Note (2026-10-25): OBC-F001 required FreeRTOS until the PI rebaselined the OBC to the Embassy executor (BASELINE §6,
+Revision C; change request CR-2026-002, `docs/project/CHANGE_REQUEST_LOG.md`). The flight software runs that way
+(`software/flight/docs/RTOS_ARCHITECTURE.md`); verification on hardware is pending (A.11.1).
 
 #### A.2.2 Performance Requirements
 
@@ -542,6 +561,9 @@ baseline OBC.
 |  Data            |
 +------------------+  0x2000_0000
 ```
+
+*(Superseded 2026-10-25: there is no FreeRTOS kernel and no heap. The RAM holds the static data from 0x20000000 and one
+8 KB stack below 0x200A0000 with an MPU guard; `software/flight/docs/MEMORY_POLICY.md` §3.1 and §6.)*
 
 ### A.5 Peripheral Interfaces (former §4)
 
@@ -775,6 +797,10 @@ void main_loop(void) {
 
 ### A.9 Software Architecture (former §8)
 
+Note (2026-10-24): A.8 and A.9 are the superseded design merged from SMART-QSO-OBC-001. FreeRTOS was never integrated.
+The software as built is in §10.2 and `software/flight/docs/RTOS_ARCHITECTURE.md`. *(2026-10-25: the baseline is the
+Embassy executor with no RTOS; BASELINE §6, CR-2026-002.)*
+
 #### A.9.1 FreeRTOS Configuration
 
 | Parameter | Value |
@@ -941,3 +967,5 @@ OpenOCD / STM32CubeProgrammer
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-16 | Merged `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), a second OBC design for the same board, as Appendix A without reconciling it; A.1 lists where the two disagree and what the baseline says; §2.1 notes the baseline MCU; test IDs in A.11.2 aligned with the procedure files; status changed from "CDR Baseline" to Draft, as no CDR has been held (findings PI-17, VV-18) |
 | 1.2 | 2026-10-16 | §2.1, §2.2, §3.1, §3.2, §4.1 and §4.2: part data for the baseline STM32L4R5ZI (2 MB flash, 640 KB SRAM, up to 120 MHz; flight image at 80 MHz from MSI), replacing the superseded STM32L476RG / Apollo4 values; flash partition kept and marked as a bootloader plan; A.1 rows updated; A.2.4 vibration and A.3 / A.4.1 carry dated notes (BASELINE §6; findings PI-14, LA-05) |
+| 1.3 | 2026-10-24 | Software sections for the Rust flight software: the removed C linker script replaced by the firmware's link configuration (§2.1, §3.1); §10.1 HAL headers as they are and their Rust implementation; §10.2 boot sequence as built; A.1 RTOS row; note that OBC-F001 (FreeRTOS) is not met as written; A.9 marked superseded |
+| 1.4 | 2026-10-25 | OBC-F001 rebaselined by the PI to the Embassy executor (was FreeRTOS; BASELINE §6 Revision C, CR-2026-002); A.1 RTOS row; superseded note on the A.4 RAM map |

@@ -4,10 +4,14 @@
 > earlier status claims (a v1.0.0 tag, "no known issues", "> 80 % line coverage", "MISRA C:2012 compliant") with facts
 > that can be checked in the repository. Sections 3, 5.3, 7 and 9 describe what a future delivery must contain; nothing
 > in them exists yet.
+>
+> **Update 2026-10-24 (version 1.2):** all flight software is Rust (`software/rust/README.md`). The only C left is the
+> flight-log printf shim. §2.1, §2.3, §4.1, §5 and §6.2 now describe that state. §4.3 gives the figures of 2026-10-24.
+> §4.2 keeps the figures of 2026-10-16 as the record of that date. Still no release and no delivery.
 
 **Document ID**: SQSO-FSW-DEL-001
-**Version**: 1.1
-**Date**: 2026-10-16
+**Version**: 1.2
+**Date**: 2026-10-24
 **Classification**: Unclassified
 **Status**: Template and status record. No release, no delivery (project phase: Phase B, pre-PDR; `docs/BASELINE_PARAMETERS.md` §1)
 
@@ -15,7 +19,7 @@
 
 This document will be the flight software delivery package for the SMART-QSO mission (NPR 7150.2 version description
 and delivery record). Until a release is made, it records the current state of the flight software and what a delivery
-must contain. Software classification under NPR 7150.2D is pending (BASELINE §1).
+must contain. The flight software is NPR 7150.2D Class C (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1, 2026-10-25).
 
 ## 2. Software Version Description
 
@@ -27,9 +31,9 @@ must contain. Software classification under NPR 7150.2D is pending (BASELINE §1
 | Version | **None released.** The software is identified only by Git commit |
 | Git tag | **None.** The repository has no tags and no GitHub releases (checked 2026-10-16 with `git tag` and the GitHub API) |
 | Git SHA | The commit being described; no release commit exists |
-| Host build | `smart_qso_flight`, a host simulation executable (Linux/macOS), using the simulation HAL `src/hal/hal_sim.c` |
-| Target build | `libsmart_qso_target.a`, a static library of the flight modules and the register-level STM32L4 HAL (`src/hal/hal_stm32l4.c`), cross-compiled for Cortex-M4 in CI. **No linked flight image:** there is no RTOS, startup code or linker script yet |
-| Binary size / checksum | Not applicable: no flight image exists. CI prints the library size (`arm-none-eabi-size`) on each run |
+| Host build | `smart_qso_flight`, a host simulation executable (Linux/macOS; crate `sqso-sim`), using the simulated HAL `software/rust/sqso-ffi/src/hal_sim.rs` |
+| Target build | The Embassy firmware `software/rust/firmware` (ELF `sqso-firmware`), linked for the STM32L4R5ZI and built and checked in CI. It has not run on hardware. (Until 2026-10-24 this was a C static library with a register-level HAL; it was removed) |
+| Binary size / checksum | Release image (2026-10-25): text 110,388 B, data 19,648 B, bss 15,488 B. No checksum is recorded because nothing is released. CI prints the section sizes on each run |
 
 ### 2.2 Payload Software (Jetson)
 
@@ -45,13 +49,13 @@ must contain. Software classification under NPR 7150.2D is pending (BASELINE §1
 | Component | Version / source |
 |-----------|------------------|
 | Host compiler | The runner's default GCC on `ubuntu-24.04` in CI (images pinned in the workflows); Apple clang works for local builds |
-| Cross compiler (OBC target) | `gcc-arm-none-eabi` and `libnewlib-arm-none-eabi` from the Ubuntu 24.04 package archive, installed by the CI job "STM32L4 Cross-Compile (library)". The version is whatever that archive provides; it is not pinned. Toolchain file: `software/flight/cmake/arm-none-eabi-stm32l4.cmake` (`-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16`) |
+| Compiler (OBC target and host flight software) | Rust 1.97.0, pinned by `software/rust/rust-toolchain.toml`, target `thumbv7em-none-eabihf`. Minimum supported 1.88 (checked in CI). No C cross compiler is used (2026-10-24; the former `gcc-arm-none-eabi` toolchain file was removed). `binutils-arm-none-eabi` is installed in CI for image inspection only |
 | CMake | ≥ 3.16 (`cmake_minimum_required` in `software/flight/CMakeLists.txt`) |
 | Unit-test framework | CMocka (`libcmocka-dev` in CI) |
 | Static analysis | cppcheck 2.13.x and clang-tidy 18.x, pinned by the CI version checks |
 | Coverage | gcovr (Ubuntu 24.04 package; 7.0 when the figure below was recorded) |
-| RTOS | **None yet.** FreeRTOS is planned (`software/flight/docs/RTOS_ARCHITECTURE.md`) but not integrated |
-| Vendor HAL / CMSIS | **None.** The STM32L4 HAL is register-level code in the repository |
+| RTOS | **None.** The image runs on the Embassy executor (embassy-executor 0.10) with one task. FreeRTOS was never integrated; no RTOS is the baseline since 2026-10-25 (BASELINE §6, CR-2026-002; `software/flight/docs/RTOS_ARCHITECTURE.md`) |
+| Vendor HAL / CMSIS | **None.** embassy-stm32 0.6 (with its generated register access); the flight HAL is `software/rust/firmware/src` |
 | Payload | Python ≥ 3.9 |
 
 ## 3. Delivery Contents (planned)
@@ -103,7 +107,9 @@ smart-qso-payload-<version>/
   beacon content filter, the OBC side of the Jetson link, the supervised watchdog, fault logging, telecommand
   authentication (HMAC-SHA-256), TX-OFF, post-deployment RF silence, the loss-of-contact timer and deployment
   sequencing. They run in the host simulation.
-- A register-level STM32L4 HAL that compiles into the target library. It has not run on hardware.
+- A register-level STM32L4 HAL that compiles into the target library. It has not run on hardware. (2026-10-16. Since
+  2026-10-24, the flight software is Rust and the target is the linked Embassy firmware with Rust drivers for GPIO,
+  timer, IWDG, UARTs, I2C, SPI, ADC, FRAM and the receiver. It has not run on hardware either.)
 - Graceful degradation without the AI payload is designed in (template beacons); it has been exercised only in the
   host simulation and unit tests.
 
@@ -121,16 +127,26 @@ Every figure below comes from a CI configuration or a file in the repository, or
 | Target build | The flight library cross-compiles for Cortex-M4 with `-Werror`; CI checks that key symbols are present | `.github/workflows/flight-software-ci.yml`, job "STM32L4 Cross-Compile (library)" |
 | Integration / hardware tests | **None run.** No hardware exists | — |
 
+### 4.3 Test and analysis summary, 2026-10-24
+
+| Item | Value | Evidence |
+|------|-------|----------|
+| Unit tests | **43 CMocka suites, 671 test cases**, plus `no_dynamic_memory`, the `Simulation_Run` host simulation and the two `Executive_Jetson` runs of the main loop against a simulated Jetson: 46 ctest entries, run unchanged against the Rust. In addition, 328 Rust unit tests | `software/flight/tests/CMakeLists.txt`; `software/flight/tests/README.md` |
+| Line coverage | Rust flight crates **94.4 %** (CI fails below 90 %); C and Rust together **94.4 %** (CI fails below 80 %). Branch and condition coverage **80.6 %** (CI fails below 80 %); the safety-critical files 100 % of lines and conditions, gated per file (CR-2026-003, in place of MC/DC) | `.github/workflows/ci.yml`, job "Build and Test" |
+| Static analysis | clippy with warnings as errors (host and Cortex-M4F); clang-tidy **0**, MISRA addon **42**, functions over 60 lines **0** in the remaining C; CodeQL (Rust, C/C++); `cargo audit` (RUSTSEC-2026-0385 fixed by ctutils 0.4.5) | `software/flight/quality/`; jobs "Static Analysis", "MISRA C:2012 Check", "Security Scan" |
+| Fuzzing | 12 targets, 30 s each per CI run | Job "Sanitizer Checks" |
+| Equivalence with the former C | Simulation output identical (256 lines); differential tests on 8.3 million protocol inputs and on sensors, GNSS, safe strings, flight log and assertion handler | `software/rust/README.md`, section Evidence |
+| Target build | Image linked; CI checks the entry point, vector table, initial SP, flight symbols, and no heap or C library | Job "STM32L4 Cross-Compile (library)" |
+| Integration / hardware tests | **None run.** No hardware exists | — |
+
 ## 5. Build Instructions
 
 ### 5.1 Prerequisites
 
 ```bash
-# Host build and tests (Ubuntu 24.04)
+# Host build and tests (Ubuntu 24.04); Rust from rustup (https://rustup.rs);
+# the pinned toolchain installs on first use (software/rust/rust-toolchain.toml)
 sudo apt install cmake libcmocka-dev
-
-# Target cross-compile (library only)
-sudo apt install gcc-arm-none-eabi libnewlib-arm-none-eabi
 
 git clone https://github.com/cheesejaguar/SMART-QSO.git
 cd SMART-QSO
@@ -145,12 +161,10 @@ cmake -S software/flight -B build
 cmake --build build
 ctest --test-dir build
 
-# STM32L4 target library (no linked image yet)
-cmake -S software/flight -B build-arm \
-    -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-stm32l4.cmake \
-    -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON
-cmake --build build-arm
-arm-none-eabi-size --totals build-arm/libsmart_qso_target.a
+# STM32L4R5ZI image (Embassy firmware)
+cd software/rust/firmware
+cargo build --release --locked
+# target/thumbv7em-none-eabihf/release/sqso-firmware
 ```
 
 ### 5.3 Reproducible Build Verification (planned)
@@ -181,9 +195,10 @@ loads the fault log; KI-003 says the beacon is fixed at 60 s, but the interval i
 
 | Limitation | Reference |
 |------------|-----------|
-| No RTOS, startup code or linker script; no linked flight image | `software/flight/CMakeLists.txt` (target section) |
-| Unity, integration and regression suites not built | SW-09 |
-| Static-analysis findings not yet worked down (58 clang-tidy, 1,189 MISRA; most MISRA findings are rules 15.5 and 21.6, deviations awaiting the PI) | `software/flight/quality/` |
+| No RTOS, startup code or linker script; no linked flight image (2026-10-16; resolved 2026-10-24: linked Embassy image, no RTOS by design) | `software/rust/firmware` |
+| Unity, integration and regression suites not built (2026-10-16; all are built and run on 2026-10-24) | SW-09 |
+| Static-analysis findings not yet worked down (58 clang-tidy, 1,189 MISRA on 2026-10-16; on 2026-10-24, 0 and 42 in the remaining C) | `software/flight/quality/` |
+| Firmware not run on hardware; pin map provisional; ADCS drivers not written | `docs/reviews/KNOWN_ISSUES.md` KI-001 |
 | No hardware-in-the-loop or flatsat testing | `software/flight/tests/hil/HIL_TEST_PLAN.md` |
 
 ### 6.3 Accepted Deviations
@@ -198,6 +213,10 @@ Not defined. There is no linker script, so no flash or RAM layout exists. The fl
 memory (`no_dynamic_memory` check), so the layout will need no heap. The layout will be defined with the linker script
 and recorded here.
 
+Update 2026-10-24: the firmware links with cortex-m-rt's `link.x` and the `memory.x` of embassy-stm32: 2 MB flash from
+0x08000000 (vector table first) and 640 KB RAM from 0x20000000, with the stack growing down from 0x200A0000, and no
+heap (`software/flight/docs/MEMORY_POLICY.md` §3).
+
 ## 8. Resource Utilization
 
 ### 8.1 Memory Usage
@@ -207,6 +226,10 @@ and recorded here.
 | Flash (code) | TBD | TBD (library size printed by CI; no linked image) | TBD |
 | RAM (static) | TBD | TBD | TBD |
 | RAM (stack) | TBD | TBD | TBD |
+
+Measured 2026-10-25 from the release image (the table is left open until allocations are set): text 110,388 B in flash;
+static RAM 35,136 B (data 19,648 B, bss 15,488 B). Worst-case stack 4,900 B of 8 KB by static analysis
+(`software/flight/docs/MEMORY_POLICY.md` §6).
 
 ### 8.2 CPU Utilization
 
@@ -249,3 +272,5 @@ Not designed. There is no bootloader or software-update mechanism yet; requireme
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Funding audit SW-18: status sections rewritten from repository facts (no tag, no linked image, 31 suites / 428 cases, 68.2 % line coverage, static-analysis baselines, KI-001 to KI-005); invented memory map, FreeRTOS/CMSIS versions and upload procedure removed |
+| 1.2 | 2026-10-24 | SMART-QSO Team | All flight software Rust: host and target builds, build environment (Rust toolchain, Embassy, no RTOS), §4.3 figures of 2026-10-24, build instructions for the firmware, limitations updated. The 2026-10-16 figures kept in §4.2. Still no release |
+| 1.2, note | 2026-10-25 | SMART-QSO Team | §1: software classification NPR 7150.2D Class C (SDP §3.1); §2 RTOS row: no RTOS is the baseline (BASELINE §6, CR-2026-002) |

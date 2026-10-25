@@ -2,8 +2,8 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MOP-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-25
 **Reference:** NPR 7120.5, NPR 7123.1
 
 ---
@@ -95,7 +95,15 @@ Mission Director
 | TNC | Dire Wolf or hardware TNC |
 | Tracking | GPREDICT or similar |
 
-### 4.2 SatNOGS Network
+### 4.2 Telecommand Stations
+
+Telecommands go up on the coordinated 70 cm uplink (435–438 MHz) from designated stations only (47 CFR 97.211;
+decision D1 in `docs/BASELINE_PARAMETERS.md` §9: at least two stations to be named before the IARU request). Each
+command carries an HMAC-SHA-256 tag and a per-key counter (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`); TX-OFF is
+accepted without a key when no key is usable. Station equipment: a 70 cm transmitter and TNC, the command builder
+(`software/ground/tools/telecommand_builder.py`) and the station's key, held offline and never in the repository.
+
+### 4.3 SatNOGS Network
 
 SMART-QSO will utilize the SatNOGS global ground station network for:
 - Beacon reception
@@ -103,7 +111,7 @@ SMART-QSO will utilize the SatNOGS global ground station network for:
 - Pass scheduling
 - Data aggregation
 
-### 4.3 Mission Control Center
+### 4.4 Mission Control Center
 
 | System | Description |
 |--------|-------------|
@@ -154,6 +162,19 @@ SMART-QSO will utilize the SatNOGS global ground station network for:
 Intervals are `BEACON_INTERVAL_*_MS` in `software/flight/include/beacon.h`. ACTIVE is the baseline rate (one beacon per
 60 s, `docs/BASELINE_PARAMETERS.md`); no mode beacons faster. No beacon is sent while TX-OFF, loss of contact or the
 post-deployment RF silence inhibits the transmitter.
+
+### 5.5 Telecommand and Transponder Operations
+
+- **Contact.** Each authenticated command resets the loss-of-contact timer: after N days without one (30 at launch,
+  14 after commissioning) the spacecraft stops transmitting and keeps listening (`docs/BASELINE_PARAMETERS.md` §7).
+  Send at least one authenticated command well inside N; a station that cannot reach the spacecraft for that long
+  hands off to another designated station.
+- **Cessation of emissions.** TX-OFF is the first command of any interference report; it latches in NVM and is
+  cleared only by an authenticated TX-ON (`docs/BASELINE_PARAMETERS.md` §7, 97.207(b)).
+- **Transponder.** The FM transponder is duty-gated by power and thermal limits (decision D4); its schedule is set by
+  command within those limits. Not yet implemented onboard (`mission/CONOPS.md`, as built).
+- **Counters and keys.** Each station uses its own key and never reuses a counter; key rotation uses the recovery key
+  (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`).
 
 ## 6. Contingency Operations
 
@@ -373,3 +394,4 @@ See END_OF_LIFE_PLAN.md for detailed procedures.
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-25 | §4.2 telecommand stations and §5.5 telecommand and transponder operations, from the baseline (the plan described a receive-only ground segment) | SMART-QSO Team |

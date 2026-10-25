@@ -5,7 +5,7 @@
 - Thermal: radiator strap + thermistor feedback; duty‑cycle heavy workloads
 
 ## Data flow and constraints
-- OBC sends health fields (see `software/flight/src/main.c`): `CALL, TIME, MODE, SOC, SUN, RF, PWR, QSO`
+- OBC sends health fields (see `software/rust/sqso-ffi/src/executive.rs`): `CALL, TIME, MODE, SOC, SUN, RF, PWR, QSO`
 - Payload formats a short prompt and queries the LLM to produce a single sentence:
   - ASCII‑only, ≤ 120 bytes; begins with `de <CALL>:` and ends with `73!` unless `MODE=SAFE`
   - Always emits the machine‑parsable tail per `docs/BEACON_SPEC.md`

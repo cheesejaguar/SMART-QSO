@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat (proposed Class D, NPR 8705.4B)
 
 **Document Number:** SQSO-AUD-003
-**Revision:** A
-**Date:** 2026-10-14
+**Revision:** C
+**Date:** 2026-10-25
 
 ---
 
@@ -31,12 +31,28 @@ NPR 7150.2, NPR 7123.1 and NASA-STD-8719.13 with no supporting matrices (finding
 | NPR 7120.5 Space Flight Program and Project Management | 7120.5F, effective 2021-08-03 (listed expiry 2026-08-03; extension status unverified) | Large NASA flight projects; heavy for a non-NASA 1U | Called "governing" (54 cites) | Partial | Use as reference only; adopt tailored lifecycle reviews |
 | NPR 7120.8 NASA Research and Technology Program and Project Management | 7120.8A | Common management framework for PI-led small satellites and technology demonstrations | Never cited | Gap | Consider as the management baseline if NASA-sponsored |
 | NPR 7123.1 Systems Engineering Processes and Requirements | **7123.1D** (2023–2028); no "Rev E" found | Applicable, tailored | Cited as "Rev E"; "Compliant" | Partial | Correct the revision; tailoring matrix |
-| NPR 7150.2 Software Engineering Requirements | **7150.2D**, effective 2022-03-08 | Applicable | Cited as "Rev B"; "Compliant"; class stated as B, C, C/D and D in different places | Gap | Formal classification per Appendix D; tailored compliance matrix |
+| NPR 7150.2 Software Engineering Requirements | **7150.2D**, effective 2022-03-08 | Applicable | Cited as "Rev B"; "Compliant"; class stated as B, C, C/D and D in different places | Partial | Classification done (2026-10-25): Class C for flight software and ground software used in operations, Class D for research and analysis tools (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). Still to do: the Appendix C requirements mapping and compliance matrix for Class C |
 | NASA-STD-8739.8 Software Assurance and Software Safety | **8739.8B**, 2022-09-08 | Applicable (it replaced 8719.13) | Listed, not implemented | Gap | Software assurance plan; safety-criticality assessment |
 | NASA-STD-8719.13 Software Safety | **Cancelled 2020-06-10** (folded into 8739.8) | N/A | 27 citations; "Compliant" | Gap (stale citation) | Replace every citation with 8739.8B |
 | NPR 8715.3 NASA General Safety Program | 8715.3E | Reference | Listed | Partial | — |
 | NPR 8715.6 Orbital Debris | Required by CDS Rev 14.1 §2.4.3 | Applicable | Never cited | Tailored-plan | ODAR per 8719.14C ([ODAR](../regulatory/filings/ODAR_SMART-QSO.md)) |
 | NASA-STD-8719.14 Process for Limiting Orbital Debris | **8719.14C**, 2021-11-05; DAS 3.2.6 (2024-02-05) | Applicable | Cited as "A"; 25-year rule; "Compliant" | Tailored-plan | Run DAS 3.2.6; finalize ODAR |
+
+### 1.1 NPR 7150.2: Software Implementation Items (update 2026-10-24)
+
+The NPR 7150.2 row above was **Gap** until 2026-10-25, when the software was classified against Appendix D (Class C;
+`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). It is now **Partial**: the Appendix C requirements mapping and
+compliance matrix for Class C does not exist yet. This table records the state of the software items that a tailored matrix would cover, after the flight software was ported
+from C to Rust on 2026-10-24 (`software/rust/README.md`). Each status uses the definitions above.
+
+| Item | State on 2026-10-24 | Status |
+|------|---------------------|--------|
+| Implementation language | Rust (2024 edition) for all flight code. The only C is the flight-log printf shim (`software/flight/src/flight_log_fmt.c`) and the test suites. SRS-C001 still says C11, so the implementation does not meet it as written; amending it or recording a waiver is a PI decision (`docs/software/SOFTWARE_REQUIREMENTS.md` §8.1) | Partial |
+| Coding standard | `docs/development/CODING_STANDARDS.md` Rev B: §11 for Rust (lints denied in CI, `unsafe` policy, no allocation, no panics on input, C ABI rules) and §3–§10 for the remaining C. The JPL Power of Ten mapping, with what is enforced by a tool and what by review, is `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1. MISRA C applies to the shim only (42-finding baseline, `software/flight/docs/MISRA_DEVIATIONS.md`) | Partial |
+| Static analysis | In CI on every change: clippy with warnings as errors (host and Cortex-M4F), the `#![forbid(unsafe_code)]` check, CodeQL for Rust and C/C++, `cargo audit`; cppcheck, clang-tidy (baseline 0) and the MISRA addon (baseline 42) on the remaining C. None of the tools is qualified | Partial |
+| Code coverage | Line coverage gated in CI: the Rust flight crates ≥ 90 % (94.4 % measured) and the flight software C and Rust together ≥ 80 % (94.4 %). Branch and condition coverage of the Rust crates gated ≥ 80 % (80.6 %); the safety-critical files at 100 % of lines and conditions, gated per file, in place of MC/DC (CR-2026-003, approved) | Partial |
+| Tools and toolchain | Rust 1.97.0 pinned (`software/rust/rust-toolchain.toml`), CI tool versions pinned by the runner image; no tool qualification. PI decision 2026-10-25 (CR-2026-004): no qualified compiler for this Class C software; the tests, image checks, static stack analysis and hardware tests check the compiler's output | Partial |
+| Target verification | The STM32L4R5ZI image (`software/rust/firmware`) is built and checked in CI. No hardware has run it | Gap |
 
 ## 2. Workmanship, Parts, Materials, Structures, Environments
 
@@ -88,3 +104,5 @@ NPR 7150.2, NPR 7123.1 and NASA-STD-8719.13 with no supporting matrices (finding
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial matrix (funding audit) |
+| B | 2026-10-24 | §1.1: NPR 7150.2 implementation items (language, coding standard, static analysis, coverage, tools, target verification) after the port of the flight software to Rust. No status in §1 changed |
+| C | 2026-10-25 | NPR 7150.2 row: Gap to Partial. The software is classified (Class C; SDP §3.1); the Appendix C compliance matrix for Class C is still to do. §1.1 note and tools row to match |

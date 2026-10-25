@@ -78,7 +78,7 @@ an AI experiment, and G keeps A's safety properties.
 The rule that separates the options is 97.113(a)(4), "false or deceptive messages": a model that writes a number can
 state a wrong one. So no generated text carries a number; the OBC writes every value from measurements.
 
-The OBC (`beacon_filter.c`) and the Jetson (`content_filter.py`) apply the same deterministic rules
+The OBC and the Jetson (`content_filter.py`) apply the same deterministic rules, one implementation (`software/rust/sqso-protocol/src/filter.rs`)
 (`docs/BEACON_SPEC.md` §6) and run the same shared test vectors. Generation uses temperature 0.3 and a grammar that
 admits no digits. Without a model the runner returns no text, so the beacon falls back to health-derived text or a
 template. Before enabling generation, run at least 10,000 ground generations at flight settings and report the reject

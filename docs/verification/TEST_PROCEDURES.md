@@ -458,12 +458,17 @@ open coverage_report/index.html
 | Module | Target | Actual |
 |--------|--------|--------|
 | eps_control.c | 80% | TBD |
-| fault_mgmt.c | 80% | TBD |
+| fault_mgmt.rs (Rust) | 80% | TBD |
 | sensors.c | 80% | TBD |
 | mission_data.c | 80% | TBD |
 | uart_comm.c | 80% | TBD |
-| crc32.c | 80% | TBD |
+| checksum.rs (Rust) | 80% | TBD |
 | **Overall** | **80%** | **TBD** |
+
+Note (2026-10-24): every module above is now Rust (`software/rust/README.md`). CI measures line coverage of the Rust
+flight crates (94.4 % on 2026-10-25, gate 90 %) and of C and Rust together (94.4 %, gate 80 %), and since 2026-10-25
+branch coverage of the Rust (80.6 %, gate 80 %). The per-file reports (`rust-coverage/`, `rust-branch-coverage/`) are in
+the CI artifact `rust-coverage`. The Actual column stays open until per-module figures are recorded against this table.
 
 ---
 
@@ -569,3 +574,4 @@ Status: Open/In Progress/Resolved/Closed
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | TP-INT-001 to -004 renumbered TP-SWI-001 to -004 and TP-SYS-001, -003 renumbered TP-SWS-001, -003, because those IDs belong to different procedures in `docs/test_procedures/`; §5.2 now points to the TP-SYS-002 procedure file; §1.4 added (finding VV-18) |
+| 1.1, note | 2026-10-24 | SMART-QSO Team | §7.2 note: the modules are Rust; line coverage as measured in CI |

@@ -68,7 +68,7 @@ def measure(root: Path = REPO, specs=SPECS) -> Dict[str, List[str]]:
 
     refs = set()
     for path in (root / "software").rglob("*"):
-        if path.suffix in (".c", ".h", ".py") and path.is_file():
+        if path.suffix in (".c", ".h", ".py", ".rs") and path.is_file() and "target" not in path.parts:
             refs.update(REF.findall(path.read_text(encoding="utf-8", errors="replace")))
 
     # Only requirement IDs (defined in a spec): each description anywhere is

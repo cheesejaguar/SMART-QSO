@@ -1,0 +1,17 @@
+[package]
+name = "sqso-protocol"
+description = "SMART-QSO wire formats: command dictionary, uplink frames, telecommand authentication, AX.25, OBC-Jetson line protocol, beacon content filter"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+crc.workspace = true
+hmac.workspace = true
+sha2.workspace = true
+zeroize.workspace = true
+
+[lints]
+workspace = true

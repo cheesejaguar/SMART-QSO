@@ -191,8 +191,9 @@ typedef enum {
 /**
  * @brief Assertions: one API, active in every build (SW-08, JPL Rule 5)
  *
- * A failed check is reported to the assertion handler (assert_handler.c:
- * logged, counted, and fault-logged) in every build, flight included. The
+ * A failed check is reported to the assertion handler (assert_handler.h,
+ * implemented in software/rust/sqso-ffi/src/assert_handler.rs: logged,
+ * counted, and fault-logged) in every build, flight included. The
  * function then returns an error, so it never carries on with the bad value.
  *
  * - SMART_QSO_REQUIRE(condition, message)   precondition; returns SMART_QSO_ERROR_INVALID
@@ -231,7 +232,10 @@ void smart_qso_assert_failed(const char *file, uint32_t line, const char *messag
 /**
  * @brief Get current time in milliseconds
  *
- * @return Current time in milliseconds since epoch
+ * @return Mission time in ms: wall-clock time since the Unix epoch (plus
+ *         the test offset) in the host simulation; milliseconds since boot
+ *         on the target (monotonic). Implemented in
+ *         software/rust/sqso-ffi/src/time.rs
  */
 uint64_t smart_qso_now_ms(void);
 

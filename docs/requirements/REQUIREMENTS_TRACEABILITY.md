@@ -97,8 +97,8 @@ Test Cases (TC-xxx)
 
 | System Req | Description | Software Req | Design Element | Implementation | Test |
 |------------|-------------|--------------|----------------|----------------|------|
-| SYS-060 | Fault detection | SRS-F040, SRS-F041 | DES-FLT-001 | fault_mgmt.c:fault_log_add() | TC-FLT-001 |
-| SYS-061 | Autonomous recovery | SRS-F042, SRS-F043 | DES-FLT-002 | fault_mgmt.c:fault_recover_*() | TC-FLT-002 |
+| SYS-060 | Fault detection | SRS-F040, SRS-F041 | DES-FLT-001 | fault_mgmt.rs (Rust):fault_log_add() | TC-FLT-001 |
+| SYS-061 | Autonomous recovery | SRS-F042, SRS-F043 | DES-FLT-002 | fault_mgmt.rs (Rust):fault_recover_*() | TC-FLT-002 |
 | SYS-062 | Watchdog | SRS-F050, SRS-F051 | DES-FLT-003 | main.c:kick_watchdog() | TC-FLT-003 |
 
 ### 3.5 Data Management
@@ -106,7 +106,7 @@ Test Cases (TC-xxx)
 | System Req | Description | Software Req | Design Element | Implementation | Test |
 |------------|-------------|--------------|----------------|----------------|------|
 | SYS-070 | Data persistence | SRS-F060, SRS-F061 | DES-DAT-001 | mission_data.c:mission_data_save() | TC-DAT-001 |
-| SYS-071 | Data integrity | SRS-F062 | DES-DAT-002 | crc32.c:crc32() | TC-DAT-002 |
+| SYS-071 | Data integrity | SRS-F062 | DES-DAT-002 | checksum.rs (Rust):crc32() | TC-DAT-002 |
 | SYS-072 | Telemetry collection | SRS-F070, SRS-F071 | DES-DAT-003 | sensors.c:sensors_poll() | TC-DAT-003 |
 
 ---
@@ -131,7 +131,7 @@ Test Cases (TC-xxx)
 | SRS-F002 | Load config from NVM | mission_data.c | mission_data_init():78 | Implemented |
 | SRS-F003 | Self-test on boot | main.c | perform_self_test():112 | Implemented |
 | SRS-F004 | Increment reset counter | mission_data.c | mission_data_init():85 | Implemented |
-| SRS-F005 | Log boot reason | fault_mgmt.c | fault_log_add():45 | Implemented |
+| SRS-F005 | Log boot reason | fault_mgmt.rs (Rust) | fault_log_add():45 | Implemented |
 | SRS-F010 | Monitor battery SOC | eps_control.c | eps_update_state():67 | Implemented |
 | SRS-F011 | Control load switches | eps_control.c | eps_control_load():134 | Implemented |
 | SRS-F012 | Power modes SAFE, IDLE, ACTIVE | eps_control.c | eps_set_power_mode():89 | Implemented |
@@ -152,17 +152,17 @@ Test Cases (TC-xxx)
 | SRS-F033 | Disable on timeout | main.c | handle_payload_timeout():356 | Implemented |
 | SRS-F034 | Validate beacon text | main.c | validate_beacon_text():378 | Implemented |
 | SRS-F035 | Monitor Jetson power | eps_control.c | eps_monitor_payload():223 | Partial |
-| SRS-F040 | Detect and log all fault conditions | fault_mgmt.c | fault_check():45 | Implemented |
-| SRS-F041 | NVM fault log | fault_mgmt.c | fault_log_add():78 | Implemented |
-| SRS-F042 | Autonomous recovery | fault_mgmt.c | fault_recover_*():112 | Implemented |
-| SRS-F043 | SAFE mode on critical | fault_mgmt.c | fault_handle_critical():156 | Implemented |
+| SRS-F040 | Detect and log all fault conditions | fault_mgmt.rs (Rust) | fault_check():45 | Implemented |
+| SRS-F041 | NVM fault log | fault_mgmt.rs (Rust) | fault_log_add():78 | Implemented |
+| SRS-F042 | Autonomous recovery | fault_mgmt.rs (Rust) | fault_recover_*():112 | Implemented |
+| SRS-F043 | SAFE mode on critical | fault_mgmt.rs (Rust) | fault_handle_critical():156 | Implemented |
 | SRS-F044 | Recovery from SAFE | eps_control.c | eps_attempt_recovery():245 | Partial |
-| SRS-F045 | Fault statistics | fault_mgmt.c | fault_get_stats():189 | Implemented |
+| SRS-F045 | Fault statistics | fault_mgmt.rs (Rust) | fault_get_stats():189 | Implemented |
 | SRS-F050 | Watchdog kick | main.c | kick_watchdog():45 | Implemented |
 | SRS-F051 | Save before reset | main.c | prepare_for_reset():67 | Implemented |
 | SRS-F052 | Detect WDT reset | main.c | detect_reset_cause():89 | Implemented |
 | SRS-F060 | Persist mission data | mission_data.c | mission_data_save():56 | Implemented |
-| SRS-F061 | CRC32 protection | crc32.c | crc32():23 | Implemented |
+| SRS-F061 | CRC32 protection | checksum.rs (Rust) | crc32():23 | Implemented |
 | SRS-F062 | Handle corruption | mission_data.c | mission_data_verify():89 | Implemented |
 | SRS-F063 | Mission statistics | mission_data.c | mission_data_update():112 | Implemented |
 | SRS-F070 | Collect telemetry | sensors.c | sensors_poll():67 | Implemented |

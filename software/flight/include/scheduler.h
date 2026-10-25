@@ -4,10 +4,10 @@
  *
  * This module provides a deterministic time-triggered scheduler for
  * bare-metal or RTOS environments. Supports periodic tasks with
- * deadline monitoring per NASA Class B software requirements.
+ * deadline monitoring.
  *
  * @note MISRA C:2012 compliant
- * @note NPR 7150.2 Class B software requirements
+ * @note NPR 7150.2D Class C (docs/software/SOFTWARE_DEVELOPMENT_PLAN.md §3.1)
  *
  * @author SMART-QSO Team
  * @date 2026-01-02

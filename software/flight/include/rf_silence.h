@@ -2,6 +2,9 @@
  * @file rf_silence.h
  * @brief 45-minute post-deployment RF silence (CDS Rev 14.1 2.4.5, 2.3.2.4)
  *
+ * Implemented in Rust (software/rust/sqso-fsw/src/rf_silence.rs,
+ * software/rust/sqso-ffi/src/rf_silence.rs).
+ *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @license MIT
  *

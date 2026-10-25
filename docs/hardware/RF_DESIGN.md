@@ -222,7 +222,7 @@ SMART-QSO implements a **beacon-only RF architecture**:
 ```
 
 **Deployment Sequence**:
-1. Separation detection; deployables wait ≥ 30 min (CDS §2.4.4). No RF signal before 45 min (CDS §2.4.5, SYS-224), enforced by `rf_silence.c`
+1. Separation detection; deployables wait ≥ 30 min (CDS §2.4.4). No RF signal before 45 min (CDS §2.4.5, SYS-224), enforced by `software/rust/sqso-fsw/src/rf_silence.rs`
 2. Burn-wire activation (2A, 3s pulse)
 3. Spring-loaded tape uncoils
 4. Deployment confirmation via status GPIO
@@ -587,3 +587,4 @@ uint16_t crc16_ccitt(const uint8_t *data, size_t len) {
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §9.2 test IDs aligned with the procedure files (finding VV-18) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |
+| 1.2, note | 2026-10-24 | SMART-QSO Team | §3.3.2 names the Rust file that replaced `rf_silence.c` |

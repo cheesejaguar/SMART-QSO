@@ -2,6 +2,9 @@
  * @file sensors.h
  * @brief Sensor Management Interface
  *
+ * Implemented in Rust (software/rust/sqso-ffi/src/sensors.rs, logic in
+ * software/rust/sqso-fsw/src/sensors.rs).
+ *
  * This module provides sensor framework functionality including sensor
  * registration, polling, data conversion, and YAML configuration.
  *

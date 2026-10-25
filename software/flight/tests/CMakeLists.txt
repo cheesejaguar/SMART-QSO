@@ -36,13 +36,6 @@ include_directories(
 
 # Source files from main project needed for tests
 set(FLIGHT_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
 )
 
 # Common compile options for test builds
@@ -61,10 +54,9 @@ enable_testing()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/test_crc32.c")
     add_executable(test_crc32
         test_crc32.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
     )
-    target_link_libraries(test_crc32 PkgConfig::CMOCKA)
+    # CRC-32 is implemented in Rust (sqso_rust, through flight_test_lib)
+    target_link_libraries(test_crc32 flight_test_lib PkgConfig::CMOCKA)
     target_compile_options(test_crc32 PRIVATE ${TEST_COMPILE_OPTIONS})
     add_test(NAME CRC32_Tests COMMAND test_crc32)
     set_tests_properties(CRC32_Tests PROPERTIES
@@ -156,49 +148,17 @@ endif()
 #===========================================================================
 # Shared flight library for module tests
 #
-# Tests below link against all flight sources except the executive
-# (main.c). The static library only pulls in the objects each test needs.
+# Tests below link this library and the flight software (Rust, sqso_rust).
+# Its only C source is the flight-log shim (stable Rust cannot define a C
+# variadic function).
 #===========================================================================
 set(FLIGHT_LIB_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/adcs_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/assert_handler.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/beacon_filter.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_auth.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_handler.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/cmd_dictionary.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/gse_provision.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/ax25.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/uplink.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/contact_monitor.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_silence.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/separation_switch.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/jetson_link.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/gnss.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/payload_guard.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/crc32.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/deployment.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/eps_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/fault_mgmt.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/input_validation.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/mission_data.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nvm_record.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/rf_control.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/safe_string.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/scheduler.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/sensors.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/sha256.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/state_machine.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/system_state.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/telemetry.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/time_utils.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/uart_comm.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/watchdog_mgr.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/hal/hal_sim.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/flight_log_fmt.c
 )
 add_library(flight_test_lib STATIC ${FLIGHT_LIB_SOURCES})
 target_compile_options(flight_test_lib PRIVATE ${TEST_COMPILE_OPTIONS})
+# The Rust modules (cmake/rust.cmake); every test linking flight_test_lib gets them
+link_rust(flight_test_lib)
 
 # Module tests: name, label
 set(MODULE_TESTS
@@ -232,6 +192,8 @@ set(MODULE_TESTS
     "test_telemetry\;telemetry"
     "test_telemetry_flow\;integration"
     "test_adcs\;adcs"
+    "test_rust_contract\;rust"
+    "test_rust_contract_adcs\;rust"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)
@@ -265,10 +227,11 @@ foreach(entry ${SUITE_TESTS})
         LABELS "${test_label}"
     )
 endforeach()
-# JPL rule 3: no flight object references malloc/calloc/realloc/free
+# JPL rule 3: no flight object references malloc/calloc/realloc/free (the
+# Rust library included: it is no_std without an allocator)
 add_test(NAME no_dynamic_memory
          COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/check_no_dynamic_memory.sh
-                 $<TARGET_OBJECTS:flight_test_lib>)
+                 $<TARGET_OBJECTS:flight_test_lib> ${SQSO_RUST_LIB})
 set_tests_properties(no_dynamic_memory PROPERTIES LABELS "static;jpl")
 
 # Accept/reject vectors shared with the Jetson-side filter
@@ -319,3 +282,39 @@ message(STATUS "==================================")
 message(STATUS "Test framework: CMocka ${CMOCKA_VERSION}")
 message(STATUS "Coverage target: ${ENABLE_COVERAGE}")
 message(STATUS "")
+
+#===========================================================================
+# The host simulation end to end: about 20 s of operation (1000 passes of
+# the executive) from the repository root, so sensors.yaml is loaded. It
+# must shut down cleanly. Its persistent files are its own, so it can run
+# beside the other suites. Not in the flight configuration, which runs
+# until stopped.
+#===========================================================================
+if(NOT FLIGHT_BUILD)
+    add_test(NAME Simulation_Run COMMAND ${CMAKE_BINARY_DIR}/smart_qso_flight)
+    set_tests_properties(Simulation_Run PROPERTIES
+        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/../.."
+        TIMEOUT 120
+        PASS_REGULAR_EXPRESSION "\\[SYSTEM\\] Shutdown complete"
+        FAIL_REGULAR_EXPRESSION "Initialization failed;Rust panic"
+        ENVIRONMENT "SMART_QSO_FAULT_LOG=${CMAKE_BINARY_DIR}/sim_fault_log.dat;SMART_QSO_EPS_CONFIG=${CMAKE_BINARY_DIR}/sim_eps_config.dat;SMART_QSO_MISSION_DATA=${CMAKE_BINARY_DIR}/sim_mission_data.dat;SMART_QSO_STATE_FILE=${CMAKE_BINARY_DIR}/sim_state.dat;SENSORS_YAML=${CMAKE_SOURCE_DIR}/sensors.yaml"
+        LABELS "integration")
+
+    # The executive's Jetson link: the same simulation with a pseudo-terminal
+    # as the Jetson port, the driver playing the Jetson (about 21 s each).
+    # The driver links no flight code: it checks the lines with its own CRC.
+    add_executable(test_executive_jetson integration/test_executive_jetson.c)
+    target_link_libraries(test_executive_jetson PkgConfig::CMOCKA)
+    target_compile_options(test_executive_jetson PRIVATE ${TEST_COMPILE_OPTIONS})
+    add_dependencies(test_executive_jetson smart_qso_flight)
+    foreach(_sqso_scenario link guard)
+        set(_sqso_test Executive_Jetson_${_sqso_scenario})
+        add_test(NAME ${_sqso_test}
+                 COMMAND test_executive_jetson ${CMAKE_BINARY_DIR}/smart_qso_flight ${_sqso_scenario}
+                         ${CMAKE_SOURCE_DIR}/sensors.yaml)
+        set_tests_properties(${_sqso_test} PROPERTIES
+            TIMEOUT 150
+            ENVIRONMENT "SMART_QSO_FAULT_LOG=${CMAKE_CURRENT_BINARY_DIR}/fault_log_${_sqso_test}.dat;SMART_QSO_EPS_CONFIG=${CMAKE_CURRENT_BINARY_DIR}/eps_config_${_sqso_test}.dat;SMART_QSO_MISSION_DATA=${CMAKE_CURRENT_BINARY_DIR}/mission_data_${_sqso_test}.dat;SMART_QSO_STATE_FILE=${CMAKE_CURRENT_BINARY_DIR}/state_${_sqso_test}.dat"
+            LABELS "integration")
+    endforeach()
+endif()

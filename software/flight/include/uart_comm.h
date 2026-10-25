@@ -10,6 +10,9 @@
  * @requirement SYS-520 Detect AI payload failure or timeout (UART health check)
  * @requirement SRS-I001 UART at 115200 baud, 8N1 (the host build may override device and baud)
  *
+ * Implemented in Rust: software/rust/sqso-ffi/src/uart_comm.rs and
+ * software/rust/sqso-fsw/src/uart_comm.rs.
+ *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  */
 

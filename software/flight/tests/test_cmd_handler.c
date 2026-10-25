@@ -635,6 +635,24 @@ static void test_unauthenticated_frames_are_not_contact(void **state)
     assert_true(contact_monitor_inhibited());
 }
 
+/** An authentic frame whose counter was spent but could not be persisted is
+ *  refused, yet it is still contact: the frame came from the ground station
+ *  (the contact hook on the refused-after-commit path) */
+static void test_unpersisted_counter_is_still_contact(void **state)
+{
+    (void)state;
+    uint8_t payload[CMD_AUTH_OVERHEAD];
+    uint8_t key[CMD_AUTH_KEY_SIZE];
+
+    test_key_fill(key, 0x00U);
+    lose_contact();
+    hal_sim_flash_fail_writes(true);
+    assert_int_equal(send(CMD_SYS_GET_STATUS, payload,
+                          test_auth_payload(key, CMD_SYS_GET_STATUS, 1U, NULL, 0U, payload)),
+                     CMD_RESULT_EXEC_FAIL);
+    assert_false(contact_monitor_inhibited());
+}
+
 static void test_set_contact_timeout(void **state)
 {
     (void)state;
@@ -697,6 +715,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_set_power, setup, teardown),
         cmocka_unit_test_setup_teardown(test_authentic_command_restores_contact, setup, teardown),
         cmocka_unit_test_setup_teardown(test_unauthenticated_frames_are_not_contact, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_unpersisted_counter_is_still_contact, setup, teardown),
         cmocka_unit_test_setup_teardown(test_set_contact_timeout, setup, teardown),
     };
 

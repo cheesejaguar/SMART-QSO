@@ -310,7 +310,7 @@ static void test_regression_sensor_crc_validated(void **state)
  * Fix: Corrected range validation logic
  *
  * The telemetry limits are -50 and +100 C, both inclusive
- * (input_validation.c TLM_MIN_TEMP, TLM_MAX_TEMP).
+ * (software/rust/sqso-ffi/src/input_validation.rs TLM_MIN_TEMP, TLM_MAX_TEMP).
  */
 static void test_regression_sensor_range_check(void **state)
 {

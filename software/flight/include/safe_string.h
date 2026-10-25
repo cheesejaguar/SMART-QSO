@@ -4,6 +4,9 @@
  *
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @license MIT
+ *
+ * Implemented in Rust: software/rust/sqso-ffi/src/safe_string.rs and
+ * software/rust/sqso-fsw/src/safe_string.rs.
  */
 
 #ifndef SMART_QSO_SAFE_STRING_H

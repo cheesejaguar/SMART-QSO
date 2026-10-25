@@ -1,8 +1,8 @@
 # Software Design Description (SDD)
 
 **Document Number**: SMART-QSO-SDD-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-24
 **Status**: Preliminary
 
 **Governing Standards**:
@@ -33,6 +33,23 @@ The SMART-QSO flight software follows a modular, layered architecture based on N
 2. **Static Memory**: No dynamic allocation after initialization
 3. **Defensive Programming**: Assertions, bounds checking, CRC protection
 4. **Fail-Safe Design**: Graceful degradation to safe modes
+
+### 1.4 Implementation (Version 1.1, 2026-10-24)
+
+The OBC flight software is Rust (`software/rust/README.md`, which has the crates and a porting table from every former C
+file to its Rust files). The design in this document is unchanged in its modules, interfaces and data structures. The
+C headers in `software/flight/include` are the C ABI of the Rust modules, so the C types in §3 and §4 are still the
+interface types. The implementation is:
+
+| Layer (§2.2) | Implementation |
+|--------------|----------------|
+| Application | The executive, `software/rust/sqso-ffi/src/executive.rs`: bring-up, one main loop of stages with watchdog check-ins, shutdown. It runs as the host simulation (`software/rust/sqso-sim`) and as the firmware's one Embassy task (`software/rust/firmware/src/main.rs`). There are no separate beacon, telemetry or command tasks: they are stages of the loop (`software/flight/docs/RTOS_ARCHITECTURE.md` §4.2) |
+| Services | One module per C header in `software/rust/sqso-ffi/src` (state and C ABI), with the logic in `software/rust/sqso-fsw/src` and the wire formats in `software/rust/sqso-protocol/src` |
+| HAL | `hal/*.h`, implemented by `software/rust/sqso-ffi/src/hal_sim.rs` on the host and by `software/rust/firmware/src` (Embassy, embassy-stm32) on the STM32L4R5ZI |
+
+The only C left in the flight code is `software/flight/src/flight_log_fmt.c`, the printf-style shim of the flight log.
+§2.3 is updated to the files as built. The section titles of §3 name the Rust files, and the former C file is given in
+brackets.
 
 ---
 
@@ -103,34 +120,33 @@ The SMART-QSO flight software follows a modular, layered architecture based on N
 
 ### 2.3 Module Hierarchy
 
+As built (Version 1.1). Revision 1.0 listed C files, several of which never existed (`hal_gpio.c` and the other
+per-peripheral HAL files):
+
 ```
-smart_qso
-├── main.c                    # Application entry, scheduler
-├── services/
-│   ├── eps_control.c         # Power management service
-│   ├── fault_mgmt.c          # FDIR service
-│   ├── sensors.c             # Sensor polling service
-│   ├── mission_data.c        # Data persistence service
-│   └── uart_comm.c           # UART communication service
-├── utilities/
-│   ├── crc32.c               # CRC32 calculation
-│   └── time_utils.c          # Time utilities
-└── hal/
-    ├── hal_gpio.c            # GPIO abstraction
-    ├── hal_i2c.c             # I2C abstraction
-    ├── hal_spi.c             # SPI abstraction
-    ├── hal_uart.c            # UART abstraction
-    ├── hal_timer.c           # Timer abstraction
-    ├── hal_adc.c             # ADC abstraction
-    ├── hal_flash.c           # Flash abstraction
-    └── hal_wdt.c             # Watchdog abstraction
+software/flight/include/           # C ABI: smart_qso.h, one header per module, hal/*.h
+software/flight/src/flight_log_fmt.c   # printf-style flight-log shim (the only C)
+software/rust/
+├── sqso-ffi/src/
+│   ├── executive.rs               # Application entry, main loop (was main.c)
+│   ├── eps_control.rs             # Power management service
+│   ├── fault_mgmt.rs, store.rs    # FDIR service, persistent storage
+│   ├── sensors.rs                 # Sensor polling service
+│   ├── mission_data.rs            # Data persistence service
+│   ├── uart_comm.rs               # UART communication service
+│   ├── crc.rs, time.rs            # CRC-32, mission clock
+│   ├── ... one file per remaining C header (see software/rust/README.md)
+│   └── hal_sim.rs                 # Simulated HAL (host only)
+├── sqso-fsw/src/                  # The logic of each module (eps.rs, fault_log.rs, sensors.rs, ...)
+├── sqso-protocol/src/             # Wire formats (checksum.rs: CRC-32; ax25.rs, frame.rs, ...)
+└── firmware/src/                  # HAL on the STM32L4R5ZI: gpio, i2c, spi, uart, timer, adc, fram, wdt, radio
 ```
 
 ---
 
 ## 3. Detailed Design
 
-### 3.1 Main Application (main.c)
+### 3.1 Main Application (`sqso-ffi/src/executive.rs`) [was main.c]
 
 #### 3.1.1 Purpose
 Provides system initialization, main control loop scheduling, and shutdown procedures.
@@ -189,7 +205,7 @@ Provides system initialization, main control loop scheduling, and shutdown proce
 10. Enter main loop
 ```
 
-### 3.2 EPS Control Module (eps_control.c)
+### 3.2 EPS Control Module (`sqso-ffi/src/eps_control.rs`, `sqso-fsw/src/eps.rs`) [was eps_control.c]
 
 #### 3.2.1 Purpose
 Manages power modes, load switches, and power budgets based on battery state of charge.
@@ -258,7 +274,7 @@ typedef struct {
 | eps_check_budget() | Verify power budget | SRS-F016 |
 | eps_save_config() | Save to NVM | SRS-F017 |
 
-### 3.3 Fault Management Module (fault_mgmt.c)
+### 3.3 Fault Management Module (`sqso-ffi/src/fault_mgmt.rs`, `sqso-fsw/src/fault_log.rs`) [was fault_mgmt.c]
 
 #### 3.3.1 Purpose
 Implements Fault Detection, Isolation, and Recovery (FDIR) per NASA heritage.
@@ -324,7 +340,7 @@ typedef struct {
 | fault_recover_comm() | Communication recovery | SRS-F042 |
 | fault_get_stats() | Get fault statistics | SRS-F045 |
 
-### 3.4 Sensor Module (sensors.c)
+### 3.4 Sensor Module (`sqso-ffi/src/sensors.rs`, `sqso-fsw/src/sensors.rs`) [was sensors.c]
 
 #### 3.4.1 Purpose
 Provides configurable sensor polling framework with YAML-based configuration.
@@ -377,7 +393,7 @@ typedef struct {
 | sensors_format_telemetry() | Format for transmission | SRS-F073 |
 | sensors_get_value() | Get sensor value | SRS-F070 |
 
-### 3.5 Mission Data Module (mission_data.c)
+### 3.5 Mission Data Module (`sqso-ffi/src/mission_data.rs`, `sqso-fsw/src/mission_data.rs`) [was mission_data.c]
 
 #### 3.5.1 Purpose
 Manages persistent mission data with CRC protection.
@@ -423,7 +439,7 @@ NVM Address Map:
 | mission_data_update() | Update statistics | SRS-F063 |
 | mission_data_get() | Get current data | SRS-F063 |
 
-### 3.6 UART Communication Module (uart_comm.c)
+### 3.6 UART Communication Module (`sqso-ffi/src/uart_comm.rs`, `sqso-fsw/src/uart_comm.rs`) [was uart_comm.c]
 
 #### 3.6.1 Purpose
 Manages UART communication with Jetson payload per ICD-002.
@@ -481,7 +497,7 @@ BEACON_RSP,42,Hello from SMART-QSO! AI-generated beacon text here.,C3D4\n
 | uart_check_health() | Check communication health | SRS-F032 |
 | uart_calculate_crc16() | Calculate CRC-16 CCITT | SRS-I005 |
 
-### 3.7 CRC32 Module (crc32.c)
+### 3.7 CRC32 Module (`sqso-protocol/src/checksum.rs`, `sqso-ffi/src/crc.rs`) [was crc32.c]
 
 #### 3.7.1 Purpose
 Provides IEEE 802.3 CRC32 calculation for data integrity.
@@ -625,6 +641,10 @@ Sensor/Event → fault_check() → Fault Detected?
 
 ## 6. Timing Design
 
+**Version 1.1 note.** The tables below are the Revision 1.0 design. As built, one main loop runs every stage, then waits
+20 ms, and each stage checks in with the watchdog manager (`software/flight/docs/RTOS_ARCHITECTURE.md` §4 and §8). No
+execution time has been measured (`software/flight/docs/TIMING_ANALYSIS.md` §1.1).
+
 ### 6.1 Task Timing
 
 | Task | Period | Max Duration | Priority |
@@ -651,6 +671,11 @@ T=20ms   : Loop complete (< 20ms requirement)
 ---
 
 ## 7. Memory Design
+
+**Version 1.1 note.** The memory map and stack table below are for a 256 KB part and a multi-task design. Neither
+applies to the OBC as built. The OBC is the STM32L4R5ZI (2 MB flash at 0x08000000, 640 KB SRAM at 0x20000000), the
+image has one stack, and the release image uses 110,388 B of text and 35,136 B of static RAM
+(`software/flight/docs/MEMORY_POLICY.md` §3).
 
 ### 7.1 Memory Map (STM32L4 256KB)
 
@@ -716,6 +741,10 @@ Each module has corresponding unit tests:
 - test_mission_data.c
 - test_uart_comm.c
 - test_crc32.c
+
+As built (Version 1.1): 43 CMocka suites in `software/flight/tests` (671 cases), one or more per module, run unchanged
+against the Rust through the C headers, plus 328 Rust unit tests and 12 fuzz targets (`software/flight/tests/README.md`).
+The "Mock HAL" of §9.2 is the simulated HAL, `software/rust/sqso-ffi/src/hal_sim.rs`.
 
 ### 9.2 Mock Architecture
 
@@ -794,3 +823,4 @@ void process_event(Event_t event) {
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: §1.4 implementation by layer; §2.3 module hierarchy as built; §3 titles name the Rust files; notes on §6 (timing as built), §7 (the STM32L4R5ZI memory and measured image) and §9 (tests as built) |

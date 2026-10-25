@@ -202,7 +202,7 @@ One row per line that has the words, in document order; Kind gives the number of
 
 | Kind | Text | Owner | Needed by |
 |------|------|-------|-----------|
-| TBR | 12a \| Deployment switches released read released (separation_switch.c polarity, TBR) \| ☐ \| \| | PI | PI |
+| TBR | 12a \| Deployment switches released read released (software/rust/sqso-ffi/src/separation_switch.rs polarity, TBR) \| ☐ \| \| | PI | PI |
 
 ### `docs/interfaces/ICD_SPACE_GROUND.md`
 
@@ -217,7 +217,7 @@ One row per line that has the words, in document order; Kind gives the number of
 | Kind | Text | Owner | Needed by |
 |------|------|-------|-----------|
 | TBR | …acceptable because nothing can transmit either. The reading of "generate any signal" as including the receiver is conservative and TBR with the launch provider | PI | PI |
-| TBR | …ion_switch.c (pull-up, high = stowed), shared with the deployment sequence, and TBR against the separation-switch schematic. Inverted polarity on orbit would re… | PI | PI |
+| TBR | …on_switch.rs (pull-up, high = stowed), shared with the deployment sequence, and TBR against the separation-switch schematic. Inverted polarity on orbit would re… | PI | PI |
 | TBD | …\| SET_POWER \| 1 \| operational \| 0 = 0.5 W, 1 = 1 W (BASELINE §7). Persisted and reported; applying it to the PA is the transmitter driver's job (interface TBD) | PI | PI |
 | TBD | SET_POWER applied to the PA \| Not implemented. The level is persisted and reported; the actuator interface is TBD in the RF design | PI | PI |
 | TBR | Deployment-switch polarity \| TBR against the schematic (SW-10) | PI | PI |
@@ -527,11 +527,11 @@ One row per line that has the words, in document order; Kind gives the number of
 | Kind | Text | Owner | Needed by |
 |------|------|-------|-----------|
 | TBD | eps_control.c \| 80% \| TBD | PI | PI |
-| TBD | fault_mgmt.c \| 80% \| TBD | PI | PI |
+| TBD | fault_mgmt.rs (Rust) \| 80% \| TBD | PI | PI |
 | TBD | sensors.c \| 80% \| TBD | PI | PI |
 | TBD | mission_data.c \| 80% \| TBD | PI | PI |
 | TBD | uart_comm.c \| 80% \| TBD | PI | PI |
-| TBD | crc32.c \| 80% \| TBD | PI | PI |
+| TBD | checksum.rs (Rust) \| 80% \| TBD | PI | PI |
 | TBD | Overall \| 80% \| TBD | PI | PI |
 | TBD | Multimeter \| Fluke 87V \| TBD | PI | PI |
 | TBD | Power Supply \| Keithley 2200 \| TBD | PI | PI |

@@ -6,7 +6,8 @@
  * @copyright Copyright (c) 2026 SMART-QSO Team
  * @license MIT
  *
- * Static memory only, bounded loops, no dynamic allocation.
+ * Implemented in Rust (software/rust/sqso-ffi/src/sha256.rs) with the
+ * RustCrypto sha2 and hmac crates. Static memory only, no allocation.
  *
  * @requirement SYS-325 Execute only authenticated, fresh telecommands (47 CFR 97.211(b))
  */
@@ -36,14 +37,14 @@ extern "C" {
  * Types
  ******************************************************************************/
 
+/** Words of opaque storage in a Sha256Ctx_t */
+#define SHA256_CTX_WORDS        16U
+
 /**
- * @brief Incremental SHA-256 context
+ * @brief Incremental SHA-256 context (opaque; holds the Rust hasher)
  */
 typedef struct {
-    uint32_t state[8];                  /**< Chaining state H0..H7 */
-    uint64_t total_len;                 /**< Message length processed (bytes) */
-    uint8_t  buffer[SHA256_BLOCK_SIZE]; /**< Partial block */
-    size_t   buffer_len;                /**< Bytes held in buffer */
+    uint64_t opaque[SHA256_CTX_WORDS];  /**< Initialized by sha256_init() */
 } Sha256Ctx_t;
 
 /*******************************************************************************

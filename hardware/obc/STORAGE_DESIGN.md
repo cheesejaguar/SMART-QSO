@@ -373,7 +373,7 @@ Directory structure:
 
 ### 6.5 Fail-Safe Records
 
-The telecommand key table (`FLASH_REGION_AUTH`, 768 B) and RF control (`FLASH_REGION_RF_CONTROL`, 256 B) use the two-slot form of §6.4, implemented in `software/flight/src/nvm_record.c`. Each record occupies 128 B (two 64 B slots); each slot is magic (4) | sequence (4) | payload (≤ 52) | CRC-32 (4). A save writes the slot that does not hold the newest valid copy and reads it back.
+The telecommand key table (`FLASH_REGION_AUTH`, 768 B) and RF control (`FLASH_REGION_RF_CONTROL`, 256 B) use the two-slot form of §6.4, implemented in `software/rust/sqso-fsw/src/nvm.rs`. Each record occupies 128 B (two 64 B slots); each slot is magic (4) | sequence (4) | payload (≤ 52) | CRC-32 (4). A save writes the slot that does not hold the newest valid copy and reads it back.
 
 | Region | Offset | Record |
 |--------|--------|--------|

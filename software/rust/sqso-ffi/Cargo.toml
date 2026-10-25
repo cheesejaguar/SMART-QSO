@@ -1,0 +1,30 @@
+[package]
+name = "sqso-ffi"
+description = "The SMART-QSO flight software: the C ABI of the flight modules, the executive and the simulated HAL"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "sqso_ffi"
+# A Rust library: sqso-clib links it into the static library for the C test
+# suites, sqso-sim into the host simulation, the firmware into the image.
+# Exercised through the C test suites (ctest); the unit tests cover
+# internal helpers the C ABI does not expose (console lines)
+doctest = false
+
+[dependencies]
+sqso-protocol.workspace = true
+sqso-fsw.workspace = true
+sha2.workspace = true
+zeroize.workspace = true
+
+# The host simulation's operating-system calls (clock, files, environment,
+# console, serial port). Not used on the target (target_os = "none").
+[target.'cfg(not(target_os = "none"))'.dependencies]
+libc.workspace = true
+
+[lints]
+workspace = true

@@ -1,12 +1,18 @@
 # SMART-QSO Flight Software API Documentation
 
 **Document ID**: SMART-QSO-API-DOC-001
-**Version**: 1.0
+**Version**: 1.1
+**Date**: 2026-10-24
 **Classification**: Engineering
 
 ## Overview
 
 This is the API documentation for the SMART-QSO 1U CubeSat flight software. The software is designed following NASA NPR 7150.2 software engineering requirements and JPL Power of Ten coding rules for safety-critical embedded systems.
+
+The flight software is Rust (`software/rust`; overview, crates and porting table in `software/rust/README.md`). The API
+documented here is the C ABI: the headers in `software/flight/include`, which the Rust modules implement and the C test
+suites call. Doxygen generates this documentation from those headers and `software/flight/src` (the flight-log shim,
+the only C left in the flight code). For the Rust items, `cargo doc` in `software/rust` gives the documentation.
 
 ## Architecture
 
@@ -14,8 +20,8 @@ The flight software follows a modular architecture with clear separation of conc
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        main.c                               │
-│                   (System Orchestration)                    │
+│     executive (software/rust/sqso-ffi/src/executive.rs)     │
+│      bring-up, main loop of stages, watchdog check-ins      │
 └─────────────────────────────────────────────────────────────┘
                               │
         ┌─────────────────────┼─────────────────────┐
@@ -32,59 +38,71 @@ The flight software follows a modular architecture with clear separation of conc
         │                     │                     │
         ▼                     ▼                     ▼
 ┌───────────────┐   ┌─────────────────┐   ┌───────────────┐
-│  eps_control  │   │   adcs_control  │   │   cmd_handler │
-│   (Power)     │   │   (Attitude)    │   │  (Commands)   │
+│  eps_control  │   │   adcs_control  │   │ uplink,       │
+│ payload_guard │   │                 │   │ cmd_handler   │
 └───────────────┘   └─────────────────┘   └───────────────┘
         │                     │                     │
         └─────────────────────┼─────────────────────┘
                               │
                               ▼
                     ┌─────────────────┐
-                    │    telemetry    │
-                    │   (Downlink)    │
+                    │ telemetry,      │
+                    │ beacon          │
                     └─────────────────┘
+                              │
+                              ▼
+     HAL (hal/*.h): sqso-ffi/src/hal_sim.rs on the host, software/rust/firmware on the target
 ```
 
 ## Module Categories
 
+Each module is a header in `software/flight/include`, implemented by `software/rust/sqso-ffi/src/<module>.rs`, with its
+logic in `software/rust/sqso-fsw` or `software/rust/sqso-protocol`.
+
 ### Core Infrastructure
-- **smart_qso.h** - Common types, error codes, and system constants
+- **smart_qso.h** - Common types, error codes, system constants, the mission clock
 - **system_state** - Global system state management
 - **state_machine** - Operational mode control (BOOT→SAFE→DETUMBLE→IDLE→ACTIVE→EMERGENCY)
 - **fault_mgmt** - Fault Detection, Isolation, and Recovery (FDIR)
+- **scheduler** - Time-triggered task table (tested; not used by the executive)
 
-### Hardware Abstraction
+### Power, Attitude and Payload
 - **eps_control** - Electrical Power System management
+- **payload_guard** - OBC-enforced Jetson power and temperature limits
 - **adcs_control** - Attitude Determination and Control System
-- **thermal_ctrl** - Thermal management
+- **sensors**, **gnss** - Sensor table and GNSS receiver
+- **deployment**, **separation_switch** - Deployment sequence
 - **watchdog_mgr** - Hardware and task watchdog management
 
 ### Communication
-- **cmd_handler** - Uplink command processing and routing
+- **uplink**, **ax25**, **input_validation**, **cmd_auth**, **cmd_dictionary**, **cmd_handler** - Uplink command reception, authentication and dispatch
+- **rf_control**, **rf_silence**, **contact_monitor** - Transmitter permission and inhibits
 - **telemetry** - Downlink telemetry frame generation
-- **beacon** - Beacon message composition
+- **beacon**, **beacon_filter** - Beacon message composition and content filter
+- **jetson_link**, **uart_comm** - OBC–Jetson line protocol and serial line
+- **gse_provision** - Key provisioning over the GSE umbilical (integration only)
 
 ### Safety & Reliability
 - **assert_handler** - JPL Rule 5 compliant assertions
-- **input_validation** - Parameter validation framework
 - **safe_string** - Bounds-checked string operations
-- **crc** - CRC32 data integrity checking
+- **nvm_record**, **mission_data** - Power-fail-safe records and mission statistics
+- **crc** - CRC32 data integrity checking (`smart_qso.h`), **sha256** - SHA-256 and HMAC-SHA-256
 
 ### Logging & Diagnostics
-- **flight_log** - MISRA-compliant logging subsystem
+- **flight_log** - Logging subsystem (`log_write()` and `log_vwrite()` are the C shim `software/flight/src/flight_log_fmt.c`)
 
 ### AI/ML Integration
-- **ai_manager** - AI payload coordination
-- **power_prediction** - ML-based power forecasting
-- **qso_priority** - QSO prioritization model
+Revision 1.0 listed `thermal_ctrl`, `ai_manager`, `power_prediction` and `qso_priority`. No such modules exist in the
+flight software. The AI payload software is in `software/payload`.
 
 ## Coding Standards
 
 This software adheres to:
 
-1. **JPL Power of Ten Rules** - See JPL_POWER_OF_TEN_AUDIT.md
-2. **MISRA C:2012** - See MISRA_DEVIATIONS.md
-3. **NASA NPR 7150.2** - Software Engineering Requirements
+1. **Rust coding standard** - See `docs/development/CODING_STANDARDS.md` §11
+2. **JPL Power of Ten Rules** - See JPL_POWER_OF_TEN_AUDIT.md
+3. **MISRA C:2012** (the remaining C only) - See MISRA_DEVIATIONS.md
+4. **NASA NPR 7150.2** - Software Engineering Requirements
 
 ### Key Patterns
 
@@ -98,30 +116,35 @@ if (result != SMART_QSO_OK) {
 ```
 
 #### Assertions (JPL Rule 5)
+For C callers (`smart_qso.h`; Revision 1.0 also listed a `SMART_QSO_REQUIRE_BOUNDS`, which does not exist). The Rust
+relies on bounds and overflow checks instead (`docs/development/CODING_STANDARDS.md` §11.4, §11.5):
 ```c
-SMART_QSO_REQUIRE(condition);           // Precondition
-SMART_QSO_ENSURE(condition);            // Postcondition
-SMART_QSO_REQUIRE_NOT_NULL(ptr);        // NULL check
-SMART_QSO_REQUIRE_BOUNDS(idx, size);    // Array bounds
+SMART_QSO_REQUIRE(condition, message);           // Precondition
+SMART_QSO_ENSURE(condition, message);            // Postcondition
+SMART_QSO_REQUIRE_NOT_NULL(ptr);                 // NULL check
+SMART_QSO_REQUIRE_OR(condition, message, retval) // Precondition with a given result
 ```
 
 #### Safe String Operations
 ```c
-safe_strncpy(dest, dest_size, src, src_len, &chars_copied);
-safe_memcpy(dest, dest_size, src, src_len);
+safe_strncpy(dest, dest_size, src, max_chars, &chars_copied);
+safe_memcpy(dest, dest_size, src, count);
 ```
 
 ## Build Configuration
 
 ```bash
-# Debug build with coverage
+# Debug build with coverage (C and the Rust library)
 cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
 
 # Release build with warnings as errors
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON
 
-# Flight build (no debug, malloc wrapped)
+# Flight configuration of the host simulation (runs until stopped)
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DFLIGHT_BUILD=ON
+
+# The STM32L4R5ZI image
+cd ../rust/firmware && cargo build --release
 ```
 
 ## Documentation Files
@@ -131,15 +154,16 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release -DFLIGHT_BUILD=ON
 | FDIR_DESIGN.md | Fault Detection, Isolation, Recovery design |
 | MEMORY_POLICY.md | Static allocation policy |
 | LOOP_BOUNDS.md | Loop iteration limits |
-| MISRA_DEVIATIONS.md | MISRA C:2012 deviation record |
+| MISRA_DEVIATIONS.md | MISRA C:2012 deviation record (the remaining C) |
 | JPL_POWER_OF_TEN_AUDIT.md | JPL coding rules compliance |
+| RTOS_ARCHITECTURE.md | Run-time architecture (Embassy executor; no RTOS) |
+| TIMING_ANALYSIS.md | Timing (no measurements yet) |
 
-## Safety Classification
+## Software Classification
 
-This software is classified as **Class C** per NPR 7150.2:
-- Mission-critical but not life-critical
-- Loss would significantly impact mission success
-- Requires formal verification and validation
+This software is **Class C** per NPR 7150.2D Appendix D: CubeSat flight software on a proposed Class D payload. The
+determination and its rationale are in `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1 (2026-10-25). Whether the
+software is safety-critical is a separate determination under NASA-STD-8739.8, still open (SDP §3.2).
 
 ## Contact
 
@@ -149,3 +173,11 @@ https://github.com/smart-qso
 ---
 
 *Generated with Doxygen - Following NASA Ames SmallSat heritage patterns*
+
+## Revision History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | — | Initial version |
+| 1.1 | 2026-10-24 | The flight software is Rust: the API is the C ABI of the Rust modules; architecture and module list as built (non-existent modules removed); Rust coding standard; firmware build |
+| 1.1, note | 2026-10-25 | Software classification: NPR 7150.2D Class C with a pointer to the SDP §3.1 rationale; safety criticality open |

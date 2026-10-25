@@ -91,8 +91,6 @@ static void test_eps_init_no_config(void **state) {
     assert_true(eps_state.beacon_enabled);
 }
 
-/* Note: Null pointer test removed - implementation uses defensive asserts */
-
 /*===========================================================================*/
 /* Test Cases: Power Mode Transitions                                         */
 /*===========================================================================*/
@@ -450,11 +448,90 @@ static void test_eps_bus_voltage_ok(void **state)
     assert_false(eps_bus_voltage_ok((double)NAN));
 }
 
+/**
+ * @brief The stored record is EpsControlState_t; a record with a bad CRC,
+ * or with a switch flag that is not a boolean (even under a valid CRC), is
+ * refused and the state kept
+ *
+ * @requirement SRS-F017 Persist EPS state
+ */
+static void test_eps_corrupt_config_refused(void **state) {
+    (void)state;
+    EpsControlState_t rec;
+
+    assert_int_equal(eps_control_radio(false), SMART_QSO_OK);   /* saved */
+    FILE *f = fopen(config_path(), "rb");
+    assert_non_null(f);
+    assert_int_equal(fread(&rec, sizeof(rec), 1, f), 1U);
+    assert_int_equal(fclose(f), 0);
+    assert_false(rec.radio_enabled);
+    assert_int_equal(rec.crc32, smart_qso_crc32(&rec, offsetof(EpsControlState_t, crc32)));
+
+    /* Bad CRC */
+    rec.crc32 ^= 1U;
+    f = fopen(config_path(), "wb");
+    assert_non_null(f);
+    assert_int_equal(fwrite(&rec, sizeof(rec), 1, f), 1U);
+    assert_int_equal(fclose(f), 0);
+    assert_int_equal(eps_load_config(), SMART_QSO_ERROR);
+
+    /* A flag byte of 2 under a matching CRC */
+    uint8_t raw[sizeof(rec)];
+    (void)memcpy(raw, &rec, sizeof(rec));
+    raw[offsetof(EpsControlState_t, adcs_enabled)] = 2U;
+    uint32_t crc = smart_qso_crc32(raw, offsetof(EpsControlState_t, crc32));
+    (void)memcpy(&raw[offsetof(EpsControlState_t, crc32)], &crc, sizeof(crc));
+    f = fopen(config_path(), "wb");
+    assert_non_null(f);
+    assert_int_equal(fwrite(raw, sizeof(raw), 1, f), 1U);
+    assert_int_equal(fclose(f), 0);
+    assert_int_equal(eps_load_config(), SMART_QSO_ERROR);
+
+    /* Short file */
+    f = fopen(config_path(), "wb");
+    assert_non_null(f);
+    assert_int_equal(fwrite(raw, 4U, 1, f), 1U);
+    assert_int_equal(fclose(f), 0);
+    assert_int_equal(eps_load_config(), SMART_QSO_ERROR_IO);
+
+    EpsControlState_t now;
+    assert_int_equal(eps_get_state(&now), SMART_QSO_OK);
+    assert_false(now.radio_enabled);
+    assert_true(now.adcs_enabled);
+}
+
+/** A NULL output is refused */
+static void test_eps_get_state_null(void **state) {
+    (void)state;
+    assert_int_equal(eps_get_state(NULL), SMART_QSO_ERROR_NULL_PTR);
+}
+
+/**
+ * @brief The latest state of charge is kept; a value outside 0..1 is not a
+ * measurement and is ignored
+ *
+ * @requirement SRS-F010 Monitor battery SOC
+ */
+static void test_eps_update_soc_ignores_out_of_range(void **state) {
+    (void)state;
+    eps_update_soc(0.5);
+    assert_true(FLOAT_EQUAL(eps_get_soc(), 0.5));
+    eps_update_soc(1.5);
+    assert_true(FLOAT_EQUAL(eps_get_soc(), 0.5));
+    eps_update_soc(-0.1);
+    assert_true(FLOAT_EQUAL(eps_get_soc(), 0.5));
+    eps_update_soc((double)NAN);
+    assert_true(FLOAT_EQUAL(eps_get_soc(), 0.5));
+    eps_update_soc(1.0);
+    assert_true(FLOAT_EQUAL(eps_get_soc(), 1.0));
+}
+
 int main(void) {
     const struct CMUnitTest tests[] = {
         /* Initialization tests */
         cmocka_unit_test_setup_teardown(test_eps_init_no_config, setup, teardown),
-        /* Note: Null pointer test removed - implementation uses defensive asserts */
+        cmocka_unit_test_setup_teardown(test_eps_get_state_null, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_eps_update_soc_ignores_out_of_range, setup, teardown),
 
         /* Power mode transition tests */
         cmocka_unit_test_setup_teardown(test_eps_set_mode_safe, setup, teardown),
@@ -482,6 +559,7 @@ int main(void) {
         cmocka_unit_test_setup_teardown(test_eps_soc_boundary_safe, setup, teardown),
         cmocka_unit_test_setup_teardown(test_eps_soc_boundary_payload, setup, teardown),
         cmocka_unit_test_setup_teardown(test_eps_bus_voltage_ok, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_eps_corrupt_config_refused, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("EPS Control Tests", tests, NULL, NULL);

@@ -5,7 +5,7 @@
 > No launch provider, integrator or dispenser has been selected, so no interface has been agreed. Entries marked
 > "Qualified", "Tested", "Complete" or given measured values (mass 1.075 kg, 185 Hz, 99.9 mm, shock 2500 g SRS, etc.)
 > are **not** supported by any test or inspection (finding VV-01). The 30-minute RF timer here is superseded by the
-> 45-minute rule (SYS-224), now implemented in flight software (`rf_silence.c`; hardware test pending). The provider deliverables checklist is
+> 45-minute rule (SYS-224), now implemented in flight software (`software/rust/sqso-fsw/src/rf_silence.rs`; hardware test pending). The provider deliverables checklist is
 > `docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md`; the launch path is in
 > `docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md`.
 
@@ -174,7 +174,7 @@ Same environment as §4.5 (SpaceX UG v11, interim). Nothing has been tested.
 | Requirement | SMART-QSO Implementation |
 |-------------|--------------------------|
 | No RF emissions prior to deployment | Deployment switches inhibit RF |
-| Timer delay after deployment | No RF before 45 min (SYS-224; CDS Rev 14.1 §2.4.5; `rf_silence.c`) |
+| Timer delay after deployment | No RF before 45 min (SYS-224; CDS Rev 14.1 §2.4.5; `software/rust/sqso-fsw/src/rf_silence.rs`) |
 | RF power at inhibit | 0 W |
 
 ### 7.2 Post-Deployment RF
@@ -339,3 +339,4 @@ SpaceX-side milestones).
 | B | 2026-10-16 | Document number changed from SQSO-ICD-004, which is the OBC-to-ADCS ICD (`docs/interfaces/ICD_OBC_ADCS.md`), to SQSO-ICD-010, the number `INTERFACE_CONTROL_MASTER.md` reserves for the launch vehicle interface (finding PI-17). No content change | SMART-QSO Team |
 | C (draft) | 2026-10-16 | Funding audit VV-21: umbilical access made consistent (no access after integration unless the dispenser has ports; RBF out at integration). VV-20: deliverable statuses corrected (no "Complete"); safety data package is a system-level skeleton. TB-15: one environment specification from SpaceX UG v11 (interim) in §4.5 and §6.2, replacing unsourced "Qualified" and "Compliant" entries; rail edge radius per CDS §2.2.7 | SMART-QSO Team |
 | D (draft) | 2026-10-16 | §4.1 mass from MASS_BUDGET v2.0 (was 1.075 kg, never weighed; TB-06); §5.1 switch type open as TBR-CDS-005 (was "normally open", against "normally closed" in the structural design); §7.1 timer 45 min (SYS-224; was 30 min); §7.2 frequency, power and spurious limits from SYS-200, SYS-201 and SYS-203 (were 145.825 MHz, 2 W, "Per FCC Part 97") | SMART-QSO Team |
+| D, note | 2026-10-24 | RF-silence references name the Rust file that replaced `rf_silence.c` | SMART-QSO Team |

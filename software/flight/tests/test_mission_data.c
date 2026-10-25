@@ -439,6 +439,37 @@ static void test_mission_data_consistency(void **state) {
 /* Test Suite                                                                 */
 /*===========================================================================*/
 
+/**
+ * @brief The stored file is MissionData_t with its CRC; a long fault
+ * description is cut to 63 characters; an invalid phase is refused
+ *
+ * @requirement SRS-F061 Protect persisted data with CRC32
+ */
+static void test_mission_data_record_layout(void **state) {
+    (void)state;
+    char longtext[100];
+    MissionData_t rec;
+
+    (void)memset(longtext, 'x', sizeof(longtext) - 1U);
+    longtext[sizeof(longtext) - 1U] = '\0';
+    assert_int_equal(mission_data_record_fault(longtext), SMART_QSO_OK);
+    assert_int_equal(mission_data_set_phase((MissionPhase_t)4), SMART_QSO_ERROR_INVALID);
+    assert_int_equal(mission_data_set_phase(MISSION_PHASE_EOL), SMART_QSO_OK);
+    assert_int_equal(mission_data_save(), SMART_QSO_OK);
+
+    FILE *f = fopen(data_path(), "rb");
+    assert_non_null(f);
+    assert_int_equal(fread(&rec, sizeof(rec), 1, f), 1U);
+    assert_int_equal(fclose(f), 0);
+    assert_int_equal(strlen(rec.last_fault), 63U);
+    assert_int_equal(rec.mission_phase, MISSION_PHASE_EOL);
+    assert_int_equal(rec.crc32, smart_qso_crc32(&rec, offsetof(MissionData_t, crc32)));
+
+    MissionData_t now;
+    assert_int_equal(mission_data_get(&now), SMART_QSO_OK);
+    assert_memory_equal(&now, &rec, offsetof(MissionData_t, crc32) + sizeof(uint32_t));
+}
+
 int main(void) {
     const struct CMUnitTest tests[] = {
         /* Initialization tests */
@@ -470,6 +501,7 @@ int main(void) {
         /* Boundary tests */
         cmocka_unit_test_setup_teardown(test_mission_data_energy_accumulation, setup, teardown),
         cmocka_unit_test_setup_teardown(test_mission_data_consistency, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_mission_data_record_layout, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Mission Data Tests", tests, NULL, NULL);

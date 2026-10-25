@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-007
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-24
 **Reference:** NPR 7150.2, NASA-HDBK-2203
 
 ---
@@ -11,6 +11,36 @@
 ## 1. Purpose
 
 This document provides timing analysis for SMART-QSO flight software, including worst-case execution time (WCET) estimates, task scheduling, and deadline verification.
+
+### 1.1 Status (Revision B, 2026-10-24)
+
+**No execution time in this document has been measured.** Sections 3 to 10 are the Revision A estimates for a
+seven-task preemptive design (sensor, ADCS, main loop, beacon, telemetry, housekeeping, watchdog). That design was never
+built. Those sections are kept as design intent. The rate-monotonic analysis in §6.3 does not apply to the software as
+built.
+
+The flight software as built is Rust on the Embassy executor with one task (`software/flight/docs/RTOS_ARCHITECTURE.md`):
+
+| Item | As built | Source |
+|------|----------|--------|
+| Scheduling | One main loop. Each pass runs every stage in a fixed order, then waits 20 ms (`Timer::after_millis(20)`) | `software/rust/firmware/src/main.rs`, `software/rust/sqso-ffi/src/executive.rs` |
+| Pass period | 20 ms plus the time of the pass (not a fixed rate) | same |
+| Pass deadline | SRS-P001: the main control loop executes within 20 ms | `software/rust/sqso-fsw/src/executive.rs` (`@requirement`) |
+| Stage supervision | `main`, `uplink`, `payload` and `beacon` must check in within 1 s, and `health` within 20 s. Three misses in a row stop the hardware refresh | `software/rust/sqso-ffi/src/executive.rs` (`init_watchdog`), `software/rust/sqso-fsw/src/watchdog.rs` |
+| Hardware watchdog | 30 s (`WDT_HW_TIMEOUT_MS`); 32 s boot watchdog before the clock set-up | `software/rust/firmware/src/wdt.rs` |
+| Core clock | 80 MHz (MSI 4 MHz, PLL M = 1, N = 40, R = 2). embassy-stm32 sets the flash wait states | `software/rust/firmware/src/main.rs` |
+| Interrupts | USART1, USART2 and USART3 (buffered receive and transmit) and the time driver. No flight code runs in interrupt context | `software/rust/firmware/src/main.rs` |
+
+Open work, to be done on hardware (TP-FLATSAT-001):
+
+1. Measure the time of `Executive::step()` with the DWT cycle counter, including the passes that also save mission
+   data and the EPS state (every 100 passes), write the fault log, send Jetson telemetry or a beacon, and process a
+   telecommand.
+2. Show the worst pass against SRS-P001 (20 ms) and the stage periods (1 s).
+3. Measure the interrupt load at the UART rates (115,200 baud Jetson and debug, 9600 baud TNC).
+
+One bound follows from the design alone: a fault-log save writes up to 9,732 bytes (4-byte length and 9,728 bytes) to
+the FRAM. At the 20 MHz SPI clock that is about 3.9 ms of clocking alone, before command and driver overhead.
 
 ## 2. Scope
 
@@ -298,3 +328,4 @@ Complete
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-24 | §1.1: no time has been measured; §3 to §10 are estimates for a multi-task design that was not built. Timing of the software as built (one Embassy task, a 20 ms wait after each pass, stage supervision, watchdog), and the measurements still to be made on hardware | SMART-QSO Team |

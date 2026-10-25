@@ -16,6 +16,7 @@ on:
     branches: [ main, develop, 'feature/**', 'release/**' ]
     paths:
       - 'software/flight/**'
+      - 'software/rust/**'
       - '.github/workflows/flight-software-ci.yml'
   # Every PR, with no path filter: these jobs are required checks on main, and a
   # required check from a workflow that never starts would block the PR
@@ -137,13 +138,40 @@ jobs:
         ASAN_OPTIONS: detect_leaks=0:halt_on_error=1
       run: ctest --test-dir build --output-on-failure
 
-    - name: Run the simulation to completion with sanitizers
-      working-directory: software/flight/build
-      env:
-        ASAN_OPTIONS: detect_leaks=0:halt_on_error=1   # see the step above
-        UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+    # Every Rust parser (software/rust/fuzz): 30 s per target on every change;
+    # run longer locally or on a schedule (software/rust/README.md). Any
+    # assertion failure or crash fails the job. libFuzzer builds with
+    # AddressSanitizer, so this is the sanitizer run of the Rust parsers.
+    - name: Nightly toolchain and cargo-fuzz
+      working-directory: software/rust/fuzz
       run: |
-        # About 20 s of simulated operation; any sanitizer report fails the job
+        rustup toolchain install nightly --profile minimal
+        cargo install cargo-fuzz --locked
+
+    - name: Fuzz every Rust parser
+      working-directory: software/rust/fuzz
+      run: |
+        for target in $(cargo +nightly fuzz list); do
+          echo "::group::$target"
+          cargo +nightly fuzz run -O "$target" -- -max_total_time=30
+          echo "::endgroup::"
+        done
+
+    - name: Upload crashing inputs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: fuzz-artifacts
+        path: software/rust/fuzz/artifacts
+        if-no-files-found: ignore
+
+    # The simulation is the Rust flight software (sqso-sim, release profile:
+    # overflow checks on, a panic aborts); its unsafe code is in the library
+    # the sanitized C suites above link
+    - name: Run the simulation to completion
+      working-directory: software/flight/build
+      run: |
+        # About 20 s of simulated operation; a panic or a failed start fails the job
         timeout 180 ./smart_qso_flight
 
   flight-build:
@@ -167,15 +195,21 @@ jobs:
       working-directory: software/flight
       run: cmake --build build
 
-    - name: Verify NDEBUG is defined
+    - name: Verify the flight configuration
       working-directory: software/flight
       run: |
-        # Check that debug code is disabled in flight build
-        grep -q "NDEBUG" build/compile_commands.json || {
-          echo "::error::NDEBUG is not defined in the flight build"
+        # The simulation binary was built with the flight feature (runs until
+        # stopped), from the release profile (overflow checks on, debug
+        # assertions off: software/rust/Cargo.toml)
+        grep -rq -- '--features flight' build/CMakeFiles/smart_qso_flight.dir/ || {
+          echo "::error::smart_qso_flight was not built with the flight feature"
           exit 1
         }
+        test -x build/smart_qso_flight
 
+  # The flight image for the STM32L4R5ZI: the Embassy firmware
+  # (software/rust/firmware), which runs the same flight software as the
+  # host builds on its own HAL. The job keeps its name: it is a required check.
   target-build:
     name: STM32L4 Cross-Compile (library)
     runs-on: ubuntu-24.04   # pinned
@@ -184,58 +218,88 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install the Arm GNU toolchain
+    - name: Arm binutils (image inspection only)
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake gcc-arm-none-eabi libnewlib-arm-none-eabi
-        arm-none-eabi-gcc --version
+        sudo apt-get install -y binutils-arm-none-eabi
 
-    - name: Configure (cmake/arm-none-eabi-stm32l4.cmake)
-      working-directory: software/flight
+    - name: Rust toolchain (software/rust/rust-toolchain.toml)
+      working-directory: software/rust
+      run: rustup show active-toolchain || rustup toolchain install
+
+    # The flight software alone for the Cortex-M4F (hard float)
+    - name: Flight software for thumbv7em-none-eabihf
+      working-directory: software/rust
       run: |
-        cmake -B build-arm -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-stm32l4.cmake \
-              -DCMAKE_BUILD_TYPE=Release -DENABLE_WERROR=ON
+        cargo build --release --locked -p sqso-ffi --target thumbv7em-none-eabihf
+        cargo build --release --locked -p sqso-clib --target thumbv7em-none-eabihf
 
-    - name: Build the flight library for Cortex-M4
-      working-directory: software/flight
-      run: cmake --build build-arm --parallel
-
-    - name: Check the library
-      working-directory: software/flight
+    - name: Firmware format and clippy (warnings are errors)
+      working-directory: software/rust/firmware
       run: |
-        arm-none-eabi-size --totals build-arm/libsmart_qso_target.a | tail -1
-        # Thumb-2 code for the target, with the register-level HAL and the flight modules
-        arm-none-eabi-objdump -f build-arm/libsmart_qso_target.a | grep -m1 'architecture: arm'
-        for sym in hal_gpio_init hal_wdt_kick hal_reset_cause beacon_filter_check jetson_link_parse sm_process_event; do
-          arm-none-eabi-nm --defined-only build-arm/libsmart_qso_target.a | grep -q " T ${sym}$" || {
-            echo "::error::${sym} missing from the target library"
-            exit 1
-          }
-        done
+        cargo fmt --check
+        cargo clippy --release --locked -- -D warnings
+
+    - name: Build the firmware image
+      working-directory: software/rust/firmware
+      run: cargo build --release --locked
 
     - name: Check the linked flight image
-      working-directory: software/flight
+      working-directory: software/rust/firmware
       run: |
-        elf=build-arm/smart_qso_flight.elf
+        elf=target/thumbv7em-none-eabihf/release/sqso-firmware
         arm-none-eabi-size -A -x "$elf"
-        # The linker already failed if flash or RAM (with the 16 KB minimum stack) overflowed
-        grep -A3 'Memory region' build-arm/smart_qso_flight.map || true
+        arm-none-eabi-objdump -f "$elf" | grep -m1 'architecture: arm'
         sym() { arm-none-eabi-nm "$elf" | awk -v s="$1" '$3 == s { print $1 }'; }
         # Entry point is the reset handler (Thumb bit set)
         entry=$(arm-none-eabi-readelf -h "$elf" | awk '/Entry point address/ { print $4 }')
-        [ $(( entry | 1 )) -eq $(( 0x$(sym Reset_Handler) | 1 )) ] || {
-          echo "::error::entry point $entry is not Reset_Handler"; exit 1; }
-        # Vector table at the start of flash; word 0 = top of RAM, word 1 = Reset_Handler | 1
-        vec=$(arm-none-eabi-objdump -h "$elf" | awk '$2 == ".isr_vector" { print $4 }')
-        [ "$vec" = "08000000" ] || { echo "::error::.isr_vector at $vec, not 08000000"; exit 1; }
-        words=$(arm-none-eabi-objcopy -O binary -j .isr_vector "$elf" /dev/stdout | od -An -tx4 -N8 | xargs)
+        [ $(( entry | 1 )) -eq $(( 0x$(sym Reset) | 1 )) ] || {
+          echo "::error::entry point $entry is not Reset"; exit 1; }
+        # Vector table at the start of flash; word 0 = top of RAM, word 1 = Reset | 1
+        vec=$(arm-none-eabi-objdump -h "$elf" | awk '$2 == ".vector_table" { print $4 }')
+        [ "$vec" = "08000000" ] || { echo "::error::.vector_table at $vec, not 08000000"; exit 1; }
+        words=$(arm-none-eabi-objcopy -O binary -j .vector_table "$elf" /dev/stdout | od -An -tx4 -N8 | xargs)
         sp=$(echo "$words" | cut -d' ' -f1); reset=$(echo "$words" | cut -d' ' -f2)
         [ "$sp" = "200a0000" ] || { echo "::error::initial SP $sp, expected 200a0000"; exit 1; }
-        [ $(( 0x$reset )) -eq $(( 0x$(sym Reset_Handler) | 1 )) ] || {
-          echo "::error::reset vector $reset is not Reset_Handler | 1"; exit 1; }
-        # No heap: _sbrk is the stub that always fails, not newlib's
-        arm-none-eabi-nm "$elf" | grep -q ' T _sbrk$' || { echo "::error::_sbrk missing"; exit 1; }
+        [ $(( 0x$reset )) -eq $(( 0x$(sym Reset) | 1 )) ] || {
+          echo "::error::reset vector $reset is not Reset | 1"; exit 1; }
+        # The flight software is in the image, on the firmware's HAL
+        for s in main cmd_process uplink_poll hal_flash_write hal_wdt_kick hal_reset_cause; do
+          [ -n "$(sym "$s")" ] || { echo "::error::$s missing from the image"; exit 1; }
+        done
+        # No heap and no C library
+        if arm-none-eabi-nm "$elf" | grep -Eq ' (malloc|free|_sbrk|printf)$'; then
+          echo "::error::the image links a heap or the C library"; exit 1
+        fi
         echo "Image OK: entry $entry, vectors at 0x$vec, SP 0x$sp"
+
+    # SRS-C003 (stack at most 8 KB): the worst case of the flight image,
+    # from its machine code (scripts/stack_usage.py). The second build adds
+    # LLVM's .stack_sizes section to cross-check the frames the script reads
+    # from the flight image: RUSTC_BOOTSTRAP lets the pinned stable compiler
+    # take -Z emit-stack-sizes, which adds a section and changes no code.
+    # CARGO_ENCODED_RUSTFLAGS replaces .cargo/config.toml's flags, so the
+    # link arguments are repeated.
+    - name: Worst-case stack (SRS-C003)
+      working-directory: software/rust/firmware
+      run: |
+        RUSTC_BOOTSTRAP=1 \
+        CARGO_ENCODED_RUSTFLAGS="$(printf '%s\x1f' -C link-arg=-Tlink.x -C link-arg=--nmagic -Z emit-stack-sizes | sed 's/\x1f$//')" \
+          cargo build --release --locked --target-dir target/stack-sizes
+        python3 ../../../scripts/stack_usage.py target/thumbv7em-none-eabihf/release/sqso-firmware \
+          --llvm-elf target/stack-sizes/thumbv7em-none-eabihf/release/sqso-firmware \
+          --firmware-src src --report stack-usage.txt
+
+    # The release package (docs/development/RELEASE_PROCEDURE.md §5.2) as a
+    # development build, so the script stays working between releases
+    - name: Release package (development build)
+      run: scripts/release_package.sh --dev dist
+
+    - name: Upload the development package
+      uses: actions/upload-artifact@v4
+      with:
+        name: sqso-firmware-dev
+        path: dist
 
   documentation:
     name: Documentation Check

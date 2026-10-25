@@ -23,7 +23,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 MD_LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 REPO_PATH = re.compile(
     r"`((?:docs|software|hardware|mission|scripts)/[A-Za-z0-9_./-]+"
-    r"\.(?:md|c|h|py|yaml|yml|txt|toml|ipynb|sh|cff))`"
+    r"\.(?:md|c|h|py|rs|yaml|yml|txt|toml|ipynb|sh|cff))`"
 )
 FENCE = re.compile(r"```.*?```", re.S)
 EXTERNAL = re.compile(r"^(?:[a-z][a-z0-9+.-]*:|#)", re.I)

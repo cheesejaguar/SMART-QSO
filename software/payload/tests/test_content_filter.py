@@ -1,9 +1,9 @@
 """
 Beacon text content filter, Jetson side (SW-12, 47 CFR 97.113(a)(3)-(4)).
 
-The vectors are shared with software/flight/tests/test_beacon_filter.c, and
-the word lists are compared with software/flight/src/beacon_filter.c, so the
-Jetson never offers text the OBC would refuse.
+The vectors are shared with software/flight/tests/test_beacon_filter.c. The
+OBC and the Jetson run one filter (software/rust/sqso-protocol/src/filter.rs),
+so the Jetson never offers text the OBC would refuse.
 """
 
 import random
@@ -17,7 +17,7 @@ from formatter import STATION_CALL, Health, beacon_text, fallback_text
 
 _FLIGHT = Path(__file__).resolve().parents[2] / "flight"
 VECTORS = _FLIGHT / "tests" / "vectors" / "beacon_filter_vectors.txt"
-FLIGHT_FILTER = _FLIGHT / "src" / "beacon_filter.c"
+RUST_FILTER = Path(__file__).resolve().parents[2] / "rust" / "sqso-protocol" / "src" / "filter.rs"
 
 
 def _vectors():
@@ -27,9 +27,9 @@ def _vectors():
             yield expected, text
 
 
-def _c_list(name):
-    source = FLIGHT_FILTER.read_text(encoding="ascii")
-    body = re.search(name + r"\[\] = \{(.*?)\};", source, re.S).group(1)
+def _rust_list(name):
+    source = RUST_FILTER.read_text(encoding="utf-8")
+    body = re.search(r"pub const " + name + r": &\[&\w+\] = &\[(.*?)\];", source, re.S).group(1)
     return tuple(re.findall(r'"([^"]*)"', body))
 
 
@@ -53,10 +53,10 @@ class TestSharedVectors(unittest.TestCase):
 
 class TestWordLists(unittest.TestCase):
 
-    def test_lists_match_flight(self):
-        self.assertEqual(PROFANITY, _c_list("beacon_filter_profanity"))
-        self.assertEqual(COMMERCIAL, _c_list("beacon_filter_commercial"))
-        self.assertEqual(content_filter.URL_MARKS, _c_list("s_url_marks"))
+    def test_lists_are_the_flight_lists(self):
+        self.assertEqual(PROFANITY, _rust_list("PROFANITY"))
+        self.assertEqual(COMMERCIAL, _rust_list("COMMERCIAL"))
+        self.assertEqual(content_filter.URL_MARKS, _rust_list("URL_MARKS"))
 
     def test_each_word_rejected_whole_word_any_case(self):
         for words, reason in ((PROFANITY, "PROFANITY"), (COMMERCIAL, "COMMERCIAL")):

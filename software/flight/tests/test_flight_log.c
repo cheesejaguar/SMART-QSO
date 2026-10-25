@@ -347,6 +347,77 @@ static void test_callback_called(void **state)
 }
 
 /*******************************************************************************
+ * Test Cases: message form, flush, re-entrant callback
+ * (Rust port: software/rust/sqso-ffi/src/flight_log.rs, src/flight_log_fmt.c)
+ ******************************************************************************/
+
+static void test_long_message_ends_with_ellipsis(void **state)
+{
+    (void)state;
+
+    char text[200];
+    memset(text, 'a', sizeof(text) - 1U);
+    text[sizeof(text) - 1U] = '\0';
+    log_write(LOG_LEVEL_INFO, "A_VERY_LONG_MODULE_NAME", "%s", text);
+
+    LogEntry_t entry;
+    assert_int_equal(log_get_entry(0, &entry), SMART_QSO_OK);
+    assert_int_equal(strlen(entry.message), LOG_MAX_MESSAGE_LEN - 1U);
+    assert_string_equal(&entry.message[LOG_MAX_MESSAGE_LEN - 4U], "...");
+    assert_int_equal(entry.message[LOG_MAX_MESSAGE_LEN - 5U], 'a');
+    assert_string_equal(entry.module, "A_VERY_LONG_MOD");
+}
+
+static int s_flush_calls = 0;
+
+static void count_callback(const LogEntry_t *entry)
+{
+    (void)entry;
+    s_flush_calls++;
+}
+
+static void test_flush_outputs_every_entry(void **state)
+{
+    (void)state;
+
+    log_write(LOG_LEVEL_INFO, "F", "one");
+    log_write(LOG_LEVEL_INFO, "F", "two");
+    log_write(LOG_LEVEL_INFO, "F", "three");
+    log_register_callback(count_callback);
+
+    s_flush_calls = 0;
+    assert_int_equal(log_flush(), SMART_QSO_OK);
+    assert_int_equal(s_flush_calls, 3);
+
+    /* Without buffering selected, flush outputs nothing */
+    log_set_outputs(LOG_OUTPUT_NONE);
+    s_flush_calls = 0;
+    assert_int_equal(log_flush(), SMART_QSO_OK);
+    assert_int_equal(s_flush_calls, 0);
+}
+
+static void logging_callback(const LogEntry_t *entry)
+{
+    if (strcmp(entry->module, "OUTER") == 0) {
+        (void)log_write(LOG_LEVEL_INFO, "INNER", "from callback");
+    }
+}
+
+static void test_callback_may_log(void **state)
+{
+    (void)state;
+
+    log_register_callback(logging_callback);
+    assert_int_equal(log_write(LOG_LEVEL_INFO, "OUTER", "first"), SMART_QSO_OK);
+    assert_int_equal(log_get_count(), 2);
+
+    LogEntry_t entry;
+    assert_int_equal(log_get_entry(1, &entry), SMART_QSO_OK);
+    assert_string_equal(entry.module, "INNER");
+    assert_int_equal(entry.sequence, 1);
+}
+
+/*******************************************************************************
  * Test Runner
  ******************************************************************************/
 
@@ -413,6 +484,14 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_set_outputs_success,
                                         test_setup, test_teardown),
         cmocka_unit_test_setup_teardown(test_callback_called,
+                                        test_setup, test_teardown),
+
+        /* Message form, flush, re-entrant callback */
+        cmocka_unit_test_setup_teardown(test_long_message_ends_with_ellipsis,
+                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_flush_outputs_every_entry,
+                                        test_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_callback_may_log,
                                         test_setup, test_teardown),
     };
 

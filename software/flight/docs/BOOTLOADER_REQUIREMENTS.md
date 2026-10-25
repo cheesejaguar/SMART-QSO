@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-BOOT-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-24
 **Reference:** NPR 7150.2, NASA-HDBK-4002A
 
 ---
@@ -11,6 +11,20 @@
 ## 1. Purpose
 
 This document defines the requirements and design for the SMART-QSO bootloader, ensuring reliable boot and recovery capabilities in the space environment.
+
+### 1.1 Implementation Status (Revision B, 2026-10-24)
+
+No bootloader is implemented, and none of the BOOT requirements below is met by code yet. The flight image is the Rust
+firmware (`software/rust/firmware`). It starts directly from reset: the vector table is at 0x08000000, the start of the
+STM32L4R5 flash, and the entry point is cortex-m-rt's `Reset` (CI checks both). It is not at the 0x0000_0000-based
+addresses of the map in §2.1. There is no backup or golden image, no boot configuration record, no boot attempt counter
+and no firmware update protocol. The command dictionary (`software/flight/command_dictionary.json`) has no update
+commands.
+
+What exists that bears on §6.2 and §7: the firmware starts the independent watchdog at its longest timeout (about 32 s)
+before the clock set-up, so a boot that hangs resets the OBC (`software/rust/firmware/src/wdt.rs`). The reset cause is
+read from the RCC CSR flags (`hal_reset.h`), and the RF-silence and deployment logic use it. The C code blocks below are
+the Revision A design.
 
 ## 2. Bootloader Overview
 
@@ -351,3 +365,4 @@ void enter_bootloader_safe_mode(void) {
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-24 | §1.1 implementation status: no bootloader exists; the Rust firmware starts from reset at 0x08000000; boot watchdog and reset cause are what exists. Requirements unchanged | SMART-QSO Team |

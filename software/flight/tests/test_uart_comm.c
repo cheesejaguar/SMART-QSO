@@ -11,6 +11,9 @@
  * @requirement SRS-F034 Validate received beacon text
  */
 
+/* posix_openpt() and friends: a pseudo-terminal stands in for the serial port */
+#define _XOPEN_SOURCE 600
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -20,6 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 /* Include the module under test */
 #include "smart_qso.h"
@@ -230,6 +234,117 @@ static void test_uart_get_telemetry_interval(void **state) {
 }
 
 /*===========================================================================*/
+/* Test Cases: a pseudo-terminal as the serial port                           */
+/*===========================================================================*/
+
+/** Open a pty pair; *master gets the controlling side, slave its path */
+static void open_pty(int *master, char *slave, size_t cap)
+{
+    *master = posix_openpt(O_RDWR | O_NOCTTY);
+    assert_true(*master >= 0);
+    assert_int_equal(grantpt(*master), 0);
+    assert_int_equal(unlockpt(*master), 0);
+    const char *name = ptsname(*master);
+    assert_non_null(name);
+    assert_true(strlen(name) < cap);
+    (void)snprintf(slave, cap, "%s", name);
+}
+
+/**
+ * @brief Bytes sent reach the other end of the line, and bytes from it are received
+ */
+static void test_uart_send_and_receive_over_pty(void **state) {
+    (void)state;
+    int master = -1;
+    UartConfig_t config = { .baudrate = 57600, .timeout_ms = 10 };
+    open_pty(&master, config.device, sizeof(config.device));
+
+    uart_close();
+    assert_int_equal(uart_init_with_config(&config), SMART_QSO_OK);
+    assert_true(uart_is_initialized());
+    assert_int_equal(uart_check_health(), SMART_QSO_OK);
+
+    assert_int_equal(uart_send("STATUS_REQ,5D03\n", 16U), SMART_QSO_OK);
+    char line[32] = {0};
+    assert_int_equal(read(master, line, sizeof(line) - 1U), 16);
+    assert_string_equal(line, "STATUS_REQ,5D03\n");
+
+    assert_int_equal(write(master, "ACK,X,0000\n", 11U), 11);
+    char buffer[32] = {0};
+    size_t received = 0U;
+    assert_int_equal(uart_receive(buffer, sizeof(buffer), &received), SMART_QSO_OK);
+    assert_int_equal(received, 11U);
+    assert_memory_equal(buffer, "ACK,X,0000\n", 11U);
+
+    uart_close();
+    (void)close(master);
+}
+
+/**
+ * @brief Every supported rate configures the line; an unknown one falls back to the default
+ */
+static void test_uart_baud_rates(void **state) {
+    (void)state;
+    static const int rates[] = { 9600, 19200, 38400, 57600, 115200, 230400, 1234 };
+    int master = -1;
+    UartConfig_t config = { .timeout_ms = 10 };
+    open_pty(&master, config.device, sizeof(config.device));
+    for (size_t i = 0U; i < (sizeof(rates) / sizeof(rates[0])); i++) {
+        config.baudrate = rates[i];
+        assert_int_equal(uart_init_with_config(&config), SMART_QSO_OK);
+    }
+    uart_close();
+    (void)close(master);
+}
+
+/**
+ * @brief A path that is not a terminal is refused, and the module stays closed
+ */
+static void test_uart_rejects_non_terminal(void **state) {
+    (void)state;
+    UartConfig_t config = { .device = "/dev/null", .baudrate = 115200, .timeout_ms = 10 };
+    uart_close();
+    assert_int_equal(uart_init_with_config(&config), SMART_QSO_ERROR_IO);
+    assert_false(uart_is_initialized());
+}
+
+/**
+ * @brief UART_DEVICE, UART_BAUDRATE and TELEMETRY_INTERVAL_MS configure uart_init()
+ */
+static void test_uart_environment_configuration(void **state) {
+    (void)state;
+    int master = -1;
+    char slave[UART_DEVICE_MAX_LEN];
+    open_pty(&master, slave, sizeof(slave));
+
+    uart_close();
+    assert_int_equal(setenv("UART_DEVICE", slave, 1), 0);
+    assert_int_equal(setenv("UART_BAUDRATE", "38400", 1), 0);
+    assert_int_equal(setenv("TELEMETRY_INTERVAL_MS", "5000", 1), 0);
+    assert_int_equal(uart_init(), SMART_QSO_OK);
+    UartConfig_t config;
+    assert_int_equal(uart_get_config(&config), SMART_QSO_OK);
+    assert_string_equal(config.device, slave);
+    assert_int_equal(config.baudrate, 38400);
+    assert_int_equal(uart_get_telemetry_interval(), 5000U);
+
+    /* Out-of-range values are refused and the previous ones kept */
+    uart_close();
+    assert_int_equal(setenv("UART_BAUDRATE", "1234", 1), 0);
+    assert_int_equal(setenv("TELEMETRY_INTERVAL_MS", "0", 1), 0);
+    assert_int_equal(uart_init(), SMART_QSO_OK);
+    assert_int_equal(uart_get_config(&config), SMART_QSO_OK);
+    assert_int_equal(config.baudrate, 38400);
+    assert_int_equal(uart_get_telemetry_interval(), 5000U);
+
+    uart_close();
+    (void)unsetenv("UART_DEVICE");
+    (void)unsetenv("UART_BAUDRATE");
+    (void)unsetenv("TELEMETRY_INTERVAL_MS");
+    (void)close(master);
+}
+
+/*===========================================================================*/
 /* Test Suite                                                                 */
 /*===========================================================================*/
 
@@ -255,6 +370,12 @@ int main(void) {
 
         /* Telemetry interval tests */
         cmocka_unit_test_setup_teardown(test_uart_get_telemetry_interval, setup, teardown),
+
+        /* A pseudo-terminal as the serial port */
+        cmocka_unit_test_setup_teardown(test_uart_send_and_receive_over_pty, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_uart_baud_rates, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_uart_rejects_non_terminal, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_uart_environment_configuration, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("UART Communication Tests", tests, NULL, NULL);

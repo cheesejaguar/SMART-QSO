@@ -2,10 +2,10 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SSP-001
-**Revision:** B
-**Date:** 2026-01-02
-**Classification:** Class D Mission (per NPR 7120.5)
-**Governing Standards:** NASA-STD-8719.13, NPR 7150.2
+**Revision:** C
+**Date:** 2026-10-24
+**Classification:** Class D payload (NPR 8705.4B, proposed); software Class C (NPR 7150.2D)
+**Governing Standards:** NASA-STD-8739.8B (replaces NASA-STD-8719.13, cancelled 2020), NPR 7150.2D
 
 ---
 
@@ -16,7 +16,8 @@ This Software Safety Plan establishes the software safety program for the SMART-
 ## 2. Scope
 
 This plan applies to all software components of the SMART-QSO mission:
-- OBC Flight Software (C, FreeRTOS)
+- OBC Flight Software (Rust on the Embassy executor, no RTOS: the baseline since 2026-10-25, BASELINE §6, CR-2026-002.
+  Revision B said C and FreeRTOS; FreeRTOS was never integrated. See `software/rust/README.md`)
 - AI Payload Software (Python, Jetson)
 - Ground Support Software
 - Test and Simulation Software
@@ -72,6 +73,10 @@ Per NPR 7150.2 and NASA-STD-8719.13:
 | C | Major mission degradation | ADCS, Beacon generation |
 | D | Minor mission degradation | AI payload, Telemetry |
 | E | No safety impact | Ground software, Simulation |
+
+Note (2026-10-25). The letters A to E in §5.1, §5.2 and §8.2 are this plan's criticality scale. They are not NPR 7150.2D
+software classes: the flight software is Class C (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). Whether the
+software is safety-critical under NASA-STD-8739.8 is still to be determined (SDP §3.2).
 
 ### 5.2 SMART-QSO Software Criticality
 
@@ -167,9 +172,15 @@ All software hazards are tracked in the Software Hazard Analysis document (SQSO-
 
 ### 8.2 Safety-Critical Code Testing
 
-Safety-critical software (Class B and C) requires:
-- 100% statement coverage
-- 100% branch coverage
+The safety-critical components are determined in `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2 (NASA-STD-8739.8B
+§4.2 criteria, from the hazard analysis). NPR 7150.2D SWE-219 requires for them 100 % code coverage by the MC/DC
+criterion. rustc cannot measure MC/DC; change request CR-2026-003 (approved by the PI, 2026-10-25,
+`docs/project/CHANGE_REQUEST_LOG.md`) replaces it with 100 % line and 100 % condition coverage. Status (2026-10-25):
+CI gates line coverage (Rust ≥ 90 %, 94.4 %) and branch and condition coverage (Rust ≥ 80 %, 80.6 %) over the whole
+flight software, and each safety-critical file at 100 % of lines and 100 % of conditions
+(`software/flight/scripts/safety_coverage.py`, CI job "Build and Test"). All of them meet it; 12 lines that no test
+can reach (a defensive arm, an unreachable error path) are marked `// COVERAGE-EXEMPT:` with the reason, each
+reviewed (SDP §3.2). Also required:
 - Fault injection testing for all identified fault conditions
 - Boundary value testing for all safety parameters
 - Stress testing under worst-case conditions
@@ -204,6 +215,14 @@ Safety-critical software (Class B and C) requires:
 | Static analysis | cppcheck, clang-tidy |
 | Code review | Peer review for all changes |
 | Unit testing | cmocka framework, >80% coverage |
+
+As implemented (2026-10-24), for the Rust flight software: the coding standard is `docs/development/CODING_STANDARDS.md`
+§11 (MISRA C applies only to the remaining C shim). The JPL rules are mapped to the Rust in
+`software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1. Static analysis is clippy with warnings as errors, the
+`#![forbid(unsafe_code)]` check, CodeQL and `cargo audit`, plus cppcheck and clang-tidy on the remaining C. Every parser
+is fuzzed in CI. The CMocka suites run unchanged against the Rust, together with 328 Rust unit tests. Safety-relevant
+modules fail safe when re-entered: TX-OFF still drives the transmitter enable low, the RF silence reads as active, and
+the payload guard trips (`software/rust/README.md`, behaviour change 10).
 | Configuration management | Git, tagged releases |
 
 ## 10. Safety Waivers and Deviations
@@ -263,6 +282,8 @@ All personnel working on safety-critical software shall complete:
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §3.2 cites the numbers the documents carry: the Software Development Plan is SMART-QSO-SDP-001 (SQSO-SDP-001 is the Safety Data Package); SEMP and SRS likewise (finding PI-17) | SMART-QSO Team |
+| C | 2026-10-24 | The OBC flight software is Rust: §2 scope; §8.2 coverage status (line coverage gated, branch not measured); §9.2 process controls as implemented for the Rust | SMART-QSO Team |
+| C, note | 2026-10-25 | §2 scope: no RTOS is the baseline (CR-2026-002). §5: the criticality letters are not NPR 7150.2D classes (software Class C, SDP §3.1). Header: payload Class D (NPR 8705.4B) and NASA-STD-8739.8B. §8.2: the safety-critical components and SWE-219 (MC/DC; CR-2026-003) with measured coverage | SMART-QSO Team |
 
 ---
 

@@ -23,9 +23,23 @@ def test_repository_outputs_are_current():
     assert gen.check() == []
 
 
-def test_c_table_uses_enum_symbols():
-    source = gen.render_c(gen.validate(dictionary(ENTRY)))
-    assert "(uint8_t)CMD_COMM_TX_DISABLE, 0U, 0U, CMD_KEY_ANY" in source
+def test_c_header_defines_the_id_enum():
+    header = gen.render_h(gen.validate(dictionary(ENTRY)))
+    assert "CMD_COMM_TX_DISABLE = 0x32," in header
+    assert "#define CMD_DICTIONARY_COUNT 1U" in header
+
+
+def test_rust_enum_and_table():
+    source = gen.render_rust(gen.validate(dictionary(ENTRY)))
+    assert "    TxDisable = 0x32," in source
+    assert "0x32 => Some(Command::TxDisable)," in source
+    assert ("Command::TxDisable => CommandSpec { min_args: 0, max_args: 0, "
+            "key: KeyClass::Any, without_key: false },") in source
+
+
+def test_rust_variant_names():
+    assert gen.rust_variant("SET_CONTACT_TIMEOUT") == "SetContactTimeout"
+    assert gen.rust_variant("NOP") == "Nop"
 
 
 def test_python_module_round_trips():
@@ -49,8 +63,8 @@ def test_invalid_entries_rejected(change, message):
 
 
 def test_without_key_flag_emitted():
-    source = gen.render_c(gen.validate(dictionary({**ENTRY, "without_key": True})))
-    assert "CMD_KEY_ANY, true }" in source
+    source = gen.render_rust(gen.validate(dictionary({**ENTRY, "without_key": True})))
+    assert "key: KeyClass::Any, without_key: true }" in source
     module = gen.render_python(gen.validate(dictionary({**ENTRY, "without_key": True})))
     assert "without_key=True" in module
 

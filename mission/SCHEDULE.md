@@ -3,13 +3,13 @@
 Assumes heritage deployer, standard rideshare reviews, and tailored protoflight test campaign. Parallel workstreams minimize critical path.
 
 ## Month ‑9: Kickoff & Long‑Leads
-- Freeze v0.3 architecture and ICD skeleton; start parts list and procurement (solar panels, EPS, battery, Stensat beacon, Jetson Orin Nano Super, OBC, structure).
+- Freeze v0.3 architecture and ICD skeleton; start parts list and procurement (solar panels, EPS, battery, UHF/VHF transceiver (selection open, SQSO-ICD-005), Jetson Orin Nano Super, OBC, structure).
 - Begin IARU pre‑coordination (draft RF plan, emission, duty cycle) per `docs/REGULATORY.md`.
-- Stand up Flatsat bench; bring‑up OBC RTOS skeleton; AX.25 tooling for beacon.
+- Stand up Flatsat bench; bring‑up OBC firmware (Embassy executor, no RTOS; BASELINE §6, 2026‑10‑25); AX.25 tooling for beacon.
 
 ## Month ‑8: PDR & Flatsat Integration
 - Hold PDR (budgets, risks, RF plan, regulatory path).
-- Integrate Stensat beacon on bench; validate 1200 bps AFSK AX.25 frames end‑to‑end.
+- Integrate the selected transceiver on the bench; validate 1200 bps AFSK AX.25 frames end‑to‑end and the authenticated uplink.
 - Power budget analysis with Sun‑sim; draft thermal concept (radiator strap, DVFS/declocking plan).
 
 ## Month ‑7: CDR & EM Orders

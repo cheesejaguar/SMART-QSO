@@ -12,6 +12,7 @@ on:
     branches: [main, develop, 'feature/**', 'release/**']
     paths:
       - 'software/flight/**'
+      - 'software/rust/**'
       - '.github/workflows/ci.yml'
   # Every PR, with no path filter: these jobs are required checks on main, and a
   # required check from a workflow that never starts would block the PR
@@ -20,11 +21,19 @@ on:
 
 env:
   BUILD_TYPE: Release
-  # Line coverage of software/flight/src must not fall below this. Every compiled
-  # source counts, including ones no test runs: measured 82.7 % in this job (the
-  # Release build with coverage, gcovr 7.0) on 2026-10-16. Raise it as tests land;
-  # never lower it to absorb a drop.
+  # Line coverage of the whole flight software (the C in software/flight/src and
+  # the Rust in software/rust) must not fall below this. Every compiled line
+  # counts, including lines no test runs. 80 % was the floor of the C alone
+  # (82.7 % on 2026-10-16); as modules moved to Rust the floor moved with them
+  # to C and Rust together. Raise it as tests land; never lower it to absorb a drop.
   COVERAGE_MIN_LINE: 80
+  # The Rust alone (C suites and Rust unit tests together, LLVM source-based
+  # coverage, the host simulation included): measured 90.8 % on 2026-10-24
+  RUST_COVERAGE_MIN_LINE: 90
+  # Branch and condition coverage of the Rust flight crates (80.6 % on 2026-10-25), on the
+  # pinned nightly below: stable rustc does not count branches
+  RUST_BRANCH_COVERAGE_MIN: 80
+  BRANCH_COVERAGE_TOOLCHAIN: nightly-2026-10-24
 
 jobs:
   ###########################################################################
@@ -49,6 +58,17 @@ jobs:
             gcovr \
             valgrind
 
+      - name: Rust toolchain (software/rust/rust-toolchain.toml)
+        working-directory: software/rust
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustc --version | grep -q '^rustc 1\.97\.0 ' || {
+            echo "::error::rustc is not the pinned 1.97.0 (software/rust/rust-toolchain.toml)"
+            exit 1
+          }
+
+      # ENABLE_COVERAGE instruments the C (gcov) and the Rust library (LLVM
+      # source-based coverage; cmake/rust.cmake)
       - name: Configure CMake
         working-directory: software/flight
         run: |
@@ -63,24 +83,87 @@ jobs:
 
       - name: Run unit tests
         working-directory: software/flight
+        env:
+          LLVM_PROFILE_FILE: ${{ github.workspace }}/software/flight/build/profraw/%p-%m.profraw
         run: ctest --test-dir build --output-on-failure --parallel $(nproc)
+
+      - name: Rust unit tests
+        working-directory: software/rust
+        run: cargo test --workspace --locked
+
+      # The Rust, from the C suites above and the Rust unit tests together
+      # (scripts/rust_coverage.sh; every line of the flight crates counts)
+      - name: Rust coverage gate
+        working-directory: software/flight
+        run: scripts/rust_coverage.sh build "$RUST_COVERAGE_MIN_LINE" rust-coverage
 
       # gcovr reads the .gcno files too, so a source no test runs counts as 0 %.
       # (lcov --capture skipped such files: four sources, about 930 lines, were
       # missing from the 84-85.5 % it reported.) Reproduce locally with
       # gcovr -r . --filter 'src/' build --print-summary
-      - name: Coverage gate
+      - name: Coverage gate (C and Rust together)
         working-directory: software/flight
         run: |
           gcovr --version | head -1
           gcovr -r . --filter 'src/' build --print-summary \
-            --txt coverage.txt --cobertura coverage.xml \
-            --fail-under-line "$COVERAGE_MIN_LINE" || {
-            cat coverage.txt
-            echo "::error::Line coverage is below ${COVERAGE_MIN_LINE}% (or gcovr failed)"
-            exit 1
-          }
+            --txt coverage.txt --cobertura coverage.xml --json-summary coverage.json
           cat coverage.txt
+          python3 - <<'PY'
+          import json, os, re
+          c = json.load(open("coverage.json"))
+          total = open("rust-coverage/report.txt").read().splitlines()
+          row = next(l for l in total if l.startswith("TOTAL")).split()
+          rust_lines, rust_missed = int(row[7]), int(row[8])
+          lines = c["line_total"] + rust_lines
+          covered = c["line_covered"] + rust_lines - rust_missed
+          pct = 100.0 * covered / lines
+          floor = float(os.environ["COVERAGE_MIN_LINE"])
+          print(f"C: {c['line_covered']}/{c['line_total']}, Rust: {rust_lines - rust_missed}/{rust_lines}, "
+                f"flight software: {pct:.1f} % (minimum {floor:.0f} %)")
+          if pct < floor:
+              print(f"::error::Line coverage {pct:.1f}% is below {floor:.0f}%")
+              raise SystemExit(1)
+          PY
+
+      # Branch and condition coverage (SOFTWARE_DEVELOPMENT_PLAN §3.2 to §3.3):
+      # the same suites in a second build with -Zcoverage-options=condition (each
+      # condition's outcomes counted as branches), on a pinned nightly. Only the
+      # measurement uses nightly; the flight image and the tests above use the
+      # pinned stable toolchain.
+      - name: Branch and safety-critical coverage gates (pinned nightly)
+        working-directory: software/flight
+        env:
+          RUSTUP_TOOLCHAIN: ${{ env.BRANCH_COVERAGE_TOOLCHAIN }}
+          RUST_COVERAGE_FLAGS: -Zcoverage-options=condition
+          LLVM_PROFILE_FILE: ${{ github.workspace }}/software/flight/build-branch/profraw/%p-%m.profraw
+        run: |
+          rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal -c llvm-tools
+          cmake -B build-branch -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DENABLE_COVERAGE=ON \
+            -DSQSO_RUST_COVERAGE_FLAGS="$RUST_COVERAGE_FLAGS"
+          cmake --build build-branch --parallel $(nproc)
+          ctest --test-dir build-branch --output-on-failure --parallel $(nproc)
+          RUST_COVERAGE_MIN_BRANCH="$RUST_BRANCH_COVERAGE_MIN" \
+            scripts/rust_coverage.sh build-branch "$RUST_COVERAGE_MIN_LINE" rust-branch-coverage
+          # The safety-critical components: every line and every condition
+          # outcome, file by file (SDP §3.2, CR-2026-003)
+          python3 scripts/safety_coverage.py rust-branch-coverage/lcov.info rust-branch-coverage/lcov-unit.info \
+            --report rust-branch-coverage/safety-critical.txt
+
+      - name: Minimum supported Rust version (rust-version in Cargo.toml)
+        working-directory: software/rust
+        run: |
+          msrv=$(sed -n 's/^rust-version = "\(.*\)"/\1/p' Cargo.toml)
+          rustup toolchain install "$msrv" --profile minimal
+          cargo "+$msrv" check --workspace --locked
+
+      - name: Upload Rust coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-coverage
+          path: |
+            software/flight/rust-coverage
+            software/flight/rust-branch-coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -104,7 +187,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake cppcheck clang-tidy
+          sudo apt-get install -y cmake cppcheck clang-tidy libcmocka-dev
 
       - name: Tool versions (pinned by the runner image)
         run: |
@@ -118,6 +201,42 @@ jobs:
             echo "::error::clang-tidy is not 18.x; update the pin and the quality baselines together"
             exit 1
           }
+
+      # The Rust flight software (software/rust): formatting, clippy with every
+      # warning an error (the workspace lints deny panicking indexing, unwrap,
+      # expect and panic!), for the host and the Cortex-M4F, and where unsafe
+      # code may appear. The toolchain is pinned by rust-toolchain.toml.
+      - name: Rust toolchain (software/rust/rust-toolchain.toml)
+        working-directory: software/rust
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustc --version | grep -q '^rustc 1\.97\.0 ' || {
+            echo "::error::rustc is not the pinned 1.97.0 (software/rust/rust-toolchain.toml)"
+            exit 1
+          }
+
+      - name: Rust format
+        working-directory: software/rust
+        run: |
+          cargo fmt --all --check
+          (cd fuzz && cargo fmt --check)
+
+      - name: Rust clippy (warnings are errors)
+        working-directory: software/rust
+        run: |
+          cargo clippy --workspace --all-targets --locked -- -D warnings
+          cargo clippy -p sqso-ffi --release --locked --target thumbv7em-none-eabihf -- -D warnings
+
+      - name: Unsafe code only in sqso-ffi
+        working-directory: software/rust
+        run: |
+          for crate in sqso-protocol sqso-fsw; do
+            grep -q '^#!\[forbid(unsafe_code)\]' "$crate/src/lib.rs" || {
+              echo "::error::$crate must keep #![forbid(unsafe_code)]"; exit 1; }
+          done
+          if grep -rn 'unsafe' sqso-py/src; then
+            echo "::error::sqso-py must not contain unsafe code"; exit 1
+          fi
 
       - name: Configure CMake (for compile_commands.json)
         working-directory: software/flight
@@ -137,20 +256,21 @@ jobs:
             -I include \
             src/
 
+      # The Rust: clippy::too_many_lines, denied at 60 lines (clippy.toml) in the
+      # clippy step above. The C that remains (src/, the flight-log shim):
       - name: Function length (JPL rule 4; no new long functions)
         working-directory: software/flight
         run: |
-          python3 scripts/function_length.py src/*.c src/hal/*.c
-          ./scripts/ratchet.sh function-length "$(python3 scripts/function_length.py --count src/*.c src/hal/*.c)"
+          python3 scripts/function_length.py src/*.c
+          ./scripts/ratchet.sh function-length "$(python3 scripts/function_length.py --count src/*.c)"
 
       - name: Run clang-tidy (no new findings)
         working-directory: software/flight
         run: |
-          # The sources the host flight build compiles; test-only targets are left out,
-          # so the count does not depend on cmocka being installed. hal_stm32l4.c is
-          # compiled by the STM32L4 cross-compile.
+          # The C left in software/flight/src (the flight-log shim; the flight
+          # software is Rust). It is compiled as part of the test library.
           files=()
-          while IFS= read -r f; do files+=("$f"); done < <(python3 -c 'import json; print("\n".join(sorted({e["file"] for e in json.load(open("build/compile_commands.json")) if "/software/flight/src/" in e["file"] and not e["directory"].endswith("/tests")})))')
+          while IFS= read -r f; do files+=("$f"); done < <(python3 -c 'import json; print("\n".join(sorted({e["file"] for e in json.load(open("build/compile_commands.json")) if "/software/flight/src/" in e["file"]})))')
           echo "clang-tidy: ${#files[@]} source files"
           [ "${#files[@]}" -gt 0 ] || { echo "::error::no sources in build/compile_commands.json"; exit 1; }
           # A tool failure (including a compile error) fails the gate instead of counting as zero findings.
@@ -238,22 +358,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # The flight software (Rust) and the C that remains (the test suites and
+      # the flight-log shim). Rust is analysed from source (build mode none),
+      # and C/C++ the same way, so no build step is needed.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: c-cpp
-
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y cmake
-
-      - name: Build for analysis
-        working-directory: software/flight
-        run: |
-          cmake -B build
-          cmake --build build
+          languages: c-cpp, rust
+          build-mode: none
+          config-file: ./.github/codeql/codeql-config.yml
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+
+      # Known vulnerabilities in the Rust dependencies (RustSec advisory database)
+      - name: cargo audit
+        working-directory: software/rust
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+          (cd firmware && cargo audit)
 
   ###########################################################################
   # Documentation Generation Job
