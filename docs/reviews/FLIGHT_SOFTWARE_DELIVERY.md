@@ -131,7 +131,7 @@ Every figure below comes from a CI configuration or a file in the repository, or
 
 | Item | Value | Evidence |
 |------|-------|----------|
-| Unit tests | **45 CMocka suites, 695 test cases**, plus `no_dynamic_memory`, the `Simulation_Run` host simulation the two `Executive_Jetson` runs of the main loop against a simulated Jetson and the two `Downlink_TNC` runs of the downlink end to end: 49 ctest entries, run unchanged against the Rust. In addition, 356 Rust unit tests | `software/flight/tests/CMakeLists.txt`; `software/flight/tests/README.md` |
+| Unit tests | **45 CMocka suites, 695 test cases**, plus `no_dynamic_memory`, the `Simulation_Run` host simulation the two `Executive_Jetson` runs of the main loop against a simulated Jetson and the two `Downlink_TNC` runs of the downlink end to end: 49 ctest entries, run unchanged against the Rust. In addition, 358 Rust unit tests | `software/flight/tests/CMakeLists.txt`; `software/flight/tests/README.md` |
 | Line coverage | Rust flight crates **94.8 %** (CI fails below 90 %); C and Rust together **94.8 %** (CI fails below 80 %). Branch and condition coverage **81.1 %** (CI fails below 80 %); the safety-critical files 100 % of lines and conditions, gated per file (CR-2026-003, in place of MC/DC) | `.github/workflows/ci.yml`, job "Build and Test" |
 | Static analysis | clippy with warnings as errors (host and Cortex-M4F); clang-tidy **0**, MISRA addon **42**, functions over 60 lines **0** in the remaining C; CodeQL (Rust, C/C++); `cargo audit` (RUSTSEC-2026-0385 fixed by ctutils 0.4.5) | `software/flight/quality/`; jobs "Static Analysis", "MISRA C:2012 Check", "Security Scan" |
 | Fuzzing | 12 targets, 30 s each per CI run | Job "Sanitizer Checks" |

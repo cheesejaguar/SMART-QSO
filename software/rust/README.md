@@ -256,7 +256,7 @@ Measured 2026-10-24.
   (`test_executive_jetson`, which runs the host simulation with a pseudo-terminal as the Jetson port, and
   `test_downlink_sim`, which decodes the simulation's beacons as the TNC gets them, are two entries each), the `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
   unchanged against the Rust on the host and under AddressSanitizer and UBSan.
-- **Coverage.** Rust line coverage is 94.8 %, from the C suites plus the 356 Rust unit tests (gate 90 %). Flight-software
+- **Coverage.** Rust line coverage is 94.8 %, from the C suites plus the 358 Rust unit tests (gate 90 %). Flight-software
   line coverage, C and Rust together, is 94.8 % (gate 80 %). Branch and condition coverage is 81.1 % (gate 80 %). The
   23 safety-critical files (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) are at 100 % of lines and conditions,
   gated file by file, with 12 reviewed `// COVERAGE-EXEMPT:` lines (CR-2026-003, in place of MC/DC).

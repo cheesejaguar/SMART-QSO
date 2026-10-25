@@ -77,7 +77,7 @@ the current source, and `software/rust/README.md` maps every former C file to it
 The table above is the 0.2.0 skeleton (history; `test_main.c` was removed on 2026-10-16). On 2026-10-25 there are 45
 CMocka suites with 695 cases, and 49 ctest entries with `no_dynamic_memory`, `Simulation_Run`, the two `Executive_Jetson`
 runs and the two `Downlink_TNC` runs, in `software/flight/tests`. They run
-against the Rust. There are also 356 Rust unit tests (`sqso-protocol` 79, `sqso-fsw` 261, `sqso-ffi` 16) and 12 fuzz targets.
+against the Rust. There are also 358 Rust unit tests (`sqso-protocol` 79, `sqso-fsw` 263, `sqso-ffi` 16) and 12 fuzz targets.
 
 ### 3.3 Configuration Files
 

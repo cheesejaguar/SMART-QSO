@@ -220,7 +220,7 @@ As implemented (2026-10-24), for the Rust flight software: the coding standard i
 §11 (MISRA C applies only to the remaining C shim). The JPL rules are mapped to the Rust in
 `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1. Static analysis is clippy with warnings as errors, the
 `#![forbid(unsafe_code)]` check, CodeQL and `cargo audit`, plus cppcheck and clang-tidy on the remaining C. Every parser
-is fuzzed in CI. The CMocka suites run unchanged against the Rust, together with 356 Rust unit tests. Safety-relevant
+is fuzzed in CI. The CMocka suites run unchanged against the Rust, together with 358 Rust unit tests. Safety-relevant
 modules fail safe when re-entered: TX-OFF still drives the transmitter enable low, the RF silence reads as active, and
 the payload guard trips (`software/rust/README.md`, behaviour change 10).
 | Configuration management | Git, tagged releases |
