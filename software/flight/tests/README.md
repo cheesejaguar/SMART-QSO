@@ -5,8 +5,9 @@ The CMocka suites in this directory are the specification of the flight software
 in `software/flight/include`, which are the C ABI of the Rust modules. They run on the host, on the simulated HAL
 (`software/rust/sqso-ffi/src/hal_sim.rs`). They use the [CMocka](https://cmocka.org) framework.
 
-There are 44 ctest entries: 42 CMocka suites with 631 `cmocka_unit_test` cases, the `no_dynamic_memory` check, and
-`Simulation_Run`, the host simulation, which must reach a clean shutdown (2026-10-24).
+There are 46 ctest entries: 43 CMocka suites with 646 `cmocka_unit_test` cases (one of them,
+`integration/test_executive_jetson.c`, runs as two entries, `Executive_Jetson_link` and `Executive_Jetson_guard`), the
+`no_dynamic_memory` check, and `Simulation_Run`, the host simulation, which must reach a clean shutdown (2026-10-25).
 
 ## Running them
 
@@ -45,6 +46,25 @@ The Rust also has its own unit tests (`cd software/rust && cargo test --workspac
   and every constant it keeps, with the C headers (`rust_contract.h`). A header change that the Rust does not follow
   fails them.
 - `integration/` and `regression/` hold cross-module suites.
+- `integration/test_executive_jetson.c` tests the main loop (`software/rust/sqso-ffi/src/executive.rs`) end to end. It
+  runs the host simulation `smart_qso_flight` (about 20 s) with a pseudo-terminal as the Jetson port (`UART_DEVICE`) and
+  a second one as the console, plays the Jetson, and checks what the OBC sends and prints against
+  `docs/interfaces/ICD_OBC_JETSON.md` §4. It links no flight code: it checks the CRC with its own CRC-16. Two entries:
+  - `Executive_Jetson_link` (the flight `sensors.yaml`): every line sealed with a correct CRC and within 512 bytes;
+    each TELEMETRY line has the ICD's fixed fields, the sensor fields in table order and the EPS, fault, UART and
+    watchdog fields, and is followed by `BEACON_REQ,<seq>,176` with the sequence counting up from 1. Telemetry comes
+    every `TELEMETRY_INTERVAL_MS` (1 s here) while the payload is on, none while the power model has it off, and the
+    first one in the pass that turns the payload back on. The Jetson's STATUS reply is taken; of its BEACON_RSP
+    answers only those to the latest request with a good CRC are kept.
+  - `Executive_Jetson_guard` (a generated sensor table too long for the line): the status fields do not fit and the
+    comma after the last sensor field is trimmed. A STATUS with the junction at 99 °C trips the payload guard and no
+    telemetry follows. The driver then closes its end of the line (a hang-up) away from the periodic UART health
+    check, which must notice it in the first pass of its next window (wall clock within 100 ms of a multiple of 10 s).
+
+  The beacon is not checked: each simulated boot starts the 45-minute RF silence and the beacon interval is 60 s. The
+  driver sets VMIN 0 and VTIME 0 on the Jetson line first, because the OBC's host port keeps the terminal's VMIN 1 and
+  its poll of the line would otherwise block until the Jetson sends a byte. Each run writes its transcript
+  (`executive_jetson_link.log`, `executive_jetson_guard.log`) to `build/tests`.
 - `vectors/` holds data shared with other code. `beacon_filter_vectors.txt` is run by both the OBC filter tests here and
   the Jetson filter tests in `software/payload/tests`.
 - `no_dynamic_memory` is a ctest check, not a CMocka suite. It fails if the test library or the Rust library references

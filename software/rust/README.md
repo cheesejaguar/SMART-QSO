@@ -243,8 +243,9 @@ The full standard is the Rust section of `docs/development/CODING_STANDARDS.md`.
 
 Measured 2026-10-24.
 
-- **The C suites as the specification.** 44 ctest entries: 42 CMocka suites with 631 `cmocka_unit_test` cases, the
-  `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
+- **The C suites as the specification.** 46 ctest entries: 43 CMocka suites with 646 `cmocka_unit_test` cases
+  (`test_executive_jetson`, which runs the host simulation with a pseudo-terminal as the Jetson port, is two of the
+  entries), the `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
   unchanged against the Rust on the host and under AddressSanitizer and UBSan.
 - **Coverage.** Rust line coverage is 92.2 %, from the C suites plus the 299 Rust unit tests (gate 90 %). Flight-software
   line coverage, C and Rust together, is 92.2 % (gate 80 %).
