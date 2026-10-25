@@ -5,7 +5,7 @@ Assumes heritage deployer, standard rideshare reviews, and tailored protoflight 
 ## Month ‑9: Kickoff & Long‑Leads
 - Freeze v0.3 architecture and ICD skeleton; start parts list and procurement (solar panels, EPS, battery, Stensat beacon, Jetson Orin Nano Super, OBC, structure).
 - Begin IARU pre‑coordination (draft RF plan, emission, duty cycle) per `docs/REGULATORY.md`.
-- Stand up Flatsat bench; bring‑up OBC RTOS skeleton; AX.25 tooling for beacon.
+- Stand up Flatsat bench; bring‑up OBC firmware (Embassy executor, no RTOS; BASELINE §6, 2026‑10‑25); AX.25 tooling for beacon.
 
 ## Month ‑8: PDR & Flatsat Integration
 - Hold PDR (budgets, risks, RF plan, regulatory path).

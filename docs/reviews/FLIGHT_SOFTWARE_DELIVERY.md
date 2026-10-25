@@ -19,7 +19,7 @@
 
 This document will be the flight software delivery package for the SMART-QSO mission (NPR 7150.2 version description
 and delivery record). Until a release is made, it records the current state of the flight software and what a delivery
-must contain. Software classification under NPR 7150.2D is pending (BASELINE §1).
+must contain. The flight software is NPR 7150.2D Class C (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1, 2026-10-25).
 
 ## 2. Software Version Description
 
@@ -54,7 +54,7 @@ must contain. Software classification under NPR 7150.2D is pending (BASELINE §1
 | Unit-test framework | CMocka (`libcmocka-dev` in CI) |
 | Static analysis | cppcheck 2.13.x and clang-tidy 18.x, pinned by the CI version checks |
 | Coverage | gcovr (Ubuntu 24.04 package; 7.0 when the figure below was recorded) |
-| RTOS | **None.** The image runs on the Embassy executor (embassy-executor 0.10) with one task. FreeRTOS was never integrated and is not planned (`software/flight/docs/RTOS_ARCHITECTURE.md`) |
+| RTOS | **None.** The image runs on the Embassy executor (embassy-executor 0.10) with one task. FreeRTOS was never integrated; no RTOS is the baseline since 2026-10-25 (BASELINE §6, CR-2026-002; `software/flight/docs/RTOS_ARCHITECTURE.md`) |
 | Vendor HAL / CMSIS | **None.** embassy-stm32 0.6 (with its generated register access); the flight HAL is `software/rust/firmware/src` |
 | Payload | Python ≥ 3.9 |
 
@@ -272,3 +272,4 @@ Not designed. There is no bootloader or software-update mechanism yet; requireme
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Funding audit SW-18: status sections rewritten from repository facts (no tag, no linked image, 31 suites / 428 cases, 68.2 % line coverage, static-analysis baselines, KI-001 to KI-005); invented memory map, FreeRTOS/CMSIS versions and upload procedure removed |
 | 1.2 | 2026-10-24 | SMART-QSO Team | All flight software Rust: host and target builds, build environment (Rust toolchain, Embassy, no RTOS), §4.3 figures of 2026-10-24, build instructions for the firmware, limitations updated. The 2026-10-16 figures kept in §4.2. Still no release |
+| 1.2, note | 2026-10-25 | SMART-QSO Team | §1: software classification NPR 7150.2D Class C (SDP §3.1); §2 RTOS row: no RTOS is the baseline (BASELINE §6, CR-2026-002) |

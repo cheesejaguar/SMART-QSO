@@ -159,12 +159,11 @@ cd ../rust/firmware && cargo build --release
 | RTOS_ARCHITECTURE.md | Run-time architecture (Embassy executor; no RTOS) |
 | TIMING_ANALYSIS.md | Timing (no measurements yet) |
 
-## Safety Classification
+## Software Classification
 
-This software is classified as **Class C** per NPR 7150.2:
-- Mission-critical but not life-critical
-- Loss would significantly impact mission success
-- Requires formal verification and validation
+This software is **Class C** per NPR 7150.2D Appendix D: CubeSat flight software on a proposed Class D payload. The
+determination and its rationale are in `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1 (2026-10-25). Whether the
+software is safety-critical is a separate determination under NASA-STD-8739.8, still open (SDP §3.2).
 
 ## Contact
 
@@ -181,3 +180,4 @@ https://github.com/smart-qso
 |---------|------|---------|
 | 1.0 | — | Initial version |
 | 1.1 | 2026-10-24 | The flight software is Rust: the API is the C ABI of the Rust modules; architecture and module list as built (non-existent modules removed); Rust coding standard; firmware build |
+| 1.1, note | 2026-10-25 | Software classification: NPR 7150.2D Class C with a pointer to the SDP §3.1 rationale; safety criticality open |

@@ -2,7 +2,8 @@
 
 > **Note (2026-10-24):** a historical PDR-phase description, not updated. The OBC is the STM32L4R5ZI
 > (`docs/BASELINE_PARAMETERS.md` §6), and the flight software is Rust on the Embassy executor, with no FreeRTOS
-> (`software/rust/README.md`).
+> (`software/rust/README.md`). Since 2026-10-25 the Embassy executor with no RTOS is the baseline (BASELINE §6,
+> CR-2026-002); the FreeRTOS lines below are annotated.
 
 **Mission Phase:** Pre‑Phase B / Phase B — Preliminary Design Review (PDR)
 
@@ -69,7 +70,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 - **Power Mgmt:** MPPT + load‑shedding; AI and RF on separate power domains with supervised latching; inrush limiters for Jetson bursts.
 
 ### 4.3 Command & Data Handling (C&DH)
-- **Low‑power OBC:** Ambiq Apollo4 (or STM32L4) running FreeRTOS; always‑on autonomy; <1 mA sleep; watchdog and brown‑out.
+- **Low‑power OBC:** Ambiq Apollo4 (or STM32L4) running FreeRTOS; always‑on autonomy; <1 mA sleep; watchdog and brown‑out. *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
 - **AI payload:** **Jetson Orin Nano Super** on isolated 5 V/12 V rails; UART/USB link to OBC; power‑gated by EPS; DVFS profiles managed by OBC.
 - **Mass memory:** FRAM for state/params (≥4 MB); microSD/NAND for logs (≥128 MB).
 
@@ -119,7 +120,7 @@ SMART‑QSO is a 1U CubeSat that experiments with **agentic AI** to manage an am
 - **No uplink updates:** no over‑the‑air model updates; models are fixed at launch with on‑orbit micro‑tuning only. All beacon content remains plain‑text and logged publicly.
 
 ### 5.4 Software Stack
-- **RTOS:** FreeRTOS (OBC), baremetal control loops for power critical paths.
+- **RTOS:** FreeRTOS (OBC), baremetal control loops for power critical paths. *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
 - **ML runtimes:** TFLM on MCU; TensorRT/ONNX Runtime INT8 on Jetson for supported ops; custom lightweight kernels as needed.
 - **Languages:** C/C++ for flight; Python only for ground tools.
 

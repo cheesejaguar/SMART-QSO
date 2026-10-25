@@ -16,8 +16,8 @@ This Software Safety Plan establishes the software safety program for the SMART-
 ## 2. Scope
 
 This plan applies to all software components of the SMART-QSO mission:
-- OBC Flight Software (Rust on the Embassy executor since 2026-10-24; Revision B said C and FreeRTOS. FreeRTOS was never
-  integrated. See `software/rust/README.md`)
+- OBC Flight Software (Rust on the Embassy executor, no RTOS: the baseline since 2026-10-25, BASELINE §6, CR-2026-002.
+  Revision B said C and FreeRTOS; FreeRTOS was never integrated. See `software/rust/README.md`)
 - AI Payload Software (Python, Jetson)
 - Ground Support Software
 - Test and Simulation Software
@@ -73,6 +73,10 @@ Per NPR 7150.2 and NASA-STD-8719.13:
 | C | Major mission degradation | ADCS, Beacon generation |
 | D | Minor mission degradation | AI payload, Telemetry |
 | E | No safety impact | Ground software, Simulation |
+
+Note (2026-10-25). The letters A to E in §5.1, §5.2 and §8.2 are this plan's criticality scale. They are not NPR 7150.2D
+software classes: the flight software is Class C (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). Whether the
+software is safety-critical under NASA-STD-8739.8 is still to be determined (SDP §3.2).
 
 ### 5.2 SMART-QSO Software Criticality
 
@@ -277,6 +281,7 @@ All personnel working on safety-critical software shall complete:
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §3.2 cites the numbers the documents carry: the Software Development Plan is SMART-QSO-SDP-001 (SQSO-SDP-001 is the Safety Data Package); SEMP and SRS likewise (finding PI-17) | SMART-QSO Team |
 | C | 2026-10-24 | The OBC flight software is Rust: §2 scope; §8.2 coverage status (line coverage gated, branch not measured); §9.2 process controls as implemented for the Rust | SMART-QSO Team |
+| C, note | 2026-10-25 | §2 scope: no RTOS is the baseline (CR-2026-002). §5: the criticality letters are not NPR 7150.2D classes (software Class C, SDP §3.1) | SMART-QSO Team |
 
 ---
 

@@ -7,7 +7,7 @@
 > `docs/funding_audit/FINDINGS_REGISTER.md` for the measured values.
 
 **Document ID**: SQSO-REV-004
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -289,6 +289,9 @@ CHANGES FROM PREVIOUS VERSION:
 - Initial release
 ```
 
+*(superseded 2026-10-25: no FreeRTOS or CMSIS. The flight software is Rust on the Embassy executor, no RTOS
+(BASELINE §6, CR-2026-002); the current version description is `docs/software/SOFTWARE_VERSION_DESCRIPTION.md`)*
+
 ### 9.3 Rollback Procedure
 
 ```
@@ -350,3 +353,4 @@ FLIGHT SOFTWARE ROLLBACK PROCEDURE
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Document ID changed from SQSO-VVP-001, which is the V&V Plan (`docs/verification/VERIFICATION_VALIDATION_PLAN.md`), to SQSO-REV-004 (finding PI-17). No content change |
+| 1.2 | 2026-10-25 | SMART-QSO Team | §9.2: dated note that the FreeRTOS and CMSIS dependencies are superseded (Embassy executor, no RTOS; CR-2026-002) |

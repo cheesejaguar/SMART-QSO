@@ -2,6 +2,9 @@
 
 > **Note (2026-10-24):** a dated log, not rewritten. Since 2026-10-24 all flight software is Rust; the C files named
 > below were replaced (porting table in `software/rust/README.md`), except `software/flight/src/flight_log_fmt.c`.
+> **Note (2026-10-25):** the FreeRTOS items below are superseded: the baseline is the Embassy executor with no RTOS
+> (`docs/BASELINE_PARAMETERS.md` §6, CR-2026-002). The software class is NPR 7150.2D Class C
+> (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). Ticks are unchanged.
 
 ## NASA Flight Software Code Quality Audit Report
 **Repository**: SMART-QSO
@@ -23,7 +26,7 @@ Each section contains actionable checklist items with detailed implementation in
 in all (list items that begin with `[x]` or `[ ]`, outside code blocks; top level means not indented). A tick is a
 mark in this agent task list, not evidence that the work is complete or verified, and ticks with no artifact have
 been removed (findings PI-09, SW-19). The earlier headline, "97.8 % complete (265/271 tasks)", counted ticks.
-**Target State**: Flight-qualified software per NASA Class C/D requirements (appropriate for CubeSat missions)
+**Target State**: Flight-qualified software per NASA Class C/D requirements (appropriate for CubeSat missions) *(superseded 2026-10-25: NPR 7150.2D Class C; `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1)*
 **Lifecycle Phase**: Phase B (pre-PDR); no independent PDR or CDR has been held (`docs/BASELINE_PARAMETERS.md` §1)
 **Process Heritage**: NASA Ames Small Satellite Division (GeneSat, PharmaSat, O/OREOS, EcAMSat)
 
@@ -499,7 +502,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
 #### 6.1.2 Software Development Plan (SDP)
 - [x] **Create SDP**: Create `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` (per NPR 7150.2 §3.1):
   - [x] Development lifecycle model (tailored per NPR 7123.1)
-  - [x] Software classification (Class C/D per NPR 7150.2)
+  - [x] Software classification (Class C/D per NPR 7150.2) *(superseded 2026-10-25: NPR 7150.2D Class C; `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1)*
   - [x] Coding standards reference (JPL/MISRA)
   - [x] Review procedures and entry/exit criteria
   - [x] Testing approach and coverage requirements
@@ -747,7 +750,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
 - [x] **Create build configuration matrix**: Document in `docs/software/BUILD_CONFIGURATIONS.md`:
   - [x] Development build (Linux simulation)
   - [x] Test build (with coverage/instrumentation)
-  - [x] Flight build (FreeRTOS, hardware HAL)
+  - [x] Flight build (FreeRTOS, hardware HAL) *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
 
 ---
 
@@ -952,7 +955,7 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   - [x] Wrap current Linux-specific code
   - [x] Use for development/simulation
 
-- [ ] **Create FreeRTOS HAL stubs**: software/flight/src/hal/hal_freertos.c (audit 2026-10-14: file not present in repository; see docs/funding_audit/FINDINGS_REGISTER.md)
+- [ ] **Create FreeRTOS HAL stubs**: software/flight/src/hal/hal_freertos.c (audit 2026-10-14: file not present in repository; see docs/funding_audit/FINDINGS_REGISTER.md) *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
   - [ ] Interface stubs for flight implementation
   - [ ] Document implementation requirements
 
@@ -972,6 +975,9 @@ All documentation shall comply with NPR 7120.5 (Program/Project Management) and 
   ```
 
 ### 11.3 FreeRTOS Integration Preparation
+
+*(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
+
 - [ ] **Create RTOS abstraction**: Create software/flight/include/rtos_abstraction.h (audit 2026-10-14: file not present in repository; see docs/funding_audit/FINDINGS_REGISTER.md):
   - [ ] Task creation/deletion wrappers
   - [ ] Mutex/semaphore wrappers
@@ -2367,7 +2373,7 @@ Following protoflight approach per GSFC-STD-7000 (GEVS).
 ### Phase 5: Hardware Abstraction (Priority: Medium) ✅ COMPLETE
 - [x] Create HAL layer (Section 11.1) - 9 HAL interfaces (GPIO, UART, SPI, I2C, etc.)
 - [x] Abstract platform dependencies (Section 11.2) - hal_sim.c for Linux simulation
-- [x] Prepare FreeRTOS integration (Section 11.3) - RTOS_ARCHITECTURE.md complete
+- [x] Prepare FreeRTOS integration (Section 11.3) - RTOS_ARCHITECTURE.md complete *(superseded 2026-10-25: Embassy executor, no RTOS; BASELINE §6, CR-2026-002)*
 
 ### Phase 6: Final Verification (Priority: High) ✅ COMPLETE
 - [x] Complete software hazard analysis (Section 12.1) - SOFTWARE_HAZARD_ANALYSIS.md

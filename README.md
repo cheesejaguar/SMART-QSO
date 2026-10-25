@@ -109,7 +109,7 @@ SMART-QSO/
 
 ## Flight Software Architecture
 
-The flight software applies tailored NASA practices (formal software classification per NPR 7150.2D is pending), with design ideas drawn from public NASA Ames SmallSat missions (GeneSat, PharmaSat, O/OREOS, EcAMSat). **Current state (2026-10-24):** all flight software is Rust (`software/rust/README.md`, with a porting table from every former C file). It runs as a host simulation and as the STM32L4R5ZI firmware on the Embassy executor (no RTOS), which CI builds and checks but no hardware has run. The only C left in the flight code is the flight log's printf shim. The C headers are the ABI of the Rust modules, and the C test suites run unchanged against it.
+The flight software applies tailored NASA practices (NPR 7150.2D Class C, [SDP](docs/software/SOFTWARE_DEVELOPMENT_PLAN.md) §3.1), with design ideas drawn from public NASA Ames SmallSat missions (GeneSat, PharmaSat, O/OREOS, EcAMSat). **Current state (2026-10-24):** all flight software is Rust (`software/rust/README.md`, with a porting table from every former C file). It runs as a host simulation and as the STM32L4R5ZI firmware on the Embassy executor (no RTOS; the baseline since 2026-10-25, BASELINE §6), which CI builds and checks but no hardware has run. The only C left in the flight code is the flight log's printf shim. The C headers are the ABI of the Rust modules, and the C test suites run unchanged against it.
 
 - **Executive**: one main loop of stages, every 20 ms, each stage supervised by the watchdog ([run-time architecture](software/flight/docs/RTOS_ARCHITECTURE.md))
 - **State Machine**: BOOT, SAFE, DETUMBLE, IDLE, ACTIVE and EMERGENCY modes (one guarded mode manager)
@@ -170,7 +170,7 @@ exist. Status per [docs/funding_audit/NASA_STANDARDS_COMPLIANCE_MATRIX.md](docs/
 
 | Standard | Description | Status |
 |----------|-------------|--------|
-| NPR 7150.2D | NASA Software Engineering Requirements | Gap: classification and tailored compliance matrix needed |
+| NPR 7150.2D | NASA Software Engineering Requirements | Partial: classified Class C (2026-10-25); the Appendix C compliance matrix for Class C is still needed |
 | NPR 7123.1D | Systems Engineering Processes and Requirements | Partial |
 | NASA-STD-8739.8B | Software Assurance and Software Safety (replaced the cancelled NASA-STD-8719.13) | Gap |
 | NASA-STD-8719.14C | Process for Limiting Orbital Debris | Tailored plan (ODAR drafted; DAS run pending) |

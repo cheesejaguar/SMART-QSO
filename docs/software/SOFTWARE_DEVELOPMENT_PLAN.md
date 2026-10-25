@@ -1,14 +1,14 @@
 # Software Development Plan (SDP)
 
 **Document Number**: SMART-QSO-SDP-001
-**Version**: 1.1
-**Date**: 2026-10-24
+**Version**: 1.2
+**Date**: 2026-10-25
 **Status**: Draft
 
 **Governing Standards**:
 - NPR 7120.5 Rev F - NASA Space Flight Program and Project Management Requirements
 - NPR 7123.1 Rev E - NASA Systems Engineering Processes and Requirements
-- NPR 7150.2 Rev B - NASA Software Engineering Requirements
+- NPR 7150.2D - NASA Software Engineering Requirements (Version 1.1 said Rev B)
 
 **Process Heritage**: NASA Ames Research Center Small Satellite Division (GeneSat, PharmaSat, O/OREOS, EcAMSat)
 
@@ -70,10 +70,12 @@ SMART-QSO is a 1U CubeSat experimenting with onboard agentic AI to manage an ama
 
 | Component | Language | Target | Classification |
 |-----------|----------|--------|----------------|
-| OBC Flight Software | Rust (one C11 file, the flight-log shim) | STM32L4R5ZI | Class D |
-| Jetson Payload SW | Python | Jetson Orin Nano | Class D |
-| Ground Software | Python | Linux/Windows | Class E |
-| Simulation | Python (`software/simulation`); the flight software's host simulation is Rust (`software/rust/sqso-sim`) | Linux | Class E |
+| OBC Flight Software | Rust (one C11 file, the flight-log shim) | STM32L4R5ZI | Class C |
+| Jetson Payload SW | Python | Jetson Orin Nano | Class C |
+| Ground Software, flight operations (telecommand, keys, beacon decoding, telemetry display, pass prediction) | Python | Linux/Windows | Class C |
+| Ground Software, research and outreach (`software/ground/tools/fl_update_builder.py`) | Python | Linux/Windows | Class D |
+| Simulation and test: the flight software's host simulation (`software/rust/sqso-sim`) and test suites | Rust, C | Linux | Class C |
+| Simulation: analysis notebooks and the orbital-lifetime cross-check (`software/simulation`) | Python | Linux | Class D |
 
 Version 1.1 (2026-10-24): the OBC flight software was ported from C to Rust (`software/rust/README.md`). The Jetson
 payload and ground tools use the same wire-format code through the Python module `sqso_protocol`
@@ -83,23 +85,60 @@ payload and ground tools use the same wire-format code through the Python module
 
 ## 3. Software Classification
 
-### 3.1 Classification per NPR 7150.2
+### 3.1 Classification per NPR 7150.2D
 
-Per NPR 7150.2 Table 1-1, SMART-QSO software is classified as:
+Determined 2026-10-25 against NPR 7150.2D Appendix D. SWE-020 asks for each system and subsystem containing software
+to be classified at the highest class that applies. This replaces the "Class D" of Version 1.1, and the B, C/D and D
+stated in other documents (findings PI-18 and VV-12 in `docs/funding_audit/FINDINGS_REGISTER.md`). SMART-QSO is not a
+NASA project and applies NPR 7150.2D as a tailored reference, so this is the project's own determination; no NASA
+technical authority has reviewed it.
 
-**Class D** - Non-safety-critical, recoverable consequences of software failure
+| Software | Class | Basis |
+|----------|-------|-------|
+| OBC flight software: `software/rust` and, in `software/flight`, the C headers, the flight-log shim and the build | **C** | CubeSat flight software on a proposed Class D payload (below) |
+| Jetson payload flight software (`software/payload`) | **C** | As for the OBC |
+| Ground software used in flight operations: telecommand builder, key provisioning, command dictionary (`software/ground/tools`); beacon decoding and telemetry display (`software/ground`) when used in operations; pass prediction for planning contacts | **C** | Software for space flight operations not covered by Class A or B |
+| Software that tests or verifies the flight software: the C test suites, the Rust tests, the host simulation `sqso-sim`, the CI analysis scripts in `scripts/` | **C** | Treated as the software it verifies (project choice; to confirm in the Appendix C mapping) |
+| Research and analysis only: `software/ground/tools/fl_update_builder.py` (ground-side research; community model updates are not in the flight baseline), the notebooks in `software/simulation`, the orbital-lifetime cross-check (NASA DAS is the tool of record), displays for public outreach | **D** | Secondary data analysis and research; no use in flight or in operations |
 
-Rationale:
-- CubeSat mission with acceptable risk tolerance
-- No crewed operations
-- Fail-graceful design with fallback to conventional transponder
-- Limited science objectives (technology demonstration)
+Rationale, from the Appendix D definitions:
+- SMART-QSO is a proposed Class D payload under NPR 8705.4B (`docs/BASELINE_PARAMETERS.md` §1). Appendix D lists in
+  Class C "CubeSat mission software; SmallSat mission software" and "all software on NASA Class D payloads, as defined
+  in NPR 8705.4".
+- Class B explicitly excludes software for NASA Class D payloads, so Class B does not apply.
+- Class D explicitly excludes flight software, so the OBC and Jetson software cannot be Class D, as Version 1.1 had it.
+- Ground software used to operate the spacecraft (build and authenticate telecommands, load keys, decode beacons during
+  passes) falls under Class C as "software for space flight operations not covered by Class A or B".
+- Tools used only for secondary analysis or research do none of these things, so they are Class D.
+- The fail-graceful design, the absence of crew and the small budget do not change the class. They are reasons for
+  tailoring, which the Appendix C mapping records.
 
-### 3.2 Safety Classification per NASA-STD-8719.13
+The mission's risk class is unchanged: a proposed Class D payload (NPR 8705.4B). The software class does not decide
+whether software is safety-critical (§3.2).
+
+Still to do: the NPR 7150.2D Appendix C requirements mapping and compliance matrix for Class C, which states for each
+applicable SWE requirement how it is met or tailored, and why. Until then, §3.3 is the interim tailoring table; its
+rationale cells still cite Class D and will be replaced by that mapping.
+
+### 3.2 Safety Criticality (NASA-STD-8739.8)
 
 The software is classified as:
 - **Not safety-critical** - No software-controlled functions can cause personnel hazards
 - **Mission-critical** - Software failures can affect mission success but are recoverable
+
+Note (2026-10-25). Safety criticality is a separate determination from the class, made by the criteria of
+NASA-STD-8739.8. Version 1.1 cited NASA-STD-8719.13, which was cancelled in 2020. The statement above has not been
+checked against the NASA-STD-8739.8 criteria, and other project documents disagree with it:
+- The Software Hazard Analysis (SQSO-SHA-001 §5) lists software causes and controls for hazards of Critical (2)
+  severity: EPS control (SW-HAZ-001), watchdog (SW-HAZ-004), deployment timer (SW-HAZ-007) and safe-mode entry
+  (SW-HAZ-008).
+- The Software Safety Data Package (SQSO-SDP-001 §3) says the software has safety-critical functions: watchdog, battery
+  protection, RF transmit enable, thermal protection and safe-mode logic.
+- The Software Safety Plan (SQSO-SSP-001 §5.2) rates EPS control, fault management and the watchdog its highest
+  applicable criticality.
+
+The determination is open and goes to the PI with the safety lead. This note records the disagreement; it does not
+resolve it.
 
 ### 3.3 Tailoring Rationale
 
@@ -415,7 +454,7 @@ See `docs/verification/VERIFICATION_MATRIX.md` for complete VCRM.
 | Coding standards | All developers |
 | Tool usage | All developers |
 | Safety-critical design | OBC developers |
-| RTOS concepts | OBC developers |
+| Embassy executor and async Rust on the OBC (no RTOS) | OBC developers |
 
 ---
 
@@ -451,3 +490,4 @@ See `docs/verification/VERIFICATION_MATRIX.md` for complete VCRM.
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The OBC flight software is Rust on the STM32L4R5ZI with the Embassy executor (no FreeRTOS): §2.2, §2.3, §5 (platforms, tools, targets) and §6 (Rust standard; JPL enforcement as implemented). §3.3 notes: line coverage is gated, branch coverage is not; the toolchain is not qualified |
+| 1.2 | 2026-10-25 | SMART-QSO Team | §3.1 software classification determined against NPR 7150.2D Appendix D: Class C for flight software, ground software used in operations and verification software, Class D for research and analysis tools (findings PI-18, VV-12); §2.3 table to match; §3.2 cites NASA-STD-8739.8 and records that the safety-criticality statement disagrees with the hazard analysis and safety documents (open). Header cites NPR 7150.2D. §12.1: Embassy executor in place of RTOS concepts (BASELINE §6, CR-2026-002) |
