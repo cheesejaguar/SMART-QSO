@@ -32,7 +32,7 @@ env:
   RUST_COVERAGE_MIN_LINE: 90
   # Branch coverage of the Rust flight crates (76.3 % on 2026-10-25), on the
   # pinned nightly below: stable rustc does not count branches
-  RUST_COVERAGE_MIN_BRANCH: 75
+  RUST_BRANCH_COVERAGE_MIN: 75
   BRANCH_COVERAGE_TOOLCHAIN: nightly-2026-10-24
 
 jobs:
@@ -141,7 +141,7 @@ jobs:
             -DSQSO_RUST_COVERAGE_FLAGS="$RUST_COVERAGE_FLAGS"
           cmake --build build-branch --parallel $(nproc)
           ctest --test-dir build-branch --output-on-failure --parallel $(nproc)
-          RUST_COVERAGE_MIN_BRANCH="$RUST_COVERAGE_MIN_BRANCH" \
+          RUST_COVERAGE_MIN_BRANCH="$RUST_BRANCH_COVERAGE_MIN" \
             scripts/rust_coverage.sh build-branch "$RUST_COVERAGE_MIN_LINE" rust-branch-coverage
 
       - name: Minimum supported Rust version (rust-version in Cargo.toml)
@@ -156,7 +156,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rust-coverage
-          path: software/flight/rust-coverage
+          path: |
+            software/flight/rust-coverage
+            software/flight/rust-branch-coverage
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

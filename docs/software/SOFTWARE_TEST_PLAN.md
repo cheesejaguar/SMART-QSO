@@ -1,8 +1,8 @@
 # Software Test Plan (STP)
 
 **Document Number**: SMART-QSO-STP-001
-**Version**: 1.1
-**Date**: 2026-10-24
+**Version**: 1.2
+**Date**: 2026-10-25
 **Status**: Preliminary
 
 **Governing Standards**:
@@ -104,9 +104,11 @@ Test) gates line coverage:
 |------|---------------|---------|---------------------|
 | Rust flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`): C suites and Rust unit tests together | LLVM source-based coverage (`software/flight/scripts/rust_coverage.sh`) | 90 % of lines | 92.2 % |
 | Flight software, C (`software/flight/src`, gcovr) and Rust together | gcovr and llvm-cov | 80 % of lines | 92.2 % |
+| Rust flight crates, branches (since 2026-10-25) | LLVM source-based coverage with `-Zcoverage-options=branch`, on a pinned nightly (stable rustc does not count branches) | 75 % of branches | 76.3 % (2026-10-25) |
 
-Branch coverage is neither measured nor gated yet, so the 75 % branch target above has no evidence. lcov is no longer
-used: gcovr counts sources that no test runs, and lcov did not.
+The 75 % branch target above is now gated. lcov is no longer used: gcovr counts sources that no test runs, and lcov
+did not. The safety-critical components and their coverage against SWE-219 are in
+`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2.
 
 ### 3.3 Test Environment
 
@@ -563,3 +565,4 @@ Attachments:
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: coverage gates as implemented (line, Rust ≥ 90 %, C and Rust ≥ 80 %; branch not measured); the C suites as the specification, Rust unit tests, fuzzing, contract test, sanitizers; Rust coverage commands and tools |
+| 1.2 | 2026-10-25 | SMART-QSO Team | Branch coverage measured and gated (75 %, 76.3 % measured) in a pinned-nightly build |
