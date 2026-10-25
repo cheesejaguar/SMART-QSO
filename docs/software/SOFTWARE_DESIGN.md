@@ -743,7 +743,7 @@ Each module has corresponding unit tests:
 - test_crc32.c
 
 As built (Version 1.1): 42 CMocka suites in `software/flight/tests` (631 cases), one or more per module, run unchanged
-against the Rust through the C headers, plus 299 Rust unit tests and 11 fuzz targets (`software/flight/tests/README.md`).
+against the Rust through the C headers, plus 299 Rust unit tests and 12 fuzz targets (`software/flight/tests/README.md`).
 The "Mock HAL" of §9.2 is the simulated HAL, `software/rust/sqso-ffi/src/hal_sim.rs`.
 
 ### 9.2 Mock Architecture

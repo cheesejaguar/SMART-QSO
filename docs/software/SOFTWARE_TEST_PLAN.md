@@ -136,7 +136,7 @@ the Rust library through the C headers. The HAL is the simulated HAL `software/r
 `hal_sim_*` hooks inject inputs and faults; there is no `mocks/` directory. In addition:
 
 - **Rust unit tests**: 197, in `sqso-protocol` and `sqso-fsw` (`cargo test --workspace`).
-- **Fuzzing**: 11 cargo-fuzz targets, one per parser (`software/rust/fuzz/fuzz_targets`), 30 s each in CI with
+- **Fuzzing**: 12 cargo-fuzz targets: one per parser, and `fixed_format` (`software/rust/fuzz/fuzz_targets`), 30 s each in CI with
   property checks.
 - **Contract test**: `test_rust_contract.c` and `test_rust_contract_adcs.c` compare struct layouts and constants between
   the C headers and the Rust.

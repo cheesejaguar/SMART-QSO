@@ -255,7 +255,7 @@ Revision A's example scrubbed with a raw pointer loop, which the Rust rules woul
 
 ### 11.3 Testing
 
-- 11 fuzz targets on every parser (30 s each in CI).
+- 12 fuzz targets: every parser, and the fixed-point formatter (30 s each in CI).
 - Worst-case stack by static analysis of the image, in CI (§6.2): 4,892 B of 8 KB.
 - Stack overflow (HIL-004), high-water mark (HIL-044) and memory stress tests on hardware: not done (no hardware has run the image).
 

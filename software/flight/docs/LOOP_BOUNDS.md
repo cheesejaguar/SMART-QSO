@@ -116,7 +116,7 @@ checks are on in the release profile, so an index or count that would wrap stops
 ### 5.2 Static Analysis and Testing
 
 1. **clippy** (CI, `-D warnings`): denies indexing that can panic. It does not prove loop bounds.
-2. **Fuzzing**: every parser loop runs on arbitrary input (11 targets, `software/rust/fuzz/fuzz_targets`).
+2. **Fuzzing**: every parser loop runs on arbitrary input (12 targets, `software/rust/fuzz/fuzz_targets`).
 3. **Review**: the inventory in §3.
 
 ---

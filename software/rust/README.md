@@ -23,7 +23,7 @@ a bounds-checked error, or at worst a controlled reset (see [Rules](#rules)).
 | `sqso-clib` | `sqso-ffi` as the static library `libsqso_flight.a` that the C test suites link; owns the panic handler there | none |
 | `sqso-sim` | The host simulation, the binary `smart_qso_flight`. Feature `flight` (the CMake `FLIGHT_BUILD`): run until stopped instead of 1000 passes | none |
 | `sqso-py` | Python module `sqso_protocol` (PyO3, maturin) for the Jetson payload and the ground tools | none (CI checks) |
-| `fuzz` | 11 cargo-fuzz targets, one per parser (`fuzz/fuzz_targets`), including `sensors_yaml`, `gnss_nmea` and `kiss_stream`. A separate workspace | none |
+| `fuzz` | 12 cargo-fuzz targets: one per parser, and `fixed_format` (`fuzz/fuzz_targets`), including `sensors_yaml`, `gnss_nmea` and `kiss_stream`. A separate workspace | none |
 | `firmware` | The STM32L4R5ZI image (Embassy). A separate workspace, built only for `thumbv7em-none-eabihf` | register access, HAL exports, driver state, the two calibration reads in `firmware/src/adc.rs` |
 
 ### The firmware
@@ -260,7 +260,7 @@ Measured 2026-10-24.
   inputs each for the sensor configuration parser and the GNSS driver, 2 million `safe_string` calls, and 300,000
   operations on the flight log and the assertion handler. All results were identical, except for the deliberate
   changes listed below.
-- **Fuzzing.** 11 targets. CI runs each for 30 s on every change. The telecommand target builds genuine frames, then
+- **Fuzzing.** 12 targets. CI runs each for 30 s on every change. The telecommand target builds genuine frames, then
   corrupts them. It checks two properties: nothing is accepted without the key's tag or with a spent counter, and a
   genuine fresh command is always accepted.
 - **Dependencies.** `cargo audit` found RUSTSEC-2026-0385 (`ctutils` 0.4.2, non-constant-time comparisons, used under

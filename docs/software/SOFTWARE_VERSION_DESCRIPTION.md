@@ -76,7 +76,7 @@ the current source, and `software/rust/README.md` maps every former C file to it
 
 The table above is the 0.2.0 skeleton (history; `test_main.c` was removed on 2026-10-16). On 2026-10-24 there are 42
 CMocka suites with 631 cases, and 44 ctest entries with `no_dynamic_memory` and `Simulation_Run`, in `software/flight/tests`. They run
-against the Rust. There are also 299 Rust unit tests (`sqso-protocol` 74, `sqso-fsw` 225) and 11 fuzz targets.
+against the Rust. There are also 299 Rust unit tests (`sqso-protocol` 74, `sqso-fsw` 225) and 12 fuzz targets.
 
 ### 3.3 Configuration Files
 
@@ -97,7 +97,7 @@ against the Rust. There are also 299 Rust unit tests (`sqso-protocol` 74, `sqso-
 | `sqso-clib`, `sqso-sim` | `software/rust/sqso-clib`, `software/rust/sqso-sim` | 33, 24 | Static library for the C suites; host simulation `smart_qso_flight` |
 | firmware | `software/rust/firmware/src` | 1,553 | STM32L4R5ZI image: Embassy main task and the HAL |
 | `sqso-py` | `software/rust/sqso-py/src` | 346 | Python module `sqso_protocol` (payload, ground) |
-| Fuzz targets | `software/rust/fuzz/fuzz_targets` | 416 | 11 targets |
+| Fuzz targets | `software/rust/fuzz/fuzz_targets` | 416 | 12 targets |
 | C interface | `software/flight/include` | — | The C headers: the C ABI of the Rust modules |
 | Remaining C | `software/flight/src/flight_log_fmt.c` | 67 | printf-style flight-log shim |
 
