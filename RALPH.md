@@ -383,8 +383,8 @@ All project documentation and processes shall comply with:
   ```
 
 - [ ] **Achieve coverage targets**: (audit 2026-10-16, SW-19: see the sub-items)
-  - [ ] Statement coverage: ≥80% (audit 2026-10-16, SW-19: line coverage is 68.2 % by gcovr over every compiled source, as recorded in .github/workflows/ci.yml (CI floor 65 %)) *(2026-10-25: line coverage 94.4 %, gate 80 % for C and Rust together, 90 % for the Rust crates; `software/flight/tests/README.md`)*
-  - [ ] Branch coverage: ≥75% (audit 2026-10-16, SW-19: no branch-coverage figure is recorded in the repository) *(2026-10-25: branch and condition coverage of the Rust crates 80.6 %, gated at 80 % in CI)*
+  - [ ] Statement coverage: ≥80% (audit 2026-10-16, SW-19: line coverage is 68.2 % by gcovr over every compiled source, as recorded in .github/workflows/ci.yml (CI floor 65 %)) *(2026-10-25: line coverage 94.8 %, gate 80 % for C and Rust together, 90 % for the Rust crates; `software/flight/tests/README.md`)*
+  - [ ] Branch coverage: ≥75% (audit 2026-10-16, SW-19: no branch-coverage figure is recorded in the repository) *(2026-10-25: branch and condition coverage of the Rust crates 81.1 %, gated at 80 % in CI)*
   - [ ] MC/DC coverage for safety-critical paths: 100% (audit 2026-10-16, SW-19: no MC/DC tool or report exists) *(2026-10-25: replaced by 100 % line and condition coverage per safety-critical file, gated in CI; CR-2026-003, `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2)*
   - [ ] Document untested code with justification (audit 2026-10-16, SW-19: no document lists untested code) *(2026-10-25: in the safety-critical files, each untested line is marked `// COVERAGE-EXEMPT: <reason>` and listed by `software/flight/scripts/safety_coverage.py`)*
 

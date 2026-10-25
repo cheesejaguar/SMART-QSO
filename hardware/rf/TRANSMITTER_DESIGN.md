@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-TX-001
-**Version:** 1.0
-**Date:** 2026-01-02
+**Version:** 1.1
+**Date:** 2026-10-25
 **Status:** CDR Baseline
 
 ---
@@ -16,10 +16,10 @@ This document defines the RF transmitter design for the SMART-QSO 1U CubeSat bea
 
 | Requirement | Value | Source |
 |-------------|-------|--------|
-| Frequency | 145.825 MHz | IARU Coordination |
+| Frequency | 145.825 MHz (superseded: one IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz, BASELINE §7) | IARU Coordination |
 | Modulation | AFSK (Bell 202) | AX.25 Standard |
 | Data Rate | 1200 bps | AX.25 Standard |
-| Output Power | 0.5 - 2.0 W | Mission/Link Budget |
+| Output Power | 0.5 - 2.0 W (superseded: maximum 1 W, nominal 0.5 W, BASELINE §7) | Mission/Link Budget |
 | Harmonics | < -43 dBc | IARU |
 | Spurious | < -60 dBc | ITU |
 
@@ -242,12 +242,18 @@ If higher power required:
 
 | Signal | Type | Function |
 |--------|------|----------|
-| TX_EN | GPIO | Enable transmitter |
-| TX_DATA | UART | AX.25 packet data |
-| TX_PWR | GPIO×2 | Power level select |
-| TX_TEMP | ADC | Temperature monitor |
-| TX_FWD | ADC | Forward power |
-| TX_REV | ADC | Reflected power |
+| TX_EN | GPIO | Enable transmitter (PA power; `GPIO_PIN_RF_TX_EN`, driven by TX-OFF and the inhibits, `rf_control.h`) |
+| TX_DATA | UART | AX.25 packet data: KISS frames to a TNC on USART2, which adds the FCS, modulates and keys (CR-2026-005) |
+| TX_PWR | GPIO×1 | Power level select: low 0.5 W, high 1 W (`GPIO_PIN_TX_PWR_SEL`); the 2 W level of §6.2 is not used (BASELINE §7) |
+| TX_TEMP | ADC | Temperature monitor (`ADC_CHANNEL_TX_TEMP`) |
+| TX_FWD | ADC | Forward power (`ADC_CHANNEL_TX_FWD`) |
+| TX_REV | ADC | Reflected power (`ADC_CHANNEL_TX_REV`) |
+
+As built (2026-10-25, CR-2026-005): the OBC software is `software/flight/include/downlink.h`. It hands a frame to the
+TNC only while transmission is permitted, one frame at a time, at most 5 s on the air and 25 % of the time; selects
+TX_PWR; and acts on the monitors as §8.2 and §6.3 ask: VSWR above 3:1 reduces the power to 0.5 W, then stops the
+downlink for 10 minutes; above 70 °C it holds the downlink until 60 °C. The values are TBR-SRS-003 until the
+transmitter and TNC are selected.
 
 ### 10.2 Timing
 
@@ -351,3 +357,4 @@ If higher power required:
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-25 | §10.1 as built (CR-2026-005): KISS TNC on USART2, one power-select line, the monitors' channels and the software's actions; §1.1 frequency and power marked superseded by BASELINE §7 |

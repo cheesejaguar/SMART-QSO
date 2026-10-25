@@ -1,7 +1,7 @@
 # Software Requirements Specification (SRS)
 
 **Document Number**: SMART-QSO-SRS-001
-**Version**: 1.4
+**Version**: 1.5
 **Date**: 2026-10-25
 **Status**: Preliminary
 
@@ -202,6 +202,16 @@ Requirements are identified as:
 | SRS-I020 | The software shall control beacon transmitter via GPIO | T | High |
 | SRS-I021 | The software shall format AX.25 UI frames | T | High |
 | SRS-I022 | The software shall use AFSK 1200 bps modulation | T | High |
+| SRS-I023 | The software shall hand each downlink AX.25 frame to the TNC on the radio UART as a KISS data frame, preceded by the TNC parameters (TXDELAY, persistence, slot time, TX tail, full duplex) | T | High |
+| SRS-I024 | The software shall refuse a downlink frame unless transmission is permitted (TX-OFF, RF silence, loss-of-contact inhibit) at the moment it is handed to the TNC | T | High |
+| SRS-I025 | The software shall send one downlink frame at a time, limit each to 5 s worst-case air time, and hold keyed time to 25 % (TBR-SRS-003) with a credit of at most one 60 s window | T | High |
+| SRS-I026 | The software shall select the downlink power at the commanded level (0.5 W or 1 W, never above 1 W) | T | High |
+| SRS-I027 | The software shall monitor the transmitter's temperature, forward and reflected power while keyed: VSWR above 3:1 on 3 samples in a row caps the power at 0.5 W, and at 0.5 W stops the downlink for 10 minutes; above 70 °C (TBR-SRS-003) nothing is sent until below 60 °C; a keyed frame without forward power is reported | T | High |
+
+The downlink interface (SRS-I023) is a PI decision, CR-2026-005 (`docs/project/CHANGE_REQUEST_LOG.md`): a KISS TNC on
+USART2, shared with the uplink receiver, adds the FCS, modulates (SRS-I022, AFSK 1200 in the TNC) and keys the
+transmitter. Implemented in `software/rust/sqso-fsw/src/downlink.rs` and `software/flight/include/downlink.h`; the
+TNC and transmitter are not selected, so SRS-I022 and the thresholds (TBR-SRS-003) are verified on hardware.
 
 ---
 
@@ -265,8 +275,8 @@ change request CR-2026-001, `docs/project/CHANGE_REQUEST_LOG.md`).
 |----|--------|
 | SRS-C001 | Met. The flight code is Rust (2024 edition), written to `docs/development/CODING_STANDARDS.md` §11. The C is `software/flight/src/flight_log_fmt.c` (C11, the printf-style flight-log shim, not linked into the image) and the C test suites |
 | SRS-C002 | Met: no dynamic allocation at any time. Checked by the ctest `no_dynamic_memory` and by CI's check that the image links no `malloc`, `free` or `_sbrk` (`software/flight/docs/MEMORY_POLICY.md`) |
-| SRS-C003 | Met by analysis: worst case 4,900 B of 8,192 B (2026-10-25), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
-| SRS-C004 | Release image text 110,388 B (2026-10-25, CI job STM32L4 Cross-Compile (library)), below 256 KB. Checked at each release (`docs/development/RELEASE_PROCEDURE.md` §5.3); not a CI gate |
+| SRS-C003 | Met by analysis: worst case 5,004 B of 8,192 B (2026-10-25), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
+| SRS-C004 | Release image text 115,876 B (2026-10-25, CI job STM32L4 Cross-Compile (library)), below 256 KB. Checked at each release (`docs/development/RELEASE_PROCEDURE.md` §5.3); not a CI gate |
 
 ### 8.2 External Constraints
 
@@ -302,6 +312,7 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | TBD-SRS-002 | Uplink command set definition | CDR |
 | TBR-SRS-001 | Watchdog timeout value (currently 30s) | PDR |
 | TBR-SRS-002 | SRS-F040 ("all fault conditions") cannot be tested; PI ratifies, amends or rejects the proposed wording beneath §3.5 (finding VV-16) | TBD |
+| TBR-SRS-003 | Downlink values to confirm with the selected TNC and transmitter (SRS-I025 to SRS-I027, `downlink.h`): duty 25 %, TXDELAY 300 ms, VSWR 3:1 on 3 samples, 70/60 °C, 0.1 W output present, the monitor scaling (`firmware/src/adc.rs`) | EM transmitter test |
 
 ---
 
@@ -325,3 +336,4 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | 1.2 | 2026-10-16 | SMART-QSO Team | SRS-F018 added as [Proposed] (mode-transition logging, cited by state_machine.h); §9.1 parents corrected to defined system requirements (SYS-304, SYS-210, SYS-321) (findings VV-06, VV-19) |
 | 1.3 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: implementation status of SRS-C001 to SRS-C004 beneath §8.1 (SRS-C001 not met as written; PI decision); §2.1 OBC runs on the Embassy executor, not FreeRTOS. No requirement text changed |
 | 1.4 | 2026-10-25 | SMART-QSO Team | SRS-C001 amended by PI decision to Rust (2024 edition) or C11 (was C11 only; CR-2026-001). Status beneath §8.1: SRS-C001 met; SRS-C003 met by analysis (static worst case 4,892 B, CI gate; hardware measurement pending) |
+| 1.5 | 2026-10-25 | SMART-QSO Team | SRS-I023 to SRS-I027 added: the downlink transmitter interface, permission at hand-over, key-down and duty limits, power selection, transmitter protection (CR-2026-005) |

@@ -5,8 +5,9 @@ The CMocka suites in this directory are the specification of the flight software
 in `software/flight/include`, which are the C ABI of the Rust modules. They run on the host, on the simulated HAL
 (`software/rust/sqso-ffi/src/hal_sim.rs`). They use the [CMocka](https://cmocka.org) framework.
 
-There are 46 ctest entries: 43 CMocka suites with 671 `cmocka_unit_test` cases (one of them,
-`integration/test_executive_jetson.c`, runs as two entries, `Executive_Jetson_link` and `Executive_Jetson_guard`), the
+There are 49 ctest entries: 45 CMocka suites with 695 `cmocka_unit_test` cases (two of them run as two
+entries each: `integration/test_executive_jetson.c` as `Executive_Jetson_link` and `Executive_Jetson_guard`, and
+`integration/test_downlink_sim.c` as `Downlink_TNC_served` and `Downlink_TNC_silent`), the
 `no_dynamic_memory` check, and `Simulation_Run`, the host simulation, which must reach a clean shutdown (2026-10-25).
 
 ## Running them
@@ -62,10 +63,22 @@ The Rust also has its own unit tests (`cd software/rust && cargo test --workspac
     check, which must notice it once, in its next window (wall clock within 100 ms of a multiple of 10 s). Timing
     checks allow 250 ms for scheduling on a loaded host (`ARRIVAL_SLACK_MS`), well under the 1 s interval.
 
-  The beacon is not checked: each simulated boot starts the 45-minute RF silence and the beacon interval is 60 s. The
-  driver sets VMIN 0 and VTIME 0 on the Jetson line first, because the OBC's host port keeps the terminal's VMIN 1 and
+  The beacon is not checked here: these boots start the 45-minute RF silence (`integration/test_downlink_sim.c` checks
+  it). The driver sets VMIN 0 and VTIME 0 on the Jetson line first, because the OBC's host port keeps the terminal's VMIN 1 and
   its poll of the line would otherwise block until the Jetson sends a byte. Each run writes its transcript
   (`executive_jetson_link.log`, `executive_jetson_guard.log`) to `build/tests`.
+- `test_downlink.c` specifies the downlink (`downlink.h`): the gate before the TNC (TX-OFF and each inhibit), one frame
+  at a time, the duty credit, the power select line, the HAL refusing a frame, the VSWR, no-output and thermal
+  protections (the monitors set with `hal_sim_adc_set()`), failed readings, and the beacon handing its frame over. Its
+  first case checks `downlink.h` against the library (`rust_contract.h` ids 300 to 349).
+- `integration/test_downlink_sim.c` checks the downlink end to end. It runs `smart_qso_flight` with `TNC_DEVICE` set to
+  a file, where the simulated radio HAL writes what the TNC would receive, decodes the KISS stream and the AX.25 frames
+  with its own code (it links no flight code), and reads the console. Two entries:
+  - `Downlink_TNC_served` (`SIM_RF_SILENCE_SERVED`: a software-reset boot with the silence served): the five TNC
+    parameter commands before every data frame; each frame a UI frame from KK6GDB-11 to CQ; the frames exactly the
+    console's `[BEACON] TX:` beacons, at least one; the beacon carrying the power model's SOC, battery voltage and sun
+    flag.
+  - `Downlink_TNC_silent` (a first boot): the silence is counting, and not one byte reaches the TNC.
 - `vectors/` holds data shared with other code. `beacon_filter_vectors.txt` is run by both the OBC filter tests here and
   the Jetson filter tests in `software/payload/tests`.
 - `no_dynamic_memory` is a ctest check, not a CMocka suite. It fails if the test library or the Rust library references
@@ -90,12 +103,12 @@ A change to existing behaviour belongs in the Rust and, when deliberate, in the 
 CI (job Build and Test) runs these gates:
 
 - **Rust**: line coverage of the flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`), from these suites and the
-  Rust unit tests together, must not fall below `RUST_COVERAGE_MIN_LINE` (90 %). It was 94.4 % on 2026-10-25.
+  Rust unit tests together, must not fall below `RUST_COVERAGE_MIN_LINE` (90 %). It was 94.8 % on 2026-10-25.
 - **Flight software**: the C in `src/` (gcovr) and the Rust together must not fall below `COVERAGE_MIN_LINE` (80 %). It
-  was 94.4 % on 2026-10-25.
+  was 94.8 % on 2026-10-25.
 - **Branches and conditions** (a second build on the pinned nightly `BRANCH_COVERAGE_TOOLCHAIN`, with
   `-Zcoverage-options=condition`): Rust branch and condition coverage must not fall below `RUST_BRANCH_COVERAGE_MIN`
-  (80 %); it was 80.6 %. Each safety-critical file (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) must reach
+  (80 %); it was 81.1 %. Each safety-critical file (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) must reach
   100 % of lines and conditions, except lines marked `// COVERAGE-EXEMPT: <reason>` (`../scripts/safety_coverage.py`,
   CR-2026-003).
 

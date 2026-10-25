@@ -36,7 +36,7 @@ typedef enum {
     CMD_COMM_SET_BEACON = 0x30, /**< SET_BEACON: Set beacon interval, seconds big-endian, 10 to 120 */
     CMD_COMM_TX_ENABLE = 0x31, /**< TX_ENABLE: Clear the latched TX-OFF */
     CMD_COMM_TX_DISABLE = 0x32, /**< TX_DISABLE: Latch TX-OFF in every state (47 CFR 97.207(b)) */
-    CMD_COMM_SET_POWER = 0x33, /**< SET_POWER: Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the transmitter driver, TBD) */
+    CMD_COMM_SET_POWER = 0x33, /**< SET_POWER: Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the downlink, downlink.h) */
     CMD_PLD_ENABLE = 0x40, /**< PLD_ENABLE: Enable payload */
     CMD_PLD_DISABLE = 0x41, /**< PLD_DISABLE: Disable payload */
 } CmdId_t;

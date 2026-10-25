@@ -176,7 +176,7 @@ The safety-critical components are determined in `docs/software/SOFTWARE_DEVELOP
 §4.2 criteria, from the hazard analysis). NPR 7150.2D SWE-219 requires for them 100 % code coverage by the MC/DC
 criterion. rustc cannot measure MC/DC; change request CR-2026-003 (approved by the PI, 2026-10-25,
 `docs/project/CHANGE_REQUEST_LOG.md`) replaces it with 100 % line and 100 % condition coverage. Status (2026-10-25):
-CI gates line coverage (Rust ≥ 90 %, 94.4 %) and branch and condition coverage (Rust ≥ 80 %, 80.6 %) over the whole
+CI gates line coverage (Rust ≥ 90 %, 94.8 %) and branch and condition coverage (Rust ≥ 80 %, 81.1 %) over the whole
 flight software, and each safety-critical file at 100 % of lines and 100 % of conditions
 (`software/flight/scripts/safety_coverage.py`, CI job "Build and Test"). All of them meet it; 12 lines that no test
 can reach (a defensive arm, an unreachable error path) are marked `// COVERAGE-EXEMPT:` with the reason, each
@@ -220,7 +220,7 @@ As implemented (2026-10-24), for the Rust flight software: the coding standard i
 §11 (MISRA C applies only to the remaining C shim). The JPL rules are mapped to the Rust in
 `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1. Static analysis is clippy with warnings as errors, the
 `#![forbid(unsafe_code)]` check, CodeQL and `cargo audit`, plus cppcheck and clang-tidy on the remaining C. Every parser
-is fuzzed in CI. The CMocka suites run unchanged against the Rust, together with 328 Rust unit tests. Safety-relevant
+is fuzzed in CI. The CMocka suites run unchanged against the Rust, together with 356 Rust unit tests. Safety-relevant
 modules fail safe when re-entered: TX-OFF still drives the transmitter enable low, the RF silence reads as active, and
 the payload guard trips (`software/rust/README.md`, behaviour change 10).
 | Configuration management | Git, tagged releases |

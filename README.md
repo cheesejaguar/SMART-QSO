@@ -119,9 +119,9 @@ The flight software applies tailored NASA practices (NPR 7150.2D Class C, [SDP](
 
 ### Software Modules
 
-Measured 2026-10-25 (CI job Build and Test): line coverage of the Rust flight crates is **94.4 %**, from the C suites
-and 328 Rust unit tests together (CI fails below 90 %), and of the flight software, C and Rust together, **94.4 %** (CI
-fails below 80 %). There are 43 CMocka suites with 671 test cases, plus the no-dynamic-memory check. Every line of the
+Measured 2026-10-25 (CI job Build and Test): line coverage of the Rust flight crates is **94.8 %**, from the C suites
+and 356 Rust unit tests together (CI fails below 90 %), and of the flight software, C and Rust together, **94.8 %** (CI
+fails below 80 %). There are 45 CMocka suites with 695 test cases, plus the no-dynamic-memory check. Every line of the
 flight crates counts, including lines no test runs. The per-file report is the CI artifact `rust-coverage`. Reproduce
 it with `software/flight/scripts/rust_coverage.sh` after a coverage build (`software/flight/tests/README.md`). Branch
 coverage is not measured.

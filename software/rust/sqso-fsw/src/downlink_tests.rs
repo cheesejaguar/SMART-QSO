@@ -94,7 +94,10 @@ fn keyed_time_is_held_to_the_duty_limit() {
     let mut on_air = 0u64;
     let mut refused = 0u32;
     // An hour of back-to-back longest frames
+    let mut tries = 0u32;
     while now < 3_600_000 {
+        tries += 1;
+        assert!(tries < 1_000_000, "time does not advance");
         match send(&mut d, now, MAX_FRAME_LEN) {
             Ok(plan) => {
                 on_air += u64::from(plan.airtime_ms);
@@ -119,8 +122,11 @@ fn credit_refills_to_one_window_at_most() {
     let mut d = ready(0);
     // Spend nearly everything
     let mut now = 0;
+    let mut spent = 0;
     while send(&mut d, now, MAX_FRAME_LEN).is_ok() {
         now += u64::from(uart_ms(MAX_FRAME_LEN)) + u64::from(airtime_ms(MAX_FRAME_LEN));
+        spent += 1;
+        assert!(spent < 100, "the credit never runs out");
     }
     // A day idle refills only one window's worth: five longest frames, not more
     now += 86_400_000;
@@ -128,6 +134,7 @@ fn credit_refills_to_one_window_at_most() {
     while send(&mut d, now, MAX_FRAME_LEN).is_ok() {
         burst += 1;
         now += u64::from(uart_ms(MAX_FRAME_LEN)) + u64::from(airtime_ms(MAX_FRAME_LEN));
+        assert!(burst < 100, "the credit never runs out");
     }
     assert!((5..=8).contains(&burst), "{burst}");
 }
@@ -135,8 +142,11 @@ fn credit_refills_to_one_window_at_most() {
 #[test]
 fn a_clock_that_steps_back_refills_nothing() {
     let mut d = ready(10_000);
+    let mut sent = 0;
     while send(&mut d, 10_000, MAX_FRAME_LEN).is_ok() {
         d.keyed_until_ms = 0;
+        sent += 1;
+        assert!(sent < 100, "the credit never runs out");
     }
     assert_eq!(send(&mut d, 5_000, MAX_FRAME_LEN), Err(Refusal::Duty));
 }

@@ -141,6 +141,7 @@ mission-critical, not safety-critical.
 | Safe-mode entry, fault response | SW-HAZ-008 | `sqso-fsw/src/mode.rs`, `sqso-ffi/src/state_machine.rs`, `sqso-fsw/src/fault_log.rs`, `sqso-ffi/src/fault_mgmt.rs`, `sqso-fsw/src/assert_handler.rs`, `sqso-ffi/src/assert_handler.rs` | 100 % / 100 %; 100 % / 100 %; 98.8 % / 78.6 %, 4 exempt; 100 % / 100 %; 99.1 % / 95.0 %, 2 exempt; 100 % / 93.8 %, 1 exempt |
 | Payload thermal and over-current protection | Safety Data Package (SQSO-SDP-001) §3.2, thermal protection | `sqso-fsw/src/payload_guard.rs`, `sqso-ffi/src/payload_guard.rs` | 100 % / 100 %; 100 % / no conditions |
 | RF transmit inhibit (TX-OFF latch, post-deployment silence, loss of contact, separation switch) | SH-008 | `sqso-fsw/src/rf_control.rs`, `sqso-fsw/src/rf_silence.rs`, `sqso-fsw/src/contact_monitor.rs` and their `sqso-ffi` wrappers, `sqso-ffi/src/separation_switch.rs` | 100 % / 100 % each; wrappers 100 % / 100 % (`contact_monitor` and `separation_switch` have no conditions) |
+| Downlink gate (the same inhibits checked again when a frame is handed to the TNC; key-down and duty limits; transmitter protection), added 2026-10-25 | SH-008 | `sqso-fsw/src/downlink.rs`, `sqso-ffi/src/downlink.rs` | 100 % / 100 %; 100 % / 100 % |
 
 Coverage is from the C suites and the Rust unit tests together, measured with `-Zcoverage-options=condition` on the
 pinned nightly (`software/flight/scripts/rust_coverage.sh`); "condition" counts each condition of a decision taken both
@@ -165,7 +166,7 @@ Per NPR 7150.2D Appendix C, for Class C (§3.1); the mapping of every Class C re
 | Requirement | As applied | Rationale |
 |-------------|------------|-----------|
 | Peer reviews and inspections | Reviewed pull requests; CI gates | Small team |
-| Code coverage | Gated in CI: Rust lines ≥ 90 %, C and Rust lines ≥ 80 %, Rust branches ≥ 80 % (80.6 % on 2026-10-25) | Measured on every change (`.github/workflows/ci.yml`) |
+| Code coverage | Gated in CI: Rust lines ≥ 90 %, C and Rust lines ≥ 80 %, Rust branches ≥ 80 % (81.1 % on 2026-10-25) | Measured on every change (`.github/workflows/ci.yml`) |
 | MC/DC for safety-critical components (SWE-219) | 100 % line and condition coverage instead, gated per file (CR-2026-003, approved) | rustc cannot measure MC/DC (§3.2) |
 | Independent V&V | Team V&V | No IV&V designation (not a NASA project) |
 | Tool qualification | Pinned, documented toolchain (Rust 1.97.0), not qualified | PI decision 2026-10-25 (CR-2026-004): no qualified compiler; the tests, image checks, stack analysis and hardware tests check the compiler's output |

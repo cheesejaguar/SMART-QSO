@@ -674,7 +674,7 @@ T=20ms   : Loop complete (< 20ms requirement)
 
 **Version 1.1 note.** The memory map and stack table below are for a 256 KB part and a multi-task design. Neither
 applies to the OBC as built. The OBC is the STM32L4R5ZI (2 MB flash at 0x08000000, 640 KB SRAM at 0x20000000), the
-image has one stack, and the release image uses 110,388 B of text and 35,136 B of static RAM
+image has one stack, and the release image uses 115,876 B of text and 36,260 B of static RAM
 (`software/flight/docs/MEMORY_POLICY.md` §3).
 
 ### 7.1 Memory Map (STM32L4 256KB)
@@ -742,8 +742,8 @@ Each module has corresponding unit tests:
 - test_uart_comm.c
 - test_crc32.c
 
-As built (Version 1.1): 43 CMocka suites in `software/flight/tests` (671 cases), one or more per module, run unchanged
-against the Rust through the C headers, plus 328 Rust unit tests and 12 fuzz targets (`software/flight/tests/README.md`).
+As built (Version 1.1): 45 CMocka suites in `software/flight/tests` (695 cases), one or more per module, run unchanged
+against the Rust through the C headers, plus 356 Rust unit tests and 12 fuzz targets (`software/flight/tests/README.md`).
 The "Mock HAL" of §9.2 is the simulated HAL, `software/rust/sqso-ffi/src/hal_sim.rs`.
 
 ### 9.2 Mock Architecture

@@ -431,9 +431,19 @@ static void test_beacon_goes_through_the_downlink(void **state)
     assert_memory_equal(got, &air[1], len);
     assert_int_equal(beacon_get_total_count(), 1U);
 
-    /* Refused by the downlink (still on the air): not counted */
+    /* Refused by the downlink (still on the air): not counted, and the next
+     * beacon is due an interval later, not on the next pass */
+    uint64_t now = smart_qso_now_ms();
+    assert_true(beacon_should_transmit(now));
     assert_int_equal(beacon_transmit(&content), SMART_QSO_ERROR_BUSY);
     assert_int_equal(beacon_get_total_count(), 1U);
+    assert_false(beacon_should_transmit(smart_qso_now_ms()));
+    assert_true(beacon_should_transmit(now + BEACON_INTERVAL_ACTIVE_MS + 1000U));
+
+    /* Not permitted: refused before the downlink */
+    assert_int_equal(rf_control_tx_off(), SMART_QSO_OK);
+    assert_int_equal(beacon_transmit(&content), SMART_QSO_ERROR);
+    assert_int_equal(rf_control_tx_on(), SMART_QSO_OK);
 }
 
 /** Before downlink_init() every frame is refused. Must run first. */

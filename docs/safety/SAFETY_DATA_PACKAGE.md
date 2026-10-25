@@ -45,6 +45,7 @@ It is one input to the system safety data package. It does not authorize release
 | Watchdog Timer | Critical | HZ-004 |
 | Battery Protection | Critical | HZ-002 |
 | RF TX Enable | Critical | HZ-001 |
+| Downlink gate: the TX inhibits checked again when a frame goes to the TNC, key-down and duty limits, VSWR and thermal protection (`downlink.h`, CR-2026-005) | Critical | HZ-001 |
 | Thermal Protection | Critical | HZ-003 |
 | Safe Mode Logic | Critical | All hazards |
 
@@ -55,7 +56,7 @@ It is one input to the system safety data package. It does not authorize release
 This table is the **hazard log** (FINDINGS_REGISTER PI-07). Software hazards (SW-HAZ-*) are analysed in
 `SOFTWARE_HAZARD_ANALYSIS.md` and roll up here. A hazard closes only when every control has cited verification
 evidence: test log, analysis or inspection. Software unit tests already cover some controls. HZ-001: TX-OFF,
-RF-silence and loss-of-contact tests. HZ-004: the supervised watchdog test. HZ-006: telecommand-authentication
+RF-silence and loss-of-contact tests, and the downlink's (`test_downlink`, `Downlink_TNC_silent`). HZ-004: the supervised watchdog test. HZ-006: telecommand-authentication
 tests. No hardware verification has been run, so every hazard is open.
 
 | ID | Hazard | Severity | Likelihood | Risk | Status |
@@ -385,3 +386,4 @@ Member: _________________ Date: _____
 | 1.1 | 2026-10-16 | SMART-QSO Team | Funding audit VV-20: retitled Software Safety Data Package and scoped to software; system package split out as a skeleton (SQSO-SDP-002); "Complete" statuses, pre-written board findings and the zero-open-hazard summary removed; values aligned with BASELINE (SOC thresholds, watchdog 30 s, AI duty, software class pending); FMEA count corrected to 43 |
 | 1.1, note | 2026-10-24 | SMART-QSO Team | Defensive-coding row: status after the port of the flight software to Rust |
 | 1.1, note | 2026-10-25 | SMART-QSO Team | §3.1 software class: Class C (SDP §3.1). Watchdog-failure controls: stack checking and stage monitoring as built, with no RTOS (BASELINE §6, CR-2026-002) |
+| 1.1, note | 2026-10-25 | SMART-QSO Team | §3.2: the downlink gate added (CR-2026-005); HZ-001 evidence includes its tests |

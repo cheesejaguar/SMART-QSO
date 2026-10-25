@@ -102,9 +102,9 @@ Test) gates line coverage:
 
 | Gate | Measured with | Minimum | Measured 2026-10-24 |
 |------|---------------|---------|---------------------|
-| Rust flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`): C suites and Rust unit tests together | LLVM source-based coverage (`software/flight/scripts/rust_coverage.sh`) | 90 % of lines | 94.4 % |
-| Flight software, C (`software/flight/src`, gcovr) and Rust together | gcovr and llvm-cov | 80 % of lines | 94.4 % |
-| Rust flight crates, branches (since 2026-10-25) | LLVM source-based coverage with `-Zcoverage-options=condition`, on a pinned nightly (stable rustc does not count branches) | 80 % of branches and conditions | 80.6 % (2026-10-25) |
+| Rust flight crates (`sqso-protocol`, `sqso-fsw`, `sqso-ffi`): C suites and Rust unit tests together | LLVM source-based coverage (`software/flight/scripts/rust_coverage.sh`) | 90 % of lines | 94.8 % |
+| Flight software, C (`software/flight/src`, gcovr) and Rust together | gcovr and llvm-cov | 80 % of lines | 94.8 % |
+| Rust flight crates, branches (since 2026-10-25) | LLVM source-based coverage with `-Zcoverage-options=condition`, on a pinned nightly (stable rustc does not count branches) | 80 % of branches and conditions | 81.1 % (2026-10-25) |
 
 The branch target above is now gated (80 %). lcov is no longer used: gcovr counts sources that no test runs, and lcov
 did not. The safety-critical components (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) are gated per file at
@@ -131,9 +131,9 @@ did not. The safety-critical components (`docs/software/SOFTWARE_DEVELOPMENT_PLA
 - **Coverage**: lcov/gcov
 - **Mocking**: CMocka mock functions
 
-**As implemented (Version 1.1).** The CMocka suites in `software/flight/tests` (43 suites, 646 cases, plus the
-`no_dynamic_memory` check and the `Simulation_Run` host simulation: 46 ctest entries, as `test_executive_jetson` runs as
-two) are the specification of the flight software. They run unchanged against
+**As implemented (Version 1.1).** The CMocka suites in `software/flight/tests` (45 suites, 695 cases, plus the
+`no_dynamic_memory` check and the `Simulation_Run` host simulation: 49 ctest entries, as `test_executive_jetson` and
+`test_downlink_sim` run as two each) are the specification of the flight software. They run unchanged against
 the Rust library through the C headers. The HAL is the simulated HAL `software/rust/sqso-ffi/src/hal_sim.rs`, whose
 `hal_sim_*` hooks inject inputs and faults; there is no `mocks/` directory. In addition:
 

@@ -1,7 +1,7 @@
 # Hardware-in-the-Loop (HIL) Test Plan
 
 **Document ID**: SMART-QSO-HIL-001
-**Version**: 1.3
+**Version**: 1.4
 **Date**: 2026-10-25
 **Classification**: Engineering
 
@@ -129,8 +129,8 @@ this plan. Three probe scripts exist for HIL-004, HIL-040 and HIL-044 (§4.4). C
 
 | ID | Test | Description | Pass Criteria |
 |----|------|-------------|---------------|
-| HIL-030 | UART TX | Beacon transmission | Frame correct, timing met |
-| HIL-031 | UART RX | Command reception | Command executed correctly |
+| HIL-030 | UART TX | Beacon transmission: the KISS stream on USART2 TX (logic analyzer) | The TNC parameters, then one data frame per beacon; the frame decodes as the console's beacon (as `Downlink_TNC_served` checks on the host) |
+| HIL-031 | UART RX | Command reception: an authenticated frame through the TNC | Command executed correctly (the HAL appends the FCS the TNC removed; a TX-OFF frame from the TNC latches TX-OFF) |
 | HIL-032 | Jetson Protocol | Payload request/response | Response within timeout |
 | HIL-033 | Fallback Mode | Jetson timeout | Fallback beacon used |
 
@@ -152,6 +152,16 @@ this plan. Three probe scripts exist for HIL-004, HIL-040 and HIL-044 (§4.4). C
 | HIL-051 | Comm Fault | UART disconnect | Timeout handled, no crash |
 | HIL-052 | Power Fault | Low voltage | Emergency mode entered |
 | HIL-053 | Memory Fault | CRC mismatch | Data rejected, default used |
+
+### 3.7 Downlink Transmitter Tests (CR-2026-005; TNC and transmitter on a dummy load)
+
+| ID | Test | Description | Pass Criteria |
+|----|------|-------------|---------------|
+| HIL-060 | Air Time | Longest beacon frame, RF envelope on a detector or the TNC's PTT line | Carrier on ≤ 5 s (SRS-P002); measured air time ≤ `airtime_ms()` of the frame (`sqso-fsw/src/downlink.rs`) |
+| HIL-061 | Inhibits at Hand-over | TX-OFF, then the RF-silence and contact inhibits, each with a beacon due | No byte on USART2 TX and no carrier; after TX-ON a beacon goes (SRS-I024) |
+| HIL-062 | Power Select | `SET_POWER` 0 (0.5 W) and 1 (1 W) | TX_PWR_SEL (PE3) low and high; power on the dummy load within the transmitter's tolerance of 0.5 W and 1 W, never above 1 W (SRS-I026) |
+| HIL-063 | VSWR Protection | 3:1 mismatch in place of the dummy load | After 3 bad samples: power capped at 0.5 W (`FAULT_TYPE_RF_TX` logged); again at 0.5 W: no frame for 10 minutes (SRS-I027) |
+| HIL-064 | Monitors | TX_TEMP heated past 70 °C; TX_FWD with the PA unpowered | Downlink held until below 60 °C; "keyed with no forward power" logged once per frame. Confirms the monitor scaling (TBR-SRS-003) |
 
 ## 4. Test Procedures
 
@@ -233,6 +243,7 @@ the reset cause the firmware recorded, not IWDGRSTF. Without a board, `--dump` (
 | Interface Tests | HIL-010 to HIL-033 | 2 days |
 | Timing Tests | HIL-040 to HIL-044 | 1 day |
 | Fault Injection | HIL-050 to HIL-053 | 2 days |
+| Downlink Transmitter | HIL-060 to HIL-064 | 1 day |
 | Regression | All tests | 1 day |
 
 ## 7. Resources Required
@@ -274,6 +285,7 @@ the reset cause the firmware recorded, not IWDGRSTF. Without a board, `--dump` (
 | 1.1 | 2026-10-24 | SMART-QSO Team | §1.4: the target is the STM32L4R5ZI and the image is the Rust firmware (cargo, probe-rs); interfaces of the firmware; criteria to revisit (HIL-004, HIL-040, HIL-043); nothing run or written yet |
 | 1.2 | 2026-10-25 | SMART-QSO Team | HIL-040 pass criterion 20 ms, as SRS-P001 requires (was 100 ms); HIL-004 against the MPU stack guard; HIL-044 stack high-water mark added (SRS-C003) |
 | 1.3 | 2026-10-25 | SMART-QSO Team | §4.4 probe procedures for HIL-004, HIL-040 and HIL-044 (scripts in `software/rust/firmware/tools/`); HIL-040 measured per `Executive::step()` pass with the DWT cycle counter, ≤ 20 ms and no overrun; §1.4 points to the bring-up checklist (`software/rust/firmware/BRINGUP.md`). HIL-001 criterion matches the mode manager (BOOT to DETUMBLE to IDLE, or SAFE on low SOC) and SRS-F001's 30 s (was SAFE within 5 s) |
+| 1.4 | 2026-10-25 | SMART-QSO Team | §3.7 downlink transmitter tests HIL-060 to HIL-064 (CR-2026-005); HIL-030 and HIL-031 through the TNC |
 
 ---
 

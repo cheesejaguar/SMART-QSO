@@ -194,7 +194,9 @@ pub unsafe extern "C" fn beacon_serialize_ax25(frame: *const Frame, buffer: *mut
 /// the EPS has the beacon powered off. The frame goes to the downlink
 /// (`downlink.h`), which may still refuse it (an inhibit, the duty limit,
 /// the transmitter's protections); only a frame it takes is counted and
-/// shown on the console
+/// shown on the console. A frame the downlink holds (busy) makes the next
+/// beacon due an interval later, not on the next pass: every try takes a
+/// sequence number and a template
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn beacon_transmit(content: *const Content) -> i32 {
     // SAFETY: the C contract: NULL or a BeaconContent_t
@@ -214,6 +216,9 @@ pub unsafe extern "C" fn beacon_transmit(content: *const Content) -> i32 {
     }
     // SAFETY: body holds body_len bytes
     let sent = unsafe { crate::downlink::downlink_transmit(body.as_ptr(), body_len) };
+    if sent == rc::BUSY {
+        beacon_mark_transmitted(c::now_ms());
+    }
     if sent != rc::OK {
         return sent;
     }
