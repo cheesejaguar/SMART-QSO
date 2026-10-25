@@ -336,3 +336,22 @@ fn a_failed_power_reading_is_no_sample() {
     assert_eq!(poll_at(&mut d, t + 40, BAD), None);
     assert_eq!(poll_at(&mut d, t + 60, BAD), Some(Event::PowerReduced));
 }
+
+#[test]
+fn a_frame_may_spend_the_last_of_the_credit() {
+    let mut d = ready(0);
+    d.credit = u64::from(airtime_ms(100)) * CREDIT_SCALE;
+    assert!(send(&mut d, 0, 100).is_ok());
+    assert_eq!(d.credit, 0);
+    let mut d = ready(0);
+    d.credit = u64::from(airtime_ms(100)) * CREDIT_SCALE - 1;
+    assert_eq!(send(&mut d, 0, 100), Err(Refusal::Duty));
+}
+
+#[test]
+fn at_the_resume_point_exactly_it_stays_held() {
+    let mut d = ready(0);
+    let _ = d.request(0, 20, true, POWER_1W, TEMP_LIMIT_C + 1.0);
+    assert_eq!(d.request(0, 20, true, POWER_1W, TEMP_RESUME_C), Err(Refusal::OverTemperature));
+    assert!(d.over_temperature());
+}
