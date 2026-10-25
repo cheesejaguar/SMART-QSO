@@ -76,7 +76,7 @@ the current source, and `software/rust/README.md` maps every former C file to it
 
 The table above is the 0.2.0 skeleton (history; `test_main.c` was removed on 2026-10-16). On 2026-10-24 there are 42
 CMocka suites with 631 cases, and 44 ctest entries with `no_dynamic_memory` and `Simulation_Run`, in `software/flight/tests`. They run
-against the Rust. There are also 292 Rust unit tests (`sqso-protocol` 37, `sqso-fsw` 160) and 11 fuzz targets.
+against the Rust. There are also 299 Rust unit tests (`sqso-protocol` 74, `sqso-fsw` 225) and 11 fuzz targets.
 
 ### 3.3 Configuration Files
 
@@ -239,7 +239,7 @@ coverage are not measured, so the table above is left as it was.
 |------------|--------|------------|
 | Simulation only | Not flight-ready | Hardware integration TBD |
 | No RTOS (FreeRTOS was never integrated and is not planned) | One Embassy task; interrupts only for the UARTs and the time driver | By design; the baseline since 2026-10-25 (BASELINE §6, CR-2026-002; `software/flight/docs/RTOS_ARCHITECTURE.md`) |
-| Firmware not run on hardware | Pin map provisional; timing, stack and power not measured | Hardware bring-up (`software/rust/README.md`, Next steps) |
+| Firmware not run on hardware | Pin map provisional; timing and power not measured; stack bounded by analysis only (4,892 B of 8 KB) | Hardware bring-up (`software/rust/README.md`, Next steps) |
 | Beacon interval | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (BASELINE §8) | Operating constraint |
 | Beacon text | At most 176 characters (`docs/BEACON_SPEC.md`) | Operating constraint |
 | Hardware watchdog | 30 s timeout (`WDT_HW_TIMEOUT_MS`) | Operating constraint |

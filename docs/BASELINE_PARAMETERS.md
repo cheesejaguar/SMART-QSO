@@ -31,7 +31,7 @@ self-consistent baseline.
 | Operator compensation | None for operations (Part 97 condition C2) |
 | Project phase | **Phase B (pre-PDR).** No independent PDR or CDR has been held; earlier review records are self-assessments (FINDINGS_REGISTER PI-03, PI-04) |
 | Payload risk classification | Class D (NPR 8705.4B), proposed |
-| Software classification | Formal classification per NPR 7150.2D Appendix D **pending** (not yet determined) |
+| Software classification | **Class C** per NPR 7150.2D Appendix D (CubeSat mission software; software on a Class D payload); research and analysis tools Class D (`software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). Safety-critical components: SDP §3.2 |
 
 ## 2. Mission
 
@@ -187,4 +187,4 @@ change are marked there.
 | B | 2026-10-15 | Decisions D1–D7 recorded (§9): licensee, paid-contract structure, contact timeout, transponder kept, AI model selection, GNSS receiver (mass and power lines), integrator plan and cost |
 | B, note | 2026-10-16 | Notes on mass (§4) and the tumbling margin (§5) from the re-issued mass budget and solar-array analysis; values unchanged pending the PI |
 | B, note | 2026-10-24 | Note beneath §6: the flight software is Rust on the Embassy executor, not FreeRTOS; the OBC row is unchanged pending the PI |
-| C | 2026-10-25 | §6 OBC: the flight software runs on the Embassy executor with no RTOS (was FreeRTOS), by PI decision (CR-2026-002) |
+| C | 2026-10-25 | §6 OBC: the flight software runs on the Embassy executor with no RTOS (was FreeRTOS), by PI decision (CR-2026-002). §1 software classification: Class C (NPR 7150.2D Appendix D) |

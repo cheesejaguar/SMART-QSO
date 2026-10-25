@@ -3,7 +3,8 @@ Health Interface Module for SMART-QSO Jetson Payload
 
 This module provides the UART interface for receiving health commands
 and telemetry requests from the OBC. It handles connection management,
-data parsing, and validation per NPR 7150.2 Class B requirements.
+data parsing, and validation. Software class: NPR 7150.2D Class C
+(docs/software/SOFTWARE_DEVELOPMENT_PLAN.md §3.1).
 
 The link carries ICD lines (docs/interfaces/ICD_OBC_JETSON.md section 4,
 obc_link.py): TELEMETRY (heartbeat), STATUS_REQ, SHUTDOWN and BEACON_REQ

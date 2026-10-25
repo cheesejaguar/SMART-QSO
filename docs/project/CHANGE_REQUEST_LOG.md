@@ -20,6 +20,7 @@ logged here; the Git history records them.
 |----|------|-------|------|--------|----------|--------|
 | CR-2026-001 | 2026-10-25 | I | SRS-C001 (`docs/software/SOFTWARE_REQUIREMENTS.md` §8.1) | "C conforming to C11" becomes "Rust (2024 edition) or C conforming to C11" | Approved, PI | Implemented, verified |
 | CR-2026-002 | 2026-10-25 | I | BASELINE §6 OBC row; OBC-F001 (`hardware/obc/OBC_DESIGN.md` A.2.1) | FreeRTOS becomes the Embassy executor, no RTOS | Approved, PI | Implemented; OBC-F001 verification pending (hardware) |
+| CR-2026-003 | 2026-10-25 | I | SWE-219 tailoring (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2 to §3.3) | MC/DC replaced by 100 % line and condition coverage of the safety-critical components | **Open: PI decision** | Proposed |
 
 ## 3. Change Requests
 
@@ -120,10 +121,66 @@ Submitter: Flight software
    Date: —
 ```
 
+### CR-2026-003: SWE-219, MC/DC for the safety-critical components
+
+```
+Change Request Number: CR-2026-003
+Date Submitted: 2026-10-25
+Submitter: Flight software
+
+1. Configuration Item Affected:
+   CI ID: SMART-QSO-SDP-001 §3.3 (tailoring); NPR 7150.2D SWE-219
+   Current Version: SDP 1.2
+
+2. Description of Change:
+   For the safety-critical components of SDP §3.2, replace "100 % code coverage by the
+   MC/DC criterion" (SWE-219) with "100 % line coverage and 100 % condition coverage
+   (each condition of each decision taken both ways)", measured by LLVM source-based
+   coverage (-Zcoverage-options=condition) over the C suites and the Rust unit tests.
+
+3. Reason for Change:
+   The flight software is Rust. rustc has no MC/DC instrumentation (it was removed);
+   condition coverage is the strongest decision-level measure it provides. No qualified
+   MC/DC tool for Rust is known to the project.
+
+4. Impact Assessment:
+   - Technical: condition coverage does not show that each condition independently
+     affects its decision. Mitigation: the decisions in these components are short (most
+     have one or two conditions), and mutation testing of sqso-fsw left no survivor in
+     them that changes behaviour (software/rust/mutants/RESULTS-sqso-fsw.md; deployment's
+     three survivors are equivalent).
+   - Schedule: tests to bring the components of SDP §3.2 from the coverage measured there
+     to 100 %.
+   - Cost: none beyond that effort.
+   - Risk: a decision with an untested independent effect of one condition.
+
+5. Affected Documents:
+   docs/software/SOFTWARE_DEVELOPMENT_PLAN.md §3.2 to §3.3,
+   docs/safety/SOFTWARE_SAFETY_PLAN.md §8.2.
+
+6. Verification Required:
+   A CI gate on the per-file condition coverage of the safety-critical components.
+
+7. CCB Decision:
+   [ ] Approved
+   [ ] Approved with conditions:
+   [ ] Rejected
+   Reason: open; PI decision with the safety lead.
+
+8. Implementation:
+   Assigned to: Flight software
+   Due date: —
+   Completed: —
+
+9. Verification:
+   Verified by: —
+   Date: —
+```
+
 ---
 
 ## 4. Revision History
 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
-| A | 2026-10-25 | Initial release: CR-2026-001, CR-2026-002 | SMART-QSO Team |
+| A | 2026-10-25 | Initial release: CR-2026-001, CR-2026-002, CR-2026-003 (open) | SMART-QSO Team |

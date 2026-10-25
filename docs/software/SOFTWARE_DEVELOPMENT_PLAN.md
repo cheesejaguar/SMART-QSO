@@ -122,39 +122,50 @@ rationale cells still cite Class D and will be replaced by that mapping.
 
 ### 3.2 Safety Criticality (NASA-STD-8739.8)
 
-The software is classified as:
-- **Not safety-critical** - No software-controlled functions can cause personnel hazards
-- **Mission-critical** - Software failures can affect mission success but are recoverable
+Safety criticality is a separate determination from the class (SWE-205). By NASA-STD-8739.8B §4.2, software is
+safety-critical if, traceable to a hazard analysis, it causes or contributes to a system hazard, controls functions
+identified in one, provides mitigation for one, mitigates damage, or detects, reports and takes corrective action when
+the system reaches a potentially hazardous state. Version 1.1 called the software "not safety-critical" and cited
+NASA-STD-8719.13 (cancelled in 2020); that statement did not meet these criteria.
 
-Note (2026-10-25). Safety criticality is a separate determination from the class, made by the criteria of
-NASA-STD-8739.8. Version 1.1 cited NASA-STD-8719.13, which was cancelled in 2020. The statement above has not been
-checked against the NASA-STD-8739.8 criteria, and other project documents disagree with it:
-- The Software Hazard Analysis (SQSO-SHA-001 §5) lists software causes and controls for hazards of Critical (2)
-  severity: EPS control (SW-HAZ-001), watchdog (SW-HAZ-004), deployment timer (SW-HAZ-007) and safe-mode entry
-  (SW-HAZ-008).
-- The Software Safety Data Package (SQSO-SDP-001 §3) says the software has safety-critical functions: watchdog, battery
-  protection, RF transmit enable, thermal protection and safe-mode logic.
-- The Software Safety Plan (SQSO-SSP-001 §5.2) rates EPS control, fault management and the watchdog its highest
-  applicable criticality.
+**Determination (2026-10-25).** The Software Hazard Analysis (SQSO-SHA-001) lists software controls for four hazards
+of Critical (2) severity, and the system hazard list includes RF interference (SH-008), whose control is the software
+transmit inhibit. The components that implement those controls are safety-critical; the rest of the flight software is
+mission-critical, not safety-critical.
 
-The determination is open and goes to the PI with the safety lead. This note records the disagreement; it does not
-resolve it.
+| Safety-critical component | Hazard | Rust (`software/rust`) | Line / condition coverage (2026-10-25) |
+|---------------------------|--------|------------------------|-----------------------------------------|
+| EPS control, battery protection | SW-HAZ-001 | `sqso-fsw/src/eps.rs`, `sqso-ffi/src/eps_control.rs` | 99 % / 63 %; 95 % / 83 % |
+| Watchdog supervision | SW-HAZ-004 | `sqso-fsw/src/watchdog.rs`, `sqso-ffi/src/watchdog_mgr.rs`, `firmware/src/wdt.rs` | 98 % / 75 %; 83 % / 72 %; target only |
+| Deployment timer and sequence | SW-HAZ-007 | `sqso-fsw/src/deployment.rs`, `sqso-ffi/src/deployment.rs` | 99 % / 80 %; 92 % / 80 % |
+| Safe-mode entry, fault response | SW-HAZ-008 | `sqso-fsw/src/mode.rs`, `sqso-ffi/src/state_machine.rs`, `sqso-fsw/src/fault_log.rs`, `sqso-ffi/src/fault_mgmt.rs`, `sqso-fsw/src/assert_handler.rs`, `sqso-ffi/src/assert_handler.rs` | 95 % / 97 %; 90 % / 72 %; 97 % / 72 %; 86 % / 61 %; 98 % / 95 %; 96 % / 88 % |
+| Payload thermal and over-current protection | Safety Data Package (SQSO-SDP-001) §3.2, thermal protection | `sqso-fsw/src/payload_guard.rs`, `sqso-ffi/src/payload_guard.rs` | 100 % / 98 %; 100 % / no conditions |
+| RF transmit inhibit (TX-OFF latch, post-deployment silence, loss of contact, separation switch) | SH-008 | `sqso-fsw/src/rf_control.rs`, `sqso-fsw/src/rf_silence.rs`, `sqso-fsw/src/contact_monitor.rs` and their `sqso-ffi` wrappers, `sqso-ffi/src/separation_switch.rs` | 97 % / 100 %; 99 % / 100 %; 98 % / 100 %; wrappers 86–100 % / 50–75 % |
+
+Coverage is from the C suites and the Rust unit tests together, measured with `-Zcoverage-options=condition` on the
+pinned nightly (`software/flight/scripts/rust_coverage.sh`); "condition" counts each condition of a decision taken both
+ways. RF inhibit has no SW-HAZ entry of its own yet; adding one (with its controls and their verification) is an open
+action of the hazard analysis. The list agrees with the Safety Data Package (SQSO-SDP-001) §3.2. The determination
+goes to the PI with the safety lead for concurrence, as SWE-205 asks.
+
+**What it requires.** SWE-219 (NPR 7150.2D §3.7.4) asks for 100 % code coverage by the MC/DC criterion for every
+safety-critical component, at every class. rustc cannot measure MC/DC (its MC/DC instrumentation was removed; the
+nearest measure it offers is condition coverage). Change request CR-2026-003 (`docs/project/CHANGE_REQUEST_LOG.md`)
+proposes 100 % line and condition coverage of the components above in place of MC/DC. Until the PI decides it, SWE-219
+is not met; either way the coverage in the table is short of 100 %.
 
 ### 3.3 Tailoring Rationale
 
-Per NPR 7150.2 Appendix C, the following tailoring is applied:
+Per NPR 7150.2D Appendix C, for Class C (§3.1); the mapping of every Class C requirement is still to be written
+(`docs/funding_audit/NASA_STANDARDS_COMPLIANCE_MATRIX.md`, row NPR 7150.2):
 
-| Requirement | Tailoring | Rationale |
-|-------------|-----------|-----------|
-| Formal inspection | Peer review | Small team, Class D |
-| MC/DC coverage | Branch coverage | Class D missions |
-| Independent V&V | Team V&V | Limited budget |
-| Tool qualification | Documented tools | Class D |
-
-Version 1.1 notes. CI gates **line** coverage (Rust ≥ 90 %; C and Rust together ≥ 80 %). Branch coverage is neither
-measured nor gated, so the "branch coverage" tailoring above is not yet implemented. The Rust toolchain is pinned
-(1.97.0) and documented, but not qualified. Whether flight needs a qualified compiler (for example Ferrocene) is a PI
-decision (`software/rust/README.md`, Next steps).
+| Requirement | As applied | Rationale |
+|-------------|------------|-----------|
+| Peer reviews and inspections | Reviewed pull requests; CI gates | Small team |
+| Code coverage | Gated in CI: Rust lines ≥ 90 %, C and Rust lines ≥ 80 %, Rust branches ≥ 75 % (76.3 % on 2026-10-25) | Measured on every change (`.github/workflows/ci.yml`) |
+| MC/DC for safety-critical components (SWE-219) | Proposed: 100 % line and condition coverage instead (CR-2026-003); not yet met | rustc cannot measure MC/DC (§3.2) |
+| Independent V&V | Team V&V | No IV&V designation (not a NASA project) |
+| Tool qualification | Pinned, documented toolchain (Rust 1.97.0), not qualified | Whether flight needs a qualified compiler (for example Ferrocene) is a PI decision (`software/rust/README.md`, Next steps) |
 
 ---
 
@@ -270,7 +281,7 @@ Details are in `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` §2.1.
 
 | Rule | Description | Enforcement (Rust) | Enforcement (remaining C) |
 |------|-------------|--------------------|---------------------------|
-| JPL-1 | Simple control flow | Compiler (no `goto`); review (recursion) | Review |
+| JPL-1 | Simple control flow | Compiler (no `goto`); CI call-graph cycle check on the image (`scripts/stack_usage.py`) | Review |
 | JPL-2 | Fixed loop bounds | Review (`software/flight/docs/LOOP_BOUNDS.md`); fuzzing | Review |
 | JPL-3 | No dynamic memory after init | ctest `no_dynamic_memory`; CI image check | ctest `no_dynamic_memory` |
 | JPL-4 | Function length < 60 lines | clippy `too_many_lines` (two documented exceptions) | `function_length.py` ratchet |
@@ -462,8 +473,8 @@ See `docs/verification/VERIFICATION_MATRIX.md` for complete VCRM.
 
 1. NPR 7120.5 Rev F - NASA Space Flight Program and Project Management Requirements
 2. NPR 7123.1 Rev E - NASA Systems Engineering Processes and Requirements
-3. NPR 7150.2 Rev B - NASA Software Engineering Requirements
-4. NASA-STD-8719.13 - Software Safety Standard
+3. NPR 7150.2D - NASA Software Engineering Requirements
+4. NASA-STD-8739.8B - Software Assurance and Software Safety Standard (replaces NASA-STD-8719.13, cancelled 2020)
 5. JPL D-60411 - JPL Institutional Coding Standard
 
 ---
@@ -490,4 +501,4 @@ See `docs/verification/VERIFICATION_MATRIX.md` for complete VCRM.
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The OBC flight software is Rust on the STM32L4R5ZI with the Embassy executor (no FreeRTOS): §2.2, §2.3, §5 (platforms, tools, targets) and §6 (Rust standard; JPL enforcement as implemented). §3.3 notes: line coverage is gated, branch coverage is not; the toolchain is not qualified |
-| 1.2 | 2026-10-25 | SMART-QSO Team | §3.1 software classification determined against NPR 7150.2D Appendix D: Class C for flight software, ground software used in operations and verification software, Class D for research and analysis tools (findings PI-18, VV-12); §2.3 table to match; §3.2 cites NASA-STD-8739.8 and records that the safety-criticality statement disagrees with the hazard analysis and safety documents (open). Header cites NPR 7150.2D. §12.1: Embassy executor in place of RTOS concepts (BASELINE §6, CR-2026-002) |
+| 1.2 | 2026-10-25 | SMART-QSO Team | §3.2 safety-critical components determined by the NASA-STD-8739.8B §4.2 criteria from the hazard analysis, with their coverage; SWE-219 not met, tailoring request CR-2026-003. §3.3 tailoring for Class C, branch coverage now gated. §3.1 software classification determined against NPR 7150.2D Appendix D: Class C for flight software, ground software used in operations and verification software, Class D for research and analysis tools (findings PI-18, VV-12); §2.3 table to match; §3.2 cites NASA-STD-8739.8 and records that the safety-criticality statement disagrees with the hazard analysis and safety documents (open). Header cites NPR 7150.2D. §12.1: Embassy executor in place of RTOS concepts (BASELINE §6, CR-2026-002) |

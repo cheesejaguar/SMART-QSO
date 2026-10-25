@@ -89,7 +89,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-EOL-001 | End-of-Life Plan | `docs/operations/END_OF_LIFE_PLAN.md` | A | Draft |
 | SQSO-OPS-005 | Launch Campaign Checklist | `docs/operations/LAUNCH_CAMPAIGN_CHECKLIST.md` | A | Draft |
 | SQSO-OPS-004 | Launch Site Operations Plan | `docs/operations/LAUNCH_SITE_OPS.md` | A | Draft |
-| SQSO-MOP-001 | Mission Operations Plan | `docs/operations/MISSION_OPERATIONS_PLAN.md` | A | Draft |
+| SQSO-MOP-001 | Mission Operations Plan | `docs/operations/MISSION_OPERATIONS_PLAN.md` | B | Draft |
 | SQSO-MRC-001 | SMART-QSO Mission Rules and Constraints | `docs/operations/MISSION_RULES.md` | 1.0 | Draft |
 | SQSO-MTL-001 | SMART-QSO Mission Timeline and Event Sequence | `docs/operations/MISSION_TIMELINE.md` | 1.0 | Draft |
 | SQSO-OTM-001 | SMART-QSO Operator Training Materials | `docs/operations/OPERATOR_TRAINING_MATERIALS.md` | 1.0 | Draft |

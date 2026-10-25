@@ -51,7 +51,7 @@ The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 | `hal_radio.h` | `radio.rs` | Telecommand receiver: KISS frames from the TNC on USART2 (PD5/PD6, 9600 baud), decoded by `sqso_protocol::kiss` |
 
 Not provided: the HAL's callback timers and the watchdog early-warning callback. Both are refused, as they were in the
-former C port. The release image is 120,884 B of text, 18,840 B of data and 16,256 B of bss. The vector table is at
+former C port. The release image is 110,236 B of text, 19,624 B of data and 15,488 B of bss. The vector table is at
 0x08000000, the initial SP is 0x200A0000 and the entry point is `Reset`. No hardware has run it. CI builds the image and
 checks those properties. The ADCS sensor and actuator drivers, and real sensor-table readings on the target, are not
 written because the parts are not selected (`docs/reviews/KNOWN_ISSUES.md` KI-001).
@@ -246,7 +246,7 @@ Measured 2026-10-24.
 - **The C suites as the specification.** 44 ctest entries: 42 CMocka suites with 631 `cmocka_unit_test` cases, the
   `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
   unchanged against the Rust on the host and under AddressSanitizer and UBSan.
-- **Coverage.** Rust line coverage is 92.2 %, from the C suites plus the 292 Rust unit tests (gate 90 %). Flight-software
+- **Coverage.** Rust line coverage is 92.2 %, from the C suites plus the 299 Rust unit tests (gate 90 %). Flight-software
   line coverage, C and Rust together, is 92.2 % (gate 80 %).
 - **Stack.** The image's worst case is 4,892 B of the 8 KB budget (SRS-C003; `scripts/stack_usage.py`, 2026-10-25):
   3,368 B in thread mode plus one handler per priority level. Every frame the script reads from the image agrees with
@@ -342,6 +342,10 @@ Still open:
 - **Pin map.** `firmware/src/gpio.rs` is provisional until the OBC schematic baselines a pinout.
   `hardware/obc/OBC_DESIGN.md` and `hardware/obc/STORAGE_DESIGN.md` disagree on PA4–PA7 and PC0–PC1.
 - **Qualified toolchain decision.** Whether flight needs a qualified compiler, for example Ferrocene (qualified for
-  ISO 26262 and IEC 61508), is a PI decision. The NPR 7150.2 classification determines it.
+  ISO 26262 and IEC 61508), is a PI decision. The software is NPR 7150.2D Class C with safety-critical components
+  (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1 to §3.2).
+- **Coverage of the safety-critical components.** SWE-219 asks for 100 % MC/DC coverage of them; rustc cannot measure
+  MC/DC, and change request CR-2026-003 (open, PI decision) proposes 100 % line and condition coverage instead. They
+  measure 83–100 % of lines and 50–100 % of conditions today (SDP §3.2).
 - **Jetson deployment** builds `sqso_protocol` on the Jetson, with Rust installed by
   `software/payload/ansible/deploy_payload.yml`. Shipping a prebuilt aarch64 wheel would remove that step.

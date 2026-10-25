@@ -44,15 +44,15 @@ script makes no such split, and nothing uses backup SRAM.
 
 ### 3.2 Memory Budget
 
-Measured from the release image (2026-10-24, `arm-none-eabi-size` in CI job STM32L4 Cross-Compile (library)):
+Measured from the release image (2026-10-25, `arm-none-eabi-size`; CI job STM32L4 Cross-Compile (library) prints the same):
 
 | Category | Used | Available | Margin |
 |----------|------|-----------|--------|
-| Code and constants (text) | 120,884 B | 2 MB flash | 94 % |
-| Initialized data (data) | 18,840 B | (in SRAM; initial values in flash) | — |
-| Zeroed data (bss) | 16,256 B | (in SRAM) | — |
-| Static RAM (data + bss) | 35,096 B | 640 KB | 95 % |
-| Stack | Not measured | The rest of SRAM | — |
+| Code and constants (text) | 110,236 B | 2 MB flash | 95 % |
+| Initialized data (data) | 19,624 B | (in SRAM; initial values in flash) | — |
+| Zeroed data (bss) | 15,488 B | (in SRAM) | — |
+| Static RAM (data + bss) | 35,112 B | 640 KB | 95 % |
+| Stack | Worst case 4,892 B (static analysis, §6.2) | 8 KB budget below 0x200A0000 (SRS-C003) | 40 % |
 | Heap | None | — | — |
 
 ---

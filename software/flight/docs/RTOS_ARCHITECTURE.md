@@ -62,7 +62,7 @@ Reasons, from the design as built:
 | MCU | STM32L4R5ZI (Cortex-M4F) |
 | Core clock | 80 MHz: 4 MHz MSI through the PLL, M = 1, N = 40, R = 2; AHB and APB at the core clock (`clocks()` in `software/rust/firmware/src/main.rs`) |
 | Rust target | `thumbv7em-none-eabihf` |
-| Image (release) | text 120,884 B, data 18,840 B, bss 16,256 B; vector table at 0x08000000; initial SP 0x200A0000; entry `Reset` |
+| Image (release) | text 110,236 B, data 19,624 B, bss 15,488 B; vector table at 0x08000000; initial SP 0x200A0000; entry `Reset` |
 
 ---
 
@@ -157,7 +157,7 @@ C test suites exercise it. The executive does not use it: the main loop runs its
 | Heap | None. No crate uses `alloc`; the image links no heap (CI checks for `malloc`, `free`, `_sbrk`) |
 | Task storage | Static, in the executor (`embassy-executor`) |
 | UART buffers | Static `ConstStaticCell` arrays (§5) |
-| Stack | One stack (cortex-m-rt), from the initial SP 0x200A0000 downward. Stack use has not been measured |
+| Stack | One stack (cortex-m-rt), from the initial SP 0x200A0000 downward, 8 KB budget with an MPU guard below it. Worst case 4,892 B by static analysis (`software/flight/docs/MEMORY_POLICY.md` §6); not measured on hardware |
 
 `software/flight/docs/MEMORY_POLICY.md` has the policy.
 

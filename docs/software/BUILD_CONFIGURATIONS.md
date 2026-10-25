@@ -45,7 +45,7 @@ Rust release profile (`software/rust/Cargo.toml`; the firmware's `software/rust/
 `debug-assertions = false`. The toolchain is pinned by `software/rust/rust-toolchain.toml` (1.97.0, target
 `thumbv7em-none-eabihf`).
 
-Image (release, 2026-10-24): text 120,884 B, data 18,840 B, bss 16,256 B. Vector table at 0x08000000, initial SP
+Image (release, 2026-10-25): text 110,236 B, data 19,624 B, bss 15,488 B. Vector table at 0x08000000, initial SP
 0x200A0000, entry `Reset`. Linked with cortex-m-rt's `link.x` and the `memory.x` of embassy-stm32 (2 MB flash, 640 KB
 RAM). CI checks the entry point, the vector table, the initial SP, the presence of the flight symbols, and the absence
 of `malloc`, `free`, `_sbrk` and `printf` (job STM32L4 Cross-Compile (library)).
@@ -361,9 +361,9 @@ BIN file and no map file are produced yet.
 | Stack | 8 KB | Per task |
 | Heap | 32 KB | Dynamic allocation |
 
-Revision C: the limits are not checked by CI. The image measures text 120,884 B (code and constants together) and data
-18,840 B, both within the limits above. Its bss of 16,256 B is within the 30 KB limit. It has no heap, and its one stack
-has not been measured.
+Revision C: the limits are not checked by CI. The image measures text 110,236 B (code and constants together) and data
+19,624 B, both within the limits above. Its bss of 15,488 B is within the 30 KB limit. It has no heap, and its one stack
+has a worst case of 4,892 B of its 8 KB budget by static analysis, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6).
 
 ### 10.3 Build Verification Checklist
 
