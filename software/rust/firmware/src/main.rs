@@ -6,7 +6,7 @@
 //! simulation and here. The main loop is the same as the simulation's: one
 //! pass every 20 ms, with the core asleep in the executor in between, and
 //! the hardware watchdog refreshed only when every stage of a pass checked
-//! in.
+//! in. Each pass is timed for the probe (timing.rs, SQSO_LOOP_TIMING).
 //!
 //! No hardware has run this yet: CI builds and checks the image. The pin
 //! assignment is provisional (gpio.rs).
@@ -27,6 +27,7 @@ mod rc;
 mod spi;
 mod stack;
 mod timer;
+mod timing;
 mod uart;
 mod wdt;
 
@@ -120,13 +121,16 @@ fn panic(info: &core::panic::PanicInfo<'_>) -> ! {
 async fn main(_spawner: Spawner) {
     stack::protect();
     wdt::start_boot_watchdog();
+    timing::start();
     bring_up();
     let flight = FLIGHT.take();
     if !flight.start() {
         halt()
     }
     loop {
+        let pass = timing::now();
         flight.step();
+        timing::record(pass);
         Timer::after_millis(TICK_MS).await;
     }
 }
