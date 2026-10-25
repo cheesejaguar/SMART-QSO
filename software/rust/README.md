@@ -276,7 +276,9 @@ Measured 2026-10-24.
   | `sqso-fsw` | 2180 | 1991 | 35 | 153 | 1 |
   | Targeted (the mutations the C commits and audit rows record) | 106 | 106 | 0 | 0 | 0 |
 
-  Every remaining survivor is argued equivalent, one by one, in `mutants/RESULTS-*.md`. None is in the key table,
+  Every remaining survivor is argued equivalent, one by one, in `mutants/RESULTS-*.md`. The functions changed for the
+  stack budget (2026-10-25) were run again (`mutants/RESULTS-stack-changes.md`): the survivors led to three new tests;
+  what remains is console output and the executive's main loop, which no test exercises with a Jetson port. None is in the key table,
   telecommand authentication, mode manager, RF control, RF silence, contact monitor, payload guard, EPS, watchdog or
   fault log.
 
