@@ -189,6 +189,9 @@ struct Sim {
     gpio_initialized: bool,
     gpio_state: [bool; GPIO_PIN_COUNT],
     gpio_dir: [u32; GPIO_PIN_COUNT],
+    /// Levels the outside world drives (`hal_sim_gpio_drive_input()`): they
+    /// survive `hal_gpio_init()`, as a switch's level survives a reset
+    gpio_driven: [Option<bool>; GPIO_PIN_COUNT],
     i2c_initialized: [bool; I2C_BUS_COUNT],
     i2c: [I2cDevice; 3],
     uart_initialized: [bool; UART_PORT_COUNT],
@@ -210,6 +213,7 @@ static SIM: Global<Sim> = Global::new(Sim {
     gpio_initialized: false,
     gpio_state: [false; GPIO_PIN_COUNT],
     gpio_dir: [GPIO_DIR_INPUT; GPIO_PIN_COUNT],
+    gpio_driven: [None; GPIO_PIN_COUNT],
     i2c_initialized: [false; I2C_BUS_COUNT],
     i2c: [
         I2cDevice { addr: I2C_ADDR_EPS_CONTROLLER, registers: [0; 256] },
@@ -287,11 +291,16 @@ pub extern "C" fn hal_deinit() -> i32 {
 // ---------------------------------------------------------------------------
 // hal_gpio.h
 
-/// All pins inputs, low
+/// All pins inputs, low (or at the level the outside world drives)
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_gpio_init() -> i32 {
     sim(rc::BUSY, |s| {
         s.gpio_state = [false; GPIO_PIN_COUNT];
+        for (level, driven) in s.gpio_state.iter_mut().zip(s.gpio_driven) {
+            if let Some(d) = driven {
+                *level = d;
+            }
+        }
         s.gpio_dir = [GPIO_DIR_INPUT; GPIO_PIN_COUNT];
         s.gpio_initialized = true;
         rc::OK
@@ -1080,12 +1089,18 @@ pub extern "C" fn hal_sim_flash_fail_writes_after(writes: i32) {
     sim((), |s| s.flash.writes_before_fail = writes);
 }
 
-/// Set an input pin's level, as the outside world would
+/// Set an input pin's level, as the outside world would (it stays at that
+/// level across `hal_gpio_init()`)
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_sim_gpio_drive_input(pin: u32, state: bool) {
     sim((), |s| {
-        if let Some(level) = index(pin, GPIO_PIN_COUNT).and_then(|i| s.gpio_state.get_mut(i)) {
-            *level = state;
+        if let Some(i) = index(pin, GPIO_PIN_COUNT) {
+            if let Some(level) = s.gpio_state.get_mut(i) {
+                *level = state;
+            }
+            if let Some(driven) = s.gpio_driven.get_mut(i) {
+                *driven = Some(state);
+            }
         }
     });
 }

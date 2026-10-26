@@ -15,10 +15,14 @@ use crate::ptr;
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 pub struct UplinkStats {
-    frames: u32,
-    rejected: u32,
-    not_for_us: u32,
-    commands: u32,
+    /// Frames received
+    pub frames: u32,
+    /// Frames refused (not AX.25 UI, bad FCS)
+    pub rejected: u32,
+    /// Frames for another station
+    pub not_for_us: u32,
+    /// Frames passed to the command handler
+    pub commands: u32,
 }
 
 struct Uplink {

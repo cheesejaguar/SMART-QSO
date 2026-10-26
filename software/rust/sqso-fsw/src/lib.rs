@@ -16,6 +16,8 @@
 //! - [`contact_monitor`]: loss-of-contact transmit inhibit (`contact_monitor.h`)
 //! - [`deployment`]: deployment wait and burn sequence (`deployment.h`)
 //! - [`payload_guard`]: OBC-enforced Jetson power and temperature limits (`payload_guard.h`)
+//! - [`payload_schedule`]: the Jetson's batch duty cycle
+//! - [`heater`]: battery heater thermostat
 //! - [`safe_string`]: bounded string and memory operations (`safe_string.h`)
 //! - [`assert_handler`]: assertion failure log and response (`assert_handler.h`)
 //! - [`flight_log`]: flight log ring buffer (`flight_log.h`)
@@ -53,11 +55,13 @@ pub mod fixed;
 pub mod flight_log;
 pub mod fmath;
 pub mod gnss;
+pub mod heater;
 pub mod keys;
 pub mod mission_data;
 pub mod mode;
 pub mod nvm;
 pub mod payload_guard;
+pub mod payload_schedule;
 pub mod rf_control;
 pub mod rf_silence;
 pub mod safe_string;

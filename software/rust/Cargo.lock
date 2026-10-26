@@ -252,6 +252,7 @@ dependencies = [
 name = "sqso-sil"
 version = "0.2.0"
 dependencies = [
+ "libc",
  "sqso-ffi",
  "sqso-fsw",
  "sqso-protocol",

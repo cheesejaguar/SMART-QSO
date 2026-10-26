@@ -55,6 +55,7 @@ __pycache__/
 venv/
 ENV/
 env/
+!software/rust/sqso-sil/src/env/
 
 # Packaging / build artifacts
 dist/
