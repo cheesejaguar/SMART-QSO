@@ -508,7 +508,7 @@ mod tests {
                 let xb = yb.cross(zb);
                 quat_from_axes(xb, yb, zb)
             } else {
-                Quat::from_axis_angle(spin_axis, 0.035 * t)
+                Quat::from_axis_angle(spin_axis, sqso_fsw::adcs::SPIN_RATE * t)
             };
             let illum = illumination(r, s, d);
             let sun_b = q.rotate_inv(s);

@@ -280,23 +280,22 @@ impl Fsw {
         out
     }
 
-    /// The ADCS sensors: the magnetometer's field (body frame, T), the sun
-    /// sensors' sun vector (body frame, its length the intensity) and the
-    /// true body rate (rad/s; the flight software estimates its own)
+    /// The ADCS sensors as the flight software reads them: the magnetometer
+    /// (body frame, T), the sun sensors' vector (its length the intensity)
+    /// and the gyro's rate (rad/s; `None`: no gyro)
     pub fn set_adcs_sensors(
         &self,
-        b_body_t: crate::env::math::V3,
+        mag_body_t: crate::env::math::V3,
         sun_body: crate::env::math::V3,
-        rate: crate::env::math::V3,
+        gyro: Option<crate::env::math::V3>,
     ) {
         use sqso_fsw::adcs::Vec3;
-        let mag = Vec3::new(b_body_t.x * 1e6, b_body_t.y * 1e6, b_body_t.z * 1e6);
+        let mag = Vec3::new(mag_body_t.x * 1e6, mag_body_t.y * 1e6, mag_body_t.z * 1e6);
         let sun = Vec3::new(sun_body.x, sun_body.y, sun_body.z);
-        // The MEMS gyro, with an in-run bias of 0.02 deg/s per axis
-        let bias = 0.02_f64.to_radians();
-        let w = Vec3::new(rate.x + bias, rate.y - bias, rate.z + bias);
-        // SAFETY: three live Vec3_t
-        unsafe { sqso_ffi::adcs_control::adcs_set_sim_sensors(&mag, &sun, &w) };
+        let w = gyro.map(|r| Vec3::new(r.x, r.y, r.z));
+        let rate = w.as_ref().map_or(core::ptr::null(), |w| w as *const Vec3);
+        // SAFETY: live Vec3_t (the rate NULL for no gyro)
+        unsafe { sqso_ffi::adcs_control::adcs_set_sim_sensors(&mag, &sun, rate) };
     }
 
     /// The magnetorquer dipole the flight software commands, body frame, A·m²

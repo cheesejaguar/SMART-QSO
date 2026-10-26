@@ -63,6 +63,23 @@ pub struct Config {
     pub contact_outage_days: f64,
     /// When that outage starts, days after deployment
     pub contact_outage_start_day: f64,
+    /// Battery capacity relative to the 4S1P INR18650-35E pack (resistance
+    /// scales inversely)
+    pub battery_scale: f64,
+    /// Charge regulator's constant-voltage set point, V a cell
+    pub charge_v_cell: f64,
+    /// Contingency: the magnetorquers never act (the spacecraft tumbles)
+    pub adcs_failed: bool,
+    /// Contingency: the wings never release
+    pub wings_failed: bool,
+    /// Contingency: the Jetson's rail is stuck on (its switch failed closed)
+    pub payload_stuck_on: bool,
+    /// Years of array radiation degradation added at deployment (0: new)
+    pub array_years: f64,
+    /// The gyro (`crate::adcs_mc::gyro_preset`: none, mg370 (the flight
+    /// gyro, BASELINE §8), bmi088 (the backup, calibrated), bmi088_uncal,
+    /// adis16505)
+    pub gyro: String,
 }
 
 impl Default for Config {
@@ -92,6 +109,13 @@ impl Default for Config {
             radiation: true,
             contact_outage_days: 0.0,
             contact_outage_start_day: 0.0,
+            battery_scale: 1.0,
+            charge_v_cell: crate::hw::eps::CV_CELL_V,
+            adcs_failed: false,
+            wings_failed: false,
+            payload_stuck_on: false,
+            array_years: 0.0,
+            gyro: "mg370".into(),
         }
     }
 }
@@ -154,6 +178,18 @@ impl Config {
             "radiation" => self.radiation = b()?,
             "contact_outage_days" => self.contact_outage_days = f()?,
             "contact_outage_start_day" => self.contact_outage_start_day = f()?,
+            "battery_scale" => self.battery_scale = f()?,
+            "charge_v_cell" => self.charge_v_cell = f()?,
+            "adcs_failed" => self.adcs_failed = b()?,
+            "wings_failed" => self.wings_failed = b()?,
+            "payload_stuck_on" => self.payload_stuck_on = b()?,
+            "array_years" => self.array_years = f()?,
+            "gyro" => {
+                if crate::adcs_mc::gyro_preset(v).is_none() {
+                    return Err(format!("unknown gyro {v}"));
+                }
+                self.gyro = v.to_string();
+            }
             _ => return Err(format!("unknown setting {k}")),
         }
         Ok(())
@@ -189,6 +225,13 @@ impl Config {
             ("radiation", self.radiation.to_string()),
             ("contact_outage_days", self.contact_outage_days.to_string()),
             ("contact_outage_start_day", self.contact_outage_start_day.to_string()),
+            ("battery_scale", self.battery_scale.to_string()),
+            ("charge_v_cell", self.charge_v_cell.to_string()),
+            ("adcs_failed", self.adcs_failed.to_string()),
+            ("wings_failed", self.wings_failed.to_string()),
+            ("payload_stuck_on", self.payload_stuck_on.to_string()),
+            ("array_years", self.array_years.to_string()),
+            ("gyro", format!("\"{}\"", self.gyro)),
         ];
         for (i, (k, v)) in fields.iter().enumerate() {
             let _ = write!(s, "  \"{k}\": {v}");

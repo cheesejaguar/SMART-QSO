@@ -47,7 +47,8 @@ pub const N_CELLS: usize = 4;
 pub const CELL_CAPACITY_AH: f64 = 3.45;
 /// Nominal cell voltage (V).
 pub const CELL_NOMINAL_V: f64 = 3.60;
-/// End-of-charge voltage per cell (V).
+/// Cell maximum charge voltage (V; the regulator charges to
+/// `hw::eps::CV_CELL_V`, below it).
 pub const CHARGE_V_CELL: f64 = 4.20;
 /// BMS over-voltage threshold per cell (V; BASELINE §5 ≤ 4.25 V).
 pub const OV_CELL_V: f64 = 4.25;
@@ -200,6 +201,16 @@ impl Pack {
     /// A new pack of identical cells at `soc` and 20 °C.
     pub fn new(soc: f64) -> Pack {
         Pack { cells: [Cell::new(soc); N_CELLS], temp_c: 20.0, age_s: 0.0 }
+    }
+
+    /// Scale every cell's capacity by `scale` (and its resistance by the
+    /// inverse): a pack of larger or smaller cells of the same chemistry
+    pub fn scaled(mut self, scale: f64) -> Pack {
+        for c in &mut self.cells {
+            c.cap_scale *= scale;
+            c.r_scale /= scale;
+        }
+        self
     }
 
     /// A new pack with a manufacturing spread (capacity σ 0.5 %, resistance

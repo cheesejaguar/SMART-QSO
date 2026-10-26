@@ -59,7 +59,7 @@ const STATE_ACTIVE: u32 = 4;
 /// Mean length of one over on the transponder, s
 const OVER_S: f64 = 20.0;
 
-/// Body rate that counts as detumbled, °/s, held for a minute
+/// Rate across +Y that counts as detumbled (captured), °/s, held for a minute
 const DETUMBLED_DPS: f64 = 0.5;
 
 /// The time-series columns
@@ -197,6 +197,12 @@ pub struct Mission {
     qso_rng: Rng,
     /// A CTCSS-valid carrier is on the transponder's uplink
     carrier: bool,
+    /// The deployed inertia is in use
+    wings_inertia: bool,
+    /// The ADCS sensors' errors
+    sensors: crate::adcs_mc::Sensors,
+    /// Their draws (kept apart, as the transponder users')
+    sensor_rng: Rng,
     /// Expected stations calling under the footprint
     calling: f64,
     ts: Table,
@@ -238,9 +244,16 @@ impl Mission {
         let t_int = time::from_utc(iy, im, id, 16, 0, 0.0);
         let orbit = Orbit::sso(cfg.altitude_km * 1000.0, cfg.ltan_h, t0);
         let att = Attitude::tumbling(&mut rng, attitude::INITIAL_TUMBLE_RAD_S, attitude::inertia_stowed());
-        let pack = Pack::with_spread(cfg.integration_soc, &mut rng);
+        let pack = Pack::with_spread(cfg.integration_soc, &mut rng).scaled(cfg.battery_scale);
+        let mut eps = Eps::new(pack, cfg.gauge_offset_a);
+        eps.cv_cell_v = cfg.charge_v_cell;
         let limit = (cfg.burn_limit_a > 0.0).then_some(cfg.burn_limit_a);
-        let deploy = Deployables::new(&mut rng, limit);
+        let mut deploy = Deployables::new(&mut rng, limit);
+        if cfg.wings_failed {
+            for e in &mut deploy.wings.elements {
+                e.release_j = f64::INFINITY; // the hold-down never lets go
+            }
+        }
         let jetson = Jetson::open(rng.next_u64())?;
         // The flight software's host files and its serial port
         for (k, f) in [
@@ -264,6 +277,10 @@ impl Mission {
         let n = stations.len();
         let rad = radiation::Radiation::new(rng.fork());
         let qso_rng = rng.fork();
+        let mut sensor_rng = rng.fork();
+        let mut sensor_model = crate::adcs_mc::default_params().sensors;
+        sensor_model.gyro = crate::adcs_mc::gyro_preset(&cfg.gyro).flatten();
+        let sensors = crate::adcs_mc::Sensors::new(sensor_model, &mut sensor_rng);
         Ok(Mission {
             cfg: cfg.clone(),
             t: t_int,
@@ -273,7 +290,7 @@ impl Mission {
             dist: Disturbance::nominal(),
             array: Array::new(),
             thermal: Thermal::new(cfg.storage_temp_c),
-            eps: Eps::new(pack, cfg.gauge_offset_a),
+            eps,
             radio: Radio::default(),
             deploy,
             jetson,
@@ -285,6 +302,9 @@ impl Mission {
             rng,
             qso_rng,
             carrier: false,
+            wings_inertia: false,
+            sensors,
+            sensor_rng,
             calling: 0.0,
             ts: Table::create(out, "timeseries.csv", TS_HEADER)?,
             orbit_table: Table::create(out, "orbits.csv", crate::metrics::Orbit::HEADER)?,
@@ -460,14 +480,23 @@ impl Mission {
 
         // Attitude: the flight software's coils (when the ADCS rail is on),
         // the residual dipole, gravity gradient and drag
-        let dipole = if self.fsw.running() && self.fsw.pin(pin::ADCS_EN) { self.fsw.adcs_dipole() } else { V3::ZERO };
+        let dipole = if self.fsw.running() && self.fsw.pin(pin::ADCS_EN) && !self.cfg.adcs_failed {
+            self.fsw.adcs_dipole()
+        } else {
+            V3::ZERO
+        };
         let torque = attitude::magnetic_torque(dipole, b_b)
             + self.dist.residual_torque(b_b)
             + attitude::gravity_gradient(r, self.att.q, self.att.inertia)
             + self.dist.aero_torque(v_body, density, wings);
         self.att.step(dt, torque);
-        if self.deploy.wings_deployed() {
-            self.att.inertia = attitude::inertia_deployed();
+        if self.deploy.wings_deployed() && !self.wings_inertia {
+            // The wings swing out: the body's angular momentum is kept
+            let h = self.att.w.hadamard(self.att.inertia);
+            let i = attitude::inertia_deployed();
+            self.att.inertia = i;
+            self.att.w = V3::new(h.x / i.x, h.y / i.y, h.z / i.z);
+            self.wings_inertia = true;
         }
 
         // Array and EPS
@@ -480,7 +509,7 @@ impl Mission {
             albedo_w_m2: earth::albedo_nadir_w_m2(r.norm(), cos_zeta, flux),
             r_m: r.norm(),
             temp_c: self.thermal.string_temps_c(),
-            years_in_orbit: years.max(0.0),
+            years_in_orbit: years.max(0.0) + self.cfg.array_years,
             wings_deployed: wings,
         };
         let strings = self.array.strings(&ainp);
@@ -525,7 +554,10 @@ impl Mission {
         self.fsw.set_adc(adc::TX_REV, self.radio.rev_w);
         self.fsw.drive(pin::ANTENNA_SENSE, self.deploy.antennas_deployed());
         self.fsw.drive(pin::SOLAR_SENSE, self.deploy.wings_deployed());
-        self.fsw.set_adcs_sensors(b_b, sun_b * illum, self.att.w);
+        let mag_meas = self.sensors.magnetometer(&mut self.sensor_rng, b_b);
+        let sun_meas = self.sensors.sun_sensors(&mut self.sensor_rng, sun_b, illum);
+        let gyro_meas = self.sensors.gyro(&mut self.sensor_rng, self.att.w, dt);
+        self.fsw.set_adcs_sensors(mag_meas, sun_meas, gyro_meas);
 
         // Ground: passes, and telecommands
         let best_elev = self.ground(r);
@@ -552,7 +584,7 @@ impl Mission {
             p(pin::ANTENNA_BURN),
             p(pin::SOLAR_BURN),
         );
-        let jet_rail = p(pin::PAYLOAD_EN) && p(pin::JETSON_PWR);
+        let jet_rail = (p(pin::PAYLOAD_EN) && p(pin::JETSON_PWR)) || (self.cfg.payload_stuck_on && self.rel() > 0.0);
         let xpdr_en = p(pin::XPDR_EN);
         self.update_carrier(dt, r);
         self.radio.xpdr = xpdr_en && self.carrier;
@@ -937,12 +969,12 @@ impl Mission {
         }
         t.longest_key_s = self.radio.stats.longest_key_s;
         // Detumble
-        if s.rate_dps < DETUMBLED_DPS {
+        if crate::adcs_mc::captured(self.att.w, sqso_fsw::adcs::SPIN_RATE) {
             let since = *self.below_rate_since.get_or_insert(s.t_s);
             if t.detumbled_s.is_none() && s.t_s - since >= 60.0 {
                 t.detumbled_s = Some(since);
                 let (r, u) = (s.t_s, utc(self.t));
-                self.logs.event(r, &u, "phase", &format!("detumbled below {DETUMBLED_DPS} °/s"));
+                self.logs.event(r, &u, "phase", &format!("detumbled: rate across +Y below {DETUMBLED_DPS} °/s"));
             }
         } else {
             self.below_rate_since = None;

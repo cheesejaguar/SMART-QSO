@@ -3,7 +3,7 @@
 //!
 //! - the MPPT battery charge regulator: tracks the array's maximum power,
 //!   charges at most 0.40 A (constant current, then constant voltage at
-//!   4.20 V a cell), and only between 0 °C and 45 °C; outside that window,
+//!   4.10 V a cell), and only between 0 °C and 45 °C; outside that window,
 //!   or with the pack full, it supplies the loads only;
 //! - the EOL passivation latch: once fired, the array is disconnected for
 //!   good and the loads drain the pack;
@@ -23,8 +23,10 @@ pub const MPPT_EFF: f64 = 0.92;
 pub const DIODE_LOSS: f64 = 0.03;
 /// Charge current limit, A (BASELINE §5)
 pub const CHARGE_LIMIT_A: f64 = 0.40;
-/// Constant-voltage set point, V a cell
-pub const CV_CELL_V: f64 = 4.20;
+/// Constant-voltage set point, V a cell: 4.10 V, not the cell's 4.20 V
+/// maximum, because the pack sits at the end of charge for most of the
+/// mission (BASELINE §5; `docs/hardware/BUILD_VS_BUY.md` §7)
+pub const CV_CELL_V: f64 = 4.10;
 /// Charge temperature window, °C (BASELINE §5, SYS-602)
 pub const CHARGE_WINDOW_C: (f64, f64) = (0.0, 45.0);
 /// BMS under-voltage cut-off and reconnect, V a cell (BASELINE §5)
@@ -121,6 +123,8 @@ pub struct Eps {
     pub ah_in: f64,
     /// Discharge throughput, Ah
     pub ah_out: f64,
+    /// Constant-voltage set point, V a cell ([`CV_CELL_V`] by default)
+    pub cv_cell_v: f64,
 }
 
 impl Eps {
@@ -138,6 +142,7 @@ impl Eps {
             telemetry: Telemetry::default(),
             ah_in: 0.0,
             ah_out: 0.0,
+            cv_cell_v: CV_CELL_V,
         }
     }
 
@@ -154,7 +159,7 @@ impl Eps {
         let cell_ocv = ocv / CELLS;
         let window = batt_c >= CHARGE_WINDOW_C.0 && batt_c <= CHARGE_WINDOW_C.1;
         // Constant current, tapering to the CV set point
-        let taper = ((CV_CELL_V - cell_ocv) / 0.05).clamp(0.0, 1.0);
+        let taper = ((self.cv_cell_v - cell_ocv) / 0.05).clamp(0.0, 1.0);
         let charge_max = if window && !self.passivated { CHARGE_LIMIT_A * taper.max(0.02) } else { 0.0 };
         // Battery current from the power balance at the pack (one fixed-point
         // pass on the terminal voltage)
@@ -214,10 +219,13 @@ impl Eps {
     fn gauge_step(&mut self, dt: f64, i: f64, cell_ocv: f64) {
         let g = &mut self.gauge;
         g.charge_ah += (i + g.offset_a) * dt / 3600.0;
-        // Full charge (CV taper, current down to a trickle): learn the capacity
-        if cell_ocv > CV_CELL_V - 0.01 && (0.0..0.02).contains(&i) {
+        // Full charge (CV taper, current down to a trickle): learn the
+        // capacity, and reset the count to the charge that the end-of-charge
+        // voltage implies on the cell's OCV curve (all of it at 4.20 V, about
+        // 90 % at 4.10 V)
+        if cell_ocv > self.cv_cell_v - 0.01 && (0.0..0.02).contains(&i) {
             g.capacity_ah = 0.9 * g.capacity_ah + 0.1 * self.pack.capacity_ah();
-            g.charge_ah = g.capacity_ah;
+            g.charge_ah = g.capacity_ah * self.pack.soc();
         }
         g.charge_ah = g.charge_ah.clamp(0.0, g.capacity_ah);
     }

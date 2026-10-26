@@ -19,8 +19,13 @@ use crate::fmath::sqrt;
 
 /// Largest dipole per axis, A m^2
 pub const MAX_DIPOLE: f64 = 0.2;
-/// B-dot gain
-pub const BDOT_GAIN: f64 = 5.0e6;
+/// B-dot gain, A m^2 s/T: about the optimum 2 n (1 + sin ξ) J_min / |B|^2 for
+/// this inertia at 500 km (Avanzini and Giulietti, JGCD 35(4), 2012); the
+/// mission simulation's Monte Carlo puts its fastest detumble at 1e4. A
+/// gain far above it removes the rate across the field as fast as it
+/// appears, so the momentum follows the turning field and its magnitude
+/// decays only slowly (5e6 left 15 of 40 trials tumbling after 1.5 days)
+pub const BDOT_GAIN: f64 = 1.0e4;
 /// Sun-pointing proportional gain
 pub const SUNPOINT_KP: f64 = 0.001;
 /// Rate below which the detumble settles, rad/s (~0.5 deg/s)
@@ -28,9 +33,8 @@ pub const DETUMBLE_RATE_THRESHOLD: f64 = 0.0087;
 /// Time below the threshold that completes the detumble, ms (5 min)
 pub const DETUMBLE_SETTLING_MS: u64 = 300_000;
 /// Longest detumble, ms (285 min, three orbits: BASELINE §8 "B-dot
-/// detumble from 10°/s within 3 orbits"; B-dot removes the rate about the
-/// field only as the field turns, which the mission simulation puts at
-/// about 2.5 orbits from 10°/s)
+/// detumble from 10°/s within 3 orbits"; the mission simulation's Monte
+/// Carlo puts the slowest of its tip-offs, up to 30°/s, at 1.5 h)
 pub const DETUMBLE_TIMEOUT_MS: u64 = 17_100_000;
 /// Sun sensors
 pub const SUN_SENSOR_COUNT: usize = 6;
@@ -39,15 +43,57 @@ pub const ECLIPSE_INTENSITY: f64 = 0.05;
 /// The axis held on the Sun: +Y, the normal of the deployed wings
 /// (hardware/eps/SOLAR_ARRAY_DESIGN.md §8.1) and the major axis of inertia
 pub const SUN_AXIS: Vec3 = Vec3::new(0.0, 1.0, 0.0);
-/// Spin rate about [`SUN_AXIS`] in SUNPOINT, rad/s (2 deg/s)
-pub const SPIN_RATE: f64 = 0.035;
+/// Spin rate about [`SUN_AXIS`] in SUNPOINT, rad/s (6 deg/s). The mission
+/// simulation's Monte Carlo (docs/hardware/BUILD_VS_BUY.md §6) puts the
+/// mean Sun angle at 12° for 2 deg/s, 4° for 4 deg/s and 2.5° for 6 deg/s:
+/// the spin's stiffness against the disturbance torques grows with it, and
+/// the coils hold it for under 5 mW
+pub const SPIN_RATE: f64 = 0.105;
 /// Principal moments of inertia with the wings deployed, kg m^2 (mass
 /// properties, TBR with the measured values)
 pub const INERTIA: Vec3 = Vec3::new(0.0029, 0.0041, 0.0037);
 /// Momentum gain of the spin law: torque per unit momentum error, 1/s
 pub const MOMENTUM_GAIN: f64 = 0.005;
 /// Nutation damping: torque per rad/s of rate across the spin axis, N m s
-pub const NUTATION_GAIN: f64 = 4.0e-5;
+/// (with a momentum gain this high, much less damping is unstable)
+pub const NUTATION_GAIN: f64 = 1.0e-4;
+/// Spin hold: torque about +Y per unit spin-momentum error, 1/s. It holds
+/// the spin positive about +Y, so that −Y on the Sun (with the spin
+/// reversed), which the momentum law alone also accepts, is not a rest state
+pub const SPIN_HOLD_GAIN: f64 = 0.005;
+
+/// The control gains the modes use: the flight values ([`Gains::FLIGHT`]),
+/// or others for analysis (the mission simulation's Monte Carlo sweeps)
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Gains {
+    /// B-dot gain ([`BDOT_GAIN`])
+    pub bdot: f64,
+    /// Spin rate about [`SUN_AXIS`] in SUNPOINT, rad/s ([`SPIN_RATE`])
+    pub spin_rate: f64,
+    /// Momentum gain, 1/s ([`MOMENTUM_GAIN`])
+    pub momentum: f64,
+    /// Nutation damping, N m s ([`NUTATION_GAIN`])
+    pub nutation: f64,
+    /// Spin hold, 1/s ([`SPIN_HOLD_GAIN`])
+    pub spin_hold: f64,
+}
+
+impl Gains {
+    /// The flight gains
+    pub const FLIGHT: Gains = Gains {
+        bdot: BDOT_GAIN,
+        spin_rate: SPIN_RATE,
+        momentum: MOMENTUM_GAIN,
+        nutation: NUTATION_GAIN,
+        spin_hold: SPIN_HOLD_GAIN,
+    };
+}
+
+impl Default for Gains {
+    fn default() -> Gains {
+        Gains::FLIGHT
+    }
+}
 
 /// `AdcsMode_t`
 pub mod mode {
@@ -231,10 +277,14 @@ pub fn saturate_dipole(dipole: &mut Vec3, max: f64) {
 /// B-dot: m = -k dB/dt (dB/dt in uT/s), saturated; zero for invalid data
 /// (`adcs_compute_bdot`)
 pub fn bdot(mag: &MagData) -> Vec3 {
+    bdot_with(BDOT_GAIN, mag)
+}
+
+/// [`bdot`] with the gain `k`
+pub fn bdot_with(k: f64, mag: &MagData) -> Vec3 {
     if !mag.valid {
         return Vec3::ZERO;
     }
-    let k = BDOT_GAIN;
     let mut dipole = Vec3 {
         x: -k * mag.field_rate.x * 1e-6, // uT to T
         y: -k * mag.field_rate.y * 1e-6,
@@ -275,6 +325,11 @@ pub fn sunpoint(sun: &SunSensorData, mag: &MagData) -> Vec3 {
 /// part of tau across the field), saturated; zero without a valid field
 /// stronger than 1 uT
 pub fn spin_sunpoint(sun: &SunSensorData, mag: &MagData, rate: Vec3) -> Vec3 {
+    spin_sunpoint_with(&Gains::FLIGHT, sun, mag, rate)
+}
+
+/// [`spin_sunpoint`] with the gains `g`
+pub fn spin_sunpoint_with(g: &Gains, sun: &SunSensorData, mag: &MagData, rate: Vec3) -> Vec3 {
     let b_field = mag.field;
     let b_mag_sq = b_field.dot(&b_field);
     if !mag.valid || b_mag_sq <= 1.0 {
@@ -282,16 +337,21 @@ pub fn spin_sunpoint(sun: &SunSensorData, mag: &MagData, rate: Vec3) -> Vec3 {
     }
     let along = rate.dot(&SUN_AXIS);
     let mut torque = Vec3 {
-        x: -NUTATION_GAIN * (rate.x - along * SUN_AXIS.x),
-        y: -NUTATION_GAIN * (rate.y - along * SUN_AXIS.y),
-        z: -NUTATION_GAIN * (rate.z - along * SUN_AXIS.z),
+        x: -g.nutation * (rate.x - along * SUN_AXIS.x),
+        y: -g.nutation * (rate.y - along * SUN_AXIS.y),
+        z: -g.nutation * (rate.z - along * SUN_AXIS.z),
     };
     if sun.sun_visible {
-        let h_s = SPIN_RATE * INERTIA.y;
+        let h_s = g.spin_rate * INERTIA.y;
         let s = sun.sun_vector;
-        torque.x -= MOMENTUM_GAIN * (INERTIA.x * rate.x - h_s * s.x);
-        torque.y -= MOMENTUM_GAIN * (INERTIA.y * rate.y - h_s * s.y);
-        torque.z -= MOMENTUM_GAIN * (INERTIA.z * rate.z - h_s * s.z);
+        torque.x -= g.momentum * (INERTIA.x * rate.x - h_s * s.x);
+        torque.y -= g.momentum * (INERTIA.y * rate.y - h_s * s.y);
+        torque.z -= g.momentum * (INERTIA.z * rate.z - h_s * s.z);
+        // Spin hold about +Y (SUN_AXIS)
+        let spin_err = INERTIA.y * along - h_s;
+        torque.x -= g.spin_hold * spin_err * SUN_AXIS.x;
+        torque.y -= g.spin_hold * spin_err * SUN_AXIS.y;
+        torque.z -= g.spin_hold * spin_err * SUN_AXIS.z;
     }
     let t = b_field.cross(&torque);
     let mut dipole = Vec3 { x: t.x / b_mag_sq * 1e6, y: t.y / b_mag_sq * 1e6, z: t.z / b_mag_sq * 1e6 };
@@ -368,6 +428,8 @@ pub struct Adcs {
     pub initialized: bool,
     /// The gyro's body rate in the latest cycle, rad/s (`None`: no gyro)
     pub gyro: Option<Vec3>,
+    /// The control gains ([`Gains::FLIGHT`])
+    pub gains: Gains,
 }
 
 impl Adcs {
@@ -397,6 +459,7 @@ impl Adcs {
             mag_prev: MAG,
             initialized: false,
             gyro: None,
+            gains: Gains::FLIGHT,
         }
     }
 
@@ -454,8 +517,21 @@ impl Adcs {
             s.mode = mode::IDLE;
             return;
         }
-        *dipole = bdot(&s.mag);
-        if s.rate_magnitude < DETUMBLE_RATE_THRESHOLD {
+        *dipole = bdot_with(self.gains.bdot, &s.mag);
+        // With the gyro the spacecraft is captured once the rate across +Y
+        // is below the threshold and the spin about +Y below twice the
+        // SUNPOINT spin: SUNPOINT then sets the spin, and a reset in the
+        // mission (the spacecraft already spinning about +Y) needs no despin.
+        // Without it, the magnetometer estimate's magnitude (ADCS_DESIGN §5.1)
+        let settled = if self.gyro.is_some() {
+            let w = s.angular_rate_est;
+            let along = w.dot(&SUN_AXIS);
+            let across = Vec3 { x: w.x - along * SUN_AXIS.x, y: w.y - along * SUN_AXIS.y, z: w.z - along * SUN_AXIS.z };
+            across.magnitude() < DETUMBLE_RATE_THRESHOLD && along.abs() < 2.0 * self.gains.spin_rate
+        } else {
+            s.rate_magnitude < DETUMBLE_RATE_THRESHOLD
+        };
+        if settled {
             if s.settling_start_ms == 0 {
                 s.settling_start_ms = now_ms;
             } else if now_ms.wrapping_sub(s.settling_start_ms) > DETUMBLE_SETTLING_MS {
@@ -501,7 +577,8 @@ impl Adcs {
             mode::DETUMBLE => self.detumble_step(now_ms, &mut dipole, &mut cycle),
             mode::SUNPOINT => {
                 if self.state.sun.sun_visible {
-                    dipole = spin_sunpoint(&self.state.sun, &self.state.mag, self.state.angular_rate_est);
+                    dipole =
+                        spin_sunpoint_with(&self.gains, &self.state.sun, &self.state.mag, self.state.angular_rate_est);
                 } else {
                     self.state.mode = mode::ECLIPSE; // no sun
                 }
@@ -667,10 +744,10 @@ mod tests {
     #[test]
     fn bdot_law_and_saturation() {
         let mut mag = MagData { valid: true, field: Vec3::new(30.0, 0.0, 40.0), ..MagData::default() };
-        mag.field_rate = Vec3::new(0.01, -0.02, 0.004);
+        mag.field_rate = Vec3::new(5.0, -10.0, 2.0);
         let m = bdot(&mag);
         assert!(close(m.x, -0.05, 1e-12) && close(m.y, 0.10, 1e-12) && close(m.z, -0.02, 1e-12));
-        mag.field_rate = Vec3::new(3.0, -4.0, 0.0);
+        mag.field_rate = Vec3::new(1500.0, -2000.0, 0.0);
         let m = bdot(&mag);
         assert!(close(m.magnitude(), MAX_DIPOLE, 1e-12));
         assert!(close(m.x, -0.6 * MAX_DIPOLE, 1e-12) && close(m.y, 0.8 * MAX_DIPOLE, 1e-12));

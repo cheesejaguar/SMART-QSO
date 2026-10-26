@@ -4,6 +4,7 @@
 //! on the simulated HAL) runs against models of the spacecraft and its
 //! environment, on a virtual clock, from integration to re-entry.
 
+pub mod adcs_mc;
 pub mod checks;
 pub mod config;
 pub mod env;

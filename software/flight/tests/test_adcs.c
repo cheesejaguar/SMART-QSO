@@ -473,7 +473,7 @@ static void test_set_mode_rejects_undefined_mode(void **cm_state)
 /* B-dot control law (ADCS_DESIGN §4.1, ICD §7.2)                             */
 /*===========================================================================*/
 
-/** m = -k dB/dt with k = 5e6 A m^2 s/T and dB/dt in uT/s */
+/** m = -k dB/dt with k = 1e4 A m^2 s/T and dB/dt in uT/s */
 static void test_bdot_law_sign_and_units(void **cm_state)
 {
     (void)cm_state;
@@ -483,7 +483,7 @@ static void test_bdot_law_sign_and_units(void **cm_state)
     memset(&mag, 0, sizeof(mag));
     mag.valid = true;
     mag.field = vec(30.0, 0.0, 40.0);
-    mag.field_rate = vec(0.01, -0.02, 0.004);   /* uT/s */
+    mag.field_rate = vec(5.0, -10.0, 2.0);      /* uT/s */
 
     adcs_compute_bdot(&mag, &m);
     assert_double_equal(m.x, -0.05, 1e-12);
@@ -536,7 +536,7 @@ static void test_bdot_saturates_and_keeps_direction(void **cm_state)
     memset(&mag, 0, sizeof(mag));
     mag.valid = true;
     mag.field = vec(30.0, 0.0, 40.0);
-    mag.field_rate = vec(3.0, -4.0, 0.0);       /* commands -15, +20 A m^2 */
+    mag.field_rate = vec(1500.0, -2000.0, 0.0); /* commands -15, +20 A m^2 */
 
     adcs_compute_bdot(&mag, &m);
     assert_double_equal(vec3_magnitude(&m), ADCS_MAX_DIPOLE, 1e-12);

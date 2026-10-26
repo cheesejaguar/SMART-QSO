@@ -1,7 +1,7 @@
 # Mission Simulation (Software in the Loop)
 
 **Document ID**: SQSO-SIL-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-26
 **Status**: Draft
 
@@ -38,7 +38,9 @@ Simulation*) builds the crate, runs `smoke` and `commissioning`, and keeps their
 Settings (`--set`): `seed`, `altitude_km`, `ltan_h`, `integration_soc`, `storage_temp_c`, `mission_days`,
 `passivate_at_eol`, `to_reentry`, `step_s`, `fine_step_s`, `record_s`, `detail_record_s`, `detail_days`,
 `burn_limit_a`, `contacts_per_day`, `contact_min_elev_deg`, `commissioning_days`, `gauge_offset_a`, `radiation`,
-`contact_outage_days`, `contact_outage_start_day` (`sqso-sil/src/config.rs`).
+`contact_outage_days`, `contact_outage_start_day`, and for the design trades `battery_scale`, `charge_v_cell`,
+`array_years`, `gyro`, `adcs_failed`, `wings_failed`, `payload_stuck_on` (`sqso-sil/src/config.rs`). The ADCS Monte
+Carlo is a separate binary, `sqso_adcs_mc` (`docs/hardware/BUILD_VS_BUY.md` §6).
 
 ## 2. How the flight software is in the loop
 
@@ -66,10 +68,11 @@ in the flight logic knows it is simulated. The simulation reaches it only where 
 | Atmosphere | Diffusive-equilibrium density with the Bates profile, driven by the solar cycle | `env/atmosphere.rs` |
 | Sun, eclipse | Low-precision solar coordinates (Astronomical Almanac); conical umbra and penumbra | `env/sun.rs`, `env/eclipse.rs` |
 | Magnetic field | IGRF-14 tilted dipole with secular variation | `env/magfield.rs` |
-| Attitude | Rigid body (Euler's equations, RK4) with the stowed and deployed inertias; magnetorquer torque from the flight software's dipole; residual dipole, gravity-gradient and aerodynamic torques; 10°/s tip-off | `env/attitude.rs` |
+| Attitude | Rigid body (Euler's equations, RK4) with the stowed and deployed inertias, the angular momentum conserved when the wings deploy; magnetorquer torque from the flight software's dipole; residual dipole, gravity-gradient and aerodynamic torques; 10°/s tip-off | `env/attitude.rs` |
+| ADCS sensors | Magnetometer (50 nT noise, 300 nT bias), six coarse sun sensors (5°), gyro (Epson M-G370PDT0 model: turn-on bias, bias instability, noise, scale factor, quantisation; `--set gyro=`) | `adcs_mc.rs` |
 | Solar array | 16 cells in 8 strings on the body faces and the two wings, with incidence, shadowing by the body, albedo, temperature and radiation degradation | `env/solar.rs` |
 | Battery | 4S1P INR18650-35E equivalent circuit with ageing (cycle and calendar fade) | `env/battery.rs` |
-| EPS | MPPT, charge regulator (0.40 A CC, 4.20 V a cell CV, 0–45 °C window), BMS (2.8 V UV, 3.0 V reconnect, 5 A OC), regulators, load switches, fuel gauge, end-of-life passivation latch | `hw/eps.rs` |
+| EPS | MPPT, charge regulator (0.40 A CC, 4.10 V a cell CV, 0–45 °C window), BMS (2.8 V UV, 3.0 V reconnect, 5 A OC), regulators, load switches, fuel gauge, end-of-life passivation latch | `hw/eps.rs` |
 | Thermal | 12-node lumped network: six panels, two wings, battery, OBC stack, RF board, Jetson; solar, albedo and Earth IR loads; heaters and dissipation | `env/thermal.rs` |
 | Radio | KISS TNC and VHF PA (keying, airtime at 1200 bps, DC draw, PA heat, detectors); the FM transponder keying the PA on a CTCSS-valid carrier while `XPDR_EN` is high | `hw/radio.rs` |
 | Link | 2 m downlink and 70 cm uplink budgets after SQSO-LBA-001, frame success against margin | `env/link.rs` |
@@ -99,7 +102,7 @@ Each run writes to its output directory:
 
 | Area | Checks |
 |------|--------|
-| LEOP | First burn ≥ 30 min after separation (CDS 2.4.4); no RF before 45 min (CDS 2.4.5); antennas and wings deployed and sensed within 2 h; detumbled below 0.5°/s within 3 orbits (BASELINE §8) |
+| LEOP | First burn ≥ 30 min after separation (CDS 2.4.4); no RF before 45 min (CDS 2.4.5); antennas and wings deployed and sensed within 2 h; detumbled (rate across +Y below 0.5°/s) within 3 orbits (BASELINE §8) |
 | Power | Depth of discharge per eclipse ≤ 10 % (BASELINE §5); lowest SOC in operations ≥ 40 %; generation over consumption; no under-voltage or over-current cut-off before passivation; no SAFE or EMERGENCY entry after commissioning; mode changes per orbit ≤ 4; capacity fade ≤ 20 %; gauge error ≤ 5 % |
 | Thermal | Battery −10 to +45 °C; charging refused by the 0–45 °C window < 1 % of the time (SYS-602); PA ≤ 70 °C; Jetson ≤ 70 °C; OBC −20 to +60 °C |
 | Downlink | Longest key-down ≤ 5 s and duty over 60 s ≤ 25 % (SRS-P002, the TNC's frames); no frame while transmission is not permitted; beacon gaps ≤ 600 s; ≥ 80 % of passes with a beacon decoded |
@@ -127,6 +130,12 @@ showed, the cause, and what changed.
 | SIL-10 | First telecommand lost | The plan commanded before the antennas deployed | Commands only in a pass in which the station has heard the spacecraft |
 | SIL-11 | False anomalies: SAFE entries after resets, an under-voltage trip, 23 % of commands executed | The simulation's bookkeeping: SAFE and DETUMBLE swapped in its state names; the post-passivation drain counted; the flight software's counters, which restart at each boot, read as a maximum | Fixed in `sqso-sil` and `report.py` |
 | SIL-12 | A Jetson latch-up lasted until the 10-minute batch timeout | The model drew only the 6 W latch current on a latched module, below the guard's 8 W trip | A latched module hangs drawing its idle current as well (about 9.5 W in all); the guard cuts the rail within a second |
+| SIL-13 | ADCS Monte Carlo (`sqso_adcs_mc`, `docs/hardware/BUILD_VS_BUY.md` §6): 15 of 40 trials still tumbling after 2 days | B-dot gain 5·10⁶, 600 times the optimum: the momentum follows the turning field | Gain 10⁴: every trial detumbled, the slowest in 1.4 h (ADCS_DESIGN 1.4 §4.1) |
+| SIL-14 | 23 of 40 trials at rest with −Y on the Sun, the wings facing away | The momentum law also accepts h = −h_s(−ŝ), with the spin reversed | Spin-hold term on the momentum about +Y (`SPIN_HOLD_GAIN`) |
+| SIL-15 | +Y within 15° of the Sun for only 75 % of sunlit time; 163° at the worst eclipse exit | At 2°/s the spin is too soft against the disturbance torques | 6°/s, nutation gain 10⁻⁴: mean 2.5°, 100 % within 15°, 12° at the worst eclipse exit |
+| SIL-16 | Each single-event reset cost a despin and a new spin-up (§8 of revision A) | The detumble's criterion, \|ω\| < 0.5°/s, treated the wanted spin as a tumble | With a gyro, the criterion is the rate across +Y below 0.5°/s and the spin below twice its set point |
+| SIL-17 | Gyro bias ≥ 0.3°/s: Sun capture lost in some trials; uncalibrated BMI088 (±1°/s): in most | The bias across +Y looks like nutation, and the damping drives a real one | Gyro requirement ≤ 0.1°/s: Epson M-G370PDT0, BMI088 backup with ground calibration (BASELINE §8, D9) |
+| SIL-18 | The pack at the end of charge for most of the mission | Generation exceeds the load in every orbit; the pack would sit full whatever its size | Charge set point 4.10 V a cell (BASELINE §5, D8; BUILD_VS_BUY §7). The model's fuel gauge then resets at the end of charge to the charge the set point implies (about 90 %), not to 100 %, as an OCV-correcting gauge would; without that the gauge read 8 % high |
 
 Without the EPS controller answering (the stand-in power model of the development simulation, SW-01) the executive
 keeps its previous behaviour: detumble completes in the first pass and the payload follows the power mode. The C
@@ -136,34 +145,36 @@ suites run that way, unchanged except where SIL-06 changed a specified value.
 
 The reference run: `--scenario full`, seed 20280601, deployment 2028-06-01 06:00 UTC, 500 km sun-synchronous at
 LTAN 22:30, 730 days of operations. It found **0 anomalies and 0 warnings in 37 checks** (about 15 minutes on one
-core). The main values:
+core). Revision B's values are with the 1.4 ADCS gains, the 6°/s spin, the M-G370PDT0 gyro model and the 4.10 V
+charge set point. The main values:
 
 | Area | Result |
 |------|--------|
-| LEOP | First burn 30.0 min and first RF 45.0 min after separation; antennas and wings sensed deployed at 30.1 min; detumbled (below 0.5°/s) after 3.7 h, from a 10°/s tip-off |
-| Attitude | Spin about +Y at about 2°/s; +Y within about 2–10° of the Sun in sunlight, drifting to about 40° by the end of eclipse |
-| Power | Depth of discharge at most 2.9 % per eclipse (after LEOP, about 2 %); lowest SOC in operations 98.3 %; 24,970 Wh drawn from the array and 22,182 Wh used over the mission, with the regulator curtailing the rest at full charge; capacity fade 1.4 %; gauge error at most 0.7 % |
-| Thermal | Battery +1.4 to +20.4 °C, never outside the charge window; OBC −10.6 to +26.3 °C; PA at most 25.8 °C; Jetson at most 26.4 °C |
-| Downlink | 1.40 s longest key-down, 2.2 % worst 60 s duty; longest beacon gap 166 s; 98.8 % of 29,844 passes with a beacon decoded; no frame while not permitted |
-| Transponder | Enabled about 900 min and keyed about 57 min a day; at most 14.1 % of an orbit keyed; 97.9 % of the uplink demand repeated while its gates held; never radiating while not permitted; 95 s in all (0.00 % of its keyed time) within one pass of an eclipse entry |
-| Jetson | 174,364 beacons with Jetson text; 0.036 Wh per accepted beacon (gate 0.1 Wh) |
-| Operations | 1,440 of 1,453 telecommands executed (the rest lost on the link), no authentication failure, no loss-of-contact inhibit; 5 single-event OBC resets, each recovered through DETUMBLE; 1 Jetson latch-up, the rail cut by the guard after 1.0 s; no watchdog reset or brownout; OBC availability 100.000 % |
+| LEOP | First burn 30.0 min and first RF 45.0 min after separation; antennas and wings sensed deployed at 30.1 min; detumbled (rate across +Y below 0.5°/s) after 0.8 h |
+| Attitude | Spin about +Y at 6.0°/s; in sunlight +Y within 2.3° of the Sun on average (95th percentile 4.3°, 99.9 % of the time within 15°); 3.5° on average at eclipse exit. The samples beyond 15° are just after three of the single-event resets and after passivation, when the OBC goes dark |
+| Power | Depth of discharge at most 3.2 % per eclipse in operations (median 0.9 %); lowest SOC in operations 90.4 % (the 4.10 V set point is about 91 % of the rated capacity); 26,650 Wh drawn from the array and 23,687 Wh used, the regulator curtailing the rest at full charge; capacity fade 1.4 %; gauge error at most 0.5 % |
+| Thermal | Battery +0.5 to +20.3 °C, never outside the charge window; OBC −12.0 to +27.7 °C; PA at most 27.0 °C; Jetson at most 30.4 °C |
+| Downlink | 1.40 s longest key-down, 2.2 % worst 60 s duty; longest beacon gap 169 s; 96.9 % of 29,795 passes with a beacon decoded (98.8 % in revision A, at 2°/s); no frame while not permitted |
+| Transponder | Enabled about 900 min and keyed about 57 min a day; at most 15.0 % of an orbit keyed; 98.0 % of the uplink demand repeated while its gates held; never radiating while not permitted; 168 s in all (0.01 % of its keyed time) within one pass of an eclipse entry |
+| Jetson | 174,302 beacons with Jetson text; 0.036 Wh per accepted beacon (gate 0.1 Wh) |
+| Operations | 1,443 of 1,454 telecommands executed (the rest lost on the link), no authentication failure, no loss-of-contact inhibit; 5 single-event OBC resets, each recovered through DETUMBLE; 1 Jetson latch-up, the rail cut by the guard after 1.0 s; no watchdog reset or brownout; OBC availability 100.000 % |
 | End of life | TX-OFF and passivation at day 730; no charge into the pack afterwards; re-entry 3.03 years after the design life (5.03 years after deployment) |
 
-The battery sits near full charge for most of the mission. The model's calendar fade is small (1.4 %), but holding
-Li-ion cells at 4.20 V for two years is known to age them faster than a lower float voltage. Lowering the
-charge-voltage limit would buy life at the cost of margin the run shows is there; that is a design choice for the
-EPS, not an anomaly.
+The battery sits near full charge for most of the mission (revision A found the same at 4.20 V). The charge set point
+is now 4.10 V a cell (SIL-18; BUILD_VS_BUY §7). The same run at 4.20 V (`--set charge_v_cell=4.20`) also passes every
+check, with the same 1.4 % fade: the model's calendar fade depends on the state of charge only linearly, so it cannot
+show the benefit the published data give a lower set point (§8).
 
 ## 8. Limits and open items
 
 - The models are not correlated with hardware. The battery mount (SIL-03), the transponder's repeat-path hardware
   behind `XPDR_EN` (SIL-08) and the gyro (SIL-05) are design assumptions to confirm (TB-07; TRANSMITTER_DESIGN §10.1).
-- The ADCS law's gains and the 2°/s spin are set by simulation only; the attitude model has no flexible modes,
-  magnetometer noise or sensor misalignment, and the gyro has a fixed 0.02°/s bias.
+- The ADCS gains and the 6°/s spin are set by simulation only (SIL-13 to SIL-17). The attitude model has no flexible
+  modes, no sensor misalignment and no magnetorquer remanence. The tip-off distribution and the inertia are
+  assumptions.
 - The thermal network is lumped (12 nodes) and its internal conductances are assumptions.
 - The Jetson's inference and the onboard AI selector are represented by their power and their answers on the line,
   not by models.
-- After a reset the spacecraft detumbles again (the spin is above the 0.5°/s criterion), so each single-event reset
-  costs up to a few hours of IDLE. Skipping the detumble when the rate is a spin about +Y would remove that; it is
-  not in the baseline.
+- The battery's calendar fade depends on the state of charge only linearly in the model. Published data show a
+  larger benefit from a lower end-of-charge voltage than the model gives (SIL-18), so the model's fade at 4.10 V
+  is pessimistic.

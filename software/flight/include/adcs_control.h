@@ -30,7 +30,7 @@ extern "C" {
 #define ADCS_MAX_DIPOLE         0.2
 
 /** B-dot control gain */
-#define ADCS_BDOT_GAIN          5.0e6
+#define ADCS_BDOT_GAIN          1.0e4
 
 /** Sun-pointing proportional gain */
 #define ADCS_SUNPOINT_KP        0.001

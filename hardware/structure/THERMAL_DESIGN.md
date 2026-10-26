@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-THM-001
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-26
 **Status:** CDR Baseline
 
@@ -147,18 +147,18 @@ This document defines the thermal design for the SMART-QSO 1U CubeSat for LEO mi
 
 | Element | Location | Power | Activation |
 |---------|----------|-------|------------|
-| Battery heater | Battery pack | 0.5W | On below +2 °C, off above +6 °C (battery temperature; `sqso_fsw::heater`) |
+| Battery heater | Battery pack | ≈ 1 W at 14.4 V (≈ 200 Ω, two elements) | On below +2 °C, off above +6 °C (battery temperature; `sqso_fsw::heater`); hardware over-temperature cutout at about +40 °C |
 | (Jetson heater) | Heatspreader | (0.5W) | (Optional) |
 
 ### 6.3 Heater Sizing
 
 ```
-Battery heater:
-  Q_loss = k × A × ΔT / L
-  For ΔT = 15°C, A = 0.002 m², k = 0.3 W/m·K:
-  Q_loss ≈ 0.5W
-
-  Heater power: 0.5W (matches loss)
+Battery heater (1.2; docs/hardware/BUILD_VS_BUY.md §4):
+  G_total ≈ 0.03 W/K to the frame (bushings and Ti screws 0.015,
+           flying leads 0.008, low-emissivity exterior 0.005-0.01)
+  Q = G × ΔT: 0.81 W at a -25 °C frame, 0.51 W at -15 °C
+  Heater power: about 1 W at 14.4 V (margin for an as-built G of
+  0.10 W/K, which the mission simulation shows 0.5 W cannot hold)
   Thermostat setpoint: +2°C (on), +6°C (off): the design's 0/+5 °C
   with 2 °C of margin over the 0 °C charge limit (SYS-602) for the
   sensor and the gradient across the pack
@@ -191,7 +191,7 @@ heat (≤ 0.1 W) raises it about 2 K above the frame in the hot case, and the he
 | Cell case | Aluminum | 0.3 mm | 200 W/m·K |
 | Thermal pad | Bergquist | 1 mm | 3 W/m·K |
 | Bracket | Al 6061 | 2 mm | 167 W/m·K |
-| Standoffs to the frame | G-10 or PEEK (TBR, TB-07) | 4 × M2.5, 8 mm | 0.3 W/m·K (total 0.05 W/K) |
+| Standoffs to the frame | G-10CR or PEEK 450G shouldered bushings, Ti-6Al-4V screws (TBR, TB-07) | 4 × M2.5, 8 mm | G-10CR 0.56–0.82 W/m·K, PEEK 0.29 W/m·K; the bushings with their screws ≈ 0.015 W/K, and the whole mount ≈ 0.03 W/K with the harness and radiation (BUILD_VS_BUY §4.2). The screws, the harness and the surface finish set the value, not the polymer |
 
 The pad and bracket spread heat across the cells and from the heater; the standoffs isolate the bracket from the
 frame (§6.3).
@@ -263,3 +263,4 @@ frame (§6.3).
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-26 | Battery mount isolated (§4.2, §6.3, §7.2) and heater set points +2/+6 °C (§6.2, §6.3), from the mission simulation |
+| 1.2 | 2026-10-26 | Battery heater 1 W and the mount conductance network (§6.2, §6.3, §7.2; BUILD_VS_BUY §4) |

@@ -18,6 +18,11 @@ name = "sqso_sil"
 path = "src/main.rs"
 test = false
 
+[[bin]]
+name = "sqso_adcs_mc"
+path = "src/bin/adcs_mc.rs"
+test = false
+
 [dependencies]
 sqso-ffi = { path = "../sqso-ffi" }
 sqso-protocol.workspace = true

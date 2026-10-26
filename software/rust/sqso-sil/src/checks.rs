@@ -216,12 +216,14 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
     c.push(match t.detumbled_s {
         Some(s) => check(
             "detumble",
-            "Detumbled below 0.5 °/s within 3 orbits (BASELINE §8)",
+            "Detumbled (across +Y below 0.5 °/s, spin below twice its target) within 3 orbits (BASELINE §8)",
             format!("{:.1} h", s / 3600.0),
             "<= 4.7 h",
             if s <= 3.0 * 5670.0 { Pass } else { Anomaly },
         ),
-        None => check("detumble", "Detumbled below 0.5 °/s (BASELINE §8)", "never".into(), "<= 4.7 h", Anomaly),
+        None => {
+            check("detumble", "Detumbled (across +Y below 0.5 °/s) (BASELINE §8)", "never".into(), "<= 4.7 h", Anomaly)
+        }
     });
 
     // Power (BASELINE §5)
