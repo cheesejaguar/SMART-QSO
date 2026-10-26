@@ -61,6 +61,8 @@ pub struct Totals {
     pub latchups: u32,
     /// Latch-ups the OBC's guard cleared (rail cut within its limits)
     pub latchups_cleared: u32,
+    /// Longest a latch-up lasted before the rail was cut, s
+    pub latchup_max_s: f64,
     /// Frames radiated
     pub frames: u64,
     /// Frames with Jetson text (passed the filter)
@@ -478,8 +480,11 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
     ));
     c.push(check(
         "seu-recovery",
-        "Single-event resets and Jetson latch-ups recovered",
-        format!("{} resets, {} of {} latch-ups cleared", t.boots_seu, t.latchups_cleared, t.latchups),
+        "Single-event resets recovered; Jetson latch-ups cleared by the rail cut within 10 s",
+        format!(
+            "{} resets, {} of {} latch-ups cleared (longest {:.1} s)",
+            t.boots_seu, t.latchups_cleared, t.latchups, t.latchup_max_s
+        ),
         "all latch-ups cleared",
         if t.latchups_cleared == t.latchups { Pass } else { Anomaly },
     ));

@@ -47,8 +47,13 @@ const LED_W: f64 = 0.005;
 /// Mass, kg (BASELINE §4: lifetime analyses use 1.6 kg)
 const MASS_KG: f64 = 1.6;
 /// Extra input power of a Jetson single-event latch-up, W (a parasitic
-/// path of 1–2 A on the 5 V rail; the OBC's guard trips above 8 W)
+/// path of 1–2 A on the 5 V rail; the OBC's guard trips above 8 W). The
+/// latched module hangs, still drawing its idle supply current
+/// ([`crate::jetson::IDLE_W`]) as well
 const LATCHUP_EXTRA_W: f64 = 6.0;
+/// A latch-up the rail cut within this long is cleared, s (the guard's
+/// response: two passes of its 1 s power sample, with margin)
+const LATCHUP_CLEAR_S: f64 = 10.0;
 /// The operational state ACTIVE (`state_machine.h`)
 const STATE_ACTIVE: u32 = 4;
 /// Mean length of one over on the transponder, s
@@ -212,6 +217,8 @@ pub struct Mission {
     contact_timeout_set: bool,
     /// The Jetson's rail is latched up (drawing the latch-up current)
     latched_up: bool,
+    /// How long the present latch-up has lasted, s
+    latched_s: f64,
     /// The flight software was told to send TX-OFF at end of life
     eol_tx_off_sent: bool,
     /// Last illumination, for the eclipse records
@@ -307,6 +314,7 @@ impl Mission {
             commands_today: (-1, 0),
             contact_timeout_set: false,
             latched_up: false,
+            latched_s: 0.0,
             eol_tx_off_sent: false,
             last_sample: Sample::default(),
         })
@@ -417,7 +425,7 @@ impl Mission {
         if p(pin::HEATER_EN) {
             l.w_vbat += HEATER_W;
         }
-        l.w_payload = self.jetson.power_w() + if self.latched_up { LATCHUP_EXTRA_W } else { 0.0 };
+        l.w_payload = if self.latched_up { crate::jetson::IDLE_W + LATCHUP_EXTRA_W } else { self.jetson.power_w() };
         l.burn_a = self.deploy.current_a;
         l
     }
@@ -565,8 +573,18 @@ impl Mission {
             self.totals.wings_s = Some(self.rel());
             self.event("deploy", "both solar wings deployed");
         }
-        if !jet_rail {
-            self.latched_up = false;
+        if self.latched_up {
+            if jet_rail {
+                self.latched_s += dt;
+            } else {
+                // The rail is cut: the latch-up is cleared
+                self.latched_up = false;
+                self.totals.latchup_max_s = self.totals.latchup_max_s.max(self.latched_s);
+                if self.latched_s <= LATCHUP_CLEAR_S {
+                    self.totals.latchups_cleared += 1;
+                }
+                self.event("seu", &format!("Jetson latch-up cleared: rail off after {:.1} s", self.latched_s));
+            }
         }
         self.jetson.step(dt, jet_rail && !self.latched_up, self.thermal.jetson_c());
 
@@ -580,6 +598,7 @@ impl Mission {
             }
             if ev.jetson_latchup && jet_rail && !self.latched_up {
                 self.latched_up = true;
+                self.latched_s = 0.0;
                 self.totals.latchups += 1;
                 self.event("seu", "Jetson single-event latch-up");
             }
