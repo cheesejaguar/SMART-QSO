@@ -53,11 +53,46 @@ const DETUMBLED_DPS: f64 = 0.5;
 
 /// The time-series columns
 const TS_HEADER: &[&str] = &[
-    "t_s", "alt_km", "lat_deg", "lon_deg", "beta_deg", "illum", "rate_dps", "sun_angle_deg", "array_mpp_w", "array_w",
-    "load_w", "batt_a", "vbat", "soc", "soc_gauge", "soc_fsw", "capacity_ah", "t_batt", "t_obc", "t_pa", "t_jetson",
-    "t_panel_min", "t_panel_max", "obc_on", "op_state", "power_mode", "payload_on", "jetson_w", "radio_on", "pa_on",
-    "radiating", "heater_on", "adcs_on", "dipole", "antennas", "wings", "best_elev_deg", "rf_silence",
-    "contact_inhibit", "tx_permitted",
+    "t_s",
+    "alt_km",
+    "lat_deg",
+    "lon_deg",
+    "beta_deg",
+    "illum",
+    "rate_dps",
+    "sun_angle_deg",
+    "array_mpp_w",
+    "array_w",
+    "load_w",
+    "batt_a",
+    "vbat",
+    "soc",
+    "soc_gauge",
+    "soc_fsw",
+    "capacity_ah",
+    "t_batt",
+    "t_obc",
+    "t_pa",
+    "t_jetson",
+    "t_panel_min",
+    "t_panel_max",
+    "obc_on",
+    "op_state",
+    "power_mode",
+    "payload_on",
+    "jetson_w",
+    "radio_on",
+    "pa_on",
+    "radiating",
+    "heater_on",
+    "adcs_on",
+    "dipole",
+    "antennas",
+    "wings",
+    "best_elev_deg",
+    "rf_silence",
+    "contact_inhibit",
+    "tx_permitted",
 ];
 
 fn sample_row(s: &Sample) -> Vec<f64> {
@@ -312,10 +347,7 @@ impl Mission {
         let soc1 = self.eps.pack.soc();
         self.eps.gauge.charge_ah = soc1 * self.eps.gauge.capacity_ah;
         self.totals.capacity_start_ah = self.eps.pack.capacity_ah();
-        self.event(
-            "phase",
-            &format!("storage {days:.0} days: SOC {:.1} % to {:.1} %", soc0 * 100.0, soc1 * 100.0),
-        );
+        self.event("phase", &format!("storage {days:.0} days: SOC {:.1} % to {:.1} %", soc0 * 100.0, soc1 * 100.0));
     }
 
     /// Separation: the switches release, the pack connects, the OBC boots
@@ -479,8 +511,14 @@ impl Mission {
 
         // Hardware the flight software drives
         let p = |n| self.fsw.pin(n);
-        let (radio_on, pa_on, hi, armed, ant, sol) =
-            (p(pin::RADIO_EN), p(pin::RF_TX_EN), p(pin::TX_PWR_SEL), p(pin::DEPLOY_EN), p(pin::ANTENNA_BURN), p(pin::SOLAR_BURN));
+        let (radio_on, pa_on, hi, armed, ant, sol) = (
+            p(pin::RADIO_EN),
+            p(pin::RF_TX_EN),
+            p(pin::TX_PWR_SEL),
+            p(pin::DEPLOY_EN),
+            p(pin::ANTENNA_BURN),
+            p(pin::SOLAR_BURN),
+        );
         let jet_rail = p(pin::PAYLOAD_EN) && p(pin::JETSON_PWR);
         self.radio.step(dt, radio_on, pa_on, hi, self.deploy.antennas_deployed());
         let was_burning = self.deploy.current_a > 0.0;
@@ -658,7 +696,8 @@ impl Mission {
             }
             let (el, _, range) = ground::look(&self.stations[i], r, self.t);
             let gain = self.sc_gain_dbi(link::VHF_AXIS_BODY, i, r);
-            let margin = link::downlink(tx_w, gain, range, el, &self.stations[i].radio, link::REQ_CN0_DATA_DBHZ).margin_db;
+            let margin =
+                link::downlink(tx_w, gain, range, el, &self.stations[i].radio, link::REQ_CN0_DATA_DBHZ).margin_db;
             let heard = radiating && self.rng.uniform() < link::frame_success_prob(margin, (f.len() * 8) as u32);
             if let Some(p) = self.passes[i].as_mut() {
                 p.frames += 1;
@@ -840,12 +879,16 @@ impl Mission {
             }
             let name = |s: u32| NAMES.get(s as usize).copied().unwrap_or("?");
             if snap.op_state == 2 || snap.op_state == 5 || self.prev.op_state == 2 || self.prev.op_state == 5 {
-                let d = format!("{} -> {} (SOC {:.0} %)", name(self.prev.op_state), name(snap.op_state), snap.soc * 100.0);
+                let d =
+                    format!("{} -> {} (SOC {:.0} %)", name(self.prev.op_state), name(snap.op_state), snap.soc * 100.0);
                 self.event("mode", &d);
             }
         }
         if snap.contact_inhibit != self.prev.contact_inhibit {
-            self.event("anomaly", &format!("loss-of-contact inhibit {}", if snap.contact_inhibit { "on" } else { "off" }));
+            self.event(
+                "anomaly",
+                &format!("loss-of-contact inhibit {}", if snap.contact_inhibit { "on" } else { "off" }),
+            );
         }
         if self.prev.deploy_state != snap.deploy_state {
             self.event("deploy", &format!("deployment state {}", snap.deploy_state));

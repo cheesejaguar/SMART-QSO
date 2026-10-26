@@ -119,12 +119,7 @@ pub fn decode_beacon(frame: &[u8]) -> Option<Beacon> {
             .find_map(|w| w.strip_prefix(key))
             .and_then(|v| v.trim_end_matches(|c: char| !c.is_ascii_digit()).parse::<f64>().ok())
     };
-    Some(Beacon {
-        soc: field("SOC="),
-        sunlit: field("SUN=").map(|v| v > 0.5),
-        ai: !is_template(&text),
-        text,
-    })
+    Some(Beacon { soc: field("SOC="), sunlit: field("SUN=").map(|v| v > 0.5), ai: !is_template(&text), text })
 }
 
 /// Whether a beacon's text is one of the flight software's templates

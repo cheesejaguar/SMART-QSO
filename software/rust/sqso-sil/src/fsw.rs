@@ -281,7 +281,12 @@ impl Fsw {
     /// The ADCS sensors: the magnetometer's field (body frame, T), the sun
     /// sensors' sun vector (body frame, its length the intensity) and the
     /// true body rate (rad/s; the flight software estimates its own)
-    pub fn set_adcs_sensors(&self, b_body_t: crate::env::math::V3, sun_body: crate::env::math::V3, rate: crate::env::math::V3) {
+    pub fn set_adcs_sensors(
+        &self,
+        b_body_t: crate::env::math::V3,
+        sun_body: crate::env::math::V3,
+        rate: crate::env::math::V3,
+    ) {
         use sqso_fsw::adcs::Vec3;
         let mag = Vec3::new(b_body_t.x * 1e6, b_body_t.y * 1e6, b_body_t.z * 1e6);
         let sun = Vec3::new(sun_body.x, sun_body.y, sun_body.z);

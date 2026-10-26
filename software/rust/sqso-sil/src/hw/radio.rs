@@ -125,7 +125,13 @@ impl Radio {
                 0.0
             };
         // Reflected power is dissipated in the PA too
-        self.pa_heat_w = if radiating { keyed_dc - self.fwd_w + self.rev_w } else if pa_on { PA_IDLE_W } else { 0.0 };
+        self.pa_heat_w = if radiating {
+            keyed_dc - self.fwd_w + self.rev_w
+        } else if pa_on {
+            PA_IDLE_W
+        } else {
+            0.0
+        };
         if keyed {
             self.stats.keyed_s += dt_s;
             self.key_s += dt_s;

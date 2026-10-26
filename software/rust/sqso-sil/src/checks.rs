@@ -171,7 +171,9 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
             ">= 30 min",
             if s >= 1800.0 { Pass } else { Anomaly },
         ),
-        None => check("deploy-timer", "First burn at least 30 min after separation", "no burn".into(), ">= 30 min", Anomaly),
+        None => {
+            check("deploy-timer", "First burn at least 30 min after separation", "no burn".into(), ">= 30 min", Anomaly)
+        }
     });
     c.push(match t.first_rf_s {
         Some(s) => check(
@@ -188,7 +190,9 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         ("wings", "Both solar wings deployed and sensed", t.wings_s),
     ] {
         c.push(match at {
-            Some(s) => check(id, title, format!("{:.1} min", s / 60.0), "within 2 h", if s < 7200.0 { Pass } else { Warning }),
+            Some(s) => {
+                check(id, title, format!("{:.1} min", s / 60.0), "within 2 h", if s < 7200.0 { Pass } else { Warning })
+            }
             None => check(id, title, "not deployed".into(), "within 2 h", Anomaly),
         });
     }

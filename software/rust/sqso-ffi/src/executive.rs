@@ -28,9 +28,9 @@ use crate::c::{fault_type, rc, severity};
 use crate::jetson_link::{JetsonMsg, JetsonRx};
 use crate::sensors::Sensor;
 use crate::{
-    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, fault_mgmt, gse_provision, jetson_link,
-    mission_data, payload_guard, rf_control, rf_silence, sensors, state_machine, system_state, uart_comm, uplink,
-    watchdog_mgr,
+    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, fault_mgmt, gse_provision,
+    jetson_link, mission_data, payload_guard, rf_control, rf_silence, sensors, state_machine, system_state, uart_comm,
+    uplink, watchdog_mgr,
 };
 
 /// `ADC_RESOLUTION_12BIT`, `ADC_REF_VDD` (hal_adc.h)
