@@ -34,6 +34,10 @@ use crate::{
 /// `ADC_RESOLUTION_12BIT`, `ADC_REF_VDD` (hal_adc.h)
 const ADC_RESOLUTION_12BIT: u32 = 12;
 const ADC_REF_VDD: u32 = 2;
+/// I2C buses (hal_i2c.h): 0 is the EPS and power monitors, 1 the ADCS;
+/// standard mode (SMART-QSO-ICD-001 §2.3)
+const I2C_BUSES: [u32; 2] = [0, 1];
+const I2C_SPEED_HZ: u32 = 100_000;
 
 // watchdog_mgr.h task ids
 const WDT_TASK_MAIN_LOOP: u32 = 0;
@@ -179,6 +183,8 @@ pub struct Executive {
     last_telemetry_ms: u64,
     last_health_check_ms: u64,
     last_contact_tick_ms: u64,
+    /// When the power state was last updated (payload energy), ms
+    last_power_ms: u64,
     power: PowerModel,
     jetson_temp_c: i32,
     jetson_status_ms: u64,
@@ -200,6 +206,7 @@ impl Executive {
         last_telemetry_ms: 0,
         last_health_check_ms: 0,
         last_contact_tick_ms: 0,
+        last_power_ms: 0,
         power: PowerModel::START,
         jetson_temp_c: 0,
         jetson_status_ms: 0,
@@ -244,6 +251,13 @@ impl Executive {
         if unsafe { crate::c::hal_adc_init(ADC_RESOLUTION_12BIT, ADC_REF_VDD) } != rc::OK {
             eprint(format_args!("[SYSTEM] ADC init failed"));
         }
+        // The EPS controller and power monitors, and the ADCS sensors
+        for bus in I2C_BUSES {
+            // SAFETY: plain values (the HAL)
+            if unsafe { crate::c::hal_i2c_init(bus, I2C_SPEED_HZ) } != rc::OK {
+                eprint(format_args!("[SYSTEM] I2C bus {bus} init failed"));
+            }
+        }
         let _ = deployment::deployment_init();
         if fault_mgmt::fault_mgmt_init() != rc::OK {
             eprint(format_args!("[SYSTEM] Fault management init failed"));
@@ -265,6 +279,7 @@ impl Executive {
         self.last_telemetry_ms = self.program_start_ms;
         self.last_health_check_ms = self.program_start_ms;
         self.last_contact_tick_ms = self.program_start_ms;
+        self.last_power_ms = self.program_start_ms;
         self.telemetry_interval_ms = uart_comm::uart_get_telemetry_interval();
         true
     }
@@ -378,11 +393,25 @@ impl Executive {
         watchdog_mgr::wdt_mgr_kick();
     }
 
-    /// The stand-in power model, then mode changes and mission data
+    /// The power state, then mode changes and mission data. State of charge
+    /// and sunlight are the EPS controller's when it answers
+    /// (SMART-QSO-ICD-001), otherwise the stand-in power model's (SW-01)
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn update_mission_state(&mut self, tick: u64) {
         let payload_on = eps_control::eps_is_payload_enabled();
-        let discharge = self.power.step(tick, payload_on);
+        let now = crate::c::now_ms();
+        let elapsed_ms = now.wrapping_sub(self.last_power_ms);
+        self.last_power_ms = now;
+        let payload_wh = if let Some(t) = eps_control::eps_telemetry() {
+            self.power.soc = t.soc;
+            self.power.sunlit = t.sunlit();
+            #[allow(clippy::cast_precision_loss)] // a pass is milliseconds long
+            let hours = elapsed_ms as f64 / 3_600_000.0;
+            payload_on.then_some(t.vbus_v * t.ibus_a * hours)
+        } else {
+            let discharge = self.power.step(tick, payload_on);
+            self.power.payload_energy_wh(discharge, payload_on)
+        };
         sensors::sensors_set_environment(self.power.sunlit, self.power.soc);
 
         // The EPS holds the measured SOC; the state machine turns power
@@ -398,9 +427,8 @@ impl Executive {
             }
         }
 
-        let now = crate::c::now_ms();
         let _ = mission_data::mission_data_update_uptime(now.wrapping_sub(self.program_start_ms));
-        if let Some(wh) = self.power.payload_energy_wh(discharge, payload_on) {
+        if let Some(wh) = payload_wh {
             let _ = mission_data::mission_data_add_energy(wh);
         }
     }

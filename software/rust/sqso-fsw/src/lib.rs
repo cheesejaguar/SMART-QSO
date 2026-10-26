@@ -21,6 +21,7 @@
 //! - [`flight_log`]: flight log ring buffer (`flight_log.h`)
 //! - [`uart_comm`]: OBC–Jetson serial line settings (`uart_comm.h`)
 //! - [`eps`]: EPS power policy and its stored state (`eps_control.h`)
+//! - [`eps_telemetry`]: EPS controller telemetry registers (SMART-QSO-ICD-001)
 //! - [`executive`]: the main loop's power model and field rules (was `main.c`)
 //! - [`sensors`]: sensor configuration file, readings, telemetry text (`sensors.h`)
 //! - [`mission_data`]: mission statistics record (`mission_data.h`)
@@ -45,6 +46,7 @@ pub mod contact_monitor;
 pub mod deployment;
 pub mod downlink;
 pub mod eps;
+pub mod eps_telemetry;
 pub mod executive;
 pub mod fault_log;
 pub mod fixed;

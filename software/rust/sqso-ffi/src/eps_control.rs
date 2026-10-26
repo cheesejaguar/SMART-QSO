@@ -20,6 +20,7 @@
 use core::ffi::CStr;
 
 use sqso_fsw::eps::{self, EpsState, PayloadBlock, RECORD_SIZE};
+use sqso_fsw::eps_telemetry::{self, Telemetry};
 use sqso_fsw::mode::PowerMode;
 
 use crate::c::{self, fault_type, rc, severity};
@@ -43,6 +44,75 @@ pub(crate) static EPS: Global<Eps> = Global::new(Eps { state: EpsState::DEFAULT,
 
 fn with<R>(busy: R, f: impl FnOnce(&mut Eps) -> R) -> R {
     EPS.with(f).unwrap_or(busy)
+}
+
+/// `hal_gpio.h` load-switch pins
+const GPIO_PIN_PAYLOAD_EN: u32 = 0;
+const GPIO_PIN_ADCS_EN: u32 = 2;
+const GPIO_PIN_JETSON_PWR: u32 = 6;
+const GPIO_DIR_OUTPUT: u32 = 1;
+const GPIO_PULL_DOWN: u32 = 2;
+/// I2C bus of the EPS controller (`hal_i2c.h`: bus 0 is I2C2)
+const EPS_I2C_BUS: u32 = 0;
+/// The controller's telemetry is read again after this long, ms
+const TELEMETRY_MAX_AGE_MS: u64 = 500;
+
+/// The latest EPS controller telemetry and when it was read
+struct TelemetryCache {
+    read_ms: u64,
+    read: bool,
+    telemetry: Option<Telemetry>,
+}
+
+static TELEMETRY: Global<TelemetryCache> = Global::new(TelemetryCache { read_ms: 0, read: false, telemetry: None });
+
+/// Drive the payload and ADCS load-switch enables (and the Jetson power
+/// gate with the payload's) from the EPS state: the switches follow the
+/// state, so a reset that restores the state restores the switches
+fn drive_load_pins(state: &EpsState) {
+    // SAFETY: plain values (the HAL); a pin that is not configured is refused
+    unsafe {
+        let _ = c::hal_gpio_set(GPIO_PIN_PAYLOAD_EN, state.payload_enabled);
+        let _ = c::hal_gpio_set(GPIO_PIN_JETSON_PWR, state.payload_enabled);
+        let _ = c::hal_gpio_set(GPIO_PIN_ADCS_EN, state.adcs_enabled);
+    }
+}
+
+/// The load-switch pins, as outputs, to the EPS state
+fn configure_load_pins() {
+    for pin in [GPIO_PIN_PAYLOAD_EN, GPIO_PIN_JETSON_PWR, GPIO_PIN_ADCS_EN] {
+        // SAFETY: plain values (the HAL)
+        let _ = unsafe { c::hal_gpio_config(pin, GPIO_DIR_OUTPUT, GPIO_PULL_DOWN) };
+    }
+    if let Some(state) = EPS.with(|e| e.state) {
+        drive_load_pins(&state);
+    }
+}
+
+/// The EPS controller's telemetry (SMART-QSO-ICD-001 §4.2), read over I2C
+/// at most every 500 ms; `None` while the controller does not answer with a
+/// plausible block (then the stand-ins are used, SW-01)
+pub fn eps_telemetry() -> Option<Telemetry> {
+    let now = c::now_ms();
+    let cached = TELEMETRY
+        .with(|t| (t.read && now >= t.read_ms && now - t.read_ms < TELEMETRY_MAX_AGE_MS).then_some(t.telemetry))
+        .flatten();
+    if let Some(telemetry) = cached {
+        return telemetry;
+    }
+    let mut block = [0u8; eps_telemetry::BLOCK_LEN];
+    let start = [0u8];
+    // SAFETY: start is one byte, block BLOCK_LEN writable bytes (the HAL)
+    let ok = unsafe {
+        c::hal_i2c_write_read(EPS_I2C_BUS, eps_telemetry::ADDRESS, start.as_ptr(), 1, block.as_mut_ptr(), block.len())
+    } == rc::OK;
+    let telemetry = if ok { eps_telemetry::decode(&block) } else { None };
+    let _ = TELEMETRY.with(|t| {
+        t.read_ms = now;
+        t.read = true;
+        t.telemetry = telemetry;
+    });
+    telemetry
 }
 
 /// The low 32 bits of the mission clock (`last_control_ms`)
@@ -94,6 +164,9 @@ fn control(switch: Switch, enable: bool) -> i32 {
         None => rc::BUSY,
         Some(false) => rc::OK,
         Some(true) => {
+            if let Some(state) = EPS.with(|e| e.state) {
+                drive_load_pins(&state);
+            }
             let what = if enable { "enabled" } else { "disabled" };
             c::console(format_args!("[EPS] {} {what}", switch.name()));
             let _ = eps_save_config();
@@ -115,10 +188,12 @@ pub extern "C" fn eps_init() -> i32 {
             c::console(format_args!("[EPS] Using default configuration"));
         }
     }
-    with(rc::BUSY, |e| {
+    let result = with(rc::BUSY, |e| {
         e.initialized = true;
         rc::OK
-    })
+    });
+    configure_load_pins();
+    result
 }
 
 /// Copy of the EPS state
@@ -181,6 +256,9 @@ pub extern "C" fn eps_control_payload(enable: bool, soc: f64) -> i32 {
     }) {
         // COVERAGE-EXEMPT: as above (the EPS state is free between the two borrows)
         return rc::BUSY;
+    }
+    if let Some(state) = EPS.with(|e| e.state) {
+        drive_load_pins(&state);
     }
     if enable {
         c::log(fault_type::POWER, severity::INFO, c"Payload enabled", soc);
