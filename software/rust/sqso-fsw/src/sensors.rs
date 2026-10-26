@@ -279,9 +279,11 @@ pub fn payload_temperature(env: &Environment, noise: &mut impl FnMut() -> f64) -
 pub const MEASURED_LOW_BATTERY_V: f64 = 12.0;
 /// Measured discharge current above which the high-current alarm is
 /// raised, A: above every load combination of the power budget (Jetson,
-/// PA at 1 W, housekeeping and heater together draw about 1.1 A at 12 V)
-/// and well below the 5 A pack fuse
-pub const MEASURED_HIGH_DISCHARGE_A: f64 = 1.5;
+/// PA at 1 W, housekeeping and heater together draw about 1.1 A at 12 V),
+/// including a deployment burn (a pair of burn resistors on one line, each
+/// current-limited to 0.8 A, on top of the housekeeping load: about 1.9 A),
+/// and well below the 5 A protection limit
+pub const MEASURED_HIGH_DISCHARGE_A: f64 = 2.5;
 
 /// A voltage reading on `channel` from the EPS controller's telemetry
 pub fn measured_voltage(channel: &[u8], t: &crate::eps_telemetry::Telemetry) -> Numeric {
@@ -648,9 +650,14 @@ mod tests {
         assert_eq!(measured_current(b"jetson", &t).value, 1.1);
         assert_eq!(measured_current(b"solar", &t).value, 0.31);
         assert_eq!(measured_current(b"other", &t).value, 0.0);
-        let low = crate::eps_telemetry::Telemetry { vbatt_v: 11.9, ibatt_a: -1.6, ..t };
+        let low = crate::eps_telemetry::Telemetry { vbatt_v: 11.9, ibatt_a: -2.6, ..t };
         assert_eq!(measured_voltage(b"battery", &low).alarm, Some(Alarm::LowBatteryVoltage));
         assert_eq!(measured_current(b"battery_discharge", &low).alarm, Some(Alarm::HighDischargeCurrent));
+        // A deployment burn (two current-limited resistors and housekeeping) is no alarm
+        let burn = crate::eps_telemetry::Telemetry { ibatt_a: -1.9, ..t };
+        assert_eq!(measured_current(b"battery_discharge", &burn).alarm, None);
+        let edge = crate::eps_telemetry::Telemetry { ibatt_a: -MEASURED_HIGH_DISCHARGE_A, ..t };
+        assert_eq!(measured_current(b"battery_discharge", &edge).alarm, None, "at the limit is not above it");
         let charging = crate::eps_telemetry::Telemetry { ibatt_a: 0.4, ..t };
         assert_eq!(measured_current(b"battery_discharge", &charging).value, 0.0);
     }

@@ -5,6 +5,15 @@
 //! The arithmetic is the C's, in double precision and in the same order,
 //! so the results are the same to the bit. The record types have the C
 //! layouts (`#[repr(C)]`).
+//!
+//! SUNPOINT runs the spin-stabilized coarse sun pointing of the baseline
+//! (BASELINE §8): [`spin_sunpoint`] spins the spacecraft about +Y, the
+//! normal of the deployed wings and the major axis of inertia, and holds
+//! the spin axis on the Sun, so the array faces the Sun and the spin keeps
+//! the axis through eclipse with the coils off. Its rate input is the
+//! gyro's ([`Adcs::update_with_gyro`]), or without one the magnetometer
+//! estimate. [`sunpoint`] is the proportional law of ADCS_DESIGN §4.2
+//! (`adcs_compute_sunpoint`), kept for its interface.
 
 use crate::fmath::sqrt;
 
@@ -24,6 +33,18 @@ pub const DETUMBLE_TIMEOUT_MS: u64 = 5_400_000;
 pub const SUN_SENSOR_COUNT: usize = 6;
 /// Sun intensity below which it is eclipse (5 %)
 pub const ECLIPSE_INTENSITY: f64 = 0.05;
+/// The axis held on the Sun: +Y, the normal of the deployed wings
+/// (hardware/eps/SOLAR_ARRAY_DESIGN.md §8.1) and the major axis of inertia
+pub const SUN_AXIS: Vec3 = Vec3::new(0.0, 1.0, 0.0);
+/// Spin rate about [`SUN_AXIS`] in SUNPOINT, rad/s (2 deg/s)
+pub const SPIN_RATE: f64 = 0.035;
+/// Principal moments of inertia with the wings deployed, kg m^2 (mass
+/// properties, TBR with the measured values)
+pub const INERTIA: Vec3 = Vec3::new(0.0029, 0.0041, 0.0037);
+/// Momentum gain of the spin law: torque per unit momentum error, 1/s
+pub const MOMENTUM_GAIN: f64 = 0.005;
+/// Nutation damping: torque per rad/s of rate across the spin axis, N m s
+pub const NUTATION_GAIN: f64 = 4.0e-5;
 
 /// `AdcsMode_t`
 pub mod mode {
@@ -243,6 +264,38 @@ pub fn sunpoint(sun: &SunSensorData, mag: &MagData) -> Vec3 {
     dipole
 }
 
+/// Spin-stabilized sun pointing: the momentum h = I w is driven to
+/// `SPIN_RATE` I_yy along the sun direction, and the rate across +Y is
+/// damped, so the only rest state is a spin about +Y with +Y on the Sun:
+/// tau = -k_h (h - h_s s) - k_n (w - (w . y) y). In eclipse (no sun) only
+/// the damping acts. As a dipole m = (B x tau) / |B|^2 (then m x B is the
+/// part of tau across the field), saturated; zero without a valid field
+/// stronger than 1 uT
+pub fn spin_sunpoint(sun: &SunSensorData, mag: &MagData, rate: Vec3) -> Vec3 {
+    let b_field = mag.field;
+    let b_mag_sq = b_field.dot(&b_field);
+    if !mag.valid || b_mag_sq <= 1.0 {
+        return Vec3::ZERO;
+    }
+    let along = rate.dot(&SUN_AXIS);
+    let mut torque = Vec3 {
+        x: -NUTATION_GAIN * (rate.x - along * SUN_AXIS.x),
+        y: -NUTATION_GAIN * (rate.y - along * SUN_AXIS.y),
+        z: -NUTATION_GAIN * (rate.z - along * SUN_AXIS.z),
+    };
+    if sun.sun_visible {
+        let h_s = SPIN_RATE * INERTIA.y;
+        let s = sun.sun_vector;
+        torque.x -= MOMENTUM_GAIN * (INERTIA.x * rate.x - h_s * s.x);
+        torque.y -= MOMENTUM_GAIN * (INERTIA.y * rate.y - h_s * s.y);
+        torque.z -= MOMENTUM_GAIN * (INERTIA.z * rate.z - h_s * s.z);
+    }
+    let t = b_field.cross(&torque);
+    let mut dipole = Vec3 { x: t.x / b_mag_sq * 1e6, y: t.y / b_mag_sq * 1e6, z: t.z / b_mag_sq * 1e6 };
+    saturate_dipole(&mut dipole, MAX_DIPOLE);
+    dipole
+}
+
 /// Duty cycle (-100 to +100 %) for one coil, clamped before the conversion
 pub fn dipole_to_pwm(dipole: f64) -> i8 {
     let duty = ((dipole / MAX_DIPOLE) * 100.0).clamp(-100.0, 100.0);
@@ -310,6 +363,8 @@ pub struct Adcs {
     pub mag_prev: MagData,
     /// Initialized
     pub initialized: bool,
+    /// The gyro's body rate in the latest cycle, rad/s (`None`: no gyro)
+    pub gyro: Option<Vec3>,
 }
 
 impl Adcs {
@@ -338,6 +393,7 @@ impl Adcs {
             },
             mag_prev: MAG,
             initialized: false,
+            gyro: None,
         }
     }
 
@@ -376,6 +432,10 @@ impl Adcs {
             }
         }
         self.mag_prev = s.mag;
+        if let Some(w) = self.gyro {
+            // The gyro measures all three axes, the field only two
+            s.angular_rate_est = w;
+        }
         s.rate_magnitude = s.angular_rate_est.magnitude();
     }
 
@@ -410,9 +470,24 @@ impl Adcs {
     /// field and sun, at `read_ms`), estimate the rate, run the mode, drive
     /// or release the coils. `None` before init
     pub fn update(&mut self, now_ms: u64, read_ms: u64, field: Vec3, sun: Vec3) -> Option<Cycle> {
+        self.update_with_gyro(now_ms, read_ms, field, sun, None)
+    }
+
+    /// [`Adcs::update`] with the gyro's body rate (rad/s), when there is one:
+    /// it is then the rate estimate, so the detumble ends only when the
+    /// rate about the field is low too, and the sun-pointing law's rate
+    pub fn update_with_gyro(
+        &mut self,
+        now_ms: u64,
+        read_ms: u64,
+        field: Vec3,
+        sun: Vec3,
+        gyro: Option<Vec3>,
+    ) -> Option<Cycle> {
         if !self.initialized {
             return None;
         }
+        self.gyro = gyro;
         read_magnetometer(&mut self.state.mag, field, read_ms);
         read_sun_sensors(&mut self.state.sun, sun, read_ms);
         self.estimate_rate(now_ms);
@@ -423,7 +498,7 @@ impl Adcs {
             mode::DETUMBLE => self.detumble_step(now_ms, &mut dipole, &mut cycle),
             mode::SUNPOINT => {
                 if self.state.sun.sun_visible {
-                    dipole = sunpoint(&self.state.sun, &self.state.mag);
+                    dipole = spin_sunpoint(&self.state.sun, &self.state.mag, self.state.angular_rate_est);
                 } else {
                     self.state.mode = mode::ECLIPSE; // no sun
                 }
@@ -510,6 +585,64 @@ impl Adcs {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn sun(v: Vec3) -> SunSensorData {
+        SunSensorData { sun_vector: v, intensity: 1.0, sun_visible: true, ..SunSensorData::default() }
+    }
+
+    fn field(v: Vec3) -> MagData {
+        MagData { field: v, valid: true, ..MagData::default() }
+    }
+
+    /// The torque the coils give: m x B (B in T)
+    fn torque(m: Vec3, b_ut: Vec3) -> Vec3 {
+        m.cross(&Vec3::new(b_ut.x * 1e-6, b_ut.y * 1e-6, b_ut.z * 1e-6))
+    }
+
+    #[test]
+    fn spin_sunpoint_rests_spinning_about_y_on_the_sun() {
+        let b = Vec3::new(20.0, -10.0, 35.0);
+        let spin = Vec3::new(0.0, SPIN_RATE, 0.0);
+        let m = spin_sunpoint(&sun(SUN_AXIS), &field(b), spin);
+        assert!(m.magnitude() < 1e-12, "at rest: {m:?}");
+    }
+
+    #[test]
+    fn spin_sunpoint_turns_the_momentum_toward_the_sun_and_damps_nutation() {
+        let b = Vec3::new(20.0, -10.0, 35.0);
+        let x = Vec3::new(1.0, 0.0, 0.0);
+        // At rest, sun on +X: the momentum wanted is along +X
+        let m = spin_sunpoint(&sun(x), &field(b), Vec3::ZERO);
+        assert!(m.magnitude() > 0.0 && m.magnitude() <= MAX_DIPOLE + 1e-12);
+        assert!(torque(m, b).dot(&x) > 0.0);
+        // Eclipse: only the rate across +Y is damped, the spin is kept
+        let shade = SunSensorData::default();
+        let w = Vec3::new(0.01, SPIN_RATE, -0.02);
+        let t = torque(spin_sunpoint(&shade, &field(b), w), b);
+        assert!(t.dot(&Vec3::new(w.x, 0.0, w.z)) < 0.0);
+        let spin_only = spin_sunpoint(&shade, &field(b), Vec3::new(0.0, SPIN_RATE, 0.0));
+        assert!(spin_only.magnitude() < 1e-12);
+    }
+
+    #[test]
+    fn spin_sunpoint_needs_a_field() {
+        let w = Vec3::new(0.1, 0.0, 0.0);
+        assert_eq!(spin_sunpoint(&sun(SUN_AXIS), &MagData::default(), w), Vec3::ZERO);
+        assert_eq!(spin_sunpoint(&sun(SUN_AXIS), &field(Vec3::new(0.5, 0.0, 0.0)), w), Vec3::ZERO);
+    }
+
+    #[test]
+    fn the_gyro_is_the_rate_estimate() {
+        let mut a = Adcs::new();
+        a.init();
+        let b = Vec3::new(30.0, 0.0, 40.0);
+        let w = Vec3::new(0.0, 0.0, 0.05); // about an axis the field cannot see alone
+        let _ = a.update_with_gyro(1000, 1000, b, Vec3::ZERO, Some(w));
+        let _ = a.update_with_gyro(2000, 2000, b, Vec3::ZERO, Some(w));
+        assert_eq!(a.state.angular_rate_est, w);
+        assert_eq!(a.state.rate_magnitude, 0.05);
+        assert_eq!(a.gyro, Some(w));
+    }
 
     fn close(a: f64, b: f64, tol: f64) -> bool {
         (a - b).abs() <= tol

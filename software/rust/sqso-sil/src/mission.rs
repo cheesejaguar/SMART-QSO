@@ -562,10 +562,12 @@ impl Mission {
         best
     }
 
-    /// The primary station's commanding plan
+    /// The primary station's commanding plan: one telecommand a pass, sent
+    /// once the station has heard the spacecraft in that pass (operators
+    /// command a spacecraft they hear, on an orbit they have confirmed)
     fn command_opportunity(&mut self, i: usize, el: f64, range: f64, r: V3) {
         let Some(p) = self.passes[i] else { return };
-        if p.commands > 0 {
+        if p.commands > 0 || p.heard == 0 {
             return;
         }
         let day = (self.rel() / 86_400.0).floor() as i64;
@@ -712,7 +714,7 @@ impl Mission {
             lat_deg: lat.to_degrees(),
             lon_deg: lon.to_degrees(),
             rate_dps: rate,
-            sun_angle_deg: sun_b.angle(V3::new(1.0, 0.0, 0.0)).to_degrees(),
+            sun_angle_deg: sun_b.angle(V3::new(0.0, 1.0, 0.0)).to_degrees(),
             array_mpp_w: e.array_mpp_w,
             array_w: e.array_w,
             load_w: e.load_w,
@@ -805,7 +807,7 @@ impl Mission {
         // Detumble
         if s.rate_dps < DETUMBLED_DPS {
             let since = *self.below_rate_since.get_or_insert(s.t_s);
-            if t.detumbled_s.is_none() && s.t_s - since >= 600.0 {
+            if t.detumbled_s.is_none() && s.t_s - since >= 60.0 {
                 t.detumbled_s = Some(since);
                 let (r, u) = (s.t_s, utc(self.t));
                 self.logs.event(r, &u, "phase", &format!("detumbled below {DETUMBLED_DPS} °/s"));

@@ -285,7 +285,9 @@ impl Fsw {
         use sqso_fsw::adcs::Vec3;
         let mag = Vec3::new(b_body_t.x * 1e6, b_body_t.y * 1e6, b_body_t.z * 1e6);
         let sun = Vec3::new(sun_body.x, sun_body.y, sun_body.z);
-        let w = Vec3::new(rate.x, rate.y, rate.z);
+        // The MEMS gyro, with an in-run bias of 0.02 deg/s per axis
+        let bias = 0.02_f64.to_radians();
+        let w = Vec3::new(rate.x + bias, rate.y - bias, rate.z + bias);
         // SAFETY: three live Vec3_t
         unsafe { sqso_ffi::adcs_control::adcs_set_sim_sensors(&mag, &sun, &w) };
     }

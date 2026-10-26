@@ -18,6 +18,7 @@
 //! @requirement SRS-F016 Enforce power budget limits per mode
 
 use core::ffi::CStr;
+use core::sync::atomic::{AtomicBool, Ordering};
 
 use sqso_fsw::eps::{self, EpsState, PayloadBlock, RECORD_SIZE};
 use sqso_fsw::eps_telemetry::{self, Telemetry};
@@ -63,6 +64,10 @@ struct TelemetryCache {
     read: bool,
     telemetry: Option<Telemetry>,
 }
+
+/// The payload schedule holds the payload's switch-on (flight): a mode
+/// entry may switch the payload off, but not on
+static PAYLOAD_HELD: AtomicBool = AtomicBool::new(false);
 
 static TELEMETRY: Global<TelemetryCache> = Global::new(TelemetryCache { read_ms: 0, read: false, telemetry: None });
 
@@ -311,8 +316,11 @@ pub extern "C" fn eps_set_power_mode(mode: u32, soc: f64) -> i32 {
         Some(true) => {}
     }
     let loads = eps::loads(power_mode);
-    // A refused payload enable is logged by eps_control_payload
-    let _ = eps_control_payload(loads.payload, soc);
+    // A refused payload enable is logged by eps_control_payload; a held
+    // one is the payload schedule's to make
+    if !(loads.payload && PAYLOAD_HELD.load(Ordering::Relaxed)) {
+        let _ = eps_control_payload(loads.payload, soc);
+    }
     let _ = eps_control_radio(loads.radio);
     let _ = eps_control_adcs(loads.adcs);
     let _ = eps_control_beacon(loads.beacon);
@@ -339,6 +347,17 @@ pub extern "C" fn eps_get_power_mode() -> u32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn eps_is_payload_enabled() -> bool {
     with(false, |e| e.state.payload_enabled)
+}
+
+/// Hold (or release) the payload's switch-on by a mode entry: in flight
+/// the payload schedule switches the payload on (`sqso_fsw::payload_schedule`)
+pub fn eps_hold_payload(hold: bool) {
+    PAYLOAD_HELD.store(hold, Ordering::Relaxed);
+}
+
+/// Whether the ADCS is powered
+pub fn eps_is_adcs_enabled() -> bool {
+    with(false, |e| e.state.adcs_enabled)
 }
 
 /// Whether the beacon transmitter is powered
@@ -422,6 +441,7 @@ mod tests {
             let switches = [eps_control_radio(true), eps_control_adcs(false), eps_control_beacon(true)];
             let modes = (eps_init(), eps_control_payload(true, 0.9), eps_set_power_mode(0, 0.5), eps_save_config());
             let readers = (eps_get_power_mode(), eps_is_payload_enabled(), eps_is_beacon_enabled(), eps_get_soc());
+            assert!(!eps_is_adcs_enabled());
             (got, switches, modes, readers, eps_get_power_limit())
         });
         let busy = rc::BUSY;
@@ -436,5 +456,34 @@ mod tests {
             ))
         );
         assert_eq!(copy.power_mode, 7);
+    }
+
+    /// While the payload schedule holds the payload, an ACTIVE entry leaves
+    /// it off (the other loads follow the mode); a direct switch-on, and a
+    /// mode entry that switches the payload off, still work
+    #[test]
+    fn a_held_payload_is_not_switched_on_by_a_mode_entry() {
+        let _serial = serial();
+        let _ = EPS.with(|e| {
+            e.state = EpsState::DEFAULT;
+            e.initialized = true;
+        });
+        let active = PowerMode::Active as u32;
+        let idle = PowerMode::Idle as u32;
+
+        eps_hold_payload(true);
+        assert_eq!(eps_set_power_mode(active, 0.9), rc::OK);
+        assert!(!eps_is_payload_enabled());
+        assert!(eps_is_adcs_enabled());
+        assert_eq!(eps_control_payload(true, 0.9), rc::OK); // the schedule's own switch-on
+        assert!(eps_is_payload_enabled());
+        assert_eq!(eps_set_power_mode(idle, 0.9), rc::OK); // a held payload still goes off
+        assert!(!eps_is_payload_enabled());
+
+        eps_hold_payload(false);
+        assert_eq!(eps_set_power_mode(active, 0.9), rc::OK);
+        assert!(eps_is_payload_enabled());
+        assert_eq!(eps_set_power_mode(idle, 0.9), rc::OK);
+        store::erase(Store::EpsConfig);
     }
 }

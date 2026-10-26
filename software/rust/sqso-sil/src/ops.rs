@@ -122,15 +122,16 @@ pub fn decode_beacon(frame: &[u8]) -> Option<Beacon> {
     Some(Beacon {
         soc: field("SOC="),
         sunlit: field("SUN=").map(|v| v > 0.5),
-        ai: !text.contains(TEMPLATE_MARK),
+        ai: !is_template(&text),
         text,
     })
 }
 
-/// Text every template beacon carries and no generated one does
-/// (`beacon.c` templates end with the mode word); refined against a real
-/// frame in the tests
-const TEMPLATE_MARK: &str = "\u{1}";
+/// Whether a beacon's text is one of the flight software's templates
+/// (otherwise it is a Jetson line the content filter passed)
+fn is_template(text: &str) -> bool {
+    sqso_fsw::beacon::TEMPLATES.iter().any(|t| t.to_str().is_ok_and(|t| text.contains(t)))
+}
 
 #[cfg(test)]
 mod tests {

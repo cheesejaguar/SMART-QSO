@@ -44,13 +44,22 @@
 //!
 //! # Conductances (W/K)
 //!
-//! * Internal to structure: battery 1.0, OBC stack 0.5, RF 0.3
-//!   (THERMAL_DESIGN §4.2), Jetson 0.44 (BASELINE §6: audit estimate of the
+//! * Internal to structure: battery [`BATTERY_MOUNT_W_K`] (an isolating
+//!   mount, below), OBC stack 0.5, RF 0.3 (THERMAL_DESIGN §4.2), Jetson 0.44 (BASELINE §6: audit estimate of the
 //!   documented stack, TB-07; the 2.0 W/K of THERMAL_DESIGN is superseded),
 //!   each spread over the frame as 20 % to each long face and 10 % to each
 //!   end face.
-//! * Internal to internal (stack standoffs, assumed): battery–OBC 0.1,
-//!   OBC–RF 0.1, OBC–Jetson 0.05.
+//! * Internal to internal (stack standoffs, assumed): battery–OBC
+//!   [`BATTERY_STACK_W_K`], OBC–RF 0.1, OBC–Jetson 0.05.
+//!
+//! The battery mount: THERMAL_DESIGN §4.2 and §7.2 put the pack on a
+//! 1.0 W/K thermal pad to the frame, but §6.3 sizes the 0.5 W heater for
+//! a path of about 0.03 W/K (k A / L with k = 0.3 W/m·K). With the pad,
+//! the mission simulation keeps the pack below 0 °C for a fifth of every
+//! orbit, heater on, so the charge regulator refuses the Sun when it comes
+//! back (SYS-602). The mount here isolates the pack (G-10 or PEEK standoffs,
+//! TBR, TB-07): 0.05 W/K to the frame and 0.02 W/K to the stack, enough for
+//! the pack's own I²R heat (≤ 0.1 W, about 2 K above the frame).
 //! * Panel to panel through the frame (assumed): adjacent long faces 0.25,
 //!   long face to end face 0.15.
 //! * Deployed wing hinge (assumed, stainless): 0.01 to each of the two faces
@@ -59,6 +68,11 @@
 use super::earth::{ALBEDO, EARTH_IR_W_M2, plate_view_factor};
 use super::math::{SIGMA, T0_K, V3};
 use super::solar::{self, N_STRINGS, StringOut};
+
+/// Battery pack to the frame, W/K (isolating mount; see the module notes)
+pub const BATTERY_MOUNT_W_K: f64 = 0.05;
+/// Battery pack to the OBC stack, W/K
+pub const BATTERY_STACK_W_K: f64 = 0.02;
 
 /// Number of nodes.
 pub const N_NODES: usize = 12;
@@ -208,14 +222,14 @@ impl Network {
             self.push_link(a, PZ, 0.15);
             self.push_link(a, MZ, 0.15);
         }
-        for (node, g) in [(BAT, 1.0), (OBC, 0.5), (RF, 0.3), (JET, 0.44)] {
+        for (node, g) in [(BAT, BATTERY_MOUNT_W_K), (OBC, 0.5), (RF, 0.3), (JET, 0.44)] {
             for p in [PX, MX, PY, MY] {
                 self.push_link(node, p, 0.2 * g);
             }
             self.push_link(node, PZ, 0.1 * g);
             self.push_link(node, MZ, 0.1 * g);
         }
-        self.push_link(BAT, OBC, 0.1);
+        self.push_link(BAT, OBC, BATTERY_STACK_W_K);
         self.push_link(OBC, RF, 0.1);
         self.push_link(OBC, JET, 0.05);
     }

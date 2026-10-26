@@ -18,15 +18,17 @@ use sqso_fsw::eps::EpsState;
 use sqso_fsw::executive::{self as exec, PowerModel};
 use sqso_fsw::fault_log::Entry;
 use sqso_fsw::fixed::Fixed;
+use sqso_fsw::heater::{self, Heater};
 use sqso_fsw::mission_data::MissionData;
 use sqso_fsw::payload_guard::{Outcome, Sample, TELEMETRY_TIMEOUT_MS};
+use sqso_fsw::payload_schedule::{self, Action, BATCH_LINES, Schedule};
 use sqso_protocol::jetson::{LINE_MAX, TEXT_MAX};
 
 use crate::c::{fault_type, rc, severity};
 use crate::jetson_link::{JetsonMsg, JetsonRx};
 use crate::sensors::Sensor;
 use crate::{
-    beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, fault_mgmt, gse_provision, jetson_link,
+    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, fault_mgmt, gse_provision, jetson_link,
     mission_data, payload_guard, rf_control, rf_silence, sensors, state_machine, system_state, uart_comm, uplink,
     watchdog_mgr,
 };
@@ -48,10 +50,25 @@ const WDT_TASK_HEALTH: u32 = 7;
 
 // state_machine.h
 const STATE_BOOT: u32 = 0;
+const STATE_DETUMBLE: u32 = 2;
+const STATE_ACTIVE: u32 = 4;
 const EVENT_NONE: u32 = 0;
 const EVENT_BOOT_COMPLETE: u32 = 1;
 const EVENT_DETUMBLE_COMPLETE: u32 = 2;
 const EVENT_THERMAL_FAULT: u32 = 7;
+
+// adcs_control.h
+const ADCS_MODE_IDLE: u32 = 0;
+const ADCS_MODE_DETUMBLE: u32 = 1;
+/// ADCS control cycle, ms (1 Hz: ADCS_DESIGN §5)
+const ADCS_PERIOD_MS: u64 = 1000;
+
+// hal_gpio.h
+const GPIO_PIN_HEATER_EN: u32 = 3;
+const GPIO_DIR_OUTPUT: u32 = 1;
+const GPIO_PULL_DOWN: u32 = 2;
+/// The battery temperature the heater thermostat uses must be this fresh, ms
+const HEATER_SENSOR_MAX_AGE_MS: u64 = 10_000;
 
 // jetson_link.h
 const JETSON_MSG_BEACON_RSP: u32 = 0;
@@ -189,8 +206,19 @@ pub struct Executive {
     jetson_temp_c: i32,
     jetson_status_ms: u64,
     jetson_status_seen: bool,
-    /// Beacon text most recently received from the Jetson (empty: use a template)
-    ai_text: [u8; TEXT_MAX + 1],
+    /// Beacon texts received from the Jetson and not yet sent, oldest first
+    /// (none: use a template)
+    ai_cache: [[u8; TEXT_MAX + 1]; BATCH_LINES],
+    /// How many of `ai_cache` hold a text
+    ai_cached: usize,
+    /// When the Jetson runs (with the EPS controller answering)
+    schedule: Schedule,
+    /// Battery heater thermostat
+    heater: Heater,
+    /// When the ADCS last ran its control cycle, ms
+    last_adcs_ms: u64,
+    /// The ADCS was told to detumble since this boot
+    detumble_commanded: bool,
     beacon_seq: u16,
     jetson_rx: JetsonRx,
 }
@@ -198,7 +226,7 @@ pub struct Executive {
 impl Executive {
     /// The state before [`Executive::start`]. A constant, so the firmware
     /// can place it in a `static` and start it in place: the state is about
-    /// 800 bytes, more than a stack frame should carry (SRS-C003)
+    /// 2.7 kB, more than a stack frame should carry (SRS-C003)
     pub const BOOT: Executive = Executive {
         tick: 0,
         telemetry_interval_ms: 0,
@@ -211,7 +239,12 @@ impl Executive {
         jetson_temp_c: 0,
         jetson_status_ms: 0,
         jetson_status_seen: false,
-        ai_text: [0; TEXT_MAX + 1],
+        ai_cache: [[0; TEXT_MAX + 1]; BATCH_LINES],
+        ai_cached: 0,
+        schedule: Schedule::new(),
+        heater: Heater::new(),
+        last_adcs_ms: 0,
+        detumble_commanded: false,
         beacon_seq: 0,
         jetson_rx: JetsonRx::EMPTY,
     };
@@ -280,6 +313,7 @@ impl Executive {
         self.last_health_check_ms = self.program_start_ms;
         self.last_contact_tick_ms = self.program_start_ms;
         self.last_power_ms = self.program_start_ms;
+        self.last_adcs_ms = self.program_start_ms;
         self.telemetry_interval_ms = uart_comm::uart_get_telemetry_interval();
         true
     }
@@ -300,17 +334,28 @@ impl Executive {
     }
 
     /// Operational state (one mode manager, SW-14): BOOT -> DETUMBLE -> IDLE.
-    /// The loop has no ADCS yet, so detumble completes at once.
+    /// With the EPS controller answering (the spacecraft) DETUMBLE lasts
+    /// until the ADCS has detumbled the spacecraft after separation, and
+    /// the payload schedule owns the payload's switch-on. Without it (the
+    /// stand-in power model of SW-01: the development simulation) there is
+    /// no attitude or battery to manage: detumble completes in the first
+    /// pass and the payload follows the power mode ([`Executive::run_adcs`],
+    /// [`Executive::run_payload_schedule`]).
     fn init_mode_manager(&mut self) -> bool {
         let _ = beacon::beacon_init(); // templates until the Jetson's text passes the filter
         payload_guard::payload_guard_init();
+        if adcs_control::adcs_init() != rc::OK {
+            eprint(format_args!("[SYSTEM] ADCS init failed"));
+        }
+        // SAFETY: plain values (the HAL)
+        let _ = unsafe { crate::c::hal_gpio_config(GPIO_PIN_HEATER_EN, GPIO_DIR_OUTPUT, GPIO_PULL_DOWN) };
+
         eps_control::eps_update_soc(self.power.soc);
         if system_state::sys_state_init() != rc::OK {
             eprint(format_args!("[SYSTEM] System state init failed"));
             return false;
         }
         sm_event(EVENT_BOOT_COMPLETE);
-        sm_event(EVENT_DETUMBLE_COMPLETE);
         true
     }
 
@@ -344,10 +389,21 @@ impl Executive {
         self.monitor_system_health();
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_MAIN_LOOP);
 
-        // Telemetry and beacon request to the Jetson, and a periodic UART check
+        // Attitude and the battery heater
+        let state = sm_state();
+        self.run_adcs(now, state);
+        self.run_heater(now);
+
+        // Telemetry and beacon request to the Jetson (during a batch at least
+        // every BATCH_INTERVAL_MS), and a periodic UART check
+        let interval = if self.schedule.in_batch() {
+            self.telemetry_interval_ms.min(payload_schedule::BATCH_INTERVAL_MS)
+        } else {
+            self.telemetry_interval_ms
+        };
         if eps_control::eps_is_payload_enabled()
             && uart_comm::uart_is_initialized()
-            && now.wrapping_sub(self.last_telemetry_ms) >= u64::from(self.telemetry_interval_ms)
+            && now.wrapping_sub(self.last_telemetry_ms) >= u64::from(interval)
         {
             if self.send_telemetry_to_jetson() {
                 self.request_beacon_text();
@@ -359,9 +415,11 @@ impl Executive {
         }
         let _ = sensors::sensors_poll(now);
 
-        // Jetson replies (beacon text, status), then the OBC's payload limits
+        // Jetson replies (beacon text, status), the OBC's payload limits, then
+        // the batch schedule
         self.poll_jetson();
         self.guard_payload(now);
+        self.run_payload_schedule(now, state);
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_PAYLOAD);
 
         // Beacon (stays silent while TX-OFF, contact or RF-silence inhibits)
@@ -418,13 +476,9 @@ impl Executive {
         // conditions into transitions, and its entry actions set the EPS
         // power mode (SW-14)
         eps_control::eps_update_soc(self.power.soc);
-        let mut state = STATE_BOOT;
-        // SAFETY: the system state's context; state is a live u32
-        if unsafe { state_machine::sm_get_state(system_state::sys_get_sm_context(), &mut state) } == rc::OK {
-            let event = state_machine::sm_power_event(state, self.power.soc, self.power.sunlit);
-            if event != EVENT_NONE {
-                sm_event(event);
-            }
+        let event = state_machine::sm_power_event(sm_state(), self.power.soc, self.power.sunlit);
+        if event != EVENT_NONE {
+            sm_event(event);
         }
 
         let _ = mission_data::mission_data_update_uptime(now.wrapping_sub(self.program_start_ms));
@@ -555,11 +609,7 @@ impl Executive {
             if status != JETSON_OK {
                 eprint(format_args!("[UART] Rejected Jetson line ({status})"));
             } else if msg.msg_type == JETSON_MSG_BEACON_RSP && msg.seq == self.beacon_seq {
-                let text = field(&msg.text);
-                self.ai_text = [0; TEXT_MAX + 1];
-                if let Some(dst) = self.ai_text.get_mut(..text.len().min(TEXT_MAX)) {
-                    dst.copy_from_slice(text.get(..dst.len()).unwrap_or(&[]));
-                }
+                self.cache_text(field(&msg.text));
                 crate::c::console(format_args!("[UART] Beacon text from Jetson ({} chars)", msg.text_len));
             } else if msg.msg_type == JETSON_MSG_STATUS {
                 self.jetson_temp_c = msg.temp_c;
@@ -641,15 +691,116 @@ impl Executive {
             return;
         }
         let mut content = Content::ZERO;
-        let ai_len = field(&self.ai_text).len();
-        let ai: *const c_char = if ai_len > 0 { self.ai_text.as_ptr().cast() } else { null() };
+        let oldest = if self.ai_cached > 0 { self.ai_cache.first() } else { None };
+        let ai_len = oldest.map_or(0, |t| field(t).len());
+        let ai: *const c_char = oldest.filter(|_| ai_len > 0).map_or(null(), |t| t.as_ptr().cast());
         // SAFETY: content is a live BeaconContent_t; ai is NULL or ai_len bytes
         if unsafe { beacon::beacon_generate_content(&mut content, ai, ai_len) } == rc::OK
             && unsafe { beacon::beacon_transmit(&content) } == rc::OK
         {
             beacon::beacon_mark_transmitted(now);
         }
-        self.ai_text = [0; TEXT_MAX + 1];
+        self.drop_oldest_text();
+    }
+
+    /// Keep a Jetson beacon text (when the cache is full, the oldest goes)
+    fn cache_text(&mut self, text: &[u8]) {
+        if self.ai_cached == BATCH_LINES {
+            self.drop_oldest_text();
+        }
+        if let Some(slot) = self.ai_cache.get_mut(self.ai_cached) {
+            *slot = [0; TEXT_MAX + 1];
+            let n = text.len().min(TEXT_MAX);
+            if let (Some(dst), Some(src)) = (slot.get_mut(..n), text.get(..n)) {
+                dst.copy_from_slice(src);
+            }
+            self.ai_cached += 1;
+        }
+    }
+
+    /// The oldest cached text is spent (each is sent at most once)
+    fn drop_oldest_text(&mut self) {
+        if self.ai_cached > 0 {
+            self.ai_cache.copy_within(1.., 0);
+            if let Some(last) = self.ai_cache.last_mut() {
+                *last = [0; TEXT_MAX + 1];
+            }
+            self.ai_cached -= 1;
+        }
+    }
+
+    /// The ADCS at 1 Hz, once separated and powered (ADCS_DESIGN §5): DETUMBLE
+    /// on the first cycle of a boot in the DETUMBLE state; the state machine
+    /// leaves DETUMBLE when the ADCS does (detumbled, now SUNPOINT; or timed
+    /// out, logged as a fault). In the mission an idle ADCS is told to
+    /// detumble again, so it is never left without control
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_adcs(&mut self, now: u64, state: u32) {
+        if eps_control::eps_telemetry().is_none() {
+            if state == STATE_DETUMBLE {
+                sm_event(EVENT_DETUMBLE_COMPLETE); // stand-in power model: nothing to detumble
+            }
+            return;
+        }
+        if now.wrapping_sub(self.last_adcs_ms) < ADCS_PERIOD_MS {
+            return;
+        }
+        self.last_adcs_ms = now;
+        if !eps_control::eps_is_adcs_enabled() || !deployment::deployment_is_separated() {
+            let _ = adcs_control::adcs_disable_mtq();
+            return;
+        }
+        let mode = adcs_control::adcs_get_mode();
+        if (state == STATE_DETUMBLE && !self.detumble_commanded)
+            || (state != STATE_DETUMBLE && state != STATE_BOOT && mode == ADCS_MODE_IDLE)
+        {
+            self.detumble_commanded = true;
+            let _ = adcs_control::adcs_set_mode(ADCS_MODE_DETUMBLE);
+        }
+        let _ = adcs_control::adcs_update(now);
+        if state == STATE_DETUMBLE && self.detumble_commanded && adcs_control::adcs_get_mode() != ADCS_MODE_DETUMBLE {
+            sm_event(EVENT_DETUMBLE_COMPLETE);
+        }
+    }
+
+    /// The battery heater thermostat on the battery temperature (BT)
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_heater(&mut self, now: u64) {
+        let battery_c = fresh_sensor(c"BT", now, HEATER_SENSOR_MAX_AGE_MS);
+        let change = self.heater.step(battery_c);
+        let t = Fixed::new(battery_c.unwrap_or(0.0), 1);
+        match change {
+            heater::Change::None => return,
+            heater::Change::On => crate::c::console(format_args!("[THERMAL] Battery heater on ({t} C)")),
+            heater::Change::Off => crate::c::console(format_args!("[THERMAL] Battery heater off ({t} C)")),
+            heater::Change::NoSensor => crate::c::console(format_args!("[THERMAL] Battery heater off: no BT")),
+        }
+        // SAFETY: plain values (the HAL)
+        let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_HEATER_EN, self.heater.on) };
+    }
+
+    /// With the EPS controller answering, the Jetson in batches
+    /// (`sqso_fsw::payload_schedule`); on the stand-in power model it
+    /// follows the power mode
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_payload_schedule(&mut self, now: u64, state: u32) {
+        let measured = eps_control::eps_telemetry().is_some();
+        eps_control::eps_hold_payload(measured);
+        if !measured {
+            return;
+        }
+        let on = eps_control::eps_is_payload_enabled();
+        match self.schedule.step(now, on, state == STATE_ACTIVE, self.ai_cached) {
+            Action::None => {}
+            Action::PowerOn => {
+                crate::c::console(format_args!("[PAYLOAD] Batch: Jetson on"));
+                let _ = eps_control::eps_control_payload(true, self.power.soc);
+            }
+            Action::PowerOff => {
+                crate::c::console(format_args!("[PAYLOAD] Batch done: {} lines cached", self.ai_cached));
+                let _ = eps_control::eps_control_payload(false, self.power.soc);
+            }
+        }
     }
 
     /// Save everything and close the Jetson link
@@ -675,6 +826,14 @@ impl Executive {
 /// so the radio lines are never driven high on a boot that must stay silent;
 /// then the latched TX-OFF state (47 CFR 97.207(b)), the key table (with no
 /// key only TX-OFF is accepted), the receiver and the GSE port
+/// The state machine's state (BOOT if it cannot be read)
+fn sm_state() -> u32 {
+    let mut state = STATE_BOOT;
+    // SAFETY: the system state's context; state is a live u32
+    let _ = unsafe { state_machine::sm_get_state(system_state::sys_get_sm_context(), &mut state) };
+    state
+}
+
 fn init_rf_and_telecommand() {
     let _ = rf_silence::rf_silence_init();
     let _ = contact_monitor::contact_monitor_init();

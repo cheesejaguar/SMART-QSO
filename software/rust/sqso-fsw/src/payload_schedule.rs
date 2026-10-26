@@ -7,9 +7,12 @@
 //! about 5 % duty (the power budget's ≤ 5 % tumbling, ≤ 10 % sun-pointed)
 //! and its energy per accepted beacon well under the 0.1 Wh gate.
 //!
-//! The mode manager's ACTIVE entry still switches the payload on (its
-//! contract); while resting, or with lines still cached, the schedule
-//! vetoes that at once, so the rail never comes up.
+//! In flight the schedule owns the payload's switch-on: the mode manager's
+//! ACTIVE entry may switch the payload off but not on (the executive holds
+//! it, `eps_control`). Should the payload be on outside a batch all the
+//! same (a state restored after a reset), the schedule switches it off. A
+//! switch-on the EPS refuses (the payload guard's cool-down, low SOC) is
+//! asked again after [`RETRY_MS`].
 //!
 //! @requirement SRS-F016 Enforce power budget limits per mode
 
@@ -19,6 +22,8 @@ pub const BATCH_LINES: usize = 10;
 pub const BATCH_TIMEOUT_MS: u64 = 600_000;
 /// Rest between the end of one batch and the start of the next, ms
 pub const REST_MS: u64 = 6_000_000;
+/// A refused switch-on is asked again after this long, ms
+pub const RETRY_MS: u64 = 60_000;
 /// Telemetry and request interval during a batch, ms (ICD §5.2 minimum)
 pub const BATCH_INTERVAL_MS: u32 = 30_000;
 
@@ -40,12 +45,14 @@ pub struct Schedule {
     pub batch_start_ms: Option<u64>,
     /// When the last batch ended, ms
     pub last_end_ms: Option<u64>,
+    /// When the payload was last asked to switch on, ms
+    pub last_request_ms: Option<u64>,
 }
 
 impl Schedule {
     /// No batch yet
     pub const fn new() -> Schedule {
-        Schedule { batch_start_ms: None, last_end_ms: None }
+        Schedule { batch_start_ms: None, last_end_ms: None, last_request_ms: None }
     }
 
     /// Whether a batch may start now with `cached` lines left
@@ -61,7 +68,12 @@ impl Schedule {
                 // Switched off by someone else (guard, mode change): the batch ends
                 self.last_end_ms = Some(now_ms);
             }
-            return if active && self.may_start(now_ms, cached) { Action::PowerOn } else { Action::None };
+            let asked_lately = self.last_request_ms.is_some_and(|t| now_ms.saturating_sub(t) < RETRY_MS);
+            if active && !asked_lately && self.may_start(now_ms, cached) {
+                self.last_request_ms = Some(now_ms);
+                return Action::PowerOn;
+            }
+            return Action::None;
         }
         let Some(start) = self.batch_start_ms else {
             if self.may_start(now_ms, cached) {
@@ -123,6 +135,15 @@ mod tests {
         assert_eq!(s.last_end_ms, Some(9000));
         assert!(!s.may_start(9000 + REST_MS, 2));
         assert!(s.may_start(9000 + REST_MS, 0));
+    }
+
+    #[test]
+    fn a_refused_switch_on_is_asked_again_later() {
+        let mut s = Schedule::new();
+        assert_eq!(s.step(0, false, true, 0), Action::PowerOn);
+        assert_eq!(s.step(1000, false, true, 0), Action::None, "refused: not asked again at once");
+        assert_eq!(s.step(RETRY_MS - 1, false, true, 0), Action::None);
+        assert_eq!(s.step(RETRY_MS, false, true, 0), Action::PowerOn);
     }
 
     #[test]

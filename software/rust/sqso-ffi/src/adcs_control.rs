@@ -16,17 +16,16 @@ struct Module {
     sim_mag: Vec3,
     /// Simulated sun vector (its length is the intensity)
     sim_sun: Vec3,
-    /// Simulated body rate, rad/s (set through the interface, read by
-    /// nothing: the simulated field carries the rotation)
-    #[allow(dead_code)]
-    sim_rate: Vec3,
+    /// Simulated gyro body rate, rad/s (`None` until one is set: then the
+    /// rate is estimated from the field)
+    sim_rate: Option<Vec3>,
 }
 
 static ADCS: Global<Module> = Global::new(Module {
     adcs: Adcs::new(),
     sim_mag: Vec3::new(30.0, 0.0, 40.0), // typical LEO field
     sim_sun: Vec3::new(1.0, 0.0, 0.0),
-    sim_rate: Vec3::new(0.05, 0.05, 0.05), // ~3 deg/s initial
+    sim_rate: None,
 });
 
 /*---------------------------------------------------------------------------
@@ -102,7 +101,7 @@ pub extern "C" fn adcs_init() -> i32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn adcs_update(now_ms: u64) -> i32 {
     let read_ms = c::now_ms();
-    let cycle = match ADCS.with(|m| m.adcs.update(now_ms, read_ms, m.sim_mag, m.sim_sun)) {
+    let cycle = match ADCS.with(|m| m.adcs.update_with_gyro(now_ms, read_ms, m.sim_mag, m.sim_sun, m.sim_rate)) {
         Some(Some(cycle)) => cycle,
         Some(None) => return rc::ERROR,
         None => return rc::BUSY,
@@ -238,7 +237,7 @@ pub unsafe extern "C" fn adcs_set_sim_sensors(mag: *const Vec3, sun: *const Vec3
             m.sim_sun = v;
         }
         if let Some(v) = rate {
-            m.sim_rate = v;
+            m.sim_rate = Some(v);
         }
     });
 }
