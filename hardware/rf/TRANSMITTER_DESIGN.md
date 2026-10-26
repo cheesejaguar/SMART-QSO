@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-TX-001
-**Version:** 1.1
-**Date:** 2026-10-25
+**Version:** 1.2
+**Date:** 2026-10-26
 **Status:** CDR Baseline
 
 ---
@@ -248,12 +248,20 @@ If higher power required:
 | TX_TEMP | ADC | Temperature monitor (`ADC_CHANNEL_TX_TEMP`) |
 | TX_FWD | ADC | Forward power (`ADC_CHANNEL_TX_FWD`) |
 | TX_REV | ADC | Reflected power (`ADC_CHANNEL_TX_REV`) |
+| XPDR_EN | GPIO | FM transponder enable: while high, the repeat path keys the PA on a CTCSS-valid uplink carrier (`GPIO_PIN_XPDR_EN`; the TNC's frames take the transmitter first). Driven by `sqso_fsw::transponder` |
 
 As built (2026-10-25, CR-2026-005): the OBC software is `software/flight/include/downlink.h`. It hands a frame to the
 TNC only while transmission is permitted, one frame at a time, at most 5 s on the air and 25 % of the time; selects
 TX_PWR; and acts on the monitors as §8.2 and §6.3 ask: VSWR above 3:1 reduces the power to 0.5 W, then stops the
 downlink for 10 minutes; above 70 °C it holds the downlink until 60 °C. The values are TBR-SRS-003 until the
 transmitter and TNC are selected.
+
+XPDR_EN (2026-10-26, from the mission simulation, `docs/test/SIL_MISSION_SIMULATION.md`): the interface had no
+way for the OBC to gate the transponder, so the power closure's transponder line (BASELINE §5: sunlit, SOC ≥ 55 %,
+duty ≤ 25 %) could not be enforced. The OBC now holds XPDR_EN high only while transmission is permitted, the mode is
+ACTIVE, the array is sunlit, the SOC is at least 55 %, the PA is below 70 °C (resuming at 60 °C) and the keyed time,
+measured on TX_FWD, is under 25 % of the last 100 minutes. The line is a placeholder until the transponder's
+repeat-path hardware is selected.
 
 ### 10.2 Timing
 
@@ -358,3 +366,4 @@ transmitter and TNC are selected.
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-25 | §10.1 as built (CR-2026-005): KISS TNC on USART2, one power-select line, the monitors' channels and the software's actions; §1.1 frequency and power marked superseded by BASELINE §7 |
+| 1.2 | 2026-10-26 | §10.1: XPDR_EN, the transponder enable, and the gates the OBC applies to it (found by the mission simulation) |

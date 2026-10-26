@@ -96,3 +96,6 @@ software/simulation/notebooks/*.ipynb
 *.p12
 *.pfx
 keys/
+
+# Mission simulation output (software/rust/sqso-sil)
+sil-out/

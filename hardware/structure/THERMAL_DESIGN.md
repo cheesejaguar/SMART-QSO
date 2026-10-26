@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-THM-001
-**Version:** 1.0
-**Date:** 2026-01-02
+**Version:** 1.1
+**Date:** 2026-10-26
 **Status:** CDR Baseline
 
 ---
@@ -92,7 +92,7 @@ This document defines the thermal design for the SMART-QSO 1U CubeSat for LEO mi
 | From | To | Conductance (W/K) | Path |
 |------|-----|-------------------|------|
 | OBC | Structure | 0.5 | Standoffs |
-| Battery | Structure | 1.0 | Thermal pad |
+| Battery | Structure | 0.05 | Isolating standoffs (G-10 or PEEK, TBR, TB-07); was 1.0 W/K through a thermal pad (§7.2) |
 | RF | Structure | 0.3 | Standoffs |
 | Jetson | Structure | 2.0 | Heatspreader |
 | ADCS | Structure | 0.3 | Standoffs |
@@ -147,7 +147,7 @@ This document defines the thermal design for the SMART-QSO 1U CubeSat for LEO mi
 
 | Element | Location | Power | Activation |
 |---------|----------|-------|------------|
-| Battery heater | Battery pack | 0.5W | < -5°C |
+| Battery heater | Battery pack | 0.5W | On below +2 °C, off above +6 °C (battery temperature; `sqso_fsw::heater`) |
 | (Jetson heater) | Heatspreader | (0.5W) | (Optional) |
 
 ### 6.3 Heater Sizing
@@ -159,8 +159,16 @@ Battery heater:
   Q_loss ≈ 0.5W
 
   Heater power: 0.5W (matches loss)
-  Thermostat setpoint: +0°C (on), +5°C (off)
+  Thermostat setpoint: +2°C (on), +6°C (off): the design's 0/+5 °C
+  with 2 °C of margin over the 0 °C charge limit (SYS-602) for the
+  sensor and the gradient across the pack
 ```
+
+The sizing above assumes the pack is isolated from the frame (about 0.03 W/K). §4.2 and §7.2 had put it on a
+1.0 W/K thermal pad instead; with the pad the mission simulation (`docs/test/SIL_MISSION_SIMULATION.md`) kept the
+pack below 0 °C for a fifth of every sun-pointed orbit with the heater on, so charging was refused each time the Sun
+returned. The pack is now on isolating standoffs, 0.05 W/K to the frame and 0.02 W/K to the OBC stack: its own I²R
+heat (≤ 0.1 W) raises it about 2 K above the frame in the hot case, and the heater holds it above +2 °C in eclipse.
 
 ---
 
@@ -183,6 +191,10 @@ Battery heater:
 | Cell case | Aluminum | 0.3 mm | 200 W/m·K |
 | Thermal pad | Bergquist | 1 mm | 3 W/m·K |
 | Bracket | Al 6061 | 2 mm | 167 W/m·K |
+| Standoffs to the frame | G-10 or PEEK (TBR, TB-07) | 4 × M2.5, 8 mm | 0.3 W/m·K (total 0.05 W/K) |
+
+The pad and bracket spread heat across the cells and from the heater; the standoffs isolate the bracket from the
+frame (§6.3).
 
 ---
 
@@ -250,3 +262,4 @@ Battery heater:
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-26 | Battery mount isolated (§4.2, §6.3, §7.2) and heater set points +2/+6 °C (§6.2, §6.3), from the mission simulation |

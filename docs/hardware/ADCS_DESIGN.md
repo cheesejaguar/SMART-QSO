@@ -1,8 +1,8 @@
 # Attitude Determination and Control Subsystem (ADCS) Design Document
 
 **Document Number**: SMART-QSO-ADCS-001
-**Version**: 1.2
-**Date**: 2026-01-02
+**Version**: 1.3
+**Date**: 2026-10-26
 **Status**: Preliminary Design
 
 **Governing Standards**:
@@ -44,8 +44,8 @@ SMART-QSO employs a passive/semi-active ADCS approach:
 
 | ID | Requirement | Verification |
 |----|-------------|--------------|
-| ADCS-F001 | Detumble within 1 orbit from tip-off rates ≤10°/s | Analysis, Test |
-| ADCS-F002 | Achieve power-bias sun pointing (±15° accuracy) | Analysis, Test |
+| ADCS-F001 | Detumble within 3 orbits from tip-off rates ≤10°/s (BASELINE §8) | Analysis, Test |
+| ADCS-F002 | Achieve spin-stabilized coarse sun pointing of +Y, the deployed array's normal (±15° accuracy in sunlight) | Analysis, Test |
 | ADCS-F003 | Maintain attitude knowledge within ±5° | Analysis, Test |
 | ADCS-F004 | Operate autonomously without ground commands | Test |
 | ADCS-F005 | Provide attitude telemetry to OBC | Test |
@@ -56,7 +56,7 @@ SMART-QSO employs a passive/semi-active ADCS approach:
 
 | ID | Requirement | Threshold | Goal |
 |----|-------------|-----------|------|
-| ADCS-P001 | Detumble time | <90 min | <45 min |
+| ADCS-P001 | Detumble time | < 3 orbits (285 min) | < 2 orbits |
 | ADCS-P002 | Sun-pointing accuracy | ±15° | ±10° |
 | ADCS-P003 | Attitude knowledge accuracy | ±5° | ±3° |
 | ADCS-P004 | Peak power consumption | <2W | <1W |
@@ -266,6 +266,26 @@ void sun_pointing_control(Vec3 *sun_body, Vec3 *B_body, Vec3 *m_cmd) {
 }
 ```
 
+### 4.2.1 Spin-Stabilized Sun Pointing (flight law, 2026-10-26)
+
+The law above points +X and has no rate damping; the deployed wings lie in the +Y plane
+(`hardware/eps/SOLAR_ARRAY_DESIGN.md` §8.1), and a proportional law on magnetorquers alone does not converge. The
+mission simulation (`docs/test/SIL_MISSION_SIMULATION.md`) found both. SUNPOINT now runs the baseline's
+spin-stabilized coarse sun pointing (BASELINE §8, `sqso_fsw::adcs::spin_sunpoint`):
+
+```
+h = I ω                         (I: principal inertia with the wings out, +Y the major axis)
+τ = -k_h (h - h_s ŝ)            (sunlit only: momentum to h_s = I_yy ω_s along the sun vector ŝ)
+    - k_n (ω - (ω·ŷ) ŷ)         (nutation damping: no rate across +Y)
+m = (B × τ) / |B|²              (the part of τ across B), saturated at 0.2 A·m²
+```
+
+with ω_s = 2°/s, k_h = 0.005 s⁻¹ and k_n = 4·10⁻⁵ N·m·s. The only rest state is a spin about +Y with +Y on the Sun;
+the spin holds the axis through eclipse with the coils off (ECLIPSE). The rate is the MEMS gyro's when it reads
+(BASELINE §8), otherwise the magnetometer estimate of §4.3. In the simulation it holds +Y within about 2–10° of the
+Sun in sunlight and within about 40° by the end of eclipse; generation is then about the sun-pointed allocation of
+BASELINE §5. The proportional law above remains as `adcs_compute_sunpoint()` for its interface.
+
 ### 4.3 Attitude Estimator
 
 **Algorithm**: Extended Kalman Filter (EKF)
@@ -318,9 +338,9 @@ void triad_attitude(Vec3 *sun_body, Vec3 *mag_body,
 | Mode | Description | Entry Condition | Exit Condition |
 |------|-------------|-----------------|----------------|
 | IDLE | Sensors off, coils off | Power-on, SAFE mode | Command or timer |
-| DETUMBLE | B-dot active | ω > 1°/s detected | ω < 0.5°/s for 5 min |
-| SUNPOINT | Sun-pointing active | Detumble complete | Eclipse or fault |
-| ECLIPSE | Coils off, drift | Sun not detected | Sun detected |
+| DETUMBLE | B-dot active | ω > 1°/s detected | ω < 0.5°/s for 5 min (the gyro's rate when it reads) |
+| SUNPOINT | Spin-stabilized sun pointing of +Y (§4.2.1) | Detumble complete | Eclipse or fault |
+| ECLIPSE | Coils off, the spin holds the axis | Sun not detected | Sun detected |
 | SAFE | Minimal operation | Fault or low power | Power restored |
 
 ### 5.2 Mode State Machine
@@ -365,7 +385,7 @@ void triad_attitude(Vec3 *sun_body, Vec3 *mag_body,
 |-----------|-------|-------------|
 | Control loop rate | 1 Hz | Magnetorquer update rate |
 | Sensor sampling | 10 Hz | Magnetometer/sun sensor |
-| Detumble timeout | 90 min | Max detumble duration |
+| Detumble timeout | 285 min | Max detumble duration (3 orbits, BASELINE §8; B-dot removes the rate about the field only as the field turns: about 2.5 orbits from 10°/s in the simulation) |
 | Settling time | 5 min | Time to declare detumble complete |
 | Eclipse threshold | 5% | Sun sensor threshold for eclipse |
 
@@ -559,8 +579,8 @@ If schedule or risk warrants, a COTS integrated solution is available:
 ### A.1 Body Frame
 
 - Origin: Spacecraft center of mass
-- +X: Solar array normal (sun-pointing axis)
-- +Y: Along spacecraft transverse axis
+- +X: Along the wings' hinge-to-tip direction
+- +Y: Solar array normal (sun-pointing and spin axis; the deployed wings lie in the +Y face plane)
 - +Z: Completes right-hand system
 
 ### A.2 ECI Frame (J2000)
@@ -610,3 +630,4 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §8.2 test IDs aligned with the procedure files (finding VV-18) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |
+| 1.3 | 2026-10-26 | SMART-QSO Team | From the mission simulation: detumble within 3 orbits (F001, P001, §5.3); spin-stabilized sun pointing of +Y (F002, §4.2.1, §5.1, App. A) |

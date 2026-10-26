@@ -21,7 +21,8 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
 DAY = 86400.0
-STATES = {0: "BOOT", 1: "DETUMBLE", 2: "SAFE", 3: "IDLE", 4: "ACTIVE", 5: "EMERGENCY"}
+# sqso_fsw::mode::State
+STATES = {0: "BOOT", 1: "SAFE", 2: "DETUMBLE", 3: "IDLE", 4: "ACTIVE", 5: "EMERGENCY"}
 
 
 def read_csv(path):
@@ -111,14 +112,20 @@ def plot_orbits(o, out):
     ax[0].set_title("Thermal, per orbit")
     figs.append(("Thermal", save(fig, out, "thermal_orbits.png")))
 
-    fig, ax = plt.subplots(2, 1, figsize=(10, 6), sharex=True)
+    fig, ax = plt.subplots(3, 1, figsize=(10, 8), sharex=True)
     ax[0].plot(d, [v / 60 for v in o["payload_s"]], lw=0.6, color="tab:green")
     ax[0].set_ylabel("Jetson on (min/orbit)")
-    ax[1].plot(d, o["radiating_s"], lw=0.6, color="tab:purple")
-    ax[1].set_ylabel("downlink keyed (s/orbit)")
-    ax[1].set_xlabel("days after deployment")
-    ax[0].set_title("Payload and downlink activity, per orbit")
-    figs.append(("Payload and downlink", save(fig, out, "activity_orbits.png")))
+    if "xpdr_on_s" in o:
+        ax[1].plot(d, [v / 60 for v in o["xpdr_on_s"]], lw=0.6, label="enabled")
+        ax[1].plot(d, [v / 60 for v in o["xpdr_keyed_s"]], lw=0.6, label="keyed")
+        ax[1].axhline(25, ls="--", lw=0.6, color="r")
+        ax[1].legend(loc="upper right")
+    ax[1].set_ylabel("transponder (min/orbit)")
+    ax[2].plot(d, o["radiating_s"], lw=0.6, color="tab:purple")
+    ax[2].set_ylabel("radiating (s/orbit)")
+    ax[2].set_xlabel("days after deployment")
+    ax[0].set_title("Payload, transponder and downlink activity, per orbit")
+    figs.append(("Payload, transponder and downlink", save(fig, out, "activity_orbits.png")))
     return figs
 
 
@@ -131,7 +138,7 @@ def plot_timeseries(ts, out, detail_days):
     h = [v / 3600 for v in t[:n]]
     if n < 2:
         return figs
-    fig, ax = plt.subplots(5, 1, figsize=(11, 11), sharex=True)
+    fig, ax = plt.subplots(6, 1, figsize=(11, 13), sharex=True)
     ax[0].plot(h, [100 * v for v in ts["soc"][:n]], label="true")
     ax[0].plot(h, [100 * v for v in ts["soc_fsw"][:n]], lw=0.7, label="flight software")
     ax[0].set_ylabel("SOC (%)")
@@ -148,10 +155,12 @@ def plot_timeseries(ts, out, detail_days):
     ax[3].plot(h, ts["t_pa"][:n], label="PA")
     ax[3].set_ylabel("°C")
     ax[3].legend(loc="upper right")
-    ax[4].step(h, ts["op_state"][:n], where="post")
-    ax[4].set_yticks(list(STATES))
-    ax[4].set_yticklabels([STATES[k] for k in STATES])
-    ax[4].set_xlabel("hours after deployment")
+    ax[4].plot(h, ts["sun_angle_deg"][:n], lw=0.5, color="tab:olive")
+    ax[4].set_ylabel("sun to +Y (°)")
+    ax[5].step(h, ts["op_state"][:n], where="post")
+    ax[5].set_yticks(list(STATES))
+    ax[5].set_yticklabels([STATES[k] for k in STATES])
+    ax[5].set_xlabel("hours after deployment")
     ax[0].set_title(f"First {detail_days:g} days")
     figs.append(("Launch and early operations", save(fig, out, "leop.png")))
 

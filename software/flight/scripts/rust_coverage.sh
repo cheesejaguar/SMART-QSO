@@ -21,7 +21,8 @@
 # Counted: every source file of the flight crates (sqso-protocol, sqso-fsw,
 # sqso-ffi), including lines no test reaches. Not counted: the Python
 # binding (sqso-py, tested by the payload and ground suites), the fuzz
-# targets, the firmware (target only) and third-party crates.
+# targets, the mission simulation (sqso-sil, a test tool that drives the
+# flight crates), the firmware (target only) and third-party crates.
 set -euo pipefail
 
 build=$(cd "$1" && pwd)
@@ -71,7 +72,7 @@ objects=(-object "$c_object")
 [ -x "$build/smart_qso_flight" ] && objects+=(-object "$build/smart_qso_flight")
 for t in "${unit_tests[@]}"; do objects+=(-object "$t"); done
 
-ignore='/\.cargo/registry/|/rustc/|/library/|sqso-py/|/fuzz/|/firmware/|/tests?/|/target/|_tests\.rs$'
+ignore='/\.cargo/registry/|/rustc/|/library/|sqso-py/|sqso-sil/|/fuzz/|/firmware/|/tests?/|/target/|_tests\.rs$'
 mkdir -p "$report"
 "$tools/llvm-cov" report "${objects[@]}" -instr-profile="$build/rust.profdata" \
     -ignore-filename-regex="$ignore" | tee "$report/report.txt"

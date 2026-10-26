@@ -928,10 +928,15 @@ impl Mission {
         } else {
             self.below_rate_since = None;
         }
-        t.uv_trips = self.eps.uv_trips;
+        if !self.eps.passivated {
+            // After passivation the pack is meant to drain to its cut-off
+            t.uv_trips = self.eps.uv_trips;
+        }
         t.oc_trips = self.eps.oc_trips;
-        t.commands_executed = t.commands_executed.max(snap.commands_executed);
-        t.auth_failures = t.auth_failures.max(snap.auth_failures);
+        // The flight software's counters restart at each boot
+        let grew = |now: u32, before: u32| if now >= before { now - before } else { now };
+        t.commands_executed += grew(snap.commands_executed, self.prev.commands_executed);
+        t.auth_failures += grew(snap.auth_failures, self.prev.auth_failures);
         t.jetson_wh = self.jetson.stats.energy_wh;
         t.jetson_power_ons = self.jetson.stats.power_ons;
     }
@@ -940,19 +945,23 @@ impl Mission {
         if !self.fsw.running() {
             return;
         }
-        const NAMES: [&str; 6] = ["BOOT", "DETUMBLE", "SAFE", "IDLE", "ACTIVE", "EMERGENCY"];
+        // sqso_fsw::mode::State
+        const NAMES: [&str; 6] = ["BOOT", "SAFE", "DETUMBLE", "IDLE", "ACTIVE", "EMERGENCY"];
+        const SAFE: u32 = 1;
+        const EMERGENCY: u32 = 5;
         if snap.op_state != self.prev.op_state {
             self.totals.mode_changes += 1;
-            let post_commissioning = self.rel() > self.cfg.commissioning_days * 86_400.0;
-            if post_commissioning && snap.op_state == 2 {
+            let in_mission = self.rel() > self.cfg.commissioning_days * 86_400.0 && !self.eps.passivated;
+            if in_mission && snap.op_state == SAFE {
                 self.totals.safe_entries += 1;
             }
-            if snap.op_state == 5 {
+            if snap.op_state == EMERGENCY && !self.eps.passivated {
                 self.totals.safe_entries += 1;
                 self.totals.emergency_entries += 1;
             }
             let name = |s: u32| NAMES.get(s as usize).copied().unwrap_or("?");
-            if snap.op_state == 2 || snap.op_state == 5 || self.prev.op_state == 2 || self.prev.op_state == 5 {
+            let watched = |s: u32| s == SAFE || s == EMERGENCY || s == 2;
+            if watched(snap.op_state) || watched(self.prev.op_state) {
                 let d =
                     format!("{} -> {} (SOC {:.0} %)", name(self.prev.op_state), name(snap.op_state), snap.soc * 100.0);
                 self.event("mode", &d);

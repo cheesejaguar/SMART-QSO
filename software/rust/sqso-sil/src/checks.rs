@@ -274,7 +274,7 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
     ));
     c.push(check(
         "safe-entries",
-        "Entries into SAFE or EMERGENCY after commissioning",
+        "Entries into SAFE or EMERGENCY after commissioning, before passivation",
         format!("{} (EMERGENCY {})", t.safe_entries, t.emergency_entries),
         "0",
         if t.emergency_entries > 0 {
