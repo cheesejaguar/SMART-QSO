@@ -47,6 +47,8 @@ pub mod pin {
     pub const SOLAR_SENSE: u32 = 14;
     /// Downlink power select: low 0.5 W, high 1 W (output)
     pub const TX_PWR_SEL: u32 = 15;
+    /// FM transponder enable (output)
+    pub const XPDR_EN: u32 = 16;
 }
 
 /// `hal_adc.h` channels

@@ -19,7 +19,7 @@ use crate::c::rc;
 use crate::cell::Global;
 use crate::{os, ptr, time};
 
-const GPIO_PIN_COUNT: usize = 16;
+const GPIO_PIN_COUNT: usize = 17;
 const GPIO_DIR_INPUT: u32 = 0;
 const GPIO_DIR_OUTPUT: u32 = 1;
 const I2C_BUS_COUNT: usize = 2;

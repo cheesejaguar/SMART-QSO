@@ -27,8 +27,11 @@ pub const SUNPOINT_KP: f64 = 0.001;
 pub const DETUMBLE_RATE_THRESHOLD: f64 = 0.0087;
 /// Time below the threshold that completes the detumble, ms (5 min)
 pub const DETUMBLE_SETTLING_MS: u64 = 300_000;
-/// Longest detumble, ms (90 min, one orbit)
-pub const DETUMBLE_TIMEOUT_MS: u64 = 5_400_000;
+/// Longest detumble, ms (285 min, three orbits: BASELINE §8 "B-dot
+/// detumble from 10°/s within 3 orbits"; B-dot removes the rate about the
+/// field only as the field turns, which the mission simulation puts at
+/// about 2.5 orbits from 10°/s)
+pub const DETUMBLE_TIMEOUT_MS: u64 = 17_100_000;
 /// Sun sensors
 pub const SUN_SENSOR_COUNT: usize = 6;
 /// Sun intensity below which it is eclipse (5 %)
@@ -757,7 +760,7 @@ mod tests {
         let mut field = Vec3::new(45.0, 0.0, 0.0);
         let mut t = t0;
         let mut timeout = false;
-        for _ in 0..(91 * 6) {
+        for _ in 0..=(DETUMBLE_TIMEOUT_MS / 10_000) {
             t += 10_000;
             field = turned(field, fast, 10.0);
             let c = b.update(t, t, field, Vec3::new(1.0, 0.0, 0.0)).unwrap();
@@ -871,7 +874,7 @@ mod tests {
         assert_eq!((a.state.mag.field_rate, a.state.angular_rate_est), (Vec3::ZERO, Vec3::ZERO));
     }
 
-    /// Mutation check: the detumble timeout is strictly after 90 min, is
+    /// Mutation check: the detumble timeout is strictly after the limit, is
     /// not armed for a detumble whose clock reads 0, and a rate of exactly
     /// the threshold does not settle
     #[test]

@@ -22,6 +22,7 @@ use sqso_fsw::heater::{self, Heater};
 use sqso_fsw::mission_data::MissionData;
 use sqso_fsw::payload_guard::{Outcome, Sample, TELEMETRY_TIMEOUT_MS};
 use sqso_fsw::payload_schedule::{self, Action, BATCH_LINES, Schedule};
+use sqso_fsw::transponder::{self, Transponder};
 use sqso_protocol::jetson::{LINE_MAX, TEXT_MAX};
 
 use crate::c::{fault_type, rc, severity};
@@ -65,8 +66,12 @@ const ADCS_PERIOD_MS: u64 = 1000;
 
 // hal_gpio.h
 const GPIO_PIN_HEATER_EN: u32 = 3;
+const GPIO_PIN_XPDR_EN: u32 = 16;
 const GPIO_DIR_OUTPUT: u32 = 1;
 const GPIO_PULL_DOWN: u32 = 2;
+// hal_adc.h: the transmitter's monitors (as the downlink's)
+const ADC_CHANNEL_TX_TEMP: u32 = 7;
+const ADC_CHANNEL_TX_FWD: u32 = 8;
 /// The battery temperature the heater thermostat uses must be this fresh, ms
 const HEATER_SENSOR_MAX_AGE_MS: u64 = 10_000;
 
@@ -215,6 +220,8 @@ pub struct Executive {
     schedule: Schedule,
     /// Battery heater thermostat
     heater: Heater,
+    /// The FM transponder's gates
+    transponder: Transponder,
     /// When the ADCS last ran its control cycle, ms
     last_adcs_ms: u64,
     /// The ADCS was told to detumble since this boot
@@ -243,6 +250,7 @@ impl Executive {
         ai_cached: 0,
         schedule: Schedule::new(),
         heater: Heater::new(),
+        transponder: Transponder::new(),
         last_adcs_ms: 0,
         detumble_commanded: false,
         beacon_seq: 0,
@@ -347,8 +355,10 @@ impl Executive {
         if adcs_control::adcs_init() != rc::OK {
             eprint(format_args!("[SYSTEM] ADCS init failed"));
         }
-        // SAFETY: plain values (the HAL)
-        let _ = unsafe { crate::c::hal_gpio_config(GPIO_PIN_HEATER_EN, GPIO_DIR_OUTPUT, GPIO_PULL_DOWN) };
+        for pin in [GPIO_PIN_HEATER_EN, GPIO_PIN_XPDR_EN] {
+            // SAFETY: plain values (the HAL)
+            let _ = unsafe { crate::c::hal_gpio_config(pin, GPIO_DIR_OUTPUT, GPIO_PULL_DOWN) };
+        }
 
         eps_control::eps_update_soc(self.power.soc);
         if system_state::sys_state_init() != rc::OK {
@@ -426,6 +436,7 @@ impl Executive {
         self.update_beacon_measurements(now);
         self.run_beacon(now);
         downlink::downlink_poll();
+        self.run_transponder(now, state);
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_BEACON);
 
         // Telecommands from the 435 MHz receiver, then key provisioning
@@ -779,6 +790,32 @@ impl Executive {
         let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_HEATER_EN, self.heater.on) };
     }
 
+    /// The FM transponder's gates (`sqso_fsw::transponder`): `XPDR_EN` high
+    /// while transmission is permitted, the radio powered, ACTIVE, sunlit,
+    /// SOC at least 55 %, the PA cool and the keyed time within its budget
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_transponder(&mut self, now: u64, state: u32) {
+        let mut eps = EpsState::DEFAULT;
+        // SAFETY: eps is a live EpsControlState_t
+        let radio_on = unsafe { eps_control::eps_get_state(&mut eps) } == rc::OK && eps.radio_enabled;
+        let inputs = transponder::Inputs {
+            permitted: radio_on && rf_control::rf_control_tx_permitted(),
+            active: state == STATE_ACTIVE,
+            sunlit: self.power.sunlit,
+            soc: self.power.soc,
+            pa_c: adc_or_nan(ADC_CHANNEL_TX_TEMP),
+            fwd_w: adc_or_nan(ADC_CHANNEL_TX_FWD),
+        };
+        let change = self.transponder.step(now, &inputs);
+        match change {
+            transponder::Change::None => return,
+            transponder::Change::On => crate::c::console(format_args!("[XPDR] Transponder on")),
+            transponder::Change::Off(why) => crate::c::console(format_args!("[XPDR] Transponder off: {}", why.text())),
+        }
+        // SAFETY: plain values (the HAL)
+        let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_XPDR_EN, self.transponder.enabled) };
+    }
+
     /// With the EPS controller answering, the Jetson in batches
     /// (`sqso_fsw::payload_schedule`); on the stand-in power model it
     /// follows the power mode
@@ -826,6 +863,13 @@ impl Executive {
 /// so the radio lines are never driven high on a boot that must stay silent;
 /// then the latched TX-OFF state (47 CFR 97.207(b)), the key table (with no
 /// key only TX-OFF is accepted), the receiver and the GSE port
+/// One ADC channel, volts (or its unit); not a number if the read fails
+fn adc_or_nan(channel: u32) -> f64 {
+    let mut value = 0.0;
+    // SAFETY: value is a live f64
+    if unsafe { crate::c::hal_adc_read_voltage(channel, &mut value) } == rc::OK { value } else { f64::NAN }
+}
+
 /// The state machine's state (BOOT if it cannot be read)
 fn sm_state() -> u32 {
     let mut state = STATE_BOOT;

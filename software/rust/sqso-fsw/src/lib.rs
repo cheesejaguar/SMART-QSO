@@ -18,6 +18,7 @@
 //! - [`payload_guard`]: OBC-enforced Jetson power and temperature limits (`payload_guard.h`)
 //! - [`payload_schedule`]: the Jetson's batch duty cycle
 //! - [`heater`]: battery heater thermostat
+//! - [`transponder`]: the FM transponder's power, thermal and duty gates
 //! - [`safe_string`]: bounded string and memory operations (`safe_string.h`)
 //! - [`assert_handler`]: assertion failure log and response (`assert_handler.h`)
 //! - [`flight_log`]: flight log ring buffer (`flight_log.h`)
@@ -70,5 +71,6 @@ pub mod sensors;
 pub mod system_state;
 pub mod telecommand;
 pub mod telemetry;
+pub mod transponder;
 pub mod uart_comm;
 pub mod watchdog;

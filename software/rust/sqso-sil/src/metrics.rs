@@ -21,7 +21,7 @@ pub struct Sample {
     pub lon_deg: f64,
     /// Body rate, degrees/s
     pub rate_dps: f64,
-    /// Angle between +X and the sun, degrees
+    /// Angle between +Y (the array normal, the sun-pointing axis) and the sun, degrees
     pub sun_angle_deg: f64,
     /// Array power available (MPP), W
     pub array_mpp_w: f64,
@@ -91,6 +91,14 @@ pub struct Sample {
     pub contact_inhibit: bool,
     /// TX permitted
     pub tx_permitted: bool,
+    /// The transponder is enabled (`XPDR_EN`)
+    pub xpdr_on: bool,
+    /// The transponder is keying the PA
+    pub xpdr_keyed: bool,
+    /// Expected stations calling under the footprint
+    pub stations: f64,
+    /// A CTCSS-valid carrier is on the uplink
+    pub carrier: bool,
 }
 
 /// One orbit's statistics
@@ -140,6 +148,10 @@ pub struct Orbit {
     pub obc_off_s: f64,
     /// Mean body rate, degrees/s
     pub rate_dps: f64,
+    /// Transponder enabled, s
+    pub xpdr_on_s: f64,
+    /// Transponder keyed, s
+    pub xpdr_keyed_s: f64,
     soc_ecl_max: f64,
     soc_ecl_min: f64,
     last_mode: Option<u32>,
@@ -172,6 +184,8 @@ impl Orbit {
             beta_deg: 0.0,
             obc_off_s: 0.0,
             rate_dps: 0.0,
+            xpdr_on_s: 0.0,
+            xpdr_keyed_s: 0.0,
             soc_ecl_max: f64::NAN,
             soc_ecl_min: f64::NAN,
             last_mode: None,
@@ -204,6 +218,12 @@ impl Orbit {
         }
         if s.heater_on {
             self.heater_s += dt;
+        }
+        if s.xpdr_on {
+            self.xpdr_on_s += dt;
+        }
+        if s.xpdr_keyed {
+            self.xpdr_keyed_s += dt;
         }
         if s.charge_blocked {
             self.blocked_s += dt;
@@ -253,6 +273,8 @@ impl Orbit {
         "mode_changes",
         "obc_off_s",
         "rate_dps",
+        "xpdr_on_s",
+        "xpdr_keyed_s",
     ];
 
     /// The row for `orbits.csv`
@@ -280,6 +302,8 @@ impl Orbit {
             f64::from(self.mode_changes),
             self.obc_off_s,
             self.rate_dps,
+            self.xpdr_on_s,
+            self.xpdr_keyed_s,
         ]
     }
 }

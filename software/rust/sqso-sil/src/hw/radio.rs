@@ -7,6 +7,11 @@
 //! and the exciter powered (`RADIO_EN`); the power-select line picks
 //! 0.5 W or 1 W. The forward and reflected detectors and the PA thermistor
 //! feed the OBC's ADC, which the downlink module watches.
+//!
+//! The FM transponder shares the transmitter (RF_PLAN: the beacon is
+//! time-shared with the transponder downlink): while `XPDR_EN` is high and
+//! a CTCSS-gated carrier is on the uplink, it keys the PA at the selected
+//! level and repeats the audio; a TNC frame takes the transmitter first.
 
 use std::collections::VecDeque;
 
@@ -52,6 +57,10 @@ pub struct RadioStats {
     pub radiating_s: f64,
     /// Longest single key-down, s
     pub longest_key_s: f64,
+    /// Time the transponder keyed the PA, s
+    pub xpdr_keyed_s: f64,
+    /// Time the transponder radiated, s
+    pub xpdr_radiating_s: f64,
 }
 
 /// The TNC and transmitter
@@ -69,6 +78,11 @@ pub struct Radio {
     pub dc_w: f64,
     /// Heat in the PA now, W
     pub pa_heat_w: f64,
+    /// The transponder has a carrier to repeat now (`XPDR_EN` high and a
+    /// CTCSS-valid carrier on the uplink); set by the caller
+    pub xpdr: bool,
+    /// The transponder keyed the PA in the last step
+    pub xpdr_keyed: bool,
     /// Counters
     pub stats: RadioStats,
 }
@@ -110,7 +124,14 @@ impl Radio {
             self.on_air = None;
         }
         let keyed = self.on_air.is_some();
-        let radiating = keyed && pa_on && radio_on;
+        self.xpdr_keyed = !keyed && self.xpdr && radio_on;
+        let radiating = (keyed || self.xpdr_keyed) && pa_on && radio_on;
+        if self.xpdr_keyed {
+            self.stats.xpdr_keyed_s += dt_s;
+            if radiating {
+                self.stats.xpdr_radiating_s += dt_s;
+            }
+        }
         let rf_w = if high_power { 1.0 } else { 0.5 };
         let gamma2 = if antenna_deployed { GAMMA2_DEPLOYED } else { GAMMA2_STOWED };
         self.fwd_w = if radiating { rf_w } else { 0.0 };
@@ -185,6 +206,20 @@ mod tests {
         }
         assert_eq!(r.stats.radiated, 1);
         assert!(r.stats.radiating_s > 0.7);
+    }
+
+    #[test]
+    fn the_transponder_keys_the_pa_and_yields_to_a_frame() {
+        let mut r = Radio { xpdr: true, ..Radio::default() };
+        r.step(1.0, true, true, false, true);
+        assert!(r.xpdr_keyed && r.fwd_w == 0.5 && r.dc_w > DC_W_LOW);
+        r.send(60);
+        r.step(0.1, true, true, false, true);
+        assert!(!r.xpdr_keyed && r.keyed());
+        assert!((r.stats.xpdr_radiating_s - 1.0).abs() < 1e-9);
+        let mut off = Radio { xpdr: true, ..Radio::default() };
+        off.step(1.0, false, true, false, true);
+        assert!(!off.xpdr_keyed && off.fwd_w == 0.0);
     }
 
     #[test]

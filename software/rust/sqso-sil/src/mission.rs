@@ -31,6 +31,7 @@ use crate::hw::radio::Radio;
 use crate::jetson::Jetson;
 use crate::metrics::{Orbits, Sample};
 use crate::ops::{self, Uplink, cmd};
+use crate::qso;
 use crate::recorder::{Logs, Table};
 
 /// OBC, FRAM and sensors on 3V3_AO, W (BASELINE §5 housekeeping)
@@ -48,7 +49,12 @@ const MASS_KG: f64 = 1.6;
 /// Extra input power of a Jetson single-event latch-up, W (a parasitic
 /// path of 1–2 A on the 5 V rail; the OBC's guard trips above 8 W)
 const LATCHUP_EXTRA_W: f64 = 6.0;
-/// Body rate that counts as detumbled, °/s, held for 10 minutes
+/// The operational state ACTIVE (`state_machine.h`)
+const STATE_ACTIVE: u32 = 4;
+/// Mean length of one over on the transponder, s
+const OVER_S: f64 = 20.0;
+
+/// Body rate that counts as detumbled, °/s, held for a minute
 const DETUMBLED_DPS: f64 = 0.5;
 
 /// The time-series columns
@@ -93,6 +99,10 @@ const TS_HEADER: &[&str] = &[
     "rf_silence",
     "contact_inhibit",
     "tx_permitted",
+    "xpdr_on",
+    "xpdr_keyed",
+    "stations",
+    "carrier",
 ];
 
 fn sample_row(s: &Sample) -> Vec<f64> {
@@ -138,6 +148,10 @@ fn sample_row(s: &Sample) -> Vec<f64> {
         b(s.rf_silence),
         b(s.contact_inhibit),
         b(s.tx_permitted),
+        b(s.xpdr_on),
+        b(s.xpdr_keyed),
+        s.stations,
+        b(s.carrier),
     ]
 }
 
@@ -173,6 +187,13 @@ pub struct Mission {
     uplink: Uplink,
     rad: radiation::Radiation,
     rng: Rng,
+    /// The transponder users' draws (kept apart, so the rest of the run
+    /// draws the same numbers with or without them)
+    qso_rng: Rng,
+    /// A CTCSS-valid carrier is on the transponder's uplink
+    carrier: bool,
+    /// Expected stations calling under the footprint
+    calling: f64,
     ts: Table,
     orbit_table: Table,
     pass_table: Table,
@@ -235,6 +256,7 @@ impl Mission {
         let stations = ground::DEFAULT_NETWORK.to_vec();
         let n = stations.len();
         let rad = radiation::Radiation::new(rng.fork());
+        let qso_rng = rng.fork();
         Ok(Mission {
             cfg: cfg.clone(),
             t: t_int,
@@ -254,6 +276,9 @@ impl Mission {
             uplink: Uplink::new(cfg.seed),
             rad,
             rng,
+            qso_rng,
+            carrier: false,
+            calling: 0.0,
             ts: Table::create(out, "timeseries.csv", TS_HEADER)?,
             orbit_table: Table::create(out, "orbits.csv", crate::metrics::Orbit::HEADER)?,
             pass_table: Table::create(
@@ -520,6 +545,9 @@ impl Mission {
             p(pin::SOLAR_BURN),
         );
         let jet_rail = p(pin::PAYLOAD_EN) && p(pin::JETSON_PWR);
+        let xpdr_en = p(pin::XPDR_EN);
+        self.update_carrier(dt, r);
+        self.radio.xpdr = xpdr_en && self.carrier;
         self.radio.step(dt, radio_on, pa_on, hi, self.deploy.antennas_deployed());
         let was_burning = self.deploy.current_a > 0.0;
         let _ = self.deploy.step(dt, armed, ant, sol, e.vbat, self.thermal.temp_c(thermal::PZ));
@@ -657,6 +685,24 @@ impl Mission {
 
     /// EOL passivation after the TX-OFF (47 CFR 97.207(g)): the latch opens
     /// the charge path for good
+    /// The amateurs under the footprint (`crate::qso`): each step an over
+    /// ends with probability dt / [`OVER_S`], and a new one starts at the
+    /// rate that keeps the carrier on for the demand model's share of time
+    fn update_carrier(&mut self, dt: f64, r: V3) {
+        let (lat, lon, _) = earth::subpoint(r, self.t);
+        let days = (self.t + 43_200.0) / 86_400.0; // days since 2000-01-01 00:00 (a Saturday)
+        let weekend = (days.floor() as i64 + 5).rem_euclid(7) >= 5;
+        let alt_km = Orbit::altitude_m(r) / 1000.0;
+        self.calling = qso::stations_calling(lat.to_degrees(), lon.to_degrees(), alt_km, days.fract() * 24.0, weekend);
+        let share = qso::carrier_fraction(self.calling);
+        let u = self.qso_rng.uniform();
+        self.carrier = if self.carrier {
+            u >= dt / OVER_S
+        } else {
+            share > 0.0 && u < dt * share / (OVER_S * (1.0 - share).max(1e-6))
+        };
+    }
+
     fn passivate(&mut self) {
         self.eps.passivated = true;
         self.totals.passivated_s = Some(self.rel());
@@ -788,6 +834,10 @@ impl Mission {
             rf_silence: snap.rf_silence,
             contact_inhibit: snap.contact_inhibit,
             tx_permitted: snap.tx_permitted,
+            xpdr_on: self.fsw.pin(pin::XPDR_EN),
+            xpdr_keyed: self.radio.xpdr_keyed && self.radio.fwd_w > 0.0,
+            stations: self.calling,
+            carrier: self.carrier,
         };
         self.totals_add(&s, snap, dt);
         if let Some(o) = self.orbits.add(&s) {
@@ -832,8 +882,32 @@ impl Mission {
         if snap.contact_inhibit {
             t.contact_inhibit_s += dt;
         }
-        // Duty over the last 60 s
-        let keyed = if s.radiating { dt } else { 0.0 };
+        // The transponder: its gates, and the demand it served
+        if s.xpdr_on {
+            t.xpdr_on_s += dt;
+        }
+        if s.xpdr_keyed {
+            t.xpdr_keyed_s += dt;
+            if !snap.tx_permitted || snap.rf_silence || snap.contact_inhibit || self.eps.passivated {
+                t.xpdr_forbidden_s += dt;
+            }
+            if s.illum < 0.05 || snap.soc < sqso_fsw::mode::SOC_PAYLOAD - 0.01 {
+                t.xpdr_out_of_gate_s += dt;
+            }
+        }
+        let gates = s.illum > 0.5
+            && snap.soc >= sqso_fsw::mode::SOC_PAYLOAD
+            && snap.tx_permitted
+            && snap.op_state == STATE_ACTIVE
+            && s.antennas;
+        if s.carrier && gates {
+            t.xpdr_demand_s += dt;
+            if s.xpdr_keyed {
+                t.xpdr_served_s += dt;
+            }
+        }
+        // Downlink (TNC) duty over the last 60 s
+        let keyed = if s.radiating && s.keyed { dt } else { 0.0 };
         self.keyed_hist.push_back((s.t_s, keyed));
         while self.keyed_hist.front().is_some_and(|(t0, _)| s.t_s - t0 > 60.0) {
             self.keyed_hist.pop_front();

@@ -42,7 +42,7 @@ extern "C" {
 #define ADCS_DETUMBLE_SETTLING_MS      300000  /* 5 minutes */
 
 /** Maximum detumble duration (ms) */
-#define ADCS_DETUMBLE_TIMEOUT_MS       5400000 /* 90 minutes (1 orbit) */
+#define ADCS_DETUMBLE_TIMEOUT_MS       17100000 /* 285 minutes (3 orbits, BASELINE §8) */
 
 /** Control loop period (ms) */
 #define ADCS_CONTROL_PERIOD_MS         1000

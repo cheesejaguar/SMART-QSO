@@ -76,6 +76,21 @@ pub struct Totals {
     pub frames_forbidden: u64,
     /// Seconds the loss-of-contact inhibit was active
     pub contact_inhibit_s: f64,
+    /// Transponder enabled, s
+    pub xpdr_on_s: f64,
+    /// Transponder radiating, s
+    pub xpdr_keyed_s: f64,
+    /// Transponder radiating while transmission was not permitted or after
+    /// passivation, s
+    pub xpdr_forbidden_s: f64,
+    /// Transponder radiating outside its power gates (deep eclipse, or the
+    /// flight software's SOC below 54 %), s
+    pub xpdr_out_of_gate_s: f64,
+    /// Uplink carrier time while every gate held (the demand the
+    /// transponder could serve), s
+    pub xpdr_demand_s: f64,
+    /// Of that, time the transponder repeated it, s
+    pub xpdr_served_s: f64,
     /// Beacons heard on the ground
     pub beacons_heard: u64,
     /// Passes and passes with at least one beacon heard
@@ -365,6 +380,50 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         t.frames_forbidden.to_string(),
         "0",
         if t.frames_forbidden == 0 { Pass } else { Anomaly },
+    ));
+    // The FM transponder (BASELINE §2, §5)
+    c.push(check(
+        "xpdr-forbidden",
+        "Transponder radiating while not permitted (TX-OFF, silence, inhibits, after passivation)",
+        format!("{:.0} s", t.xpdr_forbidden_s),
+        "0",
+        if t.xpdr_forbidden_s == 0.0 { Pass } else { Anomaly },
+    ));
+    let out_share = if t.xpdr_keyed_s > 0.0 { t.xpdr_out_of_gate_s / t.xpdr_keyed_s } else { 0.0 };
+    c.push(check(
+        "xpdr-gates",
+        "Transponder radiating in eclipse or below 55 % SOC (share of its keyed time)",
+        format!("{:.2} % ({:.0} s)", out_share * 100.0, t.xpdr_out_of_gate_s),
+        "<= 0.5 %",
+        if out_share <= 0.005 { Pass } else { Anomaly },
+    ));
+    let worst_xpdr = orbits.iter().filter(|o| o.len_s > 3000.0).map(|o| o.xpdr_keyed_s / o.len_s).fold(0.0, f64::max);
+    c.push(check(
+        "xpdr-duty",
+        "Transponder keyed share of an orbit (25 % of 100 min)",
+        format!("{:.1} %", worst_xpdr * 100.0),
+        "<= 26.5 %",
+        if worst_xpdr <= 0.265 { Pass } else { Anomaly },
+    ));
+    let served = if t.xpdr_demand_s > 0.0 { t.xpdr_served_s / t.xpdr_demand_s } else { 0.0 };
+    let mission_days = (t.mission_s / 86_400.0).max(1.0 / 24.0);
+    c.push(check(
+        "xpdr-service",
+        "Uplink carrier time repeated while the gates held; transponder time a day",
+        format!(
+            "{:.1} %; {:.0} min/day on, {:.0} min/day keyed",
+            served * 100.0,
+            t.xpdr_on_s / mission_days / 60.0,
+            t.xpdr_keyed_s / mission_days / 60.0
+        ),
+        ">= 70 %",
+        if t.xpdr_demand_s == 0.0 {
+            Warning
+        } else if served >= 0.7 {
+            Pass
+        } else {
+            Warning
+        },
     ));
     c.push(check(
         "beacon-gap",
