@@ -126,6 +126,7 @@ showed, the cause, and what changed.
 | SIL-09 | High-discharge alarm during every deployment burn | 1.5 A threshold below two current-limited burn resistors plus housekeeping (about 1.9 A) | 2.5 A |
 | SIL-10 | First telecommand lost | The plan commanded before the antennas deployed | Commands only in a pass in which the station has heard the spacecraft |
 | SIL-11 | False anomalies: SAFE entries after resets, an under-voltage trip, 23 % of commands executed | The simulation's bookkeeping: SAFE and DETUMBLE swapped in its state names; the post-passivation drain counted; the flight software's counters, which restart at each boot, read as a maximum | Fixed in `sqso-sil` and `report.py` |
+| SIL-12 | A Jetson latch-up lasted until the 10-minute batch timeout | The model drew only the 6 W latch current on a latched module, below the guard's 8 W trip | A latched module hangs drawing its idle current as well (about 9.5 W in all); the guard cuts the rail within a second |
 
 Without the EPS controller answering (the stand-in power model of the development simulation, SW-01) the executive
 keeps its previous behaviour: detumble completes in the first pass and the payload follows the power mode. The C
@@ -133,7 +134,26 @@ suites run that way, unchanged except where SIL-06 changed a specified value.
 
 ## 7. Results
 
-The results of the reference run (`--scenario full`, seed 20280601) follow when it completes.
+The reference run: `--scenario full`, seed 20280601, deployment 2028-06-01 06:00 UTC, 500 km sun-synchronous at
+LTAN 22:30, 730 days of operations. It found **0 anomalies and 0 warnings in 37 checks** (about 15 minutes on one
+core). The main values:
+
+| Area | Result |
+|------|--------|
+| LEOP | First burn 30.0 min and first RF 45.0 min after separation; antennas and wings sensed deployed at 30.1 min; detumbled (below 0.5°/s) after 3.7 h, from a 10°/s tip-off |
+| Attitude | Spin about +Y at about 2°/s; +Y within about 2–10° of the Sun in sunlight, drifting to about 40° by the end of eclipse |
+| Power | Depth of discharge at most 2.9 % per eclipse (after LEOP, about 2 %); lowest SOC in operations 98.3 %; 24,970 Wh drawn from the array and 22,182 Wh used over the mission, with the regulator curtailing the rest at full charge; capacity fade 1.4 %; gauge error at most 0.7 % |
+| Thermal | Battery +1.4 to +20.4 °C, never outside the charge window; OBC −10.6 to +26.3 °C; PA at most 25.8 °C; Jetson at most 26.4 °C |
+| Downlink | 1.40 s longest key-down, 2.2 % worst 60 s duty; longest beacon gap 166 s; 98.8 % of 29,844 passes with a beacon decoded; no frame while not permitted |
+| Transponder | Enabled about 900 min and keyed about 57 min a day; at most 14.1 % of an orbit keyed; 97.9 % of the uplink demand repeated while its gates held; never radiating while not permitted; 95 s in all (0.00 % of its keyed time) within one pass of an eclipse entry |
+| Jetson | 174,364 beacons with Jetson text; 0.036 Wh per accepted beacon (gate 0.1 Wh) |
+| Operations | 1,440 of 1,453 telecommands executed (the rest lost on the link), no authentication failure, no loss-of-contact inhibit; 5 single-event OBC resets, each recovered through DETUMBLE; 1 Jetson latch-up, the rail cut by the guard after 1.0 s; no watchdog reset or brownout; OBC availability 100.000 % |
+| End of life | TX-OFF and passivation at day 730; no charge into the pack afterwards; re-entry 3.03 years after the design life (5.03 years after deployment) |
+
+The battery sits near full charge for most of the mission. The model's calendar fade is small (1.4 %), but holding
+Li-ion cells at 4.20 V for two years is known to age them faster than a lower float voltage. Lowering the
+charge-voltage limit would buy life at the cost of margin the run shows is there; that is a design choice for the
+EPS, not an anomaly.
 
 ## 8. Limits and open items
 
