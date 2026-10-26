@@ -1,0 +1,57 @@
+# SQSO-HW-DIAG-001 W7: EPS burn-wire drivers to the antenna and solar-wing release mechanisms, and their
+# deployed-state switches. The firmware has one burn line and one sense line for the two antennas
+# (ANTENNA_BURN PB9, ANTENNA_SENSE PB11) and one of each for the two wings (SOLAR_BURN PB10, SOLAR_SENSE PB12)
+# (finding F4). Drawn here: one driver per pair feeding two resistors in parallel, and the two sense switches of
+# a pair in series (reads deployed only when both are). Burn current limited to 0.5-1 A by the driver
+# (schematic S5; finding F7). Connectors and pinouts proposed, TBR.
+metadata:
+  title: W7 Deployables, burn and sense (SQSO-HW-DIAG-001, proposed, TBR)
+
+options:
+  fontname: Helvetica
+  bgcolor: WH
+  color_mode: SHORT
+
+connectors:
+  J_DEP_ANT:
+    type: Molex Pico-Clasp header
+    subtype: 6 pos
+    notes: "EPS board: antenna burn driver (ANTENNA_BURN), sense to OBC PB11 via W3"
+    pinlabels: &w7a [BURN_VHF, BURN_VHF_RTN, BURN_UHF, BURN_UHF_RTN, ANT_SENSE, SENSE_RTN]
+  ANT:
+    type: antenna deployer (TBD)
+    subtype: 2 m and 70 cm tape monopoles
+    notes: "Nichrome or resistor burn, about 5 Ohm (TBR); microswitch per element, closed when deployed"
+    pinlabels: [R_VHF a, R_VHF b, R_UHF a, R_UHF b, SW chain in, SW chain out]
+  J_DEP_SA:
+    type: Molex Pico-Clasp header
+    subtype: 6 pos
+    notes: "EPS board: solar burn driver (SOLAR_BURN), sense to OBC PB12 via W3"
+    pinlabels: &w7s [BURN_W1, BURN_W1_RTN, BURN_W2, BURN_W2_RTN, SA_SENSE, SENSE_RTN]
+  WING:
+    type: wing hold-down and release (TBD)
+    subtype: W1 and W2
+    notes: "Burn resistor per wing; hinge-side microswitch per wing"
+    pinlabels: [R_W1 a, R_W1 b, R_W2 a, R_W2 b, SW chain in, SW chain out]
+
+cables:
+  W7A:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.12
+    colors: [VT, BK, VT, BK, OG, BK]
+    notes: "Burn pairs twisted; 1 A derated needs 24 AWG (SQSO-HAR-001 5.2). Sense pair 28 AWG would do"
+  W7B:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.15
+    colors: [VT, BK, VT, BK, OG, BK]
+    notes: "Length TBD with the wing layout"
+
+connections:
+  - - J_DEP_ANT: [1-6]
+    - W7A: [1-6]
+    - ANT: [1-6]
+  - - J_DEP_SA: [1-6]
+    - W7B: [1-6]
+    - WING: [1-6]

@@ -1,0 +1,55 @@
+# SQSO-HW-DIAG-001 W4: OBC and EPS to the RF board. Replaces SQSO-HAR-001 H4 (proposed): H4 carries +5V and one
+# RF_EN, but the RF board needs the always-on RADIO rail (SW2), the PA rail (SW3, switched by RF_TX_EN and the
+# hardware TX-OFF), the KISS UART, the power select and three monitor voltages (hardware/rf/TRANSMITTER_DESIGN.md
+# 10.1). RF_TX_EN switches SW3 on the EPS, so it travels in W3, not here. Pinouts proposed, TBR.
+metadata:
+  title: W4 OBC and EPS to RF board (SQSO-HW-DIAG-001, proposed, TBR)
+
+options:
+  fontname: Helvetica
+  bgcolor: WH
+  color_mode: SHORT
+
+connectors:
+  J_OBC_RF:
+    type: Samtec FTSH-105-01-L-DV-K
+    subtype: 10 pos, 1.27 mm
+    notes: "OBC board: PD5, PD6, PE3, PA0, PC0, PC1"
+    pinlabels: &w4sig [GND, USART2_TX (OBC to TNC RXD), USART2_RX (TNC TXD to OBC), GND, TX_PWR_SEL, GND, TX_TEMP, TX_FWD, TX_REV, AGND]
+  J_RF_OBC:
+    type: Samtec FTSH-105-01-L-DV-K
+    subtype: 10 pos, 1.27 mm
+    notes: RF board
+    pinlabels: *w4sig
+  J_EPS_RF:
+    type: Molex Pico-Clasp header
+    subtype: 6 pos
+    notes: "EPS board: SW2 RADIO, SW3 PA outputs"
+    pinlabels: &w4pwr [RADIO_3V3 (SW2), GND, PA_5V (SW3), PA_5V (SW3), GND, GND]
+  J_RF_PWR:
+    type: Molex Pico-Clasp header
+    subtype: 6 pos
+    notes: RF board
+    pinlabels: *w4pwr
+
+cables:
+  W4A:
+    category: bundle
+    gauge: 28 AWG
+    length: 0.06
+    colors: [BK, GN, YE, BK, WH, BK, BN, BN, BN, GY]
+    notes: "Monitor lines 0-3 V into ADC1; 3.3 V logic both ends. TX_PWR_SEL: low 0.5 W, high 1 W"
+  W4B:
+    category: bundle
+    gauge: 24 AWG
+    length: 0.08
+    colors: [RD, BK, OG, OG, BK, BK]
+    notes: "PA rail 0.5 A nominal, 1.0 A trip; two contacts for the 1 A Pico-Clasp rating. RADIO rail 3V3 (5 V TBD)"
+
+connections:
+  - - J_OBC_RF: [1-10]
+    - W4A: [1-10]
+    - J_RF_OBC: [1-10]
+  - - J_EPS_RF: [1-6]
+    - W4B: [1-6]
+    - J_RF_PWR: [1-6]

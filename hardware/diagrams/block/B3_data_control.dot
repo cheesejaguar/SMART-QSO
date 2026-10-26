@@ -1,0 +1,85 @@
+// SQSO-HW-DIAG-001 B3: data and control interfaces of the OBC.
+// Pins are those of software/rust/firmware/src (gpio.rs, main.rs, adc.rs, uart.rs, i2c.rs, spi.rs, fram.rs),
+// which are provisional (TBR). Dashed = proposed here, not in the firmware or any ICD.
+// Inputs to the MCU enter on the left, outputs and buses leave on the right.
+// Blue = bus, dashed green = discrete out, orange = discrete in, brown = analog in.
+digraph B3 {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=12, nodesep=0.12, ranksep=0.9,
+         label="B3  OBC data and control interfaces   (SQSO-HW-DIAG-001, preliminary; pins TBR, from software/rust/firmware)\nblue bus · green discrete out · orange discrete in · brown analog in · dashed / italic = proposed here, not in firmware",
+         labelloc=t, labeljust=l];
+  node  [shape=box, style="rounded,filled", fillcolor="#f5f5f5", fontname="Helvetica", fontsize=10];
+  edge  [arrowsize=0.7, penwidth=1.3];
+
+  MCU [shape=plain, label=<
+<table border="2" cellborder="1" cellspacing="0" cellpadding="3" bgcolor="#e3f2fd" color="#1565c0">
+ <tr><td colspan="2" bgcolor="#bbdefb"><b>OBC  STM32L4R5ZI</b> (LQFP144) · Cortex-M4F 120 MHz · 2 MB flash · 640 KB SRAM<br/>IWDG (LSI) · RTC (LSE 32.768 kHz) · Rust / Embassy</td></tr>
+ <tr><td port="swd_i">SWD</td><td port="spi1">SPI1 20 MHz  PA5 SCK · PA6 MISO · PA7 MOSI · CS# PA4 · WP# PE0 · HOLD# PE1</td></tr>
+ <tr><td port="gse_i">UMBILICAL_SENSE PB8</td><td port="usart3">USART3 115200  PD8 TX · PD9 RX (console, key load)</td></tr>
+ <tr><td port="afe_i">ADC1  VBATT PC2 · IBATT PC3 · VSOLAR PC4<br/>ISOLAR PC5 · VBUS PB0 · TEMP_BOARD PB1</td><td port="i2c2">I2C2 100 kHz  PF1 SCL · PF0 SDA</td></tr>
+ <tr><td port="alert_i">ALERT PB7</td><td port="en">PAYLOAD_EN PB4 · RADIO_EN PB5 · ADCS_EN PB6<br/>HEATER_EN PD2 · DEPLOY_EN PA1 · <i>GNSS_EN PE4</i></td></tr>
+ <tr><td port="dep_i">DEPLOY_SENSE PE2</td><td port="usart2">USART2 9600  PD5 TX · PD6 RX (KISS)</td></tr>
+ <tr><td port="txm_i">ADC1  TX_TEMP PA0 · TX_FWD PC0 · TX_REV PC1</td><td port="txctl">RF_TX_EN PA3 · TX_PWR_SEL PE3</td></tr>
+ <tr><td port="dsns_i">ANTENNA_SENSE PB11 · SOLAR_SENSE PB12</td><td port="spi2"><font color="#9e9e9e">SPI2  PB13 · PB14 · PB15 · CS PD0 (vestigial)</font></td></tr>
+ <tr><td> </td><td port="usart1">USART1 115200  PA9 TX · PA10 RX · JETSON_PWR PA2</td></tr>
+ <tr><td> </td><td port="i2c4">I2C4 100 kHz  PD12 SCL · PD13 SDA</td></tr>
+ <tr><td> </td><td port="pwm"><i>6 × TIM PWM + nSLEEP (no pins yet)</i></td></tr>
+ <tr><td> </td><td port="uart4"><i>UART4  PC10 TX · PC11 RX (replaces unused SPI3: PC10/11/12, CS PD1) · 1PPS</i></td></tr>
+ <tr><td> </td><td port="burn">ANTENNA_BURN PB9 · SOLAR_BURN PB10</td></tr>
+ <tr><td> </td><td port="led">LED_STATUS PD3</td></tr>
+</table>>];
+
+  // ---- inputs (left)
+  SWD   [label="SWD header\nPA13 SWDIO · PA14 SWCLK · NRST", shape=note, fillcolor="#eeeeee"];
+  GSE   [label="GSE umbilical\n(integration only)", shape=note, fillcolor="#eeeeee"];
+  AFE   [label="EPS analog front ends\n(dividers, shunt amplifiers)\nVBATT divider 1:3 is a 2S value;\n4S needs ≈ 1:6 (finding F1)", fillcolor="#fff8e1"];
+  INAA  [label="EPS  INA226 ALERT\n(open drain, wired-OR)", fillcolor="#ffebee"];
+  DSW   [label="Deployment switches DS1, DS2\n(CubeSat rails)", fillcolor="#fff3e0"];
+  TXM   [label="RF board  TX monitors\nTMP36 · fwd / rev detectors", fillcolor="#f3e5f5"];
+  DSNS  [label="Deployed-state switches\nantenna · solar wings", fillcolor="#efebe9"];
+  SWD  -> MCU:swd_i   [color="#1565c0", dir=both];
+  GSE  -> MCU:gse_i   [color="#ef6c00"];
+  AFE  -> MCU:afe_i   [color="#8d6e63"];
+  INAA -> MCU:alert_i [color="#ef6c00"];
+  DSW  -> MCU:dep_i   [color="#ef6c00"];
+  TXM  -> MCU:txm_i   [color="#8d6e63"];
+  DSNS -> MCU:dsns_i  [color="#ef6c00"];
+
+  // ---- outputs and buses (right)
+  FRAM  [label="OBC  FM25V20A FRAM, 2 Mbit", fillcolor="#e3f2fd"];
+  GSE2  [label="GSE umbilical (console)", shape=note, fillcolor="#eeeeee"];
+  TMP   [label="OBC  TMP117 board temperature  0x48", fillcolor="#e3f2fd"];
+  EPSC  [label="EPS  controller (TBD)  0x48 in the simulation:\ncollides with TMP117 (finding F10)", style="rounded,dashed,filled", fillcolor="#ffebee"];
+  BMON  [label="EPS  battery monitor / BMS (TBD)  0x55", style="rounded,dashed,filled", fillcolor="#ffebee"];
+  INA   [label="EPS  INA226 × 4 (battery, solar, 5 V, Jetson)\nsolar 0x40 (SMART-QSO-ICD-001); others TBD", fillcolor="#ffebee"];
+  LSW   [label="EPS  load switches SW1–SW7\n(outputs low at reset; PA3 has a pull-down)", fillcolor="#ffebee"];
+  TNC   [label="RF board  KISS TNC (TBD), full duplex", style="rounded,dashed,filled", fillcolor="#f3e5f5"];
+  TXC   [label="RF board  VHF TX / PA (TBD): PA power switch, power select", style="rounded,dashed,filled", fillcolor="#f3e5f5"];
+  XCVR  [label="no device since CR-2026-005 (finding F9)", style="rounded,dotted", fontcolor="#9e9e9e", color="#9e9e9e"];
+  JET   [label="Payload  Jetson Orin Nano Super (carrier TBD)\nSQSO-ICD-004 framing; power gate", fillcolor="#e8f5e9"];
+  MAG   [label="ADCS  magnetometer LIS3MDL  0x1E", fillcolor="#e0f7fa"];
+  GYR   [label="ADCS  gyro LSM6DSO  0x6A (TBR)", fillcolor="#e0f7fa"];
+  SSA   [label="ADCS  sun-sensor ADC (proposed, part TBD)\n6 photodiodes + OPA333 TIAs\nADCS-I001 reserves 0x40–0x45 for sun sensors", style="rounded,dashed,filled", fillcolor="#e0f7fa"];
+  MTQ   [label="ADCS  2 × DRV8833, 3 magnetorquer coils\n(no PWM pins assigned: finding F3)", style="rounded,dashed,filled", fillcolor="#e0f7fa"];
+  GNSS  [label="GNSS  pNAV-NG/FM (D6)\nno UART or enable in firmware (finding F2)", style="rounded,dashed,filled", fillcolor="#fffde7"];
+  BURN  [label="Deployables  burn-wire drivers\none line each for two elements (finding F4)", fillcolor="#efebe9"];
+  LED   [label="OBC  status LED", shape=ellipse];
+
+  MCU:spi1   -> FRAM [color="#1565c0", dir=both];
+  MCU:usart3 -> GSE2 [color="#1565c0", dir=both];
+  MCU:i2c2   -> TMP  [color="#1565c0", dir=both];
+  MCU:i2c2   -> EPSC [color="#1565c0", dir=both];
+  MCU:i2c2   -> BMON [color="#1565c0", dir=both];
+  MCU:i2c2   -> INA  [color="#1565c0", dir=both];
+  MCU:en     -> LSW  [color="#2e7d32", style=dashed];
+  MCU:usart2 -> TNC  [color="#1565c0", dir=both];
+  MCU:txctl  -> TXC  [color="#2e7d32", style=dashed];
+  MCU:spi2   -> XCVR [color="#9e9e9e", style=dotted];
+  MCU:usart1 -> JET  [color="#1565c0", dir=both];
+  MCU:i2c4   -> MAG  [color="#1565c0", dir=both];
+  MCU:i2c4   -> GYR  [color="#1565c0", dir=both];
+  MCU:i2c4   -> SSA  [color="#1565c0", dir=both, style=dashed];
+  MCU:pwm    -> MTQ  [color="#2e7d32", style=dashed];
+  MCU:uart4  -> GNSS [color="#1565c0", dir=both, style=dashed];
+  MCU:burn   -> BURN [color="#2e7d32", style=dashed];
+  MCU:led    -> LED  [color="#2e7d32", style=dashed];
+}

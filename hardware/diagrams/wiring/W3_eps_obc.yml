@@ -1,0 +1,41 @@
+# SQSO-HW-DIAG-001 W3: EPS to OBC. Replaces SQSO-HAR-001 H2 (proposed): H2's +5V, OBC_EN and EPS_INT
+# do not match the flight software, which drives seven load-switch enables and reads six analog channels,
+# the INA226 alert and the deployment switches (software/rust/firmware/src/gpio.rs, adc.rs). Board to board,
+# so Samtec FTSH per SQSO-HAR-001 3.1. Pinout proposed, TBR. GNSS_EN PE4 is proposed (finding F2).
+metadata:
+  title: W3 EPS to OBC (SQSO-HW-DIAG-001, proposed, TBR)
+
+options:
+  fontname: Helvetica
+  bgcolor: WH
+  color_mode: SHORT
+
+connectors:
+  J_EPS:
+    type: Samtec FTSH-115-01-L-DV-K
+    subtype: 30 pos, 1.27 mm
+    notes: EPS board
+    pinlabels: &w3pins [3V3_AO, 3V3_AO, GND, GND, I2C2_SCL, I2C2_SDA, GND, INA_ALERT#, PAYLOAD_EN, RADIO_EN,
+                ADCS_EN, HEATER_EN, DEPLOY_EN, RF_TX_EN, GNSS_EN, DEPLOY_SENSE, ANTENNA_BURN, SOLAR_BURN,
+                ANTENNA_SENSE, SOLAR_SENSE, AGND, VBATT_SNS, IBATT_SNS, VSOLAR_SNS, ISOLAR_SNS, VBUS_SNS,
+                AGND, GND, SPARE, SPARE]
+  J_OBC:
+    type: Samtec FTSH-115-01-L-DV-K
+    subtype: 30 pos, 1.27 mm
+    notes: "OBC board: PF1, PF0, PB7, PB4, PB5, PB6, PD2, PA1, PA3, PE4, PE2, PB9, PB10, PB11, PB12, PC2, PC3, PC4, PC5, PB0"
+    pinlabels: *w3pins
+
+cables:
+  W3:
+    type: FFC or discrete 28 AWG
+    category: bundle
+    gauge: 28 AWG
+    length: 0.06
+    wirecount: 30
+    colors: [RD, RD, BK, BK, YE, BU, BK, WH, GN, GN, GN, GN, GN, GN, GN, OG, VT, VT, OG, OG, GY, BN, BN, BN, BN, BN, GY, BK, WH, WH]
+    notes: "AGND joins GND at one point on the EPS (star). Enables: outputs low at reset, pull-downs on the EPS (RF_TX_EN mandatory). Burn lines gate the drivers of schematic S5"
+
+connections:
+  - - J_EPS: [1-30]
+    - W3: [1-30]
+    - J_OBC: [1-30]

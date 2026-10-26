@@ -1,0 +1,56 @@
+# SQSO-HW-DIAG-001 W5: EPS and OBC to the Jetson carrier (SQSO-HAR-001 H3 and H6).
+# H3 (Micro-Fit 4-pin, 5 V) and H6 (JST-SH 3-pin UART) are kept. JST-SH is not in the SQSO-HAR-001 3.1 connector
+# list (finding F14). The OBC's USART1 must not back-power the unpowered Jetson: buffer with Ioff (schematic S7,
+# finding F13). The carrier-side pins depend on the carrier (TBD); the Orin Nano 40-pin header's UART1 is
+# pin 8 TXD / pin 10 RXD (TBR).
+metadata:
+  title: W5 EPS and OBC to Jetson carrier (SQSO-HW-DIAG-001, proposed, TBR)
+
+options:
+  fontname: Helvetica
+  bgcolor: WH
+  color_mode: SHORT
+
+connectors:
+  J_EPS_JET:
+    type: Molex Micro-Fit 3.0 header
+    subtype: 4 pos
+    notes: "EPS board: SW1 PAYLOAD 5 V, after the JETSON_PWR soft-start gate (4 A)"
+    pinlabels: &w5pwr [+5V_JET, +5V_JET, GND, GND]
+  J_JET_PWR:
+    type: Molex Micro-Fit 3.0 receptacle
+    subtype: 4 pos
+    notes: carrier DC input (TBD)
+    pinlabels: *w5pwr
+  J_OBC_JET:
+    type: JST SH
+    subtype: 3 pos, 1.0 mm
+    notes: "OBC board: PA9 TX, PA10 RX via S7 buffer"
+    pinlabels: [USART1_TX, USART1_RX, GND]
+  J_JET_UART:
+    type: carrier UART header (TBD)
+    subtype: 3 pos
+    notes: carrier side, 3.3 V logic (TBR)
+    pinlabels: [UART_RXD, UART_TXD, GND]
+
+cables:
+  W5A:
+    category: bundle
+    gauge: 20 AWG
+    length: 0.10
+    colors: [RD, RD, BK, BK]
+    notes: "2 A per wire at the 4 A gate; 20 AWG is 3 A derated. Peak 8 W at the input"
+  W5B:
+    category: bundle
+    gauge: 26 AWG
+    length: 0.10
+    colors: [GN, YE, BK]
+    notes: "115200 baud, SQSO-ICD-004 framing; TX crosses to RXD"
+
+connections:
+  - - J_EPS_JET: [1-4]
+    - W5A: [1-4]
+    - J_JET_PWR: [1-4]
+  - - J_OBC_JET: [1-3]
+    - W5B: [1-3]
+    - J_JET_UART: [1-3]

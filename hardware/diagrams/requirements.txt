@@ -1,0 +1,3 @@
+# Python tools for build.sh (graphviz itself comes from the system package manager)
+wireviz==0.4.1
+schemdraw==0.23

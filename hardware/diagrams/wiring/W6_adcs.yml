@@ -1,0 +1,90 @@
+# SQSO-HW-DIAG-001 W6: OBC and EPS to the ADCS board, and the ADCS board to its coils and sun sensors.
+# SQSO-HAR-001 H5 (JST-SH 4-pin I2C + 3.3 V) cannot carry the magnetorquer drive. Proposed (finding F3): an FTSH
+# board-to-board connector with I2C4 and the DRV8833 inputs (pins TBD); ADCS power from SW4 on the EPS; coils and
+# six photodiodes on Pico-Clasp 2-pin. All pinouts proposed, TBR.
+metadata:
+  title: W6 ADCS (SQSO-HW-DIAG-001, proposed, TBR)
+
+options:
+  fontname: Helvetica
+  bgcolor: WH
+  color_mode: SHORT
+
+connectors:
+  J_OBC_ADCS:
+    type: Samtec FTSH-107-01-L-DV-K
+    subtype: 14 pos, 1.27 mm
+    notes: "OBC board: PD12 SCL, PD13 SDA; timer pins TBD"
+    pinlabels: &w6sig [GND, I2C4_SCL, I2C4_SDA, GND, MTQ_X_IN1, MTQ_X_IN2, MTQ_Y_IN1, MTQ_Y_IN2, MTQ_Z_IN1, MTQ_Z_IN2, MTQ_nSLEEP, MTQ_nFAULT, GND, GND]
+  J_ADCS_OBC:
+    type: Samtec FTSH-107-01-L-DV-K
+    subtype: 14 pos, 1.27 mm
+    notes: ADCS board
+    pinlabels: *w6sig
+  J_EPS_ADCS:
+    type: Molex Pico-Clasp header
+    subtype: 2 pos
+    notes: "EPS board: SW4 ADCS 3V3, 0.5 A trip"
+    pinlabels: &w6pwr [3V3_ADCS, GND]
+  J_ADCS_PWR:
+    type: Molex Pico-Clasp header
+    subtype: 2 pos
+    notes: "ADCS board; also DRV8833 VM (TBR)"
+    pinlabels: *w6pwr
+  J_MTQ:
+    type: Molex Pico-Clasp header
+    subtype: 2 pos
+    notes: "ADCS board, x3 (X, Y, Z): DRV8833 AOUT1/AOUT2 or BOUT1/BOUT2"
+    pinlabels: [COIL+, COIL-]
+  COIL:
+    type: magnetorquer coil, 250 turns (ACTUATOR_DESIGN)
+    subtype: x3, flying leads
+    pinlabels: [START, END]
+  J_SS:
+    type: Molex Pico-Clasp header
+    subtype: 2 pos
+    notes: "ADCS board, x6: to OPA333 TIA input (schematic S6)"
+    pinlabels: [PD_K, PD_A]
+  PD:
+    type: silicon photodiode (TBD), per face
+    subtype: x6
+    pinlabels: [K, A]
+
+cables:
+  W6A:
+    category: bundle
+    gauge: 28 AWG
+    length: 0.06
+    colors: [BK, YE, BU, BK, GN, GN, GN, GN, GN, GN, WH, OG, BK, BK]
+  W6B:
+    category: bundle
+    gauge: 26 AWG
+    length: 0.08
+    colors: [RD, BK]
+  W6C:
+    category: bundle
+    gauge: 26 AWG
+    length: 0.10
+    colors: [RD, BK]
+    notes: "x3, twisted; coil current about 100 mA (ADCS-I002)"
+  W6D:
+    category: bundle
+    gauge: 28 AWG
+    length: 0.10
+    colors: [WH, BK]
+    shield: true
+    notes: "x6, twisted and shielded: photocurrent is microamps; shield to AGND at the ADCS end only"
+
+connections:
+  - - J_OBC_ADCS: [1-14]
+    - W6A: [1-14]
+    - J_ADCS_OBC: [1-14]
+  - - J_EPS_ADCS: [1-2]
+    - W6B: [1-2]
+    - J_ADCS_PWR: [1-2]
+  - - J_MTQ: [1-2]
+    - W6C: [1-2]
+    - COIL: [1-2]
+  - - J_SS: [1-2]
+    - W6D: [1-2]
+    - PD: [1-2]
