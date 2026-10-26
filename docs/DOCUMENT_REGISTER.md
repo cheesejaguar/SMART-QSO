@@ -54,7 +54,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-THA-001 | SMART-QSO Thermal Analysis | `docs/environment/THERMAL_ANALYSIS.md` | 1.0 | Draft |
 | SQSO-GND-001 | Ground Station Design | `docs/ground/GROUND_STATION_DESIGN.md` | B | Draft |
 | SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.0 | Draft |
-| SMART-QSO-ADCS-001 | Attitude Determination and Control Subsystem (ADCS) Design Document | `docs/hardware/ADCS_DESIGN.md` | 1.2 | Draft |
+| SMART-QSO-ADCS-001 | Attitude Determination and Control Subsystem (ADCS) Design Document | `docs/hardware/ADCS_DESIGN.md` | 1.3 | Draft |
 | SMART-QSO-EPS-001 | Electrical Power Subsystem (EPS) Design Document | `docs/hardware/EPS_DESIGN.md` | 1.3 | Draft |
 | SQSO-HDP-001 | SMART-QSO Hardware Development Plan | `docs/hardware/HARDWARE_DEVELOPMENT_PLAN.md` | 1.0 | Draft |
 | SQSO-BOM-001 | SMART-QSO Parts List / Bill of Materials | `docs/hardware/PARTS_LIST.md` | 1.0 | Draft |
@@ -157,6 +157,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-FTEG-001 | SMART-QSO Flatsat Test Execution Guide | `docs/test/FLATSAT_TEST_EXECUTION_GUIDE.md` | 1.0 | Draft |
 | SQSO-TP-001 | SMART-QSO Flatsat Test Procedures | `docs/test/FLATSAT_TEST_PROCEDURES.md` | 1.0 | Draft |
 | SQSO-STC-001 | SMART-QSO System Test Cases | `docs/test/SYSTEM_TEST_CASES.md` | 1.0 | Draft |
+| SQSO-SIL-001 | Mission Simulation (Software in the Loop) | `docs/test/SIL_MISSION_SIMULATION.md` | A | Draft; models are analysis-grade, not correlated with hardware |
 | SQSO-ATP-001 | SMART-QSO Acceptance Test Procedure | `docs/test_procedures/ACCEPTANCE_TEST_PROCEDURE.md` | 1.0 | Draft; no run recorded |
 | TP-ADCS-001 | Test Procedure: ADCS Sensor Test | `docs/test_procedures/TP-ADCS-001_Sensor_Test.md` | B | Draft; no run recorded |
 | SQSO-TP-ADCS-002 | Test Procedure: ADCS Actuator Test | `docs/test_procedures/TP-ADCS-002_Actuator_Test.md` | 1.1 | Draft; no run recorded |
@@ -222,9 +223,9 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-JET-002 | Jetson Payload Power Management | `hardware/payload-jetson/POWER_MANAGEMENT.md` | 1.0 | Draft |
 | SQSO-RF-ANT-001 | Antenna Design Document | `hardware/rf/ANTENNA_DESIGN.md` | 1.0 | Draft |
 | SQSO-RF-003 | RF Electrical Design Specification | `hardware/rf/RF_ELECTRICAL_DESIGN.md` | 1.0 | Draft |
-| SQSO-RF-TX-001 | RF Transmitter Design Document | `hardware/rf/TRANSMITTER_DESIGN.md` | 1.1 | Draft |
+| SQSO-RF-TX-001 | RF Transmitter Design Document | `hardware/rf/TRANSMITTER_DESIGN.md` | 1.2 | Draft |
 | SQSO-STR-001 | Structural Design Document | `hardware/structure/STRUCTURAL_DESIGN.md` | 1.2 | Draft |
-| SQSO-THM-001 | Thermal Design Document | `hardware/structure/THERMAL_DESIGN.md` | 1.0 | Draft |
+| SQSO-THM-001 | Thermal Design Document | `hardware/structure/THERMAL_DESIGN.md` | 1.1 | Draft |
 | SQSO-FSW-AUTO-001 | Autonomy Design | `software/flight/docs/AUTONOMY_DESIGN.md` | B | Draft |
 | SQSO-FSW-BOOT-001 | Bootloader Requirements | `software/flight/docs/BOOTLOADER_REQUIREMENTS.md` | B | Draft |
 | SQSO-FSW-FDIR-001 | Fault Detection, Isolation, and Recovery Design | `software/flight/docs/FDIR_DESIGN.md` | A | Draft |
