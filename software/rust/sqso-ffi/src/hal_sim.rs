@@ -249,6 +249,14 @@ static SIM: Global<Sim> = Global::new(Sim {
 
 /// Run `f` on the simulation state; `busy` if it is in use (a HAL call
 /// from an interrupt-like context in the middle of another)
+/// Run `f` while the simulator is in use, so every HAL call it makes is
+/// refused as busy (unit tests of a caller's failure path); `None` if the
+/// simulator was already in use
+#[cfg(test)]
+pub(crate) fn holding_the_sim<R>(f: impl FnOnce() -> R) -> Option<R> {
+    SIM.with(|_| f())
+}
+
 fn sim<R>(busy: R, f: impl FnOnce(&mut Sim) -> R) -> R {
     SIM.with(f).unwrap_or(busy)
 }

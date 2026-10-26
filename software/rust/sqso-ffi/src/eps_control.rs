@@ -169,9 +169,7 @@ fn control(switch: Switch, enable: bool) -> i32 {
         None => rc::BUSY,
         Some(false) => rc::OK,
         Some(true) => {
-            if let Some(state) = EPS.with(|e| e.state) {
-                drive_load_pins(&state);
-            }
+            let _ = EPS.with(|e| drive_load_pins(&e.state));
             let what = if enable { "enabled" } else { "disabled" };
             c::console(format_args!("[EPS] {} {what}", switch.name()));
             let _ = eps_save_config();
@@ -262,9 +260,7 @@ pub extern "C" fn eps_control_payload(enable: bool, soc: f64) -> i32 {
         // COVERAGE-EXEMPT: as above (the EPS state is free between the two borrows)
         return rc::BUSY;
     }
-    if let Some(state) = EPS.with(|e| e.state) {
-        drive_load_pins(&state);
-    }
+    let _ = EPS.with(|e| drive_load_pins(&e.state));
     if enable {
         c::log(fault_type::POWER, severity::INFO, c"Payload enabled", soc);
         c::console(format_args!("[EPS] Payload enabled"));
@@ -456,6 +452,39 @@ mod tests {
             ))
         );
         assert_eq!(copy.power_mode, 7);
+    }
+
+    /// The controller's telemetry: read over I2C, kept for 500 ms, read
+    /// again when the clock is behind the cache (a reset restarts it), and
+    /// none when the bus does not answer
+    #[test]
+    fn telemetry_is_read_cached_and_read_again() {
+        let _serial = serial();
+        let write = |soc: f64, vbatt_v: f64| {
+            let mut block = [0u8; eps_telemetry::BLOCK_LEN];
+            eps_telemetry::encode(&Telemetry { soc, vbatt_v, ..Telemetry::default() }, &mut block);
+            let mut regs = [0u8; 1 + eps_telemetry::BLOCK_LEN];
+            regs[1..].copy_from_slice(&block);
+            // SAFETY: regs is a live buffer of its length
+            unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) }
+        };
+        let forget = || {
+            let _ = TELEMETRY.with(|t| t.read = false);
+        };
+        assert_eq!(crate::hal_sim::hal_i2c_init(EPS_I2C_BUS, 100_000), rc::OK);
+        assert_eq!(write(0.8, 15.0), rc::OK);
+        forget();
+        assert_eq!(eps_telemetry().map(|t| t.soc), Some(0.8));
+        assert_eq!(write(0.5, 15.0), rc::OK);
+        assert_eq!(eps_telemetry().map(|t| t.soc), Some(0.8), "cached");
+        let _ = TELEMETRY.with(|t| t.read_ms = c::now_ms() + 10_000);
+        assert_eq!(eps_telemetry().map(|t| t.soc), Some(0.5), "the clock is behind the cache: read again");
+        forget();
+        assert_eq!(crate::hal_sim::holding_the_sim(eps_telemetry), Some(None), "no answer");
+        assert_eq!(crate::hal_sim::hal_i2c_init(EPS_I2C_BUS, 100_000), rc::OK);
+        forget();
+        assert_eq!(eps_telemetry(), None, "an implausible block is no telemetry");
+        forget();
     }
 
     /// While the payload schedule holds the payload, an ACTIVE entry leaves
