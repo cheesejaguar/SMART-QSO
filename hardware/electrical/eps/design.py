@@ -841,7 +841,7 @@ def rails_and_switches():
               "Sn; coat", "Digi-Key listing")
     conn(p, {"A": "HTR_SW", "B": "HTR_F"})
     RSH(0.5, "HTR_F", "HTR_P", "WSL0805R5000FEA", "0805", 0.125, note="heater current (INA3221)", stress="3 mW", ref="RS11")
-    Q("PMV40UN2", "Q22", "HCUT_G", "GND", "HTR_N", stress="Vds 16.8/30 = 56 %; 79 mA", note="heater +40 C hardware cutout (series, low side)")
+    Q("PMV40UN2", "Q22", "HCUT_EFF", "GND", "HTR_N", stress="Vds 16.8/30 = 56 %; 79 mA", note="heater +40 C hardware cutout (series, low side)")
     # SW11 magnetorquer bridge supply (SQSO-ICX-001 E3): VBAT -> J3-36/39, enable ADCS_EN, limit 0.361 A (0.325-0.397 A),
     # auto-retry (DELAY pulled up: 40 ms on / 1 s off in a sustained overload); diagnostics only while enabled
     ic(S_TPS1H000, "U39", "TPS1H000-Q1", "TPS1H000AQDGNRQ1", "TI", "HVSSOP-8 (DGN)", "40 V, 1 Ohm, adj. limit 0.05-1 A",
@@ -1148,7 +1148,7 @@ def telemetry_and_mcu():
         "P2_0": "AFE_ALERT_X", "P2_1": "PERMIT_RB", "P2_2": "WIN_OK_RB", "P2_3": "SHED_RB", "P2_4": "EOL_ARMED_RB",
         "P2_5": "FLT_SW1", "P2_6": "FLT_EFUSE", "P2_7": "FLT_SW5", "P3_0": "FLT_SW2", "P3_2": "FLT_SW3", "P3_3": "FLT_SW4",
         "P3_4": "FLT_SW7", "P3_6": "FLT_SW8", "P3_7": "FLT_SW6", "P4_5": "FLT_SW11",
-        "P4_2": "EOL_KEY", "P4_0": "LOCK_SET_MCU", "P4_1": "UNLOCK_MCU", "P4_4": "MCU_INT_N",
+        "P4_2": "EOL_KEY", "P4_3": "NTC1_BAD_RB", "P6_0": "ANTS_EN_MCU", "P6_1": "OBC_CYCLE", "P6_2": "TDIS_T1", "P6_3": "TDIS_T2", "P6_4": "TDIS_T3", "P6_5": "TDIS_T4", "P4_0": "LOCK_SET_MCU", "P4_1": "UNLOCK_MCU", "P4_4": "MCU_INT_N",
         "TEST": "MCU_TEST", "RSTN": "MCU_RSTN", "DVCC": "3V3_MCU", "DVSS": "GND"})
     ic(S_MSP, "U37", "MSP430FR2355", "MSP430FR2355TPTR", "TI", "LQFP-48 (PT) 7x7", "16-bit FRAM MCU, 12-bit ADC, 4 SAC op-amp/DAC, -40..105 C",
        msp, notes="EPS controller: ICD register block 0x00-0x88, MPPT set points, telemetry; no safety function depends on it",

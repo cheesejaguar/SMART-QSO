@@ -1,7 +1,7 @@
 # SMART-QSO Spacecraft Electrical Interconnect
 
 **Document ID**: SQSO-ICX-001
-**Version**: C
+**Version**: D
 **Date**: 2026-10-27
 **Status**: CDR build-to interconnect: master pin allocation of the OBC's STM32L4R5ZIT6 and the board-to-board signal
 list. Generated in part from the OBC schematic source (`hardware/electrical/obc/design.py` → `obc_pinmap.csv`); where
@@ -134,9 +134,9 @@ Direction is seen from the OBC (out = OBC drives). "Reset" is the line's state w
 | 1, 2 | 3V3_OBC | power in | 3.3 V ± 3 %, 0.025 A normal | — | VDD (TVS D2, 22 µF) | SW10 TPS2553-Q1, trip 0.130–0.176 A, auto-retry 0.28 s |
 | 3, 4, 7, 28, 35, 40 | GND | — | — | — | GND | — |
 | 21, 27 | AGND | — | analog return | — | GND (EPS joins AGND to GND at one point) | — |
-| 5 | I2C2_SCL | bidir | open drain, 2.2 kΩ on the OBC, 400 kHz | pull-ups unpowered | PF1 | INA228 0x40, 0x44; controller 0x48; AntS 0x31 via U80 |
+| 5 | I2C2_SCL | bidir | open drain, **two 4.7 kΩ in parallel** on the OBC (each works alone), 100 kHz recommended | pull-ups unpowered | PF1 | INA228 0x40, 0x44; controller 0x48 (OBC heartbeat register, SMA-B09). **No AntS** (Version D: on I2C3) |
 | 6 | I2C2_SDA | bidir | as SCL | — | PF0 | as SCL |
-| 8 | EPS_ALERT_N | in | open drain, active low, 4.7 kΩ on the EPS | — | PB7 (10 kΩ) | INA228 alerts, controller interrupt |
+| 8 | EPS_ALERT_N | in | open drain, active low, 4.7 kΩ on the EPS | — | PB7 (10 kΩ; 1 MΩ pull-up on the OBC: open reads no alert) | INA228 alerts, controller interrupt |
 | 9 | PAYLOAD_EN | out | high = SW1 on | low (100 kΩ) | **PB2** (100 Ω) | SW1 TPS1H100B-Q1 (Jetson, shed-gated) |
 | 10 | RADIO_EN | out | high = SW2 on | low | PB5 (100 Ω) | SW2 receiver/TNC/exciter |
 | 11 | ADCS_EN | out | high = SW4 and SW11 on | low | PB6 (100 Ω) | SW4 3V3_ADCS (sensors); **SW11 VBAT_MTQ (new)** |
@@ -144,11 +144,11 @@ Direction is seen from the OBC (out = OBC drives). "Reset" is the line's state w
 | 13 | DEPLOY_EN | out | high = SW6 and SW8 on | low | **PF3** (100 Ω) | burn buck, AntS supply (master arm) |
 | 14 | RF_TX_EN | out | high = PA rail; low = TX-OFF | low (mandatory) | PA3 (100 Ω) | SW3 PA (shed-gated) |
 | 15 | GNSS_EN | out | high = SW7 on | low | PE5 (100 Ω) | SW7 3V3_GNSS (RID EPS-14: PE5, not PE4) |
-| 16 | DEPLOY_SENSE | in | high = DS2 released, 1 MΩ source, clamped | — | PE2 (10 kΩ) | separation state |
+| 16 | DEPLOY_SENSE | in | **high = DS2 released (separated)**, low = stowed; EPS 1 MΩ source (R113), clamped | — | PE2 (10 kΩ series; **no internal pull**; 10 MΩ pull-down on the OBC: 3.0 V when released, open reads low) | separation state (§3.7, SMA-B02) |
 | 17 | BURN_W2A | out | high = burn; 12 s one-shot per rising edge | low | PB9 (100 Ω) | wing 2 resistor A driver |
 | 18 | BURN_W1A | out | as 17 | low | PB10 (100 Ω) | wing 1 resistor A |
 | 19 | **VJET_RB** | analog in | VBAT_JET / 6: 1.87–2.80 V on, < 0.1 V off | — | **PA7** ADC1_IN12 (1 kΩ, 10 nF) | **new**: 1.00 MΩ / 200 kΩ + 100 nF after the eFuse U19 (RID AV-06) |
-| 20 | SOLAR_SENSE | in | low = both wings deployed (10 k + 1 k pull-up on the EPS) | — | PB12 (10 kΩ) | hinge switches in series |
+| 20 | SOLAR_SENSE | in | low = both wings deployed (10 k + 1 k pull-up on the EPS) | — | PB12 (10 kΩ; 1 MΩ pull-up on the OBC: open reads not deployed) | hinge switches in series |
 | 22 | VBATT_SNS | analog in | pack / 6 (2.80 V at 16.8 V) | — | PC2 ADC1_IN3 (1 kΩ, 10 nF) | 1.00 MΩ / 200 kΩ, 100 nF |
 | 23 | IBATT_SNS | analog in | 1.65 V at 0 A, 0.5 V/A | — | PC3 ADC1_IN4 | INA186 × 50 |
 | 24 | VSOLAR_SNS | analog in | string / 4 | — | PC4 ADC1_IN13 | 300 k / 100 k |

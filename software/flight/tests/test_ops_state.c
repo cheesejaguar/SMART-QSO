@@ -206,8 +206,8 @@ static void test_failed_wings_hold_idle(void **state)
     assert_int_equal(hal_flash_erase(FLASH_REGION_DEPLOYMENT), SMART_QSO_OK);
     assert_int_equal(ops_state_init(), SMART_QSO_OK);
     hal_sim_set_reset_cause(HAL_RESET_POWER_ON);
-    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false); /* released */
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true); /* released */
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
     assert_true(deployment_init());
     assert_false(deployment_wings_failed());
     for (uint32_t t = 0U; t < (30U * 60U) + (4U * 51U * 60U); t++) {
@@ -219,11 +219,11 @@ static void test_failed_wings_hold_idle(void **state)
     assert_int_equal(result, SM_RESULT_GUARD_FAILED);
     assert_int_equal(ctx.current_state, STATE_IDLE);
     /* The sense line reading deployed lifts it */
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
     assert_false(deployment_wings_failed());
     assert_int_equal(sm_process_event(&ctx, EVENT_GROUND_CMD_ACTIVE, &result), SMART_QSO_OK);
     assert_int_equal(result, SM_RESULT_OK);
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
 }
 
 int main(void)

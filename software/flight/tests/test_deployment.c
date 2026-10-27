@@ -61,8 +61,8 @@ static int setup(void **state)
     hal_sim_flash_fail_writes(false);
     hal_sim_set_reset_cause(HAL_RESET_POWER_ON);
     assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
-    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);   /* released */
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);   /* released */
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
     assert_int_equal(hal_i2c_init(ANTS_BUS, 100000U), SMART_QSO_OK);
     set_antenna_sense(false);
     assert_int_equal(hal_flash_init(), SMART_QSO_OK);
@@ -251,7 +251,7 @@ static void test_full_sequence(void **state)
     assert_no_burn();
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_SOLAR_VERIFY);
 
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
     deployment_tick(SECOND_MS);   /* verified */
     deployment_tick(SECOND_MS);   /* the AntS is told to deploy */
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
@@ -290,16 +290,16 @@ static void test_wing_retries_alternate_drivers(void **state)
     assert_false(deployment_wings_failed()); /* still in the wing phase */
     advance(attempt, SECOND_MS);
     assert_true(deployment_wings_failed());
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
-    assert_false(deployment_wings_failed()); /* the sense reads deployed */
     hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
+    assert_false(deployment_wings_failed()); /* the sense reads deployed */
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
 }
 
 /** An element whose sense already reads deployed is never fired */
 static void test_already_deployed_not_fired(void **state)
 {
     (void)state;
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
     wait_out();
     deployment_tick(SECOND_MS);
     deployment_tick(SECOND_MS);
@@ -345,12 +345,12 @@ static void test_stowed_switch_restarts_wait(void **state)
     (void)state;
     deployment_tick(SECOND_MS);
     advance(25U * MINUTE_MS, MINUTE_MS);
-    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);   /* stowed */
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);   /* stowed */
     deployment_tick(SECOND_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_INHIBITED);
     assert_int_equal(deployment_wait_elapsed_s(), 0U);
 
-    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
     deployment_tick(SECOND_MS);
     advance(29U * MINUTE_MS, MINUTE_MS);
     deployment_tick(SECOND_MS);
@@ -424,7 +424,7 @@ static void test_persist_failure_blocks_burn(void **state)
 static void complete_sequence(void)
 {
     set_antenna_sense(true);
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
     wait_out();
     advance(5U * SECOND_MS, SECOND_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_COMPLETE);
@@ -437,7 +437,7 @@ static void test_complete_persists_and_ignores_switch(void **state)
     complete_sequence();
     reboot(HAL_RESET_POWER_ON);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_COMPLETE);
-    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);
     advance(40U * MINUTE_MS, MINUTE_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_COMPLETE);
     assert_no_burn();
@@ -449,7 +449,7 @@ static void test_arm_holds_until_next_boot(void **state)
     (void)state;
     complete_sequence();
     set_antenna_sense(false);
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
 
     assert_int_equal(deployment_arm(), SMART_QSO_OK);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_ARMED);
