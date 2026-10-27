@@ -80,8 +80,7 @@ mod tests {
     #[test]
     fn heartbeat_ants_power_and_trackers() {
         let _serial = serial();
-        // SAFETY: plain values (the HAL)
-        assert_eq!(unsafe { crate::hal_sim::hal_i2c_init(EPS_BUS, 100_000) }, rc::OK);
+        assert_eq!(crate::hal_sim::hal_i2c_init(EPS_BUS, 100_000), rc::OK);
         init();
         step(1_000);
         assert_eq!(reg(supv::REG_HEARTBEAT), Some(supv::HEARTBEAT_VALUE));

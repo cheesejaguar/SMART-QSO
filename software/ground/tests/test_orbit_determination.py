@@ -358,7 +358,9 @@ class TestFirstEphemerisSparse:
 
     def test_eme2000_needs_dut1(self, sparse):
         _, _, _, archive, tmp = sparse
-        base = ["--frames", str(archive), "--span-h", "3", "--no-tle", "--frame", "EME2000"]
+        clean = tmp / "clean.jsonl"  # the four frames as the licensee's station heard them
+        clean.write_text("".join(ln + "\n" for ln in archive.read_text().splitlines() if '"KK6GDB"' in ln))
+        base = ["--frames", str(clean), "--span-h", "3", "--no-tle", "--frame", "EME2000"]
         assert run(base + ["--out-dir", str(tmp / "e1")]) == EXIT_FAIL
         assert run(base + ["--out-dir", str(tmp / "e2"), "--dut1", "0.05"]) == EXIT_OK
         oem = read_oem(next((tmp / "e2").glob("*.oem")))
