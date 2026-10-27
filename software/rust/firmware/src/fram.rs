@@ -1,6 +1,6 @@
 //! `hal_flash.h`: the non-volatile memory is an FM25V20A FRAM (256 KB) on
-//! SPI1 (PA5 SCK / PA6 MISO / PA7 MOSI, CS# PA4, WP# PE0, HOLD# PE1;
-//! `hardware/obc/STORAGE_DESIGN.md` §3.4). FRAM writes take effect at once
+//! SPI1 (PG2 SCK / PG3 MISO / PG4 MOSI, CS# PG5, AF5; WP# PE0, HOLD# PE1;
+//! SQSO-ICX-001 B §6 row 3, `hardware/obc/STORAGE_DESIGN.md` §3.4). FRAM writes take effect at once
 //! and need no erase, so a region "erase" writes 0xFF over it, matching the
 //! simulation.
 //!
@@ -10,7 +10,8 @@
 //! The stored housekeeping (`hk_store.h`) takes the 64 KB telemetry buffer
 //! (0x10000, the sixty-second records) and 0x20700–0x366FF of the extended
 //! storage (the five-minute records), its event-window table at 0x36700;
-//! the passivation record is at 0x36800.
+//! the passivation record is at 0x36800 and the ADCS calibration (gyro
+//! alignment, magnetometer bias) at 0x36880.
 
 use embassy_stm32::gpio::Output;
 use embassy_stm32::mode::Blocking;
@@ -30,7 +31,7 @@ const DEVICE_ID: [u8; 9] = [0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0xC2, 0x25, 0x08
 const CAPACITY: u32 = 256 * 1024;
 
 /// (address, size) per `HalFlashRegion_t`
-const REGIONS: [(u32, usize); 16] = [
+const REGIONS: [(u32, usize); 17] = [
     (0x0_0400, 512),    // MISSION_DATA (mission data A)
     (0x0_0000, 256),    // EPS_CONFIG (boot configuration A)
     (0x2_0000, 512),    // SENSOR_CONFIG (extended storage)
@@ -47,6 +48,7 @@ const REGIONS: [(u32, usize); 16] = [
     (0x1_0000, 65_536), // HK_DETAIL (sixty-second records: the telemetry buffer)
     (0x3_6700, 256),    // HK_INDEX (event-window table; extended storage)
     (0x3_6800, 128),    // EOL (passivation record; extended storage)
+    (0x3_6880, 256),    // ADCS_CAL (gyro alignment, magnetometer bias; extended storage)
 ];
 
 const _: () = {

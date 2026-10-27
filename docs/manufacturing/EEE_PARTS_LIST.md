@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MFG-002
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8739.10 (EEE Parts Assurance Standard, 2017), Level 4 commercial parts with project screening; GSFC EEE-INST-002 (2003, with Addendum 1, 2008) Level 3 as the screening guide; SMD SPD-39 (Class D mission assurance requirements, 2021) and *Guidance for Use of Commercial EEEE Parts in Class D Missions* v1.0 (2024-10-16); NASA/TM-20210018053 (Avionics Radiation Hardness Assurance Guidelines, 2021); SpaceX Rideshare Payload User's Guide v11 Table 5-5. MIL-STD-975 (cancelled) and "NASA Ames SmallSat Heritage" are withdrawn as references
 **Status:** CDR draft. §2A is the parts assurance policy; the part tables (§4–§11) predate the build-versus-buy decisions and are corrected by §2A.6–§2A.7
@@ -113,6 +113,26 @@ finishes and materials.
 - The TID and SEL values for the other parts in §4–§9 have no sources and are treated as unknown.
 - §7 RF parts (CC1125, RF5110G) are superseded by the transponder build of BUILD_VS_BUY §3 and the RF review.
 - §13.1: mission duration is the 2-year design life (BASELINE §2), and the dose is 5.3 krad(Si) behind 2 mm.
+- §10 Connectors (ESQ-126 PC/104 stack connector, FTSH-105 debug header, U.FL RF connector) is superseded: there is no
+  stack connector, and the flight connectors and their finishes are §2A.8.
+
+### 2A.8 Connector finishes (harness design SQSO-HAR-001 2.0 §3.1; §2A.3 item 5)
+
+Every board header and every harness-side contact of the flight connectors is **gold** (tin-plated contacts are
+prohibited by §2A.3 item 5). The board build-to designs' BOMs list the tin variants; their finish codes change as
+below (part numbers recorded with the finish in the FM issue of this list).
+
+| Family | Board side | Harness side | Gold finish | Used on |
+|--------|-----------|--------------|-------------|---------|
+| Molex Pico-Clasp 1.0 mm | 501331-xx vertical SMT header (the BOMs' 5013310207 … 5013311407 are the tin code "-xx07") | 501330-0N00 housing; 501334 crimp terminal (28–32 AWG) | Molex's gold-plated versions (0.38 or 0.76 µm Au, per the Pico-Clasp datasheet 987651-6111): the gold finish code of each header and of the terminal replaces the tin code; 0.76 µm preferred | EPS J2, J4–J9, J12, J14–J17, J19–J21; OBC J3–J8, J10; RF J2; carrier J2, J3; magnetometer board A2 J1 |
+| Molex Micro-Fit 3.0 | 43045 dual-row **right-angle** through-hole header: 43045-0811 (2×4, gold, solder tab); the 2×3 and 2×2 right-angle headers in the same gold finish (the BOMs' 0430450812, -0612, -0412 are vertical, tin) | 43025-0N00 receptacle; 43030 crimp terminal (20–24 AWG) in the gold finish | Selective gold over nickel | EPS J1, J10, J11, J13, J18; carrier J1 |
+| Samtec Tiger Eye 1.27 mm (replaces FTSH + FFSD) | TFM-1xx-01-S-D-RA right-angle (OBC J1, J2, J9; RF J1), vertical TFM-1xx-01-S-D (EPS J3) | SFSDT discrete-wire socket assembly (PTFE wire) | "-S" plating code: 30 µin gold on the contact area | W3 (40), W4A (16), W8A (10) |
+| Samtec FTSH (unmated in flight) | FTSH-105-01-L-DV-K (EPS J22 FTSH-102, carrier J6) | — | "-L": 10 µin gold | Programming headers, GSE only |
+| MMCX | Molex 73415-1473 straight jack (gold, brass body, BeCu contact, listed non-magnetic) | Molex 73414-0351 right-angle crimp plug for 1.37 mm cable (gold); the 1.13 mm version for the GNSS cable | Gold | RF J3–J6, W10, W10E |
+| Micro-D | MIL-DTL-83513-class 21-way socket receptacle, board mount, on the access-port board A3 | (GSE plug, not flown) | Gold contacts per MIL-DTL-83513; shell passivated, not cadmium | Access port (W8A, W11) |
+| Splices | — | SAE AS81824/1 crimp splice | Nickel- or silver-plated barrel; a tin-plated barrel is not used | W6C, W7A/B sensor leads, W7C |
+
+Wire: SAE AS22759/33 (silver-coated high-strength copper alloy) and the PTFE wire of the SFSDT assemblies: no tin.
 
 ---
 
@@ -519,3 +539,4 @@ finishes and materials.
 | B | 2026-10-16 | §13.1 inclination TBD replaced by the baseline value, ≈ 97.4° sun-synchronous (`docs/BASELINE_PARAMETERS.md` §3; finding VV-17) | SMART-QSO Team |
 | C | 2026-10-27 | CDR S&MA review: §2A parts assurance policy (NASA-STD-8739.10 Level 4 with EEE-INST-002 Level 3 screening adapted for Class D; counterfeit avoidance; lot control; board-level screening); tin-whisker and prohibited-finish requirements from UG v11 Table 5-5 (launch RID LV-26); radiation acceptance; parts added by D6, D9 and the CDR designs; unsourced radiation claims withdrawn; §13.1 updated; MIL-STD-975 reference withdrawn | CDR S&MA review |
 | D | 2026-10-27 | CDR 2026 consistency pass: orbit altitude row from BASELINE Rev E §3 | CDR documentation review |
+| E | 2026-10-27 | §2A.8 connector finishes: gold variants of every flight connector (Pico-Clasp, Micro-Fit right-angle, Samtec TFM/SFSDT replacing FTSH/FFSD, MMCX, Micro-D, splices); §10 marked superseded (harness design SQSO-HAR-001 2.0 §15 item P-1) | Harness design |

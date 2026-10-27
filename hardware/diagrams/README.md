@@ -1,7 +1,7 @@
 # System Diagrams: Block, Wiring and Schematic
 
 **Document Number:** SQSO-HW-DIAG-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Status:** Draft. Since Revision B the drawings follow the board build-to designs (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`,
 `hardware/electrical/obc/OBC_BOARD_DESIGN.md`, `hardware/electrical/rf/RF_BOARD_DESIGN.md`) and the master pin allocation
@@ -30,16 +30,16 @@ that (§4) are now dispositioned against the board designs.
 | B2 | Power distribution | `hardware/diagrams/block/B2_power_distribution.dot` | BASELINE 4–5; SQSO-EPS-BRD-001 §3–§9 |
 | B3 | OBC data and control interfaces | `hardware/diagrams/block/B3_data_control.dot` | SQSO-ICX-001 §4 |
 | B4 | RF chain | `hardware/diagrams/block/B4_rf_chain.dot` | SQSO-RF-BRD-001 §3–§8; BASELINE 7 |
-| W1 | Battery pack to EPS | `hardware/diagrams/wiring/W1_battery_eps.yml` | SQSO-HAR-001 H1 |
-| W2 | Solar panels to EPS | `hardware/diagrams/wiring/W2_solar_eps.yml` | SQSO-HAR-001 H8; `hardware/eps/SOLAR_ARRAY_DESIGN.md` |
-| W3 | EPS to OBC | `hardware/diagrams/wiring/W3_eps_obc.yml` | SQSO-ICX-001 §3.1 (replaces H2) |
-| W4 | OBC and EPS to RF board | `hardware/diagrams/wiring/W4_rf_board.yml` | SQSO-ICX-001 §3.2; SQSO-RF-BRD-001 §4 (replaces H4) |
-| W5 | EPS and OBC to Jetson carrier | `hardware/diagrams/wiring/W5_jetson.yml` | SQSO-ICX-001 §3.3 (H3, H6) |
-| W6 | ADCS | `hardware/diagrams/wiring/W6_adcs.yml` | SQSO-ICX-001 §3.4 (replaces H5) |
-| W7 | Deployables, burn and sense | `hardware/diagrams/wiring/W7_deployables.yml` | SQSO-EPS-BRD-001 §9, §13.1 |
-| W8 | GSE umbilical | `hardware/diagrams/wiring/W8_gse_umbilical.yml` | SQSO-ICX-001 §3.6 |
-| W9 | GNSS receiver | `hardware/diagrams/wiring/W9_gnss.yml` | SQSO-ICX-001 §3.5 |
-| W10 | RF coaxial cables | `hardware/diagrams/wiring/W10_rf_coax.yml` | H7; SQSO-RF-BRD-001 §4.3 |
+| W1 | Battery pack to EPS | `hardware/diagrams/wiring/W1_battery_eps.yml` | SQSO-HAR-001 2.0; SQSO-EPS-BRD-001 §13.1 |
+| W2 | Solar panels to EPS | `hardware/diagrams/wiring/W2_solar_eps.yml` | SQSO-HAR-001 2.0; `hardware/eps/SOLAR_ARRAY_DESIGN.md` |
+| W3 | EPS to OBC | `hardware/diagrams/wiring/W3_eps_obc.yml` | SQSO-ICX-001 §3.1; SQSO-HAR-001 2.0 |
+| W4 | OBC and EPS to RF board | `hardware/diagrams/wiring/W4_rf_board.yml` | SQSO-ICX-001 §3.2; SQSO-RF-BRD-001 §4; SQSO-HAR-001 2.0 |
+| W5 | EPS and OBC to Jetson carrier | `hardware/diagrams/wiring/W5_jetson.yml` | SQSO-ICX-001 §3.3; SQSO-HAR-001 2.0 |
+| W6 | ADCS | `hardware/diagrams/wiring/W6_adcs.yml` | SQSO-ICX-001 §3.4; SQSO-HAR-001 2.0 |
+| W7 | Deployables and inhibits: burn and sense (W7A, W7B), AntS (W7C), deployment switches and RBF (W12A–W12D) | `hardware/diagrams/wiring/W7_deployables.yml` | SQSO-EPS-BRD-001 §6.2, §9, §13.1; SQSO-HAR-001 2.0 |
+| W8 | GSE umbilical and charging: W8A, W11, access-port board A3 (Micro-D 21), GSE cable W8B | `hardware/diagrams/wiring/W8_gse_umbilical.yml` | SQSO-ICX-001 §3.6; SQSO-EPS-BRD-001 §6.5; SQSO-HAR-001 2.0 |
+| W9 | GNSS receiver | `hardware/diagrams/wiring/W9_gnss.yml` | SQSO-ICX-001 §3.5; SQSO-HAR-001 2.0 |
+| W10 | RF coaxial cables (W10) and the GNSS antenna cable (W10E) | `hardware/diagrams/wiring/W10_rf_coax.yml` | SQSO-RF-BRD-001 §4.3; SQSO-HAR-001 2.0 |
 | S1 | EPS power path and inhibits | `hardware/diagrams/schematics/S1_eps_power_path.py` | BASELINE 4–5; SQSO-EPS-BRD-001 §5–§7 |
 | S2 | EPS rails and load switches | `hardware/diagrams/schematics/S2_rails_load_switches.py` | SQSO-EPS-BRD-001 §8 |
 | S3 | OBC core (STM32L4R5ZI) | `hardware/diagrams/schematics/S3_obc_core.py` | SQSO-OBC-BRD-001; SQSO-ICX-001 §4 |
@@ -59,11 +59,12 @@ enable line. In B3, orange is a discrete input and brown an analog input. A dash
 selected.
 
 **Wiring diagrams.** These are WireViz harness drawings. Each one gives connectors, pin labels, wire colours, gauges and
-lengths. Connector families follow SQSO-HAR-001 §3.1: Micro-Fit 3.0 for high-current power, Pico-Clasp for low-current
-power, Samtec FTSH board to board, a 2.54 mm header for debug, and SMA or U.FL for RF. Gauges follow its §5.2 derating
-table. Pinouts follow SQSO-ICX-001 and the board designs; the receiver-side GNSS and AntS connectors await the vendors'
-interface documents. The header comment of each source says which SQSO-HAR-001 harness (H1–H8) it
-keeps or replaces.
+lengths. Connector families follow SQSO-HAR-001 2.0 §3.1: Micro-Fit 3.0 (right-angle, gold) for the higher currents,
+Pico-Clasp (gold) elsewhere, Samtec TFM with SFSDT discrete-wire assemblies board to board, a Micro-D 21 at the access
+port and MMCX for RF. Gauges follow the terminals and its §5.2 derating; the wire list `hardware/harness/wire_list.csv`
+governs, and `hardware/harness/harness_calcs.py --wireviz` checks every cable's gauge and length against it (a cable
+designator is a harness or route of the wire list, with an optional -AWG or _A/_B suffix). Pinouts follow SQSO-ICX-001
+and the board designs; the receiver-side GNSS and AntS connectors await the vendors' interface documents.
 
 **Schematics.** These are schemdraw sheets. A signal that leaves a sheet ends in a flag carrying its net name. The same
 names are used in the harnesses and on the other sheets, so `RF_TX_EN` on S2 is the net of that name on S3 and W3.
@@ -146,3 +147,4 @@ installed in this repository, and none has been evaluated:
 |-----|------|-------------|--------|
 | A | 2026-10-25 | Initial set: B1–B4, W1–W10, S1–S9; findings F1–F17 | SMART-QSO Team |
 | B | 2026-10-27 | CDR 2026 consistency pass: B1–B4 redrawn from the board build-to designs and SQSO-ICX-001 (B2: the third inhibit DS3, three deployment switches DS1–DS3 on three rails, the EPS board's converters, switches and limits; B3: master pin allocation; B4: RF board chain); all SVGs rendered; findings F1–F17 dispositioned (§4); W1, W2, W7 labels without angle brackets; sources table | SMART-QSO Team |
+| C | 2026-10-27 | Wiring drawings W1–W10 from the harness design SQSO-HAR-001 2.0: gauges from the terminal ranges, lengths from the routes, gold connectors, Samtec TFM/SFSDT for W3, W4A, W8A; W7 adds W12A–W12D, W8 adds W11 and the access-port board A3, W10 adds W10E; §2 sources and §3 conventions updated (§15 item D-1) | Harness design |

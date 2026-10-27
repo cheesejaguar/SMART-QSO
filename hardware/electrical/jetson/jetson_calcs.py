@@ -401,30 +401,31 @@ MODULE = (-34.8, 34.8, -28.5, 16.5)
 MAG = (33.0, -38.0)
 # name, (x, y) centre, (w, h), magnetic (ferromagnetic body or carries burst current), exempt
 PLACE = [  # name, centre, (w, h), magnetic, exempt, height above the board (mm; mated where a harness plugs in)
-    ("J4 SO-DIMM socket (its +X latch is the exemption)", (0, -31), (72, 8), True, "socket", 4.0),
-    ("J5 M.2 connector + 2230 card (S4)", (18.75, 36), (34.5, 22), False, "", 5.5),
-    ("MP1 M.2 standoff (steel)", (34, 36), (5, 5), True, "", 3.5),
+    ("J4 SO-DIMM socket", (0, -31), (72, 8), True, "socket", 4.0),
+    ("J5 M.2 connector + 2230 card (S4)", (12.75, 36), (34.5, 22), False, "", 5.5),
+    ("MP1 M.2 standoff (steel, under the card end)", (28, 36), (5, 5), True, "card", 3.5),
     ("MP2 module standoff (steel)", (-31.3, 12.6), (5, 5), True, "module", 4.0),
     ("MP3 module standoff (steel)", (31.3, 12.6), (5, 5), True, "module", 4.0),
-    ("J2 Pico-Clasp 6 (W5B), mated", (41.5, 28.5), (5, 10.6), False, "", 7.5),
+    ("J2 Pico-Clasp 6 (W5B), mated", (36.5, 28.5), (5, 10.6), False, "", 7.5),
     ("J3 Pico-Clasp 2 (spreader NTC), mated", (41.5, 37.0), (5, 5), False, "", 7.5),
-    ("D2 ESD", (37.5, 24.5), (2.5, 2), False, "", 0.6),
+    ("D2 ESD", (40.5, 24.5), (2.5, 2), False, "", 0.6),
     ("U10/U11 translators", (38.0, 19.5), (6, 2.5), False, "", 1.1),
     ("U7 3V3_IO switch, U6, U9", (12, 21), (12, 3), False, "", 1.45),
     ("U8 3V3_SSD switch and bulk", (26, 21), (14, 3.2), False, "", 2.5),
-    ("J1 Micro-Fit 2x2 (W5A), mated (allocation)", (-29, -41.5), (10, 10), False, "", 13.0),
+    ("J1 Micro-Fit 2x2 right-angle (W5A), plug from -X (allocation)", (-40.3, -21), (8.5, 10), False, "", 7.4),
+    ("U2 VDD_IN eFuse and 6 x 22 uF", (-30, -41.5), (10, 10), False, "", 2.5),
     ("D1, C_F1", (-22, -41.5), (3.5, 8), False, "", 2.5),
     ("L1 filter inductor", (-17.5, -41.5), (4, 4), True, "", 3.1),
     ("damper R_D, C_D", (-13, -41.5), (3.5, 8), False, "", 2.5),
     ("U1 LM61440 and input caps", (-8, -41.5), (4.5, 8), True, "", 2.5),
     ("L2 U1 inductor", (-1.0, -42.0), (6.5, 6.5), True, "", 3.1),
     ("U1 output caps 4 x 1206", (-8, -46.2), (9, 2.0), False, "", 1.8),
-    ("U2 VDD_IN eFuse and 6 x 22 uF (if the VDD_IN pins are at the -X end)", (-40.5, -27), (6, 15), True, "", 2.5),
     ("J6 debug header (unmated in flight)", (-41.0, -9), (6, 7.6), False, "", 4.7),
     ("U3 LMR43620, L3 and caps", (-41.0, 3), (6, 13), True, "", 3.1),
     ("Y1 oscillator (metal lid)", (-41.0, 15.5), (5, 7), True, "", 1.5),
     ("U12, U4, U5 and passives", (-41.5, 25), (6, 10), False, "", 1.45),
 ]
+W5B_FREE = (42.0, 45.4, 26.0, 31.0)  # HARNESS_DESIGN 2.0 item J-1: free above the carrier for W5B
 
 
 def rect_overlap(a, b):
@@ -445,6 +446,8 @@ for name, (x, y), (w, h), magnetic, exempt, hgt in PLACE:
         issues.append("outline")
     if rect_overlap(r, WIN_KO):
         issues.append("gyro window")
+    if rect_overlap(r, W5B_FREE):
+        issues.append("W5B volume")
     if exempt not in ("socket", "module") and rect_overlap(r, MODULE):
         issues.append("module footprint")
     for (hx, hy), rad in HOLES:
@@ -460,7 +463,16 @@ for name, (x, y), (w, h), magnetic, exempt, hgt in PLACE:
                  "; ".join(issues) or "clear"))
 table("14. Placement check (zones of section 18; window, heights and magnetic keep-out of MECHANICAL_DESIGN 4.3-4.5)",
       ["Item", "Centre (mm)", "To the old RM3100 corner (mm)", "To the gyro centre (mm)", "Height / limit (mm)", "Result"], rows)
-print(f"\nPlacement conflicts: {bad}.")
+rects = [(n, (x - w / 2, x + w / 2, y - h / 2, y + h / 2), ex) for n, (x, y), (w, h), _, ex, _ in PLACE]
+for i in range(len(rects)):
+    for j in range(i + 1, len(rects)):
+        (na, ra, ea), (nb, rb, eb) = rects[i], rects[j]
+        if "card" in (ea, eb) and ("J5" in na or "J5" in nb):
+            continue  # MP1 holds the card end
+        if rect_overlap(ra, rb):
+            bad += 1
+            print(f"overlap: {na} / {nb}")
+print(f"\nPlacement conflicts: {bad} (zone rules and part-to-part overlaps).")
 OUT["placement_conflicts"] = bad
 
 # field of the burst current at the magnetometer: a go-and-return pair, B = mu0 I d / (2 pi r^2)

@@ -179,7 +179,7 @@ wire worst case (2.0 A pack current with a 60/40 split) against 2.50 A derated, 
 | Ties | MIL-T-43435 lacing tape (Nomex or polyester, finish with E595 data), spot ties; Scotch-Weld 2216 tie-down dots on structure | MATERIALS_LIST rejects nylon 6/6 tie wraps |
 | Sleeving | PTFE (pack-lead over-sleeve, edge protection at the deck openings and slots) | Low outgassing |
 | Connector housings | Pico-Clasp and Micro-Fit housings: E595 data per part number, finished harnesses baked out before integration (V-HAR-11) | Moisture-bearing polyamides are TML-limited |
-| Staking | Arathane 5750 bead across each mated wire-to-board connector after final mating | Removable; the carrier's coating material |
+| Staking | Arathane 5750 bead across each mated wire-to-board connector after final mating; Scotch-Weld 2216 for tie-down dots and wire staking only, never structurally | Removable; the carrier's coating material; MATERIALS_LIST §5 |
 
 ## 6. Wire List
 
@@ -554,9 +554,9 @@ is the nickel underplate of A2's own connector.
 | I-2 | Interconnect §3.1–§3.6 notes | W3, W4A: SFSDT 30 AWG on TFM; W4B, W6B, W6C, W9: 28 AWG; W5A: 24 AWG; W6D: no shield, J8-13/14 unused; §3.6: the bulkhead is A3's Micro-D 21 (pin map §3.2) | §5 |
 | I-3 | Interconnect | A revision row for the §2 table and §2.1 rewritten by this design (ICX owner) | §2, §2.1 edited here |
 | S-1 | Solar array (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §4.2) | Strings on 28 AWG M22759/33, two wires per pole on the Pico-Clasp (0.28 A each, 37 % of 0.90 A derated), not 24 AWG | Pico-Clasp range; §5.2 |
-| P-1 | `docs/manufacturing/EEE_PARTS_LIST.md` | Connector finishes gold: Pico-Clasp, Micro-Fit, Samtec TFM/SFSDT, MMCX, Micro-D | §2A.3 item 5 |
-| P-2 | `docs/compliance/MATERIALS_LIST.md` | Wire M22759/33 (ETFE), SFSDT PTFE, MIL-T-43435 lacing tape, Scotch-Weld 2216, Arathane 5750, PTFE sleeving, connector housings: E595 data per part number | V-HAR-11 |
-| D-1 | Diagrams (`hardware/diagrams/README.md` §2) | W7 now draws W12A–W12D, W8 draws W11 and A3; the "main sources" column cites SQSO-HAR-001 2.0 instead of H1 and H8 | Drawings updated here |
+| P-1 | `docs/manufacturing/EEE_PARTS_LIST.md` | Connector finishes gold: Pico-Clasp, Micro-Fit, Samtec TFM/SFSDT, MMCX, Micro-D: **done** (Rev E §2A.8) | §2A.3 item 5 |
+| P-2 | `docs/compliance/MATERIALS_LIST.md` | Wire M22759/33 (ETFE), SFSDT PTFE, MIL-T-43435 lacing tape, Scotch-Weld 2216 (staking only), Arathane 5750, PTFE sleeving, connector housings: E595 data per part number: **done** (Rev D §5, §7, §8; gaps to V-HAR-11) | V-HAR-11 |
+| D-1 | Diagrams (`hardware/diagrams/README.md` §2) | W7 now draws W12A–W12D, W8 draws W11 and A3; the "main sources" column cites SQSO-HAR-001 2.0 instead of H1 and H8: **done** (Rev C §2, §3) | Drawings updated here |
 | D-2 | MEL (`docs/environment/MASS_BUDGET.md`) | Row 32 note: harness design 75.6 g (−4.4 g); row 26 sensor cables 6.6 g (+1.6 g before brackets) | §11 |
 
 ## Revision History

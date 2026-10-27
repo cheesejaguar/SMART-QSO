@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MAT-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Reference:** CDS Rev 14.1 §2.1.7; SpaceX Rideshare Payload User's Guide v11 (Aug 2026) §5.3, Table 5-5, §6.7.12, Table 6-7; NASA-STD-6016C with Change 1 (2023-11-15), tailored for Class D (`docs/project/MISSION_ASSURANCE_PLAN.md` §7); ASTM E595-15(2021)
 **Status:** CDR draft. **Not compliant yet:** one known non-compliant material, several values without a source, and the terminal finishes of the EEE parts not surveyed. Revision A's "48 of 48 compliant, 100 %" had no sources and is withdrawn
@@ -83,7 +83,7 @@ Not assessed here.
 | Conformal coat (preferred) | Arathane 5750 A/B (LV) polyurethane (formerly Uralane 5750) | Not quoted here | Qualified for flight boards by JPL (NASA NTRS 19920069306); the E595 values were not retrievable from the review environment | **Open**: E595 certificate with the cure schedule used |
 | Conformal coat (alternate) | HumiSeal 1B73 acrylic | No E595 data found | Revision A's 0.32/0.01 had no source | **Open** |
 | Conformal coat (alternate) | Dow 1-2577 silicone | Revision A's 0.18/0.03 had no source | — | **Open**; silicone: integrator coordination not needed for a containerized CubeSat (UG v11 §5.3) |
-| Staking, component and harness | Arathane 5750 or 3M Scotch-Weld 2216 B/A Gray | 2216 Gray: **0.77 / 0.04** (7 days at 25 °C cure) | 3M Scotch-Weld 2216 B/A technical data sheet (values cited from NASA RP-1124 Rev 4); Revision A's 0.65/0.02 is corrected | Compliant (2216); Arathane open |
+| Staking, component and harness | Arathane 5750 or 3M Scotch-Weld 2216 B/A Gray | 2216 Gray: **0.77 / 0.04** (7 days at 25 °C cure) | 3M Scotch-Weld 2216 B/A technical data sheet (values cited from NASA RP-1124 Rev 4); Revision A's 0.65/0.02 is corrected | Compliant (2216); Arathane open. **Staking only, never structural** (no structural adhesive in the design): in the harness (SQSO-HAR-001 2.0 §10.3, §5.3) 2216 makes the tie-down dots on structure and stakes wires at solder ends and splices; Arathane 5750 stakes mated wire-to-board connectors (removable bead) |
 | Silicone encapsulant (solar cells, if used by the panel vendor) | DOWSIL 93-500 Space Grade | ≈ 0.25 / 0.05 reported | Secondary source (a patent document); Dow states it meets NASA E595 requirements | **Open**: lot certificate from the panel vendor |
 | Potting (if needed) | Loctite Stycast 2850FT with Catalyst 9 | **0.50 / 0.01** (24 h at 25 °C) | Henkel, *NASA Outgassing Approved Products*, DSGN0007528 (09/2020) | Compliant |
 | Electrically conductive adhesive (if needed) | Loctite Ablestik 84-1LMI | **0.12 / 0.00** | Henkel DSGN0007528 | Compliant |
@@ -102,19 +102,33 @@ Not assessed here.
 
 ## 7. Wire, Cable and Harness
 
-| Component | Material | TML / CVCM (%) | Source | Status |
-|-----------|----------|----------------|--------|--------|
-| Wire insulation | PTFE or ETFE (SAE AS22759) | Fluoropolymers are low-outgassing | Data to attach per wire part number | **Open** (data) |
-| Sleeving | PTFE | As above | — | **Open** (data) |
-| Harness ties | Revision A: nylon 6/6 tie wraps (0.89/0.03, no source) | Nylon absorbs water; TML commonly near or above 1 % | — | **Replace** with lacing tape (polyester or Nomex, NASA-STD-8739.4A practice) with E595 data |
+Harness design SQSO-HAR-001 2.0 (`hardware/harness/HARNESS_DESIGN.md` §5.3); verification V-HAR-11 (E595 data of every
+harness material and a bake-out of the finished harnesses before flight integration).
+
+| Component | Part number / material | TML / CVCM (%) | Source | Status |
+|-----------|------------------------|----------------|--------|--------|
+| Discrete wire, all gauges (22, 24, 28 AWG) | **SAE AS22759/33** (M22759/33-22, -24, -28): crosslinked ETFE, silver-coated high-strength copper alloy, 200 °C | Per part number and lot | No value is quoted here: crosslinked ETFE is a low-outgassing fluoropolymer, but no E595 entry per part number was retrieved | **Open**: E595 entry (GSFC database) or the wire maker's certificate for each of the three part numbers (V-HAR-11) |
+| Discrete-wire assemblies W3, W4A, W8A | **Samtec SFSDT** (Tiger Eye), PTFE-insulated 30 AWG, with its socket housing | Per assembly | No Samtec E595 data retrieved | **Open**: Samtec outgassing declaration for SFSDT wire and housing (V-HAR-11) |
+| Ribbon cable (FFSD IDC), withdrawn | Samtec FFSD: PVC insulation, tin-plated copper | PVC typically above the limits | Distributor data (PVC, −40 … +105 °C) | **Not used**: replaced by SFSDT in SQSO-HAR-001 2.0 |
+| Coax W10, W10E | 1.37 mm and 1.13 mm micro-coax, FEP or PFA jacket, silver-plated copper | Per part number | RF board design C §4.3 requires TML ≤ 1 %, CVCM ≤ 0.1 % | **Open**: cable maker's certificate (V-HAR-11) |
+| Sleeving (pack-lead over-sleeve, edge protection at the deck openings and slots, identification sleeves) | PTFE | Per part number | — | **Open** (data, V-HAR-11) |
+| Heat shrink at splices and ends | PVDF (Kynar) or other fluoropolymer heat shrink (no polyolefin) | Per part number | — | **Open** (data, V-HAR-11) |
+| Harness ties | **MIL-T-43435 lacing tape**, Nomex or polyester, with a finish that has E595 data; spot ties | Per part number and finish | — | **Open** (data, V-HAR-11). Revision A's nylon 6/6 tie wraps (0.89/0.03, no source) are **replaced** in SQSO-HAR-001 2.0 |
+| Tie-down dots, wire staking | 3M Scotch-Weld 2216 B/A Gray (§5) | **0.77 / 0.04** | §5 | Compliant; staking only |
+| Connector staking | Arathane 5750 A/B (§5) | Not quoted | §5 | **Open** (§5) |
 | Polyimide tape | Kapton with silicone or acrylic adhesive | Film TML is dominated by water (use RML per UG v11) | Vendor | **Open** |
 
 ## 8. Connectors and Electronic Parts (non-metallic portions)
 
 | Component | Material | Status |
 |-----------|----------|--------|
-| Connector bodies | LCP, PEEK or PPS per part number | **Open**: per-part data; many COTS connectors meet E595, confirm |
-| Connector contacts | Phosphor bronze or BeCu, gold over nickel | Compliant; **no tin-plated contacts** (§2.2) |
+| Pico-Clasp housings (501330) and headers (501331) | Molex housing resin per part number | **Open**: E595 per part number; bake-out of the finished harness (V-HAR-11) |
+| Micro-Fit 3.0 receptacles (43025) and right-angle headers (43045) | Polyamide (nylon) class housing per Molex | **Open**: moisture-bearing polyamide, TML dominated by water: E595 with WVR (RML per UG v11), bake-out (V-HAR-11) |
+| Samtec TFM headers, SFSDT sockets | Samtec LCP-class insulator per part number | **Open**: Samtec declaration (V-HAR-11) |
+| Micro-D 21 receptacle on A3 | Insulator per MIL-DTL-83513 (glass-filled polymer) | **Open**: maker's E595 data (V-HAR-11) |
+| MMCX jacks and plugs | PTFE dielectric, brass/BeCu, gold | **Open** (data) |
+| Access-port board A3 | FR-4, solder mask | As §4 |
+| Connector contacts | Phosphor bronze or BeCu, gold over nickel (EEE_PARTS_LIST §2A.8) | Compliant; **no tin-plated contacts** (§2.2) |
 | EEE parts | Moulded plastic packages | Plastic packages are generally accepted; terminal finish governed by §2.2 |
 
 ## 9. Battery
@@ -152,7 +166,7 @@ Not assessed here.
 | Status | Count | Items |
 |--------|-------|-------|
 | Compliant with a cited source | 9 | G-10CR, PEEK 450G, Scotch-Weld 2216 Gray, Stycast 2850FT/9, Ablestik 84-1LMI, Gap Pad TGP 3000, TGP 3500ULM, metals, Sn63Pb37 |
-| **Non-compliant or to replace** | 3 | Loctite 242, nylon 6/6 tie wraps, SAC305 on flight boards |
+| **Non-compliant or to replace** | 3 | Loctite 242, nylon 6/6 tie wraps (replaced by lacing tape in SQSO-HAR-001 2.0), SAC305 on flight boards; the PVC FFSD ribbon is withdrawn from the design (§7) |
 | Open (data needed) | All others | Vendor certificates or GSFC database entries |
 
 Verification: VI-LV-09 (materials list and contamination report, L−4 M) and VI-SAF-07 (prohibited materials and terminal
@@ -167,3 +181,4 @@ finishes) of SQSO-SDP-002.
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | CDR S&MA review: requirements from CDS 2.1.7 and UG v11 §5.3 / Table 5-5 (containerized exemption and what it does not cover); prohibited materials applied to the design (cadmium-plated fasteners, zinc plating, mercury, pure-tin finishes, with mitigation); every value given a source or marked open; isolated-mount materials (G-10CR, PEEK 450G, Ti-6Al-4V screws, VDA tape) added; Loctite 242, nylon ties and SAC305 found non-compliant; Gap Pad 3000 and 2216 values corrected; cell can corrected to steel; "100 % compliant" withdrawn | CDR S&MA review |
 | C | 2026-10-27 | Hinge pins A286 with MoS₂ (was 300-series), springs 17-7PH, bushings, stop and snubber silicone (open), magnetometer-zone fasteners, Ti column stud, trim masses, W-Ni-Cu inertia ballast (C-13); gyro window without a bonded frame (no structural adhesive) | Mechanical design (SQSO-MECH-CAD-001) |
+| D | 2026-10-27 | Harness materials from SQSO-HAR-001 2.0 (§15 item P-2): §7 per part number (AS22759/33 wire, Samtec SFSDT, coax, PTFE sleeving, fluoropolymer heat shrink, MIL-T-43435 lacing tape replacing the nylon ties, PVC FFSD ribbon withdrawn), §8 connector housings (Pico-Clasp, Micro-Fit, TFM/SFSDT, Micro-D, MMCX), §5 2216 and Arathane 5750 as staking only; data gaps referred to V-HAR-11 | Harness design |

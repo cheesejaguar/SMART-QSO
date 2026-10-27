@@ -12,11 +12,11 @@ import sqso_probe as sp  # noqa: E402
 
 
 def test_addresses_match_the_firmware():
-    # firmware/src/stack.rs: an 8 KB budget under 0x200A0000 and a 32 B guard below it
+    # firmware/src/stack.rs: an 8 KB budget under 0x20040000 and a 32 B guard below it
     src = (Path(__file__).resolve().parents[2] / "src" / "stack.rs").read_text()
     assert "BUDGET: u32 = 8 * 1024" in src and "GUARD: u32 = 32" in src
-    assert gt.GUARD_HI == 0x200A0000 - 8 * 1024 and gt.GUARD_HI - gt.GUARD_LO == 32
-    assert gt.SP_VALUE == 0x2009E010
+    assert gt.GUARD_HI == 0x20040000 - 8 * 1024 and gt.GUARD_HI - gt.GUARD_LO == 32
+    assert gt.SP_VALUE == 0x2003E010
     # wdt.rs and hal_reset.h: RESET_WATCHDOG = 2, the cached cause in RESET_CAUSE
     wdt = (Path(__file__).resolve().parents[2] / "src" / "wdt.rs").read_text()
     assert "const RESET_WATCHDOG: u32 = 2;" in wdt and "static RESET_CAUSE: AtomicU32" in wdt
@@ -47,9 +47,9 @@ def test_pass_on_stacking_error_then_watchdog_reset():
 
 def test_pass_on_access_violation_in_the_guard():
     v = gt.MMFSR_DACCVIOL | gt.MMFSR_MMARVALID
-    assert gt.evaluate(obs(cfsr=v, mmfar=0x2009DFF8)) == []
-    assert "not the guard's" in gt.evaluate(obs(cfsr=v, mmfar=0x2009E000))[0]
-    assert "not the guard's" in gt.evaluate(obs(cfsr=gt.MMFSR_DACCVIOL, mmfar=0x2009DFF8))[0]
+    assert gt.evaluate(obs(cfsr=v, mmfar=0x2003DFF8)) == []
+    assert "not the guard's" in gt.evaluate(obs(cfsr=v, mmfar=0x2003E000))[0]
+    assert "not the guard's" in gt.evaluate(obs(cfsr=gt.MMFSR_DACCVIOL, mmfar=0x2003DFF8))[0]
 
 
 def test_other_fault_fails():
@@ -80,7 +80,7 @@ def test_sequence_against_the_simulated_board():
     assert writes == [
         (gt.DBGMCU_APB1FZR1, gt.DBG_IWDG_STOP),          # IWDG stops while halted
         (gt.DHCSR, 0xA05F0003),                           # halt
-        (gt.DCRDR, 0x2009E010), (gt.DCRSR, 0x0001000D),   # SP
+        (gt.DCRDR, 0x2003E010), (gt.DCRSR, 0x0001000D),   # SP
         (gt.DEMCR, gt.DEMCR_TRCENA),                      # no vector catch
         (gt.DHCSR, 0xA05F0001),                           # resume
         (gt.DBGMCU_APB1FZR1, 0),                          # restored
@@ -129,5 +129,5 @@ def test_loop_not_running_is_an_error():
 def test_dry_run(capsys):
     assert gt.main(["--dry-run"]) == 0
     out = capsys.readouterr().out
-    assert "probe-rs write --chip STM32L4R5ZITx b32 0xe000edf8 0x2009e010" in out
+    assert "probe-rs write --chip STM32L4R5ZITx b32 0xe000edf8 0x2003e010" in out
     assert "PASS (HIL-004) [simulated]" in out

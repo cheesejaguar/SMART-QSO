@@ -10,9 +10,9 @@ import sqso_probe as sp  # noqa: E402
 
 
 def test_hex_table_of_probe_rs_0_32():
-    text = ("2009e000: 57acc0de 57acc0de 57acc0de 57acc0de 57acc0de 57acc0de 57acc0de 57acc0de\n"
-            "2009e020: 00000001 deadbeef\n")
-    assert sp.parse_words(text, 0x2009E000) == [0x57ACC0DE] * 8 + [1, 0xDEADBEEF]
+    text = ("2003e000: 57acc0de 57acc0de 57acc0de 57acc0de 57acc0de 57acc0de 57acc0de 57acc0de\n"
+            "2003e020: 00000001 deadbeef\n")
+    assert sp.parse_words(text, 0x2003E000) == [0x57ACC0DE] * 8 + [1, 0xDEADBEEF]
 
 
 def test_plain_list_and_0x_prefix():
@@ -20,14 +20,14 @@ def test_plain_list_and_0x_prefix():
 
 
 def test_address_column_must_follow_on():
-    text = "2009e000: 00000000 00000000\n2009e020: 00000000\n"   # second line should be at 2009e008
-    with pytest.raises(sp.ProbeError, match="expected 0x2009e008"):
-        sp.parse_words(text, 0x2009E000)
+    text = "2003e000: 00000000 00000000\n2003e020: 00000000\n"   # second line should be at 2003e008
+    with pytest.raises(sp.ProbeError, match="expected 0x2003e008"):
+        sp.parse_words(text, 0x2003E000)
 
 
 def test_wrong_region_is_refused():
     with pytest.raises(sp.ProbeError, match="address 0x20000000"):
-        sp.parse_words("20000000: 00000000\n", 0x2009E000)
+        sp.parse_words("20000000: 00000000\n", 0x2003E000)
 
 
 def test_non_hex_output_is_refused():
@@ -47,7 +47,7 @@ NM = """\
 08000000 00000400 R __RESET_VECTOR
 200003f0 00000004 d sqso_firmware::wdt::RESET_CAUSE
 20000000 00000018 D SQSO_LOOP_TIMING
-200a0000 A _stack_start
+20040000 A _stack_start
 08002f16 00000052 T <sqso_ffi::c::HalFlash as sqso_fsw::nvm::Flash>::read
 """
 
@@ -55,7 +55,7 @@ NM = """\
 def test_nm_symbols():
     assert sp.parse_nm(NM, "SQSO_LOOP_TIMING") == (0x20000000, 0x18)
     assert sp.parse_nm(NM, "sqso_firmware::wdt::RESET_CAUSE") == (0x200003F0, 4)
-    assert sp.parse_nm(NM, "_stack_start") == (0x200A0000, None)
+    assert sp.parse_nm(NM, "_stack_start") == (0x20040000, None)
     assert sp.parse_nm(NM, "<sqso_ffi::c::HalFlash as sqso_fsw::nvm::Flash>::read") == (0x08002F16, 0x52)
 
 

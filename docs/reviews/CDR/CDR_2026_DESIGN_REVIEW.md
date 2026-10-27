@@ -156,14 +156,14 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-298 RIDs: severity 1: 29, severity 2: 162, severity 3: 107.
+299 RIDs: severity 1: 29, severity 2: 162, severity 3: 108.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 26 |
 | Closed by design change | 99 | 163 |
 | Closed by chair decision | 38 | 37 |
-| Verification item | 42 | 41 |
+| Verification item | 43 | 42 |
 | Decision point (dated) | 13 | 13 |
 | Implementation | 81 | 18 |
 
@@ -248,6 +248,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-20 | 3 | SIL decay re-enters 4.0 years after deployment; the ODAR estimator gives 4.8-5.7 years | CH | Closed by chair decision | The ODAR (NRLMSIS, NASA-STD-8719.14C cross-sections) governs lifetime compliance; the SIL decay is indicative; aligned if cheap (flight software round 3) |
 | SE-21 | 3 | SIL deploys both wings from one resistor and models 0.04 W of coil power in detumble (board: 1.16-1.3 W) | IMP | Implementation | SIL deployment per-wing restraint and coil-drive power (flight software round 3) |
 | SE-22 | 2 | Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG | IMP | Implementation | Gold finishes on every board and harness, Samtec TFM/SFSDT PTFE assemblies, gauges from the terminal ranges (SQSO-HAR-001 2.0 §15: E-, O-, R-, J-, B-, S-, M-, I-, P-, D- items) |
+| SE-23 | 3 | No published E595 outgassing values found for the harness wire, PTFE assemblies, sleeving, lacing tape or connector housings; Pico-Clasp gold suffix not found | VI | Verification item | V-HAR-11 (E595 per part number or test, bake-out) and V-HAR-3 (vendor drawings, gold part numbers) before the EM order (MATERIALS_LIST D §7-§8, EEE_PARTS_LIST E §2A.8) |
 
 #### Verification and validation (VV)
 

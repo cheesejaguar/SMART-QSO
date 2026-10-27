@@ -15,7 +15,7 @@ Worst case: 4900 B of 8192 B (59.8 %)
 """
 
 
-def dump(words, start=0x2009E000):
+def dump(words, start=0x2003E000):
     """probe-rs 0.32 hex-table output"""
     lines = []
     for i in range(0, len(words), 8):
@@ -88,7 +88,7 @@ def test_main_dump_of_another_region_is_an_error(tmp_path, capsys):
     (tmp_path / "stack_usage.txt").write_text(REPORT)
     (tmp_path / "dump.txt").write_text(dump(budget(2400), start=0x20000000))
     assert shw.main(["--stack-usage", str(tmp_path / "stack_usage.txt"), "--dump", str(tmp_path / "dump.txt")]) == 2
-    assert "expected 0x2009e000" in capsys.readouterr().out
+    assert "expected 0x2003e000" in capsys.readouterr().out
 
 
 def test_main_saves_the_raw_read(tmp_path):
