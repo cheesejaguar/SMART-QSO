@@ -152,6 +152,7 @@ L-2 M licences and ephemeris demonstration).
 | C-15 | Harness wire under the EPS tied to the deck straps and shear panels; only connector strain-relief ties on the EPS board (EPS Steinberg +0.23, −0.52 otherwise) | MCAD-11 |
 | C-16 | Battery-lead shorts: the two positive-leg fuses are diverse by design (F0A MIL-PRF-23419/12 from AEM, F0B MIL-PRF-23419/8 from Littelfuse), with F0N in the negative leg the third, so BSA H3b is 2-fault tolerant without counting two same-part fuses as independent (an earlier wording did; revised after the board FMEA). NRCSD safety-engineer concurrence for the ISS backup path | EPSB-10, P3E-02 |
 | C-17 | Burn 10 s per resistor (was 8 s): at the bounding −55 °C the 8 s burn gives a release-energy ratio of only 1.52 against 1.5; 10 s gives 1.90 inside the 12 s hardware one-shot | P3S-01 |
+| C-18 | The AntS deploys only when its own reported temperature is ≥ −17 °C (the −20 °C qualified minimum plus 3 °C sensor tolerance), deferring to the next 50-min slot without spending an attempt; after 30 deferrals (about 25 h, which covers the wings-stowed case where it never warms) or on ground command it deploys regardless. An ungated release after an eclipse separation would be at −44 °C; the gate opens within 177 min in every nominal case, before the first commanding pass (median 6.4 h). The wings still go first at S + 30 min | P3T-09 |
 
 ## 5. Design completion (round 2)
 
