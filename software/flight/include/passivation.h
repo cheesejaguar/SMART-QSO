@@ -20,7 +20,12 @@
  *    latch still set, commits the passivated record in FLASH_REGION_EOL
  *    (from then on every boot carries the sequence through) and runs, in
  *    this order (RID REG-12):
- *    - the fire, in sunlight, while the spacecraft still transmits:
+ *    - the fire, in sunlight, preferably with the EPS board at or above
+ *      PASSIVATION_FIRE_MIN_BOARD_C by the INA228 die temperatures (F1's
+ *      rating, SMART-QSO-ICD-001 1.6 §4.6): a cold board is waited for at
+ *      most PASSIVATION_BOARD_WAIT_MAX_MS of each attempt, and an unreadable
+ *      one not at all (RID SMA-B20; the reasons in passivation_waiting()),
+ *      while the spacecraft still transmits:
  *      GPIO_PIN_EOL_FIRE high at least PASSIVATION_FIRE_MIN_MS, until
  *      EOL_STATE reports the charge path open (bit 1 set, bit 2 clear) or
  *      PASSIVATION_FIRE_MAX_MS; then low. The open path seen at any time
@@ -71,6 +76,18 @@ extern "C" {
 #define PASSIVATION_FIRE_DEADLINE_MS 86400000U
 /** Fire sequences at most, across resets */
 #define PASSIVATION_MAX_FIRE_ATTEMPTS 3U
+/** The fire waits for the EPS board at or above this, °C (F1, ITV4030, rated from −10 °C) */
+#define PASSIVATION_FIRE_MIN_BOARD_C 0.0
+/** A cold EPS board is waited for at most this long of each attempt, ms (6 h, RID SMA-B20) */
+#define PASSIVATION_BOARD_WAIT_MAX_MS 21600000U
+/** passivation_waiting(): waiting for sunlight */
+#define PASSIVATION_WAIT_SUN 0x01U
+/** passivation_waiting(): waiting for the EPS board to reach PASSIVATION_FIRE_MIN_BOARD_C */
+#define PASSIVATION_WAIT_BOARD 0x02U
+/** passivation_waiting(): the board still cold after PASSIVATION_BOARD_WAIT_MAX_MS: not held for it */
+#define PASSIVATION_BOARD_BOUND 0x04U
+/** passivation_waiting(): the board's temperature unreadable: not held for it */
+#define PASSIVATION_BOARD_UNKNOWN 0x08U
 /** Final report frames */
 #define PASSIVATION_FINAL_REPORTS 3U
 /** Between final report frames, ms */
@@ -128,6 +145,15 @@ uint8_t passivation_take_report(void);
 
 /** The fire sequences run so far (in the record, across resets) */
 uint8_t passivation_attempts(void);
+
+/**
+ * @brief Why the fire waits, or went ahead without the EPS board
+ *        condition, as last seen (HK1 PS, the final report)
+ * @return PASSIVATION_WAIT_SUN | PASSIVATION_WAIT_BOARD |
+ *         PASSIVATION_BOARD_BOUND | PASSIVATION_BOARD_UNKNOWN; 0 when the
+ *         fire went ahead with every condition met
+ */
+uint8_t passivation_waiting(void);
 
 #ifdef __cplusplus
 }

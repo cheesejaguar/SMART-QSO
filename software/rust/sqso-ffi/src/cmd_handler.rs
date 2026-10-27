@@ -461,11 +461,20 @@ fn dispatch(command: Command, cmd: &CmdCommand, response: &mut CmdResponse) -> u
         }
         Command::XpdrEnable => ok_invalid_or_fail(crate::ops_state::ops_set_xpdr_enabled(true)),
         Command::XpdrDisable => ok_invalid_or_fail(crate::ops_state::ops_set_xpdr_enabled(false)),
-        Command::DeployRetry => match cmd.payload[0] {
-            0 | 1 if crate::deployment::deployment_force_retry(u32::from(cmd.payload[0])) => result::SUCCESS,
-            0 | 1 => result::NOT_ALLOWED,
-            _ => result::INVALID_PARAM,
-        },
+        Command::DeployRetry => {
+            // The optional second byte: 1 forces the antenna past its
+            // temperature gate (decision C-18)
+            let force = match (cmd.payload_len, cmd.payload[1]) {
+                (0 | 1, _) | (_, 0) => Some(false),
+                (_, 1) => Some(true),
+                _ => None,
+            };
+            match (cmd.payload[0], force) {
+                (0 | 1, Some(f)) if crate::deployment::deployment_retry(u32::from(cmd.payload[0]), f) => result::SUCCESS,
+                (0, Some(_)) | (1, Some(false)) => result::NOT_ALLOWED,
+                _ => result::INVALID_PARAM,
+            }
+        }
         Command::GnssRequest => {
             crate::executive::request_gnss_session();
             result::SUCCESS

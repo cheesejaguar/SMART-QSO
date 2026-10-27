@@ -29,7 +29,7 @@ connectors:
     notes: "(+47.5, -37.5, -40); about 5 Ohm each"
     pinlabels: [R_W1A a, R_W1A b, R_W1B a, R_W1B b]
   HS_W1:
-    type: wing W1 deployed-state sensor lead, M81824/1-1 (TE D-436-36) splice
+    type: wing W1 deployed-state sensor lead, TE D-200-82 nickel-barrel splice
     notes: hinge-side strip at z -39
     pinlabels: [in, out]
   J11:
@@ -42,7 +42,7 @@ connectors:
     notes: "(-47.5, -37.5, -40)"
     pinlabels: [R_W2A a, R_W2A b, R_W2B a, R_W2B b]
   HS_W2:
-    type: wing W2 deployed-state sensor lead, M81824/1-1 (TE D-436-36) splice
+    type: wing W2 deployed-state sensor lead, TE D-200-82 nickel-barrel splice
     pinlabels: [in, out]
   J12:
     type: Pico-Clasp 8 pos, gold terminals (EPS J12, was 4)
@@ -50,7 +50,7 @@ connectors:
     notes: "EPS J12 (zone Z5): AntS supply, I2C side A (U80 B side) and side B 0x32 through 0 ohm jumpers (SQSO-ICX-001 E15)"
     pinlabels: [3V3_ANTS, 3V3_ANTS, GND, GND, ANTS_SDA, ANTS_SCL, ANTS_SDA_B, ANTS_SCL_B]
   ANTS:
-    type: ISIS AntS pigtail, M81824/1-1 (TE D-436-36) splices
+    type: ISIS AntS pigtail, soldered on termination tab TB-ANT
     subtype: own controller, redundant thermal knives
     notes: "through the -Z end-frame cut-out at (-31, -16); pinout from the AntS ICD"
     pinlabels: [VCC 3V3, VCC 3V3, GND, GND, SDA A, SCL A, SDA B, SCL B]

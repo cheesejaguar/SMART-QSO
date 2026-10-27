@@ -48,7 +48,7 @@ COMMANDS: Dict[str, CommandSpec] = {
     "XPDR_DISABLE": CommandSpec(0x35, 0, 0, "operational", "Stop the FM transponder (persisted); beacon and telecommand unaffected", without_key=False),
     "PLD_ENABLE": CommandSpec(0x40, 0, 0, "operational", "Enable payload", without_key=False),
     "PLD_DISABLE": CommandSpec(0x41, 0, 0, "operational", "Disable payload", without_key=False),
-    "DEPLOY_RETRY": CommandSpec(0x50, 1, 1, "operational", "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)", without_key=False),
+    "DEPLOY_RETRY": CommandSpec(0x50, 1, 2, "operational", "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn); optional second byte 1 = force the antenna past its temperature gate (deploy now whatever the AntS temperature, decision C-18; refused with the wings)", without_key=False),
     "GNSS_REQUEST": CommandSpec(0x60, 0, 0, "operational", "Start a GNSS receiver session now (its power gates still apply)", without_key=False),
     "PASSIVATE_ARM": CommandSpec(0x70, 4, 4, "operational", "Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven", without_key=False),
     "PASSIVATE_EXECUTE": CommandSpec(0x71, 0, 0, "recovery", "Within 600 s of PASSIVATE_ARM: fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE, in sunlight, up to 3 attempts) while still transmitting, downlink three final reports a minute apart (EOL_STATE, fuse, attempts), then latch TX-OFF and keep every transmitter off for good (recovery key only; irreversible)", without_key=False),

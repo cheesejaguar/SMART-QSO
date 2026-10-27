@@ -71,7 +71,9 @@ FAMILY = {
     "TFM": (2.0, 0.020, 0.30, 0.04),     # Samtec SFSDT socket on a TFM header (1.27 mm, latched)
     "MMCX": (0.0, 0.0, 0.90, 0.0),       # Molex 73414-0351 (1.37 mm) / 73415-2261 (1.13 mm) right-angle crimp plug
     "SOL": (0.0, 0.0, 0.0, 0.0),         # solder pad, terminal or turret (no contact)
-    "SPL": (0.0, 0.002, 0.0, 0.46),      # M81824/1-1 (TE D-436-36) MiniSeal splice, 0.46 g max (TE table I)
+    "SPL": (0.0, 0.002, 0.0, 0.38),      # TE Raychem D-200-82 (D17660-000) MiniSeal splice, nickel barrel, 26-20 AWG,
+                                         # 0.38 g (TE product data; 0.46 g max per TE's table)
+    "TAB": (0.0, 0.001, 0.20, 0.0),      # solder termination tab (polyimide 6 x 10 mm, bonded), as TB-W1/TB-W2
     "RX": (1.0, 0.020, 0.05, 0.035),     # GNSS receiver mating connector (28 AWG contacts), allocation
 }
 
@@ -93,8 +95,10 @@ def family(ref: str) -> str:
         return "MMCX"
     if ref == "GNSS-J1":
         return "RX"
-    if ref.startswith(("ROD-", "HS-")) or ref == "ANTS":
+    if ref.startswith("HS-"):
         return "SPL"
+    if ref.startswith("ROD-") or ref == "ANTS":
+        return "TAB"                      # TB-RX/RY/RZ, TB-ANT: 28 AWG is below every splice range
     return "SOL"                          # BATT, PNL-*, TB-*, CSS-*, BB-*, A3, DS*, RBF
 
 
@@ -327,8 +331,9 @@ def compute():
         w["contact_ratio"] = worst
         if worst > 1.0:
             problems.append(f"{w['wire']}: contact current {w['i_nom_A']} A above 50 % of the rating")
-        lo, hi = {"PC": (28, 32), "MF": (20, 24), "TFM": (28, 30), "RX": (28, 28)}.get(family(w["from_ref"]), (0, 99))
-        lo2, hi2 = {"PC": (28, 32), "MF": (20, 24), "TFM": (28, 30), "RX": (28, 28)}.get(family(w["to_ref"]), (0, 99))
+        GR = {"PC": (28, 32), "MF": (20, 24), "TFM": (28, 30), "RX": (28, 28), "SPL": (20, 26)}
+        lo, hi = GR.get(family(w["from_ref"]), (0, 99))
+        lo2, hi2 = GR.get(family(w["to_ref"]), (0, 99))
         g = int(w["awg"])
         if not (lo <= g <= hi and lo2 <= g <= hi2):
             problems.append(f"{w['wire']}: {g} AWG outside the terminal range of {w['from_ref']} / {w['to_ref']}")
@@ -382,7 +387,7 @@ def compute():
         tie_pts += int(math.ceil(ext / 30.0))
     extras = {
         "access-port board A3 (FR-4 30 x 8.8 x 1.6 mm, Micro-D 21 socket receptacle, ESD parts, two Ti jackposts, staking)": 5.8,
-        "termination tabs TB-W1, TB-W2 (polyimide, 6 x 10 mm, bonded)": 0.4,
+        "termination tabs TB-W1, TB-W2 (polyimide, 6 x 10 mm, bonded; TB-RX/RY/RZ and TB-ANT are in the connector masses)": 0.4,
         "PTFE over-sleeve on the four pack leads": 0.3,
         "heat shrink and identification sleeves (one per wire end)": round(0.01 * 2 * len(wires), 1),
         f"lacing tape spot ties and Scotch-Weld 2216 tie-down dots ({tie_pts} points x 0.10 g)": round(0.10 * tie_pts, 1),

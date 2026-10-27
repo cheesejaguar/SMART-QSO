@@ -587,6 +587,8 @@ pub extern "C" fn hal_i2c_init(bus: u32, _speed: u32) -> i32 {
                 };
                 put(reg::MANUFACTURER_ID, MANUFACTURER_ID);
                 put(reg::DEVICE_ID, (DEVICE_ID << 4) | 1);
+                // Die at +25 °C (7.8125 m°C per LSB): the EPS board warm
+                put(reg::DIETEMP, 3200);
             }
             if dev.addr == I2C_ADDR_EPS_CONTROLLER {
                 dev.registers[EOL_STATE_REG] = sqso_fsw::passivation::eol_state::FUSE_INTACT;
@@ -600,6 +602,11 @@ pub extern "C" fn hal_i2c_init(bus: u32, _speed: u32) -> i32 {
                 let at = usize::from(sqso_fsw::ants::CMD_STATUS);
                 if let Some(r) = dev.registers.get_mut(at..at + 2) {
                     r.copy_from_slice(&stowed);
+                }
+                // Its controller at +20 °C (written at 0xC0 to change it)
+                let at = usize::from(sqso_fsw::ants::CMD_TEMPERATURE);
+                if let Some(r) = dev.registers.get_mut(at..at + 2) {
+                    r.copy_from_slice(&sqso_fsw::ants::temperature_bytes(20.0));
                 }
             }
         }

@@ -73,6 +73,21 @@ pub fn status() -> Option<Status> {
     })
 }
 
+/// The AntS's own temperature, °C (`sqso_fsw::ants::temperature_c`), from
+/// the side last commanded, else the other (`None`: no valid answer)
+pub fn temperature_c() -> Option<f64> {
+    let last = LAST.load(Ordering::Relaxed) & 1;
+    [last, last ^ 1].into_iter().find_map(|i| {
+        let mut bytes = [0u8; 2];
+        let reg = [ants::CMD_TEMPERATURE];
+        // SAFETY: reg and bytes are live buffers of their lengths (the HAL)
+        let ok = unsafe {
+            c::hal_i2c_write_read(ANTS_I2C_BUS, side(i), reg.as_ptr(), reg.len(), bytes.as_mut_ptr(), bytes.len())
+        } == rc::OK;
+        if ok { ants::temperature_c(bytes) } else { None }
+    })
+}
+
 /// Boot: side A first
 pub(crate) fn reset() {
     NEXT.store(0, Ordering::Relaxed);

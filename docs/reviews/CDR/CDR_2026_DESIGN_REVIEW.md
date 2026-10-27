@@ -184,15 +184,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 27 |
-| Closed by design change | 101 | 238 |
+| Closed by design change | 101 | 239 |
 | Closed by chair decision | 42 | 35 |
 | Verification item | 46 | 30 |
 | Decision point (dated) | 15 | 34 |
-| Implementation | 162 | 27 |
+| Implementation | 162 | 26 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 85 new findings; 44 of the reopened and 70 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 85 new findings; 44 of the reopened and 71 of the new are since closed.
 
-Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, SMA-B20, P3T-09, P3T-10.
+Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, SMA-B20, P3T-09.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -733,7 +733,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3T-07 | 3 | X7R capacitance change at −40 °C (up to −15 %) not in the timing worst cases (EPS integrators, OBC C_RETRY) | IMP | Closed by design change | X7R −15 % at −40 °C in every timing worst case: EPS deploy-switch gate filters 47 → 68 nF (12.8 ms worst against 10 ms), radio/GNSS retry R_FAULT 150 kΩ (≥ 1.26 s against 1 s), load-shed delay 3.7–5.5 s (V-EPS-7 over temperature), integrators −25/+10 % measured by V-EPS-1 extended to −40 °C; OBC C_RETRY with R_FAULT 220 kΩ (0.18–0.33 s against 0.1 s; sensors used ≥ 0.6 s after an enable), V-OBC-5 at −40 °C |
 | P3T-08 | 3 | 156 parts are rated exactly −40 °C, with zero margin to the first-orbit cold case | IMP | Closed by analysis | Parts rated −40 °C have +1.4 to +2.4 °C to the first-orbit prediction after the 10 °C margin (OBC/EPS −27.6 °C, RF −28.6 °C, THERMAL_ANALYSIS 2.4 §6) and their full rating elsewhere; the first-orbit −40 °C allowable is GEVS deviation 8 (CR-2026-017, THM-04); V-THM-8 and the −40 °C qualification cycles test them at their rating |
 | P3T-09 | 1 | AntS released at S+31 min after an eclipse separation is at −44 °C against its −20 °C qualified minimum; unpowered first-orbit minimum −57 °C with margin against the −50 °C storage limit (THERMAL_ANALYSIS 2.4 §4.4) | IMP | Implementation | Temperature-gated deployment (C-18); ISIS statement to −57 °C |
-| P3T-10 | 2 | The harness splice M81824/1-1 (TE D-436-36) has a tin-plated barrel against the EEE no-tin rule; the 28 AWG conductors at W6C and W7C are below the smallest splice's range; the sealing sleeve has no outgassing data | IMP | Implementation | Nickel-barrel splice, conductor gauge in range, E595 certificate |
+| P3T-10 | 2 | The harness splice M81824/1-1 (TE D-436-36) has a tin-plated barrel against the EEE no-tin rule; the 28 AWG conductors at W6C and W7C are below the smallest splice's range; the sealing sleeve has no outgassing data | IMP | Closed by design change | Splice TE D-200-82 (nickel barrel per AMS-QQ-N-290, −55…+200 °C, M81824/1-1 size; deviation HAR-DEV-1, not a QPL number) on the four 24 AWG deployed-sense leads only; the 28 AWG W6C/W7C leads (Pico-Clasp, 28–32 AWG only) end on bonded polyimide solder tabs TB-RX/RY/RZ and TB-ANT per NASA-STD-8739.3; harness CBE 85.5 g; harness_calcs flags any spliced wire outside 26–20 AWG; sleeve outgassing: TE E595 certificate on a shrunk splice, harness designer, 2027-01-15, fallback a project E595 test of ten splices then a crimp splice under FEP shrink (V-HAR-11; MATERIALS_LIST E §7) |
 <!-- RID-LOG-END -->
 
 ## 7. Verdict

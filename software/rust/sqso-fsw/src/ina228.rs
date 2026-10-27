@@ -127,6 +127,18 @@ impl Monitor {
             && self.read16(bus, reg::SHUNT_CAL) == Ok(self.shunt_cal())
     }
 
+    /// The die temperature alone, °C, without configuring the part (the
+    /// temperature converts in the power-up mode too); `None` if the part
+    /// does not identify itself or does not answer
+    pub fn die_c(&self, bus: &mut impl I2cBus) -> Option<f64> {
+        if self.read16(bus, reg::MANUFACTURER_ID) != Ok(MANUFACTURER_ID) {
+            return None;
+        }
+        #[allow(clippy::cast_possible_wrap)] // the register is two's complement
+        let raw = self.read16(bus, reg::DIETEMP).ok()? as i16;
+        Some(f64::from(raw) * 7.8125e-3)
+    }
+
     /// Read the measurements
     pub fn reading(&self, bus: &mut impl I2cBus) -> Result<Reading, BusError> {
         let (mut v, mut i, mut e, mut q) = ([0u8; 3], [0u8; 3], [0u8; 5], [0u8; 5]);

@@ -86,6 +86,17 @@ extern "C" {
 /** Wait-count persistence interval (s) */
 #define DEPLOYMENT_PERSIST_INTERVAL_S   60U
 
+/** The AntS deploys only at or above this temperature (°C): its −20 °C
+ *  qualified minimum plus 3 °C of sensor tolerance (decision C-18) */
+#define DEPLOYMENT_ANTS_MIN_TEMP_C      (-17.0)
+
+/** Deferrals of the AntS for its temperature after which it deploys
+ *  anyway (30 slots of DEPLOYMENT_RETRY_DELAY_MS, about 25 h) */
+#define DEPLOYMENT_ANTS_MAX_DEFERRALS   30U
+
+/** The AntS controller is powered this long before its temperature is read (ms) */
+#define DEPLOYMENT_ANTS_START_MS        1000U
+
 /*===========================================================================*/
 /* Types                                                                      */
 /*===========================================================================*/
@@ -227,6 +238,29 @@ bool deployment_set_enabled(bool enable);
  * @return true if the retry was accepted
  */
 bool deployment_force_retry(DeploymentElement_t element);
+
+/**
+ * @brief DEPLOY_RETRY with its force flag: as deployment_force_retry(),
+ *        and with force set (the antenna only) the AntS temperature gate is
+ *        passed by, so the antenna deploys at once
+ *
+ * The gate (decision C-18): before each antenna attempt the AntS is
+ * powered for DEPLOYMENT_ANTS_START_MS and its own temperature read; below
+ * DEPLOYMENT_ANTS_MIN_TEMP_C or unknown the attempt waits the next
+ * DEPLOYMENT_RETRY_DELAY_MS slot without being spent, at most
+ * DEPLOYMENT_ANTS_MAX_DEFERRALS times, then deploys whatever the reading.
+ *
+ * @return true if accepted (false for force with the wings)
+ */
+bool deployment_retry(DeploymentElement_t element, bool force);
+
+/**
+ * @brief The AntS temperature gate's deferrals and last reading
+ * @param[out] deferrals deferrals so far (persisted); may be NULL
+ * @param[out] temp_c the last AntS temperature (°C), NaN if none valid; may be NULL
+ * @return true unless the state is in use (a nested call)
+ */
+bool deployment_ants_gate(uint8_t *deferrals, double *temp_c);
 
 /**
  * @brief Get state name string

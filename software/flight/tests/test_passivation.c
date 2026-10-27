@@ -93,6 +93,17 @@ static uint8_t eps_eol_read(void)
     return v;
 }
 
+/** Both INA228 die temperatures on the EPS board (DIETEMP 0x06, 7.8125 m°C
+ *  per LSB, MSB first) */
+static void eps_board_temp(double t_c)
+{
+    const int16_t raw = (int16_t)(t_c / 0.0078125);
+    const uint8_t reg[3] = {0x06U, (uint8_t)((uint16_t)raw >> 8), (uint8_t)((uint16_t)raw & 0xFFU)};
+    assert_int_equal(hal_i2c_write(I2C_BUS_0, I2C_ADDR_BATTERY_MONITOR, reg, sizeof(reg)), SMART_QSO_OK);
+    assert_int_equal(hal_i2c_write(I2C_BUS_0, I2C_ADDR_SOLAR_MONITOR, reg, sizeof(reg)), SMART_QSO_OK);
+    smart_qso_sim_advance_ms(1000U); /* past the telemetry cache */
+}
+
 /** PASSIVATE_ARM through to the latch confirmed */
 static void arm_and_confirm(void)
 {
@@ -191,6 +202,43 @@ static void test_execute_order_and_for_good(void **state)
     assert_int_equal(passivation_arm(ARM_CODE, sizeof(ARM_CODE)), SMART_QSO_ERROR);
     passivation_verify();
     assert_true(passivation_passivated());
+}
+
+/** The EPS board at 0 °C (F1's rating) is waited for in sunlight, at most
+ *  6 h of the attempt (RID SMA-B20): cold, the fire waits, then goes ahead;
+ *  the reasons are reported */
+static void test_a_cold_eps_board_delays_the_fire_at_most_6_h(void **state)
+{
+    (void)state;
+    arm_and_confirm();
+    eps_board_temp(-5.0);
+    assert_int_equal(passivation_execute(), SMART_QSO_OK);
+    passivation_tick(true);
+    assert_false(hal_gpio_get(GPIO_PIN_EOL_FIRE));
+    assert_int_equal(passivation_waiting(), PASSIVATION_WAIT_BOARD);
+    passivation_tick(false);
+    assert_int_equal(passivation_waiting(), PASSIVATION_WAIT_SUN | PASSIVATION_WAIT_BOARD);
+    smart_qso_sim_advance_ms(PASSIVATION_BOARD_WAIT_MAX_MS - 10000U);
+    passivation_tick(true);
+    assert_false(hal_gpio_get(GPIO_PIN_EOL_FIRE));
+    assert_int_equal(passivation_phase(), PASSIVATION_FIRING); /* waiting, not aborted */
+    assert_int_equal(passivation_attempts(), 1U);
+    smart_qso_sim_advance_ms(10000U);
+    passivation_tick(true);
+    assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE)); /* 6 h cold: fired in sunlight */
+    assert_int_equal(passivation_waiting(), PASSIVATION_BOARD_BOUND);
+}
+
+/** Warm, the fire starts at once in sunlight */
+static void test_a_warm_eps_board_fires_at_once(void **state)
+{
+    (void)state;
+    arm_and_confirm();
+    eps_board_temp(0.5);
+    assert_int_equal(passivation_execute(), SMART_QSO_OK);
+    passivation_tick(true);
+    assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
+    assert_int_equal(passivation_waiting(), 0U);
 }
 
 /** A fire the EPS never confirms: three attempts, the report, then silence
@@ -322,6 +370,8 @@ int main(void)
         /* Before any test passivates: RF_INHIBIT_PASSIVATED is never lifted,
          * and only a power cycle clears the RAM that holds it */
         cmocka_unit_test_setup(test_two_keys_end_to_end, setup),
+        cmocka_unit_test_setup(test_a_cold_eps_board_delays_the_fire_at_most_6_h, setup),
+        cmocka_unit_test_setup(test_a_warm_eps_board_fires_at_once, setup),
         cmocka_unit_test_setup(test_execute_order_and_for_good, setup),
         cmocka_unit_test_setup(test_unconfirmed_fire_is_reported_then_silenced, setup),
         cmocka_unit_test(test_contract_400),

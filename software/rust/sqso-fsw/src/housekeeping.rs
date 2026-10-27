@@ -38,6 +38,8 @@
 //! | `RX` | receiver recovery cycles since boot/known failed 1/0 (`receiver.h`) | —/— |
 //! | `CN` | authenticated commands counted as contact since boot (with `CS`, the loss-of-contact count, GND-03) | — |
 //! | `ST` | stored housekeeping: next five-minute/sixty-second record number (`hk_store.h`, DUMP_TLM) | — |
+//! | `FR` | FRAM state (0 working, 1 failed, 2 degraded mode; RID SMA-B10)/failed one-minute checks since boot | —/— |
+//! | `AD` | AntS temperature gate (decision C-18): attempts deferred/the AntS's last temperature (`-` none valid) | —/°C |
 //!
 //! At most [`MAX_LEN`] bytes, about 1.9 s on the air at 1200 bps.
 //!
@@ -152,6 +154,9 @@ pub struct Housekeeping {
     /// The FRAM (`FR`, RID SMA-B10): 0 working, 1 failed, 2 the degraded
     /// mode; and the failed one-minute checks since boot
     pub fram: (u8, u32),
+    /// The AntS temperature gate (`AD`): deferrals, and the last
+    /// temperature, °C (`None`: none valid)
+    pub ants_gate: (u8, Option<f64>),
 }
 
 /// The second frame's values (`None`: not measured)
@@ -253,7 +258,13 @@ fn tail(w: &mut Out<'_>, hk: &Housekeeping) -> core::fmt::Result {
         hk.contacts,
         hk.fram.0,
         hk.fram.1
-    )
+    )?;
+    write!(w, " AD={}/", hk.ants_gate.0)?;
+    match hk.ants_gate.1.filter(|t| t.is_finite()) {
+        #[allow(clippy::cast_possible_truncation)] // a valid reading, -60 to +125 °C
+        Some(t) => write!(w, "{}", crate::fmath::round(t) as i32),
+        None => w.write_str("-"),
+    }
 }
 
 /// Write the information field into `out`; its length (0 if it does not fit)
@@ -462,6 +473,7 @@ mod tests {
             rx: (2, false),
             contacts: 3,
             stored: [12, 60],
+            ants_gate: (2, Some(-18.6)),
             ..Housekeeping::default()
         };
         let t = text(&hk);
@@ -469,7 +481,7 @@ mod tests {
             t,
             "HK1 N=7 UP=3600 BOOT=3 RST=2 MODE=3 HOLD=1 XP=0 TX=1 SOC=873 VB=15812 IB=-120 PA=2410 TB=123 TO=215 \
              TP=301 TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 \
-             PS=1/4/0/3 RX=2/0 CN=3 ST=12/60 FR=0/0"
+             PS=1/4/0/3 RX=2/0 CN=3 ST=12/60 FR=0/0 AD=2/-19"
         );
         assert!(t.len() <= MAX_LEN);
         assert!(t.is_ascii());
@@ -479,6 +491,7 @@ mod tests {
         assert!(empty.contains("GF=- "), "{empty}");
         assert!(empty.contains(" DEP=0/-/0 "), "the AntS not answering: {empty}");
         assert!(empty.contains(" PS=0/-/0/0 "), "the EPS not answering: {empty}");
+        assert!(empty.ends_with(" AD=0/-"), "no AntS temperature: {empty}");
     }
 
     #[test]
@@ -515,6 +528,7 @@ mod tests {
             contacts: 99_999,
             stored: [u32::MAX, u32::MAX],
             fram: (2, u32::MAX),
+            ants_gate: (u8::MAX, Some(-59.6)),
             ..Housekeeping::default()
         };
         assert!(text(&hk).len() <= MAX_LEN, "{}", text(&hk).len());

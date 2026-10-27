@@ -349,6 +349,13 @@ const CONSTANTS: &[(u32, f64)] = &[
     (512, (sqso_fsw::receiver::NO_ANSWER_MS) as f64),
     (513, (sqso_fsw::receiver::POST_FROM_MS) as f64),
     (514, (sqso_fsw::receiver::POST_TO_MS) as f64),
+    (515, (sqso_fsw::passivation::BOARD_WAIT_MAX_MS) as f64),
+    (516, sqso_fsw::passivation::FIRE_MIN_BOARD_C),
+    (517, (sqso_fsw::passivation::BOARD_UNKNOWN) as f64),
+    (518, sqso_fsw::deployment::ANTS_MIN_TEMP_C),
+    (519, (sqso_fsw::deployment::ANTS_MAX_DEFERRALS) as f64),
+    (520, (sqso_fsw::deployment::ANTS_START_MS) as f64),
+    (521, (sqso_fsw::adcs_sensors::RAIL_SETTLE_MS) as f64),
 ];
 
 /// A constant this library keeps

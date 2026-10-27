@@ -64,7 +64,7 @@ pub fn temperature_c(bytes: [u8; 2]) -> Option<f64> {
 /// The two bytes for a temperature (the inverse of [`temperature_c`]: the
 /// simulation's AntS model)
 pub fn temperature_bytes(t_c: f64) -> [u8; 2] {
-    let raw = ((TEMP_OFFSET_V + TEMP_SLOPE_V_PER_C * t_c) * TEMP_COUNTS / TEMP_FULL_SCALE_V).round().clamp(0.0, 1023.0);
+    let raw = crate::fmath::round((TEMP_OFFSET_V + TEMP_SLOPE_V_PER_C * t_c) * TEMP_COUNTS / TEMP_FULL_SCALE_V).clamp(0.0, 1023.0);
     #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // clamped to 0..=1023
     (raw as u16).to_le_bytes()
 }

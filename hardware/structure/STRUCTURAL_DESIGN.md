@@ -33,9 +33,9 @@ Rev 14.1.
 | Requirement | Value | Source |
 |-------------|-------|--------|
 | Form factor | 1U (100 × 100 × 113.5 mm) | CDS Rev 14.1 §2.2.1, Appendix B |
-| Mass | ≤ 2.00 kg. Estimate: CBE 1.52 kg (CR0002 rods) / 1.60 kg (air-core coils), MEV 1.75 / 1.85 kg, margin +14.0 / +7.9 % | SYS-002; CDS Rev 14.1 Table 1 (typical maximum); `docs/environment/MASS_BUDGET.md` v3.1 |
+| Mass | ≤ 2.00 kg. Estimate: CBE 1.52 kg (CR0002 rods) / 1.61 kg (air-core coils), MEV 1.76 / 1.86 kg, margin +13.6 / +7.5 % | SYS-002; CDS Rev 14.1 Table 1 (typical maximum); `docs/environment/MASS_BUDGET.md` v3.1 |
 | CG location | ≤ 2 cm from the geometric centre on each axis. CAD: (+0.1, −0.4, −1.4) mm stowed, CBE | CDS Rev 14.1 §2.2.11, Table 2; MASS_BUDGET §5 |
-| Deployed inertia (STR-01) | Iyy ≥ 1.03 × max(Ixx, Izz) with the wings and antennas deployed (target 1.05); major principal axis within 5° of +Y. CAD: 1.056 / 1.047 (CBE / MEV), axis 1.1° / 0.7°, with the 2 × 10 g Z-axis ballast (C-13) | MASS_BUDGET §2.1, §6; SQSO-MECH-CAD-001 §5 |
+| Deployed inertia (STR-01) | Iyy ≥ 1.03 × max(Ixx, Izz) with the wings and antennas deployed (target 1.05); major principal axis within 5° of +Y. CAD: 1.056 / 1.047 (CBE / MEV), axis 0.7° / 1.3°, with the 2 × 10 g Z-axis ballast (C-13) | MASS_BUDGET §2.1, §6; SQSO-MECH-CAD-001 §5 |
 | Rail dimensions | ≥ 8.5 mm to the first protrusion | CDS Rev 14.1 §2.2.5 |
 | Rail surface finish | Ra < 1.6 µm, hard anodized | CDS Rev 14.1 §2.2.6, §2.2.13 |
 | Protrusions on ±X/±Y | ≤ 6.5 mm from the rail plane | CDS Rev 14.1 §2.2.3 |
@@ -103,7 +103,7 @@ Rules that the analyses set:
   these supports; one support at (0, +21) mm leaves the carrier at −0.28 (STRUCTURAL_ANALYSIS Rev B §8A).
 - **The stack is tied to both end frames** (289 Hz; 45 Hz if cantilevered from one end).
 - **Products of inertia:** the Jetson module at y = −6 mm, the RBF and A3 on −Y and the ballast pair's +8 mm offset in y
-  hold the deployed |Iyz| ≤ 4 × 10⁻⁶ kg·m² (major axis 0.7–1.1° from +Y); placement scatter of 2 mm already moves the
+  hold the deployed |Iyz| ≤ 5 × 10⁻⁶ kg·m² (major axis 0.7–1.3° from +Y); placement scatter of 2 mm already moves the
   95th percentile to 6–8°, so the positions are drawing-controlled and the flight unit is measured and trimmed
   (SQSO-MECH-CAD-001 §5.4, VI-MCAD-03).
 - Magnetometer away from the coils, the Jetson and the steel cell cans (BUILD_VS_BUY §2.7).
@@ -149,13 +149,13 @@ From `docs/environment/MASS_BUDGET.md` v3.1 and the CAD (SQSO-MECH-CAD-001 §5; 
 
 | Quantity | CR0002 rods (CAD) | Air-core coils (MEL only) |
 |----------|-------------------|---------------------------|
-| CBE / MEV | 1,519.4 / 1,754.2 g | 1,600.8 / 1,852.9 g |
-| Margin to 2.00 kg | +14.0 % | +7.9 % |
-| CG, stowed, CBE | (+0.0, −0.4, −1.4) mm | — |
-| Inertia, stowed, CBE (Ixx, Iyy, Izz) | 2.752, 3.061, 2.739 × 10⁻³ kg·m² | — |
-| Inertia, deployed, CBE / MEV | 2.852 / 3.274, 4.199 / 4.756, 3.977 / 4.543 × 10⁻³ kg·m² | — |
+| CBE / MEV | 1,524.9 / 1,761.1 g | 1,606.3 / 1,859.8 g |
+| Margin to 2.00 kg | +13.6 % | +7.5 % |
+| CG, stowed, CBE | (+0.1, −0.3, −1.5) mm | — |
+| Inertia, stowed, CBE (Ixx, Iyy, Izz) | 2.763, 3.073, 2.751 × 10⁻³ kg·m² | — |
+| Inertia, deployed, CBE / MEV | 2.862 / 3.287, 4.211 / 4.771, 3.989 / 4.558 × 10⁻³ kg·m² | — |
 | Iyy / max(Ixx, Izz), deployed, CBE / MEV | 1.056 / 1.047 (5th percentile at 2 mm placement scatter 1.045 / 1.037) | — |
-| Major axis from +Y, deployed, CBE / MEV | 1.1° / 0.7° | — |
+| Major axis from +Y, deployed, CBE / MEV | 0.7° / 1.3° | — |
 
 Full tensors with products, the one-wing and no-wing cases and the ADCS presets: MASS_BUDGET v3.1 §6.1, §6.5. The Version
 1.3 table (reference layout B, MASS_BUDGET v3.0) is superseded.

@@ -122,6 +122,10 @@ impl DeployIo for HalFlash {
         separation_switch::separation_switch_stowed()
     }
 
+    fn ants_temperature_c(&mut self) -> Option<f64> {
+        crate::ants::temperature_c()
+    }
+
     fn log(&mut self, level: Level, message: fmt::Arguments<'_>) {
         let mut m = Message { buf: [0; 128], len: 0 };
         let _ = fmt::write(&mut m, message);
@@ -138,6 +142,7 @@ impl DeployIo for HalFlash {
             Report::Failed(Element::SolarPanel) => c"Solar panel deployment failed",
             Report::NotPersisted => c"Deployment attempt not persisted: burn withheld",
             Report::Unreadable => c"Deployment record unreadable: starting over",
+            Report::AntsDeferred => c"AntS deployment deferred: below -17 C or no temperature",
         };
         c::log(FAULT_TYPE_DEPLOYMENT, severity::ERROR, text, 0.0);
     }
@@ -224,6 +229,35 @@ pub extern "C" fn deployment_set_enabled(enable: bool) -> bool {
 pub extern "C" fn deployment_force_retry(element: u32) -> bool {
     let Some(e) = Element::from_raw(element) else { return false };
     DEPLOY.with(|d| d.force_retry(e, &mut HalFlash)).unwrap_or(false)
+}
+
+/// DEPLOY_RETRY with its force flag (the antenna only: past the AntS
+/// temperature gate)
+#[unsafe(no_mangle)]
+pub extern "C" fn deployment_retry(element: u32, force: bool) -> bool {
+    let Some(e) = Element::from_raw(element) else { return false };
+    DEPLOY.with(|d| d.retry(e, force, &mut HalFlash)).unwrap_or(false)
+}
+
+/// The AntS gate's deferrals and last temperature (NaN: none valid)
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn deployment_ants_gate(deferrals: *mut u8, temp_c: *mut f64) -> bool {
+    let Some((n, t)) = DEPLOY.with(|d| d.ants_gate_status()) else { return false };
+    // SAFETY: the C contract: each pointer is NULL or a live object
+    unsafe {
+        if let Some(p) = crate::ptr::out(deferrals) {
+            *p = n;
+        }
+        if let Some(p) = crate::ptr::out(temp_c) {
+            *p = t.unwrap_or(f64::NAN);
+        }
+    }
+    true
+}
+
+/// The AntS gate for housekeeping: deferrals, last temperature
+pub(crate) fn ants_gate() -> (u8, Option<f64>) {
+    DEPLOY.with(|d| d.ants_gate_status()).unwrap_or((0, None))
 }
 
 /// State name (static); "UNKNOWN" for a value outside the enum

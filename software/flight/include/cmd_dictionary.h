@@ -50,7 +50,7 @@ typedef enum {
     CMD_COMM_XPDR_DISABLE = 0x35, /**< XPDR_DISABLE: Stop the FM transponder (persisted); beacon and telecommand unaffected */
     CMD_PLD_ENABLE = 0x40, /**< PLD_ENABLE: Enable payload */
     CMD_PLD_DISABLE = 0x41, /**< PLD_DISABLE: Disable payload */
-    CMD_DEPLOY_RETRY = 0x50, /**< DEPLOY_RETRY: Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn) */
+    CMD_DEPLOY_RETRY = 0x50, /**< DEPLOY_RETRY: Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn); optional second byte 1 = force the antenna past its temperature gate (deploy now whatever the AntS temperature, decision C-18; refused with the wings) */
     CMD_GNSS_REQUEST = 0x60, /**< GNSS_REQUEST: Start a GNSS receiver session now (its power gates still apply) */
     CMD_EOL_PASSIVATE_ARM = 0x70, /**< PASSIVATE_ARM: Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven */
     CMD_EOL_PASSIVATE_EXECUTE = 0x71, /**< PASSIVATE_EXECUTE: Within 600 s of PASSIVATE_ARM: fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE, in sunlight, up to 3 attempts) while still transmitting, downlink three final reports a minute apart (EOL_STATE, fuse, attempts), then latch TX-OFF and keep every transmitter off for good (recovery key only; irreversible) */

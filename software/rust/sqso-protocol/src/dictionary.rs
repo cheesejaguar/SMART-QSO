@@ -69,7 +69,7 @@ pub enum Command {
     PldEnable = 0x40,
     /// Disable payload
     PldDisable = 0x41,
-    /// Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)
+    /// Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn); optional second byte 1 = force the antenna past its temperature gate (deploy now whatever the AntS temperature, decision C-18; refused with the wings)
     DeployRetry = 0x50,
     /// Start a GNSS receiver session now (its power gates still apply)
     GnssRequest = 0x60,
@@ -237,7 +237,7 @@ impl Command {
             Command::XpdrDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::PldEnable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::PldDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
-            Command::DeployRetry => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
+            Command::DeployRetry => CommandSpec { min_args: 1, max_args: 2, key: KeyClass::Operational, without_key: false },
             Command::GnssRequest => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::PassivateArm => CommandSpec { min_args: 4, max_args: 4, key: KeyClass::Operational, without_key: false },
             Command::PassivateExecute => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Recovery, without_key: false },
@@ -275,7 +275,7 @@ impl Command {
             Command::XpdrDisable => "Stop the FM transponder (persisted); beacon and telecommand unaffected",
             Command::PldEnable => "Enable payload",
             Command::PldDisable => "Disable payload",
-            Command::DeployRetry => "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)",
+            Command::DeployRetry => "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn); optional second byte 1 = force the antenna past its temperature gate (deploy now whatever the AntS temperature, decision C-18; refused with the wings)",
             Command::GnssRequest => "Start a GNSS receiver session now (its power gates still apply)",
             Command::PassivateArm => "Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven",
             Command::PassivateExecute => "Within 600 s of PASSIVATE_ARM: fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE, in sunlight, up to 3 attempts) while still transmitting, downlink three final reports a minute apart (EOL_STATE, fuse, attempts), then latch TX-OFF and keep every transmitter off for good (recovery key only; irreversible)",

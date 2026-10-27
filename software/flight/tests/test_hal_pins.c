@@ -32,6 +32,7 @@
 #include "deployment.h"
 #include "gse_provision.h"
 #include "receiver.h"
+#include "adcs_control.h"
 #include "separation_switch.h"
 #include "rust_contract.h"
 #include "hal/hal.h"
@@ -109,7 +110,7 @@ static void test_contract_450(void **state)
 }
 
 /** The enable, burn and passivation lines are low at reset */
-/** Ids 500-509: the Version D board and the board FMEA's changes */
+/** Ids 500-521: the Version D board, the board FMEA's changes and the round-3 gates */
 static void test_contract_500(void **state)
 {
     (void)state;
@@ -132,6 +133,13 @@ static void test_contract_500(void **state)
         {RUST_CONST_RECEIVER_NO_ANSWER_MS, (double)RECEIVER_NO_ANSWER_MS},
         {RUST_CONST_RECEIVER_POST_FROM_MS, (double)RECEIVER_POST_FROM_MS},
         {RUST_CONST_RECEIVER_POST_TO_MS, (double)RECEIVER_POST_TO_MS},
+        {RUST_CONST_PASSIVATION_BOARD_WAIT_MAX_MS, (double)PASSIVATION_BOARD_WAIT_MAX_MS},
+        {RUST_CONST_PASSIVATION_FIRE_MIN_BOARD_C, PASSIVATION_FIRE_MIN_BOARD_C},
+        {RUST_CONST_PASSIVATION_BOARD_UNKNOWN, (double)PASSIVATION_BOARD_UNKNOWN},
+        {RUST_CONST_DEPLOYMENT_ANTS_MIN_TEMP_C, DEPLOYMENT_ANTS_MIN_TEMP_C},
+        {RUST_CONST_DEPLOYMENT_ANTS_MAX_DEFERRALS, (double)DEPLOYMENT_ANTS_MAX_DEFERRALS},
+        {RUST_CONST_DEPLOYMENT_ANTS_START_MS, (double)DEPLOYMENT_ANTS_START_MS},
+        {RUST_CONST_ADCS_SENSOR_RAIL_SETTLE_MS, (double)ADCS_SENSOR_RAIL_SETTLE_MS},
     };
     for (size_t i = 0U; i < (sizeof(k) / sizeof(k[0])); i++) {
         assert_true(fabs(sqso_rust_constant((RustConst_t)k[i].id) - k[i].value) < 0.5);

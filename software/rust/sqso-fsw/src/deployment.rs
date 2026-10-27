@@ -1210,10 +1210,109 @@ mod tests {
         let d = boot(&mut io, Reset::PowerKept);
         assert_eq!((d.state(), io.last), (State::Inhibited, Some(Report::Unreadable)));
         // A valid record with an unknown state is unreadable too
-        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &[11, 0, 0, 0, 0, 0, 0, 0]).unwrap();
+        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &[11, 0, 0, 0, 0, 0, 0, 0, 0]).unwrap();
         let before = io.reports;
         let d = boot(&mut io, Reset::PowerKept);
         assert_eq!((d.state(), io.reports), (State::Inhibited, before + 1));
+    }
+
+    /// To the antenna: the wings out and the sequence at ANTENNA_PENDING
+    fn at_the_antenna(io: &mut Bench) -> Deployment {
+        let mut d = boot(io, Reset::PowerLost);
+        io.sense[Element::SolarPanel as usize] = true;
+        wait_out(&mut d, io);
+        d.tick(SECOND_MS, io);
+        assert_eq!(d.state(), State::AntennaPending);
+        d
+    }
+
+    /// The AntS temperature gate (decision C-18): cold or unknown defers
+    /// the attempt by one 50-minute slot without spending it; once warm it
+    /// deploys; the controller is powered only to be read
+    #[test]
+    fn a_cold_ants_is_deferred_until_warm() {
+        let mut io = Bench::new();
+        io.ants_c = Some(-44.0);
+        let mut d = at_the_antenna(&mut io);
+        d.tick(SECOND_MS / 2, &mut io);
+        assert!(io.arm && !io.burning(Element::Antenna), "the controller powered to start, nothing burns");
+        assert_eq!(io.ants_reads, 0, "not read before it has started");
+        d.tick(SECOND_MS / 2, &mut io);
+        assert_eq!(io.ants_reads, 1);
+        assert!(io.no_burn(), "deferred: the controller powered down");
+        assert_eq!(io.last, Some(Report::AntsDeferred));
+        assert_eq!(d.ants_gate_status(), (1, Some(-44.0)));
+        assert_eq!(d.element_status(Element::Antenna).attempt_count, 0, "no attempt spent");
+        assert_eq!(d.state(), State::AntennaPending);
+        // Nothing until the next slot
+        advance(&mut d, &mut io, RETRY_DELAY_MS - MINUTE_MS, MINUTE_MS);
+        assert_eq!(io.ants_reads, 1);
+        assert!(io.no_burn());
+        // Unknown at the next slot: deferred again
+        io.ants_c = None;
+        advance(&mut d, &mut io, MINUTE_MS + 3 * SECOND_MS, SECOND_MS);
+        assert_eq!(d.ants_gate_status(), (2, None));
+        // A reset keeps the count
+        let mut d = boot(&mut io, Reset::PowerKept);
+        assert_eq!(d.ants_gate_status().0, 2, "persisted");
+        // Warm (at the threshold): the attempt goes ahead
+        io.ants_c = Some(ANTS_MIN_TEMP_C);
+        advance(&mut d, &mut io, 2 * SECOND_MS, SECOND_MS);
+        assert!(io.burning(Element::Antenna));
+        assert_eq!(d.element_status(Element::Antenna).attempt_count, 1);
+        assert_eq!(d.ants_gate_status(), (2, Some(ANTS_MIN_TEMP_C)));
+        io.sense[Element::Antenna as usize] = true;
+        advance(&mut d, &mut io, ANTENNA_BURN_TIME_MS + SECOND_MS, SECOND_MS);
+        assert_eq!(d.state(), State::Complete);
+    }
+
+    /// After 30 deferrals (about 25 h) the AntS deploys whatever its
+    /// temperature, known or not; the wings went first and the wait held
+    #[test]
+    fn the_deferrals_are_capped() {
+        let mut io = Bench::new();
+        io.ants_c = None;
+        let mut d = at_the_antenna(&mut io);
+        for n in 1..=ANTS_MAX_DEFERRALS {
+            advance(&mut d, &mut io, SECOND_MS, SECOND_MS);
+            assert_eq!(d.ants_gate_status().0, n);
+            assert!(io.no_burn());
+            advance(&mut d, &mut io, RETRY_DELAY_MS, MINUTE_MS);
+        }
+        advance(&mut d, &mut io, SECOND_MS, SECOND_MS);
+        assert!(io.burning(Element::Antenna), "the cap reached: deployed, temperature unknown");
+        assert_eq!(d.ants_gate_status().0, ANTS_MAX_DEFERRALS);
+        // A cold reading at the cap deploys as well
+        let mut io = Bench::new();
+        io.ants_c = Some(-30.0);
+        let mut d = at_the_antenna(&mut io);
+        d.ants_deferrals = ANTS_MAX_DEFERRALS;
+        advance(&mut d, &mut io, SECOND_MS, SECOND_MS);
+        assert!(io.burning(Element::Antenna));
+    }
+
+    /// DEPLOY_RETRY with the force flag deploys the antenna at once, cold
+    /// or not; the flag is refused for the wings
+    #[test]
+    fn the_ground_can_force_the_antenna() {
+        let mut io = Bench::new();
+        io.ants_c = Some(-40.0);
+        let mut d = at_the_antenna(&mut io);
+        advance(&mut d, &mut io, SECOND_MS, SECOND_MS);
+        assert_eq!(d.ants_gate_status().0, 1);
+        assert!(!d.retry(Element::SolarPanel, true, &mut io), "the flag is for the antenna only");
+        assert!(d.retry(Element::Antenna, true, &mut io));
+        d.tick(SECOND_MS / 10, &mut io);
+        assert!(io.burning(Element::Antenna), "at once, without the slot or the read");
+        assert_eq!(io.ants_reads, 1);
+        // Without the flag the gate applies again
+        let mut io = Bench::new();
+        io.ants_c = Some(-40.0);
+        let mut d = at_the_antenna(&mut io);
+        assert!(d.retry(Element::Antenna, false, &mut io));
+        advance(&mut d, &mut io, SECOND_MS, SECOND_MS);
+        assert!(io.no_burn());
+        assert_eq!(d.ants_gate_status().0, 1);
     }
 
     #[test]
@@ -1331,7 +1430,7 @@ mod tests {
         // resumed INHIBITED without it is not separated
         let mut io = Bench::new();
         let flags = FLAG_ANTENNA_DEPLOYED | FLAG_SOLAR_DEPLOYED | FLAG_ENABLED;
-        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &[State::Complete as u8, 1, 1, flags, 0, 0, 0, 0]).unwrap();
+        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &[State::Complete as u8, 1, 1, flags, 0, 0, 0, 0, 0]).unwrap();
         let d = boot(&mut io, Reset::PowerKept);
         assert_eq!((d.state(), d.is_separated()), (State::Complete, false));
         assert_eq!(d.telemetry().time_since_sep_s, 0);
@@ -1440,7 +1539,7 @@ mod tests {
     fn stored_deployed_flag_is_never_fired() {
         let mut io = Bench::new();
         let flags = FLAG_SOLAR_DEPLOYED | FLAG_ENABLED | FLAG_SEPARATED;
-        let rec = [State::SolarPending as u8, 0, 0, flags, 0x08, 0x07, 0, 0];
+        let rec = [State::SolarPending as u8, 0, 0, flags, 0x08, 0x07, 0, 0, 0];
         nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &rec).unwrap();
         let mut d = boot(&mut io, Reset::PowerKept);
         assert_eq!(d.state(), State::SolarPending);
@@ -1457,7 +1556,7 @@ mod tests {
     #[test]
     fn stowed_clears_a_resumed_wait_in_inhibited() {
         let mut io = Bench::new();
-        let rec = [State::Inhibited as u8, 0, 0, FLAG_ENABLED, 0x2C, 0x01, 0, 0];
+        let rec = [State::Inhibited as u8, 0, 0, FLAG_ENABLED, 0x2C, 0x01, 0, 0, 0];
         nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &rec).unwrap();
         let mut d = boot(&mut io, Reset::PowerKept);
         assert_eq!((d.state(), d.wait_elapsed_s()), (State::Inhibited, 300));

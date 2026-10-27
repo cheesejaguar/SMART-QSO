@@ -1406,6 +1406,7 @@ impl Executive {
                 contacts: cmd_handler::contacts(),
                 stored: stored_counts(),
                 fram: fram_health::status(),
+                ants_gate: deployment::ants_gate(),
             }
         }
     }
