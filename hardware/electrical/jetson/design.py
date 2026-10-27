@@ -449,8 +449,9 @@ def module_socket():
     pins = [(n, pin_name(n)) for n in range(1, 261)]
     j = place(CONN("SODIMM_260", pins), "J4", "ORIN NANO", "2309407-2", "TE Connectivity", "DDR4 SO-DIMM 260 pos, 0.5 mm, 4.0 mm stack, SMT",
               "0.5 A/contact (distributor listing), -55..85 C", "VDD_IN 2.26 A / 10 contacts = 45 %",
-              "module socket; pin functions DS-11105-001 v1.5 4.4", "Au contacts", "Mouser listing (DDR4 SODIMM 260P 4.0H STD); "
-              "check against the DG-10931-001 connector list")
+              "module socket; pin functions DS-11105-001 v1.5 4.4; its +X end is 3 mm from the OBC's RM3100 corner: latch and "
+              "hold-down hardware must be non-ferromagnetic (or a latch-less variant; V-JET-9)", "Au contacts",
+              "Mouser listing (DDR4 SODIMM 260P 4.0H STD); check against the DG-10931-001 list and the latch material")
     m = {}
     for n in range(1, 261):
         nm = MODULE_PINS[n]
@@ -519,6 +520,15 @@ def mechanical():
         p.ref = ref
         p.footprint = "MountingHole:MountingHole_3.2mm_M3" if ref <= "H4" else "MountingHole:MountingHole_3.2mm_M3_7mm_keepout"
         p["MH"] += builtins.NC  # isolated from GND: copper-free ring (single frame bond is on the EPS board, H1)
+    # gyro window (MECHANICAL_DESIGN 4.3, D-11): 27 x 27 mm board cut-out x -33.5..-6.5, y +14.0..+41.0; the 2.2 g Al
+    # frame on the bottom face is held by four M2 screws at its corners: isolated holes, no copper within 0.5 mm of the
+    # frame footprint (x -36.5..-3.5, y +11.0..+44.0) on any layer, no parts on either side inside it
+    for ref, xy in (("H10", "(-34.75, +12.25)"), ("H11", "(-5.25, +12.25)"), ("H12", "(-34.75, +42.75)"), ("H13", "(-5.25, +42.75)")):
+        p = TMH(value="MH")
+        p.ref = ref
+        p.footprint = "MountingHole:MountingHole_2.2mm_M2"
+        p.fields["Note"] = f"gyro-window frame screw {xy}, isolated"
+        p["MH"] += builtins.NC
     for ref in ("H7", "H8", "H9"):
         p = TMH(value="MH")
         p.ref = ref
@@ -537,6 +547,10 @@ def mechanical():
         ["MP2 MP3", 2, "module standoff", "9774040360R", "Wurth Elektronik", "SMT steel spacer M3 x 4.0 mm",
          "module far-edge holes; height = 4.0 mm stack", "TIM reaction <= 38 N", "thread and hole size per the NVIDIA "
          "module drawing (DS-11105-001 5.5)", "Sn", "not checked"],
+        ["MP5", 1, "gyro-window frame", "per MECHANICAL_DESIGN 4.3 (D-11)", "SMART-QSO (machined)",
+         "Al 6061, 2.5 x 3.0 mm section round the 27 x 27 mm window, 2.2 g", "bottom face, bonded + 4 x M2 (H10-H13)",
+         "restores the carrier Steinberg margin to +0.09", "mechanical designer's part; listed for the carrier assembly", "-",
+         "drawing by the mechanical designer"],
         ["MP4", 1, "gap pad over the SoC", "GAP PAD 3500ULM (to the pedestal size)", "Henkel Bergquist",
          "1.0 mm die-cut", ">= 3.5 W/m K, <= 70 kPa at 35 % deflection, ASTM E595 TML <= 1 %, CVCM <= 0.1 %",
          "28 N at the largest deflection", "THM-10 path (section 9)", "-", "not checked: confirm in the NASA outgassing database"],
@@ -600,8 +614,8 @@ def outputs():
                 "W3  Pins marked NOCONNECT are open on purpose: PGOOD of U1 and U3 (not used: U2 PG and the module's own\n"
                 "    sequence govern), the NC pins of U6, U9, U12 and the ESD arrays, every module pin not in MODULE_USE (no\n"
                 "    camera, display, USB 1/2, USB 3.2, GbE, CAN, I2S, SPI, PCIe 1-3, PMIC_BBAT, CLK_32K_OUT, SLEEP/WAKE*;\n"
-                "    DS-11105-001 4.4), the unused M.2 pins (lanes 1-3, DEVSLP, SMBus, SUSCLK, PEDET) and the isolated\n"
-                "    mounting holes H1-H6.\n"
+                "    DS-11105-001 4.4), the unused M.2 pins (lanes 1-3, DEVSLP, SMBus, SUSCLK, PEDET), the isolated\n"
+                "    mounting holes H1-H6 and the gyro-window frame screw holes H10-H13.\n"
                 "W4  POWER_EN has three open-drain/open-collector drivers (U2 PG, U4 RESET) and one pull-up: a wired AND.\n"
                 "W5  PT_NTC/PT_RTN connect only passives (RT1, J2, J3, D2): the OBC biases and reads the thermistor.\n")
     generate_netlist(file_=os.path.join(HERE, "jetson_carrier.net"), tool=KICAD8)

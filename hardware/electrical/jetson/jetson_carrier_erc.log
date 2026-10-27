@@ -12,7 +12,7 @@ W2  Power nets fed through passive elements (connector, filter inductor, buck in
 W3  Pins marked NOCONNECT are open on purpose: PGOOD of U1 and U3 (not used: U2 PG and the module's own
     sequence govern), the NC pins of U6, U9, U12 and the ESD arrays, every module pin not in MODULE_USE (no
     camera, display, USB 1/2, USB 3.2, GbE, CAN, I2S, SPI, PCIe 1-3, PMIC_BBAT, CLK_32K_OUT, SLEEP/WAKE*;
-    DS-11105-001 4.4), the unused M.2 pins (lanes 1-3, DEVSLP, SMBus, SUSCLK, PEDET) and the isolated
-    mounting holes H1-H6.
+    DS-11105-001 4.4), the unused M.2 pins (lanes 1-3, DEVSLP, SMBus, SUSCLK, PEDET), the isolated
+    mounting holes H1-H6 and the gyro-window frame screw holes H10-H13.
 W4  POWER_EN has three open-drain/open-collector drivers (U2 PG, U4 RESET) and one pull-up: a wired AND.
 W5  PT_NTC/PT_RTN connect only passives (RT1, J2, J3, D2): the OBC biases and reads the thermistor.
