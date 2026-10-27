@@ -1,0 +1,52 @@
+{
+  "source": {
+    "document": "docs/regulatory/SPECTRUM_LICENSE.md",
+    "document_id": "SQSO-REG-002",
+    "revision": "E",
+    "section": "§4",
+    "url": "https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/regulatory/SPECTRUM_LICENSE.md"
+  },
+  "as_of": "2026-10-27",
+  "rows": [
+    {
+      "authorization": "Space station licensee and call sign",
+      "status": "**KK6GDB**, station KK6GDB-11 (decision D1, 2026-10-15)"
+    },
+    {
+      "authorization": "Designated telecommand stations (97.211(a))",
+      "status": "**None agreed**; ≥ 2, at least 1,000 km apart, needed before the IARU request (written agreements due 2027-01-05, `mission/SCHEDULE.md` DA-10)"
+    },
+    {
+      "authorization": "IARU frequency coordination",
+      "status": "**Not started**; planned submission 2027-01-26"
+    },
+    {
+      "authorization": "FCC Part 97 pre-space notification (97.207(g)(1))",
+      "status": "**Not filed**; planned early filing 2027-01-19, replacement by 2027-06-30"
+    },
+    {
+      "authorization": "ITU API / notification (filed by the FCC)",
+      "status": "**Not filed**"
+    },
+    {
+      "authorization": "FCC Space Bureau consultation (D3)",
+      "status": "**Not yet requested**; request due 2026-11-15, meeting by 2027-01-05, outcome recorded by 2027-01-08 (`mission/SCHEDULE.md` DA-11)"
+    },
+    {
+      "authorization": "Orbital debris assessment (DAS)",
+      "status": "**Draft; DAS not yet run**; NASA DAS usage agreement to be requested by 2026-11-06, DAS run by 2027-01-08 (DA-06)"
+    },
+    {
+      "authorization": "NOAA remote sensing",
+      "status": "**No license required** (internal determination); NOAA confirmation not requested"
+    },
+    {
+      "authorization": "Export classification",
+      "status": "**Self-classified, counsel review pending**"
+    },
+    {
+      "authorization": "NTIA / NASA Form 1722 / DoD / NOAA spectrum coordination",
+      "status": "**Not applicable** (no Federal frequencies)"
+    }
+  ]
+}

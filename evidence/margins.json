@@ -1,0 +1,158 @@
+{
+  "source": {
+    "document": "docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md",
+    "document_id": "SQSO-REV-CDR-002",
+    "revision": "B",
+    "section": "§3.3",
+    "url": "https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md"
+  },
+  "rows": [
+    {
+      "quantity": "Mass",
+      "requirement": "≤ 2.00 kg (design), 2.5 kg Nova",
+      "predicted": "MEV 1.755 kg, CBE 1.520 kg (ballast, harness 85.6 g with the real splices and tabs, cell retention)",
+      "margin": "+14.0 % (+42.5 % to the Nova)",
+      "source": "MASS_BUDGET 3.3"
+    },
+    {
+      "quantity": "CG, stowed",
+      "requirement": "±20 mm",
+      "predicted": "(+0.1, −0.3, −1.4) mm CBE (CAD)",
+      "margin": "> 18 mm",
+      "source": "MECHANICAL_DESIGN B"
+    },
+    {
+      "quantity": "Deployed inertia",
+      "requirement": "Iyy ≥ 1.03 × max, axis within 5° of +Y",
+      "predicted": "1.056 / 1.047 (CBE / MEV, four AntS elements, C-13 ballast, harness), 0.9° / 1.0°; MEV 5th percentile 1.036 at 2 mm placement scatter",
+      "margin": "Met",
+      "source": "MECHANICAL_DESIGN B §5"
+    },
+    {
+      "quantity": "First mode, stowed",
+      "requirement": "> 40 Hz",
+      "predicted": "170 Hz CBE / 162 Hz MEV (FE, 2.0 mm EPS, rod on the −X wall)",
+      "margin": "× 4.0–4.3",
+      "source": "STRUCTURAL_ANALYSIS"
+    },
+    {
+      "quantity": "Strength",
+      "requirement": "MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB)",
+      "predicted": "Lowest +0.97 (+0.86 at MEV masses)",
+      "margin": "Positive",
+      "source": "STRUCTURAL_ANALYSIS"
+    },
+    {
+      "quantity": "PCB fatigue (Steinberg)",
+      "requirement": "MS ≥ 0",
+      "predicted": "+0.42 to +0.72 at CBE, +0.14 to +0.51 at MEV (2.0 mm EPS and carrier)",
+      "margin": "Positive",
+      "source": "STRUCTURAL_ANALYSIS"
+    },
+    {
+      "quantity": "Wing deployment torque",
+      "requirement": "NASA-STD-5017B torque margin ≥ 0 at end of travel, at −55 °C",
+      "predicted": "+0.08 (one spring out +0.07); release-energy ratio 1.90 with the 10 s burn (C-17)",
+      "margin": "Positive; resistive torque below −40 °C verified at −55 °C (VI-MECH-01..03)",
+      "source": "MECHANISMS_ANALYSIS E"
+    },
+    {
+      "quantity": "Power, EOL, sun-pointed",
+      "requirement": "≥ 20 %",
+      "predicted": "3.84 W delivered with the photodiode-and-albedo pointing of C-23 (3.79 W in the worst trial; 3.92 W with +Y held on the Sun) against the bottom-up ACTIVE load 2.60 W with the heater and the transponder",
+      "margin": "+45 % (+43 % worst trial), PBA method; +70 % on the 2.26 W allocation by the BASELINE method",
+      "source": "POWER_BUDGET_ANALYSIS 2.5 §4; ADCS_DESIGN 1.9 §11.6; BASELINE §5"
+    },
+    {
+      "quantity": "Power, EOL, tumbling",
+      "requirement": "≥ 20 %",
+      "predicted": "2.48 W against the bottom-up ACTIVE load 1.91 W with the heater and the transponder",
+      "margin": "+27 %, PBA method; +33 % on the 1.86 W allocation by the BASELINE method",
+      "source": "POWER_BUDGET_ANALYSIS 2.5 §4; BASELINE §5"
+    },
+    {
+      "quantity": "Depth of discharge",
+      "requirement": "≤ 10 % per eclipse",
+      "predicted": "≤ 3.5 % as flown (SIL G, 475 km); 2.8 % worst contingency (PBA 2.2)",
+      "margin": "× 2.9",
+      "source": "SIL_MISSION_SIMULATION G §7; POWER_BUDGET_ANALYSIS"
+    },
+    {
+      "quantity": "Battery temperature",
+      "requirement": "0 to +45 °C charging",
+      "predicted": "≥ +4.4 °C at 14.0 V; +3.6 °C at the 12.0 V floor (0.70 W heater); +1.3 °C with a 0.10 W/K mount at 14.0 V; −1.5 °C with the wings stowed at 0.70 W (charging then inhibited in hardware)",
+      "margin": "Met in operation; stowed-wing case THM-03",
+      "source": "THERMAL_ANALYSIS 2.6"
+    },
+    {
+      "quantity": "Beacon link, 5°",
+      "requirement": "≥ 6 dB (median gain)",
+      "predicted": "+7.9 dB",
+      "margin": "+1.9 dB",
+      "source": "LINK_BUDGET 3.2"
+    },
+    {
+      "quantity": "Telecommand link, 10°",
+      "requirement": "6 dB with interference allowance",
+      "predicted": "≥ +8.4 dB at both variants' minimums (variant A +9.5 dB), receiver as designed, 10th-percentile gain, pointing included (≥ +6.6 dB at 5°)",
+      "margin": "≥ +2.4 dB",
+      "source": "LINK_BUDGET 3.5 (C-14)"
+    },
+    {
+      "quantity": "Sun pointing (C-23)",
+      "requirement": "Pointing loss ≤ 5 % of sunlit generation and the Sun within 30° of +Y ≥ 95 % of sunlit time, every trial",
+      "predicted": "2.0 % (3.2 % worst trial) and 100 % with the face photodiodes and Earth albedo; 5.0 % / 96.3 % worst at the 7 mA·m² residual-dipole limit (C-24); one wing at preset 0 ≤ 2.0 %",
+      "margin": "Met",
+      "source": "ADCS_DESIGN 1.9 §11.6"
+    },
+    {
+      "quantity": "Detumble and capture",
+      "requirement": "≤ 3 orbits",
+      "predicted": "≤ 1.8 h, the slowest in-specification trial (tip-off σ 10°/s, up to 30°/s; ≤ 1.2 orbits)",
+      "margin": "× 2.5",
+      "source": "ADCS_DESIGN 1.9 §11.4"
+    },
+    {
+      "quantity": "AI beacon energy (D5, C-20)",
+      "requirement": "≤ 0.1 Wh per accepted beacon line",
+      "predicted": "0.065 Wh (SIL G mean under assumed inputs; 0.090 Wh at a 30 % filter reject rate)",
+      "margin": "× 1.5",
+      "source": "SIL_MISSION_SIMULATION G §7; go/no-go VI-02 on the EM"
+    },
+    {
+      "quantity": "Total dose, 2 mm Al",
+      "requirement": "design 10 krad, margin ≥ 2",
+      "predicted": "4.69 krad at 475 km, 4.91 at the 485 km cap",
+      "margin": "× 2.13 (× 2.04 at the cap); ≥ 2.1 mm kept (× 2.17 at the cap)",
+      "source": "RADIATION_ANALYSIS F"
+    },
+    {
+      "quantity": "Orbital lifetime",
+      "requirement": "≤ 5 yr after mission, P ≥ 0.9",
+      "predicted": "P ≥ 0.997 at 475–485 km (planned-end reading); wings-failed probability 0.29 %",
+      "margin": "Met; fallback 460 km",
+      "source": "ODAR Draft D"
+    },
+    {
+      "quantity": "Casualty risk",
+      "requirement": "≤ 1:10,000",
+      "predicted": "No fragment > 15 J (nominal); 1:47,000 worst sensitivity",
+      "margin": "Met",
+      "source": "ODAR Draft D"
+    },
+    {
+      "quantity": "Reliability",
+      "requirement": "(goals 0.95 / 0.80 / 0.60)",
+      "predicted": "0.75 / 0.61 / 0.51 (L1 / L2 / L3); 0.86 / 0.71 / 0.59 with the burn-in and flatsat programme",
+      "margin": "PI acceptance (REL-01)",
+      "source": "RELIABILITY 2.1"
+    },
+    {
+      "quantity": "Schedule float",
+      "requirement": "≥ 9.6 weeks (67 d, GOLD 1.06) to the integrator milestone for 2028-11",
+      "predicted": "+71 days (10.1 weeks; layout re-estimated, reliability programme and the board firmware tasks included; −20 d with one layout designer)",
+      "margin": "Met by 0.5 weeks",
+      "source": "SCHEDULE Rev E; `schedule_cpm.py`"
+    }
+  ]
+}

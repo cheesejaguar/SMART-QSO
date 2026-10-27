@@ -1,0 +1,276 @@
+{
+  "source": {
+    "document": "mission/SCHEDULE.md",
+    "document_id": "SQSO-SCH-001",
+    "revision": "E",
+    "section": "§5",
+    "url": "https://github.com/cheesejaguar/SMART-QSO/blob/main/mission/SCHEDULE.md"
+  },
+  "actions": [
+    {
+      "id": "DA-01",
+      "action": "Ratify or reject CR-2026-007 and CR-2026-008 (approved by the review chair only), decide CR-2026-009 to CR-2026-019 (`docs/project/CHANGE_REQUEST_LOG.md`), and ratify or reject the review chair's decisions C-1 to C-24 (SQSO-REV-CDR-002 §4)",
+      "owner": "PI",
+      "due": "2027-01-12",
+      "due_dates": [
+        "2027-01-12"
+      ],
+      "criterion": "Each CR's CCB decision reads Approved, Approved with conditions or Rejected, dated and signed by the PI; a rejected change is reverted in the documents it touched",
+      "parent_rids": "PM-04, P3P-02, SE-03",
+      "status": "Open"
+    },
+    {
+      "id": "DA-02",
+      "action": "Accept or reject the Class D reliability estimates (L1/L2/L3 0.75 / 0.61 / 0.51; 0.86 / 0.71 / 0.59 with the reliability programme) and keep or drop the programme (≥ 500 h EM flatsat, ≥ 200 h FM burn-in)",
+      "owner": "PI",
+      "due": "2026-12-15",
+      "due_dates": [
+        "2026-12-15"
+      ],
+      "criterion": "Decision recorded in RELIABILITY_ANALYSIS §5 and MISSION_SUCCESS_CRITERIA §8; if the programme is dropped, FLATSAT_500H and FM_BURNIN leave the schedule and the estimates revert to the allocation case",
+      "parent_rids": "REL-01, P3P-03, P3E-07",
+      "status": "Open"
+    },
+    {
+      "id": "DA-03",
+      "action": "Name the independent PDR board: a chair and at least two reviewers outside the team covering systems, electrical and RF, and flight software; invitations with the 2027-01-12 date",
+      "owner": "PI",
+      "due": "2026-12-01",
+      "due_dates": [
+        "2026-12-01"
+      ],
+      "criterion": "Names, affiliations and conflict-of-interest statements in PROJECT_PLAN §6.2; data package to the board by 2026-12-29",
+      "parent_rids": "P3P-05, PM-01",
+      "status": "Open"
+    },
+    {
+      "id": "DA-04",
+      "action": "Engage two PCB layout designers (KiCad, IPC-6012 Class 3) for a 2027-01-12 start; decide whether the layout starts at risk on the PDR package",
+      "owner": "PI",
+      "due": "2026-12-15",
+      "due_dates": [
+        "2026-12-15"
+      ],
+      "criterion": "Agreements in place for both designers; with one designer the plan has −20 d float (§3)",
+      "parent_rids": "P3P-05",
+      "status": "Open"
+    },
+    {
+      "id": "DA-05",
+      "action": "Contracting legal entity named (DP-1)",
+      "owner": "PI",
+      "due": "2026-12-31",
+      "due_dates": [
+        "2026-12-31"
+      ],
+      "criterion": "An entity able to sign the launch services agreement, cross-waivers, insurance declarations and export agreements",
+      "parent_rids": "LV-09",
+      "status": "Open"
+    },
+    {
+      "id": "DA-06",
+      "action": "NASA DAS: software usage agreement requested by 2026-11-06 and in hand by 2026-12-15; DAS run on the ODAR Draft D cases by 2027-01-08; ODAR Draft E with the DAS output by 2027-01-12, for the early FCC filing (2027-01-19)",
+      "owner": "Systems engineer",
+      "due": "2027-01-12",
+      "due_dates": [
+        "2027-01-12"
+      ],
+      "criterion": "DAS reproduces ODAR Draft D: orbital lifetime ≤ 5 years after the end of the 2-year mission at 485 km and 1.85 kg with P ≥ 0.9 under the conservative solar projection, and re-entry casualty risk ≤ 1:10,000 (NASA-STD-8719.14C). If DAS disagrees, the cap moves by CR to the highest altitude DAS passes, before the contract negotiation starts (2027-02-23)",
+      "parent_rids": "SE-14, ODA-02",
+      "status": "Open"
+    },
+    {
+      "id": "DA-07",
+      "action": "Integrator RFQs to Exolaunch, ISISPACE, SEOPS, D-Orbit and Maverick, each asking for: the mission ICD at the contract; the attenuated EXOpod Nova shock MPE at the CubeSat interface; the dispenser thermal analysis for the assigned flight and slot with the deployment time; the SSCMAN 91-710 and battery failure-tolerance requirements; the coupled-loads approach",
+      "owner": "PI",
+      "due": "2026-12-31",
+      "due_dates": [
+        "2026-12-31"
+      ],
+      "criterion": "Five RFQs sent with these items; replies logged in `docs/ORBITAL_ACCESS.md`",
+      "parent_rids": "SE-05, VV-07, THM-07, SMA-09, EPS-23",
+      "status": "Open"
+    },
+    {
+      "id": "DA-08",
+      "action": "Integrator data with the signed contract: mission ICD, levels, attenuated shock MPE, 91-710 and failure-tolerance requirements",
+      "owner": "PI (contract signatory)",
+      "due": "2027-06-30",
+      "due_dates": [
+        "2027-06-30"
+      ],
+      "criterion": "ICD received; LVR and ETP levels replaced by CR; VI-07 (shock) and EPS-23 (failure tolerance) assessed by 2027-07-14",
+      "parent_rids": "SE-05, VV-07, SMA-09, EPS-23",
+      "status": "Open"
+    },
+    {
+      "id": "DA-09",
+      "action": "IARU coordination: request on 2027-01-26 after the early FCC filing; letter",
+      "owner": "Licensee (KK6GDB)",
+      "due": "2027-05-18",
+      "due_dates": [
+        "2027-05-18"
+      ],
+      "criterion": "Coordinated downlink and uplink frequencies frozen in BASELINE §7 by CR; with no letter by 2027-05-18 the licensee asks the IARU Satellite Advisor for status and the contract proceeds on the requested windows",
+      "parent_rids": "SE-05, P3P-10",
+      "status": "Open"
+    },
+    {
+      "id": "DA-10",
+      "action": "Telecommand stations: written agreements with at least two stations at least 1,000 km apart, each able to command alone",
+      "owner": "Licensee (KK6GDB)",
+      "due": "2027-01-05",
+      "due_dates": [
+        "2027-01-05"
+      ],
+      "criterion": "Agreements signed; stations named in the early FCC filing and the IARU request; VI-GND-02 site survey of each",
+      "parent_rids": "GND-01",
+      "status": "Open"
+    },
+    {
+      "id": "DA-11",
+      "action": "FCC Space Bureau consultation (D3): requested by 2026-11-15 with the agenda (`docs/regulatory/REGULATORY_ROADMAP.md` Rev D §6): the ITU API path and timing (REG-05), whether an early failure ends the mission (ODA-05), the contact timeouts N and M, and the beacon kept with a failed receiver (REG-11); meeting by 2027-01-05",
+      "owner": "Licensee (KK6GDB)",
+      "due": "2027-01-08",
+      "due_dates": [
+        "2027-01-08"
+      ],
+      "criterion": "Outcome recorded by 2027-01-08, before the early filing (2027-01-19). ODA-05 fallback: if an early failure counts as the end of the mission, the 460–465 km band of BASELINE §3 is adopted by CR before the contract negotiation",
+      "parent_rids": "REG-05, ODA-05, REG-11",
+      "status": "Open"
+    },
+    {
+      "id": "DA-12",
+      "action": "Dispenser soak (THM-06, THM-07): the integrator's dispenser thermal analysis for the assigned flight and slot, with the deployment time, requested in the RFQ (DA-07) and delivered at the contract",
+      "owner": "PI (licensee) with the integrator",
+      "due": "2027-06-30",
+      "due_dates": [
+        "2027-06-30"
+      ],
+      "criterion": "Pack ≤ +50 °C and ≥ −15 °C at deployment, boards within their non-operating limits (V-THM-5). Fallback if the hot result exceeds +50 °C, in order: a deployment-time limit in the contract from the integrator's transient; a low-absorptance finish on the pack-facing surfaces (THERMAL_ANALYSIS §6.5); integrator pad conditioning (purge or air conditioning until fairing close); if none brings the pack to ≤ +50 °C, the PI decides between a lower storage SOC and the NRCSD backup",
+      "parent_rids": "THM-06, THM-07",
+      "status": "Open"
+    },
+    {
+      "id": "DA-13",
+      "action": "Export counsel engaged; export memo Rev B (authentication versus encryption; foreign integrators)",
+      "owner": "PI",
+      "due": "2026-12-15",
+      "due_dates": [
+        "2026-12-15"
+      ],
+      "criterion": "Counsel's written opinion; TAA need decided before the contract negotiation (2027-02-23)",
+      "parent_rids": "REG-06",
+      "status": "Open"
+    },
+    {
+      "id": "DA-14",
+      "action": "Panel vendor RFQ with the body-panel cells offset 1 mm from the hinge edge (wing sweep, MECHANICAL_DESIGN §6.6)",
+      "owner": "Mechanical lead",
+      "due": "2026-12-31",
+      "due_dates": [
+        "2026-12-31"
+      ],
+      "criterion": "RFQ states the offset; the vendor confirms before the panel order (2027-01-15) that the 45° sweep clearance is ≥ 0.35 mm with its tolerances",
+      "parent_rids": "MCAD-03",
+      "status": "Open"
+    },
+    {
+      "id": "DA-15",
+      "action": "Venting analysis of every enclosed volume from the CAD (VI-LV-12): the gross 1U volume, the battery clamp cavity, the pocket behind the heat spreader; the RF shield cans are done (V/A 3.2–9.4 m, SQSO-RF-BRD-001 D)",
+      "owner": "Mechanical lead",
+      "due": "2026-12-15",
+      "due_dates": [
+        "2026-12-15"
+      ],
+      "criterion": "Each volume / vent area ≤ 50.8 m (CDS §2.1.9); required holes on the drawings in the PDR package",
+      "parent_rids": "LV-19",
+      "status": "Open"
+    },
+    {
+      "id": "DA-16",
+      "action": "SWE-220: measure the cyclomatic complexity of the safety-critical Rust files with a tool and gate it in CI, or tailor by CR",
+      "owner": "Flight software lead",
+      "due": "2026-12-15",
+      "due_dates": [
+        "2026-12-15"
+      ],
+      "criterion": "Every function in the safety-critical components (SDP §3.2) ≤ 15, or a CR listing each exception with its justification; result in `docs/software/NPR7150_COMPLIANCE_MATRIX.md` item C-4",
+      "parent_rids": "FSW-06",
+      "status": "Open"
+    },
+    {
+      "id": "DA-17",
+      "action": "Flexible 2 m AntS tapes in the ADCS Monte Carlo (ADCS_DESIGN §11.5): element mass, stiffness and damping from the ISIS ICD (with AV-V7); flexible-appendage case; EM measurement of the deployed tape's first mode and damping in the EM tests",
+      "owner": "ADCS and flight software lead",
+      "due": "2027-02-26 (analysis); EM measurement before the CDR (2027-09-28)",
+      "due_dates": [
+        "2027-02-26",
+        "2027-09-28"
+      ],
+      "criterion": "With the tape's first mode and a damping ratio no higher than the measured or 0.5 %, the spin about +Y converges and +Y stays within 15° of the Sun for ≥ 90 % of sunlit time; the measured first mode within ± 20 % of the model's, or the Monte Carlo re-run with it",
+      "parent_rids": "GNC-03",
+      "status": "Open"
+    },
+    {
+      "id": "DA-18",
+      "action": "Procurement data reviews before the EM order: V-HAR-3 (vendor drawings, gold part numbers), V-HAR-11 (ASTM E595 per part number), EPSB-09 (FM12 interrupting rating against the 209 A prospective short, 60 °C rerating, termination code; SMF24A leakage), JETB-07 (every carrier BOM line on the manufacturer's data sheet)",
+      "owner": "EPS designer, harness designer, payload lead",
+      "due": "2027-01-15",
+      "due_dates": [
+        "2027-01-15"
+      ],
+      "criterion": "Each data sheet or drawing cited in the BOM \"MPN check\" column; FM12 interrupting rating ≥ 209 A at ≥ 16.8 VDC and ≥ 5 A at +60 °C; storage drain with the SMF24A's +60 °C leakage ≤ 20 µA; every item without E595 data coded A–E or tested; a failing part changed before the order",
+      "parent_rids": "EPSB-09, JETB-07, SE-23",
+      "status": "Open"
+    },
+    {
+      "id": "DA-19",
+      "action": "Drawings before the layout: VI-RFB-12 (AntS RF port, coax plating, attenuation, inner conductor; by 2026-11-13, RF lead; ISIS AntS RFQ with the ICD by 2026-11-06); JETB-06 (NVIDIA DG-10931-001 and TDG-11127-001 through a developer account); JETB-12 (Molex drawings)",
+      "owner": "RF designer; payload lead",
+      "due": "2027-02-01",
+      "due_dates": [
+        "2027-02-01"
+      ],
+      "criterion": "VI-RFB-12 pass before the RF layout (2027-02-16); V-JET-2 passes before the carrier layout (2027-03-16); J1 mated height ≤ 13.2 mm and J2 ≤ 7.7 mm from the drawings, else the right-angle J1 fallback",
+      "parent_rids": "RFB-10, JETB-06, JETB-12",
+      "status": "Open"
+    },
+    {
+      "id": "DA-20",
+      "action": "Ratify the proposed wordings TBR-MRD-002 to -005 and TBR-SYS-002 to -004",
+      "owner": "PI",
+      "due": "2027-01-12",
+      "due_dates": [
+        "2027-01-12"
+      ],
+      "criterion": "Each TBR closed in its document (ratified, amended or rejected)",
+      "parent_rids": "SE-04",
+      "status": "Open"
+    },
+    {
+      "id": "DA-21",
+      "action": "Shock (VV-07): decide VI-07 from the integrator's attenuated shock MPE",
+      "owner": "Test lead",
+      "due": "2027-07-14",
+      "due_dates": [
+        "2027-07-14"
+      ],
+      "criterion": "Analysis passes only if the vibration-equivalent SRS (24 / 53 / 85 / 60 g at 100 / 500 / 1000 / 2000 Hz) envelops the MPE below 2000 Hz; otherwise an EM shock test at MPE + 3 dB, 2 actuations per axis, in the EM tests (costed in `software/simulation/cdr/pm/test_cost.py`)",
+      "parent_rids": "VV-07",
+      "status": "Open"
+    },
+    {
+      "id": "DA-22",
+      "action": "Ratify the board firmware languages: RF board TNC in Rust `no_std` with the OBC's pinned toolchain (proposed, SQSO-SRS-TNC-001 §7); EPS controller in C11 to MISRA C:2012 with TI MSP430-GCC (recommended, SQSO-SRS-EPSC-001 §7)",
+      "owner": "PI",
+      "due": "2026-12-01",
+      "due_dates": [
+        "2026-12-01"
+      ],
+      "criterion": "Decision recorded in SMART-QSO-SDP-001 §3.4 and each specification's §7 before the firmware designs go into the PDR package; if Rust is chosen for the EPS controller, a CR with the nightly toolchain and its qualification plan (CR-2026-004 covers only the pinned stable toolchain)",
+      "parent_rids": "P3A-03",
+      "status": "Open"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "source": {
+    "document": "docs/BASELINE_PARAMETERS.md",
+    "document_id": "SQSO-BL-001",
+    "revision": "E",
+    "section": "§1–§8",
+    "url": "https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/BASELINE_PARAMETERS.md"
+  },
+  "values": {
+    "envelope": "100 × 100 × 113.5 mm",
+    "mass_cbe": "1.52",
+    "mass_mev": "1.75",
+    "mass_limit": "2.00",
+    "mass_margin": "14.0",
+    "alt_target": "475",
+    "alt_lo": "465",
+    "alt_hi": "485",
+    "alt_cap": "485",
+    "inclination": "97.31",
+    "design_life": "2",
+    "min_mission": "12",
+    "tx_nom": "0.5",
+    "tx_max": "1",
+    "battery_wh": "50",
+    "gen_tumble": "2.48",
+    "gen_sun": "3.84",
+    "downlink": "145.800–146.000 MHz",
+    "uplink_windows": "435.222–435.778 MHz, or else 436.222–436.500 MHz",
+    "callsign": "KK6GDB-11",
+    "phase": "Phase B (pre-PDR)",
+    "launch_date": "2028-11-01",
+    "ltan": "22:30"
+  }
+}

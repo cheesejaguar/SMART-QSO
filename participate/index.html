@@ -1,12 +1,94 @@
-<!DOCTYPE html><html lang="en"><head><link rel="icon" type="image/svg+xml" href="/SMART-QSO/favicon.svg"><link rel="canonical" href="https://cheesejaguar.github.io/SMART-QSO/participate/"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Participate · SMART-QSO</title><link rel="stylesheet" href="/SMART-QSO/_astro/manrope.ChX-4qSe.css"></head><body><!-- THESIS: Accessible packet service, assessed through visible engineering evidence.
-OWN-WORLD: Paper #fafafa, graphite #142029, vermilion #c64b30; Manrope, thin rules, open numbered diagrams.
-STORY: Understand relay usefulness, inspect evidence, participate in the next measured milestone.
-FIRST VIEWPORT: Large left headline and two actions; right unbuilt 3U concept; reference-status strip below.
-FORM: Engineering journal, chosen explicitly by the user; seed 289f052b assigned own candidate 3; no catalog world was selected.
-FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
---><header class="masthead"><a class="wordmark" href="/SMART-QSO/">SMART-<span>QSO</span></a><a href="/SMART-QSO/">Mission home</a></header><main><article class="document"><h1>A packet station is enough to start.</h1><p>The first service targets ordinary licensed amateur operators and educational clubs. The satellite is not in orbit. You can run a local ground demonstration now, contribute engineering work, or help establish a sponsoring institution.</p><h2 id="local-demo">Try the ground demonstration</h2><p>Download the complete development source and verification package, extract it, and run these commands from its root. It includes source for the current demonstration, reference firmware and actual test reports. The firmware is unprovisioned and has not been executed on hardware.</p><p><a href="/SMART-QSO/SMART-QSO-reference.zip">Development source and evidence · ZIP</a> · <a href="/SMART-QSO/manifest.json">Manifest</a> · <a href="/SMART-QSO/checksums.sha256">SHA-256 checksums</a> · <a href="/SMART-QSO/sbom.cdx.json">Dependency inventory</a></p><pre>uv sync --extra dev
-cmake -S software/flight -B build
-cmake --build build
-npm --prefix software/web ci
-npm --prefix software/web run build
-uv run python -m software.ground.service.app</pre><p>Open <a href="http://127.0.0.1:8000/console/">the local mission console</a>. All data is labeled simulation. Core service remains available without a language model, credentials or an RF device.</p><h2>Use a KISS-compatible TNC</h2><p>Create a packet without sending it:</p><pre>uv run python -m software.ground.client.packet --from W6ABC --to K6XYZ --text "Hello from our club"</pre><p>On-air use requires your licensed station, the appropriate coordinated operating frequencies and an explicit <code>--send --port</code> invocation. The client does not silently transmit.</p><p>During a contact, use <code>--request</code> to retrieve messages for your station. After receiving a message, use <code>--ack ID</code> to record its receipt. These commands are also dry-run unless <code>--send</code> is explicit. Replace the development satellite address with the coordinated callsign before on-air operation.</p><h2>Contribute evidence</h2><p>Priority work includes measured full-cycle language-payload energy, reference radio interoperability, subsystem hardware selection, conductive vacuum cooling, battery and inhibit tests, and independent requirements review.</p><h2>Institutional participation</h2><p>We need named accountable engineers, a sponsoring educational or nonprofit organization, facilities and supplier quotations. Funding and launch support are not secured. The proposal describes staged, reviewable milestones.</p><p><a class="button" href="/SMART-QSO/proposal.pdf">Read the proposal</a></p></article></main></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Participate · SMART-QSO</title>
+<meta name="description" content="How amateur radio operators and contributors can help SMART-QSO, and the real status of its licensing and frequency coordination.">
+<meta name="color-scheme" content="light dark">
+<link rel="canonical" href="https://cheesejaguar.github.io/SMART-QSO/participate/">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+<div class="wrap header-inner">
+<a class="brand" href="../"><svg class="logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><rect x="11" y="11" width="10" height="10" rx="1.5" class="logo-body"/><rect x="2" y="12" width="8" height="8" class="logo-wing"/><rect x="22" y="12" width="8" height="8" class="logo-wing"/><path d="M16 21v9M16 11V2" class="logo-ant"/></svg><span>SMART-QSO</span></a>
+<nav aria-label="Main"><ul><li><a href="../">Home</a></li><li><a href="../mission/">Mission</a></li><li><a href="../spacecraft/">Spacecraft</a></li><li><a href="../engineering/">Engineering</a></li><li><a href="../participate/" aria-current="page">Participate</a></li></ul></nav>
+</div>
+</header>
+<main id="main" class="wrap">
+
+<h1>Participate</h1>
+<p class="lede">SMART-QSO is not in orbit, and it has no frequencies yet. There is nothing to listen for today. There is
+useful work to do now, and this page says what it is.</p>
+
+<section class="status" aria-labelledby="reg-h">
+<h2 id="reg-h">Licensing and frequencies</h2>
+<p>SMART-QSO would be an FCC Part 97 amateur space station. The bands below are the ones the project will ask the
+IARU to coordinate a frequency in; they are not assigned frequencies. Downlink in 145.800–146.000 MHz (not 145.825
+MHz); uplink requested in 435.222–435.778 MHz, or else 436.222–436.500 MHz. <a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/BASELINE_PARAMETERS.md">SQSO-BL-001 §7</a></p>
+<p>IARU coordination request: <strong>Not submitted.</strong> Draft on the mandatory IARU v40 form layout: <a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/regulatory/filings/IARU_COORDINATION_REQUEST_v40.md">IARU_COORDINATION_REQUEST_v40.md</a> <a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/regulatory/IARU_COORDINATION.md">SQSO-REG-001 §1</a></p>
+<div class="table-wrap" role="region" aria-label="Authorization status as of 2026-10-27 (spectrum authorization status §4)" tabindex="0"><table class=""><caption>Authorization status as of 2026-10-27 (spectrum authorization status §4)</caption><thead><tr><th scope="col">Authorization</th><th scope="col">Status</th><th scope="col">Draft / reference</th></tr></thead><tbody><tr><th scope="row">Space station licensee and call sign</th><td><strong>KK6GDB</strong>, station KK6GDB-11 (decision D1, 2026-10-15)</td><td>Pathway determination §8</td></tr><tr><th scope="row">Designated telecommand stations (97.211(a))</th><td><strong>None agreed</strong>; ≥ 2, at least 1,000 km apart, needed before the IARU request (written agreements due 2027-01-05, <a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/mission/SCHEDULE.md"><code>mission/SCHEDULE.md</code></a> DA-10)</td><td><a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/ground/GROUND_STATION_DESIGN.md"><code>docs/ground/GROUND_STATION_DESIGN.md</code></a> §3</td></tr><tr><th scope="row">IARU frequency coordination</th><td><strong>Not started</strong>; planned submission 2027-01-26</td><td><a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/regulatory/filings/IARU_COORDINATION_REQUEST_v40.md">IARU_COORDINATION_REQUEST_v40.md</a></td></tr><tr><th scope="row">FCC Part 97 pre-space notification (97.207(g)(1))</th><td><strong>Not filed</strong>; planned early filing 2027-01-19, replacement by 2027-06-30</td><td><a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/regulatory/filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md">FCC_97-207_PRE_SPACE_NOTIFICATION.md</a></td></tr><tr><th scope="row">ITU API / notification (filed by the FCC)</th><td><strong>Not filed</strong></td><td><a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/regulatory/filings/ITU_APPENDIX4_DATA.md">ITU_APPENDIX4_DATA.md</a></td></tr><tr><th scope="row">FCC Space Bureau consultation (D3)</th><td><strong>Not yet requested</strong>; request due 2026-11-15, meeting by 2027-01-05, outcome recorded by 2027-01-08 (<a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/mission/SCHEDULE.md"><code>mission/SCHEDULE.md</code></a> DA-11)</td><td><a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/regulatory/REGULATORY_ROADMAP.md">REGULATORY_ROADMAP.md</a> §6</td></tr><tr><th scope="row">Orbital debris assessment (DAS)</th><td><strong>Draft; DAS not yet run</strong>; NASA DAS usage agreement to be requested by 2026-11-06, DAS run by 2027-01-08 (DA-06)</td><td><a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/regulatory/filings/ODAR_SMART-QSO.md">ODAR_SMART-QSO.md</a></td></tr><tr><th scope="row">NOAA remote sensing</th><td><strong>No license required</strong> (internal determination); NOAA confirmation not requested</td><td><a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/regulatory/filings/NOAA_REMOTE_SENSING_DETERMINATION.md">NOAA determination</a></td></tr><tr><th scope="row">Export classification</th><td><strong>Self-classified, counsel review pending</strong></td><td><a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/regulatory/filings/EXPORT_CLASSIFICATION_MEMO.md">Export memo</a></td></tr><tr><th scope="row">NTIA / NASA Form 1722 / DoD / NOAA spectrum coordination</th><td><strong>Not applicable</strong> (no Federal frequencies)</td><td>—</td></tr></tbody></table></div>
+</section>
+
+<section aria-labelledby="ops-h">
+<h2 id="ops-h">For amateur radio operators, once it flies</h2>
+<p>The planning launch date is about 2028-11-01. If it launches and is commissioned, any licensed amateur
+with an FM handheld or mobile rig and a small Yagi could work other stations through the transponder, in sunlit passes
+when the power gates open. Community and SatNOGS stations would receive and decode the beacon, with logs published
+openly. <a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/mission/CONOPS.md">CONOPS.md §6</a></p>
+<p>The beacon is a 1200 bps AFSK AX.25 UI frame from KK6GDB-11 with one line of plain text and a telemetry
+tail; every value in it is a measurement, and an unmeasured field is sent as <code>-</code>.
+<a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/BEACON_SPEC.md">BEACON_SPEC.md §1–§4</a></p>
+<pre class="fmt"><code>de KK6GDB-11: &lt;text&gt; | T=&lt;s since boot&gt; M=&lt;SAFE|IDLE|ACTIVE&gt; SOC=&lt;%&gt; BV=&lt;V.d&gt; SUN=&lt;0|1&gt; RF=&lt;0|1&gt; QSO=&lt;count&gt;</code></pre>
+<p>A decoder is in <a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/software/ground/tools/beacon_decoder.py"><code>software/ground/tools/beacon_decoder.py</code></a>.</p>
+</section>
+
+<section aria-labelledby="help-h">
+<h2 id="help-h">Help wanted now</h2>
+<div class="cards">
+<article class="card"><h3>Telecommand stations</h3>
+<p>The mission needs at least two designated amateur stations at least 1,000 km apart, each able to command the
+spacecraft alone, with written agreements by 2027-01-05. None is agreed yet. A station must radiate at least 64 dBm
+EIRP toward the spacecraft on 70 cm and commands only above 10° elevation.</p>
+<p class="srcs"><a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/BASELINE_PARAMETERS.md">SQSO-BL-001 §1</a>
+<a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/mission/CONOPS.md">CONOPS.md §6</a> <a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/ground/GROUND_STATION_DESIGN.md">Ground station design</a></p></article>
+<article class="card"><h3>Independent reviewers</h3>
+<p>The CDR 2026 review was done by AI reviewers. The independent PDR, planned for 2027-01-12, needs a chair and at
+least two reviewers from outside the team, covering systems, electrical and RF, and flight software.</p>
+<p class="srcs"><a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/mission/SCHEDULE.md">SQSO-SCH-001 §5 DA-03</a></p></article>
+<article class="card"><h3>PCB layout</h3>
+<p>The boards exist as schematics. The plan needs two PCB layout designers (KiCad, IPC-6012 Class 3) to start in
+January 2027; with one, the schedule loses its float.</p>
+<p class="srcs"><a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/mission/SCHEDULE.md">SQSO-SCH-001 §5 DA-04</a></p></article>
+<article class="card"><h3>Review the documents</h3>
+<p>Every claim the project makes is in the repository with its evidence. Reading a document against its sources and
+opening an issue for what is wrong is the most useful contribution of all.</p>
+<p class="srcs"><a class="src" href="https://github.com/cheesejaguar/SMART-QSO/issues">Issues</a> <a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/BASELINE_PARAMETERS.md">Baseline</a></p></article>
+<article class="card"><h3>Software</h3>
+<p>Flight software in Rust (<code>no_std</code>, <code>unsafe</code> forbidden in the protocol and logic crates), the
+Jetson payload and the ground tools in Python. Tests run in CI.</p>
+<p class="srcs"><a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/software/rust/README.md">software/rust</a> <a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/software/ground/tools/README.md">Ground tools</a></p></article>
+</div>
+<p>Start with <a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/CONTRIBUTING.md">CONTRIBUTING.md</a>: discuss in an issue first, then a pull request with
+tests. The project follows a <a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/CODE_OF_CONDUCT.md">code of conduct</a> and a
+<a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/GOVERNANCE.md">governance</a> document; report security problems as <a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/SECURITY.md">SECURITY.md</a> says.
+Amateur operation of the station is unpaid. <a class="src" href="https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/BASELINE_PARAMETERS.md">SQSO-BL-001 §1</a></p>
+</section>
+
+</main>
+<footer class="site-footer">
+<div class="wrap">
+<p>SMART-QSO is a design-phase amateur radio CubeSat project. Nothing has been built or launched. Every value on this
+site is taken from, or checked against, the repository documents cited beside it, when the site is built.</p>
+<p>Built from commit <a href="https://github.com/cheesejaguar/SMART-QSO/commit/102f9f1f6a991ddf451bae049c14f09fad92b99b"><code>102f9f1f6a</code></a> (2026-10-27) by
+<a href="https://github.com/cheesejaguar/SMART-QSO/blob/main/site/build.py"><code>site/build.py</code></a>. Data:
+<a href="../evidence/margins.json">margins</a>, <a href="../evidence/rid_summary.json">RID summary</a>,
+<a href="../evidence/schedule_actions.json">dated actions</a>, <a href="../publication.json">publication record</a>.
+Source and documents: <a href="https://github.com/cheesejaguar/SMART-QSO">github.com/cheesejaguar/SMART-QSO</a> (MIT licence).</p>
+</div>
+</footer>
+</body>
+</html>

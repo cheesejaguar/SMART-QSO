@@ -1,1 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="10" fill="#142029"/><text x="12" y="46" font-family="sans-serif" font-size="42" font-weight="700" fill="#fafafa">Q</text><circle cx="51" cy="13" r="6" fill="#c64b30"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<style>.b{fill:#e8edf3;stroke:#12355b;stroke-width:1.5}.w{fill:#1f4f8a}.a{stroke:#c2410c;stroke-width:2;stroke-linecap:round}
+@media (prefers-color-scheme:dark){.b{fill:#1b2a3a;stroke:#9cc4f0}.w{fill:#5b8fd0}.a{stroke:#fb923c}}</style>
+<rect x="11" y="11" width="10" height="10" rx="1.5" class="b"/><rect x="2" y="12" width="8" height="8" class="w"/>
+<rect x="22" y="12" width="8" height="8" class="w"/><path d="M16 21v9M16 11V2" class="a"/></svg>

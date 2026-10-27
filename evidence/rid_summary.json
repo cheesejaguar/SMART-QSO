@@ -1,0 +1,49 @@
+{
+  "source": {
+    "document": "docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md",
+    "document_id": "SQSO-REV-CDR-002",
+    "revision": "B",
+    "section": "§6 (RID-SUMMARY block)",
+    "url": "https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md"
+  },
+  "total": 412,
+  "severity": {
+    "1": 32,
+    "2": 211,
+    "3": 169
+  },
+  "dispositions": [
+    {
+      "disposition": "Closed by analysis",
+      "round_1": 25,
+      "final": 31
+    },
+    {
+      "disposition": "Closed by design change",
+      "round_1": 101,
+      "final": 279
+    },
+    {
+      "disposition": "Closed by chair decision",
+      "round_1": 42,
+      "final": 35
+    },
+    {
+      "disposition": "Verification item",
+      "round_1": 46,
+      "final": 33
+    },
+    {
+      "disposition": "Decision point (dated)",
+      "round_1": 15,
+      "final": 34
+    },
+    {
+      "disposition": "Implementation",
+      "round_1": 183,
+      "final": 0
+    }
+  ],
+  "open_implementation": "none.",
+  "reopened": "Rounds 3 and 4 (independent closure verification) reopened 45 RIDs and raised 106 new findings; 45 of the reopened and 102 of the new are since closed and 4 were dispositioned when raised."
+}

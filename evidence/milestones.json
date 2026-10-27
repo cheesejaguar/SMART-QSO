@@ -1,0 +1,115 @@
+{
+  "source": {
+    "document": "mission/SCHEDULE.md",
+    "document_id": "SQSO-SCH-001",
+    "revision": "E",
+    "section": "§4",
+    "url": "https://github.com/cheesejaguar/SMART-QSO/blob/main/mission/SCHEDULE.md"
+  },
+  "milestones": [
+    {
+      "milestone": "VI-RFB-12 complete (RF layout input)",
+      "date": "2026-11-13"
+    },
+    {
+      "milestone": "PDR board named (DA-03)",
+      "date": "2026-12-01"
+    },
+    {
+      "milestone": "DAS agreement requested; ISIS AntS RFQ",
+      "date": "2026-11-06"
+    },
+    {
+      "milestone": "FCC consultation requested",
+      "date": "2026-11-15"
+    },
+    {
+      "milestone": "NASA DAS run; ODAR Draft E (DA-06)",
+      "date": "2027-01-08; 2027-01-12"
+    },
+    {
+      "milestone": "Contracting legal entity (DP-1); integrator RFQs out",
+      "date": "2026-12-22; 2026-12-29"
+    },
+    {
+      "milestone": "Board firmware requirements complete (SQSO-SRS-TNC-001, SQSO-SRS-EPSC-001)",
+      "date": "2026-10-27"
+    },
+    {
+      "milestone": "Board firmware designs in the PDR package",
+      "date": "2026-12-08"
+    },
+    {
+      "milestone": "**PDR**",
+      "date": "**2027-01-12**"
+    },
+    {
+      "milestone": "Early FCC pre-space notification",
+      "date": "**2027-01-19**"
+    },
+    {
+      "milestone": "IARU request",
+      "date": "2027-01-26"
+    },
+    {
+      "milestone": "EM layout released",
+      "date": "2027-04-27"
+    },
+    {
+      "milestone": "IARU coordination letter (90th percentile)",
+      "date": "by 2027-05-18"
+    },
+    {
+      "milestone": "**Launch contract** (deadline 2027-06-30); integrator ICD",
+      "date": "**2027-05-31**"
+    },
+    {
+      "milestone": "EM boards assembled",
+      "date": "2027-06-01"
+    },
+    {
+      "milestone": "Board firmware integrated on the EM boards (TNC, EPS controller)",
+      "date": "2027-07-06"
+    },
+    {
+      "milestone": "EM integrated, flight software running on the target",
+      "date": "2027-07-27"
+    },
+    {
+      "milestone": "500 h on the EM boards (reliability programme)",
+      "date": "2027-08-24"
+    },
+    {
+      "milestone": "**CDR**",
+      "date": "**2027-09-28**"
+    },
+    {
+      "milestone": "FM integration start",
+      "date": "2027-12-21"
+    },
+    {
+      "milestone": "Board firmware flight builds qualified on the FM boards",
+      "date": "2027-12-28"
+    },
+    {
+      "milestone": "FM burn-in (≥ 200 h)",
+      "date": "2028-02-22 to 2028-03-03"
+    },
+    {
+      "milestone": "Protoflight campaign",
+      "date": "2028-03-03 to 2028-04-21"
+    },
+    {
+      "milestone": "Environmental verification report",
+      "date": "2028-04-28 (due 2028-07-17)"
+    },
+    {
+      "milestone": "Pre-ship review; delivery",
+      "date": "2028-05-19 (earliest; required 2028-09-12)"
+    },
+    {
+      "milestone": "**Launch**",
+      "date": "**2028-11-01 planning date; June 2028 not achievable on this plan**"
+    }
+  ]
+}

@@ -1,0 +1,132 @@
+{
+  "source": {
+    "document": "docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md",
+    "document_id": "SQSO-REV-CDR-002",
+    "revision": "B",
+    "section": "§4",
+    "url": "https://github.com/cheesejaguar/SMART-QSO/blob/main/docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md"
+  },
+  "status": "Proposals awaiting PI ratification (DA-01, due 2027-01-12)",
+  "decisions": [
+    {
+      "id": "C-1",
+      "decision": "Planning launch the last Transporter of 2028 (about 2028-11); June 2028 an opportunity",
+      "rids": "PM-05, LV-10"
+    },
+    {
+      "id": "C-2",
+      "decision": "Deployment altitude 475 km target, 465–485 km band, 485 km cap; 460 km if the FCC counts an early failure as the end of the mission",
+      "rids": "ODA-01, ODA-05"
+    },
+    {
+      "id": "C-3",
+      "decision": "Layout B; AntS 2 m elements along ±X; CR0002 rods; deployed-inertia requirement",
+      "rids": "STR-01, STR-02, RF-03"
+    },
+    {
+      "id": "C-4",
+      "decision": "Spin 8°/s, nutation damping 3·10⁻⁴ (1·10⁻⁴ without gyro); the round-3 gain sweep (ADCS_DESIGN 1.9 §11.4) keeps it on the Iyy/Izz 1.005–1.05 results, and the protection against a degenerate plant is the Iyy ≥ 1.03 × max mass-properties limit, not the gains",
+      "rids": "GNC-02, P3F-G-04"
+    },
+    {
+      "id": "C-5",
+      "decision": "Two resistors per wing on their own 0.8 A drivers, 8 s burns, wings before antennas",
+      "rids": "SMA-05, EPS-18, REL-03, STR-15, STR-16"
+    },
+    {
+      "id": "C-6",
+      "decision": "Three deployment switches DS1–DS3 on three rails",
+      "rids": "LV-05, SMA-01, EPS-04, RF-14"
+    },
+    {
+      "id": "C-7",
+      "decision": "Integration SOC 60 % ± 5 %, separation ≥ 40 %, drain ≤ 20 µA",
+      "rids": "LV-06, SMA-10, EPS-20"
+    },
+    {
+      "id": "C-8",
+      "decision": "Telecommand stations ≥ 1,000 km apart, each able to command alone; agreements by 2027-01-05",
+      "rids": "LV-08, GND-01"
+    },
+    {
+      "id": "C-9",
+      "decision": "Reliability 0.75 / 0.61 / 0.51 (0.86 / 0.71 / 0.59 with the ≥ 500 h flatsat and ≥ 200 h FM burn-in programme) proposed for acceptance as Class D risk; the acceptance itself is the PI's (DA-02, 2026-12-15)",
+      "rids": "REL-01"
+    },
+    {
+      "id": "C-10",
+      "decision": "`transponder.rs` and `ops_state.rs` added to the safety-critical list",
+      "rids": "FSW-05"
+    },
+    {
+      "id": "C-11",
+      "decision": "Heater set points +5/+9 °C; ≈ 207 Ω heater",
+      "rids": "THM-02, BUILD_VS_BUY §4.5"
+    },
+    {
+      "id": "C-12",
+      "decision": "Two centre supports on the EPS, OBC and carrier boards",
+      "rids": "STR-05, MECHANICAL_DESIGN"
+    },
+    {
+      "id": "C-13",
+      "decision": "2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames, so the deployed inertia ratio keeps margin with all four AntS elements",
+      "rids": "MCAD-09, RFB-11"
+    },
+    {
+      "id": "C-14",
+      "decision": "Telecommand stations radiate ≥ 64 dBm EIRP above 10° elevation: ≥ 100 W PEP into ≥ 15.5 dBic outside the 47 CFR 2.106 US270 areas (variant A), ≤ 50 W PEP at the transmitter output into a ≥ 17.8 dBic stacked pair inside them (variant B); commands only above 10°",
+      "rids": "RF-23"
+    },
+    {
+      "id": "C-15",
+      "decision": "Harness wire under the EPS tied to the deck straps and shear panels; only connector strain-relief ties on the EPS board (EPS Steinberg +0.23, −0.52 otherwise)",
+      "rids": "MCAD-11"
+    },
+    {
+      "id": "C-16",
+      "decision": "Battery-lead shorts: the two positive-leg fuses are diverse by design (F0A MIL-PRF-23419/12 from AEM, F0B MIL-PRF-23419/8 from Littelfuse), with F0N in the negative leg the third, so BSA H3b is 2-fault tolerant without counting two same-part fuses as independent (an earlier wording did; revised after the board FMEA). NRCSD safety-engineer concurrence for the ISS backup path",
+      "rids": "EPSB-10, P3E-02"
+    },
+    {
+      "id": "C-17",
+      "decision": "Burn 10 s per resistor (was 8 s): at the bounding −55 °C the 8 s burn gives a release-energy ratio of only 1.52 against 1.5; 10 s gives 1.90 inside the 12 s hardware one-shot",
+      "rids": "P3S-01"
+    },
+    {
+      "id": "C-18",
+      "decision": "The AntS deploys only when its own reported temperature is ≥ −17 °C (the −20 °C qualified minimum plus 3 °C sensor tolerance), deferring to the next 50-min slot without spending an attempt; after 30 deferrals (about 25 h, which covers the wings-stowed case where it never warms) it releases after 20 min of continuous sun, and after 3 unreadable temperatures it follows the thermal analysis's schedule (the first 20 min of sun from S + 69 min); on ground command it deploys at once. An ungated release after an eclipse separation would be at −44 °C; the gate opens within 177 min in every nominal case, before the first commanding pass (median 6.4 h). The wings still go first at S + 30 min",
+      "rids": "P3T-09"
+    },
+    {
+      "id": "C-19",
+      "decision": "The transmitters stay silent while the AntS deployment is pending (deferred by C-18, or not yet attempted); the downlink starts when the AntS reports deployed or its sequence ends, never before the 45-min RF silence. Keying into stowed elements trips the VSWR protection (SIL-37: two 10-min stops, 1,312 s beacon gap) and stresses the PA, and nothing is lost: the first commanding pass (median 6.4 h) is later than the gate's nominal worst case (177 min); a failed AntS sequence still gets its stowed-antenna beacon. Off the nominal path (a plausible but cold reading held for the whole cap, e.g. a wrong temperature conversion before AV-V7 confirms it) the spacecraft is silent for up to about 25.8 h; the cover is the blind forced DEPLOY_RETRY in the commissioning plan",
+      "rids": "SIL-37 (P3T-09)"
+    },
+    {
+      "id": "C-20",
+      "decision": "One Smart Beacon burst definition, the one the design implements: a Jetson power-on of at most 10 min and at most 3.6 kJ at the carrier input, ended early by the energy gate. The go/no-go metric is energy per accepted beacon line ≤ 0.1 Wh (360 J), counted on accepted lines (not per burst), measured on the EM over ≥ 30 bursts (VI-02) and confirmed in commissioning over ≥ 10 bursts (MSC E-02). SYS-512, VI-02 and the D5 960 J figure are revised to match (CR)",
+      "rids": "P3F-G-03"
+    },
+    {
+      "id": "C-21",
+      "decision": "With one wing deployed and the ground unable to say which, the spacecraft uses preset 0 (both wings) rather than guess between presets 1 and 2: the wrong one-wing preset is the case not analysed, preset 0 costs 2–3 % of power. Presets 1 and 2 are used only after the commissioning identification procedure (array current against the sun-sensor angle over a spin) names the wing",
+      "rids": "P3F-G-06"
+    },
+    {
+      "id": "C-22",
+      "decision": "The attitude-knowledge requirement is restated as what the control law uses: sun-vector knowledge within ±5° in sunlight from the sun sensors, and rate knowledge from the gyros. A spin-stabilised sun-pointer needs no onboard three-axis estimator, so the EKF/TRIAD of ADCS_DESIGN §4.3 is removed from the flight baseline; the Monte Carlo measures the sun-vector error to verify it",
+      "rids": "P3F-G-07"
+    },
+    {
+      "id": "C-23",
+      "decision": "With the face photodiodes and Earth albedo modelled (ADCS_DESIGN 1.9 §11.6) the spin-stabilised sun-pointer holds 12° mean and 74 % of sunlit time within 15°, and its sun-vector knowledge is 27° (95th percentile): ADCS-P002 and the ±5° of C-22 are not met, while generation falls only 2 % (4.56 against 4.65 W). The pointing requirement exists for power, so it is restated as what the power budget needs: sunlit-averaged generation loss from pointing ≤ 5 % and the Sun within 30° of +Y for ≥ 95 % of sunlit time, both in every Monte Carlo trial with the photodiode-and-albedo model; sun-vector knowledge is not a requirement (C-22's ±5° is withdrawn). The power budget carries the albedo-case generation. An albedo-immune +Y sun sensor is the recorded option if the EM photodiode test (TP-ADCS-003) shows worse than the model",
+      "rids": "P3F-G-07 (GN&C closure)"
+    },
+    {
+      "id": "C-24",
+      "decision": "Residual-dipole limit lowered from 10 to 7 mA·m² (design 3 mA·m²): with the photodiode-and-albedo model ADCS-P002 passes in every trial up to 7 mA·m² (worst 5.0 % loss, 96.3 % within 30°) and fails in 6 of 40 at 10 mA·m² (7.7 %, 84.9 %). The limit is a test criterion on the flight unit (ETP Helmholtz-cage measurement); a unit above it is demagnetised or re-harnessed, or gets the albedo-immune +Y sun sensor (the generic model gives 1.8 % / 99.4 % at 10 mA·m²)",
+      "rids": "P3F-G-07 (C-23 check)"
+    }
+  ]
+}
