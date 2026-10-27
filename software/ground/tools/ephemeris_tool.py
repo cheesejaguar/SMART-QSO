@@ -61,6 +61,11 @@ def model_sigma(degree: int) -> float:
     return MODEL_SIGMA_FINEST_M
 
 
+#: The onboard chord velocity's method error, m/s (gnss_frame.rs: 8 mm/s over 120 s)
+CHORD_METHOD_SIGMA_MS = 0.01
+#: Mean motion at 475 km, rad/s: a position error floor as a velocity floor
+MEAN_MOTION = 1.11e-3
+
 #: Fixes closer than this belong to one session
 SESSION_GAP_S = 600.0
 EXIT_OK, EXIT_POOR, EXIT_FAIL = 0, 2, 3
@@ -69,7 +74,8 @@ EXIT_OK, EXIT_POOR, EXIT_FAIL = 0, 2, 3
 def observations(received: Sequence[Received], sigma_per_pdop: float = SIGMA_PER_PDOP_M,
                  sigma_v: Optional[float] = None, tai_utc_s: float = TAI_UTC_S,
                  since: Optional[float] = None, until: Optional[float] = None,
-                 model_sigma_m: float = 0.0) -> Tuple[List[Observation], List[Tuple[str, str]]]:
+                 model_sigma_m: float = 0.0, use_velocity: bool = True
+                 ) -> Tuple[List[Observation], List[Tuple[str, str]]]:
     """Fit observations from decoded frames, and the frames not used (label, reason)."""
     seen = {}
     rejected = []
@@ -89,11 +95,19 @@ def observations(received: Sequence[Received], sigma_per_pdop: float = SIGMA_PER
             rejected.append((label, "outside the fit window"))
             continue
         pdop = fix.pdop or DEFAULT_PDOP
+        sv = None
+        if fix.v_ecef_ms is not None and use_velocity:
+            # The chord velocity's noise (gnss_frame.rs), its method error, and
+            # the force-model floor carried to velocity (times the mean motion)
+            chord = math.sqrt(2) * sigma_per_pdop * pdop / fix.vdt_s if fix.vdt_s else 1.0
+            sv = math.sqrt(chord ** 2 + CHORD_METHOD_SIGMA_MS ** 2 + (model_sigma_m * MEAN_MOTION) ** 2)
+            if sigma_v is not None:
+                sv = sigma_v
         seen[key] = Observation(
             t=t, r_itrf=np.array(fix.r_ecef_m, dtype=float),
             sigma_r=math.hypot(sigma_per_pdop * pdop, model_sigma_m),
             v_itrf=None if fix.v_ecef_ms is None else np.array(fix.v_ecef_ms, dtype=float),
-            sigma_v=sigma_v if fix.v_ecef_ms is not None else None, label=label)
+            sigma_v=sv, label=label)
     obs = sorted(seen.values(), key=lambda o: o.t)
     session, last = 0, None
     for o in obs:
@@ -133,8 +147,8 @@ def run(argv: Optional[Sequence[str]] = None) -> int:
     until = _time_arg(opts.until)
     degree = opts.gravity_degree if opts.gravity_file else min(opts.gravity_degree, 4)
     floor = opts.model_sigma if opts.model_sigma is not None else model_sigma(degree)
-    obs, refused = observations(received, opts.sigma_per_pdop, opts.sigma_vel if opts.use_velocity else None,
-                                opts.tai_utc, since, until, floor)
+    obs, refused = observations(received, opts.sigma_per_pdop, opts.sigma_vel, opts.tai_utc, since, until, floor,
+                                use_velocity=not opts.no_velocity)
     if opts.window_h and obs:
         newest = obs[-1].t
         refused += [(o.label, "older than the fit window") for o in obs if o.t < newest - opts.window_h * 3600]
@@ -146,7 +160,7 @@ def run(argv: Optional[Sequence[str]] = None) -> int:
     model = ForceModel(gravity=gravity, bc=opts.cd * opts.area / opts.mass)
     prior = prior_from_tle(opts.prior_tle) if opts.prior_tle else None
     try:
-        fit = fit_orbit(obs, model=model, prior=prior, use_velocity=opts.use_velocity)
+        fit = fit_orbit(obs, model=model, prior=prior, use_velocity=not opts.no_velocity)
     except FitError as exc:
         print(f"FAIL: {exc}. No products written (SQSO-GND-002 §7: request more fixes or use the contingency)",
               file=sys.stderr)
@@ -275,8 +289,10 @@ def _parse_args(argv):
     p.add_argument("--sigma-per-pdop", type=float, default=SIGMA_PER_PDOP_M)
     p.add_argument("--model-sigma", type=float,
                    help="Force-model error floor per axis, m (default by gravity degree: 150 m to 4, 100 to 8, 60 to 12, 30 above)")
-    p.add_argument("--use-velocity", action="store_true", help="Fit the GNSS velocities too (accuracy unconfirmed)")
-    p.add_argument("--sigma-vel", type=float, default=0.05, help="Velocity sigma per axis with --use-velocity, m/s")
+    p.add_argument("--no-velocity", action="store_true",
+                   help="Do not fit the frames' chord velocities (they still start the iteration)")
+    p.add_argument("--sigma-vel", type=float,
+                   help="Velocity sigma per axis, m/s (default: from VDT, sqrt(2) x position sigma / VDT)")
     p.add_argument("--gravity-file", type=Path, help="ICGEM .gfc gravity field (e.g. EGM2008)")
     p.add_argument("--gravity-degree", type=int, default=4)
     p.add_argument("--cd", type=float, default=2.2)

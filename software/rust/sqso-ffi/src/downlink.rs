@@ -12,8 +12,10 @@
 //! @requirement SRS-I025 Key-down time per frame and duty limited
 //! @requirement SRS-I026 Downlink power at the commanded level, never above 1 W
 //! @requirement SRS-I027 Transmitter temperature and VSWR protection
+//! @requirement SRS-F161 TX_TEMP at or below -50 °C or above +125 °C, rising faster than 5 °C/s (over at least 15 s) or 60 °C from the board temperature is a sensor fault: the downlink then uses the board temperature plus 15 °C
 
 use sqso_fsw::downlink::{Downlink, Event, Refusal, Sample};
+use sqso_fsw::pa_temp::PaTemp;
 use sqso_fsw::rf_control::POWER_1W;
 
 use crate::c::{self, rc, severity};
@@ -36,6 +38,33 @@ unsafe extern "C" {
 }
 
 static DOWNLINK: Global<Downlink> = Global::new(Downlink::new());
+/// The transmitter temperature's plausibility (RID SMA-B19)
+static PA: Global<PaTemp> = Global::new(PaTemp::new());
+/// `ADC_CHANNEL_TEMP_BOARD`: the OBC board's TMP235
+const ADC_CHANNEL_TEMP_BOARD: u32 = crate::pins::ADC_TEMP_BOARD;
+
+/// The transmitter temperature the downlink uses: TX_TEMP, or with the
+/// sensor faulted the board's plus the margin; a new fault is logged
+fn pa_temp() -> f64 {
+    let (pa, board) = (adc(ADC_CHANNEL_TX_TEMP), adc(ADC_CHANNEL_TEMP_BOARD));
+    let now = c::now_ms();
+    let Some((t, new_fault)) = PA.with(|p| {
+        let before = p.faults;
+        let t = p.select(now, pa, board);
+        (t, p.faults != before)
+    }) else {
+        return pa;
+    };
+    if new_fault {
+        c::log(FAULT_TYPE_RF_TX, severity::WARNING, c"TX_TEMP implausible: board temperature used", 0.0);
+    }
+    t
+}
+
+/// The sensor faulted now, and its faults since boot (housekeeping)
+pub(crate) fn pa_sensor_status() -> (bool, u32) {
+    PA.with(|p| (p.faulted, p.faults)).unwrap_or((false, 0))
+}
 
 /// `DownlinkStatus_t`
 #[repr(C)]
@@ -61,7 +90,7 @@ fn adc(channel: u32) -> f64 {
 }
 
 fn monitors() -> Sample {
-    Sample { temp_c: adc(ADC_CHANNEL_TX_TEMP), fwd_w: adc(ADC_CHANNEL_TX_FWD), rev_w: adc(ADC_CHANNEL_TX_REV) }
+    Sample { temp_c: pa_temp(), fwd_w: adc(ADC_CHANNEL_TX_FWD), rev_w: adc(ADC_CHANNEL_TX_REV) }
 }
 
 /// Start: nothing on the air, full credit, power select low (0.5 W), the
@@ -86,7 +115,7 @@ pub unsafe extern "C" fn downlink_transmit(frame: *const u8, len: usize) -> i32 
     let now = c::now_ms();
     let permitted = rf_control::rf_control_tx_permitted();
     let level = rf_control::rf_control_get_power_level();
-    let temp_c = adc(ADC_CHANNEL_TX_TEMP);
+    let temp_c = pa_temp();
     let Some(decision) = DOWNLINK.with(|d| d.request(now, len, permitted, level, temp_c)) else { return rc::BUSY };
     let plan = match decision {
         Ok(plan) => plan,

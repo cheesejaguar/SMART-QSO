@@ -77,7 +77,9 @@ typedef enum {
     GPIO_PIN_JET_PG        = 43,  /**< PG6, input: Jetson carrier 3.3 V up (JET_3V3) */
     GPIO_PIN_GNSS_PG       = 44,  /**< PG15, input: 3V3_GNSS up (low with GNSS_EN high = SW7 trip) */
     GPIO_PIN_WDI           = 45,  /**< PG11: TPS3850 supervisor kick (falling edge every 10 s) */
-    GPIO_PIN_COUNT         = 46
+    GPIO_PIN_MAG_EN        = 46,  /**< PF14: magnetometer switch U35 (3V3_MAG), high = on (SQSO-ICX-001 D §6 row 33) */
+    GPIO_PIN_MAG_RB        = 47,  /**< PF15, input: U35 EN node (low with MAG_EN high = latch-up trip) */
+    GPIO_PIN_COUNT         = 48
 } HalGpioPin_t;
 
 /** The four wing burn lines, one resistor at a time (deployment.h) */

@@ -76,6 +76,8 @@ impl HalPins {
             Pin::GyroRb => pins::GYRO_RB,
             Pin::Imu2Rb => pins::IMU2_RB,
             Pin::SnsRb => pins::SNS_RB,
+            Pin::MagEn => pins::MAG_EN,
+            Pin::MagRb => pins::MAG_RB,
             Pin::GyroRstN => pins::GYRO_RST_N,
             Pin::GyroDrdy => pins::GYRO_DRDY,
             Pin::Imu2Drdy => pins::IMU2_DRDY,
@@ -85,11 +87,11 @@ impl HalPins {
 
     /// Outputs low, inputs with the board's pull-downs
     pub(crate) fn configure() {
-        for p in [Pin::GyroEn, Pin::Imu2En, Pin::SnsEn, Pin::GyroRstN] {
+        for p in [Pin::GyroEn, Pin::Imu2En, Pin::SnsEn, Pin::MagEn, Pin::GyroRstN] {
             // SAFETY: plain values (the HAL): output, pull-down
             let _ = unsafe { c::hal_gpio_config(HalPins::id(p), 1, 2) };
         }
-        for p in [Pin::GyroRb, Pin::Imu2Rb, Pin::SnsRb, Pin::GyroDrdy, Pin::Imu2Drdy, Pin::MagDrdy] {
+        for p in [Pin::GyroRb, Pin::Imu2Rb, Pin::SnsRb, Pin::MagRb, Pin::GyroDrdy, Pin::Imu2Drdy, Pin::MagDrdy] {
             // SAFETY: plain values (the HAL): input, no pull (the board's)
             let _ = unsafe { c::hal_gpio_config(HalPins::id(p), 0, 0) };
         }
@@ -175,7 +177,17 @@ mod tests {
         assert!(p.get(Pin::GyroRb), "the readback follows the enable");
         p.set(Pin::GyroEn, false);
         assert!(!p.get(Pin::GyroRb));
-        for pin in [Pin::Imu2En, Pin::SnsEn, Pin::Imu2Rb, Pin::SnsRb, Pin::GyroRstN, Pin::GyroDrdy, Pin::Imu2Drdy] {
+        for pin in [
+            Pin::Imu2En,
+            Pin::SnsEn,
+            Pin::MagEn,
+            Pin::Imu2Rb,
+            Pin::SnsRb,
+            Pin::MagRb,
+            Pin::GyroRstN,
+            Pin::GyroDrdy,
+            Pin::Imu2Drdy,
+        ] {
             p.set(pin, false);
         }
         assert!(!p.get(Pin::MagDrdy));

@@ -19,14 +19,13 @@ The formal covariance is scaled by the reduced chi-square when it exceeds 1.
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
 from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 
 import orbit_frames as fr
-from orbit_dynamics import GM, ForceModel, GravityField, propagate  # noqa: F401  (re-exported)
+from orbit_dynamics import GM, ForceModel, GravityField, propagate  # noqa: F401  (GravityField re-exported)
 
 #: A-priori 1-sigma of the drag scale factor
 DRAG_SCALE_SIGMA = 1.0

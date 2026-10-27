@@ -73,8 +73,14 @@ From the simulation's device values: OBC 0.165 W, ADCS sensors 0.12 W, magnetorq
 | EMERGENCY (beacon shed) | 0.27 | 0.15 | 0 | heater: thermostat |
 | LEOP (detumble at full dipole) | 0.77 | 0.15 | 0 | heater: thermostat |
 
-Heater: ≈ 207 Ω (1 W at 14.4 V): 0.72 W at the 12.0 V floor, 0.95 W at 14.0 V (the EMERGENCY threshold, 15 % SOC),
-1.30 W at 16.4 V. GEVS (GSFC-STD-7000B §2.6.4.1) asks for < 70 % duty in the worst cold case at the minimum voltage.
+The OBC board puts 1.16 W in the coils and 0.12 W in the bridges with all three magnetorquers saturated
+(`hardware/electrical/obc/OBC_BOARD_DESIGN.md` §10.1, §17), not the 0.30 W of the LEOP row. The cold cases do not credit the
+difference: a low tip-off rate ends the detumble early (§6.6 gives its effect).
+
+Heater: ≈ 207 Ω (1.00 W at 14.4 V): **0.70 W** (0.696 W) at the 12.0 V floor, 0.95 W at 14.0 V (the EMERGENCY
+threshold, 15 % SOC), 1.30 W at 16.4 V. The cases of §4 and §4.1 ran 0.72 W at the floor (the value of Version 2.0,
+also in BASELINE §8 as "0.72–1.30 W"); §4.2 re-runs them at 0.70 W and its values govern. GEVS (GSFC-STD-7000B
+§2.6.4.1) asks for < 70 % duty in the worst cold case at the minimum voltage.
 
 ## 3. Allowable temperatures and margin rule
 
@@ -199,17 +205,102 @@ Extremes at 475 km, against 500 km (§4):
 
 | Node | Hot bounding (H1–H6) | Failure hot (H7 Jetson stuck on, H9 heater stuck on) | Cold, wings deployed (C1–C25 nominal set) | Wings stowed (C6, C14, C16, C17, C20) | LEOP from the cold soak (L1–L3) |
 |------|----------------------|------------------------------------------------------|-------------------------------------------|----------------------------------------|----------------------------------|
-| Battery | 27.9 … 29.2 (was 27.7 … 28.9) | 44.3 (H7); 49.8 (H9; was 49.5) | +3.7 at 0.72 W spin-pointed (C11); +0.2 with a 0.10 W/K mount (C15); −2.6 heater failed (C9; was −2.8) | −1.1 at 0.72 W (C14; was −1.3); +2.7 at 0.95 W (C16, C20) | −8.9 at the start; 0 °C after 33 min (L1) and 58 min (L3) |
-| OBC/EPS | 32.2 (H2; was 31.9) | 48.4 (H7; was 48.1) | −11.5 (C12; was −11.9) | −18.1 (C14; was −18.3) | −17.4 (L1); **−24.0 (L3)** |
-| RF (PA) | 32.5 (H2; was 32.2) | 46.8 (H7; was 46.5) | −11.7 (C12; was −12.0) | −18.5 (C14; was −18.6) | −17.6 (L1); **−24.8 (L3)** |
-| Jetson | 39.3 (H2; was 39.0) | 60.9 (H7; was 60.6) | −11.7 (C12; was −12.0) | −18.6 (C14; was −18.8) | −17.6 (L1); **−25.1 (L3)** |
+| Battery | 27.9 … 29.2 (was 27.7 … 28.9) | 44.3 (H7); 49.8 (H9; was 49.5) | +3.6 at 0.70 W spin-pointed (C11, §4.2; +3.7 at 0.72 W); 0.0 with a 0.10 W/K mount at 0.70 W (C15, §4.2; +0.2 at 0.72 W), +1.3 at 0.95 W (C21); −2.6 heater failed (C9; was −2.8) | −1.5 at 0.70 W (C14, §4.2; −1.1 at 0.72 W, was −1.3); +2.7 at 0.95 W (C16, C20) | −8.9 at the start; 0 °C after 33 min (L1), 58 min (L3) and 80 min (L4, §4.3) |
+| OBC/EPS | 32.2 (H2; was 31.9) | 48.4 (H7; was 48.1) | −11.5 (C12; was −11.9) | −18.2 (C14 at 0.70 W; was −18.3) | −17.4 (L1); −24.0 (L3); **−27.6 (L4)** |
+| RF (PA) | 32.5 (H2; was 32.2) | 46.8 (H7; was 46.5) | −11.7 (C12; was −12.0) | −18.5 (C14; was −18.6) | −17.6 (L1); −24.8 (L3); **−28.6 (L4)** |
+| Jetson | 39.3 (H2; was 39.0) | 60.9 (H7; was 60.6) | −11.7 (C12; was −12.0) | −18.7 (C14 at 0.70 W; was −18.8) | −17.6 (L1); −25.1 (L3); **−28.9 (L4)** |
 
 The lower altitude changes the orbit-average results by 0.2–0.4 °C (a slightly larger Earth view and a shorter
 orbit). The verdicts of §1 and §5 stand. The new deployment case L3 is the coldest for the boards: −24 °C on the OBC
 and −25 °C on the RF board and the Jetson during the first orbit after a 2 h cold soak, below SYS-600
 (−20 °C operating) and inside the part ratings (−40 °C); it agrees with the mission simulation's −22.9 °C from a
 −20 °C spacecraft (§4). The battery leaves the cell's 0 °C charge limit 58 min after deployment (L1, β = 0: 33 min).
-RID THM-06 (deployment within 2 h of the soak) covers it.
+RID THM-06 (deployment within 2 h of the soak) covers it. L1–L3 deploy the wings at separation and L1 separates in
+sunlight; case L4 (§4.3: β = 0, separation at eclipse entry, wings stowed until the first burn) is colder for the
+boards than L3 and governs THM-04 (§6.6).
+
+### 4.2 Heater at 0.70 W (Version 2.2)
+
+The ≈ 207 Ω heater gives 12.0² / 207 = 0.696 W at the 12.0 V floor, not the 0.72 W of the §4.1 rows above. The rows of
+§4.1 run at 0.72 W, re-run at 0.70 W with the §4.1 conditions (475 km, set points +5/+9 °C; the analysis harness of
+§2.1, which reproduces C11 and C14 of §4.1 at 0.72 W exactly). Minimum … maximum, °C, last orbit; these supersede the
+0.72 W rows.
+
+| Case | Battery | OBC/EPS | RF (PA) | Jetson | Body | Wings | Heater duty | Battery minimum against 0.72 W |
+|---|---|---|---|---|---|---|---|---|
+| C2 cold, β 0, SAFE tumbling, 0.70 W | 5.0 … 12.5 | −8.3 … 19.9 | −8.5 … 20.1 | −8.4 … 19.4 | −14.3 … 26.8 | −40.5 … 37.0 | 28 % | 0.0 |
+| C5 cold, β 0, EMERGENCY tumbling, 0.70 W | 5.0 … 12.5 | −8.3 … 19.9 | −8.5 … 20.0 | −8.4 … 19.4 | −14.3 … 26.8 | −40.5 … 37.0 | 28 % | 0.0 |
+| C6 cold, β 0, SAFE tumbling, wings stowed, 0.70 W | 4.1 … 9.7 | −9.6 … 12.6 | −9.8 … 12.7 | −9.8 … 12.0 | −15.0 … 19.7 | −24.6 … 22.0 | 53 % | −0.1 |
+| C7 cold, β 0, SAFE tumbling, black battery, 0.70 W | 3.1 … 14.4 | −7.7 … 19.6 | −7.8 … 19.7 | −7.7 … 19.0 | −13.3 … 26.4 | −40.2 … 36.9 | 40 % | −0.1 |
+| C8 cold, β 0, SAFE tumbling, mount 0.10 W/K, 0.70 W | 3.0 … 14.2 | −7.6 … 19.6 | −7.8 … 19.7 | −7.7 … 19.0 | −13.3 … 26.4 | −40.2 … 36.9 | 41 % | −0.1 |
+| **C11** cold, β 0, SAFE spin-pointed, 0.70 W (12.0 V) | **3.6** … 9.8 | −11.3 … 13.3 | −11.6 … 13.3 | −11.6 … 12.7 | −16.5 … 22.3 | −39.0 … 78.9 | 55 % | −0.1 |
+| C13 cold, β 0, EMERGENCY spin-pointed, 0.70 W | 3.6 … 9.8 | −11.4 … 13.3 | −11.6 … 13.3 | −11.6 … 12.7 | −16.5 … 22.3 | −39.0 … 78.9 | 55 % | −0.1 |
+| **C14** cold, β 0, SAFE spin-pointed, wings stowed, 0.70 W | **−1.5** … 2.8 | −18.2 … −0.4 | −18.5 … −0.4 | −18.7 … −1.1 | −22.6 … 7.4 | −31.4 … −14.3 | 100 % | −0.4 |
+| **C15** cold, β 0, SAFE spin-pointed, mount 0.10 W/K, 0.70 W | **0.0** … 10.0 | −10.7 … 13.0 | −10.8 … 13.1 | −10.9 … 12.4 | −15.5 … 21.9 | −38.8 … 78.9 | 66 % | −0.2 |
+| C10 cold real, LTAN 23:30 June, SAFE tumbling, 0.70 W | 5.0 … 13.0 | −7.4 … 21.3 | −7.5 … 21.5 | −7.4 … 20.8 | −13.5 … 28.1 | −39.6 … 46.0 | 18 % | 0.0 |
+
+The change is 0.0–0.4 °C on the battery and ≤ 0.1 °C elsewhere; the verdicts stand except that C15 (an as-built mount
+twice the model's) now reaches 0 °C, at the hardware charge-inhibit threshold (+1.1 °C ± 1 K, SQSO-EPS-BRD-001 §5.3).
+C10's pack sits at the +5 °C switch-on point, so its last-orbit duty depends on the cycle phase (0 % at 0.72 W, 18 %
+at 0.70 W). C6 and C14, wings stowed, are discussed in §6.8 with a heater-power sweep.
+
+### 4.3 LEOP with the wings stowed until the burn; hinge, burn line and wing (Version 2.2, RID P3S-01)
+
+L1–L3 deploy the wings at separation. In flight they stay stowed until the first burn, 30 min after separation
+(`sqso_fsw::deployment`, `WAIT_TIME_MS`), and, if a burn fails, until the retries 50 min later (`RETRY_DELAY_MS`):
+separation + 80 and + 130 min. **Cold case:** the 2 h dispenser cold soak of §4 (D3), β = 0 with the cold environment
+(1322 W/m², albedo 0.25, Earth IR 218 W/m²), tip-off tumble 10°/s, LEOP dissipation, battery heater 0.70 W, the wings
+stowed throughout (the burns have failed), and the separation time swept over the orbit in 2 min steps: separation at
+eclipse entry and the coldest separation phase for each burn. Sensitivities: a 3 h soak, the deployment orbit of L3
+(2028-11-01, LTAN 22:30, β 19.6°) and the hinge couplings. Sub-nodes of each wing, driven by the network (one-way):
+
+| Sub-node | Heat capacity | Couplings | Represents |
+|---|---|---|---|
+| Hinge, frame side | 4 J/K (ears, pin, bushings, springs, ≈ 5 g) | 0.20 W/K to its ±X body panel (ears bolted to the shear panel), 0.01 W/K to the wing side (the network's deployed-hinge value); 3 cm², ε 0.85, half its view to space with Earth IR, albedo and Sun on the hinge-corner normal | A286 pin and MoS₂ film, Ti-6Al-4V bushings, frame ears, primary spring below the wing |
+| Hinge, wing side | 2 J/K | 0.05 W/K to the wing panel (knuckles in the end zones), 0.01 W/K to the frame side; 1 cm² to space | Wing knuckles, clock-spring flex cup |
+| Burn board and resistor | 1.5 J/K | 0.015 W/K each to the ±X and −Y body panels (corner strip at the −Y free corner, `hardware/harness/HARNESS_DESIGN.md` §7.2); radiation to the interior; 10 % of its view through the line slot to the stowed wing | The line inside the resistor: the release energy |
+| Hold-down line, free span | 0.034 J/K (0.1 m of Ø0.5 mm line) | Radiation only: half its view to the stowed wing's outer face, half to space (α 0.5, ε 0.85) | The line over the post: preload, not the cut |
+| Snubber | — | Midway between the wing and its body panel | PTFE-faced silicone snubber |
+
+Predicted temperatures at the burns, °C, colder wing (W2, on −X, for the tip-off axis), and with the 10 °C margin of
+BASELINE §8:
+
+| Node | Burn 1, sep. + 30 min | Retry 1, sep. + 80 min | Retry 2, sep. + 130 min |
+|---|---|---|---|
+| *Separation at eclipse entry* | *eclipse* | *sunlit* | *eclipse exit* |
+| Wing panel | −40.1 (−50.1) | +2.1 (−7.9) | −30.4 (−40.4) |
+| Hinge, frame side | −30.1 (−40.1) | +0.6 (−9.4) | −19.0 (−29.0) |
+| Hinge, wing side | −38.4 (−48.4) | +1.8 (−8.2) | −29.1 (−39.1) |
+| Burn resistor and line in it | −29.3 (−39.3) | +1.1 (−8.9) | −18.1 (−28.1) |
+| Line, free span over the post | −69.7 (−79.7) | −9.8 (−19.8) | −58.8 (−68.8) |
+| Snubber | −34.9 (−44.9) | +1.4 (−8.6) | −24.3 (−34.3) |
+| *Coldest separation phase for that burn* | *34 min after the node (eclipse)* | *80 min (sunlit)* | *28 min (eclipse)* |
+| Wing panel | **−40.6 (−50.6)** | −29.9 (−39.9) | −30.6 (−40.6) |
+| Hinge, frame side | **−30.2 (−40.2)** | −18.1 (−28.1) | −18.5 (−28.5) |
+| Hinge, wing side | **−38.8 (−48.8)** | −28.2 (−38.2) | −28.5 (−38.5) |
+| Burn resistor and line in it | **−29.4 (−39.4)** | −17.1 (−27.1) | −17.6 (−27.6) |
+| Line, free span over the post | −70.8 (−80.8) | −59.2 (−69.2) | −63.3 (−73.3) |
+| Snubber | −35.2 (−45.2) | −23.7 (−33.7) | −24.3 (−34.3) |
+
+Sensitivities at burn 1 (coldest phase): a **3 h soak** gives wing −41.7 (−51.7), hinge −31.6 (−41.6) frame side and
+−40.0 (−50.0) wing side, resistor −30.8 (−40.8), line −71.6, snubber −36.4 (−46.4); at the retries it is 0.5–0.8 °C
+colder than the 2 h soak. The **L3 deployment orbit** is 0.2–0.7 °C warmer than β = 0 (wing −39.9, wing-side hinge
+−38.1, resistor −29.2). A poor ear joint (0.05 W/K) with a better pin path (0.03 W/K) puts the frame side at −32.5
+(−42.5) and the wing side at −37.2. **Later attempts** commanded from the ground with the wings still stowed see the
+stowed steady state (C14-like, SAFE): wing −31.4, wing-side hinge −29.6 at any point of the orbit, sun-pointed; −24.2 /
+−22.5 tumbling. **The −45 °C** quoted for the stowed wing before (L1–L3, MECHANISMS_ANALYSIS §4A) is the deployed wing
+in the eclipse after deployment (−45.3 °C here after a burn at + 30 min), not the wing at the burn.
+
+**For the mechanisms (RID P3S-01).** With the margin, the coldest node at any burn is −51.7 °C (wing panel, 3 h soak;
+−50.6 °C after 2 h), the wing side of the hinge −50.0 °C, the frame side (pin, springs) −41.6 °C (−42.5 °C with the
+poor ear joint, about −44 °C with it and the 3 h soak together), the snubber −46.4 °C
+and the burn resistor −40.8 °C: all inside the −55 °C design and test point of SQSO-MECH-001 Version E (torque margin
++0.08, burn ratio 1.52 at −55 °C; VI-STR-04/-05/-06, VI-MECH-01/-02/-03) by 3.3 °C or more. The release energy depends
+on the resistor's temperature, −39.4 °C (−40.8 °C after 3 h) with the margin, so the 8 s burn's ratio lies between the
+−40 °C (1.67) and −55 °C (1.52) rows. The only node below −55 °C is the free span of the line, −81 °C with the margin
+(radiating half to space): not in the release path, but it is where the line's negative expansion coefficient
+(Dyneema and Vectran lengthen as they cool) and the frame's contraction act together on the 30 N preload; the
+mechanical designer checks the preload and slack with the free span at −81 °C and the anchors at −42 °C.
 
 ## 5. Margins
 
@@ -218,10 +309,13 @@ RID THM-06 (deployment within 2 h of the soak) covers it.
 | Battery, hot, operations | 28.9 °C (H2) | +45 (charge) | +16.1 | +6.1 | Pass |
 | Battery, hot, Jetson stuck on | 44.1 °C (H7) | +45 (charge) | +0.9 | −9.1 | Charge inhibited hot (fail-safe); +16 to the +60 °C discharge limit |
 | Battery, hot, heater stuck on | 49.5 °C (H9) | +45 / cutout +40 | — | — | The series hardware cutout at +40 °C is required (BUILD_VS_BUY §4.3) and must be verified |
-| Battery, cold, heater-controlled | +1.7 °C at 0.72 W, 40 % duty (C11) | 0 °C (charge) | +1.7 | duty 40 % < 70 % | Pass by the duty rule; **fails** with mount 0.10 W/K (−1.0 °C, C15) or heater failed (−2.8 °C, C9) |
-| Battery, cold, set points +5/+9 °C | +4.4 °C at 0.95 W, 46 % (C22); +1.2 °C at 0.10 W/K (C21) | 0 °C | +4.4 / +1.2 | duty 46 % / 59 % | Pass |
-| OBC/EPS stack, cold | −11.7 °C (C4); −17.4 °C (LEOP after soak) | −20 (SYS-600) | +8.3 / +2.6 | **−1.7 / −7.4** | Fails SYS-600; +18 / +13 to the parts' −40 °C |
-| RF board, cold, wings stowed | −18.6 °C (C14) | −20 | +1.4 | **−8.6** | Fails SYS-600 in the contingency |
+| Battery, cold, heater-controlled (Version 2.2: 475 km, +5/+9 °C, 0.70 W at the 12.0 V floor) | +3.6 °C at 0.70 W, 55 % duty (C11, §4.2) | 0 °C (charge; hardware inhibit +1.1 °C) | +3.6 | duty 55 % < 70 % | Pass by the duty rule; at the limit with mount 0.10 W/K (0.0 °C, C15); below it with the heater failed (−2.6 °C, C9) |
+| Battery, cold, 14.0 V | +4.4 °C at 0.95 W, 45 % (C22); +1.3 °C at 0.10 W/K (C21) | 0 °C | +4.4 / +1.3 | duty 45 % / 58 % | Pass |
+| Battery, cold, wings stowed (contingency) | −1.5 °C at 0.70 W, +2.7 °C at 0.95 W, 100 % duty (C14, C16) | 0 °C | −1.5 / +2.7 | duty 100 % | Contingency accepted (§6.8, THM-03) |
+| OBC/EPS stack, cold, orbit | −11.5 °C (C12) | −30 (proposed AFT, §6.6); −20 (SYS-600) | +18.5 / +8.5 | +8.5 / −1.5 | Pass against the proposed AFT |
+| OBC/EPS stack and RF board, LEOP first orbit | −27.6 / −28.6 °C (L4, §4.3); −29.1 / −30.0 °C after a 3 h soak | −30 (AFT); −40 (parts; proposed first-orbit AFT) | +2.4 / +1.4 to −30 | **−7.6 / −8.6** to −30; +2.4 / +1.4 to −40 | Outside the −30 °C AFT; inside the parts' −40 °C: first-orbit AFT −40 °C with a test-margin deviation (§6.6, THM-04) |
+| Jetson (off), LEOP first orbit | −28.9 °C (L4) | −25 (module Tj, the only data-sheet minimum); −40 proposed first-orbit non-operating AFT | −3.9 / +11.1 | **−13.9** / +1.1 | Needs the EM non-operating soak (V-THM-8) |
+| RF board, cold, wings stowed | −18.5 °C (C14) | −30 (proposed AFT); −20 (SYS-600) | +11.5 / +1.5 | +1.5 / **−8.5** | Pass against the proposed AFT |
 | OBC/EPS stack, hot | 31.9 °C (H2) | +50 | +18.1 | +8.1 | Pass |
 | Jetson, hot, bursts and batches | 39.0 °C (H2) | +50 (SYS-600); 70 (guard) | +11.0 / +31.0 | +1.0 / +21.0 | Pass |
 | Jetson, stuck on | 60.6 °C (H7) | +50 | −10.6 | −20.6 | Failure case; the energy loss ends it first (POWER_BUDGET_ANALYSIS §8.4) |
@@ -285,15 +379,87 @@ With the specified low-ε exterior (ε 0.10) the radiation adds 0.008 W/K. A bla
 cold case that cuts the heater's margin like a 0.10 W/K mount does (C7: +1.8 °C at 26 % duty, but the hot side of
 the cycle rises to 13.6 °C). The finish is a drawing requirement (BUILD_VS_BUY §4.3) and must be inspected.
 
-### 6.6 Cold boards and SYS-600
+### 6.6 Cold boards, SYS-600/601 and the LEOP cold case (RID THM-04, Version 2.2)
 
-SYS-600 ("all components shall operate within −20 … +50 °C") cannot be met with the 10 °C margin by the OBC/EPS
-stack and the RF board in the cold case (−11.7 °C) or after a cold soak (−17.4 °C; −22.9 °C in the simulation with
-the whole spacecraft at −20 °C at separation). The parts are rated −40 … +85 °C. Recommendation (THM-04, for the
-chair): replace SYS-600/601 by per-unit allowable flight temperatures in a thermal requirements table
-(THERMAL_DESIGN §1.1): OBC/EPS and RF boards −30 … +60 °C operating, −40 … +70 °C non-operating (part ratings
-−40 … +85 °C with 10 °C derating); battery as §3; Jetson −15 … +50 °C operating (power-on gate −15 °C);
-wings per the vendor's qualification.
+SYS-600 ("all components shall operate within −20 … +50 °C") and SYS-601 (survive −40 … +60 °C) are not per-unit
+allowables and cannot be met with the 10 °C margin by the boards. Version 2.1 proposed per-unit values without deriving
+them; the round-3 panel reopened THM-04 on the LEOP cases (L3: OBC −24.0 °C, RF −24.8 °C; Jetson −17.6 °C in L1 and
+−19.1 °C after the 3 h soak). Case L4 (§4.3), the cold case for the burns, is colder still.
+
+**Allowables from the parts.** The lowest data-sheet minimum on each unit (board BOMs
+`hardware/electrical/*/*_bom.csv`, board design documents):
+
+| Unit | Parts at the lowest rating | Unit minimum from the parts | Exceptions |
+|---|---|---|---|
+| OBC board | STM32L4R5ZIT6, FM25V20A, RV-3028-C7, M-G370PDT0, BMI088, 32.768 kHz crystal: −40 … +85 °C; the rest AEC-Q100/Q200 grade 1 or −55 °C; connectors −40 … +105 °C | −40 °C | — |
+| EPS board | BQ76952, BQ771806, TQ2SA relay, 2920L PTC: −40 … +85 °C; MSP430FR2355 −40 … +105 °C; the rest AEC-Q100/Q101/Q200 | −40 °C | ITV4030 fuses F1, F3: −10 … +65 °C (`EPS_BOARD_DESIGN.md` §14, V-EPS-8, EPSB-05) |
+| Magnetometer, A3 boards | RM3100 and its coils −40 … +85 °C | −40 °C | — |
+| RF board | CC1200, CMX138A, STM32L431, LMX2571, PCM1808, AD8361, TA2209A SAW, TG2016SMN TCXO: −40 … +85 °C; logic and regulators −40 … +125 °C | −40 °C | Y451 (ABLS 3.6864 MHz crystal): the BOM leaves the grade unconfirmed; the −40 … +85 °C variant must be the one ordered |
+| Jetson carrier | N2600 NVMe −40 … +85 °C; the rest −40 … +105/125 °C | −40 °C | — |
+| Jetson module | Orin Nano: junction −25 … +105 °C (DS-11105-001, `CARRIER_BOARD_DESIGN.md` §2 item 5); no non-operating range below it in the project's reading | −25 °C | Below −25 °C only by qualification test (V-THM-8) |
+| Battery | INR18650-35E | §3 | Heater-controlled |
+
+The protoflight test runs at the AFT ± 10 °C (ETP §3.4, SYS-707), and a test plateau should not take a part below its
+data-sheet minimum, so a unit whose parts stop at −40 °C has a cold AFT of **−30 °C**, operating and non-operating
+alike (the harness connectors' −40 °C is their only rating, and the ETP non-operating plateau is −40 °C at the
+structure). That is the Version 2.1 operating value; its −40 °C non-operating value would have needed a −50 °C plateau.
+
+**Against −30 °C with the 10 °C margin:** the orbit cold cases pass (−11.7 °C → −21.7 °C, C12; wings stowed −18.5 °C →
+−28.5 °C, C14); the dispenser soak passes (3 h, unpowered: −19.1 °C → −29.1 °C); L1 passes (−27.6 °C); **L3 fails by
+4.0 (OBC/EPS) to 5.1 °C (Jetson) and L4 by 7.6 °C (OBC/EPS), 8.6 °C (RF) and 8.9 °C (Jetson, off)**, and after a 3 h soak L4 reaches −29.1,
+−30.0 and −30.3 °C, that is −40 °C with the margin: the parts' rating. The excursion is one transient: in L4 the OBC
+is below −20 °C for 37 min, the RF board for 40 min, the Jetson below −25 °C for 21 min, in the first orbit only.
+
+**Design changes evaluated (L4):**
+
+| Change | OBC/EPS | RF | Jetson | Cost | Verdict |
+|---|---|---|---|---|---|
+| None | −27.6 | −28.6 | −28.9 | — | — |
+| Stack heater 1 W, on below −15 °C | −24.8 | −26.9 | −27.5 | 0.9 Wh | Insufficient |
+| Stack heater 3 W, thermostat | −19.1 | −23.5 | −24.6 | 2.5 Wh | RF still 3.5 °C short |
+| 3 W stack and 2 W RF heaters, on | −17.3 | −17.6 | −22.0 | 7.8 Wh in the first orbit, 16 % of the 49.7 Wh pack, while the pack (−8.9 °C at separation) cannot charge for about 80 min; two new switched heaters | Closes; rejected |
+| RF board kept off until warm (power-on delay) | −27.6 | colder | −28.9 | — | Off, it is non-operating at the same −30 °C AFT: no gain. The OBC/EPS stack cannot wait (separation timer, burns, detumble) |
+| Board detumble power (1.16 W coils for the 0.8 h of the simulated detumble, §2.3), not credited | −24.8 | −26.9 | −27.5 | — | A low tip-off rate ends it early |
+| EM correlation (margin 5 °C) | −32.6 with margin | −33.6 | −33.9 | V-THM-1 | Does not close alone |
+
+The shortfall is set by the separation temperature: from the bounding 2 h soak (SpaceX interface bound used as a
+strongly coupled wall, §6.7) the first eclipse takes the boards down by a further 10–11 K. A heater large enough to
+cover it costs more of the LEOP energy than the detumble itself, and the parts are rated to −40 °C.
+
+**Recommendation (THM-04; change request raised by the programmatics owner):**
+
+1. Replace SYS-600/601 by per-unit AFTs (THERMAL_DESIGN §1.1): boards and Jetson carrier −30 … +50 °C operating and
+   −30 … +60 °C non-operating; Jetson module −15 °C (power-on gate, SRS-F131) … +50 °C at the spreader operating
+   (SYS-603 for the junction), −30 … +60 °C non-operating; battery as §3; structure −60 … +100 °C; wings and body
+   panels the vendor's qualified range (≥ −56 … +93 °C, V-THM-4).
+2. **First orbit after separation:** the boards' operating and the Jetson's non-operating AFT extend to **−40 °C**, the
+   parts' rating, demonstrated by a cold start at −40 °C (EM, V-THM-8; FM, the ETP cold start moved from −30 °C to
+   −40 °C). The L4 minimum with the margin (−38.6 °C; −40.0 °C after 3 h) is inside it but without the 10 °C test
+   margin beyond it: a GEVS test-margin deviation for the first orbit only, for the chair, to be recorded in ETP §9.
+   Rationale: one transient of ≤ 46 min below −20 °C, from a bounding soak, with parts rated to −40 °C and the
+   detumble's 1.2 W uncredited.
+3. Actions: Y451 in its −40 … +85 °C grade (RF BOM); V-EPS-8 (ITV4030) at −40 °C instead of −30 °C; the Jetson module's
+   non-operating soak at −40 °C (V-THM-8); THM-06 (deployment within 2 h of the soak) stays, since at 3 h the margined
+   minimum reaches the −40 °C rating; the ETP cold operational plateau becomes −40 °C (AFT − 10 °C, was −30 °C).
+4. The deviation lapses if the integrator's dispenser analysis (V-THM-5) puts the boards and the Jetson at or above
+   about −8 °C at separation (−13 °C after correlation), which brings L4 inside −30 °C with the margin.
+
+**Proposed SYS-600 text:** "Each unit shall operate within its operating allowable flight temperatures (AFT) of
+`hardware/structure/THERMAL_DESIGN.md` §1.1: the OBC/EPS stack with the ADCS and GNSS units and the magnetometer board,
+and the RF board, −30 °C to +50 °C, and down to −40 °C during the first orbit after separation; the battery 0 °C to
++45 °C charging and −10 °C to +60 °C discharging (SYS-602); the Jetson module and carrier −15 °C (power-on gate) to
++50 °C at the heat spreader, with SYS-603 for the junction; the solar panels and wings over the panel vendor's
+qualified range, at least −56 °C to +93 °C. Verified by analysis, the predictions plus 10 °C before engineering-model
+correlation (5 °C after) lying inside the AFT, and by test: protoflight thermal vacuum at the AFT ± 10 °C capped at
++60 °C (SYS-707), and for the first-orbit extension a cold start at −40 °C, tested at its AFT without the 10 °C test
+margin (GEVS deviation, ETP §9)."
+
+**Proposed SYS-601 text:** "Each unit shall survive unpowered, without degradation, its non-operating AFT of
+`hardware/structure/THERMAL_DESIGN.md` §1.1: the OBC/EPS stack, the RF board, the magnetometer board, the Jetson carrier
+and the Jetson module −30 °C to +60 °C, and down to −40 °C during the first orbit after separation (the Jetson module
+qualified below its data sheet's −25 °C junction minimum by the engineering-model soak, V-THM-8); the battery −20 °C to
++60 °C; the structure −60 °C to +100 °C. Verified as SYS-600, with the non-operating plateaus at −40 °C and +60 °C (the
+battery cap, ETP §9 deviation 1)."
 
 ### 6.7 Dispenser soak
 
@@ -306,6 +472,45 @@ analysis for the assigned Transporter flight and slot, with the deployment time 
 Until then: deliver the pack at the storage state of charge (BATTERY_SAFETY_ASSESSMENT §6), and do not give the BMS a
 discharge cut-off at −10 °C (EPS-08), or a cold deployment would leave the bus dark until the Sun warms the pack.
 
+### 6.8 Wings stowed: heater at 100 % duty (RID THM-03, Version 2.2)
+
+With both wings stowed (both hold-downs failed after every attempt: P = 0.0029, ODAR §6.5) the cold case C14 (β = 0,
+cold environment, SAFE, sun-pointed) keeps the heater on all orbit, so the pack's temperature is set by the heater's
+power, V² / 207 Ω, that is by the bus voltage. Sweep (475 km, last of 25 orbits):
+
+| Bus (V) | 12.0 | 12.4 | 12.8 | 13.2 | 13.6 | 14.0 | 14.4 | 14.8 |
+|---|---|---|---|---|---|---|---|---|
+| Heater (W) | 0.70 | 0.74 | 0.79 | 0.84 | 0.89 | 0.95 | 1.00 | 1.06 |
+| Battery minimum (°C), duty 100 % | −1.5 | −0.7 | +0.1 | +0.9 | +1.7 | +2.6 | +3.5 | +4.4 |
+
+EMERGENCY (beacon shed) is within 0.1 °C of SAFE; tumbling with the wings stowed (C6) is warmer, +4.1 °C at 0.70 W and
+53 % duty; the real coldest orbit (LTAN 23:30, June, cold environment) is −1.7 °C at 0.70 W. The pack is at or above
+0 °C from 0.79 W (12.8 V), and above the hardware charge-inhibit threshold with its tolerance (+1.1 °C + 1 K,
+SQSO-EPS-BRD-001 §5.3) from about 0.92 W (13.8 V).
+
+**Energy.** The generation with the wings stowed is 1.47 W delivered (BASELINE §5; worst 30 days of the second year,
+sun-pointed); the bounding case's own array (β = 0, 1322 W/m², end of life) gives 1.40 W at the maximum power points,
+about 1.33 W delivered. SAFE takes 0.52 W before the heater (POWER_BUDGET_ANALYSIS §8.1), which leaves 0.95 W (as
+flown) or about 0.81 W (bound) for the heater, orbit average. Because the heater draws V² / R, the bus settles where
+generation and load balance: about 14.0 V with 1.47 W (heater 0.95 W, pack **+2.6 °C**, charging permitted all orbit,
+no energy margin), about 12.9 V at the bound (0.81 W, pack about +0.3 °C, charge refused while the pack is below
++1.1 °C). The 12.0 V point (−1.5 °C) is reached only from an energy deficit, with a pack already near empty. A
+lower-resistance heater does not help: at the balance the heater power is the surplus whatever its resistance; only a
+lower load or a better-isolated pack (the design mount, ≈ 0.03 W/K, V-THM-2) moves the pack temperature.
+
+**At that power, with the loads shed to SAFE, the heater holds the battery at or above 0 °C** with the as-flown
+generation (+2.6 °C at about 14.0 V), with no energy margin, and not with certainty at the bound. Below +1.1 °C the
+charge path is refused in hardware (two independent layers, SQSO-EPS-BRD-001 §5.3), which is fail-safe: no charge
+below 0 °C, no lithium plating, SYS-602 holds. The array still supplies the bus in sunlight (§5.2 there). What is lost:
+the recharge during the cold part of each orbit, so the pack settles at a low state of charge near the EMERGENCY
+threshold (14.0 V), with the transponder and the Jetson off (the wings-stowed rule already holds them off) and, in
+EMERGENCY, the beacon shed until the season or the attitude raises the generation.
+
+**Recommended disposition: accept as a contingency**, with (a) a flight-software rule: with the wings stowed, hold
+SAFE (not IDLE) while the battery's minimum over the last orbit is below +3 °C, so the heater gets the whole surplus
+(IDLE takes about 0.4 W more, POWER_BUDGET_ANALYSIS §8.1); (b) the stowed points of V-THM-1 to correlate the case; no
+hardware change.
+
 ## 7. Thermal control hardware (CDR baseline)
 
 | Element | Specification | Source |
@@ -313,7 +518,7 @@ discharge cut-off at −10 °C (EPS-08), or a cold deployment would leave the bu
 | External finishes | Long faces: cells (α 0.92, ε 0.85) and black anodize between; ends black anodize (α 0.88, ε 0.85) | THERMAL_DESIGN §3.1 |
 | Battery mount | 4 × M2.5 G-10CR or PEEK 450G shouldered bushings, Ti-6Al-4V screws, flying leads ≥ 100 mm, ≈ 0.03 W/K to the frame, ≤ 0.01 W/K to the stack | BUILD_VS_BUY §4.3 |
 | Battery exterior | ε ≤ 0.10 (VDA tape or bare aluminium) | BUILD_VS_BUY §4.3; §6.5 here |
-| Battery heater | ≈ 200 Ω polyimide film, two elements on different cells, ≥ 0.95 W at 14.0 V; thermostat +5/+9 °C (recommended); series hardware cutout +40 °C; fuse or current limit | §6.1; BATTERY_DESIGN §6.3 |
+| Battery heater | ≈ 207 Ω polyimide film, two elements on different cells: 0.70 W at 12.0 V, 0.95 W at 14.0 V, 1.30 W at 16.4 V; thermostat +5/+9 °C (SRS-F130); series hardware cutout +40 °C; fuse or current limit | §2.3, §6.1; BATTERY_DESIGN §6.3 |
 | Jetson path | ≥ 1 W/K module to frame, measured on the EM | BASELINE §6; SYS-603 |
 | Temperature sensors | Two battery NTCs, OBC, RF/PA (TX_TEMP), Jetson spreader, one per long panel (the panel vendors build thermistors in) | THERMAL_DESIGN §10 |
 
@@ -325,8 +530,9 @@ The full RID table is in the CDR reviewer report; the thermal RIDs closed or ope
 |-----|-------|--------|
 | THM-01 | Thermal analysis v1.0 was for the wrong orbit and computer, with no model | Closed by analysis (this document) |
 | THM-02 | Heater thermostat +2/+6 °C leaves too little margin to the 0 °C charge limit | For the chair: flight-software constants (§6.1) |
-| THM-03 | Wings-stowed cold case saturates the heater | Verification item V-THM-1; accepted as contingency |
-| THM-04 | SYS-600/601 cannot be met by the boards with the 10 °C margin | For the chair (§6.6) |
+| THM-03 | Wings-stowed cold case saturates the heater | Version 2.2: contingency accepted by analysis (§6.8: at the stowed generation the bus settles near 14.0 V and the pack at +2.6 °C, no energy margin; below +1.1 °C charging is refused in hardware); flight-software rule (SAFE, not IDLE, while the stowed pack's orbit minimum is below +3 °C) for the chair; V-THM-1 stowed points |
+| THM-04 | SYS-600/601 cannot be met by the boards with the 10 °C margin | Version 2.2: per-unit AFTs derived from the parts (§6.6): −30 °C cold for the boards; first-orbit extension to −40 °C with a GEVS test-margin deviation for the chair; SYS-600/601 text for the change request (§6.6); V-THM-8, V-EPS-8 at −40 °C, Y451 grade |
+| P3S-01 | Mechanism cold design and test point (−40 °C) warmer than the predicted stowed-wing temperature | Version 2.2: closed by analysis (§4.3): at every burn the margined wing, hinge, snubber and burn-resistor temperatures are inside the −55 °C point of SQSO-MECH-001 Version E by ≥ 3.3 °C; the line's free span (−81 °C with the margin) is for the preload check |
 | THM-05 | Wing cells' qualified range not known; predictions −45 … +83 °C | Verification item V-THM-4 |
 | THM-06 | Cold soak in the dispenser puts the pack at its discharge limit at deployment | Verification item V-THM-5 with EPS-08 |
 | THM-07 | Hot soak in the dispenser exceeds +60 °C (bounding) | Verification item V-THM-5 |
@@ -342,8 +548,9 @@ The full RID table is in the CDR reviewer report; the thermal RIDs closed or ope
 | V-THM-3 | Jetson path and junction-to-spreader resistance at 8 W | Module-to-frame ≥ 1 W/K; junction rise ≤ 5.7 K/W | SYS-603, BASELINE §6 | EM |
 | V-THM-4 | Wing and body panel qualification record from the vendor | Qualified range covers −56 … +93 °C (predictions with 10 °C) for ≥ 11,000 cycles | THM-05 | Panel procurement |
 | V-THM-5 | Integrator's dispenser thermal analysis for the assigned flight, with the deployment time | Pack ≤ +50 °C and ≥ −15 °C at deployment; boards within non-operating limits | THM-06, THM-07 | Integrator ICD (by L-6 months) |
-| V-THM-6 | Protoflight thermal vacuum and cycling | SpaceX UG v11 Table 6-2: acceptance range (envelope of the predictions and −24 … +61 °C) ± 5 °C, 20 cycles, ≥ 4 in vacuum, tailored on the battery to its −20 … +60 °C limits with the integrator's agreement | SYS-600/601 or their replacement | FM |
+| V-THM-6 | Protoflight thermal vacuum and cycling | ETP Rev D §3.4: 8 thermal-vacuum cycles at AFT ± 10 °C capped at +60 °C, plus 4 board-level cycles and, if the integrator requires 20, 8 ambient cycles (VI-08); the SpaceX ± 5 °C range is enveloped except at the battery cap (deviation 4) | SYS-600/601 or their replacement | FM |
 | V-THM-7 | Heater circuit: thermostat, cutout at +40 °C, fuse | Cutout opens at 40 ± 3 °C with the heater forced on; heater current at 12.0 and 16.4 V | §6.2 | EM, FM |
+| V-THM-8 | EM cold start and Jetson non-operating soak (THM-04, §6.6) | After ≥ 2 h unpowered at −40 °C, the OBC/EPS stack, RF board and Jetson carrier power up at −40 °C and pass their functional tests (RF: receiver sensitivity, TCXO within ±1 ppm; EPS: the ITV4030 per V-EPS-8 at −40 °C); the Jetson module, soaked unpowered at −40 °C for 3 cycles, boots at the −15 °C gate and passes its functional test | THM-04, SYS-600/601 first-orbit extension | EM, before FM build |
 
 ## 10. Revision History
 
@@ -352,3 +559,4 @@ The full RID table is in the CDR reviewer report; the thermal RIDs closed or ope
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten for the baseline orbit and hardware on the simulation's 12-node network (battery radiation added): hot, cold, dispenser and LEOP cases with margins (finding TB-07) |
 | 2.1 | 2026-10-27 | CDR flight software, round 3 | §4.1 new: the cases re-run at 475 km (BASELINE Rev E) with the 2028-11-01 launch date and the +5/+9 °C set points, and the deployment case L3 (2028-11-01, LTAN 22:30, from the cold soak: boards −24 to −25 °C); §2.2 orbit row |
+| 2.2 | 2026-10-27 | CDR thermal analyst, round 3 | Panel reopenings P3S-01, THM-03, THM-04: §4.3 new, LEOP with the wings stowed until the burn, separation phase swept, hinge, burn-board and line sub-nodes; burn temperatures for the mechanisms (wing −40.6 °C, hinge −30.2 / −38.8 °C, resistor −29.4 °C at separation + 30 min; inside −55 °C with the margin: P3S-01 closed by analysis); case L4 (boards −27.6 / −28.6 °C, Jetson −28.9 °C); §6.6 per-unit allowables from the board BOMs, design changes evaluated, first-orbit −40 °C extension with a test-margin deviation, SYS-600/601 text for the change request; §6.8 wings-stowed heater sweep and energy balance, contingency accepted; §4.2 heater 0.70 W at 12.0 V (207 Ω; was 0.72 W): C11 +3.6 °C, C15 0.0 °C, C14 −1.5 °C; §1, §2.1, §2.3, §4.1 extremes, §5, §7, §8 updated; V-THM-6 restated to ETP Rev D §3.4; V-THM-8 new |

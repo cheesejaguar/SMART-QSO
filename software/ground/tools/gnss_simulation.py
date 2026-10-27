@@ -100,9 +100,14 @@ class Truth:
 
 
 def simulate_fixes(truth: Truth, times: Sequence[float], sigma_m_per_pdop: float = 2.5,
-                   sigma_v: Optional[float] = 0.5, pdop: float = 2.0, rng=None,
-                   sats: int = 7) -> List[GnssFix]:
-    """Noisy receiver fixes (ITRF) at the times; velocity noise sigma_v (None: no velocity)."""
+                   sigma_v: Optional[float] = None, pdop: float = 2.0, rng=None,
+                   sats: int = 7, vdt_s: Optional[float] = 30.0) -> List[GnssFix]:
+    """Noisy receiver fixes (ITRF) at the times.
+
+    The velocity is the flight software's chord velocity over vdt_s (None: no
+    velocity, as for a session without a usable chord): noise sqrt(2) x the
+    position sigma / vdt_s per axis unless sigma_v is given.
+    """
     rng = rng or np.random.default_rng(0)
     times = np.asarray(times, dtype=float)
     st = truth.states(times)
@@ -111,9 +116,12 @@ def simulate_fixes(truth: Truth, times: Sequence[float], sigma_m_per_pdop: float
     for n, t in enumerate(times):
         week, tow = unix_to_gps(float(t))
         rr = r[n] + rng.normal(0.0, sigma_m_per_pdop * pdop, 3)
-        vv = None if sigma_v is None else tuple(v[n] + rng.normal(0.0, sigma_v, 3))
+        vv = None
+        if vdt_s is not None:
+            sv = sigma_v if sigma_v is not None else 2 ** 0.5 * sigma_m_per_pdop * pdop / vdt_s
+            vv = tuple(v[n] + rng.normal(0.0, sv, 3))
         out.append(GnssFix(week=week % 1024, tow_ms=round(tow * 1000.0), r_ecef_m=tuple(rr), v_ecef_ms=vv,
-                           quality=1, sats=sats, pdop=pdop, seq=n))
+                           quality=1, sats=sats, pdop=pdop, seq=n, vdt_s=vdt_s if vv else None, age_s=0))
     return out
 
 

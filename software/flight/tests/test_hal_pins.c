@@ -28,6 +28,7 @@
 #include <math.h>
 
 #include "passivation.h"
+#include "fram_health.h"
 #include "deployment.h"
 #include "gse_provision.h"
 #include "receiver.h"
@@ -108,6 +109,31 @@ static void test_contract_450(void **state)
 }
 
 /** The enable, burn and passivation lines are low at reset */
+/** Ids 500-509: the Version D board and the board FMEA's changes */
+static void test_contract_500(void **state)
+{
+    (void)state;
+    const struct {
+        RustConst_t id;
+        double c;
+    } k[] = {
+        {RUST_CONST_PIN_MAG_EN, GPIO_PIN_MAG_EN},
+        {RUST_CONST_PIN_MAG_RB, GPIO_PIN_MAG_RB},
+        {RUST_CONST_I2C_BUS_ANTS, I2C_BUS_3},
+        {RUST_CONST_I2C_ADDR_ANTS, I2C_ADDR_ANTS},
+        {RUST_CONST_I2C_ADDR_ANTS_B, I2C_ADDR_ANTS_B},
+        {RUST_CONST_SEPARATION_LATCH_MS, (double)SEPARATION_LATCH_MS},
+        {RUST_CONST_FRAM_FAILURES_TO_DECLARE, (double)FRAM_FAILURES_TO_DECLARE},
+        {RUST_CONST_FRAM_READS_TO_RECOVER, (double)FRAM_READS_TO_RECOVER},
+        {RUST_CONST_FRAM_STATE_DEGRADED, (double)FRAM_STATE_DEGRADED},
+    };
+    for (size_t i = 0U; i < (sizeof(k) / sizeof(k[0])); i++) {
+        assert_true(sqso_rust_constant(k[i].id) == k[i].c);
+    }
+    assert_int_equal(sizeof(k) / sizeof(k[0]), (size_t)(RUST_CONST_GROUP_500_END - 500));
+    assert_true(isnan(sqso_rust_constant((RustConst_t)RUST_CONST_GROUP_500_END)));
+}
+
 static void test_outputs_low_at_reset(void **state)
 {
     (void)state;
@@ -117,12 +143,13 @@ static void test_outputs_low_at_reset(void **state)
         GPIO_PIN_XPDR_EN,    GPIO_PIN_GNSS_EN,   GPIO_PIN_BURN_W1B,  GPIO_PIN_EOL_ARM,   GPIO_PIN_EOL_FIRE,
         GPIO_PIN_BURN_W2B,   GPIO_PIN_LOCK_CLR,  GPIO_PIN_GYRO_EN,   GPIO_PIN_IMU2_EN,   GPIO_PIN_SNS_EN,
         GPIO_PIN_GYRO_RST_N, GPIO_PIN_MTQ_X_DIR, GPIO_PIN_MTQ_Y_DIR, GPIO_PIN_MTQ_Z_DIR, GPIO_PIN_WDI,
+        GPIO_PIN_MAG_EN,
     };
     assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
     for (size_t i = 0U; i < sizeof(outputs) / sizeof(outputs[0]); i++) {
         assert_false(hal_gpio_get(outputs[i]));
     }
-    assert_int_equal(GPIO_PIN_COUNT, 46);
+    assert_int_equal(GPIO_PIN_COUNT, 48);
     assert_int_equal(GPIO_PIN_PTT_EXCITER, GPIO_PIN_PTT_EXC);
 }
 
@@ -157,13 +184,13 @@ static void test_new_lines(void **state)
     assert_false(hal_mtq_active());
 }
 
-/** The internal pulls against the boards (SQSO-ICX-001 B §4.1, the OBC
- *  pin map, the EPS netlist): DEPLOY_SENSE (EPS 1 MΩ source and 1 MΩ
- *  pull-down) and SOLAR_SENSE (EPS 10 kΩ + 1 kΩ pull-up) none, as any pull
- *  would override them; RX_CD and RX_FAULT none (the OBC's 100 kΩ
- *  pull-downs; an internal one would load the RF board's drive through
- *  10 kΩ); UMBILICAL_SENSE pull-down (the GSE drives it through 1 kΩ; no
- *  plug reads absent) */
+/** The internal pulls against SQSO-ICX-001 D §3.7 (the MCU's internal
+ *  pulls are off on every sense input; the boards' pulls set the open
+ *  level): DEPLOY_SENSE (EPS 1 MΩ source, OBC 10 MΩ pull-down) and
+ *  SOLAR_SENSE (EPS 10 kΩ + 1 kΩ pull-up), which any internal pull would
+ *  override; RX_CD and RX_FAULT (OBC 100 kΩ pull-downs; an internal one
+ *  would load the RF board's drive through 10 kΩ); UMBILICAL_SENSE (OBC
+ *  100 kΩ pull-down: no plug reads absent) */
 static void test_sense_input_pulls(void **state)
 {
     (void)state;
@@ -177,13 +204,14 @@ static void test_sense_input_pulls(void **state)
     assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_SOLAR_SENSE), GPIO_PULL_NONE);
     assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_RX_CD), GPIO_PULL_NONE);
     assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_RX_FAULT), GPIO_PULL_NONE);
-    assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_UMBILICAL_SENSE), GPIO_PULL_DOWN);
+    assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_UMBILICAL_SENSE), GPIO_PULL_NONE);
 }
 
 int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_contract_450),
+        cmocka_unit_test(test_contract_500),
         cmocka_unit_test(test_outputs_low_at_reset),
         cmocka_unit_test(test_new_lines),
         cmocka_unit_test(test_sense_input_pulls),

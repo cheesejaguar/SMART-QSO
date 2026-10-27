@@ -52,8 +52,12 @@ pub(crate) const JET_PG: u32 = 43;
 pub(crate) const GNSS_PG: u32 = 44;
 /// `GPIO_PIN_WDI`
 pub(crate) const WDI: u32 = 45;
+/// `GPIO_PIN_MAG_EN`: the magnetometer's switch U35 (PF14)
+pub(crate) const MAG_EN: u32 = 46;
+/// `GPIO_PIN_MAG_RB`: its EN-node readback (PF15)
+pub(crate) const MAG_RB: u32 = 47;
 /// `GPIO_PIN_COUNT`
-pub(crate) const GPIO_PIN_COUNT: u32 = 46;
+pub(crate) const GPIO_PIN_COUNT: u32 = 48;
 
 /// `ADC_CHANNEL_VBATT`
 pub(crate) const ADC_VBATT: u32 = 0;
@@ -85,8 +89,10 @@ pub(crate) const I2C_EPS: u32 = 0;
 pub(crate) const I2C_ADCS: u32 = 1;
 /// `I2C_BUS_2`: the RV-3028-C7
 pub(crate) const I2C_RTC: u32 = 2;
+/// `I2C_BUS_3`: the AntS alone (I2C3)
+pub(crate) const I2C_ANTS: u32 = 3;
 /// `I2C_BUS_COUNT`
-pub(crate) const I2C_BUS_COUNT: u32 = 3;
+pub(crate) const I2C_BUS_COUNT: u32 = 4;
 
 /// `FLASH_REGION_ADCS_CAL`
 pub(crate) const FLASH_REGION_ADCS_CAL: u32 = 16;

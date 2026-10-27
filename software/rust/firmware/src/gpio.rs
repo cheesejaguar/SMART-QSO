@@ -22,7 +22,7 @@ use crate::cell::Shared;
 use crate::rc;
 
 /// Pins, in `HalGpioPin_t` order (`GPIO_PIN_COUNT`)
-pub(crate) const COUNT: usize = 46;
+pub(crate) const COUNT: usize = 48;
 /// `GPIO_PIN_PTT_EXC`: read from the capture's pin
 const PIN_PTT_EXC: u32 = 42;
 
@@ -123,8 +123,9 @@ pub(crate) fn install_board(
     pg6: Peri<'static, impl Pin>,
     pg15: Peri<'static, impl Pin>,
     pg11: Peri<'static, impl Pin>,
+    pf14: Peri<'static, impl Pin>,
+    pf15: Peri<'static, impl Pin>,
 ) {
-    use embassy_stm32::gpio::Pull;
     install([
         out(pb2),                          // 0 PAYLOAD_EN (SW1)
         out(pb5),                          // 1 RADIO_EN
@@ -136,7 +137,7 @@ pub(crate) fn install_board(
         out(pa3),                          // 7 RF_TX_EN
         input(pb7),                        // 8 EPS_ALERT_N (open drain; the EPS 4.7 kΩ pull-up)
         input(pe2),                        // 9 DEPLOY_SENSE
-        pin(pb8, Boot::Input(Pull::Down)), // 10 UMBILICAL_SENSE
+        input(pb8),                        // 10 UMBILICAL_SENSE (OBC 100 kΩ pull-down)
         out(pb9),                          // 11 BURN_W2A
         out(pb10),                         // 12 BURN_W1A
         None,                              // 13 ANTENNA_SENSE: not wired (PB11 is LPUART1_TX)
@@ -172,6 +173,8 @@ pub(crate) fn install_board(
         input(pg6),                        // 43 JET_PG
         input(pg15),                       // 44 GNSS_PG
         out(pg11),                         // 45 WDI
+        out(pf14),                         // 46 MAG_EN (U35, 3V3_MAG)
+        input(pf15),                       // 47 MAG_RB
     ]);
 }
 

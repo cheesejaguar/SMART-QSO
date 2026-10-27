@@ -66,8 +66,10 @@ impl Supervisor {
 pub const MAX_TASKS: usize = 8;
 /// Task name bytes including the NUL (`WDT_TASK_NAME_LEN`)
 pub const NAME_LEN: usize = 16;
-/// Hardware watchdog timeout, ms
-pub const HW_TIMEOUT_MS: u32 = 30_000;
+/// Hardware watchdog timeout, ms: the IWDG reload 3500 at the LSI / 256,
+/// 26.4 to 30.4 s over the LSI's tolerance, so it acts before the external
+/// supervisor's 31.3 s minimum (SQSO-ICX-001 D §6 row 37, RID SMA-B08)
+pub const HW_TIMEOUT_MS: u32 = 28_000;
 /// Task check interval, ms
 pub const TASK_CHECK_INTERVAL_MS: u64 = 1000;
 /// Missed periods in a row that make a task stalled

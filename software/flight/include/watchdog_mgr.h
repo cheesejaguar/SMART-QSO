@@ -41,7 +41,7 @@ extern "C" {
 #define WDT_TASK_NAME_LEN           16U
 
 /** Default hardware watchdog timeout (ms) */
-#define WDT_HW_TIMEOUT_MS           30000U
+#define WDT_HW_TIMEOUT_MS           28000U  /**< IWDG reload 3500 / 256: 26.4-30.4 s, before the supervisor's 31.3 s (SQSO-ICX-001 D §6 row 37) */
 
 /** Task watchdog check interval (ms) */
 #define WDT_TASK_CHECK_INTERVAL_MS  1000U

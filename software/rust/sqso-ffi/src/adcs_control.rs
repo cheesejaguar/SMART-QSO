@@ -216,7 +216,7 @@ pub fn mag_gated() -> u32 {
 }
 
 /// The gyro in use (0 M-G370, 1 BMI088, 2 none) and the rail trips
-pub fn sensor_status() -> (u8, [u32; 3]) {
+pub fn sensor_status() -> (u8, [u32; sqso_fsw::adcs_sensors::RAILS]) {
     use sqso_fsw::adcs_sensors::Gyro;
     ADCS.with(|a| {
         let g = match a.sensors.gyro {
@@ -226,7 +226,7 @@ pub fn sensor_status() -> (u8, [u32; 3]) {
         };
         (g, a.sensors.trips)
     })
-    .unwrap_or((0, [0; 3]))
+    .unwrap_or((0, [0; sqso_fsw::adcs_sensors::RAILS]))
 }
 
 /// Every pass: the OBC board's sensors (rails, bring-up, the
@@ -263,10 +263,11 @@ mod target {
     use crate::pins;
 
     fn log(ev: &Events) {
-        let texts: [(bool, &core::ffi::CStr); 6] = [
+        let texts: [(bool, &core::ffi::CStr); 7] = [
             (ev.tripped[0], c"Gyro rail latch-up trip"),
             (ev.tripped[1], c"BMI088 rail latch-up trip"),
-            (ev.tripped[2], c"Sensor rail latch-up trip"),
+            (ev.tripped[2], c"Sun-sensor rail latch-up trip"),
+            (ev.tripped[3], c"Magnetometer rail latch-up trip"),
             (ev.mg370_failed.is_some(), c"Gyro M-G370 failed: rail cycled"),
             (ev.bmi088_failed.is_some(), c"Gyro BMI088 failed: rail cycled"),
             (ev.sns_failed, c"Magnetometer or sun-sensor ADC not answering"),

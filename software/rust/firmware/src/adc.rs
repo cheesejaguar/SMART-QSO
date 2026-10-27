@@ -45,7 +45,7 @@ const FRONT_END: [Scale; CHANNELS] = [
     Scale::Linear(2.0, 0.0),     // VBUS: 1:2 divider (5 V bus)
     Scale::Linear(1.0, 0.0),     // TEMP_MCU: computed from TS_CAL (see temperature())
     Scale::Linear(100.0, -50.0), // TEMP_BOARD: TMP235, 10 mV/°C, 0.5 V at 0 °C
-    Scale::Linear(100.0, -50.0), // TX_TEMP: TMP36-style on the PA
+    Scale::Linear(101.1, -50.0), // TX_TEMP: TMP36-style on the PA, x 1.011 for 10 kΩ into the 1 MΩ pull-down (SMA-B19)
     Scale::SquareLaw(0.16),      // TX_FWD: -20 dB coupler, RMS detector; 2.5 V at 1 W (SQSO-RF-TX-001 §8.1)
     Scale::SquareLaw(0.16),      // TX_REV: the coupler's reverse port, same detector
     Scale::Linear(6.0, 0.0),     // VSW1_RB: VBAT_SW1, 1.00 M / 200 k

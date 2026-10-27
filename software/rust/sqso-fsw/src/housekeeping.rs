@@ -58,7 +58,7 @@
 //! | `EOL` | EPS `EOL_STATE` (bit 0 armed, 1 fired, 2 fuse intact; `-` no answer)/fire attempts | —/— |
 //! | `RT` | mission clock (RV-3028) UNIX time/the last reset's stamp | s/s |
 //! | `CK` | the MCU clock against the mission clock's 1 Hz | ppm |
-//! | `TR` | latch-up trips of the gyro, BMI088 and sensor rails since boot | — |
+//! | `TR` | latch-up trips of the gyro, BMI088, sun-sensor and magnetometer rails since boot | — |
 //! | `GY` | gyro in use (0 M-G370, 1 BMI088, 2 none)/magnetometer samples gated (Jetson, exciter) | —/— |
 //! | `MF` | magnetorquer bridge faults/off-timer expiries seen | — |
 //! | `PE` | SRAM2 parity on 1/0 (`-` not known: the host build) | — |
@@ -177,8 +177,8 @@ pub struct Housekeeping2 {
     pub rtc: (Option<u32>, Option<u32>),
     /// MCU clock against the mission clock, ppm
     pub clock_ppm: Option<f64>,
-    /// Rail trips: gyro, BMI088, sensors
-    pub trips: [u32; 3],
+    /// Rail trips: gyro, BMI088, sun sensors, magnetometer
+    pub trips: [u32; crate::adcs_sensors::RAILS],
     /// Gyro in use (0, 1, 2), samples gated
     pub gyro: (u8, u32),
     /// Bridge faults and off-timer expiries
@@ -188,6 +188,9 @@ pub struct Housekeeping2 {
     /// Separation latched on this boot, and the stowed readings since
     /// (`SEP`, RID SMA-B02)
     pub separation: (bool, u32),
+    /// The transmitter temperature sensor faulted now, and its faults since
+    /// boot (`PT`, RID SMA-B19)
+    pub pa_sensor: (bool, u32),
 }
 
 struct Out<'a> {
@@ -336,12 +339,13 @@ pub fn format2(hk: &Housekeeping2, out: &mut [u8]) -> usize {
     .and_then(|()| {
         write!(
             w,
-            "TR={}/{}/{} GY={}/{} MF={}/{} PE=",
-            hk.trips[0], hk.trips[1], hk.trips[2], hk.gyro.0, hk.gyro.1, hk.mtq_faults.0, hk.mtq_faults.1
+            "TR={}/{}/{}/{} GY={}/{} MF={}/{} PE=",
+            hk.trips[0], hk.trips[1], hk.trips[2], hk.trips[3], hk.gyro.0, hk.gyro.1, hk.mtq_faults.0, hk.mtq_faults.1
         )
     })
     .and_then(|()| opt_u(&mut w, hk.parity.map(u32::from)))
     .and_then(|()| write!(w, " SEP={}/{}", u8::from(hk.separation.0), hk.separation.1))
+    .and_then(|()| write!(w, " PT={}/{}", u8::from(hk.pa_sensor.0), hk.pa_sensor.1))
     .is_ok();
     if ok { w.len } else { 0 }
 }
@@ -512,16 +516,17 @@ mod tests {
             eol: (Some(0x04), 0),
             rtc: (Some(1_900_000_000), None),
             clock_ppm: Some(-12.4),
-            trips: [1, 0, 0],
+            trips: [1, 0, 0, 0],
             gyro: (0, 37),
             parity: Some(true),
             separation: (true, 1),
+            pa_sensor: (false, 2),
             ..Housekeeping2::default()
         };
         assert_eq!(
             text2(&hk),
             "HK2 N=7 CA=12/3/1 WD=2 XE=4/3600/4100 IA=412 HL=0 JB=6/1210/10/0 JP=5/1/0/0 EOL=4/0 \
-             RT=1900000000/- CK=-12 TR=1/0/0 GY=0/37 MF=0/0 PE=1 SEP=1/1"
+             RT=1900000000/- CK=-12 TR=1/0/0/0 GY=0/37 MF=0/0 PE=1 SEP=1/1 PT=0/2"
         );
         let worst = Housekeeping2 {
             seq: u16::MAX,
@@ -535,17 +540,18 @@ mod tests {
             eol: (Some(255), 255),
             rtc: (Some(u32::MAX), Some(u32::MAX)),
             clock_ppm: Some(-1.0e6),
-            trips: [u32::MAX; 3],
+            trips: [u32::MAX; 4],
             gyro: (2, u32::MAX),
             mtq_faults: (u32::MAX, u32::MAX),
             parity: Some(false),
             separation: (true, u32::MAX),
+            pa_sensor: (true, u32::MAX),
         };
         assert!(text2(&worst).len() <= MAX_LEN, "{}", text2(&worst).len());
         let none = text2(&Housekeeping2::default());
         assert!(none.contains("IA=- "), "{none}");
         assert!(none.contains("EOL=-/0"), "{none}");
-        assert!(none.ends_with("PE=- SEP=0/0"), "{none}");
+        assert!(none.ends_with("PE=- SEP=0/0 PT=0/0"), "{none}");
         assert_eq!(format2(&worst, &mut [0u8; 20]), 0);
     }
 

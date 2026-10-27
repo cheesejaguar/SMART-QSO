@@ -1155,6 +1155,7 @@ fn derived_input(s: &Sim, pin: u32) -> Option<bool> {
         GYRO_RB => Some(out(GYRO_EN)),
         IMU2_RB => Some(out(IMU2_EN)),
         SNS_RB => Some(out(SNS_EN)),
+        crate::pins::MAG_RB => Some(out(crate::pins::MAG_EN)),
         GNSS_PG => Some(out(GNSS_EN)),
         MTQ_FAULT_N => Some(true),
         crate::separation_switch::GPIO_PIN_DEPLOY_SENSE | crate::deployment::GPIO_PIN_SOLAR_SENSE => Some(true),

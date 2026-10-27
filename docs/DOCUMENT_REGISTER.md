@@ -59,6 +59,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-THA-001 | SMART-QSO Thermal Analysis | `docs/environment/THERMAL_ANALYSIS.md` | 2.2 | Draft |
 | SQSO-GND-001 | Ground Station Design | `docs/ground/GROUND_STATION_DESIGN.md` | H | Draft |
 | SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.6 | Draft |
+| SQSO-GND-002 | Orbit Determination and Operator Ephemeris | `docs/ground/ORBIT_DETERMINATION_AND_EPHEMERIS.md` | A | Draft; owner: ground segment lead |
 | SMART-QSO-ADCS-001 | Attitude Determination and Control Subsystem (ADCS) Design Document | `docs/hardware/ADCS_DESIGN.md` | 1.6 | Draft |
 | SQSO-BVB-001 | Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery | `docs/hardware/BUILD_VS_BUY.md` | C | Draft; vendor data from public pages, no quotes |
 | SMART-QSO-EPS-001 | Electrical Power Subsystem (EPS) Design Document | `docs/hardware/EPS_DESIGN.md` | 2.5 | Draft |
@@ -271,7 +272,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-FSW-007 | Timing Analysis | `software/flight/docs/TIMING_ANALYSIS.md` | B | Draft |
 | SMART-QSO-HIL-001 | Hardware-in-the-Loop (HIL) Test Plan | `software/flight/tests/hil/HIL_TEST_PLAN.md` | 1.4 | Draft |
 | SMART-QSO-REG-001 | Regression Test Suite | `software/flight/tests/regression/REGRESSION_TESTS.md` | 1.1 | Draft |
-| SMART-QSO-GND-000 | SMART-QSO Ground Software Tools | `software/ground/tools/README.md` | 1.0 | Draft |
+| SMART-QSO-GND-000 | SMART-QSO Ground Software Tools | `software/ground/tools/README.md` | 1.1 | Draft |
 
 ## 3. Test Procedures Defined Inside Documents
 

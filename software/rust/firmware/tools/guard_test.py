@@ -8,7 +8,7 @@ script halts the core, sets its SP to 0x2003E010 (16 bytes above the guard),
 and resumes it. The next push of more than 16 bytes, or the next exception
 entry, writes into the guard: MemManage, escalated to HardFault, whose
 handler spins (or, if the stacking for the HardFault itself faults, the
-core locks up) until the IWDG resets the processor, within the 30 s
+core locks up) until the IWDG resets the processor, within the 28 s
 operating timeout.
 
 Steps, all through `probe-rs read` and `probe-rs write` (sqso_probe.py):

@@ -1300,6 +1300,7 @@ impl Executive {
                 _ => None,
             },
             separation: separation_switch::status(),
+            pa_sensor: downlink::pa_sensor_status(),
         }
     }
 

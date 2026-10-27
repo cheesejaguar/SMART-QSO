@@ -334,6 +334,15 @@ const CONSTANTS: &[(u32, f64)] = &[
     (496, (sqso_fsw::passivation::MAX_FIRE_ATTEMPTS) as f64),
     (497, (sqso_fsw::passivation::ARM_CONFIRM_MS) as f64),
     (498, (sqso_fsw::passivation::FIRE_DEADLINE_MS) as f64),
+    (500, (crate::pins::MAG_EN) as f64),
+    (501, (crate::pins::MAG_RB) as f64),
+    (502, (crate::pins::I2C_ANTS) as f64),
+    (503, (sqso_fsw::ants::ADDRESS) as f64),
+    (504, (sqso_fsw::ants::ADDRESS_B) as f64),
+    (505, (sqso_fsw::separation::LATCH_MS) as f64),
+    (506, (sqso_fsw::fram_health::FAILURES_TO_DECLARE) as f64),
+    (507, (sqso_fsw::fram_health::READS_TO_RECOVER) as f64),
+    (508, (sqso_fsw::fram_health::STATE_DEGRADED) as f64),
 ];
 
 /// A constant this library keeps

@@ -388,6 +388,40 @@ static void test_over_temperature_while_keyed(void **state)
     assert_last_fault(FAULT_SEVERITY_INFO, "cooled");
 }
 
+/** TX_TEMP's plausibility (RID SMA-B19): the open line (0 V, -50 °C) or a
+ *  reading 60 °C off the board temperature is a sensor fault, reported once;
+ *  the downlink then uses the board temperature plus 15 °C instead of
+ *  holding for ever; ten plausible readings clear it */
+static void test_implausible_pa_temperature(void **state)
+{
+    (void)state;
+    assert_int_equal(fault_log_clear(), SMART_QSO_OK);
+    assert_int_equal(hal_sim_adc_set(ADC_CHANNEL_TEMP_BOARD, 28.0), SMART_QSO_OK);
+    assert_int_equal(hal_sim_adc_set(ADC_CHANNEL_TX_TEMP, -50.0), SMART_QSO_OK);
+    assert_int_equal(downlink_transmit(g_frame, 30U), SMART_QSO_OK);
+    assert_last_fault(FAULT_SEVERITY_WARNING, "TX_TEMP implausible");
+    assert_false(status().over_temp);
+    smart_qso_sim_advance_ms(CLEAR_MS);
+    /* 95 °C with the board at 28 °C: not the PA; 43 °C used */
+    assert_int_equal(hal_sim_adc_set(ADC_CHANNEL_TX_TEMP, 95.0), SMART_QSO_OK);
+    assert_int_equal(downlink_transmit(g_frame, 30U), SMART_QSO_OK);
+    assert_false(status().over_temp);
+    /* The board itself hot: board + 15 °C above the limit holds the downlink */
+    smart_qso_sim_advance_ms(CLEAR_MS);
+    assert_int_equal(hal_sim_adc_set(ADC_CHANNEL_TX_TEMP, -50.0), SMART_QSO_OK);
+    assert_int_equal(hal_sim_adc_set(ADC_CHANNEL_TEMP_BOARD, DOWNLINK_TEMP_LIMIT_C - 10.0), SMART_QSO_OK);
+    assert_int_equal(downlink_transmit(g_frame, 30U), SMART_QSO_ERROR_BUSY);
+    assert_true(status().over_temp);
+    /* Plausible again: ten readings clear the fault */
+    assert_int_equal(hal_sim_adc_set(ADC_CHANNEL_TEMP_BOARD, 28.0), SMART_QSO_OK);
+    assert_int_equal(hal_sim_adc_set(ADC_CHANNEL_TX_TEMP, 30.0), SMART_QSO_OK);
+    for (int i = 0; i < 12; i++) {
+        smart_qso_sim_advance_ms(CLEAR_MS);
+        (void)downlink_transmit(g_frame, 30U);
+    }
+    assert_false(status().over_temp);
+}
+
 /** A failed monitor reading is not taken for a fault */
 static void test_failed_monitors_are_ignored(void **state)
 {
@@ -480,6 +514,7 @@ int main(void)
         cmocka_unit_test_setup(test_over_temperature_while_keyed, setup),
         cmocka_unit_test_setup(test_failed_monitors_are_ignored, setup),
         cmocka_unit_test_setup(test_beacon_goes_through_the_downlink, setup),
+        cmocka_unit_test_setup(test_implausible_pa_temperature, setup),
     };
     return cmocka_run_group_tests_name("Downlink transmitter", tests, NULL, NULL);
 }

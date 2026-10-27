@@ -129,6 +129,8 @@ NEW: list[tuple[str, int, str, str, str]] = [
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {
+    "THM-03": ("CH", "Accepted as a contingency: with the wings stowed the heater holds the pack at +2.6 °C at 1.47 W generation (+0.3 °C at the bound), charging refused in hardware below +1.1 °C (fail-safe, SYS-602); flight-software rule: SAFE rather than IDLE while the battery's orbit minimum is below +3 °C (THERMAL_ANALYSIS 2.2 §6.8)"),
+    "THM-04": ("CD", "Per-unit allowables from the BOMs: −30 °C cold for every board, extended to −40 °C for the first orbit after separation, shown by a −40 °C cold start (V-THM-8; GEVS deviation in the ETP); worst new case L4 −27.6 / −28.6 / −28.9 °C (THERMAL_ANALYSIS 2.2 §6.6); SYS-600/601 by CR-2026-017; Y451 in its −40 °C grade"),
     "SMA-B01": ("CD", "DS2 gate drive from BAT_F or PACK_P through a dual diode (EPS_BOARD_DESIGN E); V-EPS-15"),
     "SMA-B03": ("CD", "1 MΩ ladder across the cells holds an open tap between its neighbours (4.2 µA)"),
     "SMA-B04": ("CD", "NTC1 plausibility comparators; charging follows NTC2 on an NTC1 fault (CHG_INHIBIT bit 6); V-EPS-14"),
@@ -146,7 +148,7 @@ FINAL3: dict[str, tuple[str, str]] = {
     "STR-08": ("CD", "Mechanical cell retention, no adhesive or potting: G-10CR locator plates, disc-spring stack per cell at 140 N, vents open; MEL row 37 5.0 g; MS_sep +0.19 at 142 g (MECHANICAL_DESIGN §4.6); VI-MCAD-10"),
     "STR-13": ("CD", "STRUCTURAL_DESIGN 1.5 §6.2 Version B hinge; cold point −55 °C (MECHANISMS_ANALYSIS E)"),
     "STR-26": ("CD", "STRUCTURAL_DESIGN 1.5 aligned to MECHANICAL_DESIGN, STRUCTURAL_ANALYSIS and MEL 3.1"),
-    "P3S-01": ("CD", "Mechanisms at −55 °C: torque margin +0.08 (one spring out +0.07), springs +0.12/+0.04 yield; burn 10 s (C-17) gives release-energy ratio 1.90; VI-STR-04/-05/-06, VI-MECH-01..03 at −55 °C; hinge.py T_COLD for the thermal analyst's hinge temperature"),
+    "P3S-01": ("CD", "Thermal analyst gives the burn-time temperatures (THERMAL_ANALYSIS 2.2 §4.3): every margined node inside −55 °C by ≥ 3.3 °C (resistor −39.4 °C); mechanisms at −55 °C: torque margin +0.08 (one spring out +0.07), springs +0.12/+0.04 yield; burn 10 s (C-17) gives release-energy ratio 1.90; VI-STR-04/-05/-06, VI-MECH-01..03 at −55 °C; hinge.py T_COLD for the thermal analyst's hinge temperature"),
     "P3S-02": ("CD", "Steinberg at MEV masses: EPS board 2.0 mm (D-14): +0.14 to +0.50 at MEV, +0.42 to +0.71 at CBE; strength +0.96 (MEV +0.85); first mode 170 / 162 Hz"),
     "P3S-04": ("CD", "MoS2 hinge controls: ≤ 40 % RH or dry N2, cycle budget ≤ 30 / ≤ 10, film inspection (MECHANISMS_ANALYSIS E §5A; ETP D §3.8)"),
     "P3S-07": ("CD", "MECHANISMS §1, §6-§8, MASS_BUDGET §6.2, mass_properties.py FSW and SIL constants updated"),

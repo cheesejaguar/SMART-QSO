@@ -183,15 +183,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 100 | 228 |
-| Closed by chair decision | 42 | 34 |
+| Closed by design change | 100 | 229 |
+| Closed by chair decision | 42 | 35 |
 | Verification item | 46 | 28 |
 | Decision point (dated) | 15 | 32 |
-| Implementation | 147 | 28 |
+| Implementation | 147 | 26 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 69 new findings; 40 of the reopened and 58 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 69 new findings; 42 of the reopened and 58 of the new are since closed.
 
-Open implementation RIDs: LV-04, SE-21, GND-04, SMA-15, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19.
+Open implementation RIDs: LV-04, SE-21, GND-04, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -502,8 +502,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | THM-01 | 1 | Thermal analysis used the wrong orbit and had no model | CA | Closed by analysis | SQSO-THA-001 v2.0 |
 | THM-02 | 2 | Heater set points leave too little margin to 0 °C | IMP | Closed by design change | Heater on below +5 °C, off above +9 °C (SRS-F130) |
-| THM-03 | 3 | Wings stowed at β = 0 saturates the heater | VI | Implementation | Reopened in round 3: 100 % heater duty with the wings stowed not resolved by test correlation |
-| THM-04 | 2 | SYS-600/601 cannot be met by the boards with margin | CH | Implementation | Reopened in round 3: SYS-600/601 unchanged; LEOP cold case below allowables with the 10 °C margin |
+| THM-03 | 3 | Wings stowed at β = 0 saturates the heater | VI | Closed by chair decision | Accepted as a contingency: with the wings stowed the heater holds the pack at +2.6 °C at 1.47 W generation (+0.3 °C at the bound), charging refused in hardware below +1.1 °C (fail-safe, SYS-602); flight-software rule: SAFE rather than IDLE while the battery's orbit minimum is below +3 °C (THERMAL_ANALYSIS 2.2 §6.8) |
+| THM-04 | 2 | SYS-600/601 cannot be met by the boards with margin | CH | Closed by design change | Per-unit allowables from the BOMs: −30 °C cold for every board, extended to −40 °C for the first orbit after separation, shown by a −40 °C cold start (V-THM-8; GEVS deviation in the ETP); worst new case L4 −27.6 / −28.6 / −28.9 °C (THERMAL_ANALYSIS 2.2 §6.6); SYS-600/601 by CR-2026-017; Y451 in its −40 °C grade |
 | THM-05 | 2 | Wing cell qualification range unknown | VI | Verification item | V-THM-4 due 2027-01-15, before the panel order |
 | THM-06 | 2 | Cold dispenser soak at the −10 °C discharge limit | VI | Decision point (dated) | With THM-07 (DA-12) |
 | THM-07 | 1 | Hot dispenser soak > +60 °C after 2.4 h | VI | Decision point (dated) | DA-12: dispenser thermal analysis requested in the RFQ (2026-12-31), delivered at the contract (2027-06-30), owner PI with the integrator; pass pack ≤ +50 °C and ≥ −15 °C; fallback deployment-time limit, finish, pad conditioning, then the SOC/NRCSD decision |
@@ -684,7 +684,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| P3S-01 | 2 | Mechanism cold design and test point (−40 °C) warmer than the predicted stowed-wing temperature | IMP | Closed by design change | Mechanisms at −55 °C: torque margin +0.08 (one spring out +0.07), springs +0.12/+0.04 yield; burn 10 s (C-17) gives release-energy ratio 1.90; VI-STR-04/-05/-06, VI-MECH-01..03 at −55 °C; hinge.py T_COLD for the thermal analyst's hinge temperature |
+| P3S-01 | 2 | Mechanism cold design and test point (−40 °C) warmer than the predicted stowed-wing temperature | IMP | Closed by design change | Thermal analyst gives the burn-time temperatures (THERMAL_ANALYSIS 2.2 §4.3): every margined node inside −55 °C by ≥ 3.3 °C (resistor −39.4 °C); mechanisms at −55 °C: torque margin +0.08 (one spring out +0.07), springs +0.12/+0.04 yield; burn 10 s (C-17) gives release-energy ratio 1.90; VI-STR-04/-05/-06, VI-MECH-01..03 at −55 °C; hinge.py T_COLD for the thermal analyst's hinge temperature |
 | P3S-02 | 2 | Board fatigue computed at CBE mass only | IMP | Closed by design change | Steinberg at MEV masses: EPS board 2.0 mm (D-14): +0.14 to +0.50 at MEV, +0.42 to +0.71 at CBE; strength +0.96 (MEV +0.85); first mode 170 / 162 Hz |
 | P3S-03 | 2 | EPS board layout guidance lacks the centre supports and the Z-rod notch | IMP | Closed by design change | EPS board outline: centre supports at (0, ±21) mm with Ø7 mm copper-free rings, Z-rod notch x < −35.5, \|y\| < 6.5 with 1 mm keep-out (EPS_BOARD_DESIGN D) |
 | P3S-04 | 2 | No humidity control or ground cycle budget for the MoS2 hinges | IMP | Closed by design change | MoS2 hinge controls: ≤ 40 % RH or dry N2, cycle budget ≤ 30 / ≤ 10, film inspection (MECHANISMS_ANALYSIS E §5A; ETP D §3.8) |

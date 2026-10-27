@@ -2,25 +2,27 @@
 """
 SMART-QSO GNSS state frames: decoding and GPS time (SQSO-GND-002 §3).
 
-The flight software downlinks a GNSS state frame after each accepted fix and
-on GNSS_REQUEST (0x60) (CDR round 3, RID LV-04). Its definition belongs in
-the telemetry dictionary (SQSO-TLM-001, docs/operations/TELEMETRY_DICTIONARY.md).
-When this tool was written the dictionary did not define it yet, so the
-layout below is ASSUMED, in the style of the HK1 frame (plain ASCII KEY=value,
-integers, `-` for a value not measured):
+The flight software downlinks a GNSS state frame after each receiver session
+that ended with a fix, and repeats the latest on GET_HOUSEKEEPING (0x09)
+(software/rust/sqso-fsw/src/gnss_frame.rs, SRS-F158; telemetry dictionary
+SQSO-TLM-001 §3.6). Plain ASCII KEY=value, integers, `-` for a value not
+available:
 
-    GNS N=<seq> WK=<GPS week> TOW=<GPS time of week, ms> X=<m> Y=<m> Z=<m>
-        VX=<mm/s> VY=<mm/s> VZ=<mm/s> Q=<GGA fix quality> SV=<satellites>
-        PD=<PDOP x 10>
+    GNS N=<session> WK=<GPS week> TOW=<GPS time of week, ms> X=<m> Y=<m> Z=<m>
+        VX=<mm/s> VY=<mm/s> VZ=<mm/s> VDT=<s> Q=<GGA fix quality> SV=<satellites>
+        PD=<PDOP x 10> AGE=<s>
 
-    X, Y, Z, VX, VY, VZ: ECEF, WGS-84. WK as the receiver reports it (the
-    piNAV-NG reports a 10-bit week, so it is resolved here). Q: 1 GPS fix,
-    2 differential; anything else is not a real fix (6 is dead reckoning).
+    X, Y, Z, VX, VY, VZ: ECEF, WGS-84. The velocity is derived onboard from
+    the session's first fix and this one, VDT seconds apart (its noise is
+    about sqrt(2) x position sigma / VDT). WK as the receiver reports it (the
+    piNAV-NG reports a 10-bit week, resolved here). Q: 1 GPS fix, 2
+    differential; anything else is not a real fix. AGE: seconds from the fix
+    to the frame (the repeat on GET_HOUSEKEEPING keeps N, WK and TOW, so it
+    is dropped as a duplicate).
 
-parse_gnss_frame() is the only function that knows this layout: aligning the
-ground tool with the dictionary changes that function and its test vectors,
-nothing else. Unknown keys are ignored and decimals are accepted, so a frame
-with extra fields still decodes.
+parse_gnss_frame() is the only function that knows this layout. Unknown keys
+are ignored and decimals are accepted, so a frame with extra fields still
+decodes.
 
 Archive input (read_archive): JSON lines from the station or mission
 database (`info` as text, or `frame_hex`: the AX.25 frame from the address
@@ -37,7 +39,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Iterable, List, Optional, Tuple
 
-#: Information-field tag of the GNSS state frame (assumed, see module docstring)
+#: Information-field tag of the GNSS state frame (gnss_frame.rs PREFIX)
 FRAME_TAG = "GNS"
 #: Spacecraft call sign; frames from any other source are not ours
 SPACECRAFT = ("KK6GDB", 11)
@@ -69,6 +71,8 @@ class GnssFix:
     sats: Optional[int]
     pdop: Optional[float]
     seq: Optional[int] = None
+    vdt_s: Optional[float] = None   # chord the velocity was derived over
+    age_s: Optional[float] = None   # fix age when the frame was sent
 
     def problems(self) -> List[str]:
         """Reasons this record must not be used (empty: usable)."""
@@ -126,6 +130,7 @@ def parse_gnss_frame(info) -> Optional[GnssFix]:
     vel = [get(k) for k in ("VX", "VY", "VZ")]
     v_ecef = None if any(v is None for v in vel) else tuple(v / 1000.0 for v in vel)
     quality, sats, pdop10, seq = get("Q"), get("SV"), get("PD"), get("N")
+    vdt, age = get("VDT"), get("AGE")
     return GnssFix(
         week=int(week),
         tow_ms=tow,
@@ -135,18 +140,20 @@ def parse_gnss_frame(info) -> Optional[GnssFix]:
         sats=None if sats is None else int(sats),
         pdop=None if pdop10 is None else pdop10 / 10.0,
         seq=None if seq is None else int(seq),
+        vdt_s=None if v_ecef is None else vdt,
+        age_s=age,
     )
 
 
 def format_gnss_frame(fix: GnssFix) -> str:
-    """The assumed layout, for simulation and tests (inverse of parse_gnss_frame)."""
+    """The flight layout, for simulation and tests (inverse of parse_gnss_frame)."""
     def val(x, scale=1.0):
         return "-" if x is None else str(int(round(x * scale)))
     v = fix.v_ecef_ms or (None, None, None)
     return (f"{FRAME_TAG} N={val(fix.seq)} WK={fix.week} TOW={val(fix.tow_ms)} "
             f"X={val(fix.r_ecef_m[0])} Y={val(fix.r_ecef_m[1])} Z={val(fix.r_ecef_m[2])} "
-            f"VX={val(v[0], 1000)} VY={val(v[1], 1000)} VZ={val(v[2], 1000)} "
-            f"Q={val(fix.quality)} SV={val(fix.sats)} PD={val(fix.pdop, 10)}")
+            f"VX={val(v[0], 1000)} VY={val(v[1], 1000)} VZ={val(v[2], 1000)} VDT={val(fix.vdt_s)} "
+            f"Q={val(fix.quality)} SV={val(fix.sats)} PD={val(fix.pdop, 10)} AGE={val(fix.age_s)}")
 
 
 # --- GPS time ---------------------------------------------------------------

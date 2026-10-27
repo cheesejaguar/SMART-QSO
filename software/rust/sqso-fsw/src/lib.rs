@@ -90,6 +90,7 @@ pub mod mode;
 pub mod mtq;
 pub mod nvm;
 pub mod ops_state;
+pub mod pa_temp;
 pub mod passivation;
 pub mod payload_guard;
 pub mod payload_schedule;

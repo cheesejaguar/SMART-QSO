@@ -175,6 +175,7 @@ fn bring_up() {
         p.PB2, p.PB5, p.PB6, p.PD2, p.PF3, p.PD3, p.PA8, p.PA3, p.PB7, p.PE2, p.PB8, p.PB9, p.PB10, p.PB12, p.PE3,
         p.PE4, p.PE5, p.PE6, p.PF4, p.PG1, p.PG0, p.PF13, p.PE7, p.PF5, p.PF6, p.PF7, p.PF8, p.PF10, p.PF11, p.PF12,
         p.PD14, p.PD10, p.PD15, p.PD11, p.PE8, p.PE10, p.PE12, p.PE14, p.PE15, p.PC9, p.PG12, p.PG6, p.PG15, p.PG11,
+        p.PF14, p.PF15,
     );
     // The XPDR_EN heartbeat's timer (stopped, pin low, until the first lease)
     heartbeat::install();

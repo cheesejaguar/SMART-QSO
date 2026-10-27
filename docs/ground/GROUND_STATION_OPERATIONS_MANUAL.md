@@ -554,7 +554,7 @@ If telemetry indicates emergency:
 │ T-30  □ Start Gpredict, Direwolf        │
 │ T-15  □ Point antenna to AOS            │
 │ T-5   □ Configure radio, start decoder  │
-│       □ Clock ≤ 0.5 s; frames built (UTC) │
+│       □ Clock ≤ 0.5 s; UTC frames built │
 │ AOS   □ Monitor for beacon              │
 │ CMD   □ ≥ 10° (12° degraded); TCXO      │
 │         offset applied; GNSS_REQUEST    │
