@@ -346,10 +346,10 @@ for joints with non-metallic parts.
 M2.5–M4 fasteners reworked after environmental test, and does not allow rework of fasteners smaller than M2.5 except on
 access panels and non-structural components of a fully containerized CubeSat. Every flight fastener therefore gets at
 least one locking feature (staking compound or a prevailing-torque insert), the M2 hinge and PCB screws are not reworked
-after the protoflight test, and the access panels (exempt) are still staked. The thread-lockers named in
-`hardware/structure/STRUCTURAL_DESIGN.md` §8.2 (Loctite 242 and 222) must be shown to meet TML ≤ 1.0 % and CVCM ≤ 0.1 %
-(CDS §2.1.7) from the NASA outgassing database, or replaced by a listed staking compound (VI-LV-09). Cable ties: Nylon 6/6
-or ETFE, non-removable, present in the vibration test (UG §5.2.3).
+after the protoflight test, and the access panels (exempt) are still staked. No liquid thread-locker is used:
+Loctite 242 and 222 have no E595 data and are non-compliant (`docs/compliance/MATERIALS_LIST.md`); the locking features
+are prevailing-torque (self-locking) inserts, screws and jackposts, with Scotch-Weld 2216 as staking only (VI-LV-09). Harness retention:
+MIL-T-43435 lacing tape at the tie points of SQSO-HAR-001 2.0 §10.3 (no nylon ties), present in the vibration test (UG §5.2.3).
 
 ## 10. Battery, Wings and Antennas in the Stowed State
 
