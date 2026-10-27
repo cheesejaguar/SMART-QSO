@@ -194,8 +194,8 @@ Version E (2026-10-27, flight software round 3):
 | SIL-35 | The link margin at the receiver as designed | LBA v3.0 assumed a better receiver and other antenna axes | LBA v3.4 values (link row of §3): 8.3 dB of telecommand margin at 10°, 6.5 dB at 5°, 64.0 dBm EIRP |
 | SIL-36 | The separation and wing sense lines read with the wrong polarity | The model drove them as the flight software expected before RID SMA-B02 | DEPLOY_SENSE high = released, SOLAR_SENSE low = both deployed, as the EPS drives them, and no internal pulls in the flight software |
 | SIL-37 | Eclipse separation after a cold soak (`separate_at_eclipse`, `separation_soak_c` −30 °C): the AntS at −18.2 °C at separation + 31 min; the flight software deferred it one slot and deployed it at +1.4 °C, 80.7 min after separation. The beacon gap was then 1,312 s | The gate works (decision C-18). The gap: from the end of the RF silence (45 min) until the AntS was out the downlink keyed into the stowed antennas, its VSWR protection tripped (above 3:1) and stopped the downlink for 10 minutes, twice | Reported for a decision (RF lead): accept the VSWR stops while the AntS is deferred (up to 25 h at the cap), or hold the downlink until the AntS reads deployed. Not changed in the flight software |
-| SIL-38 | The full run's worst 60 s downlink duty 25.3 %, over the 25 % check | The check's window held 61 one-second steps (61 s of keying counted against 60 s); the flight software's limit is a credit of one 60 s window at 25 % (SRS-I025) | The window counts exactly 60 s and reports when it ended: 23.5 % on day 117 in the same run |
-| SIL-39 | The flight software's own payload hard-limit condition (MSC L2-05: the Jetson on only in ACTIVE, sunlit, SOC ≥ 55 %, within its burst limit) logged 4,497 onsets in the full run (78 in commissioning), each cleared some 530 s later | The batch schedule started and kept a batch on the mode alone (ACTIVE): a batch begun before an eclipse ran on into it, and one could start in eclipse | Flight software: a batch starts only, and ends at once, within the hard limits (`run_payload_schedule`); new check `payload-limits` (0 onsets). Commissioning after the change: 0 onsets, Jetson energy per accepted beacon 0.029 Wh |
+| SIL-38 | The full run's worst 60 s downlink duty 25.3 %, over the 25 % check | The check's window held 61 one-second steps (61 s of keying counted against 60 s); the flight software's limit is a credit of one 60 s window at 25 % (SRS-I025) | The window counts exactly 60 s and reports when it ended: 23.7 % in the reference run (§7) |
+| SIL-39 | The flight software's own payload hard-limit condition (MSC L2-05: the Jetson on only in ACTIVE, sunlit, SOC ≥ 55 %, within its burst limit) logged 4,497 onsets in the full run (78 in commissioning), each cleared some 530 s later | The batch schedule started and kept a batch on the mode alone (ACTIVE): a batch begun before an eclipse ran on into it, and one could start in eclipse | Flight software: a batch starts only, and ends at once, within the hard limits (`run_payload_schedule`, SRS-F166). A rerun still showed 2 onsets: a switch-on in the last second of sunlight started its batch on the next pass, in eclipse; the schedule now starts a batch only while it is allowed (`payload_schedule`). New check `payload-limits` (0 onsets) |
 
 Without the EPS controller answering (the stand-in power model of the development simulation, SW-01) the executive
 keeps its previous behaviour: detumble completes in the first pass and the payload follows the power mode. The C
@@ -204,38 +204,34 @@ suites run that way, unchanged except where SIL-06 changed a specified value.
 ## 7. Results
 
 The reference run: `--scenario full`, seed 20280601, integration 2028-09-15, deployment 2028-11-01 06:00 UTC, 475 km
-sun-synchronous at LTAN 22:30, 730 days of operations, passivation by telecommand, then the decay to re-entry. It found
-**0 anomalies and 0 warnings in 42 checks** (about 28 minutes on one core; 732 days simulated, 11,225 orbits).
-Revision C's values are with the flight software of the CDR round 2 (8°/s spin, the CAD inertia tensor of MASS_BUDGET
-v3.1, the four burn lines, stored housekeeping, acknowledgements, receiver recovery, passivation by telecommand), the
-LBA v3.0 link model and the 207 Ω heater. The main values:
+sun-synchronous at LTAN 22:30, 730 days of operations, passivation by telecommand, then the decay to re-entry. Version E
+(2026-10-27, flight software round 3 with RIDs SMA-B02 to SMA-B21, decisions C-17 and C-18, the final CAD inertia, LBA
+v3.4, the 13-node thermal network) found **0 anomalies and 0 warnings in 46 checks** (about 25 minutes on one core;
+732.3 days simulated, 11,228 orbits). The main values:
 
 | Area | Result |
 |------|--------|
-| LEOP | First burn 30.0 min and first RF 45.0 min after separation; wings sensed deployed at 30.2 min, antennas at 30.6 min; at most one burn resistor on at once; detumbled (rate across +Y below 0.5°/s) after 0.2 h |
-| Attitude | Spin about +Y at 8.05°/s (median in sunlight, ACTIVE); in sunlight +Y within 1.8° of the Sun on average (95th percentile 3.5°, 99.98 % of the time within 15°); at the first record after each eclipse exit 2.6° on average (median 2.6°, 95th percentile 4.6°; 10-minute records). The 1.9 h beyond 15° are the first Sun acquisition, 22 to 36 min after separation, and the spin-up after five of the nine single-event resets (days 66, 94, 188, 328 and 609) |
-| Power | Depth of discharge at most 3.7 % per eclipse (2.7 % after commissioning, median 1.0 %); lowest SOC in operations 90.1 %; 30,599 Wh drawn from the array and 27,209 Wh used, the regulator curtailing the rest at full charge; capacity fade 1.6 %; gauge error at most 0.4 % |
-| Thermal | Battery +4.9 to +20.0 °C, never outside the charge window; OBC −10.9 to +20.5 °C; PA at most 20.0 °C; Jetson at most 20.9 °C |
-| Downlink | 2.20 s longest key-down, 20.7 % worst 60 s duty (the dump frames included); longest beacon gap 249 s; 95.3 % of 28,542 passes with a beacon decoded; 1,259,310 frames, none while not permitted |
-| Transponder | Enabled about 889 min and keyed about 53 min a day; at most 15.0 % of an orbit keyed; 96.7 % of the uplink demand repeated while its gates held; never radiating while not permitted; 145 s in all (0.01 % of its keyed time) within one pass of an eclipse entry |
-| Jetson | 173,082 beacons with Jetson text from 9,596 power-ons; 0.036 Wh per accepted beacon (gate 0.1 Wh) |
-| Operations | 1,372 of 1,401 telecommands executed (the rest lost on the link), no authentication failure, no loss-of-contact inhibit; 1,370 acknowledgements radiated (99.9 %); 8,664 dump frames with 34,656 stored records; 9 single-event OBC resets, each recovered through DETUMBLE; 7 command-receiver hangs, each cleared by the flight software's power cycle (longest 24.4 h); no Jetson latch-up in this seed; no watchdog reset or brownout; OBC availability 100.000 %; total dose 4.9 krad |
-| End of life | PASSIVATE_ARM and PASSIVATE_EXECUTE at day 730.1, the charge path opened by EOL_ARM then EOL_FIRE; no charge into the pack afterwards; the OBC dark 2.0 days later; re-entry 2.02 years after the design life (4.02 years after deployment) |
+| LEOP | First burn 30.0 min and first RF 45.0 min after separation; wings sensed deployed at 30.2 min, antennas at 30.6 min; at most one burn resistor on at once; the AntS told to deploy at +2.8 °C (+4.2 °C at separation + 31 min: the reference run separates warm, §8), no deferral; detumbled (rate across +Y below 0.5°/s) after 0.2 h |
+| Attitude | Spin about +Y at 8.05°/s (median in sunlight); in sunlight +Y within 2.0° of the Sun on average (95th percentile 4.0°, 99.84 % of the time within 15°; 10-minute records); the 1.5 h beyond 15° are the first Sun acquisition and the spin-ups after the single-event resets |
+| Power | Depth of discharge at most 3.5 % per eclipse; lowest SOC in operations 90.8 %; 29,398 Wh drawn from the array and 26,173 Wh used, the regulator curtailing the rest at full charge; capacity fade 1.5 %; gauge error at most 0.4 %; no hardware load shed |
+| Thermal | Battery +4.9 to +20.0 °C, never outside the charge window; OBC −7.5 to +25.1 °C; PA at most 24.6 °C; Jetson at most 30.2 °C |
+| Downlink | 2.20 s longest key-down, 23.7 % worst 60 s duty (day 42); longest beacon gap 249 s; 95.9 % of 28,557 passes with a beacon decoded; 1,467,673 frames, none while not permitted |
+| Transponder | Enabled about 890 min and keyed about 53 min a day; at most 15.5 % of an orbit keyed; 96.5 % of the uplink demand repeated while its gates held; never radiating while not permitted; 137 s in all (0.01 % of its keyed time) within one pass of an eclipse entry |
+| Jetson | 319,795 beacons with Jetson text from 9,219 power-ons; 8,144 Wh; 0.025 Wh per accepted beacon (gate 0.1 Wh); no onset of the payload hard-limit condition; one latch-up, cut by the 8 W guard within 1.0 s |
+| GNSS | 2,918 state frames for 2,922 sessions with a fix (4 sessions without a frame: the check flags a run with none, not each missing one), every one with a velocity; position within 0.82 m of the receiver's record, velocity within 0.001 m/s of its arc |
+| Operations | 1,449 of 1,463 telecommands executed (the rest lost on the link), no authentication failure, no loss-of-contact inhibit; 1,448 acknowledgements radiated (99.9 %); 5,364 dump frames with 20,256 stored records (Version D: 8,664 and 34,656; not investigated in this round); 9 single-event OBC resets, each recovered through DETUMBLE; 7 command-receiver hangs, each cleared by the flight software's power cycle (longest 24.9 h); no watchdog reset or brownout; OBC availability 100.000 %; total dose 4.9 krad |
+| End of life | PASSIVATE_ARM and PASSIVATE_EXECUTE at day 730.1, the charge path opened through the EPS's key, EOL_ARM and EOL_FIRE; no charge into the pack afterwards; the OBC dark 2.3 days later; re-entry 2.55 years after the design life (4.55 years after deployment) on the ODAR's solar activity (Version D: 2.02 years on the earlier cycle profile) |
 
-The fault log of the run (its texts and counts are in `summary.json`) needs a reading:
+The fault log now records conditions at their onset and their clearing (round 3, SRS-F153): the low-SOC and low-voltage
+entries that filled Version D's log after passivation are one entry each. "Payload enabled" and "Payload disabled"
+(9,219 and 9,220) are the batches; "Entered SAFE mode" (12) is the EPS power mode at each of the 11 boots and after
+passivation, not the operating state.
 
-- The 6,740 "Low SOC in health check" and 3,044 "Low battery voltage detected" entries all fall on days 731 and 732,
-  between 1.25 days after passivation and the OBC going dark: the pack drains with the array disconnected. None is in
-  storage, LEOP or operations. They come every 10 s (the health check's period and each battery-voltage read), so a
-  low-SOC episode fills the 100-entry fault log in about 17 minutes. In operations the 30 % health threshold would be
-  crossed only on the way to the SAFE entry at 25 %, and would then push the earlier entries out of the log within the
-  hour; rate-limiting the two messages (log the onset, not every sample) is a candidate change for the flight software.
-- "SAFE" (1) and "EMERGENCY" (1) are the operating-state changes the state machine logs; both are after passivation
-  (SOC 24 % and 14 %), so the `safe-entries` check, which counts after commissioning and before passivation, is 0.
-  "Entered SAFE mode" (12) is the EPS power mode, not the operating state: each of the 11 boots (integration, separation
-  and the nine single-event resets) starts in the SAFE power mode before the mode manager raises it within the same pass,
-  and the twelfth is the post-passivation SAFE. "DETUMBLE", "IDLE" and "ACTIVE" are likewise the state changes after
-  each boot.
+The other scenarios with the same code: `commissioning` 0 anomalies and 0 warnings (Jetson 0.029 Wh per accepted beacon
+over 4,930 beacons, worst 60 s duty 23.0 %, 69 GNSS frames for 68 sessions); `smoke` 0 anomalies (its warnings, no
+transponder service, no AI beacon and 2 of 3 acknowledgements, are those of a one-day run); the AntS contingency of §1
+(`separate_at_eclipse`, `separation_soak_c` −30 °C): `ants-gate` passed (deferred once at −18.2 °C, deployed at +1.4 °C,
+80.7 min after separation), with the expected `beacon-gap` anomaly of SIL-37.
 
 ## 8. Limits and open items
 
@@ -274,3 +270,4 @@ The fault log of the run (its texts and counts are in `summary.json`) needs a re
 | B | 2026-10-26 | The 1.4 ADCS gains, the 6°/s spin, the M-G370PDT0 gyro model and the 4.10 V charge set point; §7 reference run at 500 km, 2028-06-01 |
 | C | 2026-10-27 | Flight software round 2 (§1 to §6, §8): 475 km, 2028-11-01, integration at 60 % SOC and L-47 d; LBA v3.0 link, CAD inertia, four burn lines and the burn buck, 207 Ω heater, Rev C dose, receiver hangs, the EOL latch through EOL_ARM and EOL_FIRE; new settings, checks and findings SIL-19 to SIL-23 |
 | D | 2026-10-27 | §7 with the round-2 reference run (42 checks, 0 anomalies, 0 warnings): the attitude row from the time series, the fault-log entries explained (low SOC and voltage after passivation; SAFE power mode at each boot) |
+| E | 2026-10-27 | Flight software round 3 (§1 to §8): settings `wing_a_failed`, `eol_heater_ohms`, `separate_at_eclipse`, `separation_soak_c` and the AntS contingency; §2 the EPS key, the INA228 dies, the AntS temperature, the TNC STATUS answer; §3 the ODAR's solar activity, the final CAD inertia with one wing out, the load shed (SW1, U19), F1's heater, the 13-node thermal network with the AntS, LBA v3.4, the Jetson at its carrier's input, the GNSS receiver's J2 arc; §5 checks `load-shed`, `gnss-frame`, `ants-gate`, `payload-limits`, the 60 s duty window; §6 findings SIL-24 to SIL-39; §7 the round-3 reference run (46 checks, 0 anomalies, 0 warnings); §8 the warm separation, the AntS reading's assumption, principal axes |

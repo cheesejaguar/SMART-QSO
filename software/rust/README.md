@@ -54,7 +54,7 @@ The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 | `hal_radio.h` | `radio.rs` | The KISS TNC on USART2 (PD5/PD6, 9600 baud) for both directions (CR-2026-005): received frames decoded by `sqso_protocol::kiss`, with the FCS the TNC removed appended again; downlink frames written after the TNC parameters, from a 1 KB buffer that holds the longest stream, so the write never waits |
 
 Not provided: the HAL's callback timers and the watchdog early-warning callback. Both are refused, as they were in the
-former C port. The release image is 207,260 B of text, 26,400 B of data and 17,052 B of bss (2026-10-27, round 3, third part); the data, the bss and
+former C port. The release image is 207,284 B of text, 26,400 B of data and 17,052 B of bss (2026-10-27, round 3, third part); the data, the bss and
 the 8 KB stack are in SRAM2 (parity). The vector table is at 0x08000000, the initial SP is 0x20040000 and the entry point
 is `Reset`. No hardware has run it. CI builds the image and checks those properties.
 

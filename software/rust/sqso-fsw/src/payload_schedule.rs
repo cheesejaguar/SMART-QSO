@@ -123,7 +123,10 @@ impl Schedule {
             return Action::None;
         }
         let Some(start) = self.batch_start_ms else {
-            if self.may_start(now_ms, cached) {
+            // A batch starts only while it is allowed: the payload on just as
+            // the hard limits fail (an eclipse a pass after the switch-on)
+            // is switched off again, not started (SIL-39)
+            if active && self.may_start(now_ms, cached) {
                 self.batch_start_ms = Some(now_ms);
                 self.energy_j = 0.0;
                 self.bursts = self.bursts.wrapping_add(1);
@@ -229,5 +232,10 @@ mod tests {
     fn nothing_starts_outside_active() {
         let mut s = Schedule::new();
         assert_eq!(s.step(0, false, false, 0), Action::None);
+        // Switched on while allowed, no longer allowed a pass later: off, no batch
+        assert_eq!(s.step(1000, false, true, 0), Action::PowerOn);
+        assert_eq!(s.step(2000, true, false, 0), Action::PowerOff);
+        assert!(!s.in_batch());
+        assert_eq!(s.bursts, 0);
     }
 }

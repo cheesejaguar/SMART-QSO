@@ -62,7 +62,7 @@ Reasons, from the design as built:
 | MCU | STM32L4R5ZI (Cortex-M4F) |
 | Core clock | 80 MHz: 4 MHz MSI through the PLL, M = 1, N = 40, R = 2; AHB and APB at the core clock (`clocks()` in `software/rust/firmware/src/main.rs`) |
 | Rust target | `thumbv7em-none-eabihf` |
-| Image (release) | text 207,260 B, data 26,400 B, bss 17,052 B (2026-10-27, round 3, third part); worst-case stack 6,332 B of 8 KB; vector table at 0x08000000; initial SP 0x20040000 (the top of SRAM2); entry `Reset` |
+| Image (release) | text 207,284 B, data 26,400 B, bss 17,052 B (2026-10-27, round 3, third part); worst-case stack 6,332 B of 8 KB; vector table at 0x08000000; initial SP 0x20040000 (the top of SRAM2); entry `Reset` |
 
 ---
 
