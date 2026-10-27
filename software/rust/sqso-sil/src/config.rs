@@ -82,10 +82,12 @@ pub struct Config {
     /// Separate at the first umbra entry after `deploy_utc` (the AntS
     /// temperature gate's case, decision C-18)
     pub separate_at_eclipse: bool,
-    /// The structure (the six panels, the two wings and the AntS) at this
-    /// temperature at separation, °C, the internal nodes as stored (the
-    /// dispenser cold soak: THERMAL_ANALYSIS 2.4 §4.4 puts the AntS at
-    /// −18 °C after 2 h); `None`: every node at the storage temperature
+    /// The dispenser cold soak: the whole thermal network 2 h in the
+    /// dispenser before separation, its wall ending at this temperature, °C
+    /// (THERMAL_ANALYSIS 2.4 §4.3 and §4.4, case D3: −20 °C, the AntS at
+    /// −18 °C at separation; `Thermal::dispenser_soak`); `None`: every
+    /// node at the storage temperature (Version E set only the structure and
+    /// the AntS to this temperature)
     pub separation_soak_c: Option<f64>,
     /// Contingency: the Jetson's rail is stuck on (its switch failed closed)
     pub payload_stuck_on: bool,
@@ -154,8 +156,9 @@ impl Default for Config {
 
 impl Config {
     /// A named scenario: `full` (integration to re-entry), `commissioning`
-    /// (the first 14 days), `smoke` (the first day, for CI), `year` (the
-    /// first year, no passivation)
+    /// (the first 14 days), `ants_cold` (the first 14 days after a cold
+    /// soak and an eclipse separation), `smoke` (the first day, for CI),
+    /// `year` (the first year, no passivation)
     pub fn scenario(name: &str) -> Option<Config> {
         let mut c = Config { scenario: name.into(), ..Config::default() };
         match name {
@@ -170,6 +173,18 @@ impl Config {
                 c.passivate_at_eol = false;
                 c.to_reentry = false;
                 c.record_s = 60.0;
+            }
+            "ants_cold" => {
+                // The AntS contingency (decisions C-18, C-19): the first 14
+                // days after an eclipse separation that follows the
+                // analysis's 2 h dispenser cold soak (THERMAL_ANALYSIS 2.4
+                // §4.4, case D3: the wall at −20 °C)
+                c.mission_days = 14.0;
+                c.passivate_at_eol = false;
+                c.to_reentry = false;
+                c.record_s = 60.0;
+                c.separate_at_eclipse = true;
+                c.separation_soak_c = Some(-20.0);
             }
             "smoke" => {
                 c.mission_days = 1.0;
@@ -306,5 +321,7 @@ mod tests {
         assert_eq!(c.altitude_km, 450.0);
         assert!(c.set("bogus=1").is_err());
         assert!(c.to_json().contains("\"altitude_km\": 450"));
+        let cold = Config::scenario("ants_cold").unwrap();
+        assert!(cold.separate_at_eclipse && cold.separation_soak_c == Some(-20.0) && cold.mission_days == 14.0);
     }
 }

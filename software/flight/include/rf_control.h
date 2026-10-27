@@ -106,7 +106,8 @@ typedef enum {
     RF_INHIBIT_CONTACT    = 0x01U, /**< Loss of contact (contact_monitor.h): transmitters off */
     RF_INHIBIT_RF_SILENCE = 0x02U, /**< Post-deployment silence (rf_silence.h): whole radio off */
     RF_INHIBIT_PASSIVATED = 0x04U, /**< End-of-life passivation (passivation.h): transmitters off for good, never lifted */
-    RF_INHIBIT_RX_CYCLE   = 0x08U  /**< Receiver recovery power cycle (receiver.h): whole radio off */
+    RF_INHIBIT_RX_CYCLE   = 0x08U, /**< Receiver recovery power cycle (receiver.h): whole radio off */
+    RF_INHIBIT_ANTS_PENDING = 0x10U /**< AntS deployment pending (deployment.h, decision C-19): transmitters off */
 } RfInhibit_t;
 
 /**

@@ -31,6 +31,20 @@ pub struct Totals {
     pub ants_release_c: Option<f64>,
     /// The AntS node at separation + 31 min, °C
     pub ants_31min_c: Option<f64>,
+    /// The AntS node's coldest, °C, in the first 3 h after separation
+    pub ants_min_c: Option<f64>,
+    /// When the AntS temperature gate first stood open at or after the first
+    /// attempt (separation + 30 min): the AntS node at or above −17 °C, s
+    /// after deployment
+    pub ants_gate_open_s: Option<f64>,
+    /// The flight software's AntS transmitter hold ended (decision C-19), s
+    /// after deployment
+    pub ants_hold_end_s: Option<f64>,
+    /// The downlink's VSWR protection stopping it, and of those the stops
+    /// with the AntS elements stowed
+    pub vswr_stops: u32,
+    /// VSWR stops with the AntS stowed
+    pub vswr_stops_stowed: u32,
     /// Body rate below 0.5 °/s (and staying there 10 min), s after deployment
     pub detumbled_s: Option<f64>,
     /// Lowest true SOC after the first day
@@ -279,8 +293,10 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
             "ants-gate",
             "AntS deployed at or above -17 °C (decision C-18), or after the 30 deferrals",
             format!(
-                "released at {tc:.1} °C after {deferrals} deferral(s); {} at separation + 31 min",
-                t.ants_31min_c.map_or("-".to_string(), |x| format!("{x:.1} °C"))
+                "released at {tc:.1} °C after {deferrals} deferral(s); {} at separation + 31 min, coldest {}, gate open (>= -17 °C) from {}",
+                t.ants_31min_c.map_or("-".to_string(), |x| format!("{x:.1} °C")),
+                t.ants_min_c.map_or("-".to_string(), |x| format!("{x:.1} °C")),
+                t.ants_gate_open_s.map_or("-".to_string(), |s| format!("{:.1} min", s / 60.0))
             ),
             ">= -17 °C, or 30 deferrals",
             if tc >= sqso_fsw::deployment::ANTS_MIN_TEMP_C - 0.5 || deferrals >= 30 { Pass } else { Anomaly },
@@ -307,6 +323,28 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
             None => check(id, title, "not deployed".into(), "within 2 h", Anomaly),
         });
     }
+    // Decision C-19: silent while the AntS is pending; no keying into stowed
+    // elements before its sequence ends (after a failed sequence the
+    // stowed-antenna beacon, and its VSWR stops, are expected)
+    let ants_out = t.antennas_s.is_some_and(|a| t.ants_hold_end_s.is_some_and(|h| a <= h + 1.0));
+    c.push(match (t.first_rf_s, t.ants_hold_end_s) {
+        (Some(rf), Some(end)) => check(
+            "ants-hold",
+            "Transmitters silent until the AntS reads deployed or its sequence ends (decision C-19); no VSWR stop into stowed elements",
+            format!(
+                "first RF {:.1} min, hold over at {:.1} min (AntS {}); {} VSWR stop(s), {} with the AntS stowed",
+                rf / 60.0,
+                end / 60.0,
+                if ants_out { "deployed" } else { "stowed: its sequence ended" },
+                t.vswr_stops,
+                t.vswr_stops_stowed
+            ),
+            "first RF after the hold; 0 stowed VSWR stops unless the AntS failed",
+            if rf + 1.0 >= end && (t.vswr_stops_stowed == 0 || !ants_out) { Pass } else { Anomaly },
+        ),
+        (None, _) => check("ants-hold", "AntS transmitter hold", "never transmitted".into(), "after the hold", Anomaly),
+        (Some(_), None) => check("ants-hold", "AntS transmitter hold", "never ended".into(), "after the hold", Anomaly),
+    });
     c.push(match t.detumbled_s {
         Some(s) => check(
             "detumble",

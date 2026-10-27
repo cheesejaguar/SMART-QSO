@@ -3,10 +3,11 @@
 //! The single authority for whether any transmitter may radiate. TX-OFF
 //! drives the transmitter enable line low and latches the inhibit in
 //! non-volatile memory, so it survives resets and only TX-ON clears it.
-//! Automatic inhibits (loss of contact, post-deployment silence) are
-//! separate bits; transmission needs the latch and every bit clear. Only
-//! the RF silence also removes radio power, so the telecommand receiver
-//! stays on under TX-OFF and loss of contact.
+//! Automatic inhibits (loss of contact, post-deployment silence, the AntS
+//! deployment pending of decision C-19) are separate bits; transmission
+//! needs the latch and every bit clear. Only the RF silence (and the
+//! receiver's recovery cycle) also removes radio power, so the telecommand
+//! receiver stays on under TX-OFF, loss of contact and the AntS hold.
 //!
 //! Fail-safe rules: not permitted before [`RfControl::init`]; a blank record
 //! (first boot) permits; a corrupt record or unreadable flash inhibits until
@@ -44,6 +45,9 @@ pub const INHIBIT_RF_SILENCE: u32 = 0x02;
 pub const INHIBIT_PASSIVATED: u32 = 0x04;
 /// `RF_INHIBIT_RX_CYCLE`: a receiver recovery power cycle, whole radio off
 pub const INHIBIT_RX_CYCLE: u32 = 0x08;
+/// `RF_INHIBIT_ANTS_PENDING`: the AntS deployment pending (decision C-19,
+/// `deployment::Deployment::downlink_held`), transmitters off, the receiver on
+pub const INHIBIT_ANTS_PENDING: u32 = 0x10;
 /// The inhibits that remove radio power as well as the transmitter's
 pub const RADIO_OFF: u32 = INHIBIT_RF_SILENCE | INHIBIT_RX_CYCLE;
 
@@ -568,6 +572,12 @@ mod tests {
         rf.set_inhibit(INHIBIT_CONTACT, false, &mut io);
         assert!(rf.permitted());
         assert_eq!(io.lines, Some((true, true)));
+        // The AntS hold (decision C-19): transmitters off, the receiver on
+        rf.set_inhibit(INHIBIT_ANTS_PENDING, true, &mut io);
+        assert_eq!(io.lines, Some((true, false)), "the AntS hold keeps the receiver on");
+        assert!(!rf.permitted());
+        rf.set_inhibit(INHIBIT_ANTS_PENDING, false, &mut io);
+        assert!(rf.permitted());
         rf.tx_off(&mut io).unwrap();
         rf.set_inhibit(INHIBIT_CONTACT | INHIBIT_RF_SILENCE, false, &mut io);
         assert!(!rf.permitted(), "lifting inhibits does not clear TX-OFF");

@@ -8,6 +8,7 @@
  * then the antenna (STR-16); the wings alternate driver A and driver B.
  *
  * @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
+ * @requirement SRS-F167 Transmitters silent while the AntS deployment is pending (deferred or not yet attempted after the wings); the downlink starts when the AntS reads deployed or its sequence ends (attempts spent, or the attempt at the deferral cap made), latched, and never before the 45-minute RF silence
  * @requirement SRS-F165 AntS deployment only at an AntS temperature of at least −17 °C; colder or unknown defers to the next 50-minute slot without spending an attempt, at most 30 times, then deploys; DEPLOY_RETRY with the force flag deploys at once
  */
 
@@ -22,6 +23,7 @@
 #include "fault_mgmt.h"
 #include "flight_log.h"
 #include "nvm_record.h"
+#include "rf_control.h"
 #include "hal/hal_flash.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_i2c.h"
@@ -606,6 +608,75 @@ static void test_ants_temperature_gate(void **state)
     assert_int_equal(deferrals, 1U);
 }
 
+/** Decision C-19: the transmitters are held (RF_INHIBIT_ANTS_PENDING, the
+ *  receiver on) from boot, through the wings and the AntS deferrals, until
+ *  the attempt at the deferral cap has been made; then the stowed-antenna
+ *  beacon may go, and neither a reset nor a ground retry brings the hold
+ *  back */
+static void test_downlink_held_while_the_ants_is_pending(void **state)
+{
+    (void)state;
+    assert_int_equal(hal_flash_erase(FLASH_REGION_RF_CONTROL), SMART_QSO_OK);
+    assert_int_equal(rf_control_init(), SMART_QSO_OK);
+    assert_true(deployment_downlink_held());
+    assert_false(rf_control_tx_permitted());
+    assert_true(hal_gpio_get(GPIO_PIN_RADIO_EN));   /* the receiver stays on */
+    assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
+    set_ants_temperature(-44.0);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false); /* the wings out */
+    wait_out();
+    deployment_tick(SECOND_MS);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_PENDING);
+    for (unsigned n = 0U; n < DEPLOYMENT_ANTS_MAX_DEFERRALS; n++) {
+        deployment_tick(SECOND_MS);
+        assert_no_burn();
+        assert_true(deployment_downlink_held());
+        assert_false(rf_control_tx_permitted());
+        advance(DEPLOYMENT_RETRY_DELAY_MS, MINUTE_MS);
+    }
+    deployment_tick(SECOND_MS);
+    assert_true(burning(DEPLOY_ELEMENT_ANTENNA)); /* the cap: deployed cold */
+    assert_true(deployment_downlink_held());
+    advance(ANTENNA_DEPLOY_BURN_TIME_MS, SECOND_MS);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_VERIFY);
+    assert_false(deployment_downlink_held()); /* still stowed: its beacon */
+    assert_true(rf_control_tx_permitted());
+    assert_true(hal_gpio_get(GPIO_PIN_RF_TX_EN));
+    reboot(HAL_RESET_WATCHDOG);
+    assert_false(deployment_downlink_held());
+    assert_true(rf_control_tx_permitted());
+    advance(DEPLOYMENT_RETRY_DELAY_MS + (3U * MINUTE_MS), MINUTE_MS); /* attempt 2 made */
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_VERIFY);
+    assert_true(deployment_retry(DEPLOY_ELEMENT_ANTENNA, false));
+    assert_false(deployment_downlink_held());
+    assert_true(rf_control_tx_permitted());
+}
+
+/** Decision C-19: a deployed AntS ends the hold; inhibiting deployment by
+ *  command lifts it while inhibited */
+static void test_downlink_hold_ends_with_a_deployed_ants(void **state)
+{
+    (void)state;
+    assert_int_equal(hal_flash_erase(FLASH_REGION_RF_CONTROL), SMART_QSO_OK);
+    assert_int_equal(rf_control_init(), SMART_QSO_OK);
+    assert_true(deployment_set_enabled(false));
+    assert_false(deployment_downlink_held());
+    assert_true(rf_control_tx_permitted());
+    assert_true(deployment_set_enabled(true));
+    assert_true(deployment_downlink_held());
+    assert_false(rf_control_tx_permitted());
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
+    wait_out();
+    deployment_tick(SECOND_MS);
+    deployment_tick(SECOND_MS);
+    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
+    set_antenna_sense(true);
+    advance(ANTENNA_DEPLOY_BURN_TIME_MS + SECOND_MS, SECOND_MS);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_COMPLETE);
+    assert_false(deployment_downlink_held());
+    assert_true(rf_control_tx_permitted());
+}
+
 /** The wings never sense deployed: their retries run out (fault-logged),
  *  the already-deployed antenna is not fired, the sequence ends FAILED */
 static void test_solar_failure_reported(void **state)
@@ -732,6 +803,8 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_disabled_holds, setup, teardown),
         cmocka_unit_test_setup_teardown(test_force_retry_after_failure, setup, teardown),
         cmocka_unit_test_setup_teardown(test_ants_temperature_gate, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_downlink_held_while_the_ants_is_pending, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_downlink_hold_ends_with_a_deployed_ants, setup, teardown),
         cmocka_unit_test_setup_teardown(test_solar_failure_reported, setup, teardown),
         cmocka_unit_test_setup_teardown(test_arm_not_persisted, setup, teardown),
         cmocka_unit_test_setup_teardown(test_save_state_persists_wait, setup, teardown),

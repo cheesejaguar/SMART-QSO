@@ -1,8 +1,8 @@
 # SMART-QSO Document Register
 
 **Document Number:** SQSO-DOC-001
-**Revision:** B
-**Date:** 2026-10-16
+**Revision:** C
+**Date:** 2026-10-27
 
 ---
 
@@ -32,7 +32,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 |----|-------|------|----------|--------|
 | SQSO-BL-001 | SMART-QSO Baseline Parameters (Single Source of Truth) | `docs/BASELINE_PARAMETERS.md` | E | Draft; governs where documents disagree (its §0). Records PI decisions D1–D9 |
 | SQSO-OAP-001 | Orbital Access Plan | `docs/ORBITAL_ACCESS.md` | D | Draft; launch chain, backup and decision points DP-1 to DP-9 |
-| SQSO-DOC-001 | SMART-QSO Document Register | `docs/DOCUMENT_REGISTER.md` | B | Draft |
+| SQSO-DOC-001 | SMART-QSO Document Register | `docs/DOCUMENT_REGISTER.md` | C | Draft |
 | SQSO-ES-001 | SMART-QSO Executive Summary | `docs/EXECUTIVE_SUMMARY.md` | 2.2 | Draft |
 | SQSO-CDS-001 | CubeSat Design Specification Compliance Matrix | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` | C | Draft; statuses are design intent, not verified (its notice) |
 | SQSO-COMP-004 | Export Control Assessment | `docs/compliance/EXPORT_CONTROL.md` | A | Draft; its system and Jetson classifications are superseded by SQSO-REG-012 |
@@ -90,7 +90,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-WKS-001 | SMART-QSO Workmanship Standards | `docs/manufacturing/WORKMANSHIP_STANDARDS.md` | 1.1 | Draft |
 | SQSO-MSC-001 | SMART-QSO Mission Success Criteria | `docs/mission/MISSION_SUCCESS_CRITERIA.md` | 2.2 | Draft |
 | SQSO-LVR-001 | Launch Vehicle and Dispenser Requirements Flow-Down | `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` | E | Draft; from published provider documents, no mission ICD yet |
-| SQSO-SCH-001 | Integrated Master Schedule | `mission/SCHEDULE.md` | D | Draft; planning estimates |
+| SQSO-SCH-001 | Integrated Master Schedule | `mission/SCHEDULE.md` | E | Draft; planning estimates |
 | SQSO-RISK-001 | Risk Register | `mission/RISK_REGISTER.md` | E | Living document |
 | SQSO-AR-001 | SMART-QSO Anomaly Report Template | `docs/operations/ANOMALY_REPORT_TEMPLATE.md` | 1.0 | Template |
 | SQSO-ARP-001 | SMART-QSO As-Run Procedure Template | `docs/operations/AS_RUN_PROCEDURE_TEMPLATE.md` | 1.0 | Template |
@@ -165,16 +165,18 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-SEC-001 | Space System Protection and Security Plan | `docs/safety/SPACE_SYSTEM_PROTECTION_PLAN.md` | A | Draft |
 | SQSO-REV-CDR-002 | Design Review against the NPR 7123.1D CDR Criteria (2026-10-27) | `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md` | A | Draft; engineering assessment by AI reviewers, not an independent board |
 | SQSO-FMEA-001 | Software Failure Mode and Effects Analysis (FMEA) | `docs/safety/SOFTWARE_FMEA.md` | C | Draft |
-| SQSO-SHA-001 | Software Hazard Analysis | `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` | F | Draft |
+| SQSO-SHA-001 | Software Hazard Analysis | `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` | G | Draft; SW-HAZ-014 to -017 for the board firmware |
 | SQSO-SSP-001 | Software Safety Plan | `docs/safety/SOFTWARE_SAFETY_PLAN.md` | E | Draft |
 | SQSO-SW-008 | Build Configurations | `docs/software/BUILD_CONFIGURATIONS.md` | E | Draft |
 | SQSO-SW-006 | Software Configuration Index | `docs/software/CONFIGURATION_INDEX.md` | B | Draft |
 | SQSO-RRP-001 | SMART-QSO Rollback and Recovery Procedures | `docs/software/ROLLBACK_RECOVERY_PROCEDURES.md` | 1.2 | Draft |
 | SMART-QSO-SDD-001 | Software Design Description (SDD) | `docs/software/SOFTWARE_DESIGN.md` | 1.1 | Draft |
-| SMART-QSO-SDP-001 | Software Development Plan (SDP) | `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` | 1.5 | Draft |
+| SMART-QSO-SDP-001 | Software Development Plan (SDP) | `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` | 1.6 | Draft |
 | SQSO-SMP-001 | SMART-QSO Software Maintenance Plan | `docs/software/SOFTWARE_MAINTENANCE_PLAN.md` | 1.1 | Draft |
-| SMART-QSO-SRS-001 | Software Requirements Specification (SRS) | `docs/software/SOFTWARE_REQUIREMENTS.md` | 1.10 | Draft |
-| SQSO-FSW-012 | NPR 7150.2D Requirements Mapping and Compliance Matrix (Class C) | `docs/software/NPR7150_COMPLIANCE_MATRIX.md` | B | Draft |
+| SMART-QSO-SRS-001 | Software Requirements Specification (SRS) | `docs/software/SOFTWARE_REQUIREMENTS.md` | 1.11 | Draft |
+| SQSO-SRS-TNC-001 | RF Board TNC Firmware: Software Requirements Specification | `docs/software/TNC_FIRMWARE_REQUIREMENTS.md` | A | Draft; 67 requirements, 25 safety-critical; firmware not written (finding P3A-03) |
+| SQSO-SRS-EPSC-001 | EPS Controller Firmware: Software Requirements Specification | `docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md` | A | Draft; 62 requirements, 20 safety-critical; firmware not written (finding P3A-03) |
+| SQSO-FSW-012 | NPR 7150.2D Requirements Mapping and Compliance Matrix (Class C) | `docs/software/NPR7150_COMPLIANCE_MATRIX.md` | C | Draft |
 | SMART-QSO-STP-001 | Software Test Plan (STP) | `docs/software/SOFTWARE_TEST_PLAN.md` | 1.2 | Draft |
 | SQSO-SVD-001 | Software Version Description | `docs/software/SOFTWARE_VERSION_DESCRIPTION.md` | D | Draft |
 | SQSO-E2E-001 | SMART-QSO End-to-End Test Plan | `docs/test/END_TO_END_TEST_PLAN.md` | 1.0 | Draft |
@@ -229,7 +231,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-RTM-001 | SMART-QSO Requirements Traceability Matrix | `docs/verification/REQUIREMENTS_TRACEABILITY_MATRIX.md` | 1.2 | Draft |
 | SQSO-VER-RF-001 | RF Test Results Document | `docs/verification/RF_TEST_RESULTS.md` | 1.2 | Template |
 | SMART-QSO-TP-001 | SMART-QSO Test Procedures | `docs/verification/TEST_PROCEDURES.md` | 1.1 | Draft |
-| SQSO-VCRM-001 | Verification Cross-Reference Matrix (VCRM) | `docs/verification/VERIFICATION_MATRIX.md` | D | Draft |
+| SQSO-VCRM-001 | Verification Cross-Reference Matrix (VCRM) | `docs/verification/VERIFICATION_MATRIX.md` | E | Draft |
 | SQSO-VIR-001 | Verification Item Register | `docs/verification/VI_REGISTER.md` | A | Generated (`scripts/gen_vi_register.py --check` in CI; RID P3P-01) |
 | SQSO-VVP-001 | SMART-QSO Verification and Validation Plan | `docs/verification/VERIFICATION_VALIDATION_PLAN.md` | 1.3 | Draft |
 | SQSO-ADCS-ACT-001 | ADCS Actuator Design Document | `hardware/adcs/ACTUATOR_DESIGN.md` | 1.0 | Draft |
@@ -365,3 +367,4 @@ index and several citations used ICD numbers that belong to other ICDs; they now
 |-----|------|-------------|--------|
 | A | 2026-10-16 | Initial register (findings PI-17, VV-18) | SMART-QSO Team |
 | B | 2026-10-16 | Revisions of the documents changed by the traceability work; §5 names the generated RTM as the current record (finding VV-06) | SMART-QSO Team |
+| C | 2026-10-27 | SQSO-SRS-TNC-001 and SQSO-SRS-EPSC-001 registered (the board firmware requirements, finding P3A-03); revisions of SQSO-SCH-001 (E), SQSO-SHA-001 (G), SMART-QSO-SDP-001 (1.6), SQSO-FSW-012 (C) and SQSO-VCRM-001 (E) | SMART-QSO Team |

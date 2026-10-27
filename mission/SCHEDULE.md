@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat, 2026-10-27 to a 2028 Launch
 
 **Document ID**: SQSO-SCH-001
-**Version**: D
+**Version**: E
 **Date**: 2026-10-27
 **Status**: Planning baseline from a critical-path model. No vendor quote, laboratory booking, integrator schedule or
 funding commitment exists yet; each is an assumption below. Update at least every 30 days (finding PI-12).
@@ -61,7 +61,9 @@ layout designers, layout after the PDR, the reliability programme in (the model'
 | ANTS_RFQ | ISIS AntS RFQ, with the ICD (VI-RFB-13, AV-V7, DA-17) | 10 d | 2026-10-27 | 2026-11-06 | 0 d | 0 d |
 | DAS_REQ | NASA DAS software usage agreement requested (DA-06) | 10 d | 2026-10-27 | 2026-11-06 | 0 d | 0 d |
 | ENTITY | Contracting legal entity in place (ORBITAL_ACCESS DP-1) | 8 wk | 2026-10-27 | 2026-12-22 | 9 d | 9 d |
+| EPS_DES | EPS controller firmware design (register map, keys, SOC, MPPT; language ratified, DA-22), into the PDR package (flight software lead, PI until named) | 5 wk | 2026-10-27 | 2026-12-01 | **-52 d** | 99 d |
 | FCC_REQ | FCC Space Bureau consultation requested with the agenda (REGULATORY_ROADMAP D §6; DA-11) | 19 d | 2026-10-27 | 2026-11-15 | 0 d | 0 d |
+| FW_REQ | Board firmware requirements: SQSO-SRS-TNC-001 (67) and SQSO-SRS-EPSC-001 (62) (complete at this CDR; flight software lead, PI until named) | done | 2026-10-27 | 2026-10-27 | **-59 d** | 92 d |
 | JET_DG | JETB-06/V-JET-2, JETB-12: NVIDIA DG-10931-001 and TDG-11127-001, Molex drawings; conformance review before the carrier layout | 6 wk | 2026-10-27 | 2026-12-08 | 18 d | 55 d |
 | MECH | Mechanical CAD, FE and dynamic model (complete: SQSO-MECH-CAD-001, STRUCTURAL_ANALYSIS) | done | 2026-10-27 | 2026-10-27 | **-10 d** | 141 d |
 | PDR_BOARD | PI names the independent PDR board and its chair (DA-03, by 2026-12-01) | 5 wk | 2026-10-27 | 2026-12-01 | **-52 d** | 0 d |
@@ -71,6 +73,7 @@ layout designers, layout after the PDR, the reliability programme in (the model'
 | RID | Close this review's RIDs (rounds 1-3); requirements rebaseline (CR-2026-007 to -015) | 6 wk | 2026-10-27 | 2026-12-08 | **-59 d** | 92 d |
 | SCH | EM schematic capture (complete: schematic as code, ERC, BOM; SQSO-EPS/OBC/RF/JET-BRD-001) | done | 2026-10-27 | 2026-10-27 | **-17 d** | 134 d |
 | TCS | Name >= 2 telecommand stations (D1) | 10 wk | 2026-10-27 | 2027-01-05 | 7 d | 7 d |
+| TNC_DES | TNC firmware design (modem, KISS, scrub, supervision; LMX2571 write in power-down checked), into the PDR package (flight software lead, PI until named) | 6 wk | 2026-10-27 | 2026-12-08 | **-59 d** | 92 d |
 | DAS_SW | NASA DAS agreement in hand (DA-06) | 39 d | 2026-11-06 | 2026-12-15 | 0 d | 0 d |
 | FCC_CONS | FCC Space Bureau consultation (D3): meeting | 51 d | 2026-11-15 | 2027-01-05 | 0 d | 0 d |
 | PDR_PKG | PDR data package to the board, two weeks before the review | 1 wk | 2026-12-08 | 2026-12-15 | **-59 d** | 92 d |
@@ -79,9 +82,11 @@ layout designers, layout after the PDR, the reliability programme in (the model'
 | FCC_OUT | FCC consultation outcome recorded (DA-11) | 3 d | 2027-01-05 | 2027-01-08 | 0 d | 0 d |
 | PDR | Independent PDR (NPR 7123.1D Table G-6), held as a peer review | 1 wk | 2027-01-05 | 2027-01-12 | **-80 d** | 71 d |
 | ODAR_E | ODAR Draft E with the DAS output, for the early filing (DA-06) | 4 d | 2027-01-08 | 2027-01-12 | 0 d | 0 d |
+| EPS_CODE | EPS controller firmware code after the PDR (flight software lead, PI until named) | 10 wk | 2027-01-12 | 2027-03-23 | **-17 d** | 134 d |
 | FCC_EARLY | Early FCC pre-space notification with the API data and ODAR Draft E | 1 wk | 2027-01-12 | 2027-01-19 | 0 d | 0 d |
 | L_EPS | EM layout: EPS board, SQSO-EPS-BRD-001 (PC/104, 6 layers) (9 wk, basis LAYOUT_BOARDS) | 9 wk | 2027-01-12 | 2027-03-16 | **-80 d** | 71 d |
 | L_OBC | EM layout: OBC board, SQSO-OBC-BRD-001 (PC/104, 6 layers) (5 wk, basis LAYOUT_BOARDS) | 5 wk | 2027-01-12 | 2027-02-16 | **-73 d** | 78 d |
+| TNC_CODE | TNC firmware code after the PDR (flight software lead, PI until named) | 12 wk | 2027-01-12 | 2027-04-06 | **-45 d** | 106 d |
 | EM_LL | EM COTS buys: frame, AntS, magnetometer, gyro, GNSS, Jetson (12 wk, BVB §2) | 12 wk | 2027-01-15 | 2027-04-09 | **-27 d** | 124 d |
 | FUND_EM | EM funding available (assumption) | — | 2027-01-15 | 2027-01-15 | **-27 d** | 124 d |
 | PANELS | Solar panels, EM and FM sets ordered together (3-7 months, BVB §2; 7 used) | 30 wk | 2027-01-15 | 2027-08-13 | 50 d | 201 d |
@@ -90,7 +95,9 @@ layout designers, layout after the PDR, the reliability programme in (the model'
 | L_RF | EM layout: RF board, SQSO-RF-BRD-001 (6 layers, 300 fitted) (6 wk, basis LAYOUT_BOARDS) | 6 wk | 2027-02-16 | 2027-03-30 | **-73 d** | 78 d |
 | NEGOT | Contract negotiation, altitude clause, export terms | 12 wk | 2027-02-23 | 2027-05-18 | 43 d | 43 d |
 | L_CAR | EM layout: Jetson carrier, SQSO-JET-BRD-001 (6 layers, 2.0 mm) (5 wk, basis LAYOUT_BOARDS) | 5 wk | 2027-03-16 | 2027-04-20 | **-80 d** | 71 d |
+| EPS_UT | EPS controller firmware unit tests in CI and development-board tests (pack and array simulators) (flight software lead, PI until named) | 5 wk | 2027-03-23 | 2027-04-27 | **-17 d** | 134 d |
 | L_SMALL | EM layout: Magnetometer board A2 and access-port board A3 (2 layers) (2 wk, basis LAYOUT_BOARDS) | 2 wk | 2027-03-30 | 2027-04-13 | **-73 d** | 78 d |
+| TNC_UT | TNC firmware unit tests in CI and development-board tests (CC1200 EVM; demodulator threshold, CPU load) (flight software lead, PI until named) | 6 wk | 2027-04-06 | 2027-05-18 | **-45 d** | 106 d |
 | LAYOUT | EM layout cross-board check (stack, harness, VI-MCAD-01 fit) and fabrication release | 1 wk | 2027-04-20 | 2027-04-27 | **-80 d** | 71 d |
 | EM_FAB | EM PCB fabrication and assembly | 5 wk | 2027-04-27 | 2027-06-01 | **-80 d** | 71 d |
 | CONTRACT | Contract signature and deposit (D7: by 2027-06-30); launch-vehicle determination | — | 2027-05-31 | 2027-05-31 | 30 d | 30 d |
@@ -101,6 +108,8 @@ layout designers, layout after the PDR, the reliability programme in (the model'
 | MA_IN | Mission-analysis inputs to the integrator (L-8 M: CAD, dynamic model, webforms) | 2 wk | 2027-05-31 | 2027-06-14 | 109 d | 261 d |
 | BATT_ABUSE | Custom-battery abuse tests on sacrificial EM-design packs (BSA D §3.1, V-BSA-9; Falcon 9 set, 3-4 weeks; ISS backup set 8-12 weeks) | 4 wk | 2027-06-01 | 2027-06-29 | 4 d | 155 d |
 | EM_INT | EM integration, flatsat, flight software on target (TP-FLATSAT-001) | 8 wk | 2027-06-01 | 2027-07-27 | **-80 d** | 71 d |
+| EPS_EM | EPS controller firmware on the EPS board EM: V-EPS-1/-6 to -10/-12 to -17, IFT-EPS-001 to -006 (flight software lead with the EPS designer, PI until named) | 4 wk | 2027-06-01 | 2027-06-29 | **-52 d** | 99 d |
+| TNC_EM | TNC firmware on the RF board EM: VI-RFB-01/-05/-07/-08/-10, flatsat with the OBC (flight software lead with the RF lead, PI until named) | 5 wk | 2027-06-01 | 2027-07-06 | **-59 d** | 92 d |
 | EM_TEST | EM development tests: Jetson heat path and burst energy, EM TVAC, pathfinder vibe, shock if VI-07 requires it, RF/EMC pre-scan, GNSS noise, antenna pattern | 8 wk | 2027-07-27 | 2027-09-21 | **-80 d** | 71 d |
 | FLATSAT_500H | Reliability programme: >= 500 h powered on the EM boards with flight software (REL §6; ETP §6, VI-11) | 4 wk | 2027-07-27 | 2027-08-24 | **-52 d** | 99 d |
 | CDR | Independent CDR (Table G-7) with EM data | 1 wk | 2027-09-21 | 2027-09-28 | **-80 d** | 71 d |
@@ -110,6 +119,8 @@ layout designers, layout after the PDR, the reliability programme in (the model'
 | FM_LL | FM COTS buys | 12 wk | 2027-09-28 | 2027-12-21 | **-80 d** | 71 d |
 | SDHS | Hazardous-systems declaration and 91-710 letter (L-6 M) | 4 wk | 2027-09-28 | 2027-10-26 | 36 d | 188 d |
 | FM_FAB | FM PCB fabrication, assembly, inspection | 6 wk | 2027-10-26 | 2027-12-07 | **-66 d** | 85 d |
+| EPS_QUAL | EPS controller firmware qualification of the flight build on the FM EPS board (flight software lead, PI until named) | 3 wk | 2027-12-07 | 2027-12-28 | **-45 d** | 106 d |
+| TNC_QUAL | TNC firmware qualification of the flight build on the FM RF board (flight software lead, PI until named) | 3 wk | 2027-12-07 | 2027-12-28 | **-45 d** | 106 d |
 | FM_INT | FM integration (TP-INT-001 to -006) | 6 wk | 2027-12-21 | 2028-02-01 | **-80 d** | 71 d |
 | FM_FUNC | FM comprehensive functional and day-in-the-life (TP-SYS-001, -002) | 3 wk | 2028-02-01 | 2028-02-22 | **-80 d** | 71 d |
 | FM_BURNIN | Reliability programme: FM burn-in >= 200 h powered, last 100 h failure-free, 4 ambient thermal cycles (REL §6; ETP §3.11, VI-12) | 10 d | 2028-02-22 | 2028-03-03 | **-80 d** | 71 d |
@@ -136,6 +147,18 @@ and an FM burn-in of ≥ 200 h powered, the last 100 h failure-free, with four a
 10 days on the critical path). Their pass criteria are verification items VI-11 and VI-12 of
 `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §8. Dropping both returns 10 days of float and the allocation-case
 estimates (DA-02).
+
+**Board firmware (finding P3A-03, Version E).** The RF board's TNC firmware and the EPS controller firmware are Class C
+software items (SMART-QSO-SDP-001 §3.4) with no task until Version D. Their requirements are complete at this CDR
+(task FW_REQ: SQSO-SRS-TNC-001, 67 requirements; SQSO-SRS-EPSC-001, 62). Each item then has a design that goes into
+the PDR package (TNC_DES, EPS_DES; PDR_PKG now waits for both), code after the PDR (TNC_CODE, EPS_CODE), host unit
+tests and development-board tests (TNC_UT, EPS_UT), integration on its EM board with the flatsat before the EM tests
+and the 500 h (TNC_EM, EPS_EM; EM_TEST and FLATSAT_500H wait for both) and qualification of the flight build on its FM
+board before the FM functional test (TNC_QUAL, EPS_QUAL; FM_FUNC waits for both). Owner of every task: the flight
+software lead (PI until named), with the RF lead and the EPS designer on the EM tasks. Durations are planning
+estimates for one developer per item. None is on the critical path: the least float among them is 92 days (TNC_DES,
+FW_REQ, TNC_EM) for the November launch, and the critical path and its +71 days are unchanged; for June 2028 their
+float is −59 to −17 days, inside the −80 days of the path.
 
 ## 3. Critical Path and Margin
 
@@ -202,6 +225,8 @@ days**: the campaign ends 11.4 weeks after the 2028-02-01 milestone, before any 
 | FCC consultation requested | 2026-11-15 |
 | NASA DAS run; ODAR Draft E (DA-06) | 2027-01-08; 2027-01-12 |
 | Contracting legal entity (DP-1); integrator RFQs out | 2026-12-22; 2026-12-29 |
+| Board firmware requirements complete (SQSO-SRS-TNC-001, SQSO-SRS-EPSC-001) | 2026-10-27 |
+| Board firmware designs in the PDR package | 2026-12-08 |
 | **PDR** | **2027-01-12** |
 | Early FCC pre-space notification | **2027-01-19** |
 | IARU request | 2027-01-26 |
@@ -209,10 +234,12 @@ days**: the campaign ends 11.4 weeks after the 2028-02-01 milestone, before any 
 | IARU coordination letter (90th percentile) | by 2027-05-18 |
 | **Launch contract** (deadline 2027-06-30); integrator ICD | **2027-05-31** |
 | EM boards assembled | 2027-06-01 |
+| Board firmware integrated on the EM boards (TNC, EPS controller) | 2027-07-06 |
 | EM integrated, flight software running on the target | 2027-07-27 |
 | 500 h on the EM boards (reliability programme) | 2027-08-24 |
 | **CDR** | **2027-09-28** |
 | FM integration start | 2027-12-21 |
+| Board firmware flight builds qualified on the FM boards | 2027-12-28 |
 | FM burn-in (≥ 200 h) | 2028-02-22 to 2028-03-03 |
 | Protoflight campaign | 2028-03-03 to 2028-04-21 |
 | Environmental verification report | 2028-04-28 (due 2028-07-17) |
@@ -249,6 +276,7 @@ the verification-item register and fails CI if a row lacks an owner, a date or a
 | DA-19 | Drawings before the layout: VI-RFB-12 (AntS RF port, coax plating, attenuation, inner conductor; by 2026-11-13, RF lead; ISIS AntS RFQ with the ICD by 2026-11-06); JETB-06 (NVIDIA DG-10931-001 and TDG-11127-001 through a developer account); JETB-12 (Molex drawings) | RF designer; payload lead | 2027-02-01 | VI-RFB-12 pass before the RF layout (2027-02-16); V-JET-2 passes before the carrier layout (2027-03-16); J1 mated height ≤ 13.2 mm and J2 ≤ 7.7 mm from the drawings, else the right-angle J1 fallback | RFB-10, JETB-06, JETB-12 | Open |
 | DA-20 | Ratify the proposed wordings TBR-MRD-002 to -005 and TBR-SYS-002 to -004 | PI | 2027-01-12 | Each TBR closed in its document (ratified, amended or rejected) | SE-04 | Open |
 | DA-21 | Shock (VV-07): decide VI-07 from the integrator's attenuated shock MPE | Test lead | 2027-07-14 | Analysis passes only if the vibration-equivalent SRS (24 / 53 / 85 / 60 g at 100 / 500 / 1000 / 2000 Hz) envelops the MPE below 2000 Hz; otherwise an EM shock test at MPE + 3 dB, 2 actuations per axis, in the EM tests (costed in `software/simulation/cdr/pm/test_cost.py`) | VV-07 | Open |
+| DA-22 | Ratify the board firmware languages: RF board TNC in Rust `no_std` with the OBC's pinned toolchain (proposed, SQSO-SRS-TNC-001 §7); EPS controller in C11 to MISRA C:2012 with TI MSP430-GCC (recommended, SQSO-SRS-EPSC-001 §7) | PI | 2026-12-01 | Decision recorded in SMART-QSO-SDP-001 §3.4 and each specification's §7 before the firmware designs go into the PDR package; if Rust is chosen for the EPS controller, a CR with the nightly toolchain and its qualification plan (CR-2026-004 covers only the pinned stable toolchain) | P3A-03 | Open |
 
 ---
 
@@ -261,3 +289,4 @@ the verification-item register and fails CI if a row lacks an owner, a date or a
 | B | 2026-10-27 | CDR 2026 consistency pass: planning launch 2028-11-01 (BASELINE Rev E §3, CR-2026-007) in the §1 key dates (L-relative dates from `schedule_cpm.py --launch 2028-11-01`); finding 2 marked adopted. Floats unchanged | CDR documentation review |
 | C | 2026-10-27 | `schedule_cpm.py` defaults to the 2028-11-01 planning launch (was 2028-06-01); the §3 scenario table labels the June rows with their options (RID SE-16). Dates and floats unchanged | CDR S&MA analysis |
 | D | 2026-10-27 | CDR round 3 (P3P-05, P3P-10, P3P-01, REL-01, SE-05, SE-14). Schematic capture and the mechanical CAD complete; EM layout re-estimated per board from the round-2 designs (27 designer-weeks; two designers, 15 weeks); PDR board, pre-layout and pre-order verification items, NASA DAS (agreement 2026-11-06 to 2026-12-15, run 2027-01-08, ODAR Draft E 2027-01-12) and the FCC consultation (request 2026-11-15, meeting 2027-01-05, outcome 2027-01-08) before the early FCC filing (2027-01-19), IARU letter by 2027-05-18 (one date), integrator data at the contract, battery abuse tests, and the reliability programme (≥ 500 h EM flatsat, ≥ 200 h FM burn-in) added as tasks; CDR 2027-09-28; float +71 d for 2028-11 (meets GOLD 1.06 by 0.5 weeks), −80 d for June 2028; §5 decision points and dated actions DA-01 to DA-21 with owners, dates and criteria | CDR round 3, systems and programmatics |
+| E | 2026-10-27 | Board firmware tasks (finding P3A-03): FW_REQ (requirements complete), TNC_DES/EPS_DES into the PDR package, TNC_CODE/EPS_CODE, TNC_UT/EPS_UT, TNC_EM/EPS_EM before the EM tests and the 500 h, TNC_QUAL/EPS_QUAL before the FM functional test; owner flight software lead (PI until named); DA-22 (the firmware languages); milestones. Critical path and floats unchanged (+71 d for 2028-11, −80 d for June 2028); least float of the new tasks 92 d | CDR round 3, software systems |

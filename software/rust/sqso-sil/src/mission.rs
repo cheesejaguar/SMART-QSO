@@ -270,6 +270,8 @@ pub struct Mission {
     shed_below_s: f64,
     /// The four wing lines driven at the last step, and each wing deployed
     wing_lines_prev: [[bool; 2]; 2],
+    /// The downlink's VSWR count seen this boot
+    vswr_seen: u32,
     wing_deployed_prev: [bool; 2],
     /// The disconnect's heater has been on this long, s
     eol_heat_s: f64,
@@ -290,6 +292,10 @@ pub struct Mission {
     /// Last illumination, for the eclipse records
     last_sample: Sample,
 }
+
+/// The dispenser cold soak's length with `separation_soak_c`, s (THERMAL_ANALYSIS
+/// 2.4 §4.4: 2 h)
+const SOAK_S: f64 = 7200.0;
 
 fn utc(t: f64) -> String {
     time::iso(t)
@@ -413,6 +419,7 @@ impl Mission {
             shed: false,
             shed_below_s: 0.0,
             wing_lines_prev: [[false; 2]; 2],
+            vswr_seen: 0,
             wing_deployed_prev: [false; 2],
             eol_heat_s: 0.0,
             rx_hung_since: None,
@@ -490,23 +497,19 @@ impl Mission {
 
     /// Separation: the switches release, the pack connects, the OBC boots
     fn separate(&mut self) {
-        if let Some(soak) = self.cfg.separation_soak_c {
-            for k in [
-                thermal::PX,
-                thermal::MX,
-                thermal::PY,
-                thermal::MY,
-                thermal::PZ,
-                thermal::MZ,
-                thermal::W1,
-                thermal::W2,
-                thermal::ANTS,
-            ] {
-                self.thermal.temp_k[k] = soak + crate::env::math::T0_K;
-            }
+        if let Some(wall_c) = self.cfg.separation_soak_c {
+            // The whole network, the internal nodes too (Version F; Version E
+            // set only the structure and the AntS, which then warmed from the
+            // internal nodes at the storage temperature)
+            self.thermal.dispenser_soak(wall_c, SOAK_S);
             self.event(
                 "phase",
-                &format!("dispenser cold soak: the structure and the AntS at {soak:.1} °C at separation"),
+                &format!(
+                    "dispenser cold soak, {:.0} h to a wall at {wall_c:.1} °C: the AntS at {:.1} °C, the battery at {:.1} °C at separation",
+                    SOAK_S / 3600.0,
+                    self.thermal.temp_c(thermal::ANTS),
+                    self.thermal.battery_c()
+                ),
             );
         }
         self.deploy.separated = true;
@@ -525,7 +528,31 @@ impl Mission {
         if !self.fsw.boot(cause) {
             self.event("anomaly", &format!("boot after {cause:?} failed"));
         }
+        self.vswr_seen = 0; // the downlink's counters restart
         self.event("reset", &format!("OBC boot #{} ({cause:?})", self.fsw.boots()));
+    }
+
+    /// Decision C-19: when the flight software's AntS transmitter hold
+    /// ended, and each stop of the downlink by its VSWR protection
+    fn track_ants_hold(&mut self, snap: &crate::fsw::Snapshot) {
+        if !self.fsw.running() || self.rel() < 0.0 {
+            return;
+        }
+        if self.totals.ants_hold_end_s.is_none() && !snap.ants_hold {
+            self.totals.ants_hold_end_s = Some(self.rel());
+            let out = if self.deploy.antennas_deployed() { "deployed" } else { "stowed" };
+            self.event("deploy", &format!("AntS transmitter hold over (decision C-19), the AntS {out}"));
+        }
+        let n = snap.downlink.vswr_events;
+        if n > self.vswr_seen {
+            let new = n - self.vswr_seen;
+            self.totals.vswr_stops += new;
+            if !self.deploy.antennas_deployed() {
+                self.totals.vswr_stops_stowed += new;
+            }
+            self.event("downlink", "VSWR protection stopped the downlink");
+        }
+        self.vswr_seen = n;
     }
 
     // ---------------------------------------------------------------------
@@ -789,6 +816,7 @@ impl Mission {
         }
         let frames = self.fsw.take_tx();
         let snap = self.fsw.snapshot();
+        self.track_ants_hold(&snap);
         for f in &frames {
             self.on_frame(f, &snap, r);
         }
@@ -817,6 +845,15 @@ impl Mission {
         if ants_armed && ants_limit_s > 0 && self.totals.ants_release_c.is_none() {
             self.totals.ants_release_c = Some(ants_c);
             self.event("deploy", &format!("AntS told to deploy at {ants_c:.1} °C"));
+        }
+        if (0.0..3.0 * 3600.0).contains(&self.rel()) {
+            self.totals.ants_min_c = Some(self.totals.ants_min_c.map_or(ants_c, |m: f64| m.min(ants_c)));
+        }
+        if self.rel() >= f64::from(sqso_fsw::deployment::WAIT_TIME_S)
+            && self.totals.ants_gate_open_s.is_none()
+            && ants_c >= sqso_fsw::deployment::ANTS_MIN_TEMP_C
+        {
+            self.totals.ants_gate_open_s = Some(self.rel());
         }
         if self.rel() >= 31.0 * 60.0 && self.totals.ants_31min_c.is_none() {
             self.totals.ants_31min_c = Some(ants_c);

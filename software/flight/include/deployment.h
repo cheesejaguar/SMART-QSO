@@ -22,9 +22,9 @@
  *  - Wings: two burn resistors per wing on separate drivers, used on
  *    alternate attempts, one resistor at a time: wing 1 then wing 2 on
  *    GPIO_PIN_BURN_W1A and GPIO_PIN_BURN_W2A (attempts 1 and 3), on
- *    GPIO_PIN_BURN_W1B and GPIO_PIN_BURN_W2B (attempt 2), 8 s each;
+ *    GPIO_PIN_BURN_W1B and GPIO_PIN_BURN_W2B (attempt 2), 10 s each (decision C-17);
  *    sensed by GPIO_PIN_SOLAR_SENSE.
- *  - Antenna: the ISIS AntS, armed and deployed over I2C bus 0 by its own
+ *  - Antenna: the ISIS AntS, armed and deployed over I2C bus 3 by its own
  *    controller (automatic sequential deployment of its four elements) and
  *    sensed by every element's switch in its status word; three hardware
  *    inhibits sit on its supply. GPIO_PIN_ANTENNA_BURN is wing 2's
@@ -39,6 +39,13 @@
  *    powered; the next boot starts the sequence.
  *  - Blank or corrupt record: start over with zero attempts (fault logged);
  *    sense pins skip anything already deployed.
+ *  - The transmitters stay silent while the AntS deployment is pending
+ *    (decision C-19): deployment_downlink_held(), applied after every call
+ *    that can change the sequence as RF_INHIBIT_ANTS_PENDING (rf_control.h;
+ *    the receiver stays on). It ends, latched in the record, when the AntS
+ *    reads deployed or its sequence ends (attempts spent, or the attempt at
+ *    the deferral cap made), and is never in force while deployment is
+ *    inhibited by command. It does not shorten the 45-minute RF silence.
  *
  * Software is not the bench inhibit: with no dispenser the switches read
  * released, so a powered unit fires burn wires 30 minutes after any boot
@@ -282,6 +289,20 @@ bool deployment_all_complete(void);
  * @requirement SRS-F128 The software shall hold the mode at IDLE while the wings read not deployed after their attempts
  */
 bool deployment_wings_failed(void);
+
+/**
+ * @brief Whether the transmitters are held off for the AntS (decision C-19)
+ *
+ * True after deployment_init() while deployment is enabled and the AntS
+ * sequence has not ended: the antenna not read deployed, its attempts not
+ * spent, and no attempt made at the deferral cap
+ * (DEPLOYMENT_ANTS_MAX_DEFERRALS). The end is persisted and latched: a
+ * later DEPLOY_RETRY does not bring the hold back; GSE ARM or a corrupt
+ * record does (the sequence starts over). A nested call reads true.
+ *
+ * @requirement SRS-F167 Transmitters silent while the AntS deployment is pending (deferred or not yet attempted after the wings); the downlink starts when the AntS reads deployed or its sequence ends (attempts spent, or the attempt at the deferral cap made), latched, and never before the 45-minute RF silence
+ */
+bool deployment_downlink_held(void);
 
 /**
  * @brief Persist the sequence state

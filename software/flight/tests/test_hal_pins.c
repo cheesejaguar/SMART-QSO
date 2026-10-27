@@ -32,6 +32,7 @@
 #include "deployment.h"
 #include "gse_provision.h"
 #include "receiver.h"
+#include "rf_control.h"
 #include "adcs_control.h"
 #include "separation_switch.h"
 #include "rust_contract.h"
@@ -140,6 +141,7 @@ static void test_contract_500(void **state)
         {RUST_CONST_DEPLOYMENT_ANTS_MAX_DEFERRALS, (double)DEPLOYMENT_ANTS_MAX_DEFERRALS},
         {RUST_CONST_DEPLOYMENT_ANTS_START_MS, (double)DEPLOYMENT_ANTS_START_MS},
         {RUST_CONST_ADCS_SENSOR_RAIL_SETTLE_MS, (double)ADCS_SENSOR_RAIL_SETTLE_MS},
+        {RUST_CONST_RF_INHIBIT_ANTS_PENDING, (double)RF_INHIBIT_ANTS_PENDING},
     };
     for (size_t i = 0U; i < (sizeof(k) / sizeof(k[0])); i++) {
         assert_true(fabs(sqso_rust_constant((RustConst_t)k[i].id) - k[i].value) < 0.5);

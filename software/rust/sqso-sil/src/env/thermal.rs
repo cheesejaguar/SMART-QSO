@@ -464,6 +464,34 @@ impl Thermal {
         q
     }
 
+    /// The dispenser cold soak before separation (THERMAL_ANALYSIS 2.4 §4.3
+    /// and §4.4, case D3): `duration_s` stowed in the dispenser, nothing
+    /// powered, the external surfaces radiating to its wall (ε_eff 0.70) and
+    /// the four long panels conducting 0.5 W/K to its rails; the wall
+    /// follows the analyst's cold profile (−5, −10, −15 and −20 °C at 0,
+    /// 1,000, 2,000 and 3,000 s, then held), shifted so that it ends at
+    /// `wall_c`. With −20 °C and 2 h it is the analysis's soak (the AntS at
+    /// −18.0 °C at separation there)
+    pub fn dispenser_soak(&mut self, wall_c: f64, duration_s: f64) {
+        const TAB_T: [f64; 5] = [0.0, 1000.0, 2000.0, 3000.0, 7200.0];
+        const TAB_COLD: [f64; 5] = [-5.0, -10.0, -15.0, -20.0, -20.0];
+        const DT: f64 = 5.0;
+        let mut t = 0.0;
+        while t < duration_s - 0.5 * DT {
+            let wall = crate::env::math::interp(&TAB_T, &TAB_COLD, t) + (wall_c + 20.0) + T0_K;
+            let mut inp = ThermalInputs::new(V3::Y, 0.0, 0.0, -V3::Y, 1e12, 0.0);
+            inp.wings_deployed = [false, false];
+            inp.albedo = 0.0;
+            inp.earth_ir_w_m2 = 0.0;
+            inp.sink_k = wall;
+            inp.sink_eps_factor = 0.70 / EPS;
+            inp.boundary_w_k = 0.5;
+            inp.boundary_k = wall;
+            self.step(DT, &inp);
+            t += DT;
+        }
+    }
+
     /// Advance by `dt` seconds.
     pub fn step(&mut self, dt: f64, inp: &ThermalInputs) {
         if dt <= 0.0 {

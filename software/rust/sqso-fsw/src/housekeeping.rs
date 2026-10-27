@@ -41,7 +41,13 @@
 //! | `FR` | FRAM state (0 working, 1 failed, 2 degraded mode; RID SMA-B10)/failed one-minute checks since boot | —/— |
 //! | `AD` | AntS temperature gate (decision C-18): attempts deferred/the AntS's last temperature (`-` none valid) | —/°C |
 //!
-//! At most [`MAX_LEN`] bytes, about 1.9 s on the air at 1200 bps.
+//! Each frame's information field is at most [`MAX_LEN`] bytes, about 1.9 s
+//! on the air at 1200 bps. The text is cut into as many frames as it needs
+//! ([`Parts`]): at the spaces between fields, never inside one, each frame
+//! after the first starting with the first's tag and sequence (`HK1 N=7 `),
+//! so a decoder that reads `KEY=value` pairs merges them by `N`. (Until
+//! CDR round 3 the text had to fit one frame; past 250 bytes nothing was
+//! formatted and an empty frame went out: SIL finding SIL-40.)
 //!
 //! **`HK2`** follows each `HK1`, [`AFTER_BEACON_MS`] later: the counters the
 //! mission success criteria need (SQSO-MSC-001 2.1 §7, RID SMA-15) and the
@@ -72,6 +78,9 @@ use core::fmt::Write;
 
 /// The information field's first bytes
 pub const PREFIX: &str = "HK1";
+/// The longest text of a housekeeping frame before it is cut into frames,
+/// bytes (every field at its widest: 341 for HK1, 474 for HK2)
+pub const TEXT_MAX: usize = 512;
 /// Longest information field, bytes
 pub const MAX_LEN: usize = 250;
 /// One frame every this many beacons (and on GET_HOUSEKEEPING)
@@ -271,9 +280,10 @@ fn tail(w: &mut Out<'_>, hk: &Housekeeping) -> core::fmt::Result {
     }
 }
 
-/// Write the information field into `out`; its length (0 if it does not fit)
+/// Write the text into `out`; its length (0 if it does not fit, which
+/// [`TEXT_MAX`] bytes always do). [`Parts`] cuts it into frames
 pub fn format(hk: &Housekeeping, out: &mut [u8]) -> usize {
-    let room = out.len().min(MAX_LEN);
+    let room = out.len().min(TEXT_MAX);
     let mut w = Out { buf: out.get_mut(..room).unwrap_or(&mut []), len: 0 };
     let ok = write!(
         w,
@@ -340,9 +350,10 @@ fn opt_u(w: &mut Out<'_>, v: Option<u32>) -> core::fmt::Result {
     }
 }
 
-/// The second frame (`HK2`) into `out`; its length (0 if it does not fit)
+/// The second frame's text (`HK2`) into `out`; its length (0 if it does
+/// not fit, which [`TEXT_MAX`] bytes always do). [`Parts`] cuts it
 pub fn format2(hk: &Housekeeping2, out: &mut [u8]) -> usize {
-    let room = out.len().min(MAX_LEN);
+    let room = out.len().min(TEXT_MAX);
     let mut w = Out { buf: out.get_mut(..room).unwrap_or(&mut []), len: 0 };
     let (bursts, energy, lines, gate) = hk.bursts;
     let ok = write!(
@@ -388,6 +399,86 @@ pub fn format2(hk: &Housekeeping2, out: &mut [u8]) -> usize {
     .and_then(|()| write!(w, " RL={}/{}", u8::from(hk.rx_lines.0), u8::from(hk.rx_lines.1)))
     .is_ok();
     if ok { w.len } else { 0 }
+}
+
+/// A housekeeping text and the frames it is cut into: each at most
+/// [`MAX_LEN`] bytes, cut at the spaces between fields, every frame after
+/// the first starting with the text's head (its tag and sequence,
+/// `HK1 N=7 `)
+#[derive(Clone, Copy, Debug)]
+pub struct Parts {
+    text: [u8; TEXT_MAX],
+    len: usize,
+    /// The head's length, its trailing space included
+    head: usize,
+    /// Where the next frame's fields start
+    off: usize,
+}
+
+impl Parts {
+    /// Nothing to send
+    pub const EMPTY: Parts = Parts { text: [0; TEXT_MAX], len: 0, head: 0, off: 0 };
+
+    /// The buffer to format a text into ([`format`], [`format2`]); then
+    /// [`Parts::load`] with its length
+    pub fn buffer(&mut self) -> &mut [u8; TEXT_MAX] {
+        &mut self.text
+    }
+
+    /// The text in the buffer is `len` bytes (0: nothing to send): its frames
+    /// start from the first
+    pub fn load(&mut self, len: usize) {
+        self.len = len.min(TEXT_MAX);
+        let text = self.text.get(..self.len).unwrap_or(&[]);
+        // The head: up to and with the second space ("HK1 N=7 ")
+        let mut spaces = text.iter().enumerate().filter(|(_, b)| **b == b' ').map(|(i, _)| i);
+        self.head = spaces.nth(1).map_or(0, |i| i + 1);
+        self.off = 0;
+    }
+
+    /// Whether a frame is left to send
+    pub const fn pending(&self) -> bool {
+        self.off < self.len
+    }
+
+    /// The next frame's information field into `out`, its length and where
+    /// the following one starts (0: none left); nothing is consumed until
+    /// [`Parts::commit`]
+    pub fn peek(&self, out: &mut [u8; MAX_LEN]) -> (usize, usize) {
+        if !self.pending() {
+            return (0, self.off);
+        }
+        let text = self.text.get(..self.len).unwrap_or(&[]);
+        let (head, start) = if self.off == 0 { (&[][..], 0) } else { (text.get(..self.head).unwrap_or(&[]), self.off) };
+        let room = MAX_LEN - head.len();
+        let rest = text.get(start..).unwrap_or(&[]);
+        let cut = if rest.len() <= room {
+            rest.len()
+        } else {
+            // The last space that leaves a whole field in the frame (past the
+            // head in the first); a field longer than a frame (none is) is
+            // cut at the frame's end
+            let first_field = if self.off == 0 { self.head } else { 1 };
+            rest.get(..=room)
+                .and_then(|r| r.iter().rposition(|b| *b == b' '))
+                .filter(|&i| i >= first_field)
+                .unwrap_or(room)
+        };
+        let body = rest.get(..cut).unwrap_or(&[]);
+        let n = head.len() + body.len();
+        for (dst, src) in out.iter_mut().zip(head.iter().chain(body.iter())) {
+            *dst = *src;
+        }
+        // Past the separating space
+        let next = start + cut + usize::from(rest.get(cut) == Some(&b' '));
+        (n, next.min(self.len))
+    }
+
+    /// The frame from [`Parts::peek`] went out: `next` is where it said the
+    /// following one starts
+    pub fn commit(&mut self, next: usize) {
+        self.off = next.clamp(self.off, self.len);
+    }
 }
 
 /// When the next frame is due: every [`EVERY_BEACONS`] beacons, or at once
@@ -441,9 +532,41 @@ mod tests {
     extern crate std;
 
     fn text(hk: &Housekeeping) -> std::string::String {
-        let mut b = [0u8; 256];
+        let mut b = [0u8; TEXT_MAX];
         let n = format(hk, &mut b);
         std::string::String::from_utf8(b[..n].to_vec()).unwrap()
+    }
+
+    /// The frames a text is cut into
+    fn frames(text: &str) -> std::vec::Vec<std::string::String> {
+        let mut p = Parts::EMPTY;
+        p.buffer()[..text.len()].copy_from_slice(text.as_bytes());
+        p.load(text.len());
+        let mut out = std::vec::Vec::new();
+        while p.pending() {
+            let mut f = [0u8; MAX_LEN];
+            let (n, next) = p.peek(&mut f);
+            assert!(n > 0 && n <= MAX_LEN, "{n}");
+            assert_eq!(p.peek(&mut [0u8; MAX_LEN]), (n, next), "peek consumes nothing");
+            p.commit(next);
+            out.push(std::string::String::from_utf8(f[..n].to_vec()).unwrap());
+        }
+        out
+    }
+
+    /// The fields of the frames, the repeated heads dropped: the text's own
+    fn merged(frames: &[std::string::String]) -> std::string::String {
+        let head: std::vec::Vec<&str> = frames[0].splitn(3, ' ').take(2).collect();
+        let mut words: std::vec::Vec<&str> = std::vec::Vec::new();
+        for (k, f) in frames.iter().enumerate() {
+            let mut w: std::vec::Vec<&str> = f.split(' ').collect();
+            if k > 0 {
+                assert_eq!(&w[..2], &head[..], "each frame starts with the head: {f}");
+                w.drain(..2);
+            }
+            words.extend(w);
+        }
+        words.join(" ")
     }
 
     #[test]
@@ -537,13 +660,58 @@ mod tests {
             ants_gate: (u8::MAX, Some(-59.6)),
             ..Housekeeping::default()
         };
-        assert!(text(&hk).len() <= MAX_LEN, "{}", text(&hk).len());
+        // Every field at its widest: formatted in full (341 bytes), cut into
+        // two frames of whole fields, each with the head, none longer than
+        // a frame (SIL-40: this used to pass on an empty text)
+        let t = text(&hk);
+        assert_eq!(t.len(), 341, "{t}");
+        assert!(t.ends_with(" AD=255/-60"), "{t}");
+        let f = frames(&t);
+        assert_eq!(f.len(), 2, "{f:?}");
+        assert!(f[1].starts_with("HK1 N=65535 "), "{f:?}");
+        assert_eq!(merged(&f), t);
         let mut small = [0u8; 20];
         assert_eq!(format(&hk, &mut small), 0);
     }
 
+    /// The cutting: a text that fits is one frame; a longer one is cut at a
+    /// space with the head repeated; a field longer than a frame is cut at
+    /// the frame's end; nothing is consumed without a commit
+    #[test]
+    fn texts_are_cut_into_frames_of_whole_fields() {
+        let short = "HK1 N=3 A=1 B=2";
+        assert_eq!(frames(short), [short]);
+        let long = std::format!(
+            "HK1 N=3 {}",
+            (0..45).map(|k| std::format!("K{k}=1234")).collect::<std::vec::Vec<_>>().join(" ")
+        );
+        let f = frames(&long);
+        assert!(f.len() >= 2 && f.iter().all(|x| x.len() <= MAX_LEN), "{f:?}");
+        assert_eq!(merged(&f), long);
+        // Exactly a frame: one frame; one byte more: two
+        let mut exact = std::string::String::from("HK1 N=3 ");
+        while exact.len() < MAX_LEN {
+            exact.push('X');
+        }
+        assert_eq!(frames(&exact).len(), 1);
+        exact.push_str(" Y=1");
+        assert_eq!(frames(&exact).len(), 2);
+        // A field longer than the frame's room is cut, and the text still ends
+        let giant = std::format!("HK1 N=3 G={}", "9".repeat(400));
+        let f = frames(&giant);
+        assert_eq!(f[0].len(), MAX_LEN);
+        assert!(f.concat().len() > giant.len());
+        // Nothing to send
+        let mut p = Parts::EMPTY;
+        p.load(0);
+        assert!(!p.pending());
+        assert_eq!(p.peek(&mut [0u8; MAX_LEN]), (0, 0));
+        p.commit(7);
+        assert!(!p.pending());
+    }
+
     fn text2(hk: &Housekeeping2) -> std::string::String {
-        let mut b = [0u8; 256];
+        let mut b = [0u8; TEXT_MAX];
         let n = format2(hk, &mut b);
         std::string::String::from_utf8(b[..n].to_vec()).unwrap()
     }
@@ -616,7 +784,12 @@ mod tests {
     #[test]
     fn the_second_frame_at_its_widest_and_empty() {
         let worst = worst2();
-        assert!(text2(&worst).len() <= MAX_LEN, "{}", text2(&worst).len());
+        let t = text2(&worst);
+        assert_eq!(t.len(), 474, "{t}");
+        assert!(t.ends_with(" RL=1/1"), "formatted in full: {t}");
+        let f = frames(&t);
+        assert!(f.len() >= 2 && f[1].starts_with("HK2 N=65535 "), "{f:?}");
+        assert_eq!(merged(&f), t);
         let none = text2(&Housekeeping2::default());
         assert!(none.contains("IA=- "), "{none}");
         assert!(none.contains("EOL=-/0"), "{none}");

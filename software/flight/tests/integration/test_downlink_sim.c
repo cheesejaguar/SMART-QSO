@@ -10,7 +10,8 @@
  *
  * Two scenarios, one ctest entry each (argv[2]):
  *  - served: $SIM_RF_SILENCE_SERVED boots as after a software reset with the
- *    45-minute post-deployment silence served. A beacon is due at once: it
+ *    45-minute post-deployment silence served and the deployment sequence
+ *    finished (so the AntS hold of decision C-19 is over). A beacon is due at once: it
  *    must reach the TNC after the TNC's parameters, as a UI frame from
  *    KK6GDB-11 to CQ whose information field is the console's beacon text,
  *    with the power model's measurements in it.

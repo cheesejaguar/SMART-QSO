@@ -49,6 +49,23 @@
 //! sequence; they and the last temperature are in HK1 `AD`. The 30-minute
 //! wait and the wings-first order are unchanged.
 //!
+//! **Silent while the AntS is pending** (decision C-19): keying the
+//! downlink into the stowed elements trips its VSWR protection (SIL-37) and
+//! stresses the PA, so the transmitters stay off while the AntS deployment
+//! is pending, deferred by the gate or not yet attempted after the wings
+//! ([`Deployment::downlink_held`], applied by the caller as the transmitter
+//! inhibit `RF_INHIBIT_ANTS_PENDING`; the receiver stays on). The hold ends,
+//! for good, when the AntS reads deployed (every element's switch, the
+//! deployment rule of SRS-F089), or when its sequence ends: its attempts
+//! spent, or the attempt made at the deferral cap finished. That end is
+//! latched in the record, so a later DEPLOY_RETRY never silences the
+//! stowed-antenna beacon again; only GSE ARM, or a blank or corrupt record
+//! (the sequence starts over), clears it. The hold is never in force while
+//! the ground has inhibited deployment, and never shortens the 45-minute RF
+//! silence, which is separate. Its longest case is the cap: 30 min, the
+//! wings' attempts, about 25 h of deferrals and one 45 s attempt.
+//!
+//! @requirement SRS-F167 Transmitters silent while the AntS deployment is pending (deferred or not yet attempted after the wings); the downlink starts when the AntS reads deployed or its sequence ends (attempts spent, or the attempt at the deferral cap made), latched, and never before the 45-minute RF silence
 //! @requirement SRS-F165 AntS deployment only at an AntS temperature of at least −17 °C; colder or unknown defers to the next 50-minute slot without spending an attempt, at most 30 times, then deploys; DEPLOY_RETRY with the force flag deploys at once
 //! @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
 //! @requirement SRS-F088 The software shall space deployment attempts 50 minutes apart and accept a telecommand to retry an element with fresh attempts
@@ -104,6 +121,9 @@ const FLAG_ANTENNA_DEPLOYED: u8 = 0x01;
 const FLAG_SOLAR_DEPLOYED: u8 = 0x02;
 const FLAG_ENABLED: u8 = 0x04;
 const FLAG_SEPARATED: u8 = 0x08;
+/// The AntS sequence has ended (deployed, attempts spent, or the attempt at
+/// the deferral cap made): the transmitter hold of decision C-19 is over
+const FLAG_ANTS_DONE: u8 = 0x10;
 
 /// `DeploymentState_t`
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -338,6 +358,9 @@ pub struct Deployment {
     ants_deferred: bool,
     /// The ground forced the antenna's deployment (DEPLOY_RETRY's flag)
     ants_forced: bool,
+    /// The AntS sequence has ended once (persisted, latched): the
+    /// transmitter hold of decision C-19 is over
+    ants_done: bool,
     initialized: bool,
 }
 
@@ -369,6 +392,7 @@ impl Deployment {
             ants_temp_c: None,
             ants_deferred: false,
             ants_forced: false,
+            ants_done: false,
             initialized: false,
         }
     }
@@ -437,9 +461,22 @@ impl Deployment {
         let flags = (if antenna.deployed { FLAG_ANTENNA_DEPLOYED } else { 0 })
             | (if solar.deployed { FLAG_SOLAR_DEPLOYED } else { 0 })
             | (if self.deployment_enabled { FLAG_ENABLED } else { 0 })
-            | (if self.separation_detected { FLAG_SEPARATED } else { 0 });
+            | (if self.separation_detected { FLAG_SEPARATED } else { 0 })
+            | (if self.ants_done { FLAG_ANTS_DONE } else { 0 });
         let [w0, w1, w2, w3] = self.wait_elapsed_s.to_le_bytes();
         [self.state_byte(), antenna.attempt_count, solar.attempt_count, flags, w0, w1, w2, w3, self.ants_deferrals]
+    }
+
+    /// The record of a finished sequence: COMPLETE, each element deployed
+    /// at its first attempt, enabled, separated, the wait served and the
+    /// AntS done (the host simulation's start-up hook writes one with the
+    /// served RF silence; `sqso_ffi::executive::run_host`)
+    pub const fn complete_record() -> [u8; RECORD_LEN] {
+        let flags = FLAG_ANTENNA_DEPLOYED | FLAG_SOLAR_DEPLOYED | FLAG_ENABLED | FLAG_SEPARATED | FLAG_ANTS_DONE;
+        let [w0, w1, w2, w3] = WAIT_TIME_S.to_le_bytes();
+        #[allow(clippy::cast_possible_truncation)] // the state values are 0 to 10
+        let state = State::Complete as u32 as u8;
+        [state, 1, 1, flags, w0, w1, w2, w3, 0]
     }
 
     fn save<F: Flash>(&mut self, flash: &mut F) -> bool {
@@ -477,6 +514,7 @@ impl Deployment {
         self.ants_deferrals = 0;
         self.ants_deferred = false;
         self.ants_forced = false;
+        self.ants_done = false;
         self.restart_wait(io);
     }
 
@@ -485,6 +523,9 @@ impl Deployment {
         let el = self.element_mut(e);
         el.deployed = true;
         el.deploy_time_s = since;
+        if e == Element::Antenna {
+            self.ants_done = true;
+        }
         let next = self.after(e);
         self.enter_state(io, next);
         let _ = self.save(io);
@@ -504,6 +545,9 @@ impl Deployment {
             // Reported, and on to the next element (failed wings must not
             // leave the antenna stowed)
             io.report(Report::Failed(e));
+            if e == Element::Antenna {
+                self.ants_done = true; // its attempts are spent
+            }
             let next = self.after(e);
             self.enter_state(io, next);
             let _ = self.save(io);
@@ -584,6 +628,9 @@ impl Deployment {
         }
         if self.state_elapsed_ms >= e.burn_time_ms() {
             Self::burn_off(io);
+            if e == Element::Antenna && self.ants_deferrals >= ANTS_MAX_DEFERRALS {
+                self.ants_done = true; // the attempt at the deferral cap is made
+            }
             self.enter_state(io, verify);
             let _ = self.save(io);
         }
@@ -635,6 +682,7 @@ impl Deployment {
         antenna.deployed = flags & FLAG_ANTENNA_DEPLOYED != 0;
         solar.deployed = flags & FLAG_SOLAR_DEPLOYED != 0;
         self.deployment_enabled = flags & FLAG_ENABLED != 0;
+        self.ants_done = flags & FLAG_ANTS_DONE != 0;
 
         match (state, reset) {
             (State::Complete | State::Failed, _) => {
@@ -834,6 +882,18 @@ impl Deployment {
         let wings = self.element(Element::SolarPanel);
         let wing_phase = matches!(self.state, State::SolarPending | State::SolarActive | State::SolarVerify);
         !wings.deployed && wings.attempt_count >= MAX_RETRIES && !wing_phase
+    }
+
+    /// Whether the transmitters are held off for the AntS (decision C-19):
+    /// after init, deployment enabled, and the AntS sequence not yet ended
+    /// (not deployed, attempts not spent, the attempt at the deferral cap
+    /// not made). COMPLETE and FAILED end it whatever the record says
+    pub fn downlink_held(&self) -> bool {
+        self.initialized
+            && self.deployment_enabled
+            && !self.ants_done
+            && !self.element(Element::Antenna).deployed
+            && !matches!(self.state, State::Complete | State::Failed)
     }
 
     /// The AntS temperature gate: deferrals, and the last temperature, °C
@@ -1313,6 +1373,112 @@ mod tests {
         advance(&mut d, &mut io, SECOND_MS, SECOND_MS);
         assert!(io.no_burn());
         assert_eq!(d.ants_gate_status().0, 1);
+    }
+
+    /// Decision C-19: the transmitters are held from boot, through the wait
+    /// and the wings, until the AntS reads deployed; the end is latched, so
+    /// neither a reset nor a later DEPLOY_RETRY brings the hold back
+    #[test]
+    fn the_downlink_is_held_until_the_ants_reads_deployed() {
+        let mut io = Bench::new();
+        assert!(!Deployment::new(10).downlink_held(), "not before init");
+        let mut d = boot(&mut io, Reset::PowerLost);
+        assert!(d.downlink_held(), "from boot");
+        io.sense[Element::SolarPanel as usize] = true;
+        wait_out(&mut d, &mut io);
+        assert!(d.downlink_held(), "the wings out, the AntS not yet attempted");
+        advance(&mut d, &mut io, 2 * SECOND_MS, SECOND_MS);
+        assert!(io.burning(Element::Antenna));
+        assert!(d.downlink_held(), "during the AntS's burn");
+        io.sense[Element::Antenna as usize] = true;
+        advance(&mut d, &mut io, ANTENNA_BURN_TIME_MS - 2 * SECOND_MS, SECOND_MS);
+        assert!(d.downlink_held(), "the AntS's 45 s window runs out first");
+        advance(&mut d, &mut io, 3 * SECOND_MS, SECOND_MS);
+        assert_eq!(d.state(), State::Complete);
+        assert!(!d.downlink_held());
+        // Latched: across both kinds of reset and a ground retry
+        for reset in [Reset::PowerKept, Reset::PowerLost] {
+            let d = boot(&mut io, reset);
+            assert!(!d.downlink_held(), "{reset:?}");
+        }
+        let mut d = boot(&mut io, Reset::PowerKept);
+        io.sense[Element::Antenna as usize] = false;
+        assert!(d.retry(Element::Antenna, false, &mut io));
+        assert_eq!(d.state(), State::AntennaPending);
+        assert!(!d.downlink_held(), "a ground retry does not silence the beacon again");
+        let d = boot(&mut io, Reset::PowerKept);
+        assert!(!d.downlink_held(), "the flag is in the record");
+        // GSE ARM starts it over
+        let mut d = boot(&mut io, Reset::PowerKept);
+        assert!(d.arm(&mut io));
+        assert!(d.downlink_held());
+        // The host simulation's finished record
+        let mut io = Bench::new();
+        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &Deployment::complete_record()).unwrap();
+        let d = boot(&mut io, Reset::PowerLost);
+        assert_eq!(d.state(), State::Complete);
+        assert!(d.all_complete() && d.is_separated() && !d.downlink_held());
+    }
+
+    /// Decision C-19 with a cold AntS: held through the deferrals and the
+    /// attempt at the cap, released once that attempt has been made even
+    /// with the elements stowed; a reset keeps the release
+    #[test]
+    fn the_downlink_waits_for_the_attempt_at_the_deferral_cap() {
+        let mut io = Bench::new();
+        io.ants_c = Some(-40.0);
+        let mut d = at_the_antenna(&mut io);
+        for _ in 0..ANTS_MAX_DEFERRALS {
+            advance(&mut d, &mut io, SECOND_MS, SECOND_MS);
+            assert!(io.no_burn() && d.downlink_held());
+            advance(&mut d, &mut io, RETRY_DELAY_MS, MINUTE_MS);
+        }
+        // A power-losing reset at the cap: the wait restarts, the hold stays
+        let mut d = boot(&mut io, Reset::PowerLost);
+        assert_eq!(d.ants_gate_status().0, ANTS_MAX_DEFERRALS);
+        assert!(d.downlink_held());
+        wait_out(&mut d, &mut io);
+        advance(&mut d, &mut io, 2 * SECOND_MS, SECOND_MS);
+        assert!(io.burning(Element::Antenna), "the cap reached: deployed cold");
+        assert!(d.downlink_held(), "held during the attempt");
+        advance(&mut d, &mut io, ANTENNA_BURN_TIME_MS, SECOND_MS);
+        assert_eq!(d.state(), State::AntennaVerify);
+        assert!(!d.downlink_held(), "the attempt at the cap made: the stowed-antenna beacon");
+        let d = boot(&mut io, Reset::PowerKept);
+        assert!(!d.downlink_held());
+        // Before the cap a warm attempt that leaves the AntS stowed keeps it
+        let mut io = Bench::new();
+        let mut d = at_the_antenna(&mut io);
+        advance(&mut d, &mut io, ANTENNA_BURN_TIME_MS + 3 * SECOND_MS, SECOND_MS);
+        assert_eq!(d.state(), State::AntennaVerify);
+        assert!(d.downlink_held(), "attempt 1 of 3, not at the cap");
+        // ... until the attempts are spent
+        advance(&mut d, &mut io, 3 * RETRY_DELAY_MS + 2 * MINUTE_MS, SECOND_MS);
+        assert_eq!(d.state(), State::Failed);
+        assert!(!d.downlink_held());
+    }
+
+    /// Decision C-19: never while the ground has inhibited deployment; a
+    /// corrupt record starts the sequence, and the hold, over
+    #[test]
+    fn the_downlink_hold_yields_to_the_ground_and_restarts_with_the_sequence() {
+        let mut io = Bench::new();
+        let mut d = boot(&mut io, Reset::PowerLost);
+        assert!(d.downlink_held());
+        assert!(d.set_enabled(false, &mut io));
+        assert!(!d.downlink_held());
+        assert!(d.set_enabled(true, &mut io));
+        assert!(d.downlink_held());
+        // Complete, then a corrupt record: held again
+        io.sense = [true; 2];
+        wait_out(&mut d, &mut io);
+        advance(&mut d, &mut io, 5 * SECOND_MS, SECOND_MS);
+        assert!(!d.downlink_held());
+        io.flash.bytes[8] ^= 0xFF;
+        io.flash.bytes[SLOT_SIZE + 8] ^= 0xFF;
+        let d = boot(&mut io, Reset::PowerKept);
+        assert_eq!(io.last, Some(Report::Unreadable));
+        assert!(d.downlink_held());
     }
 
     #[test]

@@ -76,7 +76,7 @@ The Rust also has its own unit tests (`cd software/rust && cargo test --workspac
 - `integration/test_downlink_sim.c` checks the downlink end to end. It runs `smart_qso_flight` with `TNC_DEVICE` set to
   a file, where the simulated radio HAL writes what the TNC would receive, decodes the KISS stream and the AX.25 frames
   with its own code (it links no flight code), and reads the console. Two entries:
-  - `Downlink_TNC_served` (`SIM_RF_SILENCE_SERVED`: a software-reset boot with the silence served): the five TNC
+  - `Downlink_TNC_served` (`SIM_RF_SILENCE_SERVED`: a software-reset boot with the silence served and the deployment finished, decision C-19): the five TNC
     parameter commands before every data frame; each frame a UI frame from KK6GDB-11 to CQ; the frames exactly the
     console's `[BEACON] TX:` beacons, at least one; the beacon carrying the power model's SOC, battery voltage and sun
     flag.

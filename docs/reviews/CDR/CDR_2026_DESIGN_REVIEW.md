@@ -185,15 +185,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 27 |
-| Closed by design change | 101 | 239 |
+| Closed by design change | 101 | 240 |
 | Closed by chair decision | 42 | 35 |
 | Verification item | 46 | 30 |
 | Decision point (dated) | 15 | 34 |
-| Implementation | 162 | 26 |
+| Implementation | 162 | 25 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 85 new findings; 44 of the reopened and 71 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 85 new findings; 44 of the reopened and 72 of the new are since closed.
 
-Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, SMA-B20, P3T-09.
+Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, SMA-B20, P3T-09.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -712,7 +712,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | P3A-01 | 2 | GNSS receiver powered inside the 45-minute RF silence | IMP | Implementation | First session ≥ 45 min |
 | P3A-02 | 2 | Launch-compliance documents show pre-round-2 status | IMP | Closed by design change | LVR E (rows 004-109 to the design), CDS C, OAP D, superseded notice on CDR_TECHNICAL_BASELINE |
-| P3A-03 | 2 | RF-board TNC firmware has no task, owner, requirements or hazard entry | IMP | Implementation | Schedule, owner, requirements, hazard |
+| P3A-03 | 2 | RF-board TNC firmware has no task, owner, requirements or hazard entry | IMP | Closed by design change | Requirements written for both board firmware items: SQSO-SRS-TNC-001 (67, 25 safety-critical) and SQSO-SRS-EPSC-001 (62, 20), each with a hardware-enforced table; hazards SW-HAZ-014 to -017 (SHA G §9.8); eleven schedule tasks (SCHEDULE E, CPM float unchanged +71 d, least new-task float 92 d), owner flight software lead (PI until named); SDP 1.6 §3.4, NPR 7150.2 matrix C (SWE-050/052/184/205 met); RTM and VCRM E; toolchains Rust no_std (TNC) and C11 MISRA (EPS controller) for PI ratification DA-22 by 2026-12-01 |
 | P3A-04 | 3 | Telecommand variant B at its minimum is 0.2 dB under 64 dBm; station gain and pointing unverified | IMP | Closed by design change | Variant B ≤ 50 W PEP at the transmitter output into ≥ 17.8 dBic (64.1 dBm, +6.6 / +8.4 dB); VI-GND-01 ≥ 100 W at the feed; VI-GND-07 station EIRP, VI-GND-08 ±2° pointing (GND-001 G, LBA 3.5) |
 | P3A-05 | 3 | TCXO ageing decision not flowed down | IMP | Closed by design change | RF-P005: ±1.0 ppm over temperature, ≤ ±3.0 ppm total over 2 years with ageing; ground scales the measured beacon offset by 435.5/145.9; VI-RF-14 (a)-(d) incl. offset estimation within ±20 Hz (RF_DESIGN 2.3) |
 | P3A-06 | 3 | RF shield cans not vented | IMP | Closed by design change | One Ø1.5 mm vent per shield lid (SH2-SH4), V/A 3.2-9.4 m against 50.8 m; hole leakage ≥ 37 dB at 2.4 GHz, PA-to-LNA via vents ≈ 142 dB against 85 dB (RF_BOARD_DESIGN D §10) |

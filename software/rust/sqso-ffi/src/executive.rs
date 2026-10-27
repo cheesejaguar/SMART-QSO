@@ -31,7 +31,7 @@ use sqso_fsw::gnss::{Fix, Receiver};
 use sqso_fsw::gnss_frame;
 use sqso_fsw::gnss_schedule::{self, Sessions};
 use sqso_fsw::heater::{self, Heater};
-use sqso_fsw::housekeeping::{self, Cadence, Housekeeping};
+use sqso_fsw::housekeeping::{self, Cadence, Housekeeping, Parts};
 use sqso_fsw::jetson_power::{self, JetsonPower};
 use sqso_fsw::mission_data::MissionData;
 use sqso_fsw::payload_guard::{Outcome, Sample, TELEMETRY_TIMEOUT_MS};
@@ -363,6 +363,10 @@ pub struct Executive {
     hard_limits: u32,
     /// The second housekeeping frame is due at this time, ms
     hk2_due: Option<u64>,
+    /// The housekeeping text being sent, cut into frames (SIL-40)
+    hk_parts: Parts,
+    /// Its next frame: which text (1 HK1, 2 HK2) and when, ms
+    hk_next: Option<(u8, u64)>,
     /// The wings-stowed cold hold (RID THM-03)
     cold: sqso_fsw::cold_hold::ColdHold,
     /// Transponder enables and repeat-keyed time since boot (XPDR_KEY), ms
@@ -418,6 +422,8 @@ impl Executive {
         health: [Condition::new(); HEALTH_CONDITIONS],
         hard_limits: 0,
         hk2_due: None,
+        hk_parts: Parts::EMPTY,
+        hk_next: None,
         cold: sqso_fsw::cold_hold::ColdHold::new(),
         xpdr_enables: 0,
         xpdr_keyed_ms: 0,
@@ -1213,7 +1219,7 @@ impl Executive {
     /// is dropped (GET_HOUSEKEEPING sends it again)
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn run_gnss_frame(&mut self, now: u64) {
-        if !self.gnss_frame_due || self.hk2_due.is_some() {
+        if !self.gnss_frame_due || self.hk2_due.is_some() || self.hk_next.is_some() {
             return;
         }
         let Some((session, first, fix, quality)) = self.gnss_latest else {
@@ -1247,54 +1253,68 @@ impl Executive {
         if passivation::passivation_take_report() > 0 {
             self.hk.request(now);
         }
+        if let Some((which, at)) = self.hk_next
+            && now >= at
+        {
+            self.send_hk_part(now, which);
+            return;
+        }
         if self.hk2_due.is_some_and(|t| now >= t) {
             self.send_hk2(now);
         }
-        if !self.hk.due(now) {
+        // A new HK1 waits for the frames of the one in progress
+        if !self.hk.due(now) || self.hk_next.is_some() || self.hk2_due.is_some() {
             return;
         }
         let hk = self.housekeeping(now, state);
+        let n = housekeeping::format(&hk, self.hk_parts.buffer());
+        self.hk_parts.load(n);
+        self.hk.sent();
+        self.send_hk_part(now, 1);
+    }
+
+    /// Hand the housekeeping text's next frame to the downlink (`which`: 1
+    /// HK1, 2 HK2): its frames [`housekeeping::AFTER_BEACON_MS`] apart, then
+    /// HK2 after HK1 and the GNSS frame after HK2. A frame the downlink
+    /// refuses (not permitted) drops the rest of the text
+    #[inline(never)] // its frame buffers are not in run_housekeeping's (SRS-C003)
+    fn send_hk_part(&mut self, now: u64, which: u8) {
         let mut info = [0u8; housekeeping::MAX_LEN];
-        let n = housekeeping::format(&hk, &mut info);
-        let mut frame = [0u8; ax25::MAX_FRAME_LEN];
-        let dest = Station { call: "CQ", ssid: 0 };
-        let src = Station { call: sqso_protocol::station::CALLSIGN, ssid: sqso_protocol::station::SSID };
-        let Ok(len) = ax25::encode_ui(dest, src, info.get(..n).unwrap_or(&[]), false, &mut frame) else {
-            self.hk.sent(); // cannot happen for MAX_LEN bytes; drop it
+        let (n, next) = self.hk_parts.peek(&mut info);
+        let text = info.get(..n).unwrap_or(&[]);
+        // Nothing formatted cannot happen (TEXT_MAX holds every field at its
+        // widest); it sends nothing rather than an empty frame
+        let sent = if n == 0 { rc::INVALID } else { send_ui(text) };
+        if sent == rc::BUSY {
+            self.hk_next = Some((which, now)); // the downlink is sending: next pass
             return;
-        };
-        // SAFETY: frame holds len bytes
-        match unsafe { downlink::downlink_transmit(frame.as_ptr(), len) } {
-            rc::BUSY => {} // the downlink is sending: next pass
-            sent => {
-                if sent == rc::OK {
-                    crate::c::console_parts(&[b"[HK] TX: ", info.get(..n).unwrap_or(&[])]);
-                }
-                self.hk2_due = Some(now.saturating_add(housekeeping::AFTER_BEACON_MS));
-                self.hk.sent();
-            }
+        }
+        if sent == rc::OK {
+            crate::c::console_parts(&[b"[HK] TX: ", text]);
+            self.hk_parts.commit(next);
+        } else {
+            self.hk_parts.load(0);
+        }
+        if self.hk_parts.pending() {
+            self.hk_next = Some((which, now.saturating_add(housekeeping::AFTER_BEACON_MS)));
+            return;
+        }
+        self.hk_next = None;
+        if which == 1 {
+            self.hk2_due = Some(now.saturating_add(housekeeping::AFTER_BEACON_MS));
+        } else if core::mem::take(&mut self.gnss_after_hk2) {
+            self.gnss_frame_due = true;
         }
     }
 
     /// The second housekeeping frame (HK2), after HK1
-    #[inline(never)] // its buffers are not in run_housekeeping's frame (SRS-C003)
+    #[inline(never)] // its values are not in run_housekeeping's frame (SRS-C003)
     fn send_hk2(&mut self, now: u64) {
         let hk = self.housekeeping2();
-        let mut info = [0u8; housekeeping::MAX_LEN];
-        let n = housekeeping::format2(&hk, &mut info);
-        match send_ui(info.get(..n).unwrap_or(&[])) {
-            rc::BUSY => {} // the downlink is sending: next pass
-            sent => {
-                if sent == rc::OK {
-                    crate::c::console_parts(&[b"[HK] TX: ", info.get(..n).unwrap_or(&[])]);
-                }
-                self.hk2_due = None;
-                if core::mem::take(&mut self.gnss_after_hk2) {
-                    self.gnss_frame_due = true;
-                }
-            }
-        }
-        let _ = now;
+        let n = housekeeping::format2(&hk, self.hk_parts.buffer());
+        self.hk_parts.load(n);
+        self.hk2_due = None;
+        self.send_hk_part(now, 2);
     }
 
     /// The second frame's values now
@@ -1882,10 +1902,13 @@ mod host {
     static SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
     /// `$SIM_RF_SILENCE_SERVED` set: boot as after a software reset with the
-    /// 45-minute post-deployment silence already served (a COMPLETE record
-    /// in the simulated FRAM), so that a 20 s run beacons. The silence's own
-    /// rules decide (`rf_silence_init()`); simulation only
+    /// 45-minute post-deployment silence already served and the deployment
+    /// sequence finished (COMPLETE records in the simulated FRAM, so the
+    /// AntS hold of decision C-19 is over), so that a 20 s run beacons. The
+    /// modules' own rules decide (`rf_silence_init()`, `deployment_init()`);
+    /// simulation only
     pub(super) fn serve_rf_silence() {
+        use sqso_fsw::deployment::{self, Deployment};
         use sqso_fsw::nvm;
         use sqso_fsw::rf_silence::{DURATION_S, HAL_RESET_SOFTWARE, RECORD_MAGIC, RfSilence, State};
         if crate::os::env(c"SIM_RF_SILENCE_SERVED").is_none() {
@@ -1896,6 +1919,8 @@ mod host {
         let record = RfSilence::record(State::Complete, DURATION_S);
         let region = crate::rf_silence::FLASH_REGION_RF_SILENCE;
         let _ = nvm::save(&mut crate::c::HalFlash, region, 0, RECORD_MAGIC, &record);
+        let region = crate::deployment::FLASH_REGION_DEPLOYMENT;
+        let _ = nvm::save(&mut crate::c::HalFlash, region, 0, deployment::RECORD_MAGIC, &Deployment::complete_record());
         crate::hal_sim::hal_sim_set_reset_cause(HAL_RESET_SOFTWARE);
     }
 

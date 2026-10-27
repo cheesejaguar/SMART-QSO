@@ -260,6 +260,12 @@ SRS_RULES: Dict[str, Tuple[str, str]] = {
     "SRS-Q": ("CI+CDR", "CI metrics; analysis at the CDR"),
     "SRS-S": ("CI+FS", "Host tests; fault injection on the target"),
     "SRS-C": ("CI+CDR", "Static checks in CI; code inspection at the CDR"),
+    # The board firmware items (SDP §3.4; finding P3A-03): constraints by inspection and analysis, the rest by host
+    # tests in CI, the EM bench and flatsat (tasks TNC_EM, EPS_EM) and the FM qualification (TNC_QUAL, EPS_QUAL)
+    "TNC-C": ("CI+CDR", "Static checks in CI; code inspection (SQSO-SRS-TNC-001 §5.10)"),
+    "TNC-": ("CI+FS+FMI", "Host tests in CI; RF board EM tests and flatsat; FM qualification (SQSO-SRS-TNC-001 §5)"),
+    "EPSC-C": ("CI+CDR", "Static checks in CI; code inspection (SQSO-SRS-EPSC-001 §5.11)"),
+    "EPSC-": ("CI+FS+FMI", "Host tests in CI; EPS board EM tests and flatsat; FM qualification (SQSO-SRS-EPSC-001 §5)"),
 }
 #: Proposed methods where the specification gives none (* in the table): for the SRS owner to adopt
 PROPOSED_METHOD = {"SRS-C": "I,A", "MO-": "V"}
@@ -297,6 +303,9 @@ def render() -> Tuple[str, Dict[str, int], List[str]]:
         ("docs/requirements/MISSION_REQUIREMENTS.md", "### 3.1 Mission objectives and mission requirements (SQSO-REQ-001)"),
         ("docs/requirements/SYSTEM_REQUIREMENTS.md", "### 3.2 System requirements (SQSO-REQ-002)"),
         ("docs/software/SOFTWARE_REQUIREMENTS.md", "### 3.3 Software requirements (SMART-QSO-SRS-001)"),
+        ("docs/software/TNC_FIRMWARE_REQUIREMENTS.md", "### 3.4 RF board TNC firmware requirements (SQSO-SRS-TNC-001)"),
+        ("docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md",
+         "### 3.5 EPS controller firmware requirements (SQSO-SRS-EPSC-001)"),
     )
     for spec, heading in sections:
         out += [heading, "", "| Req ID | Method | Planned event | Date | Procedure or analysis | Status |",
@@ -313,11 +322,11 @@ def render() -> Tuple[str, Dict[str, int], List[str]]:
             ev = " + ".join(events.split("+")) if events else "—"
             out.append(f"| {row['id']} | {method or '—'} | {ev} | {date} | {proc or '—'} | {st} |")
         out.append("")
-    out += ["### 3.4 Planned events", "", "| Code | Event | Planned date | Requirements |",
+    out += ["### 3.6 Planned events", "", "| Code | Event | Planned date | Requirements |",
             "|------|-------|--------------|--------------|"]
     for code, (name, when) in EVENT_DEF.items():
         out.append(f"| {code} | {name} | {when} | {by_event.get(code, 0)} |")
-    out += ["", "### 3.5 Status summary (generated)", "", "| Status | Requirements |", "|--------|--------------|"]
+    out += ["", "### 3.7 Status summary (generated)", "", "| Status | Requirements |", "|--------|--------------|"]
     for st in ("Not verified", "Partial (CI)", "Deleted"):
         out.append(f"| {st} | {count.get(st, 0)} |")
     out.append(f"| **Total** | **{sum(count.values())}** |")

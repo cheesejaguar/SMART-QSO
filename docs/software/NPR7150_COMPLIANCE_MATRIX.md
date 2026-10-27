@@ -1,7 +1,7 @@
 # NPR 7150.2D Requirements Mapping and Compliance Matrix (Class C)
 
 **Document ID**: SQSO-FSW-012
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: Draft (CDR)
 **Applies to**: the Class C software of `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1 (OBC flight software, Jetson
@@ -39,7 +39,7 @@ Evidence paths are relative to the repository root.
 | 013 | Software plans developed, maintained, executed | Met | `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md`, `docs/software/SOFTWARE_TEST_PLAN.md`, `docs/software/SOFTWARE_MAINTENANCE_PLAN.md`, `docs/safety/SOFTWARE_SAFETY_PLAN.md`, `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` |
 | 015 | Software cost estimate | Partial | Project cost ROM (chair-owned CDR documents); no separate software estimate. Closure: software line in the fabrication-phase plan |
 | 151 | Cost estimate parameters | Partial | As SWE-015 |
-| 016 | Software schedule | Partial | `mission/SCHEDULE.md` carries software milestones; no software-level schedule |
+| 016 | Software schedule | Partial | `mission/SCHEDULE.md` carries software milestones and, since its Version E, the tasks of the two board firmware items (requirements, design, code, unit test, EM integration, FM qualification); no software-level schedule for the OBC software |
 | 018 | Regular reviews of software activities with stakeholders | Met | CDR reviews (`docs/reviews/`), pull-request reviews |
 | 017 | Training plan for software personnel | Not met | Small volunteer team; open item C-2: record the training in Rust, the flight-software standards and the tools in the SDP |
 | 020 | Classify each system and subsystem containing software | Met | SDP §3.1 (2026-10-25) |
@@ -57,7 +57,7 @@ Evidence paths are relative to the repository root.
 | 022 | Software assurance per NASA-STD-8739.8 | Partial | `docs/safety/SOFTWARE_SAFETY_PLAN.md`, `docs/project/MISSION_ASSURANCE_PLAN.md`; no named software assurance lead (open item C-3) |
 | 141 | IV&V for projects meeting the criteria | N/A | Not a NASA project; no IV&V designation (SDP §3.3) |
 | 131 | IV&V project execution plan | N/A | As SWE-141 |
-| 205 | Determine the safety-critical software | Met | SDP §3.2 (2026-10-25). CDR finding FSW-05 closed 2026-10-27: the transponder gates (`sqso-fsw/src/transponder.rs`) and the operations record (`sqso-fsw/src/ops_state.rs`, `sqso-ffi/src/ops_state.rs`) are on the list and in the coverage gate (SRS-Q013; PI concurrence to record). The board firmware items are still to be determined (open item C-8) |
+| 205 | Determine the safety-critical software | Met | SDP §3.2 (2026-10-25). CDR finding FSW-05 closed 2026-10-27: the transponder gates (`sqso-fsw/src/transponder.rs`) and the operations record (`sqso-fsw/src/ops_state.rs`, `sqso-ffi/src/ops_state.rs`) are on the list and in the coverage gate (SRS-Q013; PI concurrence to record). The board firmware items: determined in SQSO-SHA-001 G §9.8 (SW-HAZ-014 to SW-HAZ-017; Version C, C-8 closed) |
 | 023 | Safety-critical software requirements implemented | Met | SRS §3 safety rows; `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` controls |
 | 134 | Safety-critical software: initialisation, inhibits, safe state, prerequisite checks, command validation | Met | Inhibits: `rf_control`, `rf_silence`, `downlink`, `deployment`; command authentication `cmd_auth`; safe-mode entry `state_machine`; tested by the C suites |
 | 219 | 100 % MC/DC coverage of safety-critical components | Tailored | 100 % line and condition coverage per file, CI gate `software/flight/scripts/safety_coverage.py` (CR-2026-003, approved 2026-10-25). Measured 2026-10-27: 23 files, 0 problems |
@@ -74,13 +74,13 @@ Evidence paths are relative to the repository root.
 | 207 | Secure coding practices | Met | Rust with `unsafe` forbidden in `sqso-protocol` and `sqso-fsw`, workspace lints deny `unwrap` and panicking indexing; `docs/development/CODING_STANDARDS.md` |
 | 185 | Static analysis for security weaknesses | Partial | clippy with `-D warnings`, `cargo audit`; no CWE-oriented analyser |
 | 210 | Detect and report security incidents | Partial | Authentication failures counted and logged (fault log, housekeeping); no ground procedure |
-| 052 | Bidirectional traceability | Met | `scripts/check_traceability.py --check` (CI), `docs/verification/RTM.csv` (generated, `scripts/gen_rtm.py --check`) |
+| 052 | Bidirectional traceability | Met | `scripts/check_traceability.py --check` (CI), `docs/verification/RTM.csv` (generated, `scripts/gen_rtm.py --check`); since Version C with the two board firmware specifications |
 
 ### 2.2 Software Engineering Life Cycle (Chapter 4)
 
 | SWE | Requirement (short) | Status | Evidence / tailoring |
 |-----|---------------------|--------|----------------------|
-| 050 | Software requirements from system requirements and operations | Met | `docs/software/SOFTWARE_REQUIREMENTS.md` v1.6 (flow-down in the RTM) |
+| 050 | Software requirements from system requirements and operations | Met | `docs/software/SOFTWARE_REQUIREMENTS.md` v1.6 (flow-down in the RTM); the board firmware: `docs/software/TNC_FIRMWARE_REQUIREMENTS.md`, `docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md` (§2.4) |
 | 051 | Requirements analysis | Met | SRS; CDR reviews |
 | 184 | Safety-related requirements in the software requirements | Met | SRS §3.9 (SRS-F080 to SRS-F089), inhibit rows |
 | 053 | Manage requirement changes | Met | Revision history of the SRS, `docs/project/CHANGE_REQUEST_LOG.md` |
@@ -140,23 +140,28 @@ Evidence paths are relative to the repository root.
 | 203 | Mandatory assessment of non-conformances | Partial | At reviews |
 | 204 | Process assessments | Not met | Open item with C-3 |
 
-### 2.4 Board Firmware Items (Version B)
+### 2.4 Board Firmware Items (Version B; requirements in Version C)
 
 The RF board TNC firmware (STM32L431, SQSO-RF-BRD-001 §13) and the EPS controller firmware (MSP430FR2355,
-SQSO-EPS-BRD-001 §12), SDP §3.4. Neither is written. The rows of §2.1 to §2.3 apply to them as to the OBC software; the
-ones whose status differs:
+SQSO-EPS-BRD-001 §12), SDP §3.4. Neither is written; since Version C their requirements are (SQSO-SRS-TNC-001 A, 67
+requirements, 25 safety-critical; SQSO-SRS-EPSC-001 A, 62 requirements, 20 safety-critical). The rows of §2.1 to
+§2.3 apply to them as to the OBC software; the ones whose status differs:
 
 | SWE | Requirement (short) | RF board TNC firmware | EPS controller firmware |
 |-----|---------------------|-----------------------|-------------------------|
+| 016 | Software schedule | Met: tasks TNC_DES, TNC_CODE, TNC_UT, TNC_EM, TNC_QUAL in `mission/SCHEDULE.md` E and the critical-path model, owner the flight software lead (PI until named) | Met: tasks EPS_DES to EPS_QUAL, as for the TNC |
 | 020 | Classification | Met: Class C (SDP §3.1) | Met: Class C (SDP §3.1) |
-| 050 | Software requirements | Not met: the list to write is in SDP §3.4 (open item C-7) | Not met: as for the TNC (C-7) |
-| 052 | Bidirectional traceability | Not met: with the requirements (C-7) | Not met (C-7) |
-| 057 | Software architecture | Partial: the functions and what stays in hardware, SQSO-RF-BRD-001 §8 and §13 | Partial: SQSO-EPS-BRD-001 §12 and the ICD register block |
-| 060 | Implement the design | Not met (fabrication phase) | Not met (fabrication phase) |
-| 061 | Coding standards | Partial: `docs/development/CODING_STANDARDS.md` applies if it is Rust (proposed, reusing `sqso-protocol`) | Not met: language not chosen; the standard for it to be named |
-| 066 | Software testing | Not met: host unit tests, VI-RFB-01 and VI-RFB-05, an end-to-end EM test with the OBC (SDP §3.4) | Not met: host unit tests, V-EPS-6, V-EPS-8, V-EPS-9, an interface test with the OBC (SDP §3.4) |
-| 187 | Configuration management of the software items | Not met: an item of its own in the configuration index when created | Not met: as for the TNC |
-| 205 | Safety-critical determination | Not met: from the hazard analysis (C-8) | Not met: from the hazard analysis (C-8) |
+| 034 | Acceptance criteria | Met: each requirement has its method and verification activity (`docs/software/TNC_FIRMWARE_REQUIREMENTS.md` §5) | Met: as for the TNC (`docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md` §5) |
+| 050 | Software requirements | **Met** (Version C): SQSO-SRS-TNC-001, derived from SQSO-RF-BRD-001 F, SQSO-ICD-003, SMART-QSO-RF-001, SQSO-ICD-013 and the OBC's limits | **Met** (Version C): SQSO-SRS-EPSC-001, derived from SQSO-EPS-BRD-001 G, SMART-QSO-ICD-001, the battery design and safety assessment |
+| 052 | Bidirectional traceability | Met: upward by the Parent column (§8 of the specification); the rows are in the generated RTM and VCRM and checked by `scripts/check_traceability.py`; downward when code and tests tag `@requirement TNC-…` | Met: as for the TNC (`@requirement EPSC-…`) |
+| 057 | Software architecture | Partial: the functions and what stays in hardware, SQSO-RF-BRD-001 §8 and §13, SQSO-SRS-TNC-001 §3; design task TNC_DES into the PDR package | Partial: SQSO-EPS-BRD-001 §12, the ICD register block, SQSO-SRS-EPSC-001 §3; design task EPS_DES |
+| 060 | Implement the design | Not met (fabrication phase; TNC_CODE) | Not met (fabrication phase; EPS_CODE) |
+| 061 | Coding standards | Partial: Rust rules of `docs/development/CODING_STANDARDS.md` named (TNC-C001 to C003); applied when coding starts | Partial: C11, MISRA C:2012 and JPL D-60411 named (EPSC-C001, C006); language to be ratified by the PI (DA-22) |
+| 066 | Software testing | Not met: host unit tests, VI-RFB-01, -05, -07, -08, -10, -15, the EM flatsat and the FM qualification, planned per requirement (open item C-7) | Not met: host unit tests, V-EPS-1, -6 to -10, -12 to -17, IFT-EPS-001 to -006, the FM qualification, planned per requirement (C-7) |
+| 184 | Safety-related requirements in the software requirements | Met: 25 requirements flagged safety-critical, each with its hazard (SW-HAZ-014, SW-HAZ-015) | Met: 20 flagged (SW-HAZ-016, SW-HAZ-017) |
+| 187 | Configuration management of the software items | Not met: an item of its own in the configuration index when created (TNC-C006) | Not met: as for the TNC (EPSC-C008) |
+| 205 | Safety-critical determination | **Met** (Version C): SQSO-SHA-001 G §9.8 | **Met** (Version C): SQSO-SHA-001 G §9.8 |
+| 219 | 100 % MC/DC of safety-critical components | Planned as tailored: 100 % line and condition coverage (CR-2026-003; TNC-C005) | Planned as written: 100 % MC/DC with GCC's condition coverage (EPSC-C005) |
 
 ## 3. SRS-C Requirements: Verification Methods
 
@@ -183,8 +188,9 @@ The design constraints of SRS §8.1 have verification methods since SRS v1.6 (T 
 | C-4 | Cyclomatic complexity of the safety-critical Rust files (SWE-220), RID FSW-06 | Measure and gate, or a CR to tailor |
 | C-5 | Requirements volatility (SWE-200) | From the SRS revision history at each release |
 | C-6 | Target-platform testing (SWE-073, -066) | EM and HIL plan |
-| C-7 | Requirements, traceability and tests of the RF board TNC firmware and the EPS controller firmware (SWE-050, -052, -066) | Software lead, before the EM integration |
-| C-8 | Safety-critical determination of the two board firmware items (SWE-205) | Hazard analysis update |
+| C-7 | Tests of the RF board TNC firmware and the EPS controller firmware (SWE-066); their requirements and traceability (SWE-050, -052) were closed in Version C | Flight software lead (PI until named): schedule tasks TNC_UT, TNC_EM, TNC_QUAL and EPS_UT, EPS_EM, EPS_QUAL |
+| C-8 | Safety-critical determination of the two board firmware items (SWE-205) | **Closed** (Version C): SQSO-SHA-001 G §9.8 |
+| C-9 | Ratify the board firmware languages (TNC Rust `no_std`; EPS controller C11 to MISRA C:2012) | PI, DA-22 (by 2026-12-01) |
 
 ## Revision History
 
@@ -192,3 +198,4 @@ The design constraints of SRS §8.1 have verification methods since SRS v1.6 (T 
 |---------|------|--------|-------------|
 | A | 2026-10-27 | SMART-QSO Team (CDR avionics and flight-software review) | Initial: Appendix C mapping for Class C, SRS-C verification status, open items C-1 to C-6 (programmatics finding SE-10) |
 | B | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | The RF board TNC firmware and the EPS controller firmware added as Class C items (§2.4, open items C-7 and C-8); SWE-039 and SWE-205 rows updated (FSW-05 closed: the transponder and the operations record are safety-critical); SRS-C003 at 6,004 B |
+| C | 2026-10-27 | SMART-QSO Team (CDR round 3, software systems; finding P3A-03) | §2.4: SWE-050 met for both board firmware items (SQSO-SRS-TNC-001 A, SQSO-SRS-EPSC-001 A), SWE-052 and SWE-205 met, rows 016, 034, 184 and 219 added, 061 and 066 restated; §2.1 SWE-016, SWE-052, SWE-205 and §2.2 SWE-050 rows cite them; open items C-7 narrowed to the tests, C-8 closed, C-9 new (DA-22) |

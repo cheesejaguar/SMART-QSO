@@ -114,9 +114,37 @@ def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date =
         Task("MECH", "Mechanical CAD, FE and dynamic model (complete: SQSO-MECH-CAD-001, STRUCTURAL_ANALYSIS)", 0),
         Task("PDR_BOARD", "PI names the independent PDR board and its chair (DA-03, by 2026-12-01)", 5 * W,
              deadline=d(2026, 12, 1)),
-        Task("PDR_PKG", "PDR data package to the board, two weeks before the review", 1 * W, ("RID", "PDR_BOARD", "SCH")),
+        Task("PDR_PKG", "PDR data package to the board, two weeks before the review", 1 * W,
+             ("RID", "PDR_BOARD", "SCH", "TNC_DES", "EPS_DES")),
         Task("PDR", "Independent PDR (NPR 7123.1D Table G-6), held as a peer review", 1 * W,
              ("PDR_PKG", "MECH"), snet=d(2027, 1, 5)),
+        # ---- board firmware items (SDP §3.4; finding P3A-03). Owner of every task: flight software lead (PI until
+        # ---- named). Requirements complete at this CDR (SQSO-SRS-TNC-001, SQSO-SRS-EPSC-001); architecture and
+        # ---- design into the PDR package; code after the PDR; host unit tests and development-board tests; integration
+        # ---- on the EM boards with the flatsat (before the EM tests and the 500 h); qualification of the flight build on
+        # ---- the FM boards before the FM functional test. Durations are planning estimates (one developer per item).
+        Task("FW_REQ", "Board firmware requirements: SQSO-SRS-TNC-001 (67) and SQSO-SRS-EPSC-001 (62) (complete at this"
+             " CDR; flight software lead, PI until named)", 0),
+        Task("TNC_DES", "TNC firmware design (modem, KISS, scrub, supervision; LMX2571 write in power-down checked),"
+             " into the PDR package (flight software lead, PI until named)", 6 * W, ("FW_REQ",)),
+        Task("EPS_DES", "EPS controller firmware design (register map, keys, SOC, MPPT; language ratified, DA-22),"
+             " into the PDR package (flight software lead, PI until named)", 5 * W, ("FW_REQ",)),
+        Task("TNC_CODE", "TNC firmware code after the PDR (flight software lead, PI until named)", 12 * W,
+             ("TNC_DES", "PDR")),
+        Task("EPS_CODE", "EPS controller firmware code after the PDR (flight software lead, PI until named)", 10 * W,
+             ("EPS_DES", "PDR")),
+        Task("TNC_UT", "TNC firmware unit tests in CI and development-board tests (CC1200 EVM; demodulator"
+             " threshold, CPU load) (flight software lead, PI until named)", 6 * W, ("TNC_CODE",)),
+        Task("EPS_UT", "EPS controller firmware unit tests in CI and development-board tests (pack and array"
+             " simulators) (flight software lead, PI until named)", 5 * W, ("EPS_CODE",)),
+        Task("TNC_EM", "TNC firmware on the RF board EM: VI-RFB-01/-05/-07/-08/-10, flatsat with the OBC"
+             " (flight software lead with the RF lead, PI until named)", 5 * W, ("TNC_UT", "EM_FAB")),
+        Task("EPS_EM", "EPS controller firmware on the EPS board EM: V-EPS-1/-6 to -10/-12 to -17, IFT-EPS-001 to -006"
+             " (flight software lead with the EPS designer, PI until named)", 4 * W, ("EPS_UT", "EM_FAB")),
+        Task("TNC_QUAL", "TNC firmware qualification of the flight build on the FM RF board"
+             " (flight software lead, PI until named)", 3 * W, ("TNC_EM", "FM_FAB")),
+        Task("EPS_QUAL", "EPS controller firmware qualification of the flight build on the FM EPS board"
+             " (flight software lead, PI until named)", 3 * W, ("EPS_EM", "FM_FAB")),
         # ---- dated pre-layout and pre-order verification items (VI register, docs/verification/VI_REGISTER.md)
         Task("RFB_PRE", "VI-RFB-12 (RF lead): AntS and coax drawings, plating, attenuation, inner conductor (before RF layout)",
              2 * W + 3, deadline=d(2026, 11, 13)),
@@ -136,11 +164,12 @@ def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date =
         Task("EM_INT", "EM integration, flatsat, flight software on target (TP-FLATSAT-001)", 8 * W,
              ("EM_FAB", "EM_LL")),
         Task("EM_TEST", "EM development tests: Jetson heat path and burst energy, EM TVAC, pathfinder vibe,"
-             " shock if VI-07 requires it, RF/EMC pre-scan, GNSS noise, antenna pattern", 8 * W, ("EM_INT",)),
+             " shock if VI-07 requires it, RF/EMC pre-scan, GNSS noise, antenna pattern", 8 * W,
+             ("EM_INT", "TNC_EM", "EPS_EM")),
         Task("BATT_ABUSE", "Custom-battery abuse tests on sacrificial EM-design packs (BSA D §3.1, V-BSA-9;"
              " Falcon 9 set, 3-4 weeks; ISS backup set 8-12 weeks)", 4 * W, ("EM_FAB",)),
         Task("FLATSAT_500H", "Reliability programme: >= 500 h powered on the EM boards with flight software"
-             " (REL §6; ETP §6, VI-11)", 4 * W if reliability else 0, ("EM_INT",)),
+             " (REL §6; ETP §6, VI-11)", 4 * W if reliability else 0, ("EM_INT", "TNC_EM", "EPS_EM")),
         Task("CDR", "Independent CDR (Table G-7) with EM data", 1 * W, ("EM_TEST", "LAYOUT", "FLATSAT_500H",
                                                                      "BATT_ABUSE")),
         Task("CDR_RID", "CDR RID closure", 3 * W, ("CDR",)),
@@ -151,7 +180,8 @@ def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date =
         Task("FM_FAB", "FM PCB fabrication, assembly, inspection", 6 * W, ("FM_LAYOUT", "FUND_FM")),
         Task("BATT", "Flight-lot cell screening, pack build, LEO cycling at 4.10 V (D8)", 10 * W, ("CDR",)),
         Task("FM_INT", "FM integration (TP-INT-001 to -006)", 6 * W, ("FM_FAB", "FM_LL", "PANELS", "BATT")),
-        Task("FM_FUNC", "FM comprehensive functional and day-in-the-life (TP-SYS-001, -002)", 3 * W, ("FM_INT",)),
+        Task("FM_FUNC", "FM comprehensive functional and day-in-the-life (TP-SYS-001, -002)", 3 * W,
+             ("FM_INT", "TNC_QUAL", "EPS_QUAL")),
         Task("FM_BURNIN", "Reliability programme: FM burn-in >= 200 h powered, last 100 h failure-free, 4 ambient"
              " thermal cycles (REL §6; ETP §3.11, VI-12)", 10 if reliability else 0, ("FM_FUNC",)),
         Task("PF_ENV", "Protoflight campaign: mass properties, vibe, TVAC + bake-out, deployment hot/cold,"

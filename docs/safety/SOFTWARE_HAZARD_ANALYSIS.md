@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SHA-001
-**Revision:** F
+**Revision:** G
 **Date:** 2026-10-27
 **Classification:** Class D Mission
 **Reference:** NASA-STD-8739.8B (replaced NASA-STD-8719.13, cancelled 2020)
@@ -19,6 +19,8 @@ This analysis covers all flight software components:
 - OBC Flight Software
 - AI Payload Software
 - Software interfaces to hardware subsystems
+- The firmware of the RF board's TNC (STM32L431) and of the EPS controller (MSP430FR2355), both Class C software items
+  written by the project (SOFTWARE_DEVELOPMENT_PLAN §3.4), since Revision G (§9.8)
 
 ## 3. Hazard Analysis Methodology
 
@@ -464,6 +466,113 @@ concurrence with the SDP §3.2 list.
 | C-18 (Revision F) | SW-HAZ-007 (deployment) | The AntS is deployed only at ≥ −17 °C by its own temperature; colder or unknown defers by 50-minute slots without spending an attempt, and the deferral cannot block the antenna for good: after 30 deferrals (about 25 h) it deploys anyway, and DEPLOY_RETRY's force flag deploys at once (SRS-F165); the 30-minute wait and the wings-first order unchanged | T: `test_deployment` (`test_ants_temperature_gate`), Rust unit tests of `deployment.rs` (safety-critical coverage), the mission simulation's `ants-gate` check |
 | R_FAULT 220 kΩ (Revision F) | SW-HAZ-002 (ADCS) | A sensor rail's turn-on takes up to 0.55 s: a readback low within 0.6 s of the enable is not a trip and no sensor is used before 0.6 s (SRS-F164) | T: Rust unit test `a_rail_is_used_only_after_its_turn_on` |
 
+### 9.8 Board Firmware: the RF Board TNC and the EPS Controller (Revision G)
+
+Added by the CDR round 3 software-systems work (finding P3A-03). Both items are Class C and not yet written; their
+requirements are SQSO-SRS-TNC-001 (`docs/software/TNC_FIRMWARE_REQUIREMENTS.md`) and SQSO-SRS-EPSC-001
+(`docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md`), where each control below is a requirement flagged
+safety-critical. **Determination (SWE-205):** both items contain safety-critical software, the requirements so
+flagged (25 of the TNC's 67, 20 of the EPS controller's 62); the rest of each item is mission-critical. The hardware
+controls listed first in each table do not depend on the firmware (the two specifications' §3 list them).
+
+#### 9.8.1 SW-HAZ-014: RF Board TNC Firmware, Emission Outside Its Limits
+
+**Hazard:** the TNC firmware causes an emission the OBC did not ask for or outside the transmitter's limits: a
+continuous carrier on the beacon path, a transmission off the coordinated downlink frequency, or a 435 MHz emission
+from the receiver IC. System hazard SH-008 (RF interference; 47 CFR 97.307, 97.207). **Severity:** Critical (2).
+**Likelihood:** Improbable (E) with the controls.
+
+**Causes the firmware can contribute to:**
+1. TNC_PTT held high (a stuck modulator, a queue loop) while the main loop still refreshes the watchdog. The beacon
+   path TNC_PTT bypasses the OBC heartbeat (EN_OK) and the 120 s key-down timer (SQSO-RF-BRD-001 §8.4): only RF_TX_EN
+   bounds it in hardware.
+2. A wrong or upset LMX2571 register image: the transmitter locks on another frequency. The board has no read-back of
+   the synthesizer (MICROWIRE through U503 is write-only; MUXout is the lock detect).
+3. The CC1200 put into transmit by a wrong strobe. It is on RADIO_3V3, which TX-OFF does not remove; its PA pin is
+   unused (C208 not fitted), so the level would be leakage, not yet measured.
+4. A corrupted KISS parameter (TXDELAY, TXTAIL) or an uplink frame taken as a KISS command, lengthening a key-down.
+5. A hang with TNC_PTT or TONE_OK high.
+
+| Control | Description | Verification |
+|---------|-------------|--------------|
+| C-014-1 | Hardware: no PA supply, no exciter supply and no synthesizer enable without PA_5V, which only RF_TX_EN (TX-OFF, RF silence, loss of contact) and the deployment switches give; two independent paths (SQSO-RF-BRD-001 §8.5); the PA enabled only with the lock detect (U733); deviation hard-limited by the PCM1808's full scale | EM: VI-RFB-08 (no emission with PA_5V removed, TNC_PTT forced high) |
+| C-014-2 | Key-down limit: TNC_PTT released ≤ 5.0 s after it rises, by a hardware timer compare independent of the frame logic (TNC-F023); the legitimate maximum is 3.2 s | UT; EM: test build holding the modulator unkeys at 5.0 s |
+| C-014-3 | Duty backstop: TNC_PTT ≤ 60 s in any 120 s (TNC-F024), above the OBC's maximum of 45 s, so it acts only on a fault | UT |
+| C-014-4 | Keying only for an OBC frame, only with TX_PERMIT_HW high, frame bits only with the lock detect high (TNC-F020, TNC-F021, TNC-F022) | UT; EM |
+| C-014-5 | The synthesizer image from a CRC-checked record, rewritten within 10 ms of the permit, every 10 s and before each key-up; no key with a bad CRC (TNC-F042); trims bounded to ±3 ppm and never changed in flight (TNC-F044, TNC-I008). **Residual:** an upset between a write and a key keys one transmission (≤ 5 s) off frequency | UT; EM: frequency at 1,000 key-ups; spectrum 144–148 MHz |
+| C-014-6 | The CC1200 never given a transmit strobe; its PA at minimum (TNC-F041) | UT; IN; EM: leakage measured with a test build (recorded) |
+| C-014-7 | Parameters clamped (TNC-I005); RF data never parsed as KISS commands (TNC-F013); unknown commands ignored (TNC-I008) | UT, fuzz |
+| C-014-8 | Independent watchdog in hardware mode, 250 ms (≤ 0.35 s), refreshed from the main loop only; outputs low at and after a reset (TNC-F002, TNC-F004, TNC-F005); TNC_PTT and TONE_OK pulled down in reset (R408) | IN (option bytes); EM: halted loop |
+| C-014-9 | **Recommended, not yet a requirement** (for the SRS owner): the OBC, which captures PTT_EXCITER on TIM8_CH2, drives RF_TX_EN low when PTT_EXCITER stays high for more than 6 s with no frame outstanding, so a TNC that holds TNC_PTT with its timer failed is cut by the OBC | — |
+
+**Status:** requirements written (SQSO-SRS-TNC-001 A); firmware not written. Open until the EM tests and C-014-9.
+
+#### 9.8.2 SW-HAZ-015: RF Board TNC Firmware, Telecommand Path Blocked or Receiver Evidence Falsified
+
+**Hazard:** the TNC firmware keeps a frame from the OBC (TX_DISABLE included: the 97.207(b) cessation of emissions
+by telecommand), or reports the receiver healthy when it is deaf, or failed when it works. A false fault lets the
+REL-04 exception keep the beacon after N days of silence, which decision D3 meant to stop (C-010-4; SQSO-FMEA-003
+BF-RF-32); a false health hides a deaf receiver from the recovery cycle. **Severity:** Critical (2).
+**Likelihood:** Improbable (E).
+
+**Causes:** frames filtered or dropped by content; a USART path dead while RX_ALIVE still pulses; a supervision
+criterion wrongly computed (noise-floor table, thresholds); a hang.
+
+| Control | Description | Verification |
+|---------|-------------|--------------|
+| C-015-1 | Hardware: RX_FAULT is a monostable on the RX_ALIVE pulses, so a hung, resetting or dead TNC reads as a fault without firmware help; RX_CD is the CC1200's carrier sense, independent of the firmware once configured (SQSO-RF-BRD-001 §8.6) | EM: VI-RFB-10 |
+| C-015-2 | Every frame with a valid FCS passed to the OBC whatever its content; no key, no authentication, no command decoder in the TNC; the OBC re-checks the FCS and authenticates (TNC-F011, TNC-F012, TNC-I011; SQSO-ICD-013 §3, §8). The TNC cannot make a valid command | UT; IN; FS: TX_DISABLE over the air |
+| C-015-3 | The STATUS loop query every 10 min, unanswered for 24 h with the radio on, counts as a receiver-path fault (TNC-I006; SRS-F116) | UT; EM: VI-RFB-10; FS |
+| C-015-4 | The six criteria as specified, RX_ALIVE from the main loop only, none before 100 ms after a reset (TNC-F003, TNC-F043, TNC-F050 to TNC-F054, TNC-F056); a bad calibration table makes criterion 6 not evaluated rather than failed | UT; EM: VI-RFB-10 (injected faults, −40 … +70 °C, +6 dB interference) |
+| C-015-5 | The OBC side: RX_FAULT power-on self-test, a carrier stuck for more than 1 h not taken as evidence, the 24 h recovery cycle, a valid frame clears known-failed (SRS-F115, SRS-F116, SRS-F152) | T: `test_receiver`; flatsat V-BFM-05 |
+
+**Status:** requirements written; firmware not written.
+
+#### 9.8.3 SW-HAZ-016: EPS Controller Firmware Weakens a Battery Hazard Control or Misreports the Pack
+
+**Hazard:** the controller firmware removes one of the two signals the recharge-lockout clear needs, fails to set
+the lockout when the AFE's own path has failed, sets it spuriously, changes the AFE's protection settings, or
+reports a pack state that makes the OBC's software controls late: SOC too high (SAFE at 25 %, BSA H2 control 1),
+the pack temperature wrong (the heater thermostat, H5 control 3 and H6 control 1), the Jetson current too low (the
+payload guard). **Severity:** Critical (2) on orbit (SQSO-BSA-001; at launch the controller is unpowered behind
+DS1–DS3). **Likelihood:** Improbable (E).
+
+**Causes:** UNLOCK left high after a clear (ICD-001 1.6 lets it stay high until another value is written); LOCK_SET
+missed, or raised on an implausible reading; a write command or key to the AFE; coulomb-count drift; NTC1 failed
+and TBATT not handed over; an uncalibrated IMON channel.
+
+| Control | Description | Verification |
+|---------|-------------|--------------|
+| C-016-1 | Hardware first: AFE OTP protections (COV, CUV, OCD, SCD, UTC/OTC/OTD), the BQ771806 + F3, the CV/CC loops, the NTC1 window with its hand-over, the 60 °C BOTHOFF, the lockout latch K1 set by the AFE's permanent fail without the firmware, the load shed, the 1.20 A eFuse (SQSO-EPS-BRD-001 §5, §6, §8) | EM: V-EPS-2, -7, -9, -12, -14 |
+| C-016-2 | UNLOCK raised for 1.0 s per 0xC5 write, then lowered (EPSC-F062) | UT; EM: V-EPS-9 (LOCK_CLR alone after an unlock does nothing) |
+| C-016-3 | LOCK_SET backup on the AFE's SUV permanent fail or 5 s of plausible readings below 2.00 V, once per event, and for no other reason (EPSC-F060, EPSC-F061) | UT; EM: V-EPS-9 |
+| C-016-4 | The AFE accessed read-only; no unseal key in the image; its protection settings compared with the acceptance record every 10 min and a difference reported, never corrected by a write (EPSC-F063) | UT; IN; EM |
+| C-016-5 | SOC within ±5 % after the first full charge, bounded by the cell voltage below 3.30 V, conservative after a lost state (EPSC-F040 to EPSC-F043); the OBC keeps its own INA228 gauge and analog VBATT/IBATT | UT; EM: pack cycling against a reference |
+| C-016-6 | TBATT and TBATT2 within ±1.0 °C, TBATT from NTC2 while NTC1_BAD (EPSC-F011, EPSC-P002); IMON_JET within ±3 % ±20 mA (EPSC-F013) | EM: chamber; Jetson load simulator |
+| C-016-7 | Watchdog ≤ 1.5 s, outputs at their pull-downs at and after a reset (EPSC-F001, EPSC-F003) | IN; EM |
+
+**Status:** requirements written (SQSO-SRS-EPSC-001 A); firmware not written.
+
+#### 9.8.4 SW-HAZ-017: EPS Controller Firmware, End-of-Life Key, OBC Bus or Supervisor Outputs Misused
+
+**Hazard:** the controller firmware supplies the end-of-life key without the keyed sequence or holds it past 10 s
+(the arm then needs only one OBC edge: SQSO-FMEA-003 fix (c)); misreports EOL_STATE, on which PASSIVATE_ARM and the
+final report depend; holds I2C2, blocking the gauge, the lockout clear and EOL_KEY (BF-EPS-50, Category 3: no
+passivation); or power-cycles the OBC spuriously or without limit. Related to SW-HAZ-013 (passivation) and SW-HAZ-004
+(an OBC hang). **Severity:** Critical (2) for the mission. **Likelihood:** Improbable (E).
+
+| Control | Description | Verification |
+|---------|-------------|--------------|
+| C-017-1 | Hardware: the arm latch needs the OBC's EOL_ARM edge AND EOL_KEY and is cleared at every power-up; only the OBC's EOL_FIRE (≥ 60 s) fires F1; each OBC power cycle lasts 1.95 s per rising edge of OBC_CYCLE (U82), whatever the line does (SQSO-EPS-BRD-001 §7, §12) | EM: V-EPS-8, V-EPS-16 |
+| C-017-2 | EOL_KEY only after 0x3C then 0xC3 within 1 s with EOL_ARMED low and F1 intact; lowered at 10 s, on any other write, once the latch is set, and at any reset; ≤ 11.5 s even with a hang (EPSC-F070 to EPSC-F072) | UT; EM: 1,000 sequences, hang case |
+| C-017-3 | EOL_STATE from samples ≤ 100 ms old; an ambiguous F1 reading is neither intact nor fired (EPSC-F015, EPSC-F073) | UT; EM |
+| C-017-4 | Never a master on I2C2; SCL never held > 1 ms; the target reset within 25 ms of a stall, without changing an output (EPSC-I001, EPSC-I006) | UT; FS: IFT-EPS-006 |
+| C-017-5 | OBC cycles only after 600–660 s without a heartbeat, not within 600 s of a start or a cycle, at most 3 in 24 h with the history in FRAM (EPSC-F081, EPSC-F082) | UT; EM: V-EPS-16 |
+
+**Status:** requirements written; firmware not written. The AntS supply (EPSC-F090) and the tracker disables
+(EPSC-F091, EPSC-F092) were reviewed and are not safety-critical: the AntS deploys only on the OBC's own commands
+behind DS1–DS3, and a disabled tracker costs power, not safety.
+
 ### 9.7 Summary of the Additions
 
 | Hazard ID | Description | Severity | Likelihood | Risk | Status |
@@ -473,6 +582,10 @@ concurrence with the SDP §3.2 list.
 | SW-HAZ-011 | Commissioning hold lost or bypassed | Major | Remote | Low | Verified on host |
 | SW-HAZ-012 | OBC selector extends a gate | Major | Improbable | Low | Design only |
 | SW-HAZ-013 | End-of-life passivation commanded wrongly or not completed | Critical (mission) | Improbable | Low | Open (EM test V-EPS-8) |
+| SW-HAZ-014 | RF board TNC firmware: emission outside its limits | Critical | Improbable | Low | Open (requirements only; EM tests) |
+| SW-HAZ-015 | RF board TNC firmware: telecommand path blocked or receiver evidence falsified | Critical | Improbable | Low | Open (requirements only; EM tests) |
+| SW-HAZ-016 | EPS controller firmware weakens a battery hazard control or misreports the pack | Critical | Improbable | Low | Open (requirements only; EM tests) |
+| SW-HAZ-017 | EPS controller firmware: end-of-life key, OBC bus or supervisor outputs misused | Critical (mission) | Improbable | Low | Open (requirements only; EM tests) |
 
 ---
 
@@ -486,6 +599,7 @@ concurrence with the SDP §3.2 list.
 | D | 2026-10-27 | §9.5 SW-HAZ-013: the passivation order of RID REG-12 (the fire while transmitting, the final report, then TX-OFF, also after an unconfirmed fire), control C-013-4 (the emissions cease whatever fails), the pins allocated, `passivation.rs` (both crates) on the safety-critical list | SMART-QSO Team (CDR flight software, round 3) |
 | E | 2026-10-27 | §9.5 C-013-2 the two-processor arm (RID P3E-11, SRS-F157); §9.6 new: the changes from the board FMEA (SMA-B02 sense polarity and separation latch, B10 FRAM mirror and degraded mode, B11 receiver evidence, B19 TX_TEMP plausibility, B09 EPS heartbeat and IWDG timeout) and THM-03 (the wings-stowed cold hold); the summary is §9.7 | SMART-QSO Team (CDR flight software, round 3, second part) |
 | F | 2026-10-27 | §9.6: SMA-B20 the passivation's EPS-board condition bounded (6 h, unreadable not blocking); C-18 the AntS temperature gate with its cap and force flag; the sensor-rail turn-on (R_FAULT 220 kΩ); SMA-B09 row: the IWDG at 25.6 s before the supervisor's 29.3 s |
+| G | 2026-10-27 | §2 scope and new §9.8: the board firmware items (finding P3A-03). SW-HAZ-014 (TNC emission outside its limits) and SW-HAZ-015 (TNC telecommand path and receiver evidence), SW-HAZ-016 (EPS controller and the battery hazard controls) and SW-HAZ-017 (EPS controller end-of-life key, bus and supervisor), each with causes, controls and verification from SQSO-SRS-TNC-001 A and SQSO-SRS-EPSC-001 A; the SWE-205 determination for both items; recommended control C-014-9 (the OBC watches PTT_EXCITER); §9.7 summary | SMART-QSO Team (CDR round 3, software systems) |
 
 ---
 

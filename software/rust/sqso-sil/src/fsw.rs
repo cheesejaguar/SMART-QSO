@@ -197,6 +197,8 @@ pub struct Snapshot {
     pub rx_cycles: u32,
     /// The receiver is known failed (REL-04)
     pub rx_failed: bool,
+    /// The transmitters held off for the AntS (decision C-19)
+    pub ants_hold: bool,
 }
 
 /// The flight software and the simulated HAL around it
@@ -501,6 +503,7 @@ impl Fsw {
             passivation: passivation::passivation_phase(),
             rx_cycles: receiver::receiver_cycles(),
             rx_failed: receiver::receiver_failed(),
+            ants_hold: deployment::deployment_downlink_held(),
         }
     }
 }

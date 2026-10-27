@@ -8,6 +8,12 @@
 //! time; the antenna is the ISIS AntS, armed and deployed over I2C, sensed
 //! by its own element switches (`ants.rs`).
 //!
+//! Decision C-19: after every call that can change the sequence, the
+//! transmitter inhibit `RF_INHIBIT_ANTS_PENDING` follows
+//! [`Deployment::downlink_held`] (set at boot before `rf_control_init()`
+//! first drives the lines).
+//!
+//! @requirement SRS-F167 Transmitters silent while the AntS deployment is pending (deferred or not yet attempted after the wings); the downlink starts when the AntS reads deployed or its sequence ends (attempts spent, or the attempt at the deferral cap made), latched, and never before the 45-minute RF silence
 //! @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
 
 use core::ffi::c_char;
@@ -19,6 +25,7 @@ use crate::c::{self, HalFlash, rc, severity};
 use crate::cell::Global;
 use crate::rf_control::{GPIO_DIR_INPUT, GPIO_DIR_OUTPUT, gpio_config, gpio_set};
 use crate::{ptr, rf_silence, separation_switch};
+use sqso_fsw::rf_control::INHIBIT_ANTS_PENDING;
 
 /// `FLASH_REGION_DEPLOYMENT`
 pub(crate) const FLASH_REGION_DEPLOYMENT: u32 = 10;
@@ -148,24 +155,44 @@ impl DeployIo for HalFlash {
     }
 }
 
+/// The transmitter hold of decision C-19 to the sequence's answer (busy:
+/// unchanged; the caller in use applies it when it returns)
+fn apply_hold() {
+    if let Some(held) = DEPLOY.with(|d| d.downlink_held()) {
+        crate::rf_control::rf_control_set_inhibit(INHIBIT_ANTS_PENDING, held);
+    }
+}
+
 /// Boot: burn lines low, load the sequence, apply the reset-cause rules
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_init() -> bool {
     crate::ants::reset();
     let cause = rf_silence::reset();
-    DEPLOY.with(|d| d.init(cause, &mut HalFlash)).is_some()
+    let done = DEPLOY.with(|d| d.init(cause, &mut HalFlash)).is_some();
+    apply_hold();
+    done
 }
 
 /// Advance the sequence by elapsed time
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_tick(elapsed_ms: u32) {
     let _ = DEPLOY.with(|d| d.tick(elapsed_ms, &mut HalFlash));
+    apply_hold();
+}
+
+/// Whether the transmitters are held off for the AntS (decision C-19;
+/// busy reads as held, the safe answer)
+#[unsafe(no_mangle)]
+pub extern "C" fn deployment_downlink_held() -> bool {
+    DEPLOY.with(|d| d.downlink_held()).unwrap_or(true)
 }
 
 /// Re-arm for flight (GSE only)
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_arm() -> i32 {
-    match DEPLOY.with(|d| d.arm(&mut HalFlash)) {
+    let armed = DEPLOY.with(|d| d.arm(&mut HalFlash));
+    apply_hold();
+    match armed {
         Some(true) => rc::OK,
         Some(false) => rc::IO,
         None => rc::BUSY,
@@ -221,14 +248,18 @@ pub unsafe extern "C" fn deployment_get_telemetry(telemetry: *mut DeploymentTele
 /// Enable or inhibit deployment (ground command); persisted
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_set_enabled(enable: bool) -> bool {
-    DEPLOY.with(|d| d.set_enabled(enable, &mut HalFlash)).unwrap_or(false)
+    let saved = DEPLOY.with(|d| d.set_enabled(enable, &mut HalFlash)).unwrap_or(false);
+    apply_hold();
+    saved
 }
 
 /// Retry an element (ground command)
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_force_retry(element: u32) -> bool {
     let Some(e) = Element::from_raw(element) else { return false };
-    DEPLOY.with(|d| d.force_retry(e, &mut HalFlash)).unwrap_or(false)
+    let accepted = DEPLOY.with(|d| d.force_retry(e, &mut HalFlash)).unwrap_or(false);
+    apply_hold();
+    accepted
 }
 
 /// DEPLOY_RETRY with its force flag (the antenna only: past the AntS
@@ -236,7 +267,9 @@ pub extern "C" fn deployment_force_retry(element: u32) -> bool {
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_retry(element: u32, force: bool) -> bool {
     let Some(e) = Element::from_raw(element) else { return false };
-    DEPLOY.with(|d| d.retry(e, force, &mut HalFlash)).unwrap_or(false)
+    let accepted = DEPLOY.with(|d| d.retry(e, force, &mut HalFlash)).unwrap_or(false);
+    apply_hold();
+    accepted
 }
 
 /// The AntS gate's deferrals and last temperature (NaN: none valid)
@@ -326,5 +359,36 @@ mod tests {
             (unsafe { deployment_ants_gate(core::ptr::null_mut(), core::ptr::null_mut()) }, ants_gate())
         });
         assert_eq!(nested, Some((false, (0, None))));
+    }
+
+    /// Decision C-19 behind the C interface: the hold follows the sequence
+    /// into the transmitter inhibits (the receiver stays on); a nested call
+    /// reads as held and leaves the inhibit as it was
+    #[test]
+    fn the_hold_reaches_the_transmitter_inhibits() {
+        let _serial = crate::fault_mgmt::tests::serial();
+        let held = || crate::rf_control::inhibits() & INHIBIT_ANTS_PENDING != 0;
+        // SAFETY: plain values (the simulated HAL)
+        unsafe {
+            assert_eq!(c::hal_flash_init(), rc::OK);
+            assert_eq!(c::hal_flash_erase(FLASH_REGION_DEPLOYMENT), rc::OK);
+        }
+        assert!(deployment_init());
+        assert!(deployment_downlink_held() && held(), "a fresh sequence holds");
+        assert!(deployment_set_enabled(false));
+        assert!(!deployment_downlink_held() && !held(), "never while the ground inhibits deployment");
+        let nested = DEPLOY.with(|_| {
+            apply_hold();
+            (deployment_downlink_held(), held())
+        });
+        assert_eq!(nested, Some((true, false)));
+        assert!(deployment_set_enabled(true));
+        assert!(held());
+        assert!(!deployment_force_retry(sqso_fsw::deployment::ELEMENT_COUNT), "no such element");
+        deployment_tick(1);
+        assert!(held());
+        assert_eq!(deployment_arm(), rc::OK);
+        assert!(held());
+        crate::rf_control::rf_control_set_inhibit(INHIBIT_ANTS_PENDING, false);
     }
 }
