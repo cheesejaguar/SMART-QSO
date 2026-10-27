@@ -181,9 +181,10 @@ current.
 | SYS-325 | T | CI + FMI | continuous; 2027-12 to 2028-02 | Authentication tests; TP-RF-006 | Partial (CI) |
 | SYS-326 | T | CI + FMI | continuous; 2027-12 to 2028-02 | Key-load tests; umbilical key load | Not verified |
 | SYS-400 | I | FMI | 2027-12 to 2028-02 | Inspection | Not verified |
-| SYS-401 | T | FS | 2027-06 to 2027-07 | TP-ADCS-001 with calibration | Not verified |
+| SYS-401 | T | FS | 2027-06 to 2027-07 | TP-ADCS-001 with the per-polarity bias calibration (AV-V4) | Not verified |
 | SYS-402 | I | FMI | 2027-12 to 2028-02 | Inspection | Not verified |
-| SYS-403 | T | FS | 2027-06 to 2027-07 | TP-ADCS-001 | Not verified |
+| SYS-403 | T | EMT | 2027-07 to 2027-09 | TP-ADCS-003 §3.1 photodiode response and shadow | Not verified |
+| SYS-404 | T | EMT | 2027-07 to 2027-09 | TP-ADCS-003 §3.1 gyro rate; TP-FLATSAT-001 | Not verified |
 | SYS-410 | I | FMI | 2027-12 to 2028-02 | Inspection | Not verified |
 | SYS-411 | T | EMT | 2027-07 to 2027-09 | TP-ADCS-002 dipole measurement | Not verified |
 | SYS-412 | D | FS | 2027-06 to 2027-07 | TP-ADCS-002 | Not verified |
@@ -563,8 +564,8 @@ current.
 | PDR | Analysis or inspection presented at the PDR | 2027-01-12 | 8 |
 | REG | Regulatory filing or coordination record | 2027-01 to 2028-06 | 10 |
 | CON | Launch contract and integrator ICD | 2027-05-31 | 8 |
-| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-06 to 2027-07 | 298 |
-| EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-07 to 2027-09 | 13 |
+| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-06 to 2027-07 | 297 |
+| EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-07 to 2027-09 | 15 |
 | CDR | Analysis or inspection presented at the CDR | 2027-09-28 | 68 |
 | FMI | FM integration and comprehensive functional (TP-INT, TP-SYS-001) | 2027-12 to 2028-02 | 165 |
 | DITL | FM day-in-the-life and end-to-end (TP-SYS-002, TP-DITL-001, TP-GS-001) | 2028-02 | 22 |
@@ -576,10 +577,10 @@ current.
 
 | Status | Requirements |
 |--------|--------------|
-| Not verified | 405 |
+| Not verified | 406 |
 | Partial (CI) | 80 |
 | Deleted | 1 |
-| **Total** | **486** |
+| **Total** | **487** |
 
 Methods: A analysis, D demonstration, I inspection, T test, V validation (mission objectives, judged against the success criteria). A method marked * is proposed here because the specification gives none.
 <!-- vcrm:end -->

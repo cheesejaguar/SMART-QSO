@@ -230,9 +230,10 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 | ID | Requirement | Parent | Verification |
 |----|-------------|--------|--------------|
 | SYS-400 | The ADCS shall include a 3-axis magnetometer | MRD-061 | I |
-| SYS-401 | Magnetometer accuracy shall be better than 5 degrees | MRD-061 | T |
-| SYS-402 | The ADCS shall include sun sensors on at least 4 faces | MRD-061 | I |
-| SYS-403 | Sun sensor accuracy shall be better than 10 degrees | MRD-061 | T |
+| SYS-401 | After the per-polarity bias correction, the magnetometer shall measure the body field with a residual bias ≤ 0.3 µT per axis and noise ≤ 0.2 µT 1σ per sample, sampled only in the coils-off window (SRS-F090, SRS-F144; AV-V4, TP-ADCS-003) | MRD-060, MRD-061 | T |
+| SYS-402 | The ADCS shall include a photodiode sun sensor on each of the six faces, read by the OBC | MRD-061 | I |
+| SYS-403 | Each sun-sensor photodiode shall respond within 2 % of cos θ up to 60° incidence and at least 0.5 × cos θ at 85°, with a gain spread ≤ 3 % 1σ (the ADCS Monte Carlo model, ADCS_DESIGN §11.6); no accuracy is required of the sun vector (decision C-23) | MRD-061 | T |
+| SYS-404 | The gyro bias in use shall be ≤ 0.2°/s per axis (ADCS-P007) | MRD-061 | T |
 
 ### 9.2 Actuator Requirements
 
@@ -460,3 +461,4 @@ from this document by `software/simulation/cdr/pm/gen_vcrm.py`.
 | F | 2026-10-27 | CDR 2026 consistency pass: SYS-012 (465-485 km), SYS-422 (8 deg/s spin), SYS-907 (475 km target, 485 km cap) from `docs/BASELINE_PARAMETERS.md` Rev E (CR-2026-007) | CDR documentation review |
 | G | 2026-10-27 | CDR round 3 (proposed; PI decision by 2027-01-12, CR-2026-009 and CR-2026-010): SYS-100 2.23 W (was proposed 2.21 W; transponder allocation 1.85 W DC, RF board E) at the BASELINE §5 1.84 W load (SE-03, P3E-08); SYS-203 third harmonic ≥ 70 dB at the antenna port (RF-07); SYS-222 the RF-P013 pattern statement (RF-05); SYS-224 every RF emitter including the GNSS receiver, and the completion latch (P3A-01, LV-15); SYS-603 a temperature requirement instead of the 1 W/K conductance (SE-07); SYS-707 the integrator's cycle count and the SpaceX range reconciled (P3S-10); applicable baseline Rev E (amended); Rev E and F, which CR-2026-007 omitted, recorded in CR-2026-009; (amended, proposed, CR-2026-017, RID THM-04) SYS-600 and SYS-601 per-unit allowable flight temperatures of THERMAL_DESIGN §1.1 (−30 °C cold for every board, −40 °C for the first orbit after separation with a GEVS test-margin deviation) | CDR round 3, systems and programmatics |
 | H | 2026-10-27 | CDR round 3, flight software fifth part (decision C-20, CR-2026-018) | SYS-512: one burst definition (a power-on of at most 10 min and 3.6 kJ at the carrier input) and the 0.1 Wh metric per accepted beacon line, counted on accepted lines (was 120 s bursts and a p95 per beacon) |
+| H, amended | 2026-10-27 | Decision C-23 (RID P3F-G-07): SYS-401 magnetometer bias and noise, SYS-402 six-face photodiodes, SYS-403 photodiode response (no sun-vector accuracy), new SYS-404 gyro bias in use |

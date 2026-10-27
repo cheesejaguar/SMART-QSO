@@ -101,6 +101,8 @@ for tag, cw in (("one_short", 3 * 110e-9 + 220e-9), ("one_open", 3 * 110e-9)):
     put(f"wd_{tag}_twdl_max", 0.125 * 1.095 * (77.4 * cw * (1 + CWD_TOL) * 1e6 + 0.055), "s", "lower bound, max (must stay below the 10 s kick)")
 put("iwdg_3200_min", 3200 * 256 / 34e3, "s", "recommended IWDG reload 3200 / 256 at LSI 34 kHz")
 put("iwdg_3200_max", 3200 * 256 / 29.5e3, "s", "at LSI 29.5 kHz: below the supervisor's minimum")
+# margin = tWDU_min - IWDG_max - (t_IWDG_last_refresh - t_WDI_last_edge): the flight software refreshes
+# the IWDG only at the WDI edge (RID P3F-A-03), so the phase term is at most one 20 ms pass
 put("wd_vs_iwdg_3200", twdu_min - 3200 * 256 / 29.5e3, "s", "supervisor minimum minus the IWDG maximum at reload 3200: the IWDG acts first")
 put("wd_uv", 3.30 * 0.93, "V", "TPS3850H33: UV 7 % (3.069 V nominal, +/-0.8 %)")
 put("wd_ov", 3.30 * 1.07, "V", "OV 7 % (3.531 V)")
