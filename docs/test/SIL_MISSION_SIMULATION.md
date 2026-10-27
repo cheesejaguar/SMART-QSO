@@ -1,7 +1,7 @@
 # Mission Simulation (Software in the Loop)
 
 **Document ID**: SQSO-SIL-001
-**Version**: F
+**Version**: G
 **Date**: 2026-10-27
 **Status**: Draft
 
@@ -32,6 +32,8 @@ python3 ../simulation/sil/report.py sil-out/full      # report.md and plots/ bes
 | `year` | The first 365 days, no passivation |
 | `commissioning` | The first 14 days |
 | `ants_cold` | The first 14 days after an eclipse separation that follows the analysis's 2 h dispenser cold soak (Version F: `separate_at_eclipse`, `separation_soak_c` −20 °C; decisions C-18 and C-19) |
+| `ants_cap` | Version G: `ants_cold` for 3 days with the AntS reading held at −30 °C (`ants_temp_fixed_c`): the 30-deferral cap and its release in sunlight (RID P3F-G-02) |
+| `ants_notemp` | Version G: `ants_cold` for 3 days with no valid AntS temperature (`ants_temp_failed`): the schedule fallback after three unknown readings (RID P3F-G-02) |
 | `smoke` | The first day (CI) |
 
 The exit status is 0 when no check finds an anomaly, 1 otherwise. CI (`.github/workflows/ci.yml`, job *Mission
@@ -46,7 +48,10 @@ by default) and `dump_every_days` (the ground's DUMP_TLM plan), and since Versio
 heat but never part their lines), `eol_heater_ohms` (the end-of-life fuse's heater, 11.2–20.0 Ω), `separate_at_eclipse`
 (separation at the first umbra entry after the deployment time) and `separation_soak_c` (the dispenser cold soak; since
 Version F the whole network soaked 2 h against the analysis's cold wall profile ending at that temperature,
-`Thermal::dispenser_soak`; in Version E only the structure and the AntS were set to it) (`sqso-sil/src/config.rs`). The ADCS Monte Carlo is a
+`Thermal::dispenser_soak`; in Version E only the structure and the AntS were set to it), and since Version G
+`ants_temp_failed` (every AntS temperature reading invalid), `ants_temp_offset_c` (the reading's error),
+`ants_temp_fixed_c` (the reading held at a value) and `ai_reject_fraction` (the share of the Jetson's lines meant to
+fail the content filter, 3 % by default) (`sqso-sil/src/config.rs`). The ADCS Monte Carlo is a
 separate binary, `sqso_adcs_mc` (`docs/hardware/BUILD_VS_BUY.md` §6).
 
 The failed-receiver contingency of RID REL-04 (Version C):
@@ -144,6 +149,7 @@ Each run writes to its output directory:
 | Transponder | Never radiating while not permitted; radiating in eclipse or below 55 % SOC ≤ 0.5 % of its keyed time; keyed ≤ 25 % of an orbit; ≥ 70 % of the uplink demand repeated while its gates hold |
 | Operations | No loss-of-contact inhibit; ≥ 90 % of telecommands executed, no authentication failure; no watchdog reset or brownout; every Jetson latch-up cleared; Jetson energy per accepted beacon ≤ 0.1 Wh (BASELINE §6; a warning, not a pass, when no AI beacon was sent); OBC availability ≥ 99 % |
 | CDR round 2 (Version C) | `burn-lines`: at most one wing burn resistor on at once (EPS board); `rx-recovery`: every receiver hang cleared by the flight software's power cycle within 26 h (FSW-09: 24 h of silence, then the cycle; one still open at the end of a run is allowed); `rx-failed-beacon`: with `rx_failed_day` set, the receiver known failed, beacons radiated, gaps between them ≤ 600 s while it is, and the transponder never keyed (REL-04); without it, the receiver never declared failed; `acks`: acknowledgements radiated for ≥ 90 % of the commands executed (a warning below: TX_DISABLE gets none); `dumps`: dump frames radiated after commissioning |
+| CDR round 3 (Version G) | `ants-commands` (RID P3F-A-01): 1 to 3 AntS deployment commands and none once its elements read deployed (the AntS answers only with SW8 on, so a deployed AntS read unpowered would be fired again); `ants-gate` extended: at the 30-deferral cap or on the schedule fallback the release must follow at least 19 min of continuous sun (the flight software's 20 min) and, on the schedule, come no earlier than separation + 69 min (RID P3F-G-02); `ai-bursts` (decision C-20): every Jetson power-on at most 3.75 kJ at the model's input (3.6 kJ at the carrier input, metered 20 ms late), the per-burst p50 and p95 and the Wh per line meant to pass the filter reported |
 | CDR round 3 (Version F) | `ants-hold` (decision C-19): the first transmission at or after the end of the flight software's AntS hold (the AntS read deployed or its sequence ended), and no VSWR stop of the downlink with the AntS stowed unless its sequence ended without it (reported: the hold's end, the first RF, the VSWR stops); `ptt-watch` (SW-HAZ-014 control C-014-9, SRS-F168): no TX-OFF from the exciter watch; `ants-gate` also reports the AntS node's coldest in the first 3 h and when it first stood at or above −17 °C after the first attempt |
 | CDR round 3 (Version E) | `load-shed`: hardware load sheds of SW1 and U19 before passivation (a warning above 0: the stuck-on payload contingency shows it acting); `gnss-frame`: a GNSS state frame (SRS-F158) per fix session, its position within 1 m of the receiver's record and its derived ECEF velocity within 0.5 m/s of the receiver's arc; `ants-gate`: the AntS told to deploy only at or above −17 °C, or after 30 deferrals (decision C-18; the AntS node's temperature at separation + 31 min, an ungated release, is reported with it); `antennas` allows 2 h plus 50 min per AntS deferral. `payload-limits`: no onset of the flight software's payload hard-limit condition (MSC L2-05; a stuck-on payload contingency shows it); `duty` counts exactly the last 60 s (Version D's window held 61 steps) and reports when its worst window ended |
 | End of life | Passivated by telecommand (Version C: the two-key sequence through the flight software, not a modelled latch); no charge into the pack after passivation; re-entry within 5 years of the end of the mission (the FCC's five-year rule; CLAUDE.md, mission phase 3) |
@@ -214,6 +220,15 @@ Version F (2026-10-27, flight software round 3, fourth part):
 | SIL-41 | With an eclipse separation the downlink keyed into the stowed AntS (SIL-37) | Nothing held the transmitters for the AntS | Decision C-19, SRS-F167: the transmitters stay silent (the receiver on) while the AntS deployment is pending, until the AntS reads deployed or its sequence ends (attempts spent, or the attempt at the 30-deferral cap made), latched; `ants-hold` check. `ants_cold`: first RF 81.2 min, when the AntS was out; no VSWR stop; longest beacon gap 126 s |
 | SIL-42 | The cold soak left the AntS at −18.2 °C at separation + 31 min from −30 °C (Version E) | Only the structure and the AntS were set cold; the internal nodes at the storage temperature warmed the frame | The whole network soaks 2 h against the analysis's wall profile (`Thermal::dispenser_soak`): with its −20 °C the AntS is at −17.5 °C at separation (analysis −18.0) and −35.9 °C at its coldest (analysis −35.6 for this orbit); scenario `ants_cold` |
 
+Version G (2026-10-27, flight software round 3, fifth part: the closure panel's findings):
+
+| # | Showed | Cause | Change |
+|---|--------|-------|--------|
+| SIL-43 | The AntS answered on I2C whatever its supply, so the flight software's reads with the AntS unpowered (after the burn's STOP had lowered SW8) found it deployed in the model and not on hardware (RID P3F-A-01) | The simulated HAL wrote and read the AntS registers every step regardless of SW8 | `hal_sim` power-gates the AntS: it answers only with SW8 on (DEPLOY_EN or the EPS controller's ANTS_PWR) and 0.5 s after it turned on, and forgets its arm and deployment commands when SW8 drops; the model writes its status and temperature through a back door. Flight software: every AntS read with SW8 raised for 1 s first (SRS-F169). New check `ants-commands`: one AntS command in every scenario, none with the elements deployed |
+| SIL-44 | The repeat path's key-down timer was not modelled: an uplink carrier held past 120 s kept XPDR_KEY high | The radio model keyed the repeat path for the whole carrier | The 120 s timer (reset when the tone drops) in `mission.rs`; the flight software's exciter watch now bounds an over at 130 s (SRS-F168, RID P3F-A-02), so without the timer the model would have tripped it |
+| SIL-45 | The AntS gate's two ends were exercised only in unit tests (RID P3F-G-02) | No setting forced them | Settings `ants_temp_fixed_c`, `ants_temp_offset_c`, `ants_temp_failed`; scenarios `ants_cap` (reading −30 °C: 30 deferrals, released at S + 1,548.7 min after 19.9 min of sun, the AntS at −13.1 °C, first RF 1,549.5 min) and `ants_notemp` (no valid reading: two deferrals, then the schedule, released at S + 135.3 min after 19.9 min of sun at −13.8 °C, first RF 136.1 min). Both 0 anomalies |
+| SIL-46 | The energy per accepted beacon was an aggregate only (RID P3F-G-03) | No per-burst record | The Jetson model logs each power-on's input energy and its lines meant to pass the filter; check `ai-bursts` and summary values `jetson_burst_j_p50`, `_p95`, `jetson_wh_per_good_line`; setting `ai_reject_fraction` for the sensitivity of decision C-20 (§7) |
+
 Without the EPS controller answering (the stand-in power model of the development simulation, SW-01) the executive
 keeps its previous behaviour: detumble completes in the first pass and the payload follows the power mode. The C
 suites run that way, unchanged except where SIL-06 changed a specified value.
@@ -221,10 +236,20 @@ suites run that way, unchanged except where SIL-06 changed a specified value.
 ## 7. Results
 
 The reference run: `--scenario full`, seed 20280601, integration 2028-09-15, deployment 2028-11-01 06:00 UTC, 475 km
-sun-synchronous at LTAN 22:30, 730 days of operations, passivation by telecommand, then the decay to re-entry. Version F
-(2026-10-27, flight software round 3, fourth part: decision C-19, the housekeeping frames of SIL-40, the exciter watch
-SRS-F168, the MASS_BUDGET 3.2 inertia) found **0 anomalies and 0 warnings in 48 checks** (25 minutes on one core;
-732.3 days simulated, 11,228 orbits). The main values (Version E in brackets where they changed):
+sun-synchronous at LTAN 22:30, 730 days of operations, passivation by telecommand, then the decay to re-entry. Version G
+(2026-10-27, flight software round 3, fifth part: the AntS read only while powered and the power-gated AntS model, the
+persisted separation, the bounded repeat path and the key-down timer, the IWDG paired with the WDI edge, the AntS gate's
+persisted slot and its sunlit releases, the energy gate on accepted lines, the HK2 selector, preset and sun fields)
+found **0 anomalies and 0 warnings in 50 checks** (32 minutes, sharing the machine with other runs). Version G changed
+the values below (Version F in brackets): first RF and the AntS unchanged (45.0 min; the AntS told to deploy once, at
++2.9 °C after 9.3 min of sun, deployed at 30.6 min); depth of discharge 3.5 % (3.4 %); 29,523 Wh drawn and 26,283 Wh used
+(29,566 and 26,322); longest beacon gap 245 s (191 s); worst 60 s duty 24.0 % (23.8 %); 1,682,651 frames (1,664,437);
+95.9 % of 28,567 passes heard (95.7 % of 28,563); transponder at most 12.7 % of an orbit keyed (14.9 %), 95.5 % of the
+demand repeated (95.8 %); 9,227 Jetson power-ons (9,216), 8,077 Wh (8,145), 125,127 AI beacons (126,292), **0.065 Wh per
+accepted beacon** (0.064); every burst at most 3,633 J at the model's input (p50 3,626 J, p95 3,630 J: the
+batches end at the 3.6 kJ cap, decision C-20), 0.0652 Wh per line meant to pass the filter; 0 Jetson latch-ups in this
+run's radiation draw (1); GNSS position within 0.81 m (0.84 m). The dumps are unchanged (8,664 frames, 34,656 records).
+The Version F values follow:
 
 | Area | Result |
 |------|--------|
@@ -248,7 +273,16 @@ The fault log records conditions at their onset and their clearing (SRS-F153): t
 are one each. "Payload enabled" and "Payload disabled" (9,216 and 9,217) are the batches; "Entered SAFE mode" (12) is
 the EPS power mode at each of the 11 boots and after passivation, not the operating state.
 
-The other scenarios with the same code: `commissioning` 0 anomalies and 0 warnings; `smoke` 0 anomalies (its warnings,
+Version G, the other scenarios: `commissioning` 0 anomalies and 0 warnings (48 checks; first RF 45.0 min, one AntS
+command, the wings at their first attempt); `smoke` 0 anomalies (the one-day warnings); `ants_cold` 0 anomalies (first
+RF 81.2 min, one deferral, one AntS command, no VSWR stop, unchanged); `ants_cap` and `ants_notemp` 0 anomalies (SIL-45;
+their warnings the cold soak's battery and OBC and the short runs' pass and acknowledgement counts). Decision C-20's
+sensitivity, `commissioning` with `ai_reject_fraction` 0.03 / 0.10 / 0.30: 165 / 166 / 168 bursts, p50 3,625 / 3,625 /
+3,624 J, p95 3,629 / 3,630 / 3,629 J; energy per line meant to pass the filter 0.065 / 0.070 / 0.090 Wh, per AI beacon
+sent 0.065 / 0.068 / 0.080 Wh: the 0.1 Wh gate holds to 30 % rejection with 10 % margin, under the model's
+assumptions (20–30 s boot, no model-load phase, lines at the OBC's request cadence).
+
+Version F, the other scenarios with the same code: `commissioning` 0 anomalies and 0 warnings; `smoke` 0 anomalies (its warnings,
 no transponder service, no AI beacon and 2 of 3 acknowledgements, are those of a one-day run); `ants_cold` (the
 analysis's soak) 0 anomalies, its warnings the cold battery (−7.2 °C at separation) and OBC (−21.9 °C) of the soak:
 the AntS at −17.5 °C at separation, −18.7 °C at separation + 31 min, −35.9 °C at its coldest; the first attempt
@@ -301,3 +335,4 @@ the first RF then (181.9 min), no VSWR stop; its anomaly is the wings' own.
 | D | 2026-10-27 | §7 with the round-2 reference run (42 checks, 0 anomalies, 0 warnings): the attitude row from the time series, the fault-log entries explained (low SOC and voltage after passivation; SAFE power mode at each boot) |
 | E | 2026-10-27 | Flight software round 3 (§1 to §8): settings `wing_a_failed`, `eol_heater_ohms`, `separate_at_eclipse`, `separation_soak_c` and the AntS contingency; §2 the EPS key, the INA228 dies, the AntS temperature, the TNC STATUS answer; §3 the ODAR's solar activity, the final CAD inertia with one wing out, the load shed (SW1, U19), F1's heater, the 13-node thermal network with the AntS, LBA v3.4, the Jetson at its carrier's input, the GNSS receiver's J2 arc; §5 checks `load-shed`, `gnss-frame`, `ants-gate`, `payload-limits`, the 60 s duty window; §6 findings SIL-24 to SIL-39; §7 the round-3 reference run (46 checks, 0 anomalies, 0 warnings); §8 the warm separation, the AntS reading's assumption, principal axes |
 | F | 2026-10-27 | Flight software round 3, fourth part: scenario `ants_cold`; the whole-network dispenser soak (`separation_soak_c`); MASS_BUDGET 3.2 inertia; §5 checks `ants-hold`, `ptt-watch` and the gate's opening time; §6 findings SIL-40 (the empty HK1 frame and the dumps), SIL-41 (decision C-19), SIL-42 (the soak); §7 the round-3 reference run again; §8 the cold separation |
+| G | 2026-10-27 | Flight software round 3, fifth part: scenarios `ants_cap`, `ants_notemp`; settings `ants_temp_failed`, `ants_temp_offset_c`, `ants_temp_fixed_c`, `ai_reject_fraction`; the AntS power-gated, the repeat path's key-down timer; §5 checks `ants-commands`, `ai-bursts` and the sunlit releases in `ants-gate`; §6 SIL-43 to SIL-46; §7 the Version G reference run (50 checks, 0 anomalies, 0 warnings) and the reject-fraction sensitivity |
