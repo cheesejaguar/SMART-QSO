@@ -242,9 +242,9 @@ every fault downstream of its FETs. The W1 leads also keep their construction co
 **External-short fault tolerance (RID P3E-02).** Downstream of the AFE FETs: (1) the positive-leg fuses F0A/F0B/F2,
 (2) the negative-leg fuse F0N, (3) the AFE SCD (10 A, 15 µs) and OCD: three controls, 2-FT, counting the positive-leg
 fuses as one (one part type in one leg). Upstream of the AFE FETs (W1, J1, F2–RT1–F3 copper): (1) F0A, (2) F0B, (3)
-F0N: three interrupting elements in every loop, 2-FT if the two positive-leg fuses (one part type, different lots,
-lot-accepted by X-ray and resistance) are accepted as independent; counting by leg instead, it is 1-FT plus DS2 at
-launch (open, it breaks the lead-to-frame loop). Tap shorts: two current-limiting chains (one per tap end) and the tap
+F0N: three interrupting elements in every loop, **2-FT** (chair decision, CDR round 3: F0A and F0B are from different
+lots, each rated for the full fault and able to clear it alone, so they count as two independent controls; the NRCSD
+safety engineer's concurrence is a decision point for the ISS backup path, owner the safety lead). Tap shorts: two current-limiting chains (one per tap end) and the tap
 fuses: 2-FT. RT1 (40 A) is not counted as an interrupter. The SQSO-BSA-001 D table carries these counts.
 
 **Breaking capacity (Version C).** The Littelfuse Nano2 0451005.MRL of Version A–B is rated 50 A at 125 V AC/DC
@@ -713,7 +713,7 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | H1 overcharge | CV loop U45A; AFE COV 4.25 V (OTP); BQ771806 + F3 (fixed threshold) | 3 (2-FT) |
 | H2 over-discharge then recharge | FSW mode thresholds; AFE CUV 2.80 V; latched lockout K1 (two actuators, two-signal clear); hardware load shed U48 | 4 |
 | H3 external short | positive-leg fuses F0A/F0B/F2; negative-leg fuse F0N; AFE SCD/OCD (RT1 not counted) | 3 (2-FT) downstream of the AFE FETs |
-| H3b short in W1 / taps | F0A, F0B, F0N (209 A ≤ 1000 A); taps: two 204 Ω chains + tap fuses | 3 (2-FT with F0A/F0B counted separately; 1-FT + DS2 at launch by leg) |
+| H3b short in W1 / taps | F0A, F0B, F0N (209 A ≤ 1000 A); taps: two 204 Ω chains + tap fuses | 3 (2-FT: chair decision, F0A/F0B from two lots counted as independent; NRCSD concurrence for the ISS path, SQSO-BSA-001 D) |
 | H5 cold charging | NTC1 comparators → CC set point 0 and CFETOFF; AFE UTC on NTC2; FSW; heater | 3+ |
 | H6 over-temperature | FSW heater control; 40 °C cutout Q22; SW5 limit + F4; AFE OTD and the 60 °C comparator BOTHOFF | 4 |
 | Jetson stuck on (EPS-F012, FMEA note) | load shed on both series switches' enables (U51 → SW1, U65 → U19) | covers either switch failed closed, a stuck enable, software never turning it off; **residual**: both power stages failed closed (two part failures), not shed |
@@ -804,4 +804,5 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | C | 2026-10-27 | CDR design (EPS board) | Harness design SQSO-HAR-001 2.0 §15 (E-1 to E-9): every harness connector on the bottom side in zones Z1–Z5 and the +X edge; Micro-Fit 43045 right-angle and Pico-Clasp 203556 headers, all gold; J19 and J12 to Pico-Clasp 6 with the harness pinouts; J3 to Samtec TFM-120 vertical (SFSDT); PACK corner at (−X, +Y) in Z1; harness names W12A–W12D; layout rule for Z1–Z3 (§13.1, §14, §17). W1 upstream of F2: sense-board fuse F0 and tap fuses (B-1, BATTERY_DESIGN 2.5) recorded in §6.1. Netlist: J12 and J19 pinouts changed; ERC clean |
 | C (amended) | 2026-10-27 | CDR design (EPS board) | Pack fuse breaking capacity: F2 (and F0 on the battery sense board) changed from the Nano2 0451005.MRL (50 A at 125 V, 300 A at 32 VDC) to the MIL-PRF-23419/12 FM12A72V5.0A (1000 A interrupt) against a 314 A prospective-current bound; tap fuses FM12A72V3/4A; storage drain with the access-port board's UMB_VMON TVS 7.7 µA worst (§6.1, §6.6, §14, §21) |
 | D | 2026-10-27 | CDR design (EPS board) | Round-3 panel: array path given its third inhibit (DS2 two-pole, pole 2 holds TRK_EN; pass-through ≤ 6.16 V below every start; V-EPS-3 with two of three switches failed closed; P3E-01); sense-board fuses F0A, F0B (BAT_TOP) and F0N (BAT_BOT), tap resistor chains moved to the sense board (10 Ω left at the AFE), H3/H3b counts restated (P3E-02); EOL arm needs the EPS controller's keyed EOL_KEY AND the OBC's EOL_ARM (U64), software-fault claim corrected (P3E-11); load shed also gates the Jetson eFuse (U65; P3E-06); JETSON_PWR on PA8 (P3E-05); string wire 28 AWG (§4.1, §15); centre supports and Z-rod notch in §17 (P3S-03). Netlist: 706 placements, 153 BOM lines, 413 nets; ERC clean |
+| D (amended) | 2026-10-27 | CDR design (EPS board) | §6.1, §18: H3b 2-fault tolerant on the chair's decision (F0A, F0B from two lots counted as independent), NRCSD concurrence a decision point; EOL_KEY register 0x7E in ICD-001 1.5 §4.6 |
 | B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |
