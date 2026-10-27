@@ -1,12 +1,14 @@
 # SMART-QSO Structural Analysis
 
 **Document ID**: SQSO-SA-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR issue. Closed-form hand analysis of the build-versus-buy configuration; no finite-element model and no
-hardware exist. Scripts: `software/simulation/cdr/structures/structural_analysis.py` (loads, frequencies, margins,
-joints, venting) and `mass_properties.py` (mass, CG, inertia). Mechanisms: `docs/environment/MECHANISMS_ANALYSIS.md`.
+**Status**: CDR issue. Closed-form hand analysis of the build-versus-buy configuration and, from Version B, the
+finite-element results of the beam-shell model of the mechanical design (SQSO-MECH-CAD-001,
+`hardware/mechanical/MECHANICAL_DESIGN.md` §8; `hardware/mechanical/fem.py`) beside them (§5A, §7A, §8A). No hardware
+exists. Scripts: `software/simulation/cdr/structures/structural_analysis.py` (loads, frequencies, margins, joints,
+venting) and `mass_properties.py` (mass, CG, inertia). Mechanisms: `docs/environment/MECHANISMS_ANALYSIS.md`.
 
 ## 1. Purpose and Result
 
@@ -25,10 +27,18 @@ and separation, fracture-control classification, venting, and the CubeSat Design
 | Battery isolators, joint separation (NASA-STD-5020B) | Without a disc spring, creep and thermal contraction of the polymer can take the 0.12 N·m preload to 33 N (MS −0.43); with a disc spring MS ≥ +1.36 | §9 |
 | Venting | The documented "> 4 mm²" fails CDS §2.1.9 (V/A = 235 m against 50.8 m); ≥ 22.3 mm² needed. Pressure differential is structurally negligible either way (< 1 kPa) | §11 |
 | CDS envelope | Stowed-wing stack 6.1 mm against the 6.5 mm limit (0.4 mm margin before tolerances); the 7 mm AntS needs a recessed −Z face | §13 |
+| **FE (Version B)**, first mode of the stowed spacecraft | **170 Hz** (stowed wings); deck 197 Hz, carrier 325, RF 385, EPS 445, OBC 549, battery 1,288 Hz; no mode below 150 Hz | §5A |
+| **FE**, margins at the larger of the quasi-static load and the 3σ response to the protoflight test level (8.18 Grms) | All positive: lowest +0.72 (−Z end frame beside the battery isolators), +1.22 (end frames at the rail corners), +1.62 (centre support), +2.17 (rails), +2.43 (stack columns), +4.6 (G-10CR isolator, FS 2.0) | §7A |
+| **FE**, PCB fatigue (Steinberg, 3σ relative displacement) | +0.09 to +0.32 with two centre supports (the module leaves no room at the board centre); −0.10 and −0.29 (EPS, carrier) with one | §8A |
+| **CAD (Version B)**, stowed protrusion | 5.85 mm nominal, 6.13 mm worst-case tolerance stack (redesigned stack, SQSO-MECH-CAD-001 §6.2); AntS 1.25 mm inside the −Z rail ends with a 1.5 mm recess | §13 |
 
 Verdict for this discipline: **ready for fabrication with actions**. The structure itself has large margins. The open
 items are design choices that must be on the drawings (centre PCB supports, the stack tied at both ends, the battery
 isolator stack with disc springs, the vent area, the stowed-wing thickness stack) and the verification items of §14.
+Version B adds the finite-element model the review asked for (RID SE-12): it confirms the first mode (170 Hz against the
+analytic 142 Hz wing; the battery mode 1,288 Hz against 1,280 Hz) and the strength margins, and changes one design
+requirement: **every board heavier than 50 g needs two centre supports, at (0, +21) and (0, −21) mm** (the Jetson module
+leaves no room at the board centre), and the −Z end frame needs a local doubler under the isolators (§12).
 
 ## 2. Applicable Documents
 
@@ -142,6 +152,26 @@ support. The stowed spacecraft's lowest elastic mode, with the changes of §12, 
 the 40 Hz requirement; it is verified by the low-level sine sweep before and after random vibration (UG §6.7.1 Table 6-3;
 VI-LV-03).
 
+### 5A Finite-Element Results (Version B)
+
+Model (SQSO-MECH-CAD-001 §8.1): MITC4 shells for the end frames, side shear panels, boards, deck, spreader and stowed
+wings; beams for the rails, stack columns, centre supports, isolators and clamp ears; the battery as a rigid body;
+every MEL mass where the CAD puts it (1,492.7 g); rails held laterally along their length and axially at their ends;
+56,258 degrees of freedom; 450 modes to 3.8 kHz. Element verification against closed-form plate, membrane and beam
+cases: within 1.5 %.
+
+| Element | Closed form (§5) | FE | Effective mass |
+|---------|------------------|----|----------------|
+| Stowed wing | 142 Hz (four points) | **170 Hz** (two hinges, the hold-down post, a soft snubber) | 5.5 % x |
+| Torquer deck (added by the mechanical design) | — | 197 Hz | 1.3 % z |
+| PCB stack, lateral, tied at both ends | 289 Hz | 329 Hz (X), 398 Hz (Y) | 32 % x; 16 % y |
+| Boards with centre supports | 221–362 Hz (one support each) | carrier 325 Hz (stack drumming, 17 % z), RF 385, EPS 445, OBC 549 Hz (two supports) | — |
+| Battery on G-10CR isolators, lateral / axial | 1,280 / 1,890 Hz | 1,288 / 971 Hz | 18 % x / 4.6 % z |
+| Frame panels | > 500 Hz expected | +Z end frame 546 Hz, shear panels 612–630 Hz, −Z end frame (with the AntS) 1,526 Hz | — |
+
+The lowest mode is 4.3 times the 40 Hz requirement. The analytic axial battery value (1,890 Hz) is higher than the FE
+(971 Hz) because the FE includes the bending of the 1.6 mm −Z end-frame ring under the isolators.
+
 ## 6. Random-Vibration Responses (Miles)
 
 | Element | f₁ (Hz) | Q | ASD at f₁ (g²/Hz) | 3σ response, MPE | 3σ, MPE + 3 dB |
@@ -180,6 +210,34 @@ section and shows that rail compression cannot govern, even with a heavy neighbo
 structure is close to its strength; the governing structural risks are PCB fatigue (§8), preload loss in the polymer
 joint (§9) and the end-of-travel shock on the cells (MECHANISMS_ANALYSIS §4).
 
+### 7A Finite-Element Margins (Version B)
+
+Design limit stress at each element: the larger of the quasi-static envelope (UG Table 4-1: 10 g axial with 17 g lateral
+in eight directions) and the 3σ random response to the protoflight test level of `docs/environment/ENVIRONMENTAL_TEST_PLAN.md`
+Rev C §3.1 (8.18 Grms, the envelope of MPE + 3 dB and the GEVS workmanship spectrum, which exceeds the MPE + 3 dB design
+level of §4.2), Q = max(10, √f). The random value governs everywhere. Factors of §4.1.
+
+| Location | Limit stress (MPa) | Hand analysis (§7), MPE + 3 dB | FE MS yield / ultimate |
+|----------|--------------------|-------------------------------|------------------------|
+| −Z end frame beside the battery isolators | 111.8 | not analysed | **+0.72 / +0.85** |
+| End frames at the rail corners | 87.0 | not analysed | +1.22 / +1.38 |
+| Centre supports | 73.5 | not analysed | +1.62 / +1.82 |
+| Side shear panels | 67.0 | not analysed | +1.88 / +2.09 |
+| Rails | 60.9 (105.9 with the rails held at the ends only) | +29 (axial, quasi-static) | +2.17 / +2.40 (+0.82 / +0.96) |
+| Stack columns, Al spacer | 56.2 | +5.4 | +2.43 / +2.68 |
+| Stack columns, A286 stud | 67.9 | +1.2 (only if a joint gaps) | +7.9 / +10.6 |
+| Battery isolator, G-10CR (FS 2.0) | 34.1 | +12.1 | — / +4.57 |
+| Battery isolator, Ti-6Al-4V screw | 76.2 | +4.5 | +7.7 / +7.4 |
+| Battery clamp ears | 23.0 | not analysed | +7.4 / +8.0 |
+| PCBs (FR-4, FS 1.5) | 19.4–32.3 | — | — / +6.0 to +10.7 |
+| Stowed wings (FR-4) | 6.4 | — | — / +34 |
+| Wing hold-down post, normal load | 3.9 N (3σ) | 4.9 N | Separation +2.9 (21 N preload after 30 % loss) |
+
+The FE margins are lower than the hand values for the spacers and isolators because the FE responds to the 8.18 Grms
+test level with the modal coupling of the whole stack, and higher for the stud (the joints do not gap). The new hot spot is
+the 1.6 mm −Z end-frame ring that carries the 261 g battery on four points: positive, but the lowest margin of the
+spacecraft, and a local peak beside a rigid spider. Design change 10 of §12 adds a doubler there.
+
 ## 8. PCB Fatigue (Steinberg)
 
 Criterion: the 3σ centre displacement Z₃σ = 9.8 · g₃σ / f² (inches) must not exceed
@@ -207,6 +265,25 @@ Board-level frequencies and Q are measured on the engineering model (VI-STR-02).
 **Jetson module retention (STR-07):** a SODIMM socket's latches are not a flight retention. The module is clamped to the
 carrier by the heat-spreader clamp (row 22 of the MEL) at both short edges, with the clamp load carried to the carrier's
 centre support, and the latches staked.
+
+### 8A Finite-Element Steinberg Margins (Version B)
+
+The FE gives the 3σ out-of-plane displacement of every board node relative to the mean of its supports, under the
+8.18 Grms Z excitation, with the board coupled to the stack (criterion as above, Z_allow = 0.192 mm):
+
+| Board | One centre support at (0, +21) | **Two centre supports at (0, ±21) (design)** | Two supports, 2.0 mm EPS and carrier |
+|-------|-------------------------------|---------------------------------------------|--------------------------------------|
+| EPS | −0.10 | **+0.14** | +0.87 |
+| OBC | +1.16 | **+0.14** | +0.87 |
+| Jetson carrier and module | −0.29 | **+0.09** | +0.80 |
+| RF (support at (0, 0) to the spreader) | +0.20 | **+0.32** | +0.39 |
+
+The centre of the EPS, OBC and carrier boards is not available for a support: the Jetson module (69.6 × 45 mm, centred at
+y = −7 mm to balance the products of inertia) covers it on the carrier, and a column through the stack must pass all
+three boards. One support at y = +21 mm leaves the −Y half of the EPS and carrier boards unsupported (−0.10, −0.29). **The
+design requirement of STR-05 becomes: two supports at (0, ±21) mm on the EPS, OBC and carrier boards (the −21 mm one
+from the EPS to the carrier, under the module), one at (0, 0) on the RF board from the spreader.** The 2.0 mm option
+costs 0.8 mm of stack height and is decided by the measured Q of the EM board survey (VI-STR-02).
 
 ## 9. Threaded Joints (NASA-STD-5020B)
 
@@ -287,6 +364,12 @@ These are carried into `hardware/structure/STRUCTURAL_DESIGN.md` v1.3:
 7. Wing stowed stack ≤ 6.0 mm from the rail plane, hinge knuckle included (STR-10, §13).
 8. Three deployment switches and two separation springs allocated to the rail standoffs (STR-12, §13).
 9. Factors of safety of §4.1 (STR-21).
+10. (Version B, from the FE) A 1 mm Al doubler (or a 2.5 mm boss) under each battery isolator on the −Z end frame (§7A).
+11. (Version B) Two centre supports on the EPS, OBC and carrier boards at (0, ±21) mm; RF board supported at (0, 0)
+    from the heat spreader (§8A).
+12. (Version B, SQSO-MECH-CAD-001 §4.2) −Z end-frame face recessed 1.5 mm (RFQ: ≥ 0.8 mm) for the AntS; side shear-panel
+    faces 0.5 mm below the rail plane; wing outline 81.6 × 92 mm at z −43 … +49 mm; hinge axis (±54.1, +38.75) mm;
+    hold-down post at the −Z free corner (§13).
 
 ## 13. CDS Envelope, Rails, Switches and Separation Springs
 
@@ -324,6 +407,14 @@ mode falls to ≈ 78 Hz, deployed bending to ≈ 45 Hz, both above 40 Hz), body 
 knuckle offset into the wing outline. The drawings must carry the tolerance stack, and the assembled unit is measured
 per the CIFP (VI-STR-08 with VI-LV-01). EXOpod Nova allows 25 mm (Nova Table 1); the 6.5 mm CDS figure is kept so that
 the spacecraft stays compatible with the other dispensers of decision D7 and the NRCSD backup.
+
+**Version B (CAD, STR-10 and STR-11).** The mechanical design (SQSO-MECH-CAD-001 §6.2–§6.3) rebuilt the stack: side
+shear-panel faces 0.5 mm below the rail plane, the hold-down as a cup/cone post with the line over it, and the hinge
+knuckle (Ø3.5 mm, axis 54.1 mm) located from the frame rather than through the panel stack. Nominal: wing front cells
+4.75 mm, hold-down line 5.25 mm, **knuckle 5.85 mm (governs)**; worst-case tolerance stack **6.13 mm**, RSS 6.00 mm
+(margins +0.37 / +0.50 mm). Without the 0.5 mm recess the worst case is 6.63 mm. The AntS on a −Z face recessed 1.5 mm
+sits 1.25 mm (worst case 0.90 mm) inside the rail ends; on a flush face it would stand 0.25 mm beyond them. STR-10 and
+STR-11 are closed by design, conditional on the frame RFQ items.
 
 ### 13.3 Deployment Switches, RBF and Separation Springs
 
@@ -375,16 +466,19 @@ remnants are retained by the vendor design (VI-STR-13).
 | VI-STR-13 | AntS vendor data and acceptance: qualification levels, deployment test at cold, line-remnant retention, ICD | Levels ≥ MPE + 3 dB; deployment at the minimum predicted temperature; no released parts | STR-15, §14 | AntS order |
 | VI-LV-02, -03, -04 | Mass properties, low-level sine sweep before and after, protoflight random with power-inhibit monitoring (SQSO-LVR-001) | As defined there; all modes > 40 Hz, first-mode shift < 10 % | UG §6.7.1, §6.7.6, §6.7.7 | Flight unit |
 
-Mechanism verification items (VI-STR-04 to -07, -10) are in `docs/environment/MECHANISMS_ANALYSIS.md` §8.
+Mechanism verification items (VI-STR-04 to -07, -10) are in `docs/environment/MECHANISMS_ANALYSIS.md` §8. Version B: the FE
+correlation survey and the mass-properties items are VI-MCAD-01 to -04 of `hardware/mechanical/MECHANICAL_DESIGN.md` §12;
+VI-STR-02 now has accelerometers at (0, ±21) mm as well as the board centres.
 
 ## 16. Limits of This Analysis
 
-- Closed-form models: plates, beams and single-degree-of-freedom responses; no coupled model of the CubeSat in the
-  deployer (EXOpod Nova §3.6 discourages one without test). Protoflight testing with the sine sweeps is the verification
-  (5001B §4.1.2.3: analysis plus test); a finite-element model is not required at this size if the EM board survey
-  (VI-STR-02) and the battery-joint test (VI-STR-03) are done.
+- Sections 5–13 are closed-form models: plates, beams and single-degree-of-freedom responses; no coupled model of the
+  CubeSat in the deployer (EXOpod Nova §3.6 discourages one without test). Protoflight testing with the sine sweeps is
+  the verification (5001B §4.1.2.3: analysis plus test). Version B adds the beam-shell FE of SQSO-MECH-CAD-001 §8
+  (its own limits in §8.7 there: joints idealised, frame an allocation, assumed Q, no NASTRAN deck); it is correlated
+  by the EM survey (VI-STR-02, VI-MCAD-04) before its margins are reused for the flight unit.
 - Q values are assumptions; Steinberg's criterion is conservative for the short exposure.
-- The layout is a reference layout without CAD; component positions carry ±5 mm (1σ) for the CG.
+- Sections 3–13 use the reference layout; Version B's CAD (SQSO-MECH-CAD-001) gives the positions as designed.
 - The frame and the AntS are vendor items without quotes or data packages (no RFQ answers yet).
 - Allowables were not re-read from MMPDS (§2).
 
@@ -393,3 +487,4 @@ Mechanism verification items (VI-STR-04 to -07, -10) are in `docs/environment/ME
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR structures review | Initial issue: launch environment and factors, natural frequencies, Miles responses, margins of safety, PCB fatigue, NASA-STD-5020B joints and the battery isolator stack, venting, fracture-control classification, CDS envelope and switch allocation, verification items |
+| B | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001) | Finite-element results beside the analytic ones (RID SE-12): modes and effective masses (§5A), margins at the protoflight test level (§7A), Steinberg margins with the board-to-stack coupling (§8A); design changes 10–12 (isolator doubler, two centre supports, CAD envelope decisions); CAD tolerance stack closing STR-10 and the −Z recess closing STR-11 (§13.2); summary, limits and verification references updated |

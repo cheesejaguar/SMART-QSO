@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SW-008
-**Revision:** C
-**Date:** 2026-10-24
+**Revision:** D
+**Date:** 2026-10-27
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -363,7 +363,7 @@ BIN file and no map file are produced yet.
 
 Revision C: the limits are not checked by CI. The image measures text 115,876 B (code and constants together) and data
 19,764 B, both within the limits above. Its bss of 16,496 B is within the 30 KB limit. It has no heap, and its one stack
-has a worst case of 5,004 B of its 8 KB budget by static analysis, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6).
+has a worst case of 5,444 B of its 8 KB budget by static analysis, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6).
 
 ### 10.3 Build Verification Checklist
 
@@ -406,4 +406,5 @@ Each flight release includes:
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Document number changed from SQSO-SW-007, which `software/flight/docs/LOOP_BOUNDS.md` also carries, to SQSO-SW-008 (finding PI-17). No content change | SMART-QSO Team |
 | C | 2026-10-24 | The flight software is Rust: §2.1 the build configurations as built (CMake options, cargo builds, Rust release profile, image and its CI checks); notes on §7 to §10 where the Revision A plan (C cross build, FreeRTOS, memory split, artifacts) no longer applies | SMART-QSO Team |
+| D | 2026-10-27 | Stack worst case 5,444 B (was 5,004 B) after the CDR flight-software changes | SMART-QSO Team (CDR avionics review) |
 | C, note | 2026-10-25 | §8.2 and §8.3: the Embassy executor with no RTOS is the baseline (BASELINE §6, CR-2026-002) | SMART-QSO Team |

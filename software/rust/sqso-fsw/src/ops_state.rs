@@ -13,6 +13,10 @@
 //! beacon and telecommand responses too). It adds a gate; it never
 //! overrides one (`transponder.rs`).
 //!
+//! **ADCS geometry.** ADCS_SET_GEOMETRY: which of the spin-axis and
+//! inertia presets the attitude control uses (`adcs::Geometry::PRESETS`:
+//! both wings, one wing, none; STR-27), persisted so a reset keeps it.
+//!
 //! The record is a two-slot NVM record (`nvm.rs`). Rules at boot:
 //!  - blank (never written: a bench unit before ARM_FLIGHT): no hold,
 //!    transponder allowed;
@@ -25,7 +29,7 @@
 
 use crate::nvm::{self, Flash, RecordStatus};
 
-/// Record ("OPST"): flags (1) | version (1) | spare (2)
+/// Record ("OPST"): flags (1) | version (1) | ADCS geometry preset (1) | spare (1)
 pub const RECORD_MAGIC: u32 = 0x4F50_5354;
 /// Record layout version
 pub const VERSION: u8 = 1;
@@ -53,6 +57,7 @@ pub struct OpsState {
     region: u32,
     hold: bool,
     xpdr_disabled: bool,
+    adcs_geometry: u8,
     initialized: bool,
 }
 
@@ -62,7 +67,7 @@ impl OpsState {
     /// for ACTIVE before [`OpsState::init`]; module tests that never load a
     /// record see a bench unit
     pub const fn new(region: u32) -> OpsState {
-        OpsState { region, hold: false, xpdr_disabled: false, initialized: false }
+        OpsState { region, hold: false, xpdr_disabled: false, adcs_geometry: 0, initialized: false }
     }
 
     /// Whether the record has been read
@@ -78,7 +83,7 @@ impl OpsState {
         if self.xpdr_disabled {
             flags |= FLAG_XPDR_DISABLED;
         }
-        [flags, VERSION, 0, 0]
+        [flags, VERSION, self.adcs_geometry, 0]
     }
 
     fn save<F: Flash>(&self, flash: &mut F) -> Result<(), IoError> {
@@ -90,19 +95,22 @@ impl OpsState {
         let mut rec = [0u8; 4];
         let loaded = match nvm::load(flash, self.region, 0, RECORD_MAGIC, &mut rec) {
             Ok(RecordStatus::Valid) => {
-                let [flags, ..] = rec;
+                let [flags, _, geometry, _] = rec;
                 self.hold = flags & FLAG_HOLD != 0;
                 self.xpdr_disabled = flags & FLAG_XPDR_DISABLED != 0;
+                self.adcs_geometry = geometry;
                 Loaded::Valid
             }
             Ok(RecordStatus::Blank) => {
                 self.hold = false;
                 self.xpdr_disabled = false;
+                self.adcs_geometry = 0;
                 Loaded::Blank
             }
             Ok(RecordStatus::Corrupt) | Err(_) => {
                 self.hold = true;
                 self.xpdr_disabled = false;
+                self.adcs_geometry = 0;
                 Loaded::Corrupt
             }
         };
@@ -121,6 +129,18 @@ impl OpsState {
     pub fn set_xpdr_enabled<F: Flash>(&mut self, enabled: bool, flash: &mut F) -> Result<(), IoError> {
         self.xpdr_disabled = !enabled;
         self.save(flash)
+    }
+
+    /// Select the ADCS geometry preset, persisted (the caller checks the
+    /// number against the presets)
+    pub fn set_adcs_geometry<F: Flash>(&mut self, preset: u8, flash: &mut F) -> Result<(), IoError> {
+        self.adcs_geometry = preset;
+        self.save(flash)
+    }
+
+    /// The ADCS geometry preset
+    pub const fn adcs_geometry(&self) -> u8 {
+        self.adcs_geometry
     }
 
     /// Whether the commissioning hold is in force
@@ -159,9 +179,13 @@ mod tests {
     fn free_before_init_and_on_a_blank_record() {
         let mut f = MemFlash::<256>::new();
         let mut s = OpsState::new(REGION);
-        assert!(!s.hold() && s.xpdr_allowed() && !s.initialized());
+        assert!(!s.hold());
+        assert!(s.xpdr_allowed());
+        assert!(!s.initialized());
         assert_eq!(s.init(&mut f), Loaded::Blank);
-        assert!(!s.hold() && s.xpdr_allowed() && s.initialized());
+        assert!(!s.hold());
+        assert!(s.xpdr_allowed());
+        assert!(s.initialized());
     }
 
     #[test]
@@ -172,11 +196,13 @@ mod tests {
         assert_eq!(s.set_hold(true, &mut f), Ok(()));
         let mut after_reset = OpsState::new(REGION);
         assert_eq!(after_reset.init(&mut f), Loaded::Valid);
-        assert!(after_reset.hold() && !after_reset.xpdr_allowed());
+        assert!(after_reset.hold());
+        assert!(!after_reset.xpdr_allowed());
         assert_eq!(after_reset.set_hold(false, &mut f), Ok(()));
         let mut released = OpsState::new(REGION);
         let _ = released.init(&mut f);
-        assert!(!released.hold() && released.xpdr_allowed());
+        assert!(!released.hold());
+        assert!(released.xpdr_allowed());
     }
 
     #[test]
@@ -187,10 +213,17 @@ mod tests {
         assert_eq!(s.set_xpdr_enabled(false, &mut f), Ok(()));
         let mut r = OpsState::new(REGION);
         let _ = r.init(&mut f);
-        assert!(!r.xpdr_allowed() && !r.hold());
+        assert!(!r.xpdr_allowed());
+        assert!(!r.hold());
         assert_eq!(r.set_hold(true, &mut f), Ok(()));
         assert_eq!(r.set_xpdr_enabled(true, &mut f), Ok(()));
         assert!(!r.xpdr_allowed(), "the hold still holds");
+        assert_eq!(r.set_adcs_geometry(2, &mut f), Ok(()));
+        let mut g = OpsState::new(REGION);
+        let _ = g.init(&mut f);
+        assert_eq!(g.adcs_geometry(), 2);
+        assert!(g.hold());
+        assert!(!g.xpdr_allowed());
     }
 
     #[test]

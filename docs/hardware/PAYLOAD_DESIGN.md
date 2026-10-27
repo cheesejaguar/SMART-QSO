@@ -1,8 +1,8 @@
 # AI Payload (Jetson Orin Nano) Design Document
 
 **Document Number**: SMART-QSO-PAYLOAD-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Status**: Preliminary Design
 
 **Governing Standards**:
@@ -655,6 +655,68 @@ if __name__ == '__main__':
 
 ---
 
+## 11. CDR Update (2026-10-27): Power Gating, Latch-up, Thermal and Fallback
+
+Sections 6, 7 and 10 above are the 2026-01 preliminary design. Where they disagree with this section, this section and
+`docs/BASELINE_PARAMETERS.md` §6 govern. The flight AI is the OBC-resident selector (decision D5,
+`docs/payload/OBC_SELECTOR_DESIGN.md`); the Jetson is a gated experiment.
+
+### 11.1 Two Switches in Series
+
+| Switch | Line (provisional pin) | Part (`docs/hardware/EPS_DESIGN.md` v2.0) | Acts on | Opened by |
+|--------|------------------------|---------------------------------------------|---------|-----------|
+| SW1, PDU high-side switch | `PAYLOAD_EN` (PB4) | TPS1H100 class, ≥ 25 V | VBAT to the carrier | flight software; hardware low-voltage disconnect (EPS-F012) |
+| U3, carrier eFuse | `JETSON_PWR` (PA2) | TPS25947 class, 1.2 A, latch-off, ≤ 1 ms | carrier converter input | flight software; its own current limit (latch-up) |
+
+*Independence.* The two are different parts on different lines, so one stuck-on switch leaves the other able to cut
+the rail; this is what keeps the bus alive with a stuck Jetson (BUILD_VS_BUY §7.3: with both switches failed the pack
+is flat in every simulated case). **Finding (RID AV-06):** the flight software drives both lines from one state bit
+(`eps_control.rs`, `drive_load_pins`), in the same call. A software fault that leaves the bit set holds both on; the
+independence against software faults then rests on the hardware disconnect (SW1) and the eFuse (U3), which is
+acceptable only if both are verified. Recommended at the EM: drive `JETSON_PWR` low first and `PAYLOAD_EN` 10 ms later
+on switch-off (the converter discharges into a closed path), read each switch's state back (power-good of U3, a sense
+of SW1's output) and log a disagreement as a fault; test each switch alone opening the rail (RAD-V5).
+
+### 11.2 Latch-up and Over-power Trips
+
+| Layer | Threshold | Time | Then |
+|-------|-----------|------|------|
+| U3 eFuse (hardware) | 1.2 A ≈ 17 W at 14.4 V | ≤ 1 ms | latched off until `JETSON_PWR` is cycled |
+| `payload_guard` latch-up (software) | one sample ≥ 12 W | next guard sample (≤ 1 s) | both lines low, 10 min off, then until the spreader is 10 °C below its limit |
+| `payload_guard` over-power (software) | > 8 W on 2 samples in a row | ≤ 2 s | as above |
+| `payload_guard` telemetry loss | no power or spreader sample for 5 s | 5 s | as above |
+
+The Orin Nano's operating maximum at the declocked point is 8 W (BASELINE §6), 0.56 A; the eFuse trips at 2.1× that,
+the software latch-up at 1.5×. A latch-up adds amperes, so the eFuse sees it. The SIL mission run injects latch-ups and
+requires every one cleared by the rail cut within 10 s (check `seu-recovery`). The Jetson's radiation rates are in
+`docs/environment/RADIATION_ANALYSIS.md` Rev C §5: DRAM upsets 0.001–0.1 a day at a 10 % duty, not the "~8 a day" of
+§10.2, and the "scrubbing" and "TMR" of §10.2 are not implemented on the Jetson; none is needed for a gated experiment
+whose every output passes the OBC's filter.
+
+### 11.3 Thermal
+
+The OBC decides from its own spreader thermistor, not from the Jetson's report: 70 °C spreader and 95 °C junction
+(reported) trip the rail; restart only 10 °C below the spreader limit and after 10 min. A burst starts only with the
+spreader below its limit and the SOC and power gates of BASELINE §5 holding. The 14-day SIL commissioning run reaches
+25 °C on the spreader (165 power-ons, 0.016 Wh per accepted beacon). §7.3's 65–85 °C junction ladder is the Jetson's
+own DVFS behaviour, not a flight-software function.
+
+### 11.4 Fallback
+
+The beacon never depends on the Jetson. The OBC sends a pre-approved template unless a Jetson text arrives in time and
+passes the content filter (`docs/BEACON_SPEC.md` §6); the transponder, telecommand and TX-OFF do not involve the
+Jetson. The payload rail is off: in SAFE and EMERGENCY, below the SOC gate, during a GNSS session, and from ARM_FLIGHT
+until the authenticated commissioning release (SRS-F082). `PLD_ENABLE` is refused while the hold is set.
+
+### 11.5 Open Items
+
+- Readback of both switches and the switch-off order (RID AV-06).
+- Back-powering of the unpowered module through the idle USART1 TX line (RID AV-09,
+  `docs/interfaces/ICD_OBC_JETSON.md` §9).
+- Thermal: the spreader-to-structure path is analysed by the thermal reviewer; the guard limits above do not change.
+
+---
+
 ## Appendix A: Jetson Orin Nano Pinout
 
 | Pin | Function | Usage |
@@ -694,3 +756,4 @@ Raw Text Data → Tokenization → Model Training → Quantization → TensorRT 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §11 new: two series switches and their independence (RID AV-06), latch-up and over-power trips, thermal limits, fallback; §6, §7 and §10 marked as preliminary where §11 governs |

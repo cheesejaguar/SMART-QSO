@@ -168,15 +168,15 @@ pub fn major_axis(t: &Inertia) -> Vec3 {
             let tt = theta.signum() / (theta.abs() + (theta * theta + 1.0).sqrt());
             let c = 1.0 / (tt * tt + 1.0).sqrt();
             let s = tt * c;
-            for k in 0..3 {
-                let (akp, akq) = (a[k][p], a[k][q]);
-                a[k][p] = c * akp - s * akq;
-                a[k][q] = s * akp + c * akq;
+            for row in &mut a {
+                let (akp, akq) = (row[p], row[q]);
+                row[p] = c * akp - s * akq;
+                row[q] = s * akp + c * akq;
             }
+            let (rp, rq) = (a[p], a[q]);
             for k in 0..3 {
-                let (apk, aqk) = (a[p][k], a[q][k]);
-                a[p][k] = c * apk - s * aqk;
-                a[q][k] = s * apk + c * aqk;
+                a[p][k] = c * rp[k] - s * rq[k];
+                a[q][k] = s * rp[k] + c * rq[k];
             }
             for row in &mut v {
                 let (vp, vq) = (row[p], row[q]);
@@ -781,6 +781,45 @@ mod tests {
         let t = trial(&p, 3);
         assert!(t.mag_rejected > 3000, "{t:?}");
         assert!(t.detumbled_h.is_none(), "no control without clean samples: {t:?}");
+    }
+
+    #[test]
+    fn the_full_tensor_body_keeps_momentum_and_spins_about_its_major_axis() {
+        let t = Inertia::DEPLOYED;
+        let a = major_axis(&t);
+        assert!(a.y > 0.95 && (a.x * a.x + a.y * a.y + a.z * a.z - 1.0).abs() < 1e-9, "{a:?}");
+        // I a = λ a
+        let b = Body::new(Quat::default(), V3::ZERO, &t);
+        let ia = b.momentum(V3::new(a.x, a.y, a.z));
+        let lambda = ia.dot(V3::new(a.x, a.y, a.z));
+        assert!((ia - V3::new(a.x, a.y, a.z) * lambda).norm() < 1e-12);
+        // Torque-free spin about the major axis stays there; about +Y it nutates
+        let w0 = V3::new(a.x, a.y, a.z) * 0.105;
+        let mut s = Body::new(Quat::default(), w0, &t);
+        let h0 = s.q.rotate(s.momentum(s.w));
+        for _ in 0..3600 {
+            s.step(1.0, V3::ZERO);
+        }
+        assert!((s.q.rotate(s.momentum(s.w)) - h0).norm() < 1e-9 * h0.norm().max(1e-6) * 1e3);
+        assert!((s.w - w0).norm() < 1e-6, "{:?}", s.w);
+        let mut y = Body::new(Quat::default(), V3::new(0.0, 0.105, 0.0), &t);
+        let mut worst = 0.0f64;
+        for _ in 0..3600 {
+            y.step(1.0, V3::ZERO);
+            worst = worst.max(y.w.angle(V3::Y).to_degrees());
+        }
+        assert!(worst > 10.0, "a spin about +Y with products wobbles: {worst}");
+        // The wings swing out: momentum kept
+        let mut d = Body::new(Quat::default(), V3::new(0.01, 0.02, 0.03), &STOWED);
+        let h = d.momentum(d.w);
+        d.set_tensor(&t);
+        assert!((d.momentum(d.w) - h).norm() < 1e-15);
+        // The diagonal case reduces to the axis
+        let diag = major_axis(&Inertia::diagonal(Vec3::new(1.0, 3.0, 2.0)));
+        assert!((diag.y - 1.0).abs() < 1e-12);
+        // Gravity gradient: none along a principal axis toward the Earth
+        let g = Body::new(Quat::default(), V3::ZERO, &Inertia::diagonal(Vec3::new(1.0, 2.0, 3.0)));
+        assert!(g.gravity_gradient(V3::new(7.0e6, 0.0, 0.0)).norm() < 1e-20);
     }
 
     #[test]

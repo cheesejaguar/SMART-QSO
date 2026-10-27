@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-006
-**Revision:** C
-**Date:** 2026-10-25
+**Revision:** D
+**Date:** 2026-10-27
 **Reference:** JPL D-60411 (Power of Ten), NPR 7150.2
 
 ---
@@ -52,7 +52,7 @@ Measured from the release image (2026-10-25, `arm-none-eabi-size`; CI job STM32L
 | Initialized data (data) | 19,764 B | (in SRAM; initial values in flash) | — |
 | Zeroed data (bss) | 16,496 B | (in SRAM) | — |
 | Static RAM (data + bss) | 36,260 B | 640 KB | 95 % |
-| Stack | Worst case 5,004 B (static analysis, §6.2) | 8 KB budget below 0x200A0000 (SRS-C003) | 40 % |
+| Stack | Worst case 5,444 B (static analysis, §6.2) | 8 KB budget below 0x200A0000 (SRS-C003) | 40 % |
 | Heap | None | — | — |
 
 ---
@@ -137,6 +137,7 @@ analysis counts it.
 |------|------------|---------|--------------|
 | 2026-10-25 | 4,900 B (thread 3,376 B, handlers 1,524 B) | 59.8 % | `Executive::step` → beacon → `fmt` → a panic in the fault path, nested once |
 | 2026-10-25, downlink (CR-2026-005) | 5,004 B (thread 3,480 B, handlers 1,524 B) | 61.1 % | The same path; `beacon_transmit` also holds the frame's copy for the TNC (696 B frame) |
+| 2026-10-27, CDR flight-software changes | 5,444 B (thread 3,920 B, handlers 1,524 B) | 66.5 % | `Executive::step` → `run_housekeeping` (1,144 B: the HK1 text, its AX.25 frame and the housekeeping record) → a sensor read → a panic in the fault path, nested once |
 
 The first run gave 12,820 B. The code changed to bring it down: core's exact float formatting (a 2 KB frame) replaced
 by `sqso_fsw::fixed`; the fault path's console line built without `core::fmt`; large locals moved out of the async main
@@ -257,7 +258,7 @@ Revision A's example scrubbed with a raw pointer loop, which the Rust rules woul
 ### 11.3 Testing
 
 - 12 fuzz targets: every parser, and the fixed-point formatter (30 s each in CI).
-- Worst-case stack by static analysis of the image, in CI (§6.2): 5,004 B of 8 KB.
+- Worst-case stack by static analysis of the image, in CI (§6.2): 5,444 B of 8 KB.
 - Stack overflow (HIL-004), high-water mark (HIL-044) and memory stress tests on hardware: not done (no hardware has run the image).
 
 ---
@@ -269,3 +270,4 @@ Revision A's example scrubbed with a raw pointer loop, which the Rust rules woul
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-24 | The flight software is Rust. Policy as implemented: no allocation at any time; enforcement by the `no_dynamic_memory` ctest, the image check and the compiler. Memory map and measured image budget; static buffers; FRAM regions. TMR, buffer pools, stack canary and guard, and scrubbing marked not implemented (design intent only) | SMART-QSO Team |
 | C | 2026-10-25 | §6 for SRS-C003: the worst case by static analysis (4,892 B of 8 KB, a CI gate), the MPU stack guard and the painted budget, now implemented | SMART-QSO Team |
+| D | 2026-10-27 | Worst-case stack 5,444 B of 8 KB (66.5 %) after the CDR flight-software changes; the housekeeping stage is the deepest frame | SMART-QSO Team (CDR avionics review) |

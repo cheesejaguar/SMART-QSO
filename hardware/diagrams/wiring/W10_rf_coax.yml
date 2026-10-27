@@ -1,7 +1,13 @@
-# SQSO-HW-DIAG-001 W10: RF coaxial cables (SQSO-HAR-001 H7). Separate antennas for 2 m and 70 cm
-# (docs/BASELINE_PARAMETERS.md 7), so two antenna cables; the GNSS patch cable is added (D6, connector TBD).
+# SQSO-HW-DIAG-001 W10: RF coaxial cables (SQSO-HAR-001 H7), version 2 (2026-10-27, RF board design SQSO-RF-BRD-001
+# §7). The ISIS AntS carries two 2 m tape monopoles (along +X and -X) and two 70 cm tape monopoles (along +Y and -Y)
+# (docs/BASELINE_PARAMETERS.md §4, §7). Each pair is fed in antiphase from a lumped lattice balun on the RF board, so the
+# pair works as a dipole: four antenna cables, matched in length within 2 mm in each pair (0.5 deg at 146 MHz, 1.5 deg
+# at 436 MHz). If ISIS supplies the phasing on the AntS (RFQ question), one cable per band and the board's balun is
+# depopulated (R103, R608 fitted). Layout B (MASS_BUDGET §6): RF board at +Z, AntS outside -Z, so the cables run
+# about 0.22 m along a frame corner, away from the 2 m element bases (EMC rule E7). The GNSS patch cable is unchanged
+# (D6, connector open until the receiver ICD).
 metadata:
-  title: W10 RF coaxial cables (SQSO-HW-DIAG-001, proposed, TBR)
+  title: W10 RF coaxial cables v2 (SQSO-HW-DIAG-001; RF side per SQSO-RF-BRD-001)
 
 options:
   fontname: Helvetica
@@ -9,63 +15,103 @@ options:
   color_mode: SHORT
 
 connectors:
-  J_VHF:
-    type: SMA female
-    notes: "RF board, after the 7-pole LPF"
+  J_VHF_A:
+    type: SMA jack, end launch, gold
+    notes: "RF board J3, 2 m balun output A (after the LPF and the sense line)"
     pinlabels: [RF, GND]
-  ANT_VHF:
-    type: solder / crimp
-    notes: 2 m tape monopole feed
-    pinlabels: [ELEMENT, GROUND PLANE]
-  J_UHF:
-    type: SMA female
-    notes: "RF board, before the SAW filter"
+  J_VHF_B:
+    type: SMA jack, end launch, gold
+    notes: "RF board J4, 2 m balun output B (antiphase)"
     pinlabels: [RF, GND]
-  ANT_UHF:
-    type: solder / crimp
-    notes: 70 cm tape monopole feed
-    pinlabels: [ELEMENT, GROUND PLANE]
+  ANT_VHF_PX:
+    type: AntS feed (per ISIS ICD)
+    notes: 2 m tape monopole along +X
+    pinlabels: [ELEMENT, BODY]
+  ANT_VHF_MX:
+    type: AntS feed (per ISIS ICD)
+    notes: 2 m tape monopole along -X
+    pinlabels: [ELEMENT, BODY]
+  J_UHF_A:
+    type: SMA jack, end launch, gold
+    notes: "RF board J5, 70 cm balun A (ahead of the RX filter FL1)"
+    pinlabels: [RF, GND]
+  J_UHF_B:
+    type: SMA jack, end launch, gold
+    notes: "RF board J6, 70 cm balun B (antiphase)"
+    pinlabels: [RF, GND]
+  ANT_UHF_PY:
+    type: AntS feed (per ISIS ICD)
+    notes: 70 cm tape monopole along +Y
+    pinlabels: [ELEMENT, BODY]
+  ANT_UHF_MY:
+    type: AntS feed (per ISIS ICD)
+    notes: 70 cm tape monopole along -Y
+    pinlabels: [ELEMENT, BODY]
   J_GNSS_RF:
-    type: U.FL or MMCX (TBD)
-    notes: "GNSS receiver RF in; active antenna bias from the receiver (TBR)"
+    type: U.FL or MMCX (open)
+    notes: "GNSS receiver RF in; active antenna bias from the receiver (open)"
     pinlabels: [RF, GND]
   ANT_GNSS:
-    type: GNSS L1 patch (TBD)
+    type: GNSS L1 patch (open)
     notes: zenith face
     pinlabels: [RF, GND]
 
 cables:
-  C_VHF:
+  C_VHF_A:
     type: RG-316
     wirecount: 1
     shield: true
-    length: 0.12
-    notes: "50 Ohm, loss under 0.5 dB (H7)"
-  C_UHF:
+    length: 0.22
+    notes: "50 Ohm, 0.11 dB at 146 MHz; length matched to C_VHF_B within 2 mm; 1 W"
+  C_VHF_B:
     type: RG-316
     wirecount: 1
     shield: true
-    length: 0.12
-    notes: "50 Ohm, loss under 0.5 dB (H7)"
+    length: 0.22
+    notes: "50 Ohm, matched to C_VHF_A"
+  C_UHF_A:
+    type: RG-316
+    wirecount: 1
+    shield: true
+    length: 0.22
+    notes: "50 Ohm, 0.25 dB at 436 MHz incl. connectors; matched to C_UHF_B within 2 mm"
+  C_UHF_B:
+    type: RG-316
+    wirecount: 1
+    shield: true
+    length: 0.22
+    notes: "50 Ohm, matched to C_UHF_A"
   C_GNSS:
-    type: 1.13 mm micro-coax (TBR)
+    type: 1.13 mm micro-coax (open)
     wirecount: 1
     shield: true
     length: 0.10
 
 connections:
-  - - J_VHF: [1]
-    - C_VHF: [1]
-    - ANT_VHF: [1]
-  - - J_VHF: [2]
-    - C_VHF: [s]
-    - ANT_VHF: [2]
-  - - J_UHF: [1]
-    - C_UHF: [1]
-    - ANT_UHF: [1]
-  - - J_UHF: [2]
-    - C_UHF: [s]
-    - ANT_UHF: [2]
+  - - J_VHF_A: [1]
+    - C_VHF_A: [1]
+    - ANT_VHF_PX: [1]
+  - - J_VHF_A: [2]
+    - C_VHF_A: [s]
+    - ANT_VHF_PX: [2]
+  - - J_VHF_B: [1]
+    - C_VHF_B: [1]
+    - ANT_VHF_MX: [1]
+  - - J_VHF_B: [2]
+    - C_VHF_B: [s]
+    - ANT_VHF_MX: [2]
+  - - J_UHF_A: [1]
+    - C_UHF_A: [1]
+    - ANT_UHF_PY: [1]
+  - - J_UHF_A: [2]
+    - C_UHF_A: [s]
+    - ANT_UHF_PY: [2]
+  - - J_UHF_B: [1]
+    - C_UHF_B: [1]
+    - ANT_UHF_MY: [1]
+  - - J_UHF_B: [2]
+    - C_UHF_B: [s]
+    - ANT_UHF_MY: [2]
   - - J_GNSS_RF: [1]
     - C_GNSS: [1]
     - ANT_GNSS: [1]

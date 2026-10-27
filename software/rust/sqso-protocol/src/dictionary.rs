@@ -39,6 +39,8 @@ pub enum Command {
     AdcsDetumble = 0x21,
     /// Get attitude
     AdcsGetAttitude = 0x23,
+    /// Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing
+    AdcsSetGeometry = 0x24,
     /// Set beacon interval, seconds big-endian, 10 to 120
     SetBeacon = 0x30,
     /// Clear the latched TX-OFF
@@ -63,7 +65,7 @@ pub enum Command {
 
 impl Command {
     /// Every command, in ID order
-    pub const ALL: [Command; 23] = [
+    pub const ALL: [Command; 24] = [
         Command::Nop,
         Command::Reset,
         Command::SetMode,
@@ -77,6 +79,7 @@ impl Command {
         Command::EpsGetTelemetry,
         Command::AdcsDetumble,
         Command::AdcsGetAttitude,
+        Command::AdcsSetGeometry,
         Command::SetBeacon,
         Command::TxEnable,
         Command::TxDisable,
@@ -105,6 +108,7 @@ impl Command {
             0x13 => Some(Command::EpsGetTelemetry),
             0x21 => Some(Command::AdcsDetumble),
             0x23 => Some(Command::AdcsGetAttitude),
+            0x24 => Some(Command::AdcsSetGeometry),
             0x30 => Some(Command::SetBeacon),
             0x31 => Some(Command::TxEnable),
             0x32 => Some(Command::TxDisable),
@@ -148,6 +152,7 @@ impl Command {
             Command::EpsGetTelemetry => c"EPS_GET_TELEMETRY",
             Command::AdcsDetumble => c"ADCS_DETUMBLE",
             Command::AdcsGetAttitude => c"ADCS_GET_ATTITUDE",
+            Command::AdcsSetGeometry => c"ADCS_SET_GEOMETRY",
             Command::SetBeacon => c"SET_BEACON",
             Command::TxEnable => c"TX_ENABLE",
             Command::TxDisable => c"TX_DISABLE",
@@ -177,6 +182,7 @@ impl Command {
             Command::EpsGetTelemetry => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::AdcsDetumble => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::AdcsGetAttitude => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::AdcsSetGeometry => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
             Command::SetBeacon => CommandSpec { min_args: 2, max_args: 2, key: KeyClass::Operational, without_key: false },
             Command::TxEnable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::TxDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Any, without_key: true },
@@ -206,6 +212,7 @@ impl Command {
             Command::EpsGetTelemetry => "Get EPS telemetry",
             Command::AdcsDetumble => "Start detumble",
             Command::AdcsGetAttitude => "Get attitude",
+            Command::AdcsSetGeometry => "Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing",
             Command::SetBeacon => "Set beacon interval, seconds big-endian, 10 to 120",
             Command::TxEnable => "Clear the latched TX-OFF",
             Command::TxDisable => "Latch TX-OFF in every state (47 CFR 97.207(b))",

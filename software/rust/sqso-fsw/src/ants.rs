@@ -112,7 +112,8 @@ mod tests {
         let s = Status::decode([0x00, 0x00]);
         assert!(s.all_deployed(), "all bits clear: every element deployed");
         let stowed = Status::decode([0x88, 0x88]);
-        assert!(!stowed.armed && !stowed.all_deployed());
+        assert!(!stowed.armed);
+        assert!(!stowed.all_deployed());
         assert_eq!(stowed.deployed_mask(), 0);
         // Element 1 out, armed, element 2 burning
         let mut st = stowed;
@@ -122,7 +123,8 @@ mod tests {
         let back = Status::decode(st.encode());
         assert_eq!(back, st);
         assert_eq!(back.deployed_mask(), 0b0001);
-        assert!(back.elements[1].burning && !back.elements[1].deployed);
+        assert!(back.elements[1].burning);
+        assert!(!back.elements[1].deployed);
     }
 
     #[test]

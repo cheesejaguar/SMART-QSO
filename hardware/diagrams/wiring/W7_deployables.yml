@@ -1,11 +1,12 @@
-# SQSO-HW-DIAG-001 W7: EPS burn-wire drivers to the antenna and solar-wing release mechanisms, and their
-# deployed-state switches. The firmware has one burn line and one sense line for the two antennas
-# (ANTENNA_BURN PB9, ANTENNA_SENSE PB11) and one of each for the two wings (SOLAR_BURN PB10, SOLAR_SENSE PB12)
-# (finding F4). Drawn here: one driver per pair feeding two resistors in parallel, and the two sense switches of
-# a pair in series (reads deployed only when both are). Burn current limited to 0.5-1 A by the driver
-# (schematic S5; finding F7). Connectors and pinouts proposed, TBR.
+# SQSO-HW-DIAG-001 W7: EPS deployment drivers to the solar-wing hold-downs and to the ISIS AntS. Updated 2026-10-27 to
+# the EPS board design SQSO-EPS-BRD-001 (RIDs EPS-07, EPS-18, REL-03, SMA-05): two burn resistors per wing, each on its
+# own 0.8 A current-limited driver with a 12 s hardware one-shot (four drivers, Q24-Q27), supplied from the 7.0 V burn
+# buck behind SW6 (DEPLOY_EN) and the three deployment-switch inhibits; the wings' hinge switches in series (both
+# deployed = SOLAR_SENSE low). The AntS deploys itself (I2C arm and automatic deployment): it takes 3.3 V from SW8
+# (DEPLOY_EN) downstream of DS1-DS3 and I2C2 through the TCA9517 buffer U80. AntS pinout to be confirmed from the AntS
+# ICD delivered with the unit (ISIS-ANTS-DSH-0001 could not be retrieved).
 metadata:
-  title: W7 Deployables, burn and sense (SQSO-HW-DIAG-001, proposed, TBR)
+  title: W7 Deployables, burn and sense (SQSO-HW-DIAG-001, SQSO-EPS-BRD-001)
 
 options:
   fontname: Helvetica
@@ -13,45 +14,64 @@ options:
   color_mode: SHORT
 
 connectors:
-  J_DEP_ANT:
-    type: Molex Pico-Clasp header
-    subtype: 6 pos
-    notes: "EPS board: antenna burn driver (ANTENNA_BURN), sense to OBC PB11 via W3"
-    pinlabels: &w7a [BURN_VHF, BURN_VHF_RTN, BURN_UHF, BURN_UHF_RTN, ANT_SENSE, SENSE_RTN]
-  ANT:
-    type: antenna deployer (TBD)
-    subtype: 2 m and 70 cm tape monopoles
-    notes: "Nichrome or resistor burn, about 5 Ohm (TBR); microswitch per element, closed when deployed"
-    pinlabels: [R_VHF a, R_VHF b, R_UHF a, R_UHF b, SW chain in, SW chain out]
-  J_DEP_SA:
-    type: Molex Pico-Clasp header
-    subtype: 6 pos
-    notes: "EPS board: solar burn driver (SOLAR_BURN), sense to OBC PB12 via W3"
-    pinlabels: &w7s [BURN_W1, BURN_W1_RTN, BURN_W2, BURN_W2_RTN, SA_SENSE, SENSE_RTN]
-  WING:
-    type: wing hold-down and release (TBD)
-    subtype: W1 and W2
-    notes: "Burn resistor per wing; hinge-side microswitch per wing"
-    pinlabels: [R_W1 a, R_W1 b, R_W2 a, R_W2 b, SW chain in, SW chain out]
+  J10:
+    type: Molex Micro-Fit 3.0 header 0430450612
+    subtype: 6 pos, 2 rows
+    notes: "EPS J10, wing W1: drivers Q24 (W1A, BURN_W1A PB10) and Q25 (W1B, BURN_W1B PE6)"
+    pinlabels: [V_BURN, BRET_W1A, V_BURN, BRET_W1B, SA_SENSE_PU, SA_SENSE_MID]
+  WING1:
+    type: wing W1 hold-down (bought with the panels)
+    subtype: two burn resistors on one restraint line, hinge switch
+    notes: "about 5 Ohm each (to be measured); the driver regulates 0.8 A for 4-6.9 Ohm"
+    pinlabels: [R_W1A a, R_W1A b, R_W1B a, R_W1B b, SW_W1 in, SW_W1 out]
+  J11:
+    type: Molex Micro-Fit 3.0 header 0430450612
+    subtype: 6 pos, 2 rows
+    notes: "EPS J11, wing W2: drivers Q26 (W2A, BURN_W2A PB9) and Q27 (W2B, BURN_W2B, pin to be allocated)"
+    pinlabels: [V_BURN, BRET_W2A, V_BURN, BRET_W2B, SA_SENSE_MID, GND]
+  WING2:
+    type: wing W2 hold-down (bought with the panels)
+    subtype: two burn resistors on one restraint line, hinge switch
+    notes: closed when deployed
+    pinlabels: [R_W2A a, R_W2A b, R_W2B a, R_W2B b, SW_W2 in, SW_W2 out]
+  J12:
+    type: Molex Pico-Clasp header 5013310407
+    subtype: 4 pos
+    notes: "EPS J12: AntS supply (SW8, DEPLOY_EN) and I2C (U80 B side)"
+    pinlabels: [3V3_ANTS, GND, ANTS_SDA, ANTS_SCL]
+  ANTS:
+    type: ISIS AntS 1U-3U (bought)
+    subtype: own controller, redundant thermal knives
+    notes: "pinout from the AntS ICD (open)"
+    pinlabels: [VCC 3V3, GND, SDA, SCL]
 
 cables:
   W7A:
     category: bundle
     gauge: 24 AWG
     length: 0.12
-    colors: [VT, BK, VT, BK, OG, BK]
-    notes: "Burn pairs twisted; 1 A derated needs 24 AWG (SQSO-HAR-001 5.2). Sense pair 28 AWG would do"
+    colors: [VT, BK, VT, BK, OG, OG]
+    notes: "Burn pairs twisted; 0.88 A for <= 12 s on 24 AWG (1 A derated). Sense pair 28 AWG would do"
   W7B:
     category: bundle
     gauge: 24 AWG
     length: 0.15
     colors: [VT, BK, VT, BK, OG, BK]
-    notes: "Length TBD with the wing layout"
+    notes: "Length set with the wing layout"
+  W7C:
+    category: bundle
+    gauge: 26 AWG
+    length: 0.10
+    colors: [RD, BK, BU, YE]
+    notes: "AntS: 0.61 A peak at 3.3 V (< 2 W); I2C twisted with GND"
 
 connections:
-  - - J_DEP_ANT: [1-6]
+  - - J10: [1-6]
     - W7A: [1-6]
-    - ANT: [1-6]
-  - - J_DEP_SA: [1-6]
+    - WING1: [1-6]
+  - - J11: [1-6]
     - W7B: [1-6]
-    - WING: [1-6]
+    - WING2: [1-6]
+  - - J12: [1-4]
+    - W7C: [1-4]
+    - ANTS: [1-4]

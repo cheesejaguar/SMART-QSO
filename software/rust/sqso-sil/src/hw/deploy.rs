@@ -72,10 +72,7 @@ impl Wings {
     fn new(rng: &mut Rng) -> Wings {
         let mut w = |name| Wing {
             name,
-            release_j: [
-                release(rng, RELEASE_J_MEAN, RELEASE_J_SIGMA),
-                release(rng, RELEASE_J_MEAN, RELEASE_J_SIGMA),
-            ],
+            release_j: [release(rng, RELEASE_J_MEAN, RELEASE_J_SIGMA), release(rng, RELEASE_J_MEAN, RELEASE_J_SIGMA)],
             heat_j: [0.0; 2],
             deployed: false,
             burn_s: 0.0,
@@ -95,8 +92,8 @@ impl Wings {
         let on = drivers.iter().filter(|&&d| d).count() as f64;
         let current = per * on * self.elements.len() as f64;
         for (w, temp_c) in self.elements.iter_mut().zip(temps_c) {
-            for r in 0..2 {
-                if drivers[r] {
+            for (r, &driven) in drivers.iter().enumerate() {
+                if driven {
                     w.heat_j[r] += per * per * BURN_OHMS * dt;
                     let need = w.release_j[r] * (1.0 + COLD_PER_C * (20.0 - temp_c).max(0.0));
                     if !w.deployed && w.heat_j[r] >= need {

@@ -136,7 +136,7 @@ leaf 2 bytes. Traversal is a fixed-depth loop, no recursion.
 |------|-------|-------|
 | Model table (flash, `.rodata`) | H1 16 × 12 × (7 × 5 + 8 × 2) = 9.8 kB; H2, H3 32 × (15 × 5 + 16 × 2) = 3.4 kB each; header, ranges, calibration, CRC 0.2 kB: **≈ 17 kB** | 0.8 % of 2 MB flash; the release text is 106 kB of the 256 kB SRS-C004 limit, so the selector code and table fit with 120 kB to spare |
 | RAM | features 32 B, logits 64 B, F10 history 15 × 20 × 2 B = 600 B (persisted), state 64 B: **< 1 kB** | of 640 kB; live state goes in SRAM2 with the rest (RID AV-07) |
-| Stack | < 128 B (no recursion) | inside the 8 KB SRS-C003 budget (worst case today 5012 B, `scripts/stack_usage.py`) |
+| Stack | < 128 B (no recursion) | inside the 8 KB SRS-C003 budget (worst case today 5,444 B, `scripts/stack_usage.py`) |
 | CPU | H1 192 trees × 3 nodes + H2, H3 64 × 4 nodes = 832 node visits ≈ 10 cycles each: **≈ 8,300 cycles = 0.10 ms at 80 MHz** | at most three heads in one 20 ms pass: 0.5 % of the pass |
 | Energy | 0.10 ms at ≈ 30 mW (80 MHz) ≈ **3 µJ a decision** | SQSO-AUD-006 §2 (45 µJ ROM) |
 
@@ -191,7 +191,7 @@ leaf 2 bytes. Traversal is a fixed-depth loop, no recursion.
 
 Safety classification: not safety-critical under NASA-STD-8739.8B, because no selector output can enable an emission, a
 load or a mode the rules forbid (§5, shown by the property test); the hazard analysis entry is SW-HAZ-012 in
-`docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` §10.
+`docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` §9.4.
 
 ## 10. Failure behaviour
 

@@ -172,7 +172,6 @@ impl Element {
         }
     }
 
-
     const fn pending(self) -> State {
         match self {
             Element::Antenna => State::AntennaPending,

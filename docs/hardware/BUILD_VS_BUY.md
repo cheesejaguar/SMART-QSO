@@ -32,7 +32,7 @@ snippet. cubesatshop.com could not be reached from the research environment.
 | Magnetometer | **Buy** (GomSpace M315, AAC MM200 or Spacemanic Lodestone) | 8–12 g, flight-proven, digital |
 | Magnetorquers | **Buy** CubeSpace CR0002 rods (> 0.2 A·m², 16.5 g each), or keep the air-core coils | Saves ≈ 80 g; rods add remanence that the magnetometer calibration must handle |
 | Gyro | **Buy: Epson M-G370PDT0** primary, **Bosch BMI088** backup on the OBC board (§5) | The Monte Carlo needs ≤ 0.1°/s bias; the M-G370 meets it from the factory and has 20 krad TID data |
-| ADCS gains | **B-dot 10⁴; spin 6°/s; spin hold added** (§6) | B-dot at 5·10⁶ left 15 of 40 trials tumbling; without a spin hold 23 of 40 settled with −Y on the Sun; at 2°/s +Y was within 15° of the Sun for only 75 % of sunlit time |
+| ADCS gains | **B-dot 10⁴; spin 8°/s; spin hold added** (§6) | B-dot at 5·10⁶ left 15 of 40 trials tumbling; without a spin hold 23 of 40 settled with −Y on the Sun; at 2°/s +Y was within 15° of the Sun for only 75 % of sunlit time |
 
 Mass: the buys move the predicted mass by about −200 to −250 g CBE (structure −160 to −190 g, rods −80 g, AntS
 +55 g), from 0–4 % margin to roughly 14–18 %. That is an estimate; the MEL has to be re-run with quoted masses.
@@ -196,9 +196,11 @@ Safety under TX-OFF: TX_EN, which switches the PA supply, stays the cessation pa
 hardware TX permit also feeds the PTT gate, so an exciter keyed into an unpowered PA cannot leak to the antenna. No
 state of the transponder logic can power the PA.
 
-Flight-software impact: `sqso_fsw::transponder` drives `XPDR_EN` as a level today. The heartbeat makes it a square
-wave from a timer while the gates hold. That is a small firmware change; it is recorded here as the design, not yet
-implemented. Until then the mission simulation models the level.
+Flight software (implemented in the design review, SRS-F080 series): `sqso_fsw::transponder` produces a 100 Hz
+heartbeat under a 60 ms software lease renewed every executive pass; the firmware drives PE4 from the TIM7 interrupt,
+so the wave stops when the lease runs out, the OBC hangs or it resets. The radio board's ≈ 50 ms retriggerable
+monostable treats a level held high as disabled. The mission simulation's radio drops the transponder within 50 ms of
+a stopped heartbeat.
 
 ## 4. Isolated battery mount
 
@@ -378,61 +380,77 @@ angle to +Y in sunlight:
 | 2°/s | 0.005 | 10⁻⁴ | 13° | 133° | 75 % | 147° |
 | 2°/s | 0.02 | 10⁻⁵ | 78° | 104° | 3 % | 140° |
 | 4°/s | 0.005 | 10⁻⁴ | 3.9° | 15° | 99.8 % | 19° |
-| **6°/s** | **0.005** | **10⁻⁴** | **2.5°** | **9.8°** | **100 %** | **12°** |
+| 6°/s | 0.005 | 10⁻⁴ | 2.5° | 9.8° | 100 % | 12° |
 
 A high momentum gain with weak nutation damping is unstable (the 2°/s, k_h 0.02 row). The spin's gyroscopic
 stiffness grows with its rate, so the disturbance torques tilt the axis less, and less is lost through eclipse,
 when the Sun term is off.
 
-**Decision: 6°/s, k_h = 0.005 s⁻¹, k_n = 10⁻⁴ N·m·s, k_s = 0.005 s⁻¹, B-dot 10⁴**
-(`sqso_fsw::adcs::Gains::FLIGHT`; `ADCS_BDOT_GAIN`). Coil power once captured is < 5 mW. Higher spin rates were not
-needed; above about 8°/s the 1 Hz sun-sensor sampling would start to matter.
+The rows above used a diagonal inertia with Iyy 5–11 % above Izz. The structures review (RID STR-01) computed the
+layout-B tensor: Iyy/max(Ixx, Izz) is only 1.00–1.06 and the products tilt the principal axes. With that tensor
+(mean of the CBE and MEV values, products included), 6°/s and k_n = 10⁻⁴ give 8.7° mean and 97.1 % within 15°. The
+avionics review re-tuned for it.
+
+**Decision (design review, 2026-10-27): 8°/s, k_h = 0.005 s⁻¹, k_n = 3·10⁻⁴ N·m·s with the gyro and 1·10⁻⁴ without
+it (3·10⁻⁴ fails without a gyro: 55° mean), k_s = 0.005 s⁻¹, B-dot 10⁴** (`sqso_fsw::adcs::Gains::FLIGHT`,
+`NUTATION_GAIN_NO_GYRO`; `ADCS_BDOT_GAIN`). Coil power once captured 29 mW. At 8°/s the 1 Hz sun-sensor sampling
+sees 8° between samples; the law uses only the Sun direction, and the Monte Carlo includes the sampling.
 
 ### 6.4 Robustness at the chosen gains
 
-| Case (6°/s unless stated) | Not detumbled | Slowest capture | Mean Sun angle | Worst p95 | Within 15° | Worst eclipse exit | Worst-trial generation |
+Flight gains, layout-B inertia tensor with products, the magnetometer window and the coil coupling modelled, 40
+trials of 2 days per case (`software/simulation/cdr/avionics/adcs_mc_cdr.sh`):
+
+| Case (8°/s unless stated) | Not detumbled | Slowest capture | Mean Sun angle | Worst p95 | Within 15° | Worst eclipse exit | Worst-trial generation |
 |---------------------------|---------------|-----------------|----------------|-----------|------------|--------------------|------------------------|
-| M-G370PDT0 | 0 | 1.5 h | 2.5° | 9.7° | 100 % | 12° | 4.50 W |
-| BMI088, calibrated (0.1°/s) | 0 | 1.5 h | 2.5° | 9.8° | 100 % | 12° | 4.50 W |
-| BMI088, bias 0.2°/s | 1 | 3.1 h | 3.6° | 12.6° | 100 % | 15° | 4.49 W |
-| BMI088, bias 0.3°/s | 2 (3 timeouts) | 5.7 h | 8.9° | 153° | 94 % | 150° | 2.73 W |
-| BMI088, bias 0.5°/s | 0 (16 timeouts) | 20.5 h | 29° | 166° | 73 % | 174° | 2.27 W |
-| BMI088 uncalibrated (1°/s) | 3 (29 timeouts) | — | 66° | 166° | 25 % | 174° | 2.27 W |
-| No gyro (magnetometer rate) | 0 | 1.2 h | 23° | 66° | 33 % | 42° | 3.67 W |
-| Tip-off σ 3.33°/s (dispenser, 3σ = 10°/s) | 0 | 1.0 h | 2.5° | 9.7° | 100 % | 12° | 4.50 W |
-| Tip-off σ 10°/s, up to 30°/s | 0 | 1.5 h | 2.5° | 9.7° | 100 % | 12° | 4.50 W |
-| Tip-off σ 30°/s, up to 50°/s | 0 | 2.1 h | 2.5° | 9.7° | 100 % | 12° | 4.50 W |
-| Residual dipole 10 mA·m² | 0 | 4.0 h | 7.1° | 31° | 92 % | 42° | 4.39 W |
-| Residual dipole 20 mA·m² | 0 (4 timeouts) | 11.9 h | 15° | 73° | 61 % | 86° | 3.84 W |
-| Residual dipole 50 mA·m² | 0 (26 timeouts) | 37 h | 57° | 167° | 18 % | 178° | 2.65 W |
-| Magnetometer 200 nT, sun sensors 10° | 0 | 1.5 h | 2.6° | 9.8° | 100 % | 13° | 4.50 W |
-| 4°/s, residual dipole 10 mA·m² | 0 | 4.0 h | 12° | 51° | 73 % | 79° | 4.14 W |
+| M-G370PDT0 | 0 | 1.2 h | 4.0° | 10.3° | 99.6 % | 33° | 4.48 W |
+| BMI088, calibrated | 0 | 1.7 h | 4.0° | 10.2° | 99.6 % | 34° | 4.48 W |
+| BMI088, bias 0.2°/s | 0 | 2.4 h | 4.5° | 15.0° | 99.5 % | 36° | 4.47 W |
+| BMI088, bias 0.3°/s | 0 (3 timeouts) | 14.2 h | 9.0° | 160° | 94.5 % | 156° | 2.77 W |
+| BMI088, bias 0.5°/s | 0 (12 timeouts) | 41.9 h | 30° | 165° | 70 % | 172° | 2.52 W |
+| BMI088, uncalibrated | 2 (30 timeouts) | — | 69° | 165° | 24 % | 178° | 2.35 W |
+| No gyro (k_n 1·10⁻⁴) | 0 | 1.2 h | 17° | 47° | 47 % | 48° | 4.12 W |
+| Tip-off σ 3.33°/s (dispenser, 3σ = 10°/s) | 0 | 1.0 h | 4.1° | 10.3° | 99.6 % | 33° | 4.48 W |
+| Tip-off σ 10°/s, up to 30°/s | 0 | 1.8 h | 4.1° | 10.6° | 99.6 % | 34° | 4.49 W |
+| Tip-off σ 30°/s, up to 50°/s | 0 | 2.1 h | 4.1° | 10.3° | 99.6 % | 33° | 4.49 W |
+| Residual dipole 10 mA·m² | 0 | 3.2 h | 6.1° | 21° | 97 % | 51° | 4.46 W |
+| Residual dipole 20 mA·m² | 0 (4 timeouts) | 10.2 h | 10.5° | 45° | 78 % | 69° | 4.20 W |
+| Residual dipole 50 mA·m² | 0 (21 timeouts) | 32.6 h | 36° | 170° | 33 % | 166° | 2.59 W |
+| Magnetometer 200 nT, sun sensors 10° | 0 | 1.2 h | 4.1° | 9.8° | 99.6 % | 35° | 4.49 W |
+| 4°/s, residual dipole 10 mA·m² | 0 | 3.2 h | 11° | 122° | 75 % | 154° | 4.22 W |
+| 6°/s, k_n 1·10⁻⁴ (the version A gains) | 0 | 1.2 h | 8.7° | 17.8° | 97.1 % | 35° | 4.41 W |
+| Iyy/Izz 1.000 / 1.005 / 1.020 / 1.050 | 0 | 1.2–1.4 h | 6.9 / 4.4 / 4.2 / 3.8° | 70 / 12 / 11 / 9° | 93 / 99.9 / 99.9 / 99.8 % | 93 / 62 / 36 / 25° | 4.37 / 4.48 / 4.49 / 4.49 W |
+| Mass-budget CBE / MEV tensor | 0 | 1.6 / 1.2 h | 4.0 / 4.0° | 9.9 / 10.0° | 99.8 / 100 % | 31 / 31° | 4.49 / 4.49 W |
+| Wing W1 only, geometry preset 0 / 1 | 0 | 1.1 h | 10.2 / 12.9° | 20.5 / 17.0° | 89 / 93 % | 38 / 20° | 2.99 / 3.11 W |
+| Wing W2 only, geometry preset 0 / 2 | 0 | 1.3 h | 6.4 / 13.3° | 12.6 / 17.8° | 99.5 / 86 % | 35 / 21° | 3.02 / 3.04 W |
+| Coils on through the sample, software unaware (gyro / no gyro) | 0 / 0 (27 timeouts) | 1.2 / 5.1 h | 4.2 / 72° | 11 / 163° | 99.6 / 9 % | 35 / 177° | 4.48 / 2.31 W |
 
-Every nominal case captures within 1.5 h, and even a 50°/s tip-off within 2.1 h, inside the 3-orbit requirement
-(ADCS-F001) and the 285 min timeout. Tip-off is not the driver.
+Every nominal case captures within 2.1 h, inside the 3-orbit requirement (ADCS-F001) and the 285 min timeout.
+Tip-off is not the driver.
 
-**The residual dipole is.** It needs a requirement: ≤ 3 mA·m² is the design value; 10 mA·m² still works at 6°/s but
-not well at 4°/s; 20 mA·m² degrades the pointing and 50 mA·m² defeats it. Published 1U values span 1–10 mA·m²,
-with outliers near 50 (UWE-3) and 150 mA·m² (ESTCube-1). On MOVE-II (1U), a current loop in the solar-cell wiring
-spun the satellite past 500°/s. So: back-wire each wing's string (return conductor along the string, no loop area),
-keep ferromagnetic parts away from the magnetometer, and measure the flight unit in a Helmholtz cage with the wings
-deployed and illuminated. That is a magnetic-cleanliness requirement for the EM (TP-ADCS).
+**The residual dipole is.** It needs a requirement: ≤ 3 mA·m² is the design value; 10 mA·m² still works at 8°/s but
+not at 4°/s; 20 mA·m² degrades the pointing and 50 mA·m² defeats it. Published 1U values span 1–10 mA·m², with
+outliers near 50 (UWE-3) and 150 mA·m² (ESTCube-1). On MOVE-II (1U), a current loop in the solar-cell wiring spun the
+satellite past 500°/s. So: back-wire each wing's string (return conductor along the string, no loop area), keep
+ferromagnetic parts away from the magnetometer, and measure the flight unit in a Helmholtz cage with the wings deployed
+and illuminated. That is a magnetic-cleanliness requirement for the EM (TP-ADCS).
 
 **Comparison with flight practice.** MOVE-II's spinning sun-pointing law (5.73°/s, coils on in eclipse) reached
-20.6° ± 7.7° in hardware-in-the-loop tests; this law at 6°/s gives 2.5° in simulation. The difference is the
+20.6° ± 7.7° in hardware-in-the-loop tests; this law at 8°/s gives 4.0° in simulation. The difference is the
 nutation damping and the spin hold, and the simulation's ideal coils: expect the flight result between the two.
 
 ### 6.5 Limits
 
 - The tip-off distribution is a dispenser specification, not a measurement of this spacecraft.
-- Rigid body only (no flexible wings).
+- Rigid body only: the flexible 2 m antenna tapes are not modelled (GNC-03, a verification item).
 - The sensor errors are datasheet values.
-- The magnetorquer model has no remanence, so if rods are bought (§2.7) the Monte Carlo has to be re-run with it.
-- The coils' own field at the magnetometer is not modelled. The flight timing must take the magnetometer sample with
-  the coils off; MOVE-II used 300 ms on and 700 ms off, stable to 290°/s. Neither the flight software nor the
-  firmware does this yet (it is an open item for the ADCS driver).
+- Rod remanence and recoil are not modelled (GNC-06); the Monte Carlo is re-run with measured rod data on the EM.
+- The coils' field at the magnetometer is modelled; the flight software samples 50 ms after a 900 ms burst. The coil
+  driver's own hardware off-timer is part of the OBC board design (AV-03).
 - Aerodynamic torque at solar maximum (2.1·10⁻¹² kg/m³ mean at 500 km) is 4.5–8.9·10⁻⁸ N·m for a 1–2 cm centre of
-  pressure offset. That is comparable to a 2 mA·m² residual dipole, and it is in the model.
+  pressure offset, comparable to a 2 mA·m² residual dipole; it is in the model.
+- The final flight inertia comes from the CAD (`docs/environment/MASS_BUDGET.md` 3.1 §6.5); the Iyy/Izz sweep above
+  covers its value.
 
 ## 7. Battery size
 

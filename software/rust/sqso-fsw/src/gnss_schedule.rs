@@ -206,7 +206,8 @@ mod tests {
         assert_eq!(s.step(t + 109_999, &later), Action::None);
         assert_eq!(s.step(t + 110_000, &later), Action::PowerOff(Outcome::Fix));
         assert_eq!((s.sessions, s.fixes, s.no_fix_run), (1, 1, 0));
-        assert!(!Outcome::Fix.text().is_empty() && !Outcome::NoFix.text().is_empty());
+        assert!(!Outcome::Fix.text().is_empty());
+        assert!(!Outcome::NoFix.text().is_empty());
         assert!(!Outcome::Stopped.text().is_empty());
         // Next one an orbit later (LEOP); a fix older than the session does not count
         let old = Inputs { fix_ms: Some(t + 80_000), ..GO };

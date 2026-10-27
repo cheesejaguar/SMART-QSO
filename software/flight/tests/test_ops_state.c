@@ -8,7 +8,10 @@
  * - ARM_FLIGHT sets the hold; only the release clears it; it survives resets;
  * - while held, every way into ACTIVE is refused (mode manager guard);
  * - a blank record (bench unit) holds nothing; a corrupt one holds;
- * - XPDR_DISABLE persists and never lifts the hold.
+ * - XPDR_DISABLE persists and never lifts the hold;
+ * - the telecommands: PLD_ENABLE refused while held, the release, the
+ *   transponder commands, ADCS_SET_GEOMETRY (presets 0 to 3 only) and
+ *   DEPLOY_RETRY (elements 0 and 1 only, refused before the wait is served).
  *
  * @requirement SRS-F082 The software shall hold the mode at IDLE, the payload and the transponder off from ARM_FLIGHT until an authenticated commissioning release
  * @requirement SRS-F083 The software shall let the ground stop and allow the transponder by telecommand, persisted across resets
@@ -28,6 +31,10 @@
 #include "fault_mgmt.h"
 #include "hal/hal.h"
 #include "hal/hal_flash.h"
+#include "cmd_handler.h"
+#include "cmd_dictionary.h"
+#include "system_state.h"
+#include "deployment.h"
 
 static int setup(void **state)
 {
@@ -120,6 +127,48 @@ static void test_transponder_disable_persists(void **state)
     assert_true(ops_xpdr_allowed());
 }
 
+static CmdResult_t exec1(uint8_t id, size_t len, uint8_t arg)
+{
+    Command_t cmd;
+    CmdResponse_t rsp;
+    memset(&cmd, 0, sizeof(cmd));
+    memset(&rsp, 0, sizeof(rsp));
+    cmd.cmd_id = id;
+    cmd.payload_len = (uint8_t)len;
+    cmd.payload[0] = arg;
+    assert_int_equal(cmd_execute(&cmd, &rsp), SMART_QSO_OK);
+    return rsp.result;
+}
+
+/** The commissioning and operations telecommands, executed */
+static void test_the_telecommands(void **state)
+{
+    (void)state;
+    assert_int_equal(hal_flash_erase(FLASH_REGION_DEPLOYMENT), SMART_QSO_OK);
+    assert_int_equal(sys_state_init(), SMART_QSO_OK);
+    assert_int_equal(cmd_handler_init(), SMART_QSO_OK);
+    assert_int_equal(ops_state_init(), SMART_QSO_OK);
+    assert_true(deployment_init());
+    assert_int_equal(ops_set_commissioning_hold(true), SMART_QSO_OK);
+    assert_int_equal(exec1((uint8_t)CMD_PLD_ENABLE, 0U, 0U), CMD_RESULT_NOT_ALLOWED);
+    assert_int_equal(exec1((uint8_t)CMD_COMM_XPDR_ENABLE, 0U, 0U), CMD_RESULT_SUCCESS);
+    assert_false(ops_xpdr_allowed());
+    assert_int_equal(exec1((uint8_t)CMD_SYS_COMMISSIONING_RELEASE, 0U, 0U), CMD_RESULT_SUCCESS);
+    assert_false(ops_commissioning_hold());
+    assert_true(ops_xpdr_allowed());
+    assert_int_equal(exec1((uint8_t)CMD_PLD_ENABLE, 0U, 0U), CMD_RESULT_SUCCESS);
+    assert_int_equal(exec1((uint8_t)CMD_COMM_XPDR_DISABLE, 0U, 0U), CMD_RESULT_SUCCESS);
+    assert_false(ops_xpdr_allowed());
+    assert_int_equal(exec1((uint8_t)CMD_ADCS_SET_GEOMETRY, 1U, 3U), CMD_RESULT_SUCCESS);
+    assert_int_equal(exec1((uint8_t)CMD_ADCS_SET_GEOMETRY, 1U, 4U), CMD_RESULT_INVALID_PARAM);
+    /* Deployment not yet separated (INHIBITED): a retry is refused */
+    assert_int_equal(exec1((uint8_t)CMD_DEPLOY_RETRY, 1U, 0U), CMD_RESULT_NOT_ALLOWED);
+    assert_int_equal(exec1((uint8_t)CMD_DEPLOY_RETRY, 1U, 1U), CMD_RESULT_NOT_ALLOWED);
+    assert_int_equal(exec1((uint8_t)CMD_DEPLOY_RETRY, 1U, 2U), CMD_RESULT_INVALID_PARAM);
+    assert_int_equal(exec1((uint8_t)CMD_GNSS_REQUEST, 0U, 0U), CMD_RESULT_SUCCESS);
+    assert_int_equal(exec1((uint8_t)CMD_SYS_GET_HOUSEKEEPING, 0U, 0U), CMD_RESULT_SUCCESS);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -128,6 +177,7 @@ int main(void)
         cmocka_unit_test_setup(test_hold_caps_the_mode_at_idle, setup),
         cmocka_unit_test_setup(test_corrupt_record_holds, setup),
         cmocka_unit_test_setup(test_transponder_disable_persists, setup),
+        cmocka_unit_test_setup(test_the_telecommands, setup),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SVD-001
-**Revision:** C
-**Date:** 2026-10-24
+**Revision:** D
+**Date:** 2026-10-27
 **Reference:** NPR 7150.2 §3.6
 **Supersedes:** `docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md`, which also carried SQSO-SVD-001 and is merged here (finding PI-17)
 
@@ -241,7 +241,7 @@ coverage of the Rust crates is 81.1 % (gate 80 %), and each safety-critical file
 |------------|--------|------------|
 | Simulation only | Not flight-ready | Hardware integration TBD |
 | No RTOS (FreeRTOS was never integrated and is not planned) | One Embassy task; interrupts only for the UARTs and the time driver | By design; the baseline since 2026-10-25 (BASELINE §6, CR-2026-002; `software/flight/docs/RTOS_ARCHITECTURE.md`) |
-| Firmware not run on hardware | Pin map provisional; timing and power not measured; stack bounded by analysis only (5,004 B of 8 KB) | Hardware bring-up (`software/rust/README.md`, Next steps) |
+| Firmware not run on hardware | Pin map provisional; timing and power not measured; stack bounded by analysis only (5,444 B of 8 KB) | Hardware bring-up (`software/rust/README.md`, Next steps) |
 | Beacon interval | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (BASELINE §8) | Operating constraint |
 | Beacon text | At most 176 characters (`docs/BEACON_SPEC.md`) | Operating constraint |
 | Hardware watchdog | 30 s timeout (`WDT_HW_TIMEOUT_MS`) | Operating constraint |
@@ -374,4 +374,5 @@ software/flight/
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Merged with `docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md`, which carried the same number (finding PI-17): payload and ground identification, build environment and limitations added; Git tag corrected to none; unsupported test counts and open-issue claim removed; §7.3 lists what was not carried and why | SMART-QSO Team |
 | C | 2026-10-24 | The flight software is Rust: §3.5 current source by crate; tests, tools, Rust release profile, runtime dependencies with versions, hardware drivers, static-analysis baselines, measured line coverage, limitations, change summary and deployment updated. Skeleton tables kept as history | SMART-QSO Team |
+| D | 2026-10-27 | Stack worst case 5,444 B (was 5,004 B) after the CDR flight-software changes | SMART-QSO Team (CDR avionics review) |
 | C, note | 2026-10-25 | §7.2: no RTOS (Embassy executor) is the baseline (BASELINE §6, CR-2026-002) | SMART-QSO Team |

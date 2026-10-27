@@ -82,7 +82,6 @@ const DEPLOY_STATE_ARMED: u32 = 10;
 const GPIO_PIN_HEATER_EN: u32 = 3;
 const GPIO_PIN_XPDR_EN: u32 = 16;
 const GPIO_PIN_GNSS_EN: u32 = 17;
-const GPIO_PIN_ANTENNA_SENSE: u32 = 13;
 const GPIO_PIN_SOLAR_SENSE: u32 = 14;
 // hal_uart.h
 const UART_PORT_GNSS: u32 = 2;
@@ -420,6 +419,8 @@ impl Executive {
         if adcs_control::adcs_init() != rc::OK {
             eprint(format_args!("[SYSTEM] ADCS init failed"));
         }
+        // The spin axis and inertia the ground selected (STR-27)
+        let _ = adcs_control::set_geometry(ops_state::ops_adcs_geometry());
         for pin in [GPIO_PIN_HEATER_EN, GPIO_PIN_XPDR_EN, GPIO_PIN_GNSS_EN] {
             // SAFETY: plain values (the HAL)
             let _ = unsafe { crate::c::hal_gpio_config(pin, GPIO_DIR_OUTPUT, GPIO_PULL_DOWN) };
@@ -815,7 +816,11 @@ impl Executive {
     /// detumble again, so it is never left without control
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn run_adcs(&mut self, now: u64, state: u32) {
-        if eps_control::eps_telemetry().is_none() {
+        // The host simulation without the mission simulation has no EPS
+        // controller and no attitude plant: nothing to detumble. On the target
+        // a silent EPS controller must not skip the detumble and report it
+        // complete (CDR RID FSW-01), so there the ADCS runs regardless
+        if cfg!(not(target_os = "none")) && eps_control::eps_telemetry().is_none() {
             if state == STATE_DETUMBLE {
                 sm_event(EVENT_DETUMBLE_COMPLETE); // stand-in power model: nothing to detumble
             }
@@ -1002,7 +1007,7 @@ impl Executive {
                 tjet_c: fresh_sensor(c"PT", now, BEACON_MEAS_MAX_AGE_MS),
                 deploy: (
                     deployment::deployment_get_state(),
-                    crate::c::hal_gpio_get(GPIO_PIN_ANTENNA_SENSE),
+                    crate::ants::status().map(|a| a.deployed_mask()),
                     crate::c::hal_gpio_get(GPIO_PIN_SOLAR_SENSE),
                 ),
                 rf_silence: (rf_silence::rf_silence_get_state(), rf_silence::rf_silence_elapsed_seconds()),

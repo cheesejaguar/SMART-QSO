@@ -1,8 +1,8 @@
 # Attitude Determination and Control Subsystem (ADCS) Design Document
 
 **Document Number**: SMART-QSO-ADCS-001
-**Version**: 1.4
-**Date**: 2026-10-26
+**Version**: 1.5
+**Date**: 2026-10-27
 **Status**: Preliminary Design
 
 **Governing Standards**:
@@ -121,7 +121,13 @@ SMART-QSO employs a passive/semi-active ADCS approach:
 
 #### 3.2.1 Magnetometer
 
-**Selected Component**: HMC5883L 3-Axis Magnetometer
+**CDR status (1.5): not selected.** The HMC5883L below is a placeholder: a commercial compass part with no radiation
+data, and `docs/interfaces/ICD_OBC_ADCS.md` names a different one (LIS3MDL). The candidates are the flight units of
+`docs/hardware/BUILD_VS_BUY.md` §3 (GomSpace M315, AAC MM200, Spacemanic Lodestone). No driver exists yet; the flight
+software takes the field through `adcs_control` from the simulated HAL. Selection, mounting away from the coils and the
+Jetson, and the driver are open (RID GNC-04, closure at the EM). The timing in §11.1 applies to any of them.
+
+**Placeholder Component**: HMC5883L 3-Axis Magnetometer
 
 | Parameter | Specification |
 |-----------|---------------|
@@ -164,6 +170,10 @@ normalize(&sun_x, &sun_y, &sun_z);
 ### 3.3 Actuators
 
 #### 3.3.1 Magnetorquer Coils
+
+**CDR status (1.5):** the structures review chose CubeSpace CR0002 rods in layout B (STR-01; `docs/environment/MASS_BUDGET.md`
+v3.0 §6). The air-core coil data below remain as the alternative. The rods' remanence and hysteresis are not in the
+Monte Carlo (§11.5).
 
 **Configuration**: 3-axis air-core coils (PCB trace or wire-wound)
 
@@ -282,14 +292,15 @@ mission simulation (`docs/test/SIL_MISSION_SIMULATION.md`) found both. SUNPOINT 
 spin-stabilized coarse sun pointing (BASELINE §8, `sqso_fsw::adcs::spin_sunpoint`):
 
 ```
-h = I ω                         (I: principal inertia with the wings out, +Y the major axis)
-τ = -k_h (h - h_s ŝ)            (sunlit only: momentum to h_s = I_yy ω_s along the sun vector ŝ)
-    - k_n (ω - (ω·ŷ) ŷ)         (nutation damping: no rate across +Y)
-    - k_s (I_yy ω_y - h_s) ŷ    (spin hold, sunlit and in eclipse)
+h = I ω                         (I: full inertia tensor with the wings out, §11.2)
+τ = -k_h (h - h_s ŝ)            (sunlit only: momentum to h_s = ω_s âᵀIâ along the sun vector ŝ)
+    - k_n (ω - (ω·â) â)         (nutation damping: no rate across the spin axis â, +Y in flight)
+    - k_s (â·h - h_s) â         (spin hold, sunlit and in eclipse)
 m = (B × τ) / |B|²              (the part of τ across B), saturated at 0.2 A·m²
 ```
 
-with ω_s = 6°/s, k_h = 0.005 s⁻¹, k_n = 1·10⁻⁴ N·m·s and k_s = 0.005 s⁻¹ (`sqso_fsw::adcs::Gains::FLIGHT`). The rest
+with ω_s = 8°/s, k_h = 0.005 s⁻¹, k_n = 3·10⁻⁴ N·m·s with the gyro (1·10⁻⁴ without it) and k_s = 0.005 s⁻¹
+(`sqso_fsw::adcs::Gains::FLIGHT`; changed in 1.5 from 6°/s and 1·10⁻⁴, §11.4). The rest
 state is a spin about +Y with +Y on the Sun; the spin holds the axis through eclipse with only the nutation damping
 and the spin hold acting. The rate is the MEMS gyro's when it reads (BASELINE §8), otherwise the magnetometer estimate
 of §4.3.
@@ -426,6 +437,12 @@ void triad_attitude(Vec3 *sun_body, Vec3 *mag_body,
 ## 6. Hardware Design
 
 ### 6.1 Magnetorquer Driver
+
+**CDR finding (1.5):** the L293D drawn below needs a logic supply of at least 4.5 V and drops about 1.4 V per bridge;
+it cannot run from the 3.3 V rail shown. The electrical design (`hardware/adcs/ADCS_ELECTRICAL_DESIGN.md`) names the
+DRV8833 (2.7–10.8 V, low-R_DS(on) MOSFET bridges), which is the part to carry. The driver must also switch the coils
+off by its own timer at the end of each 900 ms burst (§11.1); no firmware driver for the coil PWM exists yet (RID
+AV-03).
 
 ```
                  +3.3V
@@ -606,6 +623,141 @@ If schedule or risk warrants, a COTS integrated solution is available:
 
 ---
 
+## 11. CDR Update (2026-10-27)
+
+### 11.1 Magnetometer Measurement Window
+
+The Monte Carlo models the coils' field at the magnetometer as 1·10⁻⁴ T per A·m²: a 0.2 A·m² command gives 20 µT
+there, about half the Earth's field. The real coupling depends on the placement and is measured on the EM. The flight
+software therefore samples with the coils off (`sqso_fsw::adcs::CoilTiming`, SRS-F090 to SRS-F092):
+
+| Item | Value |
+|------|-------|
+| Control period | 1000 ms |
+| Coil burst | 900 ms from the command, ended by the driver's timer |
+| Settling before the sample | 50 ms after the burst ends (air coils: τ = L/R < 1 ms; rods: eddy currents and the rod's recoil, to be measured) |
+| Sample | at 950–1000 ms of the period, coils off |
+| Impulse | dipole × 1000/900, saturated at 0.2 A·m², so the impulse per period is the law's |
+| A sample inside the burst or the settling | not used: no B-dot, no rate estimate that cycle; counted (`mag_rejected`, housekeeping `MR`), the first one after init logged as a fault |
+| Detumble without a gyro | not completed on a rate estimate left stale by a rejected sample |
+
+The Monte Carlo (§11.4) shows the window costs nothing with the gyro and is what keeps the gyroless case working: with
+the coils on through the sample and the software unaware, the gyroless case loses 27 of 40 trials to the 285-minute
+timeout; with the window enforced but the coils left on (a driver fault), every sample is rejected (43,197 in half a day)
+and the detumble times out as a reported fault instead of a false completion.
+
+### 11.2 Inertia (layout B, STR-01)
+
+`sqso_fsw::adcs::Inertia::DEPLOYED` is the mean of the CBE and MEV tensors of `docs/environment/MASS_BUDGET.md` v3.0
+§6.1, layout B (battery −Z, RF +Z), CR0002 rods, the 2 m AntS elements along ±X, kg·m² × 10⁻³:
+
+| Tensor | Ixx | Iyy | Izz | Ixy | Ixz | Iyz | Iyy/Izz | Major axis from +Y |
+|--------|-----|-----|-----|-----|-----|-----|---------|--------------------|
+| Both wings (flight, `DEPLOYED`) | 3.120 | 4.600 | 4.437 | −0.030 | −0.031 | −0.045 | 1.037 | 14.3° |
+| Wing W1 only (`WING_1_ONLY`) | 3.081 | 4.214 | 4.012 | −0.242 | −0.041 | −0.035 | 1.050 | 12.9° |
+| Wing W2 only (`WING_2_ONLY`) | 3.081 | 4.207 | 4.005 | +0.186 | −0.021 | −0.035 | 1.050 | 13.0° |
+| No wings (`NO_WINGS`) | 3.036 | 3.827 | 3.580 | −0.026 | −0.031 | −0.026 | 1.069 | 5.9° |
+
+The structures reviewer's rounded value (3.2, 4.6, 4.4) agrees within 3 % on each axis. The margin that matters,
+Iyy over Izz, is 3–4 %, not the 10 % the previous constant assumed; the products tilt the major axis 14° from +Y.
+The mission simulation's attitude model now carries the full tensor (`sqso_sil::adcs_mc::Body`).
+
+### 11.3 Geometry by Telecommand (STR-27)
+
+`ADCS_SET_GEOMETRY` (0x24, one argument, persisted in the operations record) selects the spin axis and the tensor the
+law uses (`Geometry::PRESETS`, SRS-F094):
+
+| Preset | Spin axis â | Tensor | Use |
+|--------|-------------|--------|-----|
+| 0 (default) | +Y | both wings | nominal |
+| 1 | major axis of W1-only, (−0.196, 0.975, −0.105) | W1 only | wing W2 failed to deploy |
+| 2 | major axis of W2-only, (0.159, 0.974, −0.159) | W2 only | wing W1 failed to deploy |
+| 3 | major axis with no wings, (−0.029, 0.995, −0.099) | no wings | neither wing deployed |
+
+Any other value is refused (INVALID_PARAM). The ground chooses from the deployment telemetry (housekeeping `DEP`).
+
+### 11.4 Monte Carlo at CDR
+
+`software/simulation/cdr/avionics/adcs_mc_cdr.sh` (40 trials of 2 days each per case, M-G370PDT0 unless stated, the
+window of §11.1 and the full tensor of §11.2 in the plant). The angle is between +Y and the Sun in sunlight.
+
+*Spin rate and nutation gain, robust over Iyy/Izz 1.00–1.05.* Sweep of 6, 7, 8, 9 and 10°/s against k_n of 1, 3, 5
+and 10·10⁻⁴ N·m·s, with Izz = Iyy/ratio and the flight products (mean angle / time within 15°):
+
+| Iyy/Izz | 6°/s, 1·10⁻⁴ (1.4) | 6°/s, 3·10⁻⁴ | **8°/s, 3·10⁻⁴ (1.5)** | 8°/s, 5·10⁻⁴ | 10°/s, 3·10⁻⁴ |
+|---------|---------------------|--------------|-------------------------|--------------|----------------|
+| 1.000 | 14.7° / 59 % | 5.5° / 96 % (worst p95 137°) | **6.9° / 93 %** (worst p95 39–70°) | 4.9° / 95 % (worst p95 84°) | 11.2° / 85 % |
+| 1.005 | — | — | **4.4° / 99.9 %** | 2.9° / 99.8 % | — |
+| 1.020 | 10.5° / 87 % | 3.9° / 99.7 % | **4.2° / 99.9 %** | — | 5.5° / 98.8 % |
+| 1.037 (flight) | 8.7° / 97 % | 3.7° / 99.8 % | **4.0° / 99.6 %** | — | 4.7° / 99.9 % |
+| 1.050 | 7.8° / 99.2 % | 3.8° / 99.4 % | **3.8° / 99.9 %** | 2.8° / 99.7 % | 4.4° / 100 % |
+
+No case of the sweep timed out. 8°/s with 3·10⁻⁴ is the best compromise: at the degenerate end (Iyy = Izz) it keeps
+93 % of the time within 15° (6°/s with 1·10⁻⁴: 59 %) with a worst-trial 95th percentile of 39–70° (the spread is the
+sensitivity to the exact rate, 8.000 against the flight 7.998°/s; 6°/s with 3·10⁻⁴: 137°), and from 1.005 up it keeps
+at least 99.6 %. Higher gains do better at 1.005–1.05 but worse at 1.000 (5·10⁻⁴: worst p95 84°). Spinning about the plant's major axis instead of +Y gives 14.6° mean (the axis is 14° from the wing
+normal) and 4.51 W instead of 4.64 W: the flight software keeps +Y and lets the nutation damping hold the spin there.
+
+*Without a gyro* the 3·10⁻⁴ gain fails (mean 55°, 4 % within 15°): the magnetometer rate misses the rate about the
+field and the stronger damping acts on the error. The software therefore uses 1·10⁻⁴ when there is no gyro
+(`NUTATION_GAIN_NO_GYRO`): mean 17°, 47 % within 15°, 4.42 W, as before.
+
+*Robustness at the flight gains (8°/s, 3·10⁻⁴; replaces BUILD_VS_BUY §6.4 at 6°/s):*
+
+| Case | Not detumbled | Slowest capture | Mean | Worst p95 | Within 15° | Worst eclipse exit | Generation mean / worst trial | Coils |
+|------|---------------|-----------------|------|-----------|------------|--------------------|-------------------------------|-------|
+| M-G370PDT0 | 0 | 1.2 h | 4.0° | 10.3° | 99.6 % | 33° | 4.64 / 4.48 W | 29 mW |
+| BMI088, calibrated (0.1°/s) | 0 | 1.7 h | 4.0° | 10.2° | 99.6 % | 34° | 4.64 / 4.48 W | 29 mW |
+| BMI088, bias 0.2°/s | 0 | 2.4 h | 4.5° | 15.0° | 99.5 % | 36° | 4.64 / 4.47 W | 29 mW |
+| BMI088, bias 0.3°/s | 0 (3 timeouts) | 14.2 h | 9.0° | 160° | 94.5 % | 156° | 4.54 / 2.77 W | 28 mW |
+| BMI088, bias 0.5°/s | 0 (12 timeouts) | 41.9 h | 30° | 165° | 70 % | 172° | 4.08 / 2.52 W | 23 mW |
+| BMI088 uncalibrated (1°/s) | 2 (30 timeouts) | — | 69° | 165° | 24 % | 178° | 3.24 / 2.35 W | 10 mW |
+| No gyro (magnetometer rate, k_n 1·10⁻⁴) | 0 | 1.2 h | 17° | 47° | 47 % | 48° | 4.42 / 4.12 W | 18 mW |
+| Tip-off σ 3.33°/s (dispenser) | 0 | 1.0 h | 4.1° | 10.3° | 99.6 % | 33° | 4.64 / 4.48 W | 29 mW |
+| Tip-off σ 10°/s, up to 30°/s | 0 | 1.8 h | 4.1° | 10.6° | 99.6 % | 34° | 4.64 / 4.49 W | 29 mW |
+| Tip-off σ 30°/s, up to 50°/s | 0 | 2.1 h | 4.1° | 10.3° | 99.6 % | 33° | 4.64 / 4.49 W | 29 mW |
+| Residual dipole 10 mA·m² | 0 | 3.2 h | 6.1° | 20.6° | 97.3 % | 51° | 4.62 / 4.46 W | 29 mW |
+| Residual dipole 20 mA·m² | 0 (4 timeouts) | 10.2 h | 10.5° | 45° | 78 % | 69° | 4.56 / 4.20 W | 29 mW |
+| Residual dipole 50 mA·m² | 0 (21 timeouts) | 32.6 h | 36° | 170° | 33 % | 166° | 3.96 / 2.59 W | 31 mW |
+| Magnetometer 200 nT, sun sensors 10° | 0 | 1.2 h | 4.1° | 9.8° | 99.6 % | 35° | 4.64 / 4.49 W | 29 mW |
+| Iyy/Izz 1.000 | 0 | 1.2 h | 6.9° | 70° | 93 % | 93° | 4.58 / 4.37 W | 32 mW |
+| Iyy/Izz 1.050 | 0 | 1.3 h | 3.8° | 9.2° | 99.8 % | 25° | 4.64 / 4.49 W | 27 mW |
+| MASS_BUDGET CBE tensor | 0 | 1.6 h | 4.0° | 9.9° | 99.8 % | 31° | 4.64 / 4.49 W | 27 mW |
+| MASS_BUDGET MEV tensor | 0 | 1.2 h | 4.0° | 10.0° | 100 % | 31° | 4.64 / 4.49 W | 29 mW |
+| Coupling 0 / 3·10⁻⁴ T per A·m² | 0 | 1.2 h | 4.0° | 10.3° | 99.6 % | 32° | 4.64 / 4.48 W | 29 mW |
+| Coils on through the sample, software unaware (gyro) | 0 | 1.2 h | 4.2° | 11.3° | 99.6 % | 35° | 4.64 / 4.48 W | 29 mW |
+| Same, no gyro | 0 (27 timeouts) | 5.1 h | 72° | 163° | 9 % | 177° | 3.08 / 2.31 W | 126 mW |
+
+*One wing (STR-27).* Generation is the measure; with one wing the +Y angle and the generation disagree because the
+remaining wing is off the centre line:
+
+| Deployed | Preset | Mean (+Y) | Within 15° | Generation mean / worst | Rate across the axis | Coils |
+|----------|--------|-----------|------------|-------------------------|----------------------|-------|
+| W1 only | 0 (+Y) | 10.2° | 89 % | 3.09 / 2.99 W | 1.82°/s | 62 mW |
+| W1 only | **1** | 12.9° | 93 % | **3.23 / 3.11 W** | 0.15°/s | 5 mW |
+| W2 only | 0 (+Y) | 6.4° | 99.5 % | 3.12 / 3.02 W | 1.68°/s | 47 mW |
+| W2 only | **2** | 13.3° | 86 % | **3.17 / 3.04 W** | 0.16°/s | 5 mW |
+| None | 0 (+Y) | 2.7° | 100 % | 1.62 / 1.57 W | 0.71°/s | 16 mW |
+| None | 3 | 6.3° | 100 % | 1.61 / 1.56 W | 0.15°/s | 4 mW |
+
+Every one-wing case captures (slowest 1.3 h) and stays spin-stabilized with either preset. The matching preset gives
+1.6–4.7 % more power and a tenth of the coil power, because it spins about the principal axis; with no wings the
+default is as good. The ground should send the matching preset after a confirmed one-wing deployment.
+
+### 11.5 Limits and Open Items
+
+- Rigid body; the 2 m tape elements are flexible (first mode not known) and the wings' hinge stiffness is not modelled.
+  At 8°/s the spin is below any plausible element mode, but the energy dissipation of flexible appendages drives a spin
+  about a non-major axis toward the major axis; the nutation damping must out-pull it. Open: a flexible-appendage case
+  once the AntS element properties are known (RID GNC-03).
+- CR0002 remanence and hysteresis are not modelled; the rod's recoil after the burst may need a settle longer than
+  50 ms. Measure on the EM; the window is a constant (`MAG_SETTLE_MS`).
+- The baseline (BASELINE §8) states 6°/s; the flight constant is now 8°/s. The chair updates the baseline.
+- The magnetometer, the sun-sensor ADC channels, the gyro SPI driver and the coil PWM driver do not exist in the
+  firmware (RID AV-03); the Monte Carlo runs the flight law against datasheet sensor models.
+
+---
+
 ## Appendix A: Coordinate Frames
 
 ### A.1 Body Frame
@@ -664,3 +816,4 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 | 1.2 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |
 | 1.3 | 2026-10-26 | SMART-QSO Team | From the mission simulation: detumble within 3 orbits (F001, P001, §5.3); spin-stabilized sun pointing of +Y (F002, §4.2.1, §5.1, App. A) |
 | 1.4 | 2026-10-26 | SMART-QSO Team | From the ADCS Monte Carlo (BUILD_VS_BUY §6): B-dot gain 10⁴ (§4.1); spin hold, 6°/s spin, nutation gain 10⁻⁴ and the capture criterion (§4.2.1, §5) |
+| 1.5 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §11 new: magnetometer window and coil burst, layout B full inertia tensor, geometry presets by telecommand, Monte Carlo re-run (8°/s, k_n 3·10⁻⁴ with gyro, 1·10⁻⁴ without; one-wing cases); §4.2.1 law with the full tensor; §3.2.1 magnetometer not selected; §3.3.1 CR0002 rods; §6.1 L293D unusable at 3.3 V |

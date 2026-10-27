@@ -164,7 +164,8 @@ pub const fn availability(command: Command) -> Availability {
         | C::CommissioningRelease
         | C::XpdrEnable
         | C::DeployRetry
-        | C::GnssRequest => Availability::Normal,
+        | C::GnssRequest
+        | C::AdcsSetGeometry => Availability::Normal,
     }
 }
 

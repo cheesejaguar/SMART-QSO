@@ -24,6 +24,7 @@
     {"name": "XPDR_ENABLE", "id": "0x34", "c_name": "CMD_COMM_XPDR_ENABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Allow the FM transponder (persisted); its power and duty gates still apply"},
     {"name": "XPDR_DISABLE", "id": "0x35", "c_name": "CMD_COMM_XPDR_DISABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Stop the FM transponder (persisted); beacon and telecommand unaffected"},
     {"name": "DEPLOY_RETRY", "id": "0x50", "c_name": "CMD_DEPLOY_RETRY", "min_args": 1, "max_args": 1, "key": "operational", "summary": "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)"},
-    {"name": "GNSS_REQUEST", "id": "0x60", "c_name": "CMD_GNSS_REQUEST", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Start a GNSS receiver session now (its power gates still apply)"}
+    {"name": "GNSS_REQUEST", "id": "0x60", "c_name": "CMD_GNSS_REQUEST", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Start a GNSS receiver session now (its power gates still apply)"},
+    {"name": "ADCS_SET_GEOMETRY", "id": "0x24", "c_name": "CMD_ADCS_SET_GEOMETRY", "min_args": 1, "max_args": 1, "key": "operational", "summary": "Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing"}
   ]
 }

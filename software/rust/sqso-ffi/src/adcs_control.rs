@@ -176,6 +176,19 @@ pub unsafe extern "C" fn adcs_get_telemetry(telemetry: *mut Telemetry) -> i32 {
     }
 }
 
+/// Use spin-axis and inertia preset `preset` (`Geometry::PRESETS`); `INVALID`
+/// for one that does not exist
+pub fn set_geometry(preset: u8) -> i32 {
+    let Some(g) = sqso_fsw::adcs::Geometry::preset(preset) else { return rc::INVALID };
+    match ADCS.with(|m| m.adcs.geometry = g) {
+        Some(()) => {
+            c::console(format_args!("[ADCS] Geometry preset {preset}"));
+            rc::OK
+        }
+        None => rc::BUSY,
+    }
+}
+
 /// Magnetometer samples rejected since init (coils on or not settled)
 pub fn mag_rejected() -> u32 {
     ADCS.with(|m| m.adcs.mag_rejected).unwrap_or(0)

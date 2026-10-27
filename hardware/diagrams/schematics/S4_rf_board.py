@@ -1,133 +1,119 @@
-"""S4 RF board: UHF receive chain, KISS TNC, transponder path, VHF exciter, PA, coupler, 7-pole LPF, monitors."""
+"""S4 RF board (version 2, 2026-10-27): the build-to design of SQSO-RF-BRD-001, drawn at block level.
+
+The netlist of record is hardware/electrical/rf/design.py (SKiDL) and its rf_board.net; this sheet shows the same
+parts and net names so that the harness drawings (W4 v2, W10 v2) and the board design read together.
+"""
 
 import schemdraw.elements as elm
 
 import sch
 
 d = sch.drawing("S4_rf_board")
-sch.title(d, (-4, 6.5), "S4", "RF board",
-          "Sources: hardware/rf/TRANSMITTER_DESIGN.md 7.2-7.3 (LPF), 8 (monitors), 10.1 (OBC interface); "
-          "hardware/rf/RF_ELECTRICAL_DESIGN.md (LNA); docs/hardware/PARTS_LIST.md (SAW); BASELINE 7")
+sch.title(d, (-4, 7.0), "S4", "RF board v2 (SQSO-RF-BRD-001)",
+          "Netlist of record: hardware/electrical/rf/design.py (SKiDL) -> rf_board.net, BOM, ERC log; "
+          "calculations: rf_calcs.py; BASELINE 7")
 
+# ---------------------------------------------------------------- receive chain (top row)
+y = 3.0
+d += elm.Antenna().at((-3.5, y + 0.6)).label("70 cm pair\n+Y / -Y (AntS)", loc="left", fontsize=7)
+bal_u = sch.ic("L101/C101/C102/L102\nlattice balun\n(J5, J6)", left=["A", "B"], right=["SE"])
+d += bal_u.at((-2.5, y)).anchor("A")
+fl1 = sch.ic("FL1 7th-order HPF\n3 traps 143.5-146.5 MHz\n0.70 dB, >= 60 dB at 144-146", left=["IN"], right=["OUT"])
+d += fl1.at((bal_u.SE[0] + 1.2, bal_u.SE[1])).anchor("IN")
+d += elm.Line().at(bal_u.SE).to(fl1.IN)
+lna = sch.ic("Q201 BFP640F LNA\n6 mA, NF 0.8 dB, 18 dB", left=["IN"], right=["OUT"], top=["VCC"])
+d += lna.at((fl1.OUT[0] + 1.2, fl1.OUT[1])).anchor("IN")
+d += elm.Line().at(fl1.OUT).to(lna.IN)
+saw = sch.ic("U201 SAW TA2209A\n433-437 MHz", left=["IN"], right=["OUT"])
+d += saw.at((lna.OUT[0] + 1.2, lna.OUT[1])).anchor("IN")
+d += elm.Line().at(lna.OUT).to(saw.IN)
+cc = sch.ic("U202 CC1200 (RX only)\nCFM analog-FM soft output\n12.5 kS/s over SPI", left=["LNA_P"],
+            right=["SPI", "CFMCLK"], top=["EXT_XOSC"])
+d += cc.at((saw.OUT[0] + 1.2, saw.OUT[1])).anchor("LNA_P")
+d += elm.Line().at(saw.OUT).to(cc.LNA_P)
+sch.flag(d, cc.SPI, "SPI1", "right", 0.6)
+sch.flag(d, cc.CFMCLK, "CC_CFMCLK", "right", 0.6)
+tcxo = sch.ic("Y301 TCXO 40 MHz\n+-0.5 ppm, -40..85 C", right=["OUT"])
+d += tcxo.at((cc.EXT_XOSC[0] - 4.5, cc.EXT_XOSC[1] + 1.6)).anchor("OUT")
+d += elm.Wire("-|").at(tcxo.OUT).to(cc.EXT_XOSC)
+sch.note(d, (tcxo.OUT[0] - 4.0, tcxo.OUT[1] - 1.0), "also to the squarer U301 -> LMX2571 OSCin, PCM1808 SCKI "
+         "(PA domain)", fontsize=7)
 
-def supply(u, pin, net):
-    d.add(elm.Line().at(sch.pin(u, pin)).up().length(0.5))
-    d.add(elm.Vdd().label(net, fontsize=7))
+# ---------------------------------------------------------------- TNC and key logic (middle row)
+ym = -2.2
+mcu = sch.ic("U310 STM32L431 KISS TNC\nAFSK 1200 modem, HDLC, KISS\nconfigures CC1200/CMX138A/LMX2571",
+             left=["SPI1", "CFMCLK", "IRQN"], right=["USART2", "DAC1", "DAC2", "TONE_OK", "TNC_PTT"])
+d += mcu.at((0, ym)).anchor("SPI1")
+for p_, n_ in (("SPI1", "SPI1"), ("CFMCLK", "CC_CFMCLK"), ("IRQN", "CMX_IRQN")):
+    sch.flag(d, sch.pin(mcu, p_), n_, "left", 0.6)
+sch.flag(d, mcu.USART2, "USART2 9600 (J1-2/3)", "right", 0.6)
+sch.flag(d, mcu.DAC1, "TNC_AF", "right", 0.6)
+sch.flag(d, mcu.DAC2, "RPT_AF_RAW", "right", 0.6)
+sch.flag(d, mcu.TONE_OK, "TONE_OK", "right", 0.6)
+sch.flag(d, mcu.TNC_PTT, "TNC_PTT", "right", 0.6)
 
+cmx = sch.ic("U452 CMX138A\nCTCSS 67.0 Hz decode,\n300-3000 Hz, level limit", left=["DISC"], right=["AUDIO", "IRQN"])
+d += cmx.at((16.0, ym + 0.8)).anchor("DISC")
+sch.flag(d, cmx.DISC, "RPT_AF_RAW (4 kHz LPF)", "left", 0.6)
+sch.flag(d, cmx.IRQN, "CMX_IRQN", "right", 0.6)
+sch.flag(d, cmx.AUDIO, "RPT_AF_AC", "right", 0.6)
 
-# ---- receive: antenna, SAW, LNA, receiver
-d += (ant := elm.Antenna().at((0, 0)).label("70 cm λ/4\nmonopole", loc="left", fontsize=7))
-d += elm.Line().at((0, 0)).down().length(0.6)
-d += elm.Line().right().length(0.6)
-d += elm.Label().label("J2 SMA (W10)", loc="top", fontsize=7)
-p = (1.2, -0.6)
-saw = sch.ic("U1 SAW\nSF2098B\n435 MHz (TBR)", left=["IN"], right=["OUT"], bottom=["GND"])
-d += saw.at((p[0] + 0.6, p[1])).anchor("IN")
-d += elm.Line().at(p).to(saw.IN)
-d += elm.Ground().at(saw.GND)
-lna = sch.ic("U2 LNA BGA725\n(alt. SPF5189Z)", left=["RFIN"], right=["RFOUT"], top=["VCC"], bottom=["GND"])
-d += lna.at((saw.OUT[0] + 1.4, saw.OUT[1])).anchor("RFIN")
-d += elm.Line().at(saw.OUT).to(lna.RFIN)
-supply(lna, "VCC", "RADIO_3V3")
-d += elm.Ground().at(lna.GND)
-rx = sch.ic("U3 UHF FM receiver (TBD)\n435-438 MHz, always on", left=["RF_IN"], right=["SQL", "AF_OUT"],
-            top=["VCC"], bottom=["GND"], tbd=True)
-d += rx.at((lna.RFOUT[0] + 1.4, lna.RFOUT[1])).anchor("RF_IN")
-d += elm.Line().at(lna.RFOUT).to(rx.RF_IN)
-supply(rx, "VCC", "RADIO_3V3")
-d += elm.Ground().at(rx.GND)
+mono = sch.ic("U401 LVC1G123\nretriggerable 49.7 ms", left=["B"], right=["Q"])
+d += mono.at((0, ym - 5.0)).anchor("B")
+sch.flag(d, mono.B, "XPDR_EN (J1-6, 100 k pull-down)", "left", 0.6)
+sch.flag(d, mono.Q, "EN_OK", "right", 0.6)
+tot = sch.ic("U403 HC4060 + D401\n120 s key-down timer\nreset = NOT TONE_OK", left=["MR"], right=["Q14"])
+d += tot.at((0, ym - 8.5)).anchor("MR")
+sch.flag(d, tot.MR, "TONE_N", "left", 0.6)
+sch.flag(d, tot.Q14, "NOT_TOT (via U402)", "right", 0.6)
+and3 = sch.ic("U404 LVC1G11\nXPDR_KEY = EN_OK.TONE_OK.NOT_TOT", left=["A", "B", "C"], right=["Y"])
+d += and3.at((10.5, ym - 6.5)).anchor("B")
+for p_, n_ in (("A", "EN_OK"), ("B", "TONE_OK"), ("C", "NOT_TOT")):
+    sch.flag(d, sch.pin(and3, p_), n_, "left", 0.6)
+sch.flag(d, and3.Y, "XPDR_KEY", "right", 0.6)
+gate = sch.ic("U405 OR + U406 AND\nPTT_EXCITER = TX_PERMIT_HW .\n(TNC_PTT + XPDR_KEY)",
+              left=["TNC_PTT", "XPDR_KEY", "PERMIT"], right=["PTT_EXC"])
+d += gate.at((23.0, ym - 6.5)).anchor("XPDR_KEY")
+for p_, n_ in (("TNC_PTT", "TNC_PTT"), ("XPDR_KEY", "XPDR_KEY"), ("PERMIT", "TX_PERMIT_HW")):
+    sch.flag(d, sch.pin(gate, p_), n_, "left", 0.6)
+sch.flag(d, gate.PTT_EXC, "PTT_EXC", "right", 0.6)
+sch.note(d, (10.5, ym - 9.5), "Readbacks to OBC inputs through 1 k: TONE_OK (J1-8), XPDR_KEY (J1-9), PTT_EXCITER (J1-10); "
+         "STM32 pins allocated by the OBC designer (RID RF-21)\nTX_PERMIT_HW = PA_5V present (U804 Schmitt); a second, "
+         "independent divider enables U805, the switch that powers the LMX2571", fontsize=7)
 
-# ---- baseband: TNC and transponder / arbiter
-tnc = sch.ic("U4 KISS TNC (TBD)\n1200 bps AFSK, full duplex\nadds FCS, modulates, keys",
-             left=["PTT", "TX_AF", "RX_AF"], right=["TXD", "RXD"], top=["VCC"], bottom=["GND"], tbd=True)
-d += tnc.at((rx.AF_OUT[0] + 4.5, rx.AF_OUT[1] + 0.8)).anchor("RX_AF")
-sch.flag(d, rx.AF_OUT, "RX_AF", "right", 0.6)
-sch.flag(d, rx.SQL, "RX_SQL", "right", 0.6)
-sch.flag(d, tnc.RX_AF, "RX_AF", "left", 0.6)
-sch.flag(d, tnc.TX_AF, "TNC_AF", "left", 0.6)
-sch.flag(d, tnc.PTT, "TNC_PTT", "left", 0.6)
-supply(tnc, "VCC", "RADIO_3V3")
-d += elm.Ground().at(tnc.GND)
-sch.flag(d, tnc.TXD, "USART2_RX (PD6)", "right", 0.6)
-sch.flag(d, tnc.RXD, "USART2_TX (PD5)", "right", 0.6)
+mux = sch.ic("U453 mute (XPDR_KEY)\nU454 2:1 select (TNC_PTT)", left=["RPT", "TNC"], right=["OUT"])
+d += mux.at((28.0, ym)).anchor("RPT")
+sch.flag(d, mux.RPT, "RPT_AF_AC", "left", 0.6)
+sch.flag(d, mux.TNC, "TNC_AF", "left", 0.6)
+sch.flag(d, mux.OUT, "TX_AUDIO", "right", 0.6)
 
-arb = sch.ic("U5 transponder audio path\n+ TX audio / PTT arbiter (TBD)\nno control line defined (finding F11)",
-             left=["SQL", "RX_AF", "TNC_AF", "TNC_PTT"], right=["PTT", "MOD_AF"], tbd=True)
-d += arb.at((tnc.PTT[0], tnc.PTT[1] - 5.0)).anchor("TNC_PTT")
-for a, net in (("SQL", "RX_SQL"), ("RX_AF", "RX_AF"), ("TNC_AF", "TNC_AF"), ("TNC_PTT", "TNC_PTT")):
-    sch.flag(d, sch.pin(arb, a), net, "left", 0.6)
-sch.flag(d, arb.MOD_AF, "MOD_AF", "right", 0.6)
-sch.flag(d, arb.PTT, "TX_PTT", "right", 0.6)
-
-# ---- transmit: exciter, PA, coupler, LPF, antenna
-yt = arb.MOD_AF[1] - 6.0
-exc = sch.ic("U6 VHF FM exciter (TBD)\nDRA818V / TX2M or eq.", left=["PTT", "MOD_AF"], right=["RF_OUT"],
-             top=["VCC"], bottom=["GND"], tbd=True)
-d += exc.at((2, yt)).anchor("MOD_AF")
-sch.flag(d, exc.MOD_AF, "MOD_AF", "left", 0.6)
-sch.flag(d, exc.PTT, "TX_PTT", "left", 0.6)
-supply(exc, "VCC", "RADIO_3V3")
-d += elm.Ground().at(exc.GND)
-
-pa = sch.ic("U7 PA (TBD)\n0.5 W nom / 1 W max", left=["PWR_SEL", "RF_IN"], right=["RF_OUT"], top=["VCC"],
-            bottom=["GND"], tbd=True)
-d += pa.at((exc.RF_OUT[0] + 5.0, exc.RF_OUT[1])).anchor("RF_IN")
-d += elm.Line().at(exc.RF_OUT).to(pa.RF_IN)
-supply(pa, "VCC", "PA_5V (SW3)")
-d += elm.Ground().at(pa.GND)
-sch.flag(d, pa.PWR_SEL, "TX_PWR_SEL (PE3)", "left", 0.6)
-
-cpl = sch.ic("U8 directional\ncoupler -20 dB", left=["IN"], right=["OUT"], bottom=["FWD", "REV"])
-d += cpl.at((pa.RF_OUT[0] + 1.4, pa.RF_OUT[1])).anchor("IN")
-d += elm.Line().at(pa.RF_OUT).to(cpl.IN)
-
-# 7-pole LPF, TRANSMITTER_DESIGN 7.3 values
-d += elm.Line().at(cpl.OUT).right().length(0.6)
-for i, (lv, cv) in enumerate([("47 nH", "33 pF"), ("82 nH", "47 pF"), ("82 nH", "33 pF"), ("47 nH", None)]):
-    d += elm.Inductor2(loops=3).right().length(1.6).label(f"L{i + 1}\n{lv}", loc="top", fontsize=7)
-    if cv:
-        d += (n := elm.Dot())
-        d += elm.Capacitor().at(n.center).down().length(1.2).label(f"C{i + 1}\n{cv}", loc="right", fontsize=7)
-        d += elm.Ground()
-        d += elm.Line().at(n.center).right().length(0.01)
-d += elm.Line().right().length(0.8)
-d += (j1 := elm.Dot().label("J1 SMA (W10)", loc="bottom", fontsize=7))
-d += elm.Line().up().length(0.6)
-d += elm.Antenna().label("2 m λ/4\nmonopole", loc="right", fontsize=7)
-sch.note(d, (cpl.OUT[0] + 0.6, cpl.OUT[1] + 2.4),
-         "7-pole LPF, f_c 160 MHz: TRANSMITTER_DESIGN 7.3 values. Ideal-part ABCD check:\n"
-         "-0.1 dB at 145.9 MHz, -50 dB at 2f, -77 dB at 3f; meets 7.2 (> 50 / > 60 dB) and the BASELINE\n"
-         "3rd-harmonic target. Values are not the textbook 0.5 dB Chebyshev prototype; confirm by EM test (TBR).",
+# ---------------------------------------------------------------- transmit chain (bottom row)
+yt = ym - 15.0
+adc = sch.ic("U501 PCM1808\n512 fs, I2S\nFS = +-6.3 kHz", left=["VINL"], right=["I2S"])
+d += adc.at((0, yt)).anchor("VINL")
+sch.flag(d, adc.VINL, "TX_AUDIO", "left", 0.6)
+lmx = sch.ic("U502 LMX2571\n145.9 MHz, FSK I2S (analog FM)\nCE = PTT_EXC", left=["I2S"], right=["RFOUT"], top=["CE"])
+d += lmx.at((adc.I2S[0] + 1.4, adc.I2S[1])).anchor("I2S")
+d += elm.Line().at(adc.I2S).to(lmx.I2S)
+pa = sch.ic("Q601 RD01MUS3 (5 V)\n2-stage, APC on gate bias\n0.5 W / 1 W", left=["IN"], right=["OUT"], top=["VDD"])
+d += pa.at((lmx.RFOUT[0] + 1.4, lmx.RFOUT[1])).anchor("IN")
+d += elm.Line().at(lmx.RFOUT).to(pa.IN)
+sch.flag(d, pa.VDD, "PA_5V (SW3: RF_TX_EN)", "up", 0.5)
+lpf = sch.ic("match + elliptic LPF\n2f >= 65.5 dB, 3f >= 88.2 dB\n(worst of 3000, LPF alone)", left=["IN"], right=["OUT"])
+d += lpf.at((pa.OUT[0] + 1.4, pa.OUT[1])).anchor("IN")
+d += elm.Line().at(pa.OUT).to(lpf.IN)
+cpl = sch.ic("CPL601 sense line\nU701/U711 AD8361", left=["IN"], right=["OUT"], bottom=["FWD", "REV"])
+d += cpl.at((lpf.OUT[0] + 1.4, lpf.OUT[1])).anchor("IN")
+d += elm.Line().at(lpf.OUT).to(cpl.IN)
+sch.flag(d, cpl.FWD, "TX_FWD", "down", 0.6)
+sch.flag(d, cpl.REV, "TX_REV", "down", 0.6)
+balv = sch.ic("L610/C621/C622/L611\nlattice balun (J3, J4)", left=["SE"], right=["A", "B"])
+d += balv.at((cpl.OUT[0] + 1.4, cpl.OUT[1])).anchor("SE")
+d += elm.Line().at(cpl.OUT).to(balv.SE)
+d += elm.Antenna().at((balv.A[0] + 1.0, balv.A[1] + 0.6)).label("2 m pair\n+X / -X (AntS)", loc="right", fontsize=7)
+sch.note(d, (0, yt - 2.6), "PA domain (unpowered unless SW3/RF_TX_EN): PCM1808, squarer, detectors, APC, PA. "
+         "LMX2571 on a switch enabled by PA_5V presence. TX_TEMP: TMP235 on the PA pad (always powered).\n"
+         "TX-OFF removes the PA supply and, through TX_PERMIT_HW, the exciter's power and CE: two hardware paths.",
          fontsize=7)
-
-# ---- monitors
-def detector(x, y, ref, tap, net, pin):
-    u = sch.ic(f"{ref} AD8361 or eq.\nRMS detector", left=["RFIN"], right=["VRMS"], top=["VPOS"], bottom=["COM"])
-    d.add(u.at((x, y)).anchor("RFIN"))
-    d.add(elm.Wire("|-").at(tap).to(u.RFIN))
-    supply(u, "VPOS", "RADIO_3V3")
-    d.add(elm.Ground().at(u.COM))
-    d.add(elm.Resistor().at(u.VRMS).right().length(1.4).label("1k", loc="top", fontsize=7))
-    d.add(n := elm.Dot())
-    d.add(elm.Capacitor().at(n.center).down().length(1.0).label("100 nF", loc="right", fontsize=7))
-    d.add(elm.Ground())
-    sch.flag(d, n.center, f"{net} ({pin})", "right", 0.6)
-
-
-detector(cpl.FWD[0] + 1.0, yt - 4.5, "U9", cpl.FWD, "TX_FWD", "PC0")
-detector(cpl.REV[0] + 1.0, yt - 8.5, "U10", cpl.REV, "TX_REV", "PC1")
-sch.note(d, (cpl.OUT[0] + 7.5, yt - 3.2), "Coupled ports through 50 Ohm pads (TBR);\n0-3 V out, 2.5 V at 1 W (adc.rs)\n"
-         "VSWR > 3:1: 0.5 W, then off 10 min", fontsize=7)
-
-tmp = sch.ic("U11 TMP36 on the PA\n10 mV/C, 0.5 V at 0 C", left=["+VS"], right=["VOUT"], bottom=["GND"])
-d += tmp.at((0, yt - 6.5)).anchor("VS")
-sch.flag(d, tmp.VS, "RADIO_3V3", "left", 0.6)
-d += elm.Ground().at(tmp.GND)
-d += elm.Resistor().at(tmp.VOUT).right().length(1.4).label("1k", loc="top", fontsize=7)
-d += (n := elm.Dot())
-d += elm.Capacitor().at(n.center).down().length(1.0).label("100 nF", loc="right", fontsize=7)
-d += elm.Ground()
-sch.flag(d, n.center, "TX_TEMP (PA0)", "right", 0.6)
-sch.note(d, (0, yt - 9.0), "> 70 C: downlink held until 60 C", fontsize=7)
 
 d.save(sch.out_path("S4_rf_board"))

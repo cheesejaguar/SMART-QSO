@@ -389,6 +389,7 @@ fn dispatch(command: Command, cmd: &CmdCommand, response: &mut CmdResponse) -> u
             crate::executive::request_gnss_session();
             result::SUCCESS
         }
+        Command::AdcsSetGeometry => ok_invalid_or_fail(crate::ops_state::ops_set_adcs_geometry(cmd.payload[0])),
     }
 }
 

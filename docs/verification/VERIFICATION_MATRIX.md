@@ -293,6 +293,29 @@ current.
 | SRS-F071 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
 | SRS-F072 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
 | SRS-F073 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F080 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F081 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F082 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F083 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F084 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F085 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F086 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F087 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F088 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F089 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F090 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F091 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F092 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F093 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F094 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F100 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F101 | T, I | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F102 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F103 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F104 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F105 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F106 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F107 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-P001 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
 | SRS-P002 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
 | SRS-P003 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
@@ -331,24 +354,24 @@ current.
 | SRS-S003 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; fault injection on the target | Not verified |
 | SRS-S004 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; fault injection on the target | Partial (CI) |
 | SRS-S005 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; fault injection on the target | Partial (CI) |
-| SRS-C001 | I,A* | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C002 | I,A* | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C003 | I,A* | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C004 | I,A* | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C010 | I,A* | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C011 | I,A* | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C012 | I,A* | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C001 | I (build configuration; CI toolchain pin) | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C002 | T (ctest `no_dynamic_memory`; CI symbol check of the image) | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C003 | A (`scripts/stack_usage.py` on the image, CI gate), T (HIL-044, MPU guard) | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C004 | I (`arm-none-eabi-size` of the release image at each release) | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C010 | I (`docs/BEACON_SPEC.md` §6 against 47 CFR 97), T (content-filter vectors) | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C011 | T (C suites `test_rf_silence`, `test_downlink`; SIL check `rf-silence`) | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C012 | T (C suites `test_beacon_format`, `test_downlink`), I | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
 
 ### 3.4 Planned events
 
 | Code | Event | Planned date | Requirements |
 |------|-------|--------------|--------------|
-| CI | Flight-software tests in CI (host) | continuous | 123 |
+| CI | Flight-software tests in CI (host) | continuous | 146 |
 | SIL | Mission simulation, software in the loop (sqso-sil) | 2026-11 to 2027-01 | 6 |
 | PDR | Analysis or inspection presented at the PDR | 2027-01-12 | 8 |
 | REG | Regulatory filing or coordination record | 2027-01 to 2028-01 | 10 |
 | CON | Launch contract and integrator ICD | 2027-05-31 | 8 |
-| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-04 to 2027-06 | 109 |
+| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-04 to 2027-06 | 132 |
 | EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-06 to 2027-08 | 12 |
 | CDR | Analysis or inspection presented at the CDR | 2027-08-03 | 52 |
 | FMI | FM integration and comprehensive functional (TP-INT, TP-SYS-001) | 2027-11 to 2028-01 | 50 |
@@ -361,10 +384,10 @@ current.
 
 | Status | Requirements |
 |--------|--------------|
-| Not verified | 224 |
-| Partial (CI) | 57 |
+| Not verified | 244 |
+| Partial (CI) | 60 |
 | Deleted | 1 |
-| **Total** | **282** |
+| **Total** | **305** |
 
 Methods: A analysis, D demonstration, I inspection, T test, V validation (mission objectives, judged against the success criteria). A method marked * is proposed here because the specification gives none.
 <!-- vcrm:end -->

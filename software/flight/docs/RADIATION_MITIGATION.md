@@ -2,11 +2,16 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-RAD-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-27
 **Reference:** NASA-HDBK-4002A
 
 ---
+
+> **Revision B status note.** Sections 2 to 10 are the January 2026 design intent for a C flight software and the ISS
+> orbit. They are **not** the as-built design. The environment, the rates and the as-built mitigation status are in
+> `docs/environment/RADIATION_ANALYSIS.md` Revision C (§4 to §7) and summarised in §11 below. Where the two disagree,
+> §11 and the radiation analysis govern.
 
 ## 1. Purpose
 
@@ -343,6 +348,22 @@ typedef struct __attribute__((packed)) {
 | Proton SEU rate | SAA passage events |
 | Latchup threshold | Current trip events |
 
+## 11. As-built Status (Revision B, 2026-10-27)
+
+| Rev A mitigation | Section | As built in the Rust flight software | Status |
+|------------------|---------|--------------------------------------|--------|
+| SRAM EDAC / parity on critical data | 3.1 | Not configured. The STM32L4R5's SRAM2 has hardware parity, but the live state is not placed there and no parity-error handler (NMI) is written | Open, RID AV-07 |
+| TMR of critical variables | 3.2 | Not implemented. The critical states (TX-OFF, RF silence, deployment, commissioning hold) are persisted in FRAM records with CRC and two slots, and re-read at every boot | Tailored: persistence plus reboot instead of TMR; open for live state between boots (AV-07) |
+| Memory scrubbing | 3.3 | Not implemented | Not needed for FRAM; for SRAM, part of AV-07 |
+| Flash ECC, image CRC | 4.1–4.3 | Flash ECC corrects single-bit errors in hardware; no ECC-error handler and no periodic image CRC check | Open (AV-07) |
+| Multi-level watchdog | 5 | IWDG 30 s, refreshed only when every stage of the pass has checked in (`software/rust/sqso-ffi/src/watchdog_mgr.rs`); no window watchdog, no external supervisor | Implemented; external supervisor open (AV-02) |
+| Safe mode | 6 | Mode manager with SAFE and EMERGENCY (`software/rust/sqso-ffi/src/state_machine.rs`) | Implemented |
+| SAA handling | 7 | Not implemented | Not needed: the upset rates of RADIATION_ANALYSIS §5 do not justify it |
+| Latch-up current monitoring | 8 | Software guard on the Jetson rail only (`payload_guard`, 12 W single sample); hardware eFuse on the Jetson carrier (EPS design); the GNSS receiver is powered only for sessions of ≤ 5 min; no trip specified for the OBC, radio and sensor rails | Partial (AV-03, AV-04, AV-08) |
+| Command validation | 9.2 | HMAC-SHA-256 authentication with a persisted replay counter (`cmd_auth`), length and range checks per command, a checksum on the frame | Implemented (stronger than Rev A's CRC and sequence number) |
+| Receiver SEFI recovery | — | Not implemented | Open, RID FSW-09 |
+| Fault-injection tests | 10.1 | Host tests of every persisted record's corruption (C suites); no RAM bit-flip injection on target | Open (RADIATION_ANALYSIS RAD-V6) |
+
 ---
 
 ## Revision History
@@ -350,3 +371,4 @@ typedef struct __attribute__((packed)) {
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | Status note: §2–§10 are Rev A design intent, not as built; §11 as-built status of each mitigation against the Rust flight software and `docs/environment/RADIATION_ANALYSIS.md` Rev C (RIDs AV-02, AV-03, AV-04, AV-07, AV-08, FSW-09) | SMART-QSO Team (CDR avionics review) |

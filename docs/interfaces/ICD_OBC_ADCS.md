@@ -1,8 +1,8 @@
 # Interface Control Document: OBC to ADCS Subsystem
 
 **Document ID**: SQSO-ICD-004
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
 
@@ -343,8 +343,73 @@ SUN POINTING ALGORITHM
 | Sun pointing | Error <30° |
 | Sensor noise | <0.5°/s gyro, <100 nT mag |
 
-## 12. Revision History
+## 12. CDR Update (2026-10-27): Interfaces as Designed and as Built
+
+Sections 4 to 11 are the 2026-01 interface. They name a LIS3MDL magnetometer and an LSM6DS3 gyro, while
+`docs/hardware/ADCS_DESIGN.md` names an HMC5883L and the baseline (BASELINE §8, decision D9) the Epson M-G370PDT0 with a
+Bosch BMI088 backup. Where they disagree, this section and the baseline govern.
+
+### 12.1 Interface Status
+
+Pins are the firmware's provisional map (`software/rust/firmware/src/`), to be fixed by the OBC schematic.
+
+| Interface | Bus / pins | Part | Driver (firmware) | Flight software | Status |
+|-----------|-----------|------|-------------------|-----------------|--------|
+| Gyro, primary | SPI3 (PC10 SCK / PC11 MISO / PC12 MOSI, CS PD1; `hal_spi` bus 1), DRDY to an EXTI pin (open), RESET (open) | Epson M-G370PDT0, 3.3 V, SPI mode 3 ≤ 1 MHz, burst read of the 16-bit rate words | none (generic `hal_spi` only) | `adcs_control` takes the rate as `Option<Vec3>`; the simulated HAL supplies it | **Driver and pins open** (RID AV-03) |
+| Gyro, backup | SPI3 second chip select, or I2C bus 1 (address 0x68/0x69 gyro, 0x18/0x19 accelerometer) | Bosch BMI088 | none | as above; the calibrated-bias assumption (≤ 0.1°/s) is in the Monte Carlo | **Open** (AV-03) |
+| Magnetometer | I2C4 (PD12 SCL / PD13 SDA; `hal_i2c` bus 1) | not selected (ADCS_DESIGN §3.2.1) | none | `adcs_control` takes the field; sampled in the coils-off window (§12.2) | **Part, driver and address open** (AV-03, GNC-04) |
+| Coarse sun sensors (6) | ADC1, six channels | photodiodes | no channels assigned in `adc.rs` (the nine assigned channels are EPS and transmitter monitors) | `adcs_control` takes the sun vector | **Channels open**: ADC1 has free inputs, or an external I2C ADC (AV-03) |
+| Magnetorquers (3) | three PWM outputs and three direction lines, on a timer that ends each burst by itself (§12.2) | CR0002 rods (STR-01), DRV8833 class driver | none | `MtqCommand` (dipole, PWM, enable), the burst length | **Driver and pins open** (AV-03) |
+| ADCS rail | `ADCS_EN` (PB6) | load switch | GPIO | `eps_control` | built; shares sensors and coils (no separate sensor latch-up trip, RADIATION_ANALYSIS §5.4) |
+| Antenna (AntS) | I2C2 (PF1 SCL / PF0 SDA; `hal_i2c` bus 0), address 0x31 | ISIS AntS | generic `hal_i2c` | `sqso_fsw::ants`, `sqso_ffi::ants` (§12.3) | built against the published protocol; **confirm against the delivered ICD** (AV-V7) |
+| GNSS receiver | LPUART1 (PG7 TX / PG8 RX, 9600), `GNSS_EN` (PE5) | not selected | UART and GPIO | `gnss.rs` (NMEA GGA), `gnss_schedule.rs` | built; receiver and its rate open (OBC_DESIGN §13) |
+
+### 12.2 Coil and Magnetometer Timing
+
+| Item | Value | Owner |
+|------|-------|-------|
+| Control period | 1000 ms | flight software |
+| Coil burst | 900 ms from the command; **the driver's timer switches the coils off** at its end, whatever the software does next | firmware driver (open) |
+| Settling | 50 ms after the burst; the magnetometer sample is taken at 950–1000 ms | flight software (`CoilTiming::FLIGHT`) |
+| Sample rejected | taken inside the burst or the settling: not used, counted, first one logged | flight software |
+| Dipole command | law × 1000/900, saturated at 0.2 A·m² per axis | flight software |
+
+A magnetometer with its own data-ready must be configured for single-shot conversions triggered in the window, not
+continuous mode, so that no conversion straddles the burst's end.
+
+### 12.3 AntS Deployment over I2C (STR-16, LV-07)
+
+**Decision:** the antennas are deployed by the AntS's own controller on command over I2C; the OBC's former
+antenna-burn GPIO (`GPIO_PIN_ANTENNA_BURN`, PB9) is unused and held low. Reasons: the AntS is bought with its
+controller and redundant release (BUILD_VS_BUY §2.6); its per-element switches give four deployment readbacks instead
+of one sense line; and the inhibits are then on the AntS supply, in hardware.
+
+| Item | Value |
+|------|-------|
+| Address | 0x31 (side A; side B 0x32 not used) |
+| Sequence | after both wings (SRS-F089): ARM (0xAD), automatic deployment (0xA5, 10 s per element), then STATUS (0xC3) polled; on completion or the attempt limit: CANCEL (0xA9), DISARM (0xAC) |
+| Status word | two bytes, low first; element n (1–4): not deployed at bit 15 − 4(n − 1), time limit reached one below, burning two below; bit 0 armed |
+| Deployed | all four "not deployed" bits clear; housekeeping `DEP` carries the four-bit deployed mask |
+| Retry | DEPLOY_RETRY 0 (antenna) after the 30-minute wait; attempts 50 minutes apart (SRS-F088) |
+| Inhibits | the AntS supply passes the separation switches and the RBF (three inhibits, CDS 2.3.8); the arm command is a fourth, software one |
+| No answer | the attempt counts as failed, and the next attempt is 50 minutes later; housekeeping shows `-` for the mask |
+
+### 12.4 Verification Items
+
+| ID | Item | Method | Pass |
+|----|------|--------|------|
+| AV-V1 | Gyro SPI read on the EM | Test | rate words match a rate table within the datasheet error |
+| AV-V2 | Magnetometer in the window | Test, scope on coil current and conversion trigger | every conversion starts ≥ 50 ms after the coil current is below 1 % |
+| AV-V3 | Coil driver ends its burst by itself | Test: halt the MCU mid-burst | coil current zero within 900 ms + 1 ms of the command |
+| AV-V4 | Coil-to-magnetometer coupling | Test, Helmholtz cage | measured coupling entered in the Monte Carlo; the 50 ms settle holds with the rods' recoil |
+| AV-V5 | Sun-sensor channels | Test, known illumination | sun vector within 10° (the Monte Carlo's degraded case) |
+| AV-V6 | Spin law on the flatsat | Analysis plus HIL | the Monte Carlo cases of ADCS_DESIGN §11.4 with the flight sensors |
+| AV-V7 | AntS command codes and status bits | Inspection of the delivered ICD, then test on the EM with the AntS test harness | codes and bit positions as §12.3, or `sqso_fsw::ants` changed to match before the EM software release |
+| AV-V8 | GNSS receiver NMEA, cold start and power gating | Test | fix within 300 s from cold, current zero with `GNSS_EN` low |
+
+## 13. Revision History
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §12 new (revision history now §13): interface status against the baseline parts (gyro, magnetometer, sun sensors, coils, AntS, GNSS), coil and magnetometer timing, the AntS-over-I2C decision and protocol, verification items AV-V1 to AV-V8 |

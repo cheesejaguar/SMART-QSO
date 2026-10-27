@@ -176,6 +176,7 @@ tests and the mission simulation (`software/rust/sqso-sil`).
 | SRS-F086 | The software shall command no magnetorquer output until 120 s after separation (SpaceX Rideshare User's Guide v11 §3.3.4) | T | High |
 | SRS-F087 | The software shall latch the served 45-minute RF silence, so that a sense line reading stowed afterwards does not restart it | T | High |
 | SRS-F088 | The software shall space deployment attempts 50 minutes apart and accept a telecommand to retry an element with fresh attempts once the 30-minute wait is served | T | Medium |
+| SRS-F089 | The software shall deploy the solar wings first, each wing burning its two resistors on separate drivers in turn, and then the antennas through the bought AntS controller over I2C (arm, deploy, cancel, disarm), reading each antenna element's deployment switch from the AntS status and reporting the deployed elements in housekeeping | T | High |
 
 ### 3.10 Attitude Determination and Control
 
@@ -184,7 +185,8 @@ tests and the mission simulation (`software/rust/sqso-sil`).
 | SRS-F090 | The software shall use a magnetometer sample only when the magnetorquers have been off for at least 50 ms, discard and count any other sample, and log the first discarded sample after init as a fault | T | High |
 | SRS-F091 | The software shall command each magnetorquer burst for 900 ms of the 1 s control period, with the dipole scaled by the period over the on-time and saturated at 0.2 A·m², so the delivered impulse is the control law's | T | High |
 | SRS-F092 | The software shall not complete a detumble on a magnetometer rate estimate that a discarded sample left stale | T | High |
-| SRS-F093 | The software shall run B-dot detumble (gain 10⁴ A·m²·s/T) and spin-stabilized sun pointing of +Y at 6°/s with the gains of BASELINE §8 at 1 Hz, and treat a detumble lasting over 285 minutes as a fault | T, A | High |
+| SRS-F093 | The software shall run B-dot detumble (gain 10⁴ A·m²·s/T) and spin-stabilized sun pointing of +Y at 8°/s (momentum gain 0.005 s⁻¹, spin hold 0.005 s⁻¹, nutation damping 3·10⁻⁴ N·m·s with the gyro and 1·10⁻⁴ N·m·s without it) at 1 Hz, and treat a detumble lasting over 285 minutes as a fault | T, A | High |
+| SRS-F094 | The software shall let the ground select, by authenticated telecommand persisted across resets, the spin axis and inertia tensor from the presets for both wings, wing 1 only, wing 2 only and no wings deployed, and shall refuse any other preset | T | Medium |
 
 ### 3.11 OBC Selector (flight AI, decision D5)
 
@@ -318,7 +320,7 @@ change request CR-2026-001, `docs/project/CHANGE_REQUEST_LOG.md`).
 |----|--------|
 | SRS-C001 | Met. The flight code is Rust (2024 edition), written to `docs/development/CODING_STANDARDS.md` §11. The C is `software/flight/src/flight_log_fmt.c` (C11, the printf-style flight-log shim, not linked into the image) and the C test suites |
 | SRS-C002 | Met: no dynamic allocation at any time. Checked by the ctest `no_dynamic_memory` and by CI's check that the image links no `malloc`, `free` or `_sbrk` (`software/flight/docs/MEMORY_POLICY.md`) |
-| SRS-C003 | Met by analysis: worst case 5,004 B of 8,192 B (2026-10-25), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
+| SRS-C003 | Met by analysis: worst case 5,444 B of 8,192 B (66.5 %, 2026-10-27), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
 | SRS-C004 | Release image text 115,876 B (2026-10-25, CI job STM32L4 Cross-Compile (library)), below 256 KB. Checked at each release (`docs/development/RELEASE_PROCEDURE.md` §5.3); not a CI gate |
 
 ### 8.2 External Constraints
@@ -380,4 +382,4 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | 1.3 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: implementation status of SRS-C001 to SRS-C004 beneath §8.1 (SRS-C001 not met as written; PI decision); §2.1 OBC runs on the Embassy executor, not FreeRTOS. No requirement text changed |
 | 1.4 | 2026-10-25 | SMART-QSO Team | SRS-C001 amended by PI decision to Rust (2024 edition) or C11 (was C11 only; CR-2026-001). Status beneath §8.1: SRS-C001 met; SRS-C003 met by analysis (static worst case 4,892 B, CI gate; hardware measurement pending) |
 | 1.5 | 2026-10-25 | SMART-QSO Team | SRS-I023 to SRS-I027 added: the downlink transmitter interface, permission at hand-over, key-down and duty limits, power selection, transmitter protection (CR-2026-005) |
-| 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight-software review) | §3.9 transponder and commissioning (SRS-F080 to SRS-F088: gates, XPDR_EN heartbeat, commissioning hold, ground transponder enable, GNSS sessions, housekeeping frame, 120 s magnetorquer delay, RF-silence latch, deployment retries); §3.10 ADCS (SRS-F090 to SRS-F093: magnetometer window, coil burst, stale rate, control laws); §3.11 OBC selector (SRS-F100 to SRS-F107); verification methods for SRS-C001 to SRS-C012; governing standard NPR 7150.2D and NASA-STD-8739.8B (was NPR 7150.2 Rev B) |
+| 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight-software review) | §3.9 transponder and commissioning (SRS-F080 to SRS-F088: gates, XPDR_EN heartbeat, commissioning hold, ground transponder enable, GNSS sessions, housekeeping frame, 120 s magnetorquer delay, RF-silence latch, deployment retries, SRS-F089 wings first and AntS over I2C); §3.10 ADCS (SRS-F090 to SRS-F094: magnetometer window, coil burst, stale rate, control laws at 8°/s, geometry presets by telecommand); §3.11 OBC selector (SRS-F100 to SRS-F107); verification methods for SRS-C001 to SRS-C012; governing standard NPR 7150.2D and NASA-STD-8739.8B (was NPR 7150.2 Rev B) |

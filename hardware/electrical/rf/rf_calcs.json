@@ -1,0 +1,962 @@
+{
+ "inputs": {
+  "f_down_mhz": 145.9,
+  "f_down_band_mhz": [
+   145.8,
+   146.0
+  ],
+  "f_up_mhz": 435.5,
+  "f_up_band_mhz": [
+   435.0,
+   437.3
+  ],
+  "p_tx_nom_dbm": 27.0,
+  "p_tx_max_dbm": 30.0,
+  "lba_tsys_k": 1000.0,
+  "lba_rx_req_k_290src": 650.0,
+  "cn0_voice_12db_sinad": 47.4,
+  "cn0_tc_90pct": 53.0,
+  "cn0_afsk_corr": 52.9,
+  "ant_iso_437_db": 15.0,
+  "ant_iso_146_db": 25.0,
+  "coax_uhf_db": 0.25,
+  "balun_uhf_db": 0.3,
+  "lna_nf_db": 0.8,
+  "lna_gain_db": 18.0,
+  "saw_il_db_typ": 2.1,
+  "saw_il_db_max": 4.2,
+  "ic_match_db": 0.5,
+  "rx_ic_nf_db": 7.0,
+  "impl_loss_db": 2.0,
+  "lmx_pn_146": {
+   "1000.0": -100.0,
+   "10000.0": -125.0,
+   "100000.0": -140.0,
+   "1000000.0": -152.0,
+   "10000000.0": -157.0
+  },
+  "lba_pn_146": {
+   "1000.0": -85.0,
+   "10000.0": -100.0,
+   "100000.0": -118.0,
+   "1000000.0": -135.0,
+   "10000000.0": -145.0
+  },
+  "pa_h2_dbc": -20.0,
+  "pa_h3_dbc": -15.0,
+  "board_leak_floor_dbc": -90.0,
+  "vdd_pa": 5.0,
+  "vdd_pa_tol": 0.03,
+  "rd01mus3_eta_sat": 0.59,
+  "rd01mus3_vknee": 0.7,
+  "rd01mus3_rthjc2_max": 15.0,
+  "rd01mus3_rthjc1_max": 23.0,
+  "rth_case_board": 4.0,
+  "rth_spread_board": 15.0,
+  "pa_RL_ohm": 7.5,
+  "loss_trace_conn_db": 0.05,
+  "loss_sense_db": 0.03,
+  "balun_vhf_db": 0.25,
+  "t_board_hot_c": 60.0,
+  "t_board_cold_c": -30.0,
+  "v_radio_nom": 3.3,
+  "v_radio_tol": 0.03
+ },
+ "fl1": {
+  "elements": {
+   "L1": 22.0,
+   "C1s": 56.0,
+   "C2": 6.4,
+   "L3": 12.0,
+   "C3s": 100.0,
+   "C4": 5.8,
+   "L5": 12.0,
+   "C5s": 100.0,
+   "C6": 6.4,
+   "L7": 20.0
+  },
+  "units": "nH for L, pF for C",
+  "nominal": {
+   "il_435_437.3_dB": 0.52,
+   "rl_dB": 30.5,
+   "att_144_146_dB": 143.7,
+   "att_250_330_dB": 6.1,
+   "att_560_620_dB": 0.3
+  },
+  "monte_carlo_n": 3000,
+  "worst": {
+   "il_dB": 0.7,
+   "rl_dB": 22.1,
+   "att_144_146_dB": 133.2,
+   "att_250_330_dB": 4.7,
+   "att_560_620_dB": 0.2
+  },
+  "p99": {
+   "il_dB": 0.68,
+   "att_144_146_dB": 136.2
+  }
+ },
+ "receiver": {
+  "typ": {
+   "Te_board_K": 185.1,
+   "NF_board_dB": 2.14,
+   "Te_ant_K": 213.2,
+   "NF_ant_dB": 2.39,
+   "Tsys_290K_source_K": 503.2,
+   "sens_12dB_SINAD_dBm": -122.2,
+   "sens_TC_90pct_dBm": -116.6,
+   "Tsys_with_350K_allowance_K": 853.2,
+   "margin_vs_1000K_dB": 0.69,
+   "margin_vs_650K_req_dB": 1.11
+  },
+  "worst": {
+   "Te_board_K": 228.7,
+   "NF_board_dB": 2.53,
+   "Te_ant_K": 259.5,
+   "NF_ant_dB": 2.78,
+   "Tsys_290K_source_K": 549.5,
+   "sens_12dB_SINAD_dBm": -121.8,
+   "sens_TC_90pct_dBm": -116.2,
+   "Tsys_with_350K_allowance_K": 899.5,
+   "margin_vs_1000K_dB": 0.46,
+   "margin_vs_650K_req_dB": 0.73
+  }
+ },
+ "lpf": {
+  "lpf_elements": {
+   "C1": 20.0,
+   "L2": 56.0,
+   "C2t": 2.4,
+   "C3": 27.0,
+   "L4": 27.0,
+   "C4t": 11.0,
+   "C5": 27.0,
+   "L6": 56.0,
+   "C6t": 2.4,
+   "C7": 24.0
+  },
+  "match_elements": {
+   "La_nH": 10.0,
+   "Ca_pF": 68.0,
+   "Lb_nH": 27.0,
+   "Cb_pF": 27.0,
+   "R_mid_ohm": 19.36,
+   "Q1": 1.26,
+   "Q2": 1.26
+  },
+  "lpf_alone_nominal": {
+   "il_dB": 0.36,
+   "rl_dB": 18.3,
+   "f_3dB_MHz": 171.0
+  },
+  "lpf_alone_worst": {
+   "il_dB": 0.6,
+   "att_2f_dB": 65.5,
+   "att_3f_dB": 88.2,
+   "att_uplink_dB": 88.4
+  },
+  "chain_nominal": {
+   "il_dB": 0.49,
+   "rl_dB": 17.6,
+   "att_2f_dB": 95.1,
+   "att_3f_dB": 158.3,
+   "att_4f_dB": 120.3,
+   "att_5f_dB": 125.8,
+   "att_uplink_dB": 160.6
+  },
+  "chain_worst": {
+   "il_dB": 0.74,
+   "rl_dB": 13.3,
+   "att_2f_dB": 78.5,
+   "att_3f_dB": 117.3,
+   "att_4f_dB": 113.2,
+   "att_5f_dB": 120.4,
+   "att_uplink_dB": 117.5
+  },
+  "chain_p1": {
+   "att_2f_dB": 80.1,
+   "att_3f_dB": 118.9
+  },
+  "monte_carlo_n": 3000,
+  "model": "L +-2 %, C +-2 % (>= 10 pF) or +-0.1 pF, inductor Q 80-150 at 146 MHz rising as sqrt(f), inductor SRF 1.0-2.0 GHz, capacitor Q 800 and ESL 0.6 nH (0603 plus via), trap capacitor ESL 0.3 nH"
+ },
+ "harmonics": {
+  "H2": {
+   "pa_dbc": -20.0,
+   "after_network_worst_dbc": -98.5,
+   "with_leak_floor_dbc": -89.4
+  },
+  "H3": {
+   "pa_dbc": -15.0,
+   "after_network_worst_dbc": -132.3,
+   "with_leak_floor_dbc": -90.0
+  },
+  "H4": {
+   "pa_dbc": -25.0,
+   "after_network_worst_dbc": -138.2,
+   "with_leak_floor_dbc": -90.0
+  },
+  "H5": {
+   "pa_dbc": -30.0,
+   "after_network_worst_dbc": -150.4,
+   "with_leak_floor_dbc": -90.0
+  },
+  "limit_97307e_dbc_at_1W": -46.0,
+  "H3_requirement_dbc": -70.0,
+  "H3_margin_dB": 20.0,
+  "note": "The leak floor stands for coupling around the filter; the shield and layout rules of RF_BOARD_DESIGN \u00a79 are set so that it stays at or below -90 dBc. Only the measured value at the port with the antennas deployed (VI-RF-04) closes RF-07."
+ },
+ "desense": {
+  "rx_n0_dBm_Hz": -168.6,
+  "rows": [
+   {
+    "offset_MHz": 0.1,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -174.9,
+    "desense_dB": 0.92
+   },
+   {
+    "offset_MHz": 0.1,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -154.9,
+    "desense_dB": 13.911
+   },
+   {
+    "offset_MHz": 0.1,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -198.3,
+    "desense_dB": 0.005
+   },
+   {
+    "offset_MHz": 0.1,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -178.3,
+    "desense_dB": 0.442
+   },
+   {
+    "offset_MHz": 0.1,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -205.5,
+    "desense_dB": 0.001
+   },
+   {
+    "offset_MHz": 0.1,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -185.5,
+    "desense_dB": 0.089
+   },
+   {
+    "offset_MHz": 0.5,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -187.2,
+    "desense_dB": 0.059
+   },
+   {
+    "offset_MHz": 0.5,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -167.2,
+    "desense_dB": 3.75
+   },
+   {
+    "offset_MHz": 0.5,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -208.1,
+    "desense_dB": 0.0
+   },
+   {
+    "offset_MHz": 0.5,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -188.1,
+    "desense_dB": 0.048
+   },
+   {
+    "offset_MHz": 0.5,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -213.8,
+    "desense_dB": 0.0
+   },
+   {
+    "offset_MHz": 0.5,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -193.8,
+    "desense_dB": 0.013
+   },
+   {
+    "offset_MHz": 1.0,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -192.3,
+    "desense_dB": 0.018
+   },
+   {
+    "offset_MHz": 1.0,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -172.3,
+    "desense_dB": 1.529
+   },
+   {
+    "offset_MHz": 1.0,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -211.7,
+    "desense_dB": 0.0
+   },
+   {
+    "offset_MHz": 1.0,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -191.7,
+    "desense_dB": 0.021
+   },
+   {
+    "offset_MHz": 1.0,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -217.5,
+    "desense_dB": 0.0
+   },
+   {
+    "offset_MHz": 1.0,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -197.5,
+    "desense_dB": 0.006
+   },
+   {
+    "offset_MHz": 2.2,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -198.2,
+    "desense_dB": 0.005
+   },
+   {
+    "offset_MHz": 2.2,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -178.2,
+    "desense_dB": 0.455
+   },
+   {
+    "offset_MHz": 2.2,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -215.8,
+    "desense_dB": 0.0
+   },
+   {
+    "offset_MHz": 2.2,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -195.8,
+    "desense_dB": 0.008
+   },
+   {
+    "offset_MHz": 2.2,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -219.2,
+    "desense_dB": 0.0
+   },
+   {
+    "offset_MHz": 2.2,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -199.2,
+    "desense_dB": 0.004
+   },
+   {
+    "offset_MHz": 2.4,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -198.8,
+    "desense_dB": 0.004
+   },
+   {
+    "offset_MHz": 2.4,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -178.8,
+    "desense_dB": 0.395
+   },
+   {
+    "offset_MHz": 2.4,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -216.3,
+    "desense_dB": 0.0
+   },
+   {
+    "offset_MHz": 2.4,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -196.3,
+    "desense_dB": 0.007
+   },
+   {
+    "offset_MHz": 2.4,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -219.4,
+    "desense_dB": 0.0
+   },
+   {
+    "offset_MHz": 2.4,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -199.4,
+    "desense_dB": 0.004
+   },
+   {
+    "offset_MHz": 5.0,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -202.7,
+    "desense_dB": 0.002
+   },
+   {
+    "offset_MHz": 5.0,
+    "model": "LBA model (offset/3), LBA phase noise",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -182.7,
+    "desense_dB": 0.167
+   },
+   {
+    "offset_MHz": 5.0,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -218.6,
+    "desense_dB": 0.0
+   },
+   {
+    "offset_MHz": 5.0,
+    "model": "LBA model (offset/3), LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -198.6,
+    "desense_dB": 0.004
+   },
+   {
+    "offset_MHz": 5.0,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -90.0,
+    "skirt_dBm_Hz": -221.0,
+    "desense_dB": 0.0
+   },
+   {
+    "offset_MHz": 5.0,
+    "model": "harmonic at the same offset, LMX2571",
+    "h3_dbc": -70.0,
+    "skirt_dBm_Hz": -201.0,
+    "desense_dB": 0.003
+   }
+  ]
+ },
+ "pa": {
+  "loss_match_lpf_worst_dB": 0.74,
+  "loss_after_lpf_dB": 0.33,
+  "loss_drain_to_port_dB": 1.07,
+  "psat": [
+   {
+    "vdd": 5.0,
+    "psat_drain_W": 1.233,
+    "pmax_port_dBm": 29.84
+   },
+   {
+    "vdd": 4.85,
+    "psat_drain_W": 1.148,
+    "pmax_port_dBm": 29.53
+   },
+   {
+    "vdd": 5.15,
+    "psat_drain_W": 1.32,
+    "pmax_port_dBm": 30.14
+   }
+  ],
+  "levels": {
+   "0.5 W": {
+    "p_drain_W": 0.641,
+    "p_port_W": 0.501,
+    "eta_pa": 0.426,
+    "dc_pa_W": 1.507,
+    "dc_exciter_W": 0.255,
+    "dc_total_W": 1.762,
+    "i_5v_A": 0.352,
+    "overall_eff": 0.284,
+    "pa_dissipation_W": 0.866,
+    "board_dissipation_keyed_W": 1.261,
+    "tj_fet2_C_at_board_60C": 87.8,
+    "tj_fet1_C_at_board_60C": 75.3
+   },
+   "1 W": {
+    "p_drain_W": 1.233,
+    "p_port_W": 0.963,
+    "eta_pa": 0.59,
+    "dc_pa_W": 2.089,
+    "dc_exciter_W": 0.255,
+    "dc_total_W": 2.344,
+    "i_5v_A": 0.469,
+    "overall_eff": 0.411,
+    "pa_dissipation_W": 0.857,
+    "board_dissipation_keyed_W": 1.381,
+    "tj_fet2_C_at_board_60C": 87.5,
+    "tj_fet1_C_at_board_60C": 75.2
+   }
+  },
+  "exciter": {
+   "lmx2571_W": 0.152,
+   "pcm1808_W": 0.072,
+   "detectors_W": 0.011,
+   "logic_W": 0.02,
+   "keyed_W": 0.255,
+   "idle_permitted_W": 0.0063
+  },
+  "load_line_ohm": 7.5,
+  "load_line_trade": [
+   {
+    "RL_ohm": 7.0,
+    "psat_W": 1.321,
+    "max_port_dBm": 30.14,
+    "dc_at_0.5W_W": 1.815
+   },
+   {
+    "RL_ohm": 7.5,
+    "psat_W": 1.233,
+    "max_port_dBm": 29.84,
+    "dc_at_0.5W_W": 1.762
+   },
+   {
+    "RL_ohm": 8.5,
+    "psat_W": 1.088,
+    "max_port_dBm": 29.29,
+    "dc_at_0.5W_W": 1.67
+   },
+   {
+    "RL_ohm": 10.0,
+    "psat_W": 0.924,
+    "max_port_dBm": 28.59,
+    "dc_at_0.5W_W": 1.56
+   },
+   {
+    "RL_ohm": 12.0,
+    "psat_W": 0.77,
+    "max_port_dBm": 27.8,
+    "dc_at_0.5W_W": 1.446
+   }
+  ]
+ },
+ "rx_power": {
+  "loads_mA": [
+   {
+    "load": "LNA BFP640F (6 mA bias, 3.0 V rail)",
+    "typ": 6.0,
+    "worst": 7.0
+   },
+   {
+    "load": "CC1200 receive, low-power mode (19 mA at 3.0 V; +10 % worst)",
+    "typ": 19.0,
+    "worst": 21.0
+   },
+   {
+    "load": "TCXO TG2016SMN 40 MHz",
+    "typ": 1.5,
+    "worst": 2.0
+   },
+   {
+    "load": "STM32L431 at 16 MHz HSI16 (84 uA/MHz) + SPI/DMA at 12.5 kS/s + DAC1/DAC2 idle + USART",
+    "typ": 3.0,
+    "worst": 5.0
+   },
+   {
+    "load": "CMX138A powersaved (transponder off)",
+    "typ": 0.035,
+    "worst": 0.12
+   },
+   {
+    "load": "audio filter op-amps TLV9002 x 2 (4 x 60 uA)",
+    "typ": 0.24,
+    "worst": 0.3
+   },
+   {
+    "load": "SN74LVC1G123 active (Rext/Cext at 0.5 VCC: 280 uA)",
+    "typ": 0.28,
+    "worst": 0.4
+   },
+   {
+    "load": "TMP235 (14.5 uA), REF/bias dividers",
+    "typ": 0.05,
+    "worst": 0.1
+   },
+   {
+    "load": "LDO ground currents (TPS7A2030 6.5 uA, TPS73101 ~400 uA), pull-ups, misc",
+    "typ": 0.45,
+    "worst": 0.9
+   },
+   {
+    "load": "LMX2571 switched rail, power-down (CE low, 0.9 mA) while TX is permitted",
+    "typ": 0.9,
+    "worst": 1.2
+   }
+  ],
+  "receive_typ_mA": 31.45,
+  "receive_worst_mA": 38.02,
+  "receive_typ_W": 0.1038,
+  "receive_worst_W": 0.1292,
+  "allocation_W": 0.15,
+  "margin_typ": 0.308,
+  "margin_worst": 0.138,
+  "repeat_path": [
+   {
+    "load": "CMX138A receive mode (7.0 mA typ; 8.5 mA tx-mode figure as worst)",
+    "typ": 7.0,
+    "worst": 8.5
+   },
+   {
+    "load": "MCU DAC2 output buffer (repeat audio to the CMX138A)",
+    "typ": 0.3,
+    "worst": 0.4
+   },
+   {
+    "load": "HC4060 key-down timer running, mute and select switches",
+    "typ": 0.1,
+    "worst": 0.3
+   }
+  ],
+  "repeat_typ_W": 0.0244,
+  "repeat_worst_W": 0.0313,
+  "repeat_allocation_W": 0.03,
+  "receive_plus_repeat_worst_W": 0.1605,
+  "rail_min_at_board_V": 3.189
+ },
+ "timing": {
+  "monostable": {
+   "Rext_ohm": 226000.0,
+   "Cext_F": 2.2e-07,
+   "tw_nom_ms": 49.7,
+   "tw_range_ms": [
+    46.8,
+    58.0
+   ],
+   "heartbeat_period_ms": 10.0,
+   "retrigger_ratio": 5.0,
+   "unkey_after_last_edge_ms_max": 58.1,
+   "note": "K 1.00-1.10 (datasheet table), C0G +-5 %, R +-1 %; leakage 0.25 uA x 226 k = 57 mV"
+  },
+  "keydown_timer": {
+   "stages": "Q14 high after 8192 oscillator periods",
+   "f_osc_Hz": 68.27,
+   "Ct_F": 1e-07,
+   "Rt_nom_ohm": 63689,
+   "Rt_fitted": "56.2 k + select-at-test 0-10 k (R_TOT_TRIM)",
+   "Rs_ohm": 120000.0,
+   "formula": "f = 1/(2.3 Rt Ct) (CD4060-family RC oscillator)",
+   "tolerance": "trimmed to 120 +- 1 s at 25 C; drift budget +-3 % (-20..+60 C) => 120 +- 4.6 s",
+   "reset": "MR = NOT TONE_OK: the count restarts each time the tone drops"
+  },
+  "ctcss": {
+   "response_ms_typ": 190,
+   "response_ms_max": 250,
+   "deresponse_ms_typ": 240,
+   "key_path_after_TONE_OK_ns": 30,
+   "tnc_relay_latency_ms_max": 2.0,
+   "key_within_ms_typ": 192.0,
+   "key_within_ms_max": 252.0,
+   "requirement_RF_P012_ms": 250.0,
+   "finding": "2 ms over at the CMX138A specification limit; RF-P012 amended to typ <= 200 ms, max <= 260 ms (RF_DESIGN 2.1)"
+  },
+  "synth": {
+   "loop_bw_kHz": 40.0,
+   "lock_ms_est": 0.1,
+   "fastlock_spec_ms": 1.5,
+   "apc_ramp_ms": 1.0,
+   "txdelay_ms": 300.0
+  },
+  "heartbeat_to_unkey_ms_max": 59.1
+ },
+ "deviation": {
+  "fPD_MHz": 40.0,
+  "prescaler": 2,
+  "chdiv": 32,
+  "fVCO_MHz": 4668.8,
+  "N": 58.36,
+  "full_scale_dev_kHz": 6.3,
+  "dev_per_lsb_Hz": 0.1923,
+  "DEN": 13002778,
+  "DEN_max": 16777215,
+  "adc_fullscale_Vpp": 3.0,
+  "cmx_max_Vpp": 2.227,
+  "repeat_limit_kHz_nom": 4.68,
+  "repeat_limit_kHz_worst_high": 4.9,
+  "afsk_level_Vpp_for_3kHz": 1.429,
+  "afsk_dev_kHz_range": [
+   2.86,
+   3.14
+  ],
+  "carson_afsk_kHz": 10.68,
+  "carson_voice_kHz_worst": 15.79,
+  "pcm1808_mode": "master 512 fs from the 40 MHz reference",
+  "pcm1808_fs_kHz": 78.125,
+  "bck_MHz": 5.0
+ },
+ "detectors": {
+  "sense_line_coupling_dB": -25.3,
+  "detector_fs_input_dBm": 3.5,
+  "pad_needed_dB": 1.2,
+  "pad_fitted": "select-at-test pi pad 0-4 dB (nominal 1 dB: 5.6 ohm series, 910 ohm shunts)",
+  "TX_FWD_at_1W_V": 2.5,
+  "TX_FWD_at_0.5W_V": 1.768,
+  "TX_REV_at_3to1_at_1W_V": 1.25,
+  "adc_rs_scale": "P = 0.16 V^2 W (firmware adc.rs SquareLaw(0.16))",
+  "apc_ref_hi_V": 2.5,
+  "apc_ref_lo_V": 1.7669,
+  "apc_ref_lo_target_V": 1.7678,
+  "apc_power_error_dB": 0.043,
+  "detector_temp_error_dB": 0.25,
+  "TX_TEMP": "TMP235A2: 10 mV/C, 500 mV at 0 C, +-2 C (-40..150 C); 1.2 V at 70 C"
+ },
+ "reference": {
+  "temp_ppm": 0.5,
+  "cal_ppm": 0.1,
+  "aging_y1_ppm": 1.0,
+  "aging_y2_ppm": 0.5,
+  "bol_ppm": 0.6,
+  "eol_worst_ppm": 2.1,
+  "eol_rss_ppm": 1.23,
+  "hz_at_435_5_bol": 261.0,
+  "hz_at_435_5_eol_worst": 915.0,
+  "hz_at_145_9_bol": 88.0,
+  "note": "One TCXO for both bands: the ground measures the downlink error and scales it by 435.5/145.9 to pre-correct the uplink; the CC1200 frequency-offset estimate and AFC track the rest"
+ },
+ "isolation": {
+  "fund_at_uhf_port_dBm": 5.0,
+  "fl1_worst_dB": 133.2,
+  "fund_at_lna_dBm": -128.2,
+  "lba_requirement_at_lna_dBm": -55.0,
+  "fund_at_cc1200_dBm": -155.2,
+  "cc1200_saturation_dBm": 10.0,
+  "cc1200_iip3_dBm": -14.0,
+  "board_isolation_required_dB": 85.0,
+  "board_isolation_basis": "PA output (+30 dBm) to the LNA input node must stay below -55 dBm, the level the RX filter guarantees; two shield cans, opposite board faces (\u00a79)"
+ },
+ "rx_filter": {
+  "pre_lna_FL1_plus_balun_loss_worst_dB": 1.0,
+  "requirement_loss_dB": 1.5,
+  "att_144_146_computed_worst_dB": 133.2,
+  "att_144_146_specified_dB": 60.0,
+  "att_144_146_without_traps_dB": 69.4,
+  "att_250_330_total_worst_dB": 49.7,
+  "att_560_620_total_worst_dB": 45.2,
+  "saw": "TA2209A: >= 45 dB at 10-385 and 485-1000 MHz, 2.1 dB typ / 4.2 dB max at 433-437 MHz, TCF -36 ppm/K (-15.7 kHz/K at 435 MHz)",
+  "saw_center_shift_kHz_-30_to_+60C": [
+   861.0,
+   -548.0
+  ],
+  "lna_im2_from_two_-90dBm_signals_dBm": -200.0
+ },
+ "clocks": {
+  "TCXO 40 MHz (CC1200, LMX2571 PFD, PCM1808 SCKI)": {
+   "harmonics_in_435.0_437.3": [],
+   "nearest_outside": [
+    400.0,
+    440.0
+   ]
+  },
+  "PCM1808 BCK 64 fs = 5.000 MHz": {
+   "harmonics_in_435.0_437.3": [
+    435.0
+   ],
+   "nearest_outside": [
+    435.0,
+    440.0
+   ]
+  },
+  "PCM1808 internal 128 fs = 10 MHz": {
+   "harmonics_in_435.0_437.3": [],
+   "nearest_outside": [
+    430.0,
+    440.0
+   ]
+  },
+  "CMX138A crystal 3.6864 MHz": {
+   "harmonics_in_435.0_437.3": [],
+   "nearest_outside": [
+    434.9952,
+    438.6816
+   ]
+  },
+  "(rejected) CMX138A 6.144 MHz": {
+   "harmonics_in_435.0_437.3": [
+    436.224
+   ],
+   "nearest_outside": [
+    430.08,
+    442.368
+   ]
+  },
+  "(rejected) 38.4 MHz reference, BCK 4.8 MHz": {
+   "harmonics_in_435.0_437.3": [
+    436.8
+   ],
+   "nearest_outside": [
+    432.0,
+    441.6
+   ]
+  },
+  "(rejected) 26 MHz reference at 512 fs, BCK 3.25 MHz": {
+   "harmonics_in_435.0_437.3": [
+    435.5
+   ],
+   "nearest_outside": [
+    432.25,
+    438.75
+   ]
+  },
+  "MCU HSI16 16 MHz (core, APB, ADC)": {
+   "harmonics_in_435.0_437.3": [],
+   "nearest_outside": [
+    432.0,
+    448.0
+   ]
+  },
+  "MCU SPI1 at 8 MHz (CC1200 CFM reads, LMX2571)": {
+   "harmonics_in_435.0_437.3": [],
+   "nearest_outside": [
+    432.0,
+    440.0
+   ]
+  },
+  "(occasional) SPI1 at 1 MHz for the CMX138A C-BUS, < 1 ms per 10 s": {
+   "harmonics_in_435.0_437.3": [
+    435.0,
+    436.0,
+    437.0
+   ],
+   "nearest_outside": [
+    435.0,
+    438.0
+   ]
+  }
+ },
+ "stresses": {
+  "RF_caps_LPF": {
+   "stress": "24.0 V peak at 1 W into 3:1 (port 15.0 V x 1.6 node factor)",
+   "rating": "100 V C0G",
+   "ratio": 0.24,
+   "rule": "<= 0.50 (MLCC voltage)"
+  },
+  "RF_caps_match": {
+   "stress": "15.5 V peak at the drain side",
+   "rating": "100 V C0G",
+   "ratio": 0.15,
+   "rule": "<= 0.50"
+  },
+  "RD01MUS3_VDS": {
+   "stress": "15.5 V peak",
+   "rating": "25 V VDSS",
+   "ratio": 0.62,
+   "rule": "<= 0.75 of VDSS for RF peak (EEE-INST-002 FET RF voltage; project 50 % applies to DC: 5.15/25 = 0.21)"
+  },
+  "RD01MUS3_ID2": {
+   "stress": "0.42 A average",
+   "rating": "0.9 A",
+   "ratio": 0.46,
+   "rule": "<= 0.50"
+  },
+  "RD01MUS3_PD2": {
+   "stress": "0.77 W",
+   "rating": "8.3 W at Tc 25 C (derate to Tc 60 C: 6.0 W)",
+   "ratio": 0.13,
+   "rule": "<= 0.50"
+  },
+  "RD01MUS3_Tj": {
+   "stress": "87.5 C",
+   "rating": "150 C (vendor: keep <= 120 C)",
+   "ratio": 0.58,
+   "rule": "<= 0.80 of Tj max (120 C)"
+  },
+  "RD01MUS3_Pin1": {
+   "stress": "1 mW (0 dBm, LMX2571 maximum output)",
+   "rating": "2 mW",
+   "ratio": 0.5,
+   "rule": "<= 0.50"
+  },
+  "LPF_inductors": {
+   "stress": "0.35 A peak (1 W into 3:1, current maximum)",
+   "rating": "1812SMS Irms >= 2.5 A [series data]",
+   "ratio": 0.1,
+   "rule": "<= 0.50"
+  },
+  "drain_choke": {
+   "stress": "0.42 A DC",
+   "rating": "1812SMS 2.5 A",
+   "ratio": 0.17,
+   "rule": "<= 0.50"
+  },
+  "pi_pad_R": {
+   "stress": "1 W x -31 dB = 0.8 mW",
+   "rating": "0.1 W (0603)",
+   "ratio": 0.01,
+   "rule": "<= 0.50"
+  },
+  "TPS7A2030_I": {
+   "stress": "30 mA worst (CC1200 21, LNA 7, TCXO 2)",
+   "rating": "300 mA",
+   "ratio": 0.1,
+   "rule": "<= 0.70"
+  },
+  "TPS73101_I": {
+   "stress": "14 mA worst (MCU, CMX138A, logic)",
+   "rating": "150 mA",
+   "ratio": 0.09,
+   "rule": "<= 0.70"
+  },
+  "TPS7A2033_I": {
+   "stress": "17 mA (PCM1808 VDD 5.9, detectors 2.2, squarer and gates 4, margin)",
+   "rating": "300 mA",
+   "ratio": 0.06,
+   "rule": "<= 0.70",
+   "thermal": "(5.15-3.3) V x 17 mA = 31 mW; X2SON thetaJA ~ 200 C/W => +6 C"
+  },
+  "TPS22918_LMX": {
+   "stress": "51 mA",
+   "rating": "2 A",
+   "ratio": 0.03,
+   "rule": "<= 0.70"
+  },
+  "bulk_caps_5V": {
+   "stress": "5.15 V",
+   "rating": "16 V X7R",
+   "ratio": 0.32,
+   "rule": "<= 0.50"
+  },
+  "bulk_caps_3V3": {
+   "stress": "3.40 V",
+   "rating": "10 V X5R/X7R",
+   "ratio": 0.34,
+   "rule": "<= 0.50"
+  },
+  "connector_PA_contacts": {
+   "stress": "0.47 A over two contacts",
+   "rating": "Pico-Clasp 1.0 A/contact",
+   "ratio": 0.23,
+   "rule": "<= 0.50 (EEE-INST-002 connectors)"
+  },
+  "LMX2571_Tj": {
+   "stress": "65 C (0.152 W x 31 C/W thetaJA est.)",
+   "rating": "125 C",
+   "ratio": 0.52,
+   "rule": "<= 0.80"
+  }
+ }
+}

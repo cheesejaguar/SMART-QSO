@@ -1,8 +1,8 @@
 # Interface Control Document: OBC-Jetson
 
 **Document Number**: SMART-QSO-ICD-002
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.2
+**Date**: 2026-10-27
 **Status**: Preliminary
 
 ---
@@ -290,6 +290,30 @@ DORMANT ─────────> BOOT
 
 ---
 
+
+## 9. CDR Update (2026-10-27): Interface as Built
+
+Sections 2, 3 and 6.3 are the 2026-01 preliminary interface. Where they disagree with this section, this section, §4
+(exact since 1.1) and `docs/hardware/PAYLOAD_DESIGN.md` §11 govern.
+
+| Item | As built (flight software and provisional firmware pin map) | Was |
+|------|--------------------------------------------------------------|-----|
+| Link | USART1, PA9 TX / PA10 RX, 115200 8N1, 3.3 V CMOS, interrupt-driven receive buffer (`firmware/src/uart.rs`) | same |
+| Power | VBAT through SW1 (`PAYLOAD_EN`, PB4) and the eFuse U3 (`JETSON_PWR`, PA2), then the carrier's own converter (`docs/hardware/EPS_DESIGN.md` v2.0) | 5 V EPS rail and a Power Enable pin on the connector |
+| Power limit | 8 W carrier input in operation; software trips at 12 W (one sample) and > 8 W (two samples); eFuse 1.2 A | 15 W peak |
+| Connector pin 4 | not a power enable: the switches are on the EPS side. Use it as a second ground or the carrier's power-good to the OBC (open) | Power Enable |
+| Switch-on | gates of BASELINE §5 and the commissioning hold, then both switches together; the OBC waits for STATUS before BEACON_REQ | EPS 5 V, then enable after 100 ms |
+| Switch-off | both lines low together (recommended order and readback: PAYLOAD_DESIGN §11.1, RID AV-06); no SHUTDOWN message is sent, the Jetson must tolerate a power cut (read-only root, writable data partition: `hardware/payload-jetson/README.md`) | SHUTDOWN, 5 s, enable low |
+| Fallback | a template beacon whenever no valid BEACON_RSP arrives in time or the text fails the filter; the burst schedule cycles the rail on every burst (165 power-ons in the 14-day SIL run), so no reconnection counter is kept | reconnect after 60 s, power-cycle after 3 failures |
+
+**Back-powering (RID AV-09).** USART1 is enabled for the whole mission, so the OBC's TX line idles high (3.3 V) into a
+carrier that is unpowered most of the time. Through the module's input protection diodes that can partly power the
+module's I/O rail, hold it in an undefined state at switch-on, and add a few milliamperes of load. Fix at the EM, one
+of: an isolating buffer on the carrier powered from its own 3.3 V (a part with I_off, e.g. 74LVC1T45 class) in each
+direction; or the firmware switching PA9 to an analog input while `JETSON_PWR` is low and back to the USART function
+after power-good. Until then the interface is not verified for power-off isolation (test: TX idle with the carrier off,
+measure the carrier's 3.3 V rail; pass below 0.3 V).
+
 ## Appendix A: Reference Documents
 
 1. Jetson Orin Nano Developer Kit Carrier Board Specification
@@ -305,3 +329,4 @@ DORMANT ─────────> BOOT
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-15 | Funding audit | §4 made exact (line rules, 512-byte limit, STATUS_REQ, STATUS fields, BEACON_RSP text, NACK reasons, golden lines) and implemented on both sides (SW-24) |
+| 1.2 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §9 new: interface as built (power through SW1 and U3 from VBAT, 8 W limit, connector pin 4, switch-on/off, fallback); back-powering through the idle TX line (RID AV-09) |

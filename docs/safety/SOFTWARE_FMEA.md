@@ -2,8 +2,8 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-FMEA-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-27
 **Reference:** NASA-STD-8719.13, MIL-STD-1629A
 
 ---
@@ -202,8 +202,81 @@ RPN = Severity x Occurrence x Detection
 
 ---
 
+## 14. CDR Update (2026-10-27)
+
+### 14.1 The Rating Scales Are Inverted (RID FSW-08)
+
+In §2 all three scales give the **low** number to the **bad** case: severity 1 is catastrophic, occurrence 1 is very
+likely, detection 1 is undetectable. The product of §2.4 is then largest for the most benign modes, and §2.4's action
+thresholds (act above 50) select exactly the wrong ones. For example, EPS-FM-002 (power mode stuck in ACTIVE, loss of
+mission) scores 32, "no action", while ADCS-FM-001 (detumble timeout, delayed operations, detected automatically)
+scores 80, "action required". §12 and §13 inherit the error.
+
+Correction used from this revision on: RPN′ = (6 − S)(6 − O)(6 − D), so that every factor grows with the risk; the
+§2.4 thresholds then apply to RPN′. The ratings themselves are unchanged (they were not re-assessed here). On the
+corrected scale no mode reaches 50; the highest are:
+
+| ID | Failure mode | System effect | RPN (Rev A) | RPN′ |
+|----|--------------|---------------|-------------|------|
+| FM-FM-003 | Fault missed | Hardware damage | 16 | 32 |
+| FM-FM-004 | Safe mode not entered | Loss of mission | 24 | 24 |
+| WDT-FM-002 | Watchdog kicked too frequently | Potential hang | 24 | 24 |
+| ADCS-FM-004 | Actuator saturation | Attitude drift | 36 | 18 |
+| BCN-FM-001 | No beacon transmitted | Loss of communication | 36 | 18 |
+| EPS-FM-005 | Incorrect SOC calculation | Battery damage | 36 | 18 |
+| FM-FM-001 | Fault not logged | Debugging impaired | 36 | 18 |
+| SEN-FM-002 | Invalid reading | Wrong decisions | 36 | 18 |
+| EPS-FM-002 | Power mode stuck in ACTIVE | Loss of mission | 32 | 16 |
+| EPS-FM-006 | Battery temp ignored | Loss of mission | 32 | 16 |
+
+and the six items §12.2 asked action on rank lowest:
+
+| ID | Failure mode | System effect | RPN (Rev A) | RPN′ |
+|----|--------------|---------------|-------------|------|
+| ADCS-FM-001 | Detumble timeout | Delayed operations | 80 | 4 |
+| ADCS-FM-005 | Control instability | Increased power use | 80 | 4 |
+| BCN-FM-003 | Beacon too frequent | Regulatory issue | 80 | 4 |
+| MD-FM-002 | Write failure | Statistics lost | 80 | 4 |
+| MD-FM-003 | Read timeout | Increased boot time | 80 | 4 |
+| WDT-FM-003 | Spurious reset | Data loss | 80 | 4 |
+
+The ratings date from January 2026, before the Rust flight software; a re-assessment of S, O and D per mode against
+the as-built FDIR below is an open item for the fabrication phase.
+
+### 14.2 FDIR Coverage of the As-built Flight Software
+
+Each Rev A failure-mode group and each mode the CDR added, with what detects it, what responds, and the test.
+
+| Failure mode | Detection (as built) | Response | Verified by |
+|--------------|----------------------|----------|-------------|
+| EPS-FM-001/002 mode stuck | mode manager table, SOC thresholds with hysteresis (`state_machine`, `eps`) | SAFE below 25 %, EMERGENCY; ground SET_MODE through the same table | `test_state_machine`, `test_eps_control`; SIL `safe-entries`, `mode-chatter` |
+| EPS-FM-003 load switch stuck on (Jetson) | `payload_guard` power and spreader samples | both lines low, 10 min off; two series switches (`docs/hardware/PAYLOAD_DESIGN.md` §11.1) | `test_payload_guard`; SIL latch-up injection (`seu-recovery`); switch readback open (AV-06) |
+| EPS-FM-005/006 SOC or battery temperature wrong | plausibility of the EPS controller block; stand-in model when it does not answer | conservative SOC; hardware charge window 0–45 °C | `test_eps_control`; SIL `gauge` 0.5 % |
+| EPS controller silent (new) | I2C read fails | stand-ins for power; **on the target the ADCS now runs regardless** (RID FSW-01, fixed in `executive.rs`): before, a silent controller skipped the detumble and reported it complete | inspection; host behaviour unchanged (C suites) |
+| FM-FM-001 to 005 fault handling | fault log (100 entries, persisted), counters in housekeeping (`FC`, `FL`) | logged; SAFE on critical faults | `test_fault_mgmt`, `test_state_machine` |
+| ADCS-FM-001 detumble timeout | 285 min timer (`adcs.rs`) | fault, ADCS IDLE, re-commanded to DETUMBLE | Rust unit tests, `test_adcs`; Monte Carlo (ADCS_DESIGN §11.4) |
+| ADCS-FM-002/005 polarity, instability | rate telemetry (`W` in housekeeping) | none on board beyond the timeout; ground | Monte Carlo; HIL open |
+| Magnetometer sampled with the coils on (new) | sample time against the coil burst (`CoilTiming`) | sample rejected and counted (`MR`), first one logged; detumble without gyro not completed on a stale rate | Rust unit tests; Monte Carlo `no_window_detected` (every sample rejected, detumble times out, no false completion) |
+| Gyro absent or failed (new) | `Option` rate | magnetometer rate, nutation gain 1·10⁻⁴ | Monte Carlo `no_gyro` (17° mean) |
+| BCN-FM beacon not sent or too frequent | downlink duty and key-down limits (`downlink`) | frame refused; template on Jetson failure | `test_downlink`, `test_beacon`; SIL `beacon-gap`, `duty`, `keydown` |
+| Transponder enabled when forbidden (new) | gates every pass (`transponder.rs`) | heartbeat stops; the radio board drops the enable in ≤ 110 ms; a stalled loop or a reset stops it too | `test_xpdr_heartbeat`; SIL `xpdr-forbidden` 0 s |
+| UART-FM Jetson link | line CRC and parser (`jetson_link`) | NACK, template beacon | `test_jetson_link`, `test_uart_comm` |
+| MD-FM storage write/read | two-slot records with CRC (`nvm`) | older slot used; corrupt record reported | `test_nvm_record`, `test_mission_data` |
+| Operations record corrupt (new) | CRC of both slots | **hold** (a lost record must not release a held unit) | `test_ops_state` |
+| WDT-FM watchdog | IWDG 30 s, per-task check-in | reset, cause in the boot record and housekeeping (`RST`) | `test_watchdog_mgr`; target test open |
+| SEN-FM sensor invalid or stale | range and age checks (`sensors`) | value not used (`-` in housekeeping) | `test_sensors` |
+| AI-FM Jetson over-power, over-temperature, hang | `payload_guard`, reply timeout | rail off, cooldown; template beacon | `test_payload_guard`, `test_executive_jetson`; SIL `tjetson`, `ai-energy` |
+| Wing burn driver or resistor failed (new) | wing sense after each attempt | next attempt on the other driver (two resistors per wing, SRS-F089) | `test_deployment` (24 tests) |
+| AntS not answering or an element not deployed (new) | AntS status word per element | attempt counted failed, retry 50 min later, DEPLOY_RETRY by the ground | `test_deployment`; SIL smoke (AntS model) |
+| GNSS no fix or latched (new) | no accepted fix in a 300 s session | power off; three in a row logged as a fault; the next session power-cycles it | Rust unit tests (`gnss_schedule`); SIL 73 sessions, all with a fix |
+| Receiver SEFI (telecommand lost) | not detected | none (RID FSW-09: power-cycle `RADIO_EN` after a long silence) | open |
+| SRAM upset in live state | not detected unless a range check or the watchdog catches it | none (RID AV-07) | open |
+
+---
+
 ## Revision History
 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | §14 new: the three rating scales are inverted so the RPN ranks benign modes highest (RID FSW-08), corrected RPN′ with the ten highest; FDIR coverage of the as-built flight software for every Rev A group and the modes added at CDR. Ratings unchanged | SMART-QSO Team (CDR avionics review) |

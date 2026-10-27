@@ -1,8 +1,8 @@
 # Software Development Plan (SDP)
 
 **Document Number**: SMART-QSO-SDP-001
-**Version**: 1.2
-**Date**: 2026-10-25
+**Version**: 1.3
+**Date**: 2026-10-27
 **Status**: Draft
 
 **Governing Standards**:
@@ -116,9 +116,9 @@ Rationale, from the Appendix D definitions:
 The mission's risk class is unchanged: a proposed Class D payload (NPR 8705.4B). The software class does not decide
 whether software is safety-critical (§3.2).
 
-Still to do: the NPR 7150.2D Appendix C requirements mapping and compliance matrix for Class C, which states for each
-applicable SWE requirement how it is met or tailored, and why. Until then, §3.3 is the interim tailoring table; its
-rationale cells still cite Class D and will be replaced by that mapping.
+The NPR 7150.2D Appendix C requirements mapping and compliance matrix for Class C is
+`docs/software/NPR7150_COMPLIANCE_MATRIX.md` (SQSO-FSW-012, 2026-10-27): each SWE requirement with its status,
+evidence and tailoring, and open items C-1 to C-6. §3.3 below keeps the summary of the tailored items.
 
 ### 3.2 Safety Criticality (NASA-STD-8739.8)
 
@@ -161,7 +161,7 @@ counts only if it is marked `// COVERAGE-EXEMPT: <reason>`, which review checks.
 ### 3.3 Tailoring Rationale
 
 Per NPR 7150.2D Appendix C, for Class C (§3.1); the mapping of every Class C requirement is still to be written
-(`docs/funding_audit/NASA_STANDARDS_COMPLIANCE_MATRIX.md`, row NPR 7150.2):
+(`docs/funding_audit/NASA_STANDARDS_COMPLIANCE_MATRIX.md`, row NPR 7150.2; now written: `docs/software/NPR7150_COMPLIANCE_MATRIX.md`):
 
 | Requirement | As applied | Rationale |
 |-------------|------------|-----------|
@@ -506,3 +506,4 @@ See `docs/verification/VERIFICATION_MATRIX.md` for complete VCRM.
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The OBC flight software is Rust on the STM32L4R5ZI with the Embassy executor (no FreeRTOS): §2.2, §2.3, §5 (platforms, tools, targets) and §6 (Rust standard; JPL enforcement as implemented). §3.3 notes: line coverage is gated, branch coverage is not; the toolchain is not qualified |
 | 1.2 | 2026-10-25 | SMART-QSO Team | §3.2 safety-critical components determined by the NASA-STD-8739.8B §4.2 criteria from the hazard analysis, with their coverage; SWE-219 not met, tailoring request CR-2026-003. §3.3 tailoring for Class C, branch coverage now gated. §3.1 software classification determined against NPR 7150.2D Appendix D: Class C for flight software, ground software used in operations and verification software, Class D for research and analysis tools (findings PI-18, VV-12); §2.3 table to match; §3.2 cites NASA-STD-8739.8 and records that the safety-criticality statement disagrees with the hazard analysis and safety documents (open). Header cites NPR 7150.2D. §12.1: Embassy executor in place of RTOS concepts (BASELINE §6, CR-2026-002) |
+| 1.3 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §3.1 and §3.3 point to the Appendix C compliance matrix (SQSO-FSW-012), which replaces the "still to do" |

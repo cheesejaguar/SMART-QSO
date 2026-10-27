@@ -55,6 +55,25 @@ pub extern "C" fn ops_set_commissioning_hold(hold: bool) -> i32 {
     }
 }
 
+/// The ADCS geometry preset (ADCS_SET_GEOMETRY; 0 if it cannot be read)
+pub fn ops_adcs_geometry() -> u8 {
+    OPS.with(|o| o.adcs_geometry()).unwrap_or(0)
+}
+
+/// Select and persist the ADCS geometry preset and apply it; `INVALID` for
+/// a preset that does not exist
+pub fn ops_set_adcs_geometry(preset: u8) -> i32 {
+    if sqso_fsw::adcs::Geometry::preset(preset).is_none() {
+        return rc::INVALID;
+    }
+    let _ = crate::adcs_control::set_geometry(preset);
+    match OPS.with(|o| o.set_adcs_geometry(preset, &mut HalFlash)) {
+        Some(Ok(())) => rc::OK,
+        Some(Err(_)) => rc::IO,
+        None => rc::BUSY,
+    }
+}
+
 /// Whether the ground allows the transponder (false while held)
 #[unsafe(no_mangle)]
 pub extern "C" fn ops_xpdr_allowed() -> bool {
@@ -82,5 +101,8 @@ mod tests {
         assert_eq!(OPS.with(|_| ops_set_commissioning_hold(false)), Some(rc::BUSY));
         assert_eq!(OPS.with(|_| ops_set_xpdr_enabled(true)), Some(rc::BUSY));
         assert_eq!(OPS.with(|_| ops_state_init()), Some(rc::BUSY));
+        assert_eq!(OPS.with(|_| ops_adcs_geometry()), Some(0));
+        assert_eq!(OPS.with(|_| ops_set_adcs_geometry(1)), Some(rc::BUSY));
+        assert_eq!(ops_set_adcs_geometry(9), rc::INVALID);
     }
 }

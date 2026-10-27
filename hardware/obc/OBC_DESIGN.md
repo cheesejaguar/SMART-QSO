@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-CDH-OBC-001
-**Version:** 1.5
-**Date:** 2026-10-25
+**Version:** 1.6
+**Date:** 2026-10-27
 **Status:** Draft
 **Supersedes:** `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), merged as Appendix A (finding PI-17)
 
@@ -391,6 +391,65 @@ executor. There is no RTOS scheduler and no memory test (`software/flight/docs/R
 | Extended operation | 72 hours |
 
 ---
+
+## 13. CDR Interface Completeness (2026-10-27)
+
+**Schematic state.** No OBC schematic exists in the repository (no capture, netlist or layout files; §9.1 lists
+blocks). The only pin assignment that is exercised is the firmware's provisional map (`software/rust/firmware/src/`),
+which CI builds and analyses but which has not run on hardware. §8 above disagrees with it in several places
+(I2C1/I2C2 against the firmware's I2C2/I2C4; SPI2 "sensors" against the RF transceiver; PC1 "watchdog kick" against
+the downlink's TX_REV monitor; PA4–PA7 LEDs against the FRAM SPI1). The firmware map governs until the schematic
+baselines one (RID AV-01).
+
+### 13.1 Every OBC Interface
+
+| Interface | Peripheral / pins (provisional) | Firmware driver | Flight software | Gap |
+|-----------|---------------------------------|-----------------|-----------------|-----|
+| Jetson link | USART1 PA9/PA10, 115200 | `uart.rs` | `jetson_link`, executive | back-powering of the unpowered module (AV-09) |
+| KISS TNC (uplink, downlink) | USART2 PD5/PD6, 9600 | `radio.rs` | `uplink`, `downlink` | TNC not selected (comms reviewer) |
+| Debug console | USART3 PD8/PD9, 115200 | `uart.rs` | console | — |
+| GNSS receiver | LPUART1 PG7/PG8, 9600; `GNSS_EN` PE5 | `uart.rs`, `gpio.rs` | `gnss`, `gnss_schedule` (LV-04) | receiver not selected; latch-up trip (AV-04) |
+| FRAM FM25V20A | SPI1 PA5/PA6/PA7, CS PA4, WP PE0, HOLD PE1 | `fram.rs` (12 regions) | `nvm`, every record | — |
+| RF transceiver | SPI2 PB13/PB14/PB15, CS PD0 | `spi.rs` (generic) | none | not used by the KISS architecture (CR-2026-005); free for the gyro |
+| Gyro M-G370PDT0 (BMI088 backup) | SPI3 PC10/PC11/PC12, CS PD1 (proposed); DRDY, RESET open | `spi.rs` (generic) | rate as `Option` | **no driver, no DRDY/RESET pins, no load switch** (AV-03) |
+| EPS controller, power monitors, AntS | I2C2 PF1/PF0 (bus 0) | `i2c.rs` | `eps_control`, `ants` | AntS codes to confirm (AV-V7) |
+| Magnetometer | I2C4 PD12/PD13 (bus 1) | `i2c.rs` (generic) | field input | **part and driver open** (AV-03) |
+| Coarse sun sensors (6) | ADC1, no channels assigned | `adc.rs` has 9 external channels, none for them | sun-vector input | **channels open** (AV-03) |
+| Magnetorquer PWM and direction (3 axes) | timer outputs, not assigned | none | `MtqCommand`, burst | **driver and pins open**; the timer must end each burst itself (AV-03) |
+| EPS and transmitter monitors | ADC1: VBATT PC2, IBATT PC3, VSOLAR PC4, ISOLAR PC5, VBUS PB0, TEMP_BOARD PB1, TX_TEMP PA0, TX_FWD PC0, TX_REV PC1; MCU temperature internal | `adc.rs` | `sensors`, `downlink` | front-end scale factors open until the EPS sense circuits are drawn |
+| Load switches | PAYLOAD_EN PB4, RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, JETSON_PWR PA2 | `gpio.rs` | `eps_control` | switch readback (AV-06) |
+| RF control | RF_TX_EN PA3, TX_PWR_SEL PE3 | `gpio.rs` | `rf_control`, `downlink` | — |
+| Transponder enable | XPDR_EN PE4, heartbeat from TIM7 (100 Hz, 60 ms lease) | `heartbeat.rs` | `transponder` (SRS-F081) | the radio board's monostable and its readbacks `TONE_OK`, `XPDR_KEY` (AV-05) |
+| Deployment | DEPLOY_EN PA1, SOLAR_BURN PB10 (wing driver A), SOLAR_BURN_B PE6 (driver B), SOLAR_SENSE PB12; antenna via AntS I2C (ANTENNA_BURN PB9 unused, held low; ANTENNA_SENSE PB11 configured as an input, no longer read) | `gpio.rs` | `deployment`, `ants` (SRS-F089) | two resistors per wing on separate drivers (STR-15) |
+| Separation and GSE | DEPLOY_SENSE PE2, UMBILICAL_SENSE PB8 | `gpio.rs` | `separation_switch`, `gse_provision` | — |
+| EPS alert | ALERT PB7 (input) | `gpio.rs` | not read | unused input; either wire it to an EXTI for a fast load-shed or remove it |
+| Status LED | PD3 | `gpio.rs` | — | off in flight |
+| Watchdog | IWDG on LSI, 30 s | `wdt.rs` | `watchdog_mgr` (per-task check-in) | no external supervisor (AV-02) |
+| Reset cause | RCC CSR | `wdt.rs` (`hal_reset_cause`) | boot record, housekeeping `RST` | — |
+| Time base | Embassy time driver, 32.768 kHz, 64-bit ms since boot | `timer.rs` | every timer | no wall clock (AV-10) |
+
+### 13.2 Watchdog and Reset
+
+The IWDG (LSI, 30 s) is refreshed only while every registered task has checked in (`watchdog_mgr`); its clock is
+independent of the main oscillator, and it cannot be stopped once started. There is no external watchdog or voltage
+supervisor: an LSI failure or a latch-up that holds the MCU in a state the IWDG cannot reset (only a power cycle
+clears a latch-up) is covered only by the EPS removing the OBC rail, and no OBC-rail trip is specified (AV-08). The
+"watchdog kick" GPIO of §8.4 has no driver and no external watchdog to kick (AV-02: add a windowed external
+supervisor such as a TPS3851-class part on its own GPIO, or delete the line).
+
+### 13.3 Non-volatile Memory
+
+Twelve FRAM regions in the 256 KB part (`fram.rs`, STORAGE_DESIGN §3.3); every flight record is two slots with a
+sequence number and CRC-32 (`sqso_fsw::nvm`), so a write interrupted by a reset leaves the older slot valid. The new
+operations record (commissioning hold, transponder enable, ADCS geometry preset; `ops_state.h`) is region 11, 128 bytes
+at 0x2_0600. FRAM is not susceptible to upsets of the stored data at these doses (RADIATION_ANALYSIS Rev C §5).
+
+### 13.4 Timekeeping (AV-10)
+
+Time is milliseconds since boot; it restarts at every reset. The fault log and housekeeping carry it with the boot count,
+which is enough to order events but not to date them. The GNSS fix carries GPS week and time of week (`gnss.rs`) and the housekeeping
+frame its age; the flight software does not use it to set a mission clock. Recommended (fabrication phase): keep a
+persisted mission-elapsed-time offset in FRAM, updated at each GNSS fix, so that logs survive resets with absolute time.
 
 ## Appendix A: Content Merged from docs/hardware/OBC_DESIGN.md
 
@@ -975,3 +1034,4 @@ OpenOCD / STM32CubeProgrammer
 | 1.3 | 2026-10-24 | Software sections for the Rust flight software: the removed C linker script replaced by the firmware's link configuration (§2.1, §3.1); §10.1 HAL headers as they are and their Rust implementation; §10.2 boot sequence as built; A.1 RTOS row; note that OBC-F001 (FreeRTOS) is not met as written; A.9 marked superseded |
 | 1.4 | 2026-10-25 | OBC-F001 rebaselined by the PI to the Embassy executor (was FreeRTOS; BASELINE §6 Revision C, CR-2026-002); A.1 RTOS row; superseded note on the A.4 RAM map |
 | 1.5 | 2026-10-25 | CR-2026-005: USART2 is the KISS TNC link for the uplink and the downlink (§8.1; conflicts table: UART allocation, RF transceiver link); §8.4 note on the firmware's downlink pins |
+| 1.6 | 2026-10-27 | §13 new (CDR avionics review): schematic state, every OBC interface with its pins, driver and gap (RIDs AV-01 to AV-10), watchdog and reset, NVM regions including the operations record, timekeeping |

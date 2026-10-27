@@ -43,10 +43,10 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 
 | ID | Objective | Priority |
 |----|-----------|----------|
-| MO-1 | Demonstrate AI-managed amateur radio operations from LEO | Primary |
-| MO-2 | Provide amateur radio operators with transponder access | Primary |
-| MO-3 | Demonstrate graceful degradation to conventional operation | Primary |
-| MO-4 | Advance TinyML/TinyLM technology for space applications | Secondary |
+| MO-1 | Provide a U/V FM transponder for worldwide amateur contacts, duty-gated by available power | Primary |
+| MO-2 | Transmit a 1200 bps AX.25 telemetry beacon in published formats | Primary |
+| MO-3 | Demonstrate an onboard AI (OBC selector) that schedules the transponder within the power budget and selects beacon templates, with hard limits enforced outside the model and fallback to a conventional transponder | Primary |
+| MO-4 | Operate in compliance with Part 97 and the debris rules, including TX-OFF and end-of-mission passivation | Primary |
 | MO-5 | Engage amateur radio community in space communications | Secondary |
 
 ### 4.3 Success Criteria

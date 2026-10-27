@@ -188,9 +188,9 @@ faster than the latch-up can damage the part (typically milliseconds to seconds;
 
 | Rail | Normal maximum | Trip (proposed) | Trip time | Off time | Element | Status |
 |------|----------------|-----------------|-----------|----------|---------|--------|
-| Jetson (PDU switch on `PAYLOAD_EN`) | 8 W ≈ 0.56 A at 14.4 V | 0.75 A (1.35×) | ≤ 1 ms (hardware) | ≥ 1 s, OBC re-enables | eFuse or load switch with current limit (e.g. TPS2596x class) | Design open; the software guard (`payload_guard`) acts in 1 s and is the backup (`docs/hardware/PAYLOAD_DESIGN.md` §15) |
+| Jetson (eFuse U3 on `JETSON_PWR`, in series with SW1 on `PAYLOAD_EN`) | 8 W ≈ 0.56 A at 14.4 V | 0.75 A (1.35×) proposed; 1.2 A (2.1×) in `docs/hardware/EPS_DESIGN.md` v2.0 | ≤ 1 ms (hardware) | ≥ 1 s, OBC re-enables | TPS25947-class eFuse, latch-off | Specified by the EPS design at 1.2 A, which a latch-up (amperes) still trips; the software guard (`payload_guard`, 12 W single sample) acts within 1 s as the backup (`docs/hardware/PAYLOAD_DESIGN.md` §11.2) |
 | Gyro M-G370PDT0 | 16 mA at 3.3 V | 40 mA | ≤ 1 ms | ≥ 100 ms | Current-limited load switch | No switch or pin exists (RID AV-03) |
-| GNSS receiver | ≈ 100 mA peak at 3.3 V | 200 mA | ≤ 1 ms | ≥ 1 s | Current-limited load switch | No switch or pin exists (RID AV-04) |
+| GNSS receiver | ≈ 100 mA peak at 3.3 V | 200 mA | ≤ 1 ms | ≥ 1 s | Current-limited load switch on `GNSS_EN` (PE5, provisional) | The flight software powers the receiver only for sessions (`gnss_schedule.rs`, ≤ 5 min), so a latch-up lasts at most one session even without the trip; the trip itself is hardware and not yet specified (RID AV-04) |
 | Magnetometer | ≈ 10 mA | 40 mA | ≤ 1 ms | ≥ 100 ms | Shares the ADCS rail (`ADCS_EN`) | Shared with the coils: a coil drive current masks a sensor latch-up (RID AV-03) |
 | Radio (`RADIO_EN`) | ≈ 0.1 A (receiver, TNC, exciter) | 0.3 A | ≤ 1 ms | ≥ 1 s | Current-limited load switch | Trip not specified (AV-08) |
 | OBC 3.3 V | ≈ 30 mA | 150 mA | ≤ 1 ms | ≥ 100 ms, auto-retry by the EPS | EPS | Not specified (AV-08) |
@@ -217,7 +217,7 @@ TB-11's point stands: a 3 A, 100 ms over-current trip on a 2 A load cannot detec
 | SRAM ECC/parity, TMR of critical variables, memory scrubbing | Yes (`software/flight/docs/RADIATION_MITIGATION.md` Rev A) | **No.** No TMR, no scrubbing, no parity configuration in the Rust code | AV-07 |
 | Flash ECC handling | Implied | Hardware corrects single errors; no NMI handler | AV-07 |
 | SAA handling | Yes | No | Not needed: the rates of §5 do not justify it |
-| Per-rail latch-up trips | Required (BASELINE §6) | Software over-current guard for the Jetson only (1 s); no hardware trip defined for any rail | AV-03, AV-04, AV-08, PAYLOAD_DESIGN §15 |
+| Per-rail latch-up trips | Required (BASELINE §6) | Software over-current guard for the Jetson only (1 s); no hardware trip defined for any rail | AV-03, AV-04, AV-08, PAYLOAD_DESIGN §11.2 |
 | Receiver recovery from SEFI | Not addressed | No | FSW-09 |
 
 ## 8. Component Radiation Data

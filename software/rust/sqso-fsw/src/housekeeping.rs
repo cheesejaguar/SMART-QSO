@@ -23,7 +23,7 @@
 //! | `IB` | battery current, positive charging | mA |
 //! | `PA` | array power | mW |
 //! | `TB`, `TO`, `TP`, `TJ` | battery, OBC, PA, Jetson heat-spreader temperature | 0.1 °C |
-//! | `DEP` | deployment state (`deployment.h`)/antenna sense/wing sense | —/1/1 |
+//! | `DEP` | deployment state (`deployment.h`)/AntS elements deployed (bit n−1 for element n, 15 all; `-` no answer)/wing sense | —/—/1 |
 //! | `RFS` | RF-silence state (`rf_silence.h`)/seconds counted | —/s |
 //! | `CT` | loss-of-contact timeout | days |
 //! | `CS` | time since the last authenticated command | h |
@@ -86,8 +86,9 @@ pub struct Housekeeping {
     pub tpa_c: Option<f64>,
     /// Jetson heat-spreader temperature, °C
     pub tjet_c: Option<f64>,
-    /// Deployment state, antenna sense, wing sense
-    pub deploy: (u32, bool, bool),
+    /// Deployment state, the AntS's deployed-element mask (bit n−1 for
+    /// element n; `None` when it does not answer), wing sense
+    pub deploy: (u32, Option<u8>, bool),
     /// RF-silence state and seconds counted
     pub rf_silence: (u32, u32),
     /// Loss-of-contact timeout, days
@@ -168,12 +169,15 @@ pub fn format(hk: &Housekeeping, out: &mut [u8]) -> usize {
     .and_then(|()| put(&mut w, "TO", opt(hk.tobc_c, 10.0)))
     .and_then(|()| put(&mut w, "TP", opt(hk.tpa_c, 10.0)))
     .and_then(|()| put(&mut w, "TJ", opt(hk.tjet_c, 10.0)))
+    .and_then(|()| write!(w, "DEP={}/", hk.deploy.0))
+    .and_then(|()| match hk.deploy.1 {
+        Some(m) => write!(w, "{m}/"),
+        None => w.write_str("-/"),
+    })
     .and_then(|()| {
         write!(
             w,
-            "DEP={}/{}/{} RFS={}/{} CT={} CS={} FC={} ",
-            hk.deploy.0,
-            flag(hk.deploy.1),
+            "{} RFS={}/{} CT={} CS={} FC={} ",
             flag(hk.deploy.2),
             hk.rf_silence.0,
             hk.rf_silence.1,
@@ -275,7 +279,7 @@ mod tests {
             tbatt_c: Some(12.3),
             tobc_c: Some(21.5),
             tpa_c: Some(30.1),
-            deploy: (8, true, true),
+            deploy: (8, Some(15), true),
             rf_silence: (3, 2700),
             contact_timeout_d: 30,
             since_contact_s: 7300,
@@ -291,11 +295,15 @@ mod tests {
         assert_eq!(
             t,
             "HK1 N=7 UP=3600 BOOT=3 RST=2 MODE=3 HOLD=1 XP=0 TX=1 SOC=873 VB=15812 IB=-120 PA=2410 TB=123 TO=215 \
-             TP=301 TJ=- DEP=8/1/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4"
+             TP=301 TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4"
         );
-        assert!(t.len() <= MAX_LEN && t.is_ascii());
+        assert!(t.len() <= MAX_LEN);
+        assert!(t.is_ascii());
         let empty = text(&Housekeeping { soc: Some(f64::NAN), ..Housekeeping::default() });
-        assert!(empty.contains("SOC=- ") && empty.contains("FL=- ") && empty.contains("GF=- "), "{empty}");
+        assert!(empty.contains("SOC=- "), "{empty}");
+        assert!(empty.contains("FL=- "), "{empty}");
+        assert!(empty.contains("GF=- "), "{empty}");
+        assert!(empty.contains(" DEP=0/-/0 "), "the AntS not answering: {empty}");
     }
 
     #[test]
@@ -314,7 +322,7 @@ mod tests {
             tobc_c: Some(-40.0),
             tpa_c: Some(-40.0),
             tjet_c: Some(-40.0),
-            deploy: (10, true, true),
+            deploy: (10, Some(15), true),
             rf_silence: (3, 2700),
             contact_timeout_d: 90,
             since_contact_s: 90 * 86_400,
@@ -341,6 +349,8 @@ mod tests {
         }
         c.beacon_sent(300_000);
         assert!(!c.due(300_000 + AFTER_BEACON_MS - 1));
+        // A sixth beacon before the frame goes does not push it back
+        c.beacon_sent(300_000 + 1000);
         assert!(c.due(300_000 + AFTER_BEACON_MS));
         c.sent();
         assert_eq!(c.seq, 1);

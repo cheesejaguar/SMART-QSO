@@ -31,6 +31,8 @@
 //! @requirement SRS-F090 The software shall use a magnetometer sample only when the magnetorquers have been off for at least 50 ms, discard and count any other sample
 //! @requirement SRS-F091 The software shall command each magnetorquer burst for 900 ms of the 1 s control period, with the dipole scaled by the period over the on-time
 //! @requirement SRS-F092 The software shall not complete a detumble on a magnetometer rate estimate that a discarded sample left stale
+//! @requirement SRS-F093 The software shall run B-dot detumble and spin-stabilized sun pointing of +Y at 8 deg/s at 1 Hz, and treat a detumble lasting over 285 minutes as a fault
+//! @requirement SRS-F094 The software shall let the ground select the spin axis and inertia tensor from the presets by telecommand, and refuse any other preset
 
 use crate::fmath::sqrt;
 
@@ -58,14 +60,19 @@ pub const SUN_SENSOR_COUNT: usize = 6;
 /// Sun intensity below which it is eclipse (5 %)
 pub const ECLIPSE_INTENSITY: f64 = 0.05;
 /// The axis held on the Sun: +Y, the normal of the deployed wings
-/// (hardware/eps/SOLAR_ARRAY_DESIGN.md §8.1) and the major axis of inertia
+/// (hardware/eps/SOLAR_ARRAY_DESIGN.md §8.1). With the products of inertia
+/// of [`Inertia::DEPLOYED`] the major axis is about 14° from +Y; the spin is
+/// held about +Y by the nutation damping, which gives more power than
+/// spinning about the major axis (Monte Carlo, ADCS_DESIGN §11.4; STR-01).
+/// [`Geometry::PRESETS`] (ADCS_SET_GEOMETRY) selects other axes
 pub const SUN_AXIS: Vec3 = Vec3::new(0.0, 1.0, 0.0);
-/// Spin rate about [`SUN_AXIS`] in SUNPOINT, rad/s (6 deg/s). The mission
-/// simulation's Monte Carlo (docs/hardware/BUILD_VS_BUY.md §6) puts the
-/// mean Sun angle at 12° for 2 deg/s, 4° for 4 deg/s and 2.5° for 6 deg/s:
-/// the spin's stiffness against the disturbance torques grows with it, and
-/// the coils hold it for under 5 mW
-pub const SPIN_RATE: f64 = 0.105;
+/// Spin rate about [`SUN_AXIS`] in SUNPOINT, rad/s (8 deg/s). Chosen at CDR
+/// (STR-01) with the full inertia tensor of layout B over Iyy/Izz 1.00 to
+/// 1.05: with [`NUTATION_GAIN`] it keeps 93 % of the sunlit time within 15°
+/// at Iyy/Izz = 1.00 and at least 99.6 % from 1.005 up (mean Sun angle 3.8°
+/// to 6.9°, the coils 27 to 32 mW; the best compromise of 6 to 10 deg/s;
+/// `docs/hardware/ADCS_DESIGN.md` §11.4, `software/simulation/cdr/avionics/adcs_mc_cdr.sh`)
+pub const SPIN_RATE: f64 = 0.1396;
 /// Moments of inertia about the body axes with the wings and the AntS
 /// deployed, kg m^2: layout B (battery at −Z, RF at +Z), CubeSpace rods, the
 /// 2 m elements along ±X, mean of CBE and MEV (`docs/environment/MASS_BUDGET.md`
@@ -77,8 +84,13 @@ pub const INERTIA: Vec3 = Vec3::new(0.003_120, 0.004_600, 0.004_437);
 /// Momentum gain of the spin law: torque per unit momentum error, 1/s
 pub const MOMENTUM_GAIN: f64 = 0.005;
 /// Nutation damping: torque per rad/s of rate across the spin axis, N m s
-/// (with a momentum gain this high, much less damping is unstable)
-pub const NUTATION_GAIN: f64 = 1.0e-4;
+/// (with a momentum gain this high, much less damping is unstable; 3e-4
+/// with [`SPIN_RATE`] is the robust pair of the CDR sweep, STR-01)
+pub const NUTATION_GAIN: f64 = 3.0e-4;
+/// Nutation damping without a gyro (the rate from the magnetometer, which
+/// misses the rate about the field), N m s: 3e-4 there puts the mean Sun
+/// angle at 55°, 1e-4 at 17° (CDR sweep, `docs/hardware/ADCS_DESIGN.md` §11.4)
+pub const NUTATION_GAIN_NO_GYRO: f64 = 1.0e-4;
 /// Spin hold: torque about +Y per unit spin-momentum error, 1/s. It holds
 /// the spin positive about +Y, so that −Y on the Sun (with the spin
 /// reversed), which the momentum law alone also accepts, is not a rest state
@@ -236,6 +248,8 @@ pub struct Gains {
     pub momentum: f64,
     /// Nutation damping, N m s ([`NUTATION_GAIN`])
     pub nutation: f64,
+    /// Nutation damping when there is no gyro, N m s ([`NUTATION_GAIN_NO_GYRO`])
+    pub nutation_no_gyro: f64,
     /// Spin hold, 1/s ([`SPIN_HOLD_GAIN`])
     pub spin_hold: f64,
 }
@@ -247,6 +261,7 @@ impl Gains {
         spin_rate: SPIN_RATE,
         momentum: MOMENTUM_GAIN,
         nutation: NUTATION_GAIN,
+        nutation_no_gyro: NUTATION_GAIN_NO_GYRO,
         spin_hold: SPIN_HOLD_GAIN,
     };
 }
@@ -780,8 +795,13 @@ impl Adcs {
             mode::DETUMBLE => self.detumble_step(now_ms, &mut dipole, &mut cycle),
             mode::SUNPOINT => {
                 if self.state.sun.sun_visible {
+                    let gains = if self.gyro.is_some() {
+                        self.gains
+                    } else {
+                        Gains { nutation: self.gains.nutation_no_gyro, ..self.gains }
+                    };
                     dipole = spin_sunpoint_geo(
-                        &self.gains,
+                        &gains,
                         &self.geometry,
                         &self.state.sun,
                         &self.state.mag,
@@ -926,7 +946,8 @@ mod tests {
         let x = Vec3::new(1.0, 0.0, 0.0);
         // At rest, sun on +X: the momentum wanted is along +X
         let m = spin_sunpoint(&sun(x), &field(b), Vec3::ZERO);
-        assert!(m.magnitude() > 0.0 && m.magnitude() <= MAX_DIPOLE + 1e-12);
+        assert!(m.magnitude() > 0.0);
+        assert!(m.magnitude() <= MAX_DIPOLE + 1e-12);
         assert!(torque(m, b).dot(&x) > 0.0);
         // Eclipse: only the rate across +Y is damped, the spin is kept
         let shade = SunSensorData::default();
@@ -957,6 +978,51 @@ mod tests {
         assert_eq!(a.gyro, Some(w));
     }
 
+    #[test]
+    fn with_the_gyro_a_fast_spin_about_the_axis_is_not_captured() {
+        let b = Vec3::new(30.0, 0.0, 40.0);
+        for (spin, captured) in [(1.9 * SPIN_RATE, true), (2.1 * SPIN_RATE, false)] {
+            let mut a = Adcs::new();
+            a.init();
+            assert!(a.set_mode(mode::DETUMBLE, 1000).is_ok());
+            let w = Vec3::new(0.001, spin, 0.0);
+            let mut t = 1000;
+            while t <= 1000 + DETUMBLE_SETTLING_MS + 3000 {
+                let _ = a.update_with_gyro(t, t, b, Vec3::ZERO, Some(w));
+                t += 1000;
+            }
+            assert_eq!(a.state.detumble_complete, captured, "{spin}");
+        }
+    }
+
+    #[test]
+    fn the_nutation_gain_depends_on_whether_there_is_a_gyro() {
+        const { assert!(NUTATION_GAIN_NO_GYRO < NUTATION_GAIN) };
+        let b = Vec3::new(30.0, 0.0, 40.0);
+        let sun_y = Vec3::new(0.0, 1.0, 0.0);
+        let w = Vec3::new(0.02, SPIN_RATE, -0.01);
+        for gyro in [Some(w), None] {
+            let mut a = Adcs::new();
+            a.init();
+            let _ = a.update_with_gyro(1000, 1000, b, Vec3::ZERO, gyro);
+            assert!(a.set_mode(mode::SUNPOINT, 1000).is_ok());
+            // The field turns, so the estimate without the gyro is not zero
+            let _ = a.update_with_gyro(2000, 2000, Vec3::new(31.0, 1.0, 39.0), sun_y, gyro);
+            let g =
+                if gyro.is_some() { Gains::FLIGHT } else { Gains { nutation: NUTATION_GAIN_NO_GYRO, ..Gains::FLIGHT } };
+            let want = spin_sunpoint_geo(&g, &Geometry::FLIGHT, &a.state.sun, &a.state.mag, a.state.angular_rate_est);
+            let got = a.state.mtq.dipole;
+            let other = Gains { nutation: if gyro.is_some() { NUTATION_GAIN_NO_GYRO } else { NUTATION_GAIN }, ..g };
+            let other =
+                spin_sunpoint_geo(&other, &Geometry::FLIGHT, &a.state.sun, &a.state.mag, a.state.angular_rate_est);
+            assert!((other.x - want.x).abs() + (other.z - want.z).abs() > 1e-9, "the test tells the gains apart");
+            let want = a.timing.burst(&want);
+            assert!((got.x - want.x).abs() < 1e-15, "{gyro:?}");
+            assert!((got.y - want.y).abs() < 1e-15, "{gyro:?}");
+            assert!((got.z - want.z).abs() < 1e-15, "{gyro:?}");
+        }
+    }
+
     fn close(a: f64, b: f64, tol: f64) -> bool {
         (a - b).abs() <= tol
     }
@@ -979,11 +1045,14 @@ mod tests {
         let mut mag = MagData { valid: true, field: Vec3::new(30.0, 0.0, 40.0), ..MagData::default() };
         mag.field_rate = Vec3::new(5.0, -10.0, 2.0);
         let m = bdot(&mag);
-        assert!(close(m.x, -0.05, 1e-12) && close(m.y, 0.10, 1e-12) && close(m.z, -0.02, 1e-12));
+        assert!(close(m.x, -0.05, 1e-12));
+        assert!(close(m.y, 0.10, 1e-12));
+        assert!(close(m.z, -0.02, 1e-12));
         mag.field_rate = Vec3::new(1500.0, -2000.0, 0.0);
         let m = bdot(&mag);
         assert!(close(m.magnitude(), MAX_DIPOLE, 1e-12));
-        assert!(close(m.x, -0.6 * MAX_DIPOLE, 1e-12) && close(m.y, 0.8 * MAX_DIPOLE, 1e-12));
+        assert!(close(m.x, -0.6 * MAX_DIPOLE, 1e-12));
+        assert!(close(m.y, 0.8 * MAX_DIPOLE, 1e-12));
         mag.valid = false;
         assert_eq!(bdot(&mag), Vec3::ZERO);
     }
@@ -1043,25 +1112,30 @@ mod tests {
         // Never driven: the first sample is good, and starts a burst
         assert!(a.coils_quiet(t0));
         let c = a.update(t0, t0, field, sun).unwrap();
-        assert!(!c.mag_rejected && a.state.mag.valid);
+        assert!(!c.mag_rejected);
+        assert!(a.state.mag.valid);
         assert_eq!(a.coils_off_ms, Some(t0 + MTQ_ON_MS));
         // The next cycle, 1 s on: the coils went off 100 ms ago
         field = turned(field, 0.1, 1.0);
         let c = a.update(t0 + 1000, t0 + 1000, field, sun).unwrap();
-        assert!(!c.mag_rejected && a.state.mag.valid && a.state.mtq.enabled);
+        assert!(!c.mag_rejected);
+        assert!(a.state.mag.valid);
+        assert!(a.state.mtq.enabled);
         assert!(a.state.mtq.dipole.magnitude() > 0.0, "B-dot acts on a clean sample");
         // Read 20 ms after the burst ended (not settled), or during it: not used
         for late in [MTQ_ON_MS + 20, MTQ_ON_MS - 100] {
             let mut b = a;
             let t = t0 + 1000 + late;
             let c = b.update(t, t, turned(field, 0.1, 1.0), sun).unwrap();
-            assert!(c.mag_rejected && !b.state.mag.valid, "{late}");
+            assert!(c.mag_rejected, "{late}");
+            assert!(!b.state.mag.valid, "{late}");
             assert_eq!(b.mag_rejected, 1);
             assert_eq!(b.state.mtq.dipole.magnitude(), 0.0, "no B-dot on a rejected sample");
         }
         // Exactly settled is good
         let t = t0 + 1000 + MTQ_ON_MS + MAG_SETTLE_MS;
-        assert!(a.coils_quiet(t) && !a.coils_quiet(t - 1));
+        assert!(a.coils_quiet(t));
+        assert!(!a.coils_quiet(t - 1));
         // Coils driven for the whole period (no window): every sample after
         // the first is rejected, and counted
         let mut n = Adcs::new();
@@ -1217,7 +1291,9 @@ mod tests {
         let mag = MagData { field: Vec3::new(6000.0, 0.0, 8000.0), valid: true, ..MagData::default() };
         // error = s x X = (0, 0.8, -0.6); tau = Kp error; m = (tau x B) / |B|^2 * 1e6
         let m = sunpoint(&sun, &mag);
-        assert!(close(m.x, 0.064, 1e-12) && close(m.y, -0.036, 1e-12) && close(m.z, -0.048, 1e-12), "{m:?}");
+        assert!(close(m.x, 0.064, 1e-12), "{m:?}");
+        assert!(close(m.y, -0.036, 1e-12), "{m:?}");
+        assert!(close(m.z, -0.048, 1e-12), "{m:?}");
         let unit = MagData { field: Vec3::new(1.0, 0.0, 0.0), ..mag };
         assert_eq!(sunpoint(&sun, &unit), Vec3::ZERO, "|B|^2 of exactly 1 is too weak");
         let invisible = SunSensorData { sun_visible: false, ..sun };
@@ -1237,7 +1313,8 @@ mod tests {
         assert_eq!(a.state.mag.field_rate, Vec3::new(1.0, 2.0, -3.0));
         let w = a.state.angular_rate_est;
         // (1, 2, -3) x (32, 4, 34) = (80, -130, -60); |B|^2 = 2196
-        assert!(close(w.x, 80.0 / 2196.0, 1e-12) && close(w.y, -130.0 / 2196.0, 1e-12));
+        assert!(close(w.x, 80.0 / 2196.0, 1e-12));
+        assert!(close(w.y, -130.0 / 2196.0, 1e-12));
         assert!(close(w.z, -60.0 / 2196.0, 1e-12), "{w:?}");
 
         // 10 ms apart is too close; 11 ms is not

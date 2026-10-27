@@ -33,6 +33,7 @@ COMMANDS: Dict[str, CommandSpec] = {
     "EPS_GET_TELEMETRY": CommandSpec(0x13, 0, 0, "operational", "Get EPS telemetry", without_key=False),
     "ADCS_DETUMBLE": CommandSpec(0x21, 0, 0, "operational", "Start detumble", without_key=False),
     "ADCS_GET_ATTITUDE": CommandSpec(0x23, 0, 0, "operational", "Get attitude", without_key=False),
+    "ADCS_SET_GEOMETRY": CommandSpec(0x24, 1, 1, "operational", "Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing", without_key=False),
     "SET_BEACON": CommandSpec(0x30, 2, 2, "operational", "Set beacon interval, seconds big-endian, 10 to 120", without_key=False),
     "TX_ENABLE": CommandSpec(0x31, 0, 0, "operational", "Clear the latched TX-OFF", without_key=False),
     "TX_DISABLE": CommandSpec(0x32, 0, 0, "any", "Latch TX-OFF in every state (47 CFR 97.207(b))", without_key=True),

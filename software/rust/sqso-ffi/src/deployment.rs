@@ -45,7 +45,6 @@ pub type DeploymentTelemetry = Telemetry;
 
 static DEPLOY: Global<Deployment> = Global::new(Deployment::new(FLASH_REGION_DEPLOYMENT));
 
-
 /// A flight-log message, NUL-terminated (cut at LOG_MAX_MESSAGE_LEN - 1)
 struct Message {
     buf: [u8; 128],

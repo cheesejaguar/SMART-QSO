@@ -35,6 +35,7 @@ typedef enum {
     CMD_EPS_GET_TELEMETRY = 0x13, /**< EPS_GET_TELEMETRY: Get EPS telemetry */
     CMD_ADCS_DETUMBLE = 0x21, /**< ADCS_DETUMBLE: Start detumble */
     CMD_ADCS_GET_ATTITUDE = 0x23, /**< ADCS_GET_ATTITUDE: Get attitude */
+    CMD_ADCS_SET_GEOMETRY = 0x24, /**< ADCS_SET_GEOMETRY: Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing */
     CMD_COMM_SET_BEACON = 0x30, /**< SET_BEACON: Set beacon interval, seconds big-endian, 10 to 120 */
     CMD_COMM_TX_ENABLE = 0x31, /**< TX_ENABLE: Clear the latched TX-OFF */
     CMD_COMM_TX_DISABLE = 0x32, /**< TX_DISABLE: Latch TX-OFF in every state (47 CFR 97.207(b)) */
@@ -48,7 +49,7 @@ typedef enum {
 } CmdId_t;
 
 /** Number of commands in the dictionary */
-#define CMD_DICTIONARY_COUNT 23U
+#define CMD_DICTIONARY_COUNT 24U
 
 /** Which telecommand key authenticates a command */
 typedef enum {
