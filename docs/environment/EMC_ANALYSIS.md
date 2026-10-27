@@ -83,7 +83,7 @@ Lowest state of charge at which the burn keeps the bus at or above 12.0 V / 11.2
 The PA keying step is 40 mV at 25 °C and 110 mV in the cold, low-SOC corner: within the ETP's 200 mV bus criterion.
 The deployment burn after a cold soak (pack ≈ −10 … −16 °C at ≈ 58 % SOC; THERMAL_ANALYSIS §4) leaves 14.1–14.4 V at
 0.75 A and 13.8–14.1 V at the 1.0 A limit; one resistor stays above the 12.0 V low-battery level down to 10 % SOC at
-−20 °C even in the worst case. Only the four-driver fault comes near the BMS cut: at −16 °C it needs ≥ 22 % SOC to stay
+−20 °C at 0.75 A (16 % at the 1.0 A limit). Only the four-driver fault comes near the BMS cut: at −16 °C it needs ≥ 22 % SOC to stay
 above 11.2 V (12.4 V at 58 % SOC). This sets the launch state of charge (SQSO-BSA-001 §6:
 ≥ 40 % at deployment) and the converters' under-voltage lock-out (rule E8).
 
