@@ -24,13 +24,13 @@ numpy/scipy). Outputs are in the same directory: `results.json`, `fem_results.js
 | AntS below the −Z rail ends (STR-11) | 1.25 mm nominal, 0.90 mm worst case, with the −Z face recessed 1.5 mm (unrecessed: 0.25 mm **beyond** the rail ends) | ≥ 0.1 mm (CDS App. B) | §6.3 |
 | GNSS patch below the +Z rail ends | 1.75 mm nominal, 1.40 mm worst case | ≥ 0.1 mm | §6.3 |
 | Deployment switches, separation plungers, RBF | DS1, DS2 at −Z and DS3 at +Z on three rails; SP1, SP2 at −Z; all flush when actuated; RBF head 5.10 mm from the rail plane | CDS §2.3.2.3, §2.2.14, §2.3.5.2; BASELINE §4 | §6.4 |
-| Interference, stowed and deployed | None (492 / 486 solid pairs with overlapping boxes tested by boolean intersection); the harness design's 58 zones clear of every solid (`harness_calcs.py` check) | — | §6.5, §6.11 |
+| Interference, stowed and deployed | None (500 / 494 solid pairs with overlapping boxes tested by boolean intersection); the harness design's 58 zones clear of every solid (`harness_calcs.py` check) | — | §6.5, §6.11 |
 | Gyro in its socket (OBC item C3) | M-G370PDT0 stands 14.0 mm above the OBC (11.4 mm to the carrier): **through a 27 × 27 mm window in a 2.0 mm carrier** (no frame; the thicker board keeps the carrier's Steinberg margin, +0.08), 1.5 mm clear of the carrier and 3.6 mm of the Jetson module; raising the carrier 3 mm and a bracket with a ribbon were evaluated and do not fit | OBC_BOARD_DESIGN §9.2, §24 C3 | §4.3 |
 | Wing sweep (0–90°) | 0.35 mm minimum clearance (at 45°, wing back cells to body-panel coverglass) | > 0.3 mm allowance | §6.6 |
 | AntS tapes to the stowed wings (STR-16) | 6.5 mm (tape band to the wing's −Z edge, wing shortened and moved +3 mm); 0.5 mm with the 98 mm wing centred; deployed 2 m tape to the deployed wing 37.8 mm | ≥ 10 mm or wings first | §6.7 |
 | Wing hinge and deployment springs (MCAD-01, STR-13) | Version A springs do not fit; **Version B design fits**: two 17-7PH torsion springs on the hinge axis (primary below the wing, secondary at +Z), clock-spring flex at R 1.0–1.6 mm. Torque margin (5017B, analysis factors) **+0.14** at the cold end of travel, one spring out +0.13; spring stress MS +0.12 / **+0.04** (yield); damped soft stop 0.157 N·m (214 µε); no latch, holding margin +17 | TM ≥ 0 (5017B Eq. 4-1); Table 4; DDMR 14, 53; ≤ 0.3 N·m (STR-14) | §6.8; SQSO-MECH-001 B |
-| Mass, CG | 1,513.9 g CBE / 1,747.8 g MEV (= MEL, with the 20 g inertia ballast of row 36, chair decision C-13; rows 32 and 26 to the harness design, D-2; row 23 at 66.6 g with the SoC pedestal; row 5 re-split for the skeleton deck, MCAD-02); stowed CG (+0.1, −0.3, −1.3) mm CBE | ≤ 2.00 kg; ±20 mm (5 mm baseline) | §5 |
-| Deployed inertia (STR-01) | Iyy/max(Ixx, Izz) **1.055 CBE / 1.046 MEV** (four AntS elements, 2 × 10 g Z-axis ballast, C-13, harness zones; 1.045 / 1.037 without the ballast); 5th percentile with 2 mm placement scatter 1.045 / 1.036; major axis **1.0° / 1.0°** from +Y | ≥ 1.03; ≤ 5° (BASELINE §4) | §5 |
+| Mass, CG | 1,519.4 g CBE / 1,754.2 g MEV (= MEL, with the 20 g inertia ballast of row 36, chair decision C-13; rows 32 (76.1 g) and 26 to the harness design, D-2; row 37, the 5 g battery cell retention of §4.6; row 23 at 66.6 g with the SoC pedestal; row 5 re-split for the skeleton deck, MCAD-02); stowed CG (+0.1, −0.4, −1.4) mm CBE | ≤ 2.00 kg; ±20 mm (5 mm baseline) | §5 |
+| Deployed inertia (STR-01) | Iyy/max(Ixx, Izz) **1.056 CBE / 1.047 MEV** (four AntS elements, 2 × 10 g Z-axis ballast, C-13, harness zones; 1.045 / 1.037 without the ballast); 5th percentile with 2 mm placement scatter 1.045 / 1.037; major axis **1.2° / 0.7°** from +Y | ≥ 1.03; ≤ 5° (BASELINE §4) | §5 |
 | First natural frequency, stowed (FE) | **169 Hz** (the deck with its harness dress; stowed wings 170 Hz, out of plane); RF 385, +Z end frame with the ballast 387, EPS 427, carrier 480, OBC 574, battery 1,285 Hz | > 40 Hz (UG v11 §4.1.1) | §8.2 |
 | Margins of safety at the design limit load (larger of the quasi-static 10 g / 17 g and the 3σ random response at 8.18 Grms), NASA-STD-5001B protoflight factors | All positive. Lowest: **+1.00** yield (−Z end frame at the battery isolators), +1.17 (end frames at the rail corners), +1.45 (centre support), +2.40 (stack columns), +2.76 (rails); with the 20 g ballast on the +Z end frame (C-13) and the harness design's mass distribution; Ti-6Al-4V stud of the (+40, +43) column +28; G-10CR isolator +4.6 (FS 2.0) | MS ≥ 0 | §8.5 |
 | PCB fatigue (Steinberg, FE relative displacement, 3σ at 8.18 Grms) | **+0.08 to +0.37** with the two centre supports (D-7; EPS, OBC and RF boards 1.6 mm) and the gyro window in a 2.0 mm carrier (D-11); −0.30 (EPS) and −0.04 (carrier) with one support; EPS +0.23 with the harness under it tied to the deck straps (−0.52 if tied to the EPS: a tie-down rule, §8.5) | MS ≥ 0 | §8.5 |
@@ -95,13 +95,13 @@ centre, +Z along the rails, −Z inserted first).
 | −55.5 … −48.5 | ISIS AntS housing (outside the recessed −Z face) | Vendor pattern on the −Z end frame |
 | −48.5 … −46.9 | −Z end frame, 1.6 mm, 70 × 70 mm cut-out | Rails |
 | −46.9 … −38.9 | Four G-10CR isolator bushings at (±38.5, ±31) | −Z end frame |
-| −44.9 … −20.9 | Battery: four cells along X (y = ±9.25, ±27.75), Al clamp (end caps, side bars, four ears at z −38.9 … −36.4), 2 mm air gap to the end frame | Isolators |
+| −44.9 … −20.9 | Battery: four cells along X (y = ±9.25, ±27.75), Al clamp (end caps, side bars, four ears at z −38.9 … −36.4), G-10CR cell-locator plates at x ±(30.5 … 32.5), disc-spring stacks under the −X cap (§4.6), 2 mm air gap to the end frame | Isolators |
 | −38.2 … −27.7 | Y rod at (+42, 0), beside the battery | Clips to the +X wall |
-| −44.0 … +3.0 | Z rod at (−41.5, 0), beside the battery, through notches in the deck and the EPS board | Clips to the −X wall and the deck |
+| −44.0 … +3.0 | Z rod at (−41.5, 0), beside the battery, through notches in the deck and the EPS board (0.75 mm clear, no contact) | Two clips to the −X wall at z −39 and −8 (D-16) |
 | −20.4 … −17.9 | Battery interconnect and sense board on the clamp (flying leads) | Clamp |
 | −16.5 … −15.5 | Torquer deck: Al 1.0 mm skeleton (3 mm rim, column bosses, straps under the X rod and the GNSS receiver, strap to the upper centre support), 7.8 g | Columns |
 | −15.5 … −5.0 | X rod at (0, +36); GNSS receiver at (+5, −20) | Deck |
-| −4.0 … +3.6 | EPS board (substrate −3.0 … −1.4) | Columns, centre supports at (0, ±21) |
+| −4.4 … +3.6 | EPS board, **2.0 mm** (substrate −3.4 … −1.4; D-14); bottom-side harness connectors to z −12.4 in zones Z1–Z5 | Columns, centre supports at (0, ±21) |
 | +4.0 … +9.6 | OBC (substrate +5.0 … +6.6), parts ≤ 3 mm top / 1 mm bottom (envelope) | Columns, centre supports at (0, ±21) |
 | +6.6 … +20.6 | M-G370PDT0 in socket X1 at (−20, +30.5), 14.0 mm high, standing through the carrier window (§4.3) | Socket and two screws on the OBC |
 | +16.6 … +21.6 | Jetson carrier, **2.0 mm** (substrate +17.6 … +19.6, top face unchanged), 27 × 27 mm window at x −33.5 … −6.5, y +17.0 … +44.0, no frame | Columns, centre supports at (0, ±21) |
@@ -136,6 +136,9 @@ upper stack.
 | D-11 | Gyro (M-G370PDT0 in socket X1) at (−20, +30.5) on the OBC, standing 14.0 mm through a 27 × 27 mm window in the Jetson carrier, which is 2.0 mm thick (bottom face 0.4 mm lower, top face and everything above unchanged); no frame, no bond (§4.3.3) | OBC item C3: 14 mm needed, 11.4 mm available; the two options proposed do not fit (§4.3) |
 | D-12 | Harness as the harness design's zones (SQSO-HAR-001 2.0 §7.1, M-1): EPS bottom-side connector envelope 9.0 mm (z −3 … −12) in zones Z1–Z5 and J3 at +X; four grommeted 6 × 4 mm slots in the shear panels at z −10 for the body-panel pigtails (M-2); access-port board A3 with its Micro-D 21 in a 30 × 7 × 8.8 mm envelope at x −35 … −5, z −46.8 … −38, through a matching −Y body-panel and shear-panel window (M-3); tabs TB-W1 / TB-W2 at (±48, +37, −37 … −31) with the hinge-flex tails through 1.5 × 2.8 mm shear-panel slots (M-4); ±Z sun sensors at (−36, +36) on the +Z end frame and on the −X body panel's −Z end zone at (−52.6, +28, −50) looking −Z (M-5); W4A flat without the fold (M-8); RF J1 TFM-108 right-angle, shield notch x > +30 (RF_BOARD_DESIGN D §4.3) | §6.9, §6.11 |
 | D-13 | AntS and GNSS patch mounts DC-isolated from the frame (≥ 1 MΩ): polyimide or G-10 washers and sleeves under every fastener, isolated faying faces, as for A2 (SQSO-HAR-001 2.0 M-9; single-point ground) | §6.11, VI-MCAD-09 |
+| D-14 | **EPS board 2.0 mm** (P3S-02: the carrier's Steinberg margin is −0.07 at MEV with a 1.6 mm EPS, +0.14 with 2.0 mm through the coupled stack): bottom face 0.4 mm lower (substrate −3.4 … −1.4), top face and everything above unchanged; bottom-side parts ≤ 0.6 mm over the X rod (x −24.5 … +24.5, y +29.75 … +42.25); the harness zones under the EPS end at its bottom-parts envelope (z −4.45, request H-11) | §8.5, §11 item 16 |
+| D-15 | **Battery cell retention** (RID STR-08, MEL row 37): G-10CR cell-locator plates at both ends, one disc-spring stack per cell under the −X end cap (140 N), polyimide insulators, shims; no adhesive, no potting; vents open | §4.6 |
+| D-16 | **Z rod tied to the −X shear panel only** (two clips at z −39 and −8, P3S-12): it passes the deck and EPS notches without contact (0.75 mm all round), so the deck's motion puts no load on it | §8.5 |
 
 ### 4.3 Gyro Mounting (OBC Item C3)
 
@@ -254,6 +257,34 @@ module standoffs, the clamp-force path and a flush fastener at (0, −21). Model
 spreading 0.10 K/W) against the THM-10 allowable of 5.7 K/W; spreader to frame 1.10 W/K (0.91 K/W, §6.10): junction to
 frame about 2.0–2.1 K/W, or about 15 K above the frame at 7 W. Both are estimates (contact conductances, θjc and the lid
 area are allocations); V-JET-7 measures the first, the EM thermal balance (TB-07) the second.
+
+### 4.6 Battery Cell Retention (RID STR-08)
+
+BATTERY_DESIGN §7.1 said "bonded or potted", the materials list says no structural adhesive, and the safety assessment
+and the CAD use a mechanical clamp; the MEL had no potting mass. One mechanical retention is defined here (D-15, MEL
+row 37, 5.0 g E2, MATERIALS_LIST):
+
+| Function | Design |
+|----------|--------|
+| Radial location | Two G-10CR cell-locator plates, 2.0 mm, at x ±(30.5 … 32.5) inside the end caps, 74 × 20 mm, four Ø18.75 mm holes lined with 0.13 mm polyimide cups (the 18.5 mm pitch leaves cusps above and below each cell; adjacent cells touch through their factory PVC wraps and a 0.05 mm polyimide tape, the outer cells bear on the side bars through 0.13 mm polyimide: side-bar span 74.3 mm); each plate held to its cap by two M2 Ti-6Al-4V screws |
+| Axial preload | One disc-spring stack per cell (two 17-7PH discs Ø8 × Ø4.2 × 0.3 mm in series, about 500 N/mm) on a G-10CR seat under the −X end cap, bearing on the cell end's outer rim through a polyimide insulator, set by shims to **140 N per cell** at +20 °C (0.28 mm deflection; the cells measured and shimmed to ±0.02 mm); the +X cap is solid. The caps bear only on the annulus r 8.0 … 9.25 mm (the can's rolled rim), never on the positive button, the vent ring or the CID |
+| Vents | The cap holes (Ø16 mm) leave each positive end's vent openings (r ≤ 6.5 mm) uncovered; the nickel strips (≤ 5 mm wide) are welded across the buttons; the caps' outer faces (x ±35.5) face open volume, so a venting cell vents out of the pack, not into a neighbour |
+| Electrical | Every metal-to-can contact insulated (polyimide); nothing in the electrical path is spring-loaded (welded nickel interconnects, RID STR-08) |
+
+**Analysis at the battery's 3σ response** (FE, `fem.py` probe "battery CG", the 8.18 Grms protoflight level, Q = √f: the
+pack on its isolators responds at 47 Grms along X (its 1,285 Hz lateral mode), 35 Grms along Y and 27 Grms along Z;
+3σ 142 / 106 / 81 g; the quasi-static 10 g / 17 g are lower):
+
+| Check | Load (3σ) | Capacity | Margin |
+|-------|-----------|----------|--------|
+| Axial separation of a cell from its preload (cells along X) | 0.050 kg × 142 g = 69.7 N per cell | Minimum preload 119 N (140 N less 14 N at +60 °C: Al caps and side bars 23.6 against the can's 13 ppm/K over 65 mm, 0.028 mm; less 5 % relaxation); FS 1.25 × 1.15 (battery mount, NASA-STD-5020B, SQSO-STR-001 §7.1) | **MS_sep +0.19** |
+| Maximum axial force on a cell | 176 N (166 N at −55 °C: +0.052 mm, +26 N; +10 N shim tolerance) plus 69.7 N = 246 N on the rim annulus (68 mm²): 3.6 MPa | The cell maker's axial-load limit (to be confirmed; open with the cell datasheet, VI-MCAD-10) | — |
+| Radial, Y (worst) | 52 N per cell, 26 N at each locator | G-10CR bearing over 2 × 18.5 mm: 0.7 MPa against ≈ 300 MPa compressive | > +100 |
+| Cell can bending between the locators (61 mm span) | 0.40 N·m | Steel can Ø18.5 × 0.25 mm: 6 MPa | > +20 |
+| Locator plate to cap, two M2 Ti screws in shear | 104 N per plate, 52 N per screw | 1.1 kN (0.6 × 896 MPa × 2.07 mm²) at FS 1.40 | > +10 |
+
+The 140 N preload is the design value; the disc-spring stack's travel absorbs the cell-length tolerance and the
+thermal change without unloading. The pack's 5.0 g joins the battery rigid body in the FE (266 g; §8).
 
 ## 5. Mass Properties
 
@@ -445,7 +476,7 @@ may; VI-STR-11 confirms it on the vendor drawing.
 | Item | Rail / face | Position (mm) | Check |
 |------|-------------|---------------|-------|
 | DS1 | Rail +X+Y, −Z standoff | (+46.0, +46.0), Ø4.5 × 12 | Flush with the standoff end when actuated (CDS §2.3.2.3) |
-| DS2 | Rail −X−Y, −Z standoff | (−46.0, −46.0) | Same |
+| DS2 | Rail −X−Y, −Z standoff | (−46.0, −46.0) | **Two-pole (DPDT) switch** for the third solar-array inhibit (EPS_BOARD_DESIGN D §6.2; harness item M-10): body ≤ Ø4.5 × 12 mm in the Ø4.7 mm bore, plunger flush with the standoff end when actuated; five leads out of its inner end (z −44.75) into the (−X, −Y) corner strip (CS_MXMY, 0.25 mm above; five 28 AWG add 2.2 mm² to its 7.4 of 20.2 mm²); a DPDT subminiature plunger switch of that size is open with the switch vendor (fallback: a second SPDT in a +Z standoff, the EPS designer's choice) |
 | DS3 | Rail +X−Y, +Z standoff | (+46.0, −46.0) | Same; the EXOpod door set screws and 3 mm front protrusion to be checked with the integrator ICD |
 | SP1, SP2 | Rails −X+Y and +X−Y, −Z standoffs | (−46.0, +46.0), (+46.0, −46.0) | Stroke 3 mm (> 2.5), flush when compressed (CDS §2.2.14.2) |
 | RBF | −Y face, −Z end zone of the body panel (no cells) | (+20, −50, −43); head Ø8 to 5.10 mm | ≤ 6.5 mm (CDS §2.3.5.2); Nova access window open (LVR-068) |
@@ -781,7 +812,7 @@ Findings from the FE:
 | L-8 M item (UG v11 Table G-3; SQSO-LVR-001 §9, 2028-03-01) | What this model provides | What remains |
 |-------------------------------------------------------------|--------------------------|--------------|
 | CAD model (UG Appendix C: STEP AP214 or lower, simplified to the outer mould line and interfaces, no internal parts, same coordinate system and units as the mass properties) | `smartqso_oml_stowed.step` and `smartqso_oml_deployed.step`: rails, end frames, panels, wings, hinges, AntS (with the deployed tapes), GNSS patch, switches, plungers, RBF and access port, in the CDS frame, mm. For a CubeSat in an EXOpod Nova the integrator uses it for the virtual fit check (Nova §2.3.1) and passes its own dispenser model to SpaceX | Replace the allocations with the vendors' models (frame, AntS, panels, wings); put in the RBF and access-port locations agreed with Exolaunch (LVR-068); re-export from the drawing-release model |
-| Mass properties (LVR-005: ±15 % at L-8 M) | Mass 1.49 kg CBE / 1.73 kg MEV, CG and full inertia tensor stowed and deployed, in the CAD frame (§5.2; `results.json`). The value to report remains **1.73 kg ± 15 %** (MASS_BUDGET §3.3) | Weighed components replace the CBE (MGA → 0); measured mass, CG and inertia at L-3.5 M (±5 %) and L-2 M |
+| Mass properties (LVR-005: ±15 % at L-8 M) | Mass 1.52 kg CBE / 1.75 kg MEV (MEL v3.1 with the ballast, the harness design and the cell retention), CG and full inertia tensor stowed and deployed, in the CAD frame (§5.2; `results.json`). The value to report is **1.75 kg ± 15 % (1.75 ± 0.26 kg)** (MASS_BUDGET §3.3) | Weighed components replace the CBE (MGA → 0); measured mass, CG and inertia at L-3.5 M (±5 %) and L-2 M |
 | Dynamic model (UG Appendix B: Craig–Bampton in NASTRAN .op4, content to 150 Hz) | The FE of §8: first mode 170 Hz, no mode below 150 Hz, so in the launch-vehicle band the spacecraft is a rigid mass (the mass properties above). Appendix B results are not guaranteed for payloads (UG: environments are enveloping) | If the integrator asks for a model: a NASTRAN bulk-data export of the `fem.py` mesh (nodes, shells, beams, masses) and a Craig–Bampton reduction in NASTRAN; not produced (no NASTRAN licence in the project) |
 | Environmental test approach | §8 analyses the protoflight random level of ETP Rev C (8.18 Grms) | — |
 
@@ -882,11 +913,12 @@ Findings from the FE:
 | VI-MCAD-05 | Gyro sensing-axis alignment on the integrated flight stack (rate table about the three body axes, or an alignment cube on the module) | Each axis known to ≤ 0.1° (cross-axis error ≤ 0.014°/s at the 8°/s spin); matrix delivered to the flight software | §4.3.1; SENSOR_DESIGN §4.1 | Flight unit |
 | VI-MCAD-07 | Magnetic cleanliness of the A2 zone: inspection of every part within 20 mm of A2 (§4.4) against its material, and the magnetometer bias with the flight fasteners, pins and standoffs (with V-OBC-11 / AV-V4) | No ferromagnetic part in the zone except the accepted fixed biases (17-7PH secondary spring, MP1, M.2 card); bias within the hard-iron calibration range | §4.4 | EM, flight |
 | VI-MCAD-06 | Jetson module stack at integration: module drawing and STEP model against the standoff positions and the (0, −21) fastener; pedestal-to-lid gap measured with the module clamped, flanges shimmed; pressure film | Standoffs on the module holes; ≥ 1.0 mm from the fastener head to the module's underside parts; SoC pad deflection 15–35 %, force ≤ 40 N | §4.5; SQSO-JET-BRD-001 §14, V-JET-7 | EM, then flight |
-| VI-MCAD-04 | EM low-level sine survey (0.25 g, 20–2000 Hz, three axes) with accelerometers on the wings, deck, each board centre and the battery; FE updated to the measured modes | First mode > 40 Hz; FE modes within 15 % (else the FE is correlated before the flight margins are reused) | §8 (with VI-STR-02, VI-LV-03) | EM |
+| VI-MCAD-04 | EM low-level sine survey (0.25 g, 20–2000 Hz, three axes) with accelerometers on the wings, the deck (at the GNSS receiver mounts and at the Z-rod notch), each board centre, the −X shear panel at the Z-rod clips and the battery; FE updated to the measured modes | First mode > 40 Hz; FE modes within 15 % (else the FE is correlated before the flight margins are reused) | §8 (with VI-STR-02, VI-LV-03) | EM |
 | VI-STR-04 (amended, SQSO-MECH-001 B) | Hinge torque test of each wing (EM, then flight) with the flight-design flex at −40, +20 and +60 °C in vacuum, each spring removed in turn | Flex torque ≤ 0.50 mN·m at −40 °C (zero margin at 0.64); TM ≥ 0 with the 5017B qualification-test factors; one spring out ≥ 0 | STR-13, MCAD-01 | EM |
 | VI-MECH-01, VI-MECH-02 (SQSO-MECH-001 B) | Spring lot: torque–angle at −40/+20/+60 °C and relaxation (30 days at the stowed angle, +60 °C); flex: 50 deployment cycles at −40 °C, continuity and insulation monitored | Rate and torque within ±10 %, relaxation ≤ 5 %, no set; flex: no open or short, torque ≤ 0.50 mN·m | MCAD-01 | Spring lot; EM |
+| VI-MCAD-10 | Battery cell retention (§4.6): cell lengths measured and shims set; disc-spring deflection measured at assembly (140 N ± 10 N per cell); the cell maker's axial-load limit confirmed; pack OCV, impedance and visual (no marks on the cans) before and after the protoflight random | Preload within ±10 N; no change in OCV (> 5 mV) or impedance (> 5 %); no can damage | D-15, RID STR-08 | EM pack, then flight pack |
 | VI-MCAD-09 | Insulation resistance of the AntS housing, the GNSS patch and A2 to the frame after mounting (megohmmeter at 50 V DC), and the −Z sun sensor's mask against the AntS ICD (element exit positions, housing outline) | ≥ 1 MΩ each (SQSO-HAR-001 2.0 M-9); no element path within 1 mm of the MZ carrier | D-13, §6.11 | EM and flight integration |
-| VI-STR-10 (existing) | CAD sweep (done, §6.6–§6.7) and the deployment test with the AntS, including a wing-stuck case | ≥ 10 mm in the nominal order; contingency clearance recorded | STR-16 | EM |
+| VI-STR-10 (existing) | CAD sweep (done, §6.6–§6.7) and the deployment test with the AntS, in the flight order and with a wing still stowed | Flight order (wings, then AntS): every element ≥ 10 mm from both deployed wings over its whole sweep; contingency (a wing still stowed): ≥ 5 mm from the stowed wing (CAD 6.5 mm); the same criterion as SQSO-MECH-001 E §10 | STR-16 | EM |
 
 ## 13. Limits of This Model
 

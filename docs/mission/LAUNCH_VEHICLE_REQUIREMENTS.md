@@ -194,12 +194,12 @@ contract.
 | L-minus | Date | Deliverable or event | Source |
 |---------|------|----------------------|--------|
 | — | 2026-12-31 | Requests for quotes sent (D7), each asking for the mission ICD at the contract, the attenuated Nova shock MPE, the dispenser thermal analysis for the assigned flight, and the 91-710 and battery failure-tolerance requirements (owner: PI; `mission/SCHEDULE.md` DA-07); contracting entity named (LV-09, DP-1; owner: PI; DA-05) | BASELINE §1, §3 |
-| — | 2027-01-12 | NASA DAS reproduction of ODAR Draft D, before the early FCC filing (owner: systems engineer; DA-06) | `mission/SCHEDULE.md` §5 |
+| — | 2027-01-12 | NASA DAS reproduction of ODAR Draft D (agreement requested 2026-11-06, in hand 2026-12-15, run by 2027-01-08) and ODAR Draft E, before the early FCC filing (owner: systems engineer; DA-06) | `mission/SCHEDULE.md` §5 |
 | — | 2027-01-19 | FCC pre-space notification filed early (47 CFR 97.207(g)(1)); replaced within 30 days of the launch contract, and updated no later than 90 days before integration (2028-06-17) | `docs/regulatory/REGULATORY_ROADMAP.md` Rev B |
 | — | 2027-01-26 | IARU coordination request submitted, after the PDR (2027-01-12) and the early FCC filing; coordination letter **by 2027-05-18** (90th percentile of 39 coordinations; median 2027-03-25) (owner: licensee KK6GDB; DA-09) | `docs/regulatory/IARU_COORDINATION.md`; `mission/SCHEDULE.md` IARU |
 | — | 2027-06-30 | Launch contract signed with the altitude clause (475 km target, 485 km cap), and with it the integrator's mission ICD, the attenuated shock MPE and the dispenser thermal analysis (owner: PI; DA-08, DA-12); else the NRCSD and Electron requests start | D7 |
 | — | 2027-09-30 | Backup decision, if triggered (an ISS launch then no earlier than about 2028-09) | D7 |
-| L-8 M | 2028-03-01 | Mission analysis inputs: configuration webform, CAD, dynamic model, mass properties ± 15 % (1.75 kg ± 15 %), separation analysis, transmitter webform, environmental test approach, export compliance documents | UG Table G-3 |
+| L-8 M | 2028-03-01 | Mission analysis inputs: configuration webform, CAD, dynamic model, mass properties ± 15 % (1.75 kg ± 15 %: 1.75 ± 0.26 kg), separation analysis, transmitter webform, environmental test approach, export compliance documents | UG Table G-3 |
 | L-6 M | 2028-05-01 | SDHS and 91-710 compliance letter; FAA payload review template; cross-waivers | UG Table G-3 |
 | L-5 M | 2028-06-01 | **Orbit selection** from SpaceX's list: ≤ 485 km must be on it, or the rebooking clause applies | UG Appendix G; BASELINE §3 |
 | L-4 M | 2028-07-01 | Protoflight environmental campaign complete (VI-LV-03, 04, 05, 07, 08) | UG Fig. 1-2 |

@@ -21,16 +21,19 @@ and an already-held PDR and CDR; neither exists (BASELINE §1).
 | Item | Date | Basis |
 |------|------|-------|
 | Today | 2026-10-27 | — |
-| VI-RFB-12 (AntS and coax drawings, before the RF layout) | **by 2026-11-13** | RID RFB-10; task RFB_PRE |
+| NASA DAS software usage agreement requested; ISIS AntS RFQ (with its ICD) | **by 2026-11-06** | DA-06; tasks DAS_REQ, ANTS_RFQ |
+| VI-RFB-12 (AntS and coax drawings, before the RF layout; RF lead) | **by 2026-11-13** | RID RFB-10; task RFB_PRE |
+| FCC Space Bureau consultation requested with the agenda (`docs/regulatory/REGULATORY_ROADMAP.md` Rev D §6) | **by 2026-11-15** | DA-11; task FCC_REQ |
 | PDR board named by the PI | **by 2026-12-01** | DA-03 (RID P3P-05) |
 | Layout designers contracted (two, in parallel) | **by 2026-12-15** | DA-04 (RIDs P3P-05, R14) |
 | Contracting legal entity in place | **by 2026-12-31** | DP-1 (`docs/ORBITAL_ACCESS.md`); DA-05 |
 | Integrator requests for quotes out | by 2026-12-31 | Decision D7; DA-07 lists what each RFQ asks for |
-| NASA DAS run reproducing ODAR Draft D | 2026-11-17 to 2026-12-15, deadline 2027-01-12 | DA-06 (RIDs SE-14, ODA-02): before the early FCC filing |
+| NASA DAS: agreement in hand; DAS run reproducing ODAR Draft D; ODAR Draft E | 2026-12-15; 2027-01-08; 2027-01-12 | DA-06 (RIDs SE-14, ODA-02): all before the early FCC filing |
+| FCC consultation meeting; outcome recorded | by 2027-01-05; 2027-01-08 | DA-11; tasks FCC_CONS, FCC_OUT |
 | Independent PDR (NPR 7123.1D Table G-6) | 2027-01-12 | `docs/project/CDR_CRITERIA_MATRIX.md` §2 |
 | EM funding available | **2027-01-15 (assumption)** | Needed for the EM long-lead buys after the PDR |
 | Procurement data reviews before the EM order (V-HAR-3, V-HAR-11, EPSB-09, JETB-07) | by 2027-01-15 | DA-18; task PRE_ORDER |
-| Early FCC pre-space notification with the API data and the draft ODAR | **2027-01-19** | `docs/regulatory/REGULATORY_ROADMAP.md`; task FCC_EARLY |
+| Early FCC pre-space notification with the API data and ODAR Draft E | **2027-01-19** | `docs/regulatory/REGULATORY_ROADMAP.md`; task FCC_EARLY |
 | IARU coordination request | **2027-01-26** | After the PDR and a week after the early FCC filing (`docs/regulatory/IARU_COORDINATION.md`) |
 | NVIDIA design guides and Molex drawings (JETB-06, JETB-12), before the carrier layout | by 2027-02-01 (carrier layout starts 2027-03-16) | DA-19; task JET_DG |
 | IARU coordination letter | **by 2027-05-18** (90th percentile; median 2027-03-25) | IARU status pages, 39 coordinations (`docs/regulatory/IARU_COORDINATION.md`); DA-09 |
@@ -55,23 +58,28 @@ layout designers, layout after the PDR, the reliability programme in (the model'
 
 | ID | Task | Duration | Early start | Early finish | Float, L = 2028-06-01 | Float, L = 2028-11-01 |
 |----|------|----------|-------------|--------------|-----------------------|-----------------------|
-| DAS_SW | NASA DAS obtained under its software usage agreement (DA-06) | 3 wk | 2026-10-27 | 2026-11-17 | 28 d | 28 d |
+| ANTS_RFQ | ISIS AntS RFQ, with the ICD (VI-RFB-13, AV-V7, DA-17) | 10 d | 2026-10-27 | 2026-11-06 | 0 d | 0 d |
+| DAS_REQ | NASA DAS software usage agreement requested (DA-06) | 10 d | 2026-10-27 | 2026-11-06 | 0 d | 0 d |
 | ENTITY | Contracting legal entity in place (ORBITAL_ACCESS DP-1) | 8 wk | 2026-10-27 | 2026-12-22 | 9 d | 9 d |
-| FCC_CONS | FCC Space Bureau consultation (D3) | 10 wk | 2026-10-27 | 2027-01-05 | 7 d | 7 d |
+| FCC_REQ | FCC Space Bureau consultation requested with the agenda (REGULATORY_ROADMAP D §6; DA-11) | 19 d | 2026-10-27 | 2026-11-15 | 0 d | 0 d |
 | JET_DG | JETB-06/V-JET-2, JETB-12: NVIDIA DG-10931-001 and TDG-11127-001, Molex drawings; conformance review before the carrier layout | 6 wk | 2026-10-27 | 2026-12-08 | 18 d | 55 d |
 | MECH | Mechanical CAD, FE and dynamic model (complete: SQSO-MECH-CAD-001, STRUCTURAL_ANALYSIS) | done | 2026-10-27 | 2026-10-27 | **-10 d** | 141 d |
 | PDR_BOARD | PI names the independent PDR board and its chair (DA-03, by 2026-12-01) | 5 wk | 2026-10-27 | 2026-12-01 | **-52 d** | 0 d |
 | PRE_ORDER | Procurement data reviews before the EM order: V-HAR-3, V-HAR-11, EPSB-09, JETB-07 | 6 wk | 2026-10-27 | 2026-12-08 | 11 d | 38 d |
-| RFB_PRE | VI-RFB-12: AntS and coax drawings, plating, attenuation, inner conductor (before RF layout) | 17 d | 2026-10-27 | 2026-11-13 | 0 d | 0 d |
+| RFB_PRE | VI-RFB-12 (RF lead): AntS and coax drawings, plating, attenuation, inner conductor (before RF layout) | 17 d | 2026-10-27 | 2026-11-13 | 0 d | 0 d |
 | RFQ | Integrator requests for quotes (D7: by 2026-12-31) | 9 wk | 2026-10-27 | 2026-12-29 | 2 d | 2 d |
 | RID | Close this review's RIDs (rounds 1-3); requirements rebaseline (CR-2026-007 to -015) | 6 wk | 2026-10-27 | 2026-12-08 | **-59 d** | 92 d |
 | SCH | EM schematic capture (complete: schematic as code, ERC, BOM; SQSO-EPS/OBC/RF/JET-BRD-001) | done | 2026-10-27 | 2026-10-27 | **-17 d** | 134 d |
 | TCS | Name >= 2 telecommand stations (D1) | 10 wk | 2026-10-27 | 2027-01-05 | 7 d | 7 d |
-| DAS | NASA DAS run reproducing ODAR Draft D; ODAR draft for the early filing (DA-06) | 4 wk | 2026-11-17 | 2026-12-15 | 28 d | 28 d |
+| DAS_SW | NASA DAS agreement in hand (DA-06) | 39 d | 2026-11-06 | 2026-12-15 | 0 d | 0 d |
+| FCC_CONS | FCC Space Bureau consultation (D3): meeting | 51 d | 2026-11-15 | 2027-01-05 | 0 d | 0 d |
 | PDR_PKG | PDR data package to the board, two weeks before the review | 1 wk | 2026-12-08 | 2026-12-15 | **-59 d** | 92 d |
+| DAS | NASA DAS run reproducing ODAR Draft D (DA-06) | 24 d | 2026-12-15 | 2027-01-08 | 0 d | 0 d |
 | QUOTES | Quotes, evaluation, selection | 8 wk | 2026-12-29 | 2027-02-23 | 43 d | 43 d |
+| FCC_OUT | FCC consultation outcome recorded (DA-11) | 3 d | 2027-01-05 | 2027-01-08 | 0 d | 0 d |
 | PDR | Independent PDR (NPR 7123.1D Table G-6), held as a peer review | 1 wk | 2027-01-05 | 2027-01-12 | **-80 d** | 71 d |
-| FCC_EARLY | Early FCC pre-space notification with the API data and the draft ODAR | 1 wk | 2027-01-12 | 2027-01-19 | 0 d | 0 d |
+| ODAR_E | ODAR Draft E with the DAS output, for the early filing (DA-06) | 4 d | 2027-01-08 | 2027-01-12 | 0 d | 0 d |
+| FCC_EARLY | Early FCC pre-space notification with the API data and ODAR Draft E | 1 wk | 2027-01-12 | 2027-01-19 | 0 d | 0 d |
 | L_EPS | EM layout: EPS board, SQSO-EPS-BRD-001 (PC/104, 6 layers) (9 wk, basis LAYOUT_BOARDS) | 9 wk | 2027-01-12 | 2027-03-16 | **-80 d** | 71 d |
 | L_OBC | EM layout: OBC board, SQSO-OBC-BRD-001 (PC/104, 6 layers) (5 wk, basis LAYOUT_BOARDS) | 5 wk | 2027-01-12 | 2027-02-16 | **-73 d** | 78 d |
 | EM_LL | EM COTS buys: frame, AntS, magnetometer, gyro, GNSS, Jetson (12 wk, BVB §2) | 12 wk | 2027-01-15 | 2027-04-09 | **-27 d** | 124 d |
@@ -167,10 +175,12 @@ days**: the campaign ends 11.4 weeks after the 2028-02-01 milestone, before any 
    the rule. The PI's levers, in order of cost: start the EM layout at risk on the frozen PDR package (+28 days), order
    the FM long leads at the PDR (+14 days), drop the reliability programme (+10 days, at the reliability cost in DA-02).
 3. The administrative deadlines have almost no float: the legal entity (DP-1) by 2026-12-31 has 9 days, the RFQs 2
-   days, the PDR board 0 days to 2026-12-01, VI-RFB-12 0 days to 2026-11-13, the FCC consultation 7 days before the
-   early filing, and the contract 30 days to the D7 deadline. They do not move with the launch date.
+   days, the PDR board 0 days to 2026-12-01, VI-RFB-12 0 days to 2026-11-13, the DAS and FCC-consultation chain 0 days
+   to the early filing (DAS agreement requested by 2026-11-06, in hand 2026-12-15, run by 2027-01-08, ODAR Draft E by
+   2027-01-12; consultation requested by 2026-11-15, met by 2027-01-05, outcome recorded 2027-01-08), and the contract
+   30 days to the D7 deadline. They do not move with the launch date.
 4. **Regulatory timing**: the early FCC pre-space notification goes in on **2027-01-19** with the API data and the
-   draft ODAR (the DAS result included, DA-06); the IARU request on 2027-01-26; the IARU letter by 2027-05-18 (90th
+   ODAR Draft E (with the DAS result, DA-06); the IARU request on 2027-01-26; the IARU letter by 2027-05-18 (90th
    percentile). The replacement notification follows within 30 days of the launch-vehicle determination (2027-06-28 if
    the contract is signed on 2027-05-31), with the IARU frequencies and the final ODAR. The IARU request goes in 19.6
    months before integration; the roadmap target is 18 months and the floor 12.
@@ -188,7 +198,9 @@ days**: the campaign ends 11.4 weeks after the 2028-02-01 milestone, before any 
 |-----------|------|
 | VI-RFB-12 complete (RF layout input) | 2026-11-13 |
 | PDR board named (DA-03) | 2026-12-01 |
-| NASA DAS run (DA-06) | 2026-12-15 (deadline 2027-01-12) |
+| DAS agreement requested; ISIS AntS RFQ | 2026-11-06 |
+| FCC consultation requested | 2026-11-15 |
+| NASA DAS run; ODAR Draft E (DA-06) | 2027-01-08; 2027-01-12 |
 | Contracting legal entity (DP-1); integrator RFQs out | 2026-12-22; 2026-12-29 |
 | **PDR** | **2027-01-12** |
 | Early FCC pre-space notification | **2027-01-19** |
@@ -221,12 +233,12 @@ the verification-item register and fails CI if a row lacks an owner, a date or a
 | DA-03 | Name the independent PDR board: a chair and at least two reviewers outside the team covering systems, electrical and RF, and flight software; invitations with the 2027-01-12 date | PI | 2026-12-01 | Names, affiliations and conflict-of-interest statements in PROJECT_PLAN §6.2; data package to the board by 2026-12-29 | P3P-05, PM-01 | Open |
 | DA-04 | Engage two PCB layout designers (KiCad, IPC-6012 Class 3) for a 2027-01-12 start; decide whether the layout starts at risk on the PDR package | PI | 2026-12-15 | Agreements in place for both designers; with one designer the plan has −20 d float (§3) | P3P-05 | Open |
 | DA-05 | Contracting legal entity named (DP-1) | PI | 2026-12-31 | An entity able to sign the launch services agreement, cross-waivers, insurance declarations and export agreements | LV-09 | Open |
-| DA-06 | NASA DAS: request DAS under its software usage agreement (by 2026-11-17); run it on the ODAR Draft D cases (by 2026-12-15); ODAR draft with the DAS output for the early FCC filing | Systems engineer | 2027-01-12 | DAS reproduces ODAR Draft D: orbital lifetime ≤ 5 years after the end of the 2-year mission at 485 km and 1.85 kg with P ≥ 0.9 under the conservative solar projection, and re-entry casualty risk ≤ 1:10,000 (NASA-STD-8719.14C). If DAS disagrees, the cap moves by CR to the highest altitude DAS passes, before the contract negotiation starts (2027-02-23) | SE-14, ODA-02 | Open |
+| DA-06 | NASA DAS: software usage agreement requested by 2026-11-06 and in hand by 2026-12-15; DAS run on the ODAR Draft D cases by 2027-01-08; ODAR Draft E with the DAS output by 2027-01-12, for the early FCC filing (2027-01-19) | Systems engineer | 2027-01-12 | DAS reproduces ODAR Draft D: orbital lifetime ≤ 5 years after the end of the 2-year mission at 485 km and 1.85 kg with P ≥ 0.9 under the conservative solar projection, and re-entry casualty risk ≤ 1:10,000 (NASA-STD-8719.14C). If DAS disagrees, the cap moves by CR to the highest altitude DAS passes, before the contract negotiation starts (2027-02-23) | SE-14, ODA-02 | Open |
 | DA-07 | Integrator RFQs to Exolaunch, ISISPACE, SEOPS, D-Orbit and Maverick, each asking for: the mission ICD at the contract; the attenuated EXOpod Nova shock MPE at the CubeSat interface; the dispenser thermal analysis for the assigned flight and slot with the deployment time; the SSCMAN 91-710 and battery failure-tolerance requirements; the coupled-loads approach | PI | 2026-12-31 | Five RFQs sent with these items; replies logged in `docs/ORBITAL_ACCESS.md` | SE-05, VV-07, THM-07, SMA-09, EPS-23 | Open |
 | DA-08 | Integrator data with the signed contract: mission ICD, levels, attenuated shock MPE, 91-710 and failure-tolerance requirements | PI (contract signatory) | 2027-06-30 | ICD received; LVR and ETP levels replaced by CR; VI-07 (shock) and EPS-23 (failure tolerance) assessed by 2027-07-14 | SE-05, VV-07, SMA-09, EPS-23 | Open |
 | DA-09 | IARU coordination: request on 2027-01-26 after the early FCC filing; letter | Licensee (KK6GDB) | 2027-05-18 | Coordinated downlink and uplink frequencies frozen in BASELINE §7 by CR; with no letter by 2027-05-18 the licensee asks the IARU Satellite Advisor for status and the contract proceeds on the requested windows | SE-05, P3P-10 | Open |
 | DA-10 | Telecommand stations: written agreements with at least two stations at least 1,000 km apart, each able to command alone | Licensee (KK6GDB) | 2027-01-05 | Agreements signed; stations named in the early FCC filing and the IARU request; VI-GND-02 site survey of each | GND-01 | Open |
-| DA-11 | FCC Space Bureau consultation (D3): agenda sent by 2026-11-17 with the ITU API path and timing (REG-05), whether an early failure ends the mission (ODA-05), the contact timeouts N and M, and the beacon kept with a failed receiver (REG-11) | Licensee (KK6GDB) | 2027-01-05 | Answers recorded before the early filing (2027-01-19). ODA-05 fallback: if an early failure counts as the end of the mission, the 460–465 km band of BASELINE §3 is adopted by CR before the contract negotiation | REG-05, ODA-05, REG-11 | Open |
+| DA-11 | FCC Space Bureau consultation (D3): requested by 2026-11-15 with the agenda (`docs/regulatory/REGULATORY_ROADMAP.md` Rev D §6): the ITU API path and timing (REG-05), whether an early failure ends the mission (ODA-05), the contact timeouts N and M, and the beacon kept with a failed receiver (REG-11); meeting by 2027-01-05 | Licensee (KK6GDB) | 2027-01-08 | Outcome recorded by 2027-01-08, before the early filing (2027-01-19). ODA-05 fallback: if an early failure counts as the end of the mission, the 460–465 km band of BASELINE §3 is adopted by CR before the contract negotiation | REG-05, ODA-05, REG-11 | Open |
 | DA-12 | Dispenser soak (THM-06, THM-07): the integrator's dispenser thermal analysis for the assigned flight and slot, with the deployment time, requested in the RFQ (DA-07) and delivered at the contract | PI (licensee) with the integrator | 2027-06-30 | Pack ≤ +50 °C and ≥ −15 °C at deployment, boards within their non-operating limits (V-THM-5). Fallback if the hot result exceeds +50 °C, in order: a deployment-time limit in the contract from the integrator's transient; a low-absorptance finish on the pack-facing surfaces (THERMAL_ANALYSIS §6.5); integrator pad conditioning (purge or air conditioning until fairing close); if none brings the pack to ≤ +50 °C, the PI decides between a lower storage SOC and the NRCSD backup | THM-06, THM-07 | Open |
 | DA-13 | Export counsel engaged; export memo Rev B (authentication versus encryption; foreign integrators) | PI | 2026-12-15 | Counsel's written opinion; TAA need decided before the contract negotiation (2027-02-23) | REG-06 | Open |
 | DA-14 | Panel vendor RFQ with the body-panel cells offset 1 mm from the hinge edge (wing sweep, MECHANICAL_DESIGN §6.6) | Mechanical lead | 2026-12-31 | RFQ states the offset; the vendor confirms before the panel order (2027-01-15) that the 45° sweep clearance is ≥ 0.35 mm with its tolerances | MCAD-03 | Open |
@@ -234,7 +246,7 @@ the verification-item register and fails CI if a row lacks an owner, a date or a
 | DA-16 | SWE-220: measure the cyclomatic complexity of the safety-critical Rust files with a tool and gate it in CI, or tailor by CR | Flight software lead | 2026-12-15 | Every function in the safety-critical components (SDP §3.2) ≤ 15, or a CR listing each exception with its justification; result in `docs/software/NPR7150_COMPLIANCE_MATRIX.md` item C-4 | FSW-06 | Open |
 | DA-17 | Flexible 2 m AntS tapes in the ADCS Monte Carlo (ADCS_DESIGN §11.5): element mass, stiffness and damping from the ISIS ICD (with AV-V7); flexible-appendage case; EM measurement of the deployed tape's first mode and damping in the EM tests | ADCS and flight software lead | 2027-02-26 (analysis); EM measurement before the CDR (2027-09-28) | With the tape's first mode and a damping ratio no higher than the measured or 0.5 %, the spin about +Y converges and +Y stays within 15° of the Sun for ≥ 90 % of sunlit time; the measured first mode within ± 20 % of the model's, or the Monte Carlo re-run with it | GNC-03 | Open |
 | DA-18 | Procurement data reviews before the EM order: V-HAR-3 (vendor drawings, gold part numbers), V-HAR-11 (ASTM E595 per part number), EPSB-09 (FM12 interrupting rating against the 209 A prospective short, 60 °C rerating, termination code; SMF24A leakage), JETB-07 (every carrier BOM line on the manufacturer's data sheet) | EPS designer, harness designer, payload lead | 2027-01-15 | Each data sheet or drawing cited in the BOM "MPN check" column; FM12 interrupting rating ≥ 209 A at ≥ 16.8 VDC and ≥ 5 A at +60 °C; storage drain with the SMF24A's +60 °C leakage ≤ 20 µA; every item without E595 data coded A–E or tested; a failing part changed before the order | EPSB-09, JETB-07, SE-23 | Open |
-| DA-19 | Drawings before the layout: VI-RFB-12 (AntS RF port, coax plating, attenuation, inner conductor; by 2026-11-13); JETB-06 (NVIDIA DG-10931-001 and TDG-11127-001 through a developer account); JETB-12 (Molex drawings) | RF designer; payload lead | 2027-02-01 | VI-RFB-12 pass before the RF layout (2027-02-16); V-JET-2 passes before the carrier layout (2027-03-16); J1 mated height ≤ 13.2 mm and J2 ≤ 7.7 mm from the drawings, else the right-angle J1 fallback | RFB-10, JETB-06, JETB-12 | Open |
+| DA-19 | Drawings before the layout: VI-RFB-12 (AntS RF port, coax plating, attenuation, inner conductor; by 2026-11-13, RF lead; ISIS AntS RFQ with the ICD by 2026-11-06); JETB-06 (NVIDIA DG-10931-001 and TDG-11127-001 through a developer account); JETB-12 (Molex drawings) | RF designer; payload lead | 2027-02-01 | VI-RFB-12 pass before the RF layout (2027-02-16); V-JET-2 passes before the carrier layout (2027-03-16); J1 mated height ≤ 13.2 mm and J2 ≤ 7.7 mm from the drawings, else the right-angle J1 fallback | RFB-10, JETB-06, JETB-12 | Open |
 | DA-20 | Ratify the proposed wordings TBR-MRD-002 to -005 and TBR-SYS-002 to -004 | PI | 2027-01-12 | Each TBR closed in its document (ratified, amended or rejected) | SE-04 | Open |
 | DA-21 | Shock (VV-07): decide VI-07 from the integrator's attenuated shock MPE | Test lead | 2027-07-14 | Analysis passes only if the vibration-equivalent SRS (24 / 53 / 85 / 60 g at 100 / 500 / 1000 / 2000 Hz) envelops the MPE below 2000 Hz; otherwise an EM shock test at MPE + 3 dB, 2 actuations per axis, in the EM tests (costed in `software/simulation/cdr/pm/test_cost.py`) | VV-07 | Open |
 
@@ -248,4 +260,4 @@ the verification-item register and fails CI if a row lacks an owner, a date or a
 | A | 2026-10-27 | Replaced by a dated critical-path schedule from `software/simulation/cdr/pm/schedule_cpm.py`, with the integrator deliverable dates of SQSO-LVR-001 §9 as deadlines, float, scenarios and the regulatory timing (CDR review, PM/SE/V&V; finding PI-12) | CDR review, PM/SE/V&V |
 | B | 2026-10-27 | CDR 2026 consistency pass: planning launch 2028-11-01 (BASELINE Rev E §3, CR-2026-007) in the §1 key dates (L-relative dates from `schedule_cpm.py --launch 2028-11-01`); finding 2 marked adopted. Floats unchanged | CDR documentation review |
 | C | 2026-10-27 | `schedule_cpm.py` defaults to the 2028-11-01 planning launch (was 2028-06-01); the §3 scenario table labels the June rows with their options (RID SE-16). Dates and floats unchanged | CDR S&MA analysis |
-| D | 2026-10-27 | CDR round 3 (P3P-05, P3P-10, P3P-01, REL-01, SE-05, SE-14). Schematic capture and the mechanical CAD complete; EM layout re-estimated per board from the round-2 designs (27 designer-weeks; two designers, 15 weeks); PDR board, pre-layout and pre-order verification items, NASA DAS before the early FCC filing (2027-01-19), IARU letter by 2027-05-18 (one date), integrator data at the contract, battery abuse tests, and the reliability programme (≥ 500 h EM flatsat, ≥ 200 h FM burn-in) added as tasks; CDR 2027-09-28; float +71 d for 2028-11 (meets GOLD 1.06 by 0.5 weeks), −80 d for June 2028; §5 decision points and dated actions DA-01 to DA-21 with owners, dates and criteria | CDR round 3, systems and programmatics |
+| D | 2026-10-27 | CDR round 3 (P3P-05, P3P-10, P3P-01, REL-01, SE-05, SE-14). Schematic capture and the mechanical CAD complete; EM layout re-estimated per board from the round-2 designs (27 designer-weeks; two designers, 15 weeks); PDR board, pre-layout and pre-order verification items, NASA DAS (agreement 2026-11-06 to 2026-12-15, run 2027-01-08, ODAR Draft E 2027-01-12) and the FCC consultation (request 2026-11-15, meeting 2027-01-05, outcome 2027-01-08) before the early FCC filing (2027-01-19), IARU letter by 2027-05-18 (one date), integrator data at the contract, battery abuse tests, and the reliability programme (≥ 500 h EM flatsat, ≥ 200 h FM burn-in) added as tasks; CDR 2027-09-28; float +71 d for 2028-11 (meets GOLD 1.06 by 0.5 weeks), −80 d for June 2028; §5 decision points and dated actions DA-01 to DA-21 with owners, dates and criteria | CDR round 3, systems and programmatics |

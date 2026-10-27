@@ -76,9 +76,8 @@ _ATMOSPHERE = np.array([
 def density(h_m):
     """Atmospheric density, kg/m^3, at height h (m)."""
     h = np.maximum(np.asarray(h_m, dtype=float), 200e3)
-    idx = np.clip(np.searchsorted(_ATMOSPHERE[:, 0], h, side="right") - 1, 0, len(_ATMOSPHERE) - 1)
-    base = _ATMOSPHERE[idx]
-    return base[..., 1] * np.exp(-(h - base[..., 0]) / base[..., 2])
+    idx = np.searchsorted(_ATMOSPHERE[:, 0], h, side="right") - 1
+    return _ATMOSPHERE[idx, 1] * np.exp((_ATMOSPHERE[idx, 0] - h) / _ATMOSPHERE[idx, 2])
 
 
 def sun_position(unix_utc: float) -> np.ndarray:
@@ -235,8 +234,10 @@ class GravityField:
         axy = axy + np.einsum("nm,nmk->k", self._t1[:, 1:], up[:, 2:nd + 1])
         axy = axy + np.einsum("nm,nmk->k", self._t2[:, 1:], np.conj(up[:, 0:nd - 1]))
         az = np.einsum("nm,nmk->k", self._t3, up[:, :nd]).real
-        out = np.stack([axy.real, axy.imag, az], -1).reshape(shape + (3,))
-        return (self.gm / self.radius ** 2) * out
+        out = np.empty(axy.shape + (3,))
+        g = self.gm / self.radius ** 2
+        out[..., 0], out[..., 1], out[..., 2] = g * axy.real, g * axy.imag, g * az
+        return out.reshape(shape + (3,))
 
     def _zonal(self, r: np.ndarray) -> np.ndarray:
         rn = np.sqrt(np.sum(r * r, axis=-1, keepdims=True))
@@ -285,8 +286,17 @@ class ForceModel:
         if self.gravity.zonal_only:
             a = self.gravity.accel_ecef(r)  # zonal: the same in TEME
         else:
-            rot = fr.rot3(float(fr.gmst(t)))
-            a = self.gravity.accel_ecef(r @ rot.T) @ rot
+            theta = float(fr.gmst(t))
+            c, s = math.cos(theta), math.sin(theta)
+            re = np.empty_like(r)
+            re[..., 0] = c * r[..., 0] + s * r[..., 1]
+            re[..., 1] = c * r[..., 1] - s * r[..., 0]
+            re[..., 2] = r[..., 2]
+            ae = self.gravity.accel_ecef(re)
+            a = np.empty_like(ae)
+            a[..., 0] = c * ae[..., 0] - s * ae[..., 1]
+            a[..., 1] = s * ae[..., 0] + c * ae[..., 1]
+            a[..., 2] = ae[..., 2]
         if self.third_body:
             for mu, body in ((GM_SUN, sun_position(t)), (GM_MOON, moon_position(t))):
                 rel = body - r
@@ -303,7 +313,9 @@ class ForceModel:
                 bulge /= np.linalg.norm(bulge)
                 rho = rho * (1 + self.diurnal_bulge * (r @ bulge) / rn)
             om = fr.OMEGA_EARTH
-            vrel = np.stack([v[..., 0] + om * r[..., 1], v[..., 1] - om * r[..., 0], v[..., 2]], -1)
+            vrel = v.copy()
+            vrel[..., 0] += om * r[..., 1]
+            vrel[..., 1] -= om * r[..., 0]
             speed = np.sqrt(np.sum(vrel * vrel, axis=-1))
             a = a - (0.5 * k * self.bc * rho * speed)[..., None] * vrel
         return a

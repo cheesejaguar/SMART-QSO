@@ -442,7 +442,7 @@ plan of §3.4.
 
 ## 5. Verification Closure Plan
 
-The verification items that feed these events (VI-…, V-…, AV-V…; 192 in 20 design documents), each with its test,
+The verification items that feed these events (VI-…, V-…, AV-V…, defined in the design documents), each with its test,
 pass criterion, event and date, owner, parent RID and status, and the dated decision points and actions, are in the
 generated register [`docs/verification/VI_REGISTER.md`](VI_REGISTER.md) (SQSO-VIR-001), checked in CI with
 `scripts/gen_vi_register.py --check`. Event dates follow `mission/SCHEDULE.md` Rev D.

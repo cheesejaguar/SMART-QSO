@@ -150,7 +150,7 @@ L-2 M licences and ephemeris demonstration).
 | C-13 | 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames, so the deployed inertia ratio keeps margin with all four AntS elements | MCAD-09, RFB-11 |
 | C-14 | Telecommand stations radiate ≥ 64 dBm EIRP above 10° elevation: ≥ 100 W PEP into ≥ 15.5 dBic outside the 47 CFR 2.106 US270 areas (variant A), ≤ 50 W PEP at the transmitter output into a ≥ 17.8 dBic stacked pair inside them (variant B); commands only above 10° | RF-23 |
 | C-15 | Harness wire under the EPS tied to the deck straps and shear panels; only connector strain-relief ties on the EPS board (EPS Steinberg +0.23, −0.52 otherwise) | MCAD-11 |
-| C-16 | Battery-lead shorts: the two positive-leg fuses F0A and F0B, from different lots and each able to clear the fault alone, count as two independent controls (F0N in the negative leg the third), so BSA H3b is 2-fault tolerant; NRCSD safety-engineer concurrence for the ISS backup path | EPSB-10, P3E-02 |
+| C-16 | Battery-lead shorts: the two positive-leg fuses are made diverse (different part type and manufacturer, each able to clear the 314 A fault alone) so they are independent controls, with F0N in the negative leg the third: BSA H3b 2-fault tolerant. (Originally counted two same-part fuses from different lots; revised after the board FMEA counted them as one.) NRCSD safety-engineer concurrence for the ISS backup path | EPSB-10, P3E-02 |
 
 ## 5. Design completion (round 2)
 
@@ -177,20 +177,20 @@ ratings, outgassing data).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-353 RIDs: severity 1: 29, severity 2: 183, severity 3: 141.
+372 RIDs: severity 1: 30, severity 2: 194, severity 3: 148.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 24 |
-| Closed by design change | 100 | 180 |
+| Closed by design change | 100 | 181 |
 | Closed by chair decision | 42 | 34 |
 | Verification item | 45 | 31 |
 | Decision point (dated) | 13 | 11 |
-| Implementation | 128 | 73 |
+| Implementation | 147 | 91 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 47 new findings; 15 of the reopened and 19 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 66 new findings; 15 of the reopened and 20 of the new are since closed.
 
-Open implementation RIDs: LV-04, PM-03, PM-04, SE-03, SE-05, SE-07, SE-09, SE-21, SE-22, VV-06, VV-07, VV-08, RF-05, RF-07, GND-04, SMA-09, SMA-15, REL-01, STR-04, STR-08, STR-13, STR-26, STR-27, THM-03, THM-04, THM-07, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, MCAD-03, EPSB-01, EPSB-04, JETB-11, JETB-01, JETB-03, JETB-09, JETB-10, JETB-12, JETB-13, MCAD-12, OBCB-01, OBCB-02, P3P-01, P3P-02, P3P-03, P3P-04, P3P-05, P3P-06, P3P-08, P3P-09, P3P-10, P3P-11, P3P-13, P3E-07, P3E-08, P3E-09, P3E-10, P3S-01, P3S-02, P3S-04, P3S-07, P3S-08, P3S-09, P3S-10, P3S-11, P3S-12, P3S-13, P3A-01, P3A-03, P3A-10.
+Open implementation RIDs: LV-04, PM-03, PM-04, SE-03, SE-05, SE-07, SE-09, SE-21, SE-22, VV-06, VV-07, VV-08, RF-05, RF-07, GND-04, SMA-09, SMA-15, REL-01, STR-04, STR-08, STR-13, STR-26, STR-27, THM-03, THM-04, THM-07, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, MCAD-03, EPSB-01, EPSB-04, JETB-11, JETB-01, JETB-03, JETB-09, JETB-10, JETB-12, JETB-13, MCAD-12, OBCB-01, OBCB-02, P3P-01, P3P-02, P3P-03, P3P-05, P3P-06, P3P-08, P3P-09, P3P-10, P3P-11, P3P-13, P3E-07, P3E-08, P3E-09, P3E-10, P3S-01, P3S-02, P3S-04, P3S-07, P3S-08, P3S-09, P3S-10, P3S-11, P3S-12, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B01, SMA-B02, SMA-B03, SMA-B04, SMA-B05, SMA-B06, SMA-B07, SMA-B08, SMA-B09, SMA-B10, SMA-B11, SMA-B12, SMA-B13, SMA-B14, SMA-B15, SMA-B16, SMA-B17, SMA-B18, SMA-B19.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -384,6 +384,25 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SMA-14 | 2 | Success criteria stale | CD | Closed by design change | SQSO-MSC-001 2.0 |
 | SMA-15 | 3 | Telemetry needed by the success criteria missing | IMP | Implementation | With LV-27 (MSC v2.0 §7 field list) |
 | SMA-16 | 2 | Risk register not 5×5 | CD | Closed by design change | SQSO-RISK-001 Rev B |
+| SMA-B01 | 3 | DS2 gate drive only from BAT_F: an open in the pack path leaves the spacecraft dark in sunlight | IMP | Implementation | Two-diode OR from PACK_P (EPS) |
+| SMA-B02 | 1 | Flight software reads the separation sense with the wrong polarity: in flight the RF silence and the deployment wait restart for ever | IMP | Implementation | Correct polarity and pull; test every sense input against the netlists (flight software, interconnect) |
+| SMA-B03 | 2 | Battery monitor and backup over-voltage protector share the tap wires: one open tap can blow F3 or latch the lockout | IMP | Implementation | ≥ 1 MΩ ladder across the tap inputs (EPS) |
+| SMA-B04 | 2 | A failed NTC1 stops charging for good or isolates the pack | IMP | Implementation | Plausibility comparators hand over to the second thermistor (EPS) |
+| SMA-B05 | 2 | A spurious permanent load shed holds the transmitter off with no override | IMP | Implementation | PA switch out of the shed or an override (EPS) |
+| SMA-B06 | 2 | Antenna deployment depends on one DEPLOY_EN line and the shared EPS I2C bus | IMP | Implementation | AntS powered by DEPLOY_EN OR an EPS-controller line; own I2C port; both AntS controllers (EPS, OBC) |
+| SMA-B07 | 3 | Single pull-up resistors on the OBC's I2C buses | IMP | Implementation | Doubled pull-ups (OBC) |
+| SMA-B08 | 2 | A failed watchdog timing capacitor can hold the OBC in a reset loop | IMP | Implementation | Series-paired capacitors and a test (OBC) |
+| SMA-B09 | 2 | An OBC fault below the 130 mA trip is detected by nothing | IMP | Implementation | EPS-controller watchdog of an OBC heartbeat power-cycles the OBC (EPS, OBC, flight software) |
+| SMA-B10 | 2 | A dead FRAM forces TX-OFF every 60 s: permanent silence | IMP | Implementation | Commanded degraded mode or a second FRAM (flight software, OBC) |
+| SMA-B11 | 2 | Receiver health line misses a deaf front end and an open TNC wire; RX_CD stuck high blocks recovery | IMP | Implementation | TNC noise-floor check, OBC-TNC loop query, carrier not proof of health, RX_FAULT self-test (RF, flight software) |
+| SMA-B12 | 2 | A shorted lockout coil-driver FET locks out charging permanently | IMP | Implementation | Coils driven from reservoir capacitors (EPS) |
+| SMA-B13 | 3 | DS2's second-pole wire disables all four trackers if it chafes to the frame | IMP | Implementation | Active-high tracker-enable clamps (EPS, harness) |
+| SMA-B14 | 2 | A short on the access port's reset line holds the OBC in reset | IMP | Implementation | NRST off the flight access port or buffered (OBC) |
+| SMA-B15 | 3 | Ceramic capacitors on the unfused battery lines can short | IMP | Implementation | Fail-safe capacitors (EPS) |
+| SMA-B16 | 3 | Synthesizer shares the PA rail regulator | IMP | Implementation | Own regulator (RF) |
+| SMA-B17 | 3 | A shorted tracker output diode cannot be isolated | IMP | Implementation | Per-tracker disable by the controller (EPS) |
+| SMA-B18 | 3 | Magnetometer shares a switch and bus segment | IMP | Implementation | Own switch and segment (OBC) |
+| SMA-B19 | 2 | One failed PA-temperature reading silences the downlink | IMP | Implementation | Plausibility check and a pull-down (flight software, OBC) |
 
 #### Reliability (REL)
 
@@ -630,7 +649,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3P-01 | 2 | No single register of verification items; dated pre-layout items not in the schedule | IMP | Implementation | Generated VI register checked in CI |
 | P3P-02 | 2 | Class I changes made without change requests; CR-007/-008 lack PI approval | IMP | Implementation | CRs raised; PI ratification as a dated decision point |
 | P3P-03 | 2 | Reliability test programme (flatsat, FM burn-in) not in the ETP, schedule or VCRM | IMP | Implementation | Add to the plans or re-run the model without it |
-| P3P-04 | 2 | Hardware FMEA not updated for the round-2 boards | IMP | Implementation | Board-level FMEA |
+| P3P-04 | 2 | Hardware FMEA not updated for the round-2 boards | IMP | Closed by design change | Board-level FMEA SQSO-FMEA-003 A: 176 failure modes, 59 mission SPFs (36 new, CIL-14 to CIL-28), 19 findings SMA-B01 to B19 dispositioned separately; SQSO-FMEA-002 D; V-BFM-01 to -08 |
 | P3P-05 | 2 | Independent PDR has no board or owner; layout duration predates the design | IMP | Implementation | PDR board decision point; layout re-estimated |
 | P3P-06 | 3 | Criteria matrix, VCRM §6, hardware readiness, risk register and CPM not updated after design completion | IMP | Implementation | Rev B of each |
 | P3P-08 | 3 | Cost inconsistencies (launch cost row, custom boards, PCB fabrication, reviews, shock and EMC tests) | IMP | Implementation | Update BASELINE row and ROM basis |

@@ -9,7 +9,8 @@ RID, status and the defining document. It adds the decision points and dated act
 (DA-nn rows: owner, due date, criterion).
 
 Where the dates come from
-  * A date written in the item's "when" cell (YYYY-MM-DD) is used as written.
+  * A date written in the item's "when" cell (YYYY-MM-DD) is used as written (the earliest, if several), whatever
+    event words surround it.
   * L-relative dates (L-8 M, L-4 M, ...) are counted from the planning launch with the integrator's month rule.
   * Otherwise the "when" text is matched to a schedule event (EVENTS below) whose dates come from the critical-path
     model, software/simulation/cdr/pm/schedule_cpm.py, so the register moves with the schedule. When the text names
@@ -153,8 +154,8 @@ OVERRIDES: Dict[str, Dict[str, str]] = {
                              " except the battery cap (ETP §9 deviation 4)",
                 "why": "P3S-10: one TVAC definition (SYS-707, ETP §3.4)"},
     "V-JET-9": {"criterion": "Populated carrier, unpowered: ≤ 0.5 mA·m² residual dipole (one sixth of the 3 mA·m²"
-                             " design budget, BASELINE §8); during a burst: field change at the A2 magnetometer"
-                             " ≤ 50 nT (the Monte Carlo bias allowance is 300 nT)",
+                             " design budget, BASELINE §8); during a 7 W burst: field change at the A2 magnetometer"
+                             " ≤ 15 nT (the low end of the RM3100 noise band the carrier design names)",
                 "why": "JETB-10: numeric limit"},
     "V-JET-7": {"criterion": "Junction-to-spreader ≤ 5.7 K/W (design 1.09-1.16 K/W); clamp force ≤ 40 N;"
                              " spreader-to-frame conductance measured for the SYS-603 model (design 1.10 W/K). The EM"
@@ -379,8 +380,9 @@ def resolve(items: List[Item], events: Dict[str, Tuple[str, date]], launch: date
             text, d = events[ev]
             return (ev, text, d)
         found: List[Tuple[date, str, str]] = []
-        for iso in ISO.findall(it.when):
-            found.append((date.fromisoformat(iso), "date", iso))
+        dates = sorted(date.fromisoformat(iso) for iso in ISO.findall(it.when))
+        if dates:       # a date written in the defining document wins over the event words around it
+            return ("date", dates[0].isoformat(), dates[0])
         for m in LREL.finditer(it.when):
             d = l_minus(launch, float(m.group(1)), m.group(2))
             found.append((d, f"L-{m.group(1)} {m.group(2)[0].upper()}", d.isoformat()))

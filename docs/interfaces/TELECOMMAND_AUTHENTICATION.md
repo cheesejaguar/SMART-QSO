@@ -220,9 +220,10 @@ codes 0x34 and 0x35 that Version 0.7 proposed are XPDR_ENABLE and XPDR_DISABLE; 
 | Pins | `EOL_ARM` and `EOL_FIRE` are the logical pins 19 and 20 of `hal_gpio.h`: PF4 and PG1 (SQSO-ICX-001 B §6), low at reset and pulled down on the EPS board. A line that cannot be driven ends the fire: it is logged, reported and silenced as an unconfirmed fire |
 | Verification | C suite `test_passivation` (two-key sequence, lapse, the fire while transmitting, the report frames and their times, TX-OFF at 180 s, an unconfirmed fire tried three times then reported and silenced, resume after reset, the EPS state), the Rust unit tests of `passivation.rs` (both crates on the safety-critical coverage list: every line and condition), the mission simulation's end-of-life plan (ARM, then EXECUTE 10 s later; the modelled latch fires only through the two lines). On the EM with a sacrificial fuse: V-EPS-8 (SQSO-EPS-BRD-001 §19) |
 
-The pre-space notification may now describe passivation by telecommand
-(`docs/regulatory/filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md` Rev A.1, (iii), for its owner to update), once the
-EM test has been run.
+The pre-space notification describes passivation by telecommand as implemented
+(`docs/regulatory/filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md` Rev A.3, (iii): the charge disconnect fired while
+transmitting, the final report, then TX-OFF). Before it is filed, the result of the EM fire test (V-EPS-8) is added
+to (iii) (its checklist item 6a).
 
 ## 7. Command Dictionary
 

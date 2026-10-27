@@ -75,6 +75,7 @@ pub mod fixed;
 pub mod flight_log;
 pub mod fmath;
 pub mod gnss;
+pub mod gnss_frame;
 pub mod gnss_schedule;
 pub mod heater;
 pub mod hk_store;

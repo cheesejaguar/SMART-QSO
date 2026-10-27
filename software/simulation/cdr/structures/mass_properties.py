@@ -235,9 +235,9 @@ def items() -> List[Item]:
     a(Item("36", "Inertia ballast, 2 x 10 g W-Ni-Cu discs on the +Z end frame (Z-axis trim)", "2", 20.0, "C1",
            "Machined to mass; trimmed at integration from the measured inertia",
            [box(0.5, (-17.0, 15.5, 46.6), (14, 14, 3.6)), box(0.5, (-17.0, 0.5, 46.6), (14, 14, 3.6))]))
-    a(Item("37", "Battery cell retention: 2 G-10CR cell-locator plates, -X cap disc-spring stacks and Ti shoulder "
-           "screws, polyimide insulators, shims (RID STR-08)", "1 set", 5.0, "E2",
-           "Locator plates 3.0 g, 4 shoulder screws 1.0 g, 8 disc springs 0.4 g, polyimide 0.4 g, shims 0.2 g "
+    a(Item("37", "Battery cell retention: 2 G-10CR cell-locator plates, per-cell disc-spring stacks with G-10CR "
+           "seats under the -X end cap, polyimide insulators, shims (RID STR-08)", "1 set", 5.0, "E2",
+           "Locator plates 3.0 g, spring seats 0.6 g, 8 disc springs 0.4 g, polyimide 0.4 g, shims 0.6 g "
            "(SQSO-MECH-CAD-001 4.6)", [box(0.5, (-31.5, 0, -20.0), (2, 74, 20)), box(0.5, (31.5, 0, -20.0), (2, 74, 20))]))
     return L
 

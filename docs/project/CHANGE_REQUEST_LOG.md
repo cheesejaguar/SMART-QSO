@@ -26,7 +26,7 @@ logged here; the Git history records them.
 | CR-2026-006 | 2026-10-26 | I | BASELINE §5 battery row, §8 ADCS row, §9 D8–D9; `sqso_fsw::adcs` gains | Battery charged to 4.10 V/cell (size kept); gyro Epson M-G370PDT0 with BMI088 backup; B-dot gain 10⁴; spin 6°/s with a spin-hold term | Approved, PI delegation | Implemented in the software and the simulation; hardware pending |
 | CR-2026-007 | 2026-10-27 | I | BASELINE §1, §3–§9 (Rev E); SQSO-LVR-001; mission requirements MO-1 to MO-5 | CDR 2026 chair dispositions: launch path, orbit 475 km target / 485 km cap, planning launch 2028-11, mass properties and layout B, third inhibit DS3, burn drivers and sequence, commissioning hold, spin 8 °/s, uplink windows, transponder 1.8 W DC, telecommand stations | Proposed by the design review (recorded as approved by the chair, who cannot approve a Class I change: CM plan §2.2); PI ratification required by 2027-01-12 (DA-01) | Implemented in documents; software in progress |
 | CR-2026-008 | 2026-10-27 | I | BASELINE §1, §3, §4, §5, §7 (Rev E, amended) | Inertia ballast 2 × 10 g (C-13; MEV 1.748 kg, +14.4 %); telecommand ≥ 64 dBm EIRP in two station variants (C-14); uplink ≥ 0.9 MHz below 3 × f_down; lifetimes, power and link values from the Rev E re-runs | Proposed by the design review (recorded as approved by the chair, who cannot approve a Class I change: CM plan §2.2); PI ratification required by 2027-01-12 (DA-01) | Implemented in documents |
-| CR-2026-009 | 2026-10-27 | I | SQSO-REQ-002 Rev E, F and G (SYS-100, SYS-203, SYS-222, SYS-224, SYS-707 and the Rev E/F rows); EPS-F001 (`docs/hardware/EPS_DESIGN.md`); BASELINE §5 power-closure note | System requirements rebaselined by the CDR review (Rev E/F, omitted from CR-2026-007) and amended in round 3: SYS-100 2.21 W at the 1.84 W load; third harmonic ≥ 70 dB; SYS-222 the RF-P013 pattern; SYS-224 every emitter incl. the GNSS receiver and the completion latch; SYS-707 cycle count reconciled | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in SQSO-REQ-002 G; EPS-F001 and BASELINE §5 by their owners after the decision |
+| CR-2026-009 | 2026-10-27 | I | SQSO-REQ-001 MRD-013 (Rev F); SQSO-REQ-002 Rev E, F and G (SYS-100, SYS-203, SYS-222, SYS-224, SYS-707 and the Rev E/F rows); EPS-F001 (`docs/hardware/EPS_DESIGN.md`); BASELINE §5 power-closure note | System requirements rebaselined by the CDR review (Rev E/F, omitted from CR-2026-007) and amended in round 3: SYS-100 2.21 W at the 1.84 W load; third harmonic ≥ 70 dB; SYS-222 the RF-P013 pattern; SYS-224 every emitter incl. the GNSS receiver and the completion latch; SYS-707 cycle count reconciled | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in SQSO-REQ-002 G; EPS-F001 and BASELINE §5 by their owners after the decision |
 | CR-2026-010 | 2026-10-27 | I | SYS-603; BASELINE §6 Jetson heat-path row; ETP VI-01, V-THM-3, V-JET-7 | The ≥ 1 W/K conductance requirement becomes a temperature requirement (spreader ≤ +40 °C in a 600 s batch, junction ≤ 95 °C, spreader ≤ +70 °C stuck on); the conductance becomes a measured design value | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in SQSO-REQ-002 G, ETP D, VCRM D; BASELINE §6 by the chair |
 | CR-2026-011 | 2026-10-27 | I | SQSO-ICD-013 0.7–0.10, SMART-QSO-ICD-001 1.1–1.5, SQSO-ICD-005 2.0–2.4, SQSO-ICD-010 E–G | Record of the ICD changes made during the CDR review without a CR: passivation opcodes 0x70/0x71 and their sequence; EPS register map (CHG_INHIBIT, LOCK_UNLOCK, EOL_STATE, EOL_KEY, IMON_JET) and JETSON_PWR on PA8; space-to-ground ICD rewrite and its updates; launch-provider ICD against the EXOpod Nova chain | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in the ICDs; verification by their VIs |
 | CR-2026-012 | 2026-10-27 | I | Safety-critical software components (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2, versions 1.4 and 1.5; chair decision C-10) | `transponder.rs`, `ops_state.rs` (both crates) and `passivation.rs` (both crates) added to the safety-critical list, with the per-file coverage gate | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in the SDP and the CI gate |
@@ -509,7 +509,8 @@ Date Submitted: 2026-10-27
 Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and programmatics
 
 1. Configuration Item Affected:
-   CI ID: SQSO-REQ-002 (System Requirements Specification), Rev D -> G:
+   CI ID: SQSO-REQ-001 MRD-013 (Rev F);
+   SQSO-REQ-002 (System Requirements Specification), Rev D -> G:
    the Rev E rows (SYS-002, -003, -010, -012, -100, -111, -112, -203,
    -420, -422, -501, -502, -510, -512, -513, -603, -701, -702, -712;
    SYS-080 to -089, SYS-703 to -709, SYS-713, SYS-900 to -919), the Rev F
@@ -540,6 +541,10 @@ Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and prog
    - SYS-707: the integrator's higher cycle count is met by board-level
      and ambient cycles (ETP VI-08); the SpaceX +/-5 C range mapped
      onto the GEVS +10 C margin (one TVAC definition, RID P3S-10).
+   - MRD-013 (SQSO-REQ-001 Rev F): the 485 km cap applies to the
+     3-sigma-high mean altitude of the drop-off orbit, injection
+     dispersion included (ODAR Draft D; 460 km if the FCC counts an
+     early failure as the end of the mission; RID P3A-09).
 
 3. Reason for Change:
    RIDs SE-03 and P3E-08 (SYS-100 used the 1.80 W load against
@@ -555,7 +560,8 @@ Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and prog
    - Risk: None added; R23 updated.
 
 5. Affected Documents:
-   docs/requirements/SYSTEM_REQUIREMENTS.md (G), docs/verification/RTM.csv,
+   docs/requirements/SYSTEM_REQUIREMENTS.md (G), docs/requirements/
+   MISSION_REQUIREMENTS.md (F), docs/verification/RTM.csv,
    docs/verification/VERIFICATION_MATRIX.md (D), docs/hardware/EPS_DESIGN.md
    (EPS-F001, by the EPS designer), docs/BASELINE_PARAMETERS.md section 5
    note (by the chair), docs/environment/THERMAL_ANALYSIS.md V-THM-6 (by the

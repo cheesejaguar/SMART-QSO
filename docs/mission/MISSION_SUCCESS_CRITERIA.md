@@ -1,7 +1,7 @@
 # SMART-QSO Mission Success Criteria
 
 **Document ID**: SQSO-MSC-001
-**Version**: 2.1
+**Version**: 2.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft for PI approval. Rewritten to the baseline (BASELINE Rev D §2, §6, decision D5); replaces
@@ -102,7 +102,9 @@ From the reliability block diagram and Monte Carlo of `docs/environment/RELIABIL
 | L3 (2 years) | **0.51** | 0.59 | 0.56 |
 
 These are lower than Version 1.0's reliability goals (0.95 / 0.80 / 0.60 in RELIABILITY_ANALYSIS v1.2 §2.1), which were
-not supported by any analysis. A Class D payload may accept them; the PI decides (RID SMA-14).
+not supported by any analysis. A Class D payload may accept them; the PI decides by 2026-12-15 (RIDs SMA-14, REL-01;
+`mission/SCHEDULE.md` DA-02). The halved case needs the reliability programme of `docs/environment/ENVIRONMENTAL_TEST_PLAN.md`
+Rev D §3.11 (VI-11 ≥ 500 h on the EM boards, VI-12 ≥ 200 h FM burn-in).
 
 ## 9. Evaluation and Declaration
 
@@ -124,3 +126,4 @@ declaration.
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial issue |
 | 2.0 | 2026-10-27 | CDR S&MA review | Rewritten to the baseline: transponder service is the primary objective; L2 no longer gated on AI-generated beacons (D5); the Jetson text experiment has separate criteria; every criterion has a measurement source; telemetry gaps listed; success probabilities from the reliability model |
 | 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §8 from RELIABILITY_ANALYSIS v2.1 (four-line wing deployment): L2 0.61, L3 0.51 (were 0.60, 0.50); halved-early-failure case 0.71 / 0.59 |
+| 2.2 | 2026-10-27 | CDR round 3, systems and programmatics (REL-01) | §8: the PI's acceptance dated (DA-02, 2026-12-15); the reliability programme cited as planned (ETP D §3.11) |

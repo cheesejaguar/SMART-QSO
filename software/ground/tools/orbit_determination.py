@@ -115,35 +115,55 @@ def _measurements(obs: Sequence[Observation], use_vel: bool):
     return np.concatenate(z), np.concatenate(w)
 
 
-def _iterate(model, epoch, p, obs, use_vel, k_prior, k_sigma, max_iter=25):
-    times = np.array([o.t for o in obs])
-    z, w = _measurements(obs, use_vel)
+@dataclass
+class _Evaluation:
+    cost: float
+    res: np.ndarray
+    w: np.ndarray
+    normal: np.ndarray
+    rhs: np.ndarray
+
+
+def _evaluate(model, epoch, p, obs, use_vel, z, w, k_prior, k_sigma) -> _Evaluation:
+    states, ks = _perturbed(p, _DELTA)
+    traj = propagate(model, epoch, states, ks, [o.t for o in obs])
+    pred = _model_obs(traj, obs, use_vel)
+    res = z - pred[0]
+    h = ((pred[1:] - pred[0]) / _DELTA[:, None]).T
     prior_inv = np.zeros((7, 7))
     prior_inv[6, 6] = 1.0 / k_sigma ** 2
+    cost = float(res @ (w * res)) + float((p[6] - k_prior) ** 2 / k_sigma ** 2)
+    normal = h.T @ (w[:, None] * h) + prior_inv
+    rhs = h.T @ (w * res) + prior_inv[:, 6] * (k_prior - p[6])
+    return _Evaluation(cost, res, w, normal, rhs)
+
+
+#: Convergence: every correction below this fraction of its finite-difference
+#: perturbation (0.5 m, 0.5 mm/s, 0.001 in k)
+_TOLERANCE = 0.05
+
+
+def _iterate(model, epoch, p, obs, use_vel, k_prior, k_sigma, max_iter=20):
+    """Levenberg-Marquardt: (p, evaluation at p, iterations, converged)."""
+    z, w = _measurements(obs, use_vel)
+    ev = _evaluate(model, epoch, p, obs, use_vel, z, w, k_prior, k_sigma)
     lam = 0.0
-    last_cost = None
     for it in range(1, max_iter + 1):
-        states, ks = _perturbed(p, _DELTA)
-        traj = propagate(model, epoch, states, ks, times)
-        pred = _model_obs(traj, obs, use_vel)
-        res = z - pred[0]
-        h = ((pred[1:] - pred[0]) / _DELTA[:, None]).T
-        cost = float(res @ (w * res)) + float((p[6] - k_prior) ** 2 / k_sigma ** 2)
-        normal = h.T @ (w[:, None] * h) + prior_inv
-        rhs = h.T @ (w * res) + prior_inv[:, 6] * (k_prior - p[6])
-        if last_cost is not None and cost > last_cost * 1.5 and lam < 1e6:
-            lam = max(lam * 10, 1e-3)
-        scale = np.sqrt(np.diag(normal))
         try:
-            dp = np.linalg.solve(normal + lam * np.diag(scale ** 2), rhs)
+            dp = np.linalg.solve(ev.normal + lam * np.diag(np.diag(ev.normal)), ev.rhs)
         except np.linalg.LinAlgError as exc:
             raise FitError("normal matrix singular: the fixes do not determine the orbit") from exc
-        p = p + dp
-        p[6] = max(p[6], 0.05)
-        last_cost = cost
-        if np.all(np.abs(dp / _DELTA) < 1e-3):
-            return p, normal, res, w, it, True
-    return p, normal, res, w, max_iter, False
+        trial = p + dp
+        trial[6] = max(trial[6], 0.05)
+        ev_trial = _evaluate(model, epoch, trial, obs, use_vel, z, w, k_prior, k_sigma)
+        if ev_trial.cost <= ev.cost * (1 + 1e-9) or lam > 1e8:
+            p, ev = trial, ev_trial
+            lam = lam / 10 if lam > 1e-6 else 0.0
+            if np.all(np.abs(dp / _DELTA) < _TOLERANCE):
+                return p, ev, it, True
+        else:
+            lam = max(lam * 10, 1e-3)
+    return p, ev, max_iter, False
 
 
 def initial_state(obs: Sequence[Observation], prior: Optional[Tuple[float, np.ndarray]] = None):
@@ -190,40 +210,40 @@ def fit_orbit(obs: Sequence[Observation], model: Optional[ForceModel] = None,
     rejected: List[Tuple[Observation, str]] = []
     used = list(obs)
 
-    # Grow the arc from the initial state outwards, so that a poor start
-    # (finite-difference velocity) cannot lock onto the wrong revolution
-    span = 1800.0
+    # Without a measured velocity the start is rough: grow the arc from the
+    # initial state outwards, so the fit cannot lock onto the wrong revolution
     total = max(abs(o.t - epoch) for o in used)
+    span = 2700.0 if not any(o.v_itrf is not None for o in used) else total
     iterations = 0
-    converged = False
-    while True:
-        window = [o for o in used if abs(o.t - epoch) <= span] if span < total else used
+    while span < total:
+        window = [o for o in used if abs(o.t - epoch) <= span]
         if len(window) >= 3:
-            p, normal, res, w, its, converged = _iterate(model, epoch, p, window, use_velocity, k_prior, k_sigma)
+            p, _, its, _ = _iterate(model, epoch, p, window, use_velocity, k_prior, k_sigma, max_iter=8)
             iterations += its
-        if span >= total:
-            break
-        span *= 3.0
+        span *= 4.0
+    p, ev, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
+    iterations += its
 
-    # Outlier editing: drop fixes whose residual exceeds edit_sigma (RMS of the
-    # three axes, normalized), refit, at most three rounds
+    # Outlier editing on the converged fit: drop fixes whose residual (RMS of
+    # the three axes over the fix sigma) exceeds edit_sigma times the robust
+    # scale of all residuals (1.4826 x median, at least 1: model error raises
+    # every residual, an outlier only its own); refit; at most three rounds
     for _ in range(3):
-        states, ks = _perturbed(p, _DELTA)
-        traj = propagate(model, epoch, states[:1], ks[:1], [o.t for o in used])
-        pred = _model_obs(traj, used, False)[0].reshape(-1, 3)
-        res = np.array([o.r_itrf for o in used]) - pred
+        if not converged:
+            break
+        res = ev.res[: 3 * len(used)].reshape(-1, 3)
         norm = np.sqrt(np.mean((res / np.array([[o.sigma_r] for o in used])) ** 2, axis=1))
-        bad = [i for i in np.argsort(-norm) if norm[i] > edit_sigma]
+        scale = max(1.0, 1.4826 * float(np.median(norm)))
+        bad = [i for i in range(len(used)) if norm[i] > edit_sigma * scale]
         if not bad or len(used) - len(bad) < 3:
             break
         for i in sorted(bad, reverse=True):
             rejected.append((used[i], f"residual {np.linalg.norm(res[i]):.0f} m ({norm[i]:.1f} sigma)"))
             del used[i]
-        p, normal, res, w, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
+        p, ev, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
         iterations += its
 
-    p, normal, res, w, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
-    iterations += its
+    res, w, normal = ev.res, ev.w, ev.normal
     m = len(res)
     dof = max(m - 7 + 1, 1)  # the drag prior adds one pseudo-measurement
     chi2 = float(res @ (w * res)) / dof
@@ -253,25 +273,48 @@ class Prediction:
         return np.sqrt(np.trace(self.covariances[:, :3, :3], axis1=1, axis2=2))
 
 
-def predict(fit: FitResult, times: Sequence[float]) -> Prediction:
-    """Propagate the fitted state and map its covariance (state and drag scale)."""
+#: 1-sigma of the drag over the prediction relative to the fitted drag: the
+#: density changes with solar and geomagnetic activity after the last fix,
+#: which no fit can know (D6 research §6.2 item 4 assumes 20 %)
+DRAG_FORECAST_SIGMA = 0.2
+
+
+def predict(fit: FitResult, times: Sequence[float], drag_forecast_sigma: float = DRAG_FORECAST_SIGMA) -> Prediction:
+    """Propagate the fitted state and map its covariance.
+
+    The covariance is the fit's (state and drag scale at the epoch) mapped
+    with the state transition, plus the drag forecast term: the sensitivity to
+    a change of k that starts at the last fix, times drag_forecast_sigma * k.
+    """
+    times = np.asarray(times, dtype=float)
     p = np.concatenate([fit.state_teme, [fit.drag_scale]])
     states, ks = _perturbed(p, fit.delta)
     traj = propagate(fit.model, fit.epoch, states, ks, times)
     phi = np.moveaxis((traj[1:] - traj[0]) / fit.delta[:, None, None], 0, -1)  # (n, 6, 7)
     cov = phi @ fit.covariance @ np.swapaxes(phi, -1, -2)
-    return Prediction(np.asarray(times, dtype=float), traj[0], cov)
+    last = max(o.t for o in fit.used)
+    after = times > last
+    if drag_forecast_sigma and fit.model.drag and np.any(after):
+        start = propagate(fit.model, fit.epoch, states[:1], ks[:1], [last])[0, 0]
+        dk = fit.delta[6]
+        pair = propagate(fit.model, last, np.tile(start, (2, 1)), [fit.drag_scale, fit.drag_scale + dk], times[after])
+        sens = (pair[1] - pair[0]) / dk  # (m, 6)
+        sigma = drag_forecast_sigma * fit.drag_scale
+        cov[after] += sigma ** 2 * sens[:, :, None] * sens[:, None, :]
+    return Prediction(times, traj[0], cov)
 
 
 # --- Quality -----------------------------------------------------------------
 
 #: Quality flag thresholds on the 3D position 1-sigma 24 h after the last fix
-GOOD_SIGMA_M = 2_000.0
-FAIR_SIGMA_M = 10_000.0
+GOOD_SIGMA_M = 5_000.0
+FAIR_SIGMA_M = 20_000.0
 #: One orbit: an arc shorter than this rests on one session
 MIN_GOOD_ARC_S = 5_400.0
-MAX_GOOD_CHI2 = 4.0
-MAX_FAIR_CHI2 = 9.0
+#: RMS position residual per axis: above GOOD the force model or the data are
+#: suspect, above FAIR the fit is not used
+GOOD_RMS_M = 50.0
+FAIR_RMS_M = 200.0
 MAX_REJECTED_FRACTION = 0.2
 
 
@@ -281,8 +324,8 @@ def quality_flag(fit: FitResult, sigma_24h_m: float) -> Tuple[str, List[str]]:
     rejected_fraction = len(fit.rejected) / max(len(fit.rejected) + len(fit.used), 1)
     if not fit.converged:
         return "POOR", ["the fit did not converge"]
-    if fit.chi2_reduced > MAX_FAIR_CHI2:
-        reasons.append(f"residuals {math.sqrt(fit.chi2_reduced):.1f} times the fix noise")
+    if fit.rms_m > FAIR_RMS_M:
+        reasons.append(f"RMS residual {fit.rms_m:.0f} m per axis (limit {FAIR_RMS_M:.0f} m)")
     if rejected_fraction > MAX_REJECTED_FRACTION:
         reasons.append(f"{rejected_fraction:.0%} of the fixes rejected")
     if sigma_24h_m > FAIR_SIGMA_M:
@@ -293,6 +336,6 @@ def quality_flag(fit: FitResult, sigma_24h_m: float) -> Tuple[str, List[str]]:
         reasons.append(f"position 1-sigma {sigma_24h_m / 1000:.1f} km at +24 h (GOOD: <= {GOOD_SIGMA_M / 1000:.0f} km)")
     if fit.arc_s < MIN_GOOD_ARC_S:
         reasons.append(f"arc {fit.arc_s / 60:.0f} min, shorter than one orbit")
-    if fit.chi2_reduced > MAX_GOOD_CHI2:
-        reasons.append(f"residuals {math.sqrt(fit.chi2_reduced):.1f} times the fix noise")
+    if fit.rms_m > GOOD_RMS_M:
+        reasons.append(f"RMS residual {fit.rms_m:.0f} m per axis (GOOD: <= {GOOD_RMS_M:.0f} m)")
     return ("FAIR" if reasons else "GOOD"), reasons

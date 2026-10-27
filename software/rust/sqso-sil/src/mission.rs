@@ -1116,9 +1116,10 @@ impl Mission {
         let rel = self.rel();
         // After the charge path opens the final report still goes out
         // (RID REG-12): forbidden only past its window
-        let silenced = self.totals.passivated_s.is_some_and(|t| {
-            rel > t + (sqso_fsw::passivation::REPORT_WINDOW_MS / 1000) as f64 + 60.0
-        });
+        let silenced = self
+            .totals
+            .passivated_s
+            .is_some_and(|t| rel > t + (sqso_fsw::passivation::REPORT_WINDOW_MS / 1000) as f64 + 60.0);
         if !snap.tx_permitted || silenced {
             self.totals.frames_forbidden += 1;
             self.event("anomaly", "frame handed to the TNC while transmission was not permitted");

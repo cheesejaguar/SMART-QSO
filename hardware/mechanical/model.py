@@ -85,7 +85,8 @@ P: Dict[str, float] = dict(
     # three Ti M2 screws through the end frame at the corners clear of the GNSS patch footprint
     a2_w=24.0, a2_t=1.6, a2_parts=5.75, a2_screws=((33.5, 17.5), (14.5, 36.5), (33.5, 36.5)),
     # stack levels: substrate bottom z
-    z_eps=-3.0, z_obc=5.0, z_car=17.6, z_rf=34.8, car_t=2.0, car_frame=False,
+    z_eps=-3.4, eps_t=2.0,                  # EPS 2.0 mm (P3S-02, MEV Steinberg), bottom face 0.4 mm lower, top unchanged
+    z_obc=5.0, z_car=17.6, z_rf=34.8, car_t=2.0, car_frame=False,
     # magnetometer and RF shield (positions chosen to balance Iyz, MECHANICAL_DESIGN section 5)
     mag_x=24.0, mag_y=27.0, shield_y0=-40.0, shield_y1=14.0,
     rbf_x=20.0, rbf_z=-43.0, port_x=-20.0, port_z=-43.0, rbf_face=-1.0,
@@ -267,6 +268,8 @@ def harness_zone_parts(parts: List[Part], add):
                 pt.mel[r] = pt.mel.get(r, 0.0) + g
             continue
         x0, x1, y0, y1, z0, z1, _ax, desc = HAR.ZONES[zn]
+        if zn.startswith("U_"):                 # under the 2.0 mm EPS: top at its bottom-parts envelope (request H-11)
+            z1 = min(z1, P["z_eps"] - 1.05)
         add(Part(f"hz_{zn}", "harness", dict(v), B(x0, x1, y0, y1, z0, z1), color=COL["harness"],
                  note=f"harness zone {zn}: {desc} (SQSO-HAR-001 2.0 7.1)"))
 
@@ -496,12 +499,12 @@ def build_parts(p=P) -> List[Part]:
     add(Part("battery_clamp", "battery", {"15": 34.0}, fuse(*(caps + bars + ears)), color=COL["al"],
              note="Al 6061-T6 end caps, side bars and four isolator ears"))
     # cell retention (RID STR-08; SQSO-MECH-CAD-001 4.6): G-10CR locator plates 2 mm at each end, cells through
-    # 18.75 mm holes; the -X end cap floats on four Ti shoulder screws with disc-spring stacks (axial preload)
+    # 18.75 mm holes; one disc-spring stack per cell under the -X end cap (axial preload 140 N a cell, shimmed)
     loc = [cut(B(sx * 30.5 if sx > 0 else -32.5, 32.5 if sx > 0 else -30.5, -37.0, 37.0, zbc - 10.0, zbc + 10.0),
                *[C("x", (0, y, zbc), 9.375, -40, 40) for y in (-27.75, -9.25, 9.25, 27.75)]) for sx in (1, -1)]
     add(Part("battery_cell_retention", "battery", {"37": 5.0}, fuse(*loc), color=COL["comp"],
-             note="G-10CR cell-locator plates (polyimide-lined holes), -X cap disc-spring stacks and Ti shoulder screws, "
-                  "polyimide end insulators, shims; no adhesive, no potting"))
+             note="G-10CR cell-locator plates (polyimide-lined holes), per-cell disc-spring stacks on G-10CR seats under "
+                  "the -X end cap, polyimide end insulators, shims; no adhesive, no potting (MECHANICAL_DESIGN 4.6)"))
     iso = [fuse(C("z", (sx * 38.5, sy * 31, 0), 3.0, zp["mz_in"], -38.9), C("z", (sx * 38.5, sy * 31, 0), 2.25,
                                                                               -36.4, -34.9))
            for sx in (1, -1) for sy in (1, -1)]
@@ -547,8 +550,9 @@ def build_parts(p=P) -> List[Part]:
     cs_rf = C("z", (0, 0, 0), 3.5, -60, 60)
     zrod_notch = B(-60, -35.5, -6.5, 6.5, -60, 60)
 
-    def board(name, z0, bot, top, mel, extra_cut=(), comp_cut=(), top_shape=None, col=COL["pcb"], note=""):
-        sub = cut(B(-px, px, -py, py, z0, z0 + pt), *colholes, *extra_cut)
+    def board(name, z0, bot, top, mel, extra_cut=(), comp_cut=(), top_shape=None, col=COL["pcb"], note="", t=None):
+        tb = pt if t is None else t
+        sub = cut(B(-px, px, -py, py, z0, z0 + tb), *colholes, *extra_cut)
         add(Part(name, "stack", {k: v * 0.35 for k, v in mel.items()}, sub, color=col, note=note))
         comps = []
         if bot > 0:
@@ -556,14 +560,16 @@ def build_parts(p=P) -> List[Part]:
         if top_shape is not None:
             comps.append(top_shape)
         elif top > 0:
-            comps.append(B(-px + 1, px - 1, -py + 1, py - 1, z0 + pt, z0 + pt + top))
+            comps.append(B(-px + 1, px - 1, -py + 1, py - 1, z0 + tb, z0 + tb + top))
         if comps:
             cm = cut(fuse(*comps), *koz, *extra_cut, *comp_cut)
             add(Part(name + "_parts", "stack", {k: v * 0.65 for k, v in mel.items()}, cm, color=COL["comp"],
                      note="component envelope"))
 
-    board("EPS", P["z_eps"], 1.0, 5.0, {"12": 90.0}, extra_cut=(zrod_notch,), comp_cut=(cs, cs2),
-          note="EPS: MPPT, BMS, PDU, burn drivers; centre support (STR-05); notch for the Z rod")
+    xrod_koz = B(-24.5, 24.5, 29.75, 42.25, P["z_eps"] - 1.0, P["z_eps"] - 0.6)   # bottom parts <= 0.6 mm over the X rod
+    board("EPS", P["z_eps"], 1.0, 5.0, {"12": 90.0}, extra_cut=(zrod_notch,), comp_cut=(cs, cs2, xrod_koz),
+          note="EPS 2.0 mm (P3S-02): MPPT, BMS, PDU, burn drivers; centre supports (STR-05); notch for the Z rod; "
+               "bottom parts <= 0.6 mm over the X rod", t=p["eps_t"])
     gw = p["gyro_w"] / 2.0
     gyro_box = B(p["gyro_x"] - gw, p["gyro_x"] + gw, p["gyro_y"] - gw, p["gyro_y"] + gw, P["z_obc"] + pt,
                  P["z_obc"] + pt + p["gyro_h"])
@@ -657,7 +663,7 @@ def build_parts(p=P) -> List[Part]:
     board("RF", P["z_rf"], 1.5, 0.0, {"18": 120.0}, comp_cut=(cs_rf,), top_shape=rf_top,
           note="RF board with shield 84 x 60 x 7 mm (stiffener); keep-out <= 2 mm under the magnetometer")
     # centre supports and columns (row 34)
-    levels = [-15.5, P["z_eps"], P["z_eps"] + pt, P["z_obc"], P["z_obc"] + pt, P["z_car"], P["z_car"] + p["car_t"], zsp]
+    levels = [-15.5, P["z_eps"], P["z_eps"] + p["eps_t"], P["z_obc"], P["z_obc"] + pt, P["z_car"], P["z_car"] + p["car_t"], zsp]
     cseg = [C("z", (p["cs_x"], p["cs_y"], 0), p["col_d"] / 2, levels[i], levels[i + 1]) for i in (0, 2, 4, 6)]
     cseg.append(C("z", (0, 0, 0), p["col_d"] / 2, zsp + 5.0, P["z_rf"]))
     cseg += [C("z", (p["cs_x"], p["cs2_y"], 0), p["col_d"] / 2, levels[i], levels[i + 1]) for i in (2, 4)]
@@ -666,7 +672,7 @@ def build_parts(p=P) -> List[Part]:
     add(Part("centre_supports", "stack", {"34": 2.0}, fuse(*cseg), color=COL["al"],
              note="centre supports (STR-05): (0, +21) deck-EPS-OBC-carrier-spreader, (0, -21) EPS-OBC-carrier, "
                   "(0, 0) spreader-RF"))
-    stops = [zp["mz_in"], -16.5, -15.5, P["z_eps"], P["z_eps"] + pt, P["z_obc"], P["z_obc"] + pt, P["z_car"],
+    stops = [zp["mz_in"], -16.5, -15.5, P["z_eps"], P["z_eps"] + p["eps_t"], P["z_obc"], P["z_obc"] + pt, P["z_car"],
              P["z_car"] + p["car_t"], P["z_rf"], P["z_rf"] + pt, zp["pz_in"]]
     cols = []
     for sx in (1, -1):
@@ -736,9 +742,9 @@ def build_parts(p=P) -> List[Part]:
              color=COL["comp"], note="RF J2 Pico-Clasp 6 vertical, mated, at (-26, -44) (allocation 6 mm)"))
     # EPS bottom-side connector envelope (SQSO-HAR-001 10.1, E-1): zones Z1-Z5 and J3 at the +X edge, 9.0 mm
     Z = HAR.ZONES
-    zc = [B(Z[n][0], Z[n][1], Z[n][2], Z[n][3], -12.0, -4.05)
+    zc = [B(Z[n][0], Z[n][1], Z[n][2], Z[n][3], P["z_eps"] - 9.0, P["z_eps"] - 1.05)
           for n in ("U_MXPY", "U_MXMY", "U_MXMY2", "U_PXPY", "U_PXMY", "U_PXMY2", "U_PY", "U_PYN")]
-    zc.append(B(33.0, 45.0, -15.5, 15.5, -12.0, -4.05))
+    zc.append(B(33.0, 45.0, -15.5, 15.5, P["z_eps"] - 9.0, P["z_eps"] - 1.05))
     add(Part("EPS_bottom_connectors", "harness", {"12": 0.0}, fuse(*zc), color=COL["comp"],
              note="EPS bottom-side harness connectors, mated with the wire bend, 9.0 mm below the substrate "
                   "(z -3.0 ... -12.0; the 1 mm parts layer is the EPS_parts envelope) in zones Z1-Z5 and J3 at +X"))

@@ -710,10 +710,13 @@ fn eol_line(s: &mut Sim, pin: u32, was: bool, level: bool, now_ms: u64) {
     use sqso_fsw::passivation::eol_state;
     eol_update(s, now_ms);
     let state = eol_state_mut(s).map_or(0, |b| *b);
-    if pin == crate::passivation::GPIO_PIN_EOL_ARM && level && !was && state & eol_state::KEY != 0 {
-        if let Some(b) = eol_state_mut(s) {
-            *b |= eol_state::ARMED;
-        }
+    if pin == crate::passivation::GPIO_PIN_EOL_ARM
+        && level
+        && !was
+        && state & eol_state::KEY != 0
+        && let Some(b) = eol_state_mut(s)
+    {
+        *b |= eol_state::ARMED;
     }
     if pin == crate::passivation::GPIO_PIN_EOL_FIRE {
         s.eol.fire_since_ms =

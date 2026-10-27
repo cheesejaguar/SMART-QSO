@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-REG-018 (supersedes SQSO-ODAR-001, `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md`)
-**Revision:** Draft D.1
+**Revision:** Draft D.2
 **Date:** 2026-10-27
 **Format:** NASA-STD-8719.14C (approved 2021-11-05) Appendix A.1, in the section order of the NASA Small Spacecraft Technology Program *ODAR & End of Mission Plan Instructional Guide* (spacecraft Sections 1–8; launch-vehicle Sections 9–14 are the launch provider's)
 **Regulatory use:** basis for the orbital-debris disclosures in the FCC pre-space notification, 47 CFR 97.207(g)(1)(i)–(vii) ([draft](FCC_97-207_PRE_SPACE_NOTIFICATION.md))
@@ -16,7 +16,7 @@
 |---------------------------------|-------|-------------------------|--------|--------|
 | 4.3-1a, 4.3-1b | Released debris in LEO | None released | — | Compliant |
 | 4.3-2 | Debris near GEO | N/A | — | N/A |
-| 4.4-1 | Accidental explosion < 0.001 | **1.4 × 10⁻⁴** over a 10-year bound | ×7 | Compliant by analysis (§4) |
+| 4.4-1 | Accidental explosion < 0.001 | **5.8 × 10⁻⁵** over a 10-year bound, with the latched recharge lockout now designed (1.4 × 10⁻⁴ without it) | ×17 | Compliant by analysis (§4) |
 | 4.4-2 | Passivation design | Option 2 (energy controlled by the battery protections) met by design; option 1 (two-key passivation telecommand, SQSO-ICD-013 v0.10 §6.4, firing the one-shot charge disconnect F1 of SQSO-EPS-BRD-001 §7 while still transmitting, then reporting it, then TX-OFF) implemented in the flight software and designed in the EPS, **not yet run on hardware** (V-EPS-8) | — | Compliant via option 2; option 1 to be verified on the EM (§4) |
 | 4.4-3, 4.4-4 | Planned breakups | None | — | N/A |
 | 4.5-1 | Collision with objects ≥ 10 cm < 0.001 | **≤ 1.2 × 10⁻⁴** (worst case: 525 km, 2.0 kg, wings failed, F10.7 = 70) | ×8 | Compliant by analysis **[DAS]** (§5) |
@@ -24,7 +24,7 @@
 | 4.6-1a | Natural re-entry ≤ 25 yr after mission, **conservative solar projection** | ≤ 12.6 yr post-mission at ≤ 485 km in every case; **fails at 525 km** for ≥ 1.85 kg with wings failed under the F10.7 = 70 bound (28.1–30.5 yr) | — | Compliant at ≤ 500 km (§6) |
 | 4.6-4 | Disposal reliability ≥ 0.9 | Passive; P(both wings fail) = **0.003** with four independent burn lines, one driver per resistor, as designed (§6.4; 0.016 with the former single driver for both wings); compliant if the wings-deployed case meets the rule | — | See FCC row |
 | **47 CFR 97.207(g)(1)(vii)(D)(1)** | **Re-entry ≤ 5 yr after mission completion, P ≥ 0.9** | **Not robustly met at the former 500 km target**: compliant only with the nominal solar projection and only if the mission is not cut short; **fails at the former 525 km cap** in every case modelled | — | **Compliant at the baseline 475 km target and 485 km cap** (BASELINE Rev E §3, adopted from §6.5) under the planned-mission reading, P ≥ 0.997 with the conservative solar projection (§6.4); ≤ 460 km if an early failure counts as mission end (§6) |
-| 4.7-1 / 97.207(g)(1)(vii)(D)(2) | Casualty risk < 1:10,000, fragments > 15 J | **No surviving fragment > 15 J** with nominal heating; worst sensitivity (heating halved, whole cells modelled as steel) **1:47,000** | ≥ ×4.7 | Compliant by analysis **[DAS]** (§7) |
+| 4.7-1 / 97.207(g)(1)(vii)(D)(2) | Casualty risk < 1:10,000, fragments > 15 J | **No surviving fragment > 15 J** with nominal heating (the two W-Ni-Cu ballast discs survive at 6.9 J); worst sensitivity (heating halved, whole cells modelled as steel) **1:47,000**, 1:32,000 if the discs are also counted at their edge-on bound (15.8 J) | ≥ ×3.2 | Compliant by analysis **[DAS]** (§7) |
 | 4.8-1 | Tethers | None | — | N/A |
 | 97.207(g)(1)(v) | Trackability | Smallest dimension 10 cm (1U), presumed trackable | — | Compliant |
 
@@ -89,8 +89,8 @@ M-G370PDT0 gyro with a BMI088 backup; B-dot detumble, then spin-stabilised coars
 
 No beryllium is in the baseline. **Tungsten:** decision C-13 added two 10 g W-Ni-Cu inertia ballast discs (Ø14 × 3.6 mm,
 ASTM B777 Class 3) on the +Z end frame, each on two M2 Ti-6Al-4V screws (MASS_BUDGET row 36); a tungsten heavy alloy
-is expected to survive re-entry. They were not in the §7 demise run (Draft D) and are added to the DAS run (open item
-7); the earlier statement "no tungsten" is withdrawn. Titanium: the battery-mount screws (or standoffs) and the ballast screws; the
+survives re-entry. Draft D.2 adds them to the §7 demise run: they reach the ground at 37 m/s with **6.9 J**, below
+15 J (§7.2); they stay in the DAS run (open item 7); the earlier statement "no tungsten" is withdrawn. Titanium: the battery-mount screws (or standoffs) and the ballast screws; the
 previous revision's statement "no titanium" is withdrawn.
 
 ## 3. Debris Released During Normal Operations (Req. 4.3-1, 4.3-2)
@@ -111,13 +111,22 @@ chance it is commanded at 2 years, otherwise until re-entry) (`software/simulati
 | Overcharge | Charger CV fails high (0.02/yr), then BMS over-voltage (0.01/yr latent), independent protector (0.01/yr latent) and the cell CID (0.1 on demand) | 1.4 × 10⁻⁵ |
 | Internal short, spontaneous | Screened cells, 10⁻⁶ per cell-year (the order of the field rate commonly quoted for quality 18650 cells; an assumption) | 4.0 × 10⁻⁵ |
 | External short | Insulation breach, then fuse, PTC and BMS short-circuit trip all failed | 2.5 × 10⁻⁹ |
-| Over-discharge, then recharge | BMS and hardware under-voltage both fail, the pack is drained below 2 V (0.05), then recharged | **9.0 × 10⁻⁵** |
-| **Total** | | **1.4 × 10⁻⁴** |
+| Over-discharge, then recharge | BMS and hardware under-voltage both fail, the pack is drained below 2 V (0.05), **and the latched recharge lockout fails** (0.01/yr latent), then recharged | **3.6 × 10⁻⁶** (9.0 × 10⁻⁵ without the lockout) |
+| **Total** | | **5.8 × 10⁻⁵** |
 
-Compliant (margin ×7). The largest term disappears with a latched recharge lockout below ≈ 2.0 V/cell, which the EPS
-design does not have yet (RIDs EPS-12, SMA-06). The overcharge row assumes the dissimilar secondary protector (EPS-11);
-without it (one latent protection fewer) the overcharge term is 3.6 × 10⁻⁴ and the total **4.9 × 10⁻⁴**, still
-compliant but with a margin of only ×2.
+Compliant (margin ×17). Draft D.1 carried 9.0 × 10⁻⁵ for the over-discharge row because the EPS had no recharge
+lockout. It now has one (SQSO-EPS-BRD-001 D §5.4, RIDs EPS-12, SMA-06): the AFE's permanent fail at a cell below
+2.00 V, or the EPS controller, sets a two-coil latching relay K1 that inhibits charging by two paths (charge-current set
+point to zero and the AFE charge FET open); only the authenticated EPS_CLEAR_LOCKOUT (0x14, operational key, argument
+`CHG!`) clears it, through two signals (the OBC's LOCK_CLR and the controller's UNLOCK, SRS-F129). The row therefore
+needs a third latent failure, the lockout's, taken at the same 0.01/yr allocation as the other two protections (the
+board FMEA's lockout modes, SQSO-FMEA-003 BF-EPS-21 to BF-EPS-24, fit inside it): λ_UV · λ_HW · λ_lock · t³/3 · 0.05 =
+3.6 × 10⁻⁶ with t = 6 years of charging. This is the formula of `explosion_probability.py` with one more latent
+factor; the script still carries the Draft D.1 chain and takes the factor at its next revision. The overcharge row assumes
+the dissimilar secondary protector (EPS-11); without it the overcharge term is 3.6 × 10⁻⁴ and the total
+**4.0 × 10⁻⁴** (margin ×2.5). A spurious lockout does not raise the probability (charging stops); the board FMEA's
+lockout findings (SMA-B12) are about the mission, not about this term. The end-of-life disconnect now needs two
+processors to arm (§4.4-2); it does not enter 4.4-1, which already assumes passivation in only half the missions.
 
 **4.4-2 (passivation design).** NASA-STD-8719.14C Req. 4.4-2 accepts either (1) depleting stored energy and
 disconnecting generation, or (2) controlling it to a level that cannot cause an explosion or deflagration large enough
@@ -135,8 +144,10 @@ to release debris or break up the spacecraft.
   2. `PASSIVATE_EXECUTE` (0x71), authenticated with the **offline recovery key**, within those 600 s (two keys from two
      custodians: a two-person rule for an irreversible act); no first-year lockout;
   3. on execute, **while the spacecraft still transmits**: in sunlight, the non-resettable charge-path disconnect
-     (fuse F1 between the solar-array trackers and the pack, fired only through both EOL_ARM and EOL_FIRE, held
-     60–120 s, up to three attempts); then the final report, three housekeeping frames a minute apart with the EPS
+     (fuse F1 between the solar-array trackers and the pack, fired only through both the arm latch and EOL_FIRE,
+     held 60–120 s, up to three attempts; since SQSO-EPS-BRD-001 D the latch is set only by the OBC's EOL_ARM **and**
+     the EPS controller's EOL_KEY, raised after a keyed I2C sequence, so no single OBC pin or GPIO fault can arm and
+     fire; a dead EPS controller now prevents passivation, and option 2 is then the claim, SQSO-FMEA-003 BF-EPS-48); then the final report, three housekeeping frames a minute apart with the EPS
      `EOL_STATE` (disconnect fired, fuse intact) and the attempts, so the ground sees the result; then, 180 s after the
      first report, the TX-OFF latch and a passivation inhibit that nothing clears (an unconfirmed fire is reported and
      silenced the same way). The loads stay on and drain the pack to the BMS under-voltage cut-off, after which the
@@ -339,7 +350,9 @@ projection (6.4 years at 485 km, 1.85 kg, conservative); uncontrolled re-entry.
   continuum shape factor; re-radiation from the whole surface; **no oxidation heating** (conservative, notably for
   titanium and steel). Atmosphere NRLMSIS 2.1.
 - Demise when the absorbed heat reaches m (c_p (T_m − 300 K) + h_f). Material data: Ti-6Al-4V T_m 1943 K, h_f 393 kJ/kg;
-  stainless 1700 K, 286 kJ/kg; steel can 1800 K; aluminium 867 K; NiFe 1720 K; alumina-class ceramic 2327 K, 1070 kJ/kg.
+  stainless 1700 K, 286 kJ/kg; steel can 1800 K; aluminium 867 K; NiFe 1720 K; alumina-class ceramic 2327 K, 1070 kJ/kg;
+  W-Ni-Cu heavy alloy (ASTM B777 Class 3, Draft D.2) taken as tungsten for survival: 18.0 g/cm³, c_p 160 J/kg·K, T_m 3695 K,
+  h_f 285 kJ/kg, ε 0.35 (the Ni-Cu binder melts below 1700 K; the tungsten skeleton is taken to hold the shape, the survival case).
 - Survivors flown to the ground; those with impact energy > 15 J count, with DCA = Σ(0.6 + √A)² (eq. 4.7-1) and
   E = DCA × PD (eq. 4.7-2).
 - **Population density** under a 97.4° orbit in the re-entry era (≈ 2034): 1.32 × 10⁻⁵ per m², from a 10° latitude-band
@@ -359,16 +372,27 @@ projection (6.4 years at 485 km, 1.85 kg, conservative); uncontrolled re-entry.
 | Gyro as stainless (bounding) | Demise 76 km | Survives, 17 m/s, 1.5 J |
 | GNSS ceramic patch | **Survives**, 19 m/s, 1.8 J | Survives, 1.8 J |
 | Magnetorquer rods as solid NiFe (bounding) | Demise 75 km | Survive, 21 m/s, 3.7 J |
+| **W-Ni-Cu inertia ballast discs** (2 × 10.0 g, Ø14 × 3.6 mm; Draft D.2) | **Survive**, 37 m/s, **6.9 J** | Survive, 37 m/s, 6.9 J |
+| Ti-6Al-4V ballast screws M2 (4 × 0.15 g) | Demise 77 km | Demise 74 km |
 
 - **Nominal heating:** one survivor (the ceramic patch) at 1.8 J; **total DCA 0 m²; casualty risk ≈ 0.**
 - **Heating halved, every bounding representation at once:** only the four cells modelled as solid steel exceed
   15 J; DCA = 4 × (0.6 + √0.00107)² = 1.60 m²; **risk 1:47,000**, compliant with margin ×4.7. With the cells as cans,
   no fragment exceeds 15 J.
+- **The W-Ni-Cu ballast discs survive in every case** (gross heat input 2.3–5.6 times the heat to melt them, but
+  re-radiation keeps them below the tungsten melting point) but land at the terminal speed of a tumbling 10 g disc, 37 m/s, with **6.9 J**:
+  below 15 J, no DCA. Terminal speed brackets: face-on 30 m/s (4.4 J), tumbling with C_D 0.8 41 m/s (8.5 J), stable
+  edge-on fall 56 m/s (15.8 J), the last not a stable attitude for a disc. Counting both discs even at the edge-on bound
+  adds 2 × (0.6 + √0.000117)² = 0.75 m²: alone 1:101,000, with the bounding cells 2.35 m², **1:32,000**, compliant
+  (margin ×3.2). No demisable replacement is needed for 4.7-1. If DAS gives more than 15 J, the replacement would be a
+  copper-alloy disc of the same 10 g (Ø20 × 3.7 mm brass or Ø20 × 3.6 mm bronze, same mounting; its demise to be run,
+  and the mass properties to be checked by the mechanical designer). Model: `reentry_casualty.py` with the two discs and
+  their screws as added parts (the run of Draft D.2; the parts list in the script takes them at its next revision).
 - The **Ti-6Al-4V screws do not change the result**: even when they survive, at 0.3 g and 12 m/s they carry 0.02 J, far
   below 15 J. The stainless parts are likewise below 15 J by two orders of magnitude.
 
-**4.7-1:** compliant by analysis, worst case 1:47,000. **[DAS]** DAS models the battery cells, the patch and the Ti
-parts explicitly; report its result here.
+**4.7-1:** compliant by analysis, worst case 1:47,000 (1:32,000 with the ballast discs at their edge-on bound). **[DAS]**
+DAS models the battery cells, the patch, the ballast discs and the Ti parts explicitly; report its result here.
 
 **Hazardous materials:** Li-ion cells (NCA chemistry, ≈ 50 Wh at launch; passivated or protection-controlled at end of
 mission, §4). No propellants, toxics or radioactive materials.
@@ -385,11 +409,11 @@ N/A.
 |---|------|-------|
 | 1 | Obtain NASA DAS 3.2.6 (NASA Software Catalog usage agreement, **requested by 2026-11-06**, in hand by 2026-12-15) and reproduce §4–§7 with the controlled MEL (MASS_BUDGET v3.1) **by 2027-01-08**, before the early pre-space filing of 2027-01-19, which needs the results ((g)(1)(ii), (iv)(A)(1)). **Pass criterion:** DAS reproduces this draft: re-entry ≤ 5 years after the 2-year mission at 485 km with 1.85 kg and the wings deployed (P ≥ 0.9, reading B); casualty risk ≤ 1:10,000 with no fragment > 15 J; 4.5-1 < 0.001. If DAS gives a longer life, the cap is lowered to the highest altitude DAS passes before filing (REGULATORY_ROADMAP Rev D §7) | Licensee (agreement); S&MA (run) |
 | 2 | Put the deployment band and cap (decided: 465–485 km, 485 km cap, BASELINE Rev E §3; RID ODA-01) in the launch contract, the cap on the 3σ-high mean altitude of the drop-off orbit with the injection dispersion, and a 460 km quote for reading A (SQSO-OAP-001 §2.2) | PI, launch |
-| 3 | Passivation: telecommands implemented (0x70/0x71, SQSO-ICD-013 v0.10 §6.4: the fire while transmitting, the final report, then TX-OFF); charge-path disconnect designed (F1, two independent signals, SQSO-EPS-BRD-001 §7); run V-EPS-8 on the EM, close the recharge lockout (EPS-12), and add the EM result to the pre-space notification's passivation statement (Rev A.3 describes the implemented sequence) | EPS, FSW, licensee |
+| 3 | Passivation: telecommands implemented (0x70/0x71, SQSO-ICD-013 v0.10 §6.4: the fire while transmitting, the final report, then TX-OFF); charge-path disconnect designed (F1, two independent signals, SQSO-EPS-BRD-001 §7); recharge lockout designed (K1, two-signal clear, SQSO-EPS-BRD-001 D §5.4; 4.4-1 re-run in Draft D.2); arm now also needs the EPS controller's EOL_KEY (Rev D); run V-EPS-8 and V-EPS-9 on the EM, and add the EM result to the pre-space notification's passivation statement (Rev A.3 describes the implemented sequence) | EPS, FSW, licensee |
 | 4 | Ask the FCC (D3 consultation, REGULATORY_ROADMAP Rev D §6 Q5, by 2027-01-05) which reading of "completion of the mission" applies to a failed spacecraft | Licensee |
 | 5 | Replace the cycle-26 assumption with the NOAA/NASA prediction when issued; DAS uses its own solar-flux table | S&MA |
-| 6 | Separate burn drivers for the two wings: designed, one driver per resistor on four lines (SQSO-EPS-BRD-001 §9); §6.4 re-run in Draft D (wings-failed 0.29 %, of which 0.2 % is the shared burn supply SW6/U17); confirm the shared-supply allocation with the EPS board FMEA | EPS, S&MA |
-| 7 | Add the two 10 g W-Ni-Cu inertia ballast discs (C-13) and their Ti screws to the demise model and the DAS run; a surviving disc is expected below 15 J, to be shown | S&MA |
+| 6 | Separate burn drivers for the two wings: designed, one driver per resistor on four lines (SQSO-EPS-BRD-001 §9); §6.4 re-run in Draft D (wings-failed 0.29 %, of which 0.2 % is the shared burn supply SW6/U17); the board FMEA (SQSO-FMEA-003 BF-EPS-53, BF-EPS-55) confirms the shared elements: SW6, U17, V_BURN and its W7 feeds, and DEPLOY_EN, which also arms the AntS supply (finding SMA-B06) | EPS, S&MA |
+| 7 | W-Ni-Cu inertia ballast discs (C-13): added to the demise model in Draft D.2 (survive, 6.9 J < 15 J; 1:32,000 worst with the edge-on bound, §7.2); keep them in the DAS run and confirm < 15 J there; if DAS exceeds 15 J, change to a 10 g copper-alloy disc and re-run (mechanical designer: mass properties) | S&MA |
 
 ---
 
@@ -403,3 +427,4 @@ N/A.
 | Draft C | 2026-10-27 | CDR 2026 consistency pass: compliance summary and orbit row at the baseline 475 km target and 485 km cap (BASELINE Rev E, which adopted §6.5); one burn driver per resistor as designed (4.6-4, open items 2 and 6). Analysis values unchanged |
 | Draft D | 2026-10-27 | CDR S&MA re-run at the Rev E baseline (RID SE-16): deployment 2028-11-01 (was 2028-06-01), masses 1.6 / 1.85 / 2.0 kg (was 1.8 kg bound) and CBE 1.49 kg for the shortest life, 465 and 485 km rows (§6.2, §5); §6.4 with the four-line deployment: wings-failed 0.29 % (was 1.6 %), reading B P = 0.997 at 475–485 km (was 0.98), reading A cap 460 km (was 470 km); §2 mass from MASS_BUDGET v3.0; 4.6-1a, 4.6-4, 4.6-5 and open item 6; §4 4.4-2 and open item 3 brought to SQSO-ICD-013 v0.8 (passivation implemented as 0x70/0x71, no first-year lockout) |
 | Draft D.1 | 2026-10-27 | CDR round 3 (RIDs ODA-02, SE-14, REG-12; chair note C-2); analysis values unchanged: DAS agreement requested by 2026-11-06 and DAS run by 2027-01-08, before the early filing, with its pass criterion (status, open item 1); §2 mass from MASS_BUDGET v3.1 (CBE 1.51 kg, MEV 1.75 kg) and the W-Ni-Cu inertia ballast ("no tungsten" withdrawn; open item 7); §4 4.4-2 passivation in the implemented order (SQSO-ICD-013 v0.10: the fire while transmitting, the final report, then TX-OFF); §6.5 item 4: the F10.7 = 70 bound fails at 475 km, 1.85 kg even with the wings deployed (5.3 years after the mission) |
+| Draft D.2 | 2026-10-27 | CDR round 3 S&MA (coordinator items): §7 W-Ni-Cu ballast discs added to the demise run (survive at 6.9 J, below 15 J; edge-on bound 15.8 J gives 1:32,000 worst; no demisable replacement needed), §2 tungsten note, open item 7; §4 4.4-1 re-run with the designed recharge lockout (over-discharge term 9.0 × 10⁻⁵ → 3.6 × 10⁻⁶, total 1.4 × 10⁻⁴ → 5.8 × 10⁻⁵, ×17) and the two-processor EOL arm (EOL_ARM and EOL_KEY, SQSO-EPS-BRD-001 D); open items 3 and 6 |

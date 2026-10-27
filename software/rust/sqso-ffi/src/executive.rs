@@ -27,7 +27,8 @@ use sqso_fsw::eps::EpsState;
 use sqso_fsw::executive::{self as exec, PowerModel};
 use sqso_fsw::fault_log::Entry;
 use sqso_fsw::fixed::Fixed;
-use sqso_fsw::gnss::Receiver;
+use sqso_fsw::gnss::{Fix, Receiver};
+use sqso_fsw::gnss_frame;
 use sqso_fsw::gnss_schedule::{self, Sessions};
 use sqso_fsw::heater::{self, Heater};
 use sqso_fsw::housekeeping::{self, Cadence, Housekeeping};
@@ -328,6 +329,14 @@ pub struct Executive {
     /// GNSS receiver sessions and the NMEA receiver
     gnss: Sessions,
     gnss_rx: Receiver,
+    /// The running session's first accepted fix (the velocity chord's start)
+    gnss_first: Option<Fix>,
+    /// The latest GNSS state frame's values (session, first fix, fix, GGA
+    /// quality), kept for GET_HOUSEKEEPING (RID LV-04)
+    gnss_latest: Option<(u32, Option<Fix>, Fix, u8)>,
+    /// The GNSS state frame is to be sent; after HK2 on GET_HOUSEKEEPING
+    gnss_frame_due: bool,
+    gnss_after_hk2: bool,
     /// The housekeeping frame's cadence
     hk: Cadence,
     /// When the ADCS last ran its control cycle, ms
@@ -387,6 +396,10 @@ impl Executive {
         transponder: Transponder::new(),
         gnss: Sessions::new(),
         gnss_rx: Receiver::new(),
+        gnss_first: None,
+        gnss_latest: None,
+        gnss_frame_due: false,
+        gnss_after_hk2: false,
         hk: Cadence::new(),
         last_adcs_ms: 0,
         detumble_commanded: false,
@@ -651,6 +664,7 @@ impl Executive {
         self.run_store(now, state);
         downlink::downlink_poll();
         self.run_gnss(now, state);
+        self.run_gnss_frame(now);
         self.check_gnss_rail(now);
         self.run_transponder(now, state);
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_BEACON);
@@ -1117,6 +1131,7 @@ impl Executive {
             gnss_schedule::Action::None => {}
             gnss_schedule::Action::PowerOn => {
                 crate::c::console(format_args!("[GNSS] Session {} on", self.gnss.sessions));
+                self.gnss_first = None;
                 // SAFETY: plain values (the HAL)
                 let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_GNSS_EN, true) };
             }
@@ -1126,6 +1141,11 @@ impl Executive {
                 // SAFETY: plain value (the HAL)
                 let _ = unsafe { crate::c::hal_uart_flush(UART_PORT_GNSS) };
                 crate::c::console(format_args!("[GNSS] Session off: {}", outcome.text()));
+                if outcome == gnss_schedule::Outcome::Fix && self.gnss_rx.fix.valid {
+                    let first = self.gnss_first.take();
+                    self.gnss_latest = Some((self.gnss.sessions, first, self.gnss_rx.fix, self.gnss_rx.gga_quality));
+                    self.gnss_frame_due = true;
+                }
                 if self.gnss.no_fix_fault() {
                     add_fault(fault_type::INIT, severity::WARNING, c"GNSS: no fix in three sessions", self.power.soc);
                 }
@@ -1148,6 +1168,38 @@ impl Executive {
                 let _ = self.gnss_rx.feed(b, now);
             }
         }
+        let fix = self.gnss_rx.fix;
+        if self.gnss_first.is_none() && fix.valid && self.gnss_on_since.is_some_and(|t| fix.rx_ms >= t) {
+            self.gnss_first = Some(fix);
+        }
+    }
+
+    /// The GNSS state frame (`sqso_fsw::gnss_frame`, RID LV-04): after a
+    /// session with a fix, and after HK2 on GET_HOUSEKEEPING, through the
+    /// downlink (its inhibits and duty limit); a frame the downlink refuses
+    /// is dropped (GET_HOUSEKEEPING sends it again)
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_gnss_frame(&mut self, now: u64) {
+        if !self.gnss_frame_due || self.hk2_due.is_some() {
+            return;
+        }
+        let Some((session, first, fix, quality)) = self.gnss_latest else {
+            self.gnss_frame_due = false;
+            return;
+        };
+        let st = gnss_frame::state(session, first.as_ref(), &fix, quality, now);
+        let mut info = [0u8; gnss_frame::MAX_LEN];
+        let n = gnss_frame::format(&st, &mut info);
+        let text = info.get(..n).unwrap_or(&[]);
+        match send_ui(text) {
+            rc::BUSY => {} // the downlink is sending: next pass
+            sent => {
+                if sent == rc::OK {
+                    crate::c::console_parts(&[b"[GNSS] TX: ", text]);
+                }
+                self.gnss_frame_due = false;
+            }
+        }
     }
 
     /// The housekeeping frame (`sqso_fsw::housekeeping`, LV-27): every fifth
@@ -1155,7 +1207,11 @@ impl Executive {
     /// downlink (which enforces the inhibits and the duty limit)
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn run_housekeeping(&mut self, now: u64, state: u32) {
-        if HK_REQUESTED.swap(false, Ordering::Relaxed) || passivation::passivation_take_report() > 0 {
+        if HK_REQUESTED.swap(false, Ordering::Relaxed) {
+            self.hk.request(now);
+            self.gnss_after_hk2 = self.gnss_latest.is_some();
+        }
+        if passivation::passivation_take_report() > 0 {
             self.hk.request(now);
         }
         if self.hk2_due.is_some_and(|t| now >= t) {
@@ -1200,6 +1256,9 @@ impl Executive {
                     crate::c::console_parts(&[b"[HK] TX: ", info.get(..n).unwrap_or(&[])]);
                 }
                 self.hk2_due = None;
+                if core::mem::take(&mut self.gnss_after_hk2) {
+                    self.gnss_frame_due = true;
+                }
             }
         }
         let _ = now;

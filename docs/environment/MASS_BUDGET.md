@@ -108,7 +108,7 @@ design: a candidate to release at the next MEL issue, the chair's call). CBE **1
 design's zones with their routed mass instead of four symmetric bundles (SQSO-MECH-CAD-001 §5.1, §6.11); the ballast
 pair moved to (−17, +15.5) / (−17, +0.5) mm to cancel the Iyz that the distribution adds (§6.6). **Battery cell
 retention, row 37 (review item STR-08, 2026-10-27):** a mechanical retention (G-10CR cell-locator plates at both ends,
-a −X end cap floating on four Ti shoulder screws with disc-spring stacks, polyimide insulators, shims; no adhesive, no
+one disc-spring stack per cell under the −X end cap, polyimide insulators, shims; no adhesive, no
 potting; SQSO-MECH-CAD-001 §4.6) of 5.0 g (E2); and row 32 at 76.1 g, the harness design's revised total (84.9 g in
 all, of which 76.1 g in row 32; harness item M-10, the DPDT DS2): CBE **1,519.4 g**, MEV **1,754.2 g**, margin
 **+14.0 %** with rods; 1,600.8 / 1,852.9 g, **+7.9 %** with coils. The CAD scales the harness design's distribution to
@@ -189,7 +189,7 @@ quoted in Version 2.0 grades a margin above 5 % green at CDR.
 | 33 | Thermal control (tapes, interface materials, MLI patches) | 1 | 30.0 | Version 2.0 row 21 | E1 | 25 % | 37.5 |
 | 34 | Fasteners, PCB-stack spacers (4 columns plus centre supports), inserts | many | 35.0 | Version 2.0 row 22 (25 g) + spacers 10 g | E1 | 25 % | 43.8 |
 | 35 | Staking, conformal coat, adhesives | 1 | 10.0 | Estimate | E1 | 25 % | 12.5 |
-| 37 | Battery cell retention (RID STR-08): two G-10CR cell-locator plates, −X end-cap disc-spring stacks and Ti shoulder screws, polyimide insulators, shims; no adhesive, no potting (SQSO-MECH-CAD-001 §4.6) | 1 set | 5.0 | Locator plates 3.0 g, shoulder screws 1.0 g, disc springs 0.4 g, polyimide 0.4 g, shims 0.2 g | E2 | 15 % | 5.8 |
+| 37 | Battery cell retention (RID STR-08): two G-10CR cell-locator plates, per-cell disc-spring stacks on G-10CR seats under the −X end cap, polyimide insulators, shims; no adhesive, no potting (SQSO-MECH-CAD-001 §4.6) | 1 set | 5.0 | Locator plates 3.0 g, spring seats 0.6 g, disc springs 0.4 g, polyimide 0.4 g, shims 0.6 g | E2 | 15 % | 5.8 |
 | 36 | Inertia ballast: W-Ni-Cu discs Ø14 × 3.6 mm on the inside of the +Z end frame at (−17, +15.5) and (−17, +0.5) mm, with their M2 Ti-6Al-4V screws (chair decision C-13; SQSO-MECH-CAD-001 D-9) | 2 | 20.0 | Machined to mass (ASTM B777 Class 3, about 18.0 g/cm³); lightened or removed at integration from the measured inertia | C1 | 3 % | 20.6 |
 | | **Total, rods option (rows 1–26, 27r, 28r, 29–37)** | | **1,519.4** | | | **15.5 %** | **1,754.2** |
 | | **Total, coils option (rows 1–26, 27c, 29–37)** | | **1,600.8** | | | **15.8 %** | **1,852.9** |

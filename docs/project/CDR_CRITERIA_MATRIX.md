@@ -2,15 +2,26 @@
 ## SMART-QSO 1U CubeSat
 
 **Document ID**: SQSO-PM-002
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Status**: Review record of the CDR panel's programmatics, systems engineering and V&V reviewer. Assessment only;
 it approves nothing.
-**Governing values**: `docs/BASELINE_PARAMETERS.md` Rev D
+**Governing values**: `docs/BASELINE_PARAMETERS.md` Rev E (amended)
 
 ---
 
 ## 0. Verdict
+
+> **Status at Rev B (CDR round 3, 2026-10-27; RID P3P-06).** Rev A (below) recorded the state before the round-2 design
+> completion. Since then every custom board has a schematic captured as code with parts, BOM and ERC, the mechanical
+> CAD and FE model exist, and the FMEA, safety data package, security plan and technology readiness assessment exist.
+> Rows 6.3, 6.20, 6.24, 6.26, 6.27, 6.30 and 6.32 of §3 and rows 1 and 13 of §4 are restated (their Rev A text kept in
+> italics). Counts at Rev B: entrance items 3 met, 21 met with action, 8 not met, 5 N/A; success criteria 0 met, 7 met
+> with action, 11 not met, 2 N/A. The verdict stands: no layout, no hardware, no EM test, so the gate is the
+> independent PDR on 2027-01-12 (board named by 2026-12-01, `mission/SCHEDULE.md` DA-03) and the CDR on **2027-09-28**
+> with EM data (SQSO-SCH-001 D: the per-board layout estimate and the reliability programme moved it from 2027-08-03).
+> Against the integrator's dates the November 2028 plan has 71 days of float (10.1 weeks against the 9.6 weeks GOLD
+> Rule 1.06 wants); the June 2028 opportunity is 80 days late.
 
 **The project does not meet the NPR 7123.1D Table G-7 entrance criteria for a CDR, and a combined PDR/CDR is not
 acceptable at this maturity.** Of the 37 entrance items assessed (5 top-level criteria and the 32 work products of
@@ -80,7 +91,7 @@ Revisions were checked on 2026-10-27 at the sources cited.
 | SRR / MDR | G-3, G-5 | **Not held separately.** The funding audit (2026-10-14) and the baseline Rev D (2026-10-26) serve as the requirements and architecture baseline; the PDR assesses the Table G-5 criteria that remain open | — |
 | This panel | — | Independent pre-PDR technical assessment: RIDs against the CDR criteria to show the gap | 2026-10-27 |
 | **PDR** | **G-6** | Independent, with named reviewers outside the development team; RIDs recorded and dispositioned; one day | 2027-01-12 |
-| **CDR** | **G-7** | Independent; held after the EM development tests; authorises FM fabrication | 2027-08-03 |
+| **CDR** | **G-7** | Independent; held after the EM development tests; authorises FM fabrication | 2027-09-28 (2027-08-03 in Rev A) |
 | Test readiness review | G-11 (SIR/TRR elements) | Before the FM protoflight campaign: procedures, facility, levels, FM functional baseline | 2028-01 (before PF_ENV) |
 | Pre-ship review | G-13/G-14 (SAR/ORR elements, tailored) | Verification closure (VCRM), integrator data package, regulatory filings in hand, operations readiness | 2028-03-14 |
 | Integrator acceptance (and LSP MRR on the CSLI path) | External | The integrator's checklist | At delivery |
@@ -119,7 +130,7 @@ available to the reviewers before the review.
 | 11 | Launch site operations plan | — | Preliminary | Integrator does the integration |
 | 12 | Checkout and activation plan | — | Preliminary | Commissioning plan |
 | 13 | Disposal plan | Required (ODAR) | Required | FCC 5-year rule |
-| 14, 15 | Technology readiness assessment; technology development plan | Required (Jetson, transponder) | Required | — |
+| 14, 15 | Technology readiness assessment; technology development plan | Required (Jetson, transponder) | Required | `docs/project/TECHNOLOGY_READINESS_ASSESSMENT.md` (SQSO-TRA-001, all critical elements; RID SE-09) |
 | 16 | Risk assessment | Required | Required | — |
 | 17 | SEMP | Required | Required | — |
 | 18, 19 | HSI approach; human-rating certification package | N/A | N/A | Uncrewed; no ISS path unless the backup triggers (then the JSC 20793 battery package, SYS-910) |
@@ -151,7 +162,7 @@ funding-audit findings are cited as "finding" followed by their ID, because the 
 | 5 | Baselined detailed design meeting all requirements or with waivers | Not met | No build-to design; predicted non-compliances SYS-100, SYS-002, SYS-603 (`docs/verification/VERIFICATION_MATRIX.md` §6) | SE-01, SE-07 |
 | 6.1 | Build-to specifications and trades | Not met | Trades exist (`docs/hardware/BUILD_VS_BUY.md`); no build-to specifications | SE-01 |
 | 6.2 | Fabrication, assembly, integration, test plans and procedures | Met with action | `docs/integration/INTEGRATION_PLAN.md`, `docs/integration/ASSEMBLY_PROCEDURE.md`, 42 procedures in `docs/test_procedures/`; levels corrected in this review | VV-01 |
-| 6.3 | Technical data package (schematics, ICDs, analyses) | Not met | Block-level schematic drawings only (`hardware/diagrams/schematics/*.py`); ICDs exist (`docs/interfaces/`); launch ICD not signed | SE-01, SE-05 |
+| 6.3 | Technical data package (schematics, ICDs, analyses) | Met with action | **Rev B:** every custom board's schematic captured as code with selected parts, KiCad netlist, BOM with stresses and ERC (SQSO-EPS-BRD-001, -OBC-BRD-001, -RF-BRD-001, -JET-BRD-001; boards A2 and A3), master pin allocation SQSO-ICX-001, harness SQSO-HAR-001, CAD SQSO-MECH-CAD-001; ICDs exist (`docs/interfaces/`). Action: PCB layouts (2027-01-12 to 2027-04-27, DA-04); the integrator ICD at the contract (DA-08). *(Rev A: block-level schematic drawings only)* | SE-01, SE-05 |
 | 6.4 | TPM and margin status | Met with action | `docs/project/SEMP.md` v2.0 §3.3; mass margin 0-4 %, tumbling power margin +19 % (< 20 %) | SE-07 |
 | 6.5 | Operational limits and constraints | Met with action | `docs/BASELINE_PARAMETERS.md` §5-§7; `docs/operations/MISSION_RULES.md` | — |
 | 6.6 | Resource utilisation and margins | Met with action | `docs/environment/MASS_BUDGET.md` v2.0, `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0; power budget partly superseded; thermal not computed (TB-07) | SE-07 |
@@ -168,19 +179,19 @@ funding-audit findings are cited as "finding" followed by their ID, because the 
 | 6.17 | Updated SEMP | Met with action | `docs/project/SEMP.md` v2.0 (this review) | — |
 | 6.18 | HSI approach | N/A | §2.3 | — |
 | 6.19 | Human-rating certification package | N/A | §2.3 | — |
-| 6.20 | Updated reliability analyses | Not met | `docs/environment/RELIABILITY_ANALYSIS.md` 1.2 (January; cycle-life error, TB-08); no hardware FMEA | SE-08 |
+| 6.20 | Updated reliability analyses | Met with action | **Rev B:** `docs/environment/RELIABILITY_ANALYSIS.md` 2.1 (RBD, allocation, Monte Carlo: 0.75 / 0.61 / 0.51) and the system FMEA and critical-items list SQSO-FMEA-002 C. Action: board-level FMEA of the round-2 boards (RID P3P-04); the PI's acceptance of the estimates (DA-02, 2026-12-15). *(Rev A: REL 1.2, no hardware FMEA)* | SE-08 |
 | 6.21 | Updated life-cycle cost and integrated master schedule | Met with action | ROM SQSO-AUD-005 Rev B; `mission/SCHEDULE.md` with critical path; cost differences in PM-06 | PM-05, PM-06 |
 | 6.22 | Integrated logistics support plan | N/A | §2.3 | — |
 | 6.23 | Project protection plan | Met with action | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` (SQSO-ICD-013), draft, host-tested only | — |
-| 6.24 | Subsystem and operations safety analyses | Not met | `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` 0.1 (skeleton); software hazard analysis only | SE-08 |
+| 6.24 | Subsystem and operations safety analyses | Met with action | **Rev B:** `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` 1.1 (16 hazard reports with verifications VI-SAF-01 to -09), the battery safety assessment SQSO-BSA-001 D and the software hazard analysis. Action: the integrator's 91-710 requirements at the contract (DA-08). *(Rev A: skeleton)* | SE-08 |
 | 6.25 | Certification plans and requirements | Not met | No integrator ICD; regulatory roadmap exists (`docs/regulatory/REGULATORY_ROADMAP.md`); no filing made | SE-05 |
-| 6.26 | System safety analysis with verifications | Not met | As 6.24 | SE-08 |
-| 6.27 | Software products per NASA-HDBK-2203 | Not met | SDP, SRS, design and test plans exist; the NPR 7150.2D Appendix C mapping for Class C does not (SQSO-AUD-003 §1); nothing has run on the target | SE-10 |
+| 6.26 | System safety analysis with verifications | Met with action | As 6.24: hazard reports carry their verifications, now in the generated register `docs/verification/VI_REGISTER.md` | SE-08 |
+| 6.27 | Software products per NASA-HDBK-2203 | Met with action | **Rev B:** SDP, SRS, design and test plans and the NPR 7150.2D Class C mapping (`docs/software/NPR7150_COMPLIANCE_MATRIX.md` B). Action: the flight software on the target (HIL, development board by 2026-11-30); SWE-220 complexity (DA-16). *(Rev A: no Appendix C mapping)* | SE-10 |
 | 6.28 | NTIA Stage 2 certification | N/A | Amateur service (§2.3) | — |
 | 6.29 | Stage 4 spectrum parameters | N/A | Replaced by IARU coordination and the FCC filing | — |
-| 6.30 | Baselined system security plan | Not met | Key handling is specified (BASELINE §7) but no plan covers the ground station, key custody and recovery | SE-11 |
+| 6.30 | Baselined system security plan | Met | **Rev B:** Space System Protection and Security Plan SQSO-SEC-001 A (key custody and recovery, ground station; RID SE-11 closed). *(Rev A: no plan)* | SE-11 |
 | 6.31 | Procurement status and supply-chain risk | Not met | No orders, no quotes; the 1U COTS market is shrinking (`docs/hardware/BUILD_VS_BUY.md` §2.1); `docs/project/HARDWARE_READINESS_TRACKER.md` v2.0 | PM-08 |
-| 6.32 | Single-point failures with rationale | Not met | No list; SYS-020 proposed wording unratified | SE-08 |
+| 6.32 | Single-point failures with rationale | Met with action | **Rev B:** single points of failure with retention rationale in SQSO-FMEA-002 §3–§4 (CIL-05 to CIL-13). Action: SYS-020 wording (DA-20). *(Rev A: no list)* | SE-08 |
 
 **Count (37 items): Met 2** (6.8, 6.12); **Met with action 15** (2, 4, 6.2, 6.4, 6.5, 6.6, 6.7, 6.9, 6.10, 6.11,
 6.13, 6.16, 6.17, 6.21, 6.23); **Not met 15** (1, 3, 5, 6.1, 6.3, 6.14, 6.15, 6.20, 6.24, 6.25, 6.26, 6.27, 6.30, 6.31,
@@ -190,7 +201,7 @@ funding-audit findings are cited as "finding" followed by their ID, because the 
 
 | # | Criterion (NPR 7123.1D Table G-7) | Status | Evidence | RID |
 |---|-----------------------------------|--------|----------|-----|
-| 1 | Detailed design expected to meet the requirements with adequate margins | Not met | No detailed design; mass margin 0-4 % (requirement ≥ 9 % at PDR in `SEMP.md`), tumbling power −0.9 % against SYS-100, Jetson heat path 0.44 against 1 W/K | SE-01, SE-07 |
+| 1 | Detailed design expected to meet the requirements with adequate margins | Not met | **Rev B:** the design is complete to schematic and analysis level with adequate margins (mass MEV 1.75 kg, +14.4 %; power 2.48 W against SYS-100's 2.21 W, +12 %; Jetson temperatures inside SYS-603 Rev G), but no layout or hardware exists and eight critical elements are at TRL 3 (`docs/project/TECHNOLOGY_READINESS_ASSESSMENT.md`). *(Rev A: no detailed design; mass 0-4 %, power −0.9 %, 0.44 against 1 W/K)* | SE-01, SE-07 |
 | 2 | ICDs mature enough to proceed to fabrication | Not met | Internal ICDs exist; the launch ICD is not signed (contract by 2027-06-30); pin map provisional (`software/rust/firmware/src/gpio.rs`) | SE-05 |
 | 3 | Cost and schedule credible and within constraints | Met with action | Dated critical path (`mission/SCHEDULE.md`); ROM without quotes; float −21 days to the integrator's L − 4 month milestone for a June 2028 launch, +130 days for November 2028; funding not committed (R11) | PM-05, PM-06 |
 | 4 | High confidence in the product baseline; documentation ready for fabrication | Not met | No product baseline; CM plan had no tags or baselines (`docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` v1.1 fixes the process) | PM-04 |
@@ -202,7 +213,7 @@ funding-audit findings are cited as "finding" followed by their ID, because the 
 | 10 | Compliance with applicable requirements and standards demonstrated | Not met | CDS compliance matrix partly rebuilt (finding VV-14); NPR 7150.2D Appendix C mapping missing | SE-02, SE-10 |
 | 11 | TBD/TBR items identified with disposition plans | Met with action | `docs/TBD_REGISTER.md` with CI gate; requirements items now dated (MRD Rev D §8, SYS Rev E §15); many open items elsewhere | SE-06 |
 | 12 | Engineering test units and models developed and tested per plan | Not met | No EM, flatsat or target hardware; the SIL and ADCS Monte Carlo exist (`software/rust/sqso-sil`) | VV-05 |
-| 13 | Material property tests and analyses (loads, stress, contamination) complete | Not met | No FEM (`hardware/structure/STRUCTURAL_DESIGN.md` 1.2); materials list without E595 data for every item | SE-12 |
+| 13 | Material property tests and analyses (loads, stress, contamination) complete | Met with action | **Rev B:** shell FE model (first mode 169 Hz, positive margins with NASA-STD-5001B factors; `docs/environment/STRUCTURAL_ANALYSIS.md` B); materials list SQSO-MAT-001 D with E595 data. Action: E595 per part number for the harness and connector items before the EM order (V-HAR-11, DA-18). *(Rev A: no FEM)* | SE-12 |
 | 14 | EEE parts selected; testing and delivery support the build | Not met | `docs/manufacturing/EEE_PARTS_LIST.md` Rev B lists candidates, no screening plan, no orders | PM-08 |
 | 15 | Operational concept at CDR detail and considered in test planning | Met with action | `mission/CONOPS.md`, `docs/verification/CONOPS_VALIDATION_MATRIX.md`; DITL and E2E in the ETP | — |
 | 16 | Manufacturability included in design | Not met | No layouts or drawings to assess | SE-01 |
@@ -290,3 +301,4 @@ change outside the reviewer's documents. The review report gives the evidence an
 | Version | Date | Description | Author |
 |---------|------|-------------|--------|
 | A | 2026-10-27 | Initial issue: governing framework and applicability by path (§1), tailoring of reviews and products (§2), Table G-7 entrance and success criteria assessed with evidence (§3, §4), Table G-6 quick look (§5) | CDR review, PM/SE/V&V |
+| B | 2026-10-27 | CDR round 3, systems and programmatics (RID P3P-06): status note in §0; §3 rows 6.3, 6.20, 6.24, 6.26, 6.27, 6.30, 6.32 and §4 rows 1, 13 restated after the round-2 design completion (schematics as code, CAD and FE, FMEA, safety data package, security plan, TRA), Rev A text kept; §2.3 rows 14–15 point to SQSO-TRA-001; CDR date 2027-09-28 | CDR round 3 |

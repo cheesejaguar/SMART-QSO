@@ -25,7 +25,7 @@ from orbit_dynamics import EGM96_4X4, GM, RE, ForceModel, GravityField, propagat
 J2 = -EGM96_4X4[(2, 0)][0] * 5 ** 0.5
 
 
-def kaula_field(degree: int = 8, seed: int = 2028) -> GravityField:
+def kaula_field(degree: int = 20, seed: int = 2028) -> GravityField:
     """EGM96 to 4 x 4, then random coefficients of degree 5 to degree with
     Kaula's rule (rms 1e-5 / n^2, normalized): a stand-in for the part of the
     real field the fit leaves out."""

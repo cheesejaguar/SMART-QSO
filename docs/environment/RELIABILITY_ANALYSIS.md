@@ -1,7 +1,7 @@
 # SMART-QSO Reliability Analysis
 
 **Document ID**: SQSO-REL-001
-**Version**: 2.1
+**Version**: 2.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis. Allocations and models, not measurements: no flight hardware exists. Version 1.2's
@@ -104,7 +104,9 @@ With the four-line wing deployment of the EPS board (Version 2.1) L2 and L3 rise
 curve agree within 0.06 at every horizon. The goals of Version 1.2
 (L1 > 0.95, L2 > 0.80, L3 > 0.60) are **not met**, and the program cannot reach them with a single-string first-build
 1U; even the halved-early-failure case misses L1 and L2. Recommended disposition: replace them with the estimates
-above as accepted Class D risk, with the §6 program as the means to approach the halved case (RID REL-01, PI decision).
+above as accepted Class D risk, with the §6 program as the means to approach the halved case (RID REL-01). **PI decision
+required by 2026-12-15** (`mission/SCHEDULE.md` DA-02): accept the estimates and keep the §6 programme, or drop the
+programme and accept the allocation case.
 
 **Contributors to the L2 loss** (share of trials in which the block was the first required block to fail within a
 year): EPS 6.6 %, OBC 5.7 %, flight software 4.8 %, transmitter 4.7 %, receiver 4.0 %, repeat path 3.3 %, harness
@@ -116,8 +118,8 @@ both-wings-lost probability is the wings-failed input of the ODAR's disposal pro
 
 | Activity | Target | Effect in the model |
 |----------|--------|---------------------|
-| Flatsat with EM boards, flight software on the STM32L4R5, end-to-end RF and repeat path | ≥ 500 h powered before the flight build | Early-failure allocations of OBC, software, radios and repeat path toward × 0.5 |
-| Flight-unit burn-in | ≥ 200 h powered, the last 100 h failure-free, including thermal cycling | EPS, harness, radios |
+| Flatsat with EM boards, flight software on the STM32L4R5, end-to-end RF and repeat path | ≥ 500 h powered before the flight build: ETP VI-11, by the CDR (2027-09-28), schedule task FLATSAT_500H | Early-failure allocations of OBC, software, radios and repeat path toward × 0.5 |
+| Flight-unit burn-in | ≥ 200 h powered, the last 100 h failure-free, including 4 ambient thermal cycles: ETP VI-12, 2028-02-22 to 2028-03-03, task FM_BURNIN | EPS, harness, radios |
 | Day-in-the-life tests | 72 h of the commissioning sequence, then 7 days of operations, on the flight unit | Software and operations |
 | Protoflight TVAC with functional tests at every plateau | Per `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` | Workmanship |
 | Deployment tests at cold and minimum voltage | VI-LV-17 | Wings and antennas |
@@ -189,3 +191,4 @@ distribution of §5 and the deployment altitude; it is computed with the same Mo
 | 1.2, note | 2026-10-24 | SMART-QSO Team | §9.3 note: the MISRA and complexity entries are unsupported; status for the Rust flight software |
 | 2.0 | 2026-10-27 | CDR S&MA review | Rewritten: RBD, failure-rate allocation and Monte Carlo for L1/L2/L3 of MISSION_SUCCESS_CRITERIA v2.0 (0.75 / 0.60 / 0.50), empirical cross-check (Jacklin 2019; Langer and Bouwmeester 2016), sensitivity, contributors, early-failure reduction program, wear-out table; Version 1.2 predictions, the Apollo4/Si4463 parts table, the 400 km radiation table and the NASA-HDBK-4002A citation withdrawn |
 | 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Wing deployment re-modelled for the EPS board's four independent burn lines (one driver per resistor, burned one at a time) with the shared SW6/U17/DEPLOY_EN supply: both wings lost 0.29 % (was 1.6 %); L1/L2/L3 0.75 / 0.61 / 0.51 (was 0.75 / 0.60 / 0.50); RBD, allocation, §5, §6 |
+| 2.2 | 2026-10-27 | CDR round 3, systems and programmatics (RIDs REL-01, P3P-03) | §5: acceptance is the PI's decision DA-02 by 2026-12-15; §6: the flatsat and burn-in targets are verification items ETP VI-11 and VI-12 with dates in SQSO-SCH-001 D. Figures unchanged |
