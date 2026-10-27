@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-REG-018 (supersedes SQSO-ODAR-001, `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md`)
-**Revision:** Draft C
+**Revision:** Draft D
 **Date:** 2026-10-27
 **Format:** NASA-STD-8719.14C (approved 2021-11-05) Appendix A.1, in the section order of the NASA Small Spacecraft Technology Program *ODAR & End of Mission Plan Instructional Guide* (spacecraft Sections 1–8; launch-vehicle Sections 9–14 are the launch provider's)
 **Regulatory use:** basis for the orbital-debris disclosures in the FCC pre-space notification, 47 CFR 97.207(g)(1)(i)–(vii) ([draft](FCC_97-207_PRE_SPACE_NOTIFICATION.md))
@@ -21,9 +21,9 @@
 | 4.4-3, 4.4-4 | Planned breakups | None | — | N/A |
 | 4.5-1 | Collision with objects ≥ 10 cm < 0.001 | **≤ 1.2 × 10⁻⁴** (worst case: 525 km, 2.0 kg, wings failed, F10.7 = 70) | ×8 | Compliant by analysis **[DAS]** (§5) |
 | 4.5-2 | Small-debris impact preventing disposal < 0.01 | Disposal is passive; no function is needed after wing deployment at T + 30 min | — | Compliant by design (§5) |
-| 4.6-1a | Natural re-entry ≤ 25 yr after mission, **conservative solar projection** | ≤ 13 yr post-mission at ≤ 485 km in every case; **fails at 525 km** for ≥ 1.8 kg with wings failed under the F10.7 = 70 bound (27.3–30.5 yr) | — | Compliant at ≤ 500 km (§6) |
-| 4.6-4 | Disposal reliability ≥ 0.9 | Passive; P(both wings fail) ≈ 0.001 with one burn driver per resistor, as designed (0.016 with one driver shared by both wings, the design analysed in §6.4); compliant if the wings-deployed case meets the rule | — | See FCC row |
-| **47 CFR 97.207(g)(1)(vii)(D)(1)** | **Re-entry ≤ 5 yr after mission completion, P ≥ 0.9** | **Not robustly met at the former 500 km target**: compliant only with the nominal solar projection and only if the mission is not cut short; **fails at the former 525 km cap** in every case modelled | — | **Compliant at the baseline 475 km target and 485 km cap** (BASELINE Rev E §3, adopted from §6.5) under the planned-mission reading; ≤ 465–470 km if an early failure counts as mission end (§6) |
+| 4.6-1a | Natural re-entry ≤ 25 yr after mission, **conservative solar projection** | ≤ 12.6 yr post-mission at ≤ 485 km in every case; **fails at 525 km** for ≥ 1.85 kg with wings failed under the F10.7 = 70 bound (28.1–30.5 yr) | — | Compliant at ≤ 500 km (§6) |
+| 4.6-4 | Disposal reliability ≥ 0.9 | Passive; P(both wings fail) = **0.003** with four independent burn lines, one driver per resistor, as designed (§6.4; 0.016 with the former single driver for both wings); compliant if the wings-deployed case meets the rule | — | See FCC row |
+| **47 CFR 97.207(g)(1)(vii)(D)(1)** | **Re-entry ≤ 5 yr after mission completion, P ≥ 0.9** | **Not robustly met at the former 500 km target**: compliant only with the nominal solar projection and only if the mission is not cut short; **fails at the former 525 km cap** in every case modelled | — | **Compliant at the baseline 475 km target and 485 km cap** (BASELINE Rev E §3, adopted from §6.5) under the planned-mission reading, P ≥ 0.997 with the conservative solar projection (§6.4); ≤ 460 km if an early failure counts as mission end (§6) |
 | 4.7-1 / 97.207(g)(1)(vii)(D)(2) | Casualty risk < 1:10,000, fragments > 15 J | **No surviving fragment > 15 J** with nominal heating; worst sensitivity (heating halved, whole cells modelled as steel) **1:47,000** | ≥ ×4.7 | Compliant by analysis **[DAS]** (§7) |
 | 4.8-1 | Tethers | None | — | N/A |
 | 97.207(g)(1)(v) | Trackability | Smallest dimension 10 cm (1U), presumed trackable | — | Compliant |
@@ -50,10 +50,11 @@
 edges of +Y, deployed into the +Y plane: `hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.1), an ISIS AntS antenna (two 2 m tape
 elements of ≈ 0.5 m and two 70 cm elements of ≈ 0.17 m).
 
-**Mass:** the controlled MEL (`docs/environment/MASS_BUDGET.md` v2.0) gives CBE 1.69 kg and a predicted 1.92–2.00 kg; the
-build-versus-buy decisions (`docs/hardware/BUILD_VS_BUY.md` §1) take about 0.20–0.25 kg off, and the MEL is being re-run
-with quoted masses. This report therefore uses **1.6 kg (nominal) and 1.8 kg (bound)** as BASELINE §4 directs, and adds
-**2.0 kg (the CDS Rev 14.1 limit)** so that no mass the spacecraft can have is outside the analysis.
+**Mass:** the controlled MEL (`docs/environment/MASS_BUDGET.md` v3.0, with the build-versus-buy selections) gives CBE
+**1.49 kg** and MEV **1.73 kg** (BASELINE Rev E §4). This report uses **1.6 kg (nominal) and 1.85 kg (bound)** as
+BASELINE §4 directs for lifetime analyses (the MEV lies between them; a heavier spacecraft lives longer, so the bound is
+the conservative case for disposal), adds **2.0 kg (the CDS Rev 14.1 design limit)** so that no mass the spacecraft can
+have is outside the analysis, and uses the CBE, 1.49 kg, for the shortest-life case (§6.2).
 
 | Item | Propulsion | Fluids | Pressure vessels | Pyrotechnics | Radioactive | Other stored energy |
 |------|-----------|--------|------------------|--------------|-------------|---------------------|
@@ -157,8 +158,9 @@ P = F·A·T, summed along the decay (`software/simulation/cdr/sma/collision_prob
 
 | Deployment | Mass | Solar case | P(collision), wings failed / deployed |
 |------------|------|------------|---------------------------------------|
-| 475 km | 1.6 kg | nominal | 3.3 × 10⁻⁵ / 2.0 × 10⁻⁵ |
+| 475 km | 1.6 kg | nominal | 3.5 × 10⁻⁵ / 2.2 × 10⁻⁵ |
 | 475 km | 2.0 kg | F10.7 = 70 bound | 5.4 × 10⁻⁵ / 3.5 × 10⁻⁵ |
+| 485 km (cap) | 2.0 kg | F10.7 = 70 bound | 8.0 × 10⁻⁵ / 5.2 × 10⁻⁵ |
 | 500 km | 2.0 kg | F10.7 = 70 bound | 1.0 × 10⁻⁴ / 7.0 × 10⁻⁵ |
 | 525 km | 2.0 kg | F10.7 = 70 bound | **1.2 × 10⁻⁴** / 7.8 × 10⁻⁵ |
 
@@ -178,7 +180,7 @@ a disposal function; its loss to impact is covered by option 2.
 ### 6.1 Method and inputs
 
 Uncontrolled re-entry by natural decay (4.6-1a). Estimator: NRLMSIS 2.1, circular decay, Cd 2.2, deployment
-2028-06-01, re-entry at 180 km (`software/simulation/orbit_lifetime/orbit_lifetime.py`; scenarios and cross-sections in
+**2028-11-01** (the planning launch date, BASELINE Rev E §3; Draft C used 2028-06-01), re-entry at 180 km (`software/simulation/orbit_lifetime/orbit_lifetime.py`; scenarios and cross-sections in
 `software/simulation/cdr/sma/debris_lifetime.py`).
 
 **Average cross-sections** (NASA-STD-8719.14C §4.3.4.2.2(a); smaller area is conservative for lifetime):
@@ -202,9 +204,11 @@ by about 10–15 %.
 | Bound | F10.7 = 70 held for the whole decay (no solar maximum at all; unphysical, but the bounding case BASELINE §3 uses) |
 
 The estimator's earlier "solar-cycle profile" agrees with the NOAA prediction to within 5–8 F10.7 units over 2028–2030
-(it is slightly lower, i.e. conservative), so the BASELINE §3 table is reproduced exactly with its inputs (A = 0.028 m²,
-1.6 kg: 500 km 5.1 / 9.3 yr wings deployed, 6.2 / 15.8 yr wings failed). The differences below come from the
-cross-section, the masses and the cycle-26 assumption.
+(it is slightly lower, i.e. conservative), so the funding-audit lifetime table is reproduced exactly with its inputs
+(A = 0.028 m², 1.6 kg, deployment 2028-06-01: 500 km 5.1 / 9.3 yr wings deployed, 6.2 / 15.8 yr wings failed). The
+differences below come from the cross-section, the masses, the cycle-26 assumption and the deployment date: deploying
+on 2028-11-01 instead of 2028-06-01 shortens the decaying lives by 0.1–0.3 yr (the spacecraft meets the cycle-26
+maximum earlier in its decay) and leaves the F10.7 = 70 bound unchanged.
 
 ### 6.2 Orbital lifetime
 
@@ -212,33 +216,38 @@ Total life in years from deployment (life after a 2-year mission in brackets); *
 
 | Deployment | Mass | Wings deployed: nominal / conservative / bound | Wings failed: nominal / conservative / bound |
 |------------|------|-----------------------------------------------|---------------------------------------------|
-| 450 km | 1.6 kg | 2.9 (0.9) / 3.5 (1.5) / 3.7 (1.7) | 4.5 (2.5) / 5.1 (3.1) / 5.5 (3.5) |
-| 450 km | 2.0 kg | 3.8 (1.8) / 4.4 (2.4) / 4.6 (2.6) | 5.2 (3.2) / 5.8 (3.8) / 6.9 (4.9) |
-| 475 km | 1.6 kg | 4.9 (2.9) / 5.5 (3.5) / 6.3 (4.3) | 6.0 (4.0) / 6.8 (4.8) / **9.5 (7.5)** |
-| 475 km | 1.8 kg | 5.2 (3.2) / 5.8 (3.8) / **7.1 (5.1)** | 6.3 (4.3) / **7.2 (5.2)** / **10.7 (8.7)** |
-| 475 km | 2.0 kg | 5.5 (3.5) / 6.2 (4.2) / **7.9 (5.9)** | 6.5 (4.5) / **7.6 (5.6)** / **11.8 (9.8)** |
-| 500 km | 1.6 kg | 6.1 (4.1) / 7.0 (5.0) / **10.5 (8.5)** | **7.1 (5.1)** / **8.8 (6.8)** / **15.9 (13.9)** |
-| 500 km | 1.8 kg | 6.4 (4.4) / **7.4 (5.4)** / **11.8 (9.8)** | **7.5 (5.5)** / **9.5 (7.5)** / **17.9 (15.9)** |
-| 500 km | 2.0 kg | 6.7 (4.7) / **7.9 (5.9)** / **13.2 (11.2)** | **7.8 (5.8)** / **10.5 (8.5)** / **19.8 (17.8)** |
-| 525 km | 1.6 kg | **7.2 (5.2)** / **9.1 (7.1)** / **17.3 (15.3)** | **8.7 (6.7)** / **14.7 (12.7)** / **26.0 (24.0)** |
-| 525 km | 1.8 kg | **7.6 (5.6)** / **9.9 (7.9)** / **19.4 (17.4)** | **9.3 (7.3)** / **16.3 (14.3)** / **29.3 (27.3)** |
-| 525 km | 2.0 kg | **7.9 (5.9)** / **11.1 (9.1)** / **21.6 (19.6)** | **10.2 (8.2)** / **17.4 (15.4)** / **32.5 (30.5)** |
+| 450 km | 1.6 kg | 3.2 (1.2) / 3.7 (1.7) / 3.7 (1.7) | 4.5 (2.5) / 5.0 (3.0) / 5.5 (3.5) |
+| 450 km | 2.0 kg | 4.0 (2.0) / 4.4 (2.4) / 4.6 (2.6) | 5.1 (3.1) / 5.7 (3.7) / 6.9 (4.9) |
+| 465 km | 1.85 kg | 4.7 (2.7) / 5.2 (3.2) / 5.9 (3.9) | 5.6 (3.6) / 6.4 (4.4) / **8.9 (6.9)** |
+| 475 km | 1.6 kg | 4.8 (2.8) / 5.3 (3.3) / 6.3 (4.3) | 5.7 (3.7) / 6.6 (4.6) / **9.5 (7.5)** |
+| 475 km | 1.85 kg | 5.1 (3.1) / 5.7 (3.7) / **7.3 (5.3)** | 6.1 (4.1) / **7.1 (5.1)** / **10.9 (8.9)** |
+| 475 km | 2.0 kg | 5.3 (3.3) / 6.0 (4.0) / **7.9 (5.9)** | 6.2 (4.2) / **7.4 (5.4)** / **11.8 (9.8)** |
+| 485 km | 1.6 kg | 5.3 (3.3) / 5.9 (3.9) / **7.7 (5.7)** | 6.2 (4.2) / **7.2 (5.2)** / **11.7 (9.7)** |
+| 485 km | 1.85 kg | 5.6 (3.6) / 6.3 (4.3) / **9.0 (7.0)** | 6.5 (4.5) / **7.9 (5.9)** / **13.5 (11.5)** |
+| 485 km | 2.0 kg | 5.7 (3.7) / 6.6 (4.6) / **9.7 (7.7)** | 6.7 (4.7) / **8.2 (6.2)** / **14.6 (12.6)** |
+| 500 km | 1.6 kg | 5.9 (3.9) / 6.8 (4.8) / **10.5 (8.5)** | 6.8 (4.8) / **8.6 (6.6)** / **15.9 (13.9)** |
+| 500 km | 1.85 kg | 6.2 (4.2) / **7.3 (5.3)** / **12.2 (10.2)** | **7.3 (5.3)** / **9.6 (7.6)** / **18.3 (16.3)** |
+| 500 km | 2.0 kg | 6.4 (4.4) / **7.6 (5.6)** / **13.2 (11.2)** | **7.5 (5.5)** / **10.4 (8.4)** / **19.8 (17.8)** |
+| 525 km | 1.6 kg | 6.9 (4.9) / **8.9 (6.9)** / **17.3 (15.3)** | **8.4 (6.4)** / **14.7 (12.7)** / **26.0 (24.0)** |
+| 525 km | 1.85 kg | **7.3 (5.3)** / **10.1 (8.1)** / **20.0 (18.0)** | **9.3 (7.3)** / **16.4 (14.4)** / **30.1 (28.1)** |
+| 525 km | 2.0 kg | **7.6 (5.6)** / **11.0 (9.0)** / **21.6 (19.6)** | **10.0 (8.0)** / **17.2 (15.2)** / **32.5 (30.5)** |
 
 **Highest deployment altitude that meets the FCC rule after a 2-year mission** (bisection):
 
 | Configuration | Mass | Nominal | Conservative | Bound |
 |---------------|------|---------|--------------|-------|
-| Wings deployed | 1.6 / 1.8 / 2.0 kg | 520 / 513 / 508 km | 500 / 493 / 488 km | 480 / 475 / 470 km |
-| Wings failed | 1.6 / 1.8 / 2.0 kg | 497 / 491 / 485 km | 478 / 472 / 467 km | 461 / 455 / 451 km |
+| Wings deployed | 1.6 / 1.85 / 2.0 kg | 527 / 518 / 514 km | 503 / 496 / 491 km | 480 / 473 / 470 km |
+| Wings failed | 1.6 / 1.85 / 2.0 kg | 503 / 495 / 491 km | 482 / 474 / 470 km | 461 / 454 / 451 km |
 
-**Shortest life** (NOAA high band and a strong cycle 26, maximum 180; 1.6 kg; largest area): 450 km 1.6 yr, 460 km
-2.1 yr, 465 km 2.4 yr, 470 km 2.8 yr, 475 km 3.2 yr. Below about 460 km the 2-year design life (and Level 3) is at risk.
+**Shortest life** (NOAA high band and a strong cycle 26, maximum 180; largest area): at the CBE, 1.49 kg: 450 km 1.7 yr,
+460 km 2.3 yr, 465 km 2.6 yr, 470 km 3.0 yr, 475 km 3.4 yr, 485 km 4.1 yr; at 1.6 kg: 1.9, 2.5, 2.9, 3.3, 3.7 and
+4.3 yr. Below about 455 km the 2-year design life (and Level 3) is at risk.
 
 ### 6.3 NASA 25-year rule (4.6-1a)
 
-Met at ≤ 500 km in every case (worst 17.8 yr post-mission). **At the 525 km cap it fails** with wings failed under the
-bound projection for 1.8 kg (27.3 yr) and 2.0 kg (30.5 yr). The previous revision's "compliant in all cases tabulated"
-held only for 1.6 kg. (8719.14C Req. 4.6-1a has no separate 30-years-after-launch limit; the previous revision's
+Met at ≤ 500 km in every case (worst 17.8 yr post-mission; at the 485 km cap, worst 12.6 yr). **At 525 km (the former
+cap) it fails** with wings failed under the bound projection for 1.85 kg (28.1 yr) and 2.0 kg (30.5 yr). Draft A's
+"compliant in all cases tabulated" held only for 1.6 kg. (8719.14C Req. 4.6-1a has no separate 30-years-after-launch limit; the previous revision's
 statement of one is withdrawn.)
 
 ### 6.4 FCC 5-year rule with P ≥ 0.9 (97.207(g)(1)(vii)(D)(1))
@@ -246,35 +255,51 @@ statement of one is withdrawn.)
 The rule asks for re-entry "as soon as practicable, but no later than five years following completion of the mission",
 with a probability of success of at least 0.9. Probability is computed by Monte Carlo
 (`software/simulation/cdr/sma/reliability_model.py`) over the spacecraft's failure time (reliability model of
-`docs/environment/RELIABILITY_ANALYSIS.md` v2.0) and the wings-failed probability (1.6 %, dominated by the one burn
-driver both wings share), at 1.8 kg, for two readings of "completion of the mission":
+`docs/environment/RELIABILITY_ANALYSIS.md` v2.1) and the wings-failed probability, at 1.85 kg (the BASELINE §4 bound),
+deployment 2028-11-01, for two readings of "completion of the mission".
+
+**Wings-failed probability: 0.29 %** (Draft C: 1.6 %). The deployment of the EPS board (SQSO-EPS-BRD-001 §9; BASELINE
+Rev E §4) has two burn resistors per wing, each on its own 0.8 A driver and its own OBC line (PB10 → W1A, PE6 → W1B,
+PB9 → W2A, PE7 → W2B), burned one at a time. A wing stays stowed if its hinge or restraint fails (0.030 per wing, the
+v2.0 allocation, unchanged) or both of its drivers fail (0.005 each); both wings stay stowed if both wings fail
+independently (0.030² ≈ 0.09 %) or the supply the four drivers share fails: the SW6 load switch, the U17 burn buck and
+the DEPLOY_EN line, with the deployment sequence in software, which a ground-commanded retry covers (0.2 %, allocated).
+The shared supply is now the larger term; the consistency pass's ≈ 0.1 % counted only the independent part. The
+reliability model gives 0.0029 (closed form 0.0029; `reliability_model.py --design shared` reproduces Draft C's 0.016).
+
+The two readings:
 
 - **Reading A:** the mission ends at 2 years or at the earlier loss of the station (a spacecraft that dies early has
   completed its mission early).
 - **Reading B:** the mission ends at the planned 2 years whatever happens.
 
-| Deployment | Solar | P, reading A | P, reading B |
-|------------|-------|--------------|--------------|
-| 460 km | nominal / conservative | 1.00 / 0.99 | 1.00 / 1.00 |
-| 470 km | nominal / conservative | 0.99 / **0.70** | 1.00 / 1.00 |
-| 475 km | nominal / conservative | **0.73** / **0.65** | 1.00 / 0.98 |
-| 485 km | nominal / conservative | **0.67** / **0.59** | 1.00 / 0.98 |
-| 500 km | nominal / conservative | **0.59** / **0.00** | 0.98 / **0.00** |
+| Deployment | Solar | Life, wings deployed / failed (yr) | P, reading A | P, reading B |
+|------------|-------|-------------------------------------|--------------|--------------|
+| 450 km | nominal / conservative | 3.7 / 4.9; 4.2 / 5.4 | 1.00 / 1.00 | 1.00 / 1.00 |
+| 460 km | nominal / conservative | 4.4 / 5.4; 4.9 / 6.1 | 1.00 / 1.00 | 1.00 / 1.00 |
+| 465 km | nominal / conservative | 4.7 / 5.6; 5.2 / 6.4 | 1.00 / **0.74** | 1.00 / 1.00 |
+| 470 km | nominal / conservative | 4.9 / 5.8; 5.5 / 6.7 | 1.00 / **0.71** | 1.00 / 1.00 |
+| 475 km | nominal / conservative | 5.1 / 6.1; 5.7 / 7.1 | **0.75** / **0.67** | 1.00 / 1.00 (0.997) |
+| 485 km | nominal / conservative | 5.6 / 6.5; 6.3 / 7.9 | **0.69** / **0.61** | 1.00 / 1.00 (0.997) |
+| 500 km | nominal / conservative | 6.2 / 7.3; 7.3 / 9.6 | **0.62** / **0.00** | 1.00 (0.997) / **0.00** |
 
-Under reading A the probability falls with the early-failure probability, because a dead spacecraft starts the 5-year
-clock at once and a 475 km orbit lasts more than 5 years. Which reading the FCC applies to a failed amateur satellite is
+Under reading B the only failing trials at 475–485 km are the wings-failed ones under the conservative projection
+(life 7.1–7.9 yr against 7 yr), so P = 1 − 0.0029 = 0.997; with Draft C's 1.6 % it was 0.98. Under reading A the
+probability falls with the early-failure probability, because a dead spacecraft starts the 5-year clock at once and a
+475 km orbit lasts more than 5 years; the wings-failed probability hardly enters. Which reading the FCC applies to a failed amateur satellite is
 not stated in the rule text; it is a question for the FCC consultation already planned (D3).
 
 ### 6.5 Conclusions and recommendation
 
 1. **The 525 km hard cap (BASELINE §3, MRD-013) is not compliant with the FCC rule in any case modelled**, and fails the
-   NASA 25-year rule in the bounding wings-failed case at ≥ 1.8 kg.
+   NASA 25-year rule in the bounding wings-failed case at ≥ 1.85 kg.
 2. **The 500 km target is compliant only under the nominal solar projection and reading B**; with the conservative
-   projection 8719.14C requires, it fails for ≥ 1.8 kg even with the wings deployed.
+   projection 8719.14C requires, it fails for ≥ 1.85 kg even with the wings deployed.
 3. **Recommended band: 465–485 km, target 475 km**, with a **hard cap of 485 km**: at 485 km the conservative,
-   wings-deployed case meets the rule up to 2.0 kg (488 km limit) and the nominal wings-failed case up to 2.0 kg
-   (485 km), so P ≥ 0.98 under reading B. If the FCC adopts reading A, the cap becomes **470 km** (P ≥ 0.99 nominal;
-   0.70 conservative) and the floor stays at 465 km for the 2-year design life. This is a change to BASELINE §3 and
+   wings-deployed case meets the rule up to 2.0 kg (491 km limit) and the nominal wings-failed case up to 2.0 kg
+   (491 km), so P ≥ 0.997 under reading B (the conservative wings-failed case fails above 474 km at 1.85 kg, but carries
+   only the 0.29 % wings-failed probability). If the FCC adopts reading A, the cap becomes **460 km** (P ≥ 0.99 under
+   both projections; 465 km gives 0.74 conservative), with the 2-year design life at risk below about 455 km. This is a change to BASELINE §3 and
    MRD-013, raised to the chair (RID ODA-01); **adopted** in BASELINE Rev E and MRD-013 Rev E (CR-2026-007).
 4. If no integrator offers ≤ 485 km (SpaceX's drop-off menu on open 2027 flights is 500–600 km, BASELINE §3), the
    options are: an orbital transfer vehicle drop-off at the band (integrators with OTVs were in the D7 request list);
@@ -282,8 +307,10 @@ not stated in the rule text; it is a question for the FCC consultation already p
    average area to make 525 km compliant); or the ISS backup (compliant, but Level 3 unachievable).
 
 **4.6-2, 4.6-3:** N/A. **4.6-4 (≥ 0.9):** the passive disposal needs only the wings, and the wings-deployed case meets
-the rule in the recommended band; P(both wings fail) = 0.016 with one burn driver for both wings. The design now has one
-driver per burn resistor (four lines; SQSO-EPS-BRD-001 §9), which reduces it to ≈ 0.001 (SQSO-FMEA-002 HF-13). **4.6-5 summary:** natural decay from 465–485 km in about 4–6 years nominal; uncontrolled re-entry.
+the rule in the recommended band; P(both wings fail) = 0.0029 with one driver per burn resistor on four independent
+lines (SQSO-EPS-BRD-001 §9; §6.4), against 0.016 with the former single driver for both wings (SQSO-FMEA-002 HF-13).
+**4.6-5 summary:** natural decay from 465–485 km in 4.3–5.7 years with the wings deployed and the nominal solar
+projection (6.4 years at 485 km, 1.85 kg, conservative); uncontrolled re-entry.
 
 ## 7. Re-entry Hazards (Req. 4.7-1) and Hazardous Materials
 
@@ -348,7 +375,7 @@ N/A.
 | 3 | Implement the passivation telecommands (0x34/0x35, TELECOMMAND_AUTHENTICATION §6.4), the non-resettable charge-path disconnect (F1, two independent signals) and the recharge lockout; correct the pre-space notification's passivation statement until then | EPS, FSW, licensee |
 | 4 | Ask the FCC (D3 consultation) which reading of "completion of the mission" applies to a failed spacecraft | Licensee |
 | 5 | Replace the cycle-26 assumption with the NOAA/NASA prediction when issued; DAS uses its own solar-flux table | S&MA |
-| 6 | Separate burn drivers for the two wings (lowers the wings-failed probability from 1.6 % to ≈ 0.1 %): designed, one driver per resistor (SQSO-EPS-BRD-001 §9); re-run §6.4 with ≈ 0.1 % | EPS, S&MA |
+| 6 | Separate burn drivers for the two wings: designed, one driver per resistor on four lines (SQSO-EPS-BRD-001 §9); §6.4 re-run in Draft D (wings-failed 0.29 %, of which 0.2 % is the shared burn supply SW6/U17); confirm the shared-supply allocation with the EPS board FMEA | EPS, S&MA |
 
 ---
 
@@ -360,3 +387,4 @@ N/A.
 | Draft A.1 | 2026-10-16 | §2 notes the re-issued mass budget (TB-06) |
 | Draft B | 2026-10-27 | CDR S&MA review: average cross-sections by the 8719.14C method (wings deployed 0.0247 m², not 0.028); masses 1.6/1.8/2.0 kg; NOAA-anchored nominal and conservative solar projections; FCC 5-year compliance by altitude and its probability with early failure; 525 km cap and 500 km target found non-compliant, 465–485 km recommended; 4.4-1 fault tree (1.4 × 10⁻⁴); 4.5-1 from the public catalogue (≤ 1.2 × 10⁻⁴); re-entry demise model with the Ti-6Al-4V and stainless parts (no fragment > 15 J nominal; 1:47,000 worst); "no titanium" and the 30-year-after-launch limit withdrawn |
 | Draft C | 2026-10-27 | CDR 2026 consistency pass: compliance summary and orbit row at the baseline 475 km target and 485 km cap (BASELINE Rev E, which adopted §6.5); one burn driver per resistor as designed (4.6-4, open items 2 and 6). Analysis values unchanged |
+| Draft D | 2026-10-27 | CDR S&MA re-run at the Rev E baseline (RID SE-16): deployment 2028-11-01 (was 2028-06-01), masses 1.6 / 1.85 / 2.0 kg (was 1.8 kg bound) and CBE 1.49 kg for the shortest life, 465 and 485 km rows (§6.2, §5); §6.4 with the four-line deployment: wings-failed 0.29 % (was 1.6 %), reading B P = 0.997 at 475–485 km (was 0.98), reading A cap 460 km (was 470 km); §2 mass from MASS_BUDGET v3.0; 4.6-1a, 4.6-4, 4.6-5 and open item 6 |

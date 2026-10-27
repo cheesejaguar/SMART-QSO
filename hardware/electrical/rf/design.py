@@ -238,13 +238,14 @@ def lcode(nh: float) -> str:            # Coilcraft inductance code: 22N, 6N8, R
 
 
 # =============================================================================================== connectors
-part("J1", "Conn 14p 1.27 mm", "OBC-RF signals (W4A)", "FTSH-107-01-L-DV-K", "Samtec", "FTSH-107-01-L-DV-K",
+part("J1", "Conn 16p 1.27 mm", "OBC-RF signals (W4A)", "FTSH-108-01-L-DV-K", "Samtec", "FTSH-108-01-L-DV-K",
      "1.27 mm, 3.1 A/contact (single contact), -55..+125 C",
      [(1, "GND1", P, "GND"), (2, "OBC_TX", P, "UART_OBC_TX_J"), (3, "TNC_TX", P, "UART_TNC_TX_J"), (4, "GND4", P, "GND"),
       (5, "TX_PWR_SEL", P, "TX_PWR_SEL_J"), (6, "XPDR_EN", P, "XPDR_EN_J"), (7, "GND7", P, "GND"),
       (8, "TONE_OK", P, "TONE_OK_RB"), (9, "XPDR_KEY", P, "XPDR_KEY_RB"), (10, "PTT_EXC", P, "PTT_EXC_RB"),
-      (11, "TX_TEMP", P, "TX_TEMP"), (12, "TX_FWD", P, "TX_FWD"), (13, "TX_REV", P, "TX_REV"), (14, "AGND", P, "GND")],
-     "signal currents < 5 mA (< 1 %)", "W4 v2 pinout (14 positions; was 10). Tails matte tin over Ni: re-tin; gold contacts",
+      (11, "TX_TEMP", P, "TX_TEMP"), (12, "TX_FWD", P, "TX_FWD"), (13, "TX_REV", P, "TX_REV"), (14, "AGND", P, "GND"),
+      (15, "RX_CD", P, "RX_CD_J"), (16, "RX_FAULT", P, "RX_FAULT_J")],
+     "signal currents < 5 mA (< 1 %)", "W4 v3 pinout (16 positions: v2 had 14, v1 10; RX_CD and RX_FAULT added, RID RFB-07). Tails matte tin over Ni: re-tin; gold contacts",
      "Samtec series page not read in this session; MPN from the existing W4 harness family")
 part("J2", "Conn 6p 1.00 mm Pico-Clasp", "EPS-RF power (W4B)", "501331-0607", "Molex", "Pico-Clasp 1x6 vertical SMT",
      "1.0 A/contact, 50 V", [(1, "RADIO_3V3", PO, "RADIO_3V3_IN"), (2, "GND2", P, "GND"), (3, "PA_5V_A", PO, "PA_5V_IN"),
@@ -446,7 +447,7 @@ mcu = [(1, "VBAT", PI, "+3V1_DIG"), (2, "PC13", B, None), (3, "PC14", B, None), 
        (32, "PA11", B, None), (33, "PA12", B, None), (34, "PA13_SWDIO", B, "SWDIO"), (35, "VSS2", PI, "GND"),
        (36, "VDD2", PI, "+3V1_DIG"), (37, "PA14_SWCLK", I, "SWCLK"), (38, "PA15", B, None),
        (39, "PB3_SPI1_SCK", O, "SPI_SCK"), (40, "PB4_SPI1_MISO", I, "SPI_MISO"), (41, "PB5_SPI1_MOSI", O, "SPI_MOSI"),
-       (42, "PB6", I, "PTT_EXC"), (43, "PB7", B, None), (44, "BOOT0", I, "MCU_BOOT0"), (45, "PB8", B, None),
+       (42, "PB6", I, "PTT_EXC"), (43, "PB7", O, "RX_ALIVE"), (44, "BOOT0", I, "MCU_BOOT0"), (45, "PB8", B, None),
        (46, "PB9", B, None), (47, "VSS3", PI, "GND"), (48, "VDD3", PI, "+3V1_DIG")]
 part("U310", "MCU Cortex-M4 80 MHz, 256 KB flash", "STM32L431CCT6", "STM32L431CCT6", "STMicroelectronics",
      "LQFP-48 7x7", "1.71-3.6 V, -40..+85 C", mcu,
@@ -522,8 +523,40 @@ R("R413", "1.00k", "TX_PWR_SEL_J", "TX_PWR_SEL_F", 0.1, notes="series")
 R("R414", "100k", "TX_PWR_SEL_F", "GND", 3.4, notes="pull-down: 0.5 W at OBC reset")
 part("U407", "Dual inverter", "SN74LVC2G04", "SN74LVC2G04DBVR", "Texas Instruments", "SOT-23-6", "5.5 V, -40..125 C",
      [(1, "1A", I, "TX_PWR_SEL_F"), (2, "GND", PI, "GND"), (3, "2A", I, "GND"), (4, "2Y", O, None),
-      (5, "VCC", PI, "+3V1_DIG"), (6, "1Y", O, "PWR_LO")], "-", "PWR_LO high selects the 0.5 W APC reference",
+      (5, "VCC", PI, "+3V1_DIG"), (6, "1Y", O, "PWR_LO")], "-", "PWR_LO high selects the 0.5 W APC reference; "
+     "gate 2 unused (RX_FAULT has its own inverter, U482)",
      "TI orderable addendum read: Active")
+
+# ===================================================== receiver supervision lines to the OBC (480, RID RFB-07)
+# RX_CD: CC1200 GPIO2 configured as carrier sense (IOCFG2 = CARRIER_SENSE, RSSI threshold AGC_CS_THR), buffered.
+# RX_FAULT: hardware monostable on the TNC's RX_ALIVE pulse train; the TNC pulses RX_ALIVE every 100 ms only while
+# the receive path passes its health checks (RF_BOARD_DESIGN §8.6). Missing pulses (TNC hung, in reset, receiver
+# failed) -> RX_OK falls within 0.36-0.62 s -> RX_FAULT high. Unpowered board: buffers at 0 V, OBC pull-downs -> not fault.
+part("U480", "Schmitt buffer", "RX_CD buffer", "SN74LVC1G17DBVR", "Texas Instruments", "SOT-23-5",
+     "5.5 V, -40..125 C, Ioff", [(1, "NC", NCt, None), (2, "A", I, "CC_GPIO2"), (3, "GND", PI, "GND"),
+                                 (4, "Y", O, "RX_CD"), (5, "VCC", PI, "+3V1_DIG")],
+     "-", "Isolates the CC1200 GPIO2 (3.0 V domain) from the harness; Ioff: no back-powering when unpowered",
+     "TI orderable addendum read: Active")
+R("R480", "1.00k", "RX_CD", "RX_CD_J", 0.1, notes="series to the OBC input (J1-15)")
+R("R481", "100k", "RX_CD_J", "GND", 3.15, notes="pull-down: unwired or unpowered reads no carrier")
+part("U481", "Retriggerable monostable (RX health)", "SN74LVC1G123", "SN74LVC1G123DCTR", "Texas Instruments",
+     "SSOP-8 (DCT)", "5.5 V, -40..125 C, Ioff",
+     [(1, "A", I, "GND"), (2, "B", I, "RX_ALIVE"), (3, "CLR", I, "POR_N"), (4, "GND", PI, "GND"), (5, "Q", O, "RX_OK"),
+      (6, "CEXT", P, "RXH_C"), (7, "REXT_CEXT", P, "RXH_RC"), (8, "VCC", PI, "+3V1_DIG")],
+     "-", "tw = 470 k x 1.0 uF = 0.47 s (0.36-0.62 s: K 1.00-1.10, X7R -15/+10 % over temperature and bias, leakage); "
+     "retriggered every 100 ms by RX_ALIVE", "TI orderable addendum read: Active")
+C("C480", "1uF", "RXH_C", "RXH_RC", 3.15, notes="X7R; timing tolerance is loose by design (0.36-0.62 s)")
+R("R482", "470k", "RXH_RC", "+3V1_DIG", 3.15)
+R("R483", "100k", "RX_ALIVE", "GND", 3.15, notes="pull-down: MCU in reset gives no pulses")
+part("U482", "Inverter", "RX_FAULT", "SN74LVC1G04DBVR", "Texas Instruments", "SOT-23-5", "5.5 V, -40..125 C, Ioff",
+     [(1, "NC", NCt, None), (2, "A", I, "RX_OK"), (3, "GND", PI, "GND"), (4, "Y", O, "RX_FAULT"),
+      (5, "VCC", PI, "+3V1_DIG")], "-", "RX_FAULT = NOT RX_OK; unpowered output 0 V (not fault)",
+     "TI SN74LVC1G04 family (addendum of the LVC1G04 not downloaded this session; LVC1GU04/LVC2G04 read: Active)")
+R("R484", "1.00k", "RX_FAULT", "RX_FAULT_J", 0.1, notes="series to the OBC input (J1-16)")
+R("R485", "100k", "RX_FAULT_J", "GND", 3.15, notes="pull-down: unwired or unpowered reads not fault")
+C("C481", "100nF", "+3V1_DIG", "GND", 3.15, notes="U480-U482 decoupling")
+for tp, net in (("TP23", "RX_CD"), ("TP24", "RX_FAULT"), ("TP25", "RX_ALIVE")):
+    part(tp, "Test pad", net, "pad 1.0 mm (no part)", "-", "TP_1.0mm", "-", [(1, "TP", P, net)], "-", "test pad", "n/a")
 
 # ===================================================================== audio: repeat path and TX select (450)
 part("U451", "Dual op-amp RRIO", "TLV9002", "TLV9002IDR", "Texas Instruments", "SOIC-8", "1.8-5.5 V, -40..125 C",
@@ -814,7 +847,9 @@ WAIVERS += [
     "pin-type check cannot follow.",
     "Pins marked NC are intentionally unconnected: unused MCU GPIO (configured analog/pull-down in firmware), CC1200 "
     "GPIO3/XOSC_Q2/NC16, LMX2571 RFoutRx/Fin/FLout1-2/CPoutExt/NC, CMX138A TXENA/SYSCLK/MOD/DISCN2/AUXDAC/RXENA, "
-    "HC4060 unused Q outputs, RD01MUS3 NC pins, TCXO pin 1, LVC1G17/LVC1GU04 NC, LVC2G04 2Y (U407), SWO pad.",
+    "HC4060 unused Q outputs, RD01MUS3 NC pins, TCXO pin 1, LVC1G17/LVC1GU04/LVC1G04 NC, LVC2G04 2Y (U407), SWO pad.",
+    "RX_CD and RX_FAULT (J1-15, J1-16) are driven only while RADIO_3V3 is on; with the board unpowered the LVC "
+    "outputs (Ioff) sit at 0 V and the 100 k pull-downs (and the OBC's) give 'no carrier' and 'not fault'.",
     "SPI_MISO has two tri-state drivers (CC1200 SO, CMX138A RDATA): selected by their chip selects; CC1200 GPIO1 is "
     "set high-impedance in IOCFG1 so it does not drive when CSn is high.",
     "TNC_AF is both the op-amp output and its inverting input (unity-gain follower): intended.",

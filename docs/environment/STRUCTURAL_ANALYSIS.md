@@ -27,9 +27,9 @@ and separation, fracture-control classification, venting, and the CubeSat Design
 | Battery isolators, joint separation (NASA-STD-5020B) | Without a disc spring, creep and thermal contraction of the polymer can take the 0.12 N·m preload to 33 N (MS −0.43); with a disc spring MS ≥ +1.36 | §9 |
 | Venting | The documented "> 4 mm²" fails CDS §2.1.9 (V/A = 235 m against 50.8 m); ≥ 22.3 mm² needed. Pressure differential is structurally negligible either way (< 1 kPa) | §11 |
 | CDS envelope | Stowed-wing stack 6.1 mm against the 6.5 mm limit (0.4 mm margin before tolerances); the 7 mm AntS needs a recessed −Z face | §13 |
-| **FE (Version B)**, first mode of the stowed spacecraft | **170 Hz** (stowed wings); deck 195 Hz, carrier 326, RF 384, EPS 445, OBC 565, battery 1,287 Hz; no mode below 150 Hz | §5A |
-| **FE**, margins at the larger of the quasi-static load and the 3σ response to the protoflight test level (8.18 Grms) | All positive: lowest +0.72 (−Z end frame beside the battery isolators), +1.23 (end frames at the rail corners), +1.66 (centre support), +2.16 (rails), +2.43 (stack columns), +4.6 (G-10CR isolator, FS 2.0) | §7A |
-| **FE**, PCB fatigue (Steinberg, 3σ relative displacement) | +0.09 to +0.38 with two centre supports at (0, ±21) mm on 1.6 mm boards (chair decision) and the framed gyro window in the carrier (SQSO-MECH-CAD-001 D-11; the module leaves no room at the board centre); −0.10 and −0.29 (EPS, carrier) with one | §8A |
+| **FE (Version B)**, first mode of the stowed spacecraft | **170 Hz** (stowed wings); deck 195 Hz, carrier 327, RF 385, EPS 445, OBC 574, battery 1,287 Hz; no mode below 150 Hz | §5A |
+| **FE**, margins at the larger of the quasi-static load and the 3σ response to the protoflight test level (8.18 Grms) | All positive: lowest +0.73 (−Z end frame beside the battery isolators), +1.29 (end frames at the rail corners), +1.68 (centre support), +2.17 (rails), +2.47 (stack columns), +4.6 (G-10CR isolator, FS 2.0) | §7A |
+| **FE**, PCB fatigue (Steinberg, 3σ relative displacement) | +0.09 to +0.36 with two centre supports at (0, ±21) mm on 1.6 mm boards (chair decision) and the framed gyro window in the carrier (SQSO-MECH-CAD-001 D-11; the module leaves no room at the board centre); −0.10 and −0.29 (EPS, carrier) with one | §8A |
 | **CAD (Version B)**, stowed protrusion | 6.10 mm nominal (hinge springs, OD 4.0 mm), 6.38 mm worst-case tolerance stack (redesigned stack, SQSO-MECH-CAD-001 §6.2); AntS 1.25 mm inside the −Z rail ends with a 1.5 mm recess | §13 |
 
 Verdict for this discipline: **ready for fabrication with actions**. The structure itself has large margins. The open
@@ -220,14 +220,14 @@ level of §4.2), Q = max(10, √f). The random value governs everywhere. Factors
 
 | Location | Limit stress (MPa) | Hand analysis (§7), MPE + 3 dB | FE MS yield / ultimate |
 |----------|--------------------|-------------------------------|------------------------|
-| −Z end frame beside the battery isolators | 112.0 | not analysed | **+0.72 / +0.85** |
-| End frames at the rail corners | 86.4 | not analysed | +1.23 / +1.40 |
-| Centre supports | 72.4 | not analysed | +1.66 / +1.86 |
-| Side shear panels | 65.9 | not analysed | +1.93 / +2.14 |
-| Rails | 61.1 (105.2 with the rails held at the ends only) | +29 (axial, quasi-static) | +2.16 / +2.39 (+0.82 / +0.97) |
-| Stack columns, Al spacer | 56.2 | +5.4 | +2.43 / +2.68 |
-| Stack columns, A286 stud | 67.8 | +1.2 (only if a joint gaps) | +7.9 / +10.6 |
-| Carrier gyro-window frame (Al, SQSO-MECH-CAD-001 D-11) | 19.7 | — | +8.8 / +9.5 |
+| −Z end frame beside the battery isolators | 111.5 | not analysed | **+0.73 / +0.86** |
+| End frames at the rail corners | 84.1 | not analysed | +1.29 / +1.46 |
+| Centre supports | 71.9 | not analysed | +1.68 / +1.88 |
+| Side shear panels | 64.5 | not analysed | +1.99 / +2.21 |
+| Rails | 60.8 (105.0 with the rails held at the ends only) | +29 (axial, quasi-static) | +2.17 / +2.41 (+0.84 / +0.97) |
+| Stack columns, Al spacer | 55.5 | +5.4 | +2.47 / +2.73 |
+| Stack columns, A286 stud | 67.0 | +1.2 (only if a joint gaps) | +8.1 / +10.8 |
+| Carrier gyro-window frame (Al, SQSO-MECH-CAD-001 D-11) | 16.8 | — | +10.5 / +11.3 |
 | Battery isolator, G-10CR (FS 2.0) | 34.1 | +12.1 | — / +4.57 |
 | Battery isolator, Ti-6Al-4V screw | 76.2 | +4.5 | +7.7 / +7.4 |
 | Battery clamp ears | 23.0 | not analysed | +7.4 / +8.0 |
@@ -276,27 +276,28 @@ allowable scales with 1/h):
 
 | Board | One centre support at (0, +21) | **Two centre supports at (0, ±21), framed gyro window (design)** | Two supports, gyro window without its frame | Two supports, 2.0 mm EPS and carrier |
 |-------|------|------|------|------|
-| EPS | −0.08 | **+0.14** | +0.17 | +0.56 |
-| OBC | +1.18 | **+0.14** | +0.17 | +0.58 |
-| Jetson carrier and module | −0.29 | **+0.09** | **−0.05** | +0.51 |
-| RF (support at (0, 0) to the spreader) | +0.26 | **+0.38** | +0.36 | +0.41 |
+| EPS | −0.08 | **+0.14** | +0.17 | +0.57 |
+| OBC | +1.18 | **+0.14** | +0.17 | +0.60 |
+| Jetson carrier and module | −0.29 | **+0.09** | **−0.03** | +0.51 |
+| RF (support at (0, 0) to the spreader) | +0.25 | **+0.36** | +0.34 | +0.40 |
 
 The centre of the EPS, OBC and carrier boards is not available for a support: the Jetson module (69.6 × 45 mm, centred at
 y = −6 mm to balance the products of inertia) covers it on the carrier, and a column through the stack must pass all
 three boards. One support at y = +21 mm leaves the −Y half of the EPS and carrier boards unsupported (−0.08, −0.29). **The
 design requirement of STR-05 becomes: two supports at (0, ±21) mm on the EPS, OBC and carrier boards (the −21 mm one
 from the EPS to the carrier, under the module), one at (0, 0) on the RF board from the spreader.** Adopted by the chair
-(2026-10-27) with the boards kept at 1.6 mm: all margins are positive. The 2.0 mm option (+0.41 to +0.58 with the allowable for a 2.0 mm board, 0.154 mm; the first issue of Version B
+(2026-10-27) with the boards kept at 1.6 mm: all margins are positive. The 2.0 mm option (+0.40 to +0.60 with the allowable for a 2.0 mm board, 0.154 mm; the first issue of Version B
 quoted +0.8 to +0.9 because it applied the 1.6 mm allowable to the thicker boards; 0.8 mm of stack
 height) is held in reserve until the measured Q of the EM board survey (VI-STR-02) is known.
 
 **Gyro window (OBC item C3; SQSO-MECH-CAD-001 §4.3, D-11).** The M-G370PDT0 in its socket stands 14.0 mm above the OBC
-and passes through a 27 × 27 mm window in the carrier at x −33.5 … −6.5, y +14.0 … +41.0 mm. The window alone takes the
-carrier from +0.08 (same mesh, no window) to −0.05; a 2.0 mm carrier recovers only +0.08 (its allowable falls as its
+and passes through a 27 × 27 mm window in the carrier at x −33.5 … −6.5, y +17.0 … +44.0 mm (moved 3 mm toward +Y to clear the Jetson module's standoff, SQSO-JET-BRD-001
+item M1). The window alone takes the
+carrier from +0.08 (same mesh, no window) to −0.03; a 2.0 mm carrier recovers only +0.09 (its allowable falls as its
 stiffness rises); a 2.2 g Al 6061 frame, 2.5 × 3.0 mm, bonded and screwed round the window on the carrier's bottom face
-restores +0.09 with the 1.6 mm board (frame MS +8.8). The gyro's footprint on the OBC responds at 21.7 Grms out of plane
-(Z input) and 22.2 / 25.0 Grms in plane (X / Y inputs) to the 8.18 Grms test level; the carrier window edge moves
-0.11 mm (3σ) relative to the gyro against 1.5 mm of clearance.
+restores +0.09 with the 1.6 mm board (frame MS +10.5). The gyro's footprint on the OBC responds at 23.8 Grms out of plane
+(Z input) and 22.0 / 25.0 Grms in plane (X / Y inputs) to the 8.18 Grms test level; the carrier window edge moves
+0.09 mm (3σ) relative to the gyro against 1.5 mm of clearance.
 
 ## 9. Threaded Joints (NASA-STD-5020B)
 
@@ -503,4 +504,4 @@ VI-STR-02 now has accelerometers at (0, ±21) mm as well as the board centres.
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR structures review | Initial issue: launch environment and factors, natural frequencies, Miles responses, margins of safety, PCB fatigue, NASA-STD-5020B joints and the battery isolator stack, venting, fracture-control classification, CDS envelope and switch allocation, verification items |
-| B | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001) | Finite-element results beside the analytic ones (RID SE-12): modes and effective masses (§5A), margins at the protoflight test level (§7A), Steinberg margins with the board-to-stack coupling (§8A); design changes 10–12 (isolator doubler, two centre supports at (0, ±21) mm on 1.6 mm boards as decided by the chair, CAD envelope decisions); CAD tolerance stack closing STR-10 with the Version B hinge springs and the −Z recess closing STR-11 (§13.2); skeleton torquer deck; gyro window in the carrier with its stiffening frame (OBC item C3, design change 13, §8A); Steinberg allowable for the 2.0 mm reserve boards corrected to 0.154 mm (+0.41 to +0.58, not +0.8 to +0.9); summary, limits and verification references updated |
+| B | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001) | Finite-element results beside the analytic ones (RID SE-12): modes and effective masses (§5A), margins at the protoflight test level (§7A), Steinberg margins with the board-to-stack coupling (§8A); design changes 10–12 (isolator doubler, two centre supports at (0, ±21) mm on 1.6 mm boards as decided by the chair, CAD envelope decisions); CAD tolerance stack closing STR-10 with the Version B hinge springs and the −Z recess closing STR-11 (§13.2); skeleton torquer deck; gyro window in the carrier with its stiffening frame (OBC item C3, design change 13, §8A); Steinberg allowable for the 2.0 mm reserve boards corrected to 0.154 mm (+0.40 to +0.60, not +0.8 to +0.9); Jetson carrier item M1 (spreader pedestal, module standoffs, flush fastener at (0, −21); window moved 3 mm toward +Y) with the FE re-run; summary, limits and verification references updated |

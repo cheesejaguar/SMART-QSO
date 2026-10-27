@@ -7,8 +7,12 @@ NRLMSIS 2.1, circular decay) with:
 * average cross-sections computed by the NASA-STD-8719.14C para 4.3.4.2.2(a)(2)(b)
   rule, (Amax + A1 + A2) / 2, for the stowed and deployed geometry of
   hardware/eps/SOLAR_ARRAY_DESIGN.md section 3.1;
-* masses 1.6 kg (nominal) and 1.8 kg (bound) from BASELINE section 4, plus 2.0 kg
-  (the CDS Rev 14.1 limit, which the bottom-up MEL prediction reaches);
+* masses 1.6 kg (nominal) and 1.85 kg (bound) from BASELINE Rev E section 4 (MEV
+  1.73 kg lies between them), plus 2.0 kg (the CDS Rev 14.1 design limit); the
+  shortest-life case also at the CBE, 1.49 kg (the lightest the spacecraft can be);
+* deployment on the planning launch date, 2028-11-01 (BASELINE Rev E section 3,
+  the last Transporter flight of 2028), at the band 465-485 km, the 475 km target,
+  and 450, 500 and 525 km for the sensitivity;
 * solar-activity projections anchored to the NOAA SWPC predicted cycle
   (services.swpc.noaa.gov/json/solar-cycle/predicted-solar-cycle.json,
   retrieved 2026-10-27; embedded below so the run is reproducible offline)
@@ -93,7 +97,7 @@ SWPC_PRED = (
     ("2030-12", 70.3, 67.8, 72.7)
 )
 
-START = date(2028, 6, 1)  # BASELINE section 3 deployment date used in the ODAR
+START = date(2028, 11, 1)  # BASELINE Rev E section 3 planning launch date (about 2028-11)
 MISSION_YEARS = 2.0  # design life (BASELINE section 2)
 FCC_POST_MISSION_YEARS = 5.0  # 47 CFR 97.207(g)(1)(vii)(D)(1)
 NASA_POST_MISSION_YEARS = 25.0  # NASA-STD-8719.14C Requirement 4.6-1a
@@ -172,8 +176,9 @@ AREAS = {
     "wings failed (stowed), no antenna credit": 0.25 * (2 * BODY_Z + 4 * BODY_Y),
 }
 
-MASSES = (1.6, 1.8, 2.0)
-ALTS = (450.0, 475.0, 500.0, 525.0)
+MASSES = (1.6, 1.85, 2.0)
+ALTS = (450.0, 465.0, 475.0, 485.0, 500.0, 525.0)
+SHORT_LIFE_MASSES = (1.49, 1.6)  # CBE and the nominal analysis mass
 
 
 def run():
@@ -226,11 +231,14 @@ def run():
             print(f"| {aname} | {mass} | " + " | ".join(cells) + " |")
 
     # Shortest life (design-life check, mission success L2/L3)
-    print(f"\nShortest life, {SHORT_LIFE[0]}, lightest mass 1.6 kg, largest area (antennas deployed):")
-    sc = Spacecraft(1.6, AREAS["wings deployed, antennas deployed"], 2.2)
-    for alt in ALTS:
-        r = propagate(table, sc, alt, SHORT_LIFE[1], START, max_years=60.0)
-        print(f"  {alt:.0f} km: {r.lifetime_years:.1f} yr")
+    print(f"\nShortest life, {SHORT_LIFE[0]}, largest area (antennas deployed):")
+    for mass in SHORT_LIFE_MASSES:
+        sc = Spacecraft(mass, AREAS["wings deployed, antennas deployed"], 2.2)
+        cells = []
+        for alt in (450.0, 460.0, 465.0, 470.0, 475.0, 485.0):
+            r = propagate(table, sc, alt, SHORT_LIFE[1], START, max_years=60.0)
+            cells.append(f"{alt:.0f} km {r.lifetime_years:.1f} yr")
+        print(f"  {mass} kg: " + ", ".join(cells))
     return results
 
 

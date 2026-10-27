@@ -1,4 +1,4 @@
-"""S6 ADCS on the OBC board, version 2 (2026-10-27): sensor rails, gyro, backup gyro, magnetometer, one of the six
+"""S6 ADCS on the OBC board, version 3 (2026-10-27: magnetometer on board A2 at +Z): sensor rails, gyro, backup gyro, magnetometer, one of the six
 sun-sensor channels, and the three magnetorquer H-bridges with the burst gate and the hardware off-timer. Drawn from
 the build-to design SQSO-OBC-BRD-001 sections 9-10 (hardware/electrical/obc/design.py). Version 1 drew a separate
 ADCS board with DRV8833 drivers, an LIS3MDL and an LSM6DSO; none of that is in the design.
@@ -9,7 +9,7 @@ import schemdraw.elements as elm
 import sch
 
 d = sch.drawing("S6_adcs")
-sch.note(d, (-6, 13), "S6  ADCS on the OBC board (version 2)", fontsize=12, color="black")
+sch.note(d, (-6, 13), "S6  ADCS on the OBC board and the magnetometer board (version 3)", fontsize=12, color="black")
 sch.note(d, (-6, 12.4), "SQSO-HW-DIAG-001 · from the build-to netlist SQSO-OBC-BRD-001 sections 9-10 · pins: SQSO-ICX-001 "
          "section 4 · each sensor's bus crosses into its rail through a VCC-isolating translator", fontsize=8)
 
@@ -55,7 +55,7 @@ sch.flag(d, b.VDD, "3V3_IMU2", "right", 0.6)
 d += elm.Line().at(b.GND).right().length(0.6)
 d += elm.Ground()
 
-m = sch.ic("U15 PNI RM3100 MagI2C (13156)\nI2C 0x20, single-shot in the coils-off window",
+m = sch.ic("Magnetometer board A2 (+Z end frame): U1 PNI RM3100 (13156)\nI2C 0x20 via OBC J10 / W6E, single-shot in the coils-off window",
            left=list(reversed(["SDA", "SCL", "DRDY", "SA0, SA1"])), right=list(reversed(["XINP/XINN", "YINP/YINN", "ZINP/ZINN", "REXT", "AVDD, DVDD"])),
            size=(6.8, 3.8), spread=("left", "right"))
 d += m.at((xg, -8.5))

@@ -1,4 +1,4 @@
-"""S7 Jetson power switches, readbacks, the USART1 link and the carrier, version 3 (2026-10-27). The two switches are on
+"""S7 Jetson power switches, readbacks, the USART1 link and the carrier, version 4 (2026-10-27; version 4: JETSON_PWR on PA8, spreader NTC on J3-5/-6). The two switches are on
 the EPS board (SQSO-EPS-BRD-001 8.3: SW1 TPS1H100B-Q1 on PAYLOAD_EN, U19 TPS16630 eFuse on JETSON_PWR); the readbacks and
 the back-power isolation are on the OBC board (SQSO-OBC-BRD-001 11); the carrier (SQSO-JET-BRD-001 A) makes the module's
 5 V VDD_IN, sequences POWER_EN and switches its I/O rails with SYS_RESET*. Version 1 drew a 5 V payload rail, an INA226
@@ -10,7 +10,7 @@ import schemdraw.elements as elm
 import sch
 
 d = sch.drawing("S7_jetson_power_link")
-sch.note(d, (-8, 8), "S7  Jetson power switches, readbacks, link and carrier (version 3)", fontsize=12, color="black")
+sch.note(d, (-8, 8), "S7  Jetson power switches, readbacks, link and carrier (version 4)", fontsize=12, color="black")
 sch.note(d, (-8, 7.4), "SQSO-HW-DIAG-001 · EPS side: SQSO-EPS-BRD-001 8.3 · OBC side: SQSO-OBC-BRD-001 11 (RIDs AV-06, AV-09) · "
          "carrier: SQSO-JET-BRD-001 · pins: SQSO-ICX-001", fontsize=8)
 
@@ -27,7 +27,7 @@ ef = sch.ic("EPS U19 TPS16630 eFuse\n1.20 A latch-off, <= 1 ms", left=["IN", "SH
 d += elm.Line().at(n1.center).right().length(4.5)
 d += (p_in := elm.Dot(open=True))
 d += ef.at(p_in.center).anchor("IN")
-sch.flag(d, ef.SHDN, "JETSON_PWR (PA2, port A)", "left", 0.6)
+sch.flag(d, ef.SHDN, "JETSON_PWR (PA8, port A)", "left", 0.6)
 d += elm.Ground().at(ef.GND)
 d += elm.Line().at(ef.OUT).right().length(1.6)
 d += (n2 := elm.Dot())
@@ -69,7 +69,9 @@ sch.note(d, (12, yl + 1.5),
          "RID AV-09: the translators' carrier side is powered by the carrier's own 3.3 V I/O rail on J3-4. With the carrier\n"
          "off, VCCB = 0 V and both ports are high-impedance (VCC isolation, Ioff): the idle-high TX cannot back-power the\n"
          "module, whatever the firmware does. The carrier must provide its 3.3 V rail on its pin 4 (<= 1 mA).\n"
-         "JET_PG is the third readback (RID AV-06): the carrier's converter is running.", fontsize=7)
+         "JET_PG is the third readback (RID AV-06): the carrier's converter is running.\n"
+         "Spreader NTC RT1 (GA10K3MCD1) on J3-5/-6, passed through the carrier unpowered: 10.0 k 0.1 % from VDDA, 1 k / 100 nF\n"
+         "to PA2 (ADC1_IN7): 2.93 V at -15 C (power-on gate), 0.49 V at 70 C (guard); readable with the carrier off.", fontsize=7)
 
 # ---- the carrier (SQSO-JET-BRD-001 A)
 yc = -27

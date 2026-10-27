@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 08:33 AM")
+    (date "10/27/2026 08:49 AM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -410,7 +410,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0314")
+          (name "SKiDL Tag") "obc0318")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -419,7 +419,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "ab8d0c68-e3c3-564c-a39a-1ad46714a415"))
+      (tstamps "8e3ceb63-43a6-52ea-8677-323959f62d94"))
     (comp
       (ref "C111")
       (value "10n")
@@ -437,7 +437,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0316")
+          (name "SKiDL Tag") "obc0320")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -446,7 +446,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "e2cf0cf2-d503-5f28-9b43-91d41fc11b19"))
+      (tstamps "5a83a232-aa1c-5499-88fc-302550c180e4"))
     (comp
       (ref "C112")
       (value "10n")
@@ -464,7 +464,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0318")
+          (name "SKiDL Tag") "obc0322")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -473,7 +473,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "8e3ceb63-43a6-52ea-8677-323959f62d94"))
+      (tstamps "759c297f-bf70-5be0-a6ea-9ea01758f039"))
     (comp
       (ref "C113")
       (value "10u")
@@ -491,7 +491,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0323")
+          (name "SKiDL Tag") "obc0327")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -500,7 +500,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "82c39cef-0c2a-5a06-a77c-cda4438e6433"))
+      (tstamps "58d970d7-4fae-5128-9541-35731786b83c"))
     (comp
       (ref "C114")
       (value "10n")
@@ -518,7 +518,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0330")
+          (name "SKiDL Tag") "obc0334")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -527,7 +527,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "98acdc86-1979-5079-8ca6-3ec1b3ae6274"))
+      (tstamps "118ad69f-f02c-513c-be93-c7984101d6a7"))
     (comp
       (ref "C115")
       (value "100n")
@@ -545,7 +545,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0331")
+          (name "SKiDL Tag") "obc0335")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -554,7 +554,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "94527aab-e8e2-5b15-90b7-c5a066e28252"))
+      (tstamps "e36e239d-9da3-5ee9-8ef5-fecc139f454c"))
     (comp
       (ref "C12")
       (value "100n")
@@ -3166,7 +3166,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0332")
+          (name "SKiDL Tag") "obc0336")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -3175,7 +3175,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "13f50bef-2beb-5bb3-ac3c-e072cb11b8a1"))
+      (tstamps "9d697fb3-4c1f-53e9-9441-16ec92f7534f"))
     (comp
       (ref "D10")
       (value "TPD4E05U06-Q1")
@@ -3355,7 +3355,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0319")
+          (name "SKiDL Tag") "obc0323")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -3364,7 +3364,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "c3a496b3-a026-5e8c-a5c8-2a2004595bd6"))
+      (tstamps "82c39cef-0c2a-5a06-a77c-cda4438e6433"))
     (comp
       (ref "D17")
       (value "TPD4E05U06-Q1")
@@ -3382,7 +3382,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0320")
+          (name "SKiDL Tag") "obc0324")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -3391,7 +3391,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "5a83a232-aa1c-5499-88fc-302550c180e4"))
+      (tstamps "b2fa07d4-a54f-5c81-a06c-6501eb0f9aea"))
     (comp
       (ref "D18")
       (value "TPD4E05U06-Q1")
@@ -3409,7 +3409,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0321")
+          (name "SKiDL Tag") "obc0325")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -3418,7 +3418,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "4858ea7e-5563-59d4-adde-cd9014c748b5"))
+      (tstamps "1adf57e5-cf13-501a-8138-5bcf0f6e108e"))
     (comp
       (ref "D19")
       (value "TPD1E05U06-Q1")
@@ -3436,7 +3436,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0324")
+          (name "SKiDL Tag") "obc0328")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -3445,7 +3445,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "b2fa07d4-a54f-5c81-a06c-6501eb0f9aea"))
+      (tstamps "015962fd-79f9-5177-94a8-cb362179a878"))
     (comp
       (ref "D2")
       (value "SMF5.0A")
@@ -3625,7 +3625,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0345")
+          (name "SKiDL Tag") "obc0349")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -3634,7 +3634,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "5ddcf053-ce1c-5d8f-ba7b-58bc4333e2e5"))
+      (tstamps "b11a15a5-0e11-5716-aa57-9ea3e370081c"))
     (comp
       (ref "D26")
       (value "TPD4E05U06-Q1")
@@ -3652,7 +3652,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0346")
+          (name "SKiDL Tag") "obc0350")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -3661,7 +3661,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "fb30647a-9527-587b-bfa5-55337ca121f5"))
+      (tstamps "3324ec58-1c9b-545f-8d5b-c6d83101fc72"))
     (comp
       (ref "D3")
       (value "SMBJ20A")
@@ -3936,16 +3936,16 @@
       (ref "J2")
       (value "RF")
       (description "")
-      (footprint "FTSH 1.27 mm 2x7 SMT")
+      (footprint "FTSH 1.27 mm 2x8 SMT")
       (fields
         (field
-          (name "MPN") "FTSH-107-01-L-DV-K")
+          (name "MPN") "FTSH-108-01-L-DV-K")
         (field
           (name "Manufacturer") "Samtec")
         (field
           (name "Description"))
         (field
-          (name "Footprint") "FTSH 1.27 mm 2x7 SMT")
+          (name "Footprint") "FTSH 1.27 mm 2x8 SMT")
         (field
           (name "Datasheet"))
         (field
@@ -3954,7 +3954,7 @@
           (name "SKiDL Line") "design.py:78"))
       (libsource
         (lib "NO_LIB")
-        (part "FTSH_2x7"))
+        (part "FTSH_2x8"))
       (sheetpath
         (names "/")
         (tstamps "/"))
@@ -4057,7 +4057,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0322")
+          (name "SKiDL Tag") "obc0326")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -4066,7 +4066,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "759c297f-bf70-5be0-a6ea-9ea01758f039"))
+      (tstamps "b8fb1dd3-0250-5821-9f97-27e2b1788294"))
     (comp
       (ref "J7")
       (value "MAGNETORQUERS")
@@ -4138,7 +4138,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0334")
+          (name "SKiDL Tag") "obc0338")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -4147,7 +4147,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "118ad69f-f02c-513c-be93-c7984101d6a7"))
+      (tstamps "b80bd2cb-85d6-597a-953f-10a92512817e"))
     (comp
       (ref "R1")
       (value "10k")
@@ -5014,12 +5014,12 @@
       (tstamps "8e32825f-5d4a-53ce-a792-d1142bf43238"))
     (comp
       (ref "R128")
-      (value "100k")
+      (value "10k")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF1003V")
+          (name "MPN") "ERJ-3EKF1002V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
@@ -5041,12 +5041,12 @@
       (tstamps "e266b64f-fd19-56a1-8954-6bbca3193bdc"))
     (comp
       (ref "R129")
-      (value "100k")
+      (value "10k")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF1003V")
+          (name "MPN") "ERJ-3EKF1002V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
@@ -5149,12 +5149,12 @@
       (tstamps "013c67bd-20d0-52ea-bb29-26ca839a4116"))
     (comp
       (ref "R132")
-      (value "10k")
+      (value "100k")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF1002V")
+          (name "MPN") "ERJ-3EKF1003V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
@@ -5176,12 +5176,39 @@
       (tstamps "38059748-49ac-55bb-985f-f6e3ccfd64ff"))
     (comp
       (ref "R133")
-      (value "10k")
+      (value "100k")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF1002V")
+          (name "MPN") "ERJ-3EKF1003V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0314")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "ab8d0c68-e3c3-564c-a39a-1ad46714a415"))
+    (comp
+      (ref "R134")
+      (value "100k")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1003V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
@@ -5202,7 +5229,34 @@
         (tstamps "/"))
       (tstamps "1bb4b447-7d6b-5a51-9c3b-483139e3daa9"))
     (comp
-      (ref "R134")
+      (ref "R135")
+      (value "100k")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1003V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0316")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "e2cf0cf2-d503-5f28-9b43-91d41fc11b19"))
+    (comp
+      (ref "R136")
       (value "10k")
       (description "")
       (footprint "Resistor_SMD:R_0603")
@@ -5229,13 +5283,13 @@
         (tstamps "/"))
       (tstamps "a3846a9c-d37a-5bd9-add9-fd58eefbe4c0"))
     (comp
-      (ref "R135")
-      (value "1k")
+      (ref "R137")
+      (value "10k")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF1001V")
+          (name "MPN") "ERJ-3EKF1002V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
@@ -5245,7 +5299,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0329")
+          (name "SKiDL Tag") "obc0319")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -5254,19 +5308,44 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "bf00d94f-8355-5cd4-bbff-0dd0316b8d77"))
+      (tstamps "c3a496b3-a026-5e8c-a5c8-2a2004595bd6"))
     (comp
-      (ref "R136")
-      (value "680")
+      (ref "R138")
+      (value "10k")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF6800V")
+          (name "MPN") "ERJ-3EKF1002V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
-          (name "DNP") "DNP")
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0321")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "4858ea7e-5563-59d4-adde-cd9014c748b5"))
+    (comp
+      (ref "R139")
+      (value "1k")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1001V")
+        (field
+          (name "Manufacturer") "Panasonic")
         (field
           (name "Description"))
         (field
@@ -5284,87 +5363,6 @@
         (names "/")
         (tstamps "/"))
       (tstamps "45f58ba3-8e0d-5ec0-ac44-7a450b285edb"))
-    (comp
-      (ref "R137")
-      (value "100")
-      (description "")
-      (footprint "Resistor_SMD:R_0603")
-      (fields
-        (field
-          (name "MPN") "ERJ-3EKF1000V")
-        (field
-          (name "Manufacturer") "Panasonic")
-        (field
-          (name "Description"))
-        (field
-          (name "Footprint") "Resistor_SMD:R_0603")
-        (field
-          (name "Datasheet"))
-        (field
-          (name "SKiDL Tag") "obc0335")
-        (field
-          (name "SKiDL Line") "design.py:78"))
-      (libsource
-        (lib "NO_LIB")
-        (part "R"))
-      (sheetpath
-        (names "/")
-        (tstamps "/"))
-      (tstamps "e36e239d-9da3-5ee9-8ef5-fecc139f454c"))
-    (comp
-      (ref "R138")
-      (value "22")
-      (description "")
-      (footprint "Resistor_SMD:R_0603")
-      (fields
-        (field
-          (name "MPN") "ERJ-3EKF22R0V")
-        (field
-          (name "Manufacturer") "Panasonic")
-        (field
-          (name "Description"))
-        (field
-          (name "Footprint") "Resistor_SMD:R_0603")
-        (field
-          (name "Datasheet"))
-        (field
-          (name "SKiDL Tag") "obc0336")
-        (field
-          (name "SKiDL Line") "design.py:78"))
-      (libsource
-        (lib "NO_LIB")
-        (part "R"))
-      (sheetpath
-        (names "/")
-        (tstamps "/"))
-      (tstamps "9d697fb3-4c1f-53e9-9441-16ec92f7534f"))
-    (comp
-      (ref "R139")
-      (value "22")
-      (description "")
-      (footprint "Resistor_SMD:R_0603")
-      (fields
-        (field
-          (name "MPN") "ERJ-3EKF22R0V")
-        (field
-          (name "Manufacturer") "Panasonic")
-        (field
-          (name "Description"))
-        (field
-          (name "Footprint") "Resistor_SMD:R_0603")
-        (field
-          (name "Datasheet"))
-        (field
-          (name "SKiDL Tag") "obc0337")
-        (field
-          (name "SKiDL Line") "design.py:78"))
-      (libsource
-        (lib "NO_LIB")
-        (part "R"))
-      (sheetpath
-        (names "/")
-        (tstamps "/"))
-      (tstamps "19e79b4d-bd65-5049-96e3-e82d94092ec1"))
     (comp
       (ref "R14")
       (value "1M")
@@ -5394,14 +5392,16 @@
       (tstamps "3d3edbca-eb8e-5260-857e-f6c4d7f3bb81"))
     (comp
       (ref "R140")
-      (value "100")
+      (value "680")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF1000V")
+          (name "MPN") "ERJ-3EKF6800V")
         (field
           (name "Manufacturer") "Panasonic")
+        (field
+          (name "DNP") "DNP")
         (field
           (name "Description"))
         (field
@@ -5409,7 +5409,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0338")
+          (name "SKiDL Tag") "obc0337")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -5418,7 +5418,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "b80bd2cb-85d6-597a-953f-10a92512817e"))
+      (tstamps "19e79b4d-bd65-5049-96e3-e82d94092ec1"))
     (comp
       (ref "R141")
       (value "100")
@@ -5448,12 +5448,12 @@
       (tstamps "0216816d-b870-50ee-9bab-159b6a854b69"))
     (comp
       (ref "R142")
-      (value "10k")
+      (value "22")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF1002V")
+          (name "MPN") "ERJ-3EKF22R0V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
@@ -5475,12 +5475,12 @@
       (tstamps "02b96115-c0c0-5a27-a939-4467583c8001"))
     (comp
       (ref "R143")
-      (value "100k")
+      (value "22")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF1003V")
+          (name "MPN") "ERJ-3EKF22R0V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
@@ -5502,12 +5502,12 @@
       (tstamps "f4ec5061-ed35-510f-a5ce-1bbe98711b98"))
     (comp
       (ref "R144")
-      (value "1k")
+      (value "100")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF1001V")
+          (name "MPN") "ERJ-3EKF1000V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
@@ -5529,12 +5529,12 @@
       (tstamps "f8d5d34e-f7db-56fe-9888-865d25fc0bca"))
     (comp
       (ref "R145")
-      (value "100k")
+      (value "100")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3EKF1003V")
+          (name "MPN") "ERJ-3EKF1000V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
@@ -5556,12 +5556,12 @@
       (tstamps "a85720f5-dc72-5cf8-8c71-217dd5a2d9b6"))
     (comp
       (ref "R146")
-      (value "0")
+      (value "10k")
       (description "")
       (footprint "Resistor_SMD:R_0603")
       (fields
         (field
-          (name "MPN") "ERJ-3GEY0R00V")
+          (name "MPN") "ERJ-3EKF1002V")
         (field
           (name "Manufacturer") "Panasonic")
         (field
@@ -5581,6 +5581,87 @@
         (names "/")
         (tstamps "/"))
       (tstamps "23e5e19f-8c81-5046-91e7-6eb75bc9305f"))
+    (comp
+      (ref "R147")
+      (value "100k")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1003V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0345")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "5ddcf053-ce1c-5d8f-ba7b-58bc4333e2e5"))
+    (comp
+      (ref "R148")
+      (value "1k")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1001V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0346")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "fb30647a-9527-587b-bfa5-55337ca121f5"))
+    (comp
+      (ref "R149")
+      (value "100k")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1003V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0347")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "ac37e9af-84f1-5dbe-b30e-01073ab48f58"))
     (comp
       (ref "R15")
       (value "1M")
@@ -5608,6 +5689,33 @@
         (names "/")
         (tstamps "/"))
       (tstamps "e441a7df-791c-50af-8386-688ea7203e55"))
+    (comp
+      (ref "R150")
+      (value "0")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3GEY0R00V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0348")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "704dfc1c-bb5f-5a95-890d-31a67dff653f"))
     (comp
       (ref "R16")
       (value "4.7k")
@@ -8190,7 +8298,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0325")
+          (name "SKiDL Tag") "obc0329")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -8199,7 +8307,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "1adf57e5-cf13-501a-8138-5bcf0f6e108e"))
+      (tstamps "bf00d94f-8355-5cd4-bbff-0dd0316b8d77"))
     (comp
       (ref "TP13")
       (value "TP")
@@ -8217,7 +8325,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0326")
+          (name "SKiDL Tag") "obc0330")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -8226,7 +8334,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "b8fb1dd3-0250-5821-9f97-27e2b1788294"))
+      (tstamps "98acdc86-1979-5079-8ca6-3ec1b3ae6274"))
     (comp
       (ref "TP14")
       (value "TP")
@@ -8244,7 +8352,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0327")
+          (name "SKiDL Tag") "obc0331")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -8253,7 +8361,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "58d970d7-4fae-5128-9541-35731786b83c"))
+      (tstamps "94527aab-e8e2-5b15-90b7-c5a066e28252"))
     (comp
       (ref "TP2")
       (value "TP")
@@ -8811,7 +8919,7 @@
         (field
           (name "Datasheet"))
         (field
-          (name "SKiDL Tag") "obc0328")
+          (name "SKiDL Tag") "obc0332")
         (field
           (name "SKiDL Line") "design.py:78"))
       (libsource
@@ -8820,7 +8928,7 @@
       (sheetpath
         (names "/")
         (tstamps "/"))
-      (tstamps "015962fd-79f9-5177-94a8-cb362179a878"))
+      (tstamps "13f50bef-2beb-5bb3-ac3c-e072cb11b8a1"))
     (comp
       (ref "U22")
       (value "DRV8876-Q1")
@@ -9769,15 +9877,15 @@
         (pin "1")
         (pintype "PASSIVE"))
       (node
-        (ref "R128")
+        (ref "R130")
         (pin "1")
         (pintype "PASSIVE"))
       (node
-        (ref "R137")
+        (ref "R141")
         (pin "1")
         (pintype "PASSIVE"))
       (node
-        (ref "R143")
+        (ref "R147")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -10129,7 +10237,7 @@
         (pin "1")
         (pintype "PASSIVE"))
       (node
-        (ref "R137")
+        (ref "R141")
         (pin "2")
         (pintype "PASSIVE")))
     (net
@@ -11525,15 +11633,23 @@
         (pin "2")
         (pintype "PASSIVE"))
       (node
-        (ref "R129")
-        (pin "2")
-        (pintype "PASSIVE"))
-      (node
-        (ref "R130")
-        (pin "2")
-        (pintype "PASSIVE"))
-      (node
         (ref "R131")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R132")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R133")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R134")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R135")
         (pin "2")
         (pintype "PASSIVE"))
       (node
@@ -11541,7 +11657,7 @@
         (pin "2")
         (pintype "PASSIVE"))
       (node
-        (ref "R145")
+        (ref "R149")
         (pin "2")
         (pintype "PASSIVE"))
       (node
@@ -12969,7 +13085,7 @@
         (pin "2")
         (pintype "PASSIVE"))
       (node
-        (ref "R136")
+        (ref "R140")
         (pin "2")
         (pintype "PASSIVE")))
     (net
@@ -12977,7 +13093,7 @@
       (name "LED_STATUS")
       (class "Default")
       (node
-        (ref "R136")
+        (ref "R140")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -13701,7 +13817,7 @@
         (pin "1")
         (pintype "PASSIVE"))
       (node
-        (ref "R140")
+        (ref "R144")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -13737,7 +13853,7 @@
         (pin "6")
         (pintype "PASSIVE"))
       (node
-        (ref "R140")
+        (ref "R144")
         (pin "2")
         (pintype "PASSIVE")))
     (net
@@ -13793,7 +13909,7 @@
         (pin "2")
         (pintype "PASSIVE"))
       (node
-        (ref "R131")
+        (ref "R133")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -13946,6 +14062,70 @@
         (pintype "PASSIVE")))
     (net
       (code 180)
+      (name "RX_CD")
+      (class "Default")
+      (node
+        (ref "R128")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R134")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "56")
+        (pintype "PASSIVE")))
+    (net
+      (code 181)
+      (name "RX_CD_J")
+      (class "Default")
+      (node
+        (ref "D17")
+        (pin "5")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "15")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R128")
+        (pin "1")
+        (pintype "PASSIVE")))
+    (net
+      (code 182)
+      (name "RX_FAULT")
+      (class "Default")
+      (node
+        (ref "R129")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R135")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "53")
+        (pintype "PASSIVE")))
+    (net
+      (code 183)
+      (name "RX_FAULT_J")
+      (class "Default")
+      (node
+        (ref "D18")
+        (pin "5")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "16")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R129")
+        (pin "1")
+        (pintype "PASSIVE")))
+    (net
+      (code 184)
       (name "SCL_S")
       (class "Default")
       (node
@@ -13969,7 +14149,7 @@
         (pin "13")
         (pintype "INPUT")))
     (net
-      (code 181)
+      (code 185)
       (name "SDA_S")
       (class "Default")
       (node
@@ -13993,7 +14173,7 @@
         (pin "14")
         (pintype "BIDIRECTIONAL")))
     (net
-      (code 182)
+      (code 186)
       (name "SNS_EN")
       (class "Default")
       (node
@@ -14013,7 +14193,7 @@
         (pin "20")
         (pintype "PASSIVE")))
     (net
-      (code 183)
+      (code 187)
       (name "SNS_ENN")
       (class "Default")
       (node
@@ -14041,7 +14221,7 @@
         (pin "4")
         (pintype "OPEN-COLLECTOR")))
     (net
-      (code 184)
+      (code 188)
       (name "SNS_I2C_EN")
       (class "Default")
       (node
@@ -14053,7 +14233,7 @@
         (pin "5")
         (pintype "INPUT")))
     (net
-      (code 185)
+      (code 189)
       (name "SNS_RB")
       (class "Default")
       (node
@@ -14065,7 +14245,7 @@
         (pin "50")
         (pintype "PASSIVE")))
     (net
-      (code 186)
+      (code 190)
       (name "SOLAR_SENSE")
       (class "Default")
       (node
@@ -14077,7 +14257,7 @@
         (pin "73")
         (pintype "PASSIVE")))
     (net
-      (code 187)
+      (code 191)
       (name "SOLAR_SENSE_J")
       (class "Default")
       (node
@@ -14093,11 +14273,11 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 188)
+      (code 192)
       (name "SWCLK")
       (class "Default")
       (node
-        (ref "R139")
+        (ref "R143")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -14105,7 +14285,7 @@
         (pin "109")
         (pintype "PASSIVE")))
     (net
-      (code 189)
+      (code 193)
       (name "SWCLK_J")
       (class "Default")
       (node
@@ -14117,15 +14297,15 @@
         (pin "4")
         (pintype "PASSIVE"))
       (node
-        (ref "R139")
+        (ref "R143")
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 190)
+      (code 194)
       (name "SWDIO")
       (class "Default")
       (node
-        (ref "R138")
+        (ref "R142")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -14133,7 +14313,7 @@
         (pin "105")
         (pintype "PASSIVE")))
     (net
-      (code 191)
+      (code 195)
       (name "SWDIO_J")
       (class "Default")
       (node
@@ -14145,11 +14325,11 @@
         (pin "2")
         (pintype "PASSIVE"))
       (node
-        (ref "R138")
+        (ref "R142")
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 192)
+      (code 196)
       (name "SWO")
       (class "Default")
       (node
@@ -14161,7 +14341,7 @@
         (pin "133")
         (pintype "PASSIVE")))
     (net
-      (code 193)
+      (code 197)
       (name "TEMP_BOARD")
       (class "Default")
       (node
@@ -14169,7 +14349,7 @@
         (pin "1")
         (pintype "PASSIVE"))
       (node
-        (ref "R135")
+        (ref "R139")
         (pin "2")
         (pintype "PASSIVE"))
       (node
@@ -14177,11 +14357,11 @@
         (pin "47")
         (pintype "PASSIVE")))
     (net
-      (code 194)
+      (code 198)
       (name "TEMP_B_RAW")
       (class "Default")
       (node
-        (ref "R135")
+        (ref "R139")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -14189,7 +14369,7 @@
         (pin "2")
         (pintype "OUTPUT")))
     (net
-      (code 195)
+      (code 199)
       (name "TEMP_SNS")
       (class "Default")
       (node
@@ -14201,7 +14381,7 @@
         (pin "2")
         (pintype "OUTPUT")))
     (net
-      (code 196)
+      (code 200)
       (name "TEMP_SNS_F")
       (class "Default")
       (node
@@ -14217,7 +14397,7 @@
         (pin "5")
         (pintype "PASSIVE")))
     (net
-      (code 197)
+      (code 201)
       (name "TIA_MX")
       (class "Default")
       (node
@@ -14237,7 +14417,7 @@
         (pin "7")
         (pintype "OUTPUT")))
     (net
-      (code 198)
+      (code 202)
       (name "TIA_MY")
       (class "Default")
       (node
@@ -14257,7 +14437,7 @@
         (pin "7")
         (pintype "OUTPUT")))
     (net
-      (code 199)
+      (code 203)
       (name "TIA_MZ")
       (class "Default")
       (node
@@ -14277,7 +14457,7 @@
         (pin "7")
         (pintype "OUTPUT")))
     (net
-      (code 200)
+      (code 204)
       (name "TIA_PX")
       (class "Default")
       (node
@@ -14297,7 +14477,7 @@
         (pin "1")
         (pintype "OUTPUT")))
     (net
-      (code 201)
+      (code 205)
       (name "TIA_PY")
       (class "Default")
       (node
@@ -14317,7 +14497,7 @@
         (pin "1")
         (pintype "OUTPUT")))
     (net
-      (code 202)
+      (code 206)
       (name "TIA_PZ")
       (class "Default")
       (node
@@ -14337,7 +14517,7 @@
         (pin "1")
         (pintype "OUTPUT")))
     (net
-      (code 203)
+      (code 207)
       (name "TNC_RXD_J")
       (class "Default")
       (node
@@ -14353,7 +14533,7 @@
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 204)
+      (code 208)
       (name "TNC_TXD_J")
       (class "Default")
       (node
@@ -14369,7 +14549,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 205)
+      (code 209)
       (name "TONE_OK")
       (class "Default")
       (node
@@ -14377,7 +14557,7 @@
         (pin "2")
         (pintype "PASSIVE"))
       (node
-        (ref "R129")
+        (ref "R131")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -14385,7 +14565,7 @@
         (pin "99")
         (pintype "PASSIVE")))
     (net
-      (code 206)
+      (code 210)
       (name "TONE_OK_J")
       (class "Default")
       (node
@@ -14401,7 +14581,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 207)
+      (code 211)
       (name "TX_FWD")
       (class "Default")
       (node
@@ -14409,7 +14589,7 @@
         (pin "1")
         (pintype "PASSIVE"))
       (node
-        (ref "R133")
+        (ref "R137")
         (pin "2")
         (pintype "PASSIVE"))
       (node
@@ -14417,7 +14597,7 @@
         (pin "26")
         (pintype "PASSIVE")))
     (net
-      (code 208)
+      (code 212)
       (name "TX_FWD_J")
       (class "Default")
       (node
@@ -14429,11 +14609,11 @@
         (pin "12")
         (pintype "PASSIVE"))
       (node
-        (ref "R133")
+        (ref "R137")
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 209)
+      (code 213)
       (name "TX_PWR_SEL")
       (class "Default")
       (node
@@ -14445,7 +14625,7 @@
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 210)
+      (code 214)
       (name "TX_PWR_SEL_J")
       (class "Default")
       (node
@@ -14461,7 +14641,7 @@
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 211)
+      (code 215)
       (name "TX_REV")
       (class "Default")
       (node
@@ -14469,7 +14649,7 @@
         (pin "1")
         (pintype "PASSIVE"))
       (node
-        (ref "R134")
+        (ref "R138")
         (pin "2")
         (pintype "PASSIVE"))
       (node
@@ -14477,7 +14657,7 @@
         (pin "27")
         (pintype "PASSIVE")))
     (net
-      (code 212)
+      (code 216)
       (name "TX_REV_J")
       (class "Default")
       (node
@@ -14489,11 +14669,11 @@
         (pin "13")
         (pintype "PASSIVE"))
       (node
-        (ref "R134")
+        (ref "R138")
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 213)
+      (code 217)
       (name "TX_TEMP")
       (class "Default")
       (node
@@ -14501,7 +14681,7 @@
         (pin "1")
         (pintype "PASSIVE"))
       (node
-        (ref "R132")
+        (ref "R136")
         (pin "2")
         (pintype "PASSIVE"))
       (node
@@ -14509,7 +14689,7 @@
         (pin "34")
         (pintype "PASSIVE")))
     (net
-      (code 214)
+      (code 218)
       (name "TX_TEMP_J")
       (class "Default")
       (node
@@ -14521,19 +14701,19 @@
         (pin "11")
         (pintype "PASSIVE"))
       (node
-        (ref "R132")
+        (ref "R136")
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 215)
+      (code 219)
       (name "UMBILICAL_SENSE")
       (class "Default")
       (node
-        (ref "R144")
+        (ref "R148")
         (pin "2")
         (pintype "PASSIVE"))
       (node
-        (ref "R145")
+        (ref "R149")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -14541,7 +14721,7 @@
         (pin "139")
         (pintype "PASSIVE")))
     (net
-      (code 216)
+      (code 220)
       (name "UMB_J")
       (class "Default")
       (node
@@ -14553,11 +14733,11 @@
         (pin "9")
         (pintype "PASSIVE"))
       (node
-        (ref "R144")
+        (ref "R148")
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 217)
+      (code 221)
       (name "USART1_RX")
       (class "Default")
       (node
@@ -14573,7 +14753,7 @@
         (pin "3")
         (pintype "BIDIRECTIONAL")))
     (net
-      (code 218)
+      (code 222)
       (name "USART1_TX")
       (class "Default")
       (node
@@ -14585,7 +14765,7 @@
         (pin "3")
         (pintype "BIDIRECTIONAL")))
     (net
-      (code 219)
+      (code 223)
       (name "USART2_RX")
       (class "Default")
       (node
@@ -14593,7 +14773,7 @@
         (pin "2")
         (pintype "PASSIVE"))
       (node
-        (ref "R128")
+        (ref "R130")
         (pin "2")
         (pintype "PASSIVE"))
       (node
@@ -14601,7 +14781,7 @@
         (pin "122")
         (pintype "PASSIVE")))
     (net
-      (code 220)
+      (code 224)
       (name "USART2_TX")
       (class "Default")
       (node
@@ -14613,15 +14793,15 @@
         (pin "119")
         (pintype "PASSIVE")))
     (net
-      (code 221)
+      (code 225)
       (name "USART3_RX")
       (class "Default")
       (node
-        (ref "R142")
+        (ref "R146")
         (pin "2")
         (pintype "PASSIVE"))
       (node
-        (ref "R143")
+        (ref "R147")
         (pin "2")
         (pintype "PASSIVE"))
       (node
@@ -14629,7 +14809,7 @@
         (pin "78")
         (pintype "PASSIVE")))
     (net
-      (code 222)
+      (code 226)
       (name "USART3_RX_J")
       (class "Default")
       (node
@@ -14641,15 +14821,15 @@
         (pin "8")
         (pintype "PASSIVE"))
       (node
-        (ref "R142")
+        (ref "R146")
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 223)
+      (code 227)
       (name "USART3_TX")
       (class "Default")
       (node
-        (ref "R141")
+        (ref "R145")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -14657,7 +14837,7 @@
         (pin "77")
         (pintype "PASSIVE")))
     (net
-      (code 224)
+      (code 228)
       (name "USART3_TX_J")
       (class "Default")
       (node
@@ -14669,11 +14849,11 @@
         (pin "7")
         (pintype "PASSIVE"))
       (node
-        (ref "R141")
+        (ref "R145")
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 225)
+      (code 229)
       (name "VBATT_SNS")
       (class "Default")
       (node
@@ -14689,7 +14869,7 @@
         (pin "28")
         (pintype "PASSIVE")))
     (net
-      (code 226)
+      (code 230)
       (name "VBATT_SNS_J")
       (class "Default")
       (node
@@ -14705,7 +14885,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 227)
+      (code 231)
       (name "VBAT_MTQ")
       (class "Default")
       (node
@@ -14785,7 +14965,7 @@
         (pin "11")
         (pintype "POWER-IN")))
     (net
-      (code 228)
+      (code 232)
       (name "VBUS_SNS")
       (class "Default")
       (node
@@ -14801,7 +14981,7 @@
         (pin "46")
         (pintype "PASSIVE")))
     (net
-      (code 229)
+      (code 233)
       (name "VBUS_SNS_J")
       (class "Default")
       (node
@@ -14817,7 +14997,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 230)
+      (code 234)
       (name "VDDA")
       (class "Default")
       (node
@@ -14857,7 +15037,7 @@
         (pin "33")
         (pintype "POWER-IN")))
     (net
-      (code 231)
+      (code 235)
       (name "VJET_RB")
       (class "Default")
       (node
@@ -14873,7 +15053,7 @@
         (pin "43")
         (pintype "PASSIVE")))
     (net
-      (code 232)
+      (code 236)
       (name "VJET_RB_J")
       (class "Default")
       (node
@@ -14889,7 +15069,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 233)
+      (code 237)
       (name "VMTQ_SNS")
       (class "Default")
       (node
@@ -14909,7 +15089,7 @@
         (pin "6")
         (pintype "PASSIVE")))
     (net
-      (code 234)
+      (code 238)
       (name "VSOLAR_SNS")
       (class "Default")
       (node
@@ -14925,7 +15105,7 @@
         (pin "44")
         (pintype "PASSIVE")))
     (net
-      (code 235)
+      (code 239)
       (name "VSOLAR_SNS_J")
       (class "Default")
       (node
@@ -14941,7 +15121,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 236)
+      (code 240)
       (name "VSW1_RB")
       (class "Default")
       (node
@@ -14957,7 +15137,7 @@
         (pin "35")
         (pintype "PASSIVE")))
     (net
-      (code 237)
+      (code 241)
       (name "VSW1_RB_J")
       (class "Default")
       (node
@@ -14973,7 +15153,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 238)
+      (code 242)
       (name "WDI")
       (class "Default")
       (node
@@ -14993,11 +15173,11 @@
         (pin "7")
         (pintype "INPUT")))
     (net
-      (code 239)
+      (code 243)
       (name "WDT_DIS")
       (class "Default")
       (node
-        (ref "R146")
+        (ref "R150")
         (pin "2")
         (pintype "PASSIVE"))
       (node
@@ -15005,7 +15185,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 240)
+      (code 244)
       (name "WDT_DIS_J")
       (class "Default")
       (node
@@ -15017,11 +15197,11 @@
         (pin "5")
         (pintype "PASSIVE"))
       (node
-        (ref "R146")
+        (ref "R150")
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 241)
+      (code 245)
       (name "WD_CWD")
       (class "Default")
       (node
@@ -15049,7 +15229,7 @@
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 242)
+      (code 246)
       (name "WD_SET0")
       (class "Default")
       (node
@@ -15065,7 +15245,7 @@
         (pin "3")
         (pintype "INPUT")))
     (net
-      (code 243)
+      (code 247)
       (name "XO_OE")
       (class "Default")
       (node
@@ -15077,7 +15257,7 @@
         (pin "1")
         (pintype "INPUT")))
     (net
-      (code 244)
+      (code 248)
       (name "XO_OUT")
       (class "Default")
       (node
@@ -15089,7 +15269,7 @@
         (pin "3")
         (pintype "OUTPUT")))
     (net
-      (code 245)
+      (code 249)
       (name "XPDR_EN")
       (class "Default")
       (node
@@ -15101,7 +15281,7 @@
         (pin "3")
         (pintype "PASSIVE")))
     (net
-      (code 246)
+      (code 250)
       (name "XPDR_EN_J")
       (class "Default")
       (node
@@ -15117,7 +15297,7 @@
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 247)
+      (code 251)
       (name "XPDR_KEY")
       (class "Default")
       (node
@@ -15125,7 +15305,7 @@
         (pin "2")
         (pintype "PASSIVE"))
       (node
-        (ref "R130")
+        (ref "R132")
         (pin "1")
         (pintype "PASSIVE"))
       (node
@@ -15133,7 +15313,7 @@
         (pin "127")
         (pintype "PASSIVE")))
     (net
-      (code 248)
+      (code 252)
       (name "XPDR_KEY_J")
       (class "Default")
       (node

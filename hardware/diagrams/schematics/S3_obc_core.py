@@ -1,4 +1,4 @@
-"""S3 OBC core, version 2 (2026-10-27): STM32L4R5ZIT6 with its supply, clocks, supervisor, FRAM, mission clock and
+"""S3 OBC core, version 3 (2026-10-27; JETSON_PWR on PA8, spreader NTC on PA2): STM32L4R5ZIT6 with its supply, clocks, supervisor, FRAM, mission clock and
 access port, drawn from the build-to design SQSO-OBC-BRD-001 (hardware/electrical/obc/design.py, the netlist source).
 Every MCU pin is the master allocation of SQSO-ICX-001 (hardware/electrical/INTERCONNECT.md 4); the sheet groups the
 signal pins by destination. Version 1 drew the firmware's provisional map with a TMP117 and proposed UART4 pins.
@@ -9,18 +9,18 @@ import schemdraw.elements as elm
 import sch
 
 d = sch.drawing("S3_obc_core")
-sch.note(d, (-17, 33.5), "S3  OBC core: STM32L4R5ZIT6 (version 2)", fontsize=12, color="black")
+sch.note(d, (-17, 33.5), "S3  OBC core: STM32L4R5ZIT6 (version 3)", fontsize=12, color="black")
 sch.note(d, (-17, 32.9), "SQSO-HW-DIAG-001 · drawn from the build-to netlist SQSO-OBC-BRD-001 (hardware/electrical/obc) · "
          "pins: SQSO-ICX-001 section 4 · flags name the nets of W3, W4, W5, W8, W9 and sheets S6-S9", fontsize=8)
 
 # right-hand pins, top to bottom: (pin, net)
 RIGHT = [
     ("PB2", "PAYLOAD_EN"), ("PB5", "RADIO_EN"), ("PB6", "ADCS_EN"), ("PD2", "HEATER_EN"), ("PF3", "DEPLOY_EN"),
-    ("PA3", "RF_TX_EN"), ("PA2", "JETSON_PWR"), ("PE5", "GNSS_EN"), ("PB10", "BURN_W1A"), ("PE6", "BURN_W1B"),
+    ("PA3", "RF_TX_EN"), ("PA8", "JETSON_PWR"), ("PE5", "GNSS_EN"), ("PB10", "BURN_W1A"), ("PE6", "BURN_W1B"),
     ("PB9", "BURN_W2A"), ("PE7", "BURN_W2B"), ("PF4", "EOL_ARM"), ("PG1", "EOL_FIRE"), ("PF5", "LOCK_CLR"),
     ("PB7", "EPS_ALERT_N"), ("PE2", "DEPLOY_SENSE"), ("PB12", "SOLAR_SENSE"), ("PF1", "I2C2_SCL"), ("PF0", "I2C2_SDA"),
     ("PC2", "VBATT_SNS"), ("PC3", "IBATT_SNS"), ("PC4", "VSOLAR_SNS"), ("PC5", "ISOLAR_SNS"), ("PB0", "VBUS_SNS"),
-    ("PA1", "VSW1_RB"), ("PA7", "VJET_RB"),
+    ("PA1", "VSW1_RB"), ("PA7", "VJET_RB"), ("PA2", "PT_NTC <- J3-5 (S7, S9)"),
     ("PD5", "USART2_TX (TNC)"), ("PD6", "USART2_RX (TNC)"), ("PE3", "TX_PWR_SEL"), ("PE4", "XPDR_EN (TIM7)"),
     ("PC9", "TONE_OK"), ("PG12", "XPDR_KEY"), ("PC7", "PTT_EXC_RB (TIM8_CH2)"), ("PA0", "TX_TEMP"), ("PC0", "TX_FWD"),
     ("PC1", "TX_REV"),

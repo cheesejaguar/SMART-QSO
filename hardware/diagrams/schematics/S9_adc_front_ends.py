@@ -1,4 +1,4 @@
-"""S9 ADC1 front ends, version 2 (2026-10-27): the sixteen external ADC1 inputs of the STM32L4R5ZIT6 with the source
+"""S9 ADC1 front ends, version 3 (2026-10-27; IN7 spreader NTC added): the sixteen external ADC1 inputs of the STM32L4R5ZIT6 with the source
 circuits on the EPS and RF boards (SQSO-EPS-BRD-001 11, SQSO-RF-BRD-001 7.6) and the OBC-side series resistors and
 reservoir capacitors (SQSO-OBC-BRD-001 13-14). Version 1 drew the EPS dividers as proposals; they are now designed on
 the EPS board (the 1:6 VBATT divider of finding F1 is built).
@@ -9,7 +9,7 @@ import schemdraw.elements as elm
 import sch
 
 d = sch.drawing("S9_adc_front_ends")
-sch.note(d, (-5, 4.5), "S9  ADC1 front ends (version 2)", fontsize=12, color="black")
+sch.note(d, (-5, 4.5), "S9  ADC1 front ends (version 3)", fontsize=12, color="black")
 sch.note(d, (-5, 3.9), "SQSO-HW-DIAG-001 · source circuits on the EPS and RF boards; OBC series R and reservoir C from SQSO-OBC-BRD-001 · "
          "firmware scale = adc.rs FRONT_END", fontsize=8)
 
@@ -28,6 +28,7 @@ ROWS = [
     ("OBC", "MTQ_Y_I", "DRV8876 IPROPI: 10.0k, 1 nF", "1 k", "PA5 IN10", "10 mV/mA (new)"),
     ("OBC", "MTQ_Z_I", "DRV8876 IPROPI: 10.0k, 1 nF", "1 k", "PA6 IN11", "10 mV/mA (new)"),
     ("OBC", "TEMP_BOARD", "TMP235-Q1 U21", "1 k", "PB1 IN16", "10 mV/C, 0.5 V at 0 C (unchanged)"),
+    ("JET", "PT_NTC", "spreader NTC RT1 via J3-5, 10.0k 0.1 % from VDDA", "1 k", "PA2 IN7", "R = 10.0k V/(VDDA - V); 100 nF at the pin (new, E10)"),
 ]
 
 for i, (board, net, src, rser, pin, scale) in enumerate(ROWS):
@@ -45,7 +46,7 @@ sch.note(d, (-5, -1.6 * len(ROWS) - 0.5),
          "Series resistors: 1 kOhm on the EPS lines (their sources are >= 167 kOhm with 100 nF), 10 kOhm on the RF lines (the radio\n"
          "stays powered while the OBC is power-cycled: they limit the current into an unpowered OBC). The source's capacitor is the\n"
          "reservoir for the 247.5-cycle sample. Sun sensors, the sensor-area temperature and VBAT_MTQ / 6 are on the ADS7138 (S6).\n"
-         "ADC1 IN7 (PA2) and IN8 (PA3) are the JETSON_PWR and RF_TX_EN outputs; internal channels: temperature, VREFINT.",
+         "ADC1 IN8 (PA3) is the RF_TX_EN output; internal channels: temperature, VREFINT. Version 3: IN7 (PA2) reads the spreader NTC.",
          fontsize=7)
 
 d.save(sch.out_path("S9_adc_front_ends"))

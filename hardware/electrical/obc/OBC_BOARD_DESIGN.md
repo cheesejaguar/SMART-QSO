@@ -1,17 +1,20 @@
 # SMART-QSO OBC Board: Build-to Design
 
 **Document ID**: SQSO-OBC-BRD-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Status**: CDR build-to electrical design for the engineering model (EM): schematic captured as code with selected,
 orderable parts, netlist, BOM, ERC (clean, waivers listed) and calculations. No PCB layout, no hardware; every number
-below is analysis until its verification item (§22) closes.
+below is analysis until its verification item (§22) closes. Version B answers the chair's follow-up: the carrier's
+spreader thermistor (E10, §11.3), the stack placement constraints (§21), the magnetometer location (§9.4: moved to a
+small board A2 at the +Z end frame) and the gyro vibration assessment (§9.2).
 
 **Design files** (this directory): [`design.py`](design.py) (SKiDL 3.0 schematic, the source of truth for parts, nets
 and the MCU pin map), [`obc_board.net`](obc_board.net) (KiCad 8 netlist, generated), [`obc_board_nets.csv`](obc_board_nets.csv)
 (net to pins), [`obc_board_bom.csv`](obc_board_bom.csv) (BOM), [`obc_board_erc.log`](obc_board_erc.log) (ERC),
-[`obc_pinmap.csv`](obc_pinmap.csv) (every STM32 pin), [`obc_calcs.py`](obc_calcs.py) with its output `obc_calcs.json`
-(every computed value here). Regenerate: `python3 hardware/electrical/obc/obc_calcs.py`, then
+[`obc_pinmap.csv`](obc_pinmap.csv) (every STM32 pin), [`mag_board.net`](mag_board.net), [`mag_board_bom.csv`](mag_board_bom.csv),
+[`mag_board_erc.log`](mag_board_erc.log) and [`mag_board_nets.csv`](mag_board_nets.csv) (the magnetometer board A2, built by
+the same script), [`obc_calcs.py`](obc_calcs.py) with its output `obc_calcs.json` (every computed value here). Regenerate: `python3 hardware/electrical/obc/obc_calcs.py`, then
 `<CAD venv>/bin/python hardware/electrical/obc/design.py`. The master pin allocation and the board-to-board signal
 lists are in [INTERCONNECT.md](../INTERCONNECT.md) (SQSO-ICX-001).
 
@@ -28,15 +31,16 @@ SQSO-RF-BRD-001 §4.1 (the other ends of every interface); `docs/manufacturing/E
 | Item | Value |
 |------|-------|
 | Board | PC/104 90.17 × 95.89 mm, 6 layers, in the OBC/EPS stack (W3 ribbon to the EPS, no stack connector) |
-| Placements / BOM lines / nets | 356 / 74 / 260 (generated); ERC: no errors, no warnings, five waivers |
+| Placements / BOM lines / nets | OBC 347 / 69 / 249; magnetometer board A2 15 / 9 / 19 (generated); ERC: no errors, no warnings (five waivers on the OBC, two on A2) |
 | Processor | STM32L4R5ZIT6 (LQFP-144) at 80 MHz from an 8 MHz XO (HSE bypass); LSE 32.768 kHz crystal |
 | Memory | FM25V20A 2 Mbit SPI FRAM (no external flash: §7) |
 | Supervisor | TPS3850H33-Q1: 3.3 V UV/OV (± 7 %) and a window watchdog, 5.6–33.3 s window, kicked every 10 s, wired to NRST (RID AV-02) |
 | Mission clock | RV-3028-C7 on the always-on 3V3_AO (± 1 ppm, 32-bit UNIX counter), time-stamps every NRST edge (RID AV-10) |
-| ADCS on the board | Epson M-G370PDT0 gyro (socket X1), Bosch BMI088 cold-spare gyro, PNI RM3100 magnetometer, six sun-sensor transimpedance amplifiers into an ADS7138-Q1, three DRV8876-Q1 H-bridges for the CR0002 rods with a hardware off-timer (RID AV-03) |
+| ADCS on the board | Epson M-G370PDT0 gyro (socket X1 at (−20, +30.5) mm, through the carrier window), Bosch BMI088 cold-spare gyro, six sun-sensor transimpedance amplifiers into an ADS7138-Q1, three DRV8876-Q1 H-bridges for the CR0002 rods with a hardware off-timer (RID AV-03); the PNI RM3100 magnetometer on board A2 at the +Z end frame (harness W6E from J10), powered, protected and isolated from this board |
+| Jetson spreader temperature | carrier thermistor RT1 on J3-5/-6, 10.0 kΩ 0.1 % bias from VDDA, PA2 (ADC1_IN7): readable with the carrier off (carrier E10, §11.3) |
 | Sensor rails | three TPS2553-Q1 latch-up switches (50–100 mA, auto-retry 0.13 s) from the EPS's 3V3_ADCS |
 | Isolation | every line into a domain the MCU does not power passes a part with VCC isolation (Jetson: RID AV-09; GNSS; sensors) |
-| Power (3V3_OBC) | 25 mA worst normal (83 mW); EPS SW10 trips at 130 mA minimum (5.2×) |
+| Power (3V3_OBC) | 25.4 mA worst normal (84 mW); EPS SW10 trips at 130 mA minimum (5.1×) |
 | Power (sensors, 3V3_ADCS) | 76 mW normal (gyro 53 mW); 49 mA worst with the backup gyro on |
 | Magnetorquers (VBAT_MTQ) | 0.39 W per rod at 0.2 A·m² (1.16 W three saturated), bridges 0.12 W while awake; hardware current limit 0.104–0.126 A per rod |
 | Worst junction | DRV8876 65 °C, MCU 63 °C at a 60 °C board (§17) |
@@ -62,13 +66,17 @@ SQSO-RF-BRD-001 §4.1 (the other ends of every interface); `docs/manufacturing/E
 | ESD on every external line | brief | TPD4E05U06-Q1 / TPD1E05U06-Q1 at every connector; TVS on both rails | §16 |
 | OBC-F002 to F006 (EPS I2C, Jetson UART, load-switch GPIO, NVM, hardware watchdog) | OBC_DESIGN A.2.1 | §4–§14 | — |
 | −40 to +85 °C parts | OBC_DESIGN §1.1 | every part −40 °C or wider, +85 °C or wider | §19 |
+| Jetson spreader temperature with the carrier off (guard 70 °C, power-on gate −15 °C) | carrier interface E10 (SQSO-JET-BRD-001 B) | NTC bias and ADC input on the always-on OBC | §11.3 |
+| Stack placement constraints | MECHANICAL_DESIGN §4.3–§4.4 | gyro position, part heights, connector edges, wall-gap routing | §21 |
 
 ### 2.2 Departures from the architecture documents (for the chair)
 
 | Item | Document | This design | Why |
 |------|----------|-------------|-----|
 | ADCS board | ADCS_DESIGN §6, W6 v1, S6 | **none**: sensors and coil drivers on the OBC | one board fewer, no stack connector; the 1U stack has no room for a fifth board |
-| Magnetometer | BUILD_VS_BUY §2.7: buy (M315, MM200, Lodestone) | **PNI RM3100 on the OBC**, with a footprint (J10, DNP) for a bought module | §9.4: noise, single-shot timing under the MCU's control, cost, mass; the coupling to the rods is the risk either way and is measured (AV-V4) |
+| Magnetometer | BUILD_VS_BUY §2.7: buy (M315, MM200, Lodestone) | **PNI RM3100 on a 24 × 24 mm board A2 at the +Z end frame** (the CAD's magnetometer slot), on harness W6E from J10; its switch, bus isolation and data-ready buffer stay on the OBC. Version A had it in the OBC's (+X, −Y) corner | §9.4: noise, single-shot timing under the MCU's control, cost, mass; at +Z the rod remanence couples 1.4× less than in the OBC corner and the Jetson's input current is 63 mm away instead of 12 mm |
+| JETSON_PWR pin | SQSO-ICX-001 A: PA2 | **PA8** (still port A) | PA2 (ADC1_IN7) is the only ADC input that can be freed for the spreader NTC (§11.3) |
+| GSE header | W8 v2: TST-105 behind the access window | **FTSH-105 on an internal harness W8A** to a bulkhead at the access window | the OBC sits mid-stack (z +5), not at the −Y access window (§15) |
 | Coil driver | ADCS_DESIGN §6.1: DRV8833 on 3.3 V | **DRV8876-Q1 from VBAT** with hardware current regulation | a CR0002 rod (≈ 51 Ω) needs 4.4 V for 0.2 A·m²: 3.3 V gives at most 0.15 A·m² (§10.1) |
 | Coil supply | EPS SW4 3V3_ADCS "sensors, gyro, magnetorquer drivers" | 3V3_ADCS feeds only the sensor switches; **a new EPS switch SW11 (VBAT_MTQ)** feeds the bridges | as above; and a coil current no longer masks a sensor latch-up (RADIATION_ANALYSIS §5.3) |
 | PAYLOAD_EN pin | firmware, EPS §13.2: PB4 | **PB2** | PB4 resets as NJTRST with a pull-up: SW1 on at every reset (§11.2) |
@@ -92,25 +100,27 @@ termination except the connector mating faces and X1.
 ## 3. Architecture and Domains
 
 ```
- EPS J3 ──W3──> J1: 3V3_OBC ─D2/22u─┬─ U1 STM32L4R5ZIT6 ── U3 FRAM (SPI1 PG2-5)      J9 access port (SWD, NRST,
-                                    │      │  │  │           U2 TPS3850 -> NRST          USART3, UMB_SENSE, WDT_DIS)
+ EPS J3 ──W3──> J1: 3V3_OBC ─D2/22u─┬─ U1 STM32L4R5ZIT6 ── U3 FRAM (SPI1 PG2-5)      J9 ─W8A─> access port (SWD,
+                                    │      │  │  │           U2 TPS3850 -> NRST          NRST, USART3, UMB_SENSE, WDT_DIS)
                                     │      │  │  └ I2C1 ──── U4 RV-3028 (3V3_RTC <─ J1-38, always on)
-                                    │      │  ├─ USART1 ─ U28/U29 (VCCB = JET_3V3) ── J3 Jetson carrier
+                                    │      │  ├─ USART1 ─ U28/U29 (VCCB = JET_3V3) ── J3 Jetson carrier (W5B)
+                                    │      │  ├─ PA2 ADC1_IN7 <─ 1k ─┬─ 10.0k ─ VDDA     J3-5/-6 spreader NTC RT1
                                     │      │  ├─ LPUART1/PPS ─ U30-U32 (VCCB = 3V3_GNSS) ── J5 receiver <─ J4 <─ EPS SW7
                                     │      │  ├─ USART2, readbacks, monitors ── J2 RF board
                                     │      │  └─ enables, burns, EOL, ADC ── J1 EPS
  EPS J20 ──W6B──> J6: 3V3_ADCS ─┬─ U5 ─ 3V3_GYRO ─ U9/U10 ─ U8 M-G370 (X1) on SPI3
                                 ├─ U6 ─ 3V3_IMU2 ─ U12/U13 ─ U11 BMI088 on SPI2
-                                └─ U7 ─ 3V3_SNS ── U14 (I2C4) ─ U15 RM3100, U16 ADS7138 <─ U17-U19 TIAs <─ J8 sun sensors
+                                └─ U7 ─ 3V3_SNS ── U14 (I2C4) ─ U16 ADS7138 <─ U17-U19 TIAs <─ J8 sun sensors
+                                                   └─ U14, U33 ─ J10 ──W6E──> board A2: RM3100 (+Z end frame)
  EPS SW11 ──W3──> J1-36/39: VBAT_MTQ ─D3─ U22/U23/U24 DRV8876 ── J7 rods X, Y, Z
                  nSLEEP = MTQ_ARM (TIM15 one-pulse, PF9) AND NOT U25 off-timer (0.92-0.98 s)
 ```
 
 | Domain | Source | Switched by | Loads | Normal / limit |
 |--------|--------|-------------|-------|----------------|
-| 3V3_OBC | EPS SW10 TPS2553-Q1 from 3V3_AO | always on, auto-retry after a latch-up trip | MCU, FRAM, supervisor, XO, logic, translators' A side | 25 mA / 130–176 mA |
+| 3V3_OBC | EPS SW10 TPS2553-Q1 from 3V3_AO | always on, auto-retry after a latch-up trip | MCU, FRAM, supervisor, XO, logic, translators' A side, spreader NTC bias | 25.4 mA / 130–176 mA |
 | 3V3_ADCS | EPS SW4 TPS2553-Q1 | ADCS_EN (PB6) | U5, U6, U7 only | 49 mA / 265–339 mA |
-| 3V3_GYRO, 3V3_IMU2, 3V3_SNS | U5, U6, U7 TPS2553-Q1 (ILIM to IN) | GYRO_EN PF6, IMU2_EN PF7, SNS_EN PF8 | M-G370; BMI088; RM3100, ADS7138, TIAs, TMP235, U14 B side | 26 / 8 / 15 mA; 50–100 mA |
+| 3V3_GYRO, 3V3_IMU2, 3V3_SNS | U5, U6, U7 TPS2553-Q1 (ILIM to IN) | GYRO_EN PF6, IMU2_EN PF7, SNS_EN PF8 | M-G370; BMI088; RM3100 (on A2, through J10), ADS7138, TIAs, TMP235, U14 B side | 26 / 8 / 15 mA; 50–100 mA |
 | 3V3_RTC | EPS 3V3_AO through 1.0 kΩ | never | RV-3028-C7 | 45 nA |
 | VBAT_MTQ | new EPS SW11 (VBAT) | ADCS_EN | three DRV8876 | 0.083 A at 3 × 0.2 A·m²; 0.23 A at the bridges' limit |
 | JET_3V3 | the carrier's own 3.3 V | the carrier being powered | U28/U29 B side, JET_PG | < 1 mA |
@@ -126,10 +136,11 @@ termination except the connector mating faces and X1.
   is tied to VDD), VDDUSB (USB unused, tied to VDD) and VBAT (tied to VDD; no backup cell: the mission clock is the
   external RTC on the always-on rail, §8). VDDA and VREF+ through FB1 (600 Ω at 100 MHz) with 1 µF + 10 nF and
   1 µF + 100 nF; VSSA and VREF− to the ground plane at the MCU.
-- **Current.** 25 mA worst normal (MCU 20 mA allocation at 80 MHz with the peripherals on, XO 3 mA, the rest 2.1 mA;
+- **Current.** 25.4 mA worst normal (MCU 20 mA allocation at 80 MHz with the peripherals on, XO 3 mA, the spreader NTC
+  bias 0.28 mA at 70 °C, the rest 2.1 mA;
   `obc_calcs.json` i_3v3_obc_items). The MCU figure is an allocation: ST's datasheet DS12023 could not be reached from
   this session (§25); the EM power test (V-OBC-12) replaces it.
-- **Unused pins**: 16 spare pins (SQSO-ICX-001 §4.4) go to analog mode in the firmware; PB3 (SWO) reaches a test point.
+- **Unused pins**: 15 spare pins (SQSO-ICX-001 §4.4) go to analog mode in the firmware; PB3 (SWO) reaches a test point.
 
 ## 5. Clocks
 
@@ -208,7 +219,7 @@ means a trip.
 |------|----------------|---------------|--------|
 | 3V3_GYRO (M-G370, 16 mA typical × 1.6) | 26 mA | 50 mA | 1.95× |
 | 3V3_IMU2 (BMI088, 5 mA × 1.6) | 8 mA | 50 mA | 6.3× |
-| 3V3_SNS (RM3100, ADS7138, three TLV9002, TMP235, TCA9517 B side, up to 12 mA photocurrent) | 15 mA | 50 mA | 3.3× |
+| 3V3_SNS (RM3100 on A2, ADS7138, three TLV9002, TMP235, TCA9517 B side, up to 12 mA photocurrent) | 15 mA | 50 mA | 3.3× |
 
 RADIATION_ANALYSIS §5.3 proposed 40 mA for the gyro; the lowest TPS2553-Q1 setting is 50–100 mA, which a latch-up
 (typically hundreds of milliamperes) still trips. The EPS's SW4 (0.265–0.339 A) is the upstream breaker for all three.
@@ -234,10 +245,46 @@ U9 and U10 take their B side from 3V3_GYRO and their OE from the same rail, so w
 the SPI, reset and data-ready lines are high-impedance on the gyro side (VCC isolation) and nothing back-powers the
 module. The firmware needs no pin juggling when it switches the rail.
 
-**Mechanical (for MCAD):** with X1 the module stands about 14 mm above the OBC's top face. The CAD stack
-(MASS_BUDGET §7: OBC substrate at +5.0 mm, carrier at +18.0 mm) leaves 11.4 mm. Either the carrier moves up 3 mm, or
-the module goes on a frame bracket on a 0.1 m Samtec FFSD-10-D ribbon to a 2 × 10 FTSH header in X1's place (same
-pinout); the electrical design is the same. Raised for the chair (§24 item C3).
+**Mechanical (MECHANICAL_DESIGN §4.3, decision D-11; closes item C3).** X1 is centred at **(−20, +30.5) mm** on the
+top side; the module (footprint x −32 … −8, y +18.5 … +42.5) stands 14.0 mm, top at z +20.6, through a 27 × 27 mm
+window in the Jetson carrier framed by a 2.5 × 3.0 mm Al stiffener on the carrier's bottom face, 1.5 mm clear on every
+side. The chair's note gave (−20, +27.5); the mechanical design then moved window and gyro 3 mm toward +Y to clear the
+carrier's module standoff MP2 at (−31.3, +12.6), and this board follows MECHANICAL_DESIGN. The footprint stays clear of
+the Ø7 mm keep-outs of the corner column (−40, +43) and the centre support (0, +21) (§21). No part under the window
+frame's footprint (x −36 … −4, y +14.5 … +46.5) exceeds 3 mm (7.4 mm are free there).
+
+**Vibration and shock.** The FE gives the module, mounted as above, these responses to the 8.18 Grms protoflight
+random input (MECHANICAL_DESIGN §4.3.2, in-axis, mean of the footprint nodes):
+
+| Input axis | Response at the module (in axis) | 3σ peak | Cross axes |
+|------------|----------------------------------|---------|------------|
+| X | 22.2 Grms | 67 g | 4.5 / 10.5 Grms |
+| Y | 25.0 Grms | 75 g | 3.1 / 11.7 Grms |
+| Z | 21.7 Grms | 65 g | 1.8 / 3.2 Grms |
+
+Epson's data sheet (M-G370PDG0, Rev 1.2, table 1.1, absolute maximum ratings) gives only **shock 1000 g, half-sine
+0.5 ms**; it gives no random or sine vibration rating, and no qualification levels were found in Epson's public
+material (the PDT0 variant's sheet was not obtained; the PDG0 sheet is the same family and package). As a quasi-static
+load the 3σ peaks are 13–15× below the shock rating, so the module will not be overstressed by a single peak; but a shock
+rating says nothing about fatigue of the module's internal interconnects, its FTMH header in the CLM socket or the
+sensing elements' bias under 60 s per axis of 22–25 Grms broadband input, and the stack modes (326–396 Hz) put most of
+that energy in one band. The rating is therefore **neither shown exceeded nor shown met**.
+
+Decision: **no isolation; a verification item instead (V-OBC-16)**. An isolator would add a resonance (an elastomer
+mount for a 10 g module tuned well below 326 Hz is tens of hertz to about 150 Hz), would need a flexible link in place
+of the socket (the module has only its rigid header), and would make the 0.1° alignment of VI-MCAD-05 depend on the
+elastomer's creep and temperature; the 1.5 mm window clearance also leaves no room for isolator travel. V-OBC-16: the
+OBC EM with an M-G370 of the flight lot fitted on X1 with its two screws (thread-locked, the module edge staked to the
+socket with the board's staking compound), random vibration at the FE-predicted module levels (the stack input at
+protoflight level and duration, or a board-level input shaped to give ≥ 22.2 / 25.0 / 21.7 Grms at the module), and a
+shock test to the launch provider's SRS when it is issued; functional tests before and after on a rate table: bias
+change ≤ 0.01 °/s (10 % of the 0.1 °/s budget of SENSOR_DESIGN §4.1), scale factor change ≤ 0.2 %, noise within 10 %
+of the pre-test value, no DIAG_STAT flags, no SPI errors. The gyro is unpowered during launch, so no in-test function
+is needed; a continuity monitor on the header during the test catches intermittent contact. Also asked of Epson
+(§24 C12): its vibration and shock qualification conditions for the M-G370 family. If V-OBC-16 fails, the fallback
+is a bracket-free isolation at X1 (silicone grommets under the two screws with a short flexible jumper in place of the
+socket; the 7 mm of free height above the module, below the spreader, allows it), re-analysed and re-tested; the mechanical designer's
+VI-STR-02 board-level random test is the same test and can carry it.
 
 ### 9.3 Backup gyro: Bosch BMI088
 
@@ -255,26 +302,86 @@ connect if unused).
 | GomSpace M315 | 15 nT (BVB §2.7) | 8 g + harness | module, I2C | heritage | not quoted | GomSpace has shed small-sat lines (BVB §2.1); availability to confirm |
 | AAC Clyde MM200 | not read | 10–12 g | module | 30 krad | not quoted | — |
 | Spacemanic Lodestone | not published | < 10 g | module, magnetometer + gyro | 3+ missions | €800 | duplicates the gyro |
-| **PNI RM3100 on the OBC** | **13 nT resolution, 15 nT noise at 200 cycle counts** (PNI table 3-1) | ≈ 1 g of parts | I2C at 0x20, single-shot measurement on command with DRDY | no published data | ≈ $40 | ± 800 µT range, linear ± 200 µT; 260 µA at 8 Hz three-axis |
+| **PNI RM3100 on board A2** | **13 nT resolution, 15 nT noise at 200 cycle counts** (PNI table 3-1) | ≈ 1 g of parts | I2C at 0x20, single-shot measurement on command with DRDY | no published data | ≈ $40 | ± 800 µT range, linear ± 200 µT; 260 µA at 8 Hz three-axis |
+**Selected: the RM3100, on a small board A2 at the +Z end frame.** Reasons for the part: (1) its single-shot mode
+starts a conversion only when the MCU asks, in the 950–1000 ms coils-off window, with DRDY marking the end, which is
+exactly the timing ICD-004 §12.2 requires ("single-shot conversions triggered in the window"); (2) it is 3× better than
+the Monte Carlo's 50 nT noise assumption; (3) about 3 g with board and harness; (4) cost. Against it: no radiation data
+(covered by its own latch-up switch U7 and the RAD-V3 lot test, like every other COTS part without data).
 
-**Selected: RM3100 on the OBC.** Reasons: (1) its single-shot mode starts a conversion only when the MCU asks, in the
-950–1000 ms coils-off window, with DRDY marking the end, which is exactly the timing ICD-004 §12.2 requires ("single-shot
-conversions triggered in the window"); (2) it is 3× better than the Monte Carlo's 50 nT noise assumption; (3) no
-harness, no connector, no mass beyond the parts; (4) cost. Against it: no radiation data (covered by its own latch-up
-switch U7 and the RAD-V3 lot test, like every other COTS part without data), and its place on the OBC, near the rods.
+**Location (Version B re-assessment).** The question is how far the sensor is from the three CR0002 rods, whose
+remanence after each burst (hysteresis) the 50 ms settle cannot remove (RID GNC-04, AV-V4), and from the currents
+that change while it measures. The rod field is computed with each rod as two magnetic charges at its ends (47 mm
+rods at the CAD centres of MECHANICAL_DESIGN §4.1: X (0, +36, −10) along X, Y (+42, 0, −33) along Y, Z (−41.5, 0,
+−20.5) along Z), per 1 mA·m² of remanence (`obc_calcs.json` mag_rod_*):
 
-**Placement.** The CAD places the CR0002 rods at X (0, +36, −10), Y (+42, 0, −33) along Y and Z (−41.5, 0) from
-z −44 to +3, just below the OBC (MASS_BUDGET §7). The RM3100 goes in the OBC's (+X, −Y) corner, about 80 mm from the
-X and Z rods and 43 mm from the Y rod's end. A rod remanence of 3 mA·m² (the design residual dipole) gives about
-7.5 µT there, inside the linear range and removed as hard-iron bias; what is not known is how much it changes after
-each burst (hysteresis), which the 50 ms settle cannot remove. That is RID GNC-04 and verification item AV-V4 (Helmholtz
-cage with the EM rods); if the variation exceeds the 300 nT bias the Monte Carlo allows, the bought module goes on J10
-(DNP footprint: 3V3_SNS, GND and the isolated I2C4 bus) at the +Z end, with no other change to this board.
+| Position (x, y, z mm) | X rod | Y rod | Z rod | Sum (nT per mA·m²) | Nearest rod end | Per-rod remanence for 300 nT on a polarity reversal | Other sources |
+|-----------------------|------:|------:|------:|------:|-----------------|------|------|
+| OBC (+X, −Y) corner, (+33, −38, +7) (Version A) | 196 | 846 | 152 | **1194** | Y rod, 43.5 mm | 0.13 mA·m² | Jetson VDD_IN ≈ 12 mm if at the SO-DIMM's +X end (≈ 10 µT, carrier §18.2) |
+| OBC −Y edge, best spot (+2, −42, +7) | 174 | 386 | 366 | 926 | — | 0.16 | under the SO-DIMM; centre support (0, −21) |
+| OBC moved toward +Y, x +33: y 0 / +20 / +30 / +38 | 981 / 2977 / 4712 / 5131 | 948 / 1002 / 951 / 846 | 209 / 190 / 170 / 152 | **2138 / 4169 / 5833 / 6129** | X rod end 41 / 25 / 20 / 20 mm | 0.07 … 0.02 | on J1 (+X edge, \|y\| < 24) and J3 |
+| **+Z end-frame slot of the CAD (+24, +27, +44)** | 480 | 178 | 173 | **830** | X rod, 54.7 mm | **0.18** | Jetson VDD_IN 63 mm; carrier M.2 card about 20 mm below; RF board 4 mm below |
+| +Z mirror slot (+24, −27, +44) | 156 | 178 | 173 | 507 | Y rod, 79 mm | 0.30 | Jetson VDD_IN 25 mm if at the +X end; needs a mass-property re-trim |
 
-**Circuit** (PNI Doc 1017252 R07, figure 4-2): MagI2C U15 (13156) with two Sen-XY-f (13104) and one Sen-Z-f (13101);
-121 Ω bias resistors at both ends of each coil (six); REXT 33 kΩ (180 kHz clock); I2CEN high, SA0 = SA1 = 0 (0x20);
-AVDD and DVDD together on 3V3_SNS (10 µF + 100 nF). I2C4 crosses into 3V3_SNS through U14 TCA9517-Q1 (enabled only
-while 3V3_SNS is up), DRDY back through U33 SN74LVC1T45-Q1 to PD11. Layout rules for the magnetometer: §21.
+**Moving the RM3100 toward +Y on the OBC is not feasible.** The X rod lies along y = +36 only 17 mm below the OBC
+(z −10), so every step toward +Y brings the sensor toward its +X end: the coupling rises 1.8× at y 0 and 5× at
+y +38, while the distance to the Y rod's ends hardly changes (the Y rod is centred at y = 0 and its two ends are at
+± 23.5 mm, so moving from −Y to +Y trades one end for the other). The +X edge at |y| < 24 is also where J1 has to be
+(the W3 ribbon's only path, §21), and the +Y half is J3 and the gyro window. On the OBC the best spot is the −Y edge
+near x = 0 (926), under the SO-DIMM connector, which is no better for the Jetson current.
+
+**Recommended hardware: board A2 at the CAD's +Z magnetometer slot, (+24, +27) mm, z +40.4 … +48.4** (where
+MECHANICAL_DESIGN §4.1 already reserves a magnetometer). A2 is a 24 × 24 mm, two-layer, 1.6 mm board with the RM3100
+(U1 MagI2C, L1/L2 Sen-XY-f, L3 Sen-Z-f, six 121 Ω, REXT 33 kΩ, 10 µF + 100 nF), its harness connector J1 and one ESD
+array; it carries no switch and no isolation, which stay on the OBC (U7, U14, U33), so a fault on A2 or W6E trips U7
+and nothing else. It is mounted to the +Z end frame by non-magnetic fasteners (titanium or brass, not A286 near the
+coils) with the coils' axes on the body axes. What this gives:
+
+- **Rods:** 830 nT per mA·m², 1.44× less than the OBC corner, with no change to the mass properties. The mirror slot
+  (+24, −27) is 1.6× better again (507), but it is 25 mm above the SO-DIMM's +X end and its 5 g moves the CG toward −Y
+  (ΔIyz ≈ 1.2 × 10⁻⁵ kg·m², about 4° of principal-axis tilt without a re-trim); it is the option to take only if the
+  carrier confirms VDD_IN at the −X end and AV-V4 shows the rods dominate.
+- **Rod-remanence distance:** 54.7 mm to the nearest rod end (the X rod's +X end), against 43.5 mm (Y rod) in the OBC
+  corner and 20 mm at the OBC's +Y corner; 79–82 mm to the Y and Z rods.
+- **Jetson input current:** 63 mm from the SO-DIMM's +X end (if VDD_IN is there) instead of about 12 mm: the carrier's
+  10 µT at 12 mm falls to 0.07 µT for a compact loop (1/r³) and at most 1.9 µT for an unpaired line (1/r). The chair's
+  fallback covers what remains (below).
+- **Carrier keep-out:** the 20–30 mm keep-out around (+33, −38) on the carrier is **withdrawn** (interface item E11);
+  the carrier may keep the placement it has. The carrier's nearest parts are about 20 mm below A2 (the M.2 card and its
+  standoff MP1, behind the spreader and the RF board); a ferromagnetic part there is a fixed bias that the hard-iron
+  calibration removes, and the SSD's current flows only with the Jetson on.
+- **Magnetic keep-out around A2 (20 mm, for the mechanical and RF designers):** no ferromagnetic material within 20 mm
+  of the sensor coils: the RF board's top-side parts under A2 (no ferrite-cored inductors, no steel shield lid or
+  clips near (+24, +27)), the GNSS patch adapter's fasteners, the trim masses at y ±45 (tungsten or brass, not steel),
+  the end-frame fasteners; and no unpaired current above 10 mA within 30 mm (the RF board's supply and PA return
+  paired beneath). The wing hinge's secondary spring at (+54.1, +38.75) is 32 mm away; if it is a ferromagnetic steel
+  (17-7PH) it is a fixed bias, and it moves once, at deployment.
+
+**Residual for AV-V4 (what the coupling test has to show).** At the recommended slot each 1 mA·m² of rod remanence
+gives up to 830 nT at the sensor (worst alignment of the three rods). A polarity reversal of a rod changes its remanent
+moment by 2 m_r, so the Monte Carlo's 300 nT bias allowance holds without calibration only if every rod's remanence
+stays at or below **0.18 mA·m²** (0.09 % of its 0.2 A·m² rating; CubeSpace does not publish it). If AV-V4 finds more,
+the flight software keeps a bias per last-polarity state of the three rods (2³ = 8 states, measured in AV-V4 on the
+EM rods and refined in orbit), and the residual becomes the non-repeatable part. **AV-V4 pass criterion
+(V-OBC-11):** with A2 and the EM rods in their flight geometry (a fixture to the CAD positions), the burst-to-burst
+change of the sensor reading 50 ms after the coils go off is ≤ 300 nT after the per-state calibration, over at least
+100 bursts of random polarity and amplitude; plus the Jetson-on and PTT-keyed steps measured once with the Jetson EM
+and the RF EM running, for the record (they are gated out).
+
+**Flight-software gating (for the chair; the chair's fallback adopted).** The magnetometer is not used for actuation
+while **JET_PG is high** (Jetson bursts ≤ 10 min; the spin holds the attitude) and, recommended here in addition, while
+**PTT_EXCITER is high** (the RF board directly below A2 is keyed; PC7 already captures it): samples taken then are
+logged but not used. With these two gates, the coils-off window and the per-state calibration, the only field changes
+left during a measurement are the rods' non-repeatable remanence, which is what AV-V4 measures.
+
+**Circuit** (PNI Doc 1017252 R07, figure 4-2, on A2): MagI2C U1 (13156) with two Sen-XY-f (13104) and one Sen-Z-f
+(13101); 121 Ω bias resistors at both ends of each coil (six); REXT 33 kΩ (180 kHz clock); I2CEN high, SA0 = SA1 = 0
+(0x20); AVDD and DVDD together on 3V3_SNS (10 µF + 100 nF). On the OBC: 3V3_SNS from U7, I2C4 through U14 TCA9517-Q1
+(enabled only while 3V3_SNS is up, 4.7 kΩ pull-ups on the sensor side), DRDY back through U33 SN74LVC1T45-Q1 to PD11,
+J10 (Pico-Clasp 6: 3V3_SNS, GND, SDA, SCL, DRDY, GND) with an ESD array and a 100 kΩ pull-down on DRDY. Harness W6E,
+0.25 m of 28 AWG, through a ±X wall gap: sensor-side rise time 199 ns (4.7 kΩ, about 50 pF), inside 300 ns for
+400 kHz; 100 kHz recommended. Layout rules for A2: §21.
+
 
 ### 9.5 Coarse sun sensors
 
@@ -362,15 +469,15 @@ VCCA from 3V3_OBC and **VCCB from the carrier's own 3.3 V I/O rail, brought back
 unpowered VCCB is 0 V and both ports are high-impedance (VCC isolation; Ioff ≤ µA): the idle-high TX line cannot reach
 the module's clamp diodes, whatever the firmware does with PA9. PA10 has a 100 kΩ pull-up, so the receiver idles
 without false start bits while the carrier is off. 33 Ω series on both carrier-side lines; TPD4E05U06-Q1 at J3. The
-ICD-002 §9 test (TX idle, carrier off, carrier 3.3 V below 0.3 V) becomes V-OBC-9. The carrier designer has to put its
-3.3 V I/O rail on its pin 4 (≤ 1 mA drawn; interface change E9).
+ICD-002 §9 test (TX idle, carrier off, carrier 3.3 V below 0.3 V) becomes V-OBC-9. The carrier puts its 3.3 V I/O
+rail on its J2-4 (≤ 1 mA drawn; interface change E9, done in SQSO-JET-BRD-001 B).
 
 ### 11.2 Two independent switches with readback (AV-06)
 
 | Element | Design | Independence |
 |---------|--------|--------------|
 | PAYLOAD_EN → EPS SW1 (TPS1H100B-Q1, shed-gated) | **PB2** (port B), 100 Ω, EPS 100 kΩ pull-down | different port from JETSON_PWR: one port-register upset or bad write cannot set both |
-| JETSON_PWR → EPS U19 eFuse (TPS16630, 1.2 A latch-off) | PA2 (port A) | different part, different line (BVB §7.3) |
+| JETSON_PWR → EPS U19 eFuse (TPS16630, 1.2 A latch-off) | **PA8** (port A; PA2 in Version A, given to the spreader NTC, §11.3) | different part, different line (BVB §7.3) |
 | Readback 1: SW1 output | VSW1_RB, 1.00 MΩ / 200 kΩ on the EPS → J1-37 → PA1 (ADC1_IN6): 1.87–2.80 V on, < 0.1 V off | measures the switch output itself, not the command |
 | Readback 2: eFuse output | VJET_RB, same divider after U19 → J1-19 → PA7 (ADC1_IN12) | as above |
 | Readback 3: carrier alive | JET_PG: JET_3V3 through 10 kΩ → PG6 (EXTI6), 100 kΩ pull-down | the carrier's converter is running |
@@ -379,6 +486,24 @@ ICD-002 §9 test (TX idle, carrier off, carrier 3.3 V below 0.3 V) becomes V-OBC
 Flight-software side (for the chair; PAYLOAD_DESIGN §11.1's recommendation): drive the two lines from two state bits,
 switch off JETSON_PWR first and PAYLOAD_EN 10 ms later, compare each readback with its command (threshold 1.0 V on the
 ADC readbacks) and log a disagreement as a fault; test each switch alone opening the rail (RAD-V5).
+
+### 11.3 Jetson heat-spreader temperature (carrier interface E10)
+
+The carrier passes the spreader thermistor RT1 (TE GA10K3MCD1, 10 kΩ at 25 °C NTC, bonded to the heat spreader) through,
+unpowered, on W5B pins 5 and 6 (carrier J2-5/-6, OBC J3-5/-6). The OBC biases and reads it, so the 70 °C guard and the
+−15 °C power-on gate work **with the carrier off**, from the always-on MCU domain.
+
+| Item | Design |
+|------|--------|
+| Circuit | VDDA → **10.0 kΩ 0.1 % (25 ppm/K)** → J3-5 (PT_NTC_J) → RT1 → J3-6 → GND at J3; PT_NTC_J → 1 kΩ → **PA2 (ADC1_IN7)** with 100 nF at the pin; J3-5 in the TPD4E05U06-Q1 array at J3 |
+| Pin | PA2 was JETSON_PWR in Version A; JETSON_PWR moves to PA8 (port A, still a different port from PAYLOAD_EN PB2). ADC1 has 16 external inputs, all used; PA2 is the only one that can be freed without moving an analog front end |
+| Ratiometric | VDDA is the ADC reference (VREF+ on VDDA), so the code N = 4095 · R / (10.0 kΩ + R) does not depend on the 3.3 V tolerance: **R = 10.0 kΩ · N / (4095 − N)** (or V / (VDDA − V)) |
+| Curve | β = 3976 K (25/85 °C) assumed for the TE "10K3" curve; the flight software should use TE's resistance table (Steinhart–Hart) once read (§25) |
+| Values (`obc_calcs.json` ntc_*) | −40 °C: 412 kΩ, 3.22 V; **−15 °C: 79.0 kΩ, 2.93 V**, −19.6 mV/K, 0.041 K per LSB, ± 0.24 K; 25 °C: 10.0 kΩ, 1.65 V; **70 °C: 1.74 kΩ, 0.49 V**, −14.1 mV/K, 0.057 K per LSB, ± 0.38 K; 95 °C: 0.79 kΩ, 0.24 V (errors: bias 0.1 %, NTC 1 %, ADC 4 LSB, RSS) |
+| Sampling | source 10 kΩ ∥ R plus 1 kΩ, with the 100 nF as the reservoir: the 5 pF sample capacitor takes 0.005 %; 247.5-cycle sampling as the other channels |
+| Faults | open (connector off, broken lead): N ≥ 4090, reads below −50 °C; short: N ≤ 5, reads above 150 °C. Recommended flight-software rule: valid only for 0.10–3.25 V; outside it, a sensor fault that **inhibits Jetson power-on** (the gate fails safe) and, if the Jetson is on, falls back to the Jetson's own temperature report for the guard |
+| Power | bias 0.28 mA at 70 °C (0.31 mA at 95 °C) from VDDA, always on (included in the 25.4 mA); 0.94 mW worst in the 10.0 kΩ (0.1 W part: 1 %); 0.14 mW self-heating in RT1 at 70 °C (bonded, < 0.1 K) |
+| Isolation | none needed: the carrier passes RT1 through with no connection to its circuits (SQSO-JET-BRD-001 B, E10), so there is no carrier node to back-power |
 
 ## 12. GNSS Link
 
@@ -414,7 +539,9 @@ Analog lines through 1 kΩ with 10 nF at the pin. I2C2: the OBC's 2.2 kΩ pull-u
 
 ## 15. GSE Umbilical
 
-J9 (Samtec TST-105, 2 × 5, 2.54 mm, W8 version 2) behind the access window: SWD (22 Ω), NRST (100 Ω), USART3 console
+J9 (Samtec FTSH-105-01-L-DV-K, 2 × 5, 1.27 mm; pin list SQSO-ICX-001 §3.6) on the OBC's top side, on an internal
+0.15 m harness W8A (W8 version 3) to the access-port bulkhead at the −Y access window in the −Z end zone (the OBC is
+mid-stack at z +5; Version A put a TST-105 "behind the access window", which the stack does not allow): SWD (22 Ω), NRST (100 Ω), USART3 console
 and key loading (TX 100 Ω; RX 10 kΩ, the GSE adapter may be powered while the OBC is not), UMBILICAL_SENSE (1 kΩ,
 100 kΩ pull-down; the plug ties it to VTREF, so key provisioning is possible only with the plug in, SQSO-ICD-013 §9.2)
 and WDT_DIS (§6). VTREF is 3V3_OBC through 100 Ω (sense only). Two TPD4E05U06-Q1 at J9. The charging path is on the
@@ -424,7 +551,7 @@ EPS's J13 (W11), not on this board.
 
 | Threat | Protection |
 |--------|------------|
-| ESD at integration on every connector signal | TPD4E05U06-Q1 (IEC 61000-4-2 ± 12 kV contact, 0.5 pF, 5.5 V standoff) at J1 (7), J2 (3), J3, J5, J8 (2), J9 (2), J10; TPD1E05U06-Q1 on 3V3_RTC and 3V3_ADCS; SMF5.0A on 3V3_OBC; SMBJ20A on VBAT_MTQ |
+| ESD at integration on every connector signal | TPD4E05U06-Q1 (IEC 61000-4-2 ± 12 kV contact, 0.5 pF, 5.5 V standoff) at J1 (7), J2 (3), J3 (with the NTC line), J5, J8 (2), J9 (2), J10, and one on board A2 at its J1; TPD1E05U06-Q1 on 3V3_RTC and 3V3_ADCS; SMF5.0A on 3V3_OBC; SMBJ20A on VBAT_MTQ |
 | Latch-up, MCU, FRAM, supervisor, logic | EPS SW10 (0.130–0.176 A, 0.28 s off, auto-retry) on the whole 3V3_OBC domain (RID AV-08 closed by the EPS board) |
 | Latch-up, sensors | U5–U7 (§9.1) |
 | Latch-up, GNSS, Jetson | EPS SW7, U19; isolation keeps the OBC from feeding a latched part through its I/O |
@@ -435,7 +562,7 @@ EPS's J13 (W11), not on this board.
 
 | Load | Rail | Normal | Worst |
 |------|------|--------|-------|
-| OBC (MCU, XO, FRAM, logic) | 3V3_OBC | 83 mW | 25 mA |
+| OBC (MCU, XO, FRAM, logic, NTC bias) | 3V3_OBC | 84 mW | 25.4 mA |
 | Gyro, magnetometer, ADC, amplifiers | 3V3_ADCS | 76 mW (gyro 53 mW) | 49 mA with the backup gyro on |
 | Magnetorquers, three saturated | VBAT_MTQ | 1.16 W coils + 0.12 W bridges (detumble only) | 0.23 A at 11.2 V with all bridges at their limit |
 | RTC | 3V3_RTC | 0.15 µW | — |
@@ -464,10 +591,11 @@ rated −40 °C. Heat sources for the thermal model: three DRV8876 (0.14 W each 
 | M-G370PDT0 | VCC | 3.195–3.40 V | 3.15–3.45 V | inside | inside | yes (45 mV margin) |
 | BMI088, RM3100, ADS7138, TLV9002, TXU, LVC, TPS3850, FRAM, RTC, STM32 | supply | 3.4 V | 3.6–6.5 V | ≤ 94 % of the 3.6 V operating maximum | 90 % of operating for 3.6 V parts | **3.6 V parts at 94 %**: within their operating range but above a 90 % rule; accepted (the rail cannot exceed 3.40 V in operation; the supervisor resets the OBC above 3.53 V) |
 | Rf 619 Ω (0.1 W) | power | 9.9 mW | 100 mW | 10 % | 50 % | yes |
+| NTC bias 10.0 kΩ (0.1 W) | power | 0.94 mW at 95 °C | 100 mW | 1 % | 50 % | yes |
 | R_IPROPI 10 kΩ | power | 0.16 mW | 100 mW | < 1 % | 50 % | yes |
 | VBAT_MTQ divider 1 MΩ | voltage / power | 14 V / 0.2 mW | 75 V / 0.1 W | 19 % / 0.2 % | 80 % / 50 % | yes |
 | FTSH-120 contacts | current | 0.115 A | 2.4 A | 5 % | 50 % | yes |
-| Pico-Clasp contacts (J4, J5, J6, J7) | current | ≤ 0.34 A (trip) | 1 A | ≤ 34 % | 50 % | yes |
+| Pico-Clasp contacts (J3–J8, J10; A2 J1) | current | ≤ 0.34 A (trip) | 1 A | ≤ 34 % | 50 % | yes |
 | W3 28 AWG (VBAT_MTQ) | current | 0.115 A | 0.25 A derated | 46 % | 100 % of derated | yes |
 | W6B 26 AWG (3V3_ADCS) | current | 0.339 A at the SW4 trip | 0.5 A derated | 68 % | 100 % | yes |
 | FM25V20A | SPI clock | 20 MHz | 40 MHz | 50 % | — | yes |
@@ -488,7 +616,7 @@ stress, finish and how its MPN was checked. Summary of the active parts:
 | Sensor switches | TI TPS2553QDBVRQ1 ×3 | AEC-Q100 | Active (EPS board) | no data |
 | Gyro | Epson M-G370PDT0 | −40…+85 °C | data sheet (PDG0, Rev 1.2) read; PDT0 order code to confirm | TID pass 5/10/20 krad (BVB §5.2) |
 | Backup gyro | Bosch BMI088 | −40…+85 °C | data sheet read | no data |
-| Magnetometer | PNI 13156 + 13104 ×2 + 13101 | −40…+85 °C | PNI user manual R07 read | no data |
+| Magnetometer (board A2) | PNI 13156 + 13104 ×2 + 13101 | −40…+85 °C | PNI user manual R07 read | no data |
 | ADC | TI ADS7138QRTERQ1 | AEC-Q100 | Active | no data |
 | Amplifiers | TI TLV9002QDGKRQ1 ×3 | AEC-Q100 grade 1 | Active | no data |
 | Temperature | TI TMP235AQDBZRQ1 ×2 | AEC-Q100 | Active | no data |
@@ -496,9 +624,9 @@ stress, finish and how its MPN was checked. Summary of the active parts:
 | Off-timer | TI CD74HC4060PWR | −55…+125 °C, not AEC (the -Q1 SN74HC4060 is "last time buy") | listed (RF board) | no data |
 | Gates | TI SN74LVC2G04DBVR (not AEC), SN74LVC1G08QDBVRQ1 | −40…+125 °C | Active | no data |
 | Translators | TI TXU0304QPWRQ1 ×2, TXU0204QPWRQ1 ×2, SN74LVC1T45QDCKRQ1 ×6, TCA9517DGKRQ1 | AEC-Q100 | Active | no data |
-| ESD | TI TPD4E05U06QDQARQ1 ×17, TPD1E05U06QDPYRQ1 ×2 | AEC-Q101 | Active | — |
+| ESD | TI TPD4E05U06QDQARQ1 ×17 (+1 on A2), TPD1E05U06QDPYRQ1 ×2 | AEC-Q101 | Active | — |
 | Passives | Murata GCM (AEC-Q200), Panasonic ERJ-3EKF / ERA-3AEB (AEC-Q200), Vishay CRCW-e3 | automotive | series codes checked, values not | — |
-| Connectors | Samtec FTSH-120/107, TST-105, CLM-110; Molex Pico-Clasp 501331 | — | Samtec not checked; Pico-Clasp series Active (EPS board), the 14-position part by pattern | — |
+| Connectors | Samtec FTSH-120/107/105, CLM-110; Molex Pico-Clasp 501331 | — | Samtec not checked; Pico-Clasp series Active (EPS board), the 14-position part by pattern | — |
 
 No radiation data was found for any of these parts except the M-G370's TID. All are covered by the latch-up trips of
 §16 and by RAD-V3 lot-sample testing (EEE_PARTS_LIST §2A.4). TID: the board sits mid-stack (RADIATION_ANALYSIS §4:
@@ -507,27 +635,40 @@ No radiation data was found for any of these parts except the M-G370's TID. All 
 ## 20. Firmware Configuration the Board Assumes
 
 Listed in full in SQSO-ICX-001 §6 for the flight-software team. Essentials: the pin moves (PAYLOAD_EN PB2, DEPLOY_EN
-PF3, FRAM PG2–PG5); VDDIO2 enabled (PWR_CR2.IOSV) before port G is used (already needed for LPUART1); the time driver
+PF3, FRAM PG2–PG5, JETSON_PWR PA8); the spreader NTC on PA2 (ADC1_IN7, R = 10.0 kΩ · N / (4095 − N), §11.3);
+the magnetometer not used for actuation while JET_PG or PTT_EXCITER is high (§9.4); VDDIO2 enabled (PWR_CR2.IOSV) before port G is used (already needed for LPUART1); the time driver
 pinned to TIM2; WDI kicked every 10 s; MTQ bursts by TIM15 one-pulse, PH before ARM, ARM low in zero-command periods;
 sensor rails switched without any pin juggling (the translators isolate); RTC driver on I2C1.
 
 ## 21. Layout Guidance (layout is not in scope; these are the constraints to start from)
 
+Coordinates are body X, Y with the origin on the stack axis (board edges at x ± 45.1, y ± 47.9 mm); the OBC substrate
+is at z +5.0 … +6.6 (MECHANICAL_DESIGN §4.1). The stack constraints are those of MECHANICAL_DESIGN §4.3–§4.4; where
+Version A's guidance conflicted with them it has been changed (marked "Version B").
+
 | Item | Requirement |
 |------|-------------|
-| Outline and mounting | PC/104 90.17 × 95.89 mm, four Ø 3.18 mm holes at the PC/104 positions plus the two centre supports at (0, ± 21) mm of the CAD (MASS_BUDGET §7), Ø 6.4 mm copper keep-out rings; one GND-bonded hole (single frame bond) matching the EPS's |
-| Stack-up | 6 layers, 1.6 mm, FR-4 Tg ≥ 170 °C (polyimide preferred for TVAC): L1 parts and signals, L2 solid GND, L3 signals, L4 power (3V3_OBC plane, 3V3_ADCS and the three sensor-rail islands, VBAT_MTQ as a 1 mm trace), L5 solid GND, L6 parts and signals; 1 oz; IPC-6012 Class 3/A |
-| Placement | J1 on the edge facing the EPS's J3 ribbon; J2 on the +Z-facing edge toward the RF board; U1 central; U2, Y1, Y2 within 10 mm of U1; X1 (gyro) near the board centre on the spin axis side; the DRV8876s and J7 together on the (−X) edge nearest the Z rod's top; RM3100 (U15, L1–L3) in the (+X, −Y) corner |
-| Magnetometer zone | ≥ 30 mm from the DRV8876s, J7 and the VBAT_MTQ trace; no ferromagnetic parts (Ni-plated connectors, ferrite beads, inductors, steel screws) within 20 mm; every current > 1 mA within 30 mm routed with its return directly beneath (0.1 A on a 0.2 mm go/return pair gives 4 nT at 30 mm, against 0.67 µT for an open trace); sense coils oriented per PNI figure 4-4 in the body axes (X, Y, Z of the spacecraft) |
+| Outline and mounting | PC/104 90.17 × 95.89 mm; four Ø 3.18 mm holes at the corner columns (± 40, ± 43) and the two centre supports at (0, ± 21); **Ø 7 mm free of parts on both sides** at all six, with Ø 6.4 mm (columns) and Ø 7 mm (supports) copper-free rings. **Version B: no frame bond on the OBC**; every hole is isolated from GND (the Al spacers are conductive) and the OBC's ground reaches the frame through the W3 ground wires and the EPS's single bond H1 (EPS-BRD §17), as on the carrier. If the mechanical designer prefers a second bond, it must be at the same column as EPS H1 |
+| Stack-up | 6 layers, 1.6 mm (the FE and Steinberg margins assume 1.6 mm: OBC +0.14), FR-4 Tg ≥ 170 °C (polyimide preferred for TVAC): L1 parts and signals, L2 solid GND, L3 signals, L4 power (3V3_OBC plane, 3V3_ADCS and the three sensor-rail islands, VBAT_MTQ as a 1 mm trace), L5 solid GND, L6 low-profile parts and signals; 1 oz; IPC-6012 Class 3/A |
+| Heights (Version B) | **Bottom side (L6) ≤ 1.0 mm**: only 0402/0603 resistors and capacitors (≤ 0.95 mm; no 0603 MLCC thicker than 0.9 mm), the TPD4E05U06 (USON, 0.55 mm) and TPD1E05U06 (X1SON) arrays and test pads; everything else on the top side (SOT-23, SOT-563, 1206/1210 capacitors, SMF/SMBJ diodes, the LQFP, HTSSOP, SOIC, LGA and every connector). **Top side ≤ 3.0 mm** except X1 and the connectors; up to 9.4 mm is free under the carrier (its 1 mm bottom-side envelope plus 1 mm clearance) and 7.4 mm under the carrier's window frame (x −36 … −4, y +14.5 … +46.5): the mated connectors J1–J10 (header, plug and cable bend) must fit within these, checked at layout against the Samtec and Molex drawings (§25) |
+| X1 (gyro) | Socket centred at **(−20, +30.5)**, footprint x −32 … −8, y +18.5 … +42.5, square to the board axes (in-plane rotation within ± 0.3°, MECHANICAL_DESIGN §4.3.1); the module's two screw holes plated and isolated from GND; no top-side part inside the window frame's footprint taller than 3 mm; BMI088 U11 and TMP235 U20 within 15 mm of X1 |
+| J1 (W3 to the EPS, 40-way) | **Top side, on the +X edge, pin field along Y within \|y\| < 24 mm** (centred at y = 0 recommended), the same edge and y range as the EPS's J3 (for the EPS layout): the ribbon's only path is the +X wall gap (x +45.4 … +48.4) between the harness bundles at \|y\| = 24 … 34; the −X edge is ruled out by the Z rod |
+| J2 (W4A to the RF board, FTSH-107) | **Top side**, ribbon up through a ±X wall gap at \|y\| = 34 … 44 mm (the spreader flanges fill \|y\| < 20 above the carrier, the bundles \|y\| = 24 … 34). Recommended: the +X edge in the (+X, −Y) corner freed by the magnetometer move, pin field along Y as close to y −34 as the (+40, −43) column keep-out allows (the Ø 7 mm keep-out reaches y −39.5 inboard of x +43.5); if the 9 mm ribbon cannot then stay at \|y\| ≥ 34 in the gap, the harness design takes the −Y bundle to \|y\| ≤ 31 there or folds the ribbon 45° (for the harness and RF designers: the RF board's J1 at the same corner) |
+| J3 (W5B to the carrier) and J10 (W6E to board A2) | Top side, +X edge, y +24 … +34 (beside the (+X, +Y) bundle; the carrier's J2 is at its +X edge, y ≈ +28) |
+| J4, J5 (GNSS) | Top side, +X edge between J1 and J2 (the receiver is at (+5, −20) on the deck; W9A and W9B in the (+X, −Y) bundle) |
+| J6, J7, J8 and the DRV8876s | −X half. **J7 on the top side** (Version B) and outside the Z rod's footprint (x −46.8 … −36.2, \|y\| < 5.3; the rod ends at z +3.0, 1 mm below the OBC's bottom envelope): J7 at y −12 … −22 on the −X edge, the three DRV8876s within 20 mm of it; J6 (3V3_ADCS) and J8 (sun sensors) at the −X edge in y −24 … −34 / +24 … +34 beside the bundles |
+| J9 (W8A to the access port) | Top side, −X or +X edge at y −24 … −34 (the (±X, −Y) bundle leads to the −Y access window in the −Z end zone) |
+| Board A2 (magnetometer) | 24 × 24 mm, 2 layers, 1.6 mm, at (+24, +27) on the +Z end frame, z +40.4 … +48.4; Sen-XY-f coils along body X and Y, Sen-Z-f along body Z (PNI figure 4-4); J1 at the edge toward the +X wall gap; **no ferromagnetic part on A2** (Sn-finished parts only, no Ni-barrier connector shells where a non-magnetic one exists, no ferrite, no steel fasteners); 3V3_SNS and its GND return as a paired trace; and the 20 mm keep-out around it in the stack (§9.4) |
+| Magnetic rules on the OBC (Version B) | the magnetometer is no longer on this board; the Version A rules (30 mm from the bridges, 20 mm non-ferromagnetic zone) lapse. Kept: VBAT_MTQ and each coil pair routed go-and-return together (L4/L5, and adjacent pins on J7), so the OBC's coil currents add no dipole of their own |
 | Coil drive | VBAT_MTQ from J1-36/39 to the bridges ≥ 0.5 mm wide on L4 with its GND return on L5; each bridge's VM capacitors within 3 mm; exposed pads with ≥ 9 × 0.3 mm thermal vias to L2/L5 and ≥ 4 cm² copper each |
 | Sun-sensor inputs | TIA inputs guarded, ≤ 15 mm from J8; shield drains to GND at J8 only; ADS7138 analog ground at its pad; no digital traces under the TIAs |
-| Clocks | Y2 guard ring to GND, no traces beneath on L1–L2; Y1 ≤ 10 mm from PH0 with the 33 Ω at the source |
+| Spreader NTC | the 10.0 kΩ bias, the 1 kΩ and the 100 nF within 10 mm of PA2; PT_NTC_J from J3-5 as an analog trace away from the USART1 lines; J3-6 to the analog ground at the MCU's VSSA side |
+| Clocks | Y2 guard ring to GND, no traces beneath on L1–L2; Y1 ≤ 10 mm from PH0 with the 33 Ω at the source; U2, Y1, Y2 within 10 mm of U1 |
 | Back-power and isolation parts | each translator on the boundary of its domain: A side traces from the MCU, B side to the sensor or connector; the sensor-rail islands do not extend under the MCU |
 | ESD | each array within 5 mm of its connector pin, ground via at the array |
 | Creepage / clearance | ≤ 17 V everywhere: IPC-2221B B4 (coated) ≥ 0.13 mm; 0.3 mm around VBAT_MTQ |
-| Test points | TP 3V3_OBC, GND, VDDA, NRST, WDI, SWO, MTQ_ARM, MTQ_SLEEP_N, MTQ_EXPIRED, VBAT_MTQ, 3V3_RTC, 3V3_ADCS, 3V3_GYRO, 3V3_SNS (in the netlist); add at layout: each IPROPI, each TIA output, 3V3_IMU2, JET_3V3, 3V3_GNSS, I2C1/2/4 |
-| Coating | conformal coat except the connector mating faces, X1's contacts, the test points and the RM3100 coils' marking side (coating is non-magnetic and allowed over the coils) |
-| Mechanical | X1 and the gyro: see §9.2 (stack clearance) |
+| Test points | TP 3V3_OBC, GND, VDDA, NRST, WDI, SWO, MTQ_ARM, MTQ_SLEEP_N, MTQ_EXPIRED, VBAT_MTQ, 3V3_RTC, 3V3_ADCS, 3V3_GYRO, 3V3_SNS (in the netlist); add at layout: each IPROPI, each TIA output, 3V3_IMU2, JET_3V3, 3V3_GNSS, PT_NTC, I2C1/2/4; all test points on the top side, outside the carrier window's footprint |
+| Coating | conformal coat except the connector mating faces, X1's contacts and the test points; on A2 the coat may cover the coils (non-magnetic) |
 
 ## 22. Verification Items (this board)
 
@@ -543,48 +684,58 @@ sensor rails switched without any pin juggling (the translators isolate); RTC dr
 | V-OBC-8 | End of burst (= AV-V3): TIM15 end, MCU halted mid-burst, TIM15 forced on | current zero within 900 + 2 ms; with the MCU halted and ARM held high, zero at 0.92–0.98 s; MTQ_EXPIRED high | §10.3 | OBC EM |
 | V-OBC-9 | Jetson isolation (= ICD-002 §9 test): carrier off, USART1 transmitting | carrier 3.3 V < 0.3 V | AV-09 | flatsat with the carrier |
 | V-OBC-10 | Jetson switch readbacks: each switch alone on and off | VSW1_RB, VJET_RB, JET_PG follow each switch; reset leaves both off | AV-06 | flatsat |
-| V-OBC-11 | Magnetometer: noise in a zero-gauss chamber; coupling and remanence change after bursts with the EM rods (= AV-V4) | noise ≤ 20 nT at 200 cycles; burst-to-burst bias change ≤ 300 nT, else fit J10 | §9.4, GNC-04 | EM, Helmholtz cage |
+| V-OBC-11 | Magnetometer on A2: noise in a zero-gauss chamber; coupling and remanence change after bursts with the EM rods in the flight geometry (= AV-V4); Jetson-on and PTT-keyed steps for the record | noise ≤ 20 nT at 200 cycles; burst-to-burst change 50 ms after the coils go off ≤ 300 nT after the per-polarity-state calibration, ≥ 100 random bursts; each rod's remanence measured (≤ 0.18 mA·m² needs no calibration) | §9.4, GNC-04 | EM, Helmholtz cage |
 | V-OBC-12 | Power: 3V3_OBC at 80 MHz, all peripherals active; 3V3_ADCS with each sensor | ≤ 25 mA; ≤ 49 mA | §17 | OBC EM |
 | V-OBC-13 | Thermal vacuum of the OBC EM at −20…+60 °C with the coils driven | all functions; DRV8876 case ≤ 70 °C | §17 | OBC EM |
 | V-OBC-14 | ESD: IEC 61000-4-2 ± 8 kV contact at each connector pin (unpowered) | no damage; functional | §16 | OBC EM (one unit) |
 | V-OBC-15 | Back-power into the unpowered OBC (= V-ICX-3) | ≤ 2.5 mA, 3V3_OBC < 0.5 V | §16 | flatsat |
+| V-OBC-16 | Gyro random vibration and shock: OBC EM with a flight-lot M-G370 on X1 (screws thread-locked, staked), random at the FE-predicted module levels (≥ 22.2 / 25.0 / 21.7 Grms in axis) for the protoflight duration, shock to the launch SRS; header continuity monitored | before/after on a rate table: bias change ≤ 0.01 °/s, scale factor change ≤ 0.2 %, noise within 10 %, no DIAG_STAT flags or SPI errors; no continuity interruption > 1 µs | §9.2; with VI-STR-02 | OBC EM |
+| V-OBC-17 | Spreader NTC: carrier off and on, RT1 (or a decade box) at −40, −15, 25, 70, 95 °C equivalents; open and short at J3 | reading within ± 0.5 K of the reference at −15 and 70 °C; open reads < −50 °C, short > 150 °C; reading unchanged with the carrier off | §11.3, E10 | flatsat with the carrier |
 
 ## 23. RID Closure
 
 | RID | Status | Evidence |
 |-----|--------|----------|
 | SE-01 (OBC share) | **Closed for the OBC board**: schematic with selected parts, netlist, BOM, ERC, calculations, layout rules | this document; `design.py`, `obc_board.net`, `obc_board_bom.csv`, `obc_board_erc.log`, `obc_calcs.py`. Layout and the EM build remain (V-OBC-*) |
-| AV-01 | **Closed** (design); firmware change open | SQSO-ICX-001 §4 (every pin, one function), §6 (25 changes for the flight software) |
+| AV-01 | **Closed** (design); firmware change open | SQSO-ICX-001 B §4 (every pin, one function), §6 (27 changes for the flight software) |
 | AV-02 | **Closed** (design); flight-software kick open | §6: TPS3850H33-Q1, window 5.6–33.3 s, kick every 10 s; V-OBC-1, -2 |
-| AV-03 | **Pins and hardware closed**; drivers are flight software | §9, §10; ICX §6 rows 10–17; V-OBC-5 to -8, -11 |
+| AV-03 | **Pins and hardware closed**; drivers are flight software; the magnetometer's rod coupling is verified by AV-V4 | §9 (magnetometer on board A2, §9.4), §10; ICX §6 rows 10–17; V-OBC-5 to -8, -11, -16 |
 | AV-05 / RF-21 | **Closed** (pins and circuits); firmware reading them open | §13: PC9, PG12, PC7 (capture) |
 | AV-06 | **Closed in hardware**: separate ports, three readbacks; the flight software's two state bits and order open | §11.2; V-OBC-10 |
-| AV-09 | **Closed in hardware** (no firmware workaround needed); carrier must supply its rail on pin 4 (E9) | §11.1; V-OBC-9 |
+| AV-09 | **Closed in hardware** (no firmware workaround needed); the carrier supplies its rail on J2-4 (E9, done) | §11.1; V-OBC-9 |
 | AV-10 | **Closed in hardware**; needs EPS J3-38 (E4) and the RTC driver | §8; V-OBC-4 |
 | EPS-14 | **Closed**: GNSS_EN PE5, XPDR_EN PE4; W3 v2 corrected | ICX §3.1 |
 | AV-04 (back-power part) | closed by U30–U32 | §12 |
 | AV-08 (OBC rail) | closed by the EPS board (SW10); this board keeps its inrush below the trip | §4 |
 | Finding F10 (0x48 clash) | closed: no TMP117 | §2.2 |
 | Finding F13 | closed for the Jetson and the GNSS | §11.1, §12 |
+| Carrier E10 (spreader NTC) | **taken**: PA2 (ADC1_IN7), 10.0 kΩ 0.1 % bias, readable with the carrier off | §11.3; V-OBC-17 |
 
 ## 24. For the Chair: Interface and Document Changes
 
-Interface changes on the EPS board (E1–E8) and the Jetson carrier (E9) are in SQSO-ICX-001 §7; the flight-software
+Interface changes on the EPS board (E1–E8), the Jetson carrier (E9–E11) and the mechanical and harness designs (E12)
+are in SQSO-ICX-001 §7; the flight-software
 changes in SQSO-ICX-001 §6. In addition:
 
 | # | Change | Owner | Recommended action or text |
 |--:|--------|-------|----------------------------|
-| C1 | Magnetometer from "buy a module" to the RM3100 on the OBC, module kept as the J10 alternate | chair (BUILD_VS_BUY §1, §2.7; MASS_BUDGET row 24: 10 g → 1 g; ADCS_DESIGN §3.2.1) | "Magnetometer: PNI RM3100 on the OBC board (SQSO-OBC-BRD-001 §9.4); a bought module (M315/MM200) fits J10 if the EM coupling test AV-V4 fails" |
+| C1 | Magnetometer from "buy a module" to the RM3100 on board A2 at the +Z end frame (Version B; Version A had it on the OBC) | chair (BUILD_VS_BUY §1, §2.7; MASS_BUDGET row 24: 10 g → 3 g with board and harness; ADCS_DESIGN §3.2.1) | "Magnetometer: PNI RM3100 on board A2 at the +Z end-frame slot (+24, +27) mm, harness W6E to OBC J10 (SQSO-OBC-BRD-001 §9.4); a bought module with I2C at 3.3 V fits the same slot and harness if AV-V4 fails" |
 | C2 | Coil driver DRV8876-Q1 from VBAT (not DRV8833 on 3.3 V); new EPS switch SW11 | chair (ADCS_DESIGN §6.1), EPS designer (E3) | as §10 |
-| C3 | Gyro stack clearance: 11.4 mm available, about 14 mm needed above the OBC | mechanical designer | raise the carrier 3 mm, or bracket-mount the module on a 0.1 m FFSD-10-D ribbon |
+| C3 | Gyro stack clearance | mechanical designer | **closed** by MECHANICAL_DESIGN D-11 (gyro through the carrier window, X1 at (−20, +30.5)); adopted in §9.2 and §21 |
 | C4 | ICD-004 AV-V3 pass criterion "900 ms + 1 ms" → "900 ms + 2 ms" | chair (ICD_OBC_ADCS §12.4) | bridge tSLEEP is up to 1 ms |
 | C5 | ICD-004 §12.1 table: the pins of SQSO-ICX-001 §4 | chair | replace "open" with the allocated pins |
-| C6 | ICD-002 §2 and §9: J3 Pico-Clasp 4 (GND, OBC TX, OBC RX, carrier 3.3 V), translators on the OBC | chair | as SQSO-ICX-001 §3.3 |
+| C6 | ICD-002 §2 and §9: J3 Pico-Clasp 6 (GND, OBC TX, OBC RX, carrier 3.3 V, spreader NTC, NTC return), translators on the OBC; the 70 °C guard and −15 °C gate read from PA2 | chair | as SQSO-ICX-001 §3.3 |
 | C7 | ICD-001 §2.1, §3.2: 40-pin J3 and the allocated pins | chair | as SQSO-ICX-001 §3.1 |
 | C8 | RADIATION_ANALYSIS §5.3: gyro trip 50–100 mA (TPS2553 minimum); magnetometer on its own switch | radiation reviewer | update the two rows |
 | C9 | Power budget: magnetorquers 1.3 W peak during detumble (three axes saturated) | power analyst | confirm the detumble energy in the SIL commissioning run |
 | C10 | OBC rail fault that does not trip SW10 is undetected | chair / EPS | optional: EPS controller watches an OBC heartbeat register and power-cycles SW10 |
 | C11 | hardware/diagrams README findings F2, F3, F8, F9, F10, F13, F14, F16 (OBC part) are answered by SQSO-OBC-BRD-001 / SQSO-ICX-001 | chair (SQSO-HW-DIAG-001) | mark them |
+| C12 | Epson vibration and shock qualification data for the M-G370 family (the data sheet gives only 1000 g shock) | procurement / OBC | request from Epson; V-OBC-16 regardless |
+| C13 | MECHANICAL_DESIGN §4.1, §4.4, §6.9 | mechanical designer | magnetometer slot (+24, +27) holds board A2 (24 × 24 × 8 mm, ≈ 2 g plus harness), non-magnetic fasteners; the §4.4 rows "RM3100 in the (+X, −Y) corner" and "magnetometer to the rods" replaced by §9.4 of this document (carrier keep-out withdrawn); the 20 mm non-ferromagnetic zone round A2 (RF shield lid and clips, patch-adapter fasteners, trim masses at y ± 45, end-frame fasteners); harness W6E (0.25 m) and W8A (0.15 m) in the bundles; the connector envelope exceptions of §21 (heights); OBC frame bond: none (§21) |
+| C14 | Rod remanence | ADCS owner / procurement | ask CubeSpace for the CR0002 remanence; ≤ 0.18 mA·m² per rod needs no flight-software calibration at the +Z slot (§9.4) |
+| C15 | Magnetometer gating | chair / flight software | the magnetometer is not used for actuation while JET_PG or PTT_EXCITER is high (logged only); per-polarity-state bias table if AV-V4 needs it (SQSO-ICX-001 §6 row 12) |
+| C16 | RF board | RF designer | no ferromagnetic top-side parts or shield clips within 20 mm of (+24, +27) (A2 is 4 mm above the RF board's parts there); PA supply and return paired; J1 of the RF board in the (+X, −Y) corner to meet the OBC's J2 ribbon (§21) |
+| C17 | Spreader NTC | carrier designer / flight software | E10 taken as proposed; the TE resistance table for GA10K3MCD1 to replace the assumed β = 3976 K in the conversion |
 
 ## 25. Not Verified and Open
 
@@ -601,11 +752,20 @@ changes in SQSO-ICX-001 §6. In addition:
 - **Hardware off-timer** accuracy (± 3 % after trim) follows the RF board's use of the same CD74HC4060 RC oscillator; to
   be measured (V-OBC-8).
 - **Receiver-side GNSS connector** awaits the SkyFox interface document.
+- **Gyro vibration rating**: the M-G370 data sheet read (PDG0, Rev 1.2) gives only the 1000 g shock; no random or sine
+  rating and no Epson qualification levels were found; V-OBC-16 and item C12.
+- **Spreader NTC curve**: β = 3976 K is assumed for the "10K3" curve; the TE GA10K3MCD1 table was not read.
+- **Connector mated heights** (FTSH with FFSD, Pico-Clasp with plug and wire bend) against the 9.4 / 7.4 mm free above
+  the OBC were not checked against the Samtec and Molex drawings (§21).
+- **Magnetometer coupling numbers** come from a two-charge model of the rods at the CAD centres; the rods' remanence is
+  not published, so §9.4 states the allowable remanence rather than a predicted field; AV-V4 measures it. The Sen-Z-f
+  coil height against A2's 8 mm slot is from the PNI outline class, to be checked with the PNI drawing.
 - **Not done**: PCB layout, EM build and test, the flight-software drivers (gyro, BMI088, RM3100, ADS7138, coil PWM,
-  RTC, supervisor kick, readbacks).
+  RTC, supervisor kick, readbacks, spreader NTC).
 
 ## Revision History
 
 | Version | Date | Description |
 |---------|------|-------------|
 | A | 2026-10-27 | First issue (CDR design completion): OBC board schematic as code with parts, netlist, BOM, ERC and calculations; supervisor (AV-02), mission clock (AV-10), on-board ADCS sensors and coil drive (AV-03), Jetson isolation and switch readbacks (AV-09, AV-06), repeat-path readbacks (RF-21, AV-05); master pin allocation in SQSO-ICX-001 |
+| B | 2026-10-27 | Chair follow-up: carrier interface E10 taken (W5B 6 pins; spreader NTC on PA2 ADC1_IN7 with a 10.0 kΩ 0.1 % bias, §11.3; JETSON_PWR PA2 → PA8); stack placement constraints of MECHANICAL_DESIGN §4.3–§4.4 in §21 (gyro at (−20, +30.5), bottom side ≤ 1.0 mm, J1/J2/J7 edges and sides, no OBC frame bond); magnetometer re-assessed and moved to board A2 at the +Z end frame (§9.4; carrier keep-out withdrawn; AV-V4 residual and gating); gyro vibration against the Epson rating (§9.2, V-OBC-16); J9 FTSH-105 on internal harness W8A; V-OBC-16, -17; C3 closed, C12–C17 |

@@ -5,12 +5,14 @@ Feeds SQSO-LBA-001 v3.0 §5 (spin fading), SQSO-GND-001 Rev C §4 (coverage,
 contact cadence) and SQSO-DB-001 v2.0 (contact time).
 
 Model
-  Orbit: circular 500 km, i = 97.40 deg (sun-synchronous), LTAN 22:30
-  (descending node 10:30, the Transporter plane; the SIL's default), epoch
-  2028-06-01 06:00 UTC; RAAN follows the mean Sun (SSO), no J2 short-period
+  Orbit: circular 475 km (BASELINE Rev E §3 target; --alt for the 465-485 km
+  band), i = 97.40 deg (sun-synchronous), LTAN 22:30 (descending node 10:30,
+  the Transporter plane; the SIL's default), epoch 2028-11-01 06:00 UTC (the
+  planning launch date); RAAN follows the mean Sun (SSO), no J2 short-period
   terms, no drag. Earth rotation by GMST; Sun by the low-precision almanac.
   Eclipse: cylindrical shadow.
-  Attitude (BASELINE §8, D9): +Y on the Sun, spin about +Y at W deg/s (6 or 2),
+  Attitude (BASELINE §8, D9): +Y on the Sun, spin about +Y at W deg/s (8, the
+  Rev E baseline; 6, the earlier value, for comparison),
   random initial phase. The +Y error (mean 2.5 deg) is neglected.
   Spacecraft antennas: lambda/4 monopole on a 1U body, modelled as a
   half-wave-dipole-shaped pattern with 0 dBi peak (as filed) and the null
@@ -44,7 +46,9 @@ OMEGA_E = 7.2921150e-5
 C = 299_792_458.0
 DEG = math.pi / 180
 
-EPOCH_JD = 2462013.75   # 2028-06-01 06:00 UTC (JD 2462013.5 is 2028-06-01 00:00)
+EPOCH_JD = 2462166.75   # 2028-11-01 06:00 UTC (JD 2462166.5 is 2028-11-01 00:00)
+ALT_KM = 475.0          # BASELINE Rev E §3 target (465-485 km, cap 485 km)
+SPINS = (8.0, 6.0)      # deg/s: the Rev E baseline (D9 as re-tuned by the CDR) and the earlier 6 deg/s
 
 
 def jd_to_gmst(jd):
@@ -63,7 +67,7 @@ def sun_eci(jd):
     return s, L   # unit vector, mean longitude (~ RA of the mean Sun)
 
 
-def orbit_eci(t, alt_m=500e3, inc_deg=97.40, ltan_h=22.5, u0=0.0):
+def orbit_eci(t, alt_m=ALT_KM * 1e3, inc_deg=97.40, ltan_h=22.5, u0=0.0):
     a = RE + alt_m
     n = math.sqrt(MU / a ** 3)
     jd = EPOCH_JD + t / 86400.0
@@ -178,17 +182,19 @@ def main():
     ap.add_argument("--days", type=float, default=60.0)
     ap.add_argument("--out", default="geom.json")
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--alt", type=float, default=ALT_KM, help="circular altitude, km")
     args = ap.parse_args()
     rng_ = np.random.default_rng(args.seed)
     dt = 1.0
     t = np.arange(0.0, args.days * 86400.0, dt)
-    r_sc, v_sc, jd = orbit_eci(t)
+    r_sc, v_sc, jd = orbit_eci(t, alt_m=args.alt * 1e3)
     sun, _ = sun_eci(jd)
     # eclipse (cylindrical)
     proj = np.sum(r_sc * sun, -1)
     perp = np.linalg.norm(r_sc - proj[:, None] * sun, axis=-1)
     eclipse = (proj < 0) & (perp < RE)
-    out: dict = {"days": args.days, "orbit": {"alt_km": 500, "inc_deg": 97.4, "ltan_h": 22.5},
+    out: dict = {"days": args.days, "orbit": {"alt_km": args.alt, "inc_deg": 97.4, "ltan_h": 22.5,
+                                               "epoch": "2028-11-01T06:00Z", "spins_deg_s": list(SPINS)},
                  "eclipse_fraction": float(eclipse.mean())}
 
     # ---------------- ground coverage ----------------
@@ -262,7 +268,7 @@ def main():
     fade = {}
     for cname, (gg, tsys, circ, _) in classes.items():
         for option in ("perp", "para", "cross"):
-            for spin in (6.0, 2.0):
+            for spin in SPINS:
                 for interval in (60.0, 67.0, -60.0, 120.0):
                     # -60: 60 s with a uniform +/-5 s jitter on each interval
                     if option != "perp" and interval in (67.0, -60.0):
@@ -329,11 +335,11 @@ def main():
                     print(tag, json.dumps(fade[tag]), flush=True)
     out["spin_fading_SantaClara_0.5W"] = fade
 
-    # null-duration statistics during passes (time with g < -10 dBi), perp vs para, 6 deg/s
+    # null-duration statistics during passes (time with g < -10 dBi), perp vs para, by spin rate
     stats = {}
     idx_all = np.concatenate([np.arange(s, e) for s, e in ps])
     for option in ("perp", "para", "cross"):
-        for spin in (6.0, 2.0):
+        for spin in SPINS:
             phase = rng_.uniform(0, 2 * math.pi) + spin * DEG * t[idx_all]
             X, Y, Z = body_axes(sun[idx_all], phase)
             g = sc_gain_db(option, los[idx_all], X, Y, -20.0)

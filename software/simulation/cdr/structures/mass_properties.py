@@ -190,8 +190,9 @@ def items() -> List[Item]:
            [box(1.0, (0, 0, 22.0), (90, 96, 6))]))
     a(Item("22", "Jetson thermal interface and module clamp", "1", 20.0, "E1",
            "MB v2.0 4.4 (interface 10, mounting 10)", [box(1.0, (0, 0, 29.0), (70, 50, 4))]))
-    a(Item("23", "Jetson heat spreader to the frame, Al 6061 80 x 60 x 5 mm", "1", 65.0, "E2",
-           "MB v2.0 4.4 (>= 1 W/K, BASELINE 6)", [box(1.0, (0, 0, 33.5), (80, 60, 5))]))
+    a(Item("23", "Jetson heat spreader to the frame, Al 6061 80 x 60 x 5 mm, with the SoC pedestal", "1", 66.6, "E2",
+           "Plate 64.8 g Al + pedestal and second face 1.8 g (SQSO-MECH-CAD-001 4.5; carrier item M1); "
+           ">= 1 W/K, BASELINE 6", [box(1.0, (0, 0, 33.5), (80, 60, 5))]))
     a(Item("24", "Magnetometer (M315, MM200 or Lodestone)", "1", 10.0, "C2",
            "8-12 g (BUILD_VS_BUY 2.7): CBE 10 g, MGA to 12 g",
            [box(1.0, (30.0, 30.0, -46.0), (25, 25, 8))], mga=0.20, mga_low=0.0))

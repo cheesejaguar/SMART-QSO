@@ -387,11 +387,11 @@ pm("PF9", "MTQ_ARM", "TIM15_CH1 AF14, one-pulse 900 ms", "O", "3.3 V, high = coi
 pm("PF10", "GYRO_RB", "GPIO in", "I", "low with GYRO_EN high = latch-up trip", HZ, "U5 EN node (100 k)")
 pm("PF11", "IMU2_RB", "GPIO in", "I", "as GYRO_RB", HZ, "U6 EN node (100 k)")
 pm("PF12", "SNS_RB", "GPIO in", "I", "as GYRO_RB", HZ, "U7 EN node (100 k)")
-pm("PF13", None, "spare", "-", "", HZ, "")
+pm("PF13", "RX_FAULT", "GPIO in, EXTI13", "I", "3.1 V CMOS, high = receiver fault", HZ + "; 100 k pull-down (unwired or radio off reads healthy)", "J2-16 RF board (10 k series; new, FSW round 2)")
 pm("PF14", None, "spare", "-", "", HZ, "")
 pm("PF15", None, "spare", "-", "", HZ, "")
 # --- port G (PG2-PG15 on VDDIO2)
-pm("PG0", None, "spare", "-", "", HZ, "")
+pm("PG0", "RX_CD", "GPIO in, EXTI0", "I", "3.1 V CMOS, high = receiver carrier detect", HZ + "; 100 k pull-down", "J2-15 RF board (10 k series; new, FSW round 2)")
 pm("PG1", "EOL_FIRE", "GPIO out", "O", "3.3 V, high = fire (>= 60 s)", HZ + "; EPS 100 k pull-down", "J1-33 EPS (new)")
 pm("PG2", "FRAM_SCK", "SPI1_SCK AF5", "O", "3.3 V, 20 MHz mode 0", HZ, "U3 (moved from PA5)")
 pm("PG3", "FRAM_MISO", "SPI1_MISO AF5", "I", "3.3 V", HZ, "U3 (moved from PA6)")
@@ -637,9 +637,9 @@ def sns():
        {"VCCA": "3V3_OBC", "GND": "GND", "A": "MAG_DRDY", "B": "MG_DRDY", "DIR": "GND", "VCCB": "3V3_SNS"},
        notes="RM3100 DRDY (J10-5) to the MCU (B to A)")
     R(100e3, "MAG_DRDY", "GND", note="defined while isolated")
-    # magnetometer: PNI RM3100 on the magnetometer board (A2, mag_board()) at the +Z end frame, on J10 / harness W12
+    # magnetometer: PNI RM3100 on the magnetometer board (A2, mag_board()) at the +Z end frame, on J10 / harness W6E
     j = place(CONN("PicoClasp_6", 6), "J10", "MAGNETOMETER", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT",
-              "1 A/contact", "< 5 mA", "W12 to the magnetometer board A2 (RM3100) at the +Z end frame: 3V3_SNS, GND, SDA, SCL, DRDY, GND",
+              "1 A/contact", "< 5 mA", "W6E to the magnetometer board A2 (RM3100) at the +Z end frame: 3V3_SNS, GND, SDA, SCL, DRDY, GND",
               "Sn", "Digi-Key: Active (EPS board)")
     conn(j, {"P1": "3V3_SNS", "P2": "GND", "P3": "SDA_S", "P4": "SCL_S", "P5": "MG_DRDY", "P6": "GND"})
     R(100e3, "MG_DRDY", "GND", note="DRDY defined with the harness unplugged")
@@ -838,26 +838,27 @@ J1_PINS = ["3V3_OBC", "3V3_OBC", "GND", "GND", "I2C2_SCL", "I2C2_SDA", "GND", "E
 
 
 def rf_connector():
-    j = place(CONN("FTSH_2x7", 14), "J2", "RF", "FTSH-107-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x7 SMT", "2.4 A/contact",
-              "signals < 5 mA", "W4A version 2 (mates RF J1, SQSO-RF-BRD-001 4.1)", "Au 10 uin", "not checked")
+    j = place(CONN("FTSH_2x8", 16), "J2", "RF", "FTSH-108-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x8 SMT", "2.4 A/contact",
+              "signals < 5 mA", "W4A version 3 (mates RF J1, SQSO-RF-BRD-001 4.1; pins 15-16 RX_CD, RX_FAULT new)", "Au 10 uin", "not checked")
     conn(j, {"P1": "GND", "P2": "TNC_RXD_J", "P3": "TNC_TXD_J", "P4": "GND", "P5": "TX_PWR_SEL_J", "P6": "XPDR_EN_J",
              "P7": "GND", "P8": "TONE_OK_J", "P9": "XPDR_KEY_J", "P10": "PTT_EXC_J", "P11": "TX_TEMP_J",
-             "P12": "TX_FWD_J", "P13": "TX_REV_J", "P14": "GND"})
+             "P12": "TX_FWD_J", "P13": "TX_REV_J", "P14": "GND",
+             "P15": "RX_CD_J", "P16": "RX_FAULT_J"})
     R(100, "USART2_TX", "TNC_RXD_J", note="series")
     R(100, "TX_PWR_SEL", "TX_PWR_SEL_J", note="series")
     R(100, "XPDR_EN", "XPDR_EN_J", note="series")
     for src, dst in (("TNC_TXD_J", "USART2_RX"), ("TONE_OK_J", "TONE_OK"), ("XPDR_KEY_J", "XPDR_KEY"),
-                     ("PTT_EXC_J", "PTT_EXC_RB")):
+                     ("PTT_EXC_J", "PTT_EXC_RB"), ("RX_CD_J", "RX_CD"), ("RX_FAULT_J", "RX_FAULT")):
         R(10e3, src, dst, note="back-power limit into an unpowered OBC")
     R(100e3, "3V3_OBC", "USART2_RX", note="RX idle high with the radio off")
-    for n in ("TONE_OK", "XPDR_KEY", "PTT_EXC_RB"):
-        R(100e3, n, "GND", note="reads low with the radio unpowered (RF board 4.1)")
+    for n in ("TONE_OK", "XPDR_KEY", "PTT_EXC_RB", "RX_CD", "RX_FAULT"):
+        R(100e3, n, "GND", note="reads low with the radio unpowered (RF board 4.1); RX_FAULT low = healthy")
     for src, dst in (("TX_TEMP_J", "TX_TEMP"), ("TX_FWD_J", "TX_FWD"), ("TX_REV_J", "TX_REV")):
         R(10e3, src, dst, note="analog series (back-power limit)")
         C("10n", dst, "GND", note="ADC reservoir")
     esd4(None, ["TNC_RXD_J", "TNC_TXD_J", "TX_PWR_SEL_J", "XPDR_EN_J"], "J2 RF")
-    esd4(None, ["TONE_OK_J", "XPDR_KEY_J", "PTT_EXC_J", None], "J2 RF")
-    esd4(None, ["TX_TEMP_J", "TX_FWD_J", "TX_REV_J", None], "J2 RF")
+    esd4(None, ["TONE_OK_J", "XPDR_KEY_J", "PTT_EXC_J", "RX_CD_J"], "J2 RF")
+    esd4(None, ["TX_TEMP_J", "TX_FWD_J", "TX_REV_J", "RX_FAULT_J"], "J2 RF")
 
 
 def adcs_power():
@@ -973,9 +974,9 @@ def finish_refs():
 
 def mag_board():
     """Magnetometer board A2 (SQSO-OBC-BRD-001 9.4): PNI RM3100 on a 24 x 24 mm two-layer board at the +Z end frame,
-    on harness W12 from OBC J10. Power, latch-up switch (U7) and bus isolation (U14, U33) stay on the OBC."""
+    on harness W6E from OBC J10. Power, latch-up switch (U7) and bus isolation (U14, U33) stay on the OBC."""
     j = place(CONN("PicoClasp_6", 6), "J1", "TO OBC J10", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
-              "< 5 mA", "W12 from OBC J10: 3V3_SNS, GND, SDA, SCL, DRDY, GND", "Sn", "Digi-Key: Active (EPS board)")
+              "< 5 mA", "W6E from OBC J10: 3V3_SNS, GND, SDA, SCL, DRDY, GND", "Sn", "Digi-Key: Active (EPS board)")
     conn(j, {"P1": "3V3_SNS", "P2": "GND", "P3": "SDA_S", "P4": "SCL_S", "P5": "MG_DRDY", "P6": "GND"})
     esd4("D1", ["3V3_SNS", "SDA_S", "SCL_S", "MG_DRDY"], "J1 (harness end)")
     ic(S_MAGI2C, "U1", "RM3100 MagI2C", "13156", "PNI Sensor", "MLF-28 (PNI MagI2C)",

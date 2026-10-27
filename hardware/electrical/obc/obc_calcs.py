@@ -203,7 +203,7 @@ BP = {
     "five EPS analog lines (>= 167 k)": 5 * 2.8 / 167e3,
     "VSW1_RB, VJET_RB (167 k + 1 k)": 2 * 2.8 / 168e3,
     "TNC_TXD idle high (100 + 10 k)": 3.1 / 10.1e3,
-    "TONE_OK, XPDR_KEY, PTT_EXC if high (1 k + 10 k)": 3 * 3.1 / 11e3,
+    "TONE_OK, XPDR_KEY, PTT_EXC, RX_CD, RX_FAULT if high (1 k + 10 k)": 5 * 3.1 / 11e3,
     "TX_TEMP, TX_FWD, TX_REV (1 k + 10 k, at 1.7/2.5/1.25 V)": (1.7 + 2.5 + 1.25) / 11e3,
     "RTC CLKOUT (1 M), EVI (input)": 3.3 / 1e6,
     "Jetson, GNSS, sensor buses (translators: Ioff)": 0.0,
@@ -216,7 +216,8 @@ put("backpower_total", bp_total, "A", "worst case (every readback high); typical
 OBC = {"STM32L4R5 at 80 MHz, peripherals on (allocation; DS12023 not read)": 20e-3, "8 MHz XO": 3e-3,
        "FM25V20A (active 20 MHz, 15 % of time)": 0.45e-3, "TPS3850, TMP235, HC4060, gates": 0.2e-3,
        "translators and TCA9517 A side": 0.3e-3, "pull-downs on driven-high EPS/RF lines": 0.25e-3,
-       "I2C pull-ups (average)": 0.8e-3, "DRV8876 VREF divider": 0.12e-3}
+       "I2C pull-ups (average)": 0.8e-3, "DRV8876 VREF divider": 0.12e-3,
+       "spreader NTC bias (10.0 k + RT1 at 70 C)": 3.3 / (10e3 + r_ntc(70))}
 i_obc = put("i_3v3_obc", sum(OBC.values()), "A", "3V3_OBC worst normal; EPS SW10 trips at 0.130 A min")
 put("i_3v3_obc_items", OBC, "A")
 put("i_3v3_obc_margin", 0.130 / i_obc, "", "trip over load")
@@ -231,6 +232,8 @@ CB = 120e-12
 put("i2c2_tr", 0.8473 * 2.2e3 * CB, "s", "I2C2 rise time, 2.2 k, 120 pF (EPS + W3 + AntS buffer): <= 300 ns for 400 kHz")
 put("i2c2_iol", 3.3 / 2.2e3, "A", "sink current at VOL (<= 3 mA)")
 put("i2c4_tr", 0.8473 * 2.2e3 * 50e-12, "s", "I2C4 OBC side, 50 pF")
+put("i2c4b_tr", 0.8473 * 4.7e3 * (0.25 * 100e-12 + 25e-12), "s",
+    "I2C4 sensor side (4.7 k): W6E 0.25 m at 100 pF/m plus 25 pF of parts and ESD on both boards; <= 300 ns at 400 kHz")
 put("i2c1_tr", 0.8473 * 4.7e3 * 30e-12, "s", "I2C1 to the RTC, 4.7 k, 30 pF (100 kHz)")
 
 # ------------------------------------------------------------------------------------------------ 10 harness

@@ -154,18 +154,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-272 RIDs: severity 1: 29, severity 2: 149, severity 3: 94.
+279 RIDs: severity 1: 29, severity 2: 154, severity 3: 96.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 97 | 131 |
+| Closed by design change | 97 | 151 |
 | Closed by chair decision | 36 | 35 |
 | Verification item | 36 | 35 |
-| Decision point (dated) | 12 | 12 |
-| Implementation | 66 | 34 |
+| Decision point (dated) | 13 | 13 |
+| Implementation | 72 | 20 |
 
-Open implementation RIDs: SE-01, SE-15, SE-16, RF-04, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, THM-02, THM-08, THM-15, AV-03, AV-07, FSW-05, FSW-07, FSW-09, RAD-02, RFB-03, RFB-04, EPSB-01, EPSB-03, JETB-01, JETB-02, JETB-03, JETB-05, JETB-09, MCAD-06, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, GNC-07, GNC-08, RFB-07, EPSB-01, JETB-11, JETB-01, JETB-02, JETB-03, JETB-05, JETB-09, MCAD-06, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -264,7 +264,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RF-01 | 2 | Link budget not re-issued (TB-05) | CA | Closed by analysis | SQSO-LBA-001 v3.0 |
 | RF-02 | 2 | Telecommand at 25 W short of 6 dB | CD | Closed by design change | Stations at 50 W PEP: +5.3 dB at 10° (SQSO-GND-001 Rev C) |
 | RF-03 | 2 | Antenna element orientation against the spin unspecified | CH | Closed by chair decision | BASELINE §7: 2 m elements along ±X (with STR-01) |
-| RF-04 | 3 | 60 s beacon interval equals the spin period: losses repeat | IMP | Implementation | ±5 s beacon interval jitter |
+| RF-04 | 3 | 60 s beacon interval equals the spin period: losses repeat | IMP | Closed by design change | Beacon interval jittered ±5 s, mean unchanged (SRS-F127; test_beacon) |
 | RF-05 | 3 | SYS-222 gain requirement unachievable with a monopole | CH | Closed by chair decision | SYS-222 replaced by the pass-weighted gain requirement (RF-P013) |
 | RF-06 | 2 | Downlink 3rd harmonic inside the uplink segment | CH | Closed by chair decision | BASELINE §7 Uplink 435.000-437.300 MHz |
 | RF-07 | 2 | 60 dB 3rd-harmonic suppression costs 3.2 dB | CH | Closed by chair decision | BASELINE §7: ≥ 70 dB at the antenna port; VI-RF-04, VI-RF-06 |
@@ -282,7 +282,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RF-19 | 2 | Budget inputs need hardware | VI | Verification item | VI-RF-01, 03, 08, 09, 10 |
 | RF-20 | 3 | Self-generated EMI into the receivers | VI | Verification item | VI-RF-07 |
 | RF-21 | 3 | Repeat-path readbacks not wired to the OBC | IMP | Closed by design change | Readbacks wired on the RF board (W4 J1-8/9/10) and the OBC (PC9, PG12, PC7) |
-| RF-22 | 3 | SIL link model simplified | IMP | Implementation | sqso-sil env/link.rs to LBA v3.0 |
+| RF-22 | 3 | SIL link model simplified | IMP | Closed by design change | SIL link model to LBA 3.0 |
 
 #### Ground segment (GND)
 
@@ -290,7 +290,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | GND-01 | 1 | No telecommand station agreed | DP | Decision point (dated) | Written agreements for ≥ 2 stations ≥ 1,000 km apart by 2027-01-05 (BASELINE §1) |
 | GND-02 | 2 | Ground design incomplete (70 cm TX, keys, time, power) | CD | Closed by design change | SQSO-GND-001 Rev C |
-| GND-03 | 2 | No command response or contact count in the downlink | IMP | Implementation | Command acknowledgement frame; contact count in the beacon |
+| GND-03 | 2 | No command response or contact count in the downlink | IMP | Closed by design change | Acknowledgement after each counted command; HK1 adds CN, PS, RX, ST (SRS-F125, F126); SIL 1,370 acks |
 | GND-04 | 2 | Shared counter file is a common-mode failure | CD | Closed by design change | UTC-derived counters (ICD-013 v0.7 §5.2.1) |
 | GND-05 | 2 | Bay Area within 240 km of Beale AFB: 50 W PEP limit | CD | Closed by design change | GND-R3; FCC consultation item |
 | GND-06 | 3 | Operations manual did not match the dictionary | CD | Closed by design change | SQSO-GSOM-001 1.1 |
@@ -301,7 +301,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| REG-01 | 1 | No passivation telecommand exists | IMP | Implementation | PASSIVATE_ARM / PASSIVATE_EXECUTE (ICD-013 v0.7 §6.4) with the EPS one-shot disconnect (EPS-06) |
+| REG-01 | 1 | No passivation telecommand exists | IMP | Closed by design change | PASSIVATE_ARM 0x70 (operational key, 600 s window) and PASSIVATE_EXECUTE 0x71 (recovery key): TX-OFF latched, then EOL_ARM and EOL_FIRE 60-120 s in sunlight, up to 3 attempts, confirmed from EOL_STATE (SRS-F110-F112; test_passivation.c); SIL passivated by telecommand on day 730.1; EM test V-EPS-8 |
 | REG-02 | 2 | No dated regulatory plan | CD | Closed by design change | REGULATORY_ROADMAP Rev B |
 | REG-03 | 3 | FCC rule changes after 2024 unchecked | CA | Closed by analysis | eCFR 2026-10-01 |
 | REG-04 | 3 | IARU lead time unknown | CA | Closed by analysis | Median 57 d; schedule updated |
@@ -311,12 +311,13 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | REG-08 | 3 | NOAA consultation not sent | DP | Decision point (dated) | PI by 2026-11-30 |
 | REG-09 | 2 | 30-day pre-space rule against the dates | CD | Closed by design change | File early 2027-01-19, replace after contract (SQSO-LVR-001 §9) |
 | REG-10 | 3 | FCC consultation agenda lacks RF questions | CH | Closed by chair decision | Consultation agenda in REGULATORY_ROADMAP |
+| REG-11 | 2 | Beacon kept on with a known-failed receiver: a transmitter that telecommand cannot turn off | DP | Decision point (dated) | Declared in the IARU request item 7.9 and put to the FCC consultation (decision D3) by the licensee with the pre-space notification, 2027-01-19; if rejected, one condition in contact_monitor.rs removes it |
 
 #### Data budget (DB)
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| DB-01 | 2 | Stored housekeeping not implemented, no downlink path | IMP | Implementation | 5-min summaries ≥ 7 days, fault windows, DUMP_TLM (BASELINE §8) |
+| DB-01 | 2 | Stored housekeeping not implemented, no downlink path | IMP | Closed by design change | Stored housekeeping (SRS-F120-F122): 5-minute records for 7.1 days, 60 s records for 6.8 h, three fault windows; DUMP_TLM 0x0A, 4 records per frame every 12 s; SIL dumps check |
 | DB-02 | 3 | Data budget compared the wrong quantities | CA | Closed by analysis | SQSO-DB-001 v2.0 |
 
 #### Orbital debris (ODA)
@@ -346,7 +347,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SMA-10 | 3 | Integration SOC inconsistent | CD | Closed by design change | 60 % ± 5 % everywhere (EPS-20) |
 | SMA-11 | 2 | Pure tin and other prohibited materials | CD | Closed by design change | EEE_PARTS_LIST Rev C §2A.3 |
 | SMA-12 | 2 | EEE list: unsourced radiation claims, stale parts | CD | Closed by design change | SQSO-MFG-002 Rev C |
-| SMA-13 | 2 | Passivation command does not exist | IMP | Implementation | With REG-01 |
+| SMA-13 | 2 | Passivation command does not exist | IMP | Closed by design change | With REG-01 |
 | SMA-14 | 2 | Success criteria stale | CD | Closed by design change | SQSO-MSC-001 2.0 |
 | SMA-15 | 3 | Telemetry needed by the success criteria missing | IMP | Implementation | With LV-27 (MSC v2.0 §7 field list) |
 | SMA-16 | 2 | Risk register not 5×5 | CD | Closed by design change | SQSO-RISK-001 Rev B |
@@ -358,7 +359,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | REL-01 | 2 | Reliability goals unsupported and not met | CH | Closed by chair decision | Accept 0.75/0.60/0.50 as Class D risk; test programme (≥ 500 h flatsat, ≥ 200 h burn-in) to reach 0.86/0.70/0.58 |
 | REL-02 | 2 | Reliability document errors | CD | Closed by design change | SQSO-REL-001 2.0 |
 | REL-03 | 2 | One burn driver for both wings | CD | Closed by design change | EPS_DESIGN 2.0 §5.1: one driver per resistor, two resistors per wing |
-| REL-04 | 2 | Failed receiver plus the loss-of-contact inhibit silences the beacon | IMP | Implementation | Keep the beacon when the receiver is known failed (D3 logic) |
+| REL-04 | 2 | Failed receiver plus the loss-of-contact inhibit silences the beacon | IMP | Closed by design change | Beacon continues when the receiver is known failed (recovery tried, health line in fault, contact timeout expired); transponder off; SIL contingency 26.5 days, longest gap 66 s (SRS-F116, F117); regulatory acceptance REG-11; health line RFB-07 |
 | REL-05 | 3 | No hardware FMEA or critical items list | CD | Closed by design change | SQSO-FMEA-002 |
 
 #### Structures and mechanisms (STR)
@@ -414,13 +415,13 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | EPS-03 | 2 | EPS documents described a 2S module EPS | CD | Closed by design change | EPS_DESIGN 2.0; PDU 1.1; EPS_ELECTRICAL 1.1; ICD-001 1.1 |
 | EPS-04 | 1 | Third inhibit not designed (array path) | CD | Closed by design change | EPS_DESIGN §8 DS3; drawings S1/B2/W7 IMP |
 | EPS-05 | 2 | Deployment-switch rating unspecified | CD | Closed by design change | §8.4 RC-filtered FET gates |
-| EPS-06 | 2 | End-of-life charge disconnect has no hardware design, command or pins | IMP | Implementation | EPS_DESIGN §7 design; commands and pins with REG-01 |
+| EPS-06 | 2 | End-of-life charge disconnect has no hardware design, command or pins | IMP | Closed by design change | One-shot disconnect F1 with EOL_FIRE and EOL_ARM latch (SQSO-EPS-BRD-001 §7), PF4 and PG1 (SQSO-ICX-001), commands with REG-01; V-EPS-8 |
 | EPS-07 | 2 | Drawings drive the antennas from the OBC though AntS is bought | IMP | Closed by design change | S5 and W7 redrawn for the AntS: supply after DS1-DS3, switched by DEPLOY_EN, I2C through a TCA9517 (SQSO-EPS-BRD-001) |
 | EPS-08 | 2 | BMS low-temperature discharge cut-off would keep the bus dark | CD | Closed by design change | BATTERY_DESIGN 2.2 §4.1 |
 | EPS-09 | 2 | Stuck-on Jetson drains the pack | CD | Closed by design change | Hardware load shed below 13.6 V (EPS_DESIGN §6) |
-| EPS-10 | 3 | ACTIVE with wings stowed closes only through the SOC gate | IMP | Implementation | Hold IDLE when the wings read not deployed |
+| EPS-10 | 3 | ACTIVE with wings stowed closes only through the SOC gate | IMP | Closed by design change | IDLE held while the wings are spent and not deployed (SRS-F128; test_ops_state) |
 | EPS-11 | 2 | Overcharge had two firmware-set controls | CD | Closed by design change | Secondary 4.35 V protector (SQSO-BSA-001 H1); V-BSA-2 |
-| EPS-12 | 2 | No latched recharge lockout | CD | Closed by design change | EPS_DESIGN §3.3; clear command IMP |
+| EPS-12 | 2 | No latched recharge lockout | CD | Closed by design change | EPS_CLEAR_LOCKOUT 0x14: I2C unlock then LOCK_CLR 150 ms (SRS-F129); V-EPS-9 |
 | EPS-13 | 3 | String TVS below cold Voc; wire derating | CD | Closed by design change | SMBJ7.0A; 24 AWG |
 | EPS-14 | 3 | GNSS_EN proposed on PE4 (XPDR_EN) | IMP | Closed by design change | GNSS_EN PE5, XPDR_EN PE4 (SQSO-ICX-001) |
 | EPS-15 | 2 | Jetson and PA share one 5 V buck | CD | Closed by design change | Separate PA buck (EPS_DESIGN); drawing S2 IMP |
@@ -438,20 +439,20 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
 | THM-01 | 1 | Thermal analysis used the wrong orbit and had no model | CA | Closed by analysis | SQSO-THA-001 v2.0 |
-| THM-02 | 2 | Heater set points leave too little margin to 0 °C | IMP | Implementation | sqso_fsw::heater +5/+9 °C (BASELINE §8) |
+| THM-02 | 2 | Heater set points leave too little margin to 0 °C | IMP | Closed by design change | Heater on below +5 °C, off above +9 °C (SRS-F130) |
 | THM-03 | 3 | Wings stowed at β = 0 saturates the heater | VI | Verification item | V-THM-1 |
 | THM-04 | 2 | SYS-600/601 cannot be met by the boards with margin | CH | Closed by chair decision | Per-unit allowable flight temperatures (THERMAL_DESIGN 1.3 §1.1; BASELINE §8) |
 | THM-05 | 2 | Wing cell qualification range unknown | VI | Verification item | V-THM-4 (−56 to +93 °C) |
 | THM-06 | 2 | Cold dispenser soak at the −10 °C discharge limit | VI | Verification item | V-THM-5 |
 | THM-07 | 1 | Hot dispenser soak > +60 °C after 2.4 h | VI | Verification item | V-THM-5 with the integrator's dispenser analysis |
-| THM-08 | 3 | No minimum Jetson power-on temperature | IMP | Implementation | Inhibit below −15 °C (BASELINE §6) |
+| THM-08 | 3 | No minimum Jetson power-on temperature | IMP | Closed by design change | Jetson not powered below −15 °C (SRS-F131) |
 | THM-09 | 2 | Battery node had no radiative coupling | CD | Closed by design change | sqso-sil env/thermal.rs |
 | THM-10 | 2 | Jetson junction-to-spreader resistance unknown | VI | Verification item | V-THM-3 |
 | THM-11 | 3 | Baseline hot case unreachable for this orbit | CH | Closed by chair decision | BASELINE §8 Thermal cases |
 | THM-12 | 3 | SIL batches 10 min against the baseline's 120 s bursts | CH | Closed by chair decision | BASELINE §6 AI burst: ≤ 10 min per power-on |
 | THM-13 | 3 | SpaceX protoflight thermal range exceeds the battery limits | VI | Verification item | V-THM-6 |
 | THM-14 | 3 | THERMAL_DESIGN stale | CD | Closed by design change | THERMAL_DESIGN 1.3 |
-| THM-15 | 3 | SIL heater fixed 0.5 W | IMP | Implementation | V²/R heater in sqso-sil mission.rs |
+| THM-15 | 3 | SIL heater fixed 0.5 W | IMP | Closed by design change | SIL heater V²/R with 207 Ω |
 
 #### EMC (EMC)
 
@@ -473,11 +474,13 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | AV-04 | 2 | GNSS chain missing | CD | Closed by design change | LPUART1 PG7/PG8, GNSS_EN PE5, gnss_schedule.rs; receiver trip VI AV-V8 |
 | AV-05 | 2 | No TONE_OK or XPDR_KEY readbacks | IMP | Closed by design change | TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 (timer capture) with pull-downs (SQSO-ICX-001) |
 | AV-06 | 2 | One software state bit drives both Jetson switches, no readback | IMP | Closed by design change | PAYLOAD_EN and JETSON_PWR on separate lines with JET_PG readback; JET_3V3 high only when the whole chain is up (SQSO-JET-BRD-001, SQSO-ICX-001) |
-| AV-07 | 2 | No SRAM parity handler, TMR or scrubbing | IMP | Implementation | SRAM2 parity with NMI handler; CRC of critical state (flight software round 2) |
+| AV-07 | 2 | No SRAM parity handler, TMR or scrubbing | IMP | Closed by design change | Statics in SRAM2 with parity, NMI handler for parity, flash ECC and clock security, 60 s FRAM cross-check of the TX-OFF, operations and passivation records (SRS-F132, F133; MEMORY_POLICY §10); RAD-V6; option byte AV-12, stack AV-13 |
 | AV-08 | 2 | OBC and radio rail latch-up trips not specified | IMP | Closed by design change | Current-limited auto-retry rails: OBC 0.15 A, radio 0.12 A, sensors 0.30 A, GNSS 0.20 A, EPS controller 75 mA, AntS 1.37 A, PA 0.99 A (SQSO-EPS-BRD-001) |
 | AV-09 | 2 | Idle USART1 TX can back-power the unpowered Jetson | IMP | Closed by design change | UART through SN74LVC1T45-Q1 buffers powered from the carrier's 3.3 V: high impedance when the carrier is off |
 | AV-10 | 3 | No mission clock across resets | IMP | Closed by design change | RV-3028-C7 RTC on the always-on rail, its own I2C bus; time-stamps every reset |
 | AV-11 | 1 | XPDR_EN was a level | CD | Closed by design change | 100 Hz heartbeat, 60 ms lease, TIM7 on PE4; test_xpdr_heartbeat.c; SIL radio |
+| AV-12 | 2 | SRAM2 parity is enabled only by an option byte that the flight software never writes | IMP | Implementation | Board programming procedure sets SRAM2_PE; boot telemetry reports parity state |
+| AV-13 | 3 | Stack in SRAM3, which has no parity | IMP | Implementation | Move the stack into SRAM2 and update the pinned initial SP in the CI image check |
 
 #### Flight software (FSW)
 
@@ -485,11 +488,11 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | FSW-01 | 1 | On the target, a silent EPS controller skipped the detumble and reported it complete | CD | Closed by design change | executive.rs run_adcs: host-only stand-in |
 | FSW-04 | 2 | SRS lacked transponder, commissioning and ADCS requirements; SRS-F081 undefined | CD | Closed by design change | SRS 1.6: SRS-F080..F094, F100..F107 |
-| FSW-05 | 2 | transponder.rs and ops_state.rs meet the safety-critical criteria but are not listed | IMP | Implementation | Chair: add to the list, 100 % line and condition coverage (round 2) |
+| FSW-05 | 2 | transponder.rs and ops_state.rs meet the safety-critical criteria but are not listed | IMP | Closed by design change | transponder.rs and ops_state.rs (fsw and ffi) on the safety-critical list (SRS-Q013): 26 files, 0 problems, 3 reviewed exemptions |
 | FSW-06 | 2 | SWE-220 cyclomatic complexity not measured for the Rust | VI | Verification item | Compliance matrix open item C-4 |
-| FSW-07 | 2 | No end-of-life passivation telecommand | IMP | Implementation | With REG-01 |
+| FSW-07 | 2 | No end-of-life passivation telecommand | IMP | Closed by design change | With REG-01 |
 | FSW-08 | 2 | Software FMEA scales inverted | CA | Closed by analysis | SOFTWARE_FMEA B §14 |
-| FSW-09 | 2 | No recovery from a receiver SEFI | IMP | Implementation | RADIO_EN power cycle after a defined silence (round 2) |
+| FSW-09 | 2 | No recovery from a receiver SEFI | IMP | Closed by design change | RADIO_EN power cycle after 24 h of silence, never in a pass (SRS-F115); SIL 7 of 7 hangs recovered; input lines RFB-07 |
 | FSW-10 | 2 | NPR 7150.2D Appendix C mapping missing | CD | Closed by design change | SQSO-FSW-012 |
 | FSW-11 | 3 | 3·10⁻⁴ nutation gain fails without a gyro | CD | Closed by design change | NUTATION_GAIN_NO_GYRO = 1·10⁻⁴ |
 | FSW-12 | 3 | Three documents name different magnetometers and gyros; L293D cannot run at 3.3 V | CD | Closed by design change | ADCS_DESIGN 1.5; ICD_OBC_ADCS §12 |
@@ -500,7 +503,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
 | RAD-01 | 2 | Margin on 10 krad is 1.90×, below 2× | CH | Closed by chair decision | BASELINE §6: ≥ 2.1 mm Al-equivalent by sector analysis |
-| RAD-02 | 3 | SIL dose model low by 0.55-0.64 | IMP | Implementation | sqso-sil env/radiation.rs (round 2) |
+| RAD-02 | 3 | SIL dose model low by 0.55-0.64 | IMP | Closed by design change | SIL dose model to RADIATION_ANALYSIS §4; full run 4.9 krad |
 | RAD-03 | 3 | Upset rate and mitigation claims unsupported | CA | Closed by analysis | RADIATION_ANALYSIS C §5 |
 
 #### Guidance, navigation and control (GNC)
@@ -513,15 +516,18 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | GNC-04 | 2 | Magnetometer not selected, no driver | IMP | Closed by chair decision | Magnetometer: PNI RM3100 on the OBC board, bought-module footprint as fallback (chair accepts OBC_BOARD_DESIGN §24 C1); driver in the flight software |
 | GNC-05 | 2 | Spin axis and inertia selectable for one wing | CD | Closed by design change | ADCS_SET_GEOMETRY 0x24; SRS-F094 |
 | GNC-06 | 3 | Rod remanence not modelled | VI | Verification item | AV-V4 |
+| GNC-07 | 3 | ADCS Monte Carlo plant rows still the MASS_BUDGET 3.0 values; at Iyy/Izz = 1.000 only 73 % of sunlit time is within 15° | IMP | Implementation | Plant rows to the CAD CBE and MEV tensors in adcs_mc_cdr.sh and ADCS_DESIGN §11.4; ratio requirement ≥ 1.03 stands (CAD 1.056 / 1.047) |
+| GNC-08 | 2 | Gyro correction matrix needed (VI-MCAD-05) and the magnetometer unusable for actuation during Jetson bursts (JETB-09) | IMP | Implementation | Flight software: persisted gyro alignment matrix set by telecommand (data only); magnetometer not used for actuation while JET_PG is high |
 
 #### RF board (round 2) (RFB)
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
+| RFB-07 | 2 | The RF board gives the OBC no carrier-detect or receiver-health line, so receiver supervision (FSW-09, REL-04) has no inputs | IMP | Implementation | RF board: RX_CD and RX_FAULT lines; OBC pins in SQSO-ICX-001; firmware pins |
 | RFB-01 | 2 | Transponder draws 1.76 W DC at 0.5 W RF, not the baseline's ≈ 1.5 W | CH | Closed by chair decision | BASELINE §5 allocation 1.8 W DC / 0.44 W orbit average; margins +32 %/+75 % (allocation), +53 %/+29 % (bottom-up) |
 | RFB-02 | 3 | Receive SAW drift and clock harmonics at 435.000 MHz constrain the uplink | CH | Closed by chair decision | BASELINE §7 Uplink: request 435.050-436.500 MHz |
-| RFB-03 | 2 | Analog FM receivers discontinued: repeat audio passes through the TNC firmware | IMP | Implementation | TNC firmware as a Class C item in the SDP and the NPR 7150.2D matrix |
-| RFB-04 | 3 | Unkey ≤ 118 ms after a stalled main loop against VI-RF-11's 100 ms | IMP | Implementation | Shorten the heartbeat lease to ≤ 40 ms, or define VI-RF-11 from the last edge |
+| RFB-03 | 2 | Analog FM receivers discontinued: repeat audio passes through the TNC firmware | IMP | Closed by design change | TNC firmware a Class C item (SDP 1.4 §3.4, NPR 7150.2D matrix §2.4) |
+| RFB-04 | 3 | Unkey ≤ 118 ms after a stalled main loop against VI-RF-11's 100 ms | IMP | Closed by design change | Heartbeat lease 40 ms, drop within 90 ms (SRS-F081); HIL-040 measures the pass time |
 | RFB-05 | 3 | TCXO two-year ageing up to 2.1 ppm | CH | Closed by chair decision | Ground corrects the uplink from the measured downlink offset (same reference); no new command |
 | RFB-06 | 3 | Radio rail trip 0.25 A cannot see a 38 mA latch-up; LMX2571 margin at ±3 % rail | IMP | Closed by design change | Radio trip 0.12 A with current telemetry; 3V3_AO ±2 % (≥ 3.22 V at the RF connector) (SQSO-EPS-BRD-001) |
 
@@ -531,7 +537,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | EPSB-01 | 2 | Firmware fires driver A on both wings at once: 1.25 A at the pack | IMP | Implementation | Chair: four independent burn lines, one resistor at a time (0.67 A); flight software and SIL |
 | EPSB-02 | 3 | Uplink must avoid the synchronised converters' harmonics | CH | Closed by chair decision | BASELINE §7 Uplink: 435.222-435.778 MHz, else 436.222-436.500 MHz |
-| EPSB-03 | 2 | EPS controller (MSP430FR2355) firmware is a new configuration item | IMP | Implementation | Class C item in the SDP and the NPR 7150.2D matrix |
+| EPSB-03 | 2 | EPS controller (MSP430FR2355) firmware is a new configuration item | IMP | Closed by design change | EPS controller firmware a Class C item (SDP 1.4 §3.4) |
 | EPSB-04 | 3 | Tracker efficiency 90.9-92.3 % against EPS-F002's 92 % | VI | Verification item | EM measurement V-EPS; generation effect < 2 %, inside the power margins |
 | EPSB-05 | 3 | ITV4030 fuses rated from −10 °C, below the board's −30 °C allowable | VI | Verification item | V-EPS-8 qualification |
 | EPSB-06 | 3 | Cross-document consistency after the EPS board (B2, diagram README, radiation trip table, BSA H8a, ICD-001, EMC E6/E8, IARU uplink windows) | IMP | Closed by design change | Consistency pass: B1-B4 redrawn with DS3, diagram findings F1-F17 dispositioned, RADIATION D §5.3 trips, BSA B H8a, ICD-001 1.2, EMC B §5.1 (E6, E8), IARU request A.3 windows; SVGs rendered |
@@ -553,6 +559,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
+| JETB-11 | 2 | SIL Jetson model spends 0.036 Wh (130 J) per AI beacon; the carrier design gives 7.2-7.5 W at the input and about 424 J per line for a full burst | IMP | Implementation | SIL Jetson power model to SQSO-JET-BRD-001 (6.5 W cap); re-run the AI-energy check |
 | JETB-01 | 2 | Jetson burst draws 7.7-8.0 W at the carrier input in the 7 W mode: no margin to the 8 W allocation | IMP | Implementation | Chair: cap the module at 6.5 W (VDD_IN average limit 1300 mA, INA3221 ch 1), nvpmodel ID 1 default (+6.5 to +10 %); payload software configuration |
 | JETB-02 | 2 | Heat-spreader temperature has no sensor path with the carrier off (guard 70 °C, power-on gate −15 °C) | IMP | Implementation | W5B to 6 pins with the spreader thermistor passed through; OBC ADC channel and 10.0 kΩ bias (E10) |
 | JETB-03 | 2 | Module needs 8N2 from the OBC, a commanded SHUTDOWN before power removal (hold-up 0.11 ms), JPC from IMON_JET | IMP | Implementation | Flight software round 3 (uart.rs 8N2; SHUTDOWN, JET_PG fall ≤ 5 s, then JETSON_PWR and PAYLOAD_EN 10 ms apart; ICD-002 1.3 §10) |

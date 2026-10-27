@@ -125,6 +125,7 @@ RIDS = [
     ("REG-08", 3, "NOAA consultation not sent", "DP", "PI by 2026-11-30"),
     ("REG-09", 2, "30-day pre-space rule against the dates", "CD", "File early 2027-01-19, replace after contract (SQSO-LVR-001 §9)"),
     ("REG-10", 3, "FCC consultation agenda lacks RF questions", "CH", "Consultation agenda in REGULATORY_ROADMAP"),
+    ("REG-11", 2, "Beacon kept on with a known-failed receiver: a transmitter that telecommand cannot turn off", "DP", "Declared in the IARU request item 7.9 and put to the FCC consultation (decision D3) by the licensee with the pre-space notification, 2027-01-19; if rejected, one condition in contact_monitor.rs removes it"),
     ("DB-01", 2, "Stored housekeeping not implemented, no downlink path", "IMP", "5-min summaries ≥ 7 days, fault windows, DUMP_TLM (BASELINE §8)"),
     ("DB-02", 3, "Data budget compared the wrong quantities", "CA", "SQSO-DB-001 v2.0"),
     # ---- Safety, debris, reliability (SMA, ODA, REL) ----
@@ -240,6 +241,8 @@ RIDS = [
     ("AV-09", 2, "Idle USART1 TX can back-power the unpowered Jetson", "IMP", "Back-power protection in the OBC board design"),
     ("AV-10", 3, "No mission clock across resets", "IMP", "RTC on the always-on rail (OBC board design)"),
     ("AV-11", 1, "XPDR_EN was a level", "CD", "100 Hz heartbeat, 60 ms lease, TIM7 on PE4; test_xpdr_heartbeat.c; SIL radio"),
+    ("AV-12", 2, "SRAM2 parity is enabled only by an option byte that the flight software never writes", "IMP", "Board programming procedure sets SRAM2_PE; boot telemetry reports parity state"),
+    ("AV-13", 3, "Stack in SRAM3, which has no parity", "IMP", "Move the stack into SRAM2 and update the pinned initial SP in the CI image check"),
     ("FSW-01", 1, "On the target, a silent EPS controller skipped the detumble and reported it complete", "CD", "executive.rs run_adcs: host-only stand-in"),
     ("FSW-04", 2, "SRS lacked transponder, commissioning and ADCS requirements; SRS-F081 undefined", "CD", "SRS 1.6: SRS-F080..F094, F100..F107"),
     ("FSW-05", 2, "transponder.rs and ops_state.rs meet the safety-critical criteria but are not listed", "IMP", "Chair: add to the list, 100 % line and condition coverage (round 2)"),
@@ -260,11 +263,14 @@ RIDS = [
     ("GNC-04", 2, "Magnetometer not selected, no driver", "IMP", "Selection in the OBC board design; driver in the flight software"),
     ("GNC-05", 2, "Spin axis and inertia selectable for one wing", "CD", "ADCS_SET_GEOMETRY 0x24; SRS-F094"),
     ("GNC-06", 3, "Rod remanence not modelled", "VI", "AV-V4"),
+    ("GNC-07", 3, "ADCS Monte Carlo plant rows still the MASS_BUDGET 3.0 values; at Iyy/Izz = 1.000 only 73 % of sunlit time is within 15°", "IMP", "Plant rows to the CAD CBE and MEV tensors in adcs_mc_cdr.sh and ADCS_DESIGN §11.4; ratio requirement ≥ 1.03 stands (CAD 1.056 / 1.047)"),
+    ("GNC-08", 2, "Gyro correction matrix needed (VI-MCAD-05) and the magnetometer unusable for actuation during Jetson bursts (JETB-09)", "IMP", "Flight software: persisted gyro alignment matrix set by telecommand (data only); magnetometer not used for actuation while JET_PG is high"),
     # ---- Mechanical CAD (MCAD) ----
     ("MCAD-01", 2, "Wing torsion springs do not fit the hinge envelope; flex bend radius 1.25 mm", "IMP", "Hinge redesign (round 2, mechanical designer)"),
     ("MCAD-02", 3, "Torquer deck 23 g against 6 g in the MEL", "IMP", "Lighten or grow the MEL row (round 2)"),
     ("MCAD-03", 3, "Sweep clearance 0.35 mm needs the body cells offset 1 mm", "DP", "Panel vendor RFQ"),
     # ---- Raised by the round-2 designs (RFB: RF board) ----
+    ("RFB-07", 2, "The RF board gives the OBC no carrier-detect or receiver-health line, so receiver supervision (FSW-09, REL-04) has no inputs", "IMP", "RF board: RX_CD and RX_FAULT lines; OBC pins in SQSO-ICX-001; firmware pins"),
     ("RFB-01", 2, "Transponder draws 1.76 W DC at 0.5 W RF, not the baseline's ≈ 1.5 W", "CH", "BASELINE §5 allocation 1.8 W DC / 0.44 W orbit average; margins +32 %/+75 % (allocation), +53 %/+29 % (bottom-up)"),
     ("RFB-02", 3, "Receive SAW drift and clock harmonics at 435.000 MHz constrain the uplink", "CH", "BASELINE §7 Uplink: request 435.050-436.500 MHz"),
     ("RFB-03", 2, "Analog FM receivers discontinued: repeat audio passes through the TNC firmware", "IMP", "TNC firmware as a Class C item in the SDP and the NPR 7150.2D matrix"),
@@ -280,6 +286,7 @@ RIDS = [
     ("EPSB-06", 3, "Cross-document consistency after the EPS board (B2, diagram README, radiation trip table, BSA H8a, ICD-001, EMC E6/E8, IARU uplink windows)", "IMP", "Documentation consistency pass"),
     # ---- Raised by the OBC board design (OBCB) ----
     ("EPSB-07", 3, "No magnetorquer current monitor on the EPS board", "CH", "Coil current is the sum of the OBC's MTQ_X/Y/Z_I channels; SW11 (TPS1H000A, 0.361 A, auto-retry) protects VBAT_MTQ (SQSO-EPS-BRD-001 B)"),
+    ("JETB-11", 2, "SIL Jetson model spends 0.036 Wh (130 J) per AI beacon; the carrier design gives 7.2-7.5 W at the input and about 424 J per line for a full burst", "IMP", "SIL Jetson power model to SQSO-JET-BRD-001 (6.5 W cap); re-run the AI-energy check"),
     ("JETB-01", 2, "Jetson burst draws 7.7-8.0 W at the carrier input in the 7 W mode: no margin to the 8 W allocation", "IMP", "Chair: cap the module at 6.5 W (VDD_IN average limit 1300 mA, INA3221 ch 1), nvpmodel ID 1 default (+6.5 to +10 %); payload software configuration"),
     ("JETB-02", 2, "Heat-spreader temperature has no sensor path with the carrier off (guard 70 °C, power-on gate −15 °C)", "IMP", "W5B to 6 pins with the spreader thermistor passed through; OBC ADC channel and 10.0 kΩ bias (E10)"),
     ("JETB-03", 2, "Module needs 8N2 from the OBC, a commanded SHUTDOWN before power removal (hold-up 0.11 ms), JPC from IMON_JET", "IMP", "Flight software round 3 (uart.rs 8N2; SHUTDOWN, JET_PG fall ≤ 5 s, then JETSON_PWR and PAYLOAD_EN 10 ms apart; ICD-002 1.3 §10)"),

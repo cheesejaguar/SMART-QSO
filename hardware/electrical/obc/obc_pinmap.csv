@@ -92,10 +92,10 @@ LQFP144 pin,port pin,net,function,dir,level,default at reset,connector / board
 22,PF10,GYRO_RB,GPIO in,I,low with GYRO_EN high = latch-up trip,analog (high-Z),U5 EN node (100 k)
 49,PF11,IMU2_RB,GPIO in,I,as GYRO_RB,analog (high-Z),U6 EN node (100 k)
 50,PF12,SNS_RB,GPIO in,I,as GYRO_RB,analog (high-Z),U7 EN node (100 k)
-53,PF13,-,spare,-,,analog (high-Z),
+53,PF13,RX_FAULT,"GPIO in, EXTI13",I,"3.1 V CMOS, high = receiver fault",analog (high-Z); 100 k pull-down (unwired or radio off reads healthy),"J2-16 RF board (10 k series; new, FSW round 2)"
 54,PF14,-,spare,-,,analog (high-Z),
 55,PF15,-,spare,-,,analog (high-Z),
-56,PG0,-,spare,-,,analog (high-Z),
+56,PG0,RX_CD,"GPIO in, EXTI0",I,"3.1 V CMOS, high = receiver carrier detect",analog (high-Z); 100 k pull-down,"J2-15 RF board (10 k series; new, FSW round 2)"
 57,PG1,EOL_FIRE,GPIO out,O,"3.3 V, high = fire (>= 60 s)",analog (high-Z); EPS 100 k pull-down,J1-33 EPS (new)
 87,PG2,FRAM_SCK,SPI1_SCK AF5,O,"3.3 V, 20 MHz mode 0",analog (high-Z),U3 (moved from PA5)
 88,PG3,FRAM_MISO,SPI1_MISO AF5,I,3.3 V,analog (high-Z),U3 (moved from PA6)

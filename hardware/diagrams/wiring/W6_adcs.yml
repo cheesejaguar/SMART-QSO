@@ -1,11 +1,12 @@
-# SQSO-HW-DIAG-001 W6: ADCS harnesses, version 2 (2026-10-27; SQSO-ICX-001 §3.4, SQSO-OBC-BRD-001 §7). There is no
-# separate ADCS board: the gyro (Epson M-G370PDT0 in socket X1), the BMI088 backup, the RM3100 magnetometer, the
+# SQSO-HW-DIAG-001 W6: ADCS harnesses, version 3 (2026-10-27; SQSO-ICX-001 §3.4, SQSO-OBC-BRD-001 §9-§10). There is no
+# separate ADCS board: the gyro (Epson M-G370PDT0 in socket X1), the BMI088 backup, the
 # sun-sensor amplifiers and the three DRV8876 magnetorquer H-bridges are on the OBC board (RID AV-03). W6 now carries:
 # W6B the 3V3_ADCS rail from EPS SW4 (ADCS_EN PB6, 0.30 A trip) into the OBC's three latch-up-protected sensor switches;
 # W6C the three CubeSpace CR0002 rods; W6D the six panel photodiodes. The magnetorquer supply VBAT_MTQ comes over W3.
-# Version 1's FTSH board-to-board connector and the DRV8833 inputs are deleted.
+# Version 1's FTSH board-to-board connector and the DRV8833 inputs are deleted. Version 3: the RM3100 magnetometer moves
+# to board A2 at the +Z end frame on W6E (OBC J10 to A2 J1), away from the rods (OBC board 9.4).
 metadata:
-  title: W6 ADCS v2 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.4)
+  title: W6 ADCS v3 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.4)
 
 options:
   fontname: Helvetica
@@ -49,6 +50,16 @@ connectors:
     type: panel photodiodes (bought with the panels, BUILD_VS_BUY 2.3)
     subtype: x6, short-circuit current at most 4.0 mA at AM0 normal incidence (requirement on the panel vendor)
     pinlabels: [PX_K, PX_A, MX_K, MX_A, PY_K, PY_A, MY_K, MY_A, PZ_K, PZ_A, MZ_K, MZ_A, SHIELD_1, SHIELD_2]
+  J_OBC_MAG:
+    type: Molex Pico-Clasp 5013310607
+    subtype: 6 pos
+    notes: "OBC J10: 3V3_SNS from U7, I2C4 SNS side via U14, DRDY via U33 to PD11"
+    pinlabels: &w6mag [3V3_SNS, GND, SDA_S, SCL_S, MG_DRDY, GND]
+  J_MAG:
+    type: Molex Pico-Clasp 5013310607
+    subtype: 6 pos
+    notes: "magnetometer board A2 J1 (RM3100 at 0x20), +Z end frame"
+    pinlabels: *w6mag
 
 cables:
   W6B:
@@ -73,8 +84,18 @@ cables:
     colors: [WH, BK, WH, BK, WH, BK, WH, BK, WH, BK, WH, BK, GY, GY]
     shield: true
     notes: "six twisted pairs in one shield, drains to OBC ground at J8 only; photocurrent at most 4 mA"
+  W6E:
+    category: bundle
+    gauge: 28 AWG
+    length: 0.25
+    wirecount: 6
+    colors: [RD, BK, BU, YE, WH, BK]
+    notes: "OBC to the +Z end frame through a wall gap; SDA and SCL each twisted with a ground; I2C at 100 kHz; under 2 mA"
 
 connections:
+  - - J_OBC_MAG: [1-6]
+    - W6E: [1-6]
+    - J_MAG: [1-6]
   - - J_EPS_ADCS: [1-2]
     - W6B: [1-2]
     - J_OBC_ADCS: [1-2]

@@ -104,7 +104,7 @@ def main(path: str):
     cases = [("F10.7 = 70 constant (bound)", constant_flux(70.0)),
              ("NOAA predicted + cycle 26 max 140 (nominal)", SCENARIOS["NOAA predicted + cycle 26 max 140 (nominal)"])]
     worst = 0.0
-    for alt in (475.0, 500.0, 525.0):
+    for alt in (475.0, 485.0, 500.0, 525.0):
         for mass in (1.6, 2.0):
             for sname, prof in cases:
                 for dname in ("wings failed (stowed), no antenna credit", "wings deployed, no antenna credit"):

@@ -1,13 +1,15 @@
-# SQSO-HW-DIAG-001 W8: GSE umbilical (access port) to the OBC, version 2 (2026-10-27; SQSO-ICX-001 §3.6,
+# SQSO-HW-DIAG-001 W8: GSE umbilical (access port) to the OBC, version 3 (2026-10-27; SQSO-ICX-001 §3.6,
 # SQSO-OBC-BRD-001 §11). Integration only; not connected in flight. Key loading and the console are on USART3 (PD8/PD9);
 # the flight software accepts key provisioning only with UMBILICAL_SENSE (PB8) high (SQSO-ICD-013 9.2), so the GSE plug
 # jumpers pin 9 to pin 1 (VTREF). Version 1 said the plug tied pin 9 to GND, which contradicts the firmware (pull-down,
 # present = high). Pin 5, a ground in version 1, is now WDT_DIS: the GSE pulls it high to disable the external window
 # watchdog (TPS3850 SET0) for debugging with a halted core; it takes effect at the next supervisor reset (power cycle).
 # Battery charging is not on this connector: it is the EPS access-port connector J13 (UMB_CHG, PACK_N, UMB_VMON,
-# UMB_SHUT; harness W11 proposed by SQSO-EPS-BRD-001), reached through the same access window.
+# UMB_SHUT; harness W11 proposed by SQSO-EPS-BRD-001), reached through the same access window. Version 3: the window is
+# on the -Y face in the -Z end zone, 48 mm below the OBC, so W8A (internal, flown) runs from OBC J9 (FTSH-105) to a
+# 2x5 2.54 mm bulkhead header at the window, and W8 is the GSE cable.
 metadata:
-  title: W8 GSE umbilical v2 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.6)
+  title: W8 GSE umbilical v3 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.6)
 
 options:
   fontname: Helvetica
@@ -15,11 +17,16 @@ options:
   color_mode: SHORT
 
 connectors:
-  J_ACCESS:
-    type: Samtec TST-105-01-L-D
-    subtype: 2x5, 2.54 mm shrouded
-    notes: "OBC J9 through the structure's access window: PA13, PA14, NRST, PD8, PD9, PB8, TPS3850 SET0"
+  J_OBC_ACC:
+    type: Samtec FTSH-105-01-L-DV-K
+    subtype: 2x5, 1.27 mm
+    notes: "OBC J9: PA13, PA14, NRST, PD8, PD9, PB8, TPS3850 SET0"
     pinlabels: &w8 [VTREF (3V3_OBC via 100 Ohm), SWDIO, GND, SWCLK, WDT_DIS, NRST, USART3_TX (OBC out), USART3_RX (OBC in), UMBILICAL_SENSE, GND]
+  J_ACCESS:
+    type: 2x5 2.54 mm shrouded bulkhead header (harness designer's part)
+    subtype: 2x5, 2.54 mm
+    notes: "at the access window, -Y face, -Z end zone; internal side W8A, external side the GSE plug"
+    pinlabels: *w8
   P_GSE:
     type: IDC receptacle
     subtype: 2x5, 2.54 mm
@@ -27,6 +34,13 @@ connectors:
     pinlabels: *w8
 
 cables:
+  W8A:
+    category: bundle
+    gauge: 28 AWG
+    length: 0.15
+    wirecount: 10
+    colors: [RD, BU, BK, YE, PK, WH, GN, OG, VT, BK]
+    notes: "internal, flown; through a wall gap to the access window"
   W8:
     type: ribbon
     category: bundle
@@ -37,6 +51,9 @@ cables:
     notes: "Ground support only; removed before flight with the RBF pin. The GSE UART adapter must be powered from VTREF (its RX line otherwise back-powers an unpowered OBC: 10 k series on the OBC limits it to 0.3 mA)"
 
 connections:
+  - - J_OBC_ACC: [1-10]
+    - W8A: [1-10]
+    - J_ACCESS: [1-10]
   - - J_ACCESS: [1-10]
     - W8: [1-10]
     - P_GSE: [1-10]

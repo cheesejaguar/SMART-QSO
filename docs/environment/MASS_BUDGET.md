@@ -19,12 +19,12 @@ margin against each mass limit, the centre of gravity (CG) and the inertia tenso
 
 | Quantity | CR0002 rods (BUILD_VS_BUY §1) | Air-core coils (BASELINE §8) |
 |----------|-------------------------------|------------------------------|
-| CBE | **1,492.7 g** | **1,574.1 g** |
+| CBE | **1,494.3 g** | **1,575.7 g** |
 | MGA (mass-weighted) | 15.6 % | 15.9 % |
-| MEV | **1,725.9 g** | **1,824.6 g** |
-| Margin to 2.00 kg (SYS-002; CDS Rev 14.1 Table 1) | **+15.9 %** (lower-growth case +22.0 %) | **+9.6 %** (lower-growth case +15.2 %) |
-| Margin to the EXOpod Nova 1U limit, 2.5 kg | +44.9 % | +37.0 % |
-| Margin to the NRCSD backup limit, 2.40 kg | +39.1 % | +31.5 % |
+| MEV | **1,727.7 g** | **1,826.5 g** |
+| Margin to 2.00 kg (SYS-002; CDS Rev 14.1 Table 1) | **+15.8 %** (lower-growth case +21.8 %) | **+9.5 %** (lower-growth case +15.1 %) |
+| Margin to the EXOpod Nova 1U limit, 2.5 kg | +44.7 % | +36.9 % |
+| Margin to the NRCSD backup limit, 2.40 kg | +38.9 % | +31.4 % |
 | CG, stowed (recommended layout, §5) | (−0.8, −0.7, −4.7) mm | (−1.2, −1.0, −4.5) mm |
 | CG, stowed, **from the CAD** (layout B as modelled, CBE / MEV; §6.6) | (+0.4, −0.2, −1.9) / (+0.5, −0.2, −0.7) mm | not modelled |
 | Deployed inertia **from the CAD** (AntS option A, CBE / MEV; §6.6) | Iyy/max(Ixx, Izz) 1.056 / 1.047; major axis 0.6° / 1.2° from +Y | not modelled |
@@ -51,12 +51,12 @@ magnetorquers with catalogue parts. Net change −198.0 g CBE with rods, −116.
 | Frame, rails, end plates, switches, brackets | 300.0 | 158.0 (rows 1–5) | −142.0 | Bought 1U frame 108–120 g (BUILD_VS_BUY §2.2) instead of a 280 g custom estimate; switches, separation springs, RBF listed separately |
 | Solar array: cells, panels, hinges | 237.8 | 274.2 (rows 6–11) | +36.4 | Vendor body panels (30–50 g each with cells) instead of a bare-FR-4 estimate; wing hardware rebuilt bottom-up |
 | Battery and isolated mount | 249.0 | 257.0 (rows 13–16) | +8.0 | Isolator bushings, Ti screws, disc springs, two heater elements and cutout (BUILD_VS_BUY §4.3) |
-| Jetson module, carrier, interface, spreader | 245.0 | 156.0 (rows 20–23) | −89.0 | Module 31 g (distributor weight) instead of the unsourced 120 g |
+| Jetson module, carrier, interface, spreader | 245.0 | 157.6 (rows 20–23) | −87.4 | Module 31 g (distributor weight) instead of the unsourced 120 g |
 | Antennas | 35.0 | 85.0 (row 19) | +50.0 | ISIS AntS 77–90 g |
 | Magnetorquers | 138.9 | 57.5 rods / 138.9 coils | −81.4 / 0 | CubeSpace CR0002 16.5 g each plus bracket |
 | Fasteners, spacers, staking | 25.0 | 45.0 (rows 34–35) | +20.0 | Stack spacers and adhesives counted |
 | All other rows (EPS, OBC, RF, ADCS sensors, GNSS, harness, thermal) | 460.0 | 460.0 | 0 | Unchanged; still estimates |
-| **Total** | **1,690.7** | **1,492.7 / 1,574.1** | **−198.0 / −116.6** | |
+| **Total** | **1,690.7** | **1,494.3 / 1,575.7** | **−196.4 / −115.0** | |
 
 BUILD_VS_BUY §1 predicted −200 to −250 g; the result is −198 g with rods because the antenna (+50 g) and the vendor panels
 (+36 g) offset part of the frame saving.
@@ -64,8 +64,8 @@ BUILD_VS_BUY §1 predicted −200 to −250 g; the result is −198 g with rods 
 ### 1.2 Changes from Version 3.0 (CAD reconciliation)
 
 The CAD model of layout B (`hardware/mechanical/model.py`, SQSO-MECH-CAD-001) carries every MEL row of §3.1 (rods
-option) on one or more solids; the CAD total equals the MEL total exactly (1,492.7 g CBE, 1,725.9 g MEV), so **the MEL
-masses and margins are unchanged**. What changes is the geometry behind §5 and §6: the CAD places each part where it
+option) on one or more solids; the CAD total equals the MEL total exactly (1,494.3 g CBE, 1,727.7 g MEV, with row 23 at 66.6 g: see the end of this
+section), so **the MEL masses and margins are those of §3.1**. What changes is the geometry behind §5 and §6: the CAD places each part where it
 fits (no overlaps, checked by boolean intersection) instead of the reference layout's free boxes, uses the bought parts'
 published envelopes (CR0002 rods 10.5 × 10.5 × 47 mm, not 70 mm; AntS 98 × 98 × 7 mm on a −Z face recessed 1.5 mm), the
 antenna configuration the chair adopted (option A: one 2 m element along +X, one 70 cm element along −X; BASELINE §7) and
@@ -76,7 +76,7 @@ where the reference layout gave 13–15°, which did not meet the BASELINE §4 l
 receiver) is a 1.0 mm Al skeleton of 7.8 g (a solid plate would be 23 g) and takes 9 g with its clips; the Jetson
 heat-path flanges, which row 5 had at 18 g, are 5.5 g of aluminium in the CAD and take 15 g with the thermal gasket,
 fasteners and inserts; hinge doublers 4 g; GNSS patch bracket 2 g: total 30 g. Had row 5 instead grown by the 3 g the
-deck needs over its first allocation, the MEV would be 1,729.7 g and the margin +15.6 % (from +15.9 %). The wing outline
+deck needs over its first allocation, the MEV would have been 1,729.7 g and the margin +15.6 % (against +15.9 % before the pedestal). The wing outline
 is 81.6 × 92 mm instead of 83 × 98 mm (FR-4 1.8 g lighter per wing, not taken). **Centre supports (chair decision,
 2026-10-27):** two per board on the EPS, OBC and carrier boards at (0, ±21) mm and one at (0, 0) on the RF board, carried
 by row 34 (2 g of spacers). **Gyro (OBC item C3):** the M-G370PDT0 in its socket stands 14.0 mm above the OBC, more
@@ -85,9 +85,10 @@ Jetson carrier, framed by a 2.2 g Al stiffener (SQSO-MECH-CAD-001 §4.3, D-11). 
 row 21 (carrier, 40 g) carries the frame in place of the 2.2 g of FR-4 the window removes; the mass properties below
 include it. **Jetson thermal interface (SQSO-JET-BRD-001 §14, item M1):** the spreader carries a
 22 × 22 × 0.75 mm pedestal over the SoC lid and a 0.5 mm second face over the DRAM and regulators: 1.8 g of Al on top of
-the 64.8 g plate, 66.6 g against the 65.0 g CBE of row 23. It is carried inside row 23's growth allowance (MEV 74.8 g)
-and not added to the MEL here: the MEL lives in `software/simulation/cdr/structures/mass_properties.py`, outside this
-document's scope. Raising row 23 to 66.6 g CBE (for the chair) gives MEV 1,727.7 g and a margin of +15.8 % (from +15.9 %).
+the 64.8 g plate: **row 23 raised from 65.0 to 66.6 g CBE** (chair, 2026-10-27; `mass_properties.py` updated): CBE
+1,494.3 g, MEV 1,727.7 g, margin +15.8 % (from +15.9 %) with rods; 1,575.7 / 1,826.5 g, +9.5 % with coils. The
+reference-layout rows of §5 and §6.1 (layouts A and B) were computed with row 23 at 65.0 g; re-run with 66.6 g they move
+by ≤ 0.1 mm in CG and ≤ 0.004 × 10⁻³ kg·m² in inertia, and no ratio by more than 0.001, so they are left as written.
 The gap pads (about 5 g) sit in row 22's 10 g interface allocation and the two steel module standoffs (0.8 g) in row
 21.
 
@@ -152,7 +153,7 @@ quoted in Version 2.0 grades a margin above 5 % green at CDR.
 | 20 | Jetson Orin Nano 8 GB module (900-13767-0030-000) | 1 | 31.0 | 30.8 g distributor shipping weight (Farnell 4200232); NVIDIA publishes no module mass | C2 | 10 % | 34.1 |
 | 21 | Jetson carrier board, in-house | 1 | 40.0 | Version 2.0 §4.4 | E1 | 25 % | 50.0 |
 | 22 | Jetson thermal interface and module clamp | 1 | 20.0 | Version 2.0 §4.4 (interface 10, mounting 10) | E1 | 25 % | 25.0 |
-| 23 | Jetson heat spreader to the frame, Al 6061 80 × 60 × 5 mm | 1 | 65.0 | Version 2.0 §4.4 (≥ 1 W/K, BASELINE §6) | E2 | 15 % | 74.8 |
+| 23 | Jetson heat spreader to the frame, Al 6061 80 × 60 × 5 mm, with the SoC pedestal | 1 | 66.6 | Plate 64.8 g Al + pedestal and second face 1.8 g (SQSO-MECH-CAD-001 §4.5; Version 2.0 §4.4: ≥ 1 W/K, BASELINE §6) | E2 | 15 % | 76.6 |
 | 24 | Magnetometer (M315, MM200 or Lodestone) | 1 | 10.0 | 8–12 g (BUILD_VS_BUY §2.7) | C2 | 20 % | 12.0 |
 | 25 | Gyro, Epson M-G370PDT0 | 1 | 10.0 | 10 g (BUILD_VS_BUY §5.2) | C1 | 3 % | 10.3 |
 | 26 | ADCS sensor brackets and cables (sun sensors are the panel photodiodes) | 1 set | 5.0 | Estimate | E1 | 25 % | 6.2 |
@@ -166,26 +167,26 @@ quoted in Version 2.0 grades a margin above 5 % green at CDR.
 | 33 | Thermal control (tapes, interface materials, MLI patches) | 1 | 30.0 | Version 2.0 row 21 | E1 | 25 % | 37.5 |
 | 34 | Fasteners, PCB-stack spacers (4 columns plus centre supports), inserts | many | 35.0 | Version 2.0 row 22 (25 g) + spacers 10 g | E1 | 25 % | 43.8 |
 | 35 | Staking, conformal coat, adhesives | 1 | 10.0 | Estimate | E1 | 25 % | 12.5 |
-| | **Total, rods option (rows 1–26, 27r, 28r, 29–35)** | | **1,492.7** | | | **15.6 %** | **1,725.9** |
-| | **Total, coils option (rows 1–26, 27c, 29–35)** | | **1,574.1** | | | **15.9 %** | **1,824.6** |
+| | **Total, rods option (rows 1–26, 27r, 28r, 29–35)** | | **1,494.3** | | | **15.6 %** | **1,727.7** |
+| | **Total, coils option (rows 1–26, 27c, 29–35)** | | **1,575.7** | | | **15.9 %** | **1,826.5** |
 
 ### 3.2 Margin
 
 ```
 MASS BUDGET SUMMARY (analysis, not measured)          rods        coils
 Limit (SYS-002, CDS Rev 14.1 Table 1):              2,000 g     2,000 g
-CBE                                                 1,492.7 g   1,574.1 g
-Growth (maturity-based, section 2.2)                  233.2 g     250.5 g
-MEV                                                 1,725.9 g   1,824.6 g
-Margin to 2.00 kg                                     +15.9 %      +9.6 %
+CBE                                                 1,494.3 g   1,575.7 g
+Growth (maturity-based, section 2.2)                  233.4 g     250.8 g
+MEV                                                 1,727.7 g   1,826.5 g
+Margin to 2.00 kg                                     +15.8 %      +9.5 %
 ```
 
 | Growth case | Rods MEV | Rods margin to 2.00 kg | Coils MEV | Coils margin to 2.00 kg |
 |-------------|----------|------------------------|-----------|-------------------------|
-| §2.2 values | 1,725.9 g | +15.9 % | 1,824.6 g | +9.6 % |
-| §2.2 lower-growth values | 1,639.7 g | +22.0 % | 1,735.4 g | +15.2 % |
-| Uniform 15 % (BASELINE §4 method) | 1,716.6 g | +16.5 % | 1,810.2 g | +10.5 % |
-| Uniform 25 % (every item treated as an estimate) | 1,865.9 g | +7.2 % | 1,967.6 g | +1.6 % |
+| §2.2 values | 1,727.7 g | +15.8 % | 1,826.5 g | +9.5 % |
+| §2.2 lower-growth values | 1,641.5 g | +21.8 % | 1,737.2 g | +15.1 % |
+| Uniform 15 % (BASELINE §4 method) | 1,718.4 g | +16.4 % | 1,812.1 g | +10.4 % |
+| Uniform 25 % (every item treated as an estimate) | 1,867.9 g | +7.1 % | 1,969.6 g | +1.5 % |
 
 The largest single uncertainties are the in-house boards (EPS, OBC, RF, carrier: 295 g CBE, all E1) and the vendor body
 panels (160–200 g). Weighing the first engineering-model boards retires most of the E1 growth.
@@ -193,8 +194,8 @@ panels (160–200 g). Weighing the first engineering-model boards retires most o
 ### 3.3 Consequences for Other Documents (for the chair)
 
 1. BASELINE §4 mass row: replace with the text proposed in §9.
-2. Decision D8 (battery): with coils the margin is 9.6 %, below the 10 % trigger. Either choose the CR0002 rods (margin
-   15.9 %; the ADCS Monte Carlo must then be re-run with rod remanence, BUILD_VS_BUY §6.5) or revisit 2S1P (−125 g, margin
+2. Decision D8 (battery): with coils the margin is 9.5 %, below the 10 % trigger. Either choose the CR0002 rods (margin
+   15.8 %; the ADCS Monte Carlo must then be re-run with rod remanence, BUILD_VS_BUY §6.5) or revisit 2S1P (−125 g, margin
    rises to ≈ 17 %).
 3. Orbital lifetime (BASELINE §3, ODAR): the analyses use 1.6 kg with a 1.8 kg bound. The MEV is 1.73 kg (rods) to
    1.82 kg (coils); the bound should be 1.85 kg. A heavier spacecraft decays more slowly, so the wings-failed case at
@@ -406,7 +407,7 @@ The ratio requirement (≥ 1.03) holds for placement errors up to about 3 mm; th
 products of inertia within about ±1.5 × 10⁻⁵ kg·m², which only a drawing-controlled layout and a measured, trimmed flight
 unit can give. **Proposed design provision (SQSO-MECH-CAD-001 §5.4): two 5 g trim-mass positions** at the ±Y edges of
 the +Z end frame (each 5 g at y = ±45 mm, z = +49 mm moves Iyz by ∓1.1 × 10⁻⁵ kg·m², about 3° of axis tilt), set after
-the mass-properties measurement; 10 g against the 274 g margin to 2.00 kg.
+the mass-properties measurement; 10 g against the 272 g margin to 2.00 kg.
 
 ## 7. Mass Growth Tracking
 
@@ -417,6 +418,7 @@ the mass-properties measurement; 10 g against the 274 g margin to 2.00 kg.
 | 2026-10-15 | BASELINE §4 Rev B | ≈ 1,510 g | Added the GNSS receiver (D6) |
 | 2026-10-16 | Version 2.0 | 1,691 g | Bottom-up MEL, all custom |
 | 2026-10-27 | **Version 3.0** | **1,493 g (rods) / 1,574 g (coils)** | Build-versus-buy configuration (§1.1) |
+| 2026-10-27 | **Version 3.1** | **1,494 g (rods) / 1,576 g (coils)** | Row 23 +1.6 g for the spreader's SoC pedestal (§1.2) |
 
 ## 8. Mass Properties Verification
 
@@ -431,9 +433,9 @@ the mass-properties measurement; 10 g against the 274 g margin to 2.00 kg.
 
 ## 9. Proposed BASELINE §4 Text (for the chair)
 
-> | Mass | CBE **1.49 kg** with CR0002 rods (1.57 kg with air-core coils); MEV **1.73 kg** (1.82 kg), maturity-based growth
-> 15.6 % (15.9 %) by the AIAA S-120A-2015 method (`docs/environment/MASS_BUDGET.md` v3.0). Limit **2.00 kg** (SYS-002;
-> CDS Rev 14.1 Table 1); margin +15.9 % (+9.6 %). Integrator EXOpod Nova 1U limit 2.5 kg; NRCSD backup 2.40 kg.
+> | Mass | CBE **1.49 kg** with CR0002 rods (1.58 kg with air-core coils); MEV **1.73 kg** (1.83 kg), maturity-based growth
+> 15.6 % (15.9 %) by the AIAA S-120A-2015 method (`docs/environment/MASS_BUDGET.md` v3.1). Limit **2.00 kg** (SYS-002;
+> CDS Rev 14.1 Table 1); margin +15.8 % (+9.5 %). Integrator EXOpod Nova 1U limit 2.5 kg; NRCSD backup 2.40 kg.
 > Lifetime analyses use 1.6 kg, with **1.85 kg** as the bound |
 > | Mass properties | Stowed CG within 5 mm of the geometric centre (limit ±20 mm). Deployed inertia (wings and antennas out):
 > **Iyy ≥ 1.03 × max(Ixx, Izz)**, design target 1.05, major principal axis within 5° of +Y; AntS VHF elements along ±X;
@@ -448,4 +450,4 @@ and delete the "Mass, under review" row.
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR release |
 | 2.0 | 2026-10-16 | Funding audit (TB-06) | Re-issued as a bottom-up MEL with maturity-based growth allowances and one limit (2.00 kg, CDS Rev 14.1); CBE 1.69 kg, predicted 1.92–2.00 kg |
 | 3.0 | 2026-10-27 | CDR structures review (STR-01, STR-02, STR-03) | MEL rebuilt for the build-versus-buy configuration (two magnetorquer options): CBE 1.49/1.57 kg, MEV 1.73/1.82 kg, margin +15.9/+9.6 %; catalogue maturity code C1/C2; CG and full inertia tensor from a reference layout; ADCS Monte Carlo re-run with the computed inertia (the published result needs Iyy/Izz ≥ 1.03); recommended stack order and AntS clocking; corrected flight inertia constant and proposed BASELINE §4 rows for the chair |
-| 3.1 | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001) | CAD reconciliation: MEL masses and margins unchanged (the CAD carries every row exactly); CG and full inertia tensor from the CAD solids of layout B with AntS option A (§1, §5, §6.1 rows, §6.6): stowed CG (+0.4, −0.2, −1.9) mm CBE, deployed Iyy/max 1.056 CBE / 1.047 MEV, major axis 0.6° / 1.2° from +Y after placement balancing; placement Monte Carlo and trim-mass provision; corrected flight inertia constant (§6.5); products-of-inertia measurement added (§8); row 5 re-split for the skeleton torquer deck (MCAD-02, no MEL change, §1.2); two centre supports per board > 50 g (chair decision) noted against row 34; wing hinge hardware of SQSO-MECH-001 B; gyro in its socket through a window in the Jetson carrier (OBC item C3), Jetson carrier item M1 (spreader pedestal +1.8 g in row 23, gap pads, module standoffs, flush fastener at (0, −21)); mass properties recomputed (CBE CG z −1.9 mm, axis 0.6° / 1.2°) |
+| 3.1 | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001) | CAD reconciliation: MEL masses and margins unchanged (the CAD carries every row exactly); CG and full inertia tensor from the CAD solids of layout B with AntS option A (§1, §5, §6.1 rows, §6.6): stowed CG (+0.4, −0.2, −1.9) mm CBE, deployed Iyy/max 1.056 CBE / 1.047 MEV, major axis 0.6° / 1.2° from +Y after placement balancing; placement Monte Carlo and trim-mass provision; corrected flight inertia constant (§6.5); products-of-inertia measurement added (§8); row 5 re-split for the skeleton torquer deck (MCAD-02, no MEL change, §1.2); two centre supports per board > 50 g (chair decision) noted against row 34; wing hinge hardware of SQSO-MECH-001 B; gyro in its socket through a window in the Jetson carrier (OBC item C3), Jetson carrier item M1 (row 23 raised to 66.6 g for the spreader's SoC pedestal: CBE 1,494.3 g, MEV 1,727.7 g, margin +15.8 % with rods, +9.5 % with coils; gap pads, module standoffs, flush fastener at (0, −21)); mass properties recomputed (CBE CG z −1.9 mm, axis 0.6° / 1.2°) |

@@ -528,7 +528,7 @@
    "five EPS analog lines (>= 167 k)": 8.383233532934131e-05,
    "VSW1_RB, VJET_RB (167 k + 1 k)": 3.333333333333333e-05,
    "TNC_TXD idle high (100 + 10 k)": 0.00030693069306930693,
-   "TONE_OK, XPDR_KEY, PTT_EXC if high (1 k + 10 k)": 0.0008454545454545455,
+   "TONE_OK, XPDR_KEY, PTT_EXC, RX_CD, RX_FAULT if high (1 k + 10 k)": 0.001409090909090909,
    "TX_TEMP, TX_FWD, TX_REV (1 k + 10 k, at 1.7/2.5/1.25 V)": 0.0004954545454545455,
    "RTC CLKOUT (1 M), EVI (input)": 3.2999999999999997e-06,
    "Jetson, GNSS, sensor buses (translators: Ioff)": 0.0
@@ -537,12 +537,12 @@
   "note": "current into the clamps of an unpowered OBC with every other board powered"
  },
  "backpower_total": {
-  "value": 0.002153238105702297,
+  "value": 0.0027168744693386606,
   "unit": "A",
   "note": "worst case (every readback high); typical with readbacks low about 0.8 mA"
  },
  "i_3v3_obc": {
-  "value": 0.02512,
+  "value": 0.025401094444298625,
   "unit": "A",
   "note": "3V3_OBC worst normal; EPS SW10 trips at 0.130 A min"
  },
@@ -555,13 +555,14 @@
    "translators and TCA9517 A side": 0.0003,
    "pull-downs on driven-high EPS/RF lines": 0.00025,
    "I2C pull-ups (average)": 0.0008,
-   "DRV8876 VREF divider": 0.00012
+   "DRV8876 VREF divider": 0.00012,
+   "spreader NTC bias (10.0 k + RT1 at 70 C)": 0.00028109444429862514
   },
   "unit": "A",
   "note": ""
  },
  "i_3v3_obc_margin": {
-  "value": 5.17515923566879,
+  "value": 5.117889714755146,
   "unit": "",
   "note": "trip over load"
  },
@@ -571,7 +572,7 @@
   "note": "3V3_ADCS worst with the backup gyro on; SW4 trips at 0.265 A min"
  },
  "p_obc": {
-  "value": 0.082896,
+  "value": 0.08382361166618546,
   "unit": "W",
   "note": "OBC board from 3V3_OBC"
  },
@@ -604,6 +605,11 @@
   "value": 9.320300000000002e-08,
   "unit": "s",
   "note": "I2C4 OBC side, 50 pF"
+ },
+ "i2c4b_tr": {
+  "value": 1.9911550000000003e-07,
+  "unit": "s",
+  "note": "I2C4 sensor side (4.7 k): W6E 0.25 m at 100 pF/m plus 25 pF of parts and ESD on both boards; <= 300 ns at 400 kHz"
  },
  "i2c1_tr": {
   "value": 1.194693e-07,

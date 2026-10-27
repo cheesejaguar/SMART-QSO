@@ -1,7 +1,7 @@
 # Interface Control Document: OBC-EPS
 
 **Document Number**: SMART-QSO-ICD-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Status**: Preliminary. Electrical values from the EPS board build-to design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`,
 SQSO-EPS-BRD-001) and pins from the master allocation (`hardware/electrical/INTERCONNECT.md`, SQSO-ICX-001);
@@ -235,15 +235,16 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 
 ---
 
-### 4.6 Extended Registers (added at CDR; the flight software does not read them yet)
+### 4.6 Extended Registers (added at CDR; the flight software reads CHG_INHIBIT and EOL_STATE and writes LOCK_UNLOCK)
 
 | Register | Address | R/W | Size | Description |
 |----------|---------|-----|------|-------------|
 | VCELL1–4 | 0x70–0x77 | R | 4 × 2 | Cell voltages (mV) |
 | TBATT2 | 0x78 | R | 2 | Second pack temperature (0.1 °C) |
-| CHG_INHIBIT | 0x7A | R | 1 | Charge-inhibit cause: bit 0 cold, 1 hot, 2 cell OV, 3 BMS fault, 4 secondary protector blown |
+| CHG_INHIBIT | 0x7A | R | 1 | Charge-inhibit cause: bit 0 cold, 1 hot, 2 cell OV, 3 BMS fault, 4 secondary protector blown, 5 recharge lockout latched |
 | LOAD_SHED | 0x7B | R | 1 | Hardware low-voltage load shed active (bit 0), SW1/SW3 fault flags (bits 1–2) |
 | EOL_STATE | 0x7C | R | 1 | Passivation: bit 0 armed, bit 1 fired (charge path open) |
+| LOCK_UNLOCK | 0x7D | W | 1 | Recharge-lockout unlock: writing 0xC5 raises UNLOCK, the second of the two conditions for a lockout clear (with LOCK_CLR; EPS_CLEAR_LOCKOUT 0x14, SRS-F129); any other value lowers it |
 | PTRACK1–4 | 0x80–0x87 | R | 4 × 2 | Tracker input power (mW) |
 | IHEATER | 0x88 | R | 2 | Heater current (mA) |
 
@@ -459,3 +460,4 @@ When Alert GPIO is asserted:
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | CDR review (EPS) | 4S values: rails, VBAT range, load switches and limits (§3.1, §3.2), examples (§5.1, §7.3); OBC named STM32L4R5; I²C address conflict noted (§2.3); extended registers proposed (§4.6) |
 | 1.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: connector, pins and harness W3 per SQSO-ICX-001 (§1.3, §2.1); I²C addresses INA228 0x44 (pack) and 0x40 (array), EPS controller MSP430FR2355 0x48, no OBC device on I2C2 (§2.3); analog lines with the VBATT ×6 scaling (§2.4); rails and load switches per SQSO-EPS-BRD-001 §8.3, SW4 load 0.049 A, SW11 VBAT_MTQ, 3V3_RTC (§3.1, §3.2) |
+| 1.3 | 2026-10-27 | CDR flight software round 2 | §4.6: CHG_INHIBIT bit 5 (recharge lockout latched), LOCK_UNLOCK 0x7D (key 0xC5) for EPS_CLEAR_LOCKOUT; the flight software reads CHG_INHIBIT and EOL_STATE |

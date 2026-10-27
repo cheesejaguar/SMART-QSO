@@ -494,7 +494,7 @@ def build_parts(p=P) -> List[Part]:
                     B(-20, 20, jy - 16, jy + 12, zm + 2.2 + p["pad_other"], zsp),              # second face
                     B(-wx["shear_in"], -40, -20, 20, zsp + 2.0, zsp + 5.0),
                     B(40, wx["shear_in"], -20, 20, zsp + 2.0, zsp + 5.0))
-    add(Part("heat_spreader", "stack", {"23": 65.0, "5": 15.0}, spreader, color=COL["al"],
+    add(Part("heat_spreader", "stack", {"23": 66.6, "5": 15.0}, spreader, color=COL["al"],
              note="Al 6061 80 x 60 x 5 mm with 3 mm flanges bolted (4 x M2.5) to the +-X shear panels; pedestal 22 x 22 x "
                   "0.75 mm over the SoC lid (flatness 0.05 mm) and a 0.5 mm second face over the DRAM and regulators"))
     rf_top = fuse(B(-42, 42, P["shield_y0"], P["shield_y1"], P["z_rf"] + pt, P["z_rf"] + pt + 7.0),

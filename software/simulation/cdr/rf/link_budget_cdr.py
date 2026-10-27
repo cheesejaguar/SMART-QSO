@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""SMART-QSO controlled link budget, CDR re-issue (SQSO-LBA-001 v3.0).
+"""SMART-QSO controlled link budget, CDR re-issue (SQSO-LBA-001 v3.2).
+
+Altitude: the 475 km target of BASELINE Rev E §3, with the 485 km cap as the bound
+(the longest slant ranges the baseline allows).
 
 Computes every table in SQSO-LBA-001 v3.0 §2-§6 from the inputs below and the
 demodulator results of fm_demod_sim.py (required C/N0 and the SINAD curve).
@@ -20,6 +23,8 @@ F_DOWN = 145.9          # MHz (planning value inside 145.800-146.000)
 F_UP = 435.5            # MHz (planning value inside 435.0-437.3, §7)
 C_KMS = 299_792.458
 ELEVATIONS = (5, 10, 20, 30, 45, 90)
+ALT_KM = 475.0         # BASELINE Rev E §3 target
+ALT_CAP_KM = 485.0     # BASELINE Rev E §3 hard cap (bound)
 
 IMPLEMENTATION_LOSS_DB = 1.0   # real clock recovery, filters, deviation tolerance +/-0.5 kHz
 
@@ -122,21 +127,21 @@ def main():
 
     # geometry
     geo = []
-    for h in (500.0, 525.0):
+    for h in (ALT_KM, ALT_CAP_KM):
         for el in ELEVATIONS:
             d = slant_km(el, h)
             geo.append({"h_km": h, "el": el, "slant_km": round(d), "fspl_145": round(fspl(F_DOWN, d), 1),
                         "fspl_435": round(fspl(F_UP, d), 1)})
     res["geometry"] = geo
     md.append("\n| h | " + " | ".join(f"{e}°" for e in ELEVATIONS) + " |")
-    for h in (500.0, 525.0):
+    for h in (ALT_KM, ALT_CAP_KM):
         rows = [g for g in geo if g["h_km"] == h]
         md.append(f"| {h:g} km slant | " + " | ".join(f"{g['slant_km']:,} km" for g in rows) + " |")
         md.append(f"| {h:g} km FSPL 145.9 | " + " | ".join(f"{g['fspl_145']}" for g in rows) + " |")
         md.append(f"| {h:g} km FSPL 435.5 | " + " | ".join(f"{g['fspl_435']}" for g in rows) + " |")
 
     # downlink
-    def down_cn0(p_w, g_sc, el, cls, h=500.0):
+    def down_cn0(p_w, g_sc, el, cls, h=ALT_KM):
         r = RX[cls]
         d = slant_km(el, h)
         return dbm(p_w) - SC["line_loss_db"] + g_sc - fspl(F_DOWN, d) - atm(el) - POL_LOSS_DB + r["g"] - n0(r["t"])
@@ -152,13 +157,14 @@ def main():
                 beacon[f"{cls}|{p_w}|{g}"] = row
                 md.append(f"| {cls} | {p_w} W, {g:g} dBi | " + " | ".join(f"{v:+.1f}" for v in row) + " |")
     res["beacon_margin"] = beacon
-    # 525 km cap, station A
-    res["beacon_margin_A_525km_5deg"] = {g: round(down_cn0(0.5, g, 5, "A", 525.0) - req["data_corrected"], 1) for g in (-3.0, -10.0)}
+    # 485 km cap, station A
+    res["beacon_margin_A_485km_5deg"] = {g: round(down_cn0(0.5, g, 5, "A", ALT_CAP_KM) - req["data_corrected"], 1) for g in (-3.0, -10.0)}
+    md.append("Station A, 0.5 W, 5°, at the 485 km cap: " + json.dumps(res["beacon_margin_A_485km_5deg"]))
     # noise sensitivity, station A
     sens = {}
     for t_k in (300, 500, 1000, 1500, 2000, 5800):
         r = RX["A"]
-        c = dbm(0.5) - 1 - 3 - fspl(F_DOWN, slant_km(5, 500)) - 1 - 3 + r["g"] - n0(t_k)
+        c = dbm(0.5) - 1 - 3 - fspl(F_DOWN, slant_km(5, ALT_KM)) - 1 - 3 + r["g"] - n0(t_k)
         sens[t_k] = round(c - req["data_corrected"], 1)
     res["beacon_A_5deg_vs_tsys"] = sens
     md.append("Station A, 0.5 W, -3 dBi, 5°: margin by Tsys " + json.dumps(sens))
@@ -175,7 +181,7 @@ def main():
     res["xpdr_down_sinad"] = sin_down
 
     # uplink
-    def up_cn0(cls, g_sc, el, interference_db=0.0, h=500.0):
+    def up_cn0(cls, g_sc, el, interference_db=0.0, h=ALT_KM):
         t = TX[cls]
         d = slant_km(el, h)
         return (dbm(t["p"]) - t["l"] + t["g"] - fspl(F_UP, d) - atm(el) - POL_LOSS_DB + g_sc
@@ -223,7 +229,7 @@ def main():
     res["xpdr_end_to_end_sinad"] = e2e
 
     # Doppler, analytic: max range rate at the horizon, overhead pass, Earth rotation neglected
-    h = 500.0
+    h = ALT_KM
     v = math.sqrt(398600.4418 / (RE + h))
     nadir_h = math.asin(RE / (RE + h))
     rr = v * math.sin(nadir_h)

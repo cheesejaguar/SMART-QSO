@@ -16,7 +16,14 @@ measurements; their basis is in RELIABILITY_ANALYSIS v2.0 Table 4-2. The
 result is cross-checked against the empirical CubeSat survival curve
 (`empirical_cubesat()`).
 
-Run: python3 reliability_model.py [--trials N] [--alt 475]
+Wing deployment (SQSO-EPS-BRD-001 §9, BASELINE Rev E §4): two burn resistors per wing,
+each on its own current-limited driver and its own OBC line (PB10 -> W1A, PE6 -> W1B,
+PB9 -> W2A, PE7 -> W2B), burned one at a time; the four drivers share only the SW6
+load switch, the U17 burn buck and the DEPLOY_EN line. A wing is lost if its hinge or
+restraint fails, or both of its drivers fail, or the shared supply fails.
+`--design shared` reproduces the earlier design (one driver for both wings, S5).
+
+Run: python3 reliability_model.py [--trials N] [--design per-resistor|shared]
 """
 
 from __future__ import annotations
@@ -32,7 +39,9 @@ DAY = 1.0 / 365.25
 #   role "series"   : required for every level from deployment
 #   role "xpdr"     : required for transponder service (L1 demonstration, L2, L3)
 #   role "wing"     : one of two wings (k-of-n logic below)
-#   role "wingcommon": the burn-wire drive both wings share; its failure loses both
+#   role "wingcommon": what the burn drives of both wings share; its failure loses both
+#   role "drv1"/"drv2": one burn driver (and its OBC line) of wing 1 / wing 2; the wing
+#                     is lost only if both of its drivers fail
 #   role "adcs"     : sun-pointing; loss is a degraded mode unless a wing is lost too
 #   role "heater"   : battery heater; loss is a degraded mode (cold charging inhibit)
 BLOCKS = {
@@ -52,12 +61,28 @@ BLOCKS = {
     "GNSS faults not isolated by its load switch": (0.001, 0.001, "series"),
     "Operations error (unrecoverable command)": (0.003, 0.005, "series"),
     "Transponder repeat path (CTCSS, heartbeat gate, timer)": (0.030, 0.010, "xpdr"),
-    "Wing burn driver, SW6 arm switch, timer (one driver for both wings, S5)": (0.015, 0.000, "wingcommon"),
+    "Wing burn supply shared by the four drivers (SW6, U17 burn buck, DEPLOY_EN; deployment sequence with ground retry)": (0.002, 0.000, "wingcommon"),
+    "Wing 1 burn driver A (PB10 -> W1A)": (0.005, 0.000, "drv1"),
+    "Wing 1 burn driver B (PE6 -> W1B)": (0.005, 0.000, "drv1"),
+    "Wing 2 burn driver A (PB9 -> W2A)": (0.005, 0.000, "drv2"),
+    "Wing 2 burn driver B (PE7 -> W2B)": (0.005, 0.000, "drv2"),
     "Wing 1 deployment (burn-wire, hinge)": (0.030, 0.000, "wing"),
     "Wing 2 deployment (burn-wire, hinge)": (0.030, 0.000, "wing"),
     "ADCS: magnetometer, gyros (M-G370 + BMI088), torquers": (0.030, 0.020, "adcs"),
     "Battery heater and cut-out": (0.010, 0.010, "heater"),
 }
+# The design analysed before the EPS board (ODAR Draft B/C section 6.4): one burn driver,
+# SW6 arm switch and timer for both wings
+SHARED_DRIVER = ("Wing burn driver, SW6 arm switch, timer (one driver for both wings, S5)", (0.015, 0.000, "wingcommon"))
+
+
+def set_design(design: str) -> None:
+    if design == "shared":
+        for k in [k for k, v in BLOCKS.items() if v[2] in ("wingcommon", "drv1", "drv2")]:
+            del BLOCKS[k]
+        BLOCKS[SHARED_DRIVER[0]] = SHARED_DRIVER[1]
+
+
 P_LAUNCH = 0.99  # Falcon 9 rideshare plus integrator dispenser (see v2.0 section 4.3)
 HEATER_LOSS_KILLS_L2 = 0.3  # fraction of heater failures that end transponder service
 
@@ -78,7 +103,15 @@ def evaluate(t, rng, n):
     # A wing either deploys at T+30 min or never does (lam = 0, so any finite time is a failure)
     w1 = np.isfinite(t["Wing 1 deployment (burn-wire, hinge)"])
     w2 = np.isfinite(t["Wing 2 deployment (burn-wire, hinge)"])
-    common = np.isfinite(t["Wing burn driver, SW6 arm switch, timer (one driver for both wings, S5)"])
+    common = np.any([np.isfinite(t[k]) for k, v in BLOCKS.items() if v[2] == "wingcommon"], axis=0)
+    for wing, role in ((1, "drv1"), (2, "drv2")):
+        drv = [np.isfinite(t[k]) for k, v in BLOCKS.items() if v[2] == role]
+        if drv:  # both drivers of the wing failed: the wing cannot be released
+            both = np.all(drv, axis=0)
+            if wing == 1:
+                w1 = w1 | both
+            else:
+                w2 = w2 | both
     wings_lost = np.where(common, 2, w1.astype(int) + w2.astype(int))
     adcs = t["ADCS: magnetometer, gyros (M-G370 + BMI088), torquers"]
     heater = t["Battery heater and cut-out"]
@@ -126,7 +159,11 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--trials", type=int, default=400_000)
     ap.add_argument("--seed", type=int, default=20261027)
+    ap.add_argument("--design", choices=("per-resistor", "shared"), default="per-resistor",
+                    help="wing burn drives: one driver per resistor (EPS board, default) or one for both wings")
+    ap.add_argument("--mass", type=float, default=1.85, help="mass for the disposal probability (kg)")
     args = ap.parse_args()
+    set_design(args.design)
     rng = np.random.default_rng(args.seed)
     n = args.trials
 
@@ -157,8 +194,15 @@ def main():
         if share > 0.002:
             print(f"  {k}: {share:.3f}")
     print(f"  Both wings failed: {np.mean(wl == 2):.4f}; one wing failed: {np.mean(wl == 1):.3f}")
+    common = sum(v[0] for v in BLOCKS.values() if v[2] == "wingcommon")
+    wing = 0.030
+    drv = [v[0] for v in BLOCKS.values() if v[2] == "drv1"]
+    if drv:
+        wing = 1 - (1 - 0.030) * (1 - drv[0] * drv[1])
+    print(f"  Both wings failed, closed form: {common + (1 - common) * wing ** 2:.4f} "
+          f"(shared supply {common:.3f}, each wing {wing:.4f})")
 
-    # disposal compliance: lifetimes from the project estimator (debris_lifetime.py), 1.8 kg
+    # disposal compliance: lifetimes from the project estimator (debris_lifetime.py)
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -166,13 +210,13 @@ def main():
     from debris_lifetime import AREAS, SCENARIOS, START  # noqa: E402
     from orbit_lifetime import DensityTable, Spacecraft, propagate  # noqa: E402
     table = DensityTable(97.4)
-    dep = Spacecraft(1.8, AREAS["wings deployed, no antenna credit"], 2.2)
-    stow = Spacecraft(1.8, AREAS["wings failed (stowed), no antenna credit"], 2.2)
-    print("\nP(re-entry no later than 5 yr after mission end), 1.8 kg; mission end = 2 yr or the")
+    dep = Spacecraft(args.mass, AREAS["wings deployed, no antenna credit"], 2.2)
+    stow = Spacecraft(args.mass, AREAS["wings failed (stowed), no antenna credit"], 2.2)
+    print(f"\nP(re-entry no later than 5 yr after mission end), {args.mass} kg, deployment {START}; mission end = 2 yr or the")
     print("earlier loss of the station (A), or the planned 2 yr regardless of failure (B):")
     print("| Deployment (km) | Solar case | Life wings deployed / failed (yr) | P, reading A | P, reading B |")
     print("|---|---|---|---|---|")
-    for alt in (450.0, 460.0, 470.0, 475.0, 485.0, 500.0):
+    for alt in (450.0, 460.0, 465.0, 470.0, 475.0, 485.0, 500.0):
         for sname in list(SCENARIOS)[:2]:
             prof = SCENARIOS[sname]
             ld = propagate(table, dep, alt, prof, START, max_years=60.0).lifetime_years
