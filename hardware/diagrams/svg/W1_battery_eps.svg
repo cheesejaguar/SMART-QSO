@@ -319,12 +319,12 @@
 <polygon fill="#ffffff" stroke="black" points="3453,-617 2840,-617 2840,-364 3453,-364 3453,-617"/>
 <polygon fill="none" stroke="black" points="2840.5,-593.5 2840.5,-616.5 3453.5,-616.5 3453.5,-593.5 2840.5,-593.5"/>
 <text text-anchor="start" x="3140" y="-601.3" font-family="Helvetica,sans-Serif" font-size="14.00">J1</text>
-<polygon fill="none" stroke="black" points="2840.5,-570.5 2840.5,-593.5 3274.5,-593.5 3274.5,-570.5 2840.5,-570.5"/>
-<text text-anchor="start" x="2852.5" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00">Micro&#45;Fit 3.0 receptacle 43025&#45;0800, gold 43030 terminals</text>
-<polygon fill="none" stroke="black" points="3274.5,-570.5 3274.5,-593.5 3392.5,-593.5 3392.5,-570.5 3274.5,-570.5"/>
-<text text-anchor="start" x="3286.5" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00">8 pos, 2 rows</text>
-<polygon fill="none" stroke="black" points="3392.5,-570.5 3392.5,-593.5 3453.5,-593.5 3453.5,-570.5 3392.5,-570.5"/>
-<text text-anchor="start" x="3404.5" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00">8&#45;pin</text>
+<polygon fill="none" stroke="black" points="2840.5,-570.5 2840.5,-593.5 3302.5,-593.5 3302.5,-570.5 2840.5,-570.5"/>
+<text text-anchor="start" x="2846" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00">Micro&#45;Fit 3.0 receptacle 43025&#45;0800, gold 43030&#45;0003 terminals</text>
+<polygon fill="none" stroke="black" points="3302.5,-570.5 3302.5,-593.5 3406.5,-593.5 3406.5,-570.5 3302.5,-570.5"/>
+<text text-anchor="start" x="3307.5" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00">8 pos, 2 rows</text>
+<polygon fill="none" stroke="black" points="3406.5,-570.5 3406.5,-593.5 3453.5,-593.5 3453.5,-570.5 3406.5,-570.5"/>
+<text text-anchor="start" x="3411.5" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00">8&#45;pin</text>
 <polygon fill="none" stroke="black" points="2840.5,-547.5 2840.5,-570.5 3093.5,-570.5 3093.5,-547.5 2840.5,-547.5"/>
 <text text-anchor="start" x="2962" y="-555.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
 <polygon fill="none" stroke="black" points="3093.5,-547.5 3093.5,-570.5 3453.5,-570.5 3453.5,-547.5 3093.5,-547.5"/>
@@ -363,41 +363,41 @@
 <!-- J2 -->
 <g id="node3" class="node">
 <title>J2</title>
-<polygon fill="#ffffff" stroke="black" points="3404,-223 2889,-223 2889,-16 3404,-16 3404,-223"/>
-<polygon fill="none" stroke="black" points="2889.5,-199.5 2889.5,-222.5 3404.5,-222.5 3404.5,-199.5 2889.5,-199.5"/>
-<text text-anchor="start" x="3140" y="-207.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2</text>
-<polygon fill="none" stroke="black" points="2889.5,-176.5 2889.5,-199.5 3312.5,-199.5 3312.5,-176.5 2889.5,-176.5"/>
-<text text-anchor="start" x="2893.5" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">Pico&#45;Clasp receptacle 501330&#45;0600, gold 501334 terminals</text>
-<polygon fill="none" stroke="black" points="3312.5,-176.5 3312.5,-199.5 3359.5,-199.5 3359.5,-176.5 3312.5,-176.5"/>
-<text text-anchor="start" x="3316.5" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">6 pos</text>
-<polygon fill="none" stroke="black" points="3359.5,-176.5 3359.5,-199.5 3404.5,-199.5 3404.5,-176.5 3359.5,-176.5"/>
-<text text-anchor="start" x="3363.5" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">6&#45;pin</text>
-<polygon fill="none" stroke="black" points="2889.5,-153.5 2889.5,-176.5 3133.5,-176.5 3133.5,-153.5 2889.5,-153.5"/>
-<text text-anchor="start" x="3006.5" y="-161.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
-<polygon fill="none" stroke="black" points="3133.5,-153.5 3133.5,-176.5 3404.5,-176.5 3404.5,-153.5 3133.5,-153.5"/>
-<text text-anchor="start" x="3251.5" y="-161.3" font-family="Helvetica,sans-Serif" font-size="14.00">TAP0</text>
-<polygon fill="none" stroke="black" points="2889.5,-130.5 2889.5,-153.5 3133.5,-153.5 3133.5,-130.5 2889.5,-130.5"/>
-<text text-anchor="start" x="3006.5" y="-138.3" font-family="Helvetica,sans-Serif" font-size="14.00">2</text>
-<polygon fill="none" stroke="black" points="3133.5,-130.5 3133.5,-153.5 3404.5,-153.5 3404.5,-130.5 3133.5,-130.5"/>
-<text text-anchor="start" x="3251.5" y="-138.3" font-family="Helvetica,sans-Serif" font-size="14.00">TAP1</text>
-<polygon fill="none" stroke="black" points="2889.5,-107.5 2889.5,-130.5 3133.5,-130.5 3133.5,-107.5 2889.5,-107.5"/>
-<text text-anchor="start" x="3006.5" y="-115.3" font-family="Helvetica,sans-Serif" font-size="14.00">3</text>
-<polygon fill="none" stroke="black" points="3133.5,-107.5 3133.5,-130.5 3404.5,-130.5 3404.5,-107.5 3133.5,-107.5"/>
-<text text-anchor="start" x="3251.5" y="-115.3" font-family="Helvetica,sans-Serif" font-size="14.00">TAP2</text>
-<polygon fill="none" stroke="black" points="2889.5,-84.5 2889.5,-107.5 3133.5,-107.5 3133.5,-84.5 2889.5,-84.5"/>
-<text text-anchor="start" x="3006.5" y="-92.3" font-family="Helvetica,sans-Serif" font-size="14.00">4</text>
-<polygon fill="none" stroke="black" points="3133.5,-84.5 3133.5,-107.5 3404.5,-107.5 3404.5,-84.5 3133.5,-84.5"/>
-<text text-anchor="start" x="3251.5" y="-92.3" font-family="Helvetica,sans-Serif" font-size="14.00">TAP3</text>
-<polygon fill="none" stroke="black" points="2889.5,-61.5 2889.5,-84.5 3133.5,-84.5 3133.5,-61.5 2889.5,-61.5"/>
-<text text-anchor="start" x="3006.5" y="-69.3" font-family="Helvetica,sans-Serif" font-size="14.00">5</text>
-<polygon fill="none" stroke="black" points="3133.5,-61.5 3133.5,-84.5 3404.5,-84.5 3404.5,-61.5 3133.5,-61.5"/>
-<text text-anchor="start" x="3251.5" y="-69.3" font-family="Helvetica,sans-Serif" font-size="14.00">TAP4</text>
-<polygon fill="none" stroke="black" points="2889.5,-38.5 2889.5,-61.5 3133.5,-61.5 3133.5,-38.5 2889.5,-38.5"/>
-<text text-anchor="start" x="3006.5" y="-46.3" font-family="Helvetica,sans-Serif" font-size="14.00">6</text>
-<polygon fill="none" stroke="black" points="3133.5,-38.5 3133.5,-61.5 3404.5,-61.5 3404.5,-38.5 3133.5,-38.5"/>
-<text text-anchor="start" x="3250.5" y="-46.3" font-family="Helvetica,sans-Serif" font-size="14.00">NTC2</text>
-<polygon fill="none" stroke="black" points="2889.5,-15.5 2889.5,-38.5 3404.5,-38.5 3404.5,-15.5 2889.5,-15.5"/>
-<text text-anchor="start" x="2988.5" y="-23.3" font-family="Helvetica,sans-Serif" font-size="14.00">EPS J2 to AFE U1 and secondary protector U2</text>
+<polygon fill="#ffffff" stroke="black" points="3424.5,-223 2868.5,-223 2868.5,-16 3424.5,-16 3424.5,-223"/>
+<polygon fill="none" stroke="black" points="2868.5,-199.5 2868.5,-222.5 3424.5,-222.5 3424.5,-199.5 2868.5,-199.5"/>
+<text text-anchor="start" x="3139.5" y="-207.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2</text>
+<polygon fill="none" stroke="black" points="2868.5,-176.5 2868.5,-199.5 3332.5,-199.5 3332.5,-176.5 2868.5,-176.5"/>
+<text text-anchor="start" x="2872.5" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">Pico&#45;Clasp receptacle 501330&#45;0600, gold 501193&#45;9000 terminals</text>
+<polygon fill="none" stroke="black" points="3332.5,-176.5 3332.5,-199.5 3379.5,-199.5 3379.5,-176.5 3332.5,-176.5"/>
+<text text-anchor="start" x="3336.5" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">6 pos</text>
+<polygon fill="none" stroke="black" points="3379.5,-176.5 3379.5,-199.5 3424.5,-199.5 3424.5,-176.5 3379.5,-176.5"/>
+<text text-anchor="start" x="3383.5" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">6&#45;pin</text>
+<polygon fill="none" stroke="black" points="2868.5,-153.5 2868.5,-176.5 3133.5,-176.5 3133.5,-153.5 2868.5,-153.5"/>
+<text text-anchor="start" x="2996" y="-161.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
+<polygon fill="none" stroke="black" points="3133.5,-153.5 3133.5,-176.5 3424.5,-176.5 3424.5,-153.5 3133.5,-153.5"/>
+<text text-anchor="start" x="3261.5" y="-161.3" font-family="Helvetica,sans-Serif" font-size="14.00">TAP0</text>
+<polygon fill="none" stroke="black" points="2868.5,-130.5 2868.5,-153.5 3133.5,-153.5 3133.5,-130.5 2868.5,-130.5"/>
+<text text-anchor="start" x="2996" y="-138.3" font-family="Helvetica,sans-Serif" font-size="14.00">2</text>
+<polygon fill="none" stroke="black" points="3133.5,-130.5 3133.5,-153.5 3424.5,-153.5 3424.5,-130.5 3133.5,-130.5"/>
+<text text-anchor="start" x="3261.5" y="-138.3" font-family="Helvetica,sans-Serif" font-size="14.00">TAP1</text>
+<polygon fill="none" stroke="black" points="2868.5,-107.5 2868.5,-130.5 3133.5,-130.5 3133.5,-107.5 2868.5,-107.5"/>
+<text text-anchor="start" x="2996" y="-115.3" font-family="Helvetica,sans-Serif" font-size="14.00">3</text>
+<polygon fill="none" stroke="black" points="3133.5,-107.5 3133.5,-130.5 3424.5,-130.5 3424.5,-107.5 3133.5,-107.5"/>
+<text text-anchor="start" x="3261.5" y="-115.3" font-family="Helvetica,sans-Serif" font-size="14.00">TAP2</text>
+<polygon fill="none" stroke="black" points="2868.5,-84.5 2868.5,-107.5 3133.5,-107.5 3133.5,-84.5 2868.5,-84.5"/>
+<text text-anchor="start" x="2996" y="-92.3" font-family="Helvetica,sans-Serif" font-size="14.00">4</text>
+<polygon fill="none" stroke="black" points="3133.5,-84.5 3133.5,-107.5 3424.5,-107.5 3424.5,-84.5 3133.5,-84.5"/>
+<text text-anchor="start" x="3261.5" y="-92.3" font-family="Helvetica,sans-Serif" font-size="14.00">TAP3</text>
+<polygon fill="none" stroke="black" points="2868.5,-61.5 2868.5,-84.5 3133.5,-84.5 3133.5,-61.5 2868.5,-61.5"/>
+<text text-anchor="start" x="2996" y="-69.3" font-family="Helvetica,sans-Serif" font-size="14.00">5</text>
+<polygon fill="none" stroke="black" points="3133.5,-61.5 3133.5,-84.5 3424.5,-84.5 3424.5,-61.5 3133.5,-61.5"/>
+<text text-anchor="start" x="3261.5" y="-69.3" font-family="Helvetica,sans-Serif" font-size="14.00">TAP4</text>
+<polygon fill="none" stroke="black" points="2868.5,-38.5 2868.5,-61.5 3133.5,-61.5 3133.5,-38.5 2868.5,-38.5"/>
+<text text-anchor="start" x="2996" y="-46.3" font-family="Helvetica,sans-Serif" font-size="14.00">6</text>
+<polygon fill="none" stroke="black" points="3133.5,-38.5 3133.5,-61.5 3424.5,-61.5 3424.5,-38.5 3133.5,-38.5"/>
+<text text-anchor="start" x="3260.5" y="-46.3" font-family="Helvetica,sans-Serif" font-size="14.00">NTC2</text>
+<polygon fill="none" stroke="black" points="2868.5,-15.5 2868.5,-38.5 3424.5,-38.5 3424.5,-15.5 2868.5,-15.5"/>
+<text text-anchor="start" x="2988" y="-23.3" font-family="Helvetica,sans-Serif" font-size="14.00">EPS J2 to AFE U1 and secondary protector U2</text>
 </g>
 <!-- W1&#45;22&#45;&#45;J1 -->
 <g id="edge2" class="edge">
@@ -458,44 +458,44 @@
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge18" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-167.5C2565.88,-167.5 2630.37,-163.5 2888.5,-163.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-169.5C2566.01,-169.5 2630.49,-165.5 2888.5,-165.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-171.5C2566.13,-171.5 2630.62,-167.5 2888.5,-167.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-167.5C2556.54,-167.5 2618.7,-163.5 2867.5,-163.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-169.5C2556.67,-169.5 2618.83,-165.5 2867.5,-165.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-171.5C2556.8,-171.5 2618.96,-167.5 2867.5,-167.5"/>
 </g>
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge20" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-142.5C2565.94,-142.5 2630.44,-140.5 2888.5,-140.5"/>
-<path fill="none" stroke="#895956" stroke-width="2" d="M2308,-144.5C2566,-144.5 2630.5,-142.5 2888.5,-142.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-146.5C2566.06,-146.5 2630.56,-144.5 2888.5,-144.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-142.5C2556.6,-142.5 2618.77,-140.5 2867.5,-140.5"/>
+<path fill="none" stroke="#895956" stroke-width="2" d="M2308,-144.5C2556.67,-144.5 2618.83,-142.5 2867.5,-142.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-146.5C2556.73,-146.5 2618.9,-144.5 2867.5,-144.5"/>
 </g>
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge22" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-117.5C2565.97,-117.5 2630.47,-116.5 2888.5,-116.5"/>
-<path fill="none" stroke="#ff0000" stroke-width="2" d="M2308,-119.5C2566,-119.5 2630.5,-118.5 2888.5,-118.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-121.5C2566.03,-121.5 2630.53,-120.5 2888.5,-120.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-117.5C2556.63,-117.5 2618.8,-116.5 2867.5,-116.5"/>
+<path fill="none" stroke="#ff0000" stroke-width="2" d="M2308,-119.5C2556.67,-119.5 2618.83,-118.5 2867.5,-118.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-121.5C2556.7,-121.5 2618.87,-120.5 2867.5,-120.5"/>
 </g>
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge24" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-92.5C2566.03,-92.5 2630.53,-93.5 2888.5,-93.5"/>
-<path fill="none" stroke="#ff8000" stroke-width="2" d="M2308,-94.5C2566,-94.5 2630.5,-95.5 2888.5,-95.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-96.5C2565.97,-96.5 2630.47,-97.5 2888.5,-97.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-92.5C2556.7,-92.5 2618.87,-93.5 2867.5,-93.5"/>
+<path fill="none" stroke="#ff8000" stroke-width="2" d="M2308,-94.5C2556.67,-94.5 2618.83,-95.5 2867.5,-95.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-96.5C2556.63,-96.5 2618.8,-97.5 2867.5,-97.5"/>
 </g>
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge26" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-67.5C2566.1,-67.5 2630.59,-70.5 2888.5,-70.5"/>
-<path fill="none" stroke="#ffff00" stroke-width="2" d="M2308,-69.5C2566,-69.5 2630.5,-72.5 2888.5,-72.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-71.5C2565.91,-71.5 2630.4,-74.5 2888.5,-74.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-67.5C2556.77,-67.5 2618.93,-70.5 2867.5,-70.5"/>
+<path fill="none" stroke="#ffff00" stroke-width="2" d="M2308,-69.5C2556.67,-69.5 2618.83,-72.5 2867.5,-72.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-71.5C2556.57,-71.5 2618.73,-74.5 2867.5,-74.5"/>
 </g>
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge28" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-42.5C2566.16,-42.51 2630.65,-47.51 2888.5,-47.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M2308,-44.5C2566.01,-44.5 2630.49,-49.5 2888.5,-49.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-46.5C2565.85,-46.49 2630.34,-51.49 2888.5,-51.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-42.5C2556.84,-42.51 2618.98,-47.51 2867.5,-47.5"/>
+<path fill="none" stroke="#ffffff" stroke-width="2" d="M2308,-44.5C2556.68,-44.5 2618.82,-49.5 2867.5,-49.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2308,-46.5C2556.52,-46.49 2618.66,-51.49 2867.5,-51.5"/>
 </g>
 </g>
 </svg>

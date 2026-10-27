@@ -94,7 +94,7 @@ cables:
     length: 0.22
     notes: "50 Ohm, matched to W10_P_A; same band"
   W10E:
-    type: 1.13 mm micro-coax, MMCX right-angle plugs
+    type: 1.13 mm micro-coax Multicomp Pro MINI-1.13, Molex 73415-2261 R/A MMCX plug both ends
     wirecount: 1
     shield: true
     length: 0.195

@@ -257,7 +257,8 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 **Passivation sequence (OBC, SQSO-EPS-BRD-001 D §7).** On PASSIVATE_ARM (authenticated): (1) read EOL_STATE and
 require bit 0 = 0 and bit 2 = 1; (2) write 0x3C then 0xC3 to EOL_KEY (0x7E) within 1 s; (3) read EOL_STATE bit 3 = 1;
 (4) raise EOL_ARM (PF4) within 10 s of step 2, confirm EOL_STATE bit 0 = 1, lower PF4. On PASSIVATE_EXECUTE
-(authenticated, later, in sunlight): hold EOL_FIRE (PG1) high ≥ 60 s, then confirm EOL_STATE bit 1 = 1 and bit 2 = 0.
+(authenticated, later, in sunlight, and only with the EPS board at ≥ 0 °C by the INA228 die temperatures, so the ITV4030
+fuse F1 is fired inside its −10 … +65 °C rating; SQSO-EPS-BRD-001 F §7): hold EOL_FIRE (PG1) high ≥ 60 s, then confirm EOL_STATE bit 1 = 1 and bit 2 = 0.
 The arm latch clears at every EPS power-up; a failed step leaves the latch clear and is reported.
 
 ## 5. Data Formats
@@ -475,4 +476,4 @@ When Alert GPIO is asserted:
 | 1.3 | 2026-10-27 | CDR flight software round 2 | §4.6: CHG_INHIBIT bit 5 (recharge lockout latched), LOCK_UNLOCK 0x7D (key 0xC5) for EPS_CLEAR_LOCKOUT; the flight software reads CHG_INHIBIT and EOL_STATE |
 | 1.4 | 2026-10-27 | CDR flight software round 3 | §4.6: EOL_STATE bit 2 fuse F1 intact; IMON_JET 0x8A (Jetson rail current, the JPC sensor) |
 | 1.5 | 2026-10-27 | CDR design (EPS board) | §3 payload row: JETSON_PWR on PA8 (PA2 is the spreader thermistor), both Jetson switches shed-gated; §4.6 (amended): EOL_KEY register 0x7E (key 0x3C, 0xC3), EOL_STATE bit 3, the OBC passivation sequence (RID P3E-11) |
-| 1.6 | 2026-10-27 | CDR design (EPS board) | SQSO-EPS-BRD-001 E: §4.6 OBC_HEARTBEAT 0x8C (every ≤ 60 s, 600 s timeout, ≤ 3 cycles per 24 h), ANTS_PWR 0x8D, TRK_DISABLE 0x8E, EPS_SUPV 0x8F; CHG_INHIBIT bit 6 (NTC1 implausible); LOAD_SHED without the PA; §2 AntS moved to the OBC's I2C3 (0x31, 0x32); AntS supply also by the controller |
+| 1.6 | 2026-10-27 | CDR design (EPS board) | SQSO-EPS-BRD-001 E: §4.6 OBC_HEARTBEAT 0x8C (every ≤ 60 s, 600 s timeout, ≤ 3 cycles per 24 h), ANTS_PWR 0x8D, TRK_DISABLE 0x8E, EPS_SUPV 0x8F; CHG_INHIBIT bit 6 (NTC1 implausible); LOAD_SHED without the PA; §2 AntS moved to the OBC's I2C3 (0x31, 0x32); AntS supply also by the controller; amended: passivation fire only with the EPS board ≥ 0 °C |

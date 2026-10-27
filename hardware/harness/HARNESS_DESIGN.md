@@ -130,7 +130,7 @@ copper connection: the shell bonds to the frame through the panel only. The 2 ×
 | W9A | OBC J5 (Pico-Clasp 6) | GNSS receiver | 6 | 28 AWG, three pairs | 0.145 | (+X,+Y) bundle D–B, under EPS J3 |
 | W9B | EPS J21 (Pico-Clasp 2) | OBC J4 (Pico-Clasp 2) | 2 | 28 AWG pair | 0.085 | (+X,+Y) bundle B–D |
 | W10 | RF J3–J6 (MMCX) | AntS ports | 4 coax | 1.37 mm micro-coax | 0.220 | −X coax bands (RF board C §4.3) |
-| W10E | GNSS receiver RF port | GNSS patch | 1 coax | 1.13 mm micro-coax | 0.195 | (+X,−Y) bundle upper section B–E, over the RF shield |
+| W10E | GNSS receiver RF port | GNSS patch | 1 coax | 1.13 mm micro-coax, Multicomp Pro MINI-1.13 (§5.3), Molex 73415-2261 plugs | 0.195 | (+X,−Y) bundle upper section B–E, over the RF shield |
 | W11 | EPS J13 (Micro-Fit 2×3) | A3 (solder) | 6 | 24 AWG | 0.175 | Under the EPS, −Y deck slot, −Y wall strip |
 | W12A, W12B, W12C | EPS J15, J17 (Pico-Clasp 3; J17-3 not used from EPS Version E), J16 (Pico-Clasp 5) | Deployment switches DS1, DS2 (two-pole), DS3 | 2, 5, 2 | 28 AWG | 0.090, 0.100, 0.110 | Each on its own rail and its own route (§7.2) |
 | W12D | EPS J14 (Pico-Clasp 4) | RBF switch | 4 | 28 AWG, two pairs | 0.085 | −Y wall strip, −Y deck slot |
@@ -189,6 +189,7 @@ wire worst case (2.0 A pack current with a 60/40 split) against 2.50 A derated, 
 | Ties | MIL-T-43435 lacing tape (Nomex or polyester, finish with E595 data), spot ties; Scotch-Weld 2216 tie-down dots on structure | MATERIALS_LIST rejects nylon 6/6 tie wraps |
 | Sleeving | PTFE (pack-lead over-sleeve, edge protection at the deck openings and slots) | Low outgassing |
 | Connector housings | Pico-Clasp and Micro-Fit housings: E595 data per part number, finished harnesses baked out before integration (V-HAR-11) | Moisture-bearing polyamides are TML-limited |
+| W10E cable | **Multicomp Pro MINI-1.13** (Farnell 3407397 / 3407398): 50 Ω; silver-plated copper 7/0.08 mm centre conductor and shield; FEP dielectric (0.68 mm) and jacket (1.13 mm); −55 … +155 °C; minimum bend radius 4.5 mm (6.8 mm is used, §2.2) | It meets the audit's −55 … +125 °C need (SQSO-MFG-003 H9). All conductors are silver-plated copper, with no tin or nickel-iron (magnetometer). E595 certificate under V-HAR-11 |
 | Staking | Arathane 5750 bead across each mated wire-to-board connector after final mating; Scotch-Weld 2216 for tie-down dots and wire staking only, never structurally | Removable; the carrier's coating material; MATERIALS_LIST §5 |
 
 ## 6. Wire List

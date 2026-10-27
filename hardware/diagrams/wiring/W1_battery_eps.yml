@@ -21,12 +21,12 @@ connectors:
     notes: pack side; NTC2 returns to TAP0 inside the pack
     pinlabels: [BAT_TOP, BAT_TOP, BAT_BOT, BAT_BOT, NTC1, NTC1_RTN, HTR+, HTR-, TAP0, TAP1, TAP2, TAP3, TAP4, NTC2]
   J1:
-    type: Micro-Fit 3.0 receptacle 43025-0800, gold 43030 terminals
+    type: Micro-Fit 3.0 receptacle 43025-0800, gold 43030-0003 terminals
     subtype: 8 pos, 2 rows
     notes: "EPS J1, right-angle gold header on the EPS bottom side, zone Z1 (PACK domain corner)"
     pinlabels: [BAT_TOP, BAT_TOP, BAT_BOT, BAT_BOT, NTC1, NTC1_RTN (GND), HTR_P, HTR_N]
   J2:
-    type: Pico-Clasp receptacle 501330-0600, gold 501334 terminals
+    type: Pico-Clasp receptacle 501330-0600, gold 501193-9000 terminals
     subtype: 6 pos
     notes: EPS J2 to AFE U1 and secondary protector U2
     pinlabels: [TAP0, TAP1, TAP2, TAP3, TAP4, NTC2]

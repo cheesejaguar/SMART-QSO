@@ -1,6 +1,6 @@
 # SQSO-HW-DIAG-001 W6: ADCS harnesses, version 4 (2026-10-27; SQSO-ICX-001 3.4, SQSO-OBC-BRD-001 9-10, harness design
 # SQSO-HAR-001 2.0). There is no ADCS board: W6B carries 3V3_ADCS from EPS SW4 to OBC J6; W6C the three CubeSpace
-# CR0002 rods from OBC J7 (spliced to the rods' own leads, SAE AS81824/1, at a tie-down); W6D the six sun-sensor
+# CR0002 rods from OBC J7 (spliced to the rods' own leads, M81824/1-1, TE D-436-36, at a tie-down); W6D the six sun-sensor
 # photodiodes from OBC J8, as six unshielded twisted pairs (version 3 had an overall shield: removed, DC photocurrents
 # of at most 4 mA into a 619 ohm transimpedance stage, pins J8-13/14 unused); W6E the magnetometer board A2 at the +Z
 # end frame. All 28 AWG M22759/33 (Pico-Clasp takes 28-32 AWG). W6C leaves J7 into the -X wall gap at y +7 ... +19.5
@@ -31,15 +31,15 @@ connectors:
     pinlabels: [X+, X-, Y+, Y-, Z+, Z-]
   ROD_X:
     type: CubeSpace CR0002 rod X lead (-X end)
-    subtype: AS81824/1 splice at (-27, +36, -10)
+    subtype: M81824/1-1 (TE D-436-36) splice at (-27, +36, -10)
     pinlabels: [+, '-']
   ROD_Y:
     type: CubeSpace CR0002 rod Y lead (+Y end)
-    subtype: AS81824/1 splice in the (+X, +Y) bundle at z -30
+    subtype: M81824/1-1 (TE D-436-36) splice in the (+X, +Y) bundle at z -30
     pinlabels: [+, '-']
   ROD_Z:
     type: CubeSpace CR0002 rod Z lead (top end, z +3)
-    subtype: AS81824/1 splice in the -X wall gap at (y +10, z +12)
+    subtype: M81824/1-1 (TE D-436-36) splice in the -X wall gap at (y +10, z +12)
     pinlabels: [+, '-']
   J_OBC_SS:
     type: Pico-Clasp 501330-1400, gold terminals

@@ -65,13 +65,13 @@ LEN_FACTOR, LEN_PER_END, LEN_STEP = 1.10, 15.0, 5.0           # length rule (mm)
 
 # connector families: (contact rating A, contact resistance ohm, harness-side mass: housing g, per-contact g)
 FAMILY = {
-    "PC": (1.0, 0.020, 0.03, 0.035),     # Molex Pico-Clasp 501330 housing, 501334 gold terminal (28-32 AWG)
-    "MF": (3.0, 0.010, 0.20, 0.10),      # Molex Micro-Fit 3.0 43025 receptacle, 43030 gold terminal (20-24 AWG);
+    "PC": (1.0, 0.020, 0.03, 0.035),     # Molex Pico-Clasp 501330 housing, 501193-9000 gold terminal (28-32 AWG)
+    "MF": (3.0, 0.010, 0.20, 0.10),      # Molex Micro-Fit 3.0 43025 receptacle, 43030-0003 gold terminal (20-24 AWG);
                                          # 3 A taken for 22-24 AWG wire (5 A is the 20 AWG rating)
     "TFM": (2.0, 0.020, 0.30, 0.04),     # Samtec SFSDT socket on a TFM header (1.27 mm, latched)
-    "MMCX": (0.0, 0.0, 0.90, 0.0),       # Molex 73414 right-angle crimp plug
+    "MMCX": (0.0, 0.0, 0.90, 0.0),       # Molex 73414-0351 (1.37 mm) / 73415-2261 (1.13 mm) right-angle crimp plug
     "SOL": (0.0, 0.0, 0.0, 0.0),         # solder pad, terminal or turret (no contact)
-    "SPL": (0.0, 0.002, 0.0, 0.15),      # SAE AS81824/1 crimp splice under heat shrink, staggered
+    "SPL": (0.0, 0.002, 0.0, 0.46),      # M81824/1-1 (TE D-436-36) MiniSeal splice, 0.46 g max (TE table I)
     "RX": (1.0, 0.020, 0.05, 0.035),     # GNSS receiver mating connector (28 AWG contacts), allocation
 }
 

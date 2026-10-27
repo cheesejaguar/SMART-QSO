@@ -24,12 +24,12 @@ options:
 
 connectors:
   J_EPS_JET:
-    type: Micro-Fit 3.0 receptacle 43025-0400, gold 43030 terminals
+    type: Micro-Fit 3.0 receptacle 43025-0400, gold 43030-0003 terminals
     subtype: 4 pos
     notes: "EPS J18 (right-angle gold header, EPS bottom side, zone Z2): VBAT_JET behind SW1 and the eFuse U19"
     pinlabels: &w5pwr [VBAT_JET, VBAT_JET, GND, GND]
   J_JET_PWR:
-    type: Micro-Fit 3.0 receptacle 43025-0400, gold 43030 terminals
+    type: Micro-Fit 3.0 receptacle 43025-0400, gold 43030-0003 terminals
     subtype: 4 pos
     notes: "carrier J1 (right-angle gold header, plug from -X): DC input 11.2-16.4 V; TVS2200, LC filter, LM61440 5 V buck"
     pinlabels: *w5pwr

@@ -369,44 +369,44 @@
 <!-- W10E -->
 <g id="node15" class="node">
 <title>W10E</title>
-<polygon fill="#ffffff" stroke="black" points="1821.5,-956 1144.5,-956 1144.5,-784 1821.5,-784 1821.5,-956"/>
-<polygon fill="none" stroke="black" points="1145,-933 1145,-956 1822,-956 1822,-933 1145,-933"/>
+<polygon fill="#ffffff" stroke="black" points="1873.5,-956 1092.5,-956 1092.5,-784 1873.5,-784 1873.5,-956"/>
+<polygon fill="none" stroke="black" points="1093,-933 1093,-956 1874,-956 1874,-933 1093,-933"/>
 <text text-anchor="start" x="1463" y="-940.8" font-family="Helvetica,sans-Serif" font-size="14.00">W10E</text>
-<polygon fill="none" stroke="black" points="1145,-910 1145,-933 1530,-933 1530,-910 1145,-910"/>
-<text text-anchor="start" x="1177" y="-917.8" font-family="Helvetica,sans-Serif" font-size="14.00">1.13 mm micro&#45;coax, MMCX right&#45;angle plugs</text>
-<polygon fill="none" stroke="black" points="1530,-910 1530,-933 1611,-933 1611,-910 1530,-910"/>
-<text text-anchor="start" x="1561.5" y="-917.8" font-family="Helvetica,sans-Serif" font-size="14.00">1x</text>
-<polygon fill="none" stroke="black" points="1611,-910 1611,-933 1700,-933 1700,-910 1611,-910"/>
-<text text-anchor="start" x="1642.5" y="-917.8" font-family="Helvetica,sans-Serif" font-size="14.00">+ S</text>
-<polygon fill="none" stroke="black" points="1700,-910 1700,-933 1822,-933 1822,-910 1700,-910"/>
-<text text-anchor="start" x="1731.5" y="-917.8" font-family="Helvetica,sans-Serif" font-size="14.00">0.195 m</text>
-<text text-anchor="start" x="1268" y="-896.8" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
-<text text-anchor="start" x="1215.5" y="-877.8" font-family="Helvetica,sans-Serif" font-size="14.00">J_GNSS_RF:1:RF</text>
-<text text-anchor="start" x="1459" y="-877.8" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;1 &#160;&#160;&#160;</text>
-<text text-anchor="start" x="1641.5" y="-877.8" font-family="Helvetica,sans-Serif" font-size="14.00">ANT_GNSS:1:RF</text>
-<polygon fill="#000000" stroke="transparent" points="1145,-870 1145,-872 1822,-872 1822,-870 1145,-870"/>
-<polygon fill="#ffffff" stroke="transparent" points="1145,-868 1145,-870 1822,-870 1822,-868 1145,-868"/>
-<polygon fill="#000000" stroke="transparent" points="1145,-866 1145,-868 1822,-868 1822,-866 1145,-866"/>
-<text text-anchor="start" x="1268" y="-852.8" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
-<text text-anchor="start" x="1208.5" y="-833.8" font-family="Helvetica,sans-Serif" font-size="14.00">J_GNSS_RF:2:GND</text>
-<text text-anchor="start" x="1462.5" y="-833.8" font-family="Helvetica,sans-Serif" font-size="14.00">Shield</text>
-<text text-anchor="start" x="1635" y="-833.8" font-family="Helvetica,sans-Serif" font-size="14.00">ANT_GNSS:2:GND</text>
-<polygon fill="#000000" stroke="transparent" points="1145,-826 1145,-828 1822,-828 1822,-826 1145,-826"/>
-<text text-anchor="start" x="1268" y="-812.8" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
-<polygon fill="none" stroke="black" points="1145,-784 1145,-807 1822,-807 1822,-784 1145,-784"/>
+<polygon fill="none" stroke="black" points="1093,-910 1093,-933 1747,-933 1747,-910 1093,-910"/>
+<text text-anchor="start" x="1097" y="-917.8" font-family="Helvetica,sans-Serif" font-size="14.00">1.13 mm micro&#45;coax Multicomp Pro MINI&#45;1.13, Molex 73415&#45;2261 R/A MMCX plug both ends</text>
+<polygon fill="none" stroke="black" points="1747,-910 1747,-933 1773,-933 1773,-910 1747,-910"/>
+<text text-anchor="start" x="1751" y="-917.8" font-family="Helvetica,sans-Serif" font-size="14.00">1x</text>
+<polygon fill="none" stroke="black" points="1773,-910 1773,-933 1807,-933 1807,-910 1773,-910"/>
+<text text-anchor="start" x="1777" y="-917.8" font-family="Helvetica,sans-Serif" font-size="14.00">+ S</text>
+<polygon fill="none" stroke="black" points="1807,-910 1807,-933 1874,-933 1874,-910 1807,-910"/>
+<text text-anchor="start" x="1811" y="-917.8" font-family="Helvetica,sans-Serif" font-size="14.00">0.195 m</text>
+<text text-anchor="start" x="1233" y="-896.8" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
+<text text-anchor="start" x="1180.5" y="-877.8" font-family="Helvetica,sans-Serif" font-size="14.00">J_GNSS_RF:1:RF</text>
+<text text-anchor="start" x="1458.5" y="-877.8" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;1 &#160;&#160;&#160;</text>
+<text text-anchor="start" x="1676" y="-877.8" font-family="Helvetica,sans-Serif" font-size="14.00">ANT_GNSS:1:RF</text>
+<polygon fill="#000000" stroke="transparent" points="1093,-870 1093,-872 1874,-872 1874,-870 1093,-870"/>
+<polygon fill="#ffffff" stroke="transparent" points="1093,-868 1093,-870 1874,-870 1874,-868 1093,-868"/>
+<polygon fill="#000000" stroke="transparent" points="1093,-866 1093,-868 1874,-868 1874,-866 1093,-866"/>
+<text text-anchor="start" x="1233" y="-852.8" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
+<text text-anchor="start" x="1173.5" y="-833.8" font-family="Helvetica,sans-Serif" font-size="14.00">J_GNSS_RF:2:GND</text>
+<text text-anchor="start" x="1462" y="-833.8" font-family="Helvetica,sans-Serif" font-size="14.00">Shield</text>
+<text text-anchor="start" x="1669.5" y="-833.8" font-family="Helvetica,sans-Serif" font-size="14.00">ANT_GNSS:2:GND</text>
+<polygon fill="#000000" stroke="transparent" points="1093,-826 1093,-828 1874,-828 1874,-826 1093,-826"/>
+<text text-anchor="start" x="1233" y="-812.8" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
+<polygon fill="none" stroke="black" points="1093,-784 1093,-807 1874,-807 1874,-784 1093,-784"/>
 <text text-anchor="start" x="1149" y="-791.8" font-family="Helvetica,sans-Serif" font-size="14.00">silver&#45;plated copper, FEP; carries the active&#45;antenna bias; about 0.5 dB at 1575 MHz (allocation)</text>
 </g>
 <!-- J_GNSS_RF&#45;&#45;W10E -->
 <g id="edge17" class="edge">
 <title>J_GNSS_RF:e&#45;&#45;W10E:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M558.5,-857C819.06,-857.02 884.04,-867.02 1144,-867"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M558.5,-859C818.76,-859 883.74,-869 1144,-869"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M558.5,-861C818.46,-860.98 883.44,-870.98 1144,-871"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M558.5,-857C795.99,-857.03 855.18,-867.03 1092,-867"/>
+<path fill="none" stroke="#ffffff" stroke-width="2" d="M558.5,-859C795.65,-859 854.85,-869 1092,-869"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M558.5,-861C795.32,-860.97 854.51,-870.97 1092,-871"/>
 </g>
 <!-- J_GNSS_RF&#45;&#45;W10E -->
 <g id="edge19" class="edge">
 <title>J_GNSS_RF:e&#45;&#45;W10E:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M558.5,-836C818.75,-836 883.75,-827 1144,-827"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M558.5,-836C795.64,-836 854.86,-827 1092,-827"/>
 </g>
 <!-- ANT_GNSS -->
 <g id="node10" class="node">
@@ -480,14 +480,14 @@
 <!-- W10E&#45;&#45;ANT_GNSS -->
 <g id="edge18" class="edge">
 <title>W10E:e&#45;&#45;ANT_GNSS:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1823,-867C2071.61,-867.03 2133.75,-857.03 2383,-857"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M1823,-869C2071.93,-869 2134.07,-859 2383,-859"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1823,-871C2072.25,-870.97 2134.39,-860.97 2383,-861"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1875,-867C2100.47,-867.03 2156.83,-857.03 2383,-857"/>
+<path fill="none" stroke="#ffffff" stroke-width="2" d="M1875,-869C2100.82,-869 2157.18,-859 2383,-859"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1875,-871C2101.17,-870.97 2157.53,-860.97 2383,-861"/>
 </g>
 <!-- W10E&#45;&#45;ANT_GNSS -->
 <g id="edge20" class="edge">
 <title>W10E:e&#45;&#45;ANT_GNSS:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1823,-827C2071.92,-827 2134.08,-836 2383,-836"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1875,-827C2100.81,-827 2157.19,-836 2383,-836"/>
 </g>
 </g>
 </svg>

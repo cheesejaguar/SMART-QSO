@@ -24,7 +24,7 @@ connectors:
     notes: "OBC J9, -X edge, y -24 ... -34: PA13, PA14, RST_REQ (Q1 to NRST), PD8, PD9, PB8, TPS3850 SET0"
     pinlabels: [VTREF (3V3_OBC via 100 Ohm), SWDIO, GND, SWCLK, WDT_DIS, RST_REQ, USART3_TX (OBC out), USART3_RX (OBC in), UMBILICAL_SENSE, GND]
   J_EPS_UMB:
-    type: Micro-Fit 3.0 receptacle 43025-0600, gold 43030 terminals
+    type: Micro-Fit 3.0 receptacle 43025-0600, gold 43030-0003 terminals
     subtype: 2x3
     notes: "EPS J13 (zone Z5): UMB_CHG via F5 1 A and D16 to PACK_P; PACK_N; UMB_VMON (100 k from BAT_F); UMB_SHUT"
     pinlabels: [UMB_CHG, UMB_CHG, PACK_N, PACK_N, UMB_VMON, UMB_SHUT]

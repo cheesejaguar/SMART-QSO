@@ -15,12 +15,12 @@
 <polygon fill="#ffffff" stroke="black" points="916.5,-175 190.5,-175 190.5,-14 916.5,-14 916.5,-175"/>
 <polygon fill="none" stroke="black" points="190.5,-151.5 190.5,-174.5 916.5,-174.5 916.5,-151.5 190.5,-151.5"/>
 <text text-anchor="start" x="520" y="-159.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET</text>
-<polygon fill="none" stroke="black" points="190.5,-128.5 190.5,-151.5 680.5,-151.5 680.5,-128.5 190.5,-128.5"/>
-<text text-anchor="start" x="230.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">Micro&#45;Fit 3.0 receptacle 43025&#45;0400, gold 43030 terminals</text>
-<polygon fill="none" stroke="black" points="680.5,-128.5 680.5,-151.5 799.5,-151.5 799.5,-128.5 680.5,-128.5"/>
-<text text-anchor="start" x="720.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4 pos</text>
-<polygon fill="none" stroke="black" points="799.5,-128.5 799.5,-151.5 916.5,-151.5 916.5,-128.5 799.5,-128.5"/>
-<text text-anchor="start" x="839.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4&#45;pin</text>
+<polygon fill="none" stroke="black" points="190.5,-128.5 190.5,-151.5 708.5,-151.5 708.5,-128.5 190.5,-128.5"/>
+<text text-anchor="start" x="224" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">Micro&#45;Fit 3.0 receptacle 43025&#45;0400, gold 43030&#45;0003 terminals</text>
+<polygon fill="none" stroke="black" points="708.5,-128.5 708.5,-151.5 813.5,-151.5 813.5,-128.5 708.5,-128.5"/>
+<text text-anchor="start" x="741.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4 pos</text>
+<polygon fill="none" stroke="black" points="813.5,-128.5 813.5,-151.5 916.5,-151.5 916.5,-128.5 813.5,-128.5"/>
+<text text-anchor="start" x="846.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4&#45;pin</text>
 <polygon fill="none" stroke="black" points="190.5,-105.5 190.5,-128.5 581.5,-128.5 581.5,-105.5 190.5,-105.5"/>
 <text text-anchor="start" x="353.5" y="-113.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_JET</text>
 <polygon fill="none" stroke="black" points="581.5,-105.5 581.5,-128.5 916.5,-128.5 916.5,-105.5 581.5,-105.5"/>
@@ -115,12 +115,12 @@
 <polygon fill="#ffffff" stroke="black" points="3462,-175 2685,-175 2685,-14 3462,-14 3462,-175"/>
 <polygon fill="none" stroke="black" points="2685.5,-151.5 2685.5,-174.5 3462.5,-174.5 3462.5,-151.5 2685.5,-151.5"/>
 <text text-anchor="start" x="3038" y="-159.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_PWR</text>
-<polygon fill="none" stroke="black" points="2685.5,-128.5 2685.5,-151.5 3192.5,-151.5 3192.5,-128.5 2685.5,-128.5"/>
-<text text-anchor="start" x="2734" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">Micro&#45;Fit 3.0 receptacle 43025&#45;0400, gold 43030 terminals</text>
-<polygon fill="none" stroke="black" points="3192.5,-128.5 3192.5,-151.5 3328.5,-151.5 3328.5,-128.5 3192.5,-128.5"/>
-<text text-anchor="start" x="3241" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4 pos</text>
-<polygon fill="none" stroke="black" points="3328.5,-128.5 3328.5,-151.5 3462.5,-151.5 3462.5,-128.5 3328.5,-128.5"/>
-<text text-anchor="start" x="3377" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4&#45;pin</text>
+<polygon fill="none" stroke="black" points="2685.5,-128.5 2685.5,-151.5 3220.5,-151.5 3220.5,-128.5 2685.5,-128.5"/>
+<text text-anchor="start" x="2727.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">Micro&#45;Fit 3.0 receptacle 43025&#45;0400, gold 43030&#45;0003 terminals</text>
+<polygon fill="none" stroke="black" points="3220.5,-128.5 3220.5,-151.5 3342.5,-151.5 3342.5,-128.5 3220.5,-128.5"/>
+<text text-anchor="start" x="3262" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4 pos</text>
+<polygon fill="none" stroke="black" points="3342.5,-128.5 3342.5,-151.5 3462.5,-151.5 3462.5,-128.5 3342.5,-128.5"/>
+<text text-anchor="start" x="3384" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4&#45;pin</text>
 <polygon fill="none" stroke="black" points="2685.5,-105.5 2685.5,-128.5 3046.5,-128.5 3046.5,-105.5 2685.5,-105.5"/>
 <text text-anchor="start" x="2861" y="-113.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
 <polygon fill="none" stroke="black" points="3046.5,-105.5 3046.5,-128.5 3462.5,-128.5 3462.5,-105.5 3046.5,-105.5"/>

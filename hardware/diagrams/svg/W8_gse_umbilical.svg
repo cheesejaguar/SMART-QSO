@@ -652,12 +652,12 @@
 <polygon fill="#ffffff" stroke="black" points="799,-223 0,-223 0,-16 799,-16 799,-223"/>
 <polygon fill="none" stroke="black" points="0.5,-199.5 0.5,-222.5 799.5,-222.5 799.5,-199.5 0.5,-199.5"/>
 <text text-anchor="start" x="361.5" y="-207.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_UMB</text>
-<polygon fill="none" stroke="black" points="0.5,-176.5 0.5,-199.5 519.5,-199.5 519.5,-176.5 0.5,-176.5"/>
-<text text-anchor="start" x="55" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">Micro&#45;Fit 3.0 receptacle 43025&#45;0600, gold 43030 terminals</text>
-<polygon fill="none" stroke="black" points="519.5,-176.5 519.5,-199.5 654.5,-199.5 654.5,-176.5 519.5,-176.5"/>
-<text text-anchor="start" x="573.5" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">2x3</text>
-<polygon fill="none" stroke="black" points="654.5,-176.5 654.5,-199.5 799.5,-199.5 799.5,-176.5 654.5,-176.5"/>
-<text text-anchor="start" x="708.5" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">6&#45;pin</text>
+<polygon fill="none" stroke="black" points="0.5,-176.5 0.5,-199.5 546.5,-199.5 546.5,-176.5 0.5,-176.5"/>
+<text text-anchor="start" x="48" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">Micro&#45;Fit 3.0 receptacle 43025&#45;0600, gold 43030&#45;0003 terminals</text>
+<polygon fill="none" stroke="black" points="546.5,-176.5 546.5,-199.5 668.5,-199.5 668.5,-176.5 546.5,-176.5"/>
+<text text-anchor="start" x="594" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">2x3</text>
+<polygon fill="none" stroke="black" points="668.5,-176.5 668.5,-199.5 799.5,-199.5 799.5,-176.5 668.5,-176.5"/>
+<text text-anchor="start" x="715.5" y="-184.3" font-family="Helvetica,sans-Serif" font-size="14.00">6&#45;pin</text>
 <polygon fill="none" stroke="black" points="0.5,-153.5 0.5,-176.5 436.5,-176.5 436.5,-153.5 0.5,-153.5"/>
 <text text-anchor="start" x="183.5" y="-161.3" font-family="Helvetica,sans-Serif" font-size="14.00">UMB_CHG</text>
 <polygon fill="none" stroke="black" points="436.5,-153.5 436.5,-176.5 799.5,-176.5 799.5,-153.5 436.5,-153.5"/>
