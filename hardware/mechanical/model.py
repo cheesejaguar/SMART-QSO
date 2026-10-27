@@ -846,6 +846,21 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
          "and the supports", dict(top_z=gbb.zmax, above_obc_mm=p["gyro_h"], carrier_bottom_z=p["z_car"],
                                   clearances_mm=gcl), ">= 1.0 mm (3-sigma relative board motion < 0.2 mm)",
          min(gcl.values()) >= 1.0, note="through a 27 x 27 mm window in the carrier (MECHANICAL_DESIGN D-11)")
+    # Jetson carrier item M1: pedestal, module standoffs and the (0, -21) fastener against the window and the module
+    wx0, wx1, wy0, wy1 = p["car_win"]
+    hx, hy = p["mod_hole"]
+    jy = p["jet_y"]
+    win_box = B(wx0, wx1, wy0, wy1, p["z_car"], p["z_car"] + p["pcb_t"])
+    so_edge = min(abs(wy0 - (jy + hy + p["mod_so_d"] / 2)), 99.0)
+    ped_to_win = min_dist(B(-p["ped_w"] / 2, p["ped_w"] / 2, jy - p["ped_w"] / 2, jy + p["ped_w"] / 2, 27.0, 27.8), win_box)
+    head_top = p["z_car"] + p["pcb_t"] + 1.1
+    mod_under = p["z_car"] + p["pcb_t"] + 4.0 - 1.5
+    head_to_win = math.hypot(max(wx0 - 1.75, 0, -1.75 - wx1), (wy0 - (p["cs2_y"] + 1.75)))
+    item("JET-M1", "Spreader pedestal, module standoffs and the (0, -21) fastener clear of the gyro window and the module",
+         dict(standoff_to_window_mm=so_edge, pedestal_to_window_mm=ped_to_win, fastener_head_to_window_mm=head_to_win,
+              fastener_head_top_z=head_top, module_underside_parts_z=mod_under, head_to_module_parts_mm=mod_under - head_top),
+         ">= 1.0 mm each", min(so_edge, ped_to_win, head_to_win, mod_under - head_top) >= 1.0,
+         note="module hole positions and underside parts from envelopes: check against the NVIDIA drawing and STEP model")
     return res
 
 
