@@ -518,7 +518,7 @@ typedef struct {
 | Requirement | Method | Status |
 |-------------|--------|--------|
 | ADCS-F001 | Analysis, HILS Test | Pending |
-| ADCS-F002 | Analysis (Monte Carlo, photodiodes and albedo: ADCS-P002, §11.6), HILS Test | Pending: met at the 3 mA·m² design dipole; not met at the 10 mA·m² limit (6 of 40 trials, §11.6) |
+| ADCS-F002 | Analysis (Monte Carlo, photodiodes and albedo: ADCS-P002, §11.6), HILS Test | Pending: met at the 3 mA·m² design dipole and at the 7 mA·m² limit (decision C-24); not met at 10 mA·m² (6 of 40 trials, §11.6) |
 | ADCS-F003 | Analysis (Monte Carlo, §11.6), Test (TP-ADCS-003 §3.1: photodiode response, shadow, gyro at the spin rate) | Pending |
 | ADCS-F004 | Demonstration | Pending |
 | ADCS-F005 | Inspection, Test | Pending |
@@ -914,7 +914,7 @@ photodiodes worse than this model, the recorded option is an albedo-immune sun s
 | AntS 3 h after the wings, gating | 1.8 % / 2.7 % | 100 % / 100 % | 0 / 0 | 4.57 W |
 | Gating, residual dipole 5 mA·m² | 2.1 % / 3.7 % | 100 % / 99.98 % | 0 / 0 | 4.56 / 4.40 W |
 | Gating, residual dipole 7 mA·m² | 2.5 % / 5.0 % | 99.7 % / 96.3 % | 0 / 0 | 4.54 / 4.35 W |
-| **Residual dipole 10 mA·m² (the limit)** | **3.2 % / 7.7 %** | **98.5 % / 86.9 %** | **6 / 6** | 4.50 / 4.27 W |
+| **Residual dipole 10 mA·m² (the former limit; now 7 mA·m², C-24)** | **3.2 % / 7.7 %** | **98.5 % / 86.9 %** | **6 / 6** | 4.50 / 4.27 W |
 | **Gating, residual dipole 10 mA·m²** | **3.3 % / 7.6 %** | **97.9 % / 84.9 %** | **6 / 6** | 4.50 / 4.26 W |
 | W1 only, preset 0 (mean / CBE / MEV) | 0.9 % / 1.6 % | 100 % / 99.97 % | 0 / 0 | 3.11 / 3.01 W (+Y on the Sun: 3.14 W) |
 | W1 only, preset 0, gating | 0.8 % / 1.4 % | 99.6 % / 99.1 % | 0 / 0 | 3.11 W |
@@ -925,8 +925,8 @@ photodiodes worse than this model, the recorded option is an albedo-immune sun s
 | Generic sun-sensor error, gating, 10 mA·m² (for comparison) | 0.5 % / 1.8 % | 99.9 % / 99.4 % | 0 / 0 | 4.63 W |
 
 **ADCS-P002 is met in every trial at the 3 mA·m² design residual dipole, with gating, with one wing at preset 0 and
-with the wings stowed, and up to 7 mA·m² (worst trial 5.0 % and 96.3 %). It is not met at the 10 mA·m² limit of
-BASELINE §8: 6 of 40 trials fail both parts, the worst by 2.7 points of loss (7.7 % against 5 %) and 10.1 points of
+with the wings stowed, and up to 7 mA·m² (worst trial 5.0 % and 96.3 %). It is not met at 10 mA·m², the former limit of
+BASELINE §8 (now 7 mA·m², decision C-24): 6 of 40 trials fail both parts, the worst by 2.7 points of loss (7.7 % against 5 %) and 10.1 points of
 time within 30° (84.9 % against 95 %, with gating).** The residual-dipole limit consistent with ADCS-P002 is 7 mA·m²
 with the photodiodes (the flight unit's Helmholtz-cage measurement, BASELINE §8, decides it), or an albedo-immune +Y
 sensor restores 10 mA·m² (the generic-error row: 1.8 % and 99.4 %). A negative loss means the attitude the law holds

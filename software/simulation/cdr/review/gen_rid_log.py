@@ -10,6 +10,7 @@ summary counts between <!-- RID-SUMMARY-BEGIN --> and <!-- RID-SUMMARY-END -->.
 
 from __future__ import annotations
 
+import ast
 import sys
 from collections import Counter
 from pathlib import Path
@@ -46,7 +47,7 @@ GROUPS = [
     ("JETB", "Jetson carrier board (round 2)"),
     ("P3P", "Round 3: programmatics, SE, V&V"), ("P3E", "Round 3: power, safety, EMC"),
     ("P3S", "Round 3: structures, mechanisms, thermal"), ("P3A", "Round 3: launch, RF, ground, regulatory"),
-    ("P3F", "Round 3: avionics, flight software, GN&C"), ("P3T", "Round 3: thermal and parts"),
+    ("P3F", "Round 3: avionics, flight software, GN&C"), ("P3T", "Round 3: thermal and parts"), ("P4", "Round 4: final verification"),
 ]
 
 
@@ -74,6 +75,15 @@ def render() -> tuple[str, str]:
     dupes = sorted({r[0] for r in RIDS if [x[0] for x in RIDS].count(r[0]) > 1})
     if dupes:
         raise SystemExit(f"duplicate RIDs: {dupes}")
+    # A repeated key in a dict literal silently keeps the last value, so check the sources themselves
+    for name in ("rids_status.py", "rids_round3.py"):
+        tree = ast.parse((HERE / name).read_text(encoding="utf-8"))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Dict):
+                keys = [k.value for k in node.keys if isinstance(k, ast.Constant)]
+                repeated = sorted({k for k in keys if keys.count(k) > 1})
+                if repeated:
+                    raise SystemExit(f"{name}: closures given twice: {repeated}")
     unknown = sorted((set(CLOSURE) | set(REOPEN) | set(FINAL3)) - {r[0] for r in RIDS})
     if unknown:
         raise SystemExit(f"closures for unknown RIDs: {unknown}")

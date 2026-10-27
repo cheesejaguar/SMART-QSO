@@ -1,7 +1,7 @@
 # SMART-QSO Power Budget Analysis
 
 **Document ID**: SQSO-PBA-001
-**Version**: 2.4
+**Version**: 2.5
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR power closure (analysis by simulation; nothing measured). Replaces version 1.x, whose array
@@ -16,11 +16,11 @@ the 1.86 W tumbling load plus 20 %, with the 1.85 W DC transponder allocation of
 
 | Case (end of life, worst 30 days of a year) | Generation delivered to the bus | Load (mode, at the pack) | Margin | Requirement |
 |---------------------------------------------|---------------------------------|--------------------------|--------|-------------|
-| ACTIVE, sun-pointed, BASELINE duty limits (transponder 25 %, Jetson 10 %) | 3.92 W | 2.60 W | **+48 %** (+51 % by the BASELINE method) | ≥ 20 %: met |
+| ACTIVE, sun-pointed, BASELINE duty limits (transponder 25 %, Jetson 10 %); pointing with the face photodiodes and albedo (decision C-23, §4) | 3.84 W (3.79 W in the worst Monte Carlo trial) | 2.60 W | **+45 %** (+43 % worst trial); +48 % (+46 %) by the BASELINE method | ≥ 20 %: met |
 | ACTIVE, tumbling (ADCS failed), duty limits (Jetson 5 %) | 2.48 W | 1.91 W | **+27 %** (+30 %) | met |
 | ACTIVE, tumbling, isotropic bound (60 °C cells, no albedo) | 2.14 W | 1.91 W | +10 % | not met (bound only, §9) |
 | BASELINE §5 tumbling allocation (1.86 W) | 2.48 W | 1.86 W | **+31 %** (+33 % by the BASELINE method) | met |
-| IDLE, sun-pointed | 3.92 W | 1.18 W | +226 % | met |
+| IDLE, sun-pointed | 3.84 W | 1.18 W | +220 % | met |
 | SAFE (ADCS off, tumbling) | 2.48 W | 0.79 W | +208 % | met |
 | EMERGENCY (beacon shed, tumbling) | 2.48 W | 0.72 W | +238 % | met |
 | SYS-100 Rev G: 2.23 W EOL tumbling | 2.48 W | — | +11.2 % over the requirement | met |
@@ -94,6 +94,18 @@ Against the earlier analysis (SOLAR_ARRAY_DESIGN §9.3, 500 km, β = 0, cells at
 puts the body cells at −15 … +38 °C and the wings at −40 … +80 °C (THERMAL_ANALYSIS §4) instead of 60 °C (≈ +10 %
 for the body cells), and because it counts albedo (≈ +5 %). The seasonal swing is ±4 % (perihelion in January).
 
+**Pointing with the flight sensors (decision C-23, Version 2.5).** The sun-pointed runs above hold +Y on the Sun as
+the simulation's attitude model does. The ADCS Monte Carlo with the face photodiodes and Earth albedo
+(`docs/hardware/ADCS_DESIGN.md` 1.9 §11.6, requirement ADCS-P002) loses 2.0 % of the sunlit generation on average and
+3.2 % in its worst trial, so the sun-pointed EOL generation used for closure is **3.92 × 0.980 = 3.84 W** (mean) and
+**3.92 × 0.968 = 3.79 W** (worst trial); BOL 4.03 × 0.980 = 3.95 W. The tumbling case has no pointing and is unchanged
+(2.48 W). This analysis has no one-wing case (a single deployed wing is a contingency of ADCS_DESIGN §11.6: preset 0
+costs ≤ 2.0 % against the matching preset there). **The two margin methods:** this document's margin is generation /
+(load × 1.019) − 1 (the 5 % battery round trip on the 38 % eclipse share); BASELINE §5 uses generation / load − 1 on
+its allocation loads (1.86 W tumbling, 2.26 W sun-pointed). For the same generation the BASELINE method reads 3 points
+higher on the bottom-up loads; on the allocation loads it gives +33 % tumbling and +70 % (+68 % worst trial)
+sun-pointed.
+
 ## 5. Loads by mode
 
 Device values from the simulation (`sqso-sil/src/mission.rs`, `hw/radio.rs`, `hw/eps.rs`, `jetson.rs`): OBC with FRAM
@@ -139,8 +151,8 @@ End of life, worst 30 days, LTAN dispersion extremes (generation from §4, loads
 |------|----------------|------------|------|--------|
 | EMERGENCY | Tumbling (ADCS off) | 2.48 W (2.14 W bound) | 0.72 W | +238 % (+191 %) |
 | SAFE | Tumbling (ADCS off) | 2.48 W (2.14 W bound) | 0.79 W | +208 % (+167 %) |
-| IDLE | Sun-pointed | 3.92 W | 1.18 W | +226 % |
-| ACTIVE | Sun-pointed | 3.92 W (BOL 4.03 W) | 2.60 W | **+48 %** (BOL +52 %) |
+| IDLE | Sun-pointed | 3.84 W (3.79 W worst trial) | 1.18 W | +220 % (+215 %) |
+| ACTIVE | Sun-pointed | 3.84 W (3.79 W worst trial; BOL 3.95 W) | 2.60 W | **+45 %** (+43 % worst trial; BOL +49 %) |
 | ACTIVE | Tumbling (ADCS failed) | 2.48 W (2.14 W bound) | 1.91 W | **+27 %** (+10 % bound) |
 
 SAFE and EMERGENCY switch the ADCS off (`sqso_fsw::eps::loads`), so they are closed on the tumbling generation. The
@@ -256,9 +268,9 @@ model's temperatures and albedo would give about 2.14 × 1.10 × 1.05 ≈ 2.47 W
 
 **Recommended BASELINE §5 text (for the chair):**
 
-> | Generation, EOL orbit average delivered to the bus | **2.48 W tumbling; 3.92 W sun-pointed** (mission simulation at 475 km, worst 30 days of the second year at LTAN 23:30; SQSO-PBA-001 v2.2 §4). The isotropic-tumble analysis (2.14 W, SOLAR_ARRAY_DESIGN §9.3, cells at 60 °C, no albedo) is kept as a bound |
+> | Generation, EOL orbit average delivered to the bus | **2.48 W tumbling; 3.84 W sun-pointed** (3.79 W in the worst ADCS Monte Carlo trial; 3.92 W with +Y held on the Sun; mission simulation at 475 km, worst 30 days of the second year at LTAN 23:30, pointing loss per ADCS_DESIGN 1.9 §11.6; SQSO-PBA-001 v2.5 §4). The isotropic-tumble analysis (2.14 W, SOLAR_ARRAY_DESIGN §9.3, cells at 60 °C, no albedo) is kept as a bound |
 >
-> **Power closure (SQSO-PBA-001 v2.4 §6):** ACTIVE at the duty limits 2.60 W sun-pointed (+48 %), 1.91 W tumbling (+27 %); IDLE 1.18 W; SAFE 0.79 W; EMERGENCY 0.72 W, heater included. Margin ≥ 20 % in every mode at end of life and at LTAN 22:30 ± 1 h. Wings stowed: SAFE and IDLE only.
+> **Power closure (SQSO-PBA-001 v2.5 §6):** ACTIVE at the duty limits 2.60 W sun-pointed (+45 %; +43 % in the worst pointing trial), 1.91 W tumbling (+27 %); IDLE 1.18 W; SAFE 0.79 W; EMERGENCY 0.72 W, heater included. Margin ≥ 20 % in every mode at end of life and at LTAN 22:30 ± 1 h. Wings stowed: SAFE and IDLE only.
 
 and delete the "Under review" paragraph below the table.
 
@@ -303,3 +315,4 @@ and delete the "Under review" paragraph below the table.
 | 2.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Run matrix re-run with the simulation's Rev E defaults and flight software round 2 (475 km, 2028-11-01, four burn lines): EOL generation 3.92 W sun-pointed (was 3.93) and 2.48 W tumbling (was 2.43); margins ACTIVE +54 % / +34 % (was +54 / +31 %), SYS-100 +14.8 %; as-flown year at LTAN 23:30 EOL 1.53 W used, +142 % (was 1.32 W, +182 %), DoD ≤ 2.3 %, battery ≥ 4.9 °C; wings stowed held in IDLE (+38 % as flown); stuck Jetson cut-off at 66.6 h (the hardware shed not simulated); §3 β and eclipse at 475 km; §8.6 LEOP with the 28.8 min worst darkness |
 | 2.3 | 2026-10-27 | CDR design (EPS board) | §8.4 stuck-Jetson row: the hardware load shed gates both series switches (SQSO-EPS-BRD-001 D); covered failure modes and the residual (both power stages failed closed) stated |
 | 2.4 | 2026-10-27 | CDR design (EPS board) | Transponder 1.84 W DC at 0.5 W RF (RF board E; BASELINE §5 allocation 1.85 W DC, 0.46 W orbit average): §5 bottom-up ACTIVE loads 2.60 / 1.91 W, margins +48 % / +27 % (+51 % / +30 % by the BASELINE method), allocation 2.26 / 1.86 W (+31 % tumbling), SYS-100 Rev G 2.23 W (+11.2 %); peak currents (1.36 A largest, transponder 0.20 A at the pack, burn + keyed 0.94 A, not concurrent); the as-flown runs of §7 are not re-run with the new transponder (it runs far below its 25 % duty limit) |
+| 2.5 | 2026-10-27 | CDR design (EPS board) | Decision C-23 carried through: sun-pointed EOL generation with the photodiode-and-albedo pointing loss of ADCS_DESIGN 1.9 §11.6 (× 0.980 mean, × 0.968 worst trial): 3.84 / 3.79 W; ACTIVE sun-pointed +45 % (+43 %), IDLE +220 %; both margin methods stated (§4); tumbling unchanged |

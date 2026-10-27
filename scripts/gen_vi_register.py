@@ -151,8 +151,9 @@ OVERRIDES: Dict[str, Dict[str, str]] = {
     "V-THM-5": {"event": "CON", "owner": "PI (licensee) with the integrator",
                 "why": "THM-06, THM-07: requested in the RFQ (2026-12-31), result at the contract (2027-06-30); DA-12"},
     "V-JET-9": {"criterion": "Populated carrier, unpowered: ≤ 0.5 mA·m² residual dipole (one sixth of the 3 mA·m²"
-                             " design budget, BASELINE §8); during a 7 W burst: field change at the A2 magnetometer"
-                             " ≤ 15 nT (the low end of the RM3100 noise band the carrier design names)",
+                             " design budget, BASELINE §8); during a 7 W burst the field change at the A2 magnetometer"
+                             " is recorded only, with its nT/A coefficient against IMON_JET (the magnetometer is gated"
+                             " while JET_PG is high, SRS-F143; P3F-G-09)",
                 "why": "JETB-10: numeric limit"},
     "V-JET-7": {"criterion": "Junction-to-spreader ≤ 5.7 K/W (design 1.09-1.16 K/W); clamp force ≤ 40 N;"
                              " spreader-to-frame conductance measured for the SYS-603 model (design 1.10 W/K). The EM"
