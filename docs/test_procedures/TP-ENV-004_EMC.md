@@ -2,7 +2,7 @@
 ## TP-ENV-004
 
 **Document Number:** SQSO-TP-ENV-004
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-10-27
 **Status:** Draft; not yet run (no hardware exists)
 
@@ -53,7 +53,7 @@ This procedure defines the electromagnetic compatibility (EMC) and electromagnet
 1. MIL-STD-461G - EMI Control Requirements
 2. Launch Provider EMC Requirements
 3. IARU Coordination Agreement
-4. SMART-QSO ICD_BEACON_FORMAT.md
+4. Beacon specification, `docs/BEACON_SPEC.md` (superseded SMART-QSO-ICD-006, `ICD_BEACON_FORMAT.md`)
 
 ---
 
@@ -272,3 +272,4 @@ Anomalies: ___________
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.2 | 2026-10-16 | §8.3 step 4 and exceptions: beacon at the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); harmonic exception restated as SYS-203 plus the 25 µW of 47 CFR 97.307(e) (was -43 dBc, "IARU") (finding VV-06) |
 | 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026): ETP §3.6 tests added as governing (SYS-713); MIL-STD-461 scans optional EM pre-scans; no antenna deployment on the FM after protoflight tests (CDS §3.5.2); harmonics per SYS-203 Rev G; status and banner |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: applicable document 4 is BEACON_SPEC (ICD_BEACON_FORMAT, SMART-QSO-ICD-006, is a superseded pointer) |

@@ -1,7 +1,7 @@
 # SMART-QSO Software Safety Data Package
 
 **Document ID**: SQSO-SDP-001
-**Version**: 1.3
+**Version**: 1.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft. Software hazards only; every hazard is open
@@ -58,9 +58,9 @@ This table is the **hazard log** (FINDINGS_REGISTER PI-07). Software hazards (SW
 evidence: test log, analysis or inspection. Software unit tests already cover some controls. HZ-001: TX-OFF,
 RF-silence and loss-of-contact tests, and the downlink's (`test_downlink`, `Downlink_TNC_silent`). HZ-004: the supervised watchdog test. HZ-006: telecommand-authentication
 tests. No hardware verification has been run, so every hazard is open. The hazard analysis (SQSO-SHA-001 Rev I) carries
-SW-HAZ-001 to SW-HAZ-017; the six HZ entries below are the Revision A roll-up and do not yet map SW-HAZ-009 to -017
-(transponder, RF inhibits, commissioning hold, selector, passivation, TNC and EPS-controller firmware), which are
-listed in SQSO-SHA-001 §9.7, all open.
+SW-HAZ-001 to SW-HAZ-017; the six HZ entries below are the Revision A roll-up. The table after them (§4.1.1) maps every
+SW-HAZ to them, including SW-HAZ-009 to -017 (transponder, RF inhibits, commissioning hold, selector, passivation, TNC
+and EPS-controller firmware, SQSO-SHA-001 §9.7, all open).
 
 | ID | Hazard | Severity | Likelihood | Risk | Status |
 |----|--------|----------|------------|------|--------|
@@ -70,6 +70,28 @@ listed in SQSO-SHA-001 §9.7, all open.
 | HZ-004 | Software Hang | III | C | Medium | Open: controls designed, not verified |
 | HZ-005 | Memory Corruption | III | D | Low | Open: controls designed, not verified |
 | HZ-006 | Command Injection | IV | E | Low | Open: controls designed, not verified |
+
+#### 4.1.1 Software hazards rolled up (proposed by the documentation audit, 2026-10-27; for the S&MA lead to confirm)
+
+| SW-HAZ (SQSO-SHA-001 J) | Rolls up to | Status in SQSO-SHA-001 |
+|--------------------------|-------------|------------------------|
+| 001 EPS control failure | HZ-002 | Open |
+| 002 ADCS algorithm failure | HZ-002, HZ-003 (power and thermal through a lost sun pointing) | Open |
+| 003 Beacon generation failure | HZ-001 | Open |
+| 004 Watchdog failure | HZ-004 | Open |
+| 005 Data persistence corruption | HZ-005 | Open |
+| 006 Jetson power management | HZ-002, HZ-003 | Open |
+| 007 Deployment timer error | none of HZ-001 to -006: premature deployment is a launch-safety hazard; a new HZ entry is needed | Open |
+| 008 Safe mode entry failure | HZ-002, HZ-003, HZ-004 | Open |
+| 009 Unpermitted RF emission by the transponder | HZ-001 | Open (EM tests) |
+| 010 RF inhibit failure, beacon and downlink | HZ-001 | Open (EM tests) |
+| 011 Commissioning hold lost or bypassed | HZ-006 | Verified on the host only |
+| 012 OBC selector extends a gate | HZ-001, HZ-002 | Design only |
+| 013 End-of-life passivation commanded wrongly or not completed | HZ-002, HZ-006 | Open (EM test V-EPS-8) |
+| 014 RF board TNC firmware: emission outside its limits | HZ-001 | Open |
+| 015 RF board TNC firmware: telecommand path blocked or receiver evidence falsified | HZ-001, HZ-006 | Open |
+| 016 EPS controller firmware weakens a battery hazard control or misreports the pack | HZ-002 | Open |
+| 017 EPS controller firmware: end-of-life key, OBC bus or supervisor outputs misused | HZ-002, HZ-004 | Open |
 
 ### 4.2 Severity Definitions
 
@@ -393,3 +415,4 @@ Member: _________________ Date: _____
 | 1.1, note | 2026-10-25 | SMART-QSO Team | §3.2: the downlink gate added (CR-2026-005); HZ-001 evidence includes its tests |
 | 1.2 | 2026-10-27 | CDR S&MA review | Scope note: the system package is now SQSO-SDP-002 v1.0 (hazard analysis), which this document feeds at §11 |
 | 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026) | Scope note and §10.1 at the current revisions (SSP F, SHA J, FMEA D, SDP-002 1.2); §4.1 and §8.3 state that the HZ log does not yet map SW-HAZ-009 to -017; HZ-001 verification: the beacon transmits in IDLE and SAFE (was "TX only in ACTIVE"); HZ-002 hardware cell protection values from SQSO-BSA-001 (the under-voltage TBD replaced by 2.8 V/cell); §8.1 the corrected RPN′ |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | §4.1.1 roll-up of SW-HAZ-001 to -017 (SQSO-SHA-001 J) to HZ-001 to -006, proposed for the S&MA lead to confirm; SW-HAZ-007 (premature deployment) has no HZ entry yet |

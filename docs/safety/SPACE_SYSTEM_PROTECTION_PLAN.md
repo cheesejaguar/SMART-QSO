@@ -1,7 +1,7 @@
 # Space System Protection and Security Plan
 
 **Document ID**: SQSO-SEC-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: Draft (design review RID SE-11)
 
@@ -27,7 +27,7 @@ ITU RR 22.1). Confidentiality is not a goal: nothing is secret except the keys.
 | T3 | Key compromise at a ground station | An attacker commands as that station | Four operational keys (one active, three spares) and an offline recovery key that can rotate to a spare (ICD-013 §9); keys never in the repository, loaded only through the umbilical; station key custody rules (GND-R6) | Key-rotation test on the flatsat |
 | T4 | Loss of every key or every station | No command possible | TX-OFF accepted without authentication when no key is usable; loss-of-contact transmit inhibit after N days (BASELINE §7); receiver always on | Host tests; SIL contact-outage scenario |
 | T5 | Malicious or erroneous passivation | Mission ends | Two-step command: arm with the operational key, execute with the offline recovery key within 600 s (ICD-013 §6.4); two independent hardware lines to the one-shot disconnect (EPS_DESIGN §7) | Host tests; EPS EM test V-BSA-7 |
-| T6 | Uplink jamming or interference | Commands lost | Stations radiating ≥ 64 dBm EIRP above 10° elevation (≥ 100 W PEP into ≥ 15.5 dBic, or ≤ 50 W PEP into ≥ 17.8 dBic in the 47 CFR 2.106 US270 areas; decision C-14) with Doppler pre-correction, ≥ +8.0 dB margin at 10° with a 6 dB interference allowance (BASELINE §7); two stations ≥ 1,000 km apart; loss-of-contact timeout 14–30 days gives time to recover | Link budget (SQSO-LBA-001 3.5 §6.1); SIL outage cases |
+| T6 | Uplink jamming or interference | Commands lost | Stations radiating ≥ 64 dBm EIRP above 10° elevation (≥ 100 W PEP into ≥ 15.5 dBic, or ≤ 50 W PEP into ≥ 17.8 dBic in the 47 CFR 2.106 US270 areas; decision C-14) with Doppler pre-correction, ≥ +8.4 dB margin at 10° (both station variants' minimums) with a 6 dB interference allowance (BASELINE §7); two stations ≥ 1,000 km apart; loss-of-contact timeout 14–30 days gives time to recover | Link budget (SQSO-LBA-001 3.5 §6.1); SIL outage cases |
 | T7 | Downlink interference to other services | Regulatory | TX-OFF by any designated station; duty gates; spurious ≥ 70 dB at the third harmonic | RF tests TP-RF-003 |
 | T8 | Malicious content through the AI payload | Prohibited content broadcast | Deterministic content filter on both sides; no generated numbers; templates as fallback (BEACON_SPEC §6) | Shared filter vectors, fuzzing |
 | T9 | Flight-software supply chain (dependencies, toolchain) | Hidden behaviour | Pinned Rust toolchain; `Cargo.lock` locked; `unsafe` forbidden in `sqso-protocol` and `sqso-fsw`; CI on every change; release package with hashes (`docs/development/RELEASE_PROCEDURE.md`) | CI |
@@ -50,3 +50,4 @@ ITU RR 22.1). Confidentiality is not a goal: nothing is secret except the keys.
 |---------|------|-------------|
 | A | 2026-10-27 | Initial issue (design review, RID SE-11) |
 | B | 2026-10-27 | Documentation audit (post-CDR 2026): T6 ground stations at the ≥ 64 dBm EIRP of decision C-14 (was 50 W PEP) and SQSO-LBA-001 3.5 (was 3.0); T10 cites EEE_PARTS_LIST §2A.2 without the superseded revision |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: T6 telecommand margin ≥ +8.4 dB at 10° at both station variants' minimums (BASELINE §7; was +8.0 dB) |

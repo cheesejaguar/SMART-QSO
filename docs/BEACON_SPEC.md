@@ -28,12 +28,16 @@ Implementation: `software/rust/sqso-fsw/src/beacon.rs` (frame, telemetry, schedu
 ## 3. Information Field
 
 ```
-de KK6GDB-11: <text> | T=<unix s> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
+de KK6GDB-11: <text> | T=<s since boot> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
 ```
 
-Example: `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=14.4 SUN=1 RF=1 QSO=-` (the 4S pack is
+Example (host simulation): `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=14.4 SUN=1 RF=1 QSO=-` (the 4S pack is
 14.4 V nominal, 16.4 V at the 4.10 V/cell end of charge; BASELINE §5)
 
+- `T=` is the OBC's mission time in seconds **since the last OBC boot** (`hal_timer_get_ms()` / 1000 through
+  `smart_qso_now_ms()`; it restarts at 0 at every reset), not UTC. In the host simulation the same clock is the host's
+  wall-clock time, which is why the example reads like a Unix time. UTC is the mission clock's UNIX time in housekeeping
+  HK2 `RT` (RV-3028-C7), or comes from correlating the beacon's `T=` with the time of reception.
 - The call sign appears in the source address and again at the start of every information field (97.119).
 - `<text>` is at most 176 characters, the room left after the telemetry fields at their widest. The text is cut if
   needed; the telemetry is never cut.
@@ -44,7 +48,7 @@ Example: `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=14.4
 
 | Key | Meaning | Source |
 |---|---|---|
-| `T` | Seconds since the Unix epoch | OBC clock |
+| `T` | Seconds since the last OBC boot (not UTC; host simulation: host wall-clock seconds) | OBC mission time, `smart_qso_now_ms()` / 1000 |
 | `M` | Power mode | EPS control (`eps_get_power_mode`) |
 | `SOC` | Battery state of charge, % | EPS battery measurement |
 | `BV` | Battery voltage, V to one decimal | `BV` sensor, if read within the last 60 s |
@@ -123,3 +127,7 @@ jitter, so that successive beacons do not fall at the same phase of the 8°/s sp
 
 *Revision note (2026-10-27, documentation audit (post-CDR 2026)): the example's battery voltage for the 4S pack (was
 8.1 V, a 2S value); the ±5 s beacon-interval jitter (§7).*
+
+*Revision note (2026-10-27, documentation audit, follow-up): §3–§4 the `T=` field is seconds since the last OBC boot
+(`smart_qso_now_ms()`, the HAL time base; it restarts at every reset), not seconds since the Unix epoch; the example is
+from the host simulation, whose clock is the host wall clock; UTC is HK2 `RT`.*

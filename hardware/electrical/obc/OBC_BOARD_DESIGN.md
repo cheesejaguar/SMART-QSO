@@ -1,7 +1,7 @@
 # SMART-QSO OBC Board: Build-to Design
 
 **Document ID**: SQSO-OBC-BRD-001
-**Version**: F
+**Version**: G
 **Date**: 2026-10-27
 **Status**: CDR build-to electrical design for the engineering model (EM): schematic captured as code with selected,
 orderable parts, netlist, BOM, ERC (clean, waivers listed) and calculations. No PCB layout, no hardware; every number
@@ -799,7 +799,7 @@ changes in SQSO-ICX-001 §6. In addition:
 
 | # | Change | Owner | Recommended action or text |
 |--:|--------|-------|----------------------------|
-| C1 | Magnetometer from "buy a module" to the RM3100 on board A2 at the +Z end frame (Version B; Version A had it on the OBC) | chair (BUILD_VS_BUY §1, §2.7; MASS_BUDGET row 24: 10 g → 3 g with board and harness; ADCS_DESIGN §3.2.1) | "Magnetometer: PNI RM3100 on board A2 at the +Z end-frame slot (+24, +27) mm, harness W6E to OBC J10 (SQSO-OBC-BRD-001 §9.4); a bought module with I2C at 3.3 V fits the same slot and harness if AV-V4 fails" |
+| C1 | Magnetometer from "buy a module" to the RM3100 on board A2 at the +Z end frame (Version B; Version A had it on the OBC) | chair (BUILD_VS_BUY §1, §2.7; MASS_BUDGET row 24: the board and harness estimate is ≈ 3 g, but the mass budget keeps the module's 10 g allocation (MASS_BUDGET v3.4 §6.6, "no MEL change"), so the MEL holds about 7 g of conservatism here; ADCS_DESIGN §3.2.1) | "Magnetometer: PNI RM3100 on board A2 at the +Z end-frame slot (+24, +27) mm, harness W6E to OBC J10 (SQSO-OBC-BRD-001 §9.4); a bought module with I2C at 3.3 V fits the same slot and harness if AV-V4 fails" |
 | C2 | Coil driver DRV8876-Q1 from VBAT (not DRV8833 on 3.3 V); new EPS switch SW11 | chair (ADCS_DESIGN §6.1), EPS designer (E3) | as §10 |
 | C3 | Gyro stack clearance | mechanical designer | **closed** by MECHANICAL_DESIGN D-11 (gyro through the carrier window, X1 at (−20, +30.5)); adopted in §9.2 and §21 |
 | C4 | ICD-004 AV-V3 pass criterion "900 ms + 1 ms" → "900 ms + 2 ms" | chair (ICD_OBC_ADCS §12.4) | bridge tSLEEP is up to 1 ms |
@@ -856,3 +856,4 @@ changes in SQSO-ICX-001 §6. In addition:
 | E | 2026-10-27 | Parts temperature audit SQSO-MFG-003: CWD = four parallel strings of two 220 nF C0G (KEMET C1210C224J3GACAUTO) in series, window re-derived with tolerance and temperature (4.9–29.3 s; one fault 3.7–22.0 s / 6.1–36.6 s), IWDG reload 3200 recommended; D4 1N4148WQ-7-F; A3 J1 M83513/25-C01NN; Pico-Clasp headers 203556 gold; TFM plating −L; R_FAULT 100 → 220 kΩ so the X7R C_RETRY at −40 °C still gives ≥ 0.1 s (0.18–0.33 s); counts 385 / 72 / 270 |
 | E, amended | 2026-10-27 | Watchdog coupling (RID P3F-A-03): the IWDG is refreshed only at the WDI edge (§6 Kick and IWDG rows), AV-02 window 4.9 / 29.3–39.3 s, SMA-B08 reload 3200 |
 | F | 2026-10-27 | Documentation audit (post-CDR 2026): governing documents to BASELINE Rev E, the others by ID (revisions in the register); §9.1, §9.4 the magnetometer on its own switch U35, repeater U34 and rail 3V3_MAG (stale U7, U14, 3V3_SNS removed); §9.2 and V-OBC-16 the gyro responses of the current FE design case (MECHANICAL_DESIGN §4.3.2, `fem_results.json`: 21.9 / 24.0 / 36.9 Grms; was 22.2 / 25.0 / 21.7); §4, §10.1, §18 W3 30 AWG and W6B 28 AWG against the SQSO-HAR-001 2.0 §9.1 derating; §6 heartbeat cycle as SQSO-EPS-BRD-001 §12 (1.95 s, 600 s, 3 per 24 h); W6E 0.090 m, W8A 0.145 m; J8 12-way; AV-01 cites ICX D. No circuit change |
+| G | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §23 item C1 states that MASS_BUDGET keeps row 24 at the 10 g module allocation (the ≈ 3 g board-and-harness figure is not taken into the MEL), so the two documents no longer read as disagreeing |

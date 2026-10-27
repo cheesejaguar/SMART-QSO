@@ -1,7 +1,7 @@
 # Requirements Traceability Matrix (RTM)
 
 **Document Number**: SMART-QSO-RTM-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Status**: Preliminary
 
@@ -161,7 +161,7 @@ Test Cases (TC-xxx)
 | SRS-F043 | SAFE mode on critical | fault_mgmt.rs (Rust) | fault_handle_critical():156 | Implemented |
 | SRS-F044 | Recovery from SAFE | eps_control.rs | eps_attempt_recovery():245 | Partial |
 | SRS-F045 | Fault statistics | fault_mgmt.rs (Rust) | fault_get_stats():189 | Implemented |
-| SRS-F050 | Kick the hardware watchdog at least every 30 seconds, at the supervisor's WDI edges | executive.rs | kick_watchdog():45 | Implemented |
+| SRS-F050 | Kick the hardware watchdog at least every 24.1 seconds (every 10 s), only at the supervisor's WDI falling edges | executive.rs | kick_watchdog():45 | Implemented |
 | SRS-F051 | Save before reset | executive.rs | prepare_for_reset():67 | Implemented |
 | SRS-F052 | Detect WDT reset | executive.rs | detect_reset_cause():89 | Implemented |
 | SRS-F060 | Persist mission data | mission_data.rs | mission_data_save():56 | Implemented |
@@ -206,7 +206,7 @@ Test Cases (TC-xxx)
 
 | Req ID | Description | Verification Method | Status |
 |--------|-------------|---------------------|--------|
-| SRS-Q001 | 1 year operation | Analysis | Pending |
+| SRS-Q001 | Continuous operation for the 2-year design life | Analysis | Pending |
 | SRS-Q002 | Recover from single-bit memory errors | Test | Pending |
 | SRS-Q003 | MTBF > 30 days | Analysis | Pending |
 | SRS-Q010 | Modular design | Inspection | Not verified |
@@ -302,3 +302,4 @@ Status figures removed (FINDINGS_REGISTER PI-06): verification status is kept on
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Note: the generated docs/verification/RTM.csv is the current record. §3.1 rows that reused SYS-020/021/022 for other requirements now cite SYS-304, SYS-114 and SYS-503; §5 descriptions use the SRS wording (finding VV-06) |
 | 1.2 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): C file names (`main.c`, `eps_control.c`, `mission_data.c`, `sensors.c`, `uart_comm.c`) replaced by the Rust modules that replaced them; four "Verified" statuses (SRS-P005, SRS-Q010, SRS-Q020, SRS-Q022) changed to "Not verified": no verification evidence is recorded (VCRM) |
+| 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | SRS-F050 and SRS-Q001 descriptions to SMART-QSO-SRS-001 1.14 (kick at least every 24.1 s, every 10 s; 2-year design life) |

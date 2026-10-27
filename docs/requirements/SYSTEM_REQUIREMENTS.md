@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-002
-**Revision:** I
+**Revision:** J
 **Date:** 2026-10-27
 **Reference:** NPR 7123.1D (tailored, `docs/project/CDR_CRITERIA_MATRIX.md` §2); `docs/BASELINE_PARAMETERS.md` Rev E (amended)
 
@@ -144,7 +144,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 | ID | Requirement | Parent | Verification |
 |----|-------------|--------|--------------|
 | SYS-120 | The EPS shall provide regulated 3.3V rail | MRD-050 | T |
-| SYS-121 | The EPS shall provide regulated 5V rail for AI payload | MRD-050 | T |
+| SYS-121 | The EPS shall provide the AI payload a switched, current-limited battery rail (VBAT_JET: the 12.0–16.4 V bus through SW1 and the eFuse U19, shed in hardware below 13.6 V); the payload carrier regulates its own 5 V *(Rev J, proposed for the chair's change request, PI to ratify: was "regulated 5V rail for AI payload", which the design does not provide; SQSO-EPS-BRD-001 §8.3–§8.4, SQSO-JET-BRD-001 §4: the carrier makes 5.02 V from VBAT_JET)* | MRD-050 | T |
 | SYS-122 | The EPS shall provide switchable power to subsystems | MRD-052 | D |
 | SYS-123 | The EPS shall provide overcurrent protection on all rails | MRD-050 | T |
 | SYS-124 | The EPS shall report voltage, current, and temperature telemetry | MRD-021 | D |
@@ -161,7 +161,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 | SYS-201 | The transmitter shall support 0.5 W nominal output power and shall not exceed 1 W (BASELINE §7) | MRD-022 | T |
 | SYS-202 | The transmitter shall support AFSK 1200 bps modulation | MRD-022 | T |
 | SYS-203 | Spurious emissions shall be at least 40 dB below carrier and no more than 25 µW, which at 1 W is at least 46 dB (47 CFR 97.307(e)); the third harmonic shall be at least 70 dB below the carrier, measured at the antenna port with the antennas deployed (BASELINE §7; VI-RF-04) *(46 dB and 60 dB added at the CDR review, 2026-10-27, finding VV-09; 70 dB in Rev G, CR-2026-009, RID RF-07)* | MRD-024 | T |
-| SYS-205 | If no authenticated telecommand is received for N days, the spacecraft shall cease all transmissions, keep the telecommand receiver on, and resume only after an authenticated telecommand; N shall be configurable by telecommand within 1–90 days (default and range TBR per decision D3), and the elapsed time shall persist across resets *(added 2026-10-15; SQSO-ICD-013 §6.2; IARU 7.9)* | MRD-024 | T |
+| SYS-205 | If no authenticated telecommand is received for N days, the spacecraft shall cease all transmissions, keep the telecommand receiver on, and resume only after an authenticated telecommand; N shall be configurable by telecommand within 1–90 days (30 days at launch, 14 days once commissioning is complete, by decision D3; the FCC consultation may change them, BASELINE §7), and the elapsed time shall persist across resets *(added 2026-10-15; SQSO-ICD-013 §6.2; IARU 7.9)* | MRD-024 | T |
 | SYS-204 | The spacecraft shall cease all RF emissions on an authenticated telecommand in every operating mode, and also on an unauthenticated TX-OFF telecommand whenever no telecommand key is usable; shall keep emissions ceased across resets until an authenticated telecommand re-enables them; and shall keep the telecommand receiver powered while ceased (47 CFR 97.207(b); ITU RR 22.1) *(added 2026-10-15; SQSO-ICD-013)* | MRD-024 | T |
 | SYS-206 | Frequency accuracy shall be within 5 kHz *(renumbered 2026-10-16 from a second SYS-204; SYS-204 is TX-OFF)* | MRD-024 | T |
 
@@ -469,3 +469,4 @@ from this document by `software/simulation/cdr/pm/gen_vcrm.py`.
 | H, amended (2) | 2026-10-27 | Decision C-20 carried into SYS-510: energy per accepted beacon line over the VI-02 bursts (was a p95 per beacon); round-4 verification P3F-G-03 |
 | H, amended (3) | 2026-10-27 | Decision C-23 carried into SYS-422 (pointing for power: ≤ 5 % loss, ≥ 95 % within 30°; CR-2026-019) |
 | I | 2026-10-27 | Documentation audit (post-CDR 2026): §4.2 modes and powers from BASELINE §5 (was SAFE < 1 W, IDLE < 2 W, ACTIVE < 4 W and a BURST mode < 10 W, against SYS-501's 8 W); SYS-100 margin +11 % (BASELINE §5; was +12 %); SYS-502 burst ≤ 10 min with ≥ 100 min off, and the proposed SYS-522 wording, per BASELINE §6 and C-20 (were 120 s, contradicting SYS-512 Rev H); SYS-422 pointing restated per C-23 as in BASELINE §8 and ADCS-P002 (was 15°/90 %, which C-23 replaced) | Documentation audit |
+| J | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: SYS-121 restated to the design (a switched, current-limited VBAT_JET rail; the carrier regulates 5 V), proposed for a CR; SYS-205 the D3 values (30 days at launch, 14 after commissioning, 1–90) in place of the open-value marker | Documentation audit |

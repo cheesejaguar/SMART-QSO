@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-CDH-OBC-001
-**Version:** 1.9
+**Version:** 1.10
 **Date:** 2026-10-27
 **Status:** Draft
 **Supersedes:** `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), merged as Appendix A (finding PI-17)
@@ -110,10 +110,10 @@ the C linker script cited here until 2026-10-24 was removed with the C target bu
 
 | Source | Frequency | Accuracy | Purpose |
 |--------|-----------|----------|---------|
-| HSE (Crystal) | 8 MHz | ±20 ppm | Planned main clock source; a board decision, not used by the flight image (`clocks()` in `software/rust/firmware/src/main.rs`) |
-| LSE (Crystal) | 32.768 kHz | ±20 ppm | RTC, watchdog |
+| HSE (CMOS oscillator Y1, Epson SG-8018CA, HSE bypass on PH0) | 8 MHz | ±50 ppm | Fitted on the board (SQSO-OBC-BRD-001 §5); recommended as the PLL source (M 1, N 20, R 2), not required: the flight image does not use it yet (`clocks()` in `software/rust/firmware/src/main.rs`; SQSO-ICX-001 §6 row 23) |
+| LSE (crystal Y2, Micro Crystal CM7V-T1A) | 32.768 kHz | ±20 ppm | MCU RTC, MSI PLL-mode trim (the mission clock is the RV-3028-C7, SQSO-OBC-BRD-001 §8) |
 | HSI | 16 MHz | ±1% | Backup oscillator |
-| LSI | 32 kHz | ±5% | Backup RTC |
+| LSI | 32 kHz (29.5–34 kHz) | class value | IWDG only |
 
 ### 4.2 Clock Distribution
 
@@ -127,8 +127,8 @@ the C linker script cited here until 2026-10-24 was removed with the C target bu
 
 ### 4.3 Clock Monitoring
 
-- CSS (Clock Security System) enabled
-- Automatic failover to HSI on HSE failure
+- CSS (Clock Security System) enabled once the HSE is used
+- Automatic fallback to the internal MSI on HSE failure (SQSO-OBC-BRD-001 §5)
 - Clock glitch detection
 - Monitored in telemetry
 
@@ -1077,3 +1077,4 @@ OpenOCD / STM32CubeProgrammer
 | 1.7, note | 2026-10-27 | §13.5 rows AV-01 and AV-03 follow SQSO-OBC-BRD-001 B and SQSO-ICX-001 B (28 firmware changes; magnetometer on board A2) |
 | 1.8 | 2026-10-27 | Stale pins against SQSO-ICX-001 D (amended): §8.3–§8.4, §13.1 (FRAM SPI1 PG2–PG5 and mirror CS# PD7; AntS on I2C3 PG7/PB4; LPUART1_TX PB11; PAYLOAD_EN PB2; JETSON_PWR PA8; DEPLOY_EN PF3; four burn lines, 10 s each), §13.2 and §13.5 (IWDG reload 3200, 25.6 s; supervisor window 4.9–29.3 s), A.5.4 replaced by the current allocation |
 | 1.9 | 2026-10-27 | Documentation audit (post-CDR 2026): §1 board of record SQSO-OBC-BRD-001 named, heritage reworded (reference missions), NPR 7150.2D; §3.2 two FRAMs and no external flash or MRAM; §3.3 points to STORAGE_DESIGN §3.3; §9.2–§9.3 board size and layers to SQSO-OBC-BRD-001 §1 (was 4 layers, 90 × 90 mm) |
+| 1.10 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §4.1 and §4.3 clock sources as the board fits them (SQSO-OBC-BRD-001 §5): Y1 an 8 MHz CMOS oscillator in HSE bypass, ±50 ppm (was "crystal, ±20 ppm"), recommended but not yet used by the firmware, which runs MSI 4 MHz through the PLL; LSI for the IWDG only; clock-security fallback to the MSI (was HSI) |

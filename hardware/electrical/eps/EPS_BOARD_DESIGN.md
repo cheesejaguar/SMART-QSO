@@ -1,7 +1,7 @@
 # SMART-QSO EPS Board: Build-to Design
 
 **Document ID**: SQSO-EPS-BRD-001
-**Version**: H
+**Version**: I
 **Date**: 2026-10-27
 **Status**: CDR build-to electrical design (schematic captured as code, parts selected, ERC clean). No PCB layout, no
 engineering model; every number below is analysis until its verification item (§19) closes.
@@ -56,11 +56,11 @@ supply 3V3_RTC, the W6B/W9B routing of J20/J21 and the allocated OBC pins (§13.
 | EPS-F005 | Bus 11.2–16.4 V (16.8 V max), converters ≥ 25 V input | All VBAT parts ≥ 40 V (LMR43620 42 V abs, TPS1663 60 V, TPS1H100 40 V) | §8 |
 | EPS-F006 | 3V3_AO always on | U15 LMR43620MC3 | §8.1 |
 | EPS-F007 | Switched rails with limits, off at reset | 100 kΩ pull-down on every enable; limits in §8.3 | §8.3 |
-| EPS-F008 | Hardware TX-OFF | RF_TX_EN AND SHED_N → SW3 U23 (PA supply) | §8.3 |
+| EPS-F008 | Hardware TX-OFF | RF_TX_EN → SW3 U23 (PA supply; not load-shed from Version E) | §8.3 |
 | EPS-F009 | ≥ 3 independent physical inhibits, RF and each deployable | Pack: DS2 → Q6/Q7, DS1 → Q4, DS3 → Q5; array: DS1 → Q4, DS3 → Q5, DS2 pole 2 → Q40 clamp on TRK_EN (active high; DS3's NO unused since Version E) | §6 |
 | EPS-F010 | Non-resettable EOL charge disconnect, two independent signals | F1 three-terminal fuse, Q20 (EOL_FIRE) in series with Q21 (EOL_ARM latch) | §7 |
 | EPS-F011 | Battery protection per SQSO-BSA-001 §3 | BQ76952 (OTP), BQ771806 + F3, F2, RT1, NTC comparators, lockout K1 | §5, §6 |
-| EPS-F012 | Hardware low-voltage disconnect of payload and PA | U48 + U51/U52: < 13.6 V for 5 s sheds SW1 and SW3, release > 14.4 V | §8.4 |
+| EPS-F012 | Hardware low-voltage disconnect of the payload (Jetson) rail; the PA is not shed (CR-2026-016) | U48 + U51 (SW1) and U65 (eFuse U19): < 13.6 V for 5 s sheds the Jetson's two series switches, release > 14.4 V | §8.4 |
 | EPS-F013 | Telemetry | 7 analog lines to the OBC (incl. the Jetson readbacks VJET_RB, VSW1_RB), INA228 × 2 on I2C2, AFE / INA3221 / ADS7138 via the EPS controller | §11 |
 
 ### 2.2 Departures from the architecture documents (for the chair)
@@ -78,7 +78,7 @@ supply 3V3_RTC, the W6B/W9B routing of J20/J21 and the allocated OBC pins (§13.
 | Cell-tap filters (EMC rule E6) | 1 kΩ + 0.1 µF at the AFE | 204 Ω (3 × 68.1 Ω, current limiting) at the battery sense board + 10 Ω + 0.1 µF at the AFE (Version D; internal balancing ≈ 9 mA; Version A–C: 100 Ω at the AFE, balancing at ≈ 18 mA); 1 kΩ + 0.1 µF at the secondary protector | 1 kΩ would cut balancing to ≈ 3 mA; 100 Ω/0.1 µF is a 16 kHz pole, ample against the 145.9 MHz field. **For the EMC owner:** amend E6 |
 | Jetson rail trip | 1.2 A (EPS_DESIGN), 0.75 A proposed (RADIATION_ANALYSIS §5.3) | 1.20 A (1.10–1.30 A) eFuse, OBC guard 0.93 A first | A latch-up (amperes) trips either; 0.75 A would sit 1.34× the 8 W load at the low bus |
 | Tracker efficiency | ≥ 92 % | 90.9–92.3 % (analysis) | See §4.3; the power margins (ACTIVE +27 % tumbling, SQSO-PBA-001 2.5, BASELINE §5) absorb it; CR-2026-014 awaits the PI |
-| Hardware load shed (EPS-F012) | payload and PA | **Jetson only** (Version E) | A spurious permanent shed would hold the PA off with no override (SMA-B05); a stuck-keyed PA is energy-positive; CR to EPS-F012 for the chair |
+| Hardware load shed (EPS-F012) | payload and PA | **Jetson only** (Version E) | A spurious permanent shed would hold the PA off with no override (SMA-B05); a stuck-keyed PA is energy-positive; EPS-F012 changed by CR-2026-016 (BASELINE §5) |
 | VBAT_MTQ telemetry (Version B) | voltage and current on every rail | SW11 fault readback (FLT_SW11) on the EPS; the current is the sum of the OBC's three coil-current channels (MTQ_X/Y/Z_I, SQSO-ICX-001 §6 row 14); the voltage is VBAT (INA3221) less the switch drop (≤ 0.46 V) | The 12 INA3221 channels, the 8 ADS7138 inputs and the controller's 10 ADC inputs are all in use; a fifth INA3221 has no free address. The OBC measures the load itself |
 
 ### 2.3 Derating standard and part rules
@@ -98,7 +98,7 @@ NASA-STD-8739.1) over all terminations, and Sn63Pb37 assembly per J-STD-001 with
  8 strings ─TVS─LM74700─┬─ T1 (W1F,W2F) ┐                                              ┌─ U15 3V3_AO ─ SW2 RADIO, SW4 ADCS,
                         ├─ T2 (PY)      ├ TPS55340 ×4 ─RS5─ VTRK ─F1(EOL)─┐            │  SW7 GNSS, SW8 AntS, SW9 EPS ctrl,
                         ├─ T3 (W1B,W2B) │  CV/CC/MPPT loops (VCTL)        │            │  SW10 OBC
-                        └─ T4 (PX,MX,MY)┘                                 │            ├─ U16 5V_PA ── SW3 PA (TX-OFF, shed)
+                        └─ T4 (PX,MX,MY)┘                                 │            ├─ U16 5V_PA ── SW3 PA (TX-OFF; not shed)
                                                                           ▼            ├─ SW1+U19 Jetson (VBAT, shed)
  BAT_TOP ─F2─RT1─────────RS6─[Q1 CHG|Q2 DSG]─ PACK_P ─Q4(DS1)─ VB1 ─Q5(DS3)─ VB3 ─RS8─ VBAT ─┼─ SW5 heater (F4, 40 °C cutout)
                                                                                             ├─ SW11 VBAT_MTQ (ADCS_EN) → OBC coil bridges
@@ -440,7 +440,7 @@ PASSIVATE_ARM / PASSIVATE_EXECUTE of REG-01 map onto them).
 | Converter | Output | Inductor ripple | Loss at full load | Efficiency |
 |---|---|---|---|---|
 | U15 LMR43620MC3 3V3_AO | 3.30 V / 0.30 A | 0.39 A p-p | 67 mW | 93.7 % (85–90 % at 0.1 A, forced PWM) |
-| U16 at the transponder load | 5.00 V / 0.35 A (1.76 W DC at 0.5 W RF) and ≈ 0.55 A at 1 W RF | | 60–145 mW | ≥ 94 % |
+| U16 at the transponder load | 5.00 V / 0.37 A (1.84 W DC at 0.5 W RF) and 0.49 A at 1 W RF (2.42 W DC; SQSO-RF-BRD-001 §7.3) | | 60–145 mW | ≥ 94 % |
 | U16 LMR43620MC5 5V_PA | 5.00 V / 0.54 A | 0.52 A p-p | 143 mW | 95.0 % |
 | U17 LMR43620MC5 (adj.) V_BURN | 7.04 V / 1.76 A | 0.60 A p-p | 948 mW | 92.9 % |
 
@@ -451,10 +451,10 @@ steps of the radio move it < 20 mV. 3V3_AO is therefore held to **±2 %** (3.23�
 (3V3_RADIO) the SW2 switch (135 mΩ maximum) and RS12 (100 mΩ) take 9 mV at 38 mA: ≥ 3.22 V at the RF board, 70 mV
 above the synthesizer's minimum before the harness (≤ 3 mV at 38 mA for the 0.145 m of 28 AWG in W4B).
 
-**PA rail (5 V or 6 V).** U16 (2 A part) carries the transponder's 1.76 W DC at 0.5 W RF (0.35 A) and ≈ 2.7 W at 1 W RF
-(0.55 A) with 3.6× margin; SW3 trips at 0.92 A minimum. A 6 V rail is a feedback change on U16 (the MC5 part is also
+**PA rail (5 V or 6 V).** U16 (2 A part) carries the transponder's 1.84 W DC at 0.5 W RF (0.37 A) and 2.42 W at 1 W RF
+(0.49 A; SQSO-RF-BRD-001 §7.3) with 4× margin; SW3 trips at 0.92 A minimum. A 6 V rail is a feedback change on U16 (the MC5 part is also
 adjustable: 50.0 k / 10.0 k), but SW3's TPS2553 (6.5 V operating maximum) would sit at 92 % of its rating, above the
-80 % rule: SW3 would become a 40 V high-side switch (TPS1H000-Q1 class, 1 Ω, limit ≥ 0.6 A: adequate for 0.55 A only
+80 % rule: SW3 would become a 40 V high-side switch (TPS1H000-Q1 class, 1 Ω, limit ≥ 0.6 A: adequate for 0.49 A only
 with a 0.5 W loss, or a TPS1H100B-Q1 at 0.1 Ω). Recommendation: keep 5 V unless the PA design shows ≥ 5 % better
 efficiency at 6 V for the same RF power; the change on this board is then U16's divider and SW3 → TPS1H100B-Q1.
  UVLO (EN
@@ -518,7 +518,7 @@ Jetson's two series switches failed closed (RID P3E-06). **The PA is not shed fr
 removed): a spurious permanent shed (comparator, reference or timer fault) would otherwise hold the transmitter off
 with no override and end the mission, while a stuck-keyed PA is energy-positive (+0.20 W tumbling, SQSO-PBA-001 §8.4)
 and has its own controls (the 120 s key-down timer, TX-OFF, the mode thresholds). EPS-F012 becomes "payload (Jetson)
-only" (for the chair: a CR to EPS_DESIGN EPS-F012 and BASELINE). A spurious shed of the Jetson costs only the
+only" (CR-2026-016; BASELINE §5). A spurious shed of the Jetson costs only the
 experiment. The heater is not shed (EPS_DESIGN §6).
 
 ## 9. Deployment drivers (RIDs SMA-05, REL-03, EPS-18)
@@ -649,7 +649,7 @@ GND. OBC pins as allocated in SQSO-ICX-001 §3.1 and §4 (Version D; where they 
 | 11 | ADCS_EN | out | high = on | PB6 | SW4 (sensors) and SW11 (VBAT_MTQ) |
 | 12 | HEATER_EN | out | high = on | PD2 | SW5 |
 | 13 | DEPLOY_EN | out | high = on | **PF3** | SW6 (burn buck) and SW8 (AntS) |
-| 14 | RF_TX_EN | out | high = PA powered; low = TX-OFF | PA3 | SW3, shed-gated |
+| 14 | RF_TX_EN | out | high = PA powered; low = TX-OFF | PA3 | SW3 (not shed from Version E) |
 | 15 | GNSS_EN | out | high = on | PE5 | SW7 |
 | 16 | DEPLOY_SENSE | in | high = DS2 released (1 MΩ source, clamped) | PE2 | separation state |
 | 17 | BURN_W2A | out | high = burn, rising edge starts 12 s | PB9 (was ANTENNA_BURN, freed by the AntS) | wing 2 resistor A |
@@ -906,3 +906,4 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | G (amended 2) | 2026-10-27 | CDR design (EPS board) | Independent verifier: §7 states the actual passivation fire rule (up to 6 h per attempt for ≥ 0 °C, then in sunlight; SMA-B20) and V-EPS-8 (c) becomes a pass criterion at −20 °C (8.5 K margin; P4-01); V-EPS-16 to EPSC-F081's 600–660 s (P4-03); §1 IC count 79, BQ771806 removed from the list (SMA-B23) |
 | B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |
 | H | 2026-10-27 | Documentation audit (post-CDR 2026) | Governing documents cited by ID (revisions in the register; were cited at superseded revisions); power margins to SQSO-PBA-001 2.5 (+27 % / +45 %; was +31 % / +54 %); §6.2 DS1/DS2 gate capacitors 68 nF as the gate-network table and the BOM (C83–C85; the inhibit table still said 47 nF); §8.3 W3 wires 30 AWG; §13.1 Pico-Clasp terminal 501193-9000 (501334 is tin, SQSO-HAR-001 2.0 §3.1); J3 code TFM-120-02-L-D-A as the BOM (§13.1, §14, §21); §18 H3b with the diverse F0B (Version E) and 211 A. No netlist change |
+| I | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | §2 EPS-F008 and EPS-F012, §3 tree: the hardware load shed covers the Jetson only (SW1 and U19 through U51, U65), the PA is not shed (Version E, CR-2026-016; the requirement rows still named SW3); §13 RF_TX_EN row likewise; BOM J3 plating -L given as 15 µin gold as on the OBC and RF boards (Samtec F-226, confirmation in V-HAR-3; was 10 µin); `design.py` comment: gold Pico-Clasp terminals are 501193-9000 (501334 is tin) |

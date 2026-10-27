@@ -1,7 +1,7 @@
 # System Diagrams: Block, Wiring and Schematic
 
 **Document Number:** SQSO-HW-DIAG-001
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Status:** Draft. Since Revision B the drawings follow the board build-to designs (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`,
 `hardware/electrical/obc/OBC_BOARD_DESIGN.md`, `hardware/electrical/rf/RF_BOARD_DESIGN.md`) and the master pin allocation
@@ -101,13 +101,11 @@ the design answers it, not that hardware has shown it.
 | F16 | No fault output reached the OBC except the INA226 ALERT | **Closed.** Every switch's fault line is read by the EPS controller and reported in its LOAD_SHED/fault register; EPS_ALERT_N (PB7) carries the INA228 alerts and the controller interrupt; Jetson and sensor-rail readbacks go to the OBC directly | SQSO-EPS-BRD-001 §8.3, §11; SQSO-ICX-001 §3.1 |
 | F17 | Several hardware documents described superseded designs (2S pack in PDU_DESIGN and EPS_ELECTRICAL_DESIGN, Si4463 in TRANSMITTER_DESIGN) | **Closed for those three** (PDU_DESIGN 1.3, EPS_ELECTRICAL_DESIGN 1.3, TRANSMITTER_DESIGN 1.4). `hardware/harness/HARNESS_DESIGN.md` 1.2 §4 noted that SQSO-ICX-001 and W1–W10 supersede its H2–H6 tables; version 2.0 replaced those tables with the build-to harness design and its wire list | the documents named |
 
-**Drawings behind SQSO-ICX-001 D (open, Revision D of this README).** The board FMEA changes of the interconnect's
-Version D (2026-10-27) are drawn in W3, W6 and W9 but not yet in these sources: B3 (`block/B3_data_control.dot`)
-still shows LPUART1_TX on PG7 and the AntS on I2C2 behind the TCA9517, and lists only the sensor switches U5–U7; S3
-(`schematics/S3_obc_core.py`) shows LPUART1_TX on PG7 and no I2C3, MAG_EN/MAG_RB or second FRAM; S6
-(`schematics/S6_adcs.py`) puts the RM3100 on U7 with the sun sensors (it has its own switch U35 and repeater U34);
-S8 (`schematics/S8_gnss.py`) shows LPUART1_TX on PG7 (now PB11). Until they are redrawn, SQSO-ICX-001 §3–§4 and
-SQSO-OBC-BRD-001 govern these pins.
+**Drawings behind SQSO-ICX-001 D (closed in Revision E).** The board FMEA changes of the interconnect's Version D
+(2026-10-27) are drawn in W3, W6 and W9 and, since Revision E, in B3 (LPUART1_TX PB11; the AntS on I2C3 PG7/PB4 behind
+the EPS U80; the second FRAM U36 on CS# PD7; the magnetometer on its own switch U35 and repeater U34, MAG_EN PF14 and
+MAG_RB PF15), S3 (the same pins, the 440 nF supervisor CWD and J9 TFM-105 with RST_REQ), S6 (U35, U34 and 3V3_MAG for
+the RM3100) and S8 (LPUART1_TX PB11).
 
 Checked, and not a finding: the 7-pole LPF values in TRANSMITTER_DESIGN 7.3 (L 47/82/82/47 nH, C 33/47/33 pF) are not
 the textbook 0.5 dB Chebyshev prototype. An ideal-part ABCD calculation still gives −0.1 dB at 145.9 MHz, −50 dB at
@@ -157,3 +155,4 @@ installed in this repository, and none has been evaluated:
 | B | 2026-10-27 | CDR 2026 consistency pass: B1–B4 redrawn from the board build-to designs and SQSO-ICX-001 (B2: the third inhibit DS3, three deployment switches DS1–DS3 on three rails, the EPS board's converters, switches and limits; B3: master pin allocation; B4: RF board chain); all SVGs rendered; findings F1–F17 dispositioned (§4); W1, W2, W7 labels without angle brackets; sources table | SMART-QSO Team |
 | C | 2026-10-27 | Wiring drawings W1–W10 from the harness design SQSO-HAR-001 2.0: gauges from the terminal ranges, lengths from the routes, gold connectors, Samtec TFM/SFSDT for W3, W4A, W8A; W7 adds W12A–W12D, W8 adds W11 and the access-port board A3, W10 adds W10E; §2 sources and §3 conventions updated (§15 item D-1) | Harness design |
 | D | 2026-10-27 | Documentation audit (post-CDR 2026): F2, F10 and F17 dispositions brought to SQSO-ICX-001 D and SQSO-HAR-001 2.0 (LPUART1_TX PB11, AntS on I2C3, harness tables replaced); §4 lists the drawings not yet redrawn for SQSO-ICX-001 D (B3, S3, S6, S8). No drawing changed | Documentation audit |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: B3, S3, S6 and S8 redrawn to SQSO-ICX-001 D (LPUART1_TX PB11, AntS I2C3 PG7/PB4, second FRAM U36 on PD7, magnetometer switch U35 and repeater U34 with MAG_EN PF14 / MAG_RB PF15; S3 also the 440 nF CWD, IWDG 24.1–27.8 s and J9 TFM-105 with RST_REQ); §4 open item closed; W6 source comment: J8 is a 12-way part | Documentation audit |

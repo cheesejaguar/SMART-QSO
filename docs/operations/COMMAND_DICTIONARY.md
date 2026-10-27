@@ -1,20 +1,19 @@
 # SMART-QSO Command Dictionary
 
 **Document ID**: SQSO-CMD-001
-**Version**: 1.3
+**Version**: 1.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft (operations reference). The flight software is implemented and tested in the host simulation; nothing has been commanded on hardware. No independent CDR has been held (BASELINE §1)
 
 ## 1. Purpose
 
 This document defines all commands for the SMART-QSO mission. It serves as the authoritative reference for command generation and verification.
 
-**Governing source (Version 1.1).** The flight command set is generated from `software/flight/command_dictionary.json`
-and documented, with framing and authentication, in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` §3
-to §8, dictionary in §7). Where §2 to §7 below (the Version 1.0 design: a 32-byte frame with a CRC-16, 16-bit opcodes)
-disagree with SQSO-ICD-013, SQSO-ICD-013 governs; those sections are kept for history until this document is rewritten
-to the flight command set. The commands the flight software accepts are summarised in §1.1.
+**Governing source.** The flight command set is generated from `software/flight/command_dictionary.json` and
+documented, with framing and authentication, in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` §3 to §9,
+dictionary in §7). Where this document and SQSO-ICD-013 differ, SQSO-ICD-013 governs. §1.1 lists the commands the
+flight software accepts; §2 to §7 summarise the frame, keys, execution and constraints with pointers to it.
 
 ### 1.1 Flight Command Set (from the dictionary, 2026-10-27)
 
@@ -57,479 +56,81 @@ Each command counted as contact is acknowledged on the downlink (`ack KK6GDB-11:
 
 ## 2. Command Frame Structure
 
-### 2.1 Frame Format
+Governing: SQSO-ICD-013 §3–§4 (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`). In summary:
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    COMMAND FRAME (32 bytes)                  │
-├──────┬──────┬──────┬──────┬───────────────────┬─────┬───────┤
-│ SYNC │CALLSN│ SEQ  │ CMD  │    PARAMETERS     │SPARE│  CRC  │
-│2 byte│6 byte│2 byte│2 byte│     16 bytes      │2byte│2 bytes│
-└──────┴──────┴──────┴──────┴───────────────────┴─────┴───────┘
-```
+- **Link layer:** one AX.25 v2.2 UI frame (control `0x03`, PID `0xF0`) per command on the 435 MHz uplink, addressed to
+  `KK6GDB-11`, from the sending telecommand station's own call sign; FCS CRC-16/X.25 (SQSO-ICD-013 §3.1).
+- **Command frame:** `0xAA 0x55 | cmd_id (1) | len (1) | payload (len) | sum16 (2, big-endian)`; 4 to 256 bytes; `sum16`
+  is an additive error check, not security (§3.2).
+- **Authenticated payload:** `counter (4, big-endian) | args (N ≤ 64) | tag (16)`, the tag the first 16 bytes of
+  HMAC-SHA-256(key, `SQSO-TC-v1` | cmd_id | N | counter | args); one monotonic counter per key (§4, §5).
+- **Ground counters:** from UTC when two or more stations command (§5.2.1, adopted), from a counter file for one station
+  alone (§5.2).
 
-### 2.2 Header Fields
+The frame is authenticated, not encrypted (47 CFR 97.211(b)); the downlink stays in the clear.
 
-| Field | Offset | Size | Format | Description |
-|-------|--------|------|--------|-------------|
-| SYNC | 0 | 2 | 0x55AA | Command sync word |
-| CALLSN | 2 | 6 | ASCII | Source callsign (padded) |
-| SEQ | 8 | 2 | uint16 | Sequence number |
-| CMD | 10 | 2 | uint16 | Command opcode |
+## 3. Keys and Authority
 
-### 2.3 Validation
+The key a command needs is the `key` field of `software/flight/command_dictionary.json` (the "Key" column of §1.1),
+with the key table and its custody in SQSO-ICD-013 §9:
 
-All commands are validated before execution:
-1. SYNC word matches 0x55AA
-2. Callsign in authorized list
-3. Sequence number > last received (replay protection)
-4. CRC-16 valid
-5. Command opcode valid
-6. Parameters in range
+| Key | Commands | Custody |
+|-----|----------|---------|
+| Operational (one active of four slots) | Every command except those below | Each designated telecommand station (BASELINE §1, §7) |
+| Recovery (offline) | `KEY_ROTATE` (0x06), `PASSIVATE_EXECUTE` (0x71); also accepted for `TX_DISABLE` | A different custodian from the operational key |
+| None | `TX_DISABLE` (0x32), only when no key at all is usable (97.207(b); SQSO-ICD-013 §6) | — |
 
-## 3. Command Categories
-
-### 3.1 Category Overview
-
-| Category | Opcode Range | Description | Authority |
-|----------|--------------|-------------|-----------|
-| Mode Control | 0x0100-0x01FF | Spacecraft mode commands | MD |
-| Configuration | 0x0200-0x02FF | Parameter configuration | FC |
-| Payload | 0x0300-0x03FF | AI payload control | FC |
-| Diagnostic | 0x0400-0x04FF | Diagnostic and test | MD |
-| Software | 0x0500-0x05FF | Software management | MD + SW |
-| Emergency | 0xFF00-0xFFFF | Emergency commands | Any |
-
-### 3.2 Authority Levels
-
-| Level | Abbreviation | Description |
-|-------|--------------|-------------|
-| FC | Flight Controller | Certified operator |
-| MD | Mission Director | Mission Director approval |
-| SW | Software Lead | Software team approval |
-| Any | Any Operator | Emergency use only |
+Keys are loaded only through the umbilical at integration and are never in the repository (BASELINE §7; SQSO-ICD-013 §9.2).
 
 ## 4. Command Definitions
 
-### 4.1 Mode Control Commands
-
-#### CMD-0100: SAFE_MODE
-Enter safe mode immediately.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0100 |
-| Parameters | None |
-| Authority | FC |
-| Hazardous | No |
-
-**Verification**: STATE = SAFE in next telemetry
-
-**Effects**:
-- Immediately transition to SAFE mode
-- Disable non-essential systems
-- Reduce beacon power
-- Disable AI payload
-
----
-
-#### CMD-0101: RELEASE_SAFE
-Release safe mode (if conditions met).
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0101 |
-| Parameters | None |
-| Authority | MD |
-| Hazardous | Yes |
-
-**Prerequisites**:
-- SOC > 30%
-- No active critical faults
-- Mission Director approval
-
-**Verification**: STATE = IDLE in next telemetry
-
----
-
-#### CMD-0102: SET_MODE
-Set operational mode directly.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0102 |
-| Parameters | P0: target mode (1=SAFE, 2=IDLE, 3=ACTIVE) |
-| Authority | MD |
-| Hazardous | Yes (if ACTIVE) |
-
-**Verification**: STATE = requested mode in telemetry
-
----
-
-### 4.2 Configuration Commands
-
-#### CMD-0200: SET_BEACON_RATE
-Set beacon transmission interval.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0200 |
-| Parameters | P0-P1: interval in seconds (uint16, 30-300) |
-| Authority | FC |
-| Hazardous | No |
-
-**Verification**: Beacon interval changes
-
----
-
-#### CMD-0201: SET_TX_POWER
-Set RF transmit power level.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0201 |
-| Parameters | P0: power level (0=0.5W, 1=1W, 2=2W) |
-| Authority | FC |
-| Hazardous | No |
-
-**Verification**: TX_POWER in telemetry
-
----
-
-#### CMD-0202: SET_TLM_RATE
-Set telemetry collection rate.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0202 |
-| Parameters | P0: rate in Hz (1-10) |
-| Authority | FC |
-| Hazardous | No |
-
----
-
-### 4.3 Payload Commands
-
-#### CMD-0300: JETSON_POWER
-Control Jetson power state.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0300 |
-| Parameters | P0: state (0=OFF, 1=ON) |
-| Authority | FC |
-| Hazardous | No |
-
-**Verification**: JETSON_STATE in FLAGS
-
----
-
-#### CMD-0301: AI_ENABLE
-Enable or disable AI beacon generation.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0301 |
-| Parameters | P0: state (0=disable, 1=enable) |
-| Authority | FC |
-| Hazardous | No |
-
-**Verification**: AI_AVAILABLE flag
-
----
-
-#### CMD-0302: FORCE_FALLBACK
-Force fallback beacon mode (disable AI).
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0302 |
-| Parameters | None |
-| Authority | FC |
-| Hazardous | No |
-
-**Verification**: FALLBACK_MODE = 1
-
----
-
-### 4.4 Diagnostic Commands
-
-#### CMD-0400: REQUEST_TLM
-Request immediate telemetry transmission.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0400 |
-| Parameters | None |
-| Authority | FC |
-| Hazardous | No |
-
-**Verification**: Beacon transmitted immediately
-
----
-
-#### CMD-0401: CLEAR_FAULTS
-Clear latched fault flags.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0401 |
-| Parameters | None |
-| Authority | MD |
-| Hazardous | No |
-
-**Verification**: FAULT_FLAGS = 0x00
-
----
-
-#### CMD-0402: RESET_COUNTERS
-Reset telemetry counters.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0402 |
-| Parameters | P0: counter mask |
-| Authority | MD |
-| Hazardous | No |
-
-Counter mask bits:
-- Bit 0: TX_COUNT
-- Bit 1: RX_COUNT
-- Bit 2: WDT_RESETS
-
----
-
-#### CMD-0403: ECHO_TEST
-Echo command for link testing.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0403 |
-| Parameters | P0-P15: echo data |
-| Authority | FC |
-| Hazardous | No |
-
-**Verification**: Echo in beacon info field
-
----
-
-### 4.5 Software Commands
-
-#### CMD-0500: SW_RESET
-Software reset (warm reboot).
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0500 |
-| Parameters | None |
-| Authority | MD |
-| Hazardous | Yes |
-
-**Verification**: BOOT_REASON = SW_RESET, UPTIME reset
-
----
-
-#### CMD-0501: BANK_SWITCH
-Switch to alternate software bank.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0501 |
-| Parameters | None |
-| Authority | MD + SW |
-| Hazardous | Yes |
-
-**Prerequisites**:
-- Backup bank verified valid
-- Full pass remaining
-- Two operators on console
-
-**Verification**: Version changes in beacon
-
----
-
-#### CMD-0502: UPLOAD_START
-Begin software upload.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0502 |
-| Parameters | P0: bank (0=A, 1=B), P1-P4: size |
-| Authority | MD + SW |
-| Hazardous | Yes |
-
----
-
-#### CMD-0503: UPLOAD_DATA
-Send software upload block.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0503 |
-| Parameters | P0-P1: sequence, P2-P15: data (14 bytes) |
-| Authority | MD + SW |
-| Hazardous | No |
-
----
-
-#### CMD-0504: UPLOAD_END
-Finalize software upload.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0x0504 |
-| Parameters | P0-P3: CRC-32 |
-| Authority | MD + SW |
-| Hazardous | No |
-
-**Verification**: CRC match reported in beacon
-
----
-
-### 4.6 Emergency Commands
-
-#### CMD-FF00: EMERGENCY_SAFE
-Emergency safe mode (no prerequisites).
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0xFF00 |
-| Parameters | None |
-| Authority | Any |
-| Hazardous | No |
-
-**Use**: When normal SAFE_MODE fails
-
----
-
-#### CMD-FF01: EMERGENCY_RESET
-Emergency hardware reset.
-
-| Field | Value |
-|-------|-------|
-| Opcode | 0xFF01 |
-| Parameters | None |
-| Authority | Any |
-| Hazardous | Yes |
-
-**Use**: Last resort recovery
-
----
+The flight command set is the 32 commands of §1.1, generated from `software/flight/command_dictionary.json` by
+`scripts/gen_command_dictionary.py` (Rust `sqso-protocol/src/dictionary.rs`, C `software/flight/include/cmd_dictionary.h`,
+ground `software/ground/tools/command_dictionary.py`). Argument encodings, ranges and the commands defined in
+`cmd_handler.h` but refused (`SET_TIME`, the heater, ADCS-mode and payload-data IDs) are in SQSO-ICD-013 §7. The argument
+length must match the dictionary exactly; otherwise the command is refused with `INVALID_PARAM` before its counter is
+consumed.
+
+*Removed in Version 1.4:* the Version 1.0 definitions (a 32-byte frame with a CRC-16 and 16-bit opcodes CMD-0100 to
+CMD-FF01, software upload and bank-switch commands). None of them was implemented; Version 1.3 and earlier keep them in
+the repository history.
 
 ## 5. Command Execution
 
-### 5.1 Execution Flow
-
-```
-COMMAND EXECUTION SEQUENCE
-
-1. Receive frame
-2. Validate CRC
-3. Validate callsign
-4. Validate sequence (anti-replay)
-5. Validate opcode
-6. Validate parameters
-7. Check prerequisites
-8. Execute command
-9. Update telemetry
-10. Log execution
-```
-
-### 5.2 Response Codes
-
-| Code | Name | Description |
-|------|------|-------------|
-| 0x00 | ACK | Command accepted |
-| 0x01 | NAK_CRC | CRC error |
-| 0x02 | NAK_AUTH | Authentication failed |
-| 0x03 | NAK_SEQ | Sequence error |
-| 0x04 | NAK_CMD | Invalid command |
-| 0x05 | NAK_PARAM | Invalid parameter |
-| 0x06 | NAK_STATE | Invalid state for command |
-| 0x07 | NAK_BUSY | System busy |
+The onboard processing order, the result codes (0 `SUCCESS`, 1 `INVALID_CMD`, 2 `INVALID_PARAM`, 3 `AUTH_FAIL`,
+4 `NOT_ALLOWED`, 5 `EXEC_FAIL`, 6 `BUSY`) and when the counter is consumed are in SQSO-ICD-013 §8. Each command counted as
+contact is acknowledged on the downlink as `ack KK6GDB-11: C=<counter> R=<result> N=<days since contact>`
+(SQSO-ICD-005 §5.5); a telecommand station sends each planned command with a new counter and checks its acknowledgement
+(SQSO-ICD-005 §7).
 
 ## 6. Command Constraints
 
-### 6.1 Rate Limits
-
-| Command Type | Rate Limit |
-|--------------|------------|
-| All commands | 1 per second max |
-| Mode changes | 1 per minute |
-| SW upload | 10 blocks per second |
-
-### 6.2 State Constraints
-
-| Command | Allowed States |
-|---------|----------------|
-| SAFE_MODE | Any |
-| RELEASE_SAFE | SAFE |
-| SET_MODE | IDLE, ACTIVE |
-| BANK_SWITCH | SAFE only |
-| UPLOAD_* | SAFE only |
-
-### 6.3 Hazardous Command Confirmation
-
-**Flight implementation (Version 1.1).** The one irreversible command is end-of-life passivation, which takes two
-commands under two keys: `PASSIVATE_ARM` (0x70, operational key, argument `EOL!`), then `PASSIVATE_EXECUTE` (0x71,
-recovery key) within 600 s; the arm lapses otherwise (SQSO-ICD-013 §6.4). `EPS_CLEAR_LOCKOUT` (0x14) needs its
-argument `CHG!` and acts only with the EPS controller's unlock. The Version 1.0 scheme below is not implemented.
-
-Version 1.0 scheme (superseded):
-
-Hazardous commands require two-step execution:
-1. Send command with CONFIRM=0
-2. Receive confirmation prompt in beacon
-3. Send command with CONFIRM=1 within 60 seconds
+| Constraint | Commands | Source |
+|------------|----------|--------|
+| Elevation: commands only above 10° (12° in the degraded mode) | All | Decision C-14; SQSO-ICD-005 §7 |
+| Mode transitions through the state-machine table (SAFE → ACTIVE needs IDLE first, else `NOT_ALLOWED`) | `SET_MODE` (0x02) | SQSO-ICD-013 §7 |
+| Allowed in every state | `TX_DISABLE`, `KEY_ROTATE`, `FRAM_BYPASS` | SQSO-ICD-013 §6, §7 |
+| Fixed four-character argument against a mistaken command | `FRAM_BYPASS` `FRM!`, `EPS_CLEAR_LOCKOUT` `CHG!`, `PASSIVATE_ARM` `EOL!` | SQSO-ICD-013 §7 |
+| Accepted only in a declared condition | `FRAM_BYPASS` once the FRAM is declared failed (HK1 `FR=1`) | SRS-F160 |
+| Two keys, two commands, 600 s window; irreversible | `PASSIVATE_ARM` (operational) then `PASSIVATE_EXECUTE` (recovery) | SQSO-ICD-013 §6.4 |
+| TX-OFF cannot be undone by a replay | `TX_ENABLE` after a later `TX_DISABLE` | SQSO-ICD-013 §6 |
+| Contact timeout | `SET_CONTACT_TIMEOUT` 1–90 days (30 at launch, 14 after commissioning) | BASELINE §7 (D3); SQSO-ICD-013 §6.2 |
 
 ## 7. Quick Reference
 
-### 7.1 Common Commands
+Frames are built by `software/ground/tools/telecommand_builder.py` (SMART-QSO-GND-005), with the same Rust protocol code
+the spacecraft uses (`software/rust/sqso-py`; install it first, `software/ground/tools/README.md`):
 
-| Action | Command | Opcode |
-|--------|---------|--------|
-| Enter safe mode | SAFE_MODE | 0x0100 |
-| Exit safe mode | RELEASE_SAFE | 0x0101 |
-| Set TX power | SET_TX_POWER | 0x0201 |
-| Power cycle Jetson | JETSON_POWER | 0x0300 |
-| Request telemetry | REQUEST_TLM | 0x0400 |
-| Software reset | SW_RESET | 0x0500 |
-
-### 7.2 Command Generation Example
-
-```python
-import struct
-
-def create_command(callsign, seq, opcode, params=None):
-    """Generate command frame."""
-    frame = bytearray(32)
-
-    # Sync
-    frame[0:2] = struct.pack('<H', 0x55AA)
-
-    # Callsign (6 bytes, padded)
-    cs = callsign.encode()[:6].ljust(6)
-    frame[2:8] = cs
-
-    # Sequence
-    frame[8:10] = struct.pack('<H', seq)
-
-    # Opcode
-    frame[10:12] = struct.pack('<H', opcode)
-
-    # Parameters (16 bytes)
-    if params:
-        frame[12:12+len(params)] = params
-
-    # CRC (bytes 30-31)
-    crc = crc16_ccitt(frame[0:30])
-    frame[30:32] = struct.pack('<H', crc)
-
-    return bytes(frame)
-
-# Example: SAFE_MODE command
-cmd = create_command("N0CALL", 1, 0x0100)
+```bash
+pip install ./software/rust/sqso-py
+# list the dictionary
+python3 software/ground/tools/telecommand_builder.py --list
+# a housekeeping request from one of two or more stations (counter from UTC), KISS-encoded for a TNC
+python3 software/ground/tools/telecommand_builder.py GET_HOUSEKEEPING --key-file <key file> \
+    --counter-from-utc --station-config <station.json> --ax25 KK6GDB-11 <station call> --kiss --out frame.bin
 ```
+
+The key file is 64 hex characters, mode 600, held by the station and never committed (SQSO-ICD-013 §9.1).
 
 ## 8. Revision History
 
@@ -539,3 +140,4 @@ cmd = create_command("N0CALL", 1, 0x0100)
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §1: SQSO-ICD-013 and the generated dictionary govern; §1.1 the flight command set, with DUMP_TLM (0x0A), EPS_CLEAR_LOCKOUT (0x14), PASSIVATE_ARM (0x70) and PASSIVATE_EXECUTE (0x71) added; §6.3 the two-key passivation. The Version 1.0 sections are kept for history |
 | 1.2 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §1.1 FRAM_BYPASS (0x0B), EPS_DISABLE_TRACKERS (0x15), ADCS_SET_GYRO_ALIGN (0x25) and ADCS_SET_MAG_BIAS (0x26) added |
 | 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | §1.1 DEPLOY_RETRY (0x50): optional force flag for the antenna past the AntS temperature gate (decision C-18, SRS-F165) |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026) | Status "CDR Baseline" replaced by Draft; §1 governing source restated; §2–§7 rewritten to the flight command set from `command_dictionary.json`, SQSO-ICD-013 §3–§9 and SQSO-ICD-005 §5.5, §7 (frame, keys and authority, definitions, execution and acknowledgement, constraints, ground tool); the Version 1.0 frame and CMD-0100 to CMD-FF01 definitions removed |

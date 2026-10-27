@@ -1,7 +1,7 @@
 # SMART-QSO Rollback and Recovery Procedures
 
 **Document ID**: SQSO-RRP-001
-**Version**: 1.3
+**Version**: 1.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft (plan; no independent CDR has been held, `docs/BASELINE_PARAMETERS.md` §1)
@@ -208,7 +208,7 @@ If both primary and golden images are corrupt:
 |-------|-----------|--------------|
 | Battery SOC | ≥60% (above the 55 % ACTIVE threshold, BASELINE §5) | Telemetry |
 | Thermal | Within limits | Telemetry |
-| Link margin | ≥3 dB predicted for the pass, uplink and downlink | `docs/environment/LINK_BUDGET_ANALYSIS.md` v3.5 (BASELINE §7): telecommand at ≥ 64 dBm EIRP ≥ +8.0 dB at 10° and ≥ +6.2 dB at 5°; beacon +7.9 dB at 5° (median spacecraft gain), +0.9 dB at the 10th percentile; analysis |
+| Link margin | ≥3 dB predicted for the pass, uplink and downlink | `docs/environment/LINK_BUDGET_ANALYSIS.md` v3.5 (BASELINE §7): telecommand at ≥ 64 dBm EIRP ≥ +8.4 dB at 10° and ≥ +6.6 dB at 5° (both station variants' minimums); beacon +7.9 dB at 5° (median spacecraft gain), +0.9 dB at the 10th percentile; analysis |
 | Pass duration | ≥10 min | Orbit prediction |
 | Backup verified | CRC match | Ground command |
 
@@ -463,3 +463,4 @@ RECOVERY OPERATIONS CHECKLIST
 | 1.1 | 2026-10-16 | SMART-QSO Team | §5.1 link-margin check cites LINK_BUDGET_ANALYSIS v2.0 for the predicted margins (finding TB-05) |
 | 1.2 | 2026-10-24 | SMART-QSO Team | §1 note: what recovery the Rust flight software provides; no bootloader, golden image or upload commands exist, so §2 and §5 are plans |
 | 1.3 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): status Draft (no CDR held); §1 watchdog 25.6 s with the supervisor kick, RESET only logged, the payload commands; §3.1 and §6.2 marked as plans; §6.3 model updates not in the baseline; §5.1 link margins from LBA v3.5 |
+| 1.4 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026), follow-up: link-margin row telecommand ≥ +8.4 / ≥ +6.6 dB at 10° / 5° at both station variants' minimums (BASELINE §7; were +8.0 / +6.2 dB) |

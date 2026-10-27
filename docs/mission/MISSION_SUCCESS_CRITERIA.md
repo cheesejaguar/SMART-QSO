@@ -1,7 +1,7 @@
 # SMART-QSO Mission Success Criteria
 
 **Document ID**: SQSO-MSC-001
-**Version**: 2.4
+**Version**: 2.5
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft for PI approval. Rewritten to the baseline (BASELINE Rev D §2, §6, decision D5); replaces
@@ -50,7 +50,7 @@ success, and how each criterion is measured. They are used for the reliability e
 | ID | Criterion | Threshold | Measurement |
 |----|-----------|-----------|-------------|
 | L2-01 | All of Level 1 | — | L1 declaration |
-| L2-02 | Transponder service delivered | Mean transponder keyed time ≥ 30 min a day over months 2–12 (the mission simulation predicts 56–82 min a day, `docs/hardware/BUILD_VS_BUY.md` §7.3, §7.5) and enabled in ≥ 80 % of the sunlit windows the power gate allows | HK2 `XE` (enables, keyed time), HK1 `XP`; SIL replay of the power gate on the downlinked SOC |
+| L2-02 | Transponder service delivered | Mean transponder keyed time ≥ 30 min a day over months 2–12 (the full mission simulation predicts about 53 min a day keyed, SQSO-SIL-001 G §7; the battery-size and charge-voltage trade runs gave 56–82 min a day, `docs/hardware/BUILD_VS_BUY.md` §7.3, §7.5) and enabled in ≥ 80 % of the sunlit windows the power gate allows | HK2 `XE` (enables, keyed time), HK1 `XP`; SIL replay of the power gate on the downlinked SOC |
 | L2-03 | Users served | ≥ 100 distinct call signs heard through the transponder over the year | Ground recordings and public log submissions, de-duplicated by the project |
 | L2-04 | Fair scheduling (MO-3) | Gini coefficient across regions of available transponder minutes ≤ 0.35 over any 60 days, and no higher than a fixed schedule with the same energy (MRD-043 proposal) | Transponder on/off telemetry and orbit (MRD-043 method) |
 | L2-05 | AI selector operating within hard limits (MO-3) | Selector in control ≥ 9 of 12 months; **zero** hard-limit violations (Jetson outside sunlight or SOC < 55 %, burst past 10 min or 3.6 kJ (decision C-20), SOC thresholds, TX-OFF overridden) | HK2 `SL` (selector decisions and abstentions; the selector is designed, not yet implemented, BASELINE §6), HK2 `HL` (hard-limit violations) |
@@ -131,3 +131,4 @@ declaration.
 | 2.2 | 2026-10-27 | CDR round 3, systems and programmatics (REL-01) | §8: the PI's acceptance dated (DA-02, 2026-12-15); the reliability programme cited as planned (ETP D §3.11) |
 | 2.3 | 2026-10-27 | CDR round 3, flight software (decision C-20, CR-2026-018) | E-02: energy per accepted beacon line over the accepted lines of ≥ 10 bursts of the flight burst definition (≤ 10 min, ≤ 3.6 kJ), from HK2 `JB` (was a p95 per beacon) |
 | 2.4 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): the **[TLM]** gaps closed by HK1/HK2 fields (§3–§7); burst limits 10 min and 3.6 kJ (C-20; were 120 s) in L2-05 and E-01; E-1 per accepted line (was p95); §5 shortest life from ODAR Draft D §6.2 in the baseline band (was Draft B, 2.4 yr) |
+| 2.5 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026), follow-up: L2-02 prediction from the full mission simulation, about 53 min a day keyed (SQSO-SIL-001 G §7); the 56–82 min a day of the build-versus-buy trade runs kept as the range of those runs |

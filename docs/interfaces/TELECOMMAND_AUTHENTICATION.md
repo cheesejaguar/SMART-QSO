@@ -1,7 +1,7 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.15 (Draft)
+**Version**: 0.16 (Draft)
 **Date**: 2026-10-27
 **Status**: Draft. Implemented and tested in the host simulation; the Embassy firmware for the STM32L4R5ZI builds in CI. Not yet run on target hardware (Section 10).
 
@@ -231,7 +231,7 @@ No RF signal may be generated or transmitted until 45 minutes after deployment, 
 
 | Property | Behavior |
 |----------|----------|
-| During the silence | The whole radio is unpowered (`GPIO_PIN_RADIO_EN` low) as well as the transmitter (`RF_TX_EN` low). **This is the one exception to "the receiver is always on"**: no telecommand can be received in this window. That is acceptable because nothing can transmit either. The reading of "generate any signal" as including the receiver is conservative and TBR with the launch provider |
+| During the silence | The whole radio is unpowered (`GPIO_PIN_RADIO_EN` low) as well as the transmitter (`RF_TX_EN` low). **This is the one exception to "the receiver is always on"**: no telecommand can be received in this window. That is acceptable because nothing can transmit either. Reading "generate any signal" as including the receiver is conservative; it is the reading SYS-224 adopts (no RF signal from any transmitter or other RF emitter, the GNSS receiver included), so it is the design rule. The integrator's ICD may relax it later |
 | No command shortens it | No telecommand clears or shortens the silence. An authenticated `TX_ENABLE` clears the TX-OFF latch, but the radio stays off (`test_tx_enable_cannot_shorten_silence`) |
 | Power-on, brownout, pin or unknown reset | Restart the count from 0. The deployment switches are power inhibits, so deployment and any switch toggle arrive as a power-on reset |
 | Watchdog or software reset | Resume from the persisted count. The count is saved every 60 s and lags real time, so the silence only gets longer |
@@ -524,3 +524,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.13 | 2026-10-27 | CDR flight software, round 3 (third part): §6.4 the fire's EPS-board condition (≥ 0 °C, waited for at most 6 h of each attempt, not held by an unreadable temperature; RID SMA-B20) and its reasons in HK1 `PS`; §7 DEPLOY_RETRY's force flag (decision C-18) |
 | 0.14 | 2026-10-27 | CDR flight software, round 3 (fourth part): §6.3 the AntS hold of decision C-19 (SRS-F167: transmitters silent, receiver on, until the AntS sequence ends) and the OBC's exciter keying watch (SRS-F168, SW-HAZ-014 C-014-9) among `rf_control`'s inhibits |
 | 0.15 | 2026-10-27 | Documentation audit (post-CDR 2026): §2 variant B ≥ 17.8 dBic (BASELINE Rev E §7; was 17.5); §5.2 LBA v3.5; §6.3 the latched RF silence (SRS-F087) and the separation-sense polarity of SMA-B02 (SRS-F159) replace "restart even after completion" and "pull-up, high = stowed"; the AntS hold at worst about S+25.8 h (was S+27 h); §7 SET_POWER applied on TX_PWR_SEL; §10 the firmware's radio driver, time base and reset cause, SET_POWER and switch polarity rows brought to the code; the duplicate "proposed" UTC-counter row removed; §7 PASSIVATE_ARM arms the EPS latch (was "drives nothing", contrary to §6.4) |
+| 0.16 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §6.3 the receiver-off reading of the RF silence is the SYS-224 rule (the open "with the launch provider" marker removed) |

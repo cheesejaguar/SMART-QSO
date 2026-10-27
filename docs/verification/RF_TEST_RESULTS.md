@@ -2,13 +2,12 @@
 ## SMART-QSO CubeSat
 
 **Document Number:** SQSO-VER-RF-001
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-10-27
 **Status:** Template - To be completed post-test
 
-> **Template; no test has been run.** No hardware exists (`docs/BASELINE_PARAMETERS.md` §1). Every "TBD" in a
-> result, serial-number, calibration or pass/fail cell is a blank field to be filled when the test is run, not an open
-> design value. The procedures are TP-RF-001 to TP-RF-006; the criteria are VI-RF-02 to VI-RF-04 and VI-RF-12
+> **Template; no test has been run.** No hardware exists (`docs/BASELINE_PARAMETERS.md` §1). Every blank
+> result, serial-number, calibration or pass/fail cell is a field to be filled when the test is run. The procedures are TP-RF-001 to TP-RF-006; the criteria are VI-RF-02 to VI-RF-04 and VI-RF-12
 > (`docs/verification/VI_REGISTER.md`).
 
 ---
@@ -26,20 +25,20 @@ This document records the RF characterization and verification test results for 
 | Item | Value |
 |------|-------|
 | Unit | SMART-QSO Flight Unit |
-| Serial Number | TBD |
-| Software Version | TBD |
+| Serial Number |  |
+| Software Version |  |
 | Configuration | Flight |
 
 ### 2.2 Test Equipment
 
 | Equipment | Model | Serial | Cal Date |
 |-----------|-------|--------|----------|
-| Spectrum Analyzer | TBD | TBD | TBD |
-| Power Meter | TBD | TBD | TBD |
-| Frequency Counter | TBD | TBD | TBD |
-| Dummy Load (50Ω) | TBD | TBD | N/A |
-| Attenuator | TBD | TBD | TBD |
-| RF Cables | TBD | TBD | TBD |
+| Spectrum Analyzer |  |  |  |
+| Power Meter |  |  |  |
+| Frequency Counter |  |  |  |
+| Dummy Load (50Ω) |  |  | N/A |
+| Attenuator |  |  |  |
+| RF Cables |  |  |  |
 
 ---
 
@@ -57,16 +56,16 @@ This document records the RF characterization and verification test results for 
 
 | Power Setting | Expected (dBm) | Measured (dBm) | Pass/Fail |
 |---------------|----------------|----------------|-----------|
-| Nominal (0.5W) | 27.0 ± 0.5 | TBD | TBD |
-| Maximum (1.0W) | 29.5–30.0 (never above 30.0, SYS-201) | TBD | TBD |
+| Nominal (0.5W) | 27.0 ± 0.5 |  |  |
+| Maximum (1.0W) | 29.5–30.0 (never above 30.0, SYS-201) |  |  |
 
 ### 3.3 Temperature Variation
 
 | Temp (°C) | Power (dBm) | Delta from 25°C |
 |-----------|-------------|-----------------|
-| -20 | TBD | TBD |
-| +25 | TBD | Reference |
-| +60 | TBD | TBD |
+| -20 |  |  |
+| +25 |  | Reference |
+| +60 |  |  |
 
 ---
 
@@ -76,7 +75,7 @@ This document records the RF characterization and verification test results for 
 
 | Parameter | Requirement | Source |
 |-----------|-------------|--------|
-| Center Frequency (f<sub>c</sub>) | One IARU-coordinated frequency in 145.800–146.000 MHz, **not 145.825 MHz**; TBD until coordination | `docs/BASELINE_PARAMETERS.md` §7 |
+| Center Frequency (f<sub>c</sub>) | One IARU-coordinated frequency in 145.800–146.000 MHz, **not 145.825 MHz**; the value comes with the IARU coordination letter (TBD-SYS-001) | `docs/BASELINE_PARAMETERS.md` §7 |
 | Frequency Accuracy | ± 5 kHz from f<sub>c</sub> under all test conditions, including temperature drift (≈ ± 34 ppm at 145.9 MHz) | Design allocation (TBC) |
 | Frequency Stability | Drift ≤ ± 2 kHz from the +25 °C value over the whole −20 °C to +50 °C test range (total, not per °C) | Design allocation (TBC) |
 
@@ -88,17 +87,17 @@ earlier revisions stated, would allow 140 kHz of drift over a 70 °C range and c
 
 | Condition | Expected (MHz) | Measured (MHz) | Error (kHz) | Pass/Fail |
 |-----------|----------------|----------------|-------------|-----------|
-| 25°C | f<sub>c</sub> (TBD) | TBD | TBD | TBD |
-| After warm-up | f<sub>c</sub> (TBD) | TBD | TBD | TBD |
+| 25°C | f<sub>c</sub> |  |  |  |
+| After warm-up | f<sub>c</sub> |  |  |  |
 
 ### 4.3 Test Results - Stability
 
 | Temperature (°C) | Frequency (MHz) | Drift from 25°C (kHz) | Pass/Fail |
 |------------------|-----------------|------------------------|-----------|
-| -20 | TBD | TBD | TBD |
-| 0 | TBD | TBD | TBD |
-| +25 | TBD | Reference | TBD |
-| +50 | TBD | TBD | TBD |
+| -20 |  |  |  |
+| 0 |  |  |  |
+| +25 |  | Reference |  |
+| +50 |  |  |  |
 
 ---
 
@@ -118,17 +117,17 @@ earlier revisions stated, would allow 140 kHz of drift over a 70 °C range and c
 
 | Parameter | Expected | Measured | Pass/Fail |
 |-----------|----------|----------|-----------|
-| Mark Freq | 1200 Hz | TBD | TBD |
-| Space Freq | 2200 Hz | TBD | TBD |
-| Peak Deviation | 3.0 kHz | TBD | TBD |
-| Modulation Index | 1.0 - 1.5 | TBD | TBD |
+| Mark Freq | 1200 Hz |  |  |
+| Space Freq | 2200 Hz |  |  |
+| Peak Deviation | 3.0 kHz |  |  |
+| Modulation Index | 1.0 - 1.5 |  |  |
 
 ### 5.3 Eye Diagram / BER
 
 | Parameter | Requirement | Measured | Pass/Fail |
 |-----------|-------------|----------|-----------|
-| Eye Opening | > 80% | TBD | TBD |
-| BER (sensitivity) | < 1E-5 | TBD | TBD |
+| Eye Opening | > 80% |  |  |
+| BER (sensitivity) | < 1E-5 |  |  |
 
 ---
 
@@ -148,10 +147,10 @@ earlier revisions stated, would allow 140 kHz of drift over a 70 °C range and c
 | Harmonic | Frequency (MHz) | Level (dBc) | Limit (dBc) | Pass/Fail |
 |----------|-----------------|-------------|-------------|-----------|
 | Fundamental | f_c: the IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz (SYS-200; TBD-SYS-001) | 0 (ref) | - | - |
-| 2nd | 2 f_c (291.6–292.0) | TBD | -46 | TBD |
-| 3rd | 3 f_c (437.4–438.0) | TBD | -70 | TBD |
-| 4th | 4 f_c (583.2–584.0) | TBD | -46 | TBD |
-| 5th | 5 f_c (729.0–730.0) | TBD | -46 | TBD |
+| 2nd | 2 f_c (291.6–292.0) |  | -46 |  |
+| 3rd | 3 f_c (437.4–438.0) |  | -70 |  |
+| 4th | 4 f_c (583.2–584.0) |  | -46 |  |
+| 5th | 5 f_c (729.0–730.0) |  | -46 |  |
 
 Limits are for the 1 W maximum (SYS-201): ≥ 46 dB below carrier and ≤ 25 µW (SYS-203; 47 CFR 97.307(e)), and the third
 harmonic ≥ 70 dB below carrier (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` §7).
@@ -160,10 +159,10 @@ harmonic ≥ 70 dB below carrier (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` �
 
 | Frequency Range | Maximum Level (dBc) | Pass/Fail |
 |-----------------|---------------------|-----------|
-| 10 kHz - 145 MHz | TBD | TBD |
-| 146 - 292 MHz | TBD | TBD |
-| 292 - 1000 MHz | TBD | TBD |
-| 1 - 2 GHz | TBD | TBD |
+| 10 kHz - 145 MHz |  |  |
+| 146 - 292 MHz |  |  |
+| 292 - 1000 MHz |  |  |
+| 1 - 2 GHz |  |  |
 
 ---
 
@@ -180,8 +179,8 @@ harmonic ≥ 70 dB below carrier (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` �
 
 | Parameter | Expected | Measured | Pass/Fail |
 |-----------|----------|----------|-----------|
-| -20 dB BW | < 12 kHz | TBD | TBD |
-| 99% BW | ≤ 10.4 kHz (telemetry) | TBD | TBD |
+| -20 dB BW | < 12 kHz |  |  |
+| 99% BW | ≤ 10.4 kHz (telemetry) |  |  |
 
 ---
 
@@ -200,9 +199,9 @@ harmonic ≥ 70 dB below carrier (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` �
 
 | Direction | Expected Gain (dBi) | Measured Gain (dBi) | Pass/Fail |
 |-----------|---------------------|---------------------|-----------|
-| Median over the pass-weighted directions | ≥ −3 (SYS-222) | TBD | TBD |
-| 10th percentile | ≥ −10 (SYS-222) | TBD | TBD |
-| Model agreement, two orthogonal planes | within 2 dB (VI-RF-01) | TBD | TBD |
+| Median over the pass-weighted directions | ≥ −3 (SYS-222) |  |  |
+| 10th percentile | ≥ −10 (SYS-222) |  |  |
+| Model agreement, two orthogonal planes | within 2 dB (VI-RF-01) |  |  |
 
 ---
 
@@ -210,7 +209,7 @@ harmonic ≥ 70 dB below carrier (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` �
 
 ### 9.1 Test Configuration
 
-- Reference receiver: TBD
+- Reference receiver:
 - TNC: Direwolf / hardware TNC
 - Distance: 3m (anechoic) or direct cable
 
@@ -218,10 +217,10 @@ harmonic ≥ 70 dB below carrier (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` �
 
 | Parameter | Requirement | Result | Pass/Fail |
 |-----------|-------------|--------|-----------|
-| Callsign Decode | Correct | TBD | TBD |
-| Packet CRC | Valid | TBD | TBD |
-| Content Verify | Per ICD | TBD | TBD |
-| Decode Rate | > 95% | TBD | TBD |
+| Callsign Decode | Correct |  |  |
+| Packet CRC | Valid |  |  |
+| Content Verify | Per `docs/BEACON_SPEC.md` §3–§4 |  |  |
+| Decode Rate | > 95% |  |  |
 
 ---
 
@@ -231,15 +230,15 @@ harmonic ≥ 70 dB below carrier (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` �
 
 | Test | Result |
 |------|--------|
-| Power Output | TBD |
-| Frequency Accuracy | TBD |
-| Frequency Stability | TBD |
-| Modulation | TBD |
-| Spurious Emissions | TBD |
-| Occupied Bandwidth | TBD |
-| EIRP | TBD |
-| Beacon Decode | TBD |
-| **Overall** | **TBD** |
+| Power Output |  |
+| Frequency Accuracy |  |
+| Frequency Stability |  |
+| Modulation |  |
+| Spurious Emissions |  |
+| Occupied Bandwidth |  |
+| EIRP |  |
+| Beacon Decode |  |
+| **Overall** |  |
 
 ### 10.2 Non-Conformances
 
@@ -267,3 +266,4 @@ harmonic ≥ 70 dB below carrier (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` �
 | 1.1 | 2026-10-16 | Funding audit VV-21: frequency stability restated as total drift over the test range (± 2 kHz), within the ± 5 kHz accuracy; centre frequency per BASELINE §7 (not 145.825 MHz) in §4. Other 145.825 MHz values (§6.2) and the −43 dBc harmonic limit (BASELINE §7: ≥ 46 dBc at 1 W, target ≥ 60 dB) are not yet updated |
 | 1.2 | 2026-10-16 | §6.1 and §6.2: harmonic limits from SYS-203 and 47 CFR 97.307(e) (−46 dBc at 1 W; 3rd-harmonic target −60 dBc, BASELINE §7), replacing −43 dBc "IARU"; fundamental the IARU-coordinated frequency (SYS-200, TBD-SYS-001), harmonics as multiples of it, replacing 145.825 MHz (finding VV-21) |
 | 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026): template banner (no test run; placeholder cells are blank fields); power 0.5 W nominal, ≤ 1 W, ± 0.5 dB over −20 to +60 °C (VI-RF-02; the 2.0 W row removed); deviation 3.0 kHz (10K4F2D); third harmonic ≤ −70 dBc (SYS-203 Rev G); occupied bandwidth 10.4 kHz; antenna gain and pattern rows per SYS-222 Rev G (was +2.1 dBi at zenith) |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: the 106 "TBD" placeholder words in result, serial, calibration and pass/fail fields replaced by blank fields (banner says so); §5 centre frequency cites TBD-SYS-001; §9.2 content checked against BEACON_SPEC |

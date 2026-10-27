@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-PDU-001
-**Version:** 1.6
+**Version:** 1.7
 **Date:** 2026-10-27
 **Status:** CDR Baseline — parts selected in the EPS board design `hardware/electrical/eps/EPS_BOARD_DESIGN.md`
 (SQSO-EPS-BRD-001 G), which governs part-level values; `docs/hardware/EPS_DESIGN.md` v2.5 §4–§6 governs the architecture
@@ -26,7 +26,7 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 |------|---------|-------|--------|------|
 | VBAT | 14.4 V | 11.2 V (BMS cut) – 16.4 V (CV 4.10 V/cell); 16.8 V abs max | Battery and trackers | Heater, burn wires, Jetson carrier (through the eFuse), the bucks |
 | 3V3_AO | 3.3 V | 3.23–3.37 V (± 2 %, RF board LMX2571 ≥ 3.15 V) | Buck U15 from VBAT, always on | OBC (SW10), EPS controller (SW9), receiver/TNC/exciter (SW2), ADCS, GNSS, AntS |
-| 5V_PA | 5.0 V | 4.90–5.10 V | Buck U16 from VBAT | PA only (EMC rule E3); 1.76 W DC at 0.5 W RF |
+| 5V_PA | 5.0 V | 4.90–5.10 V | Buck U16 from VBAT | PA only (EMC rule E3); 1.84 W DC at 0.5 W RF, 2.42 W at 1 W RF (SQSO-RF-BRD-001 §7.3) |
 | V_BURN | 7.04 V | 6.83–7.25 V | Buck U17 from VBAT_DEP (SW6) | Four burn drivers, only with DEPLOY_EN |
 
 ### 2.2 Rail Specifications
@@ -312,3 +312,4 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 | 1.4 | 2026-10-27 | CDR design (EPS board): battery-output fuse F2 changed to FM12A72V5.0A for breaking capacity (§6) |
 | 1.5 | 2026-10-27 | CDR design (EPS board): load shed on the Jetson's two switches only, the PA not shed; AntS supply also by the EPS controller (SQSO-EPS-BRD-001 E) |
 | 1.6 | 2026-10-27 | Documentation audit (post-CDR 2026): status cites SQSO-EPS-BRD-001 G (was E); SW3 nominal current from the RF board's 1.84 W DC at 0.5 W RF (was 0.35 A) |
+| 1.7 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: 5V_PA rail row 1.84 W DC at 0.5 W RF and 2.42 W at 1 W RF (SQSO-RF-BRD-001 §7.3; was 1.76 W) |

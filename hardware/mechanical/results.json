@@ -1830,15 +1830,15 @@
     "18": 0.0
    },
    "mass_g": 0.0,
-   "volume_mm3": 1063.7199999999998,
+   "volume_mm3": 1519.5999999999997,
    "centre_mm": [
-    36.55000000000001,
+    36.550000000000004,
     -33.5,
-    39.900000000000006
+    41.4
    ],
    "ghost": false,
    "moves": "",
-   "note": "RF J1 Samtec TFM-108 right-angle with its SFSDT plug, cable toward +X, in the shield notch x > +30, y < -26 (RF_BOARD_DESIGN D 4.3)"
+   "note": "RF J1 Samtec TFM-108 right-angle with its SFSDT plug, cable toward +X, in the shield notch x > +30, y < -26; mated-height allocation 10 mm (design <= 7.0 mm; SQSO-RF-BRD-001 4.3, VI-RFB-12)"
   },
   {
    "name": "RF_J2_mated",
@@ -1855,7 +1855,7 @@
    ],
    "ghost": false,
    "moves": "",
-   "note": "RF J2 Pico-Clasp 6 vertical, mated, at (-26, -44) (allocation 6 mm)"
+   "note": "RF J2 Pico-Clasp 6 vertical, mated, at (-26, -44) (allocation 6 mm; the W4B bend is in the step-over zone TE_MXMY2 above it, z +43.6 ... +48.2)"
   },
   {
    "name": "EPS_bottom_connectors",
@@ -3880,7 +3880,7 @@
   }
  },
  "step_bytes": {
-  "smartqso_stowed.step": 4928197,
+  "smartqso_stowed.step": 4928219,
   "smartqso_oml_stowed.step": 1393782,
   "smartqso_deployed.step": 4929790,
   "smartqso_oml_deployed.step": 1395200

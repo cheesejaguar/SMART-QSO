@@ -95,7 +95,7 @@ Each command below is built with `telecommand_builder.py <COMMAND> --key-file <k
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 3 | Send TX_DISABLE (operational key); start a timer at the end of the uplink frame | `RF_TX_EN` low, PA supply < 0.1 V and RF at the port < −60 dBm within **1 s (TBR)** (VI-RF-12); silent for 120 s | |
+| 3 | Send TX_DISABLE (operational key); start a timer at the end of the uplink frame | `RF_TX_EN` low, PA supply < 0.1 V and RF at the port < −60 dBm within **1 s** (VI-RF-12); silent for 120 s | |
 | 4 | Force SAFE (SET_MODE 0) | Accepted; still silent for 120 s | |
 | 5 | Remove and restore OBC power | After boot, `RF_TX_EN` stays low from power-on (oscilloscope); silent for 120 s | |
 | 6 | Re-send the TX_ENABLE frame saved at step 2, unchanged (replay) | Rejected; silent for 60 s | |
@@ -175,7 +175,7 @@ Monitor the downlink frequency and its harmonics, and the receiver's local-oscil
 
 **Pass:** every step meets its expected result. In particular:
 
-- Every TX-OFF step is silent within 1 s (TBR) and for the whole observation period.
+- Every TX-OFF step is silent within 1 s (VI-RF-12) and for the whole observation period.
 - No unauthenticated, replayed or wrong-key command restarts transmission.
 - TX-OFF survives a power cycle.
 
@@ -216,3 +216,4 @@ Monitor the downlink frequency and its harmonics, and the receiver's local-oscil
 | Draft | 2026-10-16 | OBC-to-RF ICD cited by its own number, SQSO-ICD-003 (was SQSO-ICD-005, the Space-to-Ground ICD) (finding PI-17) | SMART-QSO Team |
 | Draft | 2026-10-24 | Flight-software item names `rf_control.rs`, the Rust file that replaced `rf_control.c` | SMART-QSO Team |
 | Draft | 2026-10-27 | Documentation audit (post-CDR 2026): VI-RF-12 criteria at step 3 (RF < −60 dBm, PA supply < 0.1 V); §8.8 the VI-RF-13 power-on reset at 20 min, GNSS_EN low before 45:00, the C-19 AntS hold and the latched silence (SYS-224 Rev G); not-yet-run banner | Documentation audit |
+| Draft | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: the 1 s TX-OFF criterion is VI-RF-12's (the open-value marker removed) | Documentation audit |

@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-WP-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8739.6B and the standards it invokes (§2)
 
@@ -99,10 +99,12 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 
 ### 5.1 Components Requiring Staking
 
+The same thresholds as WORKMANSHIP_STANDARDS (SQSO-WKS-001) §4.4; the records of §13 match its §10.2.
+
 | Component | Method |
 |-----------|--------|
-| Heavy components (>3g) | Adhesive staking |
-| Tall components (>6mm) | Adhesive staking |
+| Heavy components (> 2 g) | Adhesive staking |
+| Tall components (> 6 mm) | Adhesive staking |
 | Connectors | Adhesive or mechanical |
 | Wire bundles | Adhesive at stress points |
 | Crystals | Adhesive staking |
@@ -272,8 +274,9 @@ M2 Ti-6Al-4V cell-retention screws 0.10 N·m (`hardware/structure/STRUCTURAL_DES
 |--------|-----------|
 | Traveler | Permanent |
 | Inspection records | Permanent |
-| Calibration records | Per cal program |
-| Training records | Duration of employment |
+| Photographs | Permanent |
+| Calibration records | Per the calibration programme, at least 3 years |
+| Training records | Duration of employment, at least 3 years |
 | NCRs | Permanent |
 
 ---
@@ -285,3 +288,4 @@ M2 Ti-6Al-4V cell-retention screws 0.10 N·m (`hardware/structure/STRUCTURAL_DES
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | §2 standards corrected (8739.6B, J-STD-001 space addendum, 8739.4A, 8739.1B; 8739.3 cancelled); Sn63Pb37 only; lacing instead of nylon ties; Loctite 242 removed | CDR S&MA review |
 | C | 2026-10-27 | Documentation audit (post-CDR 2026): §4.1 conformal coat Arathane 5750 (preferred) with the open alternates, §5.2 staking materials Scotch-Weld 2216 and Arathane 5750 (Dow 93-500 is the panel encapsulant, Hysol EA 9394 is not in the materials list), §6.1 MIL-T-43435 lacing tape, all per MATERIALS_LIST §5 and §7; §7.2 torques from STRUCTURAL_DESIGN §8.1 in place of the generic table | Documentation audit |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §5.1 staking thresholds and §13 record retention made identical to SQSO-WKS-001 1.3 (the stricter value of each: heavy above 2 g, was 3 g; photographs permanent; calibration and training records at least 3 years) | Documentation audit |

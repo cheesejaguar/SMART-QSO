@@ -1,7 +1,7 @@
 # Interface Control Document: OBC to RF Subsystem
 
 **Document ID**: SQSO-ICD-003
-**Version**: 2.4
+**Version**: 2.5
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR. Both sides are build-to designs: the OBC board SQSO-OBC-BRD-001 (`hardware/electrical/obc/OBC_BOARD_DESIGN.md` §13) with the master pin allocation SQSO-ICX-001 (`hardware/electrical/INTERCONNECT.md`), and the RF board SQSO-RF-BRD-001 (`hardware/electrical/rf/RF_BOARD_DESIGN.md` §4). Not built or measured. The firmware's pins are unchanged for this interface except the three readback inputs and (version 2.2) the receiver status inputs RX_CD and RX_FAULT.
@@ -175,7 +175,7 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | Inhibit lines | Drive RADIO_EN and RF_TX_EN low, high, high-Z, OBC in reset | RF board state as §4.2 in every case | EM (VI-RF-12, VI-RF-13) |
 | Heartbeat | Stop, stall, halt the OBC with XPDR_EN running | Repeat path unkeys ≤ 100 ms (VI-RF-11) | EM |
 | Monitors | Calibrate TX_FWD, TX_REV against a power meter; TX_TEMP against a thermocouple | ±0.5 dB, ±2 °C | EM |
-| Power select | TX_PWR_SEL low/high | 27.0 / 30.0 ± 0.5 dBm (VI-RF-02) | EM |
+| Power select | TX_PWR_SEL low/high | 27.0 ± 0.5 / 29.5–30.0 dBm (never above 1 W; VI-RF-02) | EM |
 | Receiver status | Unmodulated carrier on and off at the receive sensitivity + 3 dB; RX_FAULT forced on the RF EM; W4A pin 16 open; radio off | RX_CD follows the carrier; RX_FAULT high only when forced; low (healthy) with the pin open or the radio off | EM |
 
 ## 8. Open Items
@@ -201,3 +201,4 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | 2.2 | 2026-10-27 | CDR design completion, flight-software round 2 | §4.1 W4A version 3 (FTSH-108, 16 positions); §4.2 RX_CD (pin 15, PG0 EXTI0) and RX_FAULT (pin 16, PF13 EXTI13, low = healthy), back-power total 2.7 mA; §4.3 their use; §7 receiver-status test; §8 |
 | 2.3 | 2026-10-27 | CDR round 3, launch and operations (finding P3A-07) | §6 stalled-loop timing with the 40 ms heartbeat lease (87–98 ms, 90 ms nominal; SRS-F081; was "60 ms lease, 118 ms"); §8 the VI-RF-11 item closed (inside 100 ms) |
 | 2.4 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §2 revisions of the governing documents (BASELINE E, RF board F, OBC board E, ICX D, LBA 3.5, RF design 2.4); §4.1 W4A v4 (TFM-108 with an SFSDT 30 AWG assembly, 0.075 m) and W4B 28 AWG twisted pairs per SQSO-ICX-001 D; §4.2 TX_TEMP 1 MΩ pull-down (SMA-B19); §4.3, §8 the readbacks are read by the firmware |
+| 2.5 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026), follow-up: power-select levels 27.0 ± 0.5 / 29.5–30.0 dBm, never above 1 W (VI-RF-02) |

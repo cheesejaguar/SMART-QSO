@@ -1,7 +1,7 @@
 # SMART-QSO Workmanship Standards
 
 **Document ID**: SQSO-WKS-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft (no hardware built). The workmanship plan, SQSO-WP-001 (`docs/manufacturing/WORKMANSHIP_PLAN.md`), carries
@@ -119,10 +119,13 @@ Cracks              No             Yes
 
 ### 4.4 Staking
 
+The thresholds are the same as WORKMANSHIP_PLAN §5.1 (the stricter of the values the two documents carried before
+version 1.3); §10.2 likewise matches the plan's §13.
+
 | Component | Staking |
 |-----------|---------|
-| Heavy components (>2g) | Required |
-| Tall components (>10mm) | Required |
+| Heavy components (> 2 g) | Required |
+| Tall components (> 6 mm) | Required |
 | Connectors | Required |
 | Crystals | Required |
 
@@ -341,11 +344,12 @@ Storage:
 
 | Record | Retention |
 |--------|-----------|
-| Inspection reports | Life of mission |
-| Photographs | Life of mission |
-| Nonconformance | Life of mission |
-| Calibration | 3 years |
-| Training | 3 years |
+| Travelers | Permanent |
+| Inspection reports | Permanent |
+| Photographs | Permanent |
+| Nonconformance | Permanent |
+| Calibration | Per the calibration programme, at least 3 years |
+| Training | Duration of employment, at least 3 years |
 
 ### 10.3 Nonconformance
 
@@ -393,3 +397,4 @@ NONCONFORMANCE PROCESS
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-27 | CDR S&MA review | §2 standards corrected (NASA-STD-8739.6B, J-STD-001 space addendum, 8739.4A, 8739.1B; 8739.3 cancelled; 8739.1 title); Sn63Pb37 only; thread-locking rules without non-compliant Loctite grades |
 | 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026) | Status "CDR Baseline" replaced by Draft, with the relation to the workmanship plan; §4.3 conformal coat Arathane 5750 per MATERIALS_LIST §5 (HumiSeal 1B73 an alternate); §6.1 locking aligned with §6.3; §6.2 torques from STRUCTURAL_DESIGN §8.1 |
+| 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | §4.4 staking thresholds and §10.2 record retention made identical to SQSO-WP-001 D §5.1 and §13 (the stricter value of each: staking above 2 g or 6 mm; inspection, photograph, nonconformance and traveler records permanent) |

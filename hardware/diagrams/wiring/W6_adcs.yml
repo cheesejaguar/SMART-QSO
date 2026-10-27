@@ -2,7 +2,7 @@
 # SQSO-HAR-001 2.0). There is no ADCS board: W6B carries 3V3_ADCS from EPS SW4 to OBC J6; W6C the three CubeSpace
 # CR0002 rods from OBC J7 (soldered to the rods' own leads on bonded termination tabs TB-RX/RY/RZ: 28 AWG is below every splice range); W6D the six sun-sensor
 # photodiodes from OBC J8, as six unshielded twisted pairs (version 3 had an overall shield: removed, DC photocurrents
-# of at most 4 mA into a 619 ohm transimpedance stage, pins J8-13/14 unused); W6E the magnetometer board A2 at the +Z
+# of at most 4 mA into a 619 ohm transimpedance stage, no drain wires, J8 a 12-way Pico-Clasp); W6E the magnetometer board A2 at the +Z
 # end frame. All 28 AWG M22759/33 (Pico-Clasp takes 28-32 AWG). W6C leaves J7 into the -X wall gap at y +7 ... +19.5
 # (between the Z rod and the 70 cm coax band) instead of the (-X, +Y) bundle, so it never crosses the coax band.
 metadata:

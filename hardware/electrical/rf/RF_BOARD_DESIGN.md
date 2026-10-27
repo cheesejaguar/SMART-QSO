@@ -1,7 +1,7 @@
 # SMART-QSO RF Board: Build-to Design
 
 **Document ID**: SQSO-RF-BRD-001
-**Version**: G
+**Version**: H
 **Date**: 2026-10-27
 **Status**: Build-to design for the engineering model (EM): schematic captured as code with selected, orderable parts,
 netlist, BOM, ERC, calculations and layout rules. Not built, not measured. Values follow
@@ -224,7 +224,7 @@ space in the gaps ([MECHANICAL_DESIGN.md](../../mechanical/MECHANICAL_DESIGN.md)
 | Wall-gap run | x −45.4 … −48.4, y +20.0 … +24.0 (70 cm pair) and −20.0 … −24.0 (2 m pair) | z +32.4 … −39.2 | Tied to the shear-panel side every 30 mm (harness design) |
 | Bottom bend and AntS run | from x −46.9, z −39.2, R 7 inboard to z −46.2 | under the battery end caps (bottom z −44.9, 0.6 mm clear) and over the −Z end frame (inner face −46.9), into the 70 × 70 mm cut-out to the AntS ports (z −48.5) | Last 5–75 mm depends on the AntS port positions (VI-RFB-13) |
 | J1 (W4A) | §4.1: right-angle TFM-108, pin field y −39.3 … −27.7, header and plug in x +30.0 … +43.1 | ≤ 7.0 mm (SQSO-HAR-001 §10); **10.0 mm allocation** kept; 12.0 mm is free to the +Z end frame. The SFSDT cable leaves toward +X, with no bend over the top | Mated geometry from the Samtec drawing: VI-RFB-12 |
-| J2 (W4B) | §4.2 | **8.0 mm allocation** for the Pico-Clasp header, housing and the 28 AWG twisted-pair bend | Mated height from the Molex drawing: VI-RFB-12 |
+| J2 (W4B) | §4.2 | **8.0 mm allocation** for the Pico-Clasp header, housing and the 28 AWG twisted-pair bend: in the CAD 6.0 mm for the mated header and housing (`RF_J2_mated`, z +36.4 … +42.4) and the bend in the harness step-over zone TE_MXMY2 above it (z +43.6 … +48.2; SQSO-MECH-CAD-001 D §6.9), so the mated header and housing must stay ≤ 7.2 mm | Mated height from the Molex drawing: VI-RFB-12 |
 
 **Bend radius (D, SQSO-HAR-001 item R-3).** Both bends are 7 mm: the top bend over the board edge and the bottom
 bend above the −Z end frame. That is 5.1 × OD, below the harness design's 6 × OD (8.2 mm) workmanship rule for
@@ -452,7 +452,7 @@ footprint was found. The path:
 1. **Manufacturer statement.** The RF lead obtains a written Mitsubishi statement of the minimum operating case
    temperature and any cold-start limit, dated before the EM order (2027-01-15).
 2. **EM characterisation at −40 °C (VI-RFB-14).** Pass criteria at −40 °C, and at +70 °C for the record:
-   - Output power at both settings within RF-P003 (27.0 / 30.0 ± 0.5 dBm) under the APC loop.
+   - Output power at both settings within RF-P003 (27.0 ± 0.5 dBm; 29.5–30.0 dBm, never above 1 W) under the APC loop.
    - DC power at 0.5 W ≤ 1.1 × the room value.
    - No oscillation or spurious above −60 dBc from 1 to 1,000 MHz into a 3:1 load at all phases.
    - Drain-current and gate-bias settling within 100 ms of key-up.
@@ -959,3 +959,4 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | F | 2026-10-27 | CDR parts temperature audit (SQSO-MFG-003) | Q601 cold-operation path (Mitsubishi statement before 2027-01-15, EM characterisation at −40 °C VI-RFB-14, TX_TEMP keying limit or CMX901 as fallbacks, §7.2); L106 20 nH → 0603HP-18NXGLU (FL1 0.73 dB worst, return loss ≥ 19.1 dB, 144–146 MHz ≥ 134 dB; T_sys 552–603 K, §6.1–§6.2); L605 → 0807SQ-10NGLC (10.2 nH, longer land pattern); BFP640F lifetime buy (60 pieces by 2027-03-31, §12); J1 plating code -L (TFM-108-01-L-D-RA); test temperature ranges −40 … +70 °C (VI-RFB-07, -09, -10, VI-RFB-15) |
 | F (amended) | 2026-10-27 | TNC firmware SRS (SQSO-SRS-TNC-001) | §7.7: LMX2571 verification uses the existing MUXout readback (SDO_LD_SEL), only while PTT is low because LMX_LD gates PA_EN; the data sheet does not state that writes are accepted with CE low, so the design writes after CE high and 100 µs, ending with R0 FCAL_EN = 1; the residual is a locked-frequency upset during a transmission, bounded to ≤ 5 s by keyed rewrites; the CC1200 is not isolated by TX-OFF (RADIO_3V3 stays): its PA pin has no RF path, and the firmware bounds (minimum PA, no STX, 1 s MARCSTATE check) keep any leakage below −60 dBm, estimated, VI-RFB-16; TNC-FW-LMX in §13 |
 | G | 2026-10-27 | Documentation audit (post-CDR 2026) | Governing documents cited by ID (revisions in the register; several were cited at superseded revisions), with the EPS board, the interconnect and the harness design added; §2 uplink and transponder-DC rows to BASELINE Rev E (windows 435.222–435.778 / 436.222–436.500 MHz; 1.85 W allocation); §4.1 OBC pins as allocated in SQSO-ICX-001 §3.2 (were "to be allocated"); §4.2 SW2/SW3 limits of the EPS board and the gold Pico-Clasp terminal 501193-9000 (501334 is tin); §7.3 tumbling margin +27 % (PBA 2.5); §8.5 the PA is no longer in the EPS load shed (SMA-B05); §15 items 1, 2, 4, 5, 6, 8 marked done. No circuit change |
+| H | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | §4.3 J2 row: how the 8.0 mm allocation sits in the CAD (6.0 mm header and housing plus the TE_MXMY2 bend zone; housing ≤ 7.2 mm); J1's 10.0 mm allocation now modelled in the CAD; RF-P003 1 W level written 29.5–30.0 dBm, never above 1 W (SYS-201; was 30.0 ± 0.5 dBm), §7.3 still shows the saturated 30.14 dBm at the 5.15 V rail, held by the APC at 30.0 dBm; BOM J2 note: gold Pico-Clasp terminals are 501193-9000 (501334 is the tin terminal) |

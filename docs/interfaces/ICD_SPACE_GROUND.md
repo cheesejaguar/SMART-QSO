@@ -1,7 +1,7 @@
 # Interface Control Document: Space-to-Ground
 
 **Document ID**: SQSO-ICD-005
-**Version**: 2.7
+**Version**: 2.8
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR. RF values follow BASELINE §7; frequencies are planning values until the IARU coordination letter.
@@ -72,8 +72,8 @@ baseline, and Version 2.0 replaces it.
 | Link | Case | Margin or SINAD |
 |------|------|-----------------|
 | Beacon, 0.5 W, reference station (12 dBic, 500 K) | 5°, median / 10th-percentile spacecraft gain | +7.9 dB / +0.9 dB |
-| Telecommand, 64 dBm EIRP toward the spacecraft (decision C-14; either station variant), receiver as designed | 5° / 10°, 10th-percentile gain, +6 dB interference | ≥ +6.2 / ≥ +8.0 dB |
-| Transponder, handheld Yagis both ends | 5° / 20° / zenith | 20 dB / 28 dB / 32 dB SINAD |
+| Telecommand, 64 dBm EIRP toward the spacecraft (decision C-14; either station variant), receiver as designed | 5° / 10°, 10th-percentile gain, +6 dB interference | ≥ +6.6 / ≥ +8.4 dB at both variants' minimums (BASELINE §7; LBA 3.5 §6.1) |
+| Transponder, handheld Yagis both ends | 5° / 20° / zenith | 21 dB / 28 dB / 33 dB SINAD on the downlink; 20 / 27 / 31 dB end to end (BASELINE §7; LBA 3.5 §4.3, §6.3) |
 | Transponder, handheld whips both ends | 20° / zenith | 14 dB / 26 dB SINAD |
 
 ## 5. Protocol Interface
@@ -96,7 +96,7 @@ and DM in Version 1.x are removed). FCS CRC-16/X.25.
 The beacon's information field is plain ASCII (BEACON_SPEC §3):
 
 ```
-de KK6GDB-11: <text> | T=<unix s> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
+de KK6GDB-11: <text> | T=<s since boot> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
 ```
 
 | Mode | Interval | Text |
@@ -247,7 +247,7 @@ Santa Clara, 475 km SSO (the baseline target; SQSO-GND-001 Rev H §4): 3.77 pass
 
 | Parameter | Value |
 |-----------|-------|
-| Spacecraft time | UTC seconds in the beacon `T=` field; set from GNSS when available (D6) |
+| Spacecraft time | The beacon `T=` field is seconds since the last OBC boot (not UTC; `BEACON_SPEC.md` §3); UTC is the mission clock's UNIX time in HK2 `RT` (RV-3028-C7), or from ground correlation of `T=` with the time of reception; GNSS time (D6) is parsed but not yet used as a time source |
 | Propagation | 1.7–7 ms (500–2,078 km) |
 | Command to effect | < 1 s onboard; seen in the next beacon (≤ 60 s in ACTIVE) |
 
@@ -257,7 +257,7 @@ Santa Clara, 475 km SSO (the baseline target; SQSO-GND-001 Rev H §4): 3.77 pass
 |------|-----------|------|
 | End-to-end RF compatibility: a telecommand station kit against the EM over an attenuated cable link at the budget's levels, with Doppler applied | Beacons decoded at the §4.3 levels; commands accepted at 53 dB-Hz; TX-OFF end to end | EM (with VI-RF-03, VI-RF-12) |
 | SatNOGS decoder | The SatNOGS demodulator and the published decoder decode recorded EM beacons | Before launch |
-| Beacon format | `software/ground/beacon_decoder.py` decodes every BEACON_SPEC field | Software test |
+| Beacon format | A ground decoder parses every field of the BEACON_SPEC §3–§4 information field (call sign, text, `T`, `M`, `SOC`, `BV`, `SUN`, `RF`, `QSO`, with `-` read as not measured). **Not met today:** `software/ground/beacon_decoder.py` parses an earlier `V:` / `B:` / `T:` layout and `software/ground/tools/beacon_decoder.py` a binary health beacon; neither reads the `\| T=… M=… SOC=…` tail | Software test, before the SatNOGS decoder is published |
 
 ## 11. Revision History
 
@@ -275,3 +275,4 @@ Santa Clara, 475 km SSO (the baseline target; SQSO-GND-001 Rev H §4): 3.77 pass
 | 2.5 | 2026-10-27 | CDR flight software, round 3 (second part) | §5.3 the HK2 frame and the GNSS state frame `GNS` (RID LV-04, SRS-F158; fields in SQSO-TLM-001 §4.4.2) |
 | 2.6 | 2026-10-27 | CDR flight software, round 3 (fourth part) | §5.3 a housekeeping text longer than a frame goes in frames of whole fields, the `HKn N=<n>` head repeated (SIL finding SIL-40) |
 | 2.7 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §2 revisions (BASELINE E, LBA 3.5, GND-001 H); §4.1 the C-19 hold after the RF silence; §4.3 telecommand ≥ +6.2 / ≥ +8.0 dB and transponder 20/28/32 dB SINAD from BASELINE Rev E §7 (LBA 3.5); GS-5 variant B ≥ 17.8 dBic (C-14); §7.1 commanding above 10° (was 15°); §7.2 the 10° pass count |
+| 2.8 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026), follow-up: §4.3 telecommand ≥ +6.6 / ≥ +8.4 dB at 5° / 10° (both variants' minimums) and transponder 21 / 28 / 33 dB SINAD downlink (20 / 27 / 31 end to end), from BASELINE Rev E (amended) §7 and LBA 3.5 (were the 100 W / 14 dBic +6.2 / +8.0 dB and 20 / 28 / 32 dB); §5 beacon `T=` is seconds since the last OBC boot and §9 spacecraft time accordingly (was "UTC seconds"); §10 the beacon-format check records that neither ground decoder parses the BEACON_SPEC tail yet (the claim that one does is withdrawn) |

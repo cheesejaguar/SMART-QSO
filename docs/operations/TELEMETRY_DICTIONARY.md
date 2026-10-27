@@ -1,10 +1,10 @@
 # SMART-QSO Telemetry Dictionary
 
 **Document ID**: SQSO-TLM-001
-**Version**: 1.7
+**Version**: 1.8
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: Draft for CDR. §4 is the telemetry the flight software sends; §2 and §3 are the 2026-01 frame, which the flight software does not send. No independent CDR has been held (BASELINE Rev E §1)
+**Status**: Draft. §4 is the telemetry the flight software sends (the 2026-01 binary frame of earlier versions is removed, §2). No independent CDR has been held (BASELINE Rev E §1)
 
 ## 1. Purpose
 
@@ -12,149 +12,19 @@ This document defines all telemetry parameters for the SMART-QSO mission. It ser
 
 ## 2. Telemetry Frame Structure
 
-> **Superseded (documentation audit, 2026-10-27).** The 64-byte 0xAA55 frame of §2 and the parameter table of §3
-> (a single-cell battery of 2.5–4.2 V, a 2 W power level, a 3.3 V bus) are the 2026-01 design and are not sent. The
-> downlink is the beacon tail, HK1, HK2, the `GNS` frame, the acknowledgement and the stored records of §4
-> (SQSO-ICD-005 §5). §2 and §3 are kept as the record until this document is rewritten.
+The downlink frames are the beacon (§4.1–§4.3), the housekeeping frames HK1 and HK2 (§4.4, §4.4.1), the GNSS state
+frame `GNS` (§4.4.2), the command acknowledgement (§4.5) and the stored housekeeping records (§4.6), all AX.25 UI
+frames with plain-text information fields (SQSO-ICD-005 §5). There is no binary telemetry frame.
 
-### 2.1 Frame Format
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│                    TELEMETRY FRAME (64 bytes)                │
-├──────┬──────┬──────┬───────────────────────────┬─────┬──────┤
-│SYNC  │ SEQ  │ TIME │         PAYLOAD           │FLAGS│ CRC  │
-│2 byte│2 byte│4 byte│        52 bytes           │2byte│2 byte│
-└──────┴──────┴──────┴───────────────────────────┴─────┴──────┘
-```
-
-### 2.2 Header Fields
-
-| Field | Offset | Size | Format | Description |
-|-------|--------|------|--------|-------------|
-| SYNC | 0 | 2 | 0xAA55 | Frame sync word |
-| SEQ | 2 | 2 | uint16 | Sequence counter (0-65535) |
-| TIME | 4 | 4 | uint32 | Seconds since boot |
-
-### 2.3 Trailer Fields
-
-| Field | Offset | Size | Format | Description |
-|-------|--------|------|--------|-------------|
-| FLAGS | 58 | 2 | uint16 | Status flags |
-| CRC | 60 | 2 | uint16 | CRC-16-CCITT |
+*Removed in Version 1.8 (documentation audit, 2026-10-27):* the 64-byte 0xAA55 frame of the 2026-01 design (sync,
+sequence, time, 52-byte payload, flags, CRC-16) and its parameter table TLM-001 to TLM-061 (a single-cell battery of
+2.5–4.2 V, a 2 W power level, a 3.3 V bus). The flight software never sent that frame; Version 1.7 and earlier keep it in
+the repository history.
 
 ## 3. Telemetry Parameters
 
-### 3.1 Power System (EPS)
-
-| ID | Name | Offset | Size | Type | Units | Range | Resolution |
-|----|------|--------|------|------|-------|-------|------------|
-| TLM-001 | BATT_V | 8 | 2 | uint16 | mV | 2500-4200 | 1 mV |
-| TLM-002 | BATT_I | 10 | 2 | int16 | mA | -2000 to +2000 | 1 mA |
-| TLM-003 | BATT_SOC | 12 | 1 | uint8 | % | 0-100 | 1% |
-| TLM-004 | SOLAR_V | 13 | 2 | uint16 | mV | 0-6000 | 1 mV |
-| TLM-005 | SOLAR_I | 15 | 2 | uint16 | mA | 0-1000 | 1 mA |
-| TLM-006 | BUS_V | 17 | 2 | uint16 | mV | 3000-3600 | 1 mV |
-| TLM-007 | LOAD_I | 19 | 2 | uint16 | mA | 0-2000 | 1 mA |
-
-**Conversion Formulas**:
-```
-BATT_V (V) = raw_value / 1000.0
-BATT_I (A) = raw_value / 1000.0  (signed)
-BATT_SOC (%) = raw_value
-```
-
-### 3.2 Thermal System
-
-| ID | Name | Offset | Size | Type | Units | Range | Resolution |
-|----|------|--------|------|------|-------|-------|------------|
-| TLM-010 | OBC_TEMP | 21 | 2 | int16 | 0.1°C | -400 to +850 | 0.1°C |
-| TLM-011 | EPS_TEMP | 23 | 2 | int16 | 0.1°C | -400 to +850 | 0.1°C |
-| TLM-012 | BATT_TEMP | 25 | 2 | int16 | 0.1°C | -400 to +850 | 0.1°C |
-| TLM-013 | RF_TEMP | 27 | 2 | int16 | 0.1°C | -400 to +850 | 0.1°C |
-| TLM-014 | JETSON_TEMP | 29 | 2 | int16 | 0.1°C | -400 to +850 | 0.1°C |
-| TLM-015 | STRUCT_TEMP | 31 | 2 | int16 | 0.1°C | -400 to +850 | 0.1°C |
-
-**Conversion Formula**:
-```
-TEMP (°C) = raw_value / 10.0
-```
-
-### 3.3 State and Mode
-
-| ID | Name | Offset | Size | Type | Units | Values |
-|----|------|--------|------|------|-------|--------|
-| TLM-020 | STATE | 33 | 1 | enum | - | See 3.3.1 |
-| TLM-021 | MODE_TIME | 34 | 4 | uint32 | sec | Time in current mode |
-| TLM-022 | BOOT_COUNT | 38 | 2 | uint16 | - | Total boot count |
-| TLM-023 | BOOT_REASON | 40 | 1 | enum | - | See 3.3.2 |
-| TLM-024 | UPTIME | 41 | 4 | uint32 | sec | Seconds since boot |
-
-#### 3.3.1 STATE Values
-
-| Value | Name | Description |
-|-------|------|-------------|
-| 0 | INIT | Initializing |
-| 1 | SAFE | Safe mode |
-| 2 | IDLE | Idle mode |
-| 3 | ACTIVE | Active mode |
-| 255 | FAULT | Fault state |
-
-#### 3.3.2 BOOT_REASON Values
-
-| Value | Name | Description |
-|-------|------|-------------|
-| 0 | POWER_ON | Normal power-on |
-| 1 | WDT_RESET | Watchdog reset |
-| 2 | SW_RESET | Software reset |
-| 3 | CMD_RESET | Command reset |
-| 4 | FAULT_RESET | Fault recovery |
-| 5 | BANK_SWITCH | Software bank switch |
-
-### 3.4 RF System
-
-| ID | Name | Offset | Size | Type | Units | Range |
-|----|------|--------|------|------|-------|-------|
-| TLM-030 | TX_ENABLED | 45 | 1 | bool | - | 0/1 |
-| TLM-031 | TX_POWER | 46 | 1 | enum | - | 0=0.5W, 1=1W, 2=2W |
-| TLM-032 | TX_COUNT | 47 | 4 | uint32 | - | Beacons transmitted |
-| TLM-033 | RX_COUNT | 51 | 4 | uint32 | - | Commands received |
-| TLM-034 | LAST_RSSI | 55 | 1 | int8 | dBm | -128 to 0 |
-
-### 3.5 ADCS System
-
-| ID | Name | Offset | Size | Type | Units | Range |
-|----|------|--------|------|------|-------|-------|
-| TLM-040 | SUN_DETECTED | 56 | 1 | bool | - | 0/1 |
-| TLM-041 | TUMBLE | 57 | 1 | bool | - | 0=stable, 1=tumbling |
-
-### 3.6 Payload (Jetson)
-
-| ID | Name | Bits | Type | Description |
-|----|------|------|------|-------------|
-| TLM-050 | JETSON_STATE | FLAGS[0:1] | enum | 0=OFF, 1=BOOT, 2=READY, 3=BUSY |
-| TLM-051 | AI_AVAILABLE | FLAGS[2] | bool | AI model loaded |
-| TLM-052 | FALLBACK_MODE | FLAGS[3] | bool | Using fallback beacons |
-
-### 3.7 Fault Counters
-
-| ID | Name | Bits | Type | Description |
-|----|------|------|------|-------------|
-| TLM-060 | WDT_RESETS | FLAGS[4:7] | uint4 | Watchdog reset count (0-15) |
-| TLM-061 | FAULT_FLAGS | FLAGS[8:15] | uint8 | Active fault indicators |
-
-#### 3.7.1 FAULT_FLAGS Bit Definitions
-
-| Bit | Name | Meaning |
-|-----|------|---------|
-| 0 | BATT_LOW | Battery below 20% |
-| 1 | BATT_CRIT | Battery below 15% |
-| 2 | TEMP_HIGH | Over-temperature |
-| 3 | TEMP_LOW | Under-temperature |
-| 4 | COMM_ERR | Communication error |
-| 5 | SENSOR_ERR | Sensor error |
-| 6 | SW_ERR | Software error |
-| 7 | RESERVED | Reserved |
+The parameters are the fields of the frames of §4, defined there with their units (beacon tail §4.2, HK1 §4.4, HK2
+§4.4.1, `GNS` §4.4.2).
 
 ## 4. Beacon Content
 
@@ -174,7 +44,7 @@ TEMP (°C) = raw_value / 10.0
 The INFO field contains human-readable status and AI-generated content:
 
 ```
-de KK6GDB-11: <AI or template text> | T=<unix s> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
+de KK6GDB-11: <AI or template text> | T=<s since boot> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
 ```
 
 This is the format `beacon_format_payload()` produces (`software/rust/sqso-fsw/src/beacon.rs`). The text is cut to the space left in
@@ -185,7 +55,8 @@ Every telemetry value is a measurement. A field with no measurement, or one olde
 sent as `-`, for example `SOC=- BV=-`. Decoders must treat `-` as "not measured", never as zero. `QSO` is `-` until a QSO
 detector exists. `RF` is the radio power switch state as the EPS reports it.
 
-Example: `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=15.8 SUN=1 RF=1 QSO=-`
+`T=` is seconds since the last OBC boot, not UTC (on the host simulation, host wall-clock seconds, as in the example);
+UTC is HK2 `RT` (§4.4.1). Example (host simulation): `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=15.8 SUN=1 RF=1 QSO=-`
 
 The text before ` | ` passes the content filter (`BEACON_SPEC.md` section 6). It never contains `|` or digits other than
 `73`, `1U` and the call sign, so the telemetry fields cannot be spoofed by the text.
@@ -421,3 +292,4 @@ SQSO_SUMMARY_YYYYMM.csv
 | 1.5 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §4.4 a housekeeping text longer than a frame is sent in frames of whole fields with the tag and sequence repeated (SIL finding SIL-40: HK1 had gone out empty past 250 bytes); §4.6 why the stored records carry no GNSS position (RID SMA-15) |
 | 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fifth part) | §4.4.1 HK2 `SL` selector decisions and abstentions per head (RID SMA-15), `GE` geometry preset and `SN` body sun vector (decision C-21), `TS` and `RL` listed; `JB` lines are accepted lines (decision C-20); HK2 text up to 573 bytes, cut into frames of whole fields; §4.4.2 every GNS and acknowledgement field has a fixed width, no frame is empty, PDOP ≤ 99.9 (RID P3F-A-05) |
 | 1.7 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status; §2–§3 marked superseded by §4 (the 2026-01 frame is not sent); §4.3 example BV=15.8 (was 8.1, a 2S value); §5.1 battery-voltage limits for the 4S pack in HK1 `VB` mV and Jetson spreader limits from BASELINE §6 (were single-cell 3.0–4.2 V and 60/70 °C); §6 decoder examples 15.6 V |
+| 1.8 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026), follow-up: §2–§3 the superseded 2026-01 binary frame and its TLM-001 to TLM-061 table removed (pointers to the frames of §4); §4.2 the beacon `T=` field is seconds since the last OBC boot (`smart_qso_now_ms()`), not Unix/UTC seconds; UTC is HK2 `RT` |

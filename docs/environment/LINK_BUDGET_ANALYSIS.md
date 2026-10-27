@@ -1,7 +1,7 @@
 # SMART-QSO Link Budget Analysis
 
 **Document ID**: SQSO-LBA-001
-**Version**: 3.5
+**Version**: 3.6
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Controlled link budget for the baseline in [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) (§3, §7, §8). CDR re-issue (finding TB-05). **Analysis, not measured.** Every other document that quotes a link margin cites this one.
@@ -620,7 +620,7 @@ Items that need hardware. Each is a defined verification item (VI); test procedu
 | ID | What it replaces | Test and pass criterion | Verifies | When |
 |----|------------------|-------------------------|----------|------|
 | VI-RF-01 | Pattern assumption (§2.4, §5) | EM antenna pattern on the flight-like 1U body with wings deployed, both bands, ≥ 2 orthogonal cuts, NEC/FEKO model agreeing within 2 dB. Pass: median ≥ −3 dBi and 10th percentile ≥ −10 dBi over the pass-weighted directions of §5.2 | LB-1, LB-2, SYS-222 | EM, before FM build |
-| VI-RF-02 | Transmitter output and losses (§2.4) | Conducted power at the antenna port at 0.5 and 1 W, −20 to +60 °C (TP-RF-002). Pass: 27.0 ± 0.5 dBm and 30.0 ± 0.5 dBm after the filter | LB-1 | EM, FM |
+| VI-RF-02 | Transmitter output and losses (§2.4) | Conducted power at the antenna port at 0.5 and 1 W, −20 to +60 °C (TP-RF-002). Pass: 27.0 ± 0.5 dBm and 29.5–30.0 dBm (30.0 dBm −0.5 dB, never above 1 W, SYS-201) after the filter | LB-1 | EM, FM |
 | VI-RF-03 | Demodulator thresholds (§3) | Packet error rate against input level for the flight TNC and receiver (uplink) and for a Dire Wolf ground demodulator against the flight transmitter (downlink), at 0 and 3.5 kHz offset (TP-RF-004). Pass: 90 % frame success at C/N₀ ≤ 52.9 dB-Hz (corrected) and ≤ 53.0 dB-Hz (telecommand) | LB-1, LB-3 | EM |
 | VI-RF-04 | Harmonics and spurious (§7.1–7.2) | Spectrum at the antenna port, and radiated with antennas deployed, 1 W (TP-RF-003). Pass: 2nd and 4th ≤ −46 dBc and ≤ 25 µW (97.307(e)); **3rd ≤ −70 dBc** (proposed baseline, §7.3) | 97.307(e); RF-07 | EM, FM |
 | VI-RF-05 | CTCSS and Doppler tolerance (§4.4) | Receiver with 67.0 Hz at ±0.5 kHz, carrier offsets 0 to ±2.5 kHz. Pass: tone decodes at all offsets at 6 dB SINAD; repeat path keys within 250 ms | MRD-031 | EM |
@@ -652,3 +652,4 @@ python3 desense_emc.py --out desense.json           # §7
 | 3.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16, decision C-14) | §6.1 telecommand at ≥ 100 W PEP at the antenna feed (class AB linear amplifier ≥ 150 W, 1.0 dB feed line, 2.5 kW EIRP), commands above 10°: +8.3 dB at 10° and +6.5 dB at 5° with the receiver as designed (worst); degraded mode 50 W PEP meets 6 dB from about 16°; US270 areas (Bay Area, Fairbanks) and the 50 W PEP / 17.5 dBic alternative; LB-3 met (§1.1) |
 | 3.4 | 2026-10-27 | CDR S&MA analysis (decision C-14 restated) | §6.1: C-14 as an EIRP requirement (≥ 64 dBm toward the spacecraft above 10°) with station variants A (≥ 100 W into ≥ 15.5 dBic, outside US270) and B (≤ 50 W into ≥ 17.5 dBic, stacked pair, inside US270); pointing allowance 0.3 dB (A: 30° beam, ±5°; B: 15° beam, ±2°): worst margins after pointing +7.7 / +9.5 dB at 5° / 10° for variant A at its 15.5 dBic minimum, +7.0 / +8.8 dB for B; degraded mode (amplifier out) 6 dB from about 12° |
 | 3.5 | 2026-10-27 | CDR round 3 (finding P3A-04) | §6.1 and §1.1: variant B at ≤ 50 W PEP at the transmitter output (US270 limits the transmitter's PEP) into ≥ 17.8 dBic: at the former 17.5 dBic minimum (0.5 dB feed, 0.21 dB pointing) it gave 63.8 dBm, under the 64 dBm requirement (+8.1 dB at 10°, ≥ +2.1 dB above LB-3); at 17.8 dBic 64.1 dBm, +6.6 / +8.4 dB at 5° / 10°; both variants at their minimums ≥ 2.4 dB above LB-3 (was "≥ 2.8 dB", which held only for the examples) |
+| 3.6 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | VI-RF-02 maximum-power criterion 29.5–30.0 dBm, never above 1 W (SYS-201; was 30.0 ± 0.5 dBm, which allowed 30.5 dBm) |

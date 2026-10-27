@@ -1,7 +1,7 @@
 # SMART-QSO Spacecraft Electrical Interconnect
 
 **Document ID**: SQSO-ICX-001
-**Version**: E
+**Version**: F
 **Date**: 2026-10-27
 **Status**: CDR build-to interconnect: master pin allocation of the OBC's STM32L4R5ZIT6 and the board-to-board signal
 list. Generated in part from the OBC schematic source (`hardware/electrical/obc/design.py` → `obc_pinmap.csv`); where
@@ -425,7 +425,7 @@ Generated from `hardware/electrical/obc/obc_pinmap.csv`. Dir: O out, I in, A ana
 | 23 | PH0 | HSE_IN | OSC_IN (HSE bypass) | I | 8 MHz CMOS | HSE off | Y1 XO |
 | 24 | PH1 | - | spare (OSC_OUT unused in bypass) | - |  | analog (high-Z) |  |
 | 138 | PH3 | BOOT0 | BOOT0 | I | low = boot from flash | BOOT0 | 10 k pull-down |
-| 25 | NRST | NRST | NRST | B | open drain wired-OR | low until released | U2 RESET/WDO, J9-6, U4 EVI |
+| 25 | NRST | NRST | NRST | B | open drain wired-OR | low until released | U2 RESET/WDO, Q1 drain (RST_REQ from J9-6, SMA-B14: the access port cannot hold NRST), U4 EVI |
 
 ### 4.2 Supply pins
 
@@ -595,3 +595,4 @@ second CS in `hal_spi`.
 | D | 2026-10-27 | Board FMEA SQSO-FMEA-003 A findings: §3.7 sense and status input table (polarity, pull, open state, rule; SMA-B02); AntS on its own I2C3 port (PG7/PB4, W3 pins 28 and 40), both AntS controllers, two parallel pull-ups per line on I2C2 and I2C3 (SMA-B06/B07); EPS heartbeat path on I2C2 (SMA-B09); second FRAM CS# PD7 (SMA-B10); RST_REQ in place of NRST at the access port (SMA-B14); magnetometer on its own switch U35 and segment U34, MAG_EN PF14, MAG_RB PF15 (SMA-B18); TX_TEMP 1 MΩ pull-down (SMA-B19); LPUART1_TX PG7 → PB11; IWDG reload 3500 with the redundant CWD (SMA-B08); changes 29–38, E14–E16, V-ICX-6 to -8 |
 | D, amended | 2026-10-27 | §4.3 and §6 row 37: IWDG reload 3200 (was 3500), following the orderable 440 nF C0G watchdog capacitor network of SQSO-OBC-BRD-001 E (parts audit SQSO-MFG-003) |
 | E | 2026-10-27 | Documentation audit (post-CDR 2026): stale text against the later amendments corrected: §2.1 height under the EPS 12.1 mm (2.0 mm EPS); §3.1 W3 wire currents against the SQSO-HAR-001 2.0 §9.1 derating (30 AWG, 0.65 A; the 0.25 A of the withdrawn table removed); §3.4 J8 a 12-way part; §6 rows 12, 20 and 39 aligned with rows 29, 31 and 33 (LPUART1_TX PB11, RM3100 behind U34, I2C clock); §7 duplicate E10 renumbered E17; ICD-003 cited by its ID. No pin or signal changed |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §4.1 NRST row: J9-6 is RST_REQ through Q1 (Version D, SMA-B14), not a direct NRST connection. No pin or signal changed |

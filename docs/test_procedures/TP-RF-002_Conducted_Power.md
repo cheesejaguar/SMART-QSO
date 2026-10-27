@@ -2,7 +2,7 @@
 ## TP-RF-002
 
 **Document Number:** SQSO-TP-RF-002
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-10-27
 **Status:** Draft; not yet run (no hardware exists)
 
@@ -51,7 +51,7 @@ Measure RF transmitter conducted power output at antenna connector.
 | Criterion | Requirement |
 |-----------|-------------|
 | Nominal power | 27.0 ± 0.5 dBm at −20, +25 and +60 °C (VI-RF-02) |
-| Maximum power | 29.5–30.0 dBm: VI-RF-02's 30.0 ± 0.5 dBm, capped at 1 W (SYS-201: 0.5 W nominal, never above 1 W) |
+| Maximum power | 29.5–30.0 dBm (VI-RF-02: 30.0 dBm −0.5 dB, never above 1 W, SYS-201: 0.5 W nominal) |
 | Stability | ±0.1 dB |
 
 ---
@@ -64,3 +64,4 @@ Measure RF transmitter conducted power output at antenna connector.
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.2 | 2026-10-16 | The 2.0 W high-power steps and pass/fail row replaced by a maximum-setting check, ≤ 1.0 W (SYS-201); every step now cites SYS-201 (finding VV-06) |
 | 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026): criteria from VI-RF-02 (27.0 ± 0.5 dBm, 30.0 dBm − 0.5 dB capped at 1 W, −20 to +60 °C); status and banner |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: maximum-power criterion written as VI-RF-02 now states it (30.0 dBm −0.5 dB, never above 1 W) |

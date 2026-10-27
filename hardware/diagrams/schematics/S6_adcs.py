@@ -1,4 +1,5 @@
-"""S6 ADCS on the OBC board, version 3 (2026-10-27: magnetometer on board A2 at +Z): sensor rails, gyro, backup gyro, magnetometer, one of the six
+"""S6 ADCS on the OBC board, version 4 (2026-10-27; SQSO-ICX-001 D: the magnetometer on its own switch U35 and repeater
+U34, MAG_EN PF14 / MAG_RB PF15, rail 3V3_MAG; version 3: magnetometer on board A2 at +Z): sensor rails, gyro, backup gyro, magnetometer, one of the six
 sun-sensor channels, and the three magnetorquer H-bridges with the burst gate and the hardware off-timer. Drawn from
 the build-to design SQSO-OBC-BRD-001 sections 9-10 (hardware/electrical/obc/design.py). Version 1 drew a separate
 ADCS board with DRV8833 drivers, an LIS3MDL and an LSM6DSO; none of that is in the design.
@@ -9,14 +10,15 @@ import schemdraw.elements as elm
 import sch
 
 d = sch.drawing("S6_adcs")
-sch.note(d, (-6, 13), "S6  ADCS on the OBC board and the magnetometer board (version 3)", fontsize=12, color="black")
+sch.note(d, (-6, 13), "S6  ADCS on the OBC board and the magnetometer board (version 4)", fontsize=12, color="black")
 sch.note(d, (-6, 12.4), "SQSO-HW-DIAG-001 · from the build-to netlist SQSO-OBC-BRD-001 sections 9-10 · pins: SQSO-ICX-001 "
-         "section 4 · each sensor's bus crosses into its rail through a VCC-isolating translator", fontsize=8)
+         "D section 4 · each sensor's bus crosses into its rail through a VCC-isolating translator", fontsize=8)
 
 # ---- sensor rail switches
 for k, (ref, en, rail, rb, what) in enumerate((("U5", "GYRO_EN (PF6)", "3V3_GYRO", "GYRO_RB (PF10)", "M-G370"),
                                                 ("U6", "IMU2_EN (PF7)", "3V3_IMU2", "IMU2_RB (PF11)", "BMI088"),
-                                                ("U7", "SNS_EN (PF8)", "3V3_SNS", "SNS_RB (PF12)", "RM3100, CSS"))):
+                                                ("U7", "SNS_EN (PF8)", "3V3_SNS", "SNS_RB (PF12)", "CSS ADC, U14"),
+                                                ("U35", "MAG_EN (PF14)", "3V3_MAG", "MAG_RB (PF15)", "RM3100, U34, U33"))):
     u = sch.ic(f"{ref} TPS2553-Q1\nILIM = IN: 50-100 mA", left=list(reversed(["IN", "EN", "FAULT"])), right=["OUT"],
                bottom=["GND"], size=(4.6, 2.2), spread=("left",))
     y = 8 - 4.2 * k
@@ -26,7 +28,7 @@ for k, (ref, en, rail, rb, what) in enumerate((("U5", "GYRO_EN (PF6)", "3V3_GYRO
     sch.flag(d, u.FAULT, f"EN node -> {rb}", "left", 0.6)
     sch.flag(d, u.OUT, f"{rail} ({what})", "right", 0.6)
     d += elm.Ground().at(u.GND)
-sch.note(d, (-2, -5.6), "Trip in 2 us, FAULT after 8 ms pulls EN low: rail off 0.13 s, then retry (latch-up, RADIATION_ANALYSIS 5.3).",
+sch.note(d, (-2, -7.6), "Trip in 2 us, FAULT after 8 ms pulls EN low: rail off 0.13 s, then retry (latch-up, RADIATION_ANALYSIS 5.3).",
          fontsize=7)
 
 # ---- gyro, backup gyro, magnetometer
@@ -59,8 +61,8 @@ m = sch.ic("Magnetometer board A2 (+Z end frame): U1 PNI RM3100 (13156)\nI2C 0x2
            left=list(reversed(["SDA", "SCL", "DRDY", "SA0, SA1"])), right=list(reversed(["XINP/XINN", "YINP/YINN", "ZINP/ZINN", "REXT", "AVDD, DVDD"])),
            size=(6.8, 3.8), spread=("left", "right"))
 d += m.at((xg, -8.5))
-sch.flag(d, m.SDA, "SDA_S / SCL_S via U14 TCA9517 (I2C4 PD12/PD13)", "left", 0.6)
-sch.flag(d, m.DRDY, "via U33 LVC1T45 -> MAG_DRDY (PD11)", "left", 0.6)
+sch.flag(d, m.SDA, "SDA_M / SCL_M via U34 TCA9517 (I2C4 PD12/PD13)", "left", 0.6)
+sch.flag(d, m.DRDY, "via U33 LVC1T45 (B side 3V3_MAG) -> MAG_DRDY (PD11)", "left", 0.6)
 d += elm.Line().at(m.SA0).left().length(0.6)
 d += elm.Ground()
 for a, nm in (("XINP/XINN", "L1 Sen-XY-f"), ("YINP/YINN", "L2 Sen-XY-f"), ("ZINP/ZINN", "L3 Sen-Z-f")):
@@ -68,7 +70,7 @@ for a, nm in (("XINP/XINN", "L1 Sen-XY-f"), ("YINP/YINN", "L2 Sen-XY-f"), ("ZINP
     d += elm.Label().label(f"{nm}, 2 x 121 Ohm bias", loc="right", fontsize=7)
 d += elm.Resistor().at(m.REXT).right().length(1.4).label("33k", loc="top", fontsize=7)
 d += elm.Ground()
-sch.flag(d, m.AVDD, "3V3_SNS (10 uF + 100 nF)", "right", 0.6)
+sch.flag(d, m.AVDD, "3V3_MAG (U35; 10 uF + 100 nF)", "right", 0.6)
 
 # ---- one sun-sensor channel and the ADC
 ys = -16
@@ -91,7 +93,7 @@ adc = sch.ic("U16 ADS7138-Q1\n12-bit, I2C 0x10 (SNS side)", left=list(reversed([
              right=list(reversed(["SCL", "SDA", "AVDD"])), size=(5.4, 2.6), spread=("left", "right"))
 d += adc.at((ain.center[0] + 1.4, ain.center[1])).anchor("AIN0_5")
 d += elm.Line().at(ain.center).to(sch.pin(adc, "AIN0-5 sun"))
-sch.flag(d, adc.SCL, "SCL_S", "right", 0.6)
+sch.flag(d, adc.SCL, "SCL_S (U14 TCA9517, I2C4)", "right", 0.6)
 sch.flag(d, adc.SDA, "SDA_S", "right", 0.6)
 sch.flag(d, adc.AVDD, "3V3_SNS", "right", 0.6)
 sch.note(d, (-6, ys - 3.6), "Vout = Isc x 619 Ohm: 2.48 V at 4.0 mA; clips at 5.25 mA; 1.3 uA per LSB (1.5 deg at normal incidence).",

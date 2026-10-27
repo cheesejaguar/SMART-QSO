@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-TX-001
-**Version:** 1.7
+**Version:** 1.8
 **Date:** 2026-10-27
 **Status:** CDR Baseline
 
@@ -360,7 +360,7 @@ transmitters below 30 MHz and does not apply.)
 
 | Test | Requirement |
 |------|-------------|
-| Output power | 27.0 ± 0.5 dBm and 30.0 ± 0.5 dBm at the antenna port (VI-RF-02) |
+| Output power | 27.0 ± 0.5 dBm and 29.5–30.0 dBm (never above 1 W, SYS-201) at the antenna port (VI-RF-02) |
 | Frequency accuracy | ±1.0 ppm over temperature (VI-RF-14) |
 | Harmonics and spurious | §12.1 (VI-RF-04) |
 | Occupied bandwidth | ≤ 10.4 kHz beacon, ≤ 16 kHz transponder (VI-RF-15) |
@@ -389,3 +389,4 @@ transmitters below 30 MHz and does not apply.)
 | 1.5 | 2026-10-27 | CDR design completion, RF board | §13 antenna interface to SQSO-RF-BRD-001 C §4.3 and W10 v3: MMCX jacks (Molex 73415-1473) and 1.37 mm cables with MMCX plugs replace SMA and RG-316 (the 3.3 mm wall gaps); loss port to antenna 0.44 dB worst |
 | 1.6 | 2026-10-27 | CDR parts temperature audit (SQSO-MFG-003) | Frequency-stability rows to RF-P005 as amended (RFB-05) and the −40 … +70 °C verification range |
 | 1.7 | 2026-10-27 | Documentation audit (post-CDR 2026) | §10.1: transmitter and TNC selected in SQSO-RF-BRD-001 F (was "until … selected"); RF_DESIGN cited at 2.5; §6.1–§6.2 DC power to SQSO-RF-BRD-001 Version E (1.84 W at 0.5 W RF, 2.42 W at 1 W; were 1.76 / 2.34 W) and the 1.85 W allocation of BASELINE §5 |
+| 1.8 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | Output-power row: 29.5–30.0 dBm at 1 W, never above 1 W (VI-RF-02, SYS-201; was 30.0 ± 0.5 dBm) |

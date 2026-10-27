@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MFG-002
-**Revision:** H
+**Revision:** I
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8739.10 (EEE Parts Assurance Standard, 2017), Level 4 commercial parts with project screening; GSFC EEE-INST-002 (2003, with Addendum 1, 2008) Level 3 as the screening guide; SMD SPD-39 (Class D mission assurance requirements, 2021) and *Guidance for Use of Commercial EEEE Parts in Class D Missions* v1.0 (2024-10-16); NASA/TM-20210018053 (Avionics Radiation Hardness Assurance Guidelines, 2021); SpaceX Rideshare Payload User's Guide v11 Table 5-5. MIL-STD-975 (cancelled) and "NASA Ames SmallSat Heritage" are withdrawn as references
 **Status:** CDR draft. §2A is the parts assurance policy; the part tables (§4–§11) predate the build-versus-buy decisions and are corrected by §2A.6–§2A.7
@@ -46,7 +46,7 @@ part-level screening is impractical:
 | Receiving inspection | Visual and marking check of 100 % of parts, dimension sample, certificate of conformance against the order |
 | Counterfeit avoidance | Buy only from the manufacturer or its franchised distributors; any other source needs an SAE AS6081-class inspection and an X-ray of a sample |
 | Lot control | One date/lot code per part type for the EM and FM where possible; record the lot of every part fitted (traveler) |
-| Board-level screening (replaces part burn-in) | Each flight board: functional test, ≥ 8 thermal cycles −30 to +70 °C powered at the extremes, then ≥ 200 h powered with the last 100 h failure-free (RELIABILITY_ANALYSIS §6). Screening cycles stop at −30 °C, inside the parts' −40 °C rating; the −40 °C first-orbit case is tested by the protoflight plateau (ETP §3.4, deviation 8), not by screening |
+| Board-level screening (replaces part burn-in) | Each flight board: functional test and 4 thermal cycles −30 / +60 °C at ambient pressure before integration (ENVIRONMENTAL_TEST_PLAN §3.4); then the integrated flight unit's burn-in of ≥ 200 h powered, the last 100 h failure-free, through 4 ambient cycles −20 / +50 °C (ENVIRONMENTAL_TEST_PLAN §3.11, VI-12; RELIABILITY_ANALYSIS §6). The ETP governs these levels. Screening cycles stop at −30 °C, inside the parts' −40 °C rating; the −40 °C first-orbit case is tested by the protoflight plateau (ETP §3.4, deviation 8), not by screening |
 | Destructive physical analysis | One sample from each lot of the OBC MCU, FRAM, BMS AFE and RF PA, when a lot cannot be traced to a franchised source |
 | Derating | §12 of this list, applied with the hot-case temperatures of the thermal analysis |
 | Alerts | GIDEP and manufacturer errata checked at selection and before the FM build |
@@ -135,7 +135,7 @@ below (part numbers recorded with the finish in the FM issue of this list).
 |--------|-----------|--------------|-------------|---------|
 | Molex Pico-Clasp 1.0 mm | 501331-xx vertical SMT header (the BOMs' 5013310207 … 5013311407 are the tin code "-xx07") | 501330-0N00 housing; 501334 crimp terminal (28–32 AWG) is the **tin** terminal; the gold terminal is **501193-9000** (socket, gold 0.76 µm, 28–32 AWG, tape and reel; Digi-Key 5011939000, Active) (Molex 501330 housing listing; SQSO-MFG-003 §9) | Molex's gold-plated versions (0.38 or 0.76 µm Au, per the Pico-Clasp datasheet 987651-6111): the gold finish code of each header and of the terminal replaces the tin code; 0.76 µm preferred | EPS J2, J4–J9, J12, J14–J17, J19–J21; OBC J3–J8, J10; RF J2; carrier J2, J3; magnetometer board A2 J1 |
 | Molex Micro-Fit 3.0 | 43045 dual-row **right-angle** through-hole header: 43045-0811 (2×4, gold, solder tab); the 2×3 and 2×2 right-angle headers in the same gold finish (the BOMs' 0430450812, -0612, -0412 are vertical, tin) | 43025-0N00 receptacle; crimp terminal **43030-0003** (socket, gold, 20–24 AWG; Digi-Key 0430300003 'CONN SOCKET 20-24AWG CRIMP GOLD'; 0.762 µm per SQSO-HAR-001) | Selective gold over nickel | EPS J1, J10, J11, J13, J18; carrier J1 |
-| Samtec Tiger Eye 1.27 mm (replaces FTSH + FFSD) | TFM-1xx-01-S-D-RA right-angle (OBC J1, J2, J9; RF J1), vertical TFM-1xx-01-S-D (EPS J3) | SFSDT discrete-wire socket assembly (PTFE wire) | Plating code to confirm with Samtec: catalog F-226 (Rev 20OCT26) gives TFM platings –F (gold flash) and –L (15 µin gold), "–S" being the single-row option; SFSDT platings –F and –G (10 µin gold). SFSDT (Teflon) only: −40 … +125 °C; the PVC SFSD (−10 … +80 °C) is not acceptable | W3 (40), W4A (16), W8A (10) |
+| Samtec Tiger Eye 1.27 mm (replaces FTSH + FFSD) | TFM-1xx-01-L-D-RA right-angle (OBC J1, J2, J9; RF J1), vertical TFM-120-02-L-D-A (EPS J3), as in the board BOMs | SFSDT discrete-wire socket assembly (PTFE wire) | Plating code to confirm with Samtec: catalog F-226 (Rev 20OCT26) gives TFM platings –F (gold flash) and –L (15 µin gold), "–S" being the single-row option (every board BOM carries –L, 15 µin); SFSDT platings –F and –G (10 µin gold). SFSDT (Teflon) only: −40 … +125 °C; the PVC SFSD (−10 … +80 °C) is not acceptable | W3 (40), W4A (16), W8A (10) |
 | Samtec FTSH (unmated in flight) | FTSH-105-01-L-DV-K (EPS J22 FTSH-102, carrier J6) | — | "-L": 10 µin gold | Programming headers, GSE only |
 | MMCX | Molex 73415-1473 straight jack (gold, brass body, BeCu contact, listed non-magnetic) | Molex 73414-0351 right-angle crimp plug for 1.37 mm cable (gold); W10E (GNSS, 1.13 mm cable): **Molex 73415-2261** right-angle plug for 1.13/1.32 mm cable, solder centre contact, crimp shield, gold over brass, −55 … +165 °C, Active (Digi-Key 0734152261) | Gold | RF J3–J6, W10, W10E |
 | Micro-D | MIL-DTL-83513-class 21-way socket receptacle, board mount, on the access-port board A3 | (GSE plug, not flown) | Gold contacts per MIL-DTL-83513; shell passivated, not cadmium | Access port (W8A, W11) |
@@ -166,6 +166,20 @@ the Epson temperature code, the TI suffix, the Micro Crystal TA/TB/TC code, the 
 cable type). Reel and packaging storage conditions (Murata, Panasonic +5 … +35/40 °C; Coilcraft tape −40 … +80 °C;
 Littelfuse ITV 0 … +35 °C; NVIDIA module +18 … +30 °C) are stores controls of the receiving inspection, not flight
 limits.
+
+### 2A.10 Export classification of parts (SQSO-REG-012 control E5)
+
+The export classification memo (`docs/regulatory/filings/EXPORT_CLASSIFICATION_MEMO.md`, SQSO-REG-012 §2 and §4 E5)
+requires the manufacturer's ECCN of every procured part to be recorded before the launch agreement is signed (control E4;
+contract by 2027-06-30, BASELINE §3). This section is that record. The generated board BOMs
+(`hardware/electrical/*/*_bom.csv`) carry no ECCN column; the ECCNs are collected here, by BOM line, as each part is
+quoted. Recorded so far:
+
+| Item | ECCN (presumptive) | Source |
+|------|--------------------|--------|
+| NVIDIA Jetson Orin Nano module 900-13767-0030-000 | 5A992.c | Distributor product data (SQSO-REG-012 §1); NVIDIA's own statement to confirm |
+| SkyFox piNAV-NG/FM GNSS receiver | — (vendor's EU export licence) | SQSO-REG-012 §2; BASELINE §6 |
+| Every other flight part | — (not yet recorded) | Manufacturer data at quotation |
 
 ---
 
@@ -582,3 +596,4 @@ limits.
 | F | 2026-10-27 | Parts temperature audit (RID P3T-01, SQSO-MFG-003 A): new §2A.9 temperature grades, exceptions with their coverage, owners and dates; §2A.6 AFE, secondary protector and fuse rows as selected on the EPS board (ITV4030 −10 … +65 °C); §2A.8 Pico-Clasp gold terminal 501193 (501334 is tin), Samtec TFM/SFSDT plating codes to confirm, SFSDT Teflon only; §2A.2 screening range noted; §6.4 cell ranges | EEE parts engineer, CDR round 3 |
 | G | 2026-10-27 | §2A.8 harness-side part numbers (SQSO-HAR-001 §15 P-3): Pico-Clasp terminal 501193-9000, Micro-Fit terminal 43030-0003, W10E plug Molex 73415-2261; splice D-436-36 (M81824/1-1) rejected for its tin-plated barrel (TE drawing Rev F, ASTM B545), TE Raychem D-200-82 (nickel) instead, with the AS81824/1 deviation and the 28 AWG range open to the harness designer | EEE parts engineer, CDR round 3 |
 | H | 2026-10-27 | Documentation audit (post-CDR 2026): §3–§14 marked as the Revision A tables, not the flight design, with the BOMs and SQSO-MFG-003 as the parts of record; §2A.6 statuses from the board BOMs (RF-board logic, CMX138A, TMUX1219, TPS22918, 74LVC1T45 selected; Jetson eFuse TPS16630 and carrier breaker TPS259474L in place of the TPS25947 class; BQ771806 and F3 on the battery sense board); §2A.7 the other superseded table entries and the tantalum row; §2A.4 and §2A.7 cite RADIATION_ANALYSIS Rev F; §13.1 altitudes analysed and inclination 97.31° | Documentation audit |
+| I | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §2A.2 board-level screening aligned with ENVIRONMENTAL_TEST_PLAN §3.4 and §3.11 (4 cycles −30 / +60 °C per board; the ≥ 200 h burn-in is the integrated flight unit's, VI-12; was ≥ 8 cycles −30 / +70 °C and 200 h per board); §2A.8 Samtec TFM codes as in the board BOMs (-L, 15 µin; was -S); new §2A.10 export classification record for control E5 of SQSO-REG-012 | Documentation audit |

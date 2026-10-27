@@ -1,7 +1,7 @@
 # SMART-QSO Reliability Analysis
 
 **Document ID**: SQSO-REL-001
-**Version**: 2.3
+**Version**: 2.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis. Allocations and models, not measurements: no flight hardware exists. Version 1.2's
@@ -142,16 +142,15 @@ BATTERY LIFE ANALYSIS (summary of BATTERY_DESIGN §3.3; analysis, not measured)
 Cell: Samsung INR18650-35E (candidate), 4S1P, 3.45 Ah, 49.7 Wh (BASELINE §5), charged to 4.10 V/cell (D8)
 
 Cycling:
-- Eclipses: 5,559 per year at 500 km; 11,118 in 2 years (BATTERY_DESIGN §3.3; at the 475 km baseline, period
-  94.1 min, about 5,590 a year: 0.6 % more, not limiting)
-- DoD per eclipse: 1.3 % nominal, 2.0 % bounding (limit 10 %, BASELINE §5); as flown in the mission simulation
-  ≤ 2.3 % in the power-budget year runs, ≤ 3.7 % in the full SIL run, 2.8 % in the deepest contingency (BASELINE §5)
-- Equivalent full cycles in 2 years: 148 nominal, 408 bounding
+- Eclipses: 5,589 per year at 475 km; 11,178 in 2 years (BATTERY_DESIGN 2.12 §3.3)
+- DoD per eclipse: 1.4 % nominal, 2.4 % bounding (limit 10 %, BASELINE §5); as flown in the mission simulation
+  ≤ 2.3 % in the power-budget year runs, ≤ 3.5 % in the full SIL run, 2.8 % in the deepest contingency (BASELINE §5)
+- Equivalent full cycles in 2 years: 160 nominal, 389 bounding
 - Cell data: specification criterion, >= 60 % of minimum capacity after
   500 full-depth 1C cycles; no shallow-DoD data found for this cell
-- Margin on charge throughput: 3.4x nominal, 1.2x bounding
+- Margin on charge throughput: 3.1x nominal, 1.3x bounding
   (no credit taken for shallow cycling)
-- Capacity needed at end of life for the 10 % DoD limit: 20 % of BOL
+- Capacity needed at end of life for the 10 % DoD limit: 24 % of BOL
 
 Calendar ageing: the pack sits at the end of charge most of the mission; 4.10 V reduces it (D8). Not quantified for
 this cell; LEO-profile cycling and calendar test of flight-lot cells (BATTERY_DESIGN §9.3, V-BSA-8)
@@ -195,3 +194,4 @@ distribution of §5 and the deployment altitude; it is computed with the same Mo
 | 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Wing deployment re-modelled for the EPS board's four independent burn lines (one driver per resistor, burned one at a time) with the shared SW6/U17/DEPLOY_EN supply: both wings lost 0.29 % (was 1.6 %); L1/L2/L3 0.75 / 0.61 / 0.51 (was 0.75 / 0.60 / 0.50); RBD, allocation, §5, §6 |
 | 2.2 | 2026-10-27 | CDR round 3, systems and programmatics (RIDs REL-01, P3P-03) | §5: acceptance is the PI's decision DA-02 by 2026-12-15; §6: the flatsat and burn-in targets are verification items ETP VI-11 and VI-12 with dates in SQSO-SCH-001 D. Figures unchanged |
 | 2.3 | 2026-10-27 | Documentation audit (post-CDR 2026) | Radiation source Rev F (was Rev C); §8.1 eclipse count at 475 km noted and the as-flown depth of discharge from BASELINE §5; §7 both recommended single-point removals recorded as done; §10 ODAR Draft D. Figures unchanged |
+| 2.4 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | §6.1 battery-life summary from BATTERY_DESIGN 2.12 §3.2–§3.3 (475 km cycle count, DoD 1.4 / 2.4 %, 160 / 389 EFC, 24 % of BOL needed; full-SIL DoD 3.5 %) |
