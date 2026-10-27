@@ -32,6 +32,43 @@ pub const CMD_AUTO_DEPLOY: u8 = 0xA5;
 pub const CMD_CANCEL: u8 = 0xA9;
 /// Report the deployment status (two bytes)
 pub const CMD_STATUS: u8 = 0xC3;
+/// Report the controller's temperature (two bytes, low byte first: a
+/// 10-bit reading). **A documented assumption** until the delivered ISIS
+/// ICD confirms the command and its conversion (SQSO-MFG-003 §12 V-1, with
+/// AV-V7): the code of ISIS's published "measure system temperature"
+/// command, and an analog sensor of 10 mV/°C with 500 mV at 0 °C read by a
+/// 10-bit converter at 3.3 V full scale ([`temperature_c`])
+pub const CMD_TEMPERATURE: u8 = 0xC0;
+/// The converter's full scale, V, and its counts
+const TEMP_FULL_SCALE_V: f64 = 3.3;
+const TEMP_COUNTS: f64 = 1024.0;
+/// The assumed sensor: V = 0.5 V + 10 mV/°C · T
+const TEMP_OFFSET_V: f64 = 0.5;
+const TEMP_SLOPE_V_PER_C: f64 = 0.010;
+/// A conversion outside this range is not a reading, °C
+pub const TEMP_VALID_C: (f64, f64) = (-60.0, 125.0);
+
+/// The temperature, °C, from the two bytes [`CMD_TEMPERATURE`] returns
+/// (`None`: more than 10 bits, either end of the converter's range (an
+/// open or shorted sensor), or outside [`TEMP_VALID_C`])
+pub fn temperature_c(bytes: [u8; 2]) -> Option<f64> {
+    let raw = u16::from_le_bytes(bytes);
+    if raw == 0 || raw >= 1023 {
+        return None;
+    }
+    let volts = f64::from(raw) * TEMP_FULL_SCALE_V / TEMP_COUNTS;
+    let t = (volts - TEMP_OFFSET_V) / TEMP_SLOPE_V_PER_C;
+    (TEMP_VALID_C.0..=TEMP_VALID_C.1).contains(&t).then_some(t)
+}
+
+/// The two bytes for a temperature (the inverse of [`temperature_c`]: the
+/// simulation's AntS model)
+pub fn temperature_bytes(t_c: f64) -> [u8; 2] {
+    let raw = ((TEMP_OFFSET_V + TEMP_SLOPE_V_PER_C * t_c) * TEMP_COUNTS / TEMP_FULL_SCALE_V).round().clamp(0.0, 1023.0);
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // clamped to 0..=1023
+    (raw as u16).to_le_bytes()
+}
+
 /// Time limit per element, s (the AntS burns one element at a time)
 pub const ELEMENT_LIMIT_S: u8 = 10;
 /// Tape elements
@@ -110,6 +147,18 @@ pub const STOP: [&[u8]; 2] = [&[CMD_CANCEL], &[CMD_DISARM]];
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_temperature_reading() {
+        for t in [-40.0, -17.0, 0.0, 25.0, 60.0] {
+            let back = temperature_c(temperature_bytes(t)).unwrap();
+            assert!((back - t).abs() < 0.2, "{t} {back}");
+        }
+        assert_eq!(temperature_c([0x00, 0x04]), None, "more than 10 bits");
+        assert_eq!(temperature_c([0x00, 0x00]), None, "the converter's floor: open or shorted");
+        assert_eq!(temperature_c([0xFF, 0x03]), None, "its ceiling");
+        assert_eq!(temperature_c(temperature_bytes(130.0)), None, "above +125 C");
+    }
 
     #[test]
     fn a_stowed_unit_reports_every_element_not_deployed() {
