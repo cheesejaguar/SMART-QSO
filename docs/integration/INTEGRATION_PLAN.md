@@ -2,9 +2,10 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-INT-001
-**Revision:** A
-**Date:** 2026-01-02
-**Reference:** NPR 7123.1 SE Process 8 (Product Integration)
+**Revision:** B
+**Date:** 2026-10-27
+**Reference:** NPR 7123.1D §3.2 (Product Integration process), tailored (`docs/project/CDR_CRITERIA_MATRIX.md` §2)
+**Status:** Plan. No hardware exists; no integration step has been performed (`docs/project/HARDWARE_READINESS_TRACKER.md`)
 
 ---
 
@@ -265,15 +266,23 @@ Week 9-16: Flight Unit Assembly
 
 ## 8. Schedule
 
+Dates are the early dates of the critical-path schedule (`mission/SCHEDULE.md`, SQSO-SCH-001), for a 2028-06-01
+launch; the relative (T+n) schedule of Revision A is withdrawn.
+
 | Phase | Duration | Start | End |
 |-------|----------|-------|-----|
-| Flatsat assembly | 4 weeks | T+0 | T+4 |
-| Software development | 8 weeks | T+4 | T+12 |
-| Flight unit fabrication | 8 weeks | T+8 | T+16 |
-| Flight unit integration | 8 weeks | T+16 | T+24 |
-| System functional test | 2 weeks | T+24 | T+26 |
-| Environmental testing | 6 weeks | T+26 | T+32 |
-| Final acceptance | 2 weeks | T+32 | T+34 |
+| EM PCB fabrication and assembly | 5 weeks | 2027-03-09 | 2027-04-13 |
+| EM and flatsat integration; flight software on the target (TP-FLATSAT-001, TP-INT-001 to -005) | 8 weeks | 2027-04-13 | 2027-06-08 |
+| EM development tests (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §6) | 8 weeks | 2027-06-08 | 2027-08-03 |
+| CDR | 1 week | 2027-08-03 | 2027-08-10 |
+| FM PCB fabrication, assembly, inspection | 6 weeks | 2027-09-07 | 2027-10-19 |
+| FM integration (TP-INT-001 to -006) | 6 weeks | 2027-11-02 | 2027-12-14 |
+| FM comprehensive functional and day-in-the-life | 3 weeks | 2027-12-14 | 2028-01-04 |
+| Protoflight environmental campaign | 7 weeks | 2028-01-04 | 2028-02-22 |
+| Pre-ship review and delivery data package | 3 weeks | 2028-02-22 | 2028-03-14 |
+| Delivery to the integrator (latest, L−60 days) | — | — | 2028-04-02 |
+
+The FM integration start is on the critical path; it waits for the FM COTS buys ordered at the CDR (12 weeks).
 
 ## 9. Success Criteria
 
@@ -292,3 +301,4 @@ Integration is complete when:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | CDR review (PM/SE/V&V): dated schedule from `mission/SCHEDULE.md` replaces the relative T+n schedule; status line (no hardware); reference NPR 7123.1D | CDR review, PM/SE/V&V |

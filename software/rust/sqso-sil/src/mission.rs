@@ -27,7 +27,7 @@ use crate::env::{atmosphere, earth, eclipse, ground, link, magfield, radiation, 
 use crate::fsw::{Fsw, ResetCause, Snapshot, adc, pin};
 use crate::hw::deploy::Deployables;
 use crate::hw::eps::{Eps, Loads};
-use crate::hw::radio::Radio;
+use crate::hw::radio::{self, Radio};
 use crate::jetson::Jetson;
 use crate::metrics::{Orbits, Sample};
 use crate::ops::{self, Uplink, cmd};
@@ -585,7 +585,8 @@ impl Mission {
             p(pin::SOLAR_BURN),
         );
         let jet_rail = (p(pin::PAYLOAD_EN) && p(pin::JETSON_PWR)) || (self.cfg.payload_stuck_on && self.rel() > 0.0);
-        let xpdr_en = p(pin::XPDR_EN);
+        // The transponder enable is the heartbeat detector's, not the pin's level
+        let xpdr_en = radio::heartbeat_enable(self.fsw.xpdr_heartbeat());
         self.update_carrier(dt, r);
         self.radio.xpdr = xpdr_en && self.carrier;
         self.radio.step(dt, radio_on, pa_on, hi, self.deploy.antennas_deployed());
@@ -885,7 +886,7 @@ impl Mission {
             rf_silence: snap.rf_silence,
             contact_inhibit: snap.contact_inhibit,
             tx_permitted: snap.tx_permitted,
-            xpdr_on: self.fsw.pin(pin::XPDR_EN),
+            xpdr_on: radio::heartbeat_enable(self.fsw.xpdr_heartbeat()),
             xpdr_keyed: self.radio.xpdr_keyed && self.radio.fwd_w > 0.0,
             stations: self.calling,
             carrier: self.carrier,

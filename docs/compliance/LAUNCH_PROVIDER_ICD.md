@@ -1,337 +1,201 @@
 # Launch Provider Interface Control Document
 ## SMART-QSO CubeSat Mission
 
-> **Funding audit notice (2026-10-14): not an agreed ICD; statuses are design intent.**
-> No launch provider, integrator or dispenser has been selected, so no interface has been agreed. Entries marked
-> "Qualified", "Tested", "Complete" or given measured values (mass 1.075 kg, 185 Hz, 99.9 mm, shock 2500 g SRS, etc.)
-> are **not** supported by any test or inspection (finding VV-01). The 30-minute RF timer here is superseded by the
-> 45-minute rule (SYS-224), now implemented in flight software (`software/rust/sqso-fsw/src/rf_silence.rs`; hardware test pending). The provider deliverables checklist is
-> `docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md`; the launch path is in
-> `docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md`.
+> **Status (2026-10-27): not an agreed ICD.** No launch contract exists. The interface is written against the
+> intended provider chain (SpaceX Transporter-class rideshare, Exolaunch, EXOpod Nova; `docs/ORBITAL_ACCESS.md`) and
+> will be replaced by the integrator's mission ICD. No value here is measured: every value is design intent, an
+> estimate or an analysis, as its row says. The requirements and their verification are in
+> `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` (SQSO-LVR-001); the CDS clauses in `CDS_COMPLIANCE_MATRIX.md`.
 
 **Document Number:** SQSO-ICD-010
-**Revision:** D (draft)
-**Date:** 2026-10-16
-**Reference:** Cal Poly CDS Rev 14.1; SpaceX Rideshare Payload User's Guide v11, Aug 2026 (interim provider, pending the launch contract and PI confirmation); GSFC-STD-7000B as fallback
+**Revision:** E (draft)
+**Date:** 2026-10-27
+**Reference:** SpaceX Rideshare Payload User's Guide Version 11 (August 2026, current on 2026-10-27); Cal Poly CDS
+Rev 14.1 (2022-02-09); Exolaunch EXOpod Nova User Manual Rev 1.2 (June 2024); Exolaunch EXOpod User Manual Rev 6.0
+(2022-09-06); NRCSD IDD NR-NRCSD-S0003 Rev "-" (2018, backup only)
 
 ---
 
-## 1. Purpose
+## 1. Purpose and scope
 
-This document defines the interface requirements between the SMART-QSO CubeSat and the launch provider, including mechanical, electrical, environmental, and operational interfaces.
+The interface between the SMART-QSO 1U CubeSat and its dispenser, integrator and launch vehicle: mechanical,
+electrical, environmental, RF, operational and documentation. Interface values only; the requirement flow-down with
+sources and verification is SQSO-LVR-001.
 
-## 2. Scope
+## 2. Parties
 
-This document covers:
-- Mechanical interfaces (CDS compliance)
-- Electrical interfaces
-- Environmental requirements
-- RF emissions constraints
-- Operational interfaces
-- Documentation requirements
+| Role | Organization | Status |
+|------|--------------|--------|
+| Launch vehicle provider | SpaceX (Falcon 9, Transporter-class dedicated rideshare, VSFB SLC-4E) | Through the integrator only |
+| Integrator and dispenser provider | Exolaunch (lead request for quotes); ISISPACE and SEOPS as alternatives | Requests for quotes due 2026-12-31 |
+| Spacecraft operator | SMART-QSO; FCC Part 97 licensee KK6GDB, station KK6GDB-11 | The contracting entity is not yet named (RID LV-09) |
 
----
+## 3. Applicable documents
 
-## 3. Applicable Documents
+| Document | Title | Use |
+|----------|-------|-----|
+| SpaceX UG v11 | Rideshare Payload User's Guide, Version 11, Aug 2026 | Environments, verification, space safety, schedule |
+| CDS Rev 14.1 | CubeSat Design Specification | Envelope, electrical safety, timers |
+| EXOpod Nova UM Rev 1.2 | Exolaunch EXOpod Nova User Manual | Dispenser interface, 1U limits |
+| EXOpod UM Rev 6.0 | Exolaunch EXOpod User Manual | 1U adapter and spring data |
+| SSCMAN 91-710 | Range Safety User Requirements (as tailored by SpaceX) | Hazardous systems |
+| NR-NRCSD-S0003 | NRCSD IDD | Backup path only |
 
-| Document | Title |
-|----------|-------|
-| CDS Rev 14.1 | CubeSat Design Specification |
-| SpaceX UG v11 | SpaceX Rideshare Payload User's Guide, Version 11, Aug 2026 (<https://storage.googleapis.com/rideshare-static/Rideshare_Payload_Users_Guide.pdf>); interim provider |
-| LSP-REQ-317 | NASA Launch Services Program Requirements |
-| GSFC-STD-7000A | GEVS Environmental Test Standard |
-| NASA-STD-5001 | Structural Design Standard |
-| MIL-STD-1540 | Test Requirements |
+## 4. Mechanical interface
 
----
+### 4.1 Envelope, mass and mass properties
 
-## 4. Mechanical Interface
+| Parameter | Requirement | SMART-QSO value | Basis | Status |
+|-----------|-------------|-----------------|-------|--------|
+| Form factor | 1U | 1U in a 3U Nova slot with a non-deployable adapter, or sharing a 3U slot with other 1U/2U spacecraft | NOVA §2.2, §3.4 | Slot type open |
+| Rail length (Z) | 113.5 mm (Nova ±0.5 mm) | 113.5 mm | Bought frame | Not measured (VI-LV-01) |
+| Rail width (X, Y) | 100.0 ± 0.1 mm | 100.0 mm | Bought frame | Not measured |
+| Protrusion from the rail plane | CDS ≤ 6.5 mm (Nova allows ≤ 25 mm) | Designed ≤ 6.5 mm on the side faces (wings, RBF). The stowed AntS module is 7 mm thick on a ±Z face (BUILD_VS_BUY §2.6): check it against the CDS ±Z standoff height (0.5–7.0 mm, CDS Appendix B) and the switch positions | CDS §2.2.3, Appendix B | Open; not measured |
+| Mass | Nova 1U ≤ 2.5 kg; CDS typical 2.00 kg | CBE 1.69 kg, predicted 1.92–2.00 kg (`docs/environment/MASS_BUDGET.md` v2.0); BASELINE §4 CBE ≈ 1.51 kg pending the PI | NOVA Table 1; CDS Table 1 | Estimate; margin 20–23 % on the Nova limit, 0–4 % on 2.00 kg |
+| Mass reported at L-8 M | ± 15 % | 1.85 kg ± 15 % (1.57–2.13 kg) | UG Table G-3 | Proposed |
+| CG | ±20 mm (CDS: ±2 cm) from the geometric centre | Not computed (no layout) | CDS §2.2.11; NOVA Table 2 | Open |
+| Moments of inertia | Reported | Box estimate: Ixx = Iyy ≈ 0.0032, Izz ≈ 0.0028 kg·m² stowed | MASS_BUDGET §6 | Estimate |
+| Hard-body radius after deployment (first 24 h) | Reported to SpaceX | 0.6 m (VHF monopole tip 0.55 m from the centre, wing tip 0.17 m) | UG §3.3.4; `software/simulation/cdr/launch/leop_feasibility.py` §7 | Analysis |
 
-### 4.1 Form Factor Compliance
+Revision D's measured-looking values (99.9 mm, 113.4 mm, 85 mm rail length, 0.8 µm Ra, CG 48/51/55 mm, protrusions
+of 2–5 mm, RBF pull 3 N, 3 A switch rating) had no measurement behind them and are withdrawn.
 
-| Parameter | CDS Requirement | SMART-QSO Value | Status |
-|-----------|-----------------|-----------------|--------|
-| Form Factor | 1U | 1U | Compliant |
-| Dimensions (X) | 100.0 ± 0.1 mm | 99.9 mm | Compliant |
-| Dimensions (Y) | 100.0 ± 0.1 mm | 99.9 mm | Compliant |
-| Dimensions (Z) | 113.5 ± 0.1 mm | 113.4 mm | Compliant |
-| Mass | ≤ 2.0 kg | Not weighed. Predicted 1.92–2.00 kg, CBE 1.69 kg (`docs/environment/MASS_BUDGET.md` v2.0, analysis); BASELINE §4 still carries CBE ≈ 1.51 kg pending the PI | Open |
-
-### 4.2 Rail Requirements
-
-| Parameter | Requirement | SMART-QSO Value | Status |
-|-----------|-------------|-----------------|--------|
-| Rail width | 8.5 mm +0.1/-0.0 | 8.5 mm | Compliant |
-| Rail length | ≥ 75% of Z | 85 mm (75%) | Compliant |
-| Rail material | Hard anodized Al | 7075-T6 anodized | Compliant |
-| Surface roughness | ≤ 1.6 μm Ra | 0.8 μm Ra | Compliant |
-| Edge radius | ≥ 1 mm (CDS Rev 14.1 §2.2.7, "should") | ≥ 1.0 mm by design (`hardware/structure/STRUCTURAL_DESIGN.md` §5.1); not yet drawn or inspected | Open |
-
-### 4.3 Protrusion Limits
-
-| Zone | Limit | SMART-QSO | Status |
-|------|-------|-----------|--------|
-| Rail standoff | 6.5 mm max | 5.0 mm | Compliant |
-| +X/-X faces | 6.5 mm max | 3.0 mm | Compliant |
-| +Y/-Y faces | 6.5 mm max | 4.0 mm | Compliant |
-| +Z face (ejection) | 6.5 mm max | 2.0 mm | Compliant |
-| -Z face (spring) | Per deployer | 0 mm | Compliant |
-
-### 4.4 Center of Gravity
-
-| Axis | Limit | SMART-QSO | Status |
-|------|-------|-----------|--------|
-| X | 50 ± 20 mm | 48 mm | Compliant |
-| Y | 50 ± 20 mm | 51 mm | Compliant |
-| Z | 56.75 ± 20 mm | 55 mm | Compliant |
-
-### 4.5 Structural Requirements
-
-One environment specification, from SpaceX UG v11 (interim provider). No analysis or test has been done.
+### 4.2 Rails and contact
 
 | Parameter | Requirement | SMART-QSO | Status |
 |-----------|-------------|-----------|--------|
-| Fundamental frequency | > 40 Hz, no elastic mode below (UG v11 §4.1.1) | TBD: analysis pending FEM; low-level sine sweep at test | Open |
-| Random vibration | ≥ MPE 5.57 Grms, protoflight 1 min/axis, inhibits verified during the test (UG v11 Table 4-6, Table 6-2, §6.7.7) | Not tested (`docs/test_procedures/TP-ENV-002_Vibration.md`) | Open |
-| Quasi-static load | 10 g axial, 17 g lateral RSS for the integrated dispenser assembly (UG v11 Table 4-1); CubeSat-level loads from the integrator. No test required for a containerized CubeSat (Table 6-2) | Analysis pending FEM | Open |
-| Shock | MPE per UG v11 Table 4-5 (30 g at 100 Hz rising to 1000 g at 1000–10000 Hz, Q = 10); test advised, not required (Table 6-2) | Not tested | Open |
+| Rail width to first protrusion | ≥ 8.5 mm (CDS); EXOpod ≥ 6.4 mm | Bought frame | Design |
+| Rail finish | Hard anodized (Type III), Ra ≤ 1.6 µm; other finishes need Exolaunch's written approval (also for EMs in a TestPod) | Bought frame | Design |
+| Rail edge radius | CDS ≥ 1 mm (should); NRCSD 0.5 ± 0.1 mm (backup) | Choose a frame with heritage in both | Open |
+| ±Z rail ends | ≥ 6.5 × 6.5 mm bare contact | Bought frame | Design |
+| Separation springs | Required when sharing a slot; < 6.7 N, > 2.5 mm stroke (guideline) | Four plungers in the −Z standoffs; force open (TBR-CDS-001) | Open |
 
----
+### 4.3 Ejection
 
-## 5. Electrical Interface
+| Parameter | Value | Basis |
+|-----------|-------|-------|
+| Ejection velocity | 1.10–1.48 m/s for 1.51–2.00 kg in a 1U slot with its adapter (spring 2.19 J ± 20 %) | EXO Eq. 1, Tables 3–4; `leop_feasibility.py` §3 |
+| Tip-off | < 10°/s expected (Nova); SMART-QSO detumbles from 10°/s | NOVA §2.5; BASELINE §8 |
+| Insertion | −Z face first; deployables hinged so that a premature release cannot jam the slot | CDS §2.2.2 |
 
-### 5.1 Deployment Switches
-
-| Parameter | Requirement | SMART-QSO | Status |
-|-----------|-------------|-----------|--------|
-| Switch count | ≥ 2 | 2 | Compliant |
-| Switch type | Per CDS Rev 14.1 and the dispenser ICD | Contact form and sense polarity open: TBR-CDS-005 (`docs/compliance/CDS_COMPLIANCE_MATRIX.md` §9) | Open |
-| Switch location | On rails | Both rails | Compliant |
-| Rating | ≥ 1A @ 30V | 3A @ 30V | Compliant |
-
-### 5.2 Inhibits
-
-| Inhibit | Type | Status |
-|---------|------|--------|
-| Inhibit 1 | Deployment switch 1 | RF and deployment |
-| Inhibit 2 | Deployment switch 2 | RF and deployment |
-| Inhibit 3 | RBF pin | All power |
-
-### 5.3 RBF Pin
+## 5. Electrical interface
 
 | Parameter | Requirement | SMART-QSO | Status |
 |-----------|-------------|-----------|--------|
-| Location | Accessible | -Z face | Compliant |
-| Function | Interrupt power | Battery disconnect | Compliant |
-| Pull force | < 5 N | 3 N | Compliant |
-| Marking | "RBF" labeled | Labeled | Compliant |
+| Electrical interface to dispenser or LV | None after integration (the Nova has no standard umbilical) | None | Design |
+| Deployment switches | ≥ 1 (CDS); the design uses two rail-end switches as power inhibits; three if the NRCSD backup is kept open | Two switches, contact form and sense polarity open (TBR-CDS-005) | Open (RID LV-05) |
+| Independent RF inhibits | ≥ 3 physical (CDS §2.3.7) | Not designed: no inhibit schematic (VV-03) | **Open** |
+| Independent deployable inhibits | ≥ 3 physical per deployable (CDS §2.3.8) | Not designed | **Open** |
+| RBF pin | Cuts all power; ≤ 6.5 mm; removed before integration unless under a Nova access window | Removed at integration (Nova window positions: NOVA Fig. 37; position against them open) | Open |
+| Powered while integrated | Only the battery-side protection (CDS §2.3.1.2; UG §7.6) | BMS on the battery side | Design |
+| Battery-side drain while integrated | ≤ 20 µA (sets the storage limit, LVR-071) | Not measured (VI-LV-14) | Open |
+| Charging after integration | None (scenario A of UG Appendix D) | None | Design |
 
-### 5.4 Separation Signal (if applicable)
+## 6. Environments
 
-| Parameter | Requirement | SMART-QSO |
-|-----------|-------------|-----------|
-| Signal type | N/A (passive) | N/A |
-| Notes | No electrical interface to the dispenser or launch vehicle once integrated; separation is sensed by the deployment switches only | The umbilical (charge, diagnostic and key-load) connector is used before integration only; see §9.2 |
+The SpaceX maximum predicted environments apply at the plate (UG v11 §4) until the integrator gives
+dispenser-derived levels. Test levels for a fully containerized CubeSat: UG Table 6-2.
 
----
+| Environment | Level | SMART-QSO verification | Status |
+|-------------|-------|------------------------|--------|
+| Random vibration | MPE 5.57 Grms (20–2000 Hz); protoflight MPE 1 min/axis; qualification MPE + 3 dB = 7.87 Grms, 2 min | Protoflight, flight unit in a TestPod, with power-inhibit monitoring (VI-LV-04) | Not tested |
+| Natural frequency | No elastic mode below 40 Hz | Low-level sine sweep before and after (VI-LV-03) | No FEM |
+| Quasi-static | 10 g axial, 17 g lateral (dispenser assembly); no CubeSat test required | Analysis with factors 1.10 yield, 1.25 ultimate | No FEM |
+| Sine | 1.4 g axial, 1.5 g lateral, 5–100 Hz; not required | — | Not required |
+| Shock | 30 g at 100 Hz to 1000 g at 1–10 kHz (Q = 10); advised | Not tested; risk acknowledged | Acknowledged |
+| Acoustic | OASPL 139.3 dB; not required | — | Not required |
+| Fairing pressure decay | ≤ 2.8 kPa/s (4.5 kPa/s ≤ 5 s); volume / vent area ≤ 400 m (UG), ≤ 50.8 m (CDS) | Vent analysis; ≥ 22.3 mm² of vent for the gross 1U volume (VI-LV-12) | Open |
+| Flight thermal | Conductive boundary −20 to +69 °C to 7200 s; fairing radiative profile; FMH < 3,500 W/m² | TVAC protoflight acceptance ± 5 °C, 20 cycles (VI-LV-08) | Not tested |
+| Ground | PPF 15–25 °C, 30–65 % RH, ISO Class 8, ≤ 45 d; hangar ≤ 40 d; pad 15–30 °C, ≤ 5 d | Battery at 60 % SOC; materials and humidity compatible | Analysis |
+| EMI susceptibility | LV 120 dBµV/m; launch site 132–150 dBµV/m (26 dB facility shielding assumed) | Unpowered with mechanical inhibits | Design |
+| EMI emissions while integrated | ≤ 108 dBµV/m 30–1000 MHz (test); 33 dBµV/m in the GNSS bands | Unpowered: no emitter | Design |
 
-## 6. Environmental Requirements
+The CubeSat Nova manual notes that the Nova amplifies vibration near its first natural frequency and damps it above,
+and damps shock strongly at high frequency (NOVA §3.5); transfer functions are available from Exolaunch on request.
 
-### 6.1 Pre-Launch Environment
+## 7. RF interface
 
-| Parameter | Requirement | Compliance |
-|-----------|-------------|------------|
-| Storage temperature | -20°C to +50°C | Compatible |
-| Storage humidity | < 75% RH | Compatible |
-| Cleanliness | Class 100,000 | Compatible |
+| Item | Requirement | SMART-QSO | Basis |
+|------|-------------|-----------|-------|
+| Transmission while integrated | None (UG §4.1.7.3, §9.5.2); no open-air RF checkout | Radio unpowered by the inhibits; conducted checks into a load only | Design |
+| RF after separation | Not before 45 min (CDS §2.4.5); UG Table 4-10 minimum ≈ 7.5–8.6 s at 1.6 W EIRP and 1.0–1.2 m/s | First RF at 45:00 min (`rf_silence.rs`; simulation 45.0 min) | Analysis |
+| Deployables | Not before 30 min (CDS §2.4.4) and not before 120 s (UG §3.3.4) | First burn at 30:00 min (`deployment.rs`) | Analysis |
+| Attitude maneuvers | Not before 120 s (UG §3.3.4) | **Magnetorquers active from 1 s** (as built): RID LV-02 | Not met |
+| Downlink | One IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz | SYS-200 | BASELINE §7 |
+| Uplink | One IARU-coordinated frequency in 435–438 MHz | — | BASELINE §7 |
+| Power | 1 W maximum, 0.5 W nominal; spurious ≤ 25 µW and ≥ 40 dB below carrier (47 CFR 97.307(e)) | SYS-201, SYS-203 | BASELINE §7 |
+| Transmitter verification | SpaceX webform at L-8 M | VI-LV-10 | UG Table G-3 |
 
-### 6.2 Launch Environment
+## 8. Materials and contamination
 
-Same environment as §4.5 (SpaceX UG v11, interim). Nothing has been tested.
+| Item | Requirement | SMART-QSO | Status |
+|------|-------------|-----------|--------|
+| Outgassing | TML ≤ 1.0 %, CVCM ≤ 0.1 % (CDS §2.1.7); RML ≤ 1.0 % with rationale codes (UG Table 6-7) | `docs/compliance/MATERIALS_LIST.md` (sources to add) | Open (VI-LV-09) |
+| Prohibited materials | Cadmium, zinc plating, mercury, pure tin or tin electroplate (UG Table 5-5; applies to containerized CubeSats too) | Not yet applied to the EEE parts | **Open** (RID LV-26) |
+| Contamination report | Vacuum-exposed non-metallic materials with quantities (UG §6.7.12) | To prepare | Open |
+| Bakeout | Per the launch provider (CDS §3.2) | In the TVAC campaign | Open |
+| Markers | No Sharpie; Mighty Marker MM07/MM08 if needed (UG Table 5-5) | Assembly procedure | Open |
 
-| Parameter | Requirement | Test level | Status |
-|-----------|-------------|------------|--------|
-| Thermal (operational) | -40°C to +60°C (source TBD) | Thermal vacuum and cycling advised (UG v11 Table 6-2) | Open |
-| Random vibration | ≥ 5.57 Grms MPE (UG v11 Table 4-6) | Protoflight: MPE, 1 min/axis | Open |
-| Acoustic | — | Not required for a containerized CubeSat (UG v11 Table 6-2) | Not applicable |
-| Shock | MPE per UG v11 Table 4-5 | Advised only | Open |
-| Depressurization | Fairing pressure decay ≤ 2.8 kPa/s, ≤ 4.5 kPa/s for ≤ 5 s (UG v11 §4.1.8) | Venting analysis advised (UG v11 §6.7.9) | Open |
+## 9. Operational interface
 
-### 6.3 On-Orbit Environment
+### 9.1 Schedule
 
-| Parameter | Operational Range |
-|-----------|------------------|
-| Thermal | -40°C to +85°C |
-| Vacuum | < 10^-5 Torr |
-| Radiation | See RADIATION_ANALYSIS.md |
+The full deliverable schedule, with dates for the planning launch of 2028-06-01, is SQSO-LVR-001 §9. Key interface
+events:
 
----
+| Event | Timing | Notes |
+|-------|--------|-------|
+| Mission analysis inputs (mass ± 15 %, CAD, dynamic model, transmitter webform, test approach) | L-8 M | UG Table G-3 |
+| Orbit selection (≤ 525 km must be offered) | L-5 M | UG Appendix G; BASELINE §3 |
+| Environmental verification report; mass ± 5 % | L-3.5 M | UG Table G-3 |
+| Licences, 18th SDS registration, Appendix F letter, ephemeris capability | L-2 M | UG §9.5.6, §9.5.7 |
+| Flight model at the integrator | About L-50 d (set by the mission ICD) | — |
+| Final charge, key load, `ARM_FLIGHT`, RBF removal, integration | About L-47 d | The simulation's integration date |
+| Dispenser at the launch site | ≤ 8 weeks before launch | UG §9.5.1 |
 
-## 7. RF Emissions
+### 9.2 Access
 
-### 7.1 Pre-Deployment RF Silence
+| Phase | Access |
+|-------|--------|
+| Before integration | Umbilical: functional checks, final charge (RBF in), key load, `ARM_FLIGHT` last |
+| After integration | **None.** The Nova access windows give physical access only; no charging or checkout is planned through them (NOVA §4.2.5, §5.4). SpaceX gives no connectivity after mate except optional services (UG Table 7-4) |
 
-| Requirement | SMART-QSO Implementation |
-|-------------|--------------------------|
-| No RF emissions prior to deployment | Deployment switches inhibit RF |
-| Timer delay after deployment | No RF before 45 min (SYS-224; CDS Rev 14.1 §2.4.5; `software/rust/sqso-fsw/src/rf_silence.rs`) |
-| RF power at inhibit | 0 W |
+### 9.3 State at integration
 
-### 7.2 Post-Deployment RF
-
-| Parameter | Value |
+| Parameter | State |
 |-----------|-------|
-| Downlink frequency | One IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz (SYS-200; TBD-SYS-001) |
-| Maximum TX power | 1 W; 0.5 W nominal (SYS-201) |
-| Modulation | AFSK 1200 bps |
-| Spurious emissions | At least 40 dB below carrier (SYS-203) and ≤ 25 µW (47 CFR 97.307(e)) |
+| Power | Off: separation switches actuated by the slot; RBF removed at integration |
+| Software | Flight release loaded; deployment sequence and RF silence ARMED by `ARM_FLIGHT` |
+| Keys | Operational and recovery keys loaded through the umbilical (SQSO-ICD-013) |
+| Battery | **60 % ± 5 % SOC** after the final charge at the integrator. Revision D's 50 % ± 10 % and the launch-site plan's 30 % / 50–70 % are replaced. The separation SOC must stay ≥ 40 % (LVR-071) |
+| Time | No real-time clock is fitted; the onboard time starts at separation. Revision D's "within 1 s of UTC" cannot be met and is withdrawn |
 
-### 7.3 RF Test Data Required
+## 10. Documentation
 
-| Test | Document |
-|------|----------|
-| Conducted power | RF_TEST_RESULTS.md |
-| Spurious emissions | RF_TEST_RESULTS.md |
-| Frequency accuracy | RF_TEST_RESULTS.md |
+| Document | Due | Status |
+|----------|-----|--------|
+| This ICD → the integrator's mission ICD | Contract | Draft |
+| Mass properties (± 15 %, then ± 5 %, then as-measured) | L-8 M, L-3.5 M, L-2 M | MEL estimate only |
+| Environmental test approach; verification report | Before test; L-3.5 M | Not started |
+| SDHS and SSCMAN 91-710 compliance letter | L-6 M | Skeleton: `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` |
+| Ground Operating Plan and hazardous procedures | L-2 M | None needed at the site if no charging is done there |
+| Licensing certification letter (Appendix F), licence copies | Before shipment; L-2 M | FCC and IARU not filed |
+| FAA payload review template, cross-waivers | L-6 M | Contracting entity needed |
+| Insurance declarations and waivers of subrogation | Per SOW | Contracting entity needed |
+| Export classification and agreements | Kickoff | `docs/regulatory/filings/EXPORT_CLASSIFICATION_MEMO.md`; counsel |
+| Contamination report, materials list | L-4 M | Open |
+| Encapsulation and launch readiness inputs (Appendix D) | At integration; before rollout | — |
 
----
+## 11. Waivers and deviations
 
-## 8. Materials and Outgassing
+None requested. Expected: the integrator's acceptance of 60 % SOC at integration in place of "fully charged"
+(UG Appendix D), and, until RID LV-02 is closed, magnetorquer actuation within 120 s of separation.
 
-### 8.1 Outgassing Requirements
+## 12. Points of contact
 
-| Parameter | Requirement | SMART-QSO | Status |
-|-----------|-------------|-----------|--------|
-| TML | < 1.0% | All materials compliant | Compliant |
-| CVCM | < 0.1% | All materials compliant | Compliant |
-| Database | NASA MAPTIS | Verified | Compliant |
+To be named in the contract: mission manager and systems engineer (SMART-QSO), integrator mission manager, safety.
 
-### 8.2 Prohibited Materials
-
-| Material | Prohibited | SMART-QSO Status |
-|----------|------------|------------------|
-| Mercury | Yes | Not present |
-| Cadmium | Yes | Not present |
-| Zinc (uncoated) | Yes | Not present |
-| PVC | Yes | Not present |
-| Silicones (non-approved) | Yes | Only approved types |
-
-### 8.3 Reference
-
-See `docs/compliance/MATERIALS_LIST.md` for complete materials list.
-
----
-
-## 9. Operational Interface
-
-### 9.1 Delivery Schedule
-
-| Milestone | Timing | Notes |
-|-----------|--------|-------|
-| Documentation delivery | L-60 days | All ICDs and test reports |
-| Spacecraft delivery | L-14 days | Flight-ready configuration |
-| RBF removal | Before dispenser integration, unless the dispenser has an access port at the RBF location | CDS Rev 14.1 §2.3.5.1; integrator to confirm |
-| GO/NO-GO | L-1 day | Final readiness poll |
-
-### 9.2 Access Requirements
-
-| Phase | Access Required |
-|-------|-----------------|
-| Pre-integration | Full access for checkout, battery charging and key loading through the umbilical connector |
-| Post-integration | **None**, unless the integrator's dispenser has access ports at the umbilical and RBF locations (CDS Rev 14.1 §2.3.4, §2.3.5.1). SpaceX provides no Payload connectivity after mate except optional services (Rideshare Payload User's Guide v11 Table 7-4). Plan for no access |
-| RBF removal | At dispenser integration (or through an access port, if one exists) |
-| Post-RBF | No access |
-
-### 9.3 State at Delivery
-
-| Parameter | Required State |
-|-----------|----------------|
-| Power | Inhibited: RBF in until dispenser integration; deployment switches held actuated once integrated |
-| Software | Flight version loaded |
-| Battery SOC | 50% ± 10% |
-| Configuration | Flight settings |
-| Time | Within 1 second of UTC |
-
----
-
-## 10. Documentation Requirements
-
-### 10.1 Required Deliverables
-
-Due dates are placeholders until the integrator's schedule is known (SpaceX UG v11 Fig. 1-2 and Appendix G give the
-SpaceX-side milestones).
-
-| Document | Due Date | Status |
-|----------|----------|--------|
-| ICD (this document) | L-90 days | Draft; not agreed with any provider |
-| Mass properties report | L-60 days | Not started: provisional mass list only (BASELINE §4) |
-| Environmental test report | L-60 days | Pending test |
-| System safety data package | Per integrator (range-safety submissions, UG v11 Appendix G) | **Skeleton only**: `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md`. The software safety data package (`docs/safety/SAFETY_DATA_PACKAGE.md`) is a draft input to it |
-| Flight software description | L-60 days | No release: `docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` records status only |
-| RF test report | L-60 days | Pending test |
-| Final as-built drawings | L-30 days | Not started: no hardware |
-
-### 10.2 Required Certifications
-
-| Certification | Document |
-|---------------|----------|
-| CDS compliance | This document, Section 4 |
-| Outgassing compliance | MATERIALS_LIST.md |
-| Inhibit verification | Test report |
-| Frequency coordination | IARU_COORDINATION.md |
-| Export control | EXPORT_CONTROL.md |
-
----
-
-## 11. Deployer Compatibility
-
-### 11.1 Compatible Deployers
-
-| Deployer | Compatibility | Notes |
-|----------|---------------|-------|
-| P-POD Mk III | Compatible | Standard 1U |
-| ISIPOD | Compatible | Standard 1U |
-| NRCSD | Compatible | ISS deployment |
-| EXOpod | Compatible | Verify fit |
-
-### 11.2 Deployer Interface
-
-| Parameter | P-POD Mk III | SMART-QSO |
-|-----------|--------------|-----------|
-| Rail gap | 8.5 mm | 8.5 mm |
-| Door spring | 5 N | Compatible |
-| Ejection velocity | 1.5 m/s | Compatible |
-
----
-
-## 12. Waivers and Deviations
-
-### 12.1 Requested Waivers
-
-| Item | Requirement | Request | Status |
-|------|-------------|---------|--------|
-| None | - | - | - |
-
-### 12.2 Deviations
-
-| Item | Requirement | Deviation | Rationale |
-|------|-------------|-----------|-----------|
-| None | - | - | - |
-
----
-
-## 13. Points of Contact
-
-| Role | Organization | Contact |
-|------|--------------|---------|
-| Mission Manager | SMART-QSO | TBD |
-| Systems Engineer | SMART-QSO | TBD |
-| Launch Integration | TBD | TBD |
-| Safety | TBD | TBD |
-
----
-
-## 14. Revision History
+## 13. Revision History
 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
@@ -340,3 +204,4 @@ SpaceX-side milestones).
 | C (draft) | 2026-10-16 | Funding audit VV-21: umbilical access made consistent (no access after integration unless the dispenser has ports; RBF out at integration). VV-20: deliverable statuses corrected (no "Complete"); safety data package is a system-level skeleton. TB-15: one environment specification from SpaceX UG v11 (interim) in §4.5 and §6.2, replacing unsourced "Qualified" and "Compliant" entries; rail edge radius per CDS §2.2.7 | SMART-QSO Team |
 | D (draft) | 2026-10-16 | §4.1 mass from MASS_BUDGET v2.0 (was 1.075 kg, never weighed; TB-06); §5.1 switch type open as TBR-CDS-005 (was "normally open", against "normally closed" in the structural design); §7.1 timer 45 min (SYS-224; was 30 min); §7.2 frequency, power and spurious limits from SYS-200, SYS-201 and SYS-203 (were 145.825 MHz, 2 W, "Per FCC Part 97") | SMART-QSO Team |
 | D, note | 2026-10-24 | RF-silence references name the Rust file that replaced `rf_silence.c` | SMART-QSO Team |
+| E (draft) | 2026-10-27 | CDR launch review: written against the intended chain (SpaceX Transporter from VSFB, Exolaunch, EXOpod Nova 1U slot) with UG v11 confirmed current; requirements moved to SQSO-LVR-001; measured-looking values withdrawn; deployer list (P-POD Mk III, ISIPOD) replaced by the EXOpod Nova; ejection velocity, hard-body radius, turn-on delay and vent area from `software/simulation/cdr/launch/`; the 120 s rule and the prohibited-materials row added; SOC at integration 60 % ± 5 %; "time within 1 s of UTC" withdrawn; delivery schedule from UG Fig. 1-2 and Appendix G instead of L-60/L-14 days | CDR review (LV) |

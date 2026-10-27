@@ -101,11 +101,18 @@ pub extern "C" fn adcs_init() -> i32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn adcs_update(now_ms: u64) -> i32 {
     let read_ms = c::now_ms();
-    let cycle = match ADCS.with(|m| m.adcs.update_with_gyro(now_ms, read_ms, m.sim_mag, m.sim_sun, m.sim_rate)) {
+    let step = ADCS.with(|m| {
+        m.adcs.update_with_gyro(now_ms, read_ms, m.sim_mag, m.sim_sun, m.sim_rate).map(|c| (c, m.adcs.mag_rejected))
+    });
+    let (cycle, rejected) = match step {
         Some(Some(cycle)) => cycle,
         Some(None) => return rc::ERROR,
         None => return rc::BUSY,
     };
+    if cycle.mag_rejected && rejected == 1 {
+        // The first since init: the coil timing is wrong (the rest are counted)
+        c::log(FAULT_TYPE_ADCS, severity::WARNING, c"Magnetometer read with coils on", 0.0);
+    }
     if cycle.detumble_timeout {
         c::log(FAULT_TYPE_ADCS, severity::WARNING, c"Detumble timeout", 0.0);
     }
@@ -268,12 +275,14 @@ pub unsafe extern "C" fn adcs_compute_sunpoint(sun: *const SunSensorData, mag: *
     }
 }
 
-/// Command the coils
+/// Command the coils for one burst (the driver ends it after
+/// `sqso_fsw::adcs::MTQ_ON_MS`)
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn adcs_apply_dipole(dipole: *const Vec3) -> i32 {
     // SAFETY: the C contract: NULL or a Vec3_t
     let Some(d) = (unsafe { ptr::in_(dipole) }).copied() else { return rc::NULL_PTR };
-    match ADCS.with(|m| m.adcs.initialized.then(|| m.adcs.apply_dipole(&d))) {
+    let now = c::now_ms();
+    match ADCS.with(|m| m.adcs.initialized.then(|| m.adcs.apply_burst(&d, now))) {
         Some(Some(())) => rc::OK,
         Some(None) => rc::ERROR,
         None => rc::BUSY,

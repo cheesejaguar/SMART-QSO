@@ -14,6 +14,19 @@
 //! gyro's ([`Adcs::update_with_gyro`]), or without one the magnetometer
 //! estimate. [`sunpoint`] is the proportional law of ADCS_DESIGN §4.2
 //! (`adcs_compute_sunpoint`), kept for its interface.
+//!
+//! The magnetometer is read with the coils off. The coils' own field at the
+//! magnetometer is of the order of the Earth's (tens of µT at full dipole a
+//! few centimetres away), so a sample taken while they are driven is
+//! useless to B-dot and to the rate estimate. Each command is a burst of
+//! [`CoilTiming::on_ms`] (900 ms of the 1 s cycle): the coil driver's timer
+//! ends it by itself, so the coils are off for the last 100 ms of the cycle
+//! even if the OBC stops. A sample is used only if the coils have been off
+//! for [`CoilTiming::settle_ms`] (50 ms); otherwise it is discarded and
+//! counted ([`Adcs::mag_rejected`]), so a missing window is visible in
+//! telemetry and in the Monte Carlo. The burst's dipole is the commanded
+//! one scaled by the period over the on-time (saturated), so the impulse
+//! per cycle is the one the control law asked for.
 
 use crate::fmath::sqrt;
 
@@ -61,6 +74,55 @@ pub const NUTATION_GAIN: f64 = 1.0e-4;
 /// the spin positive about +Y, so that −Y on the Sun (with the spin
 /// reversed), which the momentum law alone also accepts, is not a rest state
 pub const SPIN_HOLD_GAIN: f64 = 0.005;
+
+/// Control period, ms (1 Hz: ADCS_DESIGN §5.3)
+pub const CONTROL_PERIOD_MS: u64 = 1000;
+/// Coil burst after each command, ms: the coil driver's timer switches
+/// the coils off at its end by itself (the measurement window is the rest
+/// of the period)
+pub const MTQ_ON_MS: u64 = 900;
+/// Coils off for at least this long before a magnetometer sample is used,
+/// ms: the drive current's decay (an air-core coil's L/R is well under
+/// 1 ms; rods' eddy currents and the driver's flyback are slower) and the
+/// magnetometer's conversion
+pub const MAG_SETTLE_MS: u64 = 50;
+
+/// When the coils are driven within a control period and when the
+/// magnetometer may be read: the flight values ([`CoilTiming::FLIGHT`]), or
+/// others for analysis (the Monte Carlo's missing-window case)
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CoilTiming {
+    /// Coil burst after each command, ms ([`MTQ_ON_MS`])
+    pub on_ms: u64,
+    /// Coils off at least this long before a sample is used, ms ([`MAG_SETTLE_MS`])
+    pub settle_ms: u64,
+}
+
+impl CoilTiming {
+    /// The flight timing
+    pub const FLIGHT: CoilTiming = CoilTiming { on_ms: MTQ_ON_MS, settle_ms: MAG_SETTLE_MS };
+
+    /// The burst dipole that delivers the impulse of `dipole` held for a
+    /// whole control period: scaled by the period over the on-time,
+    /// saturated to [`MAX_DIPOLE`]
+    pub fn burst(&self, dipole: &Vec3) -> Vec3 {
+        #[allow(clippy::cast_precision_loss)] // milliseconds
+        let k = if self.on_ms > 0 { CONTROL_PERIOD_MS as f64 / self.on_ms as f64 } else { 0.0 };
+        let mut d = Vec3 { x: dipole.x * k, y: dipole.y * k, z: dipole.z * k };
+        saturate_dipole(&mut d, MAX_DIPOLE);
+        d
+    }
+}
+
+impl Default for CoilTiming {
+    fn default() -> CoilTiming {
+        CoilTiming::FLIGHT
+    }
+}
+
+// The window (period minus the burst) holds the settling time and the
+// magnetometer's conversion
+const _: () = assert!(MTQ_ON_MS + MAG_SETTLE_MS < CONTROL_PERIOD_MS);
 
 /// The control gains the modes use: the flight values ([`Gains::FLIGHT`]),
 /// or others for analysis (the mission simulation's Monte Carlo sweeps)
@@ -395,6 +457,9 @@ pub struct Cycle {
     pub detumble_timeout: bool,
     /// The detumble completed (now SUNPOINT)
     pub detumble_complete: bool,
+    /// The magnetometer sample was taken with the coils on or not yet
+    /// settled, and was not used
+    pub mag_rejected: bool,
 }
 
 /// A mode change
@@ -430,6 +495,13 @@ pub struct Adcs {
     pub gyro: Option<Vec3>,
     /// The control gains ([`Gains::FLIGHT`])
     pub gains: Gains,
+    /// Coil burst and measurement window ([`CoilTiming::FLIGHT`])
+    pub timing: CoilTiming,
+    /// When the coils' latest burst ends, ms (`None`: not driven since init)
+    pub coils_off_ms: Option<u64>,
+    /// Magnetometer samples discarded because the coils were on or had not
+    /// settled
+    pub mag_rejected: u32,
 }
 
 impl Adcs {
@@ -460,7 +532,16 @@ impl Adcs {
             initialized: false,
             gyro: None,
             gains: Gains::FLIGHT,
+            timing: CoilTiming::FLIGHT,
+            coils_off_ms: None,
+            mag_rejected: 0,
         }
+    }
+
+    /// Whether a magnetometer sample at `read_ms` saw the coils off and
+    /// settled
+    pub fn coils_quiet(&self, read_ms: u64) -> bool {
+        self.coils_off_ms.is_none_or(|off| read_ms >= off.saturating_add(self.timing.settle_ms))
     }
 
     /// `adcs_init()`: IDLE, coils off, everything cleared
@@ -529,7 +610,8 @@ impl Adcs {
             let across = Vec3 { x: w.x - along * SUN_AXIS.x, y: w.y - along * SUN_AXIS.y, z: w.z - along * SUN_AXIS.z };
             across.magnitude() < DETUMBLE_RATE_THRESHOLD && along.abs() < 2.0 * self.gains.spin_rate
         } else {
-            s.rate_magnitude < DETUMBLE_RATE_THRESHOLD
+            // A rejected sample leaves the estimate stale: not evidence of a low rate
+            s.mag.valid && s.rate_magnitude < DETUMBLE_RATE_THRESHOLD
         };
         if settled {
             if s.settling_start_ms == 0 {
@@ -567,12 +649,19 @@ impl Adcs {
             return None;
         }
         self.gyro = gyro;
+        let mut cycle = Cycle::default();
         read_magnetometer(&mut self.state.mag, field, read_ms);
+        if !self.coils_quiet(read_ms) {
+            // Taken in the coils' own field: not used (no B-dot, no rate
+            // estimate this cycle)
+            self.state.mag.valid = false;
+            self.mag_rejected = self.mag_rejected.wrapping_add(1);
+            cycle.mag_rejected = true;
+        }
         read_sun_sensors(&mut self.state.sun, sun, read_ms);
         self.estimate_rate(now_ms);
 
         let mut dipole = Vec3::ZERO;
-        let mut cycle = Cycle::default();
         match self.state.mode {
             mode::DETUMBLE => self.detumble_step(now_ms, &mut dipole, &mut cycle),
             mode::SUNPOINT => {
@@ -589,7 +678,8 @@ impl Adcs {
         }
 
         if self.state.mode == mode::DETUMBLE || self.state.mode == mode::SUNPOINT {
-            self.apply_dipole(&dipole);
+            let burst = self.timing.burst(&dipole);
+            self.apply_burst(&burst, now_ms);
         } else {
             self.disable_mtq();
         }
@@ -623,6 +713,13 @@ impl Adcs {
             pwm: [dipole_to_pwm(dipole.x), dipole_to_pwm(dipole.y), dipole_to_pwm(dipole.z)],
             enabled: true,
         };
+    }
+
+    /// Command the coils for one burst from `now_ms`: the driver switches
+    /// them off [`CoilTiming::on_ms`] later
+    pub fn apply_burst(&mut self, dipole: &Vec3, now_ms: u64) {
+        self.apply_dipole(dipole);
+        self.coils_off_ms = Some(now_ms.saturating_add(self.timing.on_ms));
     }
 
     /// Coils off
@@ -798,6 +895,80 @@ mod tests {
     }
 
     extern crate std;
+
+    #[test]
+    fn the_magnetometer_is_read_only_with_the_coils_off_and_settled() {
+        let mut a = Adcs::new();
+        a.init();
+        let t0 = 10_000u64;
+        let _ = a.set_mode(mode::DETUMBLE, t0);
+        let sun = Vec3::new(1.0, 0.0, 0.0);
+        let mut field = Vec3::new(45.0, 0.0, 0.0);
+        // Never driven: the first sample is good, and starts a burst
+        assert!(a.coils_quiet(t0));
+        let c = a.update(t0, t0, field, sun).unwrap();
+        assert!(!c.mag_rejected && a.state.mag.valid);
+        assert_eq!(a.coils_off_ms, Some(t0 + MTQ_ON_MS));
+        // The next cycle, 1 s on: the coils went off 100 ms ago
+        field = turned(field, 0.1, 1.0);
+        let c = a.update(t0 + 1000, t0 + 1000, field, sun).unwrap();
+        assert!(!c.mag_rejected && a.state.mag.valid && a.state.mtq.enabled);
+        assert!(a.state.mtq.dipole.magnitude() > 0.0, "B-dot acts on a clean sample");
+        // Read 20 ms after the burst ended (not settled), or during it: not used
+        for late in [MTQ_ON_MS + 20, MTQ_ON_MS - 100] {
+            let mut b = a;
+            let t = t0 + 1000 + late;
+            let c = b.update(t, t, turned(field, 0.1, 1.0), sun).unwrap();
+            assert!(c.mag_rejected && !b.state.mag.valid, "{late}");
+            assert_eq!(b.mag_rejected, 1);
+            assert_eq!(b.state.mtq.dipole.magnitude(), 0.0, "no B-dot on a rejected sample");
+        }
+        // Exactly settled is good
+        let t = t0 + 1000 + MTQ_ON_MS + MAG_SETTLE_MS;
+        assert!(a.coils_quiet(t) && !a.coils_quiet(t - 1));
+        // Coils driven for the whole period (no window): every sample after
+        // the first is rejected, and counted
+        let mut n = Adcs::new();
+        n.init();
+        n.timing = CoilTiming { on_ms: CONTROL_PERIOD_MS, settle_ms: MAG_SETTLE_MS };
+        let _ = n.set_mode(mode::DETUMBLE, t0);
+        for k in 0..5u64 {
+            let t = t0 + k * 1000;
+            let _ = n.update(t, t, turned(field, 0.1, k as f64), sun);
+        }
+        assert_eq!(n.mag_rejected, 4);
+        // Without a gyro the stale estimate never completes the detumble
+        for k in 5..400u64 {
+            let t = t0 + k * 1000;
+            let c = n.update(t, t, field, sun).unwrap();
+            assert!(!c.detumble_complete);
+        }
+        assert_eq!(n.state.settling_start_ms, 0);
+    }
+
+    #[test]
+    fn the_burst_delivers_the_commanded_impulse() {
+        let t = CoilTiming::FLIGHT;
+        let cmd = Vec3::new(0.09, -0.045, 0.0);
+        let b = t.burst(&cmd);
+        // dipole x on-time = command x period
+        let period = CONTROL_PERIOD_MS as f64;
+        let on = MTQ_ON_MS as f64;
+        assert!((b.x * on - cmd.x * period).abs() < 1e-12);
+        assert!((b.y * on - cmd.y * period).abs() < 1e-12);
+        // Saturated at the coil limit, direction kept
+        let big = t.burst(&Vec3::new(0.2, 0.2, 0.0));
+        assert!((big.magnitude() - MAX_DIPOLE).abs() < 1e-12);
+        assert!((big.x - big.y).abs() < 1e-12);
+        assert_eq!(CoilTiming { on_ms: 0, settle_ms: 0 }.burst(&cmd), Vec3::ZERO);
+        assert_eq!(CoilTiming::default(), CoilTiming::FLIGHT);
+        // The direct command is one burst too
+        let mut a = Adcs::new();
+        a.init();
+        a.apply_burst(&cmd, 5_000);
+        assert_eq!(a.state.mtq.dipole, cmd);
+        assert_eq!(a.coils_off_ms, Some(5_000 + MTQ_ON_MS));
+    }
 
     #[test]
     fn detumble_settles_into_sunpoint_or_times_out() {

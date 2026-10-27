@@ -15,6 +15,20 @@
 //!   [`DUTY_LIMIT`] of the last [`WINDOW_MS`] (an orbit); the transponder
 //!   resumes when it falls to [`DUTY_RESUME`].
 //!
+//! `XPDR_EN` is a heartbeat, not a level (docs/hardware/BUILD_VS_BUY.md
+//! §3.2, hardware/rf/TRANSMITTER_DESIGN.md §10.1): a hardware timer
+//! drives it as a [`HEARTBEAT_HZ`] square wave, and a retriggerable
+//! monostable on the radio board holds the transponder's enable only while
+//! edges keep arriving ([`EN_HOLD_MS`]). Each pass of the main loop renews
+//! the wave for [`Transponder::heartbeat_lease_ms`] (`hal_gpio_heartbeat()`):
+//! while the gates hold that is [`HEARTBEAT_LEASE_MS`], otherwise 0, which
+//! stops it now. A main loop that stalls stops renewing it, so the timer
+//! stops at the end of the lease; an OBC that halts, resets (the pin goes
+//! high-impedance and is pulled down) or browns out stops the edges at
+//! once. Either way the monostable drops the enable within
+//! [`EN_HOLD_MS`] of the last edge: no OBC failure can leave the
+//! transponder enabled, and a pin stuck high or low is "off".
+//!
 //! @requirement SRS-F016 Enforce power budget limits per mode
 
 use crate::mode::SOC_PAYLOAD;
@@ -31,6 +45,29 @@ pub const PA_HOT_C: f64 = 70.0;
 pub const PA_COOL_C: f64 = 60.0;
 /// Forward power above which the PA counts as keyed, W
 pub const KEYED_FWD_W: f64 = 0.1;
+/// The `XPDR_EN` heartbeat's frequency, Hz (a hardware timer toggles the
+/// pin every half period: BUILD_VS_BUY §3.2, ≈ 100 Hz)
+pub const HEARTBEAT_HZ: u32 = 100;
+/// How long one renewal keeps the heartbeat running, ms: three passes of
+/// the 20 ms main loop, so one late pass does not drop the transponder
+pub const HEARTBEAT_LEASE_MS: u32 = 60;
+/// The radio board's retriggerable monostable (SN74LVC1G123), ms: the
+/// enable falls this long after the last heartbeat edge. Hardware, not
+/// software; here so the tests and the mission simulation use one value
+pub const EN_HOLD_MS: u32 = 50;
+/// The longest the transponder stays enabled after the main loop's last
+/// pass, ms: the lease, then the monostable
+pub const STALL_DROPOUT_MS: u32 = HEARTBEAT_LEASE_MS + EN_HOLD_MS;
+
+/// The main loop's period, ms
+#[allow(clippy::cast_possible_truncation)] // 20
+const LOOP_MS: u32 = crate::executive::TICK_MS as u32;
+// The lease outlasts one late pass of the loop, not three
+const _: () = assert!(HEARTBEAT_LEASE_MS > 2 * LOOP_MS && HEARTBEAT_LEASE_MS <= 3 * LOOP_MS);
+// The monostable spans several heartbeat periods (no drop-out while the
+// wave runs), and a stalled loop stops the transponder within 110 ms
+const _: () = assert!(EN_HOLD_MS >= 4 * (1000 / HEARTBEAT_HZ));
+const _: () = assert!(STALL_DROPOUT_MS <= 110);
 
 /// The window in buckets (5 minutes each)
 const BUCKETS: usize = 20;
@@ -126,6 +163,14 @@ impl Transponder {
             bucket_start_ms: 0,
             last_ms: None,
         }
+    }
+
+    /// How long to keep the `XPDR_EN` heartbeat running from this pass, ms
+    /// (`hal_gpio_heartbeat()`): [`HEARTBEAT_LEASE_MS`] while the gates
+    /// hold, 0 (stop now) otherwise. Renewed on every pass, not only on a
+    /// change: the heartbeat lasts only as long as the main loop runs
+    pub const fn heartbeat_lease_ms(&self) -> u32 {
+        if self.enabled { HEARTBEAT_LEASE_MS } else { 0 }
     }
 
     /// Keyed share of the window
@@ -235,6 +280,18 @@ mod tests {
         assert_eq!(Inputs { soc: SOC_PAYLOAD, ..GO }.soc, SOC_PAYLOAD);
         let mut x = Transponder::new();
         assert_eq!(x.step(0, &Inputs { soc: SOC_PAYLOAD, ..GO }), Change::On, "55 % is enough");
+    }
+
+    #[test]
+    fn the_heartbeat_runs_only_while_the_gates_hold() {
+        let mut x = Transponder::new();
+        assert_eq!(x.heartbeat_lease_ms(), 0, "off at boot: no heartbeat");
+        let _ = x.step(0, &GO);
+        assert_eq!(x.heartbeat_lease_ms(), HEARTBEAT_LEASE_MS);
+        let _ = x.step(20, &GO);
+        assert_eq!(x.heartbeat_lease_ms(), HEARTBEAT_LEASE_MS, "renewed every pass");
+        let _ = x.step(40, &Inputs { sunlit: false, ..GO });
+        assert_eq!(x.heartbeat_lease_ms(), 0, "a failed gate stops it now");
     }
 
     #[test]

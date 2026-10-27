@@ -21,6 +21,7 @@ mod adc;
 mod cell;
 mod fram;
 mod gpio;
+mod heartbeat;
 mod i2c;
 mod radio;
 mod rc;
@@ -155,6 +156,8 @@ fn bring_up() {
         p.PB4, p.PB5, p.PB6, p.PD2, p.PA1, p.PD3, p.PA2, p.PA3, p.PB7, p.PE2, p.PB8, p.PB9, p.PB10, p.PB11, p.PB12,
         p.PE3, p.PE4,
     );
+    // The XPDR_EN heartbeat's timer (stopped, pin low, until the first lease)
+    heartbeat::install();
 
     // FRAM: SPI mode 0 at 20 MHz (STORAGE_DESIGN §3.4); WP# and HOLD# high
     // (on PE0/PE1, so that PC0/PC1 can be the downlink's ADC inputs)

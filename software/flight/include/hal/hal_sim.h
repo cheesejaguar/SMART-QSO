@@ -47,6 +47,16 @@ void hal_sim_flash_fail_writes_after(int32_t writes);
 void hal_sim_gpio_drive_input(HalGpioPin_t pin, bool state);
 
 /**
+ * @brief When the GPIO_PIN_XPDR_EN heartbeat stops, or stopped
+ *
+ * On the HAL time base (hal_timer_get_us()), microseconds; 0 if the
+ * heartbeat has not run since hal_gpio_init(), or for another pin. The
+ * radio board's monostable holds the transponder enabled until 50 ms after
+ * this (docs/hardware/BUILD_VS_BUY.md §3.2).
+ */
+uint64_t hal_sim_gpio_heartbeat_end_us(HalGpioPin_t pin);
+
+/**
  * @brief Queue bytes for hal_uart_read() on a port, as if received
  *
  * @return SMART_QSO_OK, or SMART_QSO_ERROR_NO_MEM if the FIFO is full

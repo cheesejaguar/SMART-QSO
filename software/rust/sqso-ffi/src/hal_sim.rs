@@ -22,6 +22,10 @@ use crate::{os, ptr, time};
 const GPIO_PIN_COUNT: usize = 17;
 const GPIO_DIR_INPUT: u32 = 0;
 const GPIO_DIR_OUTPUT: u32 = 1;
+/// `GPIO_PIN_XPDR_EN`, the heartbeat pin
+const GPIO_PIN_XPDR_EN: u32 = 16;
+/// `HAL_GPIO_HEARTBEAT_HZ`: the wave's half period, µs
+const HEARTBEAT_HALF_PERIOD_US: u64 = 1_000_000 / (2 * 100);
 const I2C_BUS_COUNT: usize = 2;
 const UART_PORT_COUNT: usize = 2;
 const UART_PORT_DEBUG: u32 = 1;
@@ -192,6 +196,10 @@ struct Sim {
     /// Levels the outside world drives (`hal_sim_gpio_drive_input()`): they
     /// survive `hal_gpio_init()`, as a switch's level survives a reset
     gpio_driven: [Option<bool>; GPIO_PIN_COUNT],
+    /// The `XPDR_EN` heartbeat (`hal_gpio_heartbeat()`): when the wave
+    /// started and when it stops or stopped, on the HAL time base, µs
+    /// (`None`: it has not run since `hal_gpio_init()`)
+    heartbeat: Option<(u64, u64)>,
     i2c_initialized: [bool; I2C_BUS_COUNT],
     i2c: [I2cDevice; 3],
     uart_initialized: [bool; UART_PORT_COUNT],
@@ -214,6 +222,7 @@ static SIM: Global<Sim> = Global::new(Sim {
     gpio_state: [false; GPIO_PIN_COUNT],
     gpio_dir: [GPIO_DIR_INPUT; GPIO_PIN_COUNT],
     gpio_driven: [None; GPIO_PIN_COUNT],
+    heartbeat: None,
     i2c_initialized: [false; I2C_BUS_COUNT],
     i2c: [
         I2cDevice { addr: I2C_ADDR_EPS_CONTROLLER, registers: [0; 256] },
@@ -310,6 +319,7 @@ pub extern "C" fn hal_gpio_init() -> i32 {
             }
         }
         s.gpio_dir = [GPIO_DIR_INPUT; GPIO_PIN_COUNT];
+        s.heartbeat = None;
         s.gpio_initialized = true;
         rc::OK
     })
@@ -350,11 +360,42 @@ pub extern "C" fn hal_gpio_set(pin: u32, state: bool) -> i32 {
     })
 }
 
-/// A pin's level (false before init or for an unknown pin)
+/// A pin's level (false before init or for an unknown pin); `XPDR_EN`
+/// while its heartbeat runs is the square wave's level now
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_gpio_get(pin: u32) -> bool {
+    let now = hal_timer_get_us();
     sim(false, |s| {
+        if let (GPIO_PIN_XPDR_EN, Some((start, end))) = (pin, s.heartbeat)
+            && s.gpio_initialized
+            && now < end
+        {
+            return (now.saturating_sub(start) / HEARTBEAT_HALF_PERIOD_US).is_multiple_of(2);
+        }
         s.gpio_initialized && index(pin, GPIO_PIN_COUNT).and_then(|i| s.gpio_state.get(i).copied()).unwrap_or(false)
+    })
+}
+
+/// Run the `XPDR_EN` heartbeat for `lease_ms` from now (a running wave's
+/// lease is restarted), or stop it now (0)
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_gpio_heartbeat(pin: u32, lease_ms: u32) -> i32 {
+    let now = hal_timer_get_us();
+    sim(rc::BUSY, |s| {
+        if !s.gpio_initialized {
+            return rc::ERROR;
+        }
+        if pin != GPIO_PIN_XPDR_EN {
+            return rc::INVALID;
+        }
+        let running = s.heartbeat.filter(|&(_, end)| now < end);
+        s.heartbeat = match (running, lease_ms) {
+            (Some((start, _)), 0) => Some((start, now)),
+            (None, 0) => s.heartbeat,
+            (Some((start, _)), lease) => Some((start, now + u64::from(lease) * 1000)),
+            (None, lease) => Some((now, now + u64::from(lease) * 1000)),
+        };
+        rc::OK
     })
 }
 
@@ -1095,6 +1136,18 @@ pub extern "C" fn hal_sim_flash_fail_writes(fail: bool) {
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_sim_flash_fail_writes_after(writes: i32) {
     sim((), |s| s.flash.writes_before_fail = writes);
+}
+
+/// When the `XPDR_EN` heartbeat stops, or stopped, on the HAL time base
+/// (`hal_timer_get_us()`), µs; 0 if it has not run since `hal_gpio_init()`
+/// or for another pin. The radio board's monostable holds the transponder
+/// enabled until 50 ms after this
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_gpio_heartbeat_end_us(pin: u32) -> u64 {
+    sim(0, |s| match (pin, s.heartbeat) {
+        (GPIO_PIN_XPDR_EN, Some((_, end))) => end,
+        _ => 0,
+    })
 }
 
 /// Set an input pin's level, as the outside world would (it stays at that

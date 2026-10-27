@@ -2,9 +2,9 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-001
-**Revision:** C
-**Date:** 2026-01-02
-**Reference:** NPR 7123.1, NASA Ames SmallSat Heritage
+**Revision:** D
+**Date:** 2026-10-27
+**Reference:** NPR 7123.1D (tailored, `docs/project/CDR_CRITERIA_MATRIX.md` §2); `docs/BASELINE_PARAMETERS.md` Rev D
 
 ---
 
@@ -24,10 +24,14 @@ This document covers:
 
 | Document | Title |
 |----------|-------|
-| NPR 7123.1 | NASA Systems Engineering Processes and Requirements |
-| NPR 7120.5 | NASA Space Flight Program and Project Management |
+| SQSO-BL-001 Rev D | Baseline Parameters (governs every value; where this document disagrees, the baseline wins) |
+| NPR 7123.1D | NASA Systems Engineering Processes and Requirements (reference framework, tailored; the project is not NASA-funded) |
+| NPR 7120.8A | NASA Research and Technology Program and Project Management (reference for a NASA partnership; `docs/project/CDR_CRITERIA_MATRIX.md` §1) |
 | SQSO-CONOPS | SMART-QSO Concept of Operations |
-| Cal Poly CDS Rev 14.1 | CubeSat Design Specification |
+| Cal Poly CDS Rev 14.1 | CubeSat Design Specification (February 2022) |
+| 47 CFR Part 97 | FCC Amateur Radio Service, in particular 97.113, 97.207, 97.211 and 97.307 |
+| NASA-STD-8719.14C | Process for Limiting Orbital Debris (re-entry, casualty risk, collision probability) |
+| SpaceX Rideshare Payload User's Guide v11 (August 2026) | Interim launch-provider requirements until the integrator ICD is signed (decision D7) |
 
 ## 4. Mission Overview
 
@@ -62,7 +66,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
-| MRD-001 | The mission shall have a design life of 12 months minimum | A | Critical |
+| MRD-001 | The mission shall have a design life of 2 years and a minimum mission duration of 12 months (`docs/BASELINE_PARAMETERS.md` §2) *(design life 12 months until Rev C; aligned with the baseline at the CDR review, 2026-10-27)* | A | Critical |
 | MRD-002 | The spacecraft shall be capable of autonomous operations for up to 7 days without ground contact | D | Critical |
 | MRD-003 | The spacecraft shall re-enter the atmosphere no later than 5 years after completion of the mission with disposal success probability ≥ 0.9 (47 CFR 97.207(g)(1)(vii)(D)(1)), and within 25 years after mission completion per NASA-STD-8719.14C. *(Changed from the 25-year rule by the funding audit, 2026-10-14; see `docs/regulatory/filings/ODAR_SMART-QSO.md`.)* | A | Critical |
 
@@ -71,7 +75,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
 | MRD-010 | The mission shall operate in Low Earth Orbit (LEO) | A | Critical |
-| MRD-011 | The nominal orbit altitude shall be 400-500 km | A | Critical |
+| MRD-011 | The nominal orbit altitude at deployment shall be 450-500 km, circular and sun-synchronous (inclination about 97.4°), so that the nominal orbital lifetime with the wings deployed (2.3 years at 450 km, `docs/BASELINE_PARAMETERS.md` §3) exceeds the 2-year design life *(was 400-500 km until Rev C: at 400 km the lifetime is shorter than the design life, finding TB-03)* | A | Critical |
 | MRD-012 | The orbit inclination shall support global amateur radio coverage | A | High |
 | MRD-013 | The deployment altitude shall not exceed 500 km unless NASA DAS shows MRD-003 is met with the solar wings undeployed, and shall not exceed 525 km in any case. *(Added by the funding audit, 2026-10-14; see `docs/BASELINE_PARAMETERS.md` §3.)* | A | Critical |
 
@@ -93,7 +97,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
 | MRD-030 | The spacecraft shall provide amateur radio transponder capability | D | Primary |
-| MRD-031 | The transponder shall support linear and/or FM modes | T | Primary |
+| MRD-031 | The transponder shall support single-channel FM (16K0F3E), U/V: uplink 435-438 MHz, downlink 145.800-146.000 MHz (`docs/BASELINE_PARAMETERS.md` §2, §7) *(was "linear and/or FM" until Rev C)* | T | Primary |
 | MRD-032 | The transponder shall be accessible to licensed amateur operators | D | Primary |
 | MRD-033 | Transponder operation shall be managed by onboard AI when available | D | Primary |
 | MRD-034 | The spacecraft shall revert to conventional transponder mode if AI is unavailable | D | Critical |
@@ -118,7 +122,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
 | MRD-050 | The spacecraft shall generate sufficient power for all mission modes | A,T | Critical |
-| MRD-051 | The spacecraft shall survive eclipse periods of up to 35 minutes | A,T | Critical |
+| MRD-051 | The spacecraft shall survive eclipse periods of up to 36 minutes (the β = 0 cold case, `docs/BASELINE_PARAMETERS.md` §8) *(was 35 minutes until Rev C)* | A,T | Critical |
 | MRD-052 | Power-intensive operations shall be duty-cycled based on power availability | D | High |
 | MRD-053 | AI payload power consumption shall be managed to maintain positive power budget | D | Critical |
 
@@ -126,7 +130,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
-| MRD-060 | The spacecraft shall detumble within 7 days of deployment | T | Critical |
+| MRD-060 | The spacecraft shall detumble from body rates of up to 10°/s within 3 orbits (`docs/BASELINE_PARAMETERS.md` §8, decision D9) *(was "within 7 days of deployment" until Rev C; the exit condition and the method are still TBR-MRD-005)* | A,T | Critical |
 | MRD-061 | The spacecraft shall maintain attitude knowledge sufficient for antenna pointing | A | High |
 | MRD-062 | The spacecraft shall stabilize attitude for nominal operations | T | High |
 
@@ -148,6 +152,8 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | MRD-081 | The spacecraft shall not create debris during nominal operations | I | Critical |
 | MRD-082 | The spacecraft shall passivate at end of life | D | Critical |
 | MRD-083 | The spacecraft shall be trackable by ground-based surveillance | I | Critical |
+| MRD-084 | The risk of human casualty from any part of the spacecraft surviving re-entry shall be less than 1:10,000 (NASA-STD-8719.14C Requirement 4.7-1; disclosed under 47 CFR 97.207(g)(1)(vii)), and no component shall re-enter with more than 15 J of kinetic energy (CDS Rev 14.1 §2.4.3.1) *(added at the CDR review, 2026-10-27)* | A | Critical |
+| MRD-085 | The probability of collision with large objects (≥ 10 cm) during the orbital lifetime shall be no more than 0.001 (NASA-STD-8719.14C Requirement 4.5-1), and the licensee shall be able to respond to conjunction warnings (47 CFR 97.207(g)(1)(iv)-(v); `docs/regulatory/filings/SPACE_SAFETY_REGISTRATION_AND_CONJUNCTION_PLAN.md`) *(added at the CDR review, 2026-10-27)* | A | Critical |
 
 ### 5.10 Regulatory Requirements
 
@@ -157,6 +163,22 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | MRD-091 | The mission shall obtain required national spectrum authorization | I | Critical |
 | MRD-092 | The mission shall comply with ITU Radio Regulations | I | Critical |
 | MRD-093 | The mission shall comply with orbital debris mitigation requirements | I | Critical |
+| MRD-094 | The licensee shall be able to cease the spacecraft's emissions by telecommand whenever the FCC orders it, in every operating mode and independently of the AI payload (47 CFR 97.207(b); ITU RR 22.1) *(added at the CDR review, 2026-10-27; system requirement SYS-204)* | T | Critical |
+| MRD-095 | The spacecraft shall be commanded only by telecommand stations designated by the licensee, with authenticated commands (47 CFR 97.211(a)-(b)); at least two geographically separated stations shall be designated before the IARU request (decision D1) *(added at the CDR review, 2026-10-27)* | I,T | Critical |
+| MRD-096 | The licensee shall file the FCC pre-space notification within 30 days of launch-vehicle determination and no later than 90 days before integration into the launch vehicle, the in-space notification within 7 days of the first transmission, and the post-space notification within 3 months of the end of transmissions (47 CFR 97.207(g)(1)-(3); `docs/regulatory/REGULATORY_ROADMAP.md`) *(added at the CDR review, 2026-10-27)* | I | Critical |
+| MRD-097 | No transmission shall carry messages encoded to obscure their meaning, music, obscene or indecent content, or content in which the licensee or a control operator has a pecuniary interest (47 CFR 97.113(a)); AI-generated text shall pass the content filter of `docs/BEACON_SPEC.md` §6 *(added at the CDR review, 2026-10-27)* | T,I | Critical |
+
+### 5.11 Launch Provider and Integrator Requirements
+
+The launch reviewer is writing `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`; its requirement IDs flow into SYS-900 to
+SYS-912 (`docs/requirements/SYSTEM_REQUIREMENTS.md` §13a), where the chair fills the cross-references. Until the
+integrator ICD is signed (decision D7, by 2027-06-30), SpaceX Rideshare Payload User's Guide v11 is the interim provider
+document.
+
+| ID | Requirement | Verification | Priority |
+|----|-------------|--------------|----------|
+| MRD-098 | The spacecraft shall meet the requirements of the integrator's dispenser ICD and the launch provider's user guide, verified by the integrator's acceptance checklist before delivery (CDS Rev 14.1 §1.2, §3) *(added at the CDR review, 2026-10-27)* | I,T | Critical |
+| MRD-099 | The spacecraft and its data package shall be delivered to the integrator by the date in the launch contract, with the regulatory filings (MRD-090, MRD-096) on file *(added at the CDR review, 2026-10-27; schedule in `mission/SCHEDULE.md`)* | I | Critical |
 
 ---
 
@@ -182,6 +204,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | MRD-030-034 | X | X | X | | X |
 | MRD-040-045 | X | | X | X | |
 | MRD-050-053 | X | X | X | X | |
+| MRD-080-085, MRD-090-099 | | X | | | X |
 
 ### 7.2 Flow-down to System Requirements
 
@@ -193,6 +216,10 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | MRD-040-045 | SYS-200-230 |
 | MRD-050-053 | SYS-300-330 |
 | MRD-060-062 | SYS-400-420 |
+| MRD-080, MRD-098 | SYS-001-009, SYS-014-019, SYS-221-225, SYS-700-712, SYS-900-912 |
+| MRD-084, MRD-085 | SYS-803, SYS-913 |
+| MRD-094-097 | SYS-204, SYS-205, SYS-325, SYS-326, SYS-513, SYS-914 |
+| MRD-099 | `mission/SCHEDULE.md` (programmatic) |
 
 ---
 
@@ -200,13 +227,13 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 
 | ID | Item | Closure Plan | Target Date |
 |----|------|--------------|-------------|
-| TBD-MRD-001 | Exact orbit parameters | Launch manifest assignment | TBD |
-| TBD-MRD-002 | IARU coordination confirmation | IARU process completion | TBD |
+| TBD-MRD-001 | Exact orbit parameters | Launch manifest assignment: the integrator contract (decision D7) names the flight and drop-off altitude | 2027-06-30 |
+| TBD-MRD-002 | IARU coordination confirmation | IARU process completion: request after the PDR, letter about 6 months later (`mission/SCHEDULE.md`) | 2027-08-31 |
 | TBR-MRD-001 | AI model final selection | Closed (2026-10-16) by PI decision D5: the flight baseline is a calibrated selector on the OBC that chooses among pre-approved templates; generated text on the Jetson (SmolLM2-360M-Instruct or Qwen3-0.6B) is a gated experiment (`docs/BASELINE_PARAMETERS.md` §6, §9) | — |
-| TBR-MRD-002 | MRD-012 has no measure of "global coverage" | PI ratifies, amends or rejects the proposed wording beneath §5.2 (finding VV-16) | TBD |
-| TBR-MRD-003 | MRD-043 has no measure of "fairly" | PI ratifies, amends or rejects the proposed wording beneath §5.5 (finding VV-16) | TBD |
-| TBR-MRD-004 | MRD-045 ("shall not compromise spacecraft safety") has no pass criterion | PI ratifies, amends or rejects the proposed wording beneath §5.5 (finding VV-16) | TBD |
-| TBR-MRD-005 | MRD-060 does not say what "detumble" means, and Test alone is not feasible | PI ratifies, amends or rejects the proposed wording beneath §5.7 (finding VV-16) | TBD |
+| TBR-MRD-002 | MRD-012 has no measure of "global coverage" | PI ratifies, amends or rejects the proposed wording beneath §5.2 (finding VV-16) | 2027-01-12 (PDR) |
+| TBR-MRD-003 | MRD-043 has no measure of "fairly" | PI ratifies, amends or rejects the proposed wording beneath §5.5 (finding VV-16) | 2027-01-12 (PDR) |
+| TBR-MRD-004 | MRD-045 ("shall not compromise spacecraft safety") has no pass criterion | PI ratifies, amends or rejects the proposed wording beneath §5.5 (finding VV-16) | 2027-01-12 (PDR) |
+| TBR-MRD-005 | MRD-060 does not say what "detumble" means, and Test alone is not feasible | PI ratifies, amends or rejects the proposed wording beneath §5.7 (finding VV-16) | 2027-01-12 (PDR) |
 
 ---
 
@@ -217,3 +244,4 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §8 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-MRD-001, TBD-MRD-002 and TBR-MRD-001. TBR-MRD-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §9) (finding VV-17). Proposed testable wording, for the PI to ratify, beneath MRD-012, MRD-043, MRD-045 and MRD-060; requirement text unchanged; tracked as TBR-MRD-002 to TBR-MRD-005 (finding VV-16) | SMART-QSO Team |
 | C | 2026-10-16 | §4.3 Extended success criterion reworded: federated learning is ground-side research only, not in the flight baseline (BASELINE §2); keeping or dropping the criterion is the PI's decision (finding PI-13) | SMART-QSO Team |
+| D | 2026-10-27 | CDR review (PM/SE/V&V). Values aligned with `docs/BASELINE_PARAMETERS.md` Rev D: MRD-001 (2-year design life, 12-month minimum), MRD-011 (450-500 km SSO), MRD-031 (single-channel FM), MRD-051 (36-minute eclipse), MRD-060 (10°/s within 3 orbits; method A,T). Added MRD-084 to MRD-099 from NASA-STD-8719.14C, CDS Rev 14.1, 47 CFR 97.113/97.207/97.211 and the launch provider (§5.11). Applicable documents updated (NPR 7123.1D; NPR 7120.5 replaced by 7120.8A as reference). TBD/TBR target dates set. Change request to be logged by the chair (CR-2026-007) | CDR review, PM/SE/V&V |

@@ -2,11 +2,12 @@
 ## TP-ENV-003
 
 **Document Number:** TP-ENV-003
-**Revision:** C
-**Date:** 2026-01-02
-**Reference:** GSFC-STD-7000A (GEVS)
+**Revision:** D
+**Date:** 2026-10-27
+**Reference:** GSFC-STD-7000B (GEVS) §2.6.3 and Appendix B §2.6; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.4-§3.5
+(levels); SpaceX Rideshare Payload User's Guide v11 Table 6-2; LSP-REQ-317.01 Rev B Table 1 (bake-out)
 
-**Requirements verified:** SYS-600, SYS-601 (cold survival limit open, TBR-TPENV003-001), SYS-702
+**Requirements verified:** SYS-600, SYS-601 (cold survival limit open, TBR-TPENV003-001), SYS-602, SYS-702, SYS-706, SYS-707
 
 ---
 
@@ -18,7 +19,7 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 
 | Equipment | Specification |
 |-----------|---------------|
-| Thermal vacuum chamber | < 10⁻⁵ Torr, -40°C to +80°C |
+| Thermal vacuum chamber | < 10⁻⁵ Torr; platen and shroud -50 °C to +80 °C (the cold survival plateau needs -40 °C at the structure with margin for control) |
 | Temperature controllers | Shroud and platen |
 | Thermocouples | Type T, 30+ channels |
 | Pressure gauge | Ion gauge, convection gauge |
@@ -32,21 +33,35 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 
 | Parameter | Hot (°C) | Cold (°C) |
 |-----------|----------|-----------|
-| Operational | +50 | -20 |
-| Survival | +60 | -40 (SYS-601) or -30 (Rev B of this procedure): TBR-TPENV003-001 |
-| Protoflight margin | +5 | -5 |
+| Operational requirement (SYS-600) | +50 | -20 |
+| Survival requirement (SYS-601) | +60 | -40 (cold survival limit open: TBR-TPENV003-001) |
+| **Operational test plateau** (SYS-600 ± 10 °C, GSFC-STD-7000B §2.6.3.2.1.1) | **+60** | **-30** |
+| **Non-operating test plateau** (capped by the battery's +60 °C limit, ETP §3.4 and §9 deviation 1) | **+60** | **-40 at the structure, battery heater enabled, battery above -20** |
+| Bake-out (SYS-706) | +60 (+0/-2) for ≥ 6 h after stabilisation at ≤ 1 × 10⁻⁴ Torr | — |
+
+Rev C used a ± 5 °C protoflight margin; GEVS-B requires at least 10 °C beyond the allowable flight temperatures. When
+the correlated thermal model exists, each plateau becomes max(margined prediction + 10 °C, AFT ± 10 °C), re-checked
+against the battery cap.
 
 ### 3.2 Test Profile
 
 | Phase | Temperature | Duration | Pressure |
 |-------|-------------|----------|----------|
-| Pumpdown | Ambient | Until < 10⁻⁵ Torr | Decreasing |
-| Hot operational | +50°C | 4 hours minimum | < 10⁻⁵ Torr |
-| Hot survival | +60°C | 1 hour minimum | < 10⁻⁵ Torr |
-| Transition | +60°C to -20°C | Natural | < 10⁻⁵ Torr |
-| Cold operational | -20°C | 4 hours minimum | < 10⁻⁵ Torr |
-| Cold survival | -40°C or -30°C (TBR-TPENV003-001) | 1 hour minimum | < 10⁻⁵ Torr |
-| **Cycles** | **4 complete** | | |
+| Pumpdown | Ambient | Until < 10⁻⁵ Torr (spacecraft unpowered: launch configuration) | Decreasing |
+| Bake-out (outgassing phase) | +60 °C | ≥ 6 hours after stabilisation | ≤ 1 × 10⁻⁴ Torr |
+| Hot start | +60 °C | Power on after bake-out; boot within 30 s (SYS-300) | < 10⁻⁵ Torr |
+| Hot operational | +60 °C | ≥ 3 hours (stabilisation + performance test); one 120 s Jetson burst | < 10⁻⁵ Torr |
+| Hot non-operating | +60 °C | ≥ 2 hours | < 10⁻⁵ Torr |
+| Transition | ≤ 1 °C/min | | < 10⁻⁵ Torr |
+| Cold operational | -30 °C | ≥ 3 hours; charging must be inhibited below 0 °C (SYS-602) | < 10⁻⁵ Torr |
+| Cold non-operating | -40 °C at the structure (TBR-TPENV003-001) | ≥ 2 hours | < 10⁻⁵ Torr |
+| Cold start | -30 °C | Power on after the cold non-operating plateau | < 10⁻⁵ Torr |
+| Thermal balance | Two steady-state points (hot with burst, cold safe mode) | Until < 0.1 °C/h | < 10⁻⁵ Torr |
+| **Cycles** | **8 complete** (plus 4 board-level air cycles before integration: 12 total, GEVS-B Table 2.6-1) | | |
+
+Stabilisation: 98 % of the temperature sensors within 2 °C of the plateau, or changing < 0.1 °C/h (GEVS-B
+§2.6.3.2.3). A comprehensive performance test (TP-SYS-001) runs at the first and last hot and cold operational
+plateaus; a limited functional test at the others.
 
 ## 4. Procedure
 
@@ -87,34 +102,38 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 
 | Step | Action | Expected | Measured | P/F |
 |------|--------|----------|----------|-----|
-| 1 | Ramp to +50°C | 1-2°C/min rate | ______ °C/min | |
-| 2 | Stabilize at +50°C | All TCs ±2°C | ______ | |
-| 3 | Hot soak (4 hrs) | Maintain +50°C | ______ hrs | |
+| 1 | Ramp to +60°C (hot operational plateau) | ≤ 1°C/min | ______ °C/min | |
+| 2 | Stabilize at +60°C | 98 % of TCs within ±2°C, or < 0.1 °C/h | ______ | |
+| 3 | Hot soak (≥ 3 hrs) with one 120 s Jetson burst; battery charging inhibited above +45 °C | Maintain +60°C; burst ends on the OBC limit | ______ hrs | |
 | 4 | Functional test | TP-SYS-001 pass | ______ | |
 | 5 | Power off | Spacecraft safe | ______ | |
-| 6 | Ramp to +60°C | Survival temp | ______ °C | |
-| 7 | Survival soak (1 hr) | Maintain +60°C | ______ hrs | |
+| 6 | Hold +60°C unpowered (hot non-operating) | Survival temp | ______ °C | |
+| 7 | Survival soak (≥ 2 hrs) | Maintain +60°C | ______ hrs | |
 
 #### Cold Phase
 
 | Step | Action | Expected | Measured | P/F |
 |------|--------|----------|----------|-----|
-| 1 | Ramp to -20°C | 1-2°C/min rate | ______ °C/min | |
-| 2 | Stabilize at -20°C | All TCs ±2°C | ______ | |
+| 1 | Ramp to -30°C | ≤ 1°C/min | ______ °C/min | |
+| 2 | Stabilize at -30°C | 98 % of TCs within ±2°C, or < 0.1 °C/h | ______ | |
 | 3 | Power on | Successful boot | ______ | |
-| 4 | Cold soak (4 hrs) | Maintain -20°C | ______ hrs | |
+| 4 | Cold soak (≥ 3 hrs); charging inhibited below 0 °C | Maintain -30°C | ______ hrs | |
 | 5 | Functional test | TP-SYS-001 pass | ______ | |
 | 6 | Power off | Spacecraft safe | ______ | |
 | 7 | Ramp to the cold survival limit, -40°C or -30°C (TBR-TPENV003-001) | Survival temp | ______ °C | |
-| 8 | Survival soak (1 hr) | Maintain the cold survival limit (TBR-TPENV003-001) | ______ hrs | |
+| 8 | Survival soak (≥ 2 hrs) | Maintain the cold survival limit (TBR-TPENV003-001) | ______ hrs | |
 
-### 4.5 Thermal Cycles 2-4
+### 4.5 Thermal Cycles 2-8
 
 | Cycle | Hot Op | Hot Surv | Cold Op | Cold Surv | Functional | P/F |
 |-------|--------|----------|---------|-----------|------------|-----|
 | 2 | ______ | ______ | ______ | ______ | ______ | |
 | 3 | ______ | ______ | ______ | ______ | ______ | |
 | 4 | ______ | ______ | ______ | ______ | ______ | |
+| 5 | ______ | ______ | ______ | ______ | ______ | |
+| 6 | ______ | ______ | ______ | ______ | ______ | |
+| 7 | ______ | ______ | ______ | ______ | ______ | |
+| 8 | ______ | ______ | ______ | ______ | ______ | |
 
 ### 4.6 Return to Ambient
 
@@ -132,7 +151,7 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 |------|--------|-----------------|--------|-----|
 | 1 | Visual inspection | No damage | ______ | |
 | 2 | Functional test | TP-SYS-001 pass | ______ | |
-| 3 | Deployment test | Mechanisms operate | ______ | |
+| 3 | Burn-wire continuity and stowed-state telemetry (deployments run before vibration: ETP §3.8) | Continuity within the pre-test value ± 10 %; stowed | ______ | |
 | 4 | Remove thermocouples | Document locations | ______ | |
 
 ## 5. Temperature Monitoring Points
@@ -140,7 +159,7 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 | Location | TC# | Hot Limit | Cold Limit |
 |----------|-----|-----------|------------|
 | OBC | TC01 | +70°C | -40°C |
-| Battery | TC02 | +45°C | 0°C |
+| Battery | TC02 | +60°C (non-operating; charging inhibited above +45 °C) | -20°C (charging inhibited below 0 °C) |
 | Jetson | TC03 | +70°C | -20°C |
 | RF PA | TC04 | +65°C | -30°C |
 | Structure +X | TC05 | +80°C | -40°C |
@@ -150,10 +169,11 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 
 ## 6. Pass/Fail Criteria
 
-- Complete 4 thermal cycles
+- Complete the bake-out and 8 thermal cycles
 - All functional tests pass at hot/cold operational
 - No damage after survival temperatures
-- Temperature rate < 2°C/min
+- Temperature rate ≤ 1°C/min
+- Charging inhibited above +45 °C and below 0 °C, shown by the EPS telemetry
 - Pressure maintained < 10⁻⁵ Torr
 - Post-test functional complete
 
@@ -170,11 +190,12 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 
 | Parameter | Requirement | Measured | P/F |
 |-----------|-------------|----------|-----|
-| Hot operational | +50°C ± 2°C | ______ | |
+| Bake-out | +60°C, ≥ 6 h, ≤ 1 × 10⁻⁴ Torr | ______ | |
+| Hot operational | +60°C ± 2°C | ______ | |
 | Hot survival | +60°C ± 2°C | ______ | |
-| Cold operational | -20°C ± 2°C | ______ | |
-| Cold survival | -40°C or -30°C ± 2°C (TBR-TPENV003-001) | ______ | |
-| Cycles complete | 4 | ______ | |
+| Cold operational | -30°C ± 2°C | ______ | |
+| Cold survival | -40°C ± 2°C at the structure (TBR-TPENV003-001) | ______ | |
+| Cycles complete | 8 | ______ | |
 | Test pressure | < 10⁻⁵ Torr | ______ | |
 | Functional at hot | Pass | ______ | |
 | Functional at cold | Pass | ______ | |
@@ -184,7 +205,7 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 
 | ID | Item | Owner | Closure Plan | Needed by |
 |----|------|-------|--------------|-----------|
-| TBR-TPENV003-001 | Cold survival limit: SYS-601 requires survival from -40 °C; Rev B of this procedure set its cold survival limit at -30 °C | PI | The PI sets the survival range: test to -40 °C (SYS-601) or amend SYS-601. For the decision: the chamber in §2 reaches -40 °C, so -40 °C with the -5 °C protoflight margin of §3.1 is outside its range; the RF PA cold limit in §5 is -30 °C; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §3.2 also gives -30 °C. SYS-601 governs until it is amended | Before the thermal vacuum test |
+| TBR-TPENV003-001 | Cold survival limit: SYS-601 requires survival from -40 °C; Rev B of this procedure set its cold survival limit at -30 °C | PI | The PI sets the survival range: test to -40 °C (SYS-601) or amend SYS-601. Rev D tests -40 °C at the structure with the battery heater on and the battery above -20 °C (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.4), which is SYS-601 without the GEVS 10 °C margin; the RF PA cold limit in §5 is -30 °C, so the PA's own survival rating must be confirmed. The EM thermal-vacuum test and the correlated model (ETP VI-03) give the evidence. SYS-601 governs until it is amended | EM TVAC, 2027-07 |
 
 ---
 
@@ -195,3 +216,4 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
 | C | 2026-10-16 | Cold survival limit marked open between -40 °C (SYS-601) and -30 °C (Rev B), tracked as TBR-TPENV003-001 in the new §9 for the PI; §3.1 cites SYS-601 (findings VV-06, VV-17) | SMART-QSO Team |
+| D | 2026-10-27 | CDR review (PM/SE/V&V): levels from `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C: operational plateaus +60/-30 °C (10 °C margin, GSFC-STD-7000B), non-operating +60 °C (battery cap) and -40 °C at the structure, bake-out +60 °C for 6 h at ≤ 1 × 10⁻⁴ Torr, 8 cycles, hot and cold starts, thermal balance, ≤ 1 °C/min; battery monitoring limits corrected (the +45 °C limit is a charge limit); post-test deployment replaced by continuity; SYS-602, SYS-706, SYS-707 added. Was GSFC-STD-7000A, ± 5 °C, 4 cycles | CDR review, PM/SE/V&V |

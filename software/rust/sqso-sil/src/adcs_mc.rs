@@ -10,8 +10,17 @@
 //! on in SUNPOINT for the rest of the trial. The trial measures the
 //! detumble, the pointing of +Y, the array's generation and the coil duty.
 //! [`sweep`] runs trials over a grid of spin rates and gains.
+//!
+//! The coils are driven in bursts, as the flight timing commands them
+//! (`sqso_fsw::adcs::CoilTiming`: 900 ms on, then off until the next cycle),
+//! and their own field reaches the magnetometer through a coupling matrix
+//! ([`Params::mag_coupling`]) that decays after the burst with the drive's
+//! time constant ([`COIL_TAU_S`]). With the flight window the samples are
+//! clean; with the coils on through the sample, the coupling corrupts
+//! B-dot and the rate estimate, and the flight software's rejection count
+//! ([`Trial::mag_rejected`]) shows it.
 
-use sqso_fsw::adcs::{self, Adcs, Gains, Vec3};
+use sqso_fsw::adcs::{self, Adcs, CoilTiming, Gains, Vec3};
 
 use crate::env::atmosphere;
 use crate::env::attitude::{self, Attitude, Disturbance};
@@ -24,8 +33,12 @@ use crate::env::solar::{Array, ArrayInputs, N_STRINGS};
 use crate::env::sun;
 use crate::env::time;
 
-/// Physics sub-step, s (the control period is 1 s)
-const SUBSTEP_S: f64 = 0.25;
+/// Physics sub-step, s (the control period is 1 s; ten sub-steps resolve
+/// the 900 ms coil burst)
+const SUBSTEP_S: f64 = 0.1;
+/// The coil field's decay after a burst ends (drive current and eddy
+/// currents), s
+pub const COIL_TAU_S: f64 = 0.005;
 /// Rate across +Y below which the spacecraft counts as captured, rad/s
 /// (0.5°/s), with the spin about +Y below twice the SUNPOINT spin
 const DETUMBLED_RAD_S: f64 = 0.5 * core::f64::consts::PI / 180.0;
@@ -94,6 +107,12 @@ pub struct Params {
     pub sensors: SensorModel,
     /// Control gains
     pub gains: Gains,
+    /// Coil burst and magnetometer window
+    pub timing: CoilTiming,
+    /// Coil-to-magnetometer coupling: the magnetometer reads this many
+    /// tesla per A·m² of coil dipole (a random matrix of this norm per
+    /// trial; to be measured on the engineering model)
+    pub mag_coupling: f64,
 }
 
 /// What one trial measured
@@ -126,6 +145,8 @@ pub struct Trial {
     pub transverse_dps: f64,
     /// Steady state: mean coil power, W
     pub mtq_w: f64,
+    /// Magnetometer samples the flight software discarded (coils on or not settled)
+    pub mag_rejected: u32,
 }
 
 /// A gyro by name: `none`, `bmi088` (calibrated), `bmi088_uncal`, `mg370`,
@@ -185,6 +206,8 @@ pub struct Sensors {
     model: SensorModel,
     mag_bias: V3,
     gyro: Option<Gyro>,
+    /// Coil dipole to magnetometer field, T per A·m² (rows: field axes)
+    coupling: [V3; 3],
 }
 
 impl Sensors {
@@ -192,7 +215,21 @@ impl Sensors {
     pub fn new(model: SensorModel, rng: &mut Rng) -> Sensors {
         let mag_bias = V3::new(rng.normal(), rng.normal(), rng.normal()) * model.mag_bias_t;
         let gyro = model.gyro.map(|g| Gyro::new(g, rng));
-        Sensors { model, mag_bias, gyro }
+        Sensors { model, mag_bias, gyro, coupling: [V3::ZERO; 3] }
+    }
+
+    /// With a coil-to-magnetometer coupling of norm `k` (T per A·m²):
+    /// a random matrix, each element normal, scaled to Frobenius norm `k`
+    pub fn with_coupling(mut self, rng: &mut Rng, k: f64) -> Sensors {
+        let rows = [rng.unit_vector(), rng.unit_vector(), rng.unit_vector()];
+        let n = (rows.iter().map(|r| r.norm2()).sum::<f64>()).sqrt();
+        self.coupling = rows.map(|r| r * (k / n));
+        self
+    }
+
+    /// The field the coils make at the magnetometer for the coil dipole `m`
+    pub fn coil_field(&self, m: V3) -> V3 {
+        V3::new(self.coupling[0].dot(m), self.coupling[1].dot(m), self.coupling[2].dot(m))
     }
 
     /// The magnetometer reading of the body field `b_body` (T)
@@ -224,6 +261,8 @@ pub fn default_params() -> Params {
         tipoff_sigma: 5.0_f64.to_radians(),
         tipoff_max: 15.0_f64.to_radians(),
         residual_dipole: 3e-3,
+        timing: CoilTiming::FLIGHT,
+        mag_coupling: 1e-4,
         sensors: SensorModel {
             mag_noise_t: 50e-9,
             mag_bias_t: 300e-9,
@@ -304,11 +343,19 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
     let mut att = Attitude::new(rng.quat(), w0, attitude::inertia_stowed());
     let dist = Disturbance { residual_dipole: rng.unit_vector() * p.residual_dipole, ..Disturbance::nominal() };
     let mut sensors = Sensors::new(p.sensors, &mut rng);
+    if p.mag_coupling > 0.0 {
+        // A separate stream, so the other draws are the same with or without it
+        let mut crng = Rng::new(seed ^ 0x5eed_c011);
+        sensors = sensors.with_coupling(&mut crng, p.mag_coupling);
+    }
     let array = Array::new();
 
     let mut a = Adcs::new();
     a.init();
     a.gains = p.gains;
+    a.timing = p.timing;
+    // The coils' burst in the last control period: dipole and length, s
+    let mut burst = (V3::ZERO, 0.0f64);
     let _ = a.set_mode(adcs::mode::DETUMBLE, 1);
 
     let mut out = Trial { tipoff_dps: w0.norm().to_degrees(), ..Trial::default() };
@@ -339,9 +386,12 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         let v_rel = v - V3::new(0.0, 0.0, OMEGA_EARTH).cross(r);
         let wd = [wings, wings];
 
-        // Sensors, then the flight law (1 Hz)
+        // Sensors, then the flight law (1 Hz). The coils' field at the
+        // magnetometer: full while the last burst runs, decaying after it
         let b_b = att.to_body(b_eci);
-        let mag = sensors.magnetometer(&mut rng, b_b);
+        let since_off = 1.0 - burst.1;
+        let coil_share = if since_off <= 0.0 { 1.0 } else { (-since_off / COIL_TAU_S).exp() };
+        let mag = sensors.magnetometer(&mut rng, b_b) + sensors.coil_field(burst.0 * coil_share);
         let sun_b = att.to_body(sun_u);
         let sun_meas = sensors.sun_sensors(&mut rng, sun_b, illum);
         let gyro_reading = sensors.gyro(&mut rng, att.w, 1.0).map(v3);
@@ -359,13 +409,16 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         }
         let m = a.state.mtq;
         let dipole = if m.enabled { V3::new(m.dipole.x, m.dipole.y, m.dipole.z) } else { V3::ZERO };
+        let on_s = if m.enabled { (p.timing.on_ms as f64 / 1000.0).min(1.0) } else { 0.0 };
+        burst = (dipole, on_s);
 
-        // Dynamics over the control period
+        // Dynamics over the control period: the burst, then the window
         let n_sub = (1.0 / SUBSTEP_S).round() as u32;
-        for _ in 0..n_sub {
+        for j in 0..n_sub {
             let bb = att.to_body(b_eci);
             let v_body = att.to_body(v_rel);
-            let torque = attitude::magnetic_torque(dipole, bb)
+            let coil = if (f64::from(j) + 0.5) * SUBSTEP_S < on_s { dipole } else { V3::ZERO };
+            let torque = attitude::magnetic_torque(coil, bb)
                 + dist.residual_torque(bb)
                 + attitude::gravity_gradient(r, att.q, att.inertia)
                 + dist.aero_torque(v_body, density, wd);
@@ -414,7 +467,7 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
             }
             spin_sum += att.w.y;
             trans_sq += att.w.x * att.w.x + att.w.z * att.w.z;
-            mtq_j += MTQ_FULL_W * (dipole.norm() / (adcs::MAX_DIPOLE * 3f64.sqrt())).min(1.0);
+            mtq_j += MTQ_FULL_W * (dipole.norm() / (adcs::MAX_DIPOLE * 3f64.sqrt())).min(1.0) * on_s;
             if k % 10 == 0 {
                 let cos_zeta = r.unit().dot(sun_u);
                 let inp = ArrayInputs {
@@ -446,6 +499,7 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         out.transverse_dps = (trans_sq / steady_s).sqrt().to_degrees();
         out.mtq_w = mtq_j / steady_s;
     }
+    out.mag_rejected = a.mag_rejected;
     out
 }
 
@@ -480,6 +534,8 @@ pub struct Summary {
     pub transverse_dps: f64,
     /// Mean coil power, W
     pub mtq_w: f64,
+    /// Magnetometer samples the flight software discarded, mean per trial
+    pub mag_rejected: f64,
 }
 
 fn pct(sorted: &[f64], q: f64) -> f64 {
@@ -515,6 +571,7 @@ pub fn summarize(trials: &[Trial]) -> Summary {
         spin_dps: trials.iter().map(|t| t.spin_dps).sum::<f64>() / nf,
         transverse_dps: trials.iter().map(|t| t.transverse_dps).sum::<f64>() / nf,
         mtq_w: trials.iter().map(|t| t.mtq_w).sum::<f64>() / nf,
+        mag_rejected: trials.iter().map(|t| f64::from(t.mag_rejected)).sum::<f64>() / nf,
     }
 }
 
@@ -557,5 +614,28 @@ mod tests {
         assert!(t.tipoff_dps > 0.0);
         assert!(t.detumbled_h.is_some(), "{t:?}");
         assert!(t.gen_w > 0.5, "{t:?}");
+        assert_eq!(t.mag_rejected, 0, "the flight window gives clean samples");
+    }
+
+    #[test]
+    fn a_missing_window_is_detected() {
+        let mut p = default_params();
+        p.duration_s = 3600.0;
+        p.steady_from_s = 1800.0;
+        // Coils on through the sample: the flight software sees it
+        p.timing = CoilTiming { on_ms: 1000, settle_ms: adcs::MAG_SETTLE_MS };
+        let t = trial(&p, 3);
+        assert!(t.mag_rejected > 3000, "{t:?}");
+        assert!(t.detumbled_h.is_none(), "no control without clean samples: {t:?}");
+    }
+
+    #[test]
+    fn the_coils_field_reaches_the_magnetometer() {
+        let mut rng = Rng::new(7);
+        let s = Sensors::new(default_params().sensors, &mut rng).with_coupling(&mut rng, 1e-4);
+        let m = V3::new(0.2, 0.0, 0.0);
+        let b = s.coil_field(m);
+        assert!(b.norm() > 1e-6 && b.norm() < 2e-5, "{b:?}");
+        assert_eq!(s.coil_field(V3::ZERO).norm(), 0.0);
     }
 }

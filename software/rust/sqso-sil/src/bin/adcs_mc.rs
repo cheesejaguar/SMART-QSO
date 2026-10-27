@@ -6,7 +6,14 @@
 //!              [--tipoff-sigma DEG] [--tipoff-max DEG] [--dipole AM2]
 //!              [--gyro none|bmi088|bmi088_uncal|mg370|adis16505] [--gyro-bias DEG_S]
 //!              [--mag-noise NT] [--css DEG]
+//!              [--mtq-on MS] [--settle MS] [--coupling T_PER_AM2]
 //! ```
+//!
+//! `--mtq-on` and `--settle` set the coil burst and the settling time the
+//! flight software waits before it uses a magnetometer sample (flight: 900
+//! and 50 ms; `--mtq-on 1000 --settle 0` is the coils left on through the
+//! sample, with the flight software unaware of it). `--coupling` is the
+//! coil-to-magnetometer coupling (default 1e-4 T per A·m²; 0 for none).
 //!
 //! LIST is comma-separated; every combination is run. One CSV row per
 //! combination goes to stdout (summary statistics over the trials).
@@ -50,6 +57,9 @@ fn main() {
             "--dipole" => p.residual_dipole = v.parse().unwrap_or(p.residual_dipole),
             "--mag-noise" => p.sensors.mag_noise_t = v.parse::<f64>().unwrap_or(50.0) * 1e-9,
             "--css" => p.sensors.css_sigma_rad = v.parse::<f64>().unwrap_or(5.0).to_radians(),
+            "--mtq-on" => p.timing.on_ms = v.parse().unwrap_or(p.timing.on_ms),
+            "--settle" => p.timing.settle_ms = v.parse().unwrap_or(p.timing.settle_ms),
+            "--coupling" => p.mag_coupling = v.parse().unwrap_or(p.mag_coupling),
             "--gyro-bias" => gyro_bias = v.parse::<f64>().ok(),
             "--gyro" => match adcs_mc::gyro_preset(&v) {
                 Some(g) => p.sensors.gyro = g,
@@ -70,7 +80,7 @@ fn main() {
     println!(
         "spin_dps,momentum,nutation,bdot,spin_hold,trials,not_detumbled,det_med_h,det_p95_h,det_max_h,fsw_med_h,fsw_p95_h,fsw_max_h,\
          with_timeout,sun_mean_deg,sun_p95_worst_deg,within15,eclipse_exit_worst_deg,anti,gen_mean_w,gen_worst_w,\
-         spin_mean_dps,transverse_dps,mtq_w"
+         spin_mean_dps,transverse_dps,mtq_w,mag_rejected"
     );
     for &spin in &spins {
         for &mom in &moms {
@@ -86,7 +96,7 @@ fn main() {
                         };
                         let s = adcs_mc::summarize(&adcs_mc::run(&p, trials, seed, threads));
                         println!(
-                            "{spin},{mom},{nut},{bd},{hold},{},{},{:.2},{:.2},{:.2},{:.2},{:.2},{:.2},{},{:.1},{:.1},{:.3},{:.1},{},{:.3},{:.3},{:.2},{:.3},{:.3}",
+                            "{spin},{mom},{nut},{bd},{hold},{},{},{:.2},{:.2},{:.2},{:.2},{:.2},{:.2},{},{:.1},{:.1},{:.3},{:.1},{},{:.3},{:.3},{:.2},{:.3},{:.3},{:.0}",
                             s.n,
                             s.not_detumbled,
                             s.detumble_h.0,
@@ -105,7 +115,8 @@ fn main() {
                             s.gen_w.1,
                             s.spin_dps,
                             s.transverse_dps,
-                            s.mtq_w
+                            s.mtq_w,
+                            s.mag_rejected
                         );
                     }
                 }

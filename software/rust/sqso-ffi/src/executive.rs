@@ -790,9 +790,11 @@ impl Executive {
         let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_HEATER_EN, self.heater.on) };
     }
 
-    /// The FM transponder's gates (`sqso_fsw::transponder`): `XPDR_EN` high
-    /// while transmission is permitted, the radio powered, ACTIVE, sunlit,
-    /// SOC at least 55 %, the PA cool and the keyed time within its budget
+    /// The FM transponder's gates (`sqso_fsw::transponder`): the `XPDR_EN`
+    /// heartbeat runs while transmission is permitted, the radio powered,
+    /// ACTIVE, sunlit, SOC at least 55 %, the PA cool and the keyed time
+    /// within its budget. Its lease is renewed on every pass (0 stops it),
+    /// so it stops by itself if this loop stops
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn run_transponder(&mut self, now: u64, state: u32) {
         let mut eps = EpsState::DEFAULT;
@@ -807,13 +809,13 @@ impl Executive {
             fwd_w: adc_or_nan(ADC_CHANNEL_TX_FWD),
         };
         let change = self.transponder.step(now, &inputs);
+        // SAFETY: plain values (the HAL)
+        let _ = unsafe { crate::c::hal_gpio_heartbeat(GPIO_PIN_XPDR_EN, self.transponder.heartbeat_lease_ms()) };
         match change {
-            transponder::Change::None => return,
+            transponder::Change::None => {}
             transponder::Change::On => crate::c::console(format_args!("[XPDR] Transponder on")),
             transponder::Change::Off(why) => crate::c::console(format_args!("[XPDR] Transponder off: {}", why.text())),
         }
-        // SAFETY: plain values (the HAL)
-        let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_XPDR_EN, self.transponder.enabled) };
     }
 
     /// With the EPS controller answering, the Jetson in batches

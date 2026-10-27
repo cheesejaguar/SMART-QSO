@@ -2,26 +2,27 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-TX-001
-**Version:** 1.2
-**Date:** 2026-10-26
+**Version:** 1.3
+**Date:** 2026-10-27
 **Status:** CDR Baseline
 
 ---
 
 ## 1. Overview
 
-This document defines the RF transmitter design for the SMART-QSO 1U CubeSat beacon system, following IARU coordination requirements and amateur radio regulations.
+This document defines the 2 m transmitter of the SMART-QSO 1U CubeSat. It carries the AX.25 beacon (through the KISS TNC) and the FM transponder downlink (through the repeat path), time-shared (`docs/hardware/RF_DESIGN.md` v2.0 §3). Values follow BASELINE §7; the link budget is SQSO-LBA-001 v3.0. Version 1.3 (CDR) removes the 2 W level, sets the deviation, stability and harmonic requirements, and records the filter analysis.
 
 ### 1.1 Design Requirements
 
 | Requirement | Value | Source |
 |-------------|-------|--------|
-| Frequency | 145.825 MHz (superseded: one IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz, BASELINE §7) | IARU Coordination |
-| Modulation | AFSK (Bell 202) | AX.25 Standard |
+| Frequency | One IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz | BASELINE §7 |
+| Modulation | FM: AFSK (Bell 202) beacon, ±3.0 kHz peak (10K4F2D); FM voice repeat, ±5.0 kHz peak with limiter (16K0F3E) | ITU_APPENDIX4_DATA §C |
 | Data Rate | 1200 bps | AX.25 Standard |
-| Output Power | 0.5 - 2.0 W (superseded: maximum 1 W, nominal 0.5 W, BASELINE §7) | Mission/Link Budget |
-| Harmonics | < -43 dBc | IARU |
-| Spurious | < -60 dBc | ITU |
+| Output Power | 0.5 W nominal, 1 W maximum, at the antenna port | BASELINE §7 |
+| Harmonics and spurious | ≤ 25 µW and ≤ −46 dBc at 1 W (47 CFR 97.307(e)); **3rd harmonic ≤ −70 dBc at the antenna port** (proposed; BASELINE target −60 dBc; SQSO-LBA-001 §7.3) | 97.307(e); desense |
+| Frequency stability | ±1.0 ppm over −20 to +60 °C and 2 years (RF-P005) | SQSO-LBA-001 §4.4 |
+| Duty | Beacon ≈ 1.2 s per 60 s; transponder ≤ 25 % (software); continuous key-down ≤ 120 s (hardware timer) | BASELINE §5 |
 
 ---
 
@@ -56,18 +57,18 @@ Audio In → Modulator → VCO/PLL → Driver → PA → LPF → Antenna
 | Examples | Radiometrix TX2M, DRA818V, or equivalent |
 | Frequency Range | 134-174 MHz |
 | Channel Spacing | 12.5/25 kHz |
-| Power Output | 0.5W - 1W |
+| Power Output | 0.5 W / 1 W (TX_PWR_SEL) |
 | Supply Voltage | 3.3V - 5.0V |
 | Current (TX) | 450 mA @ 1W |
 
 ### 3.2 Alternate: Discrete Design
 
-If higher power required:
+Flight option (preferred over modules for stability, harmonics and radiation; selection against RF_DESIGN RF-P003–P005, P008, P015):
 
 | Parameter | Value |
 |-----------|-------|
 | VCO/Synthesizer | ADF7021 or Si4463 |
-| PA Stage | RFMD/Qorvo 2W PA module |
+| PA Stage | A 1–2 W-class VHF PA device run at ≤ 1 W (derated) |
 | LPF | Custom 7-pole Chebyshev |
 
 ---
@@ -80,7 +81,7 @@ If higher power required:
 |-----------|-------|
 | Type | TCXO |
 | Frequency | 12.8 MHz or 26 MHz |
-| Stability | ±2.5 ppm (-40 to +85°C) |
+| Stability | **±1.0 ppm** (−20 to +60 °C), shared by the 2 m exciter and the 70 cm receiver (RF-P005; ±2.5 ppm would give ±1.1 kHz at 435 MHz alone) |
 | Phase Noise | < -110 dBc/Hz @ 10kHz |
 | Aging | ±1 ppm/year |
 
@@ -98,9 +99,9 @@ If higher power required:
 | Condition | Accuracy |
 |-----------|----------|
 | At 25°C | ±500 Hz |
-| Over temperature | ±2 kHz |
-| End of life | ±3 kHz |
-| **Requirement** | **±5 kHz** |
+| Over temperature | ±146 Hz (1.0 ppm) |
+| End of life | ±200 Hz |
+| **Requirement** | **±1.0 ppm** (SYS-206's ±5 kHz is met with margin) |
 
 ---
 
@@ -119,9 +120,9 @@ If higher power required:
 
 | Parameter | Value |
 |-----------|-------|
-| Nominal Deviation | ±3.5 kHz |
-| Deviation Tolerance | ±0.5 kHz |
-| Modulation Index | ~1.0 (narrowband FM) |
+| Nominal deviation, beacon | **±3.0 kHz** peak (the filed 10K4F2D: 2 × 2.2 + 2 × 3.0 = 10.4 kHz; ±3.5 kHz would be 11K4F2D) |
+| Nominal deviation, transponder | ±5.0 kHz peak, hard-limited (16K0F3E) |
+| Deviation tolerance | ±0.5 kHz |
 
 ### 5.3 Modulator Implementation
 
@@ -138,20 +139,19 @@ If higher power required:
 
 | Parameter | Value |
 |-----------|-------|
-| Output Power | 1W nominal (30 dBm) |
-| Power Range | 0.5W - 2W selectable |
+| Output Power | 0.5 W nominal (27 dBm) |
+| Power Range | 0.5 W / 1 W selectable; no 2 W level (BASELINE §7) |
 | Gain | 15-20 dB |
-| Efficiency | > 50% |
-| Supply | 5V |
-| Current | 400-800 mA |
+| Efficiency | ≥ 33 % overall at 0.5 W RF including the exciter (≤ 1.5 W DC, BASELINE §5) |
+| Supply | Through the RF_TX_EN load switch (SQSO-ICD-003 §4.4) |
+| Current | Set by the selected PA |
 
 ### 6.2 Power Control
 
 | Setting | Power | Current |
 |---------|-------|---------|
-| Low | 0.5W (27 dBm) | 250 mA |
-| Medium | 1.0W (30 dBm) | 450 mA |
-| High | 2.0W (33 dBm) | 800 mA |
+| Low (TX_PWR_SEL low) | 0.5 W (27 dBm) | ≈ 1.5 W DC |
+| High (TX_PWR_SEL high) | 1.0 W (30 dBm) | ≈ 2.7 W DC |
 
 ### 6.3 PA Protection
 
@@ -177,12 +177,17 @@ If higher power required:
 | Parameter | Value |
 |-----------|-------|
 | Type | 7-pole Chebyshev |
-| Cutoff | 160 MHz |
-| Passband Ripple | 0.5 dB |
-| 2nd Harmonic Rej | > 50 dB |
-| 3rd Harmonic Rej | > 60 dB |
+| Cutoff (−3 dB, analysed) | 164 MHz |
+| Insertion loss at 145.9 MHz | 0.66 dB with inductor Q 80 (0.06 dB ideal); return loss 18 dB |
+| 2nd harmonic rejection (analysed) | 50.5 dB |
+| 3rd harmonic rejection (analysed) | 77.5 dB ideal; **expect 50–60 dB realized** on a PCB (coupling around the filter, inductor self-resonance): the requirement is on the measured antenna-port level (VI-RF-04) |
 
 ### 7.3 Filter Component Values
+
+Analysed as written by `software/simulation/cdr/rf/desense_emc.py` (ABCD matrices; SQSO-LBA-001 §7.2). The values are
+not a textbook 0.5 dB Chebyshev at 160 MHz but give the response in §7.2; a 0.1 dB Chebyshev at 165 MHz gives a similar
+result (−48.9 dB at 2f, −76.8 dB at 3f) and is an alternative. Air-core inductors self-resonate above 1 GHz at these
+values; check the capacitors' series resonance against 437 MHz.
 
 | Element | Value | Type |
 |---------|-------|------|
@@ -302,11 +307,17 @@ repeat-path hardware is selected.
 
 ### 12.1 IARU Limits
 
-| Emission | Limit | Design Target |
-|----------|-------|---------------|
-| 2nd Harmonic | < -43 dBc | < -50 dBc |
-| 3rd Harmonic | < -43 dBc | < -55 dBc |
-| Spurious (general) | < -60 dBc | < -65 dBc |
+The applicable rule is 47 CFR 97.307(e) (30–225 MHz): for a transmitter of 25 W or less, the mean power of any spurious
+emission supplied to the antenna line must not exceed 25 µW and must be at least 40 dB below the fundamental. At 1 W
+(+30 dBm) 25 µW (−16 dBm) is the binding limit: **≥ 46 dBc**. (The "−43 dBc" figure is the 97.307(d) value for
+transmitters below 30 MHz and does not apply.)
+
+| Emission | Limit (97.307(e) at 1 W) | Design target |
+|----------|--------------------------|---------------|
+| 2nd harmonic (291.6–292.0 MHz) | ≤ −46 dBc | ≤ −55 dBc |
+| 3rd harmonic (437.4–438.0 MHz, in the uplink segment) | ≤ −46 dBc | **≤ −70 dBc** (desense; SQSO-LBA-001 §7.3) |
+| Other spurious | ≤ −46 dBc | ≤ −60 dBc |
+| Phase noise of the fundamental | — | ≤ −118 dBc/Hz at 100 kHz, ≤ −135 dBc/Hz at 1 MHz (the desense analysis assumes these) |
 
 ### 12.2 Mitigation
 
@@ -344,10 +355,11 @@ repeat-path hardware is selected.
 
 | Test | Requirement |
 |------|-------------|
-| Output power | 30 ±1 dBm |
-| Frequency accuracy | ±5 kHz |
-| Harmonics | < -43 dBc |
-| Spurious | < -60 dBc |
+| Output power | 27.0 ± 0.5 dBm and 30.0 ± 0.5 dBm at the antenna port (VI-RF-02) |
+| Frequency accuracy | ±1.0 ppm over temperature (VI-RF-14) |
+| Harmonics and spurious | §12.1 (VI-RF-04) |
+| Occupied bandwidth | ≤ 10.4 kHz beacon, ≤ 16 kHz transponder (VI-RF-15) |
+| Full-duplex desense | ≤ 0.5 dB at the uplink frequency, 1 W keyed (VI-RF-06) |
 | Current consumption | Per specification |
 
 ### 14.2 Environmental Tests
@@ -367,3 +379,4 @@ repeat-path hardware is selected.
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-25 | §10.1 as built (CR-2026-005): KISS TNC on USART2, one power-select line, the monitors' channels and the software's actions; §1.1 frequency and power marked superseded by BASELINE §7 |
 | 1.2 | 2026-10-26 | §10.1: XPDR_EN, the transponder enable, and the gates the OBC applies to it (found by the mission simulation) |
+| 1.3 | 2026-10-27 | CDR review (communications panel): requirements to BASELINE §7 (no 2 W level), deviation ±3.0 kHz (the filed 10K4F2D), stability ±1.0 ppm, spurious per 97.307(e) (≥ 46 dBc at 1 W, not −43 dBc), 3rd harmonic ≤ −70 dBc and phase-noise targets from the desense analysis, LPF analysed as written; tests tied to the verification items of SQSO-LBA-001 §8 and RF_DESIGN §6 |

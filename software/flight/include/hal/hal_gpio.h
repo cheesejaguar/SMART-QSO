@@ -110,6 +110,32 @@ bool hal_gpio_get(HalGpioPin_t pin);
  */
 SmartQsoResult_t hal_gpio_toggle(HalGpioPin_t pin);
 
+/**
+ * @brief Heartbeat frequency of hal_gpio_heartbeat(), Hz
+ *
+ * docs/hardware/BUILD_VS_BUY.md §3.2: the radio board's retriggerable
+ * monostable (about 50 ms) holds the transponder enable only while edges
+ * arrive at about this rate.
+ */
+#define HAL_GPIO_HEARTBEAT_HZ 100U
+
+/**
+ * @brief Run or stop the heartbeat on GPIO_PIN_XPDR_EN
+ *
+ * A hardware timer toggles the pin at HAL_GPIO_HEARTBEAT_HZ for @p lease_ms
+ * from this call and then stops it with the pin low; each call before the
+ * lease runs out restarts the lease, so the wave runs only while the caller
+ * keeps renewing it. @p lease_ms = 0 stops the wave now (pin low). The wave
+ * is stopped at reset. A level written with hal_gpio_set() is not a
+ * heartbeat: the radio board treats a pin held high as disabled.
+ *
+ * @param pin      GPIO_PIN_XPDR_EN (the only heartbeat pin)
+ * @param lease_ms How long the wave runs from now, ms (0: stop)
+ * @return SMART_QSO_OK; SMART_QSO_ERROR_INVALID for another pin;
+ *         SMART_QSO_ERROR before hal_gpio_init()
+ */
+SmartQsoResult_t hal_gpio_heartbeat(HalGpioPin_t pin, uint32_t lease_ms);
+
 #ifdef __cplusplus
 }
 #endif

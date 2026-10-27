@@ -1,590 +1,258 @@
 # Radio Frequency (RF) Subsystem Design Document
 
-> **Funding audit notice (2026-10-14): architecture superseded.** This document's "beacon-only, no uplink command
-> capability" architecture cannot be authorized. 47 CFR 97.207(b) and ITU RR 22.1 require that transmissions can be
-> stopped by telecommand. The baseline adds a 435–438 MHz receiver, authenticated telecommand, a hardware TX-OFF path
-> and a duty-gated FM transponder (`docs/RF_PLAN.md`, `docs/BASELINE_PARAMETERS.md` §7). The 145.825 MHz frequency
-> (ARISS/APRS packet) and the link margins here are also superseded (findings RG-01, RG-09, TB-05); the controlled
-> link budget is `docs/environment/LINK_BUDGET_ANALYSIS.md` (v2.0).
-
 **Document Number**: SMART-QSO-RF-001
-**Version**: 1.2
-**Date**: 2026-01-02
-**Status**: Preliminary Design
+**Version**: 2.0
+**Date**: 2026-10-27
+**Status**: CDR design description. The architecture, interfaces and requirements are defined; the radio parts are **not yet selected** (§9). Values follow [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) §7, which governs.
 
-**Governing Standards**:
-- NPR 7120.5 Rev F - NASA Space Flight Program and Project Management Requirements
-- ITU Radio Regulations - Amateur Satellite Service
-- FCC Part 97 - Amateur Radio Service
-- IARU Satellite Frequency Coordination
+**Governing documents**:
+- 47 CFR Part 97: 97.207 (space station), 97.211 (telecommand), 97.307(e) (spurious, 30–225 MHz), 97.313(f) and
+  47 CFR 2.106 US270 (70 cm power near Beale AFB); eCFR as of 2026-10-01
+- ITU Radio Regulations Nos. 1.56, 1.57, 22.1, 25.2A, 25.11
+- IARU Amateur Satellite Frequency Coordination Request, form v40
+- Cal Poly CubeSat Design Specification (CDS) Rev 14.1 §2.3.7 (RF inhibits), §2.4.5 (45-minute RF silence)
+- Link budget: [LINK_BUDGET_ANALYSIS.md](../environment/LINK_BUDGET_ANALYSIS.md) (SQSO-LBA-001 v3.0)
+- Interfaces: [ICD_OBC_RF.md](../interfaces/ICD_OBC_RF.md) (SQSO-ICD-003 v2.0),
+  [TELECOMMAND_AUTHENTICATION.md](../interfaces/TELECOMMAND_AUTHENTICATION.md) (SQSO-ICD-013)
 
-**Heritage**: NASA Ames Research Center Small Satellite Division (GeneSat, PharmaSat, O/OREOS, EcAMSat)
-
----
-
-## 1. Introduction
-
-### 1.1 Purpose
-
-This document defines the detailed design of the Radio Frequency (RF) subsystem for the SMART-QSO 1U CubeSat. The mission employs a beacon-only architecture with AI-powered autonomous operations.
-
-### 1.2 Scope
-
-The RF subsystem encompasses:
-- Beacon transmitter (UHF/VHF)
-- Antenna system (deployable monopole)
-- RF power amplifier
-- Modulation and protocol (AX.25 AFSK)
-- Ground station interface
-
-### 1.3 Design Philosophy
-
-SMART-QSO implements a **beacon-only RF architecture**:
-- No uplink command capability
-- AI-driven autonomous decision-making
-- Continuous telemetry broadcast via intelligent beacons
-- Simplified hardware, reduced complexity
+Version 1.x described a beacon-only transmitter with no receiver. That design could not be authorized (47 CFR
+97.207(b), RR 22.1; findings RG-01, TB-04) and is replaced in full by this version.
 
 ---
 
-## 2. RF Requirements
+## 1. Scope
 
-### 2.1 Functional Requirements
+The RF subsystem is the amateur station of the spacecraft:
 
-| ID | Requirement | Verification |
-|----|-------------|--------------|
-| RF-F001 | Transmit beacon at 1200 bps AFSK | Test |
-| RF-F002 | Support AX.25 UI frame format | Test |
-| RF-F003 | Transmit on amateur VHF band (145-146 MHz) | Test |
-| RF-F004 | Provide software-controllable TX power | Test |
-| RF-F005 | Deploy antenna after separation from deployer | Test |
-| RF-F006 | Include valid amateur callsign in beacon | Inspection |
-| RF-F007 | Support beacon interval of 30-180 seconds | Test |
+1. a 435 MHz receiver, always on after the RF silence, carrying authenticated telecommand and the transponder uplink;
+2. a 145.9 MHz FM transmitter shared, in time, by the AX.25 beacon (through a KISS TNC) and the FM repeat path;
+3. the repeat path from receiver audio to transmitter audio, gated in hardware by `XPDR_EN`, CTCSS and a key-down timer
+   (`docs/hardware/BUILD_VS_BUY.md` §3.2);
+4. the TX-OFF and inhibit hardware (`RF_TX_EN`, `RADIO_EN`, the separation switches);
+5. the antennas: ISIS AntS 1U–3U, separate 2 m and 70 cm tape elements (BASELINE §7; BUILD_VS_BUY §2.6).
 
-### 2.2 Performance Requirements
+Decision record: **build** the transponder radio from the receiver and the 2 m transmitter; **buy** the antenna
+(BUILD_VS_BUY §1, §3). No flight-proven U/v FM transponder is for sale.
 
-| ID | Requirement | Threshold | Goal |
-|----|-------------|-----------|------|
-| RF-P001 | TX power | 0.5-1.0W | 0.5-2.0W selectable |
-| RF-P002 | Link margin (500km, 10° elev) | >6 dB | >10 dB |
-| RF-P003 | Modulation accuracy | <5% deviation | <3% deviation |
-| RF-P004 | Frequency stability | ±5 kHz | ±2 kHz |
-| RF-P005 | Spurious emissions | <-40 dBc | <-50 dBc |
-| RF-P006 | Antenna deployment reliability | >95% | >99% |
+## 2. Requirements
 
-### 2.3 Regulatory Requirements
+### 2.1 Functional
+
+| ID | Requirement | Source | Verification |
+|----|-------------|--------|--------------|
+| RF-F001 | Transmit AX.25 UI beacons, 1200 bps AFSK (Bell 202) on FM, from a KISS TNC | SYS-202, SYS-210; BEACON_SPEC | Test |
+| RF-F002 | Receive authenticated telecommand, 1200 bps AFSK AX.25 UI, on the coordinated 435 MHz uplink, whenever the radio is powered | SYS-204, SYS-325; 97.207(b) | Test |
+| RF-F003 | Repeat a CTCSS-valid (67.0 Hz) FM uplink on the 2 m downlink while `XPDR_EN` is valid, with the TNC's frames taking the transmitter first | MRD-031; BUILD_VS_BUY §3.2 | Test |
+| RF-F004 | TX-OFF: `RF_TX_EN` low removes PA power through a hardware switch; pulled down so a reset or unpowered OBC leaves the PA off | SYS-204; ICD-013 §6 | Test (TP-RF-006) |
+| RF-F005 | No RF signal generated or transmitted until 45 min after deployment (`RADIO_EN` and `RF_TX_EN` low) | SYS-224; CDS 2.4.5 | Test (TP-RF-006 §8.8) |
+| RF-F006 | Power select 0.5 W / 1 W (`TX_PWR_SEL`), never above 1 W | SYS-201 | Test |
+| RF-F007 | Forward, reflected power and PA temperature to the OBC ADC | ICD-003 §5 | Test |
+| RF-F008 | Hardware key-down timer, 120 s, on the repeat path | BUILD_VS_BUY §3.2 | Test |
+
+### 2.2 Performance
+
+| ID | Parameter | Requirement | Basis |
+|----|-----------|-------------|-------|
+| RF-P001 | Downlink frequency | One IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz | BASELINE §7, SYS-200 |
+| RF-P002 | Uplink frequency | One IARU-coordinated frequency in **435.000–437.300 MHz** (clear of 3 × f_down by ≥ 50 kHz for any downlink in the segment) and, unless RF-P008 is exceeded, ≥ 2 MHz below 3 × f_down | SQSO-LBA-001 §7.1, §7.3 |
+| RF-P003 | Output power at the antenna port | 27.0 ± 0.5 dBm and 30.0 ± 0.5 dBm, −20 to +60 °C | BASELINE §7 |
+| RF-P004 | Deviation | Beacon ±3.0 kHz peak (10K4F2D); transponder ±5.0 kHz peak with a limiter (16K0F3E) | ITU_APPENDIX4_DATA §C |
+| RF-P005 | Frequency stability, both bands, over temperature and 2 years | **±1.0 ppm** (±146 Hz at 2 m, ±436 Hz at 70 cm), so that ground pre-correction to ±1 kHz holds | SQSO-LBA-001 §4.4 (the ±2.5 ppm TCXO of the old design gives ±1.1 kHz at 435 MHz on its own) |
+| RF-P006 | Receiver system noise temperature at the antenna port, RX filter included | ≤ 650 K with a 290 K source (NF ≤ 4.7 dB); the budget carries 1,000 K | SQSO-LBA-001 §2.4 |
+| RF-P007 | RX filter | ≥ 60 dB rejection at 144–146 MHz; ≥ 40 dB at 250–330 MHz and 560–620 MHz; ≤ 1.5 dB loss at 435–438 MHz | SQSO-LBA-001 §7.4–7.5 |
+| RF-P008 | Harmonics and spurious at the antenna port | 2nd, 4th and all spurious ≤ 25 µW and ≤ −46 dBc at 1 W (97.307(e)); **3rd ≤ −70 dBc** (proposed; the baseline target is −60 dBc, §5) | 97.307(e); SQSO-LBA-001 §7.3 |
+| RF-P009 | Full-duplex desense | ≤ 0.5 dB loss of receiver sensitivity with the transmitter keyed at 1 W | SQSO-LBA-001 §7.3 |
+| RF-P010 | Receiver IF | ±7.5 kHz (25 kHz-channel filter); adjacent-channel rejection ≥ 60 dB at ±25 kHz | SQSO-LBA-001 §3, §4.4 |
+| RF-P011 | Demodulators | Telecommand AFSK: 90 % of 60-byte frames at C/N₀ ≤ 53.0 dB-Hz. Repeat audio: 12 dB SINAD at C/N₀ ≤ 47.5 dB-Hz | SQSO-LBA-001 §3.2 |
+| RF-P012 | CTCSS | 67.0 Hz at ±0.5 kHz decoded at 6 dB SINAD, within ±2.5 kHz carrier offset; key within 250 ms; drop within 250 ms of tone loss | SQSO-LBA-001 §4.4 |
+| RF-P013 | Antenna gain (proposed SYS-222 replacement) | Median ≥ −3 dBi and 10th percentile ≥ −10 dBi toward the ground over the pass-weighted directions, each band | SQSO-LBA-001 §5.2 |
+| RF-P014 | Antenna VSWR | < 2:1 at the coordinated frequencies, deployed, on the flight body | SYS-223 |
+| RF-P015 | Power (DC) | Receiver chain ≤ 0.15 W always on; transmitter ≤ 1.5 W DC at 0.5 W RF (≥ 33 % efficiency, exciter included); repeat path ≤ 30 mW while enabled | BASELINE §5 |
+
+### 2.3 Regulatory
 
 | ID | Requirement | Authority |
 |----|-------------|-----------|
-| RF-R001 | IARU frequency coordination | IARU |
-| RF-R002 | FCC Part 97 compliance | FCC |
-| RF-R003 | ITU Region 2 compliance | ITU |
-| RF-R004 | Amateur license requirement | National authority |
-| RF-R005 | No encryption (amateur service) | FCC/ITU |
+| RF-R001 | IARU coordination before frequencies are frozen | IARU form v40 |
+| RF-R002 | Part 97 space station: cessation of emissions by telecommand (RF-F004) | 47 CFR 97.207(b); RR 22.1 |
+| RF-R003 | No encoded downlink; only telecommand authenticated | 97.113(a)(4), 97.211(b) |
+| RF-R004 | Station identification KK6GDB-11 in every beacon (good practice; space stations are exempt from 97.119(a)) | BEACON_SPEC §2 |
+| RF-R005 | Emission designators as filed: 16K0F3E, 10K4F2D; occupied bandwidth not above them | ITU_APPENDIX4_DATA §C |
 
-### 2.4 Environmental Requirements
+### 2.4 Environment
 
-| Parameter | Operating | Non-Operating |
+| Parameter | Operating | Non-operating |
 |-----------|-----------|---------------|
-| Temperature | -40°C to +70°C | -55°C to +85°C |
-| Vibration | ≥ 5.57 Grms random, MPE (interim: SpaceX Rideshare User's Guide v11; `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1) | N/A |
-| Vacuum | 10⁻⁶ Torr | N/A |
-| Radiation | 10 krad TID | N/A |
+| Temperature | −20 °C to +60 °C (PA held below 70 °C by the downlink software) | −40 °C to +85 °C |
+| Vibration | ≥ 5.57 Grms random, MPE (SpaceX Rideshare User's Guide v11; `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1) | |
+| Vacuum | 10⁻⁶ Torr; no corona at 1 W (a few volts RMS) | |
+| Radiation | 10 krad TID design (BASELINE §6) | |
 
----
-
-## 3. RF Architecture
-
-### 3.1 Block Diagram
+## 3. Architecture
 
 ```
-+------------------------------------------------------------------+
-|                        SMART-QSO RF SUBSYSTEM                      |
-|                                                                    |
-|  +------------+     +------------+     +------------+     +-----+  |
-|  |   OBC      |     |  BEACON    |     |    PA      |     | LPF |  |
-|  | (Telemetry)|---->|  MODULATOR |---->| (0.5-2W)   |---->|     |--|
-|  +------------+     |  (AFSK)    |     +-----+------+     +--+--+  |
-|                     +------------+           |               |     |
-|                                              |               |     |
-|                     +------------+           |               |     |
-|                     |   TCXO     |-----------+               |     |
-|                     | (145 MHz)  |                           |     |
-|                     +------------+                           |     |
-|                                                              |     |
-+--------------------------------------------------------------+-----+
-                                                               |
-                                                               v
-                                                    +------------------+
-                                                    |    DEPLOYABLE    |
-                                                    |     ANTENNA      |
-                                                    |  (1/4λ monopole) |
-                                                    +------------------+
+            70 cm tape (AntS)                                   2 m tape(s) (AntS)
+                  |                                                    ^
+           RX filter (RF-P007)                                         |
+                  |                                               LPF (§5.3)
+            LNA + 435 MHz FM receiver  <---- TCXO ±1 ppm ---->   PA (load switch: RF_TX_EN)
+            (always on after silence;                                  ^
+             RADIO_EN powers the radio)                           FM exciter 145.9 MHz
+                  |  discriminator audio                               ^ audio
+        +---------+-----------------------+                     [2:1 audio select]
+        |                                 |                      ^             ^
+  AFSK demod (KISS TNC) --UART--> OBC     CTCSS + audio          | TNC audio   | repeat audio
+        ^                          |      conditioning           |             |
+        +---- KISS frames <--------+      (CMX138A class)        |             |
+                                   |        TONE_OK              |             |
+                     XPDR_EN (heartbeat) -> monostable EN_OK -> AND(EN_OK, TONE_OK, NOT_TOT) = XPDR_KEY
+                     RF_TX_EN ---------------------------------------------------------> PA supply switch
+                     TX_PWR_SEL, ADC: TX_FWD, TX_REV, TX_TEMP <-------------------------- coupler, NTC
 ```
 
-### 3.2 Transmitter
+`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_PTT)`; the audio select follows TNC_PTT, so beacon frames
+take the transmitter with no software arbitration and receiver noise never rides on a beacon (BUILD_VS_BUY §3.2).
+No state of the repeat-path logic can power the PA: only `RF_TX_EN` can.
 
-#### 3.2.1 Beacon Modulator
+### 3.1 Receiver
 
-**Selected Approach**: Software-defined modulation via OBC
+| Item | Design |
+|------|--------|
+| Function | Single-conversion or SDR-on-chip FM receiver, 435.000–437.300 MHz, ±7.5 kHz IF, discriminator audio out (flat, before de-emphasis) for the TNC and the repeat path |
+| Front end | RX filter (RF-P007) then an LNA, NF ≤ 1 dB, IIP3 ≥ 0 dBm |
+| Always on | Powered whenever `RADIO_EN` is high, which is always after the 45-minute silence; TX-OFF, loss of contact and EPS `radio_enabled` do not switch it (ICD-013 §6) |
+| Candidates (not selected) | Engineering model: NiceRF SA818-U module (fast integration; not space-rated, harmonic and stability margins to be measured). Flight: a discrete front end with an analog FM receiver IC, or an RF transceiver run in FM receive with discriminator audio (selection criteria: RF-P005, P006, P010, P015; TID ≥ 10 krad lot data or a test) |
 
-| Parameter | Specification |
-|-----------|---------------|
-| Modulation | AFSK (Bell 202) |
-| Mark Frequency | 1200 Hz |
-| Space Frequency | 2200 Hz |
-| Bit Rate | 1200 bps |
-| FM Deviation | ±3 kHz |
-| Protocol | AX.25 UI frames |
+### 3.2 TNC
 
-**Implementation**:
-```c
-// AFSK modulation constants
-#define AFSK_MARK_FREQ    1200  // Hz
-#define AFSK_SPACE_FREQ   2200  // Hz
-#define AFSK_BAUD_RATE    1200  // bps
-#define AFSK_SAMPLE_RATE  9600  // Hz
+| Item | Design |
+|------|--------|
+| Function | KISS TNC: HDLC framing, FCS, AFSK 1200 modulation and demodulation, PTT, on USART2 at 9600 baud (as built in firmware, CR-2026-005) |
+| Parameters | TXDELAY 300 ms (`DOWNLINK_TXDELAY_MS`), persistence 255, slot time 0, full duplex (the downlink does not wait for a clear uplink) |
+| Candidates (not selected) | A small dedicated MCU running a software modem (open-source AFSK 1200 implementations), or a hardware Bell 202 modem IC with an MCU for HDLC. The OBC does not run the modem (SQSO-ICD-003 §6) |
 
-// Bit period = 8 samples at 9600 Hz
-// Mark = 1 cycle per bit (1200 Hz)
-// Space = 1.833 cycles per bit (2200 Hz)
-```
+### 3.3 Transmitter
 
-#### 3.2.2 Power Amplifier
+| Item | Design |
+|------|--------|
+| Exciter | PLL synthesizer locked to the shared TCXO, direct FM, ±3.0 / ±5.0 kHz deviation set by fixed attenuators per audio source (RF-P004) |
+| PA | 0.5 / 1 W, ≥ 33 % overall efficiency at 0.5 W, supply through the `RF_TX_EN` load switch from the battery-derived rail; forward/reverse coupler and NTC (RF-F007) |
+| Filter | 7-element low-pass as `hardware/rf/TRANSMITTER_DESIGN.md` §7.3: −0.66 dB at 145.9 MHz, −50.5 dB at 2f, −77.5 dB at 3f (analysis with Q 80, SQSO-LBA-001 §7.2). Realized stopband to be measured (VI-RF-04) |
+| Candidates (not selected) | EM: a 1 W VHF FM module (DRA818V/SA818-V class) with the external LPF. Flight: discrete exciter + PA (TRANSMITTER_DESIGN §3.2), chosen against RF-P003, P005, P008, P015 |
+| Software protections (as built) | Frame-level duty (25 %), key-down ≤ 5 s, VSWR 3:1 fold-back to 0.5 W then a 10-minute stop, 70 °C hold (`software/flight/include/downlink.h`) |
 
-**Selected Component**: Custom Class-E PA or COTS Module
+### 3.4 Repeat path and `XPDR_EN`
 
-| Parameter | Specification |
-|-----------|---------------|
-| Frequency | 145-146 MHz |
-| Output Power | 0.5-2.0W (adjustable) |
-| Efficiency | >60% |
-| Input Power | +0 dBm nominal |
-| Supply Voltage | 12V |
-| Current | 170mA @ 1W, 300mA @ 2W |
-| Harmonics | <-30 dBc |
+As BUILD_VS_BUY §3.2: discriminator audio → 300 Hz high-pass (strips the tone), 3 kHz low-pass, de-emphasis then
+pre-emphasis, limiter → mute → audio select. `XPDR_EN` from the OBC is a ≈ 100 Hz heartbeat into a retriggerable
+monostable (≈ 50 ms), so an OBC that hangs, resets or browns out drops the transponder within ≈ 50 ms. The key gate is a
+hardware AND of the heartbeat, CTCSS valid, and the 120 s key-down timer. The OBC's gates (ACTIVE, sunlit, SOC ≥ 55 %,
+PA < 70 °C, keyed < 25 % of 100 min) decide when the heartbeat runs (`sqso_fsw::transponder`; TRANSMITTER_DESIGN §10.1).
 
-**Power Control**:
-| Setting | Output Power | DC Current |
-|---------|--------------|------------|
-| LOW | 0.5W (+27 dBm) | 100 mA |
-| MEDIUM | 1.0W (+30 dBm) | 170 mA |
-| HIGH | 2.0W (+33 dBm) | 300 mA |
+**Firmware (2026-10-27):** the heartbeat is `hal_gpio_heartbeat()` (`software/flight/include/hal/hal_gpio.h`;
+`software/rust/firmware/src/heartbeat.rs`): TIM7 toggles PE4 at 100 Hz for a lease the main loop renews each pass, so a
+stalled loop, a hard fault or a reset stops the edges. A level held high is treated by the radio board as disabled.
+Not run on hardware (VI-RF-11).
 
-#### 3.2.3 Frequency Reference
+### 3.5 TX-OFF and inhibits
 
-**Selected Component**: TCXO 145.xxx MHz
+| Inhibit | Hardware | Driven by | Counts as a CDS 2.3.7 physical RF inhibit? |
+|---------|----------|-----------|---------------------------------------------|
+| Separation (deployment) switches | Switches in the battery-to-bus path | The dispenser | Yes |
+| Remove-before-flight pin | In the same path | Ground crew | Yes |
+| `RADIO_EN` | Load switch on the radio supply | OBC (RF silence; pulled down) | Only if its supply cannot be enabled before deployment by any software path; the power/safety reviewer to confirm against the inhibit schematic (finding VV-03) |
+| `RF_TX_EN` | Load switch on the PA supply | OBC (TX-OFF, loss of contact, RF silence; pulled down) | Same condition |
 
-| Parameter | Specification |
-|-----------|---------------|
-| Nominal Frequency | 145.xxx MHz (TBD after IARU) |
-| Stability | ±2.5 ppm (-40 to +85°C) |
-| Aging | <1 ppm/year |
-| Phase Noise | <-110 dBc/Hz @ 10 kHz |
-| Power | 3.3V, 5 mA |
+**TX-OFF honestly described.** TX-OFF depends on the OBC: the radio's TNC delivers the frame, the OBC authenticates it
+and drives `RF_TX_EN` low, then latches it. There is no second command decoder in the radio. A hung OBC is reset by its
+independent watchdog (≈ 32 s), and during a reset the pull-down holds the PA off. The IARU draft's item 7.8 claimed "a
+second, independent path"; that text is corrected (SQSO-REG-010 Rev A.2).
 
-### 3.3 Antenna System
+### 3.6 Antennas
 
-#### 3.3.1 Antenna Design
+ISIS AntS 1U–3U on one ±Z face, tapes deploying in the plane of the face (each along ±X or ±Y), redundant thermal-knife
+release, deployment switches, I²C. Configuration choice (finding RF-03): with the spin about +Y (BASELINE §8),
 
-**Type**: Quarter-wave monopole with ground plane
+| Option | Result (SQSO-LBA-001 §5) | Recommendation |
+|--------|--------------------------|----------------|
+| One 2 m tape across the spin axis (±X) | 6.4 fades below −10 dBi per pass, 6 s each; 95.6 % of beacon frames at station A | Not preferred |
+| One 2 m tape along the spin axis (+Y) | No spin modulation; 0.2 long fades per pass; 100 % of frames at station A | **Baseline if one 2 m tape** |
+| Two 2 m tapes, X and Y, quadrature hybrid | Never below −6 dBi; 100 % at A, 70 % (from 50 %) at a handheld Yagi | **Preferred if the AntS can carry two 2 m and one or two 70 cm tapes with phasing** (RFQ question) |
 
-| Parameter | Specification |
-|-----------|---------------|
-| Configuration | 1/4λ monopole |
-| Length | ~50 cm (145 MHz) |
-| Material | Beryllium-copper tape |
-| Width | 10 mm |
-| Thickness | 0.1 mm |
-| Stowed Length | Coiled, <10mm diameter |
-| Gain | ~2 dBi (typical) |
-| Polarization | Linear (vertical) |
-| Pattern | Omnidirectional (azimuth) |
+The 70 cm element follows the same rule (along +Y, or crossed). The wings (normal +Y) sit near the elements and will
+distort the pattern; the EM pattern measurement with wings deployed is VI-RF-01.
 
-#### 3.3.2 Deployment Mechanism
+## 4. Power
 
-**Method**: Burn-wire release with spring deployment
+| State | DC power | Basis |
+|-------|----------|-------|
+| RF silence | 0 (radio unpowered) | RF-F005 |
+| Receive (always) | ≤ 0.15 W | BASELINE §5 |
+| Beacon at 0.5 W (≈ 1.2 s per 60 s) | ≈ 1.5 W while keyed; 0.03 W average | SIL: 1,431 frames/day, 1,756 s keyed/day |
+| Transponder at 0.5 W | ≈ 1.5 W while keyed; ≤ 25 % duty (SIL: 57–80 min keyed a day) | BASELINE §5 |
+| 1 W | ≈ 2.7 W while keyed | Exciter + PA at ≈ 37 % |
 
-```
-        STOWED                          DEPLOYED
-    +----------+                    +----------+
-    |  Coiled  |                    |          |
-    | Antenna  |                    |          |
-    |  Spring  |   Burn Wire        |          |
-    |    ↓     | =============>     |          |
-    |  [~~~~]  |   Activation       |          |
-    |  Latch   |                    |    |     |
-    +----------+                    +----+-----+
-                                         |
-                                         v
-                                    1/4λ Monopole
-                                    (~50 cm)
-```
+## 5. Findings Against the Baseline (for the chair)
 
-**Deployment Sequence**:
-1. Separation detection; deployables wait ≥ 30 min (CDS §2.4.4). No RF signal before 45 min (CDS §2.4.5, SYS-224), enforced by `software/rust/sqso-fsw/src/rf_silence.rs`
-2. Burn-wire activation (2A, 3s pulse)
-3. Spring-loaded tape uncoils
-4. Deployment confirmation via status GPIO
+| Item | Baseline text | Finding | Recommended change |
+|------|---------------|---------|--------------------|
+| 3rd-harmonic target | "Target ≥ 60 dB 3rd-harmonic suppression" (BASELINE §7) | Costs 3.2 dB of uplink sensitivity at 1 W with the planning frequencies (SQSO-LBA-001 §7.3) | "≥ 70 dB, measured at the antenna port, with the uplink ≥ 2 MHz below 3 × f_down" |
+| Uplink choice | "chosen away from 3 × f_downlink" | 3 × (145.800–146.000) = 437.400–438.000 MHz | "in 435.000–437.300 MHz" |
+| Spurious requirement | SYS-203 "at least 40 dB below carrier" | 97.307(e): ≤ 25 µW and ≥ 40 dB, i.e. ≥ 46 dBc at 1 W | Amend SYS-203 to the rule text |
+| Antenna requirement | Proposed SYS-222 "−6 dBi over 90 % of the sphere" | A single monopole reaches −6 dBi over 81 % only | RF-P013 wording |
 
-**Redundancy**:
-- Dual burn wires (independent circuits)
-- Backup timer (45 min from power-on)
-- Manual ground command (future uplink if added)
+## 6. Verification
 
-### 3.4 Output Filter
+The verification items VI-RF-01 to VI-RF-10 are defined in SQSO-LBA-001 §8. Items specific to this design:
 
-**Type**: 7-pole Chebyshev Low-Pass Filter
+| ID | Test and pass criterion | Verifies | When |
+|----|-------------------------|----------|------|
+| VI-RF-11 | `XPDR_EN` fail-safe: stop the heartbeat high, low, high-Z and with the OBC in reset; repeat path unkeys within 100 ms in every case; key-down timer cuts a stuck carrier at 120 ± 5 s | RF-F003, RF-F008 | EM |
+| VI-RF-12 | TX-OFF at the antenna port: `TX_DISABLE` from a telecommand station simulator; RF at the port < −60 dBm within 1 s; PA supply < 0.1 V; persists across resets (TP-RF-006) | RF-F004, SYS-204 | EM, FM |
+| VI-RF-13 | RF silence: spectrum analyzer across 0–50 min after a simulated deployment with a reset at 20 min; no emission > −60 dBm before 45 min (TP-RF-006 §8.8) | RF-F005, SYS-224 | EM, FM |
+| VI-RF-14 | Frequency stability: both bands, −20 to +60 °C, ±1.0 ppm | RF-P005 | EM |
+| VI-RF-15 | Occupied bandwidth: 99 % bandwidth ≤ 10.4 kHz (beacon) and ≤ 16 kHz (transponder, 1 kHz at full deviation) | RF-R005 | EM, FM |
+| VI-RF-16 | Antenna deployment with the AntS on the flight face, thermal vacuum cold case; VSWR after deployment | RF-P014, SYS-220 | EM, FM (TP-RF-005) |
 
-| Parameter | Specification |
-|-----------|---------------|
-| Passband | DC - 150 MHz |
-| Cutoff (-3dB) | 155 MHz |
-| Insertion Loss | <0.5 dB |
-| 2nd Harmonic (290 MHz) | >40 dB rejection |
-| 3rd Harmonic (435 MHz) | >50 dB rejection |
+## 7. Risks
 
----
-
-## 4. Link Budget
-
-### 4.1 Downlink Budget (145 MHz)
-
-| Parameter | Value | Units | Notes |
-|-----------|-------|-------|-------|
-| **Transmitter** | | | |
-| TX Power | +30.0 | dBm | 1W nominal |
-| TX Line Loss | -0.5 | dB | Coax + connectors |
-| TX Antenna Gain | +2.0 | dBi | 1/4λ monopole |
-| EIRP | +31.5 | dBm | |
-| | | | |
-| **Path** | | | |
-| Slant Range | 1500 | km | 10° elevation |
-| Frequency | 145.0 | MHz | |
-| Free Space Loss | -143.7 | dB | |
-| Atmospheric Loss | -0.5 | dB | |
-| Ionospheric Loss | -1.0 | dB | |
-| Polarization Loss | -3.0 | dB | Linear mismatch |
-| Total Path Loss | -148.2 | dB | |
-| | | | |
-| **Receiver** | | | |
-| RX Antenna Gain | +10.0 | dBi | Yagi (typical) |
-| RX Line Loss | -1.0 | dB | |
-| Received Power | -107.7 | dBm | |
-| | | | |
-| **Noise** | | | |
-| System Temp | 500 | K | Ground station |
-| Bandwidth | 15.0 | kHz | AFSK receiver |
-| Noise Power | -131.1 | dBm | N = kTB |
-| | | | |
-| **Performance** | | | |
-| C/N | +23.4 | dB | |
-| Required C/N | +10.0 | dB | For BER < 10⁻⁵ |
-| **Link Margin** | **+13.4** | **dB** | Exceeds 6 dB req |
-
-### 4.2 Link Budget Variations
-
-| Condition | Margin Change | Total Margin |
-|-----------|---------------|--------------|
-| Nominal (1W, 10° elev) | 0 dB | +13.4 dB |
-| Low power (0.5W) | -3 dB | +10.4 dB |
-| High elevation (45°) | +5 dB | +18.4 dB |
-| Horizon (5°) | -4 dB | +9.4 dB |
-| Rain fade (heavy) | -2 dB | +11.4 dB |
-| Antenna pointing error | -2 dB | +11.4 dB |
-
----
-
-## 5. Beacon Protocol
-
-### 5.1 AX.25 Frame Format
-
-```
-+-------+-------+-------+-------+-------+-------+---------+-------+
-| FLAG  | DEST  | SRC   | CTRL  |  PID  | INFO  | FCS     | FLAG  |
-| 0x7E  | ADDR  | ADDR  | 0x03  | 0xF0  | DATA  | CRC-16  | 0x7E  |
-+-------+-------+-------+-------+-------+-------+---------+-------+
-  1 byte 7 bytes 7 bytes 1 byte  1 byte  N bytes  2 bytes   1 byte
-```
-
-**Field Details**:
-
-| Field | Size | Content |
-|-------|------|---------|
-| FLAG | 1 | 0x7E (frame delimiter) |
-| DEST ADDR | 7 | "CQ    " + SSID (broadcast) |
-| SRC ADDR | 7 | Callsign + SSID |
-| CTRL | 1 | 0x03 (UI frame) |
-| PID | 1 | 0xF0 (no L3 protocol) |
-| INFO | ≤256 | Telemetry + AI text |
-| FCS | 2 | CRC-16-CCITT |
-| FLAG | 1 | 0x7E (frame delimiter) |
-
-### 5.2 Beacon Content
-
-#### 5.2.1 Telemetry Format
-
-```
-de [CALL]-1: [AI_TEXT] | T=[TIMESTAMP] M=[MODE] SOC=[SOC] BV=[BATT_V]
-SUN=[SUN] RF=[RF_PWR] QSO=[QSO_CNT] TMP=[TEMP]
-```
-
-**Example**:
-```
-de K6ARC-1: I'm sunlit and feeling energetic—ready for some ragchewing! 73! |
-T=2026-01-02T12:34:56Z M=ACTIVE SOC=78 BV=7.8 SUN=1 RF=1 QSO=42 TMP=23
-```
-
-#### 5.2.2 Telemetry Fields
-
-| Field | Format | Description | Range |
-|-------|--------|-------------|-------|
-| T | ISO8601 | UTC timestamp | - |
-| M | String | Power mode | SAFE/IDLE/ACTIVE |
-| SOC | Integer | State of charge | 0-100 % |
-| BV | Float | Battery voltage | 6.0-8.4 V |
-| SUN | Boolean | Sunlit flag | 0/1 |
-| RF | Integer | TX power level | 0-2 |
-| QSO | Integer | QSO counter | 0-65535 |
-| TMP | Integer | OBC temperature | -40 to +85 °C |
-
-#### 5.2.3 AI-Generated Content
-
-The Jetson payload generates context-aware text:
-
-| Context | Example Message |
-|---------|-----------------|
-| High SOC, Sunlit | "Batteries topped off and ready for action!" |
-| Eclipse Entry | "Heading into shadow—going quiet to save power" |
-| Low Power | "Running low on juice, conserving energy" |
-| High QSO Count | "What a day! 50 QSOs and counting!" |
-| Cold Temperature | "Brrr! Getting chilly up here at -20°C" |
-
-### 5.3 Beacon Timing
-
-| Mode | Interval | Rationale |
-|------|----------|-----------|
-| ACTIVE | 30 s | Full capability, frequent updates |
-| IDLE | 60 s | Moderate power conservation |
-| SAFE | 180 s | Maximum power conservation |
-| Transition | Immediate | Mode change notification |
-
----
-
-## 6. Frequency Coordination
-
-### 6.1 IARU Coordination
-
-**Process**:
-1. Submit coordination request to IARU
-2. Provide technical parameters
-3. Receive frequency assignment
-4. Update documentation
-
-**Requested Parameters**:
-| Parameter | Request |
-|-----------|---------|
-| Service | Amateur Satellite |
-| Band | 2m (144-146 MHz) |
-| Mode | FM, 1200 bps AFSK |
-| Bandwidth | 15 kHz |
-| Power | 1W (nominal) |
-| Antenna | Omnidirectional |
-
-### 6.2 Regulatory Compliance
-
-| Requirement | Implementation |
-|-------------|----------------|
-| Callsign ID | Every transmission |
-| No encryption | All data in clear |
-| Power limit | <2W (amateur) |
-| Frequency tolerance | <5 kHz |
-| Spurious emissions | ITU compliant |
-
----
-
-## 7. Hardware Implementation
-
-### 7.1 RF PCB Layout
-
-**Critical Considerations**:
-- 50Ω microstrip traces for RF paths
-- Ground plane under all RF components
-- Separate analog and digital grounds
-- Shielding for PA section
-- Thermal relief for PA transistor
-
-### 7.2 Component List
-
-| Component | Part Number | Qty | Function |
-|-----------|-------------|-----|----------|
-| TCXO | TBD | 1 | Reference oscillator |
-| PA Module | TBD | 1 | Power amplifier |
-| LPF | Custom | 1 | Harmonic filter |
-| RF Switch | PE42421 | 1 | Antenna switch (if needed) |
-| SMA Connector | SMA-KHD | 2 | RF interface |
-| Antenna | Custom | 1 | Deployable monopole |
-
-### 7.3 Power Consumption
-
-| State | Current (12V) | Power |
-|-------|---------------|-------|
-| Idle (TX off) | 10 mA | 0.12 W |
-| TX Low (0.5W) | 100 mA | 1.2 W |
-| TX Med (1.0W) | 170 mA | 2.0 W |
-| TX High (2.0W) | 300 mA | 3.6 W |
-
----
+| ID | Risk | L | C | Mitigation |
+|----|------|---|---|------------|
+| RF-K1 | No flight-proven U/v FM repeater; the built radio slips the schedule | M | H | EM on modules (SA818) early; RFQs to ISIS (TRXUV) and LETSCOM (BUILD_VS_BUY §3.1) as fall-backs |
+| RF-K2 | Desense from the 3rd harmonic or PIM at the AntS hinges | M | M | Frequency plan (RF-P002), 70 dBc, VI-RF-04, VI-RF-06 |
+| RF-K3 | Pattern nulls and wing blockage worse than modelled | M | M | Element along +Y or crossed (§3.6), VI-RF-01 |
+| RF-K4 | Terrestrial interference at 435 MHz above +6 dB | M | M | 50 W telecommand option; command at higher elevations; VI-RF-09 |
+| RF-K5 | IARU assigns frequencies close in harmonic | L | M | State RF-P002 in the request |
+| RF-K6 | Module parts (SA818 class) fail radiation or thermal tests | M | M | EM-only; discrete flight design |
 
 ## 8. Ground Segment
 
-### 8.1 Ground Station Requirements
+See [GROUND_STATION_DESIGN.md](../ground/GROUND_STATION_DESIGN.md) (SQSO-GND-001 Rev C) and
+[ICD_SPACE_GROUND.md](../interfaces/ICD_SPACE_GROUND.md) (SQSO-ICD-005 v2.0). Beacon format:
+[BEACON_SPEC.md](../BEACON_SPEC.md).
 
-| Parameter | Minimum | Recommended |
-|-----------|---------|-------------|
-| Antenna | Dipole | Yagi (>10 dBi) |
-| Receiver | RTL-SDR | SDRPlay RSP1A |
-| Preamp | Optional | Mast-mounted LNA |
-| Software | Direwolf | GNU Radio + custom |
-| Tracking | Manual | Auto (rotator) |
+## 9. Not Yet Selected or Designed (closure path)
 
-### 8.2 Decoding Software
-
-**Recommended**: Direwolf + Custom Parser
-
-```bash
-# Direwolf configuration for SMART-QSO
-ADEVICE plughw:1,0
-CHANNEL 0
-MYCALL N0CALL
-MODEM 1200
-PTT NONE
-```
-
-### 8.3 SatNOGS Integration
-
-SMART-QSO beacons will be uploaded to SatNOGS network:
-- Telemetry forwarding enabled
-- Kaitai struct decoder provided
-- Dashboard integration planned
+| Item | State | Closure |
+|------|-------|---------|
+| 435 MHz receiver and RX filter | Requirements only (RF-P002, P005–P007, P010–P012) | Trade and selection before the EM build; EM with SA818-U |
+| KISS TNC hardware | Interface as built in firmware (USART2, 9600 baud); hardware not selected | Selection with the receiver |
+| 2 m exciter and PA | Requirements only (RF-P003–P005, P008, P015) | EM with a 1 W module plus the LPF; discrete flight design |
+| Repeat path, CTCSS decoder, heartbeat monostable, key-down timer, audio select | Logic and example parts defined (BUILD_VS_BUY §3.2) | EM schematic |
+| TCXO | ±1.0 ppm requirement (RF-P005) | Part selection |
+| AntS configuration (elements, faces, phasing) | Recommendation §3.6 | RFQ to ISIS; PI decision |
+| RF board schematic, layout, shielding, thermal path for the PA | Guidelines only (`hardware/rf/RF_ELECTRICAL_DESIGN.md`) | EM board design |
+| Inhibit schematic (which switches are physical RF inhibits) | Open (VV-03) | EPS/power design |
+| `XPDR_EN` heartbeat | Implemented in firmware (lease-based, TIM7); radio-board monostable not designed | EM schematic; VI-RF-11 |
 
 ---
 
-## 9. Verification
-
-### 9.1 Verification Matrix
-
-| Requirement | Method | Status |
-|-------------|--------|--------|
-| RF-F001 | Test | Pending |
-| RF-F002 | Test | Pending |
-| RF-F003 | Test | Pending |
-| RF-F004 | Test | Pending |
-| RF-F005 | Test | Pending |
-| RF-F006 | Inspection | Pending |
-| RF-F007 | Test | Pending |
-
-### 9.2 Test Procedures
-
-| Test | Description | Equipment |
-|------|-------------|-----------|
-| TP-RF-002 | TX power measurement | Power meter, attenuator |
-| TP-RF-001 | Frequency accuracy | Spectrum analyzer |
-| TP-RF-004 | Modulation verification | Demodulator, BER tester |
-| TP-RF-003 | Spurious emissions | Spectrum analyzer |
-| TP-RF-005 | Antenna deployment | Visual, continuity test |
-| No procedure yet | Link test | RF test range |
-| TP-RF-007 | TVAC operation | TVAC chamber |
-
-IDs are those of the procedure files in `docs/test_procedures/` that cover each test (aligned 2026-10-16, finding VV-18;
-this table had numbered them differently). TP-RF-006 is the telecommand TX-OFF test. TP-RF-007 has no procedure yet.
-
-### 9.3 EMC Testing
-
-| Test | Standard | Limit |
-|------|----------|-------|
-| Conducted Emissions | MIL-STD-461G CE102 | Per standard |
-| Radiated Emissions | MIL-STD-461G RE102 | Per standard |
-| Spurious Response | FCC Part 97 | <-40 dBc |
-
----
-
-## 10. Risk Assessment
-
-### 10.1 RF-Specific Risks
-
-| Risk ID | Description | L | C | Mitigation |
-|---------|-------------|---|---|------------|
-| RF-R001 | Antenna deployment failure | L | H | Dual burn wires, testing |
-| RF-R002 | TCXO drift beyond spec | L | M | Temperature compensation |
-| RF-R003 | PA failure | L | H | Conservative derating |
-| RF-R004 | Frequency coordination denial | L | M | Early coordination request |
-| RF-R005 | Interference to/from other satellites | L | L | IARU coordination |
-
----
-
-## Appendix A: Antenna Radiation Pattern
-
-```
-         +90° (Zenith)
-              |
-         \    |    /
-          \   |   /
-           \  |  /
-            \ | /
-    ---------[*]---------  Horizon (0°)
-            / | \
-           /  |  \
-          /   |   \
-         /    |    \
-              |
-         -90° (Nadir)
-
-Legend:
-[*] = Spacecraft
-Pattern: Omnidirectional in azimuth
-         Null at +Z (zenith)
-         Peak near horizon
-```
-
----
-
-## Appendix B: AX.25 Bit Stuffing
-
-```
-Original: 01111110 (6 consecutive 1s)
-Stuffed:  011111010 (0 inserted after 5 1s)
-
-Purpose: Ensure FLAG (0x7E = 01111110) is unique
-```
-
----
-
-## Appendix C: CRC-16-CCITT Calculation
-
-```c
-uint16_t crc16_ccitt(const uint8_t *data, size_t len) {
-    uint16_t crc = 0xFFFF;
-    for (size_t i = 0; i < len; i++) {
-        crc ^= data[i];
-        for (int j = 0; j < 8; j++) {
-            if (crc & 1)
-                crc = (crc >> 1) ^ 0x8408;
-            else
-                crc >>= 1;
-        }
-    }
-    return crc ^ 0xFFFF;
-}
-```
-
----
-
-**Document History**
+## Revision History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.0 | 2026-01-02 | SMART-QSO Team | Initial release (beacon-only) |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §9.2 test IDs aligned with the procedure files (finding VV-18) |
-| 1.2 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |
+| 1.2 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level (finding LA-05) |
 | 1.2, note | 2026-10-24 | SMART-QSO Team | §3.3.2 names the Rust file that replaced `rf_silence.c` |
+| 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten for the baseline U/v transponder: receiver, TNC, transmitter, repeat path and `XPDR_EN`, TX-OFF and inhibits, AntS configuration options from the spin analysis; requirements RF-F001–F008, RF-P001–P015; findings for the baseline; verification items VI-RF-11 to VI-RF-16; what is not yet selected. The beacon-only design, its link budget and the AX.25 appendices are removed (BEACON_SPEC and SQSO-LBA-001 govern) |

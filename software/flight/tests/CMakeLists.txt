@@ -193,6 +193,7 @@ set(MODULE_TESTS
     "test_telemetry\;telemetry"
     "test_telemetry_flow\;integration"
     "test_adcs\;adcs"
+    "test_xpdr_heartbeat\;rf"
     "test_rust_contract\;rust"
     "test_rust_contract_adcs\;rust"
 )

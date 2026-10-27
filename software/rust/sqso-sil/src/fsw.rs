@@ -252,6 +252,15 @@ impl Fsw {
         self.running() && hal_sim::hal_gpio_get(pin)
     }
 
+    /// The `XPDR_EN` heartbeat as the radio board's detector sees it: the
+    /// OBC's HAL time now and when the heartbeat stops or stopped, µs
+    /// (`None`: the OBC is off, or the heartbeat has not run since boot;
+    /// a level on the pin is not a heartbeat)
+    pub fn xpdr_heartbeat(&self) -> Option<(u64, u64)> {
+        let end = hal_sim::hal_sim_gpio_heartbeat_end_us(pin::XPDR_EN);
+        (self.running() && end > 0).then(|| (hal_sim::hal_timer_get_us(), end))
+    }
+
     /// A received AX.25 frame (with its FCS) from the 435 MHz receiver
     /// through the TNC; false if the receive queue is full
     pub fn uplink(&self, frame: &[u8]) -> bool {
@@ -298,14 +307,18 @@ impl Fsw {
         unsafe { sqso_ffi::adcs_control::adcs_set_sim_sensors(&mag, &sun, rate) };
     }
 
-    /// The magnetorquer dipole the flight software commands, body frame, A·m²
-    /// (zero with the coils off)
+    /// The magnetorquer dipole the flight software commands, averaged over
+    /// the control period, body frame, A·m² (zero with the coils off): the
+    /// burst's dipole for its 900 ms of each second
+    /// (`sqso_fsw::adcs::CoilTiming`), as the mission's 1 s steps see it
     pub fn adcs_dipole(&self) -> crate::env::math::V3 {
+        use sqso_fsw::adcs::{CONTROL_PERIOD_MS, MTQ_ON_MS};
         let mut st = sqso_fsw::adcs::Adcs::new().state;
         // SAFETY: st is a live AdcsState_t
         let ok = self.running() && unsafe { sqso_ffi::adcs_control::adcs_get_state(&mut st) } == 0;
         if ok && st.mtq.enabled {
-            crate::env::math::V3::new(st.mtq.dipole.x, st.mtq.dipole.y, st.mtq.dipole.z)
+            let on = MTQ_ON_MS as f64 / CONTROL_PERIOD_MS as f64;
+            crate::env::math::V3::new(st.mtq.dipole.x, st.mtq.dipole.y, st.mtq.dipole.z) * on
         } else {
             crate::env::math::V3::ZERO
         }
