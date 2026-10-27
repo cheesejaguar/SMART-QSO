@@ -128,6 +128,13 @@ NEW: list[tuple[str, int, str, str, str]] = [
     ("MCAD-15", 3, "Worst-case 246 N axial load on each cell rim needs the cell maker's limit", "VI", "VI-MCAD-10: preload 140 ± 10 N per cell; OCV and impedance unchanged, no can damage after protoflight random; cell-maker rim limit as a data item before the EM order"),
     ("P3T-01", 2, "BOM temperature grades not verified part by part: the RF crystal Y451 was a −20…+70 °C option against the −40 °C first-orbit case", "IMP", "Y451 replaced by ABLS-…-L4-T (−55…+125 °C); parts temperature-grade audit of every flight BOM line"),
     ("MCAD-16", 2, "At −81 °C (line free span, with margin) a stiff hold-down line can go slack (0.008-0.020 mm at EA 10 kN after creep): the wing could lift off its post and rattle before the burn", "CD", "Series 17-7PH compression spring (≈ 40 N/mm) at the line anchor: tension 19.0-19.5 N at −81 °C after creep for either line material; VI-STR-07 adds a −81 °C thermal cycle of line, spring and anchor, pass ≥ 10 N (MECHANISMS_ANALYSIS E); spring placed in the CAD on each burn board (1.0 mm to the harness strip, 3.95 mm to the wing sweep, ≥ 14.5 N at −81 °C with guide friction, 0.6 g per wing inside the burn-board allocation); line EA and creep data DI-MECH-01 by 2027-01-15"),
+    ("P3T-02", 1, "EPS end-of-life fuses F1/F3 ITV4030L1412NR rated −10…+65 °C against the −40…+70 °C flight range (SQSO-MFG-003 §4)", "IMP", "Design change or flight-lot qualification at −40/+70 °C"),
+    ("P3T-03", 2, "Bought items below the test range: ISIS AntS qualified −20…+60 °C, CubeSpace CR0002 rods −20…+80 °C (cold start −35 °C); NCR18650GA alternative cell and panel vendor ranges unconfirmed", "IMP", "Vendor statements or qualification by test, with fallbacks"),
+    ("P3T-04", 2, "RF PA Q601 RD01MUS3 has no rated minimum operating temperature (storage −40 °C)", "IMP", "Vendor statement and EM characterisation at −40 °C"),
+    ("P3T-05", 2, "Fourteen BOM part numbers do not exist or are incomplete (OBC C23–C26 C0G 470 nF, A3 J1, RF L106/L605, carrier J1–J3/R1, EPS RS11 and others) and ordering codes are wrong (Samtec TFM \"-S\", tin Pico-Clasp 501334/501331, ERA-3 1 MΩ)", "IMP", "Orderable part numbers on every line"),
+    ("P3T-06", 3, "BFP640F LNA has a last-time-buy of 2027-05-15", "IMP", "Lifetime buy or successor"),
+    ("P3T-07", 3, "X7R capacitance change at −40 °C (up to −15 %) not in the timing worst cases (EPS integrators, OBC C_RETRY)", "IMP", "Worst cases re-derived"),
+    ("P3T-08", 3, "156 parts are rated exactly −40 °C, with zero margin to the first-orbit cold case", "IMP", "Covered by the thermal predictions and the test margin"),
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {
