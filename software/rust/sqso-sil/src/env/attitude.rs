@@ -9,12 +9,12 @@
 //!
 //! * The inertia is the CAD's (`docs/environment/MASS_BUDGET.md` v3.1 §6.1
 //!   and §6.5; four AntS elements, the 2 × 10 g ballast of decision C-13,
-//!   the harness): the mean of its CBE (1,514.3 g) and MEV (1,748.3 g)
+//!   the harness): the mean of its CBE (1,513.9 g) and MEV (1,747.8 g)
 //!   rows, stowed ([`INERTIA_STOWED`]) and deployed ([`INERTIA_DEPLOYED`],
 //!   the flight software's `INERTIA`). The products of inertia (at most
 //!   1.7 × 10⁻⁵ deployed, 3.8 × 10⁻⁵ stowed) are left out: the principal
-//!   axes are within 1° of the body axes deployed (the major axis 0.8–0.9°
-//!   from +Y) and 6–7° stowed.
+//!   axes are within about 1° of the body axes deployed (the major axis
+//!   1.0° from +Y) and 6–7° stowed.
 //! * Mass 1.6 kg for the drag (the lifetime-analysis mass, BASELINE §4);
 //!   each wing 55 g (`docs/environment/MASS_BUDGET.md` §4.2: substrate
 //!   24.7 g, four cells 14.4 g, hinge and release 16 g), a thin 83 × 98 mm
@@ -58,10 +58,10 @@ const MAX_SUBSTEP_ANGLE: f64 = 0.1;
 /// × 10⁻³ (MASS_BUDGET v3.1 §6.1)
 pub const INERTIA_STOWED: V3 = V3::new(2.952e-3, 3.2805e-3, 2.9605e-3);
 /// Inertia about the CG, wings and antennas deployed (kg·m², body axes):
-/// the mean of the CAD's CBE (2.861, 4.268, 4.043) and MEV (3.286, 4.843,
-/// 4.627) × 10⁻³ (MASS_BUDGET v3.1 §6.1 and §6.5, with the C-13 ballast);
+/// the mean of the CAD's CBE (2.846, 4.190, 3.970) and MEV (3.267, 4.745,
+/// 4.535) × 10⁻³ (MASS_BUDGET v3.1 §6.1 and §6.5, with the C-13 ballast);
 /// Iyy/Izz 1.051. The same diagonal as `sqso_fsw::adcs::INERTIA`
-pub const INERTIA_DEPLOYED: V3 = V3::new(3.0735e-3, 4.5555e-3, 4.335e-3);
+pub const INERTIA_DEPLOYED: V3 = V3::new(3.0565e-3, 4.4675e-3, 4.2525e-3);
 
 /// Principal inertia, wings stowed (kg·m²).
 pub fn inertia_stowed() -> V3 {

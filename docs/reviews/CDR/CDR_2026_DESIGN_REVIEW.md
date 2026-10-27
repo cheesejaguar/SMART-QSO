@@ -162,13 +162,13 @@ L-2 M licences and ephemeris demonstration).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 26 |
-| Closed by design change | 100 | 164 |
+| Closed by design change | 100 | 165 |
 | Closed by chair decision | 41 | 40 |
 | Verification item | 45 | 44 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 81 | 18 |
+| Implementation | 81 | 17 |
 
-Open implementation RIDs: SE-01, SE-21, SE-22, REG-12, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-21, REG-12, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -248,7 +248,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-19 | 2 | No current harness design: the old harness document predates the interconnect, and the deck-to-EPS band is over-full by about 8 mm² of wire | IMP | Closed by design change | Harness design SQSO-HAR-001 2.0: 206 conductors, routes against the CAD (58 zones, no interference), EEE-INST-002 derating (worst 60 % normal), drops ≤ 44 mV, corner-bundle fill ≤ 51 % (band B resolved by routing the EPS-only harnesses under the EPS), mass 84.5 g, single-point ground; V-HAR-1 to V-HAR-13 |
 | SE-20 | 3 | SIL decay re-enters 4.0 years after deployment; the ODAR estimator gives 4.8-5.7 years | CH | Closed by chair decision | The ODAR (NRLMSIS, NASA-STD-8719.14C cross-sections) governs lifetime compliance; the SIL decay is indicative; aligned if cheap (flight software round 3) |
 | SE-21 | 3 | SIL deploys both wings from one resistor and models 0.04 W of coil power in detumble (board: 1.16-1.3 W) | IMP | Implementation | SIL deployment per-wing restraint and coil-drive power (flight software round 3) |
-| SE-22 | 2 | Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG | IMP | Implementation | Gold finishes on every board and harness, Samtec TFM/SFSDT PTFE assemblies, gauges from the terminal ranges (SQSO-HAR-001 2.0 §15: E-, O-, R-, J-, B-, S-, M-, I-, P-, D- items) |
+| SE-22 | 2 | Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG | IMP | Closed by design change | Every SQSO-HAR-001 2.0 §15 item done: gold finishes on all boards and in EEE_PARTS_LIST E, Samtec TFM/SFSDT PTFE assemblies replace the PVC ribbons, gauges from the terminal ranges, EPS bottom-side connectors, pack fuse F0, access-port board A3, CAD zones; harness re-check against the CAD clear (58 zones), WireViz 43 cables match |
 | SE-23 | 3 | No published E595 outgassing values found for the harness wire, PTFE assemblies, sleeving, lacing tape or connector housings; Pico-Clasp gold suffix not found | VI | Verification item | V-HAR-11 (E595 per part number or test, bake-out) and V-HAR-3 (vendor drawings, gold part numbers) before the EM order (MATERIALS_LIST D §7-§8, EEE_PARTS_LIST E §2A.8) |
 
 #### Verification and validation (VV)

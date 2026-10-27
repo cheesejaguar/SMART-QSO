@@ -92,13 +92,14 @@ pub const SPIN_RATE: f64 = 0.1396;
 /// Moments of inertia about the body axes with the wings and the AntS
 /// deployed, kg m^2: the CAD of `docs/environment/MASS_BUDGET.md` v3.1
 /// (MECHANICAL_DESIGN B §5; layout B, CubeSpace rods, all four AntS
-/// elements, the 2 × 10 g ballast of decision C-13, the harness), the mean
-/// of its CBE (1,514.3 g: 2.861, 4.268, 4.043 × 10⁻³) and MEV (1,748.3 g:
-/// 3.286, 4.843, 4.627 × 10⁻³) rows, as §6.5 directs: Iyy/Izz 1.051 (CBE
-/// 1.056, MEV 1.047). The products are in [`Inertia::DEPLOYED`]. To be
+/// elements, the 2 × 10 g ballast of decision C-13 as re-placed, the harness
+/// with its bundles under the EPS), the mean of its CBE (1,513.9 g: 2.846,
+/// 4.190, 3.970 × 10⁻³) and MEV (1,747.8 g: 3.267, 4.745, 4.535 × 10⁻³)
+/// rows, as §6.5 directs: Iyy/Izz 1.051 (CBE 1.055, MEV 1.046; the major
+/// axis 1.0° from +Y in both). The products are in [`Inertia::DEPLOYED`]. To be
 /// replaced by the measured stowed inertia plus the weighed wings before
 /// flight
-pub const INERTIA: Vec3 = Vec3::new(0.003_073_5, 0.004_555_5, 0.004_335);
+pub const INERTIA: Vec3 = Vec3::new(0.003_056_5, 0.004_467_5, 0.004_252_5);
 /// Momentum gain of the spin law: torque per unit momentum error, 1/s
 pub const MOMENTUM_GAIN: f64 = 0.005;
 /// Nutation damping: torque per rad/s of rate across the spin axis, N m s
@@ -183,10 +184,10 @@ pub struct Inertia {
 impl Inertia {
     /// Both wings and the AntS deployed ([`INERTIA`] with its products, the
     /// tensor's off-diagonal elements −Σm·x·y and so on: the mean of the CAD
-    /// CBE (Ixy −9.6, Ixz +17.3, Iyz −2.9) and MEV (−13.2, +15.6, +2.5) ×
+    /// CBE (Ixy +12.6, Ixz −8.9, Iyz −3.0) and MEV (+13.7, −16.9, +3.1) ×
     /// 10⁻⁶ kg m², MASS_BUDGET v3.1 §6.1)
     pub const DEPLOYED: Inertia =
-        Inertia { xx: 0.003_073_5, yy: 0.004_555_5, zz: 0.004_335, xy: -0.000_011_4, xz: 0.000_016_45, yz: -0.000_000_2 };
+        Inertia { xx: 0.003_056_5, yy: 0.004_467_5, zz: 0.004_252_5, xy: 0.000_013_15, xz: -0.000_012_9, yz: 0.000_000_05 };
     /// Only wing W1 (+X hinge) deployed
     pub const WING_1_ONLY: Inertia =
         Inertia { xx: 0.003_081, yy: 0.004_214, zz: 0.004_012, xy: -0.000_242, xz: -0.000_041, yz: -0.000_035 };

@@ -259,8 +259,8 @@ OBC), D +6.6 … +18 (OBC to carrier), E +18 … +48.4 (carrier to the +Z end fr
 
 - **W1** leaves the sense board's top face at (−30, +20), passes the deck opening and is coiled as a 0.12 m service
   loop in zone Z1 to J1/J2 on the EPS bottom side. It touches no bundle. Tied to the sense board within 10 mm of the
-  pads and to the EPS tie points only; one spot tie to the deck strap over a PTFE sleeve; no metal clamp anywhere
-  (thermal isolation of the pack).
+  pads, to the deck strap over a PTFE sleeve, and to J1/J2's strain-relief ties only (rule C-15, §10.3); no metal clamp
+  anywhere (thermal isolation of the pack).
 - **Body panels**: each pigtail enters through a grommeted slot in its shear panel at z −10, below the EPS, and plugs
   directly into its EPS bottom-side connector; the panel's sun-sensor pair (W6D) uses the same slot.
 - **Wings**: the hinge flex (mechanical design, MEL rows 10/11) ends on tab TB-W1/TB-W2 on the shear panel at
@@ -286,7 +286,11 @@ OBC), D +6.6 … +18 (OBC to carrier), E +18 … +48.4 (carrier to the +Z end fr
   (+42, +23.5, −32.9), 0.5 mm inboard of the bundle's face: 0.205 m, 13 mV. The route under the battery (2 mm air gap,
   already used by the W10 coax) and along the deck rim were rejected (no room beside the coax; the rim is solid).
 - **W6D** trunk down the (−X,+Y) bundle to z −8, branching under the EPS to the four panel slots; PZ up the same bundle
-  to the +Z end frame at (−36, +36), MZ down to the termination at (−45, +37, −43.5).
+  to the +Z end frame at (−36, +36), MZ down to the termination MZT at (−45, +37, −43.5). The −Z photodiode sits on an
+  L-carrier on the −X body panel's −Z end zone at (−52.6, +28, −50.0) (MECHANICAL_DESIGN B §6.11); its 30 mm pigtail
+  (M22759/33-28 pair, specified to the panel vendor) enters through Ø1.8 mm holes in the body and shear panels at
+  (y +28, z −45.5), inside the (−X,+Y) bundle's band A, and reaches MZT in about 17 mm (adds 0.9 mm² to band A there:
+  1.7 of 17.8 mm²).
 - **W6E** up the (+X,+Y) bundle and inboard over the RF board's 2 mm parts to A2 J1 at its +X edge; its service loop is
   stowed in the bundle below z +20.
 - **W9A** down the (+X,+Y) bundle and under the EPS, beneath J3, to the receiver's +X edge; **W10E** from the receiver
@@ -436,7 +440,16 @@ plan area (limit 80 %). J10's plug points toward +X, so W7A's burn pairs leave s
 Lacing-tape spot ties at ≤ 30 mm along every run, on Scotch-Weld 2216 tie-down dots on the shear panels, end frames,
 deck straps and the battery clamp (isolated side only); none on the stack columns or between boards (STR rules); one
 at each zone change, within 15 mm of every connector, at each side of every splice and slot; slots and deck openings
-carry PTFE edge protection. 104 tie points by the script's count (one per 30 mm of every occupied zone and band).
+carry PTFE edge protection.
+
+**Rule under the EPS (chair decision C-15).** Harness wire in the zones under the EPS (Z1–Z5, U_*) is tied to the deck
+straps and the shear panels only. On the EPS board itself the only ties are the connector strain-relief ties, one per
+connector within 15 mm of its housing, holding the wires of that connector alone; no run, loop or other harness is
+tied to the EPS. Tying the harness mass to the board drops the EPS's Steinberg margin to −0.52; with this rule it is
++0.23 (MECHANICAL_DESIGN B §8.5). The W1 service loop and the wire dress in Z1–Z5 are therefore supported from the
+deck straps. *Workmanship note*: the harness drawing marks every permitted tie point; the build inspection (V-HAR-4)
+checks that no tie, lacing or 2216 dot on the EPS other than the connector strain-relief ties exists, and that the
+wire between a connector's strain-relief tie and its first deck or panel tie has slack (no tension from the board). 104 tie points by the script's count (one per 30 mm of every occupied zone and band).
 Harness and ties stay inside the frame's inner envelope (no harness in the 6.5 mm protrusion envelope or in any wing
 or tape sweep) and leave the vent paths between stack levels open (the zones under the EPS are open volumes).
 
@@ -523,7 +536,7 @@ is the nickel underplate of A2's own connector.
 | V-HAR-1 | Continuity, isolation, dielectric withstanding of every harness against the wire list | Test (harness tester) | §13 | Each harness, before integration |
 | V-HAR-2 | Crimp qualification: Pico-Clasp 501334 at 28 AWG, Micro-Fit 43030 at 22 and 24 AWG thin-wall (insulation grip; build-up sleeve if needed), Samtec SFSDT, AS81824/1 splices | Test | NASA-STD-8739.4A pull values; cross-sections | Before the EM harness build |
 | V-HAR-3 | Mated heights and footprints of every connector with its wire dress (Pico-Clasp 8.0 mm, Micro-Fit RA 9.0 mm and 23 mm, TFM RA 7.0 mm with the plug's back at x ≤ ±43.1, Micro-D envelope) | Inspection on the Molex/Samtec drawings, then measurement on the EM boards | Within the allocations of §10 | EM board layout (with VI-MCAD-01) |
-| V-HAR-4 | Fit check on the EM structure: every harness in its zones, the coax bands and A2's 20 mm zone free, no harness in the wing or tape sweeps, slots and deck openings protected, tie points as §10.3 | Inspection, photographs, measured route lengths | No contact with rods, flanges, columns; lengths within the wire list's service allowance | EM integration |
+| V-HAR-4 | Fit check on the EM structure: every harness in its zones, the coax bands and A2's 20 mm zone free, no harness in the wing or tape sweeps, slots and deck openings protected, tie points as §10.3, no harness tie on the EPS other than connector strain relief (C-15) | Inspection, photographs, measured route lengths | No contact with rods, flanges, columns; lengths within the wire list's service allowance | EM integration |
 | V-HAR-5 | Harness mass | Weigh each harness and A3 | Total ≤ 84.3 g × 1.25; row-32 content ≤ 100 g | EM and flight builds |
 | V-HAR-6 | Loop resistance of the power circuits (four-wire) | Test | §9.2 values within +20 % | V-HAR-1 |
 | V-HAR-7 | W1 conductance as part of the battery mount | Test (battery mount thermal test) | ≤ 0.008 W/K for the leads | EM thermal balance |
@@ -555,15 +568,15 @@ is the nickel underplate of A2's own connector.
 | R-3 | RF §4.3 | W10 1.37 mm coax top bend R 7 mm is 5.1 × OD, below the 6 × OD workmanship rule for flexible coax: confirm with the procured cable's minimum static radius or accept by analysis | §10.4 |
 | J-1 | Carrier (SQSO-JET-BRD-001 §18, BOM) | J1 → **right-angle** Micro-Fit 2×2 (43045-0400 class), gold, plug from −X; J2 gold; keep x +42 … +45.4, y +26 … +31 above the carrier free for W5B | Vertical mated J1 and its bend reach the RF board's bottom envelope |
 | B-1 | Battery (`hardware/eps/BATTERY_DESIGN.md` §7.2) | Pack leads 22 AWG (was 20), all leads 0.12 m from the sense board, PTFE over-sleeve; a fuse on the sense board: **done** in BATTERY_DESIGN 2.5 (F0 5 A in BAT_TOP, FT0–FT4 0.5 A in the taps; breaking capacity checked by the EPS designer) | §5.2, §9.1 |
-| M-1 | Mechanical (SQSO-MECH-CAD-001 §6.9, `model.py`) | Model the harness zones of §7.1 (under the EPS, inboard and corner strips, hinge-side strips, MXC, PXC_B, PXMY2, step-overs) and the EPS bottom-side connector envelope | CAD holds the routes |
-| M-2 | Mechanical / frame RFQ | Four grommeted 6 × 4 mm slots in the shear panels at (+48.5, −30, −10), (−48.5, −12, −10), (−30, +48.5, −10), (−30, −48.5, −10) | Body-panel pigtails |
-| M-3 | Mechanical | Access-port envelope 30 × 7 × 8.8 mm (x −35 … −5, z −46.8 … −38) for A3 and the Micro-D 21, and the −Y body-panel window to match (the −Z end zone has no cells) | One GSE connector for W8 and W11 |
-| M-4 | Mechanical | Termination tabs TB-W1, TB-W2 on the ±X shear panels at (±48, +37, −37 … −31); deployed-state sensor leads through the body-panel notch beside the hinge flex | Wing harness |
-| M-5 | Mechanical / ADCS | Positions of the ±Z photodiodes: PZ on the +Z end frame at (−36, +36); the −Z face is covered by the AntS, so the −Z sensor needs a position that sees −Z (harness termination at (−45, +37, −43.5), 30 mm pigtail) | W6D |
-| M-6 | Mechanical | Re-run the mass properties with the harness distribution of §11 (about 22 g under the EPS at z ≈ −8, mostly at −X; `hardware/harness/routes.csv` gives every segment) | MECHANICAL_DESIGN §5.3 assumed four symmetric bundles |
-| M-7 | Mechanical | Deck openings DX_* and the −Y slot stay open as harness pass-throughs, edges protected | Routing |
-| M-8 | Mechanical | W4A as a flat discrete-wire assembly in the gap without the fold over RF J1 (`ribbon_W4A`); §6.9 text: W6E 0.09 m (was 0.25 m), battery leads not in the −X bundle | Right-angle TFM |
-| M-9 | Mechanical | AntS and GNSS patch mounts DC-isolated from the frame (≥ 1 MΩ), as A2 is | Single-point ground |
+| M-1 | Mechanical (SQSO-MECH-CAD-001 §6.9, `model.py`) | Model the harness zones of §7.1 (under the EPS, inboard and corner strips, hinge-side strips, MXC, PXC_B, PXMY2, step-overs) and the EPS bottom-side connector envelope: **done** (MECHANICAL_DESIGN B §6.11, D-12) | CAD holds the routes |
+| M-2 | Mechanical / frame RFQ | Four grommeted 6 × 4 mm slots in the shear panels at (+48.5, −30, −10), (−48.5, −12, −10), (−30, +48.5, −10), (−30, −48.5, −10): **done** (MECHANICAL_DESIGN B §6.11, D-12) | Body-panel pigtails |
+| M-3 | Mechanical | Access-port envelope 30 × 7 × 8.8 mm (x −35 … −5, z −46.8 … −38) for A3 and the Micro-D 21, and the −Y body-panel window to match (the −Z end zone has no cells): **done** (MECHANICAL_DESIGN B §6.11, D-12) | One GSE connector for W8 and W11 |
+| M-4 | Mechanical | Termination tabs TB-W1, TB-W2 on the ±X shear panels at (±48, +37, −37 … −31); deployed-state sensor leads through the body-panel notch beside the hinge flex: **done** (MECHANICAL_DESIGN B §6.11, D-12) | Wing harness |
+| M-5 | Mechanical / ADCS | Positions of the ±Z photodiodes: PZ on the +Z end frame at (−36, +36); the −Z face is covered by the AntS, so the −Z sensor needs a position that sees −Z (harness termination at (−45, +37, −43.5), 30 mm pigtail): **done**, MZ on an L-carrier on the −X body panel at (−52.6, +28, −50.0), pigtail through holes at (y +28, z −45.5) to MZT, 17 mm of its 30 mm (MECHANICAL_DESIGN B §6.11) | W6D |
+| M-6 | Mechanical | Re-run the mass properties with the harness distribution of §11 (about 22 g under the EPS at z ≈ −8, mostly at −X; `hardware/harness/routes.csv` gives every segment): **done** (MECHANICAL_DESIGN B §6.11, D-12) | MECHANICAL_DESIGN §5.3 assumed four symmetric bundles |
+| M-7 | Mechanical | Deck openings DX_* and the −Y slot stay open as harness pass-throughs, edges protected: **done** (MECHANICAL_DESIGN B §6.11, D-12) | Routing |
+| M-8 | Mechanical | W4A as a flat discrete-wire assembly in the gap without the fold over RF J1 (`ribbon_W4A`); §6.9 text: W6E 0.09 m (was 0.25 m), battery leads not in the −X bundle: **done** (MECHANICAL_DESIGN B §6.11, D-12) | Right-angle TFM |
+| M-9 | Mechanical | AntS and GNSS patch mounts DC-isolated from the frame (≥ 1 MΩ), as A2 is: **done** (MECHANICAL_DESIGN B §6.11, D-12, D-13) | Single-point ground |
 | I-1 | Interconnect (SQSO-ICX-001 §1 rule 5, header line) | Rule 5's values are version 1.2's: the wire derating of SQSO-HAR-001 2.0 §5.2 is EEE-INST-002 with the bundle factor, and the gauge follows the terminal; governing baseline Rev E | §5.2 |
 | I-2 | Interconnect §3.1–§3.6 notes | W3, W4A: SFSDT 30 AWG on TFM; W4B, W6B, W6C, W9: 28 AWG; W5A: 24 AWG; W6D: no shield, J8-13/14 unused; §3.6: the bulkhead is A3's Micro-D 21 (pin map §3.2) | §5 |
 | I-3 | Interconnect | A revision row for the §2 table and §2.1 rewritten by this design (ICX owner) | §2, §2.1 edited here |

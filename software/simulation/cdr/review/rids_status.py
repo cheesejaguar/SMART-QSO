@@ -75,5 +75,6 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "RFB-11": ("CD", "Four AntS elements in the CAD; with the C-13 ballast the deployed ratio is 1.056 / 1.047, ≥ 1.03 with growth to 3.2 mm placement scatter (MECHANICAL_DESIGN B §5)"),
     "RF-23": ("CD", "C-14: ≥ 64 dBm EIRP above 10°; variant A ≥ 100 W into ≥ 15.5 dBic (+7.7 / +9.5 dB at 5° / 10°), variant B ≤ 50 W into a stacked 18.2 dBic pair at the US270 sites (+7.0 / +8.8 dB), 0.3 dB pointing (LBA 3.4; GND F; RF exposure 13-16 m, VI-GND-05)"),
     "SE-19": ("CD", "Harness design SQSO-HAR-001 2.0: 206 conductors, routes against the CAD (58 zones, no interference), EEE-INST-002 derating (worst 60 % normal), drops ≤ 44 mV, corner-bundle fill ≤ 51 % (band B resolved by routing the EPS-only harnesses under the EPS), mass 84.5 g, single-point ground; V-HAR-1 to V-HAR-13"),
+    "SE-22": ("CD", "Every SQSO-HAR-001 2.0 §15 item done: gold finishes on all boards and in EEE_PARTS_LIST E, Samtec TFM/SFSDT PTFE assemblies replace the PVC ribbons, gauges from the terminal ranges, EPS bottom-side connectors, pack fuse F0, access-port board A3, CAD zones; harness re-check against the CAD clear (58 zones), WireViz 43 cables match"),
     "SE-10": ("CD", "SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined"),
 }
