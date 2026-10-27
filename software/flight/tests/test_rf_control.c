@@ -3,6 +3,7 @@
  * @brief Unit tests for latched TX-OFF and transmitter permission
  *
  * @requirement SYS-204 Cease emissions on telecommand; stay ceased across resets (97.207(b))
+ * @requirement SRS-F168 TX-OFF when PTT_EXCITER reads high for more than 6 s with the repeat path not keyed and no downlink frame outstanding; logged; recovered by TX_ENABLE
  */
 
 #include <stdarg.h>
@@ -264,6 +265,49 @@ static void test_verify_toward_tx_off(void **state)
 }
 
 /** The receiver cycle removes radio power; nothing lifts passivation */
+/** SW-HAZ-014 control C-014-9 (SRS-F168): the exciter keyed by the TNC
+ *  alone for more than 6 s latches TX-OFF and logs it, once per episode; a
+ *  frame on the air or the repeat path explains the keying; TX_ENABLE
+ *  recovers, and a TNC still stuck trips it again */
+static void test_exciter_keyed_alone_latches_tx_off(void **state)
+{
+    (void)state;
+    const uint32_t trips = rf_control_ptt_trips();
+    assert_true(rf_control_tx_permitted());
+    hal_sim_gpio_drive_input(GPIO_PIN_XPDR_KEY, false);
+    hal_sim_gpio_drive_input(GPIO_PIN_PTT_EXC, true);
+    /* A frame's window, then the repeat path: explained */
+    assert_false(rf_control_ptt_supervise(1000U, true));
+    hal_sim_gpio_drive_input(GPIO_PIN_XPDR_KEY, true);
+    assert_false(rf_control_ptt_supervise(30000U, false));
+    hal_sim_gpio_drive_input(GPIO_PIN_XPDR_KEY, false);
+    /* Alone: counted from here */
+    assert_false(rf_control_ptt_supervise(40000U, false));
+    assert_false(rf_control_ptt_supervise(40000U + RF_CONTROL_PTT_LIMIT_MS, false));
+    assert_true(rf_control_tx_permitted());
+    assert_true(rf_control_ptt_supervise(40001U + RF_CONTROL_PTT_LIMIT_MS, false));
+    assert_false(rf_control_tx_permitted());
+    assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
+    assert_last_fault("PTT_EXCITER keyed over 6 s with no frame: TX-OFF (C-014-9)");
+    assert_false(rf_control_ptt_supervise(60000U, false)); /* once per episode */
+    assert_int_equal(rf_control_ptt_trips(), trips + 1U);
+    /* Latched across a power cycle, like any TX-OFF */
+    power_cycle();
+    assert_false(rf_control_tx_permitted());
+    /* TX-OFF drops the line; TX_ENABLE recovers; still stuck: again */
+    hal_sim_gpio_drive_input(GPIO_PIN_PTT_EXC, false);
+    assert_false(rf_control_ptt_supervise(61000U, false));
+    assert_int_equal(rf_control_tx_on(), SMART_QSO_OK);
+    assert_true(rf_control_tx_permitted());
+    hal_sim_gpio_drive_input(GPIO_PIN_PTT_EXC, true);
+    assert_false(rf_control_ptt_supervise(62000U, false));
+    assert_true(rf_control_ptt_supervise(62001U + RF_CONTROL_PTT_LIMIT_MS, false));
+    assert_false(rf_control_tx_permitted());
+    assert_int_equal(rf_control_ptt_trips(), trips + 2U);
+    hal_sim_gpio_drive_input(GPIO_PIN_PTT_EXC, false);
+    assert_false(rf_control_ptt_supervise(70000U, false));
+}
+
 static void test_cycle_and_passivation_inhibits(void **state)
 {
     (void)state;
@@ -297,6 +341,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_tx_on_not_persisted, setup_blank_nvm, teardown),
         cmocka_unit_test_setup_teardown(test_verify_toward_tx_off, setup_blank_nvm, teardown),
         cmocka_unit_test_setup_teardown(test_cycle_and_passivation_inhibits, setup_blank_nvm, teardown),
+        cmocka_unit_test_setup_teardown(test_exciter_keyed_alone_latches_tx_off, setup_blank_nvm, teardown),
     };
 
     return cmocka_run_group_tests_name("RF Control (TX-OFF) Tests", tests, NULL, NULL);

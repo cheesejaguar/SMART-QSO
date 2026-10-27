@@ -180,18 +180,18 @@ ratings, outgassing data).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-391 RIDs: severity 1: 32, severity 2: 204, severity 3: 155.
+392 RIDs: severity 1: 32, severity 2: 205, severity 3: 155.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 27 |
 | Closed by design change | 101 | 240 |
 | Closed by chair decision | 42 | 35 |
-| Verification item | 46 | 30 |
+| Verification item | 46 | 31 |
 | Decision point (dated) | 15 | 34 |
-| Implementation | 162 | 25 |
+| Implementation | 163 | 25 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 85 new findings; 44 of the reopened and 72 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 86 new findings; 44 of the reopened and 73 of the new are since closed.
 
 Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, SMA-B20, P3T-09.
 <!-- RID-SUMMARY-END -->
@@ -606,6 +606,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RFB-10 | 3 | AntS RF port type and the connector mated heights not confirmed from the ISIS ICD and the Molex/Samtec drawings | VI | Decision point (dated) | Owner RF lead: VI-RFB-12 by 2026-11-13 before layout; VI-RFB-13 via the ISIS AntS RFQ (out by 2026-11-06), closed 10 working days after the response and before the EM buys 2027-01-15 (RF_BOARD_DESIGN D §15) |
 | RFB-11 | 2 | CAD models two AntS elements; the AntS and the RF board use four (2 m along ±X, 70 cm along ±Y): the deployed inertia ratio must be re-checked | IMP | Closed by design change | Four AntS elements in the CAD; with the C-13 ballast the deployed ratio is 1.056 / 1.047, ≥ 1.03 with growth to 3.2 mm placement scatter (MECHANICAL_DESIGN B §5) |
 | RFB-12 | 3 | W10 coax top bend 7 mm is 5.1 × OD, below the 6 × OD workmanship rule | CH | Closed by chair decision | Accepted by analysis: formed once and tied, 1.75 × the Taoglas PRT.001221 minimum static radius (4 mm), no RF effect at 436 MHz; conditions: procured cable minimum static radius ≤ 5 mm (VI-RFB-12), bend inspection (V-HAR-10), return loss after forming and vibration (VI-RFB-13) |
+| RFB-14 | 2 | TX-OFF removes PA_5V only: the CC1200 stays powered and an accidental full-power transmission could leak −35 to −45 dBm to the antenna ports through the receive chain, above the −60 dBm TX-OFF limit; the LMX2571 "verify" after rewrite had no stated readback path (found by the TNC firmware SRS) | IMP | Verification item | LMX2571 readback over the existing MUXout line (R39 SDO_LD_SEL) with PTT low; key-up sequence CE high, ≥ 100 µs, write all, R0 FCAL_EN, read back and compare (second mismatch aborts), lock detect, PTT (TNC-FW-LMX); frequency and FSK registers rewritten every 5 s while keyed; CC1200 never sent STX, PA at minimum (−16 dBm: leakage below −60 dBm), no automatic transition into TX, 1 s MARCSTATE check (RF_BOARD_DESIGN F amended §7.7, §13); VI-RFB-16 on the EM measures leakage at full and minimum PA power with TX-OFF, pass ≤ −60 dBm at J5/J6, fallback remove L206 after TI confirms the receive-only use |
 
 #### EPS board (round 2) (EPSB)
 

@@ -175,7 +175,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-SMP-001 | SMART-QSO Software Maintenance Plan | `docs/software/SOFTWARE_MAINTENANCE_PLAN.md` | 1.1 | Draft |
 | SMART-QSO-SRS-001 | Software Requirements Specification (SRS) | `docs/software/SOFTWARE_REQUIREMENTS.md` | 1.11 | Draft |
 | SQSO-SRS-TNC-001 | RF Board TNC Firmware: Software Requirements Specification | `docs/software/TNC_FIRMWARE_REQUIREMENTS.md` | A | Draft; 67 requirements, 25 safety-critical; firmware not written (finding P3A-03) |
-| SQSO-SRS-EPSC-001 | EPS Controller Firmware: Software Requirements Specification | `docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md` | A | Draft; 62 requirements, 20 safety-critical; firmware not written (finding P3A-03) |
+| SQSO-SRS-EPSC-001 | EPS Controller Firmware: Software Requirements Specification | `docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md` | B | Draft; 62 requirements, 20 safety-critical; firmware not written (finding P3A-03) |
 | SQSO-FSW-012 | NPR 7150.2D Requirements Mapping and Compliance Matrix (Class C) | `docs/software/NPR7150_COMPLIANCE_MATRIX.md` | C | Draft |
 | SMART-QSO-STP-001 | Software Test Plan (STP) | `docs/software/SOFTWARE_TEST_PLAN.md` | 1.2 | Draft |
 | SQSO-SVD-001 | Software Version Description | `docs/software/SOFTWARE_VERSION_DESCRIPTION.md` | D | Draft |
