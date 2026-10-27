@@ -1,7 +1,7 @@
 # SMART-QSO Commissioning Plan
 
 **Document ID**: SQSO-COMM-001
-**Version**: 2.1
+**Version**: 2.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft for CDR. Commands are the flight dictionary as of flight software round 3
@@ -95,7 +95,7 @@ that each is started on its own step.
 
 | | |
 |---|---|
-| Entry | Separation report and SpaceX state vector received; S+45 min passed (the radio, receiver included, is unpowered until then) |
+| Entry | Separation report and SpaceX state vector received; S+45 min passed (the radio, receiver included, is unpowered until then). The transmitters stay silent while the AntS deployment is pending (decision C-19, SRS-F167), so after an eclipse separation from a cold dispenser the first beacon can come one or more 50-minute slots later (S+81 min in the simulation), at worst about S+27 h; the receiver is on meanwhile |
 | Commands | None |
 | Proof | Beacon decoded with source KK6GDB-11 and the call sign at the start of the text; tail values: `M=` IDLE (SAFE or a missing beacon means a low separation SOC, MISSION_TIMELINE §8.4; ACTIVE is impossible under the hold), `SOC=` ≥ 40, `BV=` 14.4–16.4 V, `SUN=` alternating with the orbit; `T=` consistent with the separation time (T counts seconds since boot, so T ≈ time since separation unless the OBC reset; HK1 `BOOT` and `RST` say whether it did); the first HK1 (after the fifth beacon): `HOLD=1`, `XP=0`, `TX=1`, `RFS` complete, `DEP` deployment state; Doppler curve matching the SpaceX state vector within the dispersion |
 | Expected | First beacon pass over the Bay Area (≥ 5°) S+0.7 to S+12.1 h after separation (median S+5.3 h); anywhere in the network after about S+1.8 h (simulation; SQSO-MTL-001 §5, §10) |
@@ -202,7 +202,7 @@ certification.
 
 | Anomaly | Likely cause | Response |
 |---------|--------------|----------|
-| No beacon at the first Bay Area pass | Pass geometry (median first pass S+5.3 h); low SOC; antenna stowed | MISSION_TIMELINE §8.6 |
+| No beacon at the first Bay Area pass | Pass geometry (median first pass S+5.3 h); low SOC; antenna stowed; the AntS still deferred by its temperature gate, the transmitters held (decision C-19; `DEPLOY_RETRY` 0 with the force flag, sent blind, deploys it at once) | MISSION_TIMELINE §8.2, §8.6 |
 | `M=SAFE` at first contact | Separation SOC below 25 % | Wait: the simulation reaches IDLE within S+4–8 h |
 | Weak signal at high elevation; `DEP` shows an element FAILED | Antenna not deployed | `DEPLOY_RETRY` 0 in a sunlit pass; characterize the link |
 | Command not executed (no acknowledgement) | Uplink frequency offset, counter window, key slot, link | C-2 "If not" |
@@ -217,3 +217,4 @@ certification.
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 2.0 | 2026-10-27 | CDR launch and ConOps review | Rewritten step by step (C-0 to C-11) with entry criteria, the commands of the flight dictionary, the telemetry that proves each step and its exit criterion; TX-OFF proof added before the transponder; ephemeris step added; the RF silence is 45 min; the separation SOC and pass statistics from the simulation and the pass analysis. Version 1.0 used commands that do not exist (`JETSON_POWER`, `AI_ENABLE`, `FORCE_FALLBACK`, `ECHO_TEST`, `RELEASE_SAFE`, `SET_TX_POWER`) and assumed a 30-minute RF timer, a > 95 % SOC at deployment and telemetry the downlink does not carry |
 | 2.1 | 2026-10-27 | CDR round 3, launch and operations (RID LV-13) | Brought to the command dictionary of flight software round 3 (30 commands): HK1 and HK2 as the proof of each step (`GET_HOUSEKEEPING` 0x09, `DUMP_TLM` 0x0A), the acknowledgement rule; C-7 is the commissioning release (`COMMISSIONING_RELEASE` 0x08, with `XPDR_DISABLE`/`XPDR_ENABLE` 0x35/0x34 and `PLD_DISABLE` first), so the transponder runs only after the release; deployment retry (`DEPLOY_RETRY` 0x50), `ADCS_SET_GEOMETRY` 0x24, `ADCS_SET_GYRO_ALIGN` 0x25 and `ADCS_SET_MAG_BIAS` 0x26 in C-5; `GNSS_REQUEST` 0x60 in C-9; `EPS_CLEAR_LOCKOUT` 0x14 in C-4; `PASSIVATE_ARM`/`PASSIVATE_EXECUTE` 0x70/0x71 excluded; commanding above 10° (12° in the degraded mode, C-14) and the uplink offset from the measured downlink (RFB-05); pass statistics from SQSO-MTL-001 2.3 (first beacon pass median S+5.3 h, at most S+12.1 h; first commanding pass median S+6.4 h, at most S+13.7 h); the D5 energy gate measured from HK2. Version 2.0 said the transponder started by itself at S+53 min, that there was no housekeeping downlink, deployment retry or GNSS command, that commands went only above 15° and that the dictionary had 17 commands |
+| 2.2 | 2026-10-27 | CDR flight software, round 3, fourth part (decision C-19) | C-1 entry and §8: the first beacon waits for the AntS sequence's end (SRS-F167) |

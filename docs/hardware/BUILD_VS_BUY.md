@@ -1,7 +1,7 @@
 # Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery
 
 **Document ID**: SQSO-BVB-001
-**Version**: C
+**Version**: D
 **Date**: 2026-10-27
 **Status**: Draft; vendor data from public pages on 2026-10-26, no quotes yet
 
@@ -404,7 +404,7 @@ of 2 days per case (`software/simulation/cdr/avionics/adcs_mc_cdr.sh`; re-run 20
 
 | Case (8°/s unless stated) | Not detumbled | Slowest capture | Mean Sun angle | Worst p95 | Within 15° | Worst eclipse exit | Worst-trial generation |
 |---------------------------|---------------|-----------------|----------------|-----------|------------|--------------------|------------------------|
-| M-G370PDT0 | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 9° | 4.50 W |
+| M-G370PDT0 (re-run round 3, fourth part, with `INERTIA` (3.064, 4.481, 4.262) × 10⁻³) | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 10° | 4.50 W |
 | BMI088, calibrated | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 10° | 4.50 W |
 | BMI088, bias 0.2°/s | 0 | 1.3 h | 2.5° | 9.8° | 100 % | 10° | 4.50 W |
 | BMI088, bias 0.3°/s | 0 (1 timeouts) | 2.9 h | 5.4° | 148° | 97.5 % | 151° | 2.52 W |
@@ -421,7 +421,7 @@ of 2 days per case (`software/simulation/cdr/avionics/adcs_mc_cdr.sh`; re-run 20
 | 4°/s, residual dipole 10 mA·m² | 0 | 4.0 h | 11° | 45° | 77.1 % | 60° | 4.20 W |
 | 6°/s, k_n 1·10⁻⁴ (the version A gains) | 0 | 1.2 h | 2.5° | 9.7° | 100 % | 13° | 4.50 W |
 | Iyy/Izz 1.000 / 1.005 / 1.020 / 1.050 | 0 / 0 / 0 / 0 | 1.2 h / 1.2 h / 1.3 h / 1.2 h | 24° / 2.0° / 1.9° / 1.8° | 163° / 7.8° / 7.4° / 7.2° | 76.2 % / 99.9 % / 100 % / 100 % | 178° / 30° / 10° / 9° | 3.64 W / 4.49 W / 4.50 W / 4.50 W |
-| **CAD tensor CBE / MEV (C-13 ballast, final)** | 0 / 0 | 1.2 h / 1.1 h | 1.8° / 1.8° | 7.1° / 6.7° | 100 % / 100 % | 11° / 8° | 4.50 W / 4.50 W |
+| **CAD tensor CBE / MEV (MASS_BUDGET 3.2: 1,520.0 g / 1,754.9 g; re-run round 3, fourth part)** | 0 / 0 | 1.2 h / 1.1 h | 1.8° / 1.7° | 7.0° / 6.8° | 100 % / 100 % | 11° / 8° | 4.50 W / 4.50 W |
 | Wing W1 only, geometry preset 0 / 1 | 1 / 0 | 1.2 h / 1.2 h | 10° / 13° | 20° / 17.1° | 89.6 % / 93.2 % | 38° / 20° | 2.99 W / 3.11 W |
 | Wing W2 only, geometry preset 0 / 2 | 0 / 0 | 1.2 h / 1.0 h | 6.3° / 13° | 12.5° / 17.8° | 99.5 % / 86.1 % | 35° / 21° | 3.02 W / 3.04 W |
 | Coils on through the sample, software unaware (gyro / no gyro) | 0 / 0 (27 timeouts) | 1.2 h / 5.1 h | 1.8° / 68° | 7.3° / 167° | 100 % / 11.5 % | 10° / 174° | 4.50 W / 2.41 W |
@@ -542,5 +542,6 @@ with the latch-up trip acting on the PDU switch), not a bigger battery.
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | C | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §6.4 re-run with the final CAD tensors (C-13 ballast as re-placed; CBE and MEV rows, the flight software's mean as the default plant) and the round-3 flight software |
+| D | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §6.4 the M-G370 and CAD CBE/MEV rows re-run at MASS_BUDGET 3.2's tensors (RID GNC-07); the wing rows are ADCS_DESIGN 1.8 §11.4's to copy |
 | B | 2026-10-27 | SMART-QSO Team | Design review: frame RFQ with a recessed −Z face (STR-11); heater set points +5/+9 °C (THM-02); §6 gains and spin from the Monte Carlo on the computed inertia (STR-01) |
 | A | 2026-10-26 | SMART-QSO Team | Initial issue: COTS survey and build-versus-buy decisions; gyro; ADCS Monte Carlo and gains; battery size; transponder enable and battery mount hardware |

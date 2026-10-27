@@ -1,7 +1,7 @@
 # SMART-QSO Electromagnetic Compatibility Assessment
 
 **Document ID**: SQSO-EMC-001
-**Version**: D
+**Version**: E
 **Date**: 2026-10-27
 **Status**: CDR assessment (analysis and design rules). No unit exists; the emission levels of the Jetson carrier,
 the converters and the PA are not yet measured. The tests that close it are in §6 and in
@@ -63,7 +63,7 @@ Pack model of the mission simulation (R0 = 40 mΩ/cell at 25 °C, Arrhenius 28 k
 | −20 °C | 15 % | 14.00 | 12.74 | 12.53 | 13.67 | 12.64 | 12.48 | **11.97** (below 12.0 V) | **9.95** (below the 11.2 V BMS cut) |
 
 The burn columns are the deployment of the EPS board (SQSO-EPS-BRD-001 §9; BASELINE §4): two resistors per wing on four
-independent burn lines (PB10 → W1A, PE6 → W1B, PB9 → W2A, PE7 → W2B), **one resistor at a time**, 8 s on a 0.8 A
+independent burn lines (PB10 → W1A, PE6 → W1B, PB9 → W2A, PE7 → W2B), **one resistor at a time**, 10 s (decision C-17; 8 s before) on a 0.8 A
 current-limited driver fed from the 7.0 V burn buck (12 s hardware on-time limit). At the pack that is 0.67 A with
 housekeeping and heater, 0.75 A with the magnetorquers at 1.16 W as well, and the chair's 1.0 A limit (which also
 covers 0.90 A with the coil bridges at their hardware limit). The 2.0 A column is a software fault that turns on all
@@ -147,3 +147,4 @@ pass criteria in numbers:
 | B | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: deviations E6 (amended) and E8 recorded as SQSO-EPS-BRD-001 states them (§5.1); S1, S2, S5 sources and the burn current per the EPS board (synchronised 1.000 MHz plan, separate PA buck, 0.75 A one-resistor burn); §4 bus table with the 0.75 A burn; V-EMC-6; EMC-02 and EMC-03 closed by design |
 | C | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §4 re-run with `bus_transients.py` modelling the one-resistor-at-a-time burn (0.67 A nominal, 0.75 A worst case, 1.0 A limit, 2.0 A four-driver fault) in place of the 1.7 A two-resistor burn; lowest-SOC table; cold-soak burn 14.1–14.4 V (was 12.8–13.4 V in the two-resistor bound) |
 | D | 2026-10-27 | CDR design (EPS board) | §1 and §3: third-harmonic requirement ≥ 70 dB per BASELINE §7 (was 60 dBc) |
+| E | 2026-10-27 | CDR flight software, round 3 (fourth part) | §3 the burn time 10 s (decision C-17; was 8 s) |

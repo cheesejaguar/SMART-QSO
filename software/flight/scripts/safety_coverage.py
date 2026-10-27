@@ -50,7 +50,7 @@ SAFETY_CRITICAL: Tuple[str, ...] = (
     # Payload thermal and over-current protection
     "sqso-fsw/src/payload_guard.rs", "sqso-ffi/src/payload_guard.rs",
     # RF transmit inhibit (SH-008)
-    "sqso-fsw/src/rf_control.rs", "sqso-ffi/src/rf_control.rs",
+    "sqso-fsw/src/rf_control.rs", "sqso-ffi/src/rf_control.rs", "sqso-fsw/src/ptt_watch.rs",
     "sqso-fsw/src/rf_silence.rs", "sqso-ffi/src/rf_silence.rs",
     "sqso-fsw/src/contact_monitor.rs", "sqso-ffi/src/contact_monitor.rs",
     "sqso-ffi/src/separation_switch.rs",

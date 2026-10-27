@@ -43,12 +43,13 @@ run ratio_1p005          --gyro mg370 --ratio 1.005
 run ratio_1p020          --gyro mg370 --ratio 1.02
 run ratio_1p050          --gyro mg370 --ratio 1.05
 run major_axis           --gyro mg370 --fsw-axis plant
-# The plant at the CAD tensors of MASS_BUDGET v3.1 §6.1 and §6.5 (four AntS
-# elements, the C-13 ballast, the harness), deployed, CBE 1,513.9 g and MEV
-# 1,747.8 g, about the CG, off-diagonals -sum(m x y) (the flight software
-# keeps the mean of the two: sqso_fsw::adcs::INERTIA, Inertia::DEPLOYED)
-run plant_cbe            --gyro mg370 --plant 2.852,4.199,3.977,0.0114,-0.0110,-0.0040
-run plant_mev            --gyro mg370 --plant 3.274,4.756,4.543,0.0122,-0.0196,0.0019
+# The plant at the CAD tensors of MASS_BUDGET v3.2 §6.1 and §6.5 (four AntS
+# elements, the C-13 ballast, the harness after the M-11 parts audit), deployed,
+# CBE 1,520.0 g and MEV 1,754.9 g, about the CG, off-diagonals -sum(m x y) (the
+# flight software keeps the mean of the two: sqso_fsw::adcs::INERTIA,
+# Inertia::DEPLOYED)
+run plant_cbe            --gyro mg370 --plant 2.853,4.202,3.979,0.0108,-0.0080,-0.0027
+run plant_mev            --gyro mg370 --plant 3.276,4.760,4.546,0.0115,-0.0158,0.0035
 # One wing or none deployed: the default geometry and the matching preset
 run wing1_geo0           --gyro mg370 --wings w1 --geometry 0
 run wing1_geo1           --gyro mg370 --wings w1 --geometry 1

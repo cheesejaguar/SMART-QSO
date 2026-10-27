@@ -1,7 +1,7 @@
 # SMART-QSO Telemetry Dictionary
 
 **Document ID**: SQSO-TLM-001
-**Version**: 1.4
+**Version**: 1.5
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -197,7 +197,13 @@ The text before ` | ` passes the content filter (`BEACON_SPEC.md` section 6). It
 
 Every fifth beacon is followed, 5 s later, by a UI frame whose information field starts `HK1 ` (and one is sent on
 `GET_HOUSEKEEPING`, 0x09). Plain ASCII `KEY=value` pairs, integers only, `-` for a value not measured, at most 250
-bytes (`software/rust/sqso-fsw/src/housekeeping.rs`, SRS-F085, SRS-F126):
+bytes a frame (`software/rust/sqso-fsw/src/housekeeping.rs`, SRS-F085, SRS-F126). **A text longer than a frame is sent
+whole in as many frames as it needs (Version 1.5, SIL finding SIL-40):** cut at the spaces between fields, never inside
+one, 5 s apart, each frame after the first starting with the first's tag and sequence (`HK1 N=7 `), so a decoder that
+reads `KEY=value` pairs merges the frames of one `N`. HK1 with every field at its widest is 341 bytes (two frames);
+in flight it passes 250 bytes once its counters grow (in the mission simulation after about 140 days, when Version 1.4's
+single frame went out empty and the `ST=` the ground plans dumps with was lost). HK2 at its widest is 474 bytes (two
+frames). The order on the air: the HK1 frames, then the HK2 frames, then the GNSS frame when one is due.
 
 | Key | Value | Unit |
 |-----|-------|------|
@@ -291,8 +297,7 @@ GNS N=<session> WK=<week> TOW=<ms> X=<m> Y=<m> Z=<m> VX=<mm/s> VY=<mm/s> VZ=<mm/
 
 Example: `GNS N=17 WK=452 TOW=345600000 X=-4349115 Y=4803225 Z=2239564 VX=-4581234 VY=-1912078 VZ=5870431 VDT=30 Q=1
 SV=8 PD=18 AGE=0` (one line on the air). Decoder: `software/ground/tools/gnss_frame.py` (SQSO-GND-002); unknown keys are
-ignored. The stored housekeeping records (§4.6) do not carry the fix: their 44-byte layout and FRAM regions are full; HK1
-`GF` carries its age and satellites.
+ignored. The stored housekeeping records (§4.6) do not carry the fix (§4.6); HK1 `GF` carries its age and satellites.
 
 ### 4.5 Command Acknowledgement
 
@@ -304,6 +309,19 @@ After each authenticated command counted as contact: `ack KK6GDB-11: C=<counter>
 `DUMP_TLM` (0x0A) downlinks the stored records in binary frames starting `HKD`: 44-byte records every 5 minutes for 7.1
 days and every 60 s for 6.8 h and the 6 h around the last three events. Frame and record layout: SQSO-ICD-005 §5.6
 (SRS-F120 to SRS-F122).
+
+**No GNSS position in the stored records (decided at CDR round 3, fourth part; RID SMA-15).** The success criteria's
+telemetry list (SQSO-MSC-001 §7) has no position item, and no criterion needs an onboard position history: L2-04 (fair
+scheduling across regions) takes "transponder on/off telemetry and orbit" — the record's flags (bit 1 transponder
+enabled) and its time (uptime and boot count, tied to UTC by HK2 `RT`) give the on/off history, and the orbit at each
+record's time comes from the ground's ephemeris (the 18th SDS elements, refined with the `GNS` state frames of every
+fix session, SRS-F158; `docs/ground/ORBIT_DETERMINATION_AND_EPHEMERIS.md`), which is more accurate between fixes than
+any position the record could hold (the receiver is on for about 2 minutes an orbit). L1-04 and L2-07 need the
+deployment, rate and array fields, which the record has. Adding the last fix (its age and a compact position, 8 bytes)
+would make the record 52 bytes: the five-minute region (2,048 × 44 = 90,112 B) would become 106,496 B and the
+sixty-second region (1,489 × 44 = 65,516 B, at its 64 KB bound) would no longer fit: 64 KB would hold 1,260 records,
+which leaves the ring 180 beside the three 360-record windows, fewer than the 188 a window's copy needs, for no
+criterion. STORAGE_DESIGN §3.4.2 keeps the map unchanged.
 
 ## 5. Telemetry Limits
 
@@ -390,3 +408,4 @@ SQSO_SUMMARY_YYYYMM.csv
 | 1.2 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §4.4 `PS` carries the EPS `EOL_STATE` (fuse F1 intact, bit 2) and the fire attempts (RID REG-12, finding EOL-1); §4.4.1 new: the second housekeeping frame HK2 (RID SMA-15) |
 | 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, second part) | §4.4.2 new: the GNSS state frame `GNS` (RID LV-04, SRS-F158); HK1 `FR` (SMA-B10); HK2 `TR` with the magnetometer rail, `SEP`, `PT`, `SV` (SMA-B02, B19, B09) |
 | 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | §4.4 HK1 `PS` with the fire's reasons (the EPS board ≥ 0 °C condition bounded at 6 h, RID SMA-B20); HK1 `AD`, the AntS temperature gate (decision C-18); §4.4.1 HK2 `CI`, the EPS controller's CHG_INHIBIT with bit 6 NTC1 implausible |
+| 1.5 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §4.4 a housekeeping text longer than a frame is sent in frames of whole fields with the tag and sequence repeated (SIL finding SIL-40: HK1 had gone out empty past 250 bytes); §4.6 why the stored records carry no GNSS position (RID SMA-15) |

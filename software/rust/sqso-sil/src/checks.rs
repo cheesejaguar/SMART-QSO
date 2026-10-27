@@ -323,6 +323,16 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
             None => check(id, title, "not deployed".into(), "within 2 h", Anomaly),
         });
     }
+    // SW-HAZ-014 control C-014-9 (SRS-F168): the exciter keyed with no
+    // frame and the repeat path idle trips TX-OFF; never in a nominal run
+    let ptt = t.faults.iter().filter(|(k, _)| k.starts_with("PTT_EXCITER keyed over")).map(|(_, n)| *n).sum::<u64>();
+    c.push(check(
+        "ptt-watch",
+        "Exciter keyed over 6 s with no frame and no repeat (C-014-9): TX-OFF trips",
+        format!("{ptt}"),
+        "0 (the TNC never keys alone in the model)",
+        if ptt == 0 { Pass } else { Anomaly },
+    ));
     // Decision C-19: silent while the AntS is pending; no keying into stowed
     // elements before its sequence ends (after a failed sequence the
     // stowed-antenna beacon, and its VSWR stops, are expected)

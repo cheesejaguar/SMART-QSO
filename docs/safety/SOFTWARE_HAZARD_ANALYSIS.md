@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SHA-001
-**Revision:** G
+**Revision:** H
 **Date:** 2026-10-27
 **Classification:** Class D Mission
 **Reference:** NASA-STD-8739.8B (replaced NASA-STD-8719.13, cancelled 2020)
@@ -464,6 +464,7 @@ concurrence with the SDP §3.2 list.
 | THM-03 | SW-HAZ-008 (safe mode) | With the wings stowed and the battery's orbit minimum below +3 °C the mode is held at SAFE so the heater gets the whole surplus (SRS-F163) | T: Rust unit tests of `cold_hold` |
 | SMA-B20 (Revision F) | SW-HAZ-013 (passivation not completed) | The fire waits for the EPS board at 0 °C (F1's rating), but the condition cannot block the passivation: a cold board is waited for at most 6 h of each 24 h attempt, an unreadable temperature not at all, then the fire goes ahead in sunlight; the reason is reported in HK1 `PS` and the final report (SRS-F111) | T: `test_passivation` (cold 6 h then fires, warm at once, unreadable fires), Rust unit tests of `passivation.rs` (safety-critical coverage) |
 | C-18 (Revision F) | SW-HAZ-007 (deployment) | The AntS is deployed only at ≥ −17 °C by its own temperature; colder or unknown defers by 50-minute slots without spending an attempt, and the deferral cannot block the antenna for good: after 30 deferrals (about 25 h) it deploys anyway, and DEPLOY_RETRY's force flag deploys at once (SRS-F165); the 30-minute wait and the wings-first order unchanged | T: `test_deployment` (`test_ants_temperature_gate`), Rust unit tests of `deployment.rs` (safety-critical coverage), the mission simulation's `ants-gate` check |
+| C-19 (Revision H) | SW-HAZ-010 (RF inhibits), SW-HAZ-007 (deployment) | The transmitters stay silent while the AntS deployment is pending (from boot through the wings and the temperature gate's deferrals): a separate transmitter inhibit (`RF_INHIBIT_ANTS_PENDING`, the receiver on) until the AntS reads deployed or its sequence ends (attempts spent, or the attempt at the 30-deferral cap made), latched in the deployment record; never while deployment is inhibited by command; independent of the 45-minute silence. Bounded by the gate's cap (about 27 h at worst), so it cannot silence the spacecraft for good; a failed AntS keeps its stowed-antenna beacon (SRS-F167) | T: Rust unit tests `the_downlink_is_held_until_the_ants_reads_deployed`, `the_downlink_waits_for_the_attempt_at_the_deferral_cap`, `the_downlink_hold_yields_to_the_ground_and_restarts_with_the_sequence`; C `test_deployment` `test_downlink_held_while_the_ants_is_pending`, `test_downlink_hold_ends_with_a_deployed_ants`; SIL check `ants-hold` |
 | R_FAULT 220 kΩ (Revision F) | SW-HAZ-002 (ADCS) | A sensor rail's turn-on takes up to 0.55 s: a readback low within 0.6 s of the enable is not a trip and no sensor is used before 0.6 s (SRS-F164) | T: Rust unit test `a_rail_is_used_only_after_its_turn_on` |
 
 ### 9.8 Board Firmware: the RF Board TNC and the EPS Controller (Revision G)
@@ -503,9 +504,9 @@ from the receiver IC. System hazard SH-008 (RF interference; 47 CFR 97.307, 97.2
 | C-014-6 | The CC1200 never given a transmit strobe; its PA at minimum (TNC-F041) | UT; IN; EM: leakage measured with a test build (recorded) |
 | C-014-7 | Parameters clamped (TNC-I005); RF data never parsed as KISS commands (TNC-F013); unknown commands ignored (TNC-I008) | UT, fuzz |
 | C-014-8 | Independent watchdog in hardware mode, 250 ms (≤ 0.35 s), refreshed from the main loop only; outputs low at and after a reset (TNC-F002, TNC-F004, TNC-F005); TNC_PTT and TONE_OK pulled down in reset (R408) | IN (option bytes); EM: halted loop |
-| C-014-9 | **Recommended, not yet a requirement** (for the SRS owner): the OBC, which captures PTT_EXCITER on TIM8_CH2, drives RF_TX_EN low when PTT_EXCITER stays high for more than 6 s with no frame outstanding, so a TNC that holds TNC_PTT with its timer failed is cut by the OBC | — |
+| C-014-9 | **Implemented in the OBC flight software (Revision H, SRS-F168):** the OBC reads PTT_EXCITER (PC7, also captured on TIM8_CH2) and XPDR_KEY each main-loop pass; PTT_EXCITER high for more than 6 s with XPDR_KEY low (the repeat path, which the heartbeat and the 120 s timer bound, excluded) and no downlink frame outstanding (the frame's estimated air window) latches TX-OFF (RF_TX_EN low, persisted) and logs a critical fault, once per episode; recovery is the TX-OFF latch's (TX_ENABLE), and a TNC still stuck trips it again 6 s later (`sqso-fsw/src/ptt_watch.rs`, `rf_control_ptt_supervise()` in `sqso-ffi/src/rf_control.rs`, called from the executive's safety checks; on the safety-critical list) | T: Rust unit tests `trips_once_after_six_seconds_unexplained`, `a_frame_or_the_repeat_path_explains_the_keying`; C `test_rf_control` `test_exciter_keyed_alone_latches_tx_off`; SIL check `ptt-watch` (0 trips in the reference run); EM: TNC test build holding TNC_PTT with its timer disabled (VI with VI-RFB-08) |
 
-**Status:** requirements written (SQSO-SRS-TNC-001 A); firmware not written. Open until the EM tests and C-014-9.
+**Status:** requirements written (SQSO-SRS-TNC-001 A); firmware not written. C-014-9 implemented in the OBC (Revision H). Open until the EM tests.
 
 #### 9.8.2 SW-HAZ-015: RF Board TNC Firmware, Telecommand Path Blocked or Receiver Evidence Falsified
 
@@ -582,7 +583,7 @@ behind DS1–DS3, and a disabled tracker costs power, not safety.
 | SW-HAZ-011 | Commissioning hold lost or bypassed | Major | Remote | Low | Verified on host |
 | SW-HAZ-012 | OBC selector extends a gate | Major | Improbable | Low | Design only |
 | SW-HAZ-013 | End-of-life passivation commanded wrongly or not completed | Critical (mission) | Improbable | Low | Open (EM test V-EPS-8) |
-| SW-HAZ-014 | RF board TNC firmware: emission outside its limits | Critical | Improbable | Low | Open (requirements only; EM tests) |
+| SW-HAZ-014 | RF board TNC firmware: emission outside its limits | Critical | Improbable | Low | Open (requirements; the OBC's control C-014-9 implemented; EM tests) |
 | SW-HAZ-015 | RF board TNC firmware: telecommand path blocked or receiver evidence falsified | Critical | Improbable | Low | Open (requirements only; EM tests) |
 | SW-HAZ-016 | EPS controller firmware weakens a battery hazard control or misreports the pack | Critical | Improbable | Low | Open (requirements only; EM tests) |
 | SW-HAZ-017 | EPS controller firmware: end-of-life key, OBC bus or supervisor outputs misused | Critical (mission) | Improbable | Low | Open (requirements only; EM tests) |
@@ -600,6 +601,7 @@ behind DS1–DS3, and a disabled tracker costs power, not safety.
 | E | 2026-10-27 | §9.5 C-013-2 the two-processor arm (RID P3E-11, SRS-F157); §9.6 new: the changes from the board FMEA (SMA-B02 sense polarity and separation latch, B10 FRAM mirror and degraded mode, B11 receiver evidence, B19 TX_TEMP plausibility, B09 EPS heartbeat and IWDG timeout) and THM-03 (the wings-stowed cold hold); the summary is §9.7 | SMART-QSO Team (CDR flight software, round 3, second part) |
 | F | 2026-10-27 | §9.6: SMA-B20 the passivation's EPS-board condition bounded (6 h, unreadable not blocking); C-18 the AntS temperature gate with its cap and force flag; the sensor-rail turn-on (R_FAULT 220 kΩ); SMA-B09 row: the IWDG at 25.6 s before the supervisor's 29.3 s |
 | G | 2026-10-27 | §2 scope and new §9.8: the board firmware items (finding P3A-03). SW-HAZ-014 (TNC emission outside its limits) and SW-HAZ-015 (TNC telecommand path and receiver evidence), SW-HAZ-016 (EPS controller and the battery hazard controls) and SW-HAZ-017 (EPS controller end-of-life key, bus and supervisor), each with causes, controls and verification from SQSO-SRS-TNC-001 A and SQSO-SRS-EPSC-001 A; the SWE-205 determination for both items; recommended control C-014-9 (the OBC watches PTT_EXCITER); §9.7 summary | SMART-QSO Team (CDR round 3, software systems) |
+| H | 2026-10-27 | §9.8.1 C-014-9 implemented in the OBC (SRS-F168: TX-OFF when PTT_EXCITER stays high 6 s with no frame and the repeat path idle); §9.6 C-19 the transmitter hold while the AntS is pending (SRS-F167); §10 SW-HAZ-014 status | SMART-QSO Team (CDR flight software, round 3, fourth part) |
 
 ---
 

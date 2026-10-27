@@ -1,7 +1,7 @@
 # SMART-QSO Mission Timeline and Event Sequence
 
 **Document ID**: SQSO-MTL-001
-**Version**: 2.5
+**Version**: 2.6
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft for CDR. Times after separation are from the mission simulation and the pass analysis named in §1;
@@ -83,9 +83,9 @@ lines, flight software round 2); pass statistics from `leop_passes.py` at the sa
 | S+19.2 min | DETUMBLE → **IDLE**; the commissioning hold keeps it there: no ACTIVE, no Jetson, no transponder until `COMMISSIONING_RELEASE` (RID LV-01 closed) | | 0.42 W | 58.0 % | — |
 | S+21 min onward | Body cells charging (≈ 2.5–2.8 W from the body before the wings) | | | rising | — |
 | S+30:00 | Deployment wait served (CDS §2.4.4); 33.3 % of the cases are in eclipse at this moment (§8.1) | | | 58.5 % | — |
-| S+30:01 | **Wing burn**: line W1A only (one resistor, 0.8 A driver from the 7.0 V burn buck); both wings sensed deployed at S+30:12, so W1B, W2A and W2B are not used (at most one line on at any time: check `burn-lines` = 1) | + burn buck, one driver | 7.0 W bus load for 11 s; net pack current −0.15 A (the body array carries most of it in sunlight); in eclipse 0.67 A, 0.75 A with the magnetorquers (SQSO-EPS-BRD-001 §9) | 58.5 % | — |
+| S+30:01 | **Wing burn**: line W1A (one resistor, 0.8 A driver from the 7.0 V burn buck; wing W1 released after 2.7 s), then W2A from S+30:11 (wing W2 released after 2.2 s); both wings sensed deployed at S+30:14, so W1B and W2B are not used (at most one line on at any time: check `burn-lines` = 1; SIL Version E, each wing its own restraint, SIL-24, RID SE-21) | + burn buck, one driver | 7.0 W bus load for 11 s; net pack current −0.15 A (the body array carries most of it in sunlight); in eclipse 0.67 A, 0.75 A with the magnetorquers (SQSO-EPS-BRD-001 §9) | 58.5 % | — |
 | S+30:18 | **AntS** armed and deployed over I²C (3V3_ANTS); every element sensed deployed at S+30:33; deployment COMPLETE (persisted) at S+31:06. The hard-body radius is now ≈ 0.55 m (reported to SpaceX as 0.6 m, LVR-065) | + 3V3_ANTS | 1.9 W for 45 s | 58.5 % | — |
-| S+45:00 | RF silence complete (CDS §2.4.5): radio powered; **first beacon** in IDLE, every 120 s ± 5 s, template text with the telemetry tail, call sign KK6GDB-11. The GNSS receiver stays unpowered (GNSS_EN low) until here too (SYS-224 Rev G covers every emitter): the first GNSS session is at S+46:00, after the silence, then one every orbit (95 min) in launch and early operations (P3A-01, `gnss_schedule.rs` `FIRST_SESSION_DELAY_MS`; implemented, SRS-F084); each session with a fix downlinks the GNSS state frame `GNS` (SRS-F158) | + receiver (always on), TNC, PA keyed ≈ 1.4 s per frame | 0.65 W | 61.3 % | Community and SatNOGS stations may hear it; Bay Area stations only if a pass is in progress |
+| S+45:00 | RF silence complete (CDS §2.4.5): radio powered; **first beacon** (the AntS deployed at S+30:33, so decision C-19's hold, transmitters silent while the AntS is pending, is already over; SRS-F167) in IDLE, every 120 s ± 5 s, template text with the telemetry tail, call sign KK6GDB-11. The GNSS receiver stays unpowered (GNSS_EN low) until here too (SYS-224 Rev G covers every emitter): the first GNSS session is at S+46:00, after the silence, then one every orbit (95 min) in launch and early operations (P3A-01, `gnss_schedule.rs` `FIRST_SESSION_DELAY_MS`; implemented, SRS-F084); each session with a fix downlinks the GNSS state frame `GNS` (SRS-F158) | + receiver (always on), TNC, PA keyed ≈ 1.4 s per frame | 0.65 W | 61.3 % | Community and SatNOGS stations may hear it; Bay Area stations only if a pass is in progress |
 | S+1 orbit (94.1 min) | Spin-stabilized sun pointing of +Y at 8.1°/s; orbit 1: 6.45 Wh generated, 0.89 Wh used (0.57 W average) | | 0.64 W in IDLE | 67.5 %, rising ≈ 10 points per orbit at the 0.40 A charge current | — |
 | S+1.8 h | First beacon decoded anywhere in the simulation's network (Fairbanks, 6 of 6 frames) | | | 77.8 % at S+3.1 h | Amateur reports start; compare Doppler against the SpaceX state vector |
 | S+0.7 to S+12.1 h (median S+5.3 h) | **First pass over Santa Clara above 5°** after the silence (the first beacon the licensee's station can hear). Reference case: S+11.6 h (5.9°, 2 frames) | | | ≈ 92 % by S+12 h (end of charge at 4.10 V/cell) | Decode, check call sign, mode, SOC, BV, SUN; start the 24 h ephemeris clock (UG §9.5.7.2 counts from first contact) |
@@ -96,10 +96,9 @@ lines, flight software round 2); pass statistics from `leop_passes.py` at the sa
 | S+36.7 h | `COMMISSIONING_RELEASE` by telecommand: IDLE → ACTIVE; the Jetson batches and the transponder start | + Jetson batches, transponder | | 92 % | Public announcement only after commissioning step C-7 |
 | S+48.8 h | First daily `DUMP_TLM` (the newest 48 five-minute records) | | | 92 % | Stored housekeeping received |
 
-The simulation deploys both wings on the first resistor of wing 1 (both hinge switches, wired in series, read
-deployed after 11 s). On the hardware each wing has its own restraint, so a nominal sequence burns W1A and then W2A
-(SQSO-EPS-BRD-001 §9); the energy difference is one 8 s burn (0.017 Wh). Raised to the chair as a simulation-model
-observation.
+Until SIL Version E the simulation deployed both wings on the first resistor of wing 1; since then each wing has its
+own restraint, as on the hardware, so a nominal sequence burns W1A and then W2A (SQSO-EPS-BRD-001 §9; SIL-24, RID
+SE-21), one 10 s burn (0.021 Wh; decision C-17) more than before.
 
 With a geographically separated second telecommand station the first commanding pass comes sooner: median
 S+3.8 h (with Morehead, KY) or S+3.5 h (with Fairbanks, AK) instead of S+6.4 h (`leop_passes.py`, illustrative sites).
@@ -158,7 +157,8 @@ marks it FAILED and moves on; the ground can retry by `DEPLOY_RETRY` (0x50: 0 an
 
 | Case | Result |
 |------|--------|
-| Wings not deployed | Commissioning completes; the AntS deploys after the wing attempts (S+3.0 h); lowest SOC 83.4 %; depth of discharge 2.8 % per eclipse; generation 445 Wh against 378 Wh used; no transponder service and one 729 s beacon gap (the simulation's checks: 2 anomalies, both expected for this case); lifetime on the wings-failed row of ODAR Draft D §6.2 (475 km: 5.7–6.1 yr nominal, inside the FCC rule; probability of this case 0.29 %) |
+| AntS deferred by its temperature gate (eclipse separation after the 2 h dispenser cold soak, `--scenario ants_cold`; flight software round 3, fourth part) | The first antenna attempt at S+30 min finds the AntS below −17 °C (decision C-18) and waits one 50-minute slot; it deploys at S+80.7 min. The transmitters stay silent until then (decision C-19): first beacon S+81.2 min, no keying into the stowed elements (no VSWR stop), longest beacon gap afterwards 126 s. At worst (the AntS never warm enough, its 30 deferrals) the hold lasts until the attempt at the cap, about S+27 h; the receiver is on throughout, so `DEPLOY_RETRY` with the force flag deploys it at once |
+| Wings not deployed | Commissioning completes; the AntS deploys after the wing attempts (S+3.0 h), and the first beacon waits for it (decision C-19: first RF S+3.0 h); lowest SOC 83.4 %; depth of discharge 2.8 % per eclipse; generation 445 Wh against 378 Wh used; no transponder service and one 729 s beacon gap (the simulation's checks: 2 anomalies, both expected for this case); lifetime on the wings-failed row of ODAR Draft D §6.2 (475 km: 5.7–6.1 yr nominal, inside the FCC rule; probability of this case 0.29 %) |
 | Wings not deployed and ADCS failed (tumbling), separation SOC 38 % | Power-positive (406 Wh against 333 Wh); lowest SOC 62.3 %; depth of discharge 3.0 %; never detumbles (expected) |
 | Antennas not deployed | Not simulated. The 2 m monopole stowed against the body radiates poorly; the link margin of ≈ +8 dB at 5° (SQSO-LBA-001 v3.2) would be lost on most passes, and the 70 cm uplink with it. `DEPLOY_RETRY` in sunlight is the recovery, if a command gets through |
 
@@ -198,7 +198,7 @@ limits the reset to the first 30 min).
 |----|--------|
 | S+2 h | Nothing expected yet from the Bay Area in most cases; check SatNOGS and the AMSAT network |
 | First Bay Area pass ≥ 15° | Search ± 10 kHz around the downlink (Doppler ± 3.5 kHz at 145.9 MHz); update the elements from the SpaceX state vector and the 18th SDS candidates |
-| S+24 h | Assume low SOC (§8.4) or a stowed antenna; keep listening every pass; send `GET_HOUSEKEEPING` blind on each pass (the receiver is on in every mode once the 45-minute silence is over) |
+| S+24 h | Assume low SOC (§8.4), a stowed antenna or an AntS still deferred by its temperature gate (decision C-19: silent until about S+27 h at worst); keep listening every pass; send `GET_HOUSEKEEPING` blind on each pass (the receiver is on in every mode once the 45-minute silence is over, the AntS hold included); `DEPLOY_RETRY` 0 with the force flag ends a deferral at once |
 | S+30 d | The loss-of-contact inhibit would stop the transmitter if no command was authenticated; it has no effect on a spacecraft that was never heard |
 
 ### 8.7 Unpowered clock
@@ -249,3 +249,4 @@ the simulation's 15° contact mask are conservative.
 | 2.3 | 2026-10-27 | CDR S&MA analysis (decision C-14) | §10: the 15° commanding mask of the pass statistics and the simulation noted as conservative against the 10° commanding rule |
 | 2.4 | 2026-10-27 | CDR design (EPS board) | §3 shipped SoC aligned with SQSO-BSA-001 D §6 (≤ 30 % by air per the IATA 2026 guidance for PI 967; 60 % by road) |
 | 2.5 | 2026-10-27 | CDR round 3, launch and operations (finding P3A-07) | §8.1 deployment retries 50 min apart as coded (`RETRY_DELAY_MS`; was "60 s apart", all in one eclipse); §8.5 the RF silence latched after completion (LV-15; was "restarts after completion"); §8.6 `GET_HOUSEKEEPING` for the blind command; §8.7 the RV-3028 mission clock is fitted but unpowered in storage (the conclusion holds); §6 step numbers aligned with SQSO-COMM-001 2.1 (C-7 commissioning release, C-9 GNSS, C-10 validation, C-11 review); §5 S+45:00 row: the GNSS receiver unpowered before 45 min, the first GNSS session moving to ≥ 45 min (P3A-01, SYS-224 Rev G) |
+| 2.6 | 2026-10-27 | CDR flight software, round 3, fourth part (decision C-19) | §5 S+45:00 and §8.2: the first beacon waits for the AntS sequence's end (SRS-F167); the AntS-deferred case (`ants_cold`, first beacon S+81.2 min) and the wings-failed case (first beacon S+3.0 h); §8.3 the AntS hold at S+24 h |

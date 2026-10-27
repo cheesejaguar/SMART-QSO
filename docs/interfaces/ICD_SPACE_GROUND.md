@@ -1,7 +1,7 @@
 # Interface Control Document: Space-to-Ground
 
 **Document ID**: SQSO-ICD-005
-**Version**: 2.5
+**Version**: 2.6
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR. RF values follow BASELINE §7; frequencies are planning values until the IARU coordination letter.
@@ -113,7 +113,10 @@ pass. A station should not expect a beacon at an exact time.
 Values not measured within 60 s are sent as `-`. Typical frame 110 bytes of information field, about 1.2 s on the air.
 Every fifth beacon is followed by the housekeeping frame `HK1 ...` (SQSO-TLM-001, `docs/operations/TELEMETRY_DICTIONARY.md`),
 which carries the loss-of-contact state (`CT=` timeout in days, `CS=` hours since contact) and the commands counted as
-contact since boot (`CN=`), and 5 s later by the second frame `HK2 ...` (SQSO-TLM-001 §4.4.1).
+contact since boot (`CN=`), and 5 s later by the second frame `HK2 ...` (SQSO-TLM-001 §4.4.1). A housekeeping text
+longer than one frame's 250 bytes goes in two or more frames 5 s apart, cut between fields, each after the first
+starting with the same `HK1 N=<n> ` (or `HK2 N=<n> `) head (SQSO-TLM-001 1.5 §4.4; SIL finding SIL-40). The decoder
+merges the frames of one `N`.
 
 **GNSS state frame.** After each GNSS session that ended with a fix, and after HK2 on `GET_HOUSEKEEPING` (0x09), one UI
 frame from KK6GDB-11 to CQ whose information field is plain ASCII (SRS-F158, RID LV-04):
@@ -270,3 +273,4 @@ gap between passes 12.9 h.
 | 2.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §4.3 link summary from SQSO-LBA-001 v3.2 and §7.2 pass statistics from SQSO-GND-001 Rev D, both at 475 km (were 500 km) |
 | 2.4 | 2026-10-27 | CDR S&MA analysis (decision C-14) | §4.3 telecommand margin at 64 dBm EIRP; GS-5 the EIRP requirement and the two station variants, ≤ 50 W PEP at US270 sites |
 | 2.5 | 2026-10-27 | CDR flight software, round 3 (second part) | §5.3 the HK2 frame and the GNSS state frame `GNS` (RID LV-04, SRS-F158; fields in SQSO-TLM-001 §4.4.2) |
+| 2.6 | 2026-10-27 | CDR flight software, round 3 (fourth part) | §5.3 a housekeeping text longer than a frame goes in frames of whole fields, the `HKn N=<n>` head repeated (SIL finding SIL-40) |

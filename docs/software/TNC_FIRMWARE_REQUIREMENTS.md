@@ -1,7 +1,7 @@
 # RF Board TNC Firmware: Software Requirements Specification
 
 **Document Number**: SQSO-SRS-TNC-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Status**: Draft (CDR). Requirements of a Class C software item that is not yet written (design starts with the
 schedule task TNC_DES, `mission/SCHEDULE.md`). Values follow `docs/BASELINE_PARAMETERS.md` Rev E, which governs.
@@ -320,7 +320,8 @@ is TNC-F003; TNC-FW-CAL is TNC-F060 and F061.
 3. **The TNC_PTT path has no hardware key-down timer.** The 120 s timer covers only the repeat path. TNC-F023 and
    TNC-F024 are the only bounds besides RF_TX_EN. Recommendation for the SRS owner: the OBC watches PTT_EXCITER (it
    already captures it on TIM8_CH2) and drives RF_TX_EN low when it stays high for more than 6 s with no frame
-   outstanding (SQSO-SHA-001 G, C-014-9). Not in SMART-QSO-SRS-001 1.10.
+   outstanding (SQSO-SHA-001 G, C-014-9). Implemented on the OBC side as SMART-QSO-SRS-001 1.11 SRS-F168 (with the
+   repeat path, XPDR_KEY high, excluded; SQSO-SHA-001 H).
 4. **CC1200 transmit leakage** has not been measured: TNC-F041's EM measurement records it.
 5. **HSI16 accuracy** over temperature was not read (ST site not reached, SQSO-RF-BRD-001 §16); TNC-F025 sets the
    AFSK tolerance either way.
@@ -332,3 +333,4 @@ is TNC-F003; TNC-FW-CAL is TNC-F060 and F061.
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | SMART-QSO Team (CDR round 3, software systems; finding P3A-03) | Initial issue: 67 requirements of the RF board TNC firmware, 25 safety-critical (SW-HAZ-014, SW-HAZ-015), derived from SQSO-RF-BRD-001 F, SQSO-ICD-003 2.3, SMART-QSO-RF-001 2.4, SQSO-ICD-013 and the OBC's limits; hardware functions it must not be relied on (§3.3); language Rust `no_std` proposed (§7); traceability through the generated RTM (§8); findings for the chair (§9) |
+| B | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | Open issue 3: the OBC's PTT_EXCITER watch (C-014-9) implemented as SRS-F168; no TNC requirement changed |

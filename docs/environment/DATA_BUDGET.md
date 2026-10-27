@@ -1,7 +1,7 @@
 # SMART-QSO Data Budget
 
 **Document ID**: SQSO-DB-001
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis (finding TB-12). Values from BASELINE Rev E §8, BEACON_SPEC, the flight software as built (round 2: stored housekeeping and `DUMP_TLM`), the mission simulation (two-year `full` run at the Rev E baseline, 2026-10-27) and SQSO-LBA-001 v3.2 / SQSO-GND-001 Rev D (475 km, 8°/s). Not measured.
@@ -27,7 +27,7 @@ budgets and found stored housekeeping missing; Version 2.1 puts in the flight so
 | Item | Value | Source |
 |------|-------|--------|
 | Information field | `de KK6GDB-11: <text ≤ 176> \| T=.. M=.. SOC=.. BV=.. SUN=.. RF=.. QSO=..`; typical 110 bytes, at most 256 | BEACON_SPEC §3 |
-| Housekeeping frame | Every fifth beacon is followed, 5 s later, by an HK1 frame: `KEY=value` pairs, at most 250 bytes | `docs/operations/TELEMETRY_DICTIONARY.md` §4.4 |
+| Housekeeping frame | Every fifth beacon is followed, 5 s later, by an HK1 frame: `KEY=value` pairs, at most 250 bytes a frame; a longer text goes in a second frame (HK1 at its widest 341 bytes; SQSO-TLM-001 1.5, SIL-40), then HK2 | `docs/operations/TELEMETRY_DICTIONARY.md` §4.4 |
 | Frame on air | 16-byte header + information + 2-byte FCS + flags, ≈ 3 % bit stuffing, 300 ms TXDELAY | SQSO-ICD-003 §5.2 |
 | Beacon interval | 60 / 120 / 180 s with a uniform ±5 s jitter on each interval (RID RF-04) | SQSO-ICD-005 v2.1 §5.3 |
 | Frames per day | **1,725** radiated over the two-year run (1,259,310 in 730 days): ≈ 1,430 beacons, ≈ 285 HK1 frames, 1.9 acknowledgements and 11.9 dump frames | SIL `full` run |
@@ -150,3 +150,4 @@ one, dump the newest 48–96 records a day and fetch the event windows after eac
 | 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten (TB-12): broadcast, received and stored budgets separated; SIL frame counts; SatNOGS network estimate from the live station list; stored housekeeping found not implemented and without a downlink path, and its sizing against FRAM, internal flash and dump capacity; uplink and latency |
 | 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Received telemetry at 475 km and 8°/s (3.77 passes, 26.1 min a day; 98.2 % of frames with the beacon jitter as built; SatNOGS ≤ 488 a day); broadcast counts from the two-year SIL run (1,725 frames a day, 2.7 % duty); §4 rewritten to the flight software's store (2,048 five-minute records, 7.1 days; 1,489 sixty-second records; 256 B index) and `DUMP_TLM` (≤ 600 records, 4 a frame, one frame per 12 s, 181 B); daily downlink budget recomputed: the whole five-minute stream needs 72 % of one station's commanding time; the stored-housekeeping verdict is now met by design |
 | 2.2 | 2026-10-27 | CDR S&MA analysis (decision C-14) | Commanding passes at the 10° rule: 2.98 a day, 23.2 min above 5° (was 2.43, 20.1 min at 15°); dump capacity 116 frames, 464 records a day; the whole five-minute stream takes 62 % of one station's commanding time (was 72 %) |
+| 2.3 | 2026-10-27 | CDR flight software, round 3 (fourth part) | §2.1 the housekeeping text in one or more frames of at most 250 bytes (SIL finding SIL-40) |

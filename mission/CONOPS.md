@@ -19,7 +19,7 @@ This ConOps follows the lightweight style used by NASA Ames smallsat missions (e
    - Solar wings deploy no earlier than 30 minutes after switch release (CDS 2.4.4), then the antennas (ISIS AntS, I²C-commanded), with retries spread over sunlight and a ground-commanded retry
    - Detumble with B-dot magnetorquer control (from 10°/s within 3 orbits; detumbled 0.25 h after separation in the mission simulation, 1.2 h at the slowest in the ADCS Monte Carlo and 2.1 h from a 50°/s tip-off, BASELINE §8); spin-stabilized coarse sun-pointing of +Y
    - No GNSS before 45 minutes either: the receiver stays unpowered through the RF silence (SYS-224 covers every emitter); the first GNSS session is at 46 min after separation, then one every orbit (95 min) through launch and early operations (P3A-01, implemented: SRS-F084); each fix is downlinked in the GNSS state frame (SRS-F158)
-   - First beacons in IDLE, template text, every 120 s (SAFE, every 180 s, if the separation SOC is below 25 %); receiver on from the end of the silence. The spacecraft holds IDLE, with the Jetson and the transponder off, until an authenticated command releases the commissioning hold
+   - First beacons in IDLE, template text, every 120 s (SAFE, every 180 s, if the separation SOC is below 25 %); receiver on from the end of the silence. The transmitters also stay silent while the AntS deployment is pending (decision C-19, SRS-F167): the first beacon is at the later of the end of the 45-minute silence and the end of the AntS sequence (its elements deployed, or its attempts spent, or the attempt at its 30-deferral cap made). Nominally the AntS is out at S+31 min, so the first beacon is at S+45 min; after an eclipse separation from a cold dispenser it can be deferred to a later 50-minute slot (S+81 min in the mission simulation), at worst about S+27 h (the deferral cap); a failed AntS still gets its stowed-antenna beacon at the end of its sequence The spacecraft holds IDLE, with the Jetson and the transponder off, until an authenticated command releases the commissioning hold
    - First pass over the Bay Area 0.7–12.1 h after separation (median 5.3 h); first commanding pass median 6.4 h, at the latest 13.7 h (`docs/operations/MISSION_TIMELINE.md` 2.3 §10, with a 15° mask; sooner at the 10° commanding rule and with the second station). First operator ephemeris within 24 h of first contact (SpaceX UG v11 §9.5.7.2), from the onboard GNSS fixes
    - Partner and community stations confirm reception and a power-positive state
 
@@ -98,6 +98,8 @@ Mode transitions follow the SOC thresholds (ACTIVE at ≥ 55 % sunlit; IDLE belo
 - End‑of‑life passivation and re‑entry within 5 years of mission end (47 CFR 97.207(g))
 
 ---
+
+*Revision note (2026‑10‑27, CDR round 3, decision C-19): the first beacon waits for the AntS sequence's end as well as the 45-minute silence (SRS-F167).*
 
 *Revision note (2026‑10‑27, CDR round 3, finding P3A-07 and RID REG-12): telecommand stations to decision C-14 (≥ 64 dBm EIRP, two station variants, commands above 10°) instead of "50 W PEP"; Jetson bursts to the BASELINE §6 limits (≤ 10-minute power-ons and the energy gate) instead of "≤ 120 s"; detumble 0.25 h in the simulation (was "about 1 h"); pass statistics from MISSION_TIMELINE 2.3; the commissioning checkout with `GET_HOUSEKEEPING` and `DUMP_TLM`; passivation fires the charge disconnect while transmitting, reports the result, then latches TX‑OFF (was TX‑OFF first); the REL-04 exception in §7; LEOP: no GNSS session before 45 min (P3A-01).*
 

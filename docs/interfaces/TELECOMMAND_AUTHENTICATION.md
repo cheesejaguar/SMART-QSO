@@ -1,7 +1,7 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.13 (Draft)
+**Version**: 0.14 (Draft)
 **Date**: 2026-10-27
 **Status**: Draft. Implemented and tested in the host simulation. Not yet run on target hardware (Section 10).
 
@@ -244,7 +244,7 @@ No RF signal may be generated or transmitted until 45 minutes after deployment, 
 | Target | Same time-base dependency as Section 6.2 (SW-01) |
 | Deployables | The 30-minute deployable timer (`software/rust/sqso-fsw/src/deployment.rs`, SYS-221) follows the same reset rules and is persisted; burns are bounded across resets (finding SW-10) |
 
-`rf_control` combines three independent inhibits: the TX-OFF latch, loss of contact, and RF silence. The transmitter is enabled only when all three are clear. Only the silence removes radio power.
+`rf_control` combines independent inhibits: the TX-OFF latch, loss of contact, the RF silence, the receiver's recovery cycle, passivation, and (decision C-19, SRS-F167) the AntS hold, which keeps the transmitters silent while the AntS deployment is pending: after the 45-minute silence the downlink starts only when the AntS reads deployed or its sequence ends (at worst about S+27 h, the temperature gate's cap). The transmitter is enabled only when all are clear. Only the silence and the recovery cycle remove radio power: during the AntS hold the receiver is on and authenticated commands are executed (their acknowledgements wait for the downlink); `DEPLOY_RETRY` 0 with the force flag ends a deferral at once. The OBC also latches TX-OFF itself when the exciter stays keyed for more than 6 s with no frame outstanding and the repeat path idle (SRS-F168; recovered by `TX_ENABLE`).
 | Target | `contact_monitor_tick()` needs a monotonic time source. `smart_qso_now_ms()` is not implemented on target yet (SW-01) |
 
 ### 6.4 End-of-Life Passivation by Telecommand
@@ -524,3 +524,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.11 | 2026-10-27 | CDR round 3, launch and operations (RID REG-12): §10 passivation row: the EOL_ARM and EOL_FIRE pins are allocated (PF4, PG1; two independent lines), and the implemented order (was "pins not allocated"); ground software (RID GND-04): §5.2 rules 1 to 3, §5.2.1 adopted with guards, station rules and key custody; §5.2 rule 5 TCXO offset (RFB-05); §6.4 pre-space reference (A.3) |
 | 0.12 | 2026-10-27 | CDR flight software, round 3 (second part): §6.4 the two-processor arm (RID P3E-11: EOL_STATE checked, the key 0x3C/0xC3 to EOL_KEY 0x7E, EOL_ARM within the key's 10 s, the latch confirmed before PASSIVATE_EXECUTE is accepted), the fire on EOL_FIRE alone, ended by EOL_STATE bit 1 set and bit 2 clear, the 24 h deadline; §7 FRAM_BYPASS (0x0B, SMA-B10) and EPS_DISABLE_TRACKERS (0x15, SMA-B17) |
 | 0.13 | 2026-10-27 | CDR flight software, round 3 (third part): §6.4 the fire's EPS-board condition (≥ 0 °C, waited for at most 6 h of each attempt, not held by an unreadable temperature; RID SMA-B20) and its reasons in HK1 `PS`; §7 DEPLOY_RETRY's force flag (decision C-18) |
+| 0.14 | 2026-10-27 | CDR flight software, round 3 (fourth part): §6.3 the AntS hold of decision C-19 (SRS-F167: transmitters silent, receiver on, until the AntS sequence ends) and the OBC's exciter keying watch (SRS-F168, SW-HAZ-014 C-014-9) among `rf_control`'s inhibits |

@@ -1,7 +1,7 @@
 # Interface Control Document: OBC to ADCS Subsystem
 
 **Document ID**: SQSO-ICD-004
-**Version**: 1.4
+**Version**: 1.5
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -395,7 +395,7 @@ driver has run on hardware: AV-V1 to AV-V5 verify them on the EM.
 | Magnetorquers (3) | PWM TIM1 CH1–CH3 (PE9, PE11, PE13), direction PE8, PE10, PE12, MTQ_ARM TIM15 CH1 one-pulse 900 ms (PF9), MTQ_FAULT_N PE14, MTQ_EXPIRED PE15, coil currents PA4–PA6; hardware off-timer 0.92–0.98 s (§12.2) | CR0002 rods (STR-01), three DRV8876-Q1 bridges on VBAT_MTQ | `firmware/src/mtq.rs` (TIM1 PWM 40 kHz, TIM15 one-pulse; `hal_mtq.h`), `sqso_fsw::mtq` (direction and duty from the dipole, rod 2.3 A·m²/A, 51 Ω) | the direction lines set before the burst, the burst timed by TIM15 (SRS-F141); MTQ_FAULT_N and MTQ_EXPIRED logged at onset and clearance; the coil currents (PA4–PA6) checked at the magnetometer sample | Built, not run on hardware (AV-03, AV-V3) |
 | ADCS rails | `ADCS_EN` (PB6): EPS SW4 3V3_ADCS (sensors, 0.30 A) and SW11 VBAT_MTQ (coils, 0.361 A); the OBC's own sensor switches U5–U7 (50–100 mA) | load switches | GPIO | `eps_control` | Designed: sensors and coils on separate switches, each sensor with its own latch-up trip (RADIATION_ANALYSIS §5.3) |
 | Antenna (AntS) | I2C3 (PG7 SCL / PB4 SDA, 100 kHz; `hal_i2c` bus 3, its own bus, RID SMA-B07), addresses 0x31 (side A) and 0x32 (side B) | ISIS AntS | generic `hal_i2c` | `sqso_fsw::ants`, `sqso_ffi::ants` (§12.3) | built against the published protocol; **confirm against the delivered ICD** (AV-V7) |
-| GNSS receiver | LPUART1 (PG7 TX / PG8 RX, 9600) through U30/U31, `GNSS_EN` (PE5), 1PPS PC6 (TIM3_CH1 capture), GNSS_PG PG15 | SkyFox piNAV-NG/FM (D6) | UART and GPIO | `gnss.rs` (NMEA GGA), `gnss_schedule.rs` | built; GNSS_PG checked 1 s after GNSS_EN, the 1PPS period captured on TIM3 CH1 (`hal_capture.h`) |
+| GNSS receiver | LPUART1 (PB11 TX / PG8 RX, 9600; TX moved from PG7, now I2C3_SCL for the AntS, SQSO-ICX-001 D §6 row 29) through U30/U31, `GNSS_EN` (PE5), 1PPS PC6 (TIM3_CH1 capture), GNSS_PG PG15 | SkyFox piNAV-NG/FM (D6) | UART and GPIO | `gnss.rs` (NMEA GGA), `gnss_schedule.rs` | built; GNSS_PG checked 1 s after GNSS_EN, the 1PPS period captured on TIM3 CH1 (`hal_capture.h`) |
 | Mission clock | I2C1 (`hal_i2c` bus 2), address 0x52; CLKOUT 1 Hz to PC8 (TIM3 CH3 capture) | Micro Crystal RV-3028-C7 | `sqso_fsw::rv3028` | the reset time stamp at every boot, the MCU clock checked against the 1 Hz every 60 s (SRS-F145) | Built, not run on hardware |
 | Supervisor | WDI PG11 | TI TPS3850 | GPIO | a falling edge every 10 s while every task checks in (SRS-F146) | Built |
 
@@ -460,3 +460,4 @@ of one sense line; and the inhibits are then on the AntS supply, in hardware.
 | 1.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §2–§5 interface as designed (no ADCS board; harness W6B/W6C/W6D and the STM32 pins of SQSO-ICX-001: M-G370 on SPI3, BMI088 on SPI2, RM3100 and ADS7138 on I2C4, magnetorquers on TIM1/TIM15, RV-3028 on I2C1, supervisor kick PG11); LIS3MDL/LSM6DS3 maps withdrawn (§6); six sun sensors; B-dot gain 10⁴, detumble and 8 °/s spin criteria from BASELINE §8 (§7, §11); §12.1 pins allocated; AV-V3 criterion 2 ms (SQSO-OBC-BRD-001 §24 C4, C5) |
 | 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §12.1 the software side as built: the firmware on the master pin allocation (SQSO-ICX-001 §6), the drivers of the gyros, magnetometer, sun-sensor ADC, magnetorquers and mission clock (built against the data sheets, not run on hardware), the magnetometer gating and bias, the supervisor; the calibration telecommands ADCS_SET_GYRO_ALIGN and ADCS_SET_MAG_BIAS |
 | 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | §12.1 and §12.3 the AntS on its own bus I2C3 with side B (0x32, RID SMA-B07); the temperature gate before each attempt (0xC0, a documented assumption until the ISIS ICD, decision C-18, SRS-F165); AV-V7 covers the temperature command |
+| 1.5 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §10 GNSS row: LPUART1 TX on PB11 (SQSO-ICX-001 D; was PG7) |

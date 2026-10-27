@@ -1,7 +1,7 @@
 # Attitude Determination and Control Subsystem (ADCS) Design Document
 
 **Document Number**: SMART-QSO-ADCS-001
-**Version**: 1.7
+**Version**: 1.8
 **Date**: 2026-10-27
 **Status**: Preliminary Design
 
@@ -654,18 +654,19 @@ harness), kg·m² × 10⁻³ (products × 10⁻³ as well, the tensor's off-diag
 
 | Tensor | Ixx | Iyy | Izz | Ixy | Ixz | Iyz | Iyy/Izz | Major axis from +Y |
 |--------|-----|-----|-----|-----|-----|-----|---------|--------------------|
-| Both wings (flight, `DEPLOYED`, `INERTIA`) | 3.0645 | 4.479 | 4.2615 | +0.0118 | −0.0153 | −0.0011 | 1.051 | 0.6° |
-| Both wings, CBE (1,513.9 g) | 2.852 | 4.199 | 3.977 | +0.0114 | −0.0110 | −0.0040 | 1.056 | — |
-| Both wings, MEV (1,747.8 g) | 3.274 | 4.756 | 4.543 | +0.0122 | −0.0196 | +0.0019 | 1.047 | — |
-| Wing W1 only (`WING_1_ONLY`) | 3.027 | 4.165 | 3.910 | −0.1610 | −0.0248 | +0.0080 | 1.071 | 8.3° |
-| Wing W2 only (`WING_2_ONLY`) | 3.027 | 4.166 | 3.911 | +0.1843 | −0.0058 | +0.0080 | 1.073 | 9.1° |
-| No wings, AntS out (`NO_WINGS`) | 2.985 | 3.856 | 3.560 | +0.0115 | −0.0153 | +0.0171 | 1.084 | 3.3° |
+| Both wings (flight, `DEPLOYED`, `INERTIA`) | 3.064 | 4.481 | 4.262 | +0.0112 | −0.0119 | +0.0004 | 1.051 | 0.5° |
+| Both wings, CBE (1,520.0 g) | 2.853 | 4.202 | 3.979 | +0.0108 | −0.0080 | −0.0027 | 1.056 | — |
+| Both wings, MEV (1,754.9 g) | 3.276 | 4.760 | 4.546 | +0.0115 | −0.0158 | +0.0035 | 1.047 | — |
+| Wing W1 only (`WING_1_ONLY`) | 3.027 | 4.167 | 3.911 | −0.1616 | −0.0214 | +0.0095 | 1.071 | 8.4° |
+| Wing W2 only (`WING_2_ONLY`) | 3.027 | 4.167 | 3.911 | +0.1836 | −0.0023 | +0.0095 | 1.073 | 9.1° |
+| No wings, AntS out (`NO_WINGS`) | 2.986 | 3.858 | 3.560 | +0.0108 | −0.0119 | +0.0186 | 1.084 | 3.6° |
 | Stowed (the mission simulation) | 2.960 | 3.292 | 2.970 | — | — | — | — | — |
 
-The flight constant is the mean of the CAD refresh before the last (2.853, 4.200, 3.978 and 3.276, 4.758, 4.545); the
-last refresh moved the rows by at most 0.002 × 10⁻³, which leaves the constant and the ratios as they are. The margin
-that matters, Iyy over Izz, is 5 %; the products tilt the deployed major axis 0.6° from +Y. The Monte Carlo plant
-carries the full tensor (`sqso_sil::adcs_mc::Body`); the mission simulation's attitude model the diagonal, with the
+The flight constants are MASS_BUDGET 3.2 §6.5's rows (flight software round 3, fourth part, after the mass-property
+refresh of the harness parts audit): the deployed diagonal moved by at most 0.002 × 10⁻³ (0.05 %) and the presets' major
+axes by at most 0.3°, so the Monte Carlo of §11.4 stands. The margin that matters, Iyy over Izz, is 5 %; the products tilt
+the deployed major axis 0.5° from +Y. The Monte Carlo plant carries the full tensor (`sqso_sil::adcs_mc::Body`); the
+mission simulation's attitude model the diagonal, with the
 one-wing diagonals after a single wing deploys.
 
 ### 11.3 Geometry by Telecommand (STR-27)
@@ -715,11 +716,13 @@ software round 3, Version 1.6) with the final CAD tensors (MECHANICAL_DESIGN B �
 their mean, the default plant that mean with its products, and the round-3 flight software (the coil drive of
 SQSO-OBC-BRD-001 §10 for the coil power). The earlier version of this table (mean 4.0°, coils 29 mW for the M-G370)
 predates the CAD tensor; the simulation of 2026-10-27 before round 3 already gave 1.8° and 5 mW, so the change is the
-plant, not the round-3 software. The sweep above is not re-run:
+plant, not the round-3 software. The M-G370 row, the two CAD rows and the three preset rows of the one-wing table were
+re-run on 2026-10-27 (round 3, fourth part, Version 1.8) with MASS_BUDGET 3.2's tensors in the flight software and the
+plant (RID GNC-07): every value within 0.2° and 0.01 W of the previous run. The sweep above is not re-run:
 
 | Case | Not detumbled | Slowest capture | Mean | Worst p95 | Within 15° | Worst eclipse exit | Generation mean / worst trial | Coils |
 |------|---------------|-----------------|------|-----------|------------|--------------------|-------------------------------|-------|
-| M-G370PDT0 | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
+| M-G370PDT0 | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 10° | 4.65 / 4.50 W | 6 mW |
 | BMI088, calibrated (0.1°/s) | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 10° | 4.65 / 4.50 W | 7 mW |
 | BMI088, bias 0.2°/s | 0 | 1.3 h | 2.5° | 9.8° | 100 % | 10° | 4.65 / 4.50 W | 10 mW |
 | BMI088, bias 0.3°/s | 0 (1 timeouts) | 2.9 h | 5.4° | 148° | 97.5 % | 151° | 4.59 / 2.52 W | 14 mW |
@@ -737,8 +740,8 @@ plant, not the round-3 software. The sweep above is not re-run:
 | Iyy/Izz 1.005 | 0 | 1.2 h | 2.0° | 7.8° | 99.9 % | 30° | 4.65 / 4.49 W | 7 mW |
 | Iyy/Izz 1.020 | 0 | 1.3 h | 1.9° | 7.4° | 100 % | 10° | 4.65 / 4.50 W | 7 mW |
 | Iyy/Izz 1.050 | 0 | 1.2 h | 1.8° | 7.2° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
-| **CAD tensor, CBE (1,513.9 g; final refresh)** | 0 | 1.2 h | 1.8° | 7.1° | 100 % | 11° | 4.65 / 4.50 W | 6 mW |
-| **CAD tensor, MEV (1,747.8 g; final refresh)** | 0 | 1.1 h | 1.7° | 6.8° | 100 % | 8° | 4.65 / 4.50 W | 7 mW |
+| **CAD tensor, CBE (1,520.0 g; MASS_BUDGET 3.2)** | 0 | 1.2 h | 1.8° | 7.0° | 100 % | 11° | 4.65 / 4.50 W | 6 mW |
+| **CAD tensor, MEV (1,754.9 g; MASS_BUDGET 3.2)** | 0 | 1.1 h | 1.7° | 6.8° | 100 % | 8° | 4.65 / 4.50 W | 7 mW |
 | Coupling 0 / 3·10⁻⁴ T per A·m² | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
 | Coils on through the sample, software unaware (gyro) | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 10° | 4.65 / 4.50 W | 6 mW |
 | Same, no gyro | 0 (27 timeouts) | 5.1 h | 68° | 167° | 11.5 % | 174° | 3.15 / 2.41 W | 126 mW |
@@ -749,11 +752,11 @@ remaining wing is off the centre line:
 | Deployed | Preset | Mean (+Y) | Within 15° | Generation mean / worst | Rate across the axis | Coils |
 |----------|--------|-----------|------------|-------------------------|----------------------|-------|
 | W1 only | 0 (+Y) | 6.0° | 99.9 % | 3.12 / 3.02 W | 1.28°/s | 45 mW |
-| W1 only | **1** | 8.3° | 99.9 % | 3.17 / 3.06 W | 0.15°/s | 5 mW |
+| W1 only | **1** | 8.4° | 99.9 % | 3.17 / 3.06 W | 0.15°/s | 5 mW |
 | W2 only | 0 (+Y) | 7.0° | 99.5 % | 3.11 / 3.01 W | 1.38°/s | 51 mW |
 | W2 only | **2** | 9.3° | 99.9 % | 3.20 / 3.07 W | 0.15°/s | 5 mW |
 | None | 0 (+Y) | 2.0° | 100 % | 1.62 / 1.57 W | 0.40°/s | 9 mW |
-| None | 3 | 3.7° | 100 % | 1.62 / 1.57 W | 0.14°/s | 4 mW |
+| None | 3 | 3.9° | 100 % | 1.62 / 1.57 W | 0.14°/s | 4 mW |
 
 Re-run on 2026-10-27 (round 3, second part) against the CAD's one-wing and no-wing tensors (STR-27, the table of
 §11.2; the plant and the preset both carry the mean tensor). Every case captures (slowest 1.35 h) and stays
@@ -838,3 +841,4 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 | 1.5 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §11 new: magnetometer window and coil burst, layout B full inertia tensor, geometry presets by telecommand, Monte Carlo re-run (8°/s, k_n 3·10⁻⁴ with gyro, 1·10⁻⁴ without; one-wing cases); §4.2.1 law with the full tensor; §3.2.1 magnetometer not selected; §3.3.1 CR0002 rods; §6.1 L293D unusable at 3.3 V |
 | 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §11.4 robustness and one-wing tables re-run with the final CAD tensors (CBE 1,513.9 g, MEV 1,747.8 g; the flight constant `INERTIA` their mean, (3.0565, 4.4675, 4.2525) × 10⁻³ kg·m² with Ixy +13.2, Ixz −12.9, Iyz +0.05 × 10⁻⁶): the plant rows 1.8° mean, 100 % within 15°, capture within 1.2 h; Iyy/Izz 1.000 now 76 % within 15° (the products of the final CAD); §11.5 the drivers exist (built against the data sheets, not run on hardware) |
 | 1.7 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, second part) | §11.2 the final CAD tensors (deployed mean (3.0645, 4.479, 4.2615) × 10⁻³ with Ixy +11.8, Ixz −15.3, Iyz −1.05 × 10⁻⁶; the CBE and MEV rows; the one-wing and no-wing tensors of STR-27; stowed); §11.3 the presets' axes from the CAD tensors (8.3°, 9.1°, 3.3° from +Y); §11.4 the plant rows and the one-wing table re-run against the CAD plant |
+| 1.8 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §11.2 the tensors of MASS_BUDGET 3.2 §6.5 (deployed (3.064, 4.481, 4.262) × 10⁻³, the presets' major axes 8.4°, 9.1°, 3.6°); §11.4 the M-G370, CAD-plant and preset rows re-run with them (RID GNC-07) |

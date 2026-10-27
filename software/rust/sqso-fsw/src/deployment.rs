@@ -1412,6 +1412,17 @@ mod tests {
         let mut d = boot(&mut io, Reset::PowerKept);
         assert!(d.arm(&mut io));
         assert!(d.downlink_held());
+        // A record written before the hold's flag existed: a deployed
+        // antenna, or a sequence already over, is not held either
+        let w = WAIT_TIME_S.to_le_bytes();
+        for (state, flags) in [(State::SolarPending, 0x0D), (State::Failed, 0x0E)] {
+            let mut io = Bench::new();
+            let rec = [state as u8, 1, 3, flags, w[0], w[1], w[2], w[3], 0];
+            nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &rec).unwrap();
+            let d = boot(&mut io, Reset::PowerKept);
+            assert_eq!(d.state(), state);
+            assert!(!d.downlink_held(), "{state:?}");
+        }
         // The host simulation's finished record
         let mut io = Bench::new();
         nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &Deployment::complete_record()).unwrap();

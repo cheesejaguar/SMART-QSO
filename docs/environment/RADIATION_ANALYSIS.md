@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ENV-002
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Reference:** NASA-HDBK-4002A; NASA PD-ED-1260 (radiation design margin); ECSS-E-ST-10-04C; ECSS-Q-ST-60-15C
 
@@ -193,7 +193,7 @@ retries by itself.
 
 | Rail | Normal maximum | Trip, nominal (min–max) | Trip time | Off time | Element | Status |
 |------|----------------|-------------------------|-----------|----------|---------|--------|
-| Jetson (eFuse U19 on `JETSON_PWR` PA2, in series with SW1 on `PAYLOAD_EN` PB2) | 8 W ≈ 0.62 A at 13 V; 0.93 A at the 12 W software guard | eFuse **1.20 A (1.10–1.30 A)**; SW1 1.99 A (1.71–2.27 A) behind it | ≤ 1 ms (hardware) | latch-off; the OBC re-enables | TPS16630 eFuse; TPS1H100B-Q1 switch | Designed. The 0.75 A first proposed here would sit only 1.34× above the 8 W load at the low bus; a latch-up (amperes) trips 1.20 A. The software guard (`payload_guard`, 12 W single sample, 0.93 A) acts first (`docs/hardware/PAYLOAD_DESIGN.md` §11.2) |
+| Jetson (eFuse U19 on `JETSON_PWR` PA8, in series with SW1 on `PAYLOAD_EN` PB2; SQSO-ICX-001 §6 row 26, PA2 is the spreader thermistor) | 8 W ≈ 0.62 A at 13 V; 0.93 A at the 12 W software guard | eFuse **1.20 A (1.10–1.30 A)**; SW1 1.99 A (1.71–2.27 A) behind it | ≤ 1 ms (hardware) | latch-off; the OBC re-enables | TPS16630 eFuse; TPS1H100B-Q1 switch | Designed. The 0.75 A first proposed here would sit only 1.34× above the 8 W load at the low bus; a latch-up (amperes) trips 1.20 A. The software guard (`payload_guard`, 12 W single sample, 0.93 A) acts first (`docs/hardware/PAYLOAD_DESIGN.md` §11.2) |
 | OBC 3.3 V (SW10) | 25–40 mA | **0.15 A (0.130–0.176 A)** | ≤ 10 ms | 0.28 s, auto-retry, no command | TPS2553-Q1 U38 | Designed: the power-cycling supervisor the OBC cannot be for itself (AV-08) |
 | EPS controller (SW9) | 12 mA | **75 mA (50–100 mA)** | ≤ 10 ms | 0.28 s, auto-retry | TPS2553-Q1 U27 | Designed; no protection depends on the controller |
 | Radio (`RADIO_EN` PB5, SW2) | 38 mA (receiver, TNC, exciter; SQSO-RF-BRD-001) | **0.12 A (0.102–0.141 A)** | ≤ 10 ms | 1.3 s, auto-retry | TPS2553-Q1 U22 | Designed. The 0.3 A first proposed could not see a latch-up of a 38 mA load; the EPS controller also reports the rail current so the OBC can trip it in software |
@@ -275,3 +275,4 @@ simulation weights its events 30× in the SAA box (`software/rust/sqso-sil/src/e
 | B | 2026-10-16 | §2 orbit, design life and launch year from BASELINE §2 and §3 (SSO ≈ 97.4°, 500 km target, 525 km cap; was 51.6°, ISS); note that the §3–§5 values depend on the old orbit and must be re-run (finding TB-03). No analysis values changed | SMART-QSO Team |
 | C | 2026-10-27 | CDR re-run for the baseline orbit and life (TB-03, TB-11): §3 sources (SPENVIS SHIELDOSE-2 AE-8/AP-8 at 500 km, Shields-1 polar LEO model and measurements, King solar protons, GCR from Shields-1), §4 dose-depth for 1–3 mm at 500 and 525 km (5.3 / 5.9 krad behind 2 mm in 2 years; the 10 krad design level is 1.90× / 1.69×, below the stated 2×), part TID, comparison with the mission simulation; §5 SEE rates per part and rail latch-up trips; §6–§7 requirements and as-built mitigation status; §10 verification items RAD-V1–V6. Script `software/simulation/cdr/avionics/radiation_tid_see.py`. Revision B's §3–§5 and §8.1 values withdrawn | SMART-QSO Team (CDR avionics review) |
 | D | 2026-10-27 | CDR 2026 consistency pass: §2 altitude from BASELINE Rev E (475 km target, 485 km cap; 500 and 525 km kept as bounds, §2–§4 labels); §5.3 trips replaced by the EPS board's current-limited rails (SQSO-EPS-BRD-001 §8.3: OBC 0.15 A, radio 0.12 A, sensors 0.30 A, GNSS 0.20 A, EPS controller 75 mA, AntS 1.37 A, PA 0.99 A, VBAT_MTQ 0.361 A, Jetson eFuse 1.20 A) and the OBC board's sensor rails; §7 trip status; RAD-V1 launch 2028-11, RAD-V5 pass criterion | SMART-QSO Team |
+| E | 2026-10-27 | CDR flight software, round 3 (fourth part) | Latch-up table: `JETSON_PWR` on PA8 (SQSO-ICX-001; was PA2) |

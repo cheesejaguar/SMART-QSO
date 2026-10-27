@@ -1,7 +1,7 @@
 # SMART-QSO Mass Budget
 
 **Document ID**: SQSO-MB-001
-**Version**: 3.1
+**Version**: 3.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR issue. Bottom-up master equipment list (MEL) of the build-versus-buy configuration
@@ -303,9 +303,9 @@ rows were written with the same convention.
 
 | Source | Ixx | Iyy | Izz | Iyy / Izz |
 |--------|-----|-----|-----|-----------|
-| `INERTIA` in `software/rust/sqso-fsw/src/adcs.rs` (deployed; as of 2026-10-27: the CAD mean of the harness-zones issue) | 3.057 | 4.468 | 4.253 | 1.051 |
-| Mission simulation, deployed (`sqso-sil/src/env/attitude.rs`, `INERTIA_DEPLOYED`: the same diagonal) | 3.057 | 4.468 | 4.253 | 1.051 |
-| Mission simulation, stowed (`INERTIA_STOWED`: the CAD stowed mean) | 2.952 | 3.281 | 2.961 | 1.108 |
+| `INERTIA` in `software/rust/sqso-fsw/src/adcs.rs` (deployed; flight software round 3, fourth part: the §6.5 "Deployed (FLIGHT)" row) | 3.064 | 4.481 | 4.262 | 1.051 |
+| Mission simulation, deployed (`sqso-sil/src/env/attitude.rs`, `INERTIA_DEPLOYED`: the same diagonal) | 3.064 | 4.481 | 4.262 | 1.051 |
+| Mission simulation, stowed (`INERTIA_STOWED`: the CAD stowed mean, §6.5) | 2.960 | 3.292 | 2.970 | 1.108 |
 | Version 3.0 values for the record: flight constant (2.9, 4.1, 3.7), simulation deployed (3.19, 4.09, 3.90), stowed (3.05, 3.05, 2.67) | — | — | — | 1.108 / 1.049 / 1.000 |
 | This analysis, layout B rods, deployed CBE / MEV | 2.90 / 3.34 | 4.31 / 4.89 | 4.14 / 4.73 | 1.041 / 1.033 |
 | This analysis, layout A rods, deployed CBE / MEV | 2.78 / 3.20 | 4.19 / 4.76 | 4.14 / 4.73 | 1.011 / 1.005 |
@@ -407,7 +407,7 @@ and runs every case above; it needs a tree that compiles). The runs above were m
   0.0043) kg·m², to four figures (3.063, 4.478, 4.260) × 10⁻³** (mean products Ixy +1.1 × 10⁻⁵, Ixz −1.6 × 10⁻⁵,
   Iyz −0.1 × 10⁻⁵). **With the harness parts audit (M-11: four splices and the tabs, row 32 77.0 g, row 26 8.7 g): (0.0031, 0.0045, 0.0043)
   kg·m², to four figures (3.064, 4.481, 4.262) × 10⁻³** (mean products Ixy +1.1 × 10⁻⁵, Ixz −1.2 × 10⁻⁵, Iyz +0.0 × 10⁻⁵):
-  the flight constant (3.057, 4.468, 4.253) is within 0.3 %. To be replaced
+  the flight constant is now these values (flight software round 3, fourth part; it was (3.0645, 4.479, 4.2615), within 0.05 %). To be replaced
   by the measured stowed inertia plus the weighed wings before flight. For coils (reference layout only):
   (0.0034, 0.0049, 0.0047).
 - ADCS Monte Carlo plant rows (deployed, about the CG, kg·m², tensor convention; CAD with four AntS elements and the
@@ -430,9 +430,10 @@ and runs every case above; it needs a tree that compiles). The runs above were m
   | NO_WINGS (antennas out) | 2.986 × 10⁻³ | 3.858 × 10⁻³ | 3.560 × 10⁻³ | +10.8 × 10⁻⁶ | −11.9 × 10⁻⁶ | +18.6 × 10⁻⁶ | (+0.0115, +0.9980, +0.0618) | 3.6° | 1.084 |
   | Stowed (simulation `INERTIA_STOWED`) | 2.960 × 10⁻³ | 3.292 × 10⁻³ | 2.970 × 10⁻³ | +11.5 × 10⁻⁶ | −15.3 × 10⁻⁶ | +34.5 × 10⁻⁶ | (+0.0293, +0.9942, +0.1038) | 6.2° | 1.108 |
 
-  CBE and MEV separately are in §6.1 (their major axes are 0.8–1.6° apart). The FSW presets now hold
-  (−0.1955, +0.9751, −0.1046), (+0.1593, +0.9743, −0.1593) and (−0.0287, +0.9947, −0.0991) for the three axes (12–13° and
-  6°): for the FSW owner to replace with the rows above (no repository code changed here).
+  CBE and MEV separately are in §6.1 (their major axes are 0.8–1.6° apart). The FSW presets (`sqso_fsw::adcs`
+  `Inertia::DEPLOYED`, `WING_1_ONLY`, `WING_2_ONLY`, `NO_WINGS`) hold the rows above since flight software round 3, fourth
+  part, with spin axes (−0.1383, +0.9894, +0.0443), (+0.1550, +0.9874, +0.0316) and (+0.0115, +0.9980, +0.0616), the
+  major eigenvectors of those tensors (the 4th decimal differs from the column above by the rounding of the inputs).
 
 - Mission simulation (`sqso-sil/src/env/attitude.rs`): use the full inertia tensor of §6.1 (products included), the
   AntS elements, the wing centre at (±93.5, +39.5, 0) mm and the MEL mass (1.75 kg MEV), and re-run the Monte Carlo
@@ -536,3 +537,4 @@ and delete the "Mass, under review" row.
 | 2.0 | 2026-10-16 | Funding audit (TB-06) | Re-issued as a bottom-up MEL with maturity-based growth allowances and one limit (2.00 kg, CDS Rev 14.1); CBE 1.69 kg, predicted 1.92–2.00 kg |
 | 3.0 | 2026-10-27 | CDR structures review (STR-01, STR-02, STR-03) | MEL rebuilt for the build-versus-buy configuration (two magnetorquer options): CBE 1.49/1.57 kg, MEV 1.73/1.82 kg, margin +15.9/+9.6 %; catalogue maturity code C1/C2; CG and full inertia tensor from a reference layout; ADCS Monte Carlo re-run with the computed inertia (the published result needs Iyy/Izz ≥ 1.03); recommended stack order and AntS clocking; corrected flight inertia constant and proposed BASELINE §4 rows for the chair |
 | 3.1 | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001) | CAD reconciliation: MEL masses and margins unchanged (the CAD carries every row exactly); CG and full inertia tensor from the CAD solids of layout B with AntS option A (§1, §5, §6.1 rows, §6.6): stowed CG (+0.2, +0.1, −1.9) mm CBE, deployed Iyy/max 1.045 CBE / 1.037 MEV with the four AntS elements, major axis 1.7° / 0.5° from +Y after placement balancing; placement Monte Carlo and trim-mass provision; corrected flight inertia constant (§6.5); products-of-inertia measurement added (§8); row 5 re-split for the skeleton torquer deck (MCAD-02, no MEL change, §1.2); two centre supports per board > 50 g (chair decision) noted against row 34; wing hinge hardware of SQSO-MECH-001 B; gyro in its socket through a window in the Jetson carrier (OBC item C3), Jetson carrier item M1 (row 23 raised to 66.6 g for the spreader's SoC pedestal: CBE 1,494.3 g, MEV 1,727.7 g, margin +15.8 % with rods, +9.5 % with coils; gap pads, module standoffs, flush fastener at (0, −21)); magnetometer board A2 in the +Z slot (OBC item C13; MEL row 24 unchanged); 2.0 mm carrier without the window frame, the (+X, −Y) harness bundle narrowed above z −26 for the W4A ribbon (ICX E12); four AntS elements modelled (2 m ±X, 70 cm ±Y; ratio 1.045 / 1.037), the RF board's MMCX jacks and W10 coax; mass properties recomputed (CBE CG z −1.9 mm, axis 1.7° / 0.5°); **chair decision C-13:** row 36, 2 × 10 g W-Ni-Cu Z-axis inertia ballast on the +Z end frame adopted in the baseline: CBE 1,514.3 g, MEV 1,748.3 g, margin +14.4 % (rods) / +8.3 % (coils), stowed CG (−0.0, +0.1, −1.2) mm, deployed ratio 1.056 / 1.047 (MEV 5th percentile 1.041 / 1.036 at 1 / 2 mm placement scatter), axis 0.9° / 0.8°, flight constant (0.0031, 0.0046, 0.0043) kg·m² and ADCS Monte Carlo plant rows (§6.5); **harness design (SQSO-HAR-001 2.0, D-2, M-6):** row 32 75.6 g, row 26 9.0 g (CBE 1,513.9 g, MEV 1,747.8 g, +14.4 % / +8.3 %), the CAD's harness on the harness design's zones, ballast pair at y +15.5 / +0.5 mm: deployed ratio 1.055 / 1.046, axis 1.0° / 1.0°, stowed CG (+0.1, −0.3, −1.3) mm, flight constant (0.0031, 0.0045, 0.0043) kg·m² and plant rows (§6.5); **review round 3:** row 37 battery cell retention 5.0 g and row 32 at 76.1 g (CBE 1,519.4 g, MEV 1,754.2 g, +14.0 % / +7.9 %), one mass-properties measurement accuracy (MOI ±0.5 %, products ±1 × 10⁻⁵ kg·m², spin balance, uncertainty in the pass criterion, §8; STR-04), CAD one-wing (W1, W2) and no-wing tensors with growth and the ADCS presets (§6.1, §6.5; STR-27), §6.2 brought up to the flight constant and the simulation, placement Monte Carlo script (§6.6); harness parts audit (M-11, final inputs): rows 32 77.0 g and 26 8.7 g, CBE 1,520.0 g, MEV 1,754.9 g, +14.0 %, CAD tensors, presets and Monte Carlo re-run (changes ≤ 0.3 %); hold-down line series spring (0.6 g) inside rows 10 and 11 (burn board 1.5 → 0.9 g; rows unchanged), CAD tensors, presets and Monte Carlo refreshed with the harness design's updated zone table (changes ≤ 0.002 × 10⁻³ kg·m², axis 1.1° / 0.7°) |
+| 3.2 | 2026-10-27 | CDR flight software, round 3 (fourth part) | §6.2 and §6.5: the flight software's and the simulation's values as now coded (`INERTIA` (3.064, 4.481, 4.262) × 10⁻³ and the four presets of §6.5); no mass property changed |
