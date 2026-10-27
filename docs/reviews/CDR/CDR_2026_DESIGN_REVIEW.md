@@ -183,20 +183,20 @@ ratings, outgassing data).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-401 RIDs: severity 1: 32, severity 2: 208, severity 3: 161.
+408 RIDs: severity 1: 32, severity 2: 210, severity 3: 166.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 28 |
-| Closed by design change | 101 | 250 |
+| Closed by design change | 101 | 260 |
 | Closed by chair decision | 42 | 35 |
-| Verification item | 46 | 31 |
+| Verification item | 46 | 32 |
 | Decision point (dated) | 15 | 34 |
-| Implementation | 172 | 23 |
+| Implementation | 179 | 19 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 95 new findings; 45 of the reopened and 76 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 102 new findings; 45 of the reopened and 80 of the new are since closed.
 
-Open implementation RIDs: SMA-15, AV-03, AV-12, AV-13, FSW-14, EPSB-01, OBCB-01, OBCB-02, P3S-13, SMA-B02, SMA-B10, SMA-B11, SMA-B19, SMA-B20, P3F-G-01, P3F-G-02, P3F-G-03, P3F-G-04, P3F-G-05, P3F-G-06, P3F-G-07, P3F-G-08, P3F-G-09.
+Open implementation RIDs: SMA-15, P3S-13, SMA-B02, P3F-G-01, P3F-G-02, P3F-G-03, P3F-G-04, P3F-G-05, P3F-G-06, P3F-G-07, P3F-G-08, P3F-G-09, P3F-A-01, P3F-A-02, P3F-A-03, P3F-A-04, P3F-A-05, P3F-A-06, P3F-A-07.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -399,8 +399,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SMA-B07 | 3 | Single pull-up resistors on the OBC's I2C buses | IMP | Closed by design change | I2C2 and I2C3 with two 4.7 kΩ pull-ups in parallel per line, each able to work alone; 100 kHz (OBC_BOARD_DESIGN D §23.1) |
 | SMA-B08 | 2 | A failed watchdog timing capacitor can hold the OBC in a reset loop | IMP | Closed by design change | TPS3850 timing capacitor as two parallel strings of two 470 nF C0G in series: one short or open keeps the 10 s kick inside the window; V-OBC-1 tests both |
 | SMA-B09 | 2 | An OBC fault below the 130 mA trip is detected by nothing | IMP | Closed by design change | EPS controller supervises an OBC heartbeat (OBC_HEARTBEAT 0x8C): 600 s timeout power-cycles SW10 through a hardware one-shot, ≤ 3 per 24 h (ICD-001 1.6); V-EPS-16; flight software side in round 3 |
-| SMA-B10 | 2 | A dead FRAM forces TX-OFF every 60 s: permanent silence | IMP | Implementation | Commanded degraded mode or a second FRAM (flight software, OBC) |
-| SMA-B11 | 2 | Receiver health line misses a deaf front end and an open TNC wire; RX_CD stuck high blocks recovery | IMP | Implementation | TNC noise-floor check, OBC-TNC loop query, carrier not proof of health, RX_FAULT self-test (RF, flight software) |
+| SMA-B10 | 2 | A dead FRAM forces TX-OFF every 60 s: permanent silence | IMP | Closed by design change | FRAM mirror and degraded mode (fram_health.rs, SRS-F160; tests three_failed_checks_declare_and_one_good_resets_the_run, bypass_only_when_failed_and_with_the_code, the_degraded_mode_ends_when_the_fram_reads_back); VI: flatsat with U3 removed, mirror used, no TX-OFF loop, 2027-06; confirmed by P3F-A |
+| SMA-B11 | 2 | Receiver health line misses a deaf front end and an open TNC wire; RX_CD stuck high blocks recovery | IMP | Closed by design change | Stuck carrier, STATUS loop query, RX_FAULT self-test (receiver.rs, SRS-F115, F116, F152, tests); SIL rx-recovery 7 of 7 (longest 24.9 h); STATUS layout fixed by SQSO-SRS-TNC-001; confirmed by P3F-A |
 | SMA-B12 | 2 | A shorted lockout coil-driver FET locks out charging permanently | IMP | Closed by design change | Series-redundant FET drivers on each lockout coil: one shorted FET leaves the coil off; V-EPS-18 |
 | SMA-B13 | 3 | DS2's second-pole wire disables all four trackers if it chafes to the frame | IMP | Closed by design change | Active-high tracker clamps: a chafed switch wire removes a clamp rather than disabling the trackers; TRK_EN never leaves the board |
 | SMA-B14 | 2 | A short on the access port's reset line holds the OBC in reset | IMP | Closed by design change | NRST no longer leaves the OBC: J9/A3 pin 6 is RST_REQ (active high) through a 2N7002BK; a short cannot hold reset (OBC_BOARD_DESIGN D) |
@@ -408,8 +408,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SMA-B16 | 3 | Synthesizer shares the PA rail regulator | IMP | Closed by design change | LMX2571 on its own TPS7A2033 3.3 V regulator from the PA rail (3.25 V min, 100 mV margin); TX-OFF still removes it; keyed DC 1.84 W at 0.5 W RF, allocation raised to 1.85 W DC (BASELINE §5, SYS-100 2.23 W) (RF_BOARD_DESIGN E §5) |
 | SMA-B17 | 3 | A shorted tracker output diode cannot be isolated | IMP | Closed by design change | Per-tracker disable by the controller (TRK_DISABLE 0x8E); V-EPS-17 |
 | SMA-B18 | 3 | Magnetometer shares a switch and bus segment | IMP | Closed by design change | Magnetometer on its own switch U35 (MAG_EN PF14, MAG_RB PF15) and I2C4 repeater U34 |
-| SMA-B19 | 2 | One failed PA-temperature reading silences the downlink | IMP | Implementation | Plausibility check and a pull-down (flight software, OBC) |
-| SMA-B20 | 2 | The F1 fire's EPS-board ≥ 0 °C condition (ICD-001 1.6 §4.6) can block passivation: the board sits near −11.5 °C in the cold orbit case and the temperature is unreadable with the EPS I2C bus down; not in SRS-F111 or passivation.rs | IMP | Implementation | Bounded wait, unreadable does not block, in the SRS and the code |
+| SMA-B19 | 2 | One failed PA-temperature reading silences the downlink | IMP | Closed by design change | TX_TEMP plausibility with the board + 15 °C fallback (pa_temp.rs, SRS-F161; tests the_open_line_falls_back_to_the_board, a_jump_and_a_disagreement_are_faults_that_clear); confirmed by P3F-A |
+| SMA-B20 | 2 | The F1 fire's EPS-board ≥ 0 °C condition (ICD-001 1.6 §4.6) can block passivation: the board sits near −11.5 °C in the cold orbit case and the temperature is unreadable with the EPS I2C bus down; not in SRS-F111 or passivation.rs | IMP | Closed by design change | Fire's EPS board ≥ 0 °C waited at most 6 h per attempt, then in sunlight; unreadable does not block (passivation.rs, SRS-F111; Rust and C test_passivation); confirmed by P3F-A |
 | SMA-B21 | 2 | F3 now blows (15–27 W for up to 1 min, about 1.6 kJ) at the tab of the cell it protects, during that cell's overcharge: not analysed | IMP | Closed by design change | F3 on a thermal island ≥ 25 mm from every tab and can, 25 × 2 mm 2-oz neck (≈ 390 K/W), no pour toward the cells: ≤ 0.6 W reaches the cells, nearest can rise ≤ 1 K (one-cell lumped bound without the island: +32 K, fails the +60 °C limit); V-BSA-2 measures island, cell-4 tab and nearest can during the EM F3 trip, pass can ≤ 60 °C and rise ≤ 5 K (BATTERY_DESIGN 2.10, BSA G) |
 | SMA-B22 | 2 | F3 is now in every pack-short loop (up to 211 A) beside the 5 A pack fuses; coordination not shown | IMP | Verification item | F3 never interrupts the short: F0A/F0B/F0N in series break up to 211 A (1000 A / 300 A ratings) against F3's 50 A; F3 survives 60 A × 5 ms 10,000 times (melt I²t well above 18 A²s) against an estimated ≈ 10 A²s let-through of a 5 A fast fuse at 40×; AEM and Littelfuse I²t curves a data item before the EM order 2027-01-15 (EPS designer); V-BSA-9 hard-short abuse test with F3 fitted, pass F3 intact or open without rupture |
 | SMA-B23 | 3 | EPS_BOARD_DESIGN F §3, §6.1, §17 still place F3 on the EPS board | IMP | Closed by design change | EPS_BOARD_DESIGN G §3, §6.1, §17 and the shunt departure row no longer place F3 or the BQ771806 on the EPS board |
@@ -543,7 +543,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | AV-01 | 2 | No OBC schematic; firmware pin map provisional and in conflict with OBC_DESIGN | IMP | Closed by design change | OBC board build-to design SQSO-OBC-BRD-001 (356 parts, ERC 0) and the master pin allocation SQSO-ICX-001: every pin one function |
 | AV-02 | 3 | No external supervisor; orphan watchdog-kick line | IMP | Closed by design change | TPS3850H33-Q1 window-watchdog supervisor (5.6 s to 33-45 s window), backup to the 30 s internal watchdog; kick in flight software |
-| AV-03 | 1 | No driver or pins for the gyro, magnetometer, sun sensors, magnetorquers; no sensor-rail latch-up switch | IMP | Implementation | Pins and hardware in the OBC board design; drivers in the flight software |
+| AV-03 | 1 | No driver or pins for the gyro, magnetometer, sun sensors, magnetorquers; no sensor-rail latch-up switch | IMP | Verification item | Drivers mg370.rs, bmi088.rs, rm3100.rs, ads7138.rs, mtq.rs, adcs_sensors.rs (SRS-F140, F141, F164) on the ICX D pins (pins.rs, C test_hal_pins), unit tests per driver; VI: EM OBC bring-up (TP-FLATSAT-001): each driver reads its part's ID and a self-test passes, coil current within 10 % of the commanded duty, a forced rail trip latched and restarted, 2027-06 to 2027-07; confirmed by the round-3 panel (P3F-A) |
 | AV-04 | 2 | GNSS chain missing | CD | Closed by design change | LPUART1 PG7/PG8, GNSS_EN PE5, gnss_schedule.rs; receiver trip VI AV-V8 |
 | AV-05 | 2 | No TONE_OK or XPDR_KEY readbacks | IMP | Closed by design change | TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 (timer capture) with pull-downs (SQSO-ICX-001) |
 | AV-06 | 2 | One software state bit drives both Jetson switches, no readback | IMP | Closed by design change | PAYLOAD_EN and JETSON_PWR on separate lines with JET_PG readback; JET_3V3 high only when the whole chain is up (SQSO-JET-BRD-001, SQSO-ICX-001) |
@@ -552,8 +552,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | AV-09 | 2 | Idle USART1 TX can back-power the unpowered Jetson | IMP | Closed by design change | UART through SN74LVC1T45-Q1 buffers powered from the carrier's 3.3 V: high impedance when the carrier is off |
 | AV-10 | 3 | No mission clock across resets | IMP | Closed by design change | RV-3028-C7 RTC on the always-on rail, its own I2C bus; time-stamps every reset |
 | AV-11 | 1 | XPDR_EN was a level | CD | Closed by design change | 100 Hz heartbeat, 60 ms lease, TIM7 on PE4; test_xpdr_heartbeat.c; SIL radio |
-| AV-12 | 2 | SRAM2 parity is enabled only by an option byte that the flight software never writes | IMP | Implementation | Board programming procedure sets SRAM2_PE; boot telemetry reports parity state |
-| AV-13 | 3 | Stack in SRAM3, which has no parity | IMP | Implementation | Move the stack into SRAM2 and update the pinned initial SP in the CI image check |
+| AV-12 | 2 | SRAM2 parity is enabled only by an option byte that the flight software never writes | IMP | Closed by design change | RELEASE_PROCEDURE §5.3.1 step 7 writes and verifies SRAM2_PE; boot reports parity (firmware parity.rs, SRS-F154, HK2 PE); checked at the first FM load; confirmed by P3F-A |
+| AV-13 | 3 | Stack in SRAM3, which has no parity | IMP | Closed by design change | Stack in SRAM2 (memory.x from 0x20030000, statics + 8 KB stack ≤ 0x20040000 asserted), CI image check SP 0x20040000; worst-case stack 5,812 of 8,192 B from the machine-code analysis; confirmed by P3F-A |
 
 #### Flight software (FSW)
 
@@ -570,7 +570,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | FSW-11 | 3 | 3·10⁻⁴ nutation gain fails without a gyro | CD | Closed by design change | NUTATION_GAIN_NO_GYRO = 1·10⁻⁴ |
 | FSW-12 | 3 | Three documents name different magnetometers and gyros; L293D cannot run at 3.3 V | CD | Closed by design change | ADCS_DESIGN 1.5; ICD_OBC_ADCS §12 |
 | FSW-13 | 2 | OBC selector and transponder scheduler had no design | CD | Closed by design change | SQSO-PAY-SEL-001 (design complete; implementation post-CDR) |
-| FSW-14 | 3 | Repeated health-check faults log every 10 s: a low-SOC episode fills the 100-entry fault log in 17 minutes | IMP | Implementation | Log a repeated condition on onset and clearance with a count (flight software round 3) |
+| FSW-14 | 3 | Repeated health-check faults log every 10 s: a low-SOC episode fills the 100-entry fault log in 17 minutes | IMP | Closed by design change | condition.rs (SRS-F153): onset and clearance with a count; tests onset_repeats_and_clearance, a_long_episode_leaves_older_entries_intact; SIL F full run logs each low-SOC condition once; confirmed by P3F-A |
 
 #### Radiation (RAD)
 
@@ -615,7 +615,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| EPSB-01 | 2 | Firmware fires driver A on both wings at once: 1.25 A at the pack | IMP | Implementation | Chair: four independent burn lines, one resistor at a time (0.67 A); flight software and SIL |
+| EPSB-01 | 2 | Firmware fires driver A on both wings at once: 1.25 A at the pack | IMP | Closed by design change | Four lines, one resistor at a time, 10 s (deployment.rs, SRS-F089; tests full_sequence_one_element_at_a_time, C test_full_sequence, test_wing_retries_alternate_drivers); SIL burn-lines 1 |
 | EPSB-02 | 3 | Uplink must avoid the synchronised converters' harmonics | CH | Closed by chair decision | BASELINE §7 Uplink: 435.222-435.778 MHz, else 436.222-436.500 MHz |
 | EPSB-03 | 2 | EPS controller (MSP430FR2355) firmware is a new configuration item | IMP | Closed by design change | EPS controller firmware a Class C item (SDP 1.4 §3.4) |
 | EPSB-04 | 3 | Tracker efficiency 90.9-92.3 % against EPS-F002's 92 % | VI | Decision point (dated) | With P3E-09 (CR-2026-014) |
@@ -630,8 +630,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| OBCB-01 | 1 | PAYLOAD_EN on PB4: the JTAG pull-up at reset switches the Jetson rail on at every OBC reset | IMP | Implementation | Move to PB2 (SQSO-ICX-001); firmware pin map |
-| OBCB-02 | 2 | Twenty-five firmware pin changes and new drivers (gyros, magnetometer, sun-sensor ADC, coils on TIM1/TIM15, RTC, supervisor kick) | IMP | Implementation | Flight software round 3 |
+| OBCB-01 | 1 | PAYLOAD_EN on PB4: the JTAG pull-up at reset switches the Jetson rail on at every OBC reset | IMP | Closed by design change | PAYLOAD_EN on PB2, driven low at reset (firmware gpio.rs, pins.rs, C test_hal_pins); confirmed by P3F-A |
+| OBCB-02 | 2 | Twenty-five firmware pin changes and new drivers (gyros, magnetometer, sun-sensor ADC, coils on TIM1/TIM15, RTC, supervisor kick) | IMP | Closed by design change | Every SQSO-ICX-001 D §6 row in the firmware and the HAL (SRS-F140 to F152); firmware clippy, release build, image and stack checks pass; VI: TP-FLATSAT-001 pin continuity and each driver's bring-up, 2027-06; confirmed by P3F-A |
 | OBCB-03 | 2 | Gyro module needs 14 mm above the OBC; the stack gives 11.4 mm | IMP | Closed by design change | Gyro on the OBC through a carrier window (MCAD-04, MECHANICAL_DESIGN D-11) |
 | OBCB-04 | 2 | No carrier board design for the Jetson (its 3.3 V I/O rail, VBAT input) | IMP | Closed by design change | Jetson carrier build-to design SQSO-JET-BRD-001 (137 placements, ERC 0): 5.016 V buck and eFuse to VDD_IN, switched JET_3V3, translated UART |
 | OBCB-05 | 3 | Magnetorquers draw 1.16-1.3 W in detumble; not in the power analysis | IMP | Closed by design change | POWER_BUDGET_ANALYSIS 2.1 §8.6 LEOP case with the magnetorquers at 1.16-1.3 W: first orbit −1.30 Wh, three orbits −3.44 Wh (SOC 40 % at separation falls to 33 %) |
@@ -738,6 +738,13 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3F-G-07 | 3 | The ±5° attitude-knowledge requirement (ADCS-F003/P003, EKF/TRIAD) is not implemented; MRD-061 'verified' by a Monte Carlo that does not measure knowledge | IMP | Implementation | Restate or implement and verify |
 | P3F-G-08 | 3 | RADIATION_ANALYSIS E does not match the selected parts (MM200 vs RM3100, load switches), omits the implemented mitigations, old dose model, Jetson upset probability 10× low, no latch-up statement, no 475/485 km table | IMP | Implementation | Revise against the parts list and the code |
 | P3F-G-09 | 3 | V-JET-9's ≤ 15 nT burst limit is not traceable to a need (carrier bound 0.35 µT, magnetometer unused during bursts) | IMP | Implementation | Record-only or justified limit |
+| P3F-A-01 | 2 | AntS deployed state read while its controller is unpowered (burn_off drops ANTS_PWR before process_verify): on hardware a deployed AntS is never confirmed, two more burns, FAILED, the C-19 hold longer; the SIL answers regardless of SW8, so ants_cold is not representative | IMP | Implementation | Power before every status read; SIL AntS answers only with SW8 on; re-run |
+| P3F-A-02 | 2 | The PTT_EXCITER watch (SRS-F168) accepts any XPDR_KEY high without limit: a stuck key-gate or XPDR_KEY keys the exciter past the 120 s timer and blinds the watch to a stuck TNC_PTT; frequent overs reset the count | IMP | Implementation | Repeat path an explanation only with the heartbeat and ≤ 120 s plus margin |
+| P3F-A-03 | 3 | The supervisor can reset the OBC up to 8.5 s before the IWDG after a stall (IWDG refreshed every pass, WDI edge every 10 s); obc_calcs ignores it, V-OBC-2 would fail; stale reload 3500 and 30000 values; SRS-F001 allows 30 s init beyond the boot IWDG's 24.1 s | IMP | Implementation | Refresh the IWDG with the WDI edge or ≤ 19 s |
+| P3F-A-04 | 3 | C-18 deferral slot and force flag not persisted: each reset in ANTENNA_PENDING spends a deferral, so a reset loop exhausts the cap and deploys cold | IMP | Implementation | Persist the slot and flag |
+| P3F-A-05 | 3 | ack and GNS formatters keep the 'too long gives empty' path; send_ui transmits an empty frame and marks it sent; GNSS PDOP unbounded | IMP | Implementation | Same fix as SIL-40; bound PDOP |
+| P3F-A-06 | 3 | separation.rs and fram_health.rs (SH-008 controls) not on the safety-critical list or in safety_coverage.py | IMP | Implementation | Add them |
+| P3F-A-07 | 3 | OBC heartbeat timeout and cycle limit inconsistent: EPS_DESIGN 120 s, ICD-001 600 s and 3 cycles in 24 h, INTERCONNECT E14 one 10 s pulse per 10 min | IMP | Implementation | Align to ICD-001 1.7 |
 
 #### Round 3: thermal and parts (P3T)
 
