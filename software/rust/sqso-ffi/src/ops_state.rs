@@ -75,7 +75,12 @@ pub(crate) fn check(degraded: bool) -> bool {
     read
 }
 
-/// The ADCS geometry preset (ADCS_SET_GEOMETRY; 0 if it cannot be read)
+/// The ADCS geometry preset (ADCS_SET_GEOMETRY; 0 if it cannot be read).
+/// Decision C-21: preset 0 (both wings) unless the ground has selected
+/// another; the flight software never picks a one-wing preset by itself,
+/// whatever SOLAR_SENSE reads (it cannot tell which wing is out)
+///
+/// @requirement SRS-F171 The software shall use ADCS geometry preset 0 (both wings) unless the ground has selected another by ADCS_SET_GEOMETRY, whatever SOLAR_SENSE reads; it shall never select preset 1, 2 or 3 by itself
 pub fn ops_adcs_geometry() -> u8 {
     OPS.with(|o| o.adcs_geometry()).unwrap_or(0)
 }
@@ -127,5 +132,27 @@ mod tests {
         assert_eq!(OPS.with(|_| ops_set_adcs_geometry(1)), Some(rc::BUSY));
         assert_eq!(OPS.with(|_| ops_state_verify()), Some(()));
         assert_eq!(ops_set_adcs_geometry(9), rc::INVALID);
+    }
+
+    /// Decision C-21: with SOLAR_SENSE reading not both wings deployed, the
+    /// geometry stays preset 0 (both wings) until the ground selects
+    /// another after the identification; the selection persists
+    #[test]
+    fn the_geometry_is_preset_0_until_the_ground_selects() {
+        let _serial = crate::fault_mgmt::tests::serial();
+        let _ = crate::hal_sim::hal_gpio_init();
+        // SAFETY: plain values (the simulated HAL)
+        unsafe {
+            assert_eq!(c::hal_flash_init(), rc::OK);
+            assert_eq!(c::hal_flash_erase(FLASH_REGION_OPS), rc::OK);
+        }
+        crate::hal_sim::hal_sim_gpio_drive_input(crate::deployment::GPIO_PIN_SOLAR_SENSE, true); // stowed
+        assert_eq!(ops_state_init(), rc::OK);
+        assert!(!crate::deployment::wings_sensed());
+        assert_eq!(ops_adcs_geometry(), 0, "no automatic one-wing preset");
+        assert_eq!(ops_set_adcs_geometry(2), rc::OK);
+        assert_eq!(ops_state_init(), rc::OK);
+        assert_eq!(ops_adcs_geometry(), 2, "the ground's selection, persisted");
+        assert_eq!(ops_set_adcs_geometry(0), rc::OK);
     }
 }

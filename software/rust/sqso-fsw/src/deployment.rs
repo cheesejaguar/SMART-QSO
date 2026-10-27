@@ -733,8 +733,7 @@ impl Deployment {
     /// the analysis schedule after repeated unknown temperatures (neither
     /// when the ground forced the antenna)
     fn ants_sun_release(&self) -> bool {
-        !self.ants_forced
-            && (self.ants_deferrals >= ANTS_MAX_DEFERRALS || self.ants_unknown >= ANTS_UNKNOWN_LIMIT)
+        !self.ants_forced && (self.ants_deferrals >= ANTS_MAX_DEFERRALS || self.ants_unknown >= ANTS_UNKNOWN_LIMIT)
     }
 
     /// A sun-bound release may go now: [`ANTS_SUN_MS`] of continuous sun
@@ -2105,7 +2104,8 @@ mod tests {
         // resumed INHIBITED without it is not separated
         let mut io = Bench::new();
         let flags = FLAG_ANTENNA_DEPLOYED | FLAG_SOLAR_DEPLOYED | FLAG_ENABLED;
-        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &[State::Complete as u8, 1, 1, flags, 0, 0, 0, 0, 0, 0, 0, 0]).unwrap();
+        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &[State::Complete as u8, 1, 1, flags, 0, 0, 0, 0, 0, 0, 0, 0])
+            .unwrap();
         let d = boot(&mut io, Reset::PowerKept);
         assert_eq!((d.state(), d.is_separated()), (State::Complete, false));
         assert_eq!(d.telemetry().time_since_sep_s, 0);
