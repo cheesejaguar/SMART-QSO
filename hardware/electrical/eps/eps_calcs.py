@@ -178,8 +178,9 @@ def protection():
     # prospective short-circuit current at BAT_TOP (fault right after F0): cells at a lower-bound 10 mOhm each (about a
     # third of the INR18650-35E's typical DC resistance), welded interconnects neglected, F0 at its 13.5 mOhm minimum
     r_cell_min, r_f0_min, r_tap_fuse_min = 0.010, 0.0135, 0.225
-    i_psc = VBAT_MAX / (NCELL * r_cell_min + r_f0_min)
-    i_psc_tap = VBAT_MAX / (NCELL * r_cell_min + r_tap_fuse_min)
+    i_psc_one = VBAT_MAX / (NCELL * r_cell_min + r_f0_min)
+    i_psc = VBAT_MAX / (NCELL * r_cell_min + 3 * r_f0_min)          # F0A, F0B (BAT_TOP) and F0N (BAT_BOT) in every loop
+    i_psc_tap = VBAT_MAX / (NCELL * r_cell_min + r_tap_fuse_min)   # without the sense-board tap resistors (not fitted case)
     ptc_hold_60 = 2.6 * 0.74                               # 2920L hold current rerating at 60 degC
     ptc_hold_60_ = 2.6 * 0.74
     rows = [("Largest legitimate pack current (Jetson at the 12 W guard + PA 1 W + housekeeping + heater + magnetorquers "
@@ -196,10 +197,11 @@ def protection():
             ("AFE SCD (100 mV, 15 us)", f"{scd:.0f} A", "prospective short-circuit current 80-100 A typical, <= 314 A bound (below)"),
             ("F0 (sense board) and F2: FM12A72V5.0A 5 A at 60 degC (x0.80 rerating, assumed)", f"{5 * fuse_rerate_60:.1f} A",
              f"largest load {i_max_legit / (5 * fuse_rerate_60):.0%}, four-driver fault {i_burn_buck_lim / (5 * fuse_rerate_60):.0%} of the rerated rating (rule 50 %)"),
-            ("Prospective short-circuit current at BAT_TOP (16.8 V, 4 x 10 mOhm cells, F0 13.5 mOhm)", f"{i_psc:.0f} A",
-             f"FM12 interrupt 1000 A at 72 VDC: {1000 / i_psc:.1f}x (a Nano2 451, 300 A at 32 VDC, would have {300 / i_psc:.2f}x)"),
-            ("Prospective current in a tap short (one FM12A72V3/4A tap fuse, 0.225 Ohm min, four cells)", f"{i_psc_tap:.0f} A",
-             f"FM12 interrupt 1000 A: {1000 / i_psc_tap:.0f}x (a 0466 chip fuse, 50 A at 63 V, would be exceeded)"),
+            ("Prospective short-circuit current, short in W1 (16.8 V, 4 x 10 mOhm cells, F0A + F0B + F0N at 13.5 mOhm each)", f"{i_psc:.0f} A",
+             f"FM12 interrupt 1000 A at 72 VDC: {1000 / i_psc:.1f}x; with one fuse in the loop {i_psc_one:.0f} A (a Nano2 451, 300 A at 32 VDC, would have {300 / i_psc_one:.2f}x)"),
+            ("Tap short, tap to frame (one tap chain 3 x 68.1 Ohm + tap fuse, four cells)", f"{VBAT_MAX / 204.3 * 1e3:.0f} mA",
+             f"{(VBAT_MAX / 204.3) ** 2 * 68.1:.2f} W per 2512 1 W resistor ({(VBAT_MAX / 204.3) ** 2 * 68.1:.0%}); the fuse need not open"),
+            ("Tap short, tap to tap (two chains)", f"{VBAT_MAX / 408.6 * 1e3:.0f} mA", "28 AWG wire 0.90 A derated: no heating"),
             ("RT1 2920L260/33DR hold at 60 degC", f"{ptc_hold_60:.2f} A", f"{i_max_legit / ptc_hold_60:.0%} of hold"),
             ("F3 ITV4030L1412NR 12 A (secondary-protector fuse) at 60 degC (10 A)", "10 A", f"{i_max_legit / 10:.0%}")]
     table("4. Pack currents and protection coordination", ["Item", "Value", "Margin"], rows)
