@@ -157,18 +157,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-305 RIDs: severity 1: 29, severity 2: 164, severity 3: 112.
+306 RIDs: severity 1: 29, severity 2: 165, severity 3: 112.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 26 |
-| Closed by design change | 100 | 165 |
-| Closed by chair decision | 41 | 40 |
+| Closed by design change | 100 | 166 |
+| Closed by chair decision | 42 | 41 |
 | Verification item | 45 | 44 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 81 | 17 |
+| Implementation | 81 | 16 |
 
-Open implementation RIDs: SE-01, SE-21, REG-12, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-21, REG-12, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -227,7 +227,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| SE-01 | 1 | No detailed (build-to) design: schematics with parts, layouts, mechanical CAD, structural model | IMP | Implementation | Round 2 design completion: schematic capture with selected parts, mechanical model |
+| SE-01 | 1 | No detailed (build-to) design: schematics with parts, layouts, mechanical CAD, structural model | IMP | Closed by design change | Build-to design at schematic level: EPS, OBC, RF, Jetson carrier, magnetometer A2 and access-port A3 boards (SKiDL netlists, BOMs, ERC 0), interconnect SQSO-ICX-001, harness SQSO-HAR-001 2.0, CAD with 94+ parts and interference checks, shell FE model; PCB layouts per SE-24 |
 | SE-02 | 2 | Flow-down missing from CDS, Part 97, NASA-STD-8719.14C and the provider | CD | Closed by design change | MRD-084..099; SYS-080..089, 703..709, 713, 900..919; LVR traced |
 | SE-03 | 2 | Requirement values contradicted the baseline | CD | Closed by design change | MRD and 19 SYS requirements changed; CR-2026-007 |
 | SE-04 | 2 | Seven requirements need the PI's ratified wording | DP | Decision point (dated) | Ratify TBR-MRD-002..005 and TBR-SYS-002..004 by the PDR (2027-01-12) |
@@ -250,6 +250,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-21 | 3 | SIL deploys both wings from one resistor and models 0.04 W of coil power in detumble (board: 1.16-1.3 W) | IMP | Implementation | SIL deployment per-wing restraint and coil-drive power (flight software round 3) |
 | SE-22 | 2 | Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG | IMP | Closed by design change | Every SQSO-HAR-001 2.0 §15 item done: gold finishes on all boards and in EEE_PARTS_LIST E, Samtec TFM/SFSDT PTFE assemblies replace the PVC ribbons, gauges from the terminal ranges, EPS bottom-side connectors, pack fuse F0, access-port board A3, CAD zones; harness re-check against the CAD clear (58 zones), WireViz 43 cables match |
 | SE-23 | 3 | No published E595 outgassing values found for the harness wire, PTFE assemblies, sleeving, lacing tape or connector housings; Pico-Clasp gold suffix not found | VI | Verification item | V-HAR-11 (E595 per part number or test, bake-out) and V-HAR-3 (vendor drawings, gold part numbers) before the EM order (MATERIALS_LIST D §7-§8, EEE_PARTS_LIST E §2A.8) |
+| SE-24 | 2 | No PCB layouts: the boards are at schematic, BOM, placement-constraint and stack-up level | CH | Closed by chair decision | Layout is the scheduled next design step (SCHEDULE: EM PCB layout and design-rule review 2027-01-12 to 2027-03-09, after the independent PDR), held to the placement, keep-out, stack-up and impedance constraints recorded in the board designs; the independent CDR (2027-08-03) reviews the layouts |
 
 #### Verification and validation (VV)
 
