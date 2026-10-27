@@ -33,7 +33,7 @@ Verify internal and external watchdog timer operation and recovery.
 | 1 | Boot and observe WDT kick | Regular pulse | |
 | 2 | Inject software hang | WDT timeout | |
 | 3 | Verify reset occurs | System resets | |
-| 4 | Measure timeout | 30s ±5s | |
+| 4 | Measure timeout | 28s (26.4–30.4 s, IWDG reload 3500 / 256; before the TPS3850 supervisor's 31.3 s minimum) | |
 | 5 | Verify boot reason logged | WDT reset flag | |
 | 6 | Test external WDT (if present) | Backup reset | |
 

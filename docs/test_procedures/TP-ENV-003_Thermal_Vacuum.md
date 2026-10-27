@@ -2,10 +2,10 @@
 ## TP-ENV-003
 
 **Document Number:** TP-ENV-003
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
-**Reference:** GSFC-STD-7000B (GEVS) §2.6.3 and Appendix B §2.6; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.4-§3.5
-(levels); SpaceX Rideshare Payload User's Guide v11 Table 6-2; LSP-REQ-317.01 Rev B Table 1 (bake-out)
+**Reference:** GSFC-STD-7000B (GEVS) §2.6.3 and Appendix B §2.6; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev D (amended) §3.4-§3.5
+and §9 deviation 8 (levels); `hardware/structure/THERMAL_DESIGN.md` 1.5 §1.1 (allowable flight temperatures, AFT); SpaceX Rideshare Payload User's Guide v11 Table 6-2; LSP-REQ-317.01 Rev B Table 1 (bake-out)
 
 **Requirements verified:** SYS-600, SYS-601 (cold survival limit open, TBR-TPENV003-001), SYS-602, SYS-702, SYS-706, SYS-707
 
@@ -33,9 +33,9 @@ Verify functional and survival performance of the SMART-QSO CubeSat across opera
 
 | Parameter | Hot (°C) | Cold (°C) |
 |-----------|----------|-----------|
-| Operational requirement (SYS-600) | +50 | -20 |
+| Operational AFT (SYS-600 as proposed in CR-2026-017; THERMAL_DESIGN §1.1) | +50 | -30 (boards); -40 for the first orbit after separation |
 | Survival requirement (SYS-601) | +60 | -40 (cold survival limit open: TBR-TPENV003-001) |
-| **Operational test plateau** (SYS-600 ± 10 °C, GSFC-STD-7000B §2.6.3.2.1.1) | **+60** | **-30** |
+| **Operational test plateau** (AFT ± 10 °C, GSFC-STD-7000B §2.6.3.2.1.1) | **+60** | **-40** (also the first-orbit extension at its AFT, without the 10 °C margin: ETP §9 deviation 8) |
 | **Non-operating test plateau** (capped by the battery's +60 °C limit, ETP §3.4 and §9 deviation 1) | **+60** | **-40 at the structure, battery heater enabled, battery above -20** |
 | Bake-out (SYS-706) | +60 (+0/-2) for ≥ 6 h after stabilisation at ≤ 1 × 10⁻⁴ Torr | — |
 
@@ -53,9 +53,9 @@ against the battery cap.
 | Hot operational | +60 °C | ≥ 3 hours (stabilisation + performance test); one 120 s Jetson burst | < 10⁻⁵ Torr |
 | Hot non-operating | +60 °C | ≥ 2 hours | < 10⁻⁵ Torr |
 | Transition | ≤ 1 °C/min | | < 10⁻⁵ Torr |
-| Cold operational | -30 °C | ≥ 3 hours; charging must be inhibited below 0 °C (SYS-602) | < 10⁻⁵ Torr |
+| Cold operational | -40 °C | ≥ 3 hours; charging must be inhibited below 0 °C (SYS-602); battery heater enabled, battery above -20 °C; Jetson off below its -15 °C gate | < 10⁻⁵ Torr |
 | Cold non-operating | -40 °C at the structure (TBR-TPENV003-001) | ≥ 2 hours | < 10⁻⁵ Torr |
-| Cold start | -30 °C | Power on after the cold non-operating plateau | < 10⁻⁵ Torr |
+| Cold start | -40 °C | Power on after the cold non-operating plateau: the first-orbit extension of the AFT to -40 °C, tested at its AFT without the 10 °C margin (ETP §9 deviation 8); preceded on the EM by V-THM-8 (`docs/environment/THERMAL_ANALYSIS.md`) | < 10⁻⁵ Torr |
 | Thermal balance | Two steady-state points (hot with burst, cold safe mode) | Until < 0.1 °C/h | < 10⁻⁵ Torr |
 | **Cycles** | **8 complete** (plus 4 board-level air cycles before integration: 12 total, GEVS-B Table 2.6-1) | | |
 
@@ -114,10 +114,10 @@ plateaus; a limited functional test at the others.
 
 | Step | Action | Expected | Measured | P/F |
 |------|--------|----------|----------|-----|
-| 1 | Ramp to -30°C | ≤ 1°C/min | ______ °C/min | |
-| 2 | Stabilize at -30°C | 98 % of TCs within ±2°C, or < 0.1 °C/h | ______ | |
-| 3 | Power on | Successful boot | ______ | |
-| 4 | Cold soak (≥ 3 hrs); charging inhibited below 0 °C | Maintain -30°C | ______ hrs | |
+| 1 | Ramp to -40°C | ≤ 1°C/min | ______ °C/min | |
+| 2 | Stabilize at -40°C | 98 % of TCs within ±2°C, or < 0.1 °C/h | ______ | |
+| 3 | Power on (cold start at -40 °C, ETP §9 deviation 8); Jetson stays off below -15 °C | Successful boot | ______ | |
+| 4 | Cold soak (≥ 3 hrs); charging inhibited below 0 °C | Maintain -40°C | ______ hrs | |
 | 5 | Functional test | TP-SYS-001 pass | ______ | |
 | 6 | Power off | Spacecraft safe | ______ | |
 | 7 | Ramp to the cold survival limit, -40°C or -30°C (TBR-TPENV003-001) | Survival temp | ______ °C | |
@@ -160,8 +160,8 @@ plateaus; a limited functional test at the others.
 |----------|-----|-----------|------------|
 | OBC | TC01 | +70°C | -40°C |
 | Battery | TC02 | +60°C (non-operating; charging inhibited above +45 °C) | -20°C (charging inhibited below 0 °C) |
-| Jetson | TC03 | +70°C | -20°C |
-| RF PA | TC04 | +65°C | -30°C |
+| Jetson | TC03 | +70°C | -40°C unpowered (V-THM-8); not powered below -15°C |
+| RF PA | TC04 | +65°C | -40°C |
 | Structure +X | TC05 | +80°C | -40°C |
 | Structure -X | TC06 | +80°C | -40°C |
 | Solar panel | TC07 | +100°C | -60°C |
@@ -193,7 +193,7 @@ plateaus; a limited functional test at the others.
 | Bake-out | +60°C, ≥ 6 h, ≤ 1 × 10⁻⁴ Torr | ______ | |
 | Hot operational | +60°C ± 2°C | ______ | |
 | Hot survival | +60°C ± 2°C | ______ | |
-| Cold operational | -30°C ± 2°C | ______ | |
+| Cold operational | -40°C ± 2°C | ______ | |
 | Cold survival | -40°C ± 2°C at the structure (TBR-TPENV003-001) | ______ | |
 | Cycles complete | 8 | ______ | |
 | Test pressure | < 10⁻⁵ Torr | ______ | |
@@ -217,3 +217,4 @@ plateaus; a limited functional test at the others.
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
 | C | 2026-10-16 | Cold survival limit marked open between -40 °C (SYS-601) and -30 °C (Rev B), tracked as TBR-TPENV003-001 in the new §9 for the PI; §3.1 cites SYS-601 (findings VV-06, VV-17) | SMART-QSO Team |
 | D | 2026-10-27 | CDR review (PM/SE/V&V): levels from `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C: operational plateaus +60/-30 °C (10 °C margin, GSFC-STD-7000B), non-operating +60 °C (battery cap) and -40 °C at the structure, bake-out +60 °C for 6 h at ≤ 1 × 10⁻⁴ Torr, 8 cycles, hot and cold starts, thermal balance, ≤ 1 °C/min; battery monitoring limits corrected (the +45 °C limit is a charge limit); post-test deployment replaced by continuity; SYS-602, SYS-706, SYS-707 added. Was GSFC-STD-7000A, ± 5 °C, 4 cycles | CDR review, PM/SE/V&V |
+| E | 2026-10-27 | CDR round 3, thermal (RID THM-04, CR-2026-017): levels from ETP Rev D (amended) §3.4: cold operational plateau and cold start at -40 °C (AFT -30 °C - 10 °C; the cold start tests the first-orbit extension of the AFT to -40 °C at its AFT without the 10 °C margin, ETP §9 deviation 8), V-THM-8 cited; operational AFT row from THERMAL_DESIGN 1.5 §1.1; Jetson and RF PA cold monitoring limits -40 °C | CDR thermal analyst |

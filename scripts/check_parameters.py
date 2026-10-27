@@ -72,7 +72,9 @@ PARAMETERS: Tuple[Parameter, ...] = (
         ("docs/BASELINE_PARAMETERS.md", r"EMERGENCY \(beacon shed\) below (\d+) %"),
         ("docs/operations/MISSION_RULES.md", r"\| SOC < (\d+)% \| Absolute minimum"),
     )),
-    Parameter("hardware watchdog timeout (s)", "30", (
+    # IWDG reload 3500 at LSI/256: 26.4-30.4 s over the LSI tolerance, below
+    # the TPS3850 supervisor's 31.3 s minimum (SQSO-ICX-001 D §6 row 37)
+    Parameter("hardware watchdog timeout (s)", "28", (
         (FLIGHT + "watchdog_mgr.h", r"WDT_HW_TIMEOUT_MS\s+(\d+)000U"),
         (FLIGHT + "hal/hal_wdt.h", r"HAL_WDT_DEFAULT_TIMEOUT_MS\s+(\d+)000\b"),
         ("hardware/obc/OBC_DESIGN.md", r"\| Timeout \| (\d+) seconds"),

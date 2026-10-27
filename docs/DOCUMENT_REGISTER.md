@@ -188,7 +188,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-TP-DITL-001 | TP-DITL-001: Day-in-the-Life Test Procedure | `docs/test_procedures/TP-DITL-001_DAY_IN_THE_LIFE.md` | 1.1 | Draft; no run recorded |
 | TP-ENV-001 | Test Procedure: Pre-Environmental Baseline | `docs/test_procedures/TP-ENV-001_Pre_Environmental.md` | C | Draft; no run recorded |
 | TP-ENV-002 | Test Procedure: Vibration Test | `docs/test_procedures/TP-ENV-002_Vibration.md` | F | Draft; no run recorded |
-| TP-ENV-003 | Test Procedure: Thermal Vacuum Test | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | D | Draft; no run recorded |
+| TP-ENV-003 | Test Procedure: Thermal Vacuum Test | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | E | Draft; no run recorded |
 | SQSO-TP-ENV-004 | Test Procedure: EMC/EMI Test | `docs/test_procedures/TP-ENV-004_EMC.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-ENV-005 | Test Procedure: Deployment Test (Post-Environmental) | `docs/test_procedures/TP-ENV-005_Deployment_Post_Env.md` | 1.1 | Draft; no run recorded |
 | TP-EPS-001 | Test Procedure: EPS Functional Test | `docs/test_procedures/TP-EPS-001_Functional_Test.md` | C | Draft; no run recorded |
