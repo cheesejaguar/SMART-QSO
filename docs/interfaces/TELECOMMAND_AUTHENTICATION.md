@@ -111,7 +111,11 @@ MAC input = "SQSO-TC-v1" | cmd_id (1 B) | N (1 B) | counter (4 B, BE) | args (N 
 4. **Lost frames.** If a frame is lost, send the next command with a new counter. Never re-send a frame with the same counter.
 5. **Doppler.** Telecommand stations pre-correct the uplink to within ±1 kHz of the spacecraft receiver frequency.
    Uncorrected, the 435 MHz Doppler (up to ±10.4 kHz) takes the signal outside the receiver's ±7.5 kHz filter and
-   nothing decodes (SQSO-LBA-001 v3.0 §3.2, §4.4).
+   nothing decodes (SQSO-LBA-001 v3.0 §3.2, §4.4). Before the first command of each pass, also correct the uplink
+   for the spacecraft receiver's frequency offset, estimated from the measured downlink: the downlink and the
+   receiver share one TCXO (up to 2.1 ppm after 2 years, 0.9 kHz at 435.5 MHz; RID RFB-05), so the downlink's
+   measured offset from nominal, with the predicted Doppler removed, scaled by f_up / f_down, is applied to the
+   uplink (SQSO-GND-001 GND-R5).
 
 #### 5.2.1 Two or more stations: counters from UTC (proposed)
 
