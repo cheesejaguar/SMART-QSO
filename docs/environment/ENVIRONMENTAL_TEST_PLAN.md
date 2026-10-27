@@ -143,10 +143,10 @@ levels are set from the requirement and part limits and capped by the battery:
 | Plateau | GEVS-B rule | Uncapped value | **Interim test value** | Limiting item |
 |---------|-------------|----------------|------------------------|---------------|
 | Hot operational | SYS-600 max + 10 °C | +60 °C | **+60 °C** | Battery non-operating maximum +60 °C; charging inhibited above +45 °C (SYS-602), which the test exercises |
-| Cold operational | SYS-600 min − 10 °C | −30 °C | **−30 °C** | — |
+| Cold operational | AFT min − 10 °C (`hardware/structure/THERMAL_DESIGN.md` §1.1: −30 °C for every board; CR-2026-017) | −40 °C | **−40 °C** | The parts' −40 °C rating. The same plateau tests the first-orbit extension of the AFT to −40 °C at its AFT, without the 10 °C margin (§9 deviation 8) |
 | Hot non-operating (survival) | SYS-601 max + 10 °C | +70 °C | **+60 °C** (cap) | Battery; **deviation from GEVS of 10 °C**, recorded in §9 |
-| Cold non-operating (survival) | SYS-601 min − 10 °C | −50 °C | **−40 °C at the structure, battery heater enabled, battery held above −20 °C** | Battery; open under TBR-TPENV003-001 |
-| Hot start / cold start | GEVS-B §2.6.3.3.1.5 | — | Start at +60 °C after bake-out; start at −30 °C after the cold non-operating plateau | — |
+| Cold non-operating (survival) | AFT non-operating min − 10 °C (THERMAL_DESIGN §1.1: −30 °C) | −40 °C | **−40 °C at the structure, battery heater enabled, battery held above −20 °C** | Battery; open under TBR-TPENV003-001 |
+| Hot start / cold start | GEVS-B §2.6.3.3.1.5 | — | Start at +60 °C after bake-out; **cold start at −40 °C** after the cold non-operating plateau (the first-orbit extension, tested at its AFT without the 10 °C margin: §9 deviation 8; on the EM first, V-THM-8) | Parts' −40 °C rating |
 
 The SpaceX advised protoflight range (UG v11 Table 6-2: envelope of the maximum predicted temperatures and −24 to
 +61 °C, ± 5 °C, so at least −29 to +66 °C) exceeds the battery limit by 6 °C at the hot end; it is advised, not
@@ -155,8 +155,12 @@ thermal-vacuum test of this plan, SYS-707 and BASELINE §8 is the GEVS one: 8 cy
 temperatures ± 10 °C, capped at +60 °C. The UG's advised "± 5 °C, 20 cycles, ≥ 4 in vacuum" is met as follows: its
 ± 5 °C margin is inside the GEVS ± 10 °C except at the battery cap (deviation 4), and its cycle count by the 8 vacuum
 cycles, the 4 board-level cycles and, if the integrator requires 20, 8 further ambient cycles of the FM (VI-08).
-`docs/environment/THERMAL_ANALYSIS.md` V-THM-6 is to be restated to this definition (the verification-item register
-carries it until then). **When the correlated model gives the margined
+`docs/environment/THERMAL_ANALYSIS.md` V-THM-6 carries this definition (SQSO-THA-001 2.2). **First orbit after
+separation (RID THM-04):** the LEOP cold case after the bounding dispenser soak takes the boards to −27.6 … −28.6 °C
+and the unpowered Jetson to −28.9 °C (SQSO-THA-001 2.2 §4.3, case L4), −38.6 … −38.9 °C with the 10 °C margin; the
+AFT for that orbit is −40 °C, the parts' rating, demonstrated by the −40 °C cold operational plateau and cold start
+without a 10 °C margin beyond it (§9 deviation 8), preceded on the EM by V-THM-8 (cold start at −40 °C after ≥ 2 h
+unpowered; Jetson module soaked unpowered at −40 °C, 3 cycles, then booted at its −15 °C gate). **When the correlated model gives the margined
 predictions, each plateau becomes max(prediction + 10 °C, AFT ± 10 °C) and the battery cap is re-checked: the hot
 plateau is compliant only if the hot-case prediction plus 10 °C is at or below +60 °C.**
 
@@ -360,10 +364,11 @@ in the lifecycle ROM WBS 10 (SQSO-AUD-005 Rev F). The custom-battery abuse tests
 | 1 | GSFC-STD-7000B §2.6.3.2.1.1: 10 °C beyond AFT | Hot non-operating plateau +60 °C instead of +70 °C | Battery limit; the hot plateau is compliant once the margined prediction is ≤ +50 °C | CR-2026-013: proposed by the design review; **PI decision required by 2027-01-12** (DA-01) |
 | 2 | GSFC-STD-7000B Table 2.6-1: 12 cycles before flight | 8 TV + 4 board-level air cycles | Same total; no unit-level TV for a 1U | CR-2026-013: proposed by the design review; **PI decision required by 2027-01-12** |
 | 3 | GSFC-STD-7000B Appendix B §2.6.2: 100 h hot and cold failure-free | About 24 h each in vacuum | Class D; offset by the DITL, the EM burn-in (VI-09) and the reliability programme (VI-11, VI-12; §3.11) | CR-2026-013: proposed by the design review; **PI decision required by 2027-01-12** |
-| 4 | SpaceX UG v11 Table 6-2 (advised): protoflight TV at −29/+66 °C, 20 cycles | −30/+60 °C, 12 cycles (VI-08 adds cycles if required) | Battery limit; advised only | Integrator |
+| 4 | SpaceX UG v11 Table 6-2 (advised): protoflight TV at −29/+66 °C, 20 cycles | −40/+60 °C, 12 cycles (VI-08 adds cycles if required) | Battery limit; advised only | Integrator |
 | 5 | SpaceX UG v11 Table 6-2: random vibe at MPE | Envelope at 8.18 Grms, more severe | GEVS-B Appendix B §2.4.2.3; SpaceX note 1 under-test | None needed (exceeds the minimum) |
 | 6 | LSP-REQ-317.01 Rev B Table 1: bake-out 70 °C for 3 h | 60 °C for 6 h | Note 5 alternative; battery | Integrator (CSLI: LSP) |
 | 7 | SpaceX UG v11 Table 6-2 (advised): shock at MPE + 3 dB, 2 actuations per axis | Not on the FM; on the EM if VI-07 requires it, the FM accepted by similarity | Advised only; the Nova attenuates shock; no second test article at risk | CR-2026-013 (PI by 2027-01-12); then the integrator |
+| 8 | GSFC-STD-7000B §2.6.3.2.1.1: protoflight test 10 °C beyond the AFT | The first-orbit extension of the cold AFT to −40 °C (boards operating, Jetson non-operating; THERMAL_DESIGN §1.1) is tested at −40 °C, its AFT, without the 10 °C margin; the orbit AFT (−30 °C) keeps it | One transient of ≤ 46 min below −20 °C in the first orbit, from a bounding dispenser soak; margined prediction −38.6 … −38.9 °C inside −40 °C; parts rated to −40 °C; the board's detumble dissipation (≈ 1.2 W) not credited; a heater large enough (≈ 5 W, 7.8 Wh in the first orbit) rejected (SQSO-THA-001 2.2 §6.6). Lapses if the integrator's dispenser analysis (V-THM-5) puts the boards and the Jetson at or above about −8 °C at separation | CR-2026-017: proposed by the design review (RID THM-04); **PI decision required by 2027-01-12** |
 
 ## 10. Data and Success Criteria
 
@@ -387,4 +392,4 @@ days of float, 0.5 weeks more than the GOLD Rule 1.06 margin (`mission/SCHEDULE.
 | C | 2026-10-27 | CDR review (PM/SE/V&V). Rewritten: protoflight defined correctly (GEVS-B Table 2.2-2); source precedence; EM and FM articles; random vibration at the GEVS-B Appendix B envelope of MPE + 3 dB and workmanship (8.18 Grms); sine signature; shock by analysis with VI-07; TVAC levels with GEVS margins and the battery cap, 8 cycles plus 4 board cycles; bake-out +60 °C 6 h; EMC tailored per GEVS-B Appendix B; mass properties with inertia; deployment tests hot and cold before vibration (CDS §3.5.2); magnetic; end-to-end, DITL and HIL; FM flow; EM/FM matrix; facilities and cost; verification items VI-01 to VI-10; deviations. Scripts `software/simulation/cdr/pm/test_levels.py`, `test_cost.py` | CDR review, PM/SE/V&V |
 | C.2 | 2026-10-27 | CDR 2026 consistency pass: V-EMC-6 burn steps 0.75 A and 2.0 A from the EPS board (SQSO-EPS-BRD-001 §9; SQSO-EMC-001 B) | CDR documentation review |
 | D | 2026-10-27 | CDR round 3 (VV-07, VV-08, REL-01, P3P-03, P3E-07, P3S-10, SE-07): §3.3 shock: the UG v11 MPE exceeds the vibe-equivalent SRS, so the RFQ asks for the attenuated Nova MPE and an EM shock test is planned and costed if VI-07 needs it (deviation 7); §3.4 one TVAC definition, the SpaceX ± 5 °C / 20-cycle advice mapped onto it; new §3.11 reliability programme (VI-11 ≥ 500 h EM flatsat, VI-12 ≥ 200 h FM burn-in); §5 matrix; §6 EM test dates from SQSO-SCH-001 D; §7 cost $42k–130k with the battery abuse tests in the ROM; VI-01 criterion for SYS-603 Rev G; deviations 1–3 and 7 to the PI by CR-2026-013 | CDR round 3, systems and programmatics |
-| D, amended | 2026-10-27 | CDR round 3 (STR-04, P3S-01, P3S-04): §3.7 spin-balance mass properties to ± 0.5 % / ± 1 × 10⁻⁵ kg·m²; §3.8 cold deployment at −55 °C with the 10 s burn (C-17); MoS₂ hinge humidity, cycle budget and film inspection | Design review chair |
+| D, amended | 2026-10-27 | CDR round 3 (STR-04, P3S-01, P3S-04): §3.7 spin-balance mass properties to ± 0.5 % / ± 1 × 10⁻⁵ kg·m²; §3.8 cold deployment at −55 °C with the 10 s burn (C-17); MoS₂ hinge humidity, cycle budget and film inspection; (THM-04, CR-2026-017) §3.4 cold operational plateau −40 °C (AFT −30 °C − 10 °C) and cold start at −40 °C for the first-orbit extension of the AFT, tested at its AFT without the 10 °C margin (new §9 deviation 8), V-THM-8 on the EM; deviation 4 range −40/+60 °C | Design review chair |

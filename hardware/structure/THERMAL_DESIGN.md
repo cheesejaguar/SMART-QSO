@@ -4,7 +4,7 @@
 **Document Number:** SQSO-THM-001
 **Version:** 1.5
 **Date:** 2026-10-27
-**Status:** CDR Baseline. The analysis is `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0); this document holds
+**Status:** CDR Baseline. The analysis is `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.2); this document holds
 the design (finishes, mount, heater, sensors) and the allowable temperatures
 
 ---

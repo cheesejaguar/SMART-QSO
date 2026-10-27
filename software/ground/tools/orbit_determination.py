@@ -2,9 +2,10 @@
 """
 SMART-QSO orbit determination from onboard GNSS fixes (SQSO-GND-002 §4).
 
-Batch weighted least squares on the downlinked ECEF positions (velocities
-optional, off by default: the piNAV-NG velocity accuracy is not confirmed,
-D6 research §6), with the numerically integrated force model of
+Batch weighted least squares on the downlinked ECEF positions and the chord
+velocities the flight software derives from them (gnss_frame.rs; weighted by
+their own noise, sqrt(2) x position sigma / VDT), with the numerically
+integrated force model of
 orbit_dynamics.py (EGM96 4 x 4 gravity by default, drag with an estimated
 scale factor). The drag scale k has an a-priori 1-sigma of 1.0 (density and
 attitude are not known to better than a factor of two), so a short arc keeps
@@ -26,6 +27,10 @@ import numpy as np
 
 import orbit_frames as fr
 from orbit_dynamics import GM, ForceModel, GravityField, propagate  # noqa: F401  (GravityField re-exported)
+
+#: Fewest measured values (position and velocity components) for a fit: the
+#: 7 parameters and 2 degrees of freedom
+MIN_VALUES = 9
 
 #: A-priori 1-sigma of the drag scale factor
 DRAG_SCALE_SIGMA = 1.0
@@ -202,8 +207,10 @@ def fit_orbit(obs: Sequence[Observation], model: Optional[ForceModel] = None,
     """Batch least squares on the fixes; raises FitError when it cannot be done."""
     model = model or ForceModel()
     obs = sorted(obs, key=lambda o: o.t)
-    if len(obs) < 3:
-        raise FitError(f"{len(obs)} usable fixes: at least 3 are needed")
+    values = sum(3 + (3 if use_velocity and o.sigma_v is not None else 0) for o in obs)
+    if len(obs) < 2 or values < MIN_VALUES:
+        raise FitError(f"{len(obs)} usable fixes ({values} measured values): at least {MIN_VALUES} values "
+                       "from at least 2 fixes are needed (3 positions, or 2 fixes with velocity)")
     epoch, x0 = initial_state(obs, prior)
     p = np.concatenate([x0, [k_prior]])
     rejected: List[Tuple[Observation, str]] = []
@@ -234,7 +241,7 @@ def fit_orbit(obs: Sequence[Observation], model: Optional[ForceModel] = None,
         norm = np.sqrt(np.mean((res / np.array([[o.sigma_r] for o in used])) ** 2, axis=1))
         scale = max(1.0, 1.4826 * float(np.median(norm)))
         bad = [i for i in range(len(used)) if norm[i] > edit_sigma * scale]
-        if not bad or len(used) - len(bad) < 3:
+        if not bad or len(used) - len(bad) < 2:
             break
         for i in sorted(bad, reverse=True):
             rejected.append((used[i], f"residual {np.linalg.norm(res[i]):.0f} m ({norm[i]:.1f} sigma)"))

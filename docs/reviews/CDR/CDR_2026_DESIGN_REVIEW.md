@@ -178,7 +178,7 @@ ratings, outgassing data).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-375 RIDs: severity 1: 30, severity 2: 195, severity 3: 150.
+376 RIDs: severity 1: 30, severity 2: 196, severity 3: 150.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
@@ -187,11 +187,11 @@ ratings, outgassing data).
 | Closed by chair decision | 42 | 35 |
 | Verification item | 46 | 28 |
 | Decision point (dated) | 15 | 32 |
-| Implementation | 147 | 26 |
+| Implementation | 148 | 27 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 69 new findings; 42 of the reopened and 58 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 70 new findings; 42 of the reopened and 58 of the new are since closed.
 
-Open implementation RIDs: LV-04, SE-21, GND-04, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19.
+Open implementation RIDs: LV-04, SE-21, GND-04, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, P3T-01.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -712,6 +712,12 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3A-08 | 3 | Report §3.1-§3.3 numbers do not follow from their sources | IMP | Closed by design change | Report §3.1-§3.3 corrected: ODAR Draft D P 0.997, 86 LVR rows, storage SOC from the 7.7 µA drain, burn sequence, pass statistics (MISSION_TIMELINE 2.3), fire-first passivation, ODAR lifetimes |
 | P3A-09 | 3 | 485 km cap not defined against injection dispersion; no 460 km quote | IMP | Closed by design change | Cap on the 3σ-high mean altitude or apogee, injection dispersion included; every RFQ asks for a 460 km quote (OAP D §2.2, LVR-087, ICD-010 G §9.1, BASELINE §3) |
 | P3A-10 | 3 | SIL link model at the pre-C-14 station and wrong 70 cm tape axis | IMP | Implementation | Move the SIL to LBA 3.4 |
+
+#### Round 3: thermal and parts (P3T)
+
+| RID | Sev | Finding | Round 1 | Final disposition | Evidence |
+|-----|-----|---------|---------|-------------------|----------|
+| P3T-01 | 2 | BOM temperature grades not verified part by part: the RF crystal Y451 was a −20…+70 °C option against the −40 °C first-orbit case | IMP | Implementation | Y451 replaced by ABLS-…-L4-T (−55…+125 °C); parts temperature-grade audit of every flight BOM line |
 <!-- RID-LOG-END -->
 
 ## 7. Verdict

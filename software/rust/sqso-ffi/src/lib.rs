@@ -80,6 +80,7 @@ pub mod deployment;
 pub mod downlink;
 pub mod eps_control;
 pub mod eps_lockout;
+pub mod eps_supervision;
 pub mod executive;
 pub mod fault_mgmt;
 pub mod flight_log;

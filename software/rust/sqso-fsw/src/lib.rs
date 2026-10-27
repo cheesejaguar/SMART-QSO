@@ -68,6 +68,7 @@ pub mod contact_monitor;
 pub mod deployment;
 pub mod downlink;
 pub mod eps;
+pub mod eps_supervision;
 pub mod eps_telemetry;
 pub mod executive;
 pub mod fault_log;

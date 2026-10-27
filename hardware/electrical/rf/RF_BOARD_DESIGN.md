@@ -728,8 +728,19 @@ their lead finishes. Mitsubishi RD01MUS3 (data sheet January 2026), Infineon BFP
 documents read, production status of TA2209A and the exact 40 MHz Epson code not confirmed. Not checked: STM32L431CCT6
 (st.com unreachable; LQFP-48 pin numbers taken from DS11453 as remembered, to check at schematic review), AD8361ARMZ
 (analog.com unreachable; strapping and pinout to check; the TI LMH2121 is a verified-Active alternate), Samtec, Molex,
-Amphenol connectors, Abracon crystal, Vishay BAS16, passive part numbers (series checked, each value's code built from
+Amphenol connectors, Vishay BAS16, passive part numbers (series checked, each value's code built from
 the ordering scheme, Murata X7R suffixes to confirm in SimSurfing).
+
+**Y451 crystal (E amended, THM-04).** The part is ABLS-3.6864MHZ-L4-T. The thermal analysis puts the board at
+−40 °C in the first-orbit cold case, but the earlier ABLS-3.6864MHZ-B4-T is option B, rated only −20 … +70 °C.
+- **Code:** built from the Abracon ABLS data sheet (drawing 450669, rev AD, 2022-09-07, read): option L for the
+  temperature range, 4 for ±30 ppm tolerance, and a blank stability field for ±50 ppm, since option L allows only
+  ±50, ±100 or ±150 ppm.
+- **Rating:** −55 … +125 °C, 15 °C of cold margin. Option D (−40 … +85 °C) would leave none.
+- **Frequency plan:** ±80 ppm worst moves the 118th harmonic to ≤ 435.030 MHz, still 20 kHz below the 435.050 MHz
+  edge of the uplink request (§6.4). The CTCSS decoding of the CMX138A is unaffected.
+- **Electrical:** ESR 180 Ω maximum and the 18 pF load are unchanged.
+- **Not confirmed:** the exact frequency and option combination has not been found on a distributor listing (§16).
 
 Finishes (SYS-915; EEE_PARTS_LIST §2A.3): NiPdAu on most TI parts; SN (matte tin) on TPS73101, LMX2571 (QFN),
 TLV9001, some LVC logic and TMP235 options, chip passives, connector tails: re-tin leaded and chip parts with Sn63Pb37;
@@ -812,7 +823,7 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 - LMX2571 FSK I2S alignment with the PCM1808 (VI-RFB-05); phase noise at 146 MHz extrapolated from 480 MHz.
 - RD01MUS3 at 5 V (only 3.6 V and 7.2 V characterized) and its efficiency at back-off (VI-RFB-04).
 - Pinouts not read from a data sheet in this session: STM32L431CCT6 (LQFP-48), AD8361, BFP640F (TSFP-4), Epson
-  TG2016SMN pads, BAS16; status of TA2209A, AD8361, connectors and the Abracon crystal (§12).
+  TG2016SMN pads, BAS16; status of TA2209A, AD8361, connectors, and the orderability of the Abracon crystal code ABLS-3.6864MHZ-L4-T (§12).
 - CC1200 receive balun and loop-capacitor values: starting values; copy TI's 420–470 MHz reference design.
 - TCXO aging (not on the listings reached).
 - AntS interface (connector type, whether ISIS supplies the phasing): RFQ.
@@ -836,3 +847,4 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | D | 2026-10-27 | CDR design completion, RF board (SQSO-HAR-001 2.0 §15 R-1 to R-3) | J1 to Samtec TFM-108-01-S-D-RA right-angle (gold), cable toward +X, plug's back ≤ x +43.1, shield notch x > +30.0 (§4.1); J2 to the gold Pico-Clasp 203556-0607 (§4.2); W4B 28 AWG in three twisted pairs, LMX2571 supply minimum recomputed with the harness drops and EPS ±2 %: 3.198 V, 48 mV margin (§5.1); W10 cable candidate Taoglas PRT.001221 (4 mm minimum static bend), the 7 mm bends accepted by analysis against the 6 × OD rule (§4.3); finishes (§12); VI-RFB-12 extended |
 | D (amended) | 2026-10-27 | CDR round 3 (P3A-06, P3A-05) | One Ø 1.5 mm vent per shield lid (SH2–SH4) with positions; leakage 61/51/37 dB at 146 MHz/437 MHz/2.4 GHz, V/A ≤ 9.4 m (`rf_calcs.py` §17, §10). TCXO ageing decided (RFB-05): ground-side uplink correction, RF-P005 amended (§2, §6.5, §15 item 11) |
 | E | 2026-10-27 | CDR board FMEA (SQSO-FMEA-003 A: SMA-B11, SMA-B16) | SMA-B16: LMX2571 on its own TPS7A2033 (U805) from +5V_PA, EN on the PA_5V divider (was a TPS22918 from RADIO_3V3): 3.25 V minimum (100 mV margin) independent of 3V3_AO, second TX-permit path kept; keyed DC +0.08 W (1.84 W at 0.5 W, 2.42 W at 1 W), receive 0.102/0.127 W, board dissipation 1.34–1.46 W (§5, §7.3, §11). SMA-B11: TNC criterion 6 noise-floor check (`rf_calcs.py` §18), KISS STATUS loop query, RX_FAULT power-on self-test, meaning of RX_CD stuck high (§8.6); TNC firmware requirements TNC-FW-NF, -STAT, -POR, -CAL (§13); VI-RFB-10 extended; 193 nets |
+| E (amended) | 2026-10-27 | CDR thermal (THM-04) | Y451 to ABLS-3.6864MHZ-L4-T (−55 … +125 °C, ±30/±50 ppm) for the −40 °C first-orbit board cold case; was ABLS-3.6864MHZ-B4-T (−20 … +70 °C); harmonic plan rechecked at ±80 ppm (§12) |

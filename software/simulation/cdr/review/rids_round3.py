@@ -126,6 +126,7 @@ NEW: list[tuple[str, int, str, str, str]] = [
     ("SMA-B19", 2, "One failed PA-temperature reading silences the downlink", "IMP", "Plausibility check and a pull-down (flight software, OBC)"),    ("MCAD-13", 2, "Deck responds at up to 36 Grms (3σ 109 g) at the GNSS receiver mounts; SkyFox publishes no random qualification level; the CR0002 rod clip response 204 g", "DP", "GNC lead obtains the piNAV-NG and CR0002 qualification spectra by 2027-01-15; criterion: vendor spectrum envelopes the FE response +3 dB; fallback defined: stiffen the deck (≈ +10 g) or isolate the receiver"),
     ("MCAD-14", 3, "DS2 as a DPDT switch fits the Ø4.7 mm bore only with a body ≤ Ø4.5 mm, not confirmed to exist", "DP", "Switch RFQ (mechanical lead, 2026-12-31) asks for both a ≤ Ø4.5 mm DPDT and the fallback (a second SPDT in a +Z standoff, EPS designer)"),
     ("MCAD-15", 3, "Worst-case 246 N axial load on each cell rim needs the cell maker's limit", "VI", "VI-MCAD-10: preload 140 ± 10 N per cell; OCV and impedance unchanged, no can damage after protoflight random; cell-maker rim limit as a data item before the EM order"),
+    ("P3T-01", 2, "BOM temperature grades not verified part by part: the RF crystal Y451 was a −20…+70 °C option against the −40 °C first-orbit case", "IMP", "Y451 replaced by ABLS-…-L4-T (−55…+125 °C); parts temperature-grade audit of every flight BOM line"),
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {

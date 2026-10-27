@@ -40,14 +40,16 @@ TOOLS = Path(__file__).resolve().parents[1] / "tools"
 # --- GNSS state frame ---------------------------------------------------------
 
 class TestGnssFrame:
-    FRAME = "GNS N=12 WK=1022 TOW=345600000 X=-1033480 Y=5901295 Z=3380357 VX=-3225637 VY=-2872451 VZ=5531924 Q=1 SV=7 PD=18"
+    # The flight layout (software/rust/sqso-fsw/src/gnss_frame.rs)
+    FRAME = ("GNS N=12 WK=1022 TOW=345600000 X=-1033480 Y=5901295 Z=3380357 VX=-3225637 VY=-2872451 VZ=5531924 "
+             "VDT=30 Q=1 SV=7 PD=18 AGE=2")
 
     def test_parse(self):
         fix = parse_gnss_frame(self.FRAME)
         assert fix.week == 1022 and fix.tow_ms == 345600000
         assert fix.r_ecef_m == (-1033480, 5901295, 3380357)
         assert fix.v_ecef_ms == pytest.approx((-3225.637, -2872.451, 5531.924))
-        assert (fix.quality, fix.sats, fix.pdop, fix.seq) == (1, 7, 1.8, 12)
+        assert (fix.quality, fix.sats, fix.pdop, fix.seq, fix.vdt_s, fix.age_s) == (1, 7, 1.8, 12, 30, 2)
         assert fix.problems() == []
 
     def test_round_trip(self):
@@ -55,8 +57,10 @@ class TestGnssFrame:
         assert parse_gnss_frame(format_gnss_frame(fix)) == fix
 
     def test_not_measured_and_unknown_fields(self):
-        fix = parse_gnss_frame("GNS WK=2300 TOW=1000 X=7000000 Y=0 Z=0 VX=- VY=- VZ=- Q=1 SV=- PD=- NEW=5")
-        assert fix.v_ecef_ms is None and fix.sats is None and fix.pdop is None
+        fix = parse_gnss_frame("GNS N=3 WK=2300 TOW=1000 X=7000000 Y=0 Z=0 VX=- VY=- VZ=- VDT=- Q=2 SV=8 PD=18 AGE=0 NEW=5")
+        assert fix.v_ecef_ms is None and fix.vdt_s is None and fix.age_s == 0
+        fix = parse_gnss_frame("GNS WK=2300 TOW=1000 X=7000000 Y=0 Z=0 SV=- PD=-")
+        assert fix.sats is None and fix.pdop is None
 
     def test_other_frames_ignored(self):
         assert parse_gnss_frame("HK1 N=7 UP=3600") is None
@@ -249,7 +253,7 @@ def _errors(oem, truth_grid):
 def leop(truth, tmp_path_factory):
     tmp = tmp_path_factory.mktemp("leop")
     times = EPOCH + np.arange(0, 24 * 3600, ORBIT_S)
-    fixes = simulate_fixes(truth, times, sigma_v=0.5, rng=np.random.default_rng(7))
+    fixes = simulate_fixes(truth, times, rng=np.random.default_rng(7))
     archive = _frames_archive(tmp / "leop.jsonl", fixes)
     gfc = tmp / "field.gfc"
     write_icgem(gfc, kaula_coefficients(), 12)
@@ -312,13 +316,13 @@ class TestLeopEveryOrbit:
 @pytest.fixture(scope="module")
 def sparse(truth, tmp_path_factory):
     tmp = tmp_path_factory.mktemp("sparse")
-    starts = [0, ORBIT_S, 12 * 3600, 12 * 3600 + ORBIT_S]
-    times = EPOCH + np.array([s + d for s in starts for d in (0, 10, 20)], float)
-    fixes = simulate_fixes(truth, times, sigma_v=None, rng=np.random.default_rng(11))
-    bad = fixes[4]
+    times = EPOCH + np.array([0, ORBIT_S, 12 * 3600, 12 * 3600 + ORBIT_S], float)
+    fixes = simulate_fixes(truth, times, rng=np.random.default_rng(11))
+    bad = fixes[1]
+    repeat = GnssFix(bad.week, bad.tow_ms, bad.r_ecef_m, bad.v_ecef_ms, 1, 7, 2.0, bad.seq, bad.vdt_s, 1800)
     outlier = GnssFix(bad.week, bad.tow_ms + 5000, tuple(np.array(bad.r_ecef_m) + 2000.0), None, 1, 7, 2.0)
     dr = GnssFix(bad.week, bad.tow_ms + 7000, bad.r_ecef_m, None, 6, 7, 2.0)
-    extra = [json.dumps({"station": "W1AW", "info": format_gnss_frame(f)}) for f in (fixes[0], outlier, dr)]
+    extra = [json.dumps({"station": "W1AW", "info": format_gnss_frame(f)}) for f in (fixes[0], repeat, outlier, dr)]
     archive = _frames_archive(tmp / "sparse.jsonl", fixes, extra=extra)
     out = tmp / "out"
     code = run(["--frames", str(archive), "--out-dir", str(out), "--span-h", "48", "--cov-every", "10",
@@ -329,16 +333,18 @@ def sparse(truth, tmp_path_factory):
 
 class TestFirstEphemerisSparse:
     """The 24 h deadline with only the licensee's station: GNSS_REQUEST on
-    four passes in two pass groups 12 h apart, three records each, no
-    velocity, the built-in 4 x 4 field; the archive also holds a duplicate,
-    a dead-reckoned record and an outlier. Stated accuracy: 3D error
-    <= 5 km at + 24 h, covariance realistic as above, quality GOOD or FAIR."""
+    four passes in two pass groups 12 h apart, one GNSS state frame each
+    (position and the 30 s chord velocity), the built-in 4 x 4 field; the
+    archive also holds the same frame heard by a second station, its repeat
+    on GET_HOUSEKEEPING, a dead-reckoned record and an outlier. Stated
+    accuracy: 3D error <= 5 km at + 24 h, covariance realistic as above,
+    quality GOOD or FAIR."""
 
     def test_quality_and_editing(self, sparse):
         code, files, _, _, _ = sparse
         report = json.loads(files[".json"].read_text())
         assert code == EXIT_OK and report["quality"] in ("GOOD", "FAIR"), report["quality_reasons"]
-        assert report["fixes_used"] == 12 and report["sessions"] == 4
+        assert report["fixes_used"] == 4 and report["sessions"] == 4
         reasons = [r["reason"] for r in report["rejected"]]
         assert len(reasons) == 2
         assert any("not a real fix" in r for r in reasons) and any("sigma" in r for r in reasons)
@@ -360,15 +366,15 @@ class TestFirstEphemerisSparse:
         assert np.linalg.norm(oem.states[0, :3]) == pytest.approx(6378.137 + 475, abs=40)
 
 
-class TestSingleSession:
-    """One 30 s session (one pass, no velocity): the drag is not known, the
-    covariance says so, the quality is POOR and the products are marked
-    NOT-FOR-UPLOAD; the covariance stays realistic."""
+class TestOnePass:
+    """Two GNSS_REQUEST sessions in one pass, 4 minutes apart: the drag and
+    the along-track velocity are not known, the covariance says so, the
+    quality is POOR and the products are marked NOT-FOR-UPLOAD; the
+    covariance stays realistic."""
 
     def test_poor_and_honest(self, truth, truth_grid, tmp_path):
-        times = EPOCH + 600.0 + np.arange(0, 30, 1.0)
-        archive = _frames_archive(tmp_path / "one.jsonl",
-                                  simulate_fixes(truth, times, sigma_v=None, rng=np.random.default_rng(3)))
+        times = EPOCH + 600.0 + np.array([0.0, 240.0])
+        archive = _frames_archive(tmp_path / "one.jsonl", simulate_fixes(truth, times, rng=np.random.default_rng(3)))
         out = tmp_path / "out"
         assert run(["--frames", str(archive), "--out-dir", str(out), "--span-h", "24", "--no-tle"]) == EXIT_POOR
         oem_path = next(out.glob("*.oem"))
@@ -380,17 +386,38 @@ class TestSingleSession:
 
 class TestRefusals:
     def test_too_few_fixes(self, truth, tmp_path):
-        archive = _frames_archive(tmp_path / "two.jsonl",
-                                  simulate_fixes(truth, EPOCH + np.array([0.0, 10.0]), sigma_v=None))
-        out = tmp_path / "out"
-        assert run(["--frames", str(archive), "--out-dir", str(out)]) == EXIT_FAIL
-        assert not out.exists() or not any(out.iterdir())
+        # One frame with velocity (6 values), or two without (6 values)
+        for times, vdt in ((EPOCH + np.array([0.0]), 30.0), (EPOCH + np.array([0.0, ORBIT_S]), None)):
+            archive = _frames_archive(tmp_path / "few.jsonl", simulate_fixes(truth, times, vdt_s=vdt))
+            out = tmp_path / f"out{len(times)}"
+            assert run(["--frames", str(archive), "--out-dir", str(out)]) == EXIT_FAIL
+            assert not out.exists() or not any(out.iterdir())
 
     def test_no_initial_state(self, truth, tmp_path):
-        # One position-only fix per orbit: no velocity and no session pair
+        # Sessions without a usable chord (VDT=-): positions only, one per orbit
         archive = _frames_archive(tmp_path / "sparse.jsonl",
-                                  simulate_fixes(truth, EPOCH + np.arange(0, 4) * ORBIT_S, sigma_v=None))
+                                  simulate_fixes(truth, EPOCH + np.arange(0, 4) * ORBIT_S, vdt_s=None))
         assert run(["--frames", str(archive), "--out-dir", str(tmp_path / "out")]) == EXIT_FAIL
+
+    def test_prior_tle_starts_the_fit(self, truth, truth_grid, tmp_path):
+        """The same fixes with the launch provider's predicted elements (here an
+        SGP4 fit to the truth over the 6 h before the first fix) as the start."""
+        pytest.importorskip("sgp4")
+        from ephemeris_products import fit_tle
+        before = EPOCH - 6 * 3600 + np.arange(0, 6 * 3600 + 1, 600.0)
+        st = Truth(EPOCH, sso_state(EPOCH)).states(before)
+        tle = fit_tle(before, st[:, :3], st[:, 3:], EPOCH - 6 * 3600)
+        prior = tmp_path / "prior.tle"
+        prior.write_text(f"SMART-QSO\n{tle.line1}\n{tle.line2}\n")
+        times = EPOCH + np.arange(0, 4) * ORBIT_S
+        archive = _frames_archive(tmp_path / "sparse.jsonl",
+                                  simulate_fixes(truth, times, vdt_s=None, rng=np.random.default_rng(2)))
+        out = tmp_path / "out"
+        code = run(["--frames", str(archive), "--out-dir", str(out), "--prior-tle", str(prior), "--span-h", "24",
+                    "--no-tle"])
+        assert code in (EXIT_OK, EXIT_POOR)
+        times_o, err, sigma = _errors(read_oem(next(out.glob("*.oem"))), truth_grid)
+        assert _realistic(err, sigma)
 
 
 class TestTleFormat:

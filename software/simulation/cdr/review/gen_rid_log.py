@@ -46,7 +46,7 @@ GROUPS = [
     ("JETB", "Jetson carrier board (round 2)"),
     ("P3P", "Round 3: programmatics, SE, V&V"), ("P3E", "Round 3: power, safety, EMC"),
     ("P3S", "Round 3: structures, mechanisms, thermal"), ("P3A", "Round 3: launch, RF, ground, regulatory"),
-    ("P3F", "Round 3: avionics, flight software, GN&C"),
+    ("P3F", "Round 3: avionics, flight software, GN&C"), ("P3T", "Round 3: thermal and parts"),
 ]
 
 

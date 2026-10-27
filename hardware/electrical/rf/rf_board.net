@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 12:12 PM")
+    (date "10/27/2026 12:39 PM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -7942,12 +7942,12 @@
       (ref "Y451")
       (value "3.6864 MHz")
       (description "")
-      (footprint "HC-49/US SMD")
+      (footprint "HC-49/US SMD 11.4 x 4.7 x 4.2 mm")
       (fields
         (field
           (name "Description"))
         (field
-          (name "Footprint") "HC-49/US SMD")
+          (name "Footprint") "HC-49/US SMD 11.4 x 4.7 x 4.2 mm")
         (field
           (name "Datasheet"))
         (field

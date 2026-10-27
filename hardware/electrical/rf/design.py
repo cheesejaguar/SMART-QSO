@@ -623,11 +623,16 @@ C("C458", "100nF", "CMX_VDEC", "GND", 2.5)
 C("C459", "10uF", "CMX_VDEC", "GND", 2.5, pkg="0805")
 C("C460", "100nF", "CMX_VBIAS", "GND", 1.6)
 C("C461", "100nF", "+3V1_DIG", "GND", 3.15, notes="CMX138A DVDD")
-part("Y451", "Crystal 3.6864 MHz", "3.6864 MHz", "ABLS-3.6864MHZ-B4-T", "Abracon", "HC-49/US SMD",
-     "+-30 ppm, CL 18 pF", [(1, "X1", P, "CMX_X1"), (2, "X2", P, "CMX_X2")], "drive < 100 uW",
+part("Y451", "Crystal 3.6864 MHz", "3.6864 MHz", "ABLS-3.6864MHZ-L4-T", "Abracon", "HC-49/US SMD 11.4 x 4.7 x 4.2 mm",
+     "-55..+125 C (option L), tolerance +-30 ppm (4), stability +-50 ppm (blank; L allows 50/100/150 only), CL 18 pF, "
+     "ESR 180 ohm max, drive 1 mW max, aging +-5 ppm first year",
+     [(1, "X1", P, "CMX_X1"), (2, "X2", P, "CMX_X2")], "drive < 100 uW (10 % of 1 mW); -40 C board cold case inside "
+     "the -55 C rating (THM-04)",
      "CLKSEL low = 3.6864 MHz default; harmonics 434.995 and 438.682 MHz bracket the uplink band (6.144 MHz rejected: "
-     "71st harmonic 436.224 MHz). Temperature grade (-40..85 C variant) to confirm. Can: treat as " + MAG_FAR,
-     "not checked")
+     "71st harmonic 436.224 MHz); at the worst +-80 ppm the 118th harmonic is <= 435.030 MHz, 20 kHz below the "
+     "435.050 MHz request edge. Was ABLS-3.6864MHZ-B4-T (-20..+70 C, option B). Can: treat as " + MAG_FAR,
+     "Abracon ABLS data sheet drawing 450669 rev AD (2022-09-07) read 2026-10-27: option codes; this exact "
+     "frequency/option combination not confirmed on a distributor listing")
 C("C462", "22pF", "CMX_X1", "GND", 3.15, kind="C0G")
 C("C463", "22pF", "CMX_X2", "GND", 3.15, kind="C0G")
 R("R459", "10.0k", "CMX_IRQN", "+3V1_DIG", 3.15, notes="IRQN pull-up (open drain)")
