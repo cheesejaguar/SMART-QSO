@@ -1,8 +1,8 @@
 # Configuration Audit Procedures
 
 **Document Number:** SQSO-CAP-001
-**Version:** 1.1
-**Date:** 2026-10-16
+**Version:** 1.2
+**Date:** 2026-10-27
 **Status:** Draft
 **Reference:** NPR 7120.5 Section 3.4, NPR 7123.1 SE Process 13
 **Supersedes:** `docs/reviews/CONFIGURATION_AUDIT_CHECKLIST.md` (SQSO-CA-001) and `docs/reviews/CONFIGURATION_AUDIT_CHECKLISTS.md` (SQSO-CAC-001), merged here (finding PI-17)
@@ -604,16 +604,16 @@ numbers did not match the specifications, so they are not carried.)
 
 | Parameter | Requirement | Measured | Pass/Fail |
 |-----------|-------------|----------|-----------|
-| Power (Safe) | ≤0.2 W (TBR) | | [ ] |
-| Power (Idle) | ≤0.4 W (TBR) | | [ ] |
-| Power (Active) | ≤0.8 W (TBR) | | [ ] |
+| Power (Safe) | 0.79 W orbit average, heater included (BL §5) | | [ ] |
+| Power (Idle) | 1.18 W (BL §5) | | [ ] |
+| Power (Active) | 2.50 W sun-pointed, 1.82 W tumbling at the duty limits (BL §5) | | [ ] |
 | Power (AI Burst) | Jetson ≤ 8 W input including carrier, 7 W power mode (BL §6) | | [ ] |
 | TX Power | ≤ 1 W maximum, 0.5 W nominal (BL §7) | | [ ] |
 | Data Rate | 1200 bps AFSK telemetry (BL §2) | | [ ] |
 | Beacon Period | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (BL §8) | | [ ] |
-| Boot Time | <30 s (TBR) | | [ ] |
-| Mode Transition | <5 s (TBR) | | [ ] |
-| Fault Response | <5 s (TBR) | | [ ] |
+| Boot Time | < 30 s (SYS-300; SRS-P008) | | [ ] |
+| Mode Transition | < 1 s (SRS-P004) | | [ ] |
+| Fault Response | Detection within 100 ms of the condition (SRS-P003) | | [ ] |
 
 ### B.5 FCA Discrepancy Log
 
@@ -799,3 +799,4 @@ Project Manager: _____________ Date: _______
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Merged SQSO-CA-001 and SQSO-CAC-001, which duplicated this document (finding PI-17): new FCA items 015–016, 050–065; new PCA items 006–007, 024–026, 040–065; combined report and finding templates (§7.3–7.5); resolution times (§8.3); system-level checklists (Appendix B), with values that disagreed with the baseline replaced by baseline values and the rest marked TBR. CMP and SRS cited by their own numbers. Status changed from "CDR Baseline" to Draft: no CDR has been held (BASELINE §1) |
+| 1.2 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): Appendix B.4 mode powers from BASELINE §5 (the TBR values 0.2/0.4/0.8 W contradicted it) and the boot, mode-transition and fault-response values from SYS-300 and SRS-P003, -P004, -P008 (were TBR at 30 s, 5 s, 5 s) |

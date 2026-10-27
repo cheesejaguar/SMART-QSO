@@ -1,8 +1,8 @@
 # Software Design Description (SDD)
 
 **Document Number**: SMART-QSO-SDD-001
-**Version**: 1.1
-**Date**: 2026-10-24
+**Version**: 1.2
+**Date**: 2026-10-27
 **Status**: Preliminary
 
 **Governing Standards**:
@@ -50,6 +50,14 @@ interface types. The implementation is:
 The only C left in the flight code is `software/flight/src/flight_log_fmt.c`, the printf-style shim of the flight log.
 §2.3 is updated to the files as built. The section titles of §3 name the Rust files, and the former C file is given in
 brackets.
+
+**Version 1.2 (2026-10-27).** §3.1.2 (the six modes), §3.2.3 (EMERGENCY) and §3.4.3 (the sensor table of
+`software/flight/sensors.yaml`) are corrected to the code, and §7's note to the current image. The function tables of
+§3.1.3, §3.2.4, §3.3.4 and §3.4.4 are Revision 1.0 names, several of which do not exist in the C ABI (for example
+`eps_update_state()`, `fault_check()`, `sensors_validate()`): the interface is the headers in
+`software/flight/include`, listed in `software/flight/docs/README.md`. Modules added since Version 1.1 (stored
+housekeeping, operations state, passivation, receiver supervision, FRAM health, the downlink and the transponder) are
+specified in `docs/software/SOFTWARE_REQUIREMENTS.md` §3.9 to §3.13 and not yet described here.
 
 ---
 
@@ -153,32 +161,12 @@ Provides system initialization, main control loop scheduling, and shutdown proce
 
 #### 3.1.2 State Machine
 
-```
-                    +----------------+
-                    |                |
-          +---------+     BOOT       +----------+
-          |         |                |          |
-          |         +-------+--------+          |
-          |                 |                   |
-          |           init_ok                   |
-          |                 |                   |
-          v                 v                   v
-    +-----------+    +-----------+    +-----------+
-    |           |    |           |    |           |
-    |   SAFE    |<-->|   IDLE    |<-->|  ACTIVE   |
-    |           |    |           |    |           |
-    +-----------+    +-----------+    +-----------+
-          |                 |                   |
-          |                 |                   |
-          +--------+--------+-------------------+
-                   |
-                   v
-            +-----------+
-            |           |
-            |  SHUTDOWN |
-            |           |
-            +-----------+
-```
+The mode manager (`software/rust/sqso-fsw/src/mode.rs`, `state_machine.h`) has six states: BOOT, SAFE, DETUMBLE,
+IDLE, ACTIVE and EMERGENCY (battery critical while SAFE: the beacon is shed too). Every (state, event) pair is decided
+explicitly. From BOOT the software goes through DETUMBLE to IDLE, or to SAFE on low SOC; ACTIVE needs SOC ≥ 55 %,
+sunlight and the payload guard's consent; ACTIVE → IDLE below 40 %; → SAFE below 25 %; SAFE → EMERGENCY below 15 %;
+back to SAFE at 25 % and to IDLE above 40 % (`docs/BASELINE_PARAMETERS.md` §5). There is no SHUTDOWN state; Revision
+1.0's diagram (BOOT, SAFE, IDLE, ACTIVE, SHUTDOWN) is superseded.
 
 #### 3.1.3 Functions
 
@@ -261,6 +249,9 @@ typedef struct {
                                               v
                                        Back to IDLE
 ```
+
+SAFE → EMERGENCY below 15 % (beacon shed), back to SAFE at 25 %. The power figures in the boxes are Revision 1.0
+values; the mode loads are in `docs/BASELINE_PARAMETERS.md` §5 (power closure).
 
 #### 3.2.4 Functions
 
@@ -373,14 +364,20 @@ typedef struct {
 
 | Sensor | Label | Type | Interval | Min | Max |
 |--------|-------|------|----------|-----|-----|
-| battery_voltage | BV | Voltage | 1000ms | 6.0V | 8.4V |
-| battery_current | BI | Current | 1000ms | -1.0A | 2.0A |
-| battery_temp | BT | Temperature | 5000ms | -20°C | 60°C |
-| solar_voltage | SV | Voltage | 1000ms | 0V | 10V |
-| solar_current | SI | Current | 1000ms | 0A | 1.0A |
-| bus_voltage | BUSV | Voltage | 1000ms | 4.5V | 5.5V |
-| mcu_temp | MCUT | Temperature | 5000ms | -40°C | 85°C |
-| jetson_temp | JT | Temperature | 5000ms | 0°C | 80°C |
+| Spacecraft elapsed timer | SET | software_timer | 1000ms | — | — |
+| Battery voltage | BV | eps_voltage (battery) | 1000ms | — | — |
+| Battery temperature | BT | eps_temperature (battery) | 2000ms | — | — |
+| Bus voltage | BUSV | eps_voltage (bus) | 1000ms | — | — |
+| Battery discharge current | BDI | eps_current (battery_discharge) | 1000ms | — | — |
+| Jetson payload current | JPC | eps_current (jetson) | 1000ms | — | — |
+| Payload heat-spreader temperature | PT | payload_temperature | 1000ms | — | — |
+| Solar panel voltage | SPV | eps_voltage (solar) | 1000ms | — | — |
+| Solar panel current | SPC | eps_current (solar) | 1000ms | — | — |
+| Status bitmap | ST | status_hex2 | 1000ms | — | — |
+
+From `software/flight/sensors.yaml` (2026-10-27), which sets no limits. Revision 1.0's limits (battery 6.0-8.4 V, bus
+4.5-5.5 V) were for a 2S pack; the battery is 4S, 12.0-16.4 V across the bus range (`docs/BASELINE_PARAMETERS.md` §5,
+§8).
 
 #### 3.4.4 Functions
 
@@ -674,8 +671,8 @@ T=20ms   : Loop complete (< 20ms requirement)
 
 **Version 1.1 note.** The memory map and stack table below are for a 256 KB part and a multi-task design. Neither
 applies to the OBC as built. The OBC is the STM32L4R5ZI (2 MB flash at 0x08000000, 640 KB SRAM at 0x20000000), the
-image has one stack, and the release image uses 115,876 B of text and 36,260 B of static RAM
-(`software/flight/docs/MEMORY_POLICY.md` §3).
+image has one 8 KB stack in SRAM2, and the release image uses 211,604 B of text and 44,244 B of static RAM, all in
+the 64 KB parity SRAM2 (2026-10-27; `software/flight/docs/MEMORY_POLICY.md` §3).
 
 ### 7.1 Memory Map (STM32L4 256KB)
 
@@ -824,3 +821,4 @@ void process_event(Event_t event) {
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: §1.4 implementation by layer; §2.3 module hierarchy as built; §3 titles name the Rust files; notes on §6 (timing as built), §7 (the STM32L4R5ZI memory and measured image) and §9 (tests as built) |
+| 1.2 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): §1.4 Version 1.2 note; §3.1.2 the six modes of `mode.rs` (no SHUTDOWN); §3.2.3 EMERGENCY; §3.4.3 the sensor table of `sensors.yaml` (2S limits removed); §7 note to the current image |
