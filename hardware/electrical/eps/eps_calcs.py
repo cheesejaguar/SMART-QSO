@@ -225,8 +225,8 @@ def protection():
 def inhibits():
     # DS1/DS3: P-FET IPD50P04P4L-11, Vgs from the 1M/1M divider; DS2: back-to-back BUK9Y4R4-40E, 1.2M/1.0M
     rows = []
-    for name, rt, rb, c, vmin, vmax, lim in (("DS1 / DS3 high-side P-FET gate", 1.0e6, 1.0e6, 47e-9, VBAT_MIN, VBAT_MAX, 16.0),
-                                            ("DS2 back-to-back N-FET gate", 1.3e6, 1.0e6, 47e-9, VBAT_MIN, VBAT_MAX, 10.0)):
+    for name, rt, rb, c, vmin, vmax, lim in (("DS1 / DS3 high-side P-FET gate", 1.0e6, 1.0e6, 68e-9, VBAT_MIN, VBAT_MAX, 16.0),
+                                            ("DS2 back-to-back N-FET gate", 1.3e6, 1.0e6, 68e-9, VBAT_MIN, VBAT_MAX, 10.0)):
         k = rb / (rt + rb)
         tau_on = par(rt, rb) * c
         tau_off = (rb if "DS2" in name else rt) * c
@@ -235,9 +235,13 @@ def inhibits():
     table("5. Deployment-switch gate drives (>= 10 ms RC filters)", ["Inhibit", "Network", "|Vgs| (rating)", "Filter time constant", "Current"], rows)
     # time for the gate to reach threshold after release, P-FET Vth 2.2 V max at the minimum bus
     k = 0.5
-    t_on = -par(1e6, 1e6) * 47e-9 * math.log(1 - 2.2 / (VBAT_MIN * k))
-    print(f"\nA contact closure must last {t_on * 1e3:.1f} ms before a DS1/DS3 FET starts to conduct at the 11.2 V minimum "
-          "(chatter shorter than this cannot power the bus).")
+    # X7R: -10 % tolerance and -15 % at -40 degC (EIA X7R limit), resistors -1 % (RID MFG-003 item 3)
+    X7R_LO, X7R_HI = 0.90 * 0.85, 1.10 * 1.0
+    t_on = -par(1e6, 1e6) * 68e-9 * math.log(1 - 2.2 / (VBAT_MIN * k))
+    t_on_min = t_on * X7R_LO * 0.99
+    print(f"\nA contact closure must last {t_on * 1e3:.1f} ms (nominal; {t_on_min * 1e3:.1f} ms with the X7R at -10 % and -15 % "
+          "at -40 degC) before a DS1/DS3 FET starts to conduct at the 11.2 V minimum (requirement >= 10 ms; chatter shorter than "
+          "this cannot power the bus). The gate capacitors are 68 nF from Version F (47 nF gave 8.8 ms at the cold corner).")
     # storage drain with the switches actuated (AFE in SHUTDOWN)
     drain = [("BQ76952 SHUTDOWN (incl. TS2 wake source)", 1.0, 3.1), ("BQ771806 secondary protector", 1.0, 2.0),
              ("BQ771806 cell inputs (4 x < 0.1 uA)", 0.1, 0.4), ("Q16 secondary-fuse FET leakage (PMV40UN2, 25 degC / 60 degC)", 0.05, 1.0),
@@ -301,8 +305,9 @@ def switches():
     print("\nThe Jetson eFuse minimum (1.10 A) sits above the 12 W flight-software guard (0.93 A); the OBC trip stays the "
           "first line (payload_guard.rs), the eFuse the hardware backstop.\nTPS2553 rails (RID AV-08): the current is limited "
           "within 2 us; FAULT asserts after the 8 ms deglitch and pulls EN low, which removes the rail; it returns when "
-          "C_RETRY recharges through R_FAULT to the EN threshold: off time ~0.6 x 100 k x C_RETRY = 1.3 s with 22 uF "
-          "(radio, GNSS: >= 1 s) and 0.28 s with 4.7 uF (OBC, EPS controller, sensors, PA, AntS: >= 100 ms). A persisting "
+          "C_RETRY recharges through R_FAULT to the EN threshold: off time ~0.6 x R_FAULT x C_RETRY = 2.0 s with 150 k and 22 uF "
+          "(radio, GNSS: >= 1 s; 1.26 s at -10 % tolerance, -15 % at -40 degC and -15 % DC bias at 3.3 V) and 0.28 s with 100 k "
+          "and 4.7 uF (OBC, EPS controller, sensors, PA, AntS: >= 100 ms; 0.18 s worst). A persisting "
           "latch-up repeats the cycle at that rate (the load sees <= 8 ms of limited current per cycle). The OBC rail SW10 "
           "needs no command: it is the power-cycling supervisor the OBC cannot be for itself.")
     print(f"\nSW11 (SQSO-ICX-001 E3: limit >= 0.25 A min, <= 0.5 A max): {lo:.3f}-{hi:.3f} A meets both. Auto-retry "
@@ -382,6 +387,15 @@ def burn():
 
 
 # ================================================================ 8 heater, NTC thresholds, load shed
+def integrators_note():
+    print("\nX7R integrators and filters (RID MFG-003 item 3): the 10 nF integrators of the MPPT, CV and CC loops (1 ms) and the "
+          "tracker compensation (10 nF with 10 k) move by -25 % / +10 % over tolerance and -40 ... +70 degC; for these "
+          "single-pole integrators the outer-loop crossover moves by the same ratio (1 ms nominal, 0.75-1.1 ms), well below "
+          "the converters' own crossover; the phase-margin change is not computed here and is measured in V-EPS-1; the clamp-gate (10 nF x 10 k, 0.1 ms) and "
+          "EOL (100 nF x 10 k, 1 ms) filters keep > 10 x margin to their timing needs. Loop stability over temperature: V-EPS-1 "
+          "at -20/+25/+60 degC (extended to -40 degC on the EM).")
+
+
 def heater_ntc_shed():
     rh = 207.0
     rows = [(f"{v:.1f}", f"{v / rh * 1e3:.0f}", f"{v * v / rh:.2f}") for v in (12.0, 14.0, VBAT_CV)]
@@ -431,7 +445,7 @@ def heater_ntc_shed():
     t_shed = tau * math.log(v0 / 1.100)
     rows = [("Shed (falling)", f"{vth:.2f} V", "VBAT < 13.6 V"), ("Release (rising)", f"{vth_rise:.2f} V", "VBAT > 14.4 V"),
             ("Delay before shedding", f"{t_shed:.1f} s (4.75 M x 1.0 uF from {v0:.1f} V to the 1.100 V threshold)",
-             "5 s; X7R +/-15 % and resistor 1 % -> 4.2-5.7 s"),
+             f"5 s; X7R -10/+10 % tolerance, -15 % at -40 degC and 0 % at +25 degC, 1 % resistor -> {t_shed * 0.765 * 0.99:.1f}-{t_shed * 1.10 * 1.01:.1f} s (the burn holds the bus above 13.8 V, so no burn sheds)"),
             ("Release delay", "< 1 ms (BAT54 charges the timing node)", "")]
     table("8b. Hardware load shed (SW1 and U19, Jetson; the PA is not shed)", ["Item", "Value", "Requirement"], rows)
     R["shed"] = dict(vth=vth, vth_rise=vth_rise, t_shed=t_shed, ladder=[ra, rb_, rc, rd, re])
@@ -538,6 +552,7 @@ def main():
     inhibits()
     switches()
     burn()
+    integrators_note()
     heater_ntc_shed()
     freq_plan()
     telemetry()

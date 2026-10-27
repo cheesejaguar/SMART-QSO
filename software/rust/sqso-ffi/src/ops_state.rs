@@ -116,6 +116,8 @@ mod tests {
 
     #[test]
     fn busy_reads_as_held() {
+        // The other tests use the HAL and these globals: one at a time
+        let _serial = crate::fault_mgmt::tests::serial();
         let held = OPS.with(|_| (ops_commissioning_hold(), ops_xpdr_allowed()));
         assert_eq!(held, Some((true, false)));
         assert_eq!(OPS.with(|_| ops_set_commissioning_hold(false)), Some(rc::BUSY));

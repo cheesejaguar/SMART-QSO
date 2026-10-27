@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MFG-003
-**Revision:** A
+**Revision:** B
 **Date:** 2026-10-27
 **Status:** CDR round 3 (RID P3T-01). EEE parts engineer's audit for the chair; the board designers own the BOMs and
 make the changes listed in §6
@@ -120,9 +120,9 @@ The CSV holds every line with its range, determination, source and notes. Per bo
 |-------|------|------|-----------------------|------------------------------------|
 | EPS | F1, F3 (line 21) | Littelfuse ITV4030L1412NR three-terminal fuse | −10 … +65 °C operating (Digi-Key listing; Littelfuse ITV4030 12 A data sheet rev 03/27/20); no mounted storage rating, packaged storage 0 … +35 °C | **Fails −40 °C and +70 °C.** No compliant part found in the 4030 footprint: Littelfuse ITV2718 and ITV9550 are also −10 … +65 °C (Littelfuse data sheet, distributor listing), Eaton SCF4030-12-04 is −20 … +60 °C (Eaton ELX1133, Jan 2022). Either qualify the ITV4030 on the flight lot by test (V-EPS-8 extended to hold current, blow time and heater-trigger at −40 °C **and +70 °C**, with the hot end added) or replace the secondary interrupt by a design change (EPS designer). THERMAL_DESIGN §1.1 must also record the +65 °C limit |
 | Jetson carrier | A1 (line 52) | NVIDIA Jetson Orin Nano 8 GB 900-13767-0030-000 | TJ −25 … +105 °C; TSTG −40 … +80 °C (NVIDIA DS-11105-001 v1.5, Dec 2024) | Operating minimum −25 °C misses −40 °C; non-operating meets −40 … +70 °C with zero cold margin. No replacement (payload of record, BASELINE §6). The unit allowable of THERMAL_DESIGN §1.1 governs: −15 °C power-on gate (test −25 °C = the TJ minimum, no margin), unpowered to −40 °C qualified by the EM soak V-THM-8 |
-| Bought | B2 | ISIS AntS 1U–3U | Qualified operating −20 … +60 °C, storage −50 … +85 °C (ISIS antenna systems brochure V2R; AntS electrical model data sheet); thermal qualification testing −40 … +80 °C (ISIS-ANTS-DSH-0001 v4.0) | **Fails −40 °C and +70 °C operating.** No replacement in this audit. Obtain ISIS-ANTS-DSH-0001 v4.0 and an ISIS statement covering the controller and the release at −40 … +70 °C; add the AntS to THERMAL_DESIGN §1.1 with its own allowable and its predicted temperature at the first-orbit release (thermal analyst, mechanisms) |
+| Bought | B2 | ISIS AntS 1U–3U | Qualified operating −20 … +60 °C, storage −50 … +85 °C (ISIS antenna systems brochure V2R; AntS electrical model data sheet); thermal qualification testing −40 … +80 °C (ISIS-ANTS-DSH-0001 v4.0) | **Fails −40 °C and +70 °C operating.** No replacement in this audit. Obtain ISIS-ANTS-DSH-0001 v4.0 and an ISIS statement covering the controller and the release at −40 … +70 °C; add the AntS to THERMAL_DESIGN §1.1 with its own allowable and its predicted temperature at the first-orbit release (dated action §12 V-1) |
 | Bought | B3 | Samsung INR18650-35E cells | Charge 0 … +45 °C, discharge −10 … +60 °C, storage −20 … +60 °C for 1 month (Samsung specification v1.1) | Fails by design; the battery allowable (THERMAL_DESIGN §1.1, SYS-602) and the heater govern. No replacement |
-| Bought | B5 | CubeSpace CR0002 magnetorquer rods | Thermal vacuum −20 … +80 °C, cold/hot start −35 … +70 °C (CubeSpace Gen 2 actuators brochure 2023, family table; no CR0002-specific figure) | **Fails −40 °C.** Obtain the CR0002 option sheet/ICD with a −40 °C rating, or qualify the rods at −40 °C (passive coils: wire insulation and potting are the limiting materials) (GNC lead) |
+| Bought | B5 | CubeSpace CR0002 magnetorquer rods | Thermal vacuum −20 … +80 °C, cold/hot start −35 … +70 °C (CubeSpace Gen 2 actuators brochure 2023, family table; no CR0002-specific figure) | **Fails −40 °C.** Obtain the CR0002 option sheet/ICD with a −40 °C rating, or qualify the rods at −40 °C (passive coils: wire insulation and potting are the limiting materials) (dated action §12 V-2) |
 
 ## 5. Lines Not Confirmed, with Replacements
 
@@ -254,7 +254,10 @@ Found while decoding; they do not change a temperature result but stop an order:
    and NCP15XH103F03RC (EPS RT2) Not For New Designs; GRM1885C2A6R0BA01D Not For New Designs. Coilcraft packaging
    codes U (0603HP) and B (SQ) are being replaced by W and C.
 
-## 10. Corrections to Other Documents (for the chair)
+## 10. Corrections to Other Documents
+
+Items 1–3 were applied at the chair's request (revision B): THERMAL_DESIGN 1.6 §1.1, THERMAL_ANALYSIS 2.3 §3 and
+EEE_PARTS_LIST F §2A.2, §2A.6, §2A.8, §2A.9 and §6.4. Item 4 stays with the RF designer.
 
 1. `hardware/structure/THERMAL_DESIGN.md` §1.1, basis column: EPS fuses ITV4030 −10 … **+65 °C** (hot end too); RF
    board basis to note Q601's unspecified minimum; add rows for the ISIS AntS (−20 … +60 °C qualified) and the CR0002
@@ -296,8 +299,20 @@ Found while decoding; they do not change a temperature result but stop an order:
 | Taoglas 1.37 mm micro-coax 001221 specification; TE Raychem M22759/33 data sheets; Farnell listing of TE D-436-37 | Harness |
 | ISIS antenna systems brochure V2R, AntS electrical model data sheet, ISIS-ANTS-DSH-0001 v4.0; SatNow piNAV-NG listing; Samsung INR18650-35E specification v1.1; CubeSpace Gen 2 actuators brochure 2023 | Bought items |
 
+## 12. Vendor Actions for the Bought Items (dated, before the EM order 2027-01-15)
+
+| Item | Action | Owner | Due | Fallback if not obtained by the due date |
+|------|--------|-------|-----|------------------------------------------|
+| **V-1** ISIS AntS (THERMAL_DESIGN §1.1 row; VI-STR-13) | Obtain ISIS-ANTS-DSH-0001 v4.0 and a written ISIS statement covering (a) operation of the controller and of the thermal-knife release at −40 °C, (b) unpowered survival at −40 °C and at +70 °C, (c) the hot operating limit against +60 °C. **What the analysis predicts:** the AntS is outside the structure on the −Z face (black anodize, α 0.88, ε 0.85) and is **not a node** of the thermal network (SQSO-THA-001 2.3 §3). At its release, which follows the wing burns in the first orbit (separation + ≈ 31 min, in eclipse after the dispenser cold soak; MECHANISMS_ANALYSIS §7.1), the nearest predicted nodes are −30.2 °C (frame-side hinge) to −40.6 °C (stowed wing), −40.2 … −50.6 °C with the 10 °C margin (SQSO-THA-001 §4.3); in orbit the body panels span −22.7 … +51.5 °C (−32.7 … +61.5 °C with the margin, §5). Both ends are therefore expected outside the −20 … +60 °C qualified range. The thermal analyst adds an AntS node (−Z face, elements and controller) and reports its first-orbit and orbit extremes | Mechanical lead (PI until named), AntS procurement; thermal analyst for the node | Statement and data sheet 2026-12-15; AntS node 2026-12-15 | (1) Power the AntS controller only for deployment and status reads, and move the AntS deployment out of the first eclipse to a sunlit window in which the AntS node (or the −Z face) is above the ISIS-stated minimum, with the per-orbit retries kept (`sqso_fsw::deployment` timing change by the FSW lead; the unpowered rating −50 … +85 °C then covers the eclipses); (2) add an AntS cold deployment at the ISIS minimum and an unpowered cold soak at −40 °C to the deployment test of ETP §3.8 (VI-STR-13 "deployment at the minimum predicted temperature"); (3) if ISIS states neither, a different deployable antenna is a chair decision before the EM order |
+| **V-2** CubeSpace CR0002 rods (THERMAL_DESIGN §1.1 row) | Obtain the CR0002 option sheet/ICD with its operating and survival range; request a −40 °C rating (operating, cold start) | GNC lead (PI until named) | 2026-12-15 | Qualify the rods by test: one flight-lot rod, unpowered soak and powered cold start at −40 °C, 3 cycles −40 … +70 °C, coil resistance, insulation resistance to the core and dipole moment at −40 °C and +70 °C, visual for potting cracks (on the EM, before the FM order); the test is planned and the rod ordered by 2027-01-15. If the rod fails, select a rod with a published −40 °C rating (chair decision) |
+| **V-3** Panasonic NCR18650GA (EEE_PARTS_LIST §6.4 alternative) | Record the cell specification's charge, discharge and storage ranges, or delete the alternative | EPS designer (PI until named), PI decision on the cell | 2026-11-30 | Delete the alternative: the battery design, the battery safety assessment and the thermal analysis all use the INR18650-35E (charge 0 … +45 °C, discharge −10 … +60 °C) |
+| **V-4** Body panels and wings (THERMAL_DESIGN §1.1; V-THM-4) | At vendor selection, obtain the qualified range of the panels (cells, panel PCB, thermistors, pigtails and their connectors): at least −56 … +93 °C for ≥ 11,000 cycles | EPS designer (PI until named), panel procurement | 2027-01-15 | Qualification by test of one EM panel and one wing over −56 … +93 °C (cycle count per V-THM-4) before the FM order, at the project's cost; a vendor whose range is narrower is not selected |
+| **V-5** Mitsubishi RD01MUS3 (RF Q601) | Written statement of the minimum operating (case) temperature | RF designer (PI until named) | 2026-12-15 | Characterise the PA at −40 °C on the RF EM (gain, stability, drain current, spurious, at 0.5 W and 1 W) and accept by test; PA keyed only above −30 °C by flight-software constant if the EM shows a cold anomaly |
+| **V-6** SkyFox piNAV-NG/FM | Obtain the vendor data sheet confirming the −40 … +85 °C operating and −55 … +100 °C storage figures of the catalogue listing | GNC lead (PI until named) | 2026-12-15 | Receiver powered only above −30 °C (GNSS_EN by flight software) until the vendor confirms; the receiver is non-critical (SQSO-MFG-002 §2A.1) |
+
 ## Revision History
 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-10-27 | Initial issue (CDR round 3, RID P3T-01): part-by-part temperature audit of the six flight-board BOMs, the harness connectors and wire and the bought items; 443 lines; non-compliant and not-confirmed lines with replacements; line data in `PARTS_TEMPERATURE_AUDIT.csv` | EEE parts engineer, CDR round 3 |
+| B | 2026-10-27 | Chair action: §12 dated vendor actions for the bought items (AntS with the analysis predictions, CR0002, NCR18650GA, panels, RD01MUS3, piNAV-NG) with owners, due dates and fallbacks; §10 items 1–3 applied to THERMAL_DESIGN 1.6, THERMAL_ANALYSIS 2.3 and EEE_PARTS_LIST F | EEE parts engineer, CDR round 3 |

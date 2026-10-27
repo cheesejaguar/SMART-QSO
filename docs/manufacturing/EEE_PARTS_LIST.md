@@ -46,7 +46,7 @@ part-level screening is impractical:
 | Receiving inspection | Visual and marking check of 100 % of parts, dimension sample, certificate of conformance against the order |
 | Counterfeit avoidance | Buy only from the manufacturer or its franchised distributors; any other source needs an SAE AS6081-class inspection and an X-ray of a sample |
 | Lot control | One date/lot code per part type for the EM and FM where possible; record the lot of every part fitted (traveler) |
-| Board-level screening (replaces part burn-in) | Each flight board: functional test, ≥ 8 thermal cycles −30 to +70 °C powered at the extremes, then ≥ 200 h powered with the last 100 h failure-free (RELIABILITY_ANALYSIS v2.0 §6) |
+| Board-level screening (replaces part burn-in) | Each flight board: functional test, ≥ 8 thermal cycles −30 to +70 °C powered at the extremes, then ≥ 200 h powered with the last 100 h failure-free (RELIABILITY_ANALYSIS v2.0 §6) Screening cycles stop at −30 °C, inside the parts' −40 °C rating; the −40 °C first-orbit case is tested by the protoflight plateau (ETP §3.4, deviation 8), not by screening |
 | Destructive physical analysis | One sample from each lot of the OBC MCU, FRAM, BMS AFE and RF PA, when a lot cannot be traced to a franchised source |
 | Derating | §12 of this list, applied with the hot-case temperatures of the thermal analysis |
 | Alerts | GIDEP and manufacturer errata checked at selection and before the FM build |
@@ -126,13 +126,37 @@ below (part numbers recorded with the finish in the FM issue of this list).
 |--------|-----------|--------------|-------------|---------|
 | Molex Pico-Clasp 1.0 mm | 501331-xx vertical SMT header (the BOMs' 5013310207 … 5013311407 are the tin code "-xx07") | 501330-0N00 housing; 501334 crimp terminal (28–32 AWG) is the **tin** terminal; the gold terminal is **501193** (Molex 501330 housing listing; SQSO-MFG-003 §9) | Molex's gold-plated versions (0.38 or 0.76 µm Au, per the Pico-Clasp datasheet 987651-6111): the gold finish code of each header and of the terminal replaces the tin code; 0.76 µm preferred | EPS J2, J4–J9, J12, J14–J17, J19–J21; OBC J3–J8, J10; RF J2; carrier J2, J3; magnetometer board A2 J1 |
 | Molex Micro-Fit 3.0 | 43045 dual-row **right-angle** through-hole header: 43045-0811 (2×4, gold, solder tab); the 2×3 and 2×2 right-angle headers in the same gold finish (the BOMs' 0430450812, -0612, -0412 are vertical, tin) | 43025-0N00 receptacle; 43030 crimp terminal (20–24 AWG) in the gold finish | Selective gold over nickel | EPS J1, J10, J11, J13, J18; carrier J1 |
-| Samtec Tiger Eye 1.27 mm (replaces FTSH + FFSD) | TFM-1xx-01-S-D-RA right-angle (OBC J1, J2, J9; RF J1), vertical TFM-1xx-01-S-D (EPS J3) | SFSDT discrete-wire socket assembly (PTFE wire) | "-S" plating code: 30 µin gold on the contact area | W3 (40), W4A (16), W8A (10) |
+| Samtec Tiger Eye 1.27 mm (replaces FTSH + FFSD) | TFM-1xx-01-S-D-RA right-angle (OBC J1, J2, J9; RF J1), vertical TFM-1xx-01-S-D (EPS J3) | SFSDT discrete-wire socket assembly (PTFE wire) | Plating code to confirm with Samtec: catalog F-226 (Rev 20OCT26) gives TFM platings –F (gold flash) and –L (15 µin gold), "–S" being the single-row option; SFSDT platings –F and –G (10 µin gold). SFSDT (Teflon) only: −40 … +125 °C; the PVC SFSD (−10 … +80 °C) is not acceptable | W3 (40), W4A (16), W8A (10) |
 | Samtec FTSH (unmated in flight) | FTSH-105-01-L-DV-K (EPS J22 FTSH-102, carrier J6) | — | "-L": 10 µin gold | Programming headers, GSE only |
 | MMCX | Molex 73415-1473 straight jack (gold, brass body, BeCu contact, listed non-magnetic) | Molex 73414-0351 right-angle crimp plug for 1.37 mm cable (gold); the 1.13 mm version for the GNSS cable | Gold | RF J3–J6, W10, W10E |
 | Micro-D | MIL-DTL-83513-class 21-way socket receptacle, board mount, on the access-port board A3 | (GSE plug, not flown) | Gold contacts per MIL-DTL-83513; shell passivated, not cadmium | Access port (W8A, W11) |
 | Splices | — | SAE AS81824/1 crimp splice | Nickel- or silver-plated barrel; a tin-plated barrel is not used | W6C, W7A/B sensor leads, W7C |
 
 Wire: SAE AS22759/33 (silver-coated high-strength copper alloy) and the PTFE wire of the SFSDT assemblies: no tin.
+
+### 2A.9 Temperature grades (parts temperature audit SQSO-MFG-003, RID P3T-01)
+
+Every flight part is rated at least −40 … +70 °C operating and −40 … +70 °C non-operating (THERMAL_DESIGN §1.1 and
+ETP §3.4: the allowables ± 10 °C, with the −40 °C first-orbit plateau tested without margin), shown from the data
+sheet or the decoded ordering code line by line in `docs/manufacturing/PARTS_TEMPERATURE_AUDIT.md` and its CSV, except:
+
+| Item | Rating | How it is covered | Owner, due |
+|------|--------|-------------------|------------|
+| EPS F1, F3 ITV4030L1412NR | −10 … +65 °C | V-EPS-8 extended to −40 °C and +70 °C on the flight lot, or a design change; no compliant part exists in the footprint | EPS designer, 2027-01-15 |
+| RF Q601 RD01MUS3 | No published minimum; Tstg −40 … +125 °C | Mitsubishi statement of the minimum operating temperature; PA characterised at −40 °C on the RF EM | RF designer, statement 2026-12-15 |
+| ISIS AntS | −20 … +60 °C qualified; storage −50 … +85 °C | ISIS statement on operation and survival at −40 °C; AntS node in the thermal analysis (SQSO-MFG-003 §12 V-1) | §12 V-1 |
+| CubeSpace CR0002 rods | −20 … +80 °C (TV), cold start −35 °C (family data) | CubeSpace −40 °C rating or rod qualification by test (§12 V-2) | §12 V-2 |
+| Panasonic NCR18650GA (alternative cell, §6.4) | Not recorded | Specification ranges recorded, or the alternative deleted (§12 V-3) | §12 V-3 |
+| Body panels and wings | Vendor not selected | Qualified range ≥ −56 … +93 °C at selection (V-THM-4; §12 V-4) | §12 V-4 |
+| Jetson module 900-13767-0030-000 | TJ −25 … +105 °C; TSTG −40 … +80 °C | Unit allowable: −15 °C power-on gate; unpowered to −40 °C by the EM soak V-THM-8 | Thermal analyst (V-THM-8) |
+| Battery cells INR18650-35E | Charge 0 … +45 °C, discharge −10 … +60 °C | Battery allowable and heater (SYS-602) | — (by design) |
+
+Capacitors are X7R or C0G only (no Y5V/Z5U, tantalum, electrolytic or polymer parts), and no part is battery-backed.
+Receiving inspection rejects any substitute whose ordering code changes the temperature grade (the ABLS option letter,
+the Epson temperature code, the TI suffix, the Micro Crystal TA/TB/TC code, the Swissbit "I", the Samtec SFSDT
+cable type). Reel and packaging storage conditions (Murata, Panasonic +5 … +35/40 °C; Coilcraft tape −40 … +80 °C;
+Littelfuse ITV 0 … +35 °C; NVIDIA module +18 … +30 °C) are stores controls of the receiving inspection, not flight
+limits.
 
 ---
 
@@ -275,7 +299,7 @@ Wire: SAE AS22759/33 (silver-coated high-strength copper alloy) and the PTFE wir
 | Parameter | Value |
 |-----------|-------|
 | Part Number | Custom 4S1P (BASELINE §5) |
-| Cell Type | Panasonic NCR18650GA; other documents name Samsung INR18650-35E (used in `hardware/eps/BATTERY_DESIGN.md`). PI to choose |
+| Cell Type | Panasonic NCR18650GA; other documents name Samsung INR18650-35E (used in `hardware/eps/BATTERY_DESIGN.md`). PI to choose The INR18650-35E is rated charge 0 … +45 °C, discharge −10 … +60 °C (Samsung specification 1.1); the NCR18650GA's ranges are not recorded (SQSO-MFG-003 §12 V-3) |
 | Capacity | ≈ 3.5 Ah (one string) |
 | Voltage | 14.4V nominal (≈ 50 Wh) |
 | Quantity | 1 pack (4 cells) |
@@ -540,3 +564,4 @@ Wire: SAE AS22759/33 (silver-coated high-strength copper alloy) and the PTFE wir
 | C | 2026-10-27 | CDR S&MA review: §2A parts assurance policy (NASA-STD-8739.10 Level 4 with EEE-INST-002 Level 3 screening adapted for Class D; counterfeit avoidance; lot control; board-level screening); tin-whisker and prohibited-finish requirements from UG v11 Table 5-5 (launch RID LV-26); radiation acceptance; parts added by D6, D9 and the CDR designs; unsourced radiation claims withdrawn; §13.1 updated; MIL-STD-975 reference withdrawn | CDR S&MA review |
 | D | 2026-10-27 | CDR 2026 consistency pass: orbit altitude row from BASELINE Rev E §3 | CDR documentation review |
 | E | 2026-10-27 | §2A.8 connector finishes: gold variants of every flight connector (Pico-Clasp, Micro-Fit right-angle, Samtec TFM/SFSDT replacing FTSH/FFSD, MMCX, Micro-D, splices); §10 marked superseded (harness design SQSO-HAR-001 2.0 §15 item P-1) | Harness design |
+| F | 2026-10-27 | Parts temperature audit (RID P3T-01, SQSO-MFG-003 A): new §2A.9 temperature grades, exceptions with their coverage, owners and dates; §2A.6 AFE, secondary protector and fuse rows as selected on the EPS board (ITV4030 −10 … +65 °C); §2A.8 Pico-Clasp gold terminal 501193 (501334 is tin), Samtec TFM/SFSDT plating codes to confirm, SFSDT Teflon only; §2A.2 screening range noted; §6.4 cell ranges | EEE parts engineer, CDR round 3 |

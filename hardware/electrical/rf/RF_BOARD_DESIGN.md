@@ -33,9 +33,9 @@ the AX.25 beacon and the FM repeat path, a KISS TNC on USART2, and the hardware 
 
 | Item | Design | Key number |
 |------|--------|------------|
-| Receiver | Balun, FL1 7th-order high-pass with three 146 MHz traps, BFP640F LNA, TA2209A SAW, **TI CC1200** used receive-only in its analog-FM (custom frequency modulation, CFM) mode | System noise 548–598 K with a 290 K source (requirement 650 K, budget 1,000 K); 12 dB SINAD −121.4 dBm, telecommand −115.8 dBm (worst) |
+| Receiver | Balun, FL1 7th-order high-pass with three 146 MHz traps, BFP640F LNA, TA2209A SAW, **TI CC1200** used receive-only in its analog-FM (custom frequency modulation, CFM) mode | System noise 552–603 K with a 290 K source (requirement 650 K, budget 1,000 K); 12 dB SINAD −121.4 dBm, telecommand −115.8 dBm (worst) |
 | Antenna ports (C) | Molex 73415-1473 MMCX jacks (non-magnetic) on the top side at the −X edge; 1.37 mm cables with right-angle MMCX plugs down the −X wall gap to the AntS's MMCX ports (assumed) | Port to antenna, worst: 0.44 dB at 146 MHz, 0.62 dB at 436 MHz; return loss ≥ 13.6 dB worst, 19.6 dB typical |
-| Receive filter | FL1 before the LNA, SAW after it | 144–146 MHz ≥ 60 dB specified (133 dB computed, worst of 3,000); 250–330 MHz ≥ 49.7 dB; 560–620 MHz ≥ 45.2 dB; loss ahead of the LNA ≤ 1.0 dB |
+| Receive filter | FL1 before the LNA, SAW after it | 144–146 MHz ≥ 60 dB specified (134 dB computed, worst of 3,000); 250–330 MHz ≥ 49.7 dB; 560–620 MHz ≥ 45.3 dB; loss ahead of the LNA ≤ 1.03 dB |
 | TNC | STM32L431 running an AFSK 1200 modem, HDLC and KISS on the CC1200's demodulator samples; USART2 9600 baud, full duplex | Separate firmware item (§13) |
 | Exciter | **TI LMX2571** synthesizer, deviation from a **PCM1808** audio ADC over I2S | Phase noise −152 dBc/Hz at 1 MHz; deviation full scale ±6.3 kHz exact; beacon ±3.0 kHz, repeat limit ±4.7 kHz |
 | PA | **Mitsubishi RD01MUS3** 2-stage Si MOSFET at 5.0 V, closed-loop power control on the gate bias | 0.50 W at 1.84 W DC; 0.96 W (29.8 dBm) at 2.42 W DC (E: LMX2571 on its own LDO from the PA rail); Tj ≤ 88 °C at a 60 °C board |
@@ -65,9 +65,9 @@ Three findings change the earlier documents and are reported for the chair (§15
 | Requirement (source) | Design value | Margin / status |
 |----------------------|--------------|-----------------|
 | Receive 435.000–437.300 MHz (BASELINE §7) | CC1200 410–475 MHz band; SAW passband 433–437 MHz guaranteed (8 MHz typical −3 dB) | 437.0–437.3 MHz only on the SAW's typical bandwidth; centre moves −15.7 kHz/K (+861/−548 kHz over −30…+60 °C): **recommend the IARU request ask for 435.050–436.500 MHz** (§6.4) |
-| System noise ≤ 650 K with a 290 K source; budget 1,000 K (RF-P006, LBA §2.4) | 548 K typical, 598 K worst at the antenna terminals (cables, connectors and worst-case mismatch included, W10 v3) | +0.7 / +0.4 dB to 650 K; 898–948 K with the 350 K interference allowance: +0.5 / +0.2 dB to 1,000 K |
+| System noise ≤ 650 K with a 290 K source; budget 1,000 K (RF-P006, LBA §2.4) | 552 K typical, 603 K worst at the antenna terminals (cables, connectors and worst-case mismatch included, W10 v3; L106 18 nH, F) | +0.7 / +0.3 dB to 650 K; 902–953 K with the 350 K interference allowance: +0.5 / +0.2 dB to 1,000 K |
 | Sensitivity: telecommand 90 % frames at 53.0 dB-Hz; voice 12 dB SINAD at 47.4 dB-Hz (RF-P011) | −116.2 / −115.8 dBm telecommand, −121.8 / −121.4 dBm voice (typ / worst, 2 dB implementation loss) | The LBA used 1,000 K; this receiver is 0.2–0.5 dB better |
-| RX filter: ≥ 60 dB at 144–146, ≥ 40 dB at 250–330 and 560–620 MHz, ≤ 1.5 dB in band (RF-P007) | FL1 + SAW (§6.2) | 144–146: ≥ 60 dB specified (69 dB without the traps, 133 dB computed with them); 250–330: ≥ 49.7 dB; 560–620: ≥ 45.2 dB; loss before the LNA 1.0 dB worst. The SAW (2.1–4.2 dB) sits after the LNA; RF-P007 is restated in RF_DESIGN 2.1 accordingly |
+| RX filter: ≥ 60 dB at 144–146, ≥ 40 dB at 250–330 and 560–620 MHz, ≤ 1.5 dB in band (RF-P007) | FL1 + SAW (§6.2) | 144–146: ≥ 60 dB specified (69 dB without the traps, 134 dB computed with them); 250–330: ≥ 49.7 dB; 560–620: ≥ 45.3 dB; loss before the LNA 1.03 dB worst. The SAW (2.1–4.2 dB) sits after the LNA; RF-P007 is restated in RF_DESIGN 2.1 accordingly |
 | Receiver DC ≤ 0.15 W always on (BASELINE §5) | 0.102 W typ, 0.127 W worst | +15 % worst |
 | Repeat path ≤ 30 mW while enabled (RF-P015) | 24.4 mW typ, 31.3 mW worst | **−4 % at the worst corner** (CMX138A 8.5 mA figure used as worst) |
 | Reference ±1.0 ppm over −40 to +85 °C; ≤ ±3.0 ppm with 2-year ageing (RF-P005 as amended, RFB-05) | TG2016SMN ±0.5 ppm (−40…+85 °C), calibrated at test to ±0.1 ppm | 0.6 ppm at BOL; **2.1 ppm worst after 2 years with datasheet-class aging** (§6.5): meets the amended RF-P005; the ground corrects the uplink from the measured downlink offset |
@@ -118,9 +118,11 @@ Three findings change the earlier documents and are reported for the chair (§15
 
 ## 4. Interfaces
 
-### 4.1 J1, OBC signals (W4, Samtec TFM-108-01-S-D-RA right-angle, 16 positions)
+### 4.1 J1, OBC signals (W4, Samtec TFM-108-01-L-D-RA right-angle, 16 positions)
 
-Connector (D, SQSO-HAR-001 2.0 item R-1): a Samtec TFM-108 right-angle header with gold contacts. It mates the
+Connector (D, SQSO-HAR-001 2.0 item R-1): a Samtec TFM-108 right-angle header with gold contacts. Its plating code
+is -L, 15 µin gold (Samtec catalog F-226). Version D wrote -S, which in that catalog is the single-row option, not a
+plating (SQSO-MFG-003); Samtec confirmation is part of VI-RFB-12. It mates the
 latched Samtec SFSDT PTFE discrete-wire socket of W4A; the vertical FTSH-108 and its PVC FFSD ribbon are dropped.
 
 Placement:
@@ -255,7 +257,7 @@ The link-budget terms:
   This board sets its power at its own port, after the LPF, with the APC loop. The LBA term therefore covers only
   port to antenna: 0.44 dB, which leaves 0.56 dB of margin.
 - **1 W setting.** It gives 29.1–29.7 dBm at the antenna terminals, against 29.5–30.1 dBm at the port.
-- **Uplink.** The receive chain carries 0.62 dB (previously 0.25 dB): T_sys rises from 503–550 K to 548–598 K, still
+- **Uplink.** The receive chain carries 0.62 dB (previously 0.25 dB): T_sys rises from 503–550 K to 548–598 K (552–603 K with L106 at 18 nH, F), still
   inside the 650 K requirement (§6.1).
 - **Antenna match.** The path's return loss of ≥ 13.6 dB sits in front of the AntS's own match, which governs (ANT-3).
 - **Desense and harmonics.** The 2 m and 70 cm jacks are 38 mm apart and both outside the shield; their cables run
@@ -325,14 +327,14 @@ power-down 0.9 / 1.2, LVC1G123 0.28 / 0.4, receiver supervision 0.30 / 0.45, op-
 |-------|------------|------|
 | Cable 0.22 m 1.37 mm, two MMCX pairs, worst-case mismatch (W10 v3, `rf_calcs.py` §16) | 0.62 dB | −0.62 dB |
 | 70 cm lattice balun | 0.30 dB | −0.30 dB |
-| FL1 (worst of the Monte Carlo) | 0.70 dB | −0.70 dB |
+| FL1 (worst of the Monte Carlo; L106 18 nH, F) | 0.73 dB | −0.73 dB |
 | LNA BFP640F (NFmin 0.55 dB + 0.25 dB match) | 0.80 dB | +18 dB |
 | SAW TA2209A | 2.1 dB typ / 4.2 dB max | −2.1 / −4.2 dB |
 | Balun and match to CC1200 | 0.5 dB | −0.5 dB |
 | CC1200 (low-power receive; estimate: TI gives sensitivity, not NF) | 6 / 7 dB | — |
 
-Cascade: NF 2.14 / 2.53 dB at the board connector, 2.76 / 3.15 dB at the antenna terminals; T_e 258 / 308 K;
-T_sys 548 / 598 K with Earth (290 K) in view. Sensitivity with 2 dB implementation loss for the CFM demodulator in
+Cascade: NF 2.17 / 2.56 dB at the board connector, 2.79 / 3.18 dB at the antenna terminals; T_e 262 / 313 K;
+T_sys 552 / 603 K with Earth (290 K) in view. Sensitivity with 2 dB implementation loss for the CFM demodulator in
 the TNC (`impl_loss_db`): 12 dB SINAD voice −121.8 / −121.4 dBm; telecommand 90 % frames −116.2 / −115.8 dBm.
 Version C carries the antenna cable at its worst case (in-phase mismatch, +60 °C); with the typical (RSS) mismatch
 the cable costs 0.47 dB, and with the measured route of 0.11–0.18 m less still.
@@ -354,8 +356,8 @@ keeps its prototype reactance at 436 MHz:
 | L106 (shunt) | 20 nH | |
 
 Monte Carlo, 3,000 trials: L ±2 %, C ±2 % (≥ 10 pF) or ±0.1 pF, inductor Q 45–75 at 436 MHz, inductor SRF
-2.5–4 GHz, capacitor ESL 0.4 nH. Results: loss 0.52 dB nominal, **0.70 dB worst** at 435.0–437.3 MHz; return loss
-≥ 22.1 dB; 144–146 MHz ≥ 133 dB computed (the Chebyshev response alone gives 69.4 dB). A printed filter will not show
+2.5–4 GHz, capacitor ESL 0.4 nH. Results (F: L7 = L106 at 18 nH, the nearest catalogue 0603HP value to the 19.25 nH prototype; 20 nH is not in the series, SQSO-MFG-003): loss 0.54 dB nominal, **0.73 dB worst** at 435.0–437.3 MHz (was 0.52 / 0.70 with 20 nH); return loss
+≥ 19.1 dB (was 22.1 dB); 144–146 MHz ≥ 134 dB computed (the Chebyshev response alone gives 69.4 dB). A printed filter will not show
 133 dB: coupling around it sets the floor, so the specification is **≥ 60 dB at 144–146 MHz, measured**, and the
 layout rules of §10 (FL1 in its own shield cavity, input and output on opposite sides of a wall) are what hold it.
 250–330 MHz: FL1 ≥ 4.7 dB; 560–620 MHz: FL1 ≥ 0.2 dB. The SAW (≥ 45 dB at 10–385 and 485–1000 MHz) brings the totals
@@ -436,6 +438,31 @@ C607 30 pF, drain feeds 68 nH and 56 nH (Coilcraft 1812SMS air core), gate bias 
 Power control: APC loop U735 integrates (V_ref − TX_FWD) into the common gate bias; V_ref = 2.500 V (REF35250,
 ±0.05 %) for 1 W, 1.767 V for 0.5 W (R730/R731, switched by U731 from TX_PWR_SEL); U732 grounds V_ref unless PA_EN.
 Power error: reference and dividers 0.04 dB, detector temperature ±0.25 dB.
+
+**Match inductor L605 (F).** It is now 0807SQ-10NGLC, 10.2 nH. The 0806SQ-10N of Version E is not a catalogue value
+(SQSO-MFG-003). The 2 % rise on the 10.0 nH design value sits inside the load-pull tuning range on the EM; the
+0807SQ land pattern is longer, and the 3 mm body-to-body rule of §10 applies to it.
+
+**Cold operation of Q601 (F, SQSO-MFG-003).** The RD01MUS3 data sheet gives no minimum operating temperature. Its
+storage range is −40 … +125 °C, and the board reaches −40 °C in the first-orbit cold case. No part with the same
+footprint was found. The path:
+1. **Manufacturer statement.** The RF lead obtains a written Mitsubishi statement of the minimum operating case
+   temperature and any cold-start limit, dated before the EM order (2027-01-15).
+2. **EM characterisation at −40 °C (VI-RFB-14).** Pass criteria at −40 °C, and at +70 °C for the record:
+   - Output power at both settings within RF-P003 (27.0 / 30.0 ± 0.5 dBm) under the APC loop.
+   - DC power at 0.5 W ≤ 1.1 × the room value.
+   - No oscillation or spurious above −60 dBc from 1 to 1,000 MHz into a 3:1 load at all phases.
+   - Drain-current and gate-bias settling within 100 ms of key-up.
+   - H3 at the port ≤ −70 dBc.
+   - 10 cold starts: unpowered soak at −40 °C for 4 h, then keyed at 1 W for 60 s, each within the criteria from
+     the first frame.
+3. **If either fails:**
+   - **Operational mitigation**, on existing hardware: the flight software keys the transmitter only when TX_TEMP
+     reads ≥ −30 °C (TMP235 beside Q601) or the Mitsubishi minimum. The first-orbit RF silence (45 min) and the
+     board's warm-up cover most cases. This is a flight-software change for the chair; software was not edited here.
+   - **Alternative PA**, a board revision: the CML CMX901, a 130–950 MHz VHF/UHF power-amplifier IC from the
+     CMX138A's maker, QFN, specified −40 … +85 °C. Its data sheet was not read in this session; its power,
+     efficiency and supply are to be checked against the 1 W at 5 V need before it is adopted.
 
 ### 7.3 Power, efficiency and the load-line trade (`rf_calcs.py` §6)
 
@@ -742,6 +769,22 @@ the ordering scheme, Murata X7R suffixes to confirm in SimSurfing).
 - **Electrical:** ESR 180 Ω maximum and the 18 pF load are unchanged.
 - **Not confirmed:** the exact frequency and option combination has not been found on a distributor listing (§16).
 
+**Q201 BFP640F, Last Time Buy 2027-05-15 (F, SQSO-MFG-003).** Plan: a lifetime buy of 60 pieces from one date code,
+ordered by 2027-03-31 with the EM long-lead buy, and stored dry-packed under the parts-storage rules. The 60 cover:
+
+| Use | Pieces |
+|-----|-------:|
+| EM | 2 |
+| FM | 2 |
+| Flight spares | 6 |
+| RAD-V3 lot sample and DPA | 20 |
+| Process, rework and the LNA tuning on the EM | 30 |
+
+Owner: RF lead with procurement. No same-footprint successor is relied on; Infineon's TSFP-4 SiGe parts (BFP740F
+class) would need a new match and NF verification.
+
+**Inductors (F).** L106 is 0603HP-18NXGLU (18 nH; FL1 effect in §6.2). L605 is 0807SQ-10NGLC (10.2 nH, §7.2).
+
 Finishes (SYS-915; EEE_PARTS_LIST §2A.3): NiPdAu on most TI parts; SN (matte tin) on TPS73101, LMX2571 (QFN),
 TLV9001, some LVC logic and TMP235 options, chip passives, connector tails: re-tin leaded and chip parts with Sn63Pb37;
 conformal-coat the QFN/DSBGA parts (LMX2571, CC1200 is NiPdAu). Coilcraft inductors with the tin-lead termination
@@ -784,13 +827,15 @@ scrubbing; TONE_OK relay from CMX138A IRQN; frequency trims from flash; independ
 | VI-RFB-04 | PA load-pull at 5.0 V: P_sat ≥ 1.15 W at 145.9 MHz with 0 dBm drive; DC at 0.5 W ≤ 1.8 W | §7.3 | EM |
 | VI-RFB-05 | PCM1808 → LMX2571 I2S alignment (16 MSBs) and deviation: ±3.0 ± 0.15 kHz AFSK, repeat limit ≤ 5.0 kHz at PA_5V 5.15 V | RF-P004 | EM |
 | VI-RFB-06 | LPF on the board: ≥ 55 dB at 2f and ≥ 75 dB at 3f measured; leakage floor ≤ −90 dBc | §7.4, RF-07 | EM |
-| VI-RFB-07 | Key-down timer 120 ± 5 s over −20 to +60 °C after trim | RF-F008 | EM, thermal |
+| VI-RFB-07 | Key-down timer 120 ± 5 s over −40 to +70 °C after trim (F: was −20 to +60 °C) | RF-F008 | EM, thermal |
 | VI-RFB-08 | TX permit: with PA_5V removed, no emission > −60 dBm at J3/J4 with TNC_PTT and XPDR_KEY forced high; with U406 output forced high and PA_5V removed, the same | §8.5, VI-RF-12 | EM |
-| VI-RFB-10 | Receiver supervision: RX_CD follows a carrier 3 dB above the threshold and stays low on noise (< 1 false alarm per hour); RX_FAULT goes high 0.36–0.62 s after each injected fault of §8.6 (CC1200 held in reset, SPI line open, TCXO removed, TNC halted) and low after recovery; with RADIO_3V3 off both lines read low at the OBC and no current flows into the board. (E, SMA-B11) Also: LNA bias removed and SAW output shorted give RX_FAULT within 4 min (criterion 6) with no false fault over −20 … +60 °C and with a +6 dB interference floor; the floor calibration table recorded; the STATUS loop query answered within 100 ms, and an opened TNC_TXD or TNC_RXD detected by its absence; RX_FAULT high 10–90 ms after RADIO_EN rises and no RX_ALIVE before 100 ms; RX_CD forced high for > 1 h does not clear "known failed" (with the flight software, FMEA V-BFM-05) | RID RFB-07, SRS-F115–F117, SQSO-FMEA-003 SMA-B11 | EM, flatsat |
+| VI-RFB-10 | Receiver supervision: RX_CD follows a carrier 3 dB above the threshold and stays low on noise (< 1 false alarm per hour); RX_FAULT goes high 0.36–0.62 s after each injected fault of §8.6 (CC1200 held in reset, SPI line open, TCXO removed, TNC halted) and low after recovery; with RADIO_3V3 off both lines read low at the OBC and no current flows into the board. (E, SMA-B11) Also: LNA bias removed and SAW output shorted give RX_FAULT within 4 min (criterion 6) with no false fault over −40 … +70 °C and with a +6 dB interference floor; the floor calibration table recorded; the STATUS loop query answered within 100 ms, and an opened TNC_TXD or TNC_RXD detected by its absence; RX_FAULT high 10–90 ms after RADIO_EN rises and no RX_ALIVE before 100 ms; RX_CD forced high for > 1 h does not clear "known failed" (with the flight software, FMEA V-BFM-05) | RID RFB-07, SRS-F115–F117, SQSO-FMEA-003 SMA-B11 | EM, flatsat |
 | VI-RFB-11 | Magnetic cleanliness (C16): with the RF board in the stack and A2 fitted (or a reference fluxgate at the A2 sensor position), the field step between transmitter off and keyed at 1 W is < 15 nT on each axis, and the RF board's static field at the sensor (board in and out, as received and after a 5 mT exposure on each axis) is recorded for the ADCS calibration; first-article inspection of the shield for permeability (no attraction to a 0.1 T test magnet) | OBC item C16, OBC_BOARD_DESIGN §9.4 | EM |
-| VI-RFB-12 | Mated heights and footprints from the manufacturers' drawings, **due 2026-11-13 (before layout starts)**: J1 Samtec TFM-108-01-S-D-RA with the SFSDT socket (≤ 7.0 mm, plug's back at x ≤ +43.1; tail finish; with SQSO-HAR-001 V-HAR-3), J2 Molex 203556-0607 (gold; the 6-circuit code, lock style and mating with 501330-0600) with its housing (8.0 mm), J3–J6 Molex 73415-1473 (SD-73415-147-001) with the 73414-0351 plug (6.0 mm; cable axis z +39.4); confirm 73415-1473 is non-magnetic with no nickel underplate and the plug's plating; the 1.37 mm cable's attenuation (≤ 1.33 dB/m at 436 MHz hot), inner conductor (silver-plated copper), minimum static bend radius ≤ 5 mm (candidate Taoglas PRT.001221: 4 mm, 1.6 dB/m at 1 GHz) and outgassing (E595 of the FEP and the Cu-plastic tape) | §4.3, §10, OBC item C16 | Analysis (drawings) **Owner: RF lead** (J1 jointly with the harness designer for V-HAR-3); **due 2026-11-13**, before layout starts. |
+| VI-RFB-12 | Mated heights and footprints from the manufacturers' drawings, **due 2026-11-13 (before layout starts)**: J1 Samtec TFM-108-01-L-D-RA with the SFSDT socket (plating code confirmed by Samtec) (≤ 7.0 mm, plug's back at x ≤ +43.1; tail finish; with SQSO-HAR-001 V-HAR-3), J2 Molex 203556-0607 (gold; the 6-circuit code, lock style and mating with 501330-0600) with its housing (8.0 mm), J3–J6 Molex 73415-1473 (SD-73415-147-001) with the 73414-0351 plug (6.0 mm; cable axis z +39.4); confirm 73415-1473 is non-magnetic with no nickel underplate and the plug's plating; the 1.37 mm cable's attenuation (≤ 1.33 dB/m at 436 MHz hot), inner conductor (silver-plated copper), minimum static bend radius ≤ 5 mm (candidate Taoglas PRT.001221: 4 mm, 1.6 dB/m at 1 GHz) and outgassing (E595 of the FEP and the Cu-plastic tape) | §4.3, §10, OBC item C16 | Analysis (drawings) **Owner: RF lead** (J1 jointly with the harness designer for V-HAR-3); **due 2026-11-13**, before layout starts. |
 | VI-RFB-13 | AntS RF interface against the ISIS ICD: connector type (MMCX jack assumed), number of ports (four, or two if ISIS phases the pairs), their positions on the AntS's inner face, and the clearance of the mated right-angle plugs under the battery (z −48.5 … −42.2 under the cells, −48.5 … −44.9 under the clamp end caps); then the cable cut lengths. Also: fit check of the four cables in the −X wall-gap bands on the EM structure; return loss port to antenna ≥ 13.6 dB with the AntS replaced by 50 Ω loads | ANT-3, ANT-8; §4.3 | Analysis (ICD), EM **Owner: RF lead.** The ISIS AntS RFQ, asking for the 1U–3U ICD (connector type, port count and positions, whether ISIS phases the pairs), goes out by **2026-11-06**; the ICD check closes 10 working days after the RFQ response and in any case before the EM COTS buys start (**2027-01-15**, SCHEDULE EM_LL). The EM fit and return-loss parts are done at the EM. |
-| VI-RFB-09 | Sense-line coupling and directivity (≥ 15 dB); detector calibration ±0.5 dB −20 to +60 °C | §7.6 | EM |
+| VI-RFB-14 | (F) Q601 cold operation: Mitsubishi statement of the minimum operating case temperature (RF lead, before 2027-01-15); on the EM at −40 °C (and +70 °C): output power at both settings within RF-P003 under APC, DC at 0.5 W ≤ 1.1 × room value, no oscillation or spurious > −60 dBc (1–1,000 MHz, 3:1 load, all phases), bias settled ≤ 100 ms after key-up, H3 ≤ −70 dBc; 10 cold starts (4 h unpowered soak at −40 °C, keyed 1 W for 60 s, within criteria from the first frame). Failure: TX_TEMP keying limit (flight software) or the CMX901 board revision (§7.2) | SQSO-MFG-003, RF-P003 | EM thermal |
+| VI-RFB-15 | (F) Temperature range of the board-level RF tests: every VI-RF and VI-RFB item with a temperature range is run at −40 to +70 °C, the board allowables plus test margin, with the first-orbit cold start at −40 °C (THERMAL_DESIGN §1.1; SQSO-MFG-003 §10) | SQSO-MFG-003 | EM thermal |
+| VI-RFB-09 | Sense-line coupling and directivity (≥ 15 dB); detector calibration ±0.5 dB −40 to +70 °C (F: was −20 to +60 °C) | §7.6 | EM |
 
 VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 still apply.
 

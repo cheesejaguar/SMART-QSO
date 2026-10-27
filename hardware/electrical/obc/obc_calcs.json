@@ -155,22 +155,22 @@
   "note": "nSLEEP low to zero coil current: tSLEEP 1 ms + L*I/V decay against VM (L 80 mH bound)"
  },
  "wd_twdu_typ": {
-  "value": 36.433,
+  "value": 34.111000000000004,
   "unit": "s",
   "note": "TPS3850 eq. 6: tWDU = 77.4 x C(uF) + 0.055"
  },
  "wd_twdu_min": {
-  "value": 31.3257605,
+  "value": 29.269320674000006,
   "unit": "s",
-  "note": "0.905 x, C -5 %"
+  "note": "0.905 x, C -5.2 % (tolerance and temperature)"
  },
  "wd_twdu_max": {
-  "value": 41.885830500000004,
+  "value": 39.288829074000006,
   "unit": "s",
-  "note": "1.095 x, C +5 %"
+  "note": "1.095 x, C +5.2 %"
  },
  "wd_twdl_max": {
-  "value": 5.2357288125000006,
+  "value": 4.911103634250001,
   "unit": "s",
   "note": "SET0 = SET1 = 0: lower boundary 1/8 of tWDU"
  },
@@ -180,12 +180,12 @@
   "note": "flight software WDI falling edge every 10 s while every task has checked in"
  },
  "wd_margin_low": {
-  "value": 1.9099537730307148,
+  "value": 2.036202195013779,
   "unit": "",
   "note": "kick interval over the lower boundary"
  },
  "wd_margin_high": {
-  "value": 3.13257605,
+  "value": 2.9269320674000006,
   "unit": "",
   "note": "upper boundary over the kick interval"
  },
@@ -200,49 +200,54 @@
   "note": "IWDG reload 3750 at the slowest LSI"
  },
  "wd_vs_iwdg": {
-  "value": -1.2166123813559295,
+  "value": -3.2730522073559243,
   "unit": "s",
   "note": "external upper bound minus the IWDG's longest: the IWDG acts first"
  },
  "wd_one_short_twdu_min": {
-  "value": 46.96375325000001,
+  "value": 36.574207092500004,
   "unit": "s",
-  "note": "CWD 705 nF after one capacitor short"
+  "note": "CWD 550 nF after one capacitor short"
  },
  "wd_one_short_twdu_max": {
-  "value": 62.798633250000016,
+  "value": 49.09598009250001,
   "unit": "s",
   "note": "upper bound, max"
  },
  "wd_one_short_twdl_max": {
-  "value": 7.849829156250002,
+  "value": 6.136997511562501,
   "unit": "s",
   "note": "lower bound, max (must stay below the 10 s kick)"
  },
  "wd_one_open_twdu_min": {
-  "value": 15.68776775,
+  "value": 21.964434255500006,
   "unit": "s",
-  "note": "CWD 235 nF after one capacitor open"
+  "note": "CWD 330 nF after one capacitor open"
  },
  "wd_one_open_twdu_max": {
-  "value": 20.973027750000004,
+  "value": 29.4816780555,
   "unit": "s",
   "note": "upper bound, max"
  },
  "wd_one_open_twdl_max": {
-  "value": 2.6216284687500004,
+  "value": 3.6852097569375,
   "unit": "s",
   "note": "lower bound, max (must stay below the 10 s kick)"
  },
- "iwdg_3500_min": {
-  "value": 26.352941176470587,
+ "iwdg_3200_min": {
+  "value": 24.094117647058823,
   "unit": "s",
-  "note": "recommended IWDG reload 3500 / 256 at LSI 34 kHz"
+  "note": "recommended IWDG reload 3200 / 256 at LSI 34 kHz"
  },
- "iwdg_3500_max": {
-  "value": 30.372881355932204,
+ "iwdg_3200_max": {
+  "value": 27.769491525423728,
   "unit": "s",
-  "note": "at LSI 29.5 kHz: below the supervisor's 31.3 s minimum"
+  "note": "at LSI 29.5 kHz: below the supervisor's minimum"
+ },
+ "wd_vs_iwdg_3200": {
+  "value": 1.4998291485762785,
+  "unit": "s",
+  "note": "supervisor minimum minus the IWDG maximum at reload 3200: the IWDG acts first"
  },
  "wd_uv": {
   "value": 3.069,
@@ -339,9 +344,24 @@
   "note": "minimum limit over the normal maximum (>= 1.35 for no false trips)"
  },
  "snsw_retry_off": {
-  "value": 0.132,
+  "value": 0.2904,
   "unit": "s",
-  "note": "off time after a trip: 0.6 x 100 k x 2.2 uF (>= 0.1 s: RADIATION_ANALYSIS 5.3)"
+  "note": "off time after a trip: 0.6 x 220 k x 2.2 uF nominal (>= 0.1 s: RADIATION_ANALYSIS 5.3)"
+ },
+ "snsw_retry_off_min": {
+  "value": 0.1775970603,
+  "unit": "s",
+  "note": "worst short: X7R at -40 C with tolerance, bias and ageing; R -1 %"
+ },
+ "snsw_retry_off_max": {
+  "value": 0.329087088,
+  "unit": "s",
+  "note": "worst long"
+ },
+ "snsw_turn_on_max": {
+  "value": 0.5484784800000001,
+  "unit": "s",
+  "note": "commanded turn-on delay, at most about one RC to the EN threshold (flight software waits >= 0.6 s)"
  },
  "gyro_vcc_min": {
   "value": 3.19538,

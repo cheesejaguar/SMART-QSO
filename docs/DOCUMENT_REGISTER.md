@@ -84,8 +84,8 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-ICD-000 | Interface Control Document - Master | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | C | Draft |
 | SQSO-IVP-001 | SMART-QSO Interface Verification Plan | `docs/interfaces/INTERFACE_VERIFICATION_PLAN.md` | 1.0 | Draft |
 | SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.12 | Draft |
-| SQSO-MFG-002 | EEE Parts List | `docs/manufacturing/EEE_PARTS_LIST.md` | E | Draft |
-| SQSO-MFG-003 | Parts Temperature-Grade Audit (every flight BOM line, harness and bought items; line data in `PARTS_TEMPERATURE_AUDIT.csv`) | `docs/manufacturing/PARTS_TEMPERATURE_AUDIT.md` | A | Draft; CDR round 3 audit (RID P3T-01), BOM changes for the designers |
+| SQSO-MFG-002 | EEE Parts List | `docs/manufacturing/EEE_PARTS_LIST.md` | F | Draft |
+| SQSO-MFG-003 | Parts Temperature-Grade Audit (every flight BOM line, harness and bought items; line data in `PARTS_TEMPERATURE_AUDIT.csv`) | `docs/manufacturing/PARTS_TEMPERATURE_AUDIT.md` | B | Draft; CDR round 3 audit (RID P3T-01), BOM changes for the designers |
 | SQSO-WP-001 | Workmanship Plan | `docs/manufacturing/WORKMANSHIP_PLAN.md` | B | Draft |
 | SQSO-WKS-001 | SMART-QSO Workmanship Standards | `docs/manufacturing/WORKMANSHIP_STANDARDS.md` | 1.1 | Draft |
 | SQSO-MSC-001 | SMART-QSO Mission Success Criteria | `docs/mission/MISSION_SUCCESS_CRITERIA.md` | 2.2 | Draft |
@@ -254,7 +254,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-ICX-001 | SMART-QSO Spacecraft Electrical Interconnect (master pin allocation) | `hardware/electrical/INTERCONNECT.md` | D | Draft; build-to design, not yet fabricated |
 | SQSO-RF-BRD-001 | SMART-QSO RF Board: Build-to Design | `hardware/electrical/rf/RF_BOARD_DESIGN.md` | E | Draft; schematic and BOM, not yet fabricated |
 | SQSO-EPS-BRD-001 | SMART-QSO EPS Board: Build-to Design | `hardware/electrical/eps/EPS_BOARD_DESIGN.md` | E | Draft; schematic and BOM, not yet fabricated |
-| SQSO-OBC-BRD-001 | SMART-QSO OBC Board: Build-to Design | `hardware/electrical/obc/OBC_BOARD_DESIGN.md` | D | Draft; schematic and BOM, not yet fabricated |
+| SQSO-OBC-BRD-001 | SMART-QSO OBC Board: Build-to Design | `hardware/electrical/obc/OBC_BOARD_DESIGN.md` | E | Draft; schematic and BOM, not yet fabricated |
 | SQSO-JET-BRD-001 | Jetson Orin Nano Carrier Board Design | `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` | E | Draft; schematic and BOM, not yet fabricated |
 | SQSO-THM-001 | Thermal Design Document | `hardware/structure/THERMAL_DESIGN.md` | 1.6 | Draft |
 | SQSO-FSW-AUTO-001 | Autonomy Design | `software/flight/docs/AUTONOMY_DESIGN.md` | B | Draft |

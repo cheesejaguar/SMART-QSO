@@ -82,10 +82,11 @@ put("mtq_bs_margin_high", 1.000 - t_bs * 1.03, "s", "backstop below the 1000 ms 
 put("mtq_end_of_burst", 1e-3 + 80e-3 * it_hi / VBAT_MIN, "s", "nSLEEP low to zero coil current: tSLEEP 1 ms + L*I/V decay against VM (L 80 mH bound)")
 
 # ------------------------------------------------------------------------------------------------ 2 supervisor
-C_CWD = 470e-9          # two parallel strings of two 470 nF C0G in series (SMA-B08): 470 nF, +/-5 %
+C_CWD = 440e-9          # four parallel strings of two 220 nF C0G in series (KEMET C1210C224J3GACAUTO; SMA-B08)
+CWD_TOL = 0.05 + 30e-6 * 65   # C0G: +/-5 % tolerance, 0 +/- 30 ppm/K over 25 C +/- 65 K, no ageing
 twdu = put("wd_twdu_typ", 77.4 * C_CWD * 1e6 + 0.055, "s", "TPS3850 eq. 6: tWDU = 77.4 x C(uF) + 0.055")
-twdu_min = put("wd_twdu_min", 0.905 * (77.4 * C_CWD * 0.95 * 1e6 + 0.055), "s", "0.905 x, C -5 %")
-twdu_max = put("wd_twdu_max", 1.095 * (77.4 * C_CWD * 1.05 * 1e6 + 0.055), "s", "1.095 x, C +5 %")
+twdu_min = put("wd_twdu_min", 0.905 * (77.4 * C_CWD * (1 - CWD_TOL) * 1e6 + 0.055), "s", "0.905 x, C -5.2 % (tolerance and temperature)")
+twdu_max = put("wd_twdu_max", 1.095 * (77.4 * C_CWD * (1 + CWD_TOL) * 1e6 + 0.055), "s", "1.095 x, C +5.2 %")
 put("wd_twdl_max", 0.125 * twdu_max, "s", "SET0 = SET1 = 0: lower boundary 1/8 of tWDU")
 put("wd_kick", 10.0, "s", "flight software WDI falling edge every 10 s while every task has checked in")
 put("wd_margin_low", 10.0 / (0.125 * twdu_max), "", "kick interval over the lower boundary")
@@ -94,12 +95,13 @@ LSI_MIN, LSI_MAX = 29.5e3, 34.0e3   # STM32L4 LSI spread (ASSUMED datasheet clas
 put("iwdg_t_min", 3750 * 256 / LSI_MAX, "s", "IWDG reload 3750, prescaler 256, at the fastest LSI")
 iwdg_max = put("iwdg_t_max", 3750 * 256 / LSI_MIN, "s", "IWDG reload 3750 at the slowest LSI")
 put("wd_vs_iwdg", twdu_min - iwdg_max, "s", "external upper bound minus the IWDG's longest: the IWDG acts first")
-for tag, cw in (("one_short", 470e-9 + 235e-9), ("one_open", 235e-9)):
-    put(f"wd_{tag}_twdu_min", 0.905 * (77.4 * cw * 0.95 * 1e6 + 0.055), "s", f"CWD {cw * 1e9:.0f} nF after one capacitor {tag.split('_')[1]}")
-    put(f"wd_{tag}_twdu_max", 1.095 * (77.4 * cw * 1.05 * 1e6 + 0.055), "s", "upper bound, max")
-    put(f"wd_{tag}_twdl_max", 0.125 * 1.095 * (77.4 * cw * 1.05 * 1e6 + 0.055), "s", "lower bound, max (must stay below the 10 s kick)")
-put("iwdg_3500_min", 3500 * 256 / 34e3, "s", "recommended IWDG reload 3500 / 256 at LSI 34 kHz")
-put("iwdg_3500_max", 3500 * 256 / 29.5e3, "s", "at LSI 29.5 kHz: below the supervisor's 31.3 s minimum")
+for tag, cw in (("one_short", 3 * 110e-9 + 220e-9), ("one_open", 3 * 110e-9)):
+    put(f"wd_{tag}_twdu_min", 0.905 * (77.4 * cw * (1 - CWD_TOL) * 1e6 + 0.055), "s", f"CWD {cw * 1e9:.0f} nF after one capacitor {tag.split('_')[1]}")
+    put(f"wd_{tag}_twdu_max", 1.095 * (77.4 * cw * (1 + CWD_TOL) * 1e6 + 0.055), "s", "upper bound, max")
+    put(f"wd_{tag}_twdl_max", 0.125 * 1.095 * (77.4 * cw * (1 + CWD_TOL) * 1e6 + 0.055), "s", "lower bound, max (must stay below the 10 s kick)")
+put("iwdg_3200_min", 3200 * 256 / 34e3, "s", "recommended IWDG reload 3200 / 256 at LSI 34 kHz")
+put("iwdg_3200_max", 3200 * 256 / 29.5e3, "s", "at LSI 29.5 kHz: below the supervisor's minimum")
+put("wd_vs_iwdg_3200", twdu_min - 3200 * 256 / 29.5e3, "s", "supervisor minimum minus the IWDG maximum at reload 3200: the IWDG acts first")
 put("wd_uv", 3.30 * 0.93, "V", "TPS3850H33: UV 7 % (3.069 V nominal, +/-0.8 %)")
 put("wd_ov", 3.30 * 1.07, "V", "OV 7 % (3.531 V)")
 put("wd_trst", 0.200, "s", "CRST open: 170-230 ms")
@@ -120,7 +122,12 @@ LOADS = {"gyro": 0.016 * 1.6, "imu2": 0.005 * 1.6, "sns": 0.0006 + 0.0004 + 0.00
 for k, v in LOADS.items():
     put(f"snsw_{k}_load", v, "A", "normal maximum (gyro and IMU2: typ x 1.6; sns: ADS7138, TIAs, TCA9517 U14, 12 mA photocurrent; mag: RM3100 x 1.6, TCA9517 U34)")
     put(f"snsw_{k}_margin", 0.050 / v, "", "minimum limit over the normal maximum (>= 1.35 for no false trips)")
-put("snsw_retry_off", 0.6 * 100e3 * 2.2e-6, "s", "off time after a trip: 0.6 x 100 k x 2.2 uF (>= 0.1 s: RADIATION_ANALYSIS 5.3)")
+put("snsw_retry_off", 0.6 * 220e3 * 2.2e-6, "s", "off time after a trip: 0.6 x 220 k x 2.2 uF nominal (>= 0.1 s: RADIATION_ANALYSIS 5.3)")
+C_RET_MIN = 2.2e-6 * 0.90 * 0.85 * 0.85 * 0.95   # X7R: -10 % tolerance, -15 % at -40 C, -15 % DC bias at 3.3 V (0805 25 V), -5 % ageing
+C_RET_MAX = 2.2e-6 * 1.10 * 1.02                 # +10 % tolerance, +2 % near +25..85 C
+put("snsw_retry_off_min", 0.6 * 220e3 * 0.99 * C_RET_MIN, "s", "worst short: X7R at -40 C with tolerance, bias and ageing; R -1 %")
+put("snsw_retry_off_max", 0.6 * 220e3 * 1.01 * C_RET_MAX, "s", "worst long")
+put("snsw_turn_on_max", 220e3 * 1.01 * C_RET_MAX * 1.0, "s", "commanded turn-on delay, at most about one RC to the EN threshold (flight software waits >= 0.6 s)")
 v_gyro_min = put("gyro_vcc_min", V3_NOM * (1 - V3_TOL) - 0.034 * 0.085 - 0.034 * 0.013 - 0.026 * 0.085 - 0.026 * 0.003, "V",
                  "3V3_AO -3 %, SW4 85 mOhm x 34 mA, W6B 13 mOhm, OBC switch 85 mOhm x 26 mA, trace")
 put("gyro_vcc_margin", v_gyro_min - 3.15, "V", "above the M-G370 3.15 V minimum (EPS set point +/-2 % recommended: +33 mV more)")

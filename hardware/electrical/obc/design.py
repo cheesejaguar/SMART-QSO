@@ -165,7 +165,7 @@ CAPS = {  # (value, V, size) -> (Murata GCM AEC-Q200 part, dielectric)
     ("10nC0G", 50, "0603"): ("GCM1885C1H103JA16D", "C0G"),
     ("10p", 50, "0603"): ("GCM1885C1H100JA16D", "C0G"),
     ("100nC0G", 50, "1206"): ("GCM31C5C1H104JA16L", "C0G"),
-    ("470nC0G", 50, "1210"): ("C0G 470 nF 50 V 1210, soft termination (Murata GCJ / TDK CGA6 class; order code to select)", "C0G"),
+    ("220nC0G", 25, "1210"): ("C1210C224J3GACAUTO", "C0G"),
     ("1u", 25, "0603"): ("GCM188R71E105KA64D", "X7R"),
     ("2.2u", 25, "0805"): ("GCM21BR71E225KA73L", "X7R"),
     ("4.7u", 50, "1210"): ("GCM32ER71H475KA55L", "X7R"),
@@ -175,7 +175,7 @@ CAPS = {  # (value, V, size) -> (Murata GCM AEC-Q200 part, dielectric)
 
 
 CAP_DEFAULT = {"1u": (25, "0603"), "2.2u": (25, "0805"), "10u": (25, "1206"), "22u": (16, "1210"),
-               "4.7u": (50, "1210"), "100nC0G": (50, "1206"), "470nC0G": (50, "1210")}
+               "4.7u": (50, "1210"), "100nC0G": (50, "1206"), "220nC0G": (25, "1210")}
 
 
 def C(val, a, b, v=None, size=None, vop=3.3, note="", ref=None, dnp=False):
@@ -184,7 +184,7 @@ def C(val, a, b, v=None, size=None, vop=3.3, note="", ref=None, dnp=False):
     size = size or ds
     mpn, die = CAPS[(val, v, size)]
     shown = val.replace("C0G", "")
-    p = place(TC, ref, shown, mpn, "Murata", f"Capacitor_SMD:C_{size}", f"{v} V {die} AEC-Q200",
+    p = place(TC, ref, shown, mpn, "KEMET" if mpn.startswith("C1210C") else "Murata", f"Capacitor_SMD:C_{size}", f"{v} V {die} AEC-Q200",
               f"{vop:.1f} V / {v} V = {vop / v:.0%} of rated V", note, "Sn over Ni (matte): re-tin or coat",
               "series code", dnp)
     link(a, p["A"])
@@ -194,7 +194,7 @@ def C(val, a, b, v=None, size=None, vop=3.3, note="", ref=None, dnp=False):
 
 DIODES = {
     "BAT54": ("BAT54,215", "Nexperia", "SOT-23", "30 V, 200 mA Schottky", "not checked"),
-    "1N4148W-Q": ("1N4148W-Q-7-F", "Diodes Inc.", "SOD-123", "100 V, 300 mA, AEC-Q101", "not checked"),
+    "1N4148W-Q": ("1N4148WQ-7-F", "Diodes Inc.", "SOD-123", "100 V, 300 mA, AEC-Q101, -55..150 C TJ", "Digi-Key: Active (SQSO-MFG-003)"),
     "SMBJ20A": ("SMBJ20A", "Littelfuse", "DO-214AA (SMB)", "TVS 20 V VRWM, 22.2 V VBR min, 32.4 V Vc, 600 W", "Digi-Key listing (EPS board)"),
     "SMF5.0A": ("SMF5.0A", "Littelfuse", "SOD-123FL", "TVS 5.0 V VRWM, 6.4 V VBR min, 9.2 V Vc, 200 W", "not checked"),
     "SMF24A": ("SMF24A", "Littelfuse", "SOD-123FL", "TVS 24 V VRWM, 26.7 V VBR min, 38.9 V Vc, 200 W", "not checked"),
@@ -493,9 +493,9 @@ def reset_supervisor():
        stress="VDD 3.4 V / 7 V abs = 49 %",
        notes=(f"RID AV-02: window watchdog {cv('wd_twdl_max', '{:.1f}')} s (max lower) to {cv('wd_twdu_min', '{:.1f}')} s "
               f"(min upper), kick every 10 s; UV 3.069 V, OV 3.531 V; reset 200 ms (CRST open); RESET and WDO wired to NRST"))
-    for k in (1, 2):   # SMA-B08: two parallel strings of two in series; one short or one open keeps a working window
-        C("470nC0G", "WD_CWD", f"WD_CM{k}", note=f"CWD string {k}, upper (470 nF total: tWDU 36.4 s typ)")
-        C("470nC0G", f"WD_CM{k}", "GND", note=f"CWD string {k}, lower; one short -> 705 nF, one open -> 235 nF")
+    for k in (1, 2, 3, 4):   # SMA-B08: four parallel strings of two 220 nF C0G in series (440 nF); one short or open keeps a window
+        C("220nC0G", "WD_CWD", f"WD_CM{k}", note=f"CWD string {k}, upper (440 nF total: tWDU 34.1 s typ)")
+        C("220nC0G", f"WD_CM{k}", "GND", note=f"CWD string {k}, lower; one short -> 550 nF, one open -> 330 nF")
     C("100n", "3V3_OBC", "GND", note="TPS3850 VDD")
     R(100e3, "WD_SET0", "GND", note="SET0 low: watchdog enabled in flight")
     R(10e3, "WDT_DIS", "WD_SET0", note="GSE pulls SET0 high: watchdog disabled (latched at the next supervisor reset)")
@@ -552,8 +552,8 @@ def sensor_switch(ref, sw, en_gpio, rail, rb, note):
               f"({CALC[f'snsw_{sw.lower()}_margin']['value']:.1f}x)",
        notes=f"{note}: latch-up trip (2 us limit, FAULT after 8 ms pulls EN low, off {cv('snsw_retry_off', '{:.2f}')} s, retry)",
        checked="TI orderable addendum read: Active (EPS board)")
-    R(100e3, en_gpio, node, note="R_FAULT (auto-retry)")
-    C("2.2u", node, "GND", 25, "0805", note="C_RETRY: >= 0.1 s off after a trip")
+    R(220e3, en_gpio, node, note="R_FAULT (auto-retry); 220 k so the X7R C_RETRY at -40 C still gives >= 0.1 s off")
+    C("2.2u", node, "GND", 25, "0805", note="C_RETRY: off 0.10-0.34 s after a trip over -40..+85 C (X7R -15 % cold, tol, bias, ageing)")
     D("BAT54", en_gpio, node, note="fast turn-off when the enable goes low")
     R(100e3, node, rb, note="trip readback to the MCU")
     R(100e3, en_gpio, "GND", note="enable pull-down (MCU reset = rail off)")
@@ -661,9 +661,9 @@ def sns():
        notes="RM3100 DRDY (J10-5) to the MCU (B to A)")
     R(100e3, "MAG_DRDY", "GND", note="defined while isolated")
     # magnetometer: PNI RM3100 on the magnetometer board (A2, mag_board()) at the +Z end frame, on J10 / harness W6E
-    j = place(CONN("PicoClasp_6", 6), "J10", "MAGNETOMETER", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT",
+    j = place(CONN("PicoClasp_6", 6), "J10", "MAGNETOMETER", "2035560607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT",
               "1 A/contact", "< 5 mA", "W6E to the magnetometer board A2 (RM3100) at the +Z end frame: 3V3_MAG, GND, SDA, SCL, DRDY, GND",
-              "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: Active (EPS board); gold order code to confirm (Molex drawing)")
+              "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: listed (gold 0.38 um, -40..105 C; SQSO-MFG-003)")
     conn(j, {"P1": "3V3_MAG", "P2": "GND", "P3": "SDA_M", "P4": "SCL_M", "P5": "MG_DRDY", "P6": "GND"})
     R(100e3, "MG_DRDY", "GND", note="DRDY defined with the harness unplugged")
     esd4("D20", ["3V3_MAG", "SDA_M", "SCL_M", "MG_DRDY"], "J10 magnetometer harness")
@@ -700,9 +700,9 @@ def sns():
     R(200e3, "VMTQ_SNS", "GND")
     C("100n", "VMTQ_SNS", "GND", note="reservoir")
     # J8 sun sensors
-    j = place(CONN("PicoClasp_12", 12), "J8", "SUN SENSORS", "5013311207", "Molex", "Pico-Clasp 1.0 mm 12 pos SMT",
+    j = place(CONN("PicoClasp_12", 12), "J8", "SUN SENSORS", "2035561207", "Molex", "Pico-Clasp 1.0 mm 12 pos SMT",
               "1 A/contact", "< 6 mA", "W6D: six unshielded pairs, panel photodiodes (K, A) (Version C: no drains, was 14 pos)",
-              "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "pattern (501331-xx07); gold order code to confirm")
+              "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: listed (gold 0.38 um, -40..105 C; SQSO-MFG-003)")
     pins = {}
     for i, f in enumerate(faces):
         pins[f"P{2 * i + 1}"] = f"CSS_{f}_K"
@@ -741,9 +741,9 @@ def mtq():
         C("1n", f"MTQ_{ax}_IPR", "GND", note="IPROPI filter (datasheet 7.3.3)")
         R(1e3, f"MTQ_{ax}_IPR", f"MTQ_{ax}_I", note="to the MCU ADC")
         C("10n", f"MTQ_{ax}_I", "GND", note="ADC reservoir")
-    j = place(CONN("PicoClasp_6", 6), "J7", "MAGNETORQUERS", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT",
+    j = place(CONN("PicoClasp_6", 6), "J7", "MAGNETORQUERS", "2035560607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT",
               "1 A/contact", f"{cv('mtq_itrip_max', '{:.3f}')} A max: 13 %", "W6C: X+, X-, Y+, Y-, Z+, Z- (CR0002 rods)",
-              "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: Active (EPS board); gold order code to confirm (Molex drawing)")
+              "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: listed (gold 0.38 um, -40..105 C; SQSO-MFG-003)")
     conn(j, {"P1": "MTQ_X_P", "P2": "MTQ_X_N", "P3": "MTQ_Y_P", "P4": "MTQ_Y_N", "P5": "MTQ_Z_P", "P6": "MTQ_Z_N"})
     # burn gate and hardware off-timer
     R(100e3, "MTQ_ARM", "GND", note="MCU reset = no burst")
@@ -785,7 +785,7 @@ def jetson_link():
     C("100n", "JET_3V3", "GND", note="U28/U29 VCCB")
     R(10e3, "JET_3V3", "JET_PG", note="carrier power-good readback (RID AV-06)")
     R(100e3, "JET_PG", "GND", note="low with the carrier off")
-    j = place(CONN("PicoClasp_6", 6), "J3", "JETSON", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
+    j = place(CONN("PicoClasp_6", 6), "J3", "JETSON", "2035560607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
               "< 5 mA", "W5B (6 pins, E10): GND, OBC TX, OBC RX, carrier 3.3 V, spreader NTC, NTC return", "Au (gold variant, SQSO-HAR-001 2.0 3.1)",
               "Digi-Key: Active (EPS board)")
     conn(j, {"P1": "GND", "P2": "JET_RXD", "P3": "JET_TXD", "P4": "JET_3V3", "P5": "PT_NTC_J", "P6": "GND"})
@@ -798,12 +798,12 @@ def jetson_link():
 
 
 def gnss_link():
-    j = place(CONN("PicoClasp_2", 2), "J4", "GNSS PWR IN", "5013310207", "Molex", "Pico-Clasp 1.0 mm 2 pos SMT", "1 A/contact",
+    j = place(CONN("PicoClasp_2", 2), "J4", "GNSS PWR IN", "2035560207", "Molex", "Pico-Clasp 1.0 mm 2 pos SMT", "1 A/contact",
               f"0.232 A max (SW7 trip): 23 %", "W9B from EPS J21 (SW7, GNSS_EN): routed through the OBC to J5", "Au (gold variant, SQSO-HAR-001 2.0 3.1)",
               "Digi-Key: Active (EPS board)")
     conn(j, {"P1": "3V3_GNSS", "P2": "GND"})
-    j = place(CONN("PicoClasp_6", 6), "J5", "GNSS", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
-              "0.232 A: 23 %", "W9A to the piNAV-NG/FM: 3V3, GND, RXD, TXD, 1PPS, GND", "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: Active (EPS board); gold order code to confirm (Molex drawing)")
+    j = place(CONN("PicoClasp_6", 6), "J5", "GNSS", "2035560607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
+              "0.232 A: 23 %", "W9A to the piNAV-NG/FM: 3V3, GND, RXD, TXD, 1PPS, GND", "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: listed (gold 0.38 um, -40..105 C; SQSO-MFG-003)")
     conn(j, {"P1": "3V3_GNSS", "P2": "GND", "P3": "GNSS_RXD", "P4": "GNSS_TXD", "P5": "GNSS_1PPS", "P6": "GND"})
     C("10u", "3V3_GNSS", "GND", 25, "1206", note="GNSS supply at J5")
     C("100n", "3V3_GNSS", "GND", note="translators VCCB")
@@ -825,10 +825,10 @@ def gnss_link():
 
 def eps_connector():
     pins = J1_PINS
-    j = place(CONN("TFM_2x20", 40), "J1", "EPS", "TFM-120-01-S-D-RA", "Samtec", "Tiger Eye TFM 1.27 mm 2x20 right-angle",
+    j = place(CONN("TFM_2x20", 40), "J1", "EPS", "TFM-120-01-L-D-RA", "Samtec", "Tiger Eye TFM 1.27 mm 2x20 right-angle",
               "contact rating per Samtec (not read)", "0.088 A per 3V3 contact, 0.115 A per VBAT_MTQ contact",
               "W3 v3: SFSDT 30 AWG to EPS J3 (TFM-120 vertical); cable toward +X, mated plug's back <= x +43.1 (SQSO-HAR-001 2.0 10.2)",
-              "Au 30 uin", "not checked (Samtec site not read)")
+              "Au 15 uin (-L, Samtec F-226)", "plating code per Samtec catalog F-226; to confirm with Samtec")
     for i, nm in enumerate(pins, 1):
         link(nm, j[f"P{i}"])
     C("100n", "3V3_RTC", "GND", note="J1-38 entry")
@@ -866,10 +866,10 @@ J1_PINS = ["3V3_OBC", "3V3_OBC", "GND", "GND", "I2C2_SCL", "I2C2_SDA", "GND", "E
 
 
 def rf_connector():
-    j = place(CONN("TFM_2x8", 16), "J2", "RF", "TFM-108-01-S-D-RA", "Samtec", "Tiger Eye TFM 1.27 mm 2x8 right-angle",
+    j = place(CONN("TFM_2x8", 16), "J2", "RF", "TFM-108-01-L-D-RA", "Samtec", "Tiger Eye TFM 1.27 mm 2x8 right-angle",
               "contact rating per Samtec (not read)", "signals < 5 mA",
               "W4A v4: SFSDT 30 AWG to RF J1 (TFM-108 RA); at (+41.0, -33.5), cable toward +X, plug's back <= x +43.1",
-              "Au 30 uin", "not checked")
+              "Au 15 uin (-L, Samtec F-226)", "plating code per Samtec catalog F-226; to confirm with Samtec")
     conn(j, {"P1": "GND", "P2": "TNC_RXD_J", "P3": "TNC_TXD_J", "P4": "GND", "P5": "TX_PWR_SEL_J", "P6": "XPDR_EN_J",
              "P7": "GND", "P8": "TONE_OK_J", "P9": "XPDR_KEY_J", "P10": "PTT_EXC_J", "P11": "TX_TEMP_J",
              "P12": "TX_FWD_J", "P13": "TX_REV_J", "P14": "GND",
@@ -893,8 +893,8 @@ def rf_connector():
 
 
 def adcs_power():
-    j = place(CONN("PicoClasp_2", 2), "J6", "ADCS PWR IN", "5013310207", "Molex", "Pico-Clasp 1.0 mm 2 pos SMT", "1 A/contact",
-              "0.339 A max (SW4 trip): 34 %", "W6B from EPS J20 (SW4, ADCS_EN): 3V3_ADCS", "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: Active (EPS board); gold order code to confirm (Molex drawing)")
+    j = place(CONN("PicoClasp_2", 2), "J6", "ADCS PWR IN", "2035560207", "Molex", "Pico-Clasp 1.0 mm 2 pos SMT", "1 A/contact",
+              "0.339 A max (SW4 trip): 34 %", "W6B from EPS J20 (SW4, ADCS_EN): 3V3_ADCS", "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: listed (gold 0.38 um, -40..105 C; SQSO-MFG-003)")
     conn(j, {"P1": "3V3_ADCS", "P2": "GND"})
     C("10u", "3V3_ADCS", "GND", 25, "1206", note="3V3_ADCS entry")
     esd1("3V3_ADCS", "J6 3V3_ADCS")
@@ -917,10 +917,10 @@ def board_misc():
 
 
 def access_port():
-    j = place(CONN("TFM_2x5", 10), "J9", "ACCESS PORT", "TFM-105-01-S-D-RA", "Samtec", "Tiger Eye TFM 1.27 mm 2x5 right-angle",
+    j = place(CONN("TFM_2x5", 10), "J9", "ACCESS PORT", "TFM-105-01-L-D-RA", "Samtec", "Tiger Eye TFM 1.27 mm 2x5 right-angle",
               "contact rating per Samtec (not read)", "signals",
               "W8A (SFSDT 30 AWG) to the access-port board A3 (SWD, NRST, console, umbilical sense, watchdog disable); cable toward -X, plug's back <= x -43.1",
-              "Au 30 uin", "not checked")
+              "Au 15 uin (-L, Samtec F-226)", "plating code per Samtec catalog F-226; to confirm with Samtec")
     conn(j, {"P1": "3V3_VTREF", "P2": "SWDIO_J", "P3": "GND", "P4": "SWCLK_J", "P5": "WDT_DIS_J", "P6": "RST_REQ_J",
              "P7": "USART3_TX_J", "P8": "USART3_RX_J", "P9": "UMB_J", "P10": "GND"})
     R(100, "3V3_OBC", "3V3_VTREF", note="VTREF for the probe; the GSE plug also ties pin 9 to it")
@@ -1016,8 +1016,8 @@ def finish_refs():
 def mag_board():
     """Magnetometer board A2 (SQSO-OBC-BRD-001 9.4): PNI RM3100 on a 24 x 24 mm two-layer board at the +Z end frame,
     on harness W6E from OBC J10. Power, latch-up switch (U35) and bus isolation (U34, U33) stay on the OBC."""
-    j = place(CONN("PicoClasp_6", 6), "J1", "TO OBC J10", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
-              "< 5 mA", "W6E from OBC J10: 3V3_MAG, GND, SDA, SCL, DRDY, GND", "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: Active (EPS board); gold order code to confirm (Molex drawing)")
+    j = place(CONN("PicoClasp_6", 6), "J1", "TO OBC J10", "2035560607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
+              "< 5 mA", "W6E from OBC J10: 3V3_MAG, GND, SDA, SCL, DRDY, GND", "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: listed (gold 0.38 um, -40..105 C; SQSO-MFG-003)")
     conn(j, {"P1": "3V3_MAG", "P2": "GND", "P3": "SDA_M", "P4": "SCL_M", "P5": "MG_DRDY", "P6": "GND"})
     esd4("D1", ["3V3_MAG", "SDA_M", "SCL_M", "MG_DRDY"], "J1 (harness end)")
     ic(S_MAGI2C, "U1", "RM3100 MagI2C", "13156", "PNI Sensor", "MLF-28 (PNI MagI2C)",
@@ -1046,11 +1046,11 @@ def a3_board():
     """Access-port board A3 (SQSO-OBC-BRD-001 15.1; SQSO-HAR-001 2.0 3.2): one gold Micro-D 21 socket receptacle at the
     -Y access window carrying W8A (OBC debug and key loading, ground GND) and W11 (EPS charging path, return PACK_N).
     The two groups share no conductor: PACK_N is never joined to GND here, and the shell bonds to the frame only."""
-    j = place(CONN("MicroD_21", 21), "J1", "ACCESS PORT (GSE)", "M83513/11-C (21-way socket, straight PCB tails)",
-              "MIL-DTL-83513 (Glenair, ITT Cannon, Omnetics)", "Micro-D 21 socket receptacle, PCB mount, flange to the -Y shear panel",
+    j = place(CONN("MicroD_21", 21), "J1", "ACCESS PORT (GSE)", "M83513/25-C01NN",
+              "MIL-DTL-83513 QPL (ITT Cannon, Glenair, Cinch)", "Micro-D 21 receptacle, socket contacts, standard profile, straight PCB tails 0.109 in, electroless-Ni shell, no jackposts (own self-locking Ti jackposts)",
               "3 A/contact (MIL-DTL-83513)", "charge 0.25 A per contact (8 %); signals < 5 mA",
               "GSE cable W8B mates from outside; pins 8, 15-18 unused (separate the charge cluster 9-11, 19-21 from debug)",
-              "Au (gold over Ni, MIL-DTL-83513)", "slash-sheet dash number to confirm")
+              "Au (gold over Ni, MIL-DTL-83513)", "slash sheet /25 = straight receptacle, socket contacts, inserts A-F (NASA NEPP ordering guide); QPL source to confirm")
     conn(j, {"P1": "VTREF", "P2": "SWDIO", "P3": "GND", "P4": "SWCLK", "P5": "WDT_DIS", "P6": "RST_REQ", "P7": "U3_TX",
              "P8": None, "P9": "UMB_VMON", "P10": "PACK_N", "P11": "PACK_N", "P12": "U3_RX", "P13": "UMB_SENSE",
              "P14": "GND", "P15": None, "P16": None, "P17": None, "P18": None, "P19": "UMB_SHUT", "P20": "UMB_CHG",

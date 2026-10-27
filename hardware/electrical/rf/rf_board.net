@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 12:39 PM")
+    (date "10/27/2026 01:26 PM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -3836,7 +3836,7 @@
       (tstamps "46e32922-5afc-5bfb-b007-3873b8a2f260"))
     (comp
       (ref "L106")
-      (value "20nH")
+      (value "18nH")
       (description "")
       (footprint "L_0603")
       (fields
@@ -4100,14 +4100,14 @@
       (tstamps "48963e9f-21e2-5355-841f-edcb4b2c8c11"))
     (comp
       (ref "L605")
-      (value "10nH")
+      (value "10.2nH")
       (description "")
-      (footprint "L_0806SQ")
+      (footprint "L_0807SQ (Coilcraft Doc 617 land pattern)")
       (fields
         (field
           (name "Description"))
         (field
-          (name "Footprint") "L_0806SQ")
+          (name "Footprint") "L_0807SQ (Coilcraft Doc 617 land pattern)")
         (field
           (name "Datasheet"))
         (field

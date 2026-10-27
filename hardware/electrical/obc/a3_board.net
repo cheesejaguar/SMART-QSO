@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 12:15 PM")
+    (date "10/27/2026 01:27 PM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -181,16 +181,16 @@
       (ref "J1")
       (value "ACCESS PORT (GSE)")
       (description "")
-      (footprint "Micro-D 21 socket receptacle, PCB mount, flange to the -Y shear panel")
+      (footprint "Micro-D 21 receptacle, socket contacts, standard profile, straight PCB tails 0.109 in, electroless-Ni shell, no jackposts (own self-locking Ti jackposts)")
       (fields
         (field
-          (name "MPN") "M83513/11-C (21-way socket, straight PCB tails)")
+          (name "MPN") "M83513/25-C01NN")
         (field
-          (name "Manufacturer") "MIL-DTL-83513 (Glenair, ITT Cannon, Omnetics)")
+          (name "Manufacturer") "MIL-DTL-83513 QPL (ITT Cannon, Glenair, Cinch)")
         (field
           (name "Description"))
         (field
-          (name "Footprint") "Micro-D 21 socket receptacle, PCB mount, flange to the -Y shear panel")
+          (name "Footprint") "Micro-D 21 receptacle, socket contacts, standard profile, straight PCB tails 0.109 in, electroless-Ni shell, no jackposts (own self-locking Ti jackposts)")
         (field
           (name "Datasheet"))
         (field

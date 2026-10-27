@@ -223,6 +223,8 @@ mod tests {
 
     #[test]
     fn busy_and_bad_arguments() {
+        // The other tests use the HAL and these globals: one at a time
+        let _serial = crate::fault_mgmt::tests::serial();
         let mut a = 0u32;
         let mut buf = [0u8; 64];
         let nested = HK.with(|_| {

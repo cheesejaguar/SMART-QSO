@@ -251,7 +251,8 @@ part("J1", "Conn 16p 1.27 mm right-angle", "OBC-RF signals (W4A)", "TFM-108-01-L
       (11, "TX_TEMP", P, "TX_TEMP"), (12, "TX_FWD", P, "TX_FWD"), (13, "TX_REV", P, "TX_REV"), (14, "AGND", P, "GND"),
       (15, "RX_CD", P, "RX_CD_J"), (16, "RX_FAULT", P, "RX_FAULT_J")],
      "signal currents < 5 mA (< 1 %)", "W4 pinout (16 positions; RX_CD and RX_FAULT, RID RFB-07). Right-angle TFM per SQSO-HAR-001 2.0 item R-1 (was "
-     "FTSH-108 vertical with a PVC FFSD ribbon): gold contacts (-S plating code); tail finish to confirm, re-tin if tin "
+     "FTSH-108 vertical with a PVC FFSD ribbon): gold contacts (-L = 15 uin gold, Samtec F-226; '-S' of version D is the single-row option, not a plating code: "
+     "SQSO-MFG-003); tail finish to confirm, re-tin if tin "
      "(EEE_PARTS_LIST §2A.3). Placement: top side, (+X, -Y) corner, pin field along Y at y -39.3 ... -27.7 (clear of "
      "the (+40, -43) column keep-out), mating face toward +X so the SFSDT cable leaves toward +X with no bend over the "
      "top; plug's back at x <= +43.1; header and plug within x +30.0 ... +43.1; height <= 7.0 mm (10.0 mm allocation "

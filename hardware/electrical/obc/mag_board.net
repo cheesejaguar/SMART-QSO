@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 12:15 PM")
+    (date "10/27/2026 01:27 PM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -130,7 +130,7 @@
       (footprint "Pico-Clasp 1.0 mm 6 pos SMT")
       (fields
         (field
-          (name "MPN") "5013310607")
+          (name "MPN") "2035560607")
         (field
           (name "Manufacturer") "Molex")
         (field

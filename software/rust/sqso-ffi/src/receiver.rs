@@ -168,6 +168,8 @@ mod tests {
 
     #[test]
     fn busy_reads_healthy() {
+        // The other tests use the HAL and these globals: one at a time
+        let _serial = crate::fault_mgmt::tests::serial();
         let nested = RX.with(|_| {
             receiver_init();
             receiver_step(false);

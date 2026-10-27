@@ -127,6 +127,25 @@ def rcode(v):
     return f"{int(round(v)):03d}{exp}"
 
 
+def rcode_erj(v):
+    """Panasonic ERJ code: 10.0 Ohm -> 10R0, 49.9 -> 49R9 (below 100 Ohm), otherwise 3 digits + multiplier."""
+    if 10 <= v < 100:
+        return f"{v:.1f}".replace(".", "R") if v < 100 else rcode(v)
+    return rcode(v)
+
+
+E24 = (10, 11, 12, 13, 15, 16, 18, 20, 22, 24, 27, 30, 33, 36, 39, 43, 47, 51, 56, 62, 68, 75, 82, 91)
+
+
+def rcode_era(v):
+    """Panasonic ERA code (AOA0000C307): E24 values in 3 digits (10 k -> 103, 1 M -> 105), E96/E192 values in 4 (1003 style)."""
+    c4 = rcode(v)                      # 3 significant digits + multiplier
+    sig, mult = c4[:3], int(c4[3:])
+    if sig[2] == "0" and int(sig[:2]) in E24:
+        return f"{sig[:2]}{mult + 1}"
+    return c4
+
+
 def fmt(v, unit="Ohm"):
     for th, suf in ((1e6, "M"), (1e3, "k")):
         if v >= th:
@@ -140,8 +159,12 @@ _rn = [0]
 
 def R(v, a, b, size="0603", tol=1.0, pw=None, note="", stress="", ref=None):
     """Chip resistor: 1 % Panasonic ERJ-3EKF (AEC-Q200), 0.1 % Panasonic ERA-3AEB (AEC-Q200, 25 ppm)."""
-    if size == "0603" and tol <= 0.1:
-        mpn, rating = f"ERA-3AEB{rcode(v)}V", "0.1 %, 25 ppm/K, 0.1 W, 75 V"
+    if tol <= 0.1 and v > 330e3:
+        # ERA-3AEB covers 47 Ohm - 330 kOhm; above, the 0805 ERA-6AEB (to 1 MOhm)
+        size = "0805"
+        mpn, rating = f"ERA-6AEB{rcode_era(v)}V", "0.1 %, 25 ppm/K, 0.125 W, 100 V"
+    elif size == "0603" and tol <= 0.1:
+        mpn, rating = f"ERA-3AEB{rcode_era(v)}V", "0.1 %, 25 ppm/K, 0.1 W, 75 V"
     elif size == "0603" and v > 1.0e6:
         mant = f"{v / 1e6:.3g}".replace(".", "M") if v < 10e6 else "10M0"
         mant = mant if "M" in mant else mant + "M"
@@ -152,11 +175,11 @@ def R(v, a, b, size="0603", tol=1.0, pw=None, note="", stress="", ref=None):
         link(b, p["B"])
         return p
     elif size == "0603":
-        mpn, rating = (f"ERJ-3EKF{rcode(v)}V" if v >= 10 else f"ERJ-3RQF{rcode(v)}V"), "1 %, 100 ppm/K, 0.1 W, 75 V"
+        mpn, rating = (f"ERJ-3EKF{rcode_erj(v)}V" if v >= 10 else f"ERJ-3RQF{rcode(v)}V"), "1 %, 100 ppm/K, 0.1 W, 75 V"
     elif size == "0805":
-        mpn, rating = f"ERJ-6ENF{rcode(v)}V", "1 %, 0.125 W, 150 V"
+        mpn, rating = f"ERJ-6ENF{rcode_erj(v)}V", "1 %, 0.125 W, 150 V"
     elif size == "2512":
-        mpn, rating = f"ERJ-1TNF{rcode(v)}U", "1 %, 1 W, 200 V"
+        mpn, rating = f"ERJ-1TNF{rcode_erj(v)}U", "1 %, 1 W, 200 V"
     else:
         raise ValueError(size)
     p = place(TR, ref, fmt(v), mpn, "Panasonic", f"Resistor_SMD:R_{size}", rating, stress or "< 10 % power", note,
@@ -178,6 +201,7 @@ CAPS = {  # (value, voltage, size) -> (mpn, dielectric)
     ("100n", 50, "0603"): ("GCM188R71H104KA57D", "X7R"),
     ("10n", 50, "0603"): ("GCM188R71H103KA37D", "X7R"),
     ("47n", 50, "0603"): ("GCM188R71H473KA55D", "X7R"),
+    ("68n", 50, "0603"): ("GCM188R71H683KA57D", "X7R"),
     ("1n", 50, "0603"): ("GCM1885C1H102JA16D", "C0G"),
     ("100p", 50, "0603"): ("GCM1885C1H101JA16D", "C0G"),
     ("1u", 25, "0603"): ("GCM188R71E105KA64D", "X7R"),
@@ -207,7 +231,7 @@ def D(kind, k, a, ref=None, note=""):
         "SMBJ7.0A": ("SMBJ7.0A", "Littelfuse", "DO-214AA (SMB)", "TVS 7.0 V VRWM, 7.78 V VBR min, 12.0 V Vc at 50 A, 600 W", "Sn"),
         "SMBJ20A": ("SMBJ20A", "Littelfuse", "DO-214AA (SMB)", "TVS 20 V VRWM, 22.2 V VBR min, 32.4 V Vc, 600 W", "Sn"),
         "BZX84-C3V6": ("BZX84-C3V6,215", "Nexperia", "SOT-23", "Zener 3.6 V 250 mW", "Sn"),
-        "1N4148W": ("1N4148W-Q-7-F", "Diodes Inc.", "SOD-123", "100 V 300 mA switching, AEC-Q101", "Sn"),
+        "1N4148W": ("1N4148WQ-7-F", "Diodes Inc.", "SOD-123", "100 V 300 mA switching, AEC-Q101", "Sn"),
     }[kind]
     mpn, mfr, pkg, rating, fin = lib
     p = place(TTVS if kind.startswith("SMBJ") else TD, ref, kind, mpn, mfr, pkg, rating, "", note,
@@ -333,11 +357,11 @@ def connectors():
             "VJET_RB", "SOLAR_SENSE", "GND", "VBATT_SNS", "IBATT_SNS", "VSOLAR_SNS", "ISOLAR_SNS", "VBUS_SNS",
             "GND", "ANTS_I2C_SCL", "JETSON_PWR", "BURN_W1B", "BURN_W2B", "EOL_ARM", "EOL_FIRE", "LOCK_CLR", "GND", "VBAT_MTQ",
             "VSW1_RB", "3V3_RTC", "VBAT_MTQ", "ANTS_I2C_SDA"]
-    j = place(CONN("TFM_2x20", 40), "J3", "OBC", "TFM-120-02-S-D-A", "Samtec", "Tiger Eye TFM 1.27 mm 2x20 vertical SMT, bottom side",
+    j = place(CONN("TFM_2x20", 40), "J3", "OBC", "TFM-120-02-L-D-A", "Samtec", "Tiger Eye TFM 1.27 mm 2x20 vertical SMT, bottom side",
               "Samtec rating per contact (SFSDT 30 AWG: 0.5 A derated, SQSO-HAR-001)",
               "3V3_OBC 0.18 A and VBAT_MTQ 0.40 A (SW11 limit max) on 2 pins each",
-              "W3 (SFSDT discrete-wire cable) per SQSO-ICX-001 3.1; +X edge, |y| < 15.5 mm", "Au (code -S, 30 uin)",
-              "pattern from the Samtec TFM series: lead style -02 (SMT), plating -S and latching option to confirm with Samtec (V-HAR-3)")
+              "W3 (SFSDT discrete-wire cable) per SQSO-ICX-001 3.1; +X edge, |y| < 15.5 mm", "Au 10 uin on the contact (plating code -L, Samtec TFM ordering table); matte Sn tail, soldered with SnPb and coated",
+              "pattern from the Samtec TFM series (listed mated set TFM-110-02-L-D-A): lead style -02 (SMT), plating -L, alignment -A; latch option to confirm with Samtec (V-HAR-3)")
     for i, nm in enumerate(pins, 1):
         link(nm, j[f"P{i}"])
     # solar strings: body J4 PX, J5 MX, J6 PY, J7 MY (SA+, SA-, TEMP); wings J8 W1, J9 W2 (SA1+ front, SA2+ back, SA-, SA-, TEMP)
@@ -528,19 +552,16 @@ def charge_control():
 
 # ================================================================================================= 4 pack, AFE, protection
 def pack_and_protection():
-    # series pack line: BAT_TOP - F2 - RT1 - F3 (secondary-protector fuse) - gauge shunt - AFE FETs - PACK_P
+    # series pack line: BAT_TOP - F2 - RT1 - gauge shunt - AFE FETs - PACK_P. The secondary over-voltage protector
+    # (BQ771806, its heater driver and its three-terminal fuse F3) is on the battery sense board from Version F (own
+    # taps at the cells; F3 sees the pack's temperature; BATTERY_DESIGN 7.2; RIDs SMA-B03, MFG-003 item 1)
     p = place(TF, "F2", "5A", "FM12A72V5.0A", "AEM / MIL-PRF-23419/12 QPL", "FM12 solid-body SMD", "5 A, 72 VDC, interrupt 1000 A at 72 VDC (MIL-PRF-23419/12), cold 13.5-22.5 mOhm",
-              "1.40 A / (5 A x 0.80 at 60 C, assumed) = 35 %; 2.0 A fault case 50 %", "pack fuse, non-resettable; same part as F0 on the battery sense board",
+              "1.36 A / (5 A x 0.80 at 60 C, assumed) = 34 %; 2.0 A fault case 50 %", "pack fuse, non-resettable; same part as F0A and F0N on the battery sense board",
               "per MIL-PRF-23419/12 (Au or SnPb terminations: order the non-tin finish)", "NASA NEPP NPSL list: FM12A72V5.0A (cold resistance); interrupt rating from the slash sheet")
     conn(p, {"A": "BAT_TOP", "B": "N_F2"})
     p = place(TPTC, "RT1", "2.6A", "2920L260/33DR", "Littelfuse", "2920", "PPTC hold 2.6 A, trip 5.0 A, 33 V, 40 A",
-              "1.40 A / 1.92 A hold at 60 C = 73 %", "pack PTC", "Sn; coat", "Digi-Key: Active")
-    conn(p, {"A": "N_F2", "B": "N_RT1"})
-    p = place(S_ITV, "F3", "ITV 12A", "ITV4030L1412NR", "Littelfuse", "4030 (3-terminal SMD)",
-              "12 A, 36 VDC, 50 A break, heater 11.2-20 Ohm, triggerable 10.5-19.6 V",
-              "1.31 A / 10 A at 60 C = 13 %; operating temp -10..+65 C (qualification item)", "secondary over-voltage fuse",
-              "Sn; coat", "Digi-Key: Active")
-    conn(p, {"T1": "N_RT1", "HTR": "F3_HTR", "T3": "BAT_F3"})
+              "1.36 A / 1.92 A hold at 60 C = 71 %", "pack PTC", "Sn; coat", "Digi-Key: Active")
+    conn(p, {"A": "N_F2", "B": "BAT_F3"})
     RSH(0.010, "BAT_F3", "BAT_F", "WSLP1206R0100FEA", "1206", 1.0, note="gauge / IBATT / CC shunt (high side)",
         stress="1.31 A^2 x 10 mOhm = 17 mW", ref="RS6")
     # AFE FETs (high side, common drain): CHG source at BAT_F, DSG source at PACK_P
@@ -626,24 +647,6 @@ def pack_and_protection():
     C("100n", "3V3_MCU", "GND")
     R(100e3, "AFE_ALERT", "AFE_ALERT_X", note="cross-domain series")
     R(1e6, "AFE_ALERT_X", "GND")
-    # secondary over-voltage protector (own taps, own filters): BQ771806 4.35 V, 3 s; OUT -> divider -> FET -> F3 heater
-    for tap, pin in (("TAP1", "V1"), ("TAP2", "V2"), ("TAP3", "V3"), ("TAP4", "V4")):
-        R(1e3, tap, f"OVP_{pin}", note="independent tap filter")
-        C("100n", f"OVP_{pin}", "BAT_BOT")
-    R(100, "N_RT1", "OVP_VDD", note="protector supply ahead of F3")
-    C("1u", "OVP_VDD", "OVPV_CM", 50, "0805", note="series pair, 0.5 uF (fail-safe, RID SMA-B15)")
-    C("1u", "OVPV_CM", "BAT_BOT", 50, "0805", note="series pair (fail-safe, RID SMA-B15)")
-    ic(S_BQ7718, "U2", "BQ771806", "BQ771806DPJR", "TI", "WSON-8 (DPJ)", "2-5S OV protector, 4.350 V +/-10 mV, 3 s, CMOS active high",
-       {"VDD": "OVP_VDD", "V5": "OVP_V4", "V4": "OVP_V4", "V3": "OVP_V3", "V2": "OVP_V2", "V1": "OVP_V1",
-        "VSS": "BAT_BOT", "OUT": "OVP_OUT"}, stress="VDD 17.4 V / 25 V = 70 %", notes="secondary OV (V5 tied to V4 for 4S)",
-       finish="NiPdAu|Sn")
-    R(47e3, "OVP_OUT", "OVP_G", note="gate divider: 17.4 V -> 11.8 V")
-    R(100e3, "OVP_G", "BAT_BOT")
-    Q("PMV40UN2", "Q16", "OVP_G", "BAT_BOT", "F3_HTR", stress="Vds 17.4 V/30 V = 58 %; Vgs <= 8.2 V (D22) / 12 V = 68 %",
-      note="F3 heater driver; gate divider and 8.2 V zener D22")
-    p = place(TD, "D22", "BZX84-C8V2", "BZX84-C8V2,215", "Nexperia", "SOT-23", "Zener 8.2 V 250 mW", "0.2 mA", "Q16 Vgs clamp",
-              "Sn", "not checked")
-    conn(p, {"K": "OVP_G", "A": "BAT_BOT"})
     # wake: DS2 released -> Q23 pulls TS2 to VSS
     Q("2N7002BK", "Q23", "WAKE_G", "BAT_BOT", "AFE_TS2", note="AFE wake from SHUTDOWN on DS2 release")
     R(1e6, "S2R", "WAKE_G")
@@ -655,13 +658,13 @@ def inhibits():
     # DS1: P-FET, source PACK_P, drain VB1; gate divider to PACK_N through the DS1 NC contact (harness via 10 k)
     Q("IPD50P04P4L-11", "Q4", "G1", "PACK_P", "VB1", stress="Vds 17.4 V/40 V = 44 %; Vgs -8.4 V/-16 V = 53 %", note="DS1 inhibit FET")
     R(1e6, "G1", "PACK_P")
-    C("47n", "G1", "PACK_P")
+    C("68n", "G1", "PACK_P", note="filter >= 10 ms at -40 C and -10 % (X7R)")
     R(1e6, "G1", "S1N")
     R(10e3, "PACK_N", "DS1_C", note="harness short protection")
     # DS3: P-FET, source VB1, drain VB3; gate divider to GND through the DS3 NC contact
     Q("IPD50P04P4L-11", "Q5", "G3", "VB1", "VB3", stress="Vds 17.4 V/40 V = 44 %; Vgs -8.4 V/-16 V = 53 %", note="DS3 inhibit FET")
     R(1e6, "G3", "VB1")
-    C("47n", "G3", "VB1")
+    C("68n", "G3", "VB1", note="filter >= 10 ms at -40 C and -10 % (X7R)")
     R(1e6, "G3", "S3N")
     # DS2: back-to-back N-FETs PACK_N - CS2 - GND; gate from BAT_F through 10 k, DS2 NC, RBF pole A, 1.2 M
     Q("BUK9Y4R4-40E", "Q6", "G2", "CS2", "PACK_N", stress="Vgs 7.3 V/10 V = 73 %", note="DS2 inhibit FET A")
@@ -673,7 +676,7 @@ def inhibits():
     R(10e3, "DS2_SRC", "DS2_C", note="harness short protection")
     R(1.3e6, "S2R", "G2")
     R(1.0e6, "G2", "CS2")
-    C("47n", "G2", "CS2")
+    C("68n", "G2", "CS2", note="filter >= 10 ms at -40 C and -10 % (X7R)")
     # DEPLOY_SENSE (OBC PE2): DS2 released, 1 M series and clamp
     R(1e6, "S2R", "DEPLOY_SENSE", note="cross-domain series 1 M")
     R(1e6, "DEPLOY_SENSE", "GND")
@@ -842,7 +845,7 @@ def rails_and_switches():
     p = place(TF, "F4", "250mA", "0466.250NR", "Littelfuse", "1206 (Pico 466)", "0.25 A, 125 V", "79 mA: 32 %", "heater fuse",
               "Sn; coat", "Digi-Key listing")
     conn(p, {"A": "HTR_SW", "B": "HTR_F"})
-    RSH(0.5, "HTR_F", "HTR_P", "WSL0805R5000FEA", "0805", 0.125, note="heater current (INA3221)", stress="3 mW", ref="RS11")
+    RSH(0.5, "HTR_F", "HTR_P", "WSL2010R5000FEA", "2010", 0.5, note="heater current (INA3221)", stress="3 mW", ref="RS11")
     Q("PMV40UN2", "Q22", "HCUT_EFF", "GND", "HTR_N", stress="Vds 16.8/30 = 56 %; 79 mA", note="heater +40 C hardware cutout (series, low side)")
     # SW11 magnetorquer bridge supply (SQSO-ICX-001 E3): VBAT -> J3-36/39, enable ADCS_EN, limit 0.361 A (0.325-0.397 A),
     # auto-retry (DELAY pulled up: 40 ms on / 1 s off in a sustained overload); diagnostics only while enabled
@@ -876,7 +879,7 @@ def rails_and_switches():
            {"IN": vin, "GND": "GND", "EN": en_node, "FAULT": en_node, "ILIM": f"{sw}_ILIM" if rlim else vin, "OUT": vout},
            stress=f"IN {('5.0' if vin == '5V_PA' else '3.3')} V/6.5 V = {(5.0 if vin == '5V_PA' else 3.3) / 6.5:.0%}",
            notes=f"{what}: current limit, latch-up trip and auto-retry (FAULT pulls EN low; off 0.6 x 100 k x {cret}F)")
-        R(100e3, en, en_node, note="R_FAULT (retry, TPS2553 data sheet figure 28)")
+        R(150e3 if cret == "22u" else 100e3, en, en_node, note="R_FAULT (retry, TPS2553 data sheet figure 28)")
         if cret == "22u":
             C("22u", en_node, "GND", 16, "1210", note="C_RETRY: >= 1 s off after a trip", vop=3.3)
         else:
@@ -1200,7 +1203,7 @@ def build():
     telemetry_and_mcu()
     import re
     pat = re.compile(r"^(S_(W[12][FB]|P[XY]|M[XY])|T[1-4]_(IN|L)|BXP_W[12][AB]|OVP_VDD|SET_REQ|RST_REQ|OBC_CYCLE|3V3_BK|5V_BK|"
-                     r"3V3_RADIO_U|5V_PA_U|3V3_ADCS_U|3V3_GNSS_U|3V3_ANTS_U|HTR_.*|UMB_.*|N_F2|N_RT1|FET_CD)$")
+                     r"3V3_RADIO_U|5V_PA_U|3V3_ADCS_U|3V3_GNSS_U|3V3_ANTS_U|HTR_.*|UMB_.*|N_F2|FET_CD)$")
     for name, n in _nets.items():
         if name in POWER_NETS or pat.match(name):
             n.drive = POWER
