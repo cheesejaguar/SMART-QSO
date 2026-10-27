@@ -31,12 +31,12 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | ID | Title | Path | Revision | Status |
 |----|-------|------|----------|--------|
 | SQSO-BL-001 | SMART-QSO Baseline Parameters (Single Source of Truth) | `docs/BASELINE_PARAMETERS.md` | E | Draft; governs where documents disagree (its §0). Records PI decisions D1–D9 |
-| SQSO-OAP-001 | Orbital Access Plan | `docs/ORBITAL_ACCESS.md` | B | Draft; launch chain, backup and decision points DP-1 to DP-9 |
+| SQSO-OAP-001 | Orbital Access Plan | `docs/ORBITAL_ACCESS.md` | C | Draft; launch chain, backup and decision points DP-1 to DP-9 |
 | SQSO-DOC-001 | SMART-QSO Document Register | `docs/DOCUMENT_REGISTER.md` | B | Draft |
-| SQSO-ES-001 | SMART-QSO Executive Summary | `docs/EXECUTIVE_SUMMARY.md` | 2.0 | Draft |
+| SQSO-ES-001 | SMART-QSO Executive Summary | `docs/EXECUTIVE_SUMMARY.md` | 2.2 | Draft |
 | SQSO-CDS-001 | CubeSat Design Specification Compliance Matrix | `docs/compliance/CDS_COMPLIANCE_MATRIX.md` | B | Draft; statuses are design intent, not verified (its notice) |
 | SQSO-COMP-004 | Export Control Assessment | `docs/compliance/EXPORT_CONTROL.md` | A | Draft; its system and Jetson classifications are superseded by SQSO-REG-012 |
-| SQSO-ICD-010 | Launch Provider Interface Control Document | `docs/compliance/LAUNCH_PROVIDER_ICD.md` | E | Draft; not agreed with any provider (its notice) |
+| SQSO-ICD-010 | Launch Provider Interface Control Document | `docs/compliance/LAUNCH_PROVIDER_ICD.md` | F | Draft; not agreed with any provider (its notice) |
 | SQSO-MAT-001 | Materials and Outgassing Compliance List | `docs/compliance/MATERIALS_LIST.md` | B | Draft |
 | SQSO-ODAR-001 | Orbital Debris Assessment Report | `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md` | A | Superseded by SQSO-REG-018 (its notice) |
 | SQSO-BS-001 | Branching Strategy | `docs/development/BRANCHING_STRATEGY.md` | A | Draft |
@@ -45,26 +45,26 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-DEV-004 | Commit Message Standard | `docs/development/COMMIT_MESSAGES.md` | A | Draft |
 | SQSO-DEV-005 | Software Release Procedure | `docs/development/RELEASE_PROCEDURE.md` | D | Draft |
 | SQSO-DB-001 | SMART-QSO Data Budget | `docs/environment/DATA_BUDGET.md` | 2.0 | Draft |
-| SQSO-ETP-001 | Environmental Test Plan | `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` | C.1 | Draft |
-| SQSO-LBA-001 | SMART-QSO Link Budget Analysis | `docs/environment/LINK_BUDGET_ANALYSIS.md` | 3.0 | Draft |
+| SQSO-ETP-001 | Environmental Test Plan | `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` | C.2 | Draft |
+| SQSO-LBA-001 | SMART-QSO Link Budget Analysis | `docs/environment/LINK_BUDGET_ANALYSIS.md` | 3.1 | Draft |
 | SQSO-MB-001 | SMART-QSO Mass Budget | `docs/environment/MASS_BUDGET.md` | 3.1 | Draft |
-| SQSO-OA-001 | SMART-QSO Orbit Analysis | `docs/environment/ORBIT_ANALYSIS.md` | 1.1 | Draft |
-| SQSO-PBA-001 | SMART-QSO Power Budget Analysis | `docs/environment/POWER_BUDGET_ANALYSIS.md` | 2.0 | Draft |
-| SQSO-BSA-001 | SMART-QSO Battery Safety Assessment | `docs/environment/BATTERY_SAFETY_ASSESSMENT.md` | A | Draft; analysis |
-| SQSO-EMC-001 | SMART-QSO Electromagnetic Compatibility Assessment | `docs/environment/EMC_ANALYSIS.md` | A | Draft; analysis |
+| SQSO-OA-001 | SMART-QSO Orbit Analysis | `docs/environment/ORBIT_ANALYSIS.md` | 1.2 | Draft |
+| SQSO-PBA-001 | SMART-QSO Power Budget Analysis | `docs/environment/POWER_BUDGET_ANALYSIS.md` | 2.1 | Draft |
+| SQSO-BSA-001 | SMART-QSO Battery Safety Assessment | `docs/environment/BATTERY_SAFETY_ASSESSMENT.md` | B | Draft; analysis |
+| SQSO-EMC-001 | SMART-QSO Electromagnetic Compatibility Assessment | `docs/environment/EMC_ANALYSIS.md` | B | Draft; analysis |
 | SQSO-SA-001 | SMART-QSO Structural Analysis | `docs/environment/STRUCTURAL_ANALYSIS.md` | B | Draft; analysis |
-| SQSO-MECH-001 | SMART-QSO Mechanisms Analysis | `docs/environment/MECHANISMS_ANALYSIS.md` | B | Draft; analysis |
-| SQSO-ENV-002 | Radiation Environment Analysis | `docs/environment/RADIATION_ANALYSIS.md` | C | Draft |
+| SQSO-MECH-001 | SMART-QSO Mechanisms Analysis | `docs/environment/MECHANISMS_ANALYSIS.md` | C | Draft; analysis |
+| SQSO-ENV-002 | Radiation Environment Analysis | `docs/environment/RADIATION_ANALYSIS.md` | D | Draft |
 | SQSO-REL-001 | SMART-QSO Reliability Analysis | `docs/environment/RELIABILITY_ANALYSIS.md` | 2.0 | Draft |
 | SQSO-THA-001 | SMART-QSO Thermal Analysis | `docs/environment/THERMAL_ANALYSIS.md` | 2.0 | Draft |
 | SQSO-GND-001 | Ground Station Design | `docs/ground/GROUND_STATION_DESIGN.md` | C | Draft |
-| SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.1 | Draft |
+| SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.2 | Draft |
 | SMART-QSO-ADCS-001 | Attitude Determination and Control Subsystem (ADCS) Design Document | `docs/hardware/ADCS_DESIGN.md` | 1.5 | Draft |
 | SQSO-BVB-001 | Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery | `docs/hardware/BUILD_VS_BUY.md` | B | Draft; vendor data from public pages, no quotes |
 | SMART-QSO-EPS-001 | Electrical Power Subsystem (EPS) Design Document | `docs/hardware/EPS_DESIGN.md` | 2.2 | Draft |
 | SQSO-HDP-001 | SMART-QSO Hardware Development Plan | `docs/hardware/HARDWARE_DEVELOPMENT_PLAN.md` | 1.0 | Draft |
 | SQSO-BOM-001 | SMART-QSO Parts List / Bill of Materials | `docs/hardware/PARTS_LIST.md` | 1.1 | Draft |
-| SMART-QSO-PAYLOAD-001 | AI Payload (Jetson Orin Nano) Design Document | `docs/hardware/PAYLOAD_DESIGN.md` | 1.1 | Draft |
+| SMART-QSO-PAYLOAD-001 | AI Payload (Jetson Orin Nano) Design Document | `docs/hardware/PAYLOAD_DESIGN.md` | 1.2 | Draft |
 | SQSO-PAY-SEL-001 | OBC Selector and Transponder Scheduler: Detailed Design | `docs/payload/OBC_SELECTOR_DESIGN.md` | A | Draft; designed, not implemented |
 | SMART-QSO-RF-001 | Radio Frequency (RF) Subsystem Design Document | `docs/hardware/RF_DESIGN.md` | 2.1 | Draft; architecture superseded by the baseline (its notice) |
 | SQSO-INT-005 | Anomaly Resolution Procedure | `docs/integration/ANOMALY_RESOLUTION.md` | A | Draft |
@@ -75,37 +75,37 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-INT-003 | Pre-Ship Review Checklist | `docs/integration/PRE_SHIP_CHECKLIST.md` | A | Draft |
 | SQSO-INT-006 | Test Data Management Plan | `docs/integration/TEST_DATA_MANAGEMENT.md` | B | Draft |
 | SMART-QSO-ICD-006 | Interface Control Document: Beacon Format | `docs/interfaces/ICD_BEACON_FORMAT.md` | 1.0 | Draft |
-| SQSO-ICD-004 | Interface Control Document: OBC to ADCS Subsystem | `docs/interfaces/ICD_OBC_ADCS.md` | 1.1 | Draft |
-| SMART-QSO-ICD-001 | Interface Control Document: OBC-EPS | `docs/interfaces/ICD_OBC_EPS.md` | 1.1 | Draft |
-| SMART-QSO-ICD-002 | Interface Control Document: OBC-Jetson | `docs/interfaces/ICD_OBC_JETSON.md` | 1.2 | Draft |
+| SQSO-ICD-004 | Interface Control Document: OBC to ADCS Subsystem | `docs/interfaces/ICD_OBC_ADCS.md` | 1.2 | Draft |
+| SMART-QSO-ICD-001 | Interface Control Document: OBC-EPS | `docs/interfaces/ICD_OBC_EPS.md` | 1.2 | Draft |
+| SMART-QSO-ICD-002 | Interface Control Document: OBC-Jetson | `docs/interfaces/ICD_OBC_JETSON.md` | 1.3 | Draft |
 | SQSO-ICD-003 | Interface Control Document: OBC to RF Subsystem | `docs/interfaces/ICD_OBC_RF.md` | 2.1 | Draft |
-| SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 2.0 | Draft |
+| SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 2.2 | Draft |
 | SQSO-ICD-000 | Interface Control Document - Master | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | C | Draft |
 | SQSO-IVP-001 | SMART-QSO Interface Verification Plan | `docs/interfaces/INTERFACE_VERIFICATION_PLAN.md` | 1.0 | Draft |
-| SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.7 | Draft |
-| SQSO-MFG-002 | EEE Parts List | `docs/manufacturing/EEE_PARTS_LIST.md` | C | Draft |
+| SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.8 | Draft |
+| SQSO-MFG-002 | EEE Parts List | `docs/manufacturing/EEE_PARTS_LIST.md` | D | Draft |
 | SQSO-WP-001 | Workmanship Plan | `docs/manufacturing/WORKMANSHIP_PLAN.md` | B | Draft |
 | SQSO-WKS-001 | SMART-QSO Workmanship Standards | `docs/manufacturing/WORKMANSHIP_STANDARDS.md` | 1.1 | Draft |
 | SQSO-MSC-001 | SMART-QSO Mission Success Criteria | `docs/mission/MISSION_SUCCESS_CRITERIA.md` | 2.0 | Draft |
-| SQSO-LVR-001 | Launch Vehicle and Dispenser Requirements Flow-Down | `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` | B | Draft; from published provider documents, no mission ICD yet |
-| SQSO-SCH-001 | Integrated Master Schedule | `mission/SCHEDULE.md` | A | Draft; planning estimates |
-| SQSO-RISK-001 | Risk Register | `mission/RISK_REGISTER.md` | B | Living document |
+| SQSO-LVR-001 | Launch Vehicle and Dispenser Requirements Flow-Down | `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` | C | Draft; from published provider documents, no mission ICD yet |
+| SQSO-SCH-001 | Integrated Master Schedule | `mission/SCHEDULE.md` | B | Draft; planning estimates |
+| SQSO-RISK-001 | Risk Register | `mission/RISK_REGISTER.md` | C | Living document |
 | SQSO-AR-001 | SMART-QSO Anomaly Report Template | `docs/operations/ANOMALY_REPORT_TEMPLATE.md` | 1.0 | Template |
 | SQSO-ARP-001 | SMART-QSO As-Run Procedure Template | `docs/operations/AS_RUN_PROCEDURE_TEMPLATE.md` | 1.0 | Template |
 | SQSO-OPS-003 | Command and Telemetry Database | `docs/operations/CMD_TLM_DATABASE.md` | A | Draft; command sections superseded (its notice) |
-| SQSO-CMD-001 | SMART-QSO Command Dictionary | `docs/operations/COMMAND_DICTIONARY.md` | 1.0 | Draft |
+| SQSO-CMD-001 | SMART-QSO Command Dictionary | `docs/operations/COMMAND_DICTIONARY.md` | 1.1 | Draft |
 | SQSO-COMM-001 | SMART-QSO Commissioning Plan | `docs/operations/COMMISSIONING_PLAN.md` | 2.0 | Draft |
 | SQSO-CP-001 | SMART-QSO Contingency Procedures | `docs/operations/CONTINGENCY_PROCEDURES.md` | 1.0 | Draft |
-| SQSO-EOL-001 | End-of-Life Plan | `docs/operations/END_OF_LIFE_PLAN.md` | A | Draft |
+| SQSO-EOL-001 | End-of-Life Plan | `docs/operations/END_OF_LIFE_PLAN.md` | B | Draft |
 | SQSO-OPS-005 | Launch Campaign Checklist | `docs/operations/LAUNCH_CAMPAIGN_CHECKLIST.md` | B | Draft |
-| SQSO-OPS-004 | Launch Site Operations Plan | `docs/operations/LAUNCH_SITE_OPS.md` | B | Draft |
+| SQSO-OPS-004 | Launch Site Operations Plan | `docs/operations/LAUNCH_SITE_OPS.md` | C | Draft |
 | SQSO-MOP-001 | Mission Operations Plan | `docs/operations/MISSION_OPERATIONS_PLAN.md` | B | Draft |
 | SQSO-MRC-001 | SMART-QSO Mission Rules and Constraints | `docs/operations/MISSION_RULES.md` | 1.0 | Draft |
-| SQSO-MTL-001 | SMART-QSO Mission Timeline and Event Sequence | `docs/operations/MISSION_TIMELINE.md` | 2.0 | Draft |
+| SQSO-MTL-001 | SMART-QSO Mission Timeline and Event Sequence | `docs/operations/MISSION_TIMELINE.md` | 2.1 | Draft |
 | SQSO-OTM-001 | SMART-QSO Operator Training Materials | `docs/operations/OPERATOR_TRAINING_MATERIALS.md` | 1.0 | Draft |
 | SQSO-OTP-001 | SMART-QSO Operator Training Plan | `docs/operations/OPERATOR_TRAINING_PLAN.md` | 1.0 | Draft |
 | SQSO-SRP-001 | SMART-QSO Software Rollback and Recovery Procedures | `docs/operations/SOFTWARE_ROLLBACK_PROCEDURES.md` | 1.0 | Draft |
-| SQSO-TLM-001 | SMART-QSO Telemetry Dictionary | `docs/operations/TELEMETRY_DICTIONARY.md` | 1.0 | Draft |
+| SQSO-TLM-001 | SMART-QSO Telemetry Dictionary | `docs/operations/TELEMETRY_DICTIONARY.md` | 1.1 | Draft |
 | SQSO-AUD-006 | Onboard AI Model Selection (Decision D5) | `docs/payload/AI_MODEL_SELECTION.md` | A | Draft |
 | SMART-QSO-CMP-001 | Configuration Management Plan (CMP) | `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` | 1.1 | Draft |
 | SQSO-CRL-001 | SMART-QSO Change Request Log | `docs/project/CHANGE_REQUEST_LOG.md` | D | Living document |
@@ -115,23 +115,23 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-MAP-001 | SMART-QSO Mission Assurance Plan | `docs/project/MISSION_ASSURANCE_PLAN.md` | 2.0 | Draft |
 | SQSO-PM-001 | Project Plan | `docs/project/PROJECT_PLAN.md` | B | Draft |
 | SQSO-PM-002 | CDR Governing Framework, Tailoring and Criteria Compliance Matrix | `docs/project/CDR_CRITERIA_MATRIX.md` | A | Draft |
-| SMART-QSO-SEMP-001 | Systems Engineering Management Plan (SEMP) | `docs/project/SEMP.md` | 2.0 | Draft |
-| SQSO-REG-001 | IARU Satellite Frequency Coordination — Status | `docs/regulatory/IARU_COORDINATION.md` | D | Draft |
+| SMART-QSO-SEMP-001 | Systems Engineering Management Plan (SEMP) | `docs/project/SEMP.md` | 2.1 | Draft |
+| SQSO-REG-001 | IARU Satellite Frequency Coordination — Status | `docs/regulatory/IARU_COORDINATION.md` | E | Draft |
 | SQSO-REG-003 | Licensing Pathway Determination | `docs/regulatory/LICENSING_PATHWAY_DETERMINATION.md` | B.1 | Draft |
-| SQSO-REG-004 | Regulatory and Launch-Authorization Roadmap | `docs/regulatory/REGULATORY_ROADMAP.md` | B | Draft |
-| SQSO-REG-002 | Spectrum Authorization Status | `docs/regulatory/SPECTRUM_LICENSE.md` | C | Draft |
+| SQSO-REG-004 | Regulatory and Launch-Authorization Roadmap | `docs/regulatory/REGULATORY_ROADMAP.md` | C | Draft |
+| SQSO-REG-002 | Spectrum Authorization Status | `docs/regulatory/SPECTRUM_LICENSE.md` | D | Draft |
 | SQSO-REG-012 | Export Control Classification Memorandum | `docs/regulatory/filings/EXPORT_CLASSIFICATION_MEMO.md` | B | Draft; to be confirmed by export counsel (its header) |
-| SQSO-REG-014 | FCC Part 97 In-Space and Post-Space Notifications (Templates) | `docs/regulatory/filings/FCC_97-207_IN_SPACE_AND_POST_SPACE_NOTIFICATIONS.md` | A.1 | Template; not filed |
-| SQSO-REG-013 | FCC Part 97 Pre-Space Notification (Draft) | `docs/regulatory/filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md` | A.1 | Draft; not filed |
-| SQSO-REG-010 | IARU Amateur Satellite Frequency Coordination Request — Draft (form v40 layout) | `docs/regulatory/filings/IARU_COORDINATION_REQUEST_v40.md` | A.2 | Draft; not submitted |
-| SQSO-REG-017 | ITU Appendix 4 Data Sheet (Advance Publication / Notification) | `docs/regulatory/filings/ITU_APPENDIX4_DATA.md` | A.1 | Draft |
-| SQSO-REG-016 | Launch Provider Deliverables Package | `docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md` | B | Draft |
+| SQSO-REG-014 | FCC Part 97 In-Space and Post-Space Notifications (Templates) | `docs/regulatory/filings/FCC_97-207_IN_SPACE_AND_POST_SPACE_NOTIFICATIONS.md` | A.2 | Template; not filed |
+| SQSO-REG-013 | FCC Part 97 Pre-Space Notification (Draft) | `docs/regulatory/filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md` | A.2 | Draft; not filed |
+| SQSO-REG-010 | IARU Amateur Satellite Frequency Coordination Request — Draft (form v40 layout) | `docs/regulatory/filings/IARU_COORDINATION_REQUEST_v40.md` | A.3 | Draft; not submitted |
+| SQSO-REG-017 | ITU Appendix 4 Data Sheet (Advance Publication / Notification) | `docs/regulatory/filings/ITU_APPENDIX4_DATA.md` | A.2 | Draft |
+| SQSO-REG-016 | Launch Provider Deliverables Package | `docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md` | C | Draft |
 | SQSO-REG-011 | NOAA Commercial Remote Sensing — License Applicability Determination | `docs/regulatory/filings/NOAA_REMOTE_SENSING_DETERMINATION.md` | A.1 | Draft |
 | SQSO-REG-018 | Orbital Debris Assessment Report (ODAR) | `docs/regulatory/filings/ODAR_SMART-QSO.md` | Draft A | Draft; NASA DAS not yet run (its header) |
 | SQSO-REG-015 | Space Safety Registration and Conjunction Response Plan | `docs/regulatory/filings/SPACE_SAFETY_REGISTRATION_AND_CONJUNCTION_PLAN.md` | C | Draft |
-| SQSO-REQ-001 | Mission Requirements Document | `docs/requirements/MISSION_REQUIREMENTS.md` | D | Draft |
+| SQSO-REQ-001 | Mission Requirements Document | `docs/requirements/MISSION_REQUIREMENTS.md` | E | Draft |
 | SMART-QSO-RTM-001 | Requirements Traceability Matrix (RTM) | `docs/requirements/REQUIREMENTS_TRACEABILITY.md` | 1.1 | Draft |
-| SQSO-REQ-002 | System Requirements Specification | `docs/requirements/SYSTEM_REQUIREMENTS.md` | E | Draft |
+| SQSO-REQ-002 | System Requirements Specification | `docs/requirements/SYSTEM_REQUIREMENTS.md` | F | Draft |
 | SQSO-REV-CDR-001 | SMART-QSO Critical Design Review (CDR) | `docs/reviews/CDR/CDR_REVIEW_MINUTES.md` | — | Self-assessment record; no independent CDR held |
 | SQSO-CDR-TB-001 | SMART-QSO CDR Technical Baseline | `docs/reviews/CDR/CDR_TECHNICAL_BASELINE.md` | 1.3 | Self-assessment; not an independent review (its notice) |
 | SMART-QSO-CDR-001 | SMART-QSO Critical Design Review (CDR) Package | `docs/reviews/CDR_PACKAGE.md` | 1.5 | Self-assessment; not an independent review (its notice) |
@@ -151,35 +151,35 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-TRR-001 | SMART-QSO Test Readiness Review Package | `docs/reviews/TEST_READINESS_REVIEW.md` | 1.0 | Template |
 | SQSO-REV-004 | SMART-QSO Verification and Validation Package | `docs/reviews/VERIFICATION_VALIDATION_PACKAGE.md` | 1.2 | Draft; status claims not substantiated (its notice) |
 | SQSO-SDP-001 | SMART-QSO Software Safety Data Package | `docs/safety/SAFETY_DATA_PACKAGE.md` | 1.2 | Draft |
-| SQSO-SDP-002 | SMART-QSO System Safety Data Package | `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` | 1.0 | Draft; 16 hazard reports |
-| SQSO-FMEA-002 | SMART-QSO System (Hardware) FMEA and Critical Items List | `docs/safety/SYSTEM_FMEA_CIL.md` | A | Draft; analysis |
+| SQSO-SDP-002 | SMART-QSO System Safety Data Package | `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` | 1.1 | Draft; 16 hazard reports |
+| SQSO-FMEA-002 | SMART-QSO System (Hardware) FMEA and Critical Items List | `docs/safety/SYSTEM_FMEA_CIL.md` | B | Draft; analysis |
 | SQSO-SEC-001 | Space System Protection and Security Plan | `docs/safety/SPACE_SYSTEM_PROTECTION_PLAN.md` | A | Draft |
 | SQSO-REV-CDR-002 | Design Review against the NPR 7123.1D CDR Criteria (2026-10-27) | `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md` | A | Draft; engineering assessment by AI reviewers, not an independent board |
-| SQSO-FMEA-001 | Software Failure Mode and Effects Analysis (FMEA) | `docs/safety/SOFTWARE_FMEA.md` | B | Draft |
-| SQSO-SHA-001 | Software Hazard Analysis | `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` | B | Draft |
-| SQSO-SSP-001 | Software Safety Plan | `docs/safety/SOFTWARE_SAFETY_PLAN.md` | D | Draft |
+| SQSO-FMEA-001 | Software Failure Mode and Effects Analysis (FMEA) | `docs/safety/SOFTWARE_FMEA.md` | C | Draft |
+| SQSO-SHA-001 | Software Hazard Analysis | `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` | C | Draft |
+| SQSO-SSP-001 | Software Safety Plan | `docs/safety/SOFTWARE_SAFETY_PLAN.md` | E | Draft |
 | SQSO-SW-008 | Build Configurations | `docs/software/BUILD_CONFIGURATIONS.md` | D | Draft |
 | SQSO-SW-006 | Software Configuration Index | `docs/software/CONFIGURATION_INDEX.md` | B | Draft |
 | SQSO-RRP-001 | SMART-QSO Rollback and Recovery Procedures | `docs/software/ROLLBACK_RECOVERY_PROCEDURES.md` | 1.2 | Draft |
 | SMART-QSO-SDD-001 | Software Design Description (SDD) | `docs/software/SOFTWARE_DESIGN.md` | 1.1 | Draft |
-| SMART-QSO-SDP-001 | Software Development Plan (SDP) | `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` | 1.3 | Draft |
+| SMART-QSO-SDP-001 | Software Development Plan (SDP) | `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` | 1.4 | Draft |
 | SQSO-SMP-001 | SMART-QSO Software Maintenance Plan | `docs/software/SOFTWARE_MAINTENANCE_PLAN.md` | 1.1 | Draft |
-| SMART-QSO-SRS-001 | Software Requirements Specification (SRS) | `docs/software/SOFTWARE_REQUIREMENTS.md` | 1.6 | Draft |
-| SQSO-FSW-012 | NPR 7150.2D Requirements Mapping and Compliance Matrix (Class C) | `docs/software/NPR7150_COMPLIANCE_MATRIX.md` | A | Draft |
+| SMART-QSO-SRS-001 | Software Requirements Specification (SRS) | `docs/software/SOFTWARE_REQUIREMENTS.md` | 1.7 | Draft |
+| SQSO-FSW-012 | NPR 7150.2D Requirements Mapping and Compliance Matrix (Class C) | `docs/software/NPR7150_COMPLIANCE_MATRIX.md` | B | Draft |
 | SMART-QSO-STP-001 | Software Test Plan (STP) | `docs/software/SOFTWARE_TEST_PLAN.md` | 1.2 | Draft |
 | SQSO-SVD-001 | Software Version Description | `docs/software/SOFTWARE_VERSION_DESCRIPTION.md` | D | Draft |
 | SQSO-E2E-001 | SMART-QSO End-to-End Test Plan | `docs/test/END_TO_END_TEST_PLAN.md` | 1.0 | Draft |
 | SQSO-FTEG-001 | SMART-QSO Flatsat Test Execution Guide | `docs/test/FLATSAT_TEST_EXECUTION_GUIDE.md` | 1.0 | Draft |
 | SQSO-TP-001 | SMART-QSO Flatsat Test Procedures | `docs/test/FLATSAT_TEST_PROCEDURES.md` | 1.0 | Draft |
 | SQSO-STC-001 | SMART-QSO System Test Cases | `docs/test/SYSTEM_TEST_CASES.md` | 1.0 | Draft |
-| SQSO-SIL-001 | Mission Simulation (Software in the Loop) | `docs/test/SIL_MISSION_SIMULATION.md` | B | Draft; models are analysis-grade, not correlated with hardware |
+| SQSO-SIL-001 | Mission Simulation (Software in the Loop) | `docs/test/SIL_MISSION_SIMULATION.md` | C | Draft; models are analysis-grade, not correlated with hardware |
 | SQSO-ATP-001 | SMART-QSO Acceptance Test Procedure | `docs/test_procedures/ACCEPTANCE_TEST_PROCEDURE.md` | 1.0 | Draft; no run recorded |
 | TP-ADCS-001 | Test Procedure: ADCS Sensor Test | `docs/test_procedures/TP-ADCS-001_Sensor_Test.md` | B | Draft; no run recorded |
 | SQSO-TP-ADCS-002 | Test Procedure: ADCS Actuator Test | `docs/test_procedures/TP-ADCS-002_Actuator_Test.md` | 1.1 | Draft; no run recorded |
 | SQSO-TP-ADCS-003 | Test Procedure: ADCS Algorithm Test | `docs/test_procedures/TP-ADCS-003_Algorithm_Test.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-DITL-001 | TP-DITL-001: Day-in-the-Life Test Procedure | `docs/test_procedures/TP-DITL-001_DAY_IN_THE_LIFE.md` | 1.1 | Draft; no run recorded |
 | TP-ENV-001 | Test Procedure: Pre-Environmental Baseline | `docs/test_procedures/TP-ENV-001_Pre_Environmental.md` | C | Draft; no run recorded |
-| TP-ENV-002 | Test Procedure: Vibration Test | `docs/test_procedures/TP-ENV-002_Vibration.md` | E | Draft; no run recorded |
+| TP-ENV-002 | Test Procedure: Vibration Test | `docs/test_procedures/TP-ENV-002_Vibration.md` | F | Draft; no run recorded |
 | TP-ENV-003 | Test Procedure: Thermal Vacuum Test | `docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md` | D | Draft; no run recorded |
 | SQSO-TP-ENV-004 | Test Procedure: EMC/EMI Test | `docs/test_procedures/TP-ENV-004_EMC.md` | 1.2 | Draft; no run recorded |
 | SQSO-TP-ENV-005 | Test Procedure: Deployment Test (Post-Environmental) | `docs/test_procedures/TP-ENV-005_Deployment_Post_Env.md` | 1.1 | Draft; no run recorded |
@@ -214,7 +214,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-TP-RF-005 | Test Procedure: Antenna Deployment | `docs/test_procedures/TP-RF-005_Antenna_Deployment.md` | 1.1 | Draft; no run recorded |
 | TP-RF-006 | Test Procedure: Telecommand TX-OFF at the Antenna Port | `docs/test_procedures/TP-RF-006_TX_OFF.md` | Draft | Draft; no run recorded |
 | TP-SYS-001 | Test Procedure: Comprehensive Functional Test | `docs/test_procedures/TP-SYS-001_Comprehensive_Functional.md` | A | Draft; no run recorded |
-| TP-SYS-002 | Test Procedure: Day-In-The-Life Test | `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md` | C | Draft; no run recorded |
+| TP-SYS-002 | Test Procedure: Day-In-The-Life Test | `docs/test_procedures/TP-SYS-002_Day_In_The_Life.md` | D | Draft; no run recorded |
 | SQSO-CAP-001 | Configuration Audit Procedures | `docs/verification/CONFIGURATION_AUDIT_PROCEDURES.md` | 1.1 | Draft |
 | SQSO-CVM-001 | SMART-QSO ConOps Validation Matrix | `docs/verification/CONOPS_VALIDATION_MATRIX.md` | 1.0 | Draft |
 | SQSO-RTM-001 | SMART-QSO Requirements Traceability Matrix | `docs/verification/REQUIREMENTS_TRACEABILITY_MATRIX.md` | 1.2 | Draft |
@@ -225,37 +225,39 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-ADCS-ACT-001 | ADCS Actuator Design Document | `hardware/adcs/ACTUATOR_DESIGN.md` | 1.0 | Draft |
 | SQSO-ADCS-003 | ADCS Electrical Design Specification | `hardware/adcs/ADCS_ELECTRICAL_DESIGN.md` | 1.0 | Draft |
 | SQSO-ADCS-SEN-001 | ADCS Sensor Design Document | `hardware/adcs/SENSOR_DESIGN.md` | 1.1 | Draft |
-| SQSO-HW-DIAG-001 | System Diagrams: Block, Wiring and Schematic | `hardware/diagrams/README.md` | A | Draft; preliminary, parts not selected |
-| SQSO-EPS-BAT-001 | Battery Design Document | `hardware/eps/BATTERY_DESIGN.md` | 2.3 | Draft |
+| SQSO-HW-DIAG-001 | System Diagrams: Block, Wiring and Schematic | `hardware/diagrams/README.md` | B | Draft; preliminary, parts not selected |
+| SQSO-EPS-BAT-001 | Battery Design Document | `hardware/eps/BATTERY_DESIGN.md` | 2.4 | Draft |
 | SQSO-EPS-003 | EPS Electrical Design Specification | `hardware/eps/EPS_ELECTRICAL_DESIGN.md` | 1.3 | Draft |
 | SQSO-EPS-PDU-001 | Power Distribution Unit (PDU) Design Document | `hardware/eps/PDU_DESIGN.md` | 1.3 | Draft |
 | SQSO-EPS-SA-001 | Solar Array Design Document | `hardware/eps/SOLAR_ARRAY_DESIGN.md` | 2.1 | Draft |
-| SQSO-HAR-001 | Harness and Interconnect Design Document | `hardware/harness/HARNESS_DESIGN.md` | 1.1 | Draft |
+| SQSO-HAR-001 | Harness and Interconnect Design Document | `hardware/harness/HARNESS_DESIGN.md` | 1.2 | Draft |
 | SQSO-CDH-OBC-001 | On-Board Computer (OBC) Design Document | `hardware/obc/OBC_DESIGN.md` | 1.7 | Draft |
 | SQSO-OBC-003 | OBC Electrical Design Specification | `hardware/obc/OBC_ELECTRICAL_DESIGN.md` | 1.1 | Draft |
 | SQSO-OBC-002 | Storage Design Document | `hardware/obc/STORAGE_DESIGN.md` | 1.6 | Draft |
-| SQSO-PAY-JET-001 | Jetson Orin Nano Integration Design Document | `hardware/payload-jetson/INTEGRATION_DESIGN.md` | 1.0 | Draft |
-| SQSO-JET-002 | Jetson Payload Power Management | `hardware/payload-jetson/POWER_MANAGEMENT.md` | 1.0 | Draft |
+| SQSO-PAY-JET-001 | Jetson Orin Nano Integration Design Document | `hardware/payload-jetson/INTEGRATION_DESIGN.md` | 1.1 | Draft |
+| SQSO-JET-002 | Jetson Payload Power Management | `hardware/payload-jetson/POWER_MANAGEMENT.md` | 1.1 | Draft |
 | SQSO-RF-ANT-001 | Antenna Design Document | `hardware/rf/ANTENNA_DESIGN.md` | 2.1 | Draft |
 | SQSO-RF-003 | RF Electrical Design Specification | `hardware/rf/RF_ELECTRICAL_DESIGN.md` | 1.2 | Draft |
 | SQSO-RF-TX-001 | RF Transmitter Design Document | `hardware/rf/TRANSMITTER_DESIGN.md` | 1.4 | Draft |
-| SQSO-STR-001 | Structural Design Document | `hardware/structure/STRUCTURAL_DESIGN.md` | 1.3 | Draft |
+| SQSO-STR-001 | Structural Design Document | `hardware/structure/STRUCTURAL_DESIGN.md` | 1.4 | Draft |
 | SQSO-MECH-CAD-001 | SMART-QSO Mechanical Design: CAD Model and Structural Finite-Element Model | `hardware/mechanical/MECHANICAL_DESIGN.md` | B | Draft; envelope level |
 | SQSO-ICX-001 | SMART-QSO Spacecraft Electrical Interconnect (master pin allocation) | `hardware/electrical/INTERCONNECT.md` | A | Draft; build-to design, not yet fabricated |
 | SQSO-RF-BRD-001 | SMART-QSO RF Board: Build-to Design | `hardware/electrical/rf/RF_BOARD_DESIGN.md` | A | Draft; schematic and BOM, not yet fabricated |
 | SQSO-EPS-BRD-001 | SMART-QSO EPS Board: Build-to Design | `hardware/electrical/eps/EPS_BOARD_DESIGN.md` | B | Draft; schematic and BOM, not yet fabricated |
 | SQSO-OBC-BRD-001 | SMART-QSO OBC Board: Build-to Design | `hardware/electrical/obc/OBC_BOARD_DESIGN.md` | A | Draft; schematic and BOM, not yet fabricated |
-| SQSO-THM-001 | Thermal Design Document | `hardware/structure/THERMAL_DESIGN.md` | 1.3 | Draft |
+| SQSO-JET-BRD-001 | Jetson Orin Nano Carrier Board Design | `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` | A | Draft; schematic and BOM, not yet fabricated |
+| SQSO-JET-BRD-001 | Jetson Orin Nano Carrier Board Design | `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` | A | Draft; schematic and BOM, not yet fabricated |
+| SQSO-THM-001 | Thermal Design Document | `hardware/structure/THERMAL_DESIGN.md` | 1.4 | Draft |
 | SQSO-FSW-AUTO-001 | Autonomy Design | `software/flight/docs/AUTONOMY_DESIGN.md` | B | Draft |
 | SQSO-FSW-BOOT-001 | Bootloader Requirements | `software/flight/docs/BOOTLOADER_REQUIREMENTS.md` | B | Draft |
 | SQSO-FSW-FDIR-001 | Fault Detection, Isolation, and Recovery Design | `software/flight/docs/FDIR_DESIGN.md` | A | Draft |
 | SQSO-FSW-008 | Include Dependencies | `software/flight/docs/INCLUDE_DEPENDENCIES.md` | B | Draft |
 | SMART-QSO-JPL-POT-001 | JPL Power of Ten Rules Compliance Audit | `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` | 1.2 | Draft |
 | SQSO-SW-007 | Loop Bounds Documentation | `software/flight/docs/LOOP_BOUNDS.md` | B | Draft |
-| SQSO-FSW-006 | Memory Allocation Policy | `software/flight/docs/MEMORY_POLICY.md` | D | Draft |
+| SQSO-FSW-006 | Memory Allocation Policy | `software/flight/docs/MEMORY_POLICY.md` | E | Draft |
 | SQSO-FSW-010 | MISRA C:2012 Deviation Log | `software/flight/docs/MISRA_DEVIATIONS.md` | C | Draft |
 | SQSO-FSW-009 | Naming Convention | `software/flight/docs/NAMING_CONVENTION.md` | B | Draft |
-| SQSO-FSW-RAD-001 | Radiation Mitigation Design | `software/flight/docs/RADIATION_MITIGATION.md` | B | Draft |
+| SQSO-FSW-RAD-001 | Radiation Mitigation Design | `software/flight/docs/RADIATION_MITIGATION.md` | C | Draft |
 | SMART-QSO-API-DOC-001 | SMART-QSO Flight Software API Documentation | `software/flight/docs/README.md` | 1.1 | Draft |
 | SQSO-FSW-011 | RTOS Architecture | `software/flight/docs/RTOS_ARCHITECTURE.md` | C | Draft |
 | SQSO-FSW-TIME-001 | Time Management Design | `software/flight/docs/TIME_MANAGEMENT.md` | B | Draft |

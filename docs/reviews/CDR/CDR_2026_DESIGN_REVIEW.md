@@ -154,18 +154,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-255 RIDs: severity 1: 29, severity 2: 141, severity 3: 85.
+266 RIDs: severity 1: 29, severity 2: 146, severity 3: 91.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 94 | 123 |
-| Closed by chair decision | 35 | 34 |
-| Verification item | 32 | 31 |
-| Decision point (dated) | 11 | 11 |
-| Implementation | 58 | 31 |
+| Closed by design change | 95 | 127 |
+| Closed by chair decision | 36 | 35 |
+| Verification item | 35 | 34 |
+| Decision point (dated) | 12 | 12 |
+| Implementation | 63 | 33 |
 
-Open implementation RIDs: SE-01, RF-04, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, THM-02, THM-08, THM-15, AV-03, AV-06, AV-07, FSW-05, FSW-07, FSW-09, RAD-02, RFB-03, RFB-04, EPSB-01, EPSB-03, EPSB-06, OBCB-01, OBCB-02, OBCB-03, OBCB-04, OBCB-05.
+Open implementation RIDs: SE-01, RF-04, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, THM-02, THM-08, THM-15, AV-03, AV-07, FSW-05, FSW-07, FSW-09, RAD-02, RFB-03, RFB-04, EPSB-01, EPSB-03, EPSB-06, JETB-01, JETB-02, JETB-03, JETB-05, MCAD-06, OBCB-01, OBCB-02, OBCB-05.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -397,6 +397,9 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | MCAD-01 | 2 | Wing torsion springs do not fit the hinge envelope; flex bend radius 1.25 mm | IMP | Closed by design change | Two coaxial 17-7PH torsion springs, clock-spring flex, damped stop: end-of-travel torque margin +0.14 cold (+0.13 one spring out) (MECHANISMS_ANALYSIS B §4A); VI-STR-04, VI-MECH-01, VI-MECH-02 |
 | MCAD-02 | 3 | Torquer deck 23 g against 6 g in the MEL | IMP | Closed by design change | Deck 1.0 mm skeleton 9 g; MEL row 5 re-split, total unchanged (MASS_BUDGET 3.1) |
 | MCAD-03 | 3 | Sweep clearance 0.35 mm needs the body cells offset 1 mm | DP | Decision point (dated) | Panel vendor RFQ |
+| MCAD-04 | 2 | Gyro module 14 mm tall cannot fit under the carrier; raising the carrier or a bracket do not fit layout B | CD | Closed by design change | Gyro on the OBC through a 27 × 27 mm carrier window with a 2.2 g frame: 1.5 mm clearance, carrier Steinberg +0.09, inertia ratio 1.056 / 1.047, axis 0.4° / 1.4° (MECHANICAL_DESIGN §4.3, D-11) |
+| MCAD-05 | 2 | Board-mounted gyro is 0.6-1.0° off the body axes: 0.7° uses the whole 0.1 °/s bias budget at 8 °/s | VI | Verification item | VI-MCAD-05: measure the gyro axes to ≤ 0.1° on the flight stack; correction matrix to the flight software |
+| MCAD-06 | 3 | RM3100 43 mm from the Y rod end and 10 mm below carrier parts | IMP | Implementation | OBC designer re-assesses the magnetometer location and the 20 mm magnetic keep-out on the carrier; AV-V4 coupling test |
 
 #### Electrical power (EPS)
 
@@ -465,7 +468,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | AV-03 | 1 | No driver or pins for the gyro, magnetometer, sun sensors, magnetorquers; no sensor-rail latch-up switch | IMP | Implementation | Pins and hardware in the OBC board design; drivers in the flight software |
 | AV-04 | 2 | GNSS chain missing | CD | Closed by design change | LPUART1 PG7/PG8, GNSS_EN PE5, gnss_schedule.rs; receiver trip VI AV-V8 |
 | AV-05 | 2 | No TONE_OK or XPDR_KEY readbacks | IMP | Closed by design change | TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 (timer capture) with pull-downs (SQSO-ICX-001) |
-| AV-06 | 2 | One software state bit drives both Jetson switches, no readback | IMP | Implementation | Independent lines with readback (OBC board design); PAYLOAD_DESIGN 1.1 §11.1 |
+| AV-06 | 2 | One software state bit drives both Jetson switches, no readback | IMP | Closed by design change | PAYLOAD_EN and JETSON_PWR on separate lines with JET_PG readback; JET_3V3 high only when the whole chain is up (SQSO-JET-BRD-001, SQSO-ICX-001) |
 | AV-07 | 2 | No SRAM parity handler, TMR or scrubbing | IMP | Implementation | SRAM2 parity with NMI handler; CRC of critical state (flight software round 2) |
 | AV-08 | 2 | OBC and radio rail latch-up trips not specified | IMP | Closed by design change | Current-limited auto-retry rails: OBC 0.15 A, radio 0.12 A, sensors 0.30 A, GNSS 0.20 A, EPS controller 75 mA, AntS 1.37 A, PA 0.99 A (SQSO-EPS-BRD-001) |
 | AV-09 | 2 | Idle USART1 TX can back-power the unpowered Jetson | IMP | Closed by design change | UART through SN74LVC1T45-Q1 buffers powered from the carrier's 3.3 V: high impedance when the carrier is off |
@@ -506,6 +509,54 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | GNC-04 | 2 | Magnetometer not selected, no driver | IMP | Closed by chair decision | Magnetometer: PNI RM3100 on the OBC board, bought-module footprint as fallback (chair accepts OBC_BOARD_DESIGN §24 C1); driver in the flight software |
 | GNC-05 | 2 | Spin axis and inertia selectable for one wing | CD | Closed by design change | ADCS_SET_GEOMETRY 0x24; SRS-F094 |
 | GNC-06 | 3 | Rod remanence not modelled | VI | Verification item | AV-V4 |
+
+#### RF board (round 2) (RFB)
+
+| RID | Sev | Finding | Round 1 | Final disposition | Evidence |
+|-----|-----|---------|---------|-------------------|----------|
+| RFB-01 | 2 | Transponder draws 1.76 W DC at 0.5 W RF, not the baseline's ≈ 1.5 W | CH | Closed by chair decision | BASELINE §5 allocation 1.8 W DC / 0.44 W orbit average; margins +32 %/+75 % (allocation), +53 %/+29 % (bottom-up) |
+| RFB-02 | 3 | Receive SAW drift and clock harmonics at 435.000 MHz constrain the uplink | CH | Closed by chair decision | BASELINE §7 Uplink: request 435.050-436.500 MHz |
+| RFB-03 | 2 | Analog FM receivers discontinued: repeat audio passes through the TNC firmware | IMP | Implementation | TNC firmware as a Class C item in the SDP and the NPR 7150.2D matrix |
+| RFB-04 | 3 | Unkey ≤ 118 ms after a stalled main loop against VI-RF-11's 100 ms | IMP | Implementation | Shorten the heartbeat lease to ≤ 40 ms, or define VI-RF-11 from the last edge |
+| RFB-05 | 3 | TCXO two-year ageing up to 2.1 ppm | CH | Closed by chair decision | Ground corrects the uplink from the measured downlink offset (same reference); no new command |
+| RFB-06 | 3 | Radio rail trip 0.25 A cannot see a 38 mA latch-up; LMX2571 margin at ±3 % rail | IMP | Closed by design change | Radio trip 0.12 A with current telemetry; 3V3_AO ±2 % (≥ 3.22 V at the RF connector) (SQSO-EPS-BRD-001) |
+
+#### EPS board (round 2) (EPSB)
+
+| RID | Sev | Finding | Round 1 | Final disposition | Evidence |
+|-----|-----|---------|---------|-------------------|----------|
+| EPSB-01 | 2 | Firmware fires driver A on both wings at once: 1.25 A at the pack | IMP | Implementation | Chair: four independent burn lines, one resistor at a time (0.67 A); flight software and SIL |
+| EPSB-02 | 3 | Uplink must avoid the synchronised converters' harmonics | CH | Closed by chair decision | BASELINE §7 Uplink: 435.222-435.778 MHz, else 436.222-436.500 MHz |
+| EPSB-03 | 2 | EPS controller (MSP430FR2355) firmware is a new configuration item | IMP | Implementation | Class C item in the SDP and the NPR 7150.2D matrix |
+| EPSB-04 | 3 | Tracker efficiency 90.9-92.3 % against EPS-F002's 92 % | VI | Verification item | EM measurement V-EPS; generation effect < 2 %, inside the power margins |
+| EPSB-05 | 3 | ITV4030 fuses rated from −10 °C, below the board's −30 °C allowable | VI | Verification item | V-EPS-8 qualification |
+| EPSB-06 | 3 | Cross-document consistency after the EPS board (B2, diagram README, radiation trip table, BSA H8a, ICD-001, EMC E6/E8, IARU uplink windows) | IMP | Implementation | Documentation consistency pass |
+| EPSB-07 | 3 | No magnetorquer current monitor on the EPS board | CH | Closed by chair decision | Coil current is the sum of the OBC's MTQ_X/Y/Z_I channels; SW11 (TPS1H000A, 0.361 A, auto-retry) protects VBAT_MTQ (SQSO-EPS-BRD-001 B) |
+
+#### OBC board (round 2) (OBCB)
+
+| RID | Sev | Finding | Round 1 | Final disposition | Evidence |
+|-----|-----|---------|---------|-------------------|----------|
+| OBCB-01 | 1 | PAYLOAD_EN on PB4: the JTAG pull-up at reset switches the Jetson rail on at every OBC reset | IMP | Implementation | Move to PB2 (SQSO-ICX-001); firmware pin map |
+| OBCB-02 | 2 | Twenty-five firmware pin changes and new drivers (gyros, magnetometer, sun-sensor ADC, coils on TIM1/TIM15, RTC, supervisor kick) | IMP | Implementation | Flight software round 3 |
+| OBCB-03 | 2 | Gyro module needs 14 mm above the OBC; the stack gives 11.4 mm | IMP | Closed by design change | Gyro on the OBC through a carrier window (MCAD-04, MECHANICAL_DESIGN D-11) |
+| OBCB-04 | 2 | No carrier board design for the Jetson (its 3.3 V I/O rail, VBAT input) | IMP | Closed by design change | Jetson carrier build-to design SQSO-JET-BRD-001 (137 placements, ERC 0): 5.016 V buck and eFuse to VDD_IN, switched JET_3V3, translated UART |
+| OBCB-05 | 3 | Magnetorquers draw 1.16-1.3 W in detumble; not in the power analysis | IMP | Implementation | Documentation consistency: POWER_BUDGET_ANALYSIS LEOP case |
+| OBCB-06 | 3 | OBC-rail fault that does not trip SW10 goes undetected | CH | Closed by chair decision | Accepted: the external supervisor and the internal watchdog cover a hung OBC; an EPS-side heartbeat check is a fabrication-phase option |
+| OBCB-07 | 3 | Gyro supply margin 3.195 V against 3.15 V minimum | VI | Verification item | V-OBC measurement on the EM; the 3V3_AO ±2 % set point (EPS) holds it |
+
+#### Jetson carrier board (round 2) (JETB)
+
+| RID | Sev | Finding | Round 1 | Final disposition | Evidence |
+|-----|-----|---------|---------|-------------------|----------|
+| JETB-01 | 2 | Jetson burst draws 7.7-8.0 W at the carrier input in the 7 W mode: no margin to the 8 W allocation | IMP | Implementation | Chair: cap the module at 6.5 W (VDD_IN average limit 1300 mA, INA3221 ch 1), nvpmodel ID 1 default (+6.5 to +10 %); payload software configuration |
+| JETB-02 | 2 | Heat-spreader temperature has no sensor path with the carrier off (guard 70 °C, power-on gate −15 °C) | IMP | Implementation | W5B to 6 pins with the spreader thermistor passed through; OBC ADC channel and 10.0 kΩ bias (E10) |
+| JETB-03 | 2 | Module needs 8N2 from the OBC, a commanded SHUTDOWN before power removal (hold-up 0.11 ms), JPC from IMON_JET | IMP | Implementation | Flight software round 3 (uart.rs 8N2; SHUTDOWN, JET_PG fall ≤ 5 s, then JETSON_PWR and PAYLOAD_EN 10 ms apart; ICD-002 1.3 §10) |
+| JETB-04 | 3 | A full 10-minute burst costs about 424 J per beacon line against the 360 J gate | CH | Closed by chair decision | The energy gate, not the 10-minute limit, ends a burst; the generated-text experiment stays gated (decision D5); templates are the baseline |
+| JETB-05 | 3 | Carrier mechanics: spreader pedestal, 0.05 mm flatness, module standoffs, flush fastener at (0, −21) under the module | IMP | Implementation | Mechanical CAD |
+| JETB-06 | 3 | NVIDIA Product and Thermal Design Guides not obtained: POWER_EN to SYS_RESET* timing, PCIe AC-coupling, FORCE_RECOVERY*, routing, lid θjc | DP | Decision point (dated) | Payload lead obtains DG-10931-001 and TDG-11127-001 through an NVIDIA developer account by 2027-02-01, before carrier layout |
+| JETB-07 | 3 | Some carrier part numbers confirmed only from distributor listings | VI | Verification item | BOM verification against manufacturer data before the EM order (MFG-002 receiving inspection) |
+| JETB-08 | 3 | NVIDIA screens the module at 2 Grms only; flight level is 8.18 Grms | VI | Verification item | V-JET-8: random vibration of the populated carrier at protoflight level, functional test before and after |
 <!-- RID-LOG-END -->
 
 ## 7. Verdict

@@ -1,7 +1,7 @@
 # AI Payload (Jetson Orin Nano) Design Document
 
 **Document Number**: SMART-QSO-PAYLOAD-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-10-27
 **Status**: Preliminary Design
 
@@ -715,6 +715,26 @@ until the authenticated commissioning release (SRS-F082). `PLD_ENABLE` is refuse
   `docs/interfaces/ICD_OBC_JETSON.md` §9).
 - Thermal: the spreader-to-structure path is analysed by the thermal reviewer; the guard limits above do not change.
 
+## 12. Carrier Board (2026-10-27, SQSO-JET-BRD-001 A)
+
+The carrier is designed to part level in `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` (schematic as code, netlist,
+BOM, ERC, calculations). It corrects this document where they disagree:
+
+| Item | This document before | Carrier design (governs) |
+|------|----------------------|--------------------------|
+| Module and power input | "Orin Nano Super", 5 V 3 A (§2.3), "7 W–25 W" | Orin Nano 8 GB (900-13767-0030-000, P3767-0003); **VDD_IN 4.75–5.25 V only** (DS-11105-001 v1.5 Table 5-1: the 5–20 V range is the Orin NX's). The carrier converts VBAT to 5.02 V (LM61440-Q1) behind an eFuse with 5.38 V overvoltage lock-out and a 2.51 A latching circuit breaker (TPS259474L) |
+| Second switch | "U3 carrier eFuse, TPS25947 class, 1.2 A" (§11.1) | the 1.2 A eFuse on JETSON_PWR is the EPS board's U19 (TPS16630); the carrier adds its own VDD_IN breaker (§11.2's layers gain one: 2.51 A at 5 V, ≤ 3.2 ms) |
+| Storage | 16 GB eMMC on the module (§3.2); microSD (INTEGRATION_DESIGN §5) | the production module has only QSPI-NOR boot flash; rootfs, models and data on a Swissbit N2600 40 GB pSLC M.2 2230 NVMe (PCIe C4, Gen2 x1) |
+| UART | 3.3 V, 8N1 | module UART1 is 1.8 V CMOS, translated on the carrier; the OBC transmits 8N2 (DS §2.10.4) |
+| Power mode (TB-13) | "nvpmodel -m 0" as 7 W (§3.3) | 7 W is mode ID 1 of the **original** flash configuration (ID 0 is 15 W); the Super configuration has no 7 W mode. Default mode set to ID 1, plus a 6.5 W VDD_IN average cap, because at the full 7 W budget the carrier input is 7.7–8.0 W: the 8 W limit is met only with the cap (7.2–7.5 W) |
+| Ready signal | RDY_PAYLOAD GPIO (§2.3, Appendix A) | none: the carrier's JET_3V3 on W5B pin 4 is the power-good; the OBC waits for STATUS |
+| Power-off | enable low after an optional shutdown | `SHUTDOWN` → module `poweroff` → carrier latch → JET_3V3 low → OBC opens the switches (ICD-002 1.3 §10.4) |
+| Thermal (§7.4) | copper braid to −Z | spreader pedestal on the SoC lid through a 1.0 mm gap pad, ≤ 38 N clamp (module limit 80 N); junction-to-spreader 1.1–1.2 K/W estimated against the 5.7 K/W allowable (THM-10) |
+| Spreader temperature | "OBC's own thermistor" (§11.3), no hardware path | 10 kΩ NTC on the spreader, passed through the carrier on W5B pins 5–6 to an OBC ADC channel (interface change E10, for the chair) |
+
+Appendix A's pinout (40-pin developer-kit header) does not apply to the flight carrier; the module pins used are listed in
+the carrier design §11.
+
 ---
 
 ## Appendix A: Jetson Orin Nano Pinout
@@ -757,3 +777,4 @@ Raw Text Data → Tokenization → Model Training → Quantization → TensorRT 
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §11 new: two series switches and their independence (RID AV-06), latch-up and over-power trips, thermal limits, fallback; §6, §7 and §10 marked as preliminary where §11 governs |
+| 1.2 | 2026-10-27 | Payload carrier design (CDR design completion) | §12 new: carrier board SQSO-JET-BRD-001 summary and the corrections it makes (5 V-only module input, storage, 1.8 V UART and 8N2, 7 W mode and the 6.5 W cap for TB-13, power-good, commanded switch-off, thermal interface, spreader thermistor) |

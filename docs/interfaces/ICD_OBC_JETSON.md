@@ -1,7 +1,7 @@
 # Interface Control Document: OBC-Jetson
 
 **Document Number**: SMART-QSO-ICD-002
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Status**: Preliminary
 
@@ -314,9 +314,56 @@ direction; or the firmware switching PA9 to an analog input while `JETSON_PWR` i
 after power-good. Until then the interface is not verified for power-off isolation (test: TX idle with the carrier off,
 measure the carrier's 3.3 V rail; pass below 0.3 V).
 
+## 10. Carrier Interface as Designed (SQSO-JET-BRD-001 A)
+
+The carrier board is designed (`hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`). Where §2, §3, §5.2 and §9 disagree
+with this section, this section governs.
+
+### 10.1 Connectors
+
+| Harness | Carrier connector | Pin | Signal | Level |
+|---------|-------------------|-----|--------|-------|
+| W5A (from EPS J18) | J1 Molex Micro-Fit 3.0 2×2, 0430450412 | 1, 2 | VBAT_JET | 11.2–16.4 V (18.4 V EPS OVP), ≤ 1.30 A (EPS eFuse) |
+| | | 3, 4 | GND | |
+| W5B (from OBC J3) | J2 Molex Pico-Clasp **6**, 5013310607 (was 4: change E10) | 1 | GND | |
+| | | 2 | JET_RXD (OBC TX → module UART1 RXD, pin 205) | 3.3 V CMOS, 33 Ω, 100 kΩ pull-up on the carrier |
+| | | 3 | JET_TXD (module UART1 TXD, pin 203 → OBC RX) | 3.3 V CMOS, 33 Ω |
+| | | 4 | JET_3V3: carrier 3.3 V I/O rail and power-good | 3.3 V through 100 Ω, ≤ 1 mA drawn (E9) |
+| | | 5 | PT_NTC: spreader thermistor (10 kΩ NTC), passed through | biased by the OBC |
+| | | 6 | PT_RTN: thermistor return (not carrier GND) | OBC analogue ground |
+
+### 10.2 Electrical
+
+| Item | Value |
+|------|-------|
+| Module input | VDD_IN 4.75–5.25 V only (Orin Nano: MODULE_ID low, DS-11105-001 v1.5 Table 5-1); the carrier makes it from VBAT |
+| UART | Module UART1 is 1.8 V CMOS (DS Table 2-13), translated on the carrier (SN74LVC1T45-Q1 on SYS_RESET*-switched rails). **The OBC transmits 8N2**: the module's receiver needs two stop bits (DS §2.10.4). 115200 baud unchanged; the module may transmit 8N1 |
+| JET_3V3 | High only when both EPS switches are on, the carrier converters run, VDD_IN is good, POWER_EN is released and the module has finished its power sequence (SYS_RESET* high). Falls within 0.1 ms of any of these failing, including a carrier latch-up trip and a module shutdown |
+| Isolation | With the carrier off every carrier-side translator pin is high-impedance (Ioff, VCC isolation); no module I/O exceeds 0.5 V before SYS_RESET* rises (DS §3.6.1). V-OBC-9 remains the test |
+| Burst power | ≤ 8 W at the carrier input only with the module capped at 6.5 W (7.2–7.5 W); at the full 7 W mode budget 7.7–8.0 W (carrier §13) |
+
+### 10.3 Timing
+
+| Event | Time from the switches on |
+|-------|---------------------------|
+| POWER_EN released | 23 ms |
+| JET_3V3 high (JET_PG) | ≈ 100 ms (module sequence; DG-10931-001 governs) |
+| First STATUS line | 20–45 s (to be measured, V-JET-3) |
+
+### 10.4 Switch-off (supersedes the §9 row "no SHUTDOWN message is sent")
+
+Normal end of a burst: the OBC sends `SHUTDOWN`; the payload runs `poweroff`; the module asserts SHUTDOWN_REQ*, which
+the carrier latches (POWER_EN held low until VBAT is removed); JET_3V3 falls; the OBC then drives JETSON_PWR low and
+PAYLOAD_EN 10 ms later. If JET_3V3 has not fallen 5 s after `SHUTDOWN`, the OBC cuts both lines anyway. A JET_3V3 fall
+while the rail is commanded on and no `SHUTDOWN` was sent is a payload fault (carrier trip or module thermal shutdown):
+the OBC cuts both lines and logs it. An uncommanded cut is tolerated (carrier §7.4; V-JET-5) but is not the normal path.
+Flight-software changes F1–F3 of the carrier design §19 are for the chair.
+
 ## Appendix A: Reference Documents
 
 1. Jetson Orin Nano Developer Kit Carrier Board Specification
+1a. NVIDIA DS-11105-001 v1.5, Jetson Orin Nano Series Modules Data Sheet (December 2024)
+1b. SQSO-JET-BRD-001 A, Jetson Orin Nano Carrier Board Design (`hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`)
 2. STM32L4 Reference Manual (RM0351)
 3. SMART-QSO System Requirements Specification
 4. AX.25 Link Access Protocol for Amateur Packet Radio
@@ -330,3 +377,4 @@ measure the carrier's 3.3 V rail; pass below 0.3 V).
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-15 | Funding audit | §4 made exact (line rules, 512-byte limit, STATUS_REQ, STATUS fields, BEACON_RSP text, NACK reasons, golden lines) and implemented on both sides (SW-24) |
 | 1.2 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §9 new: interface as built (power through SW1 and U3 from VBAT, 8 W limit, connector pin 4, switch-on/off, fallback); back-powering through the idle TX line (RID AV-09) |
+| 1.3 | 2026-10-27 | Payload carrier design (CDR design completion) | §10 new: carrier connectors (W5B 6 pins with the spreader thermistor, change E10), 5 V-only module input, 1.8 V UART translated on the carrier, OBC transmits 8N2, JET_3V3 as power-good, timing, commanded switch-off with SHUTDOWN and JET_3V3 (supersedes the §9 switch-off row) |

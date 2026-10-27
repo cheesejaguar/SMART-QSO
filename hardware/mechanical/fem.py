@@ -635,7 +635,7 @@ class SC:
 
 
 def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_car=1.6, deck_E=0.35,
-                     spider_r=2.6, car_window=True) -> SC:
+                     spider_r=2.6, car_window=True, car_frame=True) -> SC:
     sys.path.insert(0, HERE)
     import model as CAD
     P = CAD.P
@@ -651,6 +651,7 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
     xr = 47.33                     # rail centroid (L 8.5 x 8.5 x 1.5): 2.67 mm in from the outer faces
     zmz, zpz = -47.7, 49.2         # end-plate mid-planes (CDS frame: -Z outer face -48.5 recessed, +Z outer +50)
     zb = dict(deck=-16.0, EPS=P["z_eps"] + 0.8, OBC=P["z_obc"] + 0.8, carrier=P["z_car"] + 0.8, RF=P["z_rf"] + 0.8)
+    special_t = dict(EPS=t_eps, OBC=1.6, carrier=t_car, RF=1.6, deck=1.0)
     zsp = 30.3
     wxm = 53.6                     # wing substrate mid-plane (x)
     hy, hz0, hz1, hdy, hdz, snz = 38.5, -40.0, 44.85, P["holddown_y"], P["holddown_z"], P["snub_z"]
@@ -776,6 +777,24 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
     for k in range(len(zcs) - 1):
         beam("centre_support", (0, 21, zcs[k]), (0, 21, zcs[k + 1]), "Al6061", colsec, v=(1, 0, 0), kEI=1 / 3, kEA=1.0)
     beam("centre_support", (0, 0, zsp), (0, 0, zb["RF"]), "Al6061", colsec, v=(1, 0, 0), kEI=1 / 3, kEA=1.0)
+    # ---------------- carrier window frame (D-11): Al 2.5 x 3.0 mm on the bottom face, offset from the mid-plane ---
+    if car_window and car_frame:
+        fw, fh = P["car_frame_w"], P["car_frame_h"]
+        d = fh / 2 + t_car / 2
+        n_ = MAT["FR4"]["E"] / MAT["Al6061"]["E"]
+        bp, tp = 20 * t_car, t_car                     # effective plate strip, 10 t each side
+        Ap, Ar = n_ * bp * tp, fw * fh
+        yb = Ar * d / (Ap + Ar)
+        Iy = n_ * bp * tp ** 3 / 12 + Ap * yb ** 2 + fw * fh ** 3 / 12 + Ar * (d - yb) ** 2 - n_ * bp * tp ** 3 / 12
+        rs = beam_section_rect(fw, fh)
+        fsec = sec_mm(dict(A=Ar, Iy=Iy, Iz=rs["Iz"], J=rs["J"], cy=fw / 2, cz=d + fh / 2))
+        x0, x1, y0, y1 = cw
+        xe = [x for x in X if x0 - 1e-6 <= x <= x1 + 1e-6]
+        ye = [y for y in Y if y0 - 1e-6 <= y <= y1 + 1e-6]
+        segs = [((xe[i], y), (xe[i + 1], y)) for y in (y0, y1) for i in range(len(xe) - 1)] + \
+               [((x, ye[i]), (x, ye[i + 1])) for x in (x0, x1) for i in range(len(ye) - 1)]
+        for (ax_, ay_), (bx_, by_) in segs:
+            beam("carrier_frame", (ax_, ay_, zb["carrier"]), (bx_, by_, zb["carrier"]), "Al6061", fsec, v=(0, 0, 1))
     if cs2:                                  # second support under the module: "deck" deck->EPS->OBC->carrier,
         zc2 = [zb["deck"], zb["EPS"], zb["OBC"], zb["carrier"]]   # "eps" EPS->OBC->carrier (clears the GNSS receiver)
         if cs2 == "eps":
@@ -950,7 +969,7 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
                                               md.xyz[i][1] / mm <= cw[3] + 1e-6 for i in md.shells[k]["n"])]
     gyro_nodes = sorted({i for k in gy for i in md.shells[k]["n"]})
     nsm_to(gy, mass["gyro_MG370"], "gyro on OBC")
-    car_m = mass["Jetson_carrier"] + mass["Jetson_carrier_parts"]
+    car_m = mass["Jetson_carrier"] + mass["Jetson_carrier_parts"]      # the window frame is the beams' own mass
     nsm_to(groups["carrier"], car_m - shell_struct_mass(groups["carrier"]) * 1e3, "carrier board")
     jy = P["jet_y"]
     modk = [k for k in groups["carrier"] if all(-34.8 - 1e-6 <= md.xyz[i][0] / mm <= 34.8 + 1e-6 and jy - 26.5 - 1e-6
@@ -1014,7 +1033,7 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
         bnodes[g_] = sorted({i for k in groups[g_] for i in md.shells[k]["n"]})
     special = dict(spiders=spider_count, iso_beams=iso_beams, ear_beams=ear_beams, battery_master=master, battery_mass=m_tot,
                    battery_I=Ic, colsec=colsec, isosec=isosec, wing_shells=wing_shells, mass_total_cad=sum(mass.values()),
-                   gyro_nodes=gyro_nodes,
+                   gyro_nodes=gyro_nodes, board_t=special_t,
                    window_edge_nodes=sorted({i for k in groups["carrier"] for i in md.shells[k]["n"]
                                              if cw[0] - 5.1 <= md.xyz[i][0] / mm <= cw[1] + 5.1
                                              and cw[2] - 5.1 <= md.xyz[i][1] / mm <= cw[3] + 5.1}))
@@ -1286,6 +1305,9 @@ def stresses(res, verbose=True):
            factor=(MAT["A286"]["E"] / al["E"]) * (1.195 / 2.89),
            note="stud stress = (E_A286/E_Al)(c_stud/c_hex) x spacer stress (same curvature)")
     report("centre supports", [("beam", k) for k in sc.bgroups["centre_support"]], al["Fty"], al["Ftu"], 1.25, 1.40)
+    if "carrier_frame" in sc.bgroups:
+        report("carrier window frame (Al 6061)", [("beam", k) for k in sc.bgroups["carrier_frame"]], al["Fty"],
+               al["Ftu"], 1.25, 1.40)
     isb = sc.special["iso_beams"]
     iso = sc.special["isosec"]
     report("battery isolator, G-10CR bushing (bending + axial)", [("beam", k) for k in isb], None, MAT["G10CR"]["Ftu"],
@@ -1318,9 +1340,11 @@ def stresses(res, verbose=True):
                 shear = max(shear, np.abs(U[6 * j + d, :] - U[6 * i + d, :]).max() * spg["k"][d])
         hd[g_] = dict(normal_qs_N=float(rel_qs), normal_rand3s_N=v3, inplane_qs_N=float(shear))
     # Steinberg
-    zallow = 0.00022 * 3.78 / (1.75 * (1.6 / 25.4) * 1.0 * 1.0) * 25.4e-3          # m
-    stb = {g_: dict(z3s_mm=3 * v[0] * 1e3, z3s_inner_mm=3 * v[1] * 1e3, at_mm=v[2], zallow_mm=zallow * 1e3,
-                    MS=zallow / (3 * v[0]) - 1, MS_inner=zallow / (3 * v[1]) - 1) for g_, v in rms_disp.items()}
+    # Steinberg: Z = 0.00022 B / (c h r sqrt(L)) in, with the board's own thickness h (a thicker board allows less)
+    bt = sc.special["board_t"]
+    zal = {g_: 0.00022 * 3.78 / (1.75 * (bt[g_] / 25.4) * 1.0 * 1.0) * 25.4e-3 for g_ in rms_disp}   # m
+    stb = {g_: dict(z3s_mm=3 * v[0] * 1e3, z3s_inner_mm=3 * v[1] * 1e3, at_mm=v[2], zallow_mm=zal[g_] * 1e3, h_mm=bt[g_],
+                    MS=zal[g_] / (3 * v[0]) - 1, MS_inner=zal[g_] / (3 * v[1]) - 1) for g_, v in rms_disp.items()}
     res["stress"] = {k: {kk: (vv if not isinstance(vv, tuple) else list(vv)) for kk, vv in v.items()}
                      for k, v in out.items()}
     res["holddown"] = hd
@@ -1351,7 +1375,8 @@ CASES = {
     "design_second_holddown": dict(bc="rails", snubber="hard", cs2="eps"),
     "design_rail_ends_only": dict(bc="ends", snubber="soft", cs2="eps"),
     "design_no_carrier_window": dict(bc="rails", snubber="soft", cs2="eps", car_window=False),
-    "design_window_2.0mm_carrier": dict(bc="rails", snubber="soft", cs2="eps", t_car=2.0),
+    "design_window_no_frame": dict(bc="rails", snubber="soft", cs2="eps", car_frame=False),
+    "design_window_2.0mm_carrier_no_frame": dict(bc="rails", snubber="soft", cs2="eps", t_car=2.0, car_frame=False),
 }
 NMODES = 450
 

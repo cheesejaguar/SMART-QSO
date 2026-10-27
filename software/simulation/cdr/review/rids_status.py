@@ -37,5 +37,8 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "RF-21": ("CD", "Readbacks wired on the RF board (W4 J1-8/9/10) and the OBC (PC9, PG12, PC7)"),
     "EPS-14": ("CD", "GNSS_EN PE5, XPDR_EN PE4 (SQSO-ICX-001)"),
     "GNC-04": ("CH", "Magnetometer: PNI RM3100 on the OBC board, bought-module footprint as fallback (chair accepts OBC_BOARD_DESIGN §24 C1); driver in the flight software"),
+    "OBCB-03": ("CD", "Gyro on the OBC through a carrier window (MCAD-04, MECHANICAL_DESIGN D-11)"),
+    "OBCB-04": ("CD", "Jetson carrier build-to design SQSO-JET-BRD-001 (137 placements, ERC 0): 5.016 V buck and eFuse to VDD_IN, switched JET_3V3, translated UART"),
+    "AV-06": ("CD", "PAYLOAD_EN and JETSON_PWR on separate lines with JET_PG readback; JET_3V3 high only when the whole chain is up (SQSO-JET-BRD-001, SQSO-ICX-001)"),
     "SE-10": ("CD", "SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined"),
 }

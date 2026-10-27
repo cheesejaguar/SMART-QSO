@@ -1,5 +1,11 @@
 # Jetson Orin Nano Super Payload Integration Guide
 
+> **CDR note (2026-10-27).** This guide is preliminary and partly wrong for flight: the flight carrier is
+> `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` (SQSO-JET-BRD-001 A), the module is an Orin Nano 8 GB flashed with
+> the original (non-Super) configuration in the 7 W mode, its input is 5 V made on the carrier from VBAT, it has no eMMC
+> (storage is an M.2 NVMe), and its role is the gated beacon-text experiment of BASELINE §6, not C&DH backup. The
+> performance, radiation and environmental figures of §2 are not NVIDIA's and are withdrawn (DS-11105-001 v1.5 governs).
+
 ## Executive Summary
 
 The Jetson Orin Nano Super serves as the primary AI/ML payload for the SMART-QSO CubeSat, providing autonomous command and data handling (C&DH) capabilities through edge AI inference. This document provides comprehensive technical specifications and integration requirements for the payload subsystem.
@@ -257,8 +263,8 @@ EOL             | IDLE       | 2.0W      | 5.0W       | 10%
 
 ---
 
-*Document Version: 1.0*  
-*Last Updated: [Current Date]*  
+*Document Version: 1.1 (CDR note 2026-10-27)*  
+*Last Updated: 2026-10-27*  
 *Prepared By: SMART-QSO Engineering Team*  
 *Reviewed By: [Name]*  
 *Approved By: [Name]*

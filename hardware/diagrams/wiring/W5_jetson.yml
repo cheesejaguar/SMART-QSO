@@ -1,13 +1,16 @@
-# SQSO-HW-DIAG-001 W5: EPS and OBC to the Jetson carrier, version 2 (2026-10-27; SQSO-ICX-001 §3.3, SQSO-OBC-BRD-001 §9).
-# Power (W5A): VBAT behind SW1 (PAYLOAD_EN PB2) and the eFuse U19 (JETSON_PWR PA2) on EPS J18, 11.2-16.4 V, 0.93 A at the
-# 12 W guard, 1.2 A eFuse trip; the carrier has its own converter (EPS_DESIGN 2.0 §4, RID EMC-02). Version 1 carried
-# +5 V. Link (W5B): USART1 PA9/PA10 through SN74LVC1T45 translators U28/U29 whose carrier-side supply is the carrier's own
-# 3.3 V I/O rail on pin 4, so an unpowered carrier sees high impedance (RID AV-09, finding F13); the same pin is the
-# carrier power-good readback JET_PG on PG6 (RID AV-06). JST-SH (finding F14) replaced by Molex Pico-Clasp. The
-# carrier-side header is the carrier designer's: on the Orin Nano 40-pin header UART1 is pin 8 TXD / pin 10 RXD and
-# 3.3 V is pin 1 (PAYLOAD_DESIGN Appendix A); the carrier must supply pin 4 from the module's 3.3 V I/O rail, <= 1 mA.
+# SQSO-HW-DIAG-001 W5: EPS and OBC to the Jetson carrier, version 3 (2026-10-27; SQSO-JET-BRD-001 A section 19,
+# SQSO-ICX-001 3.3, SQSO-OBC-BRD-001 11, SMART-QSO-ICD-002 1.3 section 10).
+# Power (W5A): VBAT behind SW1 (PAYLOAD_EN PB2) and the eFuse U19 (JETSON_PWR PA2) on EPS J18, 11.2-16.4 V (18.4 V EPS
+# OVP), 0.93 A at the 12 W guard, 1.2 A eFuse trip, to carrier J1. The Orin Nano takes 5 V only (DS-11105-001 v1.5
+# Table 5-1): the carrier makes VDD_IN itself (LM61440-Q1 and TPS259474L). Version 1 carried +5 V.
+# Link (W5B): USART1 PA9/PA10 through the OBC's SN74LVC1T45 translators U28/U29, whose carrier-side supply is the
+# carrier's switched 3.3 V I/O rail JET_3V3 on pin 4 (RID AV-09); the same pin is the carrier power-good JET_PG on PG6
+# (RID AV-06): it is high only after the module's power sequence (SYS_RESET* high). The module UART1 is 1.8 V and is
+# translated on the carrier (U10/U11); the OBC transmits 8N2. Version 3 (proposed change E10, for the chair): W5B grows
+# to six wires so the spreader thermistor RT1 (10 kOhm NTC, on the heat spreader, leads to carrier J3) reaches an OBC
+# ADC channel through the carrier without being powered by it (pins 5 and 6, twisted pair).
 metadata:
-  title: W5 EPS and OBC to Jetson carrier v2 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.3)
+  title: W5 EPS and OBC to Jetson carrier v3 (SQSO-HW-DIAG-001; SQSO-JET-BRD-001 19)
 
 options:
   fontname: Helvetica
@@ -21,19 +24,19 @@ connectors:
     notes: "EPS J18: VBAT_JET behind SW1 and the eFuse U19"
     pinlabels: &w5pwr [VBAT_JET, VBAT_JET, GND, GND]
   J_JET_PWR:
-    type: Molex Micro-Fit 3.0 receptacle
+    type: Molex Micro-Fit 3.0 header 0430450412
     subtype: 4 pos
-    notes: carrier DC input (11.2-16.4 V)
+    notes: "carrier J1: DC input 11.2-16.4 V; TVS2200, LC filter, LM61440 5 V buck"
     pinlabels: *w5pwr
   J_OBC_JET:
-    type: Molex Pico-Clasp 5013310407
-    subtype: 4 pos, 1.0 mm
-    notes: "OBC J3: PA9 TX via U28, PA10 RX via U29, JET_3V3 to PG6 (10 k)"
-    pinlabels: &w5sig [GND, JET_RXD (OBC TX), JET_TXD (OBC RX), JET_3V3 (carrier I/O rail)]
+    type: Molex Pico-Clasp 5013310607
+    subtype: 6 pos, 1.0 mm
+    notes: "OBC J3 (4 to 6 pos, change E10): PA9 TX via U28, PA10 RX via U29, JET_3V3 to PG6 (10 k), NTC to an OBC ADC input"
+    pinlabels: &w5sig [GND, JET_RXD (OBC TX), JET_TXD (OBC RX), JET_3V3 (carrier I/O rail), PT_NTC, PT_RTN]
   J_JET_UART:
-    type: Molex Pico-Clasp 5013310407 on the carrier
-    subtype: 4 pos, 1.0 mm
-    notes: "carrier: UART1 RXD (header pin 10), TXD (pin 8), 3.3 V I/O rail (pin 1 via the carrier)"
+    type: Molex Pico-Clasp 5013310607 on the carrier
+    subtype: 6 pos, 1.0 mm
+    notes: "carrier J2: U11 B to module UART1 RXD (pin 205), U10 B from UART1 TXD (pin 203), 3V3_IO via 100 Ohm, NTC pass-through"
     pinlabels: *w5sig
 
 cables:
@@ -48,14 +51,14 @@ cables:
     category: bundle
     gauge: 28 AWG
     length: 0.10
-    wirecount: 4
-    colors: [BK, GN, YE, OG]
-    notes: "115200 baud 8N1, SMART-QSO-ICD-002 framing; twisted with its ground. Signal currents under 5 mA"
+    wirecount: 6
+    colors: [BK, GN, YE, OG, WH, BU]
+    notes: "115200 baud, OBC transmits 8N2 (DS-11105-001 2.10.4), SMART-QSO-ICD-002 framing; signals twisted with ground; PT_NTC/PT_RTN a twisted pair. Signal currents under 5 mA"
 
 connections:
   - - J_EPS_JET: [1-4]
     - W5A: [1-4]
     - J_JET_PWR: [1-4]
-  - - J_OBC_JET: [1-4]
-    - W5B: [1-4]
-    - J_JET_UART: [1-4]
+  - - J_OBC_JET: [1-6]
+    - W5B: [1-6]
+    - J_JET_UART: [1-6]

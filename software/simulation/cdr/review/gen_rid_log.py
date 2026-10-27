@@ -39,6 +39,8 @@ GROUPS = [
     ("STR", "Structures and mechanisms"), ("MCAD", "Mechanical CAD and FE"),
     ("EPS", "Electrical power"), ("THM", "Thermal"), ("EMC", "EMC"),
     ("AV", "Avionics"), ("FSW", "Flight software"), ("RAD", "Radiation"), ("GNC", "Guidance, navigation and control"),
+    ("RFB", "RF board (round 2)"), ("EPSB", "EPS board (round 2)"), ("OBCB", "OBC board (round 2)"),
+    ("JETB", "Jetson carrier board (round 2)"),
 ]
 
 
@@ -55,6 +57,16 @@ def esc(text: str) -> str:
 
 
 def render() -> tuple[str, str]:
+    known = {prefix for prefix, _ in GROUPS}
+    missing = sorted({r[0].split("-")[0] for r in RIDS} - known)
+    if missing:
+        raise SystemExit(f"RID prefixes without a group: {missing}")
+    dupes = sorted({r[0] for r in RIDS if [x[0] for x in RIDS].count(r[0]) > 1})
+    if dupes:
+        raise SystemExit(f"duplicate RIDs: {dupes}")
+    unknown = sorted(set(CLOSURE) - {r[0] for r in RIDS})
+    if unknown:
+        raise SystemExit(f"closures for unknown RIDs: {unknown}")
     rows = []
     for prefix, name in GROUPS:
         group = [r for r in RIDS if r[0].split("-")[0] == prefix]
