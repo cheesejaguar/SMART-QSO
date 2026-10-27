@@ -146,6 +146,7 @@ L-2 M licences and ephemeris demonstration).
 | C-10 | `transponder.rs` and `ops_state.rs` added to the safety-critical list | FSW-05 |
 | C-11 | Heater set points +5/+9 °C; ≈ 207 Ω heater | THM-02, BUILD_VS_BUY §4.5 |
 | C-12 | Two centre supports on the EPS, OBC and carrier boards | STR-05, MECHANICAL_DESIGN |
+| C-13 | 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames, so the deployed inertia ratio keeps margin with all four AntS elements | MCAD-09, RFB-11 |
 
 ## 5. Design completion (round 2)
 
@@ -154,18 +155,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-290 RIDs: severity 1: 29, severity 2: 157, severity 3: 104.
+292 RIDs: severity 1: 29, severity 2: 158, severity 3: 105.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 99 | 158 |
-| Closed by chair decision | 36 | 35 |
-| Verification item | 41 | 40 |
+| Closed by design change | 99 | 159 |
+| Closed by chair decision | 37 | 36 |
+| Verification item | 42 | 41 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 76 | 19 |
+| Implementation | 76 | 18 |
 
-Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, RFB-11, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, MCAD-08, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, RFB-11, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -406,7 +407,9 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | MCAD-05 | 2 | Board-mounted gyro is 0.6-1.0° off the body axes: 0.7° uses the whole 0.1 °/s bias budget at 8 °/s | VI | Verification item | VI-MCAD-05: measure the gyro axes to ≤ 0.1° on the flight stack; correction matrix to the flight software |
 | MCAD-06 | 3 | RM3100 43 mm from the Y rod end and 10 mm below carrier parts | IMP | Closed by design change | RM3100 on its own board A2 in the +Z end-frame slot (+24, +27): rod coupling 830 nT per mA·m² (was 1194), nearest rod end 54.7 mm, 63 mm from the Jetson input; 20 mm non-ferromagnetic zone; AV-V4 with per-polarity calibration (SQSO-OBC-BRD-001 B) |
 | MCAD-07 | 3 | Magnetometer board A2 needs a 20 mm non-ferromagnetic zone (shield lid, column stud, fasteners, trim mass, W1 hinge pins, cell interconnects) | CD | Closed by design change | Materials specified (MECHANICAL_DESIGN §4.3.3, D-9); hinge spring, MP3 and carrier MP1 accepted as fixed biases; VI-MCAD-07 measures the zone and the bias |
-| MCAD-08 | 3 | Window-frame screws: 0.45 mm walls at the proposed positions; frame adhesive weakens above 60 °C | IMP | Implementation | Screws moved to tapped pads (walls 1.0-1.2 mm); adhesive chosen for the carrier hot case or the bond shown non-structural; FE re-run with the titanium column stud |
+| MCAD-08 | 3 | Window-frame screws: 0.45 mm walls at the proposed positions; frame adhesive weakens above 60 °C | IMP | Closed by design change | Bonded frame withdrawn (thermal shear at −40 °C near adhesive strength; no adhesive strong hot within the 1.0 % TML limit): carrier 2.0 mm with the window, fatigue +0.07, carrier mode 479 Hz; FE re-run lowest strength +0.74; materials list C: no structural adhesive |
+| MCAD-09 | 2 | With all four AntS elements the deployed inertia ratio is 1.045 / 1.037 (CBE / MEV): 0.007 above the 1.03 requirement, gone at 1.5-2 mm placement scatter | CH | Closed by chair decision | Chair C-13: 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames in the baseline (ratio about 1.057 / 1.048); trimmed at integration (VI-MCAD-03) |
+| MCAD-10 | 3 | A286 hinge pins are softer than 440C and gall on titanium if the MoS₂ film wears through (friction 0.26 zeroes the torque margin) | VI | Verification item | VI-MECH-03: pin friction and galling with A286 over the deployment and test cycles |
 
 #### Electrical power (EPS)
 

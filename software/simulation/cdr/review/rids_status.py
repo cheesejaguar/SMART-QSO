@@ -69,5 +69,6 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "RFB-07": ("CD", "RX_CD (CC1200 carrier sense) and RX_FAULT (TNC heartbeat monostable, fault 0.36-0.62 s after the last pulse) on J1-15/16 (SQSO-RF-BRD-001 B); OBC PG0 and PF13 with pull-downs (SQSO-ICX-001 B); firmware pins in round 3; VI-RFB-10"),
     "JETB-05": ("CD", "Pedestal 22 × 22 × 0.75 mm, flatness 0.05 mm, shims at integration (VI-MCAD-06), standoffs MP2/MP3, low-head fastener at (0, −21), clamp 38 N of 80 N (MECHANICAL_DESIGN §4.5); carrier D: window keep-outs by side, frame screws H10-H13 on tapped pads, MP2 assembly notes (SQSO-JET-BRD-001 D §18.1)"),
     "RFB-09": ("CD", "MMCX jacks (Molex 73415-1473, brass/BeCu, gold) at the −X edge; 1.37 mm coax with silver-plated copper inner conductor down the −X wall gap at |y| 20-24 mm; port-to-antenna 0.44 dB (146 MHz) and 0.62 dB (436 MHz); uplink system noise 548-598 K inside 650 K (SQSO-RF-BRD-001 C §4.3, §16)"),
+    "MCAD-08": ("CD", "Bonded frame withdrawn (thermal shear at −40 °C near adhesive strength; no adhesive strong hot within the 1.0 % TML limit): carrier 2.0 mm with the window, fatigue +0.07, carrier mode 479 Hz; FE re-run lowest strength +0.74; materials list C: no structural adhesive"),
     "SE-10": ("CD", "SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined"),
 }
