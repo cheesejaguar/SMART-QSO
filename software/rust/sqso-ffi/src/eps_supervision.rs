@@ -64,3 +64,50 @@ pub(crate) fn supv_register() -> Option<u8> {
 pub(crate) fn status() -> (Option<u8>, u32) {
     (supv_register(), HEARTBEAT.with(|h| h.failures).unwrap_or(0))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fault_mgmt::tests::serial;
+
+    fn reg(r: u8) -> Option<u8> {
+        let mut v = [0u8; 1];
+        // SAFETY: live buffers (the HAL)
+        let ok = unsafe { c::hal_i2c_write_read(EPS_BUS, EPS_ADDRESS, [r].as_ptr(), 1, v.as_mut_ptr(), 1) } == rc::OK;
+        ok.then_some(v[0])
+    }
+
+    #[test]
+    fn heartbeat_ants_power_and_trackers() {
+        let _serial = serial();
+        // SAFETY: plain values (the HAL)
+        assert_eq!(unsafe { crate::hal_sim::hal_i2c_init(EPS_BUS, 100_000) }, rc::OK);
+        init();
+        step(1_000);
+        assert_eq!(reg(supv::REG_HEARTBEAT), Some(supv::HEARTBEAT_VALUE));
+        assert!(write(&[supv::REG_HEARTBEAT, 0]));
+        step(1_000 + supv::HEARTBEAT_PERIOD_MS - 1);
+        assert_eq!(reg(supv::REG_HEARTBEAT), Some(0), "not yet due");
+        step(1_000 + supv::HEARTBEAT_PERIOD_MS);
+        assert_eq!(reg(supv::REG_HEARTBEAT), Some(supv::HEARTBEAT_VALUE));
+        assert!(ants_power(true));
+        assert_eq!(reg(supv::REG_ANTS_PWR), Some(supv::ANTS_PWR_ON));
+        assert!(ants_power(false));
+        assert_eq!(reg(supv::REG_ANTS_PWR), Some(supv::ANTS_PWR_OFF));
+        assert_eq!(disable_trackers(0x10), rc::INVALID);
+        assert_eq!(disable_trackers(0b0011), rc::OK);
+        assert_eq!(reg(supv::REG_TRK_DISABLE), Some(supv::TRK_KEY));
+        assert_eq!(status(), (reg(supv::REG_SUPV), 0));
+        // A controller that refuses: counted, retried at the next pass
+        crate::hal_sim::I2C_FAIL_REG
+            .store(u32::from(EPS_ADDRESS) << 8 | u32::from(supv::REG_HEARTBEAT), core::sync::atomic::Ordering::Relaxed);
+        step(10 * supv::HEARTBEAT_PERIOD_MS);
+        crate::hal_sim::I2C_FAIL_REG
+            .store(u32::from(EPS_ADDRESS) << 8 | u32::from(supv::REG_TRK_DISABLE), core::sync::atomic::Ordering::Relaxed);
+        assert_eq!(disable_trackers(1), rc::IO);
+        crate::hal_sim::I2C_FAIL_REG.store(0, core::sync::atomic::Ordering::Relaxed);
+        assert_eq!(status().1, 1);
+        step(10 * supv::HEARTBEAT_PERIOD_MS + 20);
+        assert_eq!(status().1, 1);
+    }
+}

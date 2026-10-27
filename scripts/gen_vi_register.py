@@ -148,11 +148,6 @@ OVERRIDES: Dict[str, Dict[str, str]] = {
     "V-THM-4": {"event": "2027-01-15", "why": "THM-05: panel qualification record before the panel order (PANELS)"},
     "V-THM-5": {"event": "CON", "owner": "PI (licensee) with the integrator",
                 "why": "THM-06, THM-07: requested in the RFQ (2026-12-31), result at the contract (2027-06-30); DA-12"},
-    "V-THM-6": {"criterion": "ETP Rev D §3.4: 8 thermal-vacuum cycles at the allowable flight temperatures ± 10 °C,"
-                             " capped at +60 °C (battery), plus 4 board-level and, if the integrator requires 20, 8"
-                             " further air cycles (VI-08); the SpaceX advised acceptance range ± 5 °C is enveloped"
-                             " except the battery cap (ETP §9 deviation 4)",
-                "why": "P3S-10: one TVAC definition (SYS-707, ETP §3.4)"},
     "V-JET-9": {"criterion": "Populated carrier, unpowered: ≤ 0.5 mA·m² residual dipole (one sixth of the 3 mA·m²"
                              " design budget, BASELINE §8); during a 7 W burst: field change at the A2 magnetometer"
                              " ≤ 15 nT (the low end of the RM3100 noise band the carrier design names)",

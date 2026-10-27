@@ -127,6 +127,7 @@ NEW: list[tuple[str, int, str, str, str]] = [
     ("MCAD-14", 3, "DS2 as a DPDT switch fits the Ø4.7 mm bore only with a body ≤ Ø4.5 mm, not confirmed to exist", "DP", "Switch RFQ (mechanical lead, 2026-12-31) asks for both a ≤ Ø4.5 mm DPDT and the fallback (a second SPDT in a +Z standoff, EPS designer)"),
     ("MCAD-15", 3, "Worst-case 246 N axial load on each cell rim needs the cell maker's limit", "VI", "VI-MCAD-10: preload 140 ± 10 N per cell; OCV and impedance unchanged, no can damage after protoflight random; cell-maker rim limit as a data item before the EM order"),
     ("P3T-01", 2, "BOM temperature grades not verified part by part: the RF crystal Y451 was a −20…+70 °C option against the −40 °C first-orbit case", "IMP", "Y451 replaced by ABLS-…-L4-T (−55…+125 °C); parts temperature-grade audit of every flight BOM line"),
+    ("MCAD-16", 2, "At −81 °C (line free span, with margin) a stiff hold-down line can go slack (0.008-0.020 mm at EA 10 kN after creep): the wing could lift off its post and rattle before the burn", "CD", "Series 17-7PH compression spring (≈ 40 N/mm) at the line anchor: tension 19.0-19.5 N at −81 °C after creep for either line material; VI-STR-07 adds a −81 °C thermal cycle of line, spring and anchor, pass ≥ 10 N (MECHANISMS_ANALYSIS E); line EA and creep data by 2027-01-15"),
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {
@@ -149,7 +150,7 @@ FINAL3: dict[str, tuple[str, str]] = {
     "STR-08": ("CD", "Mechanical cell retention, no adhesive or potting: G-10CR locator plates, disc-spring stack per cell at 140 N, vents open; MEL row 37 5.0 g; MS_sep +0.19 at 142 g (MECHANICAL_DESIGN §4.6); VI-MCAD-10"),
     "STR-13": ("CD", "STRUCTURAL_DESIGN 1.5 §6.2 Version B hinge; cold point −55 °C (MECHANISMS_ANALYSIS E)"),
     "STR-26": ("CD", "STRUCTURAL_DESIGN 1.5 aligned to MECHANICAL_DESIGN, STRUCTURAL_ANALYSIS and MEL 3.1"),
-    "P3S-01": ("CD", "Thermal analyst gives the burn-time temperatures (THERMAL_ANALYSIS 2.2 §4.3): every margined node inside −55 °C by ≥ 3.3 °C (resistor −39.4 °C); mechanisms at −55 °C: torque margin +0.08 (one spring out +0.07), springs +0.12/+0.04 yield; burn 10 s (C-17) gives release-energy ratio 1.90; VI-STR-04/-05/-06, VI-MECH-01..03 at −55 °C; hinge.py T_COLD for the thermal analyst's hinge temperature"),
+    "P3S-01": ("CD", "Burn release at −41 °C (resistor after a 3 h soak): 8 s ratio 1.66, 10 s 2.07; thermal analyst gives the burn-time temperatures (THERMAL_ANALYSIS 2.2 §4.3): every margined node inside −55 °C by ≥ 3.3 °C (resistor −39.4 °C); mechanisms at −55 °C: torque margin +0.08 (one spring out +0.07), springs +0.12/+0.04 yield; burn 10 s (C-17) gives release-energy ratio 1.90; VI-STR-04/-05/-06, VI-MECH-01..03 at −55 °C; hinge.py T_COLD for the thermal analyst's hinge temperature"),
     "P3S-02": ("CD", "Steinberg at MEV masses: EPS board 2.0 mm (D-14): +0.14 to +0.50 at MEV, +0.42 to +0.71 at CBE; strength +0.96 (MEV +0.85); first mode 170 / 162 Hz"),
     "P3S-04": ("CD", "MoS2 hinge controls: ≤ 40 % RH or dry N2, cycle budget ≤ 30 / ≤ 10, film inspection (MECHANISMS_ANALYSIS E §5A; ETP D §3.8)"),
     "P3S-07": ("CD", "MECHANISMS §1, §6-§8, MASS_BUDGET §6.2, mass_properties.py FSW and SIL constants updated"),

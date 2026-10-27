@@ -114,7 +114,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-AUD-004 | Launch and Rideshare Trade Study | `docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md` | B | Audit record; superseded for the launch path by SQSO-OAP-001 |
 | SQSO-AUD-005 | Lifecycle Cost — Rough Order of Magnitude (ROM) | `docs/funding_audit/LIFECYCLE_COST_ROM.md` | F | Live cost estimate (ROM, no quotes); registered 2026-10-27 (RID P3P-09) |
 | SMART-QSO-CMP-001 | Configuration Management Plan (CMP) | `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` | 1.2 | Draft |
-| SQSO-CRL-001 | SMART-QSO Change Request Log | `docs/project/CHANGE_REQUEST_LOG.md` | G | Living document |
+| SQSO-CRL-001 | SMART-QSO Change Request Log | `docs/project/CHANGE_REQUEST_LOG.md` | H | Living document |
 | SQSO-HRT-001 | SMART-QSO Hardware Readiness Tracker | `docs/project/HARDWARE_READINESS_TRACKER.md` | 2.1 | Draft |
 | SQSO-TRA-001 | Technology Readiness Assessment and Technology Development Plan | `docs/project/TECHNOLOGY_READINESS_ASSESSMENT.md` | A | Draft; assessment for the PDR (RID SE-09) |
 | SQSO-HA-001 | SMART-QSO Heritage Assessment | `docs/project/HERITAGE_ASSESSMENT.md` | 2.0 | Draft |

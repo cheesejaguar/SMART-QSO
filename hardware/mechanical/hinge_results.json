@@ -118,27 +118,133 @@
   "flex": 0.00055,
   "snub": 0.00025
  },
+ "line_cold": [
+  {
+   "material": "Dyneema SK75 (UHMWPE)",
+   "EA20_N": 5000.0,
+   "series_spring_N_per_mm": null,
+   "loop_mm": 20.499999999999996,
+   "preload_stretch_mm": 0.12299999999999998,
+   "thermal_slack_mm": 0.06317096000000001,
+   "line_growth_mm": 0.0205404,
+   "column_shrink_mm": 0.042630560000000005,
+   "tension_cold_N": 7.270183414634139,
+   "slack_mm": 0.0,
+   "tension_cold_no_creep_N": 18.970183414634143
+  },
+  {
+   "material": "Dyneema SK75 (UHMWPE)",
+   "EA20_N": 5000.0,
+   "series_spring_N_per_mm": 40.0,
+   "loop_mm": 20.499999999999996,
+   "preload_stretch_mm": 0.8730000000000002,
+   "thermal_slack_mm": 0.06317096000000001,
+   "line_growth_mm": 0.0205404,
+   "column_shrink_mm": 0.042630560000000005,
+   "tension_cold_N": 19.46196043715847,
+   "slack_mm": 0.0,
+   "tension_cold_no_creep_N": 28.76441945355192
+  },
+  {
+   "material": "Dyneema SK75 (UHMWPE)",
+   "EA20_N": 10000.0,
+   "series_spring_N_per_mm": null,
+   "loop_mm": 20.499999999999996,
+   "preload_stretch_mm": 0.06149999999999999,
+   "thermal_slack_mm": 0.06317096000000001,
+   "line_growth_mm": 0.0205404,
+   "column_shrink_mm": 0.042630560000000005,
+   "tension_cold_N": 0.0,
+   "slack_mm": 0.020120960000000018,
+   "tension_cold_no_creep_N": 0.0
+  },
+  {
+   "material": "Dyneema SK75 (UHMWPE)",
+   "EA20_N": 10000.0,
+   "series_spring_N_per_mm": 40.0,
+   "loop_mm": 20.499999999999996,
+   "preload_stretch_mm": 0.8114999999999999,
+   "thermal_slack_mm": 0.06317096000000001,
+   "line_growth_mm": 0.0205404,
+   "column_shrink_mm": 0.042630560000000005,
+   "tension_cold_N": 18.996895861070907,
+   "slack_mm": 0.0,
+   "tension_cold_no_creep_N": 28.15709846599131
+  },
+  {
+   "material": "Vectran HT (LCP)",
+   "EA20_N": 5000.0,
+   "series_spring_N_per_mm": null,
+   "loop_mm": 20.499999999999996,
+   "preload_stretch_mm": 0.12299999999999998,
+   "thermal_slack_mm": 0.050846720000000005,
+   "line_growth_mm": 0.00821616,
+   "column_shrink_mm": 0.042630560000000005,
+   "tension_cold_N": 9.458197073170727,
+   "slack_mm": 0.0,
+   "tension_cold_no_creep_N": 19.35819707317073
+  },
+  {
+   "material": "Vectran HT (LCP)",
+   "EA20_N": 5000.0,
+   "series_spring_N_per_mm": 40.0,
+   "loop_mm": 20.499999999999996,
+   "preload_stretch_mm": 0.8730000000000002,
+   "thermal_slack_mm": 0.050846720000000005,
+   "line_growth_mm": 0.00821616,
+   "column_shrink_mm": 0.042630560000000005,
+   "tension_cold_N": 19.50248759493671,
+   "slack_mm": 0.0,
+   "tension_cold_no_creep_N": 28.619259746835443
+  },
+  {
+   "material": "Vectran HT (LCP)",
+   "EA20_N": 10000.0,
+   "series_spring_N_per_mm": null,
+   "loop_mm": 20.499999999999996,
+   "preload_stretch_mm": 0.06149999999999999,
+   "thermal_slack_mm": 0.050846720000000005,
+   "line_growth_mm": 0.00821616,
+   "column_shrink_mm": 0.042630560000000005,
+   "tension_cold_N": 0.0,
+   "slack_mm": 0.007796720000000014,
+   "tension_cold_no_creep_N": 5.716394146341457
+  },
+  {
+   "material": "Vectran HT (LCP)",
+   "EA20_N": 10000.0,
+   "series_spring_N_per_mm": 40.0,
+   "loop_mm": 20.499999999999996,
+   "preload_stretch_mm": 0.8114999999999999,
+   "thermal_slack_mm": 0.050846720000000005,
+   "line_growth_mm": 0.00821616,
+   "column_shrink_mm": 0.042630560000000005,
+   "tension_cold_N": 19.252913976311333,
+   "slack_mm": 0.0,
+   "tension_cold_no_creep_N": 28.315350524534686
+  }
+ ],
  "burn_release": {
-  "-40C_5s": {
+  "-41C_5s": {
    "E_attempt_J": 16.000000000000004,
-   "need_3sigma_J": 15.36,
-   "ratio_3sigma": 1.041666666666667,
-   "p_first": 0.9995,
-   "p_fail_all": 0.0004999999999999449,
+   "need_3sigma_J": 15.455999999999998,
+   "ratio_3sigma": 1.0351966873706009,
+   "p_first": 0.999415,
+   "p_fail_all": 0.0005849999999999467,
    "E_max_J": 16.000000000000004
   },
-  "-40C_8s": {
+  "-41C_8s": {
    "E_attempt_J": 25.600000000000005,
-   "need_3sigma_J": 15.36,
-   "ratio_3sigma": 1.666666666666667,
+   "need_3sigma_J": 15.455999999999998,
+   "ratio_3sigma": 1.6563146997929612,
    "p_first": 1.0,
    "p_fail_all": 0.0,
    "E_max_J": 25.600000000000005
   },
-  "-40C_10s": {
+  "-41C_10s": {
    "E_attempt_J": 32.00000000000001,
-   "need_3sigma_J": 15.36,
-   "ratio_3sigma": 2.083333333333334,
+   "need_3sigma_J": 15.455999999999998,
+   "ratio_3sigma": 2.0703933747412018,
    "p_first": 1.0,
    "p_fail_all": 0.0,
    "E_max_J": 32.00000000000001
@@ -168,6 +274,7 @@
    "E_max_J": 32.00000000000001
   }
  },
+ "burn_temperature_C": -41,
  "search_best": {
   "score": 0.04849211568915468,
   "d_mm": 0.44,

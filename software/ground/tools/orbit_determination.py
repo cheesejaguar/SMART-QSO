@@ -263,11 +263,13 @@ def fit_orbit(obs: Sequence[Observation], model: Optional[ForceModel] = None,
         res = ev.res[: 3 * len(used)].reshape(-1, 3)
         scale = max(1.0, 1.4826 * float(np.median(norm)))
         bad = [i for i in range(len(used)) if norm[i] > edit_sigma * scale]
+        weighted = any(o.weight != 1.0 for o in used)
         for o in used:
             o.weight = 1.0
         if not bad or len(used) - len(bad) < 2:
-            p, ev, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
-            iterations += its
+            if weighted:
+                p, ev, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
+                iterations += its
             break
         for i in sorted(bad, reverse=True):
             rejected.append((used[i], f"residual {np.linalg.norm(res[i]):.0f} m ({norm[i]:.1f} sigma)"))

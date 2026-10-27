@@ -2,7 +2,7 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-CRL-001
-**Revision:** G
+**Revision:** H
 **Date:** 2026-10-27
 **Reference:** `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` §4.3 to §4.4, §6.3
 
@@ -34,6 +34,7 @@ logged here; the Git history records them.
 | CR-2026-014 | 2026-10-27 | I | EPS-F002 (`docs/hardware/EPS_DESIGN.md`); V-EPS-1 (SQSO-EPS-BRD-001); V-PWR-3 and the MPPT factor (SQSO-PBA-001) | MPPT efficiency "≥ 90 % at every operating point ≥ 1 W per tracker over 3.5–6.4 V, ≥ 91 % power-weighted" (was ≥ 92 %, which the 90.9–92.3 % design does not meet at low power); V-EPS-1 and V-PWR-3 take the same values; the power analysis MPPT factor 0.92 → 0.91 | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Proposed by the EPS designer; documents change after the decision |
 | CR-2026-015 | 2026-10-27 | I | BASELINE §3 launch-cost row and backup trigger; SQSO-AUD-005 Rev F | Program-side launch cost $57k–195k (was $30k–100k), all-in $142k–345k; the backup trigger read on the integrator's slot price | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | ROM F implemented; BASELINE §3 by the chair after the decision |
 | CR-2026-016 | 2026-10-27 | I | EPS-F012 (`docs/hardware/EPS_DESIGN.md`); BSA H3b count basis; ICD-001 1.6 | Hardware load shed covers the Jetson rail only (the PA is no longer shed); F0B a diverse fuse (MIL-PRF-23419/8, Littelfuse) | Proposed by the design review; PI decision required by 2027-01-12 | Implemented in the design (SQSO-EPS-BRD-001 E) |
+| CR-2026-017 | 2026-10-27 | I | SYS-600, SYS-601 (`docs/requirements/SYSTEM_REQUIREMENTS.md` §11); THERMAL_DESIGN §1.1; ETP §3.4 and §9 deviation 8; BASELINE §8 thermal row | Per-unit allowable flight temperatures from the parts' ratings (−30 °C cold for every board, −40 °C for the first orbit after separation, tested at its AFT without the 10 °C margin: GEVS deviation); heater 0.70 W at 12.0 V (207 Ω; was 0.72 W) | Proposed by the design review (RID THM-04); PI decision required by 2027-01-12 | Implemented in THERMAL_DESIGN 1.5, ETP D (amended), SYSTEM_REQUIREMENTS G (proposed), SQSO-THA-001 2.2; BASELINE §8 pending the PI |
 
 ## 3. Change Requests
 
@@ -998,6 +999,87 @@ Submitter: Design review (round 3, board FMEA SQSO-FMEA-003)
 
 ---
 
+### CR-2026-017: per-unit allowable flight temperatures and the first-orbit cold case
+
+```
+Change Request Number: CR-2026-017
+Date Submitted: 2026-10-27
+Submitter: Design review (round 3, thermal; RID THM-04)
+
+1. Configuration Item Affected:
+   CI ID: SYS-600, SYS-601 (docs/requirements/SYSTEM_REQUIREMENTS.md
+   §11); SQSO-THM-001 §1.1 (allowable flight temperatures);
+   SQSO-ETP-001 §3.4 and §9 (new deviation 8); BASELINE §8 thermal
+   row (heater power and the allowables reference)
+
+2. Description of Change:
+   - SYS-600/601: one range for all components (−20 … +50 °C
+     operating, −40 … +60 °C survival) replaced by per-unit
+     allowable flight temperatures (AFT) in THERMAL_DESIGN §1.1:
+     boards −30 … +50 °C operating and −30 … +60 °C non-operating,
+     extended to −40 °C for the first orbit after separation; battery
+     per the cell (0 … +45 °C charging, −10 … +60 °C discharging,
+     −20 … +60 °C non-operating); Jetson −15 °C (power-on gate) to
+     +50 °C at the spreader, −30 … +60 °C non-operating, −40 °C in the
+     first orbit (module qualified below its −25 °C junction minimum
+     by the EM soak V-THM-8); wings per the vendor (≥ −56 … +93 °C).
+   - ETP §3.4: cold operational plateau −40 °C (AFT − 10 °C, was
+     −30 °C) and cold start at −40 °C, which tests the first-orbit
+     extension at its AFT without the 10 °C margin: new §9 deviation 8
+     from GSFC-STD-7000B §2.6.3.2.1.1.
+   - BASELINE §8: battery heater 0.70–1.30 W across the bus (207 Ω at
+     12.0–16.4 V; was "0.72–1.30 W"); allowables reference
+     THERMAL_DESIGN 1.5 §1.1; analysis SQSO-THA-001 v2.2.
+
+3. Reason for Change:
+   RID THM-04 (reopened in round 3). The boards' parts stop at −40 °C,
+   so with the protoflight test at AFT ± 10 °C the cold AFT is −30 °C.
+   The LEOP cold case after the bounding dispenser soak (SQSO-THA-001
+   2.2 §4.3, case L4: β = 0, separation at eclipse entry, wings stowed
+   until the burn) gives −27.6 °C (OBC/EPS), −28.6 °C (RF) and −28.9 °C
+   (Jetson, off), −38.6 … −38.9 °C with the 10 °C margin: outside −30 °C,
+   inside the parts' −40 °C. A heater that closes it needs about 5 W
+   and 7.8 Wh in the first orbit, while the pack cannot charge
+   (rejected, §6.6). 207 Ω gives 0.696 W at 12.0 V, not 0.72 W.
+
+4. Impact Assessment:
+   - Technical: one first-orbit transient (≤ 46 min below −20 °C)
+     tested at its AFT without the 10 °C test margin; the orbit AFT
+     keeps the full margin. The deviation lapses if the integrator's
+     dispenser analysis (V-THM-5) puts the boards and the Jetson at or
+     above about −8 °C at separation. Heater correction: battery
+     minima move 0.0–0.4 °C (SQSO-THA-001 2.2 §4.2).
+   - Schedule, cost: EM cold start and Jetson soak (V-THM-8) in the EM
+     tests; the TVAC cold plateau 10 °C colder (same chamber).
+   - Risk: the Jetson module below its data-sheet minimum (V-THM-8);
+     the ITV4030 fuses rated from −10 °C (V-EPS-8 at −40 °C); the RF
+     crystal Y451 to be ordered in its −40 … +85 °C grade.
+
+5. Affected Documents:
+   docs/requirements/SYSTEM_REQUIREMENTS.md, hardware/structure/THERMAL_DESIGN.md,
+   docs/environment/ENVIRONMENTAL_TEST_PLAN.md, docs/environment/THERMAL_ANALYSIS.md,
+   docs/BASELINE_PARAMETERS.md (§8, on the PI's decision),
+   docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md (cold plateaus).
+
+6. Verification Required:
+   Test: V-THM-8 (EM), V-EPS-8 at −40 °C (EM), V-THM-6 (FM protoflight
+   TVAC with the −40 °C cold start). Analysis: V-THM-1 correlation,
+   V-THM-5 integrator soak.
+
+7. CCB Decision:
+   [ ] Pending: PI decision required by 2027-01-12.
+
+8. Implementation:
+   Assigned to: Thermal
+   Completed: documents 2026-10-27 (BASELINE §8 on the decision)
+
+9. Verification:
+   Verified by: —
+   Date: —
+```
+
+---
+
 ## 4. Revision History
 
 | Rev | Date | Description | Author |
@@ -1009,3 +1091,4 @@ Submitter: Design review (round 3, board FMEA SQSO-FMEA-003)
 | E | 2026-10-27 | CR-2026-008: CDR 2026 round-2 baseline amendments | SMART-QSO Team |
 | F | 2026-10-27 | CR-2026-009 to CR-2026-015 (CDR round 3: system requirements E/F/G, Jetson heat path, ICDs, safety-critical list, test tailoring, MPPT, launch cost), each proposed by the design review for a PI decision by 2027-01-12; CR-2026-007 and -008 recorded as proposed by the chair, PI ratification required (CM plan §2.2; RID PM-04) | Design review, round 3 |
 | G | 2026-10-27 | CR-2026-016: load shed scope and pack-fuse diversity | SMART-QSO Team |
+| H | 2026-10-27 | CR-2026-017: per-unit allowable flight temperatures (SYS-600/601, THERMAL_DESIGN §1.1), the first-orbit cold case and its GEVS deviation (ETP §9 deviation 8), heater 0.70 W in BASELINE §8; proposed by the design review, PI decision by 2027-01-12 | Design review, round 3 |

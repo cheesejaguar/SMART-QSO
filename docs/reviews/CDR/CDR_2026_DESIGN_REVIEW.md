@@ -178,18 +178,18 @@ ratings, outgassing data).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-376 RIDs: severity 1: 30, severity 2: 196, severity 3: 150.
+377 RIDs: severity 1: 30, severity 2: 197, severity 3: 150.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 100 | 229 |
+| Closed by design change | 101 | 230 |
 | Closed by chair decision | 42 | 35 |
 | Verification item | 46 | 28 |
 | Decision point (dated) | 15 | 32 |
 | Implementation | 148 | 27 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 70 new findings; 42 of the reopened and 58 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 71 new findings; 42 of the reopened and 58 of the new are since closed.
 
 Open implementation RIDs: LV-04, SE-21, GND-04, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, P3T-01.
 <!-- RID-SUMMARY-END -->
@@ -467,6 +467,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | MCAD-13 | 2 | Deck responds at up to 36 Grms (3σ 109 g) at the GNSS receiver mounts; SkyFox publishes no random qualification level; the CR0002 rod clip response 204 g | DP | Decision point (dated) | GNC lead obtains the piNAV-NG and CR0002 qualification spectra by 2027-01-15; criterion: vendor spectrum envelopes the FE response +3 dB; fallback defined: stiffen the deck (≈ +10 g) or isolate the receiver |
 | MCAD-14 | 3 | DS2 as a DPDT switch fits the Ø4.7 mm bore only with a body ≤ Ø4.5 mm, not confirmed to exist | DP | Decision point (dated) | Switch RFQ (mechanical lead, 2026-12-31) asks for both a ≤ Ø4.5 mm DPDT and the fallback (a second SPDT in a +Z standoff, EPS designer) |
 | MCAD-15 | 3 | Worst-case 246 N axial load on each cell rim needs the cell maker's limit | VI | Verification item | VI-MCAD-10: preload 140 ± 10 N per cell; OCV and impedance unchanged, no can damage after protoflight random; cell-maker rim limit as a data item before the EM order |
+| MCAD-16 | 2 | At −81 °C (line free span, with margin) a stiff hold-down line can go slack (0.008-0.020 mm at EA 10 kN after creep): the wing could lift off its post and rattle before the burn | CD | Closed by design change | Series 17-7PH compression spring (≈ 40 N/mm) at the line anchor: tension 19.0-19.5 N at −81 °C after creep for either line material; VI-STR-07 adds a −81 °C thermal cycle of line, spring and anchor, pass ≥ 10 N (MECHANISMS_ANALYSIS E); line EA and creep data by 2027-01-15 |
 
 #### Electrical power (EPS)
 
@@ -684,7 +685,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| P3S-01 | 2 | Mechanism cold design and test point (−40 °C) warmer than the predicted stowed-wing temperature | IMP | Closed by design change | Thermal analyst gives the burn-time temperatures (THERMAL_ANALYSIS 2.2 §4.3): every margined node inside −55 °C by ≥ 3.3 °C (resistor −39.4 °C); mechanisms at −55 °C: torque margin +0.08 (one spring out +0.07), springs +0.12/+0.04 yield; burn 10 s (C-17) gives release-energy ratio 1.90; VI-STR-04/-05/-06, VI-MECH-01..03 at −55 °C; hinge.py T_COLD for the thermal analyst's hinge temperature |
+| P3S-01 | 2 | Mechanism cold design and test point (−40 °C) warmer than the predicted stowed-wing temperature | IMP | Closed by design change | Burn release at −41 °C (resistor after a 3 h soak): 8 s ratio 1.66, 10 s 2.07; thermal analyst gives the burn-time temperatures (THERMAL_ANALYSIS 2.2 §4.3): every margined node inside −55 °C by ≥ 3.3 °C (resistor −39.4 °C); mechanisms at −55 °C: torque margin +0.08 (one spring out +0.07), springs +0.12/+0.04 yield; burn 10 s (C-17) gives release-energy ratio 1.90; VI-STR-04/-05/-06, VI-MECH-01..03 at −55 °C; hinge.py T_COLD for the thermal analyst's hinge temperature |
 | P3S-02 | 2 | Board fatigue computed at CBE mass only | IMP | Closed by design change | Steinberg at MEV masses: EPS board 2.0 mm (D-14): +0.14 to +0.50 at MEV, +0.42 to +0.71 at CBE; strength +0.96 (MEV +0.85); first mode 170 / 162 Hz |
 | P3S-03 | 2 | EPS board layout guidance lacks the centre supports and the Z-rod notch | IMP | Closed by design change | EPS board outline: centre supports at (0, ±21) mm with Ø7 mm copper-free rings, Z-rod notch x < −35.5, \|y\| < 6.5 with 1 mm keep-out (EPS_BOARD_DESIGN D) |
 | P3S-04 | 2 | No humidity control or ground cycle budget for the MoS2 hinges | IMP | Closed by design change | MoS2 hinge controls: ≤ 40 % RH or dry N2, cycle budget ≤ 30 / ≤ 10, film inspection (MECHANISMS_ANALYSIS E §5A; ETP D §3.8) |
