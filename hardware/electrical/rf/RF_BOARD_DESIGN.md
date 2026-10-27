@@ -5,7 +5,7 @@
 **Date**: 2026-10-27
 **Status**: Build-to design for the engineering model (EM): schematic captured as code with selected, orderable parts,
 netlist, BOM, ERC, calculations and layout rules. Not built, not measured. Values follow
-[BASELINE_PARAMETERS.md](../../../docs/BASELINE_PARAMETERS.md) Rev D, which governs.
+[BASELINE_PARAMETERS.md](../../../docs/BASELINE_PARAMETERS.md) Rev E, which governs.
 
 **Design files** (this directory): `design.py` (SKiDL 3.0 schematic as code), `rf_board.net` (netlist, KiCad
 format), `rf_board_bom.csv` (BOM), `rf_board_erc.log` (electrical rule check), `rf_calcs.py` with its output

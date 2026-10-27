@@ -12,12 +12,12 @@ pins, generated), [`eps_board_bom.csv`](eps_board_bom.csv) (BOM, generated), [`e
 generated), [`eps_calcs.py`](eps_calcs.py) (every computed value in this document). Regenerate with the CAD venv:
 `python hardware/electrical/eps/design.py` and `python3 hardware/electrical/eps/eps_calcs.py`.
 
-**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (governs every value); `docs/hardware/EPS_DESIGN.md` 2.2
+**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev E (governs every value); `docs/hardware/EPS_DESIGN.md` 2.2
 (architecture); `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001, board-to-board pins); `hardware/eps/PDU_DESIGN.md` 1.3, `hardware/eps/EPS_ELECTRICAL_DESIGN.md` 1.3,
 `hardware/eps/BATTERY_DESIGN.md` 2.3, `hardware/eps/SOLAR_ARRAY_DESIGN.md` 2.1; `docs/environment/BATTERY_SAFETY_ASSESSMENT.md`
 (SQSO-BSA-001), `docs/environment/EMC_ANALYSIS.md` (SQSO-EMC-001), `docs/environment/POWER_BUDGET_ANALYSIS.md` (SQSO-PBA-001
-v2.0), `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0), `docs/environment/RADIATION_ANALYSIS.md` Rev C §5.3;
-`docs/interfaces/ICD_OBC_EPS.md` (SMART-QSO-ICD-001 v1.1); `docs/manufacturing/EEE_PARTS_LIST.md` Rev C §2A; CDS Rev 14.1
+v2.0), `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0), `docs/environment/RADIATION_ANALYSIS.md` Rev D §5.3;
+`docs/interfaces/ICD_OBC_EPS.md` (SMART-QSO-ICD-001 v1.2); `docs/manufacturing/EEE_PARTS_LIST.md` Rev C §2A; CDS Rev 14.1
 §2.3; SpaceX Rideshare Payload User's Guide v11 §6.7.7.
 
 ---
@@ -462,8 +462,8 @@ limits on a fault: the switch's current limit, the fuse (switch failed short), t
 | PERMIT, WIN_OK, SHED_N, EOL armed, all switch faults (incl. FLT_SW11 on P4.5), AFE ALERT | MSP430 GPIO (100 k series) | — | EPS controller |
 | EPS_ALERT_N (PB7) | open drain, INA228s and controller | 4.7 k pull-up | OBC |
 
-I2C2 (OBC bus) carries 0x31 (AntS, behind U80), 0x40 and 0x44 (INA228), 0x48 (EPS controller) and the OBC's own devices
-(TMP117 moved to 0x49, ICD §2.3). The AFE (0x08), INA3221s and ADS7138 are on the controller's local bus. The ICD's
+I2C2 (OBC bus) carries 0x31 (AntS, behind U80), 0x40 and 0x44 (INA228), 0x48 (EPS controller); the OBC has no device of its own on this bus (its board temperature is an analog TMP235-Q1,
+ICD-001 §2.3). The AFE (0x08), INA3221s and ADS7138 are on the controller's local bus. The ICD's
 "battery monitor 0x55" and "solar monitor 0x40" become the INA228s at 0x44 and 0x40 (ICD change, §13).
 
 ## 12. EPS controller (U37)
@@ -709,8 +709,8 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 7. No radiation data for any part; latch-up protection by the trips.
 8. VBAT_MTQ has no current monitor on this board (§2.2): its current telemetry depends on the OBC's coil-current
    channels.
-9. The schemdraw sheets S1, S2, S5 and the WireViz files W1, W2, W7 were edited but not rendered: schemdraw and WireViz are
-   not installed here (`hardware/diagrams/build.sh` not run; `dot` is present).
+9. The schemdraw sheets S1, S2, S5 and the WireViz files W1, W2, W7 were rendered by `hardware/diagrams/build.sh` in the
+   CDR consistency pass (2026-10-27).
 
 ## 22. Revision History
 
@@ -718,3 +718,4 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR design (EPS board) | Initial build-to design: schematic as code, BOM, ERC, calculations, interfaces, layout constraints, verification items |
 | B | 2026-10-27 | CDR design (EPS board) | Interconnect changes from SQSO-ICX-001 §7 (E1–E8): VJET_RB (J3-19) and VSW1_RB (J3-37) readbacks; SW11 U39 TPS1H000-Q1 VBAT_MTQ (J3-36/39, ADCS_EN, 0.32–0.40 A); 3V3_RTC (J3-38); J20 → OBC J6, J21 → OBC J4; OBC pins PB2, PF3, PE7, PF4, PG1, PF5; pack-current, stress and thermal tables recomputed; U17 transient Tj corrected to 93 °C (the calculation output; Version A quoted 79 °C) |
+| B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |

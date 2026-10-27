@@ -154,18 +154,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-266 RIDs: severity 1: 29, severity 2: 146, severity 3: 91.
+270 RIDs: severity 1: 29, severity 2: 148, severity 3: 93.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 95 | 127 |
+| Closed by design change | 97 | 131 |
 | Closed by chair decision | 36 | 35 |
 | Verification item | 35 | 34 |
 | Decision point (dated) | 12 | 12 |
-| Implementation | 63 | 33 |
+| Implementation | 65 | 33 |
 
-Open implementation RIDs: SE-01, RF-04, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, THM-02, THM-08, THM-15, AV-03, AV-07, FSW-05, FSW-07, FSW-09, RAD-02, RFB-03, RFB-04, EPSB-01, EPSB-03, EPSB-06, JETB-01, JETB-02, JETB-03, JETB-05, MCAD-06, OBCB-01, OBCB-02, OBCB-05.
+Open implementation RIDs: SE-01, SE-15, SE-16, RF-04, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, THM-02, THM-08, THM-15, AV-03, AV-07, FSW-05, FSW-07, FSW-09, RAD-02, RFB-03, RFB-04, EPSB-01, EPSB-03, JETB-01, JETB-02, JETB-03, JETB-05, MCAD-06, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -238,6 +238,10 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-12 | 2 | No structural model; materials list incomplete | CA | Closed by analysis | Shell FE model (56,258 DOF): first mode 170 Hz, lowest margin +0.72 (STRUCTURAL_ANALYSIS B); materials list SQSO-MAT-001 Rev B |
 | SE-13 | 3 | SYS-112 stated without the nominal 10 % | CD | Closed by design change | SYS-112 |
 | SE-14 | 2 | NASA DAS not run | VI | Verification item | ODA-02: DAS 3.2.6 run 2027-02 |
+| SE-15 | 2 | End-of-life plan describes a drag device and the 25-year rule | IMP | Implementation | Rewrite END_OF_LIFE_PLAN to the two-step passivation, wings-deployed decay and the five-year rule (ODAR) |
+| SE-16 | 2 | Analyses computed at superseded values: ODAR wings-failed case, link and data frame statistics at 6 °/s, power year runs at 500 km / 2028-06, burn transients with two resistors, the mission timeline LEOP table | IMP | Implementation | Re-run at the Rev E baseline |
+| SE-17 | 3 | Harness design H1-H6 predates the interconnect | CD | Closed by design change | HARNESS_DESIGN 1.2 marked superseded by SQSO-ICX-001 and W1-W10 |
+| SE-18 | 3 | Baseline §7 claimed the uplink windows are ≥ 2 MHz below 3 × f_down; 436.222-436.500 MHz is 0.9 MHz below | CD | Closed by design change | BASELINE §7 and RF-P002 restated: ≥ 0.9 MHz, desense ≤ 0.44 dB even 100 kHz from 3f (SQSO-RF-BRD-001 §7.5) |
 
 #### Verification and validation (VV)
 
@@ -530,7 +534,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | EPSB-03 | 2 | EPS controller (MSP430FR2355) firmware is a new configuration item | IMP | Implementation | Class C item in the SDP and the NPR 7150.2D matrix |
 | EPSB-04 | 3 | Tracker efficiency 90.9-92.3 % against EPS-F002's 92 % | VI | Verification item | EM measurement V-EPS; generation effect < 2 %, inside the power margins |
 | EPSB-05 | 3 | ITV4030 fuses rated from −10 °C, below the board's −30 °C allowable | VI | Verification item | V-EPS-8 qualification |
-| EPSB-06 | 3 | Cross-document consistency after the EPS board (B2, diagram README, radiation trip table, BSA H8a, ICD-001, EMC E6/E8, IARU uplink windows) | IMP | Implementation | Documentation consistency pass |
+| EPSB-06 | 3 | Cross-document consistency after the EPS board (B2, diagram README, radiation trip table, BSA H8a, ICD-001, EMC E6/E8, IARU uplink windows) | IMP | Closed by design change | Consistency pass: B1-B4 redrawn with DS3, diagram findings F1-F17 dispositioned, RADIATION D §5.3 trips, BSA B H8a, ICD-001 1.2, EMC B §5.1 (E6, E8), IARU request A.3 windows; SVGs rendered |
 | EPSB-07 | 3 | No magnetorquer current monitor on the EPS board | CH | Closed by chair decision | Coil current is the sum of the OBC's MTQ_X/Y/Z_I channels; SW11 (TPS1H000A, 0.361 A, auto-retry) protects VBAT_MTQ (SQSO-EPS-BRD-001 B) |
 
 #### OBC board (round 2) (OBCB)
@@ -541,7 +545,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | OBCB-02 | 2 | Twenty-five firmware pin changes and new drivers (gyros, magnetometer, sun-sensor ADC, coils on TIM1/TIM15, RTC, supervisor kick) | IMP | Implementation | Flight software round 3 |
 | OBCB-03 | 2 | Gyro module needs 14 mm above the OBC; the stack gives 11.4 mm | IMP | Closed by design change | Gyro on the OBC through a carrier window (MCAD-04, MECHANICAL_DESIGN D-11) |
 | OBCB-04 | 2 | No carrier board design for the Jetson (its 3.3 V I/O rail, VBAT input) | IMP | Closed by design change | Jetson carrier build-to design SQSO-JET-BRD-001 (137 placements, ERC 0): 5.016 V buck and eFuse to VDD_IN, switched JET_3V3, translated UART |
-| OBCB-05 | 3 | Magnetorquers draw 1.16-1.3 W in detumble; not in the power analysis | IMP | Implementation | Documentation consistency: POWER_BUDGET_ANALYSIS LEOP case |
+| OBCB-05 | 3 | Magnetorquers draw 1.16-1.3 W in detumble; not in the power analysis | IMP | Closed by design change | POWER_BUDGET_ANALYSIS 2.1 §8.6 LEOP case with the magnetorquers at 1.16-1.3 W: first orbit −1.30 Wh, three orbits −3.44 Wh (SOC 40 % at separation falls to 33 %) |
 | OBCB-06 | 3 | OBC-rail fault that does not trip SW10 goes undetected | CH | Closed by chair decision | Accepted: the external supervisor and the internal watchdog cover a hung OBC; an EPS-side heartbeat check is a fabrication-phase option |
 | OBCB-07 | 3 | Gyro supply margin 3.195 V against 3.15 V minimum | VI | Verification item | V-OBC measurement on the EM; the 3V3_AO ±2 % set point (EPS) holds it |
 

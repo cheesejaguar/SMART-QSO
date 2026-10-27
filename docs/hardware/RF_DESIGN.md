@@ -1,7 +1,7 @@
 # Radio Frequency (RF) Subsystem Design Document
 
 **Document Number**: SMART-QSO-RF-001
-**Version**: 2.1
+**Version**: 2.2
 **Date**: 2026-10-27
 **Status**: CDR design description. The architecture, interfaces and requirements are defined here; the build-to board design with selected parts is [RF_BOARD_DESIGN.md](../../hardware/electrical/rf/RF_BOARD_DESIGN.md) (SQSO-RF-BRD-001 A), not yet built or measured (§9). Values follow [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) §7, which governs.
 
@@ -59,7 +59,7 @@ Decision record: **build** the transponder radio from the receiver and the 2 m t
 | ID | Parameter | Requirement | Basis |
 |----|-----------|-------------|-------|
 | RF-P001 | Downlink frequency | One IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz | BASELINE §7, SYS-200 |
-| RF-P002 | Uplink frequency | One IARU-coordinated frequency in **435.000–437.300 MHz** (clear of 3 × f_down by ≥ 50 kHz for any downlink in the segment) and, unless RF-P008 is exceeded, ≥ 2 MHz below 3 × f_down | SQSO-LBA-001 §7.1, §7.3 |
+| RF-P002 | Uplink frequency | One IARU-coordinated frequency in **435.000–437.300 MHz** (clear of 3 × f_down by ≥ 50 kHz for any downlink in the segment) and ≥ 0.9 MHz below 3 × f_down; the requested windows are 435.222–435.778 and 436.222–436.500 MHz (BASELINE §7). With the LMX2571 exciter at −70 dBc H3 the desense is ≤ 0.44 dB even 100 kHz from 3f (SQSO-RF-BRD-001 §7.5), so the earlier 2 MHz separation is not needed | SQSO-LBA-001 §7.1, §7.3 |
 | RF-P003 | Output power at the antenna port | 27.0 ± 0.5 dBm and 30.0 ± 0.5 dBm, −20 to +60 °C | BASELINE §7 |
 | RF-P004 | Deviation | Beacon ±3.0 kHz peak (10K4F2D); transponder ±5.0 kHz peak with a limiter (16K0F3E) | ITU_APPENDIX4_DATA §C |
 | RF-P005 | Frequency stability, both bands, over temperature and 2 years | **±1.0 ppm** (±146 Hz at 2 m, ±436 Hz at 70 cm), so that ground pre-correction to ±1 kHz holds | SQSO-LBA-001 §4.4 (the ±2.5 ppm TCXO of the old design gives ±1.1 kHz at 435 MHz on its own) |
@@ -281,3 +281,4 @@ the netlist, the BOM and the ERC log). What it leaves open:
 | 1.2, note | 2026-10-24 | SMART-QSO Team | §3.3.2 names the Rust file that replaced `rf_silence.c` |
 | 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten for the baseline U/v transponder: receiver, TNC, transmitter, repeat path and `XPDR_EN`, TX-OFF and inhibits, AntS configuration options from the spin analysis; requirements RF-F001–F008, RF-P001–P015; findings for the baseline; verification items VI-RF-11 to VI-RF-16; what is not yet selected. The beacon-only design, its link budget and the AX.25 appendices are removed (BEACON_SPEC and SQSO-LBA-001 govern) |
 | 2.1 | 2026-10-27 | CDR design completion, RF board | Parts selected and the board designed (SQSO-RF-BRD-001): §3 "as designed" notes (receiver CC1200 with the audio from the TNC MCU, LMX2571/PCM1808 exciter, RD01MUS3 PA, filters), §3.4 heartbeat lease and board gate, §4 power from the design, §9 replaced by what remains open; RF-P007 split into before-LNA and before-receiver-IC parts, RF-P010 and RF-P015 annotated with the design values, RF-P012 timing restated (200 ms typical, 260 ms maximum) |
+| 2.2 | 2026-10-27 | CDR 2026 consistency | RF-P002: uplink ≥ 0.9 MHz below 3 × f_down (was 2 MHz), from the RF board's desense result; the requested windows |

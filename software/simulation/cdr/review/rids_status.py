@@ -40,5 +40,7 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "OBCB-03": ("CD", "Gyro on the OBC through a carrier window (MCAD-04, MECHANICAL_DESIGN D-11)"),
     "OBCB-04": ("CD", "Jetson carrier build-to design SQSO-JET-BRD-001 (137 placements, ERC 0): 5.016 V buck and eFuse to VDD_IN, switched JET_3V3, translated UART"),
     "AV-06": ("CD", "PAYLOAD_EN and JETSON_PWR on separate lines with JET_PG readback; JET_3V3 high only when the whole chain is up (SQSO-JET-BRD-001, SQSO-ICX-001)"),
+    "EPSB-06": ("CD", "Consistency pass: B1-B4 redrawn with DS3, diagram findings F1-F17 dispositioned, RADIATION D §5.3 trips, BSA B H8a, ICD-001 1.2, EMC B §5.1 (E6, E8), IARU request A.3 windows; SVGs rendered"),
+    "OBCB-05": ("CD", "POWER_BUDGET_ANALYSIS 2.1 §8.6 LEOP case with the magnetorquers at 1.16-1.3 W: first orbit −1.30 Wh, three orbits −3.44 Wh (SOC 40 % at separation falls to 33 %)"),
     "SE-10": ("CD", "SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined"),
 }

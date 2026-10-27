@@ -71,7 +71,11 @@ P: Dict[str, float] = dict(
     pcb_x=90.17, pcb_y=95.89, pcb_t=1.6, col_x=40.0, col_y=43.0, col_d=5.8, cs_x=0.0, cs_y=21.0, cs2_y=-21.0, jet_y=-6.0,
     # M-G370PDT0 in its socket X1 on the OBC: 24 x 24 mm, 14.0 mm above the OBC top face (OBC_BOARD_DESIGN 9.2); it
     # stands through a window in the Jetson carrier (OBC item C3, MECHANICAL_DESIGN 4.2 D-11)
-    gyro_x=-20.0, gyro_y=27.5, gyro_w=24.0, gyro_h=14.0, car_win=(-33.5, -6.5, 14.0, 41.0),
+    gyro_x=-20.0, gyro_y=30.5, gyro_w=24.0, gyro_h=14.0, car_win=(-33.5, -6.5, 17.0, 44.0),
+    # Jetson carrier item M1 (SQSO-JET-BRD-001 14, 18): module standoffs MP2/MP3 at the module's far-edge holes (positions
+    # from the module outline, 3.5 mm in from the side and 3.9 mm from the far edge: to be checked against the NVIDIA drawing),
+    # SoC lid 20 x 20 mm (4.0 cm2 allocation) at the module centre, spreader pedestal over it
+    mod_hole=(31.3, 18.6), mod_so_d=5.1, soc_w=20.0, ped_w=22.0, pad_soc=0.75, pad_other=1.5,
     car_frame_w=2.5, car_frame_h=3.0,       # Al 6061 stiffening frame round the window, carrier bottom side
     # stack levels: substrate bottom z
     z_eps=-3.0, z_obc=5.0, z_car=18.0, z_rf=34.8,
@@ -454,28 +458,45 @@ def build_parts(p=P) -> List[Part]:
     wx0, wx1, wy0, wy1 = p["car_win"]
     wframe = cut(B(wx0 - fw, wx1 + fw, wy0 - fw, wy1 + fw, z - fh, z), B(wx0, wx1, wy0, wy1, z - fh - 1, z + 1))
     car_bot = cut(car_bot, B(wx0 - fw - 0.5, wx1 + fw + 0.5, wy0 - fw - 0.5, wy1 + fw + 0.5, z - 2, z + 0.1))
-    add(Part("Jetson_carrier_parts", "stack", {"21": 23.8}, fuse(car_top, car_bot), color=COL["comp"]))
+    add(Part("Jetson_carrier_parts", "stack", {"21": 23.0}, fuse(car_top, car_bot), color=COL["comp"]))
     add(Part("carrier_window_frame", "stack", {"21": 2.2}, wframe, color=COL["al"],
              note="Al 6061 frame 2.5 x 3.0 mm bonded and screwed round the gyro window, carrier bottom side (D-11)"))
     zs = z + pt
     add(Part("SODIMM_connector", "stack", {"21": 0.0, "22": 2.0}, B(-36, 36, jy - 26.5, jy - 22.5, zs, zs + 4.0),
              color=COL["comp"], note="260-pin SO-DIMM, 4 mm stack height (allocation)"))
     zm = zs + 4.0
+    hx, hy = p["mod_hole"]
+    so = [C("z", (sx * hx, jy + hy, 0), p["mod_so_d"] / 2, zs, zm) for sx in (1, -1)]
+    add(Part("module_standoffs", "stack", {"21": 0.8}, fuse(*so), color=COL["rod"],
+             note="MP2/MP3 Wurth 9774040360R steel SMT spacers M3 x 4.0 mm at the module's far-edge holes (M1)"))
+    sw, pw = p["soc_w"] / 2, p["ped_w"] / 2
+    soc = B(-sw, sw, jy - sw, jy + sw, zm + 1.2, zm + 2.7)                      # SoC lid, 1.5 mm (allocation)
+    others = cut(B(-20, 20, jy - 16, jy + 12, zm + 1.2, zm + 2.2), B(-pw, pw, jy - pw, jy + pw, zm, zm + 3))
     add(Part("Jetson_module", "stack", {"20": 31.0},
-             fuse(B(-34.8, 34.8, jy - 22.5, jy + 22.5, zm, zm + 1.2), B(-30, 30, jy - 20, jy + 20, zm - 1.5, zm),
-                  B(-20, 20, jy - 16, jy + 12, zm + 1.2, zm + 2.7)),
-             color=COL["pcb"], note="Jetson Orin Nano 8 GB 69.6 x 45 mm (NVIDIA SO-DIMM form factor)"))
+             fuse(B(-34.8, 34.8, jy - 22.5, jy + 22.5, zm, zm + 1.2),
+                  cut(B(-30, 30, jy - 20, jy + 20, zm - 1.5, zm), *[C("z", (sx * hx, jy + hy, 0), 3.5, zm - 2, zm + 1)
+                                                                    for sx in (1, -1)]),
+                  soc, others),
+             color=COL["pcb"], note="Jetson Orin Nano 8 GB 69.6 x 45 mm (NVIDIA SO-DIMM form factor); SoC lid 20 x 20 x 1.5 "
+                                    "mm, DRAM and regulators 1.0 mm (envelopes until the NVIDIA STEP model is used)"))
     zt2 = zm + 2.7
-    add(Part("Jetson_TIM_clamp", "stack", {"22": 18.0}, fuse(B(-34.8, -31.8, jy - 22.5, jy + 22.5, zm + 1.2, zt2 + 1.5),
-                                                          B(31.8, 34.8, jy - 22.5, jy + 22.5, zm + 1.2, zt2 + 1.5),
-                                                          B(-20, 20, jy - 16, jy + 12, zt2, zt2 + 1.5)),
-             color=COL["comp"], note="clamp at both short edges, TIM pad on the SoC (STR-07)"))
     zsp = zt2 + 1.5
+    pad_soc = B(-sw, sw, jy - sw, jy + sw, zt2, zt2 + p["pad_soc"])                 # 1.0 mm pad at 25 %
+    pad_oth = cut(B(-20, 20, jy - 16, jy + 12, zm + 2.2, zm + 2.2 + p["pad_other"]),   # 2.0 mm pads at 25 %
+                  B(-pw, pw, jy - pw, jy + pw, zm, zsp))
+    add(Part("Jetson_TIM_clamp", "stack", {"22": 18.0}, fuse(B(-34.8, -31.8, jy - 22.5, jy + 22.5, zm + 1.2, zsp),
+                                                          B(31.8, 34.8, jy - 22.5, jy + 22.5, zm + 1.2, zsp),
+                                                          pad_soc, pad_oth),
+             color=COL["comp"], note="clamp bars at both short edges (STR-07); gap pads on the SoC lid (1.0 mm) and on the "
+                                     "DRAM and regulators (2.0 mm), both at 25 % deflection (SQSO-JET-BRD-001 14)"))
     spreader = fuse(B(-40, 40, jy - 27.0, jy + 33.0, zsp, zsp + 5.0),
+                    B(-pw, pw, jy - pw, jy + pw, zt2 + p["pad_soc"], zsp),                       # pedestal (M1)
+                    B(-20, 20, jy - 16, jy + 12, zm + 2.2 + p["pad_other"], zsp),              # second face
                     B(-wx["shear_in"], -40, -20, 20, zsp + 2.0, zsp + 5.0),
                     B(40, wx["shear_in"], -20, 20, zsp + 2.0, zsp + 5.0))
     add(Part("heat_spreader", "stack", {"23": 65.0, "5": 15.0}, spreader, color=COL["al"],
-             note="Al 6061 80 x 60 x 5 mm with 3 mm flanges bolted (4 x M2.5) to the +-X shear panels"))
+             note="Al 6061 80 x 60 x 5 mm with 3 mm flanges bolted (4 x M2.5) to the +-X shear panels; pedestal 22 x 22 x "
+                  "0.75 mm over the SoC lid (flatness 0.05 mm) and a 0.5 mm second face over the DRAM and regulators"))
     rf_top = fuse(B(-42, 42, P["shield_y0"], P["shield_y1"], P["z_rf"] + pt, P["z_rf"] + pt + 7.0),
                   B(-px + 1, px - 1, P["shield_y1"], py - 1, P["z_rf"] + pt, P["z_rf"] + pt + 2.0),
                   B(-px + 1, px - 1, -py + 1, P["shield_y0"], P["z_rf"] + pt, P["z_rf"] + pt + 2.0))
@@ -486,6 +507,8 @@ def build_parts(p=P) -> List[Part]:
     cseg = [C("z", (p["cs_x"], p["cs_y"], 0), p["col_d"] / 2, levels[i], levels[i + 1]) for i in (0, 2, 4, 6)]
     cseg.append(C("z", (0, 0, 0), p["col_d"] / 2, zsp + 5.0, P["z_rf"]))
     cseg += [C("z", (p["cs_x"], p["cs2_y"], 0), p["col_d"] / 2, levels[i], levels[i + 1]) for i in (2, 4)]
+    # (0, -21) under the Jetson module: low-head M2 fastener on the carrier's top face (M1), head Ø3.5 x 1.1 mm (ISO 7380)
+    cseg.append(C("z", (p["cs_x"], p["cs2_y"], 0), 1.75, P["z_car"] + pt, P["z_car"] + pt + 1.1))
     add(Part("centre_supports", "stack", {"34": 2.0}, fuse(*cseg), color=COL["al"],
              note="centre supports (STR-05): (0, +21) deck-EPS-OBC-carrier-spreader, (0, -21) EPS-OBC-carrier, "
                   "(0, 0) spreader-RF"))
