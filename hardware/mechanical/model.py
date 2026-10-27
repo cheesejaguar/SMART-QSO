@@ -187,25 +187,36 @@ HZ_OWNER = {"COAX_P": "coax_W10", "COAX_M": "coax_W10", "COAXU_P": "coax_W10", "
             "COAXF_P": "coax_W10", "COAXF_M": "coax_W10", "W4AZ": "ribbon_W4A", "AP_A3": "access_port",
             "TB": "TB_tabs"}
 
-# Splice envelopes (SQSO-HAR-001 2.0 amended, 15 item M-11): sized for the TE D-436-36 (M81824/1-1), installed about 2.6 mm across
-# and 29 mm long, 0.46 g (the larger candidate: the nickel-barrel TE D-200-82 that replaces it is to be sized by the
-# harness design); no more than two side by side, staggered by one splice length, tied within 10 mm of both ends.
-# (harness, ref): [(axis, centre, start)], each a cylinder of SPL_R from start to start + SPL_L along the axis.
-SPL_R, SPL_L = 1.3, 29.0
-SPLICES = {
-    # X-rod pair under the EPS, in the 3.2 mm layer between the zone Z1 connector envelope and the deck
-    ("W6C", "ROD-X"): [("y", (x, 0.0, -14.0), 7.5) for x in (-28.55, -25.85)],
-    # Y-rod pair at the (+X,+Y) bundle's -Y face, up from z -30
-    ("W6C", "ROD-Y"): [("z", (46.9, y, 0.0), -30.0) for y in (25.4, 28.1)],
-    # Z-rod pair in the -X wall gap MXC (3.0 mm)
-    ("W6C", "ROD-Z"): [("z", (-46.9, y, 0.0), -15.0) for y in (8.4, 11.1)],
-    # deployed-state sensor pairs in the hinge-side strips, clear of the TB tabs on the shear panels
-    ("W7A", "HS-W1"): [("z", (46.7, y, 0.0), -40.0) for y in (35.9, 38.6)],
-    ("W7B", "HS-W2"): [("z", (-46.7, y, 0.0), -40.0) for y in (35.9, 38.6)],
-    # W7C's eight in the -Z end-frame window, between the AntS and the cells (z -47.5 ... -44.9): two lanes two
-    # abreast along the +-Y edges of the frame cut-out, two stagger positions each (x -32 ... -3 and +1 ... +30),
-    # tied to the end frame at both ends and at the 4 mm gap
-    ("W7C", "ANTS"): [("x", (0.0, y, -46.2), x0) for y in (-33.4, -30.7, 30.7, 33.4) for x0 in (-32.0, 1.0)],
+# Splice and termination-tab envelopes (SQSO-HAR-001 2.0 amended, 15 item M-11, final inputs 2026-10-27).
+# Splices: TE D-200-82, installed 2.8 mm across and 29.2 mm long, 0.38 g, the pair side by side, tied 10 mm beyond each
+# end; only on the deployed-state sensor pairs.  Tabs: bonded polyimide solder tabs 6 x 10 mm, 2.0 mm high with the
+# joints, 0.20 g (harness design), 15 mm of wire dress each side (inside the zones).  (harness, ref): (kind, substrate
+# part or "", shapes); a splice is a cylinder of SPL_R from start to start + SPL_L along the axis.
+SPL_R, SPL_L = 1.4, 29.2
+
+
+def _splice_pair(sx):
+    # W1 (+X): below the hinge-side strip; the hinge doubler (y 35 ... 41) and the end frame (z -46.9) bound it, so the
+    # pair runs along y on the end frame, side by side in x, z -46.7 ... -43.9, y +5.0 ... +34.2.
+    # W2 (-X): that lane is crossed by the W10 coax (y +20 ... +24, down to the end frame) and the Z rod (y +-5.2, down
+    # to z -44), so the pair stands in the hinge-side strip HS_MX, side by side in y (+34.3 ... +39.9), z -41.0 ... -11.8,
+    # clear of the TB-W2 tab (x <= -48.2)
+    if sx > 0:
+        return [C("y", (x, 0.0, -45.3), SPL_R, 5.0, 5.0 + SPL_L) for x in (44.1, 46.9)]
+    return [C("z", (-46.6, y, 0.0), SPL_R, -41.0, -41.0 + SPL_L) for y in (35.7, 38.5)]
+
+
+TERMINATIONS = {
+    ("W7A", "HS-W1"): ("splice", "", lambda: _splice_pair(1.0)),
+    ("W7B", "HS-W2"): ("splice", "", lambda: _splice_pair(-1.0)),
+    # TB-RZ on the -X shear panel's inner face in MXC at (-47.4, +10, +12): 2.0 mm of the 3.0 mm gap
+    ("W6C", "ROD-Z"): ("tab", "shear_mx", lambda: [B(-48.5, -46.5, 7.0, 13.0, 7.0, 17.0)]),
+    # TB-RX on the deck strap under the X rod (strap extended to x -30.5) beside the rod's -X end
+    ("W6C", "ROD-X"): ("tab", "torquer_deck", lambda: [B(-29.6, -23.6, 31.0, 41.0, -15.5, -13.5)]),
+    # TB-RY on the Y rod's +Y end face, 0.5 mm inboard of the (+X,+Y) bundle
+    ("W6C", "ROD-Y"): ("tab", "rod_Y", lambda: [B(38.9, 44.9, 23.5, 25.5, -37.9, -27.9)]),
+    # TB-ANT (8 pads) in the -Z end-frame window beside the W7C drop, 0.5 mm above the AntS; bond substrate open
+    ("W7C", "ANTS"): ("tab", "", lambda: [B(-34.0, -28.0, -19.5, -9.5, -48.0, -46.0)]),
 }
 
 
@@ -234,8 +245,8 @@ def harness_distribution():
             if w["route"] == "W10E":
                 w10e_z[zn] += m * l / L
         for ref, pin, zn in ((w["from_ref"], w["from_pin"], segs[0][0]), (w["to_ref"], w["to_pin"], segs[-1][0])):
-            if HAR.family(ref) == "SPL":                # splices in their own envelopes (M-11)
-                zn = f"SPL_{w['harness']}_{ref}"
+            if (w["harness"], ref) in TERMINATIONS:      # splices and tabs in their own envelopes (M-11)
+                zn = f"{TERMINATIONS[(w['harness'], ref)][0].upper()}_{w['harness']}_{ref}"
             ends.setdefault((w["harness"], ref), [zn, set()])[1].add(pin)
     conn_z = defaultdict(float)
     for (h, ref), (zn, pins) in ends.items():
@@ -245,7 +256,7 @@ def harness_distribution():
         else:
             m = fam[2] + fam[3] * len(pins) if (fam[2] or fam[3]) else 0.0
         zm[zn]["31" if ref in ("GNSS-RF", "PATCH") else HAR.MEL_ROW.get(h, "32")] += m
-        if not zn.startswith("SPL_"):                  # splices are tied to structure, not carried by a board
+        if not zn.startswith(("SPLICE_", "TAB_")):     # splices and tabs are on structure, not carried by a board
             conn_z[zn] += m
     harness_distribution.connectors = dict(conn_z)           # connector halves by zone (for the FE ties)
     wt, w1t = sum(wire_z.values()), sum(w1_z.values())
@@ -291,11 +302,13 @@ def harness_zone_parts(parts: List[Part], add):
             for r, g in v.items():
                 pt.mel[r] = pt.mel.get(r, 0.0) + g
             continue
-        if zn.startswith("SPL_"):
-            h, ref = zn[4:].split("_", 1)
-            env = fuse(*[C(ax, c, SPL_R, a0, a0 + SPL_L) for ax, c, a0 in SPLICES[(h, ref)]])
-            add(Part(f"hz_{zn}", "harness", dict(v), env, color=COL["harness"],
-                     note=f"{len(SPLICES[(h, ref)])} splice(s), {h} at {ref}: envelope 2.6 x 29 mm each (D-436-36 size; D-200-82 to confirm, M-11)"))
+        if zn.startswith(("SPLICE_", "TAB_")):
+            kind, h, ref = zn.split("_", 2)
+            k_, sub, mk = TERMINATIONS[(h, ref)]
+            what = ("two D-200-82 splices, 2.8 x 29.2 mm, side by side" if k_ == "splice" else
+                    "bonded polyimide solder tab 6 x 10 x 2.0 mm" + (f" on {sub}" if sub else " (bond substrate open)"))
+            add(Part(f"hz_{zn}", "harness", dict(v), fuse(*mk()), color=COL["harness"],
+                     note=f"{h} at {ref}: {what} (SQSO-HAR-001 2.0 amended, M-11)"))
             continue
         x0, x1, y0, y1, z0, z1, _ax, desc = HAR.ZONES[zn]
         if zn.startswith("U_"):                 # under the 2.0 mm EPS: top at its bottom-parts envelope (request H-11)
@@ -559,12 +572,13 @@ def build_parts(p=P) -> List[Part]:
              note="interconnect and sense board on the clamp (flying leads, no stack connector)"))
 
     # ---------------- deck, rods, GNSS receiver -----------------------------------------------------------
-    # skeleton deck (MCAD-02): 3 mm rim, column bosses, a strap under the X rod, two bars under the GNSS receiver and
+    # skeleton deck (MCAD-02): 3 mm rim, column bosses, a strap under the X rod (to x -30.5 for tab TB-RX, M-11), two
+    # bars under the GNSS receiver and
     # a strap to the upper centre support; Al 6061-T6 1.0 mm, about 8.6 g (row 5 allocates 9 g)
     zd0, zd1 = -16.5, -15.5
     rim = cut(B(-45.0, 45.0, -47.9, 47.9, zd0, zd1), B(-42.0, 42.0, -44.9, 44.9, zd0 - 1, zd1 + 1))
     deck = fuse(rim, *[C("z", (sx * p["col_x"], sy * p["col_y"], 0), 5.0, zd0, zd1) for sx in (1, -1) for sy in (1, -1)],
-                B(-25.0, 25.0, 30.0, 42.0, zd0, zd1), B(-42.0, 42.0, -42.0, -36.0, zd0, zd1),
+                B(-30.5, 25.0, 30.0, 42.0, zd0, zd1), B(-42.0, 42.0, -42.0, -36.0, zd0, zd1),
                 B(-42.0, 42.0, -4.0, 2.0, zd0, zd1), B(-3.0, 3.0, 2.0, 30.0, zd0, zd1),
                 C("z", (p["cs_x"], p["cs_y"], 0), 5.0, zd0, zd1))
     deck = cut(deck, *colholes, B(-60, -35.5, -6.5, 6.5, -60, 60), C("z", (p["cs_x"], p["cs_y"], 0), 1.6, -60, 60))
@@ -1094,8 +1108,9 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
          dict(zones_mm=zd[:4], wing_sweep_mm=round(wsw, 2)),
          ">= 1.0 to each harness zone; > 0.3 to the sweep (the seat angle bears on the shear panel by design)",
          bool(zd) and zd[0][0] >= 1.0 and wsw > 0.3)
-    # splice envelopes (M-11): nearest solid outside the harness, the AntS, the stowed wings and the wing sweep
-    spl = [pt for pt in parts if pt.name.startswith("hz_SPL_")]
+    # splice and tab envelopes (M-11): nearest solid outside the harness (a tab's bond substrate excepted), the AntS,
+    # the stowed wings and the wing sweep
+    spl = [pt for pt in parts if pt.name.startswith(("hz_SPLICE_", "hz_TAB_"))]
     solid = [pt for pt in parts if pt.group not in ("harness", "dist") and not pt.ghost]
     wsw_all = [fuse(*[wp.stowed.rotate(ax0, ax1, ang) for wp in wingparts]) for ang in (0, 10, 30, 45, 60, 90)]
     wsw_m = [mirror_x(w) for w in wsw_all]
@@ -1103,16 +1118,17 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
     sres, sok = {}, True
     for sp in spl:
         eb = sp.stowed.BoundingBox()
+        sub = TERMINATIONS[tuple(sp.name.split("_", 3)[2:4])][1]
         near = sorted((round(min_dist(sp.stowed, q.stowed), 2), q.name) for q in solid
-                      if not (q.stowed.BoundingBox().xmin > eb.xmax + 5 or q.stowed.BoundingBox().xmax < eb.xmin - 5
+                      if q.name != sub and not (q.stowed.BoundingBox().xmin > eb.xmax + 5 or q.stowed.BoundingBox().xmax < eb.xmin - 5
                               or q.stowed.BoundingBox().ymin > eb.ymax + 5 or q.stowed.BoundingBox().ymax < eb.ymin - 5
                               or q.stowed.BoundingBox().zmin > eb.zmax + 5 or q.stowed.BoundingBox().zmax < eb.zmin - 5))
         wing_st = min(min_dist(sp.stowed, w) for w in (wsw_all if eb.xmax > 0 else []) + (wsw_m if eb.xmin < 0 else []))
-        sres[sp.name] = dict(nearest=near[:2], ants_mm=round(min_dist(sp.stowed, ants), 2),
+        sres[sp.name] = dict(nearest=near[:3], bonded_to=sub or "-", ants_mm=round(min_dist(sp.stowed, ants), 2),
                              wing_sweep_mm=round(wing_st, 2))
-        sok = sok and bool(near) and near[0][0] >= 0.2
-    item("SPL-1", "Splice envelopes (D-436-36 size, M-11): no interference; >= 0.2 mm to every solid outside the harness",
-         sres, ">= 0.2 mm (tie-down within 10 mm of both ends)", sok)
+        sok = sok and bool(near) and near[0][0] >= 0.1
+    item("SPL-1", "Splice (D-200-82) and tab envelopes (M-11): no interference; >= 0.1 mm to every solid outside the "
+         "harness except a tab's bond substrate", sres, ">= 0.1 mm", sok)
     # AntS tapes vs wings
     zt = z_planes(p)["mz_out"] - p["ants_t"] / 2.0
     band_top = zt + p["tape_w"] / 2.0

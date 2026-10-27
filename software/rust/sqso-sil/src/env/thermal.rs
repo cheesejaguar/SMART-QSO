@@ -1,16 +1,22 @@
 //! Lumped-parameter thermal network of the 1U with its two wings.
 //!
-//! Twelve nodes: the six body panels (each the panel substrate with its share
-//! of the frame), the two wings, and four internal nodes (battery pack, OBC
-//! and EPS board stack, RF board with the PA, Jetson module with its heat
-//! spreader). Explicit integration with internal sub-steps of at most half
+//! Thirteen nodes: the six body panels (each the panel substrate with its
+//! share of the frame), the two wings, four internal nodes (battery pack,
+//! OBC and EPS board stack, RF board with the PA, Jetson module with its heat
+//! spreader) and the ISIS AntS on the −Z face ([`ANTS`], CDR round 3,
+//! THERMAL_ANALYSIS 2.4 §4.4), whose outer face and edges take the −Z face's
+//! place toward space. Explicit integration with internal sub-steps of at most half
 //! the shortest node time constant, so any caller step (1–60 s) is stable.
 //!
 //! # External surfaces (`hardware/structure/THERMAL_DESIGN.md` §3.1)
 //!
 //! * Long faces (±X, ±Y; 100 × 113.5 mm): 53 % solar cells (α 0.92,
 //!   ε 0.85), the rest black anodize (α 0.88, ε 0.85): α 0.90, ε 0.85.
-//! * End faces (±Z; 100 × 100 mm): black anodize, α 0.88, ε 0.85.
+//! * End faces (±Z; 100 × 100 mm): black anodize, α 0.88, ε 0.85. The −Z
+//!   face is covered by the AntS (98 × 98 × 7 mm, black anodize α 0.88,
+//!   ε 0.85): the AntS's outer face and four edges (half their view free)
+//!   radiate and absorb, its back face exchanges with the −Z frame
+//!   (σ · 0.74 · A) and its mount conducts 0.02 W/K.
 //! * Wings (83 × 98 mm, cells on both sides, 74 % cell coverage): α 0.91,
 //!   ε 0.85 on each side.
 //! * Deployed, each wing's back faces its adjacent ±X body face at 90°: view
@@ -125,7 +131,7 @@ fn battery_rad_coeff(eps_b: f64) -> f64 {
 }
 
 /// Number of nodes.
-pub const N_NODES: usize = 12;
+pub const N_NODES: usize = 13;
 /// +X body panel.
 pub const PX: usize = 0;
 /// −X body panel.
@@ -150,13 +156,19 @@ pub const OBC: usize = 9;
 pub const RF: usize = 10;
 /// Jetson module with heat spreader.
 pub const JET: usize = 11;
+/// The ISIS AntS on the −Z face (THERMAL_ANALYSIS 2.4 §4.4: 85 g, black
+/// anodize α 0.88 ε 0.85, isolated mount 0.02 W/K): its outer face and four
+/// 7 mm edges replace the −Z face's own surface; its back face radiates to
+/// the −Z frame
+pub const ANTS: usize = 12;
 
 /// Node names, for reports.
 pub const NODE_NAMES: [&str; N_NODES] =
-    ["+X", "-X", "+Y", "-Y", "+Z", "-Z", "W1", "W2", "battery", "OBC", "RF", "Jetson"];
+    ["+X", "-X", "+Y", "-Y", "+Z", "-Z", "W1", "W2", "battery", "OBC", "RF", "Jetson", "AntS"];
 
 /// Heat capacity of each node (J/K).
-pub const CAPACITY_J_K: [f64; N_NODES] = [76.0, 76.0, 76.0, 76.0, 30.0, 30.0, 42.0, 42.0, 250.0, 200.0, 130.0, 220.0];
+pub const CAPACITY_J_K: [f64; N_NODES] =
+    [76.0, 76.0, 76.0, 76.0, 30.0, 30.0, 42.0, 42.0, 250.0, 200.0, 130.0, 220.0, 77.0];
 
 const A_LONG: f64 = 0.100 * 0.1135;
 const A_END: f64 = 0.100 * 0.100;
@@ -164,6 +176,16 @@ const A_WING: f64 = 0.083 * 0.098;
 const ALPHA_LONG: f64 = 0.90;
 const ALPHA_END: f64 = 0.88;
 const ALPHA_WING: f64 = 0.91;
+/// The AntS's outer face (98 × 98 mm) and each of its four edges (98 × 7
+/// mm, half their view free), m², and its absorptance (its emittance is
+/// [`EPS`], 0.85)
+const A_ANTS_OUT: f64 = 0.098 * 0.098;
+const A_ANTS_EDGE: f64 = 0.098 * 0.007;
+const ALPHA_ANTS: f64 = 0.88;
+/// The AntS's back face to the −Z frame: ε_eff = 1/(1/0.85 + 1/0.85 − 1)
+const EPS_ANTS_FRAME: f64 = 0.74;
+/// The AntS's mount to the −Z frame, W/K
+const ANTS_MOUNT_W_K: f64 = 0.02;
 const EPS: f64 = 0.85;
 const F_BODY_TO_WING: f64 = 0.20;
 const EPS_EFF_STOWED: f64 = 1.0 / (2.0 / EPS - 1.0);
@@ -188,9 +210,9 @@ struct Link {
     g: f64,
 }
 
-const MAX_SURF: usize = 10;
+const MAX_SURF: usize = 14;
 const MAX_LINKS: usize = 48;
-const MAX_RAD: usize = 8;
+const MAX_RAD: usize = 9;
 
 /// The network for one wing configuration.
 #[derive(Clone, Copy, Debug)]
@@ -243,7 +265,13 @@ impl Network {
         n.push_surf(PY, y, A_LONG, ALPHA_LONG, 1.0);
         n.push_surf(MY, -y, A_LONG, ALPHA_LONG, 1.0);
         n.push_surf(PZ, z, A_END, ALPHA_END, 1.0);
-        n.push_surf(MZ, -z, A_END, ALPHA_END, 1.0);
+        // The −Z face is the AntS's: its outer face and edges
+        n.push_surf(ANTS, -z, A_ANTS_OUT, ALPHA_ANTS, 1.0);
+        for edge in [x, -x, y, -y] {
+            n.push_surf(ANTS, edge, A_ANTS_EDGE, ALPHA_ANTS, 0.5);
+        }
+        n.push_rad(ANTS, MZ, SIGMA * EPS_ANTS_FRAME * A_ANTS_OUT);
+        n.push_link(ANTS, MZ, ANTS_MOUNT_W_K);
         for (k, (wing, face, sign)) in [(W1, PX, 1.0), (W2, MX, -1.0)].into_iter().enumerate() {
             let out = x * sign;
             if wings[k] {
@@ -560,7 +588,9 @@ mod tests {
         for _ in 0..20_000 {
             th.step(30.0, &inp);
         }
-        let absorbed = 2.0 + ALPHA_LONG * A_LONG * 1361.0 + 2.0 * ALPHA_WING * A_WING * 1361.0;
+        // The +Y face, the two wings' +Y faces and the AntS's +Y edge
+        let absorbed =
+            2.0 + ALPHA_LONG * A_LONG * 1361.0 + 2.0 * ALPHA_WING * A_WING * 1361.0 + ALPHA_ANTS * A_ANTS_EDGE * 1361.0;
         let out = th.radiated_w([true, true]);
         assert!((out / absorbed - 1.0).abs() < 1e-3, "{out} {absorbed}");
         // the sunlit side is warmer than the shaded side, internal nodes in

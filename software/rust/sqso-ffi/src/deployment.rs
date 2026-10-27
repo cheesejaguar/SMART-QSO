@@ -309,4 +309,22 @@ mod tests {
         assert_eq!(m.len, 127);
         assert_eq!(&m.buf[124..], b"xxx\0");
     }
+
+    /// The AntS gate's C interface: an unknown element is refused, NULL
+    /// outputs are allowed, a nested call (an interrupt) is busy
+    #[test]
+    fn ants_gate_interface_and_busy() {
+        let _serial = crate::fault_mgmt::tests::serial();
+        assert!(!deployment_retry(7, true), "no such element");
+        let (mut n, mut t) = (9u8, 0.0f64);
+        // SAFETY: live objects, then NULL (allowed)
+        assert!(unsafe { deployment_ants_gate(&mut n, &mut t) });
+        assert_eq!(ants_gate().0, n);
+        assert!(unsafe { deployment_ants_gate(core::ptr::null_mut(), core::ptr::null_mut()) });
+        let nested = DEPLOY.with(|_| {
+            // SAFETY: NULL outputs are allowed
+            (unsafe { deployment_ants_gate(core::ptr::null_mut(), core::ptr::null_mut()) }, ants_gate())
+        });
+        assert_eq!(nested, Some((false, (0, None))));
+    }
 }

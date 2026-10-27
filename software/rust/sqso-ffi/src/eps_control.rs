@@ -185,7 +185,9 @@ pub(crate) fn eps_board_c() -> Option<f64> {
     use sqso_fsw::ina228::{ARRAY, PACK};
     let now = c::now_ms();
     let fresh = MONITORS
-        .with(|m| m.dies.filter(|(t, _)| now.checked_sub(*t).is_some_and(|age| age < BOARD_READ_PERIOD_MS)).map(|(_, d)| d))
+        .with(|m| {
+            m.dies.filter(|(t, _)| now.checked_sub(*t).is_some_and(|age| age < BOARD_READ_PERIOD_MS)).map(|(_, d)| d)
+        })
         .flatten();
     let dies = fresh.unwrap_or_else(|| {
         let mut bus = crate::hw::HalI2c(EPS_I2C_BUS);

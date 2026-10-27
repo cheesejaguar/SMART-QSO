@@ -358,6 +358,8 @@ current.
 | SRS-F161 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-F162 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-F163 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F164 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F165 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
 | SRS-P001 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
 | SRS-P002 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
 | SRS-P003 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
@@ -409,12 +411,12 @@ current.
 
 | Code | Event | Planned date | Requirements |
 |------|-------|--------------|--------------|
-| CI | Flight-software tests in CI (host) | continuous | 189 |
+| CI | Flight-software tests in CI (host) | continuous | 191 |
 | SIL | Mission simulation, software in the loop (sqso-sil) | 2026-11 to 2027-01 | 6 |
 | PDR | Analysis or inspection presented at the PDR | 2027-01-12 | 8 |
 | REG | Regulatory filing or coordination record | 2027-01 to 2028-06 | 10 |
 | CON | Launch contract and integrator ICD | 2027-05-31 | 8 |
-| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-06 to 2027-07 | 174 |
+| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-06 to 2027-07 | 176 |
 | EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-07 to 2027-09 | 12 |
 | CDR | Analysis or inspection presented at the CDR | 2027-09-28 | 54 |
 | FMI | FM integration and comprehensive functional (TP-INT, TP-SYS-001) | 2027-12 to 2028-02 | 50 |
@@ -427,10 +429,10 @@ current.
 
 | Status | Requirements |
 |--------|--------------|
-| Not verified | 270 |
-| Partial (CI) | 77 |
+| Not verified | 271 |
+| Partial (CI) | 78 |
 | Deleted | 1 |
-| **Total** | **348** |
+| **Total** | **350** |
 
 Methods: A analysis, D demonstration, I inspection, T test, V validation (mission objectives, judged against the success criteria). A method marked * is proposed here because the specification gives none.
 <!-- vcrm:end -->
@@ -474,7 +476,7 @@ a review item discrepancy in the CDR review report and stays here until closed.
 | # | Requirement | Prediction or problem | Disposition |
 |---|-------------|-----------------------|-------------|
 | 1 | SYS-100 | **Resolved by analysis.** The mission simulation gives 2.48 W delivered while tumbling at end of life (BASELINE Rev E §5; SQSO-PBA-001 v2.2 §4) against 2.21 W required at the 1.84 W load (SYS-100 Rev G, CR-2026-009): +12 %. The isotropic 2.14 W of SOLAR_ARRAY_DESIGN §9.3 is kept as a bound | Verification: V-PWR-1 (EM flatsat), V-PWR-5 (commissioning) |
-| 2 | SYS-002 | **Resolved by analysis.** MEV 1.75 kg against 2.00 kg, +14.4 % (`docs/environment/MASS_BUDGET.md` v3.1 with the CAD; BASELINE Rev E (amended) §4, CR-2026-008) | Re-run with quoted masses after the COTS buys; VI-STR-01, VI-LV-02 |
+| 2 | SYS-002 | **Resolved by analysis.** MEV 1.75 kg against 2.00 kg, +14.0 % (`docs/environment/MASS_BUDGET.md` v3.1 with the CAD; BASELINE Rev E (amended) §4, CR-2026-008) | Re-run with quoted masses after the COTS buys; VI-STR-01, VI-LV-02 |
 | 3 | SYS-603 | The 1 W/K conductance (Rev F) is replaced by temperature limits (Rev G, CR-2026-010): spreader ≤ +40 °C in a 600 s batch (39.0 °C even at 0.44 W/K; 35.3 °C at 1.0 W/K), junction ≤ 95 °C (≈ 48 °C with the 1.09–1.16 K/W design), spreader ≤ +70 °C stuck on (60.6 °C at 0.44 W/K). Design path 1.10 W/K estimated (MECHANICAL_DESIGN §6.10). Predicted to comply, with the 600 s batch 1 °C inside its limit at the audit's 0.44 W/K | Verification items ETP VI-01 and V-THM-3 on the EM; correlated model at the CDR |
 | 4 | SYS-601 | Cold survival limit open between −40 °C and −30 °C (TBR-TPENV003-001) | Correlated thermal model at the CDR |
 | 5 | SYS-020, SYS-222, SYS-522, MRD-012, MRD-043, MRD-045, MRD-060 | Not verifiable as written; proposed wording awaits the PI (TBR-SYS-002 to -004, TBR-MRD-002 to -005) | PI ratification by the PDR |

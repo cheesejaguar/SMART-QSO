@@ -470,7 +470,9 @@ fn dispatch(command: Command, cmd: &CmdCommand, response: &mut CmdResponse) -> u
                 _ => None,
             };
             match (cmd.payload[0], force) {
-                (0 | 1, Some(f)) if crate::deployment::deployment_retry(u32::from(cmd.payload[0]), f) => result::SUCCESS,
+                (0 | 1, Some(f)) if crate::deployment::deployment_retry(u32::from(cmd.payload[0]), f) => {
+                    result::SUCCESS
+                }
                 (0, Some(_)) | (1, Some(false)) => result::NOT_ALLOWED,
                 _ => result::INVALID_PARAM,
             }

@@ -8,6 +8,7 @@
  * then the antenna (STR-16); the wings alternate driver A and driver B.
  *
  * @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
+ * @requirement SRS-F165 AntS deployment only at an AntS temperature of at least −17 °C; colder or unknown defers to the next 50-minute slot without spending an attempt, at most 30 times, then deploys; DEPLOY_RETRY with the force flag deploys at once
  */
 
 #include <stdarg.h>
@@ -49,6 +50,16 @@ static void set_antenna_sense(bool deployed)
 {
     uint8_t status[3] = {ANTS_STATUS, deployed ? 0x00U : 0x88U, deployed ? 0x00U : 0x88U};
     assert_int_equal(hal_i2c_write(ANTS_BUS, ANTS_ADDR, status, sizeof(status)), SMART_QSO_OK);
+}
+
+/** The AntS's own temperature (0xC0, two bytes low first; the documented
+ *  assumption of sqso_fsw::ants: 10 mV/°C, 500 mV at 0 °C, 10 bits at 3.3 V) */
+#define ANTS_TEMPERATURE 0xC0U
+static void set_ants_temperature(double t_c)
+{
+    const uint16_t raw = (uint16_t)(((0.5 + (0.01 * t_c)) * 1024.0 / 3.3) + 0.5);
+    uint8_t reg[3] = {ANTS_TEMPERATURE, (uint8_t)(raw & 0xFFU), (uint8_t)(raw >> 8)};
+    assert_int_equal(hal_i2c_write(ANTS_BUS, ANTS_ADDR, reg, sizeof(reg)), SMART_QSO_OK);
 }
 
 /*===========================================================================*/
@@ -553,6 +564,48 @@ static void test_force_retry_after_failure(void **state)
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
 }
 
+/** The AntS temperature gate (decision C-18): an AntS below −17 °C is not
+ *  deployed; the attempt waits a 50-minute slot without being spent; once
+ *  warm it deploys; DEPLOY_RETRY's force flag deploys at once */
+static void test_ants_temperature_gate(void **state)
+{
+    (void)state;
+    uint8_t deferrals = 0xFFU;
+    double temp_c = 0.0;
+    set_ants_temperature(-44.0);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false); /* the wings already out */
+    wait_out();
+    deployment_tick(SECOND_MS);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_PENDING);
+    deployment_tick(SECOND_MS / 2U);
+    assert_true(hal_gpio_get(GPIO_PIN_DEPLOY_EN)); /* the AntS powered to be read */
+    assert_false(antenna_deploying());
+    deployment_tick(SECOND_MS / 2U);
+    assert_no_burn(); /* deferred: powered down again */
+    assert_true(deployment_ants_gate(&deferrals, &temp_c));
+    assert_int_equal(deferrals, 1U);
+    assert_true((temp_c > -44.5) && (temp_c < -43.5));
+    assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), 0U);
+    advance(DEPLOYMENT_RETRY_DELAY_MS - MINUTE_MS, MINUTE_MS);
+    assert_no_burn();
+    /* Warm by the next slot: deployed */
+    set_ants_temperature(-10.0);
+    advance(MINUTE_MS + (3U * SECOND_MS), SECOND_MS);
+    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
+    assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), 1U);
+    assert_true(deployment_ants_gate(&deferrals, NULL));
+    assert_int_equal(deferrals, 1U);
+    /* Cold again, and the ground forces it */
+    advance(ANTENNA_DEPLOY_BURN_TIME_MS, SECOND_MS);
+    set_ants_temperature(-30.0);
+    assert_false(deployment_retry(DEPLOY_ELEMENT_SOLAR_PANEL, true));
+    assert_true(deployment_retry(DEPLOY_ELEMENT_ANTENNA, true));
+    deployment_tick(SECOND_MS / 10U);
+    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
+    assert_true(deployment_ants_gate(&deferrals, NULL));
+    assert_int_equal(deferrals, 1U);
+}
+
 /** The wings never sense deployed: their retries run out (fault-logged),
  *  the already-deployed antenna is not fired, the sequence ends FAILED */
 static void test_solar_failure_reported(void **state)
@@ -678,6 +731,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_corrupt_record_starts_over, setup, teardown),
         cmocka_unit_test_setup_teardown(test_disabled_holds, setup, teardown),
         cmocka_unit_test_setup_teardown(test_force_retry_after_failure, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_ants_temperature_gate, setup, teardown),
         cmocka_unit_test_setup_teardown(test_solar_failure_reported, setup, teardown),
         cmocka_unit_test_setup_teardown(test_arm_not_persisted, setup, teardown),
         cmocka_unit_test_setup_teardown(test_save_state_persists_wait, setup, teardown),

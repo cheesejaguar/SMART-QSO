@@ -33,9 +33,9 @@ Rev 14.1.
 | Requirement | Value | Source |
 |-------------|-------|--------|
 | Form factor | 1U (100 × 100 × 113.5 mm) | CDS Rev 14.1 §2.2.1, Appendix B |
-| Mass | ≤ 2.00 kg. Estimate: CBE 1.52 kg (CR0002 rods) / 1.61 kg (air-core coils), MEV 1.76 / 1.86 kg, margin +13.6 / +7.5 % | SYS-002; CDS Rev 14.1 Table 1 (typical maximum); `docs/environment/MASS_BUDGET.md` v3.1 |
+| Mass | ≤ 2.00 kg. Estimate: CBE 1.52 kg (CR0002 rods) / 1.60 kg (air-core coils), MEV 1.75 / 1.85 kg, margin +14.0 / +7.9 % | SYS-002; CDS Rev 14.1 Table 1 (typical maximum); `docs/environment/MASS_BUDGET.md` v3.1 |
 | CG location | ≤ 2 cm from the geometric centre on each axis. CAD: (+0.1, −0.4, −1.4) mm stowed, CBE | CDS Rev 14.1 §2.2.11, Table 2; MASS_BUDGET §5 |
-| Deployed inertia (STR-01) | Iyy ≥ 1.03 × max(Ixx, Izz) with the wings and antennas deployed (target 1.05); major principal axis within 5° of +Y. CAD: 1.056 / 1.047 (CBE / MEV), axis 0.7° / 1.3°, with the 2 × 10 g Z-axis ballast (C-13) | MASS_BUDGET §2.1, §6; SQSO-MECH-CAD-001 §5 |
+| Deployed inertia (STR-01) | Iyy ≥ 1.03 × max(Ixx, Izz) with the wings and antennas deployed (target 1.05); major principal axis within 5° of +Y. CAD: 1.056 / 1.047 (CBE / MEV), axis 0.8° / 1.2°, with the 2 × 10 g Z-axis ballast (C-13) | MASS_BUDGET §2.1, §6; SQSO-MECH-CAD-001 §5 |
 | Rail dimensions | ≥ 8.5 mm to the first protrusion | CDS Rev 14.1 §2.2.5 |
 | Rail surface finish | Ra < 1.6 µm, hard anodized | CDS Rev 14.1 §2.2.6, §2.2.13 |
 | Protrusions on ±X/±Y | ≤ 6.5 mm from the rail plane | CDS Rev 14.1 §2.2.3 |
@@ -99,11 +99,11 @@ Rules that the analyses set:
   two centre supports at (0, ±21) mm (the −21 mm one from the EPS to the carrier, under the module), and the RF board
   one at (0, 0) to the heat spreader. The board centre itself is not available: the Jetson
   module covers it on the carrier and a column must pass all three stack boards. The carrier is 2.0 mm (its gyro window)
-  and the EPS 2.0 mm (MEV fatigue, P3S-02). FE Steinberg margins +0.42 to +0.71 at CBE and +0.14 to +0.50 at MEV with
+  and the EPS 2.0 mm (MEV fatigue, P3S-02). FE Steinberg margins +0.42 to +0.72 at CBE and +0.14 to +0.51 at MEV with
   these supports; one support at (0, +21) mm leaves the carrier at −0.28 (STRUCTURAL_ANALYSIS Rev B §8A).
 - **The stack is tied to both end frames** (289 Hz; 45 Hz if cantilevered from one end).
 - **Products of inertia:** the Jetson module at y = −6 mm, the RBF and A3 on −Y and the ballast pair's +8 mm offset in y
-  hold the deployed |Iyz| ≤ 5 × 10⁻⁶ kg·m² (major axis 0.7–1.3° from +Y); placement scatter of 2 mm already moves the
+  hold the deployed |Iyz| ≤ 5 × 10⁻⁶ kg·m² (major axis 0.8–1.2° from +Y); placement scatter of 2 mm already moves the
   95th percentile to 6–8°, so the positions are drawing-controlled and the flight unit is measured and trimmed
   (SQSO-MECH-CAD-001 §5.4, VI-MCAD-03).
 - Magnetometer away from the coils, the Jetson and the steel cell cans (BUILD_VS_BUY §2.7).
@@ -149,13 +149,13 @@ From `docs/environment/MASS_BUDGET.md` v3.1 and the CAD (SQSO-MECH-CAD-001 §5; 
 
 | Quantity | CR0002 rods (CAD) | Air-core coils (MEL only) |
 |----------|-------------------|---------------------------|
-| CBE / MEV | 1,524.9 / 1,761.1 g | 1,606.3 / 1,859.8 g |
-| Margin to 2.00 kg | +13.6 % | +7.5 % |
-| CG, stowed, CBE | (+0.1, −0.3, −1.5) mm | — |
-| Inertia, stowed, CBE (Ixx, Iyy, Izz) | 2.763, 3.073, 2.751 × 10⁻³ kg·m² | — |
-| Inertia, deployed, CBE / MEV | 2.862 / 3.287, 4.211 / 4.771, 3.989 / 4.558 × 10⁻³ kg·m² | — |
+| CBE / MEV | 1,519.9 / 1,754.8 g | 1,601.3 / 1,853.6 g |
+| Margin to 2.00 kg | +14.0 % | +7.9 % |
+| CG, stowed, CBE | (+0.1, −0.3, −1.4) mm | — |
+| Inertia, stowed, CBE (Ixx, Iyy, Izz) | 2.753, 3.063, 2.741 × 10⁻³ kg·m² | — |
+| Inertia, deployed, CBE / MEV | 2.853 / 3.276, 4.201 / 4.759, 3.979 / 4.546 × 10⁻³ kg·m² | — |
 | Iyy / max(Ixx, Izz), deployed, CBE / MEV | 1.056 / 1.047 (5th percentile at 2 mm placement scatter 1.045 / 1.037) | — |
-| Major axis from +Y, deployed, CBE / MEV | 0.7° / 1.3° | — |
+| Major axis from +Y, deployed, CBE / MEV | 0.8° / 1.2° | — |
 
 Full tensors with products, the one-wing and no-wing cases and the ADCS presets: MASS_BUDGET v3.1 §6.1, §6.5. The Version
 1.3 table (reference layout B, MASS_BUDGET v3.0) is superseded.
@@ -300,7 +300,7 @@ MS = allowable / (FS × limit stress) − 1; FE at the 8.18 Grms protoflight lev
 | Location | Stress (MPa) | Allowable (MPa) | MS |
 |----------|--------------|-----------------|-----|
 | Rail, axial (own 2 kg + 4 kg neighbour, 10 g) | 6.3 | 241 | +29 |
-| −Z end frame beside the battery isolators (FE, the lowest margin; doubler per STRUCTURAL_ANALYSIS §12) | 98.3 (MEV 104.1) | 241 | +0.96 yield / +1.11 ultimate (MEV +0.85 / +0.99) |
+| −Z end frame beside the battery isolators (FE, the lowest margin; doubler per STRUCTURAL_ANALYSIS §12) | 97.8 (MEV 103.6) | 241 | +0.97 yield / +1.12 ultimate (MEV +0.86 / +1.00) |
 | End frames at the rail corners (FE) | 87.3 | 241 | +1.21 |
 | Centre supports (FE) | 74.4 | 241 | +1.59 |
 | Stack columns, Al spacer (FE) | 57.3 | 241 | +2.37 |
@@ -309,7 +309,7 @@ MS = allowable / (FS × limit stress) − 1; FE at the 8.18 Grms protoflight lev
 | Battery cell retention, axial separation (3σ 142 g; SQSO-MECH-CAD-001 §4.6) | 69.7 N per cell | 119 N minimum preload | +0.19 (FS 1.25 × 1.15) |
 | Wing hold-down line (softgood) | 34.9 N | 200 N | +1.87 (+1.71) |
 | Hold-down post separation (FE, 3.9 N 3σ) | — | 21 N after 30 % preload loss | +2.9 |
-| PCBs, Steinberg fatigue, FE, two centre supports, 2.0 mm carrier and EPS | — | — | +0.42 to +0.71 (MEV +0.14 to +0.50) |
+| PCBs, Steinberg fatigue, FE, two centre supports, 2.0 mm carrier and EPS | — | — | +0.42 to +0.72 (MEV +0.14 to +0.51) |
 | Battery isolator joint separation, with disc spring | — | — | +2.3 to +7.9 |
 
 ---
@@ -402,4 +402,4 @@ shown to meet TML ≤ 1.0 % and CVCM ≤ 0.1 % (CDS §2.1.7) in the NASA outgass
 | 1.2 | 2026-10-16 | §5.2 deployment-switch contact: "normally closed" conflicted with "normally open" in the launch ICD and the CDS matrix, and nothing decides it; now open as TBR-CDS-005 (`docs/compliance/CDS_COMPLIANCE_MATRIX.md` §9) |
 | 1.3 | 2026-10-27 | CDR structures review: bought frame and its RFQ requirements (§2.1); stack order with the battery at −Z and the RF at +Z, centre supports for boards > 50 g, stack tied at both ends, AntS VHF along ±X (§2.2); A-basis allowables and the isolator, spring and line materials (§3); mass properties from MASS_BUDGET v3.0 (§4); three deployment switches and two separation springs, dispenser values removed (§5.2, §5.3); AntS and wing mechanism description (§6); NASA-STD-5001B/5020B factors and the analysis results of SQSO-SA-001 (§7); fastener torques, isolator stack and locking (§8); vent area ≥ 22.3 mm² (§9); tolerance stack and sweep envelopes on the drawings (§10) |
 | 1.4 | 2026-10-27 | CDR 2026 consistency pass: board supports two at (0, ±21) mm (RF one at (0, 0)) per STR-05 as adopted (§2.2); natural frequencies from the shell FE model, first mode 170 Hz (§7.4); FE Steinberg margins +0.09 to +0.36 (§7.5), all from STRUCTURAL_ANALYSIS Rev B; protoflight random level 8.18 Grms per BASELINE §8 (§1.1, §7.3) |
-| 1.5 | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001 B; review items STR-13, STR-26) | Brought up to SQSO-MECH-CAD-001 B, STRUCTURAL_ANALYSIS Rev B and MASS_BUDGET v3.1: mass and properties from the CAD (§1.1, §4: CBE 1.52 kg, MEV 1.75 kg, ratio 1.056 / 1.047); stack z-positions from the CAD with the 2.0 mm EPS and carrier, the ballast, the cell retention, the Z rod on the −X wall (§2.2); materials (A286 pins, W-Ni-Cu ballast, G-10CR locators; §3.1); DS2 DPDT (§5.2); four AntS elements and the flight order (§6.1); the Version B hinge (§6.2); FE modes (§7.4) and margins (§7.5); fasteners (§8.1); tolerance stack (§10.2) |
+| 1.5 | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001 B; review items STR-13, STR-26) | Brought up to SQSO-MECH-CAD-001 B, STRUCTURAL_ANALYSIS Rev B and MASS_BUDGET v3.1: mass and properties from the CAD (§1.1, §4: CBE 1.52 kg, MEV 1.75 kg, ratio 1.056 / 1.047); stack z-positions from the CAD with the 2.0 mm EPS and carrier, the ballast, the cell retention, the Z rod on the −X wall (§2.2); materials (A286 pins, W-Ni-Cu ballast, G-10CR locators; §3.1); DS2 DPDT (§5.2); four AntS elements and the flight order (§6.1); the Version B hinge (§6.2); FE modes (§7.4) and margins (§7.5); fasteners (§8.1); tolerance stack (§10.2); harness parts audit (SQSO-HAR-001 2.0 amended, M-11: four D-200-82 splices, tabs TB-RX/RY/RZ/ANT): FE re-run, FE mass 1,519.9 g (MEV 1,754.8 g), lowest MS +0.97 (MEV +0.86), Steinberg +0.42 to +0.72 (MEV +0.14 to +0.51) |

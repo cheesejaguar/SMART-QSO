@@ -49,7 +49,7 @@
 //! sequence; they and the last temperature are in HK1 `AD`. The 30-minute
 //! wait and the wings-first order are unchanged.
 //!
-//! @requirement SRS-F166 AntS deployment only at an AntS temperature of at least −17 °C; colder or unknown defers to the next 50-minute slot without spending an attempt, at most 30 times, then deploys; DEPLOY_RETRY with the force flag deploys at once
+//! @requirement SRS-F165 AntS deployment only at an AntS temperature of at least −17 °C; colder or unknown defers to the next 50-minute slot without spending an attempt, at most 30 times, then deploys; DEPLOY_RETRY with the force flag deploys at once
 //! @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
 //! @requirement SRS-F088 The software shall space deployment attempts 50 minutes apart and accept a telecommand to retry an element with fresh attempts
 

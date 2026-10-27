@@ -241,6 +241,25 @@ static void test_a_warm_eps_board_fires_at_once(void **state)
     assert_int_equal(passivation_waiting(), 0U);
 }
 
+/** The EPS board's temperature unreadable (the INA228s do not identify
+ *  themselves): not held for it, the fire in sunlight, the reason reported */
+static void test_an_unreadable_eps_board_does_not_block(void **state)
+{
+    (void)state;
+    const uint8_t no_id[3] = {0x3EU, 0x00U, 0x00U}; /* MANUFACTURER_ID */
+    arm_and_confirm();
+    assert_int_equal(hal_i2c_write(I2C_BUS_0, I2C_ADDR_BATTERY_MONITOR, no_id, sizeof(no_id)), SMART_QSO_OK);
+    assert_int_equal(hal_i2c_write(I2C_BUS_0, I2C_ADDR_SOLAR_MONITOR, no_id, sizeof(no_id)), SMART_QSO_OK);
+    smart_qso_sim_advance_ms(1000U);
+    assert_int_equal(passivation_execute(), SMART_QSO_OK);
+    passivation_tick(false);
+    assert_false(hal_gpio_get(GPIO_PIN_EOL_FIRE));
+    assert_int_equal(passivation_waiting(), PASSIVATION_WAIT_SUN | PASSIVATION_BOARD_UNKNOWN);
+    passivation_tick(true);
+    assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
+    assert_int_equal(passivation_waiting(), PASSIVATION_BOARD_UNKNOWN);
+}
+
 /** A fire the EPS never confirms: three attempts, the report, then silence
  * (runs last: the inhibit of the test before stays in RAM) */
 static void test_unconfirmed_fire_is_reported_then_silenced(void **state)
@@ -372,6 +391,7 @@ int main(void)
         cmocka_unit_test_setup(test_two_keys_end_to_end, setup),
         cmocka_unit_test_setup(test_a_cold_eps_board_delays_the_fire_at_most_6_h, setup),
         cmocka_unit_test_setup(test_a_warm_eps_board_fires_at_once, setup),
+        cmocka_unit_test_setup(test_an_unreadable_eps_board_does_not_block, setup),
         cmocka_unit_test_setup(test_execute_order_and_for_good, setup),
         cmocka_unit_test_setup(test_unconfirmed_fire_is_reported_then_silenced, setup),
         cmocka_unit_test(test_contract_400),

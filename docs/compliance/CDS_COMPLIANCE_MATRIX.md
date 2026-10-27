@@ -52,8 +52,8 @@ what is needed), **Not met** (the design conflicts), **N/A** (does not apply), *
 | 2.2.7 | Rail edges should be rounded to ≥ 1 mm | Bought frame. **Conflict:** the NRCSD IDD (backup) requires 0.5 ± 0.1 mm | Drawing, certificate | Open |
 | 2.2.8 | ±Z rail ends ≥ 6.5 × 6.5 mm contact with neighbours | Bought frame | Inspection | Design |
 | 2.2.9 | ≥ 75 % of each rail should contact the dispenser rails | Bought frame | Inspection | Design |
-| 2.2.10 | Note: typical 1U maximum 2.00 kg; dispenser limits govern | MEV 1.75 kg, CBE 1.51 kg (`docs/environment/MASS_BUDGET.md` v3.1; BASELINE Rev E §4): +14.4 % on 2.00 kg; EXOpod Nova 1U limit 2.5 kg (30 %) | Weighing (VI-LV-02) | Note (met) |
-| 2.2.11 | CG within ±2 cm of the geometric centre on each axis | Stowed CG from the CAD (+0.1, −0.3, −1.3) mm CBE, (+0.2, −0.5, −0.3) mm MEV (`hardware/mechanical/MECHANICAL_DESIGN.md` B §5.2) | CG fixture (VI-LV-02) | Design |
+| 2.2.10 | Note: typical 1U maximum 2.00 kg; dispenser limits govern | MEV 1.75 kg, CBE 1.52 kg (`docs/environment/MASS_BUDGET.md` v3.1; BASELINE Rev E §4): +14.0 % on 2.00 kg; EXOpod Nova 1U limit 2.5 kg (30 %) | Weighing (VI-LV-02) | Note (met) |
+| 2.2.11 | CG within ±2 cm of the geometric centre on each axis | Stowed CG from the CAD (+0.1, −0.3, −1.4) mm CBE, (+0.1, −0.5, −0.4) mm MEV (`hardware/mechanical/MECHANICAL_DESIGN.md` B §5.2) | CG fixture (VI-LV-02) | Design |
 | 2.2.12 | Structure should be aluminium alloy | Aluminium frame | Review | Design |
 | 2.2.13 | Aluminium surfaces in contact with the dispenser rails hard anodized | Rails and standoffs hard anodized | Certificate | Design |
 | 2.2.14, 2.2.14.2 | When sharing a dispenser, a separation mechanism; not beyond the standoff when stowed | Four spring plungers in the −Z standoffs; force open (TBR-CDS-001). A 1U in an EXOpod always shares a 3U slot, with other spacecraft or an adapter | Inspection, force measurement | Open (force) |

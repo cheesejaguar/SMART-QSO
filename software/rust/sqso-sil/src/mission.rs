@@ -282,6 +282,11 @@ pub struct Mission {
     commissioning: ops::Commissioning,
     /// How long the GNSS receiver has been powered, s
     gnss_on_s: f64,
+    /// The receiver's own arc while it is on: ECI position and velocity,
+    /// propagated with J2 from the orbit model's state at power-on (the
+    /// mean-element orbit has no short-period J2 terms; the receiver's
+    /// fixes are then consistent with the dynamics a real orbit has)
+    gnss_arc: Option<(f64, V3, V3)>,
     /// Last illumination, for the eclipse records
     last_sample: Sample,
 }
@@ -294,7 +299,10 @@ impl Mission {
     fn new(cfg: &Config, out: &Path) -> std::io::Result<Mission> {
         let mut rng = Rng::new(cfg.seed);
         let (y, m, d, h) = cfg.deploy_utc;
-        let t0 = time::from_utc(y, m, d, h.floor() as u32, ((h.fract()) * 60.0) as u32, 0.0);
+        let mut t0 = time::from_utc(y, m, d, h.floor() as u32, ((h.fract()) * 60.0) as u32, 0.0);
+        if cfg.separate_at_eclipse {
+            t0 = next_umbra_entry(cfg.altitude_km * 1000.0, cfg.ltan_h, t0);
+        }
         let (iy, im, id) = cfg.integration_date;
         let t_int = time::from_utc(iy, im, id, 16, 0, 0.0);
         let orbit = Orbit::sso(cfg.altitude_km * 1000.0, cfg.ltan_h, t0);
@@ -411,6 +419,7 @@ impl Mission {
             last_dump_day: -1,
             commissioning: ops::Commissioning::Housekeeping,
             gnss_on_s: 0.0,
+            gnss_arc: None,
             last_sample: Sample::default(),
         })
     }
@@ -481,6 +490,25 @@ impl Mission {
 
     /// Separation: the switches release, the pack connects, the OBC boots
     fn separate(&mut self) {
+        if let Some(soak) = self.cfg.separation_soak_c {
+            for k in [
+                thermal::PX,
+                thermal::MX,
+                thermal::PY,
+                thermal::MY,
+                thermal::PZ,
+                thermal::MZ,
+                thermal::W1,
+                thermal::W2,
+                thermal::ANTS,
+            ] {
+                self.thermal.temp_k[k] = soak + crate::env::math::T0_K;
+            }
+            self.event(
+                "phase",
+                &format!("dispenser cold soak: the structure and the AntS at {soak:.1} °C at separation"),
+            );
+        }
         self.deploy.separated = true;
         self.fsw.drive(pin::DEPLOY_SENSE, true);
         self.event("phase", "separation from the dispenser: switches released, OBC powers up");
@@ -721,7 +749,8 @@ impl Mission {
         }
 
         // The OBC's inputs: EPS controller, ADC, sense lines
-        self.fsw.set_eps(&self.eps.telemetry);
+        // The EPS board is in the stack: its INA228s at the stack's temperature
+        self.fsw.set_eps(&self.eps.telemetry, self.thermal.temp_c(thermal::OBC));
         let tel: Telemetry = self.eps.telemetry;
         self.fsw.set_adc(adc::VBATT, tel.vbatt_v);
         self.fsw.set_adc(adc::IBATT, -tel.ibatt_a);
@@ -784,9 +813,19 @@ impl Mission {
         let (ants_armed, ants_limit_s) = self.fsw.ants_command();
         let cmd = deploy::Commands { armed, wing, ants_armed, ants_limit_s };
         let wing_c = [self.thermal.temp_c(thermal::W1), self.thermal.temp_c(thermal::W2)];
-        let _ = self.deploy.step(dt, cmd, e.vbat, wing_c, self.thermal.temp_c(thermal::MZ));
+        let ants_c = self.thermal.temp_c(thermal::ANTS);
+        if ants_armed && ants_limit_s > 0 && self.totals.ants_release_c.is_none() {
+            self.totals.ants_release_c = Some(ants_c);
+            self.event("deploy", &format!("AntS told to deploy at {ants_c:.1} °C"));
+        }
+        if self.rel() >= 31.0 * 60.0 && self.totals.ants_31min_c.is_none() {
+            self.totals.ants_31min_c = Some(ants_c);
+        }
+        let _ = self.deploy.step(dt, cmd, e.vbat, wing_c, ants_c);
         if self.fsw.running() {
             self.fsw.set_ants_status(self.deploy.ants.status(ants_armed));
+            // Its controller's own sensor: the AntS node (decision C-18's gate)
+            self.fsw.set_ants_temperature(ants_c);
         }
         if self.deploy.current_a > 0.0 && !was_burning {
             if self.totals.first_burn_s.is_none() {
@@ -1092,8 +1131,24 @@ impl Mission {
     fn gnss_receiver(&mut self, dt: f64, r: V3, v_rel: V3) {
         if !self.fsw.pin(pin::GNSS_EN) {
             self.gnss_on_s = 0.0;
+            self.gnss_arc = None;
             return;
         }
+        let omega = V3::new(0.0, 0.0, OMEGA_EARTH);
+        // The arc is advanced to this step's time (the steps are 1 s or 0.1 s)
+        let (r, v) = match self.gnss_arc {
+            None => (r, v_rel + omega.cross(r)),
+            Some((t0, mut r0, mut v0)) => {
+                let span = self.t - t0;
+                let n = (span / 1.0).ceil().max(1.0);
+                for _ in 0..n as u32 {
+                    (r0, v0) = j2_step(r0, v0, span / n);
+                }
+                (r0, v0)
+            }
+        };
+        self.gnss_arc = Some((self.t, r, v));
+        let v_rel = v - omega.cross(r);
         let before = self.gnss_on_s;
         self.gnss_on_s += dt;
         const COLD_START_S: f64 = 80.0;
@@ -1400,15 +1455,20 @@ impl Mission {
                 t.xpdr_served_s += dt;
             }
         }
-        // Downlink (TNC) duty over the last 60 s
+        // Downlink (TNC) duty over the last 60 s: the steps starting in
+        // (t - 60 s, t], each covering its own dt, so exactly 60 s (Version D
+        // kept the step 60 s back as well, 61 s of steps)
         let keyed = if s.radiating && s.keyed { dt } else { 0.0 };
         self.keyed_hist.push_back((s.t_s, keyed));
-        while self.keyed_hist.front().is_some_and(|(t0, _)| s.t_s - t0 > 60.0) {
+        while self.keyed_hist.front().is_some_and(|(t0, _)| s.t_s - t0 >= 60.0 - 1e-6) {
             self.keyed_hist.pop_front();
         }
         if keyed > 0.0 {
             let sum: f64 = self.keyed_hist.iter().map(|(_, k)| k).sum();
-            t.max_duty_60s = t.max_duty_60s.max(sum / 60.0);
+            if sum / 60.0 > t.max_duty_60s {
+                t.max_duty_60s = sum / 60.0;
+                t.max_duty_at_s = s.t_s;
+            }
         }
         t.longest_key_s = self.radio.stats.longest_key_s;
         // Detumble
@@ -1591,6 +1651,57 @@ pub fn run(cfg: &Config, out: &Path) -> std::io::Result<usize> {
         eprintln!("[SIL] {:?}: {} = {} (limit {})", c.verdict, c.id, c.value, c.limit);
     }
     Ok(anomalies)
+}
+
+/// Point-mass and J2 gravity in an Earth-centred inertial frame (z the
+/// pole), m/s²
+fn gravity_j2(r: V3) -> V3 {
+    use crate::env::math::{J2, MU_EARTH, R_EARTH};
+    let r2 = r.dot(r);
+    let rn = r2.sqrt();
+    let k = 1.5 * J2 * (R_EARTH * R_EARTH) / r2;
+    let z2 = r.z * r.z / r2;
+    let s = -MU_EARTH / (r2 * rn);
+    V3::new(
+        s * r.x * (1.0 + k * (1.0 - 5.0 * z2)),
+        s * r.y * (1.0 + k * (1.0 - 5.0 * z2)),
+        s * r.z * (1.0 + k * (3.0 - 5.0 * z2)),
+    )
+}
+
+/// One RK4 step of `dt` seconds under [`gravity_j2`]
+fn j2_step(r: V3, v: V3, dt: f64) -> (V3, V3) {
+    let k1v = gravity_j2(r);
+    let k1r = v;
+    let k2v = gravity_j2(r + k1r * (dt / 2.0));
+    let k2r = v + k1v * (dt / 2.0);
+    let k3v = gravity_j2(r + k2r * (dt / 2.0));
+    let k3r = v + k2v * (dt / 2.0);
+    let k4v = gravity_j2(r + k3r * dt);
+    let k4r = v + k3v * dt;
+    (r + (k1r + k2r * 2.0 + k3r * 2.0 + k4r) * (dt / 6.0), v + (k1v + k2v * 2.0 + k3v * 2.0 + k4v) * (dt / 6.0))
+}
+
+/// The first umbra entry (illumination falling below 0.5) at or after `t`,
+/// searched in 10 s steps over two orbits (`t` if none is found)
+fn next_umbra_entry(alt_m: f64, ltan_h: f64, t: f64) -> f64 {
+    let orbit = Orbit::sso(alt_m, ltan_h, t);
+    let lit = |tt: f64| {
+        let (r, _) = orbit.state_at(tt);
+        let (u, d) = sun::sun_eci(tt);
+        eclipse::illumination(r, u, d) >= 0.5
+    };
+    let mut prev = lit(t);
+    let mut tt = t;
+    while tt < t + 2.0 * orbit.period() {
+        tt += 10.0;
+        let now = lit(tt);
+        if prev && !now {
+            return tt;
+        }
+        prev = now;
+    }
+    t
 }
 
 #[cfg(test)]

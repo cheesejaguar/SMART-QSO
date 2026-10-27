@@ -1,7 +1,7 @@
 # SMART-QSO Command Dictionary
 
 **Document ID**: SQSO-CMD-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -48,7 +48,7 @@ to the flight command set. The commands the flight software accepts are summaris
 | 0x35 | XPDR_DISABLE | 0 | operational | Stop the FM transponder |
 | 0x40 | PLD_ENABLE | 0 | operational | Enable the payload |
 | 0x41 | PLD_DISABLE | 0 | operational | Disable the payload |
-| 0x50 | DEPLOY_RETRY | 1 | operational | Retry a deployment element: 0 antenna, 1 wings |
+| 0x50 | DEPLOY_RETRY | 1–2 | operational | Retry a deployment element: 0 antenna, 1 wings; an optional second byte 1 forces the antenna past its temperature gate (deploys at once whatever the AntS temperature, decision C-18; refused with the wings) |
 | 0x60 | GNSS_REQUEST | 0 | operational | Start a GNSS session |
 | 0x70 | PASSIVATE_ARM | 4 | operational | `EOL!`: arm end-of-life passivation for 600 s |
 | 0x71 | PASSIVATE_EXECUTE | 0 | recovery | Within 600 s of the arm: passivate (irreversible) |
@@ -538,3 +538,4 @@ cmd = create_command("N0CALL", 1, 0x0100)
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §1: SQSO-ICD-013 and the generated dictionary govern; §1.1 the flight command set, with DUMP_TLM (0x0A), EPS_CLEAR_LOCKOUT (0x14), PASSIVATE_ARM (0x70) and PASSIVATE_EXECUTE (0x71) added; §6.3 the two-key passivation. The Version 1.0 sections are kept for history |
 | 1.2 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §1.1 FRAM_BYPASS (0x0B), EPS_DISABLE_TRACKERS (0x15), ADCS_SET_GYRO_ALIGN (0x25) and ADCS_SET_MAG_BIAS (0x26) added |
+| 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | §1.1 DEPLOY_RETRY (0x50): optional force flag for the antenna past the AntS temperature gate (decision C-18, SRS-F165) |

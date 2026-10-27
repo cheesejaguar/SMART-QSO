@@ -199,7 +199,7 @@ def items() -> List[Item]:
            [box(1.0, (30.0, 30.0, -46.0), (25, 25, 8))], mga=0.20, mga_low=0.0))
     a(Item("25", "Gyro, Epson M-G370PDT0", "1", 10.0, "C1", "10 g (BUILD_VS_BUY 5.2)",
            [box(1.0, (-25.0, 25.0, -2.0), (24, 24, 10))]))
-    a(Item("26", "ADCS sensor brackets and cables", "1 set", 10.8, "E1", "Sensor cables W6B-W6E 8.4 g with the M81824/1 rod splices (SQSO-HAR-001 "
+    a(Item("26", "ADCS sensor brackets and cables", "1 set", 8.7, "E1", "Sensor cables W6B-W6E 6.3 g with tabs TB-RX/RY/RZ (SQSO-HAR-001 "
            "2.0 sec. 11), magnetometer board A2 fasteners 2.0 g, +-Z sun-sensor carriers 0.4 g (the side sun sensors "
            "are the panel photodiodes, row 6)", [box(1.0, (0, 0, 0), (80, 80, 80))]))
     a(Item("27r", "Magnetorquer rods, CubeSpace CR0002 (3)", "3", 49.5, "C1",
@@ -219,8 +219,8 @@ def items() -> List[Item]:
     a(Item("31", "GNSS cable, adapter and bracket", "1", 26.0, "E1", "Balance of the 70 g GNSS allocation",
            [box(1.0, (0, 0, 46.0), (60, 60, 6))]))
     # Distributed ------------------------------------------------------------------------
-    a(Item("32", "Harness (incl. 120 mm battery flying leads, access-port board A3)", "1", 79.8, "E1",
-           "SQSO-HAR-001 2.0 sec. 11 amended, parts audit M-11 (90.5 g in all, 2026-10-27; M81824/1 splices): wire, W10 coax, harness-side connector halves, A3, tabs, lacing "
+    a(Item("32", "Harness (incl. 120 mm battery flying leads, access-port board A3)", "1", 76.9, "E1",
+           "SQSO-HAR-001 2.0 sec. 11 amended, parts audit M-11 (85.5 g in all, 2026-10-27; D-200-82 splices, tabs): wire, W10 coax, harness-side connector halves, A3, tabs, lacing "
            "(wing flex jumpers in rows 10/11, W6B-W6E in row 26, W10E in row 31)",
            [box(1.0, (0, 0, -5.0), (90, 90, 90))]))
     a(Item("33", "Thermal control (tapes, interface materials, MLI patches)", "1", 30.0, "E1",

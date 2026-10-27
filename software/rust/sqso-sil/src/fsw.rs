@@ -275,8 +275,9 @@ impl Fsw {
     }
 
     /// The EPS controller's telemetry registers (as the controller would
-    /// present them on I2C)
-    pub fn set_eps(&self, t: &Telemetry) {
+    /// present them on I2C), and the two INA228s, their dies at the EPS
+    /// board's temperature `board_c` (the passivation fire's condition)
+    pub fn set_eps(&self, t: &Telemetry, board_c: f64) {
         let mut regs = [0u8; 1 + eps_telemetry::BLOCK_LEN];
         let mut block = [0u8; eps_telemetry::BLOCK_LEN];
         eps_telemetry::encode(t, &mut block);
@@ -301,7 +302,7 @@ impl Fsw {
         };
         for (m, current) in [(PACK, t.ibatt_a), (ARRAY, t.isolar_a)] {
             let (v, i, d) =
-                m.encode(&Reading { vbus_v: t.vbatt_v, current_a: current, die_c: t.tbatt_c, ..Reading::default() });
+                m.encode(&Reading { vbus_v: t.vbatt_v, current_a: current, die_c: board_c, ..Reading::default() });
             write(m.address, ina228::reg::VBUS, &v);
             write(m.address, ina228::reg::CURRENT, &i);
             write(m.address, ina228::reg::DIETEMP, &d.to_be_bytes());
@@ -376,6 +377,14 @@ impl Fsw {
     /// The AntS's status word, as its controller presents it on I2C
     pub fn set_ants_status(&self, status: [u8; 2]) {
         let regs = [sqso_fsw::ants::CMD_STATUS, status[0], status[1]];
+        // SAFETY: regs is a live buffer of its length
+        let _ = unsafe { hal_sim::hal_i2c_write(ANTS_BUS, sqso_fsw::ants::ADDRESS, regs.as_ptr(), regs.len()) };
+    }
+
+    /// The AntS controller's own temperature (`sqso_fsw::ants::CMD_TEMPERATURE`)
+    pub fn set_ants_temperature(&self, t_c: f64) {
+        let [lo, hi] = sqso_fsw::ants::temperature_bytes(t_c);
+        let regs = [sqso_fsw::ants::CMD_TEMPERATURE, lo, hi];
         // SAFETY: regs is a live buffer of its length
         let _ = unsafe { hal_sim::hal_i2c_write(ANTS_BUS, sqso_fsw::ants::ADDRESS, regs.as_ptr(), regs.len()) };
     }

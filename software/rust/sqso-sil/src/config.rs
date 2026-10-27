@@ -79,6 +79,14 @@ pub struct Config {
     /// Contingency: the A resistors never part their lines (the B resistors
     /// of the second attempt do: the four-line sequence)
     pub wing_a_failed: bool,
+    /// Separate at the first umbra entry after `deploy_utc` (the AntS
+    /// temperature gate's case, decision C-18)
+    pub separate_at_eclipse: bool,
+    /// The structure (the six panels, the two wings and the AntS) at this
+    /// temperature at separation, °C, the internal nodes as stored (the
+    /// dispenser cold soak: THERMAL_ANALYSIS 2.4 §4.4 puts the AntS at
+    /// −18 °C after 2 h); `None`: every node at the storage temperature
+    pub separation_soak_c: Option<f64>,
     /// Contingency: the Jetson's rail is stuck on (its switch failed closed)
     pub payload_stuck_on: bool,
     /// Years of array radiation degradation added at deployment (0: new)
@@ -131,6 +139,8 @@ impl Default for Config {
             adcs_failed: false,
             wings_failed: false,
             wing_a_failed: false,
+            separate_at_eclipse: false,
+            separation_soak_c: None,
             eol_heater_ohms: crate::mission::EOL_HEATER_OHMS,
             payload_stuck_on: false,
             array_years: 0.0,
@@ -205,6 +215,8 @@ impl Config {
             "adcs_failed" => self.adcs_failed = b()?,
             "wings_failed" => self.wings_failed = b()?,
             "wing_a_failed" => self.wing_a_failed = b()?,
+            "separate_at_eclipse" => self.separate_at_eclipse = b()?,
+            "separation_soak_c" => self.separation_soak_c = Some(f()?),
             "eol_heater_ohms" => self.eol_heater_ohms = f()?,
             "payload_stuck_on" => self.payload_stuck_on = b()?,
             "array_years" => self.array_years = f()?,
@@ -257,6 +269,8 @@ impl Config {
             ("adcs_failed", self.adcs_failed.to_string()),
             ("wings_failed", self.wings_failed.to_string()),
             ("wing_a_failed", self.wing_a_failed.to_string()),
+            ("separate_at_eclipse", self.separate_at_eclipse.to_string()),
+            ("separation_soak_c", self.separation_soak_c.map_or("null".into(), |t| t.to_string())),
             ("eol_heater_ohms", self.eol_heater_ohms.to_string()),
             ("payload_stuck_on", self.payload_stuck_on.to_string()),
             ("array_years", self.array_years.to_string()),

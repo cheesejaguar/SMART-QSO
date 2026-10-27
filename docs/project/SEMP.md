@@ -89,7 +89,7 @@ Updated 2026-10-27. Each value cites its controlled analysis; "not measured" unt
 
 | TPM | Requirement | Current value | Margin | Status |
 |-----|-------------|---------------|--------|--------|
-| Total mass (predicted) | ≤ 2.00 kg (SYS-002) | CBE 1.51 kg, MEV 1.75 kg with the CAD (`docs/environment/MASS_BUDGET.md` v3.1; BASELINE Rev E (amended) §4) | +14.4 % | Met by analysis (≥ 9 % wanted at PDR) |
+| Total mass (predicted) | ≤ 2.00 kg (SYS-002) | CBE 1.52 kg, MEV 1.75 kg with the CAD (`docs/environment/MASS_BUDGET.md` v3.1; BASELINE Rev E (amended) §4) | +14.0 % | Met by analysis (≥ 9 % wanted at PDR) |
 | Orbit-average generation, EOL, tumbling | ≥ 2.21 W (SYS-100 Rev G: 1.84 W × 1.2, CR-2026-009) | 2.48 W delivered (mission simulation, `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.2 §4); 2.14 W isotropic bound | +12 % over the requirement (+35 % over the load) | Met by analysis; V-PWR-1 |
 | Orbit-average generation, sun-pointed | — | 3.92 W (same source) | +75 % on the 2.24 W load (BASELINE §5) | Met by analysis |
 | Beacon link margin at 5° elevation, 0.5 W | > 6 dB | +7.7 dB with a 12 dBic station (`docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0) | +1.7 dB over the requirement | Met by analysis |

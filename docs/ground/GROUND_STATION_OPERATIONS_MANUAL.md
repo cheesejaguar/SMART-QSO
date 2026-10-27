@@ -1,7 +1,7 @@
 # SMART-QSO Ground Station Operations Manual
 
 **Document ID**: SQSO-GSOM-001
-**Version**: 1.6
+**Version**: 1.7
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft for the designated telecommand stations (none agreed yet; `docs/ground/GROUND_STATION_DESIGN.md` Rev F). Frequencies are planning values until the IARU letter. Command procedures follow SQSO-ICD-013, which governs.
@@ -410,7 +410,7 @@ prints it. Arguments are hex for `--args`; multi-byte values big-endian. Every c
 | XPDR_ENABLE | 0x34 | — | operational | Transponder allowed (persisted): HK1 `XP=1` when its power and duty gates allow |
 | XPDR_DISABLE | 0x35 | — | operational | Transponder off (persisted): HK1 `XP=0`; beacon and telecommand unaffected |
 | PLD_ENABLE / PLD_DISABLE | 0x40 / 0x41 | — | operational | AI text in the beacon |
-| DEPLOY_RETRY | 0x50 | 1: 0 antenna, 1 solar wings | operational | HK1 `DEP=`; refused during the 30-minute wait and during a burn |
+| DEPLOY_RETRY | 0x50 | 1: 0 antenna, 1 solar wings; optional 2nd: 1 forces the antenna past its temperature gate | operational | HK1 `DEP=` and `AD=` (deferrals/AntS temperature); refused during the 30-minute wait and during a burn; the force flag is refused with the wings |
 | GNSS_REQUEST | 0x60 | — | operational | A receiver session now (gates permitting): HK1 `GS=`, `GF=` and the GNSS state frame after the fix (§5.3) |
 | PASSIVATE_ARM | 0x70 | 4: `454F4C21` (`EOL!`) | operational | HK1 `PS=1` for 600 s; nothing is driven |
 | PASSIVATE_EXECUTE | 0x71 | — | **recovery** | Within 600 s of the arm: `PS=2`, three final reports a minute apart, then silent for good (**irreversible**; two-person rule, §7.1) |
@@ -593,3 +593,4 @@ If telemetry indicates emergency:
 | 1.4 | 2026-10-27 | CDR S&MA analysis (decision C-14) | Commanding only above 10° elevation (12° in the degraded mode); 100 W PEP at the antenna feed with the amplifier and sequencer, PTT gate check; US270 sites (§2.2, §5, troubleshooting) |
 | 1.5 | 2026-10-27 | CDR S&MA analysis (decision C-14 restated) | Station variants A (100 W into ≥ 15.5 dBic) and B (≤ 50 W PEP into a stacked pair at US270 sites), rotator accuracy ±2° for B, power checks; degraded mode above 12° |
 | 1.6 | 2026-10-27 | CDR round 3, ground software (RIDs GND-04, LV-04, RFB-05) | UTC-derived counters in the command procedure (§7.2), clock maximum error ≤ 0.5 s (§2.2, §3.4); the command acknowledgement used to verify (§7.2); quick reference with the whole dictionary, 0x08 to 0x0B, 0x14, 0x24 to 0x26, 0x34, 0x35, 0x50, 0x60, 0x70, 0x71 (§7.3); uplink frequency offset from the measured downlink (§7.4); orbit determination and the 24 h ephemeris procedure (§5.3, SQSO-GND-002); troubleshooting and the checklist card |
+| 1.7 | 2026-10-27 | CDR flight software, round 3 (third part) | DEPLOY_RETRY's force flag past the AntS temperature gate (decision C-18), HK1 `AD` |

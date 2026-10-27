@@ -58,7 +58,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-REL-001 | SMART-QSO Reliability Analysis | `docs/environment/RELIABILITY_ANALYSIS.md` | 2.2 | Draft |
 | SQSO-THA-001 | SMART-QSO Thermal Analysis | `docs/environment/THERMAL_ANALYSIS.md` | 2.4 | Draft |
 | SQSO-GND-001 | Ground Station Design | `docs/ground/GROUND_STATION_DESIGN.md` | H | Draft |
-| SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.6 | Draft |
+| SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.7 | Draft |
 | SQSO-GND-002 | Orbit Determination and Operator Ephemeris | `docs/ground/ORBIT_DETERMINATION_AND_EPHEMERIS.md` | A | Draft; owner: ground segment lead |
 | SMART-QSO-ADCS-001 | Attitude Determination and Control Subsystem (ADCS) Design Document | `docs/hardware/ADCS_DESIGN.md` | 1.7 | Draft |
 | SQSO-BVB-001 | Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery | `docs/hardware/BUILD_VS_BUY.md` | C | Draft; vendor data from public pages, no quotes |
@@ -83,7 +83,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 2.5 | Draft |
 | SQSO-ICD-000 | Interface Control Document - Master | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | C | Draft |
 | SQSO-IVP-001 | SMART-QSO Interface Verification Plan | `docs/interfaces/INTERFACE_VERIFICATION_PLAN.md` | 1.0 | Draft |
-| SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.12 | Draft |
+| SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.13 | Draft |
 | SQSO-MFG-002 | EEE Parts List | `docs/manufacturing/EEE_PARTS_LIST.md` | G | Draft |
 | SQSO-MFG-003 | Parts Temperature-Grade Audit (every flight BOM line, harness and bought items; line data in `PARTS_TEMPERATURE_AUDIT.csv`) | `docs/manufacturing/PARTS_TEMPERATURE_AUDIT.md` | C | Draft; CDR round 3 audit (RID P3T-01), BOM changes for the designers |
 | SQSO-WP-001 | Workmanship Plan | `docs/manufacturing/WORKMANSHIP_PLAN.md` | B | Draft |
@@ -95,7 +95,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-AR-001 | SMART-QSO Anomaly Report Template | `docs/operations/ANOMALY_REPORT_TEMPLATE.md` | 1.0 | Template |
 | SQSO-ARP-001 | SMART-QSO As-Run Procedure Template | `docs/operations/AS_RUN_PROCEDURE_TEMPLATE.md` | 1.0 | Template |
 | SQSO-OPS-003 | Command and Telemetry Database | `docs/operations/CMD_TLM_DATABASE.md` | A | Draft; command sections superseded (its notice) |
-| SQSO-CMD-001 | SMART-QSO Command Dictionary | `docs/operations/COMMAND_DICTIONARY.md` | 1.2 | Draft |
+| SQSO-CMD-001 | SMART-QSO Command Dictionary | `docs/operations/COMMAND_DICTIONARY.md` | 1.3 | Draft |
 | SQSO-COMM-001 | SMART-QSO Commissioning Plan | `docs/operations/COMMISSIONING_PLAN.md` | 2.1 | Draft |
 | SQSO-CP-001 | SMART-QSO Contingency Procedures | `docs/operations/CONTINGENCY_PROCEDURES.md` | 1.0 | Draft |
 | SQSO-EOL-001 | End-of-Life Plan | `docs/operations/END_OF_LIFE_PLAN.md` | D | Draft |
@@ -107,7 +107,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-OTM-001 | SMART-QSO Operator Training Materials | `docs/operations/OPERATOR_TRAINING_MATERIALS.md` | 1.0 | Draft |
 | SQSO-OTP-001 | SMART-QSO Operator Training Plan | `docs/operations/OPERATOR_TRAINING_PLAN.md` | 1.0 | Draft |
 | SQSO-SRP-001 | SMART-QSO Software Rollback and Recovery Procedures | `docs/operations/SOFTWARE_ROLLBACK_PROCEDURES.md` | 1.0 | Draft |
-| SQSO-TLM-001 | SMART-QSO Telemetry Dictionary | `docs/operations/TELEMETRY_DICTIONARY.md` | 1.3 | Draft |
+| SQSO-TLM-001 | SMART-QSO Telemetry Dictionary | `docs/operations/TELEMETRY_DICTIONARY.md` | 1.4 | Draft |
 | SQSO-AUD-006 | Onboard AI Model Selection (Decision D5) | `docs/payload/AI_MODEL_SELECTION.md` | A | Draft |
 | SQSO-AUD-001 | SMART-QSO Funding Audit Report | `docs/funding_audit/FUNDING_AUDIT_REPORT.md` | B | Audit record (2026-10-14); under document control from 2026-10-27 (RID P3P-09) |
 | SQSO-AUD-002 | Funding Audit — Findings Register | `docs/funding_audit/FINDINGS_REGISTER.md` | B | Living register (`scripts/register_status.py --check`) |
@@ -173,7 +173,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SMART-QSO-SDD-001 | Software Design Description (SDD) | `docs/software/SOFTWARE_DESIGN.md` | 1.1 | Draft |
 | SMART-QSO-SDP-001 | Software Development Plan (SDP) | `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` | 1.5 | Draft |
 | SQSO-SMP-001 | SMART-QSO Software Maintenance Plan | `docs/software/SOFTWARE_MAINTENANCE_PLAN.md` | 1.1 | Draft |
-| SMART-QSO-SRS-001 | Software Requirements Specification (SRS) | `docs/software/SOFTWARE_REQUIREMENTS.md` | 1.9 | Draft |
+| SMART-QSO-SRS-001 | Software Requirements Specification (SRS) | `docs/software/SOFTWARE_REQUIREMENTS.md` | 1.10 | Draft |
 | SQSO-FSW-012 | NPR 7150.2D Requirements Mapping and Compliance Matrix (Class C) | `docs/software/NPR7150_COMPLIANCE_MATRIX.md` | B | Draft |
 | SMART-QSO-STP-001 | Software Test Plan (STP) | `docs/software/SOFTWARE_TEST_PLAN.md` | 1.2 | Draft |
 | SQSO-SVD-001 | Software Version Description | `docs/software/SOFTWARE_VERSION_DESCRIPTION.md` | D | Draft |

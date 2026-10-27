@@ -211,7 +211,10 @@ mod tests {
             )
         });
         assert_eq!(nested, Some((rc::BUSY, rc::BUSY, rc::BUSY, 0, false)));
-        assert_eq!(EOL.with(|_| (passivation_take_report(), passivation_attempts())), Some((0, 0)));
+        assert_eq!(
+            EOL.with(|_| (passivation_take_report(), passivation_attempts(), passivation_waiting())),
+            Some((0, 0, 0))
+        );
         let _ = EOL.with(|_| {
             passivation_tick(true);
             passivation_verify();

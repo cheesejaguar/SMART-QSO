@@ -1,7 +1,7 @@
 # SMART-QSO Telemetry Dictionary
 
 **Document ID**: SQSO-TLM-001
-**Version**: 1.3
+**Version**: 1.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -225,14 +225,15 @@ bytes (`software/rust/sqso-fsw/src/housekeeping.rs`, SRS-F085, SRS-F126):
 | `MR` | Magnetometer samples rejected (coils on) | |
 | `GF` | GNSS: age of the latest fix / satellites used | s |
 | `GS` | GNSS sessions run / with a fix | |
-| `PS` | Passivation: phase 0 idle, 1 armed, 2 firing, 3 passivated, 4 final report (`passivation.h`) / the EPS `EOL_STATE` register (bit 0 armed, bit 1 fired: charge path open, bit 2 fuse F1 intact; `-` no answer) / fire attempts (RID REG-12, finding EOL-1) | |
+| `PS` | Passivation: phase 0 idle, 1 armed, 2 firing, 3 passivated, 4 final report (`passivation.h`) / the EPS `EOL_STATE` register (bit 0 armed, bit 1 fired: charge path open, bit 2 fuse F1 intact; `-` no answer) / fire attempts (RID REG-12, finding EOL-1) / the fire's reasons, bits: 0 waiting for sunlight, 1 waiting for the EPS board to reach 0 °C (F1's rating; at most 6 h of each attempt), 2 fired with the board still cold after that bound, 3 the board's temperature unreadable, not waited for (RID SMA-B20, SRS-F111; 0: fired with every condition met; kept in the final report) | |
 | `RX` | Command-receiver recovery cycles since boot / known failed 1/0 (`receiver.h`) | |
 | `CN` | Authenticated commands counted as contact since boot | |
 | `ST` | Stored housekeeping: next five-minute / sixty-second record number (`DUMP_TLM`) | |
 | `FR` | FRAM: 0 working, 1 declared failed (safe defaults kept; `FRAM_BYPASS` accepted), 2 the degraded mode (RAM copies under CRC) / failed one-minute checks since boot (RID SMA-B10, SRS-F160) | |
+| `AD` | AntS temperature gate (decision C-18, SRS-F165): antenna attempts deferred for the AntS temperature (persisted; deployed anyway after 30) / the AntS's last temperature read before an attempt (`-` none valid) | — / °C |
 
 Example: `HK1 N=7 UP=3600 BOOT=3 RST=2 MODE=3 HOLD=1 XP=0 TX=1 SOC=873 VB=15812 IB=-120 PA=2410 TB=123 TO=215 TP=301
-TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 PS=1/4/0 RX=2/0 CN=3 ST=12/60 FR=0/0`
+TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 PS=1/4/0/3 RX=2/0 CN=3 ST=12/60 FR=0/0 AD=2/-19`
 (one line on the air).
 
 ### 4.4.1 Second Housekeeping Frame (HK2)
@@ -387,3 +388,4 @@ SQSO_SUMMARY_YYYYMM.csv
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §4.3 beacon interval jitter; §4.4 the HK1 housekeeping frame with its fields (new: `PS`, `RX`, `CN`, `ST`; `PA` from the bus-side array current); §4.5 the command acknowledgement; §4.6 the stored housekeeping records |
 | 1.2 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §4.4 `PS` carries the EPS `EOL_STATE` (fuse F1 intact, bit 2) and the fire attempts (RID REG-12, finding EOL-1); §4.4.1 new: the second housekeeping frame HK2 (RID SMA-15) |
 | 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, second part) | §4.4.2 new: the GNSS state frame `GNS` (RID LV-04, SRS-F158); HK1 `FR` (SMA-B10); HK2 `TR` with the magnetometer rail, `SEP`, `PT`, `SV` (SMA-B02, B19, B09) |
+| 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | §4.4 HK1 `PS` with the fire's reasons (the EPS board ≥ 0 °C condition bounded at 6 h, RID SMA-B20); HK1 `AD`, the AntS temperature gate (decision C-18) |

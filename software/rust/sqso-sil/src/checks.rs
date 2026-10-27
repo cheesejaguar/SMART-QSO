@@ -25,6 +25,12 @@ pub struct Totals {
     pub antennas_s: Option<f64>,
     /// Wings confirmed deployed, s after deployment
     pub wings_s: Option<f64>,
+    /// The AntS node's temperature when the AntS was first told to deploy,
+    /// °C (the flight software's temperature gate, decision C-18), and the
+    /// AntS node's temperature at separation + 31 min (an ungated release)
+    pub ants_release_c: Option<f64>,
+    /// The AntS node at separation + 31 min, °C
+    pub ants_31min_c: Option<f64>,
     /// Body rate below 0.5 °/s (and staying there 10 min), s after deployment
     pub detumbled_s: Option<f64>,
     /// Lowest true SOC after the first day
@@ -71,6 +77,8 @@ pub struct Totals {
     pub longest_key_s: f64,
     /// Highest keyed fraction over any 60 s window
     pub max_duty_60s: f64,
+    /// When the worst 60 s ended, s after deployment
+    pub max_duty_at_s: f64,
     /// Longest gap between frames while transmission was permitted, s
     pub max_beacon_gap_s: f64,
     /// Frames radiated while transmission was not permitted (TX-OFF, silence,
@@ -250,14 +258,41 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         ),
         None => check("rf-silence", "First transmission", "never transmitted".into(), ">= 45 min", Anomaly),
     });
-    for (id, title, at) in [
-        ("antennas", "Both antennas deployed and sensed", t.antennas_s),
-        ("wings", "Both solar wings deployed and sensed", t.wings_s),
+    // The AntS temperature gate (decision C-18): deferred while the AntS is
+    // below -17 °C, at most 30 slots of 50 min
+    let deferrals =
+        t.faults.iter().filter(|(k, _)| k.starts_with("AntS deployment deferred")).map(|(_, n)| *n).sum::<u64>();
+    let gate_limit_s = 7200.0 + deferrals as f64 * 3000.0;
+    c.push(match t.ants_release_c {
+        Some(tc) => check(
+            "ants-gate",
+            "AntS deployed at or above -17 °C (decision C-18), or after the 30 deferrals",
+            format!(
+                "released at {tc:.1} °C after {deferrals} deferral(s); {} at separation + 31 min",
+                t.ants_31min_c.map_or("-".to_string(), |x| format!("{x:.1} °C"))
+            ),
+            ">= -17 °C, or 30 deferrals",
+            if tc >= sqso_fsw::deployment::ANTS_MIN_TEMP_C - 0.5 || deferrals >= 30 { Pass } else { Anomaly },
+        ),
+        None => check("ants-gate", "AntS deployment", "not commanded in the run".into(), ">= -17 °C", Warning),
+    });
+    for (id, title, at, limit_s) in [
+        (
+            "antennas",
+            "Both antennas deployed and sensed (2 h, plus 50 min per AntS deferral)",
+            t.antennas_s,
+            gate_limit_s,
+        ),
+        ("wings", "Both solar wings deployed and sensed", t.wings_s, 7200.0),
     ] {
         c.push(match at {
-            Some(s) => {
-                check(id, title, format!("{:.1} min", s / 60.0), "within 2 h", if s < 7200.0 { Pass } else { Warning })
-            }
+            Some(s) => check(
+                id,
+                title,
+                format!("{:.1} min", s / 60.0),
+                &format!("within {:.0} min", limit_s / 60.0),
+                if s < limit_s { Pass } else { Warning },
+            ),
             None => check(id, title, "not deployed".into(), "within 2 h", Anomaly),
         });
     }
@@ -429,7 +464,7 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
     c.push(check(
         "duty",
         "Downlink duty over 60 s (25 %)",
-        format!("{:.1} %", t.max_duty_60s * 100.0),
+        format!("{:.1} % (day {:.2})", t.max_duty_60s * 100.0, t.max_duty_at_s / 86_400.0),
         "<= 25 %",
         if t.max_duty_60s <= 0.25 + 1e-6 { Pass } else { Anomaly },
     ));
@@ -674,7 +709,7 @@ fn operations_cdr(c: &mut Vec<Check>, t: &Totals) {
     let vel_mean = if t.gnss_vel_frames > 0 { t.gnss_vel_err_sum / t.gnss_vel_frames as f64 } else { 0.0 };
     c.push(check(
         "gnss-frame",
-        "GNSS state frames (SRS-F158) against the truth: position as recorded, the derived ECEF velocity (the SIL's orbit has no J2: about 0.1 m/s of the error is the model's)",
+        "GNSS state frames (SRS-F158) against the truth: position as recorded, the derived ECEF velocity (the receiver's arc propagated with J2)",
         format!(
             "{} frames for {} fix sessions, {} with a velocity; position {:.2} m, velocity mean {:.3} max {:.3} m/s",
             t.gnss_frames, t.gnss_fix_sessions, t.gnss_vel_frames, t.gnss_pos_err_max_m, vel_mean, t.gnss_vel_err_max

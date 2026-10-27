@@ -254,12 +254,9 @@ impl Sensors {
     /// Rail `i` at `now_ms`, enabled (`on`) with its readback `high`:
     /// whether it is up and settled, and whether a trip starts now
     fn rail(&mut self, i: usize, now_ms: u64, on: bool, high: bool) -> (bool, bool) {
-        let (Some(since), Some(seen), Some(cleared), Some(count)) = (
-            self.enabled_since.get_mut(i),
-            self.tripped.get_mut(i),
-            self.cleared_at.get_mut(i),
-            self.trips.get_mut(i),
-        ) else {
+        let (Some(since), Some(seen), Some(cleared), Some(count)) =
+            (self.enabled_since.get_mut(i), self.tripped.get_mut(i), self.cleared_at.get_mut(i), self.trips.get_mut(i))
+        else {
             return (false, false);
         };
         if !on {

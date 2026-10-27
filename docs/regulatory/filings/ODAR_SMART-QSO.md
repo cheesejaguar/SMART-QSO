@@ -51,7 +51,7 @@ edges of +Y, deployed into the +Y plane: `hardware/eps/SOLAR_ARRAY_DESIGN.md` §
 elements of ≈ 0.5 m and two 70 cm elements of ≈ 0.17 m).
 
 **Mass:** the controlled MEL (`docs/environment/MASS_BUDGET.md` v3.1, with the build-versus-buy selections, the CAD
-heat-spreader pedestal and the 20 g inertia ballast of decision C-13) gives CBE **1.51 kg** and MEV **1.75 kg** (BASELINE
+heat-spreader pedestal and the 20 g inertia ballast of decision C-13) gives CBE **1.52 kg** and MEV **1.75 kg** (BASELINE
 Rev E amended §4; v3.0, used for the runs of Draft D, gave 1.49 / 1.73 kg). This report uses **1.6 kg (nominal) and 1.85 kg (bound)** as
 BASELINE §4 directs for lifetime analyses (the MEV lies between them; a heavier spacecraft lives longer, so the bound is
 the conservative case for disposal), adds **2.0 kg (the CDS Rev 14.1 design limit)** so that no mass the spacecraft can

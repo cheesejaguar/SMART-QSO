@@ -107,10 +107,7 @@ pub const BOARD_UNKNOWN: u8 = 0x08;
 /// The EPS board's temperature from the two INA228 die temperatures: the
 /// lower of the valid ones (`None`: neither valid)
 pub fn board_c(dies: [Option<f64>; 2]) -> Option<f64> {
-    dies.into_iter()
-        .flatten()
-        .filter(|t| (BOARD_VALID_C.0..=BOARD_VALID_C.1).contains(t))
-        .reduce(f64::min)
+    dies.into_iter().flatten().filter(|t| (BOARD_VALID_C.0..=BOARD_VALID_C.1).contains(t)).reduce(f64::min)
 }
 
 /// Fire sequences at most, across resets
