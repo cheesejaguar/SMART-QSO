@@ -69,6 +69,10 @@ impl PassivationIo for HalFlash {
         eol_state()
     }
 
+    fn eps_board_c(&mut self) -> Option<f64> {
+        crate::eps_control::eps_board_c()
+    }
+
     fn write_key(&mut self) -> bool {
         sqso_fsw::passivation::KEY.iter().all(|&k| {
             let w = [REG_EOL_KEY, k];

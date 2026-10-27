@@ -92,9 +92,11 @@ static PAYLOAD_EN_RELEASE: Global<Option<u64>> = Global::new(None);
 struct Monitors {
     ready: [bool; 2],
     tried_ms: Option<u64>,
+    /// The die temperatures at the last reading, °C (`None`: not read)
+    dies: [Option<f64>; 2],
 }
 
-static MONITORS: Global<Monitors> = Global::new(Monitors { ready: [false; 2], tried_ms: None });
+static MONITORS: Global<Monitors> = Global::new(Monitors { ready: [false; 2], tried_ms: None, dies: [None; 2] });
 /// An INA228 that did not configure is tried again after this long, ms
 const MONITOR_RETRY_MS: u64 = 60_000;
 
@@ -171,7 +173,18 @@ fn apply_monitors(t: &mut Telemetry, now: u64) {
     if let Some(a) = array {
         t.isolar_a = a.current_a;
     }
-    let _ = MONITORS.with(|m| m.ready = [pack.is_some(), array.is_some()]);
+    let _ = MONITORS.with(|m| {
+        m.ready = [pack.is_some(), array.is_some()];
+        m.dies = [pack.map(|p| p.die_c), array.map(|a| a.die_c)];
+    });
+}
+
+/// The EPS board's temperature by the INA228 die temperatures, °C
+/// (`sqso_fsw::passivation::board_c`; `None`: not read or not valid): the
+/// passivation fire's condition (SMART-QSO-ICD-001 1.6 §4.6)
+pub(crate) fn eps_board_c() -> Option<f64> {
+    eps_telemetry()?;
+    MONITORS.with(|m| sqso_fsw::passivation::board_c(m.dies)).flatten()
 }
 
 /// The load-switch pins, as outputs, to the EPS state
@@ -631,7 +644,7 @@ mod tests {
         let _ =
             unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
         assert_eq!(put(eps_telemetry::ADDRESS, eps_telemetry::IMON_JET, &[0x40, 0x00]), rc::OK);
-        let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None });
+        let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None, dies: [None; 2] });
     }
 
     /// The INA228s: their readings replace the controller's pack voltage and
@@ -668,7 +681,7 @@ mod tests {
         // used; no retry before MONITOR_RETRY_MS, then the pack again
         gauge(PACK, 14.0, 0.0);
         assert_eq!(put(PACK.address, ina228::reg::MANUFACTURER_ID, &[0, 0]), rc::OK);
-        let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None });
+        let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None, dies: [None; 2] });
         assert!(read().is_some_and(|(v, _, a, _)| near(v, 15.0) && near(a, 0.8)));
         assert_eq!(MONITORS.with(|m| m.ready), Some([false, true]));
         assert_eq!(put(PACK.address, ina228::reg::MANUFACTURER_ID, &ina228::MANUFACTURER_ID.to_be_bytes()), rc::OK);
@@ -681,12 +694,12 @@ mod tests {
         // The array monitor does not configure: the controller's array
         // current; retried with the pack's already configured
         assert_eq!(put(ARRAY.address, ina228::reg::MANUFACTURER_ID, &[0, 0]), rc::OK);
-        let _ = MONITORS.with(|m| *m = Monitors { ready: [true, false], tried_ms: None });
+        let _ = MONITORS.with(|m| *m = Monitors { ready: [true, false], tried_ms: None, dies: [None; 2] });
         assert!(read().is_some_and(|(v, _, a, _)| near(v, 14.0) && near(a, 0.2)), "the controller's array current");
         crate::time::smart_qso_sim_advance_ms(MONITOR_RETRY_MS);
         assert!(read().is_some_and(|(.., a, _)| near(a, 0.2)), "still not configured");
         assert_eq!(MONITORS.with(|m| m.ready), Some([true, false]));
-        let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None });
+        let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None, dies: [None; 2] });
         let _ = TELEMETRY.with(|t| t.read = false);
     }
 

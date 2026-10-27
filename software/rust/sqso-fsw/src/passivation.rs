@@ -889,7 +889,8 @@ mod tests {
         assert_eq!(board_c([Some(130.0), None]), None);
         let mut io = ready();
         io.board = Some(-0.5);
-        let mut p = executed(&mut io, 1000);
+        let mut p = armed(&mut io);
+        assert_eq!(p.execute(20, &mut io), Ok(()));
         p.tick(2_000, SUN, &mut io);
         assert_eq!(io.lines, [false, false], "the board below 0 °C: no fire");
         assert_eq!(p.waiting(), WAIT_BOARD);
@@ -908,15 +909,17 @@ mod tests {
         // Cold for a day: the report with the reason, then silence
         let mut io = ready();
         io.board = Some(-5.0);
-        let mut p = executed(&mut io, 1000);
-        p.tick(1000 + FIRE_DEADLINE_MS - 1, SUN, &mut io);
+        let mut p = armed(&mut io);
+        assert_eq!(p.execute(20, &mut io), Ok(()));
+        p.tick(1000, SUN, &mut io);
+        p.tick(20 + FIRE_DEADLINE_MS - 1, SUN, &mut io);
         assert_eq!(p.phase(0), Phase::Firing);
-        p.tick(1000 + FIRE_DEADLINE_MS, SUN, &mut io);
+        p.tick(20 + FIRE_DEADLINE_MS, SUN, &mut io);
         assert_eq!(p.phase(0), Phase::Reporting);
         assert_eq!(p.waiting(), WAIT_BOARD, "the reason stays in the final report");
         assert!(!p.confirmed());
         assert!(io.drives.iter().all(|&(l, on)| !(l == Line::Fire && on)), "never fired");
-        let _ = run_report(&mut p, &mut io, 1000 + FIRE_DEADLINE_MS);
+        let _ = run_report(&mut p, &mut io, 20 + FIRE_DEADLINE_MS);
         assert!(p.passivated());
     }
 
@@ -991,7 +994,7 @@ mod tests {
         let mut io = ready();
         let _ = executed(&mut io, 1000);
         // During the fire: the fire again, within the attempts
-        let mut io2 = Bench { flash: io.flash, eps: Some(FUSE_INTACT | ARMED), ..Bench::default() };
+        let mut io2 = Bench { flash: io.flash, eps: Some(FUSE_INTACT | ARMED), board: Some(12.0), ..Bench::default() };
         let mut b = fresh(&mut io2);
         assert_eq!(b.phase(0), Phase::Firing);
         assert_eq!(b.attempts(), 2);

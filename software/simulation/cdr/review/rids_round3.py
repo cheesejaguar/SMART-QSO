@@ -135,6 +135,12 @@ NEW: list[tuple[str, int, str, str, str]] = [
     ("P3T-06", 3, "BFP640F LNA has a last-time-buy of 2027-05-15", "IMP", "Lifetime buy or successor"),
     ("P3T-07", 3, "X7R capacitance change at −40 °C (up to −15 %) not in the timing worst cases (EPS integrators, OBC C_RETRY)", "IMP", "Worst cases re-derived"),
     ("P3T-08", 3, "156 parts are rated exactly −40 °C, with zero margin to the first-orbit cold case", "IMP", "Covered by the thermal predictions and the test margin"),
+    ("SMA-B20", 2, "The F1 fire's EPS-board ≥ 0 °C condition (ICD-001 1.6 §4.6) can block passivation: the board sits near −11.5 °C in the cold orbit case and the temperature is unreadable with the EPS I2C bus down; not in SRS-F111 or passivation.rs", "IMP", "Bounded wait, unreadable does not block, in the SRS and the code"),
+    ("SMA-B21", 2, "F3 now blows (15–27 W for up to 1 min, about 1.6 kJ) at the tab of the cell it protects, during that cell's overcharge: not analysed", "IMP", "Thermal estimate, placement or isolation; V-BSA-2 measures tab and can"),
+    ("SMA-B22", 2, "F3 is now in every pack-short loop (up to 211 A) beside the 5 A pack fuses; coordination not shown", "IMP", "Fuse coordination from the datasheets, or move F3; F3 in the short-circuit abuse tests"),
+    ("SMA-B23", 3, "EPS_BOARD_DESIGN F §3, §6.1, §17 still place F3 on the EPS board", "IMP", "Correct the text"),
+    ("SMA-B24", 3, "U2's own taps have no open-tap ladder: one open resistor can blow F3 or blind a channel", "IMP", "≥ 2.2 MΩ ladder on the sense board"),
+    ("P3T-09", 1, "AntS released at S+31 min after an eclipse separation is at −44 °C against its −20 °C qualified minimum; unpowered first-orbit minimum −57 °C with margin against the −50 °C storage limit (THERMAL_ANALYSIS 2.4 §4.4)", "IMP", "Temperature-gated deployment (C-18); ISIS statement to −57 °C"),
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {

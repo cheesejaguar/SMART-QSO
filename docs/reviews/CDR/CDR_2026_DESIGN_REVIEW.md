@@ -178,7 +178,7 @@ ratings, outgassing data).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-384 RIDs: severity 1: 31, severity 2: 200, severity 3: 153.
+390 RIDs: severity 1: 32, severity 2: 203, severity 3: 155.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
@@ -187,11 +187,11 @@ ratings, outgassing data).
 | Closed by chair decision | 42 | 35 |
 | Verification item | 46 | 28 |
 | Decision point (dated) | 15 | 32 |
-| Implementation | 155 | 32 |
+| Implementation | 161 | 38 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 78 new findings; 44 of the reopened and 58 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 84 new findings; 44 of the reopened and 58 of the new are since closed.
 
-Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, P3T-01, P3T-02, P3T-03, P3T-04, P3T-05, P3T-06, P3T-07, P3T-08.
+Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, P3T-01, P3T-02, P3T-03, P3T-04, P3T-05, P3T-06, P3T-07, P3T-08, SMA-B20, SMA-B21, SMA-B22, SMA-B23, SMA-B24, P3T-09.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -404,6 +404,11 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SMA-B17 | 3 | A shorted tracker output diode cannot be isolated | IMP | Closed by design change | Per-tracker disable by the controller (TRK_DISABLE 0x8E); V-EPS-17 |
 | SMA-B18 | 3 | Magnetometer shares a switch and bus segment | IMP | Closed by design change | Magnetometer on its own switch U35 (MAG_EN PF14, MAG_RB PF15) and I2C4 repeater U34 |
 | SMA-B19 | 2 | One failed PA-temperature reading silences the downlink | IMP | Implementation | Plausibility check and a pull-down (flight software, OBC) |
+| SMA-B20 | 2 | The F1 fire's EPS-board ≥ 0 °C condition (ICD-001 1.6 §4.6) can block passivation: the board sits near −11.5 °C in the cold orbit case and the temperature is unreadable with the EPS I2C bus down; not in SRS-F111 or passivation.rs | IMP | Implementation | Bounded wait, unreadable does not block, in the SRS and the code |
+| SMA-B21 | 2 | F3 now blows (15–27 W for up to 1 min, about 1.6 kJ) at the tab of the cell it protects, during that cell's overcharge: not analysed | IMP | Implementation | Thermal estimate, placement or isolation; V-BSA-2 measures tab and can |
+| SMA-B22 | 2 | F3 is now in every pack-short loop (up to 211 A) beside the 5 A pack fuses; coordination not shown | IMP | Implementation | Fuse coordination from the datasheets, or move F3; F3 in the short-circuit abuse tests |
+| SMA-B23 | 3 | EPS_BOARD_DESIGN F §3, §6.1, §17 still place F3 on the EPS board | IMP | Implementation | Correct the text |
+| SMA-B24 | 3 | U2's own taps have no open-tap ladder: one open resistor can blow F3 or blind a channel | IMP | Implementation | ≥ 2.2 MΩ ladder on the sense board |
 
 #### Reliability (REL)
 
@@ -726,6 +731,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3T-06 | 3 | BFP640F LNA has a last-time-buy of 2027-05-15 | IMP | Implementation | Lifetime buy or successor |
 | P3T-07 | 3 | X7R capacitance change at −40 °C (up to −15 %) not in the timing worst cases (EPS integrators, OBC C_RETRY) | IMP | Implementation | Worst cases re-derived |
 | P3T-08 | 3 | 156 parts are rated exactly −40 °C, with zero margin to the first-orbit cold case | IMP | Implementation | Covered by the thermal predictions and the test margin |
+| P3T-09 | 1 | AntS released at S+31 min after an eclipse separation is at −44 °C against its −20 °C qualified minimum; unpowered first-orbit minimum −57 °C with margin against the −50 °C storage limit (THERMAL_ANALYSIS 2.4 §4.4) | IMP | Implementation | Temperature-gated deployment (C-18); ISIS statement to −57 °C |
 <!-- RID-LOG-END -->
 
 ## 7. Verdict
