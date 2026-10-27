@@ -387,15 +387,14 @@ for t_gen, lines in ((150, 10), (570, 10)):
 # ------------------------------------------------------------------------------------------------ 12 placement checks
 # Stack coordinates (mm), carrier top side unless noted. Outline PC/104 90.17 x 95.89; columns (+-40, +-43) keep-out
 # r 3.2; centre supports (0, +-21) r 3.5; module footprint x +-34.8, y -28.5..+16.5 (no top parts); gyro window
-# x -33.5..-6.5, y +17.0..+44.0 (moved +3 mm, MECHANICAL_DESIGN 4.5, 11 item 12) with its bottom-side Al frame 2.5 mm
-# wide + 0.5 mm copper/part pull-back: keep-out x -36.5..-3.5, y +14.0..+47.0 on both sides (frame screws H10-H13);
+# x -33.5..-6.5, y +17.0..+44.0 (MECHANICAL_DESIGN 4.5, 11 item 12); no frame (withdrawn, board 2.0 mm): keep-out =
+# window + 0.5 mm on both faces and all layers;
 # top-side heights (MECHANICAL_DESIGN 4.5): <= 7.7 mm under the spreader (x -40..+40, y -33..+27), <= 13.2 mm elsewhere;
 # magnetometer: the version-B keep-out round (+33, -38) is withdrawn (RM3100 moved to board A2 at (+24, +27) in the
 # +Z end-frame slot, OBC item E11); the column below gives the in-plane distance to the old corner for reference only.
 BX, BY = 90.17 / 2, 95.89 / 2
 HOLES = [((40, 43), 3.2), ((-40, 43), 3.2), ((-40, -43), 3.2), ((40, -43), 3.2), ((0, 21), 3.5), ((0, -21), 3.5)]
-WIN_KO = (-34.0, -6.0, 16.5, 44.5)      # top side and inner layers: window + 0.5 mm
-FRAME_KO = (-36.5, -3.5, 14.0, 47.0)    # bottom side (L6) and bottom parts: frame footprint + 0.5 mm
+WIN_KO = (-34.0, -6.0, 16.5, 44.5)      # both faces, all layers: window + 0.5 mm
 SPREADER = (-40.0, 40.0, -33.0, 27.0)
 GYRO = (-20.0, 30.5)
 MODULE = (-34.8, 34.8, -28.5, 16.5)
@@ -445,7 +444,7 @@ for name, (x, y), (w, h), magnetic, exempt, hgt in PLACE:
     if r[0] < -BX + 0.5 or r[1] > BX - 0.5 or r[2] < -BY + 0.5 or r[3] > BY - 0.5:
         issues.append("outline")
     if rect_overlap(r, WIN_KO):
-        issues.append("gyro window/frame")
+        issues.append("gyro window")
     if exempt not in ("socket", "module") and rect_overlap(r, MODULE):
         issues.append("module footprint")
     for (hx, hy), rad in HOLES:
@@ -461,22 +460,7 @@ for name, (x, y), (w, h), magnetic, exempt, hgt in PLACE:
                  "; ".join(issues) or "clear"))
 table("14. Placement check (zones of section 18; window, heights and magnetic keep-out of MECHANICAL_DESIGN 4.3-4.5)",
       ["Item", "Centre (mm)", "To the old RM3100 corner (mm)", "To the gyro centre (mm)", "Height / limit (mm)", "Result"], rows)
-# frame screws against the module standoffs, the centre support, the column and the board edge
-SCREWS = [(-35.5, 24.0), (-35.5, 36.0), (-4.5, 30.0), (-4.5, 42.0)]  # MECHANICAL_DESIGN (frame screws, amended)
-clr = []
-for sx, sy in SCREWS:
-    c = [math.hypot(sx - hx, sy - hy) - rad - 2.25 for (hx, hy), rad in HOLES] + \
-        [math.hypot(sx + 31.3, sy - 12.6) - 2.5 - 2.25, BY - sy - 2.25]
-    head = (sx - 2.25, sx + 2.25, sy - 2.25, sy + 2.25)
-    for name, (x, y), (w, h), *_ in PLACE:
-        r = (x - w / 2, x + w / 2, y - h / 2, y + h / 2)
-        c.append(rect_point_dist(r, (sx, sy)) - 2.25)
-    clr.append(min(c))
-# local bottom-side keep-out at each screw (x -37.8 / -2.2, +/-3 mm in y): no part of the placement table is on the bottom
 print(f"\nPlacement conflicts: {bad}.")
-print("Frame screws H10-H13 " + ", ".join(f"({x}, {y})" for x, y in SCREWS) +
-      f": smallest clearance of the 4.5 mm head keep-out to a keep-out, MP2, a placed part or the edge {min(clr):.2f} mm "
-      f"(MP2 is {math.hypot(-35.5 + 31.3, 24.0 - 12.6) - 2.5 - 2.25:.1f} mm from H10: no screw under MP2).")
 OUT["placement_conflicts"] = bad
 
 # field of the burst current at the magnetometer: a go-and-return pair, B = mu0 I d / (2 pi r^2)
@@ -516,6 +500,53 @@ r25, r85 = r_of_t(25), r_of_t(85)
 print(f"\nCheck: R(25 C) = {r25:,.0f} Ohm; beta 25/85 from the curve = "
       f"{math.log(r25 / r85) / (1 / 298.15 - 1 / 358.15):.0f} K (data sheet 3976 K).")
 OUT["rt1"] = {str(tc): r_of_t(tc) for tc in range(-40, 130, 5)}
+
+# ------------------------------------------------------------------------------------------------ 14 stack-up (2.0 mm)
+# Version E: 2.0 mm, 6 layers, symmetric (MECHANICAL_DESIGN: frame withdrawn, 2.0 mm carrier). Copper 1 oz (35 um).
+# L1 parts/signals | 0.20 prepreg | L2 GND | 0.25 core | L3 PCIe/USB/REFCLK striplines | 0.89 core | L4 GND |
+# 0.25 core | L5 power (VDD_IN, VBAT_F, 3V3 islands) | 0.20 prepreg | L6 parts <= 1 mm. High-Tg FR-4, er 3.9 at 1-5 GHz.
+CU = 0.035
+STACK = [0.20, 0.25, 0.89, 0.25, 0.20]
+ER = 3.9
+print(f"\nStack-up thickness: {sum(STACK) + 6 * CU:.3f} mm (finished board 2.0 mm +/-10 %)")
+
+
+def z_ms(w, h=0.20, t=CU, er=ER):
+    return 87 / math.sqrt(er + 1.41) * math.log(5.98 * h / (0.8 * w + t))
+
+
+def z_osl(w, h=0.25, c=0.89 - CU, t=CU, er=ER):  # IPC-2141A offset stripline, h to the near plane, c to the far plane
+    return 80 / math.sqrt(er) * math.log(1.9 * (2 * h + t) / (0.8 * w + t)) * (1 - h / (4 * (h + c + t)))
+
+
+def zd_ms(w, sp, h=0.20):
+    return 2 * z_ms(w, h) * (1 - 0.48 * math.exp(-0.96 * sp / h))
+
+
+def zd_osl(w, sp, b=0.25 + CU + 0.89):
+    return 2 * z_osl(w) * (1 - 0.374 * math.exp(-2.9 * sp / b))
+
+
+def solve(fz, target, sp):
+    lo, hi = 0.03, 1.0
+    for _ in range(60):
+        mid = (lo + hi) / 2
+        if fz(mid, sp) > target:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
+
+
+rows = []
+for name, fz, target, sp in (("PCIe TX/RX lanes (module to M.2), L3", zd_osl, 85, 0.15),
+                             ("PCIe REFCLK, L3", zd_osl, 85, 0.15),
+                             ("USB0 to J6, L3", zd_osl, 90, 0.15),
+                             ("PCIe breakout at the SO-DIMM/M.2 pads, L1 (<= 3 mm)", zd_ms, 85, 0.15)):
+    w = solve(fz, target, sp)
+    rows.append((name, f"{target} Ohm", f"{w * 1e3:.0f} um", f"{sp * 1e3:.0f} um", f"{fz(w, sp):.1f}"))
+table("17. Differential impedance on the 2.0 mm stack-up (closed-form IPC-2141A estimates; the fabricator's field solver governs)",
+      ["Pair", "Target", "Width", "Gap", "Zdiff (Ohm)"], rows)
 
 with open(os.path.join(HERE, "jetson_calcs.json"), "w") as f:
     json.dump(OUT, f, indent=1, default=float)

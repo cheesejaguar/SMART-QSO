@@ -520,17 +520,8 @@ def mechanical():
         p.ref = ref
         p.footprint = "MountingHole:MountingHole_3.2mm_M3" if ref <= "H4" else "MountingHole:MountingHole_3.2mm_M3_7mm_keepout"
         p["MH"] += builtins.NC  # isolated from GND: copper-free ring (single frame bond is on the EPS board, H1)
-    # gyro window (MECHANICAL_DESIGN 4.3-4.5, D-11): 27 x 27 mm board cut-out x -33.5..-6.5, y +17.0..+44.0; the 2.2 g Al
-    # frame on the bottom face is held by four M2 A286 button-head screws from the top into tapped pads on the frame
-    # (positions set by the mechanical designer): isolated holes, O4.5 mm top-side keep-out at each head; bottom side: no
-    # copper or parts within 0.5 mm of the frame footprint (x -36.5..-3.5, y +14.0..+47.0), grown to x -37.8 / -2.2 for
-    # +/-3 mm in y at each screw; top and inner layers: window + 0.5 mm
-    for ref, xy in (("H10", "(-35.5, +24.0)"), ("H11", "(-35.5, +36.0)"), ("H12", "(-4.5, +30.0)"), ("H13", "(-4.5, +42.0)")):
-        p = TMH(value="MH")
-        p.ref = ref
-        p.footprint = "MountingHole:MountingHole_2.2mm_M2"
-        p.fields["Note"] = f"gyro-window frame screw {xy}, isolated"
-        p["MH"] += builtins.NC
+    # gyro window (MECHANICAL_DESIGN 4.3-4.5, D-11; frame withdrawn, board 2.0 mm): 27 x 27 mm cut-out x -33.5..-6.5,
+    # y +17.0..+44.0; no copper, parts or routing within 0.5 mm of it on any layer (x -34.0..-6.0, y +16.5..+44.5)
     for ref in ("H7", "H8", "H9"):
         p = TMH(value="MH")
         p.ref = ref
@@ -549,10 +540,6 @@ def mechanical():
         ["MP2 MP3", 2, "module standoff", "9774040360R", "Wurth Elektronik", "SMT steel spacer M3 x 4.0 mm",
          "module far-edge holes; height = 4.0 mm stack", "TIM reaction <= 38 N", "thread and hole size per the NVIDIA "
          "module drawing (DS-11105-001 5.5)", "Sn", "not checked"],
-        ["MP5", 1, "gyro-window frame", "per MECHANICAL_DESIGN 4.3 (D-11)", "SMART-QSO (machined)",
-         "Al 6061, 2.5 x 3.0 mm section round the 27 x 27 mm window, 2.2 g", "bottom face, bonded + 4 x M2 (H10-H13)",
-         "restores the carrier Steinberg margin to +0.09", "mechanical designer's part; listed for the carrier assembly", "-",
-         "drawing by the mechanical designer"],
         ["MP4", 1, "gap pad over the SoC", "GAP PAD 3500ULM (to the pedestal size)", "Henkel Bergquist",
          "1.0 mm die-cut", ">= 3.5 W/m K, <= 70 kPa at 35 % deflection, ASTM E595 TML <= 1 %, CVCM <= 0.1 %",
          "28 N at the largest deflection", "THM-10 path (section 9)", "-", "not checked: confirm in the NASA outgassing database"],
@@ -617,7 +604,7 @@ def outputs():
                 "    sequence govern), the NC pins of U6, U9, U12 and the ESD arrays, every module pin not in MODULE_USE (no\n"
                 "    camera, display, USB 1/2, USB 3.2, GbE, CAN, I2S, SPI, PCIe 1-3, PMIC_BBAT, CLK_32K_OUT, SLEEP/WAKE*;\n"
                 "    DS-11105-001 4.4), the unused M.2 pins (lanes 1-3, DEVSLP, SMBus, SUSCLK, PEDET), the isolated\n"
-                "    mounting holes H1-H6 and the gyro-window frame screw holes H10-H13.\n"
+                "    mounting holes H1-H6.\n"
                 "W4  POWER_EN has three open-drain/open-collector drivers (U2 PG, U4 RESET) and one pull-up: a wired AND.\n"
                 "W5  PT_NTC/PT_RTN connect only passives (RT1, J2, J3, D2): the OBC biases and reads the thermistor.\n")
     generate_netlist(file_=os.path.join(HERE, "jetson_carrier.net"), tool=KICAD8)

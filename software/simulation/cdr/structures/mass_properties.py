@@ -227,6 +227,12 @@ def items() -> List[Item]:
            [bar(0.25, (sx * 40.0, sy * 43.0, 0.0), "z", 95.0, 5.0) for sx in (1, -1) for sy in (1, -1)]))
     a(Item("35", "Staking, conformal coat, adhesives", "1", 10.0, "E1", "Estimate",
            [box(1.0, (0, 0, 0), (90, 90, 90))]))
+    # Inertia ballast (chair decision C-13, SQSO-MECH-CAD-001 5.2): raises Iyy / max(Ixx, Izz) with the four AntS
+    # elements; on the +Z end frame inside, near the Z axis, symmetric in y (no Iyz), outside the magnetometer's
+    # 20 mm zone; W-Ni-Cu (non-magnetic) discs; their mass is the integration trim (VI-MCAD-03)
+    a(Item("36", "Inertia ballast, 2 x 10 g W-Ni-Cu discs on the +Z end frame (Z-axis trim)", "2", 20.0, "C1",
+           "Machined to mass; trimmed at integration from the measured inertia",
+           [box(0.5, (-17.0, 7.5, 46.6), (14, 14, 3.6)), box(0.5, (-17.0, -7.5, 46.6), (14, 14, 3.6))]))
     return L
 
 

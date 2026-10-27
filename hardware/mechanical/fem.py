@@ -1004,6 +1004,12 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
                           ("SP1", (-46, 46, -56.75)), ("SP2", (46, -46, -56.75))):
         lump_near(mass[nm], [(np.sign(x) * xr, np.sign(y) * xr, z)], "switches, plungers", "rails")
     lump_near(mass["RBF"] + mass["access_port"], [(20, -W2, -43), (-20, -W2, -43)], "RBF, access port", "shear_y")
+    if "inertia_ballast" in mass:
+        lump_near(mass["inertia_ballast"], [(-17, 7.5, zpz), (-17, -7.5, zpz)], "inertia ballast (row 36)", "endplate_pz")
+    for nm in ("coax_W10", "ribbon_W4A"):
+        if nm in mass:
+            lump_near(mass[nm], [(-W2 if nm == "coax_W10" else W2, -31 if nm == "ribbon_W4A" else 22, z) for z in (-40, 0, 30)],
+                      nm, "shear_x")
     hch = mass["harness_channels"]
     lump_near(hch, [(sx * W2, sy * 31, z) for sx in (1, -1) for sy in (1, -1) for z in (-40, -20, 0, 20, 40)],
               "harness bundles", "shear_x")

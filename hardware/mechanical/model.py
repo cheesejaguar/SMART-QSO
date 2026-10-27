@@ -574,6 +574,11 @@ def build_parts(p=P) -> List[Part]:
                 C("z", (x, y, 0), 2.0, za - at_ - 1.6, za - at_)) for x, y in a2s]
     add(Part("magnetometer_fasteners", "adcs", {"24": 0.5}, fuse(*a2f), color=COL["al"],
              note="3 x M2 Ti-6Al-4V screws (heads on the +Z face, outside the GNSS patch), brass nuts, polyimide washers"))
+    # inertia ballast (MEL row 36, chair decision C-13): two 10 g W-Ni-Cu discs, D14 x 3.6 mm, on the +Z end frame
+    # inside at (-17, +-7.5): near the Z axis, symmetric in y (no Iyz), > 20 mm from board A2, 1.6 mm above the RF shield
+    bal = fuse(*[C("z", (-17.0, sy * 7.5, 0), 7.0, zp["pz_in"] - 3.6, zp["pz_in"]) for sy in (1, -1)])
+    add(Part("inertia_ballast", "adcs", {"36": 20.0}, bal, color=COL["rod"],
+             note="2 x 10 g W-Ni-Cu (non-magnetic) discs, Z-axis inertia ballast and integration trim (MEL row 36)"))
     pw = p["patch_w"] / 2.0
     add(Part("GNSS_patch", "gnss", {"30": 20.0}, B(-pw, pw, -pw, pw, zp["pz_out"], zp["pz_out"] + p["patch_t"]),
              color=COL["gnss"], note="Spacemanic ZENITH V3a 50 x 50 mm; thickness allocation 5 mm"))
