@@ -50,6 +50,9 @@ extern "C" {
 /** Fewest satellites for a 3D fix */
 #define GNSS_MIN_SATS           4U
 
+/** Largest PDOP accepted (NMEA's own limit; RID P3F-A-05) */
+#define GNSS_MAX_PDOP           99.9
+
 typedef enum {
     GNSS_OK = 0,         /**< Sentence used: GGA recorded or fix accepted */
     GNSS_IGNORED,        /**< Valid sentence of a type not used */

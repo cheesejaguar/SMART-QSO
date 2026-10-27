@@ -60,8 +60,9 @@ extern "C" {
 /** Maximum fault log entries */
 #define SMART_QSO_MAX_FAULT_ENTRIES     100
 
-/** Watchdog timeout in milliseconds */
-#define SMART_QSO_WATCHDOG_TIMEOUT_MS   30000
+/** Watchdog timeout in milliseconds: the IWDG at reload 3200 / 256 (24.1-27.8 s
+ *  over the LSI's tolerance), as WDT_HW_TIMEOUT_MS (watchdog_mgr.h) */
+#define SMART_QSO_WATCHDOG_TIMEOUT_MS   25600
 
 /** Default telemetry interval in milliseconds */
 #define SMART_QSO_TELEMETRY_INTERVAL_MS 60000

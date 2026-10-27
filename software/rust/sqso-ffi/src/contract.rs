@@ -358,6 +358,12 @@ const CONSTANTS: &[(u32, f64)] = &[
     (521, (sqso_fsw::adcs_sensors::RAIL_SETTLE_MS) as f64),
     (522, (rf_control::INHIBIT_ANTS_PENDING) as f64),
     (523, (sqso_fsw::ptt_watch::LIMIT_MS) as f64),
+    (524, (sqso_fsw::deployment::ANTS_SUN_MS) as f64),
+    (525, (sqso_fsw::deployment::ANTS_SUN_WAIT_MS) as f64),
+    (526, (sqso_fsw::deployment::ANTS_UNKNOWN_LIMIT) as f64),
+    (527, (sqso_fsw::deployment::ANTS_SCHEDULE_S) as f64),
+    (528, (sqso_fsw::ptt_watch::REPEAT_DROPOUT_MS) as f64),
+    (529, (sqso_fsw::ptt_watch::REPEAT_MAX_MS) as f64),
 ];
 
 /// A constant this library keeps

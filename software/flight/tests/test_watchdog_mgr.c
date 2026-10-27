@@ -8,6 +8,8 @@
  * Tests the watchdog manager for hardware and task watchdog functionality.
  *
  * @requirement SRS-F146 External supervisor kick: a WDI falling edge every 10 s, only while every task has checked in
+ * @requirement SRS-F050 Refresh the hardware watchdog (IWDG, 24.1 to 27.8 s) only at the external supervisor's WDI falling edges, every 10 s while every task checks in
+ * @requirement SRS-F001 Initialize all subsystems within 30 seconds of power-on, the IWDG and the supervisor refreshed together at the initialisation checkpoints
  */
 
 #include <stdarg.h>
@@ -28,6 +30,7 @@
 #include "smart_qso.h"
 #include "hal/hal_timer.h"
 #include "hal/hal_gpio.h"
+#include "hal/hal_wdt.h"
 
 /*******************************************************************************
  * Test Fixtures
@@ -237,19 +240,32 @@ static void test_get_stats_success(void **state)
     assert_int_equal(result, SMART_QSO_OK);
 }
 
+/** The hardware watchdog is refreshed at each WDI falling edge, every 10 s,
+ *  not at every pass (RID P3F-A-03) */
 static void test_kick_increments_hw_kicks(void **state)
 {
     (void)state;
 
     WdtStats_t stats_before, stats_after;
+    assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
+    assert_int_equal(wdt_mgr_start(), SMART_QSO_OK);
     wdt_mgr_get_stats(&stats_before);
 
     wdt_mgr_kick();
     wdt_mgr_kick();
     wdt_mgr_kick();
-
     wdt_mgr_get_stats(&stats_after);
-    assert_int_equal(stats_after.hw_kicks, stats_before.hw_kicks + 3);
+    assert_int_equal(stats_after.hw_kicks, stats_before.hw_kicks);   /* within the 10 s */
+
+    smart_qso_sim_advance_ms(10000U);
+    wdt_mgr_kick();                     /* WDI high */
+    assert_true(hal_gpio_get(GPIO_PIN_WDI));
+    wdt_mgr_kick();                     /* the falling edge: refreshed */
+    assert_false(hal_gpio_get(GPIO_PIN_WDI));
+    assert_true(wdt_mgr_time_remaining() >= (WDT_HW_TIMEOUT_MS - 1U));
+    wdt_mgr_kick();
+    wdt_mgr_get_stats(&stats_after);
+    assert_int_equal(stats_after.hw_kicks, stats_before.hw_kicks + 1U);
 }
 
 /*******************************************************************************
@@ -341,12 +357,16 @@ static void run_seconds(uint32_t seconds, bool checkin)
     }
 }
 
+/** Refreshed at each WDI edge: never more than one kick interval (10 s,
+ *  plus the 1 s step here) behind */
 static void test_healthy_task_keeps_refreshing(void **state)
 {
     (void)state;
-    run_seconds(60U, true);
+    for (uint32_t i = 0U; i < 60U; i++) {
+        run_seconds(1U, true);
+        assert_true(wdt_mgr_time_remaining() >= (WDT_HW_TIMEOUT_MS - 12000U));
+    }
     assert_false(wdt_mgr_any_task_stalled());
-    assert_true(wdt_mgr_time_remaining() > (WDT_HW_TIMEOUT_MS - 2000U));
     assert_int_equal(s_prereset_count, 0);
 }
 
@@ -368,11 +388,97 @@ static void test_stalled_task_lets_hardware_reset(void **state)
 static void test_recovered_task_resumes_refresh(void **state)
 {
     (void)state;
+    WdtStats_t before;
+    WdtStats_t after;
     run_seconds(5U, false);
     assert_true(wdt_mgr_any_task_stalled());
     run_seconds(2U, true);
     assert_false(wdt_mgr_any_task_stalled());
-    assert_true(wdt_mgr_time_remaining() > (WDT_HW_TIMEOUT_MS - 2000U));
+    assert_int_equal(wdt_mgr_get_stats(&before), SMART_QSO_OK);
+    run_seconds(12U, true);
+    assert_int_equal(wdt_mgr_get_stats(&after), SMART_QSO_OK);
+    assert_true(after.hw_kicks > before.hw_kicks);   /* refreshed again */
+    assert_true(wdt_mgr_time_remaining() > (WDT_HW_TIMEOUT_MS - 12000U));
+}
+
+/**
+ * @brief RID P3F-A-03: the IWDG's last refresh is the supervisor's last WDI
+ *        edge, so after a stall the IWDG runs out WDT_HW_TIMEOUT_MS after that
+ *        edge, before the supervisor's 29.3 s minimum, whatever the stall's
+ *        phase against the 10 s kick
+ */
+static void test_iwdg_acts_before_the_supervisor(void **state)
+{
+    (void)state;
+    for (uint32_t phase = 0U; phase < 10U; phase += 3U) {
+        assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
+        assert_int_equal(wdt_mgr_init(), SMART_QSO_OK);
+        assert_int_equal(wdt_mgr_start(), SMART_QSO_OK);
+        assert_int_equal(wdt_mgr_register_task(WDT_TASK_MAIN_LOOP, "main", 1000U), SMART_QSO_OK);
+        uint64_t t = 0U;
+        uint64_t last_edge = 0U;
+        bool level = hal_gpio_get(GPIO_PIN_WDI);
+        /* Healthy for 25 s plus the phase, then the task stalls */
+        for (uint32_t i = 0U; i < 25U + phase; i++) {
+            run_seconds(1U, true);
+            t += 1000U;
+            const bool now = hal_gpio_get(GPIO_PIN_WDI);
+            if (level && !now) {
+                last_edge = t;
+            }
+            level = now;
+        }
+        assert_true(last_edge > 0U);
+        /* The stall is detected within WDT_TASK_MISS_THRESHOLD checks; an
+         * edge may still come before that, never after */
+        while (wdt_mgr_time_remaining() > 0U) {
+            run_seconds(1U, false);
+            t += 1000U;
+            const bool now = hal_gpio_get(GPIO_PIN_WDI);
+            if (level && !now) {
+                last_edge = t;
+            }
+            level = now;
+        }
+        assert_true(wdt_mgr_any_task_stalled());
+        assert_true((t - last_edge) <= (WDT_HW_TIMEOUT_MS + 1000U));
+        assert_true((t - last_edge) < 29300U);   /* the TPS3850's minimum */
+    }
+}
+
+/**
+ * @brief SRS-F001 checkpoints: with the boot IWDG running and the manager not
+ *        started, nothing before 10 s from its last reload; then one WDI edge
+ *        and a refresh together; the manager then times the supervisor from
+ *        that refresh
+ */
+static void test_boot_checkpoints_refresh_both_together(void **state)
+{
+    (void)state;
+    assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
+    assert_int_equal(wdt_mgr_init(), SMART_QSO_OK);         /* not started */
+    assert_int_equal(hal_wdt_init(WDT_HW_TIMEOUT_MS, WDT_MODE_RESET), SMART_QSO_OK);
+    assert_int_equal(hal_wdt_start(), SMART_QSO_OK);       /* the boot IWDG */
+    smart_qso_sim_advance_ms(5000U);
+    wdt_mgr_boot_checkpoint();
+    assert_true(hal_wdt_remaining_ms() <= (WDT_HW_TIMEOUT_MS - 5000U));   /* nothing yet */
+    smart_qso_sim_advance_ms(6000U);
+    wdt_mgr_boot_checkpoint();
+    assert_true(hal_wdt_remaining_ms() >= (WDT_HW_TIMEOUT_MS - 1U));       /* refreshed */
+    assert_false(hal_gpio_get(GPIO_PIN_WDI));                             /* after a falling edge */
+    /* Started: the supervisor's count from that refresh; no edge before 10 s */
+    assert_int_equal(wdt_mgr_start(), SMART_QSO_OK);
+    smart_qso_sim_advance_ms(8000U);
+    wdt_mgr_kick();
+    wdt_mgr_kick();
+    assert_false(hal_gpio_get(GPIO_PIN_WDI));
+    assert_true(hal_wdt_remaining_ms() <= (WDT_HW_TIMEOUT_MS - 8000U));
+    wdt_mgr_boot_checkpoint();                                            /* started: nothing */
+    assert_true(hal_wdt_remaining_ms() <= (WDT_HW_TIMEOUT_MS - 8000U));
+    smart_qso_sim_advance_ms(2000U);
+    wdt_mgr_kick();
+    wdt_mgr_kick();
+    assert_true(hal_wdt_remaining_ms() >= (WDT_HW_TIMEOUT_MS - 1U));
 }
 
 /**
@@ -542,6 +648,8 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_healthy_task_keeps_refreshing, supervised_setup, test_teardown),
         cmocka_unit_test_setup_teardown(test_stalled_task_lets_hardware_reset, supervised_setup, test_teardown),
         cmocka_unit_test_setup_teardown(test_recovered_task_resumes_refresh, supervised_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_iwdg_acts_before_the_supervisor, test_setup, test_teardown),
+        cmocka_unit_test(test_boot_checkpoints_refresh_both_together),
         cmocka_unit_test_setup_teardown(test_external_supervisor_kicked_only_while_healthy, supervised_setup,
                                         test_teardown),
         cmocka_unit_test_setup_teardown(test_time_remaining, test_setup, test_teardown),

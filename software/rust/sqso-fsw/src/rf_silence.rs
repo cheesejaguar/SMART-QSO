@@ -129,6 +129,16 @@ impl RfSilence {
         rec
     }
 
+    /// Whether the persisted record shows the silence served (the
+    /// deployment sequence takes it as proof of separation, RID SMA-B02);
+    /// read before this module's own init
+    pub fn served_in_record<F: Flash>(flash: &mut F, region: u32) -> bool {
+        let mut rec = [0u8; 8];
+        let ok = nvm::load(flash, region, 0, RECORD_MAGIC, &mut rec) == Ok(RecordStatus::Valid);
+        let [s0, s1, s2, s3, ..] = rec;
+        ok && u32::from_le_bytes([s0, s1, s2, s3]) == State::Complete as u32
+    }
+
     fn save<F: Flash>(&mut self, flash: &mut F) {
         if nvm::save(flash, self.region, 0, RECORD_MAGIC, &Self::record(self.state, self.elapsed_s)).is_ok() {
             self.unpersisted_s = 0;
@@ -299,6 +309,21 @@ mod tests {
         s.tick(1000, &mut io);
         assert!(!s.active());
         assert_eq!((io.inhibit, io.last), (Some(false), Some(Report::Complete)));
+    }
+
+    /// The record read for the deployment sequence (RID SMA-B02): served
+    /// only once COMPLETE is persisted
+    #[test]
+    fn the_record_shows_the_served_silence() {
+        let mut io = bench();
+        assert!(!RfSilence::served_in_record(&mut io, 9), "blank");
+        let mut s = boot(&mut io, Reset::PowerLost);
+        minutes(&mut s, &mut io, 44);
+        assert!(!RfSilence::served_in_record(&mut io, 9), "counting");
+        minutes(&mut s, &mut io, 2);
+        assert!(RfSilence::served_in_record(&mut io, 9));
+        assert!(s.arm(&mut io).is_ok());
+        assert!(!RfSilence::served_in_record(&mut io, 9), "ARMED");
     }
 
     #[test]

@@ -168,16 +168,33 @@ impl Write for Out<'_> {
     }
 }
 
-/// The information field in `out`; its length (0 if it does not fit)
+/// Largest magnitude printed for a position (m) or velocity (mm/s)
+/// component: eight digits (a LEO position is at most 7.5e6 m, a velocity
+/// 8e6 mm/s); a wilder value prints saturated
+const COMPONENT_MAX: i64 = 99_999_999;
+
+/// The information field in `out`; its length. Every field is clamped to
+/// a fixed width (RID P3F-A-05), so with `out` at least [`MAX_LEN`] bytes
+/// the frame always fits and is never empty (the widest is
+/// `frame_without_a_chord_and_the_longest_frame`'s); 0 only for a smaller
+/// `out`
 pub fn format(s: &State, out: &mut [u8]) -> usize {
     let mut w = Out { buf: out, len: 0 };
-    let [x, y, z] = s.pos_m;
-    let ok = write!(w, "{PREFIX} N={} WK={} TOW={} X={x} Y={y} Z={z} ", s.session, s.week, s.tow_ms)
+    let c = |v: i64| v.clamp(-COMPONENT_MAX, COMPONENT_MAX);
+    let [x, y, z] = s.pos_m.map(c);
+    let tow = s.tow_ms.clamp(0, 604_799_999);
+    let ok = write!(w, "{PREFIX} N={} WK={} TOW={tow} X={x} Y={y} Z={z} ", s.session, s.week)
         .and_then(|()| match s.vel {
-            Some(([vx, vy, vz], dt)) => write!(w, "VX={vx} VY={vy} VZ={vz} VDT={dt} "),
+            Some((v, dt)) => {
+                let [vx, vy, vz] = v.map(c);
+                write!(w, "VX={vx} VY={vy} VZ={vz} VDT={} ", dt.clamp(0, 999))
+            }
             None => w.write_str("VX=- VY=- VZ=- VDT=- "),
         })
-        .and_then(|()| write!(w, "Q={} SV={} PD={} AGE={}", s.quality, s.sats, s.pdop10, s.age_s))
+        .and_then(|()| {
+            let pd = s.pdop10.clamp(0, 999);
+            write!(w, "Q={} SV={} PD={pd} AGE={}", s.quality, s.sats, s.age_s.min(99_999_999))
+        })
         .is_ok();
     if ok { w.len } else { 0 }
 }
@@ -314,18 +331,28 @@ mod tests {
         let n = format(&s, &mut out);
         let text = core::str::from_utf8(out.get(..n).unwrap_or(&[])).unwrap_or("");
         assert!(text.contains(" VX=- VY=- VZ=- VDT=- Q=2 SV=8 PD=18 AGE=0"), "{text}");
+        // RID P3F-A-05: every field at its type's extreme fits, clamped
         let widest = State {
             session: u32::MAX,
             week: u16::MAX,
-            tow_ms: 604_799_999,
-            pos_m: [-7_500_000; 3],
-            vel: Some(([-9_999_999; 3], 120)),
+            tow_ms: i64::MAX,
+            pos_m: [i64::MIN; 3],
+            vel: Some(([i64::MIN; 3], i64::MAX)),
             quality: u8::MAX,
             sats: u8::MAX,
-            pdop10: 99_999,
-            age_s: u64::from(u32::MAX),
+            pdop10: i64::MAX,
+            age_s: u64::MAX,
         };
         let n = format(&widest, &mut out);
+        let text = core::str::from_utf8(out.get(..n).unwrap_or(&[])).unwrap_or("");
+        assert_eq!(
+            text,
+            "GNS N=4294967295 WK=65535 TOW=604799999 X=-99999999 Y=-99999999 Z=-99999999 VX=-99999999 \
+             VY=-99999999 VZ=-99999999 VDT=999 Q=255 SV=255 PD=999 AGE=99999999"
+        );
+        assert!(n <= MAX_LEN, "{n}");
+        let low = State { tow_ms: i64::MIN, pdop10: i64::MIN, vel: Some(([i64::MAX; 3], i64::MIN)), ..widest };
+        let n = format(&low, &mut out);
         assert!(n > 0 && n <= MAX_LEN);
         assert_eq!(format(&widest, &mut [0u8; 40]), 0);
     }

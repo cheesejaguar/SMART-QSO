@@ -81,7 +81,7 @@ current.
 | MRD-052 | D | CI + DITL | continuous; 2028-02 | Mode-gate tests; TP-SYS-002 | Not verified |
 | MRD-053 | D | CI + DITL | continuous; 2028-02 | Jetson gate tests; TP-JETSON-001 | Not verified |
 | MRD-060 | A,T | CDR + ORB | 2027-09-28; after launch | ADCS Monte Carlo of the flight code; HIL closed loop; commissioning | Not verified |
-| MRD-061 | A | CDR | 2027-09-28 | ADCS Monte Carlo; TP-ADCS-003 | Not verified |
+| MRD-061 | A,T | EMT + CDR | 2027-07 to 2027-09; 2027-09-28 | ADCS Monte Carlo sun-vector knowledge (ADCS_DESIGN §11.6); TP-ADCS-003 §3.1 on the EM | Not verified |
 | MRD-062 | T | CDR + ORB | 2027-09-28; after launch | ADCS Monte Carlo (spin sun-pointing); commissioning | Not verified |
 | MRD-070 | D | DITL | 2028-02 | TP-GS-001 | Not verified |
 | MRD-071 | D | DITL | 2028-02 | TP-GS-001 with the published decoder | Not verified |
@@ -560,7 +560,7 @@ current.
 | REG | Regulatory filing or coordination record | 2027-01 to 2028-06 | 10 |
 | CON | Launch contract and integrator ICD | 2027-05-31 | 8 |
 | FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-06 to 2027-07 | 294 |
-| EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-07 to 2027-09 | 12 |
+| EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-07 to 2027-09 | 13 |
 | CDR | Analysis or inspection presented at the CDR | 2027-09-28 | 68 |
 | FMI | FM integration and comprehensive functional (TP-INT, TP-SYS-001) | 2027-12 to 2028-02 | 165 |
 | DITL | FM day-in-the-life and end-to-end (TP-SYS-002, TP-DITL-001, TP-GS-001) | 2028-02 | 22 |

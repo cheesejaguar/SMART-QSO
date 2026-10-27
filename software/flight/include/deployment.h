@@ -101,8 +101,23 @@ extern "C" {
  *  anyway (30 slots of DEPLOYMENT_RETRY_DELAY_MS, about 25 h) */
 #define DEPLOYMENT_ANTS_MAX_DEFERRALS   30U
 
-/** The AntS controller is powered this long before its temperature is read (ms) */
+/** The AntS controller is powered this long before it is read, status or
+ *  temperature (ms; it answers only while its supply SW8 is on: RID P3F-A-01) */
 #define DEPLOYMENT_ANTS_START_MS        1000U
+
+/** At the deferral cap, or on the schedule fallback, the AntS deploys only
+ *  after this much continuous sunlight (ms; RID P3F-G-02) */
+#define DEPLOYMENT_ANTS_SUN_MS          (20U * 60U * 1000U)
+
+/** ... waiting at most this long for it (ms: two slots, more than an orbit) */
+#define DEPLOYMENT_ANTS_SUN_WAIT_MS     (2U * DEPLOYMENT_RETRY_DELAY_MS)
+
+/** Unknown AntS temperatures in a row after which the analysis schedule
+ *  replaces the gate */
+#define DEPLOYMENT_ANTS_UNKNOWN_LIMIT   3U
+
+/** The schedule fallback deploys no earlier than this after separation (s) */
+#define DEPLOYMENT_ANTS_SCHEDULE_S      (69U * 60U)
 
 /*===========================================================================*/
 /* Types                                                                      */
@@ -252,10 +267,16 @@ bool deployment_force_retry(DeploymentElement_t element);
  *        passed by, so the antenna deploys at once
  *
  * The gate (decision C-18): before each antenna attempt the AntS is
- * powered for DEPLOYMENT_ANTS_START_MS and its own temperature read; below
- * DEPLOYMENT_ANTS_MIN_TEMP_C or unknown the attempt waits the next
- * DEPLOYMENT_RETRY_DELAY_MS slot without being spent, at most
- * DEPLOYMENT_ANTS_MAX_DEFERRALS times, then deploys whatever the reading.
+ * powered for DEPLOYMENT_ANTS_START_MS, its status read (deployed: never
+ * fired) and its own temperature read; below DEPLOYMENT_ANTS_MIN_TEMP_C or
+ * unknown the attempt waits the next DEPLOYMENT_RETRY_DELAY_MS slot without
+ * being spent (the slot, the deferrals and the force flag are persisted, so
+ * a reset spends none), at most DEPLOYMENT_ANTS_MAX_DEFERRALS times, then
+ * deploys after DEPLOYMENT_ANTS_SUN_MS of continuous sun (or
+ * DEPLOYMENT_ANTS_SUN_WAIT_MS without it). After
+ * DEPLOYMENT_ANTS_UNKNOWN_LIMIT unknown readings in a row it deploys on the
+ * analysis schedule: the first DEPLOYMENT_ANTS_SUN_MS of sun from
+ * separation + DEPLOYMENT_ANTS_SCHEDULE_S (RID P3F-G-02).
  *
  * @return true if accepted (false for force with the wings)
  */

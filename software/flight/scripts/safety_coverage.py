@@ -53,7 +53,10 @@ SAFETY_CRITICAL: Tuple[str, ...] = (
     "sqso-fsw/src/rf_control.rs", "sqso-ffi/src/rf_control.rs", "sqso-fsw/src/ptt_watch.rs",
     "sqso-fsw/src/rf_silence.rs", "sqso-ffi/src/rf_silence.rs",
     "sqso-fsw/src/contact_monitor.rs", "sqso-ffi/src/contact_monitor.rs",
-    "sqso-ffi/src/separation_switch.rs",
+    "sqso-fsw/src/separation.rs", "sqso-ffi/src/separation_switch.rs",
+    # When the RAM copy of the TX-OFF latch is authoritative (the FRAM
+    # failed, the degraded mode: SH-008, RID P3F-A-06)
+    "sqso-fsw/src/fram_health.rs", "sqso-ffi/src/fram_health.rs",
     # The downlink's gate before the TNC enforces the same inhibits (SH-008)
     "sqso-fsw/src/downlink.rs", "sqso-ffi/src/downlink.rs",
     # The FM transponder's enable heartbeat and duty limits; the

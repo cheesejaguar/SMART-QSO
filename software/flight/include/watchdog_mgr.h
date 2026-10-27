@@ -11,7 +11,7 @@
  * - Pre-reset state saving
  * - Watchdog event logging and statistics
  *
- * @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
+ * @requirement SRS-F050 Refresh the hardware watchdog (IWDG, 24.1 to 27.8 s) only at the external supervisor's WDI falling edges, every 10 s while every task checks in
  * @requirement SRS-F051 Save state before watchdog reset
  * @requirement SRS-S003 Software shall implement hardware watchdog
  * @note NPR 7150.2 (standard, not a requirement ID): watchdog timer
@@ -123,7 +123,9 @@ SmartQsoResult_t wdt_mgr_init(void);
  * @brief Start hardware watchdog
  *
  * Once started, the hardware watchdog cannot be stopped and must be
- * kicked periodically or the system will reset.
+ * kicked periodically or the system will reset. The external supervisor's
+ * WDI count is timed from the hardware watchdog's last reload (on the
+ * target the boot IWDG, running from the reset; RID P3F-A-03).
  *
  * @return SMART_QSO_OK on success
  */
@@ -132,10 +134,22 @@ SmartQsoResult_t wdt_mgr_start(void);
 /**
  * @brief Kick hardware watchdog
  *
- * Call this periodically from the main loop to prevent hardware reset.
- * This also runs the task watchdog check.
+ * Call this from every main-loop pass. It runs the task watchdog check and,
+ * while no task is stalled, gives the external supervisor's WDI a falling
+ * edge every 10 s; the hardware watchdog is refreshed at those edges only,
+ * so both are timed from the same instant and after a stall the IWDG
+ * (24.1-27.8 s) acts before the supervisor (29.3 s minimum; RID P3F-A-03).
  */
 void wdt_mgr_kick(void);
+
+/**
+ * @brief An initialisation checkpoint (SRS-F001)
+ *
+ * Before wdt_mgr_start(): while the boot IWDG runs, a WDI falling edge and
+ * an IWDG refresh together once 10 s have passed since the IWDG's last
+ * reload (the reset, or the previous checkpoint). Nothing otherwise.
+ */
+void wdt_mgr_boot_checkpoint(void);
 
 /**
  * @brief Register a task for watchdog monitoring

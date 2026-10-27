@@ -29,6 +29,17 @@ pub struct Totals {
     /// °C (the flight software's temperature gate, decision C-18), and the
     /// AntS node's temperature at separation + 31 min (an ungated release)
     pub ants_release_c: Option<f64>,
+    /// When the AntS was first told to deploy, s after deployment, and the
+    /// continuous sunlight before it, s (0 in eclipse; RID P3F-G-02)
+    pub ants_release_s: Option<f64>,
+    /// Continuous sunlight before the first AntS deployment command, s
+    pub ants_release_sun_s: Option<f64>,
+    /// AntS deployment commands (each attempt's START), and those made
+    /// while the AntS already read deployed in the model (RID P3F-A-01:
+    /// a deployed AntS is never fired again)
+    pub ants_starts: u32,
+    /// AntS deployment commands with its elements already deployed
+    pub ants_starts_deployed: u32,
     /// The AntS node at separation + 31 min, °C
     pub ants_31min_c: Option<f64>,
     /// The AntS node's coldest, °C, in the first 3 h after separation
@@ -133,6 +144,9 @@ pub struct Totals {
     pub faults: std::collections::BTreeMap<String, u64>,
     /// Jetson energy, Wh, and the beacons it produced that flew
     pub jetson_wh: f64,
+    /// Every Jetson power-on: input energy, J, and lines meant to pass the
+    /// filter (decision C-20)
+    pub jetson_bursts: Vec<(f64, u32)>,
     /// Jetson power-ons
     pub jetson_power_ons: u32,
     /// Energy generated and consumed after deployment, Wh
@@ -284,25 +298,51 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         if hard == 0 { Pass } else { Anomaly },
     ));
     // The AntS temperature gate (decision C-18): deferred while the AntS is
-    // below -17 °C, at most 30 slots of 50 min
+    // below -17 °C, at most 30 slots of 50 min; at the cap, or on the
+    // analysis schedule after three unknown readings, released in sunlight
+    // after 20 min of sun (RID P3F-G-02)
     let deferrals =
         t.faults.iter().filter(|(k, _)| k.starts_with("AntS deployment deferred")).map(|(_, n)| *n).sum::<u64>();
-    let gate_limit_s = 7200.0 + deferrals as f64 * 3000.0;
+    let schedule = t.faults.iter().any(|(k, _)| k.starts_with("AntS temperature unknown"));
+    let cap = deferrals >= u64::from(sqso_fsw::deployment::ANTS_MAX_DEFERRALS);
+    let sun_need_s = f64::from(sqso_fsw::deployment::ANTS_SUN_MS) / 1000.0 - 60.0;
+    let sun_wait_s = if cap || schedule { f64::from(sqso_fsw::deployment::ANTS_SUN_WAIT_MS) / 1000.0 } else { 0.0 };
+    let gate_limit_s = 7200.0 + deferrals as f64 * 3000.0 + sun_wait_s;
     c.push(match t.ants_release_c {
-        Some(tc) => check(
-            "ants-gate",
-            "AntS deployed at or above -17 °C (decision C-18), or after the 30 deferrals",
-            format!(
-                "released at {tc:.1} °C after {deferrals} deferral(s); {} at separation + 31 min, coldest {}, gate open (>= -17 °C) from {}",
-                t.ants_31min_c.map_or("-".to_string(), |x| format!("{x:.1} °C")),
-                t.ants_min_c.map_or("-".to_string(), |x| format!("{x:.1} °C")),
-                t.ants_gate_open_s.map_or("-".to_string(), |s| format!("{:.1} min", s / 60.0))
-            ),
-            ">= -17 °C, or 30 deferrals",
-            if tc >= sqso_fsw::deployment::ANTS_MIN_TEMP_C - 0.5 || deferrals >= 30 { Pass } else { Anomaly },
-        ),
+        Some(tc) => {
+            let sun = t.ants_release_sun_s.unwrap_or(0.0);
+            let at = t.ants_release_s.unwrap_or(0.0);
+            let warm = tc >= sqso_fsw::deployment::ANTS_MIN_TEMP_C - 0.5 && !cap && !schedule;
+            let cap_ok = cap && sun >= sun_need_s;
+            let schedule_ok = schedule && at >= f64::from(sqso_fsw::deployment::ANTS_SCHEDULE_S) && sun >= sun_need_s;
+            check(
+                "ants-gate",
+                "AntS deployed at or above -17 °C (decision C-18); at the 30-deferral cap or on the schedule fallback, in sunlight after 20 min of sun",
+                format!(
+                    "released at {:.1} min, {tc:.1} °C, {:.1} min of sun, after {deferrals} deferral(s){}{}; {} at separation + 31 min, coldest {}, gate open (>= -17 °C) from {}",
+                    at / 60.0,
+                    sun / 60.0,
+                    if cap { ", at the cap" } else { "" },
+                    if schedule { ", on the schedule (temperature unknown)" } else { "" },
+                    t.ants_31min_c.map_or("-".to_string(), |x| format!("{x:.1} °C")),
+                    t.ants_min_c.map_or("-".to_string(), |x| format!("{x:.1} °C")),
+                    t.ants_gate_open_s.map_or("-".to_string(), |s| format!("{:.1} min", s / 60.0))
+                ),
+                ">= -17 °C; or cap/schedule in sunlight >= 20 min",
+                if warm || cap_ok || schedule_ok { Pass } else { Anomaly },
+            )
+        }
         None => check("ants-gate", "AntS deployment", "not commanded in the run".into(), ">= -17 °C", Warning),
     });
+    // RID P3F-A-01: the AntS is read while powered, so a deployed AntS is
+    // confirmed and never told to deploy again
+    c.push(check(
+        "ants-commands",
+        "AntS deployment commands; none once its elements read deployed (it is read powered, P3F-A-01)",
+        format!("{} command(s), {} with the elements deployed", t.ants_starts, t.ants_starts_deployed),
+        "1 to 3; 0 after deployment",
+        if (1..=3).contains(&t.ants_starts) && t.ants_starts_deployed == 0 { Pass } else { Anomaly },
+    ));
     for (id, title, at, limit_s) in [
         (
             "antennas",
@@ -325,10 +365,10 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
     }
     // SW-HAZ-014 control C-014-9 (SRS-F168): the exciter keyed with no
     // frame and the repeat path idle trips TX-OFF; never in a nominal run
-    let ptt = t.faults.iter().filter(|(k, _)| k.starts_with("PTT_EXCITER keyed over")).map(|(_, n)| *n).sum::<u64>();
+    let ptt = t.faults.iter().filter(|(k, _)| k.starts_with("PTT_EXCITER keyed")).map(|(_, n)| *n).sum::<u64>();
     c.push(check(
         "ptt-watch",
-        "Exciter keyed over 6 s with no frame and no repeat (C-014-9): TX-OFF trips",
+        "Exciter keyed over 6 s with no frame and no repeat, or by the repeat path without the heartbeat or past 130 s (C-014-9, P3F-A-02): TX-OFF trips",
         format!("{ptt}"),
         "0 (the TNC never keys alone in the model)",
         if ptt == 0 { Pass } else { Anomaly },
@@ -639,6 +679,24 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         "all latch-ups cleared",
         if t.latchups_cleared == t.latchups { Pass } else { Anomaly },
     ));
+    // Decision C-20: one burst definition (a power-on of at most 10 min and
+    // 3.6 kJ) and the metric counted on accepted lines; the per-burst
+    // distribution is reported (the flight gate meters the carrier input)
+    if !t.jetson_bursts.is_empty() {
+        let (p50, p95) = (percentile(&t.jetson_bursts, 0.50), percentile(&t.jetson_bursts, 0.95));
+        let max = t.jetson_bursts.iter().map(|b| b.0).fold(0.0, f64::max);
+        c.push(check(
+            "ai-bursts",
+            "Jetson burst energy at the model's input (decision C-20: at most 3.6 kJ a burst, the gate on 360 J per accepted line)",
+            format!(
+                "{} bursts: p50 {p50:.0} J, p95 {p95:.0} J, max {max:.0} J; {:.4} Wh per good line",
+                t.jetson_bursts.len(),
+                wh_per_line(&t.jetson_bursts)
+            ),
+            "max <= 3.75 kJ (3.6 kJ at the carrier input, metered 20 ms late)",
+            if max <= 3750.0 { Pass } else { Anomaly },
+        ));
+    }
     let per_beacon = if t.ai_frames > 0 { t.jetson_wh / t.ai_frames as f64 } else { f64::INFINITY };
     c.push(check(
         "ai-energy",
@@ -817,4 +875,22 @@ pub fn summary_json(checks: &[Check], t: &Totals, extra: &[(&str, String)]) -> S
     }
     s.push_str("\n  }\n}\n");
     s
+}
+
+/// The `q` quantile of the bursts' energies, J (0 with none)
+pub fn percentile(bursts: &[(f64, u32)], q: f64) -> f64 {
+    let mut e: Vec<f64> = bursts.iter().map(|b| b.0).collect();
+    if e.is_empty() {
+        return 0.0;
+    }
+    e.sort_by(f64::total_cmp);
+    let i = ((e.len() - 1) as f64 * q).round() as usize;
+    e[i.min(e.len() - 1)]
+}
+
+/// Energy per line meant to pass the filter over all bursts, Wh (infinite
+/// with none)
+pub fn wh_per_line(bursts: &[(f64, u32)]) -> f64 {
+    let (j, n) = bursts.iter().fold((0.0, 0u64), |(j, n), b| (j + b.0, n + u64::from(b.1)));
+    if n == 0 { f64::INFINITY } else { j / 3600.0 / n as f64 }
 }

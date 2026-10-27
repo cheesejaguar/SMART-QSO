@@ -531,6 +531,16 @@ pub extern "C" fn adcs_is_detumbled() -> bool {
     ADCS.with(|m| m.adcs.initialized && m.adcs.state.detumble_complete).unwrap_or(false)
 }
 
+/// The sun vector in the body frame, unit, while visible (HK2 `SN`: the
+/// one-wing identification of decision C-21)
+pub(crate) fn sun_body() -> Option<[f64; 3]> {
+    ADCS.with(|m| {
+        let s = &m.adcs.state.sun;
+        (m.adcs.initialized && s.sun_visible).then(|| [s.sun_vector.x, s.sun_vector.y, s.sun_vector.z])
+    })
+    .flatten()
+}
+
 /// Whether the sun is visible
 #[unsafe(no_mangle)]
 pub extern "C" fn adcs_sun_visible() -> bool {

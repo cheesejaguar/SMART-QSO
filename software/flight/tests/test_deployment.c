@@ -24,6 +24,7 @@
 #include "flight_log.h"
 #include "nvm_record.h"
 #include "rf_control.h"
+#include "separation_switch.h"
 #include "hal/hal_flash.h"
 #include "hal/hal_gpio.h"
 #include "hal/hal_i2c.h"
@@ -88,7 +89,18 @@ static int teardown(void **state)
 {
     (void)state;
     hal_sim_flash_fail_writes(false);
+    hal_sim_ants_power_gated(false);
     return 0;
+}
+
+/** As advance(), with the simulated HAL's clock moving too (the AntS's
+ *  start-up after SW8 turns on is timed on it) */
+static void advance_clock(uint32_t total_ms, uint32_t step_ms)
+{
+    for (uint32_t t = 0U; t < total_ms; t += step_ms) {
+        smart_qso_sim_advance_ms(step_ms);
+        deployment_tick(step_ms);
+    }
 }
 
 static void advance(uint32_t total_ms, uint32_t step_ms)
@@ -266,15 +278,21 @@ static void test_full_sequence(void **state)
 
     hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
     deployment_tick(SECOND_MS);   /* verified */
-    deployment_tick(SECOND_MS);   /* the AntS is told to deploy */
+    deployment_tick(SECOND_MS);   /* the AntS powered for its start-up (P3F-A-01) */
+    assert_true(hal_gpio_get(GPIO_PIN_DEPLOY_EN));
+    assert_false(antenna_deploying());
+    deployment_tick(SECOND_MS);   /* read, then told to deploy */
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
     assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN));
 
     advance(ANTENNA_DEPLOY_BURN_TIME_MS, SECOND_MS);
     assert_no_burn();             /* cancelled and disarmed */
     set_antenna_sense(true);
+    deployment_tick(SECOND_MS);   /* powered again to be read */
+    assert_true(hal_gpio_get(GPIO_PIN_DEPLOY_EN));
     deployment_tick(SECOND_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_COMPLETE);
+    assert_no_burn();             /* and powered down */
     assert_true(deployment_all_complete());
     assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), 1);
     assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 1);
@@ -339,11 +357,36 @@ static void test_already_deployed_not_fired(void **state)
     (void)state;
     hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
     wait_out();
-    deployment_tick(SECOND_MS);
-    deployment_tick(SECOND_MS);
+    advance(3U * SECOND_MS, SECOND_MS);
     assert_int_equal(wing_lines_on(), 0U);
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
     assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 0);
+}
+
+/** RID P3F-A-01: an AntS that answers only while its supply SW8 is on (the
+ *  simulated HAL's power gating). Its elements deploy during the attempt;
+ *  the sequence reads it powered after the burn and ends COMPLETE after
+ *  one attempt, never firing it again; one already out at the attempt is
+ *  read powered and never fired */
+static void test_ants_read_only_while_powered(void **state)
+{
+    (void)state;
+    hal_sim_ants_power_gated(true);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
+    wait_out();
+    advance_clock(3U * SECOND_MS, SECOND_MS);
+    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));   /* powered: it answers */
+    set_antenna_sense(true);                        /* its elements deploy */
+    advance_clock(ANTENNA_DEPLOY_BURN_TIME_MS + (3U * SECOND_MS), SECOND_MS);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_COMPLETE);
+    assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), 1U);
+    assert_false(hal_gpio_get(GPIO_PIN_DEPLOY_EN));
+    assert_false(deployment_downlink_held());
+    /* Unpowered, it does not answer */
+    uint8_t reg = ANTS_STATUS;
+    uint8_t value[2] = {0U, 0U};
+    assert_int_not_equal(hal_i2c_write_read(ANTS_BUS, ANTS_ADDR, &reg, 1U, value, 2U), SMART_QSO_OK);
+    hal_sim_ants_power_gated(false);
 }
 
 /*===========================================================================*/
@@ -376,6 +419,36 @@ static void test_power_on_reset_restarts_wait(void **state)
     advance(29U * MINUTE_MS, MINUTE_MS);
     deployment_tick(SECOND_MS);
     assert_no_burn();
+}
+
+/** RID SMA-B02: separation established before a reset (the record's
+ *  separation flag) keeps a stowed DEPLOY_SENSE (the line failed open,
+ *  BF-OBC-18) from restarting the wait after the reset, power-on or
+ *  watchdog; the reading itself reads released (latched) for every timer */
+static void test_stowed_after_separation_restarts_nothing(void **state)
+{
+    (void)state;
+    deployment_tick(SECOND_MS);
+    advance(10U * MINUTE_MS, MINUTE_MS);
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);   /* fails open: reads stowed */
+    reboot(HAL_RESET_POWER_ON);
+    assert_false(separation_switch_stowed());
+    assert_int_equal(deployment_wait_elapsed_s(), 0U);        /* a power loss restarts it */
+    deployment_tick(SECOND_MS);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_WAITING);
+    advance(DEPLOYMENT_WAIT_TIME_MS, MINUTE_MS);
+    deployment_tick(SECOND_MS);
+    assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));         /* the wait ran */
+    reboot(HAL_RESET_WATCHDOG);
+    assert_false(separation_switch_stowed());
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_SOLAR_VERIFY);
+    /* GSE ARM clears it: a stowed reading holds a fresh sequence again */
+    assert_int_equal(deployment_arm(), SMART_QSO_OK);
+    reboot(HAL_RESET_POWER_ON);
+    assert_true(separation_switch_stowed());
+    advance(DEPLOYMENT_WAIT_TIME_MS + MINUTE_MS, MINUTE_MS);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_INHIBITED);
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
 }
 
 static void test_stowed_switch_restarts_wait(void **state)
@@ -562,7 +635,7 @@ static void test_force_retry_after_failure(void **state)
     assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), DEPLOYMENT_MAX_RETRIES);
     assert_true(deployment_force_retry(DEPLOY_ELEMENT_ANTENNA));
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_PENDING);
-    deployment_tick(SECOND_MS);
+    advance(2U * SECOND_MS, SECOND_MS);
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
 }
 
@@ -583,7 +656,9 @@ static void test_ants_temperature_gate(void **state)
     assert_true(hal_gpio_get(GPIO_PIN_DEPLOY_EN)); /* the AntS powered to be read */
     assert_false(antenna_deploying());
     deployment_tick(SECOND_MS / 2U);
-    assert_no_burn(); /* deferred: powered down again */
+    assert_true(hal_gpio_get(GPIO_PIN_DEPLOY_EN)); /* starting: not read yet */
+    deployment_tick(SECOND_MS / 2U);
+    assert_no_burn(); /* read and deferred: powered down again */
     assert_true(deployment_ants_gate(&deferrals, &temp_c));
     assert_int_equal(deferrals, 1U);
     assert_true((temp_c > -44.5) && (temp_c < -43.5));
@@ -602,7 +677,7 @@ static void test_ants_temperature_gate(void **state)
     set_ants_temperature(-30.0);
     assert_false(deployment_retry(DEPLOY_ELEMENT_SOLAR_PANEL, true));
     assert_true(deployment_retry(DEPLOY_ELEMENT_ANTENNA, true));
-    deployment_tick(SECOND_MS / 10U);
+    advance(2U * SECOND_MS, SECOND_MS / 10U);
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
     assert_true(deployment_ants_gate(&deferrals, NULL));
     assert_int_equal(deferrals, 1U);
@@ -628,13 +703,18 @@ static void test_downlink_held_while_the_ants_is_pending(void **state)
     deployment_tick(SECOND_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_PENDING);
     for (unsigned n = 0U; n < DEPLOYMENT_ANTS_MAX_DEFERRALS; n++) {
-        deployment_tick(SECOND_MS);
+        advance(2U * SECOND_MS, SECOND_MS);
         assert_no_burn();
         assert_true(deployment_downlink_held());
         assert_false(rf_control_tx_permitted());
         advance(DEPLOYMENT_RETRY_DELAY_MS, MINUTE_MS);
     }
-    deployment_tick(SECOND_MS);
+    /* At the cap: in sunlight after 20 min of sun; here no sun is sensed
+     * (no EPS or ADCS in this test), so after the wait's bound */
+    advance(DEPLOYMENT_ANTS_SUN_WAIT_MS - MINUTE_MS, MINUTE_MS);
+    assert_no_burn();
+    assert_true(deployment_downlink_held());
+    advance(MINUTE_MS + (2U * SECOND_MS), SECOND_MS);
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA)); /* the cap: deployed cold */
     assert_true(deployment_downlink_held());
     advance(ANTENNA_DEPLOY_BURN_TIME_MS, SECOND_MS);
@@ -645,7 +725,8 @@ static void test_downlink_held_while_the_ants_is_pending(void **state)
     reboot(HAL_RESET_WATCHDOG);
     assert_false(deployment_downlink_held());
     assert_true(rf_control_tx_permitted());
-    advance(DEPLOYMENT_RETRY_DELAY_MS + (3U * MINUTE_MS), MINUTE_MS); /* attempt 2 made */
+    /* Attempt 2 at the cap waits for the sun too (here the bound) */
+    advance(DEPLOYMENT_RETRY_DELAY_MS + DEPLOYMENT_ANTS_SUN_WAIT_MS + (3U * MINUTE_MS), MINUTE_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_VERIFY);
     assert_true(deployment_retry(DEPLOY_ELEMENT_ANTENNA, false));
     assert_false(deployment_downlink_held());
@@ -667,11 +748,10 @@ static void test_downlink_hold_ends_with_a_deployed_ants(void **state)
     assert_false(rf_control_tx_permitted());
     hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
     wait_out();
-    deployment_tick(SECOND_MS);
-    deployment_tick(SECOND_MS);
+    advance(3U * SECOND_MS, SECOND_MS);
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
     set_antenna_sense(true);
-    advance(ANTENNA_DEPLOY_BURN_TIME_MS + SECOND_MS, SECOND_MS);
+    advance(ANTENNA_DEPLOY_BURN_TIME_MS + (3U * SECOND_MS), SECOND_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_COMPLETE);
     assert_false(deployment_downlink_held());
     assert_true(rf_control_tx_permitted());
@@ -791,9 +871,11 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_wing_retries_alternate_drivers, setup, teardown),
         cmocka_unit_test_setup_teardown(test_solar_sense_polarity_and_no_pull, setup, teardown),
         cmocka_unit_test_setup_teardown(test_already_deployed_not_fired, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_ants_read_only_while_powered, setup, teardown),
         cmocka_unit_test_setup_teardown(test_watchdog_reset_resumes_wait, setup, teardown),
         cmocka_unit_test_setup_teardown(test_power_on_reset_restarts_wait, setup, teardown),
         cmocka_unit_test_setup_teardown(test_stowed_switch_restarts_wait, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_stowed_after_separation_restarts_nothing, setup, teardown),
         cmocka_unit_test_setup_teardown(test_reset_during_burn_spends_attempt, setup, teardown),
         cmocka_unit_test_setup_teardown(test_burn_brownout_loop_is_bounded, setup, teardown),
         cmocka_unit_test_setup_teardown(test_persist_failure_blocks_burn, setup, teardown),

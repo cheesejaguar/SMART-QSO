@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-001
-**Revision:** F
+**Revision:** G
 **Date:** 2026-10-27
 **Reference:** NPR 7123.1D (tailored, `docs/project/CDR_CRITERIA_MATRIX.md` §2); `docs/BASELINE_PARAMETERS.md` Rev E (amended)
 
@@ -131,7 +131,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
 | MRD-060 | The spacecraft shall detumble from body rates of up to 10°/s within 3 orbits (`docs/BASELINE_PARAMETERS.md` §8, decision D9) *(was "within 7 days of deployment" until Rev C; the exit condition and the method are still TBR-MRD-005)* | A,T | Critical |
-| MRD-061 | The spacecraft shall maintain attitude knowledge sufficient for antenna pointing | A | High |
+| MRD-061 | The spacecraft shall determine the Sun's direction in its body frame within ±5° in sunlight, and its body rate, as the spin-stabilised sun-pointing law needs; no three-axis attitude estimate is required onboard (decision C-22, `docs/hardware/ADCS_DESIGN.md` ADCS-F003, ADCS-P003, ADCS-P007) *(was "maintain attitude knowledge sufficient for antenna pointing" until Rev G)* | A,T | High |
 | MRD-062 | The spacecraft shall stabilize attitude for nominal operations | T | High |
 
 **Proposed (PI to ratify), MRD-060, TBR-MRD-005:** "From body rates of up to 10°/s about each axis at separation, the spacecraft shall reduce its body rate to below 0.5°/s, held for 5 minutes, within 3 orbits." Verification: Analysis and Test (in place of Test alone: a 1U with only magnetorquers cannot be detumbled on the ground without an air bearing). A Monte Carlo simulation of at least 100 runs of the flight B-dot code with a geomagnetic field model, the baseline orbit and 0.15 A·m² per axis, every run passing; a closed-loop hardware-in-the-loop run with simulated dynamics; and the sensor and magnetorquer checks of TP-ADCS-003 §3.2. Confirmed in flight during commissioning. The 10°/s and 3 orbits are the baseline (`docs/BASELINE_PARAMETERS.md` §8). 0.5°/s for 5 minutes is the detumble exit condition in `docs/hardware/ADCS_DESIGN.md` (mode table) and the 0.5°/s threshold in `software/flight/include/adcs_control.h`. The documents disagree today: SYS-420 says below 5°/s within 7 days, and others give 1 orbit, 2 orbits, 1°/s or 2°/s.
@@ -247,3 +247,4 @@ SpaceX Rideshare Payload User's Guide v11 is the interim provider document.
 | D | 2026-10-27 | CDR review (PM/SE/V&V). Values aligned with `docs/BASELINE_PARAMETERS.md` Rev D: MRD-001 (2-year design life, 12-month minimum), MRD-011 (450-500 km SSO), MRD-031 (single-channel FM), MRD-051 (36-minute eclipse), MRD-060 (10°/s within 3 orbits; method A,T). Added MRD-084 to MRD-099 from NASA-STD-8719.14C, CDS Rev 14.1, 47 CFR 97.113/97.207/97.211 and the launch provider (§5.11). Applicable documents updated (NPR 7123.1D; NPR 7120.5 replaced by 7120.8A as reference). TBD/TBR target dates set. Change request to be logged by the chair (CR-2026-007) | CDR review, PM/SE/V&V |
 | E | 2026-10-27 | CDR 2026 consistency pass: MRD-011 465-485 km (target 475 km) and MRD-013 cap 485 km from `docs/BASELINE_PARAMETERS.md` Rev E §3 (CR-2026-007) | CDR documentation review |
 | F | 2026-10-27 | CDR round 3 (proposed; PI decision by 2027-01-12, CR-2026-009): MRD-013 cap on the 3σ-high mean altitude of the drop-off orbit, injection dispersion included, with ODAR Draft D and the 460 km alternative (RID P3A-09) | CDR round 3, systems and programmatics |
+| G | 2026-10-27 | CDR round 3 closure (decision C-22, finding P3F-G-07): MRD-061 restated as sun-vector knowledge within ±5° in sunlight and body-rate knowledge, method A,T (ADCS Monte Carlo and TP-ADCS-003 §3.1) | CDR round 3, GN&C |

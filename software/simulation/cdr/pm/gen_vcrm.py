@@ -90,7 +90,7 @@ EVENTS: Dict[str, Tuple[str, str]] = {
     "MRD-052": ("CI+DITL", "Mode-gate tests; TP-SYS-002"),
     "MRD-053": ("CI+DITL", "Jetson gate tests; TP-JETSON-001"),
     "MRD-060": ("CDR+ORB", "ADCS Monte Carlo of the flight code; HIL closed loop; commissioning"),
-    "MRD-061": ("CDR", "ADCS Monte Carlo; TP-ADCS-003"),
+    "MRD-061": ("EMT+CDR", "ADCS Monte Carlo sun-vector knowledge (ADCS_DESIGN §11.6); TP-ADCS-003 §3.1 on the EM"),
     "MRD-062": ("CDR+ORB", "ADCS Monte Carlo (spin sun-pointing); commissioning"),
     "MRD-070": ("DITL", "TP-GS-001"),
     "MRD-071": ("DITL", "TP-GS-001 with the published decoder"),

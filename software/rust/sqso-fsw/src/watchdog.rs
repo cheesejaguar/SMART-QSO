@@ -8,21 +8,30 @@
 //! [`Watchdog::check_task`] reports a stall and the caller logs it and saves
 //! state.
 //!
-//! The external supervisor (TPS3850H33-Q1, SQSO-OBC-BRD-001 B §6, RID
+//! The external supervisor (TPS3850H33-Q1, SQSO-OBC-BRD-001 E §6, RID
 //! AV-02) is kicked on the same condition: [`Supervisor`] gives its WDI
 //! line a falling edge every [`KICK_INTERVAL_MS`] while every task checks
-//! in, never sooner (the supervisor's window treats an edge within 5.6 s
-//! of the previous one as a fault), the first one 10 s after boot. A
-//! stalled task stops both refreshes; the internal watchdog (28–33 s) acts
-//! before the supervisor (33–45 s), which is the backstop for a dead LSI, an
-//! upset internal watchdog or a loop that refreshes too fast.
+//! in, never sooner (the supervisor's window treats an edge within 4.9 s of
+//! the previous one as a fault, SET0 = SET1 = 0), the first one 10 s after
+//! the boot. **The internal watchdog is refreshed only at those edges**
+//! (RID P3F-A-03): both are then timed from the same instant, so after a
+//! stall the IWDG (reload 3200 / 256 on the LSI: 24.1 to 27.8 s) always acts
+//! before the supervisor (29.3 to 39.3 s), 1.5 s ahead at the worst
+//! tolerances; refreshed on every pass instead, the supervisor could act up
+//! to 8.5 s first, its last edge being up to 10 s older than the IWDG's last
+//! refresh. The supervisor stays the backstop for a dead LSI, an upset
+//! internal watchdog or a loop that refreshes too fast. From the boot to
+//! the first main-loop pass the same pairing holds: the boot IWDG starts at
+//! the reset (firmware `main`), the supervisor's time base is that instant,
+//! and the initialisation's checkpoints give the first pair 10 s after it
+//! if the initialisation is still running then (`wdt_mgr_boot_checkpoint`).
 //!
-//! @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
+//! @requirement SRS-F050 Refresh the hardware watchdog (IWDG, 24.1 to 27.8 s) only at the external supervisor's WDI falling edges, every 10 s while every task checks in
 //! @requirement SRS-F051 Save state before watchdog reset
 //! @requirement SRS-F146 External supervisor kick: a WDI falling edge every 10 s, only while every task has checked in
 
-/// WDI falling edges this far apart, ms (the supervisor's window: at most
-/// 5.6 s minimum, at least 33.3 s maximum)
+/// WDI falling edges (and IWDG refreshes) this far apart, ms (the
+/// supervisor's window: 4.9 s minimum at most, 29.3 s maximum at least)
 pub const KICK_INTERVAL_MS: u64 = 10_000;
 
 /// The WDI line of the external supervisor

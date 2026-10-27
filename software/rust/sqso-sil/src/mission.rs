@@ -87,6 +87,8 @@ const LATCHUP_CLEAR_S: f64 = 10.0;
 const STATE_ACTIVE: u32 = 4;
 /// Mean length of one over on the transponder, s
 const OVER_S: f64 = 20.0;
+/// The repeat path's key-down timer, s (SQSO-RF-BRD-001 §8.2)
+const KEY_DOWN_TIMER_S: f64 = 120.0;
 
 /// Rate across +Y that counts as detumbled (captured), °/s, held for a minute
 const DETUMBLED_DPS: f64 = 0.5;
@@ -270,6 +272,12 @@ pub struct Mission {
     shed_below_s: f64,
     /// The four wing lines driven at the last step, and each wing deployed
     wing_lines_prev: [[bool; 2]; 2],
+    /// The AntS was told to deploy (powered, armed, a limit) last step
+    ants_cmd_prev: bool,
+    /// The uplink carrier (with its tone) present without a break, s
+    carrier_s: f64,
+    /// Continuous sunlight (illumination at least 0.5), s
+    sun_run_s: f64,
     /// The downlink's VSWR count seen this boot
     vswr_seen: u32,
     wing_deployed_prev: [bool; 2],
@@ -328,7 +336,8 @@ impl Mission {
                 e.release_j[0] = f64::INFINITY; // resistor A heats but does not part the line
             }
         }
-        let jetson = Jetson::open(rng.next_u64())?;
+        let mut jetson = Jetson::open(rng.next_u64())?;
+        jetson.reject_fraction = cfg.ai_reject_fraction;
         // The fuse opens by the heater model here (`eol_hardware`), not by
         // the simulated controller's timer
         sqso_ffi::hal_sim::hal_sim_eps_eol_open_ms(0);
@@ -419,6 +428,9 @@ impl Mission {
             shed: false,
             shed_below_s: 0.0,
             wing_lines_prev: [[false; 2]; 2],
+            ants_cmd_prev: false,
+            carrier_s: 0.0,
+            sun_run_s: 0.0,
             vswr_seen: 0,
             wing_deployed_prev: [false; 2],
             eol_heat_s: 0.0,
@@ -834,7 +846,10 @@ impl Mission {
         self.gnss_receiver(dt, r, v_rel);
         let xpdr_en = radio::heartbeat_enable(self.fsw.xpdr_heartbeat());
         self.update_carrier(dt, r);
-        self.radio.xpdr = xpdr_en && self.carrier;
+        // The radio board's key-down timer (HC4060, 120 s, reset when the
+        // tone drops): an over longer than that unkeys the repeat path
+        self.carrier_s = if self.carrier { self.carrier_s + dt } else { 0.0 };
+        self.radio.xpdr = xpdr_en && self.carrier && self.carrier_s < KEY_DOWN_TIMER_S;
         self.radio.step(dt, radio_on, pa_on, hi, self.deploy.antennas_deployed());
         let was_burning = self.deploy.current_a > 0.0;
         // The wings' four lines and the AntS on I2C
@@ -842,10 +857,28 @@ impl Mission {
         let cmd = deploy::Commands { armed, wing, ants_armed, ants_limit_s };
         let wing_c = [self.thermal.temp_c(thermal::W1), self.thermal.temp_c(thermal::W2)];
         let ants_c = self.thermal.temp_c(thermal::ANTS);
-        if ants_armed && ants_limit_s > 0 && self.totals.ants_release_c.is_none() {
-            self.totals.ants_release_c = Some(ants_c);
-            self.event("deploy", &format!("AntS told to deploy at {ants_c:.1} °C"));
+        self.sun_run_s = if illum >= 0.5 { self.sun_run_s + dt } else { 0.0 };
+        let ants_cmd = ants_armed && ants_limit_s > 0;
+        if ants_cmd && !self.ants_cmd_prev {
+            self.totals.ants_starts += 1;
+            if self.deploy.antennas_deployed() {
+                self.totals.ants_starts_deployed += 1;
+            }
+            if self.totals.ants_release_c.is_none() {
+                self.totals.ants_release_c = Some(ants_c);
+                self.totals.ants_release_s = Some(self.rel());
+                self.totals.ants_release_sun_s = Some(if illum >= 0.5 { self.sun_run_s } else { 0.0 });
+            }
+            self.event(
+                "deploy",
+                &format!(
+                    "AntS told to deploy (command {}) at {ants_c:.1} °C, {:.1} min of sun",
+                    self.totals.ants_starts,
+                    if illum >= 0.5 { self.sun_run_s / 60.0 } else { 0.0 }
+                ),
+            );
         }
+        self.ants_cmd_prev = ants_cmd;
         if (0.0..3.0 * 3600.0).contains(&self.rel()) {
             self.totals.ants_min_c = Some(self.totals.ants_min_c.map_or(ants_c, |m: f64| m.min(ants_c)));
         }
@@ -861,8 +894,10 @@ impl Mission {
         let _ = self.deploy.step(dt, cmd, e.vbat, wing_c, ants_c);
         if self.fsw.running() {
             self.fsw.set_ants_status(self.deploy.ants.status(ants_armed));
-            // Its controller's own sensor: the AntS node (decision C-18's gate)
-            self.fsw.set_ants_temperature(ants_c);
+            // Its controller's own sensor: the AntS node (decision C-18's
+            // gate), with the reading's error or a failed path (P3F-G-02)
+            let reading = (!self.cfg.ants_temp_failed).then_some(ants_c + self.cfg.ants_temp_offset_c);
+            self.fsw.set_ants_temperature(reading);
         }
         if self.deploy.current_a > 0.0 && !was_burning {
             if self.totals.first_burn_s.is_none() {
@@ -1529,6 +1564,7 @@ impl Mission {
         t.commands_executed += grew(snap.commands_executed, self.prev.commands_executed);
         t.auth_failures += grew(snap.auth_failures, self.prev.auth_failures);
         t.jetson_wh = self.jetson.stats.energy_wh;
+        t.jetson_bursts.clone_from(&self.jetson.bursts);
         t.jetson_power_ons = self.jetson.stats.power_ons;
     }
 
@@ -1669,6 +1705,9 @@ pub fn run(cfg: &Config, out: &Path) -> std::io::Result<usize> {
         ("seu_resets", m.totals.boots_seu.to_string()),
         ("jetson_energy_wh", format!("{:.1}", m.totals.jetson_wh)),
         ("jetson_power_ons", m.totals.jetson_power_ons.to_string()),
+        ("jetson_burst_j_p50", format!("{:.0}", crate::checks::percentile(&m.totals.jetson_bursts, 0.50))),
+        ("jetson_burst_j_p95", format!("{:.0}", crate::checks::percentile(&m.totals.jetson_bursts, 0.95))),
+        ("jetson_wh_per_good_line", format!("{:.4}", crate::checks::wh_per_line(&m.totals.jetson_bursts))),
         ("energy_generated_wh", format!("{:.0}", m.totals.gen_wh)),
         ("energy_consumed_wh", format!("{:.0}", m.totals.load_wh)),
         ("capacity_start_ah", format!("{:.3}", m.totals.capacity_start_ah)),

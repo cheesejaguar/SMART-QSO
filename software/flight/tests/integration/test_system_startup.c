@@ -245,7 +245,7 @@ static void test_eps_init_values(void **state)
  *        are supervised, and a pass in which every stage checks in refreshes
  *        the hardware
  *
- * @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
+ * @requirement SRS-F050 Refresh the hardware watchdog (IWDG, 24.1 to 27.8 s) only at the external supervisor's WDI falling edges, every 10 s while every task checks in
  */
 static void test_watchdog_starts(void **state)
 {
@@ -265,7 +265,14 @@ static void test_watchdog_starts(void **state)
         assert_int_equal(wdt_mgr_checkin(stages[i]), SMART_QSO_OK);
     }
 
+    /* Refreshed with the supervisor's WDI falling edge, 10 s apart (RID
+     * P3F-A-03): the edge's high half, then the edge and the refresh */
     uint32_t kicks = stats.hw_kicks;
+    smart_qso_sim_advance_ms(10000U);
+    for (size_t i = 0U; i < (sizeof(stages) / sizeof(stages[0])); i++) {
+        assert_int_equal(wdt_mgr_checkin(stages[i]), SMART_QSO_OK);
+    }
+    wdt_mgr_kick();
     wdt_mgr_kick();
     assert_int_equal(wdt_mgr_get_stats(&stats), SMART_QSO_OK);
     assert_int_equal(stats.hw_kicks, kicks + 1U);

@@ -54,7 +54,8 @@ pub const POWEROFF_S: f64 = 3.0;
 pub const MAG_FIELD_T: f64 = 0.35e-6;
 /// Time to generate one beacon line, s (SmolLM2-360M INT4, about 20 tokens)
 pub const INFER_S: (f64, f64) = (2.5, 6.0);
-/// Fraction of proposed lines the content filter should refuse
+/// Fraction of proposed lines the content filter should refuse (the
+/// default of `Config::ai_reject_fraction`)
 pub const BAD_TEXT_FRACTION: f64 = 0.03;
 
 /// Lines the generator proposes (non-numeric, BASELINE §6)
@@ -139,6 +140,14 @@ pub struct Jetson {
     /// Time since the rail came on, s (JET_PG)
     rail_s: f64,
     rng: u64,
+    /// Fraction of proposed lines meant to fail the content filter
+    pub reject_fraction: f64,
+    /// This power-on's energy so far, J, and the lines it sent that are
+    /// meant to pass the filter
+    burst: Option<(f64, u32)>,
+    /// Every finished power-on: its input energy, J, and its good lines
+    /// (decision C-20: the energy per accepted line)
+    pub bursts: Vec<(f64, u32)>,
     /// Counters
     pub stats: Stats,
 }
@@ -171,6 +180,9 @@ impl Jetson {
                 burst_w: BURST_W.0,
                 rail_s: 0.0,
                 rng: seed | 1,
+                reject_fraction: BAD_TEXT_FRACTION,
+                burst: None,
+                bursts: Vec::new(),
                 stats: Stats::default(),
             })
         }
@@ -242,6 +254,9 @@ impl Jetson {
             if matches!(self.state, State::Running | State::Booting { .. }) {
                 self.stats.hard_cuts += 1;
             }
+            if let Some(b) = self.burst.take() {
+                self.bursts.push(b);
+            }
             self.state = State::Off;
             self.pending = None;
             self.power_w = 0.0;
@@ -254,6 +269,7 @@ impl Jetson {
             self.state = State::Booting { left_s: boot };
             self.uptime_s = 0.0;
             self.stats.power_ons += 1;
+            self.burst = Some((0.0, 0));
             self.burst_w = BURST_W.0 + (BURST_W.1 - BURST_W.0) * self.uniform();
         }
         self.rail_s += dt_s;
@@ -280,6 +296,9 @@ impl Jetson {
             State::Off => {}
         }
         self.stats.energy_wh += self.power_w * dt_s / 3600.0;
+        if let Some(b) = self.burst.as_mut() {
+            b.0 += self.power_w * dt_s;
+        }
     }
 
     fn run(&mut self, dt_s: f64, lines: &[Vec<u8>]) {
@@ -319,7 +338,10 @@ impl Jetson {
     }
 
     fn answer(&mut self, seq: u16, max_len: u8) {
-        let bad = self.uniform() < BAD_TEXT_FRACTION;
+        let bad = self.uniform() < self.reject_fraction;
+        if !bad && let Some(b) = self.burst.as_mut() {
+            b.1 += 1;
+        }
         let text = if bad {
             BAD_TEXTS[(self.uniform() * BAD_TEXTS.len() as f64) as usize % BAD_TEXTS.len()]
         } else {

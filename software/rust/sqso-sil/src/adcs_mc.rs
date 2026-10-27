@@ -19,12 +19,24 @@
 //! clean; with the coils on through the sample, the coupling corrupts
 //! B-dot and the rate estimate, and the flight software's rejection count
 //! ([`Trial::mag_rejected`]) shows it.
+//!
+//! Round 3 closure (P3F-G-05, C-21, C-22): the magnetometer gating of
+//! SRS-F143 ([`Gating`]: samples not used and the coils off while the Jetson
+//! carrier is powered or the exciter keyed, at the mission simulation's
+//! duty); the AntS deploying later than the wings ([`Params::ants_s`], the
+//! interval with the elements stowed carried by [`ants_stowed`]); a physical
+//! sun-sensor model ([`Photodiodes`]: the six face photodiodes of the
+//! ADS7138 inputs, opposite faces subtracted as `sqso_fsw::ads7138` does,
+//! with their gains, grazing response, Earth albedo and the wings' shadow);
+//! the sun-vector knowledge (the flight software's sun vector against the
+//! true one, ADCS-F003/P003); and the wing-identification signature of a
+//! one-wing deployment ([`wing_id`]).
 
-use sqso_fsw::adcs::{self, Adcs, CoilTiming, Gains, Geometry, Inertia, Vec3};
+use sqso_fsw::adcs::{self, Adcs, CoilTiming, Gains, Geometry, Inertia, Reading, Vec3};
 
 use crate::env::atmosphere;
 use crate::env::attitude::{self, Disturbance};
-use crate::env::earth;
+use crate::env::earth::{self, plate_view_factor};
 use crate::env::eclipse;
 use crate::env::magfield;
 use crate::env::math::{MU_EARTH, OMEGA_EARTH, Quat, Rng, V3};
@@ -54,12 +66,33 @@ const WINGS_S: f64 = 1800.0;
 /// Magnetorquer drive at full dipole on all three axes, W
 const MTQ_FULL_W: f64 = 0.30;
 
-/// The stowed inertia tensor (the CAD of `docs/environment/MASS_BUDGET.md`
-/// §6.1, AntS and wings stowed, the mean of CBE and MEV as for the deployed
-/// tensor: the final CAD's diagonal 2.960, 3.292, 2.970 × 10⁻³; the products
-/// of the earlier CAD), kg·m²
+/// The stowed inertia tensor (wings and AntS stowed): MASS_BUDGET 3.2 §6.5
+/// "Stowed (simulation `INERTIA_STOWED`)", the mean of the CAD's CBE and MEV
+/// stowed rows of §6.1, products included (+11.5, −15.3, +34.5 × 10⁻⁶;
+/// round 3 closure, P3F-G-05 (c): the earlier products were those of an
+/// older CAD), kg·m²
 pub const STOWED: Inertia =
-    Inertia { xx: 0.002_960, yy: 0.003_292, zz: 0.002_970, xy: 0.000_000_5, xz: -0.000_000_5, yz: 0.000_031 };
+    Inertia { xx: 0.002_960, yy: 0.003_292, zz: 0.002_970, xy: 0.000_011_5, xz: -0.000_015_3, yz: 0.000_034_5 };
+
+/// The tensor `t` (AntS deployed) with the four AntS elements still stowed:
+/// `t` less the elements' share, which is the difference of MASS_BUDGET
+/// §6.5's "NO_WINGS (antennas out)" and "Stowed" rows (both with the wings
+/// stowed). The elements' share is taken as the same with the wings out (the
+/// centre of mass moves by under 2 mm); with both wings out it gives
+/// (3.038, 3.915, 3.672) × 10⁻³ and products (+11.9, −15.3, +16.3) × 10⁻⁶:
+/// the AntS deployment then raises Iyy by 14 % (P3F-G-05 (d)). With no wing
+/// out it is [`STOWED`]
+pub fn ants_stowed(t: &Inertia) -> Inertia {
+    let (a, s) = (Inertia::NO_WINGS, STOWED);
+    Inertia {
+        xx: t.xx - (a.xx - s.xx),
+        yy: t.yy - (a.yy - s.yy),
+        zz: t.zz - (a.zz - s.zz),
+        xy: t.xy - (a.xy - s.xy),
+        xz: t.xz - (a.xz - s.xz),
+        yz: t.yz - (a.yz - s.yz),
+    }
+}
 
 /// A rigid body with a full inertia tensor (products included; the mission
 /// simulation's `Attitude` is diagonal): attitude body → ECI, body rate
@@ -225,6 +258,226 @@ pub struct SensorModel {
     pub gyro: Option<GyroModel>,
 }
 
+/// The magnetometer gating of SRS-F143 (RID GNC-08): while the Jetson
+/// carrier is powered (`JET_PG`) or the exciter keyed (`PTT_EXCITER`) the
+/// flight software does not use the sample and leaves the coils off for the
+/// cycle. The duty is the mission simulation's (SIL Version F,
+/// `docs/test/SIL_MISSION_SIMULATION.md`: 9,216 Jetson power-ons and
+/// 8,145 Wh at 7.3 W in 732 days, about 12.6 a day of 7.2 min, 1.5 h a day;
+/// the exciter keyed 2,344,368 s, 53 min a day), laid out as long blocks:
+/// the Jetson's batches of at most 10 min followed by at least 100 min of
+/// rest (`sqso_fsw::payload_schedule`), the exciter in blocks of 4 to 10 min
+/// started only in sunlight (the transponder's gate) — the panel's worst
+/// case (P3F-G-05 (a)), not the beacon's 2 s key-downs that the simulation
+/// spreads over the day
+#[derive(Clone, Copy, Debug)]
+pub struct Gating {
+    /// Jetson on time, s a day
+    pub jetson_s_per_day: f64,
+    /// A Jetson block's length, uniform between, s
+    pub jetson_block_s: (f64, f64),
+    /// Rest after a Jetson block, at least, s
+    pub jetson_rest_s: f64,
+    /// Exciter keyed, s a day
+    pub keyed_s_per_day: f64,
+    /// A keyed block's length, uniform between, s
+    pub keyed_block_s: (f64, f64),
+    /// No gating before this, s after separation (the AntS hold of C-19 and
+    /// commissioning come first)
+    pub from_s: f64,
+}
+
+impl Gating {
+    /// The mission simulation's duty: 1.5 h a day of Jetson, 53 min a day keyed
+    pub const SIL: Gating = Gating {
+        jetson_s_per_day: 5400.0,
+        jetson_block_s: (300.0, 600.0),
+        jetson_rest_s: 6000.0,
+        keyed_s_per_day: 3180.0,
+        keyed_block_s: (240.0, 600.0),
+        from_s: 3.0 * 3600.0,
+    };
+}
+
+/// A trial's gate schedule (its own random stream)
+#[derive(Clone, Debug)]
+struct GateState {
+    g: Gating,
+    rng: Rng,
+    jet_until: f64,
+    jet_next: f64,
+    key_until: f64,
+    sunlit_s: f64,
+    elapsed_s: f64,
+}
+
+impl GateState {
+    fn new(g: Gating, seed: u64) -> GateState {
+        let mut rng = Rng::new(seed ^ 0x6a7e_d00d);
+        let mean = 0.5 * (g.jetson_block_s.0 + g.jetson_block_s.1);
+        let period = 86_400.0 * mean / g.jetson_s_per_day.max(1.0);
+        let jet_next = g.from_s + rng.range(0.0, period);
+        GateState { g, rng, jet_until: 0.0, jet_next, key_until: 0.0, sunlit_s: 0.0, elapsed_s: 0.0 }
+    }
+
+    /// Whether the cycle at `t` (s after separation) is gated: (Jetson, keyed)
+    fn step(&mut self, t: f64, sunlit: bool) -> (bool, bool) {
+        let g = self.g;
+        if t < g.from_s {
+            return (false, false);
+        }
+        self.elapsed_s += 1.0;
+        if sunlit {
+            self.sunlit_s += 1.0;
+        }
+        if t >= self.jet_next && t >= self.jet_until {
+            let len = self.rng.range(g.jetson_block_s.0, g.jetson_block_s.1);
+            let mean = 0.5 * (g.jetson_block_s.0 + g.jetson_block_s.1);
+            let extra = (86_400.0 * mean / g.jetson_s_per_day.max(1.0) - mean - g.jetson_rest_s).max(0.0);
+            self.jet_until = t + len;
+            self.jet_next = self.jet_until + g.jetson_rest_s + self.rng.exp(1.0 / extra.max(1.0));
+        }
+        if sunlit && t >= self.key_until {
+            // Started in sunlight only, at the rate that gives the daily total
+            let mean = 0.5 * (g.keyed_block_s.0 + g.keyed_block_s.1);
+            let f_sun = (self.sunlit_s / self.elapsed_s.max(1.0)).max(0.3);
+            let hazard = g.keyed_s_per_day / (mean * 86_400.0 * f_sun);
+            if self.rng.uniform() < hazard {
+                self.key_until = t + self.rng.range(g.keyed_block_s.0, g.keyed_block_s.1);
+            }
+        }
+        (t < self.jet_until, t < self.key_until)
+    }
+}
+
+/// The six face photodiodes as the flight software reads them
+/// (`sqso_fsw::ads7138`: AIN0–AIN5, +X, −X, +Y, −Y, +Z, −Z, 619 Ω
+/// transimpedance, 12-bit, intensity 1 at full sun; the sun vector is the
+/// difference of opposite faces, its length the intensity)
+#[derive(Clone, Copy, Debug)]
+pub struct Photodiodes {
+    /// Noise per sample and channel, 1σ, fraction of full sun (the ADC's
+    /// LSB is 3.3·10⁻⁴)
+    pub noise: f64,
+    /// Gain error per channel (not calibrated in flight), 1σ, fraction
+    pub gain_sigma: f64,
+    /// Grazing loss: the response is cos θ to 60° incidence, then falls
+    /// linearly to (1 − this) × cos θ at 90° (a windowed package's Fresnel
+    /// loss; to be measured, SENSOR_DESIGN §8.2)
+    pub grazing: f64,
+    /// No response beyond this incidence, deg (90: none; 85: a coverglass
+    /// cell's Kelly cut-off)
+    pub cutoff_deg: f64,
+    /// Earth albedo on each face (its view factor of the sunlit Earth)
+    pub albedo: bool,
+    /// The wings' shadow: a stowed wing covers its ±X face's photodiode; a
+    /// deployed one shadows it by the geometry of `env::solar` (the
+    /// photodiode at the face centre, the panel 0.0585–0.1415 m out in the
+    /// +Y plane)
+    pub wing_shadow: bool,
+}
+
+impl Photodiodes {
+    /// The flight sensors as modelled at CDR
+    pub const FLIGHT: Photodiodes =
+        Photodiodes { noise: 1e-3, gain_sigma: 0.03, grazing: 0.5, cutoff_deg: 90.0, albedo: true, wing_shadow: true };
+
+    /// The response at incidence cosine `c`
+    pub fn response(&self, c: f64) -> f64 {
+        if c <= 0.0 {
+            return 0.0;
+        }
+        let th = c.min(1.0).acos().to_degrees();
+        if th >= self.cutoff_deg {
+            return 0.0;
+        }
+        let f = if th <= 60.0 { 1.0 } else { 1.0 - self.grazing * (th - 60.0) / 30.0 };
+        c * f
+    }
+}
+
+/// Wing panel centre along X, m, and half extents across and along Z, m
+/// (`env::solar`'s `WING_CX`, `WING_HALF`), and the body's half width, m
+const WING_CX: f64 = 0.10;
+const WING_HALF: (f64, f64) = (0.0415, 0.049);
+const BODY_HALF_XY: f64 = 0.05;
+
+/// Whether the ray from `p` toward `s` crosses the deployed wing centred at
+/// x = `cx` (in the +Y face's plane)
+fn hits_wing(p: V3, s: V3, cx: f64) -> bool {
+    if s.y <= 1e-12 {
+        return false;
+    }
+    let t = (BODY_HALF_XY - p.y) / s.y;
+    if t <= 1e-9 {
+        return false;
+    }
+    let q = p + s * t;
+    (q.x - cx).abs() <= WING_HALF.0 && q.z.abs() <= WING_HALF.1
+}
+
+/// A set of photodiodes in a run: their drawn gains (own random stream)
+#[derive(Clone, Debug)]
+pub struct PdSensors {
+    m: Photodiodes,
+    gain: [f64; 6],
+    rng: Rng,
+}
+
+impl PdSensors {
+    /// The sensors of `m` with their gains drawn for `seed`
+    pub fn new(m: Photodiodes, seed: u64) -> PdSensors {
+        let mut rng = Rng::new(seed ^ 0x0c55_5eed);
+        let mut gain = [1.0; 6];
+        for g in &mut gain {
+            *g = 1.0 + rng.normal() * m.gain_sigma;
+        }
+        PdSensors { m, gain, rng }
+    }
+
+    /// The six channels' intensities for the body sun direction `s` at
+    /// illumination `illum`, the body nadir `nadir`, the albedo irradiance
+    /// on a nadir plate over the solar flux `albedo_ratio`, at radius `r_m`,
+    /// with `wings` deployed
+    pub fn channels(
+        &mut self,
+        s: V3,
+        illum: f64,
+        nadir: V3,
+        albedo_ratio: f64,
+        r_m: f64,
+        wings: [bool; 2],
+    ) -> [f64; 6] {
+        let normals = [V3::X, -V3::X, V3::Y, -V3::Y, V3::Z, -V3::Z];
+        let alb_ref = plate_view_factor(1.0, r_m);
+        let mut out = [0.0; 6];
+        for (k, (o, n)) in out.iter_mut().zip(normals).enumerate() {
+            let covered = self.m.wing_shadow && k < 2 && !wings[k];
+            let mut i = 0.0;
+            if !covered {
+                let shadowed = self.m.wing_shadow
+                    && k < 2
+                    && wings[k]
+                    && hits_wing(n * (BODY_HALF_XY + 1e-4), s, if k == 0 { WING_CX } else { -WING_CX });
+                if !shadowed {
+                    i += illum * self.m.response(n.dot(s));
+                }
+                if self.m.albedo && albedo_ratio > 0.0 {
+                    i += albedo_ratio * plate_view_factor(n.dot(nadir), r_m) / alb_ref;
+                }
+            }
+            *o = self.gain[k] * i + self.rng.normal() * self.m.noise;
+        }
+        out
+    }
+
+    /// The sun vector as `sqso_fsw::ads7138::Reading::sun` forms it
+    pub fn read(&mut self, s: V3, illum: f64, nadir: V3, albedo_ratio: f64, r_m: f64, wings: [bool; 2]) -> V3 {
+        let c = self.channels(s, illum, nadir, albedo_ratio, r_m, wings);
+        V3::new(c[0] - c[1], c[2] - c[3], c[4] - c[5])
+    }
+}
+
 /// One trial's inputs that the sweep holds fixed
 #[derive(Clone, Copy, Debug)]
 pub struct Params {
@@ -263,6 +516,15 @@ pub struct Params {
     /// What the flight software is told: spin axis and inertia
     /// (ADCS_SET_GEOMETRY)
     pub fsw_geometry: Geometry,
+    /// The AntS deploys at this time, s after separation (at or before the
+    /// wings: together with them; later: the plant is [`ants_stowed`] of
+    /// `plant_deployed` from the wings until then)
+    pub ants_s: f64,
+    /// The magnetometer gating (`None`: never gated)
+    pub gating: Option<Gating>,
+    /// The face photodiodes (`None`: the generic sun-vector error of
+    /// [`SensorModel::css_sigma_rad`])
+    pub photodiodes: Option<Photodiodes>,
 }
 
 /// What one trial measured
@@ -297,6 +559,27 @@ pub struct Trial {
     pub mtq_w: f64,
     /// Magnetometer samples the flight software discarded (coils on or not settled)
     pub mag_rejected: u32,
+    /// Steady state, sunlit: mean angle between the flight software's sun
+    /// vector and the true one (sun-vector knowledge, ADCS-F003), deg
+    pub know_mean_deg: f64,
+    /// Steady state, sunlit: its 95th percentile, deg
+    pub know_p95_deg: f64,
+    /// Steady state, sunlit: share of samples with the knowledge error within 5°
+    pub know_within_5: f64,
+    /// Steady state: gated (Jetson or keyed) time, min a day
+    pub gated_min_day: f64,
+    /// Steady state: the mean body-rate estimate's tilt from +Y toward +X,
+    /// atan2(ω̄x, ω̄y), deg (the wing signature of C-21)
+    pub rate_tilt_x_deg: f64,
+    /// Steady state, sunlit: the mean measured sun vector's tilt from +Y
+    /// toward +X, deg
+    pub sun_tilt_x_deg: f64,
+    /// Largest sunlit angle of the Sun from +Y within 3 h after a late AntS
+    /// deployment, deg (0: none)
+    pub ants_max_deg: f64,
+    /// Sunlit time with the spin at 6°/s or more and the Sun 20–55° from +Y,
+    /// after the wings, min (the window of the identification of [`wing_id`])
+    pub id_window_min: f64,
 }
 
 /// A gyro by name: `none`, `bmi088` (calibrated), `bmi088_uncal`, `mg370`,
@@ -417,6 +700,9 @@ pub fn default_params() -> Params {
         plant_deployed: Inertia::DEPLOYED,
         wings: [true, true],
         fsw_geometry: Geometry::FLIGHT,
+        ants_s: WINGS_S,
+        gating: None,
+        photodiodes: None,
         sensors: SensorModel {
             mag_noise_t: 50e-9,
             mag_bias_t: 300e-9,
@@ -503,6 +789,9 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         sensors = sensors.with_coupling(&mut crng, p.mag_coupling);
     }
     let array = Array::new();
+    let mut gate = p.gating.map(|g| GateState::new(g, seed));
+    let mut pd = p.photodiodes.map(|m| PdSensors::new(m, seed));
+    let ants_late = p.ants_s > WINGS_S;
 
     let mut a = Adcs::new();
     a.init();
@@ -517,7 +806,11 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
     let mut out = Trial { tipoff_dps: w0.norm().to_degrees(), ..Trial::default() };
     let mut below_since: Option<f64> = None;
     let mut wings = false;
+    let mut ants = !ants_late;
+    let mut ants_at: Option<f64> = None;
     let mut angles: Vec<f64> = Vec::new();
+    let mut know: Vec<f64> = Vec::new();
+    let (mut gated_s, mut rate_sum, mut sun_sum, mut id_s) = (0.0, V3::ZERO, V3::ZERO, 0.0);
     let (mut gen_j, mut steady_s, mut spin_sum, mut trans_sq, mut mtq_j) = (0.0, 0.0, 0.0, 0.0, 0.0);
     let mut was_dark = false;
     let mut anti = 0usize;
@@ -528,8 +821,14 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         let t = epoch + t_rel;
         if !wings && t_rel >= WINGS_S {
             // The wings swing out: the body's angular momentum is kept
-            att.set_tensor(&p.plant_deployed);
+            att.set_tensor(&if ants_late { ants_stowed(&p.plant_deployed) } else { p.plant_deployed });
             wings = true;
+        }
+        if !ants && t_rel >= p.ants_s {
+            // The AntS elements unroll: the momentum is kept
+            att.set_tensor(&p.plant_deployed);
+            ants = true;
+            ants_at = Some(t_rel);
         }
         let (r, v) = orbit.state_at(t);
         let (sun_u, sun_d) = sun::sun_eci(t);
@@ -546,10 +845,29 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         let coil_share = if since_off <= 0.0 { 1.0 } else { (-since_off / COIL_TAU_S).exp() };
         let mag = sensors.magnetometer(&mut rng, b_b) + sensors.coil_field(burst.0 * coil_share);
         let sun_b = att.to_body(sun_u);
-        let sun_meas = sensors.sun_sensors(&mut rng, sun_b, illum);
+        let sun_meas = match pd.as_mut() {
+            Some(s) => {
+                let flux = sun::solar_flux(sun_d);
+                let albedo = earth::albedo_nadir_w_m2(r.norm(), r.unit().dot(sun_u), flux) / flux;
+                s.read(sun_b, illum, att.to_body(-r.unit()), albedo, r.norm(), wd)
+            }
+            None => sensors.sun_sensors(&mut rng, sun_b, illum),
+        };
         let gyro_reading = sensors.gyro(&mut rng, att.w, 1.0).map(v3);
+        let (jet, keyed) = gate.as_mut().map_or((false, false), |g| g.step(t_rel, illum > 0.5));
         let ms = (t_rel * 1000.0) as u64 + 1000;
-        let cycle = a.update_with_gyro(ms, ms, v3(mag * 1e6), v3(sun_meas), gyro_reading);
+        let reading = Reading {
+            field: v3(mag * 1e6),
+            sun: v3(sun_meas),
+            gyro: gyro_reading,
+            gated: jet || keyed,
+            ..Reading::default()
+        };
+        let cycle = a.update_cycle(ms, ms, &reading);
+        // Sun-vector knowledge: the flight software's vector against the truth at the sample
+        let sv = a.state.sun.sun_vector;
+        let know_err =
+            if a.state.sun.sun_visible { Some(V3::new(sv.x, sv.y, sv.z).angle(sun_b).to_degrees()) } else { None };
         if cycle.is_some_and(|c| c.detumble_timeout) {
             out.timeouts += 1;
         }
@@ -605,12 +923,30 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         } else {
             below_since = None;
         }
+        let sb = att.to_body(sun_u);
+        let angle = sb.angle(V3::new(0.0, 1.0, 0.0)).to_degrees();
+        if let Some(t0) = ants_at
+            && t_rel - t0 <= 3.0 * 3600.0
+            && illum > 0.5
+        {
+            out.ants_max_deg = out.ants_max_deg.max(angle);
+        }
+        if wings && illum > 0.5 && along_axis >= 6.0_f64.to_radians() && (20.0..=55.0).contains(&angle) {
+            id_s += 1.0;
+        }
         if t_rel >= p.steady_from_s {
             steady_s += 1.0;
-            let sb = att.to_body(sun_u);
-            let angle = sb.angle(V3::new(0.0, 1.0, 0.0)).to_degrees();
+            if jet || keyed {
+                gated_s += 1.0;
+            }
+            let w = a.state.angular_rate_est;
+            rate_sum += V3::new(w.x, w.y, w.z);
             if illum > 0.5 {
                 angles.push(angle);
+                if let Some(e) = know_err {
+                    know.push(e);
+                    sun_sum += V3::new(sv.x, sv.y, sv.z);
+                }
                 if angle > 135.0 {
                     anti += 1;
                 }
@@ -654,7 +990,18 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         out.spin_dps = (spin_sum / steady_s).to_degrees();
         out.transverse_dps = (trans_sq / steady_s).sqrt().to_degrees();
         out.mtq_w = mtq_j / steady_s;
+        out.gated_min_day = gated_s / steady_s * 1440.0;
+        out.rate_tilt_x_deg = rate_sum.x.atan2(rate_sum.y).to_degrees();
+        out.sun_tilt_x_deg = sun_sum.x.atan2(sun_sum.y).to_degrees();
+        if !know.is_empty() {
+            know.sort_by(f64::total_cmp);
+            let nk = know.len() as f64;
+            out.know_mean_deg = know.iter().sum::<f64>() / nk;
+            out.know_p95_deg = know[((nk * 0.95) as usize).min(know.len() - 1)];
+            out.know_within_5 = know.iter().filter(|&&e| e <= 5.0).count() as f64 / nk;
+        }
     }
+    out.id_window_min = id_s / 60.0;
     out.mag_rejected = a.mag_rejected;
     out
 }
@@ -692,6 +1039,22 @@ pub struct Summary {
     pub mtq_w: f64,
     /// Magnetometer samples the flight software discarded, mean per trial
     pub mag_rejected: f64,
+    /// Sun-vector knowledge: mean error (mean over trials), deg
+    pub know_mean_deg: f64,
+    /// Sun-vector knowledge: the worst trial's 95th percentile, deg
+    pub know_p95_worst_deg: f64,
+    /// Sun-vector knowledge: share within 5°, the worst trial
+    pub know_within_5_worst: f64,
+    /// Gated time, min a day (mean over trials)
+    pub gated_min_day: f64,
+    /// Mean body-rate tilt toward +X: mean, least and greatest over the trials, deg
+    pub rate_tilt_x_deg: (f64, f64, f64),
+    /// Mean measured sun-vector tilt toward +X, mean over trials, deg
+    pub sun_tilt_x_deg: f64,
+    /// Worst sunlit angle within 3 h of a late AntS deployment, deg
+    pub ants_max_worst_deg: f64,
+    /// The identification window: median and least over the trials, min
+    pub id_window_min: (f64, f64),
 }
 
 fn pct(sorted: &[f64], q: f64) -> f64 {
@@ -728,6 +1091,176 @@ pub fn summarize(trials: &[Trial]) -> Summary {
         transverse_dps: trials.iter().map(|t| t.transverse_dps).sum::<f64>() / nf,
         mtq_w: trials.iter().map(|t| t.mtq_w).sum::<f64>() / nf,
         mag_rejected: trials.iter().map(|t| f64::from(t.mag_rejected)).sum::<f64>() / nf,
+        know_mean_deg: trials.iter().map(|t| t.know_mean_deg).sum::<f64>() / nf,
+        know_p95_worst_deg: trials.iter().map(|t| t.know_p95_deg).fold(0.0, f64::max),
+        know_within_5_worst: trials.iter().map(|t| t.know_within_5).fold(1.0, f64::min),
+        gated_min_day: trials.iter().map(|t| t.gated_min_day).sum::<f64>() / nf,
+        rate_tilt_x_deg: (
+            trials.iter().map(|t| t.rate_tilt_x_deg).sum::<f64>() / nf,
+            trials.iter().map(|t| t.rate_tilt_x_deg).fold(f64::INFINITY, f64::min),
+            trials.iter().map(|t| t.rate_tilt_x_deg).fold(f64::NEG_INFINITY, f64::max),
+        ),
+        sun_tilt_x_deg: trials.iter().map(|t| t.sun_tilt_x_deg).sum::<f64>() / nf,
+        ants_max_worst_deg: trials.iter().map(|t| t.ants_max_deg).fold(0.0, f64::max),
+        id_window_min: {
+            let mut w: Vec<f64> = trials.iter().map(|t| t.id_window_min).collect();
+            w.sort_by(f64::total_cmp);
+            (pct(&w, 0.5), w.first().copied().unwrap_or(f64::NAN))
+        },
+    }
+}
+
+/// The commissioning identification of a one-wing deployment (decision
+/// C-21): what the ground sees over `spins` turns of a spin about +Y at
+/// `spin_dps` with the Sun `theta_deg` from +Y
+#[derive(Clone, Copy, Debug, Default)]
+pub struct WingIdStats {
+    /// Draws
+    pub n: usize,
+    /// Lag of the array power's first harmonic behind the +Z photodiode's,
+    /// in spin phase: mean, standard deviation, and the largest departure
+    /// from the mean over the draws, deg
+    pub lag_deg: (f64, f64, f64),
+    /// The power's first-harmonic amplitude (bus side): mean and least, W
+    pub amp_w: (f64, f64),
+    /// Mean array power (bus side), W
+    pub mean_w: f64,
+    /// Draws whose lag fell within ±45° of the signature of the wing deployed
+    pub correct: usize,
+}
+
+fn fit_harmonic(t: &[f64], y: &[f64], w: f64) -> (f64, f64, f64) {
+    // Least squares of y = c + a cos wt + b sin wt
+    let mut m = [[0.0f64; 3]; 3];
+    let mut r = [0.0f64; 3];
+    for (&ti, &yi) in t.iter().zip(y) {
+        let f = [1.0, (w * ti).cos(), (w * ti).sin()];
+        for i in 0..3 {
+            r[i] += f[i] * yi;
+            for j in 0..3 {
+                m[i][j] += f[i] * f[j];
+            }
+        }
+    }
+    let det = |m: &[[f64; 3]; 3]| {
+        m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+            + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0])
+    };
+    let d = det(&m);
+    let mut x = [0.0; 3];
+    for (k, xk) in x.iter_mut().enumerate() {
+        let mut mk = m;
+        for i in 0..3 {
+            mk[i][k] = r[i];
+        }
+        *xk = det(&mk) / d;
+    }
+    (x[0], x[1], x[2])
+}
+
+fn wrap_deg(a: f64) -> f64 {
+    let mut a = a % 360.0;
+    if a > 180.0 {
+        a -= 360.0;
+    }
+    if a <= -180.0 {
+        a += 360.0;
+    }
+    a
+}
+
+/// The signature for wing `wing` (0: only W1 deployed, 1: only W2; for the
+/// amplitude criterion, 2: both, 3: neither) over
+/// `n` draws: random spin phase and nadir direction,
+/// the photodiodes `pd` (own gains each draw), the gyro `gyro` and the bus
+/// power telemetry `PA` with 1σ noise of 20 mW plus 1 %; the array at
+/// commissioning (0.1 year), 25 °C, the MPPT's 0.95; `albedo_w_m2` on a
+/// nadir plate. The ground fits the +Z photodiode and the power with the
+/// gyro's spin rate and takes the lag of the power's harmonic
+#[allow(clippy::too_many_arguments)]
+pub fn wing_id(
+    wing: usize,
+    theta_deg: f64,
+    spin_dps: f64,
+    spins: f64,
+    n: usize,
+    seed: u64,
+    pd: Photodiodes,
+    gyro: GyroModel,
+    albedo_w_m2: f64,
+    signature_deg: Option<f64>,
+) -> WingIdStats {
+    let array = Array::new();
+    let wings = match wing {
+        0 => [true, false],
+        1 => [false, true],
+        2 => [true, true],
+        _ => [false, false],
+    };
+    let w = spin_dps.to_radians();
+    let th = theta_deg.to_radians();
+    let samples = (spins * 360.0 / spin_dps).ceil() as usize;
+    let r_m = 6.878e6;
+    let flux = 1361.0;
+    let mut lags = Vec::with_capacity(n);
+    let (mut amp_sum, mut amp_min, mut mean_sum) = (0.0, f64::INFINITY, 0.0);
+    for i in 0..n {
+        let mut rng = Rng::new(seed.wrapping_add(i as u64));
+        let phi0 = rng.range(0.0, 2.0 * core::f64::consts::PI);
+        let s_eci = V3::new(th.sin() * phi0.cos(), th.cos(), th.sin() * phi0.sin());
+        // Nadir in a random direction (the albedo then reaches whichever faces see it)
+        let u = rng.unit_vector();
+        let mut sens = PdSensors::new(pd, seed.wrapping_add(1000 + i as u64));
+        let mut g = Gyro::new(gyro, &mut rng);
+        let (mut ts, mut zs, mut ps, mut wy) = (Vec::new(), Vec::new(), Vec::new(), 0.0);
+        for k in 0..samples {
+            let t = k as f64;
+            let q = Quat::from_axis_angle(V3::Y, w * t);
+            let s_b = q.rotate_inv(s_eci);
+            let n_b = q.rotate_inv(u);
+            let inp = ArrayInputs {
+                sun_body: s_b,
+                illum: 1.0,
+                flux,
+                nadir_body: n_b,
+                albedo_w_m2,
+                r_m,
+                temp_c: [25.0; N_STRINGS],
+                years_in_orbit: 0.1,
+                wings_deployed: wings,
+            };
+            let p_bus = 0.95 * array.total_pmp(&inp);
+            let pa = p_bus + rng.normal() * (0.02 + 0.01 * p_bus);
+            let c = sens.channels(s_b, 1.0, n_b, albedo_w_m2 / flux, r_m, wings);
+            wy += g.read(&mut rng, V3::new(0.0, w, 0.0), 1.0).y;
+            ts.push(t);
+            zs.push(c[4] - c[5]);
+            ps.push(pa);
+        }
+        let w_g = wy / samples as f64;
+        let (_, za, zb) = fit_harmonic(&ts, &zs, w_g);
+        let (pc, pa_, pb) = fit_harmonic(&ts, &ps, w_g);
+        let lag = wrap_deg(pb.atan2(pa_).to_degrees() - zb.atan2(za).to_degrees());
+        let amp = pa_.hypot(pb);
+        lags.push(lag);
+        amp_sum += amp;
+        amp_min = amp_min.min(amp);
+        mean_sum += pc;
+    }
+    let nf = n.max(1) as f64;
+    // Circular mean of the lag
+    let (cs, sn) = lags.iter().fold((0.0, 0.0), |(c, s), l| (c + l.to_radians().cos(), s + l.to_radians().sin()));
+    let mean = sn.atan2(cs).to_degrees();
+    let dev: Vec<f64> = lags.iter().map(|l| wrap_deg(l - mean)).collect();
+    let sd = (dev.iter().map(|d| d * d).sum::<f64>() / nf).sqrt();
+    let worst = dev.iter().fold(0.0f64, |m, d| m.max(d.abs()));
+    let sig = signature_deg.unwrap_or(mean);
+    WingIdStats {
+        n,
+        lag_deg: (mean, sd, worst),
+        amp_w: (amp_sum / nf, amp_min),
+        mean_w: mean_sum / nf,
+        correct: lags.iter().filter(|l| wrap_deg(*l - sig).abs() <= 45.0).count(),
     }
 }
 
@@ -825,6 +1358,64 @@ mod tests {
         // Gravity gradient: none along a principal axis toward the Earth
         let g = Body::new(Quat::default(), V3::ZERO, &Inertia::diagonal(Vec3::new(1.0, 2.0, 3.0)));
         assert!(g.gravity_gradient(V3::new(7.0e6, 0.0, 0.0)).norm() < 1e-20);
+    }
+
+    #[test]
+    fn the_gating_follows_the_duty_and_the_ants_tensor_is_the_elements_less() {
+        // About 1.5 h a day of Jetson and 53 min keyed (sunlit all day here)
+        let mut g = GateState::new(Gating::SIL, 5);
+        let (mut jet, mut key) = (0.0, 0.0);
+        for k in 0..(10 * 86_400) {
+            let (j, kk) = g.step(f64::from(k), true);
+            jet += f64::from(u8::from(j));
+            key += f64::from(u8::from(kk));
+        }
+        let (jet_min, key_min) = (jet / 10.0 / 60.0, key / 10.0 / 60.0);
+        assert!((70.0..110.0).contains(&jet_min), "{jet_min}");
+        assert!((40.0..70.0).contains(&key_min), "{key_min}");
+        // A short trial with the gating: the flight software counts the gated samples
+        let mut p = default_params();
+        p.duration_s = 6.0 * 3600.0;
+        p.steady_from_s = 5.0 * 3600.0;
+        p.sensors.gyro = gyro_preset("mg370").flatten();
+        p.gating = Some(Gating { from_s: 0.0, ..Gating::SIL });
+        let t = trial(&p, 3);
+        assert!(t.gated_min_day > 0.0 && t.detumbled_h.is_some(), "{t:?}");
+        // The AntS share: Iyy 14 % lower with the elements stowed; none out is the stowed tensor
+        let a = ants_stowed(&Inertia::DEPLOYED);
+        assert!((Inertia::DEPLOYED.yy / a.yy - 1.14).abs() < 0.01, "{a:?}");
+        let s = ants_stowed(&Inertia::NO_WINGS);
+        assert!((s.yy - STOWED.yy).abs() < 1e-12 && (s.yz - STOWED.yz).abs() < 1e-12);
+    }
+
+    #[test]
+    fn the_photodiodes_give_the_sun_vector_and_the_wings_cover_them() {
+        let ideal = Photodiodes { noise: 0.0, gain_sigma: 0.0, grazing: 0.0, albedo: false, ..Photodiodes::FLIGHT };
+        let mut pd = PdSensors::new(ideal, 1);
+        // 6° toward +X: the +X photodiode sees the Sun through the hinge gap
+        let s = V3::new(0.1, 0.95, -0.2).unit();
+        let both = pd.read(s, 1.0, -V3::Z, 0.0, 6.878e6, [true, true]);
+        assert!(both.angle(s) < 1e-9, "{both:?}");
+        // At 40° from +Y toward +X the deployed W1 shadows it
+        let s40 = V3::new(40f64.to_radians().sin(), 40f64.to_radians().cos(), 0.0);
+        assert!(pd.read(s40, 1.0, -V3::Z, 0.0, 6.878e6, [true, true]).x.abs() < 1e-12);
+        // A stowed wing covers its face
+        assert!(pd.read(s, 1.0, -V3::Z, 0.0, 6.878e6, [false, true]).x.abs() < 1e-12);
+        // Albedo on the nadir face biases the vector toward the Earth
+        let mut pa = PdSensors::new(Photodiodes { albedo: true, ..ideal }, 1);
+        let y = pa.read(V3::Y, 1.0, V3::X, 0.2, 6.878e6, [true, true]);
+        assert!(y.x > 0.15, "{y:?}");
+    }
+
+    #[test]
+    fn one_wing_signatures_are_opposite() {
+        let g = gyro_preset("mg370").flatten().expect("mg370");
+        let w1 = wing_id(0, 45.0, 8.0, 3.0, 20, 1, Photodiodes::FLIGHT, g, 0.0, None);
+        let w2 = wing_id(1, 45.0, 8.0, 3.0, 20, 1, Photodiodes::FLIGHT, g, 0.0, None);
+        assert!((w1.lag_deg.0 - 90.0).abs() < 10.0 && (w2.lag_deg.0 + 90.0).abs() < 10.0, "{w1:?} {w2:?}");
+        assert!(w1.amp_w.1 > 0.3 && w2.amp_w.1 > 0.3);
+        let both = wing_id(2, 45.0, 8.0, 3.0, 20, 1, Photodiodes::FLIGHT, g, 0.0, None);
+        assert!(both.amp_w.0 < 0.05, "{both:?}");
     }
 
     #[test]

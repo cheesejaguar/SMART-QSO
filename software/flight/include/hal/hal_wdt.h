@@ -4,7 +4,7 @@
  *
  * Provides watchdog timer abstraction for system health monitoring.
  *
- * @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
+ * @requirement SRS-F050 Refresh the hardware watchdog (IWDG, 24.1 to 27.8 s) only at the external supervisor's WDI falling edges, every 10 s while every task checks in
  * @requirement SRS-F051 Save state before watchdog reset
  * @requirement SRS-S003 Software shall implement hardware watchdog
  */

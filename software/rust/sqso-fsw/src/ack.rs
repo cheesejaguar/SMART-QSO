@@ -53,11 +53,14 @@ impl Write for Out<'_> {
     }
 }
 
-/// The information field in `out`; its length (0 if it does not fit)
+/// The information field in `out`; its length. `R` prints at most 999 and
+/// `N` at most 99999 (saturated), so with `out` at least [`MAX_LEN`] bytes
+/// it always fits and is never empty (RID P3F-A-05: the widest is 41 bytes,
+/// test `the_frame_text`); 0 only for a smaller `out`
 pub fn format(a: &Ack, out: &mut [u8]) -> usize {
     let mut w = Out { buf: out, len: 0 };
     let call = crate::beacon::CALLSIGN;
-    match write!(w, "{PREFIX}{call}: C={} R={} N={}", a.counter, a.result, a.days) {
+    match write!(w, "{PREFIX}{call}: C={} R={} N={}", a.counter, a.result.min(999), a.days.min(99_999)) {
         Ok(()) => w.len,
         Err(_) => 0,
     }
@@ -120,6 +123,10 @@ mod tests {
         let n = format(&Ack { counter: 4_294_967_294, result: 5, days: 89, queued_ms: 0 }, &mut b);
         assert_eq!(core::str::from_utf8(&b[..n]).unwrap(), "ack KK6GDB-11: C=4294967294 R=5 N=89");
         assert!(n <= MAX_LEN);
+        // RID P3F-A-05: the type's extremes fit
+        let n = format(&Ack { counter: u32::MAX, result: u32::MAX, days: u32::MAX, queued_ms: u64::MAX }, &mut b);
+        assert_eq!(core::str::from_utf8(&b[..n]).unwrap(), "ack KK6GDB-11: C=4294967295 R=999 N=99999");
+        assert!(n == 41 && n <= MAX_LEN);
         let mut small = [0u8; 10];
         assert_eq!(format(&Ack::default(), &mut small), 0);
     }

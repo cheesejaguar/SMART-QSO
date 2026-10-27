@@ -53,8 +53,10 @@ fn divider_for(timeout_ms: u32) -> Option<(u8, u16)> {
 /// 256, 24.1 to 27.8 s, inside the external supervisor's 29.3 s minimum,
 /// SQSO-ICX-001 D §4.3 and §6 row 37) before anything else runs: the clock set-up
 /// waits for the PLL to lock, and a part that never locks must reset rather
-/// than hang. The flight software sets the operating timeout again later
-/// (hal_wdt_init, hal_wdt_start).
+/// than hang. It starts at the reset, as the supervisor's watchdog does, so
+/// the two share a time base; the flight software refreshes it only with a
+/// WDI falling edge (its initialisation checkpoints, then the main loop: RID
+/// P3F-A-03), and its hal_wdt_init/hal_wdt_start leave the count running.
 pub(crate) fn start_boot_watchdog() {
     const BOOT_TIMEOUT_MS: u32 = 25_600;
     if hal_wdt_init(BOOT_TIMEOUT_MS, MODE_RESET) == rc::OK {
@@ -82,11 +84,17 @@ pub extern "C" fn hal_wdt_init(timeout_ms: u32, mode: u32) -> i32 {
     rc::OK
 }
 
-/// Start the IWDG (it cannot be stopped again)
+/// Start the IWDG (it cannot be stopped again). Already running (the boot
+/// watchdog): nothing changes, its count and its last reload stand, so the
+/// flight software times the supervisor's WDI from that reload (RID
+/// P3F-A-03; the START key does not reload a running IWDG)
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_wdt_start() -> i32 {
     if TIMEOUT_MS.load(Ordering::Relaxed) == 0 {
         return rc::ERROR;
+    }
+    if RUNNING.load(Ordering::Relaxed) {
+        return rc::OK;
     }
     pac::IWDG.kr().write(|w| w.set_key(Key::START));
     RUNNING.store(true, Ordering::Relaxed);

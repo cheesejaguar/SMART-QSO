@@ -8,6 +8,8 @@
 //!
 //! @requirement SRS-F159 DEPLOY_SENSE high = released, no internal pull; released for 10 s latches separation until the next reset, after which a stowed reading is counted and restarts neither timer
 
+use core::sync::atomic::{AtomicBool, Ordering};
+
 use sqso_fsw::separation::Separation;
 
 use crate::c;
@@ -20,6 +22,16 @@ const GPIO_DIR_INPUT: u32 = 0;
 pub(crate) const GPIO_PULL_NONE: u32 = 0;
 
 static SEPARATION: Global<Separation> = Global::new(Separation::new());
+/// Separation established before this boot (the deployment record or the
+/// served RF silence, `deployment_init()`; RID SMA-B02): kept across
+/// `separation_switch_init()`, which each module's init calls
+static ESTABLISHED: AtomicBool = AtomicBool::new(false);
+
+/// Separation established before this boot (`deployment.rs`): the reading
+/// latches at once; GSE ARM clears it
+pub(crate) fn set_established(established: bool) {
+    ESTABLISHED.store(established, Ordering::Relaxed);
+}
 
 /// Configure the sense input (no pull) and start this boot's reading
 #[unsafe(no_mangle)]
@@ -30,14 +42,23 @@ pub extern "C" fn separation_switch_init() {
 }
 
 /// Whether the timers are to treat the switch as stowed: the line low
-/// (stowed) before separation latched on this boot; false after it
+/// (stowed) before separation latched on this boot or was established
+/// before it; false after it
 #[unsafe(no_mangle)]
 pub extern "C" fn separation_switch_stowed() -> bool {
     // SAFETY: plain value
     let high = unsafe { c::hal_gpio_get(GPIO_PIN_DEPLOY_SENSE) };
     let now = c::now_ms();
-    // Busy only for a nested call: the raw reading
-    SEPARATION.with(|s| s.stowed(high, now)).unwrap_or(!high)
+    let established = ESTABLISHED.load(Ordering::Relaxed);
+    // Busy only for a nested call: the raw reading (released once established)
+    SEPARATION
+        .with(|s| {
+            if established {
+                s.establish();
+            }
+            s.stowed(high, now)
+        })
+        .unwrap_or(!high && !established)
 }
 
 /// Separation latched on this boot, and the stowed readings since
@@ -86,5 +107,26 @@ mod tests {
             })
         });
         assert_eq!(nested, Some((false, (false, 0), c::rc::BUSY)));
+    }
+
+    /// RID SMA-B02: separation established before the boot latches the
+    /// reading at once, so a line open from boot (stowed) restarts nothing;
+    /// a nested call reads released too
+    #[test]
+    fn established_separation_ignores_an_open_line() {
+        let _serial = serial();
+        let _ = crate::hal_sim::hal_gpio_init();
+        crate::hal_sim::hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);
+        separation_switch_init();
+        assert!(separation_switch_stowed(), "not established: stowed counts");
+        set_established(true);
+        separation_switch_init();
+        assert!(!separation_switch_stowed());
+        assert_eq!(status(), (true, 1));
+        assert_eq!(SEPARATION.with(|_| separation_switch_stowed()), Some(false));
+        set_established(false);
+        separation_switch_init();
+        assert!(separation_switch_stowed());
+        crate::hal_sim::hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
     }
 }

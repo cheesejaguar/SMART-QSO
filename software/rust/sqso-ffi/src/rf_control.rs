@@ -6,7 +6,7 @@
 //!
 //! @requirement SYS-204 Cease emissions on telecommand; stay ceased across resets (97.207(b))
 
-use sqso_fsw::ptt_watch::PttWatch;
+use sqso_fsw::ptt_watch::{PttWatch, Trip};
 use sqso_fsw::rf_control::{self, Error, Report, RfControl, RfIo};
 
 use crate::c::{self, HalFlash, fault_type, rc, severity};
@@ -147,27 +147,29 @@ const GPIO_PIN_PTT_EXC: u32 = 42;
 
 static PTT: Global<PttWatch> = Global::new(PttWatch::new());
 
-/// The exciter's keying watch (C-014-9 of SW-HAZ-014, SRS-F168): PTT_EXCITER
-/// read high for more than `sqso_fsw::ptt_watch::LIMIT_MS` with XPDR_KEY low
-/// and no downlink frame outstanding latches TX-OFF and logs the fault,
-/// once per episode. True when it acted now (busy: does nothing)
+/// The exciter's keying watch (C-014-9 of SW-HAZ-014, SRS-F168): with
+/// PTT_EXCITER high, more than `sqso_fsw::ptt_watch::LIMIT_MS` of keying in
+/// all with XPDR_KEY low and no downlink frame outstanding (cleared only by
+/// PTT_EXCITER low), XPDR_KEY high after the transponder heartbeat stopped,
+/// or XPDR_KEY high past one over's length, latches TX-OFF and logs the
+/// fault, once per episode. True when it acted now (busy: does nothing)
 ///
-/// @requirement SRS-F168 TX-OFF when PTT_EXCITER reads high for more than 6 s with the repeat path not keyed and no downlink frame outstanding; logged; recovered by TX_ENABLE
+/// @requirement SRS-F168 TX-OFF when PTT_EXCITER reads high for more than 6 s in all with the repeat path not keyed and no downlink frame outstanding (cleared only by PTT_EXCITER low), when XPDR_KEY reads high more than 1 s after the transponder heartbeat stopped, or for more than 130 s without a break; logged; recovered by TX_ENABLE
 #[unsafe(no_mangle)]
-pub extern "C" fn rf_control_ptt_supervise(now_ms: u64, frame_outstanding: bool) -> bool {
+pub extern "C" fn rf_control_ptt_supervise(now_ms: u64, frame_outstanding: bool, heartbeat: bool) -> bool {
     // SAFETY: plain values (the HAL)
     let (ptt, repeat) = unsafe { (c::hal_gpio_get(GPIO_PIN_PTT_EXC), c::hal_gpio_get(GPIO_PIN_XPDR_KEY)) };
-    let trip = PTT.with(|w| w.step(now_ms, ptt, repeat, frame_outstanding)).unwrap_or(false);
-    if trip {
-        let _ = rf_control_tx_off();
-        c::log(
-            fault_type::COMMAND,
-            severity::CRITICAL,
-            c"PTT_EXCITER keyed over 6 s with no frame: TX-OFF (C-014-9)",
-            0.0,
-        );
-    }
-    trip
+    let Some(Some(trip)) = PTT.with(|w| w.step(now_ms, ptt, repeat, frame_outstanding, heartbeat)) else {
+        return false;
+    };
+    let _ = rf_control_tx_off();
+    let text = match trip {
+        Trip::Unexplained => c"PTT_EXCITER keyed over 6 s with no frame: TX-OFF (C-014-9)",
+        Trip::RepeatWithoutHeartbeat => c"PTT_EXCITER keyed by XPDR_KEY, no heartbeat: TX-OFF (C-014-9)",
+        Trip::RepeatTooLong => c"PTT_EXCITER keyed by XPDR_KEY over 130 s: TX-OFF (C-014-9)",
+    };
+    c::log(fault_type::COMMAND, severity::CRITICAL, text, 0.0);
+    true
 }
 
 /// The exciter watch's trips since boot
@@ -247,7 +249,7 @@ mod tests {
         });
         let seen = [(true, false), (true, false), (false, false), (true, true), (true, true)];
         // The exciter watch, nested: nothing done
-        let ptt = PTT.with(|_| (rf_control_ptt_supervise(u64::MAX, false), rf_control_ptt_trips()));
+        let ptt = PTT.with(|_| (rf_control_ptt_supervise(u64::MAX, false, false), rf_control_ptt_trips()));
         assert_eq!(ptt, Some((false, 0)));
         assert_eq!(nested, Some(([rc::BUSY; 4], seen, false, rf_control::POWER_0W5)));
     }

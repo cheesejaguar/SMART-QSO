@@ -291,6 +291,103 @@ struct Sim {
     reset_cause: u32,
     /// The EPS controller's end-of-life logic (SQSO-EPS-BRD-001 D §7)
     eol: EolSim,
+    /// The AntS's supply SW8 (DEPLOY_EN or the EPS controller's ANTS_PWR)
+    /// on since, µs (`None`: off); used when the AntS is power-gated
+    /// (`hal_sim_ants_power_gated()`, RID P3F-A-01)
+    ants_on_since_us: Option<u64>,
+}
+
+/// The simulated AntS answers only while its supply SW8 is on and has been
+/// for [`ANTS_SIM_START_US`] (the mission simulation and the C tests that
+/// ask for it; off by default: an always-answering AntS)
+static ANTS_POWER_GATED: core::sync::atomic::AtomicBool = core::sync::atomic::AtomicBool::new(false);
+/// The simulated AntS's start-up after SW8 turns on, µs (below the flight
+/// software's 1 s, `sqso_fsw::deployment::ANTS_START_MS`)
+const ANTS_SIM_START_US: u64 = 500_000;
+/// The EPS controller's `ANTS_PWR` register (ICD-001 0x8D)
+const ANTS_PWR_REG: usize = sqso_fsw::eps_supervision::REG_ANTS_PWR as usize;
+
+/// SW8 is on: DEPLOY_EN high, or the EPS controller's ANTS_PWR raised
+fn sw8(s: &Sim) -> bool {
+    let deploy_en = s.gpio_state.get(crate::deployment::GPIO_PIN_DEPLOY_EN as usize).copied().unwrap_or(false);
+    let ants_pwr = s
+        .i2c
+        .iter()
+        .find(|d| d.addr == I2C_ADDR_EPS_CONTROLLER)
+        .and_then(|d| d.registers.get(ANTS_PWR_REG))
+        .is_some_and(|v| *v == sqso_fsw::eps_supervision::ANTS_PWR_ON);
+    deploy_en || ants_pwr
+}
+
+/// Follow SW8: the AntS starts when it turns on and forgets its arm and
+/// deployment commands when it turns off
+fn ants_power_update(s: &mut Sim, now_us: u64) {
+    let on = sw8(s);
+    match (on, s.ants_on_since_us) {
+        (true, None) => s.ants_on_since_us = Some(now_us),
+        (false, Some(_)) => {
+            s.ants_on_since_us = None;
+            if let Some(dev) = s.i2c.iter_mut().find(|d| d.addr == I2C_ADDR_ANTS) {
+                for reg in [sqso_fsw::ants::CMD_ARM, sqso_fsw::ants::CMD_AUTO_DEPLOY] {
+                    if let Some(r) = dev.registers.get_mut(usize::from(reg)) {
+                        *r = 0;
+                    }
+                }
+            }
+        }
+        _ => {}
+    }
+}
+
+/// Whether the AntS answers at `addr` now (any other device always does)
+fn ants_answers(s: &mut Sim, addr: u8) -> bool {
+    if !matches!(addr, I2C_ADDR_ANTS | sqso_fsw::ants::ADDRESS_B)
+        || !ANTS_POWER_GATED.load(core::sync::atomic::Ordering::Relaxed)
+    {
+        return true;
+    }
+    let now = time_us();
+    ants_power_update(s, now);
+    s.ants_on_since_us.is_some_and(|t| now.saturating_sub(t) >= ANTS_SIM_START_US)
+}
+
+/// Make the simulated AntS answer only while SW8 is on (after its start-up)
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_ants_power_gated(gated: bool) {
+    ANTS_POWER_GATED.store(gated, core::sync::atomic::Ordering::Relaxed);
+}
+
+/// The mission simulation's AntS model: whether SW8 is on (its controller
+/// powered), whatever its start-up
+pub fn ants_model_powered() -> bool {
+    sim(false, |s| {
+        ants_power_update(s, time_us());
+        s.ants_on_since_us.is_some()
+    })
+}
+
+/// The mission simulation's AntS model writes its registers (`regs`: the
+/// register, then the values) whatever its power: it is the device
+pub fn ants_model_write(regs: &[u8]) {
+    let _ = sim((), |s| {
+        if let (Some(dev), Some([reg, values @ ..])) = (device(s, I2C_ADDR_ANTS), Some(regs)) {
+            let mut at = usize::from(*reg);
+            for &v in values {
+                if let Some(r) = dev.registers.get_mut(at) {
+                    *r = v;
+                }
+                at = (at + 1) & 0xFF;
+            }
+        }
+    });
+}
+
+/// The mission simulation's AntS model reads one of its registers
+pub fn ants_model_read(reg: u8) -> u8 {
+    sim(0, |s| {
+        ants_power_update(s, time_us());
+        device(s, I2C_ADDR_ANTS).and_then(|d| d.registers.get(usize::from(reg)).copied()).unwrap_or(0)
+    })
 }
 
 /// The simulated EPS controller's end-of-life logic: the keyed EOL_KEY
@@ -365,6 +462,7 @@ static SIM: Global<Sim> = Global::new(Sim {
     },
     reset_cause: RESET_POWER_ON,
     eol: EolSim::RESET,
+    ants_on_since_us: None,
 });
 
 /// Run `f` on the simulation state; `busy` if it is in use (a HAL call
@@ -496,6 +594,7 @@ pub extern "C" fn hal_gpio_set(pin: u32, state: bool) -> i32 {
             *level = state;
         }
         eol_line(s, pin, was, state, time_us() / 1000);
+        ants_power_update(s, time_us());
         rc::OK
     })
 }
@@ -669,6 +768,9 @@ pub unsafe extern "C" fn hal_i2c_write(bus: u32, addr: u8, data: *const u8, len:
                 eol_key_write(s, v, now);
             }
         }
+        if !ants_answers(s, addr) {
+            return rc::ERROR; // the AntS unpowered: no acknowledge
+        }
         let Some(dev) = device(s, addr) else { return rc::ERROR };
         if dev.addr == I2C_ADDR_ANTS {
             ants_command(&mut dev.registers, *reg, values.is_empty());
@@ -681,6 +783,9 @@ pub unsafe extern "C" fn hal_i2c_write(bus: u32, addr: u8, data: *const u8, len:
             }
             // Byte registers wrap at 0xFF, as before
             at = if word_device(dev.addr) { at + 1 } else { (at + 1) & 0xFF };
+        }
+        if addr == I2C_ADDR_EPS_CONTROLLER {
+            ants_power_update(s, time_us()); // ANTS_PWR
         }
         rc::OK
     })
@@ -696,6 +801,9 @@ pub unsafe extern "C" fn hal_i2c_read(bus: u32, addr: u8, data: *mut u8, len: us
             return rc::ERROR;
         }
         let Some(data) = data.filter(|d| !d.is_empty()) else { return rc::NULL_PTR };
+        if !ants_answers(s, addr) {
+            return rc::ERROR;
+        }
         let Some(dev) = device(s, addr) else { return rc::ERROR };
         match dev.registers.get(..data.len()) {
             Some(regs) => {
@@ -731,6 +839,9 @@ pub unsafe extern "C" fn hal_i2c_write_read(
         }
         if addr == I2C_ADDR_EPS_CONTROLLER {
             eol_update(s, time_us() / 1000);
+        }
+        if !ants_answers(s, addr) {
+            return rc::ERROR;
         }
         let Some(dev) = device(s, addr) else { return rc::ERROR };
         let Some(read) = read else { return rc::NULL_PTR };

@@ -19,7 +19,13 @@
 //! the bench (umbilical power, switches stowed), where the timers must not
 //! run.
 //!
-//! @requirement SRS-F159 DEPLOY_SENSE high = released, no internal pull; released for 10 s latches separation until the next reset, after which a stowed reading is counted and restarts neither timer
+//! After a reset the latch starts again, but separation established
+//! before the reset (the deployment record's separation flag, or the served
+//! RF silence: `deployment.rs`) latches it at once ([`Separation::establish`],
+//! RID SMA-B02 reopened): a line that failed open cannot then hold the RF
+//! silence or the deployment wait for ever.
+//!
+//! @requirement SRS-F159 DEPLOY_SENSE high = released, no internal pull; released for 10 s latches separation until the next reset, after which a stowed reading is counted and restarts neither timer; separation persisted in the deployment record (or the served RF silence) keeps a stowed reading from restarting either timer after a reset
 
 /// Released this long without a break latches separation, ms
 pub const LATCH_MS: u64 = 10_000;
@@ -41,6 +47,12 @@ impl Separation {
     /// At boot: not latched
     pub const fn new() -> Separation {
         Separation { released_since: None, latched: false, stowed_after_latch: 0, last_stowed: false }
+    }
+
+    /// Separation established before this boot (the deployment record or
+    /// the served RF silence): latched now
+    pub fn establish(&mut self) {
+        self.latched = true;
     }
 
     /// The line's level `high` at `now_ms`: whether the timers are to treat
@@ -107,6 +119,18 @@ mod tests {
         assert!(!s.stowed(false, LATCH_MS + 4));
         assert_eq!(s.stowed_after_latch, 2);
         assert!(s.latched);
+    }
+
+    /// RID SMA-B02: separation established before the reset latches at
+    /// once; a line open from boot is counted and restarts nothing
+    #[test]
+    fn established_separation_latches_at_once() {
+        let mut s = Separation::new();
+        s.establish();
+        assert!(!s.stowed(false, 0));
+        assert!(!s.stowed(false, 1_000));
+        assert!(s.latched);
+        assert_eq!(s.stowed_after_latch, 1);
     }
 
     #[test]

@@ -132,8 +132,6 @@ pub enum ResetCause {
 const UART_PORT_DEBUG: u32 = 1;
 /// I2C bus of the EPS controller
 const EPS_BUS: u32 = 0;
-/// I2C3: the AntS alone (SQSO-ICX-001 D §6 row 30)
-const ANTS_BUS: u32 = 3;
 /// Time from reset to the executive's first instruction (boot ROM, clock
 /// set-up, C runtime): the target's time base reads about this at start
 pub const BOOT_TIME_US: u64 = 150_000;
@@ -238,6 +236,8 @@ impl Fsw {
     pub fn boot(&mut self, cause: ResetCause) -> bool {
         self.exec = None;
         hal_sim::hal_sim_set_reset_cause(cause as u32);
+        // The AntS answers only while its supply is on (RID P3F-A-01)
+        hal_sim::hal_sim_ants_power_gated(true);
         sqso_ffi::sil::boot_clock(BOOT_TIME_US);
         let mut exec = Box::new(Executive::BOOT);
         let ok = exec.start();
@@ -343,18 +343,20 @@ impl Fsw {
     }
 
     /// What the flight software has told the AntS over I2C: armed, and the
-    /// automatic deployment's per-element limit (0: none or cancelled)
+    /// automatic deployment's per-element limit (0: none or cancelled).
+    /// The AntS acts only with its supply SW8 on (and forgets both when it
+    /// goes off: `hal_sim` power gating, RID P3F-A-01)
     pub fn ants_command(&self) -> (bool, u8) {
-        let read = |reg: u8| {
-            let mut v = 0u8;
-            // SAFETY: reg and v are live (the simulated HAL)
-            let ok = unsafe { hal_sim::hal_i2c_write_read(ANTS_BUS, sqso_fsw::ants::ADDRESS, &reg, 1, &mut v, 1) } == 0;
-            if ok { v } else { 0 }
-        };
-        if !self.running() {
+        if !self.running() || !hal_sim::ants_model_powered() {
             return (false, 0);
         }
+        let read = hal_sim::ants_model_read;
         (read(sqso_fsw::ants::CMD_ARM) == 1, read(sqso_fsw::ants::CMD_AUTO_DEPLOY))
+    }
+
+    /// Whether the AntS's supply SW8 is on (DEPLOY_EN or ANTS_PWR)
+    pub fn ants_powered(&self) -> bool {
+        self.running() && hal_sim::ants_model_powered()
     }
 
     /// The EPS controller's `EOL_STATE` register (0x7C: bit 0 armed, bit 1
@@ -378,17 +380,15 @@ impl Fsw {
 
     /// The AntS's status word, as its controller presents it on I2C
     pub fn set_ants_status(&self, status: [u8; 2]) {
-        let regs = [sqso_fsw::ants::CMD_STATUS, status[0], status[1]];
-        // SAFETY: regs is a live buffer of its length
-        let _ = unsafe { hal_sim::hal_i2c_write(ANTS_BUS, sqso_fsw::ants::ADDRESS, regs.as_ptr(), regs.len()) };
+        hal_sim::ants_model_write(&[sqso_fsw::ants::CMD_STATUS, status[0], status[1]]);
     }
 
     /// The AntS controller's own temperature (`sqso_fsw::ants::CMD_TEMPERATURE`)
-    pub fn set_ants_temperature(&self, t_c: f64) {
-        let [lo, hi] = sqso_fsw::ants::temperature_bytes(t_c);
-        let regs = [sqso_fsw::ants::CMD_TEMPERATURE, lo, hi];
-        // SAFETY: regs is a live buffer of its length
-        let _ = unsafe { hal_sim::hal_i2c_write(ANTS_BUS, sqso_fsw::ants::ADDRESS, regs.as_ptr(), regs.len()) };
+    pub fn set_ants_temperature(&self, t_c: Option<f64>) {
+        // No valid reading: the raw value 0, which the flight software
+        // rejects (below -50 °C or a failed temperature path)
+        let [lo, hi] = t_c.map_or([0, 0], sqso_fsw::ants::temperature_bytes);
+        hal_sim::ants_model_write(&[sqso_fsw::ants::CMD_TEMPERATURE, lo, hi]);
     }
 
     /// NMEA bytes from the GNSS receiver (`UART_PORT_GNSS`)

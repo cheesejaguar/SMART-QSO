@@ -133,6 +133,14 @@ impl DeployIo for HalFlash {
         crate::ants::temperature_c()
     }
 
+    fn sunlit(&mut self) -> bool {
+        crate::adcs_control::adcs_sun_visible() || crate::eps_control::eps_telemetry().is_some_and(|t| t.sunlit())
+    }
+
+    fn silence_served(&mut self) -> bool {
+        sqso_fsw::rf_silence::RfSilence::served_in_record(self, rf_silence::FLASH_REGION_RF_SILENCE)
+    }
+
     fn log(&mut self, level: Level, message: fmt::Arguments<'_>) {
         let mut m = Message { buf: [0; 128], len: 0 };
         let _ = fmt::write(&mut m, message);
@@ -150,6 +158,7 @@ impl DeployIo for HalFlash {
             Report::NotPersisted => c"Deployment attempt not persisted: burn withheld",
             Report::Unreadable => c"Deployment record unreadable: starting over",
             Report::AntsDeferred => c"AntS deployment deferred: below -17 C or no temperature",
+            Report::AntsSchedule => c"AntS temperature unknown 3 times: deploying on the analysis schedule",
         };
         c::log(FAULT_TYPE_DEPLOYMENT, severity::ERROR, text, 0.0);
     }
@@ -168,9 +177,16 @@ fn apply_hold() {
 pub extern "C" fn deployment_init() -> bool {
     crate::ants::reset();
     let cause = rf_silence::reset();
-    let done = DEPLOY.with(|d| d.init(cause, &mut HalFlash)).is_some();
+    let known = DEPLOY.with(|d| {
+        d.init(cause, &mut HalFlash);
+        d.separation_known()
+    });
+    // Separation established before this boot latches the reading at once
+    // (RID SMA-B02): neither the RF silence nor the wait restarts on a
+    // line that failed open
+    separation_switch::set_established(known.unwrap_or(false));
     apply_hold();
-    done
+    known.is_some()
 }
 
 /// Advance the sequence by elapsed time
@@ -191,6 +207,7 @@ pub extern "C" fn deployment_downlink_held() -> bool {
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_arm() -> i32 {
     let armed = DEPLOY.with(|d| d.arm(&mut HalFlash));
+    separation_switch::set_established(false);
     apply_hold();
     match armed {
         Some(true) => rc::OK,

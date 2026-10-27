@@ -141,6 +141,15 @@ void hal_sim_set_reset_cause(HalResetCause_t cause);
  */
 void hal_sim_eps_eol_open_ms(uint32_t ms);
 
+/**
+ * @brief Make the simulated AntS (I2C3, 0x31 and 0x32) answer only while
+ *        its supply SW8 is on (GPIO_PIN_DEPLOY_EN high, or the EPS
+ *        controller's ANTS_PWR 0x8D at 0xA6) and has been for 0.5 s; it
+ *        forgets its arm and deployment commands when SW8 turns off (RID
+ *        P3F-A-01). Off by default: an AntS that always answers
+ */
+void hal_sim_ants_power_gated(bool gated);
+
 #ifdef __cplusplus
 }
 #endif

@@ -104,6 +104,7 @@ pub mod rm3100;
 pub mod rv3028;
 pub mod safe_string;
 pub mod scheduler;
+pub mod selector;
 pub mod sensors;
 pub mod separation;
 pub mod system_state;

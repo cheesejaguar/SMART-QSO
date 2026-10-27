@@ -70,6 +70,15 @@
 //! | `GY` | gyro in use (0 M-G370, 1 BMI088, 2 none)/magnetometer samples gated (Jetson, exciter) | —/— |
 //! | `MF` | magnetorquer bridge faults/off-timer expiries seen | — |
 //! | `PE` | SRAM2 parity on 1/0 (`-` not known: the host build) | — |
+//! | `SEP` | separation latched on this boot 1/0/stowed readings since (RID SMA-B02) | —/— |
+//! | `PT` | transmitter temperature sensor faulted now 1/0/faults since boot (RID SMA-B19) | —/— |
+//! | `SV` | EPS_SUPV (`-` no answer)/heartbeats refused (RID SMA-B09) | —/— |
+//! | `CI` | the EPS controller's CHG_INHIBIT (`-` no answer) | — |
+//! | `TS` | the TNC's last STATUS (`-` none yet) | — |
+//! | `RL` | RX_FAULT self-test passed/STATUS loop query unanswered for a day (RID SMA-B11) | —/— |
+//! | `SL` | selector table in use 1/0, then decisions/abstentions of H1 template, H2 transponder bucket, H3 power mode since boot (`sqso_fsw::selector`, RID SMA-15) | —/—/—/—/—/—/— |
+//! | `GE` | ADCS geometry preset in use (ADCS_SET_GEOMETRY: 0 both wings, 1 W1 only, 2 W2 only, 3 none; decision C-21) | — |
+//! | `SN` | sun vector in the body frame x/y/z (`-` not visible) | 0.001 |
 //!
 //! @requirement SRS-F126 The housekeeping frame shall carry the loss-of-contact count and the commands counted as contact
 //! @requirement SRS-F085 The software shall downlink a housekeeping frame every fifth beacon and on command, carrying temperatures, battery current and voltage, array power, deployment, RF-silence, boot and reset, fault-log head, body rates, contact timeout and GNSS fix age
@@ -79,8 +88,8 @@ use core::fmt::Write;
 /// The information field's first bytes
 pub const PREFIX: &str = "HK1";
 /// The longest text of a housekeeping frame before it is cut into frames,
-/// bytes (every field at its widest: 341 for HK1, 474 for HK2)
-pub const TEXT_MAX: usize = 512;
+/// bytes (every field at its widest: 341 for HK1, 573 for HK2)
+pub const TEXT_MAX: usize = 640;
 /// Longest information field, bytes
 pub const MAX_LEN: usize = 250;
 /// One frame every this many beacons (and on GET_HOUSEKEEPING)
@@ -220,6 +229,12 @@ pub struct Housekeeping2 {
     /// `RL`: RX_FAULT passed its power-on self-test / the STATUS loop query
     /// unanswered for a day (RID SMA-B11)
     pub rx_lines: (bool, bool),
+    /// `SL`: the selector's table state and per-head counts (RID SMA-15)
+    pub selector: crate::selector::Stats,
+    /// `GE`: the ADCS geometry preset in use (decision C-21)
+    pub geometry: u8,
+    /// `SN`: the sun vector in the body frame, unit (`None`: not visible)
+    pub sun: Option<[f64; 3]>,
 }
 
 struct Out<'a> {
@@ -397,6 +412,18 @@ pub fn format2(hk: &Housekeeping2, out: &mut [u8]) -> usize {
         None => w.write_str("-"),
     })
     .and_then(|()| write!(w, " RL={}/{}", u8::from(hk.rx_lines.0), u8::from(hk.rx_lines.1)))
+    .and_then(|()| {
+        let s = &hk.selector;
+        let ([d1, d2, d3], [a1, a2, a3]) = (s.decisions, s.abstentions);
+        write!(w, " SL={}/{d1}/{a1}/{d2}/{a2}/{d3}/{a3} GE={} SN=", u8::from(s.enabled), hk.geometry)
+    })
+    .and_then(|()| match hk.sun {
+        Some(v) => {
+            let [x, y, z] = v.map(|c| opt(Some(c.clamp(-1.0, 1.0)), 1000.0).unwrap_or(0));
+            write!(w, "{x}/{y}/{z}")
+        }
+        None => w.write_str("-"),
+    })
     .is_ok();
     if ok { w.len } else { 0 }
 }
@@ -742,8 +769,15 @@ mod tests {
         assert_eq!(
             text2(&hk),
             "HK2 N=7 CA=12/3/1 WD=2 XE=4/3600/4100 IA=412 HL=0 JB=6/1210/10/0 JP=5/1/0/0 EOL=4/0 \
-             RT=1900000000/- CK=-12 TR=1/0/0/0 GY=0/37 MF=0/0 PE=1 SEP=1/1 PT=0/2 SV=33/0 CI=64 TS=- RL=1/0"
+             RT=1900000000/- CK=-12 TR=1/0/0/0 GY=0/37 MF=0/0 PE=1 SEP=1/1 PT=0/2 SV=33/0 CI=64 TS=- RL=1/0 \
+             SL=0/0/0/0/0/0/0 GE=0 SN=-"
         );
+        // The selector's counts, the preset and the sun (RID SMA-15, C-21)
+        let mut sel = crate::selector::Stats { enabled: true, ..crate::selector::Stats::new() };
+        sel.record(crate::selector::Head::Template, true);
+        sel.record(crate::selector::Head::PowerMode, false);
+        let t = text2(&Housekeeping2 { selector: sel, geometry: 1, sun: Some([-0.1383, 0.9894, 0.0443]), ..hk });
+        assert!(t.ends_with(" SL=1/1/0/0/0/0/1 GE=1 SN=-138/989/44"), "{t}");
     }
 
     /// Every field at its widest
@@ -778,6 +812,13 @@ mod tests {
                 uptime_s: u32::MAX,
             }),
             rx_lines: (true, true),
+            selector: crate::selector::Stats {
+                enabled: true,
+                decisions: [u32::MAX; crate::selector::HEADS],
+                abstentions: [u32::MAX; crate::selector::HEADS],
+            },
+            geometry: u8::MAX,
+            sun: Some([-1.0; 3]),
         }
     }
 
@@ -785,15 +826,16 @@ mod tests {
     fn the_second_frame_at_its_widest_and_empty() {
         let worst = worst2();
         let t = text2(&worst);
-        assert_eq!(t.len(), 474, "{t}");
-        assert!(t.ends_with(" RL=1/1"), "formatted in full: {t}");
+        assert_eq!(t.len(), 573, "{t}");
+        assert!(t.len() <= TEXT_MAX);
+        assert!(t.ends_with(" SN=-1000/-1000/-1000"), "formatted in full: {t}");
         let f = frames(&t);
         assert!(f.len() >= 2 && f[1].starts_with("HK2 N=65535 "), "{f:?}");
         assert_eq!(merged(&f), t);
         let none = text2(&Housekeeping2::default());
         assert!(none.contains("IA=- "), "{none}");
         assert!(none.contains("EOL=-/0"), "{none}");
-        assert!(none.ends_with("PE=- SEP=0/0 PT=0/0 SV=-/0 CI=- TS=- RL=0/0"), "{none}");
+        assert!(none.ends_with("PE=- SEP=0/0 PT=0/0 SV=-/0 CI=- TS=- RL=0/0 SL=0/0/0/0/0/0/0 GE=0 SN=-"), "{none}");
         assert_eq!(format2(&worst, &mut [0u8; 20]), 0);
     }
 

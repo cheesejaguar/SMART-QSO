@@ -11,7 +11,7 @@
 //! @requirement SRS-F086 The software shall command no magnetorquer output until 120 s after separation
 //! @requirement SRS-F148 Jetson switch-off: SHUTDOWN, JET_PG fall within 5 s, then JETSON_PWR and PAYLOAD_EN 10 ms apart
 //! @requirement SRS-F149 Jetson power-good and switch readbacks: an unexpected JET_PG fall cuts the rail; a readback that disagrees with its command is a fault
-//! @requirement SRS-F151 A Jetson burst ends when its energy reaches 360 J per line of a full batch
+//! @requirement SRS-F151 A Jetson burst (one power-on, at most 10 min and 3.6 kJ at the carrier input) ends when its energy exceeds 360 J for each line accepted by the content filter so far plus the one in progress, or reaches 3.6 kJ
 //! @requirement SRS-F153 A repeated condition shall be logged at its onset and its clearance (with the number of checks), not at every check
 //! @requirement SRS-F154 Boot telemetry reports the SRAM2 parity state
 //! @requirement SRS-F156 The second housekeeping frame (HK2) carries the counters of the mission success criteria
@@ -478,6 +478,9 @@ impl Executive {
         }
         init_spi_buses();
         self.rtc = read_mission_clock();
+        // The initialisation's checkpoints (SRS-F001, RID P3F-A-03): the boot
+        // IWDG and the supervisor refreshed together once 10 s have passed
+        watchdog_mgr::wdt_mgr_boot_checkpoint();
         let _ = deployment::deployment_init();
         // The commissioning hold and transponder enable, before anything
         // can ask for ACTIVE
@@ -488,10 +491,17 @@ impl Executive {
             eprint(format_args!("[SYSTEM] Fault management init failed"));
         }
 
+        watchdog_mgr::wdt_mgr_boot_checkpoint();
         init_rf_and_telecommand();
-        if !self.init_power_and_sensors() || !self.init_mode_manager() {
+        watchdog_mgr::wdt_mgr_boot_checkpoint();
+        if !self.init_power_and_sensors() {
             return false;
         }
+        watchdog_mgr::wdt_mgr_boot_checkpoint();
+        if !self.init_mode_manager() {
+            return false;
+        }
+        watchdog_mgr::wdt_mgr_boot_checkpoint();
         if !init_watchdog() {
             eprint(format_args!("[SYSTEM] Watchdog init failed"));
             return false;
@@ -915,6 +925,11 @@ impl Executive {
             if status != JETSON_OK {
                 eprint(format_args!("[UART] Rejected Jetson line ({status})"));
             } else if msg.msg_type == JETSON_MSG_BEACON_RSP && msg.seq == self.beacon_seq {
+                // The energy gate counts the lines the content filter
+                // accepts (decision C-20)
+                if sqso_fsw::beacon::text_ok(field(&msg.text)) {
+                    self.schedule.line_accepted();
+                }
                 self.cache_text(field(&msg.text));
                 crate::c::console(format_args!("[UART] Beacon text from Jetson ({} chars)", msg.text_len));
             } else if msg.msg_type == JETSON_MSG_STATUS {
@@ -1357,6 +1372,11 @@ impl Executive {
             chg_inhibit: eps_supervision::chg_inhibit_register(),
             tnc: receiver::tnc_status().0,
             rx_lines: (receiver::tnc_status().1, receiver::tnc_status().2),
+            // The selector is a fabrication-phase task (SQSO-PAY-SEL-001
+            // §11): no table yet, every count 0 (RID SMA-15)
+            selector: sqso_fsw::selector::Stats::new(),
+            geometry: ops_state::ops_adcs_geometry(),
+            sun: adcs_control::sun_body(),
         }
     }
 
@@ -1473,8 +1493,11 @@ impl Executive {
         // SAFETY: dl is a live DownlinkStatus_t
         let _ = unsafe { downlink::downlink_get_status(&mut dl) };
         receiver::receiver_step(dl.keyed || self.transponder.enabled);
-        // The exciter keyed by the TNC alone (C-014-9, SRS-F168)
-        let _ = rf_control::rf_control_ptt_supervise(now, dl.keyed);
+        // The exciter keyed by the TNC alone, or by a repeat path the
+        // heartbeat and the key-down timer no longer bound (C-014-9,
+        // SRS-F168, RID P3F-A-02)
+        let heartbeat = self.transponder.heartbeat_lease_ms() > 0;
+        let _ = rf_control::rf_control_ptt_supervise(now, dl.keyed, heartbeat);
         eps_lockout::eps_lockout_poll();
         eps_supervision::step(now);
         if now.wrapping_sub(self.last_verify_ms) >= VERIFY_INTERVAL_MS {
@@ -1718,6 +1741,12 @@ fn stored_counts() -> [u32; 2] {
 /// A UI frame CQ <- KK6GDB-11 carrying `info`, handed to the downlink: its
 /// result (`BUSY`: try again next pass)
 fn send_ui(info: &[u8]) -> i32 {
+    // Never an empty information field (the SIL-40 mode, RID P3F-A-05):
+    // refused and logged; the caller drops the item
+    if info.is_empty() {
+        crate::c::log(fault_type::COMMAND, severity::ERROR, c"Empty downlink frame refused", 0.0);
+        return rc::INVALID;
+    }
     let mut frame = [0u8; ax25::MAX_FRAME_LEN];
     let dest = Station { call: "CQ", ssid: 0 };
     let src = Station { call: sqso_protocol::station::CALLSIGN, ssid: sqso_protocol::station::SSID };
