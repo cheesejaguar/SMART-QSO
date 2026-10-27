@@ -136,7 +136,7 @@ in SQSO-EPS-BRD-001 §2.2).
 | SW7 | 3V3_AO | GNSS_EN (PE5) | GNSS receiver | 0.04 A | 0.1 A | 0.20 A, retry 1.3 s | TPS2553-Q1 (U25) | RID EPS-14 closed by the firmware's PE5 |
 | SW8 | 3V3_AO | DEPLOY_EN (PF3) OR the EPS controller's ANTS_EN (ICD-001 ANTS_PWR 0x8D) | ISIS AntS | 0 | 0.61 A | 1.37 A, retry 0.28 s | TPS2553-Q1 (U26) | Downstream of DS1–DS3 (§8.3) |
 | SW9 | 3V3_AO | always | EPS controller | 0.012 A | — | 75 mA, retry 0.28 s | TPS2553-Q1 (U27) | |
-| SW10 | 3V3_AO | always | OBC | 0.04 A | — | 0.15 A, retry 0.28 s | TPS2553-Q1 (U38) | The OBC cannot switch its own rail (RID AV-08); its RTC takes 3V3_RTC (3V3_AO through 1 kΩ, RID AV-10); power-cycled by the EPS controller after a 120 s OBC heartbeat timeout (ICD-001 OBC_HEARTBEAT 0x8C, ≤ 3 per 24 h) |
+| SW10 | 3V3_AO | always | OBC | 0.04 A | — | 0.15 A, retry 0.28 s | TPS2553-Q1 (U38) | The OBC cannot switch its own rail (RID AV-08); its RTC takes 3V3_RTC (3V3_AO through 1 kΩ, RID AV-10); power-cycled by the EPS controller after a 600 s OBC heartbeat timeout (heartbeat at least every 60 s; ICD-001 1.7 OBC_HEARTBEAT 0x8C: SW10 off 1.95 ± 0.1 s, no cycle within 600 s of a controller start or of the last cycle, at most 3 cycles in 24 h, then stopped and reported) |
 | SW11 | VBAT | ADCS_EN (PB6) | OBC magnetorquer H-bridges (VBAT_MTQ, W3 J3-36/39) | 0.083 A | 0.104 A (1.16 W, three rods saturated); 0.23 A at the bridges' limit | 0.36 A (0.32–0.40), auto-retry 40 ms / 1 s | TPS1H000-Q1 (U39) | SQSO-ICX-001 E3 (≥ 0.25 A, ≤ 0.5 A); current telemetry from the OBC's coil-current channels |
 
 TPS22918-class switches are rated 5.5 V: they may switch only the 3.3 V and 5 V rails. Every VBAT switch needs a part

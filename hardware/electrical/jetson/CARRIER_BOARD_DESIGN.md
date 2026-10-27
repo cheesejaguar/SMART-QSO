@@ -501,7 +501,7 @@ oscillator near the old corner, and nothing in it depended on the keep-out excep
 | V-JET-7 | Junction-to-spreader resistance at 7 W (module sensors vs RT1) and clamp force (pressure film) | ≤ 5.7 K/W (design 1.2); force ≤ 40 N | THM-10 (V-THM-3) | EM thermal |
 | V-JET-8 | Random vibration of the populated carrier (module, card, spreader) at protoflight level | no resonance shift > 5 %, functional after, no fretting at J4/J5 | DS Table 5-5 is 2 Grms only | EM vibration |
 | V-EMC-1 | CE102 at the carrier input; near-field scan | as SQSO-EMC-001 §6 | §15 | carrier EM |
-| V-JET-9 | Magnetic screening: populated carrier with the module, unpowered and at a 7 W burst, field at the RM3100 position (A2, (+24, +27) in the +Z end-frame slot) | static and burst-induced field below the limit the ADCS owner sets from the RM3100 noise (15–30 nT); the nT/A coefficient against IMON_JET recorded for calibration | §18.2 | EM, with the OBC |
+| V-JET-9 | Magnetic screening: populated carrier with the module, unpowered and at a 7 W burst, field at the RM3100 position (A2, (+24, +27) in the +Z end-frame slot) | static (unpowered) field at the RM3100 within the 3 mA·m² residual-dipole share the ADCS owner sets (the magnetometer is used with the carrier off); the burst-induced field is recorded only, with its nT/A coefficient against IMON_JET, because the flight software does not use the magnetometer while JET_PG is high (SRS-F143; RID P3F-G-09) — expected ≤ 0.35 µT (§18.2) | §18.2 | EM, with the OBC |
 
 ## 21. RID Status
 

@@ -162,6 +162,8 @@ NEW: list[tuple[str, int, str, str, str]] = [
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {
+    "P3F-A-07": ("CD", "Aligned to ICD-001 1.7: heartbeat at least every 60 s, 600 s timeout, SW10 off 1.95 ± 0.1 s, no cycle within 600 s of a start or the last cycle, at most 3 in 24 h (EPS_DESIGN SW10 row, INTERCONNECT E14, EPS_BOARD_DESIGN G §8.3 and V-EPS-16)"),
+    "P3F-G-09": ("CD", "V-JET-9 limit applies to the static field (carrier unpowered, when the magnetometer is used); the burst-induced field is recorded only with its nT/A coefficient, since the magnetometer is gated while JET_PG is high (SRS-F143); expected ≤ 0.35 µT (CARRIER_BOARD_DESIGN E §18.2)"),
     "AV-03": ("VI", "Drivers mg370.rs, bmi088.rs, rm3100.rs, ads7138.rs, mtq.rs, adcs_sensors.rs (SRS-F140, F141, F164) on the ICX D pins (pins.rs, C test_hal_pins), unit tests per driver; VI: EM OBC bring-up (TP-FLATSAT-001): each driver reads its part's ID and a self-test passes, coil current within 10 % of the commanded duty, a forced rail trip latched and restarted, 2027-06 to 2027-07; confirmed by the round-3 panel (P3F-A)"),
     "AV-12": ("CD", "RELEASE_PROCEDURE §5.3.1 step 7 writes and verifies SRAM2_PE; boot reports parity (firmware parity.rs, SRS-F154, HK2 PE); checked at the first FM load; confirmed by P3F-A"),
     "AV-13": ("CD", "Stack in SRAM2 (memory.x from 0x20030000, statics + 8 KB stack ≤ 0x20040000 asserted), CI image check SP 0x20040000; worst-case stack 5,812 of 8,192 B from the machine-code analysis; confirmed by P3F-A"),

@@ -188,15 +188,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 28 |
-| Closed by design change | 101 | 260 |
+| Closed by design change | 101 | 262 |
 | Closed by chair decision | 42 | 35 |
 | Verification item | 46 | 32 |
 | Decision point (dated) | 15 | 34 |
-| Implementation | 179 | 19 |
+| Implementation | 179 | 17 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 102 new findings; 45 of the reopened and 80 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 102 new findings; 45 of the reopened and 82 of the new are since closed.
 
-Open implementation RIDs: SMA-15, P3S-13, SMA-B02, P3F-G-01, P3F-G-02, P3F-G-03, P3F-G-04, P3F-G-05, P3F-G-06, P3F-G-07, P3F-G-08, P3F-G-09, P3F-A-01, P3F-A-02, P3F-A-03, P3F-A-04, P3F-A-05, P3F-A-06, P3F-A-07.
+Open implementation RIDs: SMA-15, P3S-13, SMA-B02, P3F-G-01, P3F-G-02, P3F-G-03, P3F-G-04, P3F-G-05, P3F-G-06, P3F-G-07, P3F-G-08, P3F-A-01, P3F-A-02, P3F-A-03, P3F-A-04, P3F-A-05, P3F-A-06.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -737,14 +737,14 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3F-G-06 | 3 | The ground cannot tell which wing deployed (SOLAR_SENSE in series, only total array power), so it cannot choose between presets 1 and 2; a wrong preset is not analysed | IMP | Implementation | Identification procedure or preset-0 rule |
 | P3F-G-07 | 3 | The ±5° attitude-knowledge requirement (ADCS-F003/P003, EKF/TRIAD) is not implemented; MRD-061 'verified' by a Monte Carlo that does not measure knowledge | IMP | Implementation | Restate or implement and verify |
 | P3F-G-08 | 3 | RADIATION_ANALYSIS E does not match the selected parts (MM200 vs RM3100, load switches), omits the implemented mitigations, old dose model, Jetson upset probability 10× low, no latch-up statement, no 475/485 km table | IMP | Implementation | Revise against the parts list and the code |
-| P3F-G-09 | 3 | V-JET-9's ≤ 15 nT burst limit is not traceable to a need (carrier bound 0.35 µT, magnetometer unused during bursts) | IMP | Implementation | Record-only or justified limit |
+| P3F-G-09 | 3 | V-JET-9's ≤ 15 nT burst limit is not traceable to a need (carrier bound 0.35 µT, magnetometer unused during bursts) | IMP | Closed by design change | V-JET-9 limit applies to the static field (carrier unpowered, when the magnetometer is used); the burst-induced field is recorded only with its nT/A coefficient, since the magnetometer is gated while JET_PG is high (SRS-F143); expected ≤ 0.35 µT (CARRIER_BOARD_DESIGN E §18.2) |
 | P3F-A-01 | 2 | AntS deployed state read while its controller is unpowered (burn_off drops ANTS_PWR before process_verify): on hardware a deployed AntS is never confirmed, two more burns, FAILED, the C-19 hold longer; the SIL answers regardless of SW8, so ants_cold is not representative | IMP | Implementation | Power before every status read; SIL AntS answers only with SW8 on; re-run |
 | P3F-A-02 | 2 | The PTT_EXCITER watch (SRS-F168) accepts any XPDR_KEY high without limit: a stuck key-gate or XPDR_KEY keys the exciter past the 120 s timer and blinds the watch to a stuck TNC_PTT; frequent overs reset the count | IMP | Implementation | Repeat path an explanation only with the heartbeat and ≤ 120 s plus margin |
 | P3F-A-03 | 3 | The supervisor can reset the OBC up to 8.5 s before the IWDG after a stall (IWDG refreshed every pass, WDI edge every 10 s); obc_calcs ignores it, V-OBC-2 would fail; stale reload 3500 and 30000 values; SRS-F001 allows 30 s init beyond the boot IWDG's 24.1 s | IMP | Implementation | Refresh the IWDG with the WDI edge or ≤ 19 s |
 | P3F-A-04 | 3 | C-18 deferral slot and force flag not persisted: each reset in ANTENNA_PENDING spends a deferral, so a reset loop exhausts the cap and deploys cold | IMP | Implementation | Persist the slot and flag |
 | P3F-A-05 | 3 | ack and GNS formatters keep the 'too long gives empty' path; send_ui transmits an empty frame and marks it sent; GNSS PDOP unbounded | IMP | Implementation | Same fix as SIL-40; bound PDOP |
 | P3F-A-06 | 3 | separation.rs and fram_health.rs (SH-008 controls) not on the safety-critical list or in safety_coverage.py | IMP | Implementation | Add them |
-| P3F-A-07 | 3 | OBC heartbeat timeout and cycle limit inconsistent: EPS_DESIGN 120 s, ICD-001 600 s and 3 cycles in 24 h, INTERCONNECT E14 one 10 s pulse per 10 min | IMP | Implementation | Align to ICD-001 1.7 |
+| P3F-A-07 | 3 | OBC heartbeat timeout and cycle limit inconsistent: EPS_DESIGN 120 s, ICD-001 600 s and 3 cycles in 24 h, INTERCONNECT E14 one 10 s pulse per 10 min | IMP | Closed by design change | Aligned to ICD-001 1.7: heartbeat at least every 60 s, 600 s timeout, SW10 off 1.95 ± 0.1 s, no cycle within 600 s of a start or the last cycle, at most 3 in 24 h (EPS_DESIGN SW10 row, INTERCONNECT E14, EPS_BOARD_DESIGN G §8.3 and V-EPS-16) |
 
 #### Round 3: thermal and parts (P3T)
 

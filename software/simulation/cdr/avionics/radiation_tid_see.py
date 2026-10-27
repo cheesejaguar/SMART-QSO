@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """
-CDR radiation analysis for SMART-QSO (SQSO-ENV-002 Rev C, docs/environment/RADIATION_ANALYSIS.md).
+CDR radiation analysis for SMART-QSO (SQSO-ENV-002 Rev F, docs/environment/RADIATION_ANALYSIS.md).
 
     python3 software/simulation/cdr/avionics/radiation_tid_see.py [--markdown]
 
-Total ionizing dose (TID) versus aluminium depth for the baseline orbit (500 km
-circular, sun-synchronous ≈ 97.4°, 525 km cap; 2-year design life; BASELINE §2,
-§3), and single-event-effect (SEE) rates for the avionics parts. No radiation
+Total ionizing dose (TID) versus aluminium depth for the baseline orbit (475 km
+target, 465-485 km band, sun-synchronous 97.31°; 2-year design life; BASELINE
+§2, §3), with 500 km and 525 km kept as upper bounds (the mission simulation's
+unit tests cite them), and single-event-effect (SEE) rates for the avionics
+parts, per day of operation and, for the Jetson, per burst. No radiation
 environment code (AE9/AP9, SHIELDOSE-2) runs here: the inputs are published
 SHIELDOSE-2 outputs and measurements, cited inline, and the script combines,
 scales and tabulates them so every number in the document can be reproduced.
@@ -40,13 +42,15 @@ T4. Galactic cosmic rays and secondaries: the Shields-1 measurement behind
 T5. Altitude: trapped-particle dose scaled by exp((h − 500 km)/150 km), the
     scale height the mission simulation uses (sqso-sil/src/env/radiation.rs)
     and consistent with AP-8 flux growth between 500 and 550 km; solar protons
-    and GCR are not scaled.
+    and GCR are not scaled. The same factor takes the dose down to the baseline
+    band (465-485 km); below 500 km it is an extrapolation of the same law.
 
 SEE inputs
 ----------
 P1. Trapped-proton integral flux, orbit average, AP-8 MAX, 500 km (T1's
     trapped.doc): > 10 MeV 21.5, > 30 MeV 17.4, > 50 MeV 14.8, > 100 MeV
-    9.28 /cm²/s.
+    9.28 /cm²/s. Used unscaled for the baseline band (465-485 km), where the
+    flux is lower: the SEE rates are upper bounds for the baseline orbit.
 P2. Cross-sections are generic COTS values or published data where found
     (each row says which); every rate is an estimate to be replaced by a
     part-level test or a CREME96 run when the parts are frozen.
@@ -96,7 +100,13 @@ GCR_RAD_PER_YEAR = 50.0
 # T5
 SCALE_HEIGHT_KM = 150.0
 
-DEPTHS_MM = (1.0, 1.5, 2.0, 2.5, 3.0)
+DEPTHS_MM = (1.0, 1.5, 2.0, 2.1, 2.5, 3.0)
+#: The baseline band (BASELINE §3): 465 km floor, 475 km target, 485 km cap
+BASELINE_ALTS_KM = (465.0, 475.0, 485.0)
+#: Former altitudes, kept as upper bounds (sqso-sil env/radiation.rs unit tests cite their totals)
+BOUND_ALTS_KM = (500.0, 525.0)
+#: Depths of the baseline-band summary table (BASELINE §6: the 2.1 mm rule, RID RAD-01)
+SUMMARY_DEPTHS_MM = (1.0, 2.0, 2.1, 3.0)
 DESIGN_KRAD = 10.0  # BASELINE §6
 LIFE_YEARS = 2.0
 
@@ -118,9 +128,14 @@ def spe_per_year(mm: float) -> float:
     return d0 * math.exp(-k * (mm * AL_DENSITY / 10.0 - x0))
 
 
-def dose_table(alt_km: float, years: float):
+def total_per_year(mm: float, alt_km: float = 500.0) -> float:
+    """T1 + T3 + T4 (rad(Si)/yr) at depth mm and altitude alt_km"""
+    return trapped_per_year(mm, alt_km) + spe_per_year(mm) + GCR_RAD_PER_YEAR
+
+
+def dose_table(alt_km: float, years: float, depths=DEPTHS_MM):
     rows = []
-    for mm in DEPTHS_MM:
+    for mm in depths:
         tr = trapped_per_year(mm, alt_km)
         spe = spe_per_year(mm)
         total = (tr + spe + GCR_RAD_PER_YEAR) * years
@@ -138,9 +153,17 @@ def depth_for_margin(alt_km: float, years: float, rdm: float) -> float:
     return float("nan")
 
 
+#: The mission simulation's TID model (sqso-sil/src/env/radiation.rs, RID RAD-02): rad(Si)/yr behind 2 mm at 500 km
+SIL_TRAPPED_2MM = 1830.0
+SIL_SOLAR_GCR_2MM = 797.0
+SIL_DEPTH_EXPONENT = 1.35
+
+
 def sil_model(mm: float, alt_km: float = 500.0) -> float:
-    """The mission simulation's TID model (sqso-sil/src/env/radiation.rs)"""
-    return 1500.0 * math.exp((alt_km - 500.0) / 150.0) * (2.0 / mm) ** 1.2
+    """The mission simulation's TID model (sqso-sil/src/env/radiation.rs `tid_rad_per_year`): the trapped part
+    scaled with altitude, the solar and GCR part not, both scaled with depth as (2 mm / t)^1.35"""
+    depth = (2.0 / max(mm, 0.1)) ** SIL_DEPTH_EXPONENT
+    return (SIL_TRAPPED_2MM * math.exp((alt_km - 500.0) / 150.0) + SIL_SOLAR_GCR_2MM) * depth
 
 
 # ----------------------------------------------------------------------------
@@ -172,11 +195,32 @@ SEE_ROWS = [
      "Orin, 200 MeV protons, ≈ 7e-11 cm² (indicative, conference slides); 7e-11 to 7e-10", 7e-11, 7e-10, 1, FLUX_GT30, 0.10),
     ("Jetson Orin LPDDR5 (8 GB, 6.9e10 bit)", "SEU (proton)",
      "DDR-class DRAM, 1e-19 to 1e-17 cm²/bit", 1e-19, 1e-17, 8 * 1024 ** 3 * 8, FLUX_GT30, 0.10),
+    ("Jetson Orin module (SoC and DRAM)", "SEL (proton-induced)",
+     "no part data (the Orin AGX test was not reachable); 0 to 1e-10 cm²", 0.0, 1e-10, 1, FLUX_GT100, 0.10),
     ("RF: receiver/TNC MCU, CTCSS decoder, exciter", "SEFI or SEL",
      "COTS, no data: 1e-11 to 1e-10 cm² per device, 3 devices", 3e-11, 3e-10, 1, FLUX_GT30, 1.0),
     ("GNSS receiver (piNAV-NG)", "SEFI or SEL",
      "COTS, no data: 1e-11 to 1e-10 cm²", 1e-11, 1e-10, 1, FLUX_GT30, 0.05),
 ]
+
+
+#: Jetson bursts (BASELINE §6, SRS-F151): ≤ 10 min, 3.6 kJ; 120 s is the batch of SYS-512 and VI-02
+BURST_S = (120.0, 600.0)
+JETSON_PARTS = ("Jetson Orin module (SoC)", "Jetson Orin LPDDR5 (8 GB, 6.9e10 bit)")
+
+
+def jetson_powered_rate_per_s(high: bool = True) -> float:
+    """Rate of any SEFI or DRAM upset while the Jetson is powered (per s): the duty taken out of the rows"""
+    total = 0.0
+    for part, _effect, _basis, lo, hi, bits, flux, duty in SEE_ROWS:
+        if part in JETSON_PARTS:
+            total += (hi if high else lo) * flux * bits
+    return total
+
+
+def burst_upset_probability(burst_s: float, high: bool = True) -> float:
+    """Probability of at least one SEFI or DRAM upset in one burst of burst_s seconds"""
+    return 1.0 - math.exp(-jetson_powered_rate_per_s(high) * burst_s)
 
 
 def see_table():
@@ -188,9 +232,22 @@ def see_table():
     return out
 
 
+def baseline_summary_markdown() -> str:
+    """Baseline band (465/475/485 km), 2 years, total and margin at the summary depths"""
+    head = " | ".join(f"{a:.0f} km: total (krad) / margin" for a in BASELINE_ALTS_KM)
+    lines = [f"| Depth (mm Al) | {head} |", "|---|" + "---|" * len(BASELINE_ALTS_KM)]
+    for mm in SUMMARY_DEPTHS_MM:
+        cells = []
+        for alt in BASELINE_ALTS_KM:
+            total = total_per_year(mm, alt) * LIFE_YEARS
+            cells.append(f"{total / 1000.0:.2f} / {DESIGN_KRAD * 1000.0 / total:.2f}")
+        lines.append(f"| {mm:.1f} | " + " | ".join(cells) + " |")
+    return "\n".join(lines)
+
+
 def tid_tables_markdown() -> str:
     lines = []
-    for alt in (500.0, 525.0):
+    for alt in (475.0, 485.0) + BOUND_ALTS_KM:
         lines.append(f"\n**{alt:.0f} km, {LIFE_YEARS:.0f} years, solid Al sphere, rad(Si)**\n")
         lines.append("| Depth (mm Al) | Trapped e⁻ + p | Solar protons (95 %) | GCR | Total | Margin of the 10 krad design level |")
         lines.append("|---|---|---|---|---|---|")
@@ -209,22 +266,32 @@ def main() -> None:
     t2_2 = sum(SHIELDS1_2MM.values())
     print(f"Cross-check at 1.98 mm, 1 year: T1 (AE-8/AP-8 MAX) {t1_2:,.0f} rad, "
           f"T2 Shields-1 (AE-8 MAX/AP-8 MIN, 85°) {t2_2:,.0f} rad: ratio {t1_2 / t2_2:.2f}")
+    print("\nBaseline band, 2 years, solid Al sphere: total krad(Si) / margin of the 10 krad design level")
+    print(baseline_summary_markdown())
     print(tid_tables_markdown() if args.markdown else "")
-    for alt in (500.0, 525.0):
+    for alt in BASELINE_ALTS_KM + BOUND_ALTS_KM:
         for rdm in (2.0, 3.0):
             print(f"Depth for a radiation design margin of {rdm:.0f} on 10 krad at {alt:.0f} km: "
                   f"{depth_for_margin(alt, LIFE_YEARS, rdm):.2f} mm Al")
-    print("\nMission simulation's TID model against this analysis (rad(Si)/yr, 500 km):")
-    print("| Depth (mm Al) | SIL | This analysis | SIL / analysis |")
-    print("|---|---|---|---|")
+    print("\nMission simulation's TID model against this analysis (rad(Si)/yr, at 475 km and 500 km):")
+    print("| Depth (mm Al) | SIL 475 km | Analysis 475 km | SIL / analysis | SIL 500 km | Analysis 500 km | SIL / analysis |")
+    print("|---|---|---|---|---|---|---|")
     for mm in DEPTHS_MM:
-        a = trapped_per_year(mm) + spe_per_year(mm) + GCR_RAD_PER_YEAR
-        print(f"| {mm:.1f} | {sil_model(mm):,.0f} | {a:,.0f} | {sil_model(mm) / a:.2f} |")
+        row = [f"{mm:.1f}"]
+        for alt in (475.0, 500.0):
+            a = total_per_year(mm, alt)
+            row += [f"{sil_model(mm, alt):,.0f}", f"{a:,.0f}", f"{sil_model(mm, alt) / a:.2f}"]
+        print("| " + " | ".join(row) + " |")
     print("\nSingle-event rates (per day of operation; the Jetson and GNSS at their duty):")
     print("| Part | Effect | Cross-section basis | Rate low (/day) | Rate high (/day) | High, 2 years |")
     print("|---|---|---|---|---|---|")
     for part, effect, basis, rlo, rhi, two in see_table():
         print(f"| {part} | {effect} | {basis} | {rlo:.2g} | {rhi:.2g} | {two:.2g} |")
+    lo, hi = jetson_powered_rate_per_s(False), jetson_powered_rate_per_s(True)
+    print(f"\nJetson SEFI or DRAM upset while powered: {lo * DAY_S:.2g} to {hi * DAY_S:.2g} per powered day")
+    for b in BURST_S:
+        print(f"Probability of any upset in one {b:.0f} s burst: {burst_upset_probability(b, False):.1e} to "
+              f"{burst_upset_probability(b, True):.1e}")
 
 
 if __name__ == "__main__":
