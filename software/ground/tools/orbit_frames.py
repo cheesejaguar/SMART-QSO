@@ -128,6 +128,15 @@ def teme_to_itrf_jacobian(unix_utc, dut1_s=0.0, xp_arcsec=0.0, yp_arcsec=0.0):
     return j
 
 
+def teme_utc_to_ut1(unix_utc, dut1_s: float) -> np.ndarray:
+    """M with r_TEME = M r, r in the TEME the fit uses (GMST from UTC).
+
+    SGP4 and EME2000 need GMST from UT1: the two differ by a rotation about
+    the pole through the Earth's turn in DUT1.
+    """
+    return rot3(gmst(unix_utc, 0.0) - gmst(unix_utc, dut1_s))
+
+
 # --- EME2000 ----------------------------------------------------------------
 
 # IAU-1980 nutation, largest 18 terms (Meeus, Astronomical Algorithms, Table 22.A):

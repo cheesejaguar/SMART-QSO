@@ -57,14 +57,13 @@ def to_frame(pred: Prediction, frame: str, dut1_s: Optional[float], tai_utc_s: f
     if frame == "EME2000":
         if dut1_s is None:
             raise ValueError("EME2000 needs DUT1 (UT1 - UTC, IERS Bulletin A): up to 450 m of error without it")
-        # The TEME used in the fit is tied to GMST from UTC: re-reference it to
-        # UT1 (a rotation about the pole by the Earth's turn in DUT1), then to J2000
+        # The TEME of the fit is tied to GMST from UTC; re-reference it to UT1
+        # (orbit_frames.teme_utc_to_ut1), then rotate to J2000
         tt_utc = fr.tt_minus_utc(tai_utc_s)
         states = np.empty_like(pred.states)
         covs = np.empty_like(pred.covariances)
-        shift = fr.rot3(-fr.OMEGA_EARTH * dut1_s)  # r_TEME(UT1) = R3(-w dUT1)^T ... see below
         for i, t in enumerate(pred.times):
-            m = fr.teme_to_eme2000_matrix(float(t), tt_utc) @ shift.T
+            m = fr.teme_to_eme2000_matrix(float(t), tt_utc) @ fr.teme_utc_to_ut1(float(t), dut1_s)
             block = np.zeros((6, 6))
             block[:3, :3] = block[3:, 3:] = m
             states[i] = block @ pred.states[i]
