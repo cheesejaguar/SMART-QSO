@@ -154,6 +154,9 @@ L-2 M licences and ephemeris demonstration).
 | C-17 | Burn 10 s per resistor (was 8 s): at the bounding −55 °C the 8 s burn gives a release-energy ratio of only 1.52 against 1.5; 10 s gives 1.90 inside the 12 s hardware one-shot | P3S-01 |
 | C-18 | The AntS deploys only when its own reported temperature is ≥ −17 °C (the −20 °C qualified minimum plus 3 °C sensor tolerance), deferring to the next 50-min slot without spending an attempt; after 30 deferrals (about 25 h, which covers the wings-stowed case where it never warms) or on ground command it deploys regardless. An ungated release after an eclipse separation would be at −44 °C; the gate opens within 177 min in every nominal case, before the first commanding pass (median 6.4 h). The wings still go first at S + 30 min | P3T-09 |
 | C-19 | The transmitters stay silent while the AntS deployment is pending (deferred by C-18, or not yet attempted); the downlink starts when the AntS reports deployed or its sequence ends, never before the 45-min RF silence. Keying into stowed elements trips the VSWR protection (SIL-37: two 10-min stops, 1,312 s beacon gap) and stresses the PA, and nothing is lost: the first commanding pass (median 6.4 h) is later than the gate's nominal worst case (177 min); a failed AntS sequence still gets its stowed-antenna beacon | SIL-37 (P3T-09) |
+| C-20 | One Smart Beacon burst definition, the one the design implements: a Jetson power-on of at most 10 min and at most 3.6 kJ at the carrier input, ended early by the energy gate. The go/no-go metric is energy per accepted beacon line ≤ 0.1 Wh (360 J), counted on accepted lines (not per burst), measured on the EM over ≥ 30 bursts (VI-02) and confirmed in commissioning over ≥ 10 bursts (MSC E-02). SYS-512, VI-02 and the D5 960 J figure are revised to match (CR) | P3F-G-03 |
+| C-21 | With one wing deployed and the ground unable to say which, the spacecraft uses preset 0 (both wings) rather than guess between presets 1 and 2: the wrong one-wing preset is the case not analysed, preset 0 costs 2–3 % of power. Presets 1 and 2 are used only after the commissioning identification procedure (array current against the sun-sensor angle over a spin) names the wing | P3F-G-06 |
+| C-22 | The attitude-knowledge requirement is restated as what the control law uses: sun-vector knowledge within ±5° in sunlight from the sun sensors, and rate knowledge from the gyros. A spin-stabilised sun-pointer needs no onboard three-axis estimator, so the EKF/TRIAD of ADCS_DESIGN §4.3 is removed from the flight baseline; the Monte Carlo measures the sun-vector error to verify it | P3F-G-07 |
 
 ## 5. Design completion (round 2)
 
@@ -180,20 +183,20 @@ ratings, outgassing data).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-392 RIDs: severity 1: 32, severity 2: 205, severity 3: 155.
+401 RIDs: severity 1: 32, severity 2: 208, severity 3: 161.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
-| Closed by analysis | 25 | 27 |
-| Closed by design change | 101 | 240 |
+| Closed by analysis | 25 | 28 |
+| Closed by design change | 101 | 250 |
 | Closed by chair decision | 42 | 35 |
 | Verification item | 46 | 31 |
 | Decision point (dated) | 15 | 34 |
-| Implementation | 163 | 25 |
+| Implementation | 172 | 23 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 86 new findings; 44 of the reopened and 73 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 95 new findings; 45 of the reopened and 76 of the new are since closed.
 
-Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, SMA-B20, P3T-09.
+Open implementation RIDs: SMA-15, AV-03, AV-12, AV-13, FSW-14, EPSB-01, OBCB-01, OBCB-02, P3S-13, SMA-B02, SMA-B10, SMA-B11, SMA-B19, SMA-B20, P3F-G-01, P3F-G-02, P3F-G-03, P3F-G-04, P3F-G-05, P3F-G-06, P3F-G-07, P3F-G-08, P3F-G-09.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -272,7 +275,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-18 | 3 | Baseline §7 claimed the uplink windows are ≥ 2 MHz below 3 × f_down; 436.222-436.500 MHz is 0.9 MHz below | CD | Closed by design change | BASELINE §7 and RF-P002 restated: ≥ 0.9 MHz, desense ≤ 0.44 dB even 100 kHz from 3f (SQSO-RF-BRD-001 §7.5) |
 | SE-19 | 2 | No current harness design: the old harness document predates the interconnect, and the deck-to-EPS band is over-full by about 8 mm² of wire | IMP | Closed by design change | Harness design SQSO-HAR-001 2.0: 206 conductors, routes against the CAD (58 zones, no interference), EEE-INST-002 derating (worst 60 % normal), drops ≤ 44 mV, corner-bundle fill ≤ 51 % (band B resolved by routing the EPS-only harnesses under the EPS), mass 84.5 g, single-point ground; V-HAR-1 to V-HAR-13 |
 | SE-20 | 3 | SIL decay re-enters 4.0 years after deployment; the ODAR estimator gives 4.8-5.7 years | CH | Closed by chair decision | The ODAR (NRLMSIS, NASA-STD-8719.14C cross-sections) governs lifetime compliance; the SIL decay is indicative; aligned if cheap (flight software round 3) |
-| SE-21 | 3 | SIL deploys both wings from one resistor and models 0.04 W of coil power in detumble (board: 1.16-1.3 W) | IMP | Implementation | SIL deployment per-wing restraint and coil-drive power (flight software round 3) |
+| SE-21 | 3 | SIL deploys both wings from one resistor and models 0.04 W of coil power in detumble (board: 1.16-1.3 W) | IMP | Closed by design change | SIL: each wing its own restraint on four lines (sqso-sil hw/deploy.rs, SIL-24); coil I²R from VBAT through the bridges (SIL-25): 1.19 W with three rods saturated against the board's 1.16–1.3 W; burn-lines check 1; MISSION_TIMELINE 2.6 §5; confirmed by the round-3 panel (P3F-G) |
 | SE-22 | 2 | Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG | IMP | Closed by design change | All HAR-001 2.0 §15 items done including the round-3 follow-ups (W12B five wires, W3 pins 28/40 I2C3, W8 RST_REQ, zones under the 2.0 mm EPS); gold finishes; checks clean |
 | SE-23 | 3 | No published E595 outgassing values found for the harness wire, PTFE assemblies, sleeving, lacing tape or connector housings; Pico-Clasp gold suffix not found | VI | Decision point (dated) | With EPSB-09 (DA-18); V-HAR-11 before the EM order |
 | SE-24 | 2 | No PCB layouts: the boards are at schematic, BOM, placement-constraint and stack-up level | CH | Closed by chair decision | Layout is the scheduled next design step (SCHEDULE Rev D: EM PCB layout and design-rule review from 2027-01-12, 27 designer-weeks, 15 calendar weeks with two designers (DA-04), after the independent PDR), held to the placement, keep-out, stack-up and impedance constraints recorded in the board designs; the independent CDR (2027-09-28) reviews the layouts |
@@ -452,7 +455,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | STR-24 | 3 | README listed the removed drag device | CD | Closed by design change | README B |
 | STR-25 | 2 | Battery leads too short; no hinge-crossing rules | CD | Closed by design change | HARNESS_DESIGN 1.1 |
 | STR-26 | 2 | Structural design mass properties stale | CD | Closed by design change | STRUCTURAL_DESIGN 1.5 aligned to MECHANICAL_DESIGN, STRUCTURAL_ANALYSIS and MEL 3.1 |
-| STR-27 | 2 | One wing deployed: major axis 12.5° off +Y | IMP | Implementation | Reopened in round 3: One-wing ADCS presets use the reference-layout tensors, not the CAD |
+| STR-27 | 2 | One wing deployed: major axis 12.5° off +Y | IMP | Closed by design change | ADCS presets WING_1_ONLY, WING_2_ONLY, NO_WINGS to MASS_BUDGET 3.2 §6.5 and the CAD results.json, spin axes the tensors' major axes (≤ 0.003°); Monte Carlo W1 8.4°/99.9 %, W2 9.3°/99.9 %, none 3.9°/100 % (ADCS_DESIGN 1.8 §11.4); identification of the deployed wing: P3F-G-06; confirmed by P3F-G |
 | STR-28 | 3 | Flexible modes against spin and ADCS bandwidth | CA | Closed by analysis | MECH §9 |
 
 #### Mechanical CAD and FE (MCAD)
@@ -587,8 +590,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | GNC-04 | 2 | Magnetometer not selected, no driver | IMP | Closed by chair decision | Magnetometer: PNI RM3100 on the OBC board, bought-module footprint as fallback (chair accepts OBC_BOARD_DESIGN §24 C1); driver in the flight software |
 | GNC-05 | 2 | Spin axis and inertia selectable for one wing | CD | Closed by design change | ADCS_SET_GEOMETRY 0x24; SRS-F094 |
 | GNC-06 | 3 | Rod remanence not modelled | VI | Verification item | AV-V4 at the flatsat: bias repeatability ≤ 300 nT per axis, rod remanence ≤ 0.18 mA·m² or an 8-state table, Monte Carlo re-run before the CDR |
-| GNC-07 | 3 | ADCS Monte Carlo plant rows still the MASS_BUDGET 3.0 values; at Iyy/Izz = 1.000 only 73 % of sunlit time is within 15° | IMP | Implementation | Plant rows to the CAD CBE and MEV tensors in adcs_mc_cdr.sh and ADCS_DESIGN §11.4; ratio requirement ≥ 1.03 stands (CAD 1.056 / 1.047) |
-| GNC-08 | 2 | Gyro correction matrix needed (VI-MCAD-05) and the magnetometer unusable for actuation during Jetson bursts (JETB-09) | IMP | Implementation | Flight software: persisted gyro alignment matrix set by telecommand (data only); magnetometer not used for actuation while JET_PG is high |
+| GNC-07 | 3 | ADCS Monte Carlo plant rows still the MASS_BUDGET 3.0 values; at Iyy/Izz = 1.000 only 73 % of sunlit time is within 15° | IMP | Closed by analysis | adcs_mc_cdr.sh plant rows to MASS_BUDGET 3.2 (CBE 2.853/4.202/3.979, MEV 3.276/4.760/4.546 × 10⁻³ kg·m² with products); re-run CBE 1.8° mean, p95 7.0°, 100 % within 15°; MEV 1.7°, 6.8°, 100 % (ADCS_DESIGN 1.8 §11.4, BUILD_VS_BUY D §6.4); the gain sweep's stale row: P3F-G-04; confirmed by P3F-G |
+| GNC-08 | 2 | Gyro correction matrix needed (VI-MCAD-05) and the magnetometer unusable for actuation during Jetson bursts (JETB-09) | IMP | Closed by design change | Gyro alignment matrix by ADCS_SET_GYRO_ALIGN 0x25 with CRC, data only (SRS-F142); magnetometer gated on JET_PG or PTT_EXC (SRS-F143); per-polarity bias table 0x26 (SRS-F144); tests calibration_commands_persist_and_validate, the_magnetometer_is_gated; VI-MCAD-05 measures the matrix on the flight unit; confirmed by P3F-G |
 
 #### RF board (round 2) (RFB)
 
@@ -641,16 +644,16 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| JETB-11 | 2 | SIL Jetson model spends 0.036 Wh (130 J) per AI beacon; the carrier design gives 7.2-7.5 W at the input and about 424 J per line for a full burst | IMP | Implementation | SIL Jetson power model to SQSO-JET-BRD-001 (6.5 W cap); re-run the AI-energy check |
-| JETB-01 | 2 | Jetson burst draws 7.7-8.0 W at the carrier input in the 7 W mode: no margin to the 8 W allocation | IMP | Implementation | Chair: cap the module at 6.5 W (VDD_IN average limit 1300 mA, INA3221 ch 1), nvpmodel ID 1 default (+6.5 to +10 %); payload software configuration |
+| JETB-11 | 2 | SIL Jetson model spends 0.036 Wh (130 J) per AI beacon; the carrier design gives 7.2-7.5 W at the input and about 424 J per line for a full burst | IMP | Closed by design change | SIL Jetson at the carrier input 7.19–7.48 W (SIL-26); energy gate ends a burst (SRS-F151); SIL F full run 8,145 Wh over 126,292 accepted beacons, 0.064 Wh each against 0.1 Wh (mean under assumed inputs; go/no-go on the EM, P3F-G-03); confirmed by P3F-G |
+| JETB-01 | 2 | Jetson burst draws 7.7-8.0 W at the carrier input in the 7 W mode: no margin to the 8 W allocation | IMP | Closed by design change | sqso-platform.service.j2 (curr1_max 1300 mA, nvpmodel ID 1), tegra234-p3767-sqso-pcie-c4.dts (PCIe Gen2 x1), no carrier EEPROM; VI V-JET-4 on the EM carrier: VDD_IN 2 s average ≤ 1.3 A capped by the limit, carrier input ≤ 8.0 W, 2027-07; confirmed by P3F-G |
 | JETB-02 | 2 | Heat-spreader temperature has no sensor path with the carrier off (guard 70 °C, power-on gate −15 °C) | IMP | Closed by design change | Carrier passes the spreader thermistor through unpowered on J3 pins 5-6; OBC PA2 (ADC1_IN7) with a 10.0 kΩ 0.1 % bias from VDDA, ±0.24 K at −15 °C (SQSO-OBC-BRD-001 B §11.3, SQSO-ICX-001 B E10) |
-| JETB-03 | 2 | Module needs 8N2 from the OBC, a commanded SHUTDOWN before power removal (hold-up 0.11 ms), JPC from IMON_JET | IMP | Implementation | Flight software round 3 (uart.rs 8N2; SHUTDOWN, JET_PG fall ≤ 5 s, then JETSON_PWR and PAYLOAD_EN 10 ms apart; ICD-002 1.3 §10) |
+| JETB-03 | 2 | Module needs 8N2 from the OBC, a commanded SHUTDOWN before power removal (hold-up 0.11 ms), JPC from IMON_JET | IMP | Closed by design change | USART1 8N2 in the firmware; SHUTDOWN, JET_PG fall ≤ 5 s, JETSON_PWR then PAYLOAD_EN 10 ms apart, unexpected fall a fault (jetson_power.rs, SRS-F148/F149, tests); JPC from IMON_JET; VI V-JET-1 on the EM carrier, 2027-07; confirmed by P3F-G |
 | JETB-04 | 3 | A full 10-minute burst costs about 424 J per beacon line against the 360 J gate | CH | Closed by chair decision | The energy gate, not the 10-minute limit, ends a burst; the generated-text experiment stays gated (decision D5); templates are the baseline |
 | JETB-05 | 3 | Carrier mechanics: spreader pedestal, 0.05 mm flatness, module standoffs, flush fastener at (0, −21) under the module | IMP | Closed by design change | Pedestal 22 × 22 × 0.75 mm, flatness 0.05 mm, shims at integration (VI-MCAD-06), standoffs MP2/MP3, low-head fastener at (0, −21), clamp 38 N of 80 N (MECHANICAL_DESIGN §4.5); carrier D: window keep-outs by side, frame screws H10-H13 on tapped pads, MP2 assembly notes (SQSO-JET-BRD-001 D §18.1) |
 | JETB-06 | 3 | NVIDIA Product and Thermal Design Guides not obtained: POWER_EN to SYS_RESET* timing, PCIe AC-coupling, FORCE_RECOVERY*, routing, lid θjc | DP | Decision point (dated) | DA-19 (with JETB-12): NVIDIA design guides by 2027-02-01, before carrier layout 2027-03-16 |
 | JETB-07 | 3 | Some carrier part numbers confirmed only from distributor listings | VI | Decision point (dated) | With EPSB-09 (DA-18) |
 | JETB-08 | 3 | NVIDIA screens the module at 2 Grms only; flight level is 8.18 Grms | VI | Verification item | V-JET-8: random vibration of the populated carrier at protoflight level, functional test before and after |
-| JETB-09 | 2 | If the module's VDD_IN pins are at the SO-DIMM +X end, the 1.4 A burst current passes 12 mm from the RM3100 (order 10 µT) | IMP | Implementation | Chair: the flight software does not use the magnetometer for actuation while JET_PG is high; hardware location per the OBC designer (MCAD-06); VDD_IN end from the NVIDIA drawing (JETB-06) |
+| JETB-09 | 2 | If the module's VDD_IN pins are at the SO-DIMM +X end, the 1.4 A burst current passes 12 mm from the RM3100 (order 10 µT) | IMP | Closed by design change | Magnetometer not used for actuation while JET_PG is high (adcs_control.rs, SRS-F143, test the_magnetometer_is_gated); the SIL drives JET_PG and PTT and adds the burst field at the magnetometer; confirmed by P3F-G |
 | JETB-10 | 3 | SO-DIMM latch material unknown (TE); carrier magnetic signature unmeasured | VI | Verification item | V-JET-9: ≤ 0.5 mA·m² unpowered; ≤ 15 nT change at A2 during a burst |
 | JETB-12 | 3 | Mated heights of the carrier's J1 and J2 not yet read from the Molex drawings (limits 13.2 mm and 7.7 mm) | VI | Decision point (dated) | DA-19: Molex drawings (J1 ≤ 13.2 mm, J2 ≤ 7.7 mm) and the NVIDIA guides by 2027-02-01 |
 | JETB-13 | 3 | Spreader thermistor curve from a third-party Steinhart-Hart fit of the 10K3A material, not TE's table | VI | Verification item | V-JET-7: EM thermistor calibrated ±1 K at −15 and +70 °C; flight thermistor checked at FM carrier acceptance |
@@ -711,7 +714,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| P3A-01 | 2 | GNSS receiver powered inside the 45-minute RF silence | IMP | Implementation | First session ≥ 45 min |
+| P3A-01 | 2 | GNSS receiver powered inside the 45-minute RF silence | IMP | Closed by design change | First GNSS session at 46 min with a compile-time check (gnss_schedule.rs FIRST_SESSION_DELAY_MS, SRS-F084, test first_session_after_the_delay_then_a_fix_ends_it) plus the executive's !rf_silence_active() gate; confirmed by P3F-G |
 | P3A-02 | 2 | Launch-compliance documents show pre-round-2 status | IMP | Closed by design change | LVR E (rows 004-109 to the design), CDS C, OAP D, superseded notice on CDR_TECHNICAL_BASELINE |
 | P3A-03 | 2 | RF-board TNC firmware has no task, owner, requirements or hazard entry | IMP | Closed by design change | Requirements written for both board firmware items: SQSO-SRS-TNC-001 (67, 25 safety-critical) and SQSO-SRS-EPSC-001 (62, 20), each with a hardware-enforced table; hazards SW-HAZ-014 to -017 (SHA G §9.8); eleven schedule tasks (SCHEDULE E, CPM float unchanged +71 d, least new-task float 92 d), owner flight software lead (PI until named); SDP 1.6 §3.4, NPR 7150.2 matrix C (SWE-050/052/184/205 met); RTM and VCRM E; toolchains Rust no_std (TNC) and C11 MISRA (EPS controller) for PI ratification DA-22 by 2026-12-01 |
 | P3A-04 | 3 | Telecommand variant B at its minimum is 0.2 dB under 64 dBm; station gain and pointing unverified | IMP | Closed by design change | Variant B ≤ 50 W PEP at the transmitter output into ≥ 17.8 dBic (64.1 dBm, +6.6 / +8.4 dB); VI-GND-01 ≥ 100 W at the feed; VI-GND-07 station EIRP, VI-GND-08 ±2° pointing (GND-001 G, LBA 3.5) |
@@ -720,7 +723,21 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3A-07 | 3 | Operations texts contradict the design | IMP | Closed by design change | MISSION_TIMELINE 2.5, CONOPS, GND-001 G §5, ICD_OBC_RF 2.3 (40 ms lease, drop 87-98 ms) corrected |
 | P3A-08 | 3 | Report §3.1-§3.3 numbers do not follow from their sources | IMP | Closed by design change | Report §3.1-§3.3 corrected: ODAR Draft D P 0.997, 86 LVR rows, storage SOC from the 7.7 µA drain, burn sequence, pass statistics (MISSION_TIMELINE 2.3), fire-first passivation, ODAR lifetimes |
 | P3A-09 | 3 | 485 km cap not defined against injection dispersion; no 460 km quote | IMP | Closed by design change | Cap on the 3σ-high mean altitude or apogee, injection dispersion included; every RFQ asks for a 460 km quote (OAP D §2.2, LVR-087, ICD-010 G §9.1, BASELINE §3) |
-| P3A-10 | 3 | SIL link model at the pre-C-14 station and wrong 70 cm tape axis | IMP | Implementation | Move the SIL to LBA 3.4 |
+| P3A-10 | 3 | SIL link model at the pre-C-14 station and wrong 70 cm tape axis | IMP | Closed by design change | SIL link at the C-14 station (64.0 dBm EIRP), 70 cm tapes along ±Y (link.rs, SIL-35); passes heard 95.7 %, commands 1,449 of 1,463 (SIL F); confirmed by P3F-G |
+
+#### Round 3: avionics, flight software, GN&C (P3F)
+
+| RID | Sev | Finding | Round 1 | Final disposition | Evidence |
+|-----|-----|---------|---------|-------------------|----------|
+| P3F-G-01 | 2 | RAD-V1 to V6 not in the VI register (the generator's pattern skips RAD-V): no owner or date; RAD-01 rests on RAD-V2 and the receiver's survival on RAD-V3 | IMP | Implementation | Generator pattern, owners, dates |
+| P3F-G-02 | 2 | A missing AntS temperature counts as cold, so a temperature-path fault silences every transmitter for about 25 h (C-19); at the 30-deferral cap the release can fall at any orbital phase (−36 °C, −46 °C with margin); neither path runs in the SIL | IMP | Implementation | Cap release in sunlight; schedule fallback after repeated unknown readings; SIL cases |
+| P3F-G-03 | 2 | Smart Beacon go/no-go criteria disagree with the design: SYS-512 and VI-02 bursts ≤ 120 s, D5 ≤ 960 J per burst, against BASELINE §6 and the code's ≤ 10 min and 3.6 kJ; MSC E-02 ≥ 10 bursts vs VI-02 ≥ 30; the flight gate caps energy per burst, not per accepted beacon | IMP | Implementation | One burst definition; gate on energy per accepted line |
+| P3F-G-04 | 3 | ADCS performance record stale: §11.4 gain sweep not re-run (93 % vs 76.2 % at Iyy/Izz 1.000, C-4's rationale); BASELINE §8 quotes ADCS_DESIGN 1.5 figures; §11.3 preset axes not the code's | IMP | Implementation | Re-run the sweep; CR to BASELINE §8 |
+| P3F-G-05 | 3 | Monte Carlo gaps: no magnetometer gating (coils off about 10 % of the time); wings-stowed case deploys the AntS at 30 min, not after the C-18 deferral; stowed-tensor products differ from MASS_BUDGET; AntS-pending interval and deployment transient not modelled; one-wing cases only with plant = flight model | IMP | Implementation | Add the cases |
+| P3F-G-06 | 3 | The ground cannot tell which wing deployed (SOLAR_SENSE in series, only total array power), so it cannot choose between presets 1 and 2; a wrong preset is not analysed | IMP | Implementation | Identification procedure or preset-0 rule |
+| P3F-G-07 | 3 | The ±5° attitude-knowledge requirement (ADCS-F003/P003, EKF/TRIAD) is not implemented; MRD-061 'verified' by a Monte Carlo that does not measure knowledge | IMP | Implementation | Restate or implement and verify |
+| P3F-G-08 | 3 | RADIATION_ANALYSIS E does not match the selected parts (MM200 vs RM3100, load switches), omits the implemented mitigations, old dose model, Jetson upset probability 10× low, no latch-up statement, no 475/485 km table | IMP | Implementation | Revise against the parts list and the code |
+| P3F-G-09 | 3 | V-JET-9's ≤ 15 nT burst limit is not traceable to a need (carrier bound 0.35 µT, magnetometer unused during bursts) | IMP | Implementation | Record-only or justified limit |
 
 #### Round 3: thermal and parts (P3T)
 
@@ -734,7 +751,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3T-06 | 3 | BFP640F LNA has a last-time-buy of 2027-05-15 | IMP | Decision point (dated) | BFP640F lifetime buy of 60 pieces from one date code (EM 2, FM 2, spares 6, radiation and DPA 20, process and tuning 30) ordered by 2027-03-31, before the 2027-05-15 last-time-buy, dry-pack storage; owner RF lead with procurement (RF_BOARD_DESIGN F) |
 | P3T-07 | 3 | X7R capacitance change at −40 °C (up to −15 %) not in the timing worst cases (EPS integrators, OBC C_RETRY) | IMP | Closed by design change | X7R −15 % at −40 °C in every timing worst case: EPS deploy-switch gate filters 47 → 68 nF (12.8 ms worst against 10 ms), radio/GNSS retry R_FAULT 150 kΩ (≥ 1.26 s against 1 s), load-shed delay 3.7–5.5 s (V-EPS-7 over temperature), integrators −25/+10 % measured by V-EPS-1 extended to −40 °C; OBC C_RETRY with R_FAULT 220 kΩ (0.18–0.33 s against 0.1 s; sensors used ≥ 0.6 s after an enable), V-OBC-5 at −40 °C |
 | P3T-08 | 3 | 156 parts are rated exactly −40 °C, with zero margin to the first-orbit cold case | IMP | Closed by analysis | Parts rated −40 °C have +1.4 to +2.4 °C to the first-orbit prediction after the 10 °C margin (OBC/EPS −27.6 °C, RF −28.6 °C, THERMAL_ANALYSIS 2.4 §6) and their full rating elsewhere; the first-orbit −40 °C allowable is GEVS deviation 8 (CR-2026-017, THM-04); V-THM-8 and the −40 °C qualification cycles test them at their rating |
-| P3T-09 | 1 | AntS released at S+31 min after an eclipse separation is at −44 °C against its −20 °C qualified minimum; unpowered first-orbit minimum −57 °C with margin against the −50 °C storage limit (THERMAL_ANALYSIS 2.4 §4.4) | IMP | Implementation | Temperature-gated deployment (C-18); ISIS statement to −57 °C |
+| P3T-09 | 1 | AntS released at S+31 min after an eclipse separation is at −44 °C against its −20 °C qualified minimum; unpowered first-orbit minimum −57 °C with margin against the −50 °C storage limit (THERMAL_ANALYSIS 2.4 §4.4) | IMP | Closed by design change | Gate C-18 (SRS-F165: AntS temperature ≥ −17 °C, 50-min deferral without spending an attempt, 30-deferral cap, ground force via DEPLOY_RETRY byte 1) and hold C-19 (SRS-F167: RF_INHIBIT_ANTS_PENDING, tests in Rust and C); SIL ants_cold: deferred once, deployed 80.7 min, first RF 81.2 min, 0 VSWR stops, gap 126 s; unpowered survival to −57 °C by the ISIS statement (P3T-03 item 1, 2026-12-15); cap and unknown-temperature paths: P3F-G-02; confirmed by P3F-G |
 | P3T-10 | 2 | The harness splice M81824/1-1 (TE D-436-36) has a tin-plated barrel against the EEE no-tin rule; the 28 AWG conductors at W6C and W7C are below the smallest splice's range; the sealing sleeve has no outgassing data | IMP | Closed by design change | Splice TE D-200-82 (nickel barrel per AMS-QQ-N-290, −55…+200 °C, M81824/1-1 size; deviation HAR-DEV-1, not a QPL number) on the four 24 AWG deployed-sense leads only; the 28 AWG W6C/W7C leads (Pico-Clasp, 28–32 AWG only) end on bonded polyimide solder tabs TB-RX/RY/RZ and TB-ANT per NASA-STD-8739.3; harness CBE 85.5 g; harness_calcs flags any spliced wire outside 26–20 AWG; sleeve outgassing: TE E595 certificate on a shrunk splice, harness designer, 2027-01-15, fallback a project E595 test of ten splices then a crimp splice under FEP shrink (V-HAR-11; MATERIALS_LIST E §7) |
 <!-- RID-LOG-END -->
 
