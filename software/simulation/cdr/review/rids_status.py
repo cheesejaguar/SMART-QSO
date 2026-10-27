@@ -67,5 +67,6 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "JETB-02": ("CD", "Carrier passes the spreader thermistor through unpowered on J3 pins 5-6; OBC PA2 (ADC1_IN7) with a 10.0 kΩ 0.1 % bias from VDDA, ±0.24 K at −15 °C (SQSO-OBC-BRD-001 B §11.3, SQSO-ICX-001 B E10)"),
     "MCAD-06": ("CD", "RM3100 on its own board A2 in the +Z end-frame slot (+24, +27): rod coupling 830 nT per mA·m² (was 1194), nearest rod end 54.7 mm, 63 mm from the Jetson input; 20 mm non-ferromagnetic zone; AV-V4 with per-polarity calibration (SQSO-OBC-BRD-001 B)"),
     "RFB-07": ("CD", "RX_CD (CC1200 carrier sense) and RX_FAULT (TNC heartbeat monostable, fault 0.36-0.62 s after the last pulse) on J1-15/16 (SQSO-RF-BRD-001 B); OBC PG0 and PF13 with pull-downs (SQSO-ICX-001 B); firmware pins in round 3; VI-RFB-10"),
+    "JETB-05": ("CD", "Pedestal 22 × 22 × 0.75 mm, flatness 0.05 mm, shims at integration (VI-MCAD-06), standoffs MP2/MP3, low-head fastener at (0, −21), clamp 38 N of 80 N (MECHANICAL_DESIGN §4.5); carrier D: window keep-outs by side, frame screws H10-H13 on tapped pads, MP2 assembly notes (SQSO-JET-BRD-001 D §18.1)"),
     "SE-10": ("CD", "SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined"),
 }
