@@ -51,6 +51,7 @@ typedef enum {
     FLASH_REGION_HK_DETAIL      = 13,  /**< Sixty-second housekeeping records, ring and event windows, 64 KB (hk_store.h) */
     FLASH_REGION_HK_INDEX       = 14,  /**< Housekeeping event-window table (hk_store.h) */
     FLASH_REGION_EOL            = 15,  /**< End-of-life passivation record (passivation.h) */
+    FLASH_REGION_ADCS_CAL       = 16,  /**< ADCS calibration: gyro alignment matrix and magnetometer bias table (adcs_control.h) */
     FLASH_REGION_COUNT
 } HalFlashRegion_t;
 

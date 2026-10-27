@@ -117,6 +117,7 @@ mod c;
 mod cell;
 #[cfg(not(target_os = "none"))]
 mod os;
+mod pins;
 mod ptr;
 mod store;
 

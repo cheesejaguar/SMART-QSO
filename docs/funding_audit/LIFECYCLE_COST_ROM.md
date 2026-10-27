@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-AUD-005
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Status:** **ROM, not a budget.** No vendor quotes have been obtained. Ranges come from analogous COTS CubeSat
 pricing and engineering judgment unless a source is cited. Accuracy class: about −30 % / +60 %. Replace each line with
@@ -38,7 +38,7 @@ can be built.
 | 06 | Spacecraft bus, PFU: structure, EPS + battery, solar (body + wings), OBC, UHF/VHF radio + transponder, antenna deploy, ADCS (MTQ + magnetometer + sun sensors), harness | $45k | $119k | Analogous COTS pricing [U]: structure $3–6k; EPS + battery $8–20k; solar $10–30k; OBC $4–12k; radio/transponder $5–15k; antenna system $3–8k; ADCS $5–15k; harness $1–3k |
 | 06 | GNSS receiver and patch antenna, EM and FM sets (D6) | $9k | $19k | piNAV-NG/FM EUR 3.3–6.2k or Celeste EUR 5.2k, plus ZENITH patch EUR 0.8k (list prices, not quotes) [U]; Czech export licence handled by the vendor |
 | 06 | Flatsat / engineering-model hardware | $25k | $80k | ~50–70 % of PFU hardware |
-| 07 | Mission operations: control-station equipment, SatNOGS integration, 2 yr operations consumables | $5k | $15k | Yagi/rotator/SDR/LNA station; ops labor uncompensated (Part 97) |
+| 07 | Mission operations: two telecommand stations (decision C-14: ≥ 100 W PEP at the 70 cm feed), SatNOGS integration, 2 yr operations consumables | $9k | $19k | ≈ $6.65k a station (SQSO-GND-001 Rev E §3.1: ≈ $4.9k of antennas, rotator, transceiver, keys and time, plus ≈ $1.75k for the class AB ≥ 150 W amplifier, sequencer, 40 A supply and low-loss feed); low: one station's equipment in kind; high: both bought plus a stacked 70 cm antenna (≈ $0.5k) at a US270 site; ops labor uncompensated (Part 97) |
 | 08 | Launch services (1U via integrator) | $85k | $150k | **[U]** No provider publishes a 1U price (seven checked, D7). SpaceX base $7,500/kg (2027), 50 kg minimum [P]; anchors: $86k (2026 community post), ~$85–90k (legacy Nanoracks) [U]. Hold 15 % of the slot price in the reserve for rebooking or storage |
 | 08 | Export counsel, classification, possible TAA | $10k | $40k | Needed if the integrator is foreign ([export memo](../regulatory/filings/EXPORT_CLASSIFICATION_MEMO.md)) [U] |
 | 08 | Shipping, travel, customs, integration campaign | $5k | $15k | D7 research [U] |
@@ -46,9 +46,9 @@ can be built.
 | 10 | Integration & test, EM and protoflight: random vibration (protoflight 8.18 Grms envelope), sine, TVAC (8 cycles) and bake-out, EMC (unit and system), shock (if the integrator requires it), Helmholtz-cage magnetic test, mass properties (trifilar MOI), deployment hot and cold, test-pod rental, one re-test allowance | $35k | $101k | Bottom-up in `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §7 (`software/simulation/cdr/pm/test_cost.py`); lab day rates $2k–5k assumed [U] |
 | 11 | Education / public outreach (beacon decoder releases, documentation) | $0 | $10k | — |
 | 01 | Legal entity (formation, registered agent), launch-services legal review, insurance declarations and FAA cross-waivers (SQSO-LVR-001 LVR-009, LVR-011) | $3k | $20k | [U]; depends on the entity form and the integrator's terms |
-| — | **Subtotal, non-labor** | **$227k** | **$599k** | |
-| — | Reserve on non-labor (30 %) | $68k | $180k | Class D practice; reserve is held by the PI, not spread across lines. It must also cover about 5 months of storage or a rebooking if the launch slips from the 2028-11 planning date |
-| — | **Total non-labor incl. reserve** | **$295k** | **$779k** | |
+| — | **Subtotal, non-labor** | **$231k** | **$603k** | |
+| — | Reserve on non-labor (30 %) | $69k | $181k | Class D practice; reserve is held by the PI, not spread across lines. It must also cover about 5 months of storage or a rebooking if the launch slips from the 2028-11 planning date |
+| — | **Total non-labor incl. reserve** | **$300k** | **$784k** | |
 
 ## 4. Labor (the dominant uncertainty)
 
@@ -107,4 +107,5 @@ Estimated effort to reach delivery and launch:
 |-----|------|-------------|
 | A | 2026-10-14 | Initial ROM (funding audit) |
 | C | 2026-10-27 | Design review (RID PM-06): integration and test line from the bottom-up test plan ($35k–101k), a legal-entity and insurance line, stale "RTOS port" labour text corrected, funding profile moved to the 2028-11 planning launch, reserve to cover storage or rebooking |
+| D | 2026-10-27 | WBS 07 for two telecommand stations with the 70 cm amplifier chain of decision C-14 ($5k–15k → $9k–19k); totals $300k–784k non-labor (§5 unchanged at $0.30M–0.78M) |
 | B | 2026-10-15 | Decisions D6 and D7: GNSS receiver line (EM and FM), launch slot $85k–150k with rebooking reserve, shipping and campaign line, orbit-determination tooling; paid-contract (D2) costs noted as outside the totals |

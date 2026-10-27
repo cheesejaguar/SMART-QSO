@@ -24,8 +24,9 @@ extern "C" {
  * @brief I2C bus enumeration
  */
 typedef enum {
-    I2C_BUS_0 = 0,   /**< Primary I2C bus (EPS, sensors) */
-    I2C_BUS_1 = 1,   /**< Secondary I2C bus (if available) */
+    I2C_BUS_0 = 0,   /**< I2C2 (PF1/PF0): EPS controller 0x48, INA228 0x40 and 0x44, AntS 0x31 */
+    I2C_BUS_1 = 1,   /**< I2C4 (PD12/PD13), through the TCA9517: ADS7138 0x10, RM3100 0x20 */
+    I2C_BUS_2 = 2,   /**< I2C1 (PG14/PG13): RV-3028-C7 mission clock 0x52, alone on its bus */
     I2C_BUS_COUNT
 } HalI2cBus_t;
 
@@ -41,11 +42,13 @@ typedef enum {
 /**
  * @brief Known I2C device addresses
  */
-#define I2C_ADDR_EPS_CONTROLLER   0x48
-#define I2C_ADDR_BATTERY_MONITOR  0x55
-#define I2C_ADDR_SOLAR_MONITOR    0x40
-#define I2C_ADDR_TEMP_SENSOR_1    0x48
-#define I2C_ADDR_TEMP_SENSOR_2    0x49
+#define I2C_ADDR_EPS_CONTROLLER   0x48  /**< I2C_BUS_0 */
+#define I2C_ADDR_BATTERY_MONITOR  0x44  /**< I2C_BUS_0: INA228 U28, the pack gauge (was 0x55) */
+#define I2C_ADDR_SOLAR_MONITOR    0x40  /**< I2C_BUS_0: INA228 U29, the array output */
+#define I2C_ADDR_ANTS             0x31  /**< I2C_BUS_0: ISIS AntS */
+#define I2C_ADDR_SUN_ADC          0x10  /**< I2C_BUS_1: ADS7138 sun-sensor ADC */
+#define I2C_ADDR_MAGNETOMETER     0x20  /**< I2C_BUS_1: PNI RM3100 (board A2) */
+#define I2C_ADDR_RTC              0x52  /**< I2C_BUS_2: RV-3028-C7 */
 
 /*===========================================================================*/
 /* I2C Functions                                                              */

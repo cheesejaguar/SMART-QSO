@@ -80,6 +80,8 @@ SmartQsoResult_t hal_deinit(void);
 #include "hal_adc.h"
 #include "hal_flash.h"
 #include "hal_wdt.h"
+#include "hal_mtq.h"
+#include "hal_capture.h"
 
 #ifdef __cplusplus
 }

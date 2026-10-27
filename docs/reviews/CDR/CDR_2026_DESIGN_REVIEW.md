@@ -121,7 +121,7 @@ L-2 M licences and ephemeris demonstration).
 | Depth of discharge | ≤ 10 % per eclipse | ≤ 3.7 % as flown (SIL D, 475 km); 2.8 % worst contingency (PBA 2.2) | × 2.7 | SIL_MISSION_SIMULATION D §7; POWER_BUDGET_ANALYSIS 2.2 |
 | Battery temperature | 0 to +45 °C charging | ≥ +4.4 °C with +5/+9 °C set points | — | THERMAL_ANALYSIS 2.0 |
 | Beacon link, 5° | ≥ 6 dB (median gain) | +7.9 dB | +1.9 dB | LINK_BUDGET 3.2 |
-| Telecommand link, 10° | 6 dB with interference allowance | +5.3 dB at 50 W PEP (6 dB from 12°) | −0.7 dB at 10° | LINK_BUDGET 3.0 |
+| Telecommand link, 10° | 6 dB with interference allowance | +8.3 dB at 64 dBm EIRP, receiver as designed, 10th-percentile gain (+6.5 dB at 5°) | +2.3 dB | LINK_BUDGET 3.3 (C-14) |
 | Sun pointing | ±15° | mean 1.8°, p95 3.5°, 99.98 % within 15° (SIL); Monte Carlo 100 % of sunlit time | Met | SIL_MISSION_SIMULATION D §7; BUILD_VS_BUY §6 |
 | Detumble | ≤ 3 orbits | ≤ 2.1 h (≤ 1.4 orbits) | × 2.1 | BUILD_VS_BUY §6 |
 | Total dose, 2 mm Al | design 10 krad, margin ≥ 2 | 5.25 krad at 500 km | × 1.90 → ≥ 2.1 mm required | RADIATION_ANALYSIS C |
@@ -147,7 +147,7 @@ L-2 M licences and ephemeris demonstration).
 | C-11 | Heater set points +5/+9 °C; ≈ 207 Ω heater | THM-02, BUILD_VS_BUY §4.5 |
 | C-12 | Two centre supports on the EPS, OBC and carrier boards | STR-05, MECHANICAL_DESIGN |
 | C-13 | 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames, so the deployed inertia ratio keeps margin with all four AntS elements | MCAD-09, RFB-11 |
-| C-14 | Telecommand stations transmit ≥ 100 W PEP at the antenna feed; commands only above 10° elevation | RF-23 |
+| C-14 | Telecommand stations radiate ≥ 64 dBm EIRP above 10° elevation: ≥ 100 W PEP into ≥ 14 dBic outside the 47 CFR 2.106 US270 areas, ≤ 50 W PEP into ≥ 17.5 dBic (stacked array) inside them; commands only above 10° | RF-23 |
 
 ## 5. Design completion (round 2)
 

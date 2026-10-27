@@ -112,12 +112,15 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--trials", type=int, default=2000)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--min-el", type=float, default=MIN_EL_CMD,
+                    help="maximum elevation a pass needs to count as a commanding pass (deg; 15 the SIL's mask, 10 decision C-14)")
     ap.add_argument("--common-rate", type=float, default=RATE_COMMON,
                     help="common-mode ground outages per year (0 isolates the station-independent part)")
     args = ap.parse_args()
     globals()["RATE_COMMON"] = args.common_rate
+    globals()["MIN_EL_CMD"] = args.min_el
     rng = np.random.default_rng(14)
-    res = {"model": {"min_el_cmd": MIN_EL_CMD, "p_attempt": P_ATTEMPT, "attempts": K_ATTEMPTS, "u_day": U_DAY,
+    res = {"model": {"min_el_cmd": args.min_el, "p_attempt": P_ATTEMPT, "attempts": K_ATTEMPTS, "u_day": U_DAY,
                      "rate_long_per_yr": RATE_LONG, "max_long_d": MAX_LONG, "rate_common_per_yr": args.common_rate}}
     pas = {}
     for name in ("SantaClara_CA", "Fairbanks_AK", "Blacksburg_VA", "Honolulu_HI"):

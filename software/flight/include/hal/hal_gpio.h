@@ -23,27 +23,29 @@ extern "C" {
 /**
  * @brief GPIO pin enumeration
  *
- * Logical pin names mapped to physical pins in implementation.
+ * Logical pin names; the STM32L4R5 pin of each is the master allocation
+ * SQSO-ICX-001 B §4.1 (hardware/electrical/INTERCONNECT.md), in
+ * software/rust/firmware/src/gpio.rs.
  */
 typedef enum {
-    GPIO_PIN_PAYLOAD_EN    = 0,   /**< Jetson payload power enable */
-    GPIO_PIN_RADIO_EN      = 1,   /**< Radio/transponder power enable */
-    GPIO_PIN_ADCS_EN       = 2,   /**< ADCS power enable */
-    GPIO_PIN_HEATER_EN     = 3,   /**< Heater power enable */
-    GPIO_PIN_DEPLOY_EN     = 4,   /**< Deployment master arm (a burn needs this and the element pin) */
-    GPIO_PIN_LED_STATUS    = 5,   /**< Status LED */
-    GPIO_PIN_JETSON_PWR    = 6,   /**< Jetson power control */
-    GPIO_PIN_RF_TX_EN      = 7,   /**< RF transmitter enable */
-    GPIO_PIN_ALERT         = 8,   /**< EPS alert input */
-    GPIO_PIN_DEPLOY_SENSE  = 9,   /**< Separation (deployment) switch sense input */
-    GPIO_PIN_UMBILICAL_SENSE = 10, /**< GSE umbilical present (high); pulled low in flight */
+    GPIO_PIN_PAYLOAD_EN    = 0,   /**< PB2: Jetson payload switch SW1 (PAYLOAD_EN) */
+    GPIO_PIN_RADIO_EN      = 1,   /**< PB5: radio power enable (SW2) */
+    GPIO_PIN_ADCS_EN       = 2,   /**< PB6: ADCS power enable (SW4 and the coil supply SW11) */
+    GPIO_PIN_HEATER_EN     = 3,   /**< PD2: battery heater (SW5) */
+    GPIO_PIN_DEPLOY_EN     = 4,   /**< PF3: deployment master arm (a burn needs this and the element pin) */
+    GPIO_PIN_LED_STATUS    = 5,   /**< PD3: status LED */
+    GPIO_PIN_JETSON_PWR    = 6,   /**< PA8: Jetson eFuse U19 (JETSON_PWR) */
+    GPIO_PIN_RF_TX_EN      = 7,   /**< PA3: transmitter PA rail (RF_TX_EN; low = TX-OFF) */
+    GPIO_PIN_ALERT         = 8,   /**< PB7: EPS alert input (open drain, active low) */
+    GPIO_PIN_DEPLOY_SENSE  = 9,   /**< PE2: separation (deployment) switch sense input */
+    GPIO_PIN_UMBILICAL_SENSE = 10, /**< PB8: GSE umbilical present (high); pulled low in flight */
     GPIO_PIN_ANTENNA_BURN  = 11,  /**< Wing 2 resistor A (PB9; was the antenna burn: the AntS deploys over I2C) */
     GPIO_PIN_SOLAR_BURN    = 12,  /**< Wing 1 resistor A (PB10) */
     GPIO_PIN_ANTENNA_SENSE = 13,  /**< Not wired since SQSO-ICX-001 B (the AntS reports its elements over I2C): reads low */
-    GPIO_PIN_SOLAR_SENSE   = 14,  /**< Solar array deployed sense input */
-    GPIO_PIN_TX_PWR_SEL    = 15,  /**< Downlink power select: low 0.5 W, high 1 W */
-    GPIO_PIN_XPDR_EN       = 16,  /**< FM transponder enable: heartbeat (hal_gpio_heartbeat), never a level */
-    GPIO_PIN_GNSS_EN       = 17,  /**< GNSS receiver load switch (current-limited, latch-up trip) */
+    GPIO_PIN_SOLAR_SENSE   = 14,  /**< PB12: solar wings deployed sense input (low = both deployed) */
+    GPIO_PIN_TX_PWR_SEL    = 15,  /**< PE3: downlink power select: low 0.5 W, high 1 W */
+    GPIO_PIN_XPDR_EN       = 16,  /**< PE4: FM transponder enable: heartbeat (hal_gpio_heartbeat), never a level */
+    GPIO_PIN_GNSS_EN       = 17,  /**< PE5: GNSS receiver load switch SW7 (current-limited, latch-up trip) */
     GPIO_PIN_SOLAR_BURN_B  = 18,  /**< Wing 1 resistor B (PE6) */
     /* Logical pins added at CDR (STM32 pins: SQSO-ICX-001 B §4.1) */
     GPIO_PIN_EOL_ARM       = 19,  /**< PF4: EPS end-of-life charge disconnect: arm latch (rising edge sets it), passivation.h */

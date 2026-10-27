@@ -19,19 +19,19 @@ use crate::c::rc;
 use crate::cell::Global;
 use crate::{os, ptr, time};
 
-const GPIO_PIN_COUNT: usize = 25;
+const GPIO_PIN_COUNT: usize = crate::pins::GPIO_PIN_COUNT as usize;
 const GPIO_DIR_INPUT: u32 = 0;
 const GPIO_DIR_OUTPUT: u32 = 1;
 /// `GPIO_PIN_XPDR_EN`, the heartbeat pin
 const GPIO_PIN_XPDR_EN: u32 = 16;
 /// `HAL_GPIO_HEARTBEAT_HZ`: the wave's half period, µs
 const HEARTBEAT_HALF_PERIOD_US: u64 = 1_000_000 / (2 * 100);
-const I2C_BUS_COUNT: usize = 2;
+const I2C_BUS_COUNT: usize = 3;
 const UART_PORT_COUNT: usize = 3;
 const UART_PORT_DEBUG: u32 = 1;
-const SPI_BUS_COUNT: usize = 2;
-const ADC_CHANNEL_COUNT: usize = 10;
-const FLASH_REGION_COUNT: usize = 16;
+const SPI_BUS_COUNT: usize = 3;
+const ADC_CHANNEL_COUNT: usize = crate::pins::ADC_CHANNEL_COUNT as usize;
+const FLASH_REGION_COUNT: usize = 17;
 const RADIO_MAX_FRAME: usize = 330;
 const WDT_DEFAULT_TIMEOUT_MS: u32 = 30_000;
 const WDT_MIN_TIMEOUT_MS: u32 = 1000;
@@ -39,8 +39,8 @@ const WDT_MAX_TIMEOUT_MS: u32 = 60_000;
 const RESET_POWER_ON: u32 = 0;
 
 const I2C_ADDR_EPS_CONTROLLER: u8 = 0x48;
-const I2C_ADDR_BATTERY_MONITOR: u8 = 0x55;
-const I2C_ADDR_SOLAR_MONITOR: u8 = 0x40;
+const I2C_ADDR_BATTERY_MONITOR: u8 = sqso_fsw::ina228::ADDRESS_PACK;
+const I2C_ADDR_SOLAR_MONITOR: u8 = sqso_fsw::ina228::ADDRESS_ARRAY;
 /// The ISIS AntS controller (`sqso_fsw::ants`): one-byte commands latch
 /// their register to 1; the status (0xC3, 2 bytes) reads stowed until set
 const I2C_ADDR_ANTS: u8 = sqso_fsw::ants::ADDRESS;
@@ -49,10 +49,15 @@ const UART_RX_SIZE: usize = 512;
 const RADIO_QUEUE: usize = 4;
 
 /// Simulated ADC inputs, volts (or the sensor's unit): VBATT, IBATT
-/// (discharging), VSOLAR, ISOLAR, VBUS, TEMP_MCU, TEMP_BOARD, and the
-/// downlink transmitter's TX_TEMP (°C), TX_FWD and TX_REV (W, matched at
-/// 0.5 W). `hal_adc_init()` restores these; `hal_sim_adc_set()` changes one
-const ADC_VALUES: [f64; ADC_CHANNEL_COUNT] = [7.8, -0.5, 9.2, 0.45, 5.0, 35.0, 28.0, 30.0, 0.5, 0.01];
+/// (discharging), VSOLAR, ISOLAR, VBUS, TEMP_MCU, TEMP_BOARD, the downlink
+/// transmitter's TX_TEMP (°C), TX_FWD and TX_REV (W, matched at 0.5 W), the
+/// Jetson switch readback VSW1_RB (V), the spreader thermistor PT_NTC (pin
+/// V: 1.65 V is 25 °C), the three coil currents (A) and the eFuse readback
+/// VJET_RB (V). `hal_adc_init()` restores these; `hal_sim_adc_set()`
+/// changes one. The two readbacks follow their switches unless a test or
+/// the mission simulation has set them ([`readback`])
+const ADC_VALUES: [f64; ADC_CHANNEL_COUNT] =
+    [7.8, -0.5, 9.2, 0.45, 5.0, 35.0, 28.0, 30.0, 0.5, 0.01, 0.0, 1.65, 0.0, 0.0, 0.0, 0.0];
 
 /// Region sizes, bytes, in `HalFlashRegion_t` order
 const FLASH_SIZES: [usize; FLASH_REGION_COUNT] = [
@@ -72,6 +77,7 @@ const FLASH_SIZES: [usize; FLASH_REGION_COUNT] = [
     65_536,                            // HK_DETAIL (sixty-second records: ring and event windows)
     256,                               // HK_INDEX (the event-window table)
     128,                               // EOL (passivation record)
+    256,                               // ADCS_CAL (gyro alignment and magnetometer bias records)
 ];
 const FLASH_TOTAL: usize = {
     let mut total = 0;
@@ -215,6 +221,15 @@ struct Sim {
     spi_initialized: [bool; SPI_BUS_COUNT],
     adc_initialized: bool,
     adc_values: [f64; ADC_CHANNEL_COUNT],
+    /// Channels set by `hal_sim_adc_set()` since `hal_adc_init()`
+    adc_set: [bool; ADC_CHANNEL_COUNT],
+    /// The last coil burst (`hal_mtq.h`): duties and when it ends, µs
+    mtq: ([u16; 3], u64),
+    /// Captures (`hal_capture.h`): periods, µs (`None`: no edges), and the
+    /// exciter's keyed time: accumulated ms, and since when it is high, µs
+    capture_period_us: [Option<u32>; 2],
+    ptt_high_ms: u64,
+    ptt_since_us: Option<u64>,
     flash: Flash,
     radio: Radio,
     radio_ready: bool,
@@ -243,6 +258,11 @@ static SIM: Global<Sim> = Global::new(Sim {
     spi_initialized: [false; SPI_BUS_COUNT],
     adc_initialized: false,
     adc_values: ADC_VALUES,
+    adc_set: [false; ADC_CHANNEL_COUNT],
+    mtq: ([0; 3], 0),
+    capture_period_us: [None; 2],
+    ptt_high_ms: 0,
+    ptt_since_us: None,
     flash: Flash {
         allocated: false,
         initialized: false,
@@ -381,7 +401,13 @@ pub extern "C" fn hal_gpio_get(pin: u32) -> bool {
         {
             return (now.saturating_sub(start) / HEARTBEAT_HALF_PERIOD_US).is_multiple_of(2);
         }
-        s.gpio_initialized && index(pin, GPIO_PIN_COUNT).and_then(|i| s.gpio_state.get(i).copied()).unwrap_or(false)
+        let Some(i) = index(pin, GPIO_PIN_COUNT).filter(|_| s.gpio_initialized) else { return false };
+        if s.gpio_driven.get(i) == Some(&None)
+            && let Some(level) = derived_input(s, pin)
+        {
+            return level;
+        }
+        s.gpio_state.get(i).copied().unwrap_or(false)
     })
 }
 
@@ -816,6 +842,7 @@ pub extern "C" fn hal_adc_init(_resolution: u32, _reference: u32) -> i32 {
     sim(rc::BUSY, |s| {
         s.adc_initialized = true;
         s.adc_values = ADC_VALUES;
+        s.adc_set = [false; ADC_CHANNEL_COUNT];
         rc::OK
     })
 }
@@ -825,7 +852,13 @@ fn adc_value(channel: u32) -> Result<f64, i32> {
         if !s.adc_initialized {
             return Err(rc::ERROR);
         }
-        index(channel, ADC_CHANNEL_COUNT).and_then(|c| s.adc_values.get(c).copied()).ok_or(rc::INVALID)
+        let c = index(channel, ADC_CHANNEL_COUNT).ok_or(rc::INVALID)?;
+        if s.adc_set.get(c) == Some(&false)
+            && let Some(v) = readback(s, channel)
+        {
+            return Ok(v);
+        }
+        s.adc_values.get(c).copied().ok_or(rc::INVALID)
     })
 }
 
@@ -887,6 +920,125 @@ pub unsafe extern "C" fn hal_adc_read_multiple(channels: *const u32, values: *mu
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_adc_calibrate() -> i32 {
     rc::OK
+}
+
+/// A readback ADC channel follows its switch, as the hardware's divider
+/// would: the switch output at the battery voltage when its enables are
+/// on, 0 V off (`None`: not a readback channel)
+fn readback(s: &Sim, channel: u32) -> Option<f64> {
+    use crate::pins::{ADC_VBATT, ADC_VJET_RB, ADC_VSW1_RB, JETSON_PWR, PAYLOAD_EN};
+    let out = |pin: u32| index(pin, GPIO_PIN_COUNT).and_then(|i| s.gpio_state.get(i).copied()).unwrap_or(false);
+    let vbat = index(ADC_VBATT, ADC_CHANNEL_COUNT).and_then(|c| s.adc_values.get(c).copied()).unwrap_or(0.0);
+    match channel {
+        ADC_VSW1_RB => Some(if out(PAYLOAD_EN) { vbat } else { 0.0 }),
+        ADC_VJET_RB => Some(if out(PAYLOAD_EN) && out(JETSON_PWR) { vbat } else { 0.0 }),
+        _ => None,
+    }
+}
+
+/// An input pin nobody drives that follows the outputs, as the board's
+/// readbacks do with nothing failed (`None`: an ordinary pin): the Jetson
+/// carrier's power-good with both of its switches on, each latch-up
+/// switch's EN node and the GNSS rail's power-good with their enables, the
+/// bridges' fault line high (no fault)
+fn derived_input(s: &Sim, pin: u32) -> Option<bool> {
+    use crate::pins::{
+        GNSS_EN, GNSS_PG, GYRO_EN, GYRO_RB, IMU2_EN, IMU2_RB, JET_PG, JETSON_PWR, MTQ_FAULT_N, PAYLOAD_EN, SNS_EN,
+        SNS_RB,
+    };
+    let out = |p: u32| index(p, GPIO_PIN_COUNT).and_then(|i| s.gpio_state.get(i).copied()).unwrap_or(false);
+    match pin {
+        JET_PG => Some(out(PAYLOAD_EN) && out(JETSON_PWR)),
+        GYRO_RB => Some(out(GYRO_EN)),
+        IMU2_RB => Some(out(IMU2_EN)),
+        SNS_RB => Some(out(SNS_EN)),
+        GNSS_PG => Some(out(GNSS_EN)),
+        MTQ_FAULT_N => Some(true),
+        _ => None,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// hal_mtq.h
+
+/// Start a coil burst (kept for tests: `hal_sim_mtq_last()`)
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn hal_mtq_burst(duty_permille: *const u16, on_ms: u32) -> i32 {
+    if duty_permille.is_null() {
+        return rc::NULL_PTR;
+    }
+    // SAFETY: the C contract: three uint16_t
+    let duty = unsafe { [duty_permille.read(), duty_permille.add(1).read(), duty_permille.add(2).read()] };
+    if duty.iter().any(|&d| d > 1000) || on_ms == 0 || on_ms > 900 {
+        return rc::INVALID;
+    }
+    let now = hal_timer_get_us();
+    sim(rc::BUSY, |s| {
+        s.mtq = (duty, now + u64::from(on_ms) * 1000);
+        rc::OK
+    })
+}
+
+/// End any burst now
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_mtq_off() -> i32 {
+    let now = hal_timer_get_us();
+    sim(rc::BUSY, |s| {
+        s.mtq.1 = s.mtq.1.min(now);
+        rc::OK
+    })
+}
+
+/// Whether a burst runs now
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_mtq_active() -> bool {
+    let now = hal_timer_get_us();
+    sim(false, |s| now < s.mtq.1)
+}
+
+/// The latest burst's duties, ‰ (tests)
+pub fn hal_sim_mtq_last() -> [u16; 3] {
+    sim([0; 3], |s| s.mtq.0)
+}
+
+// ---------------------------------------------------------------------------
+// hal_capture.h
+
+/// The latest period of the 1PPS or the RTC's 1 Hz, as set by the
+/// simulation (`hal_sim_capture_set_period()`)
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn hal_capture_period_us(input: u32, period_us: *mut u32) -> i32 {
+    // SAFETY: the C contract: NULL or a uint32_t
+    let Some(out) = (unsafe { ptr::out(period_us) }) else { return rc::NULL_PTR };
+    let Some(i) = index(input, 2) else { return rc::INVALID };
+    match sim(None, |s| s.capture_period_us.get(i).copied().flatten()) {
+        Some(p) => {
+            *out = p;
+            rc::OK
+        }
+        None => rc::TIMEOUT,
+    }
+}
+
+/// The exciter's keyed time since boot, ms: the time `GPIO_PIN_PTT_EXC`
+/// was driven high (`hal_sim_gpio_drive_input()`)
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_capture_high_ms(input: u32) -> u32 {
+    if input != crate::pins::CAPTURE_PTT_EXC {
+        return 0;
+    }
+    let now = hal_timer_get_us();
+    let ms = sim(0, |s| s.ptt_high_ms + s.ptt_since_us.map_or(0, |t| now.saturating_sub(t) / 1000));
+    u32::try_from(ms).unwrap_or(u32::MAX)
+}
+
+/// Set the period a captured input shows (`None`: it stopped)
+pub fn hal_sim_capture_set_period(input: u32, period_us: Option<u32>) {
+    sim((), |s| {
+        if let Some(p) = index(input, 2).and_then(|i| s.capture_period_us.get_mut(i)) {
+            *p = period_us;
+        }
+    });
 }
 
 // ---------------------------------------------------------------------------
@@ -1196,7 +1348,18 @@ pub extern "C" fn hal_sim_gpio_heartbeat_end_us(pin: u32) -> u64 {
 /// level across `hal_gpio_init()`)
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_sim_gpio_drive_input(pin: u32, state: bool) {
+    let now = hal_timer_get_us();
     sim((), |s| {
+        if pin == crate::pins::PTT_EXC {
+            match (state, s.ptt_since_us) {
+                (true, None) => s.ptt_since_us = Some(now),
+                (false, Some(t)) => {
+                    s.ptt_high_ms += now.saturating_sub(t) / 1000;
+                    s.ptt_since_us = None;
+                }
+                _ => {}
+            }
+        }
         if let Some(i) = index(pin, GPIO_PIN_COUNT) {
             if let Some(level) = s.gpio_state.get_mut(i) {
                 *level = state;
@@ -1277,6 +1440,9 @@ pub extern "C" fn hal_sim_adc_set(channel: u32, value: f64) -> i32 {
     sim(rc::BUSY, |s| match index(channel, ADC_CHANNEL_COUNT).and_then(|c| s.adc_values.get_mut(c)) {
         Some(v) => {
             *v = value;
+            if let Some(set) = s.adc_set.get_mut(usize::try_from(channel).unwrap_or(usize::MAX)) {
+                *set = true;
+            }
             rc::OK
         }
         None => rc::INVALID,

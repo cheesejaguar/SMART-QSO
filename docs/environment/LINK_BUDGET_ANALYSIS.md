@@ -1,7 +1,7 @@
 # SMART-QSO Link Budget Analysis
 
 **Document ID**: SQSO-LBA-001
-**Version**: 3.2
+**Version**: 3.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Controlled link budget for the baseline in [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) (§3, §7, §8). CDR re-issue (finding TB-05). **Analysis, not measured.** Every other document that quotes a link margin cites this one.
@@ -34,7 +34,7 @@ Every number is reproduced by the scripts in `software/simulation/cdr/rf/` (§9)
 | Beacon at the 485 km altitude cap (the bound) | 0.5 W, 5°, −3 / −10 dBi | +7.8 / +0.8 dB | Met / closes |
 | Beacon to a portable station (5 dBi Yagi, no Doppler correction) | 0.5 W, −3 dBi | −4.2 dB at 5°, +1.2 dB at 20°, +6.1 dB at 45° | Usable from about 17°, at 1 W from about 10° |
 | Beacon to a SatNOGS omni station (0 dBic, 1,000 K) | 0.5 W, −3 dBi | −7.1 dB at 5°, +0.7 dB at 30°, +5.9 dB at zenith | Usable above about 28° only |
-| Telecommand uplink margin ≥ 6 dB (proposed here, §1.2) at 10° | 25 W, 14 dBic, −10 dBi spacecraft gain, +6 dB terrestrial interference | **+2.6 dB** at 10°, +6.2 dB at 20°; +8.6 dB at 10° without interference. Receiver as designed (§6.4): +0.8 dB at 10° (25 W), **+3.8 dB at 50 W PEP** | **Not met at 10°**; met at 20°, or from about 11° with 50 W (§6.1); with the designed receiver from about 16° at 50 W |
+| Telecommand uplink margin ≥ 6 dB (proposed here, §1.2) at 10° | 25 W, 14 dBic, −10 dBi spacecraft gain, +6 dB terrestrial interference | **+2.6 dB** at 10°, +6.2 dB at 20°; +8.6 dB at 10° without interference. Receiver as designed (§6.4): +0.8 dB at 10° (25 W), +3.8 dB at 50 W PEP. **Decision C-14, 100 W PEP at the feed, commands above 10°: +8.3 dB at 10°, +6.5 dB at 5°** (receiver as designed, worst case) | **Met** with C-14 (§6.1); degraded mode 50 W PEP: met from about 16° |
 | Telecommand, median gain, interference +6 dB | 25 W, 5° | +7.8 dB | Met |
 | Transponder usable (12 dB SINAD end to end) | 5 W handheld + handheld Yagi up, handheld Yagi down | 20 dB at 5°, 27 dB at 20° | Met from 5° |
 | Transponder usable for a handheld with a whip, both ways | 5 W, whip, −3 dBi | 1.8 dB at 5°, 14.9 dB at 20°, 26 dB at zenith | Usable from about 17° (12 dB SINAD) |
@@ -45,7 +45,11 @@ uplink at 25 W does not hold a 6 dB margin at 10° once a 6 dB terrestrial-inter
 10th-percentile gain are both taken; with the budget receiver (1,000 K, the simulated threshold) telecommand at 50 W
 (the 50 W PEP limit near Beale AFB applies at the Bay Area site, §6.1), or commanding above 20°, restores it. With the
 receiver as designed on the RF board (SQSO-RF-BRD-001 Version C, §6.4: lower noise, but 2 dB more demodulator loss
-allowed) 50 W gives +3.8 dB at 10° and meets 6 dB from about 16°. Handheld users with whips are transponder users above about 17°
+allowed) 50 W gives +3.8 dB at 10° and meets 6 dB from about 16°. **Chair decision C-14** closes it: telecommand
+stations transmit ≥ 100 W PEP at the antenna feed and command only above 10° elevation, which gives **+8.3 dB at 10°
+and +6.5 dB at 5°** in the worst case (§6.1). At a station inside a 47 CFR 2.106 US270 area (the Bay Area site, within
+240 km of Beale AFB, and Fairbanks, within 160 km of Clear SFS) 100 W needs a case-by-case authorization; the same EIRP
+from 50 W PEP needs a ≈ 17.5 dBic antenna (§6.1). Handheld users with whips are transponder users above about 17°
 only. The largest open item is not the budget itself but its inputs that need hardware: the antenna pattern on the
 1U body with wings, the receiver noise figure, and the transmitter's 3rd harmonic and phase noise (§8).
 
@@ -406,8 +410,41 @@ LB-3 (≥ +6 dB at 10°, −10 dBi, +6 dB) is **not met** at 25 W: +2.6 dB. Opti
 - Command above 20° (+6.2 dB at 25 W).
 - Repeat each command (the counter rules of SQSO-ICD-013 §5.2 allow it with a new counter).
 
-The contact analysis (`docs/ground/GROUND_STATION_DESIGN.md` §5) assumes commanding passes above 15° and four
-attempts a pass; it shows the inhibit risk is set by ground availability, not by the link.
+**Chair decision C-14 (2026-10-27): telecommand stations transmit ≥ 100 W PEP at the antenna feed, and commands are
+sent only above 10° elevation.** Station chain assumed (SQSO-GND-001 Rev E §3.1): the transceiver drives a solid-state
+**class AB linear amplifier** rated ≥ 150 W FM output at 430–440 MHz (continuous carrier for at least 10 minutes), through
+**1.0 dB of feed line** (≤ 20 m of LMR-600-class coax with connectors and the sequencer relay), so the amplifier delivers
+126 W for 100 W at the feed; EIRP 100 W × 14 dBic = **64.0 dBm (2.5 kW)**. Against the 25 W, 1.5 dB-line station of the
+tables above (17.8 W at the feed) that is +7.5 dB. Telecommand margin (dB), 475 km, at the 14 dBic antenna:
+
+| Case | Spacecraft gain, interference | 5° | 10° | 20° | 30° |
+|------|-------------------------------|----|-----|-----|-----|
+| 100 W at the feed, budget receiver (1,000 K, §3.2 threshold) | −10 dBi, +6 dB | +8.3 | +10.1 | +13.7 | +16.1 |
+| 100 W at the feed, receiver as designed (§6.4), worst (typical) | −3 dBi, +6 dB | +13.5 (+13.8) | +15.3 (+15.6) | +18.9 | +21.3 |
+| 100 W at the feed, receiver as designed, worst (typical) | **−10 dBi, +6 dB** | **+6.5** (+6.8) | **+8.3** (+8.6) | +11.9 | +14.3 |
+| 100 W at the feed, receiver as designed, worst | −10 dBi, +10 dB | +2.5 | +4.3 | +7.9 | +10.3 |
+| Degraded mode: 50 W PEP transmitter, 1.5 dB line (35.4 W at the feed), receiver as designed, worst | −10 dBi, +6 dB | +2.0 | +3.8 | +7.4 | +9.8 |
+
+LB-3 is **met** with C-14: +8.3 dB at 10° in the worst case, and the 6 dB holds down to 5° (+6.5 dB). The
+degraded mode (a station at 50 W, or the amplifier failed) meets 6 dB from about **16°**; operations then command only
+above 16° (SQSO-GSOM-001). At the +10 dB interference level the 10° margin is +4.3 dB: commands still close, with
+repeats.
+
+**US270 sites.** 47 CFR 2.106 US270 limits amateur stations in 420–450 MHz to **50 W PEP** in the listed areas unless the
+FCC field office and the military area frequency coordinator authorize more case by case: among the candidate sites
+this covers Santa Clara and Ames (within 240 km of Beale AFB, 39°08′ N, 121°26′ W; Santa Clara is about 204 km away) and
+Fairbanks (within 160 km of Clear SFS, 64°17′ N, 149°10′ W); Blacksburg, Morehead and Honolulu are outside every listed
+area. 97.313(f) lets an earth or telecommand station exceed 50 W in 435–438 MHz only up to 611 W ERP (1 kW EIRP) with
+the antenna's lower half-power point always more than 10° above the horizon, which caps EIRP below C-14's 2.5 kW. At a
+US270 site C-14 is therefore met by one of: (a) the case-by-case authorization for 100 W (Beale: HQ SpOC Spectrum
+Management Office; Clear: the same list in US270), or (b) the same EIRP from 50 W PEP: a low-loss feed (0.5 dB, 44.6 W
+at the feed) into a **≈ 17.5 dBic** antenna (a stacked pair of 15.5 dBic cross-Yagis with its phasing harness), which
+US270 does not limit. Either is a decision for the licensee before the station is designated (for the chair; D3
+consultation).
+
+The contact analysis (`docs/ground/GROUND_STATION_DESIGN.md` §5) assumes commanding passes with a maximum elevation of
+at least 15° (and, for C-14, 10°) and four attempts a pass; it shows the inhibit risk is set by ground availability,
+not by the link.
 
 ### 6.2 Transponder uplink SINAD at the spacecraft (users Doppler-corrected to ±2.5 kHz)
 
@@ -460,7 +497,8 @@ Telecommand margin (dB), 475 km, receiver as designed, worst case (typical in br
 | 50 W PEP | −10 dBi, +0 dB | +8.0 | +9.8 | +13.4 | +15.8 |
 
 LB-3 (≥ +6 dB at 10°, −10 dBi, +6 dB) is therefore **not met at 10° even at 50 W PEP** with the designed receiver
-(+3.8 dB); 50 W meets it from about 16° and 25 W from about 27°. The command-pass mask of 15° in the contact analysis
+(+3.8 dB); 50 W meets it from about 16° and 25 W from about 27°. Decision C-14 (100 W PEP at the feed, §6.1) restores
+it: +8.3 dB at 10°. The command-pass mask of 15° in the contact analysis
 (SQSO-GND-001 §5) leaves +5.6 dB at 50 W in the worst case. The 2 dB is an allowance, not a measurement: if VI-RFB-01
 measures the TNC demodulator within 0.5 dB of the simulated one, the budget values of §6.1 return (50 W: +5.6 dB at
 10° worst). Transponder uplink SINAD near threshold (§6.2) falls by the same 1.8 dB: a 5 W handheld with a whip reaches
@@ -586,3 +624,4 @@ python3 desense_emc.py --out desense.json           # §7
 | 3.0 | 2026-10-27 | CDR review, communications panel | CDR re-issue (BASELINE §7, TB-05): simulated demodulator thresholds; pass-sampled pattern with the 6°/s spin and three element options; handheld, mobile and SatNOGS stations; transponder SINAD end to end; Doppler, CTCSS; desense, filter and intermodulation analysis; telecommand at 25 W found short of the proposed 6 dB at 10°; verification items VI-RF-01 to VI-RF-10 |
 | 3.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: altitude row (500 km analysed; baseline 475 km target, 485 km cap), uplink request windows (§2, §7.1) and the 8°/s spin of BASELINE Rev E noted against the 6°/s pass analysis (§1); 525 km rows labelled as a bound. Analysis values unchanged |
 | 3.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | RF board Version C (MMCX, 0.22 m of 1.37 mm coax: 0.44 dB at 146 MHz, 0.62 dB at 436 MHz; T_sys 548–598 K; sensitivity −121.4 / −115.8 dBm worst): §2.4 and new §6.4, telecommand with the designed receiver +0.8 dB at 10° at 25 W, +3.8 dB at 50 W PEP (worst), LB-3 met from about 16° at 50 W. Re-run at the Rev E baseline: every budget at 475 km with the 485 km cap as the bound (was 500 km, with 525 km); pass and fading analysis (§4.4, §5) at 8°/s (6°/s compared) from 2028-11-01. Beacon margin at 5° +7.9 dB (was +7.6), +0.9 dB at the 10th-percentile gain (was +0.6); telecommand +2.6 dB at 10° (was +2.3); station A 98.2 % of frames with the ±5 s jitter as built, 96.6 % without (was 97.2 % and 95.6 % at 6°/s); fades 5 s every 22.5 s; Doppler ±3.49 / ±10.42 kHz |
+| 3.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16, decision C-14) | §6.1 telecommand at ≥ 100 W PEP at the antenna feed (class AB linear amplifier ≥ 150 W, 1.0 dB feed line, 2.5 kW EIRP), commands above 10°: +8.3 dB at 10° and +6.5 dB at 5° with the receiver as designed (worst); degraded mode 50 W PEP meets 6 dB from about 16°; US270 areas (Bay Area, Fairbanks) and the 50 W PEP / 17.5 dBic alternative; LB-3 met (§1.1) |

@@ -1,7 +1,7 @@
 # SMART-QSO Data Budget
 
 **Document ID**: SQSO-DB-001
-**Version**: 2.1
+**Version**: 2.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis (finding TB-12). Values from BASELINE Rev E §8, BEACON_SPEC, the flight software as built (round 2: stored housekeeping and `DUMP_TLM`), the mission simulation (two-year `full` run at the Rev E baseline, 2026-10-27) and SQSO-LBA-001 v3.2 / SQSO-GND-001 Rev D (475 km, 8°/s). Not measured.
@@ -17,7 +17,7 @@ budgets and found stored housekeeping missing; Version 2.1 puts in the flight so
 | Broadcast telemetry (the beacon) | Beacon every 60 s ACTIVE / 120 s IDLE / 180 s SAFE (BASELINE §8) | ≈ 1,430 beacons and ≈ 285 HK1 frames a day; 1,725 frames/day radiated in all, 2.7 % transmitter duty | Met |
 | Telemetry received by the mission | Health visible every day | ≈ 26 beacons and 5 HK1 frames a day at one telecommand station (≈ 4 kB), ≈ 51 and 10 at two, up to ≈ 490 beacons by SatNOGS | Met for health monitoring |
 | Stored housekeeping (BASELINE §8: summarized every 5 minutes, ≥ 7 days onboard; 60 s records around faults and mode changes) | 7 days of five-minute records, retrievable by telecommand | FRAM store of 2,048 five-minute records (**7.1 days**) and 1,489 sixty-second records; `DUMP_TLM` (0x0A) | Met by design (flight software, SIL); verify on the EM |
-| Daily dump | The ground can follow the five-minute record stream | The whole stream (288 records/day) needs 72 dump frames, 14.4 min of commanding passes: **72 % of one station's**, 36 % of two stations'. The SIL plan dumps the newest 48 records a day (17 % of the stream) | Met with two stations; one station only with most of its commanding time |
+| Daily dump | The ground can follow the five-minute record stream | The whole stream (288 records/day) needs 72 dump frames, 14.4 min of commanding passes: **62 % of one station's** with the 10° commanding rule (72 % at 15°), 31 % of two stations'. The SIL plan dumps the newest 48 records a day (17 % of the stream) | Met with two stations; one station only with most of its commanding time |
 | Uplink | Commands per pass | ≤ 6 verified commands per pass at the beacon rate; capacity far above need | Met |
 
 ## 2. Broadcast Telemetry
@@ -80,17 +80,19 @@ gaps.
 
 ### 4.2 Daily downlink budget
 
-A dump is started by a command, so it runs on commanding passes (maximum elevation ≥ 15°): at Santa Clara 2.43 a day
-with 20.1 minutes above 5° in all (SQSO-GND-001 Rev D §3.3; `software/simulation/cdr/launch/leop_passes.py`). At one
-frame every 12 s that is **100 dump frames, 400 records a day** at most from one station (about 40 frames, 160
-records, in a typical 8-minute pass); a single `DUMP_TLM` of 600 records (150 frames, 30 minutes) spans several passes.
+A dump is started by a command, so it runs on commanding passes. Under decision C-14 commands are sent above 10°, so
+a commanding pass is one that reaches 10°: at Santa Clara **2.98 a day with 23.2 minutes above 5°** on them
+(`software/simulation/cdr/rf/pass_geometry_mc.py`, 60 days at 475 km; 2.43 a day and 20.1 minutes with the earlier
+15° mask, SQSO-GND-001 Rev D §3.3). At one frame every 12 s that is **116 dump frames, 464 records a day** at most from
+one station (100 and 400 at 15°; about 40 frames, 160 records, in a typical 8-minute pass); a single `DUMP_TLM` of 600
+records (150 frames, 30 minutes) spans several passes.
 
 | Dump plan | Records/day | Frames/day | Pass time | Keyed | Information | Transmitter energy (1.76 W DC) | Share of one station's commanding time |
 |-----------|-------------|------------|-----------|-------|-------------|-------------------------------|----------------------------------------|
-| SIL plan: newest 48 records a day (from the HK1 `ST=` field) | 48 (4 h of five-minute records) | 12 | 2.4 min | 19 s | 2.2 kB | 0.009 Wh | 12 % |
-| The whole five-minute stream | 288 | 72 | 14.4 min | 115 s | 13.0 kB | 0.056 Wh | **72 %** (36 % with two stations) |
-| One event window from the sixty-second store, on demand | 360 | 90 | 18 min | 144 s | 16.3 kB | 0.070 Wh | 90 % for a day |
-| Whole sixty-second store (rare) | 1,489 | 373 | 75 min | 597 s | 67.5 kB | 0.29 Wh | ≈ 3.7 days of one station |
+| SIL plan: newest 48 records a day (from the HK1 `ST=` field) | 48 (4 h of five-minute records) | 12 | 2.4 min | 19 s | 2.2 kB | 0.009 Wh | 10 % |
+| The whole five-minute stream | 288 | 72 | 14.4 min | 115 s | 13.0 kB | 0.056 Wh | **62 %** (31 % with two stations; 72 % with the 15° mask) |
+| One event window from the sixty-second store, on demand | 360 | 90 | 18 min | 144 s | 16.3 kB | 0.070 Wh | 78 % for a day |
+| Whole sixty-second store (rare) | 1,489 | 373 | 75 min | 597 s | 67.5 kB | 0.29 Wh | ≈ 3.2 days of one station |
 
 | Daily downlink at one station (SIL plan) | Frames | Information |
 |------------------------------------------|--------|-------------|
@@ -102,8 +104,8 @@ records, in a typical 8-minute pass); a single `DUMP_TLM` of 600 records (150 fr
 
 Over the two-year simulation the plan produced 8,664 dump frames (34,656 records, 11.9 frames a day) and 1,370
 acknowledgements. Following every five-minute record needs 72 frames a day, which one station can receive only by
-spending most of its commanding time on dumps; with the two stations of BASELINE §1 it takes about a third of their
-time. Recommended plan (for the operations owner): with two stations, dump the whole five-minute stream daily; with
+spending most of its commanding time on dumps (62 %); with the two stations of BASELINE §1 it takes about a third of
+their time. Recommended plan (for the operations owner): with two stations, dump the whole five-minute stream daily; with
 one, dump the newest 48–96 records a day and fetch the event windows after each fault.
 
 ### 4.3 Conflicts and limits
@@ -147,3 +149,4 @@ one, dump the newest 48–96 records a day and fetch the event windows after eac
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten (TB-12): broadcast, received and stored budgets separated; SIL frame counts; SatNOGS network estimate from the live station list; stored housekeeping found not implemented and without a downlink path, and its sizing against FRAM, internal flash and dump capacity; uplink and latency |
 | 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Received telemetry at 475 km and 8°/s (3.77 passes, 26.1 min a day; 98.2 % of frames with the beacon jitter as built; SatNOGS ≤ 488 a day); broadcast counts from the two-year SIL run (1,725 frames a day, 2.7 % duty); §4 rewritten to the flight software's store (2,048 five-minute records, 7.1 days; 1,489 sixty-second records; 256 B index) and `DUMP_TLM` (≤ 600 records, 4 a frame, one frame per 12 s, 181 B); daily downlink budget recomputed: the whole five-minute stream needs 72 % of one station's commanding time; the stored-housekeeping verdict is now met by design |
+| 2.2 | 2026-10-27 | CDR S&MA analysis (decision C-14) | Commanding passes at the 10° rule: 2.98 a day, 23.2 min above 5° (was 2.43, 20.1 min at 15°); dump capacity 116 frames, 464 records a day; the whole five-minute stream takes 62 % of one station's commanding time (was 72 %) |
