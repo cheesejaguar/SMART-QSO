@@ -575,7 +575,7 @@ def build_parts(p=P) -> List[Part]:
     add(Part("magnetometer_fasteners", "adcs", {"24": 0.5}, fuse(*a2f), color=COL["al"],
              note="3 x M2 Ti-6Al-4V screws (heads on the +Z face, outside the GNSS patch), brass nuts, polyimide washers"))
     # inertia ballast (MEL row 36, chair decision C-13): two 10 g W-Ni-Cu discs, D14 x 3.6 mm, on the +Z end frame
-    # inside at (-17, +-7.5): near the Z axis, symmetric in y (no Iyz), > 20 mm from board A2, 1.6 mm above the RF shield
+    # inside at (-17, +-7.5): near the Z axis, symmetric in y (no Iyz), 23 mm from board A2, 1.4 mm above the RF parts allocation
     bal = fuse(*[C("z", (-17.0, sy * 7.5, 0), 7.0, zp["pz_in"] - 3.6, zp["pz_in"]) for sy in (1, -1)])
     add(Part("inertia_ballast", "adcs", {"36": 20.0}, bal, color=COL["rod"],
              note="2 x 10 g W-Ni-Cu (non-magnetic) discs, Z-axis inertia ballast and integration trim (MEL row 36)"))
