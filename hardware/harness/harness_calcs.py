@@ -380,7 +380,7 @@ def compute():
             ext = BANDS[band][1] - BANDS[band][0]
         tie_pts += int(math.ceil(ext / 30.0))
     extras = {
-        "access-port board A3 (FR-4 30 x 8.8 x 1.6 mm, Micro-D 21 socket receptacle, ESD parts, two M2 Ti screws, staking)": 5.8,
+        "access-port board A3 (FR-4 30 x 8.8 x 1.6 mm, Micro-D 21 socket receptacle, ESD parts, two Ti jackposts, staking)": 5.8,
         "termination tabs TB-W1, TB-W2 (polyimide, 6 x 10 mm, bonded)": 0.4,
         "PTFE over-sleeve on the four pack leads": 0.3,
         "heat shrink and identification sleeves (one per wire end)": round(0.01 * 2 * len(wires), 1),

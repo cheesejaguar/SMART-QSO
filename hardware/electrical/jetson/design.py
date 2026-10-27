@@ -538,7 +538,7 @@ def mechanical():
          "PCIe Gen3 x4 (runs x1), -40..85 C ambient, 95 C case, power-fail protection", "Gen2 x1 (DT max-link-speed 2)",
          "rootfs A/B, model and data partitions (N2600 fact sheet rev 1.04)", "Au fingers", "Mouser listing (new product)"],
         ["MP1", 1, "M.2 standoff M2", "9774035243R", "Wurth Elektronik", "SMT steel spacer M2 x 3.5 mm",
-         "height to the TE 1-2199230-4 card plane", "", "with an M2 x 3 A2 screw, thread-locked (NASA-STD-5020)", "Sn",
+         "height to the TE 1-2199230-4 card plane", "", "with an M2 x 3 prevailing-torque (locking) screw, staked with Scotch-Weld 2216 (no liquid thread-locker; NASA-STD-8739.1)", "Sn",
          "not checked: height to be matched to the connector drawing"],
         ["MP2 MP3", 2, "module standoff", "9774040360R", "Wurth Elektronik", "SMT steel spacer M3 x 4.0 mm",
          "module far-edge holes; height = 4.0 mm stack", "TIM reaction <= 38 N", "thread and hole size per the NVIDIA "

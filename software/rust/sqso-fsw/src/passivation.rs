@@ -805,6 +805,45 @@ mod tests {
         assert!(io5.inhibited);
     }
 
+    /// Records the software does not write itself: a version-1 record not
+    /// committed stays idle; a silenced flag alone (an upset) still reads
+    /// as passivated; verify with the fire already done on record restarts
+    /// nothing
+    #[test]
+    fn unusual_records_are_read_safely() {
+        let mut io = Bench::default();
+        nvm::save(&mut io, REGION, 0, RECORD_MAGIC, &[0, 1, 0, 0]).unwrap();
+        let p = fresh(&mut io);
+        assert!(!p.committed());
+        assert!(!p.passivated());
+        assert_eq!(p.phase(0), Phase::Idle);
+
+        let mut io = Bench::default();
+        nvm::save(&mut io, REGION, 0, RECORD_MAGIC, &[FLAG_SILENCED, VERSION, 0, 0]).unwrap();
+        let p = fresh(&mut io);
+        assert!(!p.committed());
+        assert_eq!(p.phase(0), Phase::Passivated);
+        assert!(io.inhibited);
+
+        // Committed and the fire done on record, RAM forgot both: no fire
+        let mut io = Bench::default();
+        let flags = FLAG_COMMITTED | FLAG_FIRE_DONE;
+        nvm::save(&mut io, REGION, 0, RECORD_MAGIC, &[flags, VERSION, 1, 0]).unwrap();
+        let mut q = Passivation::new(REGION);
+        q.initialized = true;
+        q.verify(&mut io);
+        assert!(q.committed());
+        assert!(q.fire.is_none());
+        assert_eq!(q.phase(0), Phase::Reporting);
+        // Committed on record while a fire is already running in RAM: kept
+        let mut io = Bench::default();
+        let mut r = executed(&mut io, 1000);
+        r.committed = false;
+        let running = r.fire;
+        r.verify(&mut io);
+        assert_eq!(r.fire, running);
+    }
+
     #[test]
     fn the_eps_saying_open_is_passivation_even_without_a_record() {
         let mut io = Bench { open: Some(true), ..Bench::default() };

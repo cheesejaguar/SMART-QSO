@@ -92,8 +92,10 @@ W10 have stated minimums (thermal; RF loss budget). Each end's 15 mm is the stri
 **Access-port board A3** (harness part at the −Y access window, CAD request M-3; built to SQSO-OBC-BRD-001 C §15.1,
 which governs the board): FR-4, **30 × 8.8 × 1.6 mm** (the height of the CAD envelope x −35 … −5, z −46.8 … −38),
 2 layers, parallel to the −Y shear panel. It carries the Micro-D 21 socket receptacle, whose mating face sits in the
-window, and is held by the connector: two Ti M2 screws through the shear panel, the receptacle flange and A3, so the
-mating force goes into the panel. W8A (debug, key loading, ten 30 AWG) and W11 (charging, six 24 AWG) are soldered in
+window. The connector is fixed to the −Y shear panel by two self-locking Ti jackposts through the panel into the
+Micro-D flange's threaded inserts (their outer thread takes the GSE plug's jackscrews, so the mating force goes into
+the panel); A3 is soldered to the connector's PCB tails and has no fastener of its own; Scotch-Weld 2216 is used only
+as witness and staking beads (SQSO-OBC-BRD-001 C §15.1, item C19). W8A (debug, key loading, ten 30 AWG) and W11 (charging, six 24 AWG) are soldered in
 plated holes at the **two ends of the board**, W8A at the pin-1 (debug) end and W11 at the other (charge) end, each
 staked within 10 mm with one re-termination service loop; the window therefore carries one GSE connector. A3 also
 carries the window ESD and TVS parts (debug lines to GND, charge lines to PACK_N; OBC C §15.1). Micro-D pin map
@@ -425,7 +427,7 @@ plan area (limit 80 %). J10's plug points toward +X, so W7A's burn pairs leave s
 | Samtec TFM right-angle + SFSDT (OBC J1, J2, J9; RF J1) | ≤ 7.0 mm high (OBC: 8.0 allocation; RF J1: 10.0); **plug's back ≤ 2.0 mm inside the board edge** (x ≤ ±43.1) so the flat cable bends into the 3 mm wall gap at 4.0 mm radius | Latched; first tie point on the shear panel within 15 mm of the bend |
 | Samtec TFM vertical + SFSDT (EPS J3) | ≤ 9.0 mm below the EPS | Latched |
 | MMCX (W10, W10E) | 6.0 mm (RF board C §4.3) | Snap-on; cable tied within 15 mm of the plug (rotation) |
-| Micro-D 21 on A3 | Envelope x −35 … −5, z −46.8 … −38 (8.8 mm); A3 30 × 8.8 mm | A3 held by the receptacle: two Ti M2 screws through panel, flange and A3; W8A and W11 in plated holes at the two ends, staked within 10 mm |
+| Micro-D 21 on A3 | Envelope x −35 … −5, z −46.8 … −38 (8.8 mm); A3 30 × 8.8 mm | Receptacle on the −Y shear panel by two self-locking Ti jackposts into the flange's threaded inserts (GSE jackscrews in their outer thread); A3 soldered to the PCB tails, no fastener of its own; 2216 witness and staking beads only; W8A and W11 in plated holes at the two ends, staked within 10 mm |
 | Solder ends (pads, TB, burn boards, switches, A3) | — | Wire staked within 10 mm; service loop of one re-termination |
 | Splices (rods, sensors, AntS) | 1.6 × 10 mm, staggered | Tied down on both sides within 10 mm |
 
