@@ -152,7 +152,25 @@ L-2 M licences and ephemeris demonstration).
 
 ## 5. Design completion (round 2)
 
-<!-- Filled in as the round-2 designs land. -->
+Round 1 found no build-to design (SE-01). Round 2 produced one, to schematic level. Each board is captured as code
+(SKiDL) with selected, orderable parts, a netlist, a BOM with derating, an electrical rules check and its own
+calculations; the mechanical design is a CAD model with interference checks and a shell finite-element model. Every
+design was iterated against the others until the interfaces closed.
+
+| Item | Document | What exists | Key results |
+|------|----------|-------------|-------------|
+| EPS and safety board | SQSO-EPS-BRD-001 C | 700 placements, ERC 0; trackers, battery management, current-limited rails, four independent burn lines, DS1–DS3 inhibits, one-shot end-of-life disconnect, recharge lockout | Burn 0.67 A nominal one resistor at a time; storage drain 7.7 µA worst; pack and tap fuses MIL-PRF-23419/12 (1000 A interrupt) |
+| OBC board | SQSO-OBC-BRD-001 C | 351 placements, ERC 0; STM32L4R5, window-watchdog supervisor, RTC, FRAM, gyros, sun-sensor ADC, magnetorquer drivers; magnetometer board A2; access-port board A3 | Every pin one function (SQSO-ICX-001); PAYLOAD_EN off the JTAG pin; magnetometer moved to the +Z end (rod coupling ×1.44 lower) |
+| RF board | SQSO-RF-BRD-001 D | 300 fitted parts, ERC 0; CC1200 receiver, TNC MCU, LMX2571 exciter, PA, filters, nickel-silver shield, MMCX ports | Desense ≤ 0.44 dB; receive noise 548–598 K; carrier-detect and receiver-health lines; magnetically clean near A2 |
+| Jetson carrier | SQSO-JET-BRD-001 E | 137 placements, ERC 0; 5 V buck and eFuse, sequencing, translated UART, NVMe | Module capped at 6.5 W (+6.5–10 % to 8 W); gyro window; 2.0 mm, 6 layers |
+| Interconnect | SQSO-ICX-001 C | Master pin allocation and harness list | 29-row firmware pin change list |
+| Harness | SQSO-HAR-001 2.0 | 206 conductors, routes in the CAD frame, calculations script | Derating ≤ 60 % normal; drops ≤ 44 mV; corner fill ≤ 51 %; 84.3 g |
+| Mechanical | SQSO-MECH-CAD-001 B | CAD (STEP), 58 harness zones, interference checks; hinge model; shell FE (eight cases) | First mode 169 Hz; lowest strength margin +1.00; board fatigue +0.08 to +0.37; inertia ratio 1.055 / 1.046 with the C-13 ballast; mass 1.748 kg MEV (+14.4 %) |
+| Flight software | SRS 1.7 and later; `software/rust` | Passivation, stored housekeeping, acknowledgements, receiver supervision, memory-upset handling (round 2); pin map and drivers (round 3) | Full mission simulation 0 anomalies in 42 checks (SQSO-SIL-001 D §7) |
+
+What the design does not yet have: PCB layouts (SE-24, scheduled after the independent PDR), an engineering model,
+and the vendor-drawing confirmations listed as verification items (connector mated heights, gold part numbers, fuse
+ratings, outgassing data).
 
 ## 6. RID log
 
