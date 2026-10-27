@@ -125,7 +125,7 @@ L-2 M licences and ephemeris demonstration).
 | Telecommand link, 10° | 6 dB with interference allowance | ≥ +8.4 dB at both variants' minimums (variant A +9.5 dB), receiver as designed, 10th-percentile gain, pointing included (≥ +6.6 dB at 5°) | ≥ +2.4 dB | LINK_BUDGET 3.5 (C-14) |
 | Sun pointing | ±15° | mean 1.8°, p95 3.5°, 99.98 % within 15° (SIL); Monte Carlo 100 % of sunlit time | Met | SIL_MISSION_SIMULATION D §7; BUILD_VS_BUY §6 |
 | Detumble | ≤ 3 orbits | ≤ 2.1 h (≤ 1.4 orbits) | × 2.1 | BUILD_VS_BUY §6 |
-| Total dose, 2 mm Al | design 10 krad, margin ≥ 2 | 5.25 krad at 500 km | × 1.90 → ≥ 2.1 mm required | RADIATION_ANALYSIS C |
+| Total dose, 2 mm Al | design 10 krad, margin ≥ 2 | 4.69 krad at 475 km, 4.91 at the 485 km cap | × 2.13 (× 2.04 at the cap); ≥ 2.1 mm kept (× 2.17 at the cap) | RADIATION_ANALYSIS F |
 | Orbital lifetime | ≤ 5 yr after mission, P ≥ 0.9 | P ≥ 0.997 at 475–485 km (planned-end reading); wings-failed probability 0.29 % | Met; fallback 460 km | ODAR Draft D |
 | Casualty risk | ≤ 1:10,000 | No fragment > 15 J (nominal); 1:47,000 worst sensitivity | Met | ODAR Draft D |
 | Reliability | (goals 0.95 / 0.80 / 0.60) | 0.75 / 0.61 / 0.51 (L1 / L2 / L3); 0.86 / 0.71 / 0.59 with the burn-in and flatsat programme | PI acceptance (REL-01) | RELIABILITY 2.1 |
@@ -183,20 +183,20 @@ ratings, outgassing data).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-408 RIDs: severity 1: 32, severity 2: 210, severity 3: 166.
+409 RIDs: severity 1: 32, severity 2: 211, severity 3: 166.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 28 |
-| Closed by design change | 101 | 262 |
+| Closed by design change | 101 | 264 |
 | Closed by chair decision | 42 | 35 |
-| Verification item | 46 | 32 |
+| Verification item | 46 | 33 |
 | Decision point (dated) | 15 | 34 |
-| Implementation | 179 | 17 |
+| Implementation | 180 | 15 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 102 new findings; 45 of the reopened and 82 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 103 new findings; 45 of the reopened and 85 of the new are since closed.
 
-Open implementation RIDs: SMA-15, P3S-13, SMA-B02, P3F-G-01, P3F-G-02, P3F-G-03, P3F-G-04, P3F-G-05, P3F-G-06, P3F-G-07, P3F-G-08, P3F-A-01, P3F-A-02, P3F-A-03, P3F-A-04, P3F-A-05, P3F-A-06.
+Open implementation RIDs: SMA-15, P3S-13, SMA-B02, P3F-G-02, P3F-G-03, P3F-G-04, P3F-G-05, P3F-G-06, P3F-G-07, P3F-A-01, P3F-A-02, P3F-A-03, P3F-A-04, P3F-A-05, P3F-A-06.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -729,14 +729,14 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| P3F-G-01 | 2 | RAD-V1 to V6 not in the VI register (the generator's pattern skips RAD-V): no owner or date; RAD-01 rests on RAD-V2 and the receiver's survival on RAD-V3 | IMP | Implementation | Generator pattern, owners, dates |
+| P3F-G-01 | 2 | RAD-V1 to V6 not in the VI register (the generator's pattern skips RAD-V): no owner or date; RAD-01 rests on RAD-V2 and the receiver's survival on RAD-V3 | IMP | Closed by design change | gen_vi_register.py collects RAD-V items (pattern, owners, RID expansion; two new tests); RAD-V1 to V6 with owner and event: V1 radiation analyst before the EM order 2027-01-15, V2 sector analysis mechanical lead at EM layout freeze 2027-04-27, V3 TID lot test (10 krad pass, stepped to 20) and V4 SEL screening EEE parts engineer with samples bought at the EM order and tested before the CDR 2027-09-28, V5 EPS designer on the EM, V6 flight software lead on the flatsat (VI_REGISTER B, 224 items) |
 | P3F-G-02 | 2 | A missing AntS temperature counts as cold, so a temperature-path fault silences every transmitter for about 25 h (C-19); at the 30-deferral cap the release can fall at any orbital phase (−36 °C, −46 °C with margin); neither path runs in the SIL | IMP | Implementation | Cap release in sunlight; schedule fallback after repeated unknown readings; SIL cases |
 | P3F-G-03 | 2 | Smart Beacon go/no-go criteria disagree with the design: SYS-512 and VI-02 bursts ≤ 120 s, D5 ≤ 960 J per burst, against BASELINE §6 and the code's ≤ 10 min and 3.6 kJ; MSC E-02 ≥ 10 bursts vs VI-02 ≥ 30; the flight gate caps energy per burst, not per accepted beacon | IMP | Implementation | One burst definition; gate on energy per accepted line |
 | P3F-G-04 | 3 | ADCS performance record stale: §11.4 gain sweep not re-run (93 % vs 76.2 % at Iyy/Izz 1.000, C-4's rationale); BASELINE §8 quotes ADCS_DESIGN 1.5 figures; §11.3 preset axes not the code's | IMP | Implementation | Re-run the sweep; CR to BASELINE §8 |
 | P3F-G-05 | 3 | Monte Carlo gaps: no magnetometer gating (coils off about 10 % of the time); wings-stowed case deploys the AntS at 30 min, not after the C-18 deferral; stowed-tensor products differ from MASS_BUDGET; AntS-pending interval and deployment transient not modelled; one-wing cases only with plant = flight model | IMP | Implementation | Add the cases |
 | P3F-G-06 | 3 | The ground cannot tell which wing deployed (SOLAR_SENSE in series, only total array power), so it cannot choose between presets 1 and 2; a wrong preset is not analysed | IMP | Implementation | Identification procedure or preset-0 rule |
 | P3F-G-07 | 3 | The ±5° attitude-knowledge requirement (ADCS-F003/P003, EKF/TRIAD) is not implemented; MRD-061 'verified' by a Monte Carlo that does not measure knowledge | IMP | Implementation | Restate or implement and verify |
-| P3F-G-08 | 3 | RADIATION_ANALYSIS E does not match the selected parts (MM200 vs RM3100, load switches), omits the implemented mitigations, old dose model, Jetson upset probability 10× low, no latch-up statement, no 475/485 km table | IMP | Implementation | Revise against the parts list and the code |
+| P3F-G-08 | 3 | RADIATION_ANALYSIS E does not match the selected parts (MM200 vs RM3100, load switches), omits the implemented mitigations, old dose model, Jetson upset probability 10× low, no latch-up statement, no 475/485 km table | IMP | Closed by design change | RADIATION_ANALYSIS F against the EEE list and the five BOMs: 465/475/485 km dose table (2 mm 4.49/4.69/4.91 krad, margins 2.23/2.13/2.04; 2.1 mm 2.17 at the cap), RM3100 and the load switches named, SEU/SEFI/SEL handling as implemented (SRAM2 parity, FRAM mirror, supervisor, heartbeat, receiver recovery, RF scrub), Jetson upset 7.2×10⁻³ per 10-min burst, Jetson SEL chain (carrier U2 ≤ 3.2 ms, EPS U19 ≤ 1 ms, OBC guard), script radiation_tid_see.py matches; BASELINE §6, EEE list, reliability analysis and OBC board design updated to the F figures |
 | P3F-G-09 | 3 | V-JET-9's ≤ 15 nT burst limit is not traceable to a need (carrier bound 0.35 µT, magnetometer unused during bursts) | IMP | Closed by design change | V-JET-9 limit applies to the static field (carrier unpowered, when the magnetometer is used); the burst-induced field is recorded only with its nT/A coefficient, since the magnetometer is gated while JET_PG is high (SRS-F143); expected ≤ 0.35 µT (CARRIER_BOARD_DESIGN E §18.2) |
 | P3F-A-01 | 2 | AntS deployed state read while its controller is unpowered (burn_off drops ANTS_PWR before process_verify): on hardware a deployed AntS is never confirmed, two more burns, FAILED, the C-19 hold longer; the SIL answers regardless of SW8, so ants_cold is not representative | IMP | Implementation | Power before every status read; SIL AntS answers only with SW8 on; re-run |
 | P3F-A-02 | 2 | The PTT_EXCITER watch (SRS-F168) accepts any XPDR_KEY high without limit: a stuck key-gate or XPDR_KEY keys the exciter past the 120 s timer and blinds the watch to a stuck TNC_PTT; frequent overs reset the count | IMP | Implementation | Repeat path an explanation only with the heartbeat and ≤ 120 s plus margin |
@@ -745,6 +745,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3F-A-05 | 3 | ack and GNS formatters keep the 'too long gives empty' path; send_ui transmits an empty frame and marks it sent; GNSS PDOP unbounded | IMP | Implementation | Same fix as SIL-40; bound PDOP |
 | P3F-A-06 | 3 | separation.rs and fram_health.rs (SH-008 controls) not on the safety-critical list or in safety_coverage.py | IMP | Implementation | Add them |
 | P3F-A-07 | 3 | OBC heartbeat timeout and cycle limit inconsistent: EPS_DESIGN 120 s, ICD-001 600 s and 3 cycles in 24 h, INTERCONNECT E14 one 10 s pulse per 10 min | IMP | Closed by design change | Aligned to ICD-001 1.7: heartbeat at least every 60 s, 600 s timeout, SW10 off 1.95 ± 0.1 s, no cycle within 600 s of a start or the last cycle, at most 3 in 24 h (EPS_DESIGN SW10 row, INTERCONNECT E14, EPS_BOARD_DESIGN G §8.3 and V-EPS-16) |
+| P3F-G-10 | 2 | The always-on EPS chain (AFE and protector, trackers, ideal diodes, 3V3_AO buck and its domain) cannot sit behind a latch-up switch: nothing power-cycles it short of the AFE opening the bus (found in the RADIATION_ANALYSIS F revision) | IMP | Verification item | RAD-V4 SEL screening covers the always-on EPS parts (BQ76952, BQ771806, MSP430FR2355, the trackers, LM74700, the 3V3_AO buck): pass no latch-up to LET 37 MeV·cm²/mg (or published data); samples at the EM order 2027-01-15, test before the CDR 2027-09-28; a failing part is replaced or put behind a current-limited, self-resetting switch before the FM layout (design change); RTC on 3V3_AO through 1 kΩ limits its latch-up to 3.3 mA, re-set from GNSS or the ground (RADIATION_ANALYSIS F §5.3) |
 
 #### Round 3: thermal and parts (P3T)
 

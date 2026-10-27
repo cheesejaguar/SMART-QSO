@@ -72,7 +72,7 @@ Verification: VI-SAF-07 (SQSO-SDP-002), prohibited-materials and terminal-finish
 
 ### 2A.4 Radiation
 
-Total dose: 5.3 krad(Si) in 2 years behind 2 mm Al at 500 km; design level 10 krad (`docs/environment/RADIATION_ANALYSIS.md`
+Total dose: 4.69 krad(Si) in 2 years behind 2 mm Al at 475 km (4.91 at the 485 km cap; RADIATION_ANALYSIS F §4.1); design level 10 krad (`docs/environment/RADIATION_ANALYSIS.md`
 Rev C §4). Parts are accepted for TID with published data at ≥ 10 krad, or a heritage report, or a lot sample test
 (RAD-V3). Every mission-critical rail has a latch-up current limiter with OBC-commanded power cycling, because SEL data
 are missing for most parts (NASA/TM-20210018053 approach for commercial parts).
@@ -99,7 +99,7 @@ finishes and materials.
 | TI TPS22918 | Repeat-path load switch | BUILD_VS_BUY §3.2 | Non-critical | None | Candidate |
 | TI TPS25947 class eFuse | Jetson rail | Schematic S7 | Safety for the bus (isolation) | None | Candidate |
 | TI 74LVC1T45 | OBC–Jetson UART isolation (Ioff) | Schematic S7 (F13) | Mission | None | Candidate |
-| Infineon FM25V20A | FRAM | RADIATION_ANALYSIS Rev C | Mission | None for the part | Candidate |
+| Infineon FM25V20A | FRAM | RADIATION_ANALYSIS Rev F | Mission | None for the part (RAD-V3, RAD-V4) | Selected (OBC U3, mirror U36) |
 | SkyFox piNAV-NG/FM | GNSS receiver (assembly) | D6 | Non-critical | Vendor | Selected |
 | ISIS AntS | Antenna assembly | BUILD_VS_BUY §2.6 | Mission | Flight heritage | Selected |
 | Nvidia Jetson Orin Nano 8 GB (900-13767-0030-000) | AI payload (assembly) | BASELINE §6 | Non-critical | Orin AGX data only | Selected |
@@ -112,7 +112,7 @@ finishes and materials.
   remove or justify.
 - The TID and SEL values for the other parts in §4–§9 have no sources and are treated as unknown.
 - §7 RF parts (CC1125, RF5110G) are superseded by the transponder build of BUILD_VS_BUY §3 and the RF review.
-- §13.1: mission duration is the 2-year design life (BASELINE §2), and the dose is 5.3 krad(Si) behind 2 mm.
+- §13.1: mission duration is the 2-year design life (BASELINE §2), and the dose is 4.69 krad(Si) behind 2 mm at 475 km (4.91 at 485 km).
 - §10 Connectors (ESQ-126 PC/104 stack connector, FTSH-105 debug header, U.FL RF connector) is superseded: there is no
   stack connector, and the flight connectors and their finishes are §2A.8.
 
@@ -527,7 +527,7 @@ limits.
 | Orbit altitude | 465–485 km, target 475 km (BASELINE Rev E §3); radiation analysed at 500 and 525 km as bounds |
 | Inclination | ≈ 97.4°, sun-synchronous (`docs/BASELINE_PARAMETERS.md` §3) |
 | Mission duration | 2 years design life (BASELINE §2) |
-| Total Ionizing Dose | 5.3 krad(Si) in 2 years behind 2 mm Al at 500 km (RADIATION_ANALYSIS Rev C §4) |
+| Total Ionizing Dose | 4.69 krad(Si) in 2 years behind 2 mm Al at 475 km, 4.91 at the 485 km cap (RADIATION_ANALYSIS Rev F §4.1) |
 | SEE flux | Low (LEO) |
 
 ### 13.2 Mitigation Strategy

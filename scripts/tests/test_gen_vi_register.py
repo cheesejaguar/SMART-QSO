@@ -110,3 +110,26 @@ def test_rid_citations_expand_ranges_and_lists():
     assert g.expand_ids("VI-01 to VI-03 on the EM") == ["VI-01", "VI-02", "VI-03"]
     assert g.expand_ids("VI-RF-01, 03, 08") == ["VI-RF-01", "VI-RF-03", "VI-RF-08"]
     assert g.expand_ids("SV-12 and AV-V4") == ["AV-V4"]
+
+
+RADIATION = """# Radiation analysis
+| ID | Item | Method | Pass criterion | Verifies | Owner | When |
+|----|------|--------|----------------|----------|-------|------|
+| RAD-V2 | Sector analysis | FASTRAD | Every part ≥ 2.1 mm | RAD-01 | Mechanical lead | EM layout freeze, 2027-04-27 |
+| RAD-V6 | Parity fault injection | Debugger | NMI and reset | AV-07 |  | EM flatsat software test |
+"""
+
+
+def test_radiation_items_are_collected_with_their_owner_cell(tmp_path):
+    """RID P3F-G-01: RAD-V items were skipped by the ID pattern; an Owner cell overrides the document's owner"""
+    items, _, problems = by_id(repo(tmp_path, extra={"docs/environment/RADIATION_ANALYSIS.md": RADIATION}))
+    assert problems == []
+    assert items["RAD-V2"].date == "2027-04-27" and items["RAD-V2"].owner == "Mechanical lead"
+    assert items["RAD-V2"].criterion == "Every part ≥ 2.1 mm"
+    assert items["RAD-V6"].event == "FS"
+    assert items["RAD-V6"].owner == g.OWNERS["docs/environment/RADIATION_ANALYSIS.md"]
+
+
+def test_rid_citations_expand_radiation_items():
+    assert g.expand_ids("RAD-V1 to V6 not in the register") == [f"RAD-V{k}" for k in range(1, 7)]
+    assert g.expand_ids("rests on RAD-V2 and RAD-V3") == ["RAD-V2", "RAD-V3"]

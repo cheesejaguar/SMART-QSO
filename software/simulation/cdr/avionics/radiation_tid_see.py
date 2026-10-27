@@ -204,6 +204,20 @@ SEE_ROWS = [
 ]
 
 
+#: OBC live state in SRAM2 (parity): statics 43,452 B and the 8 KB stack (software/flight/docs/MEMORY_POLICY.md §3.2)
+LIVE_STATE_BYTES = 43_452 + 8 * 1024
+SRAM_BYTES = 640 * 1024
+SRAM2_BYTES = 64 * 1024
+
+
+def obc_sram_rates():
+    """(live-state upsets per day low, high; SRAM2 upsets per day low, high)"""
+    part, _e, _b, lo, hi, bits, flux, duty = SEE_ROWS[0]
+    whole_lo, whole_hi = per_day(lo, flux) * bits * duty, per_day(hi, flux) * bits * duty
+    f_live, f_sram2 = LIVE_STATE_BYTES / SRAM_BYTES, SRAM2_BYTES / SRAM_BYTES
+    return whole_lo * f_live, whole_hi * f_live, whole_lo * f_sram2, whole_hi * f_sram2
+
+
 #: Jetson bursts (BASELINE §6, SRS-F151): ≤ 10 min, 3.6 kJ; 120 s is the batch of SYS-512 and VI-02
 BURST_S = (120.0, 600.0)
 JETSON_PARTS = ("Jetson Orin module (SoC)", "Jetson Orin LPDDR5 (8 GB, 6.9e10 bit)")
@@ -287,6 +301,10 @@ def main() -> None:
     print("|---|---|---|---|---|---|")
     for part, effect, basis, rlo, rhi, two in see_table():
         print(f"| {part} | {effect} | {basis} | {rlo:.2g} | {rhi:.2g} | {two:.2g} |")
+    llo, lhi, slo, shi = obc_sram_rates()
+    print(f"\nOBC live state ({LIVE_STATE_BYTES:,} B in SRAM2): {llo:.2g} to {lhi:.2g} upsets a day, "
+          f"{llo * 365.25 * LIFE_YEARS:.0f} to {lhi * 365.25 * LIFE_YEARS:.0f} in {LIFE_YEARS:.0f} years; "
+          f"all of SRAM2: {slo:.2g} to {shi:.2g} a day")
     lo, hi = jetson_powered_rate_per_s(False), jetson_powered_rate_per_s(True)
     print(f"\nJetson SEFI or DRAM upset while powered: {lo * DAY_S:.2g} to {hi * DAY_S:.2g} per powered day")
     for b in BURST_S:

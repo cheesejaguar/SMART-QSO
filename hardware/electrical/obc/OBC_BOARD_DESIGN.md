@@ -693,7 +693,7 @@ stress, finish and how its MPN was checked. Summary of the active parts:
 
 No radiation data was found for any of these parts except the M-G370's TID. All are covered by the latch-up trips of
 §16 and by RAD-V3 lot-sample testing (EEE_PARTS_LIST §2A.4). TID: the board sits mid-stack (RADIATION_ANALYSIS §4:
-5.25 krad behind 2 mm Al in two years at 500 km); sector shielding per RID RAD-01 is the mechanical designer's.
+4.69 krad behind 2 mm Al in two years at 475 km, 4.91 at the 485 km cap, RADIATION_ANALYSIS F); sector shielding per RID RAD-01 is the mechanical designer's.
 
 ## 20. Firmware Configuration the Board Assumes
 

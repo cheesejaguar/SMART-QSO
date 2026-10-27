@@ -3,7 +3,7 @@
 Verification-item register (CDR 2026 round 3, RID P3P-01).
 
 The design documents define their own verification items in tables whose first cell is the item's ID
-(VI-LV-07, V-EPS-1, VI-01, AV-V4, ...). This script collects every one of them into
+(VI-LV-07, V-EPS-1, VI-01, AV-V4, RAD-V2, ...). This script collects every one of them into
 docs/verification/VI_REGISTER.md, one row per item: ID, test, pass criterion, planned event and date, owner, parent
 RID, status and the defining document. It adds the decision points and dated actions of mission/SCHEDULE.md §5
 (DA-nn rows: owner, due date, criterion).
@@ -19,7 +19,8 @@ Where the dates come from
   * OVERRIDES (below) gives the event, owner, criterion or status where the defining document lacks it. Each
     override names its reason; the defining document's owner mirrors it in the next revision.
 
-Owner is the defining document's owner role (OWNERS) unless overridden. Parent RID is every RID of the CDR 2026 review
+Owner is the item's "Owner" cell where its table has one, else the defining document's owner role (OWNERS), unless
+overridden. Parent RID is every RID of the CDR 2026 review
 (software/simulation/cdr/review/) whose disposition or closure evidence cites the item. Status is "Open" until an
 override cites committed evidence (nothing is verified until a report is committed, as in the VCRM).
 
@@ -49,7 +50,7 @@ ROOTS = ("docs", "hardware", "mission")
 #: Not scanned: the review record (it cites items, it does not define them) and this register
 EXCLUDED = ("docs/reviews/", "docs/funding_audit/", REGISTER)
 
-ITEM_ID = r"(?:VI|V)-[A-Z0-9]+(?:-[A-Z0-9]+)*|AV-V\d+"
+ITEM_ID = r"(?:VI|V)-[A-Z0-9]+(?:-[A-Z0-9]+)*|AV-V\d+|RAD-V\d+"
 ROW = re.compile(r"^\|\s*\**(" + ITEM_ID + r")\**\s*\|")
 DA_ROW = re.compile(r"^\|\s*\**(DA-\d{2})\**\s*\|")
 SEPARATOR = re.compile(r"^\|?(\s*:?-{3,}:?\s*\|)+\s*(:?-{3,}:?\s*)?$")
@@ -66,6 +67,7 @@ OWNERS: Dict[str, str] = {
     "docs/environment/LINK_BUDGET_ANALYSIS.md": "RF designer",
     "docs/environment/MECHANISMS_ANALYSIS.md": "Mechanical lead",
     "docs/environment/POWER_BUDGET_ANALYSIS.md": "EPS designer",
+    "docs/environment/RADIATION_ANALYSIS.md": "Radiation analyst",
     "docs/environment/STRUCTURAL_ANALYSIS.md": "Mechanical lead",
     "docs/environment/THERMAL_ANALYSIS.md": "Thermal analyst",
     "docs/ground/GROUND_STATION_DESIGN.md": "Ground segment lead",
@@ -275,6 +277,7 @@ def parse_items(root: Path) -> Tuple[List[Item], List[str]]:
             i_ver = column(header, "verifies")
             i_when = column(header, "when", "event")
             i_art = column(header, "article")
+            i_own = column(header, "owner")
             test = get(i_test)
             criterion = get(i_pass)
             if i_pass is not None and i_pass == i_test:     # "Test and pass criterion" in one cell
@@ -289,8 +292,9 @@ def parse_items(root: Path) -> Tuple[List[Item], List[str]]:
                 test, criterion = (head, tail) if sep else (combined, combined)
             art = get(i_art) if i_art != i_when else ""
             when = get(i_when) if art.strip() == get(i_when).strip() else " ".join(x for x in (art, get(i_when)) if x)
+            owner = plain(get(i_own)) or OWNERS.get(rel, "Systems engineer")
             items.append(Item(ident, rel, n, plain(test), plain(criterion), plain(get(i_ver)), plain(when),
-                              owner=OWNERS.get(rel, "Systems engineer")))
+                              owner=owner))
     return items, problems
 
 
@@ -440,6 +444,9 @@ def expand_ids(text: str) -> List[str]:
         else:
             out.extend(f"{prefix}{int(k):0{width}d}" for k in re.findall(r"\d{1,2}", rest))
     out.extend(re.findall(r"\bAV-V\d+\b", text))
+    for m in re.finditer(r"\bRAD-V(\d+)(?:\s*(?:\.\.|to|–)\s*(?:RAD-)?V(\d+))?\b", text):   # RAD-V1 to V6
+        last = int(m.group(2) or m.group(1))
+        out.extend(f"RAD-V{k}" for k in range(int(m.group(1)), last + 1))
     return out
 
 

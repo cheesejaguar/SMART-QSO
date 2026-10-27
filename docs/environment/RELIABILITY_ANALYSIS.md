@@ -166,7 +166,7 @@ Status: cycle count is not life-limiting by analysis; calendar ageing and the cy
 | STM32L4R5 flash | Write endurance | Housekeeping to FRAM, not flash; flash written only at software load | 10,000 cycles (ST data) | Met by design |
 | FRAM | Write endurance | ≈ 1 write a minute for 2 years ≈ 10⁶ | 10¹⁴ (Infineon FM25V20A data) | Met |
 | Burn-wire releases, hinges | Single use | 1 | 1 | Tested on the EM and after environments |
-| TID | Dose | 5.3 krad(Si) behind 2 mm in 2 years at 500 km | 10 krad design level; margin 1.9 (RADIATION_ANALYSIS Rev C §4.2) | Open: part data (RAD-V3) |
+| TID | Dose | 4.69 krad(Si) behind 2 mm in 2 years at 475 km (4.91 at 485 km) | 10 krad design level; margin 2.13 (2.04 at the cap; RADIATION_ANALYSIS Rev F §4.2) | Open: part data (RAD-V3) |
 
 ## 9. Software Reliability
 
