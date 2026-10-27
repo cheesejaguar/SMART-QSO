@@ -75,6 +75,7 @@ RIDS = [
     ("SE-16", 2, "Analyses computed at superseded values: ODAR wings-failed case, link and data frame statistics at 6 °/s, power year runs at 500 km / 2028-06, burn transients with two resistors, the mission timeline LEOP table", "IMP", "Re-run at the Rev E baseline"),
     ("SE-17", 3, "Harness design H1-H6 predates the interconnect", "CD", "HARNESS_DESIGN 1.2 marked superseded by SQSO-ICX-001 and W1-W10"),
     ("SE-18", 3, "Baseline §7 claimed the uplink windows are ≥ 2 MHz below 3 × f_down; 436.222-436.500 MHz is 0.9 MHz below", "CD", "BASELINE §7 and RF-P002 restated: ≥ 0.9 MHz, desense ≤ 0.44 dB even 100 kHz from 3f (SQSO-RF-BRD-001 §7.5)"),
+    ("SE-19", 2, "No current harness design: the old harness document predates the interconnect, and the deck-to-EPS band is over-full by about 8 mm² of wire", "IMP", "Harness design: wire list with gauges, ampacity and drop, bundle fills per band, routing against the CAD, mass (SQSO-HAR-001 2.0)"),
     ("VV-01", 1, "Protoflight defined backwards; vibration below the workmanship floor; TVAC ±5 °C 4 cycles; no bake-out", "CD", "ETP Rev C; TP-ENV-002 E; TP-ENV-003 D; BASELINE §8"),
     ("VV-02", 1, "Verification matrix had undefined IDs and unevidenced 'Complete'", "CD", "VCRM Rev C (gen_vcrm.py)"),
     ("VV-03", 2, "No test facilities identified or costed", "CA", "ETP §7; test_cost.py"),

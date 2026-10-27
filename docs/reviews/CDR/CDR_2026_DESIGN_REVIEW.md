@@ -155,7 +155,7 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-292 RIDs: severity 1: 29, severity 2: 158, severity 3: 105.
+293 RIDs: severity 1: 29, severity 2: 159, severity 3: 105.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
@@ -164,9 +164,9 @@ L-2 M licences and ephemeris demonstration).
 | Closed by chair decision | 37 | 36 |
 | Verification item | 42 | 41 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 76 | 18 |
+| Implementation | 77 | 19 |
 
-Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, RFB-11, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-15, SE-16, SE-19, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, RFB-11, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -243,6 +243,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-16 | 2 | Analyses computed at superseded values: ODAR wings-failed case, link and data frame statistics at 6 °/s, power year runs at 500 km / 2028-06, burn transients with two resistors, the mission timeline LEOP table | IMP | Implementation | Re-run at the Rev E baseline |
 | SE-17 | 3 | Harness design H1-H6 predates the interconnect | CD | Closed by design change | HARNESS_DESIGN 1.2 marked superseded by SQSO-ICX-001 and W1-W10 |
 | SE-18 | 3 | Baseline §7 claimed the uplink windows are ≥ 2 MHz below 3 × f_down; 436.222-436.500 MHz is 0.9 MHz below | CD | Closed by design change | BASELINE §7 and RF-P002 restated: ≥ 0.9 MHz, desense ≤ 0.44 dB even 100 kHz from 3f (SQSO-RF-BRD-001 §7.5) |
+| SE-19 | 2 | No current harness design: the old harness document predates the interconnect, and the deck-to-EPS band is over-full by about 8 mm² of wire | IMP | Implementation | Harness design: wire list with gauges, ampacity and drop, bundle fills per band, routing against the CAD, mass (SQSO-HAR-001 2.0) |
 
 #### Verification and validation (VV)
 
