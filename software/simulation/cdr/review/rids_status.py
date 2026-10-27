@@ -23,5 +23,11 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "EPS-07": ("CD", "S5 and W7 redrawn for the AntS: supply after DS1-DS3, switched by DEPLOY_EN, I2C through a TCA9517 (SQSO-EPS-BRD-001)"),
     "AV-08": ("CD", "Current-limited auto-retry rails: OBC 0.15 A, radio 0.12 A, sensors 0.30 A, GNSS 0.20 A, EPS controller 75 mA, AntS 1.37 A, PA 0.99 A (SQSO-EPS-BRD-001)"),
     "RFB-06": ("CD", "Radio trip 0.12 A with current telemetry; 3V3_AO ±2 % (≥ 3.22 V at the RF connector) (SQSO-EPS-BRD-001)"),
+    "MCAD-01": ("CD", "Two coaxial 17-7PH torsion springs, clock-spring flex, damped stop: end-of-travel torque margin +0.14 cold (+0.13 one spring out) (MECHANISMS_ANALYSIS B §4A); VI-STR-04, VI-MECH-01, VI-MECH-02"),
+    "MCAD-02": ("CD", "Deck 1.0 mm skeleton 9 g; MEL row 5 re-split, total unchanged (MASS_BUDGET 3.1)"),
+    "STR-05": ("CD", "Two centre supports at (0, ±21) mm: Steinberg margins +0.09 to +0.36 (STRUCTURAL_ANALYSIS B); VI-STR-02"),
+    "STR-10": ("CD", "Stowed protrusion 6.10 mm nominal, 6.38 mm worst case with the 0.5 mm panel recess (MECHANICAL_DESIGN B); VI-STR-08"),
+    "STR-11": ("CD", "−Z face recessed 1.5 mm: AntS 1.25 mm inside the rail ends (MECHANICAL_DESIGN); frame RFQ"),
+    "SE-12": ("CA", "Shell FE model (56,258 DOF): first mode 170 Hz, lowest margin +0.72 (STRUCTURAL_ANALYSIS B); materials list SQSO-MAT-001 Rev B"),
     "SE-10": ("CD", "SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined"),
 }

@@ -159,13 +159,13 @@ L-2 M licences and ephemeris demonstration).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 94 | 112 |
-| Closed by chair decision | 33 | 32 |
-| Verification item | 31 | 31 |
+| Closed by design change | 94 | 116 |
+| Closed by chair decision | 33 | 31 |
+| Verification item | 31 | 30 |
 | Decision point (dated) | 11 | 11 |
-| Implementation | 53 | 36 |
+| Implementation | 53 | 34 |
 
-Open implementation RIDs: SE-01, RF-04, RF-21, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, EPS-14, THM-02, THM-08, THM-15, AV-01, AV-02, AV-03, AV-05, AV-06, AV-07, AV-09, AV-10, FSW-05, FSW-07, FSW-09, RAD-02, GNC-04, MCAD-01, MCAD-02, RFB-03, RFB-04, EPSB-01, EPSB-03, EPSB-06.
+Open implementation RIDs: SE-01, RF-04, RF-21, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, EPS-14, THM-02, THM-08, THM-15, AV-01, AV-02, AV-03, AV-05, AV-06, AV-07, AV-09, AV-10, FSW-05, FSW-07, FSW-09, RAD-02, GNC-04, RFB-03, RFB-04, EPSB-01, EPSB-03, EPSB-06.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -235,7 +235,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-09 | 2 | No technology readiness assessment for the Jetson in 1U and the custom transponder | VI | Verification item | VI-01, VI-02 exit criteria (EM) |
 | SE-10 | 2 | NPR 7150.2D mapping missing; SRS-F081 cited but undefined | IMP | Closed by design change | SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined |
 | SE-11 | 3 | No system security plan | IMP | Closed by design change | SQSO-SEC-001 Space System Protection and Security Plan (NASA-STD-1006A as practice) |
-| SE-12 | 2 | No structural model; materials list incomplete | CA | Closed by analysis | SQSO-SA-001; SQSO-MAT-001 Rev B |
+| SE-12 | 2 | No structural model; materials list incomplete | CA | Closed by analysis | Shell FE model (56,258 DOF): first mode 170 Hz, lowest margin +0.72 (STRUCTURAL_ANALYSIS B); materials list SQSO-MAT-001 Rev B |
 | SE-13 | 3 | SYS-112 stated without the nominal 10 % | CD | Closed by design change | SYS-112 |
 | SE-14 | 2 | NASA DAS not run | VI | Verification item | ODA-02: DAS 3.2.6 run 2027-02 |
 
@@ -365,13 +365,13 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | STR-02 | 2 | MEL rebuilt; baseline obsolete; coils trip D8 | CH | Closed by chair decision | BASELINE §4 Mass: CR0002 rods, CBE 1.49 kg, MEV 1.73 kg, +15.9 % |
 | STR-03 | 3 | CG never computed | CA | Closed by analysis | MASS_BUDGET v3.0 §5 |
 | STR-04 | 2 | Bifilar MOI ±5 % cannot verify the Iyy/Izz difference | CH | Closed by chair decision | VI-LV-02 trifilar ±2 % (SQSO-LVR-001 Rev B); VI-STR-01 |
-| STR-05 | 2 | PCB fatigue negative on four corner supports | CD | Closed by design change | Centre support (SA §8); VI-STR-02 |
+| STR-05 | 2 | PCB fatigue negative on four corner supports | CD | Closed by design change | Two centre supports at (0, ±21) mm: Steinberg margins +0.09 to +0.36 (STRUCTURAL_ANALYSIS B); VI-STR-02 |
 | STR-06 | 2 | Stack 45 Hz if cantilevered | CD | Closed by design change | Tied to both end frames: 289 Hz (SA §5) |
 | STR-07 | 2 | Jetson module held only by SODIMM latches | CD | Closed by design change | Clamp and staking (SA §8); VI-STR-02 |
 | STR-08 | 2 | Battery isolator preload loss; cell retention | CD | Closed by design change | Disc spring etc. (SA §9); BATTERY_DESIGN §7.1 cell retention change by chair |
 | STR-09 | 2 | Vent area fails CDS §2.1.9 | CD | Closed by design change | ≥ 22.3 mm² (SA §11); VI-STR-09 |
-| STR-10 | 2 | Stowed wing 6.1 mm against 6.5 mm | VI | Verification item | VI-STR-08 with VI-LV-01 |
-| STR-11 | 2 | AntS and GNSS patch against the ±Z standoffs | CH | Closed by chair decision | Recessed −Z face in the frame RFQ (BUILD_VS_BUY §2.2); VI-STR-11 |
+| STR-10 | 2 | Stowed wing 6.1 mm against 6.5 mm | VI | Closed by design change | Stowed protrusion 6.10 mm nominal, 6.38 mm worst case with the 0.5 mm panel recess (MECHANICAL_DESIGN B); VI-STR-08 |
+| STR-11 | 2 | AntS and GNSS patch against the ±Z standoffs | CH | Closed by design change | −Z face recessed 1.5 mm: AntS 1.25 mm inside the rail ends (MECHANICAL_DESIGN); frame RFQ |
 | STR-12 | 2 | Two switches against three inhibits; springs undefined | CD | Closed by design change | Three switches (STRUCTURAL_DESIGN §5.2-§5.3) |
 | STR-13 | 2 | No wing spring, sensor or jumper specification; no torque margin | CA | Closed by analysis | MECH §3-§4; VI-STR-04 |
 | STR-14 | 2 | End-of-travel shock on the cells | CD | Closed by design change | Soft stop ≤ 0.3 N·m (MECH §5); VI-STR-05 |
@@ -394,8 +394,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| MCAD-01 | 2 | Wing torsion springs do not fit the hinge envelope; flex bend radius 1.25 mm | IMP | Implementation | Hinge redesign (round 2, mechanical designer) |
-| MCAD-02 | 3 | Torquer deck 23 g against 6 g in the MEL | IMP | Implementation | Lighten or grow the MEL row (round 2) |
+| MCAD-01 | 2 | Wing torsion springs do not fit the hinge envelope; flex bend radius 1.25 mm | IMP | Closed by design change | Two coaxial 17-7PH torsion springs, clock-spring flex, damped stop: end-of-travel torque margin +0.14 cold (+0.13 one spring out) (MECHANISMS_ANALYSIS B §4A); VI-STR-04, VI-MECH-01, VI-MECH-02 |
+| MCAD-02 | 3 | Torquer deck 23 g against 6 g in the MEL | IMP | Closed by design change | Deck 1.0 mm skeleton 9 g; MEL row 5 re-split, total unchanged (MASS_BUDGET 3.1) |
 | MCAD-03 | 3 | Sweep clearance 0.35 mm needs the body cells offset 1 mm | DP | Decision point (dated) | Panel vendor RFQ |
 
 #### Electrical power (EPS)

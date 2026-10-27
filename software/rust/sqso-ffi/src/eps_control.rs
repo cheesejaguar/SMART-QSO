@@ -31,7 +31,7 @@ use crate::store::{self, Store};
 
 unsafe extern "C" {
     // payload_guard.h
-    fn payload_guard_may_enable(now_ms: u64) -> bool;
+    fn payload_guard_may_power_on(now_ms: u64) -> bool;
 }
 
 pub(crate) struct Eps {
@@ -232,13 +232,13 @@ pub extern "C" fn eps_control_payload(enable: bool, soc: f64) -> i32 {
     }
     // The OBC's own power and temperature limits come first (SW-16)
     // SAFETY: plain value; no EPS state is borrowed
-    let guard_allows = !enable || unsafe { payload_guard_may_enable(c::now_ms()) };
+    let guard_allows = !enable || unsafe { payload_guard_may_power_on(c::now_ms()) };
     match eps::payload_rule(enable, guard_allows, soc) {
         Err(PayloadBlock::Guard) => {
             c::log(
                 fault_type::POWER,
                 severity::WARNING,
-                c"Payload enable blocked: guard cool-down or hot spreader",
+                c"Payload enable blocked: guard cool-down, hot or cold spreader",
                 soc,
             );
             return rc::ERROR;

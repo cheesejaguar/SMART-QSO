@@ -27,10 +27,10 @@ and separation, fracture-control classification, venting, and the CubeSat Design
 | Battery isolators, joint separation (NASA-STD-5020B) | Without a disc spring, creep and thermal contraction of the polymer can take the 0.12 N·m preload to 33 N (MS −0.43); with a disc spring MS ≥ +1.36 | §9 |
 | Venting | The documented "> 4 mm²" fails CDS §2.1.9 (V/A = 235 m against 50.8 m); ≥ 22.3 mm² needed. Pressure differential is structurally negligible either way (< 1 kPa) | §11 |
 | CDS envelope | Stowed-wing stack 6.1 mm against the 6.5 mm limit (0.4 mm margin before tolerances); the 7 mm AntS needs a recessed −Z face | §13 |
-| **FE (Version B)**, first mode of the stowed spacecraft | **170 Hz** (stowed wings); deck 197 Hz, carrier 325, RF 385, EPS 445, OBC 549, battery 1,288 Hz; no mode below 150 Hz | §5A |
-| **FE**, margins at the larger of the quasi-static load and the 3σ response to the protoflight test level (8.18 Grms) | All positive: lowest +0.72 (−Z end frame beside the battery isolators), +1.22 (end frames at the rail corners), +1.62 (centre support), +2.17 (rails), +2.43 (stack columns), +4.6 (G-10CR isolator, FS 2.0) | §7A |
-| **FE**, PCB fatigue (Steinberg, 3σ relative displacement) | +0.09 to +0.32 with two centre supports (the module leaves no room at the board centre); −0.10 and −0.29 (EPS, carrier) with one | §8A |
-| **CAD (Version B)**, stowed protrusion | 5.85 mm nominal, 6.13 mm worst-case tolerance stack (redesigned stack, SQSO-MECH-CAD-001 §6.2); AntS 1.25 mm inside the −Z rail ends with a 1.5 mm recess | §13 |
+| **FE (Version B)**, first mode of the stowed spacecraft | **170 Hz** (stowed wings); deck 195 Hz, carrier 325, RF 385, EPS 445, OBC 549, battery 1,288 Hz; no mode below 150 Hz | §5A |
+| **FE**, margins at the larger of the quasi-static load and the 3σ response to the protoflight test level (8.18 Grms) | All positive: lowest +0.72 (−Z end frame beside the battery isolators), +1.23 (end frames at the rail corners), +1.61 (centre support), +2.17 (rails), +2.44 (stack columns), +4.6 (G-10CR isolator, FS 2.0) | §7A |
+| **FE**, PCB fatigue (Steinberg, 3σ relative displacement) | +0.09 to +0.36 with two centre supports at (0, ±21) mm on 1.6 mm boards (chair decision; the module leaves no room at the board centre); −0.10 and −0.29 (EPS, carrier) with one | §8A |
+| **CAD (Version B)**, stowed protrusion | 6.10 mm nominal (hinge springs, OD 4.0 mm), 6.38 mm worst-case tolerance stack (redesigned stack, SQSO-MECH-CAD-001 §6.2); AntS 1.25 mm inside the −Z rail ends with a 1.5 mm recess | §13 |
 
 Verdict for this discipline: **ready for fabrication with actions**. The structure itself has large margins. The open
 items are design choices that must be on the drawings (centre PCB supports, the stack tied at both ends, the battery
@@ -81,7 +81,8 @@ stay clear for 8.5 mm (CDS §2.2.5), the hinge axis is at (±54.0, +39.5) mm and
 | Body panels (4) and wings (2) | Bought (panel vendor) | Faces |
 
 The PCB stack runs on four M3 columns (Al 6061 hex spacers, 5 mm across flats, A286 studs) between the two end frames,
-with a fifth (centre) support on every board heavier than 50 g (§8). Layout A ("ref") puts the battery mid-stack; it is
+with centre supports on every board heavier than 50 g (§8; Version B, chair decision: two supports at (0, ±21) mm on the
+EPS, OBC and carrier boards and one at (0, 0) on the RF board, §8A). Layout A ("ref") puts the battery mid-stack; it is
 kept as the comparison case for the inertia (`docs/environment/MASS_BUDGET.md` §4, §6).
 
 ## 4. Design Criteria and Loads
@@ -163,7 +164,7 @@ cases: within 1.5 %.
 | Element | Closed form (§5) | FE | Effective mass |
 |---------|------------------|----|----------------|
 | Stowed wing | 142 Hz (four points) | **170 Hz** (two hinges, the hold-down post, a soft snubber) | 5.5 % x |
-| Torquer deck (added by the mechanical design) | — | 197 Hz | 1.3 % z |
+| Torquer deck (added by the mechanical design, 1.0 mm skeleton) | — | 195 Hz | 1.3 % z |
 | PCB stack, lateral, tied at both ends | 289 Hz | 329 Hz (X), 398 Hz (Y) | 32 % x; 16 % y |
 | Boards with centre supports | 221–362 Hz (one support each) | carrier 325 Hz (stack drumming, 17 % z), RF 385, EPS 445, OBC 549 Hz (two supports) | — |
 | Battery on G-10CR isolators, lateral / axial | 1,280 / 1,890 Hz | 1,288 / 971 Hz | 18 % x / 4.6 % z |
@@ -220,16 +221,16 @@ level of §4.2), Q = max(10, √f). The random value governs everywhere. Factors
 | Location | Limit stress (MPa) | Hand analysis (§7), MPE + 3 dB | FE MS yield / ultimate |
 |----------|--------------------|-------------------------------|------------------------|
 | −Z end frame beside the battery isolators | 111.8 | not analysed | **+0.72 / +0.85** |
-| End frames at the rail corners | 87.0 | not analysed | +1.22 / +1.38 |
-| Centre supports | 73.5 | not analysed | +1.62 / +1.82 |
-| Side shear panels | 67.0 | not analysed | +1.88 / +2.09 |
-| Rails | 60.9 (105.9 with the rails held at the ends only) | +29 (axial, quasi-static) | +2.17 / +2.40 (+0.82 / +0.96) |
-| Stack columns, Al spacer | 56.2 | +5.4 | +2.43 / +2.68 |
-| Stack columns, A286 stud | 67.9 | +1.2 (only if a joint gaps) | +7.9 / +10.6 |
+| End frames at the rail corners | 86.6 | not analysed | +1.23 / +1.39 |
+| Centre supports | 73.9 | not analysed | +1.61 / +1.80 |
+| Side shear panels | 66.6 | not analysed | +1.89 / +2.11 |
+| Rails | 60.9 (105.3 with the rails held at the ends only) | +29 (axial, quasi-static) | +2.17 / +2.40 (+0.83 / +0.97) |
+| Stack columns, Al spacer | 56.1 | +5.4 | +2.44 / +2.69 |
+| Stack columns, A286 stud | 67.6 | +1.2 (only if a joint gaps) | +8.0 / +10.6 |
 | Battery isolator, G-10CR (FS 2.0) | 34.1 | +12.1 | — / +4.57 |
 | Battery isolator, Ti-6Al-4V screw | 76.2 | +4.5 | +7.7 / +7.4 |
 | Battery clamp ears | 23.0 | not analysed | +7.4 / +8.0 |
-| PCBs (FR-4, FS 1.5) | 19.4–32.3 | — | — / +6.0 to +10.7 |
+| PCBs (FR-4, FS 1.5) | 19.2–32.3 | — | — / +6.0 to +10.8 |
 | Stowed wings (FR-4) | 6.4 | — | — / +34 |
 | Wing hold-down post, normal load | 3.9 N (3σ) | 4.9 N | Separation +2.9 (21 N preload after 30 % loss) |
 
@@ -273,17 +274,18 @@ The FE gives the 3σ out-of-plane displacement of every board node relative to t
 
 | Board | One centre support at (0, +21) | **Two centre supports at (0, ±21) (design)** | Two supports, 2.0 mm EPS and carrier |
 |-------|-------------------------------|---------------------------------------------|--------------------------------------|
-| EPS | −0.10 | **+0.14** | +0.87 |
-| OBC | +1.16 | **+0.14** | +0.87 |
-| Jetson carrier and module | −0.29 | **+0.09** | +0.80 |
-| RF (support at (0, 0) to the spreader) | +0.20 | **+0.32** | +0.39 |
+| EPS | −0.10 | **+0.14** | +0.90 |
+| OBC | +1.15 | **+0.14** | +0.90 |
+| Jetson carrier and module | −0.29 | **+0.09** | +0.83 |
+| RF (support at (0, 0) to the spreader) | +0.25 | **+0.36** | +0.42 |
 
 The centre of the EPS, OBC and carrier boards is not available for a support: the Jetson module (69.6 × 45 mm, centred at
 y = −7 mm to balance the products of inertia) covers it on the carrier, and a column through the stack must pass all
 three boards. One support at y = +21 mm leaves the −Y half of the EPS and carrier boards unsupported (−0.10, −0.29). **The
 design requirement of STR-05 becomes: two supports at (0, ±21) mm on the EPS, OBC and carrier boards (the −21 mm one
-from the EPS to the carrier, under the module), one at (0, 0) on the RF board from the spreader.** The 2.0 mm option
-costs 0.8 mm of stack height and is decided by the measured Q of the EM board survey (VI-STR-02).
+from the EPS to the carrier, under the module), one at (0, 0) on the RF board from the spreader.** Adopted by the chair
+(2026-10-27) with the boards kept at 1.6 mm: all margins are positive. The 2.0 mm option (+0.8 to +0.9, 0.8 mm of stack
+height) is held in reserve until the measured Q of the EM board survey (VI-STR-02) is known.
 
 ## 9. Threaded Joints (NASA-STD-5020B)
 
@@ -332,7 +334,8 @@ or ETFE, non-removable, present in the vibration test (UG §5.2.3).
 - **Battery cells:** `hardware/eps/BATTERY_DESIGN.md` §7.1 specifies "spring-loaded contacts" for cell retention. Under a
   53 g (3σ) lateral response that is not a structural retention: the cells must be bonded or potted in the clamp with welded
   nickel interconnects (for the chair, STR-08).
-- **Stowed wing:** 142 Hz with two hinges, the hold-down at the free edge and one bumper; 24.5 g (3σ); the hold-down line
+- **Stowed wing (Version B: 170 Hz in the FE, §5A; hinge and springs of SQSO-MECH-001 B §3A):** 142 Hz with two hinges,
+  the hold-down at the free edge and one bumper; 24.5 g (3σ); the hold-down line
   sees 4.9 N dynamic on 30 N preload (MS +1.87 strength, +2.14 gapping, §7). Two bumpers at the free corners (silicone,
   low outgassing) keep the panel from slapping the body panel.
 - **AntS:** vendor qualified (ISIS heritage, > 500 units, BUILD_VS_BUY §2.6). Mounted with the vendor's screw pattern and
@@ -356,7 +359,7 @@ sealed commercial cells with a CID and vent, not vented volumes.
 These are carried into `hardware/structure/STRUCTURAL_DESIGN.md` v1.3:
 
 1. Stack order B (battery at the −Z end, RF at the +Z end) and the AntS VHF elements along ±X (inertia; STR-01).
-2. Centre support on every board > 50 g; RF shield as a stiffener (STR-05).
+2. Centre support on every board > 50 g; RF shield as a stiffener (STR-05). Version B: two supports, item 11.
 3. PCB stack tied to both end frames (STR-06: 289 Hz instead of 45 Hz).
 4. Jetson module clamped at both short edges (STR-07).
 5. Battery isolator stack of §9 (STR-08).
@@ -410,9 +413,9 @@ the spacecraft stays compatible with the other dispensers of decision D7 and the
 
 **Version B (CAD, STR-10 and STR-11).** The mechanical design (SQSO-MECH-CAD-001 §6.2–§6.3) rebuilt the stack: side
 shear-panel faces 0.5 mm below the rail plane, the hold-down as a cup/cone post with the line over it, and the hinge
-knuckle (Ø3.5 mm, axis 54.1 mm) located from the frame rather than through the panel stack. Nominal: wing front cells
-4.75 mm, hold-down line 5.25 mm, **knuckle 5.85 mm (governs)**; worst-case tolerance stack **6.13 mm**, RSS 6.00 mm
-(margins +0.37 / +0.50 mm). Without the 0.5 mm recess the worst case is 6.63 mm. The AntS on a −Z face recessed 1.5 mm
+hardware (axis 54.1 mm) located from the frame rather than through the panel stack. Nominal: wing front cells 4.75 mm,
+hold-down line 5.25 mm, **hinge springs (OD 4.0 mm, SQSO-MECH-001 B §3A) 6.10 mm (governs)**; worst-case tolerance
+stack **6.38 mm**, RSS 6.25 mm (margins +0.12 / +0.25 mm). Without the 0.5 mm recess the worst case is 6.88 mm. The AntS on a −Z face recessed 1.5 mm
 sits 1.25 mm (worst case 0.90 mm) inside the rail ends; on a flush face it would stand 0.25 mm beyond them. STR-10 and
 STR-11 are closed by design, conditional on the frame RFQ items.
 
@@ -487,4 +490,4 @@ VI-STR-02 now has accelerometers at (0, ±21) mm as well as the board centres.
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR structures review | Initial issue: launch environment and factors, natural frequencies, Miles responses, margins of safety, PCB fatigue, NASA-STD-5020B joints and the battery isolator stack, venting, fracture-control classification, CDS envelope and switch allocation, verification items |
-| B | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001) | Finite-element results beside the analytic ones (RID SE-12): modes and effective masses (§5A), margins at the protoflight test level (§7A), Steinberg margins with the board-to-stack coupling (§8A); design changes 10–12 (isolator doubler, two centre supports, CAD envelope decisions); CAD tolerance stack closing STR-10 and the −Z recess closing STR-11 (§13.2); summary, limits and verification references updated |
+| B | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001) | Finite-element results beside the analytic ones (RID SE-12): modes and effective masses (§5A), margins at the protoflight test level (§7A), Steinberg margins with the board-to-stack coupling (§8A); design changes 10–12 (isolator doubler, two centre supports at (0, ±21) mm on 1.6 mm boards as decided by the chair, CAD envelope decisions); CAD tolerance stack closing STR-10 with the Version B hinge springs and the −Z recess closing STR-11 (§13.2); skeleton torquer deck; summary, limits and verification references updated |

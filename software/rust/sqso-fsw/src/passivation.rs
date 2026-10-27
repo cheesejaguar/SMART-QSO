@@ -14,10 +14,15 @@
 //!      passivation inhibit on every transmitter (`RF_INHIBIT_PASSIVATED`),
 //!      which no telecommand clears;
 //!    - the EPS one-shot charge disconnect (`docs/hardware/EPS_DESIGN.md`
-//!      §7): `EOL_ARM` (the arm latch) high, [`ARM_SETTLE_MS`] later
-//!      `EOL_FIRE` high, both in series with the disconnect's heater, held
-//!      until the EPS reports the charge path open (`EOL_STATE`) or for
-//!      [`FIRE_MS`], then both low.
+//!      §7; `hardware/electrical/eps/EPS_BOARD_DESIGN.md`), in sunlight
+//!      only (the array then carries the loads while the heater draws from
+//!      the pack): `EOL_ARM` rises (its rising edge sets the EPS's arm
+//!      latch), [`ARM_SETTLE_MS`] later `EOL_FIRE` goes high (a level, in
+//!      series with the latch through the disconnect's heater) and is held
+//!      at least [`FIRE_MIN_MS`]; it drops once the EPS reports the charge
+//!      path open (`EOL_STATE`) after that, or at [`FIRE_MAX_MS`], then
+//!      both lines are low. An eclipse before [`FIRE_MIN_MS`] drops both and
+//!      the fire starts again in the next sunlight.
 //!
 //! After that the transmitters stay off for good: at every boot the record
 //! (or the EPS reporting the charge path open, should the record be lost)
@@ -38,9 +43,11 @@ pub const ARM_CODE: [u8; 4] = *b"EOL!";
 /// `EOL_ARM` is high this long before `EOL_FIRE`, ms (the arm latch sets
 /// before the series fire switch closes)
 pub const ARM_SETTLE_MS: u64 = 200;
-/// Longest the disconnect's heater is driven, ms (a thermal cut-off on a
-/// 20–50 Ω heater from the pack opens within seconds; EPS_DESIGN §7)
-pub const FIRE_MS: u64 = 15_000;
+/// `EOL_FIRE` is held at least this long, ms (the EPS board's requirement:
+/// the thermal cut-off's heater needs it to open the disconnect)
+pub const FIRE_MIN_MS: u64 = 60_000;
+/// and at most this long, ms, when the EPS does not confirm
+pub const FIRE_MAX_MS: u64 = 120_000;
 /// Fire sequences at most, across resets
 pub const MAX_FIRE_ATTEMPTS: u8 = 3;
 /// Record ("EOLP"): flags (1) | version (1) | fire attempts (1) | spare (1)
@@ -121,6 +128,17 @@ pub enum Phase {
     Passivated = 3,
 }
 
+/// A step of the fire sequence
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Step {
+    /// Waiting for sunlight; both lines low
+    WaitSun,
+    /// `EOL_ARM` high since this time, ms
+    Settle(u64),
+    /// `EOL_FIRE` high since this time, ms
+    Fire(u64),
+}
+
 /// Module state
 #[derive(Clone, Copy, Debug)]
 pub struct Passivation {
@@ -131,8 +149,8 @@ pub struct Passivation {
     attempts: u8,
     /// Armed until this time, ms
     armed_until: Option<u64>,
-    /// The fire sequence started at this time, ms; `EOL_FIRE` is high
-    firing_since: Option<(u64, bool)>,
+    /// Where the fire sequence is (`None`: not firing)
+    fire: Option<Step>,
     initialized: bool,
 }
 
@@ -146,7 +164,7 @@ impl Passivation {
             confirmed: false,
             attempts: 0,
             armed_until: None,
-            firing_since: None,
+            fire: None,
             initialized: false,
         }
     }
@@ -188,7 +206,7 @@ impl Passivation {
             Ok(RecordStatus::Corrupt) | Err(_) => io.report(Report::Unreadable),
         }
         self.armed_until = None;
-        self.firing_since = None;
+        self.fire = None;
         self.initialized = true;
         // The charge path open is passivation whatever the record says
         if !self.passivated && io.charge_path_open() == Some(true) {
@@ -244,49 +262,69 @@ impl Passivation {
         }
         self.attempts = self.attempts.saturating_add(1);
         self.save(io);
-        if io.drive(Line::Arm, true) {
-            self.firing_since = Some((now_ms, false));
-        } else {
-            io.report(Report::LineUnavailable);
-            self.finish(false, io);
-        }
+        let _ = now_ms;
+        self.fire = Some(Step::WaitSun);
     }
 
     /// Both lines low, the sequence done
     fn finish<IO: PassivationIo>(&mut self, confirmed: bool, io: &mut IO) {
         let _ = io.drive(Line::Fire, false);
         let _ = io.drive(Line::Arm, false);
-        self.firing_since = None;
+        self.fire = None;
         self.fire_done = true;
         self.confirmed = confirmed;
         self.save(io);
         io.report(if confirmed { Report::ChargePathOpen } else { Report::NotConfirmed });
     }
 
-    /// Every pass: the arm's window, and the fire sequence
-    pub fn tick<IO: PassivationIo>(&mut self, now_ms: u64, io: &mut IO) {
+    /// Drive a line of the sequence; a line that cannot be driven ends it
+    fn drive_or_finish<IO: PassivationIo>(&mut self, line: Line, io: &mut IO) -> bool {
+        if io.drive(line, true) {
+            return true;
+        }
+        io.report(Report::LineUnavailable);
+        self.finish(false, io);
+        false
+    }
+
+    /// Every pass: the arm's window, and the fire sequence (`sunlit`: the
+    /// array is lit)
+    pub fn tick<IO: PassivationIo>(&mut self, now_ms: u64, sunlit: bool, io: &mut IO) {
         if self.armed_until.is_some_and(|until| now_ms >= until) {
             self.armed_until = None;
             io.report(Report::Lapsed);
         }
-        let Some((since, fire_on)) = self.firing_since else { return };
-        let elapsed = now_ms.saturating_sub(since);
-        if !fire_on {
-            if elapsed >= ARM_SETTLE_MS {
-                if io.drive(Line::Fire, true) {
-                    self.firing_since = Some((since, true));
-                } else {
-                    io.report(Report::LineUnavailable);
+        match self.fire {
+            None => {}
+            Some(Step::WaitSun) => {
+                if sunlit && self.drive_or_finish(Line::Arm, io) {
+                    self.fire = Some(Step::Settle(now_ms));
+                }
+            }
+            Some(Step::Settle(_) | Step::Fire(_)) if !sunlit && !self.fire_min_served(now_ms) => {
+                // Eclipse before the minimum: both low, again in sunlight
+                let _ = io.drive(Line::Fire, false);
+                let _ = io.drive(Line::Arm, false);
+                self.fire = Some(Step::WaitSun);
+            }
+            Some(Step::Settle(since)) => {
+                if now_ms.saturating_sub(since) >= ARM_SETTLE_MS && self.drive_or_finish(Line::Fire, io) {
+                    self.fire = Some(Step::Fire(now_ms));
+                }
+            }
+            Some(Step::Fire(since)) => {
+                let held = now_ms.saturating_sub(since);
+                if held >= FIRE_MIN_MS && io.charge_path_open() == Some(true) {
+                    self.finish(true, io);
+                } else if held >= FIRE_MAX_MS || (held >= FIRE_MIN_MS && !sunlit) {
                     self.finish(false, io);
                 }
             }
-            return;
         }
-        if io.charge_path_open() == Some(true) {
-            self.finish(true, io);
-        } else if elapsed >= ARM_SETTLE_MS + FIRE_MS {
-            self.finish(false, io);
-        }
+    }
+
+    fn fire_min_served(&self, now_ms: u64) -> bool {
+        matches!(self.fire, Some(Step::Fire(since)) if now_ms.saturating_sub(since) >= FIRE_MIN_MS)
     }
 
     /// Where the sequence is
@@ -328,6 +366,7 @@ mod tests {
     use std::vec::Vec;
 
     const REGION: u32 = 0;
+    const SUN: bool = true;
 
     #[derive(Default)]
     struct Bench {
@@ -367,7 +406,7 @@ mod tests {
             self.inhibited = true;
         }
         fn drive(&mut self, line: Line, on: bool) -> bool {
-            if self.no_pins || (self.no_fire_pin && line == Line::Fire) {
+            if on && (self.no_pins || (self.no_fire_pin && line == Line::Fire)) {
                 return false;
             }
             self.lines[line as usize] = on;
@@ -390,6 +429,16 @@ mod tests {
         p
     }
 
+    /// Arm, execute, and the fire up to its start (EOL_FIRE high at `t0`)
+    fn executed(io: &mut Bench, t0: u64) -> Passivation {
+        let mut p = fresh(io);
+        assert_eq!(p.arm(&ARM_CODE, 0, io), Ok(()));
+        assert_eq!(p.execute(0, io), Ok(()));
+        p.tick(t0 - ARM_SETTLE_MS, SUN, io);
+        p.tick(t0, SUN, io);
+        p
+    }
+
     #[test]
     fn arm_then_execute_in_order() {
         let mut io = Bench::default();
@@ -405,17 +454,23 @@ mod tests {
         assert!(io.inhibited);
         assert!(p.passivated());
         assert_eq!(p.phase(2000), Phase::Firing);
+        // In eclipse nothing is driven
+        p.tick(3000, !SUN, &mut io);
+        assert!(io.drives.is_empty());
+        p.tick(4000, SUN, &mut io);
         assert_eq!(io.drives, [(Line::Arm, true)], "the arm latch first");
-        p.tick(2000 + ARM_SETTLE_MS - 1, &mut io);
+        p.tick(4000 + ARM_SETTLE_MS - 1, SUN, &mut io);
         assert_eq!(io.drives.len(), 1);
-        p.tick(2000 + ARM_SETTLE_MS, &mut io);
+        let t0 = 4000 + ARM_SETTLE_MS;
+        p.tick(t0, SUN, &mut io);
         assert_eq!(io.lines, [true, true], "then the fire switch");
-        p.tick(5000, &mut io);
-        assert_eq!(io.lines, [true, true]);
+        // Confirmed early: still held for the minimum
         io.open = Some(true);
-        p.tick(6000, &mut io);
+        p.tick(t0 + FIRE_MIN_MS - 1, SUN, &mut io);
+        assert_eq!(io.lines, [true, true]);
+        p.tick(t0 + FIRE_MIN_MS, SUN, &mut io);
         assert_eq!(io.lines, [false, false]);
-        assert_eq!(p.phase(6000), Phase::Passivated);
+        assert_eq!(p.phase(t0 + FIRE_MIN_MS), Phase::Passivated);
         assert!(p.confirmed());
         assert_eq!(p.attempts(), 1);
         assert_eq!(io.log, [Report::Armed, Report::Executed, Report::ChargePathOpen]);
@@ -428,11 +483,11 @@ mod tests {
         let mut io = Bench::default();
         let mut p = fresh(&mut io);
         assert_eq!(p.arm(&ARM_CODE, 0, &mut io), Ok(()));
-        p.tick(ARM_WINDOW_MS - 1, &mut io);
+        p.tick(ARM_WINDOW_MS - 1, SUN, &mut io);
         assert_eq!(p.phase(ARM_WINDOW_MS - 1), Phase::Armed);
         assert_eq!(p.phase(ARM_WINDOW_MS), Phase::Idle);
         assert_eq!(p.execute(ARM_WINDOW_MS, &mut io), Err(Refusal::NotArmed), "the window is over");
-        p.tick(ARM_WINDOW_MS, &mut io);
+        p.tick(ARM_WINDOW_MS, SUN, &mut io);
         assert_eq!(io.log.last(), Some(&Report::Lapsed));
         assert!(!p.passivated() && io.drives.is_empty());
         // A reset disarms
@@ -442,15 +497,40 @@ mod tests {
     }
 
     #[test]
+    fn an_eclipse_before_the_minimum_restarts_the_fire() {
+        let mut io = Bench::default();
+        let t0 = 10_000;
+        let mut p = executed(&mut io, t0);
+        assert_eq!(io.lines, [true, true]);
+        p.tick(t0 + FIRE_MIN_MS - 1, !SUN, &mut io);
+        assert_eq!(io.lines, [false, false], "eclipse: both low");
+        p.tick(t0 + FIRE_MIN_MS + 100, !SUN, &mut io);
+        assert_eq!(io.lines, [false, false]);
+        // An eclipse during the arm's settling also drops it
+        p.tick(200_000, SUN, &mut io);
+        assert_eq!(io.lines, [true, false]);
+        p.tick(200_050, !SUN, &mut io);
+        assert_eq!(io.lines, [false, false]);
+        // Sunlight again: the whole minimum again
+        p.tick(300_000, SUN, &mut io);
+        p.tick(300_000 + ARM_SETTLE_MS, SUN, &mut io);
+        assert_eq!(io.lines, [true, true]);
+        assert_eq!(p.attempts(), 1, "the same attempt");
+        // Past the minimum an eclipse ends it, unconfirmed
+        p.tick(300_000 + ARM_SETTLE_MS + FIRE_MIN_MS, !SUN, &mut io);
+        assert_eq!(io.lines, [false, false]);
+        assert_eq!(io.log.last(), Some(&Report::NotConfirmed));
+        assert_eq!(p.phase(0), Phase::Passivated);
+    }
+
+    #[test]
     fn unconfirmed_fire_times_out_and_passivation_survives_resets() {
         let mut io = Bench::default();
-        let mut p = fresh(&mut io);
-        let _ = p.arm(&ARM_CODE, 0, &mut io);
-        assert_eq!(p.execute(0, &mut io), Ok(()));
-        p.tick(ARM_SETTLE_MS, &mut io);
-        p.tick(ARM_SETTLE_MS + FIRE_MS - 1, &mut io);
+        let t0 = 1000;
+        let mut p = executed(&mut io, t0);
+        p.tick(t0 + FIRE_MAX_MS - 1, SUN, &mut io);
         assert_eq!(io.lines, [true, true]);
-        p.tick(ARM_SETTLE_MS + FIRE_MS, &mut io);
+        p.tick(t0 + FIRE_MAX_MS, SUN, &mut io);
         assert_eq!(io.lines, [false, false]);
         assert_eq!(io.log.last(), Some(&Report::NotConfirmed));
         assert_eq!(p.phase(u64::MAX), Phase::Passivated);
@@ -466,16 +546,14 @@ mod tests {
     #[test]
     fn a_fire_interrupted_by_a_reset_runs_again_a_bounded_number_of_times() {
         let mut io = Bench::default();
-        let mut p = fresh(&mut io);
-        let _ = p.arm(&ARM_CODE, 0, &mut io);
-        let _ = p.execute(0, &mut io);
-        // Reset during the fire, again and again
+        let _ = executed(&mut io, 1000);
         for attempt in 2..=MAX_FIRE_ATTEMPTS {
             let mut io2 = Bench { flash: io.flash, ..Bench::default() };
-            let b = fresh(&mut io2);
+            let mut b = fresh(&mut io2);
             assert_eq!(b.attempts(), attempt);
-            assert_eq!(io2.drives, [(Line::Arm, true)], "fire restarted");
             assert_eq!(b.phase(0), Phase::Firing);
+            b.tick(5, SUN, &mut io2);
+            assert_eq!(io2.drives, [(Line::Arm, true)], "fire restarted");
             io.flash = io2.flash;
         }
         let mut io3 = Bench { flash: io.flash, ..Bench::default() };
@@ -492,6 +570,7 @@ mod tests {
         let mut p = fresh(&mut io);
         let _ = p.arm(&ARM_CODE, 0, &mut io);
         assert_eq!(p.execute(0, &mut io), Ok(()));
+        p.tick(1, SUN, &mut io);
         assert!(io.inhibited && io.tx_off == 1);
         assert!(io.log.contains(&Report::LineUnavailable));
         assert_eq!(p.phase(0), Phase::Passivated);
@@ -500,7 +579,8 @@ mod tests {
         let mut p = fresh(&mut io);
         let _ = p.arm(&ARM_CODE, 0, &mut io);
         let _ = p.execute(0, &mut io);
-        p.tick(ARM_SETTLE_MS, &mut io);
+        p.tick(1, SUN, &mut io);
+        p.tick(1 + ARM_SETTLE_MS, SUN, &mut io);
         assert!(io.log.contains(&Report::LineUnavailable));
         assert_eq!(io.lines, [false, false]);
         // The record cannot be written: the act goes on
@@ -520,9 +600,7 @@ mod tests {
         assert!(io.drives.is_empty());
         // Corrupt record, EPS silent: not passivated, reported
         let mut io = Bench::default();
-        let mut p = fresh(&mut io);
-        let _ = p.arm(&ARM_CODE, 0, &mut io);
-        let _ = p.execute(0, &mut io);
+        let _ = executed(&mut io, 1000);
         let slot = u32::try_from(SLOT_SIZE).unwrap();
         for s in 0..2u32 {
             let mut b = [0u8; 1];

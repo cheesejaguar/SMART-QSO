@@ -25,6 +25,12 @@ pub const INTERVAL_IDLE_MS: u32 = 120_000;
 pub const INTERVAL_SAFE_MS: u32 = 180_000;
 /// Measurements older than this are not beaconed, ms
 pub const MEAS_MAX_AGE_MS: u64 = 60_000;
+/// Random jitter on each beacon interval, ± ms (RF-04): with the 6–8°/s
+/// spin the 60 s interval would put successive beacons at nearly the same
+/// spin phase, so a station in the antenna null lost them together
+/// (SQSO-LBA-001 v3.0 §5.3). Uniform and symmetric, so the mean interval
+/// of each mode is unchanged
+pub const JITTER_MS: u32 = 5000;
 
 /// Validity flag: state of charge
 pub const TLM_SOC: u8 = 0x01;
@@ -447,6 +453,12 @@ pub struct Beacon {
     meas: Measurements,
     meas_ms: u64,
     meas_set: bool,
+    /// Largest jitter, ms (0: none)
+    jitter_max_ms: u32,
+    /// The jitter on the interval now running, ms
+    jitter_ms: i32,
+    /// xorshift32 state for the jitter
+    rng: u32,
 }
 
 impl Beacon {
@@ -459,6 +471,44 @@ impl Beacon {
             meas: Measurements { soc: 0, battery_mv: 0, sunlit: 0, qso_count: 0, valid: 0 },
             meas_ms: 0,
             meas_set: false,
+            jitter_max_ms: 0,
+            jitter_ms: 0,
+            rng: 1,
+        }
+    }
+
+    /// Jitter each interval by a uniform draw in ±`max_ms` (0: none), the
+    /// draws seeded by `seed`
+    pub fn set_jitter(&mut self, max_ms: u32, seed: u32) {
+        self.jitter_max_ms = max_ms.min(i32::MAX.unsigned_abs() / 2);
+        self.rng = seed | 1;
+        self.draw_jitter();
+    }
+
+    fn draw_jitter(&mut self) {
+        let mut x = self.rng;
+        x ^= x << 13;
+        x ^= x >> 17;
+        x ^= x << 5;
+        self.rng = x;
+        let span = self.jitter_max_ms.saturating_mul(2).saturating_add(1);
+        let offset = i32::try_from(x % span).unwrap_or(0);
+        self.jitter_ms = offset - i32::try_from(self.jitter_max_ms).unwrap_or(0);
+    }
+
+    /// The jitter on the running interval, ms
+    pub const fn jitter_ms(&self) -> i32 {
+        self.jitter_ms
+    }
+
+    /// A beacon went out at `now_ms`: the next interval starts, with a new
+    /// jitter (nothing before init)
+    pub fn mark_transmitted(&mut self, now_ms: u64) {
+        if self.initialized {
+            self.state.last_beacon_ms = now_ms;
+            if self.jitter_max_ms > 0 {
+                self.draw_jitter();
+            }
         }
     }
 
@@ -471,7 +521,8 @@ impl Beacon {
 
     /// Whether the interval has passed since the last beacon
     pub fn interval_elapsed(&self, now_ms: u64) -> bool {
-        now_ms.wrapping_sub(self.state.last_beacon_ms) >= u64::from(self.state.interval_ms)
+        let due = i64::from(self.state.interval_ms) + i64::from(self.jitter_ms);
+        now_ms.wrapping_sub(self.state.last_beacon_ms) >= u64::try_from(due).unwrap_or(0)
     }
 
     /// The interval for the power mode (nothing before init)
@@ -845,6 +896,42 @@ mod tests {
 
     /// Mutation check: the range check looks only at flagged fields, and
     /// 100 % is in range
+    /// RF-04: the intervals spread over ±5 s and keep their mean
+    #[test]
+    fn jitter_spreads_the_interval_and_keeps_the_mean() {
+        let mut b = Beacon::new();
+        b.init();
+        b.update_interval(1);
+        assert_eq!(b.jitter_ms(), 0, "none until set");
+        b.set_jitter(JITTER_MS, 12345);
+        let (mut sum, mut lo, mut hi) = (0i64, i32::MAX, i32::MIN);
+        let n = 20_000;
+        for _ in 0..n {
+            let j = b.jitter_ms();
+            lo = lo.min(j);
+            hi = hi.max(j);
+            sum += i64::from(j);
+            // Due exactly at interval + jitter
+            let last = b.state.last_beacon_ms;
+            let due = last + u64::try_from(i64::from(INTERVAL_IDLE_MS) + i64::from(j)).unwrap();
+            assert!(!b.interval_elapsed(due - 1));
+            assert!(b.interval_elapsed(due));
+            b.mark_transmitted(due);
+        }
+        let mean = sum as f64 / f64::from(n);
+        assert!(lo >= -(JITTER_MS as i32) && hi <= JITTER_MS as i32);
+        assert!(lo < -4900 && hi > 4900, "{lo} {hi}");
+        assert!(mean.abs() < 60.0, "mean jitter {mean} ms");
+        // Before init nothing moves; without jitter the draw is skipped
+        let mut u = Beacon::new();
+        u.mark_transmitted(99);
+        assert_eq!(u.state.last_beacon_ms, 0);
+        let mut v = Beacon::new();
+        v.init();
+        v.mark_transmitted(99);
+        assert_eq!((v.state.last_beacon_ms, v.jitter_ms()), (99, 0));
+    }
+
     #[test]
     fn range_check_edges() {
         let m = Measurements { soc: 100, sunlit: 1, valid: TLM_SOC | TLM_SUN, ..Measurements::default() };

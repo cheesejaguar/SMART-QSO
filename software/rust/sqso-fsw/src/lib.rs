@@ -37,11 +37,16 @@
 //! - [`watchdog`]: the supervised watchdog's task table (`watchdog_mgr.h`)
 //! - [`fmath`]: C `sqrt` and `round` for `no_std`
 //! - [`fixed`]: `{:.N}` text for an `f64` from a small stack frame (SRS-C003)
+//! - [`passivation`]: end-of-life passivation by two telecommands (`passivation.h`)
+//! - [`receiver`]: command-receiver supervision, recovery and failure evidence (`receiver.h`)
+//! - [`hk_store`]: stored housekeeping records and their dump (`hk_store.h`)
+//! - [`ack`]: the command acknowledgement frame (`cmd_handler.h`)
 
 #![no_std]
 #![forbid(unsafe_code)]
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing, clippy::panic))]
 
+pub mod ack;
 pub mod adcs;
 pub mod ants;
 pub mod assert_handler;
@@ -59,14 +64,17 @@ pub mod fmath;
 pub mod gnss;
 pub mod gnss_schedule;
 pub mod heater;
+pub mod hk_store;
 pub mod housekeeping;
 pub mod keys;
 pub mod mission_data;
 pub mod mode;
 pub mod nvm;
 pub mod ops_state;
+pub mod passivation;
 pub mod payload_guard;
 pub mod payload_schedule;
+pub mod receiver;
 pub mod rf_control;
 pub mod rf_silence;
 pub mod safe_string;

@@ -37,6 +37,9 @@ pub const SILENCE_MS: u64 = 24 * 3_600_000;
 pub const PASS_GUARD_MS: u64 = 15 * 60_000;
 /// `RADIO_EN` off this long, ms
 pub const CYCLE_OFF_MS: u64 = 2_000;
+// A silence long enough for a cycle is longer than any pass, so no cycle
+// can fall in a pass in progress
+const _: () = assert!(SILENCE_MS > PASS_GUARD_MS);
 
 /// What one pass sees
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -118,7 +121,7 @@ impl Receiver {
         let silent = now_ms.saturating_sub(self.last_activity_ms);
         self.failed = self.cycled_in_silence && i.fault && silent > i.contact_timeout_ms;
         let since_cycle = self.last_cycle_ms.map_or(u64::MAX, |t| now_ms.saturating_sub(t));
-        if silent >= SILENCE_MS && silent >= PASS_GUARD_MS && since_cycle >= SILENCE_MS && !i.keyed {
+        if silent >= SILENCE_MS && since_cycle >= SILENCE_MS && !i.keyed {
             self.last_cycle_ms = Some(now_ms);
             self.cycled_in_silence = true;
             self.off_since = Some(now_ms);

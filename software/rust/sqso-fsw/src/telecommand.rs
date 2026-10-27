@@ -151,8 +151,13 @@ pub const fn availability(command: Command) -> Availability {
         | C::EpsGetTelemetry
         | C::AdcsGetAttitude
         | C::GetHousekeeping
-        | C::XpdrDisable => Availability::Always,
-        C::SetMode | C::SetBeacon => Availability::AlsoSafe,
+        | C::XpdrDisable
+        // End of life and the battery lockout are wanted most in SAFE and
+        // EMERGENCY (a failing spacecraft, a deeply discharged pack)
+        | C::PassivateArm
+        | C::PassivateExecute
+        | C::EpsClearLockout => Availability::Always,
+        C::SetMode | C::SetBeacon | C::DumpTlm => Availability::AlsoSafe,
         C::Reset => Availability::AlsoEmergency,
         C::ClearFaults
         | C::SetContactTimeout
