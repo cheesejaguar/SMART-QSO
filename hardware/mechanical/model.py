@@ -334,7 +334,7 @@ def build_parts(p=P) -> List[Part]:
              note="RBF pin head 4 mm above the -Y panel substrate; switch body inside"))
     port = fuse(B(-35.0, -5.0, *fy(48.4, 41.5), -46.8, -38.0),                         # A3 with W8A, W11 ends
                 B(-31.0, -9.0, *fy(wx["bp1"], 48.4), -45.4, -39.4))                      # Micro-D 21 shell, flush
-    add(Part("access_port", "harness", {"32": 6.0}, port, color=COL["mech"],
+    add(Part("access_port", "harness", {"32": 0.0}, port, color=COL["mech"],
              note="access-port board A3 and its Micro-D 21 (SQSO-HAR-001 2.0 3.2, M-3): envelope x -35 ... -5, "
                   "z -46.8 ... -38; face flush with the -Y body-panel substrate in a 30 x 8.8 mm window "
                   "(location against the Nova access window LVR-068 open)"))

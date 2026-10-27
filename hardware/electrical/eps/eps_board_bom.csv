@@ -20,7 +20,7 @@ D22,1,BZX84-C8V2,"BZX84-C8V2,215",Nexperia,SOT-23,Zener 8.2 V 250 mW,0.2 mA,Q16 
 D23,1,BAT54S,"BAT54S,215",Nexperia,SOT-23,30 V dual series Schottky,,DEPLOY_SENSE clamp,Sn,not checked
 D39 D40,2,1N4148W,1N4148W-Q-7-F,Diodes Inc.,SOD-123,"100 V 300 mA switching, AEC-Q101",,RESET coil flyback; SET coil flyback,Sn (matte); re-tin or coat,not checked
 F1 F3,2,ITV 12A,ITV4030L1412NR,Littelfuse,4030 (3-terminal SMD),"12 A, 36 VDC, 50 A break, heater 11.2-20 Ohm, triggerable 10.5-19.6 V",0.6 A array: 6 %; 1.31 A / 10 A at 60 C = 13 %; operating temp -10..+65 C (qualification item),"EOL permanent charge disconnect (97.207(g)(1)(iii)): array side T1, pack side T3; secondary over-voltage fuse",Sn; coat,Digi-Key: Active
-F2,1,5A,0451005.MRL,Littelfuse,Nano2 451 (2-SMD),"5 A, 125 V AC/DC, 50 A at 125 V (300 A at 32 VDC per datasheet)",1.31 A / (5 A x 0.90 at 60 C) = 29 %,"pack fuse, non-resettable",Sn plated end caps; coat,Digi-Key: Active
+F2,1,5A,FM12A72V5.0A,AEM / MIL-PRF-23419/12 QPL,FM12 solid-body SMD,"5 A, 72 VDC, interrupt 1000 A at 72 VDC (MIL-PRF-23419/12), cold 13.5-22.5 mOhm","1.40 A / (5 A x 0.80 at 60 C, assumed) = 35 %; 2.0 A fault case 50 %","pack fuse, non-resettable; same part as F0 on the battery sense board",per MIL-PRF-23419/12 (Au or SnPb terminations: order the non-tin finish),NASA NEPP NPSL list: FM12A72V5.0A (cold resistance); interrupt rating from the slash sheet
 F4,1,250mA,0466.250NR,Littelfuse,1206 (Pico 466),"0.25 A, 125 V",79 mA: 32 %,heater fuse,Sn; coat,Digi-Key listing
 F5,1,1A,0466001.NR,Littelfuse,1206 (Pico 466),"1 A, 63 V, fast",0.5 A GSE charge: 50 %,umbilical charge fuse,Sn; coat,not checked
 J1,1,BATTERY,0430450802,Molex,"Micro-Fit 3.0 2x4 right-angle THT, bottom side",5 A/contact,1.71 A max (fault) on 2 contacts per pole: 17 %,"W1 (pack leads, NTC1 and return, heater); zone Z1 (PACK corner, -X +Y)","Au 0.76 um mating; Sn post (soldered: SnPb assembly, coat)","Digi-Key 0430450802: Active (R/A, Au 30 uin)"
@@ -118,7 +118,7 @@ RS9 RS10 RS13 RS16,4,50m,WSLP0805R0500FEA,Vishay Dale,Resistor_SMD:R_0805,"1 %, 
 RS11,1,500m,WSL0805R5000FEA,Vishay Dale,Resistor_SMD:R_0805,"1 %, 0.125 W, current sense",3 mW,heater current (INA3221),Sn (matte); coat,series code
 RS12 RS14 RS15,3,100m,WSLP0805R1000FEA,Vishay Dale,Resistor_SMD:R_0805,"1 %, 0.25 W, current sense",,3V3_ADCS current (INA3221); 3V3_GNSS current (INA3221); 3V3_RADIO current (INA3221),Sn (matte); coat,series code
 RS20 RS21 RS22 RS23,4,250m,WSL2010R2500FEA,Vishay Dale,Resistor_SMD:R_2010,"1 %, 0.5 W, current sense","0.88 A^2 x 0.25 = 0.19 W of 0.5 W (39 %), 12 s max",W1A burn current sense; W1B burn current sense; W2A burn current sense; W2B burn current sense,Sn (matte); coat,series code
-RT1,1,2.6A,2920L260/33DR,Littelfuse,2920,"PPTC hold 2.6 A, trip 5.0 A, 33 V, 40 A",1.31 A / 1.92 A hold at 60 C = 68 %,pack PTC,Sn; coat,Digi-Key: Active
+RT1,1,2.6A,2920L260/33DR,Littelfuse,2920,"PPTC hold 2.6 A, trip 5.0 A, 33 V, 40 A",1.40 A / 1.92 A hold at 60 C = 73 %,pack PTC,Sn; coat,Digi-Key: Active
 RT2,1,10k NTC,NCP15XH103F03RC,Murata,0402,"10 kOhm 1 %, B 3380 K",,AFE TS3: FET temperature,Sn,not checked
 TP1 TP2 TP3 TP4 TP5 TP6 TP7,7,TP,5015,Keystone,TestPoint:Keystone_5015,SMT test point,,,Sn,not checked
 U1,1,BQ76952,BQ76952PFBR,TI,TQFP-48 (PFB),"3-16S AFE, high-side NFET drivers, coulomb counter, OTP config, -40..85 C",BAT 17.4 V / 85 V max = 20 %,"primary BMS (OTP: COV 4.25 V, CUV 2.80/3.00 V, OCD1 40 mV 500 ms, SCD 100 mV, OTC 45 C, UTC 0 C, OTD 60 C, SUV PF 2.00 V 5 s, PCHG below 3.0 V)",NiPdAu,TI addendum: Active
