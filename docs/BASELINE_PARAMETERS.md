@@ -98,7 +98,7 @@ HF-13), so the wings-deployed columns govern the P ≥ 0.9 test.
 | Parameter | Baseline |
 |-----------|----------|
 | Solar array | 16 triple-junction cells (~30 %): 2 on each of 4 long body faces, plus 2 deployable 1U-face wings with 2 cells per side **[A, layout to be drawn]** |
-| Generation, EOL orbit average delivered to the bus | **2.48 W tumbling; 3.92 W sun-pointed**; 1.47 W with the wings stowed (mission simulation at 475 km from 2028-11-01, worst 30 days of the second year, LTAN 22:30 ± 1 h; `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.2 §4). The isotropic-tumble analysis (2.14 W, SOLAR_ARRAY_DESIGN §9.3, cells at 60 °C, no albedo) is kept as a bound |
+| Generation, EOL orbit average delivered to the bus | **2.48 W tumbling; 3.84 W sun-pointed** (3.79 W in the worst ADCS Monte Carlo trial with the face photodiodes and albedo, ADCS_DESIGN 1.9 §11.6, decision C-23; 3.92 W with +Y held on the Sun); 1.47 W with the wings stowed (mission simulation at 475 km from 2028-11-01, worst 30 days of the second year, LTAN 22:30 ± 1 h; `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.5 §4). The isotropic-tumble analysis (2.14 W, SOLAR_ARRAY_DESIGN §9.3, cells at 60 °C, no albedo) is kept as a bound |
 | Battery | 4S1P Li-ion 18650, ≈ 3.5 Ah, 14.4 V nominal, **≈ 50 Wh** (below the 80 Wh ISS extra-assessment threshold and the 100 Wh FAA note in CDS 2.1.5). Size kept; **charged to 4.10 V/cell (16.4 V), not 4.20 V**, because the pack sits at the end of charge for most of the mission **[D8]** |
 | Depth of discharge | ≤ 10 % nominal per eclipse; ≤ 30 % contingency (SYS-112) |
 | Mode thresholds (SOC) | ACTIVE allowed at ≥ 55 % (sunlit); ACTIVE → IDLE below 40 %; → SAFE below 25 %; SAFE → EMERGENCY (beacon shed) below 15 %; back to SAFE at 25 %, to IDLE above 40 % (`eps_control.h`, `sm_power_event()`) |
@@ -108,7 +108,7 @@ HF-13), so the wings-deployed columns govern the P ≥ 0.9 test.
 
 **Power closure (SQSO-PBA-001 v2.2 §6):** ACTIVE at the duty limits 2.50 W sun-pointed (**+54 %**), 1.82 W tumbling
 (**+34 %**); IDLE 1.18 W; SAFE 0.79 W; EMERGENCY 0.72 W, heater included. Margin ≥ 20 % in every mode at end of life
-and at LTAN 22:30 ± 1 h; SYS-100 (2.23 W: the 1.86 W allocation × 1.2, CR-2026-009) met with 11 % to spare. With the RF board's designed transponder draw (1.84 W DC at 0.5 W RF, Version E) the bottom-up ACTIVE loads are 2.60 W sun-pointed and 1.91 W tumbling: margins +48 % and +27 % by the PBA formula (+51 % / +30 % by the BASELINE method; PBA 2.4). As flown by the flight software in the mission
+and at LTAN 22:30 ± 1 h; SYS-100 (2.23 W: the 1.86 W allocation × 1.2, CR-2026-009) met with 11 % to spare. With the RF board's designed transponder draw (1.84 W DC at 0.5 W RF, Version E) the bottom-up ACTIVE loads are 2.60 W sun-pointed and 1.91 W tumbling: margins +45 % (+43 % in the worst pointing trial, C-23) and +27 % by the PBA formula (+48 % / +46 % and +30 % by the BASELINE method; PBA 2.5). As flown by the flight software in the mission
 simulation: depth of discharge ≤ 2.3 % (≤ 3.7 % in the full SIL run), deepest in any contingency 2.8 %. Wings stowed: SAFE and IDLE only (ACTIVE
 would be −42 %). A Jetson rail stuck on is shed in hardware below 13.6 V (EPS_DESIGN §6); the PA is not shed (CR-2026-016). The allocations behind the
 original closure:
@@ -122,8 +122,8 @@ original closure:
 | FM transponder (0.5 W RF: 1.84 W DC designed with the synthesizer's own regulator, SQSO-RF-BRD-001 E; allocation 1.85 W DC), duty ≤ 25 % | 0.46 W | 0.46 W | Sunlit, SOC ≥ 55 %, AI/OBC scheduled |
 | Jetson (≤ 8 W input), duty ≤ 5 % tumbling / ≤ 10 % sun-pointed | 0.40 W | 0.80 W | Sunlit, SOC ≥ 55 %, temperature limits |
 | **Total load** | **1.86 W** | **2.26 W** | |
-| Generation (simulated, EOL) | 2.48 W | 3.92 W | |
-| **Margin** | **+33 %** | **+73 %** | Requirement ≥ 20 % |
+| Generation (simulated, EOL) | 2.48 W | 3.84 W (3.79 W worst pointing trial) | |
+| **Margin** | **+33 %** | **+70 %** (+68 % worst trial) | Requirement ≥ 20 % |
 
 The GNSS line is a flat allocation; the expected steady-state draw is 1–7 mW. Continuous operation (up to 0.32 W) would
 break the tumbling-case margin, so the receiver is always duty-cycled.

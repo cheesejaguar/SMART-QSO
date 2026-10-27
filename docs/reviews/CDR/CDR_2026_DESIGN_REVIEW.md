@@ -117,8 +117,8 @@ L-2 M licences and ephemeris demonstration).
 | Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +0.97 (+0.86 at MEV masses) | Positive | STRUCTURAL_ANALYSIS |
 | PCB fatigue (Steinberg) | MS ≥ 0 | +0.42 to +0.72 at CBE, +0.14 to +0.51 at MEV (2.0 mm EPS and carrier) | Positive | STRUCTURAL_ANALYSIS |
 | Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel, at −55 °C | +0.08 (one spring out +0.07); release-energy ratio 1.90 with the 10 s burn (C-17) | Positive; resistive torque below −40 °C verified at −55 °C (VI-MECH-01..03) | MECHANISMS_ANALYSIS E |
-| Power, EOL, sun-pointed | ≥ 20 % | 3.85 W with the photodiode-and-albedo pointing of C-23 (3.93 W with +Y held on the Sun; 3.80 W in the worst trial) against the bottom-up ACTIVE load 2.60 W with the heater and the transponder (2.26 W allocation) | +48 % (+46 % worst trial; +70 % on the allocation) | POWER_BUDGET_ANALYSIS 2.4; ADCS_DESIGN 1.9 §11.6; BASELINE §5 |
-| Power, EOL, tumbling | ≥ 20 % | 2.48 W against the bottom-up ACTIVE load 1.91 W with the heater and RF board E's transponder (1.86 W allocation) | +27 % (+33 % on the allocation) | POWER_BUDGET_ANALYSIS 2.4; BASELINE §5 |
+| Power, EOL, sun-pointed | ≥ 20 % | 3.84 W delivered with the photodiode-and-albedo pointing of C-23 (3.79 W in the worst trial; 3.92 W with +Y held on the Sun) against the bottom-up ACTIVE load 2.60 W with the heater and the transponder | +45 % (+43 % worst trial), PBA method; +70 % on the 2.26 W allocation by the BASELINE method | POWER_BUDGET_ANALYSIS 2.5 §4; ADCS_DESIGN 1.9 §11.6; BASELINE §5 |
+| Power, EOL, tumbling | ≥ 20 % | 2.48 W against the bottom-up ACTIVE load 1.91 W with the heater and the transponder | +27 %, PBA method; +33 % on the 1.86 W allocation by the BASELINE method | POWER_BUDGET_ANALYSIS 2.5 §4; BASELINE §5 |
 | Depth of discharge | ≤ 10 % per eclipse | ≤ 3.5 % as flown (SIL G, 475 km); 2.8 % worst contingency (PBA 2.2) | × 2.9 | SIL_MISSION_SIMULATION G §7; POWER_BUDGET_ANALYSIS |
 | Battery temperature | 0 to +45 °C charging | ≥ +4.4 °C at 14.0 V; +3.7 °C at the 12.0 V floor; +1.2 °C with a 0.10 W/K mount; −1.1 °C with the wings stowed (charging then inhibited in hardware) | Met in operation; stowed-wing case THM-03 | THERMAL_ANALYSIS |
 | Beacon link, 5° | ≥ 6 dB (median gain) | +7.9 dB | +1.9 dB | LINK_BUDGET 3.2 |
@@ -193,15 +193,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 31 |
-| Closed by design change | 101 | 276 |
+| Closed by design change | 101 | 279 |
 | Closed by chair decision | 42 | 35 |
 | Verification item | 46 | 33 |
 | Decision point (dated) | 15 | 34 |
-| Implementation | 183 | 3 |
+| Implementation | 183 | 0 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 106 new findings; 45 of the reopened and 99 of the new are since closed.
+Rounds 3 and 4 (independent closure verification) reopened 45 RIDs and raised 106 new findings; 45 of the reopened and 102 of the new are since closed and 4 were dispositioned when raised.
 
-Open implementation RIDs: P4-01, P4-02, P4-03.
+Open implementation RIDs: none.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -713,7 +713,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3S-10 | 3 | Thermal-vacuum cycle count and margin conflict between documents | IMP | Closed by design change | ETP D §3.4 one thermal-vacuum definition; SYS-707 Rev G; V-THM-6 restated in the VI register |
 | P3S-11 | 3 | Trim masses not specified non-magnetic | IMP | Closed by design change | Trim masses W-Ni-Cu (ASTM B777, non-magnetic binder) or pure W (D-9, MATERIALS_LIST) |
 | P3S-12 | 3 | Z rod clipped to two structures at the deck's peak response; clip loads not computed | IMP | Closed by design change | Z rod tied to the −X shear panel only (two clips, 19 N at 3σ, MS > +30); deck 247 Hz; deck and clip accelerometers in VI-STR-02, VI-MCAD-04 |
-| P3S-13 | 3 | RID evidence numbers superseded | IMP | Closed by analysis | Evidence numbers regenerated where they are values of the current design: §3.2, §3.3 and §5 of this report to SIL G, MASS_BUDGET 3.3, STRUCTURAL_ANALYSIS, RADIATION_ANALYSIS F, ADCS_DESIGN 1.9, SCHEDULE E; superseded figures in closed RIDs' evidence are the values at closure, with the current value named where a panel flagged it (AV-01, AV-02, AV-04, FSW-05, OBCB-05) |
+| P3S-13 | 3 | RID evidence numbers superseded | IMP | Closed by analysis | Evidence numbers regenerated where they are values of the current design: report §3.2, §3.3 and §5 to SIL G, MASS_BUDGET 3.3, STRUCTURAL_ANALYSIS, RADIATION_ANALYSIS F, ADCS_DESIGN 1.9 (slowest in-specification capture 1.8 h), POWER_BUDGET_ANALYSIS 2.5 (one margin method named per row), SCHEDULE E, 622 Rust tests; superseded figures in closed RIDs' evidence are the values at closure, with the current value named where a panel flagged it (AV-01, AV-02, AV-04, FSW-05, OBCB-05); confirmed by the round-4 verification |
 
 #### Round 3: launch, RF, ground, regulatory (P3A)
 
@@ -771,9 +771,9 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| P4-01 | 3 | F1 can be fired below its −10 °C rating (after SMA-B20 the fire waits at most 6 h for a ≥ 0 °C board, or fires at once if the temperature is unreadable; the cold-orbit board reaches −11.5 °C), and V-EPS-8 (c) did not verify the cold opening; EPS_BOARD_DESIGN §7 said it never fires below 0 °C | IMP | Implementation | Cold opening a pass criterion; text corrected |
-| P4-02 | 3 | Report §3.3 power margins did not follow from the power budget (3.85 W not in PBA 2.4; BASELINE method under a PBA citation) | IMP | Implementation | PBA with the albedo case; one method |
-| P4-03 | 3 | OBC heartbeat timeout tolerance: EPSC-F081 600–660 s against V-EPS-16 600 ± 10 s | IMP | Implementation | Align |
+| P4-01 | 3 | F1 can be fired below its −10 °C rating (after SMA-B20 the fire waits at most 6 h for a ≥ 0 °C board, or fires at once if the temperature is unreadable; the cold-orbit board reaches −11.5 °C), and V-EPS-8 (c) did not verify the cold opening; EPS_BOARD_DESIGN §7 said it never fires below 0 °C | IMP | Closed by design change | EPS_BOARD_DESIGN G (amended) §7 and ICD-001 1.7 §4.6 state the actual rule (in sunlight; up to 6 h per attempt waiting for ≥ 0 °C, then fires, at once if unreadable), so F1 can blow at −11.5 °C or colder; V-EPS-8 (c) is a pass criterion: F1 opens in < 1 min at −20 °C (8.5 K below the cold-orbit prediction) at 10.5 V and 16.8 V on the flight lot; −40 °C trigger kept as characterisation |
+| P4-02 | 3 | Report §3.3 power margins did not follow from the power budget (3.85 W not in PBA 2.4; BASELINE method under a PBA citation) | IMP | Closed by design change | POWER_BUDGET_ANALYSIS 2.5 carries the C-23 albedo case: sun-pointed EOL 3.84 W (3.79 W worst trial), +45 % (+43 %) by the PBA method on the 2.60 W ACTIVE load, +70 % (+68 %) on the allocation by the BASELINE method, both methods stated in §4; BASELINE §5 and report §3.3 quote it with the method named; tumbling +27 % / +33 % |
+| P4-03 | 3 | OBC heartbeat timeout tolerance: EPSC-F081 600–660 s against V-EPS-16 600 ± 10 s | IMP | Closed by design change | V-EPS-16 aligned to EPSC-F081: SW10 off 1.95 ± 0.1 s between 600 and 660 s after the last heartbeat (EPS_BOARD_DESIGN G amended) |
 <!-- RID-LOG-END -->
 
 ## 7. Verdict

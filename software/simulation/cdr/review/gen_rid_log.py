@@ -115,9 +115,10 @@ def render() -> tuple[str, str]:
     lines.append("")
     reopened = sorted(REOPEN)
     lines.append(
-        f"Round 3 (independent closure verification) reopened {len(reopened)} RIDs and raised {len(NEW)} new findings; "
+        f"Rounds 3 and 4 (independent closure verification) reopened {len(reopened)} RIDs and raised {len(NEW)} new findings; "
         f"{sum(1 for r in reopened if r in FINAL3)} of the reopened and "
-        f"{sum(1 for n in NEW if n[0] in FINAL3)} of the new are since closed."
+        f"{sum(1 for n in NEW if n[0] in FINAL3)} of the new are since closed and "
+        f"{sum(1 for n in NEW if n[0] not in FINAL3 and n[3] != 'IMP')} were dispositioned when raised."
     )
     lines.append("")
     lines.append(
