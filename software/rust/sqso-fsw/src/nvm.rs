@@ -172,9 +172,11 @@ pub fn load<F: Flash>(
 ) -> Result<RecordStatus, NvmError> {
     match load_one(flash, region, base, magic, payload) {
         Ok(RecordStatus::Valid) => Ok(RecordStatus::Valid),
-        first => match load_one(&mut Mirror(flash), region, base, magic, payload) {
-            Ok(RecordStatus::Valid) => Ok(RecordStatus::Valid),
-            _ => first,
+        first => match (first, load_one(&mut Mirror(flash), region, base, magic, payload)) {
+            (_, Ok(RecordStatus::Valid)) => Ok(RecordStatus::Valid),
+            // The first FRAM failed: what the mirror holds, if it answers
+            (Err(e), mirror) => mirror.or(Err(e)),
+            (first, _) => first,
         },
     }
 }

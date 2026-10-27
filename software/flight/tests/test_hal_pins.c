@@ -113,9 +113,9 @@ static void test_contract_450(void **state)
 static void test_contract_500(void **state)
 {
     (void)state;
-    const struct {
-        RustConst_t id;
-        double c;
+    static const struct {
+        int id;
+        double value;
     } k[] = {
         {RUST_CONST_PIN_MAG_EN, GPIO_PIN_MAG_EN},
         {RUST_CONST_PIN_MAG_RB, GPIO_PIN_MAG_RB},
@@ -128,7 +128,7 @@ static void test_contract_500(void **state)
         {RUST_CONST_FRAM_STATE_DEGRADED, (double)FRAM_STATE_DEGRADED},
     };
     for (size_t i = 0U; i < (sizeof(k) / sizeof(k[0])); i++) {
-        assert_true(sqso_rust_constant(k[i].id) == k[i].c);
+        assert_true(fabs(sqso_rust_constant((RustConst_t)k[i].id) - k[i].value) < 0.5);
     }
     assert_int_equal(sizeof(k) / sizeof(k[0]), (size_t)(RUST_CONST_GROUP_500_END - 500));
     assert_true(isnan(sqso_rust_constant((RustConst_t)RUST_CONST_GROUP_500_END)));

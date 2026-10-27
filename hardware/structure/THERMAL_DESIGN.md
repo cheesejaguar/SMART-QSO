@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-THM-001
-**Version:** 1.4
+**Version:** 1.5
 **Date:** 2026-10-27
 **Status:** CDR Baseline. The analysis is `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0); this document holds
 the design (finishes, mount, heater, sensors) and the allowable temperatures
@@ -15,18 +15,23 @@ This document defines the thermal design for the SMART-QSO 1U CubeSat for LEO mi
 
 ### 1.1 Thermal Design Requirements
 
-Allowable temperatures used by the CDR analysis (SQSO-THA-001 v2.0 §3). SYS-600/601 (−20 … +50 °C operating,
-−40 … +60 °C survival for all components) cannot be met by the boards with the 10 °C model margin in the cold case;
-the per-unit values in the last two columns are proposed to replace them (RID THM-04, for the chair).
+Allowable flight temperatures (AFT) per unit, derived from the parts' data-sheet ranges (SQSO-THA-001 2.2 §6.6, RID
+THM-04; proposed SYS-600/601 text in CR-2026-017, PI decision by 2027-01-12). They replace the single SYS-600/601 range
+(−20 … +50 °C operating, −40 … +60 °C survival for all components), which the boards cannot meet with the 10 °C model
+margin. Rule: the protoflight test runs at the AFT ± 10 °C (ETP §3.4) and no plateau takes a part below its data-sheet
+minimum, so units whose parts stop at −40 °C have a −30 °C cold AFT, operating and non-operating. The first orbit after
+separation (the LEOP cold case L4 after the dispenser cold soak) extends the cold AFT to −40 °C, the parts' rating,
+demonstrated by a cold start at −40 °C without the 10 °C test margin (ETP §9 deviation 8).
 
-| Component | Op Min (°C) | Op Max (°C) | Survival Min (°C) | Survival Max (°C) | Proposed op / non-op (°C) |
-|-----------|-------------|-------------|-------------------|-------------------|---------------------------|
-| OBC/EPS stack | -20 | +50 | -40 | +60 | −30 … +60 / −40 … +70 (parts −40 … +85) |
-| Battery | 0 (charge), −10 (discharge) | +45 (charge), +60 (discharge) | -20 | +60 | unchanged (cell specification) |
-| RF electronics | -20 | +50 | -40 | +60 | −30 … +60 / −40 … +70; PA gate 70 °C in software |
-| Jetson module | -20 | +50 | -40 | +60 | −15 (power-on gate) … +50 spreader / −25 … +80; Tj ≤ 95 (guard), 105 (datasheet) |
-| Solar cells | -40 | +85 | -100 | +100 | Vendor qualification covering −56 … +93 |
-| Structure | -40 | +80 | -60 | +100 | unchanged |
+| Unit | Operating (°C) | Non-operating (°C) | First orbit after separation (°C) | Basis |
+|------|----------------|--------------------|-----------------------------------|-------|
+| OBC/EPS stack, with the ADCS and GNSS units and the magnetometer board | −30 … +50 | −30 … +60 | −40 (operating) | Parts −40 … +85 °C or wider; EPS fuses ITV4030 rated from −10 °C, qualified to −40 °C by V-EPS-8 |
+| RF board | −30 … +50 | −30 … +60 | −40 (operating) | Parts −40 … +85 °C or wider (crystal Y451 in its −40 … +85 °C grade); PA gate 70 °C in software |
+| Jetson carrier | −15 (power-on gate, SRS-F131) … +50 at the spreader | −30 … +60 | −40 (non-operating) | Parts −40 … +85 °C or wider |
+| Jetson module | −15 (power-on gate) … +50 at the spreader; junction per SYS-603 (≤ 95 guard, 105 data sheet) | −30 … +60 | −40 (non-operating) | Data-sheet junction minimum −25 °C; below it qualified by the EM soak V-THM-8 |
+| Battery | 0 … +45 charging (SYS-602); −10 … +60 discharging | −20 … +60 | as non-operating; heater-controlled | Cell specification (INR18650-35E) |
+| Solar panels and wings | Vendor's qualified range, at least −56 … +93 | as operating | as operating | V-THM-4 |
+| Structure | −40 … +80 | −60 … +100 | — | Unchanged |
 
 ## 2. Orbital Environment
 
@@ -270,3 +275,4 @@ inside that range: the test is tailored at the battery with the integrator's agr
 | 1.2 | 2026-10-26 | Battery heater 1 W and the mount conductance network (§6.2, §6.3, §7.2; BUILD_VS_BUY §4) |
 | 1.3 | 2026-10-27 | CDR review (thermal): allowable temperatures with proposed per-unit values (§1.1); baseline orbit and environments (§2); conductances (§4.2); cases and results from SQSO-THA-001 v2.0 (§5); heater set points recommended (§6.2); correlation and SpaceX thermal-cycling levels (§9) |
 | 1.4 | 2026-10-27 | CDR 2026 consistency pass: altitude row from BASELINE Rev E §3 (§2.1) |
+| 1.5 | 2026-10-27 | CDR round 3, thermal (RID THM-04, chair disposition): §1.1 per-unit allowable flight temperatures derived from the parts (SQSO-THA-001 2.2 §6.6): −30 °C cold for every board, operating and non-operating, −40 °C for the first orbit after separation; battery and Jetson per the proposed SYS-600/601 (CR-2026-017) |
