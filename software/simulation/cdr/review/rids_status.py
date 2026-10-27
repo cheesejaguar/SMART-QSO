@@ -20,5 +20,8 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "SE-11": ("CD", "SQSO-SEC-001 Space System Protection and Security Plan (NASA-STD-1006A as practice)"),
     "EMC-05": ("CD", "ETP Rev C.1 §3.6: V-EMC-1, V-EMC-3, V-EMC-6"),
     "RF-12": ("CD", "RF board build-to design: SQSO-RF-BRD-001 (316 parts, ERC 0 errors, BOM with stresses); EM tests VI-RFB-01..09"),
+    "EPS-07": ("CD", "S5 and W7 redrawn for the AntS: supply after DS1-DS3, switched by DEPLOY_EN, I2C through a TCA9517 (SQSO-EPS-BRD-001)"),
+    "AV-08": ("CD", "Current-limited auto-retry rails: OBC 0.15 A, radio 0.12 A, sensors 0.30 A, GNSS 0.20 A, EPS controller 75 mA, AntS 1.37 A, PA 0.99 A (SQSO-EPS-BRD-001)"),
+    "RFB-06": ("CD", "Radio trip 0.12 A with current telemetry; 3V3_AO ±2 % (≥ 3.22 V at the RF connector) (SQSO-EPS-BRD-001)"),
     "SE-10": ("CD", "SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined"),
 }

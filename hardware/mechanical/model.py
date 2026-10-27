@@ -68,7 +68,7 @@ P: Dict[str, float] = dict(
     # GNSS patch (Spacemanic ZENITH V3a, 50 x 50 mm; thickness allocation 5 mm)
     patch_w=50.0, patch_t=5.0,
     # PC/104 boards
-    pcb_x=90.17, pcb_y=95.89, pcb_t=1.6, col_x=40.0, col_y=43.0, col_d=5.8, cs_x=0.0, cs_y=21.0, cs2_y=-21.0, jet_y=-7.0,
+    pcb_x=90.17, pcb_y=95.89, pcb_t=1.6, col_x=40.0, col_y=43.0, col_d=5.8, cs_x=0.0, cs_y=21.0, cs2_y=-21.0, jet_y=-6.0,
     # stack levels: substrate bottom z
     z_eps=-3.0, z_obc=5.0, z_car=18.0, z_rf=34.8,
     # magnetometer and RF shield (positions chosen to balance Iyz, MECHANICAL_DESIGN section 5)
@@ -1012,7 +1012,7 @@ def drawings(parts: List[Part], outdir: str, checks: Dict, mprops: Dict):
         "Dashed orange: the 6.5 mm protrusion envelope on +-X/+-Y. First protrusion >= 9.0 mm from every rail edge "
         "(CDS 2.2.5: >= 8.5).",
         f"Stowed stack from the rail plane: wing front cells {stack['wing front cells']['nominal']:.2f}, hold-down line "
-        f"{stack['hold-down line loop']['nominal']:.2f}, hinge knuckle {stack['hinge knuckle']['nominal']:.2f} mm "
+        f"{stack['hold-down line loop']['nominal']:.2f}, hinge spring {stack['hinge spring (OD 4.0)']['nominal']:.2f} mm "
         f"(governing); worst-case tolerance stack {st['worst_case']:.2f} mm, RSS {st['rss']:.2f} mm (STR-10).",
         "Deployment switches (inhibits, BASELINE 4): DS1 rail +X+Y at -Z, DS2 rail -X-Y at -Z, DS3 rail +X-Y at +Z, each "
         "at (+-46.0, +-46.0) mm in its standoff; separation plungers SP1 rail -X+Y and SP2 rail +X-Y at -Z "

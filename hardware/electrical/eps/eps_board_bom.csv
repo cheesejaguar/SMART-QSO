@@ -87,8 +87,9 @@ R144 R149,2,470,ERJ-3EKF4700V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1
 R153,1,1.43M,CRCW06031M43FKEA,Vishay Dale,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V (Vishay, AEC-Q200)",< 10 % power,OVP 18.4 V,Sn over Ni (matte); re-tin or coat,series code
 R155,1,15k,ERJ-3EKF1502V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V",< 10 % power,1.20 A,Sn over Ni (matte); re-tin or coat per EEE_PARTS_LIST 2A.3,series code
 R161,1,3.24k,ERJ-3EKF3241V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V",< 10 % power,0.148 A limit,Sn over Ni (matte); re-tin or coat per EEE_PARTS_LIST 2A.3,series code
-R165 R172,2,88.7k,ERJ-3EKF8872V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V",< 10 % power,,Sn over Ni (matte); re-tin or coat per EEE_PARTS_LIST 2A.3,series code
+R165,1,226k,ERJ-3EKF2263V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V",< 10 % power,,Sn over Ni (matte); re-tin or coat per EEE_PARTS_LIST 2A.3,series code
 R169,1,26.1k,ERJ-3EKF2612V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V",< 10 % power,,Sn over Ni (matte); re-tin or coat per EEE_PARTS_LIST 2A.3,series code
+R172,1,88.7k,ERJ-3EKF8872V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V",< 10 % power,,Sn over Ni (matte); re-tin or coat per EEE_PARTS_LIST 2A.3,series code
 R176,1,133k,ERJ-3EKF1333V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V",< 10 % power,,Sn over Ni (matte); re-tin or coat per EEE_PARTS_LIST 2A.3,series code
 R180,1,18.7k,ERJ-3EKF1872V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V",< 10 % power,,Sn over Ni (matte); re-tin or coat per EEE_PARTS_LIST 2A.3,series code
 R183,1,178k,ERJ-3EKF1783V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V",< 10 % power,,Sn over Ni (matte); re-tin or coat per EEE_PARTS_LIST 2A.3,series code

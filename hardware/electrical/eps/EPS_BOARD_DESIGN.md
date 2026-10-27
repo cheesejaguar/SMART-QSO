@@ -323,10 +323,24 @@ PASSIVATE_ARM / PASSIVATE_EXECUTE of REG-01 map onto them).
 | Converter | Output | Inductor ripple | Loss at full load | Efficiency |
 |---|---|---|---|---|
 | U15 LMR43620MC3 3V3_AO | 3.30 V / 0.30 A | 0.39 A p-p | 67 mW | 93.7 % (85–90 % at 0.1 A, forced PWM) |
+| U16 at the transponder load | 5.00 V / 0.35 A (1.76 W DC at 0.5 W RF) and ≈ 0.55 A at 1 W RF | | 60–145 mW | ≥ 94 % |
 | U16 LMR43620MC5 5V_PA | 5.00 V / 0.54 A | 0.52 A p-p | 143 mW | 95.0 % |
 | U17 LMR43620MC5 (adj.) V_BURN | 7.04 V / 1.76 A | 0.60 A p-p | 948 mW | 92.9 % |
 
-All 2 A parts, 42 V abs max input (VBAT 40 %), no spread spectrum (MC variants), synchronised to SYNC_A. UVLO (EN
+All 2 A parts, 42 V abs max input (VBAT 40 %), no spread spectrum (MC variants), synchronised to SYNC_A.
+**3V3_AO accuracy (for the RF board's LMX2571, 3.15 V minimum).** The LMR43620MC3's fixed output is 3.27–3.33 V
+(±0.9 %, datasheet, VIN 3.6–36 V, forced PWM); the feedback senses after the RS9 shunt; with three 22 µF the 50 mA load
+steps of the radio move it < 20 mV. 3V3_AO is therefore held to **±2 %** (3.23–3.37 V) including transients. At J19-5
+(3V3_RADIO) the SW2 switch (135 mΩ maximum) and RS12 (100 mΩ) take 9 mV at 38 mA: ≥ 3.22 V at the RF board, 70 mV
+above the synthesizer's minimum before the harness (≤ 10 mV for 0.1 m of 26 AWG).
+
+**PA rail (5 V or 6 V).** U16 (2 A part) carries the transponder's 1.76 W DC at 0.5 W RF (0.35 A) and ≈ 2.7 W at 1 W RF
+(0.55 A) with 3.6× margin; SW3 trips at 0.92 A minimum. A 6 V rail is a feedback change on U16 (the MC5 part is also
+adjustable: 50.0 k / 10.0 k), but SW3's TPS2553 (6.5 V operating maximum) would sit at 92 % of its rating, above the
+80 % rule: SW3 would become a 40 V high-side switch (TPS1H000-Q1 class, 1 Ω, limit ≥ 0.6 A: adequate for 0.55 A only
+with a 0.5 W loss, or a TPS1H100B-Q1 at 0.1 Ω). Recommendation: keep 5 V unless the PA design shows ≥ 5 % better
+efficiency at 6 V for the same RF power; the change on this board is then U16's divider and SW3 → TPS1H100B-Q1.
+ UVLO (EN
 dividers): 3V3_AO starts at 10.5 V and stops at 7.5 V; 5V_PA and V_BURN start at 12.1 V and stop at 8.7 V (§2.2).
 The PA has its own buck and the Jetson carrier takes VBAT through its eFuse (EMC rule E3, RID EMC-02).
 
@@ -344,7 +358,7 @@ free-run at ≈ 1 MHz (R_FREQ 46.4 k) and the bucks drop to auto mode: no spread
 |---|---|---|---|---|---|---|
 | SW10 OBC 3.3 V | TPS2553-Q1 U38 | 178 k | 0.152 (0.130–0.176) A | 0.040 A | 0.28 s, auto | always (no command) |
 | SW9 EPS controller | TPS2553-Q1 U27 | ILIM to IN | 0.075 (0.050–0.100) A | 0.012 A | 0.28 s, auto | always |
-| SW2 RADIO | TPS2553-Q1 U22 | 88.7 k | 0.299 (0.265–0.339) A | 0.100 A | 1.3 s, auto | RADIO_EN PB5 |
+| SW2 RADIO | TPS2553-Q1 U22 | 226 k | 0.120 (0.102–0.141) A | 0.038 A (RF board, SQSO-RF-BRD-001) | 1.3 s, auto | RADIO_EN PB5 |
 | SW3 PA (TX-OFF) | TPS2553-Q1 U23 | 26.1 k | 0.989 (0.918–1.071) A | 0.540 A | 0.28 s, auto | RF_TX_EN PA3 AND SHED_N |
 | SW4 ADCS (sensors, coils) | TPS2553-Q1 U24 | 88.7 k | 0.299 (0.265–0.339) A | 0.130 A | 0.28 s, auto | ADCS_EN PB6 |
 | SW7 GNSS | TPS2553-Q1 U25 | 133 k | 0.202 (0.175–0.232) A | 0.100 A | 1.3 s, auto | GNSS_EN PE5 |
@@ -357,8 +371,9 @@ free-run at ≈ 1 MHz (R_FREQ 46.4 k) and the bucks drop to auto mode: no spread
 TPS2553 rails: the current is limited within 2 µs; FAULT asserts after its 8 ms deglitch and pulls EN low (FAULT tied
 to EN, R_FAULT 100 kΩ, C_RETRY 22 µF or 4.7 µF), which removes the rail; EN recharges to its threshold in ≈ 0.6 × R × C
 (1.3 s or 0.28 s), and a persisting latch-up repeats the cycle. A BAT54 across R_FAULT makes a commanded turn-off fast
-(< 1 ms). Trip levels against RADIATION_ANALYSIS §5.3: OBC 0.15 A (normal ≈ 30–40 mA, proposed 150 mA), radio 0.30 A
-(0.1 A, proposed 0.3 A), GNSS 0.20 A (0.1 A, proposed 0.2 A), all ≥ 100 ms off (≥ 1 s for radio and GNSS). **The OBC rail
+(< 1 ms). Trip levels against RADIATION_ANALYSIS §5.3: OBC 0.15 A (normal ≈ 30–40 mA, proposed 150 mA), radio 0.12 A
+(38 mA measured-design load of the RF board; the 0.3 A first proposed could not see a latch-up of a 38 mA load; the
+EPS controller also reports the rail's INA3221 current so the OBC can trip it in software), GNSS 0.20 A (0.1 A, proposed 0.2 A), all ≥ 100 ms off (≥ 1 s for radio and GNSS). **The OBC rail
 SW10 is the power-cycling supervisor the OBC cannot be for itself**: it needs no command, and while it is off every OBC
 output is low or high-impedance, so the EPS pull-downs turn every switched load off (the TX-OFF latch lives in the OBC's
 FRAM and survives). The sensor rail SW4 trips at 0.30 A only: a magnetometer or gyro latch-up (tens of mA) is masked by

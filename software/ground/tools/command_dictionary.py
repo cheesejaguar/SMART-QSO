@@ -29,8 +29,10 @@ COMMANDS: Dict[str, CommandSpec] = {
     "SET_CONTACT_TIMEOUT": CommandSpec(0x07, 2, 2, "operational", "Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 30 at launch, 14 after commissioning: decision D3)", without_key=False),
     "COMMISSIONING_RELEASE": CommandSpec(0x08, 0, 0, "operational", "Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven)", without_key=False),
     "GET_HOUSEKEEPING": CommandSpec(0x09, 0, 0, "operational", "Downlink a housekeeping frame (HK1) at the next opportunity", without_key=False),
+    "DUMP_TLM": CommandSpec(0x0a, 7, 7, "operational", "Downlink stored housekeeping: store (0 five-minute records, 1 sixty-second records), first record sequence (4 bytes big-endian), count (2 bytes big-endian, at most 600; 0 stops a dump); paced within the downlink duty limit", without_key=False),
     "EPS_SET_MODE": CommandSpec(0x10, 1, 1, "operational", "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE", without_key=False),
     "EPS_GET_TELEMETRY": CommandSpec(0x13, 0, 0, "operational", "Get EPS telemetry", without_key=False),
+    "EPS_CLEAR_LOCKOUT": CommandSpec(0x14, 4, 4, "operational", "Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history", without_key=False),
     "ADCS_DETUMBLE": CommandSpec(0x21, 0, 0, "operational", "Start detumble", without_key=False),
     "ADCS_GET_ATTITUDE": CommandSpec(0x23, 0, 0, "operational", "Get attitude", without_key=False),
     "ADCS_SET_GEOMETRY": CommandSpec(0x24, 1, 1, "operational", "Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing", without_key=False),
@@ -44,4 +46,6 @@ COMMANDS: Dict[str, CommandSpec] = {
     "PLD_DISABLE": CommandSpec(0x41, 0, 0, "operational", "Disable payload", without_key=False),
     "DEPLOY_RETRY": CommandSpec(0x50, 1, 1, "operational", "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)", without_key=False),
     "GNSS_REQUEST": CommandSpec(0x60, 0, 0, "operational", "Start a GNSS receiver session now (its power gates still apply)", without_key=False),
+    "PASSIVATE_ARM": CommandSpec(0x70, 4, 4, "operational", "Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven", without_key=False),
+    "PASSIVATE_EXECUTE": CommandSpec(0x71, 0, 0, "recovery", "Within 600 s of PASSIVATE_ARM: latch TX-OFF, fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE) and keep every transmitter off for good (recovery key only; irreversible)", without_key=False),
 }

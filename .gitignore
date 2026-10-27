@@ -99,3 +99,8 @@ keys/
 
 # Mission simulation output (software/rust/sqso-sil)
 sil-out/
+
+# SKiDL run artefacts
+skidl_REPL.*
+hardware/electrical/*/design.erc
+hardware/electrical/*/design.log

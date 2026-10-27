@@ -31,10 +31,14 @@ pub enum Command {
     CommissioningRelease = 0x08,
     /// Downlink a housekeeping frame (HK1) at the next opportunity
     GetHousekeeping = 0x09,
+    /// Downlink stored housekeeping: store (0 five-minute records, 1 sixty-second records), first record sequence (4 bytes big-endian), count (2 bytes big-endian, at most 600; 0 stops a dump); paced within the downlink duty limit
+    DumpTlm = 0x0A,
     /// Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE
     EpsSetMode = 0x10,
     /// Get EPS telemetry
     EpsGetTelemetry = 0x13,
+    /// Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history
+    EpsClearLockout = 0x14,
     /// Start detumble
     AdcsDetumble = 0x21,
     /// Get attitude
@@ -61,11 +65,15 @@ pub enum Command {
     DeployRetry = 0x50,
     /// Start a GNSS receiver session now (its power gates still apply)
     GnssRequest = 0x60,
+    /// Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven
+    PassivateArm = 0x70,
+    /// Within 600 s of PASSIVATE_ARM: latch TX-OFF, fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE) and keep every transmitter off for good (recovery key only; irreversible)
+    PassivateExecute = 0x71,
 }
 
 impl Command {
     /// Every command, in ID order
-    pub const ALL: [Command; 24] = [
+    pub const ALL: [Command; 28] = [
         Command::Nop,
         Command::Reset,
         Command::SetMode,
@@ -75,8 +83,10 @@ impl Command {
         Command::SetContactTimeout,
         Command::CommissioningRelease,
         Command::GetHousekeeping,
+        Command::DumpTlm,
         Command::EpsSetMode,
         Command::EpsGetTelemetry,
+        Command::EpsClearLockout,
         Command::AdcsDetumble,
         Command::AdcsGetAttitude,
         Command::AdcsSetGeometry,
@@ -90,6 +100,8 @@ impl Command {
         Command::PldDisable,
         Command::DeployRetry,
         Command::GnssRequest,
+        Command::PassivateArm,
+        Command::PassivateExecute,
     ];
 
     /// The command with this ID, if the dictionary has one
@@ -104,8 +116,10 @@ impl Command {
             0x07 => Some(Command::SetContactTimeout),
             0x08 => Some(Command::CommissioningRelease),
             0x09 => Some(Command::GetHousekeeping),
+            0x0A => Some(Command::DumpTlm),
             0x10 => Some(Command::EpsSetMode),
             0x13 => Some(Command::EpsGetTelemetry),
+            0x14 => Some(Command::EpsClearLockout),
             0x21 => Some(Command::AdcsDetumble),
             0x23 => Some(Command::AdcsGetAttitude),
             0x24 => Some(Command::AdcsSetGeometry),
@@ -119,6 +133,8 @@ impl Command {
             0x41 => Some(Command::PldDisable),
             0x50 => Some(Command::DeployRetry),
             0x60 => Some(Command::GnssRequest),
+            0x70 => Some(Command::PassivateArm),
+            0x71 => Some(Command::PassivateExecute),
             _ => None,
         }
     }
@@ -148,8 +164,10 @@ impl Command {
             Command::SetContactTimeout => c"SET_CONTACT_TIMEOUT",
             Command::CommissioningRelease => c"COMMISSIONING_RELEASE",
             Command::GetHousekeeping => c"GET_HOUSEKEEPING",
+            Command::DumpTlm => c"DUMP_TLM",
             Command::EpsSetMode => c"EPS_SET_MODE",
             Command::EpsGetTelemetry => c"EPS_GET_TELEMETRY",
+            Command::EpsClearLockout => c"EPS_CLEAR_LOCKOUT",
             Command::AdcsDetumble => c"ADCS_DETUMBLE",
             Command::AdcsGetAttitude => c"ADCS_GET_ATTITUDE",
             Command::AdcsSetGeometry => c"ADCS_SET_GEOMETRY",
@@ -163,6 +181,8 @@ impl Command {
             Command::PldDisable => c"PLD_DISABLE",
             Command::DeployRetry => c"DEPLOY_RETRY",
             Command::GnssRequest => c"GNSS_REQUEST",
+            Command::PassivateArm => c"PASSIVATE_ARM",
+            Command::PassivateExecute => c"PASSIVATE_EXECUTE",
         }
     }
 
@@ -178,8 +198,10 @@ impl Command {
             Command::SetContactTimeout => CommandSpec { min_args: 2, max_args: 2, key: KeyClass::Operational, without_key: false },
             Command::CommissioningRelease => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::GetHousekeeping => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::DumpTlm => CommandSpec { min_args: 7, max_args: 7, key: KeyClass::Operational, without_key: false },
             Command::EpsSetMode => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
             Command::EpsGetTelemetry => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::EpsClearLockout => CommandSpec { min_args: 4, max_args: 4, key: KeyClass::Operational, without_key: false },
             Command::AdcsDetumble => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::AdcsGetAttitude => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::AdcsSetGeometry => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
@@ -193,6 +215,8 @@ impl Command {
             Command::PldDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::DeployRetry => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
             Command::GnssRequest => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::PassivateArm => CommandSpec { min_args: 4, max_args: 4, key: KeyClass::Operational, without_key: false },
+            Command::PassivateExecute => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Recovery, without_key: false },
         }
     }
 
@@ -208,8 +232,10 @@ impl Command {
             Command::SetContactTimeout => "Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 30 at launch, 14 after commissioning: decision D3)",
             Command::CommissioningRelease => "Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven)",
             Command::GetHousekeeping => "Downlink a housekeeping frame (HK1) at the next opportunity",
+            Command::DumpTlm => "Downlink stored housekeeping: store (0 five-minute records, 1 sixty-second records), first record sequence (4 bytes big-endian), count (2 bytes big-endian, at most 600; 0 stops a dump); paced within the downlink duty limit",
             Command::EpsSetMode => "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE",
             Command::EpsGetTelemetry => "Get EPS telemetry",
+            Command::EpsClearLockout => "Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history",
             Command::AdcsDetumble => "Start detumble",
             Command::AdcsGetAttitude => "Get attitude",
             Command::AdcsSetGeometry => "Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing",
@@ -223,6 +249,8 @@ impl Command {
             Command::PldDisable => "Disable payload",
             Command::DeployRetry => "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)",
             Command::GnssRequest => "Start a GNSS receiver session now (its power gates still apply)",
+            Command::PassivateArm => "Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven",
+            Command::PassivateExecute => "Within 600 s of PASSIVATE_ARM: latch TX-OFF, fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE) and keep every transmitter off for good (recovery key only; irreversible)",
         }
     }
 }

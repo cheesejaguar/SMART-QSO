@@ -267,4 +267,11 @@ RIDS = [
     ("RFB-04", 3, "Unkey ≤ 118 ms after a stalled main loop against VI-RF-11's 100 ms", "IMP", "Shorten the heartbeat lease to ≤ 40 ms, or define VI-RF-11 from the last edge"),
     ("RFB-05", 3, "TCXO two-year ageing up to 2.1 ppm", "CH", "Ground corrects the uplink from the measured downlink offset (same reference); no new command"),
     ("RFB-06", 3, "Radio rail trip 0.25 A cannot see a 38 mA latch-up; LMX2571 margin at ±3 % rail", "IMP", "EPS board: SW2 trip ≈ 0.12 A; 3V3_AO ±2 %"),
+    # ---- Raised by the EPS board design (EPSB) ----
+    ("EPSB-01", 2, "Firmware fires driver A on both wings at once: 1.25 A at the pack", "IMP", "Chair: four independent burn lines, one resistor at a time (0.67 A); flight software and SIL"),
+    ("EPSB-02", 3, "Uplink must avoid the synchronised converters' harmonics", "CH", "BASELINE §7 Uplink: 435.222-435.778 MHz, else 436.222-436.500 MHz"),
+    ("EPSB-03", 2, "EPS controller (MSP430FR2355) firmware is a new configuration item", "IMP", "Class C item in the SDP and the NPR 7150.2D matrix"),
+    ("EPSB-04", 3, "Tracker efficiency 90.9-92.3 % against EPS-F002's 92 %", "VI", "EM measurement V-EPS; generation effect < 2 %, inside the power margins"),
+    ("EPSB-05", 3, "ITV4030 fuses rated from −10 °C, below the board's −30 °C allowable", "VI", "V-EPS-8 qualification"),
+    ("EPSB-06", 3, "Cross-document consistency after the EPS board (B2, diagram README, radiation trip table, BSA H8a, ICD-001, EMC E6/E8, IARU uplink windows)", "IMP", "Documentation consistency pass"),
 ]

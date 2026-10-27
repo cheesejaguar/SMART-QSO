@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-BAT-001
-**Version:** 2.2
+**Version:** 2.3
 **Date:** 2026-10-27
 **Status:** Battery definition and cycle-life analysis for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-08). **Analysis, not measured; no cell has been bought or tested.**
 
@@ -143,7 +143,7 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 | Feature | Specification | Basis |
 |---------|---------------|-------|
 | Cell Balancing | Passive, resistor-based | Version 1.0 |
-| Balance Current | 50–100 mA | Version 1.0 |
+| Balance Current | ≈ 18 mA, one cell at a time (BQ76952 internal balancing through the 100 Ω tap resistors) | SQSO-EPS-BRD-001 §6.1 |
 | Balance Threshold | 50 mV | Version 1.0 |
 | Overcharge Protection | ≤ 4.25 V per cell | BASELINE §5 |
 | Overdischarge Protection | 2.8 V per cell | Above the 2.65 V cut-off of the cell specification's cycle test |
@@ -155,8 +155,11 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 
 ### 4.2 BMS IC Selection
 
-- Primary: a 4-series BMS with I2C telemetry and programmable thresholds (BQ76920 or equivalent supports 3–5 series cells)
-- Backup: Hardware comparator cutoffs for over-voltage and charge temperature
+- Primary: **TI BQ76952** (thresholds in OTP, high-side CHG/DSG FETs, coulomb counter, SUV permanent fail at 2.00 V that
+  sets the latched recharge lockout), on the EPS board (SQSO-EPS-BRD-001 §5.4, §6.1)
+- Secondary over-voltage: **TI BQ771806** (4.35 V fixed) blowing a Littelfuse ITV4030L1412NR three-terminal fuse in the pack line
+- Hardware comparators on NTC1: charge window +1.1…+44.0 °C, heater cutout +40 °C, pack over-temperature +60 °C
+- Fuel gauge: TI INA228 coulomb counter on the OBC's I2C (0x44)
 
 ### 4.3 Charge Control
 
@@ -228,7 +231,7 @@ pin for it yet (RID EPS-06).
 
 | Parameter | Value |
 |-----------|-------|
-| Heater Power | ≈ 1 W at 14.4 V (≈ 200 Ω polyimide film, two elements on different cells), with a hardware over-temperature cutout at about +40 °C and a fuse or current limit (BUILD_VS_BUY §4.3, §4.5) |
+| Heater Power | ≈ 1 W at 14.4 V (≈ 207 Ω polyimide film, two elements on different cells); on the EPS: SW5 current limit 0.148 A, fuse F4 0.25 A and a series +40 °C hardware cutout (Q22 from NTC1) (SQSO-EPS-BRD-001 §10) |
 | Activation Temp | Flight software today: on below +2 °C, off above +6 °C. Recommended: **+5/+9 °C** (SQSO-THA-001 v2.0 §6.1: the +2 °C point leaves the pack at +0.1 °C in the simulated commissioning and below 0 °C with a 0.10 W/K mount) |
 | Power at the bus extremes | 0.72 W at 12.0 V, 0.95 W at 14.0 V, 1.30 W at 16.4 V; worst cold case duty 43–59 % (below the 70 % of GSFC-STD-7000B §2.6.4.1) except with the wings stowed (100 %) |
 | Thermostat Type | NTC-based control |
@@ -242,13 +245,14 @@ pin for it yet (RID EPS-06).
 | Parameter | Specification |
 |-----------|---------------|
 | Material | Aluminum 6061-T6, two clamp plates (34 g, `docs/environment/MASS_BUDGET.md` §4.3) |
-| Cell Retention | Spring-loaded contacts |
+| Cell Retention | Cells bonded or potted in the holder, welded nickel interconnects (no spring contacts; RID STR-08) |
 | Mounting | M2.5 Ti-6Al-4V screws through isolator bushings to frame inserts (§6.2) |
 | Vibration Survival | Integrator/SpaceX levels (BASELINE §8) |
 
 ### 7.2 Wiring
 
-- 20 AWG for power paths
+- 20 AWG for power paths, two wires per pole (W1 J1, Micro-Fit 2×4: power, NTC1 with its own return, heater pair)
+- Cell taps and NTC2 on a 6-way Pico-Clasp (W1 J2); NTC2 returns to the cell-1 negative tap inside the pack
 - Fused at the pack (one string of four: the pack fuse is the cell fuse)
 - Strain relief at all connections
 - Conformal coating on BMS PCB
@@ -335,3 +339,4 @@ lot uniformity OCV < 1 %, mass < 2 %, capacity < 5 %, resistance < 15 %).
 | 2.0 | 2026-10-16 | Funding audit (TB-08): 4S1P ≈ 50 Wh pack per BASELINE §5; cell data and cycle-life analysis (§3.3); 0–45 °C charge window; permanent charge-path disconnect for passivation |
 | 2.1 | 2026-10-26 | Charge set point 4.10 V a cell (D8, §3.1, §4.3, §10.2); isolated mount and 1 W heater (§6.2, §6.3, §7.1; BUILD_VS_BUY §4) |
 | 2.2 | 2026-10-27 | CDR review (EPS): secondary over-voltage protector; no low-temperature discharge cut-off; pack over-temperature in hardware; fuse and PTC ratings (§4.1, §5.1); inhibits and passivation point to EPS_DESIGN v2.0 (§5.2, §5.3); heater set points +5/+9 °C recommended (§6.3); screening per SQSO-BSA-001 (§9.1); compliance (§10.1) |
+| 2.3 | 2026-10-27 | CDR design (EPS board) | BMS parts selected (BQ76952, BQ771806, ITV4030 fuse, INA228 gauge; §4.1, §4.2); heater protection as built (§6.3); cell retention bonded/potted with welded interconnects (§7.1, RID STR-08); W1 wiring (§7.2); SQSO-EPS-BRD-001 |

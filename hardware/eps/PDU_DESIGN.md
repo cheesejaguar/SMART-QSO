@@ -2,9 +2,10 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-PDU-001
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-27
-**Status:** CDR Baseline — rails, switches and protection corrected to the 4S bus (CDR review); `docs/hardware/EPS_DESIGN.md` v2.0 §4–§6 governs
+**Status:** CDR Baseline — parts selected in the EPS board design `hardware/electrical/eps/EPS_BOARD_DESIGN.md`
+(SQSO-EPS-BRD-001 A), which governs part-level values; `docs/hardware/EPS_DESIGN.md` v2.1 §4–§6 governs the architecture
 
 ---
 
@@ -24,8 +25,9 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 | Rail | Nominal | Range | Source | Load |
 |------|---------|-------|--------|------|
 | VBAT | 14.4 V | 11.2 V (BMS cut) – 16.4 V (CV 4.10 V/cell); 16.8 V abs max | Battery and trackers | Heater, burn wires, Jetson carrier (through the eFuse), the bucks |
-| 3V3_AO | 3.3 V | 3.20–3.40 V | Buck from VBAT, always on | OBC, FRAM, receiver/TNC/exciter (own LDO), ADCS, GNSS |
-| 5V_PA | 5.0 V | 4.85–5.15 V | Buck from VBAT | PA only (EMC rule E3) |
+| 3V3_AO | 3.3 V | 3.23–3.37 V (± 2 %, RF board LMX2571 ≥ 3.15 V) | Buck U15 from VBAT, always on | OBC (SW10), EPS controller (SW9), receiver/TNC/exciter (SW2), ADCS, GNSS, AntS |
+| 5V_PA | 5.0 V | 4.90–5.10 V | Buck U16 from VBAT | PA only (EMC rule E3); 1.76 W DC at 0.5 W RF |
+| V_BURN | 7.04 V | 6.83–7.25 V | Buck U17 from VBAT_DEP (SW6) | Four burn drivers, only with DEPLOY_EN |
 
 ### 2.2 Rail Specifications
 
@@ -39,33 +41,36 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 | Parameter | 3V3_AO buck | 5V_PA buck |
 |-----------|-------------|------------|
 | Topology | Synchronous buck | Synchronous buck |
-| Input | 10.8 (UVLO, falling) – 16.8 V, rated ≥ 25 V | same |
-| Switching | Fixed frequency, synchronised to the OBC-derived clock; no spread spectrum (SQSO-EMC-001 rule E1) | same |
+| Input | starts 10.5 V, stops 7.5 V (EN divider; fixed EN hysteresis, BRD-001 §2.2) – 16.8 V; 42 V abs max | starts 12.1 V, stops 8.7 V |
+| Switching | 1.000 MHz from the EPS's own 4 MHz crystal oscillator ÷ 4; no spread spectrum (SQSO-EMC-001 rule E1) | same |
 | Protection | OCP, OTP, UVLO at 10.8 V falling | same |
-| Part | Not yet selected (TPS62180 and TPS7A8300 of version 1.0 cannot take 16.8 V) | Not yet selected |
+| Part | TI LMR43620MC3RPERQ1 (2 A, 42 V abs, sync 0.2–2.5 MHz, no spread spectrum) | TI LMR43620MC5RPERQ1 (same; also the 7.0 V burn buck U17) |
 
 ## 4. Load Switch Design
 
 ### 4.1 Load Switch Configuration
 
-| Switch | Load | Rail | Nom current | Peak current | Limit / trip | Default |
-|--------|------|------|-------------|--------------|--------------|---------|
-| SW1 + eFuse | Jetson carrier | VBAT | 0.62 A | 0.93 A | eFuse 1.2 A, latch-off ≤ 1 ms | OFF |
-| SW2 | Receiver, TNC, exciter | 3V3_AO | 0.05 A | 0.1 A | 0.25 A | ON |
-| SW3 | PA (hardware TX-OFF) | 5V_PA | 0.30 A | 0.54 A | 1.0 A | OFF |
-| SW4 | ADCS | 3V3_AO | 0.04 A | 0.13 A | 0.3 A | ON (by software) |
-| SW5 | Battery heater (≈ 200 Ω) | VBAT | 0.07 A | 0.08 A | 0.15 A, plus 0.25 A fuse and +40 °C cutout | OFF |
-| SW6 | Burn-wire drivers | VBAT | 0 | 1.6 A | 2.0 A; 0.8 A per resistor | OFF |
-| SW7 | GNSS receiver | 3V3_AO | 0.04 A | 0.1 A | 0.15 A, latch-up trip | OFF |
+| Switch | Load | Rail | Nom current | Peak current | Limit / trip (min–max) | Off after a trip | Default |
+|--------|------|------|-------------|--------------|------------------------|------------------|---------|
+| SW1 + eFuse U19 | Jetson carrier | VBAT | 0.62 A | 0.93 A | SW1 2.0 A; eFuse 1.20 A (1.10–1.30) latch-off | OBC re-enables | OFF |
+| SW2 | Receiver, synthesizer, TNC, exciter | 3V3_AO | 0.038 A | 0.05 A | 0.12 A (0.10–0.14) | 1.3 s, auto | OFF at reset; on at boot |
+| SW3 | PA (hardware TX-OFF) | 5V_PA | 0.35 A | 0.55 A | 0.99 A (0.92–1.07) | 0.28 s, auto | OFF |
+| SW4 | ADCS | 3V3_AO | 0.04 A | 0.13 A | 0.30 A (0.27–0.34) | 0.28 s, auto | OFF at reset |
+| SW5 | Battery heater (207 Ω) | VBAT | 0.07 A | 0.08 A | 0.148 A, plus F4 0.25 A and a +40 °C cutout in series | auto-retry | OFF |
+| SW6 | Burn buck → four drivers | VBAT | 0 | 0.5 A per burn at the pack | 2.0 A; 0.8 A per resistor; 12 s one-shot | thermal | OFF |
+| SW7 | GNSS receiver | 3V3_AO | 0.04 A | 0.1 A | 0.20 A (0.18–0.23) | 1.3 s, auto | OFF |
+| SW8 | ISIS AntS | 3V3_AO | 0 | 0.61 A | 1.37 A | 0.28 s, auto | OFF (DEPLOY_EN) |
+| SW9 | EPS controller | 3V3_AO | 0.012 A | — | 75 mA | 0.28 s, auto | ON |
+| SW10 | OBC | 3V3_AO | 0.04 A | — | 0.15 A (0.13–0.18) | 0.28 s, auto | ON (RID AV-08) |
 
 ### 4.2 Load Switch IC Selection
 
-| Parameter | 3.3/5 V switches (SW2, SW3, SW4, SW7) | VBAT switches (SW1, SW5, SW6) |
+| Parameter | 3.3/5 V switches (SW2–SW4, SW7–SW10) | VBAT switches (SW1, SW5, SW6) |
 |-----------|---------------------------------------|-------------------------------|
-| IC class | TPS22918 (5.5 V max) | High-side switch rated ≥ 25 V with adjustable current limit (TPS1H100 class); eFuse TPS25947 class for the Jetson |
-| Rise time | 1–5 ms | ≥ 1 ms soft start |
-| Fault output | To an OBC input (finding F16) | same |
-| Control | GPIO from the OBC, pull-down; SW1 and SW3 also gated by the hardware low-voltage load shed (EPS_DESIGN §6) | same |
+| IC | TI TPS2553-Q1 (2.5–6.5 V, adjustable 75 mA–1.3 A, FAULT tied to EN for auto-retry) | TPS1H100B-Q1 (SW1, SW6; 40 V, 100 mΩ, current sense), TPS1H000-Q1 (SW5; 40 V, 1 Ω, 0.05–1 A); eFuse TPS16630 (60 V) |
+| Latch-up behaviour | current limited in 2 µs, rail removed after 8 ms, back after R_FAULT × C_RETRY | current limit, thermal cycling; eFuse latch-off |
+| Fault output | to the EPS controller (register LOAD_SHED/fault bits) | same |
+| Control | OBC GPIO with 100 kΩ pull-down; SW1 and SW3 also gated by the hardware load shed | same |
 
 ### 4.3 Load Switch Features
 
@@ -77,25 +82,16 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 
 ## 5. Current Sensing
 
-### 5.1 Current Sense Points
+### 5.1 Current Sense Points (SQSO-EPS-BRD-001 §11)
 
-| Point | Range | Resolution | Method |
-|-------|-------|------------|--------|
-| Battery current | ±3.0 A | 10 mA | High-side sense |
-| Solar input | 0-2.0 A | 5 mA | High-side sense |
-| 5V rail | 0-4.0 A | 10 mA | High-side sense |
-| Jetson load | 0-3.5 A | 10 mA | Low-side sense |
-
-### 5.2 Current Sense IC
-
-| Parameter | Specification |
-|-----------|---------------|
-| IC | INA226 or equivalent |
-| Shunt Resistor | 10-50 mΩ (per rail) |
-| ADC Resolution | 16-bit |
-| Interface | I2C |
-| Sample Rate | 140 µs min |
-| Accuracy | ±0.1% FSR |
+| Point | Device | Shunt | Interface |
+|-------|--------|-------|-----------|
+| Battery (fuel gauge) | INA228-Q1 U28, high side | 10 mΩ RS6 | OBC I2C2 0x44 |
+| Battery (analog IBATT_SNS) | INA186A2-Q1, 0.5 V/A | RS6 | OBC ADC PC3 |
+| Array output | INA228-Q1 U29 and INA186A2-Q1 (ISOLAR_SNS 1 V/A) | 20 mΩ RS5 | I2C2 0x40, OBC ADC PC5 |
+| Tracker inputs ×4, bus load, 3V3_AO, 5V_PA, radio, ADCS, GNSS, AntS, heater | INA3221-Q1 ×4 | 10–500 mΩ | EPS controller local bus |
+| Burn currents ×4 | 0.25 Ω sense resistors | RS20–RS23 | EPS controller ADC |
+| Jetson | eFuse IMON (0.84 V/A) | internal | EPS controller ADC |
 
 ---
 
@@ -121,10 +117,11 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 
 | Location | Type | Rating |
 |----------|------|--------|
-| Battery output | Non-resettable fuse F2 | 5 A, breaking capacity ≥ 100 A at 32 VDC |
-| Battery output | PTC RT1 | Hold 2.5 A, trip ≤ 5 A (was 4 A hold, 8 A trip: equal to the cell's 8 A continuous limit) |
-| Charge path | Secondary over-voltage protector's three-terminal fuse | Sized for the 0.40 A charge current |
-| Heater | Fuse | 0.25 A |
+| Battery output | Non-resettable fuse F2 Littelfuse 0451005.MRL | 5 A, 300 A at 32 VDC (datasheet excerpt; 50 A at 125 V) |
+| Battery output | PTC RT1 Littelfuse 2920L260/33DR | Hold 2.6 A, trip 5.0 A, 33 V |
+| Pack line | Secondary over-voltage protector's three-terminal fuse F3 ITV4030L1412NR | 12 A, heater-blown by the BQ771806 (pack isolated on a trip) |
+| Array output | EOL fuse F1 ITV4030L1412NR | 12 A, heater-blown by two series switches |
+| Heater | Fuse F4 0466.250NR | 0.25 A |
 | Each load switch | Internal | §4.1 |
 
 ## 7. Inrush Current Limiting
@@ -207,7 +204,7 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 
 | Point | Range | Resolution | ADC Channel |
 |-------|-------|------------|-------------|
-| VBAT | 0-20 V (1:6 divider, finding F1) | 10 mV | ADC0 |
+| VBATT_SNS (PACK_P) | 0-19.8 V (1:6 divider, 1.00 M / 200 k, finding F1) | 5 mV | OBC PC2 |
 | +5V | 0-6V | 10 mV | ADC1 |
 | +3.3V | 0-4V | 5 mV | ADC2 |
 | Solar V | 0-10V | 10 mV | ADC4 |
@@ -216,9 +213,9 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 
 | Point | Range | Resolution | Interface |
 |-------|-------|------------|-----------|
-| Battery I | ±3A | 10 mA | I2C (INA226) |
-| Solar I | 0-2A | 5 mA | I2C (INA226) |
-| 5V rail I | 0-4A | 10 mA | I2C (INA226) |
+| Battery I | ±3.3 A | 0.01 mA (INA228) | I2C2 0x44 (INA228-Q1) and analog IBATT_SNS |
+| Solar I | 0-3 A | 0.01 mA | I2C2 0x40 (INA228-Q1) and analog ISOLAR_SNS |
+| 5V_PA I | 0-1 A | 0.4 mA | INA3221-Q1 via the EPS controller |
 
 ### 10.3 Status Telemetry
 
@@ -309,3 +306,4 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-27 | CDR review (EPS): rails, regulators, switches, protection and fuses corrected to the 4S bus (§2–§4, §6); no spread spectrum (§11.2); VBAT telemetry range; battery connector with cell taps. EPS_DESIGN v2.0 governs |
+| 1.2 | 2026-10-27 | CDR design (EPS board) | Regulators, switches, sensing and fuses selected and sized in SQSO-EPS-BRD-001 A (§2–§6, §10): LMR43620-Q1 bucks incl. the 7.0 V burn buck, TPS2553/TPS1H100/TPS1H000/TPS16630 switches with latch-up trips (radio 0.12 A, OBC rail SW10), INA228/INA3221/INA186 sensing; 3V3_AO ± 2 % |

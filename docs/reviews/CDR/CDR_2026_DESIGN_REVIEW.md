@@ -154,18 +154,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-241 RIDs: severity 1: 28, severity 2: 136, severity 3: 77.
+247 RIDs: severity 1: 28, severity 2: 138, severity 3: 81.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 94 | 109 |
-| Closed by chair decision | 32 | 31 |
-| Verification item | 29 | 29 |
+| Closed by design change | 94 | 112 |
+| Closed by chair decision | 33 | 32 |
+| Verification item | 31 | 31 |
 | Decision point (dated) | 11 | 11 |
-| Implementation | 50 | 36 |
+| Implementation | 53 | 36 |
 
-Open implementation RIDs: SE-01, RF-04, RF-21, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-07, EPS-10, EPS-14, THM-02, THM-08, THM-15, AV-01, AV-02, AV-03, AV-05, AV-06, AV-07, AV-08, AV-09, AV-10, FSW-05, FSW-07, FSW-09, RAD-02, GNC-04, MCAD-01, MCAD-02, RFB-03, RFB-04, RFB-06.
+Open implementation RIDs: SE-01, RF-04, RF-21, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, EPS-14, THM-02, THM-08, THM-15, AV-01, AV-02, AV-03, AV-05, AV-06, AV-07, AV-09, AV-10, FSW-05, FSW-07, FSW-09, RAD-02, GNC-04, MCAD-01, MCAD-02, RFB-03, RFB-04, EPSB-01, EPSB-03, EPSB-06.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -408,7 +408,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | EPS-04 | 1 | Third inhibit not designed (array path) | CD | Closed by design change | EPS_DESIGN §8 DS3; drawings S1/B2/W7 IMP |
 | EPS-05 | 2 | Deployment-switch rating unspecified | CD | Closed by design change | §8.4 RC-filtered FET gates |
 | EPS-06 | 2 | End-of-life charge disconnect has no hardware design, command or pins | IMP | Implementation | EPS_DESIGN §7 design; commands and pins with REG-01 |
-| EPS-07 | 2 | Drawings drive the antennas from the OBC though AntS is bought | IMP | Implementation | Redraw S5/W7 for the AntS |
+| EPS-07 | 2 | Drawings drive the antennas from the OBC though AntS is bought | IMP | Closed by design change | S5 and W7 redrawn for the AntS: supply after DS1-DS3, switched by DEPLOY_EN, I2C through a TCA9517 (SQSO-EPS-BRD-001) |
 | EPS-08 | 2 | BMS low-temperature discharge cut-off would keep the bus dark | CD | Closed by design change | BATTERY_DESIGN 2.2 §4.1 |
 | EPS-09 | 2 | Stuck-on Jetson drains the pack | CD | Closed by design change | Hardware load shed below 13.6 V (EPS_DESIGN §6) |
 | EPS-10 | 3 | ACTIVE with wings stowed closes only through the SOC gate | IMP | Implementation | Hold IDLE when the wings read not deployed |
@@ -467,7 +467,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | AV-05 | 2 | No TONE_OK or XPDR_KEY readbacks | IMP | Implementation | With RF-21 |
 | AV-06 | 2 | One software state bit drives both Jetson switches, no readback | IMP | Implementation | Independent lines with readback (OBC board design); PAYLOAD_DESIGN 1.1 §11.1 |
 | AV-07 | 2 | No SRAM parity handler, TMR or scrubbing | IMP | Implementation | SRAM2 parity with NMI handler; CRC of critical state (flight software round 2) |
-| AV-08 | 2 | OBC and radio rail latch-up trips not specified | IMP | Implementation | EPS board design |
+| AV-08 | 2 | OBC and radio rail latch-up trips not specified | IMP | Closed by design change | Current-limited auto-retry rails: OBC 0.15 A, radio 0.12 A, sensors 0.30 A, GNSS 0.20 A, EPS controller 75 mA, AntS 1.37 A, PA 0.99 A (SQSO-EPS-BRD-001) |
 | AV-09 | 2 | Idle USART1 TX can back-power the unpowered Jetson | IMP | Implementation | Back-power protection in the OBC board design |
 | AV-10 | 3 | No mission clock across resets | IMP | Implementation | RTC on the always-on rail (OBC board design) |
 | AV-11 | 1 | XPDR_EN was a level | CD | Closed by design change | 100 Hz heartbeat, 60 ms lease, TIM7 on PE4; test_xpdr_heartbeat.c; SIL radio |

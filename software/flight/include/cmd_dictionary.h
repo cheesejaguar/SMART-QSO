@@ -31,8 +31,10 @@ typedef enum {
     CMD_SYS_SET_CONTACT_TIMEOUT = 0x07, /**< SET_CONTACT_TIMEOUT: Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 30 at launch, 14 after commissioning: decision D3) */
     CMD_SYS_COMMISSIONING_RELEASE = 0x08, /**< COMMISSIONING_RELEASE: Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven) */
     CMD_SYS_GET_HOUSEKEEPING = 0x09, /**< GET_HOUSEKEEPING: Downlink a housekeeping frame (HK1) at the next opportunity */
+    CMD_SYS_DUMP_TLM = 0x0A, /**< DUMP_TLM: Downlink stored housekeeping: store (0 five-minute records, 1 sixty-second records), first record sequence (4 bytes big-endian), count (2 bytes big-endian, at most 600; 0 stops a dump); paced within the downlink duty limit */
     CMD_EPS_SET_MODE = 0x10, /**< EPS_SET_MODE: Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE */
     CMD_EPS_GET_TELEMETRY = 0x13, /**< EPS_GET_TELEMETRY: Get EPS telemetry */
+    CMD_EPS_CLEAR_LOCKOUT = 0x14, /**< EPS_CLEAR_LOCKOUT: Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history */
     CMD_ADCS_DETUMBLE = 0x21, /**< ADCS_DETUMBLE: Start detumble */
     CMD_ADCS_GET_ATTITUDE = 0x23, /**< ADCS_GET_ATTITUDE: Get attitude */
     CMD_ADCS_SET_GEOMETRY = 0x24, /**< ADCS_SET_GEOMETRY: Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing */
@@ -46,10 +48,12 @@ typedef enum {
     CMD_PLD_DISABLE = 0x41, /**< PLD_DISABLE: Disable payload */
     CMD_DEPLOY_RETRY = 0x50, /**< DEPLOY_RETRY: Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn) */
     CMD_GNSS_REQUEST = 0x60, /**< GNSS_REQUEST: Start a GNSS receiver session now (its power gates still apply) */
+    CMD_EOL_PASSIVATE_ARM = 0x70, /**< PASSIVATE_ARM: Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven */
+    CMD_EOL_PASSIVATE_EXECUTE = 0x71, /**< PASSIVATE_EXECUTE: Within 600 s of PASSIVATE_ARM: latch TX-OFF, fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE) and keep every transmitter off for good (recovery key only; irreversible) */
 } CmdId_t;
 
 /** Number of commands in the dictionary */
-#define CMD_DICTIONARY_COUNT 24U
+#define CMD_DICTIONARY_COUNT 28U
 
 /** Which telecommand key authenticates a command */
 typedef enum {

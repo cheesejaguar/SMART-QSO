@@ -30,6 +30,7 @@
   "hinge_x": 54.1,
   "hinge_y": 38.75,
   "knuckle_r": 1.75,
+  "spring_r": 2.0,
   "holddown_y": -38.5,
   "holddown_z": -40.0,
   "line_h": 0.5,
@@ -53,7 +54,7 @@
   "cs_x": 0.0,
   "cs_y": 21.0,
   "cs2_y": -21.0,
-  "jet_y": -7.0,
+  "jet_y": -6.0,
   "z_eps": -3.0,
   "z_obc": 5.0,
   "z_car": 18.0,
@@ -366,11 +367,11 @@
     "6": 32.8
    },
    "mass_g": 32.8,
-   "volume_mm3": 12748.606195997418,
+   "volume_mm3": 12703.006195997423,
    "centre_mm": [
-    50.300000000000004,
-    -0.2361778612979386,
-    0.03496163841373378
+    50.29999999999999,
+    -0.37522917586249627,
+    0.20075186304381168
    ],
    "ghost": false,
    "moves": "",
@@ -400,11 +401,11 @@
     "6": 32.8
    },
    "mass_g": 32.8,
-   "volume_mm3": 12748.606195997418,
+   "volume_mm3": 12703.006195997423,
    "centre_mm": [
-    -50.300000000000004,
-    -0.23617786129793916,
-    0.034961638413733925
+    -50.3,
+    -0.3752291758624975,
+    0.20075186304381237
    ],
    "ghost": false,
    "moves": "",
@@ -578,24 +579,41 @@
    ],
    "ghost": false,
    "moves": "W1",
-   "note": "silicone snubber, +Z free corner"
+   "note": "PTFE-faced silicone snubber, +Z free corner"
   },
   {
    "name": "W1_hinges",
    "group": "wing",
    "mel": {
-    "10": 7.0
+    "10": 6.0
    },
-   "mass_g": 7.0,
-   "volume_mm3": 155.48669574445952,
+   "mass_g": 6.0,
+   "volume_mm3": 52.19534228781879,
    "centre_mm": [
-    52.49234903014294,
-    38.447516199009186,
-    -11.91666666666656
+    52.879287825779784,
+    38.52161499468157,
+    7.447697062534924
    ],
    "ghost": false,
    "moves": "",
-   "note": "knuckles 3.5 mm dia: -Z 5 mm, +Z 2.5 mm, frame leaves (springs: see MECHANICAL_DESIGN 6.3)"
+   "note": "440C pin (MoS2) in Ti-6Al-4V bushings: frame ears at -Z and +Z, +Z wing knuckle"
+  },
+  {
+   "name": "W1_springs",
+   "group": "wing",
+   "mel": {
+    "10": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 139.48671381938692,
+   "centre_mm": [
+    54.09999999999999,
+    38.75,
+    -14.514864864864837
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "17-7PH CH900 torsion springs OD 4.0: primary 0.470 mm x 15.4 coils below the wing, secondary 0.343 mm x 9.5 coils at +Z, 55 deg preload (hinge.py)"
   },
   {
    "name": "W1_hinge_flex",
@@ -604,15 +622,15 @@
     "10": 2.0
    },
    "mass_g": 2.0,
-   "volume_mm3": 25.697649568026716,
+   "volume_mm3": 35.63888667094821,
    "centre_mm": [
-    53.72350804466673,
-    38.54019511656478,
-    47.45
+    53.8546535311069,
+    38.624538423964296,
+    -38.599999999999994
    ],
    "ghost": false,
    "moves": "",
-   "note": "flex jumper clock-spring cup coaxial with the +Z hinge, tail into the body"
+   "note": "two-layer polyimide clock-spring flex (6 turns, R 1.0-1.6 mm) in the -Z wing knuckle, tail into the body"
   },
   {
    "name": "W1_holddown_post",
@@ -638,11 +656,11 @@
     "10": 1.0
    },
    "mass_g": 1.0,
-   "volume_mm3": 20.99999999999998,
+   "volume_mm3": 47.039999999999964,
    "centre_mm": [
-    51.85000000000001,
+    51.85,
     34.9,
-    -40.300000000000004
+    -43.400000000000006
    ],
    "ghost": false,
    "moves": "",
@@ -672,11 +690,11 @@
     "5": 1.0
    },
    "mass_g": 1.0,
-   "volume_mm3": 30.0,
+   "volume_mm3": 28.799999999999983,
    "centre_mm": [
-    48.0,
-    38.0,
-    -40.29999999999999
+    47.99999999999999,
+    37.99999999999999,
+    -44.4
    ],
    "ghost": false,
    "moves": "",
@@ -689,11 +707,11 @@
     "5": 1.0
    },
    "mass_g": 1.0,
-   "volume_mm3": 28.799999999999983,
+   "volume_mm3": 26.39999999999999,
    "centre_mm": [
-    47.99999999999999,
-    37.99999999999999,
-    45.99999999999999
+    48.0,
+    38.0,
+    46.2
    ],
    "ghost": false,
    "moves": "",
@@ -782,24 +800,41 @@
    ],
    "ghost": false,
    "moves": "W2",
-   "note": "silicone snubber, +Z free corner"
+   "note": "PTFE-faced silicone snubber, +Z free corner"
   },
   {
    "name": "W2_hinges",
    "group": "wing",
    "mel": {
-    "11": 7.0
+    "11": 6.0
    },
-   "mass_g": 7.0,
-   "volume_mm3": 155.48669574445952,
+   "mass_g": 6.0,
+   "volume_mm3": 52.19534228781879,
    "centre_mm": [
-    -52.49234903014294,
-    38.447516199009186,
-    -11.91666666666656
+    -52.879287825779784,
+    38.52161499468157,
+    7.447697062534924
    ],
    "ghost": false,
    "moves": "",
-   "note": "knuckles 3.5 mm dia: -Z 5 mm, +Z 2.5 mm, frame leaves (springs: see MECHANICAL_DESIGN 6.3)"
+   "note": "440C pin (MoS2) in Ti-6Al-4V bushings: frame ears at -Z and +Z, +Z wing knuckle"
+  },
+  {
+   "name": "W2_springs",
+   "group": "wing",
+   "mel": {
+    "11": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 139.48671381938692,
+   "centre_mm": [
+    -54.09999999999999,
+    38.75,
+    -14.514864864864837
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "17-7PH CH900 torsion springs OD 4.0: primary 0.470 mm x 15.4 coils below the wing, secondary 0.343 mm x 9.5 coils at +Z, 55 deg preload (hinge.py)"
   },
   {
    "name": "W2_hinge_flex",
@@ -808,15 +843,15 @@
     "11": 2.0
    },
    "mass_g": 2.0,
-   "volume_mm3": 25.697649568026716,
+   "volume_mm3": 35.63888667094821,
    "centre_mm": [
-    -53.72350804466673,
-    38.54019511656478,
-    47.45
+    -53.8546535311069,
+    38.624538423964296,
+    -38.599999999999994
    ],
    "ghost": false,
    "moves": "",
-   "note": "flex jumper clock-spring cup coaxial with the +Z hinge, tail into the body"
+   "note": "two-layer polyimide clock-spring flex (6 turns, R 1.0-1.6 mm) in the -Z wing knuckle, tail into the body"
   },
   {
    "name": "W2_holddown_post",
@@ -842,11 +877,11 @@
     "11": 1.0
    },
    "mass_g": 1.0,
-   "volume_mm3": 20.99999999999998,
+   "volume_mm3": 47.039999999999964,
    "centre_mm": [
-    -51.85000000000001,
+    -51.85,
     34.9,
-    -40.300000000000004
+    -43.400000000000006
    ],
    "ghost": false,
    "moves": "",
@@ -876,11 +911,11 @@
     "5": 1.0
    },
    "mass_g": 1.0,
-   "volume_mm3": 30.0,
+   "volume_mm3": 28.799999999999983,
    "centre_mm": [
-    -48.0,
-    38.0,
-    -40.29999999999999
+    -47.99999999999999,
+    37.99999999999999,
+    -44.4
    ],
    "ghost": false,
    "moves": "",
@@ -893,11 +928,11 @@
     "5": 1.0
    },
    "mass_g": 1.0,
-   "volume_mm3": 28.799999999999983,
+   "volume_mm3": 26.39999999999999,
    "centre_mm": [
-    -47.99999999999999,
-    37.99999999999999,
-    45.99999999999999
+    -48.0,
+    38.0,
+    46.2
    ],
    "ghost": false,
    "moves": "",
@@ -1095,18 +1130,18 @@
    "name": "torquer_deck",
    "group": "frame",
    "mel": {
-    "5": 6.0
+    "5": 9.0
    },
-   "mass_g": 6.0,
-   "volume_mm3": 8458.287614034054,
+   "mass_g": 9.0,
+   "volume_mm3": 2884.404571681079,
    "centre_mm": [
-    0.5876928317916584,
-    -0.019967637512910124,
+    1.112101274382051,
+    2.1737669195802805,
     -16.0
    ],
    "ghost": false,
    "moves": "",
-   "note": "Al 1.0 mm deck on the stack columns: X rod, GNSS receiver, rod clips"
+   "note": "skeleton deck, Al 1.0 mm (rim, bosses, straps): X rod, GNSS receiver, rod clips (MCAD-02)"
   },
   {
    "name": "rod_X",
@@ -1302,11 +1337,11 @@
     "21": 26.0
    },
    "mass_g": 26.0,
-   "volume_mm3": 9500.157499935256,
+   "volume_mm3": 9676.497499935256,
    "centre_mm": [
-    1.4231343006778738,
-    -10.593519327845053,
-    18.194644073634006
+    1.3971997615966405,
+    -11.010956401719664,
+    18.23847816381574
    ],
    "ghost": false,
    "moves": "",
@@ -1323,7 +1358,7 @@
    "volume_mm3": 1152.0,
    "centre_mm": [
     -8.673617379884035e-18,
-    -31.5,
+    -30.5,
     21.600000000000005
    ],
    "ghost": false,
@@ -1340,7 +1375,7 @@
    "volume_mm3": 9038.399999999998,
    "centre_mm": [
     -4.4028626852832494e-16,
-    -7.37174721189591,
+    -6.371747211895909,
     23.913223579394586
    ],
    "ghost": false,
@@ -1357,7 +1392,7 @@
    "volume_mm3": 2489.9999999999995,
    "centre_mm": [
     -9.025008416733128e-16,
-    -8.349397590361443,
+    -7.349397590361444,
     26.806024096385546
    ],
    "ghost": false,
@@ -1369,14 +1404,14 @@
    "group": "stack",
    "mel": {
     "23": 65.0,
-    "5": 18.0
+    "5": 15.0
    },
-   "mass_g": 83.0,
-   "volume_mm3": 26039.999999999975,
+   "mass_g": 80.0,
+   "volume_mm3": 26039.999999999978,
    "centre_mm": [
-    0.0,
-    -3.6866359447004604,
-    30.378341013824887
+    5.588293098451177e-16,
+    -2.7649769585253474,
+    30.378341013824883
    ],
    "ghost": false,
    "moves": "",
@@ -1562,164 +1597,164 @@
   "stowed_cbe": {
    "mass_g": 1492.7,
    "cg_mm": [
-    0.42533859466891594,
-    -0.29857870202068143,
-    -1.6860722960372783
+    0.42922983635349843,
+    -0.20657580053151153,
+    -1.8590096107066665
    ],
-   "Ixx": 0.0027064912768686457,
-   "Iyy": 0.0030725466436907992,
-   "Izz": 0.0027950993805108677,
-   "Ixy": 1.3461475343927145e-06,
-   "Ixz": 6.283325152967136e-07,
-   "Iyz": 2.739051338166585e-05,
+   "Ixx": 0.002711947284812148,
+   "Iyy": 0.00307606939133122,
+   "Izz": 0.0028001810667696928,
+   "Ixy": 1.4229105596448985e-06,
+   "Ixz": 6.232604197444775e-07,
+   "Iyz": 2.8546136697599198e-05,
    "principal": [
-    0.002706483110932636,
-    0.002792423995126372,
-    0.003075230195011305
+    0.0027119386799308786,
+    0.0027972610088686746,
+    0.003078998054113508
    ],
    "major_axis": [
-    -0.0037991588968763583,
-    -0.9952457694528575,
-    -0.09732124525439641
+    -0.004029368270282129,
+    -0.9947907137591488,
+    -0.10185872574259523
    ],
-   "major_from_Y_deg": 5.589203995379805,
-   "ratio_Iyy": 1.0992620388078014,
-   "ratio_major": 1.1012762389875304
+   "major_from_Y_deg": 5.85080268201496,
+   "ratio_Iyy": 1.0985251731881016,
+   "ratio_major": 1.1007188976472306
   },
   "deployed_cbe": {
    "mass_g": 1492.7,
    "cg_mm": [
-    0.8363387956470107,
-    1.9674027960630325,
-    -1.6860722960372783
+    0.8402300373315928,
+    2.0594056975522026,
+    -1.8590096107066665
    ],
-   "Ixx": 0.002771824457424734,
-   "Iyy": 0.003956240615266369,
-   "Izz": 0.0037441265326425277,
-   "Ixy": 3.991827420171012e-06,
-   "Ixz": 3.1495927161677846e-05,
-   "Iyz": -9.616467301714233e-07,
+   "Ixx": 0.0027766580785129422,
+   "Iyy": 0.003959758588353244,
+   "Izz": 0.0037485810574925107,
+   "Ixy": 4.138196080363518e-06,
+   "Ixz": 3.138475802357594e-05,
+   "Iyz": -3.9097187617753767e-07,
    "principal": [
-    0.002770791635436226,
-    0.003745142437410909,
-    0.0039562575324864945
+    0.0027756311401622956,
+    0.0037495931457393445,
+    0.003959773438457058
    ],
    "major_axis": [
-    -0.0032625334825294883,
-    -0.9999864814322373,
-    0.0040488057558231835
+    -0.003462227480028386,
+    -0.9999931130379832,
+    0.0013367338849828853
    ],
-   "major_from_Y_deg": 0.2979226076833113,
-   "ratio_Iyy": 1.056652487776404,
-   "ratio_major": 1.0563703780573785
+   "major_from_Y_deg": 0.21264330975486737,
+   "ratio_Iyy": 1.0563353246526814,
+   "ratio_major": 1.056054159624369
   },
   "stowed_mev": {
    "mass_g": 1725.875,
    "cg_mm": [
-    0.46342234619824635,
-    -0.35781175383793556,
-    -0.5313757113439717
+    0.4676292386894289,
+    -0.2645111785320956,
+    -0.7183414023753288
    ],
-   "Ixx": 0.003121822376484966,
-   "Iyy": 0.0035478435147109338,
-   "Izz": 0.0032714930401440863,
-   "Ixy": 5.716519595135783e-07,
-   "Ixz": -6.231173774669144e-07,
-   "Iyz": 3.152120216011659e-05,
+   "Ixx": 0.003129502387931084,
+   "Iyy": 0.0035529870609118832,
+   "Izz": 0.0032779639272112636,
+   "Ixy": 6.687916023723767e-07,
+   "Ixz": -6.334644374248627e-07,
+   "Iyz": 3.3481019383957906e-05,
    "principal": [
-    0.0031218186043475925,
-    0.0032679464476254015,
-    0.0035513938793669915
+    0.003129498101290884,
+    0.0032739501405535908,
+    0.003557005134209756
    ],
    "major_axis": [
-    0.001160064427307898,
-    0.9937181659538356,
-    0.11190558924321015
+    0.001376751155922519,
+    0.9928779194022611,
+    0.11912825743580648
    ],
-   "major_from_Y_deg": 6.425522803301839,
-   "ratio_Iyy": 1.0844722795298003,
-   "ratio_major": 1.086735641567062
+   "major_from_Y_deg": 6.842253591291186,
+   "ratio_Iyy": 1.0839005979954748,
+   "ratio_major": 1.0864567209347615
   },
   "deployed_mev": {
    "mass_g": 1725.875,
    "cg_mm": [
-    0.840222520023118,
-    1.822170817042339,
-    -0.5313757113439717
+    0.8444294125143011,
+    1.9154713923481794,
+    -0.7183414023753288
    ],
-   "Ixx": 0.00319465068173828,
-   "Iyy": 0.00451481146207069,
-   "Izz": 0.004311289292757159,
-   "Ixy": 3.5001976345807127e-06,
-   "Ixz": 3.284744368368899e-05,
-   "Iyz": 4.372194926446775e-06,
+   "Ixx": 0.0032016286292288823,
+   "Iyy": 0.004519949536703127,
+   "Izz": 0.004317052644300307,
+   "Ixy": 3.6738394918818486e-06,
+   "Ixz": 3.271551096519648e-05,
+   "Iyz": 5.6285766561271615e-06,
    "principal": [
-    0.0031936766665169015,
-    0.0043121559814020514,
-    0.004514918788647175
+    0.0032006605789201854,
+    0.004317848706468522,
+    0.00452012152484361
    ],
    "major_axis": [
-    -0.003197365499036052,
-    -0.9997532583766525,
-    -0.021981792900747334
+    -0.003486672354092632,
+    -0.9995942979173813,
+    -0.028268050639418632
    ],
-   "major_from_Y_deg": 1.2728222817445347,
-   "ratio_Iyy": 1.0472067995194483,
-   "ratio_major": 1.04702121354599
+   "major_from_Y_deg": 1.6321344539676836,
+   "ratio_Iyy": 1.0469989386556822,
+   "ratio_major": 1.0468457401186997
   },
   "W1_only_deployed": {
    "mass_g": 1492.7,
    "cg_mm": [
-    2.056260944166324,
-    0.7786322520188312,
-    -1.6860722960372783
+    2.060152185850906,
+    0.8706351535080011,
+    -1.8590096107066665
    ],
-   "Ixx": 0.0027372466651520867,
-   "Iyy": 0.0036558720000543802,
-   "Izz": 0.0034091801251578888,
-   "Ixy": -0.0001606920002722346,
-   "Ixz": 2.1066203315633082e-05,
-   "Iyz": 9.025169920296032e-06,
+   "Ixx": 0.002742406800451113,
+   "Iyy": 0.0036593758014118773,
+   "Izz": 0.0034139469924893153,
+   "Ixy": -0.00016038500129366323,
+   "Ixz": 2.0640119168266664e-05,
+   "Iyz": 9.902718198422303e-06,
    "principal": [
-    0.002709239316335986,
-    0.003409783981434093,
-    0.003683275492594275
+    0.0027144711875025556,
+    0.003414493373439813,
+    0.0036867650334099365
    ],
    "major_axis": [
-    -0.16700391683707305,
-    0.9857609431581138,
-    0.019622810835884685
+    -0.16690057951339787,
+    0.9857018727827349,
+    0.023151988050720967
    ],
-   "major_from_Y_deg": 9.680436072465254,
-   "ratio_Iyy": 1.0723610562774435,
-   "ratio_major": 1.080207870249058
+   "major_from_Y_deg": 9.700542818004847,
+   "ratio_Iyy": 1.071890046758929,
+   "ratio_major": 1.07973998780845
   },
   "antennas_only": {
    "mass_g": 1492.7,
    "cg_mm": [
-    0.8363387956470095,
-    -0.41013829202537083,
-    -1.6860722960372783
+    0.8402300373315919,
+    -0.3181353905362011,
+    -1.8590096107066665
    ],
-   "Ixx": 0.002698449979021212,
-   "Iyy": 0.003366038104611841,
-   "Izz": 0.0030805495435844766,
-   "Ixy": 1.0236981827579094e-06,
-   "Ixz": 3.149592716167785e-05,
-   "Iyz": 1.9011986570763463e-05,
+   "Ixx": 0.0027039366285310563,
+   "Iyy": 0.003369556077698714,
+   "Izz": 0.0030856570968560942,
+   "Ixy": 1.1562569990521713e-06,
+   "Ixz": 3.138475802357596e-05,
+   "Iyz": 2.0196408273022125e-05,
    "principal": [
-    0.002695870796554975,
-    0.0030818537076348837,
-    0.0033673131230276725
+    0.0027013730478782764,
+    0.0030867740096797887,
+    0.003371002745527801
    ],
    "major_axis": [
-    -0.004666149506255859,
-    -0.9977646530681834,
-    -0.06666276424296474
+    -0.005076783650898125,
+    -0.9974522217862709,
+    -0.07115680938177295
    ],
-   "major_from_Y_deg": 3.8316958754645722,
-   "ratio_Iyy": 1.0926745559479543,
-   "ratio_major": 1.09262588119793
+   "major_from_Y_deg": 4.090823012015546,
+   "ratio_Iyy": 1.0920060045336464,
+   "ratio_major": 1.0920795416045042
   }
  },
  "checks": {
@@ -1747,7 +1782,7 @@
     "id": "CDS-3",
     "requirement": "Rail width to the first protrusion >= 8.5 mm on each face (CDS 2.2.5)",
     "value": {
-     "knuckle_edge_from_rail_edge": 9.5,
+     "hinge_spring_edge_from_rail_edge": 9.25,
      "panel_edge_from_rail_edge": 9.0,
      "wing_edges": [
       9.399999999999999,
@@ -1778,8 +1813,8 @@
     "id": "CDS-6",
     "requirement": "No protrusion beyond 6.5 mm from the rail plane on +-X/+-Y (CDS 2.2.3), nominal CAD",
     "value": {
-     "max_mm": 5.850000000000001,
-     "part": "W1_hinges"
+     "max_mm": 6.100000000000001,
+     "part": "W1_springs"
     },
     "limit": "<= 6.5",
     "ok": true,
@@ -1789,10 +1824,10 @@
     "id": "STR-10",
     "requirement": "Stowed-wing stack incl. tolerances <= 6.5 mm (worst case)",
     "value": {
-     "nominal": 5.850000000000001,
-     "worst_case": 6.130000000000002,
-     "rss": 6.002970585407785,
-     "governing": "hinge knuckle"
+     "nominal": 6.100000000000001,
+     "worst_case": 6.380000000000002,
+     "rss": 6.252970585407785,
+     "governing": "hinge spring (OD 4.0)"
     },
     "limit": "<= 6.5",
     "ok": true,
@@ -1865,7 +1900,7 @@
    },
    {
     "id": "INT-stowed",
-    "requirement": "No interference between solids, stowed (259 pairs with overlapping boxes)",
+    "requirement": "No interference between solids, stowed (271 pairs with overlapping boxes)",
     "value": [],
     "limit": "none",
     "ok": true,
@@ -1873,7 +1908,7 @@
    },
    {
     "id": "INT-deployed",
-    "requirement": "No interference between solids, deployed (253 pairs with overlapping boxes)",
+    "requirement": "No interference between solids, deployed (265 pairs with overlapping boxes)",
     "value": [],
     "limit": "none",
     "ok": true,
@@ -1980,35 +2015,56 @@
     "id": "HAR-1",
     "requirement": "Hinge flex jumper inside the 6.5 mm envelope and clear of the 8.5 mm rail zone",
     "value": {
-     "x_out": 5.850000000000001,
-     "y_max": 40.5,
-     "bend_radius_available_mm": 1.25
+     "x_out": 6.100000000000001,
+     "y_max": 40.75,
+     "bend_radius_mm": [
+      1.0,
+      1.6
+     ]
     },
-    "limit": "<= 6.5; y <= 41.5; MECH-001 4.2 assumes R >= 5 mm",
+    "limit": "<= 6.5; y <= 41.5; bend radius >= IPC-2223 flex-to-install 0.82 mm",
     "ok": true,
-    "note": "bend radius inside the cup ~1.25 mm, not the R >= 5 mm of the torque estimate (finding)"
+    "note": "clock-spring flex in the -Z wing knuckle; torque allocation 0.5 mN m cold (hinge.py)"
    },
    {
     "id": "MEC-1",
-    "requirement": "MECH-001 3 torsion spring (17-7PH 0.55 mm, mean dia 4 mm, ~22 coils = 12 mm) fits the hinge envelope",
+    "requirement": "Wing deployment springs (hinge.py: primary 7.5 mm, secondary 3.6 mm, OD 4.0) inside the hinge envelope",
     "value": {
-     "radius": 2.275,
-     "x_out": 6.375,
-     "y_max": 41.025,
-     "length_needed": 12.1,
-     "end_zone_free": 5.0
+     "x_out": 6.100000000000001,
+     "y_max": 40.75,
+     "z_ranges": [
+      [
+       -47.6,
+       -40.1
+      ],
+      [
+       44.8,
+       48.4
+      ]
+     ]
     },
-    "limit": "x_out <= 6.5, y <= 41.5, length <= free end zone",
-    "ok": false,
+    "limit": "x_out <= 6.5, y <= 41.5, within the free axis lengths",
+    "ok": true,
     "note": ""
+   },
+   {
+    "id": "STR-16d",
+    "requirement": "Hinge hardware below the wing to the AntS tape band",
+    "value": {
+     "vertical_gap_mm": 0.5,
+     "lateral_from_tape_line_mm": 36.75
+    },
+    "limit": ">= 10 mm in at least one direction",
+    "ok": true,
+    "note": "the -Z ear sits 0.5 mm above the tape band but 36.75 mm from the 2 m tape line (y = 0)"
    },
    {
     "id": "MP-CG-stowed_cbe",
     "requirement": "Stowed CG within +-20 mm of the geometric centre (CDS 2.2.11 Table 2); baseline: within 5 mm",
     "value": [
-     0.42533859466891594,
-     -0.29857870202068143,
-     -1.6860722960372783
+     0.42922983635349843,
+     -0.20657580053151153,
+     -1.8590096107066665
     ],
     "limit": "+-20 (5)",
     "ok": true,
@@ -2018,9 +2074,9 @@
     "id": "MP-CG-stowed_mev",
     "requirement": "Stowed CG within +-20 mm of the geometric centre (CDS 2.2.11 Table 2); baseline: within 5 mm",
     "value": [
-     0.46342234619824635,
-     -0.35781175383793556,
-     -0.5313757113439717
+     0.4676292386894289,
+     -0.2645111785320956,
+     -0.7183414023753288
     ],
     "limit": "+-20 (5)",
     "ok": true,
@@ -2030,9 +2086,9 @@
     "id": "MP-I-deployed_cbe",
     "requirement": "Iyy >= 1.03 max(Ixx, Izz) and major principal axis within 5 deg of +Y (BASELINE 4)",
     "value": {
-     "ratio": 1.056652487776404,
-     "major_from_Y_deg": 0.2979226076833113,
-     "principal_ratio": 1.0563703780573785
+     "ratio": 1.0563353246526814,
+     "major_from_Y_deg": 0.21264330975486737,
+     "principal_ratio": 1.056054159624369
     },
     "limit": ">= 1.03; <= 5 deg",
     "ok": true
@@ -2041,9 +2097,9 @@
     "id": "MP-I-deployed_mev",
     "requirement": "Iyy >= 1.03 max(Ixx, Izz) and major principal axis within 5 deg of +Y (BASELINE 4)",
     "value": {
-     "ratio": 1.0472067995194483,
-     "major_from_Y_deg": 1.2728222817445347,
-     "principal_ratio": 1.04702121354599
+     "ratio": 1.0469989386556822,
+     "major_from_Y_deg": 1.6321344539676836,
+     "principal_ratio": 1.0468457401186997
     },
     "limit": ">= 1.03; <= 5 deg",
     "ok": true
@@ -2083,13 +2139,13 @@
     0.1
    ]
   },
-  "hinge knuckle": {
-   "nominal": 5.850000000000001,
-   "worst": 6.130000000000002,
-   "rss": 6.002970585407785,
+  "hinge spring (OD 4.0)": {
+   "nominal": 6.100000000000001,
+   "worst": 6.380000000000002,
+   "rss": 6.252970585407785,
    "limit": 6.5,
-   "margin_worst": 0.36999999999999855,
-   "margin_rss": 0.49702941459221506,
+   "margin_worst": 0.11999999999999855,
+   "margin_rss": 0.24702941459221503,
    "tolerances": [
     0.05,
     0.1,
@@ -2107,19 +2163,19 @@
    "tolerances": []
   },
   "this stack without the 0.5 mm panel recess": {
-   "nominal": 6.350000000000001,
-   "worst": 6.630000000000002,
-   "rss": 6.502970585407785,
+   "nominal": 6.600000000000001,
+   "worst": 6.880000000000002,
+   "rss": 6.752970585407785,
    "limit": 6.5,
-   "margin_worst": -0.13000000000000167,
-   "margin_rss": -0.0029705854077848315,
+   "margin_worst": -0.38000000000000167,
+   "margin_rss": -0.25297058540778483,
    "tolerances": []
   }
  },
  "step_bytes": {
-  "smartqso_stowed.step": 2530232,
-  "smartqso_oml_stowed.step": 1107055,
-  "smartqso_deployed.step": 2531691,
-  "smartqso_oml_deployed.step": 1108429
+  "smartqso_stowed.step": 2704204,
+  "smartqso_oml_stowed.step": 1144594,
+  "smartqso_deployed.step": 2705665,
+  "smartqso_oml_deployed.step": 1145966
  }
 }

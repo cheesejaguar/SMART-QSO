@@ -153,7 +153,7 @@ CR-2026-002, `docs/project/CHANGE_REQUEST_LOG.md`).
 | Parameter | Baseline |
 |-----------|----------|
 | Downlink | One IARU-coordinated frequency in 145.800–146.000 MHz; **not 145.825 MHz** |
-| Uplink | One IARU-coordinated frequency, requested in **435.050–436.500 MHz** (the receive SAW's drift with temperature, and board clock harmonics at 435.000 MHz; SQSO-RF-BRD-001), at least 2 MHz below 3 × f_downlink (437.4–438.0 MHz). Receiver: CC1200 in analog-FM receive with a BFP640F LNA, a 7th-order trapped high-pass and a SAW; TNC on its own STM32L431 (a Class C firmware item) |
+| Uplink | One IARU-coordinated frequency, requested in **435.222–435.778 MHz, or else 436.222–436.500 MHz**: the RF board's receive SAW drift and its clock harmonics at 435.000 MHz limit the band to 435.050–436.500 MHz (SQSO-RF-BRD-001), and the EPS converters' synchronised 1.000 MHz harmonics leave windows clear only at 435.222–435.778, 436.222–436.778 and 437.222–437.300 MHz (SQSO-EPS-BRD-001, SQSO-EMC-001), at least 2 MHz below 3 × f_downlink (437.4–438.0 MHz). Receiver: CC1200 in analog-FM receive with a BFP640F LNA, a 7th-order trapped high-pass and a SAW; TNC on its own STM32L431 (a Class C firmware item) |
 | Transmitter power | **Maximum 1 W**, nominal 0.5 W (file the hardware maximum) |
 | Emissions | 16K0F3E (transponder), 10K4F2D (telemetry and telecommand); confirm by measurement |
 | Spurious / harmonics | Meet 47 CFR 97.307(e) (≤ 25 µW and ≥ 40 dB below carrier; at 1 W that means ≥ 46 dBc). **≥ 70 dB 3rd-harmonic suppression** measured at the antenna port with the antennas deployed (≤ 0.5 dB desense of the uplink at 1 W; 60 dB costs 3.2 dB; SQSO-LBA-001 §7.3). Receive filter ≥ 60 dB rejection at 144–146 MHz |
