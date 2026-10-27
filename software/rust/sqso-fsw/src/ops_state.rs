@@ -32,6 +32,7 @@
 //! @requirement SRS-F082 The software shall hold the mode at IDLE, the payload and the transponder off from ARM_FLIGHT until an authenticated commissioning release
 //! @requirement SRS-F083 The software shall let the ground stop and allow the transponder by telecommand, persisted across resets
 
+use crate::fram_health::Shadow;
 use crate::nvm::{self, Flash, RecordStatus};
 
 /// Record ("OPST"): flags (1) | version (1) | ADCS geometry preset (1) | spare (1)
@@ -64,6 +65,8 @@ pub struct OpsState {
     xpdr_disabled: bool,
     adcs_geometry: u8,
     initialized: bool,
+    /// The record's CRC as last set (the degraded mode's check, SMA-B10)
+    shadow: Option<Shadow>,
 }
 
 impl OpsState {
@@ -72,7 +75,7 @@ impl OpsState {
     /// for ACTIVE before [`OpsState::init`]; module tests that never load a
     /// record see a bench unit
     pub const fn new(region: u32) -> OpsState {
-        OpsState { region, hold: false, xpdr_disabled: false, adcs_geometry: 0, initialized: false }
+        OpsState { region, hold: false, xpdr_disabled: false, adcs_geometry: 0, initialized: false, shadow: None }
     }
 
     /// Whether the record has been read
@@ -91,7 +94,8 @@ impl OpsState {
         [flags, VERSION, self.adcs_geometry, 0]
     }
 
-    fn save<F: Flash>(&self, flash: &mut F) -> Result<(), IoError> {
+    fn save<F: Flash>(&mut self, flash: &mut F) -> Result<(), IoError> {
+        self.shadow = Some(Shadow::of(&self.record()));
         nvm::save(flash, self.region, 0, RECORD_MAGIC, &self.record()).map_err(|_| IoError)
     }
 
@@ -120,6 +124,7 @@ impl OpsState {
             }
         };
         self.initialized = true;
+        self.shadow = Some(Shadow::of(&self.record()));
         loaded
     }
 
@@ -147,9 +152,34 @@ impl OpsState {
     /// stopped, persist the merge if it differs from the record; whether
     /// the two disagreed
     pub fn verify<F: Flash>(&mut self, flash: &mut F) -> bool {
+        self.check(flash, false).0
+    }
+
+    /// [`OpsState::verify`], or in the degraded mode without the FRAM
+    /// (`degraded`, RID SMA-B10): the RAM copy against its CRC (a mismatch,
+    /// an upset, sets the hold and stops the transponder), then written and
+    /// read back. (whether the RAM copy disagreed, whether the record was
+    /// read: in the degraded mode, written and read back)
+    pub fn check<F: Flash>(&mut self, flash: &mut F, degraded: bool) -> (bool, bool) {
         if !self.initialized {
-            return false;
+            return (false, true);
         }
+        if degraded {
+            let upset = !self.shadow.is_some_and(|sh| sh.holds(&self.record()));
+            if upset {
+                self.hold = true;
+                self.xpdr_disabled = true;
+            }
+            let written = self.save(flash).is_ok();
+            let mut back = [0u8; 4];
+            let read = nvm::load(flash, self.region, 0, RECORD_MAGIC, &mut back) == Ok(RecordStatus::Valid);
+            return (upset, written && read && back == self.record());
+        }
+        let (disagreed, read) = self.settle(flash);
+        (disagreed, read)
+    }
+
+    fn settle<F: Flash>(&mut self, flash: &mut F) -> (bool, bool) {
         let mut rec = [0u8; 4];
         let stored = match nvm::load(flash, self.region, 0, RECORD_MAGIC, &mut rec) {
             Ok(RecordStatus::Valid) => Some(rec),
@@ -158,7 +188,8 @@ impl OpsState {
         };
         let Some([flags, _, geometry, _]) = stored else {
             self.hold = true;
-            return true;
+            self.shadow = Some(Shadow::of(&self.record()));
+            return (true, false);
         };
         let before = self.record();
         self.hold |= flags & FLAG_HOLD != 0;
@@ -168,7 +199,7 @@ impl OpsState {
         if stored != Some(self.record()) {
             let _ = self.save(flash);
         }
-        disagreed
+        (disagreed, true)
     }
 
     /// The ADCS geometry preset
