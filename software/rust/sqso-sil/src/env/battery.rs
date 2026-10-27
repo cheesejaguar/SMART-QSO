@@ -57,7 +57,7 @@ pub const UV_CELL_V: f64 = 2.8;
 /// Operational floor per cell (V; BATTERY_DESIGN §3.1).
 pub const FLOOR_CELL_V: f64 = 3.0;
 /// BMS over-current trip (A; BATTERY_DESIGN §4.1).
-pub const OC_A: f64 = 5.0;
+pub const OC_A: f64 = 4.0;
 /// Charge temperature window (°C; BASELINE §5).
 pub const CHARGE_T_MIN_C: f64 = 0.0;
 /// Charge temperature window, upper limit (°C).

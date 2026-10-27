@@ -143,10 +143,23 @@ pub enum Availability {
 pub const fn availability(command: Command) -> Availability {
     use Command as C;
     match command {
-        C::Nop | C::TxDisable | C::TxEnable | C::KeyRotate | C::GetStatus | C::EpsGetTelemetry | C::AdcsGetAttitude => {
-            Availability::Always
-        }
-        C::SetMode | C::SetBeacon => Availability::AlsoSafe,
+        C::Nop
+        | C::TxDisable
+        | C::TxEnable
+        | C::KeyRotate
+        | C::GetStatus
+        | C::EpsGetTelemetry
+        | C::AdcsGetAttitude
+        | C::GetHousekeeping
+        | C::XpdrDisable
+        // End of life and the battery lockout are wanted most in SAFE and
+        // EMERGENCY (a failing spacecraft, a deeply discharged pack)
+        | C::PassivateArm
+        | C::PassivateExecute
+        | C::EpsClearLockout
+        // A dead FRAM may hold the spacecraft in SAFE (RID SMA-B10)
+        | C::FramBypass => Availability::Always,
+        C::SetMode | C::SetBeacon | C::DumpTlm => Availability::AlsoSafe,
         C::Reset => Availability::AlsoEmergency,
         C::ClearFaults
         | C::SetContactTimeout
@@ -154,7 +167,15 @@ pub const fn availability(command: Command) -> Availability {
         | C::AdcsDetumble
         | C::SetPower
         | C::PldEnable
-        | C::PldDisable => Availability::Normal,
+        | C::PldDisable
+        | C::CommissioningRelease
+        | C::XpdrEnable
+        | C::DeployRetry
+        | C::GnssRequest
+        | C::AdcsSetGeometry
+        | C::AdcsSetGyroAlign
+        | C::AdcsSetMagBias
+        | C::EpsDisableTrackers => Availability::Normal,
     }
 }
 

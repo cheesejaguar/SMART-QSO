@@ -1,10 +1,21 @@
-# SQSO-HW-DIAG-001 W5: EPS and OBC to the Jetson carrier (SQSO-HAR-001 H3 and H6).
-# H3 (Micro-Fit 4-pin, 5 V) and H6 (JST-SH 3-pin UART) are kept. JST-SH is not in the SQSO-HAR-001 3.1 connector
-# list (finding F14). The OBC's USART1 must not back-power the unpowered Jetson: buffer with Ioff (schematic S7,
-# finding F13). The carrier-side pins depend on the carrier (TBD); the Orin Nano 40-pin header's UART1 is
-# pin 8 TXD / pin 10 RXD (TBR).
+# SQSO-HW-DIAG-001 W5: EPS and OBC to the Jetson carrier, version 3 (2026-10-27; SQSO-JET-BRD-001 A section 19,
+# SQSO-ICX-001 3.3, SQSO-OBC-BRD-001 11, SMART-QSO-ICD-002 1.3 section 10).
+# Power (W5A): VBAT behind SW1 (PAYLOAD_EN PB2) and the eFuse U19 (JETSON_PWR PA8, moved from PA2) on EPS J18, 11.2-16.4 V (18.4 V EPS
+# OVP), 0.93 A at the 12 W guard, 1.2 A eFuse trip, to carrier J1. The Orin Nano takes 5 V only (DS-11105-001 v1.5
+# Table 5-1): the carrier makes VDD_IN itself (LM61440-Q1 and TPS259474L). Version 1 carried +5 V.
+# Link (W5B): USART1 PA9/PA10 through the OBC's SN74LVC1T45 translators U28/U29, whose carrier-side supply is the
+# carrier's switched 3.3 V I/O rail JET_3V3 on pin 4 (RID AV-09); the same pin is the carrier power-good JET_PG on PG6
+# (RID AV-06): it is high only after the module's power sequence (SYS_RESET* high). The module UART1 is 1.8 V and is
+# translated on the carrier (U10/U11); the OBC transmits 8N2. Version 3 (proposed change E10, for the chair): W5B grows
+# to six wires so the spreader thermistor RT1 (10 kOhm NTC, on the heat spreader, leads to carrier J3) reaches an OBC
+# ADC channel through the carrier without being powered by it (pins 5 and 6, twisted pair).
+# OBC side (SQSO-OBC-BRD-001 B 11.3): 10.0 kOhm 0.1 % bias from VDDA, read on PA2 (ADC1_IN7) through 1 kOhm / 100 nF.
+# Harness design (SQSO-HAR-001 2.0, 2026-10-27): W5A 24 AWG (the Micro-Fit minimum; 1.4 A design current, 0.70 A per
+# wire, 51 % of 1.65 A derated at N = 35, 43 mV), 0.105 m up the (-X, -Y) bundle and along the carrier's -Y strip to a
+# right-angle carrier J1 (a vertical mated Micro-Fit and its wire bend reach the RF board's bottom envelope); W5B 28 AWG,
+# 0.06 m up the (+X, +Y) bundle.
 metadata:
-  title: W5 EPS and OBC to Jetson carrier (SQSO-HW-DIAG-001, proposed, TBR)
+  title: W5 EPS and OBC to Jetson carrier v4 (SQSO-HW-DIAG-001; SQSO-JET-BRD-001 19; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -13,44 +24,46 @@ options:
 
 connectors:
   J_EPS_JET:
-    type: Molex Micro-Fit 3.0 header
+    type: Micro-Fit 3.0 receptacle 43025-0400, gold 43030-0003 terminals
     subtype: 4 pos
-    notes: "EPS board: SW1 PAYLOAD 5 V, after the JETSON_PWR soft-start gate (4 A)"
-    pinlabels: &w5pwr [+5V_JET, +5V_JET, GND, GND]
+    notes: "EPS J18 (right-angle gold header, EPS bottom side, zone Z2): VBAT_JET behind SW1 and the eFuse U19"
+    pinlabels: &w5pwr [VBAT_JET, VBAT_JET, GND, GND]
   J_JET_PWR:
-    type: Molex Micro-Fit 3.0 receptacle
+    type: Micro-Fit 3.0 receptacle 43025-0400, gold 43030-0003 terminals
     subtype: 4 pos
-    notes: carrier DC input (TBD)
+    notes: "carrier J1 (right-angle gold header, plug from -X): DC input 11.2-16.4 V; TVS2200, LC filter, LM61440 5 V buck"
     pinlabels: *w5pwr
   J_OBC_JET:
-    type: JST SH
-    subtype: 3 pos, 1.0 mm
-    notes: "OBC board: PA9 TX, PA10 RX via S7 buffer"
-    pinlabels: [USART1_TX, USART1_RX, GND]
+    type: Molex Pico-Clasp 2035560607 (gold)
+    subtype: 6 pos, 1.0 mm
+    notes: "OBC J3 (4 to 6 pos, change E10): PA9 TX via U28, PA10 RX via U29, JET_3V3 to PG6 (10 k), PT_NTC to PA2 ADC1_IN7 (10.0 k bias from VDDA), PT_RTN to GND"
+    pinlabels: &w5sig [GND, JET_RXD (OBC TX), JET_TXD (OBC RX), JET_3V3 (carrier I/O rail), PT_NTC, PT_RTN]
   J_JET_UART:
-    type: carrier UART header (TBD)
-    subtype: 3 pos
-    notes: carrier side, 3.3 V logic (TBR)
-    pinlabels: [UART_RXD, UART_TXD, GND]
+    type: Molex Pico-Clasp 2035560607 (gold) on the carrier
+    subtype: 6 pos, 1.0 mm
+    notes: "carrier J2: U11 B to module UART1 RXD (pin 205), U10 B from UART1 TXD (pin 203), 3V3_IO via 100 Ohm, NTC pass-through"
+    pinlabels: *w5sig
 
 cables:
   W5A:
     category: bundle
-    gauge: 20 AWG
-    length: 0.10
+    gauge: 24 AWG
+    length: 0.105
+    wirecount: 4
     colors: [RD, RD, BK, BK]
-    notes: "2 A per wire at the 4 A gate; 20 AWG is 3 A derated. Peak 8 W at the input"
+    notes: "M22759/33-24, twisted quad (1+3, 2+4); 1.4 A design current on two wires per pole"
   W5B:
     category: bundle
-    gauge: 26 AWG
-    length: 0.10
-    colors: [GN, YE, BK]
-    notes: "115200 baud, SQSO-ICD-004 framing; TX crosses to RXD"
+    gauge: 28 AWG
+    length: 0.06
+    wirecount: 6
+    colors: [BK, GN, YE, OG, WH, BU]
+    notes: "115200 baud, OBC transmits 8N2 (DS-11105-001 2.10.4), SMART-QSO-ICD-002 framing; signals twisted with ground; PT_NTC/PT_RTN a twisted pair. Signal currents under 5 mA"
 
 connections:
   - - J_EPS_JET: [1-4]
     - W5A: [1-4]
     - J_JET_PWR: [1-4]
-  - - J_OBC_JET: [1-3]
-    - W5B: [1-3]
-    - J_JET_UART: [1-3]
+  - - J_OBC_JET: [1-6]
+    - W5B: [1-6]
+    - J_JET_UART: [1-6]

@@ -34,10 +34,17 @@ pub struct SmTransition {
 }
 
 /// Guard: ACTIVE powers the payload, so the battery and the payload guard
-/// must allow it
+/// must allow it, and the commissioning hold must have been released
+/// (`ops_state.h`, LV-01: until then the mode is capped at IDLE, for the
+/// mode manager's own events and the ground's SET_MODE alike). Wings that
+/// did not deploy after their attempts hold IDLE too (EPS-10: with the
+/// wings stowed ACTIVE has a −42 % power margin, BASELINE §5)
+///
+/// @requirement SRS-F128 The software shall hold the mode at IDLE while the wings read not deployed after their attempts
 extern "C" fn guard_active_allowed() -> bool {
     // SAFETY: C accessors without pointer arguments
-    unsafe { c::eps_get_soc() >= mode::SOC_PAYLOAD && c::payload_guard_may_enable(c::now_ms()) }
+    let power = unsafe { c::eps_get_soc() >= mode::SOC_PAYLOAD && c::payload_guard_may_enable(c::now_ms()) };
+    power && !crate::ops_state::ops_commissioning_hold() && !crate::deployment::deployment_wings_failed()
 }
 
 fn guard(g: Guard) -> bool {

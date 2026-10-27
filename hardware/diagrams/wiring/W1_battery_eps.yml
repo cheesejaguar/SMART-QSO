@@ -1,8 +1,13 @@
-# SQSO-HW-DIAG-001 W1: battery pack to EPS (SQSO-HAR-001 H1, extended for 4S).
-# H1's six contacts are kept. The balance connector is proposed (finding F12): the 4S BMS (BQ76920 or eq.)
-# needs five cell taps, which H1 does not carry. Pinouts proposed, TBR. Wire gauges from SQSO-HAR-001 §5.2.
+# SQSO-HW-DIAG-001 W1: battery pack to EPS, version 3 (2026-10-27, harness design SQSO-HAR-001 2.0,
+# hardware/harness/wire_list.csv). Flying leads from the battery interconnect and sense board (no connector at the pack,
+# no stack connector) up through a deck opening to EPS J1 / J2 on the EPS bottom side in connector zone Z1 (-X, +Y),
+# with a service loop under the EPS: every wire 0.12 m, which keeps the leads' conductance at or below the 0.008 W/K the
+# thermal design carries. Pack leads 22 AWG (two per pole, 1.2 A worst per wire against 2.5 A derated), behind the
+# sense-board fuses F0A (FM12A72V5.0A) + F0B (FM08A125V5A) and the OV fuse F3 (ITV4030L1412NR) in BAT_TOP, F0N (FM12A72V5.0A, BAT_BOT, cell-1 negative), and ahead of the EPS fuse F2;
+# cell taps behind 3 x 68.1 ohm and FT0-FT4 (FM12A72V3/4A): a tap short is limited to 82 mA. PTFE over-sleeve,
+# twisted quad, no metal clamps. Micro-Fit terminals take 20-24 AWG, Pico-Clasp 28-32 AWG.
 metadata:
-  title: W1 Battery pack to EPS (SQSO-HW-DIAG-001, proposed, TBR)
+  title: W1 Battery pack to EPS v3 (SQSO-HW-DIAG-001; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -10,54 +15,46 @@ options:
   color_mode: SHORT
 
 connectors:
-  P1:
-    type: Molex Micro-Fit 3.0 receptacle
-    subtype: 6 pos, 2 rows
-    notes: battery side, H1
-    pinlabels: [VBAT+, VBAT+, VBAT-, VBAT-, TEMP1, TEMP2]
+  BATT:
+    type: battery sense board solder pads (flying leads)
+    subtype: staked within 10 mm of the pads; F0A, F0B, F3 in BAT_TOP (BQ771806 on the sense board, own taps), F0N in BAT_BOT, 3 x 68.1 ohm + FT0-FT4 in the taps
+    notes: pack side; NTC2 returns to TAP0 inside the pack
+    pinlabels: [BAT_TOP, BAT_TOP, BAT_BOT, BAT_BOT, NTC1, NTC1_RTN, HTR+, HTR-, TAP0, TAP1, TAP2, TAP3, TAP4, NTC2]
   J1:
-    type: Molex Micro-Fit 3.0 header
-    subtype: 6 pos, 2 rows
-    notes: EPS board, H1
-    pinlabels: [VBAT+, VBAT+, VBAT-, VBAT-, TEMP1, TEMP2]
-  P2:
-    type: Molex Pico-Clasp receptacle
-    subtype: 5 pos
-    notes: battery side, balance (proposed)
-    pinlabels: [VC0 (cell 1-), VC1, VC2, VC3, VC4 (cell 4+)]
+    type: Micro-Fit 3.0 receptacle 43025-0800, gold 43030-0003 terminals
+    subtype: 8 pos, 2 rows
+    notes: "EPS J1, right-angle gold header on the EPS bottom side, zone Z1 (PACK domain corner)"
+    pinlabels: [BAT_TOP, BAT_TOP, BAT_BOT, BAT_BOT, NTC1, NTC1_RTN (GND), HTR_P, HTR_N]
   J2:
-    type: Molex Pico-Clasp header
-    subtype: 5 pos
-    notes: EPS board, to BMS VC0-VC4 via 1 kOhm + 0.1 uF filters (TBR)
-    pinlabels: [VC0, VC1, VC2, VC3, VC4]
+    type: Pico-Clasp receptacle 501330-0600, gold 501193-9000 terminals
+    subtype: 6 pos
+    notes: EPS J2 to AFE U1 and secondary protector U2
+    pinlabels: [TAP0, TAP1, TAP2, TAP3, TAP4, NTC2]
 
 cables:
-  C1:
-    category: bundle
-    gauge: 20 AWG
-    length: 0.08
+  W1-22:
+    gauge: 22 AWG
+    length: 0.12
     colors: [RD, RD, BK, BK]
-    notes: PTFE; 2 wires per pole, 3 A each derated (SQSO-HAR-001 5.2), above the 5 A pack fuse
-  C2:
-    category: bundle
-    gauge: 26 AWG
-    length: 0.08
-    colors: [WH, YE]
-    notes: two 10 kOhm NTCs, common return to VBAT- in the pack (TBR)
-  C3:
-    category: bundle
+    notes: "M22759/33-22; two wires per pole, twisted quad (1+3, 2+4); 2.0 A worst-case pack current (four burn drivers), 1.2 A per wire with a 60/40 split, 2.5 A derated (EEE-INST-002, N = 43); 35 mV at 2.0 A"
+  W1-24:
+    gauge: 24 AWG
+    length: 0.12
+    colors: [WH, GY, VT, BK]
+    notes: "M22759/33-24 (Micro-Fit minimum); NTC1 pair (own return) twisted; heater pair twisted, 79 mA (SW5 limit 0.17 A)"
+  W1-28:
     gauge: 28 AWG
-    length: 0.08
-    colors: [BK, BN, RD, OG, YE]
-    notes: sense only; fuse or 100 Ohm series at the pack end (TBR)
+    length: 0.12
+    colors: [BK, BN, RD, OG, YE, WH]
+    notes: "M22759/33-28; sense only (balancing 9 mA); a tap short is limited to 82 mA at the pack"
 
 connections:
-  - - P1: [1-4]
-    - C1: [1-4]
+  - - BATT: [1-4]
+    - W1-22: [1-4]
     - J1: [1-4]
-  - - P1: [5, 6]
-    - C2: [1, 2]
-    - J1: [5, 6]
-  - - P2: [1-5]
-    - C3: [1-5]
-    - J2: [1-5]
+  - - BATT: [5-8]
+    - W1-24: [1-4]
+    - J1: [5-8]
+  - - BATT: [9-14]
+    - W1-28: [1-6]
+    - J2: [1-6]

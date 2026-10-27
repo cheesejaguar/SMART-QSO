@@ -37,6 +37,30 @@ pub trait Flash {
     fn write(&mut self, region: u32, offset: u32, data: &[u8]) -> Result<(), FlashError>;
     /// Erase a whole region
     fn erase(&mut self, region: u32) -> Result<(), FlashError>;
+    /// Read `buf.len()` bytes from the second FRAM, the mirror every write
+    /// also reaches (SQSO-ICX-001 D §6 row 32, RID SMA-B10); none by default
+    fn read_mirror(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), FlashError> {
+        let _ = (region, offset, buf);
+        Err(FlashError(-1))
+    }
+}
+
+/// The mirror seen as a flash of its own (reads only: [`load`] and
+/// [`save`] read through it when the first FRAM fails)
+struct Mirror<'a, F: Flash>(&'a mut F);
+
+impl<F: Flash> Flash for Mirror<'_, F> {
+    fn read(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), FlashError> {
+        self.0.read_mirror(region, offset, buf)
+    }
+
+    fn write(&mut self, _region: u32, _offset: u32, _data: &[u8]) -> Result<(), FlashError> {
+        Err(FlashError(-1))
+    }
+
+    fn erase(&mut self, _region: u32) -> Result<(), FlashError> {
+        Err(FlashError(-1))
+    }
 }
 
 /// What a load found
@@ -136,8 +160,28 @@ fn read_both<F: Flash>(
     Ok([read_slot(flash, region, base, 0, magic, len, a)?, read_slot(flash, region, base, 1, magic, len, b)?])
 }
 
-/// Load the newest valid copy into `payload` (written only when `Valid`)
+/// Load the newest valid copy into `payload` (written only when `Valid`);
+/// from the mirror when the first FRAM gives no valid copy (it fails or
+/// fails its CRC) and the mirror does
 pub fn load<F: Flash>(
+    flash: &mut F,
+    region: u32,
+    base: u32,
+    magic: u32,
+    payload: &mut [u8],
+) -> Result<RecordStatus, NvmError> {
+    match load_one(flash, region, base, magic, payload) {
+        Ok(RecordStatus::Valid) => Ok(RecordStatus::Valid),
+        first => match (first, load_one(&mut Mirror(flash), region, base, magic, payload)) {
+            (_, Ok(RecordStatus::Valid)) => Ok(RecordStatus::Valid),
+            // The first FRAM failed: what the mirror holds, if it answers
+            (Err(e), mirror) => mirror.or(Err(e)),
+            (first, _) => first,
+        },
+    }
+}
+
+fn load_one<F: Flash>(
     flash: &mut F,
     region: u32,
     base: u32,
@@ -163,9 +207,15 @@ pub fn load<F: Flash>(
 }
 
 /// Save into the slot not holding the newest valid copy, then read it back
+/// (the slots as the first FRAM holds them, or the mirror if that cannot be
+/// read; the write reaches both, the read-back either)
 pub fn save<F: Flash>(flash: &mut F, region: u32, base: u32, magic: u32, payload: &[u8]) -> Result<(), NvmError> {
     let mut bufs = [[0u8; SLOT_SIZE]; 2];
-    let info = read_both(flash, region, base, magic, payload.len(), &mut bufs)?;
+    let info = match read_both(flash, region, base, magic, payload.len(), &mut bufs) {
+        Ok(info) => info,
+        Err(NvmError::Invalid) => return Err(NvmError::Invalid),
+        Err(e) => read_both(&mut Mirror(flash), region, base, magic, payload.len(), &mut bufs).map_err(|_| e)?,
+    };
     zeroize::Zeroize::zeroize(&mut bufs);
     let newest = newest(&info);
     let target = if newest == Some(0) { 1 } else { 0 };
@@ -189,8 +239,8 @@ pub fn save<F: Flash>(flash: &mut F, region: u32, base: u32, magic: u32, payload
 
     let mut readback = [0u8; SLOT_SIZE];
     let readback = readback.get_mut(..record_len).ok_or(NvmError::Invalid)?;
-    flash.read(region, offset, readback)?;
-    let ok = readback == record;
+    let ok = (flash.read(region, offset, readback).is_ok() && readback == record)
+        || (flash.read_mirror(region, offset, readback).is_ok() && readback == record);
     zeroize::Zeroize::zeroize(readback);
     if ok { Ok(()) } else { Err(NvmError::Verify) }
 }
@@ -275,6 +325,59 @@ mod tests {
         assert_eq!(out, [1; 8]);
         f.bytes[9] ^= 0xFF;
         assert_eq!(load(&mut f, 0, 0, MAGIC, &mut out), Ok(RecordStatus::Corrupt));
+    }
+
+    /// Two FRAMs: every write to both, reads from the first unless it is
+    /// dead, the mirror from the second
+    struct Pair {
+        a: MemFlash<256>,
+        b: MemFlash<256>,
+        a_dead: bool,
+    }
+
+    impl Flash for Pair {
+        fn read(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), FlashError> {
+            if self.a_dead { Err(FlashError(-7)) } else { self.a.read(region, offset, buf) }
+        }
+
+        fn write(&mut self, region: u32, offset: u32, data: &[u8]) -> Result<(), FlashError> {
+            let b = self.b.write(region, offset, data);
+            if self.a_dead { b } else { self.a.write(region, offset, data).and(b) }
+        }
+
+        fn erase(&mut self, region: u32) -> Result<(), FlashError> {
+            self.b.erase(region).and(self.a.erase(region))
+        }
+
+        fn read_mirror(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), FlashError> {
+            self.b.read(region, offset, buf)
+        }
+    }
+
+    #[test]
+    fn the_mirror_serves_a_failed_or_corrupt_first_fram() {
+        let mut f = Pair { a: MemFlash::new(), b: MemFlash::new(), a_dead: false };
+        let mut out = [0u8; 8];
+        save(&mut f, 0, 0, MAGIC, &[1; 8]).unwrap();
+        save(&mut f, 0, 0, MAGIC, &[2; 8]).unwrap();
+        // Both copies of the first FRAM corrupt: the mirror's newest
+        f.a.bytes[9] ^= 0xFF;
+        f.a.bytes[SLOT_SIZE + 9] ^= 0xFF;
+        assert_eq!(load(&mut f, 0, 0, MAGIC, &mut out), Ok(RecordStatus::Valid));
+        assert_eq!(out, [2; 8]);
+        // The first FRAM dead: loads and saves go on through the mirror
+        f.a_dead = true;
+        assert_eq!(load(&mut f, 0, 0, MAGIC, &mut out), Ok(RecordStatus::Valid));
+        save(&mut f, 0, 0, MAGIC, &[3; 8]).unwrap();
+        assert_eq!(load(&mut f, 0, 0, MAGIC, &mut out), Ok(RecordStatus::Valid));
+        assert_eq!(out, [3; 8]);
+        // Both dead: the first FRAM's error
+        f.b.writes_left = Some(0);
+        assert!(save(&mut f, 0, 0, MAGIC, &[4; 8]).is_err());
+        let mut none = MemFlash::<256>::new();
+        assert_eq!(none.read_mirror(0, 0, &mut out), Err(FlashError(-1)));
+        assert!(Mirror(&mut none).write(0, 0, &[0]).is_err());
+        assert!(Mirror(&mut none).erase(0).is_err());
     }
 
     #[test]

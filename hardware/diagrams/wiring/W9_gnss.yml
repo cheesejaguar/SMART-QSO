@@ -1,9 +1,15 @@
-# SQSO-HW-DIAG-001 W9: GNSS receiver (decision D6: pNAV-NG/FM). Neither the firmware nor any ICD gives it a
-# UART, an enable or a 1PPS input (finding F2). Proposed here: UART4 on PC10 TX / PC11 RX (the SPI3 pins, which
-# nothing uses), 1PPS to a timer input (pin TBD), 3V3 from SW7 on the EPS switched by GNSS_EN PE4.
-# The receiver's own connector and pin order are TBD (vendor ICD).
+# SQSO-HW-DIAG-001 W9: GNSS receiver (decision D6: SkyFox piNAV-NG/FM), version 2 (2026-10-27; SQSO-ICX-001 §3.5,
+# SQSO-OBC-BRD-001 §10). Version 1 proposed UART4 on PC10/PC11 and GNSS_EN on PE4 (finding F2); the built firmware uses
+# LPUART1 PB11 TX (PG7 until ICX D) / PG8 RX and GNSS_EN PE5 (RID EPS-14; PE4 is XPDR_EN). The receiver's 3.3 V from EPS SW7 (0.20 A
+# latch-up trip) now passes through the OBC (W9B into J4, out on J5), so the OBC's SN74LVC1T45 translators U30-U32 take
+# their receiver-side supply from the receiver's own rail: a switched-off receiver is never back-powered, and the OBC
+# reads the rail on PG15 (GNSS_PG). 1PPS goes to TIM3_CH1 (PC6). The receiver-side pin order is per the SkyFox interface
+# document (not yet received: closure at the EM purchase; the wire functions below do not change).
+# Version 3 (2026-10-27, harness design SQSO-HAR-001 2.0): 28 AWG (Pico-Clasp takes 28-32 AWG; the 26 AWG of version 2
+# cannot be crimped), both harnesses in the (+X, +Y) bundle; W9A continues under the EPS, beneath J3, to the receiver's
+# +X edge on the deck. 0.232 A at the SW7 trip: 26 % of 0.90 A derated; 28 mV for W9B and W9A in series at 0.10 A.
 metadata:
-  title: W9 GNSS receiver (SQSO-HW-DIAG-001, proposed, TBR)
+  title: W9 GNSS receiver v3 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.5; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -11,39 +17,47 @@ options:
   color_mode: SHORT
 
 connectors:
-  J_OBC_GNSS:
-    type: Molex Pico-Clasp header
-    subtype: 4 pos
-    notes: "OBC board: PC10, PC11, timer input (TBD)"
-    pinlabels: [UART4_TX, UART4_RX, PPS_IN, GND]
   J_EPS_GNSS:
-    type: Molex Pico-Clasp header
+    type: Pico-Clasp 501330-0200, gold terminals
     subtype: 2 pos
-    notes: "EPS board: SW7 GNSS 3V3, latch-up trip"
-    pinlabels: [3V3_GNSS, GND]
-  J_GNSS:
-    type: pNAV-NG/FM interface (TBD, vendor ICD)
+    notes: "EPS J21 (bottom side, +X edge, +Y side, zone Z3): SW7 3V3_GNSS (GNSS_EN PE5)"
+    pinlabels: &w9pwr [3V3_GNSS, GND]
+  J_OBC_GPWR:
+    type: Pico-Clasp 501330-0200, gold terminals
+    subtype: 2 pos
+    notes: "OBC J4: 3V3_GNSS in (passes to J5-1)"
+    pinlabels: *w9pwr
+  J_OBC_GNSS:
+    type: Pico-Clasp 501330-0600, gold terminals
     subtype: 6 pos
-    notes: receiver side
-    pinlabels: [RXD, TXD, 1PPS, GND, VIN 3V3, GND]
+    notes: "OBC J5: PB11 via U30, PG8 via U31, PC6 via U32"
+    pinlabels: &w9sig [3V3_GNSS, GND, RXD (OBC TX), TXD (OBC RX), 1PPS, GND]
+  J_GNSS:
+    type: piNAV-NG/FM interface connector
+    subtype: per the SkyFox interface document
+    notes: receiver side; 3.3 V CMOS UART, 9600 baud NMEA
+    pinlabels: *w9sig
 
 cables:
+  W9B:
+    category: bundle
+    gauge: 28 AWG
+    length: 0.085
+    wirecount: 2
+    colors: [RD, BK]
+    notes: "M22759/33-28, twisted pair; 0.10 A peak receiver, 0.232 A at the SW7 trip"
   W9A:
     category: bundle
     gauge: 28 AWG
-    length: 0.08
-    colors: [GN, YE, WH, BK]
-    notes: "Back-power: the OBC's TX must not drive an unpowered receiver (series 1 kOhm or buffer, TBR)"
-  W9B:
-    category: bundle
-    gauge: 26 AWG
-    length: 0.08
-    colors: [RD, BK]
+    length: 0.145
+    wirecount: 6
+    colors: [RD, BK, GN, YE, WH, BK]
+    notes: "M22759/33-28; pairs (1, 2), (3, 6), (4, 5); the receiver-side contacts must take 28 AWG (SkyFox interface document at the EM purchase)"
 
 connections:
-  - - J_OBC_GNSS: [1-4]
-    - W9A: [1-4]
-    - J_GNSS: [1-4]
   - - J_EPS_GNSS: [1-2]
     - W9B: [1-2]
-    - J_GNSS: [5, 6]
+    - J_OBC_GPWR: [1-2]
+  - - J_OBC_GNSS: [1-6]
+    - W9A: [1-6]
+    - J_GNSS: [1-6]

@@ -1,9 +1,22 @@
-# SQSO-HW-DIAG-001 W4: OBC and EPS to the RF board. Replaces SQSO-HAR-001 H4 (proposed): H4 carries +5V and one
-# RF_EN, but the RF board needs the always-on RADIO rail (SW2), the PA rail (SW3, switched by RF_TX_EN and the
-# hardware TX-OFF), the KISS UART, the power select and three monitor voltages (hardware/rf/TRANSMITTER_DESIGN.md
-# 10.1). RF_TX_EN switches SW3 on the EPS, so it travels in W3, not here. Pinouts proposed, TBR.
+# SQSO-HW-DIAG-001 W4: OBC and EPS to the RF board, version 3 (2026-10-27, RF board design SQSO-RF-BRD-001 B §4).
+# Replaces SQSO-HAR-001 H4 (proposed): H4 carries +5V and one RF_EN, but the RF board needs the always-on RADIO rail
+# (SW2), the PA rail (SW3, switched by RF_TX_EN and the hardware TX-OFF), the KISS UART, the power select, the
+# XPDR_EN heartbeat, the three transponder readbacks (RID RF-21) and three monitor voltages. RF_TX_EN switches SW3 on
+# the EPS, so it travels in W3, not here; the RF board derives its hardware TX permit from the presence of the PA rail.
+# Version 2: 14-position signal connector (was 10): XPDR_EN added (it was missing), TONE_OK, XPDR_KEY and PTT_EXCITER
+# readbacks added. The OBC-side connector and the STM32 pins for the three readbacks are allocated by the OBC designer.
+# Version 3 (2026-10-27, RID RFB-07): 16 positions (FTSH-108). J1-15 RX_CD (receiver carrier sense, active high) and
+# J1-16 RX_FAULT (receiver health, active high = fault) for the receiver supervision of SRS-F115 to F117. Both 3.1 V
+# CMOS through 1 k with 100 k pull-downs on the RF board: an unpowered board or an unwired line reads "no carrier" and
+# "not fault"; the OBC inputs must use pull-downs (not pull-ups) so that nothing back-powers the RF board.
+# OBC side (SQSO-ICX-001 B): RX_CD PG0 (EXTI0), RX_FAULT PF13 (EXTI13); W4B PA_5V and RADIO_3V3 twisted with their returns.
+# Harness design (SQSO-HAR-001 2.0, 2026-10-27): W4A as a Samtec SFSDT PTFE discrete-wire assembly (30 AWG, latched) on
+# right-angle TFM-108 headers (OBC J2, RF J1; cable leaving toward +X, no bend over the top of RF J1), flat on the +X
+# shear panel at y -28.5 ... -38.5; 0.075 m. W4B: EPS J19 becomes a Pico-Clasp 6 with the RF J2 pinout (Micro-Fit takes
+# 20-24 AWG, Pico-Clasp 28-32 AWG: no wire fits both), 28 AWG twisted pairs, 0.145 m up the (-X, -Y) bundle and over
+# the RF shield's (-X, -Y) corner.
 metadata:
-  title: W4 OBC and EPS to RF board (SQSO-HW-DIAG-001, proposed, TBR)
+  title: W4 OBC and EPS to RF board v4 (SQSO-HW-DIAG-001; SQSO-RF-BRD-001 B; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -12,44 +25,45 @@ options:
 
 connectors:
   J_OBC_RF:
-    type: Samtec FTSH-105-01-L-DV-K
-    subtype: 10 pos, 1.27 mm
-    notes: "OBC board: PD5, PD6, PE3, PA0, PC0, PC1"
-    pinlabels: &w4sig [GND, USART2_TX (OBC to TNC RXD), USART2_RX (TNC TXD to OBC), GND, TX_PWR_SEL, GND, TX_TEMP, TX_FWD, TX_REV, AGND]
+    type: Samtec TFM-108 right-angle (was FTSH-108), SFSDT socket
+    subtype: 16 pos, 1.27 mm, latched
+    notes: "OBC board J2 at (+41.0, -33.5), below RF J1: PD5, PD6, PE3, PE4, PA0, PC0, PC1; inputs TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 (capture), RX_CD PG0, RX_FAULT PF13, each 10 k series and 100 k pull-down (SQSO-ICX-001 B 3.2)"
+    pinlabels: &w4sig [GND, USART2_TX PD5 (OBC to TNC), USART2_RX PD6 (TNC to OBC), GND, TX_PWR_SEL PE3, XPDR_EN PE4 (100 Hz), GND, TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7, TX_TEMP PA0, TX_FWD PC0, TX_REV PC1, AGND, RX_CD PG0, RX_FAULT PF13]
   J_RF_OBC:
-    type: Samtec FTSH-105-01-L-DV-K
-    subtype: 10 pos, 1.27 mm
-    notes: RF board
+    type: Samtec TFM-108 right-angle (was FTSH-108), SFSDT socket
+    subtype: 16 pos, 1.27 mm, latched
+    notes: RF board J1
     pinlabels: *w4sig
   J_EPS_RF:
-    type: Molex Pico-Clasp header
+    type: Pico-Clasp 501330-0600, gold terminals (EPS J19 as Pico-Clasp 6, was Micro-Fit 2x3)
     subtype: 6 pos
-    notes: "EPS board: SW2 RADIO, SW3 PA outputs"
+    notes: "EPS J19, bottom side, zone Z2: SW2 RADIO, SW3 PA outputs"
     pinlabels: &w4pwr [RADIO_3V3 (SW2), GND, PA_5V (SW3), PA_5V (SW3), GND, GND]
   J_RF_PWR:
-    type: Molex Pico-Clasp header
+    type: Pico-Clasp 501330-0600, gold terminals
     subtype: 6 pos
-    notes: RF board
+    notes: RF board J2 at (-26, -44)
     pinlabels: *w4pwr
 
 cables:
   W4A:
+    type: Samtec SFSDT discrete-wire assembly, PTFE, 30 AWG
     category: bundle
-    gauge: 28 AWG
-    length: 0.06
-    colors: [BK, GN, YE, BK, WH, BK, BN, BN, BN, GY]
-    notes: "Monitor lines 0-3 V into ADC1; 3.3 V logic both ends. TX_PWR_SEL: low 0.5 W, high 1 W"
+    gauge: 30 AWG
+    length: 0.075
+    colors: [BK, GN, YE, BK, WH, VT, BK, OG, OG, OG, BN, BN, BN, GY, BU, PK]
+    notes: "3.3 V logic both ends (RF side 3.1 V CMOS, 1 k series on the readbacks). Monitors 0-2.5 V into ADC1. TX_PWR_SEL low 0.5 W, high 1 W. XPDR_EN: 100 Hz heartbeat, 100 k pull-down on the RF board. RX_CD, RX_FAULT active high, 100 k pull-downs. Flat (two layers, 5.3 x 1.3 mm) on the +X shear panel at y -28.5 to -38.5"
   W4B:
     category: bundle
-    gauge: 24 AWG
-    length: 0.08
+    gauge: 28 AWG
+    length: 0.145
     colors: [RD, BK, OG, OG, BK, BK]
-    notes: "PA rail 0.5 A nominal, 1.0 A trip; two contacts for the 1 A Pico-Clasp rating. RADIO rail 3V3 (5 V TBD)"
+    notes: "M22759/33-28. RADIO 3.3 V: 89 mA keyed (SW2 limit 0.14 A); PA 5 V: 0.469 A at 1 W on two wires (0.235 A each, SW3 limit 1.07 A: 0.54 A per wire, 60 % of 0.90 A derated); 36 mV at 1 W. Twisted pairs 3+2, 4+5, 1+6, at most 5 mm untwisted at each end (0.7 nT at magnetometer A2)"
 
 connections:
-  - - J_OBC_RF: [1-10]
-    - W4A: [1-10]
-    - J_RF_OBC: [1-10]
+  - - J_OBC_RF: [1-16]
+    - W4A: [1-16]
+    - J_RF_OBC: [1-16]
   - - J_EPS_RF: [1-6]
     - W4B: [1-6]
     - J_RF_PWR: [1-6]

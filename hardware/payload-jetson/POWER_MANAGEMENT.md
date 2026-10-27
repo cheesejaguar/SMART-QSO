@@ -2,11 +2,19 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-JET-002
-**Version:** 1.0
-**Date:** 2026-01-02
+**Version:** 1.1
+**Date:** 2026-10-27
 **Status:** CDR Baseline
 
 ---
+
+> **CDR note (2026-10-27, version 1.1).** BASELINE §6 governs: the flight mode is **7 W**, not 10 W (§3.2 is
+> superseded; the Orin Nano 8 GB has no 10 W mode). On the original flash configuration the 7 W mode is nvpmodel ID 1
+> (4 CPU cores ≤ 960 MHz, 2 GPU TPC ≤ 408 MHz, EMC 2133 MHz; Jetson Linux r36.4.4); ID 0 is 15 W and is the factory
+> default, so `/etc/nvpmodel.conf` sets `PM_CONFIG DEFAULT=1`. The Super configuration has no 7 W mode (TB-13). The
+> carrier design (SQSO-JET-BRD-001 §13) adds a 6.5 W cap on the module input (`curr1_max` = 1300 mA on INA3221
+> channel 1, VDD_IN) so that the carrier input stays ≤ 8 W with margin. The input is VBAT through the carrier's own 5 V
+> converter, not a 5 V rail (§2.1), and the power-off is `SHUTDOWN` → `poweroff` (§4.2 timeouts follow ICD-002 1.3 §10).
 
 ## 1. Overview
 
@@ -366,3 +374,4 @@ class JetsonPowerManager:
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-27 | CDR note: 7 W mode (ID 1) instead of 10 W, 6.5 W input cap, VBAT input through the carrier, commanded power-off (SQSO-JET-BRD-001 A) |

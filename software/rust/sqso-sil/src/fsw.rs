@@ -37,9 +37,9 @@ pub mod pin {
     pub const DEPLOY_SENSE: u32 = 9;
     /// GSE umbilical present (input)
     pub const UMBILICAL_SENSE: u32 = 10;
-    /// Antenna burn wire (output)
+    /// Wing 2 resistor A (`GPIO_PIN_BURN_W2A`; was the antenna burn wire)
     pub const ANTENNA_BURN: u32 = 11;
-    /// Solar-wing burn wire (output)
+    /// Wing 1 resistor A (`GPIO_PIN_BURN_W1A`)
     pub const SOLAR_BURN: u32 = 12;
     /// Antenna deployed sense (input)
     pub const ANTENNA_SENSE: u32 = 13;
@@ -49,6 +49,30 @@ pub mod pin {
     pub const TX_PWR_SEL: u32 = 15;
     /// FM transponder enable (output)
     pub const XPDR_EN: u32 = 16;
+    /// GNSS receiver load switch (output)
+    pub const GNSS_EN: u32 = 17;
+    /// Wing 1 resistor B (`GPIO_PIN_BURN_W1B`)
+    pub const SOLAR_BURN_B: u32 = 18;
+    /// EPS end-of-life disconnect: arm latch (output, rising edge)
+    pub const EOL_ARM: u32 = 19;
+    /// EPS end-of-life disconnect: fire (output, level)
+    pub const EOL_FIRE: u32 = 20;
+    /// Command receiver carrier detect (input)
+    pub const RX_CD: u32 = 21;
+    /// Command receiver health, high on a fault (input)
+    pub const RX_FAULT: u32 = 22;
+    /// Wing 2 resistor B (`GPIO_PIN_BURN_W2B`)
+    pub const BURN_W2B: u32 = 23;
+    /// EPS recharge-lockout clear pulse (output)
+    pub const LOCK_CLR: u32 = 24;
+    /// Transponder repeat keyed (input)
+    pub const XPDR_KEY: u32 = 41;
+    /// Exciter keyed, PTT_EXCITER (input)
+    pub const PTT_EXC: u32 = 42;
+    /// The Jetson carrier's power-good (input)
+    pub const JET_PG: u32 = 43;
+    /// The wing lines, [wing][resistor]
+    pub const WING_LINES: [[u32; 2]; 2] = [[SOLAR_BURN, SOLAR_BURN_B], [ANTENNA_BURN, BURN_W2B]];
 }
 
 /// `hal_adc.h` channels
@@ -73,6 +97,22 @@ pub mod adc {
     pub const TX_FWD: u32 = 8;
     /// Reflected power, W
     pub const TX_REV: u32 = 9;
+    /// The Jetson spreader thermistor, pin V (ratiometric)
+    pub const PT_NTC: u32 = 11;
+}
+
+/// The pin voltage of the spreader thermistor at `t_c` (10K3A curve, the
+/// OBC's 10.0 kΩ bias from VDDA = 3.3 V): the inverse of
+/// `sqso_fsw::sensors::spreader_temperature`
+pub fn ntc_volts(t_c: f64) -> f64 {
+    use sqso_fsw::sensors::spreader::{BIAS_OHMS, SH_A, SH_B, SH_C};
+    // C L^3 + B L + (A - 1/T) = 0 for L = ln R (Cardano: one real root)
+    let p = SH_B / SH_C;
+    let q = (SH_A - 1.0 / (t_c + 273.15)) / SH_C;
+    let d = (q * q / 4.0 + p * p * p / 27.0).sqrt();
+    let l = (-q / 2.0 + d).cbrt() + (-q / 2.0 - d).cbrt();
+    let r = l.exp();
+    3.3 * r / (BIAS_OHMS + r)
 }
 
 /// Why the OBC (re)started (`HalResetCause_t`)
@@ -149,6 +189,14 @@ pub struct Snapshot {
     pub auth_failures: u32,
     /// Uplink frames received
     pub uplink_frames: u32,
+    /// Passivation phase (`PassivationPhase_t`)
+    pub passivation: u32,
+    /// Receiver recovery cycles (this boot) and known failed
+    pub rx_cycles: u32,
+    /// The receiver is known failed (REL-04)
+    pub rx_failed: bool,
+    /// The transmitters held off for the AntS (decision C-19)
+    pub ants_hold: bool,
 }
 
 /// The flight software and the simulated HAL around it
@@ -188,6 +236,8 @@ impl Fsw {
     pub fn boot(&mut self, cause: ResetCause) -> bool {
         self.exec = None;
         hal_sim::hal_sim_set_reset_cause(cause as u32);
+        // The AntS answers only while its supply is on (RID P3F-A-01)
+        hal_sim::hal_sim_ants_power_gated(true);
         sqso_ffi::sil::boot_clock(BOOT_TIME_US);
         let mut exec = Box::new(Executive::BOOT);
         let ok = exec.start();
@@ -227,14 +277,38 @@ impl Fsw {
     }
 
     /// The EPS controller's telemetry registers (as the controller would
-    /// present them on I2C)
-    pub fn set_eps(&self, t: &Telemetry) {
+    /// present them on I2C), and the two INA228s, their dies at the EPS
+    /// board's temperature `board_c` (the passivation fire's condition)
+    pub fn set_eps(&self, t: &Telemetry, board_c: f64) {
         let mut regs = [0u8; 1 + eps_telemetry::BLOCK_LEN];
         let mut block = [0u8; eps_telemetry::BLOCK_LEN];
         eps_telemetry::encode(t, &mut block);
         regs[1..].copy_from_slice(&block);
         // SAFETY: regs is a live buffer of its length
         let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
+        // IMON_JET, mA, LSB first
+        let ma = (t.ijet_a * 1000.0).round().clamp(0.0, 65_535.0) as u16;
+        let [lo, hi] = ma.to_le_bytes();
+        let imon = [eps_telemetry::IMON_JET, lo, hi];
+        // SAFETY: imon is a live buffer of its length
+        let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, eps_telemetry::ADDRESS, imon.as_ptr(), imon.len()) };
+        // The two INA228s, read by the OBC directly: the pack gauge (VBUS the
+        // pack, CURRENT the pack's) and the array monitor (its current)
+        use sqso_fsw::ina228::{self, ARRAY, PACK, Reading};
+        let write = |addr: u8, reg: u8, bytes: &[u8]| {
+            let mut b = [0u8; 4];
+            b[0] = reg;
+            b[1..1 + bytes.len()].copy_from_slice(bytes);
+            // SAFETY: b holds 1 + bytes.len() bytes
+            let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, addr, b.as_ptr(), 1 + bytes.len()) };
+        };
+        for (m, current) in [(PACK, t.ibatt_a), (ARRAY, t.isolar_a)] {
+            let (v, i, d) =
+                m.encode(&Reading { vbus_v: t.vbatt_v, current_a: current, die_c: board_c, ..Reading::default() });
+            write(m.address, ina228::reg::VBUS, &v);
+            write(m.address, ina228::reg::CURRENT, &i);
+            write(m.address, ina228::reg::DIETEMP, &d.to_be_bytes());
+        }
     }
 
     /// An ADC input, in its own unit
@@ -252,11 +326,75 @@ impl Fsw {
         self.running() && hal_sim::hal_gpio_get(pin)
     }
 
+    /// The `XPDR_EN` heartbeat as the radio board's detector sees it: the
+    /// OBC's HAL time now and when the heartbeat stops or stopped, µs
+    /// (`None`: the OBC is off, or the heartbeat has not run since boot;
+    /// a level on the pin is not a heartbeat)
+    pub fn xpdr_heartbeat(&self) -> Option<(u64, u64)> {
+        let end = hal_sim::hal_sim_gpio_heartbeat_end_us(pin::XPDR_EN);
+        (self.running() && end > 0).then(|| (hal_sim::hal_timer_get_us(), end))
+    }
+
     /// A received AX.25 frame (with its FCS) from the 435 MHz receiver
     /// through the TNC; false if the receive queue is full
     pub fn uplink(&self, frame: &[u8]) -> bool {
         // SAFETY: frame is a live slice
         self.running() && unsafe { hal_sim::hal_sim_radio_inject(frame.as_ptr(), frame.len()) } == 0
+    }
+
+    /// What the flight software has told the AntS over I2C: armed, and the
+    /// automatic deployment's per-element limit (0: none or cancelled).
+    /// The AntS acts only with its supply SW8 on (and forgets both when it
+    /// goes off: `hal_sim` power gating, RID P3F-A-01)
+    pub fn ants_command(&self) -> (bool, u8) {
+        if !self.running() || !hal_sim::ants_model_powered() {
+            return (false, 0);
+        }
+        let read = hal_sim::ants_model_read;
+        (read(sqso_fsw::ants::CMD_ARM) == 1, read(sqso_fsw::ants::CMD_AUTO_DEPLOY))
+    }
+
+    /// Whether the AntS's supply SW8 is on (DEPLOY_EN or ANTS_PWR)
+    pub fn ants_powered(&self) -> bool {
+        self.running() && hal_sim::ants_model_powered()
+    }
+
+    /// The EPS controller's `EOL_STATE` register (0x7C: bit 0 armed, bit 1
+    /// fired, bit 2 F1 intact, bit 3 key) as the simulated controller holds
+    /// it (`hal_sim`: the key at 0x7E and the latch on `EOL_ARM`)
+    pub fn eps_eol_state(&self) -> u8 {
+        let reg = eps_telemetry::EOL_STATE;
+        let mut v = 0u8;
+        // SAFETY: reg and v are live one-byte buffers
+        let _ = unsafe { hal_sim::hal_i2c_write_read(EPS_BUS, eps_telemetry::ADDRESS, &reg, 1, &mut v, 1) };
+        v
+    }
+
+    /// Set `EOL_STATE` (the EPS's latch and F1 survive an OBC reset, which
+    /// re-initializes the simulated bus)
+    pub fn set_eps_eol_state(&self, state: u8) {
+        let regs = [eps_telemetry::EOL_STATE, state];
+        // SAFETY: regs is a live buffer of its length
+        let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
+    }
+
+    /// The AntS's status word, as its controller presents it on I2C
+    pub fn set_ants_status(&self, status: [u8; 2]) {
+        hal_sim::ants_model_write(&[sqso_fsw::ants::CMD_STATUS, status[0], status[1]]);
+    }
+
+    /// The AntS controller's own temperature (`sqso_fsw::ants::CMD_TEMPERATURE`)
+    pub fn set_ants_temperature(&self, t_c: Option<f64>) {
+        // No valid reading: the raw value 0, which the flight software
+        // rejects (below -50 °C or a failed temperature path)
+        let [lo, hi] = t_c.map_or([0, 0], sqso_fsw::ants::temperature_bytes);
+        hal_sim::ants_model_write(&[sqso_fsw::ants::CMD_TEMPERATURE, lo, hi]);
+    }
+
+    /// NMEA bytes from the GNSS receiver (`UART_PORT_GNSS`)
+    pub fn gnss_bytes(&self, bytes: &[u8]) -> bool {
+        // SAFETY: bytes is a live slice
+        self.running() && unsafe { hal_sim::hal_sim_uart_inject(2, bytes.as_ptr(), bytes.len()) } == 0
     }
 
     /// Bytes arriving on the umbilical (GSE) port
@@ -298,23 +436,30 @@ impl Fsw {
         unsafe { sqso_ffi::adcs_control::adcs_set_sim_sensors(&mag, &sun, rate) };
     }
 
-    /// The magnetorquer dipole the flight software commands, body frame, A·m²
-    /// (zero with the coils off)
+    /// The magnetorquer dipole the flight software commands, averaged over
+    /// the control period, body frame, A·m² (zero with the coils off): the
+    /// burst's dipole for its 900 ms of each second
+    /// (`sqso_fsw::adcs::CoilTiming`), as the mission's 1 s steps see it
     pub fn adcs_dipole(&self) -> crate::env::math::V3 {
+        use sqso_fsw::adcs::{CONTROL_PERIOD_MS, MTQ_ON_MS};
         let mut st = sqso_fsw::adcs::Adcs::new().state;
         // SAFETY: st is a live AdcsState_t
         let ok = self.running() && unsafe { sqso_ffi::adcs_control::adcs_get_state(&mut st) } == 0;
         if ok && st.mtq.enabled {
-            crate::env::math::V3::new(st.mtq.dipole.x, st.mtq.dipole.y, st.mtq.dipole.z)
+            let on = MTQ_ON_MS as f64 / CONTROL_PERIOD_MS as f64;
+            crate::env::math::V3::new(st.mtq.dipole.x, st.mtq.dipole.y, st.mtq.dipole.z) * on
         } else {
             crate::env::math::V3::ZERO
         }
     }
 
-    /// The commanded dipole as a fraction of the coils' maximum (drive power)
-    pub fn adcs_dipole_fraction(&self) -> f64 {
-        let d = self.adcs_dipole();
-        ((d.x.abs() + d.y.abs() + d.z.abs()) / (3.0 * sqso_fsw::adcs::MAX_DIPOLE)).min(1.0)
+    /// The burst's dipole, A·m², and whether the coils are driven this period
+    pub fn adcs_burst(&self) -> (crate::env::math::V3, bool) {
+        let mut st = sqso_fsw::adcs::Adcs::new().state;
+        // SAFETY: st is a live AdcsState_t
+        let ok = self.running() && unsafe { sqso_ffi::adcs_control::adcs_get_state(&mut st) } == 0;
+        let on = ok && st.mtq.enabled;
+        (crate::env::math::V3::new(st.mtq.dipole.x, st.mtq.dipole.y, st.mtq.dipole.z), on)
     }
 
     /// The flight software's own view of itself
@@ -355,6 +500,10 @@ impl Fsw {
             commands_executed: cmd.total_executed,
             auth_failures: cmd.auth_failures,
             uplink_frames: up.frames,
+            passivation: passivation::passivation_phase(),
+            rx_cycles: receiver::receiver_cycles(),
+            rx_failed: receiver::receiver_failed(),
+            ants_hold: deployment::deployment_downlink_held(),
         }
     }
 }

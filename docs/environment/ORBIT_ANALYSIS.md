@@ -1,7 +1,7 @@
 # SMART-QSO Orbit Analysis
 
 **Document ID**: SQSO-OA-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -48,9 +48,9 @@ Compliance:           < 25 years (NASA-STD-8719.14) ✓
 ```
 
 > **Note (2026-10-16): superseded inputs.** This estimate uses the 400 km ISS-like orbit and a 1.2 kg mass. The
-> baseline orbit is a circular SSO at ≈ 97.4°, 500 km target and 525 km cap (`docs/BASELINE_PARAMETERS.md` §3). The
-> mass limit is 2.00 kg; the bottom-up mass budget gives a CBE of 1.69 kg and a predicted 1.92–2.00 kg
-> (`docs/environment/MASS_BUDGET.md` v2.0), while BASELINE §4 still carries a CBE of ≈ 1.51 kg pending the PI. Lifetimes
+> baseline orbit is a circular SSO at ≈ 97.4°, target 475 km, 465–485 km, not above 485 km (`docs/BASELINE_PARAMETERS.md`
+> Rev E §3; updated 2026-10-27, it was 500 km target, 525 km cap). The mass design limit is 2.00 kg; the mass budget
+> gives a CBE of 1.49 kg and an MEV of 1.73 kg (`docs/environment/MASS_BUDGET.md` v3.0, BASELINE §4). Lifetimes
 > for the baseline orbit are in BASELINE §3 (`software/simulation/orbit_lifetime/orbit_lifetime.py`, 1.6 kg with
 > 1.8 kg as the bound). This section and the rest of this analysis must be re-run at the baseline orbit (finding TB-03).
 
@@ -314,3 +314,4 @@ SMART-QSO has no propulsion, therefore:
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §2.3: the 1.2 kg mass and the ISS-like orbit marked superseded, with the baseline orbit, MASS_BUDGET v2.0 and the BASELINE §3 lifetimes cited (findings TB-03, TB-06); values not re-run |
+| 1.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: the 2026-10-16 note carries the baseline orbit (475 km target, 485 km cap) and mass (CBE 1.49 kg, MEV 1.73 kg) of BASELINE Rev E |

@@ -1,7 +1,25 @@
-# SQSO-HW-DIAG-001 W10: RF coaxial cables (SQSO-HAR-001 H7). Separate antennas for 2 m and 70 cm
-# (docs/BASELINE_PARAMETERS.md 7), so two antenna cables; the GNSS patch cable is added (D6, connector TBD).
+# SQSO-HW-DIAG-001 W10: RF coaxial cables (SQSO-HAR-001 H7), version 3 (2026-10-27, RF board design SQSO-RF-BRD-001
+# Version C §4.3). The ISIS AntS carries two 2 m tape monopoles (along +X and -X) and two 70 cm tape monopoles (along
+# +Y and -Y) (docs/BASELINE_PARAMETERS.md §4, §7). Each pair is fed in antiphase from a lumped lattice balun on the RF
+# board, so the pair works as a dipole: four antenna cables, matched in length within 2 mm in each pair (0.5 deg at
+# 146 MHz, 1.5 deg at 436 MHz). If ISIS supplies the phasing on the AntS (RFQ question), one cable per band and the
+# board's balun is depopulated (R103, R608 fitted).
+# Version 3: SMA end-launch (v2) does not fit the 3.3 mm wall gaps. Board side: Molex 73415-1473 MMCX straight jacks
+# on the RF board's top side at the -X edge; cables: 1.37 mm micro-coax with Molex 73414-0351 right-angle MMCX plugs at
+# both ends. AntS side: MMCX jacks assumed (ISIS antenna brochure lists MMCX female RF ports; the 1U/3U ICD was not
+# available: VI-RFB-13). Route (stack frame, mm): over the RF board's -X edge (bend R 7), down the -X wall gap
+# (x -45.4 ... -48.4) in the bands y +20.0 ... +24.0 (70 cm pair) and y -20.0 ... -24.0 (2 m pair), between the
+# spreader flanges (|y| <= 20) and the harness bundles (|y| >= 24), to z -39.2; bend R 7 inboard above the -Z end
+# frame (z -46.2) to the AntS ports. Needed 109-179 mm depending on the AntS port position; 0.22 m budgeted, cut to the
+# measured route with the pairs matched. The GNSS patch cable is unchanged (D6, connector open until the receiver ICD).
+# Harness design (SQSO-HAR-001 2.0, 2026-10-27): the coax bands are kept free of every other harness (checked by
+# hardware/harness/harness_calcs.py). Cable designators carry the route (W10_M_A, _B = 2 m pair; W10_P_A, _B = 70 cm pair,
+# W10E = GNSS). W10E, the GNSS antenna cable: 1.13 mm micro-coax (silver-plated copper, FEP), 0.195 m, from the
+# receiver's RF port on the deck up the (+X, -Y) bundle's upper section and over the RF shield to the patch at the +Z
+# end frame, at least 35 mm from magnetometer board A2; connectors MMCX right-angle assumed at both ends until the
+# receiver and patch interface documents are in hand.
 metadata:
-  title: W10 RF coaxial cables (SQSO-HW-DIAG-001, proposed, TBR)
+  title: W10 RF coaxial cables v4 (SQSO-HW-DIAG-001; SQSO-RF-BRD-001 C; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -9,66 +27,107 @@ options:
   color_mode: SHORT
 
 connectors:
-  J_VHF:
-    type: SMA female
-    notes: "RF board, after the 7-pole LPF"
+  J_VHF_A:
+    type: MMCX jack, Molex 73415-1473 (non-magnetic, Au)
+    notes: "RF board J3 at (-34.5, -19.0), 2 m balun output A (after the LPF and the sense line)"
     pinlabels: [RF, GND]
-  ANT_VHF:
-    type: solder / crimp
-    notes: 2 m tape monopole feed
-    pinlabels: [ELEMENT, GROUND PLANE]
-  J_UHF:
-    type: SMA female
-    notes: "RF board, before the SAW filter"
+  J_VHF_B:
+    type: MMCX jack, Molex 73415-1473 (non-magnetic, Au)
+    notes: "RF board J4 at (-34.5, -25.0), 2 m balun output B (antiphase)"
     pinlabels: [RF, GND]
-  ANT_UHF:
-    type: solder / crimp
-    notes: 70 cm tape monopole feed
-    pinlabels: [ELEMENT, GROUND PLANE]
+  ANT_VHF_PX:
+    type: AntS RF port, MMCX jack assumed (ISIS ICD, VI-RFB-13)
+    notes: 2 m tape monopole along +X
+    pinlabels: [ELEMENT, BODY]
+  ANT_VHF_MX:
+    type: AntS RF port, MMCX jack assumed (ISIS ICD, VI-RFB-13)
+    notes: 2 m tape monopole along -X
+    pinlabels: [ELEMENT, BODY]
+  J_UHF_A:
+    type: MMCX jack, Molex 73415-1473 (non-magnetic, Au)
+    notes: "RF board J5 at (-34.5, +19.0), 70 cm balun A (ahead of the RX filter FL1)"
+    pinlabels: [RF, GND]
+  J_UHF_B:
+    type: MMCX jack, Molex 73415-1473 (non-magnetic, Au)
+    notes: "RF board J6 at (-34.5, +25.0), 70 cm balun B (antiphase)"
+    pinlabels: [RF, GND]
+  ANT_UHF_PY:
+    type: AntS RF port, MMCX jack assumed (ISIS ICD, VI-RFB-13)
+    notes: 70 cm tape monopole along +Y
+    pinlabels: [ELEMENT, BODY]
+  ANT_UHF_MY:
+    type: AntS RF port, MMCX jack assumed (ISIS ICD, VI-RFB-13)
+    notes: 70 cm tape monopole along -Y
+    pinlabels: [ELEMENT, BODY]
   J_GNSS_RF:
-    type: U.FL or MMCX (TBD)
-    notes: "GNSS receiver RF in; active antenna bias from the receiver (TBR)"
+    type: GNSS receiver RF port (MMCX assumed; SkyFox interface document)
+    notes: "receiver on the deck at (+5, -20); active antenna bias from the receiver"
     pinlabels: [RF, GND]
   ANT_GNSS:
-    type: GNSS L1 patch (TBD)
-    notes: zenith face
+    type: GNSS L1 patch Spacemanic ZENITH V3a (MMCX assumed)
+    notes: +Z face, through the patch adapter at (0, 0)
     pinlabels: [RF, GND]
 
 cables:
-  C_VHF:
-    type: RG-316
+  W10_M_A:
+    type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
-    length: 0.12
-    notes: "50 Ohm, loss under 0.5 dB (H7)"
-  C_UHF:
-    type: RG-316
+    length: 0.22
+    notes: "50 Ohm, silver-plated copper inner (no copper-clad steel, ANT-8), FEP/PFA jacket; 0.44 dB port to antenna at 146 MHz worst (cable, plugs, mismatch); 1 W; -X gap band y -20 ... -24; matched to W10_M_B within 2 mm"
+  W10_M_B:
+    type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
-    length: 0.12
-    notes: "50 Ohm, loss under 0.5 dB (H7)"
-  C_GNSS:
-    type: 1.13 mm micro-coax (TBR)
+    length: 0.22
+    notes: "50 Ohm, matched to W10_M_A; same band"
+  W10_P_A:
+    type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
-    length: 0.10
+    length: 0.22
+    notes: "50 Ohm, 0.62 dB port to antenna at 436 MHz worst (cable, plugs, mismatch); -X gap band y +20 ... +24; matched to W10_P_B within 2 mm"
+  W10_P_B:
+    type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
+    wirecount: 1
+    shield: true
+    length: 0.22
+    notes: "50 Ohm, matched to W10_P_A; same band"
+  W10E:
+    type: 1.13 mm micro-coax Multicomp Pro MINI-1.13, Molex 73415-2261 R/A MMCX plug both ends
+    wirecount: 1
+    shield: true
+    length: 0.195
+    notes: "silver-plated copper, FEP; carries the active-antenna bias; about 0.5 dB at 1575 MHz (allocation)"
 
 connections:
-  - - J_VHF: [1]
-    - C_VHF: [1]
-    - ANT_VHF: [1]
-  - - J_VHF: [2]
-    - C_VHF: [s]
-    - ANT_VHF: [2]
-  - - J_UHF: [1]
-    - C_UHF: [1]
-    - ANT_UHF: [1]
-  - - J_UHF: [2]
-    - C_UHF: [s]
-    - ANT_UHF: [2]
+  - - J_VHF_A: [1]
+    - W10_M_A: [1]
+    - ANT_VHF_PX: [1]
+  - - J_VHF_A: [2]
+    - W10_M_A: [s]
+    - ANT_VHF_PX: [2]
+  - - J_VHF_B: [1]
+    - W10_M_B: [1]
+    - ANT_VHF_MX: [1]
+  - - J_VHF_B: [2]
+    - W10_M_B: [s]
+    - ANT_VHF_MX: [2]
+  - - J_UHF_A: [1]
+    - W10_P_A: [1]
+    - ANT_UHF_PY: [1]
+  - - J_UHF_A: [2]
+    - W10_P_A: [s]
+    - ANT_UHF_PY: [2]
+  - - J_UHF_B: [1]
+    - W10_P_B: [1]
+    - ANT_UHF_MY: [1]
+  - - J_UHF_B: [2]
+    - W10_P_B: [s]
+    - ANT_UHF_MY: [2]
   - - J_GNSS_RF: [1]
-    - C_GNSS: [1]
+    - W10E: [1]
     - ANT_GNSS: [1]
   - - J_GNSS_RF: [2]
-    - C_GNSS: [s]
+    - W10E: [s]
     - ANT_GNSS: [2]

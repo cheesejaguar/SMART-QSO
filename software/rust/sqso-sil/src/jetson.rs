@@ -8,12 +8,20 @@
 //! flight code's real receive path.
 //!
 //! Behaviour (ICD §5.2 and BASELINE §6):
+//! - its carrier's power-good (JET_PG, the carrier's 3.3 V) rises
+//!   [`PG_RISE_S`] after the rail (SQSO-JET-BRD-001 §7.3);
 //! - boots in 20–30 s after its rail is switched on (silent meanwhile);
 //! - answers each `TELEMETRY` with `STATUS` and each `BEACON_REQ` with a
 //!   `BEACON_RSP` after an inference burst of a few seconds;
-//! - draws about 5 W booting, 3.5 W idle and up to 7.5 W during inference
-//!   at its input (the declocked, DVFS-limited configuration), under the
-//!   OBC's 8 W limit;
+//! - on `SHUTDOWN` runs `poweroff` for [`POWEROFF_S`]; the carrier then
+//!   latches POWER_EN low and JET_PG falls, the module drawing only the
+//!   carrier's housekeeping until the OBC removes the rail (§7.4);
+//! - draws, at the carrier input (SQSO-JET-BRD-001 §13, the module capped
+//!   at 6.5 W): [`BOOT_W`] booting (the carrier document's 30 s × 4.5 W
+//!   allocation) and, once running, the capped burst power, 7.19–7.48 W
+//!   (drawn once per power-on in that range): the module is held at its cap
+//!   by the generation load for the whole burst, not only while a line is
+//!   generated (RID JETB-11);
 //! - proposes plain-language beacon lines; a small fraction would fail the
 //!   onboard content filter (a stray number, a URL), as a real generator's
 //!   would.
@@ -25,15 +33,29 @@ use sqso_protocol::jetson::{self, FromObc, LineRx, Status};
 
 /// Boot time, s (ICD §5.2: typical 20, maximum 30)
 pub const BOOT_S: (f64, f64) = (20.0, 30.0);
-/// Input power booting, W
-pub const BOOT_W: f64 = 5.0;
-/// Input power idle (declocked), W
+/// Carrier-input power booting, W (SQSO-JET-BRD-001 §13: 4.5 W)
+pub const BOOT_W: f64 = 4.5;
+/// Carrier-input power idle (a latch-up's baseline; the module does not
+/// idle during a burst), W
 pub const IDLE_W: f64 = 3.5;
-/// Input power during inference, W (below the OBC's 8 W limit)
-pub const INFER_W: f64 = 7.4;
+/// Carrier-input power of the capped burst, W (SQSO-JET-BRD-001 §13: 6.5 W
+/// cap, 7.19–7.32 W modelled, 7.48 W with the regulator at its bound)
+pub const BURST_W: (f64, f64) = (7.19, 7.48);
+/// Input power during inference, W (the top of the capped range)
+pub const INFER_W: f64 = 7.48;
+/// The carrier's housekeeping after the module's poweroff, W
+pub const OFF_LATCHED_W: f64 = 0.05;
+/// JET_PG rises this long after the rail, s
+pub const PG_RISE_S: f64 = 0.1;
+/// `poweroff` takes this long, s
+pub const POWEROFF_S: f64 = 3.0;
+/// The field the module's input current makes at the magnetometer during a
+/// burst, T (SQSO-JET-BRD-001 §19, item JETB-09: about 0.35 µT at 63 mm)
+pub const MAG_FIELD_T: f64 = 0.35e-6;
 /// Time to generate one beacon line, s (SmolLM2-360M INT4, about 20 tokens)
 pub const INFER_S: (f64, f64) = (2.5, 6.0);
-/// Fraction of proposed lines the content filter should refuse
+/// Fraction of proposed lines the content filter should refuse (the
+/// default of `Config::ai_reject_fraction`)
 pub const BAD_TEXT_FRACTION: f64 = 0.03;
 
 /// Lines the generator proposes (non-numeric, BASELINE §6)
@@ -62,8 +84,16 @@ const BAD_TEXTS: [&str; 3] =
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum State {
     Off,
-    Booting { left_s: f64 },
+    Booting {
+        left_s: f64,
+    },
     Running,
+    /// `poweroff` running, s left
+    PoweringOff {
+        left_s: f64,
+    },
+    /// The carrier latched off after the poweroff (until the rail is cut)
+    Latched,
 }
 
 /// Counters of the payload's life
@@ -87,6 +117,10 @@ pub struct Stats {
     pub bad_responses: u32,
     /// Lines from the OBC that failed the link CRC or format
     pub bad_lines: u32,
+    /// `SHUTDOWN` lines received
+    pub shutdowns: u32,
+    /// Power-offs that cut a running module (no `SHUTDOWN` first)
+    pub hard_cuts: u32,
 }
 
 /// The Jetson payload model
@@ -101,7 +135,19 @@ pub struct Jetson {
     /// Junction temperature, °C (from the thermal model)
     temp_c: f64,
     power_w: f64,
+    /// This power-on's burst power, W
+    burst_w: f64,
+    /// Time since the rail came on, s (JET_PG)
+    rail_s: f64,
     rng: u64,
+    /// Fraction of proposed lines meant to fail the content filter
+    pub reject_fraction: f64,
+    /// This power-on's energy so far, J, and the lines it sent that are
+    /// meant to pass the filter
+    burst: Option<(f64, u32)>,
+    /// Every finished power-on: its input energy, J, and its good lines
+    /// (decision C-20: the energy per accepted line)
+    pub bursts: Vec<(f64, u32)>,
     /// Counters
     pub stats: Stats,
 }
@@ -131,7 +177,12 @@ impl Jetson {
                 pending: None,
                 temp_c: 20.0,
                 power_w: 0.0,
+                burst_w: BURST_W.0,
+                rail_s: 0.0,
                 rng: seed | 1,
+                reject_fraction: BAD_TEXT_FRACTION,
+                burst: None,
+                bursts: Vec::new(),
                 stats: Stats::default(),
             })
         }
@@ -150,6 +201,12 @@ impl Jetson {
     /// Whether it is up and answering
     pub fn running(&self) -> bool {
         self.state == State::Running
+    }
+
+    /// The carrier's power-good (JET_PG): the rail on for [`PG_RISE_S`] and
+    /// the module not shut down
+    pub fn power_good(&self) -> bool {
+        !matches!(self.state, State::Off | State::Latched) && self.rail_s >= PG_RISE_S
     }
 
     fn uniform(&mut self) -> f64 {
@@ -194,9 +251,16 @@ impl Jetson {
         self.temp_c = junction_c;
         let lines = self.read_obc();
         if !powered {
+            if matches!(self.state, State::Running | State::Booting { .. }) {
+                self.stats.hard_cuts += 1;
+            }
+            if let Some(b) = self.burst.take() {
+                self.bursts.push(b);
+            }
             self.state = State::Off;
             self.pending = None;
             self.power_w = 0.0;
+            self.rail_s = 0.0;
             self.rx.reset();
             return;
         }
@@ -205,7 +269,10 @@ impl Jetson {
             self.state = State::Booting { left_s: boot };
             self.uptime_s = 0.0;
             self.stats.power_ons += 1;
+            self.burst = Some((0.0, 0));
+            self.burst_w = BURST_W.0 + (BURST_W.1 - BURST_W.0) * self.uniform();
         }
+        self.rail_s += dt_s;
         self.uptime_s += dt_s;
         self.stats.on_s += dt_s;
         match self.state {
@@ -220,9 +287,18 @@ impl Jetson {
                 }
             }
             State::Running => self.run(dt_s, &lines),
+            State::PoweringOff { left_s } => {
+                self.power_w = BOOT_W;
+                let left = left_s - dt_s;
+                self.state = if left <= 0.0 { State::Latched } else { State::PoweringOff { left_s: left } };
+            }
+            State::Latched => self.power_w = OFF_LATCHED_W,
             State::Off => {}
         }
         self.stats.energy_wh += self.power_w * dt_s / 3600.0;
+        if let Some(b) = self.burst.as_mut() {
+            b.0 += self.power_w * dt_s;
+        }
     }
 
     fn run(&mut self, dt_s: f64, lines: &[Vec<u8>]) {
@@ -238,13 +314,19 @@ impl Jetson {
                     self.pending = Some((seq, max_len, t));
                 }
                 Ok(FromObc::StatusReq) => self.send_status(),
-                Ok(FromObc::Shutdown(_)) => {}
+                Ok(FromObc::Shutdown(_)) => {
+                    self.stats.shutdowns += 1;
+                    self.pending = None;
+                    self.state = State::PoweringOff { left_s: POWEROFF_S };
+                    self.power_w = BOOT_W;
+                    return;
+                }
                 Err(_) => self.stats.bad_lines += 1,
             }
         }
-        self.power_w = IDLE_W;
+        // Held at its 6.5 W cap by the burst's load
+        self.power_w = self.burst_w;
         if let Some((seq, max_len, left)) = self.pending {
-            self.power_w = INFER_W;
             let left = left - dt_s;
             if left <= 0.0 {
                 self.pending = None;
@@ -256,7 +338,10 @@ impl Jetson {
     }
 
     fn answer(&mut self, seq: u16, max_len: u8) {
-        let bad = self.uniform() < BAD_TEXT_FRACTION;
+        let bad = self.uniform() < self.reject_fraction;
+        if !bad && let Some(b) = self.burst.as_mut() {
+            b.1 += 1;
+        }
         let text = if bad {
             BAD_TEXTS[(self.uniform() * BAD_TEXTS.len() as f64) as usize % BAD_TEXTS.len()]
         } else {

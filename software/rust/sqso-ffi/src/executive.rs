@@ -8,38 +8,57 @@
 //!
 //! @requirement SRS-F001 Initialize all subsystems within 30 seconds of power-on
 //! @requirement SRS-P001 Main control loop executes within 20 ms
+//! @requirement SRS-F086 The software shall command no magnetorquer output until 120 s after separation
+//! @requirement SRS-F148 Jetson switch-off: SHUTDOWN, JET_PG fall within 5 s, then JETSON_PWR and PAYLOAD_EN 10 ms apart
+//! @requirement SRS-F149 Jetson power-good and switch readbacks: an unexpected JET_PG fall cuts the rail; a readback that disagrees with its command is a fault
+//! @requirement SRS-F151 A Jetson burst (one power-on, at most 10 min and 3.6 kJ at the carrier input) ends when its energy exceeds 360 J for each line accepted by the content filter so far plus the one in progress, or reaches 3.6 kJ
+//! @requirement SRS-F153 A repeated condition shall be logged at its onset and its clearance (with the number of checks), not at every check
+//! @requirement SRS-F154 Boot telemetry reports the SRAM2 parity state
+//! @requirement SRS-F156 The second housekeeping frame (HK2) carries the counters of the mission success criteria
 
 use core::ffi::{CStr, c_char};
 use core::fmt::{self, Write};
 use core::ptr::{null, null_mut};
+use core::sync::atomic::{AtomicBool, Ordering};
 
 use sqso_fsw::beacon::{Content, Measurements, TLM_BV, TLM_SOC, TLM_SUN};
+use sqso_fsw::condition::{Change, Condition};
 use sqso_fsw::eps::EpsState;
 use sqso_fsw::executive::{self as exec, PowerModel};
 use sqso_fsw::fault_log::Entry;
 use sqso_fsw::fixed::Fixed;
+use sqso_fsw::gnss::{Fix, Receiver};
+use sqso_fsw::gnss_frame;
+use sqso_fsw::gnss_schedule::{self, Sessions};
 use sqso_fsw::heater::{self, Heater};
+use sqso_fsw::housekeeping::{self, Cadence, Housekeeping, Parts};
+use sqso_fsw::jetson_power::{self, JetsonPower};
 use sqso_fsw::mission_data::MissionData;
 use sqso_fsw::payload_guard::{Outcome, Sample, TELEMETRY_TIMEOUT_MS};
 use sqso_fsw::payload_schedule::{self, Action, BATCH_LINES, Schedule};
 use sqso_fsw::transponder::{self, Transponder};
+use sqso_protocol::ax25::{self, Station};
 use sqso_protocol::jetson::{LINE_MAX, TEXT_MAX};
 
 use crate::c::{fault_type, rc, severity};
 use crate::jetson_link::{JetsonMsg, JetsonRx};
 use crate::sensors::Sensor;
 use crate::{
-    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, fault_mgmt, gse_provision,
-    jetson_link, mission_data, payload_guard, rf_control, rf_silence, sensors, state_machine, system_state, uart_comm,
-    uplink, watchdog_mgr,
+    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, eps_lockout,
+    eps_supervision, fault_mgmt, fram_health, gse_provision, hk_store, jetson_link, mission_data, ops_state,
+    passivation, payload_guard, receiver, rf_control, rf_silence, sensors, separation_switch, state_machine,
+    system_state, uart_comm, uplink, watchdog_mgr,
 };
+use crate::{hw, pins};
 
 /// `ADC_RESOLUTION_12BIT`, `ADC_REF_VDD` (hal_adc.h)
 const ADC_RESOLUTION_12BIT: u32 = 12;
 const ADC_REF_VDD: u32 = 2;
-/// I2C buses (hal_i2c.h): 0 is the EPS and power monitors, 1 the ADCS;
-/// standard mode (SMART-QSO-ICD-001 §2.3)
-const I2C_BUSES: [u32; 2] = [0, 1];
+/// I2C buses (hal_i2c.h): 0 the EPS and power monitors, 1 the ADCS
+/// sensors, 2 the mission clock, 3 the AntS; standard mode, 100 kHz on
+/// all (SMART-QSO-ICD-001 §2.3, SQSO-OBC-BRD-001 B §8, §9.4; SQSO-ICX-001 D
+/// §6 row 31)
+const I2C_BUSES: [u32; 4] = [0, 1, 2, 3];
 const I2C_SPEED_HZ: u32 = 100_000;
 
 // watchdog_mgr.h task ids
@@ -52,21 +71,41 @@ const WDT_TASK_HEALTH: u32 = 7;
 // state_machine.h
 const STATE_BOOT: u32 = 0;
 const STATE_DETUMBLE: u32 = 2;
+const STATE_IDLE: u32 = 3;
 const STATE_ACTIVE: u32 = 4;
 const EVENT_NONE: u32 = 0;
 const EVENT_BOOT_COMPLETE: u32 = 1;
 const EVENT_DETUMBLE_COMPLETE: u32 = 2;
 const EVENT_THERMAL_FAULT: u32 = 7;
+/// `EVENT_POWER_OK`, `EVENT_POWER_CRITICAL`
+const EVENT_POWER_OK: u32 = 4;
+const EVENT_POWER_CRITICAL: u32 = 6;
 
 // adcs_control.h
 const ADCS_MODE_IDLE: u32 = 0;
 const ADCS_MODE_DETUMBLE: u32 = 1;
 /// ADCS control cycle, ms (1 Hz: ADCS_DESIGN §5)
 const ADCS_PERIOD_MS: u64 = 1000;
+/// No magnetorquer output until this long after separation, s (SpaceX
+/// Rideshare Payload User's Guide v11 §3.3.4; LV-02)
+const MTQ_SEPARATION_DELAY_S: u32 = 120;
+// deployment.h states in which the separation delay can still be running
+const DEPLOY_STATE_INHIBITED: u32 = 0;
+const DEPLOY_STATE_WAITING: u32 = 1;
+const DEPLOY_STATE_ARMED: u32 = 10;
 
 // hal_gpio.h
 const GPIO_PIN_HEATER_EN: u32 = 3;
 const GPIO_PIN_XPDR_EN: u32 = 16;
+const GPIO_PIN_GNSS_EN: u32 = 17;
+// hal_uart.h
+const UART_PORT_GNSS: u32 = 2;
+/// The GNSS receiver's NMEA rate (piNAV-NG default assumed; its ICD sets it)
+const GNSS_BAUD: u32 = 9600;
+/// GNSS sessions need the state of charge at or above the IDLE threshold
+/// (BASELINE §5: above the contingency floor)
+const GNSS_SOC_MIN: f64 = 0.40;
+const ADC_CHANNEL_TEMP_MCU: u32 = 5;
 const GPIO_DIR_OUTPUT: u32 = 1;
 const GPIO_PULL_DOWN: u32 = 2;
 // hal_adc.h: the transmitter's monitors (as the downlink's)
@@ -92,6 +131,75 @@ pub const VERSION: &str = "0.2.0-dev";
 pub const SIMULATION_TICKS: u64 = exec::SIMULATION_TICKS;
 /// `BEACON_MEAS_MAX_AGE_MS`
 const BEACON_MEAS_MAX_AGE_MS: u64 = 60_000;
+/// The critical persisted state is checked against its records this often,
+/// ms (AV-07)
+const VERIFY_INTERVAL_MS: u64 = 60_000;
+
+/// GNSS_REQUEST received (the command handler sets it, the next pass acts)
+static GNSS_REQUESTED: AtomicBool = AtomicBool::new(false);
+/// GET_HOUSEKEEPING received
+static HK_REQUESTED: AtomicBool = AtomicBool::new(false);
+/// SRAM2 parity as the firmware found it at boot: 0 not known (the host
+/// build), 1 off, 2 on
+static PARITY: core::sync::atomic::AtomicU8 = core::sync::atomic::AtomicU8::new(0);
+
+/// The firmware's report of SRAM2 parity (option bit SRAM2_PE) at boot:
+/// announced on the console and carried in HK2 (`PE`, RID AV-12)
+pub fn set_parity_state(on: bool) {
+    PARITY.store(if on { 2 } else { 1 }, Ordering::Relaxed);
+    crate::c::console(format_args!("[SYSTEM] SRAM2 parity {}", if on { "on" } else { "OFF (option bit SRAM2_PE)" }));
+}
+
+/// A repeated condition of the health check (`sqso_fsw::condition`)
+#[derive(Clone, Copy)]
+enum Health {
+    Thermal = 0,
+    Bus = 1,
+    Soc = 2,
+    Uart = 3,
+    Sw1Readback = 4,
+    EfuseReadback = 5,
+    SpreaderFault = 6,
+    GnssRail = 7,
+    Clock = 8,
+    HardLimit = 9,
+}
+const HEALTH_CONDITIONS: usize = 10;
+/// The MCU clock against the mission clock's 1 Hz: a larger error is a
+/// fault (a PLL or oscillator failure), ppm
+const CLOCK_LIMIT_PPM: f64 = 20_000.0;
+/// GNSS_PG is checked this long after GNSS_EN switches on, ms
+const GNSS_PG_SETTLE_MS: u64 = 1_000;
+/// The Jetson's rail with the payload off is past its burst limit after
+/// this, ms (the batch's time limit and the switch-off wait)
+const BURST_LIMIT_MS: u64 = payload_schedule::BATCH_TIMEOUT_MS + jetson_power::SHUTDOWN_WAIT_MS + 1_000;
+/// `HalSpiConfig_t`
+#[repr(C)]
+struct HalSpiConfig {
+    clock_hz: u32,
+    mode: u32,
+    bits_per_word: u8,
+    msb_first: bool,
+}
+
+/// GNSS_REQUEST: a receiver session at the next pass the gates allow
+pub(crate) fn request_gnss_session() {
+    GNSS_REQUESTED.store(true, Ordering::Relaxed);
+}
+
+/// GET_HOUSEKEEPING: a housekeeping frame after the beacon gap
+pub(crate) fn request_housekeeping() {
+    HK_REQUESTED.store(true, Ordering::Relaxed);
+}
+
+/// `HalUartConfig_t`
+#[repr(C)]
+struct HalUartConfig {
+    baud_rate: u32,
+    data_bits: u8,
+    stop_bits: u8,
+    parity: u32,
+}
 
 /// An error line: stderr on the host, the console on the target
 fn eprint(args: fmt::Arguments<'_>) {
@@ -222,12 +330,57 @@ pub struct Executive {
     heater: Heater,
     /// The FM transponder's gates
     transponder: Transponder,
+    /// GNSS receiver sessions and the NMEA receiver
+    gnss: Sessions,
+    gnss_rx: Receiver,
+    /// The running session's first accepted fix (the velocity chord's start)
+    gnss_first: Option<Fix>,
+    /// The latest GNSS state frame's values (session, first fix, fix, GGA
+    /// quality), kept for GET_HOUSEKEEPING (RID LV-04)
+    gnss_latest: Option<(u32, Option<Fix>, Fix, u8)>,
+    /// The GNSS state frame is to be sent; after HK2 on GET_HOUSEKEEPING
+    gnss_frame_due: bool,
+    gnss_after_hk2: bool,
+    /// The housekeeping frame's cadence
+    hk: Cadence,
     /// When the ADCS last ran its control cycle, ms
     last_adcs_ms: u64,
     /// The ADCS was told to detumble since this boot
     detumble_commanded: bool,
     beacon_seq: u16,
     jetson_rx: JetsonRx,
+    /// The operating state and fault-log count at the last pass (stored
+    /// housekeeping events)
+    last_state: u32,
+    last_fault_count: usize,
+    /// When the critical state was last checked against its records, ms
+    last_verify_ms: u64,
+    /// The Jetson's switch-off and power-good
+    jetson: JetsonPower,
+    /// The repeated conditions, logged at onset and clearance
+    health: [Condition; HEALTH_CONDITIONS],
+    /// Hard-limit violations since boot (MSC L2-05)
+    hard_limits: u32,
+    /// The second housekeeping frame is due at this time, ms
+    hk2_due: Option<u64>,
+    /// The housekeeping text being sent, cut into frames (SIL-40)
+    hk_parts: Parts,
+    /// Its next frame: which text (1 HK1, 2 HK2) and when, ms
+    hk_next: Option<(u8, u64)>,
+    /// The wings-stowed cold hold (RID THM-03)
+    cold: sqso_fsw::cold_hold::ColdHold,
+    /// Transponder enables and repeat-keyed time since boot (XPDR_KEY), ms
+    xpdr_enables: u32,
+    xpdr_keyed_ms: u64,
+    /// The previous pass, ms, and the time since it
+    last_pass_ms: u64,
+    pass_dt_ms: u64,
+    /// GNSS_EN high since, ms
+    gnss_on_since: Option<u64>,
+    /// The mission clock at boot (target)
+    rtc: Option<sqso_fsw::rv3028::Boot>,
+    /// The MCU clock against the mission clock, ppm (latest)
+    clock_ppm: Option<f64>,
 }
 
 impl Executive {
@@ -251,10 +404,34 @@ impl Executive {
         schedule: Schedule::new(),
         heater: Heater::new(),
         transponder: Transponder::new(),
+        gnss: Sessions::new(),
+        gnss_rx: Receiver::new(),
+        gnss_first: None,
+        gnss_latest: None,
+        gnss_frame_due: false,
+        gnss_after_hk2: false,
+        hk: Cadence::new(),
         last_adcs_ms: 0,
         detumble_commanded: false,
         beacon_seq: 0,
         jetson_rx: JetsonRx::EMPTY,
+        last_state: STATE_BOOT,
+        last_fault_count: 0,
+        last_verify_ms: 0,
+        jetson: JetsonPower::new(),
+        health: [Condition::new(); HEALTH_CONDITIONS],
+        hard_limits: 0,
+        hk2_due: None,
+        hk_parts: Parts::EMPTY,
+        hk_next: None,
+        cold: sqso_fsw::cold_hold::ColdHold::new(),
+        xpdr_enables: 0,
+        xpdr_keyed_ms: 0,
+        last_pass_ms: 0,
+        pass_dt_ms: 0,
+        gnss_on_since: None,
+        rtc: None,
+        clock_ppm: None,
     };
 
     /// Bring the system up from [`Executive::BOOT`]; false (after reporting
@@ -299,7 +476,14 @@ impl Executive {
                 eprint(format_args!("[SYSTEM] I2C bus {bus} init failed"));
             }
         }
+        init_spi_buses();
+        self.rtc = read_mission_clock();
         let _ = deployment::deployment_init();
+        // The commissioning hold and transponder enable, before anything
+        // can ask for ACTIVE
+        let _ = ops_state::ops_state_init();
+        fram_health::fram_health_init();
+        eps_supervision::init();
         if fault_mgmt::fault_mgmt_init() != rc::OK {
             eprint(format_args!("[SYSTEM] Fault management init failed"));
         }
@@ -316,18 +500,64 @@ impl Executive {
             eprint(format_args!("[WARN] UART initialization failed, telemetry disabled"));
             add_fault(fault_type::INIT, severity::WARNING, c"UART initialization failed", self.power.soc);
         }
+        let gnss_uart = HalUartConfig { baud_rate: GNSS_BAUD, data_bits: 8, stop_bits: 1, parity: 0 };
+        // SAFETY: gnss_uart is a live HalUartConfig_t
+        if unsafe { crate::c::hal_uart_init(UART_PORT_GNSS, (&raw const gnss_uart).cast()) } != rc::OK {
+            eprint(format_args!("[SYSTEM] GNSS UART init failed"));
+        }
 
         self.last_telemetry_ms = self.program_start_ms;
         self.last_health_check_ms = self.program_start_ms;
         self.last_contact_tick_ms = self.program_start_ms;
         self.last_power_ms = self.program_start_ms;
         self.last_adcs_ms = self.program_start_ms;
+        self.last_verify_ms = self.program_start_ms;
+        self.last_pass_ms = self.program_start_ms;
+        hw::configure(pins::JET_PG, false);
+        hw::configure(pins::GNSS_PG, false);
+        hw::configure(pins::XPDR_KEY, false);
+        hw::configure(pins::TONE_OK, false);
+        hw::configure(pins::PTT_EXC, false);
+        self.last_fault_count = fault_mgmt::fault_log_get_count();
         self.telemetry_interval_ms = uart_comm::uart_get_telemetry_interval();
+        // Stored housekeeping: the newest records of each store
+        let _ = hk_store::hk_store_init();
+        receiver::receiver_init();
+        eps_lockout::eps_lockout_init();
+        self.report_mission_clock();
         true
+    }
+
+    /// Log the mission clock's view of the reset just past (now that the
+    /// fault log is up)
+    fn report_mission_clock(&self) {
+        match self.rtc {
+            Some(b) => {
+                let at = b.reset_unix_s.unwrap_or(0);
+                crate::c::console(format_args!(
+                    "[RTC] UNIX {} reset at {} ({} stamped){}",
+                    b.unix_s,
+                    at,
+                    b.reset_count,
+                    if b.lost_power { ", clock lost power" } else { "" }
+                ));
+                if b.lost_power {
+                    add_fault(fault_type::INIT, severity::WARNING, c"Mission clock lost power: time not valid", 0.0);
+                }
+                if !b.clkout_1hz {
+                    add_fault(fault_type::INIT, severity::WARNING, c"Mission clock CLKOUT not 1 Hz (EEPROM)", 0.0);
+                }
+            }
+            None if cfg!(target_os = "none") => {
+                add_fault(fault_type::INIT, severity::WARNING, c"Mission clock (RV-3028) not answering", 0.0);
+            }
+            None => {}
+        }
     }
 
     /// Mission data, EPS and sensors (sensors.yaml on the host, else the defaults)
     fn init_power_and_sensors(&mut self) -> bool {
+        watchdog_mgr::wdt_mgr_boot_checkpoint();
         if mission_data::mission_data_init() != rc::OK {
             eprint(format_args!("[SYSTEM] Mission data init failed"));
         }
@@ -350,12 +580,19 @@ impl Executive {
     /// pass and the payload follows the power mode ([`Executive::run_adcs`],
     /// [`Executive::run_payload_schedule`]).
     fn init_mode_manager(&mut self) -> bool {
+        watchdog_mgr::wdt_mgr_boot_checkpoint();
         let _ = beacon::beacon_init(); // templates until the Jetson's text passes the filter
+        // Beacon interval jitter (RF-04), seeded differently at each boot
+        #[allow(clippy::cast_possible_truncation)] // any 32 bits will do as a seed
+        let seed = mission_data::mission_data_get_reset_count() ^ (crate::c::now_ms() as u32).rotate_left(16);
+        beacon::beacon_set_jitter(sqso_fsw::beacon::JITTER_MS, seed);
         payload_guard::payload_guard_init();
         if adcs_control::adcs_init() != rc::OK {
             eprint(format_args!("[SYSTEM] ADCS init failed"));
         }
-        for pin in [GPIO_PIN_HEATER_EN, GPIO_PIN_XPDR_EN] {
+        // The spin axis and inertia the ground selected (STR-27)
+        let _ = adcs_control::set_geometry(ops_state::ops_adcs_geometry());
+        for pin in [GPIO_PIN_HEATER_EN, GPIO_PIN_XPDR_EN, GPIO_PIN_GNSS_EN] {
             // SAFETY: plain values (the HAL)
             let _ = unsafe { crate::c::hal_gpio_config(pin, GPIO_DIR_OUTPUT, GPIO_PULL_DOWN) };
         }
@@ -398,6 +635,8 @@ impl Executive {
 
         self.monitor_system_health();
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_MAIN_LOOP);
+        eps_control::eps_payload_tick(now);
+        self.count_keyed_time(now);
 
         // Attitude and the battery heater
         let state = sm_state();
@@ -426,16 +665,24 @@ impl Executive {
         let _ = sensors::sensors_poll(now);
 
         // Jetson replies (beacon text, status), the OBC's payload limits, then
-        // the batch schedule
+        // the batch schedule and the switch-off
         self.poll_jetson();
         self.guard_payload(now);
         self.run_payload_schedule(now, state);
+        self.supervise_jetson(now, state);
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_PAYLOAD);
 
         // Beacon (stays silent while TX-OFF, contact or RF-silence inhibits)
         self.update_beacon_measurements(now);
         self.run_beacon(now);
+        self.run_housekeeping(now, state);
+        run_acks(now);
+        run_dump(now);
+        self.run_store(now, state);
         downlink::downlink_poll();
+        self.run_gnss(now, state);
+        self.run_gnss_frame(now);
+        self.check_gnss_rail(now);
         self.run_transponder(now, state);
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_BEACON);
 
@@ -444,6 +691,7 @@ impl Executive {
         // SAFETY: NULL: no response wanted
         let _ = unsafe { uplink::uplink_poll(null_mut()) };
         let _ = gse_provision::gse_poll();
+        self.run_safety_checks(now);
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_COMM);
 
         // Loss-of-contact, RF-silence and deployment timers
@@ -488,7 +736,9 @@ impl Executive {
         // power mode (SW-14)
         eps_control::eps_update_soc(self.power.soc);
         let event = state_machine::sm_power_event(sm_state(), self.power.soc, self.power.sunlit);
-        if event != EVENT_NONE {
+        let hold = self.cold_hold(now);
+        // Held at SAFE: no automatic return to IDLE (RID THM-03)
+        if event != EVENT_NONE && !(hold && event == EVENT_POWER_OK) {
             sm_event(event);
         }
 
@@ -496,6 +746,28 @@ impl Executive {
         if let Some(wh) = payload_wh {
             let _ = mission_data::mission_data_add_energy(wh);
         }
+    }
+
+    /// The wings-stowed cold hold (RID THM-03): with the wings not deployed
+    /// and the battery's orbit minimum below +3 °C, IDLE and ACTIVE go to
+    /// SAFE (the heater gets the whole surplus); whether the hold is in force
+    fn cold_hold(&mut self, now: u64) -> bool {
+        let was = self.cold.held;
+        self.cold.sample(now, eps_control::eps_telemetry().map(|t| t.tbatt_c));
+        let hold = self.cold.update(deployment::wings_sensed());
+        if hold && !was {
+            add_fault(
+                fault_type::POWER,
+                severity::WARNING,
+                c"Wings stowed, battery orbit minimum below +3 C: held at SAFE (THM-03)",
+                self.power.soc,
+            );
+        }
+        let state = sm_state();
+        if hold && (state == STATE_IDLE || state == STATE_ACTIVE) {
+            sm_event(EVENT_POWER_CRITICAL);
+        }
+        hold
     }
 
     /// Every 10 s: temperatures, bus voltage, SOC and the Jetson link
@@ -508,6 +780,9 @@ impl Executive {
         self.last_health_check_ms = now;
         let soc = self.power.soc;
 
+        // Each condition is logged at its onset and its clearance (FSW-14);
+        // the responses (the thermal event, the UART restart) run at every check
+        let mut hot = false;
         for i in 0..sensors::sensors_get_count() {
             let mut sensor = Sensor::ZERO;
             // SAFETY: sensor is a live Sensor_t
@@ -515,29 +790,51 @@ impl Executive {
                 && field(&sensor.type_) == b"eps_temperature"
                 && sensor.last_value > exec::HEALTH_TEMP_LIMIT_C
             {
-                add_fault(FAULT_TYPE_HEALTH_THERMAL, severity::WARNING, c"High temperature in health check", soc);
+                hot = true;
                 sm_event(EVENT_THERMAL_FAULT);
             }
         }
+        self.condition(
+            Health::Thermal,
+            hot,
+            FAULT_TYPE_HEALTH_THERMAL,
+            severity::WARNING,
+            c"High temperature in health check",
+        );
 
         // Bus regulation, on the measured value (SW-16)
-        if let Some(bus_v) = fresh_sensor(c"BUSV", now, exec::HEALTH_CHECK_INTERVAL_MS)
-            && !eps_control::eps_bus_voltage_ok(bus_v)
-        {
-            add_fault(FAULT_TYPE_VOLTAGE_RANGE, severity::ERROR, c"Bus voltage out of range", soc);
-        }
+        let bus_bad = fresh_sensor(c"BUSV", now, exec::HEALTH_CHECK_INTERVAL_MS)
+            .is_some_and(|bus_v| !eps_control::eps_bus_voltage_ok(bus_v));
+        self.condition(Health::Bus, bus_bad, FAULT_TYPE_VOLTAGE_RANGE, severity::ERROR, c"Bus voltage out of range");
 
         // Mode change for low power happens in update_mission_state
-        if soc < exec::HEALTH_SOC_LOW {
-            add_fault(FAULT_TYPE_HEALTH_POWER, severity::WARNING, c"Low SOC in health check", soc);
-        }
+        self.condition(
+            Health::Soc,
+            soc < exec::HEALTH_SOC_LOW,
+            FAULT_TYPE_HEALTH_POWER,
+            severity::WARNING,
+            c"Low SOC in health check",
+        );
 
-        if eps_control::eps_is_payload_enabled() && !uart_comm::uart_is_initialized() {
-            add_fault(FAULT_TYPE_HEALTH_COMM, severity::WARNING, c"UART communication lost with payload", soc);
+        let uart_lost = eps_control::eps_is_payload_enabled() && !uart_comm::uart_is_initialized();
+        self.condition(
+            Health::Uart,
+            uart_lost,
+            FAULT_TYPE_HEALTH_COMM,
+            severity::WARNING,
+            c"UART communication lost with payload",
+        );
+        if uart_lost {
             let _ = uart_comm::uart_init();
         }
 
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_HEALTH);
+    }
+
+    /// One check of a repeated condition: logged at onset and clearance
+    fn condition(&mut self, which: Health, present: bool, kind: u32, sev: u32, text: &CStr) {
+        let change = self.health.get_mut(which as usize).map_or(Change::None, |c| c.check(present));
+        crate::c::log_condition(change, kind, sev, text, self.power.soc);
     }
 
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
@@ -620,6 +917,11 @@ impl Executive {
             if status != JETSON_OK {
                 eprint(format_args!("[UART] Rejected Jetson line ({status})"));
             } else if msg.msg_type == JETSON_MSG_BEACON_RSP && msg.seq == self.beacon_seq {
+                // The energy gate counts the lines the content filter
+                // accepts (decision C-20)
+                if sqso_fsw::beacon::text_ok(field(&msg.text)) {
+                    self.schedule.line_accepted();
+                }
                 self.cache_text(field(&msg.text));
                 crate::c::console(format_args!("[UART] Beacon text from Jetson ({} chars)", msg.text_len));
             } else if msg.msg_type == JETSON_MSG_STATUS {
@@ -643,13 +945,25 @@ impl Executive {
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn guard_payload(&mut self, now: u64) {
         let mut sample = Sample::default();
-        if let (Some(bus_v), Some(amps)) =
-            (fresh_sensor(c"BUSV", now, TELEMETRY_TIMEOUT_MS), fresh_sensor(c"JPC", now, TELEMETRY_TIMEOUT_MS))
+        // The rail's power at its own voltage (VJET_RB, the eFuse output)
+        // and current (JPC, the eFuse's IMON): SQSO-JET-BRD-001 §12
+        let rail_v = hw::adc(pins::ADC_VJET_RB);
+        if let Some(amps) = fresh_sensor(c"JPC", now, TELEMETRY_TIMEOUT_MS)
+            && rail_v.is_finite()
         {
             sample.power_valid = true;
-            sample.input_w = bus_v * amps;
+            sample.input_w = rail_v * amps;
         }
-        if let Some(t) = fresh_sensor(c"PT", now, TELEMETRY_TIMEOUT_MS) {
+        let fault = sensors::spreader_fault();
+        payload_guard::payload_guard_set_spreader_fault(fault);
+        self.condition(
+            Health::SpreaderFault,
+            fault,
+            FAULT_TYPE_HEALTH_THERMAL,
+            severity::ERROR,
+            c"Jetson spreader thermistor fault: power-on inhibited",
+        );
+        if let Some(t) = fresh_sensor(c"PT", now, TELEMETRY_TIMEOUT_MS).filter(|t| t.is_finite()) {
             sample.spreader_valid = true;
             sample.spreader_c = t;
         }
@@ -659,6 +973,12 @@ impl Executive {
         {
             sample.junction_valid = true;
             sample.junction_c = f64::from(self.jetson_temp_c);
+            if fault && !sample.spreader_valid {
+                // The thermistor failed with the Jetson on: its own report
+                // stands in for the spreader (SQSO-OBC-BRD-001 B §11.3)
+                sample.spreader_valid = true;
+                sample.spreader_c = sample.junction_c;
+            }
         }
 
         // SAFETY: sample is a live PayloadSample_t
@@ -710,6 +1030,7 @@ impl Executive {
             && unsafe { beacon::beacon_transmit(&content) } == rc::OK
         {
             beacon::beacon_mark_transmitted(now);
+            self.hk.beacon_sent(now);
         }
         self.drop_oldest_text();
     }
@@ -747,17 +1068,24 @@ impl Executive {
     /// detumble again, so it is never left without control
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn run_adcs(&mut self, now: u64, state: u32) {
-        if eps_control::eps_telemetry().is_none() {
+        // The host simulation without the mission simulation has no EPS
+        // controller and no attitude plant: nothing to detumble. On the target
+        // a silent EPS controller must not skip the detumble and report it
+        // complete (CDR RID FSW-01), so there the ADCS runs regardless
+        if cfg!(not(target_os = "none")) && eps_control::eps_telemetry().is_none() {
             if state == STATE_DETUMBLE {
                 sm_event(EVENT_DETUMBLE_COMPLETE); // stand-in power model: nothing to detumble
             }
             return;
         }
+        // The board's sensors every pass: rails, bring-up, the
+        // magnetometer's trigger in the coils-off window (target)
+        adcs_control::adcs_poll(now, eps_control::eps_is_adcs_enabled() && deployment::deployment_is_separated());
         if now.wrapping_sub(self.last_adcs_ms) < ADCS_PERIOD_MS {
             return;
         }
         self.last_adcs_ms = now;
-        if !eps_control::eps_is_adcs_enabled() || !deployment::deployment_is_separated() {
+        if !eps_control::eps_is_adcs_enabled() || !deployment::deployment_is_separated() || !separation_delay_served() {
             let _ = adcs_control::adcs_disable_mtq();
             return;
         }
@@ -790,16 +1118,23 @@ impl Executive {
         let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_HEATER_EN, self.heater.on) };
     }
 
-    /// The FM transponder's gates (`sqso_fsw::transponder`): `XPDR_EN` high
-    /// while transmission is permitted, the radio powered, ACTIVE, sunlit,
-    /// SOC at least 55 %, the PA cool and the keyed time within its budget
+    /// The FM transponder's gates (`sqso_fsw::transponder`): the `XPDR_EN`
+    /// heartbeat runs while transmission is permitted, the radio powered,
+    /// ACTIVE, sunlit, SOC at least 55 %, the PA cool and the keyed time
+    /// within its budget. Its lease is renewed on every pass (0 stops it),
+    /// so it stops by itself if this loop stops
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn run_transponder(&mut self, now: u64, state: u32) {
         let mut eps = EpsState::DEFAULT;
         // SAFETY: eps is a live EpsControlState_t
         let radio_on = unsafe { eps_control::eps_get_state(&mut eps) } == rc::OK && eps.radio_enabled;
         let inputs = transponder::Inputs {
-            permitted: radio_on && rf_control::rf_control_tx_permitted(),
+            // The loss-of-contact inhibit stops the transponder even while
+            // the beacon is kept for a failed receiver (REL-04)
+            permitted: radio_on
+                && rf_control::rf_control_tx_permitted()
+                && !contact_monitor::contact_monitor_inhibited(),
+            allowed: ops_state::ops_xpdr_allowed() && !self.gnss.session_on(),
             active: state == STATE_ACTIVE,
             sunlit: self.power.sunlit,
             soc: self.power.soc,
@@ -807,18 +1142,385 @@ impl Executive {
             fwd_w: adc_or_nan(ADC_CHANNEL_TX_FWD),
         };
         let change = self.transponder.step(now, &inputs);
+        // SAFETY: plain values (the HAL)
+        let _ = unsafe { crate::c::hal_gpio_heartbeat(GPIO_PIN_XPDR_EN, self.transponder.heartbeat_lease_ms()) };
         match change {
-            transponder::Change::None => return,
-            transponder::Change::On => crate::c::console(format_args!("[XPDR] Transponder on")),
+            transponder::Change::None => {}
+            transponder::Change::On => {
+                self.xpdr_enables = self.xpdr_enables.wrapping_add(1);
+                crate::c::console(format_args!("[XPDR] Transponder on"));
+            }
             transponder::Change::Off(why) => crate::c::console(format_args!("[XPDR] Transponder off: {}", why.text())),
         }
-        // SAFETY: plain values (the HAL)
-        let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_XPDR_EN, self.transponder.enabled) };
+    }
+
+    /// GNSS receiver sessions (`sqso_fsw::gnss_schedule`, decision D6): the
+    /// load switch for a session, the receiver's NMEA into the parser while
+    /// it runs. Gates: Jetson off, SOC at least 40 %, not SAFE or EMERGENCY
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_gnss(&mut self, now: u64, state: u32) {
+        if GNSS_REQUESTED.swap(false, Ordering::Relaxed) {
+            self.gnss.request();
+        }
+        let operating = matches!(state, STATE_DETUMBLE | STATE_IDLE | STATE_ACTIVE);
+        let inputs = gnss_schedule::Inputs {
+            leop: ops_state::ops_commissioning_hold(),
+            // Not inside the post-deployment RF silence (SYS-224: no RF
+            // signal generated; the receiver's oscillators count, RID P3A-01)
+            allowed: operating
+                && !rf_silence::rf_silence_active()
+                && !eps_control::eps_is_payload_enabled()
+                && self.power.soc >= GNSS_SOC_MIN,
+            fix_ms: self.gnss_rx.fix.valid.then_some(self.gnss_rx.fix.rx_ms),
+        };
+        match self.gnss.step(now, &inputs) {
+            gnss_schedule::Action::None => {}
+            gnss_schedule::Action::PowerOn => {
+                crate::c::console(format_args!("[GNSS] Session {} on", self.gnss.sessions));
+                self.gnss_first = None;
+                // SAFETY: plain values (the HAL)
+                let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_GNSS_EN, true) };
+            }
+            gnss_schedule::Action::PowerOff(outcome) => {
+                // SAFETY: plain values (the HAL)
+                let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_GNSS_EN, false) };
+                // SAFETY: plain value (the HAL)
+                let _ = unsafe { crate::c::hal_uart_flush(UART_PORT_GNSS) };
+                crate::c::console(format_args!("[GNSS] Session off: {}", outcome.text()));
+                if outcome == gnss_schedule::Outcome::Fix && self.gnss_rx.fix.valid {
+                    let first = self.gnss_first.take();
+                    self.gnss_latest = Some((self.gnss.sessions, first, self.gnss_rx.fix, self.gnss_rx.gga_quality));
+                    self.gnss_frame_due = true;
+                }
+                if self.gnss.no_fix_fault() {
+                    add_fault(fault_type::INIT, severity::WARNING, c"GNSS: no fix in three sessions", self.power.soc);
+                }
+            }
+        }
+        if !self.gnss.session_on() {
+            return;
+        }
+        // What arrived since the last pass, at most 512 bytes (at 9600 baud a
+        // 20 ms pass brings about 19)
+        let mut chunk = [0u8; 64];
+        for _ in 0..8 {
+            let mut got = 0usize;
+            // SAFETY: chunk is a live buffer of 64 bytes; got a live size_t
+            let read = unsafe { crate::c::hal_uart_read(UART_PORT_GNSS, chunk.as_mut_ptr(), chunk.len(), 0, &mut got) };
+            if read != rc::OK || got == 0 {
+                break;
+            }
+            for &b in chunk.get(..got).unwrap_or(&[]) {
+                let _ = self.gnss_rx.feed(b, now);
+            }
+        }
+        let fix = self.gnss_rx.fix;
+        if self.gnss_first.is_none() && fix.valid && self.gnss_on_since.is_some_and(|t| fix.rx_ms >= t) {
+            self.gnss_first = Some(fix);
+        }
+    }
+
+    /// The GNSS state frame (`sqso_fsw::gnss_frame`, RID LV-04): after a
+    /// session with a fix, and after HK2 on GET_HOUSEKEEPING, through the
+    /// downlink (its inhibits and duty limit); a frame the downlink refuses
+    /// is dropped (GET_HOUSEKEEPING sends it again)
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_gnss_frame(&mut self, now: u64) {
+        if !self.gnss_frame_due || self.hk2_due.is_some() || self.hk_next.is_some() {
+            return;
+        }
+        let Some((session, first, fix, quality)) = self.gnss_latest else {
+            self.gnss_frame_due = false;
+            return;
+        };
+        let st = gnss_frame::state(session, first.as_ref(), &fix, quality, now);
+        let mut info = [0u8; gnss_frame::MAX_LEN];
+        let n = gnss_frame::format(&st, &mut info);
+        let text = info.get(..n).unwrap_or(&[]);
+        match send_ui(text) {
+            rc::BUSY => {} // the downlink is sending: next pass
+            sent => {
+                if sent == rc::OK {
+                    crate::c::console_parts(&[b"[GNSS] TX: ", text]);
+                }
+                self.gnss_frame_due = false;
+            }
+        }
+    }
+
+    /// The housekeeping frame (`sqso_fsw::housekeeping`, LV-27): every fifth
+    /// beacon and on GET_HOUSEKEEPING, 5 s after the beacon, through the
+    /// downlink (which enforces the inhibits and the duty limit)
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_housekeeping(&mut self, now: u64, state: u32) {
+        if HK_REQUESTED.swap(false, Ordering::Relaxed) {
+            self.hk.request(now);
+            self.gnss_after_hk2 = self.gnss_latest.is_some();
+        }
+        if passivation::passivation_take_report() > 0 {
+            self.hk.request(now);
+        }
+        if let Some((which, at)) = self.hk_next
+            && now >= at
+        {
+            self.send_hk_part(now, which);
+            return;
+        }
+        if self.hk2_due.is_some_and(|t| now >= t) {
+            self.send_hk2(now);
+        }
+        // A new HK1 waits for the frames of the one in progress
+        if !self.hk.due(now) || self.hk_next.is_some() || self.hk2_due.is_some() {
+            return;
+        }
+        let hk = self.housekeeping(now, state);
+        let n = housekeeping::format(&hk, self.hk_parts.buffer());
+        self.hk_parts.load(n);
+        self.hk.sent();
+        self.send_hk_part(now, 1);
+    }
+
+    /// Hand the housekeeping text's next frame to the downlink (`which`: 1
+    /// HK1, 2 HK2): its frames [`housekeeping::AFTER_BEACON_MS`] apart, then
+    /// HK2 after HK1 and the GNSS frame after HK2. A frame the downlink
+    /// refuses (not permitted) drops the rest of the text
+    #[inline(never)] // its frame buffers are not in run_housekeeping's (SRS-C003)
+    fn send_hk_part(&mut self, now: u64, which: u8) {
+        let mut info = [0u8; housekeeping::MAX_LEN];
+        let (n, next) = self.hk_parts.peek(&mut info);
+        let text = info.get(..n).unwrap_or(&[]);
+        // Nothing formatted cannot happen (TEXT_MAX holds every field at its
+        // widest); it sends nothing rather than an empty frame
+        let sent = if n == 0 { rc::INVALID } else { send_ui(text) };
+        if sent == rc::BUSY {
+            self.hk_next = Some((which, now)); // the downlink is sending: next pass
+            return;
+        }
+        if sent == rc::OK {
+            crate::c::console_parts(&[b"[HK] TX: ", text]);
+            self.hk_parts.commit(next);
+        } else {
+            self.hk_parts.load(0);
+        }
+        if self.hk_parts.pending() {
+            self.hk_next = Some((which, now.saturating_add(housekeeping::AFTER_BEACON_MS)));
+            return;
+        }
+        self.hk_next = None;
+        if which == 1 {
+            self.hk2_due = Some(now.saturating_add(housekeeping::AFTER_BEACON_MS));
+        } else if core::mem::take(&mut self.gnss_after_hk2) {
+            self.gnss_frame_due = true;
+        }
+    }
+
+    /// The second housekeeping frame (HK2), after HK1
+    #[inline(never)] // its values are not in run_housekeeping's frame (SRS-C003)
+    fn send_hk2(&mut self, now: u64) {
+        let hk = self.housekeeping2();
+        let n = housekeeping::format2(&hk, self.hk_parts.buffer());
+        self.hk_parts.load(n);
+        self.hk2_due = None;
+        self.send_hk_part(now, 2);
+    }
+
+    /// The second frame's values now
+    fn housekeeping2(&self) -> housekeeping::Housekeeping2 {
+        let mut cs = cmd_handler::CmdStats::default();
+        // SAFETY: cs is a live CmdStats_t
+        let _ = unsafe { cmd_handler::cmd_get_stats(&mut cs) };
+        let mut ws = sqso_fsw::watchdog::Stats::default();
+        // SAFETY: ws is a live WdtStats_t
+        let _ = unsafe { watchdog_mgr::wdt_mgr_get_stats(&mut ws) };
+        let array = eps_control::eps_telemetry().map(|t| t.isolar_a);
+        let (gyro, trips) = adcs_control::sensor_status();
+        let (energy, lines) = self.schedule.last_burst;
+        // SAFETY: plain value (the HAL)
+        let exciter_ms = unsafe { crate::c::hal_capture_high_ms(pins::CAPTURE_PTT_EXC) };
+        let ms_s = |ms: u64| u32::try_from(ms / 1000).unwrap_or(u32::MAX);
+        housekeeping::Housekeeping2 {
+            seq: self.hk.seq.wrapping_sub(1),
+            commands: (cs.total_executed, cs.total_rejected, cs.auth_failures),
+            wdt_resets: ws.resets_caused,
+            xpdr: (self.xpdr_enables, ms_s(self.xpdr_keyed_ms), exciter_ms / 1000),
+            array_a: array,
+            hard_limit: self.hard_limits,
+            bursts: (self.schedule.bursts, energy, lines, self.schedule.gate_ends),
+            jetson: (self.jetson.clean, self.jetson.timed_out, self.jetson.faults, self.readback_faults()),
+            eol: (passivation::eol_state(), passivation::passivation_attempts()),
+            rtc: (mission_clock_now(), self.rtc.and_then(|b| b.reset_unix_s)),
+            clock_ppm: self.clock_ppm,
+            trips,
+            gyro: (gyro, adcs_control::mag_gated()),
+            mtq_faults: adcs_control::mtq_faults(),
+            parity: match PARITY.load(Ordering::Relaxed) {
+                1 => Some(false),
+                2 => Some(true),
+                _ => None,
+            },
+            separation: separation_switch::status(),
+            pa_sensor: downlink::pa_sensor_status(),
+            supv: eps_supervision::status(),
+            chg_inhibit: eps_supervision::chg_inhibit_register(),
+            tnc: receiver::tnc_status().0,
+            rx_lines: (receiver::tnc_status().1, receiver::tnc_status().2),
+            // The selector is a fabrication-phase task (SQSO-PAY-SEL-001
+            // §11): no table yet, every count 0 (RID SMA-15)
+            selector: sqso_fsw::selector::Stats::new(),
+            geometry: ops_state::ops_adcs_geometry(),
+            sun: adcs_control::sun_body(),
+        }
+    }
+
+    /// Switch readback episodes now in progress
+    fn readback_faults(&self) -> u32 {
+        [Health::Sw1Readback, Health::EfuseReadback]
+            .iter()
+            .filter(|h| self.health.get(**h as usize).is_some_and(Condition::active))
+            .count()
+            .try_into()
+            .unwrap_or(0)
+    }
+
+    /// The housekeeping values now
+    fn housekeeping(&self, now: u64, state: u32) -> Housekeeping {
+        let eps = eps_control::eps_telemetry();
+        let mut last = Entry::ZERO;
+        // SAFETY: last is a live FaultLogEntry_t
+        let have_last = unsafe { fault_mgmt::fault_log_get_last(&mut last) } == rc::OK;
+        let mut adcs = sqso_fsw::adcs::Telemetry::default();
+        // SAFETY: adcs is a live AdcsTelemetry_t
+        let have_adcs = unsafe { adcs_control::adcs_get_telemetry(&mut adcs) } == rc::OK;
+        let finite = |v: f64| v.is_finite().then_some(v);
+        // SAFETY (the block): HAL and module accessors without pointer arguments
+        unsafe {
+            Housekeeping {
+                seq: self.hk.seq,
+                uptime_s: now.wrapping_sub(self.program_start_ms) / 1000,
+                boots: mission_data::mission_data_get_reset_count(),
+                reset_cause: crate::c::hal_reset_cause(),
+                mode: state,
+                hold: ops_state::ops_commissioning_hold(),
+                xpdr: self.transponder.enabled,
+                tx_permitted: rf_control::rf_control_tx_permitted(),
+                soc: Some(self.power.soc),
+                vbatt_v: eps.map(|t| t.vbatt_v),
+                ibatt_a: eps.map(|t| t.ibatt_a),
+                // The array current is measured at the bus (the solar INA228
+                // on the battery side of the trackers): power = VBATT x ISOLAR
+                array_w: eps.map(|t| t.vbatt_v * t.isolar_a),
+                tbatt_c: eps.map(|t| t.tbatt_c),
+                tobc_c: finite(adc_or_nan(ADC_CHANNEL_TEMP_MCU)),
+                tpa_c: finite(adc_or_nan(ADC_CHANNEL_TX_TEMP)),
+                tjet_c: fresh_sensor(c"PT", now, BEACON_MEAS_MAX_AGE_MS),
+                deploy: (
+                    deployment::deployment_get_state(),
+                    crate::ants::status().map(|a| a.deployed_mask()),
+                    deployment::wings_sensed(),
+                ),
+                rf_silence: (rf_silence::rf_silence_get_state(), rf_silence::rf_silence_elapsed_seconds()),
+                contact_timeout_d: contact_monitor::contact_monitor_get_timeout_days(),
+                since_contact_s: contact_monitor::contact_monitor_seconds_since_contact(),
+                fault_count: u32::try_from(fault_mgmt::fault_log_get_count()).unwrap_or(u32::MAX),
+                last_fault: have_last.then_some((last.fault_type, last.severity)),
+                rate_cdps: if have_adcs { [adcs.rate_x, adcs.rate_y, adcs.rate_z] } else { [0; 3] },
+                adcs_mode: adcs.mode,
+                mag_rejected: adcs_control::mag_rejected(),
+                gnss_fix: self
+                    .gnss_rx
+                    .fix
+                    .valid
+                    .then(|| (now.saturating_sub(self.gnss_rx.fix.rx_ms) / 1000, self.gnss_rx.fix.sats)),
+                gnss_sessions: (self.gnss.sessions, self.gnss.fixes),
+                passivation: passivation::passivation_phase(),
+                eol: (passivation::eol_state(), passivation::passivation_attempts()),
+                eol_wait: passivation::passivation_waiting(),
+                rx: (receiver::receiver_cycles(), receiver::receiver_failed()),
+                contacts: cmd_handler::contacts(),
+                stored: stored_counts(),
+                fram: fram_health::status(),
+                ants_gate: deployment::ants_gate(),
+            }
+        }
+    }
+
+    /// Stored housekeeping (`hk_store.h`, DB-01): an event on a mode change
+    /// or a new fault at ERROR or worse; the values when a record is due
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_store(&mut self, now: u64, state: u32) {
+        if state != self.last_state {
+            self.last_state = state;
+            hk_store::hk_store_note_event(sqso_fsw::hk_store::EVENT_MODE);
+        }
+        let faults = fault_mgmt::fault_log_get_count();
+        if faults != self.last_fault_count {
+            let mut last = Entry::ZERO;
+            // SAFETY: last is a live FaultLogEntry_t
+            let have = unsafe { fault_mgmt::fault_log_get_last(&mut last) } == rc::OK;
+            if faults > self.last_fault_count && have && u32::from(last.severity) >= severity::ERROR {
+                hk_store::hk_store_note_event(sqso_fsw::hk_store::EVENT_FAULT);
+            }
+            self.last_fault_count = faults;
+        }
+        if hk_store::due(now) {
+            let hk = self.housekeeping(now, state);
+            let extra = sqso_fsw::hk_store::Extra {
+                heater: self.heater.on,
+                payload: eps_control::eps_is_payload_enabled(),
+                contact_inhibit: contact_monitor::contact_monitor_inhibited(),
+                passivated: passivation::passivation_passivated(),
+            };
+            hk_store::set_sample(&hk, &extra);
+        }
+        hk_store::hk_store_step(now);
+    }
+
+    /// The end-of-life sequence, the receiver's supervision, the lockout
+    /// pulse and, every minute, the check of the critical persisted state
+    /// against its records (AV-07)
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_safety_checks(&mut self, now: u64) {
+        passivation::passivation_tick(self.power.sunlit);
+        let mut dl = downlink::DownlinkStatus::default();
+        // SAFETY: dl is a live DownlinkStatus_t
+        let _ = unsafe { downlink::downlink_get_status(&mut dl) };
+        receiver::receiver_step(dl.keyed || self.transponder.enabled);
+        // The exciter keyed by the TNC alone, or by a repeat path the
+        // heartbeat and the key-down timer no longer bound (C-014-9,
+        // SRS-F168, RID P3F-A-02)
+        let heartbeat = self.transponder.heartbeat_lease_ms() > 0;
+        let _ = rf_control::rf_control_ptt_supervise(now, dl.keyed, heartbeat);
+        eps_lockout::eps_lockout_poll();
+        eps_supervision::step(now);
+        if now.wrapping_sub(self.last_verify_ms) >= VERIFY_INTERVAL_MS {
+            self.last_verify_ms = now;
+            self.check_clock();
+            fram_health::fram_health_check();
+        }
+    }
+
+    /// The MCU's clock against the mission clock's 1 Hz (RV-3028 CLKOUT,
+    /// TIM3 CH3): every minute, logged when off by more than 2 %
+    fn check_clock(&mut self) {
+        let mut period = 0u32;
+        // SAFETY: period is a live u32 (the HAL)
+        let got = unsafe { crate::c::hal_capture_period_us(pins::CAPTURE_RTC_1HZ, &mut period) } == rc::OK;
+        self.clock_ppm = got.then(|| f64::from(period) - 1.0e6);
+        let bad = self.clock_ppm.is_some_and(|p| p.abs() > CLOCK_LIMIT_PPM);
+        self.condition(
+            Health::Clock,
+            bad,
+            fault_type::INIT,
+            severity::ERROR,
+            c"MCU clock off the mission clock by more than 2 %",
+        );
     }
 
     /// With the EPS controller answering, the Jetson in batches
     /// (`sqso_fsw::payload_schedule`); on the stand-in power model it
     /// follows the power mode
+    ///
+    /// @requirement SRS-F166 A Jetson batch starts only within the payload's hard limits (ACTIVE, sunlit, SOC at least 55 %) and ends at once when one of them fails
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn run_payload_schedule(&mut self, now: u64, state: u32) {
         let measured = eps_control::eps_telemetry().is_some();
@@ -827,17 +1529,120 @@ impl Executive {
             return;
         }
         let on = eps_control::eps_is_payload_enabled();
-        match self.schedule.step(now, on, state == STATE_ACTIVE, self.ai_cached) {
+        // The burst's energy at the carrier input: the rail's voltage times
+        // its current (JETB-11; the energy gate, BASELINE §6)
+        let dt_ms = self.pass_dt_ms;
+        if on && let Some(t) = eps_control::eps_telemetry() {
+            #[allow(clippy::cast_precision_loss)] // a pass is milliseconds long
+            let dt_s = dt_ms as f64 / 1000.0;
+            self.schedule.add_energy(hw::adc(pins::ADC_VJET_RB) * t.ijet_a * dt_s);
+        }
+        // A batch only within the payload's hard limits (ACTIVE, sunlit, SOC
+        // at least 55 %, MSC L2-05): it starts only there and ends when one
+        // fails (SIL-39: the batches ran on into eclipse, the hard limit
+        // logged 4,497 times in the reference run)
+        let allowed = state == STATE_ACTIVE && self.power.sunlit && self.power.soc >= sqso_fsw::mode::SOC_PAYLOAD;
+        match self.schedule.step(now, on, allowed, self.ai_cached) {
             Action::None => {}
             Action::PowerOn => {
                 crate::c::console(format_args!("[PAYLOAD] Batch: Jetson on"));
                 let _ = eps_control::eps_control_payload(true, self.power.soc);
             }
+            Action::PowerOff if self.jetson.shutting_down() => {} // under way
             Action::PowerOff => {
-                crate::c::console(format_args!("[PAYLOAD] Batch done: {} lines cached", self.ai_cached));
-                let _ = eps_control::eps_control_payload(false, self.power.soc);
+                let (energy, lines) = self.schedule.last_burst;
+                crate::c::console(format_args!(
+                    "[PAYLOAD] Batch done: {} lines cached, {} J",
+                    lines,
+                    Fixed::new(energy, 0)
+                ));
+                if self.jetson.request_off(now) == jetson_power::Action::SendShutdown {
+                    send_shutdown();
+                } else {
+                    let _ = eps_control::eps_control_payload(false, self.power.soc);
+                }
             }
         }
+    }
+
+    /// The Jetson's switch-off and power-good, and its switch readbacks
+    /// (SQSO-JET-BRD-001 §7.4, SMART-QSO-ICD-002 1.3 §10.4; RIDs JETB-03,
+    /// AV-06); the hard limits of the payload (MSC L2-05)
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn supervise_jetson(&mut self, now: u64, state: u32) {
+        let on = eps_control::eps_is_payload_enabled();
+        let action = self.jetson.step(now, on, hw::level(pins::JET_PG));
+        let soc = self.power.soc;
+        match action {
+            jetson_power::Action::None | jetson_power::Action::SendShutdown => {}
+            jetson_power::Action::PowerOff => {
+                let _ = eps_control::eps_control_payload(false, soc);
+            }
+            jetson_power::Action::FaultPgFell => {
+                add_fault(fault_type::POWER, severity::ERROR, c"Jetson power-good fell: payload fault, rail off", soc);
+                let _ = eps_control::eps_control_payload(false, soc);
+            }
+            jetson_power::Action::FaultNoPg => {
+                add_fault(fault_type::POWER, severity::ERROR, c"Jetson power-good never rose: rail off", soc);
+                let _ = eps_control::eps_control_payload(false, soc);
+            }
+        }
+        let rb = self.jetson.readback(
+            now,
+            hw::level(pins::PAYLOAD_EN),
+            hw::level(pins::JETSON_PWR),
+            hw::adc(pins::ADC_VSW1_RB),
+            hw::adc(pins::ADC_VJET_RB),
+        );
+        self.condition(
+            Health::Sw1Readback,
+            rb.sw1_bad,
+            fault_type::POWER,
+            severity::ERROR,
+            c"Jetson switch SW1 readback disagrees with PAYLOAD_EN",
+        );
+        self.condition(
+            Health::EfuseReadback,
+            rb.efuse_bad,
+            fault_type::POWER,
+            severity::ERROR,
+            c"Jetson eFuse readback disagrees with JETSON_PWR",
+        );
+        // Hard limits: the Jetson on only in ACTIVE, sunlit, SOC >= 55 %,
+        // and not past its burst limit (the switch-off excepted)
+        let long = self.schedule.batch_start_ms.is_some_and(|t| now.saturating_sub(t) > BURST_LIMIT_MS);
+        let outside = state != STATE_ACTIVE || !self.power.sunlit || self.power.soc < sqso_fsw::mode::SOC_PAYLOAD;
+        let violated =
+            on && !self.jetson.shutting_down() && eps_control::eps_telemetry().is_some() && (outside || long);
+        if self.health.get(Health::HardLimit as usize).is_some_and(|c| !c.active()) && violated {
+            self.hard_limits = self.hard_limits.wrapping_add(1);
+        }
+        self.condition(Health::HardLimit, violated, fault_type::POWER, severity::ERROR, c"Payload hard limit violated");
+    }
+
+    /// The repeat path's keyed time (XPDR_KEY, sampled each pass)
+    fn count_keyed_time(&mut self, now: u64) {
+        let dt = now.saturating_sub(self.last_pass_ms);
+        self.pass_dt_ms = dt;
+        if hw::level(pins::XPDR_KEY) {
+            self.xpdr_keyed_ms = self.xpdr_keyed_ms.saturating_add(dt);
+        }
+        self.last_pass_ms = now;
+    }
+
+    /// A GNSS rail trip: GNSS_EN high and its power-good low (SW7)
+    fn check_gnss_rail(&mut self, now: u64) {
+        let en = hw::level(pins::GNSS_EN);
+        self.gnss_on_since = if en { Some(self.gnss_on_since.unwrap_or(now)) } else { None };
+        let settled = self.gnss_on_since.is_some_and(|t| now.saturating_sub(t) >= GNSS_PG_SETTLE_MS);
+        let tripped = settled && !hw::level(pins::GNSS_PG);
+        self.condition(
+            Health::GnssRail,
+            tripped,
+            fault_type::INIT,
+            severity::WARNING,
+            c"GNSS rail tripped (GNSS_PG low)",
+        );
     }
 
     /// Save everything and close the Jetson link
@@ -863,11 +1668,120 @@ impl Executive {
 /// so the radio lines are never driven high on a boot that must stay silent;
 /// then the latched TX-OFF state (47 CFR 97.207(b)), the key table (with no
 /// key only TX-OFF is accepted), the receiver and the GSE port
+/// Whether 120 s have passed since separation (LV-02): the deployment wait
+/// counts from separation, and every later state is past its 30 minutes. A
+/// power-losing reset during the wait restarts the wait, and this delay with
+/// it (the conservative direction)
+fn separation_delay_served() -> bool {
+    match deployment::deployment_get_state() {
+        DEPLOY_STATE_INHIBITED | DEPLOY_STATE_ARMED => false,
+        DEPLOY_STATE_WAITING => deployment::deployment_wait_elapsed_s() >= MTQ_SEPARATION_DELAY_S,
+        _ => true,
+    }
+}
+
+/// `SHUTDOWN,BURST_END` to the Jetson: the normal end of a burst
+fn send_shutdown() {
+    let mut line = [0u8; 32];
+    let n = sqso_protocol::jetson::shutdown("BURST_END", &mut line).unwrap_or(0);
+    send_line(line.get(..n).unwrap_or(&[]), "shutdown");
+}
+
+/// Configure the three SPI buses (hal_spi.h): the BMI088's gyro and
+/// accelerometer at 5 MHz, mode 0; the M-G370 at 1 MHz, mode 3
+fn init_spi_buses() {
+    let cfg = [
+        (pins::SPI_BMI088_GYRO, 5_000_000, 0),
+        (pins::SPI_MG370, 1_000_000, 3),
+        (pins::SPI_BMI088_ACCEL, 5_000_000, 0),
+    ];
+    for (bus, clock_hz, mode) in cfg {
+        let c = HalSpiConfig { clock_hz, mode, bits_per_word: 8, msb_first: true };
+        // SAFETY: c is a live HalSpiConfig_t
+        if unsafe { crate::c::hal_spi_init(bus, (&raw const c).cast()) } != rc::OK {
+            eprint(format_args!("[SYSTEM] SPI bus {bus} init failed"));
+        }
+    }
+}
+
+/// The mission clock at boot: the reset's stamp, the stamp re-armed
+/// (target; the host has no clock)
+fn read_mission_clock() -> Option<sqso_fsw::rv3028::Boot> {
+    if cfg!(target_os = "none") { sqso_fsw::rv3028::boot(&mut hw::HalI2c(pins::I2C_RTC)).ok() } else { None }
+}
+
+/// The mission clock's UNIX time now (target)
+fn mission_clock_now() -> Option<u32> {
+    if cfg!(target_os = "none") { sqso_fsw::rv3028::now(&mut hw::HalI2c(pins::I2C_RTC)).ok() } else { None }
+}
+
 /// One ADC channel, volts (or its unit); not a number if the read fails
 fn adc_or_nan(channel: u32) -> f64 {
     let mut value = 0.0;
     // SAFETY: value is a live f64
     if unsafe { crate::c::hal_adc_read_voltage(channel, &mut value) } == rc::OK { value } else { f64::NAN }
+}
+
+/// The next record number of each store (HK1 `ST`)
+fn stored_counts() -> [u32; 2] {
+    let (mut a, mut b) = (0u32, 0u32);
+    // SAFETY: both are live u32
+    let _ = unsafe { hk_store::hk_store_counts(&mut a, &mut b) };
+    [a, b]
+}
+
+/// A UI frame CQ <- KK6GDB-11 carrying `info`, handed to the downlink: its
+/// result (`BUSY`: try again next pass)
+fn send_ui(info: &[u8]) -> i32 {
+    // Never an empty information field (the SIL-40 mode, RID P3F-A-05):
+    // refused and logged; the caller drops the item
+    if info.is_empty() {
+        crate::c::log(fault_type::COMMAND, severity::ERROR, c"Empty downlink frame refused", 0.0);
+        return rc::INVALID;
+    }
+    let mut frame = [0u8; ax25::MAX_FRAME_LEN];
+    let dest = Station { call: "CQ", ssid: 0 };
+    let src = Station { call: sqso_protocol::station::CALLSIGN, ssid: sqso_protocol::station::SSID };
+    let Ok(len) = ax25::encode_ui(dest, src, info, false, &mut frame) else { return rc::INVALID };
+    // SAFETY: frame holds len bytes
+    unsafe { downlink::downlink_transmit(frame.as_ptr(), len) }
+}
+
+/// The command acknowledgements (GND-03), one a pass
+#[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+fn run_acks(now: u64) {
+    let Some(ack) = cmd_handler::next_ack(now) else { return };
+    let mut info = [0u8; sqso_fsw::ack::MAX_LEN];
+    let n = sqso_fsw::ack::format(&ack, &mut info);
+    let text = info.get(..n).unwrap_or(&[]);
+    match send_ui(text) {
+        rc::BUSY => {} // the downlink is sending: next pass
+        sent => {
+            if sent == rc::OK {
+                crate::c::console_parts(&[b"[ACK] TX: ", text]);
+            }
+            cmd_handler::ack_sent();
+        }
+    }
+}
+
+/// A stored-housekeeping dump frame (DUMP_TLM) when one is due
+#[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+fn run_dump(now: u64) {
+    let mut info = [0u8; sqso_fsw::hk_store::DUMP_INFO_MAX];
+    // SAFETY: info is a live buffer of its length
+    let n = unsafe { hk_store::hk_store_dump_peek(now, info.as_mut_ptr(), info.len()) };
+    if n == 0 {
+        return;
+    }
+    match send_ui(info.get(..n).unwrap_or(&[])) {
+        rc::BUSY => {}
+        rc::OK => hk_store::hk_store_dump_commit(now),
+        _ => {
+            crate::c::console(format_args!("[HKD] Dump stopped: downlink not permitted"));
+            hk_store::hk_store_dump_stop();
+        }
+    }
 }
 
 /// The state machine's state (BOOT if it cannot be read)
@@ -879,8 +1793,13 @@ fn sm_state() -> u32 {
 }
 
 fn init_rf_and_telecommand() {
+    // The initialisation's checkpoints (SRS-F001, RID P3F-A-03): the boot
+    // IWDG and the supervisor refreshed together once 10 s have passed
+    watchdog_mgr::wdt_mgr_boot_checkpoint();
     let _ = rf_silence::rf_silence_init();
     let _ = contact_monitor::contact_monitor_init();
+    // A passivated spacecraft's inhibit is set before the lines are driven
+    let _ = passivation::passivation_init();
     let _ = rf_control::rf_control_init();
     if downlink::downlink_init() != rc::OK {
         eprint(format_args!("[SYSTEM] Downlink init failed"));
@@ -1009,10 +1928,13 @@ mod host {
     static SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
     /// `$SIM_RF_SILENCE_SERVED` set: boot as after a software reset with the
-    /// 45-minute post-deployment silence already served (a COMPLETE record
-    /// in the simulated FRAM), so that a 20 s run beacons. The silence's own
-    /// rules decide (`rf_silence_init()`); simulation only
+    /// 45-minute post-deployment silence already served and the deployment
+    /// sequence finished (COMPLETE records in the simulated FRAM, so the
+    /// AntS hold of decision C-19 is over), so that a 20 s run beacons. The
+    /// modules' own rules decide (`rf_silence_init()`, `deployment_init()`);
+    /// simulation only
     pub(super) fn serve_rf_silence() {
+        use sqso_fsw::deployment::{self, Deployment};
         use sqso_fsw::nvm;
         use sqso_fsw::rf_silence::{DURATION_S, HAL_RESET_SOFTWARE, RECORD_MAGIC, RfSilence, State};
         if crate::os::env(c"SIM_RF_SILENCE_SERVED").is_none() {
@@ -1023,6 +1945,8 @@ mod host {
         let record = RfSilence::record(State::Complete, DURATION_S);
         let region = crate::rf_silence::FLASH_REGION_RF_SILENCE;
         let _ = nvm::save(&mut crate::c::HalFlash, region, 0, RECORD_MAGIC, &record);
+        let region = crate::deployment::FLASH_REGION_DEPLOYMENT;
+        let _ = nvm::save(&mut crate::c::HalFlash, region, 0, deployment::RECORD_MAGIC, &Deployment::complete_record());
         crate::hal_sim::hal_sim_set_reset_cause(HAL_RESET_SOFTWARE);
     }
 

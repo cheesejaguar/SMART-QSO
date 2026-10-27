@@ -1,8 +1,8 @@
 # Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery
 
 **Document ID**: SQSO-BVB-001
-**Version**: A
-**Date**: 2026-10-26
+**Version**: E
+**Date**: 2026-10-27
 **Status**: Draft; vendor data from public pages on 2026-10-26, no quotes yet
 
 This document compares the hardware that does not have to be custom with what CubeSat vendors sell now, and decides
@@ -32,7 +32,7 @@ snippet. cubesatshop.com could not be reached from the research environment.
 | Magnetometer | **Buy** (GomSpace M315, AAC MM200 or Spacemanic Lodestone) | 8–12 g, flight-proven, digital |
 | Magnetorquers | **Buy** CubeSpace CR0002 rods (> 0.2 A·m², 16.5 g each), or keep the air-core coils | Saves ≈ 80 g; rods add remanence that the magnetometer calibration must handle |
 | Gyro | **Buy: Epson M-G370PDT0** primary, **Bosch BMI088** backup on the OBC board (§5) | The Monte Carlo needs ≤ 0.1°/s bias; the M-G370 meets it from the factory and has 20 krad TID data |
-| ADCS gains | **B-dot 10⁴; spin 6°/s; spin hold added** (§6) | B-dot at 5·10⁶ left 15 of 40 trials tumbling; without a spin hold 23 of 40 settled with −Y on the Sun; at 2°/s +Y was within 15° of the Sun for only 75 % of sunlit time |
+| ADCS gains | **B-dot 10⁴; spin 8°/s; spin hold added** (§6) | B-dot at 5·10⁶ left 15 of 40 trials tumbling; without a spin hold 23 of 40 settled with −Y on the Sun; at 2°/s +Y was within 15° of the Sun for only 75 % of sunlit time |
 
 Mass: the buys move the predicted mass by about −200 to −250 g CBE (structure −160 to −190 g, rods −80 g, AntS
 +55 g), from 0–4 % margin to roughly 14–18 %. That is an estimate; the MEL has to be re-run with quoted masses.
@@ -76,7 +76,8 @@ project design item whichever is bought.
 
 **Decision: buy the frame, buy the wings and body panels from one panel vendor.** The frame is the largest single
 mass lever (about −170 g). Send RFQs to Pumpkin, ISIS and Spacemanic with stock and lead-time questions, and freeze
-the choice before the mechanical layout. The Jetson heat path (≥ 1 W/K, BASELINE §6), the GNSS patch and the wing
+the choice before the mechanical layout. The RFQ asks for a **recessed −Z face** for the 7 mm AntS within the CDS
+standoff (RID STR-11) and the frame's mass, allowables and drawings (STR-20). The Jetson heat path (≥ 1 W/K, BASELINE §6), the GNSS patch and the wing
 hinges need custom brackets on whichever frame is chosen.
 
 ### 2.3 Solar panels
@@ -186,7 +187,7 @@ Readbacks to the OBC: TONE_OK, XPDR_KEY, PTT_EXCITER
 |---------|----------------|-----|
 | Heartbeat detector | TI SN74LVC1G123 retriggerable monostable, pull-down on the input | An OBC that hangs with the pin high, resets (high-Z) or browns out drops the transponder within ≈ 50 ms. EASAT-2's AC activation, in the fail-safe direction |
 | Key gate | TI SN74LVC1G11 3-input AND | Hardware logic between the enable, the tone and the timer |
-| CTCSS decoder and audio conditioning | CML CMX138A (configured by the OBC at boot); NiceRF SA818-U for the first engineering model | Tone decode, tone removal, emphasis and band-limiting in one part, in hardware. A Goertzel detector on the OBC would put flight software in the audio path; rejected |
+| CTCSS decoder and audio conditioning | CML CMX138A (configured at boot by the RF board's TNC microcontroller); NiceRF SA818-U for the first engineering model. The analog FM receivers are discontinued, so the board demodulates in a CC1200 and the repeat audio passes through the TNC microcontroller's firmware (not the OBC flight software); the tone decode, band-limiting, level limit, key gate, 120 s timer and TX permit stay in hardware (SQSO-RF-BRD-001) | Tone decode, tone removal, emphasis and band-limiting in one part, in hardware. A Goertzel detector on the OBC would put flight software in the audio path; rejected |
 | Audio select and mute | TI TMUX1219 SPDT | The TNC's frames take the transmitter first, with no software arbitration; receiver noise never rides on the beacon |
 | Key-down timer | 120 s hardware timer | Fox-1 practice. A stuck ground carrier is stopped long before the 25 % duty gate would act |
 | Repeat-path power (optional) | TI TPS22918 load switch from EN_OK | The tone decoder and filters draw nothing while disabled. It must not switch the 435 MHz receiver |
@@ -195,9 +196,11 @@ Safety under TX-OFF: TX_EN, which switches the PA supply, stays the cessation pa
 hardware TX permit also feeds the PTT gate, so an exciter keyed into an unpowered PA cannot leak to the antenna. No
 state of the transponder logic can power the PA.
 
-Flight-software impact: `sqso_fsw::transponder` drives `XPDR_EN` as a level today. The heartbeat makes it a square
-wave from a timer while the gates hold. That is a small firmware change; it is recorded here as the design, not yet
-implemented. Until then the mission simulation models the level.
+Flight software (implemented in the design review, SRS-F080 series): `sqso_fsw::transponder` produces a 100 Hz
+heartbeat under a 60 ms software lease renewed every executive pass; the firmware drives PE4 from the TIM7 interrupt,
+so the wave stops when the lease runs out, the OBC hangs or it resets. The radio board's ≈ 50 ms retriggerable
+monostable treats a level held high as disabled. The mission simulation's radio drops the transponder within 50 ms of
+a stopped heartbeat.
 
 ## 4. Isolated battery mount
 
@@ -235,8 +238,8 @@ harness and the pack's surface finish set the conductance. Estimates (G = kA/L, 
 - 4 × Ti-6Al-4V M2.5 screws into frame inserts, low preload, staked. Alternative: necked Ti-6Al-4V standoffs
   (≈ 0.023 W/K for four) if polymer creep is unacceptable.
 - Flying leads of at least 100 mm to the EPS; no stack connector on the pack.
-- Heater ≈ 1 W at 14.4 V (≈ 200 Ω polyimide film, two elements on different cells), the flight software's +2/+6 °C
-  set points, a series hardware over-temperature cutout at about +40 °C, and a fuse or current limit (MinXSS had a
+- Heater ≈ 1 W at 14.4 V (≈ 200 Ω polyimide film, two elements on different cells), the flight software's +5/+9 °C
+  set points (raised from +2/+6 °C by the design review, RID THM-02), a series hardware over-temperature cutout at about +40 °C, and a fuse or current limit (MinXSS had a
   heater short in vacuum).
 - Target 0.03 W/K to the frame and ≤ 0.01 W/K to the OBC stack. Verify in the EM thermal balance test with the heater
   power stepped (TB-07).
@@ -377,61 +380,89 @@ angle to +Y in sunlight:
 | 2°/s | 0.005 | 10⁻⁴ | 13° | 133° | 75 % | 147° |
 | 2°/s | 0.02 | 10⁻⁵ | 78° | 104° | 3 % | 140° |
 | 4°/s | 0.005 | 10⁻⁴ | 3.9° | 15° | 99.8 % | 19° |
-| **6°/s** | **0.005** | **10⁻⁴** | **2.5°** | **9.8°** | **100 %** | **12°** |
+| 6°/s | 0.005 | 10⁻⁴ | 2.5° | 9.8° | 100 % | 12° |
 
 A high momentum gain with weak nutation damping is unstable (the 2°/s, k_h 0.02 row). The spin's gyroscopic
 stiffness grows with its rate, so the disturbance torques tilt the axis less, and less is lost through eclipse,
 when the Sun term is off.
 
-**Decision: 6°/s, k_h = 0.005 s⁻¹, k_n = 10⁻⁴ N·m·s, k_s = 0.005 s⁻¹, B-dot 10⁴**
-(`sqso_fsw::adcs::Gains::FLIGHT`; `ADCS_BDOT_GAIN`). Coil power once captured is < 5 mW. Higher spin rates were not
-needed; above about 8°/s the 1 Hz sun-sensor sampling would start to matter.
+The rows above used a diagonal inertia with Iyy 5–11 % above Izz. The structures review (RID STR-01) computed the
+layout-B tensor: Iyy/max(Ixx, Izz) is only 1.00–1.06 and the products tilt the principal axes. With that tensor
+(mean of the CBE and MEV values, products included), 6°/s and k_n = 10⁻⁴ give 8.7° mean and 97.1 % within 15°. The
+avionics review re-tuned for it.
+
+**Decision (design review, 2026-10-27): 8°/s, k_h = 0.005 s⁻¹, k_n = 3·10⁻⁴ N·m·s with the gyro and 1·10⁻⁴ without
+it (3·10⁻⁴ fails without a gyro: 55° mean), k_s = 0.005 s⁻¹, B-dot 10⁴** (`sqso_fsw::adcs::Gains::FLIGHT`,
+`NUTATION_GAIN_NO_GYRO`; `ADCS_BDOT_GAIN`). Coil power once captured 29 mW. At 8°/s the 1 Hz sun-sensor sampling
+sees 8° between samples; the law uses only the Sun direction, and the Monte Carlo includes the sampling.
 
 ### 6.4 Robustness at the chosen gains
 
-| Case (6°/s unless stated) | Not detumbled | Slowest capture | Mean Sun angle | Worst p95 | Within 15° | Worst eclipse exit | Worst-trial generation |
+Flight gains, the final CAD inertia tensor with products (MASS_BUDGET 3.2 §6.1 and §6.5: the mean of CBE 1,520.0 g and
+MEV 1,754.9 g as the default plant, each as its own row), the magnetometer window and the coil coupling modelled, 40
+trials of 2 days per case (`software/simulation/cdr/avionics/adcs_mc_cdr.sh`; re-run in full 2026-10-27 for
+`docs/hardware/ADCS_DESIGN.md` 1.9 §11.4 and §11.6, with the gating, AntS, wrong-preset and photodiode cases of the CDR
+round 3 closure; slowest capture is the flight software's declared end of the detumble):
+
+| Case (8°/s unless stated) | Not detumbled | Slowest capture | Mean Sun angle | Worst p95 | Within 15° | Worst eclipse exit | Worst-trial generation |
 |---------------------------|---------------|-----------------|----------------|-----------|------------|--------------------|------------------------|
-| M-G370PDT0 | 0 | 1.5 h | 2.5° | 9.7° | 100 % | 12° | 4.50 W |
-| BMI088, calibrated (0.1°/s) | 0 | 1.5 h | 2.5° | 9.8° | 100 % | 12° | 4.50 W |
-| BMI088, bias 0.2°/s | 1 | 3.1 h | 3.6° | 12.6° | 100 % | 15° | 4.49 W |
-| BMI088, bias 0.3°/s | 2 (3 timeouts) | 5.7 h | 8.9° | 153° | 94 % | 150° | 2.73 W |
-| BMI088, bias 0.5°/s | 0 (16 timeouts) | 20.5 h | 29° | 166° | 73 % | 174° | 2.27 W |
-| BMI088 uncalibrated (1°/s) | 3 (29 timeouts) | — | 66° | 166° | 25 % | 174° | 2.27 W |
-| No gyro (magnetometer rate) | 0 | 1.2 h | 23° | 66° | 33 % | 42° | 3.67 W |
-| Tip-off σ 3.33°/s (dispenser, 3σ = 10°/s) | 0 | 1.0 h | 2.5° | 9.7° | 100 % | 12° | 4.50 W |
-| Tip-off σ 10°/s, up to 30°/s | 0 | 1.5 h | 2.5° | 9.7° | 100 % | 12° | 4.50 W |
-| Tip-off σ 30°/s, up to 50°/s | 0 | 2.1 h | 2.5° | 9.7° | 100 % | 12° | 4.50 W |
-| Residual dipole 10 mA·m² | 0 | 4.0 h | 7.1° | 31° | 92 % | 42° | 4.39 W |
-| Residual dipole 20 mA·m² | 0 (4 timeouts) | 11.9 h | 15° | 73° | 61 % | 86° | 3.84 W |
-| Residual dipole 50 mA·m² | 0 (26 timeouts) | 37 h | 57° | 167° | 18 % | 178° | 2.65 W |
-| Magnetometer 200 nT, sun sensors 10° | 0 | 1.5 h | 2.6° | 9.8° | 100 % | 13° | 4.50 W |
-| 4°/s, residual dipole 10 mA·m² | 0 | 4.0 h | 12° | 51° | 73 % | 79° | 4.14 W |
+| M-G370PDT0 (re-run 2026-10-27 for ADCS_DESIGN 1.9, MASS_BUDGET 3.2 tensors, stowed products corrected) | 0 | 1.3 h | 1.8° | 7.3° | 100 % | 10° | 4.50 W |
+| BMI088, calibrated | 0 | 1.3 h | 1.8° | 7.2° | 100 % | 10° | 4.50 W |
+| BMI088, bias 0.2°/s | 0 | 1.7 h | 2.5° | 9.5° | 100 % | 10° | 4.50 W |
+| BMI088, bias 0.3°/s | 1 (3 timeouts) | 2.3 h | 8.9° | 150° | 92.7 % | 166° | 2.48 W |
+| BMI088, bias 0.5°/s | 0 (12 timeouts) | 7.2 h | 26° | 162° | 75.4 % | 166° | 2.48 W |
+| BMI088, uncalibrated | 1 (32 timeouts) | 2.5 h | 73° | 166° | 21.5 % | 172° | 2.37 W |
+| No gyro (k_n 1·10⁻⁴) | 0 | 1.2 h | 20° | 56° | 41.5 % | 33° | 3.87 W |
+| Tip-off σ 3.33°/s (dispenser, 3σ = 10°/s) | 0 | 1.0 h | 1.8° | 7.3° | 100 % | 10° | 4.50 W |
+| Tip-off σ 10°/s, up to 30°/s | 0 | 1.8 h | 1.8° | 7.3° | 100 % | 10° | 4.50 W |
+| Tip-off σ 30°/s, up to 50°/s | 0 | 1.6 h | 1.8° | 7.3° | 100 % | 10° | 4.50 W |
+| Residual dipole 10 mA·m² | 0 | 3.0 h | 4.7° | 21° | 98.0 % | 29° | 4.46 W |
+| Residual dipole 20 mA·m² | 0 (3 timeouts) | 11.8 h | 9.6° | 45° | 81.0 % | 58° | 4.21 W |
+| Residual dipole 50 mA·m² | 0 (23 timeouts) | 31.7 h | 40° | 170° | 34.0 % | 166° | 2.62 W |
+| Magnetometer 200 nT, sun sensors 10° | 0 | 1.3 h | 1.8° | 7.3° | 100 % | 9° | 4.50 W |
+| 4°/s, residual dipole 10 mA·m² | 0 | 3.0 h | 11° | 45° | 77.4 % | 60° | 4.20 W |
+| 6°/s, k_n 1·10⁻⁴ (the version A gains) | 0 | 1.3 h | 2.4° | 9.6° | 100 % | 12° | 4.50 W |
+| Iyy/Izz 1.000 / 1.005 / 1.020 / 1.050 | 0 / 0 / 0 / 0 | 1.3 h / 1.3 h / 1.3 h / 1.3 h | 20° / 2.0° / 1.8° / 1.8° | 162° / 7.7° / 7.2° / 7.2° | 80.0 % / 99.9 % / 100 % / 100 % | 179° / 30° / 9° / 9° | 3.62 W / 4.49 W / 4.50 W / 4.50 W |
+| **CAD tensor CBE / MEV (MASS_BUDGET 3.2: 1,520.0 g / 1,754.9 g)** | 0 / 0 | 1.4 h / 1.2 h | 1.8° / 1.7° | 7.0° / 6.8° | 100 % / 100 % | 11° / 8° | 4.50 W / 4.50 W |
+| Wing W1 only, geometry preset 0 / 1 / 2 (wrong) | 0 / 0 / 1 | 1.4 h / 1.4 h / 1.4 h | 6.0° / 8.4° / 14° | 12° / 14° / 29° | 99.9 % / 99.9 % / 56.3 % | 24° / 17° / 49° | 3.02 W / 3.06 W / 2.94 W |
+| Wing W2 only, geometry preset 0 / 2 / 1 (wrong) | 1 / 0 / 1 | 1.1 h / 1.1 h / 1.2 h | 7.0° / 9.3° / 16° | 14° / 14° / 30° | 99.6 % / 99.9 % / 38.3 % | 26° / 17° / 48° | 3.01 W / 3.07 W / 2.92 W |
+| Wings stowed, AntS held 25 h (C-18), preset 0 / 3 | 0 / 0 | 1.2 h / 1.2 h | 2.5° / 4.3° | 8.7° / 11° | 100 % / 100 % | 18° / 17° | 1.53 W / 1.53 W |
+| AntS 3 h after the wings (C-18), ungated / gated | 0 / 0 | 1.3 h / 1.3 h | 1.8° / 1.9° | 7.3° / 7.5° | 100 % / 100 % | 10° / 10° | 4.50 W / 4.50 W |
+| Magnetometer gating, 1.5 h/day Jetson + 53 min/day keyed (SRS-F143) | 0 | 1.3 h | 1.9° | 7.6° | 100 % | 10° | 4.50 W |
+| Gating with residual dipole 10 mA·m² / no gyro | 0 / 0 | 3.0 h / 1.2 h | 5.1° / 17° | 22° / 52° | 96.7 % / 51.4 % | 33° / 41° | 4.45 W / 4.05 W |
+| Face photodiodes with Earth albedo (ADCS_DESIGN 1.9 §11.6) / without albedo | 0 / 0 | 1.3 h / 1.3 h | 12° / 2.1° | 21° / 8.4° | 73.6 % / 100 % | 20° / 11° | 4.41 W / 4.50 W |
+| Coils on through the sample, software unaware (gyro / no gyro) | 0 / 0 (27 timeouts) | 1.3 h / 5.1 h | 1.8° / 68° | 7.3° / 164° | 100 % / 11.5 % | 10° / 176° | 4.50 W / 2.50 W |
 
-Every nominal case captures within 1.5 h, and even a 50°/s tip-off within 2.1 h, inside the 3-orbit requirement
-(ADCS-F001) and the 285 min timeout. Tip-off is not the driver.
+Every nominal case captures within 1.8 h, inside the 3-orbit requirement (ADCS-F001) and the 285 min timeout. (The
+"not detumbled" 1 of a one-wing row is the Monte Carlo's own test, rate across the spin axis below 0.5°/s, which a
+spin held off the principal axis may not meet; the flight software's own end of the detumble came within 1.4 h, with
+no timeout.)
+Tip-off is not the driver.
 
-**The residual dipole is.** It needs a requirement: ≤ 3 mA·m² is the design value; 10 mA·m² still works at 6°/s but
-not well at 4°/s; 20 mA·m² degrades the pointing and 50 mA·m² defeats it. Published 1U values span 1–10 mA·m²,
-with outliers near 50 (UWE-3) and 150 mA·m² (ESTCube-1). On MOVE-II (1U), a current loop in the solar-cell wiring
-spun the satellite past 500°/s. So: back-wire each wing's string (return conductor along the string, no loop area),
-keep ferromagnetic parts away from the magnetometer, and measure the flight unit in a Helmholtz cage with the wings
-deployed and illuminated. That is a magnetic-cleanliness requirement for the EM (TP-ADCS).
+**The residual dipole is.** It needs a requirement: ≤ 3 mA·m² is the design value; 10 mA·m² still works at 8°/s but
+not at 4°/s; 20 mA·m² degrades the pointing and 50 mA·m² defeats it. Published 1U values span 1–10 mA·m², with
+outliers near 50 (UWE-3) and 150 mA·m² (ESTCube-1). On MOVE-II (1U), a current loop in the solar-cell wiring spun the
+satellite past 500°/s. So: back-wire each wing's string (return conductor along the string, no loop area), keep
+ferromagnetic parts away from the magnetometer, and measure the flight unit in a Helmholtz cage with the wings deployed
+and illuminated. That is a magnetic-cleanliness requirement for the EM (TP-ADCS).
 
 **Comparison with flight practice.** MOVE-II's spinning sun-pointing law (5.73°/s, coils on in eclipse) reached
-20.6° ± 7.7° in hardware-in-the-loop tests; this law at 6°/s gives 2.5° in simulation. The difference is the
+20.6° ± 7.7° in hardware-in-the-loop tests; this law at 8°/s gives 1.8° in simulation with the generic sun-sensor
+error and 12° with the face photodiodes and Earth albedo (ADCS_DESIGN 1.9 §11.6). The difference is the
 nutation damping and the spin hold, and the simulation's ideal coils: expect the flight result between the two.
 
 ### 6.5 Limits
 
 - The tip-off distribution is a dispenser specification, not a measurement of this spacecraft.
-- Rigid body only (no flexible wings).
+- Rigid body only: the flexible 2 m antenna tapes are not modelled (GNC-03, a verification item).
 - The sensor errors are datasheet values.
-- The magnetorquer model has no remanence, so if rods are bought (§2.7) the Monte Carlo has to be re-run with it.
-- The coils' own field at the magnetometer is not modelled. The flight timing must take the magnetometer sample with
-  the coils off; MOVE-II used 300 ms on and 700 ms off, stable to 290°/s. Neither the flight software nor the
-  firmware does this yet (it is an open item for the ADCS driver).
+- Rod remanence and recoil are not modelled (GNC-06); the Monte Carlo is re-run with measured rod data on the EM.
+- The coils' field at the magnetometer is modelled; the flight software samples 50 ms after a 900 ms burst. The coil
+  driver's own hardware off-timer is part of the OBC board design (AV-03).
 - Aerodynamic torque at solar maximum (2.1·10⁻¹² kg/m³ mean at 500 km) is 4.5–8.9·10⁻⁸ N·m for a 1–2 cm centre of
-  pressure offset. That is comparable to a 2 mA·m² residual dipole, and it is in the model.
+  pressure offset, comparable to a 2 mA·m² residual dipole; it is in the model.
+- The final flight inertia comes from the CAD (`docs/environment/MASS_BUDGET.md` 3.1 §6.5); the Iyy/Izz sweep above
+  covers its value.
 
 ## 7. Battery size
 
@@ -521,4 +552,8 @@ with the latch-up trip acting on the PDU switch), not a bigger battery.
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| C | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §6.4 re-run with the final CAD tensors (C-13 ballast as re-placed; CBE and MEV rows, the flight software's mean as the default plant) and the round-3 flight software |
+| E | 2026-10-27 | SMART-QSO Team (CDR round 3 closure, GN&C) | §6.4 re-run in full (ADCS_DESIGN 1.9: stowed products corrected, MASS_BUDGET 3.2 tensors); rows added for the wrong one-wing preset, the wings stowed with the AntS held 25 h, the AntS 3 h after the wings, magnetometer gating and the face photodiodes with albedo (P3F-G-04, -05, C-21, C-22); the wing rows now ADCS_DESIGN's |
+| D | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §6.4 the M-G370 and CAD CBE/MEV rows re-run at MASS_BUDGET 3.2's tensors (RID GNC-07); the wing rows are ADCS_DESIGN 1.8 §11.4's to copy |
+| B | 2026-10-27 | SMART-QSO Team | Design review: frame RFQ with a recessed −Z face (STR-11); heater set points +5/+9 °C (THM-02); §6 gains and spin from the Monte Carlo on the computed inertia (STR-01) |
 | A | 2026-10-26 | SMART-QSO Team | Initial issue: COTS survey and build-versus-buy decisions; gyro; ADCS Monte Carlo and gains; battery size; transponder enable and battery mount hardware |

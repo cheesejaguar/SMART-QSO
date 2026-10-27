@@ -1,5 +1,11 @@
 # SMART-QSO CDR Technical Baseline
 
+> **Superseded record (notice added 2026-10-27, CDR 2026 round-3 finding P3A-02).** This record and its value table below
+> are superseded by `docs/BASELINE_PARAMETERS.md` Rev E (amended), which governs every value. In particular the orbit is
+> a circular SSO with a **475 km target and a 485 km hard cap** (465–485 km acceptable; BASELINE §3), not the "≤ 500 km
+> target, 525 km cap" of the table below, and the mass is CBE 1.52 kg / MEV 1.75 kg (BASELINE §4). The record is kept as
+> written; do not cite it for any value.
+
 > **Funding audit notice (2026-10-14): internal self-assessment, not an independent review.**
 > This record was generated on 2026-01-02 without named independent reviewers, signatures, or a
 > RID/RFA log. Its PASS/APPROVED/COMPLETE statements are **not substantiated** and must not be cited
@@ -45,11 +51,13 @@ SMART-QSO is a 1U CubeSat mission demonstrating AI-assisted amateur radio operat
 
 | ID | Objective | Success Measure |
 |----|-----------|-----------------|
-| MO-1 | Demonstrate AI-managed amateur radio operations from LEO | AI-generated beacons transmitted |
-| MO-2 | Provide amateur radio operators with transponder access | Beacons received by community |
-| MO-3 | Demonstrate graceful degradation to conventional operation | Transponder and template beacon continue with the AI payload off (SYS-521, SYS-522) |
-| MO-4 | Advance TinyML/TinyLM technology for space applications | Not stated in SQSO-REQ-001 |
-| MO-5 | Engage amateur radio community in space communications | Not stated in SQSO-REQ-001 |
+| MO-1 (Rev C) | Demonstrate AI-managed amateur radio operations from LEO | AI-generated beacons transmitted |
+| MO-2 (Rev C) | Provide amateur radio operators with transponder access | Beacons received by community |
+| MO-3 (Rev C) | Demonstrate graceful degradation to conventional operation | Transponder and template beacon continue with the AI payload off (SYS-521, SYS-522) |
+| MO-4 (Rev C) | Advance TinyML/TinyLM technology for space applications | Not stated in SQSO-REQ-001 |
+| MO-5 (Rev C) | Engage amateur radio community in space communications | Not stated in SQSO-REQ-001 |
+
+*The objectives above are as stated in SQSO-REQ-001 Rev C at the time of this record; SQSO-REQ-001 Rev D (2026-10-27) restated MO-1 to MO-4 to match the baseline, so the old rows carry the suffix "(Rev C)".*
 
 Objectives corrected 2026-10-16 to SQSO-REQ-001 §4.2. This baseline listed "operate autonomously for 2 years" and
 "comply with amateur regulations" as MO-3 and MO-4; those are mission requirements (MRD-001, MRD-002; MRD-024, MRD-090

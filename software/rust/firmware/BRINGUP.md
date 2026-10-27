@@ -38,8 +38,8 @@ Host software:
 
 ## 2. NUCLEO-L4R5ZI and the flight pin map
 
-The pin map in `src/gpio.rs`, `src/main.rs` and the driver files is provisional (TBR until the OBC schematic baselines a
-pinout) and was written for the OBC, not for the NUCLEO. On the NUCLEO:
+The pin map in `src/gpio.rs`, `src/main.rs` and the driver files is the master allocation of SQSO-ICX-001 B §4 (with
+every row of its §6 change list, flight software round 3), written for the OBC board, not for the NUCLEO. On the NUCLEO:
 
 | Function (flight map) | Pins | On the NUCLEO-L4R5ZI | Consequence |
 |-----------------------|------|----------------------|-------------|
@@ -47,11 +47,12 @@ pinout) and was written for the OBC, not for the NUCLEO. On the NUCLEO:
 | Jetson link, USART1 | PA9 TX, PA10 RX, 115200 | PA9/PA10 may be wired to the USB OTG connector (VBUS sense, ID) *(UM2179)* | Check before wiring the adapter; leave the OTG connector unplugged |
 | TNC, USART2 | PD5 TX, PD6 RX, 9600 | free *(UM2179)* | Uplink frames in and downlink frames out (KISS). With no TNC, a logic analyzer on PD5 shows each beacon: the five TNC parameter commands, then the frame (HIL-030) |
 | ALERT input (pull-up) | PB7 | LD2 (blue LED) | The LED loads the input: LD2 may glow and the ALERT level read is not meaningful |
-| SPI2 MISO (RF) | PB14 | LD3 (red LED) | Nothing is on SPI2 on the NUCLEO; LD3 shows SPI2 activity, if any |
+| SPI2 MISO (BMI088) | PB14 | LD3 (red LED) | Nothing is on SPI2 on the NUCLEO; LD3 shows SPI2 activity, if any |
 | Status LED | PD3 | not an LED | No visible status LED; add an LED and resistor on PD3, or watch it on the logic analyzer |
-| — | PC7 (LD1, green), PC13 (B1, user button) | not used by the firmware | LD1 stays off; B1 does nothing. B2 (reset) gives a pin reset |
-| FRAM, SPI1 | PA5 SCK, PA6 MISO, PA7 MOSI, PA4 CS#, PE0 WP#, PE1 HOLD# | no FRAM fitted | See §5 step 6 |
-| Enable and burn lines | PB4, PB5, PB6, PD2, PA1, PA2, PA3, PB9, PB10, and the downlink power select PE3 (outputs, low at boot) | header pins | Nothing to drive on the NUCLEO. On an OBC board these switch loads and burn wires: check each against the schematic before the first power-on |
+| PTT_EXCITER capture, TIM8 CH2 | PC7 | LD1 (green LED) | The LED loads the input; the exciter's keyed time (HK2 `XE`) is not meaningful. PC13 (B1, user button) is not used; B2 (reset) gives a pin reset |
+| FRAM, SPI1 | PG2 SCK, PG3 MISO, PG4 MOSI, PG5 CS#, PE0 WP#, PE1 HOLD# (port G needs VDDIO2: the firmware enables it at boot) | no FRAM fitted | See §5 step 6 |
+| Enable, burn and passivation lines | PB2 (PAYLOAD_EN), PB5, PB6, PD2, PF3 (DEPLOY_EN), PA8 (JETSON_PWR), PA3, PB9, PB10, PE6, PE7, PF4 (EOL_ARM), PG1 (EOL_FIRE), PF5 (LOCK_CLR), the sensor rails PF6–PF8, the downlink power select PE3 and WDI PG11 (outputs, low at boot) | header pins | Nothing to drive on the NUCLEO. On an OBC board these switch loads, burn wires and the EPS's charge disconnect: check each against the schematic before the first power-on |
+| Magnetorquer timers | TIM1 PWM PE9/PE11/PE13, MTQ_ARM TIM15 PF9, direction PE8/PE10/PE12 | header pins | A logic analyzer on PF9 shows each 900 ms burst ending by itself (AV-V3) |
 | ADC inputs | PC2, PC3, PC4, PC5, PB0, PB1, and the downlink monitors PA0 (TX_TEMP), PC0 (TX_FWD), PC1 (TX_REV) | header pins, floating | Readings are meaningless until the EPS sense circuits and the transmitter exist (front-end scaling TBR, `src/adc.rs`). Floating monitors can trip the downlink's protections: tie PA0, PC0 and PC1 to GND, so the downlink sees a cool transmitter and no output (it reports "keyed with no forward power" once per beacon) |
 
 The firmware runs from the internal MSI through the PLL (80 MHz, `clocks()` in `src/main.rs`); the board's HSE (ST-LINK
@@ -82,6 +83,11 @@ ELF=$(ls "$PKG"/sqso-firmware-*.elf)
 # First flash: probe-rs run --chip STM32L4R5ZITx (the runner in .cargo/config.toml)
 cargo run --release
 ```
+
+Before the first flash of a board, set SRAM2 parity on (option bit `SRAM2_PE` = 0; the flight software never writes
+option bytes): `STM32_Programmer_CLI -c port=SWD mode=UR -ob SRAM2_PE=0`, then `-ob displ` must list
+`SRAM2_PE : 0x0` (`docs/development/RELEASE_PROCEDURE.md` §5.3.1). The console then shows `[SYSTEM] SRAM2 parity on`
+at every boot; "SRAM2 parity OFF (option bit SRAM2_PE)" means the step was missed.
 
 `cargo run --release` flashes, resets and runs the image, then keeps the probe attached until Ctrl-C. The image has no
 RTT or defmt channel, so the runner prints nothing from the firmware: the console is the USART3 adapter (§2). In
@@ -114,7 +120,7 @@ unreadable input). `$ELF` and `$PKG` are those of §4.
 | 8 | KISS frames, USART2 | Adapter on PD5/PD6 at 9600 8N1; build a frame with `software/ground/tools/telecommand_builder.py <command> --key-file <throwaway key> --counter 1 --ax25 <spacecraft call> <station call> --kiss --out frame.bin`, then `stty -F /dev/ttyUSB1 9600 raw && cat frame.bin > /dev/ttyUSB1` | With no key provisioned the command is refused: a `[FAULT]` line with the rejection reason appears on the console (the first of a run of rejections is logged). Executing a command (HIL-031 proper) needs a provisioned key over the GSE port | HIL-031 (part) |
 | 9 | Loop timing and stack again | Steps 4 and 5 again after steps 7 and 8, before any reset (a reset repaints the budget and zeroes the timing). Step 6 reset the board last, so this covers the boot and steps 7-8 | As steps 4 and 5 | HIL-040, HIL-044 |
 | 10 | Watchdog timeout | The HIL-003 commands below | The processor resets within 30 s of the halt; the next boot's reset cause is WATCHDOG (2) | HIL-003 |
-| 11 | Stack guard | Power-cycle first if the runner was used (§4); `tools/guard_test.py --elf "$ELF"` after a minute of running | MemManage in the guard (CFSR.MSTKERR, or DACCVIOL with MMFAR in 0x2009DFE0-0x2009DFFF), then a reset, then reset cause WATCHDOG (2) | HIL-004 |
+| 11 | Stack guard | Power-cycle first if the runner was used (§4); `tools/guard_test.py --elf "$ELF"` after a minute of running | MemManage in the guard (CFSR.MSTKERR, or DACCVIOL with MMFAR in 0x2003DFE0-0x2003DFFF), then a reset, then reset cause WATCHDOG (2) | HIL-004 |
 
 Notes on the steps:
 
@@ -126,7 +132,7 @@ Notes on the steps:
 - **Step 4.** `SQSO_LOOP_TIMING` (`src/timing.rs`) holds the last and longest `Executive::step()` pass in core cycles
   (80 MHz), the passes over 20 ms and the passes recorded, counted from boot (step 9 reads it again after the
   interface checks). The cycle counter stops while the core is halted.
-- **Step 5.** The script reads 0x2009E000-0x2009FFFF without halting the core and computes used = 8192 − 4 × the
+- **Step 5.** The script reads 0x2003E000-0x2003FFFF without halting the core and computes used = 8192 − 4 × the
   words still painted with 0x57ACC0DE from the bottom (`src/stack.rs`). A result above the static worst case means the
   static analysis (`scripts/stack_usage.py`) missed a path: stop and report it.
 - **Step 7.** The OBC sends to the Jetson only while the EPS logic has the payload enabled and the telemetry interval
@@ -149,7 +155,7 @@ Notes on the steps:
   Whether the core comes out of the reset halted (C_HALT kept over a system reset) was not checked; the run write
   covers both cases. The console then shows the banner again, and telemetry lines to the Jetson carry
   `WATCHDOG=TRIGGERED`.
-- **Step 11 (HIL-004).** `tools/guard_test.py` halts the core, sets SP to 0x2009E010 (16 bytes above the guard) and
+- **Step 11 (HIL-004).** `tools/guard_test.py` halts the core, sets SP to 0x2003E010 (16 bytes above the guard) and
   resumes it, with the IWDG frozen while the core is halted (DBGMCU_APB1FZR1.DBG_IWDG_STOP, restored at the end), so
   the halt itself cannot expire it. It then polls the fault registers until the processor resets and reads the reset
   cause the firmware cached at boot (`RESET_CAUSE` in `src/wdt.rs`). It does not read RCC_CSR.IWDGRSTF for the verdict:
@@ -191,8 +197,8 @@ For every session, in the test record (`HIL_TEST_PLAN.md` §4.3):
 
 ## 8. Provisional
 
-- The pin map (`src/gpio.rs` and the drivers), until the OBC schematic baselines a pinout;
-  `hardware/obc/OBC_DESIGN.md` and `hardware/obc/STORAGE_DESIGN.md` disagree on PA4-PA7 and PC0-PC1.
+- The drivers of the gyros, magnetometer, sun-sensor ADC, INA228s, mission clock and magnetorquers (built against the
+  data sheets and register-level mocks; first run on the OBC EM, AV-V1 to AV-V5).
 - The NUCLEO details marked *(UM2179)*.
 - The ADC front-end scaling (`src/adc.rs`).
 - The current limits in §3.

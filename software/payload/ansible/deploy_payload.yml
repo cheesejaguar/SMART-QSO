@@ -6,6 +6,7 @@
     repo_src: "{{ playbook_dir }}/../../.."
     dest_dir: "~/smart-qso"
     venv_dir: "{{ dest_dir }}/.venv"
+    payload_dir: "{{ ansible_env.HOME }}/smart-qso/software/payload"
   tasks:
     - name: Ensure destination directory exists
       ansible.builtin.file:
@@ -55,6 +56,25 @@
         pip install --upgrade pip
         pip install llama-cpp-python
 
+    # RID JETB-01: the 6.5 W VDD_IN cap and the 7 W mode at every boot
+    # (platform_config.py; the image itself is built with
+    # "platform_config.py image <Linux_for_Tegra>": board configuration
+    # without the carrier EEPROM, PCIe C4 Gen2 x1 overlay, nvpmodel default ID 1)
+    - name: Install the platform configuration service
+      become: true
+      ansible.builtin.template:
+        src: "{{ repo_src }}/software/payload/config/sqso-platform.service.j2"
+        dest: /etc/systemd/system/sqso-platform.service
+        mode: "0644"
+
+    - name: Enable and run the platform configuration
+      become: true
+      ansible.builtin.systemd:
+        name: sqso-platform.service
+        enabled: true
+        state: started
+        daemon_reload: true
+
     - name: Create run script
       ansible.builtin.copy:
         dest: "{{ dest_dir }}/run_payload.sh"
@@ -62,6 +82,8 @@
         content: |
           #!/usr/bin/env bash
           set -euo pipefail
+          systemctl is-active --quiet sqso-platform.service || {
+            echo "sqso-platform.service not active: the 6.5 W cap is not set" >&2; exit 1; }
           source "{{ venv_dir }}/bin/activate"
           export LLAMA_MODEL="${LLAMA_MODEL:-/models/SmolLM2-360M-Instruct-Q4_K_M.gguf}"
           exec python -m software.payload.agent

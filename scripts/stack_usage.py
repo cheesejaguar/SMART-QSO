@@ -190,8 +190,9 @@ def sp_push(insn: Insn) -> int:
     if re.search(r"\[sp\], #\d+$", ops) and base.startswith(("ldr", "vldr")):
         return 0
     dest = ops.split(",")[0].strip()
-    # stores, compares and ldm/stm with sp as a base without writeback leave SP alone
-    writes_sp = dest == "sp" and not base.startswith(("str", "cmp", "cmn", "tst", "teq", "vstr", "stm", "ldm"))
+    # stores, compares and ldm/stm (and the FPU's vldm/vstm) with sp as a base
+    # without writeback leave SP alone
+    writes_sp = dest == "sp" and not base.startswith(("str", "cmp", "cmn", "tst", "teq", "vstr", "stm", "ldm", "vstm", "vldm"))
     # msr to MSP or PSP: objdump writes the register in capitals
     if writes_sp or "sp!" in ops or (base.startswith("msr") and re.search(r"\b[mp]?sp\b", ops, re.I)):
         raise AnalysisError(f"0x{insn.addr:08x}: unanalysable stack-pointer write '{insn.mnemonic} {ops}'")

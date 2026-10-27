@@ -299,17 +299,57 @@ pub fn measured_voltage(channel: &[u8], t: &crate::eps_telemetry::Telemetry) -> 
 }
 
 /// A current reading on `channel` from the EPS controller's telemetry (the
-/// Jetson's is the 5 V payload bus, SMART-QSO-ICD-001 §3.1)
+/// Jetson's is the eFuse U19's IMON, `IMON_JET`: the rail's current at
+/// VBAT, SQSO-JET-BRD-001 §12)
 pub fn measured_current(channel: &[u8], t: &crate::eps_telemetry::Telemetry) -> Numeric {
     match channel {
         b"battery_discharge" => {
             let val = t.discharge_a();
             Numeric { value: val, alarm: (val > MEASURED_HIGH_DISCHARGE_A).then_some(Alarm::HighDischargeCurrent) }
         }
-        b"jetson" => Numeric::plain(t.ibus_a),
+        b"jetson" => Numeric::plain(t.ijet_a),
         b"solar" => Numeric::plain(t.isolar_a),
         _ => Numeric::plain(0.0),
     }
+}
+
+/// The Jetson heat-spreader thermistor RT1 (TE GA10K3MCD1, the 10K3A
+/// curve), biased from VDDA through 10.0 kΩ on the OBC and read on PA2
+/// (ADC1_IN7) ratiometrically (SQSO-OBC-BRD-001 B §11.3; SQSO-JET-BRD-001 D
+/// §12.1; RID JETB-02): readable with the carrier off
+pub mod spreader {
+    /// Bias resistor, Ω
+    pub const BIAS_OHMS: f64 = 10_000.0;
+    /// Steinhart–Hart coefficients of the 10K3A curve (T in K, R in Ω)
+    pub const SH_A: f64 = 1.129_241e-3;
+    /// B
+    pub const SH_B: f64 = 2.341_077e-4;
+    /// C
+    pub const SH_C: f64 = 0.877_547e-7;
+    /// Valid pin voltage, V: outside it the thermistor is open or shorted,
+    /// a sensor fault that inhibits the Jetson's power-on
+    pub const VALID_V: (f64, f64) = (0.10, 3.25);
+    /// ADC full scale (12 bits)
+    pub const FULL_SCALE: f64 = 4095.0;
+}
+
+/// The spreader temperature, °C, from the 12-bit code `raw` and the pin
+/// voltage `volts`: R = 10.0 kΩ · N / (4095 − N), then Steinhart–Hart
+/// 1/T = A + B ln R + C (ln R)³; `None` (a sensor fault) outside
+/// [`spreader::VALID_V`]
+pub fn spreader_temperature(raw: u16, volts: f64) -> Option<f64> {
+    use spreader::{BIAS_OHMS, FULL_SCALE, SH_A, SH_B, SH_C, VALID_V};
+    if !(volts >= VALID_V.0 && volts <= VALID_V.1) {
+        return None;
+    }
+    let n = f64::from(raw);
+    if n <= 0.0 || n >= FULL_SCALE {
+        return None;
+    }
+    let r = BIAS_OHMS * n / (FULL_SCALE - n);
+    let l = crate::fmath::ln(r);
+    let inv_t = SH_A + SH_B * l + SH_C * l * l * l;
+    (inv_t > 0.0).then(|| 1.0 / inv_t - 273.15)
 }
 
 /// Seconds elapsed since `start_ms` (C unsigned arithmetic)
@@ -638,7 +678,8 @@ mod tests {
             vsolar_v: 13.0,
             isolar_a: 0.31,
             vbus_v: 5.02,
-            ibus_a: 1.1,
+            ibus_a: 0.2,
+            ijet_a: 1.1,
             ..Default::default()
         };
         assert_eq!(measured_voltage(b"battery", &t).value, 14.8);
@@ -884,5 +925,21 @@ units: V\n    period_ms: 1000\n  - id: BT\n    name: \"Battery Temperature\"\n  
         assert_eq!(n, 1);
         assert_eq!(until_nul(&defs[0].id), b"A");
         assert_eq!(until_nul(&defs[0].name), b"");
+    }
+
+    #[test]
+    fn spreader_thermistor_follows_the_10k3a_curve() {
+        // The table of SQSO-JET-BRD-001 D §12.1: V/Vref at -15, 25 and 70 °C
+        for (t, ratio) in [(-15.0, 0.8794), (25.0, 0.5000), (70.0, 0.1491), (-40.0, 0.9711), (100.0, 0.0635)] {
+            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // 0..4095
+            let raw = (ratio * 4095.0f64).round() as u16;
+            let got = spreader_temperature(raw, ratio * 3.3).unwrap();
+            assert!((got - t).abs() < 0.35, "{t}: {got}");
+        }
+        assert_eq!(spreader_temperature(4092, 3.299), None, "open: above 3.25 V");
+        assert_eq!(spreader_temperature(3, 0.002), None, "shorted: below 0.10 V");
+        assert_eq!(spreader_temperature(0, 1.0), None);
+        assert_eq!(spreader_temperature(4095, 1.0), None);
+        assert_eq!(spreader_temperature(2048, f64::NAN), None);
     }
 }

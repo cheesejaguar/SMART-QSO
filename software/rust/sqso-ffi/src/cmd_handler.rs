@@ -7,6 +7,9 @@
 //! does not build until it has a handler here (SW-04).
 
 use core::ffi::{CStr, c_char};
+use core::sync::atomic::{AtomicU32, Ordering};
+
+use sqso_fsw::ack::{Ack, Queue};
 
 use sqso_fsw::mode::{Event, State};
 use sqso_fsw::telecommand::{self, Admission, Rejection};
@@ -124,6 +127,8 @@ pub extern "C" fn cmd_handler_init() -> i32 {
         h.custom = [None; MAX_CUSTOM_HANDLERS];
         h.reject_logged = false;
     });
+    CONTACTS.store(0, Ordering::Relaxed);
+    let _ = ACKS.with(|q| *q = Queue::new());
     // Unprovisioned: fail closed
     let _ = cmd_auth::cmd_auth_init();
     with(|h| h.initialized = true);
@@ -143,9 +148,79 @@ fn reject(response: &mut CmdResponse, result: u32, reason: &CStr) {
     }
 }
 
+/// Authenticated commands counted as contact since boot (HK1 `CN`)
+static CONTACTS: AtomicU32 = AtomicU32::new(0);
+
+/// Acknowledgements waiting for the downlink (GND-03)
+static ACKS: Global<Queue> = Global::new(Queue::new());
+
 fn contact() {
     // SAFETY: no arguments
     unsafe { c::contact_monitor_contact() };
+    CONTACTS.fetch_add(1, Ordering::Relaxed);
+}
+
+/// Authenticated commands counted as contact since boot
+pub(crate) fn contacts() -> u32 {
+    CONTACTS.load(Ordering::Relaxed)
+}
+
+/// Queue the acknowledgement of a command whose counter was spent
+fn acknowledge(counter: u32, result: u32) {
+    let days = crate::contact_monitor::contact_monitor_seconds_since_contact() / 86_400;
+    let queued_ms = c::now_ms();
+    let _ = ACKS.with(|q| q.push(Ack { counter, result, days, queued_ms }));
+}
+
+/// The oldest acknowledgement still to send
+pub(crate) fn next_ack(now_ms: u64) -> Option<Ack> {
+    ACKS.with(|q| q.front(now_ms)).flatten()
+}
+
+/// The oldest acknowledgement went out
+pub(crate) fn ack_sent() {
+    let _ = ACKS.with(Queue::pop);
+}
+
+/// The oldest acknowledgement waiting (`cmd_handler.h`): false if none
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn cmd_ack_pending(counter: *mut u32, result: *mut u32, days: *mut u32) -> bool {
+    // SAFETY: the C contract: NULL or a live uint32_t each
+    let (Some(counter), Some(result), Some(days)) =
+        (unsafe { ptr::out(counter) }, unsafe { ptr::out(result) }, unsafe { ptr::out(days) })
+    else {
+        return false;
+    };
+    match next_ack(c::now_ms()) {
+        Some(a) => {
+            *counter = a.counter;
+            *result = a.result;
+            *days = a.days;
+            true
+        }
+        None => false,
+    }
+}
+
+/// Authenticated commands counted as contact since boot (HK1 `CN`)
+#[unsafe(no_mangle)]
+pub extern "C" fn cmd_contact_count() -> u32 {
+    contacts()
+}
+
+/// A rejection's result code and fault-log text
+fn rejection(why: Rejection) -> (u32, &'static CStr) {
+    match why {
+        Rejection::InvalidFrame => (result::INVALID_CMD, c"Invalid command frame"),
+        Rejection::Malformed => (result::INVALID_PARAM, c"Telecommand payload malformed"),
+        Rejection::AuthFailed(_) => {
+            with(|h| h.stats.auth_failures = h.stats.auth_failures.wrapping_add(1));
+            (result::AUTH_FAIL, c"Telecommand authentication failed")
+        }
+        Rejection::UnknownCommand => (result::INVALID_CMD, c"Unknown command ID"),
+        Rejection::ArgLength => (result::INVALID_PARAM, c"Command argument length"),
+        Rejection::CounterNotPersisted => (result::EXEC_FAIL, c"Command counter not persisted"),
+    }
 }
 
 /// Process a received uplink frame (see cmd_handler.h)
@@ -174,21 +249,12 @@ pub unsafe extern "C" fn cmd_process(raw_data: *const u8, data_len: usize, respo
             if let Some(counter) = counter {
                 response.sequence_num = counter.to_le_bytes()[0];
             }
+            let (code, reason) = rejection(why);
+            reject(response, code, reason);
             if was_contact {
                 contact();
+                acknowledge(counter.unwrap_or(0), code);
             }
-            let (code, reason) = match why {
-                Rejection::InvalidFrame => (result::INVALID_CMD, c"Invalid command frame"),
-                Rejection::Malformed => (result::INVALID_PARAM, c"Telecommand payload malformed"),
-                Rejection::AuthFailed(_) => {
-                    with(|h| h.stats.auth_failures = h.stats.auth_failures.wrapping_add(1));
-                    (result::AUTH_FAIL, c"Telecommand authentication failed")
-                }
-                Rejection::UnknownCommand => (result::INVALID_CMD, c"Unknown command ID"),
-                Rejection::ArgLength => (result::INVALID_PARAM, c"Command argument length"),
-                Rejection::CounterNotPersisted => (result::EXEC_FAIL, c"Command counter not persisted"),
-            };
-            reject(response, code, reason);
             rc::OK
         }
         Admission::Accepted { command, contact: was_contact } => {
@@ -210,7 +276,13 @@ pub unsafe extern "C" fn cmd_process(raw_data: *const u8, data_len: usize, respo
                 *dst = *src;
             }
             // SAFETY: both point to live locals / the caller's response
-            unsafe { cmd_execute(&cmd, response) }
+            let status = unsafe { cmd_execute(&cmd, response) };
+            // Acknowledged only when it counted as contact: never for the
+            // keyless TX_DISABLE, nor for a frame whose counter was not spent
+            if was_contact {
+                acknowledge(command.counter, response.result);
+            }
+            status
         }
     }
 }
@@ -271,6 +343,15 @@ fn ok_invalid_or_fail(code: i32) -> u32 {
         rc::OK => result::SUCCESS,
         rc::INVALID => result::INVALID_PARAM,
         _ => result::EXEC_FAIL,
+    }
+}
+
+/// A refusal by the module (`ERROR`) is NOT_ALLOWED: passivation not armed,
+/// or already done
+fn allowed_or(code: i32) -> u32 {
+    match code {
+        rc::ERROR => result::NOT_ALLOWED,
+        other => ok_invalid_or_fail(other),
     }
 }
 
@@ -362,6 +443,10 @@ fn dispatch(command: Command, cmd: &CmdCommand, response: &mut CmdResponse) -> u
         }
         Command::SetPower => ok_invalid_or_fail(unsafe { c::rf_control_set_power_level(u32::from(cmd.payload[0])) }),
         Command::PldEnable => {
+            // Not while the commissioning hold is set (LV-01)
+            if crate::ops_state::ops_commissioning_hold() {
+                return result::NOT_ALLOWED;
+            }
             let _ = unsafe { c::sys_set_payload_enabled(true) };
             result::SUCCESS
         }
@@ -369,6 +454,63 @@ fn dispatch(command: Command, cmd: &CmdCommand, response: &mut CmdResponse) -> u
             let _ = unsafe { c::sys_set_payload_enabled(false) };
             result::SUCCESS
         }
+        Command::CommissioningRelease => ok_invalid_or_fail(crate::ops_state::ops_set_commissioning_hold(false)),
+        Command::GetHousekeeping => {
+            crate::executive::request_housekeeping();
+            result::SUCCESS
+        }
+        Command::XpdrEnable => ok_invalid_or_fail(crate::ops_state::ops_set_xpdr_enabled(true)),
+        Command::XpdrDisable => ok_invalid_or_fail(crate::ops_state::ops_set_xpdr_enabled(false)),
+        Command::DeployRetry => {
+            // The optional second byte: 1 forces the antenna past its
+            // temperature gate (decision C-18)
+            let force = match (cmd.payload_len, cmd.payload[1]) {
+                (0 | 1, _) | (_, 0) => Some(false),
+                (_, 1) => Some(true),
+                _ => None,
+            };
+            match (cmd.payload[0], force) {
+                (0 | 1, Some(f)) if crate::deployment::deployment_retry(u32::from(cmd.payload[0]), f) => {
+                    result::SUCCESS
+                }
+                (0, Some(_)) | (1, Some(false)) => result::NOT_ALLOWED,
+                _ => result::INVALID_PARAM,
+            }
+        }
+        Command::GnssRequest => {
+            crate::executive::request_gnss_session();
+            result::SUCCESS
+        }
+        Command::AdcsSetGeometry => ok_invalid_or_fail(crate::ops_state::ops_set_adcs_geometry(cmd.payload[0])),
+        Command::AdcsSetGyroAlign => {
+            ok_invalid_or_fail(crate::adcs_control::gyro_alignment_command(cmd.payload.get(..36).unwrap_or(&[])))
+        }
+        Command::AdcsSetMagBias => {
+            ok_invalid_or_fail(crate::adcs_control::mag_bias_command(cmd.payload.get(..13).unwrap_or(&[])))
+        }
+        Command::DumpTlm => {
+            let p = &cmd.payload;
+            let first = u32::from_be_bytes([p[1], p[2], p[3], p[4]]);
+            ok_invalid_or_fail(crate::hk_store::hk_store_dump(p[0], first, u16::from_be_bytes([p[5], p[6]])))
+        }
+        Command::EpsDisableTrackers => ok_invalid_or_fail(crate::eps_supervision::disable_trackers(cmd.payload[0])),
+        Command::FramBypass => {
+            // SAFETY: the payload holds payload_len bytes
+            allowed_or(unsafe { crate::fram_health::fram_bypass(cmd.payload.as_ptr(), usize::from(cmd.payload_len)) })
+        }
+        Command::EpsClearLockout => {
+            // SAFETY: the payload holds payload_len bytes
+            ok_invalid_or_fail(unsafe {
+                crate::eps_lockout::eps_lockout_clear(cmd.payload.as_ptr(), usize::from(cmd.payload_len))
+            })
+        }
+        Command::PassivateArm => {
+            // SAFETY: the payload holds payload_len bytes
+            allowed_or(unsafe {
+                crate::passivation::passivation_arm(cmd.payload.as_ptr(), usize::from(cmd.payload_len))
+            })
+        }
+        Command::PassivateExecute => allowed_or(crate::passivation::passivation_execute()),
     }
 }
 

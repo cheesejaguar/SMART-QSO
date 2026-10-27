@@ -2,10 +2,10 @@
 ## SMART-QSO Amateur Space Station
 
 **Document Number:** SQSO-REG-014
-**Revision:** A
-**Date:** 2026-10-14
+**Revision:** A.2
+**Date:** 2026-10-27
 **Status:** Templates. Complete and file at the times shown. Fields in `[brackets]` are fill-ins.
-**Rule:** 47 CFR 97.207(g)(2) and (g)(3) (eCFR, current as of 2026-10-13)
+**Rule:** 47 CFR 97.207(g)(2) and (g)(3) (eCFR version of 2026-10-01, unchanged). Planned dates: in-space by **2028-11-08** for the 2028-11-01 planning launch; post-space by **2031-02-01** for an end of transmissions on 2030-11-01 (REGULATORY_ROADMAP Rev C §3; BASELINE Rev E §3)
 
 | Notification | Deadline (rule text) |
 |--------------|----------------------|
@@ -48,7 +48,7 @@ procedure (`docs/operations/COMMISSIONING_PLAN.md`).
 > **Date:** `[≤ 3 months after termination; ≤ 24 hours if termination was ordered by the FCC]`
 >
 > 1. **Licensee:** `[name]`, KK6GDB
-> 2. **Termination of transmissions:** `[UTC date/time]`; method `[telecommand TX-OFF / autonomous EOL passivation / loss of power / re-entry]`; confirmed by `[ground observation]`.
+> 2. **Termination of transmissions:** `[UTC date/time]`; method `[telecommand TX-OFF and passivation / loss of power / re-entry]` (autonomous end-of-life passivation is proposed, not implemented; do not cite it unless it is built and was the cause); confirmed by `[ground observation, SatNOGS observation IDs]`.
 > 3. **Reason:** `[end of mission / anomaly / FCC order dated ...]`
 > 4. **Passivation status** (compare pre-space disclosure 97.207(g)(1)(iii)): battery charge path `[permanently disabled at UTC ...]`; RF transmitters `[disabled]`; residual stored energy `[description]`.
 > 5. **Orbit at termination:** apogee `[ ]` km, perigee `[ ]` km; predicted re-entry `[date range]` (DAS / Space-Track decay prediction).
@@ -63,3 +63,5 @@ procedure (`docs/operations/COMMISSIONING_PLAN.md`).
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial templates (funding audit) |
+| A.1 | 2026-10-27 | CDR review (communications panel): rule currency, planned dates, termination methods limited to what is implemented |
+| A.2 | 2026-10-27 | CDR 2026 consistency pass: planned dates for the 2028-11-01 planning launch (BASELINE Rev E §3) |

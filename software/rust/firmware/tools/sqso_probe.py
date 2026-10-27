@@ -5,7 +5,7 @@ The scripts drive the `probe-rs` command-line tool (crate probe-rs-tools)
 with two of its subcommands only, `probe-rs read` and `probe-rs write`,
 which every release since 0.2x has. They were written against probe-rs
 0.32.0 (2026-07), whose `read` prints a hex table by default
-("2009e000: 57acc0de 57acc0de ..."); the plain list of earlier releases
+("2003e000: 57acc0de 57acc0de ..."); the plain list of earlier releases
 and of `--format simple-hex` is read as well. Two behaviours of 0.32.0
 the scripts allow for: `read` resumes a halted core when it ends, and on
 STM32L4 a session leaves DHCSR and DEMCR as they were when it ends (the

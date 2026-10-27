@@ -1,14 +1,20 @@
 # SMART-QSO Mission Assurance Plan
 
 **Document ID**: SQSO-MAP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 2.0
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: CDR draft. §1, §2.2–§2.3, §5.2, §6.2, §7 and §8 rewritten by the CDR S&MA review; the other sections are
+the Version 1.0 framework, still to be staffed (risk R14)
 
 ## 1. Purpose
 
-This document defines the Mission Assurance Plan for SMART-QSO per NPR 8735.2, establishing the quality assurance, reliability, and safety practices to ensure mission success.
+This document defines the Mission Assurance Plan for SMART-QSO: the quality assurance, reliability, safety, parts,
+materials, workmanship and contamination practices for a **Class D** payload (NPR 8705.4B, Risk Classification for NASA
+Payloads, effective 2024-11-01). SMART-QSO is not a NASA mission; NASA documents are used as the recognised standard of
+practice. The structure follows SMD SPD-39 (*Standard Mission Assurance Requirements for Payload Classification D*,
+2021) as a template, tailored below. Version 1.0 cited NPR 8735.2 as its basis; NPR 8735.2 covers hardware quality
+assurance surveillance of NASA contracts, and is used here only for the inspection practices of §4.
 
 ## 2. Mission Assurance Approach
 
@@ -35,12 +41,13 @@ Principles:
 
 ### 2.2 Tailoring Rationale
 
-| Full NPR 8735.2 | SMART-QSO Tailoring | Rationale |
-|-----------------|---------------------|-----------|
-| Independent MA org | Embedded in team | Small team |
-| Formal audits | Peer reviews | Efficiency |
-| Full documentation | Essential docs | Resources |
-| MRB for all NCRs | Engineering disposition | Speed |
+| Practice (SPD-39 / NASA norm) | SMART-QSO tailoring | Rationale |
+|-------------------------------|---------------------|-----------|
+| Independent S&MA organisation | S&MA lead role independent of the design leads; independent review at PDR, CDR and before shipment | Small team (R14) |
+| Formal audits | Peer reviews plus mandatory inspection points (§4.2) | Resources |
+| Material Review Board for every NCR | Engineering disposition for minor NCRs; MRB (PI, systems engineer, S&MA lead) for major ones and any use-as-is on flight hardware | Speed with control |
+| Space-grade EEE parts | Commercial parts with screening, traceability and finish controls (§7) | Class D; cost |
+| Full M&P control (NASA-STD-6016C) | Outgassing, prohibited materials, stress-corrosion and fastener controls only (§7.4) | Containerized 1U, no crew contact on the baseline path |
 
 ### 2.3 Classification
 
@@ -49,7 +56,7 @@ Principles:
 | Mission | Class D |
 | Safety | The software has safety-critical components (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2; Safety Data Package §3.2) |
 | Software | Class C per NPR 7150.2D (flight software and ground software used in operations); Class D for research and analysis tools (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1) |
-| EEE Parts | Level 3 |
+| EEE Parts | NASA-STD-8739.10 Level 4 (commercial) with project screening for mission-critical parts (§7; `docs/manufacturing/EEE_PARTS_LIST.md` Rev C §2A) |
 
 ## 3. Organization
 
@@ -131,12 +138,9 @@ Engineer     │
 
 ### 5.2 Critical Items
 
-| Item | Criticality | Control |
-|------|-------------|---------|
-| Battery | Safety/Mission | Special handling |
-| OBC | Mission | ESD controls |
-| RF PA | Mission | Thermal control |
-| Solar cells | Mission | Handling procedures |
+The critical items list is `docs/safety/SYSTEM_FMEA_CIL.md` (SQSO-FMEA-002) §3: inhibits, battery and its protections,
+burn circuits and restraints, structure and fasteners (Category 1), and the bus single points (Category 2). Each has its
+controls and verification there. Reliability estimates and the early-failure program: `docs/environment/RELIABILITY_ANALYSIS.md` v2.0.
 
 ### 5.3 Failure Reporting
 
@@ -160,11 +164,9 @@ Engineer     │
 
 ### 6.2 Hazard Tracking
 
-| Hazard | Status | Verification |
-|--------|--------|--------------|
-| RF emission | Controlled | Timer test |
-| Battery | Controlled | Protection test |
-| Deployment | Controlled | Mechanism test |
+The system hazard log is `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` (SQSO-SDP-002) §5; software hazards are in
+SQSO-SDP-001. **Every hazard is open** until its verification evidence is filed. Version 1.0 listed RF emission,
+battery and deployment as "Controlled"; that is withdrawn (finding VV-05).
 
 ### 6.3 Safety Training
 
@@ -177,62 +179,89 @@ Engineer     │
 
 ## 7. Parts and Materials
 
-### 7.1 Parts Program
+### 7.1 EEE parts
 
-| Activity | Purpose |
-|----------|---------|
-| Parts selection | Appropriate grade |
-| Screening | Weed out infant mortality |
-| Derating | Reduce failure rate |
-| Traceability | Lot control |
+Policy, screening, traceability, radiation acceptance and finishes: `docs/manufacturing/EEE_PARTS_LIST.md` Rev C §2A.
+In brief:
 
-### 7.2 Parts Grades
+| Element | Requirement | Reference |
+|---------|-------------|-----------|
+| Grade | NASA-STD-8739.10 Level 4 (commercial); automotive or industrial grade preferred | NASA-STD-8739.10 (2017); SPD-39 |
+| Screening of mission-critical parts | EEE-INST-002 Level 3 principles applied at board level: receiving inspection, thermal cycling powered, ≥ 200 h burn-in with 100 h failure-free | GSFC EEE-INST-002 (2003, Addendum 1 2008) |
+| Lot traceability | Franchised sources only; one lot per part type; lot recorded on the traveler | SAE AS6081 practice for any other source |
+| Radiation | TID ≥ 10 krad by data, heritage or lot test; latch-up current limiters on every mission-critical rail | NASA/TM-20210018053; RADIATION_ANALYSIS Rev C |
+| Finishes | No pure tin (re-tin with Sn63Pb37 or conformal coat), no cadmium, no zinc plating | UG v11 Table 5-5; GEIA-STD-0005-2, GEIA-STD-0006 |
+| Derating | EEE_PARTS_LIST §12 | — |
 
-| Grade | Use | Screening |
-|-------|-----|-----------|
-| Space-grade | Critical | Per spec |
-| Industrial | General | Temperature |
-| Commercial | Non-critical | Sample lot |
+### 7.2 Parts grades
 
-### 7.3 Prohibited Materials
+| Grade | Use |
+|-------|-----|
+| Space-grade or heritage assemblies | Where available at comparable cost (AntS, bought panels, magnetometer) |
+| Automotive / industrial commercial with screening | All mission-critical custom boards (OBC, EPS, radios) |
+| Commercial, isolated by a load switch | Jetson, GNSS, backup gyro |
 
-| Material | Reason |
-|----------|--------|
-| Pure tin | Whiskers |
-| Zinc | Corrosion |
-| Cadmium | Toxicity |
-| PVC | Outgassing |
+### 7.3 Prohibited materials
 
-### 7.4 Materials Control
+Per the SpaceX Rideshare Payload User's Guide v11 Table 5-5, which applies to a containerized CubeSat (§5.3): cadmium and
+cadmium plating, zinc plating, mercury and its compounds, pure tin and tin electroplate. Also PVC (outgassing, chlorine)
+and Sharpie markers. Where each could enter the design and its control: `docs/compliance/MATERIALS_LIST.md` Rev B §2.2.
 
-| Requirement | Method |
-|-------------|--------|
-| Outgassing | ASTM E595 compliance |
-| Flammability | NASA-STD-6001 |
-| Toxicity | Review |
-| Corrosion | Material selection |
+### 7.4 Materials and processes (NASA-STD-6016C with Change 1, tailored)
+
+| Requirement | Method | Applies |
+|-------------|--------|---------|
+| Outgassing TML ≤ 1.0 %, CVCM ≤ 0.1 % (CDS 2.1.7; UG v11 RML ≤ 1.0 %) | ASTM E595 data with a cited source for every non-metallic material (MATERIALS_LIST Rev B); bakeout in TVAC | All |
+| Stress-corrosion cracking | Alloys from MSFC-STD-3029 Table I (high resistance): 6061-T6, 7075-T73 preferred to 7075-T6 for stressed parts, A286, 300-series, Ti-6Al-4V | Structure, fasteners |
+| Threaded fasteners | Locking feature on every fastener (UG v11 §5.2), torque table, NASA-STD-5020B practice for preload; staking with an E595-compliant adhesive; no thread-locker alone on polymer-bushed joints | Structure, battery mount |
+| Galvanic compatibility | Conversion-coated aluminium against stainless or titanium; no bare dissimilar contact in moisture-exposed stowage | Structure |
+| Flammability and offgassing toxicity | NASA-STD-6001B, **only for the ISS backup path** | ISS path |
+| Lubricants | Dry-film on Ti threads; no silicone oils near optics or sun sensors | Mechanisms |
+
+### 7.5 Materials control
+
+Every material is entered in MATERIALS_LIST before use on flight hardware; a material without data is used only with an
+NCR disposition or a UG v11 rationale code agreed with the integrator.
 
 ## 8. Process Control
 
 ### 8.1 Controlled Processes
 
-| Process | Control Document |
-|---------|------------------|
-| Soldering | NASA-STD-8739.3 |
-| Crimping | NASA-STD-8739.4 |
-| Bonding | NASA-STD-8739.6 |
-| Cleaning | SQSO-WKS-001 |
-| ESD handling | ANSI/ESD S20.20 |
+| Process | Standard | Notes |
+|---------|----------|-------|
+| Implementation of the NASA workmanship standards, ESD control | **NASA-STD-8739.6B** (effective 2021-02-04) | Adopts IPC J-STD-001 with its space addendum, IPC/WHMA-A-620 with its space addendum, and ANSI/ESD S20.20 with NASA additions |
+| Soldering | IPC J-STD-001 (current revision) with the Space and Military Applications Electronic Hardware Addendum, as invoked by NASA-STD-8739.6B; acceptance to IPC-A-610 Class 3 | NASA-STD-8739.3 (soldering) was cancelled and is not used |
+| Crimping, interconnecting cables, harnesses and wiring | **NASA-STD-8739.4A** (2016), with IPC/WHMA-A-620 space addendum per 8739.6B | Lacing instead of nylon ties |
+| Polymeric application: conformal coating, staking, bonding of parts on assemblies | **NASA-STD-8739.1B** (*Workmanship Standard for Polymeric Application on Electronic Assemblies*) | Version 1.0 listed "bonding" under 8739.6; that standard is the implementation standard, not bonding |
+| Fiber optics | NASA-STD-8739.5 | Not applicable (no fiber) |
+| Cleaning and contamination | `docs/integration/CONTAMINATION_CONTROL_PLAN.md` v2.0 | §8.4 |
+| ESD | ANSI/ESD S20.20 (current revision) as supplemented by NASA-STD-8739.6B | §8.3 |
 
 ### 8.2 Operator Certification
 
 | Process | Certification |
 |---------|---------------|
-| Soldering | J-STD-001 |
-| Crimping | NASA-STD-8739.4 |
-| Inspection | IPC-A-610 |
+| Soldering, inspection | IPC J-STD-001 space addendum certified operator or inspector (CIS), per NASA-STD-8739.6B training requirements |
+| Crimping and harness | NASA-STD-8739.4A / IPC/WHMA-A-620 space addendum |
+| Conformal coat and staking | NASA-STD-8739.1B |
+| ESD | ANSI/ESD S20.20 awareness, annual |
 
-### 8.3 Equipment Calibration
+Until the team has certified operators (R14, R23), flight boards are assembled by a contract manufacturer certified to
+J-STD-001 with the space addendum.
+
+### 8.3 ESD Control
+
+ESD-protected area per ANSI/ESD S20.20 and NASA-STD-8739.6B for all work on flight and EM boards: grounded work
+surfaces and wrist straps verified at each use, ionisers for insulators that cannot be removed, ESD-shielding bags for
+storage and transport, and the device sensitivity assumed to be 100 V HBM unless the data sheet says otherwise.
+
+### 8.4 Contamination Control
+
+Per `docs/integration/CONTAMINATION_CONTROL_PLAN.md` v2.0: assembly in an ISO 14644-1 Class 8 area (the PPF class,
+UG v11 Table 4-12), visual cleanliness to the integrator's level before delivery, bakeout in thermal vacuum, bagging
+in ESD-safe low-outgassing film.
+
+### 8.5 Equipment Calibration
 
 | Equipment | Interval |
 |-----------|----------|
@@ -441,3 +470,4 @@ NONCONFORMANCE PROCESS
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.0, note | 2026-10-25 | SMART-QSO Team | §2.3 software row cites the NPR 7150.2D determination (SDP §3.1); the class is unchanged. Safety row: the software has safety-critical components (SDP §3.2), not "non-hazardous" |
+| 2.0 | 2026-10-27 | CDR S&MA review | Class D basis (NPR 8705.4B, SPD-39 template) replaces the NPR 8735.2 citation; tailoring table; critical items and hazard log point to SQSO-FMEA-002 and SQSO-SDP-002 (hazards reopened); §7 EEE policy (NASA-STD-8739.10 Level 4, EEE-INST-002 screening, traceability, radiation, tin and prohibited finishes), M&P per NASA-STD-6016C tailored; §8 workmanship standards corrected (8739.6B, J-STD-001 space addendum, 8739.4A, 8739.1B; 8739.3 cancelled), ESD and contamination |

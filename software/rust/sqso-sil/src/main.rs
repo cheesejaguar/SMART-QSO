@@ -1,7 +1,7 @@
 //! `sqso_sil`: the SMART-QSO software-in-the-loop mission simulation.
 //!
 //! ```text
-//! sqso_sil [--scenario full|year|commissioning|smoke] [--out DIR] [--set key=value]...
+//! sqso_sil [--scenario full|year|commissioning|ants_cold|smoke] [--out DIR] [--set key=value]...
 //! ```
 //!
 //! Runs the flight software from integration to re-entry (the `full`
@@ -16,7 +16,7 @@ use std::process::ExitCode;
 use sqso_sil::config::Config;
 
 fn usage() -> ExitCode {
-    eprintln!("usage: sqso_sil [--scenario full|year|commissioning|smoke] [--out DIR] [--set key=value]...");
+    eprintln!("usage: sqso_sil [--scenario full|year|commissioning|ants_cold|smoke] [--out DIR] [--set key=value]...");
     ExitCode::from(2)
 }
 

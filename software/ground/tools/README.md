@@ -1,8 +1,8 @@
 # SMART-QSO Ground Software Tools
 
 **Document ID**: SMART-QSO-GND-000
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 
 Ground segment utilities for SMART-QSO satellite operations.
 
@@ -59,6 +59,17 @@ python telecommand_builder.py TX_DISABLE --key-file /secure/sqso.key \
 
 Keep one counter file per key (operational and recovery), and start a new operational counter file after each KEY_ROTATE.
 
+With two or more telecommand stations, counters come from UTC (SQSO-ICD-013 §5.2.1):
+`counter = 4 × (UTC s since 2028-01-01) + station index`. Each station keeps its own counter file and a
+`station.json` with its index; the builder refuses unless the kernel reports the clock synchronised with a maximum
+error ≤ 0.5 s, and never goes below its own last counter or the newest acknowledged counter of any station.
+
+```bash
+echo '{"station": "KK6GDB", "station_index": 0}' > station.json
+python telecommand_builder.py NOP --key-file /secure/sqso.key --counter-file /secure/op.ctr \
+    --counter-from-utc --station-config station.json --newest-ack 2915678401 --ax25 KK6GDB-11 KK6GDB --kiss
+```
+
 ### key_provision.py
 Generates a telecommand key set and the GSE frames that load it through the umbilical (integration only; SQSO-ICD-013 §9.2).
 Key files and frame files contain secrets: they are written mode 600 and are never overwritten. Keep `recovery.key` offline.
@@ -68,6 +79,21 @@ python key_provision.py generate --dir /secure/sqso-keys
 python key_provision.py frames --dir /secure/sqso-keys --out /secure/frames.bin   # send over the umbilical, then delete
 python key_provision.py zeroize --out /secure/zeroize.bin
 ```
+
+### ephemeris_tool.py
+Operator ephemeris from the onboard GNSS fixes (SQSO-GND-002, `docs/ground/ORBIT_DETERMINATION_AND_EPHEMERIS.md`):
+decodes the GNSS state frames from beacon and telemetry archives (`gnss_frame.py`), fits the orbit by batch least
+squares with an estimated drag scale (`orbit_dynamics.py`, `orbit_determination.py`), and writes a CCSDS OEM 3.0 with a
+covariance per record, a TLE fitted with SGP4, and a report with residuals and the quality flag (GOOD, FAIR, POOR).
+
+```bash
+python ephemeris_tool.py --frames gnss_48h.jsonl --out-dir eph/ --gravity-file EGM2008.gfc --gravity-degree 12 \
+    --object-id 2028-123A --norad-id 99999                        # ITRF2000 OEM
+python ephemeris_tool.py --frames gnss_48h.jsonl --out-dir eph/ --frame EME2000 --dut1 0.071
+```
+
+Exit status 0 (GOOD or FAIR: upload), 2 (POOR: files prefixed NOT-FOR-UPLOAD_), 3 (FAIL: no products).
+`gnss_simulation.py` makes simulated fixes for rehearsals.
 
 ### pass_predictor.py
 Predicts satellite passes and calculates QSO fairness metrics.
@@ -93,8 +119,8 @@ pip install -r requirements.txt
 ## Requirements
 
 - Python 3.9+
-- numpy (optional, for pass predictor)
-- sgp4 (optional, for accurate orbit propagation)
+- numpy (the ephemeris tool; optional for the pass predictor)
+- sgp4 (the ephemeris tool's TLE; accurate pass prediction)
 
 ## Station Configuration Format
 

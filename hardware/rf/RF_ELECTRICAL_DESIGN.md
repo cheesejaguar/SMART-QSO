@@ -2,9 +2,9 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-003
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.3
+**Date:** 2026-10-27
+**Status:** Layout and fabrication guidelines for the RF board. Electrical requirements are in `docs/hardware/RF_DESIGN.md` v2.0 §2, which governs where this document differs (corrected in Version 1.1). Version 1.2: the schematic, parts and layout rules of record are `hardware/electrical/rf/RF_BOARD_DESIGN.md` (SQSO-RF-BRD-001), which supersedes §3–§10 of this document where they differ; the tables below are corrected to it.
 
 ---
 
@@ -20,20 +20,22 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Frequency | 145.825 MHz | 2m amateur band |
-| Modulation | AFSK | 1200 baud |
-| Output power | 0.5W / 2W | Selectable |
-| Spurious | < -50 dBc | All spurious |
-| Harmonics | 2nd < -30 dBc, 3rd < -40 dBc | |
-| Frequency stability | ±2 kHz | Over temperature |
+| Frequency | One IARU-coordinated frequency in 145.800–146.000 MHz (not 145.825 MHz) | RF-P001 |
+| Modulation | FM: AFSK 1200 bps ±3.0 kHz; voice repeat ±5.0 kHz | RF-P004 |
+| Output power | 0.5 W / 1 W (TX_PWR_SEL) | RF-P003; no 2 W level |
+| Spurious | ≤ 25 µW and ≤ −46 dBc at 1 W | 47 CFR 97.307(e) |
+| Harmonics | 2nd ≤ −46 dBc (−55 dBc design); **3rd ≤ −70 dBc** at the antenna port | RF-P008. Version 1.0's "2nd < −30 dBc, 3rd < −40 dBc" did not meet 97.307(e) |
+| Frequency stability | ±1.0 ppm over temperature (±146 Hz) | RF-P005 |
 
-### 2.2 Receiver Specifications (If Applicable)
+### 2.2 Receiver Specifications (required: the receiver is always on)
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Frequency | 435-438 MHz | 70cm amateur band |
-| Sensitivity | -115 dBm | 12 dB SINAD |
-| Selectivity | -60 dB @ ±25 kHz | Adjacent channel |
+| Frequency | One IARU-coordinated frequency in 435.000–437.300 MHz | RF-P002 |
+| Sensitivity | 12 dB SINAD at ≤ −122 dBm (C/N₀ 47.4 dB-Hz with T_sys 650 K) | RF-P006, RF-P011 |
+| Selectivity | ≥ 60 dB at ±25 kHz | RF-P010 |
+| RX filter | ≥ 60 dB at 144–146 MHz; ≥ 40 dB at 250–330 and 560–620 MHz; ≤ 1.5 dB in band | RF-P007 |
+| Full-duplex desense | ≤ 0.5 dB with the transmitter keyed at 1 W | RF-P009 |
 
 ---
 
@@ -43,54 +45,52 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| Reference oscillator | TCXO 16.368 MHz | ±1 ppm |
-| PLL synthesizer | ADF4351 or equiv | Fractional-N |
-| Loop filter | 2nd order | Per calculation |
-| VCO | Internal to IC | |
+| Reference oscillator | TCXO 40 MHz (Epson TG2016SMN) | ±0.5 ppm, −40…+85 °C, shared with the receiver |
+| PLL synthesizer | TI LMX2571 | Fractional-N, FSK I2S mode for analog FM |
+| Loop filter | 2nd order, 40 kHz bandwidth | 3.9 nF, 430 Ω + 39 nF |
+| VCO | Internal to IC (4668.8 MHz / 32) | |
 
 ### 3.2 Modulator
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| Audio input | Op-amp buffer | From MCU DAC |
-| Deviation control | Resistor divider | ±3 kHz deviation |
-| FM modulator | VCO modulation input | |
-| Pre-emphasis | RC network | Optional |
+| Audio input | 2:1 switch (TMUX1219): TNC AFSK or repeat audio | |
+| Deviation control | PCM1808 ADC full scale = ±6.3 kHz (digital) | ±3.0 kHz beacon, ±4.7 kHz repeat limit |
+| FM modulator | LMX2571 FSK deviation word over I2S | |
+| Pre-emphasis | None added (the uplink's is repeated) | |
 
 ### 3.3 Power Amplifier
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| Driver stage | RF transistor | +10 dBm |
-| Final stage | RF transistor | +33 dBm (2W) |
-| Bias network | Temperature compensated | |
-| Matching network | L-match | 50Ω |
+| Driver and final | Mitsubishi RD01MUS3 (2-stage) at 5.0 V | 0 dBm in, +30 dBm (1 W) maximum |
+| Bias network | Closed-loop APC on the common gate bias | 27.0 / 30.0 dBm |
+| Matching network | Two low-pass L sections, 7.5 → 19.4 → 50 Ω | Tuned by load-pull on the EM |
 
 ### 3.4 Output Filter
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| Low-pass filter | 7-element Chebyshev | Fc = 175 MHz |
-| Harmonic attenuation | > 40 dB @ 2nd harmonic | |
-| Insertion loss | < 0.5 dB | |
-| Return loss | > 15 dB | |
+| Low-pass filter | 7th-order elliptic with traps at 2f and 3f (`TRANSMITTER_DESIGN.md` 1.4 §7.3) | −3 dB at 171 MHz |
+| Harmonic attenuation | ≥ 65.5 dB at 2f, ≥ 88.2 dB at 3f (worst of 3,000) | |
+| Insertion loss | 0.36 dB nominal, 0.60 dB worst | |
+| Return loss | 18 dB nominal | |
 
-### 3.5 Antenna Switch (If RX)
+### 3.5 Antenna Ports (no T/R switch)
 
-| Block | Component | Notes |
-|-------|-----------|-------|
-| TX/RX switch | RF switch IC | SP2T |
-| Isolation | > 30 dB | |
-| Insertion loss | < 0.5 dB | |
+The transponder is full duplex on separate antennas (BASELINE §7), so there is **no TX/RX switch**: the 2 m transmitter
+feeds the 2 m element through the LPF, and the 70 cm element feeds the receiver through the RX filter. Isolation comes
+from the antennas (ANT-5) and the RX filter (RF-P007). Keep the two RF paths on opposite sides of the board under
+separate shield cans.
 
 ### 3.6 Control Interface
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| SPI interface | Level shifter | To OBC |
+| UART to the TNC, discrete lines | 3.3 V CMOS | SQSO-ICD-003 §4.2 |
 | Power control | Load switch | TX power gate |
 | Temperature sensor | NTC thermistor | PA monitoring |
-| Power detector | AD8318 | Forward power |
+| Power detector | RMS detector | Forward and reflected power (TX_FWD, TX_REV; SQSO-ICD-003 §4.2) |
 
 ---
 
@@ -110,12 +110,13 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 
 | Component | Primary | Alternate | Qty |
 |-----------|---------|-----------|-----|
-| Synthesizer | ADF4351 | Si5351 | 1 |
-| TCXO | ASTX-13 | ASVTX-13 | 1 |
-| PA transistor | RD01MUS1 | MRF101AN | 2 |
-| RF switch | PE42520 | SKY13286 | 1 |
-| LNA | BGA725 | SPF5189Z | 1 |
-| Power detector | AD8318 | LTC5507 | 1 |
+| Receiver | TI CC1200 (receive only, analog-FM mode) | — | 1 |
+| Synthesizer | TI LMX2571 | — | 1 |
+| TCXO | Epson TG2016SMN 40 MHz | — | 1 |
+| PA transistor | Mitsubishi RD01MUS3 (2-stage) | — | 1 |
+| RF switch | Not used (§3.5) | — | 0 |
+| LNA | Infineon BFP640F (6 mA) | — | 1 |
+| Power detector | AD8361 | TI LMH2121 | 2 |
 
 ### 4.3 RF Passives
 
@@ -134,11 +135,11 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 
 | Parameter | Value |
 |-----------|-------|
-| Dimensions | 70mm × 50mm (max) |
-| Layers | 4 (signal-GND-GND-signal) |
-| Thickness | 1.0mm |
-| Material | Rogers RO4003C or FR4 |
-| Dielectric constant | 3.55 (Rogers) |
+| Dimensions | PC/104 90.17 × 95.89 mm (stack board; 1.2: was 70 × 50 mm) |
+| Layers | 6 (RF – GND – signal – power – GND – components) |
+| Thickness | 1.6 mm |
+| Material | High-Tg FR-4 (IS410 or 370HR class); RF losses at 146/436 MHz do not need Rogers |
+| Dielectric constant | ≈ 4.2 |
 | Copper weight | 1 oz (35µm) |
 | Surface finish | ENIG |
 
@@ -146,8 +147,7 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| 50Ω microstrip (Rogers) | 0.55mm | On 1.0mm substrate |
-| 50Ω microstrip (FR4) | 0.8mm | On 1.0mm substrate |
+| 50Ω microstrip (FR4) | 0.37 mm | L1 over L2, 0.20 mm prepreg (confirm with the fabricator's solver) |
 | Ground via spacing | < λ/20 | Along RF traces |
 | Component spacing | > 2mm | Between RF stages |
 | Shielding gap | 0.5mm | For RF cans |
@@ -155,15 +155,19 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 ### 5.3 Stack-up
 
 ```
-Layer 1 (Top):     35µm Cu - RF, components
-Prepreg:           0.2mm (Rogers or FR4)
-Layer 2 (GND):     35µm Cu - Solid ground
-Core:              0.4mm
-Layer 3 (GND):     35µm Cu - Solid ground
-Prepreg:           0.2mm
-Layer 4 (Bot):     35µm Cu - Control, power
-                   ──────────
-Total:             ~1.0mm
+L1 (Top):   35 µm Cu - RF, components (three shield cavities)
+Prepreg:    0.20 mm
+L2:         35-70 µm Cu - solid ground
+Core:       ~0.5 mm
+L3:         35 µm Cu - signals
+Prepreg:    ~0.2 mm
+L4:         35 µm Cu - power planes by domain (+3V0_RX, +3V1_DIG, +5V_PA, +3V3_PA)
+Core:       ~0.5 mm
+L5:         35-70 µm Cu - solid ground
+Prepreg:    0.20 mm
+L6 (Bot):   35 µm Cu - digital components
+            ─────────
+Total:      1.6 mm
 ```
 
 ### 5.4 RF Layout Guidelines
@@ -194,15 +198,17 @@ Total:             ~1.0mm
 
 | Connector | Type | Purpose |
 |-----------|------|---------|
-| J1 | SMA female | Antenna output |
-| J2 | U.FL | Internal test |
+| J3, J4 | MMCX female jack, Molex 73415-1473, straight through-hole, top side, gold, non-magnetic; at (−34.5, −19.0) / (−34.5, −25.0) mm in a −X notch of the shield frame | 2 m balun outputs (+X, −X elements) |
+| J5, J6 | Same part, at (−34.5, +19.0) / (−34.5, +25.0) mm, outside the shield | 70 cm balun inputs (+Y, −Y elements) |
+| — | Cables: 1.37 mm micro-coax with Molex 73414-0351 right-angle MMCX plugs, down the −X wall gap (W10 v3; SQSO-RF-BRD-001 C §4.3) | To the AntS (MMCX ports assumed, VI-RFB-13) |
+| — | U.FL pads (DNP) | EM test at the LPF input and FL1 output |
 
 ### 6.2 Interface Connectors
 
 | Connector | Type | Purpose |
 |-----------|------|---------|
-| J3 | Molex Pico-Clasp 4-pin | Power input |
-| J4 | JST-SH 4-pin | SPI control |
+| J2 | Molex Pico-Clasp 6-pin | RADIO_3V3 and PA_5V (W4B) |
+| J1 | Samtec FTSH-107 (14 pos) | KISS UART, TX_PWR_SEL, XPDR_EN, readbacks, monitors (W4A v2) |
 
 ---
 
@@ -220,7 +226,7 @@ Total:             ~1.0mm
 
 | Parameter | Value |
 |-----------|-------|
-| Material | Tin-plated steel or mu-metal |
+| Material | Nickel-silver or copper alloy, not tin-plated (EEE_PARTS_LIST Rev C §2A.3 item 5; 1.2: tin-plated steel removed) |
 | Height | 5mm |
 | Attachment | Solder to ground pads |
 | Ventilation | Not required (vacuum) |
@@ -231,11 +237,11 @@ Total:             ~1.0mm
 
 ### 8.1 Harmonics Suppression
 
-| Harmonic | Attenuation |
-|----------|-------------|
-| 2nd (291 MHz) | > 30 dB |
-| 3rd (437 MHz) | > 40 dB |
-| 4th (583 MHz) | > 50 dB |
+| Harmonic | Requirement at the antenna port (1 W) |
+|----------|---------------------------------------|
+| 2nd (291.6–292.0 MHz) | ≤ −46 dBc (−55 dBc design) |
+| 3rd (437.4–438.0 MHz) | ≤ −70 dBc (desense; SQSO-LBA-001 §7.3) |
+| 4th (583.2–584.0 MHz) | ≤ −46 dBc |
 
 ### 8.2 Spurious Control
 
@@ -262,10 +268,11 @@ Total:             ~1.0mm
 
 | Component | Max Power | Notes |
 |-----------|-----------|-------|
-| PA (2W mode) | 4W | 50% efficiency |
-| Synthesizer | 0.3W | |
-| LNA | 0.1W | |
-| Total | 4.5W | |
+| PA (1 W setting) | 0.86 W | 59 % PA efficiency, saturated |
+| PA (0.5 W) | 0.87 W | 42.6 % |
+| Synthesizer + audio ADC | 0.22 W | while keyed |
+| Receiver (always) | 0.10–0.13 W | |
+| Total | 1.26–1.38 W keyed + receiver | SQSO-RF-BRD-001 §11 |
 
 ### 9.2 Thermal Management
 
@@ -335,3 +342,6 @@ Total:             ~1.0mm
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-27 | CDR review (communications panel): transmitter and receiver specifications to RF_DESIGN v2.0 (no 2 W level, 97.307(e) spurious, 3rd harmonic ≤ −70 dBc, ±1.0 ppm, receiver sensitivity, selectivity and RX filter); no T/R switch (full duplex on separate antennas); thermal at 1 W; interface lines per SQSO-ICD-003 v2.0 |
+| 1.2 | 2026-10-27 | CDR design completion, RF board | Tables corrected to the board design SQSO-RF-BRD-001: synthesizer, modulator, PA, filter, key components, board size (PC/104), 6-layer FR-4 stack-up, connectors, shield material (no tin-plated steel), dissipation |
+| 1.3 | 2026-10-27 | CDR design completion, RF board | §6.1 RF connectors to SQSO-RF-BRD-001 C §4.3: MMCX jacks (Molex 73415-1473) with positions, 1.37 mm cables with MMCX plugs (W10 v3), replacing SMA end launch |

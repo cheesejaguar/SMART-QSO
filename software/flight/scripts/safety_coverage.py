@@ -50,12 +50,22 @@ SAFETY_CRITICAL: Tuple[str, ...] = (
     # Payload thermal and over-current protection
     "sqso-fsw/src/payload_guard.rs", "sqso-ffi/src/payload_guard.rs",
     # RF transmit inhibit (SH-008)
-    "sqso-fsw/src/rf_control.rs", "sqso-ffi/src/rf_control.rs",
+    "sqso-fsw/src/rf_control.rs", "sqso-ffi/src/rf_control.rs", "sqso-fsw/src/ptt_watch.rs",
     "sqso-fsw/src/rf_silence.rs", "sqso-ffi/src/rf_silence.rs",
     "sqso-fsw/src/contact_monitor.rs", "sqso-ffi/src/contact_monitor.rs",
-    "sqso-ffi/src/separation_switch.rs",
+    "sqso-fsw/src/separation.rs", "sqso-ffi/src/separation_switch.rs",
+    # When the RAM copy of the TX-OFF latch is authoritative (the FRAM
+    # failed, the degraded mode: SH-008, RID P3F-A-06)
+    "sqso-fsw/src/fram_health.rs", "sqso-ffi/src/fram_health.rs",
     # The downlink's gate before the TNC enforces the same inhibits (SH-008)
     "sqso-fsw/src/downlink.rs", "sqso-ffi/src/downlink.rs",
+    # The FM transponder's enable heartbeat and duty limits; the
+    # commissioning hold and the transponder-enable record (RID FSW-05)
+    "sqso-fsw/src/transponder.rs",
+    "sqso-fsw/src/ops_state.rs", "sqso-ffi/src/ops_state.rs",
+    # The end-of-life passivation: its TX-OFF after the final report is an RF
+    # inhibit (SQSO-SHA-001 SW-HAZ-013, RID REG-12)
+    "sqso-fsw/src/passivation.rs", "sqso-ffi/src/passivation.rs",
 )
 
 EXEMPT = re.compile(r"//\s*COVERAGE-EXEMPT:\s*\S")

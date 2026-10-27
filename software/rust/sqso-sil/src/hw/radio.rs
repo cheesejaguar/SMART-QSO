@@ -9,9 +9,14 @@
 //! feed the OBC's ADC, which the downlink module watches.
 //!
 //! The FM transponder shares the transmitter (RF_PLAN: the beacon is
-//! time-shared with the transponder downlink): while `XPDR_EN` is high and
+//! time-shared with the transponder downlink): while its enable holds and
 //! a CTCSS-gated carrier is on the uplink, it keys the PA at the selected
 //! level and repeats the audio; a TNC frame takes the transmitter first.
+//! The enable is the heartbeat detector's ([`heartbeat_enable`]): the
+//! board's retriggerable monostable on `XPDR_EN` holds it for
+//! [`EN_HOLD_US`] after the last edge of the OBC's heartbeat, so a stopped
+//! heartbeat, or a level, disables the transponder within 50 ms
+//! (docs/hardware/BUILD_VS_BUY.md §3.2).
 
 use std::collections::VecDeque;
 
@@ -35,6 +40,18 @@ pub const RX_W: f64 = 0.15;
 pub const GAMMA2_DEPLOYED: f64 = 0.017;
 /// Antenna match when stowed (element folded against the structure): |Γ|² for VSWR about 8
 pub const GAMMA2_STOWED: f64 = 0.60;
+
+/// The heartbeat detector's hold after the last `XPDR_EN` edge, µs
+/// (`sqso_fsw::transponder::EN_HOLD_MS`)
+pub const EN_HOLD_US: u64 = sqso_fsw::transponder::EN_HOLD_MS as u64 * 1000;
+
+/// The transponder enable (`EN_OK`) the heartbeat detector gives, from the
+/// OBC's heartbeat (`Fsw::xpdr_heartbeat()`: its time now and when the wave
+/// stops or stopped, µs). The wave's last edge is at its end, or now while
+/// it runs; the enable holds until [`EN_HOLD_US`] after it
+pub fn heartbeat_enable(heartbeat: Option<(u64, u64)>) -> bool {
+    heartbeat.is_some_and(|(now, end)| now < end.saturating_add(EN_HOLD_US))
+}
 
 #[derive(Clone, Copy, Debug)]
 struct OnAir {
@@ -220,6 +237,20 @@ mod tests {
         let mut off = Radio { xpdr: true, ..Radio::default() };
         off.step(1.0, false, true, false, true);
         assert!(!off.xpdr_keyed && off.fwd_w == 0.0);
+    }
+
+    #[test]
+    fn a_stopped_heartbeat_disables_the_transponder_within_50_ms() {
+        assert!(!heartbeat_enable(None), "no heartbeat (a level, or the OBC off)");
+        // The wave runs until 1.000 s: enabled while it runs and for the
+        // monostable's hold after it, off from 50 ms after its last edge
+        let end = 1_000_000;
+        for now in (0..end).step_by(5_000) {
+            assert!(heartbeat_enable(Some((now, end))), "{now}");
+        }
+        assert!(heartbeat_enable(Some((end + 49_999, end))));
+        assert!(!heartbeat_enable(Some((end + 50_000, end))));
+        assert!(!heartbeat_enable(Some((end + 10_000_000, end))));
     }
 
     #[test]

@@ -1,5 +1,9 @@
-//! `hal_i2c.h`: bus 0 is I2C2 (EPS and power monitors; PF1 SCL / PF0 SDA),
-//! bus 1 is I2C4 (ADCS; PD12 SCL / PD13 SDA). Pins TBR (gpio.rs).
+//! `hal_i2c.h` (SQSO-ICX-001 B §4.3, D §6 rows 30-31): bus 0 is I2C2 (PF1
+//! SCL / PF0 SDA: the EPS controller 0x48, the INA228s 0x40 and 0x44), bus 1
+//! is I2C4 (PD12 SCL / PD13 SDA, through the TCA9517: the ADS7138 0x10 and
+//! the RM3100 0x20), bus 2 is I2C1 (PG14 SCL / PG13 SDA: the RV-3028-C7
+//! 0x52, alone on its bus), bus 3 is I2C3 (PG7 SCL / PB4 SDA, AF4: the AntS
+//! alone, side A 0x31 and side B 0x32). All at 100 kHz (`hal_i2c_init`).
 
 use embassy_embedded_hal::SetConfig;
 use embassy_stm32::i2c::{self, I2c, Master};
@@ -14,12 +18,19 @@ pub(crate) struct Bus {
     ready: bool,
 }
 
-static BUSES: [Shared<Bus>; 2] = [Shared::new(), Shared::new()];
+static BUSES: [Shared<Bus>; 4] = [Shared::new(), Shared::new(), Shared::new(), Shared::new()];
 
-pub(crate) fn install(eps: I2c<'static, Blocking, Master>, adcs: I2c<'static, Blocking, Master>) {
-    let [a, b] = &BUSES;
+pub(crate) fn install(
+    eps: I2c<'static, Blocking, Master>,
+    adcs: I2c<'static, Blocking, Master>,
+    rtc: I2c<'static, Blocking, Master>,
+    ants: I2c<'static, Blocking, Master>,
+) {
+    let [a, b, c, d] = &BUSES;
     a.install(Bus { i2c: eps, ready: false });
     b.install(Bus { i2c: adcs, ready: false });
+    c.install(Bus { i2c: rtc, ready: false });
+    d.install(Bus { i2c: ants, ready: false });
 }
 
 fn with_bus(bus: u32, f: impl FnOnce(&mut Bus) -> i32) -> i32 {

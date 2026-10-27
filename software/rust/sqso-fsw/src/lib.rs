@@ -37,37 +37,76 @@
 //! - [`watchdog`]: the supervised watchdog's task table (`watchdog_mgr.h`)
 //! - [`fmath`]: C `sqrt` and `round` for `no_std`
 //! - [`fixed`]: `{:.N}` text for an `f64` from a small stack frame (SRS-C003)
+//! - [`passivation`]: end-of-life passivation by two telecommands (`passivation.h`)
+//! - [`receiver`]: command-receiver supervision, recovery and failure evidence (`receiver.h`)
+//! - [`hk_store`]: stored housekeeping records and their dump (`hk_store.h`)
+//! - [`ack`]: the command acknowledgement frame (`cmd_handler.h`)
+//! - [`bus`]: the SPI and I2C traits the device drivers use
+//! - [`mg370`], [`bmi088`], [`rm3100`], [`ads7138`]: the ADCS sensors' drivers
+//! - [`adcs_sensors`]: the sensors' rails, bring-up and cold-spare gyro
+//! - [`mtq`]: the magnetorquer drive (duty, direction, polarity state)
+//! - [`rv3028`]: the mission clock (reset time stamps)
+//! - [`condition`]: a repeated condition logged at onset and clearance
+//! - [`jetson_power`]: the Jetson's switch-off, power-good and switch readbacks
+//! - [`ina228`]: the EPS's pack and array power monitors
 
 #![no_std]
 #![forbid(unsafe_code)]
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing, clippy::panic))]
 
+pub mod ack;
 pub mod adcs;
+pub mod adcs_sensors;
+pub mod ads7138;
+pub mod ants;
 pub mod assert_handler;
 pub mod beacon;
+pub mod bmi088;
+pub mod bus;
+pub mod cold_hold;
+pub mod condition;
 pub mod contact_monitor;
 pub mod deployment;
 pub mod downlink;
 pub mod eps;
+pub mod eps_supervision;
 pub mod eps_telemetry;
 pub mod executive;
 pub mod fault_log;
 pub mod fixed;
 pub mod flight_log;
 pub mod fmath;
+pub mod fram_health;
 pub mod gnss;
+pub mod gnss_frame;
+pub mod gnss_schedule;
 pub mod heater;
+pub mod hk_store;
+pub mod housekeeping;
+pub mod ina228;
+pub mod jetson_power;
 pub mod keys;
+pub mod mg370;
 pub mod mission_data;
 pub mod mode;
+pub mod mtq;
 pub mod nvm;
+pub mod ops_state;
+pub mod pa_temp;
+pub mod passivation;
 pub mod payload_guard;
 pub mod payload_schedule;
+pub mod ptt_watch;
+pub mod receiver;
 pub mod rf_control;
 pub mod rf_silence;
+pub mod rm3100;
+pub mod rv3028;
 pub mod safe_string;
 pub mod scheduler;
+pub mod selector;
 pub mod sensors;
+pub mod separation;
 pub mod system_state;
 pub mod telecommand;
 pub mod telemetry;

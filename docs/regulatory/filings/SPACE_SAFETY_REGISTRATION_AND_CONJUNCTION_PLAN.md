@@ -2,8 +2,8 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-015
-**Revision:** B
-**Date:** 2026-10-15
+**Revision:** C
+**Date:** 2026-10-27
 **Status:** Plan. Registrations are not started.
 **Supports:** 47 CFR 97.207(g)(1)(iv)(A)(5) (conjunction-warning certification) and (g)(1)(v) (trackability, identification, 18 SDS registration, ephemeris sharing)
 
@@ -35,13 +35,20 @@ Deployments from multi-payload rideshares release many similar objects. SMART-QS
 | R2 | **TraCSS** (Commerce Office of Space Commerce, https://www.space.commerce.gov/traffic-coordination-system-for-space-tracss/) | Join the TraCSS waitlist/registration (open to organizations owning/operating spacecraft in orbit; registration opened early 2026). Funding beyond FY2026 is uncertain, so keep Space-Track as primary. | At launch contract; activate at deployment | Licensee | Not started |
 | R3 | Launch provider | Supply the provider's operator-contact form (24 h phone, email, call sign, beacon frequency) for its 18 SDS pre-launch submission | Per provider ICD (typ. L-1 month) | PI | Not started |
 | R4 | Public | Publish beacon frequency, format and decoder before launch (IARU form §6, RR 25.2A) | Before launch | Ops lead | Not started |
+| R5 | NASA ISS trajectory operations (jsc-dl-topo-iwg@mail.nasa.gov) | Coordinate for ISS conjunction deconfliction: the disposal decay crosses the ISS altitude (SpaceX UG v11 §9.5.7.1) | With R1; again before the decay reaches ≈ 450 km | Licensee | Not started |
+| R6 | 18th SDS registration of the deployed object, with the operator contact **opted into public listing for the mission lifetime** (UG v11 §9.5.7.1) | Required by L-2 M (UG §1.2) | L-2 M | Licensee | Not started |
+| R7 | Claim the object with the 18th SDS | No later than 30 days after deployment (UG §9.5.7.2) | S+30 d | Licensee | Not started |
+| R8 | Bounding hard-body radius for the appendage deployment at S+30 min, to SpaceX through the integrator: **0.6 m** (UG §3.3.4; `software/simulation/cdr/launch/leop_feasibility.py` §7) | Mission analysis inputs | L-8 M | Systems | Analysis done |
 
 ## 3a. Operator Ephemeris (SpaceX User's Guide v11 §9.5.7.2; 97.207(g)(1)(v)(C))
 
 The launch contract requires forward-predicted GNSS-based ephemerides with covariance, published to Space-Track and to
 SpaceX Space Traffic Coordination:
 
-- the first within 24 h of first contact (best practice: within 3 h of deployment);
+- the first within 24 h of first contact (best practice: within 3 h of deployment). For the baseline orbit the first
+  pass over the Bay Area stations above 5° comes 0.7–12.2 h after separation (median 5.2 h), so the first ephemeris is
+  due 24.7–36.2 h after separation; the 3 h best practice is not reachable from the Bay Area alone
+  (`software/simulation/cdr/launch/leop_passes.py`, 576 separation cases);
 - then after every pass and at least every 24 h until the 18 SDS has cataloged the object;
 - best practice afterwards is three times a day.
 
@@ -60,6 +67,18 @@ GNSS receiver:
 
 Open: Space-Track operator file-naming rules (Spaceflight Safety Handbook for Operators), and SpaceX acceptance of a
 duty-cycled receiver.
+
+**Status at CDR (2026-10-27, round 3): the chain is built end to end in software.** Onboard: receiver sessions on a
+schedule from 45 min after separation and on `GNSS_REQUEST` (0x60), and a GNSS state frame (ECEF position and velocity,
+GPS time, fix quality) after each fix (`software/rust/sqso-fsw/src/gnss_schedule.rs`, `gnss_frame.rs`; SRS-F158).
+Ground: `software/ground/tools/ephemeris_tool.py` decodes the frames, fits the orbit by batch least squares with an
+estimated drag scale factor, and writes a CCSDS OEM 3.0 with covariance and a TLE (SQSO-GND-002 Rev A; 0.6 km at +24 h
+in the 475 km simulation with a fix every orbit; 2.0–2.6 km in the first-24 h deadline case). Owner: the ground
+segment lead; the 24 h procedure is SQSO-GND-002 §7.
+The UG says that failing to demonstrate the capability may mean mandatory rebooking (§9.5.7.2). Until the chain is
+demonstrated end to end on hardware before integration (verification item VI-LV-13 in
+`docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`), plan on the third-party contingency, contracted before integration
+(RID LV-04).
 
 ## 4. Conjunction Response (97.207(g)(1)(iv)(A)(5))
 
@@ -102,3 +121,4 @@ Tiangong band (~380–390 km). Design and operational strategies to disclose:
 |-----|------|-------------|
 | A | 2026-10-14 | Initial plan (funding audit) |
 | B | 2026-10-15 | §3a operator ephemeris from the GNSS receiver (decision D6) |
+| C | 2026-10-27 | CDR launch review: registrations R5–R8 (ISS coordination, public operator contact, claim within 30 days, hard-body radius) from SpaceX UG v11 §3.3.4 and §9.5.7; first-ephemeris deadline from the pass analysis; status of the GNSS chain (not implemented) |

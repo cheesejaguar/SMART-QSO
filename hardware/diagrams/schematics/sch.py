@@ -2,8 +2,8 @@
 
 Each S*.py script draws one sheet and writes <name>.svg into the directory given as its first argument
 (default: ../svg). Conventions on every sheet:
-  - a part not selected is drawn as a dashed box and named "(TBD)"
-  - a value not confirmed carries "TBR"
+  - a part not selected is drawn as a dashed box and labelled as not selected
+  - a value not confirmed is labelled as unconfirmed
   - a net that leaves the sheet ends in a flag with its net name (the same names as the harnesses W1-W10)
 """
 
@@ -86,7 +86,7 @@ def note(d, xy, text, fontsize=8, color="#333333"):
 def title(d, xy, sheet, text, sources):
     note(d, xy, f"{sheet}  {text}", fontsize=12, color="black")
     note(d, (xy[0], xy[1] - 0.6),
-         "SQSO-HW-DIAG-001 · preliminary · dashed = part not selected (TBD) · TBR = value not confirmed\n" + sources,
+         "SQSO-HW-DIAG-001 · dashed = part not selected · values from the board build-to designs\n" + sources,
          fontsize=8)
 
 

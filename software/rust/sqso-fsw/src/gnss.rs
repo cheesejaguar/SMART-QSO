@@ -27,6 +27,8 @@ pub const LEO_MIN_RADIUS_M: f64 = 6.5e6;
 pub const LEO_MAX_RADIUS_M: f64 = 7.5e6;
 /// Fewest satellites for a 3D fix (`GNSS_MIN_SATS`)
 pub const MIN_SATS: u8 = 4;
+/// Largest PDOP accepted (`GNSS_MAX_PDOP`; NMEA's own limit, RID P3F-A-05)
+pub const MAX_PDOP: f64 = 99.9;
 
 /// GPS time of week wraps at one week
 const TOW_LIMIT_S: f64 = 604_800.0;
@@ -308,14 +310,16 @@ fn parse_decimal(s: &[u8]) -> Option<f64> {
     Some(if negative { -value } else { value })
 }
 
-/// Plausible for LEO: time of week in range, a 3D fix, a PDOP, and an
-/// orbit radius between [`LEO_MIN_RADIUS_M`] and [`LEO_MAX_RADIUS_M`]
+/// Plausible for LEO: time of week in range, a 3D fix, a PDOP above 0 and
+/// at most [`MAX_PDOP`], and an orbit radius between [`LEO_MIN_RADIUS_M`]
+/// and [`LEO_MAX_RADIUS_M`]
 pub fn plausible(f: &Fix) -> bool {
     let r2 = f.x_m * f.x_m + f.y_m * f.y_m + f.z_m * f.z_m;
     f.tow_s >= 0.0
         && f.tow_s < TOW_LIMIT_S
         && f.sats >= MIN_SATS
         && f.pdop > 0.0
+        && f.pdop <= MAX_PDOP
         && (LEO_MIN_RADIUS_M * LEO_MIN_RADIUS_M..=LEO_MAX_RADIUS_M * LEO_MAX_RADIUS_M).contains(&r2)
 }
 
@@ -435,6 +439,8 @@ mod tests {
         assert!(!plausible(&Fix { tow_s: TOW_LIMIT_S, ..base }));
         assert!(!plausible(&Fix { tow_s: -1.0, ..base }));
         assert!(!plausible(&Fix { pdop: f64::NAN, ..base }));
+        assert!(plausible(&Fix { pdop: MAX_PDOP, ..base }));
+        assert!(!plausible(&Fix { pdop: 100.0, ..base }), "P3F-A-05: PDOP bounded");
     }
 
     /// Mutation check: a line of LINE_MAX - 1 bytes is kept, one byte more

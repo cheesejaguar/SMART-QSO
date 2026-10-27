@@ -12,13 +12,26 @@
 //! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
 //! export too).
 //!
-//! @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
+//! The external supervisor (TPS3850, `GPIO_PIN_WDI` PG11; RID AV-02) is
+//! kicked on the same condition: a falling edge every 10 s while no task is
+//! stalled (`sqso_fsw::watchdog::Supervisor`), timed from the hardware
+//! watchdog's start (on the target the boot IWDG, started at the reset).
+//! The hardware watchdog is refreshed only at those edges (RID P3F-A-03),
+//! so both run from the same instant and the IWDG acts first after a stall.
+//! During the initialisation, `wdt_mgr_boot_checkpoint()` gives the pair
+//! once 10 s have passed since the last.
+//!
+//! @requirement SRS-F050 Refresh the hardware watchdog (IWDG, 24.1 to 27.8 s) only at the external supervisor's WDI falling edges, every 10 s while every task checks in
+//! @requirement SRS-F001 Initialize all subsystems within 30 seconds of power-on, the IWDG and the supervisor refreshed together at the initialisation checkpoints
 //! @requirement SRS-F051 Save state before watchdog reset
+//! @requirement SRS-F146 External supervisor kick: a WDI falling edge every 10 s, only while every task has checked in
 
 use core::ffi::{c_char, c_void};
 
 use sqso_fsw::fault_log::DESC_LEN;
-use sqso_fsw::watchdog::{self as wdt, HW_TIMEOUT_MS, MAX_TASKS, NAME_LEN, Stats, TaskEntry, Watchdog, WdtError};
+use sqso_fsw::watchdog::{
+    self as wdt, HW_TIMEOUT_MS, MAX_TASKS, NAME_LEN, Stats, Supervisor, TaskEntry, Watchdog, WdtError,
+};
 
 use crate::c::{self, fault_type, rc, severity};
 use crate::cell::Global;
@@ -43,9 +56,12 @@ unsafe extern "C" {
 struct Module {
     wdt: Watchdog,
     callback: Option<PreResetCallback>,
+    /// The external supervisor's WDI line
+    supervisor: Supervisor,
 }
 
-static WDT: Global<Module> = Global::new(Module { wdt: Watchdog::new(), callback: None });
+static WDT: Global<Module> =
+    Global::new(Module { wdt: Watchdog::new(), callback: None, supervisor: Supervisor::new(0) });
 
 fn callback() -> Option<PreResetCallback> {
     WDT.with(|m| m.callback).flatten()
@@ -115,12 +131,42 @@ pub extern "C" fn wdt_mgr_start() -> i32 {
     let result = unsafe { hal_wdt_start() };
     if result == rc::OK {
         let now = c::now_ms();
+        // The time base of both: the IWDG's last reload (on the target the
+        // boot IWDG keeps running from the reset, or the last checkpoint)
+        // SAFETY: no arguments
+        let since = u64::from(HW_TIMEOUT_MS.saturating_sub(unsafe { hal_wdt_remaining_ms() }));
         let _ = WDT.with(|m| {
             m.wdt.stats.hw_wdt_running = true;
             m.wdt.last_task_check_ms = now;
+            m.supervisor = Supervisor::new(now.saturating_sub(since));
         });
+        crate::hw::configure(crate::pins::WDI, true);
     }
     result
+}
+
+/// An initialisation checkpoint (SRS-F001): while the boot IWDG runs and
+/// before the main loop, a WDI falling edge and an IWDG refresh together
+/// once 10 s have passed since the IWDG's last reload (the reset, or the
+/// previous checkpoint), so a long initialisation is reset by neither and
+/// the two stay paired (RID P3F-A-03). Nothing before then, nor once the
+/// manager has started
+#[unsafe(no_mangle)]
+pub extern "C" fn wdt_mgr_boot_checkpoint() {
+    if WDT.with(|m| m.wdt.stats.hw_wdt_running).unwrap_or(true) {
+        return;
+    }
+    // SAFETY: no arguments
+    let since = u64::from(HW_TIMEOUT_MS.saturating_sub(unsafe { hal_wdt_remaining_ms() }));
+    if since < wdt::KICK_INTERVAL_MS {
+        return; // a stopped watchdog reads its full timeout: nothing to do
+    }
+    crate::hw::configure(crate::pins::WDI, true);
+    crate::hw::set(crate::pins::WDI, true);
+    crate::hw::set(crate::pins::WDI, false);
+    // SAFETY: no arguments
+    unsafe { hal_wdt_kick() };
+    let _ = WDT.with(|m| m.wdt.count_kick());
 }
 
 /// Check the tasks (once a second) and refresh the hardware while none is
@@ -133,10 +179,16 @@ pub extern "C" fn wdt_mgr_kick() {
         check_task_watchdogs(now);
     }
     // A stalled task lets the hardware reset the OBC (SW-15)
-    if WDT.with(|m| m.wdt.any_stalled()) == Some(false) {
-        // SAFETY: no arguments
-        unsafe { hal_wdt_kick() };
-        let _ = WDT.with(|m| m.wdt.count_kick());
+    let healthy = WDT.with(|m| m.wdt.any_stalled()) == Some(false);
+    // The external supervisor on that condition, and the hardware watchdog
+    // refreshed at its falling edges only (RID P3F-A-03)
+    if let Some(Some(level)) = WDT.with(|m| m.supervisor.step(now, healthy)) {
+        crate::hw::set(crate::pins::WDI, level);
+        if !level {
+            // SAFETY: no arguments
+            unsafe { hal_wdt_kick() };
+            let _ = WDT.with(|m| m.wdt.count_kick());
+        }
     }
 }
 

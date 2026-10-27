@@ -1,25 +1,33 @@
 # SMART-QSO Contamination Control Plan
 
 **Document ID**: SQSO-CCP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 2.0
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: CDR draft. §1–§3 corrected by the CDR S&MA review (governing documents and the launch-provider requirements); the procedures of §4–§14 are unchanged and not yet exercised
 
 ## 1. Purpose
 
-This document defines the Contamination Control Plan for SMART-QSO per NASA-STD-8739.6 (Procedures for the Control of Molecular and Particulate Contamination) and NASA Ames SmallSat heritage practices.
+This document defines the Contamination Control Plan for SMART-QSO. Version 1.0 cited NASA-STD-8739.6 as a
+contamination standard; it is the *Implementation Requirements for NASA Workmanship Standards* (including ESD control)
+and is used for that in `docs/project/MISSION_ASSURANCE_PLAN.md` §8, not here. The governing requirements are those of
+the launch provider and the CubeSat Design Specification below; IEST-STD-CC1246 and ISO 14644-1 are the measurement
+standards.
 
 ## 2. Applicable Documents
 
-| Document | Title |
-|----------|-------|
-| NASA-STD-8739.6 | Contamination Control |
-| NASA-HDBK-6017 | Contamination Control Handbook |
-| IEST-STD-CC1246 | Product Cleanliness Levels |
-| Federal Standard 209E | Clean Room Classes (historical) |
-| ISO 14644 | Clean Room Standards |
-| SQSO-ASM-001 | Assembly Procedure |
+| Document | Use |
+|----------|-----|
+| SpaceX Rideshare Payload User's Guide v11 (Aug 2026) §5.3, Table 5-5, §6.7.12, Table 6-7, Table 4-12 | Materials and contamination requirements: a **fully containerized CubeSat is exempt** from the visual-cleanliness (VC-HS per NASA-SN-C-005D, as UG v11 cites it), non-metallic, metallic and silicone rows, which fall on the dispenser assembly; it is **not exempt** from the particulate-generation and prohibited-materials rows. A contamination report with the vacuum-exposed non-metallic materials list is required (§6.7.12). PPF environment ISO Class 8, 15–25 °C, 30–65 % RH (Table 4-12) |
+| CubeSat Design Specification Rev 14.1 §2.1.7, §3.2 | TML ≤ 1.0 %, CVCM ≤ 0.1 %; bakeout as specified by the launch provider |
+| Integrator user guide and ICD (EXOpod Nova or equivalent) | Dispenser cleanliness at integration; supersedes this plan where stricter |
+| IEST-STD-CC1246E | Product cleanliness levels (particulate level and NVR letter) |
+| ISO 14644-1:2015 | Cleanroom classification |
+| ASTM E595-15(2021) | Outgassing data (`docs/compliance/MATERIALS_LIST.md` Rev B) |
+| ASTM E1235 | Gravimetric NVR measurement for witness plates |
+| SQSO-ASM-001 | Assembly procedure |
+
+Federal Standard 209E (cancelled 2001) is kept only as a cross-reference for legacy class names.
 
 ## 3. Contamination Requirements
 
@@ -44,6 +52,12 @@ This document defines the Contamination Control Plan for SMART-QSO per NASA-STD-
 | Level 750 | Max >750µm |
 
 ### 3.3 Molecular Limits
+
+The CubeSat is delivered to the integrator at least visibly clean (no particulate or film visible under white light at
+the integrator's inspection distance) so that the dispenser assembly can meet VC-HS; the levels of §3.1 are this
+project's internal targets for the surfaces whose performance contamination degrades (sun sensors, solar cells, RF
+contacts). Bakeout in the protoflight thermal-vacuum test (LVR-084) with a witness plate and, if the integrator asks,
+a TQCM or cold-finger measurement at the end of the bake.
 
 | Parameter | Requirement |
 |-----------|-------------|
@@ -405,3 +419,4 @@ Anomalies: ___________________________
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 2.0 | 2026-10-27 | CDR S&MA review | Governing documents corrected: NASA-STD-8739.6 (workmanship implementation) removed as a contamination standard; SpaceX UG v11 §5.3/Table 5-5 containerized-CubeSat exemption and its limits, CDS 2.1.7 and §3.2, the integrator ICD, IEST-STD-CC1246E, ISO 14644-1, ASTM E595/E1235 added; delivery cleanliness and bakeout stated |

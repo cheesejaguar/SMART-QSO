@@ -29,20 +29,35 @@ typedef enum {
     CMD_SYS_CLEAR_FAULTS = 0x05, /**< CLEAR_FAULTS: Clear fault log */
     CMD_SYS_KEY_ROTATE = 0x06, /**< KEY_ROTATE: Activate spare operational key slot 0-3 and revoke the current key (recovery key only) */
     CMD_SYS_SET_CONTACT_TIMEOUT = 0x07, /**< SET_CONTACT_TIMEOUT: Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 30 at launch, 14 after commissioning: decision D3) */
+    CMD_SYS_COMMISSIONING_RELEASE = 0x08, /**< COMMISSIONING_RELEASE: Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven) */
+    CMD_SYS_GET_HOUSEKEEPING = 0x09, /**< GET_HOUSEKEEPING: Downlink a housekeeping frame (HK1) at the next opportunity */
+    CMD_SYS_DUMP_TLM = 0x0A, /**< DUMP_TLM: Downlink stored housekeeping: store (0 five-minute records, 1 sixty-second records), first record sequence (4 bytes big-endian), count (2 bytes big-endian, at most 600; 0 stops a dump); paced within the downlink duty limit */
+    CMD_SYS_FRAM_BYPASS = 0x0B, /**< FRAM_BYPASS: Run without the FRAM (argument: the ASCII code FRM!): accepted only once the FRAM has been declared failed (HK1 FR=1); the RAM copies of the TX-OFF latch and the operations record, under CRC, become authoritative until the FRAM reads back again or the next reset (then send FRAM_BYPASS, TX_ENABLE and COMMISSIONING_RELEASE again) */
     CMD_EPS_SET_MODE = 0x10, /**< EPS_SET_MODE: Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE */
     CMD_EPS_GET_TELEMETRY = 0x13, /**< EPS_GET_TELEMETRY: Get EPS telemetry */
+    CMD_EPS_CLEAR_LOCKOUT = 0x14, /**< EPS_CLEAR_LOCKOUT: Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history */
+    CMD_EPS_DISABLE_TRACKERS = 0x15, /**< EPS_DISABLE_TRACKERS: Disable solar-array trackers through the EPS controller's TRK_DISABLE (0x8E, with its key): mask bits 0-3 = T1-T4 off, 0 = all enabled; held in the controller's FRAM and reported in HK2 SV (EPS_SUPV) */
     CMD_ADCS_DETUMBLE = 0x21, /**< ADCS_DETUMBLE: Start detumble */
     CMD_ADCS_GET_ATTITUDE = 0x23, /**< ADCS_GET_ATTITUDE: Get attitude */
+    CMD_ADCS_SET_GEOMETRY = 0x24, /**< ADCS_SET_GEOMETRY: Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing */
+    CMD_ADCS_SET_GYRO_ALIGN = 0x25, /**< ADCS_SET_GYRO_ALIGN: Gyro alignment matrix (VI-MCAD-05; persisted): nine elements row by row, each a signed 32-bit big-endian integer in units of 1e-6; refused unless every element is within 1.1 and the determinant within 0.05 of 1 */
+    CMD_ADCS_SET_MAG_BIAS = 0x26, /**< ADCS_SET_MAG_BIAS: Magnetometer bias of one rod polarity state (AV-V4; persisted): the state 0-7 (bit n set: rod n last driven positive), then X, Y, Z as signed 32-bit big-endian nT, each within 50 uT */
     CMD_COMM_SET_BEACON = 0x30, /**< SET_BEACON: Set beacon interval, seconds big-endian, 10 to 120 */
     CMD_COMM_TX_ENABLE = 0x31, /**< TX_ENABLE: Clear the latched TX-OFF */
     CMD_COMM_TX_DISABLE = 0x32, /**< TX_DISABLE: Latch TX-OFF in every state (47 CFR 97.207(b)) */
     CMD_COMM_SET_POWER = 0x33, /**< SET_POWER: Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the downlink, downlink.h) */
+    CMD_COMM_XPDR_ENABLE = 0x34, /**< XPDR_ENABLE: Allow the FM transponder (persisted); its power and duty gates still apply */
+    CMD_COMM_XPDR_DISABLE = 0x35, /**< XPDR_DISABLE: Stop the FM transponder (persisted); beacon and telecommand unaffected */
     CMD_PLD_ENABLE = 0x40, /**< PLD_ENABLE: Enable payload */
     CMD_PLD_DISABLE = 0x41, /**< PLD_DISABLE: Disable payload */
+    CMD_DEPLOY_RETRY = 0x50, /**< DEPLOY_RETRY: Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn); optional second byte 1 = force the antenna past its temperature gate (deploy now whatever the AntS temperature, decision C-18; refused with the wings) */
+    CMD_GNSS_REQUEST = 0x60, /**< GNSS_REQUEST: Start a GNSS receiver session now (its power gates still apply) */
+    CMD_EOL_PASSIVATE_ARM = 0x70, /**< PASSIVATE_ARM: Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven */
+    CMD_EOL_PASSIVATE_EXECUTE = 0x71, /**< PASSIVATE_EXECUTE: Within 600 s of PASSIVATE_ARM: fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE, in sunlight, up to 3 attempts) while still transmitting, downlink three final reports a minute apart (EOL_STATE, fuse, attempts), then latch TX-OFF and keep every transmitter off for good (recovery key only; irreversible) */
 } CmdId_t;
 
 /** Number of commands in the dictionary */
-#define CMD_DICTIONARY_COUNT 17U
+#define CMD_DICTIONARY_COUNT 32U
 
 /** Which telecommand key authenticates a command */
 typedef enum {

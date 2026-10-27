@@ -9,6 +9,8 @@
  *
  * @requirement SYS-204 Cease emissions on telecommand; stay ceased across resets (97.207(b))
  * @requirement SYS-325 Execute only authenticated, fresh telecommands (47 CFR 97.211(b))
+ * @requirement SRS-F142 Gyro alignment correction: a persisted 3×3 matrix applied to the gyro rates, identity by default, set by telecommand
+ * @requirement SRS-F144 Magnetometer bias per polarity state of the three rods, zeros by default, set by telecommand
  */
 
 #include <stdarg.h>
@@ -689,10 +691,88 @@ static void test_authenticated_get_status(void **state)
 /* Test Suite                                                                 */
 /*===========================================================================*/
 
+/** Big-endian 32-bit values into a byte buffer */
+static void put_be32(uint8_t *out, const int32_t *v, size_t n)
+{
+    for (size_t i = 0U; i < n; i++) {
+        uint32_t u = (uint32_t)v[i];
+        out[(4U * i) + 0U] = (uint8_t)(u >> 24);
+        out[(4U * i) + 1U] = (uint8_t)(u >> 16);
+        out[(4U * i) + 2U] = (uint8_t)(u >> 8);
+        out[(4U * i) + 3U] = (uint8_t)u;
+    }
+}
+
+/** ADCS_SET_GYRO_ALIGN and ADCS_SET_MAG_BIAS by telecommand (SRS-F142,
+ *  SRS-F144): a rotation is accepted, a matrix that is not one refused; a
+ *  bias of one of the eight polarity states is accepted, a ninth state or a
+ *  bias beyond 50 uT refused */
+static void test_adcs_calibration_commands(void **state)
+{
+    (void)state;
+    uint8_t args[36];
+    uint8_t payload[CMD_AUTH_OVERHEAD + sizeof(args)];
+    const int32_t rotation[9] = {999950, -10000, 0, 10000, 999950, 0, 0, 0, 1000000};
+    const int32_t doubled[9] = {2000000, 0, 0, 0, 2000000, 0, 0, 0, 2000000};
+    const int32_t bias[3] = {1000, -2000, 500};
+    const int32_t too_big[3] = {60000, 0, 0};
+
+    assert_int_equal(hal_flash_erase(FLASH_REGION_ADCS_CAL), SMART_QSO_OK);
+    put_be32(args, rotation, 9U);
+    assert_int_equal(send(CMD_ADCS_SET_GYRO_ALIGN, payload,
+                          auth_payload(CMD_ADCS_SET_GYRO_ALIGN, 1U, args, 36U, payload)),
+                     CMD_RESULT_SUCCESS);
+    put_be32(args, doubled, 9U);
+    assert_int_equal(send(CMD_ADCS_SET_GYRO_ALIGN, payload,
+                          auth_payload(CMD_ADCS_SET_GYRO_ALIGN, 2U, args, 36U, payload)),
+                     CMD_RESULT_INVALID_PARAM);
+
+    args[0] = 3U;
+    put_be32(&args[1], bias, 3U);
+    assert_int_equal(send(CMD_ADCS_SET_MAG_BIAS, payload,
+                          auth_payload(CMD_ADCS_SET_MAG_BIAS, 3U, args, 13U, payload)),
+                     CMD_RESULT_SUCCESS);
+    args[0] = 8U;
+    assert_int_equal(send(CMD_ADCS_SET_MAG_BIAS, payload,
+                          auth_payload(CMD_ADCS_SET_MAG_BIAS, 4U, args, 13U, payload)),
+                     CMD_RESULT_INVALID_PARAM);
+    args[0] = 1U;
+    put_be32(&args[1], too_big, 3U);
+    assert_int_equal(send(CMD_ADCS_SET_MAG_BIAS, payload,
+                          auth_payload(CMD_ADCS_SET_MAG_BIAS, 5U, args, 13U, payload)),
+                     CMD_RESULT_INVALID_PARAM);
+}
+
+/** GND-03: an acknowledgement after each command that counted as contact,
+ *  none for a forged frame; N is 0 after a contact */
+static void test_acknowledgement_after_authenticated_commands(void **state)
+{
+    (void)state;
+    uint32_t counter = 0U, result = 0U, days = 99U;
+    uint8_t forged[sizeof(GET_STATUS_CTR1)];
+    uint32_t contacts = cmd_contact_count();
+    assert_int_equal(cmd_handler_init(), SMART_QSO_OK);
+    provision_test_key();
+    assert_false(cmd_ack_pending(&counter, &result, &days));
+    memcpy(forged, GET_STATUS_CTR1, sizeof(forged));
+    forged[sizeof(forged) - 1U] ^= 0x01U;
+    assert_int_equal(send(CMD_SYS_GET_STATUS, forged, sizeof(forged)), CMD_RESULT_AUTH_FAIL);
+    assert_false(cmd_ack_pending(&counter, &result, &days));
+    assert_int_equal(send(CMD_SYS_GET_STATUS, GET_STATUS_CTR1, sizeof(GET_STATUS_CTR1)), CMD_RESULT_SUCCESS);
+    assert_true(cmd_ack_pending(&counter, &result, &days));
+    assert_int_equal(counter, 1U);
+    assert_int_equal(result, CMD_RESULT_SUCCESS);
+    assert_int_equal(days, 0U);
+    assert_int_equal(cmd_contact_count(), 1U);
+    (void)contacts;
+    assert_false(cmd_ack_pending(NULL, &result, &days));
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_frame_matches_ground_tool),
+        cmocka_unit_test_setup_teardown(test_acknowledgement_after_authenticated_commands, setup, teardown),
         cmocka_unit_test_setup_teardown(test_authenticated_tx_disable_silences, setup, teardown),
         cmocka_unit_test_setup_teardown(test_authenticated_tx_enable_restores, setup, teardown),
         cmocka_unit_test_setup_teardown(test_replayed_tx_enable_cannot_undo_tx_off, setup, teardown),
@@ -717,6 +797,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_unauthenticated_frames_are_not_contact, setup, teardown),
         cmocka_unit_test_setup_teardown(test_unpersisted_counter_is_still_contact, setup, teardown),
         cmocka_unit_test_setup_teardown(test_set_contact_timeout, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_adcs_calibration_commands, setup, teardown),
     };
 
     return cmocka_run_group_tests_name("Command Handler (Telecommand Path) Tests", tests, NULL, NULL);

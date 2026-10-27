@@ -2,7 +2,8 @@
 """
 Generate the requirements traceability matrix (FINDINGS_REGISTER VV-06).
 
-Sources: the three requirement specifications (mission, system, software),
+Sources: the requirement specifications (mission, system, software, and the
+         two board firmware items: RF board TNC, EPS controller),
          `@requirement ID` tags in software/ (.c, .h, .py, .rs),
          requirement IDs cited in docs/test_procedures/*.md
 Output:  docs/verification/RTM.csv
@@ -53,6 +54,9 @@ SPECS = (
     "docs/requirements/MISSION_REQUIREMENTS.md",
     "docs/requirements/SYSTEM_REQUIREMENTS.md",
     "docs/software/SOFTWARE_REQUIREMENTS.md",
+    # the board firmware items (SDP §3.4; finding P3A-03)
+    "docs/software/TNC_FIRMWARE_REQUIREMENTS.md",
+    "docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md",
 )
 
 COLUMNS = ("id", "specification", "parent", "method", "requirement", "code", "tests", "procedures")

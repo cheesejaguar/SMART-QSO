@@ -10,6 +10,14 @@
 > (and are never both normal to the sun). The vendor comparison must be redone against the baseline layout with
 > datasheets before any selection.
 
+> **CDR review notice (2026-10-27): recommendation withdrawn.** The recommended GomSpace deployable exists only for
+> 3U and 6U (`docs/hardware/BUILD_VS_BUY.md` §2.8 item 3), and no vendor sells the double-sided 1U wing pair of the
+> baseline layout. The decision is to buy assembled body panels and custom wings from one panel vendor (DHV,
+> Spacemanic, ISIS or Pumpkin) with AZUR SPACE 3G30A cells (BUILD_VS_BUY §2.2–§2.3). Simulated generation at end of
+> life: 2.43 W tumbling, 3.93 W sun-pointed (`docs/environment/POWER_BUDGET_ANALYSIS.md` v2.0 §4). The vendor's
+> qualification record must cover the predicted −45 … +83 °C wing temperatures with the 10 °C model margin
+> (`docs/environment/THERMAL_ANALYSIS.md` v2.0, RID THM-05).
+
 ### Executive Summary
 
 This trade study evaluates Commercial Off-The-Shelf (COTS) deployable solar panel solutions for the SMART-QSO 1U CubeSat mission. The analysis considers multiple vendors including GomSpace, ISIS, EnduroSat, and Pumpkin Space Systems, evaluating their solutions against mission requirements for power generation, deployment reliability, mass constraints, and cost. The study recommends the **GomSpace NanoPower Solar Panel System** as the optimal solution, providing the best balance of performance, reliability, and mission compatibility.
@@ -469,3 +477,11 @@ Implementation of the recommended solution will proceed with early procurement t
 *Systems Engineering Review: [Name]*  
 *Program Management Approval: [Name]*  
 *PDR approval: [Name] — no independent review held (funding audit 2026-10-14)*
+
+## Revision History
+
+| Rev | Date | Description |
+|-----|------|-------------|
+| — | undated | Trade study |
+| 1 | 2026-10-16 | Funding audit notice (TB-14): power figures superseded |
+| 2 | 2026-10-27 | CDR review notice: recommendation withdrawn; panel buy per BUILD_VS_BUY §2.2–§2.3 |

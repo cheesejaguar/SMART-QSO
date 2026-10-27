@@ -1,0 +1,3888 @@
+{
+ "parameters": {
+  "W": 100.0,
+  "W_tol": 0.1,
+  "L": 113.5,
+  "L_tol": 0.1,
+  "rail": 8.5,
+  "rail_t": 1.5,
+  "face": 50.0,
+  "standoff_min": 0.1,
+  "protrusion_max": 6.5,
+  "rail_edge_r": 1.0,
+  "rail_end_min": 6.5,
+  "endplate_t": 1.6,
+  "mz_recess": 1.5,
+  "shear_t": 1.0,
+  "panel_recess": 0.5,
+  "bp_w": 82.0,
+  "bp_h": 98.0,
+  "sub_t": 1.6,
+  "cell_t": 0.35,
+  "cell_y": 80.7,
+  "cell_z": 80.15,
+  "cell_zc": 3.0,
+  "gap": 1.0,
+  "wing_y0": -41.0,
+  "wing_y1": 40.6,
+  "wing_z0": -43.0,
+  "wing_z1": 49.0,
+  "hinge_x": 54.1,
+  "hinge_y": 38.75,
+  "knuckle_r": 1.75,
+  "spring_r": 2.0,
+  "holddown_y": -38.5,
+  "holddown_z": -40.0,
+  "line_h": 0.5,
+  "snub_z": 46.0,
+  "ants_w": 98.0,
+  "ants_t": 7.0,
+  "ants_notch": 10.0,
+  "tape_w": 5.0,
+  "tape_t": 0.5,
+  "vhf_len": 500.0,
+  "uhf_len": 170.0,
+  "tape_y": 0.0,
+  "patch_w": 50.0,
+  "patch_t": 5.0,
+  "pcb_x": 90.17,
+  "pcb_y": 95.89,
+  "pcb_t": 1.6,
+  "col_x": 40.0,
+  "col_y": 43.0,
+  "col_d": 5.8,
+  "cs_x": 0.0,
+  "cs_y": 21.0,
+  "cs2_y": -21.0,
+  "jet_y": -6.0,
+  "gyro_x": -20.0,
+  "gyro_y": 30.5,
+  "gyro_w": 24.0,
+  "gyro_h": 14.0,
+  "car_win": [
+   -33.5,
+   -6.5,
+   17.0,
+   44.0
+  ],
+  "mod_hole": [
+   31.3,
+   18.6
+  ],
+  "mod_so_d": 5.1,
+  "soc_w": 20.0,
+  "ped_w": 22.0,
+  "pad_soc": 0.75,
+  "pad_other": 1.5,
+  "car_frame_w": 2.5,
+  "car_frame_h": 3.0,
+  "frame_screws": [
+   [
+    -35.5,
+    24.0
+   ],
+   [
+    -35.5,
+    36.0
+   ],
+   [
+    -4.5,
+    30.0
+   ],
+   [
+    -4.5,
+    42.0
+   ]
+  ],
+  "frame_pad": [
+   3.8,
+   5.0
+  ],
+  "a2_w": 24.0,
+  "a2_t": 1.6,
+  "a2_parts": 5.75,
+  "a2_screws": [
+   [
+    33.5,
+    17.5
+   ],
+   [
+    14.5,
+    36.5
+   ],
+   [
+    33.5,
+    36.5
+   ]
+  ],
+  "z_eps": -3.4,
+  "eps_t": 2.0,
+  "z_obc": 5.0,
+  "z_car": 17.6,
+  "z_rf": 34.8,
+  "car_t": 2.0,
+  "car_frame": false,
+  "mag_x": 24.0,
+  "mag_y": 27.0,
+  "shield_y0": -40.0,
+  "shield_y1": 14.0,
+  "rbf_x": 20.0,
+  "rbf_z": -43.0,
+  "port_x": -20.0,
+  "port_z": -43.0,
+  "rbf_face": -1.0,
+  "bal_y": 8.0,
+  "ants_config": "hybrid"
+ },
+ "parts": [
+  {
+   "name": "rail_pp",
+   "group": "frame",
+   "mel": {
+    "1": -1
+   },
+   "mass_g": 5.577747824585867,
+   "volume_mm3": 3183.266243351215,
+   "centre_mm": [
+    46.89527737617064,
+    46.89527737617061,
+    1.9636057458858465
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "L-angle 8.5 x 8.5 x 1.5 with solid 8.5 x 8.5 standoffs"
+  },
+  {
+   "name": "rail_pm",
+   "group": "frame",
+   "mel": {
+    "1": -1
+   },
+   "mass_g": 5.372548804867665,
+   "volume_mm3": 3066.1574867024306,
+   "centre_mm": [
+    46.9294715820566,
+    -46.929471582056586,
+    2.1169554863445014e-15
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "L-angle 8.5 x 8.5 x 1.5 with solid 8.5 x 8.5 standoffs"
+  },
+  {
+   "name": "rail_mp",
+   "group": "frame",
+   "mel": {
+    "1": -1
+   },
+   "mass_g": 5.577747824585865,
+   "volume_mm3": 3183.266243351214,
+   "centre_mm": [
+    -46.895277376170625,
+    46.89527737617063,
+    1.963605745885845
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "L-angle 8.5 x 8.5 x 1.5 with solid 8.5 x 8.5 standoffs"
+  },
+  {
+   "name": "rail_mm",
+   "group": "frame",
+   "mel": {
+    "1": -1
+   },
+   "mass_g": 5.5777478245858685,
+   "volume_mm3": 3183.266243351216,
+   "centre_mm": [
+    -46.895277376170604,
+    -46.89527737617062,
+    1.9636057458858462
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "L-angle 8.5 x 8.5 x 1.5 with solid 8.5 x 8.5 standoffs"
+  },
+  {
+   "name": "endplate_mz",
+   "group": "frame",
+   "mel": {
+    "1": -1
+   },
+   "mass_g": 12.35638823625144,
+   "volume_mm3": 7051.891695215118,
+   "centre_mm": [
+    4.3205530978398935e-15,
+    -1.1285026748089275e-16,
+    -47.69999999999998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "-Z end frame, outer face recessed 1.5 mm for the AntS (STR-11)"
+  },
+  {
+   "name": "endplate_pz",
+   "group": "frame",
+   "mel": {
+    "1": -1
+   },
+   "mass_g": 23.675666249507344,
+   "volume_mm3": 13511.89611489869,
+   "centre_mm": [
+    -0.11779667993892355,
+    0.04037414708281232,
+    49.199999999999974
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": ""
+  },
+  {
+   "name": "shear_px",
+   "group": "frame",
+   "mel": {
+    "1": -1
+   },
+   "mass_g": 14.275772548452391,
+   "volume_mm3": 8147.300000000001,
+   "centre_mm": [
+    49.0,
+    0.0691701545297233,
+    0.8019521804769664
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "side shear panel (frame secondary structure), outer face 0.5 mm below the rail plane"
+  },
+  {
+   "name": "shear_mx",
+   "group": "frame",
+   "mel": {
+    "1": -1
+   },
+   "mass_g": 14.271313719594772,
+   "volume_mm3": 8144.755309950592,
+   "centre_mm": [
+    -49.00000000000001,
+    0.007403375095003661,
+    0.816418436674723
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "side shear panel (frame secondary structure), outer face 0.5 mm below the rail plane"
+  },
+  {
+   "name": "shear_py",
+   "group": "frame",
+   "mel": {
+    "1": -1
+   },
+   "mass_g": 14.28313182633629,
+   "volume_mm3": 8151.5,
+   "centre_mm": [
+    0.08832730172360916,
+    49.0,
+    0.7816506164509587
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "side shear panel (frame secondary structure), outer face 0.5 mm below the rail plane"
+  },
+  {
+   "name": "shear_my",
+   "group": "frame",
+   "mel": {
+    "1": -1
+   },
+   "mass_g": 14.031935141232497,
+   "volume_mm3": 8008.14,
+   "centre_mm": [
+    0.4479442167594494,
+    -49.0,
+    1.554679238874446
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "side shear panel (frame secondary structure), outer face 0.5 mm below the rail plane"
+  },
+  {
+   "name": "DS1",
+   "group": "inhibit",
+   "mel": {
+    "2": 2.0
+   },
+   "mass_g": 2.0,
+   "volume_mm3": 190.85175370557988,
+   "centre_mm": [
+    46.00000000000001,
+    46.000000000000014,
+    -50.75
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "deployment switch in the rail standoff, actuated flush with the standoff end"
+  },
+  {
+   "name": "DS2",
+   "group": "inhibit",
+   "mel": {
+    "2": 2.0
+   },
+   "mass_g": 2.0,
+   "volume_mm3": 190.85175370557988,
+   "centre_mm": [
+    -46.00000000000001,
+    -46.000000000000014,
+    -50.75
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "deployment switch in the rail standoff, actuated flush with the standoff end"
+  },
+  {
+   "name": "DS3",
+   "group": "inhibit",
+   "mel": {
+    "2": 2.0
+   },
+   "mass_g": 2.0,
+   "volume_mm3": 190.85175370557988,
+   "centre_mm": [
+    46.00000000000001,
+    -46.000000000000014,
+    50.75
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "deployment switch in the rail standoff, actuated flush with the standoff end"
+  },
+  {
+   "name": "SP1",
+   "group": "inhibit",
+   "mel": {
+    "3": 1.5
+   },
+   "mass_g": 1.5,
+   "volume_mm3": 170.97136269458198,
+   "centre_mm": [
+    -46.00000000000001,
+    46.00000000000001,
+    -51.375
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "separation spring plunger, < 6.7 N, stroke 3 mm, flush when compressed (CDS 2.2.14)"
+  },
+  {
+   "name": "SP2",
+   "group": "inhibit",
+   "mel": {
+    "3": 1.5
+   },
+   "mass_g": 1.5,
+   "volume_mm3": 170.97136269458198,
+   "centre_mm": [
+    46.00000000000001,
+    -46.00000000000001,
+    -51.375
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "separation spring plunger, < 6.7 N, stroke 3 mm, flush when compressed (CDS 2.2.14)"
+  },
+  {
+   "name": "RBF",
+   "group": "inhibit",
+   "mel": {
+    "4": 4.0
+   },
+   "mass_g": 4.0,
+   "volume_mm3": 691.0619298297466,
+   "centre_mm": [
+    20.000000000000004,
+    -47.356665244202034,
+    -42.99999999999999
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "RBF pin head 4 mm above the -Y panel substrate; switch body inside"
+  },
+  {
+   "name": "access_port",
+   "group": "harness",
+   "mel": {
+    "32": 5.995569693269306
+   },
+   "mass_g": 5.995569693269306,
+   "volume_mm3": 2177.9999999999995,
+   "centre_mm": [
+    -20.0,
+    -45.73545454545455,
+    -42.399999999999984
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "access-port board A3 and its Micro-D 21 (SQSO-HAR-001 2.0 3.2, M-3): envelope x -35 ... -5, z -46.8 ... -38; face flush with the -Y body-panel substrate in a 30 x 8.8 mm window (location against the Nova access window LVR-068 open)"
+  },
+  {
+   "name": "body_panel_px",
+   "group": "panel",
+   "mel": {
+    "6": 32.8
+   },
+   "mass_g": 32.8,
+   "volume_mm3": 12703.006195997423,
+   "centre_mm": [
+    50.29999999999999,
+    -0.37522917586249627,
+    0.20075186304381168
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": ""
+  },
+  {
+   "name": "body_cells_px",
+   "group": "panel",
+   "mel": {
+    "6": 7.2
+   },
+   "mass_g": 7.2,
+   "volume_mm3": 2263.836750000009,
+   "centre_mm": [
+    51.27500000000001,
+    2.179264381442462e-16,
+    3.0000000000000004
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "2 x AZUR 3G30A (<= 3.6 g each) with coverglass"
+  },
+  {
+   "name": "body_panel_mx",
+   "group": "panel",
+   "mel": {
+    "6": 32.8
+   },
+   "mass_g": 32.8,
+   "volume_mm3": 12698.934691918366,
+   "centre_mm": [
+    -50.30000000000001,
+    -0.38432677846746915,
+    0.21540433603783535
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": ""
+  },
+  {
+   "name": "body_cells_mx",
+   "group": "panel",
+   "mel": {
+    "6": 7.2
+   },
+   "mass_g": 7.2,
+   "volume_mm3": 2263.836750000009,
+   "centre_mm": [
+    -51.275,
+    2.179264381442462e-16,
+    3.0000000000000004
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "2 x AZUR 3G30A (<= 3.6 g each) with coverglass"
+  },
+  {
+   "name": "body_panel_py",
+   "group": "panel",
+   "mel": {
+    "6": 32.8
+   },
+   "mass_g": 32.8,
+   "volume_mm3": 12857.60000000001,
+   "centre_mm": [
+    5.800348863347754e-16,
+    50.30000000000001,
+    1.1317753879702931e-15
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": ""
+  },
+  {
+   "name": "body_cells_py",
+   "group": "panel",
+   "mel": {
+    "6": 7.2
+   },
+   "mass_g": 7.2,
+   "volume_mm3": 2263.8367500000095,
+   "centre_mm": [
+    8.678712182119595e-17,
+    51.275000000000006,
+    3.000000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "2 x AZUR 3G30A (<= 3.6 g each) with coverglass"
+  },
+  {
+   "name": "body_panel_my",
+   "group": "panel",
+   "mel": {
+    "6": 32.8
+   },
+   "mass_g": 32.8,
+   "volume_mm3": 12321.443688945094,
+   "centre_mm": [
+    0.5824312442656691,
+    -50.3,
+    1.8493148327906948
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": ""
+  },
+  {
+   "name": "body_cells_my",
+   "group": "panel",
+   "mel": {
+    "6": 7.2
+   },
+   "mass_g": 7.2,
+   "volume_mm3": 2263.836750000009,
+   "centre_mm": [
+    -7.151934278982296e-17,
+    -51.275000000000006,
+    3.0000000000000013
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "2 x AZUR 3G30A (<= 3.6 g each) with coverglass"
+  },
+  {
+   "name": "W1_substrate",
+   "group": "wing",
+   "mel": {
+    "7": 28.7
+   },
+   "mass_g": 28.7,
+   "volume_mm3": 11916.75019599742,
+   "centre_mm": [
+    53.600000000000016,
+    -0.4086338360550608,
+    3.048948913295783
+   ],
+   "ghost": false,
+   "moves": "W1",
+   "note": "FR-4 1.6 mm, 81.6 x 92 mm"
+  },
+  {
+   "name": "W1_cells_back",
+   "group": "wing",
+   "mel": {
+    "9": 7.2
+   },
+   "mass_g": 7.2,
+   "volume_mm3": 2263.836750000009,
+   "centre_mm": [
+    52.625,
+    2.179264381442462e-16,
+    3.0000000000000004
+   ],
+   "ghost": false,
+   "moves": "W1",
+   "note": "2 x 3G30A"
+  },
+  {
+   "name": "W1_cells_front",
+   "group": "wing",
+   "mel": {
+    "9": 7.2
+   },
+   "mass_g": 7.2,
+   "volume_mm3": 2263.836750000009,
+   "centre_mm": [
+    54.57500000000001,
+    2.179264381442462e-16,
+    3.0000000000000004
+   ],
+   "ghost": false,
+   "moves": "W1",
+   "note": "2 x 3G30A"
+  },
+  {
+   "name": "W1_holddown_line",
+   "group": "wing",
+   "mel": {
+    "10": 0.5
+   },
+   "mass_g": 0.5,
+   "volume_mm3": 4.5,
+   "centre_mm": [
+    55.00000000000001,
+    -38.5,
+    -40.0
+   ],
+   "ghost": false,
+   "moves": "W1",
+   "note": "Vectran/Dyneema loop"
+  },
+  {
+   "name": "W1_snubber",
+   "group": "wing",
+   "mel": {
+    "10": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 21.36283004441063,
+   "centre_mm": [
+    51.95000000000001,
+    -38.5,
+    46.0
+   ],
+   "ghost": false,
+   "moves": "W1",
+   "note": "PTFE-faced silicone snubber, +Z free corner"
+  },
+  {
+   "name": "W1_hinges",
+   "group": "wing",
+   "mel": {
+    "10": 6.0
+   },
+   "mass_g": 6.0,
+   "volume_mm3": 52.19534228781879,
+   "centre_mm": [
+    52.879287825779784,
+    38.52161499468157,
+    7.447697062534924
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "A286 pin (MoS2) in Ti-6Al-4V bushings: frame ears at -Z and +Z, +Z wing knuckle"
+  },
+  {
+   "name": "W1_springs",
+   "group": "wing",
+   "mel": {
+    "10": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 139.48671381938692,
+   "centre_mm": [
+    54.09999999999999,
+    38.75,
+    -14.514864864864837
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "17-7PH CH900 torsion springs OD 4.0: primary 0.470 mm x 15.4 coils below the wing, secondary 0.343 mm x 9.5 coils at +Z, 55 deg preload (hinge.py)"
+  },
+  {
+   "name": "W1_hinge_flex",
+   "group": "harness",
+   "mel": {
+    "10": 2.0
+   },
+   "mass_g": 2.0,
+   "volume_mm3": 36.80888667094833,
+   "centre_mm": [
+    53.69557660265373,
+    38.580847617164984,
+    -38.59999999999999
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "two-layer polyimide clock-spring flex (6 turns, R 1.0-1.6 mm) in the -Z wing knuckle, tail into the body"
+  },
+  {
+   "name": "W1_holddown_post",
+   "group": "wing",
+   "mel": {
+    "10": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 25.800329667606213,
+   "centre_mm": [
+    52.92500000000001,
+    -38.50000000000001,
+    -40.00000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "cup/cone post"
+  },
+  {
+   "name": "W1_deploy_sensor_stop",
+   "group": "wing",
+   "mel": {
+    "10": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 47.039999999999964,
+   "centre_mm": [
+    51.85,
+    34.9,
+    -43.400000000000006
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "non-contact deployed-state sensor and soft stop"
+  },
+  {
+   "name": "W1_burn_board",
+   "group": "wing",
+   "mel": {
+    "10": 0.9
+   },
+   "mass_g": 0.9,
+   "volume_mm3": 132.99999999999997,
+   "centre_mm": [
+    47.5,
+    -37.5,
+    -40.25
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "two burn resistors, fixed line tie; the line's other end runs over the resistors to the series spring"
+  },
+  {
+   "name": "W1_line_spring",
+   "group": "wing",
+   "mel": {
+    "10": 0.6
+   },
+   "mass_g": 0.6,
+   "volume_mm3": 204.77206380689395,
+   "centre_mm": [
+    45.51198793220947,
+    -37.50000000000001,
+    -27.95708088823054
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "hold-down line series spring: 17-7PH CH900 compression spring, wire 1.0, mean D 4.0, 4 active + 2 closed coils, OD 5.0 x 8.5 installed (free 9.3, solid 6.0), 38.6 N/mm; line through the bore, knotted on a washer at z -22.7; seat on a Ti-6Al-4V angle under the board's upper screw (0.46 + 0.07 + 0.09 g)"
+  },
+  {
+   "name": "W1_hinge_doubler_0",
+   "group": "frame",
+   "mel": {
+    "5": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 28.799999999999983,
+   "centre_mm": [
+    47.99999999999999,
+    37.99999999999999,
+    -44.4
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "inside shear panel"
+  },
+  {
+   "name": "W1_hinge_doubler_1",
+   "group": "frame",
+   "mel": {
+    "5": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 26.39999999999999,
+   "centre_mm": [
+    48.0,
+    38.0,
+    46.2
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "inside shear panel"
+  },
+  {
+   "name": "W2_substrate",
+   "group": "wing",
+   "mel": {
+    "8": 28.7
+   },
+   "mass_g": 28.7,
+   "volume_mm3": 11916.75019599742,
+   "centre_mm": [
+    -53.600000000000016,
+    -0.4086338360550608,
+    3.048948913295783
+   ],
+   "ghost": false,
+   "moves": "W2",
+   "note": "FR-4 1.6 mm, 81.6 x 92 mm"
+  },
+  {
+   "name": "W2_cells_back",
+   "group": "wing",
+   "mel": {
+    "9": 7.2
+   },
+   "mass_g": 7.2,
+   "volume_mm3": 2263.836750000009,
+   "centre_mm": [
+    -52.625,
+    2.179264381442462e-16,
+    3.0000000000000004
+   ],
+   "ghost": false,
+   "moves": "W2",
+   "note": "2 x 3G30A"
+  },
+  {
+   "name": "W2_cells_front",
+   "group": "wing",
+   "mel": {
+    "9": 7.2
+   },
+   "mass_g": 7.2,
+   "volume_mm3": 2263.836750000009,
+   "centre_mm": [
+    -54.57500000000001,
+    2.179264381442462e-16,
+    3.0000000000000004
+   ],
+   "ghost": false,
+   "moves": "W2",
+   "note": "2 x 3G30A"
+  },
+  {
+   "name": "W2_holddown_line",
+   "group": "wing",
+   "mel": {
+    "11": 0.5
+   },
+   "mass_g": 0.5,
+   "volume_mm3": 4.5,
+   "centre_mm": [
+    -55.00000000000001,
+    -38.5,
+    -40.0
+   ],
+   "ghost": false,
+   "moves": "W2",
+   "note": "Vectran/Dyneema loop"
+  },
+  {
+   "name": "W2_snubber",
+   "group": "wing",
+   "mel": {
+    "11": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 21.36283004441063,
+   "centre_mm": [
+    -51.95000000000001,
+    -38.5,
+    46.0
+   ],
+   "ghost": false,
+   "moves": "W2",
+   "note": "PTFE-faced silicone snubber, +Z free corner"
+  },
+  {
+   "name": "W2_hinges",
+   "group": "wing",
+   "mel": {
+    "11": 6.0
+   },
+   "mass_g": 6.0,
+   "volume_mm3": 52.19534228781879,
+   "centre_mm": [
+    -52.879287825779784,
+    38.52161499468157,
+    7.447697062534924
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "A286 pin (MoS2) in Ti-6Al-4V bushings: frame ears at -Z and +Z, +Z wing knuckle"
+  },
+  {
+   "name": "W2_springs",
+   "group": "wing",
+   "mel": {
+    "11": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 139.48671381938692,
+   "centre_mm": [
+    -54.09999999999999,
+    38.75,
+    -14.514864864864837
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "17-7PH CH900 torsion springs OD 4.0: primary 0.470 mm x 15.4 coils below the wing, secondary 0.343 mm x 9.5 coils at +Z, 55 deg preload (hinge.py)"
+  },
+  {
+   "name": "W2_hinge_flex",
+   "group": "harness",
+   "mel": {
+    "11": 2.0
+   },
+   "mass_g": 2.0,
+   "volume_mm3": 36.80888667094833,
+   "centre_mm": [
+    -53.69557660265373,
+    38.580847617164984,
+    -38.59999999999999
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "two-layer polyimide clock-spring flex (6 turns, R 1.0-1.6 mm) in the -Z wing knuckle, tail into the body"
+  },
+  {
+   "name": "W2_holddown_post",
+   "group": "wing",
+   "mel": {
+    "11": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 25.800329667606213,
+   "centre_mm": [
+    -52.92500000000001,
+    -38.50000000000001,
+    -40.00000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "cup/cone post"
+  },
+  {
+   "name": "W2_deploy_sensor_stop",
+   "group": "wing",
+   "mel": {
+    "11": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 47.039999999999964,
+   "centre_mm": [
+    -51.85,
+    34.9,
+    -43.400000000000006
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "non-contact deployed-state sensor and soft stop"
+  },
+  {
+   "name": "W2_burn_board",
+   "group": "wing",
+   "mel": {
+    "11": 0.9
+   },
+   "mass_g": 0.9,
+   "volume_mm3": 132.99999999999997,
+   "centre_mm": [
+    -47.5,
+    -37.5,
+    -40.25
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "two burn resistors, fixed line tie; the line's other end runs over the resistors to the series spring"
+  },
+  {
+   "name": "W2_line_spring",
+   "group": "wing",
+   "mel": {
+    "11": 0.6
+   },
+   "mass_g": 0.6,
+   "volume_mm3": 204.77206380689395,
+   "centre_mm": [
+    -45.51198793220947,
+    -37.50000000000001,
+    -27.95708088823054
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "hold-down line series spring: 17-7PH CH900 compression spring, wire 1.0, mean D 4.0, 4 active + 2 closed coils, OD 5.0 x 8.5 installed (free 9.3, solid 6.0), 38.6 N/mm; line through the bore, knotted on a washer at z -22.7; seat on a Ti-6Al-4V angle under the board's upper screw (0.46 + 0.07 + 0.09 g)"
+  },
+  {
+   "name": "W2_hinge_doubler_0",
+   "group": "frame",
+   "mel": {
+    "5": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 28.799999999999983,
+   "centre_mm": [
+    -47.99999999999999,
+    37.99999999999999,
+    -44.4
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "inside shear panel"
+  },
+  {
+   "name": "W2_hinge_doubler_1",
+   "group": "frame",
+   "mel": {
+    "5": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 26.39999999999999,
+   "centre_mm": [
+    -48.0,
+    38.0,
+    46.2
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "inside shear panel"
+  },
+  {
+   "name": "AntS_housing",
+   "group": "ants",
+   "mel": {
+    "19": 78.0
+   },
+   "mass_g": 78.0,
+   "volume_mm3": 64428.0,
+   "centre_mm": [
+    -9.03452860766552e-16,
+    -9.03452860766552e-16,
+    -52.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "ISIS AntS 1U-3U 98 x 98 x 7 mm, corner notches for the rail standoffs"
+  },
+  {
+   "name": "AntS_VHF_px_element",
+   "group": "ants",
+   "mel": {
+    "19": 2.5
+   },
+   "mass_g": 2.5,
+   "volume_mm3": 189.99999999999997,
+   "centre_mm": [
+    -2.4424906541753446e-16,
+    47.75000000000001,
+    -52.0
+   ],
+   "ghost": false,
+   "moves": "ANT",
+   "note": "2 m tape spring 500 mm x 5.0 mm, deployed along +X"
+  },
+  {
+   "name": "AntS_VHF_mx_element",
+   "group": "ants",
+   "mel": {
+    "19": 2.5
+   },
+   "mass_g": 2.5,
+   "volume_mm3": 189.99999999999997,
+   "centre_mm": [
+    -1.7763568394002508e-16,
+    47.15,
+    -52.0
+   ],
+   "ghost": false,
+   "moves": "ANT",
+   "note": "2 m tape spring 500 mm x 5.0 mm, deployed along -X"
+  },
+  {
+   "name": "AntS_UHF_py_element",
+   "group": "ants",
+   "mel": {
+    "19": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 189.99999999999997,
+   "centre_mm": [
+    2.2204460492503135e-17,
+    46.55,
+    -52.0
+   ],
+   "ghost": false,
+   "moves": "ANT",
+   "note": "70 cm tape spring 170 mm x 5.0 mm, deployed along +Y"
+  },
+  {
+   "name": "AntS_UHF_my_element",
+   "group": "ants",
+   "mel": {
+    "19": 1.0
+   },
+   "mass_g": 1.0,
+   "volume_mm3": 189.99999999999997,
+   "centre_mm": [
+    2.2204460492503135e-17,
+    45.95000000000001,
+    -52.0
+   ],
+   "ghost": false,
+   "moves": "ANT",
+   "note": "70 cm tape spring 170 mm x 5.0 mm, deployed along -Y"
+  },
+  {
+   "name": "cell_1",
+   "group": "battery",
+   "mel": {
+    "13": 50.0
+   },
+   "mass_g": 50.0,
+   "volume_mm3": 17472.163892480487,
+   "centre_mm": [
+    -8.328627935220763e-16,
+    -27.75,
+    -32.89999999999999
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "INR18650-35E, 50.0 g max"
+  },
+  {
+   "name": "cell_2",
+   "group": "battery",
+   "mel": {
+    "13": 50.0
+   },
+   "mass_g": 50.0,
+   "volume_mm3": 17472.163892480483,
+   "centre_mm": [
+    -8.328627935220765e-16,
+    -9.25,
+    -32.900000000000006
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "INR18650-35E, 50.0 g max"
+  },
+  {
+   "name": "cell_3",
+   "group": "battery",
+   "mel": {
+    "13": 50.0
+   },
+   "mass_g": 50.0,
+   "volume_mm3": 17472.163892480487,
+   "centre_mm": [
+    8.328627935220763e-16,
+    9.25,
+    -32.89999999999999
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "INR18650-35E, 50.0 g max"
+  },
+  {
+   "name": "cell_4",
+   "group": "battery",
+   "mel": {
+    "13": 50.0
+   },
+   "mass_g": 50.0,
+   "volume_mm3": 17472.163892480487,
+   "centre_mm": [
+    -8.328627935220763e-16,
+    27.75,
+    -32.89999999999999
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "INR18650-35E, 50.0 g max"
+  },
+  {
+   "name": "battery_clamp",
+   "group": "battery",
+   "mel": {
+    "15": 34.0
+   },
+   "mass_g": 34.0,
+   "volume_mm3": 16654.513684086065,
+   "centre_mm": [
+    -3.946336478272032e-15,
+    -1.0434254651992502e-14,
+    -33.0711247805886
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "Al 6061-T6 end caps, side bars and four isolator ears"
+  },
+  {
+   "name": "battery_cell_retention",
+   "group": "battery",
+   "mel": {
+    "37": 5.0
+   },
+   "mass_g": 5.0,
+   "volume_mm3": 1510.283947276045,
+   "centre_mm": [
+    -3.0110056569603914e-16,
+    1.806603394176235e-15,
+    -32.90000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "G-10CR cell-locator plates (polyimide-lined holes), per-cell disc-spring stacks on G-10CR seats under the -X end cap, polyimide end insulators, shims; no adhesive, no potting (MECHANICAL_DESIGN 4.6)"
+  },
+  {
+   "name": "battery_isolators",
+   "group": "battery",
+   "mel": {
+    "16": 6.0
+   },
+   "mass_g": 6.0,
+   "volume_mm3": 1000.2045610866504,
+   "centre_mm": [
+    -6.3083290549032705e-15,
+    -7.103974160927106e-15,
+    -42.20830388692578
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "4 G-10CR shouldered bushings 6 mm dia x 8 mm, Ti-6Al-4V M2.5, disc springs, heads"
+  },
+  {
+   "name": "battery_heaters_wrap",
+   "group": "battery",
+   "mel": {
+    "16": 2.0,
+    "33": 10.0
+   },
+   "mass_g": 12.0,
+   "volume_mm3": 1443.0000000000034,
+   "centre_mm": [
+    2.3231229252608265e-16,
+    1.3664283380001895e-16,
+    -21.05
+   ],
+   "ghost": true,
+   "moves": "",
+   "note": "heater films, cutout, VDA tape: carried as a layer on the pack"
+  },
+  {
+   "name": "battery_sense_board",
+   "group": "battery",
+   "mel": {
+    "14": 15.0
+   },
+   "mass_g": 15.0,
+   "volume_mm3": 13999.999999999998,
+   "centre_mm": [
+    -7.188694084447889e-16,
+    2.63915873282323e-16,
+    -19.15
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "interconnect and sense board on the clamp (flying leads, no stack connector)"
+  },
+  {
+   "name": "torquer_deck",
+   "group": "frame",
+   "mel": {
+    "5": 9.0
+   },
+   "mass_g": 9.0,
+   "volume_mm3": 2950.404571681078,
+   "centre_mm": [
+    0.4664614518326224,
+    2.9304534447898187,
+    -16.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "skeleton deck, Al 1.0 mm (rim, bosses, straps): X rod, GNSS receiver, rod clips (MCAD-02)"
+  },
+  {
+   "name": "rod_X",
+   "group": "adcs",
+   "mel": {
+    "27r": 16.5
+   },
+   "mass_g": 16.5,
+   "volume_mm3": 4069.7369331847276,
+   "centre_mm": [
+    -4.469550325756378e-16,
+    35.99999999999999,
+    -10.250000000000002
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "CubeSpace CR0002, 10.5 x 10.5 x 47 mm, 16.5 g (CubeSpace Gen 2 brochure)"
+  },
+  {
+   "name": "rod_Y",
+   "group": "adcs",
+   "mel": {
+    "27r": 16.5
+   },
+   "mass_g": 16.5,
+   "volume_mm3": 4069.7369331847276,
+   "centre_mm": [
+    41.99999999999999,
+    -4.469550325756378e-16,
+    -32.9
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": ""
+  },
+  {
+   "name": "rod_Z",
+   "group": "adcs",
+   "mel": {
+    "27r": 16.5
+   },
+   "mass_g": 16.5,
+   "volume_mm3": 4069.7369331847276,
+   "centre_mm": [
+    -41.5,
+    -1.2194203868016662e-16,
+    -20.499999999999996
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "tied to the -X shear panel only; passes the deck and EPS notches without contact"
+  },
+  {
+   "name": "rod_clips",
+   "group": "adcs",
+   "mel": {
+    "28r": 8.0
+   },
+   "mass_g": 8.0,
+   "volume_mm3": 1872.0000000000005,
+   "centre_mm": [
+    9.69230769230769,
+    1.2564102564102604,
+    -28.51923076923077
+   ],
+   "ghost": true,
+   "moves": "",
+   "note": "X rod on the deck, Y rod on the +X shear panel, Z rod on the -X shear panel only (clips at z -39 and -8; no contact in the deck and EPS notches, 0.75 mm radial clearance; P3S-12)"
+  },
+  {
+   "name": "GNSS_receiver",
+   "group": "gnss",
+   "mel": {
+    "29": 24.0
+   },
+   "mass_g": 24.0,
+   "volume_mm3": 22500.0,
+   "centre_mm": [
+    5.0,
+    -20.0,
+    -11.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "SkyFox piNAV-NG/FM, 24 g; envelope allocation 50 x 50 x 9 mm (open: vendor drawing)"
+  },
+  {
+   "name": "EPS",
+   "group": "stack",
+   "mel": {
+    "12": 31.499999999999996
+   },
+   "mass_g": 31.499999999999996,
+   "volume_mm3": 16979.252782454485,
+   "centre_mm": [
+    0.5913860906397599,
+    1.4797347950694186e-15,
+    -2.3999999999999995
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "EPS 2.0 mm (P3S-02): MPPT, BMS, PDU, burn drivers; centre supports (STR-05); notch for the Z rod; bottom parts <= 0.6 mm over the X rod"
+  },
+  {
+   "name": "EPS_parts",
+   "group": "stack",
+   "mel": {
+    "12": 58.5
+   },
+   "mass_g": 58.5,
+   "volume_mm3": 47369.61543976692,
+   "centre_mm": [
+    0.5625177981206573,
+    -0.18619530511526144,
+    0.2897686767457824
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "component envelope"
+  },
+  {
+   "name": "OBC",
+   "group": "stack",
+   "mel": {
+    "17": 15.749999999999998
+   },
+   "mass_g": 15.749999999999998,
+   "volume_mm3": 13782.770225963586,
+   "centre_mm": [
+    7.258658132931892e-16,
+    7.42362763595307e-17,
+    5.8
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "OBC STM32L4R5ZI, BMI088"
+  },
+  {
+   "name": "OBC_parts",
+   "group": "stack",
+   "mel": {
+    "17": 29.25
+   },
+   "mass_g": 29.25,
+   "volume_mm3": 30211.785537259777,
+   "centre_mm": [
+    0.8049687452803725,
+    -1.4680631723214936,
+    7.148523399979722
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "component envelope"
+  },
+  {
+   "name": "gyro_MG370",
+   "group": "adcs",
+   "mel": {
+    "25": 10.0
+   },
+   "mass_g": 10.0,
+   "volume_mm3": 8064.000000000002,
+   "centre_mm": [
+    -20.0,
+    30.5,
+    13.6
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "Epson M-G370PDT0 24 x 24 x 10 mm in socket X1 (14.0 mm above the OBC), through the carrier window"
+  },
+  {
+   "name": "Jetson_carrier",
+   "group": "stack",
+   "mel": {
+    "21": 14.0
+   },
+   "mass_g": 14.0,
+   "volume_mm3": 15770.462782454482,
+   "centre_mm": [
+    1.849026271596935,
+    -2.8197650641853165,
+    18.599999999999998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "custom carrier, 2.0 mm; centre supports; 27 x 27 mm window for the gyro (C3)"
+  },
+  {
+   "name": "Jetson_carrier_parts",
+   "group": "stack",
+   "mel": {
+    "21": 25.2
+   },
+   "mass_g": 25.2,
+   "volume_mm3": 9623.497499935253,
+   "centre_mm": [
+    1.5150416987273208,
+    -11.836652120905386,
+    17.93835751086998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": ""
+  },
+  {
+   "name": "SODIMM_connector",
+   "group": "stack",
+   "mel": {
+    "21": 0.0,
+    "22": 2.0
+   },
+   "mass_g": 2.0,
+   "volume_mm3": 1152.0,
+   "centre_mm": [
+    -8.673617379884035e-18,
+    -30.5,
+    21.600000000000005
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "260-pin SO-DIMM, 4 mm stack height (allocation)"
+  },
+  {
+   "name": "module_standoffs",
+   "group": "stack",
+   "mel": {
+    "21": 0.8
+   },
+   "mass_g": 0.8,
+   "volume_mm3": 163.42564983974106,
+   "centre_mm": [
+    -1.5304270977831197e-14,
+    12.6,
+    21.599999999999998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "MP2/MP3 Wurth 9774040360R steel SMT spacers M3 x 4.0 mm at the module's far-edge holes (M1)"
+  },
+  {
+   "name": "Jetson_module",
+   "group": "stack",
+   "mel": {
+    "20": 31.0
+   },
+   "mass_g": 31.0,
+   "volume_mm3": 8570.02791377998,
+   "centre_mm": [
+    1.806348172552994e-15,
+    -6.312633697103069,
+    23.812895346785435
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "Jetson Orin Nano 8 GB 69.6 x 45 mm (NVIDIA SO-DIMM form factor); SoC lid 20 x 20 x 1.5 mm, DRAM and regulators 1.0 mm (envelopes until the NVIDIA STEP model is used)"
+  },
+  {
+   "name": "Jetson_TIM_clamp",
+   "group": "stack",
+   "mel": {
+    "22": 18.0
+   },
+   "mass_g": 18.0,
+   "volume_mm3": 2063.9999999999995,
+   "centre_mm": [
+    -9.363741479009075e-16,
+    -7.627906976744185,
+    26.470058139534874
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "clamp bars at both short edges (STR-07); gap pads on the SoC lid (1.0 mm) and on the DRAM and regulators (2.0 mm), both at 25 % deflection (SQSO-JET-BRD-001 14)"
+  },
+  {
+   "name": "heat_spreader",
+   "group": "stack",
+   "mel": {
+    "23": 66.6,
+    "5": 15.0
+   },
+   "mass_g": 81.6,
+   "volume_mm3": 26720.99999999998,
+   "centre_mm": [
+    -5.486491301527554e-16,
+    -2.8893379738782223,
+    30.304561019422916
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "Al 6061 80 x 60 x 5 mm with 3 mm flanges bolted (4 x M2.5) to the +-X shear panels; pedestal 22 x 22 x 0.75 mm over the SoC lid (flatness 0.05 mm) and a 0.5 mm second face over the DRAM and regulators"
+  },
+  {
+   "name": "RF",
+   "group": "stack",
+   "mel": {
+    "18": 42.0
+   },
+   "mass_g": 42.0,
+   "volume_mm3": 13782.770225963599,
+   "centre_mm": [
+    -3.2169053089129943e-16,
+    -1.1135441453929596e-16,
+    35.6
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "RF board with shield 84 x 60 x 7 mm (stiffener); keep-out <= 2 mm under the magnetometer"
+  },
+  {
+   "name": "RF_parts",
+   "group": "stack",
+   "mel": {
+    "18": 78.0
+   },
+   "mass_g": 78.0,
+   "volume_mm3": 47661.13264801498,
+   "centre_mm": [
+    0.1714615470574374,
+    -4.7740369095494115,
+    38.08155070099362
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "component envelope"
+  },
+  {
+   "name": "centre_supports",
+   "group": "stack",
+   "mel": {
+    "34": 2.0
+   },
+   "mass_g": 2.0,
+   "volume_mm3": 1519.2105900247893,
+   "centre_mm": [
+    -5.846315353065256e-17,
+    7.267548424019001,
+    7.737426272502104
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "centre supports (STR-05): (0, +21) deck-EPS-OBC-carrier-spreader, (0, -21) EPS-OBC-carrier, (0, 0) spreader-RF"
+  },
+  {
+   "name": "stack_columns",
+   "group": "stack",
+   "mel": {
+    "34": 8.0
+   },
+   "mass_g": 8.0,
+   "volume_mm3": 9205.00470509485,
+   "centre_mm": [
+    -2.074891795184008e-15,
+    -3.359348620774108e-15,
+    -0.12818599311136347
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "4 M3 A286 studs in Al hex spacers 5 AF, tied to both end frames (STR-06)"
+  },
+  {
+   "name": "magnetometer",
+   "group": "adcs",
+   "mel": {
+    "24": 2.0
+   },
+   "mass_g": 2.0,
+   "volume_mm3": 903.3536298679513,
+   "centre_mm": [
+    23.936038146995358,
+    26.936038146995358,
+    47.599999999999994
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "board A2 (OBC item C13): 24 x 24 x 1.6 mm, 2 layers, back face on the +Z end frame (isolated: no frame bond)"
+  },
+  {
+   "name": "magnetometer_parts",
+   "group": "adcs",
+   "mel": {
+    "24": 7.5,
+    "26": 2.0
+   },
+   "mass_g": 9.5,
+   "volume_mm3": 2525.942012585825,
+   "centre_mm": [
+    23.691424210663392,
+    26.691424210663392,
+    43.924999999999976
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "RM3100: MagI2C, Sen-XY-f 6.0 x 2.1 x 2.2, Sen-Z-f 3.0 x 3.0 x 5.75 mm (PNI); J1 toward the +X wall gap"
+  },
+  {
+   "name": "magnetometer_fasteners",
+   "group": "adcs",
+   "mel": {
+    "24": 0.5
+   },
+   "mass_g": 0.5,
+   "volume_mm3": 128.0002656796991,
+   "centre_mm": [
+    27.166666666666668,
+    30.166666666666668,
+    47.92860101242522
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "3 x M2 Ti-6Al-4V screws (heads on the +Z face, outside the GNSS patch), brass nuts, polyimide washers"
+  },
+  {
+   "name": "inertia_ballast",
+   "group": "adcs",
+   "mel": {
+    "36": 20.0
+   },
+   "mass_g": 20.0,
+   "volume_mm3": 1108.3538881864797,
+   "centre_mm": [
+    -16.999999999999993,
+    8.0,
+    46.599999999999994
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "2 x 10 g W-Ni-Cu (non-magnetic) discs, Z-axis inertia ballast and integration trim (MEL row 36)"
+  },
+  {
+   "name": "GNSS_patch",
+   "group": "gnss",
+   "mel": {
+    "30": 20.0
+   },
+   "mass_g": 20.0,
+   "volume_mm3": 12499.999999999996,
+   "centre_mm": [
+    -1.607602939657227e-16,
+    0.0,
+    52.50000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "Spacemanic ZENITH V3a 50 x 50 mm; thickness allocation 5 mm"
+  },
+  {
+   "name": "GNSS_patch_adapter",
+   "group": "gnss",
+   "mel": {
+    "31": 6.0,
+    "5": 2.0
+   },
+   "mass_g": 8.0,
+   "volume_mm3": 314.1592653589793,
+   "centre_mm": [
+    5.428146656364401e-16,
+    -8.639064315041162e-17,
+    46.4
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": ""
+  },
+  {
+   "name": "coax_W10",
+   "group": "harness",
+   "mel": {
+    "32": 12.12912102282782
+   },
+   "mass_g": 12.12912102282782,
+   "volume_mm3": 2293.2800000000007,
+   "centre_mm": [
+    -46.37508546710389,
+    4.7590945812439545e-15,
+    -5.1379578594851
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "W10: four 1.37 mm coax, right-angle MMCX plugs, 7 mm bend radius (RF board C 4.3)"
+  },
+  {
+   "name": "RF_J3_J6_MMCX",
+   "group": "stack",
+   "mel": {
+    "18": 0.0
+   },
+   "mass_g": 0.0,
+   "volume_mm3": 1795.2000000000003,
+   "centre_mm": [
+    -38.300000000000004,
+    0.0,
+    39.400000000000006
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "MMCX jacks Molex 73415-1473 J3/J4 (2 m) at (-34.5, -19/-25), J5/J6 (70 cm) at (-34.5, +19/+25), mated"
+  },
+  {
+   "name": "ribbon_W4A",
+   "group": "harness",
+   "mel": {
+    "32": 3.527078019921158
+   },
+   "mass_g": 3.527078019921158,
+   "volume_mm3": 508.29999999999905,
+   "centre_mm": [
+    47.131329923273654,
+    -33.50000000000001,
+    25.35
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "W4A: flat SFSDT discrete-wire assembly (1.32 mm), right-angle TFM-108 at OBC J2 and RF J1, no fold over J1 (SQSO-HAR-001 2.0 M-8)"
+  },
+  {
+   "name": "OBC_J2_mated",
+   "group": "stack",
+   "mel": {
+    "17": 0.0
+   },
+   "mass_g": 0.0,
+   "volume_mm3": 371.1999999999999,
+   "centre_mm": [
+    40.99999999999999,
+    -33.5,
+    10.6
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "OBC J2 FTSH-108 with its ribbon socket, mated-height allocation 8 mm (open: Samtec drawing)"
+  },
+  {
+   "name": "RF_J1_mated",
+   "group": "stack",
+   "mel": {
+    "18": 0.0
+   },
+   "mass_g": 0.0,
+   "volume_mm3": 1063.7199999999998,
+   "centre_mm": [
+    36.55000000000001,
+    -33.5,
+    39.900000000000006
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "RF J1 Samtec TFM-108 right-angle with its SFSDT plug, cable toward +X, in the shield notch x > +30, y < -26 (RF_BOARD_DESIGN D 4.3)"
+  },
+  {
+   "name": "RF_J2_mated",
+   "group": "stack",
+   "mel": {
+    "18": 0.0
+   },
+   "mass_g": 0.0,
+   "volume_mm3": 300.0,
+   "centre_mm": [
+    -25.999999999999996,
+    -43.999999999999986,
+    39.39999999999999
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "RF J2 Pico-Clasp 6 vertical, mated, at (-26, -44) (allocation 6 mm)"
+  },
+  {
+   "name": "EPS_bottom_connectors",
+   "group": "harness",
+   "mel": {
+    "12": 0.0
+   },
+   "mass_g": 0.0,
+   "volume_mm3": 27035.9625,
+   "centre_mm": [
+    -1.1223810924060886,
+    1.7150812320811584,
+    -8.425
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "EPS bottom-side harness connectors, mated with the wire bend, 9.0 mm below the substrate (z -3.0 ... -12.0; the 1 mm parts layer is the EPS_parts envelope) in zones Z1-Z5 and J3 at +X"
+  },
+  {
+   "name": "TB_tabs",
+   "group": "harness",
+   "mel": {
+    "32": 0.39976896468923806
+   },
+   "mass_g": 0.39976896468923806,
+   "volume_mm3": 35.99999999999966,
+   "centre_mm": [
+    -4.49220907386112e-13,
+    36.99999999999983,
+    -34.000000000000014
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "TB-W1 / TB-W2: polyimide 6 x 10 mm termination tabs bonded to the shear panels, hinge-flex tails through 1.5 x 2.8 mm slots below them"
+  },
+  {
+   "name": "slot_grommets",
+   "group": "harness",
+   "mel": {
+    "32": 0.0
+   },
+   "mass_g": 0.0,
+   "volume_mm3": 51.000000000000085,
+   "centre_mm": [
+    -14.999999999999975,
+    -10.500000000000034,
+    -10.000000000000004
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "silicone or PTFE edge grommets in the 6 x 4 mm shear-panel slots (mass in the harness lacing)"
+  },
+  {
+   "name": "sun_sensor_PZ",
+   "group": "adcs",
+   "mel": {
+    "26": 0.2
+   },
+   "mass_g": 0.2,
+   "volume_mm3": 31.599999999999905,
+   "centre_mm": [
+    -36.00000000000001,
+    36.00000000000001,
+    50.46645569620253
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "+Z photodiode on a 6 x 6 x 0.8 mm carrier at (-36, +36) on the +Z end frame, leads through a 2 mm hole (W6D)"
+  },
+  {
+   "name": "sun_sensor_MZ",
+   "group": "adcs",
+   "mel": {
+    "26": 0.2
+   },
+   "mass_g": 0.2,
+   "volume_mm3": 31.59999999999991,
+   "centre_mm": [
+    -52.09873417721517,
+    27.999999999999996,
+    -48.100632911392395
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "-Z photodiode facing -Z on an L-carrier bonded to the -X body panel's -Z end zone at y +28, outboard of the AntS footprint (face at z -50.0, x -52.6); leads through the panels (W6D)"
+  },
+  {
+   "name": "hz_CARP",
+   "group": "harness",
+   "mel": {
+    "32": 0.46789150650308164
+   },
+   "mass_g": 0.46789150650308164,
+   "volume_mm3": 100.29999999999998,
+   "centre_mm": [
+    43.699999999999996,
+    28.499999999999996,
+    24.65
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone CARP: carrier +X edge to carrier J2 (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_CAR_MXMY",
+   "group": "harness",
+   "mel": {
+    "32": 0.9980812654645609
+   },
+   "mass_g": 0.9980812654645609,
+   "volume_mm3": 672.7919999999998,
+   "centre_mm": [
+    -35.7,
+    -36.6,
+    24.25
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone CAR_MXMY: carrier -Y strip to carrier J1 (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_CS_MXMY",
+   "group": "harness",
+   "mel": {
+    "32": 1.4464493336271234
+   },
+   "mass_g": 1.4464493336271234,
+   "volume_mm3": 430.07999999999936,
+   "centre_mm": [
+    -44.8,
+    -40.4,
+    -39.25
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone CS_MXMY: (-X,-Y) corner strip: W2 burn board, DS2, W8A (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_CS_PXMY",
+   "group": "harness",
+   "mel": {
+    "32": 0.3696059465793069
+   },
+   "mass_g": 0.3696059465793069,
+   "volume_mm3": 430.07999999999936,
+   "centre_mm": [
+    44.8,
+    -40.4,
+    -39.25
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone CS_PXMY: (+X,-Y) corner strip to the W1 burn board (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_DS_MY_M",
+   "group": "harness",
+   "mel": {
+    "32": 0.20085312349758386
+   },
+   "mass_g": 0.20085312349758386,
+   "volume_mm3": 30.36000000000008,
+   "centre_mm": [
+    -28.500000000000004,
+    -43.449999999999996,
+    -16.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone DS_MY_M: deck slot -Y, -X half (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_DS_MY_P",
+   "group": "harness",
+   "mel": {
+    "32": 0.023022955248004347
+   },
+   "mass_g": 0.023022955248004347,
+   "volume_mm3": 9.660000000000025,
+   "centre_mm": [
+    32.75,
+    -43.449999999999996,
+    -16.000000000000004
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone DS_MY_P: deck slot -Y, +X half (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_DX_MXC",
+   "group": "harness",
+   "mel": {
+    "32": 0.11362330513724851
+   },
+   "mass_g": 0.11362330513724851,
+   "volume_mm3": 72.00000000000006,
+   "centre_mm": [
+    -39.0,
+    -13.5,
+    -16.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone DX_MXC: deck opening -X centre (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_DX_MXMY",
+   "group": "harness",
+   "mel": {
+    "32": 1.2876834600239035
+   },
+   "mass_g": 1.2876834600239035,
+   "volume_mm3": 57.00000000000005,
+   "centre_mm": [
+    -39.0,
+    -29.250000000000004,
+    -16.000000000000004
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone DX_MXMY: deck opening (-X,-Y) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_DX_MXPY",
+   "group": "harness",
+   "mel": {
+    "32": 0.7375928423731135
+   },
+   "mass_g": 0.7375928423731135,
+   "volume_mm3": 115.2000000000001,
+   "centre_mm": [
+    -29.999999999999996,
+    19.999999999999996,
+    -16.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone DX_MXPY: deck opening, battery leads (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_HS_MX",
+   "group": "harness",
+   "mel": {
+    "32": 0.0595596670053306
+   },
+   "mass_g": 0.0595596670053306,
+   "volume_mm3": 621.6000000000001,
+   "centre_mm": [
+    -46.900000000000006,
+    37.1,
+    -23.5
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone HS_MX: -X hinge-side strip, widened 0.6 mm for the W2 sensor-splice pair (M-11) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_HS_PX",
+   "group": "harness",
+   "mel": {
+    "32": 1.4033072033611451
+   },
+   "mass_g": 1.4033072033611451,
+   "volume_mm3": 555.0,
+   "centre_mm": [
+    46.89999999999999,
+    37.0,
+    -23.5
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone HS_PX: +X hinge-side strip (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_LI_DS1",
+   "group": "harness",
+   "mel": {
+    "32": 0.16131380414985588
+   },
+   "mass_g": 0.16131380414985588,
+   "volume_mm3": 19.999999999999996,
+   "centre_mm": [
+    46.4,
+    41.49999999999999,
+    -43.25
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone LI_DS1: DS1 lead-in beside the hinge doubler (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_MXC",
+   "group": "harness",
+   "mel": {
+    "26": 0.6179896320847682,
+    "32": 0.15052179763760729
+   },
+   "mass_g": 0.7685114297223755,
+   "volume_mm3": 1275.0,
+   "centre_mm": [
+    -46.9,
+    13.25,
+    1.0000000000000002
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone MXC: -X wall gap between the Z rod and the 70 cm coax band (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_MXMY",
+   "group": "harness",
+   "mel": {
+    "32": 3.867442299957253
+   },
+   "mass_g": 3.867442299957253,
+   "volume_mm3": 2830.409999999999,
+   "centre_mm": [
+    -46.90000000000001,
+    -28.950000000000006,
+    0.7500000000000006
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone MXMY: (-X,-Y) wall-gap bundle (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_MXPY",
+   "group": "harness",
+   "mel": {
+    "32": 1.0258921540464754,
+    "26": 1.6106750614579617
+   },
+   "mass_g": 2.636567215504437,
+   "volume_mm3": 2830.409999999999,
+   "centre_mm": [
+    -46.90000000000001,
+    28.950000000000006,
+    0.7500000000000006
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone MXPY: (-X,+Y) wall-gap bundle (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_MZT",
+   "group": "harness",
+   "mel": {
+    "26": 0.03761536761317244,
+    "32": 0.015035467431129323
+   },
+   "mass_g": 0.052650835044301764,
+   "volume_mm3": 47.97,
+   "centre_mm": [
+    -45.45,
+    35.95000000000001,
+    -43.50000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone MZT: -Z sun-sensor termination (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_PG_MX",
+   "group": "harness",
+   "mel": {
+    "32": 0.17617367189057842,
+    "26": 0.020846687014205827
+   },
+   "mass_g": 0.19702035890478425,
+   "volume_mm3": 70.39999999999998,
+   "centre_mm": [
+    -46.199999999999996,
+    -12.0,
+    -9.999999999999998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone PG_MX: -X body-panel pigtail slot (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_PG_MY",
+   "group": "harness",
+   "mel": {
+    "32": 0.16101268413368178,
+    "26": 0.013006410310026605
+   },
+   "mass_g": 0.1740190944437084,
+   "volume_mm3": 38.39999999999997,
+   "centre_mm": [
+    -30.0,
+    -47.199999999999996,
+    -10.000000000000002
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone PG_MY: -Y body-panel pigtail slot (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_PG_PX",
+   "group": "harness",
+   "mel": {
+    "32": 0.1809413001770931,
+    "26": 0.018777546090483762
+   },
+   "mass_g": 0.19971884626757685,
+   "volume_mm3": 70.39999999999998,
+   "centre_mm": [
+    46.199999999999996,
+    -29.999999999999996,
+    -9.999999999999998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone PG_PX: +X body-panel pigtail slot (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_PG_PY",
+   "group": "harness",
+   "mel": {
+    "32": 0.315518987222136,
+    "26": 0.03989927754394569
+   },
+   "mass_g": 0.3554182647660817,
+   "volume_mm3": 134.39999999999995,
+   "centre_mm": [
+    -30.000000000000004,
+    44.2,
+    -10.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone PG_PY: +Y body-panel pigtail slot (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_PXC_B",
+   "group": "harness",
+   "mel": {
+    "32": 1.1832039421941334
+   },
+   "mass_g": 1.1832039421941334,
+   "volume_mm3": 2040.0,
+   "centre_mm": [
+    46.89999999999999,
+    -3.483052626275001e-17,
+    -17.5
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone PXC_B: +X wall gap at |y| < 20 below the EPS (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_PXMY2",
+   "group": "harness",
+   "mel": {
+    "32": 0.45000134275491527
+   },
+   "mass_g": 0.45000134275491527,
+   "volume_mm3": 1017.0,
+   "centre_mm": [
+    46.900000000000006,
+    -42.5,
+    16.25
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone PXMY2: +X wall gap beside W4A, DS3 leads (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_PXMY_LO",
+   "group": "harness",
+   "mel": {
+    "32": 0.348684855263497
+   },
+   "mass_g": 0.348684855263497,
+   "volume_mm3": 620.7299999999999,
+   "centre_mm": [
+    46.899999999999984,
+    -28.95,
+    -36.449999999999996
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone PXMY_LO: (+X,-Y) wall-gap bundle below z -26 (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_PXMY_UP",
+   "group": "harness",
+   "mel": {
+    "32": 0.26801823414374276,
+    "31": 7.054359673024523
+   },
+   "mass_g": 7.322377907168266,
+   "volume_mm3": 1450.8000000000002,
+   "centre_mm": [
+    46.899999999999984,
+    -23.749999999999996,
+    11.200000000000003
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone PXMY_UP: (+X,-Y) wall-gap bundle above z -26 (3 x 6.5 mm) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_PXPY",
+   "group": "harness",
+   "mel": {
+    "32": 1.9237180351755134,
+    "26": 0.8946321595132152
+   },
+   "mass_g": 2.818350194688729,
+   "volume_mm3": 2830.409999999999,
+   "centre_mm": [
+    46.900000000000006,
+    28.950000000000006,
+    0.7500000000000006
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone PXPY: (+X,+Y) wall-gap bundle (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_PX_J45",
+   "group": "harness",
+   "mel": {
+    "32": 0.19283087590452774
+   },
+   "mass_g": 0.19283087590452774,
+   "volume_mm3": 447.99999999999994,
+   "centre_mm": [
+    45.199999999999996,
+    19.000000000000007,
+    13.100000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone PX_J45: OBC top side, entry to J4/J5 from the +X wall gap (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_SPLICE_W7A_HS-W1",
+   "group": "harness",
+   "mel": {
+    "32": 0.7595610329095522
+   },
+   "mass_g": 0.7595610329095522,
+   "volume_mm3": 359.59926150050217,
+   "centre_mm": [
+    45.5,
+    19.6,
+    -45.29999999999999
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "W7A at HS-W1: two D-200-82 splices, 2.8 x 29.2 mm, side by side (SQSO-HAR-001 2.0 amended, M-11)"
+  },
+  {
+   "name": "hz_SPLICE_W7B_HS-W2",
+   "group": "harness",
+   "mel": {
+    "32": 0.7595610329095522
+   },
+   "mass_g": 0.7595610329095522,
+   "volume_mm3": 359.5992664265194,
+   "centre_mm": [
+    -46.60000000119863,
+    37.10000002108914,
+    -26.4
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "W7B at HS-W2: two D-200-82 splices, 2.8 x 29.2 mm, side by side (SQSO-HAR-001 2.0 amended, M-11)"
+  },
+  {
+   "name": "hz_SPL_PX",
+   "group": "harness",
+   "mel": {
+    "32": 0.3794849794753986
+   },
+   "mass_g": 0.3794849794753986,
+   "volume_mm3": 805.3919999999996,
+   "centre_mm": [
+    45.5,
+    19.300000000000004,
+    -44.35000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone SPL_PX: +X lane on the -Z end frame: W1 sensor-splice pair and W7A-05/06 on it (M-11) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_S_MXC",
+   "group": "harness",
+   "mel": {
+    "32": 0.6123033665729504
+   },
+   "mass_g": 0.6123033665729504,
+   "volume_mm3": 3024.0,
+   "centre_mm": [
+    -40.5,
+    -13.5,
+    -31.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone S_MXC: inboard strip beside the -X end cap, centre (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_S_MXMY",
+   "group": "harness",
+   "mel": {
+    "32": 1.0071925769290238
+   },
+   "mass_g": 1.0071925769290238,
+   "volume_mm3": 1453.5,
+   "centre_mm": [
+    -40.49999999999999,
+    -29.25,
+    -25.5
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone S_MXMY: inboard strip beside the -X battery end cap (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_TAB_W6C_ROD-X",
+   "group": "harness",
+   "mel": {
+    "26": 0.20118154239182498
+   },
+   "mass_g": 0.20118154239182498,
+   "volume_mm3": 120.0,
+   "centre_mm": [
+    -26.6,
+    36.0,
+    -14.5
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "W6C at ROD-X: bonded polyimide solder tab 6 x 10 x 2.0 mm on torquer_deck (SQSO-HAR-001 2.0 amended, M-11)"
+  },
+  {
+   "name": "hz_TAB_W6C_ROD-Y",
+   "group": "harness",
+   "mel": {
+    "26": 0.20118154239182498
+   },
+   "mass_g": 0.20118154239182498,
+   "volume_mm3": 120.0,
+   "centre_mm": [
+    47.39999999999999,
+    27.5,
+    -33.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "W6C at ROD-Y: bonded polyimide solder tab 6 x 10 x 2.0 mm on shear_px (SQSO-HAR-001 2.0 amended, M-11)"
+  },
+  {
+   "name": "hz_TAB_W6C_ROD-Z",
+   "group": "harness",
+   "mel": {
+    "26": 0.20118154239182498
+   },
+   "mass_g": 0.20118154239182498,
+   "volume_mm3": 120.0,
+   "centre_mm": [
+    -47.5,
+    10.0,
+    12.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "W6C at ROD-Z: bonded polyimide solder tab 6 x 10 x 2.0 mm on shear_mx (SQSO-HAR-001 2.0 amended, M-11)"
+  },
+  {
+   "name": "hz_TAB_W7C_ANTS",
+   "group": "harness",
+   "mel": {
+    "32": 0.19988448234461903
+   },
+   "mass_g": 0.19988448234461903,
+   "volume_mm3": 175.99999999999974,
+   "centre_mm": [
+    -31.159090909090914,
+    -14.500000000000004,
+    -46.354545454545466
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "W7C at ANTS: bonded polyimide solder tab 6 x 10 x 2.0 mm on battery_clamp (SQSO-HAR-001 2.0 amended, M-11)"
+  },
+  {
+   "name": "hz_TB_ANT",
+   "group": "harness",
+   "mel": {
+    "32": 0.111519169856929
+   },
+   "mass_g": 0.111519169856929,
+   "volume_mm3": 167.99999999999983,
+   "centre_mm": [
+    -31.0,
+    -14.499999999999998,
+    -46.4
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone TB_ANT: TB-ANT on its G-10CR carrier under the battery -X end-cap strip (M-11) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_TE_MXMY1",
+   "group": "harness",
+   "mel": {
+    "32": 0.342656256902097
+   },
+   "mass_g": 0.342656256902097,
+   "volume_mm3": 393.7600000000001,
+   "centre_mm": [
+    -34.7,
+    -28.999999999999993,
+    45.90000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone TE_MXMY1: +Z step-over to RF J2 (along -X) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_TE_MXMY2",
+   "group": "harness",
+   "mel": {
+    "32": 0.5366115343124882
+   },
+   "mass_g": 0.5366115343124882,
+   "volume_mm3": 312.80000000000007,
+   "centre_mm": [
+    -26.000000000000004,
+    -35.50000000000001,
+    45.90000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone TE_MXMY2: +Z step-over to RF J2 (along -Y) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_TE_MXPY",
+   "group": "harness",
+   "mel": {
+    "26": 0.0897640739429818,
+    "32": 0.03588014409787553
+   },
+   "mass_g": 0.12564421804085735,
+   "volume_mm3": 629.2800000000001,
+   "centre_mm": [
+    -39.7,
+    32.0,
+    45.900000000000006
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone TE_MXPY: +Z step-over to the +Z sun sensor (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_TE_PXMY",
+   "group": "harness",
+   "mel": {
+    "31": 5.194686648501362,
+    "32": 0.06042214021677577
+   },
+   "mass_g": 5.255108788718138,
+   "volume_mm3": 535.8399999999997,
+   "centre_mm": [
+    25.7,
+    -22.000000000000004,
+    45.300000000000004
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone TE_PXMY: +Z step-over to the GNSS patch (along X) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_TE_PXMY2",
+   "group": "harness",
+   "mel": {
+    "31": 3.9994550408719345,
+    "32": 0.036051396310725396
+   },
+   "mass_g": 4.03550643718266,
+   "volume_mm3": 258.39999999999986,
+   "centre_mm": [
+    4.0,
+    -14.500000000000002,
+    45.30000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone TE_PXMY2: +Z step-over to the GNSS patch (along Y) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_TE_PXPY",
+   "group": "harness",
+   "mel": {
+    "26": 0.40557091524857647,
+    "32": 0.06561462002878314
+   },
+   "mass_g": 0.4711855352773596,
+   "volume_mm3": 137.99999999999994,
+   "centre_mm": [
+    40.8,
+    27.499999999999996,
+    45.1
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone TE_PXPY: +Z step-over to magnetometer board A2 (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_UB_MXC",
+   "group": "harness",
+   "mel": {
+    "32": 0.22514247499417767
+   },
+   "mass_g": 0.22514247499417767,
+   "volume_mm3": 126.0,
+   "centre_mm": [
+    -39.0,
+    -16.0,
+    -45.85
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone UB_MXC: under the battery end cap, over the -Z end frame (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_C",
+   "group": "harness",
+   "mel": {
+    "26": 0.10508993545808488,
+    "32": 1.4160488976657735
+   },
+   "mass_g": 1.5211388331238584,
+   "volume_mm3": 2141.6500000000005,
+   "centre_mm": [
+    -28.249999999999993,
+    4.644829127374408e-17,
+    -9.724999999999998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_C: crossing between the Z rod and the GNSS receiver (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_J3U",
+   "group": "harness",
+   "mel": {
+    "26": 0.07511018436193505,
+    "32": 0.4196231359682403
+   },
+   "mass_g": 0.49473332033017536,
+   "volume_mm3": 605.0,
+   "centre_mm": [
+    38.5,
+    -5.0,
+    -13.75
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_J3U: under EPS J3, above the deck (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_MXMY",
+   "group": "harness",
+   "mel": {
+    "32": 3.65347199119619,
+    "26": 0.1944251280093919
+   },
+   "mass_g": 3.847897119205582,
+   "volume_mm3": 8007.45,
+   "centre_mm": [
+    -32.5,
+    -23.500000000000004,
+    -9.725
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_MXMY: under the EPS, connector zone Z2 (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_MXMY2",
+   "group": "harness",
+   "mel": {
+    "32": 0.6841039587343983,
+    "26": 0.022296703388617035
+   },
+   "mass_g": 0.7064006621230153,
+   "volume_mm3": 981.15,
+   "centre_mm": [
+    -28.75,
+    -43.00000000000001,
+    -9.724999999999998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_MXMY2: under the EPS, zone Z2 (-Y edge) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_MXPY",
+   "group": "harness",
+   "mel": {
+    "32": 8.903682600637069,
+    "26": 0.8251364881217669
+   },
+   "mass_g": 9.728819088758836,
+   "volume_mm3": 6788.925000000001,
+   "centre_mm": [
+    -34.25,
+    23.5,
+    -9.724999999999998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_MXPY: under the EPS, connector zone Z1 (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_PXMY",
+   "group": "harness",
+   "mel": {
+    "32": 1.0973123884806153,
+    "26": 0.07340313471734564,
+    "31": 3.7514986376021797
+   },
+   "mass_g": 4.922214160800141,
+   "volume_mm3": 3291.5999999999995,
+   "centre_mm": [
+    37.50000000000001,
+    -28.0,
+    -9.725000000000001
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_PXMY: under the EPS, connector zone Z4 (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_PXMY2",
+   "group": "harness",
+   "mel": {
+    "32": 0.1191776506955518
+   },
+   "mass_g": 0.1191776506955518,
+   "volume_mm3": 348.15000000000003,
+   "centre_mm": [
+    33.75,
+    -43.0,
+    -9.724999999999998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_PXMY2: under the EPS, zone Z4 (-Y edge) (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_PXPY",
+   "group": "harness",
+   "mel": {
+    "32": 2.9547819797448702,
+    "26": 0.1600956928419575
+   },
+   "mass_g": 3.114877672586828,
+   "volume_mm3": 6994.6500000000015,
+   "centre_mm": [
+    34.25,
+    22.999999999999996,
+    -9.725
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_PXPY: under the EPS, connector zone Z3 (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_PY",
+   "group": "harness",
+   "mel": {
+    "32": 3.3571006328746713
+   },
+   "mass_g": 3.3571006328746713,
+   "volume_mm3": 5338.3,
+   "centre_mm": [
+    2.0,
+    11.749999999999998,
+    -9.725
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_PY: under the EPS between the GNSS receiver and the X rod, zone Z5 (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_PYN",
+   "group": "harness",
+   "mel": {
+    "32": 0.24485027716430413
+   },
+   "mass_g": 0.24485027716430413,
+   "volume_mm3": 1305.5625,
+   "centre_mm": [
+    -11.75,
+    21.25,
+    -9.725
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_PYN: under the EPS, west of the (0, +21) centre support (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_U_X",
+   "group": "harness",
+   "mel": {
+    "32": 0.3525224816412363,
+    "26": 0.4921209751060878
+   },
+   "mass_g": 0.8446434567473241,
+   "volume_mm3": 1998.0,
+   "centre_mm": [
+    3.25,
+    27.25,
+    -10.0
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone U_X: crossing between the centre support and the X rod (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_W3Z",
+   "group": "harness",
+   "mel": {
+    "32": 7.368826917291532
+   },
+   "mass_g": 7.368826917291532,
+   "volume_mm3": 2040.0,
+   "centre_mm": [
+    46.899999999999984,
+    -2.960594732333751e-17,
+    1.9999999999999998
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone W3Z: W3, flat in the +X wall gap at |y| < 17 (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_YB_MY",
+   "group": "harness",
+   "mel": {
+    "32": 0.25608217316906356
+   },
+   "mass_g": 0.25608217316906356,
+   "volume_mm3": 127.43999999999988,
+   "centre_mm": [
+    -38.9,
+    -47.20000000000001,
+    -42.25
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone YB_MY: -Y shear panel, outboard of the (-40,-43) column (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "hz_YW_MY",
+   "group": "harness",
+   "mel": {
+    "32": 1.461011945265478
+   },
+   "mass_g": 1.461011945265478,
+   "volume_mm3": 10535.0,
+   "centre_mm": [
+    0.999999999999999,
+    -44.5,
+    -27.75
+   ],
+   "ghost": false,
+   "moves": "",
+   "note": "harness zone YW_MY: -Y wall strip beside the battery (SQSO-HAR-001 2.0 7.1)"
+  },
+  {
+   "name": "fasteners_staking_distributed",
+   "group": "dist",
+   "mel": {
+    "34": 25.0,
+    "35": 10.0
+   },
+   "mass_g": 35.0,
+   "volume_mm3": 821676.5999999999,
+   "centre_mm": [
+    -1.0278744771511145e-15,
+    8.398189324668319e-17,
+    0.7499999999999992
+   ],
+   "ghost": true,
+   "moves": "",
+   "note": "fasteners, inserts, staking and conformal coat, smeared over the stack volume"
+  },
+  {
+   "name": "thermal_distributed",
+   "group": "dist",
+   "mel": {
+    "33": 20.0
+   },
+   "mass_g": 20.0,
+   "volume_mm3": 559567.8,
+   "centre_mm": [
+    -1.1030410793728775e-15,
+    -9.321235597948579e-17,
+    15.950000000000003
+   ],
+   "ghost": true,
+   "moves": "",
+   "note": "interface materials and MLI patches (stack)"
+  }
+ ],
+ "mass_properties": {
+  "stowed_cbe": {
+   "mass_g": 1520.0,
+   "cg_mm": [
+    0.07126067576046252,
+    -0.3392765916623803,
+    -1.4128093712665915
+   ],
+   "Ixx": 0.0027536189867620503,
+   "Iyy": 0.003063706578110945,
+   "Izz": 0.0027411933505307774,
+   "Ixy": 1.0581892186729503e-05,
+   "Ixz": -7.968728318743826e-06,
+   "Iyz": 3.296260444318922e-05,
+   "principal": [
+    0.0027337328621987035,
+    0.0027574432249416066,
+    0.003067342828263463
+   ],
+   "major_axis": [
+    0.031011579686037394,
+    0.9945286155955039,
+    0.09975527398121456
+   ],
+   "major_from_Y_deg": 5.99631527643137,
+   "ratio_Iyy": 1.1126109286868056,
+   "ratio_major": 1.1123865762742653
+  },
+  "deployed_cbe": {
+   "mass_g": 1520.0,
+   "cg_mm": [
+    0.07126067576046297,
+    1.7786218176728563,
+    -1.4128093712665915
+   ],
+   "Ixx": 0.0028530789370338496,
+   "Iyy": 0.004201711463765474,
+   "Izz": 0.003978658186457107,
+   "Ixy": 1.0811294951928214e-05,
+   "Ixz": -7.968728318743836e-06,
+   "Iyz": -2.7223569853001238e-06,
+   "principal": [
+    0.0028529361770411243,
+    0.003978679493497578,
+    0.004201832916717729
+   ],
+   "major_axis": [
+    0.008088646634958618,
+    0.9998893333473384,
+    -0.012485786071796724
+   ],
+   "major_from_Y_deg": 0.8524129176680779,
+   "ratio_Iyy": 1.0560624378509356,
+   "ratio_major": 1.0560873082601538
+  },
+  "stowed_mev": {
+   "mass_g": 1754.94,
+   "cg_mm": [
+    0.12247854554329178,
+    -0.45703837268737507,
+    -0.3734561702938438
+   ],
+   "Ixx": 0.003166361169937434,
+   "Iyy": 0.0035234241602551484,
+   "Izz": 0.0031996947073481214,
+   "Ixy": 1.10948889698506e-05,
+   "Ixz": -1.579853526189778e-05,
+   "Iyz": 3.902024475229338e-05,
+   "principal": [
+    0.003158279218617156,
+    0.003202907790917281,
+    0.0035282930280062666
+   ],
+   "major_axis": [
+    0.02534220487779888,
+    0.9928462291300083,
+    0.11667963813045826
+   ],
+   "major_from_Y_deg": 6.85747743216527,
+   "ratio_Iyy": 1.101175106538627,
+   "ratio_major": 1.1015905727950408
+  },
+  "deployed_mev": {
+   "mass_g": 1754.94,
+   "cg_mm": [
+    0.1224785455432923,
+    1.5882503092721174,
+    -0.3734561702938438
+   ],
+   "Ixx": 0.003275741195434769,
+   "Iyy": 0.00475998896840785,
+   "Izz": 0.004545639540998164,
+   "Ixy": 1.1534508429745974e-05,
+   "Ixz": -1.5798535261897773e-05,
+   "Iyz": 3.5330432603711894e-06,
+   "principal": [
+    0.003275454388226233,
+    0.004545782455579818,
+    0.004760132861034738
+   ],
+   "major_axis": [
+    0.007599997403818778,
+    0.999844556014026,
+    0.015909237837736696
+   ],
+   "major_from_Y_deg": 1.0102531614317614,
+   "ratio_Iyy": 1.0471549548696986,
+   "ratio_major": 1.0471536875223342
+  },
+  "W1_only_deployed": {
+   "mass_g": 1520.0,
+   "cg_mm": [
+    1.2692723804280812,
+    0.6112022182683959,
+    -1.4128093712665915
+   ],
+   "Ixx": 0.002817869056231218,
+   "Iyy": 0.0039041691275146667,
+   "Izz": 0.0036459059694036607,
+   "Ixy": -0.0001528198049813082,
+   "Ixz": -1.790084644765158e-05,
+   "Iyz": 6.779560674032149e-06,
+   "principal": [
+    0.002796447385351461,
+    0.0036459379914171976,
+    0.0039255587763808875
+   ],
+   "major_axis": [
+    -0.13711448089191627,
+    0.9900127551417555,
+    0.03277748901870148
+   ],
+   "major_from_Y_deg": 8.104432195481236,
+   "ratio_Iyy": 1.0708364835183197,
+   "ratio_major": 1.0766937851444367
+  },
+  "W2_only_deployed": {
+   "mass_g": 1520.0,
+   "cg_mm": [
+    -1.1267510289071554,
+    0.6112022182683959,
+    -1.4128093712665915
+   ],
+   "Ixx": 0.002817869056231218,
+   "Iyy": 0.003904688183946416,
+   "Izz": 0.0036464250258354146,
+   "Ixy": 0.00017418949391213382,
+   "Ixz": 1.9633898101638994e-06,
+   "Iyz": 6.779560674032149e-06,
+   "principal": [
+    0.002790632498335085,
+    0.0036462543572823853,
+    0.003932095410395576
+   ],
+   "major_axis": [
+    0.15445196467235847,
+    0.9876964409596098,
+    0.024501655547478487
+   ],
+   "major_from_Y_deg": 8.997032670586039,
+   "ratio_Iyy": 1.0708264001813206,
+   "ratio_major": 1.0783930645272461
+  },
+  "antennas_only": {
+   "mass_g": 1520.0,
+   "cg_mm": [
+    0.07126067576046252,
+    -0.5562173811360642,
+    -1.4128093712665915
+   ],
+   "Ixx": 0.0027785160551245178,
+   "Iyy": 0.0036115089531109446,
+   "Izz": 0.0033138927938932473,
+   "Ixy": 1.0558393978897494e-05,
+   "Ixz": -7.968728318743826e-06,
+   "Iyz": 1.628147833336437e-05,
+   "principal": [
+    0.002778257422240704,
+    0.0033131408164161543,
+    0.0036125195634718514
+   ],
+   "major_axis": [
+    0.012123364678516477,
+    0.9984611787158152,
+    0.054113756349902564
+   ],
+   "major_from_Y_deg": 3.178977324081549,
+   "ratio_Iyy": 1.089808626207262,
+   "ratio_major": 1.0903610089774383
+  },
+  "W1_only_deployed_mev": {
+   "mass_g": 1754.94,
+   "cg_mm": [
+    1.2741429669816307,
+    0.466019942559298,
+    -0.3734561702938438
+   ],
+   "Ixx": 0.00323641874563587,
+   "Iyy": 0.004429219108605494,
+   "Izz": 0.004175547231396907,
+   "Ixy": -0.00017045087100408038,
+   "Ixz": -2.4974865446460537e-05,
+   "Iyz": 1.2254002007574115e-05,
+   "principal": [
+    0.003211988707719922,
+    0.004175222481433707,
+    0.004453973896484641
+   ],
+   "major_axis": [
+    -0.13955169398116468,
+    0.9886283868960831,
+    0.05602889727842277
+   ],
+   "major_from_Y_deg": 8.648904087163402,
+   "ratio_Iyy": 1.0607517681278205,
+   "ratio_major": 1.0667632482557468
+  },
+  "W2_only_deployed_mev": {
+   "mass_g": 1754.94,
+   "cg_mm": [
+    -1.029185875895045,
+    0.46601994255929774,
+    -0.3734561702938438
+   ],
+   "Ixx": 0.003236418745635871,
+   "Iyy": 0.004430209275119202,
+   "Izz": 0.004176537397910613,
+   "Ixy": 0.00019303745786526056,
+   "Ixz": -6.6222050773349875e-06,
+   "Iyz": 1.2254002007574111e-05,
+   "principal": [
+    0.0032059068622437652,
+    0.004176179973918768,
+    0.004461078582503155
+   ],
+   "major_axis": [
+    0.15537992840355475,
+    0.9870888337873455,
+    0.03889359923745867
+   ],
+   "major_from_Y_deg": 9.216982161732954,
+   "ratio_Iyy": 1.0607373652000562,
+   "ratio_major": 1.0682199067960783
+  },
+  "antennas_only_mev": {
+   "mass_g": 1754.94,
+   "cg_mm": [
+    0.12247854554329178,
+    -0.6562104241535218,
+    -0.3734561702938438
+   ],
+   "Ixx": 0.0031926759494692305,
+   "Iyy": 0.004104094677755146,
+   "Izz": 0.003806680004379916,
+   "Ixy": 1.1052078431434125e-05,
+   "Ixz": -1.579853526189777e-05,
+   "Iyz": 2.097496075477701e-05,
+   "principal": [
+    0.003192122371431705,
+    0.0038056537537597807,
+    0.004105674506412809
+   ],
+   "major_axis": [
+    0.010874382287750051,
+    0.9975293815199642,
+    0.0694037521626731
+   ],
+   "major_from_Y_deg": 4.028375335251324,
+   "ratio_Iyy": 1.0781296754739114,
+   "ratio_major": 1.078835535775325
+  }
+ },
+ "checks": {
+  "items": [
+   {
+    "id": "CDS-1",
+    "requirement": "Length along Z (rail end to rail end), 113.5 +- 0.1 mm (CDS 2.2.1.1, App. B)",
+    "value": 113.5,
+    "limit": "113.5 +- 0.1",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "CDS-2",
+    "requirement": "Rail envelope X and Y, 100.0 +- 0.1 mm",
+    "value": [
+     100.0,
+     100.0
+    ],
+    "limit": "100.0 +- 0.1",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "CDS-3",
+    "requirement": "Rail width to the first protrusion >= 8.5 mm on each face (CDS 2.2.5)",
+    "value": {
+     "hinge_spring_edge_from_rail_edge": 9.25,
+     "panel_edge_from_rail_edge": 9.0,
+     "wing_edges": [
+      9.399999999999999,
+      9.0
+     ]
+    },
+    "limit": ">= 8.5",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "CDS-4",
+    "requirement": "Rail ends >= 6.5 x 6.5 mm contact (CDS 2.2.8)",
+    "value": "8.5 x 8.5 solid standoff (less a 4.7 mm bore at the switch and plunger positions: 54.9 mm2 >= 42.3 mm2)",
+    "limit": ">= 42.25 mm2",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "CDS-5",
+    "requirement": "Rail contact >= 75 % of the length (CDS 2.2.9)",
+    "value": "100 % (continuous L-angle rail, 113.5 mm)",
+    "limit": ">= 75 %",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "CDS-6",
+    "requirement": "No protrusion beyond 6.5 mm from the rail plane on +-X/+-Y (CDS 2.2.3), nominal CAD",
+    "value": {
+     "max_mm": 6.100000000000001,
+     "part": "W1_springs"
+    },
+    "limit": "<= 6.5",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "STR-10",
+    "requirement": "Stowed-wing stack incl. tolerances <= 6.5 mm (worst case)",
+    "value": {
+     "nominal": 6.100000000000001,
+     "worst_case": 6.380000000000002,
+     "rss": 6.252970585407785,
+     "governing": "hinge spring (OD 4.0)"
+    },
+    "limit": "<= 6.5",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "STR-11",
+    "requirement": "AntS below the -Z rail ends by >= 0.1 mm (CDS App. B note 2.2.1.2)",
+    "value": {
+     "nominal": 1.25,
+     "worst_case": 0.9,
+     "unrecessed_nominal": -0.25
+    },
+    "limit": ">= 0.1",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "STD-2",
+    "requirement": "GNSS patch below the +Z rail ends by >= 0.1 mm",
+    "value": {
+     "nominal": 1.75,
+     "worst_case": 1.4
+    },
+    "limit": ">= 0.1",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "CDS-7",
+    "requirement": "Deployment switches (3, on 3 rails) and separation plungers (2): actuated flush with the standoff end, within the standoff footprint (CDS 2.3.2.3, 2.2.14.2)",
+    "value": {
+     "DS1": [
+      46.0,
+      46.0,
+      "-Z"
+     ],
+     "DS2": [
+      -46.0,
+      -46.0,
+      "-Z"
+     ],
+     "DS3": [
+      46.0,
+      -46.0,
+      "+Z"
+     ],
+     "SP1": [
+      -46.0,
+      46.0,
+      "-Z"
+     ],
+     "SP2": [
+      46.0,
+      -46.0,
+      "-Z"
+     ]
+    },
+    "limit": "flush, inside",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "CDS-8",
+    "requirement": "RBF pin <= 6.5 mm from the rail surface when inserted (CDS 2.3.5.2)",
+    "value": 5.100000000000001,
+    "limit": "<= 6.5",
+    "ok": true,
+    "note": "RBF at x = 20.0, z = -43.0 on -Y"
+   },
+   {
+    "id": "INT-stowed",
+    "requirement": "No interference between solids, stowed (529 pairs with overlapping boxes)",
+    "value": [],
+    "limit": "none",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "INT-deployed",
+    "requirement": "No interference between solids, deployed (523 pairs with overlapping boxes)",
+    "value": [],
+    "limit": "none",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "SWP-1",
+    "requirement": "Wing W1 swept volume clear of the body panels, cells and rails (0-90 deg)",
+    "value": {
+     "min_clearance_mm": 0.3519029611437148,
+     "at_deg": 45,
+     "samples": [
+      [
+       1,
+       0.9723274526923049
+      ],
+      [
+       2,
+       0.9451659406944941
+      ],
+      [
+       3,
+       0.9185237376662414
+      ],
+      [
+       5,
+       0.8668295597523681
+      ],
+      [
+       8,
+       0.7933807250403007
+      ],
+      [
+       10,
+       0.7472301232627672
+      ],
+      [
+       15,
+       0.6421119144590008
+      ],
+      [
+       20,
+       0.5522749463821839
+      ],
+      [
+       30,
+       0.42105808375566767
+      ],
+      [
+       45,
+       0.3519029611437148
+      ],
+      [
+       60,
+       0.39785300299878656
+      ],
+      [
+       75,
+       0.5265724627319486
+      ],
+      [
+       90,
+       0.8000000000000043
+      ]
+     ]
+    },
+    "limit": "> 0.3 (tolerance allowance)",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "SWP-2",
+    "requirement": "Line series spring (W1_line_spring) clear of the harness zones and of the wing sweep (0-90 deg)",
+    "value": {
+     "zones_mm": [
+      [
+       1.0,
+       "CS_PXMY"
+      ],
+      [
+       1.1,
+       "PXMY_LO"
+      ],
+      [
+       8.0,
+       "PXMY_UP"
+      ]
+     ],
+     "wing_sweep_mm": 3.95
+    },
+    "limit": ">= 1.0 to each harness zone; > 0.3 to the sweep (the seat angle bears on the shear panel by design)",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "SPL-1",
+    "requirement": "Splice (D-200-82) and tab envelopes (M-11): no interference; >= 0.1 mm to every solid outside the harness except a tab's bond substrate",
+    "value": {
+     "hz_SPLICE_W7A_HS-W1": {
+      "nearest": [
+       [
+        0.2,
+        "endplate_mz"
+       ],
+       [
+        0.2,
+        "shear_px"
+       ],
+       [
+        0.8,
+        "W1_hinge_doubler_0"
+       ]
+      ],
+      "bonded_to": "-",
+      "ants_mm": 1.8,
+      "wing_sweep_mm": 4.93
+     },
+     "hz_SPLICE_W7B_HS-W2": {
+      "nearest": [
+       [
+        0.2,
+        "torquer_deck"
+       ],
+       [
+        0.5,
+        "shear_mx"
+       ],
+       [
+        1.0,
+        "W2_hinge_doubler_0"
+       ]
+      ],
+      "bonded_to": "-",
+      "ants_mm": 7.5,
+      "wing_sweep_mm": 3.81
+     },
+     "hz_TAB_W6C_ROD-X": {
+      "nearest": [
+       [
+        0.1,
+        "rod_X"
+       ],
+       [
+        2.4,
+        "battery_sense_board"
+       ],
+       [
+        7.69,
+        "stack_columns"
+       ]
+      ],
+      "bonded_to": "torquer_deck",
+      "ants_mm": 33.0,
+      "wing_sweep_mm": 22.2
+     },
+     "hz_TAB_W6C_ROD-Y": {
+      "nearest": [
+       [
+        1.0,
+        "rod_Y"
+       ],
+       [
+        1.1,
+        "body_panel_px"
+       ],
+       [
+        2.7,
+        "body_cells_px"
+       ]
+      ],
+      "bonded_to": "shear_px",
+      "ants_mm": 10.5,
+      "wing_sweep_mm": 4.05
+     },
+     "hz_TAB_W6C_ROD-Z": {
+      "nearest": [
+       [
+        1.0,
+        "body_panel_mx"
+       ],
+       [
+        1.47,
+        "OBC"
+       ],
+       [
+        1.54,
+        "Jetson_carrier"
+       ]
+      ],
+      "bonded_to": "shear_mx",
+      "ants_mm": 55.5,
+      "wing_sweep_mm": 3.95
+     },
+     "hz_TAB_W7C_ANTS": {
+      "nearest": [
+       [
+        0.7,
+        "AntS_housing"
+       ],
+       [
+        1.0,
+        "endplate_mz"
+       ],
+       [
+        2.1,
+        "battery_cell_retention"
+       ]
+      ],
+      "bonded_to": "battery_clamp",
+      "ants_mm": 0.7,
+      "wing_sweep_mm": 17.91
+     }
+    },
+    "limit": ">= 0.1 mm",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "STR-16a",
+    "requirement": "AntS tape band (5 mm, centred in the 7 mm housing) to the stowed wing lower edge",
+    "value": {
+     "gap_mm": 6.5,
+     "housing_top_to_wing": 5.5,
+     "wing_98mm_centred_gap": 0.5
+    },
+    "limit": ">= 10 (MECH-001 7.2) or wings deploy first",
+    "ok": false,
+    "note": "wings deploy first (BASELINE 4, 7); the stowed gap is the contingency case"
+   },
+   {
+    "id": "STR-16b",
+    "requirement": "Deployed AntS VHF element to the deployed wing W1",
+    "value": 37.76360681926449,
+    "limit": ">= 10",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "STR-16c",
+    "requirement": "AntS element sweep (in the face plane) against the deployed wings: vertical separation",
+    "value": {
+     "band_top_z": -49.5,
+     "wing_lower_edge_z": -43.0,
+     "vertical_gap_mm": 6.5
+    },
+    "limit": ">= 10 or root on the -Y half",
+    "ok": null,
+    "note": "OPEN: ISIS ICD (element root and sweep) not obtained: the root must be ordered on the -Y half (sweep away from the wings), VI-STR-10"
+   },
+   {
+    "id": "HAR-1",
+    "requirement": "Hinge flex jumper inside the 6.5 mm envelope and clear of the 8.5 mm rail zone",
+    "value": {
+     "x_out": 6.100000000000001,
+     "y_max": 40.75,
+     "bend_radius_mm": [
+      1.0,
+      1.6
+     ]
+    },
+    "limit": "<= 6.5; y <= 41.5; bend radius >= IPC-2223 flex-to-install 0.82 mm",
+    "ok": true,
+    "note": "clock-spring flex in the -Z wing knuckle; torque allocation 0.5 mN m cold (hinge.py)"
+   },
+   {
+    "id": "MEC-1",
+    "requirement": "Wing deployment springs (hinge.py: primary 7.5 mm, secondary 3.6 mm, OD 4.0) inside the hinge envelope",
+    "value": {
+     "x_out": 6.100000000000001,
+     "y_max": 40.75,
+     "z_ranges": [
+      [
+       -47.6,
+       -40.1
+      ],
+      [
+       44.8,
+       48.4
+      ]
+     ]
+    },
+    "limit": "x_out <= 6.5, y <= 41.5, within the free axis lengths",
+    "ok": true,
+    "note": ""
+   },
+   {
+    "id": "STR-16d",
+    "requirement": "Hinge hardware below the wing to the AntS tape band",
+    "value": {
+     "vertical_gap_mm": 0.5,
+     "lateral_from_tape_line_mm": 36.75
+    },
+    "limit": ">= 10 mm in at least one direction",
+    "ok": true,
+    "note": "the -Z ear sits 0.5 mm above the tape band but 36.75 mm from the 2 m tape line (y = 0)"
+   },
+   {
+    "id": "OBC-C3",
+    "requirement": "M-G370PDT0 in socket X1 (14.0 mm above the OBC top face) clear of the carrier, the Jetson module and the supports",
+    "value": {
+     "top_z": 20.6,
+     "above_obc_mm": 14.0,
+     "carrier_bottom_z": 17.6,
+     "clearances_mm": {
+      "Jetson_carrier": 1.5,
+      "Jetson_carrier_parts": 1.5,
+      "Jetson_module": 3.605551275463989,
+      "SODIMM_connector": 47.0,
+      "centre_supports": 5.1,
+      "stack_columns": 5.115609770940697
+     }
+    },
+    "limit": ">= 1.0 mm (3-sigma relative board motion < 0.2 mm)",
+    "ok": true,
+    "note": "through a 27 x 27 mm window in the carrier (MECHANICAL_DESIGN D-11)"
+   },
+   {
+    "id": "MAG-A2",
+    "requirement": "Magnetometer board A2 in the +Z slot (8 mm): Sen-Z-f 5.75 mm plus the 1.6 mm board; clearances",
+    "value": {
+     "bottom_z": 41.05,
+     "slot_bottom_z": 40.4,
+     "rf_parts_mm": 2.0,
+     "within_20mm": {
+      "rail_pp": 6.25,
+      "endplate_pz": 0.0,
+      "shear_px": 12.5,
+      "shear_py": 9.5,
+      "body_panel_px": 13.5,
+      "body_cells_px": 15.55,
+      "body_panel_py": 10.5,
+      "body_cells_py": 12.66,
+      "W1_substrate": 16.8,
+      "W1_cells_back": 16.87,
+      "W1_cells_front": 18.77,
+      "W1_hinges": 13.5,
+      "W1_springs": 16.1,
+      "W1_hinge_doubler_1": 11.5,
+      "module_standoffs": 17.47,
+      "Jetson_module": 16.25,
+      "Jetson_TIM_clamp": 13.26,
+      "heat_spreader": 8.25,
+      "RF": 4.65,
+      "RF_parts": 2.0,
+      "centre_supports": 16.66,
+      "stack_columns": 2.76,
+      "GNSS_patch": 1.6,
+      "GNSS_patch_adapter": 14.21,
+      "hz_CARP": 15.16,
+      "hz_PXPY": 9.4,
+      "hz_TE_PXPY": 0.28
+     }
+    },
+    "limit": "inside the slot; >= 1.0 mm to every part but its mounting face",
+    "ok": true,
+    "note": "every part listed within 20 mm must be non-ferromagnetic (MECHANICAL_DESIGN 4.4); hz_TE_PXPY is W6E's own end at A2 J1"
+   },
+   {
+    "id": "JET-M1",
+    "requirement": "Spreader pedestal, module standoffs and the (0, -21) fastener clear of the gyro window and the module",
+    "value": {
+     "standoff_to_window_mm": 1.8499999999999979,
+     "pedestal_to_window_mm": 14.098226838861686,
+     "fastener_head_to_window_mm": 36.559882384931164,
+     "fastener_head_top_z": 20.700000000000003,
+     "module_underside_parts_z": 22.1,
+     "head_to_module_parts_mm": 1.3999999999999986
+    },
+    "limit": ">= 1.0 mm each",
+    "ok": true,
+    "note": "module hole positions and underside parts from envelopes: check against the NVIDIA drawing and STEP model"
+   },
+   {
+    "id": "MP-CG-stowed_cbe",
+    "requirement": "Stowed CG within +-20 mm of the geometric centre (CDS 2.2.11 Table 2); baseline: within 5 mm",
+    "value": [
+     0.07126067576046252,
+     -0.3392765916623803,
+     -1.4128093712665915
+    ],
+    "limit": "+-20 (5)",
+    "ok": true,
+    "note": "within 5 mm"
+   },
+   {
+    "id": "MP-CG-stowed_mev",
+    "requirement": "Stowed CG within +-20 mm of the geometric centre (CDS 2.2.11 Table 2); baseline: within 5 mm",
+    "value": [
+     0.12247854554329178,
+     -0.45703837268737507,
+     -0.3734561702938438
+    ],
+    "limit": "+-20 (5)",
+    "ok": true,
+    "note": "within 5 mm"
+   },
+   {
+    "id": "MP-I-deployed_cbe",
+    "requirement": "Iyy >= 1.03 max(Ixx, Izz) and major principal axis within 5 deg of +Y (BASELINE 4)",
+    "value": {
+     "ratio": 1.0560624378509356,
+     "major_from_Y_deg": 0.8524129176680779,
+     "principal_ratio": 1.0560873082601538
+    },
+    "limit": ">= 1.03; <= 5 deg",
+    "ok": true
+   },
+   {
+    "id": "MP-I-deployed_mev",
+    "requirement": "Iyy >= 1.03 max(Ixx, Izz) and major principal axis within 5 deg of +Y (BASELINE 4)",
+    "value": {
+     "ratio": 1.0471549548696986,
+     "major_from_Y_deg": 1.0102531614317614,
+     "principal_ratio": 1.0471536875223342
+    },
+    "limit": ">= 1.03; <= 5 deg",
+    "ok": true
+   }
+  ]
+ },
+ "protrusion_stack": {
+  "wing front cells": {
+   "nominal": 4.750000000000007,
+   "worst": 5.570000000000007,
+   "rss": 5.083466640010668,
+   "limit": 6.5,
+   "margin_worst": 0.9299999999999928,
+   "margin_rss": 1.4165333599893315,
+   "tolerances": [
+    0.05,
+    0.1,
+    0.16,
+    0.05,
+    0.2,
+    0.05,
+    0.16,
+    0.05
+   ]
+  },
+  "hold-down line loop": {
+   "nominal": 5.250000000000007,
+   "worst": 5.550000000000007,
+   "rss": 5.408113883008426,
+   "limit": 6.5,
+   "margin_worst": 0.9499999999999929,
+   "margin_rss": 1.091886116991574,
+   "tolerances": [
+    0.05,
+    0.1,
+    0.05,
+    0.1
+   ]
+  },
+  "hinge spring (OD 4.0)": {
+   "nominal": 6.100000000000001,
+   "worst": 6.380000000000002,
+   "rss": 6.252970585407785,
+   "limit": 6.5,
+   "margin_worst": 0.11999999999999855,
+   "margin_rss": 0.24702941459221503,
+   "tolerances": [
+    0.05,
+    0.1,
+    0.1,
+    0.03
+   ]
+  },
+  "SA-001 A 13.2 stack (reference)": {
+   "nominal": 6.1,
+   "worst": 6.869999999999999,
+   "rss": 6.3999999999999995,
+   "limit": 6.5,
+   "margin_worst": -0.3700000000000001,
+   "margin_rss": 0.09999999999999964,
+   "tolerances": []
+  },
+  "this stack without the 0.5 mm panel recess": {
+   "nominal": 6.600000000000001,
+   "worst": 6.880000000000002,
+   "rss": 6.752970585407785,
+   "limit": 6.5,
+   "margin_worst": -0.38000000000000167,
+   "margin_rss": -0.25297058540778483,
+   "tolerances": []
+  }
+ },
+ "step_bytes": {
+  "smartqso_stowed.step": 4928197,
+  "smartqso_oml_stowed.step": 1393782,
+  "smartqso_deployed.step": 4929790,
+  "smartqso_oml_deployed.step": 1395200
+ }
+}

@@ -260,7 +260,7 @@ jobs:
         [ "$vec" = "08000000" ] || { echo "::error::.vector_table at $vec, not 08000000"; exit 1; }
         words=$(arm-none-eabi-objcopy -O binary -j .vector_table "$elf" /dev/stdout | od -An -tx4 -N8 | xargs)
         sp=$(echo "$words" | cut -d' ' -f1); reset=$(echo "$words" | cut -d' ' -f2)
-        [ "$sp" = "200a0000" ] || { echo "::error::initial SP $sp, expected 200a0000"; exit 1; }
+        [ "$sp" = "20040000" ] || { echo "::error::initial SP $sp, expected 20040000"; exit 1; }
         [ $(( 0x$reset )) -eq $(( 0x$(sym Reset) | 1 )) ] || {
           echo "::error::reset vector $reset is not Reset | 1"; exit 1; }
         # The flight software is in the image, on the firmware's HAL

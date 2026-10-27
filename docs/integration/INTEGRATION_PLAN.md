@@ -2,9 +2,10 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-INT-001
-**Revision:** A
-**Date:** 2026-01-02
-**Reference:** NPR 7123.1 SE Process 8 (Product Integration)
+**Revision:** C
+**Date:** 2026-10-27
+**Reference:** NPR 7123.1D §3.2 (Product Integration process), tailored (`docs/project/CDR_CRITERIA_MATRIX.md` §2)
+**Status:** Plan. No hardware exists; no integration step has been performed (`docs/project/HARDWARE_READINESS_TRACKER.md`)
 
 ---
 
@@ -265,15 +266,27 @@ Week 9-16: Flight Unit Assembly
 
 ## 8. Schedule
 
+Dates are the early dates of the critical-path schedule (`mission/SCHEDULE.md`, SQSO-SCH-001 D); the relative (T+n)
+schedule of Revision A is withdrawn. The protoflight campaign must end by L − 4 months: the 2028-11-01 planning launch
+has 71 days of float; the June 2028 opportunity is 80 days late.
+
 | Phase | Duration | Start | End |
 |-------|----------|-------|-----|
-| Flatsat assembly | 4 weeks | T+0 | T+4 |
-| Software development | 8 weeks | T+4 | T+12 |
-| Flight unit fabrication | 8 weeks | T+8 | T+16 |
-| Flight unit integration | 8 weeks | T+16 | T+24 |
-| System functional test | 2 weeks | T+24 | T+26 |
-| Environmental testing | 6 weeks | T+26 | T+32 |
-| Final acceptance | 2 weeks | T+32 | T+34 |
+| EM PCB layout, two designers, and cross-board release | 15 weeks | 2027-01-12 | 2027-04-27 |
+| EM PCB fabrication and assembly | 5 weeks | 2027-04-27 | 2027-06-01 |
+| EM and flatsat integration; flight software on the target (TP-FLATSAT-001, TP-INT-001 to -005) | 8 weeks | 2027-06-01 | 2027-07-27 |
+| EM development tests (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §6), with ≥ 500 h on the EM boards (VI-11) | 8 weeks | 2027-07-27 | 2027-09-21 |
+| CDR | 1 week | 2027-09-21 | 2027-09-28 |
+| FM PCB fabrication, assembly, inspection | 6 weeks | 2027-10-26 | 2027-12-07 |
+| FM integration (TP-INT-001 to -006) | 6 weeks | 2027-12-21 | 2028-02-01 |
+| FM comprehensive functional and day-in-the-life | 3 weeks | 2028-02-01 | 2028-02-22 |
+| FM burn-in, ≥ 200 h, 4 ambient cycles (ETP §3.11, VI-12) | 10 days | 2028-02-22 | 2028-03-03 |
+| Protoflight environmental campaign | 7 weeks | 2028-03-03 | 2028-04-21 |
+| Environmental verification report (integrator template) | 1 week | 2028-04-21 | 2028-04-28 |
+| Pre-ship review and delivery data package | 3 weeks | 2028-04-28 | 2028-05-19 |
+| Delivery to the integrator (L − 50 days) | — | — | 2028-09-12 for the 2028-11-01 planning launch |
+
+The FM integration start is on the critical path; it waits for the FM COTS buys ordered at the CDR (12 weeks).
 
 ## 9. Success Criteria
 
@@ -292,3 +305,5 @@ Integration is complete when:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | CDR review (PM/SE/V&V): dated schedule from `mission/SCHEDULE.md` replaces the relative T+n schedule; status line (no hardware); reference NPR 7123.1D | CDR review, PM/SE/V&V |
+| C | 2026-10-27 | §8 schedule from SQSO-SCH-001 D: EM layout per board (two designers), CDR 2027-09-28, FM burn-in, protoflight 2028-03-03 to 2028-04-21, pre-ship 2028-05-19 (CDR round 3, P3P-05) | CDR round 3 |

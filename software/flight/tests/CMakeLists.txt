@@ -193,8 +193,15 @@ set(MODULE_TESTS
     "test_telemetry\;telemetry"
     "test_telemetry_flow\;integration"
     "test_adcs\;adcs"
+    "test_xpdr_heartbeat\;rf"
+    "test_ops_state\;state"
+    "test_passivation\;rf"
+    "test_hk_store\;telemetry"
+    "test_receiver\;rf"
     "test_rust_contract\;rust"
     "test_rust_contract_adcs\;rust"
+    "test_hal_pins\;rust"
+    "test_fram_health\;rust"
 )
 foreach(entry ${MODULE_TESTS})
     list(GET entry 0 test_name)

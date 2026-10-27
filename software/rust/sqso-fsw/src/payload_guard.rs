@@ -10,6 +10,19 @@
 //! power or spreader measurement has arrived for [`TELEMETRY_TIMEOUT_MS`].
 //! After a trip the rail stays off for [`COOLDOWN_MS`], and then until a
 //! recent spreader reading is [`RESTART_MARGIN_C`] below its limit.
+//!
+//! A cold module is not powered either (RID THM-08; BASELINE §6): no
+//! power-on while a recent spreader reading is below [`MIN_POWER_ON_C`].
+//! As with the hot limit before a trip, only a known reading blocks; the
+//! spreader thermistor is the OBC's own and its loss is a sensor fault.
+//!
+//! The spreader thermistor read outside its valid range is a sensor fault
+//! ([`Guard::set_spreader_fault`], RID JETB-02): no power-on while it lasts
+//! (the gate fails safe); a rail already on is then supervised on the
+//! Jetson's own junction report (the executive's fallback).
+//!
+//! @requirement SRS-F131 The software shall not power the Jetson while its heat spreader reads below −15 °C
+//! @requirement SRS-F150 Spreader thermistor: R = 10.0 kΩ N / (4095 − N), Steinhart–Hart 10K3A; outside 0.10–3.25 V a sensor fault that inhibits the Jetson's power-on
 
 use core::ffi::CStr;
 
@@ -29,6 +42,9 @@ pub const RESTART_MARGIN_C: f64 = 10.0;
 pub const COOLDOWN_MS: u64 = 600_000;
 /// Longest gap between measurements while the rail is on, ms
 pub const TELEMETRY_TIMEOUT_MS: u64 = 5000;
+/// No power-on below this heat-spreader temperature, °C (BASELINE §6:
+/// "Jetson temperature ≥ −15 °C at power-on")
+pub const MIN_POWER_ON_C: f64 = -15.0;
 
 /// One set of measurements (`PayloadSample_t`)
 #[repr(C)]
@@ -115,6 +131,7 @@ pub struct Guard {
     tripped: bool,
     trip_ms: u64,
     trips: u32,
+    spreader_fault: bool,
 }
 
 fn age_ok(then_ms: u64, now_ms: u64) -> bool {
@@ -135,7 +152,13 @@ impl Guard {
             tripped: false,
             trip_ms: 0,
             trips: 0,
+            spreader_fault: false,
         }
+    }
+
+    /// The spreader thermistor is (or is no longer) faulted
+    pub fn set_spreader_fault(&mut self, fault: bool) {
+        self.spreader_fault = fault;
     }
 
     fn in_cooldown(&self, now_ms: u64) -> bool {
@@ -218,6 +241,13 @@ impl Guard {
         } else {
             !spreader_recent || spreader_cool // otherwise refuse only if known hot
         }
+    }
+
+    /// May the rail be switched on now: [`Guard::may_enable`], and the
+    /// module not known to be colder than [`MIN_POWER_ON_C`]
+    pub fn may_power_on(&self, now_ms: u64) -> bool {
+        let spreader_recent = self.spreader_seen && age_ok(self.spreader_seen_ms, now_ms);
+        self.may_enable(now_ms) && !(spreader_recent && self.spreader_c < MIN_POWER_ON_C) && !self.spreader_fault
     }
 
     /// Trips since initialization
@@ -304,6 +334,26 @@ mod tests {
         assert_eq!(g.trip_count(), 1, "a cool-down result is not another trip");
     }
 
+    /// THM-08: a known cold spreader blocks a power-on, nothing else does
+    #[test]
+    fn a_cold_module_is_not_powered() {
+        let mut g = Guard::new();
+        assert!(g.may_power_on(T0), "no reading: allowed, as for the hot limit");
+        assert_eq!(g.step(Some(&sample(0.0, MIN_POWER_ON_C - 0.1)), false, T0), Outcome::Ok);
+        assert!(g.may_enable(T0), "the ACTIVE guard is not the power-on");
+        assert!(!g.may_power_on(T0));
+        assert_eq!(g.step(Some(&sample(0.0, MIN_POWER_ON_C)), false, T0 + 1), Outcome::Ok);
+        assert!(g.may_power_on(T0 + 1), "at the limit it may");
+        let mut g = Guard::new();
+        assert_eq!(g.step(Some(&sample(0.0, -30.0)), false, T0), Outcome::Ok);
+        assert!(g.may_power_on(T0 + TELEMETRY_TIMEOUT_MS + 1), "a stale reading no longer blocks");
+        // A guard that refuses anyway refuses
+        let hot = sample(0.0, SPREADER_MAX_C);
+        let mut g = Guard::new();
+        assert_eq!(g.step(Some(&hot), false, T0), Outcome::Ok);
+        assert!(!g.may_power_on(T0));
+    }
+
     #[test]
     fn before_a_trip_only_a_known_hot_spreader_blocks() {
         let mut g = Guard::new();
@@ -361,5 +411,16 @@ mod tests {
         assert_eq!(g.step(Some(&sample(LATCHUP_INPUT_W, 50.0)), true, T0 + COOLDOWN_MS + 1), Outcome::Latchup);
         assert_eq!(g.trip_count(), 2);
         assert_eq!(Guard::new().trip_count(), 0);
+    }
+
+    #[test]
+    fn a_faulted_spreader_thermistor_inhibits_the_power_on() {
+        let mut g = Guard::new();
+        assert!(g.may_power_on(T0));
+        g.set_spreader_fault(true);
+        assert!(!g.may_power_on(T0), "fails safe");
+        assert!(g.may_enable(T0), "the ACTIVE guard is not the power-on gate");
+        g.set_spreader_fault(false);
+        assert!(g.may_power_on(T0));
     }
 }

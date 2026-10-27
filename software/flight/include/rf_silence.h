@@ -20,7 +20,9 @@
  *  - power-on, brownout, pin or unknown reset: restart the count from 0;
  *  - watchdog or software reset: resume from the persisted count (which lags
  *    by up to RF_SILENCE_PERSIST_INTERVAL_S, so the silence only lengthens);
- *  - a stowed switch seen while powered: restart from 0, even after completion;
+ *  - a stowed switch seen while powered: restart from 0, until the silence
+ *    has been served; once served it is latched (LV-15: a later stowed
+ *    reading is a failed line in orbit, and a real re-stow removes power);
  *  - blank or corrupt record: count from 0.
  * Once complete, the state persists across later resets.
  *

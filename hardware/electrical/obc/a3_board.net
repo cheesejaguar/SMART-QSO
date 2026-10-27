@@ -1,0 +1,513 @@
+(export 
+  (version "D")
+  (design
+    (source "design.py")
+    (date "10/27/2026 01:27 PM")
+    (tool "SKiDL (3.0.0)")
+    (sheet
+      (number 1)
+      (name "/")
+      (tstamps "/")
+      (title_block
+        (title)
+        (company)
+        (rev)
+        (date)
+        (source "design.py")
+        (comment
+          (number "1")
+          (value ""))
+        (comment
+          (number "2")
+          (value ""))
+        (comment
+          (number "3")
+          (value ""))
+        (comment
+          (number "4")
+          (value ""))
+        (comment
+          (number "5")
+          (value ""))
+        (comment
+          (number "6")
+          (value ""))
+        (comment
+          (number "7")
+          (value ""))
+        (comment
+          (number "8")
+          (value ""))
+        (comment
+          (number "9")
+          (value "")))))
+  (components
+    (comp
+      (ref "D1")
+      (value "TPD4E05U06-Q1")
+      (description "")
+      (footprint "USON-10 (DQA)")
+      (fields
+        (field
+          (name "MPN") "TPD4E05U06QDQARQ1")
+        (field
+          (name "Manufacturer") "TI")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "USON-10 (DQA)")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0003")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "TPD4E05U06-Q1"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "115cd637-c427-5ade-9a1b-d3b9b9ef170a"))
+    (comp
+      (ref "D2")
+      (value "TPD4E05U06-Q1")
+      (description "")
+      (footprint "USON-10 (DQA)")
+      (fields
+        (field
+          (name "MPN") "TPD4E05U06QDQARQ1")
+        (field
+          (name "Manufacturer") "TI")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "USON-10 (DQA)")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0004")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "TPD4E05U06-Q1"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "0949b3b9-bd73-5743-a06c-f33291099d91"))
+    (comp
+      (ref "D3")
+      (value "SMF24A")
+      (description "")
+      (footprint "SOD-123FL")
+      (fields
+        (field
+          (name "MPN") "SMF24A")
+        (field
+          (name "Manufacturer") "Littelfuse")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "SOD-123FL")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0005")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "D"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "9110a39f-6f88-5585-b9ef-724294e2da02"))
+    (comp
+      (ref "D4")
+      (value "SMF24A")
+      (description "")
+      (footprint "SOD-123FL")
+      (fields
+        (field
+          (name "MPN") "SMF24A")
+        (field
+          (name "Manufacturer") "Littelfuse")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "SOD-123FL")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0006")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "D"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "4527ac32-e2a3-51d6-80b6-b8a40acf3efd"))
+    (comp
+      (ref "D5")
+      (value "TPD1E05U06-Q1")
+      (description "")
+      (footprint "X1SON-2 (DPY)")
+      (fields
+        (field
+          (name "MPN") "TPD1E05U06QDPYRQ1")
+        (field
+          (name "Manufacturer") "TI")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "X1SON-2 (DPY)")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0007")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "TPD1E05U06-Q1"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "faa1c65a-32e4-51d6-8ea4-30f3487b3047"))
+    (comp
+      (ref "J1")
+      (value "ACCESS PORT (GSE)")
+      (description "")
+      (footprint "Micro-D 21 receptacle, socket contacts, standard profile, straight PCB tails 0.109 in, electroless-Ni shell, no jackposts (own self-locking Ti jackposts)")
+      (fields
+        (field
+          (name "MPN") "M83513/25-C01NN")
+        (field
+          (name "Manufacturer") "MIL-DTL-83513 QPL (ITT Cannon, Glenair, Cinch)")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Micro-D 21 receptacle, socket contacts, standard profile, straight PCB tails 0.109 in, electroless-Ni shell, no jackposts (own self-locking Ti jackposts)")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0000")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "MicroD_21"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "d433e26c-b63f-5409-b924-41a4bb9a9e42"))
+    (comp
+      (ref "J2")
+      (value "W8A SOLDER PADS")
+      (description "")
+      (footprint "10 plated holes, 1.27 mm pitch, for 30 AWG SFSDT wires")
+      (fields
+        (field
+          (name "MPN") "-")
+        (field
+          (name "Manufacturer") "-")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "10 plated holes, 1.27 mm pitch, for 30 AWG SFSDT wires")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0001")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "W8A_pads"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "3fd413cb-baab-545d-9bad-c583e5ebe1a6"))
+    (comp
+      (ref "J3")
+      (value "W11 SOLDER PADS")
+      (description "")
+      (footprint "6 plated holes for 24 AWG wires")
+      (fields
+        (field
+          (name "MPN") "-")
+        (field
+          (name "Manufacturer") "-")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "6 plated holes for 24 AWG wires")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0002")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "W11_pads"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "126a9bd5-3dbf-54ef-9403-e0741da8582f")))
+  (nets
+    (net
+      (code 1)
+      (name "GND")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "3")
+        (pintype "PASSIVE"))
+      (node
+        (ref "D1")
+        (pin "8")
+        (pintype "PASSIVE"))
+      (node
+        (ref "D2")
+        (pin "3")
+        (pintype "PASSIVE"))
+      (node
+        (ref "D2")
+        (pin "8")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "14")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "3")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "10")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "3")
+        (pintype "PASSIVE")))
+    (net
+      (code 2)
+      (name "PACK_N")
+      (class "Default")
+      (node
+        (ref "D3")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "D4")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "D5")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "10")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "11")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J3")
+        (pin "3")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J3")
+        (pin "4")
+        (pintype "PASSIVE")))
+    (net
+      (code 3)
+      (name "RST_REQ")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "4")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "6")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "6")
+        (pintype "PASSIVE")))
+    (net
+      (code 4)
+      (name "SWCLK")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "4")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "4")
+        (pintype "PASSIVE")))
+    (net
+      (code 5)
+      (name "SWDIO")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "2")
+        (pintype "PASSIVE")))
+    (net
+      (code 6)
+      (name "U3_RX")
+      (class "Default")
+      (node
+        (ref "D2")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "12")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "8")
+        (pintype "PASSIVE")))
+    (net
+      (code 7)
+      (name "U3_TX")
+      (class "Default")
+      (node
+        (ref "D2")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "7")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "7")
+        (pintype "PASSIVE")))
+    (net
+      (code 8)
+      (name "UMB_CHG")
+      (class "Default")
+      (node
+        (ref "D3")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "20")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "21")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J3")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J3")
+        (pin "2")
+        (pintype "PASSIVE")))
+    (net
+      (code 9)
+      (name "UMB_SENSE")
+      (class "Default")
+      (node
+        (ref "D2")
+        (pin "4")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "13")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "9")
+        (pintype "PASSIVE")))
+    (net
+      (code 10)
+      (name "UMB_SHUT")
+      (class "Default")
+      (node
+        (ref "D5")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "19")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J3")
+        (pin "6")
+        (pintype "PASSIVE")))
+    (net
+      (code 11)
+      (name "UMB_VMON")
+      (class "Default")
+      (node
+        (ref "D4")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "9")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J3")
+        (pin "5")
+        (pintype "PASSIVE")))
+    (net
+      (code 12)
+      (name "VTREF")
+      (class "Default")
+      (node
+        (ref "D2")
+        (pin "5")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "1")
+        (pintype "PASSIVE")))
+    (net
+      (code 13)
+      (name "WDT_DIS")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "5")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "5")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "5")
+        (pintype "PASSIVE")))))

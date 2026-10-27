@@ -1,7 +1,19 @@
 //! `deployment.h`: the deployment wait and burn sequence
 //! (`sqso_fsw::deployment`), on the GPIO and flash HAL, the reset cause,
-//! the separation switch and the flight log.
+//! the separation switch and the flight log. Each wing resistor has its own
+//! line: wing 1 A `GPIO_PIN_BURN_W1A` (= `GPIO_PIN_SOLAR_BURN`, PB10),
+//! wing 1 B `GPIO_PIN_BURN_W1B` (= `GPIO_PIN_SOLAR_BURN_B`, PE6), wing 2 A
+//! `GPIO_PIN_BURN_W2A` (= `GPIO_PIN_ANTENNA_BURN`, PB9) and wing 2 B
+//! `GPIO_PIN_BURN_W2B` (logical, its STM32 pin to be allocated), one at a
+//! time; the antenna is the ISIS AntS, armed and deployed over I2C, sensed
+//! by its own element switches (`ants.rs`).
 //!
+//! Decision C-19: after every call that can change the sequence, the
+//! transmitter inhibit `RF_INHIBIT_ANTS_PENDING` follows
+//! [`Deployment::downlink_held`] (set at boot before `rf_control_init()`
+//! first drives the lines).
+//!
+//! @requirement SRS-F167 Transmitters silent while the AntS deployment is pending (deferred or not yet attempted after the wings); the downlink starts when the AntS reads deployed or its sequence ends (attempts spent, or the attempt at the deferral cap made), latched, and never before the 45-minute RF silence
 //! @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
 
 use core::ffi::c_char;
@@ -13,19 +25,40 @@ use crate::c::{self, HalFlash, rc, severity};
 use crate::cell::Global;
 use crate::rf_control::{GPIO_DIR_INPUT, GPIO_DIR_OUTPUT, gpio_config, gpio_set};
 use crate::{ptr, rf_silence, separation_switch};
+use sqso_fsw::rf_control::INHIBIT_ANTS_PENDING;
 
 /// `FLASH_REGION_DEPLOYMENT`
 pub(crate) const FLASH_REGION_DEPLOYMENT: u32 = 10;
 /// `GPIO_PIN_DEPLOY_EN`
 pub(crate) const GPIO_PIN_DEPLOY_EN: u32 = 4;
-/// `GPIO_PIN_ANTENNA_BURN`
+/// `GPIO_PIN_ANTENNA_BURN`, now `GPIO_PIN_BURN_W2A` (wing 2, resistor A)
 pub(crate) const GPIO_PIN_ANTENNA_BURN: u32 = 11;
+/// `GPIO_PIN_BURN_W2B` (wing 2, resistor B; logical pin, its STM32 pin
+/// is the OBC board's to allocate)
+pub(crate) const GPIO_PIN_BURN_W2B: u32 = 23;
 /// `GPIO_PIN_SOLAR_BURN`
 pub(crate) const GPIO_PIN_SOLAR_BURN: u32 = 12;
+/// `GPIO_PIN_SOLAR_BURN_B`
+pub(crate) const GPIO_PIN_SOLAR_BURN_B: u32 = 18;
 /// `GPIO_PIN_ANTENNA_SENSE`
 pub(crate) const GPIO_PIN_ANTENNA_SENSE: u32 = 13;
-/// `GPIO_PIN_SOLAR_SENSE`
+/// `GPIO_PIN_SOLAR_SENSE`: both wings' hinge switches in series, the EPS's
+/// 10 kΩ + 1 kΩ pull-up; **low = both wings deployed** (SQSO-ICX-001 §3.1
+/// pin 20). No internal pull: a pull-down would override the pull-up
 pub(crate) const GPIO_PIN_SOLAR_SENSE: u32 = 14;
+const GPIO_PULL_NONE: u32 = 0;
+
+/// Whether SOLAR_SENSE reads both wings deployed (the line low)
+pub(crate) fn wings_sensed() -> bool {
+    // SAFETY: plain value (the HAL)
+    !unsafe { c::hal_gpio_get(GPIO_PIN_SOLAR_SENSE) }
+}
+/// In sunlight for the AntS gate's releases (RID P3F-G-02): the sun
+/// sensors see the Sun, or the EPS reports the array sunlit
+fn sunlit_now(sun_visible: bool, eps: Option<sqso_fsw::eps_telemetry::Telemetry>) -> bool {
+    sun_visible || eps.is_some_and(|t| t.sunlit())
+}
+
 /// `FAULT_TYPE_DEPLOYMENT`
 pub(crate) const FAULT_TYPE_DEPLOYMENT: u32 = 21;
 /// `LOG_LEVEL_DEBUG`
@@ -39,20 +72,6 @@ pub type DeploymentElementStatus = ElementStatus;
 pub type DeploymentTelemetry = Telemetry;
 
 static DEPLOY: Global<Deployment> = Global::new(Deployment::new(FLASH_REGION_DEPLOYMENT));
-
-const fn burn_pin(e: Element) -> u32 {
-    match e {
-        Element::Antenna => GPIO_PIN_ANTENNA_BURN,
-        Element::SolarPanel => GPIO_PIN_SOLAR_BURN,
-    }
-}
-
-const fn sense_pin(e: Element) -> u32 {
-    match e {
-        Element::Antenna => GPIO_PIN_ANTENNA_SENSE,
-        Element::SolarPanel => GPIO_PIN_SOLAR_SENSE,
-    }
-}
 
 /// A flight-log message, NUL-terminated (cut at LOG_MAX_MESSAGE_LEN - 1)
 struct Message {
@@ -76,34 +95,56 @@ impl fmt::Write for Message {
 /// flight log and the fault log take the messages
 impl DeployIo for HalFlash {
     fn configure_outputs(&mut self) {
-        for pin in [GPIO_PIN_DEPLOY_EN, GPIO_PIN_ANTENNA_BURN, GPIO_PIN_SOLAR_BURN] {
+        for pin in
+            [GPIO_PIN_DEPLOY_EN, GPIO_PIN_ANTENNA_BURN, GPIO_PIN_SOLAR_BURN, GPIO_PIN_SOLAR_BURN_B, GPIO_PIN_BURN_W2B]
+        {
             gpio_config(pin, GPIO_DIR_OUTPUT);
         }
     }
 
     fn configure_inputs(&mut self) {
         gpio_config(GPIO_PIN_ANTENNA_SENSE, GPIO_DIR_INPUT);
-        gpio_config(GPIO_PIN_SOLAR_SENSE, GPIO_DIR_INPUT);
+        // SAFETY: plain values (the HAL): input, no pull (the EPS's pull-up)
+        let _ = unsafe { c::hal_gpio_config(GPIO_PIN_SOLAR_SENSE, GPIO_DIR_INPUT, GPIO_PULL_NONE) };
         separation_switch::separation_switch_init();
     }
 
     fn set(&mut self, line: Line, on: bool) {
-        gpio_set(
-            match line {
-                Line::Arm => GPIO_PIN_DEPLOY_EN,
-                Line::Burn(e) => burn_pin(e),
-            },
-            on,
-        );
+        match line {
+            Line::Arm => gpio_set(GPIO_PIN_DEPLOY_EN, on),
+            Line::Wing(0, 0) => gpio_set(GPIO_PIN_SOLAR_BURN, on),
+            Line::Wing(0, _) => gpio_set(GPIO_PIN_SOLAR_BURN_B, on),
+            Line::Wing(_, 0) => gpio_set(GPIO_PIN_ANTENNA_BURN, on),
+            Line::Wing(_, _) => gpio_set(GPIO_PIN_BURN_W2B, on),
+            Line::Ants => {
+                // A refused write shows as an element not sensed: the
+                // sequence retries
+                let _ = crate::ants::command(on);
+            }
+        }
     }
 
     fn sensed(&mut self, element: Element) -> bool {
-        // SAFETY: plain value
-        unsafe { c::hal_gpio_get(sense_pin(element)) }
+        match element {
+            Element::SolarPanel => wings_sensed(),
+            Element::Antenna => crate::ants::status().is_some_and(|s| s.all_deployed()),
+        }
     }
 
     fn stowed(&mut self) -> bool {
         separation_switch::separation_switch_stowed()
+    }
+
+    fn ants_temperature_c(&mut self) -> Option<f64> {
+        crate::ants::temperature_c()
+    }
+
+    fn sunlit(&mut self) -> bool {
+        sunlit_now(crate::adcs_control::adcs_sun_visible(), crate::eps_control::eps_telemetry())
+    }
+
+    fn silence_served(&mut self) -> bool {
+        sqso_fsw::rf_silence::RfSilence::served_in_record(self, rf_silence::FLASH_REGION_RF_SILENCE)
     }
 
     fn log(&mut self, level: Level, message: fmt::Arguments<'_>) {
@@ -122,28 +163,59 @@ impl DeployIo for HalFlash {
             Report::Failed(Element::SolarPanel) => c"Solar panel deployment failed",
             Report::NotPersisted => c"Deployment attempt not persisted: burn withheld",
             Report::Unreadable => c"Deployment record unreadable: starting over",
+            Report::AntsDeferred => c"AntS deployment deferred: below -17 C or no temperature",
+            Report::AntsSchedule => c"AntS temperature unknown 3 times: analysis schedule",
         };
         c::log(FAULT_TYPE_DEPLOYMENT, severity::ERROR, text, 0.0);
+    }
+}
+
+/// The transmitter hold of decision C-19 to the sequence's answer (busy:
+/// unchanged; the caller in use applies it when it returns)
+fn apply_hold() {
+    if let Some(held) = DEPLOY.with(|d| d.downlink_held()) {
+        crate::rf_control::rf_control_set_inhibit(INHIBIT_ANTS_PENDING, held);
     }
 }
 
 /// Boot: burn lines low, load the sequence, apply the reset-cause rules
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_init() -> bool {
+    crate::ants::reset();
     let cause = rf_silence::reset();
-    DEPLOY.with(|d| d.init(cause, &mut HalFlash)).is_some()
+    let known = DEPLOY.with(|d| {
+        d.init(cause, &mut HalFlash);
+        d.separation_known()
+    });
+    // Separation established before this boot latches the reading at once
+    // (RID SMA-B02): neither the RF silence nor the wait restarts on a
+    // line that failed open
+    separation_switch::set_established(known.unwrap_or(false));
+    apply_hold();
+    known.is_some()
 }
 
 /// Advance the sequence by elapsed time
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_tick(elapsed_ms: u32) {
     let _ = DEPLOY.with(|d| d.tick(elapsed_ms, &mut HalFlash));
+    apply_hold();
+}
+
+/// Whether the transmitters are held off for the AntS (decision C-19;
+/// busy reads as held, the safe answer)
+#[unsafe(no_mangle)]
+pub extern "C" fn deployment_downlink_held() -> bool {
+    DEPLOY.with(|d| d.downlink_held()).unwrap_or(true)
 }
 
 /// Re-arm for flight (GSE only)
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_arm() -> i32 {
-    match DEPLOY.with(|d| d.arm(&mut HalFlash)) {
+    let armed = DEPLOY.with(|d| d.arm(&mut HalFlash));
+    separation_switch::set_established(false);
+    apply_hold();
+    match armed {
         Some(true) => rc::OK,
         Some(false) => rc::IO,
         None => rc::BUSY,
@@ -199,14 +271,49 @@ pub unsafe extern "C" fn deployment_get_telemetry(telemetry: *mut DeploymentTele
 /// Enable or inhibit deployment (ground command); persisted
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_set_enabled(enable: bool) -> bool {
-    DEPLOY.with(|d| d.set_enabled(enable, &mut HalFlash)).unwrap_or(false)
+    let saved = DEPLOY.with(|d| d.set_enabled(enable, &mut HalFlash)).unwrap_or(false);
+    apply_hold();
+    saved
 }
 
 /// Retry an element (ground command)
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_force_retry(element: u32) -> bool {
     let Some(e) = Element::from_raw(element) else { return false };
-    DEPLOY.with(|d| d.force_retry(e, &mut HalFlash)).unwrap_or(false)
+    let accepted = DEPLOY.with(|d| d.force_retry(e, &mut HalFlash)).unwrap_or(false);
+    apply_hold();
+    accepted
+}
+
+/// DEPLOY_RETRY with its force flag (the antenna only: past the AntS
+/// temperature gate)
+#[unsafe(no_mangle)]
+pub extern "C" fn deployment_retry(element: u32, force: bool) -> bool {
+    let Some(e) = Element::from_raw(element) else { return false };
+    let accepted = DEPLOY.with(|d| d.retry(e, force, &mut HalFlash)).unwrap_or(false);
+    apply_hold();
+    accepted
+}
+
+/// The AntS gate's deferrals and last temperature (NaN: none valid)
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn deployment_ants_gate(deferrals: *mut u8, temp_c: *mut f64) -> bool {
+    let Some((n, t)) = DEPLOY.with(|d| d.ants_gate_status()) else { return false };
+    // SAFETY: the C contract: each pointer is NULL or a live object
+    unsafe {
+        if let Some(p) = crate::ptr::out(deferrals) {
+            *p = n;
+        }
+        if let Some(p) = crate::ptr::out(temp_c) {
+            *p = t.unwrap_or(f64::NAN);
+        }
+    }
+    true
+}
+
+/// The AntS gate for housekeeping: deferrals, last temperature
+pub(crate) fn ants_gate() -> (u8, Option<f64>) {
+    DEPLOY.with(|d| d.ants_gate_status()).unwrap_or((0, None))
 }
 
 /// State name (static); "UNKNOWN" for a value outside the enum
@@ -219,6 +326,14 @@ pub extern "C" fn deployment_state_name(state: u32) -> *const c_char {
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_all_complete() -> bool {
     DEPLOY.with(|d| d.all_complete()).unwrap_or(false)
+}
+
+/// Whether the wings' attempts are spent with the wings not deployed and
+/// their sense line reading stowed (EPS-10: the mode is held at IDLE; busy
+/// reads as failed, the safe answer)
+#[unsafe(no_mangle)]
+pub extern "C" fn deployment_wings_failed() -> bool {
+    DEPLOY.with(|d| d.wings_exhausted()).unwrap_or(true) && !wings_sensed()
 }
 
 /// Persist the sequence state
@@ -249,5 +364,66 @@ mod tests {
         assert!(m.write_str(&"x".repeat(200)).is_ok());
         assert_eq!(m.len, 127);
         assert_eq!(&m.buf[124..], b"xxx\0");
+    }
+
+    /// The sunlight the AntS gate's releases use: the sun sensors or the
+    /// array (RID P3F-G-02)
+    #[test]
+    fn sunlit_from_the_sun_sensors_or_the_array() {
+        use sqso_fsw::eps_telemetry::{Telemetry, status};
+        let lit = Telemetry { status: status::SUNLIT, ..Telemetry::default() };
+        assert!(sunlit_now(true, None));
+        assert!(!sunlit_now(false, None));
+        assert!(sunlit_now(false, Some(lit)));
+        assert!(!sunlit_now(false, Some(Telemetry::default())));
+    }
+
+    /// The AntS gate's C interface: an unknown element is refused, NULL
+    /// outputs are allowed, a nested call (an interrupt) is busy
+    #[test]
+    fn ants_gate_interface_and_busy() {
+        let _serial = crate::fault_mgmt::tests::serial();
+        assert!(!deployment_retry(7, true), "no such element");
+        let (mut n, mut t) = (9u8, 0.0f64);
+        // SAFETY: live objects, then NULL (allowed)
+        assert!(unsafe { deployment_ants_gate(&mut n, &mut t) });
+        assert_eq!(ants_gate().0, n);
+        assert!(unsafe { deployment_ants_gate(core::ptr::null_mut(), core::ptr::null_mut()) });
+        let nested = DEPLOY.with(|_| {
+            // SAFETY: NULL outputs are allowed
+            (unsafe { deployment_ants_gate(core::ptr::null_mut(), core::ptr::null_mut()) }, ants_gate())
+        });
+        assert_eq!(nested, Some((false, (0, None))));
+    }
+
+    /// Decision C-19 behind the C interface: the hold follows the sequence
+    /// into the transmitter inhibits (the receiver stays on); a nested call
+    /// reads as held and leaves the inhibit as it was
+    #[test]
+    fn the_hold_reaches_the_transmitter_inhibits() {
+        let _serial = crate::fault_mgmt::tests::serial();
+        let held = || crate::rf_control::inhibits() & INHIBIT_ANTS_PENDING != 0;
+        // SAFETY: plain values (the simulated HAL)
+        unsafe {
+            assert_eq!(c::hal_flash_init(), rc::OK);
+            assert_eq!(c::hal_flash_erase(FLASH_REGION_DEPLOYMENT), rc::OK);
+        }
+        assert!(deployment_init());
+        assert!(deployment_downlink_held() && held(), "a fresh sequence holds");
+        assert!(deployment_set_enabled(false));
+        assert!(!deployment_downlink_held() && !held(), "never while the ground inhibits deployment");
+        let nested = DEPLOY.with(|_| {
+            apply_hold();
+            (deployment_downlink_held(), held())
+        });
+        assert_eq!(nested, Some((true, false)));
+        assert!(deployment_set_enabled(true));
+        assert!(held());
+        assert!(!deployment_force_retry(sqso_fsw::deployment::ELEMENT_COUNT), "no such element");
+        deployment_tick(1);
+        assert!(held());
+        assert_eq!(deployment_arm(), rc::OK);
+        assert!(held());
+        crate::rf_control::rf_control_set_inhibit(INHIBIT_ANTS_PENDING, false);
     }
 }

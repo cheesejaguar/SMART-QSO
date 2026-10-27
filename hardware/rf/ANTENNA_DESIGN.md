@@ -2,316 +2,131 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-ANT-001
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 2.3
+**Date:** 2026-10-27
+**Status:** CDR. Antenna bought (ISIS AntS 1U–3U, `docs/hardware/BUILD_VS_BUY.md` §2.6); configuration recommended here, to be confirmed by RFQ and a PI decision. Not measured.
+
+Version 1.0 described a custom stainless-tape 2 m monopole at 145.825 MHz on the −Z face. The baseline buys the ISIS
+AntS, adds the 70 cm receive element the telecommand and transponder need (BASELINE §7), and excludes 145.825 MHz.
+Version 2.0 replaces it.
 
 ---
 
-## 1. Overview
+## 1. Requirements
 
-This document defines the antenna design for the SMART-QSO 1U CubeSat VHF beacon downlink system.
+| ID | Requirement | Source |
+|----|-------------|--------|
+| ANT-1 | Separate deployable quarter-wave elements for 2 m (145.800–146.000 MHz) and 70 cm (435.000–437.300 MHz); no shared diplexed element | BASELINE §7 |
+| ANT-2 | Gain toward the ground over the pass-weighted directions: median ≥ −3 dBi, 10th percentile ≥ −10 dBi, each band, with the wings deployed (proposed replacement for SYS-222; RF_DESIGN RF-P013) | SQSO-LBA-001 §5 |
+| ANT-3 | VSWR < 2:1 at the coordinated frequencies, deployed on the flight body | SYS-223 |
+| ANT-4 | RF power rating ≥ 1 W continuous (2 m), in vacuum | BASELINE §7 |
+| ANT-5 | Isolation between the 2 m and 70 cm elements: ≥ 25 dB at 146 MHz and ≥ 15 dB at 437 MHz (the desense analysis assumes these) | SQSO-LBA-001 §7.3–7.4 |
+| ANT-6 | Deployment no earlier than 30 min after separation; ≥ 3 independent physical inhibits between the battery and each release actuator; deployment sensed | CDS Rev 14.1 §2.3.8, §2.4.4; SYS-221, SYS-225 |
+| ANT-7 | Stowed within the CDS envelope; no part released | CDS §2.1.1, §2.2 |
+| ANT-8 | No ferromagnetic contact in the RF path that can generate a 3rd harmonic of the 2 m signal (passive intermodulation) | SQSO-LBA-001 §7.5 |
 
-### 1.1 Design Requirements
+## 2. Selected Product
 
-| Requirement | Value | Source |
-|-------------|-------|--------|
-| Frequency | 145.825 MHz | IARU Coordination |
-| Polarization | Circular or Linear | Link Budget |
-| Gain | > 0 dBi omnidirectional | Link Budget |
-| Impedance | 50Ω | Standard |
-| VSWR | < 2:1 | Design |
-| Deployment | Autonomous post-separation | CDS |
-
----
-
-## 2. Antenna Type Selection
-
-### 2.1 Trade Study
-
-| Type | Gain | Pattern | Complexity | Selected |
-|------|------|---------|------------|----------|
-| Quarter-wave monopole | 2.1 dBi | Omnidirectional | Low | **Yes** |
-| Dipole | 2.1 dBi | Omnidirectional | Medium | No |
-| Turnstile | 0 dBi | Hemispherical CP | High | No |
-| Patch | 6 dBi | Directional | Medium | No |
-
-### 2.2 Selected Configuration
-
-**Quarter-Wave Monopole with CubeSat Ground Plane**
+**ISIS AntS 1U–3U** (BUILD_VS_BUY §2.6, public datasheet values; quotes pending):
 
 | Parameter | Value |
 |-----------|-------|
-| Type | λ/4 monopole |
-| Element length | ~49 cm (145.825 MHz) |
-| Ground plane | CubeSat body (-Z face) |
-| Gain | +2.1 dBi (ideal) |
-| Pattern | Toroidal (omnidirectional in XY) |
+| Elements | Up to four tape springs, up to 55 cm (VHF) or 17 cm (UHF) |
+| Configurations offered | 4 monopoles; 1 or 2 dipoles; turnstile (with phasing/balun circuitry); dipole plus monopoles |
+| Deployment | Each element held by a wire melted by two redundant heating elements, two redundant microcontrollers, deployment-feedback switches; < 3 s above 15 °C |
+| Interface | I²C, 3.3 V, < 40 mW |
+| RF power | 2 W maximum |
+| Mass, envelope | < 90 g; 98 × 98 × 7 mm on one ±Z face; 30 mm centre hole option |
+| Heritage | Flown since 2010, > 500 units (vendor statement) |
 
----
+The elements deploy from the sides of the frame **in the plane of the mounting face**, so each lies along ±X or ±Y of
+the body (the face is ±Z). The direction of each element is an ordering option.
 
-## 3. Antenna Element Design
+## 3. Configuration Against the Spin
 
-### 3.1 Element Material Options
+The spacecraft spins at 6°/s about +Y, the wing normal, with +Y on the Sun (BASELINE §8, D9). SQSO-LBA-001 §5
+evaluated three options along 60 days of passes:
 
-| Material | Form | Advantages | Disadvantages |
-|----------|------|------------|---------------|
-| Stainless steel tape | Tape spring | Self-deploying, robust | Heavier |
-| Nitinol (SMA) | Wire | Shape memory, compact | Expensive |
-| Beryllium copper | Tape | Good conductivity | Brittle |
-| Steel music wire | Wire | Cheap, springy | Corrosion |
+| Option | 2 m elements | Fading | Beacon frames decoded, reference station | Handheld Yagi | Meets ANT-2? |
+|--------|--------------|--------|------------------------------------------|---------------|--------------|
+| A | One, along ±X (across the spin) | Null sweeps the sky twice a revolution: at 8°/s 8.3 fades below −10 dBi per pass, 5 s each | 96.6 % (98.2 % with the ±5 s beacon jitter as built) | 49 % | Median yes (−2.2 dBi); 10th percentile −9.2 dBi at low elevation, marginal |
+| **B** | One, along **+Y** (the spin axis) | No spin modulation; null toward the Sun and away from it: 0.23 fades per pass, about 80 s each | 100 % | 58 % | Yes at low elevation (−6.3 dBi); −12.8 dBi at 30–45° (marginal) |
+| **C** | Two, along ±X and ±Y, quadrature through a 90° hybrid | Never below −6 dBi | 100 % | 72 % | **Yes** (−3.6 dBi 10th percentile) |
 
-### 3.2 Selected Material
+**Baseline (BASELINE Rev D §4, §7, chair decision with STR-01):** two 2 m elements along +X and −X (across the spin
+axis, keeping +Y the major axis of inertia) and two 70 cm elements along +Y and −Y, each pair fed in antiphase as a
+dipole (§4.1). The options below are the review's pattern analysis, kept for the record.
 
-| Parameter | Value |
-|-----------|-------|
-| Material | 301 Stainless Steel |
-| Form | Tape spring (measuring tape style) |
-| Width | 6 mm |
-| Thickness | 0.1 mm |
-| Length | 490 mm (λ/4 at 145.825 MHz) |
+**Recommendation (review, superseded by the baseline):** option C if the AntS can carry two 2 m elements and the 70 cm element(s) on one frame with a
+phasing network for the 2 m pair (RFQ question 1 below); otherwise option B. The 70 cm element follows the same rule.
+Option A, the arrangement the mission simulation assumes (−Z axis, equivalent to ±X), is the worst of the three.
 
-### 3.3 Electrical Length Calculation
+Option C also gives near-circular polarization toward ±Z, which reduces the linear-to-linear fades that dominate
+the losses for handheld stations (SQSO-LBA-001 §5.3, finding 2).
 
-```
-λ = c / f = 3×10⁸ / 145.825×10⁶ = 2.057 m
-λ/4 = 514 mm (free space)
-Velocity factor ≈ 0.95 for tape element
-Physical length = 514 × 0.95 = 488 mm ≈ 490 mm
-```
+## 4. Electrical
 
----
-
-## 4. Antenna Base Design
-
-### 4.1 Base Assembly
-
-| Component | Material | Purpose |
-|-----------|----------|---------|
-| Base plate | Aluminum | Ground/mounting |
-| Insulator | PEEK | RF isolation |
-| Feed pin | Brass, gold plated | RF connection |
-| Spring contact | BeCu | Element connection |
-
-### 4.2 RF Connection
-
-| Parameter | Value |
-|-----------|-------|
-| Connector | SMA female |
-| Feed impedance | 50Ω |
-| Matching | L-network if needed |
-
----
-
-## 5. Deployment Mechanism
-
-### 5.1 Stowed Configuration
-
-| Parameter | Value |
-|-----------|-------|
-| Coiling method | Flat coil around base |
-| Coil diameter | < 80 mm |
-| Retention | Nylon monofilament |
-| Burn wire | Nichrome, 30 AWG |
-
-### 5.2 Deployment Actuation
-
-| Parameter | Value |
-|-----------|-------|
-| Method | Resistive burn wire |
-| Wire material | Nichrome |
-| Wire resistance | ~5Ω |
-| Burn current | 0.5-1.0 A |
-| Burn time | 2-5 seconds |
-| Redundancy | Dual burn wires |
-
-### 5.3 Deployment Sequence
-
-1. OBC receives deployment command
-2. Wait T+30 min from separation (per CDS)
-3. Activate burn wire circuit
-4. Current flows, wire heats, nylon melts
-5. Tape spring self-deploys
-6. Deployment switch confirms deployment
-7. If no confirmation, retry with backup wire
-
-### 5.4 Deployment Switch
-
-| Parameter | Value |
-|-----------|-------|
-| Type | Microswitch |
-| Actuation | Deployed element presses |
-| Output | GPIO to OBC |
-| Redundancy | Optional second switch |
-
----
-
-## 6. RF Performance
-
-### 6.1 Expected Performance
-
-| Parameter | Value | Notes |
+| Parameter | Value | Basis |
 |-----------|-------|-------|
-| Gain (zenith) | +2.1 dBi | Ideal monopole |
-| Gain (horizon) | -3 dBi | Pattern rolloff |
-| Gain (-Z) | -10 dBi | Below ground plane |
-| Bandwidth | > 5 MHz | 3 dB points |
-| VSWR | < 1.5:1 | At center frequency |
+| λ/4 at 145.9 MHz / 436 MHz | 514 mm / 172 mm free space; tape length per ISIS tuning | |
+| Pattern | Dipole-shaped about each element, peak 0 dBi as filed (2.15 dBi directivity less ≈ 2 dB for mismatch and body loss); nulls filled to about −20 dBi by the body and wings [assumption] | SQSO-LBA-001 §2.4 |
+| Ground plane | The 1U body (0.05 λ at 2 m, 0.15 λ at 70 cm): at 2 m the body is the other half of an asymmetric dipole, not a ground plane | |
+| Wings | Two 1U-face wings with normal +Y, conductive cell substrates near the elements: they shadow and detune; their effect is unknown until VI-RF-01 | |
+| Polarization | Linear per element; option C elliptical to circular toward ±Z | |
+| Matching | Per ISIS; measured VSWR on the flight body (ANT-3) | |
 
-### 6.2 Radiation Pattern
+### 4.1 Feed interface to the RF board (2.1)
 
-- Omnidirectional in XY plane (azimuth)
-- Maximum gain at 20-30° above horizon
-- Null at zenith (directly above)
-- Reduced gain below ground plane
+| Item | Design (SQSO-RF-BRD-001 §9; W10 v2) |
+|------|-------------------------------------|
+| 2 m pair (+X, −X) | Fed in antiphase from a lumped lattice balun on the RF board (68 nH, 18 pF; 50 Ω to 72 Ω balanced, 0.25 dB), through two 1.37 mm cables (≤ 0.22 m, Molex 73414-0351 MMCX plugs) from MMCX jacks J3/J4 on the board, matched within 2 mm (0.5°); W10 v3, SQSO-RF-BRD-001 C §4.3 |
+| 70 cm pair (+Y, −Y) | Same, 22 nH, 6.0 pF, 0.30 dB; cables matched within 2 mm (1.5°) |
+| If ISIS supplies the phasing on the AntS | One cable per band; the board's baluns are depopulated (0 Ω links fitted). RFQ question 1 |
+| Static bleed | 100 kΩ to ground at each RF connector on the board |
+| Isolation (ANT-5) | ≥ 25 dB at 146 MHz and ≥ 15 dB at 437 MHz between the 2 m and 70 cm ports; the orthogonal pairs help. With these values the board's receive filter holds the 2 m signal at ≤ −55 dBm at the LNA and the desense is ≤ 0.01 dB at 1 W (SQSO-RF-BRD-001 §6.3, §7.5) |
+| Power | 1 W continuous at 2 m, split 0.5 W per element (ANT-4) |
+| Contacts | Gold-plated, non-magnetic MMCX jacks at the board; cable inner conductors silver-plated copper, not copper-clad steel; feed contacts on the AntS to be free of ferromagnetic material (ANT-8) |
+| AntS RF connectors | MMCX female assumed (ISIS antenna brochure); type, count and positions to confirm against the ISIS ICD (SQSO-RF-BRD-001 VI-RFB-13) |
+| Port-to-antenna loss | 0.44 dB at 146 MHz, 0.62 dB at 436 MHz, worst (cable, two MMCX pairs, in-phase mismatch; SQSO-RF-BRD-001 C §4.3) |
 
-### 6.3 Polarization
+## 5. Mechanical and Operational
 
-| Parameter | Value |
-|-----------|-------|
-| Polarization | Linear (vertical) |
-| Axial ratio | N/A (linear) |
-| Cross-pol | > 20 dB |
+| Item | Value |
+|------|-------|
+| Face | One ±Z face (98 × 98 × 7 mm). Check against the separation switches, the access port and the GNSS patch (BUILD_VS_BUY §2.6) |
+| Release | AntS heaters through the deployment inhibits; the flight software's persisted 30-minute deployment sequence (SYS-221) commands the AntS over I²C or drives its release lines (interface to be fixed with the vendor's ICD) |
+| Sensing | AntS feedback switches to the OBC (`GPIO_PIN_ANTENNA_SENSE`, or read over I²C) |
+| Materials | Tape springs and hinge contacts to be checked for ferromagnetic contact in the RF path (ANT-8) |
 
----
+## 6. RFQ Questions to ISISPACE
 
-## 7. Matching Network
+1. (2.1) Baseline: 2 m elements on opposite sides (±X) and 70 cm elements on the other two (±Y). Does ISIS supply the
+   antiphase feed (balun) for each pair on the AntS, and with what connectors? Earlier form of the question: can one
+   AntS frame carry two 2 m elements (on adjacent sides, for a quadrature pair) and one or two 70 cm elements,
+   with a 90° hybrid for the 2 m pair and a separate 70 cm feed? Isolation between the 2 m and 70 cm ports at 146 and
+   437 MHz?
+2. Element directions selectable (+Y for the 2 m element)?
+3. Measured patterns on a 1U body, both bands, and the effect of deployable panels.
+4. Materials of the tape, hinge and feed contacts (passive intermodulation at 3 × 146 MHz).
+5. Release interface: I²C commands only, or direct heater lines? Can each heater be fed through the spacecraft's
+   three inhibits?
+6. Lead time, price, export classification.
 
-### 7.1 Impedance Considerations
+## 7. Verification
 
-| Condition | Impedance |
-|-----------|-----------|
-| Ideal λ/4 monopole | 36.5Ω |
-| With finite ground plane | 40-50Ω |
-| Target | 50Ω |
-
-### 7.2 Matching Approach
-
-If impedance < 50Ω, use series inductance:
-- L = (Z₀ × tan(β)) / (2πf)
-- Typical: 10-30 nH series inductor
-
-If VSWR acceptable (< 2:1), no matching needed.
-
----
-
-## 8. Ground Plane Considerations
-
-### 8.1 CubeSat Body as Ground Plane
-
-| Parameter | Value |
-|-----------|-------|
-| Size | 100mm × 100mm minimum |
-| Material | Aluminum structure |
-| Configuration | -Z face of CubeSat |
-| Grounding | Bonded to RF ground |
-
-### 8.2 Effect on Pattern
-
-- Finite ground plane causes pattern distortion
-- Some gain reduction vs. infinite ground
-- Acceptable for omnidirectional coverage
-
----
-
-## 9. Environmental Considerations
-
-### 9.1 Thermal
-
-| Condition | Effect | Mitigation |
-|-----------|--------|------------|
-| Hot (+80°C) | Slight length increase | Design margin |
-| Cold (-40°C) | Slight length decrease | Design margin |
-| Cycling | Material fatigue | SS tape is robust |
-
-### 9.2 Atomic Oxygen (LEO)
-
-| Material | AO Effect | Mitigation |
-|----------|-----------|------------|
-| Stainless steel | Minimal | None needed |
-| PEEK insulator | Slight erosion | Acceptable for 1 year |
-
-### 9.3 Outgassing
-
-All materials are low-outgassing (see MATERIALS_LIST.md).
-
----
-
-## 10. Mechanical Interface
-
-### 10.1 Mounting
-
-| Parameter | Value |
-|-----------|-------|
-| Location | -Z face corner |
-| Footprint | 20mm × 20mm |
-| Fasteners | M2 × 4 |
-| Keep-out zone | 30mm radius for stowed element |
-
-### 10.2 Stowed Envelope
-
-| Parameter | Value |
-|-----------|-------|
-| Diameter | 80 mm |
-| Height | 10 mm |
-| Protrusion | None beyond CubeSat envelope |
-
-### 10.3 Deployed Configuration
-
-| Parameter | Value |
-|-----------|-------|
-| Length | 490 mm |
-| Direction | -Z axis |
-| Clearance | No interference with solar panels |
-
----
-
-## 11. Testing Requirements
-
-### 11.1 Pre-Integration Tests
-
-| Test | Requirement |
-|------|-------------|
-| Impedance | 50Ω ±10Ω |
-| VSWR | < 2:1 |
-| Resonant frequency | 145.825 MHz ±1 MHz |
-
-### 11.2 Deployment Tests
-
-| Test | Requirement |
-|------|-------------|
-| Deployment time | < 5 seconds |
-| Deployment success | 10/10 cycles |
-| Temperature range | -20°C to +50°C |
-
-### 11.3 RF Pattern Measurement
-
-| Test | Requirement |
-|------|-------------|
-| Gain measurement | > 0 dBi average |
-| Pattern shape | Toroidal, omnidirectional |
-| Efficiency | > 80% |
-
----
-
-## 12. Verification
-
-### 12.1 Analysis
-
-- RF simulation (HFSS, CST, or 4NEC2)
-- Pattern prediction
-- Impedance matching
-
-### 12.2 Test
-
-- VNA measurement of S11
-- Anechoic chamber pattern measurement
-- Deployment functional test
-
----
+| ID | Test | Pass criterion | When |
+|----|------|----------------|------|
+| VI-RF-01 | Pattern of the EM on a flight-like 1U body with wings, both bands, ≥ 2 orthogonal cuts; EM model (NEC/FEKO) agreeing within 2 dB | ANT-2 over the pass-weighted directions of SQSO-LBA-001 §5.2 | EM |
+| VI-RF-16 | Deployment, thermal-vacuum cold case, then VSWR | All elements deployed and sensed; VSWR < 2:1 (ANT-3) | EM, FM (TP-RF-005) |
+| VI-RF-17 | Port-to-port isolation, deployed | ANT-5 | EM |
+| VI-RF-04 | Radiated 3rd harmonic at 1 W, deployed (captures passive intermodulation in the antenna) | ≤ −70 dBc | EM, FM |
 
 ## Revision History
 
 | Rev | Date | Description |
 |-----|------|-------------|
-| 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.0 | 2026-01-02 | Initial (custom 2 m monopole, 145.825 MHz) |
+| 2.0 | 2026-10-27 | CDR review (communications panel): ISIS AntS 1U–3U as bought (BUILD_VS_BUY §2.6); 70 cm element added; configuration options against the 6°/s spin with their fading and frame statistics (SQSO-LBA-001 §5), option C recommended, B as fall-back; requirements ANT-1 to ANT-8; RFQ questions; verification items. The custom design and 145.825 MHz are removed |
+| 2.1 | 2026-10-27 | CDR design completion, RF board | Baseline configuration recorded (2 m pair ±X, 70 cm pair ±Y, antiphase); §4.1 feed interface to the RF board (lattice baluns, matched coax, static bleed, isolation); RFQ question 1 restated |
+| 2.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Option table re-run at 8°/s and 475 km (SQSO-LBA-001 v3.2 §5) |
+| 2.3 | 2026-10-27 | CDR design completion, RF board | §4.1 feed interface to SQSO-RF-BRD-001 C §4.3: MMCX jacks and 1.37 mm cables (W10 v3) replace RG-316; AntS MMCX ports assumed (VI-RFB-13); port-to-antenna loss recorded |

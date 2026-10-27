@@ -2,12 +2,12 @@
 """HIL-044: the stack high-water mark of the running firmware, through the probe.
 
 At boot the firmware paints the unused part of the 8 KB stack budget,
-0x2009E000-0x2009FFFF, with 0x57ACC0DE (firmware/src/stack.rs,
+0x2003E000-0x2003FFFF, with 0x57ACC0DE (firmware/src/stack.rs,
 software/flight/docs/MEMORY_POLICY.md section 6). The stack grows down from
-0x200A0000, so the words still painted at the bottom of the budget were
+0x20040000, so the words still painted at the bottom of the budget were
 never used:
 
-    used bytes = 8192 - 4 x (leading words still painted, from 0x2009E000 up)
+    used bytes = 8192 - 4 x (leading words still painted, from 0x2003E000 up)
 
 The check fails if the used depth exceeds the static worst case of the same
 image (the "Worst case: N B of 8192 B" line of the stack_usage.txt that
@@ -20,7 +20,7 @@ read does not halt the core.
     stack_high_water.py --stack-usage stack_usage.txt --dump dump.txt   # no board: a saved read
 
 The dump is the output of
-    probe-rs read --chip STM32L4R5ZITx b32 0x2009E000 2048
+    probe-rs read --chip STM32L4R5ZITx b32 0x2003E000 2048
 
 Exit status: 0 pass, 1 fail, 2 error (no probe, unreadable input).
 """
@@ -39,7 +39,7 @@ import sqso_probe as sp  # noqa: E402
 #: SRS-C003, firmware/src/stack.rs BUDGET
 BUDGET = 8192
 #: The initial SP (cortex-m-rt _stack_start; MEMORY_POLICY section 6.1)
-STACK_TOP = 0x200A_0000
+STACK_TOP = 0x2004_0000
 #: firmware/src/stack.rs PAINT
 PAINT = 0x57AC_C0DE
 

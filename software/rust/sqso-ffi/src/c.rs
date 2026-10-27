@@ -94,11 +94,13 @@ unsafe extern "C" {
     #[cfg_attr(not(target_os = "none"), allow(dead_code))]
     pub(crate) fn hal_flash_region_size(region: u32) -> usize;
     pub(crate) fn hal_flash_read(region: u32, offset: u32, data: *mut u8, len: usize) -> i32;
+    pub(crate) fn hal_flash_read_mirror(region: u32, offset: u32, data: *mut u8, len: usize) -> i32;
     pub(crate) fn hal_flash_write(region: u32, offset: u32, data: *const u8, len: usize) -> i32;
     pub(crate) fn hal_flash_erase(region: u32) -> i32;
     pub(crate) fn hal_adc_init(resolution: u32, reference: u32) -> i32;
     pub(crate) fn hal_adc_read_voltage(channel: u32, voltage: *mut f64) -> i32;
     pub(crate) fn hal_i2c_init(bus: u32, speed: u32) -> i32;
+    pub(crate) fn hal_i2c_write(bus: u32, addr: u8, data: *const u8, len: usize) -> i32;
     pub(crate) fn hal_i2c_write_read(
         bus: u32,
         addr: u8,
@@ -108,8 +110,12 @@ unsafe extern "C" {
         read_len: usize,
     ) -> i32;
     pub(crate) fn hal_gpio_set(pin: u32, state: bool) -> i32;
+    pub(crate) fn hal_gpio_heartbeat(pin: u32, lease_ms: u32) -> i32;
+    pub(crate) fn hal_reset_cause() -> u32;
     pub(crate) fn hal_radio_init() -> i32;
     pub(crate) fn hal_radio_receive(frame: *mut u8, max_len: usize, len: *mut usize) -> i32;
+    pub(crate) fn hal_radio_status_query() -> i32;
+    pub(crate) fn hal_radio_take_status(data: *mut u8, max_len: usize, len: *mut usize) -> i32;
     pub(crate) fn hal_gpio_config(pin: u32, direction: u32, pull: u32) -> i32;
     pub(crate) fn hal_gpio_get(pin: u32) -> bool;
     pub(crate) fn hal_uart_init(port: u32, config: *const core::ffi::c_void) -> i32;
@@ -117,6 +123,26 @@ unsafe extern "C" {
     pub(crate) fn hal_uart_flush(port: u32) -> i32;
     pub(crate) fn hal_uart_read(port: u32, data: *mut u8, len: usize, timeout_ms: u32, got: *mut usize) -> i32;
     pub(crate) fn hal_uart_write(port: u32, data: *const u8, len: usize) -> i32;
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_adc_read_raw(channel: u32, value: *mut u16) -> i32;
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_i2c_read(bus: u32, addr: u8, data: *mut u8, len: usize) -> i32;
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_spi_init(bus: u32, config: *const core::ffi::c_void) -> i32;
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_spi_transfer(bus: u32, tx: *const u8, rx: *mut u8, len: usize) -> i32;
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_spi_cs_assert(bus: u32) -> i32;
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_spi_cs_deassert(bus: u32) -> i32;
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_timer_delay_us(us: u32);
+    pub(crate) fn hal_mtq_burst(duty_permille: *const u16, on_ms: u32) -> i32;
+    pub(crate) fn hal_mtq_off() -> i32;
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_capture_period_us(input: u32, period_us: *mut u32) -> i32;
+    #[cfg_attr(not(target_os = "none"), allow(dead_code))]
+    pub(crate) fn hal_capture_high_ms(input: u32) -> u32;
 
     // System state
     pub(crate) fn sys_get_sm_context() -> *mut SmContext;
@@ -151,6 +177,31 @@ unsafe extern "C" {
 /// Log a fault with a static description
 pub(crate) fn log(fault_type: u32, severity: u32, description: &core::ffi::CStr, soc: f64) {
     let _ = crate::fault_mgmt::add(fault_type, severity, description.to_bytes(), soc);
+}
+
+/// Log a repeated condition's clearance (`sqso_fsw::condition`): "<what>
+/// cleared after <n> checks", INFO
+pub(crate) fn log_cleared(fault_type: u32, what: &[u8], checks: u32, soc: f64) {
+    let mut line = Line::new();
+    line.text(what).text(b" cleared after ").dec(checks).text(b" checks");
+    let n = line.len.min(sqso_fsw::fault_log::DESC_LEN - 1);
+    let _ = crate::fault_mgmt::add(fault_type, severity::INFO, line.buf.get(..n).unwrap_or(&[]), soc);
+}
+
+/// Log a repeated condition through its latch: the onset with
+/// `description` at `sev`, the clearance with its count
+pub(crate) fn log_condition(
+    cond: sqso_fsw::condition::Change,
+    fault_type: u32,
+    sev: u32,
+    description: &core::ffi::CStr,
+    soc: f64,
+) {
+    match cond {
+        sqso_fsw::condition::Change::Onset => log(fault_type, sev, description, soc),
+        sqso_fsw::condition::Change::Cleared(n) => log_cleared(fault_type, description.to_bytes(), n, soc),
+        sqso_fsw::condition::Change::None => {}
+    }
 }
 
 /// Report a failed check to the C assertion handler (outside any module
@@ -231,6 +282,14 @@ impl sqso_fsw::nvm::Flash for HalFlash {
     fn read(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), sqso_fsw::nvm::FlashError> {
         // SAFETY: buf is a valid writable slice of buf.len() bytes
         match unsafe { hal_flash_read(region, offset, buf.as_mut_ptr(), buf.len()) } {
+            rc::OK => Ok(()),
+            code => Err(sqso_fsw::nvm::FlashError(code)),
+        }
+    }
+
+    fn read_mirror(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), sqso_fsw::nvm::FlashError> {
+        // SAFETY: buf is a valid writable slice of buf.len() bytes
+        match unsafe { hal_flash_read_mirror(region, offset, buf.as_mut_ptr(), buf.len()) } {
             rc::OK => Ok(()),
             code => Err(sqso_fsw::nvm::FlashError(code)),
         }

@@ -1,13 +1,16 @@
-//! `hal_adc.h`: ADC1, 12-bit. External inputs (pins TBR, gpio.rs):
+//! `hal_adc.h`: ADC1, 12-bit (SQSO-ICX-001 B §4.3). External inputs:
 //! VBATT PC2 (IN3), IBATT PC3 (IN4), VSOLAR PC4 (IN13), ISOLAR PC5 (IN14),
-//! VBUS PB0 (IN15), TEMP_BOARD PB1 (IN16), and the downlink transmitter's
-//! TX_TEMP PA0 (IN5), TX_FWD PC0 (IN1), TX_REV PC1 (IN2); TEMP_MCU is the
-//! internal sensor.
+//! VBUS PB0 (IN15), TEMP_BOARD PB1 (IN16, the TMP235), the downlink
+//! transmitter's TX_TEMP PA0 (IN5), TX_FWD PC0 (IN1), TX_REV PC1 (IN2), the
+//! Jetson switches' readbacks VSW1_RB PA1 (IN6) and VJET_RB PA7 (IN12), the
+//! spreader thermistor PT_NTC PA2 (IN7, ratiometric: `hal_adc_read_raw` is
+//! the code N of R = 10.0 kΩ N / (4095 − N)), the coil currents MTQ_X/Y/Z_I
+//! PA4–PA6 (IN9–IN11, 10 mV/mA); TEMP_MCU is the internal sensor.
 //!
 //! `hal_adc_read_voltage()` gives each input in its own unit (volts, amps or
 //! °C) as the simulation does: the pin voltage, with VDDA measured against
-//! VREFINT, through the front-end scaling in [`FRONT_END`]. Those scale
-//! factors are TBR until the EPS sense circuits are designed.
+//! VREFINT, through the front-end scaling in [`FRONT_END`] (the dividers
+//! and amplifiers of SQSO-EPS-BRD-001 B §11 and SQSO-OBC-BRD-001 B).
 
 use embassy_stm32::adc::{Adc, AdcChannel, AnyAdcChannel, SampleTime, Temperature, VrefInt};
 use embassy_stm32::peripherals::ADC1;
@@ -16,7 +19,7 @@ use crate::cell::Shared;
 use crate::rc;
 
 /// `HalAdcChannel_t` count
-const CHANNELS: usize = 10;
+pub(crate) const CHANNELS: usize = 16;
 const TEMP_MCU: usize = 5;
 const RESOLUTION_12BIT: u32 = 12;
 const FULL_SCALE: f64 = 4095.0;
@@ -33,18 +36,24 @@ enum Scale {
     SquareLaw(f64),
 }
 
-/// Per channel (TBR)
+/// Per channel (SQSO-EPS-BRD-001 B §11; SQSO-OBC-BRD-001 B §10.2, §11)
 const FRONT_END: [Scale; CHANNELS] = [
-    Scale::Linear(3.0, 0.0),     // VBATT: 1:3 divider (2S pack, 8.4 V max)
+    Scale::Linear(6.0, 0.0),     // VBATT: 1:6 divider (SQSO-EPS-BRD-001)
     Scale::Linear(2.0, -3.3),    // IBATT: bidirectional sense amplifier, 1.65 V at 0 A, 0.5 V/A
     Scale::Linear(4.0, 0.0),     // VSOLAR: 1:4 divider
     Scale::Linear(1.0, 0.0),     // ISOLAR: 1 V/A sense amplifier
     Scale::Linear(2.0, 0.0),     // VBUS: 1:2 divider (5 V bus)
     Scale::Linear(1.0, 0.0),     // TEMP_MCU: computed from TS_CAL (see temperature())
-    Scale::Linear(100.0, -50.0), // TEMP_BOARD: TMP36-style, 10 mV/°C, 0.5 V at 0 °C
-    Scale::Linear(100.0, -50.0), // TX_TEMP: TMP36-style on the PA
+    Scale::Linear(100.0, -50.0), // TEMP_BOARD: TMP235, 10 mV/°C, 0.5 V at 0 °C
+    Scale::Linear(101.1, -50.0), // TX_TEMP: TMP36-style on the PA, x 1.011 for 10 kΩ into the 1 MΩ pull-down (SMA-B19)
     Scale::SquareLaw(0.16),      // TX_FWD: -20 dB coupler, RMS detector; 2.5 V at 1 W (SQSO-RF-TX-001 §8.1)
     Scale::SquareLaw(0.16),      // TX_REV: the coupler's reverse port, same detector
+    Scale::Linear(6.0, 0.0),     // VSW1_RB: VBAT_SW1, 1.00 M / 200 k
+    Scale::Linear(1.0, 0.0),     // PT_NTC: the pin voltage (the code gives R)
+    Scale::Linear(0.1, 0.0),     // MTQ_X_I: IPROPI 10 mV/mA, A
+    Scale::Linear(0.1, 0.0),     // MTQ_Y_I
+    Scale::Linear(0.1, 0.0),     // MTQ_Z_I
+    Scale::Linear(6.0, 0.0),     // VJET_RB: VBAT_JET after the eFuse, 1.00 M / 200 k
 ];
 
 pub(crate) struct Converter {

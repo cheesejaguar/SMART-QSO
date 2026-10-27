@@ -173,6 +173,27 @@ static void test_eps_honours_guard(void **state)
     (void)eps_control_payload(false, 0.9);
 }
 
+/** THM-08: no power-on while the spreader is known below -15 C; the ACTIVE
+ *  guard (payload_guard_may_enable) is not affected */
+static void test_cold_module_not_powered(void **state)
+{
+    (void)state;
+    assert_int_equal(eps_init(), SMART_QSO_OK);
+    (void)eps_control_payload(false, 0.9);
+    uint64_t now = smart_qso_now_ms();
+    PayloadSample_t cold = sample(0.0, -15.5);
+    assert_int_equal(payload_guard_step(&cold, false, now), PG_OK);
+    assert_true(payload_guard_may_enable(now));
+    assert_false(payload_guard_may_power_on(now));
+    assert_int_equal(eps_control_payload(true, 0.9), SMART_QSO_ERROR);
+    assert_false(eps_is_payload_enabled());
+    PayloadSample_t limit = sample(0.0, -15.0);
+    assert_int_equal(payload_guard_step(&limit, false, now), PG_OK);
+    assert_true(payload_guard_may_power_on(now));
+    assert_int_equal(eps_control_payload(true, 0.9), SMART_QSO_OK);
+    (void)eps_control_payload(false, 0.9);
+}
+
 static void test_reason_names(void **state)
 {
     (void)state;
@@ -197,6 +218,7 @@ int main(void)
         cmocka_unit_test_setup(test_enable_without_trip, setup),
         cmocka_unit_test_setup(test_eps_honours_guard, setup),
         cmocka_unit_test_setup(test_reason_names, setup),
+        cmocka_unit_test_setup(test_cold_module_not_powered, setup),
     };
 
     return cmocka_run_group_tests_name("Payload Guard Tests", tests, NULL, NULL);

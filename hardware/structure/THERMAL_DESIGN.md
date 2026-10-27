@@ -2,9 +2,10 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-THM-001
-**Version:** 1.2
-**Date:** 2026-10-26
-**Status:** CDR Baseline
+**Version:** 1.7
+**Date:** 2026-10-27
+**Status:** CDR Baseline. The analysis is `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.4); this document holds
+the design (finishes, mount, heater, sensors) and the allowable temperatures
 
 ---
 
@@ -14,16 +15,27 @@ This document defines the thermal design for the SMART-QSO 1U CubeSat for LEO mi
 
 ### 1.1 Thermal Design Requirements
 
-| Component | Op Min (°C) | Op Max (°C) | Survival Min (°C) | Survival Max (°C) |
-|-----------|-------------|-------------|-------------------|-------------------|
-| OBC | -20 | +70 | -40 | +85 |
-| Battery | -10 | +45 | -20 | +60 |
-| RF electronics | -20 | +60 | -40 | +85 |
-| Jetson module | 0 | +70 | -20 | +85 |
-| Solar cells | -40 | +85 | -100 | +100 |
-| Structure | -40 | +80 | -60 | +100 |
+Allowable flight temperatures (AFT) per unit, derived from the parts' data-sheet ranges (SQSO-THA-001 2.2 §6.6, RID
+THM-04; proposed SYS-600/601 text in CR-2026-017, PI decision by 2027-01-12). They replace the single SYS-600/601 range
+(−20 … +50 °C operating, −40 … +60 °C survival for all components), which the boards cannot meet with the 10 °C model
+margin. Rule: the protoflight test runs at the AFT ± 10 °C (ETP §3.4) and no plateau takes a part below its data-sheet
+minimum, so units whose parts stop at −40 °C have a −30 °C cold AFT, operating and non-operating. The first orbit after
+separation (the LEOP cold case L4 after the dispenser cold soak) extends the cold AFT to −40 °C, the parts' rating,
+demonstrated by a cold start at −40 °C without the 10 °C test margin (ETP §9 deviation 8).
 
----
+| Unit | Operating (°C) | Non-operating (°C) | First orbit after separation (°C) | Basis |
+|------|----------------|--------------------|-----------------------------------|-------|
+| OBC/EPS stack, with the ADCS and GNSS units and the magnetometer board | −30 … +50 | −30 … +60 | −40 (operating) | Parts −40 … +85 °C or wider, checked line by line (`docs/manufacturing/PARTS_TEMPERATURE_AUDIT.md`, SQSO-MFG-003); exceptions in the rows below (EPS fuses F1/F3, magnetorquer rods) |
+| RF board | −30 … +50 | −30 … +60 | −40 (operating) | Parts −40 … +85 °C or wider (SQSO-MFG-003; crystal Y451 ABLS option L, −55 … +125 °C); exception: the PA Q601 (row below); PA gate 70 °C in software |
+| Jetson carrier | −15 (power-on gate, SRS-F131) … +50 at the spreader | −30 … +60 | −40 (non-operating) | Parts −40 … +80 °C or wider (M.2 connector J5 −40 … +80 °C; SQSO-MFG-003) |
+| Jetson module | −15 (power-on gate) … +50 at the spreader; junction per SYS-603 (≤ 95 guard, 105 data sheet) | −30 … +60 | −40 (non-operating) | Data-sheet junction minimum −25 °C; below it qualified by the EM soak V-THM-8 |
+| Battery | 0 … +45 charging (SYS-602); −10 … +60 discharging | −20 … +60 | as non-operating; heater-controlled | Cell specification (INR18650-35E) |
+| EPS three-terminal fuses F1, F3 (Littelfuse ITV4030L1412NR) | Data sheet −10 … **+65** | No mounted non-operating rating published (packaged storage 0 … +35) | Data sheet −10 | **Below the stack AFT at both ends.** Covered only by qualification by test on the flight lot: V-EPS-8 extended to hold current, blow time and heater trigger at −40 °C and at +70 °C (was −30 °C only), or by a design change of the secondary interrupt (EPS designer); no compliant three-terminal fuse exists in the 4030 footprint (SQSO-MFG-003 §4) |
+| RF power amplifier Q601 (Mitsubishi RD01MUS3) | Data sheet: Tj ≤ +150; **no minimum operating temperature published** | Tstg −40 … +125 | Tstg −40 (no margin) | Covered by a Mitsubishi statement of the minimum operating (case) temperature and a characterisation of the PA (gain, stability, drain current, spurious) at −40 °C on the RF EM before the FM build (SQSO-MFG-003 §5, §12) |
+| ISIS AntS (on the −Z face, outside the structure; bought) | Vendor qualified **−20 … +60** (brochure V2R, electrical-model data sheet); thermal qualification testing −40 … +80 (ISIS-ANTS-DSH-0001 v4.0); operated only for the deployment and status reads, released when the AntS is ≥ −20 °C with the 10 °C margin (−10 °C predicted; flight-software gate with a timeout) | −50 … +85 | Release: −44.0 °C (−54.0 °C with the margin) if deployed at separation + 31 min after an eclipse separation; with the gate ≥ −20 °C with the margin, open ≤ 177 min after separation. Unpowered first-orbit minimum −47.0 °C (−57.0 °C) | **Modelled (SQSO-THA-001 2.4 §4.4)**: orbit −30.5 … +34.8 °C (−40.5 … +44.8 °C with the margin), inside the storage range; the first-orbit minimum with the margin is 7 °C below the −50 °C storage limit and an ungated release is 34 °C below the qualified operating minimum. Covered by the temperature-gated deployment and the ISIS statement of SQSO-MFG-003 §12 item V-1, which must include unpowered survival at about −57 °C; fallback there |
+| Magnetorquer rods X, Y, Z (CubeSpace CR0002; bought) | Family data: thermal vacuum **−20 … +80**, cold/hot start **−35 … +70** (CubeSpace Gen 2 actuators brochure 2023; no CR0002-specific figure) | Not published | Inside the structure; not a node of the thermal network (nearest: OBC/EPS stack −27.6 °C in the first orbit, body panels −22.7 °C minimum in orbit, SQSO-THA-001 2.2) | **Not covered yet.** Covered by a CubeSpace −40 °C rating or a rod qualification by test at −40 °C (SQSO-MFG-003 §12 item V-2) |
+| Solar panels and wings | Vendor's qualified range, at least −56 … +93 | as operating | as operating | V-THM-4; vendor not selected (SQSO-MFG-003 §12 item V-4) |
+| Structure | −40 … +80 | −60 … +100 | — | Unchanged |
 
 ## 2. Orbital Environment
 
@@ -31,20 +43,20 @@ This document defines the thermal design for the SMART-QSO 1U CubeSat for LEO mi
 
 | Parameter | Value |
 |-----------|-------|
-| Altitude | 400 km (ISS orbit) |
-| Inclination | 51.6° |
-| Beta angle range | -75° to +75° |
-| Eclipse duration | 0-36 minutes |
-| Orbit period | 92 minutes |
-| Mission duration | 1 year |
+| Altitude | 475 km target, 465–485 km, not above 485 km (BASELINE Rev E §3); the thermal cases were run at 500 km, where the eclipse is ≈ 0.3 % of the orbit shorter |
+| Orbit | Sun-synchronous, 97.4°, LTAN 22:30 ± 1 h |
+| Beta angle range | 2.4° … 40.9° over a year across the LTAN dispersion (never eclipse-free) |
+| Eclipse duration | 32–36 minutes |
+| Orbit period | 94.6 minutes |
+| Mission duration | 2 years |
 
 ### 2.2 Environmental Heat Loads
 
 | Source | Value | Notes |
 |--------|-------|-------|
-| Solar flux | 1367 W/m² | AM0 |
-| Earth albedo | 0.30 (avg) | Variable |
-| Earth IR | 237 W/m² | Average |
+| Solar flux | 1322–1414 W/m² | Aphelion to perihelion |
+| Earth albedo | 0.30 (avg); 0.25 cold case, 0.35 hot case | SQSO-THA-001 §2.2 |
+| Earth IR | 237 W/m² (avg); 218 cold, 258 hot | SQSO-THA-001 §2.2 |
 
 ---
 
@@ -54,10 +66,12 @@ This document defines the thermal design for the SMART-QSO 1U CubeSat for LEO mi
 
 | Surface | Finish | α (solar) | ε (IR) | α/ε |
 |---------|--------|-----------|--------|-----|
-| +Z face | Black anodize | 0.88 | 0.85 | 1.04 |
-| -Z face | Black anodize | 0.88 | 0.85 | 1.04 |
-| ±X faces | Solar cells | 0.92 | 0.85 | 1.08 |
-| ±Y faces | Black anodize | 0.88 | 0.85 | 1.04 |
+| ±X, ±Y long faces | Two cells (53 % of the face, α 0.92, ε 0.85) and black anodize between | 0.90 | 0.85 | 1.06 |
+| ±Z end faces | Black anodize | 0.88 | 0.85 | 1.04 |
+| Wings, both sides | Cells (74 %) and substrate | 0.91 | 0.85 | 1.07 |
+
+Version 1.2 had cells on ±X only; the array has two cells on each long face and four on each wing
+(SOLAR_ARRAY_DESIGN §3.1), as the simulation's network uses.
 
 ### 3.2 Internal Surfaces
 
@@ -73,28 +87,28 @@ This document defines the thermal design for the SMART-QSO 1U CubeSat for LEO mi
 
 ### 4.1 Node Definition
 
+The model is the mission simulation's 12-node network (`software/rust/sqso-sil/src/env/thermal.rs`), with heat
+capacities from the mass budget (version 1.2's table, with 15 J/K for the OBC and 120 J/K for the battery, did not
+match the masses):
+
 | Node | Component | Capacitance (J/K) |
 |------|-----------|-------------------|
-| 1 | OBC PCB | 15 |
-| 2 | Battery | 120 |
-| 3 | RF PCB | 10 |
-| 4 | Jetson module | 80 |
-| 5 | ADCS PCB | 8 |
-| 6 | Structure (+X) | 100 |
-| 7 | Structure (-X) | 100 |
-| 8 | Structure (+Y) | 100 |
-| 9 | Structure (-Y) | 100 |
-| 10 | Structure (+Z) | 50 |
-| 11 | Structure (-Z) | 50 |
+| 1–4 | ±X, ±Y body panels with their share of the frame | 76 each |
+| 5–6 | ±Z end panels | 30 each |
+| 7–8 | Wings W1, W2 | 42 each |
+| 9 | Battery pack | 250 |
+| 10 | OBC/EPS/ADCS/GNSS stack | 200 |
+| 11 | RF board with PA | 130 |
+| 12 | Jetson module with spreader | 220 |
 
 ### 4.2 Conductance Network
 
 | From | To | Conductance (W/K) | Path |
 |------|-----|-------------------|------|
 | OBC | Structure | 0.5 | Standoffs |
-| Battery | Structure | 0.05 | Isolating standoffs (G-10 or PEEK, TBR, TB-07); was 1.0 W/K through a thermal pad (§7.2) |
+| Battery | Structure | 0.05 (model, conservative); 0.03 design | Isolating bushings (§7.2); plus radiation ≈ 0.008 W/K with the ε ≤ 0.10 exterior (0.07 W/K if black); was 1.0 W/K through a thermal pad |
 | RF | Structure | 0.3 | Standoffs |
-| Jetson | Structure | 2.0 | Heatspreader |
+| Jetson | Structure | ≥ 1.0 required (BASELINE §6, SYS-603); 0.44 audit estimate of the documented stack, used by the model | Heatspreader |
 | ADCS | Structure | 0.3 | Standoffs |
 
 ---
@@ -103,34 +117,28 @@ This document defines the thermal design for the SMART-QSO 1U CubeSat for LEO mi
 
 ### 5.1 Hot Case
 
-| Parameter | Value |
-|-----------|-------|
-| Beta angle | 0° (no eclipse) |
-| Solar cells facing Sun | Maximum |
-| Power dissipation | Maximum (Jetson burst) |
-| Heaters | Off |
+BASELINE §8: β at maximum with no eclipse, maximum power (ACTIVE, PA at 1 W RF keyed 25 % of sunlight, Jetson 8 W
+bursts), heater off, 1414 W/m², albedo 0.35, IR 258 W/m². The baseline orbit never loses its eclipse (β ≤ 41°), so
+this is a bound; the hottest real orbit (LTAN 21:30, β 40°, January) is analysed as well.
 
 ### 5.2 Cold Case
 
-| Parameter | Value |
-|-----------|-------|
-| Beta angle | 75° |
-| Maximum eclipse | 36 minutes |
-| Power dissipation | Minimum (safe mode) |
-| Heaters | As required |
+BASELINE §8: β = 0 (36 min eclipse), SAFE mode (ADCS off), 1322 W/m², albedo 0.25, IR 218 W/m², heater thermostatic at
+the minimum bus voltage. Also: EMERGENCY, wings stowed, heater failed, a 0.10 W/K mount, a black pack, the dispenser
+cold and hot soaks and the deployment that follows.
 
 ### 5.3 Analysis Results
 
-| Component | Hot Case (°C) | Cold Case (°C) | Op Limit | Margin |
-|-----------|---------------|----------------|----------|--------|
-| OBC | +52 | -8 | -20/+70 | OK |
-| Battery | +38 | +5 | -10/+45 | OK |
-| RF | +45 | -5 | -20/+60 | OK |
-| Jetson (burst) | +68 | +15 | 0/+70 | Marginal |
-| ADCS | +40 | -2 | -20/+70 | OK |
-| Structure | +55 | -25 | -40/+80 | OK |
+From SQSO-THA-001 v2.0 §4–§5 (12-node model, uncorrelated; 10 °C uncertainty margin applies):
 
----
+| Component | Hot bounding (°C) | Cold (°C) | Margin after 10 °C (worst) |
+|-----------|-------------------|-----------|----------------------------|
+| OBC/EPS stack | +31.9 | −11.6 (−17.4 after a 2 h cold soak) | +8.1 hot; **−1.6 / −7.4** cold against SYS-600 |
+| Battery | +28.9 | +1.3 at 0.72 W, 43 % duty; +4.0 with set points +5/+9 °C | +6.1 hot; heater duty below 70 % |
+| RF | +32.2 | −11.8 (−18.6 wings stowed) | +7.8 hot; −1.8 / −8.6 cold |
+| Jetson (burst, 600 s batch) | +39.0 | −12.0 (unpowered) | +1.0 against SYS-600, +21 against the 70 °C guard |
+| Structure, body panels | +39.0 (+51.5 with a stuck-on Jetson) | −22.7 | +7.3 cold |
+| Wings | +75.2 (+82.9 at LTAN 21:30) | −45.4 (LEOP after a cold soak) | −15.4 / −7.9 against −40/+85 (qualification needed) |
 
 ## 6. Thermal Control Hardware
 
@@ -147,7 +155,7 @@ This document defines the thermal design for the SMART-QSO 1U CubeSat for LEO mi
 
 | Element | Location | Power | Activation |
 |---------|----------|-------|------------|
-| Battery heater | Battery pack | ≈ 1 W at 14.4 V (≈ 200 Ω, two elements) | On below +2 °C, off above +6 °C (battery temperature; `sqso_fsw::heater`); hardware over-temperature cutout at about +40 °C |
+| Battery heater | Battery pack | ≈ 1 W at 14.4 V (≈ 200 Ω, two elements): 0.72 W at 12.0 V, 0.95 W at 14.0 V, 1.30 W at 16.4 V | Flight software: on below +2 °C, off above +6 °C (`sqso_fsw::heater`). **Recommended +5/+9 °C** (SQSO-THA-001 §6.1, RID THM-02); hardware over-temperature cutout at +40 °C; fuse 0.25 A |
 | (Jetson heater) | Heatspreader | (0.5W) | (Optional) |
 
 ### 6.3 Heater Sizing
@@ -191,7 +199,7 @@ heat (≤ 0.1 W) raises it about 2 K above the frame in the hot case, and the he
 | Cell case | Aluminum | 0.3 mm | 200 W/m·K |
 | Thermal pad | Bergquist | 1 mm | 3 W/m·K |
 | Bracket | Al 6061 | 2 mm | 167 W/m·K |
-| Standoffs to the frame | G-10CR or PEEK 450G shouldered bushings, Ti-6Al-4V screws (TBR, TB-07) | 4 × M2.5, 8 mm | G-10CR 0.56–0.82 W/m·K, PEEK 0.29 W/m·K; the bushings with their screws ≈ 0.015 W/K, and the whole mount ≈ 0.03 W/K with the harness and radiation (BUILD_VS_BUY §4.2). The screws, the harness and the surface finish set the value, not the polymer |
+| Standoffs to the frame | G-10CR or PEEK 450G shouldered bushings, Ti-6Al-4V screws (BUILD_VS_BUY §4.3; confirmed by the EM thermal balance, V-THM-2) | 4 × M2.5, 8 mm | G-10CR 0.56–0.82 W/m·K, PEEK 0.29 W/m·K; the bushings with their screws ≈ 0.015 W/K, and the whole mount ≈ 0.03 W/K with the harness and radiation (BUILD_VS_BUY §4.2). The screws, the harness and the surface finish set the value, not the polymer |
 
 The pad and bracket spread heat across the cells and from the heater; the standoffs isolate the bracket from the
 frame (§6.3).
@@ -221,16 +229,21 @@ frame (§6.3).
 | Temperature range | -30°C to +60°C (shroud) |
 | Vacuum level | < 10⁻⁵ Torr |
 | Duration | Until steady state (2+ hours) |
-| Correlation | ±5°C model accuracy |
+| Correlation | ±3 °C on the battery, OBC, RF and Jetson nodes (SQSO-THA-001 V-THM-1); after correlation the margin is 5 °C (GSFC-STD-7000B §2.6.4.1) |
+| Cases | Hot and cold of §5, heater power stepped, wings deployed and stowed |
 
 ### 9.2 Thermal Cycling Test
 
+SpaceX UG v11 Table 6-2 (advised): protoflight = the acceptance range (envelope of the maximum and minimum predicted
+temperatures and −24 … +61 °C) ± 5 °C, 20 cycles, at least 4 in vacuum. The battery's −20 … +60 °C limits are
+inside that range: the test is tailored at the battery with the integrator's agreement (SQSO-THA-001 V-THM-6).
+
 | Parameter | Requirement |
 |-----------|-------------|
-| Hot plateau | +50°C |
-| Cold plateau | -20°C |
+| Hot plateau | +66 °C (tailored to +55 °C at the battery) |
+| Cold plateau | −29 °C (tailored to −20 °C at the battery, no charging below 0 °C) |
 | Dwell time | 2 hours minimum |
-| Cycles | 4 (protoflight) |
+| Cycles | 20 (≥ 4 in vacuum) |
 | Functional test | Each plateau |
 
 ---
@@ -264,3 +277,8 @@ frame (§6.3).
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-26 | Battery mount isolated (§4.2, §6.3, §7.2) and heater set points +2/+6 °C (§6.2, §6.3), from the mission simulation |
 | 1.2 | 2026-10-26 | Battery heater 1 W and the mount conductance network (§6.2, §6.3, §7.2; BUILD_VS_BUY §4) |
+| 1.3 | 2026-10-27 | CDR review (thermal): allowable temperatures with proposed per-unit values (§1.1); baseline orbit and environments (§2); conductances (§4.2); cases and results from SQSO-THA-001 v2.0 (§5); heater set points recommended (§6.2); correlation and SpaceX thermal-cycling levels (§9) |
+| 1.4 | 2026-10-27 | CDR 2026 consistency pass: altitude row from BASELINE Rev E §3 (§2.1) |
+| 1.5 | 2026-10-27 | CDR round 3, thermal (RID THM-04, chair disposition): §1.1 per-unit allowable flight temperatures derived from the parts (SQSO-THA-001 2.2 §6.6): −30 °C cold for every board, operating and non-operating, −40 °C for the first orbit after separation; battery and Jetson per the proposed SYS-600/601 (CR-2026-017) |
+| 1.6 | 2026-10-27 | CDR round 3, parts temperature audit (RID P3T-01, SQSO-MFG-003 A): §1.1 bases from the line-by-line audit; rows added for the EPS fuses F1/F3 (−10 … +65 °C, V-EPS-8 extended to −40/+70 °C), the RF PA Q601 (no published minimum), the ISIS AntS (−20 … +60 °C, not modelled) and the CR0002 rods (−20 … +80 °C, cold start −35 °C), each with how it is covered; Y451 basis corrected to option L (EEE parts engineer, chair action) |
+| 1.7 | 2026-10-27 | CDR thermal analyst, round 3 (chair action, SQSO-MFG-003 §12 V-1) | §1.1 ISIS AntS row: predictions from the AntS node of SQSO-THA-001 2.4 §4.4 (release −44.0 °C after an eclipse separation, first-orbit minimum −47.0 °C, orbit −30.5 … +34.8 °C) and the temperature-gated release (−20 °C with the margin) |

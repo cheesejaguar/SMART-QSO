@@ -27,6 +27,7 @@ extern "C" {
 typedef enum {
     UART_PORT_JETSON = 0,   /**< Jetson payload communication */
     UART_PORT_DEBUG  = 1,   /**< Debug output (if available) */
+    UART_PORT_GNSS   = 2,   /**< GNSS receiver NMEA output (gnss.h, decision D6) */
     UART_PORT_COUNT
 } HalUartPort_t;
 

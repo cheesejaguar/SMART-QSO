@@ -317,6 +317,8 @@ Ranking is unchanged (A > G > B > E ≈ D ≈ C > F). C, D, E are within noise o
 ### 8.3 Metrics and acceptance
 - Report **median and p95** of total gate-on to gate-off energy, the per-phase table, tokens/s, accepted fraction after the OBC filter, and **energy per accepted beacon**.
 - **D5 pass:** p95 energy per accepted beacon ≤ 360 J for the proposed flight configuration, and burst energy ≤ 960 J (8 W x 120 s), and orbit-average Jetson energy within the 2.2 to 4.5 kJ budget at the planned burst count. Otherwise fall back to A.
+
+> **Note (2026-10-27, CDR decision C-20, CR-2026-018; this research record is kept as written).** The burst definition the flight design implements, and the one SYS-512, VI-02 and MSC E-02 now use, is a Jetson power-on of at most 10 min and 3.6 kJ at the carrier input, ended early by the energy gate; the 120 s × 8 W = 960 J burst envelope above is superseded. The go/no-go metric stays 0.1 Wh (360 J), counted per accepted beacon line over all accepted lines (SRS-F151), not as a p95 per burst.
 - Record the definition used. Recommend D5 be defined as "gate-on to gate-off energy divided by beacons accepted by the OBC filter", and that results be stated for N = 1 and for the planned N.
 - Content validation (separate from energy): 10,000+ ground generations at flight settings; report the reject rate by reason (digits, denylist, length, off-vocabulary), the maximum observed length, and zero tolerance for any output that reaches the transmitter without passing the OBC-side filter.
 - Selector validation: ECE and reliability diagram on held-out and out-of-distribution sets; abstention rate; decision-latency and energy on target hardware.

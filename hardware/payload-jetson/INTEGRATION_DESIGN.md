@@ -2,11 +2,19 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-PAY-JET-001
-**Version:** 1.0
-**Date:** 2026-01-02
+**Version:** 1.1
+**Date:** 2026-10-27
 **Status:** CDR Baseline
 
 ---
+
+> **CDR note (2026-10-27, version 1.1).** The carrier is now designed: `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`
+> (SQSO-JET-BRD-001 A). It supersedes §2 (carrier features), §3 (power: the carrier takes VBAT 11.2–16.4 V from the EPS
+> and makes the module's 5 V VDD_IN itself), §4 (the module UART is 1.8 V and is translated on the carrier; the OBC
+> transmits 8N2), §5 (no microSD on the production module: storage is an M.2 2230 NVMe), §6 (spreader pedestal and gap
+> pad; mechanical design §6.10), §9 (PC/104 carrier in the stack under the spreader, MECHANICAL_DESIGN §4.1) and §10.3
+> (power-off by `SHUTDOWN` and the carrier's shutdown latch). The "Super" name is wrong for the flight configuration: the
+> module is flashed with the original configuration so that the 7 W mode exists (TB-13).
 
 ## 1. Overview
 
@@ -371,3 +379,4 @@ If Jetson fails, OBC reverts to template beacon text:
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-27 | CDR note: carrier designed (SQSO-JET-BRD-001 A); §2–§6, §9 and §10.3 superseded as listed |

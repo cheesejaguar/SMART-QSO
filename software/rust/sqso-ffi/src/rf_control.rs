@@ -1,8 +1,12 @@
 //! `rf_control.h`: transmitter permission and the latched TX-OFF
 //! (`sqso_fsw::rf_control`), on the GPIO and flash HAL.
 //!
+//! The exciter's keying watch (`sqso_fsw::ptt_watch`, C-014-9) latches
+//! TX-OFF through the same latch.
+//!
 //! @requirement SYS-204 Cease emissions on telecommand; stay ceased across resets (97.207(b))
 
+use sqso_fsw::ptt_watch::{PttWatch, Trip};
 use sqso_fsw::rf_control::{self, Error, Report, RfControl, RfIo};
 
 use crate::c::{self, HalFlash, fault_type, rc, severity};
@@ -62,6 +66,10 @@ impl RfIo for HalFlash {
             Report::TxOffNotPersisted => (fault_type::COMMAND, severity::WARNING, c"TX-OFF applied, not persisted"),
             Report::TxEnabled => (fault_type::COMMAND, severity::INFO, c"TX enabled"),
             Report::TxEnabledNotPersisted => (fault_type::COMMAND, severity::INFO, c"TX enabled, not persisted"),
+            Report::ScrubInhibited => {
+                (fault_type::INIT, severity::ERROR, c"RF state check: RAM copy disagreed, TX-OFF")
+            }
+            Report::ScrubRepersisted => (fault_type::INIT, severity::WARNING, c"RF state check: TX-OFF re-persisted"),
         };
         c::log(ty, sev, text, 0.0);
     }
@@ -98,7 +106,12 @@ pub extern "C" fn rf_control_tx_off() -> i32 {
 /// Clear the inhibit and permit transmission
 #[unsafe(no_mangle)]
 pub extern "C" fn rf_control_tx_on() -> i32 {
-    RF.with(|rf| code(rf.tx_on(&mut HalFlash))).unwrap_or(rc::BUSY)
+    match RF.with(|rf| code(rf.tx_on(&mut HalFlash))).unwrap_or(rc::BUSY) {
+        // In the degraded mode without the FRAM the RAM copy is the record
+        // (RID SMA-B10): applied is done
+        rc::IO if crate::fram_health::degraded() => rc::OK,
+        other => other,
+    }
 }
 
 /// Whether any transmitter may radiate now
@@ -114,11 +127,67 @@ pub extern "C" fn rf_control_set_inhibit(source: u32, active: bool) {
         // Busy (a nested call): an inhibit is never lost
         if active {
             gpio_set(GPIO_PIN_RF_TX_EN, false);
-            if source & rf_control::INHIBIT_RF_SILENCE != 0 {
+            if source & rf_control::RADIO_OFF != 0 {
                 gpio_set(GPIO_PIN_RADIO_EN, false);
             }
         }
     });
+}
+
+/// Check the RAM copy of the latch against its record (AV-07)
+#[unsafe(no_mangle)]
+pub extern "C" fn rf_control_verify() {
+    let _ = RF.with(|rf| rf.verify(&mut HalFlash));
+}
+
+/// `GPIO_PIN_XPDR_KEY`: the transponder's repeat keyed (input)
+const GPIO_PIN_XPDR_KEY: u32 = 41;
+/// `GPIO_PIN_PTT_EXC`: the exciter keyed, PTT_EXCITER (input)
+const GPIO_PIN_PTT_EXC: u32 = 42;
+
+static PTT: Global<PttWatch> = Global::new(PttWatch::new());
+
+/// The exciter's keying watch (C-014-9 of SW-HAZ-014, SRS-F168): with
+/// PTT_EXCITER high, more than `sqso_fsw::ptt_watch::LIMIT_MS` of keying in
+/// all with XPDR_KEY low and no downlink frame outstanding (cleared only by
+/// PTT_EXCITER low), XPDR_KEY high after the transponder heartbeat stopped,
+/// or XPDR_KEY high past one over's length, latches TX-OFF and logs the
+/// fault, once per episode. True when it acted now (busy: does nothing)
+///
+/// @requirement SRS-F168 TX-OFF when PTT_EXCITER reads high for more than 6 s in all with the repeat path not keyed and no downlink frame outstanding (cleared only by PTT_EXCITER low), when XPDR_KEY reads high more than 1 s after the transponder heartbeat stopped, or for more than 130 s without a break; logged; recovered by TX_ENABLE
+#[unsafe(no_mangle)]
+pub extern "C" fn rf_control_ptt_supervise(now_ms: u64, frame_outstanding: bool, heartbeat: bool) -> bool {
+    // SAFETY: plain values (the HAL)
+    let (ptt, repeat) = unsafe { (c::hal_gpio_get(GPIO_PIN_PTT_EXC), c::hal_gpio_get(GPIO_PIN_XPDR_KEY)) };
+    let Some(Some(trip)) = PTT.with(|w| w.step(now_ms, ptt, repeat, frame_outstanding, heartbeat)) else {
+        return false;
+    };
+    let _ = rf_control_tx_off();
+    let text = match trip {
+        Trip::Unexplained => c"PTT_EXCITER keyed over 6 s with no frame: TX-OFF (C-014-9)",
+        Trip::RepeatWithoutHeartbeat => c"PTT_EXCITER keyed by XPDR_KEY, no heartbeat: TX-OFF (C-014-9)",
+        Trip::RepeatTooLong => c"PTT_EXCITER keyed by XPDR_KEY over 130 s: TX-OFF (C-014-9)",
+    };
+    c::log(fault_type::COMMAND, severity::CRITICAL, text, 0.0);
+    true
+}
+
+/// The exciter watch's trips since boot
+#[unsafe(no_mangle)]
+pub extern "C" fn rf_control_ptt_trips() -> u32 {
+    PTT.with(|w| w.trips).unwrap_or(0)
+}
+
+/// The automatic inhibit bits in force (busy: none known)
+#[cfg(test)]
+pub(crate) fn inhibits() -> u32 {
+    RF.with(|rf| rf.inhibits()).unwrap_or(0)
+}
+
+/// The one-minute check, in the degraded mode without the FRAM against the
+/// latch's CRC (RID SMA-B10); whether the record was read (busy: not)
+pub(crate) fn check(degraded: bool) -> bool {
+    RF.with(|rf| rf.check(&mut HalFlash, degraded)).unwrap_or(false)
 }
 
 /// Select the downlink power level (`RfPowerLevel_t`) and persist it
@@ -179,6 +248,9 @@ mod tests {
             (commands, seen, rf_control_tx_permitted(), rf_control_get_power_level())
         });
         let seen = [(true, false), (true, false), (false, false), (true, true), (true, true)];
+        // The exciter watch, nested: nothing done
+        let ptt = PTT.with(|_| (rf_control_ptt_supervise(u64::MAX, false, false), rf_control_ptt_trips()));
+        assert_eq!(ptt, Some((false, 0)));
         assert_eq!(nested, Some(([rc::BUSY; 4], seen, false, rf_control::POWER_0W5)));
     }
 }

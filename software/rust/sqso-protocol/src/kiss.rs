@@ -153,8 +153,183 @@ impl<const N: usize> Decoder<N> {
     }
 }
 
+/// Command nibble: SetHardware (the TNC's own commands)
+pub const CMD_SETHARDWARE: u8 = 0x06;
+/// SetHardware sub-command: the OBC's STATUS query (RF board E §8.6)
+pub const HW_STATUS: u8 = 0x01;
+/// SetHardware sub-command of the TNC's STATUS answer
+pub const HW_STATUS_ANSWER: u8 = 0x81;
+/// The STATUS query on the wire (port 0)
+pub const STATUS_QUERY: [u8; 4] = [FEND, CMD_SETHARDWARE, HW_STATUS, FEND];
+/// Longest SetHardware frame kept, bytes (after the command byte)
+pub const HW_MAX: usize = 24;
+
+/// The TNC's STATUS answer (TNC-FW-STAT; the layout the OBC reads, after the
+/// sub-command 0x81, big-endian): firmware version; the six health criteria
+/// (bit n set: criterion n+1 met); the in-channel noise floor and its
+/// calibrated value, dBm (signed); the carrier-sense count; the frames
+/// decoded; the uptime, s
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct TncStatus {
+    /// Firmware version
+    pub version: u8,
+    /// Health criteria met (bits 0-5)
+    pub criteria: u8,
+    /// Noise floor now, dBm
+    pub floor_dbm: i8,
+    /// Its calibrated value, dBm
+    pub floor_cal_dbm: i8,
+    /// Carrier-sense count (wraps)
+    pub carrier_count: u16,
+    /// Frames decoded (wraps)
+    pub frames: u16,
+    /// Uptime, s
+    pub uptime_s: u32,
+}
+
+/// Bytes of the answer after the sub-command
+pub const STATUS_LEN: usize = 12;
+
+impl TncStatus {
+    /// Decode a SetHardware frame's bytes (sub-command first); `None` if it
+    /// is not a STATUS answer
+    pub fn decode(frame: &[u8]) -> Option<TncStatus> {
+        let &[HW_STATUS_ANSWER, version, criteria, floor, cal, c0, c1, f0, f1, u0, u1, u2, u3, ..] = frame else {
+            return None;
+        };
+        Some(TncStatus {
+            version,
+            criteria: criteria & 0x3F,
+            floor_dbm: i8::from_ne_bytes([floor]),
+            floor_cal_dbm: i8::from_ne_bytes([cal]),
+            carrier_count: u16::from_be_bytes([c0, c1]),
+            frames: u16::from_be_bytes([f0, f1]),
+            uptime_s: u32::from_be_bytes([u0, u1, u2, u3]),
+        })
+    }
+
+    /// The answer's bytes after the command byte (for the simulated TNC)
+    pub fn encode(&self) -> [u8; 1 + STATUS_LEN] {
+        let [c0, c1] = self.carrier_count.to_be_bytes();
+        let [f0, f1] = self.frames.to_be_bytes();
+        let [u0, u1, u2, u3] = self.uptime_s.to_be_bytes();
+        let [floor] = self.floor_dbm.to_ne_bytes();
+        let [cal] = self.floor_cal_dbm.to_ne_bytes();
+        [HW_STATUS_ANSWER, self.version, self.criteria, floor, cal, c0, c1, f0, f1, u0, u1, u2, u3]
+    }
+}
+
+/// Byte-at-a-time decoder for the TNC's SetHardware frames on port 0 (fed
+/// the same bytes as the data [`Decoder`])
+#[derive(Clone, Debug, Default)]
+pub struct HardwareDecoder {
+    state: Option<bool>,
+    escape: bool,
+    buf: [u8; HW_MAX],
+    len: usize,
+    after_fend: bool,
+}
+
+impl HardwareDecoder {
+    /// Waiting for a frame
+    pub const fn new() -> Self {
+        HardwareDecoder { state: None, escape: false, buf: [0; HW_MAX], len: 0, after_fend: false }
+    }
+
+    /// Take one byte; the frame's bytes (after the command byte) when this
+    /// byte completes a SetHardware frame
+    pub fn feed(&mut self, byte: u8) -> Option<&[u8]> {
+        if byte == FEND {
+            let done = self.state == Some(true) && !self.escape && self.len > 0;
+            self.state = None;
+            self.escape = false;
+            self.after_fend = true;
+            let len = core::mem::replace(&mut self.len, 0);
+            return if done { self.buf.get(..len) } else { None };
+        }
+        if self.after_fend {
+            self.after_fend = false;
+            self.state = Some(byte == CMD_SETHARDWARE);
+            return None;
+        }
+        if self.state != Some(true) {
+            return None;
+        }
+        let b = match (self.escape, byte) {
+            (false, FESC) => {
+                self.escape = true;
+                return None;
+            }
+            (true, TFEND) => FEND,
+            (true, TFESC) => FESC,
+            (true, _) => {
+                self.state = Some(false);
+                return None;
+            }
+            (false, b) => b,
+        };
+        self.escape = false;
+        match self.buf.get_mut(self.len) {
+            Some(slot) => {
+                *slot = b;
+                self.len += 1;
+            }
+            None => self.state = Some(false),
+        }
+        None
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    extern crate std;
+
+    #[test]
+    fn status_answer_round_trip_and_the_hardware_decoder() {
+        let st = TncStatus {
+            version: 3,
+            criteria: 0x3F,
+            floor_dbm: -121,
+            floor_cal_dbm: -122,
+            carrier_count: 0xC0DB,
+            frames: 7,
+            uptime_s: 86_400,
+        };
+        let body = st.encode();
+        assert_eq!(TncStatus::decode(&body), Some(st));
+        assert_eq!(TncStatus::decode(&body[..5]), None);
+        assert_eq!(TncStatus::decode(&[HW_STATUS, 0]), None);
+        // On the wire: FEND, 0x06, the escaped bytes, FEND, between data frames
+        let mut wire = std::vec![FEND, CMD_DATA, 1, 2, FEND, FEND, CMD_SETHARDWARE];
+        for b in body {
+            match b {
+                FEND => wire.extend([FESC, TFEND]),
+                FESC => wire.extend([FESC, TFESC]),
+                b => wire.push(b),
+            }
+        }
+        wire.push(FEND);
+        let mut d = HardwareDecoder::new();
+        let mut got = None;
+        for b in wire {
+            if let Some(f) = d.feed(b) {
+                got = TncStatus::decode(f);
+            }
+        }
+        assert_eq!(got, Some(st));
+        // A bad escape or an overlong frame is dropped
+        let mut d = HardwareDecoder::default();
+        let mut out = 0;
+        for b in [FEND, CMD_SETHARDWARE, FESC, 0x00, 1, FEND] {
+            out += usize::from(d.feed(b).is_some());
+        }
+        for b in core::iter::once(CMD_SETHARDWARE).chain(core::iter::repeat_n(1u8, HW_MAX + 1)).chain([FEND]) {
+            out += usize::from(d.feed(b).is_some());
+        }
+        assert_eq!(out, 0);
+        assert_eq!(STATUS_QUERY, [FEND, CMD_SETHARDWARE, HW_STATUS, FEND]);
+    }
+
     use super::*;
     use crate::ax25::kiss_encode;
 

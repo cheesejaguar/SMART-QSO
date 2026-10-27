@@ -68,6 +68,24 @@ SmartQsoResult_t hal_radio_receive(uint8_t *frame, size_t max_len, size_t *len);
  */
 SmartQsoResult_t hal_radio_transmit(const uint8_t *frame, size_t len);
 
+/**
+ * @brief Send the TNC its STATUS query (KISS SetHardware 0x06, sub-command
+ *        0x01; RF board E §8.6, TNC-FW-STAT)
+ * @return SMART_QSO_OK when written; SMART_QSO_ERROR before hal_radio_init()
+ */
+SmartQsoResult_t hal_radio_status_query(void);
+
+/**
+ * @brief The TNC's latest STATUS answer since the last call: the
+ *        SetHardware frame's bytes after the command byte (sub-command 0x81
+ *        first, sqso_protocol::kiss::TncStatus)
+ * @param data Buffer
+ * @param max_len Its size
+ * @param len Out: bytes written
+ * @return SMART_QSO_OK with an answer; SMART_QSO_ERROR_TIMEOUT without one
+ */
+SmartQsoResult_t hal_radio_take_status(uint8_t *data, size_t max_len, size_t *len);
+
 #ifdef __cplusplus
 }
 #endif

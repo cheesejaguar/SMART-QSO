@@ -7,6 +7,9 @@
 //!
 //! - transmission is permitted (TX-OFF, RF silence, loss-of-contact
 //!   inhibit: `rf_control_tx_permitted()`) and the radio is powered;
+//! - the ground allows it: no commissioning hold and no XPDR_DISABLE
+//!   (`ops_state.rs`), and no GNSS receiver session is running (the L1
+//!   receiver needs the PA off: BASELINE §5);
 //! - the mode manager is in ACTIVE, the array is sunlit and the state of
 //!   charge is at least [`SOC_PAYLOAD`] (55 %);
 //! - the PA is below [`PA_HOT_C`] (held until it cools to [`PA_COOL_C`];
@@ -15,7 +18,23 @@
 //!   [`DUTY_LIMIT`] of the last [`WINDOW_MS`] (an orbit); the transponder
 //!   resumes when it falls to [`DUTY_RESUME`].
 //!
+//! `XPDR_EN` is a heartbeat, not a level (docs/hardware/BUILD_VS_BUY.md
+//! §3.2, hardware/rf/TRANSMITTER_DESIGN.md §10.1): a hardware timer
+//! drives it as a [`HEARTBEAT_HZ`] square wave, and a retriggerable
+//! monostable on the radio board holds the transponder's enable only while
+//! edges keep arriving ([`EN_HOLD_MS`]). Each pass of the main loop renews
+//! the wave for [`Transponder::heartbeat_lease_ms`] (`hal_gpio_heartbeat()`):
+//! while the gates hold that is [`HEARTBEAT_LEASE_MS`], otherwise 0, which
+//! stops it now. A main loop that stalls stops renewing it, so the timer
+//! stops at the end of the lease; an OBC that halts, resets (the pin goes
+//! high-impedance and is pulled down) or browns out stops the edges at
+//! once. Either way the monostable drops the enable within
+//! [`EN_HOLD_MS`] of the last edge: no OBC failure can leave the
+//! transponder enabled, and a pin stuck high or low is "off".
+//!
 //! @requirement SRS-F016 Enforce power budget limits per mode
+//! @requirement SRS-F080 The software shall enable the FM transponder only while transmission is permitted, the radio is powered, the ground allows it, the mode is ACTIVE, the array is sunlit, the SOC is at least 55 %, the PA is cool and the keyed time is under 25 %
+//! @requirement SRS-F081 The software shall drive the transponder enable XPDR_EN as a heartbeat renewed by every main-loop pass while the transponder gates hold
 
 use crate::mode::SOC_PAYLOAD;
 
@@ -31,6 +50,35 @@ pub const PA_HOT_C: f64 = 70.0;
 pub const PA_COOL_C: f64 = 60.0;
 /// Forward power above which the PA counts as keyed, W
 pub const KEYED_FWD_W: f64 = 0.1;
+/// The `XPDR_EN` heartbeat's frequency, Hz (a hardware timer toggles the
+/// pin every half period: BUILD_VS_BUY §3.2, ≈ 100 Hz)
+pub const HEARTBEAT_HZ: u32 = 100;
+/// How long one renewal keeps the heartbeat running, ms: two passes of the
+/// 20 ms main loop, which is one period of the loop at its worst case (the
+/// 20 ms wait plus a pass at the 20 ms budget of SRS-P001). A later pass
+/// still renews it before the monostable drops (the gap it leaves is
+/// bridged by [`EN_HOLD_MS`] for passes up to about 65 ms), while a stalled
+/// loop drops the transponder within [`STALL_DROPOUT_MS`] (90 ms, inside
+/// the 100 ms of VI-RF-11; CDR RF board review)
+pub const HEARTBEAT_LEASE_MS: u32 = 40;
+/// The radio board's retriggerable monostable (SN74LVC1G123), ms: the
+/// enable falls this long after the last heartbeat edge. Hardware, not
+/// software; here so the tests and the mission simulation use one value
+pub const EN_HOLD_MS: u32 = 50;
+/// The longest the transponder stays enabled after the main loop's last
+/// pass, ms: the lease, then the monostable
+pub const STALL_DROPOUT_MS: u32 = HEARTBEAT_LEASE_MS + EN_HOLD_MS;
+
+/// The main loop's period, ms
+#[allow(clippy::cast_possible_truncation)] // 20
+const LOOP_MS: u32 = crate::executive::TICK_MS as u32;
+// The lease covers one worst-case loop period (the wait plus a pass at its
+// budget), not three
+const _: () = assert!(HEARTBEAT_LEASE_MS >= 2 * LOOP_MS && HEARTBEAT_LEASE_MS < 3 * LOOP_MS);
+// The monostable spans several heartbeat periods (no drop-out while the
+// wave runs), and a stalled loop stops the transponder within 90 ms (VI-RF-11: 100 ms)
+const _: () = assert!(EN_HOLD_MS >= 4 * (1000 / HEARTBEAT_HZ));
+const _: () = assert!(STALL_DROPOUT_MS <= 90);
 
 /// The window in buckets (5 minutes each)
 const BUCKETS: usize = 20;
@@ -41,6 +89,9 @@ const BUCKET_MS: u64 = WINDOW_MS / BUCKETS as u64;
 pub struct Inputs {
     /// Transmission permitted and the radio powered
     pub permitted: bool,
+    /// The ground allows the transponder (no commissioning hold, no
+    /// XPDR_DISABLE) and no GNSS session is running
+    pub allowed: bool,
     /// The mode manager is in ACTIVE
     pub active: bool,
     /// The array is sunlit
@@ -58,6 +109,8 @@ pub struct Inputs {
 pub enum Reason {
     /// Transmission not permitted, or the radio unpowered
     NotPermitted,
+    /// Held for commissioning, disabled by command, or a GNSS session
+    NotAllowed,
     /// Not in ACTIVE
     NotActive,
     /// In eclipse
@@ -75,6 +128,7 @@ impl Reason {
     pub const fn text(self) -> &'static str {
         match self {
             Reason::NotPermitted => "transmission not permitted",
+            Reason::NotAllowed => "held, disabled by command or GNSS session",
             Reason::NotActive => "not ACTIVE",
             Reason::Eclipse => "eclipse",
             Reason::LowSoc => "low SOC",
@@ -128,6 +182,14 @@ impl Transponder {
         }
     }
 
+    /// How long to keep the `XPDR_EN` heartbeat running from this pass, ms
+    /// (`hal_gpio_heartbeat()`): [`HEARTBEAT_LEASE_MS`] while the gates
+    /// hold, 0 (stop now) otherwise. Renewed on every pass, not only on a
+    /// change: the heartbeat lasts only as long as the main loop runs
+    pub const fn heartbeat_lease_ms(&self) -> u32 {
+        if self.enabled { HEARTBEAT_LEASE_MS } else { 0 }
+    }
+
     /// Keyed share of the window
     pub fn duty(&self) -> f64 {
         let keyed: u64 = self.buckets.iter().map(|&b| u64::from(b)).sum();
@@ -146,10 +208,13 @@ impl Transponder {
         while now_ms.saturating_sub(self.bucket_start_ms) >= BUCKET_MS {
             self.bucket_start_ms += BUCKET_MS;
             self.bucket = (self.bucket + 1) % BUCKETS;
+            // COVERAGE-EXEMPT: bucket < BUCKETS (kept so by the modulo), so the slot exists
             if let Some(b) = self.buckets.get_mut(self.bucket) {
                 *b = 0;
+                // COVERAGE-EXEMPT: (the brace below) the missing-slot path, as above
             }
         }
+        // COVERAGE-EXEMPT: (the missing slot) bucket < BUCKETS, as above; both outcomes of keyed are taken
         if keyed && let Some(b) = self.buckets.get_mut(self.bucket) {
             let elapsed = u32::try_from(now_ms.saturating_sub(last)).unwrap_or(u32::MAX);
             *b = b.saturating_add(elapsed);
@@ -175,6 +240,8 @@ impl Transponder {
         }
         if !inp.permitted {
             Some(Reason::NotPermitted)
+        } else if !inp.allowed {
+            Some(Reason::NotAllowed)
         } else if !inp.active {
             Some(Reason::NotActive)
         } else if !inp.sunlit {
@@ -211,7 +278,23 @@ impl Transponder {
 mod tests {
     use super::*;
 
-    const GO: Inputs = Inputs { permitted: true, active: true, sunlit: true, soc: 0.8, pa_c: 30.0, fwd_w: 0.0 };
+    const GO: Inputs =
+        Inputs { permitted: true, allowed: true, active: true, sunlit: true, soc: 0.8, pa_c: 30.0, fwd_w: 0.0 };
+
+    #[test]
+    fn every_reason_has_a_text() {
+        for r in [
+            Reason::NotPermitted,
+            Reason::NotAllowed,
+            Reason::NotActive,
+            Reason::Eclipse,
+            Reason::LowSoc,
+            Reason::PaTemperature,
+            Reason::Duty,
+        ] {
+            assert!(!r.text().is_empty(), "{r:?}");
+        }
+    }
 
     #[test]
     fn on_when_every_gate_holds_off_with_the_first_that_fails() {
@@ -220,6 +303,7 @@ mod tests {
         assert_eq!(x.step(1000, &GO), Change::None);
         for (inp, reason) in [
             (Inputs { permitted: false, ..GO }, Reason::NotPermitted),
+            (Inputs { allowed: false, ..GO }, Reason::NotAllowed),
             (Inputs { active: false, ..GO }, Reason::NotActive),
             (Inputs { sunlit: false, ..GO }, Reason::Eclipse),
             (Inputs { soc: SOC_PAYLOAD - 0.01, ..GO }, Reason::LowSoc),
@@ -235,6 +319,18 @@ mod tests {
         assert_eq!(Inputs { soc: SOC_PAYLOAD, ..GO }.soc, SOC_PAYLOAD);
         let mut x = Transponder::new();
         assert_eq!(x.step(0, &Inputs { soc: SOC_PAYLOAD, ..GO }), Change::On, "55 % is enough");
+    }
+
+    #[test]
+    fn the_heartbeat_runs_only_while_the_gates_hold() {
+        let mut x = Transponder::new();
+        assert_eq!(x.heartbeat_lease_ms(), 0, "off at boot: no heartbeat");
+        let _ = x.step(0, &GO);
+        assert_eq!(x.heartbeat_lease_ms(), HEARTBEAT_LEASE_MS);
+        let _ = x.step(20, &GO);
+        assert_eq!(x.heartbeat_lease_ms(), HEARTBEAT_LEASE_MS, "renewed every pass");
+        let _ = x.step(40, &Inputs { sunlit: false, ..GO });
+        assert_eq!(x.heartbeat_lease_ms(), 0, "a failed gate stops it now");
     }
 
     #[test]

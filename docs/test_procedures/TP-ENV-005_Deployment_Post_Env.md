@@ -2,11 +2,21 @@
 ## TP-ENV-005
 
 **Document Number:** SQSO-TP-ENV-005
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.1
+**Date:** 2026-10-27
+**Status:** Draft; no test article exists
 
-**Requirements verified:** SYS-220, SYS-221
+**Requirements verified:** SYS-220, SYS-221, SYS-709
+
+> **Order changed at the CDR review (2026-10-27).** CDS Rev 14.1 §3.5.2 forbids modifying the flight unit after
+> protoflight testing, and §3.5.2.1 notes that providers may treat a deployment as a configuration change that
+> invalidates the vibration test. On the flight model this procedure therefore runs **before** the protoflight
+> vibration (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.8 and §4 step 3): ambient, then hot (+60 °C) and
+> cold (−30 °C) in a thermal chamber, at the minimum battery voltage of the end-of-life state of charge, followed by a
+> re-stow per the vendor procedure and an inspection. After vibration and TVAC, only burn-wire continuity and
+> stowed-state telemetry are checked unless the integrator approves a deployment in writing. On the engineering
+> model the procedure runs at least five times per mechanism, including after the EM vibration. Where §5 below says
+> "Environmental testing complete", read "Pre-environmental baseline complete" for the flight model.
 
 ---
 
@@ -208,3 +218,4 @@ This procedure defines the deployment test to be performed after completion of e
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-27 | CDR review (PM/SE/V&V): run before the protoflight vibration on the flight model, hot and cold at the minimum battery voltage (SYS-709); post-environment deployment only with the integrator's written approval (CDS Rev 14.1 §3.5.2) |

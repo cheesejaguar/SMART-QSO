@@ -2,9 +2,12 @@
  * @file hal_spi.h
  * @brief HAL SPI Interface
  *
- * Provides SPI bus abstraction for RF transceiver communication.
+ * SPI buses of the OBC (SQSO-ICX-001 B §4.3): the ADCS gyros. A bus is one
+ * device: SPI2 carries two (the BMI088's gyro and accelerometer, each with
+ * its own chip select), so it is two logical buses. The FRAM has its own
+ * SPI1 behind hal_flash.h.
  *
- * @requirement SRS-I020 Software shall control beacon transmitter
+ * @requirement SRS-F140 ADCS sensor drivers on the OBC buses
  */
 
 #ifndef SMART_QSO_HAL_SPI_H
@@ -24,8 +27,9 @@ extern "C" {
  * @brief SPI bus enumeration
  */
 typedef enum {
-    SPI_BUS_0 = 0,   /**< Primary SPI (RF transceiver) */
-    SPI_BUS_1 = 1,   /**< Secondary SPI (if available) */
+    SPI_BUS_0 = 0,   /**< SPI2, CS PD0: BMI088 gyro (cold-spare gyro), up to 10 MHz */
+    SPI_BUS_1 = 1,   /**< SPI3, CS PD1: Epson M-G370PDT0 (primary gyro), mode 3, up to 1 MHz */
+    SPI_BUS_2 = 2,   /**< SPI2, CS PD4: BMI088 accelerometer (shares SPI_BUS_0's clock and data lines) */
     SPI_BUS_COUNT
 } HalSpiBus_t;
 

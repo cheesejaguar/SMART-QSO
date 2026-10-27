@@ -14,6 +14,8 @@
 
 #include "rf_silence.h"
 #include "rf_control.h"
+#include "separation_switch.h"
+#include "smart_qso.h"
 #include "beacon.h"
 #include "cmd_handler.h"
 #include "cmd_auth.h"
@@ -34,7 +36,7 @@ static int setup(void **state)
     hal_sim_flash_fail_writes(false);
     hal_sim_set_reset_cause(HAL_RESET_POWER_ON);
     assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
-    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);  /* switches released */
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);   /* DS2 released: the EPS drives the line high */
     assert_int_equal(hal_flash_init(), SMART_QSO_OK);
     assert_int_equal(hal_flash_erase(FLASH_REGION_RF_CONTROL), SMART_QSO_OK);
     assert_int_equal(hal_flash_erase(FLASH_REGION_RF_SILENCE), SMART_QSO_OK);
@@ -121,15 +123,17 @@ static void test_power_loss_restarts(void **state)
     assert_radiating_allowed();
 }
 
-/** A switch toggle seen while powered restarts the count */
+/** A switch toggle seen while powered, before separation latched on this
+ *  boot (the line has not yet read released for 10 s of HAL time: the
+ *  ticks here do not move the HAL clock), restarts the count */
 static void test_switch_toggle_restarts(void **state)
 {
     (void)state;
     advance_minutes(40U);
-    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);   /* stowed */
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);  /* stowed: low */
     rf_silence_tick(MINUTE_MS);
     assert_int_equal(rf_silence_elapsed_seconds(), 0U);
-    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);  /* released */
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);   /* released: high */
 
     advance_minutes(44U);
     assert_silent();
@@ -148,17 +152,78 @@ static void test_completion_persists(void **state)
     assert_radiating_allowed();
 }
 
-/** Stowing a completed unit (re-integration while powered) re-arms it */
-static void test_stowed_after_completion_rearms(void **state)
+/** Once served, the silence is latched: a sense line reading stowed later
+ *  (in orbit, a failed switch or line) does not restart it (LV-15). Only
+ *  GSE ARM re-arms a completed unit (test_arm_resets_completed_unit) */
+static void test_stowed_after_completion_stays_complete(void **state)
 {
     (void)state;
     advance_minutes(45U);
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);  /* stowed */
+    rf_silence_tick(MINUTE_MS);
+    assert_radiating_allowed();
+    assert_int_equal(rf_silence_get_state(), RF_SILENCE_COMPLETE);
+    advance_minutes(60U);
+    assert_radiating_allowed();
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
+}
+
+/** The hardware polarity (SQSO-ICX-001 §3.1 pin 16, RID SMA-B02): high is
+ *  released, low stowed, and the input has no internal pull. A pull would
+ *  decide the level against the EPS's 1 MΩ source (the simulated HAL
+ *  models that), so a pull-up would read released for ever */
+static void test_hardware_polarity_and_no_pull(void **state)
+{
+    (void)state;
+    assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_DEPLOY_SENSE), GPIO_PULL_NONE);
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
+    assert_false(separation_switch_stowed());
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);
+    assert_true(separation_switch_stowed());
+    assert_int_equal(hal_gpio_config(GPIO_PIN_DEPLOY_SENSE, GPIO_DIR_INPUT, GPIO_PULL_UP), SMART_QSO_OK);
+    assert_true(hal_gpio_get(GPIO_PIN_DEPLOY_SENSE));         /* the pull wins */
+    separation_switch_init();
+    assert_false(hal_gpio_get(GPIO_PIN_DEPLOY_SENSE));
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
+}
+
+/** Released for 10 s latches separation on this boot: an open line reading
+ *  stowed afterwards restarts nothing and is counted (SMA-B02); the next
+ *  reset starts the reading again */
+static void test_separation_latch_ignores_later_stowed(void **state)
+{
+    (void)state;
+    bool latched = true;
+    uint32_t after = 99U;
+    rf_silence_tick(MINUTE_MS);
+    assert_int_equal(separation_switch_status(&latched, &after), SMART_QSO_OK);
+    assert_false(latched);
+    smart_qso_sim_advance_ms(SEPARATION_LATCH_MS);
+    advance_minutes(10U);
+    assert_int_equal(separation_switch_status(&latched, &after), SMART_QSO_OK);
+    assert_true(latched);
+    assert_int_equal(after, 0U);
+    uint32_t elapsed = rf_silence_elapsed_seconds();
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);  /* the line opens: reads stowed */
+    advance_minutes(5U);
+    assert_int_equal(rf_silence_elapsed_seconds(), elapsed + 300U);
     hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
     rf_silence_tick(MINUTE_MS);
-    assert_silent();
     hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);
-    advance_minutes(45U);
+    rf_silence_tick(MINUTE_MS);
+    assert_int_equal(separation_switch_status(&latched, &after), SMART_QSO_OK);
+    assert_int_equal(after, 2U);
+    advance_minutes(28U);
     assert_radiating_allowed();
+    assert_int_equal(separation_switch_status(NULL, NULL), SMART_QSO_OK);
+    /* A watchdog reset: the reading starts again, unlatched */
+    hal_sim_set_reset_cause(HAL_RESET_WATCHDOG);
+    assert_int_equal(rf_silence_init(), SMART_QSO_OK);
+    assert_int_equal(separation_switch_status(&latched, &after), SMART_QSO_OK);
+    assert_false(latched);
+    assert_int_equal(after, 0U);
+    assert_true(separation_switch_stowed());
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
 }
 
 /** GSE ARM makes the next deployment silent again. ARMED does not count
@@ -277,7 +342,9 @@ int main(void)
         cmocka_unit_test_setup(test_power_loss_restarts, setup),
         cmocka_unit_test_setup(test_switch_toggle_restarts, setup),
         cmocka_unit_test_setup(test_completion_persists, setup),
-        cmocka_unit_test_setup(test_stowed_after_completion_rearms, setup),
+        cmocka_unit_test_setup(test_stowed_after_completion_stays_complete, setup),
+        cmocka_unit_test_setup(test_hardware_polarity_and_no_pull, setup),
+        cmocka_unit_test_setup(test_separation_latch_ignores_later_stowed, setup),
         cmocka_unit_test_setup(test_arm_resets_completed_unit, setup),
         cmocka_unit_test_setup(test_corrupt_record_is_armed, setup),
         cmocka_unit_test_setup(test_tx_enable_cannot_shorten_silence, setup),

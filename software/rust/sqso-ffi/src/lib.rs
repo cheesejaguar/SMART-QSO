@@ -52,6 +52,10 @@
 //! | `beacon.h` | [`beacon`] |
 //! | `adcs_control.h` | [`adcs_control`] |
 //! | `watchdog_mgr.h` | [`watchdog_mgr`] |
+//! | `passivation.h` | [`passivation`] |
+//! | `receiver.h` | [`receiver`] |
+//! | `hk_store.h` | [`hk_store`] |
+//! | `eps_lockout.h` | [`eps_lockout`] |
 //!
 //! Struct layouts mirror the C headers (`#[repr(C)]`); the C contract test
 //! `tests/test_rust_contract.c` checks sizes and constants from the C side.
@@ -61,6 +65,7 @@
 #![allow(clippy::missing_safety_doc)] // every export documents its pointer contract in its C header
 
 pub mod adcs_control;
+pub mod ants;
 pub mod assert_handler;
 pub mod ax25;
 pub mod beacon;
@@ -74,18 +79,25 @@ pub mod crc;
 pub mod deployment;
 pub mod downlink;
 pub mod eps_control;
+pub mod eps_lockout;
+pub mod eps_supervision;
 pub mod executive;
 pub mod fault_mgmt;
 pub mod flight_log;
+pub mod fram_health;
 pub mod gnss;
 pub mod gse_provision;
 #[cfg(not(target_os = "none"))]
 pub mod hal_sim;
+pub mod hk_store;
 pub mod input_validation;
 pub mod jetson_link;
 pub mod mission_data;
 pub mod nvm_record;
+pub mod ops_state;
+pub mod passivation;
 pub mod payload_guard;
+pub mod receiver;
 pub mod rf_control;
 pub mod rf_silence;
 pub mod safe_string;
@@ -105,8 +117,10 @@ pub mod watchdog_mgr;
 
 mod c;
 mod cell;
+mod hw;
 #[cfg(not(target_os = "none"))]
 mod os;
+mod pins;
 mod ptr;
 mod store;
 

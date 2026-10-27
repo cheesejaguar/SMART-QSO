@@ -1,8 +1,8 @@
 # Onboard AI Model Selection (Decision D5)
 
 **Document Number:** SQSO-AUD-006
-**Revision:** A
-**Date:** 2026-10-15
+**Revision:** B
+**Date:** 2026-10-27
 **Decision owner:** Payload lead (baseline: `docs/BASELINE_PARAMETERS.md` §6, §9)
 **Research:** [D5_AI_MODEL_SELECTION.md](../funding_audit/research/D5_AI_MODEL_SELECTION.md). Numbers marked [ROM] there are
 estimates, not measurements.
@@ -100,9 +100,11 @@ rate by rule.
   - Batches of N = 1, 5, 10 and 20.
   - Ambient and hot soak.
   - At least 10 cold starts per configuration (30 for a stable p95).
-- **Pass:** p95 energy per **accepted** beacon ≤ 360 J, where accepted beacons are those passing the OBC filter and
-  energy runs from gate on to gate off. Also burst energy ≤ 960 J (8 W × 120 s), and orbit-average Jetson energy
-  within budget at the planned burst count. Otherwise the experiment stays off and A flies alone.
+- **Pass:** energy per **accepted** beacon line ≤ 360 J, counted over the lines passing the OBC filter (total burst
+  energy over total accepted lines), where energy runs from gate on to gate off, over ≥ 30 bursts of the flight burst
+  definition: one power-on of at most 10 min and 3.6 kJ at the carrier input, ended early by the energy gate
+  (decision C-20, CR-2026-018; the earlier 960 J = 8 W × 120 s burst bound is superseded), and orbit-average Jetson
+  energy within budget at the planned burst count. Otherwise the experiment stays off and A flies alone.
 - **Selector:** ECE and reliability diagram on held-out and out-of-distribution sets, abstention rate, and decision
   energy on the OBC rail.
 
@@ -123,3 +125,4 @@ rate by rule.
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-15 | Decision D5 recorded from the research report |
+| B | 2026-10-27 | §5 pass criterion to decision C-20 (CR-2026-018): energy per accepted line over the flight burst definition (≤ 10 min, ≤ 3.6 kJ); the 960 J burst bound withdrawn |

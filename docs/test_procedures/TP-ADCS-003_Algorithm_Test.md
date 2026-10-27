@@ -2,8 +2,8 @@
 ## TP-ADCS-003
 
 **Document Number:** SQSO-TP-ADCS-003
-**Version:** 1.2
-**Date:** 2026-01-02
+**Version:** 1.3
+**Date:** 2026-10-27
 **Status:** CDR Baseline
 
 **Requirements verified:** MRD-061, SYS-421, SYS-422
@@ -28,13 +28,20 @@ Verify ADCS attitude determination and control algorithms.
 
 ## 3. PROCEDURE
 
-### 3.1 Attitude Determination (TRIAD) [MRD-061]
+### 3.1 Sun-Vector and Rate Knowledge [MRD-061]
+
+The flight software has no three-axis attitude estimate (decision C-22; `docs/hardware/ADCS_DESIGN.md` §4.3), and no
+accuracy is required of the sun vector (decision C-23: the pointing is judged by its power, ADCS-P002, in the
+Monte Carlo). This section measures what the sun-pointing law uses against what the Monte Carlo's photodiode model
+assumes (ADCS_DESIGN §11.6). A result worse than the model takes the recorded option, an albedo-immune sun sensor on
++Y (C-23). The EM has its wings deployed.
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Apply known B-field | Mag reading correct | |
-| 2 | Illuminate known sun angle | Sun sensor correct | |
-| 3 | Verify attitude solution | < 5° error | |
+| 1 | Sun simulator on each face photodiode in turn at 0°, 30°, 60°, 75°, 85° and 88° incidence; record the ADS7138 code | Response within 2 % of cos θ up to 60°; at 85° and 88° at least 0.5 × cos θ (the Monte Carlo's grazing model); the six gains recorded | |
+| 2 | Sun simulator at 20 directions within 30° of +Y, the spacecraft turned on the rate table; record the flight software's sun vector | Angle from the true direction within the model without albedo: ≤ 3.2° in 95 % of directions (ADCS_DESIGN §11.6) | |
+| 3 | The same with the ±X photodiodes behind the deployed wings (directions 10–60° from +Y toward ±X) | The ±X channels read the shadow (code within the noise of zero) | |
+| 4 | Spin at 8°/s about +Y on the rate table, 10 min | Gyro rate within 0.2°/s of the table on each axis (ADCS-P007) | |
 
 ### 3.2 B-dot Detumble [SYS-421]
 
@@ -60,7 +67,8 @@ Verify ADCS attitude determination and control algorithms.
 
 | Criterion | Requirement |
 |-----------|-------------|
-| Attitude accuracy | < 5° |
+| Photodiode response and sun vector against the Monte Carlo model (§3.1 steps 1–3) | Within the model; otherwise the +Y sensor option (C-23) |
+| Rate knowledge (§3.1 step 4) | ≤ 0.2°/s per axis |
 | B-dot convergence | Damping observed |
 | Sun pointing | < 10° |
 
@@ -81,3 +89,4 @@ Verify ADCS attitude determination and control algorithms.
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Proposed pass values for §3.2 and §4, for the PI to ratify, beneath §3.2; tracked as TBR-TPADCS003-001 in §5 (finding VV-16) |
 | 1.2 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.3 | 2026-10-27 | §3.1 and §4: the TRIAD attitude test replaced by sun-vector and rate knowledge (MRD-061 Rev G, decisions C-22 and C-23: the pass values are the Monte Carlo model's, not a knowledge requirement; ADCS_DESIGN 1.9 §4.3, §11.6), with the photodiode response, the wings' shadow and the gyro at the spin rate (finding P3F-G-07) |

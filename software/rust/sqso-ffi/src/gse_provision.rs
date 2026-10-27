@@ -17,7 +17,9 @@ const STATUS_REJECTED: u32 = 4;
 /// HAL values (hal_gpio.h, hal_uart.h)
 const GPIO_PIN_UMBILICAL_SENSE: u32 = 10;
 const GPIO_DIR_INPUT: u32 = 0;
-const GPIO_PULL_DOWN: u32 = 2;
+/// No internal pull (SQSO-ICX-001 D §3.7): the OBC's 100 kΩ pull-down
+/// reads absent with no plug
+const GPIO_PULL_NONE: u32 = 0;
 const UART_PORT_DEBUG: u32 = 1;
 
 /// Configure the umbilical sense line and port
@@ -25,7 +27,7 @@ const UART_PORT_DEBUG: u32 = 1;
 pub extern "C" fn gse_init() -> i32 {
     // SAFETY: plain values; NULL selects the default UART configuration
     unsafe {
-        match c::hal_gpio_config(GPIO_PIN_UMBILICAL_SENSE, GPIO_DIR_INPUT, GPIO_PULL_DOWN) {
+        match c::hal_gpio_config(GPIO_PIN_UMBILICAL_SENSE, GPIO_DIR_INPUT, GPIO_PULL_NONE) {
             rc::OK => c::hal_uart_init(UART_PORT_DEBUG, core::ptr::null()),
             other => other,
         }
@@ -63,7 +65,10 @@ pub unsafe extern "C" fn gse_process_frame(frame: *const u8, len: usize) -> u32 
             let silence = unsafe { c::rf_silence_arm() };
             // SAFETY: no arguments
             let deploy = unsafe { c::deployment_arm() };
-            (gse::op::ARM_FLIGHT, if deploy == rc::OK { silence } else { rc::IO })
+            // And the commissioning hold: no ACTIVE, payload or transponder
+            // until the ground releases it (LV-01)
+            let hold = crate::ops_state::ops_set_commissioning_hold(true);
+            (gse::op::ARM_FLIGHT, if deploy == rc::OK && hold == rc::OK { silence } else { rc::IO })
         }
     };
     let ok = result == rc::OK;

@@ -33,6 +33,24 @@ extern "C" {
 void hal_sim_flash_fail_writes(bool fail);
 
 /**
+ * @brief Make every subsequent hal_flash_read() of the first FRAM fail with
+ *        SMART_QSO_ERROR_IO (a dead FRAM), or work again
+ */
+void hal_sim_flash_fail_reads(bool fail);
+
+/**
+ * @brief Make every read of the second FRAM (the mirror,
+ *        hal_flash_read_mirror()) fail, or work again
+ */
+void hal_sim_flash_fail_mirror_reads(bool fail);
+
+/**
+ * @brief Flip bits of one byte of the first FRAM only (an upset the mirror
+ *        does not share)
+ */
+void hal_sim_flash_corrupt_primary(uint32_t region, uint32_t offset);
+
+/**
  * @brief Let the next writes succeed, then fail every later write
  *
  * Simulates power loss part-way through a multi-write update.
@@ -45,6 +63,31 @@ void hal_sim_flash_fail_writes_after(int32_t writes);
  * @brief Drive the level seen on an input pin (e.g. the umbilical sense line)
  */
 void hal_sim_gpio_drive_input(HalGpioPin_t pin, bool state);
+
+/** @brief Cut (true) or restore the simulated TNC's STATUS answers */
+void hal_sim_tnc_mute(bool mute);
+
+/** @brief STATUS queries the simulated TNC has seen */
+uint32_t hal_sim_tnc_queries(void);
+
+/**
+ * @brief The internal pull a pin was last configured with (HalGpioPull_t)
+ *
+ * On DEPLOY_SENSE and SOLAR_SENSE, which the board drives through a weak
+ * source, a configured internal pull decides the level read, as on the
+ * board (RID SMA-B02).
+ */
+uint32_t hal_sim_gpio_pull(HalGpioPin_t pin);
+
+/**
+ * @brief When the GPIO_PIN_XPDR_EN heartbeat stops, or stopped
+ *
+ * On the HAL time base (hal_timer_get_us()), microseconds; 0 if the
+ * heartbeat has not run since hal_gpio_init(), or for another pin. The
+ * radio board's monostable holds the transponder enabled until 50 ms after
+ * this (docs/hardware/BUILD_VS_BUY.md §3.2).
+ */
+uint64_t hal_sim_gpio_heartbeat_end_us(HalGpioPin_t pin);
 
 /**
  * @brief Queue bytes for hal_uart_read() on a port, as if received
@@ -89,6 +132,23 @@ SmartQsoResult_t hal_sim_adc_set(HalAdcChannel_t channel, double value);
  * @brief Set the cause hal_reset_cause() reports, modelling the next boot
  */
 void hal_sim_set_reset_cause(HalResetCause_t cause);
+
+/**
+ * @brief The simulated EPS controller's end-of-life fire: with the arm latch
+ *        set (the key at EOL_KEY 0x7E, then an EOL_ARM rising edge) and
+ *        EOL_FIRE held this long, EOL_STATE reports the charge path open
+ *        (bit 1 set, bit 2 F1 intact clear); 0: never. 30000 after start-up
+ */
+void hal_sim_eps_eol_open_ms(uint32_t ms);
+
+/**
+ * @brief Make the simulated AntS (I2C3, 0x31 and 0x32) answer only while
+ *        its supply SW8 is on (GPIO_PIN_DEPLOY_EN high, or the EPS
+ *        controller's ANTS_PWR 0x8D at 0xA6) and has been for 0.5 s; it
+ *        forgets its arm and deployment commands when SW8 turns off (RID
+ *        P3F-A-01). Off by default: an AntS that always answers
+ */
+void hal_sim_ants_power_gated(bool gated);
 
 #ifdef __cplusplus
 }

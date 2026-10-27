@@ -8,15 +8,78 @@
 //! [`Watchdog::check_task`] reports a stall and the caller logs it and saves
 //! state.
 //!
-//! @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
+//! The external supervisor (TPS3850H33-Q1, SQSO-OBC-BRD-001 E §6, RID
+//! AV-02) is kicked on the same condition: [`Supervisor`] gives its WDI
+//! line a falling edge every [`KICK_INTERVAL_MS`] while every task checks
+//! in, never sooner (the supervisor's window treats an edge within 4.9 s of
+//! the previous one as a fault, SET0 = SET1 = 0), the first one 10 s after
+//! the boot. **The internal watchdog is refreshed only at those edges**
+//! (RID P3F-A-03): both are then timed from the same instant, so after a
+//! stall the IWDG (reload 3200 / 256 on the LSI: 24.1 to 27.8 s) always acts
+//! before the supervisor (29.3 to 39.3 s), 1.5 s ahead at the worst
+//! tolerances; refreshed on every pass instead, the supervisor could act up
+//! to 8.5 s first, its last edge being up to 10 s older than the IWDG's last
+//! refresh. The supervisor stays the backstop for a dead LSI, an upset
+//! internal watchdog or a loop that refreshes too fast. From the boot to
+//! the first main-loop pass the same pairing holds: the boot IWDG starts at
+//! the reset (firmware `main`), the supervisor's time base is that instant,
+//! and the initialisation's checkpoints give the first pair 10 s after it
+//! if the initialisation is still running then (`wdt_mgr_boot_checkpoint`).
+//!
+//! @requirement SRS-F050 Refresh the hardware watchdog (IWDG, 24.1 to 27.8 s) only at the external supervisor's WDI falling edges, every 10 s while every task checks in
 //! @requirement SRS-F051 Save state before watchdog reset
+//! @requirement SRS-F146 External supervisor kick: a WDI falling edge every 10 s, only while every task has checked in
+
+/// WDI falling edges (and IWDG refreshes) this far apart, ms (the
+/// supervisor's window: 4.9 s minimum at most, 29.3 s maximum at least)
+pub const KICK_INTERVAL_MS: u64 = 10_000;
+
+/// The WDI line of the external supervisor
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Supervisor {
+    /// The line is high (a falling edge comes at the next healthy pass)
+    high: bool,
+    /// The last falling edge, ms (boot: the count starts at `start`)
+    last_edge_ms: u64,
+    /// Falling edges given
+    pub kicks: u32,
+}
+
+impl Supervisor {
+    /// The line low; the first edge [`KICK_INTERVAL_MS`] after `now_ms`
+    pub const fn new(now_ms: u64) -> Supervisor {
+        Supervisor { high: false, last_edge_ms: now_ms, kicks: 0 }
+    }
+
+    /// One refresh opportunity (`healthy`: every task checked in): the
+    /// level WDI must have now, if it changes
+    pub fn step(&mut self, now_ms: u64, healthy: bool) -> Option<bool> {
+        if !healthy {
+            return None;
+        }
+        if self.high {
+            self.high = false;
+            self.last_edge_ms = now_ms;
+            self.kicks = self.kicks.wrapping_add(1);
+            return Some(false);
+        }
+        if now_ms.saturating_sub(self.last_edge_ms) >= KICK_INTERVAL_MS {
+            self.high = true;
+            return Some(true);
+        }
+        None
+    }
+}
 
 /// Task slots (`WDT_MAX_TASKS`)
 pub const MAX_TASKS: usize = 8;
 /// Task name bytes including the NUL (`WDT_TASK_NAME_LEN`)
 pub const NAME_LEN: usize = 16;
-/// Hardware watchdog timeout, ms
-pub const HW_TIMEOUT_MS: u32 = 30_000;
+/// Hardware watchdog timeout, ms: the IWDG reload 3200 at the LSI / 256,
+/// 24.1 to 27.8 s over the LSI's tolerance, so it acts before the external
+/// supervisor's 29.3 s minimum (C23–C26 440 nF C0G; SQSO-ICX-001 D §4.3 and
+/// §6 row 37, RID SMA-B08)
+pub const HW_TIMEOUT_MS: u32 = 25_600;
 /// Task check interval, ms
 pub const TASK_CHECK_INTERVAL_MS: u64 = 1000;
 /// Missed periods in a row that make a task stalled
@@ -262,6 +325,21 @@ mod tests {
     use super::*;
 
     #[test]
+    fn supervisor_edges_every_ten_seconds_only_while_healthy() {
+        let mut s = Supervisor::new(1000);
+        assert_eq!(s.step(10_999, true), None, "the first edge 10 s after boot");
+        assert_eq!(s.step(11_000, true), Some(true));
+        assert_eq!(s.step(11_020, false), None, "a stall: no edge, the line stays high");
+        assert_eq!(s.step(11_040, true), Some(false));
+        assert_eq!(s.kicks, 1);
+        assert_eq!(s.step(20_000, true), None, "never within 10 s of the last edge");
+        assert_eq!(s.step(21_040, true), Some(true));
+        assert_eq!(s.step(21_060, true), Some(false));
+        assert_eq!(s.step(60_000, false), None, "stalled: the supervisor resets the OBC");
+        assert_eq!(Supervisor::default(), Supervisor::new(0));
+    }
+
+    #[test]
     fn registration() {
         let mut w = Watchdog::new();
         assert_eq!(w.register(8, b"x", 1000, 0), Err(WdtError::Param));
@@ -319,8 +397,10 @@ mod tests {
 
     #[test]
     fn ids_entries_and_stall_state() {
-        assert!(Watchdog::valid_id(0) && Watchdog::valid_id(7));
-        assert!(!Watchdog::valid_id(8) && !Watchdog::valid_id(u32::MAX));
+        assert!(Watchdog::valid_id(0));
+        assert!(Watchdog::valid_id(7));
+        assert!(!Watchdog::valid_id(8));
+        assert!(!Watchdog::valid_id(u32::MAX));
         let mut w = Watchdog::new();
         assert!(w.register(2, b"comm", 1000, 0).is_ok());
         assert_eq!(w.entry(2).map(TaskEntry::name), Some(&b"comm"[..]));
@@ -330,7 +410,8 @@ mod tests {
             let _ = w.check_task(2, s * 1000);
         }
         assert!(w.is_stalled(2));
-        assert!(!w.is_stalled(3) && !w.is_stalled(99));
+        assert!(!w.is_stalled(3));
+        assert!(!w.is_stalled(99));
     }
 
     /// Mutation check: the task check runs once per interval and is
@@ -380,7 +461,8 @@ mod tests {
     fn default_is_uninitialized_and_empty() {
         let w = Watchdog::default();
         assert_eq!(w, Watchdog::new());
-        assert!(!w.initialized && !w.any_stalled());
+        assert!(!w.initialized);
+        assert!(!w.any_stalled());
         assert!(w.tasks.iter().all(|t| !t.active));
         assert_eq!(w.stats, Stats::default());
     }

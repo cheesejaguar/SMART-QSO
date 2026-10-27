@@ -1,13 +1,13 @@
 # Software Development Plan (SDP)
 
 **Document Number**: SMART-QSO-SDP-001
-**Version**: 1.2
-**Date**: 2026-10-25
+**Version**: 1.8
+**Date**: 2026-10-27
 **Status**: Draft
 
 **Governing Standards**:
 - NPR 7120.5 Rev F - NASA Space Flight Program and Project Management Requirements
-- NPR 7123.1 Rev E - NASA Systems Engineering Processes and Requirements
+- NPR 7123.1D - NASA Systems Engineering Processes and Requirements
 - NPR 7150.2D - NASA Software Engineering Requirements (Version 1.1 said Rev B)
 
 **Process Heritage**: NASA Ames Research Center Small Satellite Division (GeneSat, PharmaSat, O/OREOS, EcAMSat)
@@ -75,6 +75,8 @@ SMART-QSO is a 1U CubeSat experimenting with onboard agentic AI to manage an ama
 | Ground Software, flight operations (telecommand, keys, beacon decoding, telemetry display, pass prediction) | Python | Linux/Windows | Class C |
 | Ground Software, research and outreach (`software/ground/tools/fl_update_builder.py`) | Python | Linux/Windows | Class D |
 | Simulation and test: the flight software's host simulation (`software/rust/sqso-sim`) and test suites | Rust, C | Linux | Class C |
+| RF board TNC firmware (§3.4): AFSK 1200 modem, HDLC and KISS, CC1200, LMX2571 and CMX138A configuration and scrubbing, the repeat audio | Rust (`no_std`, reusing `sqso-protocol`) proposed | STM32L431CCT6 on the RF board (SQSO-RF-BRD-001) | Class C |
+| EPS controller firmware (§3.4): the telemetry register block at 0x48, MPPT, SOC, the recharge-lockout unlock and backup set, the end-of-life key, the OBC heartbeat supervision, status and fault flags | C11 to MISRA C:2012 with MSP430-GCC recommended (§3.4; PI ratification DA-22) | MSP430FR2355 on the EPS board (SQSO-EPS-BRD-001) | Class C |
 | Simulation: analysis notebooks and the orbital-lifetime cross-check (`software/simulation`) | Python | Linux | Class D |
 
 Version 1.1 (2026-10-24): the OBC flight software was ported from C to Rust (`software/rust/README.md`). The Jetson
@@ -99,6 +101,7 @@ technical authority has reviewed it.
 | Jetson payload flight software (`software/payload`) | **C** | As for the OBC |
 | Ground software used in flight operations: telecommand builder, key provisioning, command dictionary (`software/ground/tools`); beacon decoding and telemetry display (`software/ground`) when used in operations; pass prediction for planning contacts | **C** | Software for space flight operations not covered by Class A or B |
 | Software that tests or verifies the flight software: the C test suites, the Rust tests, the host simulation `sqso-sim`, the CI analysis scripts in `scripts/` | **C** | Treated as the software it verifies (project choice; to confirm in the Appendix C mapping) |
+| Firmware of the spacecraft's boards written by the project: the RF board's TNC (STM32L431) and the EPS controller (MSP430FR2355), §3.4 | **C** | Flight software on the CubeSat ("CubeSat mission software"), though not on the OBC |
 | Research and analysis only: `software/ground/tools/fl_update_builder.py` (ground-side research; community model updates are not in the flight baseline), the notebooks in `software/simulation`, the orbital-lifetime cross-check (NASA DAS is the tool of record), displays for public outreach | **D** | Secondary data analysis and research; no use in flight or in operations |
 
 Rationale, from the Appendix D definitions:
@@ -116,9 +119,9 @@ Rationale, from the Appendix D definitions:
 The mission's risk class is unchanged: a proposed Class D payload (NPR 8705.4B). The software class does not decide
 whether software is safety-critical (§3.2).
 
-Still to do: the NPR 7150.2D Appendix C requirements mapping and compliance matrix for Class C, which states for each
-applicable SWE requirement how it is met or tailored, and why. Until then, §3.3 is the interim tailoring table; its
-rationale cells still cite Class D and will be replaced by that mapping.
+The NPR 7150.2D Appendix C requirements mapping and compliance matrix for Class C is
+`docs/software/NPR7150_COMPLIANCE_MATRIX.md` (SQSO-FSW-012, 2026-10-27): each SWE requirement with its status,
+evidence and tailoring, and open items C-1 to C-6. §3.3 below keeps the summary of the tailored items.
 
 ### 3.2 Safety Criticality (NASA-STD-8739.8)
 
@@ -135,20 +138,24 @@ mission-critical, not safety-critical.
 
 | Safety-critical component | Hazard | Rust (`software/rust`) | Line / condition coverage, measured (2026-10-25); exempt lines |
 |---------------------------|--------|------------------------|-----------------------------------------|
-| EPS control, battery protection | SW-HAZ-001 | `sqso-fsw/src/eps.rs`, `sqso-ffi/src/eps_control.rs` | 100 % / 100 %; 99.5 % / 96.7 %, 2 exempt |
+| EPS control, battery protection | SW-HAZ-001 | `sqso-fsw/src/eps.rs`, `sqso-ffi/src/eps_control.rs` | 100 % / 100 %; 99.7 % / 98.9 %, 2 exempt (2026-10-27, round 3: the INA228 monitors, IMON_JET and the 10 ms PAYLOAD_EN release added) |
 | Watchdog supervision | SW-HAZ-004 | `sqso-fsw/src/watchdog.rs`, `sqso-ffi/src/watchdog_mgr.rs`, `firmware/src/wdt.rs` | 100 % / 100 %; 99.3 % / 96.9 %, 2 exempt; target only |
-| Deployment timer and sequence | SW-HAZ-007 | `sqso-fsw/src/deployment.rs`, `sqso-ffi/src/deployment.rs` | 99.7 % / 100 %, 1 exempt; 100 % / 100 % |
+| Deployment timer and sequence | SW-HAZ-007 | `sqso-fsw/src/deployment.rs`, `sqso-ffi/src/deployment.rs` | 99.8 % / 100 %, 1 exempt; 100 % / 100 % (2026-10-27, round 3 fifth part: the AntS read powered, the persisted slot, the cap and schedule releases) |
 | Safe-mode entry, fault response | SW-HAZ-008 | `sqso-fsw/src/mode.rs`, `sqso-ffi/src/state_machine.rs`, `sqso-fsw/src/fault_log.rs`, `sqso-ffi/src/fault_mgmt.rs`, `sqso-fsw/src/assert_handler.rs`, `sqso-ffi/src/assert_handler.rs` | 100 % / 100 %; 100 % / 100 %; 98.8 % / 78.6 %, 4 exempt; 100 % / 100 %; 99.1 % / 95.0 %, 2 exempt; 100 % / 93.8 %, 1 exempt |
 | Payload thermal and over-current protection | Safety Data Package (SQSO-SDP-001) §3.2, thermal protection | `sqso-fsw/src/payload_guard.rs`, `sqso-ffi/src/payload_guard.rs` | 100 % / 100 %; 100 % / no conditions |
-| RF transmit inhibit (TX-OFF latch, post-deployment silence, loss of contact, separation switch) | SH-008 | `sqso-fsw/src/rf_control.rs`, `sqso-fsw/src/rf_silence.rs`, `sqso-fsw/src/contact_monitor.rs` and their `sqso-ffi` wrappers, `sqso-ffi/src/separation_switch.rs` | 100 % / 100 % each; wrappers 100 % / 100 % (`contact_monitor` and `separation_switch` have no conditions) |
+| RF transmit inhibit (TX-OFF latch, post-deployment silence, loss of contact, separation switch and its latch, the exciter keying watch of SW-HAZ-014 control C-014-9, the FRAM health that decides when the RAM copy of the TX-OFF latch is authoritative) | SH-008 | `sqso-fsw/src/rf_control.rs`, `sqso-fsw/src/rf_silence.rs`, `sqso-fsw/src/contact_monitor.rs` and their `sqso-ffi` wrappers, `sqso-fsw/src/separation.rs` and `sqso-ffi/src/separation_switch.rs`, `sqso-fsw/src/ptt_watch.rs` (its wrapper is in `sqso-ffi/src/rf_control.rs`), `sqso-fsw/src/fram_health.rs` and `sqso-ffi/src/fram_health.rs` (the last two and `separation.rs` added 2026-10-27, RID P3F-A-06) | 100 % / 100 % each; wrappers 100 % / 100 % (2026-10-27: `separation.rs` 26 lines / 12 conditions, `separation_switch.rs` 33 / 12, `fram_health.rs` 44 / 16 and 54 / 12, `ptt_watch.rs` 42 / 24) |
 | Downlink gate (the same inhibits checked again when a frame is handed to the TNC; key-down and duty limits; transmitter protection), added 2026-10-25 | SH-008 | `sqso-fsw/src/downlink.rs`, `sqso-ffi/src/downlink.rs` | 100 % / 100 %; 100 % / 100 % |
+| FM transponder gates and XPDR_EN heartbeat lease; the commissioning hold and the transponder-enable record (RID FSW-05), added 2026-10-27 | SH-008 | `sqso-fsw/src/transponder.rs`, `sqso-fsw/src/ops_state.rs`, `sqso-ffi/src/ops_state.rs` (the transponder has no `sqso-ffi` module: the executive drives it) | 98.8 % / 94.4 %, 3 exempt; 100 % / 100 %; 100 % / 100 % (2026-10-27) |
+| End-of-life passivation: the TX-OFF and the passivation inhibit after the final report (RID REG-12), added 2026-10-27 (flight software round 3; for the PI's concurrence) | SW-HAZ-013, SH-008 | `sqso-fsw/src/passivation.rs`, `sqso-ffi/src/passivation.rs` | 100 % / 100 %; 100 % / 100 % (2026-10-27) |
 
 Coverage is from the C suites and the Rust unit tests together, measured with `-Zcoverage-options=condition` on the
 pinned nightly (`software/flight/scripts/rust_coverage.sh`); "condition" counts each condition of a decision taken both
-ways. An exempt line (`// COVERAGE-EXEMPT: <reason>`, 12 in all, each a defensive arm or an error path no test can
+ways. An exempt line (`// COVERAGE-EXEMPT: <reason>`, 15 in all since 2026-10-27, each a defensive arm or an error path no test can
 reach) counts as covered, with its conditions, so every file meets the 100 % / 100 % of CR-2026-003 and the gate
-(`software/flight/scripts/safety_coverage.py`) passes with no problem. The PI concurred with this list on 2026-10-25. RF inhibit has no SW-HAZ entry of its own yet; adding one (with its controls and their verification) is an open
-action of the hazard analysis. The list agrees with the Safety Data Package (SQSO-SDP-001) §3.2. The determination
+(`software/flight/scripts/safety_coverage.py`) passes with no problem. The PI concurred with this list on 2026-10-25. RF inhibit has its SW-HAZ entries since SQSO-SHA-001 B (SW-HAZ-009, SW-HAZ-010). The board firmware items (§3.4) are
+not in this table, which lists measured Rust components: their safety-critical requirements are flagged in their own
+specifications (SQSO-SRS-TNC-001, SQSO-SRS-EPSC-001) from SQSO-SHA-001 G §9.8, and their modules join the coverage
+gate when the code exists. The list agrees with the Safety Data Package (SQSO-SDP-001) §3.2. The determination
 was made with the PI, as SWE-205 asks; the safety lead's review is still to come when one is named.
 
 **What it requires.** SWE-219 (NPR 7150.2D §3.7.4) asks for 100 % code coverage by the MC/DC criterion for every
@@ -161,7 +168,7 @@ counts only if it is marked `// COVERAGE-EXEMPT: <reason>`, which review checks.
 ### 3.3 Tailoring Rationale
 
 Per NPR 7150.2D Appendix C, for Class C (§3.1); the mapping of every Class C requirement is still to be written
-(`docs/funding_audit/NASA_STANDARDS_COMPLIANCE_MATRIX.md`, row NPR 7150.2):
+(`docs/funding_audit/NASA_STANDARDS_COMPLIANCE_MATRIX.md`, row NPR 7150.2; now written: `docs/software/NPR7150_COMPLIANCE_MATRIX.md`):
 
 | Requirement | As applied | Rationale |
 |-------------|------------|-----------|
@@ -170,6 +177,27 @@ Per NPR 7150.2D Appendix C, for Class C (§3.1); the mapping of every Class C re
 | MC/DC for safety-critical components (SWE-219) | 100 % line and condition coverage instead, gated per file (CR-2026-003, approved) | rustc cannot measure MC/DC (§3.2) |
 | Independent V&V | Team V&V | No IV&V designation (not a NASA project) |
 | Tool qualification | Pinned, documented toolchain (Rust 1.97.0), not qualified | PI decision 2026-10-25 (CR-2026-004): no qualified compiler; the tests, image checks, stack analysis and hardware tests check the compiler's output |
+
+
+### 3.4 Firmware of the RF and EPS Boards
+
+Added 2026-10-27 with the RF board (SQSO-RF-BRD-001 §13) and the EPS board (SQSO-EPS-BRD-001 §12). Two boards carry a
+microcontroller whose firmware the project writes. Neither is OBC flight software; both are Class C (§3.1) and come
+under this plan: its coding standards (§6), configuration management (§7, each a configuration item with its own
+version, built and tested in CI), testing (§8) and verification (§9), with the specifics below. Their entries in the
+NPR 7150.2D mapping are `docs/software/NPR7150_COMPLIANCE_MATRIX.md` §2.4. Neither is written yet: the requirements
+are complete at this CDR (Version 1.6, finding P3A-03) and the design, code and tests are scheduled
+(`mission/SCHEDULE.md` E, tasks TNC_DES to TNC_QUAL and EPS_DES to EPS_QUAL).
+
+| | RF board TNC firmware | EPS controller firmware |
+|---|---|---|
+| Processor | STM32L431CCT6 (Cortex-M4F, the OBC's family and toolchain) | MSP430FR2355 (FRAM, −40 to 105 °C) on its own latch-up-tripping supply (SW9) |
+| Requirements | **SQSO-SRS-TNC-001 A** (`docs/software/TNC_FIRMWARE_REQUIREMENTS.md`): 67 requirements, 25 safety-critical. Start-up, clocks and the independent watchdog; the KISS host interface on USART2 at 9600 baud with the STATUS query (0x06/0x01, answer 0x81); HDLC with FCS-16, NRZI and bit stuffing; the AFSK 1200 demodulator on the CC1200 CFM samples against the LBA thresholds (TNC-P001) and the modulator on DAC1; keying only for an OBC frame, only with TX_PERMIT_HW and the synthesizer's lock, with a 5.0 s key-down limit and a 60 s in 120 s duty backstop; the repeat audio on DAC2 and the TONE_OK relay; CC1200, LMX2571 and CMX138A configuration and read-back scrubbing, the CC1200 never in transmit, frequency trims from flash only; RX_ALIVE and its six criteria, the carrier-sense count, the calibration records | **SQSO-SRS-EPSC-001 A** (`docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md`): 62 requirements, 20 safety-critical. The register block at 0x48 on I2C2 (0x00 to 0x33 as read by `sqso_fsw::eps_telemetry`, the extended registers) with its update rate, coherence, accuracy and bus behaviour; telemetry from the AFE, INA3221s and ADS7138; MPPT perturb-and-observe on the four SAC DACs; SOC from the AFE's coulomb counter (not the INA228, which is on the OBC's bus); the recharge-lockout backup set and the UNLOCK step (1 s per key write); the end-of-life key (0x3C then 0xC3, 10 s at most); the OBC heartbeat supervision; the AntS supply and the tracker disables; the watchdog, FRAM records and the state at power-up |
+| What stays in hardware | The TX permit, the transponder key gate and time-out timer, the tone gate and the XPDR_EN monostable (SQSO-RF-BRD-001 §8): the firmware cannot key the PA without RF_TX_EN and the hardware permit. The TNC_PTT path is bounded in hardware only by RF_TX_EN, hence the firmware's key-down and duty backstops (SQSO-SRS-TNC-001 §3.3) | Every protection: the AFE and secondary protector, the eFuses, the lockout latch (set and clear each need hardware lines), the EOL fuse and its two OBC lines (EOL_ARM, EOL_FIRE). If the firmware stops, the MPPT falls back to 4.40 V per string and the OBC keeps the analog lines and the two INA228s (SQSO-EPS-BRD-001 §12; SQSO-SRS-EPSC-001 §3.2) |
+| Language and toolchain | Rust 2024 `no_std` for `thumbv7em-none-eabihf`, the OBC's pinned toolchain, sharing `sqso-protocol` (proposed; SQSO-SRS-TNC-001 §7) | C11 to MISRA C:2012 and JPL D-60411, TI MSP430-GCC pinned when coding starts, host tests in CMocka, MC/DC measured with GCC's condition coverage (recommended; SQSO-SRS-EPSC-001 §7). Rust was rejected for this part: `msp430-none-elf` is a Tier 3 target needing nightly, outside the pinned toolchain. PI ratification: DA-22 |
+| Verification | Host unit tests and fuzz in CI (the protocol code shared with `sqso-protocol`); the RF board EM tests VI-RFB-01, -05, -07, -08, -10 and -15 (SQSO-RF-BRD-001 §14); the EM flatsat with the OBC flight software (KISS frames, beacon, repeat, TX_DISABLE over the air); qualification on the FM board. Each requirement's activity is in its row | Host unit tests of the register map, keys, timers, MPPT and SOC logic, with a CI check of the register map against the flight software's constants; the board tests V-EPS-1, -6 to -10, -12 to -14, -16, -17 (SQSO-EPS-BRD-001 §19); the interface tests IFT-EPS-001 to -006 and INT-EPS-002 on the EM flatsat; qualification on the FM board |
+| Safety criticality (§3.2) | Determined (SQSO-SHA-001 G §9.8, SWE-205): safety-critical for SW-HAZ-014 (emission outside its limits) and SW-HAZ-015 (telecommand path, receiver evidence); the flagged requirements' modules take 100 % line and condition coverage (CR-2026-003) | Determined (SQSO-SHA-001 G §9.8): safety-critical for SW-HAZ-016 (battery hazard controls and the values the OBC's guards use) and SW-HAZ-017 (end-of-life key, OBC bus, supervisor); the flagged requirements' modules take 100 % MC/DC |
+| Schedule (owner: flight software lead, PI until named) | Design to 2026-12-08 (into the PDR package), code 2027-01-12 to 2027-04-06, unit test to 2027-05-18, EM integration 2027-06-01 to 2027-07-06, FM qualification 2027-12-07 to 2027-12-28 | Design to 2026-12-01, code 2027-01-12 to 2027-03-23, unit test to 2027-04-27, EM integration 2027-06-01 to 2027-06-29, FM qualification 2027-12-07 to 2027-12-28 |
 
 ---
 
@@ -476,7 +504,7 @@ See `docs/verification/VERIFICATION_MATRIX.md` for complete VCRM.
 ## Appendix A: References
 
 1. NPR 7120.5 Rev F - NASA Space Flight Program and Project Management Requirements
-2. NPR 7123.1 Rev E - NASA Systems Engineering Processes and Requirements
+2. NPR 7123.1D - NASA Systems Engineering Processes and Requirements
 3. NPR 7150.2D - NASA Software Engineering Requirements
 4. NASA-STD-8739.8B - Software Assurance and Software Safety Standard (replaces NASA-STD-8719.13, cancelled 2020)
 5. JPL D-60411 - JPL Institutional Coding Standard
@@ -506,3 +534,9 @@ See `docs/verification/VERIFICATION_MATRIX.md` for complete VCRM.
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The OBC flight software is Rust on the STM32L4R5ZI with the Embassy executor (no FreeRTOS): §2.2, §2.3, §5 (platforms, tools, targets) and §6 (Rust standard; JPL enforcement as implemented). §3.3 notes: line coverage is gated, branch coverage is not; the toolchain is not qualified |
 | 1.2 | 2026-10-25 | SMART-QSO Team | §3.2 safety-critical components determined by the NASA-STD-8739.8B §4.2 criteria from the hazard analysis, with their coverage; SWE-219 not met, tailoring request CR-2026-003. §3.3 tailoring for Class C, branch coverage now gated. §3.1 software classification determined against NPR 7150.2D Appendix D: Class C for flight software, ground software used in operations and verification software, Class D for research and analysis tools (findings PI-18, VV-12); §2.3 table to match; §3.2 cites NASA-STD-8739.8 and records that the safety-criticality statement disagrees with the hazard analysis and safety documents (open). Header cites NPR 7150.2D. §12.1: Embassy executor in place of RTOS concepts (BASELINE §6, CR-2026-002) |
+| 1.3 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §3.1 and §3.3 point to the Appendix C compliance matrix (SQSO-FSW-012), which replaces the "still to do" |
+| 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §2.3, §3.1 and new §3.4: the RF board TNC firmware (STM32L431) and the EPS controller firmware (MSP430FR2355) as Class C software items, with scope, requirements to write and verification; §3.2: the transponder gates and the operations record (`sqso-fsw/src/transponder.rs`, `sqso-fsw/src/ops_state.rs`, `sqso-ffi/src/ops_state.rs`) added to the safety-critical list (RID FSW-05, SRS-Q013), coverage re-measured |
+| 1.5 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §3.2: the end-of-life passivation (`passivation.rs`, both crates) added to the safety-critical list (its TX-OFF now follows the final report, RID REG-12; SQSO-SHA-001 D), coverage re-measured; no configuration item added (the payload platform configuration is part of the payload software, `software/payload/`) |
+| 1.6 | 2026-10-27 | SMART-QSO Team (CDR round 3, software systems; finding P3A-03) | §3.4: the requirements of both board firmware items written (SQSO-SRS-TNC-001 A, 67 requirements; SQSO-SRS-EPSC-001 A, 62), replacing the "requirements to write"; language recommendations (TNC Rust `no_std`, EPS controller C11 to MISRA C:2012; DA-22); safety criticality determined from SQSO-SHA-001 G §9.8; verification and schedule rows; SOC from the AFE's coulomb counter, not the INA228. §2.3: the EPS controller's language. §3.2: the RF-inhibit note brought up to date and the firmware items' safety-critical requirements pointed to |
+| 1.7 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §3.2: the exciter keying watch (`sqso-fsw/src/ptt_watch.rs`, SW-HAZ-014 control C-014-9, SRS-F168) added to the safety-critical list and the coverage gate |
+| 1.8 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fifth part) | §3.2: `sqso-fsw/src/separation.rs` and `fram_health.rs` (both crates) added to the safety-critical list and the coverage gate (RID P3F-A-06), 32 files, 100 % / 100 % each; deployment coverage after the AntS changes |

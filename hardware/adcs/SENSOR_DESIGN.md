@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-ADCS-SEN-001
-**Version:** 1.1
-**Date:** 2026-10-26
+**Version:** 1.2
+**Date:** 2026-10-27
 **Status:** CDR Baseline
 
 ---
@@ -167,35 +167,24 @@ SIL-05; `docs/hardware/ADCS_DESIGN.md` §4.2.1). The selection is in `docs/hardw
 
 ---
 
-## 5. Sensor Fusion
+## 5. Sensor Use (no onboard attitude determination)
 
-### 5.1 Attitude Determination Method
+**Decisions C-22 and C-23 (CDR 2026, round 3 closure).** The flight software has no three-axis attitude estimate: the
+spin-stabilised sun-pointing law uses the sun vector from the six face photodiodes, the magnetometer field and the
+gyro rate directly (`docs/hardware/ADCS_DESIGN.md` §4.2.1, §4.3). The TRIAD and extended Kalman filter of
+Version 1.1 are out of the flight baseline; TRIAD stays a ground tool for reconstructing a pass from the downlinked
+sun vector and field.
 
-| Method | Sensors Used | Accuracy |
-|--------|--------------|----------|
-| TRIAD | Magnetometer + Sun | ±5° |
-| Extended Kalman Filter | All sensors | ±3° |
-| B-dot (rates only) | Magnetometer | Rates only |
+| Quantity | Sensor | Used for | Requirement |
+|----------|--------|----------|-------------|
+| Sun direction (body) | Six face photodiodes, opposite faces subtracted (ADS7138) | Momentum and spin law | None on its accuracy (C-23); the pointing is judged by its power, ADCS-P002 |
+| Body rate | Gyro (M-G370PDT0, BMI088 backup) | Nutation damping, capture | ADCS-P007: ≤ 0.2°/s per axis in use |
+| Field | Magnetometer (RM3100) | B-dot, dipole command | Sampled in the coils-off window, not while gated (SRS-F090, SRS-F143) |
 
-### 5.2 TRIAD Algorithm
-
-```
-Given: Sun vector (s) and B-field vector (b) in body frame
-       Sun vector (S) and B-field vector (B) in inertial frame
-
-Body frame reference vectors:
-  v1_body = s
-  v2_body = (s × b) / |s × b|
-  v3_body = v1_body × v2_body
-
-Inertial frame reference vectors:
-  v1_inertial = S
-  v2_inertial = (S × B) / |S × B|
-  v3_inertial = v1_inertial × v2_inertial
-
-Rotation matrix:
-  R = [v1_body v2_body v3_body] × [v1_inertial v2_inertial v3_inertial]ᵀ
-```
+The ADCS Monte Carlo models the photodiodes with their gain spread, grazing loss, the wings' shadow and the Earth's
+albedo (ADCS_DESIGN §11.6): albedo dominates the sun-vector error (about 10° mean), and the pointing requirement is
+set on generation for that reason. If the EM measurement of TP-ADCS-003 §3.1 is worse than the model, the recorded
+option is an albedo-immune sun sensor on +Y (§3.1: slit or digital types).
 
 ---
 
@@ -308,3 +297,4 @@ Rotation matrix:
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-26 | §4: gyro required; Epson M-G370PDT0 primary, BMI088 backup; bias ≤ 0.1°/s from the ADCS Monte Carlo (BUILD_VS_BUY §5–§6) |
+| 1.2 | 2026-10-27 | §5: TRIAD and EKF out of the flight baseline (decisions C-22, C-23); the sensors' use and the requirements on them; the albedo-immune +Y sun sensor recorded as the option (finding P3F-G-07) |

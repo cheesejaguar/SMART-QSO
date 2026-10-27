@@ -1,27 +1,27 @@
 # SMART-QSO Software Safety Data Package
 
 **Document ID**: SQSO-SDP-001
-**Version**: 1.1
-**Date**: 2026-10-16
+**Version**: 1.2
+**Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft. Software hazards only; every hazard is open
 
 > **Scope (funding audit VV-20, 2026-10-16).** This package covers **flight software** only. It is not the mission
 > safety case and it is not a launch-provider deliverable on its own. The launch provider reviews a **system** safety
 > data package covering the whole spacecraft, its batteries, inhibits, structure, materials, ground equipment and
-> launch-site operations; its outline is [SYSTEM_SAFETY_DATA_PACKAGE.md](SYSTEM_SAFETY_DATA_PACKAGE.md) (skeleton,
-> incomplete). This document feeds section 13 of it.
+> launch-site operations; that is [SYSTEM_SAFETY_DATA_PACKAGE.md](SYSTEM_SAFETY_DATA_PACKAGE.md) (SQSO-SDP-002
+> v1.0, the CDR system hazard analysis). This document feeds its §11 (HR-11); software is not counted as a launch inhibit.
 
 ## 1. Purpose
 
-This document consolidates the software safety information for SMART-QSO, following NASA-STD-8719.13 (software safety).
+This document consolidates the software safety information for SMART-QSO, following NASA-STD-8739.8B (software assurance and software safety; it replaced NASA-STD-8719.13, cancelled 2020).
 It is one input to the system safety data package. It does not authorize release of flight software or flight.
 
 ## 2. Applicable Documents
 
 | Document ID | Title |
 |-------------|-------|
-| NASA-STD-8719.13 | NASA Software Safety Standard |
+| NASA-STD-8739.8B | Software Assurance and Software Safety Standard |
 | NPR 8715.3 | NASA General Safety Program Requirements |
 | NPR 8705.4 | Risk Classification for NASA Payloads |
 | SQSO-SHA-001 | Software Hazard Analysis |
@@ -387,3 +387,4 @@ Member: _________________ Date: _____
 | 1.1, note | 2026-10-24 | SMART-QSO Team | Defensive-coding row: status after the port of the flight software to Rust |
 | 1.1, note | 2026-10-25 | SMART-QSO Team | §3.1 software class: Class C (SDP §3.1). Watchdog-failure controls: stack checking and stage monitoring as built, with no RTOS (BASELINE §6, CR-2026-002) |
 | 1.1, note | 2026-10-25 | SMART-QSO Team | §3.2: the downlink gate added (CR-2026-005); HZ-001 evidence includes its tests |
+| 1.2 | 2026-10-27 | CDR S&MA review | Scope note: the system package is now SQSO-SDP-002 v1.0 (hazard analysis), which this document feeds at §11 |

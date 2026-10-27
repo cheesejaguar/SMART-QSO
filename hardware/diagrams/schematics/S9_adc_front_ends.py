@@ -1,76 +1,52 @@
-"""S9 OBC/EPS analog front ends for ADC1, sized for the 4S pack, with the firmware scale each one implies."""
+"""S9 ADC1 front ends, version 3 (2026-10-27; IN7 spreader NTC added): the sixteen external ADC1 inputs of the STM32L4R5ZIT6 with the source
+circuits on the EPS and RF boards (SQSO-EPS-BRD-001 11, SQSO-RF-BRD-001 7.6) and the OBC-side series resistors and
+reservoir capacitors (SQSO-OBC-BRD-001 13-14). Version 1 drew the EPS dividers as proposals; they are now designed on
+the EPS board (the 1:6 VBATT divider of finding F1 is built).
+"""
 
 import schemdraw.elements as elm
 
 import sch
 
 d = sch.drawing("S9_adc_front_ends")
-sch.title(d, (-5, 4.5), "S9", "ADC front ends",
-          "Sources: software/rust/firmware/src/adc.rs (FRONT_END, pins TBR); docs/BASELINE_PARAMETERS.md 5 (4S pack); "
-          "hardware/eps/PDU_DESIGN.md (ranges)")
+sch.note(d, (-5, 4.5), "S9  ADC1 front ends (version 3)", fontsize=12, color="black")
+sch.note(d, (-5, 3.9), "SQSO-HW-DIAG-001 · source circuits on the EPS and RF boards; OBC series R and reservoir C from SQSO-OBC-BRD-001 · "
+         "firmware scale = adc.rs FRONT_END", fontsize=8)
 
+ROWS = [
+    ("EPS", "VBATT_SNS", "PACK_P: 1.00M / 200k, 100 nF", "1 k", "PC2 IN3", "x 6.0 (adc.rs Linear(6.0, 0): change from 3.0)"),
+    ("EPS", "IBATT_SNS", "INA186 x 50 on RS6, REF 1.65 V", "1 k", "PC3 IN4", "0.5 V/A, 1.65 V at 0 A (unchanged)"),
+    ("EPS", "VSOLAR_SNS", "string: 300k / 100k", "1 k", "PC4 IN13", "x 4.0 (unchanged)"),
+    ("EPS", "ISOLAR_SNS", "INA186 x 50 on RS5", "1 k", "PC5 IN14", "1.0 V/A (unchanged)"),
+    ("EPS", "VBUS_SNS", "5V_PA: 100k / 100k", "1 k", "PB0 IN15", "x 2.0 (unchanged)"),
+    ("EPS", "VSW1_RB", "VBAT_SW1: 1.00M / 200k, 100 nF", "1 k", "PA1 IN6", "x 6.0, on above 1.0 V (new, RID AV-06)"),
+    ("EPS", "VJET_RB", "VBAT_JET: 1.00M / 200k, 100 nF", "1 k", "PA7 IN12", "x 6.0, on above 1.0 V (new, RID AV-06)"),
+    ("RF", "TX_TEMP", "PA sensor, 1k / 100 nF", "10 k", "PA0 IN5", "10 mV/C, 0.5 V at 0 C (unchanged)"),
+    ("RF", "TX_FWD", "coupler + RMS detector, 1k / 100 nF", "10 k", "PC0 IN1", "P = 0.16 V^2 W (unchanged)"),
+    ("RF", "TX_REV", "coupler reverse port, 1k / 100 nF", "10 k", "PC1 IN2", "as TX_FWD (unchanged)"),
+    ("OBC", "MTQ_X_I", "DRV8876 IPROPI: 10.0k, 1 nF", "1 k", "PA4 IN9", "10 mV/mA (new)"),
+    ("OBC", "MTQ_Y_I", "DRV8876 IPROPI: 10.0k, 1 nF", "1 k", "PA5 IN10", "10 mV/mA (new)"),
+    ("OBC", "MTQ_Z_I", "DRV8876 IPROPI: 10.0k, 1 nF", "1 k", "PA6 IN11", "10 mV/mA (new)"),
+    ("OBC", "TEMP_BOARD", "TMP235-Q1 U21", "1 k", "PB1 IN16", "10 mV/C, 0.5 V at 0 C (unchanged)"),
+    ("JET", "PT_NTC", "spreader NTC RT1 via J3-5, 10.0k 0.1 % from VDDA", "1 k", "PA2 IN7", "R = 10.0k V/(VDDA - V); 100 nF at the pin (new, E10)"),
+]
 
-def rc_out(at, net):
-    """1k + 10 nF anti-alias filter (TBR) to the ADC pin flag."""
-    d.add(elm.Resistor().at(at).right().length(1.6).label("1k", loc="top", fontsize=7))
-    d.add(n := elm.Dot())
-    d.add(elm.Capacitor().at(n.center).down().length(1.2).label("10 nF", loc="bottom", fontsize=7))
-    d.add(elm.Ground())
-    sch.flag(d, n.center, net, "right", 0.6)
+for i, (board, net, src, rser, pin, scale) in enumerate(ROWS):
+    y = -1.6 * i
+    sch.note(d, (-5, y + 0.25), f"{board}: {src}", fontsize=7)
+    d += elm.Line().at((4.5, y)).right().length(0.6)
+    d += elm.Resistor().right().length(1.6).label(rser, loc="top", fontsize=7)
+    d += (n := elm.Dot())
+    d += elm.Capacitor().at(n.center).down().length(0.9).label("10 nF", loc="left", fontsize=6)
+    d += elm.Ground()
+    sch.flag(d, n.center, f"{net} -> {pin}", "right", 0.6)
+    sch.note(d, (16.5, y + 0.25), scale, fontsize=7)
 
-
-def divider(x, y, src, top, bot, net, note):
-    sch.flag(d, (x, y), src, "left", 0.01)
-    d.add(elm.Line().at((x, y)).right().length(0.6))
-    d.add(elm.Resistor().down().length(1.6).label(top, loc="bottom", fontsize=7))
-    d.add(n := elm.Dot())
-    d.add(elm.Resistor().down().length(1.6).label(bot, loc="bottom", fontsize=7))
-    d.add(elm.Ground())
-    rc_out(n.center, net)
-    sch.note(d, (x + 6.5, y + 0.2), note, fontsize=7)
-
-
-def shunt_amp(x, y, src, rsh, amp, ref, net, note):
-    sch.flag(d, (x, y), src, "left", 0.01)
-    d.add(elm.Line().at((x, y)).right().length(0.6))
-    d.add(s1 := elm.Dot())
-    d.add(elm.Resistor().right().length(1.8).label(rsh, loc="top", fontsize=7))
-    d.add(s2 := elm.Dot())
-    d.add(elm.Line().right().length(0.6))
-    d.add(elm.Label().label("load", loc="right", fontsize=7))
-    u = sch.ic(amp, left=["IN-", "IN+"], right=["OUT"], bottom=["GND", "REF"], size=(4.4, 2.0), tbd=True,
-               spread=("bottom",))
-    d.add(u.at((s1.center[0] + 0.2, y - 3.2)).anchor("INN"))
-    d.add(elm.Wire("|-").at(s1.center).to(sch.pin(u, "IN+")).linestyle(":"))
-    d.add(elm.Line().at(s2.center).toy(y - 1.2).linestyle(":"))
-    d.add(elm.Line().linestyle(":").left().tox(sch.pin(u, "IN-")[0] - 0.6))
-    d.add(elm.Line().linestyle(":").toy(sch.pin(u, "IN-")[1]))
-    d.add(elm.Line().linestyle(":").to(sch.pin(u, "IN-")))
-    d.add(elm.Line().at(u.REF).down().length(0.5))
-    d.add(elm.Label().label(ref, loc="bottom", fontsize=7))
-    d.add(elm.Line().at(u.GND).down().length(0.4))
-    d.add(elm.Ground())
-    rc_out(u.OUT, net)
-    sch.note(d, (x + 12.5, y + 0.2), note, fontsize=7)
-
-
-divider(0, 0, "VBAT", "R1 100k", "R2 20k", "VBATT_SNS (PC2)",
-        "1:6, 16.8 V reads 2.8 V. The firmware's FRONT_END says 1:3 (a 2S value, 8.4 V max):\n"
-        "a 4S pack on a 1:3 divider would put 5.6 V on PC2. Change adc.rs to Linear(6.0, 0) with\n"
-        "this divider (finding F1). Divider draws 140 uA from the pack: gate it or raise R (TBR).")
-shunt_amp(0, -6, "BATT+ path", "R3 10 mOhm", "U1 INA240A2 or eq. (TBD)\ngain 50, bidirectional", "REF = 1.65 V",
-          "IBATT_SNS (PC3)", "0.5 V/A, 1.65 V at 0 A: adc.rs Linear(2.0, -3.3).\n+/-3 A spans 0.15-3.15 V (PDU_DESIGN).")
-divider(0, -13, "SA_BUS", "R4 30k", "R5 10k", "VSOLAR_SNS (PC4)",
-        "1:4, as adc.rs. Two-cell strings, Voc about 5.4 V, read 1.35 V\n(TBR: the divider could be 1:2 for resolution).")
-shunt_amp(0, -19, "SA_BUS path", "R6 20 mOhm", "U2 INA240A2 or eq. (TBD)\ngain 50, unidirectional", "REF = GND",
-          "ISOLAR_SNS (PC5)", "1 V/A: adc.rs Linear(1.0, 0). 0-2 A (PDU_DESIGN).")
-divider(0, -26, "5V", "R7 10k", "R8 10k", "VBUS_SNS (PB0)", "1:2, as adc.rs (5 V bus).")
-tmp = sch.ic("U3 TMP36\nboard temperature", left=["+VS"], right=["VOUT"], bottom=["GND"])
-d += tmp.at((2.0, -32)).anchor("VS")
-sch.flag(d, tmp.VS, "3V3_AO", "left", 0.6)
-d += elm.Ground().at(tmp.GND)
-rc_out(tmp.VOUT, "TEMP_BOARD (PB1)")
-sch.note(d, (12.5, -31.8), "10 mV/C, 0.5 V at 0 C: adc.rs Linear(100, -50). The TMP117 (S3) also\n"
-         "measures the board; one of the two may go (TBR).", fontsize=7)
+sch.note(d, (-5, -1.6 * len(ROWS) - 0.5),
+         "Series resistors: 1 kOhm on the EPS lines (their sources are >= 167 kOhm with 100 nF), 10 kOhm on the RF lines (the radio\n"
+         "stays powered while the OBC is power-cycled: they limit the current into an unpowered OBC). The source's capacitor is the\n"
+         "reservoir for the 247.5-cycle sample. Sun sensors, the sensor-area temperature and VBAT_MTQ / 6 are on the ADS7138 (S6).\n"
+         "ADC1 IN8 (PA3) is the RF_TX_EN output; internal channels: temperature, VREFINT. Version 3: IN7 (PA2) reads the spreader NTC.",
+         fontsize=7)
 
 d.save(sch.out_path("S9_adc_front_ends"))

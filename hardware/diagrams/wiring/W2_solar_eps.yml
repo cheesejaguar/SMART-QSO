@@ -1,9 +1,11 @@
-# SQSO-HW-DIAG-001 W2: solar panels to EPS (SQSO-HAR-001 H8, extended to the 8-string array).
-# Array per hardware/eps/SOLAR_ARRAY_DESIGN.md and B2: body +X, -X, +Y, -Y one string each; wings W1, W2 two
-# strings each (front and back). Every string has its own blocking diode on the EPS, so each keeps its own
-# positive wire. H8's 3-pin connector serves a body panel; the wing needs 5 pins (proposed). Pinouts TBR.
+# SQSO-HW-DIAG-001 W2: solar panels to EPS, version 3 (2026-10-27, SQSO-HAR-001 2.0). Body panels +X, -X, +Y, -Y one
+# string each (EPS J4 PX, J5 MX, J6 PY, J7 MY), wings W1 (+X) and W2 (-X) two strings each (J8, J9). Each body panel's
+# pigtail (soldered by the panel vendor) enters through a grommeted slot in its shear panel at z -10, below the EPS, and
+# plugs into an EPS bottom-side connector; it carries the panel's sun-sensor pair (W6D) beside it. Each wing's hinge
+# flex jumper (mechanical design) ends on a termination tab TB on the shear panel inside the hinge-side strip; W2W1/W2W2
+# run from the tab to J8/J9. Pico-Clasp crimps take 28-32 AWG only: 28 AWG, two wires per pole (0.28 A each).
 metadata:
-  title: W2 Solar panels to EPS (SQSO-HW-DIAG-001, proposed, TBR)
+  title: W2 Solar panels to EPS v3 (SQSO-HW-DIAG-001; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -11,45 +13,102 @@ options:
   color_mode: SHORT
 
 connectors:
-  PB:
-    type: Molex Pico-Clasp receptacle
-    subtype: 3 pos
-    notes: body panel (x4, +X -X +Y -Y), H8
-    pinlabels: [SA+, SA-, TEMP]
-  JB:
-    type: Molex Pico-Clasp header
-    subtype: 3 pos
-    notes: EPS J_SA_PX / NX / PY / NY; SA+ to blocking diode Dn
-    pinlabels: [SA+, SA-, TEMP]
-  PW:
-    type: Molex Pico-Clasp receptacle
+  PNL_PX:
+    type: +X body panel pads (vendor pigtail)
+    pinlabels: [SA+, SA+, SA-, SA-, TEMP]
+  J4:
+    type: Pico-Clasp 501330-0500, gold terminals
     subtype: 5 pos
-    notes: wing (x2, W1 W2); harness crosses the hinge as a service loop
-    pinlabels: [SA1+ (front), SA2+ (back), SA-, SA-, TEMP]
-  JW:
-    type: Molex Pico-Clasp header
+    notes: EPS J4 (zone Z4); slot (+48.5, -30, -10)
+    pinlabels: [S_PX, S_PX, GND, GND, TPNL_PX]
+  PNL_MX:
+    type: -X body panel pads (vendor pigtail)
+    pinlabels: [SA+, SA+, SA-, SA-, TEMP]
+  J5:
+    type: Pico-Clasp 501330-0500, gold terminals
     subtype: 5 pos
-    notes: EPS J_SA_W1 / W2
-    pinlabels: [SA1+, SA2+, SA-, SA-, TEMP]
+    notes: EPS J5 (zone Z2); slot (-48.5, -12, -10)
+    pinlabels: [S_MX, S_MX, GND, GND, TPNL_MX]
+  PNL_PY:
+    type: +Y body panel pads (vendor pigtail)
+    pinlabels: [SA+, SA+, SA-, SA-, TEMP]
+  J6:
+    type: Pico-Clasp 501330-0500, gold terminals
+    subtype: 5 pos
+    notes: EPS J6 (zone Z1); slot (-30, +48.5, -10)
+    pinlabels: [S_PY, S_PY, GND, GND, TPNL_PY]
+  PNL_MY:
+    type: -Y body panel pads (vendor pigtail)
+    pinlabels: [SA+, SA+, SA-, SA-, TEMP]
+  J7:
+    type: Pico-Clasp 501330-0500, gold terminals
+    subtype: 5 pos
+    notes: EPS J7 (zone Z2); slot (-30, -48.5, -10)
+    pinlabels: [S_MY, S_MY, GND, GND, TPNL_MY]
+  TB_W1:
+    type: termination tab TB-W1 (hinge flex of wing W1)
+    notes: "+X shear panel, (+48, +37, -34)"
+    pinlabels: [SA1+ (front), SA1+ (front), SA2+ (back), SA2+ (back), SA-, SA-, SA-, TEMP]
+  J8:
+    type: Pico-Clasp 501330-0800, gold terminals
+    subtype: 8 pos
+    notes: EPS J8 (zone Z3)
+    pinlabels: [S_W1F, S_W1F, S_W1B, S_W1B, GND, GND, GND, TPNL_W1]
+  TB_W2:
+    type: termination tab TB-W2 (hinge flex of wing W2)
+    notes: "-X shear panel, (-48, +37, -34)"
+    pinlabels: [SA1+ (front), SA1+ (front), SA2+ (back), SA2+ (back), SA-, SA-, SA-, TEMP]
+  J9:
+    type: Pico-Clasp 501330-0800, gold terminals
+    subtype: 8 pos
+    notes: EPS J9 (zone Z5)
+    pinlabels: [S_W2F, S_W2F, S_W2B, S_W2B, GND, GND, GND, TPNL_W2]
 
 cables:
-  CB:
-    category: bundle
-    gauge: 24 AWG
-    length: 0.10
-    colors: [RD, BK, WH]
-    notes: 2 cells in series, Isc about 0.5 A; TEMP 10 kOhm NTC, return on SA- (TBR)
-  CW:
-    category: bundle
-    gauge: 24 AWG
-    length: 0.18
-    colors: [RD, OG, BK, BK, WH]
-    notes: length TBD with the hinge; flex-rated PTFE, tie down at both sides
+  W2PX:
+    gauge: 28 AWG
+    length: 0.045
+    colors: [RD, RD, BK, BK, WH]
+    notes: "M22759/33-28; each SA+ twisted with an SA- (back-wired string); 0.55 A Isc on two wires per pole, 18 mV"
+  W2MX:
+    gauge: 28 AWG
+    length: 0.05
+    colors: [RD, RD, BK, BK, WH]
+  W2PY:
+    gauge: 28 AWG
+    length: 0.045
+    colors: [RD, RD, BK, BK, WH]
+  W2MY:
+    gauge: 28 AWG
+    length: 0.04
+    colors: [RD, RD, BK, BK, WH]
+  W2W1:
+    gauge: 28 AWG
+    length: 0.075
+    colors: [RD, RD, OG, OG, BK, BK, BK, WH]
+    notes: "hinge-side strip HS(+X); twisted groups front (1, 2, 5), back (3, 4, 6), (7, 8); returns 0.37 A each"
+  W2W2:
+    gauge: 28 AWG
+    length: 0.125
+    colors: [RD, RD, OG, OG, BK, BK, BK, WH]
+    notes: "from the -Y end of TB-W2 up the (-X, +Y) bundle, z -34 ... -10 (HS(-X) holds the W2 sensor-splice pair), then under the EPS to J9 (zone Z5)"
 
 connections:
-  - - PB: [1-3]
-    - CB: [1-3]
-    - JB: [1-3]
-  - - PW: [1-5]
-    - CW: [1-5]
-    - JW: [1-5]
+  - - PNL_PX: [1-5]
+    - W2PX: [1-5]
+    - J4: [1-5]
+  - - PNL_MX: [1-5]
+    - W2MX: [1-5]
+    - J5: [1-5]
+  - - PNL_PY: [1-5]
+    - W2PY: [1-5]
+    - J6: [1-5]
+  - - PNL_MY: [1-5]
+    - W2MY: [1-5]
+    - J7: [1-5]
+  - - TB_W1: [1-8]
+    - W2W1: [1-8]
+    - J8: [1-8]
+  - - TB_W2: [1-8]
+    - W2W2: [1-8]
+    - J9: [1-8]

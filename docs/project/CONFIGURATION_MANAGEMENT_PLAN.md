@@ -1,13 +1,20 @@
 # Configuration Management Plan (CMP)
 
 **Document Number**: SMART-QSO-CMP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.2
+**Date**: 2026-10-27
 **Status**: Draft
 
-**Governing Standards**:
-- NPR 7120.5 Rev F - NASA Space Flight Program and Project Management Requirements
-- NPR 7150.2 Rev B - NASA Software Engineering Requirements
+**Reference standards** (voluntary for this privately funded mission; `docs/project/CDR_CRITERIA_MATRIX.md` §1):
+- NPR 7123.1D §3.2, Configuration Management process (Appendix C)
+- NPR 7150.2D, software configuration management requirements (SWE-079 to SWE-085), Class C
+- Version 1.0 cited NPR 7120.5 "Rev F" as governing and NPR 7150.2 "Rev B"; neither applies as cited (finding VV-11)
+
+> **Status on 2026-10-27 (CDR review).** No configuration baseline has been established and the repository has no
+> Git tags. The working controls are: the document register (`docs/DOCUMENT_REGISTER.md`), the baseline parameters
+> (`docs/BASELINE_PARAMETERS.md`, changed only by change request), the change request log
+> (`docs/project/CHANGE_REQUEST_LOG.md`, CR-2026-001 to -015; CR-2026-007 and -008 approved by the review chair and awaiting the PI's ratification, CR-2026-009 to -015 proposed by the review and awaiting the PI's decision, both by 2027-01-12: `mission/SCHEDULE.md` DA-01), pull requests to `main`, and the automated checks of
+> §4.5. The `develop`/`release` branch model of §5.2 in version 1.0 was never used and is withdrawn.
 
 ---
 
@@ -44,14 +51,14 @@ This plan covers:
 
 | Position | Role |
 |----------|------|
-| Chair | Project Manager or designee |
-| Members | Systems Engineer, Software Lead, QA |
-| Secretary | Configuration Manager |
+| Chair and approver | The PI (licensee KK6GDB); the only approver today |
+| Members | The leads of each discipline when named (`docs/project/PROJECT_PLAN.md` §4) |
+| Independent check | For a Class I change, at least one reviewer who is not the author reviews the pull request once a second contributor exists; until then the CR record states that the PI approved alone |
+| Secretary | The PI; the CR log is the record |
 
-CCB meets:
-- Weekly during active development
-- As-needed after CDR
-- Emergency sessions for critical issues
+The CCB acts through the change request log and the pull request that implements the change; a Class I change is
+approved only when its CR entry (template §4.4) names the decision, the date and the verification. Meetings are held
+when a Class I change is pending and at each review gate.
 
 ---
 
@@ -71,21 +78,30 @@ CCB meets:
 
 #### Software Configuration Items
 
-| CI ID | Name | Description |
-|-------|------|-------------|
-| SW-001 | OBC Flight Software | Main flight software for OBC |
-| SW-002 | Jetson Payload Software | AI inference software |
-| SW-003 | Ground Station Software | Ground operations tools |
-| SW-004 | Simulation Software | Mission simulation |
-| SW-005 | Test Software | Automated test suites |
+| CI ID | Name | Location |
+|-------|------|----------|
+| SW-001 | OBC flight software (Rust: `sqso-protocol`, `sqso-fsw`, `sqso-ffi`) and the C headers | `software/rust/`, `software/flight/include/` |
+| SW-002 | STM32L4R5ZI firmware image (Embassy) | `software/rust/firmware/`; toolchain pinned by `software/rust/rust-toolchain.toml` |
+| SW-003 | Jetson payload software | `software/payload/` |
+| SW-004 | Ground software (decoder, command tools, dashboards) | `software/ground/` |
+| SW-005 | Simulations used for verification: SIL, ADCS Monte Carlo, orbit lifetime, CDR analysis scripts | `software/rust/sqso-sil/`, `software/simulation/` |
+| SW-006 | Test software: C test suites, Rust tests, HIL probes | `software/flight/tests/`, crate tests |
 
 #### Firmware Configuration Items
 
 | CI ID | Name | Description |
 |-------|------|-------------|
-| FW-001 | OBC Bootloader | Secure bootloader |
-| FW-002 | EPS Firmware | Power management firmware |
-| FW-003 | RF Modem Firmware | Communication firmware |
+| FW-001 | OBC bootloader | Not yet designed; none in the baseline |
+| FW-002 | EPS firmware | Only if the ISIS ICEPS2 alternate is bought (vendor CI, identified by part number and version) |
+| FW-003 | TNC / radio firmware | Vendor or custom, identified at selection (CR-2026-005) |
+
+#### Hardware Configuration Items
+
+| CI ID | Name | Description |
+|-------|------|-------------|
+| HW-001 | Engineering model | Board revisions, part lot list, serial numbers; established at EM build |
+| HW-002 | Flight model | As HW-001; frozen at the pre-ship review (SYS-089) |
+| HW-003 | Purchased items | Vendor part number, revision, serial, certificate of conformance |
 
 #### Document Configuration Items
 
@@ -97,8 +113,12 @@ CCB meets:
 | DOC-004 | Software Test Plan | SMART-QSO-STP-001 |
 | DOC-005 | Interface Control Documents | SMART-QSO-ICD-xxx |
 | DOC-006 | Systems Engineering Mgmt Plan | SMART-QSO-SEMP-001 |
-| DOC-007 | Requirements Traceability Matrix | SMART-QSO-RTM-001 |
+| DOC-007 | Requirements Traceability Matrix | `docs/verification/RTM.csv` (generated) |
 | DOC-008 | Configuration Mgmt Plan | SMART-QSO-CMP-001 |
+| DOC-009 | Baseline Parameters | SQSO-BL-001 |
+| DOC-010 | Mission and system requirements | SQSO-REQ-001, SQSO-REQ-002 |
+| DOC-011 | VCRM | SQSO-VCRM-001 (generated block) |
+| DOC-012 | Every other registered document | `docs/DOCUMENT_REGISTER.md` is the configuration index |
 
 ### 3.3 Naming Conventions
 
@@ -126,11 +146,14 @@ Example: v1.0.0, v0.2.0-dev, v1.0.1-rc1
 
 ### 4.1 Baseline Definitions
 
-| Baseline | Established | Contents | Authority |
-|----------|-------------|----------|-----------|
-| Functional | PDR | Requirements, ConOps | CCB |
-| Allocated | CDR | Design, ICDs | CCB |
-| Product | FRR | As-built configuration | CCB |
+| Baseline | Established | Contents | Authority | Git tag |
+|----------|-------------|----------|-----------|---------|
+| Functional | PDR (2027-01-12) | BASELINE parameters, MRD, system requirements, ConOps | PI after the PDR | `baseline/functional-pdr` |
+| Allocated | CDR (2027-09-28) | Software requirements, design, ICDs, build-to package, ETP | PI after the CDR | `baseline/allocated-cdr` |
+| Product | Pre-ship review (2028-05-19 earliest) | As-built FM, flight image (hash), test reports, VCRM | PI after the pre-ship review | `baseline/product-psr` |
+
+The baseline parameters document is under change control now (BASELINE §0 rule 3), ahead of the formal functional
+baseline.
 
 ### 4.2 Change Control Process
 
@@ -180,6 +203,13 @@ Example: v1.0.0, v0.2.0-dev, v1.0.1-rc1
 | Class II | Minor change within scope | SW Lead | 48 hours |
 | Class III | Editorial/typo | Any team member | Immediate |
 
+Class I covers any change to a value in `docs/BASELINE_PARAMETERS.md`, to the text, method or parent of a mission or
+system requirement, to an ICD, to a safety-critical software component, or to a baselined item after a baseline is
+tagged. The CDR review's requirement changes are Class I: MRD Rev D in CR-2026-007; SYS Rev E and F, which CR-2026-007
+omitted, with SYS Rev G in CR-2026-009 (RID SE-03). A design review chair can propose a Class I change but cannot
+approve it: the PI is the only approver (§2.2), and a chair's approval is recorded as "Proposed by the design review;
+PI decision required by <date>".
+
 ### 4.4 Change Request Template
 
 ```
@@ -223,6 +253,23 @@ Submitter: Name
 
 ---
 
+### 4.5 Automated Configuration Checks
+
+Run in CI on every pull request (`.github/workflows/program-checks.yml`); a failing check blocks the merge:
+
+| Check | Controls |
+|-------|----------|
+| `scripts/check_parameters.py` | Key parameters agree between code and documents |
+| `scripts/check_traceability.py --check` | No undefined requirement IDs in code; no conflicting descriptions; every procedure cites a requirement |
+| `scripts/gen_rtm.py --check` | The RTM matches the specifications |
+| `scripts/tbd_register.py --check` | The TBD/TBR count only goes down |
+| `scripts/check_document_ids.py --check` | Unique document IDs; register rows and revisions current |
+| `scripts/gen_command_dictionary.py --check` | Command dictionary matches the flight code |
+| `scripts/register_status.py --check`, `scripts/check_doc_references.py` | Findings register counts; no broken document links |
+| `software/simulation/cdr/pm/gen_vcrm.py --check` | The VCRM block matches the specifications |
+| `software/simulation/cdr/review/gen_rid_log.py --check` | The CDR review's RID log matches its data |
+| `scripts/gen_vi_register.py --check` | The verification-item register (`docs/verification/VI_REGISTER.md`) is current; every verification item has a pass criterion and a dated event; every dated action of `mission/SCHEDULE.md` §5 has an owner, a date and a criterion |
+
 ## 5. Version Control
 
 ### 5.1 Repository Structure
@@ -251,22 +298,15 @@ SMART-QSO/
 
 ### 5.2 Branching Strategy
 
-```
-main ─────────────────────────────────────────────>
-       \                      \            \
-        develop ──────────────────────────────>
-              \         \         \
-               feature/  feature/  release/
-               xyz       abc       v1.0
-```
+Trunk-based: `main` is the only long-lived branch; every change arrives by pull request from a short-lived branch
+and must pass the CI checks of §4.5. Baselines and flight-image releases are annotated tags on `main` (§5.4). The
+`develop`, `release/*` and `hotfix/*` branches of version 1.0 were never created and are withdrawn;
+`docs/development/BRANCHING_STRATEGY.md` still describes them and should be brought into line.
 
 | Branch | Purpose | Protection |
 |--------|---------|------------|
-| main | Flight-ready code | Protected, requires review |
-| develop | Integration branch | Protected |
-| feature/* | Feature development | None |
-| release/* | Release preparation | Protected |
-| hotfix/* | Critical fixes | None |
+| main | Integrated, CI-checked state | Protected; pull request and passing checks required |
+| short-lived topic branches | One change each | CI on push |
 
 ### 5.3 Commit Guidelines
 
@@ -381,12 +421,12 @@ All changes tracked via:
 | CI/CD | GitHub Actions | - |
 | Issue Tracking | GitHub Issues | - |
 | Documentation | Markdown | - |
-| Build System | CMake | 3.16+ |
+| Build System | Cargo (Rust toolchain pinned in `software/rust/rust-toolchain.toml`) and CMake for the C test suites | 3.16+ (CMake) |
 
 ### 8.2 GitHub Configuration
 
-Repository settings:
-- Branch protection on main and develop
+Repository settings (intended; the review did not inspect the GitHub settings):
+- Branch protection on main
 - Require PR reviews (minimum 1)
 - Require status checks to pass
 - Require signed commits for releases
@@ -399,27 +439,15 @@ Repository settings:
 ### 9.1 Release Workflow
 
 ```
-1. Create release branch from develop
-   git checkout -b release/v1.0.0 develop
-
-2. Update version numbers
-   - CMakeLists.txt
-   - smart_qso.h
-
-3. Final testing on release branch
-
-4. Create release tag
+1. Open a pull request on main with the version change and the release notes;
+   all §4.5 checks and the flight-software CI (tests, coverage gates, clippy,
+   the firmware build) must pass.
+2. Merge, then tag the merge commit on main:
    git tag -a v1.0.0 -m "Release v1.0.0"
-
-5. Merge to main
-   git checkout main
-   git merge release/v1.0.0
-
-6. Merge back to develop
-   git checkout develop
-   git merge release/v1.0.0
-
-7. Create GitHub release with notes
+3. Record the firmware image hash (SW-002) and the toolchain version
+   (software/rust/rust-toolchain.toml) in the release notes and the
+   software version description.
+4. Create the GitHub release with the notes and the image.
 ```
 
 ### 9.2 Release Notes Template
@@ -451,7 +479,7 @@ Brief description of this release.
 
 ## Compatibility
 - Hardware: OBC Rev A
-- Tools: GCC ARM 12.x, CMake 3.16+
+- Tools: Rust toolchain per software/rust/rust-toolchain.toml; CMake for the C test suites
 ```
 
 ---
@@ -513,3 +541,5 @@ Date: YYYY-MM-DD
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-27 | CDR review, PM/SE/V&V | Reference standards corrected (NPR 7123.1D, NPR 7150.2D; NPR 7120.5 not governing); status notice (no baseline, no tags); CCB as it can work with one approver; real configuration items (Rust crates, firmware, simulations; hardware CIs); Class I scope (baseline parameters, requirements, ICDs; CR-2026-007); dated baselines with tag names; automated configuration checks; trunk-based branching replaces the unused develop/release model |
+| 1.2 | 2026-10-27 | CDR round 3, systems and programmatics | §4.5: the VCRM, RID-log and verification-item register checks run in CI (RID PM-04); §4.3: SYS Rev E/F/G in CR-2026-009 (SE-03), a review chair proposes but does not approve Class I changes (PM-04); status notice: CR-2026-001 to -015 and the PI ratification point DA-01; §4.1 CDR and pre-ship dates from SQSO-SCH-001 D |

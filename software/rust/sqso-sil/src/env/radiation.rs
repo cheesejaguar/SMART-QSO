@@ -24,14 +24,22 @@
 //! * FRAM bit flip (FRAM cells are SEU-hard; this stands for upsets in its
 //!   interface and the write path, to exercise the CRC/EDAC handling): one
 //!   per 180 days.
+//! * Command receiver single-event functional interrupt (the radio board's
+//!   MCU or synthesizer hung, silent until its power is cycled; FSW-09):
+//!   one per 120 days of powered time.
 //!
 //! Hazards are accumulated (Λ += λ dt) against exponential thresholds drawn
 //! once per event, so a step costs no random draw.
 //!
-//! **Total ionizing dose**: 1.5 krad(Si)/yr at 500 km SSO behind 2 mm Al,
-//! scaled e^((h − 500 km)/150 km) and (2 mm / t)^1.2 — consistent with
-//! BASELINE §6 ("design to 10 krad, ≥ 2× the 2-year dose behind 2 mm Al").
-//! The accumulated dose follows the same region weights.
+//! **Total ionizing dose** (`docs/environment/RADIATION_ANALYSIS.md` Rev C
+//! §4.1, RID RAD-02): behind 2 mm Al at 500 km, 2-year totals of 3,660
+//! rad(Si) trapped electrons and protons, 1,494 solar protons (95 %) and
+//! 100 GCR, so 2.63 krad(Si)/yr. The trapped part accumulates with the
+//! region weights (the SAA weight carries e^((h − 500 km)/150 km), which
+//! reproduces §4.1's 500-to-525 km ratio of the trapped dose, 1.18); the
+//! solar and GCR part evenly. Other depths scale as (2 mm / t)^1.35 (§4.4's
+//! fit between 1 and 3 mm). Revision B's 1.5 krad(Si)/yr left out the solar
+//! protons and was 1.6–1.8 times low.
 
 use super::math::{DAY_S, Rng, V3, YEAR_S};
 
@@ -41,8 +49,18 @@ pub const OBC_RESET_MEAN_PER_S: f64 = 1.0 / (90.0 * DAY_S);
 pub const JETSON_SEL_MEAN_PER_S: f64 = 1.0 / (60.0 * DAY_S);
 /// Orbit-average FRAM bit-flip rate (per s): one per 180 days.
 pub const FRAM_FLIP_MEAN_PER_S: f64 = 1.0 / (180.0 * DAY_S);
-/// Annual dose at 500 km behind 2 mm Al (rad(Si)/yr).
-pub const TID_RAD_PER_YEAR_500KM_2MM: f64 = 1500.0;
+/// Annual trapped-particle dose at 500 km behind 2 mm Al (rad(Si)/yr):
+/// 3,660 in 2 years (RADIATION_ANALYSIS Rev C §4.1)
+pub const TID_TRAPPED_RAD_PER_YEAR_2MM: f64 = 1830.0;
+/// Annual solar-proton (95 %) and GCR dose behind 2 mm Al (rad(Si)/yr):
+/// (1,494 + 100) in 2 years
+pub const TID_SOLAR_GCR_RAD_PER_YEAR_2MM: f64 = 797.0;
+/// Annual dose at 500 km behind 2 mm Al (rad(Si)/yr): 2.63 krad(Si)
+pub const TID_RAD_PER_YEAR_500KM_2MM: f64 = TID_TRAPPED_RAD_PER_YEAR_2MM + TID_SOLAR_GCR_RAD_PER_YEAR_2MM;
+/// Depth exponent of the dose (RADIATION_ANALYSIS Rev C §4.4)
+pub const TID_DEPTH_EXPONENT: f64 = 1.35;
+/// Orbit-average command-receiver hang rate (per s): one per 120 days.
+pub const RX_SEFI_MEAN_PER_S: f64 = 1.0 / (120.0 * DAY_S);
 /// Rate weight inside the SAA (at 500 km).
 pub const SAA_WEIGHT: f64 = 30.0;
 /// Rate weight at high magnetic latitude.
@@ -92,9 +110,11 @@ pub fn weight(lat: f64, lon: f64, alt_m: f64) -> f64 {
 }
 
 /// Annual total ionizing dose (rad(Si)/yr) at a mean altitude behind a
-/// shield thickness.
+/// shield thickness (the trapped part scaled with altitude as the SAA
+/// weight is).
 pub fn tid_rad_per_year(alt_m: f64, shield_mm_al: f64) -> f64 {
-    TID_RAD_PER_YEAR_500KM_2MM * ((alt_m - 500e3) / 150e3).exp() * (2.0 / shield_mm_al.max(0.1)).powf(1.2)
+    let depth = (2.0 / shield_mm_al.max(0.1)).powf(TID_DEPTH_EXPONENT);
+    (TID_TRAPPED_RAD_PER_YEAR_2MM * ((alt_m - 500e3) / 150e3).exp() + TID_SOLAR_GCR_RAD_PER_YEAR_2MM) * depth
 }
 
 /// Single-event effects in one step.
@@ -106,27 +126,29 @@ pub struct Events {
     pub jetson_latchup: bool,
     /// A bit flipped in FRAM.
     pub fram_bitflip: bool,
+    /// The command receiver hung (meaningful only while powered).
+    pub rx_sefi: bool,
 }
 
 /// The radiation environment model.
 #[derive(Clone, Debug)]
 pub struct Radiation {
     rng: Rng,
-    hazard: [f64; 3],
-    threshold: [f64; 3],
+    hazard: [f64; 4],
+    threshold: [f64; 4],
     /// Accumulated dose behind 2 mm Al (rad(Si)).
     pub dose_rad: f64,
-    /// Events so far: OBC resets, Jetson latch-ups, FRAM flips.
-    pub counts: [u64; 3],
+    /// Events so far: OBC resets, Jetson latch-ups, FRAM flips, receiver hangs.
+    pub counts: [u64; 4],
 }
 
-const MEAN_RATES: [f64; 3] = [OBC_RESET_MEAN_PER_S, JETSON_SEL_MEAN_PER_S, FRAM_FLIP_MEAN_PER_S];
+const MEAN_RATES: [f64; 4] = [OBC_RESET_MEAN_PER_S, JETSON_SEL_MEAN_PER_S, FRAM_FLIP_MEAN_PER_S, RX_SEFI_MEAN_PER_S];
 
 impl Radiation {
     /// A model with its own random stream.
     pub fn new(rng: Rng) -> Radiation {
-        let mut r = Radiation { rng, hazard: [0.0; 3], threshold: [0.0; 3], dose_rad: 0.0, counts: [0; 3] };
-        for k in 0..3 {
+        let mut r = Radiation { rng, hazard: [0.0; 4], threshold: [0.0; 4], dose_rad: 0.0, counts: [0; 4] };
+        for k in 0..4 {
             r.threshold[k] = r.rng.exp(1.0);
         }
         r
@@ -136,9 +158,10 @@ impl Radiation {
     /// height (m).
     pub fn step(&mut self, dt: f64, lat: f64, lon: f64, alt: f64) -> Events {
         let w = weight(lat, lon, alt) / MEAN_WEIGHT;
-        self.dose_rad += tid_rad_per_year(500e3, SHIELD_MM_AL) / YEAR_S * dt * w;
-        let mut fired = [false; 3];
-        for k in 0..3 {
+        let depth = (2.0 / SHIELD_MM_AL).powf(TID_DEPTH_EXPONENT);
+        self.dose_rad += (TID_TRAPPED_RAD_PER_YEAR_2MM * w + TID_SOLAR_GCR_RAD_PER_YEAR_2MM) * depth / YEAR_S * dt;
+        let mut fired = [false; 4];
+        for k in 0..4 {
             self.hazard[k] += MEAN_RATES[k] * w * dt;
             if self.hazard[k] >= self.threshold[k] {
                 fired[k] = true;
@@ -147,7 +170,7 @@ impl Radiation {
                 self.threshold[k] = self.rng.exp(1.0);
             }
         }
-        Events { obc_reset: fired[0], jetson_latchup: fired[1], fram_bitflip: fired[2] }
+        Events { obc_reset: fired[0], jetson_latchup: fired[1], fram_bitflip: fired[2], rx_sefi: fired[3] }
     }
 }
 
@@ -166,7 +189,12 @@ mod tests {
         assert_eq!(region(d(-70.0), d(120.0), 500e3), Region::Polar);
         assert_eq!(region(d(10.0), d(100.0), 500e3), Region::Quiet);
         assert!((POLE.norm() - 1.0).abs() < 1e-5);
-        assert!(tid_rad_per_year(500e3, 2.0) * 2.0 * 2.0 <= 10_000.0);
+        // RADIATION_ANALYSIS Rev C §4.1: 5.25 krad(Si) in 2 years behind
+        // 2 mm at 500 km, 5.92 at 525 km; 1 mm 12.6, 3 mm 2.87 (500 km)
+        assert!((2.0 * tid_rad_per_year(500e3, 2.0) - 5254.0).abs() < 10.0);
+        assert!((2.0 * tid_rad_per_year(525e3, 2.0) / 5917.0 - 1.0).abs() < 0.02);
+        assert!((2.0 * tid_rad_per_year(500e3, 1.0) / 12_601.0 - 1.0).abs() < 0.08);
+        assert!((2.0 * tid_rad_per_year(500e3, 3.0) / 2866.0 - 1.0).abs() < 0.08);
     }
 
     #[test]
@@ -204,7 +232,7 @@ mod tests {
             rad.dose_rad
         );
         assert!((wsum / nf / MEAN_WEIGHT - 1.0).abs() < 0.15);
-        assert!((rad.dose_rad / 1500.0 - 1.0).abs() < 0.15);
+        assert!((rad.dose_rad / TID_RAD_PER_YEAR_500KM_2MM - 1.0).abs() < 0.10, "{}", rad.dose_rad);
         // ≈ 4 OBC resets a year expected
         assert!(rad.counts[0] <= 12);
     }

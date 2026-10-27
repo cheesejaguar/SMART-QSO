@@ -4,7 +4,7 @@
  *
  * Provides watchdog timer abstraction for system health monitoring.
  *
- * @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
+ * @requirement SRS-F050 Refresh the hardware watchdog (IWDG, 24.1 to 27.8 s) only at the external supervisor's WDI falling edges, every 10 s while every task checks in
  * @requirement SRS-F051 Save state before watchdog reset
  * @requirement SRS-S003 Software shall implement hardware watchdog
  */
@@ -23,9 +23,12 @@ extern "C" {
 /*===========================================================================*/
 
 /**
- * @brief Default watchdog timeout in milliseconds
+ * @brief Default watchdog timeout in milliseconds: the IWDG reload 3200 at
+ *        LSI / 256, 24.1-27.8 s over the LSI's tolerance, so the IWDG acts
+ *        before the TPS3850 supervisor's 29.3 s minimum (C23-C26 440 nF C0G;
+ *        SQSO-ICX-001 D §4.3 and §6 row 37, RID SMA-B08)
  */
-#define HAL_WDT_DEFAULT_TIMEOUT_MS  30000
+#define HAL_WDT_DEFAULT_TIMEOUT_MS  25600
 
 /**
  * @brief Minimum watchdog timeout

@@ -1,5 +1,5 @@
 //! The C math library functions the flight logic needs, for `no_std`
-//! (`core` has no `sqrt` or `round`).
+//! (`core` has no `sqrt`, `round` or `log`).
 //!
 //! Each gives the result the C library gives: [`sqrt`] is correctly
 //! rounded, as IEEE 754 requires of C `sqrt`, and [`round`] rounds halfway
@@ -75,6 +75,39 @@ pub fn round(x: f64) -> f64 {
 #[allow(clippy::cast_possible_truncation)] // saturating by definition of `as`
 pub fn lround(x: f64) -> i64 {
     round(x) as i64
+}
+
+/// Natural logarithm of a positive normal number (C `log` within 2 ulp):
+/// NaN for zero, a negative, a subnormal or NaN; infinity for infinity.
+/// x = m 2^e with m in [1/√2, √2), ln m from the series of
+/// 2 artanh((m − 1)/(m + 1)), which converges in a few terms there
+pub fn ln(x: f64) -> f64 {
+    if x.is_nan() || x < f64::MIN_POSITIVE {
+        return f64::NAN;
+    }
+    if x == f64::INFINITY {
+        return x;
+    }
+    const LN_2: f64 = core::f64::consts::LN_2;
+    let bits = x.to_bits();
+    let mut e = i32::try_from((bits >> 52) & 0x7FF).unwrap_or(0) - 1023;
+    let mut m = f64::from_bits((bits & ((1u64 << 52) - 1)) | (1023u64 << 52));
+    if m > core::f64::consts::SQRT_2 {
+        m /= 2.0;
+        e += 1;
+    }
+    let s = (m - 1.0) / (m + 1.0);
+    let s2 = s * s;
+    // |s| <= 0.1716: s^2 <= 0.0295, the 12th term is below 1e-18 of the first
+    let mut term = s;
+    let mut sum = 0.0;
+    let mut k = 1.0;
+    for _ in 0..12 {
+        sum += term / k;
+        term *= s2;
+        k += 2.0;
+    }
+    f64::from(e) * LN_2 + 2.0 * sum
 }
 
 #[cfg(test)]
@@ -156,5 +189,20 @@ mod tests {
         }
         assert_eq!(lround(f64::NAN), 0);
         assert_eq!(lround(1e300), i64::MAX);
+    }
+
+    #[test]
+    fn ln_matches_std_and_rejects_bad_input() {
+        for &x in &[1.0, 2.0, 0.5, 10.0, 1752.0, 72_906.0, 336_050.0, 1e-300, 1e300, 1.414, 1.415, 0.7072, 3.0e-5] {
+            let want = f64::ln(x);
+            let got = ln(x);
+            assert!((got - want).abs() <= 4.0 * f64::EPSILON * want.abs().max(1.0), "{x}: {got} vs {want}");
+        }
+        assert!(ln(0.0).is_nan());
+        assert!(ln(-1.0).is_nan());
+        assert!(ln(f64::NAN).is_nan());
+        assert!(ln(5e-324).is_nan());
+        assert_eq!(ln(f64::INFINITY), f64::INFINITY);
+        assert_eq!(ln(1.0), 0.0);
     }
 }

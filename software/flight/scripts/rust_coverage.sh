@@ -55,6 +55,15 @@ for line in sys.stdin:
         print(m["executable"])'
 )
 [ "${#unit_tests[@]}" -gt 0 ] || { echo "::error::no Rust unit-test binaries built"; exit 1; }
+# The flight crates' own test binaries first: llvm-cov keeps the first
+# object's record of a #[no_mangle] function, and a test binary of another
+# crate (sqso-sil's, which links sqso-ffi as a dependency) must not hide the
+# crate's own unit tests' counts. Cargo reports the binaries in the order
+# they finish building, which varies from run to run.
+mapfile -t unit_tests < <(
+    printf '%s\n' "${unit_tests[@]}" | grep -E '/(sqso-ffi|sqso-fsw|sqso-protocol)/|/(sqso_ffi|sqso_fsw|sqso_protocol)-[0-9a-f]+$' || true
+    printf '%s\n' "${unit_tests[@]}" | grep -vE '/(sqso-ffi|sqso-fsw|sqso-protocol)/|/(sqso_ffi|sqso_fsw|sqso_protocol)-[0-9a-f]+$' || true
+)
 for t in "${unit_tests[@]}"; do
     (cd "$rust_dir" && LLVM_PROFILE_FILE="$build/profraw-unit/%p-%m.profraw" "$t" -q >/dev/null)
 done

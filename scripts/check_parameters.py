@@ -72,11 +72,15 @@ PARAMETERS: Tuple[Parameter, ...] = (
         ("docs/BASELINE_PARAMETERS.md", r"EMERGENCY \(beacon shed\) below (\d+) %"),
         ("docs/operations/MISSION_RULES.md", r"\| SOC < (\d+)% \| Absolute minimum"),
     )),
-    Parameter("hardware watchdog timeout (s)", "30", (
-        (FLIGHT + "watchdog_mgr.h", r"WDT_HW_TIMEOUT_MS\s+(\d+)000U"),
-        (FLIGHT + "hal/hal_wdt.h", r"HAL_WDT_DEFAULT_TIMEOUT_MS\s+(\d+)000\b"),
-        ("hardware/obc/OBC_DESIGN.md", r"\| Timeout \| (\d+) seconds"),
-        ("docs/test_procedures/TP-OBC-004_Watchdog.md", r"Measure timeout \| (\d+)s"),
+    # IWDG reload 3200 at LSI/256: 24.1-27.8 s over the LSI tolerance, below
+    # the TPS3850 supervisor's 29.3 s minimum with C23-C26 at 440 nF C0G
+    # (SQSO-ICX-001 D §4.3, §6 row 37): the IWDG resets first, the supervisor
+    # is the backstop
+    Parameter("hardware watchdog timeout (ms)", "25600", (
+        (FLIGHT + "watchdog_mgr.h", r"WDT_HW_TIMEOUT_MS\s+(\d+)U"),
+        (FLIGHT + "hal/hal_wdt.h", r"HAL_WDT_DEFAULT_TIMEOUT_MS\s+(\d+)\b"),
+        ("hardware/obc/OBC_DESIGN.md", r"\| Timeout \| [\d.]+ seconds \((\d+) ms"),
+        ("docs/test_procedures/TP-OBC-004_Watchdog.md", r"Measure timeout \| [\d.]+ s \((\d+) ms"),
     )),
     Parameter("loss-of-contact timeout at launch (days)", "30", (
         (FLIGHT + "contact_monitor.h", r"CONTACT_TIMEOUT_DEFAULT_DAYS\s+(\d+)U"),

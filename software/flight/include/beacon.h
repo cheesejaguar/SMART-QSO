@@ -235,9 +235,27 @@ SmartQsoResult_t beacon_transmit(const BeaconContent_t *content);
 /**
  * @brief Mark beacon as transmitted
  *
+ * The next interval starts; with jitter set it gets a new jitter.
+ *
  * @param now_ms Current time in milliseconds
  */
 void beacon_mark_transmitted(uint64_t now_ms);
+
+/** Beacon interval jitter, +/- ms (RF-04; SQSO-LBA-001 v3.0 §5.3) */
+#define BEACON_JITTER_MS 5000U
+
+/**
+ * @brief Jitter each beacon interval by a uniform draw in +/- max_ms
+ *
+ * Off (0) after beacon_init(); the executive sets BEACON_JITTER_MS. The
+ * draw is symmetric, so each power mode's mean interval is unchanged.
+ *
+ * @param max_ms Largest jitter, ms (0: none)
+ * @param seed   Seed of the draws
+ *
+ * @requirement SRS-F127 The software shall jitter each beacon interval by up to 5 s either way, keeping the mean interval of each mode
+ */
+void beacon_set_jitter(uint32_t max_ms, uint32_t seed);
 
 /**
  * @brief Get beacon state

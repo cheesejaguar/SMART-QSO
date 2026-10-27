@@ -2,8 +2,8 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-CRL-001
-**Revision:** C
-**Date:** 2026-10-26
+**Revision:** J
+**Date:** 2026-10-27
 **Reference:** `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` §4.3 to §4.4, §6.3
 
 ---
@@ -24,6 +24,19 @@ logged here; the Git history records them.
 | CR-2026-004 | 2026-10-25 | II | Tool qualification (SDP §3.3) | The flight image stays on the pinned, unqualified rustc 1.97.0; no qualified compiler (Ferrocene) | Approved, PI | Implemented |
 | CR-2026-005 | 2026-10-25 | I | OBC–transmitter interface (`hardware/obc/OBC_DESIGN.md` §8.1 and A.5; SQSO-RF-TX-001 §10.1; SRS §5.3) | The downlink goes to a KISS TNC on USART2, shared with the uplink receiver; power select on one GPIO line (0.5 W / 1 W); three ADC monitors; SRS-I023 to SRS-I027 | Approved, PI | Implemented; verification of the TNC and transmitter pending (hardware) |
 | CR-2026-006 | 2026-10-26 | I | BASELINE §5 battery row, §8 ADCS row, §9 D8–D9; `sqso_fsw::adcs` gains | Battery charged to 4.10 V/cell (size kept); gyro Epson M-G370PDT0 with BMI088 backup; B-dot gain 10⁴; spin 6°/s with a spin-hold term | Approved, PI delegation | Implemented in the software and the simulation; hardware pending |
+| CR-2026-007 | 2026-10-27 | I | BASELINE §1, §3–§9 (Rev E); SQSO-LVR-001; mission requirements MO-1 to MO-5 | CDR 2026 chair dispositions: launch path, orbit 475 km target / 485 km cap, planning launch 2028-11, mass properties and layout B, third inhibit DS3, burn drivers and sequence, commissioning hold, spin 8 °/s, uplink windows, transponder 1.8 W DC, telecommand stations | Proposed by the design review (recorded as approved by the chair, who cannot approve a Class I change: CM plan §2.2); PI ratification required by 2027-01-12 (DA-01) | Implemented in documents; software in progress |
+| CR-2026-008 | 2026-10-27 | I | BASELINE §1, §3, §4, §5, §7 (Rev E, amended) | Inertia ballast 2 × 10 g (C-13; MEV 1.748 kg, +14.4 %); telecommand ≥ 64 dBm EIRP in two station variants (C-14); uplink ≥ 0.9 MHz below 3 × f_down; lifetimes, power and link values from the Rev E re-runs | Proposed by the design review (recorded as approved by the chair, who cannot approve a Class I change: CM plan §2.2); PI ratification required by 2027-01-12 (DA-01) | Implemented in documents |
+| CR-2026-009 | 2026-10-27 | I | SQSO-REQ-001 MRD-013 (Rev F); SQSO-REQ-002 Rev E, F and G (SYS-100, SYS-203, SYS-222, SYS-224, SYS-707 and the Rev E/F rows); EPS-F001 (`docs/hardware/EPS_DESIGN.md`); BASELINE §5 power-closure note | System requirements rebaselined by the CDR review (Rev E/F, omitted from CR-2026-007) and amended in round 3: SYS-100 2.23 W at the 1.84 W load; third harmonic ≥ 70 dB; SYS-222 the RF-P013 pattern; SYS-224 every emitter incl. the GNSS receiver and the completion latch; SYS-707 cycle count reconciled | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in SQSO-REQ-002 G; EPS-F001 and BASELINE §5 by their owners after the decision |
+| CR-2026-010 | 2026-10-27 | I | SYS-603; BASELINE §6 Jetson heat-path row; ETP VI-01, V-THM-3, V-JET-7 | The ≥ 1 W/K conductance requirement becomes a temperature requirement (spreader ≤ +40 °C in a 600 s batch, junction ≤ 95 °C, spreader ≤ +70 °C stuck on); the conductance becomes a measured design value | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in SQSO-REQ-002 G, ETP D, VCRM D; BASELINE §6 by the chair |
+| CR-2026-011 | 2026-10-27 | I | SQSO-ICD-013 0.7–0.10, SMART-QSO-ICD-001 1.1–1.5, SQSO-ICD-005 2.0–2.4, SQSO-ICD-010 E–G | Record of the ICD changes made during the CDR review without a CR: passivation opcodes 0x70/0x71 and their sequence; EPS register map (CHG_INHIBIT, LOCK_UNLOCK, EOL_STATE, EOL_KEY, IMON_JET) and JETSON_PWR on PA8; space-to-ground ICD rewrite and its updates; launch-provider ICD against the EXOpod Nova chain | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in the ICDs; verification by their VIs |
+| CR-2026-012 | 2026-10-27 | I | Safety-critical software components (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2, versions 1.4 and 1.5; chair decision C-10) | `transponder.rs`, `ops_state.rs` (both crates) and `passivation.rs` (both crates) added to the safety-critical list, with the per-file coverage gate | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in the SDP and the CI gate |
+| CR-2026-013 | 2026-10-27 | I | SQSO-ETP-001 Rev D §9 deviations 1–3 and 7; §3.3 shock, §3.4 TVAC definition, §3.11 reliability programme; SQSO-LVR-001 LVR-046, VI-LV-16, VI-LV-17 | Tailoring of GSFC-STD-7000B (hot non-operating plateau +60 °C, 8 + 4 cycles, about 24 h failure-free in vacuum) and of the UG v11 advised shock (EM test if VI-07 needs it, FM by similarity); FM deployment before vibration; reliability programme added | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in ETP D and LVR E (amended) |
+| CR-2026-014 | 2026-10-27 | I | EPS-F002 (`docs/hardware/EPS_DESIGN.md`); V-EPS-1 (SQSO-EPS-BRD-001); V-PWR-3 and the MPPT factor (SQSO-PBA-001) | MPPT efficiency "≥ 90 % at every operating point ≥ 1 W per tracker over 3.5–6.4 V, ≥ 91 % power-weighted" (was ≥ 92 %, which the 90.9–92.3 % design does not meet at low power); V-EPS-1 and V-PWR-3 take the same values; the power analysis MPPT factor 0.92 → 0.91 | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Proposed by the EPS designer; documents change after the decision |
+| CR-2026-015 | 2026-10-27 | I | BASELINE §3 launch-cost row and backup trigger; SQSO-AUD-005 Rev F | Program-side launch cost $57k–195k (was $30k–100k), all-in $142k–345k; the backup trigger read on the integrator's slot price | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | ROM F implemented; BASELINE §3 by the chair after the decision |
+| CR-2026-016 | 2026-10-27 | I | EPS-F012 (`docs/hardware/EPS_DESIGN.md`); BSA H3b count basis; ICD-001 1.6 | Hardware load shed covers the Jetson rail only (the PA is no longer shed); F0B a diverse fuse (MIL-PRF-23419/8, Littelfuse) | Proposed by the design review; PI decision required by 2027-01-12 | Implemented in the design (SQSO-EPS-BRD-001 E) |
+| CR-2026-017 | 2026-10-27 | I | SYS-600, SYS-601 (`docs/requirements/SYSTEM_REQUIREMENTS.md` §11); THERMAL_DESIGN §1.1; ETP §3.4 and §9 deviation 8; BASELINE §8 thermal row | Per-unit allowable flight temperatures from the parts' ratings (−30 °C cold for every board, −40 °C for the first orbit after separation, tested at its AFT without the 10 °C margin: GEVS deviation); heater 0.70 W at 12.0 V (207 Ω; was 0.72 W) | Proposed by the design review (RID THM-04); PI decision required by 2027-01-12 | Implemented in THERMAL_DESIGN 1.5, ETP D (amended), SYSTEM_REQUIREMENTS G (proposed), SQSO-THA-001 2.2; BASELINE §8 pending the PI |
+| CR-2026-018 | 2026-10-27 | I | SYS-512, VI-02, MSC E-02, SRS-F151; BASELINE §6 AI-model row; SYS-510 | One Smart Beacon burst definition (≤ 10 min, ≤ 3.6 kJ) and the 0.1 Wh metric per accepted beacon line (decision C-20) | Approved by the review chair (C-20); PI ratification DA-01 by 2027-01-12 | Implemented in SRS-F151, SYS-510, SYS-512 (REQ-002 H), ETP E VI-02, MSC 2.3, BASELINE §6 |
+| CR-2026-019 | 2026-10-27 | I | ADCS-P002/F003/P003 (`docs/hardware/ADCS_DESIGN.md` 1.9); SYS-401 to SYS-404; MRD-061 (Rev G); BASELINE §5 generation and §8 ADCS row; ETP residual-dipole limit; SQSO-PBA-001 2.5; first-beacon timing (CONOPS, MISSION_TIMELINE, ICD-013) | Pointing requirement restated for power and sun-vector knowledge withdrawn (C-22, C-23); residual-dipole limit 10 → 7 mA·m² (C-24); temperature-gated AntS deployment and transmitter hold until it deploys (C-18, C-19) | Approved by the review chair (C-18, C-19, C-22 to C-24); PI ratification DA-01 by 2027-01-12 | Implemented in ADCS_DESIGN 1.9, REQ-002 H (amended), MRD Rev G, BASELINE §5 and §8, ETP, PBA 2.5, SRS 1.12 |
 
 ## 3. Change Requests
 
@@ -348,6 +361,870 @@ Submitter: Systems (build-versus-buy study)
 
 ---
 
+### CR-2026-007: CDR 2026 chair dispositions
+
+```
+Change Request Number: CR-2026-007
+Date Submitted: 2026-10-27
+Submitter: Design review chair (CDR 2026, SQSO-REV-CDR-002)
+
+1. Configuration Item Affected:
+   CI ID: SQSO-BL-001 §1, §3, §4, §5, §6, §7, §8, §9 (Rev E);
+   SQSO-LVR-001 (B); docs/requirements/MISSION_REQUIREMENTS.md
+   (objectives MO-1 to MO-5); mission/CONOPS.md (LEOP, commissioning,
+   passivation)
+
+2. Description of Change:
+   - Launch: Falcon 9 rideshare from Vandenberg through Exolaunch
+     (EXOpod Nova 1U slot); planning launch 2028-11; NRCSD backup.
+   - Orbit: 475 km target, 465-485 km band, 485 km cap (FCC five-year
+     rule with margin, ODAR Draft B).
+   - Mass properties: CBE 1.49 kg, MEV 1.73 kg; Iyy at least 1.03 times
+     the other principal moments, axis within 5 deg of +Y (layout B,
+     AntS elements along +/-X).
+   - Inhibits: three deployment switches DS1-DS3 on three rails;
+     120 s actuator hold; RF silence latched; commissioning hold until
+     COMMISSIONING_RELEASE.
+   - Deployment: two resistors per wing on four independent 0.8 A burn
+     lines, one resistor at a time for 8 s, a 12 s hardware monostable;
+     wings first, then the AntS.
+   - ADCS: spin 8 deg/s (was 6), nutation gains 3e-4 / 1e-4 N m s.
+   - RF: uplink request 435.222-435.778 MHz, else 436.222-436.500 MHz;
+     transponder allocation 1.8 W DC.
+   - Operations: at least two telecommand stations at least 1,000 km
+     apart, each able to command alone.
+   - Mission objectives MO-1 to MO-5 aligned with the baseline.
+
+3. Reason for Change:
+   Round-1 RIDs of the CDR 2026 design review (SQSO-REV-CDR-002 §4,
+   chair decisions C-1 to C-12): the 500 km altitude failed the FCC
+   five-year rule; the burn current exceeded the fuse; no third
+   inhibit; +Y was barely the major axis; no commissioning hold or
+   passivation command; no designated stations; the June 2028 date
+   missed the integrator's L-4M milestone.
+
+4. Impact Assessment:
+   - Technical: power margins +32 % / +75 % (allocation); mass margin
+     +15.9 % against the 2.00 kg allocation, 2.5 kg slot limit.
+   - Schedule: launch moves from 2028-06 to 2028-11.
+   - Cost: SQSO-AUD-005 Rev C ($295k-$779k non-labor).
+   - Risk: SQSO-RISK-001 Rev B.
+
+5. Affected Documents:
+   docs/BASELINE_PARAMETERS.md (E), docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md (B),
+   mission/CONOPS.md, docs/ORBITAL_ACCESS.md (B), docs/funding_audit/LIFECYCLE_COST_ROM.md (C),
+   docs/requirements/MISSION_REQUIREMENTS.md, the board build-to designs under
+   hardware/electrical/ and hardware/mechanical/MECHANICAL_DESIGN.md.
+
+6. Verification Required:
+   Analysis: SIL mission simulation and ADCS Monte Carlo with the
+   changed values; the RID closure panel (SQSO-REV-CDR-002 §6).
+   Test: the verification items VI-* of the review on the EM and
+   flight unit.
+
+7. CCB Decision:
+   [ ] Approved   [ ] Approved with conditions   [ ] Rejected
+   Reason: proposed by the design review chair, 2026-10-27, and recorded
+   then as "approved"; the PI is the only approver of a Class I change
+   (CM plan section 2.2). PI ratification required by 2027-01-12
+   (mission/SCHEDULE.md DA-01). The review was conducted by AI
+   reviewers, not an independent board. Requirement changes of this
+   review (SQSO-REQ-002 Rev E and F) are carried by CR-2026-009.
+
+8. Implementation:
+   Assigned to: Systems, flight software, hardware
+   Completed: documents 2026-10-27; flight software in progress
+
+9. Verification:
+   Verified by: the review's closure panel; hardware pending
+   Date: —
+```
+
+---
+
+### CR-2026-008: CDR 2026 round-2 baseline amendments
+
+```
+Change Request Number: CR-2026-008
+Date Submitted: 2026-10-27
+Submitter: Design review chair (CDR 2026, SQSO-REV-CDR-002)
+
+1. Configuration Item Affected:
+   CI ID: SQSO-BL-001 Rev E (amended) §1, §3, §4, §5, §7
+
+2. Description of Change:
+   - §4: 2 x 10 g W-Ni-Cu ballast on the +Z end frame (C-13); CBE
+     1.51 kg, MEV 1.75 kg, margin +14.4 %; deployed inertia ratio
+     1.055 / 1.046 with all four AntS elements.
+   - §7: telecommand stations radiate >= 64 dBm EIRP above 10 deg:
+     >= 100 W PEP into >= 15.5 dBic, or <= 50 W PEP into a >= 17.5
+     dBic stacked pair inside the 47 CFR 2.106 US270 areas (C-14);
+     uplink windows >= 0.9 MHz below 3 x f_down (was stated 2 MHz).
+   - §1, §3, §5, §7: contact statistics, lifetimes (ODAR Draft D,
+     deployment 2028-11-01), generation and margins (PBA 2.2) and the
+     beacon margin (LBA 3.4) from the Rev E re-runs.
+
+3. Reason for Change:
+   Round-2 RIDs RFB-11, MCAD-09 (inertia margin 0.007 with four AntS
+   elements), RF-23 (telecommand +3.8 dB at 10 deg with the receiver as
+   designed), SE-18 (uplink separation misstated), SE-16 (analyses at
+   superseded values).
+
+4. Impact Assessment:
+   - Technical: inertia ratio holds >= 1.03 to 3.1 mm placement
+     scatter; telecommand >= +8.8 dB at 10 deg in either variant.
+   - Schedule: none.
+   - Cost: ground stations about $6,650 (A) or $7,350 (B) each;
+     lifecycle $300k-$784k (SQSO-AUD-005 Rev E).
+   - Risk: none added.
+
+5. Affected Documents:
+   docs/BASELINE_PARAMETERS.md, hardware/mechanical/MECHANICAL_DESIGN.md,
+   docs/environment/MASS_BUDGET.md, docs/environment/LINK_BUDGET_ANALYSIS.md,
+   docs/ground/GROUND_STATION_DESIGN.md, docs/regulatory/filings/ODAR_SMART-QSO.md,
+   docs/environment/POWER_BUDGET_ANALYSIS.md.
+
+6. Verification Required:
+   Analysis: the mass properties, link budget and lifetime re-runs.
+   Test: measured inertia (VI-MCAD-03); station EIRP (VI-GND-01).
+
+7. CCB Decision:
+   [ ] Approved   [ ] Approved with conditions   [ ] Rejected
+   Reason: proposed by the design review chair, 2026-10-27, and recorded
+   then as "approved"; the PI is the only approver (CM plan section 2.2).
+   PI ratification required by 2027-01-12 (mission/SCHEDULE.md DA-01).
+
+8. Implementation:
+   Assigned to: Systems, mechanical, ground
+   Completed: 2026-10-27
+
+9. Verification:
+   Verified by: the review's closure panel; hardware pending
+   Date: —
+```
+
+---
+
+### CR-2026-009: system requirements Rev E, F and G
+
+```
+Change Request Number: CR-2026-009
+Date Submitted: 2026-10-27
+Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and programmatics
+
+1. Configuration Item Affected:
+   CI ID: SQSO-REQ-001 MRD-013 (Rev F);
+   SQSO-REQ-002 (System Requirements Specification), Rev D -> G:
+   the Rev E rows (SYS-002, -003, -010, -012, -100, -111, -112, -203,
+   -420, -422, -501, -502, -510, -512, -513, -603, -701, -702, -712;
+   SYS-080 to -089, SYS-703 to -709, SYS-713, SYS-900 to -919), the Rev F
+   rows (SYS-012, -422, -907) and the Rev G rows (SYS-100, -203, -222,
+   -224, -707); EPS-F001 (docs/hardware/EPS_DESIGN.md);
+   SQSO-BL-001 section 5 power-closure note
+   Current Version: SQSO-REQ-002 G (proposed)
+
+2. Description of Change:
+   - Rev E and F: as recorded in SQSO-REQ-002 section 16 (CDR review,
+     2026-10-27). CR-2026-007 carried the MRD and the baseline but not
+     these rows, although CM plan section 4.3 said it did.
+   - SYS-100: at least 2.23 W orbit-average delivered to the bus at
+     end of life while tumbling = the 1.84 W tumbling load of
+     BASELINE section 5 x 1.2 (was 2.16 W at a 1.80 W load). Met by
+     the simulated 2.48 W (PBA v2.2): +12 %. EPS-F001 takes the same
+     value (its status still quotes 2.43 / 3.93 W; BASELINE gives
+     2.48 / 3.92 W). BASELINE section 5 note: "SYS-100 (2.23 W) met
+     with 12 % to spare" (was 2.16 W, 14.8 %).
+   - SYS-203: third harmonic at least 70 dB below the carrier at the
+     antenna port, antennas deployed (was 60 dB; BASELINE section 7).
+   - SYS-222: median >= -3 dBi and 10th percentile >= -10 dBi toward
+     the ground over the pass-weighted directions, each band (RF-P013)
+     (was "omnidirectional coverage").
+   - SYS-224: the 45-minute silence covers every RF emitter including
+     the GNSS receiver; once complete it is latched (no later reset or
+     stowed reading restarts it).
+   - SYS-707: the integrator's higher cycle count is met by board-level
+     and ambient cycles (ETP VI-08); the SpaceX +/-5 C range mapped
+     onto the GEVS +10 C margin (one TVAC definition, RID P3S-10).
+   - MRD-013 (SQSO-REQ-001 Rev F): the 485 km cap applies to the
+     3-sigma-high mean altitude of the drop-off orbit, injection
+     dispersion included (ODAR Draft D; 460 km if the FCC counts an
+     early failure as the end of the mission; RID P3A-09).
+
+3. Reason for Change:
+   RIDs SE-03 and P3E-08 (SYS-100 used the 1.80 W load against
+   BASELINE section 5's 1.84 W), RF-07 (60 dB against 70 dB), RF-05
+   (a monopole cannot be omnidirectional), P3A-01 (GNSS receiver
+   powered inside the silence) and LV-15 (latch), P3S-10 (three TVAC
+   definitions); P3P-02 (Class I changes without a CR).
+
+4. Impact Assessment:
+   - Technical: SYS-100 margin over the requirement +11 % (generation 2.48 W against 2.23 W, after the transponder allocation rose to 1.85 W DC with RF board E); the 2.14 W isotropic bound would miss it, as before. The others align the requirements with the baseline and the design; no design change.
+   - Schedule: None.
+   - Cost: None.
+   - Risk: None added; R23 updated.
+
+5. Affected Documents:
+   docs/requirements/SYSTEM_REQUIREMENTS.md (G), docs/requirements/
+   MISSION_REQUIREMENTS.md (F), docs/verification/RTM.csv,
+   docs/verification/VERIFICATION_MATRIX.md (D), docs/hardware/EPS_DESIGN.md
+   (EPS-F001, by the EPS designer), docs/BASELINE_PARAMETERS.md section 5
+   note (by the chair), docs/environment/THERMAL_ANALYSIS.md V-THM-6 (by the
+   thermal analyst).
+
+6. Verification Required:
+   Analysis: power closure (V-PWR-1 on the EM flatsat); link and pattern
+   (VI-RF-01); RF silence (VI-LV-07, VI-RF-13 with the GNSS receiver).
+   Test: as the VCRM rows.
+
+7. CCB Decision:
+   [ ] Approved   [ ] Approved with conditions   [ ] Rejected
+   Reason: Proposed by the design review; PI decision required by
+   2027-01-12 (mission/SCHEDULE.md DA-01). The review chair cannot
+   approve a Class I change (CM plan section 2.2).
+
+8. Implementation:
+   Assigned to: Systems; EPS designer (EPS-F001); chair (BASELINE)
+   Completed: SQSO-REQ-002 G, 2026-10-27 (proposed text)
+
+9. Verification:
+   Verified by: the review's closure panel (documents); hardware pending
+   Date: -
+```
+
+---
+
+### CR-2026-010: Jetson heat path as a temperature requirement
+
+```
+Change Request Number: CR-2026-010
+Date Submitted: 2026-10-27
+Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and programmatics
+
+1. Configuration Item Affected:
+   CI ID: SQSO-REQ-002 SYS-603; SQSO-BL-001 section 6 "Jetson heat path";
+   SQSO-ETP-001 VI-01; SQSO-THA-001 V-THM-3; SQSO-JET-BRD-001 V-JET-7
+   Current Version: SQSO-REQ-002 G (proposed); BASELINE Rev E (amended)
+
+2. Description of Change:
+   SYS-603 becomes: with the module at 8 W input in the hot case, the
+   spreader stays <= +40 C at the BASELINE section 6 burst duty including
+   a 600 s batch (+50 C operating limit less the 10 C margin before
+   correlation); the junction <= 95 C (payload guard); stuck on, the
+   spreader <= +70 C (guard). Verified by analysis with the correlated
+   model using the heat-path conductance and the junction-to-spreader
+   resistance measured on the EM (VI-01, V-THM-3, V-JET-7).
+   BASELINE section 6 row (proposed): "Jetson heat path: temperature
+   limits of SYS-603; design 1.10 W/K spreader to frame and 1.09-1.16 K/W
+   junction to spreader (estimates), measured on the EM". 
+
+3. Reason for Change:
+   RID SE-07: SYS-603 and BASELINE required >= 1 W/K against a
+   documented 0.44 W/K, and VCRM section 6 row 3 still showed it as a
+   non-compliance. The thermal analysis (THA 2.1 section 6.3) shows the
+   conductance does not drive: 39.0 C for a 600 s batch at 0.44 W/K,
+   35.3 C at 1.0 W/K; the mechanical design now estimates 1.10 W/K.
+
+4. Impact Assessment:
+   - Technical: The requirement states what the payload needs; the 600 s batch is 1 C inside its limit at the audit's 0.44 W/K and about 5 C inside at the 1.10 W/K design.
+   - Schedule: None.
+   - Cost: None.
+   - Risk: R16 unchanged; the heat-path term of R16 is retired by test (VI-01).
+
+5. Affected Documents:
+   docs/requirements/SYSTEM_REQUIREMENTS.md (G), docs/environment/
+   ENVIRONMENTAL_TEST_PLAN.md (D), docs/verification/VERIFICATION_MATRIX.md
+   (D), docs/verification/VI_REGISTER.md (V-THM-3, V-JET-7 overrides),
+   docs/BASELINE_PARAMETERS.md section 6 (by the chair), docs/project/SEMP.md.
+
+6. Verification Required:
+   Test: VI-01 and V-THM-3 on the EM (EM tests 2027-07 to 2027-09).
+   Analysis: the correlated thermal model at the CDR.
+
+7. CCB Decision:
+   [ ] Approved   [ ] Approved with conditions   [ ] Rejected
+   Reason: Proposed by the design review; PI decision required by
+   2027-01-12 (mission/SCHEDULE.md DA-01). The review chair cannot
+   approve a Class I change (CM plan section 2.2).
+
+8. Implementation:
+   Assigned to: Systems; thermal analyst; payload lead
+   Completed: documents 2026-10-27 (proposed)
+
+9. Verification:
+   Verified by: the review's closure panel (documents); hardware pending
+   Date: -
+```
+
+---
+
+### CR-2026-011: interface control documents changed during the CDR review
+
+```
+Change Request Number: CR-2026-011
+Date Submitted: 2026-10-27
+Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and programmatics
+
+1. Configuration Item Affected:
+   CI ID: SQSO-ICD-013 (versions 0.7 to 0.10); SMART-QSO-ICD-001
+   (1.1 to 1.5); SQSO-ICD-005 (2.0 to 2.4); SQSO-ICD-010 (E to G)
+
+2. Description of Change:
+   Record of the changes, each listed in its ICD's revision history:
+   - ICD-013: telecommand-station status and the US270 limits; UTC-
+     derived counters (proposed); PASSIVATE_ARM 0x70 and
+     PASSIVATE_EXECUTE 0x71 with the recovery key; the passivation
+     sequence (fire while transmitting, final report, then TX-OFF);
+     ADCS_SET_GYRO_ALIGN 0x25 and ADCS_SET_MAG_BIAS 0x26.
+   - ICD-001: 4S rails and load switches; I2C addresses and pins per
+     SQSO-ICX-001; CHG_INHIBIT, LOCK_UNLOCK 0x7D, EOL_STATE, IMON_JET
+     0x8A, EOL_KEY 0x7E; JETSON_PWR on PA8.
+   - ICD-005: rewritten to the baseline (1200 bps AFSK UI frames),
+     beacon jitter, acknowledgements, stored housekeeping and DUMP_TLM,
+     uplink windows, link and pass statistics at 475 km, 64 dBm EIRP.
+   - ICD-010: written against the Falcon 9 / Exolaunch / EXOpod Nova
+     chain; consistency pass; mass, inertia, inhibits and levels to
+     BASELINE Rev E (amended).
+
+3. Reason for Change:
+   RID P3P-02: CM plan section 4.3 makes every ICD change Class I; these
+   were made without a CR.
+
+4. Impact Assessment:
+   - Technical: Records changes already made; the flight software and the C headers implement ICD-013 and ICD-001.
+   - Schedule: None.
+   - Cost: None.
+   - Risk: None.
+
+5. Affected Documents:
+   docs/interfaces/TELECOMMAND_AUTHENTICATION.md, docs/interfaces/
+   ICD_OBC_EPS.md, docs/interfaces/ICD_SPACE_GROUND.md,
+   docs/compliance/LAUNCH_PROVIDER_ICD.md
+
+6. Verification Required:
+   Test: the flight-software suites (CI); the EM interface tests
+   (V-ICX-*, V-OBC-*, TP-INT); the integrator's mission ICD supersedes
+   ICD-010 at the contract.
+
+7. CCB Decision:
+   [ ] Approved   [ ] Approved with conditions   [ ] Rejected
+   Reason: Proposed by the design review; PI decision required by
+   2027-01-12 (mission/SCHEDULE.md DA-01). The review chair cannot
+   approve a Class I change (CM plan section 2.2).
+
+8. Implementation:
+   Assigned to: Flight software; EPS designer; launch and mission integration
+   Completed: 2026-10-27 (documents)
+
+9. Verification:
+   Verified by: the review's closure panel (documents); hardware pending
+   Date: -
+```
+
+---
+
+### CR-2026-012: safety-critical software components
+
+```
+Change Request Number: CR-2026-012
+Date Submitted: 2026-10-27
+Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and programmatics
+
+1. Configuration Item Affected:
+   CI ID: SMART-QSO-SDP-001 section 3.2 (versions 1.4, 1.5); the per-file
+   coverage gate of the flight-software CI
+
+2. Description of Change:
+   transponder.rs, ops_state.rs (sqso-fsw and sqso-ffi) and
+   passivation.rs (both crates) added to the safety-critical list,
+   under the 100 % line and condition coverage gate of CR-2026-003
+   (chair decision C-10; RIDs FSW-05, REG-12).
+
+3. Reason for Change:
+   CM plan section 4.3: a change to a safety-critical software component
+   is Class I. The additions were made by the review without a CR
+   (RID P3P-02).
+
+4. Impact Assessment:
+   - Technical: More code under the coverage gate; no functional change.
+   - Schedule: None.
+   - Cost: None.
+   - Risk: Reduces the software contribution to the hazards SQSO-SHA-001 lists.
+
+5. Affected Documents:
+   docs/software/SOFTWARE_DEVELOPMENT_PLAN.md (1.4, 1.5),
+   docs/safety/SOFTWARE_HAZARD_ANALYSIS.md
+
+6. Verification Required:
+   Test: the CI coverage gate on each listed file.
+
+7. CCB Decision:
+   [ ] Approved   [ ] Approved with conditions   [ ] Rejected
+   Reason: Proposed by the design review; PI decision required by
+   2027-01-12 (mission/SCHEDULE.md DA-01). The review chair cannot
+   approve a Class I change (CM plan section 2.2).
+
+8. Implementation:
+   Assigned to: Flight software
+   Completed: 2026-10-27
+
+9. Verification:
+   Verified by: the review's closure panel (documents); hardware pending
+   Date: -
+```
+
+---
+
+### CR-2026-013: environmental test tailoring and verification approach
+
+```
+Change Request Number: CR-2026-013
+Date Submitted: 2026-10-27
+Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and programmatics
+
+1. Configuration Item Affected:
+   CI ID: SQSO-ETP-001 Rev D (section 9 deviations 1-3 and 7; sections 3.3,
+   3.4, 3.11); SQSO-LVR-001 LVR-046, VI-LV-16, VI-LV-17
+
+2. Description of Change:
+   - Deviation 1: hot non-operating plateau +60 C instead of +70 C
+     (battery).
+   - Deviation 2: 8 thermal-vacuum + 4 board-level cycles for the GEVS
+     12-cycle total.
+   - Deviation 3: about 24 h hot and 24 h cold failure-free in vacuum
+     instead of 100 h each, offset by the DITL, the EM burn-in and the
+     reliability programme (>= 500 h EM flatsat, VI-11; >= 200 h FM
+     burn-in, VI-12).
+   - Deviation 7: no FM shock test; an EM shock test at MPE + 3 dB if
+     the integrator's attenuated Nova MPE is not enveloped by the
+     vibe-equivalent SRS (VI-07); the UG v11 MPE itself is not.
+   - One TVAC definition (8 cycles at AFT +/-10 C, capped at +60 C).
+   - FM deployment tests before protoflight vibration (VI-LV-17).
+
+3. Reason for Change:
+   RIDs VV-08 (deviations not approved), VV-07 (LVR "Met (acknowledged)"
+   against a 1000 g MPE), VV-06 (VI-LV-17 required post-environment
+   deployment against ETP section 3.8 and CDS section 3.5.2), P3S-10,
+   REL-01 / P3P-03 / P3E-07 (the reliability programme was in no plan).
+
+4. Impact Assessment:
+   - Technical: Workmanship screening below GEVS in failure-free hours, offset as stated; shock verified on the EM or by analysis.
+   - Schedule: FM burn-in adds 10 days to the critical path (SQSO-SCH-001 D: +71 d float remains).
+   - Cost: Test ROM $42k-130k (was $35k-101k): EM shock, FM system EMC, burn-in chamber.
+   - Risk: An unattenuated shock environment would need the EM test; the FM is accepted by similarity.
+
+5. Affected Documents:
+   docs/environment/ENVIRONMENTAL_TEST_PLAN.md (D), docs/mission/
+   LAUNCH_VEHICLE_REQUIREMENTS.md (E, amended), mission/SCHEDULE.md (D),
+   software/simulation/cdr/pm/test_cost.py, docs/funding_audit/
+   LIFECYCLE_COST_ROM.md (F)
+
+6. Verification Required:
+   Test: VI-07, VI-08, VI-11, VI-12, VI-LV-16, VI-LV-17. The integrator
+   accepts deviations 4-6 at the contract.
+
+7. CCB Decision:
+   [ ] Approved   [ ] Approved with conditions   [ ] Rejected
+   Reason: Proposed by the design review; PI decision required by
+   2027-01-12 (mission/SCHEDULE.md DA-01). The review chair cannot
+   approve a Class I change (CM plan section 2.2).
+
+8. Implementation:
+   Assigned to: Test lead (PI until named)
+   Completed: documents 2026-10-27 (proposed)
+
+9. Verification:
+   Verified by: the review's closure panel (documents); hardware pending
+   Date: -
+```
+
+---
+
+### CR-2026-014: MPPT efficiency requirement
+
+```
+Change Request Number: CR-2026-014
+Date Submitted: 2026-10-27
+Submitter: EPS designer (SQSO-EPS-BRD-001 D section 21 item 12), raised by the design review
+
+1. Configuration Item Affected:
+   CI ID: EPS-F002 (docs/hardware/EPS_DESIGN.md); V-EPS-1
+   (SQSO-EPS-BRD-001); V-PWR-3 and the MPPT factor (SQSO-PBA-001)
+
+2. Description of Change:
+   EPS-F002: "Track the maximum power point of each string group with
+   >= 90 % conversion efficiency at every operating point >= 1 W per
+   tracker over 3.5-6.4 V input, and >= 91 % power-weighted over the
+   orbit" (was ">= 92 % over 3.5-6.4 V"). V-EPS-1 and V-PWR-3 take
+   the same pass criteria (were ">= 92 % above 2 W, >= 90 % above
+   1 W" and ">= 0.92"). The power analysis MPPT factor 0.92 -> 0.91.
+
+3. Reason for Change:
+   RIDs EPSB-04, P3E-09: the TPS55340-Q1 design gives 90.9-92.3 %,
+   below 92 % at low power; three documents carried three criteria.
+
+4. Impact Assessment:
+   - Technical: Delivered power -1.1 %; ACTIVE margins stay inside +54 % / +34 %; SYS-100 margin about +11 % with the 0.91 factor.
+   - Schedule: None.
+   - Cost: None.
+   - Risk: None.
+
+5. Affected Documents:
+   docs/hardware/EPS_DESIGN.md, hardware/electrical/eps/
+   EPS_BOARD_DESIGN.md, docs/environment/POWER_BUDGET_ANALYSIS.md,
+   docs/verification/VI_REGISTER.md (regenerated)
+
+6. Verification Required:
+   Test: V-EPS-1 / V-PWR-3 on the EPS EM.
+
+7. CCB Decision:
+   [ ] Approved   [ ] Approved with conditions   [ ] Rejected
+   Reason: Proposed by the design review; PI decision required by
+   2027-01-12 (mission/SCHEDULE.md DA-01). The review chair cannot
+   approve a Class I change (CM plan section 2.2).
+
+8. Implementation:
+   Assigned to: EPS designer, after the decision
+   Due date: 2027-01-19
+
+9. Verification:
+   Verified by: the review's closure panel (documents); hardware pending
+   Date: -
+```
+
+---
+
+### CR-2026-015: launch cost and the backup trigger
+
+```
+Change Request Number: CR-2026-015
+Date Submitted: 2026-10-27
+Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and programmatics
+
+1. Configuration Item Affected:
+   CI ID: SQSO-BL-001 section 3 "Launch cost (ROM)" and "Backup" rows;
+   SQSO-AUD-005 Rev F
+
+2. Description of Change:
+   BASELINE section 3 launch cost (proposed): "$142k-345k all-in:
+   integrator 1U slot $85k-150k plus $57k-195k program-side (tests
+   $42k-130k, export counsel $10k-40k, logistics $5k-15k, ephemeris
+   service up to $10k; SQSO-AUD-005 Rev F). Add 15 % contingency on
+   the slot for rebooking." (was $115k-250k with $30k-100k program
+   side). Backup row: the trigger "the primary exceeds $250k" reads
+   "the integrator's slot price exceeds $250k".
+
+3. Reason for Change:
+   RID P3P-08: the program-side figure predated the bottom-up test
+   costs; the ROM lines summed to $50k-166k before round 3.
+
+4. Impact Assessment:
+   - Technical: None.
+   - Schedule: None.
+   - Cost: Non-labour total $309k-956k (was $300k-784k).
+   - Risk: With the program side in the comparison, a $250k all-in trigger would fire on the central case; stating it on the slot keeps its intent.
+
+5. Affected Documents:
+   docs/funding_audit/LIFECYCLE_COST_ROM.md (F); docs/BASELINE_PARAMETERS.md
+   section 3 (by the chair)
+
+6. Verification Required:
+   Quotes replace the ROM lines (DA-07, DA-08).
+
+7. CCB Decision:
+   [ ] Approved   [ ] Approved with conditions   [ ] Rejected
+   Reason: Proposed by the design review; PI decision required by
+   2027-01-12 (mission/SCHEDULE.md DA-01). The review chair cannot
+   approve a Class I change (CM plan section 2.2).
+
+8. Implementation:
+   Assigned to: PI (costs); chair (BASELINE row)
+   Completed: ROM F 2026-10-27
+
+9. Verification:
+   Verified by: the review's closure panel (documents); hardware pending
+   Date: -
+```
+
+---
+
+### CR-2026-016: load shed scope and pack-fuse diversity
+
+```
+Change Request Number: CR-2026-016
+Date Submitted: 2026-10-27
+Submitter: Design review (round 3, board FMEA SQSO-FMEA-003)
+
+1. Configuration Item Affected:
+   CI ID: EPS-F012 (docs/hardware/EPS_DESIGN.md); SQSO-BSA-001 H3b;
+   SMART-QSO-ICD-001 §4.6 (LOAD_SHED)
+
+2. Description of Change:
+   - EPS-F012: the independent hardware low-voltage disconnect opens
+     the Jetson rail (SW1 and the eFuse U19) only; the PA switch is no
+     longer shed.
+   - Pack fusing: F0A and F0N MIL-PRF-23419/12 FM12A72V5.0A (AEM); F0B
+     MIL-PRF-23419/8 FM08A125V5A (Littelfuse), a different
+     manufacturer and slash sheet, so the two positive-leg fuses are
+     independent controls.
+
+3. Reason for Change:
+   SMA-B05: a spurious permanent shed would hold the transmitter off
+   with no override, while a stuck-keyed PA is energy-positive and has
+   its own controls. P3E-02 / EPSB-10 / SQSO-FMEA-003: two fuses of
+   one part type in one leg count as one control.
+
+4. Impact Assessment:
+   - Technical: BSA H3b 2-fault tolerant by design; F0B breaks at most
+     211 A against its 300 A rating (F0A and F0N stay in circuit).
+   - Schedule, cost: none material.
+   - Risk: F0B's 16.8 V DC and vacuum ratings to confirm (DA-18).
+
+5. Affected Documents:
+   docs/hardware/EPS_DESIGN.md, hardware/electrical/eps/EPS_BOARD_DESIGN.md,
+   hardware/eps/BATTERY_DESIGN.md, docs/environment/BATTERY_SAFETY_ASSESSMENT.md,
+   docs/interfaces/ICD_OBC_EPS.md.
+
+6. Verification Required:
+   Test: V-EPS load-shed test on the EM; fuse procurement data (DA-18).
+
+7. CCB Decision:
+   [ ] Pending: PI decision required by 2027-01-12.
+
+8. Implementation:
+   Assigned to: EPS
+   Completed: design 2026-10-27
+
+9. Verification:
+   Verified by: —
+   Date: —
+```
+
+---
+
+### CR-2026-017: per-unit allowable flight temperatures and the first-orbit cold case
+
+```
+Change Request Number: CR-2026-017
+Date Submitted: 2026-10-27
+Submitter: Design review (round 3, thermal; RID THM-04)
+
+1. Configuration Item Affected:
+   CI ID: SYS-600, SYS-601 (docs/requirements/SYSTEM_REQUIREMENTS.md
+   §11); SQSO-THM-001 §1.1 (allowable flight temperatures);
+   SQSO-ETP-001 §3.4 and §9 (new deviation 8); BASELINE §8 thermal
+   row (heater power and the allowables reference)
+
+2. Description of Change:
+   - SYS-600/601: one range for all components (−20 … +50 °C
+     operating, −40 … +60 °C survival) replaced by per-unit
+     allowable flight temperatures (AFT) in THERMAL_DESIGN §1.1:
+     boards −30 … +50 °C operating and −30 … +60 °C non-operating,
+     extended to −40 °C for the first orbit after separation; battery
+     per the cell (0 … +45 °C charging, −10 … +60 °C discharging,
+     −20 … +60 °C non-operating); Jetson −15 °C (power-on gate) to
+     +50 °C at the spreader, −30 … +60 °C non-operating, −40 °C in the
+     first orbit (module qualified below its −25 °C junction minimum
+     by the EM soak V-THM-8); wings per the vendor (≥ −56 … +93 °C).
+   - ETP §3.4: cold operational plateau −40 °C (AFT − 10 °C, was
+     −30 °C) and cold start at −40 °C, which tests the first-orbit
+     extension at its AFT without the 10 °C margin: new §9 deviation 8
+     from GSFC-STD-7000B §2.6.3.2.1.1.
+   - BASELINE §8: battery heater 0.70–1.30 W across the bus (207 Ω at
+     12.0–16.4 V; was "0.72–1.30 W"); allowables reference
+     THERMAL_DESIGN 1.5 §1.1; analysis SQSO-THA-001 v2.2.
+
+3. Reason for Change:
+   RID THM-04 (reopened in round 3). The boards' parts stop at −40 °C,
+   so with the protoflight test at AFT ± 10 °C the cold AFT is −30 °C.
+   The LEOP cold case after the bounding dispenser soak (SQSO-THA-001
+   2.2 §4.3, case L4: β = 0, separation at eclipse entry, wings stowed
+   until the burn) gives −27.6 °C (OBC/EPS), −28.6 °C (RF) and −28.9 °C
+   (Jetson, off), −38.6 … −38.9 °C with the 10 °C margin: outside −30 °C,
+   inside the parts' −40 °C. A heater that closes it needs about 5 W
+   and 7.8 Wh in the first orbit, while the pack cannot charge
+   (rejected, §6.6). 207 Ω gives 0.696 W at 12.0 V, not 0.72 W.
+
+4. Impact Assessment:
+   - Technical: one first-orbit transient (≤ 46 min below −20 °C)
+     tested at its AFT without the 10 °C test margin; the orbit AFT
+     keeps the full margin. The deviation lapses if the integrator's
+     dispenser analysis (V-THM-5) puts the boards and the Jetson at or
+     above about −8 °C at separation. Heater correction: battery
+     minima move 0.0–0.4 °C (SQSO-THA-001 2.2 §4.2).
+   - Schedule, cost: EM cold start and Jetson soak (V-THM-8) in the EM
+     tests; the TVAC cold plateau 10 °C colder (same chamber).
+   - Risk: the Jetson module below its data-sheet minimum (V-THM-8);
+     the ITV4030 fuses rated from −10 °C (V-EPS-8 at −40 °C); the RF
+     crystal Y451 to be ordered in its −40 … +85 °C grade.
+
+5. Affected Documents:
+   docs/requirements/SYSTEM_REQUIREMENTS.md, hardware/structure/THERMAL_DESIGN.md,
+   docs/environment/ENVIRONMENTAL_TEST_PLAN.md, docs/environment/THERMAL_ANALYSIS.md,
+   docs/BASELINE_PARAMETERS.md (§8, on the PI's decision),
+   docs/test_procedures/TP-ENV-003_Thermal_Vacuum.md (cold plateaus).
+
+6. Verification Required:
+   Test: V-THM-8 (EM), V-EPS-8 at −40 °C (EM), V-THM-6 (FM protoflight
+   TVAC with the −40 °C cold start). Analysis: V-THM-1 correlation,
+   V-THM-5 integrator soak.
+
+7. CCB Decision:
+   [ ] Pending: PI decision required by 2027-01-12.
+
+8. Implementation:
+   Assigned to: Thermal
+   Completed: documents 2026-10-27 (BASELINE §8 on the decision)
+
+9. Verification:
+   Verified by: —
+   Date: —
+```
+
+---
+
+### CR-2026-018: one Smart Beacon burst definition and the metric per accepted line (decision C-20)
+
+```
+Change Request Number: CR-2026-018
+Date Submitted: 2026-10-27
+Submitter: Flight software (CDR round 3, fifth part; RID P3F-G-03, decision C-20)
+
+1. Configuration Item Affected:
+   CI ID: SYS-512 (docs/requirements/SYSTEM_REQUIREMENTS.md);
+   VI-02 (docs/environment/ENVIRONMENTAL_TEST_PLAN.md, VI register);
+   SQSO-MSC-001 E-02 (docs/mission/MISSION_SUCCESS_CRITERIA.md);
+   SRS-F151 (docs/software/SOFTWARE_REQUIREMENTS.md); the D5 research
+   record's 960 J burst figure (note added, record kept)
+
+2. Description of Change:
+   - One burst definition, the one the design implements (BASELINE §6,
+     SRS-F151, payload_schedule.rs): a Jetson power-on of at most
+     10 min and at most 3.6 kJ at the carrier input, ended early by
+     the energy gate. SYS-512 and VI-02 said "a burst of no more than
+     120 s", D5 "burst energy ≤ 960 J".
+   - The go/no-go metric: energy per accepted beacon line (a line the
+     content filter accepts) ≤ 0.1 Wh (360 J), counted on accepted
+     lines, not per burst: on the EM over ≥ 30 bursts (VI-02) and in
+     commissioning over ≥ 10 bursts (MSC E-02).
+   - The flight gate counts accepted lines: a burst ends when its
+     energy exceeds 360 J for each accepted line plus the one in
+     progress, or at 3.6 kJ or 10 min (SRS-F151).
+
+3. Reason for Change:
+   RID P3F-G-03: with the design's bursts (SIL mean about 3.2 kJ,
+   about 7 min) VI-02 failed by design, MSC and VI counted bursts
+   differently, and the gate bounded energy per burst rather than per
+   accepted line. Decision C-20 (chair).
+
+4. Impact Assessment:
+   - Technical: none on the hardware; the flight gate ends a burst whose
+     lines are refused or slow. Mission SIL (commissioning, 14 days):
+     per-burst energy p50 3,625 J, p95 3,629 J at the model's input;
+     0.065 Wh per good line at 3 % filter rejection, 0.070 Wh at 10 %,
+     0.090 Wh at 30 % (SQSO-SIL-001 G §7).
+   - Schedule, cost: none.
+   - Risk: the 0.1 Wh is met with 36 % margin at 3 % rejection and
+     10 % at 30 %; the EM measurement (VI-02) decides.
+
+5. Affected Documents:
+   docs/requirements/SYSTEM_REQUIREMENTS.md, docs/environment/ENVIRONMENTAL_TEST_PLAN.md,
+   docs/verification/VI_REGISTER.md (generated), docs/mission/MISSION_SUCCESS_CRITERIA.md,
+   docs/software/SOFTWARE_REQUIREMENTS.md, docs/funding_audit/research/D5_AI_MODEL_SELECTION.md (note).
+
+6. Verification Required:
+   Test: VI-02 on the EM (≥ 30 bursts); unit tests of the gate
+   (payload_schedule.rs); MSC E-02 in commissioning.
+
+7. CCB Decision:
+   [x] Approved: decision C-20 (CDR chair, 2026-10-27).
+
+8. Implementation:
+   Assigned to: Flight software
+   Completed: documents and code 2026-10-27
+
+9. Verification:
+   Verified by: —
+   Date: —
+```
+
+### CR-2026-019: pointing restated for power, residual-dipole limit, AntS gate and transmitter hold (decisions C-18, C-19, C-22 to C-24)
+
+```
+Change Request Number: CR-2026-019
+Date Submitted: 2026-10-27
+Submitter: CDR chair (rounds 3 and 4; RIDs P3T-09, P3F-G-02, P3F-G-07, P4-02)
+
+1. Configuration Item Affected:
+   ADCS-F002, F003, P002, P003 (withdrawn), P007 (docs/hardware/ADCS_DESIGN.md 1.9);
+   SYS-401 to SYS-404 (docs/requirements/SYSTEM_REQUIREMENTS.md H, amended);
+   MRD-061 (docs/requirements/MISSION_REQUIREMENTS.md Rev G);
+   BASELINE §5 generation rows and §8 ADCS row; ETP residual-dipole limit;
+   SQSO-PBA-001 2.5; SRS-F165, F167, F169, F171; CONOPS, MISSION_TIMELINE,
+   COMMISSIONING_PLAN and ICD-013 first-beacon timing
+
+2. Description of Change:
+   - ADCS-P002 restated for power: pointing loss ≤ 5 % of sunlit generation and
+     the Sun within 30° of +Y for ≥ 95 % of sunlit time, in every Monte Carlo
+     trial with the face-photodiode and Earth-albedo model; sun-vector knowledge
+     is not a requirement (the ±5° of C-22 withdrawn), rate knowledge ≤ 0.2°/s
+     kept; no onboard three-axis estimator.
+   - Residual-dipole limit 10 → 7 mA·m² (design 3 mA·m²), measured on the flight
+     unit in a Helmholtz cage.
+   - Power budget carries the albedo-case generation: 3.84 W sun-pointed EOL
+     (3.79 W worst trial), +45 % (+43 %) by the PBA method.
+   - The AntS deploys only when its own temperature reads ≥ −17 °C, deferring
+     50 min at a time; after 30 deferrals or 3 unreadable readings it releases
+     after 20 min of continuous sun; the transmitters stay silent while the AntS
+     deployment is pending.
+
+3. Reason for Change:
+   With the photodiodes and albedo modelled the old pointing and knowledge
+   requirements could not be met (12° mean, 74 % within 15°, knowledge 27° at the
+   95th percentile) while generation fell only 2 %; at 10 mA·m² the restated
+   requirement fails in 6 of 40 trials. An ungated AntS release after an
+   eclipse separation would be at −44 °C against its −20 °C qualification, and
+   keying into stowed elements trips the VSWR protection.
+
+4. Impact Assessment:
+   - Technical: no hardware change; the flight software implements the gate and
+     the hold (tests in Rust and C; SIL scenarios ants_cold, ants_cap,
+     ants_notemp); the flight unit's dipole test has a tighter pass limit.
+   - Schedule, cost: none.
+   - Risk: first beacon later after a cold separation (81 min in the SIL; up to
+     about 25.8 h off the nominal path, covered by a forced DEPLOY_RETRY); a
+     flight unit above 7 mA·m² needs demagnetising, re-harnessing or the
+     albedo-immune +Y sun sensor.
+
+5. Affected Documents:
+   docs/hardware/ADCS_DESIGN.md, docs/requirements/SYSTEM_REQUIREMENTS.md,
+   docs/requirements/MISSION_REQUIREMENTS.md, docs/BASELINE_PARAMETERS.md,
+   docs/environment/ENVIRONMENTAL_TEST_PLAN.md, docs/environment/POWER_BUDGET_ANALYSIS.md,
+   hardware/adcs/SENSOR_DESIGN.md, docs/test_procedures/TP-ADCS-003_Algorithm_Test.md,
+   docs/software/SOFTWARE_REQUIREMENTS.md, mission/CONOPS.md,
+   docs/operations/MISSION_TIMELINE.md, docs/operations/COMMISSIONING_PLAN.md,
+   docs/interfaces/ICD_SPACE_GROUND.md.
+
+6. Verification Required:
+   Analysis: ADCS Monte Carlo (ADCS_DESIGN §11.6). Test: TP-ADCS-003 photodiode
+   response on the EM; Helmholtz-cage dipole of the flight unit; AntS
+   temperature telemetry with the ISIS statement (AV-V7); flatsat deployment
+   sequence.
+
+7. CCB Decision:
+   [x] Approved: decisions C-18, C-19, C-22 to C-24 (CDR chair, 2026-10-27);
+   PI ratification DA-01 (2027-01-12).
+
+8. Implementation:
+   Assigned to: GN&C, flight software, EPS
+   Completed: documents and code 2026-10-27
+
+9. Verification:
+   Verified by: —
+   Date: —
+```
+
+---
+
 ## 4. Revision History
 
 | Rev | Date | Description | Author |
@@ -355,3 +1232,10 @@ Submitter: Systems (build-versus-buy study)
 | A | 2026-10-25 | Initial release: CR-2026-001 to CR-2026-004 | SMART-QSO Team |
 | B | 2026-10-25 | CR-2026-005: the downlink transmitter interface | SMART-QSO Team |
 | C | 2026-10-26 | CR-2026-006: battery charge voltage, gyro and ADCS gains | SMART-QSO Team |
+| D | 2026-10-27 | CR-2026-007: CDR 2026 chair dispositions | SMART-QSO Team |
+| E | 2026-10-27 | CR-2026-008: CDR 2026 round-2 baseline amendments | SMART-QSO Team |
+| F | 2026-10-27 | CR-2026-009 to CR-2026-015 (CDR round 3: system requirements E/F/G, Jetson heat path, ICDs, safety-critical list, test tailoring, MPPT, launch cost), each proposed by the design review for a PI decision by 2027-01-12; CR-2026-007 and -008 recorded as proposed by the chair, PI ratification required (CM plan §2.2; RID PM-04) | Design review, round 3 |
+| G | 2026-10-27 | CR-2026-016: load shed scope and pack-fuse diversity | SMART-QSO Team |
+| H | 2026-10-27 | CR-2026-017: per-unit allowable flight temperatures (SYS-600/601, THERMAL_DESIGN §1.1), the first-orbit cold case and its GEVS deviation (ETP §9 deviation 8), heater 0.70 W in BASELINE §8; proposed by the design review, PI decision by 2027-01-12 | Design review, round 3 |
+| I | 2026-10-27 | CR-2026-018: one Smart Beacon burst definition (10 min, 3.6 kJ) and the energy metric per accepted line (SYS-512, VI-02, MSC E-02, SRS-F151; decision C-20) | Flight software, round 3 |
+| J | 2026-10-27 | CR-2026-019: pointing restated for power, residual-dipole limit 7 mA·m², AntS temperature gate and transmitter hold (decisions C-18, C-19, C-22 to C-24); summary rows for CR-2026-018 and -019 | CDR chair |

@@ -34,6 +34,9 @@ SPECS = (
     "docs/requirements/SYSTEM_REQUIREMENTS.md",
     "docs/requirements/MISSION_REQUIREMENTS.md",
     "docs/software/SOFTWARE_REQUIREMENTS.md",
+    # the board firmware items (SDP §3.4; finding P3A-03)
+    "docs/software/TNC_FIRMWARE_REQUIREMENTS.md",
+    "docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md",
 )
 
 ID = r"[A-Z]{2,4}(?:-[A-Z]{1,5})?-[A-Z]?\d{1,4}"

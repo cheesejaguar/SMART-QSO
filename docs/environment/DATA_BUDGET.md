@@ -1,256 +1,153 @@
 # SMART-QSO Data Budget
 
 **Document ID**: SQSO-DB-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 2.3
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: CDR analysis (finding TB-12). Values from BASELINE Rev E §8, BEACON_SPEC, the flight software as built (round 2: stored housekeeping and `DUMP_TLM`), the mission simulation (two-year `full` run at the Rev E baseline, 2026-10-27) and SQSO-LBA-001 v3.2 / SQSO-GND-001 Rev D (475 km, 8°/s). Not measured.
 
-## 1. Purpose
+## 1. Purpose and Summary
 
-This document provides the data budget for the SMART-QSO mission, demonstrating adequate data storage and downlink capacity for all mission data.
+Version 1.0 counted broadcast beacons against one station's pass capacity, generated 1.2 MB/day of housekeeping against
+252 KB/day of capacity, and allocated 632 KB of flash partitions on a 512 KB part (TB-12). Version 2.0 separated the
+budgets and found stored housekeeping missing; Version 2.1 puts in the flight software's store and dump as built.
 
-## 2. Data Generation
+| Budget | Requirement | Result | Verdict |
+|--------|-------------|--------|---------|
+| Broadcast telemetry (the beacon) | Beacon every 60 s ACTIVE / 120 s IDLE / 180 s SAFE (BASELINE §8) | ≈ 1,430 beacons and ≈ 285 HK1 frames a day; 1,725 frames/day radiated in all, 2.7 % transmitter duty | Met |
+| Telemetry received by the mission | Health visible every day | ≈ 26 beacons and 5 HK1 frames a day at one telecommand station (≈ 4 kB), ≈ 51 and 10 at two, up to ≈ 490 beacons by SatNOGS | Met for health monitoring |
+| Stored housekeeping (BASELINE §8: summarized every 5 minutes, ≥ 7 days onboard; 60 s records around faults and mode changes) | 7 days of five-minute records, retrievable by telecommand | FRAM store of 2,048 five-minute records (**7.1 days**) and 1,489 sixty-second records; `DUMP_TLM` (0x0A) | Met by design (flight software, SIL); verify on the EM |
+| Daily dump | The ground can follow the five-minute record stream | The whole stream (288 records/day) needs 72 dump frames, 14.4 min of commanding passes: **62 % of one station's** with the 10° commanding rule (72 % at 15°), 31 % of two stations'. The SIL plan dumps the newest 48 records a day (17 % of the stream) | Met with two stations; one station only with most of its commanding time |
+| Uplink | Commands per pass | ≤ 6 verified commands per pass at the beacon rate; capacity far above need | Met |
 
-### 2.1 Telemetry Data
+## 2. Broadcast Telemetry
 
-| Data Type | Size | Rate | Daily Volume |
-|-----------|------|------|--------------|
-| Beacon frame | 64 bytes | 1/minute | 92 KB |
-| Housekeeping | 128 bytes | 1/10 sec | 1.1 MB |
-| Event log | 32 bytes/event | ~100/day | 3.2 KB |
-| Fault log | 64 bytes/fault | ~10/day | 0.6 KB |
-| **Total** | | | **~1.2 MB/day** |
+### 2.1 Beacon frames
 
-### 2.2 AI Payload Data
+| Item | Value | Source |
+|------|-------|--------|
+| Information field | `de KK6GDB-11: <text ≤ 176> \| T=.. M=.. SOC=.. BV=.. SUN=.. RF=.. QSO=..`; typical 110 bytes, at most 256 | BEACON_SPEC §3 |
+| Housekeeping frame | Every fifth beacon is followed, 5 s later, by an HK1 frame: `KEY=value` pairs, at most 250 bytes a frame; a longer text goes in a second frame (HK1 at its widest 341 bytes; SQSO-TLM-001 1.5, SIL-40), then HK2 | `docs/operations/TELEMETRY_DICTIONARY.md` §4.4 |
+| Frame on air | 16-byte header + information + 2-byte FCS + flags, ≈ 3 % bit stuffing, 300 ms TXDELAY | SQSO-ICD-003 §5.2 |
+| Beacon interval | 60 / 120 / 180 s with a uniform ±5 s jitter on each interval (RID RF-04) | SQSO-ICD-005 v2.1 §5.3 |
+| Frames per day | **1,725** radiated over the two-year run (1,259,310 in 730 days): ≈ 1,430 beacons, ≈ 285 HK1 frames, 1.9 acknowledgements and 11.9 dump frames | SIL `full` run |
+| Keyed time | 2,372 s/day (**2.7 %**; 1.38 s a frame on average) | SIL `full` run |
+| Broadcast volume | ≈ 1,430 × 110 B + 285 × ≤ 250 B ≈ **157 kB + ≤ 71 kB a day** | |
 
-| Data Type | Size | Rate | Daily Volume |
-|-----------|------|------|--------------|
-| AI beacon text | 200 bytes | ~20/day | 4 KB |
-| Inference metrics | 64 bytes | per inference | 1.3 KB |
-| Model status | 32 bytes | 1/hour | 0.8 KB |
-| **Total** | | | **~6 KB/day** |
+The beacon is broadcast: every station under the footprint receives the same frames, so the broadcast volume is not a
+capacity budget. What the mission sees is set by the receive network (§3).
 
-### 2.3 Summary by Category
+### 2.2 AI text
 
-| Category | Daily Volume | Priority |
-|----------|--------------|----------|
-| Health telemetry | 1.1 MB | High |
-| Beacon data | 92 KB | High |
-| Event/fault logs | 4 KB | Medium |
-| AI data | 6 KB | Low |
-| **Total** | **~1.2 MB/day** | |
+At most one Jetson text per request, carried in the beacon's text field (BEACON_SPEC §5); in the two-year simulation
+173,082 of the frames (≈ 14 % of the beacons) carried AI text. It adds nothing to the volume: the text field is there
+either way.
 
-## 3. Data Storage
+## 3. Telemetry Received
 
-### 3.1 On-Board Storage
+Passes and frame success at 475 km, LTAN 22:30, spin 8°/s (SQSO-LBA-001 v3.2 §5; SQSO-GND-001 Rev D §4); 98.2 % of
+frames decoded at a class A station with the beacon jitter as built.
 
-| Storage | Capacity | Purpose |
-|---------|----------|---------|
-| OBC RAM buffer | 64 KB | Real-time telemetry |
-| OBC Flash | 512 KB | Configuration, logs |
-| SD Card (optional) | 4 GB | Extended storage |
+| Receiver | Passes/day ≥ 5° | Contact | Beacons in view/day | Frames decoded | Beacons + HK1/day received | Information/day |
+|----------|-----------------|---------|---------------------|----------------|-----------------------------|-----------------|
+| One telecommand station (Santa Clara, class A) | 3.77 | 26.1 min | 26.1 | 98.2 % | **25.6 + 5.1** | 2.8 + ≤ 1.3 kB |
+| Two telecommand stations (Santa Clara + Blacksburg, 3,640 km apart) | 7.55 | 51.9 min (union) | 51.9 | ≈ 98 % | **≈ 51 + 10** | 5.6 + ≤ 2.6 kB |
+| SatNOGS: 253 2 m stations active in the last 7 days, 49 directional (frame success 0.6 assumed) and 204 omni (0.35, SQSO-LBA-001 §5.3) | | Visible to ≥ 1 station 50 % of the time | 717 | 34 % of all beacons decoded by at least one station if every station observes | **≤ 488** beacons (upper bound; SatNOGS observations must be scheduled) | ≤ 54 kB |
 
-### 3.2 Storage Allocation
+Network figures: `software/simulation/cdr/rf/pass_geometry_mc.py` (orbit, station geometry) against the station list
+of `network.satnogs.org/api/stations` (retrieved 2026-10-27), 3 days from 2028-11-01, 10 s steps, 5° mask (Version 2.0,
+at 500 km: 52 %, 745 in view, ≤ 494).
 
-| Partition | Size | Contents | Retention |
-|-----------|------|----------|-----------|
-| Boot | 32 KB | Bootloader | Permanent |
-| App A | 240 KB | Flight software A | Permanent |
-| App B | 240 KB | Flight software B | Permanent |
-| Config | 64 KB | Configuration | Permanent |
-| Telemetry | 32 KB | Ring buffer | 10 min |
-| Event log | 16 KB | Event history | 1000 events |
-| Fault log | 8 KB | Fault history | 100 faults |
+Each beacon carries the whole health picture (mode, SOC, battery voltage, sunlit, RF state). Received beacons at one
+station every ≈ 13 h (the longest pass gap, 12.9 h) are enough to follow the spacecraft's state; SatNOGS fills the
+gaps.
 
-### 3.3 Storage Duration
+## 4. Stored Housekeeping
 
-```
-ON-BOARD DATA RETENTION
+### 4.1 The store as built (flight software round 2; SRS-F120 to SRS-F122)
 
-Telemetry buffer:    32 KB / 128 bytes × 10 Hz = 25 seconds
-Extended (SD):       4 GB / 1.2 MB/day = 3,333 days (~9 years)
+| Item | Value |
+|------|-------|
+| Record | 44 bytes: store id, version, sequence, uptime, boot count, mode, flags, SOC, battery voltage and current, array power, four temperatures, hours since contact, fault count and newest fault, body rate, ADCS mode, deployment state, CRC-32 (SQSO-ICD-005 v2.1 §5.6; `software/rust/sqso-fsw/src/hk_store.rs`) |
+| Five-minute store | 2,048 records × 44 B = **90,112 B**: the last **7.1 days** (BASELINE §8 asks ≥ 7 days) |
+| Sixty-second store | 1,489 records = **65,516 B**: the last 409 records (6.8 h) plus the 6 h around each of the last three faults or mode changes (three windows of 360 records, 3 h either side) |
+| Index | 256 B |
+| FRAM used | 155,884 B of the 192 KB telemetry areas (`hardware/obc/STORAGE_DESIGN.md` §3.3): 79 % |
+| Generated | Five-minute: 288 records/day = 12.7 kB/day. Sixty-second: 1,440 records/day = 63.4 kB/day, of which only the rolling 6.8 h and the event windows are kept |
+| Retrieval | `DUMP_TLM` (0x0A, operational key): store, first record, count (≤ 600; 0 stops a dump). Four records a frame, **one frame every 12 s at most**, after the beacon and HK1 frames and through the same inhibits and duty limit (SQSO-ICD-013 §7) |
+| Dump frame | `HKD` header (3 B), store, record count, 4 × 44 B: **181 B** information field, **≈ 1.6 s on air** at 1200 bps |
+| Acknowledgement | Each authenticated command counted as contact is acknowledged: `ack KK6GDB-11: C=… R=… N=…`, **< 48 B** (SQSO-ICD-005 v2.1 §5.5) |
 
-Note: Real-time telemetry relies on ground station capture.
-      Extended storage optional for science data.
-```
+### 4.2 Daily downlink budget
 
-## 4. Downlink Capacity
+A dump is started by a command, so it runs on commanding passes. Under decision C-14 commands are sent above 10°, so
+a commanding pass is one that reaches 10°: at Santa Clara **2.98 a day with 23.2 minutes above 5°** on them
+(`software/simulation/cdr/rf/pass_geometry_mc.py`, 60 days at 475 km; 2.43 a day and 20.1 minutes with the earlier
+15° mask, SQSO-GND-001 Rev D §3.3). At one frame every 12 s that is **116 dump frames, 464 records a day** at most from
+one station (100 and 400 at 15°; about 40 frames, 160 records, in a typical 8-minute pass); a single `DUMP_TLM` of 600
+records (150 frames, 30 minutes) spans several passes.
 
-### 4.1 Link Parameters
+| Dump plan | Records/day | Frames/day | Pass time | Keyed | Information | Transmitter energy (1.76 W DC) | Share of one station's commanding time |
+|-----------|-------------|------------|-----------|-------|-------------|-------------------------------|----------------------------------------|
+| SIL plan: newest 48 records a day (from the HK1 `ST=` field) | 48 (4 h of five-minute records) | 12 | 2.4 min | 19 s | 2.2 kB | 0.009 Wh | 10 % |
+| The whole five-minute stream | 288 | 72 | 14.4 min | 115 s | 13.0 kB | 0.056 Wh | **62 %** (31 % with two stations; 72 % with the 15° mask) |
+| One event window from the sixty-second store, on demand | 360 | 90 | 18 min | 144 s | 16.3 kB | 0.070 Wh | 78 % for a day |
+| Whole sixty-second store (rare) | 1,489 | 373 | 75 min | 597 s | 67.5 kB | 0.29 Wh | ≈ 3.2 days of one station |
 
-| Parameter | Value |
-|-----------|-------|
-| Data rate | 1200 bps |
-| Protocol overhead | 30% (AX.25) |
-| Effective data rate | 840 bps |
-| Contact time per pass | 8 min average |
-| Passes per day | 5 average |
+| Daily downlink at one station (SIL plan) | Frames | Information |
+|------------------------------------------|--------|-------------|
+| Beacons received | 25.6 | 2.8 kB |
+| HK1 frames received | 5.1 | ≤ 1.3 kB |
+| Dump frames | 12 | 2.2 kB |
+| Acknowledgements (≈ 2 commands a day: the routine contact and the dump) | ≈ 2 | < 0.1 kB |
+| **Total** | **≈ 45** | **≈ 6.4 kB** |
 
-### 4.2 Downlink Capacity Calculation
+Over the two-year simulation the plan produced 8,664 dump frames (34,656 records, 11.9 frames a day) and 1,370
+acknowledgements. Following every five-minute record needs 72 frames a day, which one station can receive only by
+spending most of its commanding time on dumps (62 %); with the two stations of BASELINE §1 it takes about a third of
+their time. Recommended plan (for the operations owner): with two stations, dump the whole five-minute stream daily; with
+one, dump the newest 48–96 records a day and fetch the event windows after each fault.
 
-```
-DOWNLINK CAPACITY
+### 4.3 Conflicts and limits
 
-Effective rate:       840 bps = 105 bytes/sec
-Pass duration:        8 minutes = 480 seconds
-Data per pass:        480 × 105 = 50.4 KB
+| Item | Value |
+|------|-------|
+| Duty | A dump keys 1.6 s in each 12 s (13 %); with the beacon and HK1 frames it stays inside the 25 % duty limit (`DOWNLINK_DUTY_PERCENT`) |
+| Transponder | Dump frames and the transponder share the transmitter; a dump displaces about 13 % of the transponder time while it runs (115 s a day for the whole five-minute stream) |
+| Storage wear | FRAM, rated 10¹⁴ writes: no wear limit |
 
-Passes per day:       5
-Daily capacity:       5 × 50.4 KB = 252 KB/day
-```
+## 5. Uplink
 
-### 4.3 Data Downlink Budget
+| Item | Value |
+|------|-------|
+| Telecommand frame | 16-byte AX.25 header + 4 + 4 (counter) + N arguments (≤ 64) + 16 (tag) + 2 (sum16) + 2 (FCS): 44–108 bytes, 0.6–1.0 s on air with the ground's TXDELAY |
+| Commands per pass | Not limited by the link: by the verification loop (one beacon interval each, SQSO-GSOM-001 §7.2), ≈ 6 verified commands in a 7-minute pass |
+| Routine need | One authenticated contact a day (SQSO-GND-001 GND-R8) |
+| Software or key upload | **None**: no flight-software upload path exists, and no key material crosses RF (SQSO-ICD-013 §9.3). Version 1.0's "software upload, ~1,000 commands" is withdrawn |
 
-| Data Type | Volume/day | Priority | Allocation |
-|-----------|------------|----------|------------|
-| Beacon (auto) | 92 KB | High | 92 KB (37%) |
-| Health summary | 10 KB | High | 10 KB (4%) |
-| Event log | 4 KB | Medium | 4 KB (2%) |
-| Reserved | - | - | 146 KB (58%) |
-| **Total** | **~106 KB** | | **252 KB capacity** |
-
-### 4.4 Margin Analysis
-
-```
-DATA DOWNLINK MARGIN
-
-Required:             106 KB/day
-Capacity:             252 KB/day
-Margin:               146 KB/day (58%)
-
-Status:               ✓ POSITIVE MARGIN
-```
-
-## 5. Beacon Data Content
-
-### 5.1 Beacon Frame Structure
-
-| Field | Size | Description |
-|-------|------|-------------|
-| AX.25 header | 17 bytes | Addresses, control |
-| Timestamp | 8 bytes | UTC time |
-| State | 1 byte | SAFE/IDLE/ACTIVE |
-| Battery | 4 bytes | V, I, SOC |
-| Thermal | 6 bytes | 3 temps |
-| RF status | 2 bytes | TX count, power |
-| AI text | ≤150 bytes | Beacon message |
-| Padding | Variable | Fill to frame |
-| CRC | 2 bytes | Frame check |
-| **Total** | **~200 bytes** | |
-
-### 5.2 Beacon Content Priority
-
-| Priority | Content | Always Present |
-|----------|---------|----------------|
-| 1 | State, SOC | Yes |
-| 2 | Battery voltage | Yes |
-| 3 | Temperatures | Yes |
-| 4 | RF status | Yes |
-| 5 | AI message | If available |
-
-## 6. Command Uplink
-
-### 6.1 Command Capacity
-
-| Parameter | Value |
-|-----------|-------|
-| Data rate | 1200 bps |
-| Command size | 32 bytes |
-| Commands per second | 3.75 max |
-| Pass duration | 8 minutes |
-| **Commands per pass** | **~1,800 max** |
-
-### 6.2 Typical Command Usage
-
-| Operation | Commands | Frequency |
-|-----------|----------|-----------|
-| Health query | 1 | Each pass |
-| Mode change | 1-2 | Weekly |
-| Configuration | 5-10 | Monthly |
-| Software upload | ~1000 | Rare |
-
-### 6.3 Command Budget
-
-```
-COMMAND UPLINK BUDGET
-
-Typical pass:         5-10 commands
-Software upload:      ~1000 commands (1 pass)
-Capacity:             1800 commands/pass
-
-Status:               ✓ ADEQUATE
-```
-
-## 7. Data Flow Diagram
-
-```
-DATA FLOW ARCHITECTURE
-
-┌─────────────────────────────────────────────────────────────┐
-│                    SPACECRAFT                               │
-│                                                              │
-│  ┌─────────┐    ┌─────────┐    ┌─────────┐                  │
-│  │ Sensors │───▶│   OBC   │───▶│Telemetry│                  │
-│  └─────────┘    │         │    │ Buffer  │                  │
-│                 │         │    └────┬────┘                  │
-│  ┌─────────┐    │         │         │                       │
-│  │ Jetson  │───▶│         │         ▼                       │
-│  └─────────┘    │         │    ┌─────────┐    ┌─────────┐  │
-│                 │         │───▶│ Beacon  │───▶│   RF    │──┼──▶
-│  ┌─────────┐    │         │    │Generator│    │   TX    │  │
-│  │Commands │◀───│         │    └─────────┘    └─────────┘  │
-│  └─────────┘    └─────────┘                                 │
-│       ▲                                                      │
-└───────┼──────────────────────────────────────────────────────┘
-        │
-        │ 1200 bps
-        ▼
-┌───────────────────────────────────────────────────────────────┐
-│                    GROUND STATION                             │
-│                                                                │
-│  ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐   │
-│  │   RF    │───▶│Decoder  │───▶│Telemetry│───▶│ Archive │   │
-│  │   RX    │    │         │    │ Display │    │         │   │
-│  └─────────┘    └─────────┘    └─────────┘    └─────────┘   │
-│                                                                │
-└───────────────────────────────────────────────────────────────┘
-```
-
-## 8. Data Latency
-
-### 8.1 Latency Requirements
-
-| Data Type | Max Latency | Actual |
-|-----------|-------------|--------|
-| Health critical | 1 orbit | <1 min |
-| Telemetry | 2 orbits | <60 min |
-| Event data | 1 day | <12 hours |
-
-### 8.2 Latency Analysis
+## 6. Latency
 
 | Path | Latency |
 |------|---------|
-| Sensor → OBC | <10 ms |
-| OBC → Beacon | <100 ms |
-| Beacon → Ground | <5 ms (RF) |
-| Ground → Archive | <1 min |
-| **End-to-end** | **<2 min** |
+| Measurement to beacon | ≤ 60 s (values older than 60 s are sent as `-`) |
+| Beacon to a station | Next pass: ≤ 12.9 h at one station, ≤ 9.7 h at two |
+| Station to the mission database | After each pass (≤ 1 h); SatNOGS polled hourly |
+| Command to effect | < 1 s onboard; confirmed in the next beacon (≤ 60 s) |
 
-## 9. Data Budget Summary
+## 7. Verification
 
-| Parameter | Requirement | Capability | Margin |
-|-----------|-------------|------------|--------|
-| Daily data generated | 1.2 MB | - | - |
-| Downlink capacity | - | 252 KB | - |
-| Data downloaded/day | 106 KB | 252 KB | 58% |
-| Command capacity/pass | 10 | 1800 | 99% |
-| Storage duration | 1 day | 25 sec* | N/A |
+| Item | Method | When |
+|------|--------|------|
+| Beacon cadence and size | SIL (done: 1,725 frames/day in the two-year run, 1.38 s average); EM on the target | EM |
+| Received beacons per day | Commissioning: count frames in the database by source | Commissioning |
+| Stored housekeeping and dump | Flight software (`hk_store.rs`, `DUMP_TLM`) and the SIL's daily dump; EM test of a 600-record dump over several passes | EM |
 
-*Real-time data; extended storage optional
-
-## 10. Revision History
+## 8. Revision History
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten (TB-12): broadcast, received and stored budgets separated; SIL frame counts; SatNOGS network estimate from the live station list; stored housekeeping found not implemented and without a downlink path, and its sizing against FRAM, internal flash and dump capacity; uplink and latency |
+| 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Received telemetry at 475 km and 8°/s (3.77 passes, 26.1 min a day; 98.2 % of frames with the beacon jitter as built; SatNOGS ≤ 488 a day); broadcast counts from the two-year SIL run (1,725 frames a day, 2.7 % duty); §4 rewritten to the flight software's store (2,048 five-minute records, 7.1 days; 1,489 sixty-second records; 256 B index) and `DUMP_TLM` (≤ 600 records, 4 a frame, one frame per 12 s, 181 B); daily downlink budget recomputed: the whole five-minute stream needs 72 % of one station's commanding time; the stored-housekeeping verdict is now met by design |
+| 2.2 | 2026-10-27 | CDR S&MA analysis (decision C-14) | Commanding passes at the 10° rule: 2.98 a day, 23.2 min above 5° (was 2.43, 20.1 min at 15°); dump capacity 116 frames, 464 records a day; the whole five-minute stream takes 62 % of one station's commanding time (was 72 %) |
+| 2.3 | 2026-10-27 | CDR flight software, round 3 (fourth part) | §2.1 the housekeeping text in one or more frames of at most 250 bytes (SIL finding SIL-40) |

@@ -25,6 +25,37 @@ pub struct Totals {
     pub antennas_s: Option<f64>,
     /// Wings confirmed deployed, s after deployment
     pub wings_s: Option<f64>,
+    /// The AntS node's temperature when the AntS was first told to deploy,
+    /// °C (the flight software's temperature gate, decision C-18), and the
+    /// AntS node's temperature at separation + 31 min (an ungated release)
+    pub ants_release_c: Option<f64>,
+    /// When the AntS was first told to deploy, s after deployment, and the
+    /// continuous sunlight before it, s (0 in eclipse; RID P3F-G-02)
+    pub ants_release_s: Option<f64>,
+    /// Continuous sunlight before the first AntS deployment command, s
+    pub ants_release_sun_s: Option<f64>,
+    /// AntS deployment commands (each attempt's START), and those made
+    /// while the AntS already read deployed in the model (RID P3F-A-01:
+    /// a deployed AntS is never fired again)
+    pub ants_starts: u32,
+    /// AntS deployment commands with its elements already deployed
+    pub ants_starts_deployed: u32,
+    /// The AntS node at separation + 31 min, °C
+    pub ants_31min_c: Option<f64>,
+    /// The AntS node's coldest, °C, in the first 3 h after separation
+    pub ants_min_c: Option<f64>,
+    /// When the AntS temperature gate first stood open at or after the first
+    /// attempt (separation + 30 min): the AntS node at or above −17 °C, s
+    /// after deployment
+    pub ants_gate_open_s: Option<f64>,
+    /// The flight software's AntS transmitter hold ended (decision C-19), s
+    /// after deployment
+    pub ants_hold_end_s: Option<f64>,
+    /// The downlink's VSWR protection stopping it, and of those the stops
+    /// with the AntS elements stowed
+    pub vswr_stops: u32,
+    /// VSWR stops with the AntS stowed
+    pub vswr_stops_stowed: u32,
     /// Body rate below 0.5 °/s (and staying there 10 min), s after deployment
     pub detumbled_s: Option<f64>,
     /// Lowest true SOC after the first day
@@ -71,11 +102,15 @@ pub struct Totals {
     pub longest_key_s: f64,
     /// Highest keyed fraction over any 60 s window
     pub max_duty_60s: f64,
+    /// When the worst 60 s ended, s after deployment
+    pub max_duty_at_s: f64,
     /// Longest gap between frames while transmission was permitted, s
     pub max_beacon_gap_s: f64,
     /// Frames radiated while transmission was not permitted (TX-OFF, silence,
     /// inhibits) or after passivation
     pub frames_forbidden: u64,
+    /// Hardware load sheds (SHED_N, below 13.6 V for 5 s)
+    pub sheds: u32,
     /// Seconds the loss-of-contact inhibit was active
     pub contact_inhibit_s: f64,
     /// Transponder enabled, s
@@ -109,6 +144,9 @@ pub struct Totals {
     pub faults: std::collections::BTreeMap<String, u64>,
     /// Jetson energy, Wh, and the beacons it produced that flew
     pub jetson_wh: f64,
+    /// Every Jetson power-on: input energy, J, and lines meant to pass the
+    /// filter (decision C-20)
+    pub jetson_bursts: Vec<(f64, u32)>,
     /// Jetson power-ons
     pub jetson_power_ons: u32,
     /// Energy generated and consumed after deployment, Wh
@@ -139,6 +177,52 @@ pub struct Totals {
     pub safe_entries: u32,
     /// Entries into EMERGENCY
     pub emergency_entries: u32,
+    /// The charge disconnect opened after the ground's PASSIVATE_ARM and
+    /// PASSIVATE_EXECUTE (the only way the simulation passivates)
+    pub passivation_by_command: bool,
+    /// Command acknowledgements radiated
+    pub acks: u64,
+    /// Stored-housekeeping dump frames radiated, and the records in them
+    pub dump_frames: u64,
+    /// Records in the dump frames
+    pub dump_records: u64,
+    /// GNSS sessions that ended with a fix, GNSS state frames radiated, and
+    /// those with a velocity
+    pub gnss_fix_sessions: u64,
+    /// GNSS state frames radiated
+    pub gnss_frames: u64,
+    /// Those with a velocity
+    pub gnss_vel_frames: u64,
+    /// Largest position error of a frame against the receiver's record, m
+    pub gnss_pos_err_max_m: f64,
+    /// Largest and summed velocity error against the truth, m/s
+    pub gnss_vel_err_max: f64,
+    /// Summed velocity error, m/s
+    pub gnss_vel_err_sum: f64,
+    /// The next five-minute record number the last HK1 frame showed
+    pub store_next: Option<u32>,
+    /// Command receiver hangs, and those its power cycle cleared
+    pub rx_hangs: u32,
+    /// Hangs cleared by the flight software's power cycle
+    pub rx_recovered: u32,
+    /// Longest hang, s
+    pub rx_hang_max_s: f64,
+    /// Most wing burn lines on at once
+    pub wing_lines_max: usize,
+    /// The command receiver fails for good in this run (`rx_failed_day`)
+    pub rx_failure_modelled: bool,
+    /// Time the flight software held the command receiver known failed, s
+    pub rx_known_failed_s: f64,
+    /// Beacons radiated while the receiver was known failed
+    pub rx_failed_beacons: u64,
+    /// Longest gap between beacons while the receiver was known failed and
+    /// transmission permitted, s
+    pub rx_failed_beacon_gap_s: f64,
+    /// Transponder keyed time while the receiver was known failed, s
+    pub rx_failed_xpdr_s: f64,
+    /// Time the loss-of-contact inhibit silenced the beacon after the
+    /// receiver failed, before it was known failed, s
+    pub rx_failed_pending_s: f64,
 }
 
 /// A check's outcome
@@ -202,17 +286,115 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         ),
         None => check("rf-silence", "First transmission", "never transmitted".into(), ">= 45 min", Anomaly),
     });
-    for (id, title, at) in [
-        ("antennas", "Both antennas deployed and sensed", t.antennas_s),
-        ("wings", "Both solar wings deployed and sensed", t.wings_s),
+    // The payload's hard limits (MSC L2-05): the Jetson on only in ACTIVE,
+    // sunlit, SOC >= 55 %, within its burst limit (the flight software's own
+    // condition, logged on each onset)
+    let hard = t.faults.get("Payload hard limit violated").copied().unwrap_or(0);
+    c.push(check(
+        "payload-limits",
+        "Jetson within its hard limits: ACTIVE, sunlit, SOC >= 55 %, burst limit (MSC L2-05; the flight software's condition)",
+        format!("{hard} onset(s)"),
+        "0 (a stuck-on payload contingency shows it)",
+        if hard == 0 { Pass } else { Anomaly },
+    ));
+    // The AntS temperature gate (decision C-18): deferred while the AntS is
+    // below -17 °C, at most 30 slots of 50 min; at the cap, or on the
+    // analysis schedule after three unknown readings, released in sunlight
+    // after 20 min of sun (RID P3F-G-02)
+    let deferrals =
+        t.faults.iter().filter(|(k, _)| k.starts_with("AntS deployment deferred")).map(|(_, n)| *n).sum::<u64>();
+    let schedule = t.faults.iter().any(|(k, _)| k.starts_with("AntS temperature unknown"));
+    let cap = deferrals >= u64::from(sqso_fsw::deployment::ANTS_MAX_DEFERRALS);
+    let sun_need_s = f64::from(sqso_fsw::deployment::ANTS_SUN_MS) / 1000.0 - 60.0;
+    let sun_wait_s = if cap || schedule { f64::from(sqso_fsw::deployment::ANTS_SUN_WAIT_MS) / 1000.0 } else { 0.0 };
+    let gate_limit_s = 7200.0 + deferrals as f64 * 3000.0 + sun_wait_s;
+    c.push(match t.ants_release_c {
+        Some(tc) => {
+            let sun = t.ants_release_sun_s.unwrap_or(0.0);
+            let at = t.ants_release_s.unwrap_or(0.0);
+            let warm = tc >= sqso_fsw::deployment::ANTS_MIN_TEMP_C - 0.5 && !cap && !schedule;
+            let cap_ok = cap && sun >= sun_need_s;
+            let schedule_ok = schedule && at >= f64::from(sqso_fsw::deployment::ANTS_SCHEDULE_S) && sun >= sun_need_s;
+            check(
+                "ants-gate",
+                "AntS deployed at or above -17 °C (decision C-18); at the 30-deferral cap or on the schedule fallback, in sunlight after 20 min of sun",
+                format!(
+                    "released at {:.1} min, {tc:.1} °C, {:.1} min of sun, after {deferrals} deferral(s){}{}; {} at separation + 31 min, coldest {}, gate open (>= -17 °C) from {}",
+                    at / 60.0,
+                    sun / 60.0,
+                    if cap { ", at the cap" } else { "" },
+                    if schedule { ", on the schedule (temperature unknown)" } else { "" },
+                    t.ants_31min_c.map_or("-".to_string(), |x| format!("{x:.1} °C")),
+                    t.ants_min_c.map_or("-".to_string(), |x| format!("{x:.1} °C")),
+                    t.ants_gate_open_s.map_or("-".to_string(), |s| format!("{:.1} min", s / 60.0))
+                ),
+                ">= -17 °C; or cap/schedule in sunlight >= 20 min",
+                if warm || cap_ok || schedule_ok { Pass } else { Anomaly },
+            )
+        }
+        None => check("ants-gate", "AntS deployment", "not commanded in the run".into(), ">= -17 °C", Warning),
+    });
+    // RID P3F-A-01: the AntS is read while powered, so a deployed AntS is
+    // confirmed and never told to deploy again
+    c.push(check(
+        "ants-commands",
+        "AntS deployment commands; none once its elements read deployed (it is read powered, P3F-A-01)",
+        format!("{} command(s), {} with the elements deployed", t.ants_starts, t.ants_starts_deployed),
+        "1 to 3; 0 after deployment",
+        if (1..=3).contains(&t.ants_starts) && t.ants_starts_deployed == 0 { Pass } else { Anomaly },
+    ));
+    for (id, title, at, limit_s) in [
+        (
+            "antennas",
+            "Both antennas deployed and sensed (2 h, plus 50 min per AntS deferral)",
+            t.antennas_s,
+            gate_limit_s,
+        ),
+        ("wings", "Both solar wings deployed and sensed", t.wings_s, 7200.0),
     ] {
         c.push(match at {
-            Some(s) => {
-                check(id, title, format!("{:.1} min", s / 60.0), "within 2 h", if s < 7200.0 { Pass } else { Warning })
-            }
+            Some(s) => check(
+                id,
+                title,
+                format!("{:.1} min", s / 60.0),
+                &format!("within {:.0} min", limit_s / 60.0),
+                if s < limit_s { Pass } else { Warning },
+            ),
             None => check(id, title, "not deployed".into(), "within 2 h", Anomaly),
         });
     }
+    // SW-HAZ-014 control C-014-9 (SRS-F168): the exciter keyed with no
+    // frame and the repeat path idle trips TX-OFF; never in a nominal run
+    let ptt = t.faults.iter().filter(|(k, _)| k.starts_with("PTT_EXCITER keyed")).map(|(_, n)| *n).sum::<u64>();
+    c.push(check(
+        "ptt-watch",
+        "Exciter keyed over 6 s with no frame and no repeat, or by the repeat path without the heartbeat or past 130 s (C-014-9, P3F-A-02): TX-OFF trips",
+        format!("{ptt}"),
+        "0 (the TNC never keys alone in the model)",
+        if ptt == 0 { Pass } else { Anomaly },
+    ));
+    // Decision C-19: silent while the AntS is pending; no keying into stowed
+    // elements before its sequence ends (after a failed sequence the
+    // stowed-antenna beacon, and its VSWR stops, are expected)
+    let ants_out = t.antennas_s.is_some_and(|a| t.ants_hold_end_s.is_some_and(|h| a <= h + 1.0));
+    c.push(match (t.first_rf_s, t.ants_hold_end_s) {
+        (Some(rf), Some(end)) => check(
+            "ants-hold",
+            "Transmitters silent until the AntS reads deployed or its sequence ends (decision C-19); no VSWR stop into stowed elements",
+            format!(
+                "first RF {:.1} min, hold over at {:.1} min (AntS {}); {} VSWR stop(s), {} with the AntS stowed",
+                rf / 60.0,
+                end / 60.0,
+                if ants_out { "deployed" } else { "stowed: its sequence ended" },
+                t.vswr_stops,
+                t.vswr_stops_stowed
+            ),
+            "first RF after the hold; 0 stowed VSWR stops unless the AntS failed",
+            if rf + 1.0 >= end && (t.vswr_stops_stowed == 0 || !ants_out) { Pass } else { Anomaly },
+        ),
+        (None, _) => check("ants-hold", "AntS transmitter hold", "never transmitted".into(), "after the hold", Anomaly),
+        (Some(_), None) => check("ants-hold", "AntS transmitter hold", "never ended".into(), "after the hold", Anomaly),
+    });
     c.push(match t.detumbled_s {
         Some(s) => check(
             "detumble",
@@ -268,6 +450,13 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         t.uv_trips.to_string(),
         "0 before passivation",
         if t.uv_trips == 0 { Pass } else { Anomaly },
+    ));
+    c.push(check(
+        "load-shed",
+        "Hardware load sheds of SW1 and U19 (VBAT below 13.6 V for 5 s), before passivation",
+        t.sheds.to_string(),
+        "0 (a stuck-on payload contingency shows it acting)",
+        if t.sheds == 0 { Pass } else { Warning },
     ));
     c.push(check(
         "oc-trips",
@@ -374,7 +563,7 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
     c.push(check(
         "duty",
         "Downlink duty over 60 s (25 %)",
-        format!("{:.1} %", t.max_duty_60s * 100.0),
+        format!("{:.1} % (day {:.2})", t.max_duty_60s * 100.0, t.max_duty_at_s / 86_400.0),
         "<= 25 %",
         if t.max_duty_60s <= 0.25 + 1e-6 { Pass } else { Anomaly },
     ));
@@ -490,6 +679,24 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         "all latch-ups cleared",
         if t.latchups_cleared == t.latchups { Pass } else { Anomaly },
     ));
+    // Decision C-20: one burst definition (a power-on of at most 10 min and
+    // 3.6 kJ) and the metric counted on accepted lines; the per-burst
+    // distribution is reported (the flight gate meters the carrier input)
+    if !t.jetson_bursts.is_empty() {
+        let (p50, p95) = (percentile(&t.jetson_bursts, 0.50), percentile(&t.jetson_bursts, 0.95));
+        let max = t.jetson_bursts.iter().map(|b| b.0).fold(0.0, f64::max);
+        c.push(check(
+            "ai-bursts",
+            "Jetson burst energy at the model's input (decision C-20: at most 3.6 kJ a burst, the gate on 360 J per accepted line)",
+            format!(
+                "{} bursts: p50 {p50:.0} J, p95 {p95:.0} J, max {max:.0} J; {:.4} Wh per good line",
+                t.jetson_bursts.len(),
+                wh_per_line(&t.jetson_bursts)
+            ),
+            "max <= 3.75 kJ (3.6 kJ at the carrier input, metered 20 ms late)",
+            if max <= 3750.0 { Pass } else { Anomaly },
+        ));
+    }
     let per_beacon = if t.ai_frames > 0 { t.jetson_wh / t.ai_frames as f64 } else { f64::INFINITY };
     c.push(check(
         "ai-energy",
@@ -500,7 +707,15 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
             format!("no AI beacons ({:.1} Wh used)", t.jetson_wh)
         },
         "<= 0.1 Wh",
-        if per_beacon <= 0.1 { Pass } else { Anomaly },
+        // Not exercised (no batch yet: the commissioning hold) is no anomaly;
+        // energy spent with no beacon to show for it is
+        if per_beacon <= 0.1 {
+            Pass
+        } else if t.ai_frames == 0 && t.jetson_wh < 0.01 {
+            Warning
+        } else {
+            Anomaly
+        },
     ));
     c.push(check(
         "uptime",
@@ -510,15 +725,22 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         if t.mission_s > 0.0 && t.obc_up_s / t.mission_s >= 0.99 { Pass } else { Anomaly },
     ));
 
+    operations_cdr(&mut c, t);
+
     // End of life (47 CFR 97.207(g), FCC 5-year rule)
     if passivation_planned && t.mission_s >= design_life_s {
         c.push(match t.passivated_s {
-            Some(_) => check(
+            Some(s) => check(
                 "passivation",
-                "EOL passivation: charge path open, transmitters silent",
-                format!("charge after passivation {:.3} Ah", t.charge_after_passivation_ah),
-                "0 Ah",
-                if t.charge_after_passivation_ah < 1e-3 { Pass } else { Anomaly },
+                "EOL passivation by PASSIVATE_ARM and PASSIVATE_EXECUTE: charge path open, transmitters silent",
+                format!(
+                    "day {:.1}, by telecommand {}, charge after passivation {:.3} Ah",
+                    days(s),
+                    t.passivation_by_command,
+                    t.charge_after_passivation_ah
+                ),
+                "by telecommand, 0 Ah",
+                if t.charge_after_passivation_ah < 1e-3 && t.passivation_by_command { Pass } else { Anomaly },
             ),
             None => check("passivation", "EOL passivation", "not fired".into(), "at end of life", Anomaly),
         });
@@ -534,6 +756,97 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         ));
     }
     c
+}
+
+/// REL-04: a receiver known failed keeps the beacon (the loss-of-contact
+/// inhibit no longer silences it) and never the transponder; a healthy
+/// receiver is never declared failed
+fn rx_failed_check(t: &Totals) -> Check {
+    use Verdict::*;
+    let (value, verdict) = if t.rx_failure_modelled {
+        let kept = t.rx_known_failed_s > 0.0
+            && t.rx_failed_beacons > 0
+            && t.rx_failed_beacon_gap_s <= 600.0
+            && t.rx_failed_xpdr_s == 0.0;
+        (
+            format!(
+                "known failed {:.1} d: {} beacons, longest gap {:.0} s, transponder {:.0} s; silenced {:.1} h before",
+                t.rx_known_failed_s / 86_400.0,
+                t.rx_failed_beacons,
+                t.rx_failed_beacon_gap_s,
+                t.rx_failed_xpdr_s,
+                t.rx_failed_pending_s / 3600.0
+            ),
+            if kept { Pass } else { Anomaly },
+        )
+    } else {
+        (
+            format!("receiver healthy; held failed {:.1} h", t.rx_known_failed_s / 3600.0),
+            if t.rx_known_failed_s == 0.0 { Pass } else { Anomaly },
+        )
+    };
+    check(
+        "rx-failed-beacon",
+        "Receiver failed for good (REL-04): the beacon kept, gaps <= 600 s, the transponder off; never declared failed when healthy",
+        value,
+        "beacon kept, transponder 0 s; or 0 h when healthy",
+        verdict,
+    )
+}
+
+/// The checks added at CDR: one burn line at a time, the receiver's
+/// recovery, acknowledgements and stored-housekeeping dumps
+fn operations_cdr(c: &mut Vec<Check>, t: &Totals) {
+    use Verdict::*;
+    c.push(check(
+        "burn-lines",
+        "Wing burn resistors on at once (EPS board: one at a time, 1.0 A pack limit)",
+        t.wing_lines_max.to_string(),
+        "<= 1",
+        if t.wing_lines_max <= 1 { Pass } else { Anomaly },
+    ));
+    // A hang still open at the end (the 24 h silence not yet served) is not a failure
+    let open = t.rx_hangs.saturating_sub(t.rx_recovered);
+    c.push(check(
+        "rx-recovery",
+        "Command-receiver hangs cleared by the flight software's power cycle (FSW-09: after 24 h of silence)",
+        format!("{} of {} (longest {:.1} h)", t.rx_recovered, t.rx_hangs, t.rx_hang_max_s / 3600.0),
+        "all, each within 26 h",
+        if open <= 1 && t.rx_hang_max_s <= 26.0 * 3600.0 { Pass } else { Anomaly },
+    ));
+    c.push(rx_failed_check(t));
+    let acked = if t.commands_executed > 0 { t.acks as f64 / f64::from(t.commands_executed) } else { 0.0 };
+    c.push(check(
+        "acks",
+        "Command acknowledgements radiated per command executed (GND-03; none while TX-OFF)",
+        format!("{} for {} ({:.1} %)", t.acks, t.commands_executed, acked * 100.0),
+        ">= 90 %",
+        if t.commands_executed == 0 || acked >= 0.9 { Pass } else { Warning },
+    ));
+    let vel_mean = if t.gnss_vel_frames > 0 { t.gnss_vel_err_sum / t.gnss_vel_frames as f64 } else { 0.0 };
+    c.push(check(
+        "gnss-frame",
+        "GNSS state frames (SRS-F158) against the truth: position as recorded, the derived ECEF velocity (the receiver's arc propagated with J2)",
+        format!(
+            "{} frames for {} fix sessions, {} with a velocity; position {:.2} m, velocity mean {:.3} max {:.3} m/s",
+            t.gnss_frames, t.gnss_fix_sessions, t.gnss_vel_frames, t.gnss_pos_err_max_m, vel_mean, t.gnss_vel_err_max
+        ),
+        "a frame per fix session; position <= 1 m; velocity <= 0.5 m/s",
+        if t.gnss_pos_err_max_m > 1.0 || t.gnss_vel_err_max > 0.5 {
+            Anomaly
+        } else if t.gnss_fix_sessions > 0 && t.gnss_frames == 0 {
+            Warning
+        } else {
+            Pass
+        },
+    ));
+    c.push(check(
+        "dumps",
+        "Stored-housekeeping dump frames radiated (DUMP_TLM, daily after commissioning)",
+        format!("{} frames, {} records", t.dump_frames, t.dump_records),
+        "> 0 after commissioning",
+        if t.mission_s <= 15.0 * 86_400.0 || t.dump_frames > 0 { Pass } else { Warning },
+    ));
 }
 
 /// The checks and the totals as `summary.json`
@@ -562,4 +875,22 @@ pub fn summary_json(checks: &[Check], t: &Totals, extra: &[(&str, String)]) -> S
     }
     s.push_str("\n  }\n}\n");
     s
+}
+
+/// The `q` quantile of the bursts' energies, J (0 with none)
+pub fn percentile(bursts: &[(f64, u32)], q: f64) -> f64 {
+    let mut e: Vec<f64> = bursts.iter().map(|b| b.0).collect();
+    if e.is_empty() {
+        return 0.0;
+    }
+    e.sort_by(f64::total_cmp);
+    let i = ((e.len() - 1) as f64 * q).round() as usize;
+    e[i.min(e.len() - 1)]
+}
+
+/// Energy per line meant to pass the filter over all bursts, Wh (infinite
+/// with none)
+pub fn wh_per_line(bursts: &[(f64, u32)]) -> f64 {
+    let (j, n) = bursts.iter().fold((0.0, 0u64), |(j, n), b| (j + b.0, n + u64::from(b.1)));
+    if n == 0 { f64::INFINITY } else { j / 3600.0 / n as f64 }
 }

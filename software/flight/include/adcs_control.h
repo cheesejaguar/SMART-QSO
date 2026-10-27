@@ -53,6 +53,10 @@ extern "C" {
 /** Number of sun sensors */
 #define ADCS_SUN_SENSOR_COUNT          6
 
+/** A sensor rail is used this long after its enable or after a trip clears
+ *  (ms): the turn-on takes up to 0.55 s with R_FAULT 220 kΩ (SQSO-OBC-BRD-001 E §9.1) */
+#define ADCS_SENSOR_RAIL_SETTLE_MS     600
+
 /*===========================================================================*/
 /* ADCS Types                                                                 */
 /*===========================================================================*/

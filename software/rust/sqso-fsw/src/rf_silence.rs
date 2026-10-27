@@ -8,14 +8,19 @@
 //!  - power-on, brownout, pin or unknown reset: count from 0;
 //!  - watchdog or software reset: resume from the persisted count (which
 //!    lags by up to [`PERSIST_INTERVAL_S`], so the silence only lengthens);
-//!  - a stowed switch seen while powered: count from 0, even after
-//!    completion;
+//!  - a stowed switch seen while powered: count from 0, until the silence
+//!    has been served;
 //!  - blank or corrupt record: count from 0.
 //!
-//! Once complete, the state persists across later resets. GSE ARM resets it
-//! for flight; ARMED does not count while powered.
+//! Once complete, the silence is latched: it persists across later resets,
+//! and a sense line reading stowed afterwards does not restart it (LV-15).
+//! In orbit that reading can only be a failed switch or sense line, and a
+//! real re-stow removes power, which the boot handles; restarting on it
+//! would let one failed line silence the station indefinitely. GSE ARM
+//! resets it for flight; ARMED does not count while powered.
 //!
 //! @requirement SYS-224 No RF signal earlier than 45 minutes after deployment; switch toggle resets the timer
+//! @requirement SRS-F087 The software shall latch the served 45-minute RF silence, so that a sense line reading stowed afterwards does not restart it
 
 use crate::contact_monitor::carry_seconds;
 use crate::nvm::{self, Flash, RecordStatus};
@@ -124,6 +129,16 @@ impl RfSilence {
         rec
     }
 
+    /// Whether the persisted record shows the silence served (the
+    /// deployment sequence takes it as proof of separation, RID SMA-B02);
+    /// read before this module's own init
+    pub fn served_in_record<F: Flash>(flash: &mut F, region: u32) -> bool {
+        let mut rec = [0u8; 8];
+        let ok = nvm::load(flash, region, 0, RECORD_MAGIC, &mut rec) == Ok(RecordStatus::Valid);
+        let [s0, s1, s2, s3, ..] = rec;
+        ok && u32::from_le_bytes([s0, s1, s2, s3]) == State::Complete as u32
+    }
+
     fn save<F: Flash>(&mut self, flash: &mut F) {
         if nvm::save(flash, self.region, 0, RECORD_MAGIC, &Self::record(self.state, self.elapsed_s)).is_ok() {
             self.unpersisted_s = 0;
@@ -171,11 +186,11 @@ impl RfSilence {
 
     /// Advance the count by elapsed time; restart it while stowed
     pub fn tick<IO: SilenceIo>(&mut self, elapsed_ms: u32, io: &mut IO) {
-        if !self.initialized {
-            return;
+        if !self.initialized || self.state == State::Complete {
+            return; // the served silence is latched (LV-15)
         }
         if io.stowed() {
-            // CDS 2.3.2.4: a switch toggle restarts the timer, even after completion
+            // CDS 2.3.2.4: a switch toggle restarts the timer (ARMED or counting)
             if self.state != State::Counting || self.elapsed_s != 0 {
                 self.restart_count();
                 self.save(io);
@@ -296,6 +311,21 @@ mod tests {
         assert_eq!((io.inhibit, io.last), (Some(false), Some(Report::Complete)));
     }
 
+    /// The record read for the deployment sequence (RID SMA-B02): served
+    /// only once COMPLETE is persisted
+    #[test]
+    fn the_record_shows_the_served_silence() {
+        let mut io = bench();
+        assert!(!RfSilence::served_in_record(&mut io, 9), "blank");
+        let mut s = boot(&mut io, Reset::PowerLost);
+        minutes(&mut s, &mut io, 44);
+        assert!(!RfSilence::served_in_record(&mut io, 9), "counting");
+        minutes(&mut s, &mut io, 2);
+        assert!(RfSilence::served_in_record(&mut io, 9));
+        assert!(s.arm(&mut io).is_ok());
+        assert!(!RfSilence::served_in_record(&mut io, 9), "ARMED");
+    }
+
     #[test]
     fn nothing_before_init() {
         let mut io = bench();
@@ -354,7 +384,7 @@ mod tests {
     /// restarts the count from 0, even after completion, and that is
     /// persisted. Fails if the switch is ignored in any state.
     #[test]
-    fn stowed_switch_restarts_even_after_completion() {
+    fn stowed_switch_restarts_until_completion_then_is_ignored() {
         let mut io = bench();
         let mut s = boot(&mut io, Reset::PowerLost);
         minutes(&mut s, &mut io, 40);
@@ -369,11 +399,13 @@ mod tests {
 
         io.stowed = true;
         s.tick(MINUTE_MS, &mut io);
-        assert!(s.active(), "re-armed by the switch after completion");
-        assert_eq!(io.inhibit, Some(true));
-        assert_eq!(boot(&mut io, Reset::PowerKept).state(), State::Counting, "the restart is persisted");
-        // While stowed the count does not advance
-        let mut s = boot(&mut io, Reset::PowerKept);
+        assert!(!s.active(), "the served silence is latched (LV-15)");
+        assert_eq!(io.inhibit, Some(false));
+        assert_eq!(boot(&mut io, Reset::PowerKept).state(), State::Complete);
+        // While stowed before completion the count does not advance
+        let mut io = bench();
+        let mut s = boot(&mut io, Reset::PowerLost);
+        io.stowed = true;
         minutes(&mut s, &mut io, 50);
         assert_eq!((s.elapsed_seconds(), s.active()), (0, true));
     }

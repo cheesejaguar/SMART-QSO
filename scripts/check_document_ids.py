@@ -39,8 +39,11 @@ REGISTER = "docs/DOCUMENT_REGISTER.md"
 HEADER_LINES = 20
 
 #: Directories that are not part of the controlled document set (hidden
-#: directories such as .claude/ and .git/ are skipped as well)
-EXCLUDED = ("docs/funding_audit",)
+#: directories such as .claude/ and .git/ are skipped as well). The funding
+#: audit's research notes are evidence, not controlled documents; its numbered
+#: reports (SQSO-AUD-001 to -005, among them the live cost ROM SQSO-AUD-005)
+#: are controlled and registered (RID P3P-09).
+EXCLUDED = ("docs/funding_audit/research",)
 BUILD_DIRS = {"build", "node_modules", "venv", "__pycache__"}
 
 DOC_ID = r"(?:SQSO|SMART-QSO|TP)(?:-[A-Z0-9]+)+"
@@ -141,6 +144,13 @@ def check(root: Path = REPO) -> List[str]:
             items.add((header, rel))
         items |= {(ident, rel) for ident in headings if ident != _procedure(header)}
     listed = registered(root)
+    register_text = (root / REGISTER).read_text(encoding="utf-8") if (root / REGISTER).exists() else ""
+    counts: Dict[Tuple[str, str], int] = {}
+    for pair in REGISTER_ROW.findall(register_text):
+        counts[pair] = counts.get(pair, 0) + 1
+    for (ident, rel), n in sorted(counts.items()):
+        if n > 1:
+            problems.append(f"{REGISTER}: row {ident} `{rel}` is listed {n} times")
 
     for ident, rel in sorted(items - listed):
         problems.append(f"{ident} ({rel}) is not in {REGISTER}")

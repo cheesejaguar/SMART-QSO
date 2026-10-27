@@ -83,10 +83,29 @@ PayloadGuardResult_t payload_guard_step(const PayloadSample_t *sample, bool payl
 /** May the rail be turned on now? */
 bool payload_guard_may_enable(uint64_t now_ms);
 
+/**
+ * @brief May the rail be switched on now: payload_guard_may_enable(), and
+ *        the heat spreader not known to be below -15 C (THM-08)
+ *
+ * @requirement SRS-F131 The software shall not power the Jetson while its heat spreader reads below -15 C
+ */
+bool payload_guard_may_power_on(uint64_t now_ms);
+
 uint32_t payload_guard_trip_count(void);
 
 /** Fault-log text for a result */
 const char *payload_guard_reason(PayloadGuardResult_t result);
+
+/**
+ * @brief The spreader thermistor is (or is no longer) faulted
+ *
+ * Outside 0.10-3.25 V the OBC's spreader thermistor is open or shorted
+ * (SQSO-OBC-BRD-001 B §11.3): payload_guard_may_power_on() refuses while
+ * the fault lasts (the gate fails safe).
+ *
+ * @requirement SRS-F150 Spreader thermistor sensor fault inhibits the Jetson's power-on
+ */
+void payload_guard_set_spreader_fault(bool fault);
 
 #ifdef __cplusplus
 }

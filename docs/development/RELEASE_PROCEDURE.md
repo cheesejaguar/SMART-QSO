@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-DEV-005
-**Revision:** D
-**Date:** 2026-10-25
+**Revision:** E
+**Date:** 2026-10-27
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -154,8 +154,32 @@ and a "-dev" version and keeps the package as an artifact.
 | 4 | Verify version string | Correct version | [ ] |
 | 5 | Verify `build_info.txt` | Release commit, "release: yes", pinned toolchain | [ ] |
 | 6 | Size and stack check (`build_info.txt`) | Text ≤ 256 KB (SRS-C004); worst-case stack ≤ 8 KB (SRS-C003) | [ ] |
-| 7 | Load on target hardware | Boots correctly | [ ] |
+| 7 | Load on target hardware, option bytes first (§5.3.1) | Boots correctly; SRAM2 parity on | [ ] |
 | 8 | Execute functional test | All pass | [ ] |
+
+### 5.3.1 Programming the Flight Board: Option Bytes (RID AV-07)
+
+The STM32L4R5's SRAM2 parity is an option bit, not a setting of the image: the flight software never writes option
+bytes (a corrupted write could brick the processor in orbit). Every board that carries the flight image is programmed
+with SRAM2 parity on, once, before the image is loaded, and checked after:
+
+```bash
+# The ST-LINK on the board's SWD connector; STM32CubeProgrammer's command-line tool
+STM32_Programmer_CLI -c port=SWD mode=UR -ob SRAM2_PE=0      # 0 = parity check on (FLASH_OPTR bit SRAM2_PE)
+STM32_Programmer_CLI -c port=SWD -ob displ                   # must list SRAM2_PE : 0x0
+probe-rs download --chip STM32L4R5ZITx sqso-firmware-<version>.elf && probe-rs reset --chip STM32L4R5ZITx
+```
+
+The option load resets the processor. After the first boot of the image, the console shows
+`[SYSTEM] SRAM2 parity on` and the second housekeeping frame `PE=1` (SRS-F154); `PE=0`, or a fault-log entry
+"SRAM2 parity off (option bit SRAM2_PE)", fails the step. Record the `-ob displ` output with the build information.
+The image links every static and the 8 KB stack in SRAM2 (`software/rust/firmware/memory.x`), so with the bit set every
+live byte of RAM has parity (`software/flight/docs/MEMORY_POLICY.md` §10.3).
+
+| Step | Action | Expected Result | P/F |
+|------|--------|-----------------|-----|
+| 1 | `-ob SRAM2_PE=0`, then `-ob displ` | `SRAM2_PE : 0x0` | [ ] |
+| 2 | Load the image, boot | Console `[SYSTEM] SRAM2 parity on`; HK2 `PE=1`; no "SRAM2 parity off" fault entry | [ ] |
 
 ### 5.4 Release Documentation
 
@@ -324,3 +348,4 @@ cmake --build build
 | B | 2026-10-16 | Document number changed from SQSO-DEV-004, which `COMMIT_MESSAGES.md` also carried, to SQSO-DEV-005 (finding PI-17). No content change | SMART-QSO Team |
 | C | 2026-10-24 | §5.2 note for the Rust flight software: where the version is set, how the image is built, the tests, and the steps not yet available (`package` target, build-info script) | SMART-QSO Team |
 | D | 2026-10-25 | §5.2 rewritten for the Rust flight software: the release build packages the image with `scripts/release_package.sh` (the `package` target and build-info script it called did not exist); §7 artifacts and checksums to match | SMART-QSO Team |
+| E | 2026-10-27 | §5.3.1 added: programming the flight board sets the SRAM2 parity option bit (`SRAM2_PE` = 0) before the image is loaded and checks it in the boot telemetry (RID AV-07, SRS-F154); §5.3 step 7 refers to it | SMART-QSO Team |

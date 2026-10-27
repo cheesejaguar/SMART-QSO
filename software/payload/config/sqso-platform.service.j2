@@ -1,0 +1,15 @@
+# SMART-QSO payload platform configuration (RID JETB-01; software/payload/platform_config.py):
+# the 6.5 W VDD_IN cap (INA3221 channel 1 curr1_max = 1300 mA) and nvpmodel ID 1 (7 W),
+# at every boot, before the payload agent (run_payload.sh starts only once this unit is active).
+# Installed by ansible/deploy_payload.yml.
+[Unit]
+Description=SMART-QSO payload platform configuration (power cap, 7 W mode)
+After=nvpmodel.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/python3 {{ payload_dir }}/platform_config.py boot
+
+[Install]
+WantedBy=multi-user.target

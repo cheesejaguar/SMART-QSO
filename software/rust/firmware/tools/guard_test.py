@@ -3,12 +3,12 @@
 and the independent watchdog must reset the processor.
 
 The firmware arms an MPU region with no access over the 32 bytes below the
-8 KB stack budget, 0x2009DFE0-0x2009DFFF (firmware/src/stack.rs). This
-script halts the core, sets its SP to 0x2009E010 (16 bytes above the guard),
+8 KB stack budget, 0x2003DFE0-0x2003DFFF (firmware/src/stack.rs). This
+script halts the core, sets its SP to 0x2003E010 (16 bytes above the guard),
 and resumes it. The next push of more than 16 bytes, or the next exception
 entry, writes into the guard: MemManage, escalated to HardFault, whose
 handler spins (or, if the stacking for the HardFault itself faults, the
-core locks up) until the IWDG resets the processor, within the 30 s
+core locks up) until the IWDG resets the processor, within the 25.6 s
 operating timeout.
 
 Steps, all through `probe-rs read` and `probe-rs write` (sqso_probe.py):
@@ -20,7 +20,7 @@ Steps, all through `probe-rs read` and `probe-rs write` (sqso_probe.py):
     stops while the core is halted and the halt cannot expire it; restored
     at the end.
  3. Halt (DHCSR = DBGKEY | C_HALT | C_DEBUGEN), write SP through the core
-    register interface (DCRDR = 0x2009E010, DCRSR = REGWnR | 13), clear the
+    register interface (DCRDR = 0x2003E010, DCRSR = REGWnR | 13), clear the
     vector catches so the HardFault runs the firmware's handler (DEMCR =
     TRCENA only), resume (DHCSR = DBGKEY | C_DEBUGEN). Nothing is read
     between the halt and the resume: probe-rs 0.32's `read` resumes a
@@ -65,9 +65,10 @@ from typing import Callable, Dict, List, Optional, Sequence
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import sqso_probe as sp  # noqa: E402
 
-# firmware/src/stack.rs: guard 32 bytes below the 8 KB under 0x200A0000
-GUARD_LO = 0x2009_DFE0
-GUARD_HI = 0x2009_E000
+# firmware/src/stack.rs: guard 32 bytes below the 8 KB under 0x20040000
+# (the top of SRAM2, memory.x)
+GUARD_LO = 0x2003_DFE0
+GUARD_HI = 0x2003_E000
 SP_VALUE = GUARD_HI + 16
 
 # ARMv7-M debug registers (ARM DDI 0403, C1.6)

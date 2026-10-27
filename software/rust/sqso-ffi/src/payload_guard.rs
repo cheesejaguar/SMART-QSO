@@ -34,6 +34,19 @@ pub extern "C" fn payload_guard_may_enable(now_ms: u64) -> bool {
     GUARD.with(|g| g.may_enable(now_ms)).unwrap_or(false)
 }
 
+/// May the rail be switched on now (the limits, and not known colder than
+/// −15 °C: THM-08)?
+#[unsafe(no_mangle)]
+pub extern "C" fn payload_guard_may_power_on(now_ms: u64) -> bool {
+    GUARD.with(|g| g.may_power_on(now_ms)).unwrap_or(false)
+}
+
+/// The spreader thermistor is (or is no longer) faulted: no power-on
+#[unsafe(no_mangle)]
+pub extern "C" fn payload_guard_set_spreader_fault(fault: bool) {
+    let _ = GUARD.with(|g| g.set_spreader_fault(fault));
+}
+
 /// Trips since payload_guard_init()
 #[unsafe(no_mangle)]
 pub extern "C" fn payload_guard_trip_count() -> u32 {

@@ -2,274 +2,159 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-PM-001
-**Revision:** A
-**Date:** 2026-01-02
-**Reference:** NPR 7120.5 Section 3.3
+**Revision:** C
+**Date:** 2026-10-27
+**Reference:** NPR 7123.1D and NPR 7120.8A as reference frameworks, tailored (`docs/project/CDR_CRITERIA_MATRIX.md`
+§1-§2); `docs/BASELINE_PARAMETERS.md` Rev D governs every value
 
 ---
 
-## 1. Purpose
+## 1. Purpose and Status
 
-This document defines the project plan for the SMART-QSO CubeSat mission per NPR 7120.5 requirements, establishing objectives, organization, schedule, and management approach.
+This plan states how the SMART-QSO project is organised, scheduled, resourced, reviewed and controlled.
 
-## 2. Mission Overview
+**Status on 2026-10-27: Phase B, pre-PDR** (BASELINE §1). No independent life-cycle review has been held; the SRR,
+PDR and CDR records under `docs/reviews/` are self-assessments (findings PI-03, PI-04). No hardware has been bought,
+built or tested. The flight software (Rust, Embassy executor) builds and is tested in CI against a simulated HAL and
+builds for the STM32L4R5ZI; it has not run on hardware. Revision A of this plan listed the SRR and PDR as "Complete"
+and the CDR as "Current"; that was wrong.
 
-### 2.1 Mission Statement
+## 2. Mission
 
-SMART-QSO demonstrates onboard agentic AI to manage an amateur radio transponder from a 1U CubeSat platform, advancing TinyML/TinyLM technology for space applications.
+SMART-QSO is a 1U CubeSat carrying a single-channel U/V FM amateur transponder, duty-gated by available power, with
+an AX.25 telemetry beacon and an onboard AI experiment that schedules the transponder and selects plain-language
+beacon text. It falls back to a conventional transponder and template beacon when the AI is unavailable (BASELINE §2).
+Objectives MO-1 to MO-5 and the mission requirements are in `docs/requirements/MISSION_REQUIREMENTS.md`; success
+criteria (L1 30 days, L2 1 year, L3 2+ years) in `docs/mission/MISSION_SUCCESS_CRITERIA.md`.
 
-### 2.2 Objectives
+## 3. Governing Framework
 
-| ID | Objective | Priority |
-|----|-----------|----------|
-| O1 | Demonstrate AI-managed amateur radio operations | Primary |
-| O2 | Provide amateur radio operators with transponder access | Primary |
-| O3 | Demonstrate graceful degradation to conventional operation | Primary |
-| O4 | Advance TinyML/TinyLM for space applications | Secondary |
+The project is privately funded and licensed under FCC Part 97 by an individual amateur licensee; no NASA directive
+is mandatory. The binding requirements come from the FCC (47 CFR Part 97), the IARU coordination, CDS Rev 14.1 and the
+integrator's ICD and launch-provider guide. NASA documents are used as a voluntary, tailored framework: NPR 7123.1D for
+the systems-engineering processes and the review criteria, NPR 8705.4B for the Class D designation (a reference, since
+the project is not a NASA payload), NPR 7150.2D Class C and NASA-STD-8739.8B for software, GSFC-STD-7000B for
+environmental verification. If a NASA centre becomes a partner, NPR 7120.8A would be the likely management framework.
+The applicability by path is in `docs/project/CDR_CRITERIA_MATRIX.md` §1.
 
-### 2.3 Success Criteria
+## 4. Organisation
 
-| Level | Criteria |
-|-------|----------|
-| Minimum | Beacon received on ground |
-| Partial | Conventional transponder operation |
-| Full | AI-managed transponder demonstrated |
+| Role | Holder | Notes |
+|------|--------|-------|
+| Principal investigator, project manager, systems engineer, space-station licensee | KK6GDB (one person, BASELINE §1, D1) | Single point of failure for the project (risk R14) |
+| Control operators and telecommand stations | Not yet named; at least two geographically separated stations needed before the IARU request (D1) | Prospective partners: NASA Ames Research Center, Santa Clara University; nothing agreed |
+| Electrical and RF, flight software, mechanical and thermal, integration and test | Open positions (labour model in `docs/funding_audit/LIFECYCLE_COST_ROM.md` §4: about 6.25 FTE-years) | Volunteer, university or contract |
+| Independent reviewers for the PDR and CDR | To be invited by the PI; must not be developers | PDR 2027-01-12 |
+| Host organisation | None (needed only for CSLI or institution-only funding) | BASELINE §1 |
 
----
+Operators are not compensated for operations (Part 97 condition C2); paying people to build the spacecraft is
+compatible with Part 97 under grant-type funding (ROM §4).
 
-## 3. Project Organization
+## 5. Work Breakdown Structure
 
-### 3.1 Organizational Structure
+The WBS follows the NASA standard project WBS used by the cost ROM (SQSO-AUD-005 §3), so cost and schedule share one
+structure.
 
-```
-                    Project Manager
-                          │
-         ┌────────────────┼────────────────┐
-         │                │                │
-    Systems Engr     SW Lead          HW Lead
-         │                │                │
-    ├─ Mission       ├─ OBC FSW      ├─ EPS
-    ├─ Requirements  ├─ Payload SW   ├─ C&DH
-    ├─ V&V           ├─ Ground SW    ├─ RF
-    └─ Safety        └─ Test         ├─ ADCS
-                                     └─ Structure
-```
+| WBS | Element | Content | Schedule tasks (`mission/SCHEDULE.md`) |
+|-----|---------|---------|---------------------------------------|
+| 01 | Project management | Plans, schedule, budget, risk, CM, reviews | RID, PDR, CDR, PSR |
+| 02 | Systems engineering | Requirements, budgets, ICDs, ODAR and DAS, VCRM | RID, DAS |
+| 03 | Safety and mission assurance | Hazard analysis, FMEA, battery screening, workmanship, inspections | BATT |
+| 04 | Science / technology (AI experiment) | Selector model, gated generative experiment, D5 energy gate | EM_TEST (VI-02) |
+| 05 | Payload (Jetson module and carrier) | Carrier design, thermal strap, power switch | SCH, LAYOUT, EM_FAB |
+| 06 | Spacecraft bus | Structure (buy), EPS and battery, OBC, transponder, antennas (buy), ADCS, GNSS, harness | SCH to FM_INT |
+| 07 | Mission operations | Control stations, SatNOGS, operations procedures, training | TCS |
+| 08 | Launch services | Integrator contract, export counsel, logistics | RFQ, QUOTES, NEGOT, CONTRACT, EXPORT |
+| 09 | Ground data system | Decoder, dashboards, orbit determination and OEM upload | — |
+| 10 | Integration and test | Flatsat, EM tests, FM integration, protoflight campaign | EM_INT, EM_TEST, FM_INT, FM_FUNC, PF_ENV |
+| 11 | Education and public outreach | Decoder releases, documentation | — |
+| — | Regulatory (in 02 and 08) | IARU, FCC pre/in/post-space, ITU via FCC, NOAA, Space-Track | FCC_CONS, IARU_REQ, IARU, FCC_PRE |
 
-### 3.2 Roles and Responsibilities
+## 6. Schedule
 
-| Role | Responsibilities |
-|------|------------------|
-| Project Manager | Overall project execution, schedule, budget |
-| Systems Engineer | Requirements, integration, V&V |
-| Software Lead | Flight and ground software development |
-| Hardware Lead | Subsystem design and integration |
-| Quality Assurance | Process compliance, inspections |
+The integrated master schedule is `mission/SCHEDULE.md` (SQSO-SCH-001), generated by
+`software/simulation/cdr/pm/schedule_cpm.py`. Key dates (SQSO-SCH-001 D): PDR 2027-01-12 (board named by 2026-12-01);
+early FCC pre-space notification 2027-01-19; launch contract by 2027-06-30 (D7); CDR 2027-09-28; FM burn-in 2028-02-22
+to 2028-03-03; protoflight campaign 2028-03-03 to 2028-04-21; earliest delivery 2028-05-19. The EM layout is estimated
+per board from the round-2 designs (27 designer-weeks; 15 weeks with two designers). **The June 2028 opportunity is not
+achievable** (float −80 days to the L − 4 month milestone, 2028-02-01); **the 2028-11-01 planning launch has 10.1 weeks
+of float against the 9.6 weeks wanted by GSFC-STD-1000 Rule 1.06**, provided two layout designers start on 2027-01-12
+(with one, −20 days). Decision points and dated actions with owners are in SQSO-SCH-001 §5 (DA-01 to DA-21). The
+schedule is updated at least every 30 days.
 
----
+### 6.1 Decision gates (tailored key decision points)
 
-## 4. Work Breakdown Structure
+There is no NASA decision authority; the PI decides at four gates, each after an independent review or a dated
+record.
 
-### 4.1 WBS Summary
+| Gate | Decision | Date | Entry |
+|------|----------|------|-------|
+| G1 | Proceed to EM build; release EM and both panel sets | After the PDR (2027-01-12) | PDR RIDs dispositioned; EM funding in hand |
+| G2 | Sign the launch contract; file the FCC pre-space notification | By 2027-06-30 (D7) | Quotes; FM and launch funding committed; altitude clause |
+| G3 | Proceed to FM fabrication | After the CDR (2027-09-28) | EM test results (VI-01 to VI-09, VI-11); every critical element at TRL 6 or its fallback decided (`docs/project/TECHNOLOGY_READINESS_ASSESSMENT.md`) |
+| G4 | Ship to the integrator | Pre-ship review (2028-05-19 earliest) | VCRM closed for every requirement due before delivery; filings in hand |
 
-| WBS | Element | Description |
-|-----|---------|-------------|
-| 1.0 | Project Management | Planning, control, reviews |
-| 2.0 | Systems Engineering | Requirements, design, V&V |
-| 3.0 | Flight Hardware | EPS, C&DH, RF, ADCS, Structure |
-| 4.0 | Flight Software | OBC FSW, Payload SW |
-| 5.0 | Ground Segment | Ground station, operations |
-| 6.0 | Integration & Test | Assembly, environmental test |
-| 7.0 | Mission Operations | Launch, on-orbit ops |
+### 6.2 Reviews
 
-### 4.2 WBS Detail
+| Review | Date | Criteria | Independence |
+|--------|------|----------|--------------|
+| PDR | 2027-01-12 | NPR 7123.1D Table G-6, tailored (`CDR_CRITERIA_MATRIX.md` §2.3, §5), with the technology readiness assessment (SQSO-TRA-001) | A chair and at least two reviewers outside the team, named by the PI by 2026-12-01 (DA-03; names, affiliations and conflict-of-interest statements recorded here); data package two weeks before; RIDs and dispositions recorded in `docs/reviews/` |
+| CDR | 2027-09-28 | Table G-7, tailored, with the EM data and the TRL 6 assessment | As the PDR |
+| Test readiness | 2028-02 | Procedures, facility, levels, FM functional baseline | PI and test lead, one independent reviewer |
+| Pre-ship review | 2028-05-19 (earliest) | VCRM closure, data package, filings | As the PDR |
+| Post-launch assessment | L + about 2 weeks | Commissioning complete; FCC in-space notification filed | PI |
 
-**1.0 Project Management**
-- 1.1 Project Planning
-- 1.2 Schedule Management
-- 1.3 Risk Management
-- 1.4 Configuration Management
-- 1.5 Reviews (SRR, PDR, CDR, TRR, FRR)
+## 7. Resources and Budget
 
-**2.0 Systems Engineering**
-- 2.1 Requirements Development
-- 2.2 System Design
-- 2.3 Interface Management
-- 2.4 Verification & Validation
-- 2.5 Safety & Mission Assurance
+Cost: `docs/funding_audit/LIFECYCLE_COST_ROM.md` (SQSO-AUD-005 Rev F; ROM, no quotes): non-labour $0.31M-$0.96M including 30 % reserve (the custom boards, a contract PCB layout up to $105k, the review boards and the round-3 test costs included);
+labour from $0 (volunteer) to $0.9M-$1.3M (professional). Funding profile: about 45 % in FY2027 (EM, launch deposit,
+export counsel) and 50 % in FY2028. For a late-2028 launch the schedule tolerates **EM money by about 2027-03-15** (two months later than the assumed
+2027-01-15) and needs **FM and launch money by the contract** (D7 deadline 2027-06-30).
 
-**3.0 Flight Hardware**
-- 3.1 EPS Design & Build
-- 3.2 C&DH/OBC Design & Build
-- 3.3 RF Subsystem Design & Build
-- 3.4 ADCS Design & Build
-- 3.5 Structure & Thermal
-- 3.6 Harness & Integration
+| Phase | Period | Effort |
+|-------|--------|--------|
+| B to PDR | 2026-11 to 2027-01 | PI; two PCB layout designers engaged by 2026-12-15 for a 2027-01-12 start (DA-04) |
+| C (EM build and test) | 2027-01 to 2027-09 | Electrical/RF 1.0, flight software 1.0, mechanical/thermal 0.5, PI 0.75 FTE |
+| D (FM build, test, delivery) | 2027-09 to 2028-05 | As C, plus integration and test 0.5 FTE |
+| E (operations) | 2028 to 2030 | At least two trained control operators, uncompensated |
 
-**4.0 Flight Software**
-- 4.1 OBC Flight Software
-- 4.2 Payload (Jetson) Software
-- 4.3 Software Integration
-- 4.4 Software V&V
+## 8. Risk Management
 
-**5.0 Ground Segment**
-- 5.1 Ground Station Setup
-- 5.2 Mission Control Software
-- 5.3 Operations Procedures
+Process: one 5 × 5 register (`mission/RISK_REGISTER.md`), each risk with an owner, a likelihood and consequence score,
+a trend and dated mitigation steps; reviewed monthly and at each gate. Risks rated high are reported in the
+schedule update. Top risks today: funding timing (R11), key-person dependency (R14), launch capacity (R13), Jetson
+feasibility in 1U (R16), regulatory timing (R19), and the schedule margin shortfall in §6 (to be added to the register:
+RID PM-07).
 
-**6.0 Integration & Test**
-- 6.1 Flatsat Development
-- 6.2 Flight Unit Integration
-- 6.3 Environmental Testing
-- 6.4 Pre-Ship Review
+## 9. Configuration Management
 
-**7.0 Mission Operations**
-- 7.1 Launch Campaign
-- 7.2 Commissioning
-- 7.3 Nominal Operations
-- 7.4 End of Life
+`docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` (SMART-QSO-CMP-001). Baselines: functional (requirements and the
+baseline parameters) at the PDR, allocated (design and ICDs) at the CDR, product (as-built) at the pre-ship review,
+each with a Git tag. Class I changes need a change request in `docs/project/CHANGE_REQUEST_LOG.md` approved by the PI.
 
----
+## 10. Communication and Documentation
 
-## 5. Schedule
+All documents are Markdown in the Git repository, controlled through pull requests and the document register
+(`docs/DOCUMENT_REGISTER.md`). Status is reported in the 30-day schedule update and at each gate. No document is cited
+externally unless its status is evidenced (risk R20).
 
-### 5.1 Master Schedule
+## 11. Quality and Metrics
 
-| Phase | Milestone | Target |
-|-------|-----------|--------|
-| Phase A | Mission Concept Review | Complete |
-| Phase B | System Requirements Review | Complete |
-| Phase B | Preliminary Design Review | Complete |
-| Phase C | Critical Design Review | Current |
-| Phase C | Hardware Fabrication | CDR + 3 months |
-| Phase C/D | Integration & Test | CDR + 6 months |
-| Phase D | Flight Readiness Review | CDR + 9 months |
-| Phase D | Launch | TBD |
-| Phase E | Mission Operations | 12 months |
-| Phase F | Decommissioning | L + 12-18 months |
-
-### 5.2 Key Decision Points
-
-| KDP | Gate | Criteria |
-|-----|------|----------|
-| KDP-A | Mission Approval | Concept feasibility |
-| KDP-B | Formulation Approval | Requirements baseline |
-| KDP-C | Implementation Approval | Design complete |
-| KDP-D | Operations Approval | Ready for launch |
-
-### 5.3 Review Schedule
-
-| Review | Purpose | Entry Criteria |
-|--------|---------|----------------|
-| SRR | Requirements baseline | ConOps approved |
-| PDR | Preliminary design approval | Requirements baselined |
-| CDR | Final design approval | Design complete |
-| TRR | Test readiness | Integration complete |
-| FRR | Flight readiness | All tests passed |
+| Metric | Target | Today |
+|--------|--------|-------|
+| Requirements with a method and a planned event | 100 % | 100 % (VCRM Rev C §3) |
+| Requirements verified with evidence | 100 % of those due before delivery | 0 %; 57 of 282 partly covered by CI tests |
+| Open TBD/TBR items (CI-counted) | Downward each month; each with a dated closure | 265 / 34 before this review (`docs/TBD_REGISTER.md`) |
+| Flight-software line coverage | ≥ 90 % Rust crates (CI gate) | 94.8 % (SQSO-AUD-003 §1.1) |
+| Review RID closure | All severity 1 and 2 before the next gate | This review's RIDs: see `CDR_CRITERIA_MATRIX.md` §6 |
+| Schedule float on the critical path | ≥ GOLD Rule 1.06 margin | −11.4 weeks (June 2028); 10.1 against 9.6 weeks (November 2028) |
 
 ---
 
-## 6. Resource Plan
-
-### 6.1 Team Size
-
-| Phase | FTE |
-|-------|-----|
-| Phase A/B | 2-3 |
-| Phase C | 4-6 |
-| Phase D | 3-4 |
-| Phase E | 1-2 |
-
-### 6.2 Key Resources
-
-| Resource | Source |
-|----------|--------|
-| Development Lab | University/Organization |
-| Clean Room | Shared facility |
-| Environmental Test | External lab |
-| Ground Station | Amateur radio club |
-
----
-
-## 7. Risk Management
-
-### 7.1 Top Project Risks
-
-| Risk | L | C | Mitigation |
-|------|---|---|------------|
-| Schedule slip | M | M | Margin in schedule |
-| Technical challenges | M | M | Prototyping, heritage |
-| Resource constraints | L | M | Phased staffing |
-| Launch delay | M | L | Flexible manifest |
-
-### 7.2 Risk Process
-
-- Monthly risk reviews
-- Risk register maintained in mission/RISK_REGISTER.md
-- Escalation to PM for high risks
-
----
-
-## 8. Configuration Management
-
-### 8.1 Baselines
-
-| Baseline | Established At |
-|----------|----------------|
-| Functional | SRR |
-| Allocated | PDR |
-| Product | CDR |
-
-### 8.2 Change Control
-
-- Change requests via GitHub issues
-- CCB review for Class I changes
-- Documented in CM Plan
-
----
-
-## 9. Communication Plan
-
-### 9.1 Meetings
-
-| Meeting | Frequency | Participants |
-|---------|-----------|--------------|
-| Team standup | Weekly | All |
-| Technical review | Bi-weekly | Leads |
-| Management review | Monthly | PM, Leads |
-| Stakeholder update | Quarterly | All stakeholders |
-
-### 9.2 Documentation
-
-- All documents in Git repository
-- Reviews via pull requests
-- Status in project wiki
-
----
-
-## 10. Quality Assurance
-
-### 10.1 QA Activities
-
-| Activity | Frequency |
-|----------|-----------|
-| Code reviews | Per commit |
-| Design reviews | Per phase |
-| Inspections | Per assembly |
-| Audits | Pre-review |
-
-### 10.2 Metrics
-
-| Metric | Target |
-|--------|--------|
-| Requirements coverage | 100% |
-| Test coverage | >80% |
-| Defect closure | <30 days |
-| Review action closure | <14 days |
-
----
-
-## 11. Revision History
+## Revision History
 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | CDR review (PM/SE/V&V). Rewritten to the real status (Phase B, pre-PDR, no hardware; Rev A claimed the SRR and PDR complete); governing framework; organisation as it is (one person, open roles); WBS on the NASA standard structure of the cost ROM; dated schedule and decision gates G1-G4; tailored reviews; funding dates the schedule needs; risk and CM process; metrics with today's values | CDR review, PM/SE/V&V |
+| C | 2026-10-27 | CDR round 3, systems and programmatics (P3P-05, P3P-08, SE-09): §6 dates and float from SQSO-SCH-001 D (CDR 2027-09-28; +71 d for 2028-11, −80 d for June 2028), dated actions DA-01 to DA-21; G3 needs TRL 6 or a decided fallback; PDR board named by 2026-12-01 (DA-03); layout designers (DA-04); §7 non-labour $0.31M-$0.96M (ROM F) | CDR round 3 |

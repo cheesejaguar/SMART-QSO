@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-CDH-OBC-001
-**Version:** 1.5
-**Date:** 2026-10-25
+**Version:** 1.8
+**Date:** 2026-10-27
 **Status:** Draft
 **Supersedes:** `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), merged as Appendix A (finding PI-17)
 
@@ -151,9 +151,9 @@ the C linker script cited here until 2026-10-24 was removed with the C target bu
 |-----------|-------|
 | Type | Independent Watchdog (IWDG) |
 | Clock | LSI (32 kHz) |
-| Timeout | 30 seconds (`WDT_HW_TIMEOUT_MS`; refreshed only while every task checks in) |
+| Timeout | 25.6 seconds (25600 ms, `WDT_HW_TIMEOUT_MS`; refreshed only while every task checks in): 24.1–27.8 s over the LSI's tolerance, below the TPS3850 supervisor's 29.3 s minimum with C23–C26 at 440 nF C0G (SQSO-ICX-001 D §4.3, §6 row 37). The IWDG therefore resets first; the supervisor is the backstop when the IWDG itself fails |
 | Prescaler | 256 |
-| Reload | 500 |
+| Reload | 3200 |
 
 ### 5.3 Multi-Task Watchdog
 
@@ -224,6 +224,10 @@ Per FDIR design, each task checks in:
 
 ## 8. Peripheral Interfaces
 
+**Superseded (1.7):** the board design SQSO-OBC-BRD-001 (`hardware/electrical/obc/OBC_BOARD_DESIGN.md`) and the master
+pin allocation SQSO-ICX-001 (`hardware/electrical/INTERCONNECT.md` §4) replace §8.1–§8.5 and Appendix A.5. The tables
+below are kept as the record of the earlier plan; where they disagree with SQSO-ICX-001, it governs.
+
 ### 8.1 UART Interfaces
 
 | UART | Baud Rate | Connection | Purpose |
@@ -243,21 +247,34 @@ Per FDIR design, each task checks in:
 
 | I2C | Speed | Connection | Purpose |
 |-----|-------|------------|---------|
-| I2C1 | 400 kHz | EPS | Power telemetry |
-| I2C2 | 400 kHz | ADCS | Sensors, actuators |
+| I2C1 | 100 kHz | RTC | RV-3028-C7 mission clock (PG14/PG13) |
+| I2C2 | 100 kHz | EPS | INA228 ×2, EPS controller (heartbeat) (PF1/PF0) |
+| I2C3 | 100 kHz | AntS | Both AntS controllers 0x31, 0x32, through EPS U80 (PG7/PB4) |
+| I2C4 | 100 kHz | ADCS | ADS7138 and RM3100, two buffered segments (PD12/PD13) |
+
+*Rows above and in §8.4 replaced in 1.8 by the allocation of SQSO-ICX-001 D (amended); 1.7 and earlier gave I2C1 for
+the EPS and I2C2 for the ADCS.*
 
 ### 8.4 GPIO Allocation
 
 | GPIO | Function | Direction |
 |------|----------|-----------|
-| PA0 | Deploy sense | Input |
-| PA1 | Deploy enable | Output |
-| PA2 | Jetson power gate | Output |
-| PA3 | RF TX enable | Output |
-| PA4-PA7 | Status LEDs | Output |
-| PB0-PB3 | ADC channels | Analog |
-| PC0 | Heater control | Output |
-| PC1 | Watchdog kick | Output |
+| PE2 | DEPLOY_SENSE (high = released, no internal pull) | Input |
+| PF3 | DEPLOY_EN | Output |
+| PA8 | JETSON_PWR | Output |
+| PB2 | PAYLOAD_EN | Output |
+| PA3 | RF_TX_EN | Output |
+| PA1, PA7 | VSW1_RB, VJET_RB (ADC1 IN6, IN12) | Analog |
+| PA2 | PT_NTC (ADC1 IN7) | Analog |
+| PA4–PA6 | MTQ_X/Y/Z_I (ADC1 IN9–IN11) | Analog |
+| PB9, PB10, PE6, PE7 | BURN_W2A, BURN_W1A, BURN_W1B, BURN_W2B | Output |
+| PB4, PG7 | I2C3 SDA, SCL (AntS) | Open drain |
+| PB11 | LPUART1_TX (GNSS) | Output |
+| PG2–PG5, PD7 | FRAM SPI1 SCK/MISO/MOSI/CS#, mirror CS# | SPI |
+| PD2 | HEATER_EN | Output |
+| PG11 | WDI (TPS3850 kick, every 10 s) | Output |
+
+Complete list: SQSO-ICX-001 D §4.1.
 
 The firmware's provisional pin map (`software/rust/firmware/src/gpio.rs`, `adc.rs`) differs from this table until the
 schematic baselines one. For the downlink (CR-2026-005) it adds TX_PWR_SEL on PE3 (output, low = 0.5 W) and the
@@ -391,6 +408,85 @@ executor. There is no RTOS scheduler and no memory test (`software/flight/docs/R
 | Extended operation | 72 hours |
 
 ---
+
+## 13. CDR Interface Completeness (2026-10-27)
+
+**Schematic state.** No OBC schematic exists in the repository (no capture, netlist or layout files; §9.1 lists
+blocks). The only pin assignment that is exercised is the firmware's provisional map (`software/rust/firmware/src/`),
+which CI builds and analyses but which has not run on hardware. §8 above disagrees with it in several places
+(I2C1/I2C2 against the firmware's I2C2/I2C4; SPI2 "sensors" against the RF transceiver; PC1 "watchdog kick" against
+the downlink's TX_REV monitor; PA4–PA7 LEDs against the FRAM SPI1). The firmware map governs until the schematic
+baselines one (RID AV-01).
+
+**Update (1.7, design completion):** the schematic now exists: SQSO-OBC-BRD-001 (`hardware/electrical/obc/design.py`,
+netlist, BOM, ERC) with the master pin allocation SQSO-ICX-001. §13.5 gives the resolution of every gap below; the
+firmware changes that follow from it are listed in SQSO-ICX-001 §6.
+
+### 13.1 Every OBC Interface
+
+| Interface | Peripheral / pins (provisional) | Firmware driver | Flight software | Gap |
+|-----------|---------------------------------|-----------------|-----------------|-----|
+| Jetson link | USART1 PA9/PA10, 115200 | `uart.rs` | `jetson_link`, executive | back-powering of the unpowered module (AV-09) |
+| KISS TNC (uplink, downlink) | USART2 PD5/PD6, 9600 | `radio.rs` | `uplink`, `downlink` | TNC not selected (comms reviewer) |
+| Debug console | USART3 PD8/PD9, 115200 | `uart.rs` | console | — |
+| GNSS receiver | LPUART1 PB11/PG8 (TX moved from PG7, ICX D), 9600; `GNSS_EN` PE5 | `uart.rs`, `gpio.rs` | `gnss`, `gnss_schedule` (LV-04) | receiver not selected; latch-up trip (AV-04) |
+| FRAM FM25V20A ×2 | SPI1 PG2/PG3/PG4, CS PG5 (U3), CS PD7 (mirror U36), WP PE0, HOLD PE1 | `fram.rs` (12 regions) | `nvm`, every record | — |
+| RF transceiver | SPI2 PB13/PB14/PB15, CS PD0 | `spi.rs` (generic) | none | not used by the KISS architecture (CR-2026-005); free for the gyro |
+| Gyro M-G370PDT0 (BMI088 backup) | SPI3 PC10/PC11/PC12, CS PD1 (proposed); DRDY, RESET open | `spi.rs` (generic) | rate as `Option` | **no driver, no DRDY/RESET pins, no load switch** (AV-03) |
+| EPS controller, power monitors | I2C2 PF1/PF0 (bus 0) | `i2c.rs` | `eps_control` | — |
+| AntS (both controllers, 0x31 and 0x32) | I2C3 PG7/PB4 (ICX D) | `i2c.rs` | `ants` | AntS codes to confirm (AV-V7) |
+| Magnetometer | I2C4 PD12/PD13 (bus 1) | `i2c.rs` (generic) | field input | **part and driver open** (AV-03) |
+| Coarse sun sensors (6) | ADC1, no channels assigned | `adc.rs` has 9 external channels, none for them | sun-vector input | **channels open** (AV-03) |
+| Magnetorquer PWM and direction (3 axes) | timer outputs, not assigned | none | `MtqCommand`, burst | **driver and pins open**; the timer must end each burst itself (AV-03) |
+| EPS and transmitter monitors | ADC1: VBATT PC2, IBATT PC3, VSOLAR PC4, ISOLAR PC5, VBUS PB0, TEMP_BOARD PB1, TX_TEMP PA0, TX_FWD PC0, TX_REV PC1; MCU temperature internal | `adc.rs` | `sensors`, `downlink` | front-end scale factors open until the EPS sense circuits are drawn |
+| Load switches | PAYLOAD_EN PB2 (was PB4), RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, JETSON_PWR PA8 (was PA2) | `gpio.rs` | `eps_control` | switch readback (AV-06) |
+| RF control | RF_TX_EN PA3, TX_PWR_SEL PE3 | `gpio.rs` | `rf_control`, `downlink` | — |
+| Transponder enable | XPDR_EN PE4, heartbeat from TIM7 (100 Hz, 60 ms lease) | `heartbeat.rs` | `transponder` (SRS-F081) | the radio board's monostable and its readbacks `TONE_OK`, `XPDR_KEY` (AV-05) |
+| Deployment | DEPLOY_EN PF3 (was PA1), four burn lines BURN_W1A PB10, BURN_W1B PE6, BURN_W2A PB9, BURN_W2B PE7 (one resistor at a time, 10 s each, BASELINE C-17), SOLAR_SENSE PB12; antenna via the AntS on I2C3 (PB11 is now LPUART1_TX) | `gpio.rs` | `deployment`, `ants` (SRS-F089) | two resistors per wing on separate drivers (STR-15) |
+| Separation and GSE | DEPLOY_SENSE PE2, UMBILICAL_SENSE PB8 | `gpio.rs` | `separation_switch`, `gse_provision` | — |
+| EPS alert | ALERT PB7 (input) | `gpio.rs` | not read | unused input; either wire it to an EXTI for a fast load-shed or remove it |
+| Status LED | PD3 | `gpio.rs` | — | off in flight |
+| Watchdog | IWDG on LSI, 25.6 s (reload 3200) | `wdt.rs` | `watchdog_mgr` (per-task check-in) | external supervisor added (AV-02, §13.5) |
+| Reset cause | RCC CSR | `wdt.rs` (`hal_reset_cause`) | boot record, housekeeping `RST` | — |
+| Time base | Embassy time driver, 32.768 kHz, 64-bit ms since boot | `timer.rs` | every timer | no wall clock (AV-10) |
+
+### 13.2 Watchdog and Reset
+
+The IWDG (LSI, 25.6 s, reload 3200 since 1.8; 30 s when this section was written) is refreshed only while every registered task has checked in (`watchdog_mgr`); its clock is
+independent of the main oscillator, and it cannot be stopped once started. There is no external watchdog or voltage
+supervisor: an LSI failure or a latch-up that holds the MCU in a state the IWDG cannot reset (only a power cycle
+clears a latch-up) is covered only by the EPS removing the OBC rail, and no OBC-rail trip is specified (AV-08). The
+"watchdog kick" GPIO of §8.4 has no driver and no external watchdog to kick (AV-02: add a windowed external
+supervisor such as a TPS3851-class part on its own GPIO, or delete the line).
+
+### 13.3 Non-volatile Memory
+
+Twelve FRAM regions in the 256 KB part (`fram.rs`, STORAGE_DESIGN §3.3); every flight record is two slots with a
+sequence number and CRC-32 (`sqso_fsw::nvm`), so a write interrupted by a reset leaves the older slot valid. The new
+operations record (commissioning hold, transponder enable, ADCS geometry preset; `ops_state.h`) is region 11, 128 bytes
+at 0x2_0600. FRAM is not susceptible to upsets of the stored data at these doses (RADIATION_ANALYSIS Rev C §5).
+
+### 13.4 Timekeeping (AV-10)
+
+Time is milliseconds since boot; it restarts at every reset. The fault log and housekeeping carry it with the boot count,
+which is enough to order events but not to date them. The GNSS fix carries GPS week and time of week (`gnss.rs`) and the housekeeping
+frame its age; the flight software does not use it to set a mission clock. Recommended (fabrication phase): keep a
+persisted mission-elapsed-time offset in FRAM, updated at each GNSS fix, so that logs survive resets with absolute time.
+
+### 13.5 Resolution in the Board Design (1.7)
+
+| Gap (§13.1–§13.4) | Resolution (SQSO-OBC-BRD-001 / SQSO-ICX-001) |
+|-------------------|------------------------------------------------|
+| AV-01 schematic and pin conflicts | schematic as code with selected parts; one pin table builds the MCU (ICX §4); 28 firmware changes listed (ICX §6; version B adds JETSON_PWR PA2 → PA8, the spreader NTC on PA2 and RX_CD PG0 / RX_FAULT PF13), among them PAYLOAD_EN PB4 → PB2 (PB4 resets as NJTRST with a pull-up), DEPLOY_EN PA1 → PF3, FRAM PA4–PA7 → PG2–PG5 |
+| AV-02 external supervisor | TPS3850H33-Q1 window watchdog and 3.3 V supervisor on NRST; window 4.9–29.3 s (440 nF C0G network, single-fault tolerant), kicked on PG11 every 10 s; the IWDG (reload 3200: 24.1–27.8 s) acts first (BRD E §6) |
+| AV-03 gyro, backup, magnetometer, sun sensors, coils, sensor rail | on the OBC board: M-G370PDT0 (SPI3, DRDY PD10, /RST PD14), BMI088 (SPI2), RM3100 (I2C4 0x20, on the magnetometer board A2 at the +Z end frame, harness W6E), six transimpedance amplifiers into an ADS7138-Q1 (0x10), three DRV8876-Q1 from VBAT with a hardware current limit and a hardware off-timer (0.92–0.98 s); three latch-up switches (BRD §9, §10). Drivers remain flight-software work |
+| AV-05 / RF-21 readbacks | TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 (TIM8 capture) (BRD §13) |
+| AV-06 switch independence | PAYLOAD_EN PB2 and JETSON_PWR PA8 on different ports; readbacks of SW1's and the eFuse's outputs (ADC) and the carrier's 3.3 V (BRD §11.2) |
+| AV-09 back-power | SN74LVC1T45-Q1 translators powered from the carrier's own 3.3 V: no firmware workaround (BRD §11.1) |
+| AV-10 mission clock | RV-3028-C7 on the always-on 3V3_AO (EPS J3-38), time-stamping every NRST edge (BRD §8) |
+| EPS alert PB7 | kept as an input (EXTI7), 10 kΩ series |
+| GNSS receiver latch-up and back-power | EPS SW7 trip; translators referenced to the receiver's rail; 1PPS on PC6 (BRD §12) |
+| HSE "a board decision" | 8 MHz XO fitted (HSE bypass); the firmware may keep MSI (BRD §5) |
 
 ## Appendix A: Content Merged from docs/hardware/OBC_DESIGN.md
 
@@ -608,28 +704,28 @@ Revision C; change request CR-2026-002, `docs/project/CHANGE_REQUEST_LOG.md`). T
 
 #### A.5.4 GPIO Allocation
 
+Replaced in 1.8 by the master allocation SQSO-ICX-001 D (amended) §4.1, which governs; the main lines:
+
 | GPIO | Function | Direction | Default |
 |------|----------|-----------|---------|
-| PA0 | PAYLOAD_EN | Output | LOW |
-| PA1 | RADIO_EN | Output | LOW |
-| PA2 | ADCS_EN | Output | LOW |
-| PA3 | HEATER_EN | Output | LOW |
-| PA4 | SENSOR_EN | Output | HIGH |
-| PA5 | SPARE_EN | Output | LOW |
-| PB0 | DEPLOY_1 (`GPIO_PIN_ANTENNA_BURN`, TBR) | Output, pull-down | LOW |
-| PB1 | DEPLOY_2 (`GPIO_PIN_SOLAR_BURN`, TBR) | Output, pull-down | LOW |
-| PB2 | DEPLOY_SENSE | Input | - |
-| PC0 | JETSON_RDY | Input | - |
-| PC1 | EPS_INT | Input | - |
-| PC2 | WDT_KICK | Output | - |
-| PC3 | LED_STATUS | Output | LOW |
-| TBD | RF_TX_EN | Output, pull-down | LOW (PA off until `rf_control_init()` restores the TX-OFF latch) |
-| TBD | UMBILICAL_SENSE | Input, pull-down | GSE connector drives high; enables key provisioning (SQSO-ICD-013 §9.2) |
-| TBD | DEPLOY_EN (master arm) | Output, pull-down | LOW; a burn needs this **and** DEPLOY_1/2 high |
-| TBD | ANTENNA_SENSE | Input, pull-down | High = antenna deployed (TBR) |
-| TBD | SOLAR_SENSE | Input, pull-down | High = solar array deployed (TBR) |
+| PB2 | PAYLOAD_EN | Output | LOW (EPS pull-down) |
+| PA8 | JETSON_PWR | Output | LOW |
+| PB5 | RADIO_EN | Output | LOW |
+| PB6 | ADCS_EN | Output | LOW |
+| PD2 | HEATER_EN | Output | LOW |
+| PF3 | DEPLOY_EN (master arm) | Output | LOW; a burn needs this **and** its burn line high |
+| PB10, PE6, PB9, PE7 | BURN_W1A, BURN_W1B, BURN_W2A, BURN_W2B | Output | LOW |
+| PA3 | RF_TX_EN | Output | LOW (PA off until `rf_control_init()` restores the TX-OFF latch) |
+| PE2 | DEPLOY_SENSE | Input, no internal pull | high = DS2 released (SQSO-ICX-001 §3.7) |
+| PB12 | SOLAR_SENSE | Input | low = both wings deployed |
+| PB8 | UMBILICAL_SENSE | Input (100 kΩ pull-down) | GSE plug drives high; enables key provisioning (SQSO-ICD-013 §9.2) |
+| PB7 | EPS_ALERT_N | Input | low = alert |
+| PG11 | WDI | Output | TPS3850 kick every 10 s |
+| PD3 | LED | Output | LOW |
 
-*RF_TX_EN, UMBILICAL_SENSE, DEPLOY_EN and the two deployment sense lines added 2026-10-15 to match `hal_gpio.h`; pins to be assigned in the OBC schematic. Before this, the software fired both burn wires from one line and read both deployables from the separation-switch line (finding SW-10).*
+The antenna's deployment state comes from the AntS over I2C3; there is no ANTENNA_SENSE line.
+
+*Record (1.4–1.7): RF_TX_EN, UMBILICAL_SENSE, DEPLOY_EN and the two deployment sense lines were added 2026-10-15 to match `hal_gpio.h`, pins then unassigned. Before this, the software fired both burn wires from one line and read both deployables from the separation-switch line (finding SW-10).*
 
 #### A.5.5 ADC Channels
 
@@ -691,8 +787,8 @@ Revision C; change request CR-2026-002, `docs/project/CHANGE_REQUEST_LOG.md`). T
 |-----------|-------|
 | Clock | LSI (32 kHz) |
 | Prescaler | 256 |
-| Reload | 3750 |
-| Timeout | 30 seconds |
+| Reload | 3200 |
+| Timeout | 25.6 seconds (25600 ms; 24.1–27.8 s; the TPS3850 supervisor's minimum is 29.3 s) |
 | Reset Type | System reset |
 
 #### A.7.2 Watchdog Kick Pattern
@@ -975,3 +1071,7 @@ OpenOCD / STM32CubeProgrammer
 | 1.3 | 2026-10-24 | Software sections for the Rust flight software: the removed C linker script replaced by the firmware's link configuration (§2.1, §3.1); §10.1 HAL headers as they are and their Rust implementation; §10.2 boot sequence as built; A.1 RTOS row; note that OBC-F001 (FreeRTOS) is not met as written; A.9 marked superseded |
 | 1.4 | 2026-10-25 | OBC-F001 rebaselined by the PI to the Embassy executor (was FreeRTOS; BASELINE §6 Revision C, CR-2026-002); A.1 RTOS row; superseded note on the A.4 RAM map |
 | 1.5 | 2026-10-25 | CR-2026-005: USART2 is the KISS TNC link for the uplink and the downlink (§8.1; conflicts table: UART allocation, RF transceiver link); §8.4 note on the firmware's downlink pins |
+| 1.6 | 2026-10-27 | §13 new (CDR avionics review): schematic state, every OBC interface with its pins, driver and gap (RIDs AV-01 to AV-10), watchdog and reset, NVM regions including the operations record, timekeeping |
+| 1.7 | 2026-10-27 | §8 marked superseded by SQSO-ICX-001 (master pin allocation); §13 note and §13.5: resolution of every open avionics item (AV-01, AV-02, AV-03, AV-05, AV-06, AV-09, AV-10, RF-21) in the board design SQSO-OBC-BRD-001 |
+| 1.7, note | 2026-10-27 | §13.5 rows AV-01 and AV-03 follow SQSO-OBC-BRD-001 B and SQSO-ICX-001 B (28 firmware changes; magnetometer on board A2) |
+| 1.8 | 2026-10-27 | Stale pins against SQSO-ICX-001 D (amended): §8.3–§8.4, §13.1 (FRAM SPI1 PG2–PG5 and mirror CS# PD7; AntS on I2C3 PG7/PB4; LPUART1_TX PB11; PAYLOAD_EN PB2; JETSON_PWR PA8; DEPLOY_EN PF3; four burn lines, 10 s each), §13.2 and §13.5 (IWDG reload 3200, 25.6 s; supervisor window 4.9–29.3 s), A.5.4 replaced by the current allocation |

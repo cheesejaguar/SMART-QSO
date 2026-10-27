@@ -1,0 +1,770 @@
+(export 
+  (version "D")
+  (design
+    (source "design.py")
+    (date "10/27/2026 01:27 PM")
+    (tool "SKiDL (3.0.0)")
+    (sheet
+      (number 1)
+      (name "/")
+      (tstamps "/")
+      (title_block
+        (title)
+        (company)
+        (rev)
+        (date)
+        (source "design.py")
+        (comment
+          (number "1")
+          (value ""))
+        (comment
+          (number "2")
+          (value ""))
+        (comment
+          (number "3")
+          (value ""))
+        (comment
+          (number "4")
+          (value ""))
+        (comment
+          (number "5")
+          (value ""))
+        (comment
+          (number "6")
+          (value ""))
+        (comment
+          (number "7")
+          (value ""))
+        (comment
+          (number "8")
+          (value ""))
+        (comment
+          (number "9")
+          (value "")))))
+  (components
+    (comp
+      (ref "C1")
+      (value "10u")
+      (description "")
+      (footprint "Capacitor_SMD:C_1206")
+      (fields
+        (field
+          (name "MPN") "GCM31CR71E106KA64L")
+        (field
+          (name "Manufacturer") "Murata")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Capacitor_SMD:C_1206")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0013")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "C"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "063a2c30-d71a-5a0e-93ba-f34825519338"))
+    (comp
+      (ref "C2")
+      (value "100n")
+      (description "")
+      (footprint "Capacitor_SMD:C_0603")
+      (fields
+        (field
+          (name "MPN") "GCM188R71H104KA57D")
+        (field
+          (name "Manufacturer") "Murata")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Capacitor_SMD:C_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0014")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "C"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "42f6cc7c-bc1e-5f89-b18e-fd1d17843219"))
+    (comp
+      (ref "D1")
+      (value "TPD4E05U06-Q1")
+      (description "")
+      (footprint "USON-10 (DQA)")
+      (fields
+        (field
+          (name "MPN") "TPD4E05U06QDQARQ1")
+        (field
+          (name "Manufacturer") "TI")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "USON-10 (DQA)")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0001")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "TPD4E05U06-Q1"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "3fd413cb-baab-545d-9bad-c583e5ebe1a6"))
+    (comp
+      (ref "J1")
+      (value "TO OBC J10")
+      (description "")
+      (footprint "Pico-Clasp 1.0 mm 6 pos SMT")
+      (fields
+        (field
+          (name "MPN") "2035560607")
+        (field
+          (name "Manufacturer") "Molex")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Pico-Clasp 1.0 mm 6 pos SMT")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0000")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "PicoClasp_6"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "d433e26c-b63f-5409-b924-41a4bb9a9e42"))
+    (comp
+      (ref "L1")
+      (value "Sen-XY-f")
+      (description "")
+      (footprint "PNI sensor coil")
+      (fields
+        (field
+          (name "MPN") "13104")
+        (field
+          (name "Manufacturer") "PNI Sensor")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "PNI sensor coil")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0003")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "COIL"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "115cd637-c427-5ade-9a1b-d3b9b9ef170a"))
+    (comp
+      (ref "L2")
+      (value "Sen-XY-f")
+      (description "")
+      (footprint "PNI sensor coil")
+      (fields
+        (field
+          (name "MPN") "13104")
+        (field
+          (name "Manufacturer") "PNI Sensor")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "PNI sensor coil")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0006")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "COIL"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "4527ac32-e2a3-51d6-80b6-b8a40acf3efd"))
+    (comp
+      (ref "L3")
+      (value "Sen-Z-f")
+      (description "")
+      (footprint "PNI sensor coil")
+      (fields
+        (field
+          (name "MPN") "13101")
+        (field
+          (name "Manufacturer") "PNI Sensor")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "PNI sensor coil")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0009")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "COIL"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "293bc720-e69e-535b-b0eb-5b16b2cdd00d"))
+    (comp
+      (ref "R1")
+      (value "121")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1210V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0004")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "0949b3b9-bd73-5743-a06c-f33291099d91"))
+    (comp
+      (ref "R2")
+      (value "121")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1210V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0005")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "9110a39f-6f88-5585-b9ef-724294e2da02"))
+    (comp
+      (ref "R3")
+      (value "121")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1210V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0007")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "faa1c65a-32e4-51d6-8ea4-30f3487b3047"))
+    (comp
+      (ref "R4")
+      (value "121")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1210V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0008")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "bd650f0f-5c59-5a4e-8853-99b062a02cc6"))
+    (comp
+      (ref "R5")
+      (value "121")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1210V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0010")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "0bd6ab30-7e92-5e86-8a8c-110293a4d7c9"))
+    (comp
+      (ref "R6")
+      (value "121")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF1210V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0011")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "2230f182-2950-5d97-b875-661b75b960e0"))
+    (comp
+      (ref "R7")
+      (value "33k")
+      (description "")
+      (footprint "Resistor_SMD:R_0603")
+      (fields
+        (field
+          (name "MPN") "ERJ-3EKF3302V")
+        (field
+          (name "Manufacturer") "Panasonic")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "Resistor_SMD:R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0012")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "c284fb00-8ee7-5fdd-a870-db6f72084f6c"))
+    (comp
+      (ref "U1")
+      (value "RM3100 MagI2C")
+      (description "")
+      (footprint "MLF-28 (PNI MagI2C)")
+      (fields
+        (field
+          (name "MPN") "13156")
+        (field
+          (name "Manufacturer") "PNI Sensor")
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "MLF-28 (PNI MagI2C)")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "obc0002")
+        (field
+          (name "SKiDL Line") "design.py:78"))
+      (libsource
+        (lib "NO_LIB")
+        (part "PNI13156"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (tstamps "126a9bd5-3dbf-54ef-9403-e0741da8582f")))
+  (nets
+    (net
+      (code 1)
+      (name "3V3_MAG")
+      (class "Default")
+      (node
+        (ref "C1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "C2")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "D1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "14")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U1")
+        (pin "22")
+        (pintype "INPUT"))
+      (node
+        (ref "U1")
+        (pin "26")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U1")
+        (pin "4")
+        (pintype "POWER-IN")))
+    (net
+      (code 2)
+      (name "GND")
+      (class "Default")
+      (node
+        (ref "C1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "C2")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "D1")
+        (pin "3")
+        (pintype "PASSIVE"))
+      (node
+        (ref "D1")
+        (pin "8")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "6")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R7")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "19")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "20")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "28")
+        (pintype "INPUT"))
+      (node
+        (ref "U1")
+        (pin "3")
+        (pintype "INPUT"))
+      (node
+        (ref "U1")
+        (pin "5")
+        (pintype "POWER-IN")))
+    (net
+      (code 3)
+      (name "MG_DRDY")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "5")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "5")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "23")
+        (pintype "OUTPUT")))
+    (net
+      (code 4)
+      (name "MG_REXT")
+      (class "Default")
+      (node
+        (ref "R7")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "25")
+        (pintype "PASSIVE")))
+    (net
+      (code 5)
+      (name "MX_DN")
+      (class "Default")
+      (node
+        (ref "R2")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "18")
+        (pintype "PASSIVE")))
+    (net
+      (code 6)
+      (name "MX_DP")
+      (class "Default")
+      (node
+        (ref "R1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "15")
+        (pintype "PASSIVE")))
+    (net
+      (code 7)
+      (name "MX_IN")
+      (class "Default")
+      (node
+        (ref "L1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R2")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "17")
+        (pintype "PASSIVE")))
+    (net
+      (code 8)
+      (name "MX_IP")
+      (class "Default")
+      (node
+        (ref "L1")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "16")
+        (pintype "PASSIVE")))
+    (net
+      (code 9)
+      (name "MY_DN")
+      (class "Default")
+      (node
+        (ref "R4")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "13")
+        (pintype "PASSIVE")))
+    (net
+      (code 10)
+      (name "MY_DP")
+      (class "Default")
+      (node
+        (ref "R3")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "10")
+        (pintype "PASSIVE")))
+    (net
+      (code 11)
+      (name "MY_IN")
+      (class "Default")
+      (node
+        (ref "L2")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R4")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "12")
+        (pintype "PASSIVE")))
+    (net
+      (code 12)
+      (name "MY_IP")
+      (class "Default")
+      (node
+        (ref "L2")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R3")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "11")
+        (pintype "PASSIVE")))
+    (net
+      (code 13)
+      (name "MZ_DN")
+      (class "Default")
+      (node
+        (ref "R6")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "9")
+        (pintype "PASSIVE")))
+    (net
+      (code 14)
+      (name "MZ_DP")
+      (class "Default")
+      (node
+        (ref "R5")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "6")
+        (pintype "PASSIVE")))
+    (net
+      (code 15)
+      (name "MZ_IN")
+      (class "Default")
+      (node
+        (ref "L3")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R6")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "8")
+        (pintype "PASSIVE")))
+    (net
+      (code 16)
+      (name "MZ_IP")
+      (class "Default")
+      (node
+        (ref "L3")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R5")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "7")
+        (pintype "PASSIVE")))
+    (net
+      (code 17)
+      (name "SCL_M")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "4")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "4")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "27")
+        (pintype "INPUT")))
+    (net
+      (code 18)
+      (name "SDA_M")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "3")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U1")
+        (pin "1")
+        (pintype "BIDIRECTIONAL")))))

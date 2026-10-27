@@ -13,7 +13,21 @@
 //! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
 //! export too).
 //!
+//! The telemetry is the controller's register block (0x48), its `IMON_JET`
+//! register (the Jetson rail's current, which the sensor `JPC` reads), and,
+//! when they answer, the two INA228 monitors read directly over the same bus
+//! (the pack gauge at 0x44, the array monitor at 0x40; RID EPSB): their
+//! pack voltage, pack current and array current replace the controller's,
+//! so the OBC's power figures do not depend on the controller's firmware.
+//!
+//! The Jetson's two switches go off in order (SQSO-OBC-BRD-001 B §11.2,
+//! SMART-QSO-ICD-002 1.3 §10.4): JETSON_PWR at once, PAYLOAD_EN
+//! `sqso_fsw::jetson_power::PAYLOAD_EN_DELAY_MS` later
+//! ([`eps_payload_tick`], every pass).
+//!
 //! @requirement SRS-F011 Control power to subsystems via load switches
+//! @requirement SRS-F147 Pack and array power monitors read directly by the OBC
+//! @requirement SRS-F148 Jetson switch-off: SHUTDOWN, JET_PG fall within 5 s, then JETSON_PWR and PAYLOAD_EN 10 ms apart
 //! @requirement SRS-F012 Implement power modes SAFE, IDLE, ACTIVE
 //! @requirement SRS-F016 Enforce power budget limits per mode
 
@@ -31,7 +45,7 @@ use crate::store::{self, Store};
 
 unsafe extern "C" {
     // payload_guard.h
-    fn payload_guard_may_enable(now_ms: u64) -> bool;
+    fn payload_guard_may_power_on(now_ms: u64) -> bool;
 }
 
 pub(crate) struct Eps {
@@ -71,17 +85,121 @@ static PAYLOAD_HELD: AtomicBool = AtomicBool::new(false);
 
 static TELEMETRY: Global<TelemetryCache> = Global::new(TelemetryCache { read_ms: 0, read: false, telemetry: None });
 
+/// PAYLOAD_EN goes low at this time, ms (after JETSON_PWR)
+static PAYLOAD_EN_RELEASE: Global<Option<u64>> = Global::new(None);
+
+/// The INA228 monitors: configured, and when they were last tried, ms
+struct Monitors {
+    ready: [bool; 2],
+    tried_ms: Option<u64>,
+    /// The die temperatures and when they were read, ms (the EPS board's
+    /// temperature)
+    dies: Option<(u64, [Option<f64>; 2])>,
+}
+
+static MONITORS: Global<Monitors> = Global::new(Monitors { ready: [false; 2], tried_ms: None, dies: None });
+/// An INA228 that did not configure is tried again after this long, ms
+const MONITOR_RETRY_MS: u64 = 60_000;
+
 /// Drive the payload and ADCS load-switch enables (and the Jetson power
 /// gate with the payload's) from the EPS state: the switches follow the
-/// state, so a reset that restores the state restores the switches
+/// state, so a reset that restores the state restores the switches. A
+/// payload switch-off drops JETSON_PWR now and PAYLOAD_EN 10 ms later
+/// ([`eps_payload_tick`])
 fn drive_load_pins(state: &EpsState) {
+    let now = c::now_ms();
+    // SAFETY: plain value (the HAL)
+    let payload_high = unsafe { c::hal_gpio_get(GPIO_PIN_PAYLOAD_EN) };
+    let delay_off = !state.payload_enabled && payload_high;
+    let _ = PAYLOAD_EN_RELEASE.with(|r| {
+        *r = if delay_off {
+            Some(r.unwrap_or(now.saturating_add(sqso_fsw::jetson_power::PAYLOAD_EN_DELAY_MS)))
+        } else {
+            None
+        };
+    });
     // SAFETY: plain values (the HAL); a pin that is not configured is refused
     unsafe {
-        let _ = c::hal_gpio_set(GPIO_PIN_PAYLOAD_EN, state.payload_enabled);
         let _ = c::hal_gpio_set(GPIO_PIN_JETSON_PWR, state.payload_enabled);
+        if !delay_off {
+            let _ = c::hal_gpio_set(GPIO_PIN_PAYLOAD_EN, state.payload_enabled);
+        }
         let _ = c::hal_gpio_set(GPIO_PIN_ADCS_EN, state.adcs_enabled);
     }
 }
+
+/// Every pass: PAYLOAD_EN low once its delay after JETSON_PWR has run
+pub fn eps_payload_tick(now_ms: u64) {
+    let due = PAYLOAD_EN_RELEASE
+        .with(|r| {
+            let due = r.is_some_and(|t| now_ms >= t);
+            if due {
+                *r = None;
+            }
+            due
+        })
+        .unwrap_or(false);
+    if due && !eps_is_payload_enabled() {
+        // SAFETY: plain values (the HAL)
+        let _ = unsafe { c::hal_gpio_set(GPIO_PIN_PAYLOAD_EN, false) };
+    }
+}
+
+/// The INA228s' readings over the controller's (configuring them first,
+/// and again after a failure every [`MONITOR_RETRY_MS`])
+fn apply_monitors(t: &mut Telemetry, now: u64) {
+    use sqso_fsw::ina228::{ARRAY, PACK};
+    let mut bus = crate::hw::HalI2c(EPS_I2C_BUS);
+    let retry = MONITORS
+        .with(|m| {
+            let due = m.ready != [true; 2] && m.tried_ms.is_none_or(|t0| now.saturating_sub(t0) >= MONITOR_RETRY_MS);
+            if due {
+                m.tried_ms = Some(now);
+            }
+            due
+        })
+        .unwrap_or(false);
+    let mut ready = MONITORS.with(|m| m.ready).unwrap_or([false; 2]);
+    if retry {
+        ready = [ready[0] || PACK.init(&mut bus), ready[1] || ARRAY.init(&mut bus)];
+    }
+    let pack = ready[0].then(|| PACK.reading(&mut bus).ok()).flatten();
+    let array = ready[1].then(|| ARRAY.reading(&mut bus).ok()).flatten();
+    if let Some(p) = pack
+        .filter(|p| p.vbus_v >= eps_telemetry::VBATT_PLAUSIBLE_V.0 && p.vbus_v <= eps_telemetry::VBATT_PLAUSIBLE_V.1)
+    {
+        t.vbatt_v = p.vbus_v;
+        t.ibatt_a = p.current_a;
+    }
+    if let Some(a) = array {
+        t.isolar_a = a.current_a;
+    }
+    let _ = MONITORS.with(|m| m.ready = [pack.is_some(), array.is_some()]);
+}
+
+/// The EPS board's temperature by the two INA228 die temperatures, read
+/// directly (the controller need not answer) at most once a second, °C
+/// (`sqso_fsw::passivation::board_c`; `None`: neither valid): the
+/// passivation fire's condition (SMART-QSO-ICD-001 1.6 §4.6)
+pub(crate) fn eps_board_c() -> Option<f64> {
+    use sqso_fsw::ina228::{ARRAY, PACK};
+    let now = c::now_ms();
+    let fresh = MONITORS
+        .with(|m| {
+            m.dies.filter(|(t, _)| now.checked_sub(*t).is_some_and(|age| age < BOARD_READ_PERIOD_MS)).map(|(_, d)| d)
+        })
+        .flatten();
+    let dies = fresh.unwrap_or_else(|| {
+        let mut bus = crate::hw::HalI2c(EPS_I2C_BUS);
+        let dies = [PACK.die_c(&mut bus), ARRAY.die_c(&mut bus)];
+        let _ = MONITORS.with(|m| m.dies = Some((now, dies)));
+        dies
+    });
+    sqso_fsw::passivation::board_c(dies)
+}
+
+/// The board temperature is read again after this long, ms
+const BOARD_READ_PERIOD_MS: u64 = 1_000;
 
 /// The load-switch pins, as outputs, to the EPS state
 fn configure_load_pins() {
@@ -111,7 +229,18 @@ pub fn eps_telemetry() -> Option<Telemetry> {
     let ok = unsafe {
         c::hal_i2c_write_read(EPS_I2C_BUS, eps_telemetry::ADDRESS, start.as_ptr(), 1, block.as_mut_ptr(), block.len())
     } == rc::OK;
-    let telemetry = if ok { eps_telemetry::decode(&block) } else { None };
+    let mut telemetry = if ok { eps_telemetry::decode(&block) } else { None };
+    if let Some(t) = telemetry.as_mut() {
+        let reg = [eps_telemetry::IMON_JET];
+        let mut imon = [0u8; 2];
+        // SAFETY: both are live buffers (the HAL)
+        if unsafe { c::hal_i2c_write_read(EPS_I2C_BUS, eps_telemetry::ADDRESS, reg.as_ptr(), 1, imon.as_mut_ptr(), 2) }
+            == rc::OK
+        {
+            t.ijet_a = eps_telemetry::imon_jet_a(imon);
+        }
+        apply_monitors(t, now);
+    }
     let _ = TELEMETRY.with(|t| {
         t.read_ms = now;
         t.read = true;
@@ -232,13 +361,13 @@ pub extern "C" fn eps_control_payload(enable: bool, soc: f64) -> i32 {
     }
     // The OBC's own power and temperature limits come first (SW-16)
     // SAFETY: plain value; no EPS state is borrowed
-    let guard_allows = !enable || unsafe { payload_guard_may_enable(c::now_ms()) };
+    let guard_allows = !enable || unsafe { payload_guard_may_power_on(c::now_ms()) };
     match eps::payload_rule(enable, guard_allows, soc) {
         Err(PayloadBlock::Guard) => {
             c::log(
                 fault_type::POWER,
                 severity::WARNING,
-                c"Payload enable blocked: guard cool-down or hot spreader",
+                c"Payload enable blocked: guard cool-down, hot or cold spreader",
                 soc,
             );
             return rc::ERROR;
@@ -485,6 +614,155 @@ mod tests {
         forget();
         assert_eq!(eps_telemetry(), None, "an implausible block is no telemetry");
         forget();
+    }
+
+    /// Write registers of a simulated device on the EPS bus
+    fn put(addr: u8, reg: u8, bytes: &[u8]) -> i32 {
+        let mut b = [0u8; 4];
+        b[0] = reg;
+        if let Some(dst) = b.get_mut(1..=bytes.len()) {
+            dst.copy_from_slice(bytes);
+        }
+        // SAFETY: b holds 1 + bytes.len() bytes
+        unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, addr, b.as_ptr(), 1 + bytes.len()) }
+    }
+
+    /// An INA228's bus voltage and current
+    fn gauge(m: sqso_fsw::ina228::Monitor, vbus_v: f64, current_a: f64) {
+        use sqso_fsw::ina228::{Reading, reg};
+        let (v, i, _) = m.encode(&Reading { vbus_v, current_a, ..Reading::default() });
+        assert_eq!(put(m.address, reg::VBUS, &v), rc::OK);
+        assert_eq!(put(m.address, reg::CURRENT, &i), rc::OK);
+    }
+
+    /// The telemetry read afresh: pack voltage, pack current, array current, Jetson current
+    fn read_measured() -> Option<(f64, f64, f64, f64)> {
+        let _ = TELEMETRY.with(|t| t.read = false);
+        eps_telemetry().map(|t| (t.vbatt_v, t.ibatt_a, t.isolar_a, t.ijet_a))
+    }
+
+    fn near(a: f64, b: f64) -> bool {
+        (a - b).abs() < 1e-3
+    }
+
+    /// The controller's block (15.0 V, 0.1 A, array 0.2 A), IMON_JET, the
+    /// monitors not configured
+    fn monitors_setup() {
+        assert_eq!(crate::hal_sim::hal_i2c_init(EPS_I2C_BUS, 100_000), rc::OK);
+        let mut block = [0u8; eps_telemetry::BLOCK_LEN];
+        let controller = Telemetry { vbatt_v: 15.0, ibatt_a: 0.1, isolar_a: 0.2, ..Telemetry::default() };
+        eps_telemetry::encode(&controller, &mut block);
+        let mut regs = [0u8; 1 + eps_telemetry::BLOCK_LEN];
+        regs[1..].copy_from_slice(&block);
+        // SAFETY: regs is a live buffer of its length
+        let _ =
+            unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
+        assert_eq!(put(eps_telemetry::ADDRESS, eps_telemetry::IMON_JET, &[0x40, 0x00]), rc::OK);
+        let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None, dies: None });
+    }
+
+    /// The INA228s: their readings replace the controller's pack voltage and
+    /// current and the array current; an implausible pack voltage is not
+    /// used; a monitor that does not configure is tried again after
+    /// [`MONITOR_RETRY_MS`]; a failed IMON_JET read keeps the last value
+    #[test]
+    fn the_monitors_override_the_controller_and_are_retried() {
+        use core::sync::atomic::Ordering;
+        use sqso_fsw::ina228::{self, ARRAY, PACK};
+        let _serial = serial();
+        monitors_setup();
+        gauge(PACK, 14.2, -0.3);
+        gauge(ARRAY, 14.2, 0.8);
+
+        let read = read_measured;
+        let (v, i, a, jet) = read().unwrap_or((f64::NAN, f64::NAN, f64::NAN, f64::NAN));
+        assert!(near(v, 14.2), "the INA228s' readings: {v} {i} {a}");
+        assert!(near(i, -0.3), "the INA228s' readings: {v} {i} {a}");
+        assert!(near(a, 0.8), "the INA228s' readings: {v} {i} {a}");
+        assert!(jet > 0.0, "IMON_JET read");
+        gauge(PACK, 30.0, 0.0);
+        assert!(read().is_some_and(|(v, ..)| near(v, 15.0)), "above the plausible range: the controller's");
+        gauge(PACK, 2.0, 0.0);
+        assert!(read().is_some_and(|(v, ..)| near(v, 15.0)), "below it: the controller's");
+
+        // IMON_JET does not answer: the last value stays
+        crate::hal_sim::I2C_FAIL_REG
+            .store(u32::from(eps_telemetry::ADDRESS) << 8 | u32::from(eps_telemetry::IMON_JET), Ordering::Relaxed);
+        assert!(read().is_some_and(|(.., j)| j == 0.0), "the decoded block's value: no IMON_JET");
+        crate::hal_sim::I2C_FAIL_REG.store(0, Ordering::Relaxed);
+
+        // The pack gauge does not configure (a wrong ID): the array's still
+        // used; no retry before MONITOR_RETRY_MS, then the pack again
+        gauge(PACK, 14.0, 0.0);
+        assert_eq!(put(PACK.address, ina228::reg::MANUFACTURER_ID, &[0, 0]), rc::OK);
+        let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None, dies: None });
+        assert!(read().is_some_and(|(v, _, a, _)| near(v, 15.0) && near(a, 0.8)));
+        assert_eq!(MONITORS.with(|m| m.ready), Some([false, true]));
+        assert_eq!(put(PACK.address, ina228::reg::MANUFACTURER_ID, &ina228::MANUFACTURER_ID.to_be_bytes()), rc::OK);
+        crate::time::smart_qso_sim_advance_ms(1000);
+        assert!(read().is_some_and(|(v, ..)| near(v, 15.0)), "not retried yet");
+        crate::time::smart_qso_sim_advance_ms(MONITOR_RETRY_MS);
+        assert!(read().is_some_and(|(v, ..)| near(v, 14.0)), "retried: the pack gauge again");
+        assert_eq!(MONITORS.with(|m| m.ready), Some([true, true]));
+
+        // The array monitor does not configure: the controller's array
+        // current; retried with the pack's already configured
+        assert_eq!(put(ARRAY.address, ina228::reg::MANUFACTURER_ID, &[0, 0]), rc::OK);
+        let _ = MONITORS.with(|m| *m = Monitors { ready: [true, false], tried_ms: None, dies: None });
+        assert!(read().is_some_and(|(v, _, a, _)| near(v, 14.0) && near(a, 0.2)), "the controller's array current");
+        crate::time::smart_qso_sim_advance_ms(MONITOR_RETRY_MS);
+        assert!(read().is_some_and(|(.., a, _)| near(a, 0.2)), "still not configured");
+        assert_eq!(MONITORS.with(|m| m.ready), Some([true, false]));
+        let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None, dies: None });
+        let _ = TELEMETRY.with(|t| t.read = false);
+    }
+
+    /// PAYLOAD_EN drops 10 ms after JETSON_PWR; a switch-on again inside
+    /// those 10 ms keeps it high
+    #[test]
+    fn payload_en_follows_jetson_pwr_after_its_delay() {
+        let _serial = serial();
+        let get = |pin| {
+            // SAFETY: plain value (the HAL)
+            unsafe { c::hal_gpio_get(pin) }
+        };
+        assert_eq!(crate::hal_sim::hal_gpio_init(), rc::OK);
+        let _ = EPS.with(|e| {
+            e.state = EpsState::DEFAULT;
+            e.initialized = true;
+        });
+        configure_load_pins();
+        let on = |enabled: bool| {
+            let _ = EPS.with(|e| e.state.payload_enabled = enabled);
+            if let Some(state) = EPS.with(|e| e.state) {
+                drive_load_pins(&state);
+            }
+        };
+        on(true);
+        assert!(get(GPIO_PIN_PAYLOAD_EN));
+        assert!(get(GPIO_PIN_JETSON_PWR));
+        let t0 = c::now_ms();
+        on(false);
+        assert!(!get(GPIO_PIN_JETSON_PWR), "JETSON_PWR first");
+        assert!(get(GPIO_PIN_PAYLOAD_EN), "JETSON_PWR first");
+        eps_payload_tick(t0 + sqso_fsw::jetson_power::PAYLOAD_EN_DELAY_MS - 1);
+        assert!(get(GPIO_PIN_PAYLOAD_EN), "inside the delay");
+        eps_payload_tick(t0 + sqso_fsw::jetson_power::PAYLOAD_EN_DELAY_MS);
+        assert!(!get(GPIO_PIN_PAYLOAD_EN), "then PAYLOAD_EN");
+
+        // Off, then on again before the delay ran out: PAYLOAD_EN stays high
+        on(true);
+        let t1 = c::now_ms();
+        on(false);
+        let _ = EPS.with(|e| e.state.payload_enabled = true);
+        eps_payload_tick(t1 + sqso_fsw::jetson_power::PAYLOAD_EN_DELAY_MS);
+        assert!(get(GPIO_PIN_PAYLOAD_EN), "switched on again: not dropped");
+        on(false);
+        eps_payload_tick(u64::MAX);
+        let _ = EPS.with(|e| {
+            e.state = EpsState::DEFAULT;
+            e.initialized = false;
+        });
     }
 
     /// While the payload schedule holds the payload, an ACTIVE entry leaves

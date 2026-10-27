@@ -29,7 +29,7 @@ a bounds-checked error, or at worst a controlled reset (see [Rules](#rules)).
 
 ### The firmware
 
-`firmware/` is the flight image. It uses embassy-stm32 0.6 (features `stm32l4r5zi`, `dual-bank`, `time-driver-any`),
+`firmware/` is the flight image. It uses embassy-stm32 0.6 (features `stm32l4r5zi`, `dual-bank`, `time-driver-tim2`: TIM1, TIM3, TIM8 and TIM15 belong to the magnetorquers and the captures),
 embassy-executor 0.10, embassy-time 0.5 and cortex-m-rt. There is one async main task (`firmware/src/main.rs`). It
 starts the independent watchdog (IWDG) at its longest timeout (about 32 s) before the clock set-up, so a PLL that never
 locks resets the OBC. It then brings the chip up (80 MHz from the 4 MHz MSI through the PLL, M = 1, N = 40, R = 2),
@@ -41,21 +41,22 @@ The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 
 | HAL | File | What |
 |-----|------|------|
-| `hal_gpio.h` | `gpio.rs` | Provisional pin map. Heater and status LED on PD2/PD3, so that PC2/PC3 can be ADC inputs; deployment sense on PE2 and the downlink power select (`TX_PWR_SEL`) on PE3, so that PA0 can be an ADC input; the transponder enable (`XPDR_EN`) on PE4 |
+| `hal_gpio.h` | `gpio.rs` | The master pin allocation, SQSO-ICX-001 B §4 with every row of its §6 change list (flight software round 3): PAYLOAD_EN PB2, DEPLOY_EN PF3, JETSON_PWR PA8, EOL_ARM PF4, EOL_FIRE PG1, RX_CD PG0, RX_FAULT PF13, BURN_W2B PE7, LOCK_CLR PF5, and the logical pins 25 to 45 (the sensor rails and their readbacks, GYRO_RST_N, the data-ready lines, the magnetorquer direction and fault lines, TONE_OK, XPDR_KEY, PTT_EXC, JET_PG, GNSS_PG, WDI). Every output is driven low before its driver is enabled, so no enable, burn or passivation line is high at reset. `ANTENNA_SENSE` (13) is not wired (the AntS reports over I2C); PTT_EXC (42) is read from the TIM8 capture's pin |
+| `hal_mtq.h` | `mtq.rs` | The magnetorquer bridges: TIM1 CH1–CH3 PWM at 40 kHz (PE9/PE11/PE13), MTQ_ARM a TIM15 one-pulse of at most 900 ms (PF9), so the coils stop at the end of a burst whatever the software does |
+| `hal_capture.h` | `capture.rs` | TIM3 captures of the GNSS 1PPS (PC6) and the RV-3028's 1 Hz (PC8), TIM8 both edges of PTT_EXCITER (PC7): the clock check and the exciter's keyed time |
 | `hal_timer.h` | `timer.rs` | Time base from embassy-time (milliseconds since boot) |
 | `hal_wdt.h`, `hal_reset.h` | `wdt.rs` | IWDG; reset cause from the RCC CSR flags |
-| `hal_uart.h` | `uart.rs` | Buffered UARTs: Jetson USART1 (PA9/PA10), debug USART3 (PD8/PD9) |
-| `hal_i2c.h` | `i2c.rs` | I2C2 (EPS, PF1/PF0), I2C4 (ADCS, PD12/PD13) |
-| `hal_spi.h` | `spi.rs` | SPI2 (RF), SPI3 (auxiliary) |
+| `hal_uart.h` | `uart.rs` | Buffered UARTs: Jetson USART1 (PA9/PA10, 8N2: the module's receiver needs two stop bits), debug USART3 (PD8/PD9) |
+| `hal_i2c.h` | `i2c.rs` | I2C2 (EPS controller 0x48, the INA228s 0x44 and 0x40, AntS 0x31; PF1/PF0), I2C4 (ADS7138 0x10, RM3100 0x20; PD12/PD13), I2C1 (RV-3028-C7 0x52) |
+| `hal_spi.h` | `spi.rs` | Logical bus 0: SPI2 with the BMI088 gyro's chip select PD0; bus 1: SPI3 with the M-G370PDT0's PD1 (mode 3); bus 2: SPI2 with the BMI088 accelerometer's PD4. Each bus keeps its own configuration, applied when its chip select is asserted. The sensor drivers are `sqso_fsw::mg370`, `bmi088`, `rm3100`, `ads7138`, `rv3028`, `ina228` (built against the data sheets and tested with register-level mocks; not run on hardware) |
 | `hal_adc.h` | `adc.rs` | ADC1, VDDA measured against VREFINT, MCU temperature from TS_CAL; the downlink monitors TX_TEMP (PA0), TX_FWD (PC0) and TX_REV (PC1), the power ones square-law (an RMS detector); front-end scaling provisional (TBR-SRS-003) |
-| `hal_flash.h` | `fram.rs` | FM25V20A FRAM on SPI1 (PA5/PA6/PA7, CS PA4, WP PE0, HOLD PE1), regions at the `hardware/obc/STORAGE_DESIGN.md` §3.3 addresses; the fault log uses 9,728 B of the event log |
+| `hal_flash.h` | `fram.rs` | FM25V20A FRAM on SPI1 (PG2/PG3/PG4, CS PG5, WP PE0, HOLD PE1), 17 regions at the `hardware/obc/STORAGE_DESIGN.md` §3.3 addresses; the fault log uses 9,728 B of the event log, the stored housekeeping the 64 KB telemetry buffer and 90 KB of the extended storage (`software/flight/docs/MEMORY_POLICY.md` §8.1) |
 | `hal_radio.h` | `radio.rs` | The KISS TNC on USART2 (PD5/PD6, 9600 baud) for both directions (CR-2026-005): received frames decoded by `sqso_protocol::kiss`, with the FCS the TNC removed appended again; downlink frames written after the TNC parameters, from a 1 KB buffer that holds the longest stream, so the write never waits |
 
 Not provided: the HAL's callback timers and the watchdog early-warning callback. Both are refused, as they were in the
-former C port. The release image is 131,032 B of text, 21,964 B of data and 16,600 B of bss. The vector table is at
-0x08000000, the initial SP is 0x200A0000 and the entry point is `Reset`. No hardware has run it. CI builds the image and
-checks those properties. The ADCS sensor and actuator drivers, and real sensor-table readings on the target, are not
-written because the parts are not selected (`docs/reviews/KNOWN_ISSUES.md` KI-001).
+former C port. The release image is 207,284 B of text, 26,400 B of data and 17,052 B of bss (2026-10-27, round 3, third part); the data, the bss and
+the 8 KB stack are in SRAM2 (parity). The vector table is at 0x08000000, the initial SP is 0x20040000 and the entry point
+is `Reset`. No hardware has run it. CI builds the image and checks those properties.
 
 For the first run on a board, `firmware/BRINGUP.md` gives the equipment, the NUCLEO-L4R5ZI's differences from the
 flight pin map (its ST-LINK virtual COM port is LPUART1, not the USART3 console), power, flashing, the order of the first
@@ -116,7 +117,7 @@ during it), and where it is now. The C headers kept their names and content. "fs
 | `hal/stm32l4_clock.c` (and `hal/stm32l4_clock.h`) | `clocks()` in `firmware/src/main.rs` (embassy-stm32 RCC configuration) |
 | `hal/stm32l4_startup.c` | cortex-m-rt (vector table, `Reset`) |
 | `hal/stm32l4_syscalls.c` | not needed: the image links no C library |
-| `cmake/arm-none-eabi-stm32l4.cmake`, `cmake/stm32l4r5zi.ld` | `firmware/.cargo/config.toml`, cortex-m-rt `link.x` with the `memory.x` of embassy-stm32 (feature `memory-x`) |
+| `cmake/arm-none-eabi-stm32l4.cmake`, `cmake/stm32l4r5zi.ld` | `firmware/.cargo/config.toml`, cortex-m-rt `link.x` with the firmware's own `memory.x` (statics in SRAM2, the parity RAM; `firmware/src/parity.rs`, RID AV-07) |
 
 Two files that were in the tree until 2026-10-16, `system_init.c` and `yaml_parser.c`, were removed then as dead code and
 were not ported. The ports are commits 36c7b7b, 000fe0a, 4c2f0f7, 636b871, 9e7c95a, af06dbb, df3a9c2 and
@@ -259,9 +260,11 @@ Measured 2026-10-24.
   unchanged against the Rust on the host and under AddressSanitizer and UBSan.
 - **Coverage.** Rust line coverage is 94.8 %, from the C suites plus the 358 Rust unit tests (gate 90 %). Flight-software
   line coverage, C and Rust together, is 94.8 % (gate 80 %). Branch and condition coverage is 81.1 % (gate 80 %). The
-  23 safety-critical files (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) are at 100 % of lines and conditions,
-  gated file by file, with 12 reviewed `// COVERAGE-EXEMPT:` lines (CR-2026-003, in place of MC/DC).
-- **Stack.** The image's worst case is 5,004 B of the 8 KB budget (SRS-C003; `scripts/stack_usage.py`, 2026-10-25):
+  26 safety-critical files (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2; the transponder and the operations
+  record added on 2026-10-27) are at 100 % of lines and conditions, gated file by file, with 15 reviewed
+  `// COVERAGE-EXEMPT:` lines (CR-2026-003, in place of MC/DC). On 2026-10-27: Rust lines 94.3 %, branches and
+  conditions 81.4 %.
+- **Stack.** The image's worst case is 6,004 B of the 8 KB budget on 2026-10-27 (5,004 B on 2026-10-25, the figures below; SRS-C003; `scripts/stack_usage.py`):
   3,368 B in thread mode plus one handler per priority level. Every frame the script reads from the image agrees with
   LLVM's own `.stack_sizes` (303 functions; the other 34, compiler-builtins and assembly, are read from the image only).
   The call graph has no cycle except the panic handler's single nesting. Not yet measured on hardware (HIL-044).

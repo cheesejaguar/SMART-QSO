@@ -27,14 +27,32 @@ pub enum Command {
     KeyRotate = 0x06,
     /// Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 30 at launch, 14 after commissioning: decision D3)
     SetContactTimeout = 0x07,
+    /// Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven)
+    CommissioningRelease = 0x08,
+    /// Downlink a housekeeping frame (HK1) at the next opportunity
+    GetHousekeeping = 0x09,
+    /// Downlink stored housekeeping: store (0 five-minute records, 1 sixty-second records), first record sequence (4 bytes big-endian), count (2 bytes big-endian, at most 600; 0 stops a dump); paced within the downlink duty limit
+    DumpTlm = 0x0A,
+    /// Run without the FRAM (argument: the ASCII code FRM!): accepted only once the FRAM has been declared failed (HK1 FR=1); the RAM copies of the TX-OFF latch and the operations record, under CRC, become authoritative until the FRAM reads back again or the next reset (then send FRAM_BYPASS, TX_ENABLE and COMMISSIONING_RELEASE again)
+    FramBypass = 0x0B,
     /// Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE
     EpsSetMode = 0x10,
     /// Get EPS telemetry
     EpsGetTelemetry = 0x13,
+    /// Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history
+    EpsClearLockout = 0x14,
+    /// Disable solar-array trackers through the EPS controller's TRK_DISABLE (0x8E, with its key): mask bits 0-3 = T1-T4 off, 0 = all enabled; held in the controller's FRAM and reported in HK2 SV (EPS_SUPV)
+    EpsDisableTrackers = 0x15,
     /// Start detumble
     AdcsDetumble = 0x21,
     /// Get attitude
     AdcsGetAttitude = 0x23,
+    /// Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing
+    AdcsSetGeometry = 0x24,
+    /// Gyro alignment matrix (VI-MCAD-05; persisted): nine elements row by row, each a signed 32-bit big-endian integer in units of 1e-6; refused unless every element is within 1.1 and the determinant within 0.05 of 1
+    AdcsSetGyroAlign = 0x25,
+    /// Magnetometer bias of one rod polarity state (AV-V4; persisted): the state 0-7 (bit n set: rod n last driven positive), then X, Y, Z as signed 32-bit big-endian nT, each within 50 uT
+    AdcsSetMagBias = 0x26,
     /// Set beacon interval, seconds big-endian, 10 to 120
     SetBeacon = 0x30,
     /// Clear the latched TX-OFF
@@ -43,15 +61,27 @@ pub enum Command {
     TxDisable = 0x32,
     /// Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the downlink, downlink.h)
     SetPower = 0x33,
+    /// Allow the FM transponder (persisted); its power and duty gates still apply
+    XpdrEnable = 0x34,
+    /// Stop the FM transponder (persisted); beacon and telecommand unaffected
+    XpdrDisable = 0x35,
     /// Enable payload
     PldEnable = 0x40,
     /// Disable payload
     PldDisable = 0x41,
+    /// Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn); optional second byte 1 = force the antenna past its temperature gate (deploy now whatever the AntS temperature, decision C-18; refused with the wings)
+    DeployRetry = 0x50,
+    /// Start a GNSS receiver session now (its power gates still apply)
+    GnssRequest = 0x60,
+    /// Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven
+    PassivateArm = 0x70,
+    /// Within 600 s of PASSIVATE_ARM: fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE, in sunlight, up to 3 attempts) while still transmitting, downlink three final reports a minute apart (EOL_STATE, fuse, attempts), then latch TX-OFF and keep every transmitter off for good (recovery key only; irreversible)
+    PassivateExecute = 0x71,
 }
 
 impl Command {
     /// Every command, in ID order
-    pub const ALL: [Command; 17] = [
+    pub const ALL: [Command; 32] = [
         Command::Nop,
         Command::Reset,
         Command::SetMode,
@@ -59,16 +89,31 @@ impl Command {
         Command::ClearFaults,
         Command::KeyRotate,
         Command::SetContactTimeout,
+        Command::CommissioningRelease,
+        Command::GetHousekeeping,
+        Command::DumpTlm,
+        Command::FramBypass,
         Command::EpsSetMode,
         Command::EpsGetTelemetry,
+        Command::EpsClearLockout,
+        Command::EpsDisableTrackers,
         Command::AdcsDetumble,
         Command::AdcsGetAttitude,
+        Command::AdcsSetGeometry,
+        Command::AdcsSetGyroAlign,
+        Command::AdcsSetMagBias,
         Command::SetBeacon,
         Command::TxEnable,
         Command::TxDisable,
         Command::SetPower,
+        Command::XpdrEnable,
+        Command::XpdrDisable,
         Command::PldEnable,
         Command::PldDisable,
+        Command::DeployRetry,
+        Command::GnssRequest,
+        Command::PassivateArm,
+        Command::PassivateExecute,
     ];
 
     /// The command with this ID, if the dictionary has one
@@ -81,16 +126,31 @@ impl Command {
             0x05 => Some(Command::ClearFaults),
             0x06 => Some(Command::KeyRotate),
             0x07 => Some(Command::SetContactTimeout),
+            0x08 => Some(Command::CommissioningRelease),
+            0x09 => Some(Command::GetHousekeeping),
+            0x0A => Some(Command::DumpTlm),
+            0x0B => Some(Command::FramBypass),
             0x10 => Some(Command::EpsSetMode),
             0x13 => Some(Command::EpsGetTelemetry),
+            0x14 => Some(Command::EpsClearLockout),
+            0x15 => Some(Command::EpsDisableTrackers),
             0x21 => Some(Command::AdcsDetumble),
             0x23 => Some(Command::AdcsGetAttitude),
+            0x24 => Some(Command::AdcsSetGeometry),
+            0x25 => Some(Command::AdcsSetGyroAlign),
+            0x26 => Some(Command::AdcsSetMagBias),
             0x30 => Some(Command::SetBeacon),
             0x31 => Some(Command::TxEnable),
             0x32 => Some(Command::TxDisable),
             0x33 => Some(Command::SetPower),
+            0x34 => Some(Command::XpdrEnable),
+            0x35 => Some(Command::XpdrDisable),
             0x40 => Some(Command::PldEnable),
             0x41 => Some(Command::PldDisable),
+            0x50 => Some(Command::DeployRetry),
+            0x60 => Some(Command::GnssRequest),
+            0x70 => Some(Command::PassivateArm),
+            0x71 => Some(Command::PassivateExecute),
             _ => None,
         }
     }
@@ -118,16 +178,31 @@ impl Command {
             Command::ClearFaults => c"CLEAR_FAULTS",
             Command::KeyRotate => c"KEY_ROTATE",
             Command::SetContactTimeout => c"SET_CONTACT_TIMEOUT",
+            Command::CommissioningRelease => c"COMMISSIONING_RELEASE",
+            Command::GetHousekeeping => c"GET_HOUSEKEEPING",
+            Command::DumpTlm => c"DUMP_TLM",
+            Command::FramBypass => c"FRAM_BYPASS",
             Command::EpsSetMode => c"EPS_SET_MODE",
             Command::EpsGetTelemetry => c"EPS_GET_TELEMETRY",
+            Command::EpsClearLockout => c"EPS_CLEAR_LOCKOUT",
+            Command::EpsDisableTrackers => c"EPS_DISABLE_TRACKERS",
             Command::AdcsDetumble => c"ADCS_DETUMBLE",
             Command::AdcsGetAttitude => c"ADCS_GET_ATTITUDE",
+            Command::AdcsSetGeometry => c"ADCS_SET_GEOMETRY",
+            Command::AdcsSetGyroAlign => c"ADCS_SET_GYRO_ALIGN",
+            Command::AdcsSetMagBias => c"ADCS_SET_MAG_BIAS",
             Command::SetBeacon => c"SET_BEACON",
             Command::TxEnable => c"TX_ENABLE",
             Command::TxDisable => c"TX_DISABLE",
             Command::SetPower => c"SET_POWER",
+            Command::XpdrEnable => c"XPDR_ENABLE",
+            Command::XpdrDisable => c"XPDR_DISABLE",
             Command::PldEnable => c"PLD_ENABLE",
             Command::PldDisable => c"PLD_DISABLE",
+            Command::DeployRetry => c"DEPLOY_RETRY",
+            Command::GnssRequest => c"GNSS_REQUEST",
+            Command::PassivateArm => c"PASSIVATE_ARM",
+            Command::PassivateExecute => c"PASSIVATE_EXECUTE",
         }
     }
 
@@ -141,16 +216,31 @@ impl Command {
             Command::ClearFaults => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::KeyRotate => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Recovery, without_key: false },
             Command::SetContactTimeout => CommandSpec { min_args: 2, max_args: 2, key: KeyClass::Operational, without_key: false },
+            Command::CommissioningRelease => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::GetHousekeeping => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::DumpTlm => CommandSpec { min_args: 7, max_args: 7, key: KeyClass::Operational, without_key: false },
+            Command::FramBypass => CommandSpec { min_args: 4, max_args: 4, key: KeyClass::Operational, without_key: false },
             Command::EpsSetMode => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
             Command::EpsGetTelemetry => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::EpsClearLockout => CommandSpec { min_args: 4, max_args: 4, key: KeyClass::Operational, without_key: false },
+            Command::EpsDisableTrackers => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
             Command::AdcsDetumble => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::AdcsGetAttitude => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::AdcsSetGeometry => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
+            Command::AdcsSetGyroAlign => CommandSpec { min_args: 36, max_args: 36, key: KeyClass::Operational, without_key: false },
+            Command::AdcsSetMagBias => CommandSpec { min_args: 13, max_args: 13, key: KeyClass::Operational, without_key: false },
             Command::SetBeacon => CommandSpec { min_args: 2, max_args: 2, key: KeyClass::Operational, without_key: false },
             Command::TxEnable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::TxDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Any, without_key: true },
             Command::SetPower => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
+            Command::XpdrEnable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::XpdrDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::PldEnable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::PldDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::DeployRetry => CommandSpec { min_args: 1, max_args: 2, key: KeyClass::Operational, without_key: false },
+            Command::GnssRequest => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::PassivateArm => CommandSpec { min_args: 4, max_args: 4, key: KeyClass::Operational, without_key: false },
+            Command::PassivateExecute => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Recovery, without_key: false },
         }
     }
 
@@ -164,16 +254,31 @@ impl Command {
             Command::ClearFaults => "Clear fault log",
             Command::KeyRotate => "Activate spare operational key slot 0-3 and revoke the current key (recovery key only)",
             Command::SetContactTimeout => "Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 30 at launch, 14 after commissioning: decision D3)",
+            Command::CommissioningRelease => "Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven)",
+            Command::GetHousekeeping => "Downlink a housekeeping frame (HK1) at the next opportunity",
+            Command::DumpTlm => "Downlink stored housekeeping: store (0 five-minute records, 1 sixty-second records), first record sequence (4 bytes big-endian), count (2 bytes big-endian, at most 600; 0 stops a dump); paced within the downlink duty limit",
+            Command::FramBypass => "Run without the FRAM (argument: the ASCII code FRM!): accepted only once the FRAM has been declared failed (HK1 FR=1); the RAM copies of the TX-OFF latch and the operations record, under CRC, become authoritative until the FRAM reads back again or the next reset (then send FRAM_BYPASS, TX_ENABLE and COMMISSIONING_RELEASE again)",
             Command::EpsSetMode => "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE",
             Command::EpsGetTelemetry => "Get EPS telemetry",
+            Command::EpsClearLockout => "Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history",
+            Command::EpsDisableTrackers => "Disable solar-array trackers through the EPS controller's TRK_DISABLE (0x8E, with its key): mask bits 0-3 = T1-T4 off, 0 = all enabled; held in the controller's FRAM and reported in HK2 SV (EPS_SUPV)",
             Command::AdcsDetumble => "Start detumble",
             Command::AdcsGetAttitude => "Get attitude",
+            Command::AdcsSetGeometry => "Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing",
+            Command::AdcsSetGyroAlign => "Gyro alignment matrix (VI-MCAD-05; persisted): nine elements row by row, each a signed 32-bit big-endian integer in units of 1e-6; refused unless every element is within 1.1 and the determinant within 0.05 of 1",
+            Command::AdcsSetMagBias => "Magnetometer bias of one rod polarity state (AV-V4; persisted): the state 0-7 (bit n set: rod n last driven positive), then X, Y, Z as signed 32-bit big-endian nT, each within 50 uT",
             Command::SetBeacon => "Set beacon interval, seconds big-endian, 10 to 120",
             Command::TxEnable => "Clear the latched TX-OFF",
             Command::TxDisable => "Latch TX-OFF in every state (47 CFR 97.207(b))",
             Command::SetPower => "Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the downlink, downlink.h)",
+            Command::XpdrEnable => "Allow the FM transponder (persisted); its power and duty gates still apply",
+            Command::XpdrDisable => "Stop the FM transponder (persisted); beacon and telecommand unaffected",
             Command::PldEnable => "Enable payload",
             Command::PldDisable => "Disable payload",
+            Command::DeployRetry => "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn); optional second byte 1 = force the antenna past its temperature gate (deploy now whatever the AntS temperature, decision C-18; refused with the wings)",
+            Command::GnssRequest => "Start a GNSS receiver session now (its power gates still apply)",
+            Command::PassivateArm => "Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven",
+            Command::PassivateExecute => "Within 600 s of PASSIVATE_ARM: fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE, in sunlight, up to 3 attempts) while still transmitting, downlink three final reports a minute apart (EOL_STATE, fuse, attempts), then latch TX-OFF and keep every transmitter off for good (recovery key only; irreversible)",
         }
     }
 }

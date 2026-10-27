@@ -1,0 +1,755 @@
+{
+ "mtq_i_sat": {
+  "value": 0.08695652173913045,
+  "unit": "A",
+  "note": "coil current for 0.20 A.m2"
+ },
+ "mtq_v_rod_sat": {
+  "value": 4.434782608695652,
+  "unit": "V",
+  "note": "voltage across the rod at saturation (CR0002 rated 5 V max)"
+ },
+ "mtq_p_rod_sat": {
+  "value": 0.38563327032136113,
+  "unit": "W",
+  "note": "dissipation per rod at saturation"
+ },
+ "mtq_p_3axes_sat": {
+  "value": 1.1568998109640833,
+  "unit": "W",
+  "note": "three rods saturated (detumble worst case)"
+ },
+ "mtq_duty_sat_vmin": {
+  "value": 0.4062111801242237,
+  "unit": "",
+  "note": "PH/EN slow-decay duty for 0.20 A.m2 at VBAT 11.2 V"
+ },
+ "mtq_duty_sat_vnom": {
+  "value": 0.31594202898550733,
+  "unit": "",
+  "note": "PH/EN slow-decay duty for 0.20 A.m2 at VBAT 14.4 V"
+ },
+ "mtq_duty_sat_vmax": {
+  "value": 0.27741251325556743,
+  "unit": "",
+  "note": "PH/EN slow-decay duty for 0.20 A.m2 at VBAT 16.4 V"
+ },
+ "mtq_duty_sat_80ohm_vmin": {
+  "value": 0.6313664596273293,
+  "unit": "",
+  "note": "duty at 80 ohm and 11.2 V: must be < 1 (headroom)"
+ },
+ "mtq_isupply_3axes_vnom": {
+  "value": 0.08282501510338511,
+  "unit": "A",
+  "note": "VBAT_MTQ current, 3 axes saturated, 97 % bridge efficiency"
+ },
+ "mtq_vref": {
+  "value": 1.1498257839721255,
+  "unit": "V",
+  "note": "VREF divider 18.7 k / 10.0 k from 3V3_OBC"
+ },
+ "mtq_itrip_nom": {
+  "value": 0.11498257839721256,
+  "unit": "A",
+  "note": "hardware current limit ITRIP = VREF / (R_IPROPI x A_IPROPI)"
+ },
+ "mtq_itrip_min": {
+  "value": 0.1036988360071984,
+  "unit": "A",
+  "note": "3V3 -3 %, 0.1 % resistors, AERR -7.5 mA"
+ },
+ "mtq_itrip_max": {
+  "value": 0.12628770756819538,
+  "unit": "A",
+  "note": "3V3 +3 %, 0.1 % resistors, AERR +7.5 mA"
+ },
+ "mtq_itrip_margin_over_sat": {
+  "value": 1.1925366140827813,
+  "unit": "",
+  "note": "ITRIP(min) over the saturation current: the limit never cuts a valid command"
+ },
+ "mtq_p_rod_fault": {
+  "value": 0.8133778392243316,
+  "unit": "W",
+  "note": "rod dissipation with the software at 100 % duty, held by ITRIP(max)"
+ },
+ "mtq_i_fault_unlimited": {
+  "value": 0.5317769130998703,
+  "unit": "A",
+  "note": "what 100 % duty would give on a 30-ohm rod without ITRIP"
+ },
+ "mtq_p_supply_fault": {
+  "value": 0.22933585692415365,
+  "unit": "A",
+  "note": "VBAT_MTQ current, all three bridges in ITRIP at 11.2 V (sizes the EPS switch)"
+ },
+ "mtq_ripple_5mH": {
+  "value": 0.0161777859744571,
+  "unit": "A p-p",
+  "note": "slow-decay current ripple at 40 kHz, 16.4 V, L 5 mH (ASSUMED L)"
+ },
+ "mtq_ripple_20mH": {
+  "value": 0.004044446493614275,
+  "unit": "A p-p",
+  "note": "slow-decay current ripple at 40 kHz, 16.4 V, L 20 mH (ASSUMED L)"
+ },
+ "mtq_ripple_50mH": {
+  "value": 0.0016177785974457097,
+  "unit": "A p-p",
+  "note": "slow-decay current ripple at 40 kHz, 16.4 V, L 50 mH (ASSUMED L)"
+ },
+ "mtq_ipropi_scale": {
+  "value": 10.0,
+  "unit": "V/A",
+  "note": "IPROPI into 10.0 k: 10 mV/mA; 0.87 V at saturation; 3.3 V full scale = 330 mA"
+ },
+ "mtq_p_drv": {
+  "value": 0.13585213230933565,
+  "unit": "W",
+  "note": "per DRV8876: conduction at ITRIP(max), 150 C RDS, plus IVM 7 mA max"
+ },
+ "mtq_tj_drv": {
+  "value": 65.3797444394497,
+  "unit": "C",
+  "note": "Tj at 60 C board, RthJA 39.6 K/W (HTSSOP-16 PWP JEDEC, ASSUMED from TI family data)"
+ },
+ "mtq_p_quiescent": {
+  "value": 0.11664000000000002,
+  "unit": "W",
+  "note": "three bridges awake 90 % of each period (IVM 3 mA typ)"
+ },
+ "mtq_bs_fosc": {
+  "value": 539.4325169921243,
+  "unit": "Hz",
+  "note": "f = 1/(2.3 Rt Ct), Rt 80.6 k, Ct 10 nF C0G"
+ },
+ "mtq_bs_t": {
+  "value": 0.9491455999999999,
+  "unit": "s",
+  "note": "Q10 rises after 512 periods: coils cut"
+ },
+ "mtq_bs_t_min": {
+  "value": 0.9206712319999999,
+  "unit": "s",
+  "note": "after trim, +/-3 % drift (-40..+85 C, RF board's measured class of the same part)"
+ },
+ "mtq_bs_t_max": {
+  "value": 0.977619968,
+  "unit": "s",
+  "note": ""
+ },
+ "mtq_bs_margin_low": {
+  "value": 0.020671231999999873,
+  "unit": "s",
+  "note": "backstop above the 900 ms burst: never truncates a valid burst"
+ },
+ "mtq_bs_margin_high": {
+  "value": 0.02238003200000005,
+  "unit": "s",
+  "note": "backstop below the 1000 ms period: re-armed every period"
+ },
+ "mtq_end_of_burst": {
+  "value": 0.0019020550540585386,
+  "unit": "s",
+  "note": "nSLEEP low to zero coil current: tSLEEP 1 ms + L*I/V decay against VM (L 80 mH bound)"
+ },
+ "wd_twdu_typ": {
+  "value": 34.111000000000004,
+  "unit": "s",
+  "note": "TPS3850 eq. 6: tWDU = 77.4 x C(uF) + 0.055"
+ },
+ "wd_twdu_min": {
+  "value": 29.269320674000006,
+  "unit": "s",
+  "note": "0.905 x, C -5.2 % (tolerance and temperature)"
+ },
+ "wd_twdu_max": {
+  "value": 39.288829074000006,
+  "unit": "s",
+  "note": "1.095 x, C +5.2 %"
+ },
+ "wd_twdl_max": {
+  "value": 4.911103634250001,
+  "unit": "s",
+  "note": "SET0 = SET1 = 0: lower boundary 1/8 of tWDU"
+ },
+ "wd_kick": {
+  "value": 10.0,
+  "unit": "s",
+  "note": "flight software WDI falling edge every 10 s while every task has checked in"
+ },
+ "wd_margin_low": {
+  "value": 2.036202195013779,
+  "unit": "",
+  "note": "kick interval over the lower boundary"
+ },
+ "wd_margin_high": {
+  "value": 2.9269320674000006,
+  "unit": "",
+  "note": "upper boundary over the kick interval"
+ },
+ "iwdg_t_min": {
+  "value": 28.235294117647058,
+  "unit": "s",
+  "note": "IWDG reload 3750, prescaler 256, at the fastest LSI"
+ },
+ "iwdg_t_max": {
+  "value": 32.54237288135593,
+  "unit": "s",
+  "note": "IWDG reload 3750 at the slowest LSI"
+ },
+ "wd_vs_iwdg": {
+  "value": -3.2730522073559243,
+  "unit": "s",
+  "note": "external upper bound minus the IWDG's longest: the IWDG acts first"
+ },
+ "wd_one_short_twdu_min": {
+  "value": 36.574207092500004,
+  "unit": "s",
+  "note": "CWD 550 nF after one capacitor short"
+ },
+ "wd_one_short_twdu_max": {
+  "value": 49.09598009250001,
+  "unit": "s",
+  "note": "upper bound, max"
+ },
+ "wd_one_short_twdl_max": {
+  "value": 6.136997511562501,
+  "unit": "s",
+  "note": "lower bound, max (must stay below the 10 s kick)"
+ },
+ "wd_one_open_twdu_min": {
+  "value": 21.964434255500006,
+  "unit": "s",
+  "note": "CWD 330 nF after one capacitor open"
+ },
+ "wd_one_open_twdu_max": {
+  "value": 29.4816780555,
+  "unit": "s",
+  "note": "upper bound, max"
+ },
+ "wd_one_open_twdl_max": {
+  "value": 3.6852097569375,
+  "unit": "s",
+  "note": "lower bound, max (must stay below the 10 s kick)"
+ },
+ "iwdg_3200_min": {
+  "value": 24.094117647058823,
+  "unit": "s",
+  "note": "recommended IWDG reload 3200 / 256 at LSI 34 kHz"
+ },
+ "iwdg_3200_max": {
+  "value": 27.769491525423728,
+  "unit": "s",
+  "note": "at LSI 29.5 kHz: below the supervisor's minimum"
+ },
+ "wd_vs_iwdg_3200": {
+  "value": 1.4998291485762785,
+  "unit": "s",
+  "note": "supervisor minimum minus the IWDG maximum at reload 3200: the IWDG acts first"
+ },
+ "wd_uv": {
+  "value": 3.069,
+  "unit": "V",
+  "note": "TPS3850H33: UV 7 % (3.069 V nominal, +/-0.8 %)"
+ },
+ "wd_ov": {
+  "value": 3.531,
+  "unit": "V",
+  "note": "OV 7 % (3.531 V)"
+ },
+ "wd_trst": {
+  "value": 0.2,
+  "unit": "s",
+  "note": "CRST open: 170-230 ms"
+ },
+ "hse_pll": {
+  "value": "8 MHz /1 x20 /2 = 80 MHz",
+  "unit": "",
+  "note": "HSE bypass from the XO: PLLM 1, PLLN 20, PLLR 2"
+ },
+ "lse_gmcrit": {
+  "value": 0.8374834049822095,
+  "unit": "uA/V",
+  "note": "gm_crit = 4 ESR (2 pi f)^2 (C0+CL)^2 (AN2867), CM7V ESR 70 k max, C0 1.4 pF"
+ },
+ "lse_drive_margin": {
+  "value": 2.029890968449832,
+  "unit": "",
+  "note": "LSEDRV medium-high Gm_crit_max 1.7 uA/V (ASSUMED STM32L4 class value) over gm_crit"
+ },
+ "lse_cload": {
+  "value": 7.5e-12,
+  "unit": "F",
+  "note": "10 pF + 10 pF in series plus 2.5 pF stray = 7.5 pF (crystal CL 7 pF: about -9 ppm pull; the mission clock is the RV-3028)"
+ },
+ "rtc_drift_day": {
+  "value": 0.08639999999999999,
+  "unit": "s/day",
+  "note": "RV-3028-C7 +/-1 ppm at 25 C (factory calibrated)"
+ },
+ "rtc_drift_worst_day": {
+  "value": 0.3024,
+  "unit": "s/day",
+  "note": "+/-3.5 ppm over -40..+85 C with its temperature compensation (ASSUMED from application manual class)"
+ },
+ "snsw_limit": {
+  "value": [
+   0.05,
+   0.075,
+   0.1
+  ],
+  "unit": "A",
+  "note": "TPS2553-Q1 ILIM tied to IN: 50 / 75 / 100 mA"
+ },
+ "snsw_gyro_load": {
+  "value": 0.0256,
+  "unit": "A",
+  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: ADS7138, TIAs, TCA9517 U14, 12 mA photocurrent; mag: RM3100 x 1.6, TCA9517 U34)"
+ },
+ "snsw_gyro_margin": {
+  "value": 1.953125,
+  "unit": "",
+  "note": "minimum limit over the normal maximum (>= 1.35 for no false trips)"
+ },
+ "snsw_imu2_load": {
+  "value": 0.008,
+  "unit": "A",
+  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: ADS7138, TIAs, TCA9517 U14, 12 mA photocurrent; mag: RM3100 x 1.6, TCA9517 U34)"
+ },
+ "snsw_imu2_margin": {
+  "value": 6.25,
+  "unit": "",
+  "note": "minimum limit over the normal maximum (>= 1.35 for no false trips)"
+ },
+ "snsw_sns_load": {
+  "value": 0.0145,
+  "unit": "A",
+  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: ADS7138, TIAs, TCA9517 U14, 12 mA photocurrent; mag: RM3100 x 1.6, TCA9517 U34)"
+ },
+ "snsw_sns_margin": {
+  "value": 3.4482758620689657,
+  "unit": "",
+  "note": "minimum limit over the normal maximum (>= 1.35 for no false trips)"
+ },
+ "snsw_mag_load": {
+  "value": 0.0023,
+  "unit": "A",
+  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: ADS7138, TIAs, TCA9517 U14, 12 mA photocurrent; mag: RM3100 x 1.6, TCA9517 U34)"
+ },
+ "snsw_mag_margin": {
+  "value": 21.73913043478261,
+  "unit": "",
+  "note": "minimum limit over the normal maximum (>= 1.35 for no false trips)"
+ },
+ "snsw_retry_off": {
+  "value": 0.2904,
+  "unit": "s",
+  "note": "off time after a trip: 0.6 x 220 k x 2.2 uF nominal (>= 0.1 s: RADIATION_ANALYSIS 5.3)"
+ },
+ "snsw_retry_off_min": {
+  "value": 0.1775970603,
+  "unit": "s",
+  "note": "worst short: X7R at -40 C with tolerance, bias and ageing; R -1 %"
+ },
+ "snsw_retry_off_max": {
+  "value": 0.329087088,
+  "unit": "s",
+  "note": "worst long"
+ },
+ "snsw_turn_on_max": {
+  "value": 0.5484784800000001,
+  "unit": "s",
+  "note": "commanded turn-on delay, at most about one RC to the EN threshold (flight software waits >= 0.6 s)"
+ },
+ "gyro_vcc_min": {
+  "value": 3.19538,
+  "unit": "V",
+  "note": "3V3_AO -3 %, SW4 85 mOhm x 34 mA, W6B 13 mOhm, OBC switch 85 mOhm x 26 mA, trace"
+ },
+ "gyro_vcc_margin": {
+  "value": 0.0453800000000002,
+  "unit": "V",
+  "note": "above the M-G370 3.15 V minimum (EPS set point +/-2 % recommended: +33 mV more)"
+ },
+ "css_vout_isc": {
+  "value": 2.476,
+  "unit": "V",
+  "note": "TIA output at 4.0 mA (Rf 619 ohm)"
+ },
+ "css_vout_clip": {
+  "value": 0.005250403877221325,
+  "unit": "A",
+  "note": "photocurrent at which the TIA clips (3.25 V output)"
+ },
+ "css_lsb": {
+  "value": 1.3015574515347335e-06,
+  "unit": "A",
+  "note": "ADS7138 12-bit LSB in photocurrent"
+ },
+ "css_angle_res": {
+  "value": 1.4616758883919196,
+  "unit": "deg",
+  "note": "angle step at normal incidence from 1 LSB (cosine)"
+ },
+ "css_p_rf": {
+  "value": 0.009904,
+  "unit": "W",
+  "note": "feedback resistor power at 4 mA (0.1 W part)",
+  "stress": "10 mW / 100 mW = 10 %"
+ },
+ "ntc_r_m15": {
+  "value": 78957.82664220121,
+  "unit": "ohm",
+  "note": "RT1 at -15 C"
+ },
+ "ntc_v_m15": {
+  "value": 2.9290376997098875,
+  "unit": "V",
+  "note": "PA2 at -15 C (VDDA 3.3 V; the reading is ratiometric)"
+ },
+ "ntc_r_25": {
+  "value": 10000.0,
+  "unit": "ohm",
+  "note": "RT1 at 25 C"
+ },
+ "ntc_v_25": {
+  "value": 1.65,
+  "unit": "V",
+  "note": "PA2 at 25 C (VDDA 3.3 V; the reading is ratiometric)"
+ },
+ "ntc_r_70": {
+  "value": 1739.8264780153124,
+  "unit": "ohm",
+  "note": "RT1 at 70 C"
+ },
+ "ntc_v_70": {
+  "value": 0.48905555701374837,
+  "unit": "V",
+  "note": "PA2 at 70 C (VDDA 3.3 V; the reading is ratiometric)"
+ },
+ "ntc_r_m40": {
+  "value": 411749.37370353186,
+  "unit": "ohm",
+  "note": "RT1 at -40 C"
+ },
+ "ntc_v_m40": {
+  "value": 3.2217544777595863,
+  "unit": "V",
+  "note": "PA2 at -40 C (VDDA 3.3 V; the reading is ratiometric)"
+ },
+ "ntc_r_95": {
+  "value": 792.1230152225979,
+  "unit": "ohm",
+  "note": "RT1 at 95 C"
+ },
+ "ntc_v_95": {
+  "value": 0.2422142470529147,
+  "unit": "V",
+  "note": "PA2 at 95 C (VDDA 3.3 V; the reading is ratiometric)"
+ },
+ "ntc_slope_m15": {
+  "value": -0.01964495067819838,
+  "unit": "V/K",
+  "note": "sensitivity at -15 C"
+ },
+ "ntc_lsb_m15": {
+  "value": 0.04101125402132527,
+  "unit": "K/LSB",
+  "note": "12-bit resolution at -15 C"
+ },
+ "ntc_err_m15": {
+  "value": 0.2351266543085803,
+  "unit": "K",
+  "note": "error RSS at -15 C (bias 0.1 %, NTC 1 %, ADC 4 LSB)"
+ },
+ "ntc_slope_70": {
+  "value": -0.01406657392481242,
+  "unit": "V/K",
+  "note": "sensitivity at 70 C"
+ },
+ "ntc_lsb_70": {
+  "value": 0.057275074002125476,
+  "unit": "K/LSB",
+  "note": "12-bit resolution at 70 C"
+ },
+ "ntc_err_70": {
+  "value": 0.3755966619279865,
+  "unit": "K",
+  "note": "error RSS at 70 C (bias 0.1 %, NTC 1 %, ADC 4 LSB)"
+ },
+ "ntc_p_bias_max": {
+  "value": 0.9350053710926172,
+  "unit": "mW",
+  "note": "bias resistor power, worst (at 95 C)"
+ },
+ "ntc_self_heat": {
+  "value": 0.13747080002993417,
+  "unit": "mW",
+  "note": "NTC dissipation at 70 C (bonded: < 0.1 K rise at about 3 mW/K)"
+ },
+ "mag_rod_obc_corner": {
+  "value": {
+   "X": 196.0,
+   "Y": 846.0,
+   "Z": 152.0
+  },
+  "unit": "nT per mA.m2",
+  "note": "rod field at (0.033, -0.038, 0.007) m per 1 mA.m2 of remanence"
+ },
+ "mag_rod_obc_corner_sum": {
+  "value": 1193.8706958069536,
+  "unit": "nT per mA.m2",
+  "note": "sum of the three rods (worst alignment)"
+ },
+ "mag_mr_allow_obc_corner": {
+  "value": 0.1256417470726283,
+  "unit": "mA.m2",
+  "note": "per-rod remanence whose polarity reversal (2 m_r) changes the field by the Monte Carlo's 300 nT bias"
+ },
+ "mag_rod_obc_best": {
+  "value": {
+   "X": 174.0,
+   "Y": 386.0,
+   "Z": 366.0
+  },
+  "unit": "nT per mA.m2",
+  "note": "rod field at (0.002, -0.042, 0.007) m per 1 mA.m2 of remanence"
+ },
+ "mag_rod_obc_best_sum": {
+  "value": 925.8814439880679,
+  "unit": "nT per mA.m2",
+  "note": "sum of the three rods (worst alignment)"
+ },
+ "mag_mr_allow_obc_best": {
+  "value": 0.16200778293374363,
+  "unit": "mA.m2",
+  "note": "per-rod remanence whose polarity reversal (2 m_r) changes the field by the Monte Carlo's 300 nT bias"
+ },
+ "mag_rod_plusz_cad": {
+  "value": {
+   "X": 480.0,
+   "Y": 178.0,
+   "Z": 173.0
+  },
+  "unit": "nT per mA.m2",
+  "note": "rod field at (0.024, 0.027, 0.044) m per 1 mA.m2 of remanence"
+ },
+ "mag_rod_plusz_cad_sum": {
+  "value": 830.4111847393713,
+  "unit": "nT per mA.m2",
+  "note": "sum of the three rods (worst alignment)"
+ },
+ "mag_mr_allow_plusz_cad": {
+  "value": 0.18063340518116727,
+  "unit": "mA.m2",
+  "note": "per-rod remanence whose polarity reversal (2 m_r) changes the field by the Monte Carlo's 300 nT bias"
+ },
+ "mag_rod_plusz_mirror": {
+  "value": {
+   "X": 156.0,
+   "Y": 178.0,
+   "Z": 173.0
+  },
+  "unit": "nT per mA.m2",
+  "note": "rod field at (0.024, -0.027, 0.044) m per 1 mA.m2 of remanence"
+ },
+ "mag_rod_plusz_mirror_sum": {
+  "value": 506.8026174019471,
+  "unit": "nT per mA.m2",
+  "note": "sum of the three rods (worst alignment)"
+ },
+ "mag_mr_allow_plusz_mirror": {
+  "value": 0.2959732149154124,
+  "unit": "mA.m2",
+  "note": "per-rod remanence whose polarity reversal (2 m_r) changes the field by the Monte Carlo's 300 nT bias"
+ },
+ "rb_11.2": {
+  "value": 1.8666666666666667,
+  "unit": "V",
+  "note": "VSW1_RB / VJET_RB at 11.2 V (1 M / 200 k, EPS side)"
+ },
+ "rb_14.4": {
+  "value": 2.4,
+  "unit": "V",
+  "note": "VSW1_RB / VJET_RB at 14.4 V (1 M / 200 k, EPS side)"
+ },
+ "rb_16.4": {
+  "value": 2.733333333333333,
+  "unit": "V",
+  "note": "VSW1_RB / VJET_RB at 16.4 V (1 M / 200 k, EPS side)"
+ },
+ "rb_16.8": {
+  "value": 2.8,
+  "unit": "V",
+  "note": "VSW1_RB / VJET_RB at 16.8 V (1 M / 200 k, EPS side)"
+ },
+ "rb_threshold": {
+  "value": 1.0,
+  "unit": "V",
+  "note": "software: on above 1.0 V (6.0 V rail), off below; 1.87 V at the lowest bus"
+ },
+ "backpower_lines": {
+  "value": {
+   "EPS_ALERT_N (4.7 k EPS pull-up + 10 k)": 0.00022448979591836734,
+   "SOLAR_SENSE (11 k EPS + 10 k)": 0.00015714285714285713,
+   "DEPLOY_SENSE (1 M)": 3.2999999999999997e-06,
+   "five EPS analog lines (>= 167 k)": 8.383233532934131e-05,
+   "VSW1_RB, VJET_RB (167 k + 1 k)": 3.333333333333333e-05,
+   "TNC_TXD idle high (100 + 10 k)": 0.00030693069306930693,
+   "TONE_OK, XPDR_KEY, PTT_EXC, RX_CD, RX_FAULT if high (1 k + 10 k)": 0.001409090909090909,
+   "TX_TEMP, TX_FWD, TX_REV (1 k + 10 k, at 1.7/2.5/1.25 V)": 0.0004954545454545455,
+   "RTC CLKOUT (1 M), EVI (input)": 3.2999999999999997e-06,
+   "Jetson, GNSS, sensor buses (translators: Ioff)": 0.0
+  },
+  "unit": "A",
+  "note": "current into the clamps of an unpowered OBC with every other board powered"
+ },
+ "backpower_total": {
+  "value": 0.0027168744693386606,
+  "unit": "A",
+  "note": "worst case (every readback high); typical with readbacks low about 0.8 mA"
+ },
+ "i_3v3_obc": {
+  "value": 0.025401094444298625,
+  "unit": "A",
+  "note": "3V3_OBC worst normal; EPS SW10 trips at 0.130 A min"
+ },
+ "i_3v3_obc_items": {
+  "value": {
+   "STM32L4R5 at 80 MHz, peripherals on (allocation; DS12023 not read)": 0.02,
+   "8 MHz XO": 0.003,
+   "FM25V20A (active 20 MHz, 15 % of time)": 0.00045,
+   "TPS3850, TMP235, HC4060, gates": 0.0002,
+   "translators and TCA9517 A side": 0.0003,
+   "pull-downs on driven-high EPS/RF lines": 0.00025,
+   "I2C pull-ups (average)": 0.0008,
+   "DRV8876 VREF divider": 0.00012,
+   "spreader NTC bias (10.0 k + RT1 at 70 C)": 0.00028109444429862514
+  },
+  "unit": "A",
+  "note": ""
+ },
+ "i_3v3_obc_margin": {
+  "value": 5.117889714755146,
+  "unit": "",
+  "note": "trip over load"
+ },
+ "i_3v3_adcs": {
+  "value": 0.0504,
+  "unit": "A",
+  "note": "3V3_ADCS worst with the backup gyro on; SW4 trips at 0.265 A min"
+ },
+ "p_obc": {
+  "value": 0.08382361166618546,
+  "unit": "W",
+  "note": "OBC board from 3V3_OBC"
+ },
+ "p_sensors": {
+  "value": 0.07590000000000001,
+  "unit": "W",
+  "note": "sensors normal: gyro, mag, ADC, TIAs, buffer, 4 mA photocurrent average"
+ },
+ "c_bulk_3v3": {
+  "value": 3.9699999999999996e-05,
+  "unit": "F",
+  "note": "3V3_OBC capacitance on the OBC"
+ },
+ "t_inrush": {
+  "value": 0.0010077692307692305,
+  "unit": "s",
+  "note": "charge time at the SW10 minimum limit (< 8 ms FAULT deglitch: no trip at power-up)"
+ },
+ "i2c2_tr": {
+  "value": 2.389386e-07,
+  "unit": "s",
+  "note": "I2C2 rise time, two 4.7 k in parallel (2.35 k), 120 pF: <= 300 ns for 400 kHz"
+ },
+ "i2c2_tr_one": {
+  "value": 4.778772e-07,
+  "unit": "s",
+  "note": "I2C2 rise time with one pull-up open (4.7 k): <= 1000 ns for 100 kHz"
+ },
+ "i2c3_tr": {
+  "value": 1.5929240000000002e-07,
+  "unit": "s",
+  "note": "I2C3 (AntS) rise time, 2.35 k, 80 pF (W3 + EPS U80 A side)"
+ },
+ "i2c3_tr_one": {
+  "value": 3.1858480000000003e-07,
+  "unit": "s",
+  "note": "I2C3 with one pull-up open: <= 1000 ns for 100 kHz"
+ },
+ "tx_temp_pd_err": {
+  "value": 0.011,
+  "unit": "",
+  "note": "TX_TEMP reading low by 11 k / 1 M (1.1 %) with the 1 M open-line pull-down on PA0"
+ },
+ "i2c2_iol": {
+  "value": 0.001404255319148936,
+  "unit": "A",
+  "note": "sink current at VOL with both pull-ups (<= 3 mA)"
+ },
+ "i2c4_tr": {
+  "value": 9.320300000000002e-08,
+  "unit": "s",
+  "note": "I2C4 OBC side, 50 pF"
+ },
+ "i2c4b_tr": {
+  "value": 1.3938085000000003e-07,
+  "unit": "s",
+  "note": "I2C4 sensor side (4.7 k): W6E 0.10 m at 100 pF/m plus 25 pF of parts and ESD on both boards; <= 300 ns at 400 kHz"
+ },
+ "i2c1_tr": {
+  "value": 1.194693e-07,
+  "unit": "s",
+  "note": "I2C1 to the RTC, 4.7 k, 30 pF (100 kHz)"
+ },
+ "wires": {
+  "value": {
+   "W3 3V3_OBC (2 x 28 AWG, SW10 trip 0.176 A max)": {
+    "current_A": 0.088,
+    "derated_A": 0.25,
+    "use": 0.352
+   },
+   "W3 VBAT_MTQ (2 x 28 AWG, all bridges in ITRIP)": {
+    "current_A": 0.11466792846207682,
+    "derated_A": 0.25,
+    "use": 0.4586717138483073
+   },
+   "W6B 3V3_ADCS (26 AWG, SW4 trip 0.339 A max)": {
+    "current_A": 0.339,
+    "derated_A": 0.5,
+    "use": 0.678
+   },
+   "W6C coil (26 AWG, ITRIP max)": {
+    "current_A": 0.12628770756819538,
+    "derated_A": 0.5,
+    "use": 0.25257541513639076
+   },
+   "W9B 3V3_GNSS (26 AWG, SW7 trip 0.232 A max)": {
+    "current_A": 0.232,
+    "derated_A": 0.5,
+    "use": 0.464
+   }
+  },
+  "unit": "",
+  "note": "SQSO-HAR-001 5.2 (28 AWG 0.25 A, 26 AWG 0.5 A after 50 % derating)"
+ },
+ "tj_mcu": {
+  "value": 62.97,
+  "unit": "C",
+  "note": "STM32L4R5 66 mW, RthJA 45 K/W LQFP144 (ASSUMED)"
+ },
+ "tj_tps2553": {
+  "value": 60.1621,
+  "unit": "C",
+  "note": "at the 100 mA limit in steady state, 135 mOhm hot, 120 K/W"
+ },
+ "tj_txu": {
+  "value": 60.002,
+  "unit": "C",
+  "note": "microwatts"
+ }
+}

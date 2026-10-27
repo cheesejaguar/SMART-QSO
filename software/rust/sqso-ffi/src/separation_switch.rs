@@ -1,26 +1,132 @@
 //! `separation_switch.h`: the one reading of the separation (deployment)
-//! switches, used by the RF silence and the deployment sequence so the
-//! polarity is defined in exactly one place.
+//! switch, used by the RF silence and the deployment sequence so the
+//! polarity is defined in exactly one place (`sqso_fsw::separation`).
 //!
-//! TBR: the line is pulled up and reads high while stowed (in the
-//! dispenser). Confirm against the separation-switch schematic.
+//! DEPLOY_SENSE (PE2, SQSO-ICX-001 §3.1 pin 16): **high = DS2 released**,
+//! driven by the EPS through 1 MΩ with 1 MΩ to ground; the input has **no
+//! internal pull**, which would override that source (RID SMA-B02).
+//!
+//! @requirement SRS-F159 DEPLOY_SENSE high = released, no internal pull; released for 10 s latches separation until the next reset, after which a stowed reading is counted and restarts neither timer
+
+use core::sync::atomic::{AtomicBool, Ordering};
+
+use sqso_fsw::separation::Separation;
 
 use crate::c;
+use crate::cell::Global;
 
-const GPIO_PIN_DEPLOY_SENSE: u32 = 9;
+/// `GPIO_PIN_DEPLOY_SENSE`
+pub(crate) const GPIO_PIN_DEPLOY_SENSE: u32 = 9;
 const GPIO_DIR_INPUT: u32 = 0;
-const GPIO_PULL_UP: u32 = 1;
+/// `GPIO_PULL_NONE`: the EPS's 1 MΩ source and pull-down set the level
+pub(crate) const GPIO_PULL_NONE: u32 = 0;
 
-/// Configure the sense input
+static SEPARATION: Global<Separation> = Global::new(Separation::new());
+/// Separation established before this boot (the deployment record or the
+/// served RF silence, `deployment_init()`; RID SMA-B02): kept across
+/// `separation_switch_init()`, which each module's init calls
+static ESTABLISHED: AtomicBool = AtomicBool::new(false);
+
+/// Separation established before this boot (`deployment.rs`): the reading
+/// latches at once; GSE ARM clears it
+pub(crate) fn set_established(established: bool) {
+    ESTABLISHED.store(established, Ordering::Relaxed);
+}
+
+/// Configure the sense input (no pull) and start this boot's reading
 #[unsafe(no_mangle)]
 pub extern "C" fn separation_switch_init() {
     // SAFETY: plain values
-    let _ = unsafe { c::hal_gpio_config(GPIO_PIN_DEPLOY_SENSE, GPIO_DIR_INPUT, GPIO_PULL_UP) };
+    let _ = unsafe { c::hal_gpio_config(GPIO_PIN_DEPLOY_SENSE, GPIO_DIR_INPUT, GPIO_PULL_NONE) };
+    let _ = SEPARATION.with(|s| *s = Separation::new());
 }
 
-/// Whether the switches read stowed (TBR polarity: high = stowed)
+/// Whether the timers are to treat the switch as stowed: the line low
+/// (stowed) before separation latched on this boot or was established
+/// before it; false after it
 #[unsafe(no_mangle)]
 pub extern "C" fn separation_switch_stowed() -> bool {
     // SAFETY: plain value
-    unsafe { c::hal_gpio_get(GPIO_PIN_DEPLOY_SENSE) }
+    let high = unsafe { c::hal_gpio_get(GPIO_PIN_DEPLOY_SENSE) };
+    let now = c::now_ms();
+    let established = ESTABLISHED.load(Ordering::Relaxed);
+    // Busy only for a nested call: the raw reading (released once established)
+    SEPARATION
+        .with(|s| {
+            if established {
+                s.establish();
+            }
+            s.stowed(high, now)
+        })
+        .unwrap_or(!high && !established)
+}
+
+/// Separation latched on this boot, and the stowed readings since
+/// (episodes), for housekeeping
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn separation_switch_status(latched: *mut bool, stowed_after: *mut u32) -> i32 {
+    let Some((l, n)) = SEPARATION.with(|s| (s.latched, s.stowed_after_latch)) else { return c::rc::BUSY };
+    // SAFETY: the C contract: each pointer is NULL or a live object
+    unsafe {
+        if let Some(p) = crate::ptr::out(latched) {
+            *p = l;
+        }
+        if let Some(p) = crate::ptr::out(stowed_after) {
+            *p = n;
+        }
+    }
+    c::rc::OK
+}
+
+/// Separation latched and the stowed episodes since (housekeeping)
+pub(crate) fn status() -> (bool, u32) {
+    SEPARATION.with(|s| (s.latched, s.stowed_after_latch)).unwrap_or((false, 0))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fault_mgmt::tests::serial;
+
+    /// A nested call (an interrupt) reads the raw line and reports busy
+    #[test]
+    fn status_and_busy() {
+        let _serial = serial();
+        let _ = crate::hal_sim::hal_gpio_init();
+        separation_switch_init();
+        assert!(!separation_switch_stowed(), "undriven: the simulated EPS drives it released");
+        assert_eq!(status(), (false, 0));
+        let (mut latched, mut after) = (true, 9u32);
+        // SAFETY: live objects
+        assert_eq!(unsafe { separation_switch_status(&mut latched, &mut after) }, c::rc::OK);
+        assert_eq!((latched, after), (false, 0));
+        let nested = SEPARATION.with(|_| {
+            // SAFETY: NULL pointers are allowed
+            (separation_switch_stowed(), status(), unsafe {
+                separation_switch_status(core::ptr::null_mut(), core::ptr::null_mut())
+            })
+        });
+        assert_eq!(nested, Some((false, (false, 0), c::rc::BUSY)));
+    }
+
+    /// RID SMA-B02: separation established before the boot latches the
+    /// reading at once, so a line open from boot (stowed) restarts nothing;
+    /// a nested call reads released too
+    #[test]
+    fn established_separation_ignores_an_open_line() {
+        let _serial = serial();
+        let _ = crate::hal_sim::hal_gpio_init();
+        crate::hal_sim::hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);
+        separation_switch_init();
+        assert!(separation_switch_stowed(), "not established: stowed counts");
+        set_established(true);
+        separation_switch_init();
+        assert!(!separation_switch_stowed());
+        assert_eq!(status(), (true, 1));
+        assert_eq!(SEPARATION.with(|_| separation_switch_stowed()), Some(false));
+        set_established(false);
+        separation_switch_init();
+        assert!(separation_switch_stowed());
+        crate::hal_sim::hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
+    }
 }

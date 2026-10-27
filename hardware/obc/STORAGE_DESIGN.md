@@ -2,9 +2,9 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-OBC-002
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.8
+**Date:** 2026-10-27
+**Status:** Draft (pins of §3.4 updated to the build-to design SQSO-OBC-BRD-001)
 
 ---
 
@@ -91,30 +91,49 @@ Address Range       | Size    | Content
 0x0C800 - 0x0C87F   | 128 B   | Post-deployment RF-silence state (§6.5)
 0x0C880 - 0x0C8FF   | 128 B   | Deployment sequence state (§6.5)
 0x0C900 - 0x0FFFF   | 13.75 KB| Event log (reduced from 15 KB for the key table, contact, silence and deployment records)
-0x10000 - 0x1FFFF   | 64 KB   | Telemetry buffer
-0x20000 - 0x3FFFF   | 128 KB  | Extended storage
+0x10000 - 0x1FFFF   | 64 KB   | Telemetry buffer: sixty-second housekeeping records, ring and three event windows (HK_DETAIL, §3.3.1)
+0x20000 - 0x201FF   | 512 B   | Sensor configuration
+0x20200 - 0x205FF   | 1 KB    | Backup
+0x20600 - 0x2067F   | 128 B   | Operations record: commissioning hold, transponder enable (OPS)
+0x20700 - 0x366FF   | 88 KB   | Five-minute housekeeping records, 2,048 × 44 B (HK_SUMMARY, §3.3.1)
+0x36700 - 0x367FF   | 256 B   | Housekeeping event-window table (HK_INDEX)
+0x36800 - 0x3687F   | 128 B   | End-of-life passivation record (EOL)
+0x36880 - 0x3FFFF   | 37.9 KB | Unallocated
 ```
+
+#### 3.3.1 Stored housekeeping (SRS-F120 to F122)
+
+The regions are those of `software/rust/firmware/src/fram.rs` (its compile-time check rejects overlaps). Each record is 44
+bytes with a CRC. HK_SUMMARY holds one record every 5 minutes, 2,048 kept (7.1 days); HK_DETAIL one every 60 s, 409
+kept (6.8 h), plus three event windows of 3 h either side of a fault or mode change. DUMP_TLM (0x0A) downlinks at most
+600 records, 4 per frame, one frame per 12 s.
 
 ### 3.4 Interface Design
 
 ```
-MCU (STM32L476)                    FRAM (FM25V20A)
+MCU (STM32L4R5ZIT6)                FRAM U3 and mirror U36 (FM25V20A)
      SPI1_SCK  ─────────────────── SCK
      SPI1_MOSI ─────────────────── SI
      SPI1_MISO ─────────────────── SO
-     GPIO_CS   ─────────────────── CS#
+     GPIO_CS   ─────────────────── CS# (U3: PG5; U36: PD7)
      GPIO_WP   ─────────────────── WP#
      GPIO_HOLD ─────────────────── HOLD#
 ```
 
 | Signal | MCU Pin | Notes |
 |--------|---------|-------|
-| SCK | PA5 | SPI clock (20 MHz max) |
-| MOSI | PA7 | Master out |
-| MISO | PA6 | Master in |
-| CS# | PA4 | Chip select (active low) |
-| WP# | PC0 | Write protect (held high) |
-| HOLD# | PC1 | Hold (held high) |
+| SCK | PG2 (SPI1 AF5) | SPI clock, 20 MHz (33 Ω series) |
+| MOSI | PG4 (SPI1 AF5) | Master out |
+| MISO | PG3 (SPI1 AF5) | Master in |
+| CS# | PG5 | Chip select (active low), 10 kΩ pull-up |
+| WP# | PE0 | Write protect (held high), 10 kΩ pull-up |
+| HOLD# | PE1 | Hold (held high), 10 kΩ pull-up |
+| CS# (mirror U36) | PD7 | Second FM25V20A on the same SPI1 lines, every record mirrored and read when U3 fails (SQSO-ICX-001 D §6 row 32, RID SMA-B10); its WP#/HOLD# are pulled up, not driven |
+
+Pins as allocated by SQSO-ICX-001 §4 and the board design SQSO-OBC-BRD-001 §7 (1.6). Until 1.5 this table gave PA4–PA7
+and PC0/PC1. The firmware has moved to these pins: `software/rust/firmware/src/fram.rs` and `main.rs` drive SPI1 on
+PG2–PG5 with WP#/HOLD# on PE0/PE1 and the mirror's CS# on PD7 (SQSO-ICX-001 D §6 rows 3 and 32), which freed four ADC1
+inputs.
 
 ---
 
@@ -415,3 +434,6 @@ The interface is defined in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTIC
 | 1.3 | 2026-10-15 | Loss-of-contact records (256 B, carved from the event log) |
 | 1.4 | 2026-10-15 | RF-silence record (128 B, carved from the event log) |
 | 1.5 | 2026-10-15 | Deployment record (128 B, carved from the event log) |
+| 1.6 | 2026-10-27 | Header version aligned with the history (was 1.0 after 1.5). §3.4 FRAM pins from the master pin allocation SQSO-ICX-001 (SPI1 on PG2–PG5, WP# PE0, HOLD# PE1) |
+| 1.7 | 2026-10-27 | §3.3 extended storage allocated as implemented (`software/rust/firmware/src/fram.rs`): sensor configuration, backup, operations record, five-minute and sixty-second housekeeping, event-window table, passivation record; §3.3.1 stored housekeeping |
+| 1.8 | 2026-10-27 | §3.4 against SQSO-ICX-001 D (amended): the firmware has moved to SPI1 PG2–PG5; second FRAM U36 on CS# PD7; MCU named STM32L4R5ZIT6 in the diagram |

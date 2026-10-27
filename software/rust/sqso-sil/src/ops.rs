@@ -32,7 +32,66 @@ pub mod cmd {
     pub const TX_DISABLE: u8 = 0x32;
     /// Downlink power level
     pub const SET_POWER: u8 = 0x33;
+    /// Release the commissioning hold (after TX-OFF has been proven)
+    pub const COMMISSIONING_RELEASE: u8 = 0x08;
+    /// Downlink a housekeeping frame
+    pub const GET_HOUSEKEEPING: u8 = 0x09;
+    /// Allow the transponder
+    pub const XPDR_ENABLE: u8 = 0x34;
+    /// Stop the transponder
+    pub const XPDR_DISABLE: u8 = 0x35;
+    /// Retry a deployment element
+    pub const DEPLOY_RETRY: u8 = 0x50;
+    /// Start a GNSS session
+    pub const GNSS_REQUEST: u8 = 0x60;
+    /// Downlink stored housekeeping
+    pub const DUMP_TLM: u8 = 0x0A;
+    /// Arm end-of-life passivation (operational key)
+    pub const PASSIVATE_ARM: u8 = 0x70;
+    /// Execute it (recovery key)
+    pub const PASSIVATE_EXECUTE: u8 = 0x71;
 }
+
+/// The end-of-life plan: PASSIVATE_ARM with the operational key, then in
+/// the same pass PASSIVATE_EXECUTE with the recovery key (SQSO-ICD-013
+/// §6.4); an arm that lapses is sent again
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Eol {
+    /// Not yet at the end of life, or PASSIVATE_ARM to send
+    Arm,
+    /// PASSIVATE_EXECUTE from this time (s since separation) until the arm's
+    /// window closes
+    Execute(f64, f64),
+    /// Executed
+    Done,
+}
+
+/// The arming code of PASSIVATE_ARM
+pub const EOL_CODE: &[u8; 4] = b"EOL!";
+
+/// The commissioning plan's commands, in order, one a pass once the
+/// spacecraft is heard (`docs/test/SIL_MISSION_SIMULATION.md`): housekeeping
+/// to see its state, the TX-OFF test (TX_DISABLE, then TX_ENABLE in the same
+/// pass once the beacon has stopped), then the release of the commissioning
+/// hold. The plan advances only on a command the spacecraft received
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Commissioning {
+    /// GET_HOUSEKEEPING
+    Housekeeping,
+    /// TX_DISABLE (the test)
+    TxOffTest,
+    /// TX_ENABLE, from this time (s since separation): [`TX_OFF_TEST_S`]
+    /// after the TX_DISABLE, then every 30 s until received
+    TxOnAfterTest(f64),
+    /// COMMISSIONING_RELEASE
+    Release,
+    /// Done
+    Done,
+}
+
+/// How long the TX-OFF test holds the transmitter off before TX_ENABLE, s
+/// (long enough for a beacon to be missed in the pass)
+pub const TX_OFF_TEST_S: f64 = 150.0;
 
 /// A simulation key: 32 bytes from SplitMix64 of the seed and the slot
 pub fn sim_key(seed: u64, slot: u8) -> [u8; auth::KEY_SIZE] {
@@ -63,29 +122,47 @@ pub fn gse_preflight(seed: u64) -> Vec<[u8; gse::FRAME_SIZE]> {
     frames
 }
 
-/// The ground's telecommand sender: the active key and its counter
+/// The ground's telecommand sender: the active operational key and the
+/// offline recovery key, each with its own counter
 #[derive(Clone, Debug)]
 pub struct Uplink {
     key: [u8; auth::KEY_SIZE],
     counter: u32,
+    recovery: [u8; auth::KEY_SIZE],
+    recovery_counter: u32,
     /// Commands built
     pub sent: u32,
 }
 
 impl Uplink {
-    /// Sending with operational key 0
+    /// Sending with operational key 0 (and the recovery key when asked)
     pub fn new(seed: u64) -> Uplink {
-        Uplink { key: sim_key(seed, 0), counter: 0, sent: 0 }
+        Uplink {
+            key: sim_key(seed, 0),
+            counter: 0,
+            recovery: sim_key(seed, sqso_fsw::keys::RECOVERY_SLOT),
+            recovery_counter: 0,
+            sent: 0,
+        }
     }
 
     /// The AX.25 UI frame (with FCS, as the TNC delivers it to the OBC)
-    /// carrying the authenticated command `cmd_id` with `args`
+    /// carrying the authenticated command `cmd_id` with `args`, under the
+    /// operational key, or the recovery key for a recovery-key command
     pub fn frame(&mut self, cmd_id: u8, args: &[u8]) -> Option<Vec<u8>> {
-        self.counter += 1;
+        let recovery =
+            sqso_protocol::Command::from_id(cmd_id).is_some_and(|c| c.spec().key == sqso_protocol::KeyClass::Recovery);
+        let (bytes, counter) = if recovery {
+            self.recovery_counter += 1;
+            (self.recovery, self.recovery_counter)
+        } else {
+            self.counter += 1;
+            (self.key, self.counter)
+        };
         self.sent += 1;
-        let key = auth::Key::from_slice(&self.key)?;
+        let key = auth::Key::from_slice(&bytes)?;
         let mut payload = [0u8; 300];
-        let n = auth::build_frame(&key, cmd_id, self.counter, args, &mut payload).ok()?;
+        let n = auth::build_frame(&key, cmd_id, counter, args, &mut payload).ok()?;
         let mut out = [0u8; ax25::MAX_FRAME_LEN];
         let dest = Station { call: station::CALLSIGN, ssid: station::SSID };
         let src = Station { call: GROUND_CALL, ssid: GROUND_SSID };
@@ -105,6 +182,24 @@ pub struct Beacon {
     pub sunlit: Option<bool>,
     /// Whether it carried Jetson-generated text (not a template)
     pub ai: bool,
+    /// What the frame was
+    pub kind: FrameKind,
+}
+
+/// The downlink frames the flight software sends
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum FrameKind {
+    /// The beacon (`de KK6GDB-11: ...`)
+    #[default]
+    Beacon,
+    /// The housekeeping frame (`HK1 ...`)
+    Housekeeping,
+    /// A command acknowledgement (`ack KK6GDB-11: ...`)
+    Ack,
+    /// A stored-housekeeping dump frame (`HKD`)
+    Dump,
+    /// The GNSS state frame (`GNS ...`, SRS-F158)
+    Gnss,
 }
 
 /// Decode a frame the OBC handed to the TNC (addresses, control, PID,
@@ -119,7 +214,19 @@ pub fn decode_beacon(frame: &[u8]) -> Option<Beacon> {
             .find_map(|w| w.strip_prefix(key))
             .and_then(|v| v.trim_end_matches(|c: char| !c.is_ascii_digit()).parse::<f64>().ok())
     };
-    Some(Beacon { soc: field("SOC="), sunlit: field("SUN=").map(|v| v > 0.5), ai: !is_template(&text), text })
+    let kind = if info.starts_with(b"HK1 ") || info.starts_with(b"HK2 ") {
+        FrameKind::Housekeeping
+    } else if info.starts_with(b"GNS ") {
+        FrameKind::Gnss
+    } else if info.starts_with(b"ack ") {
+        FrameKind::Ack
+    } else if info.starts_with(sqso_fsw::hk_store::DUMP_PREFIX) {
+        FrameKind::Dump
+    } else {
+        FrameKind::Beacon
+    };
+    let ai = kind == FrameKind::Beacon && !is_template(&text);
+    Some(Beacon { soc: field("SOC="), sunlit: field("SUN=").map(|v| v > 0.5), ai, kind, text })
 }
 
 /// Whether a beacon's text is one of the flight software's templates
@@ -146,6 +253,29 @@ mod tests {
         for f in &frames {
             assert!(gse::parse(f).is_ok());
         }
+    }
+
+    #[test]
+    fn recovery_key_commands_use_their_own_key_and_counter() {
+        let mut up = Uplink::new(9);
+        let a = up.frame(cmd::PASSIVATE_ARM, EOL_CODE).unwrap();
+        let b = up.frame(cmd::PASSIVATE_EXECUTE, &[]).unwrap();
+        assert_ne!(a, b);
+        assert_eq!((up.counter, up.recovery_counter), (1, 1));
+        let ack = {
+            let mut out = [0u8; 400];
+            let n = ax25::encode_ui(
+                Station { call: "CQ", ssid: 0 },
+                Station { call: station::CALLSIGN, ssid: station::SSID },
+                b"ack KK6GDB-11: C=1 R=0 N=0",
+                false,
+                &mut out,
+            )
+            .unwrap();
+            decode_beacon(&out[..n]).unwrap()
+        };
+        assert_eq!(ack.kind, FrameKind::Ack);
+        assert!(!ack.ai);
     }
 
     #[test]

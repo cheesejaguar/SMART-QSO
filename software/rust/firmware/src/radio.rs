@@ -17,7 +17,7 @@
 use embassy_stm32::usart::BufferedUart;
 use embedded_io::{Read, ReadReady, Write};
 use sqso_protocol::ax25;
-use sqso_protocol::kiss::{self, Decoder};
+use sqso_protocol::kiss::{self, Decoder, HardwareDecoder};
 
 use crate::cell::Shared;
 use crate::rc;
@@ -37,13 +37,17 @@ pub(crate) struct Radio {
     uart: BufferedUart<'static>,
     /// Frames as the TNC gives them (no FCS)
     kiss: Decoder<{ MAX_FRAME - FCS_LEN }>,
+    /// The TNC's SetHardware frames (its STATUS answers, RF board E §8.6)
+    hw: HardwareDecoder,
+    /// The latest STATUS answer not yet taken, and its length
+    status: Option<([u8; kiss::HW_MAX], usize)>,
     ready: bool,
 }
 
 static RADIO: Shared<Radio> = Shared::new();
 
 pub(crate) fn install(uart: BufferedUart<'static>) {
-    RADIO.install(Radio { uart, kiss: Decoder::new(0), ready: false });
+    RADIO.install(Radio { uart, kiss: Decoder::new(0), hw: HardwareDecoder::new(), status: None, ready: false });
 }
 
 /// Start the TNC link (receive and transmit)
@@ -75,6 +79,13 @@ pub unsafe extern "C" fn hal_radio_receive(frame: *mut u8, max_len: usize, len: 
                     break;
                 }
                 let [b] = byte;
+                if let Some(answer) = r.hw.feed(b) {
+                    let mut kept = [0u8; kiss::HW_MAX];
+                    if let Some(dst) = kept.get_mut(..answer.len()) {
+                        dst.copy_from_slice(answer);
+                        r.status = Some((kept, answer.len()));
+                    }
+                }
                 if let Some(received) = r.kiss.feed(b) {
                     let Some(n) = ax25::append_fcs(received, buf) else { return rc::INVALID };
                     *out = n;
@@ -128,6 +139,41 @@ fn write_stream(uart: &mut BufferedUart<'static>, frame: &[u8]) -> Result<(), ()
     }
     out.push(&[kiss::FEND])?;
     out.flush()
+}
+
+/// Send the TNC its STATUS query (KISS SetHardware 0x06/0x01)
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_radio_status_query() -> i32 {
+    RADIO
+        .with(|r| {
+            if !r.ready {
+                return rc::ERROR;
+            }
+            match r.uart.write_all(&kiss::STATUS_QUERY) {
+                Ok(()) => rc::OK,
+                Err(_) => rc::IO,
+            }
+        })
+        .unwrap_or(rc::BUSY)
+}
+
+/// The TNC's latest STATUS answer since the last call (the answer is
+/// gathered while `hal_radio_receive` reads the UART)
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn hal_radio_take_status(data: *mut u8, max_len: usize, len: *mut usize) -> i32 {
+    // SAFETY: the C contract: data points to max_len writable bytes, len to a size_t
+    let (buf, out) = unsafe { (rc::bytes_mut(data, max_len), rc::out(len)) };
+    let (Some(buf), Some(out)) = (buf, out) else { return rc::NULL_PTR };
+    *out = 0;
+    RADIO
+        .with(|r| {
+            let Some((kept, n)) = r.status.take() else { return rc::TIMEOUT };
+            let (Some(dst), Some(src)) = (buf.get_mut(..n), kept.get(..n)) else { return rc::INVALID };
+            dst.copy_from_slice(src);
+            *out = n;
+            rc::OK
+        })
+        .unwrap_or(rc::BUSY)
 }
 
 /// Hand one frame (no FCS) to the TNC: its parameters, then the frame

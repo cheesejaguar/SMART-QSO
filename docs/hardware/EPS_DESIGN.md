@@ -1,476 +1,342 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 1.3
-**Date**: 2026-01-02
-**Status**: Preliminary Design
+**Version**: 2.5
+**Date**: 2026-10-27
+**Status**: CDR design description; the build-to board design with selected parts, netlist, BOM and ERC is
+`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 E), which governs part-level detail; board-to-board pins: `hardware/electrical/INTERCONNECT.md`
+(SQSO-ICX-001)
 
-**Governing Standards**:
-- NPR 7120.5 Rev F - NASA Space Flight Program and Project Management Requirements
-- GSFC-STD-7000 (GEVS) - General Environmental Verification Standard
-- ECSS-E-ST-20C - Space Engineering: Electrical and Electronic
+**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (§4 inhibits and timers, §5 power, §7 TX-OFF);
+`docs/hardware/BUILD_VS_BUY.md` §2.4 (build the EPS; ISIS ICEPS2 Type B alternate), §3.2, §4; CDS Rev 14.1 §2.3;
+SpaceX Rideshare Payload User's Guide v11 §6.7.7 and §7.6; JSC 20793 Rev D for the ISS backup; EEE-INST-002 and
+SQSO-HAR-001 §5.2 for derating.
 
-**Heritage**: NASA Ames Research Center Small Satellite Division (GeneSat, PharmaSat, O/OREOS, EcAMSat)
+**Analyses**: power closure SQSO-PBA-001 v2.0; thermal SQSO-THA-001 v2.0; battery safety SQSO-BSA-001; EMC SQSO-EMC-001;
+drawings SQSO-HW-DIAG-001 (B2, S1, S2, S5, S7, W1, W2, W7).
 
----
-
-## 1. Introduction
-
-### 1.1 Purpose
-
-This document defines the detailed design of the Electrical Power Subsystem (EPS) for the SMART-QSO 1U CubeSat. It provides requirements, architecture, component specifications, and verification approach.
-
-### 1.2 Scope
-
-The EPS encompasses:
-- Solar array power generation
-- Battery energy storage
-- Power management and distribution
-- Load control and protection
-- Power telemetry and monitoring
-
-### 1.3 Reference Documents
-
-| Document | Number | Description |
-|----------|--------|-------------|
-| Software Requirements Specification | SMART-QSO-SRS-001 | Flight software requirements |
-| OBC-EPS Interface | SMART-QSO-ICD-001 | Interface control document |
-| Systems Engineering Mgmt Plan | SMART-QSO-SEMP-001 | SE approach |
+Version 1.x described an EPS assembled from GomSpace and ISIS modules (NanoPower MPPT, ISIS iBMS, NanoPower PDU) that
+are no longer sold for 1U or never existed in that form (BUILD_VS_BUY §2.1, §2.8), on a 3.3/5/12 V rail set fed through
+a single MPPT. This version describes the built 4S EPS that the baseline and the drawings assume, and lists what is
+still open.
 
 ---
 
-## 2. EPS Requirements
-
-### 2.1 Functional Requirements
-
-| ID | Requirement | Verification |
-|----|-------------|--------------|
-| EPS-F001 | Generate the BASELINE §5 EOL orbit-average power: 2.39 W tumbling, 3.58 W sun-pointed (2.14 W tumbling with self-shadowing; `hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.3) | Analysis, Test |
-| EPS-F002 | Deliver, EOL, at least 3.4 W sunlit average tumbling and 5.4 W sun-pointed within 20° (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.3) | Analysis, Test |
-| EPS-F003 | Store ≈ 50 Wh (4S1P 18650, BASELINE §5); usable energy per eclipse limited by the DoD limit in EPS-P004 | Test |
-| EPS-F004 | Provide regulated 3.3V rail (OBC, sensors) | Test |
-| EPS-F005 | Provide regulated 5V rail (Jetson payload) | Test |
-| EPS-F006 | Provide regulated 12V rail (RF PA) | Test |
-| EPS-F007 | Implement MPPT with >95% efficiency | Test |
-| EPS-F008 | Support software-controlled load shedding | Test |
-| EPS-F009 | Provide battery state-of-charge telemetry | Test |
-| EPS-F010 | Protect battery from over/under voltage | Test |
-
-### 2.2 Performance Requirements
-
-| ID | Requirement | Threshold | Goal |
-|----|-------------|-----------|------|
-| EPS-P001 | MPPT efficiency | >95% | >97% |
-| EPS-P002 | Power distribution efficiency | >90% | >92% |
-| EPS-P003 | Total system efficiency | >85% | >89% |
-| EPS-P004 | Battery depth of discharge per eclipse | ≤ 10 % nominal, ≤ 30 % contingency (BASELINE §5; SYS-112) | Analysis: 1.3–2.0 % (`hardware/eps/BATTERY_DESIGN.md` §3.2) |
-| EPS-P005 | Voltage regulation accuracy | ±5% | ±3% |
-
-### 2.3 Interface Requirements
-
-| ID | Requirement | Description |
-|----|-------------|-------------|
-| EPS-I001 | I2C interface to OBC | Address 0x48, 100kHz |
-| EPS-I002 | GPIO load enable signals | Active-high, 3.3V logic |
-| EPS-I003 | Analog telemetry | 12-bit ADC resolution |
-| EPS-I004 | Solar array connector | Standard PC-104 interface |
-| EPS-I005 | Battery connector | 4-pin Molex with sense lines |
-
-### 2.4 Environmental Requirements
-
-| Parameter | Operating | Non-Operating |
-|-----------|-----------|---------------|
-| Temperature | -20°C to +50°C | -40°C to +85°C |
-| Vibration | ≥ 5.57 Grms random, MPE (interim: SpaceX Rideshare User's Guide v11; `docs/test_procedures/TP-ENV-002_Vibration.md` §4.1) | N/A |
-| Shock | 40g (half-sine) | N/A |
-| Radiation | 10 krad TID | N/A |
-
----
-
-## 3. EPS Architecture
-
-### 3.1 Block Diagram
-
-```
-                          SOLAR ARRAYS
-                    +-------+ +-------+
-                    |  +X   | |  -X   |
-                    | Panel | | Panel |
-                    +---+---+ +---+---+
-                        |         |
-                        v         v
-              +-----------------------------+
-              |        MPPT CONTROLLER      |
-              |    (GomSpace NanoPower)     |
-              |   - Maximum power tracking  |
-              |   - Input: 4-40V            |
-              |   - Efficiency: >97%        |
-              +-------------+---------------+
-                            |
-                            v VBATT (14.4-16.8V)
-              +-----------------------------+
-              |   BATTERY MANAGEMENT (BMS)  |
-              |      (ISIS iBMS)            |
-              |   - 4S Li-ion protection    |
-              |   - Cell balancing          |
-              |   - Temperature monitoring  |
-              +-------------+---------------+
-                            |
-              +-------------+---------------+
-              |        4S Li-ion            |
-              |     BATTERY PACK            |
-              |   - 50Wh capacity           |
-              |   - 18650 cells             |
-              |   - Samsung INR18650-35E    |
-              +-------------+---------------+
-                            |
-                            v VBATT
-              +-----------------------------+
-              |  POWER DISTRIBUTION UNIT    |
-              |   (GomSpace NanoPower PDU)  |
-              |                             |
-              |  +-----+  +-----+  +-----+  |
-              |  |3.3V |  | 5V  |  | 12V |  |
-              |  |Rail |  |Rail |  |Rail |  |
-              |  |2A   |  |3A   |  |1A   |  |
-              +--+--+--+--+--+--+--+--+--+--+
-                 |        |        |
-    +------------+        |        +------------+
-    |                     |                     |
-    v 3.3V                v 5V                  v 12V
-+-------+           +----------+           +-------+
-|  OBC  |           |  Jetson  |           |  RF   |
-|Sensors|           |  Orin    |           |  PA   |
-| ADCS  |           |  Nano    |           |       |
-+-------+           +----------+           +-------+
-```
-
-### 3.2 Power Budget
-
-#### 3.2.1 Generation Budget
-
-The array layout and the power-versus-attitude analysis are in `hardware/eps/SOLAR_ARRAY_DESIGN.md` (§3, §9). Summary (EOL, analysis):
-
-| Case | Orbit average | Sunlit instantaneous | Basis |
-|------|---------------|----------------------|-------|
-| Tumbling, BASELINE method (no shadowing) | 2.39 W | 3.84 W | BASELINE §5; SOLAR_ARRAY_DESIGN §9.3 |
-| Tumbling, with self-shadowing | 2.14 W | 3.43 W | SOLAR_ARRAY_DESIGN §9.3 |
-| Sun-pointed (±Y face), no error / 20° error | 3.59 W / 3.38 W | 5.76 W / 5.44 W | SOLAR_ARRAY_DESIGN §9.3 |
-| Both wings stowed, tumbling | 1.20 W | 1.92 W | SOLAR_ARRAY_DESIGN §9.3 |
-
-*Assumptions (SOLAR_ARRAY_DESIGN §9.1–9.2): 16 cells, 1361 W/m², 500 km, β = 0 (35.8 min eclipse), cells at 60 °C,
-5E13 e/cm² at EOL, 0.903 for harness, MPPT and UV losses. The previous table (11.3 W sunlit, 5.0 W orbit average from
-280 cm²) assumed more cell area than the baseline array has and is withdrawn.*
-
-#### 3.2.2 Consumption Budget
-
-| Subsystem | Mode | Avg Power (W) | Peak Power (W) | Duty Cycle |
-|-----------|------|---------------|----------------|------------|
-| OBC | All | 0.15 | 0.25 | 100% |
-| EPS | All | 0.10 | 0.15 | 100% |
-| ADCS | Active | 0.30 | 0.80 | 50% |
-| Sensors | Polling | 0.05 | 0.10 | 100% |
-| Jetson | Inference | 5.00 | 7.00 | 20% |
-| RF TX | Beacon | 1.50 | 2.00 | 5% |
-| Heaters | Eclipse | 0.50 | 1.00 | 30% |
-| **Total** | | **2.45** | **11.30** | |
-
-#### 3.2.3 Power Margin
-
-| Parameter | Value | Requirement | Margin |
-|-----------|-------|-------------|--------|
-| Generation (orbit avg) | 2.39 W tumbling / 3.58 W sun-pointed (BASELINE §5) | Load 1.80 W / 2.20 W | +33 % / +63 %; +19 % tumbling with self-shadowing (SOLAR_ARRAY_DESIGN §9.4) |
-| Consumption (orbit avg) | 2.45 W | 3.5 W | +30% |
-| Peak load | 11.3 W | 10.0 W | +13% |
-
-### 3.3 Energy Storage
-
-#### 3.3.1 Battery Configuration
-
-| Parameter | Specification |
-|-----------|---------------|
-| Chemistry | Li-ion (NMC) |
-| Configuration | 4S1P |
-| Cell Type | Samsung INR18650-35E |
-| Nominal Voltage | 14.4V |
-| Voltage Range | 12.0V - 16.8V |
-| Capacity | 3.45 Ah typical (49.7 Wh; ≈ 50 Wh, BASELINE §5) |
-| Mass | 249 g CBE including holder and interconnect board (`docs/environment/MASS_BUDGET.md` rows 7–9) |
-
-#### 3.3.2 Battery Sizing
-
-Summary of the cycle-life analysis in `hardware/eps/BATTERY_DESIGN.md` §3.2–§3.3 (analysis, not measured):
-
-```
-Eclipse duration:   35.8 min (500 km, beta = 0)
-Eclipse load:       1.00 W nominal, 1.50 W with heater (0.90 conversion efficiency)
-DoD per eclipse:    1.3 % nominal, 2.0 % bounding (limit 10 %)
-Eclipses per year:  5,559
-Equivalent full
-cycles in 2 years:  148 nominal, 408 bounding, against 500 full-depth 1C cycles
-                    to 60 % capacity in the cell specification
-Calendar aging:     not quantified; cell test required
-```
-
-The previous "> 3 years at 80 % capacity" had no cell data behind it and is withdrawn.
-
----
-
-## 4. Component Specifications
-
-### 4.1 MPPT Controller
-
-**Selected Component**: GomSpace NanoPower MPPT
-
-| Parameter | Specification |
-|-----------|---------------|
-| Input Voltage | 4-40V |
-| Output Voltage | Battery voltage |
-| Max Input Power | 40W |
-| MPPT Efficiency | >97% |
-| Algorithm | Perturb & Observe |
-| Update Rate | 10 Hz |
-| Mass | 45g |
-| Interface | I2C |
-
-### 4.2 Battery Management System
-
-**Selected Component**: ISIS iBMS
-
-| Parameter | Specification |
-|-----------|---------------|
-| Cell Configuration | 4S Li-ion |
-| Overcharge Protection | 4.25V/cell |
-| Overdischarge Protection | 2.7V/cell |
-| Overcurrent Protection | 5A |
-| Balance Current | 100mA |
-| Temperature Range | -20°C to +60°C |
-| Mass | 38g |
-| Interface | I2C |
-
-### 4.3 Power Distribution Unit
-
-**Selected Component**: GomSpace NanoPower PDU
-
-| Parameter | Specification |
-|-----------|---------------|
-| Input Voltage | 10-20V |
-| Output Rails | 3.3V, 5V, 12V |
-| 3.3V Current | 2A continuous |
-| 5V Current | 3A continuous |
-| 12V Current | 1A continuous |
-| Efficiency | >92% |
-| Load Switches | 6 channels, GPIO controlled |
-| Mass | 28g |
-| Interface | I2C |
-
-### 4.4 Solar Cells
-
-**Selected Component**: AzurSpace 3G30C
-
-| Parameter | Specification |
-|-----------|---------------|
-| Cell Type | Triple-junction InGaP/GaAs/Ge, 40 × 80 mm (30.18 cm²), as 3G30A assembly |
-| Efficiency (BOL) | 29.2 % (assembly, AM0 1367 W/m², 28 °C) |
-| Efficiency (EOL) | 28.1 % at 5E13 e/cm², 25.9 % at 1E15 e/cm² (1-MeV electrons) |
-| Vmp | 2.411 V (BOL) |
-| Imp | 499 mA per cell (BOL) |
-| Temperature Coefficients | ΔVmp/ΔT −6.7 mV/°C, ΔImp/ΔT +0.24 mA/°C (BOL) |
-| Cover Glass | 100 µm, AR coated |
-| Source | AZUR SPACE datasheet DB 00010891-01 (2025); see `hardware/eps/SOLAR_ARRAY_DESIGN.md` §2 |
-
----
-
-## 5. Power Modes
-
-### 5.1 Mode Definitions
-
-| Mode | SOC Range | Loads Enabled | Beacon Rate |
-|------|-----------|---------------|-------------|
-| SAFE | <25% | OBC, EPS only | 180s |
-| IDLE | 25-55% | + ADCS, Radio | 60s |
-| ACTIVE | >55% | + Jetson payload | 30s |
-
-### 5.2 Mode Transitions
-
-```
-                    +--------+
-           SOC<25%  |  SAFE  | SOC<25%
-        +---------->|  MODE  |<----------+
-        |           +---+----+           |
-        |               |                |
-        |          SOC>=40%              |
-        |               |                |
-        |               v                |
-        |           +--------+           |
-        | SOC<25%   |  IDLE  |  SOC<25%  |
-        +-----------|  MODE  |-----------+
-                    +---+----+
-                        |
-                   SOC>=55%
-                        |
-                        v
-                    +--------+
-                    | ACTIVE |
-                    |  MODE  |
-                    +--------+
-```
-
-### 5.3 Load Control
-
-| Load | GPIO Pin | Enable Level | Current Limit |
-|------|----------|--------------|---------------|
-| Jetson Power | GPIO_0 | High | 3A @ 5V |
-| Radio TX | GPIO_1 | High | 0.5A @ 12V |
-| ADCS | GPIO_2 | High | 0.5A @ 3.3V |
-| Heaters | GPIO_3 | High | 0.5A @ 3.3V |
-| Sensors | GPIO_4 | High | 0.2A @ 3.3V |
-| Spare | GPIO_5 | High | 0.2A @ 3.3V |
-
----
-
-## 6. Telemetry
-
-### 6.1 EPS Telemetry Points
-
-| Parameter | Address | Resolution | Update Rate |
-|-----------|---------|------------|-------------|
-| Battery Voltage | 0x00-0x01 | 1 mV | 1 Hz |
-| Battery Current | 0x02-0x03 | 1 mA | 1 Hz |
-| State of Charge | 0x04 | 1% | 1 Hz |
-| Solar Array Current | 0x05-0x06 | 1 mA | 1 Hz |
-| 3.3V Rail Voltage | 0x07-0x08 | 1 mV | 1 Hz |
-| 5V Rail Voltage | 0x09-0x0A | 1 mV | 1 Hz |
-| 12V Rail Voltage | 0x0B-0x0C | 1 mV | 1 Hz |
-| Battery Temperature | 0x0D-0x0E | 0.1°C | 1 Hz |
-| Power Mode | 0x0F | Enum | 1 Hz |
-| Fault Status | 0x10-0x11 | Bitmask | 1 Hz |
-
-### 6.2 Fault Detection
-
-| Fault | Detection Criteria | Response |
-|-------|-------------------|----------|
-| Battery Undervoltage | VBATT < 12.0V | Enter SAFE mode |
-| Battery Overvoltage | VBATT > 17.0V | Disable charging |
-| Overcurrent | Any rail > limit | Disable load |
-| Battery temperature outside the charge window | TBATT < 0°C or > 45°C | Inhibit charging (hardware; BASELINE §5) |
-| Solar Array Fault | I_solar < expected | Log fault |
-| MPPT Fault | No MPPT output | Switch to direct |
-
----
-
-## 7. Thermal Design
-
-### 7.1 Battery Thermal Control
-
-| Condition | Action |
-|-----------|--------|
-| T < 0°C | Enable heaters, charging inhibited (SYS-602; BASELINE §5) |
-| 0°C ≤ T ≤ 45°C | Normal operation, charging allowed |
-| T > 45°C | Charging inhibited |
-| T > 60°C | Discharge cutoff (cell specification), enter SAFE mode |
-
-### 7.2 Heat Dissipation
-
-| Component | Power Dissipation | Mounting |
-|-----------|-------------------|----------|
-| PDU | 1.0 W (worst case) | Thermally coupled to structure |
-| MPPT | 0.5 W (worst case) | Direct mount to -Z panel |
-| BMS | 0.2 W | Thermally coupled to battery |
-| Battery | 0.5 W charging | Thermally isolated |
-
----
-
-## 8. Verification
-
-### 8.1 Verification Matrix
-
-| Requirement | Method | Status |
-|-------------|--------|--------|
-| EPS-F001 | Analysis, Test | Pending |
-| EPS-F002 | Test | Pending |
-| EPS-F003 | Test | Pending |
-| EPS-F004 | Test | Pending |
-| EPS-F005 | Test | Pending |
-| EPS-F006 | Test | Pending |
-| EPS-F007 | Test | Pending |
-| EPS-F008 | Test | Pending |
-| EPS-F009 | Test | Pending |
-| EPS-F010 | Test | Pending |
-
-### 8.2 Test Procedures
-
-| Test | Description | Equipment |
-|------|-------------|-----------|
-| TP-EPS-004 | MPPT efficiency | Solar simulator, power analyzer |
-| TP-EPS-003 | Battery capacity | Charge/discharge cycler |
-| TP-EPS-002 | Load regulation | Electronic load, oscilloscope |
-| TP-EPS-001 | Protection testing | Fault injection equipment |
-| TP-EPS-005 | Thermal cycling | Thermal chamber |
-| TP-EPS-006 | EMC testing | Shielded room, spectrum analyzer |
-
-IDs are those of the procedure files in `docs/test_procedures/` that cover each test (aligned 2026-10-16, finding VV-18;
-this table had numbered them differently). TP-EPS-005 and TP-EPS-006 have no procedure yet.
-
----
-
-## 9. Risk Assessment
-
-### 9.1 EPS-Specific Risks
+## 1. Scope
+
+The EPS takes power from the 16-cell array, charges and protects the 4S1P pack, distributes the unregulated battery
+bus and two regulated rails through load switches, provides the inhibits for launch, the hardware TX-OFF path and
+the end-of-life charge disconnect, and reports its telemetry to the OBC (SMART-QSO-ICD-001 v1.1).
+
+## 2. Requirements
+
+| ID | Requirement | Verification | Status at CDR |
+|----|-------------|--------------|---------------|
+| EPS-F001 | Deliver to the bus ≥ 2.23 W EOL orbit average tumbling (SYS-100 Rev G: the 1.86 W load × 1.2, with the 1.85 W transponder allocation of BASELINE §5) and ≥ 3.0 W sun-pointed | A, T | Analysis: 2.48 W tumbling (+11 %) and 3.92 W sun-pointed EOL (SQSO-PBA-001 §4) |
+| EPS-F002 | Track the maximum power point of each string group of §3.2 with ≥ 92 % conversion efficiency over 3.5–6.4 V input | T | TPS55340-Q1 ×4: 90.9–92.3 % by analysis, marginal (SQSO-EPS-BRD-001 §4.3; V-EPS-1) |
+| EPS-F003 | Store ≈ 50 Wh (4S1P INR18650-35E); charge CC ≤ 0.40 A, CV 4.10 V/cell (D8), only between 0 and +45 °C on the pack temperature, in hardware | T | Designed: CV 16.40 V ± 0.44 %, CC 0.394 A, window +1.1…+44.0 °C (BRD-001 §5) |
+| EPS-F004 | Supply the loads from the array while charging is inhibited (power-path regulation of the battery bus) | T | Designed: charge-current set point to 0 A (BRD-001 §5.2) |
+| EPS-F005 | Battery bus 11.2–16.4 V (16.8 V absolute maximum) to all VBAT loads; every converter rated ≥ 25 V input | T | §4 |
+| EPS-F006 | 3V3_AO rail, always on (OBC, FRAM, receiver path, ADCS sensors) | T | §4 |
+| EPS-F007 | Switched rails with the current limits of §5, every switch off at reset (pull-down) | T | §5 |
+| EPS-F008 | Hardware TX-OFF: the PA supply switch (SW3) removed by RF_TX_EN low, independent of the AI payload (BASELINE §7) | T | §5, §8.1 |
+| EPS-F009 | At least three independent physical inhibits each for RF and for every deployable (CDS 2.3.7, 2.3.8); timers and the RBF do not count | I, T | §8: DS1, DS2 and DS3 (DS3 added at CDR) |
+| EPS-F010 | Non-resettable end-of-life charge-path disconnect (47 CFR 97.207(g)(1)(iii)), fired only by two independent signals | T | §7 |
+| EPS-F011 | Battery protection with the fault tolerance of SQSO-BSA-001 §3 | A, T | §6 |
+| EPS-F012 | Independent hardware low-voltage disconnect of the payload (Jetson) rail; the PA is not shed (change proposed for the chair's CR, SQSO-EPS-BRD-001 E §8.4: a spurious shed would hold the transmitter off with no override) | T | Designed (§6; BRD-001 §8.4) |
+| EPS-F013 | Telemetry: pack voltage and current, each cell voltage, two pack temperatures, array voltage and current per tracker, rail currents, charge-inhibit cause, switch states and fault flags, passivation state | D | §9 |
+
+## 3. Solar array input
+
+### 3.1 Strings
+
+Eight strings of two AZUR SPACE 3G30A cells (SOLAR_ARRAY_DESIGN §3), one per panel side, each with its own blocking
+diode (or ideal-diode switch) on the EPS:
+
+| String | Face (deployed) | Temperature range (THERMAL_ANALYSIS §4) | Voc, string | Vmp, string | Isc |
+|--------|-----------------|------------------------------------------|-------------|-------------|-----|
+| PX, MX | ±X body (2 cells each) | −23 … +52 °C | 6.31 V at −45 °C BOL (cold sunrise, the maximum) | 3.9 V at +83 °C EOL (the minimum, wings) … 5.7 V at −40 °C | ≤ 0.55 A (1414 W/m², hot) |
+| PY, MY | ±Y body | −23 … +52 °C | | | |
+| W1F, W2F | Wing fronts (+Y) | −45 … +83 °C | | | |
+| W1B, W2B | Wing backs (−Y) | −45 … +83 °C | | | |
+
+MPPT input range: **3.5–6.4 V, 0–0.55 A per string**; maximum array power ≈ 7.6 W (six +Y cells at a cold sunrise,
+BOL; `mppt_mismatch.py`).
+
+### 3.2 Trackers
+
+Strings at different temperatures on one tracker lose 2.7–3.9 % of the sun-pointed face's power (wing strings run
+40–50 K hotter than the body string beside them; `software/simulation/cdr/power_thermal/mppt_mismatch.py`); separate
+trackers lose nothing. Opposite faces never see the Sun together and may share one. **Baseline: four trackers**:
+
+| Tracker | Strings | Why |
+|---------|---------|-----|
+| T1 | W1F, W2F | Coplanar, same temperature: the sun-pointed face's main input |
+| T2 | PY | Body string, cooler than the wings |
+| T3 | W1B, W2B | Wing backs |
+| T4 | PX, MX, MY (blocking diodes) | Body strings; ±X never lit together |
+
+The ICEPS2 Type B alternate has three MPPT inputs: with it, put T2 and T4 together (bodies) and accept 0 % loss on the
+sun face, but its other gaps (BUILD_VS_BUY §2.4) remain.
+
+### 3.3 Charge regulator
+
+Each tracker is a boost from 3.5–6.4 V to the battery bus (11.2–16.4 V), with input TVS above the string's 6.31 V
+cold open-circuit voltage (standoff ≥ 7 V; the SMBJ6.0A of EPS_ELECTRICAL_DESIGN 1.0 would conduct at a cold sunrise,
+RID EPS-13). The regulator must:
+
+1. limit charge to 0.40 A (CC) and hold 16.40 V ± 0.5 % (CV, 4.10 V/cell);
+2. inhibit charging outside 0 … +45 °C from NTC1 on the pack, in hardware (TS input), while still supplying the loads
+   from the array (power path, EPS-F004): with charging refused at sunrise in the cold (THERMAL_ANALYSIS §4) the
+   spacecraft must not run on the pack in sunlight;
+3. pre-charge at ≤ 0.1 A below 3.0 V/cell; and if any cell has been below 2.0 V, **latch the charge path off**
+   (charger disabled and CHG FET open) in a non-volatile flag that only an authenticated ground command clears, after
+   the ground has reviewed the cell history (RID SMA-06 / EPS-12; SQSO-BSA-001 H2). The power path (item 2) keeps the
+   bus up from the array in sunlight, so the OBC and receiver can take that command with the pack locked out;
+4. report input voltage and current per tracker.
+
+**Selected (SQSO-EPS-BRD-001 §4–§5):** four TPS55340-Q1 non-synchronous boost trackers on a common output, each
+with an analog MPPT loop trimmed by the EPS controller, and shared hardware CV (16.40 V) and CC (0.394 A) loops that pull
+every tracker's COMP pin down; charging is inhibited by setting the charge-current set point to 0 A (the trackers then
+supply the bus only) and opening the AFE's CHG FET. The BQ25798 class was not used: it cannot be synchronised to the
+frequency plan (rule E1) and four NVDC chargers cannot share one pack. The lockout memory is a 2-coil latching relay K1
+set by the BQ76952's SUV permanent-fail output and cleared only by two independent lines (BRD-001 §5.4).
+
+## 4. Battery bus and rails
+
+| Rail | Source | Voltage | Loads | Max steady / peak | Converter rating (≥ 2× load, ≥ 25 V in) |
+|------|--------|---------|-------|-------------------|------------------------------------------|
+| VBAT (unregulated) | Pack through F2, RT1, RBF, DS1, inhibit chain | 11.2 (BMS cut) … 16.4 V; 16.8 V abs max; 17.0 V at the 4.25 V OV threshold | Heater, burn wires, Jetson carrier (recommended), bucks | 1.0 A / 1.8 A (burn + housekeeping + heater) | — |
+| 3V3_AO | Buck U15 LMR43620MC3 from VBAT, always on | 3.3 V ± 2 % (RF board LMX2571 ≥ 3.15 V) | OBC, FRAM, receiver/TNC/exciter (through SW2 and its own LDO, EMC rule E4), ADCS (SW4), GNSS (SW7) | 0.26 A / 0.30 A | ≥ 0.6 A, 25 V |
+| 5V_PA | Buck U16 LMR43620MC5 from VBAT | 5.0 V ± 2 % | PA through SW3 | 0.35 A at 0.5 W RF (1.76 W DC), 0.55 A at 1 W RF | ≥ 1.2 A, 25 V |
+| VBAT_JET | eFuse U19 TPS16630 (60 V) behind SW1, carrier converter to the module's 5 V | VBAT | Jetson carrier | 0.62 A at 8 W; 0.93 A at the 12 W guard trip | 1.20 A latch-off |
+| V_BURN | Buck U17 from VBAT_DEP (SW6, DEPLOY_EN) | 7.04 V | Four burn drivers | 0.88 A per resistor, one at a time | 2 A part; its 2.8 A limit caps a four-driver fault at 2.0 A at the pack |
+| 3V3_OBC, 3V3_MCU | SW10, SW9 (TPS2553) from 3V3_AO | 3.3 V | OBC; EPS controller | 0.04 A; 0.012 A | 0.15 A; 75 mA, latch-up retry (RID AV-08) |
+
+**Change from the drawings (RID EMC-02):** S2 puts the PA and the Jetson on one 5 V buck (≥ 4 A). The Jetson's load
+steps would then modulate the PA's supply. Feed the Jetson carrier from VBAT through the eFuse (its own converter on
+the carrier) and give the PA its own 5 V buck; U2 then needs 1.2 A, not 4 A. If the carrier must take 5 V, use a
+second 5 V buck for it.
+
+Bus voltage under load steps (EMC_ANALYSIS Version C §4): the one-resistor burn after a cold soak (pack −10 … −16 °C,
+≈ 58 % SOC) leaves 14.1–14.4 V at 0.75 A and 13.8–14.1 V at the 1.0 A limit; the converters stop at 7.5 V (3V3_AO)
+and 8.7 V (the others) falling, below the 11.2 V BMS cut, so the BMS, not a converter, decides (rule E8 as deviated
+in SQSO-EPS-BRD-001 §2.2).
+
+## 5. Load switches, current limits and protection
+
+| Switch | Rail in | Enable (firmware pin) | Load | Nominal | Peak | Limit / trip | Part (SQSO-EPS-BRD-001) | Notes |
+|--------|---------|-----------------------|------|---------|------|--------------|-------------------------|-------|
+| SW1 + U19 | VBAT | PAYLOAD_EN (PB2) on SW1 (AND load shed); JETSON_PWR (PA8) on U19 (AND load shed) | Jetson carrier | 0.62 A | 0.93 A (guard) | SW1 2.0 A; U19 eFuse 1.20 A (1.10–1.30) latch-off; flight-software guard 8 W for 2 s and 12 W (`payload_guard.rs`) first | TPS1H100B-Q1 (U20); TPS16630 (U19) | Two different parts on two lines; EPS-F012 shed acts on SW1; readbacks VSW1_RB, VJET_RB to the OBC ADC (RID AV-06) |
+| SW2 | 3V3_AO | RADIO_EN (PB5) | Receiver, synthesizer, TNC, exciter (SQSO-RF-BRD-001) | 0.038 A | 0.05 A | 0.12 A (0.10–0.14), retry 1.3 s; software trip on the INA3221 reading | TPS2553-Q1 (U22) | Off only in the RF-silence window (97.207(b)) |
+| SW3 | 5V_PA | RF_TX_EN (PA3) | Transponder (RF board E: 1.84 W DC at 0.5 W RF, 2.42 W at 1 W) | 0.368 A | 0.485 A | 0.99 A (0.92–1.07), retry 0.28 s | TPS2553-Q1 (U23) | Hardware TX-OFF; pull-down mandatory; not shed (Version 2.5) |
+| SW4 | 3V3_AO | ADCS_EN (PB6) | ADCS sensors on the OBC (W6B to OBC J6) | 0.04 A | 0.049 A | 0.30 A, retry 0.28 s | TPS2553-Q1 (U24) | Backstop; the OBC's own sensor switches (50–100 mA) see a sensor latch-up (AV-03) |
+| SW5 | VBAT | HEATER_EN (PD2) | Battery heater 207 Ω | 0.07 A | 0.08 A (16.4 V) | 0.148 A, F4 0.25 A, 40 °C cutout Q22 in series | TPS1H000-Q1 (U21) | 0.70–1.30 W across the bus |
+| SW6 | VBAT | DEPLOY_EN (PF3) | Burn buck U17 → four drivers | 0 | 0.5 A at the pack per burn | 2.0 A; 0.8 A per resistor; 12 s one-shot per driver (§5.1) | TPS1H100B-Q1 (U18) | Deployable control (not counted as an inhibit) |
+| SW7 | 3V3_AO | GNSS_EN (PE5) | GNSS receiver | 0.04 A | 0.1 A | 0.20 A, retry 1.3 s | TPS2553-Q1 (U25) | RID EPS-14 closed by the firmware's PE5 |
+| SW8 | 3V3_AO | DEPLOY_EN (PF3) OR the EPS controller's ANTS_EN (ICD-001 ANTS_PWR 0x8D) | ISIS AntS | 0 | 0.61 A | 1.37 A, retry 0.28 s | TPS2553-Q1 (U26) | Downstream of DS1–DS3 (§8.3) |
+| SW9 | 3V3_AO | always | EPS controller | 0.012 A | — | 75 mA, retry 0.28 s | TPS2553-Q1 (U27) | |
+| SW10 | 3V3_AO | always | OBC | 0.04 A | — | 0.15 A, retry 0.28 s | TPS2553-Q1 (U38) | The OBC cannot switch its own rail (RID AV-08); its RTC takes 3V3_RTC (3V3_AO through 1 kΩ, RID AV-10); power-cycled by the EPS controller after a 600 s OBC heartbeat timeout (heartbeat at least every 60 s; ICD-001 1.7 OBC_HEARTBEAT 0x8C: SW10 off 1.95 ± 0.1 s, no cycle within 600 s of a controller start or of the last cycle, at most 3 cycles in 24 h, then stopped and reported) |
+| SW11 | VBAT | ADCS_EN (PB6) | OBC magnetorquer H-bridges (VBAT_MTQ, W3 J3-36/39) | 0.083 A | 0.104 A (1.16 W, three rods saturated); 0.23 A at the bridges' limit | 0.36 A (0.32–0.40), auto-retry 40 ms / 1 s | TPS1H000-Q1 (U39) | SQSO-ICX-001 E3 (≥ 0.25 A, ≤ 0.5 A); current telemetry from the OBC's coil-current channels |
+
+TPS22918-class switches are rated 5.5 V: they may switch only the 3.3 V and 5 V rails. Every VBAT switch needs a part
+rated ≥ 25 V (derating 16.8 V to ≤ 70 % of the rating, EEE-INST-002).
+
+### 5.1 Deployment drivers and peak battery current
+
+The burn resistors are ≈ 5 Ω. Driven straight from VBAT, each draws 2.9–3.3 A, and the two in parallel on one line
+(S5) about 5.8 A, above the 5 A pack fuse: the first wing deployment would open F2 and end the mission (RID SMA-05).
+The CDR design:
+
+- **One current-limited driver per burn resistor, four in all** (two resistors per wing; chair decision, RID REL-03):
+  OPA2991-Q1 + BUK9M14-40E + 0.25 Ω regulating 0.800 A ± 2.2 % (requirement ± 10 %) for resistors of 4–6.9 Ω
+  (SQSO-EPS-BRD-001 §9). The mission simulation's values agree (`sqso-sil/src/hw/deploy.rs`: `BURN_OHMS` 5.0,
+  `BURN_LIMIT_A` 0.8).
+- **Supply from a 7.0 V burn buck** (U17, behind SW6): the linear drivers dissipate ≤ 3.0 W instead of ≈ 10 W from
+  VBAT, the pack sees 0.51 A per burn instead of 0.88 A, and the buck's own limit caps a four-driver software fault
+  at 2.0 A at the pack.
+- **Hardware on-time limit**: a TPL5111 one-shot per driver, powered by the burn line itself, enables the driver for
+  12.0 s ± 0.6 s after the line's rising edge; a stuck-high line burns once, and only a falling edge re-arms it.
+- Four burn lines from the OBC: BURN_W1A (PB10), BURN_W1B (PE6), BURN_W2A (PB9, freed by the AntS), BURN_W2B (PE7,
+  SQSO-ICX-001). The flight software burns one resistor at a time for **10 s** (chair decision C-17, was 8 s; 32 J into a 5 Ω resistor, ≥ 1.4 s inside the 12 s hardware one-shot, thermal case unchanged because it already uses 12 s), the second of a wing only if it has not released.
+
+| Deployment case | Burn current | Plus housekeeping and heater | Peak at the pack | Against BMS 4 A / fuse 5 A |
+|-----------------|--------------|------------------------------|------------------|----------------------------|
+| One resistor, normal sequence (0.88 A at +10 %, from the 7.0 V buck) | 0.51 A at the pack | 0.16 A | **0.67 A** | 6.0× / 7.5× |
+| Same, with the magnetorquers at 1.16 W (three rods saturated) | 0.51 A | 0.24 A | 0.75 A (0.90 A with the coil bridges at their 0.23 A limit) | 4.8× / 6.0× |
+| AntS antennas (its own controller, 3.3 V on SW8) | ≤ 0.2 A at the pack | 0.16 A | ≤ 0.4 A | 10× |
+| Two resistors at once (an A/B line pairing or a software fault) | 1.05 A | 0.2 A | 1.25 A | 3.2× / 4.0× |
+| All four drivers on (software fault) | burn buck in current limit | — | **2.0 A** | 2.0× / 2.5× |
+| One driver failed short (its resistor straight across V_BURN) | ≤ 1.6 A at 7 V | — | ≤ 1.1 A | the one-shot still ends it in 12 s |
+
+The simulation's 1.63 A (one line of two resistors at 0.8 A) is the A/B pairing drawn from VBAT; with the burn buck it
+becomes 1.25 A. Bus voltage during a single-resistor burn after a cold soak is 14.1–14.4 V at 0.75 A (EMC_ANALYSIS Version C §4,
+pack model of the mission simulation; the earlier 12.2 V and 13.9 V figures were the two-resistor and a hand estimate).
+
+**Pack protection** (details SQSO-BSA-001 §3): F2, non-resettable 5 A, MIL-PRF-23419/12 FM12A72V5.0A (interrupt 1000 A against a prospective ≤ 209 A with the sense-board fuses in the loop), with the same part as F0A and F0B in BAT_TOP and F0N in BAT_BOT on the battery sense board ahead of the pack leads, and current-limited, fused cell taps; RT1 PTC
+hold 2.6 A (1.92 A at 60 °C), trip 5 A (PDU_DESIGN 1.0's 8 A trip equalled the cell's continuous limit); BMS AFE (BQ76952)
+cell OV 4.25 V, UV 2.8 V, over-current 4 A for 0.5 s (below F2, so the resettable trip acts first), short-circuit trip; secondary OV protector at 4.35 V with a
+three-terminal fuse (RID EPS-11); pack over-temperature +60 °C on a hardware comparator; no low-temperature discharge
+cut-off (RID EPS-08: a −10 °C cut-off would keep the bus dark after a cold deployment, THERMAL_ANALYSIS §6.7).
+
+**Harness and derating** (SQSO-HAR-001 2.0 §5.2, §9.1: EEE-INST-002 with the bundle factor):
+
+| Path | Wire | Derated rating | Current | Verdict |
+|------|------|----------------|---------|---------|
+| Pack to EPS (W1) | 2 × 22 AWG M22759/33 per pole, PTFE over-sleeve, 0.12 m | 2.50 A per wire | 1.2 A per wire worst (2.0 A pack, 60/40 split); fuses F0A/F0B/F0N 5 A at the cells | Pass |
+| Each solar string (W2) | 2 × 28 AWG M22759/33 per pole on two Pico-Clasp contacts (the crimps take 28–32 AWG) | 0.90 A per wire | 0.55 A | Pass (0.28 A per wire, 0.33 A worst: 37 %; RID EPS-13) |
+| Jetson supply from VBAT (W5A) | 2 × 24 AWG per pole, twisted quad | 1.65 A per wire | 0.84 A per wire worst; eFuse 1.2 A | Pass (51 %) |
+| PA 5 V (W4B) | 2 × 28 AWG per pole, twisted pairs | 0.90 A per wire | 0.536 A per wire at the SW3 limit | Pass (60 %) |
+| Burn resistors (W7) | 24 AWG each | 1.0 A | 0.88 A limited, ≤ 12 s | Pass |
+| Deployment switches DS1, DS2, DS3 (W12A–W12C) | own harness each (DS1, DS3 three wires; DS2 five, two poles) | switch rating | ≤ 8.4 µA (gate drives) | Pass: the switches drive FET gates and TRK_EN only (RID EPS-05) |
+
+## 6. Battery management and the low-voltage load shed
+
+The BMS (BATTERY_DESIGN §4) monitors each cell, balances passively, and opens the CHG and DSG FETs on its thresholds.
+A **hardware low-voltage disconnect** (EPS-F012) opens SW1 and the eFuse U19 (the Jetson's two series switches, each
+through its own AND gate into its enable) when VBAT falls below 13.6 V (3.4 V/cell) for 5 s, and releases above 14.4 V, independent of the OBC. The heater is
+not shed: it protects the pack from cold charging and a stuck-on heater is survivable (SQSO-PBA-001 §8.4); the 5 s
+filter rides through the deployment burn (EMC_ANALYSIS §4). It keeps the OBC, the
+receiver and TX-OFF alive with a stuck-on Jetson enable: covered are either switch failed closed, a stuck
+PAYLOAD_EN or JETSON_PWR, or software that never turns the Jetson off; not covered is the pair of series switches
+(SW1 and U19) both failed closed in their power stages, which the shed cannot open (the residual, two independent
+part failures; FMEA note). Without the shed a stuck-on Jetson reaches the BMS under-voltage cut at 66.6 h in the
+mission simulation and leaves the spacecraft brown-out cycling (SQSO-PBA-001 §8.4). It sits above the flight software's EMERGENCY
+threshold (15 % SOC, ≈ 14.0 V at rest) only under load, so in normal operation the software acts first.
+
+**Implemented** (SQSO-EPS-BRD-001 §8.4): TLV7042-Q1 comparator against a 2.500 V reference (13.62 V falling,
+14.42 V rising), 4.9 s RC timer and a second comparator, AND gates in SW1's and U19's enables (U51, U65). The PA's SW3 is not shed from SQSO-EPS-BRD-001 E (RID SMA-B05): a spurious permanent shed would hold the transmitter off with no override, and a stuck-keyed PA is energy-positive (SQSO-PBA-001 §8.4). The BMS is the
+BQ76952 with its thresholds in OTP (BRD-001 §6.1).
+
+## 7. End-of-life charge disconnect (97.207(g)(1)(iii))
+
+F1 sits between the trackers' output and BATT+ (S1), so opening it disconnects the array from the pack **and** from
+the bus; the loads then drain the pack to the BMS cut-off and the spacecraft goes dark for good.
+
+| Element | Specification |
+|---------|---------------|
+| F1 | Three-terminal fuse Littelfuse ITV4030L1412NR (12 A, 36 VDC, heater 11.2–20 Ω, triggerable 10.5–19.6 V) between the trackers' output and PACK_P (SQSO-EPS-BRD-001 §7) |
+| Fire circuit | F1's heater to GND through two series FETs: Q21 from the arm latch U61 (set only while the OBC's EOL_ARM AND the EPS controller's EOL_KEY are both high, cleared at power-up) and Q20 from the OBC's EOL_FIRE; 9.8–24 W, cut < 1 min. EOL_KEY is raised by the EPS controller only on a keyed two-write I2C sequence (ICD-001 extended register), so the arm has a source independent of the OBC's GPIOs (RID P3E-11); commands PASSIVATE_ARM, PASSIVATE_EXECUTE of REG-01 |
+| Dependence | **Passivation depends on the EPS controller** (SQSO-EPS-BRD-001 D on; SQSO-FMEA-003): the arm needs its EOL_KEY, so a failed controller blocks the disconnect (it cannot fire it alone); its firmware is Category 3 software for this function (SQSO-FMEA-003) |
+| Fault tolerance | No single hardware failure (switch short, latch upset) and no single OBC pin-map or GPIO fault fires F1: two series elements, and the arm needs the EPS controller's key as well as the OBC's line. A flight-software fault that executes the whole keyed sequence and both authenticated commands could fire it; the controls against that are the two-command protocol, the key and the controller's checks (SQSO-EPS-BRD-001 §7). A failure to fire leaves the mission's TX-OFF and loss-of-contact inhibit as the controls |
+| Verification | V-BSA-7: EM only (destructive) |
+| Gap | Hardware done (RID EPS-06). OBC pins EOL_ARM PF4, EOL_FIRE PG1 (SQSO-ICX-001); the flight software's commands and state remain, for the chair (BRD-001 §13.2) |
+
+## 8. Inhibit chains (CDS 2.3.7, 2.3.8; UG v11 §6.7.7)
+
+An inhibit is a physical device between a power source and a hazard (CDS 2.3.7.1); a timer is not (2.3.7.2); the RBF
+does not count (BASELINE §4). Sources: the pack (BATT+/BATT−) and the illuminated array (at BATT+ through the
+trackers). Elements are listed from the source to the hazard; "independent" means that no single failure, and no
+single command or software fault, removes more than one of them.
+
+### 8.1 RF (2 m PA radiating)
+
+The drawings (S1) have two deployment switches and a "third inhibit" left open (finding F5). The CDR design adds a
+**third deployment switch DS3** (RID SMA-01 / EPS-04, adopted with the safety, launch and RF reviewers): a separate
+switch on a third rail standoff driving a second high-side FET in VBAT+. **DS2 is a two-pole switch**
+(SQSO-EPS-BRD-001 D, RID P3E-01): its first pole drives the pack-return FETs (from the pack OR the array side, BRD E,
+so an open pack path leaves the bus able to start in sunlight), its second holds the trackers' enables low through an
+on-board clamp whose gate the contact drives high (active high, BRD E, RID SMA-B13: a chafed wire to the frame cannot
+disable the trackers), so the array also has three inhibits. Each switch drives its own FET gate (§8.4).
+
+| # | Element | Type | Breaks | Independent of the others because |
+|---|---------|------|--------|-----------------------------------|
+| — | F2, RT1, BMS FETs | Protection | Pack | Closed in normal storage: not inhibits |
+| — | RBF pin | GSE | Pack and array | Not counted |
+| **1** | **DS2** → low-side FETs in the pack return (PACK− to GND); second pole → the trackers' enables | Mechanical separation signal | Pack (pole 1); array (pole 2: with the boost off the string passes ≤ 6.2 V, below every converter's start at ≥ 9.9 V) | Own switch, rail, gate drive and wiring, in the negative leg; pole 2 is a separate contact in the GND domain |
+| **2** | **DS1** → high-side FET in VBAT+ | Mechanical separation signal | Pack and array | Own switch on a diagonally opposite rail, positive leg |
+| **3** | **DS3** → second high-side FET in VBAT+ | Mechanical separation signal | Pack and array | Own switch on a third rail; its FET and DS1's are separate parts with separate gate drives, and their wiring is routed apart so one short cannot bridge both |
+| (4) | SW3, PA supply switch (RF_TX_EN, PA3), off at reset | Load switch | Pack and array | Needs a software command after all three switches have closed; counted only as margin |
+| — | SW2 (RADIO_EN), hardware TX permit into the PTT gate (BUILD_VS_BUY §3.2), 45-min RF timer | Same controller as SW3, or a timer | — | Not counted |
+
+**Three independent inhibits for the pack (DS2, DS1, DS3) and for the array (DS1, DS3, DS2 pole 2), all from the mechanical separation signal** (verified with any two of the three failed closed and the array lit, V-EPS-3) (UG v11
+§6.7.7: "inhibited from a mechanical separation signal, and not because of other factors such as software delays"),
+with SW3 as a fourth. Common cause between the three switches: they are released together by design at ejection; an
+early release needs the spacecraft to move off three rails at once, so they sit on three different rails. The same
+three switches give the NRCSD backup its ground-leg inhibit.
+
+### 8.2 Deployables (solar wings; burn wires on SW6)
+
+| # | Element | Breaks |
+|---|---------|--------|
+| **1** | DS2 (pole 1 the pack return; pole 2 the trackers) | Pack and array |
+| **2** | DS1 | Pack and array |
+| **3** | DS3 | Pack and array |
+| (4) | SW6 (DEPLOY_EN, PF3, high side) and the wing's low-side driver (one per wing, §5.1) | Both; counted as one, because one OBC drives both lines |
+| — | Hardware on-time limit (§5.1), 30-minute timer | Not counted (timers) |
+
+Three independent inhibits, plus the OBC-driven pair. The 30-minute timer (CDS 2.4.4) is in the software and does not
+count.
+
+### 8.3 Antennas (ISIS AntS, bought)
+
+BUILD_VS_BUY §2.6 buys the ISIS AntS with its own release controller (two microcontrollers, an ARM command, thermal
+knives). The chain is DS2, DS1, DS3, the AntS supply switch SW8 (DEPLOY_EN, downstream of the three switches) and the
+AntS's own ARM switch: three independent. S5 and W7 are redrawn (RID EPS-07, SQSO-EPS-BRD-001 §9); ANTENNA_BURN (PB9)
+is freed and becomes BURN_W2A. Still open: confirm from the AntS ICD which internal switches are physical devices
+between its supply and its knives.
+
+### 8.4 Requirements on the switches
+
+- Each deployment switch drives a FET gate through an RC filter (≥ 10 ms) rather than carrying the bus current, so
+  contact chatter during random vibration cannot power the OBC (UG v11 §6.7.7 asks for evidence of no inadvertent
+  power-up) and the switches need no current rating (EPS-05).
+- Toggling any deployment switch resets the timers (CDS 2.3.2.4): the OBC loses power, and the timers restart at
+  boot.
+- Pack-to-frame isolation ≥ 1 MΩ on both poles (a pack-negative-to-frame short would bypass DS2; SQSO-BSA-001 §5).
+- No ground-referenced circuit on the pack-negative node, and ≥ 100 kΩ (or the I2C isolator) on every signal that
+  crosses from the pack domain, so that no sneak path bypasses DS2 (SQSO-EPS-BRD-001 §6.4); DS2 is two FETs back to
+  back so it blocks charge as well as discharge.
+- Storage drain with the switches actuated ≤ 20 µA in all (LVR-051/071 of `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`):
+  designed 7.8 µA typical, 13.8 µA worst with the AFE in SHUTDOWN, including the access-port board's UMB_VMON TVS and both open-tap ladders
+  (BRD-001 §6.6).
+
+## 9. Telemetry
+
+The controller's register block (SMART-QSO-ICD-001 v1.1 §4.2) carries pack voltage and current, temperature, SOC,
+array voltage and current, the payload rail and status bits. Added at CDR (ICD §4.6): each cell voltage, the second
+pack temperature, per-tracker input power, the charge-inhibit cause (cold, hot, OV, BMS), the load-shed and
+passivation-latch states, and the heater current. Implemented (SQSO-EPS-BRD-001 §11): five analog lines to the OBC
+(VBATT 1:6, IBATT 0.5 V/A, VSOLAR 1:4, ISOLAR 1 V/A, VBUS 1:2), two INA228 on I2C2 (pack gauge 0x44, array 0x40)
+readable without the EPS controller, and the controller's block at 0x48 fed by the AFE, four INA3221 and an ADS7138.
+
+## 10. Verification
+
+| Item | Method | Procedure |
+|------|--------|-----------|
+| Power closure | Analysis, then EM flatsat measurement | SQSO-PBA-001 V-PWR-1 … 5 |
+| Trackers and regulator | Test | TP-EPS-004 (MPPT efficiency), V-PWR-3 |
+| Battery protection and screening | Test | SQSO-BSA-001 V-BSA-1 … 8; TP-EPS-001, TP-EPS-003 |
+| Rails, switches, limits | Test: each limit tripped, each enable at reset | TP-EPS-002 |
+| Inhibits | Inspection of the drawings against §8; inhibit-by-inhibit continuity test; test during random vibration at the flight SOC | SYS-704; V-BSA-6 |
+| EOL disconnect | Test on the EM (destructive) | V-BSA-7 |
+| Thermal | EM thermal balance | SQSO-THA-001 V-THM-1 … 7 |
+| EMC | Unit and system tests | SQSO-EMC-001 V-EMC-1 … 7 |
+
+## 11. Risks
 
 | Risk ID | Description | L | C | Mitigation |
 |---------|-------------|---|---|------------|
-| EPS-R001 | Battery degradation faster than expected | M | M | Limit DOD, temperature control |
-| EPS-R002 | MPPT efficiency below spec | L | M | Component screening |
-| EPS-R003 | Solar cell degradation | M | L | BOL/EOL margin |
-| EPS-R004 | Connector failure | L | H | Redundant connections |
-| EPS-R005 | Single event upset in PDU | L | M | Watchdog, periodic reset |
+| EPS-R001 | Battery degradation faster than expected | L | M | 4.10 V set point (D8); shallow DoD (≤ 4.5 %); LEO-profile cell test (V-BSA-8) |
+| EPS-R002 | Tracker efficiency below 92 % at low input voltage | M | M | V-PWR-3 early on the EM; four trackers |
+| EPS-R003 | Wing deployment failure | L | H | SAFE and IDLE close on 1.47 W (SQSO-PBA-001 §8.1); EPS-10 mode rule |
+| EPS-R004 | Stuck-on payload | L | H | Two switches on two lines and the hardware load shed (§6) |
+| EPS-R005 | Single-event latch-up in the EPS controller | L | M | Its own latch-up-tripping supply SW9 with auto-retry; no protection depends on it (BRD-001 §12) |
+| EPS-R006 | Hot dispenser soak above +60 °C on the pack | M | M | Integrator analysis (V-THM-5); delivery SOC 60 ± 5 % (LVR-051) |
 
 ---
 
-## Appendix A: Bill of Materials
-
-| Item | Part Number | Quantity | Unit Cost |
-|------|-------------|----------|-----------|
-| MPPT Module | GomSpace NanoPower MPPT | 1 | $2,500 |
-| BMS | ISIS iBMS | 1 | $1,800 |
-| PDU | GomSpace NanoPower PDU | 1 | $1,700 |
-| Battery Cell | Samsung INR18650-35E | 4 | $15 |
-| Solar Cell | AzurSpace 3G30A (3G30C assembly) | 16 | $400 |
-| Harness | Custom | 1 | $500 |
-| **Total** | | | **$12,960** |
-
----
-
-## Appendix B: Interface Pinout
-
-### B.1 EPS I2C Interface
-
-| Pin | Signal | Description |
-|-----|--------|-------------|
-| 1 | VCC | 3.3V power |
-| 2 | GND | Ground |
-| 3 | SDA | I2C data |
-| 4 | SCL | I2C clock |
-| 5 | INT | Interrupt (active low) |
-| 6 | RST | Reset (active low) |
-
-### B.2 Load Switch Interface
-
-| Pin | Signal | Description |
-|-----|--------|-------------|
-| 1-6 | EN_0-5 | Load enable (active high) |
-| 7-12 | STAT_0-5 | Load status (active high) |
-| 13 | FAULT | Fault output (active low) |
-| 14 | GND | Ground |
-
----
-
-**Document History**
+## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §8.2 test IDs aligned with the procedure files (finding VV-18) |
-| 1.2 | 2026-10-16 | Funding audit | Generation (EPS-F001, EPS-F002, §3.2.1, §3.2.3), solar cells (§4.4) and BOM aligned with SOLAR_ARRAY_DESIGN v2.0 (TB-14); battery DoD limit (EPS-P004), sizing (§3.3) and charge-temperature rules (§6.2, §7.1) aligned with BASELINE §5 and BATTERY_DESIGN v2.0 (TB-08) |
+| 1.2 | 2026-10-16 | Funding audit | Generation, solar cells and BOM aligned with SOLAR_ARRAY_DESIGN v2.0 (TB-14); battery DoD, sizing and charge-temperature rules aligned with BASELINE §5 and BATTERY_DESIGN v2.0 (TB-08) |
 | 1.3 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |
+| 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten (including, after the safety and reliability review: third deployment switch DS3, one current-limited burn driver per wing with a hardware on-time limit and the peak-current table, latched recharge lockout, BMS over-current 4 A below the 5 A fuse) — for the built 4S EPS: string layout and four trackers, bus and rails, load switches with limits and derating, protection, hardware load shed, end-of-life disconnect, inhibit chains with their independence; the module-based design of 1.x withdrawn |
+| 2.1 | 2026-10-27 | CDR design (EPS board) | Parts selected and the board designed in SQSO-EPS-BRD-001 A (`hardware/electrical/eps/`): charge regulator (§3.3), rails incl. V_BURN, 3V3_OBC, 3V3_MCU (§4), switch table with parts and latch-up trips incl. the OBC rail (§5, RID AV-08; radio 0.12 A), four burn drivers on a 7.0 V burn buck with the peak-current table (§5.1), load shed, EOL fuse and pins, AntS chain, sneak-path rule and drain figures (§6–§9) |
+| 2.2 | 2026-10-27 | CDR design (EPS board) | Interconnect of SQSO-ICX-001 §7 (SQSO-EPS-BRD-001 B): SW11 magnetorquer supply on ADCS_EN, SW4 sensors only, Jetson readbacks, 3V3_RTC, OBC pins PB2 (PAYLOAD_EN), PF3 (DEPLOY_EN), PE7 (BURN_W2B), PF4/PG1 (EOL), burn peak-current row with the magnetorquers |
+| 2.3 | 2026-10-27 | CDR design (EPS board) | Pack fuse F2 (and F0 on the battery sense board) FM12A72V5.0A for breaking capacity; storage drain 7.7 µA worst with the access-port board's TVS (SQSO-EPS-BRD-001 C) |
+| 2.4 | 2026-10-27 | CDR design (EPS board) | Round-3 panel (SQSO-EPS-BRD-001 D): DS2 two-pole, array path with three inhibits (§8.1, §8.2); load shed on both Jetson series switches and the covered failure modes restated (§6); EOL arm with the EPS controller's key, fault-tolerance claim corrected (§7); sense-board fuses F0A/F0B/F0N and fused, current-limited taps (§5); JETSON_PWR PA8; harness table to SQSO-HAR-001 2.0; BMS BQ76952; cold-burn bus voltage per EMC_ANALYSIS C (§4, §5.1) |
+| 2.5 | 2026-10-27 | CDR design (EPS board) | Board FMEA (SQSO-FMEA-003 A) changes in SQSO-EPS-BRD-001 E: PA out of the load shed (EPS-F012 change proposed), AntS supply on DEPLOY_EN OR the EPS controller, OBC heartbeat supervision of SW10, DS2 drive from the pack or the array, active-high tracker clamps (DS3's tracker contact dropped), passivation's dependence on the EPS controller stated (§7); EPS-F001 2.23 W (SYS-100 Rev G) with 2.48 / 3.92 W; transponder 1.84 / 2.42 W DC on SW3; burn 10 s per resistor (C-17); AntS bus on the OBC's I2C3 (SQSO-ICX-001 E14); storage drain 13.8 µA worst (protector tap ladder, SQSO-EPS-BRD-001 G) |

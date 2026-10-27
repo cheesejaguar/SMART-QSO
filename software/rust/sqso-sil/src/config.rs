@@ -16,14 +16,16 @@ pub struct Config {
     pub seed: u64,
     /// Integration and key load (bench), UTC as (y, m, d)
     pub integration_date: (i32, u32, u32),
-    /// Deployment from the dispenser, UTC (y, m, d, h) (BASELINE §3: 2028-06-01)
+    /// Deployment from the dispenser, UTC (y, m, d, h) (BASELINE §3: the
+    /// planning launch, the last Transporter flight of 2028, about 2028-11)
     pub deploy_utc: (i32, u32, u32, f64),
-    /// Deployment altitude, km (BASELINE §3: target ≤ 500)
+    /// Deployment altitude, km (BASELINE §3: target 475 km, 465–485 km)
     pub altitude_km: f64,
     /// Local time of the ascending node, h (Transporter SSO: descending
     /// node 10:30, so ascending 22:30)
     pub ltan_h: f64,
-    /// Pack state of charge at integration (BATTERY_DESIGN storage charge)
+    /// Pack state of charge at integration (BASELINE §4: 60 % ± 5 % at the
+    /// integrator, about 47 days before launch)
     pub integration_soc: f64,
     /// Storage temperature between integration and deployment, °C
     pub storage_temp_c: f64,
@@ -72,6 +74,32 @@ pub struct Config {
     pub adcs_failed: bool,
     /// Contingency: the wings never release
     pub wings_failed: bool,
+    /// The end-of-life fuse's heater, Ω (F1: 11.2–20.0 Ω, 15.6 nominal)
+    pub eol_heater_ohms: f64,
+    /// Contingency: the A resistors never part their lines (the B resistors
+    /// of the second attempt do: the four-line sequence)
+    pub wing_a_failed: bool,
+    /// Separate at the first umbra entry after `deploy_utc` (the AntS
+    /// temperature gate's case, decision C-18)
+    pub separate_at_eclipse: bool,
+    /// The dispenser cold soak: the whole thermal network 2 h in the
+    /// dispenser before separation, its wall ending at this temperature, °C
+    /// (THERMAL_ANALYSIS 2.4 §4.3 and §4.4, case D3: −20 °C, the AntS at
+    /// −18 °C at separation; `Thermal::dispenser_soak`); `None`: every
+    /// node at the storage temperature (Version E set only the structure and
+    /// the AntS to this temperature)
+    pub separation_soak_c: Option<f64>,
+    /// Contingency: the AntS's temperature path fails (every reading
+    /// invalid; RID P3F-G-02's schedule fallback)
+    pub ants_temp_failed: bool,
+    /// The AntS temperature reading's error, °C
+    pub ants_temp_offset_c: f64,
+    /// The AntS temperature reading held at this value, °C (a valid cold
+    /// reading keeps the gate shut until the 30-deferral cap: RID P3F-G-02)
+    pub ants_temp_fixed_c: Option<f64>,
+    /// Fraction of the Jetson's lines meant to fail the content filter
+    /// (decision C-20's sensitivity: 3 %, 10 %, 30 %)
+    pub ai_reject_fraction: f64,
     /// Contingency: the Jetson's rail is stuck on (its switch failed closed)
     pub payload_stuck_on: bool,
     /// Years of array radiation degradation added at deployment (0: new)
@@ -80,6 +108,15 @@ pub struct Config {
     /// gyro, BASELINE §8), bmi088 (the backup, calibrated), bmi088_uncal,
     /// adis16505)
     pub gyro: String,
+    /// Contingency: the command receiver fails for good this many days after
+    /// deployment (0: never): no frames, no carrier detect, its health line
+    /// high (REL-04)
+    pub rx_failed_day: f64,
+    /// Single-event functional interrupts that hang the command receiver
+    /// until its power is cycled (FSW-09)
+    pub rx_sefi: bool,
+    /// Days between the ground's dumps of stored housekeeping (0: none)
+    pub dump_every_days: f64,
 }
 
 impl Default for Config {
@@ -87,9 +124,10 @@ impl Default for Config {
         Config {
             scenario: "full".into(),
             seed: 20_280_601,
-            integration_date: (2028, 4, 15),
-            deploy_utc: (2028, 6, 1, 6.0),
-            altitude_km: 500.0,
+            // Storage from the integrator's final charge, L-47 d (BASELINE §4)
+            integration_date: (2028, 9, 15),
+            deploy_utc: (2028, 11, 1, 6.0),
+            altitude_km: 475.0,
             ltan_h: 22.5,
             integration_soc: 0.60,
             storage_temp_c: 20.0,
@@ -103,7 +141,7 @@ impl Default for Config {
             detail_days: 3.0,
             burn_limit_a: 0.8,
             contacts_per_day: 2,
-            contact_min_elev_deg: 15.0,
+            contact_min_elev_deg: crate::env::link::COMMAND_MIN_ELEV_DEG,
             commissioning_days: 14.0,
             gauge_offset_a: 0.002,
             radiation: true,
@@ -113,17 +151,32 @@ impl Default for Config {
             charge_v_cell: crate::hw::eps::CV_CELL_V,
             adcs_failed: false,
             wings_failed: false,
+            wing_a_failed: false,
+            separate_at_eclipse: false,
+            separation_soak_c: None,
+            ants_temp_failed: false,
+            ants_temp_offset_c: 0.0,
+            ants_temp_fixed_c: None,
+            ai_reject_fraction: crate::jetson::BAD_TEXT_FRACTION,
+            eol_heater_ohms: crate::mission::EOL_HEATER_OHMS,
             payload_stuck_on: false,
             array_years: 0.0,
             gyro: "mg370".into(),
+            rx_failed_day: 0.0,
+            rx_sefi: true,
+            dump_every_days: 1.0,
         }
     }
 }
 
 impl Config {
     /// A named scenario: `full` (integration to re-entry), `commissioning`
-    /// (the first 14 days), `smoke` (the first day, for CI), `year` (the
-    /// first year, no passivation)
+    /// (the first 14 days), `ants_cold` (the first 14 days after a cold
+    /// soak and an eclipse separation), `ants_cap` (the AntS reading a
+    /// steady −30 °C: the 30-deferral cap and its release in sunlight, 3 days),
+    /// `ants_notemp` (no valid AntS temperature: the schedule fallback, 3
+    /// days), `smoke` (the first day, for CI), `year` (the first year, no
+    /// passivation)
     pub fn scenario(name: &str) -> Option<Config> {
         let mut c = Config { scenario: name.into(), ..Config::default() };
         match name {
@@ -138,6 +191,34 @@ impl Config {
                 c.passivate_at_eol = false;
                 c.to_reentry = false;
                 c.record_s = 60.0;
+            }
+            "ants_cold" => {
+                // The AntS contingency (decisions C-18, C-19): the first 14
+                // days after an eclipse separation that follows the
+                // analysis's 2 h dispenser cold soak (THERMAL_ANALYSIS 2.4
+                // §4.4, case D3: the wall at −20 °C)
+                c.mission_days = 14.0;
+                c.passivate_at_eol = false;
+                c.to_reentry = false;
+                c.record_s = 60.0;
+                c.separate_at_eclipse = true;
+                c.separation_soak_c = Some(-20.0);
+            }
+            "ants_cap" | "ants_notemp" => {
+                // RID P3F-G-02: the gate's two ends, after the eclipse
+                // separation and cold soak of `ants_cold`
+                c.mission_days = 3.0;
+                c.passivate_at_eol = false;
+                c.to_reentry = false;
+                c.record_s = 60.0;
+                c.detail_days = 3.0;
+                c.separate_at_eclipse = true;
+                c.separation_soak_c = Some(-20.0);
+                if name == "ants_cap" {
+                    c.ants_temp_fixed_c = Some(-30.0);
+                } else {
+                    c.ants_temp_failed = true;
+                }
             }
             "smoke" => {
                 c.mission_days = 1.0;
@@ -182,8 +263,19 @@ impl Config {
             "charge_v_cell" => self.charge_v_cell = f()?,
             "adcs_failed" => self.adcs_failed = b()?,
             "wings_failed" => self.wings_failed = b()?,
+            "wing_a_failed" => self.wing_a_failed = b()?,
+            "separate_at_eclipse" => self.separate_at_eclipse = b()?,
+            "separation_soak_c" => self.separation_soak_c = Some(f()?),
+            "ants_temp_failed" => self.ants_temp_failed = b()?,
+            "ants_temp_offset_c" => self.ants_temp_offset_c = f()?,
+            "ants_temp_fixed_c" => self.ants_temp_fixed_c = Some(f()?),
+            "ai_reject_fraction" => self.ai_reject_fraction = f()?,
+            "eol_heater_ohms" => self.eol_heater_ohms = f()?,
             "payload_stuck_on" => self.payload_stuck_on = b()?,
             "array_years" => self.array_years = f()?,
+            "rx_failed_day" => self.rx_failed_day = f()?,
+            "rx_sefi" => self.rx_sefi = b()?,
+            "dump_every_days" => self.dump_every_days = f()?,
             "gyro" => {
                 if crate::adcs_mc::gyro_preset(v).is_none() {
                     return Err(format!("unknown gyro {v}"));
@@ -229,9 +321,20 @@ impl Config {
             ("charge_v_cell", self.charge_v_cell.to_string()),
             ("adcs_failed", self.adcs_failed.to_string()),
             ("wings_failed", self.wings_failed.to_string()),
+            ("wing_a_failed", self.wing_a_failed.to_string()),
+            ("separate_at_eclipse", self.separate_at_eclipse.to_string()),
+            ("separation_soak_c", self.separation_soak_c.map_or("null".into(), |t| t.to_string())),
+            ("ants_temp_failed", self.ants_temp_failed.to_string()),
+            ("ants_temp_offset_c", self.ants_temp_offset_c.to_string()),
+            ("ants_temp_fixed_c", self.ants_temp_fixed_c.map_or("null".into(), |t| t.to_string())),
+            ("ai_reject_fraction", self.ai_reject_fraction.to_string()),
+            ("eol_heater_ohms", self.eol_heater_ohms.to_string()),
             ("payload_stuck_on", self.payload_stuck_on.to_string()),
             ("array_years", self.array_years.to_string()),
             ("gyro", format!("\"{}\"", self.gyro)),
+            ("rx_failed_day", self.rx_failed_day.to_string()),
+            ("rx_sefi", self.rx_sefi.to_string()),
+            ("dump_every_days", self.dump_every_days.to_string()),
         ];
         for (i, (k, v)) in fields.iter().enumerate() {
             let _ = write!(s, "  \"{k}\": {v}");
@@ -251,9 +354,23 @@ mod tests {
         assert!(Config::scenario("nope").is_none());
         let mut c = Config::scenario("smoke").unwrap();
         assert_eq!(c.mission_days, 1.0);
+        // BASELINE Rev D: 475 km, planning launch 2028-11, storage L-47 d at 60 %
+        assert_eq!((c.altitude_km, c.deploy_utc.1, c.integration_soc), (475.0, 11, 0.60));
+        let days =
+            crate::env::time::from_utc(2028, 11, 1, 6, 0, 0.0) - crate::env::time::from_utc(2028, 9, 15, 6, 0, 0.0);
+        assert_eq!(days / 86_400.0, 47.0);
         c.set("altitude_km=450").unwrap();
         assert_eq!(c.altitude_km, 450.0);
         assert!(c.set("bogus=1").is_err());
         assert!(c.to_json().contains("\"altitude_km\": 450"));
+        let cold = Config::scenario("ants_cold").unwrap();
+        assert!(cold.separate_at_eclipse && cold.separation_soak_c == Some(-20.0) && cold.mission_days == 14.0);
+        let cap = Config::scenario("ants_cap").unwrap();
+        assert!(cap.separate_at_eclipse && cap.ants_temp_fixed_c == Some(-30.0) && !cap.ants_temp_failed);
+        let notemp = Config::scenario("ants_notemp").unwrap();
+        assert!(notemp.ants_temp_failed && notemp.mission_days == 3.0);
+        c.set("ants_temp_failed=true").unwrap();
+        c.set("ants_temp_offset_c=-5").unwrap();
+        assert!(c.ants_temp_failed && c.ants_temp_offset_c == -5.0);
     }
 }

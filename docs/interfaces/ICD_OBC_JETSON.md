@@ -1,8 +1,8 @@
 # Interface Control Document: OBC-Jetson
 
 **Document Number**: SMART-QSO-ICD-002
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.4
+**Date**: 2026-10-27
 **Status**: Preliminary
 
 ---
@@ -290,9 +290,100 @@ DORMANT ─────────> BOOT
 
 ---
 
+
+## 9. CDR Update (2026-10-27): Interface as Built
+
+Sections 2, 3 and 6.3 are the 2026-01 preliminary interface. Where they disagree with this section, this section, §4
+(exact since 1.1) and `docs/hardware/PAYLOAD_DESIGN.md` §11 govern.
+
+| Item | As built (flight software and provisional firmware pin map) | Was |
+|------|--------------------------------------------------------------|-----|
+| Link | USART1, PA9 TX / PA10 RX, 115200 8N1, 3.3 V CMOS, interrupt-driven receive buffer (`firmware/src/uart.rs`) | same |
+| Power | VBAT through SW1 (`PAYLOAD_EN`, PB2) and the EPS eFuse U19 (`JETSON_PWR`, PA8) (SQSO-ICX-001; corrected in place from the provisional PB4 / PA2: PB4 resets as NJTRST with a pull-up, and PA2 is now the spreader-thermistor ADC input PT_NTC), then the carrier's own converter (`docs/hardware/EPS_DESIGN.md` v2.0) | 5 V EPS rail and a Power Enable pin on the connector |
+| Power limit | 8 W carrier input in operation; software trips at 12 W (one sample) and > 8 W (two samples); eFuse 1.2 A | 15 W peak |
+| Connector pin 4 | not a power enable: the switches are on the EPS side. Use it as a second ground or the carrier's power-good to the OBC (open) | Power Enable |
+| Switch-on | gates of BASELINE §5 and the commissioning hold, then both switches together; the OBC waits for STATUS before BEACON_REQ | EPS 5 V, then enable after 100 ms |
+| Switch-off | both lines low together (recommended order and readback: PAYLOAD_DESIGN §11.1, RID AV-06); no SHUTDOWN message is sent, the Jetson must tolerate a power cut (read-only root, writable data partition: `hardware/payload-jetson/README.md`) | SHUTDOWN, 5 s, enable low |
+| Fallback | a template beacon whenever no valid BEACON_RSP arrives in time or the text fails the filter; the burst schedule cycles the rail on every burst (165 power-ons in the 14-day SIL run), so no reconnection counter is kept | reconnect after 60 s, power-cycle after 3 failures |
+
+**Back-powering (RID AV-09).** USART1 is enabled for the whole mission, so the OBC's TX line idles high (3.3 V) into a
+carrier that is unpowered most of the time. Through the module's input protection diodes that can partly power the
+module's I/O rail, hold it in an undefined state at switch-on, and add a few milliamperes of load. Fix at the EM, one
+of: an isolating buffer on the carrier powered from its own 3.3 V (a part with I_off, e.g. 74LVC1T45 class) in each
+direction; or the firmware switching PA9 to an analog input while `JETSON_PWR` is low and back to the USART function
+after power-good. Until then the interface is not verified for power-off isolation (test: TX idle with the carrier off,
+measure the carrier's 3.3 V rail; pass below 0.3 V).
+
+## 10. Carrier Interface as Designed (SQSO-JET-BRD-001 A)
+
+The carrier board is designed (`hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`). Where §2, §3, §5.2 and §9 disagree
+with this section, this section governs.
+
+### 10.1 Connectors
+
+| Harness | Carrier connector | Pin | Signal | Level |
+|---------|-------------------|-----|--------|-------|
+| W5A (from EPS J18) | J1 Molex Micro-Fit 3.0 2×2 right-angle, 0430450402 (gold) | 1, 2 | VBAT_JET | 11.2–16.4 V (18.4 V EPS OVP), ≤ 1.30 A (EPS eFuse) |
+| | | 3, 4 | GND | |
+| W5B (from OBC J3) | J2 Molex Pico-Clasp **6**, 2035560607 (gold; was 4-way: change E10) | 1 | GND | |
+| | | 2 | JET_RXD (OBC TX → module UART1 RXD, pin 205) | 3.3 V CMOS, 33 Ω, 100 kΩ pull-up on the carrier |
+| | | 3 | JET_TXD (module UART1 TXD, pin 203 → OBC RX) | 3.3 V CMOS, 33 Ω |
+| | | 4 | JET_3V3: carrier 3.3 V I/O rail and power-good | 3.3 V through 100 Ω, ≤ 1 mA drawn (E9) |
+| | | 5 | PT_NTC: spreader thermistor (10 kΩ NTC), passed through | biased by the OBC |
+| | | 6 | PT_RTN: thermistor return (not carrier GND) | OBC analogue ground |
+
+### 10.2 Electrical
+
+| Item | Value |
+|------|-------|
+| Module input | VDD_IN 4.75–5.25 V only (Orin Nano: MODULE_ID low, DS-11105-001 v1.5 Table 5-1); the carrier makes it from VBAT |
+| UART | Module UART1 is 1.8 V CMOS (DS Table 2-13), translated on the carrier (SN74LVC1T45-Q1 on SYS_RESET*-switched rails). **The OBC transmits 8N2**: the module's receiver needs two stop bits (DS §2.10.4). 115200 baud unchanged; the module may transmit 8N1 |
+| JET_3V3 | High only when both EPS switches are on, the carrier converters run, VDD_IN is good, POWER_EN is released and the module has finished its power sequence (SYS_RESET* high). Falls within 0.1 ms of any of these failing, including a carrier latch-up trip and a module shutdown |
+| Isolation | With the carrier off every carrier-side translator pin is high-impedance (Ioff, VCC isolation); no module I/O exceeds 0.5 V before SYS_RESET* rises (DS §3.6.1). V-OBC-9 remains the test |
+| Burst power | ≤ 8 W at the carrier input only with the module capped at 6.5 W (7.2–7.5 W); at the full 7 W mode budget 7.7–8.0 W (carrier §13) |
+
+### 10.3 Timing
+
+| Event | Time from the switches on |
+|-------|---------------------------|
+| POWER_EN released | 23 ms |
+| JET_3V3 high (JET_PG) | ≈ 100 ms (module sequence; DG-10931-001 governs) |
+| First STATUS line | 20–45 s (to be measured, V-JET-3) |
+
+### 10.4 Switch-off (supersedes the §9 row "no SHUTDOWN message is sent")
+
+Normal end of a burst: the OBC sends `SHUTDOWN`; the payload runs `poweroff`; the module asserts SHUTDOWN_REQ*, which
+the carrier latches (POWER_EN held low until VBAT is removed); JET_3V3 falls; the OBC then drives JETSON_PWR low and
+PAYLOAD_EN 10 ms later. If JET_3V3 has not fallen 5 s after `SHUTDOWN`, the OBC cuts both lines anyway. A JET_3V3 fall
+while the rail is commanded on and no `SHUTDOWN` was sent is a payload fault (carrier trip or module thermal shutdown):
+the OBC cuts both lines and logs it. An uncommanded cut is tolerated (carrier §7.4; V-JET-5) but is not the normal path.
+Flight-software changes F1–F3 of the carrier design §19 are for the chair.
+
+### 10.5 Flight Software Side as Built (flight software round 3)
+
+Implemented in `software/rust/` (round 3; not run on hardware). §9 first gave the provisional pins (PAYLOAD_EN PB4,
+JETSON_PWR PA2; corrected in place, panel item P3E-05); this table governs: the firmware follows the master allocation SQSO-ICX-001 B §4 and §6.
+
+| Item | As built |
+|------|----------|
+| Link | USART1 PA9 TX / PA10 RX, 115200 baud, **8N2 transmitted** (two stop bits, §10.2; the module may transmit 8N1): `firmware/src/main.rs`, `sqso-ffi/src/uart_comm.rs` |
+| Switches | PAYLOAD_EN PB2 (SW1) and JETSON_PWR PA8 (eFuse U19), both low at reset (SQSO-ICX-001 §6 rows 1 and 6) |
+| Power-good | JET_PG (JET_3V3 through the OBC's level shifter) PG6, input |
+| Switch-on | both lines together after the gates (BASELINE §5, the commissioning hold, the spreader at or above −15 °C with a valid reading); JET_PG must be up 2 s after the switch-on, else the rail is cut and the fault logged (SRS-F149) |
+| Switch-off | `SHUTDOWN` sent; JET_PG fall awaited at most 5 s; then JETSON_PWR low and PAYLOAD_EN low 10 ms later (`sqso_fsw::jetson_power`, `eps_control::eps_payload_tick`; SRS-F148). Outcomes counted in HK2 `JP` (clean, cut after the wait, power-good faults, readback faults) |
+| Unexpected JET_PG fall | rail on, no `SHUTDOWN` sent: both lines cut, logged once per episode (SRS-F149, SRS-F153) |
+| Readbacks | VSW1_RB (PA1) and VJET_RB (PA7), ×6 dividers: compared with the commands 200 ms after each change, on above 6.0 V; a disagreement is a fault logged at onset and clearance (RID AV-06) |
+| Current (JPC) | the EPS controller's IMON_JET (register 0x8A, SMART-QSO-ICD-001 §4.6), carrier input current; the payload power for the guard is VJET_RB × JPC |
+| Spreader temperature (PT) | PT_NTC on PA2 (ADC1_IN7), 10.0 kΩ 0.1 % bias from VDDA: R = 10.0 kΩ · N / (4095 − N), Steinhart–Hart 10K3A (A = 1.129241e-3, B = 2.341077e-4, C = 0.877547e-7); readable with the carrier off. Outside 0.10–3.25 V a sensor fault that inhibits the switch-on; the 70 °C guard and the −15 °C gate use it (SRS-F150) |
+| Burst energy gate | the burst ends when VJET_RB × JPC integrated reaches 360 J per line of a full batch (3.6 kJ for 10 lines), normally at 480–500 s, before the 10-minute limit (SRS-F151, RID JETB-04); HK2 `JB` |
+| Magnetometer | not used for actuation while JET_PG is high (the carrier's field, about 0.35 µT at the 6.5 W cap; SRS-F143) |
+| Module configuration | the 6.5 W cap (INA3221 channel 1 `curr1_max` = 1300 mA), nvpmodel ID 1 (7 W) the default, PCIe C4 Gen2 x1, the board configuration without a carrier EEPROM: `software/payload/platform_config.py` and `software/payload/config/` (RID JETB-01) |
+
 ## Appendix A: Reference Documents
 
 1. Jetson Orin Nano Developer Kit Carrier Board Specification
+1a. NVIDIA DS-11105-001 v1.5, Jetson Orin Nano Series Modules Data Sheet (December 2024)
+1b. SQSO-JET-BRD-001 A, Jetson Orin Nano Carrier Board Design (`hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`)
 2. STM32L4 Reference Manual (RM0351)
 3. SMART-QSO System Requirements Specification
 4. AX.25 Link Access Protocol for Amateur Packet Radio
@@ -305,3 +396,6 @@ DORMANT ─────────> BOOT
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-15 | Funding audit | §4 made exact (line rules, 512-byte limit, STATUS_REQ, STATUS fields, BEACON_RSP text, NACK reasons, golden lines) and implemented on both sides (SW-24) |
+| 1.2 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §9 new: interface as built (power through SW1 and U3 from VBAT, 8 W limit, connector pin 4, switch-on/off, fallback); back-powering through the idle TX line (RID AV-09) |
+| 1.3 | 2026-10-27 | Payload carrier design (CDR design completion) | §10 new: carrier connectors (W5B 6 pins with the spreader thermistor, change E10), 5 V-only module input, 1.8 V UART translated on the carrier, OBC transmits 8N2, JET_3V3 as power-good, timing, commanded switch-off with SHUTDOWN and JET_3V3 (supersedes the §9 switch-off row) |
+| 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §10.5 new: the flight-software side as built: 8N2, PAYLOAD_EN PB2 and JETSON_PWR PA8, JET_PG, the commanded switch-off with SHUTDOWN, power-good faults, switch readbacks, JPC from IMON_JET, the spreader thermistor, the burst energy gate, magnetometer gating, the module's platform configuration (RIDs JETB-01 to JETB-04, AV-06) (amended: §9 power row pins corrected to PAYLOAD_EN PB2, JETSON_PWR PA8, eFuse U19, panel item P3E-05; §10.1 carrier connectors 0430450402 and 2035560607, gold, per SQSO-MFG-003) |
