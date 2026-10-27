@@ -1,7 +1,7 @@
 # SMART-QSO Mission Success Criteria
 
 **Document ID**: SQSO-MSC-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft for PI approval. Rewritten to the baseline (BASELINE Rev D §2, §6, decision D5); replaces
@@ -92,14 +92,14 @@ hard-limit violations; Jetson burst log and energy. These are listed for the fli
 
 ## 8. Probability of Success (estimate)
 
-From the reliability block diagram and Monte Carlo of `docs/environment/RELIABILITY_ANALYSIS.md` v2.0 §4–§5
+From the reliability block diagram and Monte Carlo of `docs/environment/RELIABILITY_ANALYSIS.md` v2.1 §4–§5
 (`software/simulation/cdr/sma/reliability_model.py`, 400,000 trials), launch included at 0.99:
 
 | Level | Estimate (allocation case) | With early-failure probabilities halved by the burn-in and day-in-the-life program | Empirical CubeSat survival (two-Weibull fit, launch excluded) |
 |-------|---------------------------|-------------------------------------------------------------------------------------|-------------------------------------------------------------|
 | L1 (30 days) | **0.75** | 0.86 | 0.74 |
-| L2 (1 year) | **0.60** | 0.70 | 0.60 |
-| L3 (2 years) | **0.50** | 0.58 | 0.56 |
+| L2 (1 year) | **0.61** | 0.71 | 0.60 |
+| L3 (2 years) | **0.51** | 0.59 | 0.56 |
 
 These are lower than Version 1.0's reliability goals (0.95 / 0.80 / 0.60 in RELIABILITY_ANALYSIS v1.2 §2.1), which were
 not supported by any analysis. A Class D payload may accept them; the PI decides (RID SMA-14).
@@ -123,3 +123,4 @@ declaration.
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial issue |
 | 2.0 | 2026-10-27 | CDR S&MA review | Rewritten to the baseline: transponder service is the primary objective; L2 no longer gated on AI-generated beacons (D5); the Jetson text experiment has separate criteria; every criterion has a measurement source; telemetry gaps listed; success probabilities from the reliability model |
+| 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §8 from RELIABILITY_ANALYSIS v2.1 (four-line wing deployment): L2 0.61, L3 0.51 (were 0.60, 0.50); halved-early-failure case 0.71 / 0.59 |

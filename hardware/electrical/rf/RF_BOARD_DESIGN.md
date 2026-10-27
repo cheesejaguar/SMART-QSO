@@ -1,7 +1,7 @@
 # SMART-QSO RF Board: Build-to Design
 
 **Document ID**: SQSO-RF-BRD-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Status**: Build-to design for the engineering model (EM): schematic captured as code with selected, orderable parts,
 netlist, BOM, ERC, calculations and layout rules. Not built, not measured. Values follow
@@ -41,8 +41,9 @@ the AX.25 beacon and the FM repeat path, a KISS TNC on USART2, and the hardware 
 | Harmonic filter | 2-section match + 7th-order elliptic low-pass (traps at 2f, 3f) | LPF alone, worst of 3,000: 2f ≥ 65.5 dB, 3f ≥ 88.2 dB; H3 at the port −90 dBc with a −90 dBc board-leakage floor (requirement −70 dBc) |
 | Desense | LMX2571 phase noise | ≤ 0.01 dB at 2.2 MHz with H3 at −70 dBc (0.46 dB with the LBA's assumed oscillator) |
 | Repeat path, `XPDR_EN` | LVC1G123 monostable (49.7 ms), CMX138A CTCSS decode and audio filter, HC4060 120 s timer, LVC1G11 AND, TMUX1101 mute, TMUX1219 select, TX permit in the PTT gate | Unkeys ≤ 59 ms after the last heartbeat edge; key-down timer 120 ± 4.6 s |
-| Power | Receive section on RADIO_3V3 (SW2) | 0.104 W typical, 0.129 W worst (allocation 0.15 W); repeat path +24 mW (allocation 30 mW) |
-| Parts | 316 placed, 289 fitted and orderable, 186 nets | ERC: 0 errors, 0 warnings, 6 waivers |
+| Power | Receive section on RADIO_3V3 (SW2) | 0.105 W typical, 0.131 W worst (allocation 0.15 W); repeat path +24 mW (allocation 30 mW) |
+| Receiver supervision (B) | RX_CD (CC1200 carrier sense) and RX_FAULT (hardware monostable on the TNC's health pulses) to the OBC on J1-15/16 | RX_FAULT asserts 0.36–0.62 s after the last health pulse; unpowered board reads not fault |
+| Parts | 330 placed, 300 fitted and orderable, 194 nets | ERC: 0 errors, 0 warnings, 7 waivers |
 
 Three findings change the earlier documents and are reported for the chair (§15):
 
@@ -65,7 +66,7 @@ Three findings change the earlier documents and are reported for the chair (§15
 | System noise ≤ 650 K with a 290 K source; budget 1,000 K (RF-P006, LBA §2.4) | 503 K typical, 550 K worst at the antenna terminals (coax included) | +1.1 / +0.7 dB to 650 K; 853–900 K with the 350 K interference allowance: +0.7 / +0.5 dB to 1,000 K |
 | Sensitivity: telecommand 90 % frames at 53.0 dB-Hz; voice 12 dB SINAD at 47.4 dB-Hz (RF-P011) | −116.6 / −116.2 dBm telecommand, −122.2 / −121.8 dBm voice (typ / worst, 2 dB implementation loss) | The LBA used 1,000 K; this receiver is 0.5–0.7 dB better |
 | RX filter: ≥ 60 dB at 144–146, ≥ 40 dB at 250–330 and 560–620 MHz, ≤ 1.5 dB in band (RF-P007) | FL1 + SAW (§6.2) | 144–146: ≥ 60 dB specified (69 dB without the traps, 133 dB computed with them); 250–330: ≥ 49.7 dB; 560–620: ≥ 45.2 dB; loss before the LNA 1.0 dB worst. The SAW (2.1–4.2 dB) sits after the LNA; RF-P007 is restated in RF_DESIGN 2.1 accordingly |
-| Receiver DC ≤ 0.15 W always on (BASELINE §5) | 0.104 W typ, 0.129 W worst | +14 % worst |
+| Receiver DC ≤ 0.15 W always on (BASELINE §5) | 0.105 W typ, 0.131 W worst | +13 % worst |
 | Repeat path ≤ 30 mW while enabled (RF-P015) | 24.4 mW typ, 31.3 mW worst | **−4 % at the worst corner** (CMX138A 8.5 mA figure used as worst) |
 | Reference ±1.0 ppm over −40 to +85 °C (RF-P005) | TG2016SMN ±0.5 ppm (−40…+85 °C), calibrated at test to ±0.1 ppm | 0.6 ppm at BOL; **2.1 ppm worst after 2 years with datasheet-class aging** (§6.5) |
 | Downlink 145.800–146.000 MHz; 0.5 W nominal, 1 W maximum (BASELINE §7) | LMX2571 4668.8 MHz / 32; APC at 27.0 / 30.0 dBm | 0.5 W: 0.50 W; 1 W: 29.53–30.14 dBm over the 5 V ± 3 % rail |
@@ -115,7 +116,7 @@ Three findings change the earlier documents and are reported for the chair (§15
 
 ## 4. Interfaces
 
-### 4.1 J1, OBC signals (W4 version 2, Samtec FTSH-107-01-L-DV-K, 14 positions)
+### 4.1 J1, OBC signals (W4 version 3, Samtec FTSH-108-01-L-DV-K, 16 positions)
 
 | J1 pin | Signal | Direction | Level, RF-board circuit | OBC side |
 |--------|--------|-----------|-------------------------|----------|
@@ -131,10 +132,12 @@ Three findings change the earlier documents and are reported for the chair (§15
 | 12 | TX_FWD | RF → OBC | 0–2.5 V, 2.5 V at 1 W, P = 0.16 V² W; 1 kΩ / 100 nF | PC0 |
 | 13 | TX_REV | RF → OBC | as TX_FWD; 1.25 V at 3:1 and 1 W | PC1 |
 | 14 | AGND | — | Monitor return | — |
+| 15 | **RX_CD** | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = carrier above the receiver's carrier-sense threshold** (CC1200 GPIO2 = CARRIER_SENSE, RSSI threshold AGC_CS_THR set 6 dB above the measured noise floor, buffered by U480); 100 kΩ pull-down. Not the CTCSS decision: any carrier, including terrestrial interference | OBC input, pin to be allocated by the OBC designer (RID RFB-07) |
+| 16 | **RX_FAULT** | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = receiver fault** (§8.6); 100 kΩ pull-down: an unpowered board or an unwired line reads not fault | OBC input, pin to be allocated by the OBC designer (RID RFB-07) |
 
 The readback outputs are V_DIG logic (3.10 V ± 1.5 %): VOH ≥ 2.9 V at the 1 kΩ, so an STM32 input (VIH 0.7 × VDD =
 2.31 V at 3.3 V) reads them with 0.6 V margin. They are valid whenever RADIO_3V3 is on; with the radio unpowered they
-read low through the OBC's own pull-down (to be fitted on the OBC side). The firmware's 1 kΩ series makes an OBC input
+read low through the board's 100 kΩ pull-downs (J1-15/16) and the OBC's own pull-downs. The OBC inputs must use pull-downs, not pull-ups: a pull-up would turn an unwired RX_FAULT into a false fault and would push current into the unpowered board. The LVC outputs (Ioff) do not conduct when unpowered, so nothing back-powers the OBC. The firmware's 1 kΩ series makes an OBC input
 configured by mistake as an output safe (3.3 mA).
 
 ### 4.2 J2, power (W4B, Molex Pico-Clasp 6)
@@ -179,13 +182,13 @@ the LMX2571's 3.15 V minimum. That margin depends on the EPS 3V3_AO tolerance (�
 | State | RADIO_3V3 | PA_5V | Total |
 |-------|-----------|-------|-------|
 | RF silence (SW2, SW3 off) | 0 | 0 | 0 |
-| Receive, transponder off | 0.104 W typ / 0.129 W worst | 6.3 mW idle (if permitted) | 0.11–0.14 W |
+| Receive, transponder off | 0.105 W typ / 0.131 W worst | 6.3 mW idle (if permitted) | 0.11–0.14 W |
 | Receive + repeat path enabled (not keyed) | +24 / +31 mW | — | 0.13–0.16 W |
 | Keyed 0.5 W (beacon or transponder) | +0.152 W (LMX2571) | 1.61 W (PA 1.51, PCM1808, detectors, logic) | 1.76 W transmitter + receive |
 | Keyed 1 W | +0.152 W | 2.19 W | 2.34 W transmitter + receive |
 
 Breakdown of the receive section (typ / worst mA): CC1200 19 / 21, LNA 6 / 7, MCU 3 / 5, TCXO 1.5 / 2, LMX2571 in
-power-down 0.9 / 1.2, LVC1G123 0.28 / 0.4, op-amps 0.24 / 0.3, LDO ground currents and pull-ups 0.45 / 0.9, others
+power-down 0.9 / 1.2, LVC1G123 0.28 / 0.4, receiver supervision 0.30 / 0.45, op-amps 0.24 / 0.3, LDO ground currents and pull-ups 0.45 / 0.9, others
 0.1 / 0.2. Beacon (ACTIVE, ≈ 1.2 s per 60 s at 1.76 W): 0.035 W orbit average (allocation 0.10 W).
 
 ## 6. Receiver
@@ -445,6 +448,31 @@ of U805, which powers the LMX2571 itself. With TX-OFF the PA has no supply, the 
 low: a single failure (a stuck gate or a shorted switch) leaves at least one of the three removed. No state of the
 repeat-path logic can power the PA.
 
+### 8.6 Receiver supervision lines (B, RID RFB-07)
+
+The flight software (SRS-F115 to F117) power-cycles RADIO_EN after 24 h of receiver silence and keeps the beacon when
+the receiver is known to have failed. The board gives it two lines:
+
+| Line | Source | Meaning |
+|------|--------|---------|
+| RX_CD (J1-15) | CC1200 GPIO2 configured CARRIER_SENSE (IOCFG2 = 17), buffered by U480 SN74LVC1G17 | High while the in-channel RSSI exceeds the carrier-sense threshold (AGC_CS_THR, set at test 6 dB above the measured noise floor, about −116 dBm). Independent of the TNC firmware once configured; the TNC re-writes IOCFG2 and the threshold in its scrub. The OBC can count carriers per pass to tell a deaf receiver from an empty channel |
+| RX_FAULT (J1-16) | U481 SN74LVC1G123 retriggered by the TNC's RX_ALIVE pulses (PB7, every 100 ms), inverted by U482 SN74LVC1G04 | Low (healthy) while pulses arrive; high 0.36–0.62 s after the last pulse (470 kΩ × 1.0 µF; K 1.00–1.10, X7R −15/+10 %). A hung, resetting or dead TNC produces no pulses, so it reads as a fault without firmware help |
+
+The TNC emits RX_ALIVE only while all of the following hold; any failure stops the pulses (RX_FAULT high):
+
+| # | Criterion | Check |
+|---|-----------|-------|
+| 1 | CC1200 responds | PARTNUMBER register reads 0x20 and a scratch-register write/read-back matches, every 1 s; 3 consecutive failures = fault |
+| 2 | CC1200 is receiving | MARCSTATE = RX (after one automatic re-entry attempt); not RX for > 2 s = fault |
+| 3 | Synthesizer locked, reference running | Lock status in RX and XOSC stable; CLKEN_CFM sample interrupts at 12.5 kHz ± 5 % (none for > 100 ms in RX = fault) |
+| 4 | Configuration intact | The 10 s scrub re-writes any register mismatch (logged); a mismatch that persists after 3 re-writes = fault |
+| 5 | TNC itself healthy | RX_ALIVE is toggled from the main loop, not an interrupt; an independent-watchdog reset stops the pulses for the reset and re-initialisation (about 50 ms) |
+
+RX_FAULT is high for about 0.5 s after RADIO_EN rises (no pulses yet): the OBC ignores it for 1 s after switching
+RADIO_EN on. A fault clears when the pulses resume (after the TNC re-initialises the CC1200, or after the OBC's
+RADIO_EN power cycle). RX_FAULT says nothing about the antenna, LNA or filter (a deaf front end with a healthy CC1200
+reads not fault): RX_CD carrier counts and the 24 h silence rule of SRS-F115 cover those.
+
 ## 9. Antenna Interface
 
 ISIS AntS 1U–3U on the −Z face (MASS_BUDGET layout B): two 2 m tape monopoles along +X and −X, two 70 cm monopoles along
@@ -539,7 +567,9 @@ CMX138A registers: the TNC re-writes and verifies their configuration every 10 s
 Not flight software of the OBC, but software on the spacecraft (Class C per the SDP): KISS on USART2 at 9600 baud
 (parameters of ICD-003 §5.2, FULLDUPLEX 1); HDLC with FCS-16, NRZI, bit stuffing; AFSK 1200 demodulator (correlator,
 as LBA §3) on the CC1200 CFM samples at 12.5 kS/s; AFSK modulator (DAC1 sine table at 50 kS/s) with TXDELAY/TXTAIL;
-repeat audio to DAC2 (DC removal, 1 sample latency); CC1200, LMX2571 and CMX138A configuration with read-back
+repeat audio to DAC2 (DC removal, 1 sample latency); (B) RX_ALIVE pulses every 100 ms from the main loop only while
+the five receiver-health criteria of §8.6 hold, and CC1200 GPIO2 configured as carrier sense with the calibrated
+threshold; CC1200, LMX2571 and CMX138A configuration with read-back
 scrubbing; TONE_OK relay from CMX138A IRQN; frequency trims from flash; independent watchdog. It can reuse the
 `sqso-protocol` KISS and AX.25 code (`no_std`, Rust). Its requirements and tests belong in
 `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` (for the chair).
@@ -556,6 +586,7 @@ scrubbing; TONE_OK relay from CMX138A IRQN; frequency trims from flash; independ
 | VI-RFB-06 | LPF on the board: ≥ 55 dB at 2f and ≥ 75 dB at 3f measured; leakage floor ≤ −90 dBc | §7.4, RF-07 | EM |
 | VI-RFB-07 | Key-down timer 120 ± 5 s over −20 to +60 °C after trim | RF-F008 | EM, thermal |
 | VI-RFB-08 | TX permit: with PA_5V removed, no emission > −60 dBm at J3/J4 with TNC_PTT and XPDR_KEY forced high; with U406 output forced high and PA_5V removed, the same | §8.5, VI-RF-12 | EM |
+| VI-RFB-10 | Receiver supervision: RX_CD follows a carrier 3 dB above the threshold and stays low on noise (< 1 false alarm per hour); RX_FAULT goes high 0.36–0.62 s after each injected fault of §8.6 (CC1200 held in reset, SPI line open, TCXO removed, TNC halted) and low after recovery; with RADIO_3V3 off both lines read low at the OBC and no current flows into the board | RID RFB-07, SRS-F115–F117 | EM |
 | VI-RFB-09 | Sense-line coupling and directivity (≥ 15 dB); detector calibration ±0.5 dB −20 to +60 °C | §7.6 | EM |
 
 VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 still apply.
@@ -565,7 +596,7 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | # | Change | Owner | Recommended text or action |
 |---|--------|-------|----------------------------|
 | 1 | OBC inputs for the three readbacks (RID RF-21 / AV-05): TONE_OK on W4 J1-8, XPDR_KEY on J1-9, PTT_EXCITER on J1-10; 3.1 V CMOS push-pull through 1 kΩ, active high, valid while RADIO_3V3 is on; three GPIO inputs with pull-down, PTT_EXCITER preferably on a timer input-capture pin | OBC designer (pins), AV (firmware) | Allocate three STM32 pins; firmware reads them into the transponder statistics and checks keyed time against TX_FWD |
-| 2 | W4 signal connector 10 → 14 positions (FTSH-107), adding XPDR_EN (it was missing from W4) and the readbacks | OBC designer | OBC J-RF pinout per §4.1 |
+| 2 | W4 signal connector 10 → 16 positions (FTSH-108): XPDR_EN (missing from W4), readbacks J1-8/9/10, and (B) RX_CD J1-15, RX_FAULT J1-16 | OBC designer | OBC J-RF pinout per §4.1; two more OBC inputs with pull-downs for RX_CD and RX_FAULT (RID RFB-07) |
 | 3 | OBC SPI2 (PB13–PB15, PD0, "RF transceiver" in `spi.rs`) is no longer used by the radio | OBC designer, AV | Free the pins |
 | 4 | SW2 trip current 0.25 A does not detect latch-up of a 38 mA load | EPS designer | SW2 current limit ≈ 0.12 A, or OBC monitoring of the RADIO rail current with a power cycle of RADIO_EN |
 | 5 | 3V3_AO tolerance ±3 % leaves 39 mV for the LMX2571's 3.15 V minimum | EPS designer | ±2 % set point, or confirm ±3 % includes load and temperature |
@@ -599,3 +630,4 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR design completion, RF board | Initial issue: build-to design of the RF board (receiver, TNC, exciter, PA, filters, repeat path and `XPDR_EN` gate, monitors, antenna interface), schematic as code with parts, netlist, BOM, ERC, calculations, layout rules |
+| B | 2026-10-27 | CDR design completion, RF board (RID RFB-07) | Receiver supervision lines to the OBC: RX_CD (CC1200 carrier sense, J1-15) and RX_FAULT (hardware health monostable on the TNC's RX_ALIVE pulses, J1-16), fault criteria (§8.6), TNC firmware duties (§13), VI-RFB-10; J1/W4 16 positions (W4 v3); power, part counts and ERC re-run; BASELINE cited at Rev E |

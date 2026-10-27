@@ -55,7 +55,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-SA-001 | SMART-QSO Structural Analysis | `docs/environment/STRUCTURAL_ANALYSIS.md` | B | Draft; analysis |
 | SQSO-MECH-001 | SMART-QSO Mechanisms Analysis | `docs/environment/MECHANISMS_ANALYSIS.md` | C | Draft; analysis |
 | SQSO-ENV-002 | Radiation Environment Analysis | `docs/environment/RADIATION_ANALYSIS.md` | D | Draft |
-| SQSO-REL-001 | SMART-QSO Reliability Analysis | `docs/environment/RELIABILITY_ANALYSIS.md` | 2.0 | Draft |
+| SQSO-REL-001 | SMART-QSO Reliability Analysis | `docs/environment/RELIABILITY_ANALYSIS.md` | 2.1 | Draft |
 | SQSO-THA-001 | SMART-QSO Thermal Analysis | `docs/environment/THERMAL_ANALYSIS.md` | 2.0 | Draft |
 | SQSO-GND-001 | Ground Station Design | `docs/ground/GROUND_STATION_DESIGN.md` | C | Draft |
 | SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.2 | Draft |
@@ -86,10 +86,10 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-MFG-002 | EEE Parts List | `docs/manufacturing/EEE_PARTS_LIST.md` | D | Draft |
 | SQSO-WP-001 | Workmanship Plan | `docs/manufacturing/WORKMANSHIP_PLAN.md` | B | Draft |
 | SQSO-WKS-001 | SMART-QSO Workmanship Standards | `docs/manufacturing/WORKMANSHIP_STANDARDS.md` | 1.1 | Draft |
-| SQSO-MSC-001 | SMART-QSO Mission Success Criteria | `docs/mission/MISSION_SUCCESS_CRITERIA.md` | 2.0 | Draft |
-| SQSO-LVR-001 | Launch Vehicle and Dispenser Requirements Flow-Down | `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` | C | Draft; from published provider documents, no mission ICD yet |
+| SQSO-MSC-001 | SMART-QSO Mission Success Criteria | `docs/mission/MISSION_SUCCESS_CRITERIA.md` | 2.1 | Draft |
+| SQSO-LVR-001 | Launch Vehicle and Dispenser Requirements Flow-Down | `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` | D | Draft; from published provider documents, no mission ICD yet |
 | SQSO-SCH-001 | Integrated Master Schedule | `mission/SCHEDULE.md` | B | Draft; planning estimates |
-| SQSO-RISK-001 | Risk Register | `mission/RISK_REGISTER.md` | C | Living document |
+| SQSO-RISK-001 | Risk Register | `mission/RISK_REGISTER.md` | D | Living document |
 | SQSO-AR-001 | SMART-QSO Anomaly Report Template | `docs/operations/ANOMALY_REPORT_TEMPLATE.md` | 1.0 | Template |
 | SQSO-ARP-001 | SMART-QSO As-Run Procedure Template | `docs/operations/AS_RUN_PROCEDURE_TEMPLATE.md` | 1.0 | Template |
 | SQSO-OPS-003 | Command and Telemetry Database | `docs/operations/CMD_TLM_DATABASE.md` | A | Draft; command sections superseded (its notice) |
@@ -152,7 +152,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-REV-004 | SMART-QSO Verification and Validation Package | `docs/reviews/VERIFICATION_VALIDATION_PACKAGE.md` | 1.2 | Draft; status claims not substantiated (its notice) |
 | SQSO-SDP-001 | SMART-QSO Software Safety Data Package | `docs/safety/SAFETY_DATA_PACKAGE.md` | 1.2 | Draft |
 | SQSO-SDP-002 | SMART-QSO System Safety Data Package | `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` | 1.1 | Draft; 16 hazard reports |
-| SQSO-FMEA-002 | SMART-QSO System (Hardware) FMEA and Critical Items List | `docs/safety/SYSTEM_FMEA_CIL.md` | B | Draft; analysis |
+| SQSO-FMEA-002 | SMART-QSO System (Hardware) FMEA and Critical Items List | `docs/safety/SYSTEM_FMEA_CIL.md` | C | Draft; analysis |
 | SQSO-SEC-001 | Space System Protection and Security Plan | `docs/safety/SPACE_SYSTEM_PROTECTION_PLAN.md` | A | Draft |
 | SQSO-REV-CDR-002 | Design Review against the NPR 7123.1D CDR Criteria (2026-10-27) | `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md` | A | Draft; engineering assessment by AI reviewers, not an independent board |
 | SQSO-FMEA-001 | Software Failure Mode and Effects Analysis (FMEA) | `docs/safety/SOFTWARE_FMEA.md` | C | Draft |
@@ -242,7 +242,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-STR-001 | Structural Design Document | `hardware/structure/STRUCTURAL_DESIGN.md` | 1.4 | Draft |
 | SQSO-MECH-CAD-001 | SMART-QSO Mechanical Design: CAD Model and Structural Finite-Element Model | `hardware/mechanical/MECHANICAL_DESIGN.md` | B | Draft; envelope level |
 | SQSO-ICX-001 | SMART-QSO Spacecraft Electrical Interconnect (master pin allocation) | `hardware/electrical/INTERCONNECT.md` | B | Draft; build-to design, not yet fabricated |
-| SQSO-RF-BRD-001 | SMART-QSO RF Board: Build-to Design | `hardware/electrical/rf/RF_BOARD_DESIGN.md` | A | Draft; schematic and BOM, not yet fabricated |
+| SQSO-RF-BRD-001 | SMART-QSO RF Board: Build-to Design | `hardware/electrical/rf/RF_BOARD_DESIGN.md` | B | Draft; schematic and BOM, not yet fabricated |
 | SQSO-EPS-BRD-001 | SMART-QSO EPS Board: Build-to Design | `hardware/electrical/eps/EPS_BOARD_DESIGN.md` | B | Draft; schematic and BOM, not yet fabricated |
 | SQSO-OBC-BRD-001 | SMART-QSO OBC Board: Build-to Design | `hardware/electrical/obc/OBC_BOARD_DESIGN.md` | B | Draft; schematic and BOM, not yet fabricated |
 | SQSO-JET-BRD-001 | Jetson Orin Nano Carrier Board Design | `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` | C | Draft; schematic and BOM, not yet fabricated |

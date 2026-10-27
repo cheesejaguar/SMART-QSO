@@ -1,7 +1,7 @@
 # Launch Vehicle and Dispenser Requirements Flow-Down
 
 **Document ID**: SQSO-LVR-001
-**Version**: C
+**Version**: D
 **Date**: 2026-10-27
 **Status**: Draft for CDR. No launch contract exists: every requirement below is flowed from the published provider
 documents, not from an agreed mission ICD. The mission ICD will supersede it where it differs.
@@ -131,7 +131,7 @@ tested to the launcher's levels).
 | LVR-084 | Thermal vacuum bakeout as specified by the launch provider | CDS §3.2 | Bakeout in the TVAC campaign | T | VI-LV-08 |
 | LVR-085 | Passive magnets ≤ 0.5 G above Earth's field outside the static envelope | CDS §2.1.8 | No passive magnets planned; the magnetorquer rods are actuators (unpowered at launch); check rod remanence | T | VI-LV-18 |
 | LVR-086 | All parts remain attached during launch, ejection and operation; no detachable parts | CDS §2.1.1; IDD §4.4.6 | Burn-wire line remnants retained in the hold-down | I | Met (design) |
-| LVR-087 | Disposal no later than 5 years after the mission ends (FCC); comply with NPR 8715.6; components re-enter with < 15 J | UG §1.2; CDS §2.4.3, §2.4.3.1 | Passive decay with wings deployed from the 475 km target, 485 km cap: P ≥ 0.98 of re-entry within 5 years after a 2-year mission, conservative solar projection (ODAR Draft B §6); fallback 460 km if the FCC counts an early failure as the end of the mission (BASELINE §3) | A | Met (analysis, in-house tool following the 8719.14C method); DAS run 2027-02 (ODA-02) |
+| LVR-087 | Disposal no later than 5 years after the mission ends (FCC); comply with NPR 8715.6; components re-enter with < 15 J | UG §1.2; CDS §2.4.3, §2.4.3.1 | Passive decay with wings deployed from the 475 km target, 485 km cap: P = 0.997 of re-entry within 5 years after a 2-year mission, conservative solar projection, wings-failed probability 0.29 % (ODAR Draft D §6.4); fallback 460 km if the FCC counts an early failure as the end of the mission (BASELINE §3) | A | Met (analysis, in-house tool following the 8719.14C method); DAS run 2027-02 (ODA-02) |
 | LVR-088 | Register all deployed objects with the 18th SDS no later than L-2 M, with the operator contact made public for the mission lifetime; if any orbit crosses the ISS altitude, coordinate with NASA (jsc-dl-topo-iwg@mail.nasa.gov) | UG §1.2, §9.5.7.1 | `docs/regulatory/filings/SPACE_SAFETY_REGISTRATION_AND_CONJUNCTION_PLAN.md` R1, R5 (the decay crosses the ISS altitude) | R | Open |
 | LVR-089 | **Forward-predicted GPS/GNSS ephemeris with covariance to Space-Track and SpaceX Space Traffic Coordination within 24 h of first contact, after every pass and at least every 24 h until cataloged**; a spacecraft without GNSS arranges a third party before integration; integrators enforce, and failure to demonstrate may mean rebooking | UG §9.5.7.2 | GNSS receiver (D6). **The flight software does not run the GNSS**: the NMEA parser `sqso-fsw/src/gnss.rs` is not called by the executive, there is no receiver power schedule, no fix in telemetry and no ground orbit-determination pipeline. First ephemeris due 24.7–36.2 h after separation (first contact 0.7–12.2 h, `leop_passes.py`) | D | **Open** (RID LV-04); VI-LV-13 |
 | LVR-090 | Claim the object with the 18th SDS within 30 days of deployment | UG §9.5.7.2 | Identification by beacon Doppler (SQSO-REG-015 §2) | D | Open |
@@ -216,6 +216,7 @@ contract.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| D | 2026-10-27 | LVR-087 disposal probability from ODAR Draft D §6.4 (P = 0.997 with the four-line wing deployment; was P ≥ 0.98) (RID SE-16) |
 | C | 2026-10-27 | CDR 2026 consistency pass: LVR-100 mass margin from BASELINE Rev E §4 (MEV 1.73 kg; it still quoted the MEL v2.0 prediction) |
 | B | 2026-10-27 | Chair's reconciliation after the design review: mass and mass properties from MASS_BUDGET v3.0 (LVR-005, 026, 027); protoflight vibration at 8.18 Grms and thermal-vacuum levels from ETP Rev C (LVR-044, 050, VI-LV-04, VI-LV-08); trifilar MOI (VI-LV-02); disposal from the 475/485 km band (LVR-087); deliverable schedule moved to L = 2028-11-01 with the early FCC filing and the IARU date (§9) |
 | A | 2026-10-27 | Initial flow-down for the CDR from SpaceX UG v11 (Aug 2026), CDS Rev 14.1, EXOpod Nova UM Rev 1.2, EXOpod UM Rev 6.0 and the NRCSD IDD (2018); verification items VI-LV-01 to VI-LV-18; analyses in `software/simulation/cdr/launch/` |

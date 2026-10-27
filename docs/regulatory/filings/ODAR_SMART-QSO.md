@@ -373,7 +373,7 @@ N/A.
 |---|------|-------|
 | 1 | Obtain NASA DAS 3.2.6 (NASA Software Catalog usage agreement) and reproduce §4–§7 with the controlled MEL | S&MA |
 | 2 | Put the deployment band and cap (decided: 465–485 km, 485 km cap, BASELINE Rev E §3; RID ODA-01) in the launch contract | PI, launch |
-| 3 | Passivation: telecommands implemented (0x70/0x71, SQSO-ICD-013 v0.8 §6.4); charge-path disconnect designed (F1, two independent signals, SQSO-EPS-BRD-001 §7); run V-EPS-8 on the EM, add the recharge lockout, and update the pre-space notification's passivation statement after the EM test | EPS, FSW, licensee |
+| 3 | Passivation: telecommands implemented (0x70/0x71, SQSO-ICD-013 v0.8 §6.4); charge-path disconnect designed (F1, two independent signals, SQSO-EPS-BRD-001 §7); run V-EPS-8 on the EM, close the recharge lockout (EPS-12), and update the pre-space notification's passivation statement after the EM test | EPS, FSW, licensee |
 | 4 | Ask the FCC (D3 consultation) which reading of "completion of the mission" applies to a failed spacecraft | Licensee |
 | 5 | Replace the cycle-26 assumption with the NOAA/NASA prediction when issued; DAS uses its own solar-flux table | S&MA |
 | 6 | Separate burn drivers for the two wings: designed, one driver per resistor on four lines (SQSO-EPS-BRD-001 §9); §6.4 re-run in Draft D (wings-failed 0.29 %, of which 0.2 % is the shared burn supply SW6/U17); confirm the shared-supply allocation with the EPS board FMEA | EPS, S&MA |

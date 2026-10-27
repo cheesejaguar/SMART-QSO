@@ -1,7 +1,7 @@
 # SMART-QSO Reliability Analysis
 
 **Document ID**: SQSO-REL-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis. Allocations and models, not measurements: no flight hardware exists. Version 1.2's
@@ -43,8 +43,9 @@ The Jetson experiment (E-1) is not in the RBD for any level. Its failures enter 
    ─ Telecommand keys ─ [Jetson isolation] ─ [GNSS isolation] ─ [Operations]                    = BUS (series; L1, L2, L3)
 
  BUS ─ Transponder repeat path                                                                  = L1 relay, L2/L3 service
-     ─ Wings: ┌ common burn driver ┐─┬─ Wing 1 ─┐                                                  L2/L3: at least one wing,
-              └────────────────────┘ └─ Wing 2 ─┘  (1-of-2, but in series with the common driver)  and if only one, ADCS
+     ─ Wings: ┌ shared burn supply ┐─┬─ Wing 1 ─ (driver A ∥ driver B) ─┐                          L2/L3: at least one wing,
+              │ SW6, U17, DEPLOY_EN │ └─ Wing 2 ─ (driver A ∥ driver B) ─┘                          and if only one, ADCS
+              └─────────────────────┘  (1-of-2 wings, in series with the shared supply)
      ─ ADCS (needed only if one wing is lost) ─ Battery heater (loss ends service in 30 % of cases)
 ```
 
@@ -79,7 +80,8 @@ mode with a 58-day scale and 18.5 % dead on arrival), so the allocation is built
 | GNSS faults not isolated | 0.001 | 0.001 | Load switch with latch-up trip |
 | Operations error (unrecoverable) | 0.003 | 0.005 | Two-person rule for hazardous commands |
 | Transponder repeat path | 0.030 | 0.010 | Custom; flatsat end-to-end test |
-| Wing burn driver (common to both wings, S5) | 0.015 | 0 | One driver, arm switch and timer for both wings |
+| Wing burn supply shared by the four drivers | 0.002 | 0 | SW6 load switch, U17 burn buck, DEPLOY_EN line (SQSO-EPS-BRD-001 §9), and the deployment sequence in software, which a ground-commanded retry covers. Version 2.0 had one driver, arm switch and timer for both wings at 0.015 |
+| Wing burn driver, each of four (PB10 → W1A, PE6 → W1B, PB9 → W2A, PE7 → W2B) | 0.005 | 0 | One-shot, op-amp, FET and shunt; a wing is lost only if both of its drivers fail |
 | Wing 1, wing 2 (each) | 0.030 | 0 | Hinge and restraint release |
 | ADCS | 0.030 | 0.020 | Bought sensors and rods; custom drivers; backup gyro |
 | Battery heater | 0.010 | 0.010 | |
@@ -91,21 +93,24 @@ the consequence of any change visible.
 
 | Case | L1 (30 d) | L2 (1 yr) | L3 (2 yr) |
 |------|-----------|-----------|-----------|
-| **Allocation as tabulated** | **0.75** | **0.60** | **0.50** |
-| Early-failure probabilities × 0.5 (§6 test program) | 0.86 | 0.70 | 0.58 |
-| Early-failure probabilities × 2 (first-build team, tests cut) | 0.57 | 0.44 | 0.36 |
-| Random hazards × 2 (radiation worse than predicted) | 0.74 | 0.50 | 0.35 |
+| **Allocation as tabulated** | **0.75** | **0.61** | **0.51** |
+| Early-failure probabilities × 0.5 (§6 test program) | 0.86 | 0.71 | 0.59 |
+| Early-failure probabilities × 2 (first-build team, tests cut) | 0.57 | 0.45 | 0.37 |
+| Random hazards × 2 (radiation worse than predicted) | 0.74 | 0.51 | 0.35 |
 | Empirical CubeSat survival, launch excluded (two-Weibull) | 0.74 | 0.60 | 0.56 |
 
-The bottom-up estimate and the empirical CubeSat curve agree within 0.06 at every horizon. The goals of Version 1.2
+With the four-line wing deployment of the EPS board (Version 2.1) L2 and L3 rise by about 0.01 against Version 2.0's
+0.60 and 0.50 (`reliability_model.py --design shared` reproduces those). The bottom-up estimate and the empirical CubeSat
+curve agree within 0.06 at every horizon. The goals of Version 1.2
 (L1 > 0.95, L2 > 0.80, L3 > 0.60) are **not met**, and the program cannot reach them with a single-string first-build
 1U; even the halved-early-failure case misses L1 and L2. Recommended disposition: replace them with the estimates
 above as accepted Class D risk, with the §6 program as the means to approach the halved case (RID REL-01, PI decision).
 
 **Contributors to the L2 loss** (share of trials in which the block was the first required block to fail within a
 year): EPS 6.6 %, OBC 5.7 %, flight software 4.8 %, transmitter 4.7 %, receiver 4.0 %, repeat path 3.3 %, harness
-2.1 %, battery 1.8 %, antennas 1.3 %, others < 1 % each. **Wings:** both lost in 1.6 % of trials (the common driver),
-one lost in 5.7 %.
+2.1 %, battery 1.8 %, antennas 1.3 %, others < 1 % each. **Wings:** both lost in 0.29 % of trials (0.2 % the shared burn
+supply, 0.09 % both wings independently; Version 2.0, with one driver for both wings: 1.6 %), one lost in 5.8 %. The
+both-wings-lost probability is the wings-failed input of the ODAR's disposal probability (ODAR Draft D §6.4).
 
 ## 6. Means to Reduce Early Failures (the dominant term)
 
@@ -116,7 +121,7 @@ one lost in 5.7 %.
 | Day-in-the-life tests | 72 h of the commissioning sequence, then 7 days of operations, on the flight unit | Software and operations |
 | Protoflight TVAC with functional tests at every plateau | Per `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` | Workmanship |
 | Deployment tests at cold and minimum voltage | VI-LV-17 | Wings and antennas |
-| Separate burn driver per wing | One NMOS and one GPIO | Both-wings-lost 1.6 % → ≈ 0.1 % |
+| Separate burn driver per wing | Done in the EPS board design: one driver per resistor on four lines | Both-wings-lost 1.6 % → 0.29 % (the shared SW6/U17 supply is now the larger term) |
 | Beacon kept when the receiver is known failed (D3 consultation) | Rule change | Removes the receiver from the L1/L2 beacon chain after day 30 |
 
 ## 7. Single Points of Failure
@@ -183,3 +188,4 @@ distribution of §5 and the deployment altitude; it is computed with the same Mo
 | 1.2 | 2026-10-16 | SMART-QSO Team | §3.2 link-budget margin: the SEMP threshold and goal and the LINK_BUDGET_ANALYSIS v2.0 result replace "3 dB margin minimum" (finding TB-05). Header revision brought up to the history (it still read 1.0 after 1.1) |
 | 1.2, note | 2026-10-24 | SMART-QSO Team | §9.3 note: the MISRA and complexity entries are unsupported; status for the Rust flight software |
 | 2.0 | 2026-10-27 | CDR S&MA review | Rewritten: RBD, failure-rate allocation and Monte Carlo for L1/L2/L3 of MISSION_SUCCESS_CRITERIA v2.0 (0.75 / 0.60 / 0.50), empirical cross-check (Jacklin 2019; Langer and Bouwmeester 2016), sensitivity, contributors, early-failure reduction program, wear-out table; Version 1.2 predictions, the Apollo4/Si4463 parts table, the 400 km radiation table and the NASA-HDBK-4002A citation withdrawn |
+| 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Wing deployment re-modelled for the EPS board's four independent burn lines (one driver per resistor, burned one at a time) with the shared SW6/U17/DEPLOY_EN supply: both wings lost 0.29 % (was 1.6 %); L1/L2/L3 0.75 / 0.61 / 0.51 (was 0.75 / 0.60 / 0.50); RBD, allocation, §5, §6 |

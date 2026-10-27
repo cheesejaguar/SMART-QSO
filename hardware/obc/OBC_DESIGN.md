@@ -463,9 +463,9 @@ persisted mission-elapsed-time offset in FRAM, updated at each GNSS fix, so that
 
 | Gap (§13.1–§13.4) | Resolution (SQSO-OBC-BRD-001 / SQSO-ICX-001) |
 |-------------------|------------------------------------------------|
-| AV-01 schematic and pin conflicts | schematic as code with selected parts; one pin table builds the MCU (ICX §4); 25 firmware changes listed (ICX §6), among them PAYLOAD_EN PB4 → PB2 (PB4 resets as NJTRST with a pull-up), DEPLOY_EN PA1 → PF3, FRAM PA4–PA7 → PG2–PG5 |
+| AV-01 schematic and pin conflicts | schematic as code with selected parts; one pin table builds the MCU (ICX §4); 28 firmware changes listed (ICX §6; version B adds JETSON_PWR PA2 → PA8, the spreader NTC on PA2 and RX_CD PG0 / RX_FAULT PF13), among them PAYLOAD_EN PB4 → PB2 (PB4 resets as NJTRST with a pull-up), DEPLOY_EN PA1 → PF3, FRAM PA4–PA7 → PG2–PG5 |
 | AV-02 external supervisor | TPS3850H33-Q1 window watchdog and 3.3 V supervisor on NRST; window 5.6–33.3 s, kicked on PG11 every 10 s; the IWDG (28–32.5 s) acts first (BRD §6) |
-| AV-03 gyro, backup, magnetometer, sun sensors, coils, sensor rail | on the OBC board: M-G370PDT0 (SPI3, DRDY PD10, /RST PD14), BMI088 (SPI2), RM3100 (I2C4 0x20), six transimpedance amplifiers into an ADS7138-Q1 (0x10), three DRV8876-Q1 from VBAT with a hardware current limit and a hardware off-timer (0.92–0.98 s); three latch-up switches (BRD §9, §10). Drivers remain flight-software work |
+| AV-03 gyro, backup, magnetometer, sun sensors, coils, sensor rail | on the OBC board: M-G370PDT0 (SPI3, DRDY PD10, /RST PD14), BMI088 (SPI2), RM3100 (I2C4 0x20, on the magnetometer board A2 at the +Z end frame, harness W6E), six transimpedance amplifiers into an ADS7138-Q1 (0x10), three DRV8876-Q1 from VBAT with a hardware current limit and a hardware off-timer (0.92–0.98 s); three latch-up switches (BRD §9, §10). Drivers remain flight-software work |
 | AV-05 / RF-21 readbacks | TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 (TIM8 capture) (BRD §13) |
 | AV-06 switch independence | PAYLOAD_EN PB2 and JETSON_PWR PA2 on different ports; readbacks of SW1's and the eFuse's outputs (ADC) and the carrier's 3.3 V (BRD §11.2) |
 | AV-09 back-power | SN74LVC1T45-Q1 translators powered from the carrier's own 3.3 V: no firmware workaround (BRD §11.1) |
@@ -1059,3 +1059,4 @@ OpenOCD / STM32CubeProgrammer
 | 1.5 | 2026-10-25 | CR-2026-005: USART2 is the KISS TNC link for the uplink and the downlink (§8.1; conflicts table: UART allocation, RF transceiver link); §8.4 note on the firmware's downlink pins |
 | 1.6 | 2026-10-27 | §13 new (CDR avionics review): schematic state, every OBC interface with its pins, driver and gap (RIDs AV-01 to AV-10), watchdog and reset, NVM regions including the operations record, timekeeping |
 | 1.7 | 2026-10-27 | §8 marked superseded by SQSO-ICX-001 (master pin allocation); §13 note and §13.5: resolution of every open avionics item (AV-01, AV-02, AV-03, AV-05, AV-06, AV-09, AV-10, RF-21) in the board design SQSO-OBC-BRD-001 |
+| 1.7, note | 2026-10-27 | §13.5 rows AV-01 and AV-03 follow SQSO-OBC-BRD-001 B and SQSO-ICX-001 B (28 firmware changes; magnetometer on board A2) |
