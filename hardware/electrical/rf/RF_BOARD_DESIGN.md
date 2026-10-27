@@ -792,7 +792,7 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | 3 | OBC SPI2 (PB13–PB15, PD0, "RF transceiver" in `spi.rs`) is no longer used by the radio | OBC designer, AV | Free the pins |
 | 4 | SW2 trip current 0.25 A does not detect latch-up of a 38 mA load | EPS designer | SW2 current limit ≈ 0.12 A, or OBC monitoring of the RADIO rail current with a power cycle of RADIO_EN |
 | 5 | 3V3_AO tolerance ±3 % leaves 39 mV for the LMX2571's 3.15 V minimum | EPS designer | ±2 % set point, or confirm ±3 % includes load and temperature |
-| 6 | Transponder DC 1.84 W at 0.5 W RF (1.76 W before E) (BASELINE §5 says ≈ 1.5 W) | Chair (BASELINE §5), PBA | "FM transponder (0.5 W RF ≈ 1.8 W DC), duty ≤ 25 %: 0.44 W"; or a 6 V PA rail / 12 Ω load line (§7.3) |
+| 6 | Transponder DC 1.84 W at 0.5 W RF (1.76 W before E) (BASELINE §5 says ≈ 1.5 W) | Chair (BASELINE §5), PBA | "FM transponder (0.5 W RF ≈ 1.85 W DC), duty ≤ 25 %: 0.46 W"; or a 6 V PA rail (§7.3; the 12 Ω load line no longer reaches 1.5 W after E) |
 | 7 | 1 W setting 29.5–30.1 dBm | Chair | Keep "1 W maximum" for the filing; RF-P003 1 W level 30.0 +0.3/−0.6 dB |
 | 8 | Uplink request 435.050–436.500 MHz (SAW temperature drift, 435.000 MHz clock harmonics) | Chair (IARU request), REG | Add to the IARU request alongside the 437.3 MHz upper bound |
 | 9 | Receiver changed from "AX5043/SA818 class" to CC1200; the repeat audio passes through the TNC firmware | Chair (BUILD_VS_BUY §3.2 text) | "…the receiver's demodulated audio, produced by the TNC MCU from the CC1200's frequency samples (no analog FM receiver IC is in production within the power budget); tone decode, band-limiting, level limit, key gate, timer and TX permit in hardware" |

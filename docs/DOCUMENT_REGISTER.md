@@ -250,7 +250,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-STR-001 | Structural Design Document | `hardware/structure/STRUCTURAL_DESIGN.md` | 1.4 | Draft |
 | SQSO-MECH-CAD-001 | SMART-QSO Mechanical Design: CAD Model and Structural Finite-Element Model | `hardware/mechanical/MECHANICAL_DESIGN.md` | B | Draft; envelope level |
 | SQSO-ICX-001 | SMART-QSO Spacecraft Electrical Interconnect (master pin allocation) | `hardware/electrical/INTERCONNECT.md` | C | Draft; build-to design, not yet fabricated |
-| SQSO-RF-BRD-001 | SMART-QSO RF Board: Build-to Design | `hardware/electrical/rf/RF_BOARD_DESIGN.md` | D | Draft; schematic and BOM, not yet fabricated |
+| SQSO-RF-BRD-001 | SMART-QSO RF Board: Build-to Design | `hardware/electrical/rf/RF_BOARD_DESIGN.md` | E | Draft; schematic and BOM, not yet fabricated |
 | SQSO-EPS-BRD-001 | SMART-QSO EPS Board: Build-to Design | `hardware/electrical/eps/EPS_BOARD_DESIGN.md` | D | Draft; schematic and BOM, not yet fabricated |
 | SQSO-OBC-BRD-001 | SMART-QSO OBC Board: Build-to Design | `hardware/electrical/obc/OBC_BOARD_DESIGN.md` | C | Draft; schematic and BOM, not yet fabricated |
 | SQSO-JET-BRD-001 | Jetson Orin Nano Carrier Board Design | `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` | E | Draft; schematic and BOM, not yet fabricated |

@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 10:34 AM")
+    (date "10/27/2026 12:13 PM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -297,22 +297,6 @@
         (pintype "PASSIVE")))
     (net
       (code 2)
-      (name "NRST")
-      (class "Default")
-      (node
-        (ref "D1")
-        (pin "4")
-        (pintype "PASSIVE"))
-      (node
-        (ref "J1")
-        (pin "6")
-        (pintype "PASSIVE"))
-      (node
-        (ref "J2")
-        (pin "6")
-        (pintype "PASSIVE")))
-    (net
-      (code 3)
       (name "PACK_N")
       (class "Default")
       (node
@@ -342,6 +326,22 @@
       (node
         (ref "J3")
         (pin "4")
+        (pintype "PASSIVE")))
+    (net
+      (code 3)
+      (name "RST_REQ")
+      (class "Default")
+      (node
+        (ref "D1")
+        (pin "4")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
+        (pin "6")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J2")
+        (pin "6")
         (pintype "PASSIVE")))
     (net
       (code 4)

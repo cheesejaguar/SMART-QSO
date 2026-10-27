@@ -75,12 +75,12 @@ class TestGnssFrame:
             "3 satellites", "radius 6000000 m outside LEO"]
 
     def test_week_rollover(self):
-        # 2028-11-02 is GPS week 2390, reported by a 10-bit receiver as 342
+        # 2028-11-02 is GPS week 2547, reported by a 10-bit receiver as 499
         week, tow = unix_to_gps(EPOCH)
-        assert week == 2390
-        assert resolve_week(week % 1024) == 2390
-        assert resolve_week(week % 1024, near_unix=EPOCH + 3 * 86400) == 2390
-        assert resolve_week(2390) == 2390
+        assert week == 2547
+        assert resolve_week(499) == 2547
+        assert resolve_week(499, near_unix=EPOCH + 3 * 86400) == 2547
+        assert resolve_week(2547) == 2547
 
     def test_gps_utc(self):
         # GPS is 18 s ahead of UTC (TAI - UTC = 37 s)
@@ -192,7 +192,8 @@ class TestDynamics:
 
     def test_sun_synchronous_orbit(self):
         a = 6378137.0 + 475e3
-        assert math.degrees(sso_inclination(a)) == pytest.approx(97.4, abs=0.05)
+        # 97.31 deg at 475 km (97.40 deg is the 500 km value)
+        assert math.degrees(sso_inclination(a)) == pytest.approx(97.31, abs=0.01)
 
 
 # --- End to end ---------------------------------------------------------------
@@ -215,28 +216,41 @@ def truth():
 
 @pytest.fixture(scope="module")
 def truth_grid(truth):
-    """Truth TEME states every 10 minutes over 4 days."""
-    times = EPOCH + np.arange(0, 4 * 86400 + 1, 600.0)
+    """Truth TEME states every minute over 4 days."""
+    times = EPOCH + np.arange(0, 4 * 86400 + 1, 60.0)
     return times, truth.states(times)
 
 
 def _truth_at(truth_grid, times):
     grid_t, states = truth_grid
     idx = np.searchsorted(grid_t, times)
-    assert np.allclose(grid_t[idx], times), "check times on the 10-minute truth grid"
+    assert np.allclose(grid_t[idx], times), "check times on the one-minute truth grid"
     return states[idx]
 
 
 def _errors(oem, truth_grid):
-    """3D position error (m) of an ITRF OEM against the truth, on the truth grid."""
-    keep = np.isin(oem.times, truth_grid[0])
-    times = oem.times[keep]
+    """3D position error (m) of an ITRF OEM against the truth, and its 1-sigma,
+    at the OEM's covariance epochs."""
+    times = oem.cov_times
+    states = oem.states[np.isin(oem.times, times)]
     tr = _truth_at(truth_grid, times)
-    r_itrf = fr.teme_to_itrf(times, tr[:, :3])
-    err = np.linalg.norm(oem.states[keep, :3] * 1000.0 - r_itrf, axis=1)
-    cov_keep = np.isin(oem.cov_times, times)
-    sigma = np.sqrt(np.trace(oem.covariances[cov_keep, :3, :3], axis1=1, axis2=2)) * 1000.0
+    err = np.linalg.norm(states[:, :3] * 1000.0 - fr.teme_to_itrf(times, tr[:, :3]), axis=1)
+    sigma = np.sqrt(np.trace(oem.covariances[:, :3, :3], axis1=1, axis2=2)) * 1000.0
     return times, err, sigma
+
+
+@pytest.fixture(scope="module")
+def leop(truth, tmp_path_factory):
+    tmp = tmp_path_factory.mktemp("leop")
+    times = EPOCH + np.arange(0, 24 * 3600, ORBIT_S)
+    fixes = simulate_fixes(truth, times, sigma_v=0.5, rng=np.random.default_rng(7))
+    archive = _frames_archive(tmp / "leop.jsonl", fixes)
+    gfc = tmp / "field.gfc"
+    write_icgem(gfc, kaula_coefficients(), 12)
+    code = run(["--frames", str(archive), "--out-dir", str(tmp / "out"), "--gravity-file", str(gfc),
+                "--gravity-degree", "12", "--object-id", "2028-999A", "--span-h", "72", "--cov-every", "10"])
+    files = {p.suffix: p for p in (tmp / "out").iterdir()}
+    return code, files, max(times)
 
 
 class TestLeopEveryOrbit:
@@ -246,28 +260,15 @@ class TestLeopEveryOrbit:
     <= 1.5 km at the last fix + 24 h and <= 8 km at + 72 h, error <= 3 sigma
     from + 6 h on, quality GOOD."""
 
-    @pytest.fixture(scope="class")
-    def products(self, truth, tmp_path_factory):
-        tmp = tmp_path_factory.mktemp("leop")
-        times = EPOCH + np.arange(0, 24 * 3600, ORBIT_S)
-        fixes = simulate_fixes(truth, times, sigma_v=0.5, rng=np.random.default_rng(7))
-        archive = _frames_archive(tmp / "leop.jsonl", fixes)
-        gfc = tmp / "field.gfc"
-        write_icgem(gfc, kaula_coefficients(), 12)
-        code = run(["--frames", str(archive), "--out-dir", str(tmp / "out"), "--gravity-file", str(gfc),
-                    "--gravity-degree", "12", "--object-id", "2028-999A", "--span-h", "72", "--cov-every", "10"])
-        files = {p.suffix: p for p in (tmp / "out").iterdir()}
-        return code, files, max(times)
-
-    def test_quality_good(self, products):
-        code, files, _ = products
+    def test_quality_good(self, leop):
+        code, files, _ = leop
         report = json.loads(files[".json"].read_text())
         assert code == EXIT_OK and report["quality"] == "GOOD", report["quality_reasons"]
         assert report["fixes_used"] == 16 and report["sessions"] == 16 and not report["rejected"]
         assert report["drag_scale"] == pytest.approx(1.4, abs=0.15)
 
-    def test_oem_accuracy(self, products, truth_grid):
-        _, files, last = products
+    def test_oem_accuracy(self, leop, truth_grid):
+        _, files, last = leop
         oem = read_oem(files[".oem"])
         times, err, sigma = _errors(oem, truth_grid)
         at = lambda h: err[np.argmin(np.abs(times - (last + h * 3600)))]  # noqa: E731
@@ -275,28 +276,50 @@ class TestLeopEveryOrbit:
         late = times >= last + 6 * 3600
         assert np.all(err[late] <= 3 * sigma[late])
 
-    def test_oem_format(self, products):
-        _, files, last = products
+    def test_oem_format(self, leop):
+        _, files, last = leop
         oem = read_oem(files[".oem"])
         assert oem.header["CCSDS_OEM_VERS"] == "3.0" and oem.header["ORIGINATOR"] == "KK6GDB"
         assert oem.meta["REF_FRAME"] == "ITRF2000" and oem.meta["TIME_SYSTEM"] == "UTC"
         assert oem.meta["OBJECT_ID"] == "2028-999A" and oem.meta["CENTER_NAME"] == "EARTH"
         assert len(oem.times) == 72 * 60 + 1 and np.all(np.diff(oem.times) == 60.0)
         assert oem.times[0] >= last and len(oem.cov_times) == 433
-        assert all(np.all(np.linalg.eigvalsh(c) > 0) for c in oem.covariances)
+        # Positive semi-definite to the precision written (along-track position
+        # and velocity are almost fully correlated after a day)
+        for c in oem.covariances:
+            d = np.sqrt(np.diag(c))
+            assert np.all(d > 0) and np.linalg.eigvalsh(c / np.outer(d, d)).min() > -1e-6
         assert "quality GOOD" in files[".oem"].read_text()
 
-    def test_tle(self, products, truth_grid):
+    def test_tle(self, leop, truth_grid):
         sgp4 = pytest.importorskip("sgp4.api")
-        _, files, last = products
+        _, files, last = leop
         lines = files[".tle"].read_text().splitlines()
         sat = sgp4.Satrec.twoline2rv(lines[1], lines[2])
         assert sat.satnum == 99999
-        target = math.ceil((last + 86400) / 600) * 600
+        target = math.ceil((last + 86400) / 60) * 60
         jd, frac = divmod(target / 86400.0 + fr.JD_UNIX_EPOCH, 1.0)
         err, r, _ = sat.sgp4(jd, frac)
         truth_r = _truth_at(truth_grid, [target])[0, :3]
         assert err == 0 and np.linalg.norm(np.array(r) * 1000 - truth_r) < 3000.0
+
+
+@pytest.fixture(scope="module")
+def sparse(truth, tmp_path_factory):
+    tmp = tmp_path_factory.mktemp("sparse")
+    starts = [0, ORBIT_S, 12 * 3600, 12 * 3600 + ORBIT_S]
+    times = EPOCH + np.array([s + d for s in starts for d in (0, 10, 20)], float)
+    fixes = simulate_fixes(truth, times, sigma_v=None, rng=np.random.default_rng(11))
+    bad = fixes[4]
+    outlier = GnssFix(bad.week, bad.tow_ms + 5000, tuple(np.array(bad.r_ecef_m) + 2000.0), None, 1, 7, 2.0)
+    dr = GnssFix(bad.week, bad.tow_ms + 7000, bad.r_ecef_m, None, 6, 7, 2.0)
+    extra = [json.dumps({"station": "W1AW", "info": format_gnss_frame(f)}) for f in (fixes[0], outlier, dr)]
+    archive = _frames_archive(tmp / "sparse.jsonl", fixes, extra=extra)
+    out = tmp / "out"
+    code = run(["--frames", str(archive), "--out-dir", str(out), "--span-h", "48", "--cov-every", "10",
+                "--no-tle"])
+    files = {p.suffix: p for p in out.iterdir()}
+    return code, files, max(times), archive, tmp
 
 
 class TestFirstEphemerisSparse:
@@ -306,25 +329,8 @@ class TestFirstEphemerisSparse:
     a dead-reckoned record and a 2 km outlier. Stated accuracy: 3D error
     <= 5 km at + 24 h, error <= 3 sigma, quality GOOD or FAIR."""
 
-    @pytest.fixture(scope="class")
-    def products(self, truth, tmp_path_factory):
-        tmp = tmp_path_factory.mktemp("sparse")
-        starts = [0, ORBIT_S, 12 * 3600, 12 * 3600 + ORBIT_S]
-        times = EPOCH + np.array([s + d for s in starts for d in (0, 10, 20)], float)
-        fixes = simulate_fixes(truth, times, sigma_v=None, rng=np.random.default_rng(11))
-        bad = fixes[4]
-        outlier = GnssFix(bad.week, bad.tow_ms + 5000, tuple(np.array(bad.r_ecef_m) + 2000.0), None, 1, 7, 2.0)
-        dr = GnssFix(bad.week, bad.tow_ms + 7000, bad.r_ecef_m, None, 6, 7, 2.0)
-        extra = [json.dumps({"station": "W1AW", "info": format_gnss_frame(f)}) for f in (fixes[0], outlier, dr)]
-        archive = _frames_archive(tmp / "sparse.jsonl", fixes, extra=extra)
-        out = tmp / "out"
-        code = run(["--frames", str(archive), "--out-dir", str(out), "--span-h", "48", "--cov-every", "10",
-                    "--no-tle"])
-        files = {p.suffix: p for p in out.iterdir()}
-        return code, files, max(times), archive, tmp
-
-    def test_quality_and_editing(self, products):
-        code, files, _, _, _ = products
+    def test_quality_and_editing(self, sparse):
+        code, files, _, _, _ = sparse
         report = json.loads(files[".json"].read_text())
         assert code == EXIT_OK and report["quality"] in ("GOOD", "FAIR"), report["quality_reasons"]
         assert report["fixes_used"] == 12 and report["sessions"] == 4
@@ -332,15 +338,15 @@ class TestFirstEphemerisSparse:
         assert len(reasons) == 2
         assert any("not a real fix" in r for r in reasons) and any("sigma" in r for r in reasons)
 
-    def test_oem_accuracy(self, products, truth_grid):
-        _, files, last, _, _ = products
+    def test_oem_accuracy(self, sparse, truth_grid):
+        _, files, last, _, _ = sparse
         times, err, sigma = _errors(read_oem(files[".oem"]), truth_grid)
         at24 = np.argmin(np.abs(times - (last + 86400)))
         assert err[at24] < 5000.0
         assert np.all(err <= 3 * sigma + 50.0)
 
-    def test_eme2000_needs_dut1(self, products):
-        _, _, _, archive, tmp = products
+    def test_eme2000_needs_dut1(self, sparse):
+        _, _, _, archive, tmp = sparse
         base = ["--frames", str(archive), "--span-h", "3", "--no-tle", "--frame", "EME2000"]
         assert run(base + ["--out-dir", str(tmp / "e1")]) == EXIT_FAIL
         assert run(base + ["--out-dir", str(tmp / "e2"), "--dut1", "0.05"]) == EXIT_OK

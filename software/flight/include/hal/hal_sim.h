@@ -47,6 +47,15 @@ void hal_sim_flash_fail_writes_after(int32_t writes);
 void hal_sim_gpio_drive_input(HalGpioPin_t pin, bool state);
 
 /**
+ * @brief The internal pull a pin was last configured with (HalGpioPull_t)
+ *
+ * On DEPLOY_SENSE and SOLAR_SENSE, which the board drives through a weak
+ * source, a configured internal pull decides the level read, as on the
+ * board (RID SMA-B02).
+ */
+uint32_t hal_sim_gpio_pull(HalGpioPin_t pin);
+
+/**
  * @brief When the GPIO_PIN_XPDR_EN heartbeat stops, or stopped
  *
  * On the HAL time base (hal_timer_get_us()), microseconds; 0 if the

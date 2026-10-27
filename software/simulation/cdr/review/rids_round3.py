@@ -126,9 +126,10 @@ NEW: list[tuple[str, int, str, str, str]] = [
     ("SMA-B19", 2, "One failed PA-temperature reading silences the downlink", "IMP", "Plausibility check and a pull-down (flight software, OBC)"),]
 
 FINAL3: dict[str, tuple[str, str]] = {
+    "SMA-B16": ("CD", "LMX2571 on its own TPS7A2033 3.3 V regulator from the PA rail (3.25 V min, 100 mV margin); TX-OFF still removes it; keyed DC 1.84 W at 0.5 W RF, allocation raised to 1.85 W DC (BASELINE §5, SYS-100 2.23 W) (RF_BOARD_DESIGN E §5)"),
     "PM-03": ("CD", "Citations corrected to NASA-STD-8739.8B, NPR 7123.1D, NPR 7150.2D (TEST_PROCEDURES, REQUIREMENTS_TRACEABILITY, SAFETY_DATA_PACKAGE, SOFTWARE_FMEA, SOFTWARE_SAFETY_PLAN, README, SDP/SRS/STP/SDD/SHA headers)"),
     "PM-04": ("CD", "gen_vcrm, gen_rid_log and gen_vi_register --check in program-checks.yml (CMP 1.2 §4.5); CR-2026-009 to -015; PI ratification of CR-007/-008 as DA-01 (PI, by 2027-01-12)"),
-    "SE-03": ("CD", "SYS Rev E/F/G in CR-2026-009; SYS-100 2.21 W (1.84 × 1.2) met by 2.48 W, +12 %"),
+    "SE-03": ("CD", "SYS Rev E/F/G in CR-2026-009; SYS-100 2.23 W (1.86 × 1.2, transponder allocation 1.85 W DC with RF board E) met by 2.48 W, +11 %"),
     "SE-05": ("DP", "DA-07 RFQs (PI, 2026-12-31), DA-08 mission ICD at the contract (PI, 2027-06-30), DA-09 IARU letter by 2027-05-18 (licensee)"),
     "SE-07": ("CD", "SYS-603 Rev G temperature limits (CR-2026-010): spreader ≤ +40 °C in a 600 s batch (39.0 °C predicted), junction ≤ 95 °C, ≤ +70 °C stuck on; verified by VI-01 and V-THM-3"),
     "SE-09": ("CA", "SQSO-TRA-001 A: 12 critical elements against NPR 7123.1D App. E, TRL now with evidence, TRL 6 plan to the CDR 2027-09-28; the OBC selector and Jetson radiation have stated fallbacks"),
@@ -149,7 +150,7 @@ FINAL3: dict[str, tuple[str, str]] = {
     "P3P-10": ("CD", "Early FCC filing 2027-01-19 everywhere with a CPM task; IARU letter by 2027-05-18; carrier layout from 2027-03-16, after JETB-06 (2027-02-01)"),
     "P3P-11": ("CD", "LVR-100 and LVR §9 at 1.75 kg; OAP §4.1.2 by the launch fixer"),
     "P3P-13": ("CD", "TBR-CDS-005 closed (changeover contacts, DS2 two-pole, DEPLOY_SENSE PE2); TBR baseline 32"),
-    "P3E-08": ("CD", "SYS-100 2.21 W in CR-2026-009; report §3.3 margins against the bottom-up load"),
+    "P3E-08": ("CD", "SYS-100 2.23 W in CR-2026-009; report §3.3 margins against the bottom-up load"),
     "P3E-09": ("DP", "CR-2026-014: ≥ 90 % at every point ≥ 1 W per tracker, ≥ 91 % power-weighted, PBA MPPT factor 0.91; PI decision by 2027-01-12"),
     "EPSB-04": ("DP", "With P3E-09 (CR-2026-014)"),
     "P3S-10": ("CD", "ETP D §3.4 one thermal-vacuum definition; SYS-707 Rev G; V-THM-6 restated in the VI register"),

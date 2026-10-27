@@ -120,7 +120,7 @@ def write_oem(path: Path, pred: Prediction, meta: OemMeta, dut1_s: Optional[floa
         c = covs[i] / 1e6  # m^2 -> km^2 (and m^2/s, m^2/s^2 alike)
         lines += [f"EPOCH = {iso(pred.times[i])}", f"COV_REF_FRAME = {frame_name}"]
         for row in range(6):
-            lines.append(" ".join(f"{c[row, col]: .7e}" for col in range(row + 1)))
+            lines.append(" ".join(f"{c[row, col]: .10e}" for col in range(row + 1)))
     lines += ["COVARIANCE_STOP", ""]
     path = Path(path)
     path.write_text("\n".join(lines), encoding="ascii")

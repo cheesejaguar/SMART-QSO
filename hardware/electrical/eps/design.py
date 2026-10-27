@@ -360,16 +360,17 @@ def connectors():
     j = mfit(6, "J13", "UMBILICAL", "0.5 A charge: 10 %", "W11 to the access-port board A3: charge in, return, pack monitor, AFE shutdown",
              "Z5", "Digi-Key 0430450602: Active (R/A, Au 30 uin)")
     conn(j, {"P1": "UMB_CHG", "P2": "UMB_CHG", "P3": "PACK_N", "P4": "PACK_N", "P5": "UMB_VMON", "P6": "UMB_SHUT"})
-    j = pico(4, "J14", "RBF", "uA", "W12D: RBF switch, two poles: A opens DS2's drive, B clamps the tracker enables", "Z4 (-Y edge)")
-    conn(j, {"P1": "S2N", "P2": "S2R", "P3": "TRK_EN", "P4": "GND"})
-    # DS2 is a two-pole switch (DPDT): pole 1 (C, NC) drives the pack-return FETs from the PACK domain; pole 2 (C2 at
-    # GND, NO2 closed when stowed) holds the tracker enables low, independently of DS3, so the array path has three
-    # inhibits (DS1 Q4, DS3 Q5, DS2 pole 2 TRK_EN; RID P3E-01)
+    j = pico(4, "J14", "RBF", "uA", "W12D: RBF switch, two poles: A opens DS2's drive; B (closed with the pin in) carries "
+             "VCTL to the tracker-clamp gate (active high: a wire to the frame cannot disable the trackers)", "Z4 (-Y edge)")
+    conn(j, {"P1": "S2N", "P2": "S2R", "P3": "TCL_B_W", "P4": "RBF_C2"})
+    # DS2 is a two-pole switch (DPDT): pole 1 (C, NC) drives the pack-return FETs from the PACK domain; pole 2 (C2 fed
+    # from VCTL through 10 k, NO2 closed when stowed) drives the gate of the tracker clamp Q40 (active high: a chafed
+    # wire to the frame removes the clamp, it cannot disable the trackers; RIDs P3E-01, SMA-B13)
     j = pico(5, "J16", "DS2", "uA", "W12B: DS2 deployment switch, two poles: 1 C, 2 NC (pack-return FET drive, PACK domain), "
-             "3 NO1 not used, 4 C2 (GND), 5 NO2 (TRK_EN, closed when stowed); own harness on its own rail", "Z2")
-    conn(j, {"P1": "DS2_C", "P2": "S2N", "P3": None, "P4": "GND", "P5": "TRK_EN"})
+             "3 NO1 not used, 4 C2 (VCTL via 10 k), 5 NO2 (tracker-clamp gate, closed when stowed); own harness on its own rail", "Z2")
+    conn(j, {"P1": "DS2_C", "P2": "S2N", "P3": None, "P4": "DS2_C2", "P5": "TCL_A_W"})
     for ref, ds, c, nc, no, hz, zone in (("J15", "DS1", "DS1_C", "S1N", None, "W12A", "Z3"),
-                                         ("J17", "DS3", "GND", "S3N", "TRK_EN", "W12C", "Z4")):
+                                         ("J17", "DS3", "GND", "S3N", None, "W12C", "Z4")):
         j = pico(3, ref, ds, "uA", f"{hz}: {ds} deployment switch (C, NC = closed when released, NO = closed when stowed); "
                  "own harness on its own rail", zone)
         conn(j, {"P1": c, "P2": nc, "P3": no})
@@ -425,7 +426,14 @@ def solar_and_trackers():
     C("1u", "REF_C", "GND", 25)
     C("100n", "VCTL", "GND")
     # tracker enables: pulled up from VCTL, clamped to GND by DS3 (NO, stowed) and RBF pole B (inserted)
-    R(100e3, "VCTL", "TRK_EN", note="tracker enable pull-up; DS3 NO contact and RBF pole B hold it low")
+    R(100e3, "VCTL", "TRK_EN", note="tracker enable pull-up; clamps Q40 (DS2 pole 2) and Q41 (RBF pole B) hold it low")
+    # active-high clamps: the switch contact carries VCTL to the clamp gate; the TRK_EN node never leaves the board
+    for qref, w, gate, src in (("Q40", "TCL_A_W", "TCL_A", "DS2_C2"), ("Q41", "TCL_B_W", "TCL_B", "RBF_C2")):
+        R(10e3, "VCTL", src, note="contact feed (a short of this wire to the frame draws 0.33 mA)")
+        R(10e3, w, gate, note="series from the harness")
+        R(1e6, gate, "GND", note="clamp off when the contact is open or its wire is grounded")
+        C("10n", gate, "GND")
+        Q("2N7002BK", qref, gate, "GND", "TRK_EN", stress="Vds 3.3 V / 60 V", note=f"tracker clamp ({'DS2 pole 2' if qref == 'Q40' else 'RBF pole B'})")
     C("100n", "TRK_EN", "GND")
     TP("TRK_EN")
     syncs = {"T1": "SYNC_A", "T2": "SYNC_B", "T3": "SYNC_A", "T4": "SYNC_B"}
@@ -447,6 +455,9 @@ def solar_and_trackers():
             "NC10": "GND", "NC14": "GND", "PGND11": "GND", "PGND12": "GND", "PGND13": "GND", "PAD": "GND"},
            stress="SW 16.8 V + 0.4 V / 40 V = 43 %; 1.27 A / 5.25 A", notes=f"MPPT tracker {t}")
         R(10e3, "TRK_EN", f"{t}_ENP")
+        # per-tracker disable by the EPS controller (isolates a tracker with a shorted output diode; RID SMA-B17)
+        Q("2N7002BK", f"Q{44 + k}", f"TDIS_{t}", "GND", f"{t}_ENP", note=f"{t} disable (EPS controller)")
+        R(100e3, f"TDIS_{t}", "GND", note="enabled when the controller is off")
         R(100, syncs[t], f"{t}_SYNC")
         R(46.4e3, f"{t}_FREQ", "GND", note="free-running 1.0 MHz if SYNC is lost")
         C("47n", f"{t}_SS", "GND")
@@ -543,7 +554,8 @@ def pack_and_protection():
     R(1e6, "PCHG_G", "FET_CD")
     R(200, "PCHG_D", "BAT_F", size="2512", note="precharge <= 45 mA", stress="(16.7-8.0 V)^2/200 = 0.38 W of 1 W: 38 %")
     D("SMBJ20A", "PACK_P", "BAT_BOT", ref="D14", note="pack TVS (PACK_P to pack negative)")
-    C("4.7u", "PACK_P", "BAT_BOT", 50, "1210", vop=16.8)
+    C("4.7u", "PACK_P", "PACKP_CM", 50, "1210", vop=16.8, note="series pair (fail-safe, RID SMA-B15)")
+    C("4.7u", "PACKP_CM", "BAT_BOT", 50, "1210", vop=16.8, note="series pair (fail-safe, RID SMA-B15)")
     # low side: cell 1 negative - AFE sense resistor - PACK_N
     RSH(0.010, "BAT_BOT", "PACK_N", "WSLP1206R0100FEA", "1206", 1.0, note="AFE coulomb-counter / OCD / SCD shunt",
         stress="4.0 A^2 x 10 mOhm = 0.16 W at the OCD trip", ref="RS7")
@@ -557,6 +569,10 @@ def pack_and_protection():
     # (local damping); internal balancing ~9 mA through the 2 x 214 Ohm loop
     for tap, vc in (("TAP0", "VC0"), ("TAP1", "VC1"), ("TAP2", "VC2"), ("TAP3", "VC15"), ("TAP4", "VC16")):
         R(10, tap, f"AFE_{vc}", note="cell-tap local filter (204 Ohm limiting chain on the sense board)")
+    # 1 M ladder across the taps (RID SMA-B03): an open tap is held between its neighbours, so neither the AFE nor
+    # the secondary protector reads a false over- or under-voltage (4.2 uA from the pack at 16.8 V)
+    for a_, b_ in (("TAP0", "TAP1"), ("TAP1", "TAP2"), ("TAP2", "TAP3"), ("TAP3", "TAP4")):
+        R(1e6, b_, a_, note="open-tap ladder")
     C("100n", "AFE_VC0", "BAT_BOT")
     C("100n", "AFE_VC1", "AFE_VC0")
     C("100n", "AFE_VC2", "AFE_VC1")
@@ -577,7 +593,8 @@ def pack_and_protection():
     C("2.2u", "REG1", "BAT_BOT", 25, "0805")
     C("2.2u", "AFE_CP1", "AFE_BATP", 25, "0805")
     D("BAT54", "AFE_BATP", "BAT_F", note="BAT pin series diode (TI recommendation for a pack short)")
-    C("2.2u", "AFE_BATP", "BAT_BOT", 25, "0805")
+    C("4.7u", "AFE_BATP", "BATP_CM", 50, "1210", vop=16.8, note="series pair, 2.35 uF (fail-safe, RID SMA-B15)")
+    C("4.7u", "BATP_CM", "BAT_BOT", 50, "1210", vop=16.8, note="series pair (fail-safe, RID SMA-B15)")
     p = place(TNPN, "Q8", "BCX56-16", "BCX56-16-QX", "Nexperia", "SOT-89", "NPN 80 V 1 A, AEC-Q101", "Vce 17.4 V/80 V = 22 %",
               "REGIN pre-regulator", "Sn", "Digi-Key: Active")
     conn(p, {"B": "AFE_BREG", "C": "AFE_BJTC", "E": "AFE_REGIN"})
@@ -612,7 +629,8 @@ def pack_and_protection():
         R(1e3, tap, f"OVP_{pin}", note="independent tap filter")
         C("100n", f"OVP_{pin}", "BAT_BOT")
     R(100, "N_RT1", "OVP_VDD", note="protector supply ahead of F3")
-    C("100n", "OVP_VDD", "BAT_BOT")
+    C("1u", "OVP_VDD", "OVPV_CM", 50, "0805", note="series pair, 0.5 uF (fail-safe, RID SMA-B15)")
+    C("1u", "OVPV_CM", "BAT_BOT", 50, "0805", note="series pair (fail-safe, RID SMA-B15)")
     ic(S_BQ7718, "U2", "BQ771806", "BQ771806DPJR", "TI", "WSON-8 (DPJ)", "2-5S OV protector, 4.350 V +/-10 mV, 3 s, CMOS active high",
        {"VDD": "OVP_VDD", "V5": "OVP_V4", "V4": "OVP_V4", "V3": "OVP_V3", "V2": "OVP_V2", "V1": "OVP_V1",
         "VSS": "BAT_BOT", "OUT": "OVP_OUT"}, stress="VDD 17.4 V / 25 V = 70 %", notes="secondary OV (V5 tied to V4 for 4S)",
@@ -646,7 +664,11 @@ def inhibits():
     # DS2: back-to-back N-FETs PACK_N - CS2 - GND; gate from BAT_F through 10 k, DS2 NC, RBF pole A, 1.2 M
     Q("BUK9Y4R4-40E", "Q6", "G2", "CS2", "PACK_N", stress="Vgs 7.3 V/10 V = 73 %", note="DS2 inhibit FET A")
     Q("BUK9Y4R4-40E", "Q7", "G2", "CS2", "GND", stress="Vgs 7.3 V/10 V = 73 %", note="DS2 inhibit FET B (back to back)")
-    R(10e3, "BAT_F", "DS2_C", note="harness short protection")
+    # DS2 drive from BAT_F OR PACK_P, so a pack-path open (F0A/F0B/F0N/F2/F3) leaves the array able to power the bus
+    p = place(TDDUAL_CC, None, "BAT54C", "BAT54C,215", "Nexperia", "SOT-23", "30 V 200 mA dual Schottky, common cathode", "",
+              "DS2 drive OR (BAT_F, PACK_P); RID SMA-B01", "Sn", "not checked")
+    conn(p, {"A1": "BAT_F", "A2": "PACK_P", "K": "DS2_SRC"})
+    R(10e3, "DS2_SRC", "DS2_C", note="harness short protection")
     R(1.3e6, "S2R", "G2")
     R(1.0e6, "G2", "CS2")
     C("47n", "G2", "CS2")
@@ -839,10 +861,10 @@ def rails_and_switches():
     # trips against RADIATION_ANALYSIS Rev C 5.3 (RID AV-08): limit in microseconds, FAULT after 8 ms removes the rail,
     # off time 0.6 x R_FAULT x C_RETRY (EN threshold), fast turn-off through the BAT54 when the enable goes low
     sws = [("U22", "SW2", "RADIO_EN", "3V3_AO", "3V3_RADIO_U", 226e3, "RS12", "3V3_RADIO", 0.100, "22u"),
-           ("U23", "SW3", "SW3_IN", "5V_PA", "5V_PA_U", 26.1e3, "RS13", "5V_PA_SW", 0.050, "4.7u"),
+           ("U23", "SW3", "RF_TX_EN", "5V_PA", "5V_PA_U", 26.1e3, "RS13", "5V_PA_SW", 0.050, "4.7u"),
            ("U24", "SW4", "ADCS_EN", "3V3_AO", "3V3_ADCS_U", 88.7e3, "RS14", "3V3_ADCS", 0.100, "4.7u"),
            ("U25", "SW7", "GNSS_EN", "3V3_AO", "3V3_GNSS_U", 133e3, "RS15", "3V3_GNSS", 0.100, "22u"),
-           ("U26", "SW8", "DEPLOY_EN", "3V3_AO", "3V3_ANTS_U", 18.7e3, "RS16", "3V3_ANTS", 0.050, "4.7u"),
+           ("U26", "SW8", "ANTS_EN", "3V3_AO", "3V3_ANTS_U", 18.7e3, "RS16", "3V3_ANTS", 0.050, "4.7u"),
            ("U27", "SW9", "3V3_AO", "3V3_AO", "3V3_MCU", None, None, None, None, "4.7u"),
            ("U38", "SW10", "3V3_AO", "3V3_AO", "3V3_OBC", 178e3, None, None, None, "4.7u")]
     for ref, sw, en, vin, vout, rlim, rsref, rail, rsh, cret in sws:
@@ -865,14 +887,20 @@ def rails_and_switches():
         C("1u", vout, "GND", 25)
         if rsh:
             RSH(rsh, vout, rail, f"WSLP0805R{int(rsh * 1000):03d}0FEA", "0805", 0.25, note=f"{rail} current (INA3221)", ref=rsref)
-        if en not in ("3V3_AO", "SW3_IN", "DEPLOY_EN"):
+        if en not in ("3V3_AO", "RF_TX_EN", "ANTS_EN"):
             R(100e3, en, "GND", note="pull-down: off at reset")
-    # SW3 enable = RF_TX_EN AND SHED_N (hardware TX-OFF and load shed)
-    ic(S_G1, "U52", "SN74LVC1G08-Q1", "SN74LVC1G08QDCKRQ1", "TI", "SC70-5 (DCK)", "AND",
-       {"A": "RF_TX_EN", "B": "SHED_N", "GND": "GND", "Y": "SW3_IN", "VCC": "3V3_AO"}, finish="NiPdAu|Sn",
-       notes="TX-OFF: RF_TX_EN low removes the PA supply; load shed")
+    # SW3 enable = RF_TX_EN only (hardware TX-OFF); the PA is not shed (RID SMA-B05: a spurious shed would hold the
+    # transmitter off with no override; a stuck PA is energy-positive, SQSO-PBA-001 8.4)
     R(100e3, "RF_TX_EN", "GND", note="mandatory pull-down (hardware TX-OFF)")
+    # SW8 enable = DEPLOY_EN OR the EPS controller's ANTS_EN_MCU (RID SMA-B06); SW8 is downstream of DS1-DS3
+    ic(S_G1, "U81", "SN74LVC1G32-Q1", "SN74LVC1G32QDCKRQ1", "TI", "SC70-5 (DCK)", "OR",
+       {"A": "DEPLOY_EN", "B": "ANTS_EN_MCU", "GND": "GND", "Y": "ANTS_EN", "VCC": "3V3_AO"}, finish="NiPdAu|Sn",
+       notes="AntS supply: OBC DEPLOY_EN or EPS-controller ANTS_PWR")
     C("100n", "3V3_AO", "GND")
+    R(100e3, "ANTS_EN_MCU", "GND", note="off at controller reset")
+    # OBC heartbeat supervision: the EPS controller power-cycles the OBC rail by pulling SW10's EN low (RID SMA-B09)
+    Q("2N7002BK", "Q42", "OBC_CYCLE", "GND", "SW10_EN", note="OBC rail power cycle (EPS controller, heartbeat timeout)")
+    R(100e3, "OBC_CYCLE", "GND", note="off at controller reset")
     C("22u", "3V3_MCU", "GND", 16, "1210", vop=3.3)
 
 
@@ -955,12 +983,38 @@ def hw_logic():
     C("100n", "VHW", "GND")
     R(100e3, "VHW", "HCUT_G")
     R(100e3, "VHW", "OT60")
+    # NTC1 plausibility (RID SMA-B04): open (< -55 C, ratio > 0.985) or short (> +150 C, ratio < 0.030) -> NTC1_BAD;
+    # then the charge window passes to the AFE's UTC/OTC on NTC2, the 60 C BOTHOFF to the AFE's OTD on NTC2, and the
+    # heater cutout to the flight software, SW5's limit, F4 and the AFE's OTD
+    R(15.0e3, "VHW", "TH_OPEN", tol=0.1, note="NTC1 open threshold 0.985 VHW")
+    R(1.00e6, "TH_OPEN", "GND", tol=0.1)
+    R(1.00e6, "VHW", "TH_SHORT", tol=0.1, note="NTC1 short threshold 0.030 VHW")
+    R(30.9e3, "TH_SHORT", "GND", tol=0.1)
+    ic(S_CMP2, "U66", "TLV7042-Q1", "TLV7042QDGKRQ1", "TI", "VSSOP-8 (DGK)", "dual nanopower comparator, open drain",
+       {"OUTA": "NTC1_OPEN", "INAM": "TH_OPEN", "INAP": "NTC1", "VEE": "GND", "INBP": "TH_SHORT", "INBM": "NTC1", "OUTB": "NTC1_SHORT",
+        "VCC": "VHW"}, notes="NTC1 plausibility: A open (released when NTC1 > 0.985 VHW), B short (released when NTC1 < 0.030 VHW)")
+    C("100n", "VHW", "GND")
+    R(100e3, "VHW", "NTC1_OPEN")
+    R(100e3, "VHW", "NTC1_SHORT")
+    ic(S_G1, "U67", "SN74LVC1G32-Q1", "SN74LVC1G32QDCKRQ1", "TI", "SC70-5 (DCK)", "OR",
+       {"A": "NTC1_OPEN", "B": "NTC1_SHORT", "GND": "GND", "Y": "NTC1_BAD", "VCC": "VHW"}, finish="NiPdAu|Sn", notes="NTC1 implausible")
+    C("100n", "VHW", "GND")
+    ic(S_G1, "U68", "SN74LVC1G32-Q1", "SN74LVC1G32QDCKRQ1", "TI", "SC70-5 (DCK)", "OR",
+       {"A": "WIN_OK", "B": "NTC1_BAD", "GND": "GND", "Y": "WIN_EFF", "VCC": "VHW"}, finish="NiPdAu|Sn",
+       notes="charge window: NTC1 comparators, or the AFE's UTC/OTC (NTC2) alone when NTC1 is implausible")
+    C("100n", "VHW", "GND")
+    ic(S_G1, "U69", "SN74LVC1G32-Q1", "SN74LVC1G32QDCKRQ1", "TI", "SC70-5 (DCK)", "OR",
+       {"A": "HCUT_G", "B": "NTC1_BAD", "GND": "GND", "Y": "HCUT_EFF", "VCC": "VHW"}, finish="NiPdAu|Sn",
+       notes="heater cutout bypassed when NTC1 is implausible")
+    C("100n", "VHW", "GND")
+    Q("2N7002BK", "Q43", "NTC1_BAD", "GND", "OT60", note="60 C BOTHOFF from NTC1 suppressed when NTC1 is implausible (AFE OTD on NTC2 remains)")
+    R(100e3, "NTC1_BAD", "NTC1_BAD_RB", note="readback to the EPS controller (series 100 k)")
     # lockout relay K1 (2-coil latching): pole 1 COM=WIN_OK, NC1 -> PERMIT; pole 2 COM=GND, NO2 -> CC_SET (locked)
     p = place(S_RELAY, "K1", "TQ2SA-L2-3V", "TQ2SA-L2-3V-Z", "Panasonic", "TQ2 SMD (10 pin)",
               "2 Form C, 2-coil latching, 3 V coil 46.7 mA / 64.3 Ohm, 0.5 A contacts", "uA dry circuit",
               "latched recharge lockout (non-volatile); pin numbers to be checked against the TQ2 2-coil drawing at symbol entry",
               "Au-clad contacts; Sn terminals", "Digi-Key: Active")
-    conn(p, {"SET_P": "3V3_AO", "SET_N": "SET_COIL", "RST_P": "3V3_AO", "RST_N": "RST_COIL", "COM1": "WIN_OK", "NC1": "PERMIT",
+    conn(p, {"SET_P": "3V3_AO", "SET_N": "SET_COIL", "RST_P": "3V3_AO", "RST_N": "RST_COIL", "COM1": "WIN_EFF", "NC1": "PERMIT",
              "NO1": None, "COM2": "GND", "NO2": "CC_SET", "NC2": None})
     R(1e6, "PERMIT", "GND")
     ic(S_INV, "U55", "SN74LVC1G04-Q1", "SN74LVC1G04QDCKRQ1", "TI", "SC70-5 (DCK)", "inverter",
@@ -969,8 +1023,11 @@ def hw_logic():
     C("100n", "VHW", "GND")
     D("1N4148W", "3V3_AO", "SET_COIL", note="SET coil flyback")
     D("1N4148W", "3V3_AO", "RST_COIL", note="RESET coil flyback")
-    Q("2N7002BK", "Q28", "SET_DRV", "GND", "SET_COIL", note="SET coil driver")
-    Q("2N7002BK", "Q29", "RST_DRV", "GND", "RST_COIL", note="RESET coil driver")
+    # each coil through two FETs in series (RID SMA-B12): one shorted FET leaves the coil off
+    Q("2N7002BK", "Q28", "SET_DRV", "SET_MID", "SET_COIL", note="SET coil driver, upper")
+    Q("2N7002BK", "Q30", "SET_DRV", "GND", "SET_MID", note="SET coil driver, lower (series redundant)")
+    Q("2N7002BK", "Q29", "RST_DRV", "RST_MID", "RST_COIL", note="RESET coil driver, upper")
+    Q("2N7002BK", "Q39", "RST_DRV", "GND", "RST_MID", note="RESET coil driver, lower (series redundant)")
     # SET request: AFE FUSE (PF, SUV 2.0 V) via 100 k/100 k OR EPS-controller LOCK_SET -> 50 ms one-shot
     R(100e3, "AFE_FUSE", "FUSE_LVL", note="cross-domain series 100 k")
     R(100e3, "FUSE_LVL", "GND")

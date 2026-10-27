@@ -108,7 +108,7 @@ HF-13), so the wings-deployed columns govern the P ≥ 0.9 test.
 
 **Power closure (SQSO-PBA-001 v2.2 §6):** ACTIVE at the duty limits 2.50 W sun-pointed (**+54 %**), 1.82 W tumbling
 (**+34 %**); IDLE 1.18 W; SAFE 0.79 W; EMERGENCY 0.72 W, heater included. Margin ≥ 20 % in every mode at end of life
-and at LTAN 22:30 ± 1 h; SYS-100 (2.21 W, Rev G) met with 12 % to spare. With the RF board's designed transponder draw (1.76 W DC at 0.5 W RF, ≈ 0.065 W more on the orbit average) the ACTIVE margins are +53 % sun-pointed and +29 % tumbling. As flown by the flight software in the mission
+and at LTAN 22:30 ± 1 h; SYS-100 (2.23 W: the 1.86 W allocation × 1.2, CR-2026-009) met with 11 % to spare. The bottom-up ACTIVE loads include the RF board's designed transponder draw (1.84 W DC at 0.5 W RF, Version E, ≈ 0.085 W more on the orbit average than the pre-design estimate): margins about +51 % sun-pointed and +29 % tumbling by the PBA formula. As flown by the flight software in the mission
 simulation: depth of discharge ≤ 2.3 % (≤ 3.7 % in the full SIL run), deepest in any contingency 2.8 %. Wings stowed: SAFE and IDLE only (ACTIVE
 would be −42 %). A Jetson rail stuck on is shed in hardware below 13.6 V (EPS_DESIGN §6). The allocations behind the
 original closure:
@@ -119,11 +119,11 @@ original closure:
 | GNSS receiver, duty-cycled (3–6 sessions a day; every orbit during launch and early operations) | 0.05 W | 0.05 W | Jetson and PA off; SOC above contingency floor **[D6]** |
 | 435 MHz receiver, always on | 0.15 W | 0.15 W | Required by 97.207(b) |
 | Telemetry beacon (≤ 1 W RF, ~2 s per 60 s) | 0.10 W | 0.10 W | — |
-| FM transponder (0.5 W RF ≈ 1.8 W DC: 1.76 W designed, SQSO-RF-BRD-001), duty ≤ 25 % | 0.44 W | 0.44 W | Sunlit, SOC ≥ 55 %, AI/OBC scheduled |
+| FM transponder (0.5 W RF: 1.84 W DC designed with the synthesizer's own regulator, SQSO-RF-BRD-001 E; allocation 1.85 W DC), duty ≤ 25 % | 0.46 W | 0.46 W | Sunlit, SOC ≥ 55 %, AI/OBC scheduled |
 | Jetson (≤ 8 W input), duty ≤ 5 % tumbling / ≤ 10 % sun-pointed | 0.40 W | 0.80 W | Sunlit, SOC ≥ 55 %, temperature limits |
-| **Total load** | **1.84 W** | **2.24 W** | |
+| **Total load** | **1.86 W** | **2.26 W** | |
 | Generation (simulated, EOL) | 2.48 W | 3.92 W | |
-| **Margin** | **+35 %** | **+75 %** | Requirement ≥ 20 % |
+| **Margin** | **+33 %** | **+73 %** | Requirement ≥ 20 % |
 
 The GNSS line is a flat allocation; the expected steady-state draw is 1–7 mW. Continuous operation (up to 0.32 W) would
 break the tumbling-case margin, so the receiver is always duty-cycled.

@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 10:34 AM")
+    (date "10/27/2026 12:13 PM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -450,7 +450,7 @@
   (nets
     (net
       (code 1)
-      (name "3V3_SNS")
+      (name "3V3_MAG")
       (class "Default")
       (node
         (ref "C1")
@@ -738,7 +738,7 @@
         (pintype "PASSIVE")))
     (net
       (code 17)
-      (name "SCL_S")
+      (name "SCL_M")
       (class "Default")
       (node
         (ref "D1")
@@ -754,7 +754,7 @@
         (pintype "INPUT")))
     (net
       (code 18)
-      (name "SDA_S")
+      (name "SDA_M")
       (class "Default")
       (node
         (ref "D1")

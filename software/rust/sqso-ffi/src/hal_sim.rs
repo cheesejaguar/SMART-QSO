@@ -21,6 +21,9 @@ use crate::{os, ptr, time};
 
 const GPIO_PIN_COUNT: usize = crate::pins::GPIO_PIN_COUNT as usize;
 const GPIO_DIR_INPUT: u32 = 0;
+const GPIO_PULL_NONE: u32 = 0;
+const GPIO_PULL_UP: u32 = 1;
+const GPIO_PULL_DOWN: u32 = 2;
 const GPIO_DIR_OUTPUT: u32 = 1;
 /// `GPIO_PIN_XPDR_EN`, the heartbeat pin
 const GPIO_PIN_XPDR_EN: u32 = 16;
@@ -223,6 +226,8 @@ struct Sim {
     gpio_initialized: bool,
     gpio_state: [bool; GPIO_PIN_COUNT],
     gpio_dir: [u32; GPIO_PIN_COUNT],
+    /// The internal pull each pin was configured with (`GPIO_PULL_*`)
+    gpio_pull: [u32; GPIO_PIN_COUNT],
     /// Levels the outside world drives (`hal_sim_gpio_drive_input()`): they
     /// survive `hal_gpio_init()`, as a switch's level survives a reset
     gpio_driven: [Option<bool>; GPIO_PIN_COUNT],
@@ -286,6 +291,7 @@ static SIM: Global<Sim> = Global::new(Sim {
     gpio_initialized: false,
     gpio_state: [false; GPIO_PIN_COUNT],
     gpio_dir: [GPIO_DIR_INPUT; GPIO_PIN_COUNT],
+    gpio_pull: [GPIO_PULL_NONE; GPIO_PIN_COUNT],
     gpio_driven: [None; GPIO_PIN_COUNT],
     heartbeat: None,
     i2c_initialized: [false; I2C_BUS_COUNT],
@@ -391,27 +397,54 @@ pub extern "C" fn hal_gpio_init() -> i32 {
             }
         }
         s.gpio_dir = [GPIO_DIR_INPUT; GPIO_PIN_COUNT];
+        s.gpio_pull = [GPIO_PULL_NONE; GPIO_PIN_COUNT];
         s.heartbeat = None;
         s.gpio_initialized = true;
         rc::OK
     })
 }
 
-/// Set a pin's direction (pull is not simulated)
+/// Set a pin's direction and internal pull. The pull is recorded
+/// (`hal_sim_gpio_pull()`), and on the two inputs the board drives through
+/// a weak source it decides the level, as on the board: DEPLOY_SENSE (1 MΩ)
+/// and SOLAR_SENSE (11 kΩ pull-up behind 10 kΩ) read the internal pull's
+/// level whatever the outside world drives (RID SMA-B02)
 #[unsafe(no_mangle)]
-pub extern "C" fn hal_gpio_config(pin: u32, direction: u32, _pull: u32) -> i32 {
+pub extern "C" fn hal_gpio_config(pin: u32, direction: u32, pull: u32) -> i32 {
     sim(rc::BUSY, |s| {
         if !s.gpio_initialized {
             return rc::ERROR;
         }
-        match s.gpio_dir.get_mut(index(pin, GPIO_PIN_COUNT).unwrap_or(usize::MAX)) {
-            Some(dir) => {
+        let i = index(pin, GPIO_PIN_COUNT).unwrap_or(usize::MAX);
+        match (s.gpio_dir.get_mut(i), s.gpio_pull.get_mut(i)) {
+            (Some(dir), Some(p)) => {
                 *dir = direction;
+                *p = pull;
                 rc::OK
             }
-            None => rc::INVALID,
+            _ => rc::INVALID,
         }
     })
+}
+
+/// The internal pull a pin was last configured with (`GPIO_PULL_*`; an
+/// unknown pin reads `GPIO_PULL_NONE`)
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_gpio_pull(pin: u32) -> u32 {
+    sim(GPIO_PULL_NONE, |s| {
+        index(pin, GPIO_PIN_COUNT).and_then(|i| s.gpio_pull.get(i).copied()).unwrap_or(GPIO_PULL_NONE)
+    })
+}
+
+/// An input the board drives through a weak source: the internal pull's
+/// level if one is configured
+fn weak_input(s: &Sim, pin: u32, i: usize) -> Option<bool> {
+    let weak = matches!(pin, crate::separation_switch::GPIO_PIN_DEPLOY_SENSE | crate::deployment::GPIO_PIN_SOLAR_SENSE);
+    match s.gpio_pull.get(i) {
+        Some(&GPIO_PULL_UP) if weak => Some(true),
+        Some(&GPIO_PULL_DOWN) if weak => Some(false),
+        _ => None,
+    }
 }
 
 /// Drive an output pin
@@ -447,6 +480,9 @@ pub extern "C" fn hal_gpio_get(pin: u32) -> bool {
             return (now.saturating_sub(start) / HEARTBEAT_HALF_PERIOD_US).is_multiple_of(2);
         }
         let Some(i) = index(pin, GPIO_PIN_COUNT).filter(|_| s.gpio_initialized) else { return false };
+        if let Some(level) = weak_input(s, pin, i) {
+            return level;
+        }
         if s.gpio_driven.get(i) == Some(&None)
             && let Some(level) = derived_input(s, pin)
         {
@@ -1084,7 +1120,8 @@ fn readback(s: &Sim, channel: u32) -> Option<f64> {
 /// readbacks do with nothing failed (`None`: an ordinary pin): the Jetson
 /// carrier's power-good with both of its switches on, each latch-up
 /// switch's EN node and the GNSS rail's power-good with their enables, the
-/// bridges' fault line high (no fault)
+/// bridges' fault line high (no fault); DEPLOY_SENSE high (the switch
+/// released: the flight state) and SOLAR_SENSE high (the wings stowed)
 fn derived_input(s: &Sim, pin: u32) -> Option<bool> {
     use crate::pins::{
         GNSS_EN, GNSS_PG, GYRO_EN, GYRO_RB, IMU2_EN, IMU2_RB, JET_PG, JETSON_PWR, MTQ_FAULT_N, PAYLOAD_EN, SNS_EN,
@@ -1098,6 +1135,7 @@ fn derived_input(s: &Sim, pin: u32) -> Option<bool> {
         SNS_RB => Some(out(SNS_EN)),
         GNSS_PG => Some(out(GNSS_EN)),
         MTQ_FAULT_N => Some(true),
+        crate::separation_switch::GPIO_PIN_DEPLOY_SENSE | crate::deployment::GPIO_PIN_SOLAR_SENSE => Some(true),
         _ => None,
     }
 }

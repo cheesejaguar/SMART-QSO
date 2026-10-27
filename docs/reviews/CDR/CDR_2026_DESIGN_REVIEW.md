@@ -117,8 +117,8 @@ L-2 M licences and ephemeris demonstration).
 | Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +1.00 in the design case; +0.84 in the rail-ends-only bounding case | Positive | STRUCTURAL_ANALYSIS B |
 | PCB fatigue (Steinberg) | MS ≥ 0 | +0.08 (2.0 mm carrier) to +0.37, EPS +0.23 with the harness tied to the deck (C-15) | Positive | STRUCTURAL_ANALYSIS B |
 | Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel | +0.14 cold, +0.13 one spring out | Positive | MECHANISMS_ANALYSIS B §4A |
-| Power, EOL, sun-pointed | ≥ 20 % | 3.92 W against the bottom-up ACTIVE load 2.50 W with the heater (2.24 W allocation) | +54 % (+75 % on the allocation) | POWER_BUDGET_ANALYSIS 2.2 §6; BASELINE §5 |
-| Power, EOL, tumbling | ≥ 20 % | 2.48 W against the bottom-up ACTIVE load 1.82 W with the heater (1.84 W allocation) | +34 % (+35 % on the allocation) | POWER_BUDGET_ANALYSIS 2.2 §6; BASELINE §5 |
+| Power, EOL, sun-pointed | ≥ 20 % | 3.92 W against the bottom-up ACTIVE load 2.50 W with the heater (2.26 W allocation) | +54 % (+73 % on the allocation; about +51 % with RF board E's transponder draw) | POWER_BUDGET_ANALYSIS 2.2 §6; BASELINE §5 |
+| Power, EOL, tumbling | ≥ 20 % | 2.48 W against the bottom-up ACTIVE load 1.82 W with the heater (1.86 W allocation) | +34 % (+33 % on the allocation; about +29 % with RF board E's transponder draw) | POWER_BUDGET_ANALYSIS 2.2 §6; BASELINE §5 |
 | Depth of discharge | ≤ 10 % per eclipse | ≤ 3.7 % as flown (SIL D, 475 km); 2.8 % worst contingency (PBA 2.2) | × 2.7 | SIL_MISSION_SIMULATION D §7; POWER_BUDGET_ANALYSIS 2.2 |
 | Battery temperature | 0 to +45 °C charging | ≥ +4.4 °C at 14.0 V; +3.7 °C at the 12.0 V floor; +1.2 °C with a 0.10 W/K mount; −1.1 °C with the wings stowed (charging then inhibited in hardware) | Met in operation; stowed-wing case THM-03 | THERMAL_ANALYSIS |
 | Beacon link, 5° | ≥ 6 dB (median gain) | +7.9 dB | +1.9 dB | LINK_BUDGET 3.2 |
@@ -182,15 +182,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 100 | 199 |
+| Closed by design change | 100 | 200 |
 | Closed by chair decision | 42 | 34 |
 | Verification item | 45 | 27 |
 | Decision point (dated) | 13 | 29 |
-| Implementation | 147 | 58 |
+| Implementation | 147 | 57 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 66 new findings; 34 of the reopened and 34 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 66 new findings; 34 of the reopened and 35 of the new are since closed.
 
-Open implementation RIDs: LV-04, SE-21, SE-22, GND-04, SMA-15, STR-04, STR-08, STR-13, STR-26, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, MCAD-12, OBCB-01, OBCB-02, P3E-10, P3S-01, P3S-02, P3S-04, P3S-07, P3S-08, P3S-09, P3S-11, P3S-12, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B01, SMA-B02, SMA-B03, SMA-B04, SMA-B05, SMA-B06, SMA-B07, SMA-B08, SMA-B09, SMA-B10, SMA-B11, SMA-B12, SMA-B13, SMA-B14, SMA-B15, SMA-B16, SMA-B17, SMA-B18, SMA-B19.
+Open implementation RIDs: LV-04, SE-21, SE-22, GND-04, SMA-15, STR-04, STR-08, STR-13, STR-26, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, MCAD-12, OBCB-01, OBCB-02, P3E-10, P3S-01, P3S-02, P3S-04, P3S-07, P3S-08, P3S-09, P3S-11, P3S-12, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B01, SMA-B02, SMA-B03, SMA-B04, SMA-B05, SMA-B06, SMA-B07, SMA-B08, SMA-B09, SMA-B10, SMA-B11, SMA-B12, SMA-B13, SMA-B14, SMA-B15, SMA-B17, SMA-B18, SMA-B19.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -251,7 +251,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | SE-01 | 1 | No detailed (build-to) design: schematics with parts, layouts, mechanical CAD, structural model | IMP | Closed by design change | Build-to design at schematic level: EPS, OBC, RF, Jetson carrier, magnetometer A2 and access-port A3 boards (SKiDL netlists, BOMs, ERC 0), interconnect SQSO-ICX-001, harness SQSO-HAR-001 2.0, CAD with 94+ parts and interference checks, shell FE model; PCB layouts per SE-24 |
 | SE-02 | 2 | Flow-down missing from CDS, Part 97, NASA-STD-8719.14C and the provider | CD | Closed by design change | MRD-084..099; SYS-080..089, 703..709, 713, 900..919; LVR traced |
-| SE-03 | 2 | Requirement values contradicted the baseline | CD | Closed by design change | SYS Rev E/F/G in CR-2026-009; SYS-100 2.21 W (1.84 × 1.2) met by 2.48 W, +12 % |
+| SE-03 | 2 | Requirement values contradicted the baseline | CD | Closed by design change | SYS Rev E/F/G in CR-2026-009; SYS-100 2.23 W (1.86 × 1.2, transponder allocation 1.85 W DC with RF board E) met by 2.48 W, +11 % |
 | SE-04 | 2 | Seven requirements need the PI's ratified wording | DP | Decision point (dated) | Ratify TBR-MRD-002..005 and TBR-SYS-002..004 by the PDR (2027-01-12) |
 | SE-05 | 1 | No integrator ICD and no IARU letter | DP | Decision point (dated) | DA-07 RFQs (PI, 2026-12-31), DA-08 mission ICD at the contract (PI, 2027-06-30), DA-09 IARU letter by 2027-05-18 (licensee) |
 | SE-06 | 3 | TBD/TBR targets were 'TBD' | CD | Closed by design change | Dates set |
@@ -399,7 +399,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SMA-B13 | 3 | DS2's second-pole wire disables all four trackers if it chafes to the frame | IMP | Implementation | Active-high tracker-enable clamps (EPS, harness) |
 | SMA-B14 | 2 | A short on the access port's reset line holds the OBC in reset | IMP | Implementation | NRST off the flight access port or buffered (OBC) |
 | SMA-B15 | 3 | Ceramic capacitors on the unfused battery lines can short | IMP | Implementation | Fail-safe capacitors (EPS) |
-| SMA-B16 | 3 | Synthesizer shares the PA rail regulator | IMP | Implementation | Own regulator (RF) |
+| SMA-B16 | 3 | Synthesizer shares the PA rail regulator | IMP | Closed by design change | LMX2571 on its own TPS7A2033 3.3 V regulator from the PA rail (3.25 V min, 100 mV margin); TX-OFF still removes it; keyed DC 1.84 W at 0.5 W RF, allocation raised to 1.85 W DC (BASELINE §5, SYS-100 2.23 W) (RF_BOARD_DESIGN E §5) |
 | SMA-B17 | 3 | A shorted tracker output diode cannot be isolated | IMP | Implementation | Per-tracker disable by the controller (EPS) |
 | SMA-B18 | 3 | Magnetometer shares a switch and bus segment | IMP | Implementation | Own switch and segment (OBC) |
 | SMA-B19 | 2 | One failed PA-temperature reading silences the downlink | IMP | Implementation | Plausibility check and a pull-down (flight software, OBC) |
@@ -669,7 +669,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3E-05 | 2 | JETSON_PWR pin inconsistent across documents (PA2 vs PA8) | IMP | Closed by design change | JETSON_PWR PA8 in EPS_BOARD_DESIGN D, EPS_DESIGN 2.4, ICD-001 1.5, CARRIER_BOARD_DESIGN E, ICD-002 1.4, PAYLOAD_DESIGN 1.2 |
 | P3E-06 | 3 | Load-shed coverage mis-stated | IMP | Closed by design change | With EPS-09 |
 | P3E-07 | 2 | Reliability programme absent from the test plan (with P3P-03) | IMP | Closed by design change | With P3P-03 |
-| P3E-08 | 3 | Power margin bookkeeping mixes formulas; SYS-100 and EPS-F001 at 1.80 W | IMP | Closed by design change | SYS-100 2.21 W in CR-2026-009; report §3.3 margins against the bottom-up load |
+| P3E-08 | 3 | Power margin bookkeeping mixes formulas; SYS-100 and EPS-F001 at 1.80 W | IMP | Closed by design change | SYS-100 2.23 W in CR-2026-009; report §3.3 margins against the bottom-up load |
 | P3E-09 | 3 | MPPT efficiency requirement and pass criteria disagree | IMP | Decision point (dated) | CR-2026-014: ≥ 90 % at every point ≥ 1 W per tracker, ≥ 91 % power-weighted, PBA MPPT factor 0.91; PI decision by 2027-01-12 |
 | P3E-10 | 3 | Stale harness gauges and fuse values in EPS and harness documents | IMP | Implementation | Correct |
 | P3E-11 | 3 | End-of-life arm and fire both from one processor | IMP | Closed by design change | Arm latch clocked only by OBC EOL_ARM AND the EPS controller's keyed EOL_KEY (U64; register 0x7E, ICD-001 1.5); fire from OBC EOL_FIRE; no single hardware or OBC pin fault fires F1 (EPS_BOARD_DESIGN D §12); flight software sequence in round 3 |
