@@ -485,5 +485,33 @@ for name, i, d, r in (("VBAT_IN pair J1 -> U1 (planes, 0.2 mm)", 0.54, 0.2e-3, 0
     rows.append((name, f"{i:.2f} A", f"{r * 1e3:.0f} mm", f"{b * 1e9:.0f} nT"))
 table("15. Static field of the burst current at the RM3100 (line-pair estimate, upper bound)", ["Path", "I", "r", "B"], rows)
 
+# ------------------------------------------------------------------------------------------------ 13 RT1 conversion
+# TE GA10K3MCD1: 10 kOhm at 25 C, beta 25/85 3976 K, -40..125 C, +/-0.2 C 0..70 C (TE data sheet, per its listing).
+# TE publishes no R-T table in what could be reached; the "10K3A" curve's Steinhart-Hart constants (Betatherm 10K3A,
+# the same 3976 K material) are A = 1.129241e-3, B = 2.341077e-4, C = 0.877547e-7 (Newport 710 mount manual addendum).
+SH = (1.129241e-3, 2.341077e-4, 0.877547e-7)
+
+
+def r_of_t(tc):
+    a, b, c = SH
+    t = tc + 273.15
+    x = (a - 1 / t) / c
+    y = math.sqrt((b / (3 * c)) ** 3 + x * x / 4)
+    return math.exp((y - x / 2) ** (1 / 3) - (y + x / 2) ** (1 / 3))
+
+
+rows = []
+for tc in list(range(-40, 130, 5)):
+    r = r_of_t(tc)
+    ratio = r / (r + 10e3)
+    dr = (r_of_t(tc + 0.5) / (r_of_t(tc + 0.5) + 10e3) - r_of_t(tc - 0.5) / (r_of_t(tc - 0.5) + 10e3))
+    rows.append((f"{tc}", f"{r:,.0f}", f"{ratio:.4f}", f"{-dr * 4096:.1f}"))
+table("16. RT1 resistance and OBC reading (10K3A curve; 10.0 kOhm bias from the ADC reference, NTC to PT_RTN)",
+      ["T (C)", "R (Ohm)", "V/Vref", "12-bit counts per K"], rows)
+r25, r85 = r_of_t(25), r_of_t(85)
+print(f"\nCheck: R(25 C) = {r25:,.0f} Ohm; beta 25/85 from the curve = "
+      f"{math.log(r25 / r85) / (1 / 298.15 - 1 / 358.15):.0f} K (data sheet 3976 K).")
+OUT["rt1"] = {str(tc): r_of_t(tc) for tc in range(-40, 130, 5)}
+
 with open(os.path.join(HERE, "jetson_calcs.json"), "w") as f:
     json.dump(OUT, f, indent=1, default=float)
