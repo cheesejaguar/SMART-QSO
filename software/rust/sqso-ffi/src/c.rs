@@ -97,6 +97,17 @@ unsafe extern "C" {
     pub(crate) fn hal_flash_write(region: u32, offset: u32, data: *const u8, len: usize) -> i32;
     pub(crate) fn hal_flash_erase(region: u32) -> i32;
     pub(crate) fn hal_adc_init(resolution: u32, reference: u32) -> i32;
+    pub(crate) fn hal_adc_read_voltage(channel: u32, voltage: *mut f64) -> i32;
+    pub(crate) fn hal_i2c_init(bus: u32, speed: u32) -> i32;
+    pub(crate) fn hal_i2c_write_read(
+        bus: u32,
+        addr: u8,
+        write_data: *const u8,
+        write_len: usize,
+        read_data: *mut u8,
+        read_len: usize,
+    ) -> i32;
+    pub(crate) fn hal_gpio_set(pin: u32, state: bool) -> i32;
     pub(crate) fn hal_radio_init() -> i32;
     pub(crate) fn hal_radio_receive(frame: *mut u8, max_len: usize, len: *mut usize) -> i32;
     pub(crate) fn hal_gpio_config(pin: u32, direction: u32, pull: u32) -> i32;

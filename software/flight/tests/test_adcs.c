@@ -10,7 +10,7 @@
  *
  * - Power-on is IDLE with the coils off; DETUMBLE (commanded) runs B-dot until
  *   the rate stays below 0.5 deg/s for 5 min, then hands over to SUNPOINT. A
- *   detumble still running after 90 min is a fault: back to IDLE, fault
+ *   detumble still running after 3 orbits (285 min) is a fault: back to IDLE, fault
  *   logged, detumble not reported complete. SUNPOINT drops to ECLIPSE (coils
  *   off) when the sun sensors read below 5 % and returns when the sun is back.
  *   SAFE does nothing until commanded out.
@@ -331,9 +331,10 @@ static void test_rate_above_threshold_never_settles(void **cm_state)
 }
 
 /**
- * A detumble still running after 90 min is a fault: IDLE, coils off, fault
+ * A detumble still running after 285 min is a fault: IDLE, coils off, fault
  * logged, and not reported as complete (§5.2 fault arrow DETUMBLE -> IDLE;
- * §5.3 timeout 90 min, completion declared only by the settling time)
+ * timeout three orbits, BASELINE §8; completion declared only by the
+ * settling time)
  */
 static void test_detumble_timeout_is_fault_not_completion(void **cm_state)
 {
@@ -341,7 +342,7 @@ static void test_detumble_timeout_is_fault_not_completion(void **cm_state)
     FaultLogEntry_t entry;
 
     assert_int_equal(adcs_set_mode(ADCS_MODE_DETUMBLE), SMART_QSO_OK);
-    tumble_minutes(2.0, 89U);
+    tumble_minutes(2.0, 284U);
     assert_int_equal(adcs_get_mode(), ADCS_MODE_DETUMBLE);
     assert_int_equal(fault_log_get_count(), 0);
 
@@ -357,32 +358,32 @@ static void test_detumble_timeout_is_fault_not_completion(void **cm_state)
     assert_int_equal(get_state().fault_count, 1);
 }
 
-/** The 90-minute limit counts from entry: a repeated command does not extend it */
+/** The 285-minute limit counts from entry: a repeated command does not extend it */
 static void test_repeated_detumble_command_keeps_clock(void **cm_state)
 {
     (void)cm_state;
     assert_int_equal(adcs_set_mode(ADCS_MODE_DETUMBLE), SMART_QSO_OK);
     uint64_t start = get_state().detumble_start_ms;
-    tumble_minutes(2.0, 60U);
+    tumble_minutes(2.0, 200U);
 
     assert_int_equal(adcs_set_mode(ADCS_MODE_DETUMBLE), SMART_QSO_OK);
     assert_int_equal(get_state().detumble_start_ms, start);
-    tumble_minutes(2.0, 31U);
+    tumble_minutes(2.0, 86U);
     assert_int_equal(adcs_get_mode(), ADCS_MODE_IDLE);
 }
 
-/** A new detumble (re-entered from another mode) gets a fresh 90 minutes */
+/** A new detumble (re-entered from another mode) gets a fresh 285 minutes */
 static void test_new_detumble_restarts_clock(void **cm_state)
 {
     (void)cm_state;
     assert_int_equal(adcs_set_mode(ADCS_MODE_DETUMBLE), SMART_QSO_OK);
-    tumble_minutes(2.0, 60U);
+    tumble_minutes(2.0, 200U);
     assert_int_equal(adcs_set_mode(ADCS_MODE_IDLE), SMART_QSO_OK);
     tumble(2.0, 1U);
     assert_coils_off();
 
     assert_int_equal(adcs_set_mode(ADCS_MODE_DETUMBLE), SMART_QSO_OK);
-    tumble_minutes(2.0, 60U);
+    tumble_minutes(2.0, 200U);
     assert_int_equal(adcs_get_mode(), ADCS_MODE_DETUMBLE);
     assert_int_equal(fault_log_get_count(), 0);
 }
@@ -472,7 +473,7 @@ static void test_set_mode_rejects_undefined_mode(void **cm_state)
 /* B-dot control law (ADCS_DESIGN §4.1, ICD §7.2)                             */
 /*===========================================================================*/
 
-/** m = -k dB/dt with k = 5e6 A m^2 s/T and dB/dt in uT/s */
+/** m = -k dB/dt with k = 1e4 A m^2 s/T and dB/dt in uT/s */
 static void test_bdot_law_sign_and_units(void **cm_state)
 {
     (void)cm_state;
@@ -482,7 +483,7 @@ static void test_bdot_law_sign_and_units(void **cm_state)
     memset(&mag, 0, sizeof(mag));
     mag.valid = true;
     mag.field = vec(30.0, 0.0, 40.0);
-    mag.field_rate = vec(0.01, -0.02, 0.004);   /* uT/s */
+    mag.field_rate = vec(5.0, -10.0, 2.0);      /* uT/s */
 
     adcs_compute_bdot(&mag, &m);
     assert_double_equal(m.x, -0.05, 1e-12);
@@ -535,7 +536,7 @@ static void test_bdot_saturates_and_keeps_direction(void **cm_state)
     memset(&mag, 0, sizeof(mag));
     mag.valid = true;
     mag.field = vec(30.0, 0.0, 40.0);
-    mag.field_rate = vec(3.0, -4.0, 0.0);       /* commands -15, +20 A m^2 */
+    mag.field_rate = vec(1500.0, -2000.0, 0.0); /* commands -15, +20 A m^2 */
 
     adcs_compute_bdot(&mag, &m);
     assert_double_equal(vec3_magnitude(&m), ADCS_MAX_DIPOLE, 1e-12);

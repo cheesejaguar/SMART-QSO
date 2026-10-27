@@ -27,6 +27,7 @@ use sqso_fsw::sensors::{
 use crate::c::{self, rc, severity};
 use crate::cell::Global;
 use crate::{eps_control, fault_mgmt, ptr};
+use sqso_fsw::eps_telemetry::Telemetry;
 
 #[cfg(not(target_os = "none"))]
 unsafe extern "C" {
@@ -152,6 +153,17 @@ fn rnd_unit() -> f64 {
     f64::from(x) / f64::from(u32::MAX)
 }
 
+/// `ADC_CHANNEL_TEMP_BOARD` (hal_adc.h): the OBC's thermistor on the
+/// payload heat spreader
+const ADC_CHANNEL_TEMP_BOARD: u32 = 6;
+
+/// The OBC thermistor, °C (the ADC converts it, hal_adc.h)
+fn board_thermistor_c() -> Option<f64> {
+    let mut celsius = 0.0;
+    // SAFETY: celsius is a live double (the HAL)
+    (unsafe { c::hal_adc_read_voltage(ADC_CHANNEL_TEMP_BOARD, &mut celsius) } == rc::OK).then_some(celsius)
+}
+
 /// A reading
 #[derive(Clone, Copy)]
 enum Reading {
@@ -159,12 +171,35 @@ enum Reading {
     Text([u8; TEXT_LEN]),
 }
 
+/// An EPS or payload reading: the EPS controller's telemetry (and the OBC
+/// thermistor) when the controller answers, the stand-in otherwise
+fn eps_numeric(kind: Kind, channel: &[u8], measured: Option<&Telemetry>, env: &Environment) -> sensors::Numeric {
+    let mut noise = rnd_unit;
+    let plain = |value| sensors::Numeric { value, alarm: None };
+    match (kind, measured) {
+        (Kind::EpsVoltage, Some(t)) => sensors::measured_voltage(channel, t),
+        (Kind::EpsVoltage, None) => sensors::eps_voltage(channel, env, &mut noise),
+        (Kind::EpsCurrent, Some(t)) => sensors::measured_current(channel, t),
+        (Kind::EpsCurrent, None) => sensors::eps_current(channel, env, &mut noise),
+        (Kind::EpsTemperature, Some(t)) => plain(t.tbatt_c),
+        (Kind::PayloadTemperature, Some(_)) => {
+            plain(board_thermistor_c().unwrap_or_else(|| sensors::payload_temperature(env, &mut noise)))
+        }
+        (Kind::PayloadTemperature, None) => plain(sensors::payload_temperature(env, &mut noise)),
+        _ => plain(sensors::eps_temperature(env, &mut noise)),
+    }
+}
+
 /// Take a reading of `kind` on `channel` (no sensor state borrowed)
 fn read(kind: Kind, channel: &[u8]) -> Reading {
-    let (sunlit, soc) = with((true, 0.75), |s| (s.sunlit, s.soc));
+    // The EPS controller's telemetry when it answers, the stand-ins otherwise
+    let measured = eps_control::eps_telemetry();
+    let (sunlit, soc) = match measured {
+        Some(t) => (t.sunlit(), t.soc),
+        None => with((true, 0.75), |s| (s.sunlit, s.soc)),
+    };
     let payload_enabled = eps_control::eps_is_payload_enabled();
     let env = Environment { sunlit, soc, payload_enabled };
-    let mut noise = rnd_unit;
     let channel = until_nul(channel);
     let numeric = match kind {
         Kind::SoftwareTimer => {
@@ -179,11 +214,8 @@ fn read(kind: Kind, channel: &[u8]) -> Reading {
                 .unwrap_or(now);
             sensors::Numeric { value: sensors::elapsed_s(start, c::now_ms()), alarm: None }
         }
-        Kind::EpsVoltage => sensors::eps_voltage(channel, &env, &mut noise),
-        Kind::EpsCurrent => sensors::eps_current(channel, &env, &mut noise),
-        Kind::EpsTemperature => sensors::Numeric { value: sensors::eps_temperature(&env, &mut noise), alarm: None },
-        Kind::PayloadTemperature => {
-            sensors::Numeric { value: sensors::payload_temperature(&env, &mut noise), alarm: None }
+        Kind::EpsVoltage | Kind::EpsCurrent | Kind::EpsTemperature | Kind::PayloadTemperature => {
+            eps_numeric(kind, channel, measured.as_ref(), &env)
         }
         Kind::StatusHex2 => {
             let bits = sensors::status_bits(&StatusInputs {

@@ -1,8 +1,8 @@
 # SMART-QSO Baseline Parameters (Single Source of Truth)
 
 **Document Number:** SQSO-BL-001
-**Revision:** C — *decisions D1–D7 taken by the PI (§9); the D2 structure and D3 values still go to the FCC consultation; §6 OBC software rebaselined (CR-2026-002)*
-**Date:** 2026-10-25
+**Revision:** D — *decisions D1–D9 (§9); the D2 structure and D3 values still go to the FCC consultation; §6 OBC software rebaselined (CR-2026-002); battery charge voltage, gyro and ADCS gains (D8, D9)*
+**Date:** 2026-10-26
 
 ---
 
@@ -87,7 +87,7 @@ filing:
 |-----------|----------|
 | Solar array | 16 triple-junction cells (~30 %): 2 on each of 4 long body faces, plus 2 deployable 1U-face wings with 2 cells per side **[A, layout to be drawn]** |
 | Generation, EOL orbit average | **2.39 W tumbling; 3.58 W sun-pointed** [A: audit calculation, TB-02] |
-| Battery | 4S1P Li-ion 18650, ≈ 3.5 Ah, 14.4 V nominal, **≈ 50 Wh** (below the 80 Wh ISS extra-assessment threshold and the 100 Wh FAA note in CDS 2.1.5) |
+| Battery | 4S1P Li-ion 18650, ≈ 3.5 Ah, 14.4 V nominal, **≈ 50 Wh** (below the 80 Wh ISS extra-assessment threshold and the 100 Wh FAA note in CDS 2.1.5). Size kept; **charged to 4.10 V/cell (16.4 V), not 4.20 V**, because the pack sits at the end of charge for most of the mission **[D8]** |
 | Depth of discharge | ≤ 10 % nominal per eclipse; ≤ 30 % contingency (SYS-112) |
 | Mode thresholds (SOC) | ACTIVE allowed at ≥ 55 % (sunlit); ACTIVE → IDLE below 40 %; → SAFE below 25 %; SAFE → EMERGENCY (beacon shed) below 15 %; back to SAFE at 25 %, to IDLE above 40 % (`eps_control.h`, `sm_power_event()`) |
 | Charge temperature window | **0 °C to +45 °C** (SYS-602; no charging below 0 °C) |
@@ -156,7 +156,7 @@ CR-2026-002, `docs/project/CHANGE_REQUEST_LOG.md`).
 
 | Parameter | Baseline |
 |-----------|----------|
-| ADCS | 3-axis air-core magnetorquers, one coil design delivering ≥ 0.15 A·m² per axis (ACTUATOR_DESIGN 250-turn coil); magnetometer, coarse sun sensors, MEMS gyro; B-dot detumble from 10°/s within 3 orbits; spin-stabilized coarse sun-pointing (statistics by simulation) |
+| ADCS | 3-axis air-core magnetorquers, one coil design delivering ≥ 0.15 A·m² per axis (ACTUATOR_DESIGN 250-turn coil); magnetometer, coarse sun sensors, MEMS gyro (**Epson M-G370PDT0**, Bosch BMI088 backup; bias ≤ 0.1°/s 1σ in use) **[D9]**; B-dot detumble from 10°/s within 3 orbits (gain 10⁴ A·m²·s/T); spin-stabilized coarse sun-pointing of +Y at **6°/s** (Monte Carlo of the flight code: mean 2.5°, 100 % of sunlit time within 15°; `docs/hardware/BUILD_VS_BUY.md` §6) **[D9]**; residual dipole ≤ 3 mA·m² design, 10 mA·m² limit (Helmholtz-cage measurement of the flight unit, wings deployed and illuminated) |
 | Thermal cases | Hot = β at maximum (no eclipse) + maximum power; Cold = β = 0 (≈ 36 min eclipse) + safe mode; ≥ 10 °C model-uncertainty margin before EM correlation |
 | Data | Beacon every 60 s in ACTIVE, 120 s in IDLE, 180 s in SAFE (~200 B, broadcast; MRD-020); housekeeping stored every 60 s; ≥ 7 days onboard storage |
 | Launch environments | Integrator/SpaceX levels. SpaceX v11: random vibe ≥ 5.57 Grms MPE with power-inhibit verification during vibe; first mode > 40 Hz (SpaceX) / per integrator. GSFC-STD-7000B as fallback |
@@ -176,6 +176,8 @@ change are marked there.
 | D5 | OBC-resident selector as flight baseline; Jetson generative text as a gated experiment; Jev ground-side only | [D5_AI_MODEL_SELECTION.md](funding_audit/research/D5_AI_MODEL_SELECTION.md), [selection](payload/AI_MODEL_SELECTION.md) | Measure energy per accepted beacon on the EM carrier (selection §5); resolve the 7 W mode (TB-13) |
 | D6 | **Add a GNSS receiver** (piNAV-NG/FM, Celeste alternate); third-party ephemeris as contingency | [D6_GNSS_RECEIVER.md](funding_audit/research/D6_GNSS_RECEIVER.md) | Quote both EM units; confirm with SpaceX and the integrator that a duty-cycled receiver meets §9.5.7.2; patch location; export licence; ground orbit-determination pipeline |
 | D7 | Transporter-class SSO via a 1U integrator, contract by 2027-06-30, altitude clause; NRCSD backup | [D7_LAUNCH_INTEGRATORS.md](funding_audit/research/D7_LAUNCH_INTEGRATORS.md) | Requests for quotes by 2026-12-31 (§3) |
+| D8 | **Keep the 4S1P ≈ 50 Wh pack; charge to 4.10 V/cell.** It is 2–3 times larger than the energy needs (the worst case simulated, wings and ADCS both failed, uses 3.2 % per eclipse), but the only lighter packs are 2S and change the 14.4 V bus for ≈ 125 g. Revisit with 2S1P if the MEL re-run after the COTS buys still has < 10 % mass margin. Taken 2026-10-26 under the PI's delegation | [BUILD_VS_BUY.md §7](hardware/BUILD_VS_BUY.md) | Charger set point in the EPS design; LEO-profile cycling of flight-lot cells at 4.10 V (BATTERY_DESIGN §9) |
+| D9 | **Gyro: Epson M-G370PDT0, BMI088 backup. ADCS: B-dot gain 10⁴, spin 6°/s with a spin-hold term.** Taken 2026-10-26 under the PI's delegation | [BUILD_VS_BUY.md §5–§6](hardware/BUILD_VS_BUY.md) | Quote the M-G370PDT0; BMI088 thermal calibration rig; magnetic cleanliness test of the residual dipole; re-run the Monte Carlo with the measured inertia and, if rods are bought, their remanence |
 
 ---
 
@@ -188,3 +190,4 @@ change are marked there.
 | B, note | 2026-10-16 | Notes on mass (§4) and the tumbling margin (§5) from the re-issued mass budget and solar-array analysis; values unchanged pending the PI |
 | B, note | 2026-10-24 | Note beneath §6: the flight software is Rust on the Embassy executor, not FreeRTOS; the OBC row is unchanged pending the PI |
 | C | 2026-10-25 | §6 OBC: the flight software runs on the Embassy executor with no RTOS (was FreeRTOS), by PI decision (CR-2026-002). §1 software classification: Class C (NPR 7150.2D Appendix D) |
+| D | 2026-10-26 | Decisions D8 (battery size kept, charge voltage 4.10 V/cell) and D9 (gyro; B-dot gain; 6°/s spin), delegated by the PI, from the build-versus-buy study and the ADCS Monte Carlo (`hardware/BUILD_VS_BUY.md`) |

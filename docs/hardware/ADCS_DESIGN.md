@@ -1,8 +1,8 @@
 # Attitude Determination and Control Subsystem (ADCS) Design Document
 
 **Document Number**: SMART-QSO-ADCS-001
-**Version**: 1.2
-**Date**: 2026-01-02
+**Version**: 1.4
+**Date**: 2026-10-26
 **Status**: Preliminary Design
 
 **Governing Standards**:
@@ -44,8 +44,8 @@ SMART-QSO employs a passive/semi-active ADCS approach:
 
 | ID | Requirement | Verification |
 |----|-------------|--------------|
-| ADCS-F001 | Detumble within 1 orbit from tip-off rates ≤10°/s | Analysis, Test |
-| ADCS-F002 | Achieve power-bias sun pointing (±15° accuracy) | Analysis, Test |
+| ADCS-F001 | Detumble within 3 orbits from tip-off rates ≤10°/s (BASELINE §8) | Analysis, Test |
+| ADCS-F002 | Achieve spin-stabilized coarse sun pointing of +Y, the deployed array's normal (±15° accuracy in sunlight) | Analysis, Test |
 | ADCS-F003 | Maintain attitude knowledge within ±5° | Analysis, Test |
 | ADCS-F004 | Operate autonomously without ground commands | Test |
 | ADCS-F005 | Provide attitude telemetry to OBC | Test |
@@ -56,7 +56,7 @@ SMART-QSO employs a passive/semi-active ADCS approach:
 
 | ID | Requirement | Threshold | Goal |
 |----|-------------|-----------|------|
-| ADCS-P001 | Detumble time | <90 min | <45 min |
+| ADCS-P001 | Detumble time | < 3 orbits (285 min) | < 2 orbits |
 | ADCS-P002 | Sun-pointing accuracy | ±15° | ±10° |
 | ADCS-P003 | Attitude knowledge accuracy | ±5° | ±3° |
 | ADCS-P004 | Peak power consumption | <2W | <1W |
@@ -210,7 +210,7 @@ void bdot_control(Vec3 *B_measured, Vec3 *B_prev, float dt, Vec3 *m_cmd) {
     B_dot.z = (B_measured->z - B_prev->z) / dt;
 
     // Control law: m = -k * B_dot
-    float k = 5.0e6;  // Gain (A·m²·s/T)
+    float k = 1.0e4;  // Gain (A·m²·s/T): ADCS_BDOT_GAIN, sqso_fsw::adcs::BDOT_GAIN
     m_cmd->x = -k * B_dot.x;
     m_cmd->y = -k * B_dot.y;
     m_cmd->z = -k * B_dot.z;
@@ -220,14 +220,22 @@ void bdot_control(Vec3 *B_measured, Vec3 *B_prev, float dt, Vec3 *m_cmd) {
 }
 ```
 
-**Convergence Analysis**:
-```
-Initial rates: 10°/s (worst case from deployment)
-Inertia (1U): ~0.002 kg·m² (per axis)
-Max torque: 10 μN·m
-Time constant: τ = I*ω / T = 0.002 * 0.17 / 10e-6 = 34 s
-Full detumble: ~5τ = 170 s (~3 minutes)
-```
+**Gain (1.4, 2026-10-26).** B-dot removes only the rate across the field, and only as fast as the field turns in the
+body. The gain that detumbles fastest is about k* = 2n(1 + sin ξ) J_min / |B|², with n the orbit rate, ξ the
+inclination and J_min the minor moment (Avanzini and Giulietti, *J. Guid. Control Dyn.* 35(4), 2012). For
+J_min = 0.0029 kg·m², 500 km and |B| of 20–50 µT that is about 10⁴. The earlier 5·10⁶ is 600 times higher. A gain that
+high cancels the rate across the field as soon as it appears, so the momentum follows the turning field and its
+magnitude decays only slowly. The Monte Carlo of the flight code (`sqso_adcs_mc`, `docs/hardware/BUILD_VS_BUY.md` §6),
+40 trials from the dispenser tip-off distribution, gave:
+
+| Gain (A·m²·s/T) | Not detumbled after 2 days | Median | Worst | Trials with a detumble timeout |
+|-----------------|----------------------------|--------|-------|--------------------------------|
+| 5·10⁶ | 15 of 40 | 16 h | 35 h | 36 of 40 |
+| 1·10⁴ | 0 of 40 | 0.75 h | 1.4 h (from up to 30°/s) | 0 of 40 |
+
+**Convergence** (replacing the earlier single-axis estimate, which assumed the full 10 µN·m about every axis): with
+k = 10⁴, the slowest of the trials took 1.4 h, under one orbit, to bring the rate across +Y below 0.5°/s. The
+3-orbit requirement (ADCS-F001) holds with a margin of 3.
 
 ### 4.2 Sun-Pointing Control
 
@@ -265,6 +273,50 @@ void sun_pointing_control(Vec3 *sun_body, Vec3 *B_body, Vec3 *m_cmd) {
     saturate_dipole(m_cmd, 0.2);
 }
 ```
+
+### 4.2.1 Spin-Stabilized Sun Pointing (flight law, 2026-10-26)
+
+The law above points +X and has no rate damping; the deployed wings lie in the +Y plane
+(`hardware/eps/SOLAR_ARRAY_DESIGN.md` §8.1), and a proportional law on magnetorquers alone does not converge. The
+mission simulation (`docs/test/SIL_MISSION_SIMULATION.md`) found both. SUNPOINT now runs the baseline's
+spin-stabilized coarse sun pointing (BASELINE §8, `sqso_fsw::adcs::spin_sunpoint`):
+
+```
+h = I ω                         (I: principal inertia with the wings out, +Y the major axis)
+τ = -k_h (h - h_s ŝ)            (sunlit only: momentum to h_s = I_yy ω_s along the sun vector ŝ)
+    - k_n (ω - (ω·ŷ) ŷ)         (nutation damping: no rate across +Y)
+    - k_s (I_yy ω_y - h_s) ŷ    (spin hold, sunlit and in eclipse)
+m = (B × τ) / |B|²              (the part of τ across B), saturated at 0.2 A·m²
+```
+
+with ω_s = 6°/s, k_h = 0.005 s⁻¹, k_n = 1·10⁻⁴ N·m·s and k_s = 0.005 s⁻¹ (`sqso_fsw::adcs::Gains::FLIGHT`). The rest
+state is a spin about +Y with +Y on the Sun; the spin holds the axis through eclipse with only the nutation damping
+and the spin hold acting. The rate is the MEMS gyro's when it reads (BASELINE §8), otherwise the magnetometer estimate
+of §4.3.
+
+**Changes in 1.4, from the Monte Carlo of the flight code** (`docs/hardware/BUILD_VS_BUY.md` §6; 40 trials of 2 days
+each, B-dot at 10⁴, the BMI088 gyro model):
+
+- *Spin hold.* The momentum law alone has a second rest state: −Y on the Sun with the spin reversed, since h = −h_s(−ŝ)
+  satisfies h = h_s ŝ. Without the spin-hold term 23 of 40 trials settled there, with the wings facing away from
+  the Sun. The term holds the spin positive about +Y. With it, no trial did.
+- *Spin rate.* The gyroscopic stiffness against the residual-dipole, gravity-gradient and aerodynamic torques grows
+  with the spin. The time-averaged angle between +Y and the Sun in sunlight was:
+
+  | Spin | Mean | Worst trial's 95th percentile | Time within 15° | Worst at eclipse exit |
+  |------|------|-------------------------------|-----------------|------------------------|
+  | 2°/s (k_n 4·10⁻⁵, the 1.3 gains) | 12° | 110° | 75 % | 163° |
+  | 4°/s | 3.9° | 15° | 99.8 % | 19° |
+  | **6°/s** | **2.5°** | **9.8°** | **100 %** | **12°** |
+
+  6°/s also tolerates a 10 mA·m² residual dipole, three times the 3 mA·m² design value (mean 7.1°, 92 % within 15°).
+  It needs < 5 mW of coil power once captured. At 6°/s the coarse sun sensors, read at 1 Hz, see the Sun move 6° between
+  samples. That is within the law's tolerance, because the law uses only the Sun direction, not its rate.
+- *Nutation gain.* With k_h = 0.005, a nutation gain much below 10⁻⁴ lets the nutation grow; 4·10⁻⁵ was marginal.
+- *Capture.* With a gyro, the detumble is complete when the rate across +Y is below 0.5°/s and the spin about +Y is
+  below twice ω_s, held for 5 min. A spin about +Y is the wanted state, not a tumble. Without a gyro, the earlier
+  |ω| < 0.5°/s criterion still applies. After a single-event reset, a spacecraft that is already spinning about +Y
+  completes the detumble in 5 min instead of despinning and spinning up again. The proportional law above remains as `adcs_compute_sunpoint()` for its interface.
 
 ### 4.3 Attitude Estimator
 
@@ -318,9 +370,9 @@ void triad_attitude(Vec3 *sun_body, Vec3 *mag_body,
 | Mode | Description | Entry Condition | Exit Condition |
 |------|-------------|-----------------|----------------|
 | IDLE | Sensors off, coils off | Power-on, SAFE mode | Command or timer |
-| DETUMBLE | B-dot active | ω > 1°/s detected | ω < 0.5°/s for 5 min |
-| SUNPOINT | Sun-pointing active | Detumble complete | Eclipse or fault |
-| ECLIPSE | Coils off, drift | Sun not detected | Sun detected |
+| DETUMBLE | B-dot active | ω > 1°/s detected | Rate across +Y < 0.5°/s and spin about +Y < 2 ω_s, for 5 min (with a gyro; §4.2.1); without one, ω < 0.5°/s for 5 min |
+| SUNPOINT | Spin-stabilized sun pointing of +Y (§4.2.1) | Detumble complete | Eclipse or fault |
+| ECLIPSE | Coils off, the spin holds the axis | Sun not detected | Sun detected |
 | SAFE | Minimal operation | Fault or low power | Power restored |
 
 ### 5.2 Mode State Machine
@@ -365,7 +417,7 @@ void triad_attitude(Vec3 *sun_body, Vec3 *mag_body,
 |-----------|-------|-------------|
 | Control loop rate | 1 Hz | Magnetorquer update rate |
 | Sensor sampling | 10 Hz | Magnetometer/sun sensor |
-| Detumble timeout | 90 min | Max detumble duration |
+| Detumble timeout | 285 min | Max detumble duration (3 orbits, BASELINE §8). In the Monte Carlo, the slowest trial took 1.5 h from tip-offs of up to 30°/s (§4.1) |
 | Settling time | 5 min | Time to declare detumble complete |
 | Eclipse threshold | 5% | Sun sensor threshold for eclipse |
 
@@ -559,8 +611,8 @@ If schedule or risk warrants, a COTS integrated solution is available:
 ### A.1 Body Frame
 
 - Origin: Spacecraft center of mass
-- +X: Solar array normal (sun-pointing axis)
-- +Y: Along spacecraft transverse axis
+- +X: Along the wings' hinge-to-tip direction
+- +Y: Solar array normal (sun-pointing and spin axis; the deployed wings lie in the +Y face plane)
 - +Z: Completes right-hand system
 
 ### A.2 ECI Frame (J2000)
@@ -610,3 +662,5 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §8.2 test IDs aligned with the procedure files (finding VV-18) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |
+| 1.3 | 2026-10-26 | SMART-QSO Team | From the mission simulation: detumble within 3 orbits (F001, P001, §5.3); spin-stabilized sun pointing of +Y (F002, §4.2.1, §5.1, App. A) |
+| 1.4 | 2026-10-26 | SMART-QSO Team | From the ADCS Monte Carlo (BUILD_VS_BUY §6): B-dot gain 10⁴ (§4.1); spin hold, 6°/s spin, nutation gain 10⁻⁴ and the capture criterion (§4.2.1, §5) |

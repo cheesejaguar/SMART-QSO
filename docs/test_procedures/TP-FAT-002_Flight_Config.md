@@ -111,8 +111,9 @@ This procedure verifies that the flight unit is configured correctly for launch 
 
 | Parameter | Expected Value | Actual | P/F |
 |-----------|----------------|--------|-----|
-| Detumble Threshold | 2°/s | | |
-| B-dot Gain | (Calculated) | | |
+| Detumble Threshold | 0.5°/s across +Y (`DETUMBLE_RATE_THRESHOLD`) | | |
+| Spin Rate (SUNPOINT) | 6°/s about +Y (`SPIN_RATE`) | | |
+| B-dot Gain | 1.0e4 A·m²·s/T (`ADCS_BDOT_GAIN`) | | |
 | Control Mode | Sun-pointing | | |
 | Magnetometer Calibration | Applied | | |
 

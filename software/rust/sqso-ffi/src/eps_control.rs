@@ -18,8 +18,10 @@
 //! @requirement SRS-F016 Enforce power budget limits per mode
 
 use core::ffi::CStr;
+use core::sync::atomic::{AtomicBool, Ordering};
 
 use sqso_fsw::eps::{self, EpsState, PayloadBlock, RECORD_SIZE};
+use sqso_fsw::eps_telemetry::{self, Telemetry};
 use sqso_fsw::mode::PowerMode;
 
 use crate::c::{self, fault_type, rc, severity};
@@ -43,6 +45,79 @@ pub(crate) static EPS: Global<Eps> = Global::new(Eps { state: EpsState::DEFAULT,
 
 fn with<R>(busy: R, f: impl FnOnce(&mut Eps) -> R) -> R {
     EPS.with(f).unwrap_or(busy)
+}
+
+/// `hal_gpio.h` load-switch pins
+const GPIO_PIN_PAYLOAD_EN: u32 = 0;
+const GPIO_PIN_ADCS_EN: u32 = 2;
+const GPIO_PIN_JETSON_PWR: u32 = 6;
+const GPIO_DIR_OUTPUT: u32 = 1;
+const GPIO_PULL_DOWN: u32 = 2;
+/// I2C bus of the EPS controller (`hal_i2c.h`: bus 0 is I2C2)
+const EPS_I2C_BUS: u32 = 0;
+/// The controller's telemetry is read again after this long, ms
+const TELEMETRY_MAX_AGE_MS: u64 = 500;
+
+/// The latest EPS controller telemetry and when it was read
+struct TelemetryCache {
+    read_ms: u64,
+    read: bool,
+    telemetry: Option<Telemetry>,
+}
+
+/// The payload schedule holds the payload's switch-on (flight): a mode
+/// entry may switch the payload off, but not on
+static PAYLOAD_HELD: AtomicBool = AtomicBool::new(false);
+
+static TELEMETRY: Global<TelemetryCache> = Global::new(TelemetryCache { read_ms: 0, read: false, telemetry: None });
+
+/// Drive the payload and ADCS load-switch enables (and the Jetson power
+/// gate with the payload's) from the EPS state: the switches follow the
+/// state, so a reset that restores the state restores the switches
+fn drive_load_pins(state: &EpsState) {
+    // SAFETY: plain values (the HAL); a pin that is not configured is refused
+    unsafe {
+        let _ = c::hal_gpio_set(GPIO_PIN_PAYLOAD_EN, state.payload_enabled);
+        let _ = c::hal_gpio_set(GPIO_PIN_JETSON_PWR, state.payload_enabled);
+        let _ = c::hal_gpio_set(GPIO_PIN_ADCS_EN, state.adcs_enabled);
+    }
+}
+
+/// The load-switch pins, as outputs, to the EPS state
+fn configure_load_pins() {
+    for pin in [GPIO_PIN_PAYLOAD_EN, GPIO_PIN_JETSON_PWR, GPIO_PIN_ADCS_EN] {
+        // SAFETY: plain values (the HAL)
+        let _ = unsafe { c::hal_gpio_config(pin, GPIO_DIR_OUTPUT, GPIO_PULL_DOWN) };
+    }
+    if let Some(state) = EPS.with(|e| e.state) {
+        drive_load_pins(&state);
+    }
+}
+
+/// The EPS controller's telemetry (SMART-QSO-ICD-001 §4.2), read over I2C
+/// at most every 500 ms; `None` while the controller does not answer with a
+/// plausible block (then the stand-ins are used, SW-01)
+pub fn eps_telemetry() -> Option<Telemetry> {
+    let now = c::now_ms();
+    let cached = TELEMETRY
+        .with(|t| (t.read && now >= t.read_ms && now - t.read_ms < TELEMETRY_MAX_AGE_MS).then_some(t.telemetry))
+        .flatten();
+    if let Some(telemetry) = cached {
+        return telemetry;
+    }
+    let mut block = [0u8; eps_telemetry::BLOCK_LEN];
+    let start = [0u8];
+    // SAFETY: start is one byte, block BLOCK_LEN writable bytes (the HAL)
+    let ok = unsafe {
+        c::hal_i2c_write_read(EPS_I2C_BUS, eps_telemetry::ADDRESS, start.as_ptr(), 1, block.as_mut_ptr(), block.len())
+    } == rc::OK;
+    let telemetry = if ok { eps_telemetry::decode(&block) } else { None };
+    let _ = TELEMETRY.with(|t| {
+        t.read_ms = now;
+        t.read = true;
+        t.telemetry = telemetry;
+    });
+    telemetry
 }
 
 /// The low 32 bits of the mission clock (`last_control_ms`)
@@ -94,6 +169,7 @@ fn control(switch: Switch, enable: bool) -> i32 {
         None => rc::BUSY,
         Some(false) => rc::OK,
         Some(true) => {
+            let _ = EPS.with(|e| drive_load_pins(&e.state));
             let what = if enable { "enabled" } else { "disabled" };
             c::console(format_args!("[EPS] {} {what}", switch.name()));
             let _ = eps_save_config();
@@ -115,10 +191,12 @@ pub extern "C" fn eps_init() -> i32 {
             c::console(format_args!("[EPS] Using default configuration"));
         }
     }
-    with(rc::BUSY, |e| {
+    let result = with(rc::BUSY, |e| {
         e.initialized = true;
         rc::OK
-    })
+    });
+    configure_load_pins();
+    result
 }
 
 /// Copy of the EPS state
@@ -182,6 +260,7 @@ pub extern "C" fn eps_control_payload(enable: bool, soc: f64) -> i32 {
         // COVERAGE-EXEMPT: as above (the EPS state is free between the two borrows)
         return rc::BUSY;
     }
+    let _ = EPS.with(|e| drive_load_pins(&e.state));
     if enable {
         c::log(fault_type::POWER, severity::INFO, c"Payload enabled", soc);
         c::console(format_args!("[EPS] Payload enabled"));
@@ -233,8 +312,11 @@ pub extern "C" fn eps_set_power_mode(mode: u32, soc: f64) -> i32 {
         Some(true) => {}
     }
     let loads = eps::loads(power_mode);
-    // A refused payload enable is logged by eps_control_payload
-    let _ = eps_control_payload(loads.payload, soc);
+    // A refused payload enable is logged by eps_control_payload; a held
+    // one is the payload schedule's to make
+    if !(loads.payload && PAYLOAD_HELD.load(Ordering::Relaxed)) {
+        let _ = eps_control_payload(loads.payload, soc);
+    }
     let _ = eps_control_radio(loads.radio);
     let _ = eps_control_adcs(loads.adcs);
     let _ = eps_control_beacon(loads.beacon);
@@ -261,6 +343,17 @@ pub extern "C" fn eps_get_power_mode() -> u32 {
 #[unsafe(no_mangle)]
 pub extern "C" fn eps_is_payload_enabled() -> bool {
     with(false, |e| e.state.payload_enabled)
+}
+
+/// Hold (or release) the payload's switch-on by a mode entry: in flight
+/// the payload schedule switches the payload on (`sqso_fsw::payload_schedule`)
+pub fn eps_hold_payload(hold: bool) {
+    PAYLOAD_HELD.store(hold, Ordering::Relaxed);
+}
+
+/// Whether the ADCS is powered
+pub fn eps_is_adcs_enabled() -> bool {
+    with(false, |e| e.state.adcs_enabled)
 }
 
 /// Whether the beacon transmitter is powered
@@ -344,6 +437,7 @@ mod tests {
             let switches = [eps_control_radio(true), eps_control_adcs(false), eps_control_beacon(true)];
             let modes = (eps_init(), eps_control_payload(true, 0.9), eps_set_power_mode(0, 0.5), eps_save_config());
             let readers = (eps_get_power_mode(), eps_is_payload_enabled(), eps_is_beacon_enabled(), eps_get_soc());
+            assert!(!eps_is_adcs_enabled());
             (got, switches, modes, readers, eps_get_power_limit())
         });
         let busy = rc::BUSY;
@@ -358,5 +452,67 @@ mod tests {
             ))
         );
         assert_eq!(copy.power_mode, 7);
+    }
+
+    /// The controller's telemetry: read over I2C, kept for 500 ms, read
+    /// again when the clock is behind the cache (a reset restarts it), and
+    /// none when the bus does not answer
+    #[test]
+    fn telemetry_is_read_cached_and_read_again() {
+        let _serial = serial();
+        let write = |soc: f64, vbatt_v: f64| {
+            let mut block = [0u8; eps_telemetry::BLOCK_LEN];
+            eps_telemetry::encode(&Telemetry { soc, vbatt_v, ..Telemetry::default() }, &mut block);
+            let mut regs = [0u8; 1 + eps_telemetry::BLOCK_LEN];
+            regs[1..].copy_from_slice(&block);
+            // SAFETY: regs is a live buffer of its length
+            unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) }
+        };
+        let forget = || {
+            let _ = TELEMETRY.with(|t| t.read = false);
+        };
+        assert_eq!(crate::hal_sim::hal_i2c_init(EPS_I2C_BUS, 100_000), rc::OK);
+        assert_eq!(write(0.8, 15.0), rc::OK);
+        forget();
+        assert_eq!(eps_telemetry().map(|t| t.soc), Some(0.8));
+        assert_eq!(write(0.5, 15.0), rc::OK);
+        assert_eq!(eps_telemetry().map(|t| t.soc), Some(0.8), "cached");
+        let _ = TELEMETRY.with(|t| t.read_ms = c::now_ms() + 10_000);
+        assert_eq!(eps_telemetry().map(|t| t.soc), Some(0.5), "the clock is behind the cache: read again");
+        forget();
+        assert_eq!(crate::hal_sim::holding_the_sim(eps_telemetry), Some(None), "no answer");
+        assert_eq!(crate::hal_sim::hal_i2c_init(EPS_I2C_BUS, 100_000), rc::OK);
+        forget();
+        assert_eq!(eps_telemetry(), None, "an implausible block is no telemetry");
+        forget();
+    }
+
+    /// While the payload schedule holds the payload, an ACTIVE entry leaves
+    /// it off (the other loads follow the mode); a direct switch-on, and a
+    /// mode entry that switches the payload off, still work
+    #[test]
+    fn a_held_payload_is_not_switched_on_by_a_mode_entry() {
+        let _serial = serial();
+        let _ = EPS.with(|e| {
+            e.state = EpsState::DEFAULT;
+            e.initialized = true;
+        });
+        let active = PowerMode::Active as u32;
+        let idle = PowerMode::Idle as u32;
+
+        eps_hold_payload(true);
+        assert_eq!(eps_set_power_mode(active, 0.9), rc::OK);
+        assert!(!eps_is_payload_enabled());
+        assert!(eps_is_adcs_enabled());
+        assert_eq!(eps_control_payload(true, 0.9), rc::OK); // the schedule's own switch-on
+        assert!(eps_is_payload_enabled());
+        assert_eq!(eps_set_power_mode(idle, 0.9), rc::OK); // a held payload still goes off
+        assert!(!eps_is_payload_enabled());
+
+        eps_hold_payload(false);
+        assert_eq!(eps_set_power_mode(active, 0.9), rc::OK);
+        assert!(eps_is_payload_enabled());
+        assert_eq!(eps_set_power_mode(idle, 0.9), rc::OK);
+        store::erase(Store::EpsConfig);
     }
 }

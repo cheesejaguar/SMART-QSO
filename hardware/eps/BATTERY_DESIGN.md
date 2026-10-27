@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-BAT-001
-**Version:** 2.0
-**Date:** 2026-10-16
+**Version:** 2.1
+**Date:** 2026-10-26
 **Status:** Battery definition and cycle-life analysis for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-08). **Analysis, not measured; no cell has been bought or tested.**
 
 ---
@@ -73,7 +73,7 @@ repeated if another cell is chosen.
 |-----------|-------|-------|
 | Configuration | 4S1P (4 series, 1 parallel) | BASELINE §5 |
 | Nominal Voltage | 14.4 V | 4 × 3.60 V |
-| Voltage Range | 12.0 V (3.0 V/cell, operational floor) to 16.8 V (4.20 V/cell) | Cell charge voltage; floor set above the 2.65 V cut-off **[floor is a design choice]** |
+| Voltage Range | 12.0 V (3.0 V/cell, operational floor) to 16.4 V (4.10 V/cell, the charge set point; the cell's maximum is 4.20 V) | Charge set point by decision D8 (BASELINE §5); floor set above the 2.65 V cut-off **[floor is a design choice]** |
 | Capacity | 3.45 Ah typical, **49.7 Wh** (48.2 Wh at the 3,350 mAh minimum) | 4 × 3.45 Ah × 3.6 V |
 | Total Mass | 249 g CBE (cells 200 g, holder 34 g, interconnect board 15 g) | `docs/environment/MASS_BUDGET.md` rows 7–9 |
 
@@ -161,8 +161,8 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 | Mode | Current | Condition |
 |------|---------|-----------|
 | Precharge | 100 mA | Vcell < 3.0 V |
-| CC Charge | ≤ 0.40 A (array-limited, ≈ C/9) | Vcell < 4.20 V and cell temperature 0 to +45 °C |
-| CV Charge | Tapering | Vcell = 4.20 V |
+| CC Charge | ≤ 0.40 A (array-limited, ≈ C/9) | Vcell < 4.10 V and cell temperature 0 to +45 °C |
+| CV Charge | Tapering | Vcell = 4.10 V (D8) |
 | Termination | 50 mA | End of charge |
 | Inhibit | 0 A | Any cell outside 0 to +45 °C, or over-voltage |
 
@@ -212,7 +212,9 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 
 ### 6.2 Thermal Interface
 
-- Thermal pad to spacecraft structure
+- Isolated mount (THERMAL_DESIGN 1.1; `docs/hardware/BUILD_VS_BUY.md` §4): four G-10CR or PEEK 450G shouldered
+  bushings with Ti-6Al-4V screws, a low-emissivity exterior, flying leads and no stack connector; ≈ 0.03 W/K to the
+  frame and ≤ 0.01 W/K to the OBC stack. The thermal pad stays between the cells and the holder, not to the structure
 - Heat spreading via aluminum cell holders
 - Heater circuit to hold the cells above 0 °C so charging can resume after eclipse
 
@@ -220,7 +222,7 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 
 | Parameter | Value |
 |-----------|-------|
-| Heater Power | 0.5 W |
+| Heater Power | ≈ 1 W at 14.4 V (≈ 200 Ω polyimide film, two elements on different cells), with a hardware over-temperature cutout at about +40 °C and a fuse or current limit (BUILD_VS_BUY §4.3, §4.5) |
 | Activation Temp | Above 0 °C; set point from the thermal model (TB-07) |
 | Thermostat Type | NTC-based control |
 
@@ -234,7 +236,7 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 |-----------|---------------|
 | Material | Aluminum 6061-T6, two clamp plates (34 g, `docs/environment/MASS_BUDGET.md` §4.3) |
 | Cell Retention | Spring-loaded contacts |
-| Mounting | M2 fasteners to structure |
+| Mounting | M2.5 Ti-6Al-4V screws through isolator bushings to frame inserts (§6.2) |
 | Vibration Survival | Integrator/SpaceX levels (BASELINE §8) |
 
 ### 7.2 Wiring
@@ -308,7 +310,8 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 ### 10.2 Open Decisions
 
 - Confirm the cell part number (§2.1).
-- End-of-charge voltage: 4.20 V (full capacity) or lower (less calendar fade); the §3.3 margin leaves room for either.
+- End-of-charge voltage: **closed, 4.10 V a cell** (decision D8, BASELINE §5; BUILD_VS_BUY §7). The pack sits at the end
+  of charge for most of the mission; the lower set point gives up about 10 % of capacity for slower calendar ageing.
 
 ---
 
@@ -318,3 +321,4 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 2.0 | 2026-10-16 | Funding audit (TB-08): 4S1P ≈ 50 Wh pack per BASELINE §5; cell data and cycle-life analysis (§3.3); 0–45 °C charge window; permanent charge-path disconnect for passivation |
+| 2.1 | 2026-10-26 | Charge set point 4.10 V a cell (D8, §3.1, §4.3, §10.2); isolated mount and 1 W heater (§6.2, §6.3, §7.1; BUILD_VS_BUY §4) |

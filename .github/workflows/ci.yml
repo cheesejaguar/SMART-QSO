@@ -174,6 +174,52 @@ jobs:
           fail_ci_if_error: false
 
   ###########################################################################
+  # Mission simulation (SIL): the flight software on the simulated spacecraft
+  # (software/rust/sqso-sil, docs/test/SIL_MISSION_SIMULATION.md). The first
+  # day and the 14-day commissioning must pass every check; the full
+  # two-year mission is run by hand (about 15 minutes)
+  ###########################################################################
+  mission-simulation:
+    name: Mission Simulation (SIL)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Rust toolchain (software/rust/rust-toolchain.toml)
+        working-directory: software/rust
+        run: |
+          rustup show active-toolchain || rustup toolchain install
+          rustc --version | grep -q '^rustc 1\.97\.0 ' || {
+            echo "::error::rustc is not the pinned 1.97.0 (software/rust/rust-toolchain.toml)"
+            exit 1
+          }
+
+      - name: Build the simulation
+        working-directory: software/rust
+        run: cargo build --profile sil --locked -p sqso-sil
+
+      - name: First day and commissioning (no anomaly)
+        working-directory: software/rust
+        run: |
+          ./target/sil/sqso_sil --scenario smoke --out sil-out/smoke
+          ./target/sil/sqso_sil --scenario commissioning --out sil-out/commissioning
+
+      - name: Report
+        if: always()
+        run: |
+          python3 -m pip install --quiet -r software/simulation/sil/requirements.txt
+          python3 software/simulation/sil/report.py software/rust/sil-out/commissioning
+
+      - name: Upload the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mission-simulation
+          path: software/rust/sil-out
+
+  ###########################################################################
   # Static Analysis Job
   ###########################################################################
   static-analysis:

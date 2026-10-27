@@ -1,8 +1,8 @@
 # SMART-QSO Parts List / Bill of Materials
 
 **Document ID**: SQSO-BOM-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-26
 **Classification**: Unclassified
 **Status**: CDR Baseline
 
@@ -80,9 +80,9 @@ This document provides the complete parts list and bill of materials for SMART-Q
 
 | Item | P/N | Qty | Specs | Supplier |
 |------|-----|-----|-------|----------|
-| Li-ion cell | INR18650-MJ1 | 2 | 3500mAh, 3.7V | LG Chem |
-| Battery holder | SQSO-BAT-001 | 1 | 2P config | Custom |
-| Protection IC | BQ29700 | 1 | 2S protection | TI |
+| Li-ion cell | INR18650-35E | 4 | 3450 mAh, 3.6 V; 4S1P, charged to 4.10 V/cell (BASELINE §5, D8) | Samsung SDI |
+| Battery holder | SQSO-BAT-001 | 1 | 4S1P, isolated mount (`docs/hardware/BUILD_VS_BUY.md` §4) | Custom |
+| Protection IC | (not yet selected) | 1 | 4S protection (the 2S BQ29700 does not fit the 4S pack) | — |
 | NTC thermistor | NTCG164BH | 2 | 100kΩ | TDK |
 
 ### 4.3 Power Management
@@ -190,7 +190,8 @@ This document provides the complete parts list and bill of materials for SMART-Q
 |------|-----|-----|-------|----------|
 | Magnetometer | LIS3MDL | 1 | 3-axis | ST |
 | Sun sensor | SFH2430 | 6 | Photodiode | Osram |
-| Gyroscope | BMG250 | 1 | 3-axis | Bosch |
+| Gyroscope | M-G370PDT0 | 1 | 6-axis IMU, bias 0.1°/s (1σ), SPI (BASELINE §8, D9) | Epson |
+| Gyroscope (backup) | BMI088 | 1 | 6-axis IMU on the OBC board, ground-calibrated to ≤ 0.1°/s | Bosch |
 | Accelerometer | ADXL345 | 1 | 3-axis | ADI |
 
 ### 8.2 Housekeeping Sensors
@@ -304,3 +305,4 @@ This document provides the complete parts list and bill of materials for SMART-Q
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-26 | SMART-QSO Team | Battery (§4.2) and gyro (§8.1) rows to the baseline (D8, D9). The rest of this list predates the baseline (Apollo4 OBC, SPV1050, Si4463, diplexer) and is not yet corrected; `docs/hardware/BUILD_VS_BUY.md` governs the build-or-buy choices |

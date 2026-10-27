@@ -30,7 +30,7 @@ extern "C" {
 #define ADCS_MAX_DIPOLE         0.2
 
 /** B-dot control gain */
-#define ADCS_BDOT_GAIN          5.0e6
+#define ADCS_BDOT_GAIN          1.0e4
 
 /** Sun-pointing proportional gain */
 #define ADCS_SUNPOINT_KP        0.001
@@ -42,7 +42,7 @@ extern "C" {
 #define ADCS_DETUMBLE_SETTLING_MS      300000  /* 5 minutes */
 
 /** Maximum detumble duration (ms) */
-#define ADCS_DETUMBLE_TIMEOUT_MS       5400000 /* 90 minutes (1 orbit) */
+#define ADCS_DETUMBLE_TIMEOUT_MS       17100000 /* 285 minutes (3 orbits, BASELINE §8) */
 
 /** Control loop period (ms) */
 #define ADCS_CONTROL_PERIOD_MS         1000

@@ -159,8 +159,9 @@ file), `SMART_QSO_FAULT_LOG`, `SMART_QSO_EPS_CONFIG` and `SMART_QSO_MISSION_DATA
 
 | Parameter | Default | Valid Range | Unit |
 |-----------|---------|-------------|------|
-| BDOT_GAIN | 1.0e6 | 1e5-1e7 | - |
-| DETUMBLE_THRESHOLD | 5.0 | 1.0-10.0 | deg/s |
+| BDOT_GAIN | 1.0e4 | 3e3-3e4 | A·m²·s/T |
+| DETUMBLE_THRESHOLD | 0.5 (rate across +Y) | 0.2-2.0 | deg/s |
+| SPIN_RATE | 6.0 (about +Y) | 2.0-8.0 | deg/s |
 | MTQ_MAX_DIPOLE | 0.2 | 0.1-0.5 | Am^2 |
 | CONTROL_PERIOD | 1000 | 100-5000 | ms |
 

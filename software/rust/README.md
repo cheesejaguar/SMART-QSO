@@ -22,6 +22,7 @@ a bounds-checked error, or at worst a controlled reset (see [Rules](#rules)).
 | `sqso-ffi` | The flight software behind the C headers: the C ABI glue, each module's state, the executive (`executive.rs`), the simulated HAL of the host build (`hal_sim.rs`), host operating-system access through libc (`os.rs`, host only) and persistent storage (`store.rs`) | pointer conversion after NULL checks, C and HAL calls, module state |
 | `sqso-clib` | `sqso-ffi` as the static library `libsqso_flight.a` that the C test suites link; owns the panic handler there | none |
 | `sqso-sim` | The host simulation, the binary `smart_qso_flight`. Feature `flight` (the CMake `FLIGHT_BUILD`): run until stopped instead of 1000 passes | none |
+| `sqso-sil` | The mission simulation (software in the loop): the flight software, unchanged, on the simulated HAL and a virtual clock, against models of the orbit, attitude, power, thermal, RF, radiation, deployment hardware, the Jetson, the ground segment and the transponder's users, from integration to re-entry, with the checks that judge a run (`docs/test/SIL_MISSION_SIMULATION.md`). Build profile `sil` | calls into the C ABI of `sqso-ffi` (the HAL hooks, `adcs_control.h`) |
 | `sqso-py` | Python module `sqso_protocol` (PyO3, maturin) for the Jetson payload and the ground tools | none (CI checks) |
 | `fuzz` | 12 cargo-fuzz targets: one per parser, and `fixed_format` (`fuzz/fuzz_targets`), including `sensors_yaml`, `gnss_nmea` and `kiss_stream`. A separate workspace | none |
 | `firmware` | The STM32L4R5ZI image (Embassy). A separate workspace, built only for `thumbv7em-none-eabihf` | register access, HAL exports, driver state, the two calibration reads in `firmware/src/adc.rs` |
@@ -40,7 +41,7 @@ The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 
 | HAL | File | What |
 |-----|------|------|
-| `hal_gpio.h` | `gpio.rs` | Provisional pin map. Heater and status LED on PD2/PD3, so that PC2/PC3 can be ADC inputs; deployment sense on PE2 and the downlink power select (`TX_PWR_SEL`) on PE3, so that PA0 can be an ADC input |
+| `hal_gpio.h` | `gpio.rs` | Provisional pin map. Heater and status LED on PD2/PD3, so that PC2/PC3 can be ADC inputs; deployment sense on PE2 and the downlink power select (`TX_PWR_SEL`) on PE3, so that PA0 can be an ADC input; the transponder enable (`XPDR_EN`) on PE4 |
 | `hal_timer.h` | `timer.rs` | Time base from embassy-time (milliseconds since boot) |
 | `hal_wdt.h`, `hal_reset.h` | `wdt.rs` | IWDG; reset cause from the RCC CSR flags |
 | `hal_uart.h` | `uart.rs` | Buffered UARTs: Jetson USART1 (PA9/PA10), debug USART3 (PD8/PD9) |
@@ -51,7 +52,7 @@ The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 | `hal_radio.h` | `radio.rs` | The KISS TNC on USART2 (PD5/PD6, 9600 baud) for both directions (CR-2026-005): received frames decoded by `sqso_protocol::kiss`, with the FCS the TNC removed appended again; downlink frames written after the TNC parameters, from a 1 KB buffer that holds the longest stream, so the write never waits |
 
 Not provided: the HAL's callback timers and the watchdog early-warning callback. Both are refused, as they were in the
-former C port. The release image is 115,876 B of text, 19,764 B of data and 16,496 B of bss. The vector table is at
+former C port. The release image is 131,032 B of text, 21,964 B of data and 16,600 B of bss. The vector table is at
 0x08000000, the initial SP is 0x200A0000 and the entry point is `Reset`. No hardware has run it. CI builds the image and
 checks those properties. The ADCS sensor and actuator drivers, and real sensor-table readings on the target, are not
 written because the parts are not selected (`docs/reviews/KNOWN_ISSUES.md` KI-001).

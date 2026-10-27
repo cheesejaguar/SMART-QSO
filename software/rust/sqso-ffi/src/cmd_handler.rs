@@ -60,13 +60,20 @@ impl CmdResponse {
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 pub struct CmdStats {
-    total_received: u32,
-    total_executed: u32,
-    total_rejected: u32,
-    auth_failures: u32,
-    last_cmd_time_ms: u32,
-    last_cmd_id: u8,
-    last_result: u32,
+    /// Commands received
+    pub total_received: u32,
+    /// Commands executed
+    pub total_executed: u32,
+    /// Commands refused
+    pub total_rejected: u32,
+    /// Commands that failed authentication
+    pub auth_failures: u32,
+    /// When the last command arrived, ms (low 32 bits)
+    pub last_cmd_time_ms: u32,
+    /// The last command's id
+    pub last_cmd_id: u8,
+    /// The last command's result
+    pub last_result: u32,
 }
 
 const NO_STATS: CmdStats = CmdStats {

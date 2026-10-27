@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-ADCS-SEN-001
-**Version:** 1.0
-**Date:** 2026-01-02
+**Version:** 1.1
+**Date:** 2026-10-26
 **Status:** CDR Baseline
 
 ---
@@ -129,20 +129,25 @@ sun_vector = normalize(sun_vector)
 
 ---
 
-## 4. Gyroscope Design (Optional)
+## 4. Gyroscope Design
+
+The gyro is not optional. The magnetometer rate estimate cannot see the rate about the field, so the gyro is the only
+check that the detumble is complete. It is also the rate in the spin law (`docs/test/SIL_MISSION_SIMULATION.md`
+SIL-05; `docs/hardware/ADCS_DESIGN.md` §4.2.1). The selection is in `docs/hardware/BUILD_VS_BUY.md` §5.
 
 ### 4.1 Sensor Specification
 
-| Parameter | Value |
-|-----------|-------|
-| Type | 3-axis MEMS gyroscope |
-| Part | BMI088, LSM6DSO, or equivalent |
-| Range | ±2000°/s |
-| Resolution | 0.01°/s |
-| Noise | < 0.01°/s/√Hz |
-| Bias stability | < 10°/hr |
-| Interface | SPI or I2C |
-| Power | < 5 mW |
+| Parameter | Requirement | Primary: Epson M-G370PDT0 | Backup: Bosch BMI088 (on the OBC board) |
+|-----------|-------------|---------------------------|------------------------------------------|
+| Range | ≥ ±50°/s (tip-off up to 30°/s) | ±200°/s | ±125°/s range selected |
+| Bias in use, per axis | **≤ 0.1°/s (1σ)** (the Monte Carlo: 0.2°/s degrades, 0.3°/s fails; BUILD_VS_BUY §6.4) | 0.10°/s (1σ, factory-compensated −40…+85 °C); turn-on repeatability 0.01°/s | ±1°/s as delivered: **ground thermal calibration required** (TCO ±0.015°/s/K) |
+| Noise | ≪ 0.5°/s per sample | 0.0007°/s/√Hz | 0.014°/s/√Hz |
+| Scale factor | ≤ 1 % | ±0.2 % | ±1 % |
+| Interface | SPI (STM32L4R5, 3.3 V) | SPI / UART | SPI / I²C |
+| Power | ≤ 60 mW (ADCS sensor allocation 0.12 W) | 53 mW | 16 mW (off unless the primary has failed) |
+| Mass | — | 10 g | < 1 g |
+| Radiation | ≥ 10 krad(Si) TID (BASELINE §6); latch-up current-limited and switchable | TID pass to 20 krad(Si); no SEL data | No data |
+| Heritage | Flight-tested | Int-Ball2 inside the ISS (JAXA, since 2023) | OreSat0.5 (free flyer, 2024) |
 
 ### 4.2 Usage
 
@@ -154,9 +159,11 @@ sun_vector = normalize(sun_vector)
 
 ### 4.3 Bias Estimation
 
-- Gyro bias estimated on-orbit using magnetometer
-- Kalman filter for bias tracking
-- Re-calibrate during low-rate periods
+- Ground: the BMI088 backup is calibrated over −20…+50 °C before integration, against a rate table, to ≤ 0.1°/s
+  residual. The M-G370PDT0 is checked at three temperatures against its factory compensation.
+- On orbit (not designed): the bias could be estimated against the magnetometer during the steady spin, when the
+  field turns in the body at the known spin rate. Until that is designed, the bias requirement above has to be met
+  without it.
 
 ---
 
@@ -300,3 +307,4 @@ Rotation matrix:
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-26 | §4: gyro required; Epson M-G370PDT0 primary, BMI088 backup; bias ≤ 0.1°/s from the ADCS Monte Carlo (BUILD_VS_BUY §5–§6) |

@@ -273,6 +273,45 @@ pub fn payload_temperature(env: &Environment, noise: &mut impl FnMut() -> f64) -
     base + 0.5 * (noise() - 0.5)
 }
 
+/// Pack voltage below which a measured battery reading raises the
+/// low-voltage alarm, V: 3.0 V a cell on the 4S pack (the BMS cuts off at
+/// 2.8 V, BASELINE §5)
+pub const MEASURED_LOW_BATTERY_V: f64 = 12.0;
+/// Measured discharge current above which the high-current alarm is
+/// raised, A: above every load combination of the power budget (Jetson,
+/// PA at 1 W, housekeeping and heater together draw about 1.1 A at 12 V),
+/// including a deployment burn (a pair of burn resistors on one line, each
+/// current-limited to 0.8 A, on top of the housekeeping load: about 1.9 A),
+/// and well below the 5 A protection limit
+pub const MEASURED_HIGH_DISCHARGE_A: f64 = 2.5;
+
+/// A voltage reading on `channel` from the EPS controller's telemetry
+pub fn measured_voltage(channel: &[u8], t: &crate::eps_telemetry::Telemetry) -> Numeric {
+    match channel {
+        b"battery" => Numeric {
+            value: t.vbatt_v,
+            alarm: (t.vbatt_v < MEASURED_LOW_BATTERY_V).then_some(Alarm::LowBatteryVoltage),
+        },
+        b"bus" => Numeric::plain(t.vbus_v),
+        b"solar" => Numeric::plain(t.vsolar_v),
+        _ => Numeric::plain(0.0),
+    }
+}
+
+/// A current reading on `channel` from the EPS controller's telemetry (the
+/// Jetson's is the 5 V payload bus, SMART-QSO-ICD-001 §3.1)
+pub fn measured_current(channel: &[u8], t: &crate::eps_telemetry::Telemetry) -> Numeric {
+    match channel {
+        b"battery_discharge" => {
+            let val = t.discharge_a();
+            Numeric { value: val, alarm: (val > MEASURED_HIGH_DISCHARGE_A).then_some(Alarm::HighDischargeCurrent) }
+        }
+        b"jetson" => Numeric::plain(t.ibus_a),
+        b"solar" => Numeric::plain(t.isolar_a),
+        _ => Numeric::plain(0.0),
+    }
+}
+
 /// Seconds elapsed since `start_ms` (C unsigned arithmetic)
 pub fn elapsed_s(start_ms: u64, now_ms: u64) -> f64 {
     (now_ms.wrapping_sub(start_ms) / 1000) as f64
@@ -590,6 +629,38 @@ pub fn format_telemetry<'a>(entries: impl Iterator<Item = (&'a [u8], Value<'a>, 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn measured_readings_come_from_the_eps_telemetry() {
+        let t = crate::eps_telemetry::Telemetry {
+            vbatt_v: 14.8,
+            ibatt_a: -0.42,
+            vsolar_v: 13.0,
+            isolar_a: 0.31,
+            vbus_v: 5.02,
+            ibus_a: 1.1,
+            ..Default::default()
+        };
+        assert_eq!(measured_voltage(b"battery", &t).value, 14.8);
+        assert_eq!(measured_voltage(b"battery", &t).alarm, None);
+        assert_eq!(measured_voltage(b"bus", &t).value, 5.02);
+        assert_eq!(measured_voltage(b"solar", &t).value, 13.0);
+        assert_eq!(measured_voltage(b"other", &t).value, 0.0);
+        assert!((measured_current(b"battery_discharge", &t).value - 0.42).abs() < 1e-12);
+        assert_eq!(measured_current(b"jetson", &t).value, 1.1);
+        assert_eq!(measured_current(b"solar", &t).value, 0.31);
+        assert_eq!(measured_current(b"other", &t).value, 0.0);
+        let low = crate::eps_telemetry::Telemetry { vbatt_v: 11.9, ibatt_a: -2.6, ..t };
+        assert_eq!(measured_voltage(b"battery", &low).alarm, Some(Alarm::LowBatteryVoltage));
+        assert_eq!(measured_current(b"battery_discharge", &low).alarm, Some(Alarm::HighDischargeCurrent));
+        // A deployment burn (two current-limited resistors and housekeeping) is no alarm
+        let burn = crate::eps_telemetry::Telemetry { ibatt_a: -1.9, ..t };
+        assert_eq!(measured_current(b"battery_discharge", &burn).alarm, None);
+        let edge = crate::eps_telemetry::Telemetry { ibatt_a: -MEASURED_HIGH_DISCHARGE_A, ..t };
+        assert_eq!(measured_current(b"battery_discharge", &edge).alarm, None, "at the limit is not above it");
+        let charging = crate::eps_telemetry::Telemetry { ibatt_a: 0.4, ..t };
+        assert_eq!(measured_current(b"battery_discharge", &charging).value, 0.0);
+    }
 
     fn parse(text: &[u8]) -> ([SensorDef; 40], usize) {
         let mut out = [SensorDef::EMPTY; 40];

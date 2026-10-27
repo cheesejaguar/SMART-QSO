@@ -2,8 +2,8 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-CRL-001
-**Revision:** B
-**Date:** 2026-10-25
+**Revision:** C
+**Date:** 2026-10-26
 **Reference:** `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` §4.3 to §4.4, §6.3
 
 ---
@@ -23,6 +23,7 @@ logged here; the Git history records them.
 | CR-2026-003 | 2026-10-25 | I | SWE-219 tailoring (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2 to §3.3) | MC/DC replaced by 100 % line and condition coverage of the safety-critical components | Approved, PI | Implemented: per-file CI gate |
 | CR-2026-004 | 2026-10-25 | II | Tool qualification (SDP §3.3) | The flight image stays on the pinned, unqualified rustc 1.97.0; no qualified compiler (Ferrocene) | Approved, PI | Implemented |
 | CR-2026-005 | 2026-10-25 | I | OBC–transmitter interface (`hardware/obc/OBC_DESIGN.md` §8.1 and A.5; SQSO-RF-TX-001 §10.1; SRS §5.3) | The downlink goes to a KISS TNC on USART2, shared with the uplink receiver; power select on one GPIO line (0.5 W / 1 W); three ADC monitors; SRS-I023 to SRS-I027 | Approved, PI | Implemented; verification of the TNC and transmitter pending (hardware) |
+| CR-2026-006 | 2026-10-26 | I | BASELINE §5 battery row, §8 ADCS row, §9 D8–D9; `sqso_fsw::adcs` gains | Battery charged to 4.10 V/cell (size kept); gyro Epson M-G370PDT0 with BMI088 backup; B-dot gain 10⁴; spin 6°/s with a spin-hold term | Approved, PI delegation | Implemented in the software and the simulation; hardware pending |
 
 ## 3. Change Requests
 
@@ -277,9 +278,80 @@ Submitter: Flight software
 
 ---
 
+### CR-2026-006: battery charge voltage, gyro and ADCS gains
+
+```
+Change Request Number: CR-2026-006
+Date Submitted: 2026-10-26
+Submitter: Systems (build-versus-buy study)
+
+1. Configuration Item Affected:
+   CI ID: SQSO-BL-001 §5 (battery), §8 (ADCS), §9 (D8, D9);
+   SMART-QSO-ADCS-001 §4.1, §4.2.1, §5; SQSO-ADCS-SEN-001 §4;
+   sqso_fsw::adcs (BDOT_GAIN, SPIN_RATE, NUTATION_GAIN, SPIN_HOLD_GAIN,
+   the capture criterion); ADCS_BDOT_GAIN (adcs_control.h)
+
+2. Description of Change:
+   - Battery: size kept (4S1P, about 50 Wh); the charge regulator's
+     constant-voltage set point is 4.10 V a cell (16.4 V), not 4.20 V.
+   - Gyro: Epson M-G370PDT0 primary, Bosch BMI088 backup on the OBC
+     board; bias in use at most 0.1 deg/s (1 sigma per axis).
+   - ADCS: B-dot gain 1e4 A m^2 s/T (was 5e6); SUNPOINT spin 6 deg/s
+     (was 2) with a spin-hold term (gain 0.005 1/s) and nutation gain
+     1e-4 N m s (was 4e-5); with a gyro, the detumble is complete when
+     the rate across +Y is below 0.5 deg/s and the spin about +Y below
+     twice the spin rate, for 5 minutes.
+
+3. Reason for Change:
+   The ADCS Monte Carlo of the flight code (docs/hardware/BUILD_VS_BUY.md
+   section 6): at 5e6, 15 of 40 trials were still tumbling after two
+   days; at 2 deg/s the spin law settled with -Y on the Sun in 23 of 40
+   and held +Y within 15 deg for 75 % of sunlit time. With the change,
+   every trial captures within 1.5 h and holds +Y within 15 deg for
+   100 % of sunlit time. The pack sits at the end of charge for most of
+   the mission; a lower set point slows calendar ageing. A smaller pack
+   would need a 2S bus.
+
+4. Impact Assessment:
+   - Technical: about 10 % less usable capacity at 4.10 V; the worst
+     simulated eclipse still uses under 4 %. The C header value
+     ADCS_BDOT_GAIN and its contract check change with the Rust value.
+   - Schedule: none.
+   - Cost: the M-G370PDT0 (about $1-1.5k) and a BMI088 calibration rig.
+   - Risk: the tip-off distribution and inertia are assumptions; the
+     Monte Carlo is re-run with the measured values.
+
+5. Affected Documents:
+   docs/BASELINE_PARAMETERS.md (D), docs/hardware/ADCS_DESIGN.md (1.4),
+   hardware/adcs/SENSOR_DESIGN.md (1.1), hardware/eps/BATTERY_DESIGN.md,
+   docs/hardware/BUILD_VS_BUY.md (A), docs/test/SIL_MISSION_SIMULATION.md,
+   docs/software/CONFIGURATION_INDEX.md, docs/test_procedures/TP-FAT-002_Flight_Config.md.
+
+6. Verification Required:
+   Analysis: the Monte Carlo (sqso_adcs_mc) and the mission simulation
+   (sqso_sil --scenario full). Test: the Rust and C suites; the gyro and
+   magnetic cleanliness on the EM.
+
+7. CCB Decision:
+   [x] Approved
+   Reason: decisions delegated by the PI, 2026-10-26.
+
+8. Implementation:
+   Assigned to: Systems, flight software
+   Completed: 2026-10-26 (software/rust/sqso-fsw/src/adcs.rs,
+   software/flight/include/adcs_control.h, software/rust/sqso-sil)
+
+9. Verification:
+   Verified by: simulation and host tests; hardware pending
+   Date: —
+```
+
+---
+
 ## 4. Revision History
 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-10-25 | Initial release: CR-2026-001 to CR-2026-004 | SMART-QSO Team |
 | B | 2026-10-25 | CR-2026-005: the downlink transmitter interface | SMART-QSO Team |
+| C | 2026-10-26 | CR-2026-006: battery charge voltage, gyro and ADCS gains | SMART-QSO Team |

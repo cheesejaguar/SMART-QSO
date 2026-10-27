@@ -16,11 +16,15 @@
 //! - [`contact_monitor`]: loss-of-contact transmit inhibit (`contact_monitor.h`)
 //! - [`deployment`]: deployment wait and burn sequence (`deployment.h`)
 //! - [`payload_guard`]: OBC-enforced Jetson power and temperature limits (`payload_guard.h`)
+//! - [`payload_schedule`]: the Jetson's batch duty cycle
+//! - [`heater`]: battery heater thermostat
+//! - [`transponder`]: the FM transponder's power, thermal and duty gates
 //! - [`safe_string`]: bounded string and memory operations (`safe_string.h`)
 //! - [`assert_handler`]: assertion failure log and response (`assert_handler.h`)
 //! - [`flight_log`]: flight log ring buffer (`flight_log.h`)
 //! - [`uart_comm`]: OBC–Jetson serial line settings (`uart_comm.h`)
 //! - [`eps`]: EPS power policy and its stored state (`eps_control.h`)
+//! - [`eps_telemetry`]: EPS controller telemetry registers (SMART-QSO-ICD-001)
 //! - [`executive`]: the main loop's power model and field rules (was `main.c`)
 //! - [`sensors`]: sensor configuration file, readings, telemetry text (`sensors.h`)
 //! - [`mission_data`]: mission statistics record (`mission_data.h`)
@@ -45,17 +49,20 @@ pub mod contact_monitor;
 pub mod deployment;
 pub mod downlink;
 pub mod eps;
+pub mod eps_telemetry;
 pub mod executive;
 pub mod fault_log;
 pub mod fixed;
 pub mod flight_log;
 pub mod fmath;
 pub mod gnss;
+pub mod heater;
 pub mod keys;
 pub mod mission_data;
 pub mod mode;
 pub mod nvm;
 pub mod payload_guard;
+pub mod payload_schedule;
 pub mod rf_control;
 pub mod rf_silence;
 pub mod safe_string;
@@ -64,5 +71,6 @@ pub mod sensors;
 pub mod system_state;
 pub mod telecommand;
 pub mod telemetry;
+pub mod transponder;
 pub mod uart_comm;
 pub mod watchdog;

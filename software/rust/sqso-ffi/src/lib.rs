@@ -93,6 +93,8 @@ pub mod scheduler;
 pub mod sensors;
 pub mod separation_switch;
 pub mod sha256;
+#[cfg(not(target_os = "none"))]
+pub mod sil;
 pub mod state_machine;
 pub mod system_state;
 pub mod telemetry;

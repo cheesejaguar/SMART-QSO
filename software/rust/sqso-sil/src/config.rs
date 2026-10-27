@@ -1,0 +1,259 @@
+//! The mission the simulation flies: dates, orbit, spacecraft options,
+//! operations plan and the simulation's own settings. Every value a run
+//! used is written to `config.json` beside its results.
+//!
+//! Defaults follow `docs/BASELINE_PARAMETERS.md`; `--set key=value` on the
+//! command line changes any of them (the keys are the field names).
+
+use std::fmt::Write as _;
+
+/// Settings of one run
+#[derive(Clone, Debug)]
+pub struct Config {
+    /// Scenario name, for the record
+    pub scenario: String,
+    /// Random seed (keys, unit-to-unit variation, radiation, link fading)
+    pub seed: u64,
+    /// Integration and key load (bench), UTC as (y, m, d)
+    pub integration_date: (i32, u32, u32),
+    /// Deployment from the dispenser, UTC (y, m, d, h) (BASELINE §3: 2028-06-01)
+    pub deploy_utc: (i32, u32, u32, f64),
+    /// Deployment altitude, km (BASELINE §3: target ≤ 500)
+    pub altitude_km: f64,
+    /// Local time of the ascending node, h (Transporter SSO: descending
+    /// node 10:30, so ascending 22:30)
+    pub ltan_h: f64,
+    /// Pack state of charge at integration (BATTERY_DESIGN storage charge)
+    pub integration_soc: f64,
+    /// Storage temperature between integration and deployment, °C
+    pub storage_temp_c: f64,
+    /// Design life after deployment, days (BASELINE §2: 2 years)
+    pub mission_days: f64,
+    /// Fire the EOL passivation at the end of the design life
+    pub passivate_at_eol: bool,
+    /// Simulate the orbit (without the flight software, which is off for
+    /// good after passivation) until re-entry
+    pub to_reentry: bool,
+    /// Simulation step with nothing happening, s
+    pub step_s: f64,
+    /// Finer step while the transmitter is keyed, a burn is on, or the
+    /// Jetson is booting, s
+    pub fine_step_s: f64,
+    /// Time-series record interval, s
+    pub record_s: f64,
+    /// Finer record interval for the first `detail_days`, s
+    pub detail_record_s: f64,
+    /// Days recorded at the finer interval
+    pub detail_days: f64,
+    /// Burn-wire driver per-resistor current limit, A (`0`: direct drive)
+    pub burn_limit_a: f64,
+    /// Contact plan: commands per day from the primary station (passes
+    /// above `contact_min_elev_deg`)
+    pub contacts_per_day: u32,
+    /// Lowest elevation for a commanding pass, degrees
+    pub contact_min_elev_deg: f64,
+    /// Day after deployment the loss-of-contact timeout is set to 14 days
+    /// (BASELINE §7: end of commissioning)
+    pub commissioning_days: f64,
+    /// Fuel-gauge current offset, A (a fixed error)
+    pub gauge_offset_a: f64,
+    /// Radiation effects on (single-event resets and latch-ups)
+    pub radiation: bool,
+    /// Days of ground silence to test the loss-of-contact inhibit (0: none)
+    pub contact_outage_days: f64,
+    /// When that outage starts, days after deployment
+    pub contact_outage_start_day: f64,
+    /// Battery capacity relative to the 4S1P INR18650-35E pack (resistance
+    /// scales inversely)
+    pub battery_scale: f64,
+    /// Charge regulator's constant-voltage set point, V a cell
+    pub charge_v_cell: f64,
+    /// Contingency: the magnetorquers never act (the spacecraft tumbles)
+    pub adcs_failed: bool,
+    /// Contingency: the wings never release
+    pub wings_failed: bool,
+    /// Contingency: the Jetson's rail is stuck on (its switch failed closed)
+    pub payload_stuck_on: bool,
+    /// Years of array radiation degradation added at deployment (0: new)
+    pub array_years: f64,
+    /// The gyro (`crate::adcs_mc::gyro_preset`: none, mg370 (the flight
+    /// gyro, BASELINE §8), bmi088 (the backup, calibrated), bmi088_uncal,
+    /// adis16505)
+    pub gyro: String,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            scenario: "full".into(),
+            seed: 20_280_601,
+            integration_date: (2028, 4, 15),
+            deploy_utc: (2028, 6, 1, 6.0),
+            altitude_km: 500.0,
+            ltan_h: 22.5,
+            integration_soc: 0.60,
+            storage_temp_c: 20.0,
+            mission_days: 730.0,
+            passivate_at_eol: true,
+            to_reentry: true,
+            step_s: 1.0,
+            fine_step_s: 0.1,
+            record_s: 600.0,
+            detail_record_s: 10.0,
+            detail_days: 3.0,
+            burn_limit_a: 0.8,
+            contacts_per_day: 2,
+            contact_min_elev_deg: 15.0,
+            commissioning_days: 14.0,
+            gauge_offset_a: 0.002,
+            radiation: true,
+            contact_outage_days: 0.0,
+            contact_outage_start_day: 0.0,
+            battery_scale: 1.0,
+            charge_v_cell: crate::hw::eps::CV_CELL_V,
+            adcs_failed: false,
+            wings_failed: false,
+            payload_stuck_on: false,
+            array_years: 0.0,
+            gyro: "mg370".into(),
+        }
+    }
+}
+
+impl Config {
+    /// A named scenario: `full` (integration to re-entry), `commissioning`
+    /// (the first 14 days), `smoke` (the first day, for CI), `year` (the
+    /// first year, no passivation)
+    pub fn scenario(name: &str) -> Option<Config> {
+        let mut c = Config { scenario: name.into(), ..Config::default() };
+        match name {
+            "full" => {}
+            "year" => {
+                c.mission_days = 365.0;
+                c.passivate_at_eol = false;
+                c.to_reentry = false;
+            }
+            "commissioning" => {
+                c.mission_days = 14.0;
+                c.passivate_at_eol = false;
+                c.to_reentry = false;
+                c.record_s = 60.0;
+            }
+            "smoke" => {
+                c.mission_days = 1.0;
+                c.passivate_at_eol = false;
+                c.to_reentry = false;
+                c.record_s = 60.0;
+                c.detail_days = 1.0;
+            }
+            _ => return None,
+        }
+        Some(c)
+    }
+
+    /// Apply `key=value`
+    pub fn set(&mut self, kv: &str) -> Result<(), String> {
+        let (k, v) = kv.split_once('=').ok_or_else(|| format!("expected key=value, got {kv}"))?;
+        let f = || v.parse::<f64>().map_err(|e| format!("{k}: {e}"));
+        let b = || v.parse::<bool>().map_err(|e| format!("{k}: {e}"));
+        match k {
+            "seed" => self.seed = v.parse().map_err(|e| format!("{k}: {e}"))?,
+            "altitude_km" => self.altitude_km = f()?,
+            "ltan_h" => self.ltan_h = f()?,
+            "integration_soc" => self.integration_soc = f()?,
+            "storage_temp_c" => self.storage_temp_c = f()?,
+            "mission_days" => self.mission_days = f()?,
+            "passivate_at_eol" => self.passivate_at_eol = b()?,
+            "to_reentry" => self.to_reentry = b()?,
+            "step_s" => self.step_s = f()?,
+            "fine_step_s" => self.fine_step_s = f()?,
+            "record_s" => self.record_s = f()?,
+            "detail_record_s" => self.detail_record_s = f()?,
+            "detail_days" => self.detail_days = f()?,
+            "burn_limit_a" => self.burn_limit_a = f()?,
+            "contacts_per_day" => self.contacts_per_day = v.parse().map_err(|e| format!("{k}: {e}"))?,
+            "contact_min_elev_deg" => self.contact_min_elev_deg = f()?,
+            "commissioning_days" => self.commissioning_days = f()?,
+            "gauge_offset_a" => self.gauge_offset_a = f()?,
+            "radiation" => self.radiation = b()?,
+            "contact_outage_days" => self.contact_outage_days = f()?,
+            "contact_outage_start_day" => self.contact_outage_start_day = f()?,
+            "battery_scale" => self.battery_scale = f()?,
+            "charge_v_cell" => self.charge_v_cell = f()?,
+            "adcs_failed" => self.adcs_failed = b()?,
+            "wings_failed" => self.wings_failed = b()?,
+            "payload_stuck_on" => self.payload_stuck_on = b()?,
+            "array_years" => self.array_years = f()?,
+            "gyro" => {
+                if crate::adcs_mc::gyro_preset(v).is_none() {
+                    return Err(format!("unknown gyro {v}"));
+                }
+                self.gyro = v.to_string();
+            }
+            _ => return Err(format!("unknown setting {k}")),
+        }
+        Ok(())
+    }
+
+    /// The settings as JSON
+    pub fn to_json(&self) -> String {
+        let mut s = String::from("{\n");
+        let (y, m, d) = self.integration_date;
+        let (dy, dm, dd, dh) = self.deploy_utc;
+        let fields: Vec<(&str, String)> = vec![
+            ("scenario", format!("\"{}\"", self.scenario)),
+            ("seed", self.seed.to_string()),
+            ("integration_date", format!("\"{y:04}-{m:02}-{d:02}\"")),
+            ("deploy_utc", format!("\"{dy:04}-{dm:02}-{dd:02}T{dh:05.2}h\"")),
+            ("altitude_km", self.altitude_km.to_string()),
+            ("ltan_h", self.ltan_h.to_string()),
+            ("integration_soc", self.integration_soc.to_string()),
+            ("storage_temp_c", self.storage_temp_c.to_string()),
+            ("mission_days", self.mission_days.to_string()),
+            ("passivate_at_eol", self.passivate_at_eol.to_string()),
+            ("to_reentry", self.to_reentry.to_string()),
+            ("step_s", self.step_s.to_string()),
+            ("fine_step_s", self.fine_step_s.to_string()),
+            ("record_s", self.record_s.to_string()),
+            ("detail_record_s", self.detail_record_s.to_string()),
+            ("detail_days", self.detail_days.to_string()),
+            ("burn_limit_a", self.burn_limit_a.to_string()),
+            ("contacts_per_day", self.contacts_per_day.to_string()),
+            ("contact_min_elev_deg", self.contact_min_elev_deg.to_string()),
+            ("commissioning_days", self.commissioning_days.to_string()),
+            ("gauge_offset_a", self.gauge_offset_a.to_string()),
+            ("radiation", self.radiation.to_string()),
+            ("contact_outage_days", self.contact_outage_days.to_string()),
+            ("contact_outage_start_day", self.contact_outage_start_day.to_string()),
+            ("battery_scale", self.battery_scale.to_string()),
+            ("charge_v_cell", self.charge_v_cell.to_string()),
+            ("adcs_failed", self.adcs_failed.to_string()),
+            ("wings_failed", self.wings_failed.to_string()),
+            ("payload_stuck_on", self.payload_stuck_on.to_string()),
+            ("array_years", self.array_years.to_string()),
+            ("gyro", format!("\"{}\"", self.gyro)),
+        ];
+        for (i, (k, v)) in fields.iter().enumerate() {
+            let _ = write!(s, "  \"{k}\": {v}");
+            s.push_str(if i + 1 < fields.len() { ",\n" } else { "\n" });
+        }
+        s.push('}');
+        s
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn scenarios_and_overrides() {
+        assert!(Config::scenario("nope").is_none());
+        let mut c = Config::scenario("smoke").unwrap();
+        assert_eq!(c.mission_days, 1.0);
+        c.set("altitude_km=450").unwrap();
+        assert_eq!(c.altitude_km, 450.0);
+        assert!(c.set("bogus=1").is_err());
+        assert!(c.to_json().contains("\"altitude_km\": 450"));
+    }
+}

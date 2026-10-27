@@ -14,7 +14,7 @@ use crate::cell::Shared;
 use crate::rc;
 
 /// Pins, in `HalGpioPin_t` order
-pub(crate) const COUNT: usize = 16;
+pub(crate) const COUNT: usize = 17;
 
 const DIR_OUTPUT: u32 = 1;
 const PULL_UP: u32 = 1;
@@ -68,6 +68,7 @@ pub(crate) fn install(
     antenna_sense: Peri<'static, impl Pin>,   // PB11
     solar_sense: Peri<'static, impl Pin>,     // PB12
     tx_pwr_sel: Peri<'static, impl Pin>,      // PE3
+    xpdr_en: Peri<'static, impl Pin>,         // PE4
 ) {
     GPIO.install(Gpio {
         pins: [
@@ -87,6 +88,7 @@ pub(crate) fn install(
             pin(antenna_sense, Boot::Input(Pull::None)),
             pin(solar_sense, Boot::Input(Pull::None)),
             pin(tx_pwr_sel, Boot::OutputLow),
+            pin(xpdr_en, Boot::OutputLow),
         ],
     });
 }

@@ -46,7 +46,7 @@ rm -rf build
 
 ### Software Architecture
 - **Flight** (`software/flight/`): the C headers (the interface of the flight modules), the CMocka test suites that specify them, and one C shim (`src/flight_log_fmt.c`: printf-style `log_write`, which stable Rust cannot define). No RTOS: the firmware's Embassy executor runs the main loop
-- **Rust** (`software/rust/`): all flight software, behind the C headers. `sqso-protocol` (wire formats) and `sqso-fsw` (flight logic) are `no_std` with `unsafe` forbidden; `sqso-ffi` is the flight software behind the headers (with the executive and the simulated HAL); `sqso-clib` is the static library the C tests link; `sqso-sim` is the host simulation; `firmware` is the STM32L4R5 image; `sqso-py` gives the payload and ground tools the same protocol code. See `software/rust/README.md`
+- **Rust** (`software/rust/`): all flight software, behind the C headers. `sqso-protocol` (wire formats) and `sqso-fsw` (flight logic) are `no_std` with `unsafe` forbidden; `sqso-ffi` is the flight software behind the headers (with the executive and the simulated HAL); `sqso-clib` is the static library the C tests link; `sqso-sim` is the host simulation; `sqso-sil` is the mission simulation (software in the loop, integration to re-entry: `docs/test/SIL_MISSION_SIMULATION.md`); `firmware` is the STM32L4R5 image; `sqso-py` gives the payload and ground tools the same protocol code. See `software/rust/README.md`
 - **Payload** (`software/payload/`): Jetson integration for TensorRT INT8 bursts
 - **Ground** (`software/ground/`): Tools for beacon processing, model frames, dashboards
 - **Simulation** (`software/simulation/`): Power/link notebooks and event replays

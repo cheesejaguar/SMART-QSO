@@ -1,0 +1,36 @@
+[package]
+name = "sqso-sil"
+description = "SMART-QSO software-in-the-loop mission simulation: the flight software against orbit, power, thermal, RF and ground models"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+name = "sqso_sil"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "sqso_sil"
+path = "src/main.rs"
+test = false
+
+[[bin]]
+name = "sqso_adcs_mc"
+path = "src/bin/adcs_mc.rs"
+test = false
+
+[dependencies]
+sqso-ffi = { path = "../sqso-ffi" }
+sqso-protocol.workspace = true
+sqso-fsw.workspace = true
+libc = { workspace = true, features = ["std"] }
+
+# Simulation code, not flight code: the workspace's flight lints (no
+# indexing, no unwrap) do not apply; the default clippy set does
+[lints.rust]
+missing_docs = "warn"
+unsafe_op_in_unsafe_fn = "deny"

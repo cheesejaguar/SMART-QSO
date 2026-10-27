@@ -55,6 +55,7 @@ __pycache__/
 venv/
 ENV/
 env/
+!software/rust/sqso-sil/src/env/
 
 # Packaging / build artifacts
 dist/
@@ -95,3 +96,6 @@ software/simulation/notebooks/*.ipynb
 *.p12
 *.pfx
 keys/
+
+# Mission simulation output (software/rust/sqso-sil)
+sil-out/
