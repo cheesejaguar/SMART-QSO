@@ -39,27 +39,51 @@ typedef enum {
     GPIO_PIN_UMBILICAL_SENSE = 10, /**< GSE umbilical present (high); pulled low in flight */
     GPIO_PIN_ANTENNA_BURN  = 11,  /**< Wing 2 resistor A (PB9; was the antenna burn: the AntS deploys over I2C) */
     GPIO_PIN_SOLAR_BURN    = 12,  /**< Wing 1 resistor A (PB10) */
-    GPIO_PIN_ANTENNA_SENSE = 13,  /**< Antenna deployed sense input */
+    GPIO_PIN_ANTENNA_SENSE = 13,  /**< Not wired since SQSO-ICX-001 B (the AntS reports its elements over I2C): reads low */
     GPIO_PIN_SOLAR_SENSE   = 14,  /**< Solar array deployed sense input */
     GPIO_PIN_TX_PWR_SEL    = 15,  /**< Downlink power select: low 0.5 W, high 1 W */
     GPIO_PIN_XPDR_EN       = 16,  /**< FM transponder enable: heartbeat (hal_gpio_heartbeat), never a level */
     GPIO_PIN_GNSS_EN       = 17,  /**< GNSS receiver load switch (current-limited, latch-up trip) */
     GPIO_PIN_SOLAR_BURN_B  = 18,  /**< Wing 1 resistor B (PE6) */
-    /* Logical pins added at CDR; their STM32 pins are to be allocated by
-     * the OBC board design (the firmware refuses them until then) */
-    GPIO_PIN_EOL_ARM       = 19,  /**< EPS end-of-life charge disconnect: arm latch (rising edge sets it), passivation.h */
-    GPIO_PIN_EOL_FIRE      = 20,  /**< EPS end-of-life charge disconnect: fire (level, in series with the latch) */
-    GPIO_PIN_RX_CD         = 21,  /**< Input: command receiver carrier detect (high on a carrier), receiver.h */
-    GPIO_PIN_RX_FAULT      = 22,  /**< Input: command receiver health, high on a fault (open reads healthy), receiver.h */
-    GPIO_PIN_BURN_W2B      = 23,  /**< Wing 2 resistor B */
-    GPIO_PIN_LOCK_CLR      = 24,  /**< EPS recharge-lockout clear pulse (with an I2C unlock), eps_lockout.h */
-    GPIO_PIN_COUNT         = 25
+    /* Logical pins added at CDR (STM32 pins: SQSO-ICX-001 B §4.1) */
+    GPIO_PIN_EOL_ARM       = 19,  /**< PF4: EPS end-of-life charge disconnect: arm latch (rising edge sets it), passivation.h */
+    GPIO_PIN_EOL_FIRE      = 20,  /**< PG1: EPS end-of-life charge disconnect: fire (level, in series with the latch) */
+    GPIO_PIN_RX_CD         = 21,  /**< PG0, input: command receiver carrier detect (high on a carrier), receiver.h */
+    GPIO_PIN_RX_FAULT      = 22,  /**< PF13, input: command receiver health, high on a fault (open reads healthy), receiver.h */
+    GPIO_PIN_BURN_W2B      = 23,  /**< PE7: wing 2 resistor B */
+    GPIO_PIN_LOCK_CLR      = 24,  /**< PF5: EPS recharge-lockout clear pulse (with an I2C unlock), eps_lockout.h */
+    /* ADCS sensors and magnetorquers (SQSO-ICX-001 B §6 rows 11, 12, 16, 17) */
+    GPIO_PIN_GYRO_EN       = 25,  /**< PF6: 3V3_GYRO latch-up switch (M-G370PDT0) */
+    GPIO_PIN_IMU2_EN       = 26,  /**< PF7: 3V3_IMU2 latch-up switch (BMI088 cold spare) */
+    GPIO_PIN_SNS_EN        = 27,  /**< PF8: 3V3_SNS latch-up switch (RM3100, ADS7138) */
+    GPIO_PIN_GYRO_RB       = 28,  /**< PF10, input: gyro switch EN node; low with GYRO_EN high = trip */
+    GPIO_PIN_IMU2_RB       = 29,  /**< PF11, input: BMI088 switch EN node */
+    GPIO_PIN_SNS_RB        = 30,  /**< PF12, input: sensor switch EN node */
+    GPIO_PIN_GYRO_RST_N    = 31,  /**< PD14: M-G370 /RST (low = reset, at least 100 ms) */
+    GPIO_PIN_GYRO_DRDY     = 32,  /**< PD10, input: M-G370 data ready */
+    GPIO_PIN_IMU2_DRDY     = 33,  /**< PD15, input: BMI088 gyro data ready (INT3) */
+    GPIO_PIN_MAG_DRDY      = 34,  /**< PD11, input: RM3100 data ready */
+    GPIO_PIN_MTQ_X_DIR     = 35,  /**< PE8: X bridge PH (direction) */
+    GPIO_PIN_MTQ_Y_DIR     = 36,  /**< PE10: Y bridge PH */
+    GPIO_PIN_MTQ_Z_DIR     = 37,  /**< PE12: Z bridge PH */
+    GPIO_PIN_MTQ_FAULT_N   = 38,  /**< PE14, input: bridge nFAULT (wired-OR, low = fault) */
+    GPIO_PIN_MTQ_EXPIRED   = 39,  /**< PE15, input: the hardware off-timer expired (high = the firmware's timer failed) */
+    /* Readbacks (SQSO-ICX-001 B §6 rows 18-22) */
+    GPIO_PIN_TONE_OK       = 40,  /**< PC9, input: CTCSS tone decoded (repeat path) */
+    GPIO_PIN_XPDR_KEY      = 41,  /**< PG12, input: transponder repeat keyed */
+    GPIO_PIN_PTT_EXC       = 42,  /**< PC7, input: exciter keyed (PTT_EXCITER; its keyed time: hal_capture.h) */
+    GPIO_PIN_JET_PG        = 43,  /**< PG6, input: Jetson carrier 3.3 V up (JET_3V3) */
+    GPIO_PIN_GNSS_PG       = 44,  /**< PG15, input: 3V3_GNSS up (low with GNSS_EN high = SW7 trip) */
+    GPIO_PIN_WDI           = 45,  /**< PG11: TPS3850 supervisor kick (falling edge every 10 s) */
+    GPIO_PIN_COUNT         = 46
 } HalGpioPin_t;
 
 /** The four wing burn lines, one resistor at a time (deployment.h) */
 #define GPIO_PIN_BURN_W1A GPIO_PIN_SOLAR_BURN
 #define GPIO_PIN_BURN_W1B GPIO_PIN_SOLAR_BURN_B
 #define GPIO_PIN_BURN_W2A GPIO_PIN_ANTENNA_BURN
+/** PTT_EXCITER readback (SQSO-ICX-001 B) */
+#define GPIO_PIN_PTT_EXCITER GPIO_PIN_PTT_EXC
 
 /**
  * @brief GPIO direction
