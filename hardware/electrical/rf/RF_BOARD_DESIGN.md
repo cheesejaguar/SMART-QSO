@@ -275,19 +275,33 @@ The link-budget terms:
 | +5V_PA | PA_5V through FB803 (2.2 A) | PA drains, APC, reference | Unpowered unless SW3 is on |
 | +3V3_PA | TPS7A2033 from +5V_PA | PCM1808 VDD, squarer, detectors, PA-domain logic | Unpowered unless SW3 is on |
 | +5V_PA_A | +5V_PA through FB804 | PCM1808 VCC | Analog supply; sets the deviation scale (§7.1) |
-| +3V3_LMX | TPS22918 from +3V3_RAD, ON from a PA_5V divider | LMX2571, MICROWIRE buffer | LMX2571 needs 3.15–3.45 V (the rail is 3.19–3.40 V at the board); powered only when the PA rail is present |
+| +3V3_LMX | **U805 TPS7A2033 (3.3 V ± 1.5 %) from +5V_PA**, EN from the PA_5V divider R805/R806 (E, SMA-B16; was a TPS22918 load switch from +3V3_RAD) | LMX2571, MICROWIRE buffer | LMX2571 needs 3.15–3.45 V: 3.25–3.35 V from its own regulator, independent of 3V3_AO; exists only with PA_5V (second TX-permit path kept) |
 
-The minimum supply at the LMX2571 while keyed is 3.198 V (`rf_calcs.json` rx_power.rail_min_at_board, D), 48 mV
-above its 3.15 V minimum, at 0.089 A from 3V3_AO at −2 % (EPS_DESIGN 2.0 §4 now gives ±2 %). The drops are:
+**Why the synthesizer has its own regulator (E, SMA-B16).** Through Version D the LMX2571 ran from RADIO_3V3
+(3V3_AO through SW2, W4B, FB801 and a load switch) with only 48 mV above its 3.15 V minimum. A 3V3_AO drift that the
+OBC tolerates would therefore have ended transmission, and the TX-permit path depended on two rails. It now has its
+own TPS7A2033 on +5V_PA:
+- Its supply is 3.25 V minimum, 100 mV of margin, whatever 3V3_AO does.
+- It exists only when PA_5V is present, so TX-OFF still removes it: the second hardware TX-permit path of §8.5 is
+  inherent, and its EN pin still takes the separate PA_5V divider.
+- A fault on the PA rail now takes the synthesizer down with the PA. Both are needed to transmit, so that loses
+  nothing. A fault on RADIO_3V3 no longer affects the synthesizer, but the TNC is lost then anyway.
+- Dropout needs PA_5V ≥ 3.5 V; the rail is 4.85–5.15 V.
+- Cost: the LMX2571's 46 mA now comes from 5 V instead of 3.3 V. The keyed DC power is +0.08 W (1.84 W at 0.5 W RF,
+  §7.3), and U805 dissipates 0.10 W at most (+19 °C in its X2SON). The receive section drops by the LMX2571's 0.9 mA
+  power-down current.
+
+RADIO_3V3 now feeds only the receive and repeat loads, 47 mA worst. Its minimum at the board is 3.217 V
+(`rf_calcs.json` rx_power.rail_min_at_board), from 3V3_AO at −2 % (EPS_DESIGN 2.0 §4) less these drops:
 
 | Drop | mV |
 |------|---:|
-| SW2, TPS2553-Q1 (0.12 Ω assumed) | 10.7 |
-| W4B, 28 AWG (SQSO-HAR-001 §9.2) | 13.7 |
-| FB801 (0.10 Ω maximum) | 8.9 |
-| TPS22918 | 2.4 |
+| SW2, TPS2553-Q1 (0.12 Ω assumed) | 5.6 |
+| W4B, 28 AWG (SQSO-HAR-001 §9.2, scaled) | 7.2 |
+| FB801 (0.10 Ω maximum) | 4.6 |
 
-The power figures of §5.2 stay at the conservative +3 %.
+Headroom: 172 mV for the TPS7A2030 (3.0 V) and 64 mV for the TPS73101 (3.106 V). The power figures of §5.2 stay at
+the conservative +3 %.
 
 ### 5.2 DC power (from `rf_calcs.json`)
 
@@ -561,7 +575,8 @@ TX-OFF (RF_TX_EN low, `rf_control`), the loss-of-contact and RF-silence inhibits
 the EPS low-voltage shed all act by removing PA_5V (SW3; EPS_DESIGN 2.0 §5, §8). The board turns the presence of
 PA_5V into two independent hardware enables: (1) divider R803/R804 → U804 Schmitt buffer → TX_PERMIT_HW, an input of
 the PTT gate (so the LMX2571 CE, the PCM1808 clock and the PA enable all need it); (2) divider R805/R806 → the ON pin
-of U805, which powers the LMX2571 itself. With TX-OFF the PA has no supply, the exciter has no supply and its CE is
+of U805, which powers the LMX2571 itself (E: U805 is the LMX2571's own TPS7A2033, fed from +5V_PA, so it also has no
+input without PA_5V). With TX-OFF the PA has no supply, the exciter has no supply and its CE is
 low: a single failure (a stuck gate or a shorted switch) leaves at least one of the three removed. No state of the
 repeat-path logic can power the PA.
 
@@ -652,7 +667,7 @@ centre taken at z +44, OBC_BOARD_DESIGN §9.4). That is 4.0 mm above this board'
 | Shield (SH1–SH4) | Nickel-silver, unplated, soldered lids, no clips (§10). The nearest wall and lid edge are 13.0 mm from the sensor, inside M1's radius, so only a non-magnetic shield is acceptable | At 13 mm, 1 µA·m² would give 91 nT |
 | Inductors | All RF and drain inductors are Coilcraft 0603HP (ceramic core) or 1812SMS (air core): no magnetic core on the board | — |
 | Connectors | J1 (Samtec, phosphor bronze, gold over a nickel underplate) at 63 mm; J2 (Molex) at 87 mm; MMCX jacks J3–J6 (Molex 73415-1473, listed non-magnetic) at 58–78 mm; cable plugs (gold over a probable nickel underplate) ≥ 58 mm | Underplate nickel is microns thick. At these distances it is below 1 nT per µA·m² |
-| PA current, 0.485 A at 1 W | Supply and return as a pair: +5V_PA on L4 over its return on L5 (≤ 0.30 mm apart) from J2 to the drain feeds, and the drain loop on L1 over the L2 plane. The whole path, J2 → FB803 → L602/L604 → Q601, stays in the (−X, −Y) corner, ≥ 60 mm from (+24, +27). No PA current in any other layer pair, and no split in L5 under the run | At the sensor, paired on this route: **0.39 nT** (L4/L5) + 0.12 nT (drain loop). Unpaired with the return detoured round a 20 × 14 mm loop: 22 nT. Paired but routed 20 mm from the sensor: 22 nT. A single unpaired wire at 20 mm: 4.7 µT |
+| PA current, 0.485 A at 1 W | Supply and return as a pair: +5V_PA on L4 over its return on L5 (≤ 0.30 mm apart) from J2 to the drain feeds, and the drain loop on L1 over the L2 plane. The whole path, J2 → FB803 → L602/L604 → Q601, stays in the (−X, −Y) corner, ≥ 60 mm from (+24, +27). No PA current in any other layer pair, and no split in L5 under the run | At the sensor, paired on this route: **0.40 nT** (L4/L5) + 0.12 nT (drain loop). Unpaired with the return detoured round a 20 × 14 mm loop: 23 nT. Paired but routed 20 mm from the sensor: 23 nT. A single unpaired wire at 20 mm: 4.9 µT |
 | Other rails | RADIO_3V3 (≤ 0.09 A) and the LDO outputs over their own ground plane (L2/L5 solid); none routed through M1 | Pairing as above; currents 5× smaller than the PA's |
 
 The field that matters most is the step between transmitter off and keyed, because calibration does not remove a
@@ -695,7 +710,7 @@ Stresses (worst case, `rf_calcs.json` "stresses" and the BOM column "Derated str
 
 Every resistor, capacitor and inductor line in the BOM carries its own computed stress.
 
-Verification of the MPNs (2026-10-27): TI parts (CC1200, LMX2571, PCM1808, TPS7A2030/2033, TPS73101, TPS22918,
+Verification of the MPNs (2026-10-27): TI parts (CC1200, LMX2571, PCM1808, TPS7A2030/2033, TPS73101,
 REF35250Q, TLV9001/9002, TMUX1101/1219, TMP235, LVC logic, CD74HC4060): orderable addenda read, all **Active**, with
 their lead finishes. Mitsubishi RD01MUS3 (data sheet January 2026), Infineon BFP640F (data sheet 2024), CML CMX138A
 (data sheet 2014; distributor: Active), Tai-Saw TA2209A (approval sheet 2017), Epson TG2016SMN family (distributors):
