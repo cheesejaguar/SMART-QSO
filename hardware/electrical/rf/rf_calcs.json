@@ -66,7 +66,8 @@
   "t_board_hot_c": 60.0,
   "t_board_cold_c": -30.0,
   "v_radio_nom": 3.3,
-  "v_radio_tol": 0.03
+  "v_radio_tol": 0.03,
+  "v_radio_tol_eps": 0.02
  },
  "fl1": {
   "elements": {
@@ -703,7 +704,18 @@
   "repeat_worst_W": 0.0313,
   "repeat_allocation_W": 0.03,
   "receive_plus_repeat_worst_W": 0.162,
-  "rail_min_at_board_V": 3.189
+  "rail_min_at_board": {
+   "v_3v3_ao_min_V": 3.234,
+   "drops_mV": {
+    "SW2_TPS2553": 10.7,
+    "W4B_28AWG": 13.7,
+    "FB801": 8.9,
+    "TPS22918": 2.4
+   },
+   "v_lmx_min_V": 3.198,
+   "margin_to_3V15_mV": 48.0,
+   "keyed_current_A": 0.089
+  }
  },
  "timing": {
   "monostable": {

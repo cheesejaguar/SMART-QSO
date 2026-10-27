@@ -640,7 +640,7 @@ def sns():
     # magnetometer: PNI RM3100 on the magnetometer board (A2, mag_board()) at the +Z end frame, on J10 / harness W6E
     j = place(CONN("PicoClasp_6", 6), "J10", "MAGNETOMETER", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT",
               "1 A/contact", "< 5 mA", "W6E to the magnetometer board A2 (RM3100) at the +Z end frame: 3V3_SNS, GND, SDA, SCL, DRDY, GND",
-              "Sn", "Digi-Key: Active (EPS board)")
+              "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: Active (EPS board); gold order code to confirm (Molex drawing)")
     conn(j, {"P1": "3V3_SNS", "P2": "GND", "P3": "SDA_S", "P4": "SCL_S", "P5": "MG_DRDY", "P6": "GND"})
     R(100e3, "MG_DRDY", "GND", note="DRDY defined with the harness unplugged")
     esd4("D20", ["3V3_SNS", "SDA_S", "SCL_S", "MG_DRDY"], "J10 magnetometer harness")
@@ -677,14 +677,13 @@ def sns():
     R(200e3, "VMTQ_SNS", "GND")
     C("100n", "VMTQ_SNS", "GND", note="reservoir")
     # J8 sun sensors
-    j = place(CONN("PicoClasp_14", 14), "J8", "SUN SENSORS", "5013311407", "Molex", "Pico-Clasp 1.0 mm 14 pos SMT",
-              "1 A/contact", "< 6 mA", "W6D: six panel photodiodes (K, A) + two shield drains", "Sn", "pattern (501331-xx07)")
+    j = place(CONN("PicoClasp_12", 12), "J8", "SUN SENSORS", "5013311207", "Molex", "Pico-Clasp 1.0 mm 12 pos SMT",
+              "1 A/contact", "< 6 mA", "W6D: six unshielded pairs, panel photodiodes (K, A) (Version C: no drains, was 14 pos)",
+              "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "pattern (501331-xx07); gold order code to confirm")
     pins = {}
     for i, f in enumerate(faces):
         pins[f"P{2 * i + 1}"] = f"CSS_{f}_K"
         pins[f"P{2 * i + 2}"] = "GND"
-    pins["P13"] = "GND"
-    pins["P14"] = "GND"
     conn(j, pins)
     esd4("D21", [f"CSS_{f}_K" for f in faces[:4]], "J8 sun sensors 1-4")
     esd4("D22", [f"CSS_{f}_K" for f in faces[4:]] + [None, None], "J8 sun sensors 5-6")
@@ -721,7 +720,7 @@ def mtq():
         C("10n", f"MTQ_{ax}_I", "GND", note="ADC reservoir")
     j = place(CONN("PicoClasp_6", 6), "J7", "MAGNETORQUERS", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT",
               "1 A/contact", f"{cv('mtq_itrip_max', '{:.3f}')} A max: 13 %", "W6C: X+, X-, Y+, Y-, Z+, Z- (CR0002 rods)",
-              "Sn", "Digi-Key: Active (EPS board)")
+              "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: Active (EPS board); gold order code to confirm (Molex drawing)")
     conn(j, {"P1": "MTQ_X_P", "P2": "MTQ_X_N", "P3": "MTQ_Y_P", "P4": "MTQ_Y_N", "P5": "MTQ_Z_P", "P6": "MTQ_Z_N"})
     # burn gate and hardware off-timer
     R(100e3, "MTQ_ARM", "GND", note="MCU reset = no burst")
@@ -764,7 +763,7 @@ def jetson_link():
     R(10e3, "JET_3V3", "JET_PG", note="carrier power-good readback (RID AV-06)")
     R(100e3, "JET_PG", "GND", note="low with the carrier off")
     j = place(CONN("PicoClasp_6", 6), "J3", "JETSON", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
-              "< 5 mA", "W5B (6 pins, E10): GND, OBC TX, OBC RX, carrier 3.3 V, spreader NTC, NTC return", "Sn",
+              "< 5 mA", "W5B (6 pins, E10): GND, OBC TX, OBC RX, carrier 3.3 V, spreader NTC, NTC return", "Au (gold variant, SQSO-HAR-001 2.0 3.1)",
               "Digi-Key: Active (EPS board)")
     conn(j, {"P1": "GND", "P2": "JET_RXD", "P3": "JET_TXD", "P4": "JET_3V3", "P5": "PT_NTC_J", "P6": "GND"})
     esd4("D23", ["JET_RXD", "JET_TXD", "JET_3V3", "PT_NTC_J"], "J3 Jetson")
@@ -777,11 +776,11 @@ def jetson_link():
 
 def gnss_link():
     j = place(CONN("PicoClasp_2", 2), "J4", "GNSS PWR IN", "5013310207", "Molex", "Pico-Clasp 1.0 mm 2 pos SMT", "1 A/contact",
-              f"0.232 A max (SW7 trip): 23 %", "W9B from EPS J21 (SW7, GNSS_EN): routed through the OBC to J5", "Sn",
+              f"0.232 A max (SW7 trip): 23 %", "W9B from EPS J21 (SW7, GNSS_EN): routed through the OBC to J5", "Au (gold variant, SQSO-HAR-001 2.0 3.1)",
               "Digi-Key: Active (EPS board)")
     conn(j, {"P1": "3V3_GNSS", "P2": "GND"})
     j = place(CONN("PicoClasp_6", 6), "J5", "GNSS", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
-              "0.232 A: 23 %", "W9A to the piNAV-NG/FM: 3V3, GND, RXD, TXD, 1PPS, GND", "Sn", "Digi-Key: Active (EPS board)")
+              "0.232 A: 23 %", "W9A to the piNAV-NG/FM: 3V3, GND, RXD, TXD, 1PPS, GND", "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: Active (EPS board); gold order code to confirm (Molex drawing)")
     conn(j, {"P1": "3V3_GNSS", "P2": "GND", "P3": "GNSS_RXD", "P4": "GNSS_TXD", "P5": "GNSS_1PPS", "P6": "GND"})
     C("10u", "3V3_GNSS", "GND", 25, "1206", note="GNSS supply at J5")
     C("100n", "3V3_GNSS", "GND", note="translators VCCB")
@@ -803,9 +802,10 @@ def gnss_link():
 
 def eps_connector():
     pins = J1_PINS
-    j = place(CONN("FTSH_2x20", 40), "J1", "EPS", "FTSH-120-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x20 SMT",
-              "2.4 A/contact (Samtec rating)", "0.088 A per 3V3 contact, 0.115 A per VBAT_MTQ contact: < 5 %",
-              "W3 version 2 (mates EPS J3; pinout SQSO-ICX-001 3.1)", "Au 10 uin", "not checked (Samtec site not read)")
+    j = place(CONN("TFM_2x20", 40), "J1", "EPS", "TFM-120-01-S-D-RA", "Samtec", "Tiger Eye TFM 1.27 mm 2x20 right-angle",
+              "contact rating per Samtec (not read)", "0.088 A per 3V3 contact, 0.115 A per VBAT_MTQ contact",
+              "W3 v3: SFSDT 30 AWG to EPS J3 (TFM-120 vertical); cable toward +X, mated plug's back <= x +43.1 (SQSO-HAR-001 2.0 10.2)",
+              "Au 30 uin", "not checked (Samtec site not read)")
     for i, nm in enumerate(pins, 1):
         link(nm, j[f"P{i}"])
     C("100n", "3V3_RTC", "GND", note="J1-38 entry")
@@ -838,8 +838,10 @@ J1_PINS = ["3V3_OBC", "3V3_OBC", "GND", "GND", "I2C2_SCL", "I2C2_SDA", "GND", "E
 
 
 def rf_connector():
-    j = place(CONN("FTSH_2x8", 16), "J2", "RF", "FTSH-108-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x8 SMT", "2.4 A/contact",
-              "signals < 5 mA", "W4A version 3 (mates RF J1, SQSO-RF-BRD-001 4.1; pins 15-16 RX_CD, RX_FAULT new)", "Au 10 uin", "not checked")
+    j = place(CONN("TFM_2x8", 16), "J2", "RF", "TFM-108-01-S-D-RA", "Samtec", "Tiger Eye TFM 1.27 mm 2x8 right-angle",
+              "contact rating per Samtec (not read)", "signals < 5 mA",
+              "W4A v4: SFSDT 30 AWG to RF J1 (TFM-108 RA); at (+41.0, -33.5), cable toward +X, plug's back <= x +43.1",
+              "Au 30 uin", "not checked")
     conn(j, {"P1": "GND", "P2": "TNC_RXD_J", "P3": "TNC_TXD_J", "P4": "GND", "P5": "TX_PWR_SEL_J", "P6": "XPDR_EN_J",
              "P7": "GND", "P8": "TONE_OK_J", "P9": "XPDR_KEY_J", "P10": "PTT_EXC_J", "P11": "TX_TEMP_J",
              "P12": "TX_FWD_J", "P13": "TX_REV_J", "P14": "GND",
@@ -863,7 +865,7 @@ def rf_connector():
 
 def adcs_power():
     j = place(CONN("PicoClasp_2", 2), "J6", "ADCS PWR IN", "5013310207", "Molex", "Pico-Clasp 1.0 mm 2 pos SMT", "1 A/contact",
-              "0.339 A max (SW4 trip): 34 %", "W6B from EPS J20 (SW4, ADCS_EN): 3V3_ADCS", "Sn", "Digi-Key: Active (EPS board)")
+              "0.339 A max (SW4 trip): 34 %", "W6B from EPS J20 (SW4, ADCS_EN): 3V3_ADCS", "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: Active (EPS board); gold order code to confirm (Molex drawing)")
     conn(j, {"P1": "3V3_ADCS", "P2": "GND"})
     C("10u", "3V3_ADCS", "GND", 25, "1206", note="3V3_ADCS entry")
     esd1("3V3_ADCS", "J6 3V3_ADCS")
@@ -886,9 +888,10 @@ def board_misc():
 
 
 def access_port():
-    j = place(CONN("FTSH_2x5", 10), "J9", "ACCESS PORT", "FTSH-105-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x5 SMT", "2.4 A/contact",
-              "signals", "W8A internal harness to the access-window bulkhead (SWD, NRST, console, umbilical sense, watchdog disable)",
-              "Au 10 uin", "not checked")
+    j = place(CONN("TFM_2x5", 10), "J9", "ACCESS PORT", "TFM-105-01-S-D-RA", "Samtec", "Tiger Eye TFM 1.27 mm 2x5 right-angle",
+              "contact rating per Samtec (not read)", "signals",
+              "W8A (SFSDT 30 AWG) to the access-port board A3 (SWD, NRST, console, umbilical sense, watchdog disable); cable toward -X, plug's back <= x -43.1",
+              "Au 30 uin", "not checked")
     conn(j, {"P1": "3V3_VTREF", "P2": "SWDIO_J", "P3": "GND", "P4": "SWCLK_J", "P5": "WDT_DIS_J", "P6": "NRST_J",
              "P7": "USART3_TX_J", "P8": "USART3_RX_J", "P9": "UMB_J", "P10": "GND"})
     R(100, "3V3_OBC", "3V3_VTREF", note="VTREF for the probe; the GSE plug also ties pin 9 to it")
@@ -976,7 +979,7 @@ def mag_board():
     """Magnetometer board A2 (SQSO-OBC-BRD-001 9.4): PNI RM3100 on a 24 x 24 mm two-layer board at the +Z end frame,
     on harness W6E from OBC J10. Power, latch-up switch (U7) and bus isolation (U14, U33) stay on the OBC."""
     j = place(CONN("PicoClasp_6", 6), "J1", "TO OBC J10", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
-              "< 5 mA", "W6E from OBC J10: 3V3_SNS, GND, SDA, SCL, DRDY, GND", "Sn", "Digi-Key: Active (EPS board)")
+              "< 5 mA", "W6E from OBC J10: 3V3_SNS, GND, SDA, SCL, DRDY, GND", "Au (gold variant, SQSO-HAR-001 2.0 3.1)", "Digi-Key: Active (EPS board); gold order code to confirm (Molex drawing)")
     conn(j, {"P1": "3V3_SNS", "P2": "GND", "P3": "SDA_S", "P4": "SCL_S", "P5": "MG_DRDY", "P6": "GND"})
     esd4("D1", ["3V3_SNS", "SDA_S", "SCL_S", "MG_DRDY"], "J1 (harness end)")
     ic(S_MAGI2C, "U1", "RM3100 MagI2C", "13156", "PNI Sensor", "MLF-28 (PNI MagI2C)",

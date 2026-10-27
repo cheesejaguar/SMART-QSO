@@ -79,7 +79,8 @@ INPUTS = {
     # ---- board environment (THERMAL_ANALYSIS v2.0; THERMAL_DESIGN 1.3 §1.1 per-unit AFT)
     "t_board_hot_c": 60.0, "t_board_cold_c": -30.0,
     # ---- rails
-    "v_radio_nom": 3.30, "v_radio_tol": 0.03,     # 3V3_AO through SW2 (EPS)
+    "v_radio_nom": 3.30, "v_radio_tol": 0.03,     # 3V3_AO through SW2 (EPS); power at +3 % (conservative)
+    "v_radio_tol_eps": 0.02,                      # EPS_DESIGN 2.0 §4: 3V3_AO 3.3 V +-2 % (rail minimum)
 }
 
 
@@ -618,7 +619,20 @@ def rx_power(p):
             "repeat_typ_W": round(rp_typ * 1e-3 * p["v_radio_nom"], 4), "repeat_worst_W": round(rp_worst * 1e-3 * v_hi, 4),
             "repeat_allocation_W": 0.030,
             "receive_plus_repeat_worst_W": round((worst + rp_worst) * 1e-3 * v_hi, 4),
-            "rail_min_at_board_V": round(v_lo - 0.012, 3)}
+            "rail_min_at_board": radio_rail_min(p)}
+
+
+def radio_rail_min(p, i_keyed=0.089):
+    """Lowest RADIO_3V3 at the LMX2571 (needs >= 3.15 V) while keyed: 3V3_AO at EPS_DESIGN 2.0's -2 %, SW2
+    (TPS2553-Q1, 0.12 ohm assumed), W4B (28 AWG, 0.145 m, SQSO-HAR-001 2.0 §9.2: 13.7 mV at 0.089 A), FB801 (0.10 ohm
+    max DCR), TPS22918 (0.052 ohm) at the LMX2571's 46 mA. Power figures above stay at the conservative +3 %."""
+    v = p["v_radio_nom"] * (1 - p["v_radio_tol_eps"])
+    drops = {"SW2_TPS2553": 0.12 * i_keyed, "W4B_28AWG": 0.0137 * i_keyed / 0.089, "FB801": 0.10 * i_keyed,
+             "TPS22918": 0.052 * 0.046}
+    vmin = v - sum(drops.values())
+    return {"v_3v3_ao_min_V": round(v, 3), "drops_mV": {k: round(x * 1e3, 1) for k, x in drops.items()},
+            "v_lmx_min_V": round(vmin, 3), "margin_to_3V15_mV": round((vmin - 3.15) * 1e3, 0),
+            "keyed_current_A": i_keyed}
 
 
 # --------------------------------------------------------------------------------------- 8 timing

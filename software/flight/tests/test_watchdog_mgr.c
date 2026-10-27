@@ -6,6 +6,8 @@
  * @license MIT
  *
  * Tests the watchdog manager for hardware and task watchdog functionality.
+ *
+ * @requirement SRS-F146 External supervisor kick: a WDI falling edge every 10 s, only while every task has checked in
  */
 
 #include <stdarg.h>
@@ -25,6 +27,7 @@
 #include "fault_mgmt.h"
 #include "smart_qso.h"
 #include "hal/hal_timer.h"
+#include "hal/hal_gpio.h"
 
 /*******************************************************************************
  * Test Fixtures
@@ -372,6 +375,37 @@ static void test_recovered_task_resumes_refresh(void **state)
     assert_true(wdt_mgr_time_remaining() > (WDT_HW_TIMEOUT_MS - 2000U));
 }
 
+/**
+ * @brief The external supervisor (TPS3850 WDI, SRS-F146): a falling edge every
+ *        10 s while every task checks in, none while a task is stalled
+ */
+static uint32_t wdi_falling_edges(uint32_t seconds, bool checkin)
+{
+    uint32_t edges = 0U;
+    bool level = hal_gpio_get(GPIO_PIN_WDI);
+    for (uint32_t i = 0U; i < seconds; i++) {
+        run_seconds(1U, checkin);
+        bool now = hal_gpio_get(GPIO_PIN_WDI);
+        if (level && !now) {
+            edges++;
+        }
+        level = now;
+    }
+    return edges;
+}
+
+static void test_external_supervisor_kicked_only_while_healthy(void **state)
+{
+    (void)state;
+    assert_false(hal_gpio_get(GPIO_PIN_WDI)); /* low from the start */
+    assert_int_equal(wdi_falling_edges(9U, true), 0U);
+    assert_int_equal(wdi_falling_edges(25U, true), 2U); /* at 11 s and 22 s */
+    (void)wdi_falling_edges(5U, false);                 /* the task stalls */
+    assert_true(wdt_mgr_any_task_stalled());
+    assert_int_equal(wdi_falling_edges(30U, false), 0U); /* the supervisor resets the OBC */
+    assert_int_equal(wdi_falling_edges(12U, true), 1U);  /* recovered */
+}
+
 /*******************************************************************************
  * Test Cases: Before initialization, forced reset
  ******************************************************************************/
@@ -506,6 +540,8 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_healthy_task_keeps_refreshing, supervised_setup, test_teardown),
         cmocka_unit_test_setup_teardown(test_stalled_task_lets_hardware_reset, supervised_setup, test_teardown),
         cmocka_unit_test_setup_teardown(test_recovered_task_resumes_refresh, supervised_setup, test_teardown),
+        cmocka_unit_test_setup_teardown(test_external_supervisor_kicked_only_while_healthy, supervised_setup,
+                                        test_teardown),
         cmocka_unit_test_setup_teardown(test_time_remaining, test_setup, test_teardown),
 
         /* Forced reset (in a child process: it does not return) */

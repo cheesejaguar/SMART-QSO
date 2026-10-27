@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 09:14 AM")
+    (date "10/27/2026 10:33 AM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -3550,12 +3550,12 @@
       (ref "J1")
       (value "OBC-RF signals (W4A)")
       (description "")
-      (footprint "FTSH-108-01-L-DV-K")
+      (footprint "TFM-108 right-angle, 2 x 8, 1.27 mm (Tiger Eye)")
       (fields
         (field
           (name "Description"))
         (field
-          (name "Footprint") "FTSH-108-01-L-DV-K")
+          (name "Footprint") "TFM-108 right-angle, 2 x 8, 1.27 mm (Tiger Eye)")
         (field
           (name "Datasheet"))
         (field
@@ -3564,7 +3564,7 @@
           (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
-        (part "Conn 16p 1.27 mm"))
+        (part "Conn 16p 1.27 mm right-angle"))
       (sheetpath
         (names "/")
         (tstamps "/"))
@@ -3574,12 +3574,12 @@
       (ref "J2")
       (value "EPS-RF power (W4B)")
       (description "")
-      (footprint "Pico-Clasp 1x6 vertical SMT")
+      (footprint "Pico-Clasp 1x6 vertical SMT, 0.38 um gold (gold version of 501331-0607)")
       (fields
         (field
           (name "Description"))
         (field
-          (name "Footprint") "Pico-Clasp 1x6 vertical SMT")
+          (name "Footprint") "Pico-Clasp 1x6 vertical SMT, 0.38 um gold (gold version of 501331-0607)")
         (field
           (name "Datasheet"))
         (field

@@ -158,11 +158,6 @@ pub extern "C" fn wdt_mgr_kick() {
     }
 }
 
-/// Falling edges given to the external supervisor since the start
-pub fn wdt_mgr_supervisor_kicks() -> u32 {
-    WDT.with(|m| m.supervisor.kicks).unwrap_or(0)
-}
-
 /// Register a task (name cut to 15 characters)
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn wdt_mgr_register_task(task_id: u32, name: *const c_char, expected_period_ms: u32) -> i32 {

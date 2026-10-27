@@ -118,12 +118,22 @@ Three findings change the earlier documents and are reported for the chair (§15
 
 ## 4. Interfaces
 
-### 4.1 J1, OBC signals (W4 version 3, Samtec FTSH-108-01-L-DV-K, 16 positions)
+### 4.1 J1, OBC signals (W4, Samtec TFM-108-01-S-D-RA right-angle, 16 positions)
 
-Placement (OBC item C16): top side, in the board's (+X, −Y) corner at the +X edge, pin field along Y centred at about
-(+41.0, −33.5) mm (y −39.3 … −27.7), clear of the Ø 7 mm keep-out of the (+40, −43) column, so the W4A ribbon meets
-the OBC's J2 through the +X wall gap at the same corner (OBC_BOARD_DESIGN §21). The shield frame is notched at that
-corner (x > +37.0, y < −26.0) to make room (§10). J1 is 63 mm from the magnetometer.
+Connector (D, SQSO-HAR-001 2.0 item R-1): a Samtec TFM-108 right-angle header with gold contacts. It mates the
+latched Samtec SFSDT PTFE discrete-wire socket of W4A; the vertical FTSH-108 and its PVC FFSD ribbon are dropped.
+
+Placement:
+- Top side, in the board's (+X, −Y) corner, with the pin field along Y at y −39.3 … −27.7, clear of the Ø 7 mm
+  keep-out of the (+40, −43) column.
+- The mating face points +X, so the SFSDT cable leaves toward +X and bends into the +X wall gap. There is no bend
+  over the top of the connector.
+- The back of the plug stays at x ≤ +43.1, as SQSO-HAR-001 §10 requires for the 4.0 mm bend of the flat cable into
+  the 3 mm gap. W4A then runs flat on the +X shear panel at y −28.5 … −38.5 to the OBC's J2.
+- Header and mated plug lie within x +30.0 … +43.1, at most 7.0 mm high. The 10.0 mm allocation is kept until the
+  drawing check (VI-RFB-12).
+- The shield frame is notched at x > +30.0, y < −26.0 (§10).
+- J1 is 62 mm from the magnetometer.
 
 | J1 pin | Signal | Direction | Level, RF-board circuit | OBC side |
 |--------|--------|-----------|-------------------------|----------|
@@ -147,12 +157,19 @@ The readback outputs are V_DIG logic (3.10 V ± 1.5 %): VOH ≥ 2.9 V at the 1 k
 read low through the board's 100 kΩ pull-downs (J1-15/16) and the OBC's own pull-downs. The OBC inputs must use pull-downs, not pull-ups: a pull-up would turn an unwired RX_FAULT into a false fault and would push current into the unpowered board. The LVC outputs (Ioff) do not conduct when unpowered, so nothing back-powers the OBC. The firmware's 1 kΩ series makes an OBC input
 configured by mistake as an output safe (3.3 mA).
 
-### 4.2 J2, power (W4B, Molex Pico-Clasp 6)
+### 4.2 J2, power (W4B, Molex Pico-Clasp 6, gold: 203556-0607)
+
+Connector (D, SQSO-HAR-001 2.0 item R-1): a gold Pico-Clasp vertical SMT header, 0.38 µm gold. It replaces the tin
+501331-0607 and mates the 501330-0600 housing with gold 501334 terminals. The 6-circuit code is inferred from
+Molex's 203556-0307 and -1407 listings; the drawing check is VI-RFB-12.
 
 Placement (C16): top side on the −Y edge strip outside the shield, at about (−26, −44) mm, next to the PA in the
-(−X, −Y) corner, so the PA's 0.47 A runs from J2 to Q601 in about 16 mm and stays 80 mm or more from the magnetometer
-(§10.1). PA_5V (pins 3, 4) and its returns (pins 2, 5) are adjacent contacts; the W4B harness twists each PA_5V wire
-with a GND wire.
+(−X, −Y) corner. The PA's 0.47 A then runs from J2 to Q601 in about 16 mm and stays at least 80 mm from the
+magnetometer (§10.1). PA_5V (pins 3, 4) and its returns (pins 2, 5) are adjacent contacts.
+
+W4B (item R-2): 28 AWG M22759/33 wire, the Pico-Clasp crimp range. Three twisted pairs, 3+2, 4+5 and 1+6, with at
+most 5 mm untwisted at each end; 0.145 m long. Drops at the 1 W load: 36 mV on PA_5V, and 13.7 mV on RADIO_3V3 at
+0.089 A (SQSO-HAR-001 §9.2).
 
 | J2 pin | Rail | Source (EPS_DESIGN 2.0 §4) | Load on this board |
 |--------|------|----------------------------|--------------------|
