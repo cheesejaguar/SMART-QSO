@@ -317,12 +317,7 @@ impl Sensors {
             Gyro::Backup => self.bmi088.read_rate(d.pins.get(Pin::Imu2Drdy), d.bmi_gyro),
             Gyro::None => None,
         };
-        Readings {
-            field,
-            sun: adc.map(|r| r.sun()),
-            rate,
-            board: adc.map(|r| (r.sensor_temp_c(), r.vbat_mtq())),
-        }
+        Readings { field, sun: adc.map(|r| r.sun()), rate, board: adc.map(|r| (r.sensor_temp_c(), r.vbat_mtq())) }
     }
 }
 

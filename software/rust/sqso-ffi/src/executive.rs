@@ -23,7 +23,6 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 use sqso_fsw::beacon::{Content, Measurements, TLM_BV, TLM_SOC, TLM_SUN};
 use sqso_fsw::condition::{Change, Condition};
-use sqso_fsw::jetson_power::{self, JetsonPower};
 use sqso_fsw::eps::EpsState;
 use sqso_fsw::executive::{self as exec, PowerModel};
 use sqso_fsw::fault_log::Entry;
@@ -32,6 +31,7 @@ use sqso_fsw::gnss::Receiver;
 use sqso_fsw::gnss_schedule::{self, Sessions};
 use sqso_fsw::heater::{self, Heater};
 use sqso_fsw::housekeeping::{self, Cadence, Housekeeping};
+use sqso_fsw::jetson_power::{self, JetsonPower};
 use sqso_fsw::mission_data::MissionData;
 use sqso_fsw::payload_guard::{Outcome, Sample, TELEMETRY_TIMEOUT_MS};
 use sqso_fsw::payload_schedule::{self, Action, BATCH_LINES, Schedule};
@@ -42,12 +42,12 @@ use sqso_protocol::jetson::{LINE_MAX, TEXT_MAX};
 use crate::c::{fault_type, rc, severity};
 use crate::jetson_link::{JetsonMsg, JetsonRx};
 use crate::sensors::Sensor;
-use crate::{hw, pins};
 use crate::{
     adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, eps_lockout, fault_mgmt,
     gse_provision, hk_store, jetson_link, mission_data, ops_state, passivation, payload_guard, receiver, rf_control,
     rf_silence, sensors, state_machine, system_state, uart_comm, uplink, watchdog_mgr,
 };
+use crate::{hw, pins};
 
 /// `ADC_RESOLUTION_12BIT`, `ADC_REF_VDD` (hal_adc.h)
 const ADC_RESOLUTION_12BIT: u32 = 12;
@@ -739,7 +739,13 @@ impl Executive {
                 sm_event(EVENT_THERMAL_FAULT);
             }
         }
-        self.condition(Health::Thermal, hot, FAULT_TYPE_HEALTH_THERMAL, severity::WARNING, c"High temperature in health check");
+        self.condition(
+            Health::Thermal,
+            hot,
+            FAULT_TYPE_HEALTH_THERMAL,
+            severity::WARNING,
+            c"High temperature in health check",
+        );
 
         // Bus regulation, on the measured value (SW-16)
         let bus_bad = fresh_sensor(c"BUSV", now, exec::HEALTH_CHECK_INTERVAL_MS)
@@ -747,10 +753,22 @@ impl Executive {
         self.condition(Health::Bus, bus_bad, FAULT_TYPE_VOLTAGE_RANGE, severity::ERROR, c"Bus voltage out of range");
 
         // Mode change for low power happens in update_mission_state
-        self.condition(Health::Soc, soc < exec::HEALTH_SOC_LOW, FAULT_TYPE_HEALTH_POWER, severity::WARNING, c"Low SOC in health check");
+        self.condition(
+            Health::Soc,
+            soc < exec::HEALTH_SOC_LOW,
+            FAULT_TYPE_HEALTH_POWER,
+            severity::WARNING,
+            c"Low SOC in health check",
+        );
 
         let uart_lost = eps_control::eps_is_payload_enabled() && !uart_comm::uart_is_initialized();
-        self.condition(Health::Uart, uart_lost, FAULT_TYPE_HEALTH_COMM, severity::WARNING, c"UART communication lost with payload");
+        self.condition(
+            Health::Uart,
+            uart_lost,
+            FAULT_TYPE_HEALTH_COMM,
+            severity::WARNING,
+            c"UART communication lost with payload",
+        );
         if uart_lost {
             let _ = uart_comm::uart_init();
         }
@@ -878,7 +896,13 @@ impl Executive {
         }
         let fault = sensors::spreader_fault();
         payload_guard::payload_guard_set_spreader_fault(fault);
-        self.condition(Health::SpreaderFault, fault, FAULT_TYPE_HEALTH_THERMAL, severity::ERROR, c"Jetson spreader thermistor fault: power-on inhibited");
+        self.condition(
+            Health::SpreaderFault,
+            fault,
+            FAULT_TYPE_HEALTH_THERMAL,
+            severity::ERROR,
+            c"Jetson spreader thermistor fault: power-on inhibited",
+        );
         if let Some(t) = fresh_sensor(c"PT", now, TELEMETRY_TIMEOUT_MS).filter(|t| t.is_finite()) {
             sample.spreader_valid = true;
             sample.spreader_c = t;
@@ -1340,7 +1364,13 @@ impl Executive {
         let got = unsafe { crate::c::hal_capture_period_us(pins::CAPTURE_RTC_1HZ, &mut period) } == rc::OK;
         self.clock_ppm = got.then(|| f64::from(period) - 1.0e6);
         let bad = self.clock_ppm.is_some_and(|p| p.abs() > CLOCK_LIMIT_PPM);
-        self.condition(Health::Clock, bad, fault_type::INIT, severity::ERROR, c"MCU clock off the mission clock by more than 2 %");
+        self.condition(
+            Health::Clock,
+            bad,
+            fault_type::INIT,
+            severity::ERROR,
+            c"MCU clock off the mission clock by more than 2 %",
+        );
     }
 
     /// With the EPS controller answering, the Jetson in batches
@@ -1414,13 +1444,26 @@ impl Executive {
             hw::adc(pins::ADC_VSW1_RB),
             hw::adc(pins::ADC_VJET_RB),
         );
-        self.condition(Health::Sw1Readback, rb.sw1_bad, fault_type::POWER, severity::ERROR, c"Jetson switch SW1 readback disagrees with PAYLOAD_EN");
-        self.condition(Health::EfuseReadback, rb.efuse_bad, fault_type::POWER, severity::ERROR, c"Jetson eFuse readback disagrees with JETSON_PWR");
+        self.condition(
+            Health::Sw1Readback,
+            rb.sw1_bad,
+            fault_type::POWER,
+            severity::ERROR,
+            c"Jetson switch SW1 readback disagrees with PAYLOAD_EN",
+        );
+        self.condition(
+            Health::EfuseReadback,
+            rb.efuse_bad,
+            fault_type::POWER,
+            severity::ERROR,
+            c"Jetson eFuse readback disagrees with JETSON_PWR",
+        );
         // Hard limits: the Jetson on only in ACTIVE, sunlit, SOC >= 55 %,
         // and not past its burst limit (the switch-off excepted)
         let long = self.schedule.batch_start_ms.is_some_and(|t| now.saturating_sub(t) > BURST_LIMIT_MS);
         let outside = state != STATE_ACTIVE || !self.power.sunlit || self.power.soc < sqso_fsw::mode::SOC_PAYLOAD;
-        let violated = on && !self.jetson.shutting_down() && eps_control::eps_telemetry().is_some() && (outside || long);
+        let violated =
+            on && !self.jetson.shutting_down() && eps_control::eps_telemetry().is_some() && (outside || long);
         if self.health.get(Health::HardLimit as usize).is_some_and(|c| !c.active()) && violated {
             self.hard_limits = self.hard_limits.wrapping_add(1);
         }
@@ -1443,7 +1486,13 @@ impl Executive {
         self.gnss_on_since = if en { Some(self.gnss_on_since.unwrap_or(now)) } else { None };
         let settled = self.gnss_on_since.is_some_and(|t| now.saturating_sub(t) >= GNSS_PG_SETTLE_MS);
         let tripped = settled && !hw::level(pins::GNSS_PG);
-        self.condition(Health::GnssRail, tripped, fault_type::INIT, severity::WARNING, c"GNSS rail tripped (GNSS_PG low)");
+        self.condition(
+            Health::GnssRail,
+            tripped,
+            fault_type::INIT,
+            severity::WARNING,
+            c"GNSS rail tripped (GNSS_PG low)",
+        );
     }
 
     /// Save everything and close the Jetson link
@@ -1491,7 +1540,11 @@ fn send_shutdown() {
 /// Configure the three SPI buses (hal_spi.h): the BMI088's gyro and
 /// accelerometer at 5 MHz, mode 0; the M-G370 at 1 MHz, mode 3
 fn init_spi_buses() {
-    let cfg = [(pins::SPI_BMI088_GYRO, 5_000_000, 0), (pins::SPI_MG370, 1_000_000, 3), (pins::SPI_BMI088_ACCEL, 5_000_000, 0)];
+    let cfg = [
+        (pins::SPI_BMI088_GYRO, 5_000_000, 0),
+        (pins::SPI_MG370, 1_000_000, 3),
+        (pins::SPI_BMI088_ACCEL, 5_000_000, 0),
+    ];
     for (bus, clock_hz, mode) in cfg {
         let c = HalSpiConfig { clock_hz, mode, bits_per_word: 8, msb_first: true };
         // SAFETY: c is a live HalSpiConfig_t
@@ -1504,11 +1557,7 @@ fn init_spi_buses() {
 /// The mission clock at boot: the reset's stamp, the stamp re-armed
 /// (target; the host has no clock)
 fn read_mission_clock() -> Option<sqso_fsw::rv3028::Boot> {
-    if cfg!(target_os = "none") {
-        sqso_fsw::rv3028::boot(&mut hw::HalI2c(pins::I2C_RTC)).ok()
-    } else {
-        None
-    }
+    if cfg!(target_os = "none") { sqso_fsw::rv3028::boot(&mut hw::HalI2c(pins::I2C_RTC)).ok() } else { None }
 }
 
 /// The mission clock's UNIX time now (target)

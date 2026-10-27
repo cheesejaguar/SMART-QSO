@@ -298,7 +298,8 @@ impl Fsw {
             let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, addr, b.as_ptr(), 1 + bytes.len()) };
         };
         for (m, current) in [(PACK, t.ibatt_a), (ARRAY, t.isolar_a)] {
-            let (v, i, d) = m.encode(&Reading { vbus_v: t.vbatt_v, current_a: current, die_c: t.tbatt_c, ..Reading::default() });
+            let (v, i, d) =
+                m.encode(&Reading { vbus_v: t.vbatt_v, current_a: current, die_c: t.tbatt_c, ..Reading::default() });
             write(m.address, ina228::reg::VBUS, &v);
             write(m.address, ina228::reg::CURRENT, &i);
             write(m.address, ina228::reg::DIETEMP, &d.to_be_bytes());
@@ -437,7 +438,6 @@ impl Fsw {
         let on = ok && st.mtq.enabled;
         (crate::env::math::V3::new(st.mtq.dipole.x, st.mtq.dipole.y, st.mtq.dipole.z), on)
     }
-
 
     /// The flight software's own view of itself
     pub fn snapshot(&self) -> Snapshot {

@@ -234,7 +234,11 @@ impl Passivation {
         match nvm::load(io, self.region, 0, RECORD_MAGIC, &mut rec) {
             Ok(RecordStatus::Valid) => {
                 let [flags, version, attempts, _] = rec;
-                self.set_flags(if version < VERSION && flags & FLAG_COMMITTED != 0 { flags | FLAG_SILENCED } else { flags });
+                self.set_flags(if version < VERSION && flags & FLAG_COMMITTED != 0 {
+                    flags | FLAG_SILENCED
+                } else {
+                    flags
+                });
                 self.attempts = attempts;
             }
             Ok(RecordStatus::Blank) => {}
@@ -407,11 +411,8 @@ impl Passivation {
             return;
         }
         let mut rec = [0u8; 4];
-        let stored = if nvm::load(io, self.region, 0, RECORD_MAGIC, &mut rec) == Ok(RecordStatus::Valid) {
-            rec[0]
-        } else {
-            0
-        };
+        let stored =
+            if nvm::load(io, self.region, 0, RECORD_MAGIC, &mut rec) == Ok(RecordStatus::Valid) { rec[0] } else { 0 };
         let ram = self.record()[0];
         if stored & FLAG_SILENCED != 0 && !self.silenced {
             self.silenced = true;

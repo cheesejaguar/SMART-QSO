@@ -638,7 +638,8 @@ impl Mission {
         inp.wings_deployed = wings;
         inp.elec_w = thermal::elec_from_strings(&strings);
         inp.internal_w[thermal::BAT] = e.pack_heat_w + loads.w_vbat - loads.w_mtq;
-        inp.internal_w[thermal::OBC] = loads.w_3v3 - self.radio.dc_w.min(crate::hw::radio::RX_W) + e.loss_w + loads.w_mtq;
+        inp.internal_w[thermal::OBC] =
+            loads.w_3v3 - self.radio.dc_w.min(crate::hw::radio::RX_W) + e.loss_w + loads.w_mtq;
         inp.internal_w[thermal::RF] = self.radio.pa_heat_w + self.radio.dc_w.min(crate::hw::radio::RX_W);
         inp.internal_w[thermal::JET] = loads.w_payload;
         self.thermal.step(dt, &inp);
@@ -751,7 +752,10 @@ impl Mission {
             let out = self.deploy.wings.elements[w].deployed;
             if out && !self.wing_deployed_prev[w] {
                 let burned = self.deploy.wings.elements[w].burn_s;
-                self.event("deploy", &format!("{} released after {burned:.1} s of burn", self.deploy.wings.elements[w].name));
+                self.event(
+                    "deploy",
+                    &format!("{} released after {burned:.1} s of burn", self.deploy.wings.elements[w].name),
+                );
             }
             self.wing_deployed_prev[w] = out;
         }

@@ -620,8 +620,10 @@ impl Default for Calibration {
 
 impl Calibration {
     /// Identity alignment, zero biases
-    pub const IDENTITY: Calibration =
-        Calibration { gyro: [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], mag_bias: [Vec3::ZERO; POLARITY_STATES] };
+    pub const IDENTITY: Calibration = Calibration {
+        gyro: [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
+        mag_bias: [Vec3::ZERO; POLARITY_STATES],
+    };
 
     /// The aligned rate
     pub fn gyro_apply(&self, w: Vec3) -> Vec3 {
@@ -642,7 +644,8 @@ impl Calibration {
     pub fn gyro_valid(m: &[[f64; 3]; 3]) -> bool {
         let [[a, b, c], [d, e, f], [g, h, i]] = *m;
         let det = a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
-        m.iter().flatten().all(|v| v.is_finite() && v.abs() <= GYRO_ALIGN_MAX) && (det - 1.0).abs() <= GYRO_ALIGN_DET_TOL
+        m.iter().flatten().all(|v| v.is_finite() && v.abs() <= GYRO_ALIGN_MAX)
+            && (det - 1.0).abs() <= GYRO_ALIGN_DET_TOL
     }
 
     /// Whether a bias is acceptable: finite, each component within

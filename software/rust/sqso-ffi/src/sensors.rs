@@ -143,8 +143,7 @@ pub fn spreader_fault() -> bool {
 /// The spreader temperature from the OBC's thermistor, °C; NaN (and the
 /// sensor fault) outside the valid range
 fn spreader_c() -> f64 {
-    let t = hw::adc_raw(pins::ADC_PT_NTC)
-        .and_then(|raw| sensors::spreader_temperature(raw, hw::adc(pins::ADC_PT_NTC)));
+    let t = hw::adc_raw(pins::ADC_PT_NTC).and_then(|raw| sensors::spreader_temperature(raw, hw::adc(pins::ADC_PT_NTC)));
     SPREADER_FAULT.store(t.is_none(), Ordering::Relaxed);
     t.unwrap_or(f64::NAN)
 }
@@ -268,7 +267,13 @@ fn read(kind: Kind, channel: &[u8]) -> Reading {
             if i == 0 {
                 c::log_condition(change, FAULT_VOLTAGE_LOW, severity::ERROR, c"Low battery voltage detected", soc);
             } else {
-                c::log_condition(change, FAULT_CURRENT_HIGH, severity::ERROR, c"Excessive battery discharge current", soc);
+                c::log_condition(
+                    change,
+                    FAULT_CURRENT_HIGH,
+                    severity::ERROR,
+                    c"Excessive battery discharge current",
+                    soc,
+                );
             }
         }
     }

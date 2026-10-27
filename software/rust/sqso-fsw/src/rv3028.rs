@@ -117,7 +117,8 @@ pub fn boot(bus: &mut impl I2cBus) -> Result<Boot, BusError> {
     let [s, mi, h, _wd, d, mo, y] = cal;
     let [count, ts_s, ts_mi, ts_h, ts_d, ts_mo, ts_y] = ts;
     let stamped = status[0] & EVF != 0;
-    let reset_unix_s = match (stamped, calendar_s(s, mi, h, d, mo, y), calendar_s(ts_s, ts_mi, ts_h, ts_d, ts_mo, ts_y)) {
+    let reset_unix_s = match (stamped, calendar_s(s, mi, h, d, mo, y), calendar_s(ts_s, ts_mi, ts_h, ts_d, ts_mo, ts_y))
+    {
         (true, Some(now), Some(then)) if then <= now => unix_s.checked_sub(now - then),
         _ => None,
     };

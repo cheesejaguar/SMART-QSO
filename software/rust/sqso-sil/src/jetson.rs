@@ -83,10 +83,14 @@ const BAD_TEXTS: [&str; 3] =
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum State {
     Off,
-    Booting { left_s: f64 },
+    Booting {
+        left_s: f64,
+    },
     Running,
     /// `poweroff` running, s left
-    PoweringOff { left_s: f64 },
+    PoweringOff {
+        left_s: f64,
+    },
     /// The carrier latched off after the poweroff (until the rail is cut)
     Latched,
 }

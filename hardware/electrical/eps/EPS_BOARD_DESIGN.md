@@ -1,7 +1,7 @@
 # SMART-QSO EPS Board: Build-to Design
 
 **Document ID**: SQSO-EPS-BRD-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: CDR build-to electrical design (schematic captured as code, parts selected, ERC clean). No PCB layout, no
 engineering model; every number below is analysis until its verification item (§19) closes.
@@ -220,9 +220,18 @@ flight software on the NTC2 telemetry (SQSO-BSA-001 H5).
 | All four burn drivers on (software fault): burn buck in its 2.8 A current limit | 2.00 A | hardware cap |
 | AFE OCD1 (40 mV on RS7 10 mΩ, 500 ms) | 4.0 A (3.6–4.4) | 2.6× the largest load; below F2 |
 | AFE SCD (100 mV, 15 µs) | 10 A | cell short-circuit current 80–100 A |
+| F0 0451005.MRL 5 A on the battery sense board, in BAT_TOP ahead of W1 (BATTERY_DESIGN 2.5 §7.2) | 4.5 A at 60 °C | 2.0 A (four drivers on) 44 %; in series with F2 |
 | F2 0451005.MRL 5 A at 60 °C (× 0.90 rerating) | 4.5 A | largest load 31 % |
 | RT1 2920L260/33DR hold at 60 °C | 1.92 A | 73 % of hold |
 | F3 ITV4030L1412NR 12 A (secondary-protector fuse) at 60 °C (10 A) | 10 A | 14 % |
+
+**W1 is upstream of F2** (SQSO-HAR-001 2.0 §9.1): a BAT_TOP lead shorted to BAT_BOT or to the frame (GND, which
+reaches the pack negative through DS2 once released) would see the cells' short-circuit current with no fuse in the
+loop, and the AFE's SCD opens FETs downstream of such a fault. The battery's sense board therefore carries **F0** (the
+same 0451005.MRL) in BAT_TOP within 10 mm of the cell-4 tab, and 0.5 A tap fuses FT0–FT4 for the 28 AWG taps
+(BATTERY_DESIGN 2.5 §7.2). F0 and F2 are in series and either one opening isolates the pack for good, so no
+selectivity is needed between them; the AFE acts first on every fault downstream of its FETs. The W1 pack leads also
+keep their construction controls (22 AWG, PTFE over-sleeve, 0.12 m, hipot V-HAR-1).
 
 F2 (Littelfuse Nano2 451, 5 A, 125 V; 50 A at 125 V, 300 A at 32 VDC per the 451/453 datasheet as quoted by
 distributors, to be confirmed on the current datasheet) is the only element rated to break the cell's 80–100 A short
@@ -552,8 +561,10 @@ Every IC's orderable part number and status were read from the manufacturer's da
 2026-10-27, all "Active"); non-TI parts from Digi-Key listings (status "Active" unless noted). The BOM column "MPN check"
 says which. Passive MPNs are built from the manufacturer's series code (Panasonic ERJ-3EKF/ERA-3AEB, Vishay CRCW/WSLP/WSL,
 Murata GCM): the series were checked, the individual values not. Not checked at all: 2N7002BK, BAT54/BAT54C/BAT54S,
-BZX84-C8V2, 1N4148W-Q, 0466001.NR, NCP15XH103F03RC, FTSH-120/102, Keystone 5015, and the Pico-Clasp 8- and Micro-Fit 2×2/2×3
-headers (part numbers from the series pattern). Radiation: no published TID data was found for any of these parts; all are
+BZX84-C8V2, 1N4148W-Q, 0466001.NR, NCP15XH103F03RC, FTSH-102, Keystone 5015, the Pico-Clasp 203556 headers other than
+the 6- and 8-way (part numbers from the series pattern), the Micro-Fit 0430450402 finish, and the Samtec TFM-120-02-S-D-A
+code (lead style, plating and latch option from the series page, to confirm with Samtec; V-HAR-3). Checked on Digi-Key:
+0430450802 and 0430450602 (right-angle, 0.76 µm Au, Active), 2035560607 (0.38 µm Au, Active). Radiation: no published TID data was found for any of these parts; all are
 covered by RAD-V3 lot-sample testing and by the latch-up trips of §8.3 (EEE_PARTS_LIST §2A.4).
 
 | Function | Selected | Grade | Notes |
@@ -568,7 +579,8 @@ covered by RAD-V3 lot-sample testing and by the latch-up trips of §8.3 (EEE_PAR
 | 3.3/5 V switches | TPS2553QDBVRQ1 | AEC-Q100 G1 | |
 | Monitors | INA228AQDGSRQ1, INA3221AQRGVRQ1, INA186A2/A3QDCKRQ1, ADS7138QRTERQ1 | AEC-Q100 | INA228 matte tin |
 | Controller | MSP430FR2355TPTR | −40…105 °C | not AEC-Q100 |
-| Fuses | 0451005.MRL (F2), ITV4030L1412NR (F1, F3), 0466.250NR (F4) | — | **ITV4030 operating temperature −10…+65 °C**: below the board's −30 °C AFT; qualification item V-EPS-8 |
+| Connectors | Pico-Clasp 203556 (gold), Micro-Fit 43045 right-angle (gold), Samtec TFM-120 vertical (gold) | −40…105 °C | all harness connectors on the bottom side (§13.1); tin-plated contacts not allowed (EEE_PARTS_LIST §2A.3 item 5) |
+| Fuses | 0451005.MRL (F2; F0 on the battery sense board), ITV4030L1412NR (F1, F3), 0466.250NR (F4) | — | **ITV4030 operating temperature −10…+65 °C**: below the board's −30 °C AFT; qualification item V-EPS-8 |
 | PTC | 2920L260/33DR | −40…85 °C | |
 | Relay | TQ2SA-L2-3V-Z | −40…85 °C | gold-clad contacts; pin numbering to be checked against Panasonic's 2-coil drawing when the symbol is entered in KiCad |
 | Power FETs | BUK7Y3R5-40HX, BUK9Y4R4-40E, IPD50P04P4L11ATMA2, BUK9M14-40EX | AEC-Q101 | |
@@ -718,6 +730,10 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
    channels.
 9. The schemdraw sheets S1, S2, S5 and the WireViz files W1, W2, W7 were rendered by `hardware/diagrams/build.sh` in the
    CDR consistency pass (2026-10-27).
+10. Connector codes (Version C): the Samtec TFM-120-02-S-D-A code (SMT lead style, 30 µin gold, latch option) and
+    the Pico-Clasp 203556 sizes other than 6 and 8 ways are from the series pattern; confirm on the Molex and Samtec
+    drawings together with the zone footprints (SQSO-HAR-001 V-HAR-3). The sense-board fuses F0, FT0–FT4 are on the
+    battery's interconnect board, not in this netlist (BATTERY_DESIGN 2.5 §7.2).
 
 ## 22. Revision History
 
@@ -726,4 +742,5 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | A | 2026-10-27 | CDR design (EPS board) | Initial build-to design: schematic as code, BOM, ERC, calculations, interfaces, layout constraints, verification items |
 | B | 2026-10-27 | CDR design (EPS board) | Interconnect changes from SQSO-ICX-001 §7 (E1–E8): VJET_RB (J3-19) and VSW1_RB (J3-37) readbacks; SW11 U39 TPS1H000-Q1 VBAT_MTQ (J3-36/39, ADCS_EN, 0.32–0.40 A); 3V3_RTC (J3-38); J20 → OBC J6, J21 → OBC J4; OBC pins PB2, PF3, PE7, PF4, PG1, PF5; pack-current, stress and thermal tables recomputed; U17 transient Tj corrected to 93 °C (the calculation output; Version A quoted 79 °C) |
 | B (amended) | 2026-10-27 | CDR design (EPS board) | J21 placed on the +X edge, +Y side for W9B in the (+X, +Y) bundle (SQSO-ICX-001 B §2.1); connector-edge row added to §17; no netlist change |
+| C | 2026-10-27 | CDR design (EPS board) | Harness design SQSO-HAR-001 2.0 §15 (E-1 to E-9): every harness connector on the bottom side in zones Z1–Z5 and the +X edge; Micro-Fit 43045 right-angle and Pico-Clasp 203556 headers, all gold; J19 and J12 to Pico-Clasp 6 with the harness pinouts; J3 to Samtec TFM-120 vertical (SFSDT); PACK corner at (−X, +Y) in Z1; harness names W12A–W12D; layout rule for Z1–Z3 (§13.1, §14, §17). W1 upstream of F2: sense-board fuse F0 and tap fuses (B-1, BATTERY_DESIGN 2.5) recorded in §6.1. Netlist: J12 and J19 pinouts changed; ERC clean |
 | B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |

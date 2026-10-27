@@ -64,7 +64,7 @@ connector on the EPS bottom side.
 | W4A v4 | OBC J2 | RF J1 | KISS UART, TX_PWR_SEL, XPDR_EN, three readbacks, three monitors, RX_CD, RX_FAULT (§3.2) | TFM-108 right-angle both ends, SFSDT | 30 AWG; 0.075 m |
 | W4B v4 | EPS J19 | RF J2 at (−26, −44) | RADIO_3V3 (SW2), PA_5V (SW3), each with its return as a twisted pair | Pico-Clasp 6 both ends (EPS J19 was Micro-Fit 2×3) | 28 AWG twisted pairs; 0.145 m |
 | **W5** v4 | EPS J18; OBC J3 | Jetson carrier J1; J2 | VBAT_JET (W5A); USART1, the carrier's 3.3 V and the spreader NTC (W5B, 6 pins, E10) (§3.3) | Micro-Fit 2×2 (right-angle at the carrier); Pico-Clasp 6 | 24 AWG quad, 0.105 m; 28 AWG, 0.06 m |
-| **W6** v4 | EPS J20; OBC J7, J8, J10 | OBC J6; rods (splices); photodiodes; magnetometer board A2 | 3V3_ADCS (W6B), three CR0002 rods (W6C), six sun sensors (W6D, unshielded pairs), magnetometer (W6E) (§3.4) | Pico-Clasp 2 / 6 / 14 / 6 | 28 AWG; W6B 0.075, W6C 0.05–0.205, W6D 0.095–0.245, W6E 0.09 m |
+| **W6** v4 | EPS J20; OBC J7, J8, J10 | OBC J6; rods (splices); photodiodes; magnetometer board A2 | 3V3_ADCS (W6B), three CR0002 rods (W6C), six sun sensors (W6D, unshielded pairs), magnetometer (W6E) (§3.4) | Pico-Clasp 2 / 6 / 12 / 6 (J8 12-way from Version C) | 28 AWG; W6B 0.075, W6C 0.05–0.205, W6D 0.095–0.245, W6E 0.09 m |
 | W7 v3 | EPS J10, J11, J12 | wing burn boards, deployed-state sensors, AntS | burn resistors, hinge sense, AntS 3.3 V and I2C | Micro-Fit 2×3; Pico-Clasp 6 (J12 was 4) | 24 AWG; W7C 28 AWG; 0.09–0.155 m |
 | **W8** v4 | OBC J9 → access-port board A3 (W8A, internal) → GSE (W8B) | GSE | SWD, NRST, console, umbilical sense, watchdog disable (§3.6) | TFM-105 right-angle on the OBC, SFSDT soldered to A3; Micro-D 21 socket on A3 | 30 AWG; 0.145 m |
 | **W9** v3 | EPS J21 → OBC J4; OBC J5 | GNSS receiver | 3V3_GNSS through the OBC; LPUART1, 1PPS (§3.5) | Pico-Clasp 2 / 6 | 28 AWG; 0.085, 0.145 m |
@@ -229,8 +229,8 @@ carrier board).
 | W6E J10-5 | MG_DRDY | 3.3 V, high = conversion done | U33 → PD11 (EXTI11) | RM3100 DRDY |
 
 W6B, W6C 28 AWG pairs (the Pico-Clasp terminal; W6B 38 % of the derated 0.90 A at the SW4 trip, W6C 14 % at the
-hardware limit); W6D six unshielded twisted 28 AWG pairs (SQSO-HAR-001 2.0). W6E 28 AWG, 0.10 m (about 0.06 m routed up the (+X, +Y) bundle, MECHANICAL_DESIGN §6.9, plus a service loop) to the
-+Z end frame; any excess is stowed below z +20, away from A2.
+hardware limit); W6D six unshielded twisted 28 AWG pairs (SQSO-HAR-001 2.0). W6E 28 AWG, three pairs, 0.09 m up the (+X, +Y) bundle to the +Z end frame (SQSO-HAR-001 2.0); no excess is looped
+near A2.
 
 ### 3.5 W9: GNSS receiver (SkyFox piNAV-NG/FM)
 
@@ -526,7 +526,7 @@ second CS in `hal_spi`.
 | E10 | Jetson carrier (from the carrier) | W5B 6 pins, spreader NTC on pins 5–6: **taken** (OBC J3, PA2) | spreader temperature with the carrier off |
 | E11 | Jetson carrier | the 20–30 mm magnetic keep-out around (+33, −38) asked by MECHANICAL_DESIGN §4.4 is **withdrawn**: the magnetometer leaves the OBC (SQSO-OBC-BRD-001 §9.4) | — |
 | E12 | Mechanical / harness | magnetometer board A2 (24 × 24 mm, ≈ 3 g with harness) at the +Z end frame slot of the CAD (+24, +27) mm, or (+24, −27) if the mass properties can be re-trimmed (0.51 against 0.83 µT per mA·m² of rod remanence); 20 mm non-ferromagnetic zone around it (the RF shield's top, the patch adapter, the trim masses and fasteners non-magnetic); harness W6E through a ±X wall gap; W8A internal access-port harness | §9.4 of the OBC board |
-| E13 | RF board (SQSO-RF-BRD-001 §4.1) | W4A version 3: RF J1 becomes FTSH-108-01-L-DV-K (16 positions; pins 1–14 unchanged); pin 15 RX_CD (high = receiver carrier detect), pin 16 RX_FAULT (high = receiver fault), both 3.1 V push-pull through 1 kΩ with 100 kΩ pull-downs on the RF board (taken in SQSO-RF-BRD-001 B §4.1); W4 wiring source to version 3; J1 placed in the (+X, −Y) corner to meet OBC J2 (SQSO-OBC-BRD-001 §21) | flight-software round 2 |
+| E13 | RF board (SQSO-RF-BRD-001 §4.1) | W4A version 3: RF J1 becomes a 16-position header (pins 1–14 unchanged; from W4A v4 a Samtec TFM-108 right-angle with SFSDT, SQSO-HAR-001 2.0 R-1); pin 15 RX_CD (high = receiver carrier detect), pin 16 RX_FAULT (high = receiver fault), both 3.1 V push-pull through 1 kΩ with 100 kΩ pull-downs on the RF board (taken in SQSO-RF-BRD-001 B §4.1); W4 wiring source to version 3; J1 placed in the (+X, −Y) corner to meet OBC J2 (SQSO-OBC-BRD-001 §21) | flight-software round 2 |
 | E10 | RF (SQSO-RF-BRD-001) | none: the OBC side of J1 is as the RF board asks (pull-downs fitted on the OBC) | — |
 
 ## 8. Verification Items (interconnect)
@@ -545,3 +545,4 @@ second CS in `hal_spi`.
 |---------|------|-------------|
 | A | 2026-10-27 | First issue: master pin allocation of the STM32L4R5ZIT6, the board-to-board signal lists for W3, W4, W5, W6, W8, W9, domain crossings, the firmware change list and the interface changes for the EPS and the Jetson carrier (CDR design completion, OBC board SQSO-OBC-BRD-001) |
 | B | 2026-10-27 | Carrier interface E10 taken (W5B 6 pins, spreader NTC on PA2 ADC1_IN7; JETSON_PWR PA2 → PA8); magnetometer moved to board A2 at +Z (W6E); W8A internal access-port harness and J9 as FTSH-105; stack routing rules of MECHANICAL_DESIGN §4.4; changes 26–28 for the flight software (28: RX_CD PG0, RX_FAULT PF13 on W4A v3 pins 15–16, FTSH-108); EOL_ARM PF4, EOL_FIRE PG1, BURN_W2B PE7, LOCK_CLR PF5 confirmed low at reset; gyro at (−20, +30.5); back-power total 2.7 mA; E10–E13; W4A routing (no fold, flat on the +X shear panel); bundle allocation §2.1 (W9A/W9B to (+X, +Y); W6B/W6C/W6D in (−X, +Y)); W4B twisted pairs |
+| C | 2026-10-27 | Harness design SQSO-HAR-001 2.0 taken in (items I-1 to I-3): §1 rule 5 to the SQSO-HAR-001 2.0 §5.2 derating (EEE-INST-002 with the bundle factor; gauge follows the terminal), governing baseline Rev E; §2 harness table and §2.1 routing and bundle fill rewritten by the harness designer (W1 22 AWG pack leads, W2–W12 connector parts, gauges and lengths, EPS harness connectors on the EPS bottom side, band B resolution, W6C routes), accepted by the ICX owner; §3.1–§3.6 notes: W3, W4A SFSDT 30 AWG on TFM, W4B, W6B, W6C, W9 28 AWG, W5A 24 AWG quad, W6D unshielded (J8-13/14 unused, J8 a Pico-Clasp 12), §3.6 the bulkhead is the access-port board A3's Micro-D 21 (pin map; SQSO-OBC-BRD-001 C §15.1) |

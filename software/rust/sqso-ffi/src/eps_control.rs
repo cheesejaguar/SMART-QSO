@@ -162,9 +162,9 @@ fn apply_monitors(t: &mut Telemetry, now: u64) {
     }
     let pack = ready[0].then(|| PACK.reading(&mut bus).ok()).flatten();
     let array = ready[1].then(|| ARRAY.reading(&mut bus).ok()).flatten();
-    if let Some(p) = pack.filter(|p| {
-        p.vbus_v >= eps_telemetry::VBATT_PLAUSIBLE_V.0 && p.vbus_v <= eps_telemetry::VBATT_PLAUSIBLE_V.1
-    }) {
+    if let Some(p) = pack
+        .filter(|p| p.vbus_v >= eps_telemetry::VBATT_PLAUSIBLE_V.0 && p.vbus_v <= eps_telemetry::VBATT_PLAUSIBLE_V.1)
+    {
         t.vbatt_v = p.vbus_v;
         t.ibatt_a = p.current_a;
     }
@@ -622,7 +622,8 @@ mod tests {
         let mut regs = [0u8; 1 + eps_telemetry::BLOCK_LEN];
         regs[1..].copy_from_slice(&block);
         // SAFETY: regs is a live buffer of its length
-        let _ = unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
+        let _ =
+            unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
         assert_eq!(put(eps_telemetry::ADDRESS, eps_telemetry::IMON_JET, &[0x40, 0x00]), rc::OK);
         let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None });
         gauge(PACK, 14.2, -0.3);

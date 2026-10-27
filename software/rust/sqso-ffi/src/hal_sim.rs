@@ -479,7 +479,7 @@ pub extern "C" fn hal_i2c_init(bus: u32, _speed: u32) -> i32 {
         for dev in &mut s.i2c {
             dev.registers = [0; I2C_REG_BYTES];
             if word_device(dev.addr) {
-                use sqso_fsw::ina228::{reg, DEVICE_ID, MANUFACTURER_ID};
+                use sqso_fsw::ina228::{DEVICE_ID, MANUFACTURER_ID, reg};
                 let mut put = |r: u8, v: u16| {
                     let at = reg_offset(dev.addr, r);
                     if let Some(w) = dev.registers.get_mut(at..at + 2) {

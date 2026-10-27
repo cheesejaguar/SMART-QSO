@@ -226,10 +226,10 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-ADCS-003 | ADCS Electrical Design Specification | `hardware/adcs/ADCS_ELECTRICAL_DESIGN.md` | 1.0 | Draft |
 | SQSO-ADCS-SEN-001 | ADCS Sensor Design Document | `hardware/adcs/SENSOR_DESIGN.md` | 1.1 | Draft |
 | SQSO-HW-DIAG-001 | System Diagrams: Block, Wiring and Schematic | `hardware/diagrams/README.md` | C | Draft; preliminary, parts not selected |
-| SQSO-EPS-BAT-001 | Battery Design Document | `hardware/eps/BATTERY_DESIGN.md` | 2.4 | Draft |
+| SQSO-EPS-BAT-001 | Battery Design Document | `hardware/eps/BATTERY_DESIGN.md` | 2.5 | Draft |
 | SQSO-EPS-003 | EPS Electrical Design Specification | `hardware/eps/EPS_ELECTRICAL_DESIGN.md` | 1.3 | Draft |
 | SQSO-EPS-PDU-001 | Power Distribution Unit (PDU) Design Document | `hardware/eps/PDU_DESIGN.md` | 1.3 | Draft |
-| SQSO-EPS-SA-001 | Solar Array Design Document | `hardware/eps/SOLAR_ARRAY_DESIGN.md` | 2.1 | Draft |
+| SQSO-EPS-SA-001 | Solar Array Design Document | `hardware/eps/SOLAR_ARRAY_DESIGN.md` | 2.2 | Draft |
 | SQSO-HAR-001 | Harness Design (wire list, routing, fill, derating, mass) | `hardware/harness/HARNESS_DESIGN.md` | 2.0 | Draft; CDR build-to harness design, not yet built |
 | SQSO-CDH-OBC-001 | On-Board Computer (OBC) Design Document | `hardware/obc/OBC_DESIGN.md` | 1.7 | Draft |
 | SQSO-OBC-003 | OBC Electrical Design Specification | `hardware/obc/OBC_ELECTRICAL_DESIGN.md` | 1.1 | Draft |
@@ -241,10 +241,10 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-RF-TX-001 | RF Transmitter Design Document | `hardware/rf/TRANSMITTER_DESIGN.md` | 1.5 | Draft |
 | SQSO-STR-001 | Structural Design Document | `hardware/structure/STRUCTURAL_DESIGN.md` | 1.4 | Draft |
 | SQSO-MECH-CAD-001 | SMART-QSO Mechanical Design: CAD Model and Structural Finite-Element Model | `hardware/mechanical/MECHANICAL_DESIGN.md` | B | Draft; envelope level |
-| SQSO-ICX-001 | SMART-QSO Spacecraft Electrical Interconnect (master pin allocation) | `hardware/electrical/INTERCONNECT.md` | B | Draft; build-to design, not yet fabricated |
+| SQSO-ICX-001 | SMART-QSO Spacecraft Electrical Interconnect (master pin allocation) | `hardware/electrical/INTERCONNECT.md` | C | Draft; build-to design, not yet fabricated |
 | SQSO-RF-BRD-001 | SMART-QSO RF Board: Build-to Design | `hardware/electrical/rf/RF_BOARD_DESIGN.md` | D | Draft; schematic and BOM, not yet fabricated |
-| SQSO-EPS-BRD-001 | SMART-QSO EPS Board: Build-to Design | `hardware/electrical/eps/EPS_BOARD_DESIGN.md` | B | Draft; schematic and BOM, not yet fabricated |
-| SQSO-OBC-BRD-001 | SMART-QSO OBC Board: Build-to Design | `hardware/electrical/obc/OBC_BOARD_DESIGN.md` | B | Draft; schematic and BOM, not yet fabricated |
+| SQSO-EPS-BRD-001 | SMART-QSO EPS Board: Build-to Design | `hardware/electrical/eps/EPS_BOARD_DESIGN.md` | C | Draft; schematic and BOM, not yet fabricated |
+| SQSO-OBC-BRD-001 | SMART-QSO OBC Board: Build-to Design | `hardware/electrical/obc/OBC_BOARD_DESIGN.md` | C | Draft; schematic and BOM, not yet fabricated |
 | SQSO-JET-BRD-001 | Jetson Orin Nano Carrier Board Design | `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` | E | Draft; schematic and BOM, not yet fabricated |
 | SQSO-THM-001 | Thermal Design Document | `hardware/structure/THERMAL_DESIGN.md` | 1.4 | Draft |
 | SQSO-FSW-AUTO-001 | Autonomy Design | `software/flight/docs/AUTONOMY_DESIGN.md` | B | Draft |
