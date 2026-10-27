@@ -243,9 +243,9 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-EPS-PDU-001 | Power Distribution Unit (PDU) Design Document | `hardware/eps/PDU_DESIGN.md` | 1.5 | Draft |
 | SQSO-EPS-SA-001 | Solar Array Design Document | `hardware/eps/SOLAR_ARRAY_DESIGN.md` | 2.2 | Draft |
 | SQSO-HAR-001 | Harness Design (wire list, routing, fill, derating, mass) | `hardware/harness/HARNESS_DESIGN.md` | 2.0 | Draft; CDR build-to harness design, not yet built |
-| SQSO-CDH-OBC-001 | On-Board Computer (OBC) Design Document | `hardware/obc/OBC_DESIGN.md` | 1.7 | Draft |
+| SQSO-CDH-OBC-001 | On-Board Computer (OBC) Design Document | `hardware/obc/OBC_DESIGN.md` | 1.8 | Draft |
 | SQSO-OBC-003 | OBC Electrical Design Specification | `hardware/obc/OBC_ELECTRICAL_DESIGN.md` | 1.1 | Draft |
-| SQSO-OBC-002 | Storage Design Document | `hardware/obc/STORAGE_DESIGN.md` | 1.7 | Draft |
+| SQSO-OBC-002 | Storage Design Document | `hardware/obc/STORAGE_DESIGN.md` | 1.8 | Draft |
 | SQSO-PAY-JET-001 | Jetson Orin Nano Integration Design Document | `hardware/payload-jetson/INTEGRATION_DESIGN.md` | 1.1 | Draft |
 | SQSO-JET-002 | Jetson Payload Power Management | `hardware/payload-jetson/POWER_MANAGEMENT.md` | 1.1 | Draft |
 | SQSO-RF-ANT-001 | Antenna Design Document | `hardware/rf/ANTENNA_DESIGN.md` | 2.3 | Draft |

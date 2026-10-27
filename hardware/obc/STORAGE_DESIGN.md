@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-OBC-002
-**Version:** 1.7
+**Version:** 1.8
 **Date:** 2026-10-27
 **Status:** Draft (pins of §3.4 updated to the build-to design SQSO-OBC-BRD-001)
 
@@ -111,11 +111,11 @@ kept (6.8 h), plus three event windows of 3 h either side of a fault or mode cha
 ### 3.4 Interface Design
 
 ```
-MCU (STM32L476)                    FRAM (FM25V20A)
+MCU (STM32L4R5ZIT6)                FRAM U3 and mirror U36 (FM25V20A)
      SPI1_SCK  ─────────────────── SCK
      SPI1_MOSI ─────────────────── SI
      SPI1_MISO ─────────────────── SO
-     GPIO_CS   ─────────────────── CS#
+     GPIO_CS   ─────────────────── CS# (U3: PG5; U36: PD7)
      GPIO_WP   ─────────────────── WP#
      GPIO_HOLD ─────────────────── HOLD#
 ```
@@ -128,10 +128,12 @@ MCU (STM32L476)                    FRAM (FM25V20A)
 | CS# | PG5 | Chip select (active low), 10 kΩ pull-up |
 | WP# | PE0 | Write protect (held high), 10 kΩ pull-up |
 | HOLD# | PE1 | Hold (held high), 10 kΩ pull-up |
+| CS# (mirror U36) | PD7 | Second FM25V20A on the same SPI1 lines, every record mirrored and read when U3 fails (SQSO-ICX-001 D §6 row 32, RID SMA-B10); its WP#/HOLD# are pulled up, not driven |
 
 Pins as allocated by SQSO-ICX-001 §4 and the board design SQSO-OBC-BRD-001 §7 (1.6). Until 1.5 this table gave PA4–PA7
-and PC0/PC1; the firmware uses PA4–PA7 with WP#/HOLD# on PE0/PE1 and moves to PG2–PG5 (SQSO-ICX-001 §6 row 3), which
-frees four ADC1 inputs. The MCU is the STM32L4R5ZIT6 (the diagram above names the superseded STM32L476).
+and PC0/PC1. The firmware has moved to these pins: `software/rust/firmware/src/fram.rs` and `main.rs` drive SPI1 on
+PG2–PG5 with WP#/HOLD# on PE0/PE1 and the mirror's CS# on PD7 (SQSO-ICX-001 D §6 rows 3 and 32), which freed four ADC1
+inputs.
 
 ---
 
@@ -434,3 +436,4 @@ The interface is defined in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTIC
 | 1.5 | 2026-10-15 | Deployment record (128 B, carved from the event log) |
 | 1.6 | 2026-10-27 | Header version aligned with the history (was 1.0 after 1.5). §3.4 FRAM pins from the master pin allocation SQSO-ICX-001 (SPI1 on PG2–PG5, WP# PE0, HOLD# PE1) |
 | 1.7 | 2026-10-27 | §3.3 extended storage allocated as implemented (`software/rust/firmware/src/fram.rs`): sensor configuration, backup, operations record, five-minute and sixty-second housekeeping, event-window table, passivation record; §3.3.1 stored housekeeping |
+| 1.8 | 2026-10-27 | §3.4 against SQSO-ICX-001 D (amended): the firmware has moved to SPI1 PG2–PG5; second FRAM U36 on CS# PD7; MCU named STM32L4R5ZIT6 in the diagram |
