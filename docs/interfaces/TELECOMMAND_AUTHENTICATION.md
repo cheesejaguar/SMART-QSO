@@ -24,7 +24,7 @@ Where this document conflicts with SQSO-ICD-005 (`ICD_SPACE_GROUND.md`) or `docs
 | ITU RR 22.1 | Space stations must be able to cease emissions immediately by telecommand | Same as above |
 | 47 CFR 97.211(b) | Telecommand to a space station may use codes that obscure meaning | The uplink is authenticated with a message authentication code. Nothing is encrypted, no key material is ever sent over RF, and the downlink stays in the clear (97.113(a)(4)) |
 | 47 CFR 97.211(a) | Only designated telecommand stations may send telecommand | Only holders of a key can produce an accepted command. The stations themselves are still to be designated (finding RG-03): at least two, by 2027-01-05 (`docs/ground/GROUND_STATION_DESIGN.md` §3; REGULATORY_ROADMAP F13) |
-| 47 CFR 97.313(f); 2.106 US270 | 70 cm power near listed military radars | Telecommand stations radiate ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft and command only above 10° (decision C-14): outside the US270 areas by ≥ 100 W PEP at the feed into ≥ 14 dBic; inside them (the Bay Area site, within 240 km of Beale AFB; Fairbanks, within 160 km of Clear SFS) by **≤ 50 W PEP** into ≥ 17.5 dBic (a stacked pair of cross-Yagis). Ground-station matter (SQSO-GND-001 Rev F §3.1) |
+| 47 CFR 97.313(f); 2.106 US270 | 70 cm power near listed military radars | Telecommand stations radiate ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft and command only above 10° (decision C-14): outside the US270 areas by ≥ 100 W PEP at the feed into ≥ 15.5 dBic; inside them (the Bay Area site, within 240 km of Beale AFB; Fairbanks, within 160 km of Clear SFS) by **≤ 50 W PEP** into ≥ 17.5 dBic (a stacked pair of cross-Yagis). Ground-station matter (SQSO-GND-001 Rev F §3.1) |
 
 ## 3. Uplink Framing
 

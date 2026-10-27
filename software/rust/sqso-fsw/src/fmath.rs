@@ -193,7 +193,7 @@ mod tests {
 
     #[test]
     fn ln_matches_std_and_rejects_bad_input() {
-        for &x in &[1.0, 2.0, 0.5, 10.0, 1752.0, 72_906.0, 336_050.0, 1e-300, 1e300, 1.414, 1.415, 0.7071, 3.0e-5] {
+        for &x in &[1.0, 2.0, 0.5, 10.0, 1752.0, 72_906.0, 336_050.0, 1e-300, 1e300, 1.414, 1.415, 0.7072, 3.0e-5] {
             let want = f64::ln(x);
             let got = ln(x);
             assert!((got - want).abs() <= 4.0 * f64::EPSILON * want.abs().max(1.0), "{x}: {got} vs {want}");

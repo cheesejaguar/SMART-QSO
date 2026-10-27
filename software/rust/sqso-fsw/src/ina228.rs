@@ -173,10 +173,28 @@ mod tests {
     use super::*;
     use crate::bus::mock::I2cRegs;
 
-    fn part(addr: u8) -> I2cRegs {
-        let mut m = I2cRegs::new(addr);
-        m.regs[0x3E..0x40].copy_from_slice(&[0x54, 0x49]);
-        m
+    /// The register model with the two ID registers apart (each register
+    /// of the INA228 is wider than a byte; the byte model overlaps them)
+    struct Part {
+        regs: I2cRegs,
+        device_id: u16,
+    }
+
+    impl I2cBus for Part {
+        fn write(&mut self, a: u8, d: &[u8]) -> Result<(), BusError> {
+            self.regs.write(a, d)
+        }
+        fn write_read(&mut self, a: u8, w: &[u8], r: &mut [u8]) -> Result<(), BusError> {
+            match w {
+                [reg::MANUFACTURER_ID] if a == self.regs.addr => r.copy_from_slice(&MANUFACTURER_ID.to_be_bytes()),
+                [reg::DEVICE_ID] if a == self.regs.addr => r.copy_from_slice(&self.device_id.to_be_bytes()),
+                _ => return self.regs.write_read(a, w, r),
+            }
+            Ok(())
+        }
+        fn read(&mut self, a: u8, r: &mut [u8]) -> Result<(), BusError> {
+            self.regs.read(a, r)
+        }
     }
 
     #[test]
@@ -199,21 +217,17 @@ mod tests {
 
     #[test]
     fn init_checks_the_ids_and_the_calibration() {
-        let mut m = part(ADDRESS_PACK);
-        assert!(!PACK.init(&mut m), "device ID missing");
-        m.regs[0x3F..0x41].copy_from_slice(&[0x22, 0x81]);
-        // The model stores registers byte-wise, so SHUNT_CAL (0x02) and
-        // VBUS overlap only in the test; read back works
+        let mut m = Part { regs: I2cRegs::new(ADDRESS_PACK), device_id: 0x1111 };
+        assert!(!PACK.init(&mut m), "wrong device ID");
+        m.device_id = 0x2281;
         assert!(PACK.init(&mut m));
-        assert_eq!(&m.regs[0x02..0x04], &1311u16.to_be_bytes());
+        assert_eq!(&m.regs.regs[0x02..0x04], &1311u16.to_be_bytes());
         assert!(!ARRAY.init(&mut m), "no part at 0x40");
-        let (v, i, t) = PACK.encode(&Reading { vbus_v: 15.0, current_a: 0.5, die_c: 30.0, ..Reading::default() });
-        m.regs[0x05..0x08].copy_from_slice(&v);
-        m.regs[0x07..0x0A].copy_from_slice(&i);
-        let _ = t;
+        let (_, i, _) = PACK.encode(&Reading { current_a: 0.5, ..Reading::default() });
+        m.regs.regs[0x07..0x0A].copy_from_slice(&i);
         let r = PACK.reading(&mut m).unwrap();
         assert!((r.current_a - 0.5).abs() < 1e-5);
-        m.fail = true;
+        m.regs.fail = true;
         assert_eq!(PACK.reading(&mut m), Err(BusError));
     }
 }

@@ -122,8 +122,9 @@ impl Rm3100 {
         }
         self.pending = false;
         self.errors = 0;
-        let axis = |i: usize| f64::from(Rm3100::counts([b[i], b[i + 1], b[i + 2]])) / COUNTS_PER_UT;
-        Some([axis(0), axis(3), axis(6)])
+        let [x0, x1, x2, y0, y1, y2, z0, z1, z2] = b;
+        let axis = |c: [u8; 3]| f64::from(Rm3100::counts(c)) / COUNTS_PER_UT;
+        Some([axis([x0, x1, x2]), axis([y0, y1, y2]), axis([z0, z1, z2])])
     }
 }
 

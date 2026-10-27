@@ -34,7 +34,7 @@ Every number is reproduced by the scripts in `software/simulation/cdr/rf/` (§9)
 | Beacon at the 485 km altitude cap (the bound) | 0.5 W, 5°, −3 / −10 dBi | +7.8 / +0.8 dB | Met / closes |
 | Beacon to a portable station (5 dBi Yagi, no Doppler correction) | 0.5 W, −3 dBi | −4.2 dB at 5°, +1.2 dB at 20°, +6.1 dB at 45° | Usable from about 17°, at 1 W from about 10° |
 | Beacon to a SatNOGS omni station (0 dBic, 1,000 K) | 0.5 W, −3 dBi | −7.1 dB at 5°, +0.7 dB at 30°, +5.9 dB at zenith | Usable above about 28° only |
-| Telecommand uplink margin ≥ 6 dB (proposed here, §1.2) at 10° | 25 W, 14 dBic, −10 dBi spacecraft gain, +6 dB terrestrial interference | **+2.6 dB** at 10°, +6.2 dB at 20°; +8.6 dB at 10° without interference. Receiver as designed (§6.4): +0.8 dB at 10° (25 W), +3.8 dB at 50 W PEP. **Decision C-14, 100 W PEP at the feed, commands above 10°: +8.3 dB at 10°, +6.5 dB at 5°** (receiver as designed, worst case) | **Met** with C-14, either station variant (§6.1: +6.2 / +8.0 dB at the 0.3 dB pointing allowance for the minimum variant A); degraded mode 50 W PEP into 14 dBic: met from about 16° |
+| Telecommand uplink margin ≥ 6 dB (proposed here, §1.2) at 10° | 25 W, 14 dBic, −10 dBi spacecraft gain, +6 dB terrestrial interference | **+2.6 dB** at 10°, +6.2 dB at 20°; +8.6 dB at 10° without interference. Receiver as designed (§6.4): +0.8 dB at 10° (25 W), +3.8 dB at 50 W PEP. **Decision C-14, 100 W PEP at the feed, commands above 10°: +8.3 dB at 10°, +6.5 dB at 5°** (receiver as designed, worst case) | **Met** with C-14, either station variant (§6.1, after the 0.3 dB pointing allowance: +7.7 / +9.5 dB for variant A at its 15.5 dBic minimum, +7.0 / +8.8 dB for variant B); degraded mode (variant A without its amplifier): met from about 12° |
 | Telecommand, median gain, interference +6 dB | 25 W, 5° | +7.8 dB | Met |
 | Transponder usable (12 dB SINAD end to end) | 5 W handheld + handheld Yagi up, handheld Yagi down | 20 dB at 5°, 27 dB at 20° | Met from 5° |
 | Transponder usable for a handheld with a whip, both ways | 5 W, whip, −3 dBi | 1.8 dB at 5°, 14.9 dB at 20°, 26 dB at zenith | Usable from about 17° (12 dB SINAD) |
@@ -47,9 +47,9 @@ uplink at 25 W does not hold a 6 dB margin at 10° once a 6 dB terrestrial-inter
 receiver as designed on the RF board (SQSO-RF-BRD-001 Version C, §6.4: lower noise, but 2 dB more demodulator loss
 allowed) 50 W gives +3.8 dB at 10° and meets 6 dB from about 16°. **Chair decision C-14** closes it: telecommand
 stations radiate ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft and command only above 10° elevation: by ≥ 100 W PEP into
-≥ 14 dBic outside the 47 CFR 2.106 US270 areas, and by ≤ 50 W PEP into ≥ 17.5 dBic inside them (the Bay Area site near
-Beale AFB, Fairbanks near Clear SFS). Either gives **+8.3 dB at 10° and +6.5 dB at 5°** in the worst case, less a 0.3 dB
-pointing allowance (§6.1). Handheld users with whips are transponder users above about 17°
+≥ 15.5 dBic outside the 47 CFR 2.106 US270 areas, and by ≤ 50 W PEP into ≥ 17.5 dBic inside them (the Bay Area site near
+Beale AFB, Fairbanks near Clear SFS). At the 64 dBm requirement that is **+8.3 dB at 10° and +6.5 dB at 5°** in the worst
+case; as specified the stations deliver more after the 0.3 dB pointing allowance (§6.1). Handheld users with whips are transponder users above about 17°
 only. The largest open item is not the budget itself but its inputs that need hardware: the antenna pattern on the
 1U body with wings, the receiver noise figure, and the transmitter's 3rd harmonic and phase noise (§8).
 
@@ -412,12 +412,13 @@ LB-3 (≥ +6 dB at 10°, −10 dBi, +6 dB) is **not met** at 25 W: +2.6 dB. Opti
 
 **Chair decision C-14 (2026-10-27), as restated: telecommand stations radiate ≥ 64 dBm EIRP (2.5 kW) toward the
 spacecraft, and commands are sent only above 10° elevation.** Two station variants meet it (SQSO-GND-001 Rev F §3.1):
-**A**, outside the US270 areas, ≥ 100 W PEP at the feed into ≥ 14 dBic; **B**, inside them (Santa Clara and Ames near
+**A**, outside the US270 areas, ≥ 100 W PEP at the feed into ≥ 15.5 dBic; **B**, inside them (Santa Clara and Ames near
 Beale AFB, Fairbanks near Clear SFS), ≤ 50 W PEP at the feed into ≥ 17.5 dBic (a stacked pair of cross-Yagis with a
 ≤ 0.5 dB feed). Both give the margins below, which are computed at 64.0 dBm toward the spacecraft. Variant A's chain (SQSO-GND-001 Rev F §3.1a): the transceiver drives a solid-state
 **class AB linear amplifier** rated ≥ 150 W FM output at 430–440 MHz (continuous carrier for at least 10 minutes), through
 **1.0 dB of feed line** (≤ 20 m of LMR-600-class coax with connectors and the sequencer relay), so the amplifier delivers
-126 W for 100 W at the feed; EIRP 100 W × 14 dBic = **64.0 dBm (2.5 kW)**. Against the 25 W, 1.5 dB-line station of the
+126 W for 100 W at the feed; EIRP 100 W × 15.5 dBic = 65.5 dBm at boresight, 65.2 dBm toward the spacecraft. The
+table is computed at the requirement, **64.0 dBm (2.5 kW)**: against the 25 W, 1.5 dB-line, 14 dBic station of the
 tables above (17.8 W at the feed) that is +7.5 dB. Telecommand margin (dB), 475 km, at 64.0 dBm EIRP toward the
 spacecraft (either variant):
 
@@ -427,11 +428,11 @@ spacecraft (either variant):
 | 100 W at the feed, receiver as designed (§6.4), worst (typical) | −3 dBi, +6 dB | +13.5 (+13.8) | +15.3 (+15.6) | +18.9 | +21.3 |
 | 100 W at the feed, receiver as designed, worst (typical) | **−10 dBi, +6 dB** | **+6.5** (+6.8) | **+8.3** (+8.6) | +11.9 | +14.3 |
 | 100 W at the feed, receiver as designed, worst | −10 dBi, +10 dB | +2.5 | +4.3 | +7.9 | +10.3 |
-| Degraded mode: 50 W PEP transmitter, 1.5 dB line (35.4 W at the feed), receiver as designed, worst | −10 dBi, +6 dB | +2.0 | +3.8 | +7.4 | +9.8 |
+| Degraded mode: variant A with the amplifier out of service, transceiver 50 W PEP through the 1.0 dB feed into 15.5 dBic (61.2 dBm toward the spacecraft), receiver as designed, worst | −10 dBi, +6 dB | +3.7 | +5.5 | +9.1 | +11.5 |
 
 LB-3 is **met** with C-14: +8.3 dB at 10° in the worst case, and the 6 dB holds down to 5° (+6.5 dB). The
-degraded mode (a station at 50 W, or the amplifier failed) meets 6 dB from about **16°**; operations then command only
-above 16° (SQSO-GSOM-001). At the +10 dB interference level the 10° margin is +4.3 dB: commands still close, with
+degraded mode (variant A with the amplifier failed) meets 6 dB from about **12°**; operations then command only above
+12° (SQSO-GSOM-001). At the +10 dB interference level the 10° margin is +4.3 dB: commands still close, with
 repeats.
 
 **Pointing loss.** The tables of §6 used boresight gain. With a Gaussian beam the loss at an error Δ is ≈ 12 (Δ/θ)² dB
@@ -442,12 +443,13 @@ The allowance is **0.3 dB** for both. EIRP toward the spacecraft, and the worst-
 
 | Variant | Boresight EIRP | Pointing | Toward the spacecraft | Margin 5° / 10° |
 |---------|----------------|----------|-----------------------|-----------------|
-| A at the minimum: 100 W into 14.0 dBic | 64.0 dBm | −0.33 dB | 63.7 dBm | +6.2 / +8.0 dB |
-| A with the 15.5 dBic antenna of SQSO-GND-001 §3.1 | 65.5 dBm | −0.33 dB | 65.2 dBm | +7.7 / +9.5 dB |
+| A at its minimum (chair decision): 100 W into 15.5 dBic | 65.5 dBm | −0.33 dB | 65.2 dBm | **+7.7 / +9.5 dB** |
+| For reference, 100 W into 14.0 dBic (below the minimum) | 64.0 dBm | −0.33 dB | 63.7 dBm | +6.2 / +8.0 dB |
 | B: 50 W PEP, 0.5 dB feed (44.6 W), stacked pair 18.2 dBic (2 × 15.5 dBic + 3.0 dB − 0.3 dB divider and phasing) | 64.7 dBm | −0.21 dB | 64.5 dBm | +7.0 / +8.8 dB |
 
-So the requirement is met with ≥ 0.3 dB of pointing loss covered only if variant A uses ≥ 14.3 dBic or ≥ 107 W; the
-listed 15.5 dBic antenna does. Every variant meets LB-3 (≥ 6 dB at 10°) with ≥ 2 dB to spare and holds 6 dB at 5°.
+Variant A's minimum is therefore **≥ 15.5 dBic with ≥ 100 W PEP at the feed** (65.2 dBm toward the spacecraft, 1.2 dB
+above the requirement); 14 dBic would leave it 0.3 dB short after pointing. Both variants meet LB-3 (≥ 6 dB at 10°)
+with ≥ 2.8 dB to spare and hold 6 dB at 5°.
 
 **US270 sites.** 47 CFR 2.106 US270 limits amateur stations in 420–450 MHz to **50 W PEP** in the listed areas unless the
 FCC field office and the military area frequency coordinator authorize more case by case: among the candidate sites
@@ -643,4 +645,4 @@ python3 desense_emc.py --out desense.json           # §7
 | 3.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: altitude row (500 km analysed; baseline 475 km target, 485 km cap), uplink request windows (§2, §7.1) and the 8°/s spin of BASELINE Rev E noted against the 6°/s pass analysis (§1); 525 km rows labelled as a bound. Analysis values unchanged |
 | 3.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | RF board Version C (MMCX, 0.22 m of 1.37 mm coax: 0.44 dB at 146 MHz, 0.62 dB at 436 MHz; T_sys 548–598 K; sensitivity −121.4 / −115.8 dBm worst): §2.4 and new §6.4, telecommand with the designed receiver +0.8 dB at 10° at 25 W, +3.8 dB at 50 W PEP (worst), LB-3 met from about 16° at 50 W. Re-run at the Rev E baseline: every budget at 475 km with the 485 km cap as the bound (was 500 km, with 525 km); pass and fading analysis (§4.4, §5) at 8°/s (6°/s compared) from 2028-11-01. Beacon margin at 5° +7.9 dB (was +7.6), +0.9 dB at the 10th-percentile gain (was +0.6); telecommand +2.6 dB at 10° (was +2.3); station A 98.2 % of frames with the ±5 s jitter as built, 96.6 % without (was 97.2 % and 95.6 % at 6°/s); fades 5 s every 22.5 s; Doppler ±3.49 / ±10.42 kHz |
 | 3.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16, decision C-14) | §6.1 telecommand at ≥ 100 W PEP at the antenna feed (class AB linear amplifier ≥ 150 W, 1.0 dB feed line, 2.5 kW EIRP), commands above 10°: +8.3 dB at 10° and +6.5 dB at 5° with the receiver as designed (worst); degraded mode 50 W PEP meets 6 dB from about 16°; US270 areas (Bay Area, Fairbanks) and the 50 W PEP / 17.5 dBic alternative; LB-3 met (§1.1) |
-| 3.4 | 2026-10-27 | CDR S&MA analysis (decision C-14 restated) | §6.1: C-14 as an EIRP requirement (≥ 64 dBm toward the spacecraft above 10°) with station variants A (≥ 100 W into ≥ 14 dBic, outside US270) and B (≤ 50 W into ≥ 17.5 dBic, stacked pair, inside US270); pointing allowance 0.3 dB (A: 30° beam, ±5°; B: 15° beam, ±2°): worst margins +6.2 / +8.0 dB at 5° / 10° for the minimum variant A, +7.0 / +8.8 dB for B |
+| 3.4 | 2026-10-27 | CDR S&MA analysis (decision C-14 restated) | §6.1: C-14 as an EIRP requirement (≥ 64 dBm toward the spacecraft above 10°) with station variants A (≥ 100 W into ≥ 15.5 dBic, outside US270) and B (≤ 50 W into ≥ 17.5 dBic, stacked pair, inside US270); pointing allowance 0.3 dB (A: 30° beam, ±5°; B: 15° beam, ±2°): worst margins after pointing +7.7 / +9.5 dB at 5° / 10° for variant A at its 15.5 dBic minimum, +7.0 / +8.8 dB for B; degraded mode (amplifier out) 6 dB from about 12° |

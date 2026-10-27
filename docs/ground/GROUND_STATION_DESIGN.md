@@ -27,9 +27,9 @@ link budget. Revision C replaces it.
 | ID | Requirement | Source |
 |----|-------------|--------|
 | GND-R1 | At least two telecommand stations, designated in writing by the licensee before the IARU request, ≥ 1,000 km apart (independent weather, fire, seismic and grid risk), each able to command alone | BASELINE §1, D1; MRD-095; RR 25.11 |
-| GND-R2 | Each telecommand station: G/T and EIRP of §3.1 (beacon margin ≥ 6 dB at 5°, telecommand ≥ 6 dB at 10° per SQSO-LBA-001 LB-1, LB-3): **≥ 64 dBm EIRP (2.5 kW) at 70 cm toward the spacecraft, and commands sent only above 10° elevation** (chair decision C-14, restated): variant A outside the US270 areas, ≥ 100 W PEP at the feed into ≥ 14 dBic; variant B inside them, ≤ 50 W PEP at the feed into ≥ 17.5 dBic (§3.1) | SQSO-LBA-001 v3.4 §6.1 |
+| GND-R2 | Each telecommand station: G/T and EIRP of §3.1 (beacon margin ≥ 6 dB at 5°, telecommand ≥ 6 dB at 10° per SQSO-LBA-001 LB-1, LB-3): **≥ 64 dBm EIRP (2.5 kW) at 70 cm toward the spacecraft, and commands sent only above 10° elevation** (chair decision C-14, restated): variant A outside the US270 areas, ≥ 100 W PEP at the feed into ≥ 15.5 dBic; variant B inside them, ≤ 50 W PEP at the feed into ≥ 17.5 dBic (§3.1) | SQSO-LBA-001 v3.4 §6.1 |
 | GND-R3 | 70 cm power within 47 CFR 97.313 and 2.106 US270: **50 W PEP within 240 km of Beale AFB, within 160 km of Clear SFS** and in the other listed areas, unless authorized case by case (FCC field office with the military area frequency coordinator), or under 97.313(f) (≤ 611 W ERP, 1 kW EIRP, with the antenna's lower half-power point above 10°). At such a site the station is variant B: **≤ 50 W PEP at the feed** into ≥ 17.5 dBic, which meets GND-R2 without an authorization (§3.1) | 47 CFR (eCFR 2026-10-01) |
-| GND-R4 | RF exposure evaluation per 47 CFR 1.1310 for each telecommand antenna at its maximum power (§3.1a: 13.3 m in the main beam for the general population at 2.5 kW EIRP and continuous carrier) | 47 CFR 1.1307(b), 97.13(c) |
+| GND-R4 | RF exposure evaluation per 47 CFR 1.1310 for each telecommand antenna at its maximum power (§3.1a: in the main beam for the general population at continuous carrier, 13.3 m at the 2.5 kW requirement, 15.8 m for variant A at its minimum, 3.5 kW; 14.4 m for the variant B example, 2.95 kW) | 47 CFR 1.1307(b), 97.13(c) |
 | GND-R5 | Doppler pre-correction of the uplink to ±1 kHz; tracking to ±5° (variant A, and the 2 m antenna of both), **±2° for the variant B 70 cm array** (rotator, calibration and orbit prediction together; 0.3 dB pointing allowance, SQSO-LBA-001 v3.4 §6.1) | SQSO-LBA-001 §4.4, §6.1 |
 | GND-R6 | Operational key held offline at rest; recovery key with a second custodian at a different site; no key on a networked machine | SQSO-ICD-013 §9 |
 | GND-R7 | Counters per SQSO-ICD-013 §5.2; with two stations, a shared sequence or UTC-derived counters (§5.2.1) | SQSO-ICD-013 |
@@ -45,12 +45,12 @@ link budget. Revision C replaces it.
 | Item | Specification | Example (not selected) | ROM |
 |------|---------------|------------------------|-----|
 | 2 m antenna | Cross-Yagi, ≥ 12 dBic, RHCP/LHCP switchable | M2 2MCP14 class | $400 |
-| 70 cm antenna | Cross-Yagi, ≥ 14 dBic | M2 436CP30 class (≈ 15.5 dBic) | $400 |
+| 70 cm antenna | Cross-Yagi, **≥ 15.5 dBic** (variant A minimum, decision C-14) | M2 436CP30 class | $400 |
 | Rotator | Az-el, ±5°, computer control | Yaesu G-5500DC with a USB interface | $900 |
 | 2 m preamplifier | Mast-mounted, NF ≤ 0.8 dB, sequenced (full duplex: no TX on 2 m, so no sequencer needed for the beacon; needed only if the 2 m antenna is ever used to transmit) | SSB SP-2000 class | $350 |
 | Transceiver | Satellite (full-duplex) mode, CAT Doppler control, 2 m receive, 70 cm exciter set to the amplifier's drive (≈ 20–25 W) | Icom IC-9700 class | $1,900 |
 | 70 cm power amplifier (C-14) | Solid-state **class AB linear**, ≥ 150 W FM output at 430–440 MHz, continuous carrier ≥ 10 min, hardware-keyed (RF-sense keying disabled), reflected-power trip; set for **100 W at the antenna feed** (126 W at its output with the 1.0 dB feed) | 70 cm 150–200 W solid-state amplifier class | $1,200 |
-| Sequencer and PTT | Hardware sequencer: PTT in → amplifier to transmit → 30 ms → exciter keyed; release in reverse order; 60 s key-down timer; keying refused below 10° elevation (16° in the degraded mode) from the rotator controller's elevation | DEMI/LunaLink sequencer class | $150 |
+| Sequencer and PTT | Hardware sequencer: PTT in → amplifier to transmit → 30 ms → exciter keyed; release in reverse order; 60 s key-down timer; keying refused below 10° elevation (12° in the degraded mode) from the rotator controller's elevation | DEMI/LunaLink sequencer class | $150 |
 | Amplifier supply | 13.8 V, ≥ 40 A, with the UPS covering the receive chain only | | $250 |
 | TNC | Software: Dire Wolf 1.7 (KISS over TCP), AFSK 1200, ±3.0 kHz deviation set at the transceiver (measured, VI-GND-01) | Dire Wolf | — |
 | Tracking and Doppler | Gpredict or equivalent with Hamlib | | — |
@@ -74,28 +74,27 @@ variant A (ROM column: change against variant A):
 | **Total per station, variant B** | | | **≈ $7,350** |
 
 EIRP of the example: 44.6 W at the feed × 18.2 dBic = 64.7 dBm boresight, 64.5 dBm toward the spacecraft after the
-0.21 dB pointing loss at ±2°. Variant A with the listed 15.5 dBic antenna gives 65.5 dBm boresight, 65.2 dBm toward
-the spacecraft at ±5° (0.33 dB); at the bare minimum (14.0 dBic) it would be 63.7 dBm, so variant A needs ≥ 14.3 dBic
-or ≥ 107 W to cover the pointing loss.
+0.21 dB pointing loss at ±2°. Variant A at its minimum (100 W into 15.5 dBic) gives 65.5 dBm boresight, 65.2 dBm toward
+the spacecraft at ±5° (0.33 dB).
 
 **Budget at these values (SQSO-LBA-001 v3.4, 475 km, receiver as designed, worst case):** beacon +7.9 dB at 5° (median
 gain); telecommand at 64.0 dBm EIRP toward the spacecraft (C-14, either variant), 10th-percentile spacecraft gain and
 +6 dB interference: **+6.5 dB at 5°, +8.3 dB at 10°**; with the examples above, +7.7 / +9.5 dB (variant A, 15.5 dBic) and
-+7.0 / +8.8 dB (variant B). Degraded mode (amplifier out of service, or a station at 50 W PEP with the 14 dBic antenna): +3.8 dB
-at 10°, 6 dB from about 16°, so commands are then sent only above 16°.
++7.0 / +8.8 dB (variant B). Degraded mode (variant A with the amplifier out of service: 50 W PEP through the 1.0 dB feed
+into 15.5 dBic): +5.5 dB at 10°, 6 dB from about 12°, so commands are then sent only above 12°.
 
 ### 3.1a Transmit chain, sequencing and RF exposure (decision C-14)
 
 ```
 station computer ─ KISS ─ transceiver (70 cm exciter, ≈ 20–25 W) ─┐
 rotator controller (elevation) ─ PTT gate (≥ 10°) ─ sequencer ─────┼─ amplifier (class AB, ≥ 150 W FM) ─ coupler/wattmeter
-                                                                   └──────────────────────────────── LMR-600 ≤ 1.0 dB ─ arrestor ─ 14 dBic cross-Yagi
+                                                                   └──────────────────────────────── LMR-600 ≤ 1.0 dB ─ arrestor ─ ≥ 15.5 dBic cross-Yagi
 2 m cross-Yagi ─ 70 cm rejection filter (≥ 40 dB at 435 MHz) ─ mast preamplifier ─ LMR-400 ─ transceiver 2 m receive
 ```
 
 - **Sequencing.** Hardware PTT only: the sequencer puts the amplifier into transmit, then keys the exciter 30 ms later,
   and on release unkeys the exciter before returning the amplifier to bypass, so no relay switches RF. The PTT gate
-  refuses to key when the rotator reports less than 10° elevation (16° in the degraded mode). A 60 s key-down timer
+  refuses to key when the rotator reports less than 10° elevation (12° in the degraded mode). A 60 s key-down timer
   backs the software (a telecommand frame is ≤ 1 s; four attempts a pass). The amplifier trips on reflected power
   above 10 % (VSWR 1.9).
 - **Full duplex.** The 2 m receive chain stays on while 100 W at 435 MHz radiates from the adjacent antenna: a 70 cm
@@ -119,7 +118,8 @@ rotator controller (elevation) ─ PTT gate (≥ 10°) ─ sequencer ───�
 
   The beam points at least 10° above the horizon, so with the antenna on a mast at least 3 m above any accessible area,
   ground-level areas are below the main beam. Site rule: no occupied area (roof, balcony, neighbouring window) within
-  13.3 m of the antenna in any direction it can point above 10°, or the duty limited and documented; the evaluation is
+  the station's distance (15.8 m for variant A, 14.4 m for the variant B example) of the antenna in any direction it can
+  point above 10°, or the duty limited and documented; the evaluation is
   recorded for each site before its designation (VI-GND-05).
 
 ### 3.2 Site criteria
@@ -262,7 +262,7 @@ Procedures: `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` (SQSO-GSOM-001 v1.
 | VI-GND-02 | Site noise survey: 2 m noise at 5–20° elevation in 8 azimuths | T_sys ≤ 500 K (GND-R11) | Before a site is designated |
 | VI-GND-03 | End-to-end with the EM over an attenuated cable link with Doppler applied | Beacons decoded, commands (including `TX_DISABLE`) accepted at the SQSO-LBA-001 levels | EM |
 | VI-GND-04 | Two-station counter exercise (shared or UTC-derived): 50 commands alternating stations against the EM | All accepted; no counter reused | EM |
-| VI-GND-05 | RF exposure evaluation per 47 CFR 1.1310 at the station's maximum EIRP (§3.1a) | Documented distances met: no occupied area within 13.3 m in the main beam at 2.5 kW EIRP, or a documented duty limit | Each station |
+| VI-GND-05 | RF exposure evaluation per 47 CFR 1.1310 at the station's maximum EIRP (§3.1a) | Documented distances met: no occupied area in the main beam within the station's distance (15.8 m variant A, 14.4 m variant B example, at continuous carrier), or a documented duty limit | Each station |
 | VI-GND-06 | Pass rehearsal (LEOP): 5 simulated passes with the SIL or the EM | Commands sent and verified within the pass timeline of SQSO-ICD-005 §7.1 | Before launch |
 
 ## 10. Open Items
@@ -287,4 +287,4 @@ Procedures: `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` (SQSO-GSOM-001 v1.
 | C | 2026-10-27 | Rewritten at the CDR: telecommand station design with the 70 cm transmit chain, keys, time and power limits (US270, 97.313(f)); site criteria and candidate sites with coverage; contact-cadence analysis against the 14- and 30-day timers; SatNOGS network as measured; mission data flow; roles; verification items VI-GND-01 to -06. The superseded link budget and the receive-only design are removed | CDR review, communications panel |
 | D | 2026-10-27 | Coverage (§3.3, §4) and contact cadence (§5) re-run at the Rev E baseline orbit, 475 km from 2028-11-01 (was 500 km from 2028-06-01): Santa Clara 3.77 passes and 26.1 min a day (was 3.85, 27.7); one station trips the 14-day inhibit in 56–67 % of missions, two independent stations in 0.6 % (was 0.8 %); longest wait for TX-OFF 13.0 h with one station, 9.9 h with two (RID SE-16) | CDR S&MA analysis |
 | E | 2026-10-27 | Decision C-14: telecommand at ≥ 100 W PEP at the antenna feed and commands only above 10° (GND-R2); station transmit chain with a class AB ≥ 150 W amplifier, sequencer and PTT gate, 1.0 dB feed, 70 cm rejection on the 2 m preamplifier (§3.1, §3.1a); US270 areas (Beale for the Bay Area, Clear SFS for Fairbanks) and the 50 W / 17.5 dBic alternative (GND-R3); RF exposure evaluation at 2.5 kW EIRP (GND-R4, §3.1a); station cost ≈ $6,650; cadence at the 10° rule (§5) | CDR S&MA analysis |
-| F | 2026-10-27 | C-14 restated as an EIRP requirement (≥ 64 dBm toward the spacecraft above 10°): variant A (≥ 100 W PEP into ≥ 14 dBic, outside US270) and variant B (≤ 50 W PEP into ≥ 17.5 dBic: stacked pair, 15° beam, ±2° rotator, same-sense circular feed, ≤ 0.5 dB hardline, ≈ $7,350) (GND-R2, GND-R3, GND-R5, §3.1); RF exposure distances per variant (§3.1a); variant per candidate site (§3.3) | CDR S&MA analysis |
+| F | 2026-10-27 | C-14 restated as an EIRP requirement (≥ 64 dBm toward the spacecraft above 10°): variant A (≥ 100 W PEP into ≥ 15.5 dBic, outside US270) and variant B (≤ 50 W PEP into ≥ 17.5 dBic: stacked pair, 15° beam, ±2° rotator, same-sense circular feed, ≤ 0.5 dB hardline, ≈ $7,350) (GND-R2, GND-R3, GND-R5, §3.1); RF exposure distances per variant (§3.1a: 15.8 m variant A, 14.4 m variant B); degraded mode (amplifier out) above 12°; variant per candidate site (§3.3) | CDR S&MA analysis |
