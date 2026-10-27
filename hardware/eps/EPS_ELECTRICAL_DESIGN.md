@@ -2,11 +2,11 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-003
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-10-27
 **Status:** CDR Baseline — parts selected: the build-to schematic, BOM and layout constraints are
-`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 A), which governs where this document differs;
-`docs/hardware/EPS_DESIGN.md` v2.1 governs the architecture
+`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 B), which governs where this document differs;
+`docs/hardware/EPS_DESIGN.md` v2.2 governs the architecture
 
 > **CDR review (2026-10-27).** The funding-audit notice of 2026-10-16 (2S battery, 2-cell charger, six solar channels
 > superseded) is acted on here: §2.1, §2.2 and §3.2 now carry the 4S configuration of `docs/hardware/EPS_DESIGN.md`
@@ -89,7 +89,7 @@ This document specifies the electrical design requirements for the SMART-QSO EPS
 | 3V3_AO buck | TI LMR43620MC3RPERQ1 | 25 V synchronous buck | 1 |
 | 5V_PA buck, 7.0 V burn buck | TI LMR43620MC5RPERQ1 | 25 V synchronous buck | 2 |
 | Load switch, 3.3/5 V | TI TPS2553QDBVRQ1 (current limit, latch-up retry) | TPS22918 (no current limit) | 7 |
-| Load switch, VBAT | TI TPS1H100BQPWPRQ1 (SW1, SW6), TPS1H000AQDGNRQ1 (SW5) | TPS1H100 class | 3 |
+| Load switch, VBAT | TI TPS1H100BQPWPRQ1 (SW1, SW6), TPS1H000AQDGNRQ1 (SW5, SW11) | TPS1H100 class | 4 |
 | eFuse (Jetson) | TI TPS16630RGER (60 V, latch-off) | TPS25947 class (23 V) | 1 |
 | Current/power monitors | TI INA228AQDGSRQ1 (2), INA3221AQRGVRQ1 (4), INA186A2/A3 (3) | INA226 | 9 |
 | ADC, temperatures | TI ADS7138QRTERQ1; 10 kΩ NTCs: two at the cells, six on the panels, one at the AFE FETs | TMP117 | 1 |
@@ -322,3 +322,4 @@ Total:             ~1.6mm
 | 1.0a | 2026-10-16 | Funding audit notice: battery and array interfaces superseded by BASELINE §5 (PI-14) |
 | 1.1 | 2026-10-27 | CDR review (EPS): §2.1, §2.2, §3.2 corrected to the 4S design of EPS_DESIGN v2.0 (trackers, 4S charger, secondary OVP, VBAT switches, load shed, EOL disconnect; string TVS 7.0 V); §7–§8 superseded by SQSO-THA-001 v2.0 and SQSO-EMC-001 |
 | 1.2 | 2026-10-27 | CDR design (EPS board) | §3.2 parts selected (SQSO-EPS-BRD-001 A); board outline and layer count point to BRD-001 §17 |
+| 1.3 | 2026-10-27 | CDR design (EPS board) | §3.2 VBAT load switches: SW11 magnetorquer supply added (SQSO-EPS-BRD-001 B, SQSO-ICX-001 E3) |

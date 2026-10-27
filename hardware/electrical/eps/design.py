@@ -47,7 +47,7 @@ def N(name):
 POWER_NETS = ["BAT_TOP", "BAT_BOT", "PACK_N", "PACK_P", "BAT_F", "BAT_F3", "GND", "VBAT", "VB1", "VB3", "3V3_AO",
               "3V3_MCU", "5V_PA", "V_BURN", "VBAT_DEP", "VCTL", "VCTL_IN", "VHW", "REG1", "REF_C", "REF_A", "VTRK",
               "VTRK_RAW", "VBAT_SW1", "VBAT_JET", "3V3_RADIO", "5V_PA_SW", "3V3_ADCS", "3V3_GNSS", "3V3_ANTS", "3V3_OBC",
-              "AFE_REGIN", "REG18", "AFE_BATP"]
+              "AFE_REGIN", "REG18", "AFE_BATP", "VBAT_MTQ", "3V3_RTC"]
 
 
 def sym(name, prefix, pins):
@@ -314,19 +314,18 @@ def connectors():
     j = place(CONN("PicoClasp_6", 6), "J2", "CELL TAPS", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT",
               "1 A/contact", "< 1 mA", "W1 P2/J2: cell taps and NTC2", "Sn", "Digi-Key: Active")
     conn(j, {"P1": "TAP0", "P2": "TAP1", "P3": "TAP2", "P4": "TAP3", "P5": "TAP4", "P6": "NTC2"})
-    # J3 OBC (W3 30 pins kept as 1-28, extended to 40)
+    # J3 OBC: W3 per SQSO-ICX-001 section 3.1 (40 positions; pins 21 and 27 are the analog return, joined to GND at
+    # the board's analog star point at layout)
     pins = ["3V3_OBC", "3V3_OBC", "GND", "GND", "I2C2_SCL", "I2C2_SDA", "GND", "EPS_ALERT_N", "PAYLOAD_EN", "RADIO_EN",
             "ADCS_EN", "HEATER_EN", "DEPLOY_EN", "RF_TX_EN", "GNSS_EN", "DEPLOY_SENSE", "BURN_W2A", "BURN_W1A",
-            "ANT_SENSE_SPARE", "SOLAR_SENSE", "GND", "VBATT_SNS", "IBATT_SNS", "VSOLAR_SNS", "ISOLAR_SNS", "VBUS_SNS",
-            "GND", "GND", "JETSON_PWR", "BURN_W1B", "BURN_W2B", "EOL_ARM", "EOL_FIRE", "LOCK_CLR", "GND", "J3_SPARE36",
-            "J3_SPARE37", "J3_SPARE38", "GND", "GND"]
+            "VJET_RB", "SOLAR_SENSE", "GND", "VBATT_SNS", "IBATT_SNS", "VSOLAR_SNS", "ISOLAR_SNS", "VBUS_SNS",
+            "GND", "GND", "JETSON_PWR", "BURN_W1B", "BURN_W2B", "EOL_ARM", "EOL_FIRE", "LOCK_CLR", "GND", "VBAT_MTQ",
+            "VSW1_RB", "3V3_RTC", "VBAT_MTQ", "GND"]
     j = place(CONN("FTSH_2x20", 40), "J3", "OBC", "FTSH-120-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x20",
-              "2.4 A/contact (Samtec rating)", "0.3 A on 2 pins: 6 %", "W3 (extended from 30 to 40 pins)", "Au 10 uin", "not checked")
+              "2.4 A/contact (Samtec rating)", "3V3_OBC 0.18 A and VBAT_MTQ 0.40 A (SW11 limit max) on 2 pins each: 8 %",
+              "W3 per SQSO-ICX-001 3.1 (40 pins)", "Au 10 uin", "not checked")
     for i, nm in enumerate(pins, 1):
-        if nm.startswith("J3_SPARE") or nm == "ANT_SENSE_SPARE":
-            noconn(j[f"P{i}"])
-        else:
-            link(nm, j[f"P{i}"])
+        link(nm, j[f"P{i}"])
     # solar strings: body J4 PX, J5 MX, J6 PY, J7 MY (SA+, SA-, TEMP); wings J8 W1, J9 W2 (SA1+ front, SA2+ back, SA-, SA-, TEMP)
     for ref, name in (("J4", "PX"), ("J5", "MX"), ("J6", "PY"), ("J7", "MY")):
         j = place(CONN("PicoClasp_5", 5), ref, f"STRING {name}", "5013310507", "Molex", "Pico-Clasp 1.0 mm 5 pos SMT",
@@ -364,9 +363,10 @@ def connectors():
     j = place(CONN("MicroFit_2x3", 6), "J19", "RF PWR", "0430450612", "Molex", "Micro-Fit 3.0 2x3 vertical", "5 A/contact",
               "0.54 A: 11 %", "W4: PA 5 V (switched, TX-OFF), receiver 3.3 V (switched)", "Sn", "pattern")
     conn(j, {"P1": "5V_PA_SW", "P2": "5V_PA_SW", "P3": "GND", "P4": "GND", "P5": "3V3_RADIO", "P6": "GND"})
-    for ref, net, what in (("J20", "3V3_ADCS", "ADCS"), ("J21", "3V3_GNSS", "GNSS")):
+    for ref, net, what, hz in (("J20", "3V3_ADCS", "ADCS", "W6B to OBC J6 (ADCS sensor supply)"),
+                               ("J21", "3V3_GNSS", "GNSS", "W9B to OBC J4 (GNSS receiver supply via the OBC)")):
         j = place(CONN("PicoClasp_2", 2), ref, f"{what} PWR", "5013310207", "Molex", "Pico-Clasp 1.0 mm 2 pos SMT",
-                  "1 A/contact", "<= 0.13 A", f"W6/W9: {what} 3.3 V switched", "Sn", "Digi-Key: Active")
+                  "1 A/contact", "<= 0.34 A at the trip", f"{hz}: {what} 3.3 V switched", "Sn", "Digi-Key: Active")
         conn(j, {"P1": net, "P2": "GND"})
     j = place(CONN("Header_1x4", 4), "J22", "SBW", "FTSH-102-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x2", "", "",
               "MSP430 Spy-Bi-Wire programming (ground use only)", "Au", "not checked")
@@ -768,6 +768,11 @@ def rails_and_switches():
     R(10e3, "3V3_MCU", "FLT_EFUSE")
     R(30.1e3, "IMON_JET", "GND", note="IMON 0.84 V/A")
     C("1n", "IMON_JET", "GND")
+    # Jetson readbacks to the OBC (RID AV-06, SQSO-ICX-001 E1/E2): VBAT / 6 after SW1 and after the eFuse
+    for net, rb in (("VBAT_SW1", "VSW1_RB"), ("VBAT_JET", "VJET_RB")):
+        R(1.00e6, net, rb, tol=0.1, note=f"{rb} 1:6 (OBC ADC, J3)")
+        R(200e3, rb, "GND", tol=0.1)
+        C("100n", rb, "GND")
     R(10e3, "JETSON_PWR", "EF_SHDN")
     R(100e3, "EF_SHDN", "GND")
     C("4.7u", "VBAT_JET", "GND", 50, "1210", vop=16.8)
@@ -783,6 +788,20 @@ def rails_and_switches():
     conn(p, {"A": "HTR_SW", "B": "HTR_F"})
     RSH(0.5, "HTR_F", "HTR_P", "WSL0805R5000FEA", "0805", 0.125, note="heater current (INA3221)", stress="3 mW", ref="RS11")
     Q("PMV40UN2", "Q22", "HCUT_G", "GND", "HTR_N", stress="Vds 16.8/30 = 56 %; 79 mA", note="heater +40 C hardware cutout (series, low side)")
+    # SW11 magnetorquer bridge supply (SQSO-ICX-001 E3): VBAT -> J3-36/39, enable ADCS_EN, limit 0.361 A (0.325-0.397 A),
+    # auto-retry (DELAY pulled up: 40 ms on / 1 s off in a sustained overload); diagnostics only while enabled
+    ic(S_TPS1H000, "U39", "TPS1H000-Q1", "TPS1H000AQDGNRQ1", "TI", "HVSSOP-8 (DGN)", "40 V, 1 Ohm, adj. limit 0.05-1 A",
+       {"IN": "SW11_IN", "DIAG_EN": "SW11_IN", "FAULT": "FLT_SW11", "CL": "SW11_CL", "DELAY": "SW11_DLY", "GND": "GND",
+        "OUT": "VBAT_MTQ", "VS": "VBAT", "PAD": "GND"}, stress="VS 16.8/40 = 42 %; 0.23 A / 0.36 A limit",
+       notes="SW11 VBAT_MTQ (OBC magnetorquer H-bridges, ADCS_EN)", finish="NiPdAu|NiPdAuAg")
+    R(10e3, "ADCS_EN", "SW11_IN", note="series input resistor (datasheet R_SER)")
+    R(1.33e3, "SW11_CL", "GND", note="0.361 A limit (0.8 V x 600 / 1.33 k)")
+    R(1.0e3, "3V3_AO", "SW11_DLY", note="DELAY pulled up: auto-retry mode")
+    R(10e3, "3V3_AO", "FLT_SW11")
+    C("1u", "VBAT_MTQ", "GND", 50, "0805", vop=16.8)
+    C("100n", "VBAT_MTQ", "GND")
+    # 3V3_RTC: the OBC's mission clock on the always-on rail (SQSO-ICX-001 E4, RID AV-10)
+    R(1.0e3, "3V3_AO", "3V3_RTC", note="3V3_RTC: <= 2 uA load; 3.4 mA into a short")
     # 3V3 switched rails (TPS2553 with auto-retry: EN driven through 100 k, FAULT pulls EN down, C_RETRY 1 uF)
     # (ref, switch, enable source, input rail, switch output, R_ILIM, shunt ref, rail after the shunt, shunt, C_RETRY)
     # trips against RADIATION_ANALYSIS Rev C 5.3 (RID AV-08): limit in microseconds, FAULT after 8 ms removes the rail,
@@ -1039,7 +1058,7 @@ def telemetry_and_mcu():
         "P5_0": "IMON_JET", "P5_1": "F1_SNS", "P5_2": "V_BURN_SNS", "P5_3": "VTRK_SNS",
         "P2_0": "AFE_ALERT_X", "P2_1": "PERMIT_RB", "P2_2": "WIN_OK_RB", "P2_3": "SHED_RB", "P2_4": "EOL_ARMED_RB",
         "P2_5": "FLT_SW1", "P2_6": "FLT_EFUSE", "P2_7": "FLT_SW5", "P3_0": "FLT_SW2", "P3_2": "FLT_SW3", "P3_3": "FLT_SW4",
-        "P3_4": "FLT_SW7", "P3_6": "FLT_SW8", "P3_7": "FLT_SW6",
+        "P3_4": "FLT_SW7", "P3_6": "FLT_SW8", "P3_7": "FLT_SW6", "P4_5": "FLT_SW11",
         "P4_0": "LOCK_SET_MCU", "P4_1": "UNLOCK_MCU", "P4_4": "MCU_INT_N",
         "TEST": "MCU_TEST", "RSTN": "MCU_RSTN", "DVCC": "3V3_MCU", "DVSS": "GND"})
     ic(S_MSP, "U37", "MSP430FR2355", "MSP430FR2355TPTR", "TI", "LQFP-48 (PT) 7x7", "16-bit FRAM MCU, 12-bit ADC, 4 SAC op-amp/DAC, -40..105 C",

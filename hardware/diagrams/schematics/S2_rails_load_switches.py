@@ -1,8 +1,9 @@
-"""S2 EPS rails and load switches: 3V3_AO, 5V_PA and V_BURN bucks from the 4S bus, SW1-SW10, the Jetson eFuse and the
+"""S2 EPS rails and load switches: 3V3_AO, 5V_PA and V_BURN bucks from the 4S bus, SW1-SW11, the Jetson eFuse and the
 hardware load shed.
 
 Updated 2026-10-27 to the build-to design SQSO-EPS-BRD-001 (hardware/electrical/eps/EPS_BOARD_DESIGN.md, netlist
-hardware/electrical/eps/design.py; RID EPS-15, EMC-02 rule E3, AV-08): parts selected, references are the netlist's.
+hardware/electrical/eps/design.py; RID EPS-15, EMC-02 rule E3, AV-08): parts selected, references are the netlist's. Version B of the board
+(SQSO-ICX-001 section 7): SW11 magnetorquer supply, Jetson readbacks, OBC pins PB2 and PF3.
 """
 
 import schemdraw.elements as elm
@@ -11,7 +12,7 @@ import sch
 
 d = sch.drawing("S2_rails_load_switches")
 sch.title(d, (-3, 4.0), "S2", "EPS rails and load switches (SQSO-EPS-BRD-001)",
-          "Sources: hardware/electrical/eps/design.py; EPS_BOARD_DESIGN.md 8-9; software/rust/firmware/src/gpio.rs (enables)")
+          "Sources: hardware/electrical/eps/design.py; EPS_BOARD_DESIGN.md 8-9; hardware/electrical/INTERCONNECT.md 3.1 (enables)")
 
 
 def buck(x, y, name, label):
@@ -46,17 +47,18 @@ sch.note(d, (-3, -3.2),
 
 ROWS = [
     # (ref, name, input, enable net (pin), output net, limit / note)
-    ("SW1 U20 + U19", "PAYLOAD", "VBAT", "PAYLOAD_EN (PB4) AND SHED_N", "VBAT_JET",
-     "TPS1H100B 2.0 A; eFuse TPS16630 1.20 A latch-off on JETSON_PWR (PA2)"),
+    ("SW1 U20 + U19", "PAYLOAD", "VBAT", "PAYLOAD_EN (PB2) AND SHED_N", "VBAT_JET",
+     "TPS1H100B 2.0 A; eFuse TPS16630 1.20 A latch-off on JETSON_PWR (PA2);\nreadbacks VSW1_RB (J3-37), VJET_RB (J3-19): 1.00 M / 200 k"),
     ("SW2 U22", "RADIO", "3V3_AO", "RADIO_EN (PB5)", "3V3_RADIO", "TPS2553 0.12 A, retry 1.3 s"),
     ("SW3 U23", "PA", "5V_PA", "RF_TX_EN (PA3) AND SHED_N", "5V_PA_SW", "TPS2553 0.99 A; hardware TX-OFF"),
-    ("SW4 U24", "ADCS", "3V3_AO", "ADCS_EN (PB6)", "3V3_ADCS", "TPS2553 0.30 A, retry 0.28 s"),
+    ("SW4 U24", "ADCS SENSORS", "3V3_AO", "ADCS_EN (PB6)", "3V3_ADCS", "TPS2553 0.30 A, retry 0.28 s; W6B to OBC J6"),
     ("SW5 U21", "HEATER", "VBAT", "HEATER_EN (PD2)", "HTR_P", "TPS1H000 0.148 A + F4 0.25 A + Q22 40 C cutout"),
-    ("SW6 U18", "DEPLOY", "VBAT", "DEPLOY_EN (PA1)", "VBAT_DEP", "TPS1H100B 2.0 A; feeds U17 (S5)"),
-    ("SW7 U25", "GNSS", "3V3_AO", "GNSS_EN (PE5)", "3V3_GNSS", "TPS2553 0.20 A, retry 1.3 s"),
-    ("SW8 U26", "AntS", "3V3_AO", "DEPLOY_EN (PA1)", "3V3_ANTS", "TPS2553 1.37 A; AntS I2C via U80"),
+    ("SW6 U18", "DEPLOY", "VBAT", "DEPLOY_EN (PF3)", "VBAT_DEP", "TPS1H100B 2.0 A; feeds U17 (S5)"),
+    ("SW7 U25", "GNSS", "3V3_AO", "GNSS_EN (PE5)", "3V3_GNSS", "TPS2553 0.20 A, retry 1.3 s; W9B to OBC J4"),
+    ("SW8 U26", "AntS", "3V3_AO", "DEPLOY_EN (PF3)", "3V3_ANTS", "TPS2553 1.37 A; AntS I2C via U80"),
     ("SW9 U27", "EPS CTRL", "3V3_AO", "always", "3V3_MCU", "TPS2553 75 mA, retry 0.28 s"),
-    ("SW10 U38", "OBC", "3V3_AO", "always", "3V3_OBC", "TPS2553 0.15 A, retry 0.28 s (AV-08)"),
+    ("SW10 U38", "OBC", "3V3_AO", "always", "3V3_OBC", "TPS2553 0.15 A, retry 0.28 s (AV-08);\n3V3_RTC = 3V3_AO via 1 k (J3-38)"),
+    ("SW11 U39", "MTQ", "VBAT", "ADCS_EN (PB6)", "VBAT_MTQ", "TPS1H000 0.36 A (0.32-0.40), auto-retry;\nJ3-36/39 to the OBC coil bridges"),
 ]
 y0, pitch = -6.0, -3.0
 for i, (ref, name, vin, en, vout, lim) in enumerate(ROWS):

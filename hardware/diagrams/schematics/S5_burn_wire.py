@@ -15,7 +15,7 @@ sch.title(d, (-4, 5.5), "S5", "Deployment drivers and deployed-state sense (SQSO
 
 DRV = [("W1A", "BURN_W1A (PB10)", "J10 1-2", "U70", "Q24"), ("W1B", "BURN_W1B (PE6)", "J10 3-4", "U71", "Q25"),
        ("W2A", "BURN_W2A (PB9, was ANTENNA_BURN)", "J11 1-2", "U72", "Q26"),
-       ("W2B", "BURN_W2B (pin to be allocated)", "J11 3-4", "U73", "Q27")]
+       ("W2B", "BURN_W2B (PE7)", "J11 3-4", "U73", "Q27")]
 
 for k, (w, line, pins, tpl, q) in enumerate(DRV):
     y = -k * 7.0

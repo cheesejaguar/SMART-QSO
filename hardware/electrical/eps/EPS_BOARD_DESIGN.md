@@ -1,7 +1,7 @@
 # SMART-QSO EPS Board: Build-to Design
 
 **Document ID**: SQSO-EPS-BRD-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Status**: CDR build-to electrical design (schematic captured as code, parts selected, ERC clean). No PCB layout, no
 engineering model; every number below is analysis until its verification item (§19) closes.
@@ -12,8 +12,8 @@ pins, generated), [`eps_board_bom.csv`](eps_board_bom.csv) (BOM, generated), [`e
 generated), [`eps_calcs.py`](eps_calcs.py) (every computed value in this document). Regenerate with the CAD venv:
 `python hardware/electrical/eps/design.py` and `python3 hardware/electrical/eps/eps_calcs.py`.
 
-**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (governs every value); `docs/hardware/EPS_DESIGN.md` 2.1
-(architecture); `hardware/eps/PDU_DESIGN.md` 1.2, `hardware/eps/EPS_ELECTRICAL_DESIGN.md` 1.2,
+**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (governs every value); `docs/hardware/EPS_DESIGN.md` 2.2
+(architecture); `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001, board-to-board pins); `hardware/eps/PDU_DESIGN.md` 1.3, `hardware/eps/EPS_ELECTRICAL_DESIGN.md` 1.3,
 `hardware/eps/BATTERY_DESIGN.md` 2.3, `hardware/eps/SOLAR_ARRAY_DESIGN.md` 2.1; `docs/environment/BATTERY_SAFETY_ASSESSMENT.md`
 (SQSO-BSA-001), `docs/environment/EMC_ANALYSIS.md` (SQSO-EMC-001), `docs/environment/POWER_BUDGET_ANALYSIS.md` (SQSO-PBA-001
 v2.0), `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0), `docs/environment/RADIATION_ANALYSIS.md` Rev C §5.3;
@@ -27,24 +27,26 @@ v2.0), `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0), `docs/environ
 | Item | Value |
 |------|-------|
 | Board | PC/104 (90.17 × 95.89 mm), 6 layers, in the OBC/EPS stack; battery on flying leads (no stack connector) |
-| Placements / BOM lines / nets | 686 / 149 / 402 (generated counts) |
-| ICs | 72 plus the oscillator (TI unless noted): BQ76952 AFE, BQ771806 secondary protector, 4 × TPS55340-Q1 trackers, 8 × LM74700-Q1 ideal diodes, 3 × LMR43620-Q1 bucks, TPS16630 eFuse, 2 × TPS1H100B-Q1, TPS1H000-Q1, 7 × TPS2553-Q1, 2 × INA228-Q1, 4 × INA3221-Q1, 3 × INA186-Q1, ADS7138-Q1, MSP430FR2355 EPS controller, ISO1540-Q1, TCA9517-Q1, 2 × REF3425-Q1, TPS70933-Q1, 6 × TPL5111, TLV9002/OPA2991/TLV7042 analog, LVC logic, Epson SG-8018CA oscillator |
-| Worst-case board dissipation | **1.29 W** sunlit ACTIVE at maximum array power with Jetson and PA on; 0.35 W in eclipse; **3.75 W for ≤ 12 s** during a burn; orbit average ≈ 0.48 W (§16) |
-| Hottest parts | burn-driver FET Q24–Q27 (3.0 W for 12 s, Tj 92 °C); burn buck U17 (0.95 W, 12 s, Tj 79 °C); tracker U4 (0.21 W, Tj 66 °C); D9–D12 (0.12 W); SW1 U20 (0.17 W); 5V_PA buck U16 (0.15 W); all with the board at +60 °C |
-| Worst stresses | DS2 FET Vgs 73 % (7.3 V / 10 V); BQ771806 VDD 70 % (17.4 V / 25 V); PTC at 68 % of its 60 °C hold; INA3221 heater channel 65 % (16.8 V / 26 V); all within the §2.3 limits (§15) |
+| Placements / BOM lines / nets | 700 / 152 / 410 (generated counts) |
+| ICs | 73 plus the oscillator (TI unless noted): BQ76952 AFE, BQ771806 secondary protector, 4 × TPS55340-Q1 trackers, 8 × LM74700-Q1 ideal diodes, 3 × LMR43620-Q1 bucks, TPS16630 eFuse, 2 × TPS1H100B-Q1, 2 × TPS1H000-Q1, 7 × TPS2553-Q1, 2 × INA228-Q1, 4 × INA3221-Q1, 3 × INA186-Q1, ADS7138-Q1, MSP430FR2355 EPS controller, ISO1540-Q1, TCA9517-Q1, 2 × REF3425-Q1, TPS70933-Q1, 6 × TPL5111, TLV9002/OPA2991/TLV7042 analog, LVC logic, Epson SG-8018CA oscillator |
+| Worst-case board dissipation | **1.33 W** sunlit ACTIVE at maximum array power with Jetson, PA and magnetorquers on; 0.37 W in eclipse; **3.77 W for ≤ 12 s** during a burn; orbit average ≈ 0.49 W (§16) |
+| Hottest parts | burn-driver FET Q24–Q27 (3.0 W for 12 s, Tj 92 °C); burn buck U17 (0.95 W, 12 s, Tj 93 °C); tracker U4 (0.21 W, Tj 66 °C); D9–D12 (0.12 W); SW1 U20 (0.17 W); 5V_PA buck U16 (0.15 W); all with the board at +60 °C |
+| Worst stresses | DS2 FET Vgs 73 % (7.3 V / 10 V); BQ771806 VDD 70 % (17.4 V / 25 V); PTC at 73 % of its 60 °C hold; INA3221 heater channel 65 % (16.8 V / 26 V); all within the §2.3 limits (§15) |
 | Storage drain, switches actuated | **2.2 µA typical, 6.7 µA worst** (limit 20 µA; §6.6) |
-| Peak pack current, one burn | **0.67 A** (chair limit 1.0 A); four drivers at once (software fault) held to 2.0 A by the burn buck's limit |
+| Peak pack current, one burn | **0.75 A** with the magnetorquers at 1.16 W (0.67 A without; 0.90 A with the coil bridges at their hardware limit; chair limit 1.0 A); four drivers at once (software fault) held to 2.0 A by the burn buck's limit |
 | Tracker efficiency (analysis) | 90.9–92.3 % (EPS-F002 asks ≥ 92 %: **marginal**, §4.3) |
 
 What is new against EPS_DESIGN 2.0 (all within its architecture; the departures are listed in §2.2): the parts; a
 7.0 V burn buck so the linear burn drivers dissipate 3 W instead of 10 W and draw a third of the pack current; a
 back-to-back DS2 so the pack return blocks charge as well as discharge; a power domain rule that keeps DS2 from being
 bypassed by a sneak path; four burn drivers; an OBC supply switch with latch-up power cycling (AV-08); and the
-EPS controller that the ICD's register block at 0x48 already assumed.
+EPS controller that the ICD's register block at 0x48 already assumed. Version B applies the OBC designer's interconnect
+(SQSO-ICX-001 §7, E1–E8): Jetson readbacks VJET_RB and VSW1_RB, a magnetorquer supply switch SW11 (VBAT_MTQ), the RTC
+supply 3V3_RTC, the W6B/W9B routing of J20/J21 and the allocated OBC pins (§13.2).
 
 ## 2. Requirements, standards and departures
 
-### 2.1 Requirements implemented (EPS_DESIGN 2.1 §2)
+### 2.1 Requirements implemented (EPS_DESIGN 2.2 §2)
 
 | ID | Requirement | Implemented by | Section |
 |----|-------------|----------------|---------|
@@ -60,7 +62,7 @@ EPS controller that the ICD's register block at 0x48 already assumed.
 | EPS-F010 | Non-resettable EOL charge disconnect, two independent signals | F1 three-terminal fuse, Q20 (EOL_FIRE) in series with Q21 (EOL_ARM latch) | §7 |
 | EPS-F011 | Battery protection per SQSO-BSA-001 §3 | BQ76952 (OTP), BQ771806 + F3, F2, RT1, NTC comparators, lockout K1 | §5, §6 |
 | EPS-F012 | Hardware low-voltage disconnect of payload and PA | U48 + U51/U52: < 13.6 V for 5 s sheds SW1 and SW3, release > 14.4 V | §8.4 |
-| EPS-F013 | Telemetry | 5 analog lines to the OBC, INA228 × 2 on I2C2, AFE / INA3221 / ADS7138 via the EPS controller | §11 |
+| EPS-F013 | Telemetry | 7 analog lines to the OBC (incl. the Jetson readbacks VJET_RB, VSW1_RB), INA228 × 2 on I2C2, AFE / INA3221 / ADS7138 via the EPS controller | §11 |
 
 ### 2.2 Departures from the architecture documents (for the chair)
 
@@ -77,6 +79,7 @@ EPS controller that the ICD's register block at 0x48 already assumed.
 | Cell-tap filters (EMC rule E6) | 1 kΩ + 0.1 µF at the AFE | 100 Ω + 0.1 µF at the AFE (internal balancing at ≈ 18 mA); 1 kΩ + 0.1 µF at the secondary protector | 1 kΩ would cut balancing to ≈ 3 mA; 100 Ω/0.1 µF is a 16 kHz pole, ample against the 145.9 MHz field. **For the EMC owner:** amend E6 |
 | Jetson rail trip | 1.2 A (EPS_DESIGN), 0.75 A proposed (RADIATION_ANALYSIS §5.3) | 1.20 A (1.10–1.30 A) eFuse, OBC guard 0.93 A first | A latch-up (amperes) trips either; 0.75 A would sit 1.34× the 8 W load at the low bus |
 | Tracker efficiency | ≥ 92 % | 90.9–92.3 % (analysis) | See §4.3; the power margins (+31 % tumbling) absorb it |
+| VBAT_MTQ telemetry (Version B) | voltage and current on every rail | SW11 fault readback (FLT_SW11) on the EPS; the current is the sum of the OBC's three coil-current channels (MTQ_X/Y/Z_I, SQSO-ICX-001 §6 row 14); the voltage is VBAT (INA3221) less the switch drop (≤ 0.46 V) | The 12 INA3221 channels, the 8 ADS7138 inputs and the controller's 10 ADC inputs are all in use; a fifth INA3221 has no free address. The OBC measures the load itself |
 
 ### 2.3 Derating standard and part rules
 
@@ -98,6 +101,7 @@ NASA-STD-8739.1) over all terminations, and Sn63Pb37 assembly per J-STD-001 with
                         └─ T4 (PX,MX,MY)┘                                 │            ├─ U16 5V_PA ── SW3 PA (TX-OFF, shed)
                                                                           ▼            ├─ SW1+U19 Jetson (VBAT, shed)
  BAT_TOP ─F2─RT1─F3(OVP)─RS6─[Q1 CHG|Q2 DSG]─ PACK_P ─Q4(DS1)─ VB1 ─Q5(DS3)─ VB3 ─RS8─ VBAT ─┼─ SW5 heater (F4, 40 °C cutout)
+                                                                                            ├─ SW11 VBAT_MTQ (ADCS_EN) → OBC coil bridges
    4S cells (U1 BQ76952, U2 BQ771806)                                                       └─ SW6 → U17 V_BURN → 4 burn drivers
  BAT_BOT ─RS7─ PACK_N ─[Q6|Q7 back to back](DS2)─ GND        umbilical J13: PACK_P / PACK_N (bypasses the inhibits for charging)
 ```
@@ -208,14 +212,17 @@ flight software on the NTC2 telemetry (SQSO-BSA-001 H5).
 
 | Item | Value | Margin |
 |---|---|---|
-| Largest legitimate pack current (Jetson at the 12 W guard + PA 1 W + housekeeping + heater) | 1.31 A | |
-| Single burn, normal sequence (one resistor, 0.88 A at +10 %) + housekeeping + heater | 0.67 A | chair limit 1.0 A |
+| Largest legitimate pack current (Jetson at the 12 W guard + PA 1 W + housekeeping + heater + magnetorquers 1.16 W, three rods saturated) | 1.40 A | |
+| Same, coil bridges at their hardware limit (0.23 A: an OBC control fault) | 1.54 A | 80 % of the RT1 hold at 60 °C: no trip |
+| Same, SW11 in its current limit (0.40 A maximum, VBAT_MTQ shorted; auto-retry 4 % duty) | 1.71 A | 89 % of the RT1 hold: no trip |
+| Single burn, normal sequence (one resistor, 0.88 A at +10 %) + housekeeping + heater + magnetorquers 1.16 W | 0.75 A | chair limit 1.0 A |
+| Same, coil bridges at their hardware limit (0.23 A) | 0.90 A | chair limit 1.0 A |
 | All four burn drivers on (software fault): burn buck in its 2.8 A current limit | 2.00 A | hardware cap |
-| AFE OCD1 (40 mV on RS7 10 mΩ, 500 ms) | 4.0 A (3.6–4.4) | 2.7× the largest load; below F2 |
+| AFE OCD1 (40 mV on RS7 10 mΩ, 500 ms) | 4.0 A (3.6–4.4) | 2.6× the largest load; below F2 |
 | AFE SCD (100 mV, 15 µs) | 10 A | cell short-circuit current 80–100 A |
-| F2 0451005.MRL 5 A at 60 °C (× 0.90 rerating) | 4.5 A | largest load 29 % |
-| RT1 2920L260/33DR hold at 60 °C | 1.92 A | 68 % of hold |
-| F3 ITV4030L1412NR 12 A (secondary-protector fuse) at 60 °C (10 A) | 10 A | 13 % |
+| F2 0451005.MRL 5 A at 60 °C (× 0.90 rerating) | 4.5 A | largest load 31 % |
+| RT1 2920L260/33DR hold at 60 °C | 1.92 A | 73 % of hold |
+| F3 ITV4030L1412NR 12 A (secondary-protector fuse) at 60 °C (10 A) | 10 A | 14 % |
 
 F2 (Littelfuse Nano2 451, 5 A, 125 V; 50 A at 125 V, 300 A at 32 VDC per the 451/453 datasheet as quoted by
 distributors, to be confirmed on the current datasheet) is the only element rated to break the cell's 80–100 A short
@@ -360,13 +367,14 @@ free-run at ≈ 1 MHz (R_FREQ 46.4 k) and the bucks drop to auto mode: no spread
 | SW9 EPS controller | TPS2553-Q1 U27 | ILIM to IN | 0.075 (0.050–0.100) A | 0.012 A | 0.28 s, auto | always |
 | SW2 RADIO | TPS2553-Q1 U22 | 226 k | 0.120 (0.102–0.141) A | 0.038 A (RF board, SQSO-RF-BRD-001) | 1.3 s, auto | RADIO_EN PB5 |
 | SW3 PA (TX-OFF) | TPS2553-Q1 U23 | 26.1 k | 0.989 (0.918–1.071) A | 0.540 A | 0.28 s, auto | RF_TX_EN PA3 AND SHED_N |
-| SW4 ADCS (sensors, coils) | TPS2553-Q1 U24 | 88.7 k | 0.299 (0.265–0.339) A | 0.130 A | 0.28 s, auto | ADCS_EN PB6 |
+| SW4 ADCS sensors (OBC J6) | TPS2553-Q1 U24 | 88.7 k | 0.299 (0.265–0.339) A | 0.049 A (SQSO-ICX-001 §3.4) | 0.28 s, auto | ADCS_EN PB6 |
 | SW7 GNSS | TPS2553-Q1 U25 | 133 k | 0.202 (0.175–0.232) A | 0.100 A | 1.3 s, auto | GNSS_EN PE5 |
-| SW8 AntS | TPS2553-Q1 U26 | 18.7 k | 1.370 (1.287–1.465) A | 0.610 A | 0.28 s, auto | DEPLOY_EN PA1 |
-| SW1 PAYLOAD | TPS1H100B-Q1 U20 | 1.24 k | 1.99 (1.71–2.27) A | 0.93 A | thermal cycling | PAYLOAD_EN PB4 AND SHED_N |
+| SW8 AntS | TPS2553-Q1 U26 | 18.7 k | 1.370 (1.287–1.465) A | 0.610 A | 0.28 s, auto | DEPLOY_EN PF3 |
+| SW1 PAYLOAD | TPS1H100B-Q1 U20 | 1.24 k | 1.99 (1.71–2.27) A | 0.93 A | thermal cycling | PAYLOAD_EN PB2 AND SHED_N |
 | U19 Jetson eFuse | TPS16630 | 15.0 k | 1.20 (1.10–1.30) A | 0.93 A (12 W guard) | latch-off, OBC re-enables | JETSON_PWR PA2 |
-| SW6 DEPLOY | TPS1H100B-Q1 U18 | 1.24 k | 1.99 (1.71–2.27) A | 1.25 A | thermal cycling | DEPLOY_EN PA1 |
+| SW6 DEPLOY | TPS1H100B-Q1 U18 | 1.24 k | 1.99 (1.71–2.27) A | 1.25 A | thermal cycling | DEPLOY_EN PF3 |
 | SW5 HEATER | TPS1H000-Q1 U21 | 3.24 k | 0.148 (0.126–0.170) A | 0.079 A | auto-retry | HEATER_EN PD2 |
+| SW11 MTQ bridges (VBAT_MTQ, J3-36/39) | TPS1H000-Q1 U39 | 1.33 k | 0.361 (0.322–0.401) A | 0.23 A at the bridges' limit (0.104 A at 1.16 W, 11.2 V) | auto-retry 40 ms on / 1 s off | ADCS_EN PB6 |
 
 TPS2553 rails: the current is limited within 2 µs; FAULT asserts after its 8 ms deglitch and pulls EN low (FAULT tied
 to EN, R_FAULT 100 kΩ, C_RETRY 22 µF or 4.7 µF), which removes the rail; EN recharges to its threshold in ≈ 0.6 × R × C
@@ -376,9 +384,13 @@ to EN, R_FAULT 100 kΩ, C_RETRY 22 µF or 4.7 µF), which removes the rail; EN r
 EPS controller also reports the rail's INA3221 current so the OBC can trip it in software), GNSS 0.20 A (0.1 A, proposed 0.2 A), all ≥ 100 ms off (≥ 1 s for radio and GNSS). **The OBC rail
 SW10 is the power-cycling supervisor the OBC cannot be for itself**: it needs no command, and while it is off every OBC
 output is low or high-impedance, so the EPS pull-downs turn every switched load off (the TX-OFF latch lives in the OBC's
-FRAM and survives). The sensor rail SW4 trips at 0.30 A only: a magnetometer or gyro latch-up (tens of mA) is masked by
-the coil current, as RID AV-03 records; separating the sensors onto their own switch needs a rail and a pin on the ADCS
-board (for the chair). Every switch's fault state is read by the EPS controller (FLT_* lines) and reported in the
+FRAM and survives). Since Version B the coils no longer load SW4: SW11 (U39, TPS1H000-Q1 on VBAT, 10 k
+series input, DIAG_EN tied to its own input so its 3 mA diagnostic standby current flows only while enabled) feeds the
+OBC's three DRV8876 bridges on J3-36/39. Its limit, 0.32–0.40 A, meets SQSO-ICX-001 E3 (≥ 0.25 A minimum, the bridges'
+0.23 A hardware limit at 11.2 V; ≤ 0.5 A maximum, the W3 28 AWG wires carry ≤ 0.20 A each); DELAY pulled up through
+1 k selects auto-retry, so a short at the OBC draws 15 mA on average. SW4 now carries only the sensors (0.049 A), and the
+OBC's own sensor-rail switches (50–100 mA trips, SQSO-ICX-001 §3.4) see a sensor latch-up (RID AV-03); SW4's 0.30 A
+stays as the backstop. Every switch's fault state is read by the EPS controller (FLT_* lines) and reported in the
 LOAD_SHED/fault register.
 
 ### 8.4 Hardware load shed (RID EPS-09)
@@ -414,7 +426,8 @@ Four identical drivers, one per burn resistor (W1A, W1B on J10; W2A, W2B on J11)
 | 7.0 | 6.83 / 7.25 | 0.80 / 1.22 | 0.65 / 1.00 |
 
 Energy into a 5 Ω resistor in the 8 s burn: 25.6 J. Peak pack current: one resistor 0.51 A for the burn, **0.67 A**
-with housekeeping and heater; two at once (an A/B-pair line arrangement, §13) 1.25 A; four at once 2.0 A (U17's limit).
+with housekeeping and heater, 0.75 A with the magnetorquers at 1.16 W as well (0.90 A with the coil bridges at their
+0.23 A hardware limit); two at once (an A/B-pair line arrangement, §13) 1.25 A; four at once 2.0 A (U17's limit).
 Hinge sense: both wings' switches in series (J10-5/6, J11-5/6), 10 k pull-up, 1 k + 100 nF to SOLAR_SENSE (PB12): low =
 both deployed. **AntS** (RID EPS-07): 3V3_ANTS from SW8 (DEPLOY_EN), downstream of DS1–DS3; I2C2 through the TCA9517-Q1
 U80, whose ports are high-impedance while the AntS is unpowered; the AntS's ARM command and thermal knives complete its
@@ -437,6 +450,8 @@ limits on a fault: the switch's current limit, the fuse (switch failed short), t
 | VSOLAR_SNS (PC4) | highest string (VCTL_IN), 300 k / 100 k | × 4.0 | OBC ADC; unchanged |
 | ISOLAR_SNS (PC5) | U31 INA186A2 × 50 on RS5 (array output) | 1.0 V/A | OBC ADC; current at the bus voltage (power = VBATT × ISOLAR) |
 | VBUS_SNS (PB0) | 5V_PA, 100 k / 100 k | × 2.0 | OBC ADC; unchanged |
+| VJET_RB (PA7, J3-19) | VBAT_JET after the eFuse U19, 1.00 M / 200 k (0.1 %), 0.1 µF | × 6.0 (1.87–2.80 V on, < 0.1 V off) | OBC ADC, new channel (RID AV-06) |
+| VSW1_RB (PA1, J3-37) | VBAT_SW1 after SW1, 1.00 M / 200 k (0.1 %), 0.1 µF | × 6.0 | OBC ADC, new channel (RID AV-06) |
 | Pack gauge | U28 INA228-Q1 on RS6 (V, I, charge, energy, die temperature) | I2C2 0x44 | OBC (direct, independent of the controller) |
 | Array output | U29 INA228-Q1 on RS5 | I2C2 0x40 | OBC (direct) |
 | EPS register block | U37 MSP430FR2355 | I2C2 0x48 (ICD §4.2, §4.6) | OBC |
@@ -444,7 +459,7 @@ limits on a fault: the switch's current limit, the fuse (switch failed short), t
 | Tracker inputs ×4, bus load, 3V3_AO, 5V_PA, radio, ADCS, GNSS, AntS, heater | U32–U35 INA3221-Q1 (10–500 mΩ shunts) | local bus 0x40–0x43 | EPS controller |
 | Panel NTCs ×6, NTC1, VHW | U36 ADS7138-Q1 | local bus 0x10 | EPS controller |
 | Burn currents ×4, Jetson IMON, F1 intact, V_BURN, VTRK | MSP430 ADC (A0, A4, A6, A7, A8–A11) | — | EPS controller |
-| PERMIT, WIN_OK, SHED_N, EOL armed, all switch faults, AFE ALERT | MSP430 GPIO (100 k series) | — | EPS controller |
+| PERMIT, WIN_OK, SHED_N, EOL armed, all switch faults (incl. FLT_SW11 on P4.5), AFE ALERT | MSP430 GPIO (100 k series) | — | EPS controller |
 | EPS_ALERT_N (PB7) | open drain, INA228s and controller | 4.7 k pull-up | OBC |
 
 I2C2 (OBC bus) carries 0x31 (AntS, behind U80), 0x40 and 0x44 (INA228), 0x48 (EPS controller) and the OBC's own devices
@@ -468,7 +483,7 @@ clear), and the OBC still has the analog lines and the two INA228s. Programming 
 |-----|------|----------|---------|
 | J1 | Micro-Fit 3.0 2×4, 0430450812 | BAT_TOP ×2, BAT_BOT ×2, NTC1, NTC1 return, heater ± | W1 |
 | J2 | Pico-Clasp 6, 5013310607 | TAP0–TAP4, NTC2 | W1 |
-| J3 | Samtec FTSH-120-01-L-DV-K (40) | OBC (W3's 30 pins kept on 1–28, extended) | W3 (change, §13.2) |
+| J3 | Samtec FTSH-120-01-L-DV-K (40) | OBC, per SQSO-ICX-001 §3.1 | W3 (§13.2) |
 | J4–J7 | Pico-Clasp 5, 5013310507 | body strings PX, MX, PY, MY (2 + 2 contacts, TEMP) | W2 |
 | J8, J9 | Pico-Clasp 8, 5013310807 | wings W1, W2 (front ×2, back ×2, return ×3, TEMP) | W2 |
 | J10, J11 | Micro-Fit 3.0 2×3, 0430450612 | burn resistors A and B, hinge switch | W7 |
@@ -478,43 +493,49 @@ clear), and the OBC still has the analog lines and the two INA228s. Programming 
 | J15–J17 | Pico-Clasp 3 | DS1, DS2, DS3 (C, NC, NO) | one harness per switch, on its own rail |
 | J18 | Micro-Fit 3.0 2×2, 0430450412 | VBAT_JET ×2, GND ×2 | W5 (change: VBAT, not 5 V) |
 | J19 | Micro-Fit 3.0 2×3 | PA 5 V switched ×2, GND ×3, radio 3.3 V switched | W4 (change) |
-| J20, J21 | Pico-Clasp 2 | ADCS 3.3 V, GNSS 3.3 V | W6, W9 |
+| J20, J21 | Pico-Clasp 2 | ADCS sensor 3.3 V, GNSS 3.3 V | W6B to OBC J6, W9B to OBC J4 (there is no ADCS board; the OBC's GNSS translators take their receiver side from this rail) |
 | J22 | FTSH 2×2 | EPS controller programming | GSE |
 
 ### 13.2 Control and status lines from the OBC (for the chair and the OBC designer)
 
 All 3.3 V CMOS. Outputs from the OBC are active high and must be low at OBC reset; the EPS holds each with 100 kΩ to
-GND. Pins as in `software/rust/firmware/src/gpio.rs` and `adc.rs` where they exist.
+GND. OBC pins as allocated in SQSO-ICX-001 §3.1 and §4 (Version B; where they differ from today's
+`software/rust/firmware/src/gpio.rs`, SQSO-ICX-001 §6 lists the change for the flight software).
 
 | J3 pin | Signal | Direction (OBC) | Level / default | OBC pin | Function |
 |--------|--------|-----------------|-----------------|---------|----------|
 | 1, 2 | 3V3_OBC | power in | 3.3 V, 0.15 A trip | — | OBC supply through SW10 (latch-up retry) |
 | 5, 6 | I2C2_SCL, I2C2_SDA | bidir | open drain, pull-ups on the OBC | PF1, PF0 | EPS controller 0x48, INA228 0x40/0x44, AntS 0x31 |
 | 8 | EPS_ALERT_N | in | open drain, active low, 4.7 k on the EPS | PB7 | INA228 alerts, controller interrupt |
-| 9 | PAYLOAD_EN | out | high = on, low at reset | PB4 | SW1 (Jetson), shed-gated |
+| 9 | PAYLOAD_EN | out | high = on, low at reset | **PB2** (PB4 has a JTAG pull-up at reset) | SW1 (Jetson), shed-gated |
 | 10 | RADIO_EN | out | high = on, low at reset | PB5 | SW2 receiver/TNC/exciter (the flight software raises it at boot, 97.207(b)) |
-| 11 | ADCS_EN | out | high = on | PB6 | SW4 |
+| 11 | ADCS_EN | out | high = on | PB6 | SW4 (sensors) and SW11 (VBAT_MTQ) |
 | 12 | HEATER_EN | out | high = on | PD2 | SW5 |
-| 13 | DEPLOY_EN | out | high = on | PA1 | SW6 (burn buck) and SW8 (AntS) |
+| 13 | DEPLOY_EN | out | high = on | **PF3** | SW6 (burn buck) and SW8 (AntS) |
 | 14 | RF_TX_EN | out | high = PA powered; low = TX-OFF | PA3 | SW3, shed-gated |
 | 15 | GNSS_EN | out | high = on | PE5 | SW7 |
 | 16 | DEPLOY_SENSE | in | high = DS2 released (1 MΩ source, clamped) | PE2 | separation state |
 | 17 | BURN_W2A | out | high = burn, rising edge starts 12 s | PB9 (was ANTENNA_BURN, freed by the AntS) | wing 2 resistor A |
 | 18 | BURN_W1A | out | as above | PB10 (SOLAR_BURN, driver A) | wing 1 resistor A |
+| 19 | VJET_RB | analog in | VBAT_JET / 6 | **PA7** (ADC1_IN12) | Jetson eFuse output readback (RID AV-06) |
 | 20 | SOLAR_SENSE | in | low = both wings deployed | PB12 | hinge switches |
 | 22–26 | VBATT_SNS, IBATT_SNS, VSOLAR_SNS, ISOLAR_SNS, VBUS_SNS | analog in | 0–3.3 V, 100 nF / 10 nF filtered | PC2, PC3, PC4, PC5, PB0 | §11 |
 | 29 | JETSON_PWR | out | high = on | PA2 | U19 eFuse (SHDN) |
 | 30 | BURN_W1B | out | high = burn | PE6 (SOLAR_BURN_B, driver B) | wing 1 resistor B |
-| 31 | BURN_W2B | out | high = burn | **to allocate** | wing 2 resistor B |
-| 32 | EOL_ARM | out | rising edge sets the arm latch, low at reset | **to allocate** | passivation arm (with PASSIVATE_ARM) |
-| 33 | EOL_FIRE | out | high = fire (hold ≥ 60 s), low at reset | **to allocate** | passivation fire (PASSIVATE_EXECUTE) |
-| 34 | LOCK_CLR | out | high pulse ≥ 100 ms with the controller's UNLOCK | **to allocate** | recharge-lockout clear |
-| 3, 4, 7, 21, 27, 28, 35, 39, 40 | GND / AGND | — | | | 19 (ANTENNA_SENSE, PB11), 36–38 spare |
+| 31 | BURN_W2B | out | high = burn | **PE7** | wing 2 resistor B |
+| 32 | EOL_ARM | out | rising edge sets the arm latch, low at reset | **PF4** | passivation arm (with PASSIVATE_ARM) |
+| 33 | EOL_FIRE | out | high = fire (hold ≥ 60 s), low at reset | **PG1** | passivation fire (PASSIVATE_EXECUTE) |
+| 34 | LOCK_CLR | out | high pulse ≥ 100 ms with the controller's UNLOCK | **PF5** | recharge-lockout clear |
+| 36, 39 | VBAT_MTQ | power out (EPS) | VBAT 11.2–16.4 V, ≤ 0.23 A, limit 0.32–0.40 A | OBC DRV8876 VM | SW11 on ADCS_EN |
+| 37 | VSW1_RB | analog in | VBAT_SW1 / 6 | **PA1** (ADC1_IN6) | SW1 output readback (RID AV-06) |
+| 38 | 3V3_RTC | power out (EPS) | 3V3_AO through 1.0 kΩ, ≤ 2 µA, always on | OBC RV-3028-C7 VDD | mission clock supply (RID AV-10) |
+| 3, 4, 7, 28, 35, 40; 21, 27 | GND; AGND (analog return of pins 19, 22–26, 37) | — | | | AGND joins GND at the board's analog star point (§17); PB11 (ANTENNA_SENSE) is no longer used |
 
 **Burn-line mapping (for the chair).** The avionics reviewer assigned driver A to PB10 and driver B to PE6, with driver
 A burning the first resistor of both wings together (`sqso-sil/src/hw/deploy.rs`). This board has four independent
-inputs, so it supports both: (a) **recommended**, four lines, one resistor at a time (chair decision, 0.67 A peak):
-PB10 → W1A, PE6 → W1B, PB9 → W2A, a new pin → W2B, and the flight software drives each separately; (b) the A/B pairing,
+inputs, so it supports both: (a) **recommended and adopted in SQSO-ICX-001**, four lines, one resistor at a time
+(chair decision, 0.67 A peak): PB10 → W1A, PE6 → W1B, PB9 → W2A, PE7 → W2B, and the flight software drives each
+separately; (b) the A/B pairing,
 by joining J3-17 to J3-18 and J3-30 to J3-31 on the OBC side: two resistors burn at once, peak pack current 1.25 A (above
 the chair's 1.0 A, below the 4 A BMS trip), and one driver line again serves both wings (the REL-03 common cause returns
 for the line, not for the drivers).
@@ -562,7 +583,7 @@ covered by RAD-V3 lot-sample testing and by the latch-up trips of §8.3 (EEE_PAR
 | INA3221 heater channel CM | 16.8 / 26 = 65 % | 80 % | pass |
 | VBAT ceramics 50 V | 16.8 / 50 = 34 % | 50 % | pass |
 | 22 µF 16 V on V_BURN | 7.25 / 16 = 45 % | 50 % | pass |
-| F2 / RT1 / F3 / F4 / F5 | 29 % / 68 % (of 60 °C hold) / 13 % / 32 % / 50 % | 50 % (fuses) | pass; RT1 is a PTC (hold-current rule, not fuse rule) |
+| F2 / RT1 / F3 / F4 / F5 | 31 % / 73 % (of 60 °C hold) / 14 % / 32 % / 50 % | 50 % (fuses) | pass; RT1 is a PTC (hold-current rule, not fuse rule) |
 | R73 precharge 200 Ω 1 W | 0.38 W at the worst precharge (16.7 V bus, 8.0 V pack) | 50 % | pass |
 | RS20–RS23 burn shunts | 0.19 W / 0.5 W = 39 % | 50 % | pass |
 | Connectors | ≤ 55 % of contact rating (strings, two contacts per pole) | 50 % | J4–J9 at 55 % of the 26 AWG wire rating, 28 % of the contact rating |
@@ -580,7 +601,7 @@ transients use 0.6 of the spreading term at 8–60 s.
 | L1 T1 inductor | 60 | | 62 |
 | U15 3V3_AO buck | 60 | | 62 |
 | U16 5V_PA buck at 1 W RF | 150 | | 66 |
-| U17 burn buck, 2 drivers on (fault) | 0 | 0.95 W for 12 s | 79 |
+| U17 burn buck, 2 drivers on (fault) | 0 | 0.95 W for 12 s | 93 |
 | Q24–Q27 burn driver FET, 4.0 Ω resistor | 0 | 3.00 W for 12 s | 92 |
 | RS20–RS23 burn shunt | 0 | 0.19 W for 12 s | 68 |
 | U20 SW1 Jetson switch at 0.93 A | 173 | | 67 |
@@ -591,17 +612,19 @@ transients use 0.6 of the spreading term at 8–60 s.
 | Shunts at 1.3 A | 39 | | 62 |
 | U1 BQ76952 balancing one cell | 42 | | 62 |
 | U21 heater switch | 10 | | 60 |
+| U39 SW11 magnetorquer switch at the bridges' 0.23 A limit | 85 | | 64 |
 | Q16 F3 heater FET (one event) | 0 | 0.16 W for 60 s | 71 |
 | Q20+Q21 EOL fire FETs (one event) | 0 | 0.14 W for 60 s | 70 |
 | U37 controller, monitors, logic | 40 | | 62 |
 | Y1 oscillator and divider | 12 | | 61 |
 | Ideal diodes at Isc (8) | 88 | | 65 |
 
-**Board totals for SQSO-THA-001:** 1.29 W sunlit ACTIVE at maximum array power with Jetson and PA on (worst steady);
-0.35 W in eclipse; 3.75 W for ≤ 12 s in a burn (one per wing line, ≤ 8 in LEOP); orbit average ≈ 0.48 W in ACTIVE
-sun-pointed. Hot spots to place on the board's conductive path to the frame: the four trackers with their diodes and
+**Board totals for SQSO-THA-001:** 1.33 W sunlit ACTIVE at maximum array power with Jetson, PA and magnetorquers
+(1.16 W) on (worst steady); 0.37 W in eclipse; 3.77 W for ≤ 12 s in a burn (one per wing line, ≤ 8 in LEOP); orbit
+average ≈ 0.49 W in ACTIVE sun-pointed (Version A: 1.29 / 0.35 / 3.75 / 0.48 W; SW11 and the extra bus current add
+0.04 W). Hot spots to place on the board's conductive path to the frame: the four trackers with their diodes and
 inductors (≈ 0.4 W each at the worst), the burn FETs (transient), U16 and U20. All junctions stay below the 110 °C / 125 °C
-derated limits with ≥ 18 K margin at +60 °C board.
+derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C).
 
 ## 17. Layout guidance (layout is not in scope; these are the constraints to start from)
 
@@ -646,6 +669,7 @@ derated limits with ≥ 18 K margin at +60 °C board.
 | V-EPS-8 | ITV4030 qualification at −30 °C: carry 2 A for 1 h, heater fires at 10.5 V; EOL fire on the EM (destructive) | no opening when carrying; opens < 1 min when fired; F1 opens only with both EOL lines | EPS-F010, V-BSA-7 | EM |
 | V-EPS-9 | Lockout: set by an emulated SUV PF and by LOCK_SET; clear needs both lines; shock 750 m/s² in both states | state kept through power loss and shock | SMA-06 | EM |
 | V-EPS-10 | Latch-up trips: 1.5 × trip step on each switched rail incl. SW10 | rail off ≤ 10 ms, back after 0.2–0.4 s or 1–2 s | AV-08, RAD-V5 | EM |
+| V-EPS-13 | SW11 and readbacks: VBAT_MTQ short and 0.3–0.5 A steps; VJET_RB and VSW1_RB with SW1 and U19 switched in turn | limit 0.32–0.40 A, retry 40 ms / 1 s; readback ratio 6.00 ± 0.5 %, < 0.1 V off | E1–E3, AV-06 | EM (with V-ICX-1) |
 | V-EPS-11 | Frequency plan: spectrum at the 70 cm port with all converters running | no comb line within 200 kHz of the coordinated uplink | E1, V-EMC-3 | EM |
 | V-EPS-12 | Charge window: NTC1 swept with a decade box | inhibit at +1 ± 1 °C and +44 ± 1 °C; heater open at 40 ± 1 °C; BOTHOFF at 60 ± 1 °C | EPS-F003, H5, H6 | EPS EM |
 
@@ -669,6 +693,9 @@ derated limits with ≥ 18 K margin at +60 °C board.
 | LV-05 | **Closed** (inhibit schematic, three switches) | §6, S1 |
 | RF-14 | **Closed** for the EPS: three physical RF inhibits DS1–DS3 between both sources and the PA supply, plus SW3 | §6.2 |
 | AV-08 | **Closed** for the EPS (OBC, radio, sensor, GNSS, controller rails tripped and retried) | §8.3; V-EPS-10 |
+| AV-03 | **Closed for the EPS** (Version B): coils on their own switch SW11, so the sensor rail SW4 carries the sensors only; the sensor latch-up trips are on the OBC | §8.3; V-EPS-13 |
+| AV-06 | **Closed for the EPS** (Version B): VSW1_RB and VJET_RB readbacks on J3-37 and J3-19 | §11; V-EPS-13 |
+| AV-10 | **Closed for the EPS** (Version B): 3V3_RTC from the always-on rail on J3-38 | §13.2 |
 
 ## 21. Not verified and open
 
@@ -680,7 +707,9 @@ derated limits with ≥ 18 K margin at +60 °C board.
    the OTP image is written (V-EPS-2).
 6. Tracker efficiency is marginal against 92 % (§4.3).
 7. No radiation data for any part; latch-up protection by the trips.
-8. The schemdraw sheets S1, S2, S5 and the WireViz files W1, W2, W7 were edited but not rendered: schemdraw and WireViz are
+8. VBAT_MTQ has no current monitor on this board (§2.2): its current telemetry depends on the OBC's coil-current
+   channels.
+9. The schemdraw sheets S1, S2, S5 and the WireViz files W1, W2, W7 were edited but not rendered: schemdraw and WireViz are
    not installed here (`hardware/diagrams/build.sh` not run; `dot` is present).
 
 ## 22. Revision History
@@ -688,3 +717,4 @@ derated limits with ≥ 18 K margin at +60 °C board.
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR design (EPS board) | Initial build-to design: schematic as code, BOM, ERC, calculations, interfaces, layout constraints, verification items |
+| B | 2026-10-27 | CDR design (EPS board) | Interconnect changes from SQSO-ICX-001 §7 (E1–E8): VJET_RB (J3-19) and VSW1_RB (J3-37) readbacks; SW11 U39 TPS1H000-Q1 VBAT_MTQ (J3-36/39, ADCS_EN, 0.32–0.40 A); 3V3_RTC (J3-38); J20 → OBC J6, J21 → OBC J4; OBC pins PB2, PF3, PE7, PF4, PG1, PF5; pack-current, stress and thermal tables recomputed; U17 transient Tj corrected to 93 °C (the calculation output; Version A quoted 79 °C) |

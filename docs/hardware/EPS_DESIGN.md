@@ -1,10 +1,11 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 2.1
+**Version**: 2.2
 **Date**: 2026-10-27
 **Status**: CDR design description; the build-to board design with selected parts, netlist, BOM and ERC is
-`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 A), which governs part-level detail
+`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 B), which governs part-level detail; board-to-board pins: `hardware/electrical/INTERCONNECT.md`
+(SQSO-ICX-001)
 
 **Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (§4 inhibits and timers, §5 power, §7 TX-OFF);
 `docs/hardware/BUILD_VS_BUY.md` §2.4 (build the EPS; ISIS ICEPS2 Type B alternate), §3.2, §4; CDS Rev 14.1 §2.3;
@@ -124,16 +125,17 @@ converter's under-voltage lock-out is set at 10.8 V falling (rule E8) so the BMS
 
 | Switch | Rail in | Enable (firmware pin) | Load | Nominal | Peak | Limit / trip | Part (SQSO-EPS-BRD-001) | Notes |
 |--------|---------|-----------------------|------|---------|------|--------------|-------------------------|-------|
-| SW1 + U19 | VBAT | PAYLOAD_EN (PB4) on SW1 (AND load shed); JETSON_PWR (PA2) on U19 | Jetson carrier | 0.62 A | 0.93 A (guard) | SW1 2.0 A; U19 eFuse 1.20 A (1.10–1.30) latch-off; flight-software guard 8 W for 2 s and 12 W (`payload_guard.rs`) first | TPS1H100B-Q1 (U20); TPS16630 (U19) | Two different parts on two lines; EPS-F012 shed acts on SW1 |
+| SW1 + U19 | VBAT | PAYLOAD_EN (PB2) on SW1 (AND load shed); JETSON_PWR (PA2) on U19 | Jetson carrier | 0.62 A | 0.93 A (guard) | SW1 2.0 A; U19 eFuse 1.20 A (1.10–1.30) latch-off; flight-software guard 8 W for 2 s and 12 W (`payload_guard.rs`) first | TPS1H100B-Q1 (U20); TPS16630 (U19) | Two different parts on two lines; EPS-F012 shed acts on SW1; readbacks VSW1_RB, VJET_RB to the OBC ADC (RID AV-06) |
 | SW2 | 3V3_AO | RADIO_EN (PB5) | Receiver, synthesizer, TNC, exciter (SQSO-RF-BRD-001) | 0.038 A | 0.05 A | 0.12 A (0.10–0.14), retry 1.3 s; software trip on the INA3221 reading | TPS2553-Q1 (U22) | Off only in the RF-silence window (97.207(b)) |
 | SW3 | 5V_PA | RF_TX_EN (PA3) AND load shed | PA | 0.30 A | 0.54 A | 0.99 A, retry 0.28 s | TPS2553-Q1 (U23) | Hardware TX-OFF; pull-down mandatory |
-| SW4 | 3V3_AO | ADCS_EN (PB6) | Sensors, gyro, magnetorquer drivers | 0.04 A | 0.13 A | 0.30 A, retry 0.28 s | TPS2553-Q1 (U24) | A sensor latch-up is masked by the coils (AV-03) |
+| SW4 | 3V3_AO | ADCS_EN (PB6) | ADCS sensors on the OBC (W6B to OBC J6) | 0.04 A | 0.049 A | 0.30 A, retry 0.28 s | TPS2553-Q1 (U24) | Backstop; the OBC's own sensor switches (50–100 mA) see a sensor latch-up (AV-03) |
 | SW5 | VBAT | HEATER_EN (PD2) | Battery heater 207 Ω | 0.07 A | 0.08 A (16.4 V) | 0.148 A, F4 0.25 A, 40 °C cutout Q22 in series | TPS1H000-Q1 (U21) | 0.70–1.30 W across the bus |
-| SW6 | VBAT | DEPLOY_EN (PA1) | Burn buck U17 → four drivers | 0 | 0.5 A at the pack per burn | 2.0 A; 0.8 A per resistor; 12 s one-shot per driver (§5.1) | TPS1H100B-Q1 (U18) | Deployable control (not counted as an inhibit) |
+| SW6 | VBAT | DEPLOY_EN (PF3) | Burn buck U17 → four drivers | 0 | 0.5 A at the pack per burn | 2.0 A; 0.8 A per resistor; 12 s one-shot per driver (§5.1) | TPS1H100B-Q1 (U18) | Deployable control (not counted as an inhibit) |
 | SW7 | 3V3_AO | GNSS_EN (PE5) | GNSS receiver | 0.04 A | 0.1 A | 0.20 A, retry 1.3 s | TPS2553-Q1 (U25) | RID EPS-14 closed by the firmware's PE5 |
-| SW8 | 3V3_AO | DEPLOY_EN (PA1) | ISIS AntS | 0 | 0.61 A | 1.37 A, retry 0.28 s | TPS2553-Q1 (U26) | Downstream of DS1–DS3 (§8.3) |
+| SW8 | 3V3_AO | DEPLOY_EN (PF3) | ISIS AntS | 0 | 0.61 A | 1.37 A, retry 0.28 s | TPS2553-Q1 (U26) | Downstream of DS1–DS3 (§8.3) |
 | SW9 | 3V3_AO | always | EPS controller | 0.012 A | — | 75 mA, retry 0.28 s | TPS2553-Q1 (U27) | |
-| SW10 | 3V3_AO | always | OBC | 0.04 A | — | 0.15 A, retry 0.28 s | TPS2553-Q1 (U38) | The OBC cannot switch its own rail (RID AV-08) |
+| SW10 | 3V3_AO | always | OBC | 0.04 A | — | 0.15 A, retry 0.28 s | TPS2553-Q1 (U38) | The OBC cannot switch its own rail (RID AV-08); its RTC takes 3V3_RTC (3V3_AO through 1 kΩ, RID AV-10) |
+| SW11 | VBAT | ADCS_EN (PB6) | OBC magnetorquer H-bridges (VBAT_MTQ, W3 J3-36/39) | 0.083 A | 0.104 A (1.16 W, three rods saturated); 0.23 A at the bridges' limit | 0.36 A (0.32–0.40), auto-retry 40 ms / 1 s | TPS1H000-Q1 (U39) | SQSO-ICX-001 E3 (≥ 0.25 A, ≤ 0.5 A); current telemetry from the OBC's coil-current channels |
 
 TPS22918-class switches are rated 5.5 V: they may switch only the 3.3 V and 5 V rails. Every VBAT switch needs a part
 rated ≥ 25 V (derating 16.8 V to ≤ 70 % of the rating, EEE-INST-002).
@@ -153,12 +155,13 @@ The CDR design:
   at 2.0 A at the pack.
 - **Hardware on-time limit**: a TPL5111 one-shot per driver, powered by the burn line itself, enables the driver for
   12.0 s ± 0.6 s after the line's rising edge; a stuck-high line burns once, and only a falling edge re-arms it.
-- Four burn lines from the OBC: BURN_W1A (PB10), BURN_W1B (PE6), BURN_W2A (PB9, freed by the AntS), BURN_W2B (to be
-  allocated). The flight software burns one resistor at a time for 8 s, the second of a wing only if it has not released.
+- Four burn lines from the OBC: BURN_W1A (PB10), BURN_W1B (PE6), BURN_W2A (PB9, freed by the AntS), BURN_W2B (PE7,
+  SQSO-ICX-001). The flight software burns one resistor at a time for 8 s, the second of a wing only if it has not released.
 
 | Deployment case | Burn current | Plus housekeeping and heater | Peak at the pack | Against BMS 4 A / fuse 5 A |
 |-----------------|--------------|------------------------------|------------------|----------------------------|
 | One resistor, normal sequence (0.88 A at +10 %, from the 7.0 V buck) | 0.51 A at the pack | 0.16 A | **0.67 A** | 6.0× / 7.5× |
+| Same, with the magnetorquers at 1.16 W (three rods saturated) | 0.51 A | 0.24 A | 0.75 A (0.90 A with the coil bridges at their 0.23 A limit) | 4.8× / 6.0× |
 | AntS antennas (its own controller, 3.3 V on SW8) | ≤ 0.2 A at the pack | 0.16 A | ≤ 0.4 A | 10× |
 | Two resistors at once (an A/B line pairing or a software fault) | 1.05 A | 0.2 A | 1.25 A | 3.2× / 4.0× |
 | All four drivers on (software fault) | burn buck in current limit | — | **2.0 A** | 2.0× / 2.5× |
@@ -211,7 +214,7 @@ the bus; the loads then drain the pack to the BMS cut-off and the spacecraft goe
 | Fire circuit | F1's heater to GND through two series FETs: Q21 from the arm latch U61 (set by an EOL_ARM rising edge, cleared at power-up) and Q20 from EOL_FIRE; 9.8–24 W, cut < 1 min. Each line from its own OBC pin and authenticated command (PASSIVATE_ARM, PASSIVATE_EXECUTE of REG-01) |
 | Fault tolerance | No single failure (switch short, software fault, latch upset) fires F1: two independent series elements, two commands. A failure to fire leaves the mission's TX-OFF and loss-of-contact inhibit as the controls |
 | Verification | V-BSA-7: EM only (destructive) |
-| Gap | Hardware done (RID EPS-06). OBC pins for EOL_ARM and EOL_FIRE to be allocated, and the flight software's commands and state, for the chair (BRD-001 §13.2) |
+| Gap | Hardware done (RID EPS-06). OBC pins EOL_ARM PF4, EOL_FIRE PG1 (SQSO-ICX-001); the flight software's commands and state remain, for the chair (BRD-001 §13.2) |
 
 ## 8. Inhibit chains (CDS 2.3.7, 2.3.8; UG v11 §6.7.7)
 
@@ -250,7 +253,7 @@ three switches give the NRCSD backup its ground-leg inhibit.
 | **1** | DS2 | Pack |
 | **2** | DS1 | Pack and array |
 | **3** | DS3 | Pack and array |
-| (4) | SW6 (DEPLOY_EN, PA1, high side) and the wing's low-side driver (one per wing, §5.1) | Both; counted as one, because one OBC drives both lines |
+| (4) | SW6 (DEPLOY_EN, PF3, high side) and the wing's low-side driver (one per wing, §5.1) | Both; counted as one, because one OBC drives both lines |
 | — | Hardware on-time limit (§5.1), 30-minute timer | Not counted (timers) |
 
 Three independent inhibits, plus the OBC-driven pair. The 30-minute timer (CDS 2.4.4) is in the software and does not
@@ -323,3 +326,4 @@ readable without the EPS controller, and the controller's block at 0x48 fed by t
 | 1.3 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |
 | 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten (including, after the safety and reliability review: third deployment switch DS3, one current-limited burn driver per wing with a hardware on-time limit and the peak-current table, latched recharge lockout, BMS over-current 4 A below the 5 A fuse) — for the built 4S EPS: string layout and four trackers, bus and rails, load switches with limits and derating, protection, hardware load shed, end-of-life disconnect, inhibit chains with their independence; the module-based design of 1.x withdrawn |
 | 2.1 | 2026-10-27 | CDR design (EPS board) | Parts selected and the board designed in SQSO-EPS-BRD-001 A (`hardware/electrical/eps/`): charge regulator (§3.3), rails incl. V_BURN, 3V3_OBC, 3V3_MCU (§4), switch table with parts and latch-up trips incl. the OBC rail (§5, RID AV-08; radio 0.12 A), four burn drivers on a 7.0 V burn buck with the peak-current table (§5.1), load shed, EOL fuse and pins, AntS chain, sneak-path rule and drain figures (§6–§9) |
+| 2.2 | 2026-10-27 | CDR design (EPS board) | Interconnect of SQSO-ICX-001 §7 (SQSO-EPS-BRD-001 B): SW11 magnetorquer supply on ADCS_EN, SW4 sensors only, Jetson readbacks, 3V3_RTC, OBC pins PB2 (PAYLOAD_EN), PF3 (DEPLOY_EN), PE7 (BURN_W2B), PF4/PG1 (EOL), burn peak-current row with the magnetorquers |

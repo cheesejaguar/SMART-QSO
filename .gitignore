@@ -104,3 +104,5 @@ sil-out/
 skidl_REPL.*
 hardware/electrical/*/design.erc
 hardware/electrical/*/design.log
+/design.erc
+/design.log

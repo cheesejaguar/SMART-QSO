@@ -154,13 +154,13 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-254 RIDs: severity 1: 29, severity 2: 141, severity 3: 84.
+255 RIDs: severity 1: 29, severity 2: 141, severity 3: 85.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
 | Closed by design change | 94 | 123 |
-| Closed by chair decision | 34 | 33 |
+| Closed by chair decision | 35 | 34 |
 | Verification item | 32 | 31 |
 | Decision point (dated) | 11 | 11 |
 | Implementation | 58 | 31 |

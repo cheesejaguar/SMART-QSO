@@ -29,6 +29,11 @@ STRING_VOC_MAX = 6.31                    # V, -45 degC BOL (EPS_DESIGN 2.0 secti
 STRING_ISC_MAX = 0.55                    # A, 1414 W/m2 hot
 STRING_VMP_MIN, STRING_VMP_MAX = 3.9, 5.7
 ARRAY_P_MAX = 7.6                        # W, six +Y cells at a cold sunrise, BOL
+MTQ_DETUMBLE_W = 1.16                    # W, OBC magnetorquer bridges, three CR0002 rods saturated (SQSO-ICX-001 E3)
+MTQ_BRIDGE_LIMIT_A = 0.23                # A at 11.2 V, three DRV8876 bridges at their hardware limit (SQSO-ICX-001 3.1)
+SW11_K_CL, SW11_V_CL, SW11_R_CL, SW11_ACC = 600, 0.8, 1.33e3, 0.10   # TPS1H000-Q1 (SLVSDO6E): +/-10 % for 0.3-1 A
+SW11_LIMIT = SW11_V_CL * SW11_K_CL / SW11_R_CL
+SW11_LIMIT_MAX_A = SW11_LIMIT * (1 + SW11_ACC) * 1.01   # +1 % resistor
 
 # ---------------------------------------------------------------- derating (EEE-INST-002 / SQSO-HAR-001 5.2)
 DERATING = {
@@ -160,16 +165,27 @@ def protection():
     ocd_lo, ocd_hi = (ocd_mv - 4) / 1e3 / rs_afe, (ocd_mv + 4) / 1e3 / rs_afe     # +/-4 mV at 20-56 mV settings
     scd = 0.100 / rs_afe
     i_legit = dict(jetson=8.0 / 0.95 / 13.4, jetson_guard=12.0 / 0.95 / 13.4, pa=2.7 / 0.88 / 13.4, hk=0.70 / 0.85 / 13.4,
-                   heater=VBAT_CV / 207.0)
-    i_max_legit = i_legit["jetson_guard"] + i_legit["pa"] + i_legit["hk"] + i_legit["heater"]
+                   heater=VBAT_CV / 207.0, mtq=MTQ_DETUMBLE_W / 13.4)
+    i_max_legit = i_legit["jetson_guard"] + i_legit["pa"] + i_legit["hk"] + i_legit["heater"] + i_legit["mtq"]
+    i_max_mtq_lim = i_max_legit - i_legit["mtq"] + MTQ_BRIDGE_LIMIT_A            # coil bridges at their hardware limit
+    i_max_sw11 = i_max_legit - i_legit["mtq"] + SW11_LIMIT_MAX_A                 # SW11 in its current limit (short)
     # burns: 7.0 V burn buck, 0.88 A per resistor, buck efficiency 0.88
     i_burn_pack = 0.88 * 7.04 / (0.88 * 13.4)
-    i_burn_peak = i_burn_pack + i_legit["hk"] + i_legit["heater"]
+    i_burn_peak = i_burn_pack + i_legit["hk"] + i_legit["heater"] + i_legit["mtq"]
+    i_burn_mtq_lim = i_burn_peak - i_legit["mtq"] + MTQ_BRIDGE_LIMIT_A
     i_burn_buck_lim = 2.8 * 7.04 / (0.88 * 11.2)           # all four on: LMR43620 peak limit 2.8 A min holds the buck output
     fuse_rerate_60 = 0.90                                  # Nano2 451 rerating at 60 degC (datasheet temperature rerating)
     ptc_hold_60 = 2.6 * 0.74                               # 2920L hold current rerating at 60 degC
-    rows = [("Largest legitimate pack current (Jetson at the 12 W guard + PA 1 W + housekeeping + heater)", f"{i_max_legit:.2f} A", ""),
-            ("Single burn, normal sequence (one resistor, 0.88 A at +10 %) + housekeeping + heater", f"{i_burn_peak:.2f} A", "chair limit 1.0 A"),
+    ptc_hold_60_ = 2.6 * 0.74
+    rows = [("Largest legitimate pack current (Jetson at the 12 W guard + PA 1 W + housekeeping + heater + magnetorquers "
+             f"{MTQ_DETUMBLE_W:.2f} W, three rods saturated)", f"{i_max_legit:.2f} A", ""),
+            (f"Same with the coil bridges at their hardware limit ({MTQ_BRIDGE_LIMIT_A:.2f} A, an OBC control fault)",
+             f"{i_max_mtq_lim:.2f} A", f"{i_max_mtq_lim / ptc_hold_60_:.0%} of the RT1 hold at 60 degC: no trip"),
+            (f"Same with SW11 in its current limit ({SW11_LIMIT_MAX_A:.2f} A max, VBAT_MTQ shorted; auto-retry 4 % duty)",
+             f"{i_max_sw11:.2f} A", f"{i_max_sw11 / ptc_hold_60_:.0%} of the RT1 hold: no trip"),
+            ("Single burn, normal sequence (one resistor, 0.88 A at +10 %) + housekeeping + heater + magnetorquers "
+             f"{MTQ_DETUMBLE_W:.2f} W", f"{i_burn_peak:.2f} A", "chair limit 1.0 A"),
+            (f"Same with the coil bridges at their hardware limit ({MTQ_BRIDGE_LIMIT_A:.2f} A)", f"{i_burn_mtq_lim:.2f} A", "chair limit 1.0 A"),
             ("All four burn drivers on (software fault): burn buck in its 2.8 A current limit", f"{i_burn_buck_lim:.2f} A", "hardware cap"),
             ("AFE OCD1 (40 mV on 10 mOhm, 500 ms)", f"{ocd:.1f} A ({ocd_lo:.1f}-{ocd_hi:.1f})", f"{ocd_lo / i_max_legit:.1f}x the largest load; below F2"),
             ("AFE SCD (100 mV, 15 us)", f"{scd:.0f} A", "cell short-circuit current 80-100 A"),
@@ -185,7 +201,8 @@ def protection():
         rows.append((name, f"{v / 20:.2f}-{v / 11.2:.2f} A", f"{p_lo:.1f}-{p_hi:.1f} W", "inside 6-35 W: cut < 1 min (datasheet); FET PMV40UN2 "
                      f"{(v / 11.2) ** 2 * 0.066 * 1e3:.0f} mW"))
     table("4a. Three-terminal fuse heaters (ITV4030L1412NR, R_heater 11.2-20.0 Ohm)", ["Case", "Heater current", "Heater power", "Check"], rows)
-    R["protection"] = dict(ocd=ocd, i_max_legit=i_max_legit, i_burn_peak=i_burn_peak, i_burn_buck_lim=i_burn_buck_lim)
+    R["protection"] = dict(ocd=ocd, i_max_legit=i_max_legit, i_burn_peak=i_burn_peak, i_burn_buck_lim=i_burn_buck_lim,
+                           i_max_mtq_lim=i_max_mtq_lim, i_max_sw11=i_max_sw11, i_burn_mtq_lim=i_burn_mtq_lim)
 
 
 # ================================================================ 5 inhibits
@@ -226,7 +243,7 @@ def switches():
     def tps2553(rk):
         return 23950 / rk ** 0.977 / 1e3, 25230 / rk ** 1.016 / 1e3, 22980 / rk ** 0.94 / 1e3
     rows = []
-    for sw, load, rk in (("SW2 RADIO (3V3_AO)", 0.038, 226.0), ("SW3 PA (5V_PA)", 0.54, 26.1), ("SW4 ADCS (3V3_AO)", 0.13, 88.7),
+    for sw, load, rk in (("SW2 RADIO (3V3_AO)", 0.038, 226.0), ("SW3 PA (5V_PA)", 0.54, 26.1), ("SW4 ADCS sensors (3V3_AO, OBC J6)", 0.049, 88.7),
                          ("SW7 GNSS (3V3_AO)", 0.10, 133.0), ("SW8 AntS (3V3_AO)", 0.61, 18.7), ("SW9 EPS controller (3V3_AO)", 0.012, None),
                          ("SW10 OBC 3V3 (3V3_AO)", 0.040, 178.0)):
         if rk is None:
@@ -242,6 +259,11 @@ def switches():
         rows.append((sw, "TPS1H100B-Q1", f"{rcl / 1e3:.2f} k", f"{il:.2f} ({il * (1 - acc):.2f}-{il * (1 + acc):.2f}) A", f"{load:.2f} A", f"{il * (1 - acc) / load:.1f}x"))
     il = 0.8 * 600 / 3.24e3
     rows.append(("SW5 HEATER (VBAT)", "TPS1H000-Q1", "3.24 k", f"{il:.3f} ({il * 0.85:.3f}-{il * 1.15:.3f}) A", f"{VBAT_CV / 207:.3f} A", f"{il * 0.85 / (VBAT_CV / 207):.1f}x"))
+    lo, hi = SW11_LIMIT * (1 - SW11_ACC) * 0.99, SW11_LIMIT_MAX_A
+    rows.append(("SW11 MTQ bridges (VBAT, OBC J3-36/39)", "TPS1H000-Q1", "1.33 k", f"{SW11_LIMIT:.3f} ({lo:.3f}-{hi:.3f}) A",
+                 f"{MTQ_BRIDGE_LIMIT_A:.3f} A (bridge limit; {MTQ_DETUMBLE_W / VBAT_MIN:.3f} A at {MTQ_DETUMBLE_W} W)",
+                 f"{lo / MTQ_BRIDGE_LIMIT_A:.1f}x"))
+    R["sw11"] = dict(nom=SW11_LIMIT, lo=lo, hi=hi)
     il = 18.0 / 15.0
     rows.append(("U3 Jetson eFuse (VBAT)", "TPS16630 (latch-off)", "15.0 k", f"{il:.2f} ({il * 0.92:.2f}-{il * 1.08:.2f}) A", "0.93 A (12 W guard)", f"{il * 0.92 / 0.93:.2f}x"))
     table("6. Load switches: current limits (datasheet equations)", ["Switch", "Part", "R_ILIM / R_CL", "Limit nominal (min-max)", "Peak load", "Min / load"], rows)
@@ -252,6 +274,12 @@ def switches():
           "(radio, GNSS: >= 1 s) and 0.28 s with 4.7 uF (OBC, EPS controller, sensors, PA, AntS: >= 100 ms). A persisting "
           "latch-up repeats the cycle at that rate (the load sees <= 8 ms of limited current per cycle). The OBC rail SW10 "
           "needs no command: it is the power-cycling supervisor the OBC cannot be for itself.")
+    print(f"\nSW11 (SQSO-ICX-001 E3: limit >= 0.25 A min, <= 0.5 A max): {lo:.3f}-{hi:.3f} A meets both. Auto-retry "
+          "(DELAY pulled up): a sustained overload runs 40 ms on / 1 s off (3.8 % duty), so a short at the OBC draws "
+          f"{hi * 0.04 / 1.04 * 1e3:.0f} mA average and the 28 AWG W3 wires carry {hi / 2:.2f} A peak each for 40 ms. "
+          f"Drop at {MTQ_BRIDGE_LIMIT_A} A: {MTQ_BRIDGE_LIMIT_A * 1.0:.2f}-{MTQ_BRIDGE_LIMIT_A * 2.0:.2f} V (1-2 Ohm, 25-150 degC).")
+    print("3V3_RTC (E4): 1.0 k from 3V3_AO; at the RTC's <= 2 uA the drop is 2 mV (>= 3.23 V); a short at J3-38 draws "
+          "3.4 mA and 11 mW in the 0.1 W resistor (11 %).")
     # converters
     rows = []
     for name, vo, io, vin in (("U15 3V3_AO", 3.3, 0.30, VBAT_MAX), ("U16 5V_PA", 5.0, 0.54, VBAT_MAX), ("U17 V_BURN 7.0 V", 7.04, 1.76, VBAT_MAX)):
@@ -398,7 +426,11 @@ def telemetry():
             ("IBATT_SNS (PC3)", "INA186A2 x50 on 10 mOhm, REF 1.65 V", "0.5 V/A, 1.65 V at 0 A", "+/-3.3 A", "adc.rs Linear(2.0, -3.3) unchanged"),
             ("VSOLAR_SNS (PC4)", "highest string (VCTL_IN), 300 k / 100 k", "x4.0", f"{STRING_VOC_MAX / 4:.2f} V at Voc max", "unchanged"),
             ("ISOLAR_SNS (PC5)", "INA186A2 x50 on 20 mOhm array shunt (tracker output side)", "1.0 V/A", "0-3.3 A", "unchanged; current at bus voltage"),
-            ("VBUS_SNS (PB0)", "5V_PA, 100 k / 100 k", "x2.0", "2.5 V at 5.0 V", "unchanged")]
+            ("VBUS_SNS (PB0)", "5V_PA, 100 k / 100 k", "x2.0", "2.5 V at 5.0 V", "unchanged"),
+            ("VJET_RB (PA7, J3-19)", "VBAT_JET after the eFuse U19, 1.00 M / 200 k (0.1 %), 0.1 uF", "x6.0",
+             f"{VBAT_MIN / 6:.2f}-{VBAT_MAX / 6:.2f} V on, < 0.1 V off", "new HalAdcChannel (RID AV-06)"),
+            ("VSW1_RB (PA1, J3-37)", "VBAT_SW1 after SW1, 1.00 M / 200 k (0.1 %), 0.1 uF", "x6.0",
+             f"{VBAT_MIN / 6:.2f}-{VBAT_MAX / 6:.2f} V on, < 0.1 V off", "new HalAdcChannel (RID AV-06)")]
     table("10. Analog telemetry to the OBC ADC (W3)", ["Signal (OBC pin)", "Source", "Scale", "Full scale", "Firmware"], rows)
 
 
@@ -424,6 +456,7 @@ def thermal():
         ("Shunts (AFE, gauge, array) at 1.3 A", 1.3 ** 2 * 0.020 + 0.5 ** 2 * 0.020, None, 30.0, 20.0),
         ("U1 BQ76952 (NORMAL, balancing one cell 18 mA)", 0.016 * 0.3 + 4.1 * 0.018 * 0.5, None, 29.3, 15.0),
         ("U21 heater switch (TPS1H000) at 79 mA", 0.079 ** 2 * 1.6, None, 30.0, 15.0),
+        ("U39 SW11 MTQ switch (TPS1H000) at the bridges' 0.23 A limit", MTQ_BRIDGE_LIMIT_A ** 2 * 1.6, None, 30.0, 15.0),
         ("Q16 F3 heater FET at 1.55 A (one event, < 1 min)", 0.0, (1.55 ** 2 * 0.066, 60.0), 60.0, 20.0),
         ("Q20+Q21 EOL fire FETs at 1.46 A (one event)", 0.0, (1.46 ** 2 * 0.066, 60.0), 60.0, 20.0),
         ("U37 EPS controller + 4 INA3221 + 2 INA228 + logic", 0.040, None, 30.0, 15.0),
@@ -448,9 +481,11 @@ def thermal():
     # board totals by case
     trk_all = sum(boost_loss(p, v, VBAT_CV)["p_tot"] for p, v in ((ARRAY_P_MAX * 4 / 6, 5.0), (ARRAY_P_MAX * 2 / 6, 5.0)))
     hk = 0.060 + 0.040 + 0.012 + 0.05
-    active = trk_all + hk + 0.150 + 0.93 ** 2 * 0.25 + 1.3 ** 2 * 0.06 + 8 * R["solar"]["p_ideal_diode_w"]
-    eclipse = hk + 0.150 + 0.9 ** 2 * 0.05 + 0.1 ** 2 * 0.06
-    burn = hk + 0.30 + 3.0 + 0.19 + 0.1
+    i_mtq = MTQ_DETUMBLE_W / VBAT_MIN
+    p_mtq = i_mtq ** 2 * 1.6                       # SW11 at the detumble load
+    active = trk_all + hk + 0.150 + 0.93 ** 2 * 0.25 + (1.3 + i_mtq) ** 2 * 0.06 + 8 * R["solar"]["p_ideal_diode_w"] + p_mtq
+    eclipse = hk + 0.150 + 0.9 ** 2 * 0.05 + (0.1 + i_mtq) ** 2 * 0.06 + p_mtq
+    burn = hk + 0.30 + 3.0 + 0.19 + 0.1 + p_mtq
     print(f"\nBoard totals: sunlit ACTIVE at the maximum array power with the Jetson and PA on {active:.2f} W; eclipse "
           f"housekeeping {eclipse:.2f} W; deployment burn (worst driver) {burn:.2f} W for 12 s; orbit average in ACTIVE "
           f"sun-pointed about {0.62 * (trk_all * 0.6 + hk + 0.05) + 0.38 * eclipse:.2f} W.")

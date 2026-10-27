@@ -275,6 +275,7 @@ RIDS = [
     ("EPSB-05", 3, "ITV4030 fuses rated from −10 °C, below the board's −30 °C allowable", "VI", "V-EPS-8 qualification"),
     ("EPSB-06", 3, "Cross-document consistency after the EPS board (B2, diagram README, radiation trip table, BSA H8a, ICD-001, EMC E6/E8, IARU uplink windows)", "IMP", "Documentation consistency pass"),
     # ---- Raised by the OBC board design (OBCB) ----
+    ("EPSB-07", 3, "No magnetorquer current monitor on the EPS board", "CH", "Coil current is the sum of the OBC's MTQ_X/Y/Z_I channels; SW11 (TPS1H000A, 0.361 A, auto-retry) protects VBAT_MTQ (SQSO-EPS-BRD-001 B)"),
     ("OBCB-01", 1, "PAYLOAD_EN on PB4: the JTAG pull-up at reset switches the Jetson rail on at every OBC reset", "IMP", "Move to PB2 (SQSO-ICX-001); firmware pin map"),
     ("OBCB-02", 2, "Twenty-five firmware pin changes and new drivers (gyros, magnetometer, sun-sensor ADC, coils on TIM1/TIM15, RTC, supervisor kick)", "IMP", "Flight software round 3"),
     ("OBCB-03", 2, "Gyro module needs 14 mm above the OBC; the stack gives 11.4 mm", "IMP", "Mechanical: raise the carrier or bracket the gyro"),

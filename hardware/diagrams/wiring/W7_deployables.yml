@@ -27,7 +27,7 @@ connectors:
   J11:
     type: Molex Micro-Fit 3.0 header 0430450612
     subtype: 6 pos, 2 rows
-    notes: "EPS J11, wing W2: drivers Q26 (W2A, BURN_W2A PB9) and Q27 (W2B, BURN_W2B, pin to be allocated)"
+    notes: "EPS J11, wing W2: drivers Q26 (W2A, BURN_W2A PB9) and Q27 (W2B, BURN_W2B PE7)"
     pinlabels: [V_BURN, BRET_W2A, V_BURN, BRET_W2B, SA_SENSE_MID, GND]
   WING2:
     type: wing W2 hold-down (bought with the panels)
