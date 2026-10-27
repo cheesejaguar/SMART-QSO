@@ -30,7 +30,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 
 | ID | Title | Path | Revision | Status |
 |----|-------|------|----------|--------|
-| SQSO-BL-001 | SMART-QSO Baseline Parameters (Single Source of Truth) | `docs/BASELINE_PARAMETERS.md` | D | Draft; governs where documents disagree (its §0). Records PI decisions D1–D9 |
+| SQSO-BL-001 | SMART-QSO Baseline Parameters (Single Source of Truth) | `docs/BASELINE_PARAMETERS.md` | E | Draft; governs where documents disagree (its §0). Records PI decisions D1–D9 |
 | SQSO-OAP-001 | Orbital Access Plan | `docs/ORBITAL_ACCESS.md` | B | Draft; launch chain, backup and decision points DP-1 to DP-9 |
 | SQSO-DOC-001 | SMART-QSO Document Register | `docs/DOCUMENT_REGISTER.md` | B | Draft |
 | SQSO-ES-001 | SMART-QSO Executive Summary | `docs/EXECUTIVE_SUMMARY.md` | 2.0 | Draft |
@@ -108,7 +108,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-TLM-001 | SMART-QSO Telemetry Dictionary | `docs/operations/TELEMETRY_DICTIONARY.md` | 1.0 | Draft |
 | SQSO-AUD-006 | Onboard AI Model Selection (Decision D5) | `docs/payload/AI_MODEL_SELECTION.md` | A | Draft |
 | SMART-QSO-CMP-001 | Configuration Management Plan (CMP) | `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` | 1.1 | Draft |
-| SQSO-CRL-001 | SMART-QSO Change Request Log | `docs/project/CHANGE_REQUEST_LOG.md` | C | Living document |
+| SQSO-CRL-001 | SMART-QSO Change Request Log | `docs/project/CHANGE_REQUEST_LOG.md` | D | Living document |
 | SQSO-HRT-001 | SMART-QSO Hardware Readiness Tracker | `docs/project/HARDWARE_READINESS_TRACKER.md` | 2.0 | Draft |
 | SQSO-HA-001 | SMART-QSO Heritage Assessment | `docs/project/HERITAGE_ASSESSMENT.md` | 2.0 | Draft |
 | SQSO-LL-001 | SMART-QSO Lessons Learned | `docs/project/LESSONS_LEARNED.md` | 1.1 | Living document |

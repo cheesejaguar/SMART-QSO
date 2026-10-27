@@ -2,8 +2,8 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-CRL-001
-**Revision:** C
-**Date:** 2026-10-26
+**Revision:** D
+**Date:** 2026-10-27
 **Reference:** `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` §4.3 to §4.4, §6.3
 
 ---
@@ -24,6 +24,7 @@ logged here; the Git history records them.
 | CR-2026-004 | 2026-10-25 | II | Tool qualification (SDP §3.3) | The flight image stays on the pinned, unqualified rustc 1.97.0; no qualified compiler (Ferrocene) | Approved, PI | Implemented |
 | CR-2026-005 | 2026-10-25 | I | OBC–transmitter interface (`hardware/obc/OBC_DESIGN.md` §8.1 and A.5; SQSO-RF-TX-001 §10.1; SRS §5.3) | The downlink goes to a KISS TNC on USART2, shared with the uplink receiver; power select on one GPIO line (0.5 W / 1 W); three ADC monitors; SRS-I023 to SRS-I027 | Approved, PI | Implemented; verification of the TNC and transmitter pending (hardware) |
 | CR-2026-006 | 2026-10-26 | I | BASELINE §5 battery row, §8 ADCS row, §9 D8–D9; `sqso_fsw::adcs` gains | Battery charged to 4.10 V/cell (size kept); gyro Epson M-G370PDT0 with BMI088 backup; B-dot gain 10⁴; spin 6°/s with a spin-hold term | Approved, PI delegation | Implemented in the software and the simulation; hardware pending |
+| CR-2026-007 | 2026-10-27 | I | BASELINE §1, §3–§9 (Rev E); SQSO-LVR-001; mission requirements MO-1 to MO-5 | CDR 2026 chair dispositions: launch path, orbit 475 km target / 485 km cap, planning launch 2028-11, mass properties and layout B, third inhibit DS3, burn drivers and sequence, commissioning hold, spin 8 °/s, uplink windows, transponder 1.8 W DC, telecommand stations | Approved, design review chair; PI ratification pending | Implemented in documents; software in progress |
 
 ## 3. Change Requests
 
@@ -348,6 +349,83 @@ Submitter: Systems (build-versus-buy study)
 
 ---
 
+### CR-2026-007: CDR 2026 chair dispositions
+
+```
+Change Request Number: CR-2026-007
+Date Submitted: 2026-10-27
+Submitter: Design review chair (CDR 2026, SQSO-REV-CDR-002)
+
+1. Configuration Item Affected:
+   CI ID: SQSO-BL-001 §1, §3, §4, §5, §6, §7, §8, §9 (Rev E);
+   SQSO-LVR-001 (B); docs/requirements/MISSION_REQUIREMENTS.md
+   (objectives MO-1 to MO-5); mission/CONOPS.md (LEOP, commissioning,
+   passivation)
+
+2. Description of Change:
+   - Launch: Falcon 9 rideshare from Vandenberg through Exolaunch
+     (EXOpod Nova 1U slot); planning launch 2028-11; NRCSD backup.
+   - Orbit: 475 km target, 465-485 km band, 485 km cap (FCC five-year
+     rule with margin, ODAR Draft B).
+   - Mass properties: CBE 1.49 kg, MEV 1.73 kg; Iyy at least 1.03 times
+     the other principal moments, axis within 5 deg of +Y (layout B,
+     AntS elements along +/-X).
+   - Inhibits: three deployment switches DS1-DS3 on three rails;
+     120 s actuator hold; RF silence latched; commissioning hold until
+     COMMISSIONING_RELEASE.
+   - Deployment: two resistors per wing on four independent 0.8 A burn
+     lines, one resistor at a time for 8 s, a 12 s hardware monostable;
+     wings first, then the AntS.
+   - ADCS: spin 8 deg/s (was 6), nutation gains 3e-4 / 1e-4 N m s.
+   - RF: uplink request 435.222-435.778 MHz, else 436.222-436.500 MHz;
+     transponder allocation 1.8 W DC.
+   - Operations: at least two telecommand stations at least 1,000 km
+     apart, each able to command alone.
+   - Mission objectives MO-1 to MO-5 aligned with the baseline.
+
+3. Reason for Change:
+   Round-1 RIDs of the CDR 2026 design review (SQSO-REV-CDR-002 §4,
+   chair decisions C-1 to C-12): the 500 km altitude failed the FCC
+   five-year rule; the burn current exceeded the fuse; no third
+   inhibit; +Y was barely the major axis; no commissioning hold or
+   passivation command; no designated stations; the June 2028 date
+   missed the integrator's L-4M milestone.
+
+4. Impact Assessment:
+   - Technical: power margins +32 % / +75 % (allocation); mass margin
+     +15.9 % against the 2.00 kg allocation, 2.5 kg slot limit.
+   - Schedule: launch moves from 2028-06 to 2028-11.
+   - Cost: SQSO-AUD-005 Rev C ($295k-$779k non-labor).
+   - Risk: SQSO-RISK-001 Rev B.
+
+5. Affected Documents:
+   docs/BASELINE_PARAMETERS.md (E), docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md (B),
+   mission/CONOPS.md, docs/ORBITAL_ACCESS.md (B), docs/funding_audit/LIFECYCLE_COST_ROM.md (C),
+   docs/requirements/MISSION_REQUIREMENTS.md, the board build-to designs under
+   hardware/electrical/ and hardware/mechanical/MECHANICAL_DESIGN.md.
+
+6. Verification Required:
+   Analysis: SIL mission simulation and ADCS Monte Carlo with the
+   changed values; the RID closure panel (SQSO-REV-CDR-002 §6).
+   Test: the verification items VI-* of the review on the EM and
+   flight unit.
+
+7. CCB Decision:
+   [x] Approved
+   Reason: design review chair, 2026-10-27; to be ratified by the PI.
+   The review was conducted by AI reviewers, not an independent board.
+
+8. Implementation:
+   Assigned to: Systems, flight software, hardware
+   Completed: documents 2026-10-27; flight software in progress
+
+9. Verification:
+   Verified by: the review's closure panel; hardware pending
+   Date: —
+```
+
+---
+
 ## 4. Revision History
 
 | Rev | Date | Description | Author |
@@ -355,3 +433,4 @@ Submitter: Systems (build-versus-buy study)
 | A | 2026-10-25 | Initial release: CR-2026-001 to CR-2026-004 | SMART-QSO Team |
 | B | 2026-10-25 | CR-2026-005: the downlink transmitter interface | SMART-QSO Team |
 | C | 2026-10-26 | CR-2026-006: battery charge voltage, gyro and ADCS gains | SMART-QSO Team |
+| D | 2026-10-27 | CR-2026-007: CDR 2026 chair dispositions | SMART-QSO Team |

@@ -1,8 +1,8 @@
 # SMART-QSO Baseline Parameters (Single Source of Truth)
 
 **Document Number:** SQSO-BL-001
-**Revision:** D — *decisions D1–D9 (§9); the D2 structure and D3 values still go to the FCC consultation; §6 OBC software rebaselined (CR-2026-002); battery charge voltage, gyro and ADCS gains (D8, D9)*
-**Date:** 2026-10-26
+**Revision:** E — *CDR 2026 chair dispositions (CR-2026-007): launch path and date, 475 km target / 485 km cap, mass properties, inhibits and deployment, 8 °/s spin, uplink windows, telecommand stations*
+**Date:** 2026-10-27
 
 ---
 
@@ -202,3 +202,4 @@ change are marked there.
 | B, note | 2026-10-24 | Note beneath §6: the flight software is Rust on the Embassy executor, not FreeRTOS; the OBC row is unchanged pending the PI |
 | C | 2026-10-25 | §6 OBC: the flight software runs on the Embassy executor with no RTOS (was FreeRTOS), by PI decision (CR-2026-002). §1 software classification: Class C (NPR 7150.2D Appendix D) |
 | D | 2026-10-26 | Decisions D8 (battery size kept, charge voltage 4.10 V/cell) and D9 (gyro; B-dot gain; 6°/s spin), delegated by the PI, from the build-versus-buy study and the ADCS Monte Carlo (`docs/hardware/BUILD_VS_BUY.md`) |
+| E | 2026-10-27 | CDR 2026 chair dispositions (CR-2026-007; `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md` §4): §1 stations and contracting party; §3 launch path (Falcon 9 / Exolaunch), planning date 2028-11, 475 km target and 485 km cap, lifetime per ODAR Draft B; §4 mass and mass properties, inhibits DS1–DS3, timers, deployment; §5 generation and allocation; §6 radiation and AI rows; §7 uplink windows, spurious, antennas, link; §8 data, environments, thermal, ADCS 8 °/s; §9 D9 note |
