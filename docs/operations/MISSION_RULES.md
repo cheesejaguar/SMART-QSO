@@ -1,10 +1,10 @@
 # SMART-QSO Mission Rules and Constraints
 
 **Document ID**: SQSO-MRC-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft. Limits follow `docs/BASELINE_PARAMETERS.md` (Rev E), which governs; no independent CDR has been held (BASELINE §1). The command set has no software upload (SQSO-ICD-013 §7)
 
 ## 1. Purpose
 
@@ -50,10 +50,10 @@ Verification: License number logged before any transmission.
 
 Critical commands include:
 - Mode changes (SAFE/IDLE/ACTIVE)
-- RF power level changes
-- Software uploads
-- Stored command sequences
-- Safe mode release
+- RF power level changes (`SET_POWER`)
+- Safe mode release (`SET_MODE` from SAFE)
+- `COMMISSIONING_RELEASE`, `DEPLOY_RETRY`, `KEY_ROTATE`, `EPS_CLEAR_LOCKOUT`, `FRAM_BYPASS`
+- `PASSIVATE_ARM` and `PASSIVATE_EXECUTE` (two key custodians, `docs/operations/END_OF_LIFE_PLAN.md` §3)
 
 Rationale: Prevents inadvertent critical commanding errors.
 
@@ -87,48 +87,48 @@ Hold requires:
 
 | Threshold | Action |
 |-----------|--------|
-| SOC < 30% | Reduce operations, no AI |
-| SOC < 25% | Transition to SAFE mode |
-| SOC < 15% | Absolute minimum, emergency only |
+| SOC < 55 % | No ACTIVE entry, no Jetson, no transponder (ACTIVE allowed at ≥ 55 % in sunlight) |
+| SOC < 40 % | ACTIVE → IDLE |
+| SOC < 25 % | Transition to SAFE mode |
+| SOC < 15 % | SAFE → EMERGENCY (beacon shed); back to SAFE at 25 %, to IDLE above 40 % |
 
-Rationale: Battery damage below 15% SOC; reduced cycle life below 20%, so SAFE starts at 25% with margin (BASELINE §5; `EPS_SOC_SAFE_THRESHOLD`).
+Rationale: the mode thresholds of BASELINE §5 (`eps_control.h`, `sm_power_event()`); depth of discharge ≤ 10 % per eclipse nominal, ≤ 30 % contingency (SYS-112).
 
 ### FC-002: Temperature Limits
 **SPACECRAFT TEMPERATURES SHALL REMAIN WITHIN OPERATIONAL LIMITS**
 
 | Component | Min (°C) | Max (°C) | Action if Exceeded |
 |-----------|----------|----------|-------------------|
-| Battery | -10 | +45 | Heater control / Reduce ops |
+| Battery (charging) | 0 | +45 | No charging outside 0 to +45 °C (SYS-602); heater on below +5 °C, off above +9 °C |
 | OBC | -40 | +85 | Thermal throttling |
-| Jetson | -20 | +70 | Power off payload |
-| RF PA | -20 | +60 | Reduce TX power |
+| Jetson heat spreader | -15 (power-on gate) | +40 in a batch; +70 stuck on (SYS-603 Rev G) | Burst refused or ended; payload off |
+| RF PA | — | +70 (resume at +60) | Transponder stopped (SQSO-ICD-003 §5.5) |
 
 ### FC-003: AI Payload Duty Cycle
-**JETSON INFERENCE SHALL NOT EXCEED 10% DUTY CYCLE**
+**JETSON DUTY SHALL STAY WITHIN THE BASELINE BURST RULES**
 
-Constraints:
-- Maximum continuous inference: 60 seconds
-- Minimum off-time between bursts: 540 seconds (9 minutes)
-- No inference when SOC < 70%
-- No inference during eclipse
+Constraints (BASELINE §6; decision C-20; enforced by `sqso_fsw::payload_schedule`):
+- Each power-on ≤ 10 minutes including boot and ≤ 3.6 kJ, ended early by the energy gate (360 J per accepted line)
+- ≥ 100 minutes off after each burst; duty ≤ 5 % tumbling, ≤ 10 % sun-pointed (BASELINE §5)
+- Only in ACTIVE, sunlit, SOC ≥ 55 %, spreader ≥ −15 °C
+- Only after `COMMISSIONING_RELEASE` and `PLD_ENABLE`
 
 Rationale: Power budget and thermal constraints.
 
 ### FC-004: RF Transmit Power
-**RF TRANSMIT POWER SHALL NOT EXCEED 2W WITHOUT THERMAL VERIFICATION**
+**RF TRANSMIT POWER SHALL NOT EXCEED 1 W** (BASELINE §7: 0.5 W nominal, 1 W maximum, the hardware maximum filed)
 
-Power levels:
+Power levels (`SET_POWER` 0x33):
 | Setting | Power | Use Case |
 |---------|-------|----------|
-| LOW | 0.5W | Standard beacons |
-| MEDIUM | 1.0W | Priority communications |
-| HIGH | 2.0W | Emergency only, thermally limited |
+| 0 | 0.5 W | Nominal |
+| 1 | 1.0 W | Commissioning check (C-6) and weak-link cases |
 
 ### FC-005: Watchdog Timeout
 **WATCHDOG SHALL NOT BE DISABLED DURING FLIGHT OPERATIONS**
 
-Watchdog timeout: 5 seconds
-Exception: Only during ground-commanded software upload with operator monitoring.
+Watchdog: the STM32 IWDG at 25.6 s (`firmware/src/wdt.rs`) and the external TPS3850, kicked every 10 s while every task
+checks in. No command disables either; the GSE watchdog-disable line exists only on the ground access port.
 
 ## 6. Standard Mission Rules
 
@@ -188,15 +188,12 @@ T-1 minute: Operator ready call
 - No commanding during data download segments
 - Exception: Emergency commands
 
-### MR-107: Software Upload Constraints
-**SOFTWARE UPLOADS REQUIRE FORMAL APPROVAL**
+### MR-107: Software Changes
+**THERE IS NO IN-FLIGHT SOFTWARE UPLOAD**
 
-Requirements:
-1. Change request documented
-2. Software tested on ground
-3. Rollback procedure verified
-4. Two operators on console
-5. Full pass available for verification
+The command dictionary has no upload command (SQSO-ICD-013 §7). Flight-software changes are made only on the ground
+before integration, under configuration control. In flight, behaviour is changed only through the parameters the
+dictionary allows (`SET_CONTACT_TIMEOUT`, `SET_BEACON`, `SET_POWER`, `ADCS_SET_GEOMETRY`, the calibration commands).
 
 ## 7. Ground Rules
 
@@ -206,7 +203,7 @@ Requirements:
 Critical passes:
 - First contact after launch
 - Anomaly investigation
-- Software uploads
+- The passivation pass
 - Scheduled events
 
 ### GR-002: Network Connectivity
@@ -242,9 +239,9 @@ Requirements:
 
 | Current | Target | Conditions Required | Authority |
 |---------|--------|---------------------|-----------|
-| SAFE | IDLE | SOC > 20%, stable 60s, no faults | FC + MD approval |
-| IDLE | ACTIVE | SOC > 70%, power positive, no faults | FC |
-| ACTIVE | IDLE | SOC < 30% OR power negative OR fault | Automatic or FC |
+| SAFE | IDLE | SOC above 40 %, no faults (automatic above 40 %; by `SET_MODE` 1 after investigation) | Automatic, or FC + MD approval |
+| IDLE | ACTIVE | Sunlit, SOC ≥ 55 %, commissioning hold released, no faults | Automatic or FC |
+| ACTIVE | IDLE | SOC < 40 % OR fault | Automatic or FC |
 | ACTIVE | SAFE | Critical fault OR ground command | Automatic or FC + MD |
 | IDLE | SAFE | SOC < 25% OR critical fault OR cmd | Automatic or FC + MD |
 
@@ -331,3 +328,4 @@ APPROVALS:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): FC-001 and §8.1 the SOC thresholds of BASELINE §5 (were 70/30/20 %); FC-002 battery charge window, Jetson spreader and PA limits; FC-003 the burst rules of BASELINE §6 and C-20 (were 60 s bursts, 10 % duty, SOC 70 %); FC-004 1 W maximum (was 2 W); FC-005 the IWDG and TPS3850 watchdogs; MR-002, MR-107, GR-001 no in-flight software upload exists; status |

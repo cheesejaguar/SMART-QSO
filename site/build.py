@@ -628,7 +628,7 @@ def illustration() -> tuple[str, str]:
 
     # callouts: (number, anchor point, label offset)
     callouts = [
-        (1, (-20, 50, 30), (-60, -95), "1U body, 100 × 100 × 113.5 mm"),
+        (1, (-20, 50, 30), (-70, -72), "1U body, 100 × 100 × 113.5 mm"),
         (2, (54.1 + 60, yw, 30), (55, -80), "Solar wing (one of two)"),
         (3, (49 + el2 * 0.9, 0, zt), (0, 46), "2 m element (≈ 0.5 m, shortened here)"),
         (4, (0, 49 + el7, zt), (-45, -85), "70 cm element (≈ 0.17 m)"),
