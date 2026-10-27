@@ -3737,11 +3737,11 @@
   "by_mel_row": {
    "26": 6.6,
    "31": 2.3,
-   "32": 75.6
+   "32": 75.4
   },
   "extras": {
    "PTFE over-sleeve on the four pack leads": 0.3,
-   "access-port board A3 (FR-4 30 x 12 x 1.6 mm, Micro-D 21 socket receptacle, two M2 Ti screws, staking)": 6.0,
+   "access-port board A3 (FR-4 30 x 8.8 x 1.6 mm, Micro-D 21 socket receptacle, ESD parts, two M2 Ti screws, staking)": 5.8,
    "heat shrink and identification sleeves (one per wire end)": 4.1,
    "lacing tape spot ties and Scotch-Weld 2216 tie-down dots (104 points x 0.10 g)": 10.4,
    "termination tabs TB-W1, TB-W2 (polyimide, 6 x 10 mm, bonded)": 0.4
@@ -3865,7 +3865,7 @@
     "wire_g": 0.23
    }
   },
-  "total": 84.5
+  "total": 84.3
  },
  "problems": []
 }

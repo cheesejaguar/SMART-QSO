@@ -279,7 +279,8 @@ between its supply and its knives.
   crosses from the pack domain, so that no sneak path bypasses DS2 (SQSO-EPS-BRD-001 §6.4); DS2 is two FETs back to
   back so it blocks charge as well as discharge.
 - Storage drain with the switches actuated ≤ 20 µA in all (LVR-051/071 of `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`):
-  designed 2.2 µA typical, 6.7 µA worst with the AFE in SHUTDOWN (BRD-001 §6.6).
+  designed 2.3 µA typical, 7.7 µA worst with the AFE in SHUTDOWN, including the access-port board's UMB_VMON TVS
+  (BRD-001 §6.6).
 
 ## 9. Telemetry
 

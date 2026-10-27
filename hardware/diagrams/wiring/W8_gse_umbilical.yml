@@ -29,7 +29,7 @@ connectors:
   A3:
     type: access-port board A3, Micro-D 21 socket receptacle (MIL-DTL-83513 class), gold
     subtype: 21 pos; 8, 15-18 not used
-    notes: "-Y window at (-20, -50, -43), envelope 30 x 7 x 8.8 mm (CAD request); W8A and W11 soldered to A3"
+    notes: "board 30 x 8.8 x 1.6 mm (SQSO-OBC-BRD-001 C 15.1) in the envelope 30 x 7 x 8.8 mm at the -Y window (-20, -50, -43); W8A (pin-1 end) and W11 (other end) soldered in plated holes; ESD/TVS on A3; pin map SQSO-ICX-001 C 3.6"
     pinlabels: [VTREF, SWDIO, GND, SWCLK, WDT_DIS, NRST, USART3_TX, NC, UMB_VMON, PACK_N, PACK_N, USART3_RX, UMBILICAL_SENSE, GND, NC, NC, NC, NC, UMB_SHUT, UMB_CHG, UMB_CHG]
   P_GSE:
     type: Micro-D 21 pin plug (GSE)

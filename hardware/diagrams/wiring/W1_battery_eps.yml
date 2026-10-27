@@ -2,8 +2,9 @@
 # hardware/harness/wire_list.csv). Flying leads from the battery interconnect and sense board (no connector at the pack,
 # no stack connector) up through a deck opening to EPS J1 / J2 on the EPS bottom side in connector zone Z1 (-X, +Y),
 # with a service loop under the EPS: every wire 0.12 m, which keeps the leads' conductance at or below the 0.008 W/K the
-# thermal design carries. Pack leads 22 AWG (two per pole, 1.2 A worst per wire against 2.5 A derated), upstream of the
-# EPS fuse F2: PTFE over-sleeve, twisted quad, no metal clamps. Micro-Fit terminals take 20-24 AWG, Pico-Clasp 28-32 AWG.
+# thermal design carries. Pack leads 22 AWG (two per pole, 1.2 A worst per wire against 2.5 A derated), behind the
+# sense-board fuse F0 (5 A, BAT_TOP) and ahead of the EPS fuse F2; cell taps behind FT0-FT4 (0.5 A). PTFE over-sleeve,
+# twisted quad, no metal clamps. Micro-Fit terminals take 20-24 AWG, Pico-Clasp 28-32 AWG.
 metadata:
   title: W1 Battery pack to EPS v3 (SQSO-HW-DIAG-001; SQSO-HAR-001 2.0)
 
@@ -15,7 +16,7 @@ options:
 connectors:
   BATT:
     type: battery sense board solder pads (flying leads)
-    subtype: staked within 10 mm of the pads
+    subtype: staked within 10 mm of the pads; F0 in BAT_TOP, FT0-FT4 in the taps
     notes: pack side; NTC2 returns to TAP0 inside the pack
     pinlabels: [BAT_TOP, BAT_TOP, BAT_BOT, BAT_BOT, NTC1, NTC1_RTN, HTR+, HTR-, TAP0, TAP1, TAP2, TAP3, TAP4, NTC2]
   J1:

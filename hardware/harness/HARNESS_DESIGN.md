@@ -29,7 +29,7 @@ wires); the board build-to designs [EPS_BOARD_DESIGN.md](../electrical/eps/EPS_B
 | Band B (deck to EPS) over-fill | **Resolved by routing, not by more space**: the EPS-only harnesses (W1, W2, W7, W11, W12) terminate on connectors on the EPS bottom side and reach them through the open volume under the EPS, the skeleton deck's openings, inboard strips beside the battery end caps, hinge-side strips and shear-panel slots; of them only W7A's two burn pairs use a corner bundle, the (+X,−Y) one the interconnect kept for them. Band-B fill of the corner bundles: **(+X,+Y) 4.3, (−X,+Y) 5.2, (−X,−Y) 9.1, (+X,−Y) 3.1 mm²** (24, 29, 51 and 26 % of the allowance) | §8 |
 | Highest fill anywhere | 65 % (hinge-side strip HS(+X)), 61 % (W4A on the shear panel); corner bundles 51 % at most | §8 |
 | CAD check | Every one of the 58 harness zones checked by boolean intersection against every solid of the CAD: **no interference**; coax bands carry coax only; magnetometer zone carries W6E only | §7.3 |
-| Mass | **84.5 g CBE** in all: 75.6 g in MEL row 32 (80.0 g CBE: −4.4 g), 6.6 g of ADCS sensor cables in row 26 (5.0 g with brackets: +1.6 g), 2.3 g of GNSS coax in row 31 | §11 |
+| Mass | **84.3 g CBE** in all: 75.4 g in MEL row 32 (80.0 g CBE: −4.6 g), 6.6 g of ADCS sensor cables in row 26 (5.0 g with brackets: +1.6 g), 2.3 g of GNSS coax in row 31 | §11 |
 | Changes needed elsewhere | 34 items for the EPS, OBC, RF, carrier, battery, mechanical, interconnect, materials and parts documents (connectors on the EPS bottom side, two EPS connector changes, gold finishes, Samtec TFM/SFSDT for the PVC ribbons, CAD zones and slots, a larger access-port envelope, isolated antenna mounts) | §15 |
 
 The interconnect estimated 53 mm² of EPS-only harness against about 45 mm² left in band B (SQSO-ICX-001 B §2.1).
@@ -89,14 +89,20 @@ W10 have stated minimums (thermal; RF loss budget). Each end's 15 mm is the stri
 
 ### 3.2 Access-port board A3
 
-**Access-port board A3** (harness part, at the −Y access window, CAD request M-3): FR-4, 30 × 12 × 1.6 mm, on the −Y
-shear panel with two Ti M2 screws, carrying the Micro-D 21 socket receptacle through the window. W8A (debug, key
-loading) and W11 (charging) are soldered to it, so the window carries one GSE connector. Micro-D pin map (the GSE
-adapter wires to it): 1 VTREF, 2 SWDIO, 3 GND, 4 SWCLK, 5 WDT_DIS, 6 NRST, 7 USART3_TX, 12 USART3_RX, 13
-UMBILICAL_SENSE, 14 GND; 9 UMB_VMON, 10–11 PACK_N, 19 UMB_SHUT, 20–21 UMB_CHG; 8 and 15–18 not connected. The charge
-cluster (9–11, 19–21) is separated from the debug pins by unused pins 8 and 18; PACK_N is never joined to GND on A3.
-The shell bonds to the frame only. The 2 × 5 2.54 mm bulkhead of SQSO-ICX-001 B §3.6 is not used: its shrouded header
-(about 20 × 9 mm) is larger than the 18 × 6 mm window the CAD carries.
+**Access-port board A3** (harness part at the −Y access window, CAD request M-3; built to SQSO-OBC-BRD-001 C §15.1,
+which governs the board): FR-4, **30 × 8.8 × 1.6 mm** (the height of the CAD envelope x −35 … −5, z −46.8 … −38),
+2 layers, parallel to the −Y shear panel. It carries the Micro-D 21 socket receptacle, whose mating face sits in the
+window, and is held by the connector: two Ti M2 screws through the shear panel, the receptacle flange and A3, so the
+mating force goes into the panel. W8A (debug, key loading, ten 30 AWG) and W11 (charging, six 24 AWG) are soldered in
+plated holes at the **two ends of the board**, W8A at the pin-1 (debug) end and W11 at the other (charge) end, each
+staked within 10 mm with one re-termination service loop; the window therefore carries one GSE connector. A3 also
+carries the window ESD and TVS parts (debug lines to GND, charge lines to PACK_N; OBC C §15.1). Micro-D pin map
+(SQSO-ICX-001 C §3.6; the GSE adapter wires to it): 1 VTREF, 2 SWDIO, 3 GND, 4 SWCLK, 5 WDT_DIS, 6 NRST,
+7 USART3_TX, 12 USART3_RX, 13 UMBILICAL_SENSE, 14 GND; 9 UMB_VMON, 10–11 PACK_N, 19 UMB_SHUT, 20–21 UMB_CHG; 8 and
+15–18 not connected. The charge cluster (9–11, 19–21) is separated from the debug pins by unused pins 8 and 18, and
+the two copper groups by ≥ 0.5 mm; PACK_N is never joined to GND on A3. The shell and the mounting holes have no
+copper connection: the shell bonds to the frame through the panel only. The 2 × 5 2.54 mm bulkhead of SQSO-ICX-001 B
+§3.6 is withdrawn: its shrouded header (about 20 × 9 mm) is larger than the window.
 
 ## 4. Harness List
 
@@ -187,11 +193,11 @@ The complete list is `hardware/harness/wire_list.csv` (206 rows). The power and 
 
 | Harness | Pins (from → to) | Signal | AWG | Twist | I normal / max per wire (A) | Notes |
 |---------|------------------|--------|----:|-------|----------------------------|-------|
-| W1 | BATT P1, P2 → J1-1, 2 | BAT_TOP | 22 | quad 1+3, 2+4 | 0.70 / 1.20 | Upstream of F2: PTFE over-sleeve, no metal clamps |
+| W1 | BATT P1, P2 → J1-1, 2 | BAT_TOP | 22 | quad 1+3, 2+4 | 0.70 / 1.20 | Behind F0 (5 A) at the pack, ahead of F2: PTFE over-sleeve, no metal clamps |
 | W1 | BATT N3, N4 → J1-3, 4 | BAT_BOT | 22 | quad | 0.70 / 1.20 | |
 | W1 | NTC1, NTC1R → J1-5, 6 | NTC1, its own return (GND) | 24 | pair | < 1 mA | |
 | W1 | HTR± → J1-7, 8 | Heater | 24 | pair | 0.079 / 0.170 | |
-| W1 | TAP0–TAP4, NTC2 → J2-1 … 6 | Cell taps, NTC2 | 28 | bundle | 0.018 / 0.05 | |
+| W1 | TAP0–TAP4, NTC2 → J2-1 … 6 | Cell taps, NTC2 | 28 | bundle | 0.018 / 0.05 | Taps behind FT0–FT4 (0.5 A) at the pack |
 | W2PX/MX/PY/MY | SA+, SA+, SA−, SA−, TEMP → J4–J7-1 … 5 | String, returns, panel NTC | 28 | 1+3, 2+4 (+5) | 0.275 / 0.33 | Back-wired strings (residual dipole) |
 | W2W1/W2W2 | TB T1 … T8 → J8/J9-1 … 8 | Front ×2, back ×2, GND ×3, TEMP | 28 | (1, 2, 5), (3, 4, 6), (7, 8) | + 0.275 / 0.33; returns 0.367 / 0.44 | |
 | W3 | J3-n → J1-n, n = 1 … 40 (SQSO-ICX-001 §3.1) | 3V3_OBC (1, 2), VBAT_MTQ (36, 39), GND (3, 4, 7, 28, 35, 40), 32 signals | 30 | flat | 3V3_OBC 0.088, VBAT_MTQ 0.20, returns ≤ 0.13 | Straight through |
@@ -359,8 +365,14 @@ interconnect allocated) and W10E: 3.1 of 11.7 mm²; nothing moves to the (+X,+Y)
 
 Maximum currents are the switch limits or trips (fault cases, limited in microseconds and removed after 8 ms by the
 TPS2553 auto-retry) except W1 (2.0 A, four burn drivers on, with a 60/40 split between the paired wires) and W5A
-(1.4 A design current, 20 % split allowance). W1 is upstream of the EPS fuse F2: a short in W1 is not protected by any
-fuse, and the control is construction (double insulation, routing away from edges, no metal clamps, hipot V-HAR-1).
+(1.4 A design current, 20 % split allowance). **W1 is fused at the pack** (BATTERY_DESIGN 2.5 §7.2): F0 (Littelfuse
+0451005.MRL, 5 A, in BAT_TOP within 10 mm of the cell-4 tab on the sense board, in series with the EPS's F2) clears a
+short in the pack leads or at J1, and FT0–FT4 (0.5 A, one per cell tap at the sense board) clear a short in a tap wire.
+Each fuse is at or below the rating of the wire it protects: 5 A against 5.0 A for one 22 AWG pack lead alone (the
+pole has two) and 0.5 A against 0.90 A for a bundled 28 AWG tap wire. The unfused length is the few millimetres from
+the cell tabs to F0 and FT0–FT4 on the sense board; the construction controls stay (PTFE over-sleeve on the pack leads,
+routing away from edges, no metal clamps, hipot V-HAR-1). F0's breaking capacity against the cell short-circuit current
+is the EPS designer's check.
 
 ### 9.2 Voltage drop (design current, conductor at +60 °C, Pico-Clasp 20 mΩ, Micro-Fit 10 mΩ, Samtec 20 mΩ per contact)
 
@@ -413,7 +425,7 @@ plan area (limit 80 %). J10's plug points toward +X, so W7A's burn pairs leave s
 | Samtec TFM right-angle + SFSDT (OBC J1, J2, J9; RF J1) | ≤ 7.0 mm high (OBC: 8.0 allocation; RF J1: 10.0); **plug's back ≤ 2.0 mm inside the board edge** (x ≤ ±43.1) so the flat cable bends into the 3 mm wall gap at 4.0 mm radius | Latched; first tie point on the shear panel within 15 mm of the bend |
 | Samtec TFM vertical + SFSDT (EPS J3) | ≤ 9.0 mm below the EPS | Latched |
 | MMCX (W10, W10E) | 6.0 mm (RF board C §4.3) | Snap-on; cable tied within 15 mm of the plug (rotation) |
-| Micro-D 21 on A3 | Envelope x −35 … −5, z −46.8 … −38 (8.8 mm) | Board-mount jackscrews; A3 by two Ti M2 screws; W8A, W11 staked at A3 |
+| Micro-D 21 on A3 | Envelope x −35 … −5, z −46.8 … −38 (8.8 mm); A3 30 × 8.8 mm | A3 held by the receptacle: two Ti M2 screws through panel, flange and A3; W8A and W11 in plated holes at the two ends, staked within 10 mm |
 | Solder ends (pads, TB, burn boards, switches, A3) | — | Wire staked within 10 mm; service loop of one re-termination |
 | Splices (rods, sensors, AntS) | 1.6 × 10 mm, staggered | Tied down on both sides within 10 mm |
 
@@ -444,15 +456,15 @@ or tape sweep) and leave the vent paths between stack levels open (the zones und
 | Wire, M22759/33 and SFSDT (201 conductors, 19.8 m) | 31.8 |
 | Coax: W10 (4 × 0.22 m) 3.5 g, W10E 0.5 g | 4.1 |
 | Harness-side connector halves and splices (Pico-Clasp, Micro-Fit, SFSDT; ten MMCX plugs 9.0 g) | 27.6 |
-| Access-port board A3 with the Micro-D 21 | 6.0 |
+| Access-port board A3 (30 × 8.8 mm) with the Micro-D 21 and its ESD parts | 5.8 |
 | Termination tabs, pack-lead over-sleeve, identification sleeves | 4.8 |
 | Lacing and tie-down dots (104 points) | 10.4 |
-| **Total** | **84.5** |
+| **Total** | **84.3** |
 
 Against the MEL (`docs/environment/MASS_BUDGET.md` §3.1, not edited): **row 32** (harness, 80.0 g CBE, 100.0 g MEV)
-holds 75.6 g of this, **−4.4 g** CBE; the ADCS sensor cables W6B–W6E (6.6 g) are row 26's (5.0 g CBE with the sensor
+holds 75.4 g of this, **−4.6 g** CBE; the ADCS sensor cables W6B–W6E (6.6 g) are row 26's (5.0 g CBE with the sensor
 brackets): **+1.6 g** before the brackets; the GNSS coax W10E and its plugs (2.3 g) are part of row 31 (26.0 g with the
-patch adapter and bracket). Net against rows 32 and 26 together: 82.2 g against 85.0 g, −2.8 g. The hinge flex
+patch adapter and bracket). Net against rows 32 and 26 together: 82.0 g against 85.0 g, −3.0 g. The hinge flex
 jumpers are in rows 10/11 (2 g each) as the CAD carries them, although row 32's title names them.
 
 The mass distribution changes: about 22 g (15 g of wire and the 7 g of the EPS-side connector halves) now lies under
@@ -510,7 +522,7 @@ is the nickel underplate of A2's own connector.
 | V-HAR-2 | Crimp qualification: Pico-Clasp 501334 at 28 AWG, Micro-Fit 43030 at 22 and 24 AWG thin-wall (insulation grip; build-up sleeve if needed), Samtec SFSDT, AS81824/1 splices | Test | NASA-STD-8739.4A pull values; cross-sections | Before the EM harness build |
 | V-HAR-3 | Mated heights and footprints of every connector with its wire dress (Pico-Clasp 8.0 mm, Micro-Fit RA 9.0 mm and 23 mm, TFM RA 7.0 mm with the plug's back at x ≤ ±43.1, Micro-D envelope) | Inspection on the Molex/Samtec drawings, then measurement on the EM boards | Within the allocations of §10 | EM board layout (with VI-MCAD-01) |
 | V-HAR-4 | Fit check on the EM structure: every harness in its zones, the coax bands and A2's 20 mm zone free, no harness in the wing or tape sweeps, slots and deck openings protected, tie points as §10.3 | Inspection, photographs, measured route lengths | No contact with rods, flanges, columns; lengths within the wire list's service allowance | EM integration |
-| V-HAR-5 | Harness mass | Weigh each harness and A3 | Total ≤ 84.5 g × 1.25; row-32 content ≤ 100 g | EM and flight builds |
+| V-HAR-5 | Harness mass | Weigh each harness and A3 | Total ≤ 84.3 g × 1.25; row-32 content ≤ 100 g | EM and flight builds |
 | V-HAR-6 | Loop resistance of the power circuits (four-wire) | Test | §9.2 values within +20 % | V-HAR-1 |
 | V-HAR-7 | W1 conductance as part of the battery mount | Test (battery mount thermal test) | ≤ 0.008 W/K for the leads | EM thermal balance |
 | V-HAR-8 | Field step at A2 with the PA keyed at 1 W and the Jetson switched | Test (flatsat, with AV-V4/VI-RFB-11) | ≤ 1 nT from the harness | Flatsat |
@@ -540,7 +552,7 @@ is the nickel underplate of A2's own connector.
 | R-2 | RF | W4B: 28 AWG twisted pairs (was 24 AWG) | Pico-Clasp range |
 | R-3 | RF §4.3 | W10 1.37 mm coax top bend R 7 mm is 5.1 × OD, below the 6 × OD workmanship rule for flexible coax: confirm with the procured cable's minimum static radius or accept by analysis | §10.4 |
 | J-1 | Carrier (SQSO-JET-BRD-001 §18, BOM) | J1 → **right-angle** Micro-Fit 2×2 (43045-0400 class), gold, plug from −X; J2 gold; keep x +42 … +45.4, y +26 … +31 above the carrier free for W5B | Vertical mated J1 and its bend reach the RF board's bottom envelope |
-| B-1 | Battery (`hardware/eps/BATTERY_DESIGN.md` §7.2) | Pack leads 22 AWG (was 20), all leads 0.12 m from the sense board, PTFE over-sleeve; consider a fuse on the sense board in BAT_TOP (W1 is upstream of F2) | §5.2, §9.1 |
+| B-1 | Battery (`hardware/eps/BATTERY_DESIGN.md` §7.2) | Pack leads 22 AWG (was 20), all leads 0.12 m from the sense board, PTFE over-sleeve; a fuse on the sense board: **done** in BATTERY_DESIGN 2.5 (F0 5 A in BAT_TOP, FT0–FT4 0.5 A in the taps; breaking capacity checked by the EPS designer) | §5.2, §9.1 |
 | M-1 | Mechanical (SQSO-MECH-CAD-001 §6.9, `model.py`) | Model the harness zones of §7.1 (under the EPS, inboard and corner strips, hinge-side strips, MXC, PXC_B, PXMY2, step-overs) and the EPS bottom-side connector envelope | CAD holds the routes |
 | M-2 | Mechanical / frame RFQ | Four grommeted 6 × 4 mm slots in the shear panels at (+48.5, −30, −10), (−48.5, −12, −10), (−30, +48.5, −10), (−30, −48.5, −10) | Body-panel pigtails |
 | M-3 | Mechanical | Access-port envelope 30 × 7 × 8.8 mm (x −35 … −5, z −46.8 … −38) for A3 and the Micro-D 21, and the −Y body-panel window to match (the −Z end zone has no cells) | One GSE connector for W8 and W11 |
@@ -557,7 +569,7 @@ is the nickel underplate of A2's own connector.
 | P-1 | `docs/manufacturing/EEE_PARTS_LIST.md` | Connector finishes gold: Pico-Clasp, Micro-Fit, Samtec TFM/SFSDT, MMCX, Micro-D: **done** (Rev E §2A.8) | §2A.3 item 5 |
 | P-2 | `docs/compliance/MATERIALS_LIST.md` | Wire M22759/33 (ETFE), SFSDT PTFE, MIL-T-43435 lacing tape, Scotch-Weld 2216 (staking only), Arathane 5750, PTFE sleeving, connector housings: E595 data per part number: **done** (Rev D §5, §7, §8; gaps to V-HAR-11) | V-HAR-11 |
 | D-1 | Diagrams (`hardware/diagrams/README.md` §2) | W7 now draws W12A–W12D, W8 draws W11 and A3; the "main sources" column cites SQSO-HAR-001 2.0 instead of H1 and H8: **done** (Rev C §2, §3) | Drawings updated here |
-| D-2 | MEL (`docs/environment/MASS_BUDGET.md`) | Row 32 note: harness design 75.6 g (−4.4 g); row 26 sensor cables 6.6 g (+1.6 g before brackets) | §11 |
+| D-2 | MEL (`docs/environment/MASS_BUDGET.md`) | Row 32 note: harness design 75.4 g (−4.6 g); row 26 sensor cables 6.6 g (+1.6 g before brackets) | §11 |
 
 ## Revision History
 
@@ -566,4 +578,4 @@ is the nickel underplate of A2's own connector.
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-27 | CDR structures review (STR-25), mechanical routing only: battery flying leads ≥ 100 mm with no stack connector (§4.1); routing zones F and G and the mechanical routing rules (hinge flex jumper, back-wired strings, deployment-sweep clearance, isolated battery, cable ties per UG v11 §5.2.3, envelope, vent paths) (§6.2, §6.3); hinge crossing (§8.1); mass note against the MEL (§9) |
 | 1.2 | 2026-10-27 | CDR 2026 consistency pass: note in §4 that SQSO-ICX-001 and the board designs (harnesses W1–W10) supersede the H1–H6 and H8 contents, W11 proposed (finding F15 of SQSO-HW-DIAG-001) |
-| 2.0 | 2026-10-27 | Rewritten as the build-to harness design (RID SE-19): the H1–H8 definitions and the superseded notice removed; wire list of W1–W12, W10 and W10E (206 conductors) in `hardware/harness/wire_list.csv`, routes in `hardware/harness/routes.csv`, calculations in `hardware/harness/harness_calcs.py`; gauges from the terminal ranges, AS22759/33 wire, EEE-INST-002 derating; band-B over-fill resolved by routing the EPS-only harnesses under the EPS (connectors on the EPS bottom side), W6D unshielded, pack leads 22 AWG; Samtec TFM/SFSDT replaces the PVC ribbons; access-port board A3 with one Micro-D 21; gold finishes; CAD check of 58 zones; mass 84.5 g; EMC; V-HAR-1 to V-HAR-13; changes for the other documents (§15); WireViz W1–W10 updated |
+| 2.0 | 2026-10-27 | Rewritten as the build-to harness design (RID SE-19), with the chair's follow-ups of the same day (A3 30 × 8.8 mm per SQSO-OBC-BRD-001 C §15.1; W1 fused at the pack by F0 and FT0–FT4 per BATTERY_DESIGN 2.5): the H1–H8 definitions and the superseded notice removed; wire list of W1–W12, W10 and W10E (206 conductors) in `hardware/harness/wire_list.csv`, routes in `hardware/harness/routes.csv`, calculations in `hardware/harness/harness_calcs.py`; gauges from the terminal ranges, AS22759/33 wire, EEE-INST-002 derating; band-B over-fill resolved by routing the EPS-only harnesses under the EPS (connectors on the EPS bottom side), W6D unshielded, pack leads 22 AWG; Samtec TFM/SFSDT replaces the PVC ribbons; access-port board A3 with one Micro-D 21; gold finishes; CAD check of 58 zones; mass 84.3 g; EMC; V-HAR-1 to V-HAR-13; changes for the other documents (§15); WireViz W1–W10 updated |

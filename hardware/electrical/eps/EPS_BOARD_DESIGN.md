@@ -320,7 +320,7 @@ UMB_SHUT → AFE RST_SHUT (held high > 1 s by the GSE puts the AFE in SHUTDOWN f
 Worst 7.7 µA = 38 % of the 20 µA limit (margin 12.3 µA). From the final charge at L-47 d (60 ± 5 % SOC,
 BASELINE §4) to separation: 8.7 mAh, 0.25 % SOC, so ≥ 54.7 % before the cells' own self-discharge (a cell property
 outside this budget), against ≥ 40 % required. 90 days at the worst drain: 16.6 mAh (0.48 % of 3.45 Ah). The 1 µA
-through 100 kΩ moves UMB_VMON by 0.1 V (the GSE reading is not affected at its 1 % accuracy). No fix is needed. The AFE enters SHUTDOWN on the GSE command after the
+through 100 kΩ moves UMB_VMON by at most 0.1 V. No fix is needed. The AFE enters SHUTDOWN on the GSE command after the
 final charge (UMB_SHUT) and stays there until DS2's release or the array's light wakes it; in SHUTDOWN its FETs are open,
 which also isolates PACK_P (not counted as an inhibit).
 
@@ -686,7 +686,7 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | V-EPS-2 | AFE OTP programming and readback; trip of every threshold (COV, CUV, OCD, SCD, UTC/OTC/OTD, SUV PF) on a pack simulator | within ± 25 mV, ± 10 % current, ± 2 K | EPS-F011, BSA §4 step 9 | EPS EM |
 | V-EPS-3 | Inhibits: each of DS1, DS2, DS3 and the RBF opened alone with the other two released; bus, PA supply, V_BURN, 3V3_ANTS and TRK_EN measured | no bus (< 1 V), no tracker switching; chatter of 5 ms bursts does not raise the bus | EPS-F009, CDS 2.3.7/2.3.8 | EPS EM, FM (with V-BSA-6) |
 | V-EPS-4 | GND–PACK_N resistance with DS2 open, board powered from the array simulator | ≥ 100 kΩ | §6.4 | EPS EM |
-| V-EPS-5 | Storage drain, switches actuated, AFE in SHUTDOWN, 25 and 60 °C | ≤ 20 µA (design 6.7 µA) | LVR-071 | EPS EM, FM |
+| V-EPS-5 | Storage drain, switches actuated, AFE in SHUTDOWN, 25 and 60 °C | ≤ 20 µA (design 7.7 µA, with A3 fitted) | LVR-071 | EPS EM, FM |
 | V-EPS-6 | Burn drivers: 4, 5, 6, 7 Ω loads; stuck-high line; four lines at once | 0.80 A ± 10 %; stops at 12.0 s ± 1 s; pack ≤ 2.2 A | SMA-05 | EPS EM |
 | V-EPS-7 | Load shed: VBAT ramp and step | shed 13.6 ± 0.2 V after 4–6 s; release 14.4 ± 0.2 V | EPS-F012 | EPS EM |
 | V-EPS-8 | ITV4030 qualification at −30 °C: carry 2 A for 1 h, heater fires at 10.5 V; EOL fire on the EM (destructive) | no opening when carrying; opens < 1 min when fired; F1 opens only with both EOL lines | EPS-F010, V-BSA-7 | EM |

@@ -1,17 +1,17 @@
 harness,wire,signal,from_ref,from_pin,to_ref,to_pin,awg,wire_type,twist_group,color,i_nom_A,i_max_A,route,circuit,pole,min_length_mm,notes
-W1,W1-01,BAT_TOP,BATT,P1,EPS-J1,1,22,M22759/33,W1-Q,RD,0.7,1.2,W1_J1,PACK,+,120,"pack lead upstream of F2: PTFE over-sleeve (double insulation), twisted quad 1+3 / 2+4"
-W1,W1-02,BAT_TOP,BATT,P2,EPS-J1,2,22,M22759/33,W1-Q,RD,0.7,1.2,W1_J1,PACK,+,120,"pack lead upstream of F2: PTFE over-sleeve (double insulation), twisted quad 1+3 / 2+4"
-W1,W1-03,BAT_BOT,BATT,N3,EPS-J1,3,22,M22759/33,W1-Q,BK,0.7,1.2,W1_J1,PACK,-,120,"pack lead upstream of F2: PTFE over-sleeve (double insulation), twisted quad 1+3 / 2+4"
-W1,W1-04,BAT_BOT,BATT,N4,EPS-J1,4,22,M22759/33,W1-Q,BK,0.7,1.2,W1_J1,PACK,-,120,"pack lead upstream of F2: PTFE over-sleeve (double insulation), twisted quad 1+3 / 2+4"
+W1,W1-01,BAT_TOP,BATT,P1,EPS-J1,1,22,M22759/33,W1-Q,RD,0.7,1.2,W1_J1,PACK,+,120,"pack lead behind F0 (5 A, sense board) and ahead of F2: PTFE over-sleeve, twisted quad 1+3 / 2+4"
+W1,W1-02,BAT_TOP,BATT,P2,EPS-J1,2,22,M22759/33,W1-Q,RD,0.7,1.2,W1_J1,PACK,+,120,"pack lead behind F0 (5 A, sense board) and ahead of F2: PTFE over-sleeve, twisted quad 1+3 / 2+4"
+W1,W1-03,BAT_BOT,BATT,N3,EPS-J1,3,22,M22759/33,W1-Q,BK,0.7,1.2,W1_J1,PACK,-,120,"pack lead behind F0 (5 A, sense board) and ahead of F2: PTFE over-sleeve, twisted quad 1+3 / 2+4"
+W1,W1-04,BAT_BOT,BATT,N4,EPS-J1,4,22,M22759/33,W1-Q,BK,0.7,1.2,W1_J1,PACK,-,120,"pack lead behind F0 (5 A, sense board) and ahead of F2: PTFE over-sleeve, twisted quad 1+3 / 2+4"
 W1,W1-05,NTC1,BATT,NTC1,EPS-J1,5,24,M22759/33,W1-P1,WH,0.0003,0.0003,W1_J1,,,120,
 W1,W1-06,NTC1_RTN (GND),BATT,NTC1R,EPS-J1,6,24,M22759/33,W1-P1,GY,0.0003,0.0003,W1_J1,,,120,
 W1,W1-07,HTR_P,BATT,HTR+,EPS-J1,7,24,M22759/33,W1-P2,VT,0.079,0.17,W1_J1,HEATER,+,120,
 W1,W1-08,HTR_N,BATT,HTR-,EPS-J1,8,24,M22759/33,W1-P2,BK,0.079,0.17,W1_J1,HEATER,-,120,
-W1,W1-09,TAP0 (cell 1-),BATT,TAP0,EPS-J2,1,28,M22759/33,W1-T,BK,0.018,0.05,W1_J2,,,120,tap lines: balancing 18 mA
-W1,W1-10,TAP1,BATT,TAP1,EPS-J2,2,28,M22759/33,W1-T,BN,0.018,0.05,W1_J2,,,120,tap lines: balancing 18 mA
-W1,W1-11,TAP2,BATT,TAP2,EPS-J2,3,28,M22759/33,W1-T,RD,0.018,0.05,W1_J2,,,120,tap lines: balancing 18 mA
-W1,W1-12,TAP3,BATT,TAP3,EPS-J2,4,28,M22759/33,W1-T,OG,0.018,0.05,W1_J2,,,120,tap lines: balancing 18 mA
-W1,W1-13,TAP4 (cell 4+),BATT,TAP4,EPS-J2,5,28,M22759/33,W1-T,YE,0.018,0.05,W1_J2,,,120,tap lines: balancing 18 mA
+W1,W1-09,TAP0 (cell 1-),BATT,TAP0,EPS-J2,1,28,M22759/33,W1-T,BK,0.018,0.05,W1_J2,,,120,tap lines behind FT0-FT4 (0.5 A, sense board); balancing 18 mA
+W1,W1-10,TAP1,BATT,TAP1,EPS-J2,2,28,M22759/33,W1-T,BN,0.018,0.05,W1_J2,,,120,tap lines behind FT0-FT4 (0.5 A, sense board); balancing 18 mA
+W1,W1-11,TAP2,BATT,TAP2,EPS-J2,3,28,M22759/33,W1-T,RD,0.018,0.05,W1_J2,,,120,tap lines behind FT0-FT4 (0.5 A, sense board); balancing 18 mA
+W1,W1-12,TAP3,BATT,TAP3,EPS-J2,4,28,M22759/33,W1-T,OG,0.018,0.05,W1_J2,,,120,tap lines behind FT0-FT4 (0.5 A, sense board); balancing 18 mA
+W1,W1-13,TAP4 (cell 4+),BATT,TAP4,EPS-J2,5,28,M22759/33,W1-T,YE,0.018,0.05,W1_J2,,,120,tap lines behind FT0-FT4 (0.5 A, sense board); balancing 18 mA
 W1,W1-14,NTC2,BATT,NTC2,EPS-J2,6,28,M22759/33,W1-T,WH,0.0003,0.0003,W1_J2,,,120,
 W2PX,W2PX-01,S_PX,PNL-PX,SA+,EPS-J4,1,28,M22759/33,W2PX-1,RD,0.275,0.33,W2PX,STR_PX,+,0,
 W2PX,W2PX-02,S_PX,PNL-PX,SA+,EPS-J4,2,28,M22759/33,W2PX-2,RD,0.275,0.33,W2PX,STR_PX,+,0,
