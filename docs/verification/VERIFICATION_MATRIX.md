@@ -62,8 +62,8 @@ current.
 | MRD-021 | T | CI + FMI | continuous; 2027-11 to 2028-01 | Beacon content tests; TP-SYS-001 | Not verified |
 | MRD-022 | T | DITL + ORB | 2027-12 to 2028-01; after launch | TP-GS-001 over-the-air with an amateur station; first pass | Not verified |
 | MRD-023 | I | REG | 2027-01 to 2028-01 | IARU coordination letter | Not verified |
-| MRD-024 | I | PSR | 2028-03-14 | Regulatory compliance matrix (Part 97) | Not verified |
-| MRD-025 | I | CI + PSR | continuous; 2028-03-14 | Frame-format tests; inspection of the beacon and command formats | Not verified |
+| MRD-024 | I | PSR | 2028-03-21 | Regulatory compliance matrix (Part 97) | Not verified |
+| MRD-025 | I | CI + PSR | continuous; 2028-03-21 | Frame-format tests; inspection of the beacon and command formats | Not verified |
 | MRD-030 | D | DITL | 2027-12 to 2028-01 | Transponder end-to-end over the air | Not verified |
 | MRD-031 | T | FMI | 2027-11 to 2028-01 | TP-RF-004 modulation and deviation | Not verified |
 | MRD-032 | D | DITL | 2027-12 to 2028-01 | Transponder end-to-end with a licensed amateur station | Not verified |
@@ -85,7 +85,7 @@ current.
 | MRD-070 | D | DITL | 2027-12 to 2028-01 | TP-GS-001 | Not verified |
 | MRD-071 | D | DITL | 2027-12 to 2028-01 | TP-GS-001 with the published decoder | Not verified |
 | MRD-072 | I | REG | 2027-01 to 2028-01 | SatNOGS and AMSAT coordination record | Not verified |
-| MRD-080 | I | PSR | 2028-03-14 | Integrator acceptance checklist | Not verified |
+| MRD-080 | I | PSR | 2028-03-21 | Integrator acceptance checklist | Not verified |
 | MRD-081 | I | CDR | 2027-08-03 | ODAR §4 (no released parts); SYS-081 inspection | Not verified |
 | MRD-082 | D | FMI | 2027-11 to 2028-01 | Passivation test with the EOL switch on the EM, inspection on the FM | Not verified |
 | MRD-083 | I | PDR | 2027-01-12 | ODAR (size ≥ 10 cm); Space-Track registration | Not verified |
@@ -98,20 +98,20 @@ current.
 | MRD-094 | T | CI + FMI | continuous; 2027-11 to 2028-01 | TP-RF-006 TX-OFF | Not verified |
 | MRD-095 | I,T | REG + FMI | 2027-01 to 2028-01; 2027-11 to 2028-01 | Station designation letters; TP-RF-006 authentication | Not verified |
 | MRD-096 | I | REG | 2027-01 to 2028-01 | FCC filings with dates | Not verified |
-| MRD-097 | T,I | CI + PSR | continuous; 2028-03-14 | Content-filter test vectors (BEACON_SPEC §6); inspection | Not verified |
-| MRD-098 | I,T | PSR | 2028-03-14 | Integrator ICD verification matrix | Not verified |
-| MRD-099 | I | PSR | 2028-03-14 | Delivery record | Not verified |
+| MRD-097 | T,I | CI + PSR | continuous; 2028-03-21 | Content-filter test vectors (BEACON_SPEC §6); inspection | Not verified |
+| MRD-098 | I,T | PSR | 2028-03-21 | Integrator ICD verification matrix | Not verified |
+| MRD-099 | I | PSR | 2028-03-21 | Delivery record | Not verified |
 
 ### 3.2 System requirements (SQSO-REQ-002)
 
 | Req ID | Method | Planned event | Date | Procedure or analysis | Status |
 |--------|--------|---------------|------|-----------------------|--------|
-| SYS-001 | I,T | FMI + PSR | 2027-11 to 2028-01; 2028-03-14 | TP-MECH-001 fit check; CIFP inspection | Not verified |
+| SYS-001 | I,T | FMI + PSR | 2027-11 to 2028-01; 2028-03-21 | TP-MECH-001 fit check; CIFP inspection | Not verified |
 | SYS-002 | T | PFE | 2028-01 to 2028-02 | TP-ENV-001 mass | Not verified |
 | SYS-003 | T | PFE | 2028-01 to 2028-02 | TP-ENV-001 CG | Not verified |
 | SYS-004 | I,T | FMI | 2027-11 to 2028-01 | TP-MECH-003 | Not verified |
 | SYS-005 | I | FMI | 2027-11 to 2028-01 | TP-INT-006 | Not verified |
-| SYS-080 | I | FMI + PSR | 2027-11 to 2028-01; 2028-03-14 | CIFP dimensional inspection; vendor certificates (rails) | Not verified |
+| SYS-080 | I | FMI + PSR | 2027-11 to 2028-01; 2028-03-21 | CIFP dimensional inspection; vendor certificates (rails) | Not verified |
 | SYS-081 | I,T | PFE | 2028-01 to 2028-02 | Post-vibe inspection; TP-ENV-002 | Not verified |
 | SYS-082 | I | CDR | 2027-08-03 | Materials and hazards list | Not verified |
 | SYS-083 | T | PFE | 2028-01 to 2028-02 | Helmholtz-cage or gaussmeter survey (ENVIRONMENTAL_TEST_PLAN §3.9) | Not verified |
@@ -120,7 +120,7 @@ current.
 | SYS-086 | I,T | CDR | 2027-08-03 | Schematic inspection (no RTC on battery power, or limits met) | Not verified |
 | SYS-087 | I | FMI | 2027-11 to 2028-01 | TP-INT-006; integrator access-port drawing | Not verified |
 | SYS-088 | I,T | FMI | 2027-11 to 2028-01 | TP-EPS-001 protection; cell data | Not verified |
-| SYS-089 | I | PSR | 2028-03-14 | Configuration log after protoflight test | Not verified |
+| SYS-089 | I | PSR | 2028-03-21 | Configuration log after protoflight test | Not verified |
 | SYS-010 | A | CDR | 2027-08-03 | Reliability and lifetime analyses | Not verified |
 | SYS-011 | A | CDR | 2027-08-03 | Parts derating analysis | Not verified |
 | SYS-012 | A | CDR | 2027-08-03 | Thermal-cycle fatigue analysis (solder joints, cells) | Not verified |
@@ -225,21 +225,26 @@ current.
 | SYS-801 | D | CI + FMI | continuous; 2027-11 to 2028-01 | EOL tests; TP-RF-006 | Not verified |
 | SYS-802 | — | — | — | Deleted | Deleted |
 | SYS-803 | A | PDR | 2027-01-12 | ODAR, NASA DAS | Not verified |
-| SYS-900 | I,T | PFE + PSR | 2028-01 to 2028-02; 2028-03-14 | TestPod fit check; integrator fit check | Not verified |
+| SYS-900 | I,T | PFE + PSR | 2028-01 to 2028-02; 2028-03-21 | TestPod fit check; integrator fit check | Not verified |
 | SYS-901 | T | PFE | 2028-01 to 2028-02 | Mass-properties report | Not verified |
 | SYS-902 | T | CON + PFE | 2027-05-31; 2028-01 to 2028-02 | ICD levels; TP-ENV-002, TP-ENV-003 | Not verified |
-| SYS-903 | I | PSR | 2028-03-14 | Battery data package | Not verified |
+| SYS-903 | I | PSR | 2028-03-21 | Battery data package | Not verified |
 | SYS-904 | D | SIL + DITL | 2026-11 to 2027-01; 2027-12 to 2028-01 | Orbit-determination pipeline with recorded GNSS data; OEM upload rehearsal | Not verified |
 | SYS-905 | A | CDR | 2027-08-03 | Inhibit analysis | Not verified |
-| SYS-906 | I | PSR | 2028-03-14 | Data package | Not verified |
+| SYS-906 | I | PSR | 2028-03-21 | Data package | Not verified |
 | SYS-907 | I | CON | 2027-05-31 | Contract clause | Not verified |
-| SYS-908 | I | CDR + PSR | 2027-08-03; 2028-03-14 | Hazard declaration | Not verified |
+| SYS-908 | I | CDR + PSR | 2027-08-03; 2028-03-21 | Hazard declaration | Not verified |
 | SYS-909 | A | CDR | 2027-08-03 | Self-discharge and storage analysis at delivery SOC | Not verified |
 | SYS-910 | I,T | CON | 2027-05-31 | Only if the ISS backup is triggered (decision by 2027-09) | Not verified |
 | SYS-911 | I,T | CON | 2027-05-31 | Only on the CSLI path | Not verified |
 | SYS-912 | A | CDR | 2027-08-03 | ADCS Monte Carlo at the integrator's tip-off rate | Not verified |
 | SYS-913 | A | PDR | 2027-01-12 | NASA DAS 3.2.6 | Not verified |
 | SYS-914 | I | REG | 2027-01 to 2028-01 | FCC filing record | Not verified |
+| SYS-915 | I | CDR | 2027-08-03 | Parts and materials finish review against the prohibited list | Not verified |
+| SYS-916 | A | CDR | 2027-08-03 | Structural analysis (FEM) with the provider and GEVS factors | Not verified |
+| SYS-917 | A,T | CDR + PFE | 2027-08-03; 2028-01 to 2028-02 | Cell vent analysis; TVAC exposure of the pack | Not verified |
+| SYS-918 | T,A | CI + FS | continuous; 2027-04 to 2027-06 | Separation-sequence test: no magnetorquer drive or burn before 120 s (RID LV-02) | Not verified |
+| SYS-919 | I | REG | 2027-01 to 2028-01 | 18th SDS registration record | Not verified |
 
 ### 3.3 Software requirements (SMART-QSO-SRS-001)
 
@@ -338,28 +343,28 @@ current.
 
 | Code | Event | Planned date | Requirements |
 |------|-------|--------------|--------------|
-| CI | Flight-software tests in CI (host) | continuous | 122 |
+| CI | Flight-software tests in CI (host) | continuous | 123 |
 | SIL | Mission simulation, software in the loop (sqso-sil) | 2026-11 to 2027-01 | 6 |
 | PDR | Analysis or inspection presented at the PDR | 2027-01-12 | 8 |
-| REG | Regulatory filing or coordination record | 2027-01 to 2028-01 | 9 |
+| REG | Regulatory filing or coordination record | 2027-01 to 2028-01 | 10 |
 | CON | Launch contract and integrator ICD | 2027-05-31 | 8 |
-| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-04 to 2027-06 | 108 |
+| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-04 to 2027-06 | 109 |
 | EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-06 to 2027-08 | 12 |
-| CDR | Analysis or inspection presented at the CDR | 2027-08-03 | 49 |
+| CDR | Analysis or inspection presented at the CDR | 2027-08-03 | 52 |
 | FMI | FM integration and comprehensive functional (TP-INT, TP-SYS-001) | 2027-11 to 2028-01 | 50 |
 | DITL | FM day-in-the-life and end-to-end (TP-SYS-002, TP-DITL-001, TP-GS-001) | 2027-12 to 2028-01 | 22 |
-| PFE | Protoflight environmental campaign (TP-ENV-001 to -005) | 2028-01 to 2028-02 | 29 |
-| PSR | Pre-ship review: inspection and data package | 2028-03-14 | 13 |
+| PFE | Protoflight environmental campaign (TP-ENV-001 to -005) | 2028-01 to 2028-02 | 30 |
+| PSR | Pre-ship review: inspection and data package | 2028-03-21 | 13 |
 | ORB | On orbit: commissioning and operations (validation) | after launch | 8 |
 
 ### 3.5 Status summary (generated)
 
 | Status | Requirements |
 |--------|--------------|
-| Not verified | 219 |
+| Not verified | 224 |
 | Partial (CI) | 57 |
 | Deleted | 1 |
-| **Total** | **277** |
+| **Total** | **282** |
 
 Methods: A analysis, D demonstration, I inspection, T test, V validation (mission objectives, judged against the success criteria). A method marked * is proposed here because the specification gives none.
 <!-- vcrm:end -->
@@ -387,7 +392,7 @@ plan of §3.4.
 | CDR | 2027-08-03 | Correlated thermal model, FMEA and single-point-failure list, radiation, reliability, materials, venting, shock analyses | FM fabrication |
 | FMI, DITL | 2027-11 to 2028-01 | FM functional, RF, TX-OFF, end-to-end and day-in-the-life | Protoflight test readiness |
 | PFE | 2028-01 to 2028-02 | Mass properties, protoflight vibe with inhibit monitoring, TVAC and bake-out, deployment hot and cold, EMC, magnetic | Pre-ship review |
-| PSR | 2028-03-14 | Integrator ICD verification matrix and data package | Delivery (L−60 days for a 2028-06-01 launch) |
+| PSR | 2028-03-21 | Integrator ICD verification matrix and data package | Delivery (L − 50 days; the protoflight campaign must end by L − 4 months, `mission/SCHEDULE.md` §1) |
 | ORB | After launch | Mission objectives and the confirmations of detumble, sun-pointing and detectability | Mission success criteria |
 
 ## 6. Known and Predicted Non-Compliances at the CDR Review

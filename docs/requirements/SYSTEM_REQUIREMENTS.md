@@ -343,27 +343,69 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 
 ### 13a. Launch Provider, Integrator and Regulatory Requirements (added at the CDR review, 2026-10-27)
 
-The integrator's requirements will come from the signed ICD (decision D7) and the launch reviewer's
-`docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`; the column "Provider ID" is for the chair to fill with that document's
-requirement IDs. SpaceX Rideshare Payload User's Guide v11 is the interim source.
+The launch-vehicle, integrator and dispenser requirements are flowed down in `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`
+(SQSO-LVR-001, LVR-001 to LVR-114, from SpaceX Rideshare Payload User's Guide v11, CDS Rev 14.1, the EXOpod Nova user
+manual and, for the ISS backup, the NRCSD IDD). The bracketed provider IDs below, and the trace table that follows,
+connect them to the system requirements. The signed integrator ICD (decision D7) supersedes them where it differs.
 
 | ID | Requirement | Parent | Verification |
 |----|-------------|--------|--------------|
-| SYS-900 | The spacecraft shall fit and deploy from the selected integrator's dispenser, demonstrated by a fit check in the dispenser or its test pod (CDS §2.4.7) [Provider ID: open, chair] | MRD-098 | I,T |
-| SYS-901 | The spacecraft shall meet the integrator's mass, center-of-gravity and dimensional limits, reported in a mass-properties report from measurement of the flight unit [Provider ID: open, chair] | MRD-098 | T |
-| SYS-902 | Random vibration, bake-out and any shock test shall be performed at the levels and durations of the signed integrator ICD where they exceed SYS-703, SYS-706 and SYS-708 (CDS §3.1 to §3.3) [Provider ID: open, chair] | MRD-098 | T |
-| SYS-903 | The battery shall be delivered at the integrator's specified state of charge and with its safety data (cell lot, screening, protection test results) [Provider ID: open, chair] | MRD-098 | I |
-| SYS-904 | The spacecraft shall provide a forward-predicted, GNSS-based ephemeris with covariance within 24 hours of first contact, and then at least every 24 hours until it is catalogued (SpaceX UG v11 §9.5.7.2; BASELINE §6, decision D6) [Provider ID: open, chair] | MRD-098 | D |
-| SYS-905 | The spacecraft shall be compatible with the launch environment's EMI: it is unpowered in the dispenser, so compatibility is shown by the inhibits (SYS-085, SYS-704) and by the integrator's EMISM requirement [Provider ID: open, chair] | MRD-098 | A |
-| SYS-906 | The developer shall deliver the integrator's required documents: ICD verification matrix, environmental test reports, materials list with ASTM E595 data, hazard declaration, battery data, mass-properties report, export statement and proof of the FCC filing (`docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md`) [Provider ID: open, chair] | MRD-099 | I |
+| SYS-900 | The spacecraft shall fit and deploy from the selected integrator's dispenser, demonstrated by a fit check in the dispenser or its test pod (CDS §2.4.7) [Provider: LVR-001, LVR-020, LVR-021, LVR-023, LVR-024, LVR-028, LVR-029, LVR-031] | MRD-098 | I,T |
+| SYS-901 | The spacecraft shall meet the integrator's mass, center-of-gravity and dimensional limits, reported in a mass-properties report from measurement of the flight unit [Provider: LVR-005, LVR-025, LVR-026, LVR-027] | MRD-098 | T |
+| SYS-902 | Random vibration, bake-out and any shock test shall be performed at the levels and durations of the signed integrator ICD where they exceed SYS-703, SYS-706 and SYS-708 (CDS §3.1 to §3.3) [Provider: LVR-007, LVR-040, LVR-043, LVR-044, LVR-046, LVR-047, LVR-050, LVR-084] | MRD-098 | T |
+| SYS-903 | The battery shall be delivered at the integrator's specified state of charge and with its safety data (cell lot, screening, protection test results) [Provider: LVR-013, LVR-070, LVR-072] | MRD-098 | I |
+| SYS-904 | The spacecraft shall provide a forward-predicted, GNSS-based ephemeris with covariance within 24 hours of first contact, and then at least every 24 hours until it is catalogued (SpaceX UG v11 §9.5.7.2; BASELINE §6, decision D6) [Provider: LVR-089, LVR-091] | MRD-098 | D |
+| SYS-905 | The spacecraft shall be compatible with the launch environment's EMI: it is unpowered in the dispenser, so compatibility is shown by the inhibits (SYS-085, SYS-704) and by the integrator's EMISM requirement [Provider: LVR-053, LVR-054, LVR-061, LVR-062] | MRD-098 | A |
+| SYS-906 | The developer shall deliver the integrator's required documents: ICD verification matrix, environmental test reports, materials list with ASTM E595 data, hazard declaration, battery data, mass-properties report, export statement and proof of the FCC filing (`docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md`) [Provider: LVR-002 to LVR-012, LVR-014, LVR-015, LVR-082] | MRD-099 | I |
 | SYS-907 | The deployment altitude in the contract shall be at most 500 km target and 525 km hard cap, with no-penalty rebooking if the assigned flight offers nothing at or below the cap (BASELINE §3, D7) | MRD-013 | I |
-| SYS-908 | No hazardous material, pressure system or energy source other than the battery and the burn-wire release shall be carried, and the hazard declaration shall be accepted by the integrator (range safety via AFSPCMAN/SSCMAN 91-710) [Provider ID: open, chair] | MRD-080 | I |
-| SYS-909 | After delivery, the spacecraft shall need no access, charging or software load until launch, and shall tolerate storage in the dispenser at the integrator's specified state of charge for the stated duration [Provider ID: open, chair] | MRD-098 | A |
-| SYS-910 | If the NRCSD (ISS) backup is used, the battery shall meet JSC 20793 Rev D and the NRCSD IDD Rev A, and the spacecraft shall meet the NRCSD 2.40 kg limit (BASELINE §3) [conditional: ISS path only] | MRD-080 | I,T |
+| SYS-908 | No hazardous material, pressure system or energy source other than the battery and the burn-wire release shall be carried, and the hazard declaration shall be accepted by the integrator (range safety via AFSPCMAN/SSCMAN 91-710) [Provider: LVR-008, LVR-072, LVR-083] | MRD-080 | I |
+| SYS-909 | After delivery, the spacecraft shall need no access, charging or software load until launch, and shall tolerate storage in the dispenser at the integrator's specified state of charge for the stated duration [Provider: LVR-051, LVR-052, LVR-071, LVR-074; at least 45 days in the dispenser without charging] | MRD-098 | A |
+| SYS-910 | If the NRCSD (ISS) backup is used, the battery shall meet JSC 20793 Rev D and the NRCSD IDD Rev A, and the spacecraft shall meet the NRCSD 2.40 kg limit (BASELINE §3) [conditional: ISS path only; Provider: LVR-100 to LVR-114] | MRD-080 | I,T |
 | SYS-911 | If the NASA CSLI path is used, the spacecraft shall meet LSP-REQ-317.01 Rev B, including protoflight random vibration at MPE + 3 dB for 2 minutes per axis and bake-out per its Table 1 [conditional: CSLI path only] | MRD-080 | I,T |
-| SYS-912 | Separation tip-off: the ADCS shall detumble from the integrator's maximum tip-off rate, not less than the 10 deg/s of SYS-420 [Provider ID: open, chair] | MRD-060 | A |
+| SYS-912 | Separation tip-off: the ADCS shall detumble from the integrator's maximum tip-off rate, not less than the 10 deg/s of SYS-420 [Provider: LVR-030] | MRD-060 | A |
 | SYS-913 | The spacecraft design shall give a re-entry casualty risk below 1:10,000 and component re-entry energy below 15 J (NASA DAS 3.2.6 analysis in the ODAR) | MRD-084 | A |
-| SYS-914 | The FCC pre-space notification, with the ITU Appendix 4 data and the orbital-debris disclosures, shall be on file at least 90 days before integration into the launch vehicle (47 CFR 97.207(g)(1)) | MRD-096 | I |
+| SYS-914 | The FCC pre-space notification, with the ITU Appendix 4 data and the orbital-debris disclosures, shall be on file at least 90 days before integration into the launch vehicle (47 CFR 97.207(g)(1)) [Provider: LVR-010, LVR-075] | MRD-096 | I |
+| SYS-915 | No cadmium or cadmium plating, zinc plating, mercury, or pure tin or tin electroplate (unless alloyed with lead, antimony or bismuth) shall be used, including in COTS parts finishes, unless the integrator approves a waiver [Provider: LVR-081] | MRD-080 | I |
+| SYS-916 | The structure shall show positive margins at the provider's quasi-static loads with the provider's factors of safety (yield 1.10, ultimate 1.25 flight, 1.40 ground) and, for random vibration, at 3-sigma peak responses to the protoflight level with the GSFC-STD-7000B Table 2.2-3 factors [Provider: LVR-041, LVR-042] | MRD-080 | A |
+| SYS-917 | Sealed containers that may pressurize on orbit, including the battery cells, shall meet the provider's design and test factors for sealed containers or pass a vacuum exposure test [Provider: LVR-073] | MRD-080 | A,T |
+| SYS-918 | The spacecraft shall make no attitude actuation and no appendage deployment earlier than 120 s after separation, and shall report a bounding hard-body radius for any appendage deployed in the first 24 hours [Provider: LVR-065] | MRD-080 | T,A |
+| SYS-919 | The licensee shall register the spacecraft with the 18th Space Defense Squadron no later than 2 months before launch, with a published operator contact, and claim the object within 30 days of deployment [Provider: LVR-088, LVR-090] | MRD-085 | I |
+
+**Trace of the provider requirements (SQSO-LVR-001) to the system requirements.** Every LVR ID appears once or more;
+LVR-092 (no propulsion) is met by SYS-082.
+
+| System requirement | Provider requirements |
+|--------------------|-----------------------|
+| SYS-004, SYS-085 | LVR-060, LVR-067 |
+| SYS-081 | LVR-022, LVR-086 |
+| SYS-082 | LVR-092 |
+| SYS-083 | LVR-085 |
+| SYS-084 | LVR-048 |
+| SYS-087 | LVR-068 |
+| SYS-221 | LVR-064, LVR-066 |
+| SYS-224 | LVR-063, LVR-066 |
+| SYS-225 | LVR-069 |
+| SYS-600 | LVR-049 |
+| SYS-704 | LVR-045 |
+| SYS-712 | LVR-080 |
+| SYS-803, SYS-913 | LVR-087 |
+| SYS-900 | LVR-001, LVR-020, LVR-021, LVR-023, LVR-024, LVR-028, LVR-029, LVR-031 |
+| SYS-901 | LVR-005, LVR-025, LVR-026, LVR-027 |
+| SYS-902 | LVR-007, LVR-040, LVR-043, LVR-044, LVR-046, LVR-047, LVR-050, LVR-084 |
+| SYS-903 | LVR-013, LVR-070, LVR-072 |
+| SYS-904 | LVR-089, LVR-091 |
+| SYS-905 | LVR-053, LVR-054, LVR-061, LVR-062 |
+| SYS-906 | LVR-002, LVR-003, LVR-004, LVR-006, LVR-007, LVR-008, LVR-009, LVR-010, LVR-011, LVR-012, LVR-014, LVR-015, LVR-082 |
+| SYS-908 | LVR-008, LVR-072, LVR-083 |
+| SYS-909 | LVR-051, LVR-052, LVR-071, LVR-074 |
+| SYS-910 | LVR-100, LVR-101, LVR-102, LVR-103, LVR-104, LVR-105, LVR-106, LVR-107, LVR-108, LVR-109, LVR-110, LVR-111, LVR-112, LVR-113, LVR-114 |
+| SYS-912 | LVR-030 |
+| SYS-914 | LVR-010, LVR-075 |
+| SYS-915 | LVR-081 |
+| SYS-916 | LVR-041, LVR-042 |
+| SYS-917 | LVR-073 |
+| SYS-918 | LVR-065 |
+| SYS-919 | LVR-088, LVR-090 |
 
 ---
 
@@ -381,7 +423,7 @@ requirement IDs. SpaceX Rideshare Payload User's Guide v11 is the interim source
 | SYS-600-603 | 4 | 0 | 0 | 2 |
 | SYS-700-712 | 3 | 1 | 1 | 2 |
 | SYS-800-803 | 1 | 2 | 0 | 0 |
-| SYS-080-089, SYS-703-713, SYS-900-914 | see the VCRM | | | |
+| SYS-080-089, SYS-703-713, SYS-900-919 | see the VCRM | | | |
 
 The counts above date from Rev D and are not maintained by hand. The verification method and the planned
 verification event of every requirement are in the VCRM, `docs/verification/VERIFICATION_MATRIX.md` §3, generated
@@ -410,4 +452,4 @@ from this document by `software/simulation/cdr/pm/gen_vcrm.py`.
 | B | 2026-10-16 | §15 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-SYS-001, TBD-SYS-002 and TBR-SYS-001. TBR-SYS-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §6) (finding VV-17). Proposed testable wording, for the PI to ratify, beneath SYS-020, SYS-222 and SYS-522; requirement text unchanged; tracked as TBR-SYS-002 to TBR-SYS-004 (finding VV-16) | SMART-QSO Team |
 | C | 2026-10-16 | Frequency accuracy renumbered SYS-206 (SYS-204 was defined twice; SYS-204 stays TX-OFF). SYS-211 amended to the BASELINE §8 beacon intervals, PI to ratify (finding VV-06) | SMART-QSO Team |
 | D | 2026-10-16 | SYS-700 amended from GEVS protoflight levels to the launch provider's levels, interim SpaceX Rideshare User's Guide v11 as used by TP-ENV-002, PI to ratify; ID kept (findings LA-05, VV-06) | SMART-QSO Team |
-| E | 2026-10-27 | CDR review (PM/SE/V&V). Aligned with `docs/BASELINE_PARAMETERS.md` Rev D: SYS-002 (dispenser limit), SYS-003 (per axis), SYS-010, SYS-012, SYS-100, SYS-111, SYS-203 (46 dB and 60 dB), SYS-420, SYS-422, SYS-112 (10 % nominal), SYS-501, SYS-502, SYS-510, SYS-512, SYS-513, SYS-603, SYS-701, SYS-702, SYS-712. Added CDS Rev 14.1 flow-down SYS-080 to SYS-089 (§5.1a), launch-environment verification SYS-703 to SYS-709 (§12.3), EMC SYS-713 (§12.4), and launch-provider, integrator and regulatory requirements SYS-900 to SYS-914 (§13a, provider IDs for the chair to fill). TBD/TBR target dates set. Change request to be logged by the chair (CR-2026-007) | CDR review, PM/SE/V&V |
+| E | 2026-10-27 | CDR review (PM/SE/V&V). Aligned with `docs/BASELINE_PARAMETERS.md` Rev D: SYS-002 (dispenser limit), SYS-003 (per axis), SYS-010, SYS-012, SYS-100, SYS-111, SYS-203 (46 dB and 60 dB), SYS-420, SYS-422, SYS-112 (10 % nominal), SYS-501, SYS-502, SYS-510, SYS-512, SYS-513, SYS-603, SYS-701, SYS-702, SYS-712. Added CDS Rev 14.1 flow-down SYS-080 to SYS-089 (§5.1a), launch-environment verification SYS-703 to SYS-709 (§12.3), EMC SYS-713 (§12.4), and launch-provider, integrator and regulatory requirements SYS-900 to SYS-919 (§13a), traced to the launch reviewer's LVR-001 to LVR-114 (SQSO-LVR-001). TBD/TBR target dates set. Change request to be logged by the chair (CR-2026-007) | CDR review, PM/SE/V&V |

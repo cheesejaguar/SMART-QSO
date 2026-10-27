@@ -143,9 +143,15 @@ pub enum Availability {
 pub const fn availability(command: Command) -> Availability {
     use Command as C;
     match command {
-        C::Nop | C::TxDisable | C::TxEnable | C::KeyRotate | C::GetStatus | C::EpsGetTelemetry | C::AdcsGetAttitude => {
-            Availability::Always
-        }
+        C::Nop
+        | C::TxDisable
+        | C::TxEnable
+        | C::KeyRotate
+        | C::GetStatus
+        | C::EpsGetTelemetry
+        | C::AdcsGetAttitude
+        | C::GetHousekeeping
+        | C::XpdrDisable => Availability::Always,
         C::SetMode | C::SetBeacon => Availability::AlsoSafe,
         C::Reset => Availability::AlsoEmergency,
         C::ClearFaults
@@ -154,7 +160,11 @@ pub const fn availability(command: Command) -> Availability {
         | C::AdcsDetumble
         | C::SetPower
         | C::PldEnable
-        | C::PldDisable => Availability::Normal,
+        | C::PldDisable
+        | C::CommissioningRelease
+        | C::XpdrEnable
+        | C::DeployRetry
+        | C::GnssRequest => Availability::Normal,
     }
 }
 

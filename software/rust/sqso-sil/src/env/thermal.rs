@@ -1119,6 +1119,14 @@ mod tests {
             c.setpoints = (5.0, 9.0);
             cases.push(c);
         }
+        for (name, att) in [
+            ("C24 cold, beta 0, SAFE tumbling, 1.30 W (16.4 V), set points +5/+9 C", Att::Tumble),
+            ("C25 cold, beta 0, SAFE spin-pointed, 1.30 W (16.4 V), set points +5/+9 C", Att::SpinPointed),
+        ] {
+            let mut c = cold(name, att, Mode::Safe, 1.30);
+            c.setpoints = (5.0, 9.0);
+            cases.push(c);
+        }
         for (name, w) in [
             ("C18 cold, beta 0, SAFE spin-pointed, mount 0.10 W/K, 0.95 W", 0.95),
             ("C19 cold, beta 0, SAFE spin-pointed, mount 0.10 W/K, 1.09 W", 1.09),

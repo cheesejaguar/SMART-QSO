@@ -29,6 +29,8 @@ typedef enum {
     CMD_SYS_CLEAR_FAULTS = 0x05, /**< CLEAR_FAULTS: Clear fault log */
     CMD_SYS_KEY_ROTATE = 0x06, /**< KEY_ROTATE: Activate spare operational key slot 0-3 and revoke the current key (recovery key only) */
     CMD_SYS_SET_CONTACT_TIMEOUT = 0x07, /**< SET_CONTACT_TIMEOUT: Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 30 at launch, 14 after commissioning: decision D3) */
+    CMD_SYS_COMMISSIONING_RELEASE = 0x08, /**< COMMISSIONING_RELEASE: Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven) */
+    CMD_SYS_GET_HOUSEKEEPING = 0x09, /**< GET_HOUSEKEEPING: Downlink a housekeeping frame (HK1) at the next opportunity */
     CMD_EPS_SET_MODE = 0x10, /**< EPS_SET_MODE: Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE */
     CMD_EPS_GET_TELEMETRY = 0x13, /**< EPS_GET_TELEMETRY: Get EPS telemetry */
     CMD_ADCS_DETUMBLE = 0x21, /**< ADCS_DETUMBLE: Start detumble */
@@ -37,12 +39,16 @@ typedef enum {
     CMD_COMM_TX_ENABLE = 0x31, /**< TX_ENABLE: Clear the latched TX-OFF */
     CMD_COMM_TX_DISABLE = 0x32, /**< TX_DISABLE: Latch TX-OFF in every state (47 CFR 97.207(b)) */
     CMD_COMM_SET_POWER = 0x33, /**< SET_POWER: Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the downlink, downlink.h) */
+    CMD_COMM_XPDR_ENABLE = 0x34, /**< XPDR_ENABLE: Allow the FM transponder (persisted); its power and duty gates still apply */
+    CMD_COMM_XPDR_DISABLE = 0x35, /**< XPDR_DISABLE: Stop the FM transponder (persisted); beacon and telecommand unaffected */
     CMD_PLD_ENABLE = 0x40, /**< PLD_ENABLE: Enable payload */
     CMD_PLD_DISABLE = 0x41, /**< PLD_DISABLE: Disable payload */
+    CMD_DEPLOY_RETRY = 0x50, /**< DEPLOY_RETRY: Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn) */
+    CMD_GNSS_REQUEST = 0x60, /**< GNSS_REQUEST: Start a GNSS receiver session now (its power gates still apply) */
 } CmdId_t;
 
 /** Number of commands in the dictionary */
-#define CMD_DICTIONARY_COUNT 17U
+#define CMD_DICTIONARY_COUNT 23U
 
 /** Which telecommand key authenticates a command */
 typedef enum {

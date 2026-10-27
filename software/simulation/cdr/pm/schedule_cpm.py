@@ -48,8 +48,21 @@ class Task:
     succ: List[str] = field(default_factory=list)
 
 
-def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date = date(2027, 5, 31)) -> List[Task]:
+def months_before(launch: date, m: float) -> date:
+    """L - m months, as the integrator's deliverable table counts them (whole months on the day of month)."""
+    whole = int(m)
+    y, mo = launch.year, launch.month - whole
+    while mo <= 0:
+        mo += 12
+        y -= 1
+    out = date(y, mo, launch.day)
+    return out - timedelta(days=round((m - whole) * 30.44))
+
+
+def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date = date(2027, 5, 31),
+          launch: date = date(2028, 6, 1)) -> List[Task]:
     d = date
+    l8, l6, l4, l35 = (months_before(launch, m) for m in (8, 6, 4, 3.5))
     fm_pred = ("PDR", "FUND_FM") if fm_at_risk else ("CDR", "FUND_FM")
     return [
         # ---- review and design (no schematics or layouts exist: HARDWARE_READINESS_TRACKER v2.0)
@@ -78,12 +91,21 @@ def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date =
         Task("FM_INT", "FM integration (TP-INT-001 to -006)", 6 * W, ("FM_FAB", "FM_LL", "PANELS", "BATT")),
         Task("FM_FUNC", "FM comprehensive functional and day-in-the-life (TP-SYS-001, -002)", 3 * W, ("FM_INT",)),
         Task("PF_ENV", "Protoflight campaign: mass properties, vibe, TVAC + bake-out, deployment hot/cold,"
-             " EMC/self-compatibility, magnetic dipole, post-env CPT, transport", 7 * W, ("FM_FUNC",)),
-        Task("PSR", "Pre-ship review and integrator data package", 3 * W, ("PF_ENV",)),
+             " EMC/self-compatibility, magnetic dipole, post-env CPT, transport (complete by L-4 M)", 7 * W,
+             ("FM_FUNC",), deadline=l4),
+        Task("PSR", "Pre-ship review and integrator data package", 3 * W, ("ENV_REPORT",)),
+        # ---- integrator deliverables (docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md §9, LVR-003, LVR-007)
+        Task("MECH", "Mechanical CAD and structural model (dynamic model, mass properties ±15 %)", 10 * W, ("PDR",)),
+        Task("MA_IN", "Mission-analysis inputs to the integrator (L-8 M: CAD, dynamic model, webforms)", 2 * W,
+             ("MECH", "CONTRACT"), deadline=l8),
+        Task("SDHS", "Hazardous-systems declaration and 91-710 letter (L-6 M)", 4 * W, ("CDR", "CONTRACT"), deadline=l6),
+        Task("ENV_REPORT", "Environmental verification report on the SpaceX template (L-3.5 M)", 1 * W, ("PF_ENV",),
+             deadline=l35),
         # ---- launch contract (decision D7)
+        Task("ENTITY", "Contracting legal entity in place (ORBITAL_ACCESS DP-1)", 8 * W, deadline=d(2026, 12, 31)),
         Task("RFQ", "Integrator requests for quotes (D7: by 2026-12-31)", 9 * W, deadline=d(2026, 12, 31)),
         Task("QUOTES", "Quotes, evaluation, selection", 8 * W, ("RFQ",)),
-        Task("NEGOT", "Contract negotiation, altitude clause, export terms", 12 * W, ("QUOTES",)),
+        Task("NEGOT", "Contract negotiation, altitude clause, export terms", 12 * W, ("QUOTES", "ENTITY")),
         Task("CONTRACT", "Contract signature and deposit (D7: by 2027-06-30); launch-vehicle determination", 0,
              ("NEGOT", "FUND_FM"), deadline=d(2027, 6, 30)),
         Task("EXPORT", "Export counsel; TAA if the integrator is foreign (3-6 months, R15)", 20 * W, ("CONTRACT",)),
@@ -96,7 +118,7 @@ def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date =
         Task("FCC_PRE", "FCC 97.207(g)(1) pre-space notification (<= 30 d after LV determination)", 4 * W,
              ("CONTRACT", "IARU_REQ", "DAS")),
         # ---- delivery
-        Task("DELIVER", "Delivery to the integrator", 0, ("PSR", "IARU", "FCC_PRE", "EXPORT")),
+        Task("DELIVER", "Delivery to the integrator", 0, ("PSR", "IARU", "FCC_PRE", "EXPORT", "MA_IN", "SDHS")),
     ]
 
 
@@ -125,7 +147,7 @@ def solve(ts: List[Task], finish: date) -> Dict[str, Task]:
     end = (finish - TODAY).days
     for tid in reversed(order):
         t = by[tid]
-        t.lf = min([by[s].ls for s in t.succ] + [end])
+        t.lf = min([by[s].ls for s in t.succ] + [end] + ([(t.deadline - TODAY).days] if t.deadline else []))
         t.ls = t.lf - t.days
     return by
 
@@ -153,18 +175,19 @@ def months(a: date, b: date) -> float:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--launch", default="2028-06-01", help="target launch date (default %(default)s)")
-    ap.add_argument("--delivery-days", type=int, default=60, help="delivery to integrator before launch")
+    ap.add_argument("--delivery-days", type=int, default=50,
+                    help="delivery to integrator before launch (LAUNCH_VEHICLE_REQUIREMENTS §9: L-50 d)")
     ap.add_argument("--fm-at-risk", action="store_true", help="order FM long leads at PDR, not CDR")
     ap.add_argument("--em-funds", default="2027-01-15", help="EM funding available (default %(default)s)")
     ap.add_argument("--fm-funds", default="2027-05-31", help="FM and launch funding (default %(default)s)")
     a = ap.parse_args()
     launch = date.fromisoformat(a.launch)
     deliver = launch - timedelta(days=a.delivery_days)
-    integ = launch - timedelta(days=45)
-    by = solve(tasks(a.fm_at_risk, date.fromisoformat(a.em_funds), date.fromisoformat(a.fm_funds)), deliver)
+    integ = launch - timedelta(days=47)
+    by = solve(tasks(a.fm_at_risk, date.fromisoformat(a.em_funds), date.fromisoformat(a.fm_funds), launch), deliver)
 
     print(f"Launch {launch}, delivery to integrator {deliver} (L-{a.delivery_days} d), "
-          f"dispenser integration about {integ} (L-45 d)")
+          f"dispenser integration about {integ} (L-47 d)")
     print(f"{'ID':9s} {'early start':11s} {'early finish':12s} {'late finish':11s} {'float':>6s}  task")
     for t in sorted(by.values(), key=lambda t: (t.es, t.tid)):
         flag = " *" if t.lf - t.ef <= 0 else ""
@@ -175,9 +198,14 @@ def main() -> None:
         elif t.deadline:
             print(f"   {t.tid} finishes {day(t.ef)}, deadline {t.deadline}: {(t.deadline - day(t.ef)).days} d to spare")
     d = by["DELIVER"]
-    flt = d.lf - d.ef
-    chain = critical_chain(by, "DELIVER")
-    print(f"\nEarliest delivery {day(d.ef)}; required {deliver}; total float on the critical path {flt} d"
+    # margin of the flight-hardware chain: the protoflight campaign (L-4 M), its report (L-3.5 M), the
+    # integrator inputs and the delivery; the administrative deadlines (RFQ, entity) are reported above
+    hw = [by[k] for k in ("PF_ENV", "ENV_REPORT", "MA_IN", "SDHS", "DELIVER")]
+    worst = min(hw, key=lambda t: (t.lf - t.ef, -t.ef))
+    flt = worst.lf - worst.ef
+    chain = critical_chain(by, worst.tid)
+    print(f"\nDelivery float {d.lf - d.ef} d; least float {flt} d at {worst.tid} ({worst.name})")
+    print(f"Earliest delivery {day(d.ef)}; required {deliver}; total float on the critical path {flt} d"
           f" ({flt / 7:.1f} weeks)")
     print("Critical path: " + " -> ".join(chain))
     # regulatory windows
@@ -189,11 +217,12 @@ def main() -> None:
           f" (roadmap: >= 12 months; T-18 months target)")
     # GOLD Rule 1.06 margin
     it_start = day(by["FM_INT"].es)
-    need = months(TODAY, it_start) / 12 * 1.0 + months(it_start, deliver) / 12 * 2.0
+    bind = day(worst.lf)   # the binding deadline of the flight-hardware chain
+    need = months(TODAY, it_start) / 12 * 1.0 + months(it_start, bind) / 12 * 2.0
     need_wk = need * 30.44 / 7
     ship_to_launch = months(deliver, launch) * 7 / 7  # weeks: 1 week per month
-    print(f"GOLD 1.06 margin wanted to delivery: {need:.1f} months ({need_wk:.1f} weeks) = 1 mo/yr to I&T start"
-          f" {it_start} + 2 mo/yr I&T to ship; plus {ship_to_launch:.1f} weeks ship-to-launch held by the integrator")
+    print(f"GOLD 1.06 margin wanted to the binding deadline {bind}: {need:.1f} months ({need_wk:.1f} weeks) ="
+          f" 1 mo/yr to I&T start {it_start} + 2 mo/yr I&T to that deadline; plus {ship_to_launch:.1f} weeks ship-to-launch held by the integrator")
     print(f"Margin available {flt / 7:.1f} weeks -> shortfall {need_wk - flt / 7:.1f} weeks"
           if flt / 7 < need_wk else f"Margin available {flt / 7:.1f} weeks -> meets the rule")
 

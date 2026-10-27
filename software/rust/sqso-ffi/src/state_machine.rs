@@ -34,10 +34,13 @@ pub struct SmTransition {
 }
 
 /// Guard: ACTIVE powers the payload, so the battery and the payload guard
-/// must allow it
+/// must allow it, and the commissioning hold must have been released
+/// (`ops_state.h`, LV-01: until then the mode is capped at IDLE, for the
+/// mode manager's own events and the ground's SET_MODE alike)
 extern "C" fn guard_active_allowed() -> bool {
     // SAFETY: C accessors without pointer arguments
     unsafe { c::eps_get_soc() >= mode::SOC_PAYLOAD && c::payload_guard_may_enable(c::now_ms()) }
+        && !crate::ops_state::ops_commissioning_hold()
 }
 
 fn guard(g: Guard) -> bool {

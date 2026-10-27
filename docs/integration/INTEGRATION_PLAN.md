@@ -266,8 +266,9 @@ Week 9-16: Flight Unit Assembly
 
 ## 8. Schedule
 
-Dates are the early dates of the critical-path schedule (`mission/SCHEDULE.md`, SQSO-SCH-001), for a 2028-06-01
-launch; the relative (T+n) schedule of Revision A is withdrawn.
+Dates are the early dates of the critical-path schedule (`mission/SCHEDULE.md`, SQSO-SCH-001); the relative (T+n)
+schedule of Revision A is withdrawn. The protoflight campaign must end by L − 4 months, which a 2028-06-01 launch
+misses by 21 days; the schedule recommends planning on a launch around 2028-11.
 
 | Phase | Duration | Start | End |
 |-------|----------|-------|-----|
@@ -279,8 +280,9 @@ launch; the relative (T+n) schedule of Revision A is withdrawn.
 | FM integration (TP-INT-001 to -006) | 6 weeks | 2027-11-02 | 2027-12-14 |
 | FM comprehensive functional and day-in-the-life | 3 weeks | 2027-12-14 | 2028-01-04 |
 | Protoflight environmental campaign | 7 weeks | 2028-01-04 | 2028-02-22 |
-| Pre-ship review and delivery data package | 3 weeks | 2028-02-22 | 2028-03-14 |
-| Delivery to the integrator (latest, L−60 days) | — | — | 2028-04-02 |
+| Environmental verification report (integrator template) | 1 week | 2028-02-22 | 2028-02-29 |
+| Pre-ship review and delivery data package | 3 weeks | 2028-02-29 | 2028-03-21 |
+| Delivery to the integrator (L − 50 days) | — | — | 2028-04-12 for June 2028; about 2028-09-12 for November 2028 |
 
 The FM integration start is on the critical path; it waits for the FM COTS buys ordered at the CDR (12 weeks).
 

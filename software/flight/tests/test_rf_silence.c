@@ -148,17 +148,20 @@ static void test_completion_persists(void **state)
     assert_radiating_allowed();
 }
 
-/** Stowing a completed unit (re-integration while powered) re-arms it */
-static void test_stowed_after_completion_rearms(void **state)
+/** Once served, the silence is latched: a sense line reading stowed later
+ *  (in orbit, a failed switch or line) does not restart it (LV-15). Only
+ *  GSE ARM re-arms a completed unit (test_arm_resets_completed_unit) */
+static void test_stowed_after_completion_stays_complete(void **state)
 {
     (void)state;
     advance_minutes(45U);
     hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);
     rf_silence_tick(MINUTE_MS);
-    assert_silent();
-    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);
-    advance_minutes(45U);
     assert_radiating_allowed();
+    assert_int_equal(rf_silence_get_state(), RF_SILENCE_COMPLETE);
+    advance_minutes(60U);
+    assert_radiating_allowed();
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);
 }
 
 /** GSE ARM makes the next deployment silent again. ARMED does not count
@@ -277,7 +280,7 @@ int main(void)
         cmocka_unit_test_setup(test_power_loss_restarts, setup),
         cmocka_unit_test_setup(test_switch_toggle_restarts, setup),
         cmocka_unit_test_setup(test_completion_persists, setup),
-        cmocka_unit_test_setup(test_stowed_after_completion_rearms, setup),
+        cmocka_unit_test_setup(test_stowed_after_completion_stays_complete, setup),
         cmocka_unit_test_setup(test_arm_resets_completed_unit, setup),
         cmocka_unit_test_setup(test_corrupt_record_is_armed, setup),
         cmocka_unit_test_setup(test_tx_enable_cannot_shorten_silence, setup),

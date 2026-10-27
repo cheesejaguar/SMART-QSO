@@ -26,7 +26,7 @@ const DEVICE_ID: [u8; 9] = [0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0xC2, 0x25, 0x08
 const CAPACITY: u32 = 256 * 1024;
 
 /// (address, size) per `HalFlashRegion_t`
-const REGIONS: [(u32, usize); 11] = [
+const REGIONS: [(u32, usize); 12] = [
     (0x0_0400, 512),  // MISSION_DATA (mission data A)
     (0x0_0000, 256),  // EPS_CONFIG (boot configuration A)
     (0x2_0000, 512),  // SENSOR_CONFIG (extended storage)
@@ -38,6 +38,7 @@ const REGIONS: [(u32, usize); 11] = [
     (0x0_C700, 256),  // CONTACT (loss-of-contact records)
     (0x0_C800, 128),  // RF_SILENCE
     (0x0_C880, 128),  // DEPLOYMENT
+    (0x2_0600, 128),  // OPS (commissioning hold, transponder enable; extended storage)
 ];
 
 const _: () = {

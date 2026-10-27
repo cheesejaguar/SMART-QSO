@@ -1,8 +1,8 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.6 (Draft)
-**Date**: 2026-10-15
+**Version**: 0.7 (Draft)
+**Date**: 2026-10-27
 **Status**: Draft. Implemented and tested in the host simulation. Not yet run on target hardware (Section 10).
 
 ## 1. Purpose
@@ -23,7 +23,8 @@ Where this document conflicts with SQSO-ICD-005 (`ICD_SPACE_GROUND.md`) or `docs
 | 47 CFR 97.207(b) | A space station must have a means to cease transmissions by telecommand whenever the FCC orders it | `TX_DISABLE` (0x32) latches the transmitter off in every operating state. It is still accepted when no key is usable (Section 6) |
 | ITU RR 22.1 | Space stations must be able to cease emissions immediately by telecommand | Same as above |
 | 47 CFR 97.211(b) | Telecommand to a space station may use codes that obscure meaning | The uplink is authenticated with a message authentication code. Nothing is encrypted, no key material is ever sent over RF, and the downlink stays in the clear (97.113(a)(4)) |
-| 47 CFR 97.211(a) | Only designated telecommand stations may send telecommand | Only holders of a key can produce an accepted command. The stations themselves are still to be designated (finding RG-03) |
+| 47 CFR 97.211(a) | Only designated telecommand stations may send telecommand | Only holders of a key can produce an accepted command. The stations themselves are still to be designated (finding RG-03): at least two, by 2027-01-05 (`docs/ground/GROUND_STATION_DESIGN.md` §3; REGULATORY_ROADMAP F13) |
+| 47 CFR 97.313(f); 2.106 US270 | 70 cm power near listed military radars | The Bay Area site is within 240 km of Beale AFB: 50 W PEP unless the antenna's lower half-power point stays above 10° elevation (up to 611 W ERP). Ground-station matter (SQSO-GND-001 §3) |
 
 ## 3. Uplink Framing
 
@@ -108,6 +109,32 @@ MAC input = "SQSO-TC-v1" | cmd_id (1 B) | N (1 B) | counter (4 B, BE) | args (N 
 2. **Reserve first.** `telecommand_builder.py --counter-file` writes and fsyncs the counter before producing the frame. A crash can skip a counter but never reuse one.
 3. **All telecommand stations must draw counters from one shared sequence per key.** The onboard window is strictly monotonic, so splitting the counter range between stations does not work.
 4. **Lost frames.** If a frame is lost, send the next command with a new counter. Never re-send a frame with the same counter.
+5. **Doppler.** Telecommand stations pre-correct the uplink to within ±1 kHz of the spacecraft receiver frequency.
+   Uncorrected, the 435 MHz Doppler (up to ±10.4 kHz) takes the signal outside the receiver's ±7.5 kHz filter and
+   nothing decodes (SQSO-LBA-001 v3.0 §3.2, §4.4).
+
+#### 5.2.1 Two or more stations: counters from UTC (proposed)
+
+Rule 3 above makes every station depend on one shared counter file, which is a single point of failure for the
+loss-of-contact inhibit: the contact analysis (SQSO-GND-001 §5) shows that common-mode ground outages, not the link,
+dominate the risk of tripping the 14-day inhibit. The onboard rule needs only that each accepted counter exceed the
+last, so the stations can derive counters from time instead of sharing a file:
+
+```
+counter = 4 × (UTC seconds since 2028-01-01T00:00:00Z) + station_index      (station_index 0–3)
+```
+
+- Strictly increasing across stations as long as their clocks agree to better than the time between two stations'
+  commands (passes from different sites are hours apart; GNSS or NTP time to ±1 s is ample). Two stations in the same
+  second differ in the low bits.
+- 2³² / 4 s is 34 years, so the counter cannot run out in the mission; the exhaustion rule (§5.1 rule 2) is untouched.
+- A station whose clock runs fast burns counter space ahead of the others; its commands still pass, and the others'
+  are rejected (`AUTH_FAIL`, counter not consumed) until real time catches up, which shows at once in the result.
+  The station checks its clock against GNSS before each pass.
+- No flight-software change. Ground-tool change: `telecommand_builder.py --counter-from-utc --station-index N`, still
+  reserving (writing and fsyncing) the value before building the frame (rule 2). For the chair: `software/ground` is
+  outside this document.
+- After `KEY_ROTATE` the new key starts at 0, so UTC-derived counters are immediately valid.
 
 ## 6. TX-OFF
 
@@ -144,7 +171,7 @@ If no authenticated telecommand is received for **N days**, every transmitter is
 | Errors make it come earlier | Each boot that finds a counter adds 60 s, so a reset loop still reaches N. A corrupt counter counts as timed out. Blank (first boot) starts at 0 |
 | Commissioning | The count starts at first boot, about 45 minutes before the RF silence ends; that difference is negligible against N. If first contact takes longer than N, the spacecraft falls silent until commanded. That is intended, and operations must plan for it |
 | Passivation (M) | Not implemented. Proposed: after a further 180 days inhibited, never in the first year after launch, permanent passivation (BASELINE §7). For the FCC consultation (D3) |
-| Not implemented | The M-day autonomous end-of-mission passivation in IARU 7.9 and ODAR 4.4-2. It is irreversible, needs the passivation hardware path (SYS-800), and is a larger decision than D3 |
+| Not implemented | The M-day autonomous end-of-mission passivation in IARU 7.9 and ODAR 4.4-2. It is irreversible, needs the passivation hardware path (SYS-800), and is a larger decision than D3. The telecommanded passivation is §6.4 |
 
 ### 6.3 Post-Deployment RF Silence
 
@@ -167,6 +194,25 @@ No RF signal may be generated or transmitted until 45 minutes after deployment, 
 
 `rf_control` combines three independent inhibits: the TX-OFF latch, loss of contact, and RF silence. The transmitter is enabled only when all three are clear. Only the silence removes radio power.
 | Target | `contact_monitor_tick()` needs a monotonic time source. `smart_qso_now_ms()` is not implemented on target yet (SW-01) |
+
+### 6.4 End-of-Life Passivation by Telecommand (proposed, not implemented)
+
+BASELINE §5 and the pre-space notification (97.207(g)(1)(iii)) say the battery charge path is permanently
+disconnected at end of life and the transmitters disabled. **No telecommand does this today:** the command dictionary
+(Section 7) has no passivation command; the mission simulation fires a modelled passivation latch when its end-of-life
+`TX_DISABLE` is delivered (`software/rust/sqso-sil/src/mission.rs`), which the flight software does not have. Proposed
+design, for a change request (flight software and EPS are outside this document):
+
+| Item | Proposal |
+|------|----------|
+| Commands | `PASSIVATE_ARM` (0x34, operational key, 4-byte argument: the ASCII arming code `EOL!`) then `PASSIVATE_EXECUTE` (0x35, **recovery key**, no argument) within 600 s of the arm, in the same contact. Two keys from two custodians: the two-person rule for an irreversible act |
+| Order of execution | `TX_DISABLE` latch first (Section 6), then the EPS non-resettable charge-disconnect (SYS-800, EPS design), then the loads are left on to discharge the pack. The receiver goes dark when the pack is exhausted |
+| Allowed states | Every state except BOOT; refused in the first 365 days after deployment unless the arm argument is `EOL!` and a GSE-set flag allows early passivation (none by default) |
+| Telemetry | The beacon carries `M=PASSIVE` between the arm and the execute; arming times out silently |
+| Verification | Test on the EM with a sacrificial charge-disconnect device; the latch is proven non-resettable by power cycling and by every telecommand |
+
+Until this is implemented, the pre-space notification must not claim passivation by telecommand
+(`docs/regulatory/filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md` Rev A.1, (iii)).
 
 ## 7. Command Dictionary
 
@@ -319,6 +365,9 @@ Procedure:
 | **SET_POWER applied to the PA** | **Not implemented.** The level is persisted and reported; the actuator interface is TBD in the RF design |
 | FRAM driver for `FLASH_REGION_AUTH` and `FLASH_REGION_RF_CONTROL` | Allocated in SQSO-OBC-002 §3.3; simulation HAL only |
 | Station call sign | `KK6GDB-11` (licensee KK6GDB, decision D1) |
+| Designated telecommand stations | **None agreed** (D1); at least two by 2027-01-05 |
+| Passivation telecommand (§6.4) | **Not implemented**; proposed design only |
+| Counters from UTC for several stations (§5.2.1) | Proposed; ground tool only |
 | Loss-of-contact N and M | N: mechanism implemented; value a placeholder (D3). M (autonomous passivation): **not implemented** |
 | Monotonic time source on target | **Not implemented** (SW-01); the loss-of-contact and RF-silence timers depend on it |
 | Reset-cause register read on target (`hal_reset.h`) | **Not implemented**; simulation only |
@@ -391,3 +440,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.5 | 2026-10-15 | GSE 0x04 renamed ARM_FLIGHT: arms the RF silence and the deployment sequence together |
 | 0.6 | 2026-10-16 | OBC-to-RF ICD cited by its own number, SQSO-ICD-003 (was SQSO-ICD-005, the Space-to-Ground ICD), and the OBC GPIO table by its new location after the OBC design merge (finding PI-17). No technical change |
 | 0.6, note | 2026-10-24 | The C files named in §6, §7 and §10 were ported to Rust; references now name the Rust files (`software/rust/README.md`). The test suites named are unchanged and run against the Rust. No content change |
+| 0.7 | 2026-10-27 | CDR review (communications panel): telecommand-station status and the 70 cm power limit near Beale AFB (§2); Doppler pre-correction rule (§5.2 rule 5); UTC-derived counters for several stations (§5.2.1, proposed); end-of-life passivation by telecommand (§6.4, proposed: no such command exists, which the pre-space notification must reflect); status rows (§10) |

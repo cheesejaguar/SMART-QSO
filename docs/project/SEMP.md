@@ -80,7 +80,7 @@ decisions in `docs/hardware/BUILD_VS_BUY.md`. A decision changes the baseline on
 
 Tailored life cycle and products per review: `docs/project/CDR_CRITERIA_MATRIX.md` §2. Summary: independent PDR
 (NPR 7123.1D Table G-6) on 2027-01-12; independent CDR (Table G-7) on 2027-08-03 after the EM tests; test readiness
-before the protoflight campaign (2028-01); pre-ship review (2028-03-14); post-launch assessment. A combined PDR/CDR is
+before the protoflight campaign (2028-01); pre-ship review (2028-03-21 earliest); post-launch assessment. A combined PDR/CDR is
 not used (§2.2 of that document).
 
 ### 3.3 Technical performance measures
@@ -98,7 +98,7 @@ Updated 2026-10-27. Each value cites its controlled analysis; "not measured" unt
 | Jetson heat path | ≥ 1 W/K (SYS-603) | About 0.44 W/K for the documented stack (finding TB-07) | −56 % | Not met by the documented design; VI-01 |
 | Sun-pointing (+Y within 15° of the Sun) | ≥ 90 % of sunlit time (SYS-422) | 100 % in the Monte Carlo of the flight code (BASELINE §8) | +10 points | Met by analysis |
 | Detumble from 10°/s | ≤ 3 orbits (SYS-420) | Monte Carlo of the flight code (BUILD_VS_BUY §6) | — | Met by analysis; HIL pending |
-| Schedule float to delivery | ≥ 8.0 weeks (GOLD Rule 1.06) | 2.7 weeks (`mission/SCHEDULE.md`) | −5.3 weeks | Not met |
+| Schedule float to the integrator's L − 4 month milestone | ≥ GOLD Rule 1.06 margin (6.6 weeks for June 2028) | −3.0 weeks for June 2028; +18.6 weeks for November 2028 (`mission/SCHEDULE.md`) | −9.6 weeks (June) | Not met for June 2028 |
 
 Version 1.x listed a "current" beacon interval of 30 s and an AI latency TPM of 10 s; both were superseded by the
 baseline.
@@ -153,7 +153,7 @@ funding timing, key person, launch capacity, regulatory timing (R11-R19).
 |----------|----------------|----------|
 | Functional | PDR (2027-01-12) | BASELINE parameters, MRD, system requirements, ConOps |
 | Allocated | CDR (2027-08-03) | Software requirements, design, ICDs, build-to package |
-| Product | Pre-ship review (2028-03-14) | As-built configuration, flight image, test reports |
+| Product | Pre-ship review (2028-03-21 earliest) | As-built configuration, flight image, test reports |
 
 (Version 1.0 placed the functional baseline at the PDR and the allocated at the CDR in one table and at the SRR/PDR in
 another; this table and the CM plan now agree.)
@@ -189,7 +189,7 @@ Interface changes go through the change request log; interface verification is p
 | TBD/TBR closure | Each item with a dated closure; none open at the CDR that blocks fabrication | Monthly | Counted by `scripts/tbd_register.py` |
 | RID closure | All severity 1 and 2 before the next gate | Per review | See `docs/project/CDR_CRITERIA_MATRIX.md` §6 |
 | TPM status | All meet requirement at the CDR | Monthly | Three not met (§3.3) |
-| Schedule float | ≥ GOLD Rule 1.06 margin | Monthly | 2.7 of 8.0 weeks |
+| Schedule float | ≥ GOLD Rule 1.06 margin | Monthly | −3.0 weeks (June 2028); 18.6 of 10.2 weeks (November 2028) |
 
 ---
 

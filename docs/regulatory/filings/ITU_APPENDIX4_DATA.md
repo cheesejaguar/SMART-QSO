@@ -2,8 +2,8 @@
 ## Non-GSO Amateur-Satellite Network "SMART-QSO"
 
 **Document Number:** SQSO-REG-017
-**Revision:** A (draft)
-**Date:** 2026-10-14
+**Revision:** A.1 (draft)
+**Date:** 2026-10-27
 **Purpose:** Source data for the SpaceCap electronic filing that the FCC submits to the ITU Radiocommunication Bureau
 under RR Articles 9 (advance publication) and 11 (notification), as required for the pre-space notification
 (47 CFR 97.207(g)(1)). The IARU states that ITU registration in the amateur-satellite service is offered "without any
@@ -44,9 +44,9 @@ fee of cost recovery" (IARU coordination instructions).
 | Frequency band | 144–146 MHz amateur-satellite allocation; IARU satellite sub-band 145.800–146.000 MHz | same transmitter, same assigned frequency |
 | Assigned frequency | `[IARU-coordinated, e.g. 145.9xx]` MHz | same |
 | Necessary bandwidth / emission | **16K0F3E** (FM telephony; peak deviation 5 kHz, max audio 3 kHz: Bn = 2M + 2D = 16 kHz) | **10K4F2D** (1200 bps AFSK on FM; Bell 202 tones 1200/2200 Hz, peak deviation 3 kHz: Bn = 2M + 2D = 2×2.2 + 2×3 = 10.4 kHz) |
-| Maximum transmitter output power | `[0.5–1.0]` W **(BL)** = `[−3 to 0]` dBW | same |
+| Maximum transmitter output power | 1.0 W (0 dBW) maximum, 0.5 W nominal **(BL)** | same |
 | Maximum power density | `[power − 10·log10(Bn)]` dBW/Hz (compute in SpaceCap) | same |
-| Antenna | Deployable quarter-wave monopole (tape), ~0 dBi peak, near-omnidirectional, linear polarization **(BL)** | same |
+| Antenna | ISIS AntS deployable quarter-wave tape element(s), 0 dBi peak, linear polarization (elliptical if two elements in quadrature are chosen), spinning spacecraft **(BL)**; maximum EIRP −1 dBW | same |
 | Service area | Worldwide | Worldwide |
 
 Note: one VHF transmitter carries both functions, time-multiplexed. The beacon is sent at a fixed cadence with the
@@ -56,19 +56,19 @@ transponder briefly muted; this is simpler and lower-power than a second transmi
 
 | Data | Uplink 1: FM transponder | Uplink 2: telecommand |
 |------|-------------------------|-----------------------|
-| Frequency band | 435–438 MHz (amateur-satellite) | same receiver, same frequency |
+| Frequency band | 435–438 MHz (amateur-satellite); assignment requested in 435.000–437.300 MHz, clear of the downlink's 3rd harmonic | same receiver, same frequency |
 | Assigned frequency | `[IARU-coordinated, e.g. 435.xxx]` MHz | same |
-| Emission | 16K0F3E with CTCSS access tone `[ ]` Hz | 10K4F2D (1200 bps AFSK/FM, authenticated per 97.211(b)) |
-| Receiver noise temperature | `[~1000]` K (system, Earth-facing) **(BL; confirm by radio datasheet)** | same |
-| Antenna | Deployable quarter-wave monopole for 70 cm, or the VHF antenna through a diplexer **(BL decision)**, ~0 dBi | same |
+| Emission | 16K0F3E with CTCSS access tone 67.0 Hz | 10K4F2D (1200 bps AFSK/FM, authenticated per 97.211(b)) |
+| Receiver noise temperature | 1,000 K (system, Earth-facing, at the antenna port; receiver requirement ≤ 650 K, `docs/hardware/RF_DESIGN.md` RF-P006) | same |
+| Antenna | Separate deployable quarter-wave tape element for 70 cm, no diplexer **(BL §7)**, 0 dBi peak | same |
 
 ## E. Associated Earth Stations (typical)
 
 | Data | Typical amateur user station | Telecommand station |
 |------|------------------------------|---------------------|
 | Antenna | Handheld 2-element Yagi to fixed cross-Yagi; gain 5–12 dBi | Cross-Yagi with rotator; gain ~12–14 dBi |
-| Transmit power (435 MHz) | 5–50 W | 25–100 W |
-| Receive noise temperature (145.9 MHz) | 500–1000 K | ~300 K with LNA |
+| Transmit power (435 MHz) | 5–50 W | 25–50 W PEP (50 W PEP limit within 240 km of Beale AFB, 47 CFR 2.106 US270; up to 1 kW EIRP under 97.313(f) with the antenna's lower half-power point above 10°) |
+| Receive noise temperature (145.9 MHz) | 500–1000 K | 500 K with LNA (galactic noise alone is ≈ 480 K at 146 MHz, ITU-R P.372) |
 | Location | Worldwide | `[lat/long]` ×2 |
 
 ## F. Items to Confirm Before Filing
@@ -76,7 +76,8 @@ transponder briefly muted; this is simpler and lower-power than a second transmi
 1. Coordinated frequencies from the IARU letter.
 2. Maximum transmitter power and antenna configuration from the final RF design, measured in TP-RF-002 and TP-RF-004 (occupied bandwidth must not exceed the necessary bandwidth filed).
 3. Orbit from the launch agreement (launch-vehicle determination).
-4. Whether the FCC files under the ITU's short-duration-mission procedure (WRC-19 Resolution 32) or the standard API/notification path. This is the FCC's choice, and the amateur-satellite status should be confirmed with Space Bureau staff.
+4. Whether the FCC files under the ITU's short-duration-mission procedure (Resolution 32 (WRC-19): validity ≤ 3 years, no extension; notification may accompany the API and counts as received 4 months after the API is published) or the standard API/notification path (RR 9.1: API preferably ≥ 2 years before bringing into use, which a mid-2028 launch already misses; that is allowed). Res. 32 fits the 2-year design life; ask for the standard path if an extended mission is wanted. This is the FCC's choice; confirm with Space Bureau staff in the D3 consultation.
+5. API publication takes about 2–3 months after the Bureau receives the data; the FCC's own forwarding time is to be asked. Planned submission of this data to the FCC: 2027-01-19 (REGULATORY_ROADMAP Rev B §3).
 
 ---
 
@@ -85,3 +86,4 @@ transponder briefly muted; this is simpler and lower-power than a second transmi
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial data sheet (funding audit) |
+| A.1 | 2026-10-27 | CDR review (communications panel): power and EIRP, antenna, uplink range and CTCSS tone, receiver noise temperature, telecommand-station power limits, Res. 32 and API timing |

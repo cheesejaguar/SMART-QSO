@@ -124,10 +124,10 @@ def items() -> List[Item]:
            [bar(15 / 115, (sx * R, sy * R, 0.0), "z", 113.5, 8.5) for sx in (1, -1) for sy in (1, -1)] +
            [ring(27.5 / 115, (0, 0, z), "z", 91.0, 6.0) for z in (-50.0, 50.0)],
            mga=0.044, mga_low=0.0))
-    a(Item("2", "Deployment switches (3) at the -Z rail standoffs", "3", 6.0, "E1",
-           "3 x 2 g roller-lever switches; three switches give the three physical inhibits "
+    a(Item("2", "Deployment switches (3): two in -Z rail standoffs, one in a +Z standoff", "3", 6.0, "E1",
+           "3 x 2 g roller-plunger switches; three switches give the three physical inhibits "
            "(BASELINE 4)", [box(1 / 3, (R, R, -54.0), (6, 6, 6)), box(1 / 3, (-R, -R, -54.0), (6, 6, 6)),
-                            box(1 / 3, (R, -R, -54.0), (6, 6, 6))]))
+                            box(1 / 3, (R, -R, 54.0), (6, 6, 6))]))
     a(Item("3", "Separation spring plungers (2), -Z standoffs", "2", 3.0, "E1",
            "CDS 2.2.14 (shared dispenser): < 6.7 N, stroke > 2.5 mm",
            [box(0.5, (-R, R, -54.0), (5, 5, 8)), box(0.5, (R, -R, -54.0), (5, 5, 8))]))
@@ -234,11 +234,14 @@ def items() -> List[Item]:
 #: "endmass": the recommended stack (STR-01): the battery, its mount and blanket at the -Z
 #: end, the RF board at the +Z end, so that +Y (the spin axis) is the major axis of
 #: inertia with the wings deployed.  New centre z (mm) by MEL row.
-LAYOUTS: Dict[str, Dict[str, float]] = {
+#: A float moves every primitive of the row to that centre z; a dict moves single primitives
+#: (index: new z).
+LAYOUTS: Dict[str, Dict] = {
     "ref": {},
-    "endmass": {"13": -35.0, "14": -24.0, "15": -35.0, "16": -35.0, "33": -35.0, "12": -14.0,
-                "17": -3.0, "21": 8.0, "20": 12.0, "22": 15.0, "23": 19.0, "18": 36.0,
-                "29": 44.0, "31": 46.0},
+    "endmass": {"13": -35.0, "14": -22.0, "15": -35.0, "16": -35.0, "33": -35.0,
+                "27r": {0: -19.5, 1: -19.5}, "28r": -19.5, "27c": {0: -19.5},
+                "12": -12.0, "17": -3.0, "21": 6.0, "20": 10.0, "22": 13.0, "23": 19.0,
+                "18": 36.0, "29": 45.0, "31": 47.0, "24": 46.0},
 }
 
 
@@ -249,8 +252,14 @@ def apply_layout(its: List[Item], name: str) -> List[Item]:
     for it in its:
         it = copy.deepcopy(it)
         if it.row in new:
-            dz = new[it.row] - it.prims[0].c[2]
-            it.prims = [Prim(p.kind, p.frac, (p.c[0], p.c[1], p.c[2] + dz), p.dims, p.axis) for p in it.prims]
+            v = new[it.row]
+            if isinstance(v, dict):
+                it.prims = [Prim(p.kind, p.frac, (p.c[0], p.c[1], v.get(k, p.c[2])), p.dims, p.axis)
+                            for k, p in enumerate(it.prims)]
+            else:
+                dz = v - it.prims[0].c[2]
+                it.prims = [Prim(p.kind, p.frac, (p.c[0], p.c[1], p.c[2] + dz), p.dims, p.axis)
+                            for p in it.prims]
         out.append(it)
     return out
 
@@ -404,19 +413,19 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json")
     args = ap.parse_args()
-    its = items()
     out: Dict = {}
-    for opt in ("rods", "coils"):
+    for lay, opt in (("ref", "rods"), ("ref", "coils"), ("endmass", "rods"), ("endmass", "coils")):
+        its = apply_layout(items(), lay)
         rows, cbe, pred, low = mel_table(its, opt)
         flat15 = cbe * 1.15
-        o = out[opt] = {
+        o = out[f"{lay}_{opt}"] = {
             "cbe_g": cbe, "mev_g": pred, "mev_low_g": low, "mev_flat15_g": flat15, "mga_pct": (pred / cbe - 1) * 100,
             "margin_cds_pct": margin(CDS_LIMIT_G, pred), "margin_cds_low_pct": margin(CDS_LIMIT_G, low),
             "margin_nova_pct": margin(NOVA_LIMIT_G, pred), "margin_nrcsd_pct": margin(NRCSD_LIMIT_G, pred),
             "rows": rows,
         }
-        print(f"\n=== MEL, magnetorquer option: {opt} ===")
-        for r in rows:
+        print(f"\n=== layout {lay}, magnetorquer option: {opt} ===")
+        for r in (rows if lay == "ref" else []):
             print(f"{r[0]:>4} {r[1][:70]:70s} {r[3]:7.1f} g {r[4]:4s} {r[5]*100:5.1f}% {r[6]:7.1f} g")
         print(f"CBE {cbe:.1f} g  MEV {pred:.1f} g (MGA {o['mga_pct']:.1f} %)  low-growth MEV {low:.1f} g  "
               f"flat 15 % {flat15:.1f} g")

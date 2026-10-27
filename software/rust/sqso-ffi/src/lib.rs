@@ -85,6 +85,7 @@ pub mod input_validation;
 pub mod jetson_link;
 pub mod mission_data;
 pub mod nvm_record;
+pub mod ops_state;
 pub mod payload_guard;
 pub mod rf_control;
 pub mod rf_silence;

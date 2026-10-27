@@ -24,8 +24,10 @@ pre-PDR, with no independent review held (BASELINE §1).
 Recommendation (§2.3): treat this panel as an independent **pre-PDR technical assessment**; hold an independent
 **PDR** against Table G-6 on 2027-01-12 once this review's RIDs are closed and EM schematic capture is done; hold the
 **CDR** against Table G-7 on 2027-08-03 with the engineering-model test results, before flight-model fabrication. Those
-dates are the early dates of the critical-path schedule (`mission/SCHEDULE.md`), which has 2.7 weeks of float to a
-2028-06-01 launch, against about 8 weeks of margin wanted by GSFC practice.
+dates are the early dates of the critical-path schedule (`mission/SCHEDULE.md`). Against the integrator's deliverable
+dates (`docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` §9), **a 2028-06-01 launch is not achievable**: the protoflight
+campaign ends 21 days after the L − 4 month milestone (2028-02-01), 9.6 weeks short of the GSFC margin. A launch around
+2028-11 has 18.6 weeks of float against 10.2 wanted; the reviewer recommends planning on it.
 
 ## 1. Governing NASA Framework
 
@@ -190,11 +192,11 @@ funding-audit findings are cited as "finding" followed by their ID, because the 
 |---|-----------------------------------|--------|----------|-----|
 | 1 | Detailed design expected to meet the requirements with adequate margins | Not met | No detailed design; mass margin 0-4 % (requirement ≥ 9 % at PDR in `SEMP.md`), tumbling power −0.9 % against SYS-100, Jetson heat path 0.44 against 1 W/K | SE-01, SE-07 |
 | 2 | ICDs mature enough to proceed to fabrication | Not met | Internal ICDs exist; the launch ICD is not signed (contract by 2027-06-30); pin map provisional (`software/rust/firmware/src/gpio.rs`) | SE-05 |
-| 3 | Cost and schedule credible and within constraints | Met with action | Dated critical path (`mission/SCHEDULE.md`); ROM without quotes; float 2.7 weeks against about 8 weeks wanted; funding not committed (R11) | PM-05, PM-06 |
+| 3 | Cost and schedule credible and within constraints | Met with action | Dated critical path (`mission/SCHEDULE.md`); ROM without quotes; float −21 days to the integrator's L − 4 month milestone for a June 2028 launch, +130 days for November 2028; funding not committed (R11) | PM-05, PM-06 |
 | 4 | High confidence in the product baseline; documentation ready for fabrication | Not met | No product baseline; CM plan had no tags or baselines (`docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` v1.1 fixes the process) | PM-04 |
 | 5 | Verification and validation requirements and plans complete | Met with action | Every requirement has a method and a planned event (VCRM Rev C §3); protoflight plan with levels (ETP Rev C); 7 requirements unverifiable as written until the PI ratifies the proposed wording | VV-02, SE-04 |
 | 6 | Testing approach comprehensive; AIT, launch-site and operations planning support the next phase | Met with action | ETP Rev C §4-§5, END_TO_END_TEST_PLAN, COMMISSIONING_PLAN; facilities not booked | VV-03 |
-| 7 | Technical and programmatic margins and resources adequate | Not met | Schedule margin short by 5.3 weeks; mass and power margins below requirement; one contributor (R14) | PM-05, SE-07 |
+| 7 | Technical and programmatic margins and resources adequate | Not met | Schedule margin −9.6 weeks against GOLD Rule 1.06 for June 2028; mass and power margins below requirement; one contributor (R14) | PM-05, SE-07 |
 | 8 | Safety and mission-success risks understood and manageable | Not met | Risk register without scores, owners or dated mitigations; system safety data package a skeleton | PM-07, SE-08 |
 | 9 | SMA products show acceptable residual risk | Not met | No hardware FMEA, no system hazard analysis, no reliability re-issue | SE-08 |
 | 10 | Compliance with applicable requirements and standards demonstrated | Not met | CDS compliance matrix partly rebuilt (finding VV-14); NPR 7150.2D Appendix C mapping missing | SE-02, SE-10 |
@@ -217,7 +219,7 @@ funding-audit findings are cited as "finding" followed by their ID, because the 
 | # | PDR success criterion (summary) | Status now | To be ready by 2027-01-12 |
 |---|---------------------------------|------------|---------------------------|
 | 1 | Top-level requirements, success criteria and TPMs final and consistent | Met with action | PI ratifies the seven proposed wordings; CR-2026-007 logged |
-| 2 | Flow-down complete, verifiable, traced | Met with action | Provider IDs into SYS-900 to SYS-912 at contract; SRS methods for SRS-C* |
+| 2 | Flow-down complete, verifiable, traced | Met with action | Provider requirements traced (SYS-900 to SYS-919 to LVR-001 to LVR-114); re-check against the signed ICD; SRS methods for SRS-C* |
 | 3 | Cost and schedule credible | Met with action | Quotes for the top cost lines; funding decision dated |
 | 4 | Preliminary design meets requirements at acceptable risk | Met with action | Close the power and mass decisions (BASELINE §4-§5 notes) |
 | 5 | Interface definitions match maturity | Met with action | Pin map from the schematic capture |
@@ -252,13 +254,13 @@ change outside the reviewer's documents. The review report gives the evidence an
 | PM-02 | 3 | Review conduct: no agenda, no named reviewers, no RID dispositions or signatures | Chair |
 | PM-03 | 2 | Wrong governing-standard citations (NPR 7123.1 "Rev E", NPR 7120.5 as governing, NPR 7150.2 "Rev B", GEVS "A") | Closed by design change in the PM/SE/V&V documents; others for the chair |
 | PM-04 | 2 | No configuration baselines or tags; CM plan describes a branch model and CCB not in use | Closed by design change (`CONFIGURATION_MANAGEMENT_PLAN.md` v1.1); chair to tag at the PDR and log CR-2026-007 |
-| PM-05 | 1 | Schedule margin 2.7 weeks against about 8 weeks wanted; float negative if EM funds arrive after 2027-02-07 | Closed by analysis (`mission/SCHEDULE.md`); chair: PI decision on the planning launch date and at-risk orders |
+| PM-05 | 1 | A June 2028 launch misses the integrator's L − 4 month protoflight milestone by 21 days; earliest launch meeting the GOLD margin about 2028-09 | Closed by analysis (`mission/SCHEDULE.md`); chair: PI decision on the planning launch date and at-risk orders |
 | PM-06 | 2 | Cost ROM differs from the bottom-up test cost and the schedule | Chair (ROM owner) |
 | PM-07 | 2 | Risk register lacks scores, owners, dates and the schedule-margin and funding-timing risks | Chair (register owner) |
 | PM-08 | 2 | No procurement or supply-chain status; panels lead time 3-7 months | Closed by design change (`HARDWARE_READINESS_TRACKER.md` v2.0); orders for the chair |
 | PM-09 | 3 | Project plan, SEMP and tracker claimed reviews and a CDR that never happened | Closed by design change |
 | SE-01 | 1 | No detailed (build-to) design | Chair: project action, EM schematic capture by 2027-01-05 |
-| SE-02 | 2 | Requirements flow-down from CDS Rev 14.1, Part 97, NASA-STD-8719.14C and the provider missing | Closed by design change (MRD Rev D, SYS Rev E); provider IDs for the chair |
+| SE-02 | 2 | Requirements flow-down from CDS Rev 14.1, Part 97, NASA-STD-8719.14C and the provider missing | Closed by design change (MRD Rev D, SYS Rev E; LVR-001 to LVR-114 traced in SYS §13a) |
 | SE-03 | 2 | Requirement values contradict the baseline | Closed by design change; chair logs CR-2026-007 |
 | SE-04 | 2 | Seven requirements unverifiable until the PI ratifies the proposed wording | Chair (PI by the PDR) |
 | SE-05 | 1 | External interfaces undefined: no integrator ICD, no IARU letter | Chair (RFQs by 2026-12-31; IARU request after the PDR) |

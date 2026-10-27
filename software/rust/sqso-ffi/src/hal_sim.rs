@@ -31,7 +31,7 @@ const UART_PORT_COUNT: usize = 2;
 const UART_PORT_DEBUG: u32 = 1;
 const SPI_BUS_COUNT: usize = 2;
 const ADC_CHANNEL_COUNT: usize = 10;
-const FLASH_REGION_COUNT: usize = 11;
+const FLASH_REGION_COUNT: usize = 12;
 const RADIO_MAX_FRAME: usize = 330;
 const WDT_DEFAULT_TIMEOUT_MS: u32 = 30_000;
 const WDT_MIN_TIMEOUT_MS: u32 = 1000;
@@ -64,6 +64,7 @@ const FLASH_SIZES: [usize; FLASH_REGION_COUNT] = [
     256,  // CONTACT (loss-of-contact counter and timeout records)
     128,  // RF_SILENCE (post-deployment silence record)
     128,  // DEPLOYMENT (deployment sequence record)
+    128,  // OPS (commissioning hold and transponder enable record)
 ];
 const FLASH_TOTAL: usize = {
     let mut total = 0;

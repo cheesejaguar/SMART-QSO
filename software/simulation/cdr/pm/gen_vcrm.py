@@ -50,7 +50,7 @@ EVENT_DEF: Dict[str, Tuple[str, str]] = {
     "FMI": ("FM integration and comprehensive functional (TP-INT, TP-SYS-001)", "2027-11 to 2028-01"),
     "DITL": ("FM day-in-the-life and end-to-end (TP-SYS-002, TP-DITL-001, TP-GS-001)", "2027-12 to 2028-01"),
     "PFE": ("Protoflight environmental campaign (TP-ENV-001 to -005)", "2028-01 to 2028-02"),
-    "PSR": ("Pre-ship review: inspection and data package", "2028-03-14"),
+    "PSR": ("Pre-ship review: inspection and data package", "2028-03-21"),
     "ORB": ("On orbit: commissioning and operations (validation)", "after launch"),
 }
 
@@ -245,6 +245,11 @@ EVENTS: Dict[str, Tuple[str, str]] = {
     "SYS-912": ("CDR", "ADCS Monte Carlo at the integrator's tip-off rate"),
     "SYS-913": ("PDR", "NASA DAS 3.2.6"),
     "SYS-914": ("REG", "FCC filing record"),
+    "SYS-915": ("CDR", "Parts and materials finish review against the prohibited list"),
+    "SYS-916": ("CDR", "Structural analysis (FEM) with the provider and GEVS factors"),
+    "SYS-917": ("CDR+PFE", "Cell vent analysis; TVAC exposure of the pack"),
+    "SYS-918": ("CI+FS", "Separation-sequence test: no magnetorquer drive or burn before 120 s (RID LV-02)"),
+    "SYS-919": ("REG", "18th SDS registration record"),
 }
 
 #: Software requirements by category: prefix -> (events, procedure)

@@ -18,6 +18,12 @@
     {"name": "TX_DISABLE", "id": "0x32", "c_name": "CMD_COMM_TX_DISABLE", "min_args": 0, "max_args": 0, "key": "any", "without_key": true, "summary": "Latch TX-OFF in every state (47 CFR 97.207(b))"},
     {"name": "SET_POWER", "id": "0x33", "c_name": "CMD_COMM_SET_POWER", "min_args": 1, "max_args": 1, "key": "operational", "summary": "Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the downlink, downlink.h)"},
     {"name": "PLD_ENABLE", "id": "0x40", "c_name": "CMD_PLD_ENABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Enable payload"},
-    {"name": "PLD_DISABLE", "id": "0x41", "c_name": "CMD_PLD_DISABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Disable payload"}
+    {"name": "PLD_DISABLE", "id": "0x41", "c_name": "CMD_PLD_DISABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Disable payload"},
+    {"name": "COMMISSIONING_RELEASE", "id": "0x08", "c_name": "CMD_SYS_COMMISSIONING_RELEASE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven)"},
+    {"name": "GET_HOUSEKEEPING", "id": "0x09", "c_name": "CMD_SYS_GET_HOUSEKEEPING", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Downlink a housekeeping frame (HK1) at the next opportunity"},
+    {"name": "XPDR_ENABLE", "id": "0x34", "c_name": "CMD_COMM_XPDR_ENABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Allow the FM transponder (persisted); its power and duty gates still apply"},
+    {"name": "XPDR_DISABLE", "id": "0x35", "c_name": "CMD_COMM_XPDR_DISABLE", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Stop the FM transponder (persisted); beacon and telecommand unaffected"},
+    {"name": "DEPLOY_RETRY", "id": "0x50", "c_name": "CMD_DEPLOY_RETRY", "min_args": 1, "max_args": 1, "key": "operational", "summary": "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)"},
+    {"name": "GNSS_REQUEST", "id": "0x60", "c_name": "CMD_GNSS_REQUEST", "min_args": 0, "max_args": 0, "key": "operational", "summary": "Start a GNSS receiver session now (its power gates still apply)"}
   ]
 }

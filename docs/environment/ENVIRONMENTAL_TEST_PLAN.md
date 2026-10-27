@@ -315,8 +315,9 @@ Each test records the input and response data, the as-run procedure, photographs
 performance results, archived under `docs/integration/TEST_DATA_MANAGEMENT.md`. Success: every procedure's pass criteria
 met, every anomaly dispositioned through `docs/integration/ANOMALY_RESOLUTION.md`, and the VCRM rows of the verified
 requirements updated with the test report. A failure on the FM triggers root cause, repair and the re-test that the
-integrator and GEVS-B §2.4.2.8 require; the schedule holds 2.7 weeks of float for it on a 2028-06-01 launch
-(`mission/SCHEDULE.md`), which is less than the GOLD-rule margin.
+integrator and GEVS-B §2.4.2.8 require. The campaign must end by L − 4 months (`docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`
+§9): for a 2028-06-01 launch it is 21 days late before any re-test; for a launch around 2028-11 it has 130 days of
+float (`mission/SCHEDULE.md` §3).
 
 ---
 

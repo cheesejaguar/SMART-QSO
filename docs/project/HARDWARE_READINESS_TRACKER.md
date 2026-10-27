@@ -20,13 +20,13 @@ and at least every 30 days.
 | Design documentation | Subsystem design documents exist; block-level schematic drawings only (`hardware/diagrams/schematics/`) | — | No schematic capture or PCB layout in a CAD tool |
 | EM schematic capture | Not started | 2026-10-27 to 2027-01-05 | A designer; the OBC pin map is provisional (`software/rust/firmware/src/gpio.rs`) |
 | PDR | Not held | 2027-01-12 | This review's RIDs; schematic capture |
-| EM procurement | Not started; no RFQ sent | 2027-01-15 to 2027-04-09 | **EM funding (needed by 2027-02-07 at the latest)**; PDR |
+| EM procurement | Not started; no RFQ sent | 2027-01-15 to 2027-04-09 | **EM funding** (assumed 2027-01-15; a late-2028 launch tolerates about 2027-03-15); PDR |
 | EM boards | Not started | 2027-01-12 to 2027-04-13 | Layout |
 | EM integration and tests | Not started | 2027-04-13 to 2027-08-03 | EM hardware; facilities |
 | CDR | Not held | 2027-08-03 | EM test results |
 | FM procurement and boards | Not started | 2027-08-10 to 2027-11-02 | CDR; FM funding |
 | FM integration and protoflight tests | Not started | 2027-11-02 to 2028-02-22 | FM hardware; facilities |
-| Delivery to the integrator | — | 2028-03-14 (latest 2028-04-02) | Pre-ship review; regulatory filings |
+| Protoflight campaign end; delivery | — | 2028-02-22; 2028-03-21 (the integrator needs the campaign done by L − 4 months: missed by 21 days for June 2028) | Pre-ship review; regulatory filings |
 
 ## 3. Procurement (buy items, `docs/hardware/BUILD_VS_BUY.md`)
 
@@ -36,7 +36,7 @@ for the schedule. Prices are list prices, not quotes.
 | Item | Selected part (alternates) | Qty | Lead time | RFQ | Order | Received | Status |
 |------|----------------------------|-----|-----------|-----|-------|----------|--------|
 | 1U structure | ISIS, Pumpkin or Spacemanic 1U frame | 2 | 12 wk [A]; 1U catalogue shrinking, order early | Not sent | — | — | Not started |
-| Solar panels and deployable wings | Custom panels with AZUR 3G30A cells (DHV, Spacemanic, ISIS or Pumpkin) | 2 sets | **3-7 months, set by cell supply (BVB §2); EM and FM ordered together** | Not sent | — | — | Not started; schedule item PANELS (100 d float) |
+| Solar panels and deployable wings | Custom panels with AZUR 3G30A cells (DHV, Spacemanic, ISIS or Pumpkin) | 2 sets | **3-7 months, set by cell supply (BVB §2); EM and FM ordered together** | Not sent | — | — | Not started; schedule item PANELS (60 d float for June 2028) |
 | Antennas | ISIS AntS 1U-3U, monopole configuration | 2 | 12 wk [A] | Not sent | — | — | Not started |
 | Magnetometer | GomSpace M315 (AAC MM200, Spacemanic Lodestone) | 2 | 12 wk [A] | Not sent | — | — | Not started |
 | Magnetorquers | CubeSpace CR0002 rods, or the air-core coils (build) | 2 sets | 12 wk [A] | Not sent | — | — | Decision open (rod remanence) |
@@ -94,9 +94,9 @@ Status of the documents a build needs, as they are, not as version 1.0 claimed (
 
 | Risk | Impact | Mitigation | Status |
 |------|--------|------------|--------|
-| Solar panel lead time 3-7 months, cell supply | Schedule (100 d float) | Order EM and FM sets together after the PDR | Open |
+| Solar panel lead time 3-7 months, cell supply | Schedule (60 d float for June 2028) | Order EM and FM sets together after the PDR | Open |
 | 1U COTS catalogue shrinking (several vendors delisted 1U lines, BVB §2.1) | Part availability | RFQ three vendors per item; buy the FM item with the EM item where storage allows | Open |
-| EM funding after 2027-02-07 | Delivery misses the 2028-06-01 launch (§2 of the schedule) | Funding decision before the PDR | Open |
+| EM funding after 2027-01-15 | Each week late moves the protoflight campaign a week (`mission/SCHEDULE.md` §3) | Funding decision before the PDR | Open |
 | Export licence for the GNSS receiver (Czech) and a TAA for a foreign integrator | Schedule | Vendor handles the licence; export counsel at the contract | Open |
 
 ## 8. Actions
@@ -108,7 +108,7 @@ Status of the documents a build needs, as they are, not as version 1.0 claimed (
 | Obtain an STM32L4R5ZI development board for HIL | Flight software | 2026-11-30 | Open |
 | Find a schematic and layout designer; start the EM schematic capture | PI | 2026-11-15 | Open |
 | Request quotes from two test facilities for the ETP §4 flow and the EM tests | Test lead (PI until named) | 2027-03-31 | Open |
-| Secure EM funding | PI | 2027-01-15 (latest 2027-02-07) | Open |
+| Secure EM funding | PI | 2027-01-15 | Open |
 
 ## 9. Schedule Dependencies (critical path)
 
@@ -116,10 +116,11 @@ Status of the documents a build needs, as they are, not as version 1.0 claimed (
 EM schematic capture ─► PDR ─► EM layout ─► EM boards ─┐
                                 EM COTS buys (12 wk) ───┴─► EM integration ─► EM tests ─► CDR
 CDR ─► FM COTS buys (12 wk) ─► FM integration ─► FM functional/DITL ─► protoflight tests ─► pre-ship ─► delivery
-Solar panels EM+FM (30 wk, from the PDR) ─────────────────────────────► FM integration (100 d float)
+Solar panels EM+FM (30 wk, from the PDR) ─────────────────────────────► FM integration (60 d float)
 ```
 
-Float on the critical path: 19 days to a 2028-04-02 delivery (`mission/SCHEDULE.md` §3).
+Float on the critical path to the L − 4 month protoflight milestone: −21 days for a 2028-06-01 launch, +130 days for
+2028-11-01 (`mission/SCHEDULE.md` §3).
 
 ## 10. Weekly Status Template
 

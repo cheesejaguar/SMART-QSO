@@ -150,7 +150,7 @@ Example: v1.0.0, v0.2.0-dev, v1.0.1-rc1
 |----------|-------------|----------|-----------|---------|
 | Functional | PDR (2027-01-12) | BASELINE parameters, MRD, system requirements, ConOps | PI after the PDR | `baseline/functional-pdr` |
 | Allocated | CDR (2027-08-03) | Software requirements, design, ICDs, build-to package, ETP | PI after the CDR | `baseline/allocated-cdr` |
-| Product | Pre-ship review (2028-03-14) | As-built FM, flight image (hash), test reports, VCRM | PI after the pre-ship review | `baseline/product-psr` |
+| Product | Pre-ship review (2028-03-21 earliest) | As-built FM, flight image (hash), test reports, VCRM | PI after the pre-ship review | `baseline/product-psr` |
 
 The baseline parameters document is under change control now (BASELINE §0 rule 3), ahead of the formal functional
 baseline.

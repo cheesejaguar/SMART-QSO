@@ -7,6 +7,9 @@
 //!
 //! - transmission is permitted (TX-OFF, RF silence, loss-of-contact
 //!   inhibit: `rf_control_tx_permitted()`) and the radio is powered;
+//! - the ground allows it: no commissioning hold and no XPDR_DISABLE
+//!   (`ops_state.rs`), and no GNSS receiver session is running (the L1
+//!   receiver needs the PA off: BASELINE §5);
 //! - the mode manager is in ACTIVE, the array is sunlit and the state of
 //!   charge is at least [`SOC_PAYLOAD`] (55 %);
 //! - the PA is below [`PA_HOT_C`] (held until it cools to [`PA_COOL_C`];
@@ -78,6 +81,9 @@ const BUCKET_MS: u64 = WINDOW_MS / BUCKETS as u64;
 pub struct Inputs {
     /// Transmission permitted and the radio powered
     pub permitted: bool,
+    /// The ground allows the transponder (no commissioning hold, no
+    /// XPDR_DISABLE) and no GNSS session is running
+    pub allowed: bool,
     /// The mode manager is in ACTIVE
     pub active: bool,
     /// The array is sunlit
@@ -95,6 +101,8 @@ pub struct Inputs {
 pub enum Reason {
     /// Transmission not permitted, or the radio unpowered
     NotPermitted,
+    /// Held for commissioning, disabled by command, or a GNSS session
+    NotAllowed,
     /// Not in ACTIVE
     NotActive,
     /// In eclipse
@@ -112,6 +120,7 @@ impl Reason {
     pub const fn text(self) -> &'static str {
         match self {
             Reason::NotPermitted => "transmission not permitted",
+            Reason::NotAllowed => "held, disabled by command or GNSS session",
             Reason::NotActive => "not ACTIVE",
             Reason::Eclipse => "eclipse",
             Reason::LowSoc => "low SOC",
@@ -220,6 +229,8 @@ impl Transponder {
         }
         if !inp.permitted {
             Some(Reason::NotPermitted)
+        } else if !inp.allowed {
+            Some(Reason::NotAllowed)
         } else if !inp.active {
             Some(Reason::NotActive)
         } else if !inp.sunlit {
@@ -256,7 +267,8 @@ impl Transponder {
 mod tests {
     use super::*;
 
-    const GO: Inputs = Inputs { permitted: true, active: true, sunlit: true, soc: 0.8, pa_c: 30.0, fwd_w: 0.0 };
+    const GO: Inputs =
+        Inputs { permitted: true, allowed: true, active: true, sunlit: true, soc: 0.8, pa_c: 30.0, fwd_w: 0.0 };
 
     #[test]
     fn on_when_every_gate_holds_off_with_the_first_that_fails() {
@@ -265,6 +277,7 @@ mod tests {
         assert_eq!(x.step(1000, &GO), Change::None);
         for (inp, reason) in [
             (Inputs { permitted: false, ..GO }, Reason::NotPermitted),
+            (Inputs { allowed: false, ..GO }, Reason::NotAllowed),
             (Inputs { active: false, ..GO }, Reason::NotActive),
             (Inputs { sunlit: false, ..GO }, Reason::Eclipse),
             (Inputs { soc: SOC_PAYLOAD - 0.01, ..GO }, Reason::LowSoc),

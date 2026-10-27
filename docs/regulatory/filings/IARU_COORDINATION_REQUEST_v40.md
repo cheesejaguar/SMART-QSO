@@ -2,8 +2,8 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-REG-010
-**Revision:** A (draft, not submitted)
-**Date:** 2026-10-14
+**Revision:** A.2 (draft, not submitted)
+**Date:** 2026-10-27
 **Form:** IARU *Amateur Satellite Frequency Coordination Request* **v40** (effective 15 May 2020; "earlier versions will no longer be accepted" — https://www.iaru.org/reference/satellites/, page updated 26 Jul 2026)
 **Submit to:** satcoord@iaru.org, by the **prospective space station licensee**, as a .doc/.pdf named `smartqso_req YYMMDD` (form checklist item 1). Large files go by URL (checklist item 2).
 **Supersedes:** `docs/regulatory/IARU_COORDINATION.md` Rev A, which mis-stated the operator, mission scope and uplink (see that file's Rev B notice).
@@ -23,7 +23,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **2.3 API/A number:** `[API/A special section]`, or if not yet published: "API data sent to the FCC with the pre-space notification on `[date]`"
 
 ### 3. Licensee of the space station
-- **3.1–3.7:** `[given name, family name, call sign, licensed since, postal address, telephone, email]`
+- **3.1–3.7:** `[given name, family name]`, call sign **KK6GDB** (decision D1), `[licensed since, postal address, telephone, email]`
 - **3.8:** Licensee acknowledges publication of the request (signature/date)
 
 ### 4. Organizations
@@ -45,25 +45,25 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **5.7 Planned duration:** Commissioning ~2 weeks (beacon only); transponder operations 2 years **(BL)**; then end-of-mission passivation and natural decay (see ODAR)
 
 **Transmitting (space-to-Earth):**
-- **5.8 Frequencies and functions:** One frequency in 145.800–146.000 MHz: FM transponder downlink, time-shared with the 1200 bps AX.25 telemetry beacon. *We do not request 145.825 MHz, which carries ISS/ARISS packet and APRS digipeater traffic.*
+- **5.8 Frequencies and functions:** One frequency in 145.800–146.000 MHz: FM transponder downlink, time-shared with the 1200 bps AX.25 telemetry beacon. *We do not request 145.825 MHz, which carries ISS/ARISS packet and APRS digipeater traffic.* The 3rd harmonic of the downlink falls in 437.4–438.0 MHz; we ask that the pair keep the uplink at least 2 MHz below 3 × the downlink (see 5.14).
 - **5.9 Tuning range / step:** `[per radio datasheet, e.g. 144–146 MHz, 2.5 kHz steps]`
-- **5.10 EIRP:** `[+27 to +30]` dBm (0.5–1.0 W, 0 dBi antenna) **(BL)**
+- **5.10 EIRP:** +26 dBm at 0.5 W and +29 dBm at 1 W maximum (1 dB line loss, 0 dBi peak antenna) **(BL)**
 - **5.11 ITU emission designators:** 16K0F3E (transponder), 10K4F2D (telemetry)
 - **5.12 Common description:** FM voice transponder; 1200 bps AFSK (Bell 202) AX.25 UI frames on FM
-- **5.13 Antenna:** Deployable quarter-wave tape monopole, ~0 dBi, near-omnidirectional; attitude magnetically controlled (see 5.25)
+- **5.13 Antenna:** ISIS AntS deployable tape elements, ~0 dBi peak; one 2 m element along the spin axis, or two orthogonal 2 m elements in quadrature (final configuration `[ ]`; `hardware/rf/ANTENNA_DESIGN.md` §3). Spacecraft spins at 6°/s about the Sun-pointing axis (5.25), so the pattern null moves slowly across the sky
 
 **Receiving (Earth-to-space):**
-- **5.14 Requested receive frequency and function:** One frequency in 435–438 MHz: FM transponder uplink (CTCSS-gated) and telecommand
+- **5.14 Requested receive frequency and function:** One frequency in **435.000–437.300 MHz** (clear of the downlink's 3rd harmonic), preferably at least 2 MHz below 3 × the coordinated downlink: FM transponder uplink (CTCSS 67.0 Hz) and telecommand
 - **5.15 Tuning range / step:** `[per radio datasheet]`
 - **5.16 / 5.17 Emissions:** 16K0F3E (user uplink); 10K4F2D 1200 bps AFSK/FM (telecommand)
-- **5.18 Receiver noise temperature:** `[ ]` K (from radio datasheet)
-- **5.19 Antenna:** `[70 cm monopole or diplexed VHF monopole]` **(BL)**, ~0 dBi
+- **5.18 Receiver noise temperature:** 1,000 K system at the antenna port, budgeted (requirement ≤ 650 K for the receiver with a 290 K source; `docs/hardware/RF_DESIGN.md` RF-P006)
+- **5.19 Antenna:** separate 70 cm deployable tape element (no diplexer) **(BL)**, ~0 dBi
 
 **Other information:**
 - **5.22 Physical structure:** 1U CubeSat 100 × 100 × 113.5 mm, mass `[ ]` kg **(BL)**; deployable VHF (and UHF) monopoles; `[body-mounted / deployable]` solar panels **(BL)**. Drawings: `[repository URL]/hardware/structure/`
-- **5.23 Functional description:** OBC (low-power MCU, FreeRTOS; *note 2026-10-24: the flight software as implemented runs on the Embassy executor with no RTOS; correct before submission. Note 2026-10-25: rebaselined (BASELINE §6, CR-2026-002); before submission write "STM32L4R5ZI MCU, no RTOS"*); EPS with Li-ion battery; VHF/UHF transceiver with FM transponder mode; magnetorquer ADCS; AI payload (NVIDIA Jetson Orin Nano, power-gated, burst-only). URL: `[repo]/docs/ARCHITECTURE.md`
+- **5.23 Functional description:** OBC (STM32L4R5ZI MCU, flight software in Rust, no RTOS); EPS with a 4S Li-ion battery (≈ 50 Wh); U/v FM transponder built from the 435 MHz telecommand receiver and the 2 m transmitter, gated in hardware (CTCSS, OBC heartbeat, 120 s key-down timer); KISS TNC for the beacon and telecommand; magnetorquer ADCS; GNSS receiver; AI payload (NVIDIA Jetson Orin Nano, power-gated, burst-only). URL: `[repo]/docs/hardware/RF_DESIGN.md`, `[repo]/docs/ARCHITECTURE.md`
 - **5.24 Power budget:** `[orbit-average generation / consumption by mode]` **(BL)**. URL: `[repo]/docs/environment/POWER_BUDGET_ANALYSIS.md`
-- **5.25 Attitude stabilization:** Magnetorquer B-dot detumble, then low-rate spin/coarse sun-pointing. No precision pointing.
+- **5.25 Attitude stabilization:** Magnetorquer B-dot detumble, then spin-stabilized coarse Sun-pointing: +Y (the solar-wing normal) on the Sun, spinning at 6°/s. No precision pointing.
 - **5.26 Service area:** Worldwide
 
 ### 6. Encryption of downlink
@@ -76,32 +76,32 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **7.2 Locations:** `[lat/long]`
 - **7.3 Telecommand frequency:** the coordinated 435–438 MHz uplink frequency
 - **7.4 / 7.5 Emission:** 10K4F2D, 1200 bps AFSK on FM, AX.25 framing
-- **7.6 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` §4 (telecommand uplink: +4.7 dB at 5° elevation, 25 W, in 92 % of spacecraft orientations; analysis)
+- **7.6 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` v3.0 §6.1 (telecommand uplink, 25–50 W, 14 dBic: +7.5 dB at 5° at the median spacecraft gain; +2.3 dB at 10° at the 10th-percentile gain with a 6 dB interference allowance, +5.3 dB at 50 W; analysis). Telecommand stations pre-correct Doppler to ±1 kHz
 - **7.7 Telecommand encryption:** Commands are authenticated, not encrypted: HMAC-SHA-256 with a secret key held only by the licensee, plus a monotonically increasing command counter for replay protection (permitted by 47 CFR 97.211(b)). Command content is otherwise in the clear. Keys are loaded before launch through the umbilical; a compromised key is replaced on orbit by switching to a pre-loaded spare, so no key material is ever transmitted.
-- **7.8 How telecommand stations turn off the transmitter immediately, even with user traffic or computer failure:** A TX-OFF command is decoded by the radio/OBC command path, which removes power from the RF power amplifier through a hardware switch. This path does not depend on the AI payload or the transponder application. A second, independent path is the OBC watchdog-protected command that latches TX inhibit in non-volatile memory, so it persists across resets. Both are verified in `[TP-RF-00x]`.
+- **7.8 How telecommand stations turn off the transmitter immediately, even with user traffic or computer failure:** The receiver is always on and is not switched by any inhibit. A `TX_DISABLE` telecommand (authenticated; accepted without authentication only if no key is usable) is decoded by the on-board computer, which drives the power-amplifier supply switch off and latches the state in non-volatile memory, so it persists across resets. User traffic does not block it: the receiver hears the command channel whatever the transponder is doing. The path does not depend on the AI payload or the transponder logic, and nothing in the transponder can power the amplifier. If the computer fails, its independent watchdog resets it within about 32 s, and during a reset or with the computer unpowered the switch is held off by a pull-down. There is one command path, through the on-board computer; there is no separate decoder in the radio. Verified by TP-RF-006 (`docs/hardware/RF_DESIGN.md` VI-RF-12).
 - **7.9 Mechanism if command contact is lost:** If no valid authenticated command is received for N days, flight software inhibits the transponder and beacon (receive-only); the next authenticated command lifts the inhibit, and a reset does not. N is 30 days at launch and is set to 14 days by telecommand once commissioning is complete (settable 1–90 days). *(Proposed, subject to the FCC consultation: after a further 180 days, never within the first year after launch, the end-of-mission passivation sequence runs: battery charge path permanently disconnected, transmitter disabled. The autonomous passivation is not yet implemented.)*
 
 ### 8. Telemetry
 - **8.1 Telemetry frequency:** same as the 5.8 downlink
 - **8.2 Emission:** 10K4F2D
 - **8.3 Description:** 1200 bps AFSK AX.25 UI frames, plain ASCII
-- **8.4 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` §3 (1200 bps beacon at 0.5 W: +7.7 dB at 5° elevation for a 12 dBic station; analysis)
+- **8.4 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` v3.0 §4 (1200 bps beacon at 0.5 W: +7.6 dB at 5° elevation for a 12 dBic station at the median spacecraft gain, +0.6 dB at the 10th percentile; analysis)
 - **8.5 Format:** AX.25 UI; field definitions and engineering-unit conversions in `docs/BEACON_SPEC.md` and `docs/operations/TELEMETRY_DICTIONARY.md` (RR 25.2A). Decoder: `software/ground/beacon_decoder.py` (open source)
 
 ### 9. Launch plans
 - **9.1 Launch agency:** `[integrator]` on SpaceX Transporter `[n]` **(BL)**; backup ISS/NRCSD
 - **9.2 Launch location:** Vandenberg SFB, California `[confirm]`
 - **9.3 Expected launch date:** `[2028]`
-- **9.4–9.7 Orbit:** apogee/perigee `[475–500]` km (not above 525 km), inclination `[~97.4°]`, period `[93.6–95.1]` min
+- **9.4–9.7 Orbit:** apogee/perigee `[475–500]` km (not above 525 km), inclination `[~97.4°]`, period `[93.6–95.1]` min; descending node about 10:30 local time
 - **9.8 Other amateur satellites on the same launch:** `[if known]`
 
 ### 10. Typical transmitting earth station
 - **10.1** FM handheld or mobile transceiver, 5–50 W, on 435 MHz with a handheld 2-element Yagi (≈ 5 dBi) or cross-Yagi
-- **10.2 Link budget:** `[repo link]` (uplink closure at 5° elevation for 5 W + 5 dBi)
+- **10.2 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` v3.0 §6.2–6.3: 5 W with a handheld Yagi reaches 12 dB SINAD at the spacecraft from 5°; 5 W with a whip from about 12°
 
 ### 11. Typical receiving earth station
 - **11.1** 2 m FM receiver or SDR with a handheld Yagi or omni antenna; telemetry decoded with open-source software (Dire Wolf / SatNOGS)
-- **11.2 Link budget:** `[repo link]`
+- **11.2 Link budget:** same, §4.2–4.3: a handheld Yagi hears the transponder at 20 dB SINAD from 5°; a handheld with a whip at 12 dB SINAD from about 18°
 
 ### 12. Additional information
 - Public repository with all designs and documentation: `[URL]`
@@ -119,13 +119,13 @@ Transfer each answer below into the corresponding numbered box of the official v
 
 | # | Item | Status |
 |---|------|--------|
-| 1 | Licensee named and licensed (pathway D1) | ☐ |
+| 1 | Licensee named and licensed (pathway D1) | ☒ KK6GDB; ☐ two telecommand stations agreed (F13) |
 | 2 | AMSAT-NA/ARRL consulted (4.8–4.9) | ☐ |
 | 3 | FCC Space Bureau pre-filing consultation done (pathway D3) | ☐ |
 | 4 | Baseline RF parameters frozen (power, antenna, receiver) | ☐ |
 | 5 | Uplink link budget added to LINK_BUDGET_ANALYSIS.md | ☒ (v2.0 §4, analysis; replace assumptions with EM measurements, §7 of the budget) |
 | 6 | Telecommand authentication implemented as described in 7.7 (implemented and tested in flight-software simulation per `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`; target receiver driver and hardware test TP-RF-006 open, findings SW-02/SW-03) | ☐ |
-| 7 | TX-OFF hardware path in RF design (7.8) | ☐ |
+| 7 | TX-OFF hardware path in RF design (7.8) | ☒ designed (`docs/hardware/RF_DESIGN.md` v2.0 §3.5, SQSO-ICD-003 v2.0); ☐ built and tested (VI-RF-12) |
 | 8 | Signed by licensee | ☐ |
 
 ---
@@ -138,3 +138,4 @@ Transfer each answer below into the corresponding numbered box of the official v
 | A.1 | 2026-10-16 | Items 7.6, 8.4 and checklist item 5 cite the re-issued link budget (TB-05) |
 | A.1, note | 2026-10-24 | Item 5.23: dated note that the OBC software has no RTOS (correct before submission) |
 | A.1, note | 2026-10-25 | Item 5.23: the note gives the rebaselined text (no RTOS; BASELINE §6, CR-2026-002). Not submitted |
+| A.2 | 2026-10-27 | CDR review (communications panel): licensee call sign; uplink range 435.000–437.300 MHz and the harmonic request (5.8, 5.14); EIRP; antenna and attitude (5.13, 5.25); receiver noise temperature and antenna (5.18, 5.19); 5.23 functional description rebaselined; link-budget items to SQSO-LBA-001 v3.0 (7.6, 8.4, 10.2, 11.2); 7.8 rewritten to describe the single command path accurately (the "second, independent path" did not exist). Not submitted |

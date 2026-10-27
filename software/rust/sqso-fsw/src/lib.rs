@@ -61,6 +61,7 @@ pub mod keys;
 pub mod mission_data;
 pub mod mode;
 pub mod nvm;
+pub mod ops_state;
 pub mod payload_guard;
 pub mod payload_schedule;
 pub mod rf_control;

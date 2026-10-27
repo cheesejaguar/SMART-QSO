@@ -2,9 +2,9 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-003
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.1
+**Date:** 2026-10-27
+**Status:** Layout and fabrication guidelines for the RF board. Electrical requirements are in `docs/hardware/RF_DESIGN.md` v2.0 §2, which governs where this document differs (corrected in Version 1.1). The schematic and parts are not yet drawn or selected (RF_DESIGN §9).
 
 ---
 
@@ -20,20 +20,22 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Frequency | 145.825 MHz | 2m amateur band |
-| Modulation | AFSK | 1200 baud |
-| Output power | 0.5W / 2W | Selectable |
-| Spurious | < -50 dBc | All spurious |
-| Harmonics | 2nd < -30 dBc, 3rd < -40 dBc | |
-| Frequency stability | ±2 kHz | Over temperature |
+| Frequency | One IARU-coordinated frequency in 145.800–146.000 MHz (not 145.825 MHz) | RF-P001 |
+| Modulation | FM: AFSK 1200 bps ±3.0 kHz; voice repeat ±5.0 kHz | RF-P004 |
+| Output power | 0.5 W / 1 W (TX_PWR_SEL) | RF-P003; no 2 W level |
+| Spurious | ≤ 25 µW and ≤ −46 dBc at 1 W | 47 CFR 97.307(e) |
+| Harmonics | 2nd ≤ −46 dBc (−55 dBc design); **3rd ≤ −70 dBc** at the antenna port | RF-P008. Version 1.0's "2nd < −30 dBc, 3rd < −40 dBc" did not meet 97.307(e) |
+| Frequency stability | ±1.0 ppm over temperature (±146 Hz) | RF-P005 |
 
-### 2.2 Receiver Specifications (If Applicable)
+### 2.2 Receiver Specifications (required: the receiver is always on)
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Frequency | 435-438 MHz | 70cm amateur band |
-| Sensitivity | -115 dBm | 12 dB SINAD |
-| Selectivity | -60 dB @ ±25 kHz | Adjacent channel |
+| Frequency | One IARU-coordinated frequency in 435.000–437.300 MHz | RF-P002 |
+| Sensitivity | 12 dB SINAD at ≤ −122 dBm (C/N₀ 47.4 dB-Hz with T_sys 650 K) | RF-P006, RF-P011 |
+| Selectivity | ≥ 60 dB at ±25 kHz | RF-P010 |
+| RX filter | ≥ 60 dB at 144–146 MHz; ≥ 40 dB at 250–330 and 560–620 MHz; ≤ 1.5 dB in band | RF-P007 |
+| Full-duplex desense | ≤ 0.5 dB with the transmitter keyed at 1 W | RF-P009 |
 
 ---
 
@@ -62,7 +64,7 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 | Block | Component | Notes |
 |-------|-----------|-------|
 | Driver stage | RF transistor | +10 dBm |
-| Final stage | RF transistor | +33 dBm (2W) |
+| Final stage | RF transistor | +30 dBm (1 W) maximum |
 | Bias network | Temperature compensated | |
 | Matching network | L-match | 50Ω |
 
@@ -70,27 +72,26 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| Low-pass filter | 7-element Chebyshev | Fc = 175 MHz |
+| Low-pass filter | 7-element ladder of `TRANSMITTER_DESIGN.md` §7.3 | −3 dB at 164 MHz (analysed) |
 | Harmonic attenuation | > 40 dB @ 2nd harmonic | |
 | Insertion loss | < 0.5 dB | |
 | Return loss | > 15 dB | |
 
-### 3.5 Antenna Switch (If RX)
+### 3.5 Antenna Ports (no T/R switch)
 
-| Block | Component | Notes |
-|-------|-----------|-------|
-| TX/RX switch | RF switch IC | SP2T |
-| Isolation | > 30 dB | |
-| Insertion loss | < 0.5 dB | |
+The transponder is full duplex on separate antennas (BASELINE §7), so there is **no TX/RX switch**: the 2 m transmitter
+feeds the 2 m element through the LPF, and the 70 cm element feeds the receiver through the RX filter. Isolation comes
+from the antennas (ANT-5) and the RX filter (RF-P007). Keep the two RF paths on opposite sides of the board under
+separate shield cans.
 
 ### 3.6 Control Interface
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| SPI interface | Level shifter | To OBC |
+| UART to the TNC, discrete lines | 3.3 V CMOS | SQSO-ICD-003 §4.2 |
 | Power control | Load switch | TX power gate |
 | Temperature sensor | NTC thermistor | PA monitoring |
-| Power detector | AD8318 | Forward power |
+| Power detector | RMS detector | Forward and reflected power (TX_FWD, TX_REV; SQSO-ICD-003 §4.2) |
 
 ---
 
@@ -110,10 +111,10 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 
 | Component | Primary | Alternate | Qty |
 |-----------|---------|-----------|-----|
-| Synthesizer | ADF4351 | Si5351 | 1 |
+| Synthesizer | ADF4351-class fractional-N (check DC power against RF-P015) | Si5351 | 1 |
 | TCXO | ASTX-13 | ASVTX-13 | 1 |
 | PA transistor | RD01MUS1 | MRF101AN | 2 |
-| RF switch | PE42520 | SKY13286 | 1 |
+| RF switch | Not used (§3.5) | — | 0 |
 | LNA | BGA725 | SPF5189Z | 1 |
 | Power detector | AD8318 | LTC5507 | 1 |
 
@@ -231,11 +232,11 @@ Total:             ~1.0mm
 
 ### 8.1 Harmonics Suppression
 
-| Harmonic | Attenuation |
-|----------|-------------|
-| 2nd (291 MHz) | > 30 dB |
-| 3rd (437 MHz) | > 40 dB |
-| 4th (583 MHz) | > 50 dB |
+| Harmonic | Requirement at the antenna port (1 W) |
+|----------|---------------------------------------|
+| 2nd (291.6–292.0 MHz) | ≤ −46 dBc (−55 dBc design) |
+| 3rd (437.4–438.0 MHz) | ≤ −70 dBc (desense; SQSO-LBA-001 §7.3) |
+| 4th (583.2–584.0 MHz) | ≤ −46 dBc |
 
 ### 8.2 Spurious Control
 
@@ -262,10 +263,10 @@ Total:             ~1.0mm
 
 | Component | Max Power | Notes |
 |-----------|-----------|-------|
-| PA (2W mode) | 4W | 50% efficiency |
+| PA (1 W mode) | ≈ 1.7 W | ≈ 37 % efficiency |
 | Synthesizer | 0.3W | |
 | LNA | 0.1W | |
-| Total | 4.5W | |
+| Total | ≈ 2.1 W keyed at 1 W | |
 
 ### 9.2 Thermal Management
 
@@ -335,3 +336,4 @@ Total:             ~1.0mm
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-27 | CDR review (communications panel): transmitter and receiver specifications to RF_DESIGN v2.0 (no 2 W level, 97.307(e) spurious, 3rd harmonic ≤ −70 dBc, ±1.0 ppm, receiver sensitivity, selectivity and RX filter); no T/R switch (full duplex on separate antennas); thermal at 1 W; interface lines per SQSO-ICD-003 v2.0 |

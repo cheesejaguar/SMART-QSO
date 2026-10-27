@@ -27,6 +27,10 @@ pub enum Command {
     KeyRotate = 0x06,
     /// Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 30 at launch, 14 after commissioning: decision D3)
     SetContactTimeout = 0x07,
+    /// Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven)
+    CommissioningRelease = 0x08,
+    /// Downlink a housekeeping frame (HK1) at the next opportunity
+    GetHousekeeping = 0x09,
     /// Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE
     EpsSetMode = 0x10,
     /// Get EPS telemetry
@@ -43,15 +47,23 @@ pub enum Command {
     TxDisable = 0x32,
     /// Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the downlink, downlink.h)
     SetPower = 0x33,
+    /// Allow the FM transponder (persisted); its power and duty gates still apply
+    XpdrEnable = 0x34,
+    /// Stop the FM transponder (persisted); beacon and telecommand unaffected
+    XpdrDisable = 0x35,
     /// Enable payload
     PldEnable = 0x40,
     /// Disable payload
     PldDisable = 0x41,
+    /// Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)
+    DeployRetry = 0x50,
+    /// Start a GNSS receiver session now (its power gates still apply)
+    GnssRequest = 0x60,
 }
 
 impl Command {
     /// Every command, in ID order
-    pub const ALL: [Command; 17] = [
+    pub const ALL: [Command; 23] = [
         Command::Nop,
         Command::Reset,
         Command::SetMode,
@@ -59,6 +71,8 @@ impl Command {
         Command::ClearFaults,
         Command::KeyRotate,
         Command::SetContactTimeout,
+        Command::CommissioningRelease,
+        Command::GetHousekeeping,
         Command::EpsSetMode,
         Command::EpsGetTelemetry,
         Command::AdcsDetumble,
@@ -67,8 +81,12 @@ impl Command {
         Command::TxEnable,
         Command::TxDisable,
         Command::SetPower,
+        Command::XpdrEnable,
+        Command::XpdrDisable,
         Command::PldEnable,
         Command::PldDisable,
+        Command::DeployRetry,
+        Command::GnssRequest,
     ];
 
     /// The command with this ID, if the dictionary has one
@@ -81,6 +99,8 @@ impl Command {
             0x05 => Some(Command::ClearFaults),
             0x06 => Some(Command::KeyRotate),
             0x07 => Some(Command::SetContactTimeout),
+            0x08 => Some(Command::CommissioningRelease),
+            0x09 => Some(Command::GetHousekeeping),
             0x10 => Some(Command::EpsSetMode),
             0x13 => Some(Command::EpsGetTelemetry),
             0x21 => Some(Command::AdcsDetumble),
@@ -89,8 +109,12 @@ impl Command {
             0x31 => Some(Command::TxEnable),
             0x32 => Some(Command::TxDisable),
             0x33 => Some(Command::SetPower),
+            0x34 => Some(Command::XpdrEnable),
+            0x35 => Some(Command::XpdrDisable),
             0x40 => Some(Command::PldEnable),
             0x41 => Some(Command::PldDisable),
+            0x50 => Some(Command::DeployRetry),
+            0x60 => Some(Command::GnssRequest),
             _ => None,
         }
     }
@@ -118,6 +142,8 @@ impl Command {
             Command::ClearFaults => c"CLEAR_FAULTS",
             Command::KeyRotate => c"KEY_ROTATE",
             Command::SetContactTimeout => c"SET_CONTACT_TIMEOUT",
+            Command::CommissioningRelease => c"COMMISSIONING_RELEASE",
+            Command::GetHousekeeping => c"GET_HOUSEKEEPING",
             Command::EpsSetMode => c"EPS_SET_MODE",
             Command::EpsGetTelemetry => c"EPS_GET_TELEMETRY",
             Command::AdcsDetumble => c"ADCS_DETUMBLE",
@@ -126,8 +152,12 @@ impl Command {
             Command::TxEnable => c"TX_ENABLE",
             Command::TxDisable => c"TX_DISABLE",
             Command::SetPower => c"SET_POWER",
+            Command::XpdrEnable => c"XPDR_ENABLE",
+            Command::XpdrDisable => c"XPDR_DISABLE",
             Command::PldEnable => c"PLD_ENABLE",
             Command::PldDisable => c"PLD_DISABLE",
+            Command::DeployRetry => c"DEPLOY_RETRY",
+            Command::GnssRequest => c"GNSS_REQUEST",
         }
     }
 
@@ -141,6 +171,8 @@ impl Command {
             Command::ClearFaults => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::KeyRotate => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Recovery, without_key: false },
             Command::SetContactTimeout => CommandSpec { min_args: 2, max_args: 2, key: KeyClass::Operational, without_key: false },
+            Command::CommissioningRelease => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::GetHousekeeping => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::EpsSetMode => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
             Command::EpsGetTelemetry => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::AdcsDetumble => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
@@ -149,8 +181,12 @@ impl Command {
             Command::TxEnable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::TxDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Any, without_key: true },
             Command::SetPower => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
+            Command::XpdrEnable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::XpdrDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::PldEnable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::PldDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
+            Command::DeployRetry => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
+            Command::GnssRequest => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
         }
     }
 
@@ -164,6 +200,8 @@ impl Command {
             Command::ClearFaults => "Clear fault log",
             Command::KeyRotate => "Activate spare operational key slot 0-3 and revoke the current key (recovery key only)",
             Command::SetContactTimeout => "Set the loss-of-contact timeout, days big-endian, 1 to 90 (default 30 at launch, 14 after commissioning: decision D3)",
+            Command::CommissioningRelease => "Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven)",
+            Command::GetHousekeeping => "Downlink a housekeeping frame (HK1) at the next opportunity",
             Command::EpsSetMode => "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE",
             Command::EpsGetTelemetry => "Get EPS telemetry",
             Command::AdcsDetumble => "Start detumble",
@@ -172,8 +210,12 @@ impl Command {
             Command::TxEnable => "Clear the latched TX-OFF",
             Command::TxDisable => "Latch TX-OFF in every state (47 CFR 97.207(b))",
             Command::SetPower => "Set downlink power: 0 = 0.5 W, 1 = 1 W (applied by the downlink, downlink.h)",
+            Command::XpdrEnable => "Allow the FM transponder (persisted); its power and duty gates still apply",
+            Command::XpdrDisable => "Stop the FM transponder (persisted); beacon and telecommand unaffected",
             Command::PldEnable => "Enable payload",
             Command::PldDisable => "Disable payload",
+            Command::DeployRetry => "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)",
+            Command::GnssRequest => "Start a GNSS receiver session now (its power gates still apply)",
         }
     }
 }

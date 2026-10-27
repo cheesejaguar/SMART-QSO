@@ -46,6 +46,7 @@ typedef enum {
     FLASH_REGION_CONTACT        = 8,   /**< Loss-of-contact counter and timeout */
     FLASH_REGION_RF_SILENCE     = 9,   /**< Post-deployment RF-silence state */
     FLASH_REGION_DEPLOYMENT     = 10,  /**< Deployment sequence state */
+    FLASH_REGION_OPS            = 11,  /**< Operations record: commissioning hold, transponder enable (ops_state.h) */
     FLASH_REGION_COUNT
 } HalFlashRegion_t;
 

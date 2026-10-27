@@ -2,10 +2,10 @@
 ## Amateur Space Station SMART-QSO
 
 **Document Number:** SQSO-REG-013
-**Revision:** A (draft, not filed)
-**Date:** 2026-10-14
-**Rule:** 47 CFR 97.207(g)(1) (eCFR, current as of 2026-10-13)
-**Due:** within 30 days after launch-vehicle determination, and no later than 90 days before integration into the launch vehicle. A replacement is required if any material item changes ((g)(1)(viii)).
+**Revision:** A.1 (draft, not filed)
+**Date:** 2026-10-27
+**Rule:** 47 CFR 97.207(g)(1) (eCFR version of 2026-10-01; no amendment since 89 FR 65217, effective 2024-09-09)
+**Due:** within 30 days after launch-vehicle determination, and no later than 90 days before integration into the launch vehicle. A replacement is required if any material item changes ((g)(1)(viii)). **Plan** (REGULATORY_ROADMAP Rev B §3): file early on 2027-01-19 with the API data, replace within 30 days of the launch contract (by 2027-06-30), last replacement by 2028-01-18 (integration about 2028-04-17).
 **Filing channel:** written notification to the Space Bureau, FCC, Washington, DC 20554. Confirm with Space Bureau staff whether to file via ICFS or by email (DA 13-445 listed amsat.spacecap@fcc.gov in 2013).
 **Fill-ins:** `[brackets]`. Values marked **(BL)** come from [BASELINE_PARAMETERS.md](../../BASELINE_PARAMETERS.md) and must be re-checked at filing.
 
@@ -42,10 +42,11 @@
 > | Spacecraft | 1U CubeSat, 100 × 100 × 113.5 mm (CDS Rev 14.1), mass `[ ]` kg **(BL)**, no propulsion, no pressure vessels, no pyrotechnics |
 > | Launch | `[vehicle / mission]`, `[site]`, NET `[date]`; integrator `[ ]`; integration date `[ ]` |
 > | Orbit | Circular, `[altitude]` km **(BL: ≤ 500 km target, 525 km maximum)**, inclination `[ ]`° **(BL: SSO ~97.4°)**; not maintained (no propulsion). Orbit decays naturally; see ODAR §6 |
-> | Downlink | `[coordinated frequency]` MHz in 145.800–146.000 MHz; FM transponder downlink and AX.25 telemetry; max EIRP `[ ]` dBW **(BL)** |
-> | Uplink | `[coordinated frequency]` MHz in 435–438 MHz; FM transponder uplink and authenticated telecommand |
+> | Downlink | `[coordinated frequency]` MHz in 145.800–146.000 MHz; FM transponder downlink and AX.25 telemetry; transmitter 1 W maximum (0.5 W nominal), maximum EIRP −1 dBW (1 dB line loss, 0 dBi peak) **(BL)** |
+> | Uplink | `[coordinated frequency]` MHz in 435.000–437.300 MHz (clear of the downlink's 3rd harmonic); FM transponder uplink (CTCSS 67.0 Hz) and authenticated telecommand |
 > | Emissions | See ITU data sheet: transponder `16K0F3E`; telemetry `10K4F2D` (1200 bps AFSK/FM); telecommand `10K4F2D` (computed per ITU-R necessary-bandwidth formulas; confirm by measurement, TP-RF-004) |
-> | Cessation of emissions (97.207(b)) | Telecommand TX-OFF processed by a dedicated command path that disables RF PA power independently of the AI payload and application software; verified by test `[TP ref]` |
+> | Cessation of emissions (97.207(b)) | `TX_DISABLE` telecommand, received by the always-on 435 MHz receiver and executed by the on-board computer, which switches off the RF power amplifier supply in hardware and latches the state in non-volatile memory across resets; independent of the AI payload and of the transponder; accepted in every operating mode, and without authentication if no key is usable. Verified by TP-RF-006 `[date]` |
+> | Loss of command contact | All transmitters inhibit after N days without an authenticated telecommand (N = 30 days at launch, 14 days after commissioning), receiver on; lifted by the next authenticated command |
 >
 > ### 4. Orbital debris mitigation (97.207(g)(1)(i)–(vii))
 >
@@ -66,8 +67,8 @@
 > explosions or release of liquids during and after the mission. There are no propellants, pressure vessels or
 > pyrotechnics. The only stored-energy source is the Li-ion battery `[chemistry, Wh]` **(BL)**, protected against
 > over-charge, over-discharge, over-current and short circuit. At end of mission the battery charge path is
-> **permanently disconnected** by telecommand (with an autonomous backup on loss of contact), and loads discharge the
-> battery, leaving it in a permanent discharge state. See ODAR §4.
+> **permanently disconnected** by telecommand, and loads discharge the
+> battery, leaving it in a permanent discharge state. See ODAR §4. `[Before filing: the passivation telecommand is specified in SQSO-ICD-013 §6.4 but not implemented in the flight software, and the autonomous backup (M days after the loss-of-contact inhibit) is proposed, not implemented (decision D3). State only what is implemented at filing.]`
 >
 > **(iv) Collision with large objects.** Probability of collision with objects ≥ 10 cm over the total orbital lifetime:
 > `[DAS 4.5-1 result]` < 0.001.
@@ -115,7 +116,9 @@
 | 3 | IARU coordination letter attached | ☐ |
 | 4 | SpaceCap Appendix 4 file prepared from ITU_APPENDIX4_DATA.md | ☐ |
 | 5 | DAS 3.2.x run with final mass/area; ODAR results inserted | ☐ |
-| 6 | TX-OFF telecommand path verified by test | ☐ |
+| 6 | TX-OFF telecommand path verified by test (TP-RF-006, VI-RF-12) | ☐ |
+| 6a | Passivation telecommand implemented and tested (SQSO-ICD-013 §6.4) | ☐ |
+| 6b | Telecommand stations designated in writing (F13), with locations | ☐ |
 | 7 | Space-Track registration complete | ☐ |
 | 8 | Licensee signature | ☐ |
 
@@ -126,3 +129,4 @@
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-14 | Initial draft (funding audit) |
+| A.1 | 2026-10-27 | CDR review (communications panel): rule currency; filing plan dates; EIRP; uplink range; cessation-of-emissions text made accurate (one command path, through the on-board computer); loss-of-contact line; the "autonomous backup" passivation claim removed (not implemented) and the passivation command flagged; checklist items 6a, 6b |

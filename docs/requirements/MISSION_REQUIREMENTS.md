@@ -170,10 +170,10 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 
 ### 5.11 Launch Provider and Integrator Requirements
 
-The launch reviewer is writing `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`; its requirement IDs flow into SYS-900 to
-SYS-912 (`docs/requirements/SYSTEM_REQUIREMENTS.md` §13a), where the chair fills the cross-references. Until the
-integrator ICD is signed (decision D7, by 2027-06-30), SpaceX Rideshare Payload User's Guide v11 is the interim provider
-document.
+The launch-vehicle, integrator and dispenser requirements are in `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`
+(SQSO-LVR-001, LVR-001 to LVR-114); they flow into the system requirements through SYS-900 to SYS-919 and the trace table
+of `docs/requirements/SYSTEM_REQUIREMENTS.md` §13a. Until the integrator ICD is signed (decision D7, by 2027-06-30),
+SpaceX Rideshare Payload User's Guide v11 is the interim provider document.
 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
@@ -216,8 +216,8 @@ document.
 | MRD-040-045 | SYS-200-230 |
 | MRD-050-053 | SYS-300-330 |
 | MRD-060-062 | SYS-400-420 |
-| MRD-080, MRD-098 | SYS-001-009, SYS-014-019, SYS-221-225, SYS-700-712, SYS-900-912 |
-| MRD-084, MRD-085 | SYS-803, SYS-913 |
+| MRD-080, MRD-098 | SYS-001-005, SYS-080-089, SYS-221-225, SYS-700-713, SYS-900-912, SYS-915-918 |
+| MRD-084, MRD-085 | SYS-803, SYS-913, SYS-919 |
 | MRD-094-097 | SYS-204, SYS-205, SYS-325, SYS-326, SYS-513, SYS-914 |
 | MRD-099 | `mission/SCHEDULE.md` (programmatic) |
 
