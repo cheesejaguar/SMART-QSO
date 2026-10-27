@@ -13,6 +13,7 @@ gnss_frame.py.
 from __future__ import annotations
 
 import math
+from pathlib import Path
 from dataclasses import dataclass, field
 from typing import List, Optional, Sequence
 
@@ -25,17 +26,31 @@ from orbit_dynamics import EGM96_4X4, GM, RE, ForceModel, GravityField, propagat
 J2 = -EGM96_4X4[(2, 0)][0] * 5 ** 0.5
 
 
-def kaula_field(degree: int = 20, seed: int = 2028) -> GravityField:
-    """EGM96 to 4 x 4, then random coefficients of degree 5 to degree with
-    Kaula's rule (rms 1e-5 / n^2, normalized): a stand-in for the part of the
-    real field the fit leaves out."""
+def kaula_coefficients(degree: int = 20, seed: int = 2028):
+    """Normalized (n, m): (C, S): EGM96 to 4 x 4, then random coefficients of
+    degree 5 to degree with Kaula's rule (rms 1e-5 / n^2): a stand-in for the
+    part of the real field that the fit leaves out."""
     rng = np.random.default_rng(seed)
     coeffs = dict(EGM96_4X4)
     for n in range(5, degree + 1):
         for m in range(n + 1):
             sigma = 1e-5 / n ** 2
             coeffs[(n, m)] = (rng.normal(0, sigma), 0.0 if m == 0 else rng.normal(0, sigma))
-    return GravityField.from_normalized(coeffs, degree, name=f"EGM96 4 x 4 + Kaula {degree} x {degree}")
+    return coeffs
+
+
+def kaula_field(degree: int = 20, seed: int = 2028) -> GravityField:
+    """The simulated Earth's gravity field (kaula_coefficients)."""
+    return GravityField.from_normalized(kaula_coefficients(degree, seed), degree,
+                                        name=f"EGM96 4 x 4 + Kaula {degree} x {degree}")
+
+
+def write_icgem(path, coeffs, degree: int, gm: float = GM, radius: float = RE) -> None:
+    """Write normalized coefficients to degree as an ICGEM .gfc file."""
+    lines = ["product_type gravity_field", f"earth_gravity_constant {gm:.10e}", f"radius {radius:.4f}",
+             f"max_degree {degree}", "norm fully_normalized", "end_of_head"]
+    lines += [f"gfc {n} {m} {c: .12e} {s: .12e} 0 0" for (n, m), (c, s) in sorted(coeffs.items()) if n <= degree]
+    Path(path).write_text("\n".join(lines) + "\n", encoding="ascii")
 
 
 #: Truth model of the simulations: what the fit does not model (degree 5-8

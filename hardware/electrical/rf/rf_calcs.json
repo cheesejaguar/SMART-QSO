@@ -552,12 +552,12 @@
     "p_port_W": 0.501,
     "eta_pa": 0.426,
     "dc_pa_W": 1.507,
-    "dc_exciter_W": 0.255,
-    "dc_total_W": 1.762,
-    "i_5v_A": 0.352,
-    "overall_eff": 0.284,
+    "dc_exciter_W": 0.334,
+    "dc_total_W": 1.841,
+    "i_5v_A": 0.368,
+    "overall_eff": 0.272,
     "pa_dissipation_W": 0.866,
-    "board_dissipation_keyed_W": 1.261,
+    "board_dissipation_keyed_W": 1.34,
     "tj_fet2_C_at_board_60C": 87.8,
     "tj_fet1_C_at_board_60C": 75.3
    },
@@ -566,23 +566,23 @@
     "p_port_W": 0.963,
     "eta_pa": 0.59,
     "dc_pa_W": 2.089,
-    "dc_exciter_W": 0.255,
-    "dc_total_W": 2.344,
-    "i_5v_A": 0.469,
-    "overall_eff": 0.411,
+    "dc_exciter_W": 0.334,
+    "dc_total_W": 2.423,
+    "i_5v_A": 0.485,
+    "overall_eff": 0.398,
     "pa_dissipation_W": 0.857,
-    "board_dissipation_keyed_W": 1.381,
+    "board_dissipation_keyed_W": 1.46,
     "tj_fet2_C_at_board_60C": 87.5,
     "tj_fet1_C_at_board_60C": 75.2
    }
   },
   "exciter": {
-   "lmx2571_W": 0.152,
+   "lmx2571_W": 0.23,
    "pcm1808_W": 0.072,
    "detectors_W": 0.011,
    "logic_W": 0.02,
-   "keyed_W": 0.255,
-   "idle_permitted_W": 0.0063
+   "keyed_W": 0.334,
+   "idle_permitted_W": 0.0079
   },
   "load_line_ohm": 7.5,
   "load_line_trade": [
@@ -590,31 +590,31 @@
     "RL_ohm": 7.0,
     "psat_W": 1.321,
     "max_port_dBm": 30.14,
-    "dc_at_0.5W_W": 1.815
+    "dc_at_0.5W_W": 1.894
    },
    {
     "RL_ohm": 7.5,
     "psat_W": 1.233,
     "max_port_dBm": 29.84,
-    "dc_at_0.5W_W": 1.762
+    "dc_at_0.5W_W": 1.841
    },
    {
     "RL_ohm": 8.5,
     "psat_W": 1.088,
     "max_port_dBm": 29.29,
-    "dc_at_0.5W_W": 1.67
+    "dc_at_0.5W_W": 1.749
    },
    {
     "RL_ohm": 10.0,
     "psat_W": 0.924,
     "max_port_dBm": 28.59,
-    "dc_at_0.5W_W": 1.56
+    "dc_at_0.5W_W": 1.639
    },
    {
     "RL_ohm": 12.0,
     "psat_W": 0.77,
     "max_port_dBm": 27.8,
-    "dc_at_0.5W_W": 1.446
+    "dc_at_0.5W_W": 1.525
    }
   ]
  },
@@ -666,23 +666,18 @@
     "worst": 0.9
    },
    {
-    "load": "LMX2571 switched rail, power-down (CE low, 0.9 mA) while TX is permitted",
-    "typ": 0.9,
-    "worst": 1.2
-   },
-   {
     "load": "Receiver supervision: LVC1G123 RX-health monostable 0.28 mA, LVC1G17/LVC1G04, pull-downs",
     "typ": 0.3,
     "worst": 0.45
    }
   ],
-  "receive_typ_mA": 31.75,
-  "receive_worst_mA": 38.47,
-  "receive_typ_W": 0.1048,
-  "receive_worst_W": 0.1308,
+  "receive_typ_mA": 30.86,
+  "receive_worst_mA": 37.27,
+  "receive_typ_W": 0.1018,
+  "receive_worst_W": 0.1267,
   "allocation_W": 0.15,
-  "margin_typ": 0.301,
-  "margin_worst": 0.128,
+  "margin_typ": 0.321,
+  "margin_worst": 0.155,
   "repeat_path": [
    {
     "load": "CMX138A receive mode (7.0 mA typ; 8.5 mA tx-mode figure as worst)",
@@ -703,18 +698,21 @@
   "repeat_typ_W": 0.0244,
   "repeat_worst_W": 0.0313,
   "repeat_allocation_W": 0.03,
-  "receive_plus_repeat_worst_W": 0.162,
+  "receive_plus_repeat_worst_W": 0.158,
   "rail_min_at_board": {
    "v_3v3_ao_min_V": 3.234,
+   "radio_current_A": 0.0465,
    "drops_mV": {
-    "SW2_TPS2553": 10.7,
-    "W4B_28AWG": 13.7,
-    "FB801": 8.9,
-    "TPS22918": 2.4
+    "SW2_TPS2553": 5.6,
+    "W4B_28AWG": 7.2,
+    "FB801": 4.6
    },
-   "v_lmx_min_V": 3.198,
-   "margin_to_3V15_mV": 48.0,
-   "keyed_current_A": 0.089
+   "v_radio_min_V": 3.217,
+   "headroom_TPS7A2030_3V0_mV": 172.0,
+   "headroom_TPS73101_3V106_mV": 64.0,
+   "lmx_supply_min_V": 3.25,
+   "lmx_margin_to_3V15_mV": 100.0,
+   "lmx_ldo_dropout_needs_PA_5V_min_V": 3.5
   }
  },
  "timing": {
@@ -1018,11 +1016,12 @@
    "rule": "<= 0.70",
    "thermal": "(5.15-3.3) V x 17 mA = 31 mW; X2SON thetaJA ~ 200 C/W => +6 C"
   },
-  "TPS22918_LMX": {
-   "stress": "51 mA",
-   "rating": "2 A",
-   "ratio": 0.03,
-   "rule": "<= 0.70"
+  "TPS7A2033_LMX": {
+   "stress": "51 mA (LMX2571 maximum)",
+   "rating": "300 mA",
+   "ratio": 0.17,
+   "rule": "<= 0.70",
+   "thermal": "(5.15-3.25) V x 51 mA = 97 mW; X2SON thetaJA ~ 200 C/W => +19 C (79 C at a 60 C board)"
   },
   "bulk_caps_5V": {
    "stress": "5.15 V",
@@ -1037,9 +1036,9 @@
    "rule": "<= 0.50"
   },
   "connector_PA_contacts": {
-   "stress": "0.47 A over two contacts",
+   "stress": "0.48 A over two contacts",
    "rating": "Pico-Clasp 1.0 A/contact",
-   "ratio": 0.23,
+   "ratio": 0.24,
    "rule": "<= 0.50 (EEE-INST-002 connectors)"
   },
   "LMX2571_Tj": {
@@ -1069,13 +1068,13 @@
    "40 mm": 3.1,
    "60 mm": 0.9
   },
-  "pa_current_A_at_1W": 0.469,
+  "pa_current_A_at_1W": 0.485,
   "pa_field_at_sensor_nT": {
-   "paired_supply_return_L4_L5": 0.39,
+   "paired_supply_return_L4_L5": 0.4,
    "drain_loop_L1_L2": 0.12,
-   "unpaired_return_detour_20x14mm": 22.0,
-   "paired_but_routed_20mm_from_sensor": 22.0,
-   "single_unpaired_wire_at_20mm": 4690.0
+   "unpaired_return_detour_20x14mm": 22.8,
+   "paired_but_routed_20mm_from_sensor": 22.7,
+   "single_unpaired_wire_at_20mm": 4850.0
   },
   "pa_distance_to_sensor_mm": {
    "J2": 87.2,
@@ -1116,5 +1115,25 @@
   "V_over_A_limit_m": 50.8,
   "pa_to_lna_via_two_vents_dB": 142.0,
   "pa_to_lna_requirement_dB": 85.0
+ },
+ "noise_floor_check": {
+  "threshold_dB_below_calibrated": 5.0,
+  "cases": {
+   "SAW typ": {
+    "LNA dead (-20 dB through, NF 20 dB)": -9.6,
+    "LNA unbiased (about -10 dB through, NF 10 dB) [assumed]": -9.6,
+    "SAW open (-40 dB)": -9.6,
+    "antenna or cable open (source = front-end at 290 K)": 0.0,
+    "healthy_T_at_CC1200_K": 13383.0
+   },
+   "SAW max": {
+    "LNA dead (-20 dB through, NF 20 dB)": -7.8,
+    "LNA unbiased (about -10 dB through, NF 10 dB) [assumed]": -7.8,
+    "SAW open (-40 dB)": -7.8,
+    "antenna or cable open (source = front-end at 290 K)": 0.0,
+    "healthy_T_at_CC1200_K": 8809.0
+   }
+  },
+  "note": "A dead or unbiased LNA or an open SAW lowers the floor by 7.8-9.6 dB (the CC1200's own noise remains) and is caught by a 5 dB threshold with 2.8 dB margin; temperature drift of the healthy floor (+-2 dB assumed, compensated by a TVAC calibration table) leaves 3 dB against false alarms. An open antenna, cable or balun ahead of FL1 replaces a 290 K source by a ~290 K termination and is not (SRS-F115 silence rule and RX_CD carrier counts remain the evidence for those)"
  }
 }

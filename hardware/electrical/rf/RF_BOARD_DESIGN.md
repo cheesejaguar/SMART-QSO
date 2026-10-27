@@ -38,11 +38,11 @@ the AX.25 beacon and the FM repeat path, a KISS TNC on USART2, and the hardware 
 | Receive filter | FL1 before the LNA, SAW after it | 144–146 MHz ≥ 60 dB specified (133 dB computed, worst of 3,000); 250–330 MHz ≥ 49.7 dB; 560–620 MHz ≥ 45.2 dB; loss ahead of the LNA ≤ 1.0 dB |
 | TNC | STM32L431 running an AFSK 1200 modem, HDLC and KISS on the CC1200's demodulator samples; USART2 9600 baud, full duplex | Separate firmware item (§13) |
 | Exciter | **TI LMX2571** synthesizer, deviation from a **PCM1808** audio ADC over I2S | Phase noise −152 dBc/Hz at 1 MHz; deviation full scale ±6.3 kHz exact; beacon ±3.0 kHz, repeat limit ±4.7 kHz |
-| PA | **Mitsubishi RD01MUS3** 2-stage Si MOSFET at 5.0 V, closed-loop power control on the gate bias | 0.50 W at 1.76 W DC; 0.96 W (29.8 dBm) at 2.34 W DC; Tj ≤ 88 °C at a 60 °C board |
+| PA | **Mitsubishi RD01MUS3** 2-stage Si MOSFET at 5.0 V, closed-loop power control on the gate bias | 0.50 W at 1.84 W DC; 0.96 W (29.8 dBm) at 2.42 W DC (E: LMX2571 on its own LDO from the PA rail); Tj ≤ 88 °C at a 60 °C board |
 | Harmonic filter | 2-section match + 7th-order elliptic low-pass (traps at 2f, 3f) | LPF alone, worst of 3,000: 2f ≥ 65.5 dB, 3f ≥ 88.2 dB; H3 at the port −90 dBc with a −90 dBc board-leakage floor (requirement −70 dBc) |
 | Desense | LMX2571 phase noise | ≤ 0.01 dB at 2.2 MHz with H3 at −70 dBc (0.46 dB with the LBA's assumed oscillator) |
 | Repeat path, `XPDR_EN` | LVC1G123 monostable (49.7 ms), CMX138A CTCSS decode and audio filter, HC4060 120 s timer, LVC1G11 AND, TMUX1101 mute, TMUX1219 select, TX permit in the PTT gate | Unkeys ≤ 59 ms after the last heartbeat edge; key-down timer 120 ± 4.6 s |
-| Power | Receive section on RADIO_3V3 (SW2) | 0.105 W typical, 0.131 W worst (allocation 0.15 W); repeat path +24 mW (allocation 30 mW) |
+| Power | Receive section on RADIO_3V3 (SW2) | 0.102 W typical, 0.127 W worst (allocation 0.15 W); repeat path +24 mW (allocation 30 mW) |
 | Receiver supervision (B) | RX_CD (CC1200 carrier sense) and RX_FAULT (hardware monostable on the TNC's health pulses) to the OBC on J1-15/16 | RX_FAULT asserts 0.36–0.62 s after the last health pulse; unpowered board reads not fault |
 | Magnetic cleanliness (B, amended: OBC item C16) | Magnetometer board A2 above (+24, +27): no part within 20 mm, no ferrite or ferromagnetic lid within 40 mm, nickel-silver shield with soldered lids (no clips), PA supply and return paired on L4/L5 and kept ≥ 60 mm away; J1 in the (+X, −Y) corner, J2 by the PA (§10.1) | PA current field at the sensor 0.4 nT at 1 W (22 nT if unpaired or routed past the sensor); RM3100 noise 15 nT |
 | Parts | 330 placed, 300 fitted and orderable, 194 nets; 4 mechanical items (shield frame and three lids) | ERC: 0 errors, 0 warnings, 7 waivers |
@@ -54,9 +54,9 @@ Three findings change the earlier documents and are reported for the chair (§15
    CMX994EF draws 39–58 mA. The only in-production receiver found within the 0.15 W allocation that demodulates FM is a
    digital-IF transceiver; the CC1200's CFM output is read by the TNC MCU. The repeat audio therefore passes through
    the TNC firmware (not the OBC flight software); the decisions that make it safe stay in hardware (§8).
-2. **Transmitter DC power at 0.5 W RF is 1.76 W, not 1.5 W** (overall 28 %). With a fixed 5.0 V PA rail one load line
+2. **Transmitter DC power at 0.5 W RF is 1.84 W, not 1.5 W** (overall 27 %; 1.76 W before Version E moved the LMX2571 to its own LDO on the 5 V PA rail, SMA-B16). With a fixed 5.0 V PA rail one load line
    cannot give both 1 W at the port and 1.5 W DC at 0.5 W (trade in §7.3). Orbit-average cost at the 25 % transponder
-   duty: +0.065 W.
+   duty: +0.085 W.
 3. **The 1 W level reaches 29.5–30.1 dBm** across the ±3 % PA rail (29.8 dBm nominal): inside RF-P003's −0.5 dB only
    just, at the low rail.
 
@@ -68,14 +68,14 @@ Three findings change the earlier documents and are reported for the chair (§15
 | System noise ≤ 650 K with a 290 K source; budget 1,000 K (RF-P006, LBA §2.4) | 548 K typical, 598 K worst at the antenna terminals (cables, connectors and worst-case mismatch included, W10 v3) | +0.7 / +0.4 dB to 650 K; 898–948 K with the 350 K interference allowance: +0.5 / +0.2 dB to 1,000 K |
 | Sensitivity: telecommand 90 % frames at 53.0 dB-Hz; voice 12 dB SINAD at 47.4 dB-Hz (RF-P011) | −116.2 / −115.8 dBm telecommand, −121.8 / −121.4 dBm voice (typ / worst, 2 dB implementation loss) | The LBA used 1,000 K; this receiver is 0.2–0.5 dB better |
 | RX filter: ≥ 60 dB at 144–146, ≥ 40 dB at 250–330 and 560–620 MHz, ≤ 1.5 dB in band (RF-P007) | FL1 + SAW (§6.2) | 144–146: ≥ 60 dB specified (69 dB without the traps, 133 dB computed with them); 250–330: ≥ 49.7 dB; 560–620: ≥ 45.2 dB; loss before the LNA 1.0 dB worst. The SAW (2.1–4.2 dB) sits after the LNA; RF-P007 is restated in RF_DESIGN 2.1 accordingly |
-| Receiver DC ≤ 0.15 W always on (BASELINE §5) | 0.105 W typ, 0.131 W worst | +13 % worst |
+| Receiver DC ≤ 0.15 W always on (BASELINE §5) | 0.102 W typ, 0.127 W worst | +15 % worst |
 | Repeat path ≤ 30 mW while enabled (RF-P015) | 24.4 mW typ, 31.3 mW worst | **−4 % at the worst corner** (CMX138A 8.5 mA figure used as worst) |
 | Reference ±1.0 ppm over −40 to +85 °C; ≤ ±3.0 ppm with 2-year ageing (RF-P005 as amended, RFB-05) | TG2016SMN ±0.5 ppm (−40…+85 °C), calibrated at test to ±0.1 ppm | 0.6 ppm at BOL; **2.1 ppm worst after 2 years with datasheet-class aging** (§6.5): meets the amended RF-P005; the ground corrects the uplink from the measured downlink offset |
 | Downlink 145.800–146.000 MHz; 0.5 W nominal, 1 W maximum (BASELINE §7) | LMX2571 4668.8 MHz / 32; APC at 27.0 / 30.0 dBm | 0.5 W: 0.50 W; 1 W: 29.53–30.14 dBm over the 5 V ± 3 % rail |
 | Deviation ±3.0 kHz beacon (10K4F2D), ±5.0 kHz voice with limiter (RF-P004) | Digital: ±6.3 kHz = ADC full scale; AFSK 2.86–3.14 kHz; repeat limit 4.47–4.90 kHz | Inside ±0.5 kHz; Carson bandwidth 10.7 kHz at the high AFSK corner (filed 10.4 kHz): measure the 99 % bandwidth (VI-RF-15) |
 | Spurious ≤ 25 µW and ≥ 46 dBc at 1 W (97.307(e)); 3rd harmonic ≥ 70 dBc at the antenna port (BASELINE §7) | §7.4 | 2nd −89 dBc, 3rd −90 dBc, 4th −90 dBc with the board-leakage floor; +20 dB to 70 dBc |
 | Desense ≤ 0.5 dB at 1 W (RF-P009) | §7.5 | ≤ 0.01 dB at 2.2 MHz; 0.44 dB even 100 kHz from 3f at 70 dBc |
-| PA efficiency ≈ 1.5 W DC at 0.5 W RF (BASELINE §5) | 1.76 W | **+0.26 W (17 %) over; finding 2** |
+| PA efficiency ≈ 1.5 W DC at 0.5 W RF (BASELINE §5) | 1.84 W | **+0.34 W (23 %) over; finding 2** |
 | TX_FWD, TX_REV, TX_TEMP to the OBC ADC (ICD-003 §4.2) | 2.5 V at 1 W (P = 0.16 V² W, `adc.rs`); 10 mV/°C, 0.5 V at 0 °C | Scalings of the firmware unchanged |
 | KISS TNC on USART2 9600, AFSK 1200, HDLC, full duplex (ICD-003 §5) | STM32L431 firmware | §5.3; firmware is a new item |
 | `XPDR_EN` heartbeat, monostable ≈ 50 ms, CTCSS, 120 s timer, AND, 2:1 select, mute, readbacks (BUILD_VS_BUY §3.2) | §8 | All in hardware except the TONE_OK relay (§8.3) |
@@ -168,13 +168,13 @@ Placement (C16): top side on the −Y edge strip outside the shield, at about (�
 magnetometer (§10.1). PA_5V (pins 3, 4) and its returns (pins 2, 5) are adjacent contacts.
 
 W4B (item R-2): 28 AWG M22759/33 wire, the Pico-Clasp crimp range. Three twisted pairs, 3+2, 4+5 and 1+6, with at
-most 5 mm untwisted at each end; 0.145 m long. Drops at the 1 W load: 36 mV on PA_5V, and 13.7 mV on RADIO_3V3 at
-0.089 A (SQSO-HAR-001 §9.2).
+most 5 mm untwisted at each end; 0.145 m long. Drops: 37 mV on PA_5V at the 1 W load (0.485 A), and 7.2 mV on RADIO_3V3 at its
+0.047 A worst (scaled from SQSO-HAR-001 §9.2).
 
 | J2 pin | Rail | Source (EPS_DESIGN 2.0 §4) | Load on this board |
 |--------|------|----------------------------|--------------------|
 | 1 | RADIO_3V3 | 3V3_AO through SW2 (RADIO_EN) | 31 mA typ / 38 mA worst receiving; +7–9 mA repeat path; +44–51 mA while keyed (LMX2571) |
-| 3, 4 | PA_5V | 5V_PA buck through SW3 (RF_TX_EN, hardware TX-OFF) | 1.3 mA idle while permitted; 0.352 A at 0.5 W; 0.469 A at 1 W |
+| 3, 4 | PA_5V | 5V_PA buck through SW3 (RF_TX_EN, hardware TX-OFF) | 1.6 mA idle while permitted; 0.368 A at 0.5 W; 0.485 A at 1 W (E: includes the LMX2571, 46 mA) |
 | 2, 5, 6 | GND | — | — |
 
 EPS's table gives SW2 0.1 A peak and SW3 0.54 A peak: both cover this board. The 0.25 A trip of SW2 is above any
@@ -294,14 +294,14 @@ The power figures of §5.2 stay at the conservative +3 %.
 | State | RADIO_3V3 | PA_5V | Total |
 |-------|-----------|-------|-------|
 | RF silence (SW2, SW3 off) | 0 | 0 | 0 |
-| Receive, transponder off | 0.105 W typ / 0.131 W worst | 6.3 mW idle (if permitted) | 0.11–0.14 W |
+| Receive, transponder off | 0.102 W typ / 0.127 W worst | 7.9 mW idle (if permitted) | 0.11–0.14 W |
 | Receive + repeat path enabled (not keyed) | +24 / +31 mW | — | 0.13–0.16 W |
-| Keyed 0.5 W (beacon or transponder) | +0.152 W (LMX2571) | 1.61 W (PA 1.51, PCM1808, detectors, logic) | 1.76 W transmitter + receive |
-| Keyed 1 W | +0.152 W | 2.19 W | 2.34 W transmitter + receive |
+| Keyed 0.5 W (beacon or transponder) | — | 1.84 W (PA 1.51, LMX2571 and its LDO 0.23, PCM1808, detectors, logic) | 1.84 W transmitter + receive |
+| Keyed 1 W | — | 2.42 W | 2.42 W transmitter + receive |
 
 Breakdown of the receive section (typ / worst mA): CC1200 19 / 21, LNA 6 / 7, MCU 3 / 5, TCXO 1.5 / 2, LMX2571 in
 power-down 0.9 / 1.2, LVC1G123 0.28 / 0.4, receiver supervision 0.30 / 0.45, op-amps 0.24 / 0.3, LDO ground currents and pull-ups 0.45 / 0.9, others
-0.1 / 0.2. Beacon (ACTIVE, ≈ 1.2 s per 60 s at 1.76 W): 0.035 W orbit average (allocation 0.10 W).
+0.1 / 0.2. Beacon (ACTIVE, ≈ 1.2 s per 60 s at 1.84 W): 0.037 W orbit average (allocation 0.10 W).
 
 ## 6. Receiver
 
@@ -432,22 +432,22 @@ control, class-B-like).
 
 | Level | Drain power | PA efficiency | PA DC | Exciter DC | Total DC | 5 V current | Overall | Board dissipation |
 |-------|-------------|---------------|-------|------------|----------|-------------|---------|-------------------|
-| 0.5 W at the port | 0.64 W | 42.6 % | 1.51 W | 0.255 W | **1.76 W** | 0.35 A | 28.4 % | 1.26 W |
-| 1 W setting | 1.23 W (saturated) | 59 % | 2.09 W | 0.255 W | **2.34 W** | 0.47 A | 41.1 % | 1.38 W |
+| 0.5 W at the port | 0.64 W | 42.6 % | 1.51 W | 0.334 W | **1.84 W** | 0.37 A | 27.2 % | 1.34 W |
+| 1 W setting | 1.23 W (saturated) | 59 % | 2.09 W | 0.334 W | **2.42 W** | 0.49 A | 39.8 % | 1.46 W |
 
 1 W setting at the port: 29.84 dBm at 5.00 V, 29.53 dBm at 4.85 V, 30.14 dBm at 5.15 V.
 
 | Load line | P_sat | Maximum at the port | DC at 0.5 W |
 |-----------|-------|---------------------|-------------|
-| 7.0 Ω | 1.32 W | 30.14 dBm | 1.82 W |
-| **7.5 Ω (design)** | 1.23 W | 29.84 dBm | 1.76 W |
-| 8.5 Ω | 1.09 W | 29.29 dBm | 1.67 W |
-| 10 Ω | 0.92 W | 28.59 dBm | 1.56 W |
-| 12 Ω | 0.77 W | 27.80 dBm | 1.45 W |
+| 7.0 Ω | 1.32 W | 30.14 dBm | 1.89 W |
+| **7.5 Ω (design)** | 1.23 W | 29.84 dBm | 1.84 W |
+| 8.5 Ω | 1.09 W | 29.29 dBm | 1.75 W |
+| 10 Ω | 0.92 W | 28.59 dBm | 1.64 W |
+| 12 Ω | 0.77 W | 27.80 dBm | 1.53 W |
 
-Only a 12 Ω load line meets 1.5 W at 0.5 W, and it gives 0.6 W maximum. The design keeps the 1 W function. Options for
-the chair (§15): accept 1.76 W (orbit average +0.065 W at 25 % transponder duty; ACTIVE tumbling margin about +31 %
-→ +28 %); or a drain-switched 0.5 W mode (a 4.0 V buck on the board would give ≈ 1.38 W, at the cost of a switching
+No load line now meets 1.5 W at 0.5 W (12 Ω gives 1.53 W and only 0.6 W maximum); Version E adds 0.08 W for the LMX2571's own LDO (SMA-B16). The design keeps the 1 W function. Options for
+the chair (§15): accept 1.84 W (orbit average +0.085 W at 25 % transponder duty; the ACTIVE tumbling margin falls by about 4 points
+from +31 %, to be re-run by the PBA owner); or a drain-switched 0.5 W mode (a 4.0 V buck on the board would give ≈ 1.46 W, at the cost of a switching
 converter beside a full-duplex receiver, rejected here for EMC); or a 6 V PA rail (EPS change; 1 W with 1.5 dB margin,
 no gain at 0.5 W).
 
@@ -633,7 +633,7 @@ flight-like body (VI-RF-17). If ISIS supplies the phasing on the AntS, the board
 - A hole has no magnetic effect, so zone M1 does not constrain the vents |
 | Magnetics | Zones M1 and M2 and the current rules of §10.1 (magnetometer board A2 above (+24, +27)); air-core or ceramic-core inductors only (Coilcraft 0603HP and 1812SMS) |
 | RF rules | No ground splits under RF; no RF trace over a plane edge; inductors of the LPF at right angles to their neighbours, ≥ 3 mm apart; trap capacitors at the inductor pads; TCXO trace ≤ 10 mm with ground guard; the 5.000 MHz I2S lines and SPI inside the digital cavity, away from the receive cavity |
-| Thermal | Q601 exposed pad on ≥ 25 × 25 mm of copper on L1, ≥ 16 vias (0.3 mm) to L2 and L5, 2 oz on L2/L5 under the PA; TMP235 within 5 mm of Q601 on the same pour. Total keyed dissipation 1.26–1.38 W (§11) |
+| Thermal | Q601 exposed pad on ≥ 25 × 25 mm of copper on L1, ≥ 16 vias (0.3 mm) to L2 and L5, 2 oz on L2/L5 under the PA; TMP235 within 5 mm of Q601 on the same pour. Total keyed dissipation 1.34–1.46 W (§11) |
 | Creepage, voltage | Highest voltage: 24 V peak RF at the LPF nodes at 1 W into 3:1; 5.15 V DC. IPC-2221 B4 (coated) ≤ 30 V: 0.13 mm; use ≥ 0.2 mm. No corona: well below the Paschen minimum (≈ 300 V) |
 | Test points | TP1–TP22 (rails, EN_OK, TONE_OK, NOT_TOT, XPDR_KEY, PTT_EXC, TX_PERMIT_HW, repeat audio, TX audio, lock detect, Vgg, APC reference, debug UART, timer oscillator); SWD on a Tag-Connect TC2030 footprint; U.FL test pads (DNP) at the LPF input and FL1 output for EM characterization |
 | Conformal coat | After test: coat everything except connectors and the trap capacitors' tuning area (or coat after final tuning); it is also the tin-whisker mitigation for the QFN and DSBGA parts that cannot be re-tinned |
@@ -652,7 +652,7 @@ centre taken at z +44, OBC_BOARD_DESIGN §9.4). That is 4.0 mm above this board'
 | Shield (SH1–SH4) | Nickel-silver, unplated, soldered lids, no clips (§10). The nearest wall and lid edge are 13.0 mm from the sensor, inside M1's radius, so only a non-magnetic shield is acceptable | At 13 mm, 1 µA·m² would give 91 nT |
 | Inductors | All RF and drain inductors are Coilcraft 0603HP (ceramic core) or 1812SMS (air core): no magnetic core on the board | — |
 | Connectors | J1 (Samtec, phosphor bronze, gold over a nickel underplate) at 63 mm; J2 (Molex) at 87 mm; MMCX jacks J3–J6 (Molex 73415-1473, listed non-magnetic) at 58–78 mm; cable plugs (gold over a probable nickel underplate) ≥ 58 mm | Underplate nickel is microns thick. At these distances it is below 1 nT per µA·m² |
-| PA current, 0.469 A at 1 W | Supply and return as a pair: +5V_PA on L4 over its return on L5 (≤ 0.30 mm apart) from J2 to the drain feeds, and the drain loop on L1 over the L2 plane. The whole path, J2 → FB803 → L602/L604 → Q601, stays in the (−X, −Y) corner, ≥ 60 mm from (+24, +27). No PA current in any other layer pair, and no split in L5 under the run | At the sensor, paired on this route: **0.39 nT** (L4/L5) + 0.12 nT (drain loop). Unpaired with the return detoured round a 20 × 14 mm loop: 22 nT. Paired but routed 20 mm from the sensor: 22 nT. A single unpaired wire at 20 mm: 4.7 µT |
+| PA current, 0.485 A at 1 W | Supply and return as a pair: +5V_PA on L4 over its return on L5 (≤ 0.30 mm apart) from J2 to the drain feeds, and the drain loop on L1 over the L2 plane. The whole path, J2 → FB803 → L602/L604 → Q601, stays in the (−X, −Y) corner, ≥ 60 mm from (+24, +27). No PA current in any other layer pair, and no split in L5 under the run | At the sensor, paired on this route: **0.39 nT** (L4/L5) + 0.12 nT (drain loop). Unpaired with the return detoured round a 20 × 14 mm loop: 22 nT. Paired but routed 20 mm from the sensor: 22 nT. A single unpaired wire at 20 mm: 4.7 µT |
 | Other rails | RADIO_3V3 (≤ 0.09 A) and the LDO outputs over their own ground plane (L2/L5 solid); none routed through M1 | Pairing as above; currents 5× smaller than the PA's |
 
 The field that matters most is the step between transmitter off and keyed, because calibration does not remove a
@@ -666,8 +666,8 @@ and M2 and are measured (VI-RFB-11).
 |-------|-------------------|--------------|
 | Receive only | 0.10–0.13 W | CC1200, LNA, MCU |
 | Receive + repeat enabled | 0.13–0.16 W | + CMX138A |
-| Keyed 0.5 W | 1.26 W + receive | Q601 0.87 W, LMX2571 0.15 W, PCM1808 0.07 W, network losses 0.09 W |
-| Keyed 1 W | 1.38 W + receive | Q601 0.86 W, network losses 0.17 W |
+| Keyed 0.5 W | 1.34 W + receive | Q601 0.87 W, LMX2571 0.15 W and its LDO U805 0.08 W, PCM1808 0.07 W, network losses 0.09 W |
+| Keyed 1 W | 1.46 W + receive | Q601 0.86 W, LMX2571 and U805 0.23 W, network losses 0.17 W |
 
 THERMAL_ANALYSIS v2.0 used 1.7 W dissipated while keyed at 1 W: conservative against these values. Hot case: PA
 junction 88 °C at the 60 °C per-unit limit (§7.3); cold case: all parts rated −40 °C (the board's −11.9 °C and
@@ -687,7 +687,7 @@ Stresses (worst case, `rf_calcs.json` "stresses" and the BOM column "Derated str
 | LPF and match capacitors | 24 V / 15.5 V peak | 100 V C0G | 0.24 / 0.16 | ≤ 0.50 |
 | LPF inductors, drain chokes | 0.35 A peak, 0.42 A DC | 2.5 A | 0.10–0.17 | ≤ 0.50 |
 | BFP640F V_CE | 2.0 V | 4.1 V | 0.49 | ≤ 0.50 |
-| LDOs (TPS7A2030, TPS73101, TPS7A2033), TPS22918 | 30, 14, 17, 51 mA | 300, 150, 300, 2,000 mA | ≤ 0.10 | ≤ 0.70 |
+| LDOs (TPS7A2030, TPS73101, TPS7A2033 U803, TPS7A2033 U805 for the LMX2571) | 30, 14, 17, 51 mA | 300, 150, 300, 300 mA | ≤ 0.17 | ≤ 0.70 |
 | Bulk X7R capacitors | 5.15 V / 3.40 V | 25 V, 16 V / 10 V | ≤ 0.34 | ≤ 0.50 |
 | Resistors | ≤ 33 mW (R605), ≤ 11 mW (I2S series, fault case) | 100 mW | ≤ 0.33 | ≤ 0.50 |
 | J2 PA contacts | 0.47 A over two | 1.0 A each | 0.23 | ≤ 0.50 |
@@ -758,7 +758,7 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | 3 | OBC SPI2 (PB13–PB15, PD0, "RF transceiver" in `spi.rs`) is no longer used by the radio | OBC designer, AV | Free the pins |
 | 4 | SW2 trip current 0.25 A does not detect latch-up of a 38 mA load | EPS designer | SW2 current limit ≈ 0.12 A, or OBC monitoring of the RADIO rail current with a power cycle of RADIO_EN |
 | 5 | 3V3_AO tolerance ±3 % leaves 39 mV for the LMX2571's 3.15 V minimum | EPS designer | ±2 % set point, or confirm ±3 % includes load and temperature |
-| 6 | Transponder DC 1.76 W at 0.5 W RF (BASELINE §5 says ≈ 1.5 W) | Chair (BASELINE §5), PBA | "FM transponder (0.5 W RF ≈ 1.8 W DC), duty ≤ 25 %: 0.44 W"; or a 6 V PA rail / 12 Ω load line (§7.3) |
+| 6 | Transponder DC 1.84 W at 0.5 W RF (1.76 W before E) (BASELINE §5 says ≈ 1.5 W) | Chair (BASELINE §5), PBA | "FM transponder (0.5 W RF ≈ 1.8 W DC), duty ≤ 25 %: 0.44 W"; or a 6 V PA rail / 12 Ω load line (§7.3) |
 | 7 | 1 W setting 29.5–30.1 dBm | Chair | Keep "1 W maximum" for the filing; RF-P003 1 W level 30.0 +0.3/−0.6 dB |
 | 8 | Uplink request 435.050–436.500 MHz (SAW temperature drift, 435.000 MHz clock harmonics) | Chair (IARU request), REG | Add to the IARU request alongside the 437.3 MHz upper bound |
 | 9 | Receiver changed from "AX5043/SA818 class" to CC1200; the repeat audio passes through the TNC firmware | Chair (BUILD_VS_BUY §3.2 text) | "…the receiver's demodulated audio, produced by the TNC MCU from the CC1200's frequency samples (no analog FM receiver IC is in production within the power budget); tone decode, band-limiting, level limit, key gate, timer and TX permit in hardware" |

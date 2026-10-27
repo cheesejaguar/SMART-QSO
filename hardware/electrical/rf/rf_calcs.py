@@ -23,6 +23,7 @@ Sections
   15 magnetic cleanliness at the magnetometer on board A2 (OBC item C16): keep-out radius, PA current field
   16 antenna ports (Version C): MMCX connectors and 1.37 mm cables to the AntS, route length, loss and return loss
   17 shield-can vents (Version D amended): leakage of a 1.5 mm vent and the cavities' volume-to-vent-area ratio
+  18 receiver noise-floor health check (Version E): floor change for front-end faults
 
 Usage: python3 rf_calcs.py [--mc 4000] [--quiet]
 Needs numpy only.
@@ -576,13 +577,14 @@ def pa_budget(p, lpf):
 
 
 def exciter_power(p):
-    # LMX2571 ICC 44 mA typ (config B), 51 mA max table value, on the switched 3.3 V (from RADIO_3V3)
-    lmx = 0.046 * 3.3
+    # LMX2571 ICC 44 mA typ (config B), 51 mA max table value. Version E (SMA-B16): on its own TPS7A2033 LDO from
+    # +5V_PA, so it draws 46 mA from the 5 V PA rail (was 3.3 V from RADIO_3V3 through a load switch)
+    lmx = 0.046 * 5.0
     pcm = 0.0086 * 5.0 + 0.0059 * 5.0          # VCC 5 V analog; VDD 3.3 V from the PA-domain LDO fed at 5 V
     det = 2 * 0.0011 * 5.0                     # two RMS detectors on the PA-domain 3.3 V LDO (fed at 5 V)
     logic = 0.004 * 5.0                        # squarer, buffers, APC op-amp, reference, gate network
     keyed = lmx + pcm + det + logic
-    idle_pa = (0.0009 * 3.3 / 5.0 + 0.0002 + 0.00006 + 2 * 0.00005 + 0.0003) * 5.0  # LMX CE low via switch, PCM halted
+    idle_pa = (0.0009 + 0.00002 + 0.0002 + 0.00006 + 2 * 0.00005 + 0.0003) * 5.0  # LMX CE low + its LDO, PCM halted
     return {"lmx2571_W": round(lmx, 3), "pcm1808_W": round(pcm, 3), "detectors_W": round(det, 3), "logic_W": round(logic, 3),
             "keyed_W": round(keyed, 3), "idle_permitted_W": round(idle_pa, 4)}
 
@@ -601,7 +603,6 @@ def rx_power(p):
              ("SN74LVC1G123 active (Rext/Cext at 0.5 VCC: 280 uA)", 0.28, 0.4),
              ("TMP235 (14.5 uA), REF/bias dividers", 0.05, 0.1),
              ("LDO ground currents (TPS7A2030 6.5 uA, TPS73101 ~400 uA), pull-ups, misc", 0.45, 0.9),
-             ("LMX2571 switched rail, power-down (CE low, 0.9 mA) while TX is permitted", 0.9, 1.2),
              ("Receiver supervision: LVC1G123 RX-health monostable 0.28 mA, LVC1G17/LVC1G04, pull-downs", 0.30, 0.45)]
     typ = sum(x[1] for x in loads)
     worst = sum(x[2] for x in loads)
@@ -620,20 +621,23 @@ def rx_power(p):
             "repeat_typ_W": round(rp_typ * 1e-3 * p["v_radio_nom"], 4), "repeat_worst_W": round(rp_worst * 1e-3 * v_hi, 4),
             "repeat_allocation_W": 0.030,
             "receive_plus_repeat_worst_W": round((worst + rp_worst) * 1e-3 * v_hi, 4),
-            "rail_min_at_board": radio_rail_min(p)}
+            "rail_min_at_board": radio_rail_min(p, (worst + rp_worst) * 1e-3)}
 
 
-def radio_rail_min(p, i_keyed=0.089):
-    """Lowest RADIO_3V3 at the LMX2571 (needs >= 3.15 V) while keyed: 3V3_AO at EPS_DESIGN 2.0's -2 %, SW2
-    (TPS2553-Q1, 0.12 ohm assumed), W4B (28 AWG, 0.145 m, SQSO-HAR-001 2.0 §9.2: 13.7 mV at 0.089 A), FB801 (0.10 ohm
-    max DCR), TPS22918 (0.052 ohm) at the LMX2571's 46 mA. Power figures above stay at the conservative +3 %."""
+def radio_rail_min(p, i_radio):
+    """Version E (SMA-B16): the LMX2571 is on its own TPS7A2033 (U805) from +5V_PA, so RADIO_3V3 feeds only the
+    receive and repeat loads. Lowest RADIO_3V3 at the board: 3V3_AO at EPS_DESIGN 2.0's -2 %, SW2 (TPS2553-Q1, 0.12
+    ohm assumed), W4B (28 AWG, 0.145 m, SQSO-HAR-001 2.0 §9.2: 13.7 mV at 0.089 A), FB801 (0.10 ohm max DCR); headroom of
+    the two LDOs on it. The LMX2571 supply is the TPS7A2033 output, 3.3 V +-1.5 % (3.25 V minimum, 3.15 V needed)."""
     v = p["v_radio_nom"] * (1 - p["v_radio_tol_eps"])
-    drops = {"SW2_TPS2553": 0.12 * i_keyed, "W4B_28AWG": 0.0137 * i_keyed / 0.089, "FB801": 0.10 * i_keyed,
-             "TPS22918": 0.052 * 0.046}
+    drops = {"SW2_TPS2553": 0.12 * i_radio, "W4B_28AWG": 0.0137 * i_radio / 0.089, "FB801": 0.10 * i_radio}
     vmin = v - sum(drops.values())
-    return {"v_3v3_ao_min_V": round(v, 3), "drops_mV": {k: round(x * 1e3, 1) for k, x in drops.items()},
-            "v_lmx_min_V": round(vmin, 3), "margin_to_3V15_mV": round((vmin - 3.15) * 1e3, 0),
-            "keyed_current_A": i_keyed}
+    return {"v_3v3_ao_min_V": round(v, 3), "radio_current_A": round(i_radio, 4),
+            "drops_mV": {k: round(x * 1e3, 1) for k, x in drops.items()}, "v_radio_min_V": round(vmin, 3),
+            "headroom_TPS7A2030_3V0_mV": round((vmin - 3.0 * 1.015) * 1e3, 0),
+            "headroom_TPS73101_3V106_mV": round((vmin - 3.106 * 1.015) * 1e3, 0),
+            "lmx_supply_min_V": round(3.3 * 0.985, 3), "lmx_margin_to_3V15_mV": round((3.3 * 0.985 - 3.15) * 1e3, 0),
+            "lmx_ldo_dropout_needs_PA_5V_min_V": 3.5}
 
 
 # --------------------------------------------------------------------------------------- 8 timing
@@ -899,7 +903,8 @@ def stresses(p, pa, lpf):
         "TPS7A2033_I": {"stress": "17 mA (PCM1808 VDD 5.9, detectors 2.2, squarer and gates 4, margin)", "rating": "300 mA",
                         "ratio": 0.06, "rule": "<= 0.70",
                         "thermal": "(5.15-3.3) V x 17 mA = 31 mW; X2SON thetaJA ~ 200 C/W => +6 C"},
-        "TPS22918_LMX": {"stress": "51 mA", "rating": "2 A", "ratio": 0.03, "rule": "<= 0.70"},
+        "TPS7A2033_LMX": {"stress": "51 mA (LMX2571 maximum)", "rating": "300 mA", "ratio": 0.17, "rule": "<= 0.70",
+                          "thermal": "(5.15-3.25) V x 51 mA = 97 mW; X2SON thetaJA ~ 200 C/W => +19 C (79 C at a 60 C board)"},
         "bulk_caps_5V": {"stress": f"{vdd_max:.2f} V", "rating": "16 V X7R", "ratio": round(vdd_max / 16, 2), "rule": "<= 0.50"},
         "bulk_caps_3V3": {"stress": "3.40 V", "rating": "10 V X5R/X7R", "ratio": 0.34, "rule": "<= 0.50"},
         "connector_PA_contacts": {"stress": f"{lv['i_5v_A']:.2f} A over two contacts", "rating": "Pico-Clasp 1.0 A/contact",
@@ -979,6 +984,42 @@ def shield_vents():
     return out
 
 
+# ------------------------------------------------------- 18 noise-floor health check (Version E, SMA-B11)
+def noise_floor_check(p):
+    """In-channel noise power at the CC1200 input, healthy and with front-end faults, relative to healthy. The TNC's
+    criterion 6 flags a floor more than 6 dB below its calibrated value."""
+    def cascade(stages, t_src):
+        te, g = 0.0, 1.0
+        for nf, gain in stages:
+            te += t_from_nf(nf) / g
+            g *= undb(gain)
+        return (t_src + te) * g                      # noise temperature at the CC1200 input, before its own noise
+    t_cc = t_from_nf(p["rx_ic_nf_db"])
+    out = {"threshold_dB_below_calibrated": 5.0, "cases": {}}
+    for case, saw in (("SAW typ", p["saw_il_db_typ"]), ("SAW max", p["saw_il_db_max"])):
+        def chain(lna_nf, lna_g, fl1=p["_fl1_il_worst_db"]):
+            return [(p["balun_uhf_db"], -p["balun_uhf_db"]), (fl1, -fl1), (lna_nf, lna_g), (saw, -saw),
+                    (p["ic_match_db"], -p["ic_match_db"])]
+        healthy = cascade(chain(p["lna_nf_db"], p["lna_gain_db"]), 290.0) + t_cc
+        rows = {
+            "LNA dead (-20 dB through, NF 20 dB)": cascade(chain(20.0, -20.0), 290.0) + t_cc,
+            "LNA unbiased (about -10 dB through, NF 10 dB) [assumed]": cascade(chain(10.0, -10.0), 290.0) + t_cc,
+            "SAW open (-40 dB)": cascade([(p["balun_uhf_db"], -p["balun_uhf_db"]), (p["_fl1_il_worst_db"],
+                                          -p["_fl1_il_worst_db"]), (p["lna_nf_db"], p["lna_gain_db"]),
+                                         (40.0, -40.0), (p["ic_match_db"], -p["ic_match_db"])], 290.0) + t_cc,
+            "antenna or cable open (source = front-end at 290 K)": healthy,
+        }
+        out["cases"][case] = {k: round(db10(v / healthy), 1) for k, v in rows.items()}
+        out["cases"][case]["healthy_T_at_CC1200_K"] = round(healthy, 0)
+    out["note"] = ("A dead or unbiased LNA or an open SAW lowers the floor by 7.8-9.6 dB (the CC1200's own noise "
+                   "remains) and is caught by a 5 dB threshold with 2.8 dB margin; temperature drift of the healthy "
+                   "floor (+-2 dB assumed, compensated by a TVAC calibration table) leaves 3 dB against false alarms. "
+                   "An open antenna, "
+                   "cable or balun ahead of FL1 replaces a 290 K source by a ~290 K termination and is not "
+                   "(SRS-F115 silence rule and RX_CD carrier counts remain the evidence for those)")
+    return out
+
+
 # --------------------------------------------------------------------------------------------- main
 def main():
     ap = argparse.ArgumentParser()
@@ -1020,6 +1061,7 @@ def main():
     res["stresses"] = stresses(p, res["pa"], res["lpf"])
     res["magnetics"] = magnetics(res["pa"])
     res["shield_vents"] = shield_vents()
+    res["noise_floor_check"] = noise_floor_check(p)
     tx_loss = res["rf_ports"]["2m"]["port_to_antenna_worst_dB"]
     res["rf_ports"]["tx_1W_port_dBm_nominal_low_high"] = [r["pmax_port_dBm"] for r in res["pa"]["psat"]]
     res["rf_ports"]["tx_1W_at_antenna_dBm_nominal_low_high"] = [round(r["pmax_port_dBm"] - tx_loss, 2)

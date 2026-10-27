@@ -100,6 +100,7 @@ pub mod rv3028;
 pub mod safe_string;
 pub mod scheduler;
 pub mod sensors;
+pub mod separation;
 pub mod system_state;
 pub mod telecommand;
 pub mod telemetry;
