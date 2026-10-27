@@ -439,7 +439,7 @@ def obc_link():
                "Digi-Key: Active (EPS board)")
     conn(j3, {"P1": "PT_NTC", "P2": "PT_RTN"})
     p = place(TNTC, "RT1", "10k NTC", "GA10K3MCD1", "TE Connectivity (Measurement Specialties)", "epoxy bead, 0.25 mm leads",
-              "10 kOhm at 25 C, +/-0.2 C 0-70 C, B25/85 3976 K, -80..150 C", "bias current set by the OBC (<= 0.2 mA)",
+              "10 kOhm at 25 C, +/-0.2 C 0-70 C, B25/85 3976 K (10K3A curve), -40..125 C", "bias current set by the OBC (<= 0.2 mA)",
               "spreader temperature PT (payload_guard SPREADER_MAX_C 70 C, MIN_POWER_ON_C -15 C): bonded to the spreader "
               "with Stycast 2850FT/24LV, leads to J3", "Sn leads", "not checked")
     conn(p, {"A": "PT_NTC", "B": "PT_RTN"})

@@ -1,7 +1,7 @@
 # Jetson Orin Nano Carrier Board Design
 
 **Document ID**: SQSO-JET-BRD-001
-**Version**: C
+**Version**: D
 **Date**: 2026-10-27
 **Status**: CDR design completion (RID SE-01, carrier part). Schematic captured as code with selected parts, netlist,
 BOM, ERC and calculations. Not built; PCB layout not started (section 18 is the layout input).
@@ -38,7 +38,7 @@ Files: `design.py` (SKiDL 3.0 schematic), `jetson_calcs.py` (every calculation b
 | EMC | CE102 differential-mode estimate ≥ 37 dB under the MIL-STD-461G basic curve; all carrier converters on one crystal clock at 1.000 MHz (the EPS frequency plan): no harmonic within 200 kHz of either uplink window. L1 cannot be protected from the module's own 38.4 MHz reference (41st harmonic 1.02 MHz below L1, EMC-04): GNSS sessions stay with the Jetson off |
 | Parts | 137 placements, 51 BOM lines, plus the module, the SSD and 5 mechanical items; 12 ICs (10 TI AEC-Q100, TPS25947 and SN74LVC1G74 industrial); all stresses within EEE-INST-002 / 50 % rules (§17) |
 | Carrier dissipation | 0.72 W at 7 W module power (U1 0.28 W, 3.3 V side 0.38 W of which the SSD 0.30 W, U2 0.06 W); hottest junction 70 °C at a 60 °C board |
-| Gyro window, magnetometer, heights (B, C) | 27 × 27 mm window for the OBC's M-G370 gyro at y +17.0 … +44.0 with its bottom-side Al frame (MECHANICAL_DESIGN §4.3–§4.5, D-11) and the RM3100 keep-out (§4.4): the power train moved to the −Y strip and the −X column, the I/O parts to the +X edge; 0 placement conflicts and every part within the top-side height limits (7.7 mm under the spreader, 13.2 mm beyond; `jetson_calcs.py` table 14); no inductor, steel standoff or oscillator within 30 mm of the magnetometer. **Open:** which end of the SO-DIMM carries VDD_IN (pins 251–260); at the +X end the module's input current would sit 12 mm from the RM3100 (§18.2) |
+| Gyro window, heights (B, C), magnetometer (D) | 27 × 27 mm window for the OBC's M-G370 gyro at y +17.0 … +44.0 with its bottom-side Al frame (MECHANICAL_DESIGN §4.3–§4.5, D-11): the power train moved to the −Y strip and the −X column, the I/O parts to the +X edge; 0 placement conflicts and every part within the top-side height limits (7.7 mm under the spreader, 13.2 mm beyond; `jetson_calcs.py` table 14). The RM3100 keep-out of version B is withdrawn (magnetometer moved to (+24, +27), OBC item E11); the parts stay as placed (§18.2) |
 | Not met or not verifiable | 8 W at the full 7 W budget (no margin: cap the module); hold-up after an uncommanded power cut 0.11 ms (the normal shutdown must be commanded, §7.4); DG/TDG values (sequence timing, AC-coupling location, SoC lid area and θjc) |
 
 ## 1. Requirements and Where They Are Met
@@ -275,11 +275,59 @@ channel, and a carrier-powered monitor would vanish with the fault). For the cha
 `sensors.yaml` must be bound to that EPS register in flight.
 
 **Temperature.** The guard's spreader limit (70 °C) and power-on gate (−15 °C, SRS-F131) need the spreader temperature
-**before the carrier is powered**, so the sensor cannot be powered by the carrier. RT1 (10 kΩ NTC, TE GA10K3MCD1, bonded
+**before the carrier is powered**, so the sensor cannot be powered by the carrier. RT1 (10 kΩ NTC, TE GA10K3MCD1 (curve in §12.1), bonded
 to the spreader with Stycast 2850FT) has flying leads to J3 and is passed through to **J2 pins 5 and 6** untouched (ESD
 only). The OBC biases it (10.0 kΩ 0.1 % from its 3.3 V reference) and reads it on an ADC channel. No OBC or EPS channel is
 free in the current pin allocation (ICX-001 §4.3, OBC-BRD ADS7138 AIN0–AIN7, EPS ADS7138): interface change **E10**
 (§19). The Jetson-reported junction temperature (STATUS) remains a second input.
+
+### 12.1 RT1 conversion for the OBC (version D)
+
+RT1 is TE GA10K3MCD1: 10 kΩ at 25 °C, β25/85 3976 K, ±0.2 °C interchangeable from 0 to 70 °C, rated −40 to +125 °C (TE
+data sheet as listed; its full R–T table could not be retrieved). The table uses the published **10K3A curve** of the
+same 3976 K material, Steinhart–Hart 1/T = A + B·ln R + C·(ln R)³ with **A = 1.129241 × 10⁻³, B = 2.341077 × 10⁻⁴,
+C = 0.877547 × 10⁻⁷** (T in K, R in Ω; Newport 710 mount manual addendum, "10K3A thermistor"); the curve gives 10,000 Ω at
+25 °C and β25/85 = 3977 K, matching the data sheet. The OBC's reading (PA2) with the 10.0 kΩ 0.1 % bias from its ADC
+reference and RT1 to PT_RTN is V/Vref = R / (R + 10 kΩ); sensitivity at the guard points: 24 counts/K at −15 °C and
+18 counts/K at 70 °C (12 bit). `jetson_calcs.py` table 16 lists 1 °C-interpolable values; the flight software converts
+with the Steinhart–Hart equation above, not a table.
+
+| T (°C) | R (Ω) | V/Vref |
+|-------:|------:|-------:|
+| -40 | 336,050 | 0.9711 |
+| -35 | 242,397 | 0.9604 |
+| -30 | 176,785 | 0.9465 |
+| -25 | 130,295 | 0.9287 |
+| -20 | 96,999 | 0.9065 |
+| -15 | 72,906 | 0.8794 |
+| -10 | 55,301 | 0.8469 |
+| -5 | 42,315 | 0.8089 |
+| 0 | 32,650 | 0.7655 |
+| 5 | 25,394 | 0.7175 |
+| 10 | 19,903 | 0.6656 |
+| 15 | 15,714 | 0.6111 |
+| 20 | 12,493 | 0.5554 |
+| 25 | 10,000 | 0.5000 |
+| 30 | 8,056 | 0.4462 |
+| 35 | 6,530 | 0.3951 |
+| 40 | 5,325 | 0.3475 |
+| 45 | 4,367 | 0.3040 |
+| 50 | 3,601 | 0.2648 |
+| 55 | 2,985 | 0.2299 |
+| 60 | 2,487 | 0.1992 |
+| 65 | 2,082 | 0.1723 |
+| 70 | 1,752 | 0.1491 |
+| 75 | 1,480 | 0.1289 |
+| 80 | 1,256 | 0.1116 |
+| 85 | 1,070 | 0.0967 |
+| 90 | 916 | 0.0839 |
+| 95 | 787 | 0.0729 |
+| 100 | 678 | 0.0635 |
+| 105 | 587 | 0.0555 |
+| 110 | 510 | 0.0485 |
+| 115 | 444 | 0.0425 |
+| 120 | 388 | 0.0374 |
+| 125 | 341 | 0.0329 |
 
 **Latch-up coverage** (`jetson_calcs.py` table 10):
 
@@ -406,28 +454,31 @@ is rated by standoff, not derated).
 | What it displaced | Version A put the whole power train in this area (+Y, −X): moved to Z2 and Z3. J2 moved from the −X edge to the +X edge (both harness gaps at y 24–34 are reachable; W5B length unchanged at 0.10 m, to be confirmed by the harness design) |
 | Clear of it | SO-DIMM (y ≤ −27), module (above it, overhang 2.5 mm), M.2 connector and card (x ≥ +1.5: 5.0 mm), converters and connectors (table 14), centre support (0, +21) (3.0 mm, per the mechanical design) |
 
-### 18.2 Magnetometer keep-out (RM3100 under (+33, −38); MECHANICAL_DESIGN §4.4, §11 item 9; version B)
+### 18.2 Magnetometer (version D: keep-out withdrawn)
 
-| Rule | Carrier implementation |
-|------|------------------------|
-| No parts within 20 mm (either side) | nothing of the carrier's own inside the circle; the only items there are the SO-DIMM's +X end (3 mm) and the module's corner, which cannot move |
-| No ferromagnetic parts within 30 mm | inductors L1, L2, L3 at 48.5, 30.8, 79 mm; Y1 (metal lid) 87 mm; steel SMT standoffs MP1–MP3 at ≥ 48 mm; J1, J2, J3, J5, J6 have copper-alloy contacts and no steel shells. Passives' nickel barrier layers are treated as negligible, as on the OBC |
-| SO-DIMM latch and hold-downs (3 mm from the corner) | must be non-ferromagnetic (copper alloy, plastic) or latch-less: the module is retained by its two screws, the latch is not needed. TE's latch material is not published in what I could reach: confirm, or select a variant, before ordering (V-JET-9) |
-| No unpaired high-current path within 30 mm | VBAT_IN and VDD_IN run as plane pairs (L4 over L5, 0.2 mm); the converter hot loops are ≥ 31 mm away. Line-pair upper bounds at the RM3100 (`jetson_calcs.py` table 15): VBAT_IN 22 nT, VDD_IN plane pair 12 nT with the module pins at the −X end |
-| The module's own input | **if pins 251–260 are at the +X end**, the module's 1.4 A input enters 12 mm from the magnetometer through pins whose return (241–250) is about 5 mm away: of order 10 µT by the same estimate, which no carrier layout can pair out. The pin-1 end must be read from the NVIDIA module drawing; if it is the +X end, the RM3100 moves toward +Y on the OBC (the mechanical design's alternative), or the ADCS calibrates the burst offset against IMON_JET (for the chair and the OBC/ADCS owners) |
+The OBC designer moved the RM3100 off the OBC to board A2 at (+24, +27) in the +Z end-frame slot (their item E11), 63 mm
+from the Jetson input current; the 20 mm / 30 mm keep-out round (+33, −38) that version B applied to the carrier is
+**withdrawn**. The parts stay as placed in §18 (zones Z1–Z3): that placement still has no inductor, steel standoff or
+oscillator near the old corner, and nothing in it depended on the keep-out except the choice of zones.
+
+| Item | Status |
+|------|--------|
+| Ferromagnetic parts | L1–L3, Y1 (metal lid), the steel standoffs MP1–MP3 and the SO-DIMM latch hardware are ordinary magnetic-cleanliness items for the ADCS residual-dipole budget, no longer a local keep-out; a non-ferromagnetic SO-DIMM latch is preferred, not required |
+| Current paths | VBAT_IN and VDD_IN stay plane pairs (L4 over L5) as good practice |
+| Which SO-DIMM end carries VDD_IN (pins 251–260) | **no longer a blocker**: a field-magnitude check. At 63 mm the module's 1.4 A input through its connector pins (return about 5 mm away) gives B ≈ µ0·I·d / (2π r²) ≈ 0.35 µT as a line-pair upper bound, and the carrier's plane pairs a few nT; the actual dipole of the module and carrier currents is measured in V-JET-9 and, if needed, calibrated out against IMON_JET by the ADCS |
 
 ## 19. Interface Changes (for the chair)
 
 | # | Owner | Change | Reason |
 |---|-------|--------|--------|
 | E9 | carrier (this board) | **Done**: JET_3V3 on J2-4, ≤ 1 mA, = 3V3_IO switched by SYS_RESET* | AV-06, AV-09 |
-| E10 | OBC (J3 4 → 6 pins), INTERCONNECT W5B, harness | W5B becomes Pico-Clasp 6 (5013310607): pins 5 PT_NTC, 6 PT_RTN; OBC biases RT1 (10.0 kΩ 0.1 % from its 3.3 V reference) and reads it on one ADC channel (none free today: the OBC designer allocates, e.g. a third ADS7138 input freed or a second ADS7138); `sensors.yaml` PT bound to it | spreader temperature for the guard and the −15 °C power-on gate, readable with the carrier off |
+| E10 | **taken by the OBC designer**: OBC J3 6-pin, pin 5 thermistor, pin 6 return, ADC on PA2; INTERCONNECT W5B, harness | W5B becomes Pico-Clasp 6 (5013310607): pins 5 PT_NTC, 6 PT_RTN; OBC biases RT1 (10.0 kΩ 0.1 % from its 3.3 V reference) and reads it on one ADC channel (none free today: the OBC designer allocates, e.g. a third ADS7138 input freed or a second ADS7138); `sensors.yaml` PT bound to it | spreader temperature for the guard and the −15 °C power-on gate, readable with the carrier off |
 | F1 | flight software (`firmware/src/uart.rs`) | USART1 transmit 2 stop bits (8N2) | DS §2.10.4 |
 | F2 | flight software (`eps_control.rs`, payload schedule) | end each burst with `SHUTDOWN`, wait for JET_PG to fall (≤ 5 s, then cut anyway), then JETSON_PWR low and PAYLOAD_EN 10 ms later; treat an unexpected JET_PG fall with the rail commanded on as a payload fault and cut both lines | §7.4; reverses ICD-002 1.2 §9 |
 | F3 | flight software (`sensors.yaml`, EPS driver) | bind JPC to the EPS controller's IMON_JET register (U19 IMON, 0.84 V/A) | §12 |
 | F4 | payload software (`software/payload`) | at boot: `curr1_max` = 1300 mA on INA3221 channel 1 (VDD_IN 6.5 W cap); nvpmodel default ID 1 (7 W) in `/etc/nvpmodel.conf`; device tree PCIe C4 x1 Gen2; carrier board config derived from `jetson-orin-nano-devkit` (not `-super`), no carrier EEPROM | §2, §10, §13; TB-13 |
 | M1 | mechanical | spreader pedestal over the SoC and second face over DRAM/regulators; flatness and shim per §14; module standoff positions and the (0, −21) fastener under the module; window frame screw positions H10–H13 as assumed in §18.1 | §14, §18 |
-| M2 | OBC, ADCS, mechanical | confirm from the NVIDIA module drawing which SO-DIMM end carries VDD_IN (pins 251–260); if +X, move the RM3100 toward +Y or calibrate the burst offset against IMON_JET; SO-DIMM latch non-ferromagnetic | §18.2 |
+| M2 | OBC, ADCS | closed by OBC item E11 (RM3100 moved to (+24, +27)); remaining: V-JET-9 measures the burst-induced field at the new location; the SO-DIMM VDD_IN end is a field-magnitude check only | §18.2 |
 
 ## 20. Verification Items
 
@@ -442,7 +493,7 @@ is rated by standoff, not derated).
 | V-JET-7 | Junction-to-spreader resistance at 7 W (module sensors vs RT1) and clamp force (pressure film) | ≤ 5.7 K/W (design 1.2); force ≤ 40 N | THM-10 (V-THM-3) | EM thermal |
 | V-JET-8 | Random vibration of the populated carrier (module, card, spreader) at protoflight level | no resonance shift > 5 %, functional after, no fretting at J4/J5 | DS Table 5-5 is 2 Grms only | EM vibration |
 | V-EMC-1 | CE102 at the carrier input; near-field scan | as SQSO-EMC-001 §6 | §15 | carrier EM |
-| V-JET-9 | Magnetic screening: populated carrier with the module, unpowered and at a 7 W burst, field at the RM3100 position on the OBC (and the SO-DIMM latch checked with a permeability probe) | static and burst-induced field below the limit the ADCS owner sets from the RM3100 noise (15–30 nT); the nT/A coefficient against IMON_JET recorded for calibration | §18.2 | EM, with the OBC |
+| V-JET-9 | Magnetic screening: populated carrier with the module, unpowered and at a 7 W burst, field at the RM3100 position (A2, (+24, +27) in the +Z end-frame slot) | static and burst-induced field below the limit the ADCS owner sets from the RM3100 noise (15–30 nT); the nT/A coefficient against IMON_JET recorded for calibration | §18.2 | EM, with the OBC |
 
 ## 21. RID Status
 
@@ -464,7 +515,8 @@ is rated by standoff, not derated).
   GCM1885C1H222JA16D, GCM1885C1H332JA16D (series codes), TE 2309407-2 and 1-2199230-4 (distributor listings only),
   Würth standoffs, TE GA10K3MCD1, Bergquist GAP PAD 3500ULM. The TI parts were checked on ti.com product pages
   (orderable lists); the Swissbit N2600 on its fact sheet and a Mouser listing.
-- Which end of the SO-DIMM carries VDD_IN (pins 251–260) and the latch material of TE 2309407-2 (§18.2).
+- Which end of the SO-DIMM carries VDD_IN (pins 251–260) and the latch material of TE 2309407-2 (§18.2: magnetic-cleanliness items only since version D).
+- TE's own resistance-temperature table for GA10K3MCD1 (§12.1 uses the published 10K3A Steinhart–Hart constants of the same 3976 K curve).
 - No power figures for the Swissbit N2600; the 0.30 W average and 2.0 W peak are allocations.
 - The U1 efficiency model is fitted to two data-sheet points; the 93 % bound is shown alongside it.
 - M.2 lane naming: host transmit is connected to the card's PERp0/PERn0 (pins 43/41) and the card's PETp0/PETn0 (49/47)
@@ -477,4 +529,5 @@ is rated by standoff, not derated).
 |---------|------|--------|---------|
 | A | 2026-10-27 | Payload carrier design (CDR design completion) | First issue: carrier schematic as code with parts (VBAT input filter, 5 V buck and VDD_IN eFuse, sequencing and shutdown latch, switched I/O rails, UART translators, NVMe storage, debug header), netlist, BOM, ERC, calculations, layout input, interface changes and verification items |
 | B | 2026-10-27 | Payload carrier design (chair follow-up) | Gyro window and frame of MECHANICAL_DESIGN §4.3 (D-11): §18.1, frame screw holes H10–H13 and the frame MP5 in the design files; RM3100 magnetic keep-out of §4.4: §18.2; placement re-zoned (power to the −Y strip and −X column, I/O to the +X edge) with a placement check (`jetson_calcs.py` tables 14–15); M2, V-JET-9 |
+| D | 2026-10-27 | Payload carrier design (chair follow-up) | RM3100 moved to (+24, +27) by the OBC designer (E11): §18.2 keep-out withdrawn, parts kept as placed, SO-DIMM VDD_IN end now a field-magnitude check, M2 closed; E10 taken (OBC J3 6-pin, ADC on PA2); §12.1 RT1 resistance-temperature table (10K3A Steinhart–Hart curve) for the OBC's conversion; RT1 range corrected to −40 … +125 °C |
 | C | 2026-10-27 | Payload carrier design (chair follow-up) | Window moved to y +17.0 … +44.0 (MECHANICAL_DESIGN §4.5, item 12): keep-outs split by side, frame screws H10–H13 moved to the side bars, J3/D2/U10/U11 re-placed; top-side height limits (7.7 / 13.2 mm) added to the placement check; MP2/MP3 at (±31.3, +12.6); BASELINE cited as Rev E |

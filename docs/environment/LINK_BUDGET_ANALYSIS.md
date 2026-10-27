@@ -1,7 +1,7 @@
 # SMART-QSO Link Budget Analysis
 
 **Document ID**: SQSO-LBA-001
-**Version**: 3.1
+**Version**: 3.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Controlled link budget for the baseline in [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) (§3, §7, §8). CDR re-issue (finding TB-05). **Analysis, not measured.** Every other document that quotes a link margin cites this one.
@@ -14,11 +14,9 @@ BASELINE §7 asks for. Against Version 2.0 it adds:
 
 - the demodulator thresholds from a baseband simulation of the actual waveforms, replacing the assumed "12 dB C/N"
   (§3);
-- the antenna pattern sampled along real passes, with the spacecraft spinning at 6°/s about +Y on the Sun (BASELINE §8,
-  D9, as it was when the analysis was run), for three element orientations, and the resulting fading, frame loss and
-  pass statistics (§5). BASELINE Rev E raised the spin to 8°/s: the time in a fade is unchanged (§5), the fades become
-  4.5 s every 22.5 s instead of 6 s every 30 s, and the 60 s beacon interval no longer equals the spin period (45 s);
-  the frame statistics of §5 are to be re-run at 8°/s;
+- the antenna pattern sampled along real passes, with the spacecraft spinning at 8°/s about +Y on the Sun (BASELINE
+  Rev E §8, D9; 6°/s, the earlier value, for comparison), for three element orientations, and the resulting fading,
+  frame loss and pass statistics (§5);
 - handheld and mobile user stations, the SINAD a transponder user hears, and the end-to-end transponder link (§4.3,
   §6.3);
 - Doppler effects on AFSK decoding, CTCSS access and telecommand (§4.4);
@@ -31,21 +29,21 @@ Every number is reproduced by the scripts in `software/simulation/cdr/rf/` (§9)
 
 | Requirement (source) | Case | Result | Verdict |
 |----------------------|------|--------|---------|
-| Beacon downlink margin > 6 dB threshold, > 10 dB goal (`docs/project/SEMP.md` TPM) | 0.5 W, 5° elevation, reference station A (12 dBic, 500 K), median spacecraft gain toward the station (−3 dBi) | **+7.6 dB** (+10.6 dB at 1 W); goal met from 12° | Met (threshold) |
-| Same, 10th-percentile spacecraft gain (−10 dBi) | 0.5 W, 5° | **+0.6 dB** (+3.6 dB at 1 W; +5.9 dB at 20°) | Closes, below threshold |
-| Beacon at 525 km (the former altitude cap; a bound) | 0.5 W, 5°, −3 / −10 dBi | +7.3 / +0.3 dB | Met / closes |
-| Beacon to a portable station (5 dBi Yagi, no Doppler correction) | 0.5 W, −3 dBi | −4.5 dB at 5°, +0.9 dB at 20°, +5.7 dB at 45° | Usable from about 20°, at 1 W from about 10° |
-| Beacon to a SatNOGS omni station (0 dBic, 1,000 K) | 0.5 W, −3 dBi | −7.4 dB at 5°, +0.3 dB at 30°, +5.5 dB at zenith | Usable above about 30° only |
-| Telecommand uplink margin ≥ 6 dB (proposed here, §1.2) at 10° | 25 W, 14 dBic, −10 dBi spacecraft gain, +6 dB terrestrial interference | **+2.3 dB** at 10°, +5.8 dB at 20°; +8.3 dB at 10° without interference | **Not met at 10°**; met at 20°, or at 10° with 50 W (§6.1) |
-| Telecommand, median gain, interference +6 dB | 25 W, 5° | +7.5 dB | Met |
-| Transponder usable (12 dB SINAD end to end) | 5 W handheld + handheld Yagi up, handheld Yagi down | 19 dB at 5°, 26 dB at 20° | Met from 5° |
-| Transponder usable for a handheld with a whip, both ways | 5 W, whip, −3 dBi | 1.5 dB at 5°, 13.6 dB at 20°, 26 dB at zenith | Usable from about 19° (12 dB SINAD) |
-| Beacon pass decoded, 6°/s spin, element across the spin axis | station A, 0.5 W, 60 days of passes | 100 % of passes, 95.6 % of frames (97.2 % with a beacon interval off the spin period) | Met |
+| Beacon downlink margin > 6 dB threshold, > 10 dB goal (`docs/project/SEMP.md` TPM) | 0.5 W, 5° elevation, reference station A (12 dBic, 500 K), median spacecraft gain toward the station (−3 dBi) | **+7.9 dB** (+10.9 dB at 1 W); goal met from 11° | Met (threshold) |
+| Same, 10th-percentile spacecraft gain (−10 dBi) | 0.5 W, 5° | **+0.9 dB** (+3.9 dB at 1 W; +6.3 dB at 20°) | Closes, below threshold |
+| Beacon at the 485 km altitude cap (the bound) | 0.5 W, 5°, −3 / −10 dBi | +7.8 / +0.8 dB | Met / closes |
+| Beacon to a portable station (5 dBi Yagi, no Doppler correction) | 0.5 W, −3 dBi | −4.2 dB at 5°, +1.2 dB at 20°, +6.1 dB at 45° | Usable from about 17°, at 1 W from about 10° |
+| Beacon to a SatNOGS omni station (0 dBic, 1,000 K) | 0.5 W, −3 dBi | −7.1 dB at 5°, +0.7 dB at 30°, +5.9 dB at zenith | Usable above about 28° only |
+| Telecommand uplink margin ≥ 6 dB (proposed here, §1.2) at 10° | 25 W, 14 dBic, −10 dBi spacecraft gain, +6 dB terrestrial interference | **+2.6 dB** at 10°, +6.2 dB at 20°; +8.6 dB at 10° without interference | **Not met at 10°**; met at 20°, or from about 11° with 50 W (§6.1) |
+| Telecommand, median gain, interference +6 dB | 25 W, 5° | +7.8 dB | Met |
+| Transponder usable (12 dB SINAD end to end) | 5 W handheld + handheld Yagi up, handheld Yagi down | 20 dB at 5°, 27 dB at 20° | Met from 5° |
+| Transponder usable for a handheld with a whip, both ways | 5 W, whip, −3 dBi | 1.8 dB at 5°, 14.9 dB at 20°, 26 dB at zenith | Usable from about 17° (12 dB SINAD) |
+| Beacon pass decoded, 8°/s spin, element across the spin axis | station A, 0.5 W, 60 days of passes at 475 km | 99.6 % of passes, 96.6 % of frames (98.2 % with ±5 s beacon-interval jitter) | Met |
 
 **Verdict.** The 2 m beacon closes with the required margin to a reference station from 5° at 0.5 W. The telecommand
 uplink at 25 W does not hold a 6 dB margin at 10° once a 6 dB terrestrial-interference allowance and the antenna's
 10th-percentile gain are both taken; telecommand at 50 W (the 50 W PEP limit near Beale AFB applies at the Bay Area
-site, §6.1), or commanding above 20°, restores it. Handheld users with whips are transponder users above about 20°
+site, §6.1), or commanding above 20°, restores it. Handheld users with whips are transponder users above about 17°
 only. The largest open item is not the budget itself but its inputs that need hardware: the antenna pattern on the
 1U body with wings, the receiver noise figure, and the transmitter's 3rd harmonic and phase noise (§8).
 
@@ -75,18 +73,18 @@ threshold (52.9 dB-Hz with implementation loss) is within 0.1 dB of the assumed 
 
 | Parameter | Value | Basis |
 |-----------|-------|-------|
-| Altitude | 500 km (analysed). The baseline is now a 475 km target, 465–485 km, 485 km cap (BASELINE Rev E §3): the slant ranges are shorter, so the margins here are conservative by about 0.3 dB at 5° | BASELINE §3 |
+| Altitude | **475 km** (the BASELINE Rev E §3 target; band 465–485 km). The 485 km cap is the bound: 0.1 dB less at 5° | BASELINE §3 |
 | Orbit | Circular SSO, i ≈ 97.4°, LTAN 22:30 (descending node 10:30) | BASELINE §3; SIL default |
-| Period, speed | 94.6 min, 7.61 km/s | 2π√(a³/μ), √(μ/a) |
+| Period, speed | 94.1 min, 7.63 km/s | 2π√(a³/μ), √(μ/a) |
 | Slant range | d = √((Rₑ+h)² − (Rₑ cos E)²) − Rₑ sin E | Rₑ = 6,378 km |
 
 | Elevation | 5° | 10° | 20° | 30° | 45° | 90° |
 |-----------|----|-----|-----|-----|-----|-----|
-| Slant range, 500 km | 2,078 km | 1,695 km | 1,193 km | 910 km | 683 km | 500 km |
-| Slant range, 525 km | 2,143 km | 1,756 km | 1,244 km | 951 km | 716 km | 525 km |
-| Free-space loss, 145.9 MHz, 500 km | 142.1 dB | 140.3 dB | 137.3 dB | 134.9 dB | 132.4 dB | 129.7 dB |
-| Free-space loss, 435.5 MHz, 500 km | 151.6 dB | 149.8 dB | 146.8 dB | 144.4 dB | 141.9 dB | 139.2 dB |
-| Free-space loss, 145.9 MHz, 525 km | 142.3 dB | 140.6 dB | 137.6 dB | 135.3 dB | 132.8 dB | 130.1 dB |
+| Slant range, 475 km | 2,012 km | 1,633 km | 1,142 km | 867 km | 650 km | 475 km |
+| Slant range, 485 km (cap) | 2,039 km | 1,658 km | 1,162 km | 884 km | 663 km | 485 km |
+| Free-space loss, 145.9 MHz, 475 km | 141.8 dB | 140.0 dB | 136.9 dB | 134.5 dB | 132.0 dB | 129.3 dB |
+| Free-space loss, 435.5 MHz, 475 km | 151.3 dB | 149.5 dB | 146.4 dB | 144.0 dB | 141.5 dB | 138.8 dB |
+| Free-space loss, 145.9 MHz, 485 km | 141.9 dB | 140.1 dB | 137.0 dB | 134.7 dB | 132.2 dB | 129.4 dB |
 
 ### 2.2 Frequencies and emissions
 
@@ -121,7 +119,7 @@ make the emission 11K4F2D, and is corrected there.
 | Filter, cable and connector loss | 1.0 dB (the analysed LPF of §7.2 has 0.6 dB with inductor Q 80; 0.4 dB for 150 mm RG-316 and connectors) | `software/simulation/cdr/rf/desense_emc.py` |
 | Antennas | ISIS AntS 1U–3U on a ±Z face: separate 2 m (≈ 0.5 m) and 70 cm (≈ 0.17 m) tape elements deploying in the plane of the face (BASELINE §7; `docs/hardware/BUILD_VS_BUY.md` §2.6) | |
 | Pattern | Half-wave-dipole-shaped about the element axis, **0 dBi peak** (filed), null filled to −20 dBi by the body and wings [assumption until the EM pattern measurement, VI-RF-01] | §5 |
-| Gain toward the station, along passes, element across the spin axis | Median −2.1 dBi (−2.3 dBi at 5–10° elevation); 10th percentile −9.5 dBi | §5.2 |
+| Gain toward the station, along passes, element across the spin axis | Median −1.9 dBi (−2.2 dBi at 5–10° elevation); 10th percentile −9.4 dBi | §5.2 |
 | Design values in the tables | **−3 dBi (median) and −10 dBi (10th percentile)**; 0 dBi (peak) for the uplink upper bound | §5.2 |
 | Receiver system noise temperature | **1,000 K** at the antenna port (Earth at 290 K in view, RX filter 1.5 dB, LNA NF ≤ 2 dB: 650 K; 350 K allowance for in-band interference at a quiet site). This is a requirement on the receiver (`docs/hardware/RF_DESIGN.md` RF-P006), not a measured value | ITU_APPENDIX4_DATA §D |
 | Terrestrial interference at 435 MHz | A further **+6 dB** (and +10 dB sensitivity) on the receiver noise over populated areas. 420–450 MHz is a radiolocation band in the United States in which the amateur service is secondary (47 CFR 97.303(b)); 435–438 MHz is a satellite-only sub-band by IARU band plan but is used terrestrially in places [assumption: on-orbit measurements by earlier missions show 5–15 dB rises; to be measured on orbit, VI-RF-09] | |
@@ -202,40 +200,40 @@ Transmitter                    +27.0 dBm   (0.5 W)
 Filter, cable, connectors       −1.0 dB
 Spacecraft antenna              −3.0 dBi   (median toward the station, §5.2)
 EIRP                           +23.0 dBm
-Free-space loss (2,078 km)    −142.1 dB
+Free-space loss (2,012 km)    −141.8 dB
 Absorption, scintillation       −1.0 dB
 Polarization (linear → circ.)   −3.0 dB
 Ground antenna                 +12.0 dBic
-Received carrier              −111.1 dBm
+Received carrier              −110.8 dBm
 Noise density (500 K)         −171.6 dBm/Hz  (−198.6 + 10 log 500)
-C/N₀                            60.5 dB-Hz
+C/N₀                            60.8 dB-Hz
 Required (§3.2)                 52.9 dB-Hz
-Margin                          +7.6 dB
+Margin                          +7.9 dB
 ```
 
 ### 4.2 Beacon margin (dB)
 
 | Station | Power, spacecraft gain | 5° | 10° | 20° | 30° | 45° | 90° |
 |---------|------------------------|----|-----|-----|-----|-----|-----|
-| A | 0.5 W, −3 dBi | **+7.6** | +9.4 | +12.9 | +15.3 | +17.8 | +20.5 |
-| A | 0.5 W, −10 dBi | **+0.6** | +2.4 | +5.9 | +8.3 | +10.8 | +13.5 |
-| A | 1 W, −3 dBi | +10.6 | +12.4 | +15.9 | +18.3 | +20.8 | +23.5 |
-| A | 1 W, −10 dBi | +3.6 | +5.4 | +8.9 | +11.3 | +13.8 | +16.5 |
-| S (SatNOGS omni) | 0.5 W, −3 dBi | −7.4 | −5.7 | −2.1 | +0.3 | +2.7 | +5.5 |
-| S | 1 W, −3 dBi | −4.4 | −2.6 | +0.9 | +3.3 | +5.8 | +8.5 |
-| B (handheld Yagi) | 0.5 W, −3 dBi | −4.5 | −2.7 | +0.9 | +3.2 | +5.7 | +8.4 |
-| B | 1 W, −3 dBi | −1.4 | +0.3 | +3.9 | +6.2 | +8.7 | +11.4 |
-| W (handheld whip) | 0.5 W, −3 dBi | −11.5 | −9.7 | −6.1 | −3.8 | −1.3 | +1.4 |
-| W | 1 W, −3 dBi | −8.4 | −6.7 | −3.1 | −0.8 | +1.7 | +4.4 |
-| D (rubber duck) | 1 W, −3 dBi | −14.4 | −12.7 | −9.1 | −6.8 | −4.3 | −1.6 |
+| A | 0.5 W, −3 dBi | **+7.9** | +9.7 | +13.3 | +15.7 | +18.2 | +20.9 |
+| A | 0.5 W, −10 dBi | **+0.9** | +2.7 | +6.3 | +8.7 | +11.2 | +13.9 |
+| A | 1 W, −3 dBi | +10.9 | +12.7 | +16.3 | +18.7 | +21.2 | +23.9 |
+| A | 1 W, −10 dBi | +3.9 | +5.7 | +9.3 | +11.7 | +14.2 | +16.9 |
+| S (SatNOGS omni) | 0.5 W, −3 dBi | −7.1 | −5.3 | −1.7 | +0.7 | +3.2 | +5.9 |
+| S | 1 W, −3 dBi | −4.1 | −2.3 | +1.3 | +3.7 | +6.2 | +8.9 |
+| B (handheld Yagi) | 0.5 W, −3 dBi | −4.2 | −2.4 | +1.2 | +3.6 | +6.1 | +8.9 |
+| B | 1 W, −3 dBi | −1.2 | +0.6 | +4.3 | +6.6 | +9.2 | +11.9 |
+| W (handheld whip) | 0.5 W, −3 dBi | −11.2 | −9.4 | −5.8 | −3.4 | −0.9 | +1.9 |
+| W | 1 W, −3 dBi | −8.2 | −6.4 | −2.7 | −0.4 | +2.2 | +4.9 |
+| D (rubber duck) | 1 W, −3 dBi | −14.2 | −12.4 | −8.7 | −6.4 | −3.8 | −1.1 |
 
-**At 525 km** (the former cap, a bound), station A, 5°: +7.3 dB (−3 dBi), +0.3 dB (−10 dBi).
+**At the 485 km cap** (the bound), station A, 5°: +7.8 dB (−3 dBi), +0.8 dB (−10 dBi).
 
 **Station A noise sensitivity** (0.5 W, −3 dBi, 5°):
 
 | T_sys | 300 K | 500 K | 1,000 K | 1,500 K (P.372 rural man-made) | 2,000 K | 5,800 K (P.372 residential, omni) |
 |-------|-------|-------|---------|--------------------------------|---------|-----------------------------------|
-| Margin | +9.8 dB | **+7.6 dB** | +4.6 dB | +2.8 dB | +1.6 dB | −3.1 dB |
+| Margin | +10.1 dB | **+7.9 dB** | +4.9 dB | +3.1 dB | +1.8 dB | −2.8 dB |
 
 The telecommand sites must therefore be quiet: a Yagi aimed at 5° in a residential neighbourhood sees man-made noise
 from the horizon and can lose the margin. A noise survey of each candidate site (2 m noise floor at 5–20° elevation in
@@ -246,24 +244,24 @@ all azimuths) is verification item VI-GND-02 (`docs/ground/GROUND_STATION_DESIGN
 | Station | Gain | 5° | 20° | Zenith | (10° / 30° / 45°) |
 |---------|------|----|-----|--------|-------------------|
 | A | −3 dBi | 33 dB | > 36 dB | > 36 dB | 35 / > 36 / > 36 |
-| B (handheld Yagi) | −3 dBi | **20 dB** | **28 dB** | **32 dB** | 24 / 29 / 31 |
-| B | −10 dBi | 2 dB | 14 dB | 28 dB | 4 / 22 / 26 |
-| W (handheld, whip) | −3 dBi | **< 3 dB** | **14 dB** | **28 dB** (whip tilted to the satellite) | 4 / 22 / 26 |
-| W | −10 dBi | < 3 dB | < 3 dB | 16 dB | < 3 / 3 / 7 |
-| D (rubber duck) | −3 dBi | < 3 dB | < 3 dB | 20 dB | < 3 / 4 / 10 |
-| S (SatNOGS omni) | −3 dBi | 7 dB | 22 dB | 31 dB | 12 / 26 / 28 |
+| B (handheld Yagi) | −3 dBi | **21 dB** | **28 dB** | **33 dB** | 24 / 30 / 31 |
+| B | −10 dBi | 2 dB | 16 dB | 28 dB | 5 / 23 / 26 |
+| W (handheld, whip) | −3 dBi | **< 3 dB** | **16 dB** | **28 dB** (whip tilted to the satellite) | 5 / 23 / 26 |
+| W | −10 dBi | < 3 dB | < 3 dB | 18 dB | < 3 / 3 / 9 |
+| D (rubber duck) | −3 dBi | < 3 dB | < 3 dB | 21 dB | < 3 / 5 / 11 |
+| S (SatNOGS omni) | −3 dBi | 7 dB | 23 dB | 31 dB | 13 / 26 / 29 |
 
 A vertical whip has a null overhead: the zenith value assumes the user points the whip at the satellite. 12 dB SINAD
 is the TIA-603 reference sensitivity (intelligible); 20 dB is a comfortable contact. A handheld with a whip therefore
-hears the transponder from about 18° (median gain), with 6–8 s dropouts every 30 s while the element null sweeps past
+hears the transponder from about 17° (median gain), with 5–6 s dropouts every 22.5 s while the element null sweeps past
 (§5). A handheld with the stock helical antenna hears it only within about 45° of zenith.
 
 ### 4.4 Doppler
 
 | Quantity | 145.9 MHz | 435.5 MHz | Basis |
 |----------|-----------|-----------|-------|
-| Maximum shift | **±3.47 kHz** | **±10.36 kHz** | Pass simulation, 60 days, Santa Clara (range rate up to 7.13 km/s with Earth rotation) |
-| Maximum rate (overhead pass at TCA) | 53 Hz/s | 159 Hz/s | same |
+| Maximum shift | **±3.49 kHz** | **±10.42 kHz** | Pass simulation, 60 days at 475 km, Santa Clara (range rate up to 7.17 km/s with Earth rotation) |
+| Maximum rate (overhead pass at TCA) | 57 Hz/s | 169 Hz/s | same |
 
 Effects:
 
@@ -278,7 +276,7 @@ Effects:
 3. **Transponder users** step the uplink in 5 kHz increments (435.510 → 435.505 → 435.500 → 435.495 → 435.490 MHz for a
    435.500 MHz receiver, as on SO-50 and AO-91); a residual of ±2.5 kHz costs about 1 dB.
 4. **CTCSS access:** Doppler shifts the carrier, not the audio, so the 67.0 Hz tone is unchanged (its relative change is
-   v/c = 2.4 × 10⁻⁵). The discriminator's DC term from the offset (up to 10 kHz, changing at ≤ 159 Hz/s) is removed by
+   v/c = 2.4 × 10⁻⁵). The discriminator's DC term from the offset (up to 10.4 kHz, changing at ≤ 169 Hz/s) is removed by
    the decoder's high-pass. The tone detector's own threshold is far below the voice threshold: above the FM threshold
    the discriminator noise density near 67 Hz is (N₀/C)·f², giving a tone SNR above 40 dB in a 10 Hz detector at
    47 dB-Hz; below threshold, click noise (rate ≈ (B/2√3)·erfc√ρ) still leaves about 10 dB SNR at a C/N of 0 dB.
@@ -289,9 +287,10 @@ Effects:
 
 ### 5.1 Method
 
-`software/simulation/cdr/rf/pass_geometry_mc.py` propagates the baseline orbit for 60 days (1 s steps), with +Y on the
-Sun and the spacecraft spinning about +Y at 6°/s (BASELINE §8, D9) or 2°/s (the earlier baseline), and evaluates the
-gain toward the Santa Clara station every second of every pass above 5° (231 passes). Element orientations (the AntS
+`software/simulation/cdr/rf/pass_geometry_mc.py` propagates the baseline orbit (475 km, LTAN 22:30, from 2028-11-01)
+for 60 days (1 s steps), with +Y on the Sun and the spacecraft spinning about +Y at 8°/s (BASELINE Rev E §8, D9) or
+6°/s (the value before the design review, for comparison), and evaluates the gain toward the Santa Clara station every
+second of every pass above 5° (226 passes). Element orientations (the AntS
 deploys its tapes in the plane of a ±Z face, so each tape lies along ±X or ±Y):
 
 | Option | Element | Effect of the spin |
@@ -306,50 +305,57 @@ Faraday rotation drifting 0.5–3 rad per pass.
 
 ### 5.2 Gain toward the station along passes
 
-| Option | Median gain, 5–10° elevation | 10th percentile, 5–10° | Time below −6 dBi | Time below −10 dBi | Fades below −10 dBi, 6°/s | Same, 2°/s |
+| Option | Median gain, 5–10° elevation | 10th percentile, 5–10° | Time below −6 dBi | Time below −10 dBi | Fades below −10 dBi, 8°/s | Same, 6°/s |
 |--------|------------------------------|------------------------|-------------------|--------------------|---------------------------|------------|
-| perp | −2.3 dBi | −9.3 dBi | 21 % | 8.7 % | 6.4 per pass, median 6 s, 95th percentile 8 s | 2.3 per pass, median 18 s, 95th percentile 23 s |
-| para | −1.4 dBi | −5.5 dBi (−11.9 dBi at 30–45°) | 14 % | 3.5 % | 0.19 per pass, median 81 s, 95th percentile 119 s | same (no spin effect) |
-| cross | −2.3 dBi | −3.6 dBi | **0 %** | **0 %** | none | none |
+| perp | −2.2 dBi | −9.2 dBi | 21 % | 8.7 % | 8.3 per pass, median 5 s, 95th percentile 6 s | 6.3 per pass, median 6 s, 95th percentile 8 s |
+| para | −1.4 dBi | −6.3 dBi (−12.8 dBi at 30–45°) | 17 % | 4.4 % | 0.23 per pass, median 78 s, 95th percentile 129 s | same (no spin effect) |
+| cross | −2.4 dBi | −3.6 dBi | **0 %** | **0 %** | none | none |
 
 The −3 dBi and −10 dBi design values of §4 and §6 are the median and 10th percentile of the perp case. Version 2.0's
 random-orientation coverage (−3 dBi in 63 % of orientations, −10 dBi in 92 %) is close to the pass-weighted values.
 
-The spin does not change the fraction of time in a fade (8.7 % at 6°/s and at 2°/s, perp); it changes the fade length
-and how often fades recur: 6°/s gives 6 s fades every 30 s, which a voice user hears as regular dropouts.
+The spin does not change the fraction of time in a fade (8.7 % at 8°/s and at 6°/s, perp); it changes the fade length
+and how often fades recur: 8°/s gives 5 s fades every 22.5 s (6°/s gave 6 s every 30 s), which a voice user hears as
+regular dropouts.
 
-### 5.3 Frame loss and passes heard (0.5 W, Santa Clara, 60 days)
+### 5.3 Frame loss and passes heard (0.5 W, Santa Clara, 60 days, 475 km)
 
 | Station | Option | Spin | Beacon interval | Passes with a beacon decoded | Frames decoded | Transponder time above 12 / 20 dB SINAD |
 |---------|--------|------|-----------------|------------------------------|----------------|------------------------------------------|
-| A | perp | 6°/s | 60 s | 100.0 % | **95.6 %** | 99 / 98 % |
-| A | perp | 6°/s | 67 s, or 60 ± 5 s jitter | 99.2 % | **97.2 %** | 99 / 98 % |
-| A | perp | 2°/s | 60 s | 100.0 % | 97.4 % | 99 / 98 % |
-| A | perp | 6°/s | 120 s (IDLE) | 96.9 % | 95.8 % | |
-| A | para or cross | 6°/s | 60 s | 100.0 % | 100.0 % | 100 / 100 % |
-| B (handheld Yagi) | perp | 6°/s | 60 s | 88.0 % | 50.1 % | 70 / 59 % |
-| B | perp | 2°/s | 60 s | 91.4 % | 50.5 % | 69 / 59 % |
-| B | para | 6°/s | 60 s | 86.6 % | 56.1 % | 75 / 66 % |
-| B | cross | 6°/s | 60 s | 92.4 % | 69.6 % | 92 / 83 % |
-| S (SatNOGS omni) | perp | 6°/s | 60 s | 73.8 % | 31.3 % | 59 / 32 % |
-| S | cross | 6°/s | 60 s | 67.5 % | 34.6 % | 66 / 34 % |
-| W (handheld whip) | perp | 6°/s | 60 s | 33.2 % | 12.7 % | 36 / 19 % |
+| A | perp | 8°/s | 60 s | 99.6 % | **96.6 %** | 99 / 98 % |
+| A | perp | 8°/s | 67 s | 99.6 % | 97.5 % | 99 / 98 % |
+| A | perp | 8°/s | 60 ± 5 s jitter | 99.6 % | **98.2 %** | 99 / 98 % |
+| A | perp | 6°/s (former) | 60 s | 99.2 % | 96.3 % | 99 / 98 % |
+| A | perp | 8°/s | 120 s (IDLE) | 98.2 % | 96.6 % | |
+| A | para or cross | 8°/s | 60 s | 99.6 % / 99.1 % | 100.0 % | 100 / 100 % |
+| B (handheld Yagi) | perp | 8°/s | 60 s | 92.8 % | 48.8 % | 69 / 59 % |
+| B | perp | 6°/s (former) | 60 s | 85.7 % | 54.7 % | 71 / 60 % |
+| B | para | 8°/s | 60 s | 84.4 % | 57.7 % | 75 / 66 % |
+| B | cross | 8°/s | 60 s | 97.5 % | 71.5 % | 92 / 83 % |
+| S (SatNOGS omni) | perp | 8°/s | 60 s | 71.7 % | 34.9 % | 63 / 34 % |
+| S | cross | 8°/s | 60 s | 67.5 % | 36.9 % | 70 / 36 % |
+| W (handheld whip) | perp | 8°/s | 60 s | 47.6 % | 12.9 % | 39 / 21 % |
+
+Each row draws its own spin phase, beacon schedule and (for linear stations) Faraday rotation over the same 226 passes,
+so the weak-station figures carry a sampling scatter of several points (passes heard by B range over 78–98 % between
+otherwise similar rows); the station-A frame fractions are steady to about ±0.5 point. A pass with no beacon scheduled
+inside it counts as not heard, which is why station A stays just below 100 % of passes even with every frame decoded.
 
 Findings:
 
-1. **The 60 s beacon interval equals the 6°/s spin period (360°/6°/s = 60 s).** Successive beacons in a pass then go
-   out at the same spin phase, so a station that loses one beacon to the null tends to lose the next. Moving the
-   interval off the spin period (67 s, or ±5 s of random jitter) recovers 1.6 points of frames at station A and is
-   free. At 2°/s (180 s period) successive beacons were 120° apart in phase. The same mechanism is consistent with the mission
-   simulation's 96.9 % of passes heard at 6°/s against 98.8 % at 2°/s (here the portable class drops from 91.4 % to
-   88.0 %) (`docs/test/SIL_MISSION_SIMULATION.md`); the
-   simulation's nine stations include portable-class stations, whose loss is larger. Recommended flight-software
-   change (for the chair: `sqso_fsw::beacon` is outside this document): a uniform ±5 s jitter on each beacon interval,
-   or ACTIVE at 67 s. Either keeps the beacon power line of BASELINE §5.
+1. **At 8°/s the 60 s beacon interval no longer locks to the spin.** The spin period is 45 s and the pattern null
+   recurs every 22.5 s; a 60 s interval advances the pattern by 120°, so successive beacons cycle through three
+   phases instead of repeating one. At 6°/s (60 s period) successive beacons went out at the same phase, and a station
+   that lost one beacon to the null tended to lose the next. Station A's frames rise from 96.3 % (6°/s, same orbit)
+   to 96.6 %; ±5 s of random jitter on each interval still recovers another 1.6 points (98.2 %), and 67 s gives 97.5 %.
+   The recommended flight-software change stands (RID RF-04; `sqso_fsw::beacon` is outside this document): a uniform
+   ±5 s jitter on each beacon interval. It keeps the beacon power line of BASELINE §5. The mission simulation's
+   passes-heard figures at 6°/s and 2°/s (`docs/test/SIL_MISSION_SIMULATION.md`) predate the 8°/s baseline.
 2. **Weak stations are limited by polarization, not by the spin.** For linear ground antennas the frame loss is
-   dominated by linear-to-linear polarization fades; the spin rate changes it by less than 1 point. The crossed-element
-   option (cross) raises a handheld-Yagi station from 50 % to 70 % of frames and fills the 6 s dropouts.
-3. **IDLE's 120 s interval** costs short passes: station A hears 96.9 % of passes at 120 s, against 100 % at 60 s.
+   dominated by linear-to-linear polarization fades; the spin rate changes it by no more than the sampling scatter. The
+   crossed-element option (cross) raises a handheld-Yagi station from about 50 % to 72 % of frames and fills the 5 s
+   dropouts.
+3. **IDLE's 120 s interval** costs short passes: station A hears 98.2 % of passes at 120 s, against 99.6 % at 60 s.
 4. **Recommendation (RF-03 in the review):** baseline the 2 m element along the spin axis (para) if one element is
    used, or two orthogonal 2 m elements on a quadrature hybrid (cross; the AntS offers phasing for its turnstile
    configuration) if the 70 cm element can share a face. The cross option is the only one that meets the proposed
@@ -367,35 +373,35 @@ Transmitter                    +44.0 dBm   (25 W)
 Line loss                       −1.5 dB
 Ground antenna                 +14.0 dBic
 EIRP                           +56.5 dBm
-Free-space loss (1,695 km)    −149.8 dB
+Free-space loss (1,633 km)    −149.5 dB
 Absorption, scintillation       −1.0 dB
 Polarization (circ. → linear)   −3.0 dB
 Spacecraft antenna             −10.0 dBi
-Received carrier              −107.3 dBm
+Received carrier              −107.0 dBm
 Noise density                 −162.6 dBm/Hz  (1,000 K, +6 dB interference)
-C/N₀                            55.3 dB-Hz
+C/N₀                            55.6 dB-Hz
 Required (§3.2)                 53.0 dB-Hz
-Margin                          +2.3 dB
+Margin                          +2.6 dB
 ```
 
 | Spacecraft gain, interference | 5° | 10° | 20° | 30° | 45° | 90° |
 |-------------------------------|----|-----|-----|-----|-----|-----|
-| 0 dBi, +0 dB | +16.5 | +18.3 | +21.8 | +24.2 | +26.7 | +29.4 |
-| −3 dBi, +0 dB | +13.5 | +15.3 | +18.8 | +21.2 | +23.7 | +26.4 |
-| −3 dBi, +6 dB | **+7.5** | +9.3 | +12.8 | +15.2 | +17.7 | +20.4 |
-| −10 dBi, +0 dB | +6.5 | +8.3 | +11.8 | +14.2 | +16.7 | +19.4 |
-| −10 dBi, +6 dB | +0.5 | **+2.3** | +5.8 | +8.2 | +10.7 | +13.4 |
-| −10 dBi, +10 dB | −3.5 | −1.7 | +1.8 | +4.2 | +6.7 | +9.4 |
+| 0 dBi, +0 dB | +16.8 | +18.6 | +22.2 | +24.6 | +27.1 | +29.8 |
+| −3 dBi, +0 dB | +13.8 | +15.6 | +19.2 | +21.6 | +24.1 | +26.8 |
+| −3 dBi, +6 dB | **+7.8** | +9.6 | +13.2 | +15.6 | +18.1 | +20.8 |
+| −10 dBi, +0 dB | +6.8 | +8.6 | +12.2 | +14.6 | +17.1 | +19.8 |
+| −10 dBi, +6 dB | +0.8 | **+2.6** | +6.2 | +8.6 | +11.1 | +13.8 |
+| −10 dBi, +10 dB | −3.2 | −1.4 | +2.2 | +4.6 | +7.1 | +9.8 |
 
-LB-3 (≥ +6 dB at 10°, −10 dBi, +6 dB) is **not met** at 25 W: +2.3 dB. Options, all on the ground:
+LB-3 (≥ +6 dB at 10°, −10 dBi, +6 dB) is **not met** at 25 W: +2.6 dB. Options, all on the ground:
 
-- **50 W** (+3 dB, +5.3 dB at 10°; meets LB-3 from about 12°). 47 CFR 2.106 US270 limits amateur stations to 50 W PEP
+- **50 W** (+3 dB, +5.6 dB at 10°; meets LB-3 from about 11°). 47 CFR 2.106 US270 limits amateur stations to 50 W PEP
   within 240 km of Beale AFB (39°08′ N, 121°26′ W); Santa Clara is about 204 km away, so 50 W is the limit there unless
   97.313(f) is used: an earth or telecommand station may then use up to 611 W ERP (1 kW EIRP) in 435–438 MHz provided
   the lower half-power point of its antenna is always more than 10° above the horizon. With a 30° beamwidth cross-Yagi
   that means commanding only above about 25° elevation. **Baseline: 50 W PEP at the Bay Area station, no elevation
   limit; more power only under 97.313(f) above 25°** (to confirm with the FCC in the D3 consultation).
-- Command above 20° (+5.8 dB at 25 W).
+- Command above 20° (+6.2 dB at 25 W).
 - Repeat each command (the counter rules of SQSO-ICD-013 §5.2 allow it with a new counter).
 
 The contact analysis (`docs/ground/GROUND_STATION_DESIGN.md` §5) assumes commanding passes above 15° and four
@@ -405,30 +411,30 @@ attempts a pass; it shows the inhibit risk is set by ground availability, not by
 
 | Uplink | Spacecraft gain, interference | 5° | 10° | 20° | 30° | 45° | 90° |
 |--------|-------------------------------|----|-----|-----|-----|-----|-----|
-| M (50 W mobile vertical) | −3 dBi, +0 | 30 | 32 | > 35 | > 35 | > 35 | (overhead null) |
-| M | −3 dBi, +6 dB | 24 | 26 | 30 | 32 | 34 | |
-| BY (5 W, handheld Yagi) | −3 dBi, +0 | 27 | 29 | 32 | 35 | > 35 | > 35 |
-| BY | −3 dBi, +6 dB | 16 | 22 | 26 | 29 | 31 | 34 |
-| BY | −10 dBi, +6 dB | < 3 | 4 | 11 | 19 | 24 | 27 |
-| HW (5 W, whip) | −3 dBi, +0 | **6** | 10 | **22** | 25 | 28 | **30** |
-| HW | −3 dBi, +6 dB | < 3 | < 3 | 5 | 10 | 18 | 24 |
+| M (50 W mobile vertical) | −3 dBi, +0 | 31 | 32 | > 35 | > 35 | > 35 | (overhead null) |
+| M | −3 dBi, +6 dB | 25 | 27 | 30 | 32 | 35 | |
+| BY (5 W, handheld Yagi) | −3 dBi, +0 | 27 | 29 | 33 | 35 | > 35 | > 35 |
+| BY | −3 dBi, +6 dB | 17 | 22 | 27 | 29 | 32 | 34 |
+| BY | −10 dBi, +6 dB | < 3 | 4 | 12 | 20 | 25 | 27 |
+| HW (5 W, whip) | −3 dBi, +0 | **7** | 11 | **22** | 25 | 28 | **31** |
+| HW | −3 dBi, +6 dB | < 3 | < 3 | 6 | 11 | 20 | 25 |
 
 The mobile vertical's pattern has a null overhead (5/8-wave: about −10 dB at 60° elevation); its 45° and zenith
-values are optimistic. A 5 W handheld with a whip reaches the spacecraft with 12 dB SINAD from about 12° in quiet
+values are optimistic. A 5 W handheld with a whip reaches the spacecraft with 12 dB SINAD from about 11° in quiet
 conditions, and only from about 30° over populated regions.
 
 ### 6.3 End-to-end transponder SINAD (both users at the elevation shown, −3 dBi each way, no interference)
 
 | Uplink → listener | 5° | 10° | 20° | 30° | 45° | 90° |
 |-------------------|----|-----|-----|-----|-----|-----|
-| BY → B (handheld Yagis both ends) | **19** | 23 | **26** | 28 | 30 | **31** |
-| M → B | 20 | 23 | 27 | 29 | 30 | 31 |
-| BY → W (Yagi up, whip listener) | < 3 | 4 | 14 | 21 | 25 | 27 |
-| HW → W (whips both ends) | < 3 | 4 | **14** | 20 | 23 | **26** |
-| HW → D (whip up, rubber-duck listener) | < 3 | < 3 | < 3 | 4 | 10 | 19 |
+| BY → B (handheld Yagis both ends) | **20** | 23 | **27** | 29 | 30 | **31** |
+| M → B | 20 | 24 | 27 | 29 | 30 | 31 |
+| BY → W (Yagi up, whip listener) | < 3 | 5 | 16 | 22 | 26 | 28 |
+| HW → W (whips both ends) | < 3 | 4 | **15** | 21 | 24 | **26** |
+| HW → D (whip up, rubber-duck listener) | < 3 | < 3 | < 3 | 5 | 11 | 20 |
 
 The listener's downlink sets the result for every combination except a whip uplink at low elevation. LB-4 is **met**: for
-handheld Yagis from 5°, and for whips from about 19° (the requirement is 30°).
+handheld Yagis from 5°, and for whips from about 17° (the requirement is 30°).
 
 ## 7. Receiver Desense and EMC in the RF Chain
 
@@ -536,7 +542,7 @@ Items that need hardware. Each is a defined verification item (VI); test procedu
 cd software/simulation/cdr/rf
 python3 fm_demod_sim.py --out fm.json              # §3, about 12 minutes
 python3 link_budget_cdr.py --fm fm.json --md lb.md  # §2, §4, §6
-python3 pass_geometry_mc.py --fm fm.json --days 60 --out geom.json   # §4.4, §5; GND-001 §4
+python3 pass_geometry_mc.py --fm fm.json --days 60 --out geom.json   # §4.4, §5; GND-001 §4 (475 km; --alt for the band)
 python3 desense_emc.py --out desense.json           # §7
 ```
 
@@ -548,3 +554,4 @@ python3 desense_emc.py --out desense.json           # §7
 | 2.0 | 2026-10-16 | Funding audit (TB-05) | Re-issued at the baseline orbit, frequencies and power: noise floor corrected; antenna pattern and ground stations stated; telecommand and transponder links added |
 | 3.0 | 2026-10-27 | CDR review, communications panel | CDR re-issue (BASELINE §7, TB-05): simulated demodulator thresholds; pass-sampled pattern with the 6°/s spin and three element options; handheld, mobile and SatNOGS stations; transponder SINAD end to end; Doppler, CTCSS; desense, filter and intermodulation analysis; telecommand at 25 W found short of the proposed 6 dB at 10°; verification items VI-RF-01 to VI-RF-10 |
 | 3.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: altitude row (500 km analysed; baseline 475 km target, 485 km cap), uplink request windows (§2, §7.1) and the 8°/s spin of BASELINE Rev E noted against the 6°/s pass analysis (§1); 525 km rows labelled as a bound. Analysis values unchanged |
+| 3.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Re-run at the Rev E baseline: every budget at 475 km with the 485 km cap as the bound (was 500 km, with 525 km); pass and fading analysis (§4.4, §5) at 8°/s (6°/s compared) from 2028-11-01. Beacon margin at 5° +7.9 dB (was +7.6), +0.9 dB at the 10th-percentile gain (was +0.6); telecommand +2.6 dB at 10° (was +2.3); station A 96.6 % of frames at 60 s, 98.2 % with ±5 s jitter (was 95.6 % and 97.2 % at 6°/s); fades 5 s every 22.5 s; Doppler ±3.49 / ±10.42 kHz |
