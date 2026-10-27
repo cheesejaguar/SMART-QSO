@@ -591,7 +591,8 @@ def rx_power(p):
              ("SN74LVC1G123 active (Rext/Cext at 0.5 VCC: 280 uA)", 0.28, 0.4),
              ("TMP235 (14.5 uA), REF/bias dividers", 0.05, 0.1),
              ("LDO ground currents (TPS7A2030 6.5 uA, TPS73101 ~400 uA), pull-ups, misc", 0.45, 0.9),
-             ("LMX2571 switched rail, power-down (CE low, 0.9 mA) while TX is permitted", 0.9, 1.2)]
+             ("LMX2571 switched rail, power-down (CE low, 0.9 mA) while TX is permitted", 0.9, 1.2),
+             ("Receiver supervision: LVC1G123 RX-health monostable 0.28 mA, LVC1G17/LVC1G04, pull-downs", 0.30, 0.45)]
     typ = sum(x[1] for x in loads)
     worst = sum(x[2] for x in loads)
     rp = [("CMX138A receive mode (7.0 mA typ; 8.5 mA tx-mode figure as worst)", 7.0, 8.5),
@@ -644,6 +645,15 @@ def timing():
     # LMX2571 lock after CE: loop bandwidth 40 kHz -> ~4/BW; FastLock < 1.5 ms (datasheet)
     out["synth"] = {"loop_bw_kHz": 40.0, "lock_ms_est": round(4 / 40e3 * 1e3, 2), "fastlock_spec_ms": 1.5,
                     "apc_ramp_ms": 1.0, "txdelay_ms": 300.0}
+    # receiver-health monostable (RID RFB-07): SN74LVC1G123, 470 k x 1.0 uF X7R, retriggered by RX_ALIVE every 100 ms
+    rh, ch = 470e3, 1.0e-6
+    out["rx_health"] = {"Rext_ohm": rh, "Cext_F": ch, "tw_nom_s": round(rh * ch, 3),
+                        "tw_range_s": [round(rh * ch * 1.00 * 0.85 * 0.99 * 0.90, 3),
+                                       round(rh * ch * 1.10 * 1.10 * 1.01 * 1.0 + 0.25e-6 * rh * ch / 3.1 * 1e0, 3)],
+                        "pulse_period_s": 0.100,
+                        "fault_after_last_pulse_s_max": round(rh * ch * 1.10 * 1.10 * 1.01 + 0.05, 2),
+                        "note": "K 1.00-1.10; X7R -15 %/+10 % (temperature, 3 V bias), R 1 %; ~10 % for 0.25 uA leakage"
+                                " x 470 k on the low side; RX_FAULT asserts 0.36-0.62 s after the last RX_ALIVE pulse"}
     # heartbeat stop to unkey: monostable max + gate delays; ICD-003 §6 asks <= 100 ms
     out["heartbeat_to_unkey_ms_max"] = round(out["monostable"]["unkey_after_last_edge_ms_max"] + 1.0, 1)
     return out

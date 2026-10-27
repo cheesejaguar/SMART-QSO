@@ -393,7 +393,8 @@ for t_gen, lines in ((150, 10), (570, 10)):
 # magnetometer RM3100 below (+33, -38): no parts within 20 mm, no ferromagnetic parts or unpaired current within 30 mm.
 BX, BY = 90.17 / 2, 95.89 / 2
 HOLES = [((40, 43), 3.2), ((-40, 43), 3.2), ((-40, -43), 3.2), ((40, -43), 3.2), ((0, 21), 3.5), ((0, -21), 3.5)]
-WIN_KO = (-36.5, -3.5, 14.0, 47.0)
+WIN_KO = (-34.0, -6.0, 16.5, 44.5)      # top side and inner layers: window + 0.5 mm
+FRAME_KO = (-36.5, -3.5, 14.0, 47.0)    # bottom side (L6) and bottom parts: frame footprint + 0.5 mm
 SPREADER = (-40.0, 40.0, -33.0, 27.0)
 GYRO = (-20.0, 30.5)
 MODULE = (-34.8, 34.8, -28.5, 16.5)
@@ -406,7 +407,7 @@ PLACE = [  # name, centre, (w, h), magnetic, exempt, height above the board (mm;
     ("MP2 module standoff (steel)", (-31.3, 12.6), (5, 5), True, "module", 4.0),
     ("MP3 module standoff (steel)", (31.3, 12.6), (5, 5), True, "module", 4.0),
     ("J2 Pico-Clasp 6 (W5B), mated", (41.5, 28.5), (5, 10.6), False, "", 7.5),
-    ("J3 Pico-Clasp 2 (spreader NTC), mated", (42.5, 37.0), (5, 5), False, "", 7.5),
+    ("J3 Pico-Clasp 2 (spreader NTC), mated", (41.5, 37.0), (5, 5), False, "", 7.5),
     ("D2 ESD", (37.5, 24.5), (2.5, 2), False, "", 0.6),
     ("U10/U11 translators", (38.0, 19.5), (6, 2.5), False, "", 1.1),
     ("U7 3V3_IO switch, U6, U9", (12, 21), (12, 3), False, "", 1.45),
@@ -463,7 +464,7 @@ for name, (x, y), (w, h), magnetic, exempt, hgt in PLACE:
 table("14. Placement check (zones of section 18; window, heights and magnetic keep-out of MECHANICAL_DESIGN 4.3-4.5)",
       ["Item", "Centre (mm)", "To the RM3100 (mm)", "To the gyro centre (mm)", "Height / limit (mm)", "Result"], rows)
 # frame screws against the module standoffs, the centre support, the column and the board edge
-SCREWS = [(-34.75, 22.0), (-5.25, 22.0), (-34.75, 45.75), (-5.25, 45.75)]
+SCREWS = [(-34.75, 24.0), (-5.25, 24.0), (-34.75, 45.25), (-5.25, 45.25)]
 clr = []
 for sx, sy in SCREWS:
     c = [math.hypot(sx - hx, sy - hy) - rad - 1.75 for (hx, hy), rad in HOLES] + \

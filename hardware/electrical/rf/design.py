@@ -551,7 +551,7 @@ R("R483", "100k", "RX_ALIVE", "GND", 3.15, notes="pull-down: MCU in reset gives 
 part("U482", "Inverter", "RX_FAULT", "SN74LVC1G04DBVR", "Texas Instruments", "SOT-23-5", "5.5 V, -40..125 C, Ioff",
      [(1, "NC", NCt, None), (2, "A", I, "RX_OK"), (3, "GND", PI, "GND"), (4, "Y", O, "RX_FAULT"),
       (5, "VCC", PI, "+3V1_DIG")], "-", "RX_FAULT = NOT RX_OK; unpowered output 0 V (not fault)",
-     "TI SN74LVC1G04 family (addendum of the LVC1G04 not downloaded this session; LVC1GU04/LVC2G04 read: Active)")
+     "TI orderable addendum read: Active")
 R("R484", "1.00k", "RX_FAULT", "RX_FAULT_J", 0.1, notes="series to the OBC input (J1-16)")
 R("R485", "100k", "RX_FAULT_J", "GND", 3.15, notes="pull-down: unwired or unpowered reads not fault")
 C("C481", "100nF", "+3V1_DIG", "GND", 3.15, notes="U480-U482 decoupling")
