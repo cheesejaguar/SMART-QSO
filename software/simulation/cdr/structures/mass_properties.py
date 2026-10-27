@@ -234,7 +234,7 @@ def items() -> List[Item]:
     # 20 mm zone; W-Ni-Cu (non-magnetic) discs; their mass is the integration trim (VI-MCAD-03)
     a(Item("36", "Inertia ballast, 2 x 10 g W-Ni-Cu discs on the +Z end frame (Z-axis trim)", "2", 20.0, "C1",
            "Machined to mass; trimmed at integration from the measured inertia",
-           [box(0.5, (-17.0, 7.5, 46.6), (14, 14, 3.6)), box(0.5, (-17.0, -7.5, 46.6), (14, 14, 3.6))]))
+           [box(0.5, (-17.0, 15.5, 46.6), (14, 14, 3.6)), box(0.5, (-17.0, 0.5, 46.6), (14, 14, 3.6))]))
     return L
 
 

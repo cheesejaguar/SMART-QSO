@@ -89,7 +89,7 @@ P: Dict[str, float] = dict(
     # magnetometer and RF shield (positions chosen to balance Iyz, MECHANICAL_DESIGN section 5)
     mag_x=24.0, mag_y=27.0, shield_y0=-40.0, shield_y1=14.0,
     rbf_x=20.0, rbf_z=-43.0, port_x=-20.0, port_z=-43.0, rbf_face=-1.0,
-    bal_y=0.0,                              # inertia-ballast pair centre y (D-9; Iyz trim)
+    bal_y=8.0,                              # inertia-ballast pair centre y (D-9): discs at y +15.5 and +0.5 (Iyz)
     ants_config="hybrid",                   # ISIS AntS: four tapes, one per side (2 m +-X, 70 cm +-Y), RF design C
 )
 
