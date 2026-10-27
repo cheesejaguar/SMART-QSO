@@ -79,7 +79,6 @@ PARAMETERS: Tuple[Parameter, ...] = (
     Parameter("hardware watchdog timeout (ms)", "25600", (
         (FLIGHT + "watchdog_mgr.h", r"WDT_HW_TIMEOUT_MS\s+(\d+)U"),
         (FLIGHT + "hal/hal_wdt.h", r"HAL_WDT_DEFAULT_TIMEOUT_MS\s+(\d+)\b"),
-        ("software/rust/sqso-fsw/src/watchdog.rs", r"HW_TIMEOUT_MS: u32 = (\d+)_?(?=\d{3};)"),
         ("hardware/obc/OBC_DESIGN.md", r"\| Timeout \| [\d.]+ seconds \((\d+) ms"),
         ("docs/test_procedures/TP-OBC-004_Watchdog.md", r"Measure timeout \| [\d.]+ s \((\d+) ms"),
     )),

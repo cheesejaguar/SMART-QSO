@@ -6,8 +6,17 @@
 //! (M-G370PDT0), `IMU2_EN` (BMI088, cold spare) and `SNS_EN` (RM3100 and
 //! the ADS7138 sun-sensor ADC). Each switch's EN node is read back
 //! (`*_RB`): low with the enable high is a latch-up trip; the switch retries
-//! by itself after about 0.13 s. A trip is counted and the group's driver
+//! by itself after 0.18–0.33 s. A trip is counted and the group's driver
 //! starts its bring-up again once the rail is back.
+//!
+//! **Turn-on.** With R_FAULT 220 kΩ a commanded turn-on takes up to 0.55 s
+//! (one RC to the EN threshold, SQSO-OBC-BRD-001 E §9.1), so a rail counts
+//! as up only [`RAIL_SETTLE_MS`] after its enable, and again only
+//! [`RAIL_SETTLE_MS`] after a trip has cleared; until then no driver uses
+//! its parts. A readback low inside the first [`RAIL_SETTLE_MS`] after the
+//! enable is the turn-on, not a trip.
+//!
+//! @requirement SRS-F164 A sensor rail is used only 0.6 s after its enable or after a trip clears; a readback low within 0.6 s of the enable is not a trip
 //!
 //! **Gyros.** The M-G370 is used while it works. A failed bring-up or
 //! [`crate::mg370::MAX_ERRORS`] bad reads power-cycle its rail
@@ -37,6 +46,9 @@ pub const MAX_FAILURES: u32 = 3;
 pub const SNS_SETTLE_MS: u64 = 20;
 /// A failed magnetometer or sun-sensor ADC is tried again after this, ms
 pub const SNS_RETRY_MS: u64 = 10_000;
+/// A sensor rail is used this long after its enable, or after a trip on it
+/// has cleared, ms (the turn-on takes up to 0.55 s with R_FAULT 220 kΩ)
+pub const RAIL_SETTLE_MS: u64 = 600;
 /// Latch-up-protected rails: gyro (U5), BMI088 (U6), sun sensors (U7),
 /// magnetometer (U35)
 pub const RAILS: usize = 4;
@@ -148,6 +160,10 @@ pub struct Sensors {
     sns_tried_ms: Option<u64>,
     /// A trip seen on each rail at the last pass
     tripped: [bool; RAILS],
+    /// Each rail enabled since, ms (`None`: off)
+    enabled_since: [Option<u64>; RAILS],
+    /// Each rail's last trip cleared at, ms
+    cleared_at: [Option<u64>; RAILS],
     /// When the magnetometer was last triggered, ms
     mag_trigger_ms: Option<u64>,
 }
@@ -188,6 +204,8 @@ impl Sensors {
             mag_up_since: None,
             sns_tried_ms: None,
             tripped: [false; RAILS],
+            enabled_since: [None; RAILS],
+            cleared_at: [None; RAILS],
             mag_trigger_ms: None,
         }
     }
@@ -219,16 +237,9 @@ impl Sensors {
         for i in 0..RAILS {
             let (Some(&on), Some(&en), Some(&rb)) = (rails.get(i), pins_en.get(i), pins_rb.get(i)) else { continue };
             d.pins.set(en, on);
-            let trip = on && !d.pins.get(rb);
-            if let (Some(seen), Some(count), Some(e), Some(u)) =
-                (self.tripped.get_mut(i), self.trips.get_mut(i), ev.tripped.get_mut(i), up.get_mut(i))
-            {
-                if trip && !*seen {
-                    *count = count.saturating_add(1);
-                    *e = true;
-                }
-                *seen = trip;
-                *u = on && !trip;
+            let high = d.pins.get(rb);
+            if let (Some(u), Some(e)) = (up.get_mut(i), ev.tripped.get_mut(i)) {
+                (*u, *e) = self.rail(i, now_ms, on, high);
             }
         }
         let [gyro_up, imu2_up, sns_up, mag_up] = up;
@@ -238,6 +249,36 @@ impl Sensors {
         self.gyro_health(now_ms, &mut ev);
         self.sensor_rail(now_ms, sns_up, mag_up, d.i2c, &mut ev);
         ev
+    }
+
+    /// Rail `i` at `now_ms`, enabled (`on`) with its readback `high`:
+    /// whether it is up and settled, and whether a trip starts now
+    fn rail(&mut self, i: usize, now_ms: u64, on: bool, high: bool) -> (bool, bool) {
+        let (Some(since), Some(seen), Some(cleared), Some(count)) = (
+            self.enabled_since.get_mut(i),
+            self.tripped.get_mut(i),
+            self.cleared_at.get_mut(i),
+            self.trips.get_mut(i),
+        ) else {
+            return (false, false);
+        };
+        if !on {
+            (*since, *seen, *cleared) = (None, false, None);
+            return (false, false);
+        }
+        let enabled = *since.get_or_insert(now_ms);
+        let turning_on = now_ms.saturating_sub(enabled) < RAIL_SETTLE_MS;
+        let trip = !high && !turning_on;
+        let onset = trip && !*seen;
+        if onset {
+            *count = count.saturating_add(1);
+        }
+        if *seen && high {
+            *cleared = Some(now_ms);
+        }
+        *seen = trip;
+        let settled = cleared.is_none_or(|t| now_ms.saturating_sub(t) >= RAIL_SETTLE_MS);
+        (high && !turning_on && settled, onset)
     }
 
     fn gyro_health(&mut self, now_ms: u64, ev: &mut Events) {
@@ -394,25 +435,42 @@ mod tests {
         trip: [bool; RAILS],
         rst_low: bool,
         drdy: bool,
+        /// The time, ms, each enable rose, and how long the EN node takes
+        /// to reach its threshold (the readback low until then)
+        now: u64,
+        en_at: [u64; RAILS],
+        turn_on_ms: u64,
+    }
+
+    impl Board {
+        fn enable(&mut self, i: usize, high: bool) {
+            if high && !self.en[i] {
+                self.en_at[i] = self.now;
+            }
+            self.en[i] = high;
+        }
+        fn rb(&self, i: usize) -> bool {
+            self.en[i] && !self.trip[i] && self.now.saturating_sub(self.en_at[i]) >= self.turn_on_ms
+        }
     }
 
     impl Pins for Board {
         fn set(&mut self, pin: Pin, high: bool) {
             match pin {
-                Pin::GyroEn => self.en[0] = high,
-                Pin::Imu2En => self.en[1] = high,
-                Pin::SnsEn => self.en[2] = high,
-                Pin::MagEn => self.en[3] = high,
+                Pin::GyroEn => self.enable(0, high),
+                Pin::Imu2En => self.enable(1, high),
+                Pin::SnsEn => self.enable(2, high),
+                Pin::MagEn => self.enable(3, high),
                 Pin::GyroRstN => self.rst_low = !high,
                 _ => {}
             }
         }
         fn get(&mut self, pin: Pin) -> bool {
             match pin {
-                Pin::GyroRb => self.en[0] && !self.trip[0],
-                Pin::Imu2Rb => self.en[1] && !self.trip[1],
-                Pin::SnsRb => self.en[2] && !self.trip[2],
-                Pin::MagRb => self.en[3] && !self.trip[3],
+                Pin::GyroRb => self.rb(0),
+                Pin::Imu2Rb => self.rb(1),
+                Pin::SnsRb => self.rb(2),
+                Pin::MagRb => self.rb(3),
                 Pin::GyroDrdy | Pin::Imu2Drdy | Pin::MagDrdy => self.drdy,
                 _ => false,
             }
@@ -451,6 +509,7 @@ mod tests {
                     i2c: &mut self.bus,
                     pins: &mut self.pins,
                 };
+                d.pins.now = t;
                 let e = s.step(t, powered, &mut d);
                 for i in 0..RAILS {
                     all.tripped[i] |= e.tripped[i];
@@ -527,6 +586,43 @@ mod tests {
         assert!(s.mag.ready);
     }
 
+    /// The turn-on takes up to 0.55 s (R_FAULT 220 kΩ): the readback low
+    /// meanwhile is not a trip, and no part is used before 0.6 s; after a
+    /// trip clears the rail waits 0.6 s again
+    #[test]
+    fn a_rail_is_used_only_after_its_turn_on() {
+        let (mut b, mut s) = (Bench::new(), Sensors::new());
+        b.pins.turn_on_ms = 550;
+        let e = b.run(&mut s, 0, RAIL_SETTLE_MS, true);
+        assert_eq!(e, Events::default(), "the turn-on is not a trip");
+        assert_eq!(s.trips, [0; RAILS]);
+        assert_eq!(s.mg370.state, mg370::State::Off, "the gyro not touched yet");
+        assert!(!s.mag.ready && !s.sun_ready);
+        assert!(b.bus.mag.writes.is_empty(), "no sensor part configured during the turn-on");
+        b.run(&mut s, RAIL_SETTLE_MS, RAIL_SETTLE_MS + 40, true);
+        assert!(s.mag.ready && s.sun_ready, "configured once the rail settled");
+        assert_ne!(s.mg370.state, mg370::State::Off, "the gyro's bring-up started");
+        b.run(&mut s, RAIL_SETTLE_MS + 40, 3_000, true);
+        assert_eq!(s.mg370.state, mg370::State::Running);
+        // A readback still low after 0.6 s is a trip
+        let (mut b2, mut s2) = (Bench::new(), Sensors::new());
+        b2.pins.turn_on_ms = 700;
+        let e = b2.run(&mut s2, 0, 680, true);
+        assert_eq!(e.tripped, [true, false, true, true]);
+        assert_eq!(s2.trips, [1, 0, 1, 1]);
+        // The trip clears at 700 ms: the rails are used 0.6 s later
+        b2.run(&mut s2, 680, 1_280, true);
+        assert!(!s2.mag.ready && !s2.sun_ready, "inside the 0.6 s after the trip cleared");
+        assert_eq!(s2.mg370.state, mg370::State::Off);
+        b2.run(&mut s2, 1_280, 1_340, true);
+        assert!(s2.mag.ready && s2.sun_ready);
+        // Off and on again: the turn-on wait again
+        b.run(&mut s, 3_000, 3_040, false);
+        b.run(&mut s, 3_040, 3_040 + RAIL_SETTLE_MS, true);
+        assert!(!s.mag.ready);
+        assert_eq!(s.trips, [0; RAILS]);
+    }
+
     #[test]
     fn a_failing_primary_hands_over_to_the_backup_then_to_none() {
         let (mut b, mut s) = (Bench::new(), Sensors::new());
@@ -553,12 +649,12 @@ mod tests {
     fn a_missing_sensor_part_is_retried() {
         let (mut b, mut s) = (Bench::new(), Sensors::new());
         b.bus.fail = true;
-        let e = b.run(&mut s, 0, 100, true);
+        let e = b.run(&mut s, 0, RAIL_SETTLE_MS + 100, true);
         assert!(e.sns_failed);
         b.bus.fail = false;
-        b.run(&mut s, 100, 5_000, true);
+        b.run(&mut s, RAIL_SETTLE_MS + 100, 5_000, true);
         assert!(!s.mag.ready, "not before the retry time");
-        b.run(&mut s, 5_000, 10_100, true);
+        b.run(&mut s, 5_000, RAIL_SETTLE_MS + 10_100, true);
         assert!(s.mag.ready);
         assert!(s.sun_ready);
         assert_eq!(b.read(&mut s).field, None, "nothing triggered");

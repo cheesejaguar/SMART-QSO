@@ -1,6 +1,6 @@
 harness,wire,signal,from_ref,from_pin,to_ref,to_pin,awg,wire_type,twist_group,color,i_nom_A,i_max_A,route,circuit,pole,min_length_mm,notes
-W1,W1-01,BAT_TOP,BATT,P1,EPS-J1,1,22,M22759/33,W1-Q,RD,0.7,1.2,W1_J1,PACK,+,120,"pack lead behind F0A + F0B (FM12A72V5.0A, sense board) and ahead of F2: PTFE over-sleeve, twisted quad 1+3 / 2+4"
-W1,W1-02,BAT_TOP,BATT,P2,EPS-J1,2,22,M22759/33,W1-Q,RD,0.7,1.2,W1_J1,PACK,+,120,"pack lead behind F0A + F0B (FM12A72V5.0A, sense board) and ahead of F2: PTFE over-sleeve, twisted quad 1+3 / 2+4"
+W1,W1-01,BAT_TOP,BATT,P1,EPS-J1,1,22,M22759/33,W1-Q,RD,0.7,1.2,W1_J1,PACK,+,120,"pack lead behind F0A (FM12A72V5.0A), F0B (FM08A125V5A) and F3 (ITV4030L1412NR, secondary OV fuse) on the sense board and ahead of F2: PTFE over-sleeve, twisted quad 1+3 / 2+4"
+W1,W1-02,BAT_TOP,BATT,P2,EPS-J1,2,22,M22759/33,W1-Q,RD,0.7,1.2,W1_J1,PACK,+,120,"pack lead behind F0A (FM12A72V5.0A), F0B (FM08A125V5A) and F3 (ITV4030L1412NR, secondary OV fuse) on the sense board and ahead of F2: PTFE over-sleeve, twisted quad 1+3 / 2+4"
 W1,W1-03,BAT_BOT,BATT,N3,EPS-J1,3,22,M22759/33,W1-Q,BK,0.7,1.2,W1_J1,PACK,-,120,"pack lead behind F0N (FM12A72V5.0A, sense board, cell-1 negative): PTFE over-sleeve, twisted quad 1+3 / 2+4"
 W1,W1-04,BAT_BOT,BATT,N4,EPS-J1,4,22,M22759/33,W1-Q,BK,0.7,1.2,W1_J1,PACK,-,120,"pack lead behind F0N (FM12A72V5.0A, sense board, cell-1 negative): PTFE over-sleeve, twisted quad 1+3 / 2+4"
 W1,W1-05,NTC1,BATT,NTC1,EPS-J1,5,24,M22759/33,W1-P1,WH,0.0003,0.0003,W1_J1,,,120,
