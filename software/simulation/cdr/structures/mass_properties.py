@@ -288,6 +288,28 @@ def antenna_deployed(clock: str) -> List[Prim]:
     return p
 
 
+#: The AntS configuration options of hardware/rf/ANTENNA_DESIGN.md v2.0 section 3:
+#: (axis, sign, length mm, mass g) per element.
+ANTS_OPTIONS = {
+    "A: one 2 m element +X, 70 cm -X": [("x", 1, VHF_LEN, VHF_TAPE_G), ("x", -1, UHF_LEN, UHF_TAPE_G)],
+    "B: one 2 m element +Y, 70 cm -Y": [("y", 1, VHF_LEN, VHF_TAPE_G), ("y", -1, UHF_LEN, UHF_TAPE_G)],
+    "C: 2 m +X and +Y (quadrature), 70 cm -X, -Y": [("x", 1, VHF_LEN, VHF_TAPE_G), ("y", 1, VHF_LEN, VHF_TAPE_G),
+                                                     ("x", -1, UHF_LEN, UHF_TAPE_G), ("y", -1, UHF_LEN, UHF_TAPE_G)],
+    "hybrid: 2 m +-X, 70 cm +-Y (MEL case)": [("x", 1, VHF_LEN, VHF_TAPE_G), ("x", -1, VHF_LEN, VHF_TAPE_G),
+                                               ("y", 1, UHF_LEN, UHF_TAPE_G), ("y", -1, UHF_LEN, UHF_TAPE_G)],
+}
+
+
+def antenna_elements(elems) -> List[Prim]:
+    m_tot = 85.0
+    p = [box((m_tot - sum(e[3] for e in elems)) / m_tot, (0, 0, ANTS_Z), (98, 98, 7))]
+    for ax, sgn, length, mass in elems:
+        r0 = 49.0 + length / 2
+        c = (sgn * r0, 0.0, ANTS_Z - 2.0) if ax == "x" else (0.0, sgn * r0, ANTS_Z - 2.0)
+        p.append(bar(mass / m_tot, c, ax, length, 1.0))
+    return p
+
+
 # --------------------------------------------------------------------------------------
 # Inertia of primitives
 # --------------------------------------------------------------------------------------
@@ -344,7 +366,7 @@ def assemble(its: List[Item], option: str, deployed: bool, clock: str = "vhf_x",
         prims = it.prims
         if deployed:
             if it.row == "19":
-                prims = antenna_deployed(clock)
+                prims = antenna_elements(ANTS_OPTIONS[clock]) if clock in ANTS_OPTIONS else antenna_deployed(clock)
             elif it.deployed_prims:
                 if it.row in ("7", "10"):
                     prims = it.deployed_prims if wings[0] else it.prims
@@ -469,6 +491,16 @@ def main():
                   f"I diag ({np.diag(pp.inertia)[0]*1e3:.3f}, {np.diag(pp.inertia)[1]*1e3:.3f}, "
                   f"{np.diag(pp.inertia)[2]*1e3:.3f})e-3 principal {[round(x*1e3,3) for x in w]} "
                   f"major axis {ang:.1f} deg from Y")
+    print("\nAntS configuration options (layout endmass, deployed):")
+    for opt in ("rods", "coils"):
+        its = apply_layout(items(), "endmass")
+        for name in ANTS_OPTIONS:
+            for grown in (False, True):
+                pp = assemble(its, opt, True, name, grown)
+                d = np.diag(pp.inertia)
+                out.setdefault("ants_options", {})[f"{opt}|{name}|{'mev' if grown else 'cbe'}"] = d.tolist()
+                print(f"  {opt:5s} {name:46s} {'MEV' if grown else 'CBE'} I = ({d[0]*1e3:.3f}, {d[1]*1e3:.3f}, "
+                      f"{d[2]*1e3:.3f})e-3  Iyy/max(Ixx, Izz) {d[1]/max(d[0], d[2]):.3f}")
     print("\nFSW INERTIA (deployed):", FSW_INERTIA, " SIL deployed:", SIL_DEPLOYED, " SIL stowed:", SIL_STOWED)
     if args.json:
         def conv(x):

@@ -200,7 +200,7 @@ Analysis and requirements: `docs/environment/MECHANISMS_ANALYSIS.md`.
 |-----------|-------|
 | Type | ISIS AntS 1U–3U (bought), monopole/hybrid: two 2 m and two 70 cm tape-spring elements; vendor release (redundant thermal knives, I²C) |
 | Location | Outside the −Z face, 98 × 98 × 7 mm, below the rail ends (recessed face) |
-| Deployment direction | In the plane of the −Z face; **VHF elements along ±X** (inertia, MASS_BUDGET §6.3) |
+| Deployment direction | In the plane of the −Z face; **2 m (VHF) elements along ±X only** (inertia, MASS_BUDGET §6.3–§6.4). Options B and C of `hardware/rf/ANTENNA_DESIGN.md` v2.0 §3 put a 2 m element along +Y and make +Y the intermediate axis (52–60 % of sunlit time within 15° in the Monte Carlo): not compatible with the spin unless the chair accepts a compensating design (STR-01) |
 | Order | **Wings first, then antennas**, or a verified ≥ 10 mm clearance between the tapes and the wings (MECHANISMS_ANALYSIS §7.2) |
 
 Version 1.2 described a custom burn-wire antenna (80 mm diameter × 10 mm, deploying along −Z); withdrawn.
