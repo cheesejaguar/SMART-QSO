@@ -243,7 +243,7 @@ def lcode(nh: float) -> str:            # Coilcraft inductance code: 22N, 6N8, R
 
 
 # =============================================================================================== connectors
-part("J1", "Conn 16p 1.27 mm right-angle", "OBC-RF signals (W4A)", "TFM-108-01-S-D-RA", "Samtec",
+part("J1", "Conn 16p 1.27 mm right-angle", "OBC-RF signals (W4A)", "TFM-108-01-L-D-RA", "Samtec",
      "TFM-108 right-angle, 2 x 8, 1.27 mm (Tiger Eye)", "1.27 mm, -55..+125 C; mates Samtec SFSDT (latched, PTFE)",
      [(1, "GND1", P, "GND"), (2, "OBC_TX", P, "UART_OBC_TX_J"), (3, "TNC_TX", P, "UART_TNC_TX_J"), (4, "GND4", P, "GND"),
       (5, "TX_PWR_SEL", P, "TX_PWR_SEL_J"), (6, "XPDR_EN", P, "XPDR_EN_J"), (7, "GND7", P, "GND"),
@@ -381,8 +381,10 @@ part("Q201", "SiGe RF transistor", "BFP640F", "BFP640FH6327XTSA1", "Infineon", "
      [(1, "B", P, "LNA_B"), (2, "E", P, "GND"), (3, "C", P, "LNA_C"), (4, "E2", P, "GND")],
      "Vce 2.0 V / 4.1 V = 49 %; Ic 6 mA / 50 mA = 12 %; 12 mW / 200 mW = 6 %",
      "NFmin 0.55 dB at 450 MHz, 6 mA (datasheet Rev 4.0, 2024). Order code and pinout (TSFP-4) to confirm. "
-     "Infineon also offers a space-qualified BFP640 variant (HiRel) if radiation data are wanted",
-     "datasheet found (Rev 4.0, 2024); order code not checked")
+     "Infineon also offers a space-qualified BFP640 variant (HiRel) if radiation data are wanted. Last Time Buy "
+     "2027-05-15 (Digi-Key, SQSO-MFG-003): lifetime buy of 60 pieces from one date code by 2027-03-31 (EM 2, FM 2, "
+     "flight spares 6, RAD-V3 and DPA sample 20, process and rework 30), stored dry-packed",
+     "datasheet found (Rev 4.0, 2024); order code not checked; LTB 2027-05-15")
 R("R201", "36.0k", "LNA_C", "LNA_B", 1.2, notes="collector-base feedback bias: Ib = (2.0-0.83)/36k = 33 uA, Ic ~ 6 mA")
 L("L202", "120nH", "LNA_C", "LNA_VC", i_work=0.007, notes="collector RF choke")
 R("R202", "160", "LNA_VC", "+3V0_RX", 1.0, notes="(3.0 V - 2.0 V)/6.1 mA = 164 ohm")
@@ -725,7 +727,10 @@ part("Q601", "2-stage Si RF MOSFET", "RD01MUS3", "RD01MUS3-T614", "Mitsubishi El
                if k in ST),
      "Datasheet Jan 2026: 175 MHz 1.0 W / 60 % at 7.2 V, 0.60 W / 58 % at 3.6 V, Pin 1 mW. Run at 5.0 V with a "
      "7.5 ohm load line; power set by the APC loop on the gate bias. Source = exposed pad (thermal vias to the ground "
-     "planes). Lead finish to confirm (re-tin if tin)", "datasheet read (Mitsubishi, publication Jan 2026)")
+     "planes). Lead finish to confirm (re-tin if tin). Temperature (SQSO-MFG-003): no minimum operating temperature "
+     "in the data sheet, storage -40..+125 C: Mitsubishi statement (RF lead, before the EM order 2027-01-15) and "
+     "-40 C characterisation on the EM (VI-RFB-14); fallback PA named in RF_BOARD_DESIGN §7.2",
+     "datasheet read (Mitsubishi, publication Jan 2026)")
 R("R604", "4.70k", "PA_VGG", "PA_G1_B", 0.1, notes="gate-1 bias feed (EVB R2)")
 C("C604", "1nF", "PA_G1_B", "GND", 3.0, kind="C0G")
 R("R605", "270", "PA_G1_B", "PA_G1", 1.0, notes="gate-1 series (EVB R3)")
