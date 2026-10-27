@@ -25,7 +25,7 @@ use crate::env::solar::{Array, ArrayInputs};
 use crate::env::thermal::{self, Thermal, ThermalInputs};
 use crate::env::{atmosphere, earth, eclipse, ground, link, magfield, radiation, sun, time};
 use crate::fsw::{Fsw, ResetCause, Snapshot, adc, pin};
-use crate::hw::deploy::Deployables;
+use crate::hw::deploy::{self, Deployables};
 use crate::hw::eps::{Eps, Loads};
 use crate::hw::radio::{self, Radio};
 use crate::jetson::Jetson;
@@ -255,7 +255,7 @@ impl Mission {
         let mut deploy = Deployables::new(&mut rng, limit);
         if cfg.wings_failed {
             for e in &mut deploy.wings.elements {
-                e.release_j = f64::INFINITY; // the hold-down never lets go
+                e.release_j = [f64::INFINITY; 2]; // the hold-down never lets go
             }
         }
         let jetson = Jetson::open(rng.next_u64())?;
@@ -587,7 +587,7 @@ impl Mission {
             p(pin::RF_TX_EN),
             p(pin::TX_PWR_SEL),
             p(pin::DEPLOY_EN),
-            p(pin::ANTENNA_BURN),
+            p(pin::SOLAR_BURN_B),
             p(pin::SOLAR_BURN),
         );
         let jet_rail = (p(pin::PAYLOAD_EN) && p(pin::JETSON_PWR)) || (self.cfg.payload_stuck_on && self.rel() > 0.0);
@@ -598,16 +598,30 @@ impl Mission {
         self.radio.xpdr = xpdr_en && self.carrier;
         self.radio.step(dt, radio_on, pa_on, hi, self.deploy.antennas_deployed());
         let was_burning = self.deploy.current_a > 0.0;
-        let _ = self.deploy.step(dt, armed, ant, sol, e.vbat, self.thermal.temp_c(thermal::PZ));
+        // The wings' two drivers (`ant` is driver B here) and the AntS on I2C
+        let (ants_armed, ants_limit_s) = self.fsw.ants_command();
+        let cmd = deploy::Commands { armed, wing_a: sol, wing_b: ant, ants_armed, ants_limit_s };
+        let wing_c = [self.thermal.temp_c(thermal::W1), self.thermal.temp_c(thermal::W2)];
+        let _ = self.deploy.step(dt, cmd, e.vbat, wing_c, self.thermal.temp_c(thermal::MZ));
+        if self.fsw.running() {
+            self.fsw.set_ants_status(self.deploy.ants.status(ants_armed));
+        }
         if self.deploy.current_a > 0.0 && !was_burning {
             if self.totals.first_burn_s.is_none() {
                 self.totals.first_burn_s = Some(self.rel());
             }
-            self.event("deploy", &format!("burn on (antenna {ant}, wings {sol}), {:.2} A", self.deploy.current_a));
+            self.event(
+                "deploy",
+                &format!(
+                    "burn on (wing driver A {sol}, B {ant}, AntS {}), {:.2} A",
+                    ants_limit_s > 0,
+                    self.deploy.current_a
+                ),
+            );
         }
         if self.totals.antennas_s.is_none() && self.deploy.antennas_deployed() {
             self.totals.antennas_s = Some(self.rel());
-            self.event("deploy", "both antennas deployed");
+            self.event("deploy", "every AntS antenna element deployed");
         }
         if self.totals.wings_s.is_none() && self.deploy.wings_deployed() {
             self.totals.wings_s = Some(self.rel());

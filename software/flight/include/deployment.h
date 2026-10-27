@@ -15,9 +15,20 @@
  *  - 30-minute wait (CDS 2.4.4): a power-on, brownout, pin or unknown reset
  *    restarts it (a separation-switch toggle removes power, CDS 2.3.2.4); a
  *    watchdog or software reset resumes it; a stowed switch restarts it.
- *  - Burns: each element has its own burn and sense pin; a burn needs the
- *    master arm (GPIO_PIN_DEPLOY_EN) and the element pin. The attempt is
- *    persisted before the pin is driven, and nothing fires if that fails.
+ *  - Order (STR-16): the solar wings first, then the antenna (the AntS tape
+ *    elements pass below the stowed wings). An element whose attempts run
+ *    out is fault-logged and the sequence goes on to the next; it ends
+ *    COMPLETE only if both deployed, otherwise FAILED.
+ *  - Wings: two burn resistors per wing on separate drivers, used on
+ *    alternate attempts: GPIO_PIN_SOLAR_BURN (attempts 1 and 3) and
+ *    GPIO_PIN_SOLAR_BURN_B (attempt 2); sensed by GPIO_PIN_SOLAR_SENSE.
+ *  - Antenna: the ISIS AntS, armed and deployed over I2C bus 0 by its own
+ *    controller (automatic sequential deployment of its four elements) and
+ *    sensed by every element's switch in its status word; three hardware
+ *    inhibits sit on its supply. GPIO_PIN_ANTENNA_BURN is not driven.
+ *  - A burn needs the master arm (GPIO_PIN_DEPLOY_EN) and the element's line.
+ *    The attempt is persisted before the line is driven, and nothing fires
+ *    if that fails. Attempts are DEPLOYMENT_RETRY_DELAY_MS apart.
  *    An element whose sense reads deployed is never fired. A reset during a
  *    burn spends the attempt. Attempts are bounded across resets.
  *  - COMPLETE and FAILED ignore the switch (re-burning is not harmless); only
@@ -57,11 +68,11 @@ extern "C" {
 /** Deployment wait time after separation (s) */
 #define DEPLOYMENT_WAIT_TIME_S          (DEPLOYMENT_WAIT_TIME_MS / 1000U)
 
-/** Antenna deployment burn time (ms) */
-#define ANTENNA_DEPLOY_BURN_TIME_MS     3000U
+/** Antenna deployment window (ms): the AntS deploys its four elements in turn, at most 10 s each */
+#define ANTENNA_DEPLOY_BURN_TIME_MS     45000U
 
-/** Solar panel deployment burn time (ms) */
-#define SOLAR_DEPLOY_BURN_TIME_MS       5000U
+/** Solar wing burn time (ms): 8 s at 0.5-1 A per resistor (STR-15) */
+#define SOLAR_DEPLOY_BURN_TIME_MS       8000U
 
 /** Maximum deployment attempts per element (across resets) */
 #define DEPLOYMENT_MAX_RETRIES          3U

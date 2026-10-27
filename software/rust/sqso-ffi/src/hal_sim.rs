@@ -453,6 +453,28 @@ pub extern "C" fn hal_i2c_init(bus: u32, _speed: u32) -> i32 {
     })
 }
 
+/// The simulated AntS's command latches: a command without arguments sets
+/// its register to 1; arm and disarm clear each other, and so do a
+/// deployment (its time limit in 0xA5) and cancel
+fn ants_command(registers: &mut [u8; 256], reg: u8, no_args: bool) {
+    use sqso_fsw::ants::{CMD_ARM, CMD_AUTO_DEPLOY, CMD_CANCEL, CMD_DISARM};
+    let mut set = |r: u8, v: u8| {
+        if let Some(slot) = registers.get_mut(usize::from(r)) {
+            *slot = v;
+        }
+    };
+    if no_args {
+        set(reg, 1);
+    }
+    match reg {
+        CMD_ARM => set(CMD_DISARM, 0),
+        CMD_DISARM => set(CMD_ARM, 0),
+        CMD_CANCEL => set(CMD_AUTO_DEPLOY, 0),
+        CMD_AUTO_DEPLOY => set(CMD_CANCEL, 0),
+        _ => {}
+    }
+}
+
 fn device(s: &mut Sim, addr: u8) -> Option<&mut I2cDevice> {
     s.i2c.iter_mut().find(|d| d.addr == addr)
 }
@@ -473,11 +495,8 @@ pub unsafe extern "C" fn hal_i2c_write(bus: u32, addr: u8, data: *const u8, len:
         }
         let Some([reg, values @ ..]) = data else { return rc::NULL_PTR };
         let Some(dev) = device(s, addr) else { return rc::ERROR };
-        if values.is_empty() && dev.addr == I2C_ADDR_ANTS {
-            // A command without arguments: latched for the test or the SIL
-            if let Some(r) = dev.registers.get_mut(usize::from(*reg)) {
-                *r = 1;
-            }
+        if dev.addr == I2C_ADDR_ANTS {
+            ants_command(&mut dev.registers, *reg, values.is_empty());
         }
         let mut reg = *reg;
         for &v in values {

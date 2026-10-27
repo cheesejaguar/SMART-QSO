@@ -272,6 +272,28 @@ impl Fsw {
         self.running() && unsafe { hal_sim::hal_sim_radio_inject(frame.as_ptr(), frame.len()) } == 0
     }
 
+    /// What the flight software has told the AntS over I2C: armed, and the
+    /// automatic deployment's per-element limit (0: none or cancelled)
+    pub fn ants_command(&self) -> (bool, u8) {
+        let read = |reg: u8| {
+            let mut v = 0u8;
+            // SAFETY: reg and v are live (the simulated HAL)
+            let ok = unsafe { hal_sim::hal_i2c_write_read(EPS_BUS, sqso_fsw::ants::ADDRESS, &reg, 1, &mut v, 1) } == 0;
+            if ok { v } else { 0 }
+        };
+        if !self.running() {
+            return (false, 0);
+        }
+        (read(sqso_fsw::ants::CMD_ARM) == 1, read(sqso_fsw::ants::CMD_AUTO_DEPLOY))
+    }
+
+    /// The AntS's status word, as its controller presents it on I2C
+    pub fn set_ants_status(&self, status: [u8; 2]) {
+        let regs = [sqso_fsw::ants::CMD_STATUS, status[0], status[1]];
+        // SAFETY: regs is a live buffer of its length
+        let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, sqso_fsw::ants::ADDRESS, regs.as_ptr(), regs.len()) };
+    }
+
     /// NMEA bytes from the GNSS receiver (`UART_PORT_GNSS`)
     pub fn gnss_bytes(&self, bytes: &[u8]) -> bool {
         // SAFETY: bytes is a live slice

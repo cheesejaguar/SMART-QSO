@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ETP-001
-**Revision:** C
+**Revision:** C.1
 **Date:** 2026-10-27
 **Reference:** GSFC-STD-7000B (GEVS, 2021-04-28) including Appendix B (CubeSats); SpaceX Rideshare Payload User's Guide
 v11 (August 2026, "UG v11"); Cal Poly CubeSat Design Specification Rev 14.1 §3; LSP-REQ-317.01 Rev B (CSLI path only)
@@ -183,9 +183,12 @@ SYS-905); MIL-STD-461G RE102/CE102 at the spacecraft level are not required (GEV
 | Bus ripple at each power card and at the distribution point, all loads on | EM, FM | ≤ 200 mV peak-to-peak on the 14.4 V bus, 1 MHz bandwidth (GEVS recommendation for a 12 V bus, used unchanged) | GEVS-B Appendix B §2.5 |
 | Emissions at the 435 MHz receiver input, every mode including a Jetson burst and magnetorquer PWM | EM, FM | ≥ 6 dB below the receiver's minimum usable signal from the link analysis | GEVS-B Appendix B §2.5; UG v11 Table 6-2 (6 dB EMISM) |
 | RF self-compatibility, each transmitter at full power | EM, FM | No reset, no false telecommand, no sensor fault | GEVS-B Appendix B §2.5 |
-| Spurious and harmonics, conducted (TP-RF-003) | EM, FM | ≥ 46 dBc and ≤ 25 µW at 1 W; third harmonic ≥ 60 dBc | 47 CFR 97.307(e); BASELINE §7 |
+| Spurious and harmonics, conducted (TP-RF-003) | EM, FM | ≥ 46 dBc and ≤ 25 µW at 1 W; third harmonic ≥ 70 dBc at the antenna port | 47 CFR 97.307(e); BASELINE §7 |
 | GNSS L1 noise with Jetson, PA and magnetorquers on | EM | Receiver keeps a fix with C/N0 loss ≤ 3 dB | BASELINE §6 open item (D6) |
 | Magnetometer with Jetson and magnetorquer currents | EM | Bias shift within the ADCS calibration budget | ADCS design |
+| **Unit level, Jetson carrier (V-EMC-1):** CE102 tailored (GSFC-STD-7000B Table 2.5-2) on its input; near-field scan 30 MHz–2 GHz with the module at 7 W inferring | Payload EM, before carrier layout freeze | Tailored CE102 limit; no line within ±100 kHz of the coordinated uplink or within L1 ± 2 MHz above −110 dBm at a reference antenna 10 cm away | SQSO-EMC-001 §6 |
+| **Unit level, EPS board (V-EMC-3):** CE102 tailored on VBAT and on each rail; frequency-plan check of the synchronised converters with a spectrum analyser at the 70 cm port | EPS EM | Tailored CE102; no converter harmonic within 200 kHz of the uplink channel | SQSO-EMC-001 §6 |
+| **Bus load step (V-EMC-6):** Jetson on, latch-up emulation at 12 W, burn at 1.7 A, at a cold pack (0 °C, 25 % SOC) | EM | Bus stays above 12.0 V; no OBC reset; matches SQSO-EMC-001 §4 within 0.2 V | SQSO-EMC-001 §6 |
 
 ### 3.7 Mass properties [SYS-002, SYS-003, SYS-901]
 
@@ -327,4 +330,5 @@ float (`mission/SCHEDULE.md` §3).
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §3.1 vibration levels point to the interim SpaceX UG v11 levels of TP-ENV-002 (5.57 Grms MPE), replacing the unsourced 6.8 / 5.1 Grms profile (finding LA-05); §3.2 cold survival marked open against SYS-601 (TBR-TPENV003-001) | SMART-QSO Team |
+| C.1 | 2026-10-27 | Chair (RID EMC-05): unit-level EMC tests V-EMC-1, V-EMC-3 and V-EMC-6 added to §3.6; third-harmonic criterion 70 dBc (BASELINE §7) | Review chair |
 | C | 2026-10-27 | CDR review (PM/SE/V&V). Rewritten: protoflight defined correctly (GEVS-B Table 2.2-2); source precedence; EM and FM articles; random vibration at the GEVS-B Appendix B envelope of MPE + 3 dB and workmanship (8.18 Grms); sine signature; shock by analysis with VI-07; TVAC levels with GEVS margins and the battery cap, 8 cycles plus 4 board cycles; bake-out +60 °C 6 h; EMC tailored per GEVS-B Appendix B; mass properties with inertia; deployment tests hot and cold before vibration (CDS §3.5.2); magnetic; end-to-end, DITL and HIL; FM flow; EM/FM matrix; facilities and cost; verification items VI-01 to VI-10; deviations. Scripts `software/simulation/cdr/pm/test_levels.py`, `test_cost.py` | CDR review, PM/SE/V&V |

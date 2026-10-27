@@ -1,7 +1,7 @@
 # Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery
 
 **Document ID**: SQSO-BVB-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-26
 **Status**: Draft; vendor data from public pages on 2026-10-26, no quotes yet
 
@@ -76,7 +76,8 @@ project design item whichever is bought.
 
 **Decision: buy the frame, buy the wings and body panels from one panel vendor.** The frame is the largest single
 mass lever (about −170 g). Send RFQs to Pumpkin, ISIS and Spacemanic with stock and lead-time questions, and freeze
-the choice before the mechanical layout. The Jetson heat path (≥ 1 W/K, BASELINE §6), the GNSS patch and the wing
+the choice before the mechanical layout. The RFQ asks for a **recessed −Z face** for the 7 mm AntS within the CDS
+standoff (RID STR-11) and the frame's mass, allowables and drawings (STR-20). The Jetson heat path (≥ 1 W/K, BASELINE §6), the GNSS patch and the wing
 hinges need custom brackets on whichever frame is chosen.
 
 ### 2.3 Solar panels
@@ -235,8 +236,8 @@ harness and the pack's surface finish set the conductance. Estimates (G = kA/L, 
 - 4 × Ti-6Al-4V M2.5 screws into frame inserts, low preload, staked. Alternative: necked Ti-6Al-4V standoffs
   (≈ 0.023 W/K for four) if polymer creep is unacceptable.
 - Flying leads of at least 100 mm to the EPS; no stack connector on the pack.
-- Heater ≈ 1 W at 14.4 V (≈ 200 Ω polyimide film, two elements on different cells), the flight software's +2/+6 °C
-  set points, a series hardware over-temperature cutout at about +40 °C, and a fuse or current limit (MinXSS had a
+- Heater ≈ 1 W at 14.4 V (≈ 200 Ω polyimide film, two elements on different cells), the flight software's +5/+9 °C
+  set points (raised from +2/+6 °C by the design review, RID THM-02), a series hardware over-temperature cutout at about +40 °C, and a fuse or current limit (MinXSS had a
   heater short in vacuum).
 - Target 0.03 W/K to the frame and ≤ 0.01 W/K to the OBC stack. Verify in the EM thermal balance test with the heater
   power stepped (TB-07).
@@ -521,4 +522,5 @@ with the latch-up trip acting on the PDU switch), not a bigger battery.
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| B | 2026-10-27 | SMART-QSO Team | Design review: frame RFQ with a recessed −Z face (STR-11); heater set points +5/+9 °C (THM-02); §6 gains and spin from the Monte Carlo on the computed inertia (STR-01) |
 | A | 2026-10-26 | SMART-QSO Team | Initial issue: COTS survey and build-versus-buy decisions; gyro; ADCS Monte Carlo and gains; battery size; transponder enable and battery mount hardware |

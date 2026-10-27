@@ -66,9 +66,14 @@ pub const SUN_AXIS: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 /// the spin's stiffness against the disturbance torques grows with it, and
 /// the coils hold it for under 5 mW
 pub const SPIN_RATE: f64 = 0.105;
-/// Principal moments of inertia with the wings deployed, kg m^2 (mass
-/// properties, TBR with the measured values)
-pub const INERTIA: Vec3 = Vec3::new(0.0029, 0.0041, 0.0037);
+/// Moments of inertia about the body axes with the wings and the AntS
+/// deployed, kg m^2: layout B (battery at −Z, RF at +Z), CubeSpace rods, the
+/// 2 m elements along ±X, mean of CBE and MEV (`docs/environment/MASS_BUDGET.md`
+/// v3.0 §6.1, `software/simulation/cdr/structures/mass_properties.py`; STR-01).
+/// The products are in [`Inertia::DEPLOYED`]. To be replaced by the CAD
+/// value at drawing release and by the measured stowed inertia plus the
+/// weighed wings before flight
+pub const INERTIA: Vec3 = Vec3::new(0.003_120, 0.004_600, 0.004_437);
 /// Momentum gain of the spin law: torque per unit momentum error, 1/s
 pub const MOMENTUM_GAIN: f64 = 0.005;
 /// Nutation damping: torque per rad/s of rate across the spin axis, N m s
@@ -127,6 +132,97 @@ impl Default for CoilTiming {
 // The window (period minus the burst) holds the settling time and the
 // magnetometer's conversion
 const _: () = assert!(MTQ_ON_MS + MAG_SETTLE_MS < CONTROL_PERIOD_MS);
+
+/// A symmetric inertia tensor about the centre of mass, body axes, kg m^2
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Inertia {
+    /// Ixx
+    pub xx: f64,
+    /// Iyy
+    pub yy: f64,
+    /// Izz
+    pub zz: f64,
+    /// Ixy (the tensor's element, −Σ m x y)
+    pub xy: f64,
+    /// Ixz
+    pub xz: f64,
+    /// Iyz
+    pub yz: f64,
+}
+
+impl Inertia {
+    /// Both wings and the AntS deployed ([`INERTIA`] with its products)
+    pub const DEPLOYED: Inertia =
+        Inertia { xx: 0.003_120, yy: 0.004_600, zz: 0.004_437, xy: -0.000_030, xz: -0.000_031, yz: -0.000_045 };
+    /// Only wing W1 (+X hinge) deployed
+    pub const WING_1_ONLY: Inertia =
+        Inertia { xx: 0.003_081, yy: 0.004_214, zz: 0.004_012, xy: -0.000_242, xz: -0.000_041, yz: -0.000_035 };
+    /// Only wing W2 (−X hinge) deployed
+    pub const WING_2_ONLY: Inertia =
+        Inertia { xx: 0.003_081, yy: 0.004_207, zz: 0.004_005, xy: 0.000_186, xz: -0.000_021, yz: -0.000_035 };
+    /// Neither wing deployed (the AntS out)
+    pub const NO_WINGS: Inertia =
+        Inertia { xx: 0.003_036, yy: 0.003_827, zz: 0.003_580, xy: -0.000_026, xz: -0.000_031, yz: -0.000_026 };
+
+    /// A diagonal tensor
+    pub const fn diagonal(d: Vec3) -> Inertia {
+        Inertia { xx: d.x, yy: d.y, zz: d.z, xy: 0.0, xz: 0.0, yz: 0.0 }
+    }
+
+    /// I w
+    pub fn apply(&self, w: &Vec3) -> Vec3 {
+        Vec3 {
+            x: self.xx * w.x + self.xy * w.y + self.xz * w.z,
+            y: self.xy * w.x + self.yy * w.y + self.yz * w.z,
+            z: self.xz * w.x + self.yz * w.y + self.zz * w.z,
+        }
+    }
+
+    /// The moment about the unit axis `a`: aᵀ I a
+    pub fn about(&self, a: &Vec3) -> f64 {
+        a.dot(&self.apply(a))
+    }
+}
+
+/// What the spin law spins about and with what inertia: the axis held on
+/// the Sun and the inertia tensor. Selectable by telecommand
+/// (ADCS_SET_GEOMETRY, STR-27) when the wings did not both deploy
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Geometry {
+    /// The body axis held on the Sun (unit)
+    pub sun_axis: Vec3,
+    /// The inertia tensor
+    pub inertia: Inertia,
+}
+
+impl Geometry {
+    /// Both wings deployed: +Y on the Sun
+    pub const FLIGHT: Geometry = Geometry { sun_axis: SUN_AXIS, inertia: Inertia::DEPLOYED };
+
+    /// The telecommand's presets: 0 both wings, 1 wing W1 only, 2 wing W2
+    /// only, 3 no wing. With one wing the array normal is still +Y but the
+    /// major axis tilts 13° toward the wing (`MASS_BUDGET.md` §6.1): the
+    /// spin is held about the major axis, so the Sun sits 13° off the
+    /// remaining wing's normal (cos 13° = 0.97 of its power) and the spin
+    /// needs no coil effort to stay about it
+    pub const PRESETS: [Geometry; 4] = [
+        Geometry::FLIGHT,
+        Geometry { sun_axis: Vec3::new(-0.1955, 0.9751, -0.1046), inertia: Inertia::WING_1_ONLY },
+        Geometry { sun_axis: Vec3::new(0.1593, 0.9743, -0.1593), inertia: Inertia::WING_2_ONLY },
+        Geometry { sun_axis: Vec3::new(-0.0287, 0.9947, -0.0991), inertia: Inertia::NO_WINGS },
+    ];
+
+    /// A preset by its telecommand number
+    pub fn preset(n: u8) -> Option<Geometry> {
+        Geometry::PRESETS.get(usize::from(n)).copied()
+    }
+}
+
+impl Default for Geometry {
+    fn default() -> Geometry {
+        Geometry::FLIGHT
+    }
+}
 
 /// The control gains the modes use: the flight values ([`Gains::FLIGHT`]),
 /// or others for analysis (the mission simulation's Monte Carlo sweeps)
@@ -396,28 +492,38 @@ pub fn spin_sunpoint(sun: &SunSensorData, mag: &MagData, rate: Vec3) -> Vec3 {
 
 /// [`spin_sunpoint`] with the gains `g`
 pub fn spin_sunpoint_with(g: &Gains, sun: &SunSensorData, mag: &MagData, rate: Vec3) -> Vec3 {
+    spin_sunpoint_geo(g, &Geometry::FLIGHT, sun, mag, rate)
+}
+
+/// [`spin_sunpoint`] with the gains `g` about the axis and with the inertia
+/// of `geo`: h = I w is driven to `spin_rate` (aᵀ I a) along the sun
+/// direction, the rate across the axis a is damped, and the spin about a is
+/// held positive
+pub fn spin_sunpoint_geo(g: &Gains, geo: &Geometry, sun: &SunSensorData, mag: &MagData, rate: Vec3) -> Vec3 {
     let b_field = mag.field;
     let b_mag_sq = b_field.dot(&b_field);
     if !mag.valid || b_mag_sq <= 1.0 {
         return Vec3::ZERO;
     }
-    let along = rate.dot(&SUN_AXIS);
+    let a = geo.sun_axis;
+    let along = rate.dot(&a);
     let mut torque = Vec3 {
-        x: -g.nutation * (rate.x - along * SUN_AXIS.x),
-        y: -g.nutation * (rate.y - along * SUN_AXIS.y),
-        z: -g.nutation * (rate.z - along * SUN_AXIS.z),
+        x: -g.nutation * (rate.x - along * a.x),
+        y: -g.nutation * (rate.y - along * a.y),
+        z: -g.nutation * (rate.z - along * a.z),
     };
     if sun.sun_visible {
-        let h_s = g.spin_rate * INERTIA.y;
+        let h_s = g.spin_rate * geo.inertia.about(&a);
+        let h = geo.inertia.apply(&rate);
         let s = sun.sun_vector;
-        torque.x -= g.momentum * (INERTIA.x * rate.x - h_s * s.x);
-        torque.y -= g.momentum * (INERTIA.y * rate.y - h_s * s.y);
-        torque.z -= g.momentum * (INERTIA.z * rate.z - h_s * s.z);
-        // Spin hold about +Y (SUN_AXIS)
-        let spin_err = INERTIA.y * along - h_s;
-        torque.x -= g.spin_hold * spin_err * SUN_AXIS.x;
-        torque.y -= g.spin_hold * spin_err * SUN_AXIS.y;
-        torque.z -= g.spin_hold * spin_err * SUN_AXIS.z;
+        torque.x -= g.momentum * (h.x - h_s * s.x);
+        torque.y -= g.momentum * (h.y - h_s * s.y);
+        torque.z -= g.momentum * (h.z - h_s * s.z);
+        // Spin hold about the axis
+        let spin_err = h.dot(&a) - h_s;
+        torque.x -= g.spin_hold * spin_err * a.x;
+        torque.y -= g.spin_hold * spin_err * a.y;
+        torque.z -= g.spin_hold * spin_err * a.z;
     }
     let t = b_field.cross(&torque);
     let mut dipole = Vec3 { x: t.x / b_mag_sq * 1e6, y: t.y / b_mag_sq * 1e6, z: t.z / b_mag_sq * 1e6 };
@@ -501,6 +607,8 @@ pub struct Adcs {
     pub gains: Gains,
     /// Coil burst and measurement window ([`CoilTiming::FLIGHT`])
     pub timing: CoilTiming,
+    /// Spin axis and inertia ([`Geometry::FLIGHT`]; ADCS_SET_GEOMETRY)
+    pub geometry: Geometry,
     /// When the coils' latest burst ends, ms (`None`: not driven since init)
     pub coils_off_ms: Option<u64>,
     /// Magnetometer samples discarded because the coils were on or had not
@@ -537,6 +645,7 @@ impl Adcs {
             gyro: None,
             gains: Gains::FLIGHT,
             timing: CoilTiming::FLIGHT,
+            geometry: Geometry::FLIGHT,
             coils_off_ms: None,
             mag_rejected: 0,
         }
@@ -610,8 +719,9 @@ impl Adcs {
         // Without it, the magnetometer estimate's magnitude (ADCS_DESIGN §5.1)
         let settled = if self.gyro.is_some() {
             let w = s.angular_rate_est;
-            let along = w.dot(&SUN_AXIS);
-            let across = Vec3 { x: w.x - along * SUN_AXIS.x, y: w.y - along * SUN_AXIS.y, z: w.z - along * SUN_AXIS.z };
+            let a = self.geometry.sun_axis;
+            let along = w.dot(&a);
+            let across = Vec3 { x: w.x - along * a.x, y: w.y - along * a.y, z: w.z - along * a.z };
             across.magnitude() < DETUMBLE_RATE_THRESHOLD && along.abs() < 2.0 * self.gains.spin_rate
         } else {
             // A rejected sample leaves the estimate stale: not evidence of a low rate
@@ -670,8 +780,13 @@ impl Adcs {
             mode::DETUMBLE => self.detumble_step(now_ms, &mut dipole, &mut cycle),
             mode::SUNPOINT => {
                 if self.state.sun.sun_visible {
-                    dipole =
-                        spin_sunpoint_with(&self.gains, &self.state.sun, &self.state.mag, self.state.angular_rate_est);
+                    dipole = spin_sunpoint_geo(
+                        &self.gains,
+                        &self.geometry,
+                        &self.state.sun,
+                        &self.state.mag,
+                        self.state.angular_rate_est,
+                    );
                 } else {
                     self.state.mode = mode::ECLIPSE; // no sun
                 }
@@ -781,11 +896,28 @@ mod tests {
     }
 
     #[test]
-    fn spin_sunpoint_rests_spinning_about_y_on_the_sun() {
+    fn spin_sunpoint_rests_spinning_about_its_axis_on_the_sun() {
         let b = Vec3::new(20.0, -10.0, 35.0);
+        // A diagonal inertia: the rest state is the spin about +Y
+        let diag = Geometry { sun_axis: SUN_AXIS, inertia: Inertia::diagonal(INERTIA) };
         let spin = Vec3::new(0.0, SPIN_RATE, 0.0);
-        let m = spin_sunpoint(&sun(SUN_AXIS), &field(b), spin);
+        let m = spin_sunpoint_geo(&Gains::FLIGHT, &diag, &sun(SUN_AXIS), &field(b), spin);
         assert!(m.magnitude() < 1e-12, "at rest: {m:?}");
+        // Each one-wing preset spins about its major axis (an eigenvector of
+        // its tensor, to the 4 decimals given): at rest there too
+        for n in 1..4u8 {
+            let g = Geometry::preset(n).unwrap();
+            let a = g.sun_axis;
+            let w = Vec3::new(a.x * SPIN_RATE, a.y * SPIN_RATE, a.z * SPIN_RATE);
+            let m = spin_sunpoint_geo(&Gains::FLIGHT, &g, &sun(a), &field(b), w);
+            assert!(m.magnitude() < 2e-3, "preset {n}: {m:?}");
+            assert!((a.magnitude() - 1.0).abs() < 1e-3, "{n}");
+            assert!(a.y > 0.95, "{n}: within 18° of +Y");
+        }
+        assert_eq!(Geometry::preset(4), None);
+        assert_eq!(Geometry::default(), Geometry::FLIGHT);
+        // The tensor's moment about +Y is Iyy
+        assert!((Inertia::DEPLOYED.about(&SUN_AXIS) - INERTIA.y).abs() < 1e-12);
     }
 
     #[test]

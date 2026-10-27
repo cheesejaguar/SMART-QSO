@@ -3,7 +3,9 @@
  * @brief Deployment sequence: 30-minute wait, burn wires, persistence, resets
  *
  * Drives the real sequence through the simulation HAL (separation switch,
- * per-element sense and burn pins, persisted record, reset cause).
+ * the wings' two burn drivers and sense pin, the AntS antenna controller on
+ * I2C bus 0, the persisted record, the reset cause). Order: the wings first,
+ * then the antenna (STR-16); the wings alternate driver A and driver B.
  *
  * @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
  */
@@ -21,11 +23,33 @@
 #include "nvm_record.h"
 #include "hal/hal_flash.h"
 #include "hal/hal_gpio.h"
+#include "hal/hal_i2c.h"
 #include "hal/hal_reset.h"
 #include "hal/hal_sim.h"
 
 #define SECOND_MS   1000U
 #define MINUTE_MS   (60U * 1000U)
+
+/* The ISIS AntS controller (software/rust/sqso-fsw/src/ants.rs) */
+#define ANTS_BUS        0U
+#define ANTS_ADDR       0x31U
+#define ANTS_ARM        0xADU
+#define ANTS_DEPLOY     0xA5U
+#define ANTS_STATUS     0xC3U
+
+static uint8_t ants_reg(uint8_t reg)
+{
+    uint8_t value = 0U;
+    assert_int_equal(hal_i2c_write_read(ANTS_BUS, ANTS_ADDR, &reg, 1U, &value, 1U), SMART_QSO_OK);
+    return value;
+}
+
+/** Every AntS element switch deployed (status 0x0000) or stowed (0x8888) */
+static void set_antenna_sense(bool deployed)
+{
+    uint8_t status[3] = {ANTS_STATUS, deployed ? 0x00U : 0x88U, deployed ? 0x00U : 0x88U};
+    assert_int_equal(hal_i2c_write(ANTS_BUS, ANTS_ADDR, status, sizeof(status)), SMART_QSO_OK);
+}
 
 /*===========================================================================*/
 /* Fixtures and helpers                                                       */
@@ -38,8 +62,9 @@ static int setup(void **state)
     hal_sim_set_reset_cause(HAL_RESET_POWER_ON);
     assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
     hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false);   /* released */
-    hal_sim_gpio_drive_input(GPIO_PIN_ANTENNA_SENSE, false);
     hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
+    assert_int_equal(hal_i2c_init(ANTS_BUS, 100000U), SMART_QSO_OK);
+    set_antenna_sense(false);
     assert_int_equal(hal_flash_init(), SMART_QSO_OK);
     assert_int_equal(hal_flash_erase(FLASH_REGION_DEPLOYMENT), SMART_QSO_OK);
     assert_true(deployment_init());
@@ -60,17 +85,27 @@ static void advance(uint32_t total_ms, uint32_t step_ms)
     }
 }
 
+/** The AntS was armed and told to deploy, and not cancelled since */
+static bool antenna_deploying(void)
+{
+    return (ants_reg(ANTS_DEPLOY) != 0U) && (ants_reg(ANTS_ARM) == 1U);
+}
+
 static bool burning(DeploymentElement_t element)
 {
-    HalGpioPin_t pin = (element == DEPLOY_ELEMENT_ANTENNA) ? GPIO_PIN_ANTENNA_BURN : GPIO_PIN_SOLAR_BURN;
-    return hal_gpio_get(GPIO_PIN_DEPLOY_EN) && hal_gpio_get(pin);
+    bool line = (element == DEPLOY_ELEMENT_ANTENNA)
+                    ? antenna_deploying()
+                    : (hal_gpio_get(GPIO_PIN_SOLAR_BURN) || hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
+    return hal_gpio_get(GPIO_PIN_DEPLOY_EN) && line;
 }
 
 static void assert_no_burn(void)
 {
     assert_false(hal_gpio_get(GPIO_PIN_ANTENNA_BURN));
     assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN));
+    assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
     assert_false(hal_gpio_get(GPIO_PIN_DEPLOY_EN));
+    assert_false(antenna_deploying());
 }
 
 static uint8_t attempts(DeploymentElement_t element)
@@ -144,8 +179,8 @@ static void test_deployment_constants(void **state)
 {
     (void)state;
     assert_int_equal(DEPLOYMENT_WAIT_TIME_MS, 30 * 60 * 1000);
-    assert_true(ANTENNA_DEPLOY_BURN_TIME_MS >= 1000);
-    assert_true(ANTENNA_DEPLOY_BURN_TIME_MS <= 10000);
+    assert_true(ANTENNA_DEPLOY_BURN_TIME_MS >= 40000);   /* four AntS elements, 10 s each */
+    assert_true(ANTENNA_DEPLOY_BURN_TIME_MS <= 60000);
     assert_true(SOLAR_DEPLOY_BURN_TIME_MS >= 1000);
     assert_true(SOLAR_DEPLOY_BURN_TIME_MS <= 10000);
     assert_true(DEPLOYMENT_MAX_RETRIES >= 1);
@@ -170,7 +205,8 @@ static void test_force_retry_cannot_bypass_wait(void **state)
 /* Sequence                                                                   */
 /*===========================================================================*/
 
-/** 30 minutes, then antenna only, then solar only, each confirmed by its own sense pin */
+/** 30 minutes, then the wings only (driver A), then the antenna only (the
+ *  AntS), each confirmed by its own sense */
 static void test_full_sequence(void **state)
 {
     (void)state;
@@ -182,22 +218,24 @@ static void test_full_sequence(void **state)
     assert_no_burn();
     deployment_tick(SECOND_MS);
     deployment_tick(SECOND_MS);  /* PENDING -> fire */
+    assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
+    assert_true(hal_gpio_get(GPIO_PIN_SOLAR_BURN));
+    assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
+    assert_false(antenna_deploying());
+
+    advance(SOLAR_DEPLOY_BURN_TIME_MS, SECOND_MS);
+    assert_no_burn();
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_SOLAR_VERIFY);
+
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+    deployment_tick(SECOND_MS);   /* verified */
+    deployment_tick(SECOND_MS);   /* the AntS is told to deploy */
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
     assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN));
 
     advance(ANTENNA_DEPLOY_BURN_TIME_MS, SECOND_MS);
-    assert_no_burn();
-    assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_VERIFY);
-
-    hal_sim_gpio_drive_input(GPIO_PIN_ANTENNA_SENSE, true);
-    deployment_tick(SECOND_MS);   /* verified */
-    deployment_tick(SECOND_MS);   /* solar fires */
-    assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
-    assert_false(hal_gpio_get(GPIO_PIN_ANTENNA_BURN));
-
-    advance(SOLAR_DEPLOY_BURN_TIME_MS, SECOND_MS);
-    assert_no_burn();
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+    assert_no_burn();             /* cancelled and disarmed */
+    set_antenna_sense(true);
     deployment_tick(SECOND_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_COMPLETE);
     assert_true(deployment_all_complete());
@@ -205,17 +243,35 @@ static void test_full_sequence(void **state)
     assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 1);
 }
 
+/** The wings' second attempt uses driver B, the third driver A again */
+static void test_wing_retries_alternate_drivers(void **state)
+{
+    (void)state;
+    wait_out();
+    deployment_tick(SECOND_MS);
+    deployment_tick(SECOND_MS);
+    assert_true(hal_gpio_get(GPIO_PIN_SOLAR_BURN) && !hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
+    advance(SOLAR_DEPLOY_BURN_TIME_MS + DEPLOYMENT_RETRY_DELAY_MS + (2U * SECOND_MS), SECOND_MS);
+    assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
+    assert_true(hal_gpio_get(GPIO_PIN_SOLAR_BURN_B) && !hal_gpio_get(GPIO_PIN_SOLAR_BURN));
+    assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 2);
+    advance(SOLAR_DEPLOY_BURN_TIME_MS + DEPLOYMENT_RETRY_DELAY_MS + (2U * SECOND_MS), SECOND_MS);
+    assert_true(hal_gpio_get(GPIO_PIN_SOLAR_BURN) && !hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
+    assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 3);
+}
+
 /** An element whose sense already reads deployed is never fired */
 static void test_already_deployed_not_fired(void **state)
 {
     (void)state;
-    hal_sim_gpio_drive_input(GPIO_PIN_ANTENNA_SENSE, true);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
     wait_out();
     deployment_tick(SECOND_MS);
     deployment_tick(SECOND_MS);
-    assert_false(hal_gpio_get(GPIO_PIN_ANTENNA_BURN));
-    assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
-    assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), 0);
+    assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN));
+    assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
+    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
+    assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 0);
 }
 
 /*===========================================================================*/
@@ -233,7 +289,7 @@ static void test_watchdog_reset_resumes_wait(void **state)
 
     advance(10U * MINUTE_MS, MINUTE_MS);
     deployment_tick(SECOND_MS);
-    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
+    assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
 }
 
 static void test_power_on_reset_restarts_wait(void **state)
@@ -279,12 +335,12 @@ static void test_reset_during_burn_spends_attempt(void **state)
     wait_out();
     deployment_tick(SECOND_MS);
     deployment_tick(SECOND_MS);
-    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
+    assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
 
     reboot(HAL_RESET_WATCHDOG);
     assert_no_burn();
-    assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), 1);
-    assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_VERIFY);
+    assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 1);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_SOLAR_VERIFY);
 }
 
 /** A burn that browns out the bus (power-on reset each time) restarts the
@@ -298,7 +354,7 @@ static void test_burn_brownout_loop_is_bounded(void **state)
         wait_out();
         for (uint32_t s = 0U; s < (2U * 60U); s++) {
             deployment_tick(SECOND_MS);
-            if (burning(DEPLOY_ELEMENT_ANTENNA)) {
+            if (burning(DEPLOY_ELEMENT_SOLAR_PANEL)) {
                 burns++;
                 break;
             }
@@ -308,23 +364,23 @@ static void test_burn_brownout_loop_is_bounded(void **state)
     }
 
     assert_int_equal(burns, DEPLOYMENT_MAX_RETRIES);
-    assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), DEPLOYMENT_MAX_RETRIES);
+    assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), DEPLOYMENT_MAX_RETRIES);
 }
 
 /** The attempt is persisted before the pin is driven; if it cannot be, no burn */
 static void test_persist_failure_blocks_burn(void **state)
 {
     (void)state;
-    wait_out();                  /* now ANTENNA_PENDING */
+    wait_out();                  /* now SOLAR_PENDING */
     hal_sim_flash_fail_writes(true);
     deployment_tick(SECOND_MS);
     deployment_tick(SECOND_MS);
     assert_no_burn();
-    assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), 0);
+    assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 0);
 
     hal_sim_flash_fail_writes(false);
     deployment_tick(SECOND_MS);
-    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
+    assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
 }
 
 /*===========================================================================*/
@@ -333,7 +389,7 @@ static void test_persist_failure_blocks_burn(void **state)
 
 static void complete_sequence(void)
 {
-    hal_sim_gpio_drive_input(GPIO_PIN_ANTENNA_SENSE, true);
+    set_antenna_sense(true);
     hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
     wait_out();
     advance(5U * SECOND_MS, SECOND_MS);
@@ -358,7 +414,7 @@ static void test_arm_holds_until_next_boot(void **state)
 {
     (void)state;
     complete_sequence();
-    hal_sim_gpio_drive_input(GPIO_PIN_ANTENNA_SENSE, false);
+    set_antenna_sense(false);
     hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
 
     assert_int_equal(deployment_arm(), SMART_QSO_OK);
@@ -373,7 +429,7 @@ static void test_arm_holds_until_next_boot(void **state)
     wait_out();
     deployment_tick(SECOND_MS);
     deployment_tick(SECOND_MS);
-    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
+    assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
 }
 
 /** A corrupt record starts over (fault logged); sense pins still skip deployed elements */
@@ -415,31 +471,37 @@ static void test_disabled_holds(void **state)
     assert_true(deployment_set_enabled(true));
     deployment_tick(SECOND_MS);
     deployment_tick(SECOND_MS);
-    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
+    assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
 }
 
-/** After FAILED, a ground retry is allowed (the wait has been served) */
+/** Nothing senses deployed: the wings' attempts run out, the antenna is
+ *  still tried (failed wings must not leave it stowed), the sequence ends
+ *  FAILED, and a ground retry (DEPLOY_RETRY) is then allowed */
 static void test_force_retry_after_failure(void **state)
 {
     (void)state;
     wait_out();
-    /* Three attempts DEPLOYMENT_RETRY_DELAY_MS apart (spread over the orbit, LV-07) */
+    /* Three attempts each, DEPLOYMENT_RETRY_DELAY_MS apart (LV-07) */
+    advance((3U * DEPLOYMENT_RETRY_DELAY_MS) + (2U * MINUTE_MS), SECOND_MS);
+    assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), DEPLOYMENT_MAX_RETRIES);
+    assert_true(attempts(DEPLOY_ELEMENT_ANTENNA) >= 1U);
     advance((3U * DEPLOYMENT_RETRY_DELAY_MS) + (2U * MINUTE_MS), SECOND_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_FAILED);
+    assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), DEPLOYMENT_MAX_RETRIES);
     assert_true(deployment_force_retry(DEPLOY_ELEMENT_ANTENNA));
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_PENDING);
     deployment_tick(SECOND_MS);
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
 }
 
-/** The solar panel never senses deployed: its retries run out, the
- *  sequence ends FAILED and the failure is fault-logged */
+/** The wings never sense deployed: their retries run out (fault-logged),
+ *  the already-deployed antenna is not fired, the sequence ends FAILED */
 static void test_solar_failure_reported(void **state)
 {
     (void)state;
     FaultLogEntry_t entry;
 
-    hal_sim_gpio_drive_input(GPIO_PIN_ANTENNA_SENSE, true);
+    set_antenna_sense(true);
     wait_out();
     /* Three attempts DEPLOYMENT_RETRY_DELAY_MS apart (spread over the orbit, LV-07) */
     advance((3U * DEPLOYMENT_RETRY_DELAY_MS) + (2U * MINUTE_MS), SECOND_MS);
@@ -543,6 +605,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_deployment_constants, setup, teardown),
         cmocka_unit_test_setup_teardown(test_force_retry_cannot_bypass_wait, setup, teardown),
         cmocka_unit_test_setup_teardown(test_full_sequence, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_wing_retries_alternate_drivers, setup, teardown),
         cmocka_unit_test_setup_teardown(test_already_deployed_not_fired, setup, teardown),
         cmocka_unit_test_setup_teardown(test_watchdog_reset_resumes_wait, setup, teardown),
         cmocka_unit_test_setup_teardown(test_power_on_reset_restarts_wait, setup, teardown),

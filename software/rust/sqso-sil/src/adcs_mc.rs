@@ -20,14 +20,14 @@
 //! B-dot and the rate estimate, and the flight software's rejection count
 //! ([`Trial::mag_rejected`]) shows it.
 
-use sqso_fsw::adcs::{self, Adcs, CoilTiming, Gains, Vec3};
+use sqso_fsw::adcs::{self, Adcs, CoilTiming, Gains, Geometry, Inertia, Vec3};
 
 use crate::env::atmosphere;
-use crate::env::attitude::{self, Attitude, Disturbance};
+use crate::env::attitude::{self, Disturbance};
 use crate::env::earth;
 use crate::env::eclipse;
 use crate::env::magfield;
-use crate::env::math::{OMEGA_EARTH, Quat, Rng, V3};
+use crate::env::math::{MU_EARTH, OMEGA_EARTH, Quat, Rng, V3};
 use crate::env::orbit::Orbit;
 use crate::env::solar::{Array, ArrayInputs, N_STRINGS};
 use crate::env::sun;
@@ -53,6 +53,145 @@ pub fn captured(w: V3, spin: f64) -> bool {
 const WINGS_S: f64 = 1800.0;
 /// Magnetorquer drive at full dipole on all three axes, W
 const MTQ_FULL_W: f64 = 0.30;
+
+/// The stowed inertia tensor (layout B, rods, MEV, AntS and wings stowed;
+/// `docs/environment/MASS_BUDGET.md` v3.0 §6.1), kg·m²
+pub const STOWED: Inertia =
+    Inertia { xx: 0.003_210, yy: 0.003_487, zz: 0.003_208, xy: -0.000_027, xz: -0.000_034, yz: -0.000_028 };
+
+/// A rigid body with a full inertia tensor (products included; the mission
+/// simulation's `Attitude` is diagonal): attitude body → ECI, body rate
+#[derive(Clone, Copy, Debug)]
+pub struct Body {
+    /// Attitude quaternion, body → ECI
+    pub q: Quat,
+    /// Body rate, rad/s
+    pub w: V3,
+    i: [V3; 3],
+    i_inv: [V3; 3],
+}
+
+fn rows(t: &Inertia) -> [V3; 3] {
+    [V3::new(t.xx, t.xy, t.xz), V3::new(t.xy, t.yy, t.yz), V3::new(t.xz, t.yz, t.zz)]
+}
+
+fn mat_vec(m: &[V3; 3], v: V3) -> V3 {
+    V3::new(m[0].dot(v), m[1].dot(v), m[2].dot(v))
+}
+
+fn inverse(m: &[V3; 3]) -> [V3; 3] {
+    let (a, b, c) = (m[0], m[1], m[2]);
+    let det = a.dot(b.cross(c));
+    // Rows of the inverse are the cross products of the columns' pairs; for
+    // a symmetric matrix the columns are the rows
+    let r0 = b.cross(c) / det;
+    let r1 = c.cross(a) / det;
+    let r2 = a.cross(b) / det;
+    // (inverse of a symmetric matrix is symmetric: these are its columns, and rows)
+    [r0, r1, r2]
+}
+
+impl Body {
+    /// A body of tensor `t`
+    pub fn new(q: Quat, w: V3, t: &Inertia) -> Body {
+        let i = rows(t);
+        Body { q: q.normalize(), w, i, i_inv: inverse(&i) }
+    }
+
+    /// I w
+    pub fn momentum(&self, w: V3) -> V3 {
+        mat_vec(&self.i, w)
+    }
+
+    /// Change the tensor keeping the angular momentum (the wings swing out)
+    pub fn set_tensor(&mut self, t: &Inertia) {
+        let h = self.momentum(self.w);
+        self.i = rows(t);
+        self.i_inv = inverse(&self.i);
+        self.w = mat_vec(&self.i_inv, h);
+    }
+
+    fn wdot(&self, w: V3, tau: V3) -> V3 {
+        mat_vec(&self.i_inv, tau - w.cross(self.momentum(w)))
+    }
+
+    /// Advance by `dt` under a body torque held over the step (RK4)
+    pub fn step(&mut self, dt: f64, tau: V3) {
+        let n = ((self.w.norm() * dt / 0.05).ceil() as u32).max(1);
+        let h = dt / f64::from(n);
+        for _ in 0..n {
+            let (q0, w0) = (self.q, self.w);
+            let k1q = q0.derivative(w0);
+            let k1w = self.wdot(w0, tau);
+            let w2 = w0 + k1w * (0.5 * h);
+            let k2q = q0.add_scaled(k1q, 0.5 * h).derivative(w2);
+            let k2w = self.wdot(w2, tau);
+            let w3 = w0 + k2w * (0.5 * h);
+            let k3q = q0.add_scaled(k2q, 0.5 * h).derivative(w3);
+            let k3w = self.wdot(w3, tau);
+            let w4 = w0 + k3w * h;
+            let k4q = q0.add_scaled(k3q, h).derivative(w4);
+            let k4w = self.wdot(w4, tau);
+            self.w = w0 + (k1w + k2w * 2.0 + k3w * 2.0 + k4w) * (h / 6.0);
+            self.q = q0
+                .add_scaled(k1q, h / 6.0)
+                .add_scaled(k2q, h / 3.0)
+                .add_scaled(k3q, h / 3.0)
+                .add_scaled(k4q, h / 6.0)
+                .normalize();
+        }
+    }
+
+    /// An ECI vector in the body frame
+    pub fn to_body(&self, v: V3) -> V3 {
+        self.q.rotate_inv(v)
+    }
+
+    /// Gravity-gradient torque at ECI position `r`: 3μ/r³ (n̂ × I n̂)
+    pub fn gravity_gradient(&self, r: V3) -> V3 {
+        let rn = r.norm();
+        let n = self.to_body(r / rn);
+        n.cross(self.momentum(n)) * (3.0 * MU_EARTH / (rn * rn * rn))
+    }
+}
+
+/// The major principal axis of `t` (unit, +Y side), by Jacobi rotations
+pub fn major_axis(t: &Inertia) -> Vec3 {
+    let mut a = [[t.xx, t.xy, t.xz], [t.xy, t.yy, t.yz], [t.xz, t.yz, t.zz]];
+    let mut v = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
+    for _ in 0..50 {
+        for (p, q) in [(0usize, 1usize), (0, 2), (1, 2)] {
+            if a[p][q].abs() < 1e-18 {
+                continue;
+            }
+            let theta = (a[q][q] - a[p][p]) / (2.0 * a[p][q]);
+            let tt = theta.signum() / (theta.abs() + (theta * theta + 1.0).sqrt());
+            let c = 1.0 / (tt * tt + 1.0).sqrt();
+            let s = tt * c;
+            for k in 0..3 {
+                let (akp, akq) = (a[k][p], a[k][q]);
+                a[k][p] = c * akp - s * akq;
+                a[k][q] = s * akp + c * akq;
+            }
+            for k in 0..3 {
+                let (apk, aqk) = (a[p][k], a[q][k]);
+                a[p][k] = c * apk - s * aqk;
+                a[q][k] = s * apk + c * aqk;
+            }
+            for row in &mut v {
+                let (vp, vq) = (row[p], row[q]);
+                row[p] = c * vp - s * vq;
+                row[q] = s * vp + c * vq;
+            }
+        }
+    }
+    let k = (0..3).max_by(|&i, &j| a[i][i].total_cmp(&a[j][j])).unwrap_or(1);
+    let mut axis = Vec3::new(v[0][k], v[1][k], v[2][k]);
+    if axis.y < 0.0 {
+        axis = Vec3::new(-axis.x, -axis.y, -axis.z);
+    }
+    axis
+}
 
 /// The gyro's errors
 #[derive(Clone, Copy, Debug)]
@@ -113,6 +252,15 @@ pub struct Params {
     /// tesla per A·m² of coil dipole (a random matrix of this norm per
     /// trial; to be measured on the engineering model)
     pub mag_coupling: f64,
+    /// The plant's inertia with the wings stowed and deployed (full tensors)
+    pub plant_stowed: Inertia,
+    /// With the wings (as many as `wings` says) deployed
+    pub plant_deployed: Inertia,
+    /// Which wings deploy (W1, W2)
+    pub wings: [bool; 2],
+    /// What the flight software is told: spin axis and inertia
+    /// (ADCS_SET_GEOMETRY)
+    pub fsw_geometry: Geometry,
 }
 
 /// What one trial measured
@@ -263,6 +411,10 @@ pub fn default_params() -> Params {
         residual_dipole: 3e-3,
         timing: CoilTiming::FLIGHT,
         mag_coupling: 1e-4,
+        plant_stowed: STOWED,
+        plant_deployed: Inertia::DEPLOYED,
+        wings: [true, true],
+        fsw_geometry: Geometry::FLIGHT,
         sensors: SensorModel {
             mag_noise_t: 50e-9,
             mag_bias_t: 300e-9,
@@ -340,7 +492,7 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         clip(rng.normal() * p.tipoff_sigma, p.tipoff_max),
         clip(rng.normal() * p.tipoff_sigma, p.tipoff_max),
     );
-    let mut att = Attitude::new(rng.quat(), w0, attitude::inertia_stowed());
+    let mut att = Body::new(rng.quat(), w0, &p.plant_stowed);
     let dist = Disturbance { residual_dipole: rng.unit_vector() * p.residual_dipole, ..Disturbance::nominal() };
     let mut sensors = Sensors::new(p.sensors, &mut rng);
     if p.mag_coupling > 0.0 {
@@ -354,6 +506,8 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
     a.init();
     a.gains = p.gains;
     a.timing = p.timing;
+    a.geometry = p.fsw_geometry;
+    let axis = V3::new(p.fsw_geometry.sun_axis.x, p.fsw_geometry.sun_axis.y, p.fsw_geometry.sun_axis.z);
     // The coils' burst in the last control period: dipole and length, s
     let mut burst = (V3::ZERO, 0.0f64);
     let _ = a.set_mode(adcs::mode::DETUMBLE, 1);
@@ -372,10 +526,7 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         let t = epoch + t_rel;
         if !wings && t_rel >= WINGS_S {
             // The wings swing out: the body's angular momentum is kept
-            let h = att.w.hadamard(att.inertia);
-            let i = attitude::inertia_deployed();
-            att.inertia = i;
-            att.w = V3::new(h.x / i.x, h.y / i.y, h.z / i.z);
+            att.set_tensor(&p.plant_deployed);
             wings = true;
         }
         let (r, v) = orbit.state_at(t);
@@ -384,7 +535,7 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         let b_eci = magfield::field_eci(r, t);
         let density = atmosphere::density_nominal(Orbit::altitude_m(r), t);
         let v_rel = v - V3::new(0.0, 0.0, OMEGA_EARTH).cross(r);
-        let wd = [wings, wings];
+        let wd = [wings && p.wings[0], wings && p.wings[1]];
 
         // Sensors, then the flight law (1 Hz). The coils' field at the
         // magnetometer: full while the last burst runs, decaying after it
@@ -420,7 +571,7 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
             let coil = if (f64::from(j) + 0.5) * SUBSTEP_S < on_s { dipole } else { V3::ZERO };
             let torque = attitude::magnetic_torque(coil, bb)
                 + dist.residual_torque(bb)
-                + attitude::gravity_gradient(r, att.q, att.inertia)
+                + att.gravity_gradient(r)
                 + dist.aero_torque(v_body, density, wd);
             att.step(SUBSTEP_S, torque);
         }
@@ -441,7 +592,10 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
                 Orbit::altitude_m(r) / 1e3
             );
         }
-        if captured(att.w, p.gains.spin_rate) {
+        // Captured about the flight software's spin axis
+        let along_axis = att.w.dot(axis);
+        let across_axis = (att.w - axis * along_axis).norm();
+        if across_axis < DETUMBLED_RAD_S && along_axis.abs() < 2.0 * p.gains.spin_rate.max(DETUMBLED_RAD_S / 2.0) {
             let since = *below_since.get_or_insert(t_rel);
             if out.detumbled_h.is_none() && t_rel - since >= 60.0 {
                 out.detumbled_h = Some(since / 3600.0);
@@ -465,8 +619,8 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
             } else if illum < 0.01 {
                 was_dark = true;
             }
-            spin_sum += att.w.y;
-            trans_sq += att.w.x * att.w.x + att.w.z * att.w.z;
+            spin_sum += along_axis;
+            trans_sq += across_axis * across_axis;
             mtq_j += MTQ_FULL_W * (dipole.norm() / (adcs::MAX_DIPOLE * 3f64.sqrt())).min(1.0) * on_s;
             if k % 10 == 0 {
                 let cos_zeta = r.unit().dot(sun_u);
