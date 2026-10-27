@@ -114,10 +114,10 @@ L-2 M licences and ephemeris demonstration).
 | Deployed inertia | Iyy ≥ 1.03 × max, axis within 5° of +Y | 1.047–1.057, 0.3–1.3° | Met | MECHANICAL_DESIGN |
 | First mode, stowed | > 40 Hz | 170 Hz (FE), ≈ 140 Hz (analytic) | × 3.5–4.2 | STRUCTURAL_ANALYSIS B |
 | Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +0.72 (local peak) | Positive | STRUCTURAL_ANALYSIS B |
-| PCB fatigue (Steinberg) | MS ≥ 0 | +0.09 to +0.32 with two supports | Positive | STRUCTURAL_ANALYSIS B |
-| Wing deployment torque | NASA-STD-5017B | see MCAD-01 (round 2) | — | MECHANISMS_ANALYSIS |
-| Power, EOL, sun-pointed | ≥ 20 % | 3.93 W against 2.20 W | +79 % | POWER_BUDGET_ANALYSIS 2.0 |
-| Power, EOL, tumbling | ≥ 20 % | 2.43 W against 1.80 W | +35 % | POWER_BUDGET_ANALYSIS 2.0 |
+| PCB fatigue (Steinberg) | MS ≥ 0 | +0.09 to +0.36 with two supports | Positive | STRUCTURAL_ANALYSIS B |
+| Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel | +0.14 cold, +0.13 one spring out | Positive | MECHANISMS_ANALYSIS B §4A |
+| Power, EOL, sun-pointed | ≥ 20 % | 3.93 W against 2.24 W (allocation) | +75 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.0 |
+| Power, EOL, tumbling | ≥ 20 % | 2.43 W against 1.84 W (allocation) | +32 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.0 |
 | Depth of discharge | ≤ 10 % per eclipse | ≤ 2.1 % as flown; 4.5 % worst contingency | × 2.2 | SIL |
 | Battery temperature | 0 to +45 °C charging | ≥ +4.4 °C with +5/+9 °C set points | — | THERMAL_ANALYSIS 2.0 |
 | Beacon link, 5° | ≥ 6 dB (median gain) | +7.6 dB | +1.6 dB | LINK_BUDGET 3.0 |
