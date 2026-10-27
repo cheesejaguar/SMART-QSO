@@ -1,8 +1,8 @@
 # SMART-QSO Test Procedures
 
 **Document Number**: SMART-QSO-TP-001
-**Version**: 1.1
-**Date**: 2026-01-02
+**Version**: 1.2
+**Date**: 2026-10-27
 **Status**: Preliminary
 
 **Governing Standards**:
@@ -63,7 +63,7 @@ procedures in `docs/test_procedures/` (finding VV-18). They were renumbered on 2
 
 **Requirements**:
 - Linux (Ubuntu 20.04+) or macOS (12+)
-- GCC ARM 12.x toolchain
+- Rust toolchain pinned by `software/rust/rust-toolchain.toml` (the flight software is Rust; CMake runs cargo)
 - CMake 3.16+
 - CMocka testing framework
 - lcov coverage tool
@@ -71,20 +71,20 @@ procedures in `docs/test_procedures/` (finding VV-18). They were renumbered on 2
 **Setup Commands**:
 ```bash
 # Ubuntu
-sudo apt install gcc-arm-none-eabi cmake libcmocka-dev lcov
+sudo apt install cmake libcmocka-dev lcov   # plus rustup for the pinned Rust toolchain
 
 # macOS
-brew install arm-none-eabi-gcc cmake cmocka lcov
+brew install cmake cmocka lcov   # plus rustup for the pinned Rust toolchain
 ```
 
 ### 2.2 Flatsat Environment
 
 **Equipment**:
-- OBC development board (NUCLEO-L476RG or Apollo4 dev kit)
+- OBC: the STM32L4R5ZI (EM OBC board when built, a development board until then; `docs/integration/FLATSAT_CONFIGURATION.md`)
 - Jetson Orin Nano Developer Kit
 - EPS emulator or prototype board
 - UART USB adapters (x2)
-- Power supply (5V/3A, 3.3V/1A)
+- Power supply: 4S pack simulator 11.2–16.4 V (`docs/BASELINE_PARAMETERS.md` §5), or 3.3 V for an OBC alone
 - Multimeter
 - Logic analyzer (optional)
 
@@ -107,8 +107,7 @@ brew install arm-none-eabi-gcc cmake cmocka lcov
 
 ```bash
 # Clone repository
-git clone https://github.com/SMART-QSO/smart-qso.git
-cd smart-qso
+# From the repository root (see CLAUDE.md for the build commands)
 
 # Build flight software (simulation)
 cmake -S software/flight -B build -DSIMULATION_BUILD=ON
@@ -350,13 +349,13 @@ ctest --test-dir build --output-on-failure
 | 1 | Power on flight unit | Boot complete | |
 | 2 | Verify power mode ACTIVE | Mode = 2 | |
 | 3 | Wait for Jetson ready | STATUS received | |
-| 4 | Wait for beacon interval | 30s | |
+| 4 | Wait for beacon interval | 60 s in ACTIVE (SYS-211) | |
 | 5 | Monitor RF output | Beacon transmitted | |
 | 6 | Decode AX.25 frame | Valid frame | |
 | 7 | Extract info field | Telemetry + AI text | |
 | 8 | Verify callsign | Callsign present | |
 
-**Pass Criteria**: Valid AX.25 beacon with AI text
+**Pass Criteria**: Valid AX.25 beacon with template text from the OBC selector (flight baseline, D5), or accepted Jetson text when the gated experiment is enabled
 
 ---
 
@@ -399,8 +398,8 @@ mission-operations rehearsal is a different procedure, TP-DITL-001 (`docs/test_p
 | Step | Action | Expected Result | Pass/Fail |
 |------|--------|-----------------|-----------|
 | 1 | Begin with sunlit, SOC 70% | Mode = ACTIVE | |
-| 2 | Receive telemetry beacons | Every 30s | |
-| 3 | Verify AI beacon content | Valid text | |
+| 2 | Receive telemetry beacons | Every 60 s (ACTIVE) | |
+| 3 | Verify beacon content | Valid text (template, or filtered Jetson text) | |
 | 4 | Verify telemetry values | Within limits | |
 | 5 | Simulate eclipse entry | | |
 | 6 | Verify mode transition | Mode changes | |
@@ -421,12 +420,12 @@ mission-operations rehearsal is a different procedure, TP-DITL-001 (`docs/test_p
 | Step | Action | Expected Result | Pass/Fail |
 |------|--------|-----------------|-----------|
 | 1 | Begin sunlit, SOC 100% | Mode = ACTIVE | |
-| 2 | Enter 35-min eclipse | SOC decreasing | |
+| 2 | Enter 36-min eclipse (β = 0, BASELINE §8) | SOC decreasing | |
 | 3 | Monitor mode changes | As SOC drops | |
-| 4 | Verify beacon continues | Every 30s or 60s | |
+| 4 | Verify beacon continues | Every 60 s, 120 s or 180 s by mode (SYS-211) | |
 | 5 | Exit eclipse | SOC recovering | |
 | 6 | Verify return to ACTIVE | When SOC sufficient | |
-| 7 | Verify AI beacons resume | AI text returns | |
+| 7 | Verify Jetson bursts resume (gated experiment) | Only sunlit at SOC ≥ 55 % | |
 
 **Pass Criteria**: Graceful eclipse handling
 
@@ -575,3 +574,4 @@ Status: Open/In Progress/Resolved/Closed
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | TP-INT-001 to -004 renumbered TP-SWI-001 to -004 and TP-SYS-001, -003 renumbered TP-SWS-001, -003, because those IDs belong to different procedures in `docs/test_procedures/`; §5.2 now points to the TP-SYS-002 procedure file; §1.4 added (finding VV-18) |
 | 1.1, note | 2026-10-24 | SMART-QSO Team | §7.2 note: the modules are Rust; line coverage as measured in CI |
+| 1.2 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §2 build environment for the Rust flight software (was a GCC ARM toolchain) and the STM32L4R5ZI (was NUCLEO-L476RG or Apollo4, superseded parts); 4S pack simulator; repository clone line with a non-existent URL removed; beacon intervals 60/120/180 s (were 30 s); 36-min eclipse; template beacon as the flight baseline (D5) |
