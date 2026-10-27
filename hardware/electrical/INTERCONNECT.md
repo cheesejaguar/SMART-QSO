@@ -67,13 +67,41 @@ between their FTSH headers, which sit on the same +X edge at |y| < 24 mm so the 
 (MECHANICAL_DESIGN §4.4). Every other harness leaves the stack in the ±X wall gaps (bundles at |y| = 24–34 mm, except the
 (+X, −Y) bundle, below). **W4A** runs flat and vertical, without a fold, in the +X wall gap at y −28.5 … −38.5 mm,
 from OBC J2 straight up to RF J1 at (+41.0, −33.5) (SQSO-RF-BRD-001 B §15 item 14; both pin fields along Y at the
-same x and y). It would overlap the (+X, −Y) bundle band (y −24 … −34), so that bundle moves to **y −17 … −27** over
-its whole height: 3 mm clear of the W3 ribbon (|y| ≤ 14, below the OBC) and 1.5 mm clear of W4A. A 45° fold of the
-ribbon was rejected (two ribbon thicknesses and a crease in the 3.3 mm gap). For the mechanical designer
-(MECHANICAL_DESIGN §6.9, item E12). The gyro module (Epson M-G370PDT0) plugs into socket X1 on the OBC at (−20, +30.5) mm and stands
+same x and y). It runs flat on the +X shear panel. The (+X, −Y) bundle cannot move clear of it over its whole height (the
+Y rod's −Y end and the +X spreader flange are in the way, MECHANICAL_DESIGN §6.9): it keeps y −24.0 … −33.9 below
+z −26 and runs at **y −20.5 … −27.0, a 3 × 6.5 mm section (66 % of a bundle), above z −26**, 1.5 mm from W4A. A 45°
+fold of the ribbon was rejected (two ribbon thicknesses and a crease in the 3.3 mm gap). The bundle contents are
+allocated in §2.1. The gyro module (Epson M-G370PDT0) plugs into socket X1 on the OBC at (−20, +30.5) mm and stands
 through a window in the Jetson carrier; the backup gyro, the sun-sensor amplifiers and the magnetorquer drivers are on
 the OBC board; the RM3100 magnetometer is on a small board (A2) at the +Z end frame on harness W6E (SQSO-OBC-BRD-001
 §9.4). There is no ADCS board and no ADCS stack connector.
+
+### 2.1 Harness bundle allocation (Version B)
+
+Four bundles in the ±X wall gaps (MECHANICAL_DESIGN §6.9). Allowance: 60 % of the section filled with wire (18 mm² in a
+3 × 10 mm bundle, 11.7 mm² in the 3 × 6.5 mm (+X, −Y) section above z −26). Wire areas for thin-wall ETFE (28 / 26 / 24
+/ 22 / 20 AWG: 0.49 / 0.62 / 0.85 / 1.17 / 1.58 mm²). Segments: B deck to EPS (z −26 … −1), C EPS to OBC (−1 … +6.6),
+D OBC to carrier (+6.6 … +18), E carrier to the +Z end frame (+18 … +48). Fills are of the harnesses with an OBC end
+(this document); the EPS-only harnesses (W1, W2, W7, W11) take the remainder, placed and counted by the harness design.
+
+| Bundle | Harnesses with an OBC end (segments) | ICX fill per segment | Left for the EPS-only harnesses | Version B change |
+|--------|--------------------------------------|----------------------|---------------------------------|------------------|
+| (+X, +Y), y +24 … +34 | W5B (D), W6E (D, E), **W9A** OBC J5 → receiver (C, B, then on the deck to (+5, −20)), **W9B** EPS J21 → OBC J4 (C) | B 3.7, C 5.0, D 5.9, E 2.9 mm² (21–33 %) | 12–15 mm² per segment: the wing-1 (+X) harness of W2 from the +Y hinge end, and whatever leaves the (+X, −Y) bundle | **W9A, W9B move here** from (+X, −Y); OBC J4/J5 to the +X edge at y +14 … +24, EPS J21 to its +X edge, +Y side (for the EPS designer) |
+| (+X, −Y), y −20.5 … −27.0 above z −26; −24.0 … −33.9 below | none (W4A is on the shear panel beside it, not in the bundle) | 0 | **11.7 mm² above z −26**, 18 below: W7 to the wing-1 hold-down at the −Y free corner (it has to be on this side); nothing else above z −26 | GNSS lines moved out; any other EPS-only wires the harness design had here move to (+X, +Y) |
+| (−X, −Y), y −24 … −34 | W4B EPS J19 → RF J2 (C, D, E), W5A EPS J18 → carrier J1 (C, D), W8A OBC J9 → access bulkhead (C, B, A) | C 14.7 (82 %), D 9.8, E 5.1, B 4.9 mm² | B 13.1 mm²: W7 to the wing-2 hold-down; W11 (6 × 20 AWG, 9.5 mm²) fits only with W7 at ≤ 3.6 mm², otherwise W11 goes down the (+X, −Y) bundle below z −26 after crossing on the EPS | none for the ICX harnesses (mechanical routes kept) |
+| (−X, +Y), y +24 … +34 | W6B EPS J20 → OBC J6 (C), W6C rod pairs from J7 (C, B; the Z-rod pair goes direct to the rod's top at z +3), W6D sun-sensor trunk to J8 (C, B; about 9.6 mm² shielded) | C 13.3 (74 %), B 12.1 mm² | B 5.9 mm²: the battery flying leads (W1, about 16 mm² as 8 × 20 AWG and 6 × 26 AWG) do not fit here whole; see below | **W6B, W6C, W6D here**; OBC J7 moves to the −X edge at y +12 … +22 (still outside the Z rod footprint), J6 and J8 to y +24 … +34 |
+
+The X-rod pair of W6C leaves the bundle at the deck (z −16) for the X rod at (0, +36); the Y-rod pair continues to the
+−Z end and crosses to the Y rod's +Y end at (+42, +23.5, −33) under the battery (2 mm air gap) or along the deck: the
+route is the harness and mechanical designers' (VI-MCAD-08). These are allocations from connector pin counts; the
+harness design's wire list governs and must keep every segment within its allowance.
+
+**Segment B (deck to EPS) is the tight one.** After the ICX harnesses, the four bundles leave about 45 mm² there
+(14.3 + 11.7 + 13.1 + 5.9); an estimate of the EPS-only harnesses passing it is about 53 mm² (W1 16, the two wing
+harnesses of W2 about 17, W7 about 10, W11 9.5). Two changes recover about 7 mm² and are recommended to the harness
+design: W6D as six twisted 28 AWG pairs without the overall shield (5.9 instead of 9.6 mm²; DC photocurrents of a
+few milliamperes, drains not needed) and the W1 pack leads in 22 AWG (≤ 2 A per §1 rule 5; 9.4 instead of 12.6 mm²)
+if the pack current allows; the rest is the harness design's to confirm with its wire list (item E12).
 
 ## 3. Board-to-Board Signal Lists
 
@@ -489,4 +517,4 @@ second CS in `hal_spi`.
 | Version | Date | Description |
 |---------|------|-------------|
 | A | 2026-10-27 | First issue: master pin allocation of the STM32L4R5ZIT6, the board-to-board signal lists for W3, W4, W5, W6, W8, W9, domain crossings, the firmware change list and the interface changes for the EPS and the Jetson carrier (CDR design completion, OBC board SQSO-OBC-BRD-001) |
-| B | 2026-10-27 | Carrier interface E10 taken (W5B 6 pins, spreader NTC on PA2 ADC1_IN7; JETSON_PWR PA2 → PA8); magnetometer moved to board A2 at +Z (W6E); W8A internal access-port harness and J9 as FTSH-105; stack routing rules of MECHANICAL_DESIGN §4.4; changes 26–28 for the flight software (28: RX_CD PG0, RX_FAULT PF13 on W4A v3 pins 15–16, FTSH-108); EOL_ARM PF4, EOL_FIRE PG1, BURN_W2B PE7, LOCK_CLR PF5 confirmed low at reset; gyro at (−20, +30.5); back-power total 2.7 mA; E10–E13; W4A routing (no fold; (+X, −Y) bundle to y −17 … −27) and W4B twisted pairs |
+| B | 2026-10-27 | Carrier interface E10 taken (W5B 6 pins, spreader NTC on PA2 ADC1_IN7; JETSON_PWR PA2 → PA8); magnetometer moved to board A2 at +Z (W6E); W8A internal access-port harness and J9 as FTSH-105; stack routing rules of MECHANICAL_DESIGN §4.4; changes 26–28 for the flight software (28: RX_CD PG0, RX_FAULT PF13 on W4A v3 pins 15–16, FTSH-108); EOL_ARM PF4, EOL_FIRE PG1, BURN_W2B PE7, LOCK_CLR PF5 confirmed low at reset; gyro at (−20, +30.5); back-power total 2.7 mA; E10–E13; W4A routing (no fold, flat on the +X shear panel); bundle allocation §2.1 (W9A/W9B to (+X, +Y); W6B/W6C/W6D in (−X, +Y)); W4B twisted pairs |
