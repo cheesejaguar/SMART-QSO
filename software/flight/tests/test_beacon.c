@@ -137,6 +137,43 @@ static void test_interval_per_power_mode(void **state)
     assert_true(interval_for((PowerMode_t)3) >= SPEC_INTERVAL_ACTIVE_MS);
 }
 
+/** RF-04: with jitter each interval lies within +/-5 s of the mode's, the
+ *  mean unchanged; without it (the default) it is exact */
+static void test_interval_jitter(void **state)
+{
+    (void)state;
+    uint64_t now = smart_qso_now_ms();
+    int64_t sum = 0;
+    int64_t lo = INT64_MAX;
+    int64_t hi = INT64_MIN;
+    const int n = 2000;
+    beacon_update_interval(POWER_MODE_ACTIVE);
+    beacon_set_jitter(BEACON_JITTER_MS, 77U);
+    beacon_mark_transmitted(now);
+    for (int i = 0; i < n; i++) {
+        uint64_t t = now + SPEC_INTERVAL_ACTIVE_MS - BEACON_JITTER_MS - 1U;
+        assert_false(beacon_should_transmit(t));
+        while (!beacon_should_transmit(t)) {
+            t += 10U; /* found within 10 ms of its due time */
+        }
+        int64_t interval = (int64_t)(t - now);
+        lo = (interval < lo) ? interval : lo;
+        hi = (interval > hi) ? interval : hi;
+        sum += interval;
+        now = t;
+        beacon_mark_transmitted(now);
+    }
+    assert_true(lo >= (int64_t)(SPEC_INTERVAL_ACTIVE_MS - BEACON_JITTER_MS));
+    assert_true(hi <= (int64_t)(SPEC_INTERVAL_ACTIVE_MS + BEACON_JITTER_MS + 10U));
+    assert_true((hi - lo) > 9000);
+    int64_t mean = sum / n;
+    assert_true((mean > (int64_t)SPEC_INTERVAL_ACTIVE_MS - 150) && (mean < (int64_t)SPEC_INTERVAL_ACTIVE_MS + 150));
+    beacon_set_jitter(0U, 1U);
+    beacon_mark_transmitted(now);
+    assert_false(beacon_should_transmit(now + SPEC_INTERVAL_ACTIVE_MS - 1U));
+    assert_true(beacon_should_transmit(now + SPEC_INTERVAL_ACTIVE_MS));
+}
+
 /** A beacon is due exactly one interval after the last one, in every mode */
 static void test_beacon_due_after_interval(void **state)
 {
@@ -444,6 +481,7 @@ int main(void)
         cmocka_unit_test_setup(test_transmit_statistics, setup),
         cmocka_unit_test_setup(test_fault_flags_from_last_fault, setup),
         cmocka_unit_test_setup(test_null_arguments, setup),
+        cmocka_unit_test_setup(test_interval_jitter, setup),
     };
 
     return cmocka_run_group_tests_name("Beacon Tests", tests, NULL, NULL);

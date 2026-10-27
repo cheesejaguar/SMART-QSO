@@ -91,19 +91,36 @@ static bool antenna_deploying(void)
     return (ants_reg(ANTS_DEPLOY) != 0U) && (ants_reg(ANTS_ARM) == 1U);
 }
 
+/** The four wing lines (one resistor each), in W1A, W1B, W2A, W2B order */
+static const HalGpioPin_t k_wing_lines[4] = {
+    GPIO_PIN_BURN_W1A, GPIO_PIN_BURN_W1B, GPIO_PIN_BURN_W2A, GPIO_PIN_BURN_W2B
+};
+
+/** How many wing lines are high */
+static unsigned wing_lines_on(void)
+{
+    unsigned n = 0U;
+    for (size_t i = 0U; i < 4U; i++) {
+        n += hal_gpio_get(k_wing_lines[i]) ? 1U : 0U;
+    }
+    return n;
+}
+
+/** Exactly this wing line is high (and the master arm) */
+static bool only(HalGpioPin_t pin)
+{
+    return hal_gpio_get(GPIO_PIN_DEPLOY_EN) && hal_gpio_get(pin) && (wing_lines_on() == 1U);
+}
+
 static bool burning(DeploymentElement_t element)
 {
-    bool line = (element == DEPLOY_ELEMENT_ANTENNA)
-                    ? antenna_deploying()
-                    : (hal_gpio_get(GPIO_PIN_SOLAR_BURN) || hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
+    bool line = (element == DEPLOY_ELEMENT_ANTENNA) ? antenna_deploying() : (wing_lines_on() > 0U);
     return hal_gpio_get(GPIO_PIN_DEPLOY_EN) && line;
 }
 
 static void assert_no_burn(void)
 {
-    assert_false(hal_gpio_get(GPIO_PIN_ANTENNA_BURN));
-    assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN));
-    assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
+    assert_int_equal(wing_lines_on(), 0U);
     assert_false(hal_gpio_get(GPIO_PIN_DEPLOY_EN));
     assert_false(antenna_deploying());
 }
@@ -205,8 +222,9 @@ static void test_force_retry_cannot_bypass_wait(void **state)
 /* Sequence                                                                   */
 /*===========================================================================*/
 
-/** 30 minutes, then the wings only (driver A), then the antenna only (the
- *  AntS), each confirmed by its own sense */
+/** 30 minutes, then the wings one resistor at a time (wing 1 A, then wing
+ *  2 A, 8 s each, never two at once), then the antenna only (the AntS),
+ *  each confirmed by its own sense */
 static void test_full_sequence(void **state)
 {
     (void)state;
@@ -219,11 +237,17 @@ static void test_full_sequence(void **state)
     deployment_tick(SECOND_MS);
     deployment_tick(SECOND_MS);  /* PENDING -> fire */
     assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
-    assert_true(hal_gpio_get(GPIO_PIN_SOLAR_BURN));
-    assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
+    assert_true(only(GPIO_PIN_BURN_W1A));
     assert_false(antenna_deploying());
-
-    advance(SOLAR_DEPLOY_BURN_TIME_MS, SECOND_MS);
+    /* The burn began on the first of the two ticks above */
+    for (uint32_t t = SECOND_MS; t < SOLAR_DEPLOY_BURN_TIME_MS; t += SECOND_MS) {
+        assert_true(only(GPIO_PIN_BURN_W1A));
+        deployment_tick(SECOND_MS);
+    }
+    for (uint32_t t = 0U; t < SOLAR_DEPLOY_BURN_TIME_MS; t += SECOND_MS) {
+        assert_true(only(GPIO_PIN_BURN_W2A)); /* wing 2 after wing 1 */
+        deployment_tick(SECOND_MS);
+    }
     assert_no_burn();
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_SOLAR_VERIFY);
 
@@ -243,21 +267,32 @@ static void test_full_sequence(void **state)
     assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 1);
 }
 
-/** The wings' second attempt uses driver B, the third driver A again */
+/** The wings' second attempt uses the B resistors, the third the A
+ *  resistors again; once spent, the wings read failed (EPS-10) until a
+ *  ground retry */
 static void test_wing_retries_alternate_drivers(void **state)
 {
     (void)state;
+    const uint32_t attempt = (2U * SOLAR_DEPLOY_BURN_TIME_MS) + DEPLOYMENT_RETRY_DELAY_MS + (2U * SECOND_MS);
     wait_out();
     deployment_tick(SECOND_MS);
     deployment_tick(SECOND_MS);
-    assert_true(hal_gpio_get(GPIO_PIN_SOLAR_BURN) && !hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
-    advance(SOLAR_DEPLOY_BURN_TIME_MS + DEPLOYMENT_RETRY_DELAY_MS + (2U * SECOND_MS), SECOND_MS);
+    assert_true(only(GPIO_PIN_BURN_W1A));
+    advance(attempt, SECOND_MS);
     assert_true(burning(DEPLOY_ELEMENT_SOLAR_PANEL));
-    assert_true(hal_gpio_get(GPIO_PIN_SOLAR_BURN_B) && !hal_gpio_get(GPIO_PIN_SOLAR_BURN));
+    assert_true(only(GPIO_PIN_BURN_W1B));
     assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 2);
-    advance(SOLAR_DEPLOY_BURN_TIME_MS + DEPLOYMENT_RETRY_DELAY_MS + (2U * SECOND_MS), SECOND_MS);
-    assert_true(hal_gpio_get(GPIO_PIN_SOLAR_BURN) && !hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
+    advance(SOLAR_DEPLOY_BURN_TIME_MS, SECOND_MS);
+    assert_true(only(GPIO_PIN_BURN_W2B));
+    advance(attempt - SOLAR_DEPLOY_BURN_TIME_MS, SECOND_MS);
+    assert_true(only(GPIO_PIN_BURN_W1A));
     assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 3);
+    assert_false(deployment_wings_failed()); /* still in the wing phase */
+    advance(attempt, SECOND_MS);
+    assert_true(deployment_wings_failed());
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+    assert_false(deployment_wings_failed()); /* the sense reads deployed */
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
 }
 
 /** An element whose sense already reads deployed is never fired */
@@ -268,8 +303,7 @@ static void test_already_deployed_not_fired(void **state)
     wait_out();
     deployment_tick(SECOND_MS);
     deployment_tick(SECOND_MS);
-    assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN));
-    assert_false(hal_gpio_get(GPIO_PIN_SOLAR_BURN_B));
+    assert_int_equal(wing_lines_on(), 0U);
     assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
     assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 0);
 }

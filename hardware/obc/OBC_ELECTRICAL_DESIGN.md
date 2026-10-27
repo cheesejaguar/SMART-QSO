@@ -2,13 +2,20 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-OBC-003
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.1
+**Date:** 2026-10-27
+**Status:** Superseded by the build-to design SQSO-OBC-BRD-001 (see the note below)
 
 ---
 
 ## 1. Overview
+
+**Note (1.1, 2026-10-27).** This specification predates the baseline MCU and names an STM32L476RGT6, a TPL5010 watchdog,
+an SD card, an I/O expander, a TMP117 and JST connectors. The build-to design is `hardware/electrical/obc/OBC_BOARD_DESIGN.md`
+(SQSO-OBC-BRD-001: STM32L4R5ZIT6, TPS3850H33-Q1 window supervisor, FM25V20A, RV-3028-C7 mission clock, on-board ADCS
+sensors and coil drivers, Samtec FTSH and Molex Pico-Clasp connectors, 6-layer stack-up and layout rules), with the pin
+allocation in `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001). Where the two disagree, SQSO-OBC-BRD-001 governs;
+the sections below are kept as the record of the earlier plan.
 
 This document specifies the electrical design requirements for the SMART-QSO OBC (On-Board Computer) PCB, including schematic requirements, component selection, PCB layout guidelines, and manufacturing specifications.
 
@@ -278,3 +285,4 @@ Total:             ~1.6mm
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-27 | Marked superseded by the build-to design SQSO-OBC-BRD-001 and the pin allocation SQSO-ICX-001 (CDR design completion) |

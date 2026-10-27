@@ -24,6 +24,11 @@
 //!    once released. A lost record must not release a held spacecraft;
 //!    the ground releases it again.
 //!
+//! [`OpsState::verify`] re-reads the record every minute and settles any
+//! disagreement with the RAM copy toward the safe side (AV-07): held if
+//! either holds, the transponder stopped if either stops it, the record's
+//! geometry preset.
+//!
 //! @requirement SRS-F082 The software shall hold the mode at IDLE, the payload and the transponder off from ARM_FLIGHT until an authenticated commissioning release
 //! @requirement SRS-F083 The software shall let the ground stop and allow the transponder by telecommand, persisted across resets
 
@@ -138,6 +143,34 @@ impl OpsState {
         self.save(flash)
     }
 
+    /// Check the RAM copy against the record: merge toward held and
+    /// stopped, persist the merge if it differs from the record; whether
+    /// the two disagreed
+    pub fn verify<F: Flash>(&mut self, flash: &mut F) -> bool {
+        if !self.initialized {
+            return false;
+        }
+        let mut rec = [0u8; 4];
+        let stored = match nvm::load(flash, self.region, 0, RECORD_MAGIC, &mut rec) {
+            Ok(RecordStatus::Valid) => Some(rec),
+            Ok(RecordStatus::Blank) => Some(OpsState::new(self.region).record()),
+            Ok(RecordStatus::Corrupt) | Err(_) => None,
+        };
+        let Some([flags, _, geometry, _]) = stored else {
+            self.hold = true;
+            return true;
+        };
+        let before = self.record();
+        self.hold |= flags & FLAG_HOLD != 0;
+        self.xpdr_disabled |= flags & FLAG_XPDR_DISABLED != 0;
+        self.adcs_geometry = geometry;
+        let disagreed = before != self.record() || stored != Some(self.record());
+        if stored != Some(self.record()) {
+            let _ = self.save(flash);
+        }
+        disagreed
+    }
+
     /// The ADCS geometry preset
     pub const fn adcs_geometry(&self) -> u8 {
         self.adcs_geometry
@@ -224,6 +257,44 @@ mod tests {
         assert_eq!(g.adcs_geometry(), 2);
         assert!(g.hold());
         assert!(!g.xpdr_allowed());
+    }
+
+    /// AV-07: an upset RAM copy is settled toward held and stopped
+    #[test]
+    fn verify_merges_toward_the_safe_side() {
+        let mut f = MemFlash::<256>::new();
+        let mut s = OpsState::new(REGION);
+        assert!(!s.verify(&mut f), "before init: nothing");
+        let _ = s.init(&mut f);
+        assert!(!s.verify(&mut f), "blank and defaults agree");
+        assert_eq!(s.set_hold(true, &mut f), Ok(()));
+        assert!(!s.verify(&mut f));
+        s.hold = false; // a RAM upset
+        assert!(s.verify(&mut f));
+        assert!(s.hold());
+        s.xpdr_disabled = true; // RAM says stopped, the record not
+        s.adcs_geometry = 3; // and a geometry the record does not hold
+        assert!(s.verify(&mut f));
+        assert!(!s.xpdr_allowed());
+        assert_eq!(s.adcs_geometry(), 0, "the record's preset");
+        let mut r = OpsState::new(REGION);
+        let _ = r.init(&mut f);
+        assert!(r.hold() && r.xpdr_disabled, "the merge was persisted");
+        // Blank record, RAM held: persisted
+        let mut g = MemFlash::<256>::new();
+        let mut b = OpsState::new(REGION);
+        let _ = b.init(&mut g);
+        b.hold = true;
+        assert!(b.verify(&mut g));
+        let mut c = OpsState::new(REGION);
+        assert_eq!(c.init(&mut g), Loaded::Valid);
+        assert!(c.hold());
+        // Unreadable: held
+        let mut e = OpsState::new(REGION);
+        let _ = e.init(&mut f);
+        assert_eq!(e.set_hold(false, &mut f), Ok(()));
+        assert!(e.verify(&mut Failing));
+        assert!(e.hold());
     }
 
     #[test]

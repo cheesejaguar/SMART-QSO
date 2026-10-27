@@ -12,6 +12,12 @@
 //! (first boot) permits; a corrupt record or unreadable flash inhibits until
 //! commanded on; TX-OFF drives the line low before persisting.
 //!
+//! The passivation inhibit ([`INHIBIT_PASSIVATED`]) is never lifted once
+//! set. The receiver recovery cycle ([`INHIBIT_RX_CYCLE`]) removes radio
+//! power like the RF silence. [`RfControl::verify`] re-reads the latch
+//! record (CRC-checked) every minute and settles any disagreement with the
+//! RAM copy toward TX-OFF (AV-07: an upset of the RAM copy).
+//!
 //! @requirement SYS-204 Cease emissions on telecommand; stay ceased across resets (97.207(b))
 //! @requirement SYS-224 No RF signal earlier than 45 minutes after deployment
 
@@ -32,6 +38,13 @@ pub const STATE_INHIBITED: u32 = 0xA5A5_A5A5;
 pub const INHIBIT_CONTACT: u32 = 0x01;
 /// `RF_INHIBIT_RF_SILENCE`: post-deployment silence, whole radio off
 pub const INHIBIT_RF_SILENCE: u32 = 0x02;
+/// `RF_INHIBIT_PASSIVATED`: end-of-life passivation, transmitters off for
+/// good (never lifted)
+pub const INHIBIT_PASSIVATED: u32 = 0x04;
+/// `RF_INHIBIT_RX_CYCLE`: a receiver recovery power cycle, whole radio off
+pub const INHIBIT_RX_CYCLE: u32 = 0x08;
+/// The inhibits that remove radio power as well as the transmitter's
+pub const RADIO_OFF: u32 = INHIBIT_RF_SILENCE | INHIBIT_RX_CYCLE;
 
 /// Downlink power levels (`RfPowerLevel_t`)
 pub const POWER_0W5: u32 = 0;
@@ -64,6 +77,10 @@ pub enum Report {
     TxEnabled,
     /// TX-ON applied, not persisted (until the next reset)
     TxEnabledNotPersisted,
+    /// Verify: the RAM copy permitted, the record says TX-OFF: TX-OFF again
+    ScrubInhibited,
+    /// Verify: the record said permitted, the RAM copy TX-OFF: record rewritten
+    ScrubRepersisted,
 }
 
 /// Why an operation failed
@@ -95,7 +112,7 @@ impl RfControl {
 
     /// (radio power, transmitter enable) for the current inhibits
     pub const fn lines(&self) -> (bool, bool) {
-        let radio_on = self.auto_inhibits & INHIBIT_RF_SILENCE == 0;
+        let radio_on = self.auto_inhibits & RADIO_OFF == 0;
         (radio_on, radio_on && !self.inhibited && self.auto_inhibits == 0)
     }
 
@@ -165,11 +182,44 @@ impl RfControl {
         if active {
             self.auto_inhibits |= source;
         } else {
-            self.auto_inhibits &= !source;
+            // The passivation inhibit stays for good
+            self.auto_inhibits &= !(source & !INHIBIT_PASSIVATED);
         }
         if self.initialized {
             self.drive(io);
         }
+    }
+
+    /// Re-read the latch record and settle a disagreement with the RAM copy
+    /// toward TX-OFF: a record saying TX-OFF (or one that cannot be read)
+    /// inhibits; a RAM TX-OFF the record does not hold is persisted
+    pub fn verify<IO: RfIo>(&mut self, io: &mut IO) {
+        if !self.initialized {
+            return;
+        }
+        let mut word = [0u8; 4];
+        let stored_off = match nvm::load(io, self.region, 0, RECORD_MAGIC, &mut word) {
+            Ok(RecordStatus::Valid) => u32::from_le_bytes(word) != STATE_PERMITTED,
+            Ok(RecordStatus::Blank) => false,
+            Ok(RecordStatus::Corrupt) | Err(_) => true,
+        };
+        match (stored_off, self.inhibited) {
+            (true, false) => {
+                self.inhibited = true;
+                self.drive(io);
+                io.report(Report::ScrubInhibited);
+            }
+            (false, true) => {
+                let _ = self.persist(io, STATE_INHIBITED);
+                io.report(Report::ScrubRepersisted);
+            }
+            (true, true) | (false, false) => {}
+        }
+    }
+
+    /// The automatic inhibit bits in force
+    pub const fn inhibits(&self) -> u32 {
+        self.auto_inhibits
     }
 
     /// Select and persist the downlink power level (never touches the latch)
@@ -240,6 +290,54 @@ mod tests {
         let mut rf = RfControl::new(7);
         rf.init(io);
         rf
+    }
+
+    /// The passivation inhibit stays; the receiver cycle removes radio power
+    #[test]
+    fn passivation_inhibit_is_never_lifted() {
+        let mut io = Bench::new();
+        let mut rf = booted(&mut io);
+        rf.set_inhibit(INHIBIT_RX_CYCLE, true, &mut io);
+        assert_eq!(io.lines, Some((false, false)), "a recovery cycle: radio off");
+        rf.set_inhibit(INHIBIT_RX_CYCLE, false, &mut io);
+        assert_eq!(io.lines, Some((true, true)));
+        rf.set_inhibit(INHIBIT_PASSIVATED, true, &mut io);
+        assert_eq!(io.lines, Some((true, false)), "receiver on, transmitter off");
+        rf.set_inhibit(INHIBIT_PASSIVATED | INHIBIT_CONTACT, false, &mut io);
+        assert_eq!(rf.inhibits(), INHIBIT_PASSIVATED);
+        assert_eq!(rf.tx_on(&mut io), Ok(()));
+        assert!(!rf.permitted(), "TX-ON does not undo passivation");
+    }
+
+    /// AV-07: the RAM copy is checked against the record and settles to TX-OFF
+    #[test]
+    fn verify_settles_toward_tx_off() {
+        let mut io = Bench::new();
+        let mut rf = RfControl::new(7);
+        rf.verify(&mut io); // before init: nothing
+        assert_eq!(io.count, 0);
+        rf.init(&mut io);
+        rf.verify(&mut io); // blank record, permitted: agree
+        assert_eq!(io.count, 0);
+        assert_eq!(rf.tx_off(&mut io), Ok(()));
+        rf.inhibited = false; // a RAM upset
+        rf.verify(&mut io);
+        assert!(!rf.permitted());
+        assert_eq!(io.last(), Some(Report::ScrubInhibited));
+        assert_eq!(io.lines, Some((true, false)));
+        rf.verify(&mut io); // agree now
+        assert_eq!(io.last(), Some(Report::ScrubInhibited));
+        assert_eq!(rf.tx_on(&mut io), Ok(()));
+        rf.inhibited = true; // RAM off, record permitted
+        rf.verify(&mut io);
+        assert_eq!(io.last(), Some(Report::ScrubRepersisted));
+        let mut after = booted(&mut io);
+        assert!(!after.permitted(), "the repersisted TX-OFF holds across a reset");
+        // An unreadable record inhibits
+        assert_eq!(after.tx_on(&mut io), Ok(()));
+        io.read_fails = true;
+        after.verify(&mut io);
+        assert!(!after.permitted());
     }
 
     #[test]

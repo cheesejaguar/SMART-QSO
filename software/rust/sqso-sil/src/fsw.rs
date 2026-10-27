@@ -37,9 +37,9 @@ pub mod pin {
     pub const DEPLOY_SENSE: u32 = 9;
     /// GSE umbilical present (input)
     pub const UMBILICAL_SENSE: u32 = 10;
-    /// Antenna burn wire (output)
+    /// Wing 2 resistor A (`GPIO_PIN_BURN_W2A`; was the antenna burn wire)
     pub const ANTENNA_BURN: u32 = 11;
-    /// Solar-wing burn wire (output)
+    /// Wing 1 resistor A (`GPIO_PIN_BURN_W1A`)
     pub const SOLAR_BURN: u32 = 12;
     /// Antenna deployed sense (input)
     pub const ANTENNA_SENSE: u32 = 13;
@@ -51,8 +51,22 @@ pub mod pin {
     pub const XPDR_EN: u32 = 16;
     /// GNSS receiver load switch (output)
     pub const GNSS_EN: u32 = 17;
-    /// Solar-wing burn driver B (output)
+    /// Wing 1 resistor B (`GPIO_PIN_BURN_W1B`)
     pub const SOLAR_BURN_B: u32 = 18;
+    /// EPS end-of-life disconnect: arm latch (output, rising edge)
+    pub const EOL_ARM: u32 = 19;
+    /// EPS end-of-life disconnect: fire (output, level)
+    pub const EOL_FIRE: u32 = 20;
+    /// Command receiver carrier detect (input)
+    pub const RX_CD: u32 = 21;
+    /// Command receiver health, high on a fault (input)
+    pub const RX_FAULT: u32 = 22;
+    /// Wing 2 resistor B (`GPIO_PIN_BURN_W2B`)
+    pub const BURN_W2B: u32 = 23;
+    /// EPS recharge-lockout clear pulse (output)
+    pub const LOCK_CLR: u32 = 24;
+    /// The wing lines, [wing][resistor]
+    pub const WING_LINES: [[u32; 2]; 2] = [[SOLAR_BURN, SOLAR_BURN_B], [ANTENNA_BURN, BURN_W2B]];
 }
 
 /// `hal_adc.h` channels
@@ -153,6 +167,12 @@ pub struct Snapshot {
     pub auth_failures: u32,
     /// Uplink frames received
     pub uplink_frames: u32,
+    /// Passivation phase (`PassivationPhase_t`)
+    pub passivation: u32,
+    /// Receiver recovery cycles (this boot) and known failed
+    pub rx_cycles: u32,
+    /// The receiver is known failed (REL-04)
+    pub rx_failed: bool,
 }
 
 /// The flight software and the simulated HAL around it
@@ -287,6 +307,14 @@ impl Fsw {
         (read(sqso_fsw::ants::CMD_ARM) == 1, read(sqso_fsw::ants::CMD_AUTO_DEPLOY))
     }
 
+    /// The EPS controller's `EOL_STATE` register (0x7C: bit 0 armed, bit 1
+    /// fired, the charge path open)
+    pub fn set_eps_eol_state(&self, armed: bool, fired: bool) {
+        let regs = [0x7C, u8::from(armed) | (u8::from(fired) << 1)];
+        // SAFETY: regs is a live buffer of its length
+        let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
+    }
+
     /// The AntS's status word, as its controller presents it on I2C
     pub fn set_ants_status(&self, status: [u8; 2]) {
         let regs = [sqso_fsw::ants::CMD_STATUS, status[0], status[1]];
@@ -400,6 +428,9 @@ impl Fsw {
             commands_executed: cmd.total_executed,
             auth_failures: cmd.auth_failures,
             uplink_frames: up.frames,
+            passivation: passivation::passivation_phase(),
+            rx_cycles: receiver::receiver_cycles(),
+            rx_failed: receiver::receiver_failed(),
         }
     }
 }

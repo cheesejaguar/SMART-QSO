@@ -1,0 +1,117 @@
+LQFP144 pin,port pin,net,function,dir,level,default at reset,connector / board
+34,PA0,TX_TEMP,ADC1_IN5,A,0.3-1.7 V,analog (high-Z),"J2-11 RF board (10 k series, 10 nF)"
+35,PA1,VSW1_RB,ADC1_IN6,A,0-2.8 V (VBAT_SW1 / 6),analog (high-Z),J1-37 EPS (new; was DEPLOY_EN)
+36,PA2,JETSON_PWR,GPIO out,O,"3.3 V, high = eFuse U19 on",analog (high-Z); EPS 100 k pull-down,J1-29 EPS
+37,PA3,RF_TX_EN,GPIO out,O,"3.3 V, high = PA rail (TX-OFF low)",analog (high-Z); EPS 100 k pull-down,J1-14 EPS
+40,PA4,MTQ_X_I,ADC1_IN9,A,10 mV/mA (IPROPI),analog (high-Z),U22 X bridge (was FRAM CS#)
+41,PA5,MTQ_Y_I,ADC1_IN10,A,10 mV/mA,analog (high-Z),U23 Y bridge (was SPI1 SCK)
+42,PA6,MTQ_Z_I,ADC1_IN11,A,10 mV/mA,analog (high-Z),U24 Z bridge (was SPI1 MISO)
+43,PA7,VJET_RB,ADC1_IN12,A,0-2.8 V (VBAT_JET / 6),analog (high-Z),J1-19 EPS (new; was SPI1 MOSI)
+100,PA8,-,spare,-,,analog (high-Z),TP
+101,PA9,USART1_TX,USART1_TX AF7,O,3.3 V UART 115200,analog (high-Z),U28 -> J3-2 Jetson
+102,PA10,USART1_RX,USART1_RX AF7,I,3.3 V UART,analog (high-Z); 100 k pull-up,U29 <- J3-3 Jetson
+103,PA11,-,spare (USB DM unused),-,,analog (high-Z),
+104,PA12,-,spare (USB DP unused),-,,analog (high-Z),
+105,PA13,SWDIO,SWDIO AF0,B,3.3 V,"SWDIO, pull-up",J9-2 access port
+109,PA14,SWCLK,SWCLK AF0,I,3.3 V,"SWCLK, pull-down",J9-4 access port
+110,PA15,-,spare (JTDI),-,,"JTDI, pull-up: do not use as an enable",
+46,PB0,VBUS_SNS,ADC1_IN15,A,0-2.5 V (5V_PA / 2),analog (high-Z),J1-26 EPS
+47,PB1,TEMP_BOARD,ADC1_IN16,A,"10 mV/C, 0.5 V at 0 C",analog (high-Z),U21 TMP235 on the OBC
+48,PB2,PAYLOAD_EN,GPIO out,O,"3.3 V, high = SW1 on",analog (high-Z); EPS 100 k pull-down,J1-9 EPS (moved from PB4)
+133,PB3,SWO,spare (JTDO/SWO),-,,JTDO,TP only
+134,PB4,-,spare (NJTRST),-,,"NJTRST, pull-up: never an enable",
+135,PB5,RADIO_EN,GPIO out,O,"3.3 V, high = SW2 on",analog (high-Z); EPS 100 k pull-down,J1-10 EPS
+136,PB6,ADCS_EN,GPIO out,O,"3.3 V, high = SW4 + VBAT_MTQ switch on",analog (high-Z); EPS 100 k pull-down,J1-11 EPS
+137,PB7,EPS_ALERT_N,"GPIO in, EXTI7",I,"open drain, active low (EPS 4.7 k)",analog (high-Z),J1-8 EPS (10 k series)
+139,PB8,UMBILICAL_SENSE,GPIO in,I,high = GSE plug present,analog (high-Z); 100 k pull-down,J9-9 access port
+140,PB9,BURN_W2A,GPIO out,O,"3.3 V, high = burn (12 s hardware limit)",analog (high-Z); EPS 100 k pull-down,J1-17 EPS (was ANTENNA_BURN)
+69,PB10,BURN_W1A,GPIO out,O,"3.3 V, high = burn",analog (high-Z); EPS 100 k pull-down,J1-18 EPS (was SOLAR_BURN)
+70,PB11,-,spare (was ANTENNA_SENSE),-,,analog (high-Z),
+73,PB12,SOLAR_SENSE,GPIO in,I,low = both wings deployed,analog (high-Z); EPS pull-up,J1-20 EPS (10 k series)
+74,PB13,IMU2_SCK,SPI2_SCK AF5,O,"3.3 V, <= 10 MHz",analog (high-Z),U12 -> BMI088
+75,PB14,IMU2_MISO,SPI2_MISO AF5,I,3.3 V,analog (high-Z); 100 k pull-down,U12 <- BMI088 SDO1/SDO2
+76,PB15,IMU2_MOSI,SPI2_MOSI AF5,O,3.3 V,analog (high-Z),U12 -> BMI088
+26,PC0,TX_FWD,ADC1_IN1,A,0-2.5 V,analog (high-Z),J2-12 RF board
+27,PC1,TX_REV,ADC1_IN2,A,0-2.5 V,analog (high-Z),J2-13 RF board
+28,PC2,VBATT_SNS,ADC1_IN3,A,0-2.8 V (pack / 6),analog (high-Z),J1-22 EPS
+29,PC3,IBATT_SNS,ADC1_IN4,A,0-3.3 V,analog (high-Z),J1-23 EPS
+44,PC4,VSOLAR_SNS,ADC1_IN13,A,0-3.3 V (/4),analog (high-Z),J1-24 EPS
+45,PC5,ISOLAR_SNS,ADC1_IN14,A,0-3.3 V,analog (high-Z),J1-25 EPS
+96,PC6,GNSS_PPS,TIM3_CH1 AF2 capture,I,3.3 V pulse,analog (high-Z); 100 k pull-down,U32 <- J5-5 GNSS
+97,PC7,PTT_EXC_RB,TIM8_CH2 AF3 capture,I,"3.1 V CMOS, high = keyed",analog (high-Z); 100 k pull-down,J2-10 RF board (10 k series)
+98,PC8,RTC_1HZ,TIM3_CH3 AF2 capture,I,RTC CLKOUT (1 Hz once set),analog (high-Z),U4 RV-3028 CLKOUT (1 M series)
+99,PC9,TONE_OK,"GPIO in, EXTI9",I,"3.1 V CMOS, high = CTCSS",analog (high-Z); 100 k pull-down,J2-8 RF board (10 k series)
+111,PC10,GYRO_SCK,SPI3_SCK AF6,O,"3.3 V, mode 3, <= 1 MHz burst",analog (high-Z); 100 k pull-up,U9 -> M-G370
+112,PC11,GYRO_MISO,SPI3_MISO AF6,I,3.3 V,analog (high-Z); 100 k pull-down,U9 <- M-G370
+113,PC12,GYRO_MOSI,SPI3_MOSI AF6,O,3.3 V,analog (high-Z),U9 -> M-G370
+7,PC13,-,spare,-,,analog (high-Z),
+8,PC14,LSE_IN,OSC32_IN,-,32.768 kHz,LSE off,Y2
+9,PC15,LSE_OUT,OSC32_OUT,-,32.768 kHz,LSE off,Y2
+114,PD0,IMU2_GCS_N,GPIO out (SPI2 CS),O,"3.3 V, low = select",analog (high-Z); 100 k pull-up,U12 -> BMI088 CSB2
+115,PD1,GYRO_CS_N,GPIO out (SPI3 CS),O,"3.3 V, low = select",analog (high-Z); 100 k pull-up,U9 -> M-G370 /CS
+116,PD2,HEATER_EN,GPIO out,O,"3.3 V, high = SW5 on",analog (high-Z); EPS 100 k pull-down,J1-12 EPS
+117,PD3,LED_STATUS,GPIO out,O,3.3 V,analog (high-Z),D1 (DNP in flight)
+118,PD4,IMU2_ACS_N,GPIO out (SPI2 CS2),O,"3.3 V, low = select",analog (high-Z); 100 k pull-up,U13 -> BMI088 CSB1
+119,PD5,USART2_TX,USART2_TX AF7,O,3.3 V UART 9600,analog (high-Z),J2-2 RF TNC
+122,PD6,USART2_RX,USART2_RX AF7,I,3.1 V UART,analog (high-Z); 100 k pull-up,J2-3 RF TNC (10 k series)
+123,PD7,-,spare,-,,analog (high-Z),
+77,PD8,USART3_TX,USART3_TX AF7,O,3.3 V UART 115200,analog (high-Z),J9-7 access port
+78,PD9,USART3_RX,USART3_RX AF7,I,3.3 V UART,analog (high-Z); 100 k pull-up,J9-8 access port (10 k series)
+79,PD10,GYRO_DRDY,"GPIO in, EXTI10",I,3.3 V,analog (high-Z); 100 k pull-down,U10 <- M-G370 DRDY
+80,PD11,MAG_DRDY,"GPIO in, EXTI11",I,3.3 V,analog (high-Z); 100 k pull-down,U14b <- RM3100 DRDY
+81,PD12,I2C4_SCL,I2C4_SCL AF4,B,"open drain, 2.2 k",analog (high-Z),"U14 -> RM3100, ADS7138"
+82,PD13,I2C4_SDA,I2C4_SDA AF4,B,"open drain, 2.2 k",analog (high-Z),"U14 -> RM3100, ADS7138"
+85,PD14,GYRO_RST_N,GPIO out,O,"3.3 V, low = reset (>= 100 ms)",analog (high-Z); 100 k pull-down,U10 -> M-G370 /RST
+86,PD15,IMU2_DRDY,"GPIO in, EXTI15",I,3.3 V,analog (high-Z); 100 k pull-down,U13 <- BMI088 INT3
+141,PE0,FRAM_WP_N,GPIO out,O,"3.3 V, high = writes allowed",analog (high-Z); 10 k pull-up,U3
+142,PE1,FRAM_HOLD_N,GPIO out,O,"3.3 V, high",analog (high-Z); 10 k pull-up,U3
+1,PE2,DEPLOY_SENSE,"GPIO in, EXTI2",I,high = DS2 released (1 M source),analog (high-Z),J1-16 EPS (10 k series)
+2,PE3,TX_PWR_SEL,GPIO out,O,"3.3 V, low 0.5 W / high 1 W",analog (high-Z); RF 100 k pull-down,J2-5 RF board
+3,PE4,XPDR_EN,GPIO out (TIM7 heartbeat),O,100 Hz square wave,analog (high-Z); RF 100 k pull-down,J2-6 RF board
+4,PE5,GNSS_EN,GPIO out,O,"3.3 V, high = SW7 on",analog (high-Z); EPS 100 k pull-down,J1-15 EPS
+5,PE6,BURN_W1B,GPIO out,O,"3.3 V, high = burn",analog (high-Z); EPS 100 k pull-down,J1-30 EPS (was SOLAR_BURN_B)
+58,PE7,BURN_W2B,GPIO out,O,"3.3 V, high = burn",analog (high-Z); EPS 100 k pull-down,J1-31 EPS (new)
+59,PE8,MTQ_X_DIR,GPIO out,O,"3.3 V, PH",analog (high-Z); DRV pull-down,U22 PH
+60,PE9,MTQ_X_PWM,TIM1_CH1 AF1,O,3.3 V PWM 40 kHz,analog (high-Z); DRV pull-down,U22 EN
+63,PE10,MTQ_Y_DIR,GPIO out,O,"3.3 V, PH",analog (high-Z); DRV pull-down,U23 PH
+64,PE11,MTQ_Y_PWM,TIM1_CH2 AF1,O,3.3 V PWM 40 kHz,analog (high-Z); DRV pull-down,U23 EN
+65,PE12,MTQ_Z_DIR,GPIO out,O,"3.3 V, PH",analog (high-Z); DRV pull-down,U24 PH
+66,PE13,MTQ_Z_PWM,TIM1_CH3 AF1,O,3.3 V PWM 40 kHz,analog (high-Z); DRV pull-down,U24 EN
+67,PE14,MTQ_FAULT_N,"GPIO in, EXTI14",I,"open drain, 10 k pull-up",analog (high-Z),U22-U24 nFAULT
+68,PE15,MTQ_EXPIRED,GPIO in,I,high = hardware off-timer expired,analog (high-Z),U25 Q10
+10,PF0,I2C2_SDA,I2C2_SDA AF4,B,"open drain, 2.2 k on the OBC",analog (high-Z),"J1-6 EPS (0x40, 0x44, 0x48, AntS 0x31)"
+11,PF1,I2C2_SCL,I2C2_SCL AF4,B,"open drain, 2.2 k on the OBC",analog (high-Z),J1-5 EPS
+12,PF2,-,spare,-,,analog (high-Z),
+13,PF3,DEPLOY_EN,GPIO out,O,"3.3 V, high = SW6/SW8 on (master arm)",analog (high-Z); EPS 100 k pull-down,J1-13 EPS (moved from PA1)
+14,PF4,EOL_ARM,GPIO out,O,"3.3 V, rising edge sets the arm latch",analog (high-Z); EPS 100 k pull-down,J1-32 EPS (new)
+15,PF5,LOCK_CLR,GPIO out,O,"3.3 V, high >= 100 ms with UNLOCK",analog (high-Z); EPS 100 k pull-down,J1-34 EPS (new)
+18,PF6,GYRO_EN,GPIO out,O,"3.3 V, high = 3V3_GYRO",analog (high-Z); 100 k pull-down,U5 (100 k + 2.2 uF retry)
+19,PF7,IMU2_EN,GPIO out,O,"3.3 V, high = 3V3_IMU2",analog (high-Z); 100 k pull-down,U6
+20,PF8,SNS_EN,GPIO out,O,"3.3 V, high = 3V3_SNS",analog (high-Z); 100 k pull-down,U7
+21,PF9,MTQ_ARM,"TIM15_CH1 AF14, one-pulse 900 ms",O,"3.3 V, high = coil burst",analog (high-Z); 100 k pull-down,U26/U27 -> nSLEEP
+22,PF10,GYRO_RB,GPIO in,I,low with GYRO_EN high = latch-up trip,analog (high-Z),U5 EN node (100 k)
+49,PF11,IMU2_RB,GPIO in,I,as GYRO_RB,analog (high-Z),U6 EN node (100 k)
+50,PF12,SNS_RB,GPIO in,I,as GYRO_RB,analog (high-Z),U7 EN node (100 k)
+53,PF13,-,spare,-,,analog (high-Z),
+54,PF14,-,spare,-,,analog (high-Z),
+55,PF15,-,spare,-,,analog (high-Z),
+56,PG0,-,spare,-,,analog (high-Z),
+57,PG1,EOL_FIRE,GPIO out,O,"3.3 V, high = fire (>= 60 s)",analog (high-Z); EPS 100 k pull-down,J1-33 EPS (new)
+87,PG2,FRAM_SCK,SPI1_SCK AF5,O,"3.3 V, 20 MHz mode 0",analog (high-Z),U3 (moved from PA5)
+88,PG3,FRAM_MISO,SPI1_MISO AF5,I,3.3 V,analog (high-Z),U3 (moved from PA6)
+89,PG4,FRAM_MOSI,SPI1_MOSI AF5,O,3.3 V,analog (high-Z),U3 (moved from PA7)
+90,PG5,FRAM_CS_N,GPIO out,O,"3.3 V, low = select",analog (high-Z); 10 k pull-up,U3 (moved from PA4)
+91,PG6,JET_PG,"GPIO in, EXTI6",I,high = carrier 3.3 V up,analog (high-Z); 100 k pull-down,J3-4 Jetson (10 k series)
+92,PG7,LPUART1_TX,LPUART1_TX AF8,O,3.3 V UART 9600,analog (high-Z),U30 -> J5-3 GNSS
+93,PG8,LPUART1_RX,LPUART1_RX AF8,I,3.3 V UART,analog (high-Z); 100 k pull-up,U31 <- J5-4 GNSS
+124,PG9,-,spare,-,,analog (high-Z),
+125,PG10,-,spare,-,,analog (high-Z),
+126,PG11,WDI,GPIO out,O,falling edge every 10 s,analog (high-Z); 100 k pull-down,U2 TPS3850 WDI
+127,PG12,XPDR_KEY,"GPIO in, EXTI12",I,"3.1 V CMOS, high = repeat keyed",analog (high-Z); 100 k pull-down,J2-9 RF board (10 k series)
+128,PG13,I2C1_SDA,I2C1_SDA AF4,B,"open drain, 4.7 k",analog (high-Z),U4 RV-3028 (0x52)
+129,PG14,I2C1_SCL,I2C1_SCL AF4,B,"open drain, 4.7 k",analog (high-Z),U4 RV-3028
+132,PG15,GNSS_PG,GPIO in,I,high = 3V3_GNSS up,analog (high-Z); 100 k pull-down,J4 3V3_GNSS (10 k series)
+23,PH0,HSE_IN,OSC_IN (HSE bypass),I,8 MHz CMOS,HSE off,Y1 XO
+24,PH1,-,spare (OSC_OUT unused in bypass),-,,analog (high-Z),
+138,PH3,BOOT0,BOOT0,I,low = boot from flash,BOOT0,10 k pull-down
+25,NRST,NRST,NRST,B,open drain wired-OR,low until released,"U2 RESET/WDO, J9-6, U4 EVI"

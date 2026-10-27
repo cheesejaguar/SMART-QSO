@@ -1,9 +1,11 @@
-# SQSO-HW-DIAG-001 W6: OBC and EPS to the ADCS board, and the ADCS board to its coils and sun sensors.
-# SQSO-HAR-001 H5 (JST-SH 4-pin I2C + 3.3 V) cannot carry the magnetorquer drive. Proposed (finding F3): an FTSH
-# board-to-board connector with I2C4 and the DRV8833 inputs (pins TBD); ADCS power from SW4 on the EPS; coils and
-# six photodiodes on Pico-Clasp 2-pin. All pinouts proposed, TBR.
+# SQSO-HW-DIAG-001 W6: ADCS harnesses, version 2 (2026-10-27; SQSO-ICX-001 §3.4, SQSO-OBC-BRD-001 §7). There is no
+# separate ADCS board: the gyro (Epson M-G370PDT0 in socket X1), the BMI088 backup, the RM3100 magnetometer, the
+# sun-sensor amplifiers and the three DRV8876 magnetorquer H-bridges are on the OBC board (RID AV-03). W6 now carries:
+# W6B the 3V3_ADCS rail from EPS SW4 (ADCS_EN PB6, 0.30 A trip) into the OBC's three latch-up-protected sensor switches;
+# W6C the three CubeSpace CR0002 rods; W6D the six panel photodiodes. The magnetorquer supply VBAT_MTQ comes over W3.
+# Version 1's FTSH board-to-board connector and the DRV8833 inputs are deleted.
 metadata:
-  title: W6 ADCS (SQSO-HW-DIAG-001, proposed, TBR)
+  title: W6 ADCS v2 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.4)
 
 options:
   fontname: Helvetica
@@ -11,80 +13,80 @@ options:
   color_mode: SHORT
 
 connectors:
-  J_OBC_ADCS:
-    type: Samtec FTSH-107-01-L-DV-K
-    subtype: 14 pos, 1.27 mm
-    notes: "OBC board: PD12 SCL, PD13 SDA; timer pins TBD"
-    pinlabels: &w6sig [GND, I2C4_SCL, I2C4_SDA, GND, MTQ_X_IN1, MTQ_X_IN2, MTQ_Y_IN1, MTQ_Y_IN2, MTQ_Z_IN1, MTQ_Z_IN2, MTQ_nSLEEP, MTQ_nFAULT, GND, GND]
-  J_ADCS_OBC:
-    type: Samtec FTSH-107-01-L-DV-K
-    subtype: 14 pos, 1.27 mm
-    notes: ADCS board
-    pinlabels: *w6sig
   J_EPS_ADCS:
-    type: Molex Pico-Clasp header
+    type: Molex Pico-Clasp 5013310207
     subtype: 2 pos
-    notes: "EPS board: SW4 ADCS 3V3, 0.5 A trip"
+    notes: "EPS J20: SW4 3V3_ADCS (ADCS_EN PB6), 0.265-0.339 A trip"
     pinlabels: &w6pwr [3V3_ADCS, GND]
-  J_ADCS_PWR:
-    type: Molex Pico-Clasp header
+  J_OBC_ADCS:
+    type: Molex Pico-Clasp 5013310207
     subtype: 2 pos
-    notes: "ADCS board; also DRV8833 VM (TBR)"
+    notes: "OBC J6: into U5 (gyro), U6 (BMI088), U7 (magnetometer, sun sensors)"
     pinlabels: *w6pwr
-  J_MTQ:
-    type: Molex Pico-Clasp header
-    subtype: 2 pos
-    notes: "ADCS board, x3 (X, Y, Z): DRV8833 AOUT1/AOUT2 or BOUT1/BOUT2"
-    pinlabels: [COIL+, COIL-]
-  COIL:
-    type: magnetorquer coil, 250 turns (ACTUATOR_DESIGN)
-    subtype: x3, flying leads
-    pinlabels: [START, END]
-  J_SS:
-    type: Molex Pico-Clasp header
-    subtype: 2 pos
-    notes: "ADCS board, x6: to OPA333 TIA input (schematic S6)"
-    pinlabels: [PD_K, PD_A]
-  PD:
-    type: silicon photodiode (TBD), per face
-    subtype: x6
-    pinlabels: [K, A]
+  J_OBC_MTQ:
+    type: Molex Pico-Clasp 5013310607
+    subtype: 6 pos
+    notes: "OBC J7: DRV8876 U22 (X), U23 (Y), U24 (Z) OUT1/OUT2"
+    pinlabels: [X+, X-, Y+, Y-, Z+, Z-]
+  ROD_X:
+    type: CubeSpace CR0002 rod (X)
+    subtype: Molex Pico-Lock lead (rod side, per the CubeSpace ICD)
+    pinlabels: [+, '-']
+  ROD_Y:
+    type: CubeSpace CR0002 rod (Y)
+    subtype: Molex Pico-Lock lead
+    pinlabels: [+, '-']
+  ROD_Z:
+    type: CubeSpace CR0002 rod (Z)
+    subtype: Molex Pico-Lock lead
+    pinlabels: [+, '-']
+  J_OBC_SS:
+    type: Molex Pico-Clasp 5013311407
+    subtype: 14 pos
+    notes: "OBC J8: cathodes to the TLV9002 transimpedance inputs, anodes to ground; pins 13, 14 shield drains"
+    pinlabels: [PX_K, PX_A, MX_K, MX_A, PY_K, PY_A, MY_K, MY_A, PZ_K, PZ_A, MZ_K, MZ_A, SHIELD_1, SHIELD_2]
+  PANELS:
+    type: panel photodiodes (bought with the panels, BUILD_VS_BUY 2.3)
+    subtype: x6, short-circuit current at most 4.0 mA at AM0 normal incidence (requirement on the panel vendor)
+    pinlabels: [PX_K, PX_A, MX_K, MX_A, PY_K, PY_A, MY_K, MY_A, PZ_K, PZ_A, MZ_K, MZ_A, SHIELD_1, SHIELD_2]
 
 cables:
-  W6A:
-    category: bundle
-    gauge: 28 AWG
-    length: 0.06
-    colors: [BK, YE, BU, BK, GN, GN, GN, GN, GN, GN, WH, OG, BK, BK]
   W6B:
     category: bundle
     gauge: 26 AWG
     length: 0.08
+    wirecount: 2
     colors: [RD, BK]
+    notes: "0.049 A worst normal (backup gyro on); 0.339 A at the SW4 trip: 68 % of the 26 AWG derated 0.5 A"
   W6C:
     category: bundle
     gauge: 26 AWG
     length: 0.10
-    colors: [RD, BK]
-    notes: "x3, twisted; coil current about 100 mA (ADCS-I002)"
+    wirecount: 6
+    colors: [RD, BK, RD, BK, RD, BK]
+    notes: "three twisted pairs; 0.087 A at 0.2 A.m2, 0.126 A at the bridges' hardware limit (25 % of 0.5 A). Route away from the RM3100 corner of the OBC (SQSO-OBC-BRD-001 14)"
   W6D:
     category: bundle
     gauge: 28 AWG
-    length: 0.10
-    colors: [WH, BK]
+    length: 0.12
+    wirecount: 14
+    colors: [WH, BK, WH, BK, WH, BK, WH, BK, WH, BK, WH, BK, GY, GY]
     shield: true
-    notes: "x6, twisted and shielded: photocurrent is microamps; shield to AGND at the ADCS end only"
+    notes: "six twisted pairs in one shield, drains to OBC ground at J8 only; photocurrent at most 4 mA"
 
 connections:
-  - - J_OBC_ADCS: [1-14]
-    - W6A: [1-14]
-    - J_ADCS_OBC: [1-14]
   - - J_EPS_ADCS: [1-2]
     - W6B: [1-2]
-    - J_ADCS_PWR: [1-2]
-  - - J_MTQ: [1-2]
+    - J_OBC_ADCS: [1-2]
+  - - J_OBC_MTQ: [1-2]
     - W6C: [1-2]
-    - COIL: [1-2]
-  - - J_SS: [1-2]
-    - W6D: [1-2]
-    - PD: [1-2]
+    - ROD_X: [1-2]
+  - - J_OBC_MTQ: [3-4]
+    - W6C: [3-4]
+    - ROD_Y: [1-2]
+  - - J_OBC_MTQ: [5-6]
+    - W6C: [5-6]
+    - ROD_Z: [1-2]
+  - - J_OBC_SS: [1-14]
+    - W6D: [1-14]
+    - PANELS: [1-14]

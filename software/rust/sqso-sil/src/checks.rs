@@ -139,6 +139,25 @@ pub struct Totals {
     pub safe_entries: u32,
     /// Entries into EMERGENCY
     pub emergency_entries: u32,
+    /// The charge disconnect opened after the ground's PASSIVATE_ARM and
+    /// PASSIVATE_EXECUTE (the only way the simulation passivates)
+    pub passivation_by_command: bool,
+    /// Command acknowledgements radiated
+    pub acks: u64,
+    /// Stored-housekeeping dump frames radiated, and the records in them
+    pub dump_frames: u64,
+    /// Records in the dump frames
+    pub dump_records: u64,
+    /// The next five-minute record number the last HK1 frame showed
+    pub store_next: Option<u32>,
+    /// Command receiver hangs, and those its power cycle cleared
+    pub rx_hangs: u32,
+    /// Hangs cleared by the flight software's power cycle
+    pub rx_recovered: u32,
+    /// Longest hang, s
+    pub rx_hang_max_s: f64,
+    /// Most wing burn lines on at once
+    pub wing_lines_max: usize,
 }
 
 /// A check's outcome
@@ -510,15 +529,22 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         if t.mission_s > 0.0 && t.obc_up_s / t.mission_s >= 0.99 { Pass } else { Anomaly },
     ));
 
+    operations_cdr(&mut c, t);
+
     // End of life (47 CFR 97.207(g), FCC 5-year rule)
     if passivation_planned && t.mission_s >= design_life_s {
         c.push(match t.passivated_s {
-            Some(_) => check(
+            Some(s) => check(
                 "passivation",
-                "EOL passivation: charge path open, transmitters silent",
-                format!("charge after passivation {:.3} Ah", t.charge_after_passivation_ah),
-                "0 Ah",
-                if t.charge_after_passivation_ah < 1e-3 { Pass } else { Anomaly },
+                "EOL passivation by PASSIVATE_ARM and PASSIVATE_EXECUTE: charge path open, transmitters silent",
+                format!(
+                    "day {:.1}, by telecommand {}, charge after passivation {:.3} Ah",
+                    days(s),
+                    t.passivation_by_command,
+                    t.charge_after_passivation_ah
+                ),
+                "by telecommand, 0 Ah",
+                if t.charge_after_passivation_ah < 1e-3 && t.passivation_by_command { Pass } else { Anomaly },
             ),
             None => check("passivation", "EOL passivation", "not fired".into(), "at end of life", Anomaly),
         });
@@ -534,6 +560,43 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         ));
     }
     c
+}
+
+/// The checks added at CDR: one burn line at a time, the receiver's
+/// recovery, acknowledgements and stored-housekeeping dumps
+fn operations_cdr(c: &mut Vec<Check>, t: &Totals) {
+    use Verdict::*;
+    c.push(check(
+        "burn-lines",
+        "Wing burn resistors on at once (EPS board: one at a time, 1.0 A pack limit)",
+        t.wing_lines_max.to_string(),
+        "<= 1",
+        if t.wing_lines_max <= 1 { Pass } else { Anomaly },
+    ));
+    // A hang still open at the end (the 24 h silence not yet served) is not a failure
+    let open = t.rx_hangs.saturating_sub(t.rx_recovered);
+    c.push(check(
+        "rx-recovery",
+        "Command-receiver hangs cleared by the flight software's power cycle (FSW-09: after 24 h of silence)",
+        format!("{} of {} (longest {:.1} h)", t.rx_recovered, t.rx_hangs, t.rx_hang_max_s / 3600.0),
+        "all, each within 26 h",
+        if open <= 1 && t.rx_hang_max_s <= 26.0 * 3600.0 { Pass } else { Anomaly },
+    ));
+    let acked = if t.commands_executed > 0 { t.acks as f64 / f64::from(t.commands_executed) } else { 0.0 };
+    c.push(check(
+        "acks",
+        "Command acknowledgements radiated per command executed (GND-03; none while TX-OFF)",
+        format!("{} for {} ({:.1} %)", t.acks, t.commands_executed, acked * 100.0),
+        ">= 90 %",
+        if t.commands_executed == 0 || acked >= 0.9 { Pass } else { Warning },
+    ));
+    c.push(check(
+        "dumps",
+        "Stored-housekeeping dump frames radiated (DUMP_TLM, daily after commissioning)",
+        format!("{} frames, {} records", t.dump_frames, t.dump_records),
+        "> 0 after commissioning",
+        if t.mission_s <= 15.0 * 86_400.0 || t.dump_frames > 0 { Pass } else { Warning },
+    ));
 }
 
 /// The checks and the totals as `summary.json`

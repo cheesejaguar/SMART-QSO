@@ -53,6 +53,15 @@ bool ops_xpdr_allowed(void);
  */
 SmartQsoResult_t ops_set_xpdr_enabled(bool enabled);
 
+/**
+ * @brief Check the RAM copy against the record (AV-07), every minute
+ *
+ * Merges toward the safe side (held if either holds, the transponder
+ * stopped if either stops it, the record's geometry preset), persists the
+ * merge, and logs a disagreement.
+ */
+void ops_state_verify(void);
+
 #ifdef __cplusplus
 }
 #endif

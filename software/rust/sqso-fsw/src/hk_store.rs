@@ -353,6 +353,9 @@ impl Store {
 
     /// Find the newest record of each store and load the window table
     pub fn init<F: Flash>(&mut self, now_ms: u64, flash: &mut F) {
+        // A reset forgets everything but what is stored
+        let [summary, detail, index] = self.regions;
+        *self = Store::new(summary, detail, index);
         let mut rec = [0u8; 1 + 6 * WINDOWS];
         if nvm::load(flash, self.regions[2], 0, INDEX_MAGIC, &mut rec) == Ok(RecordStatus::Valid) {
             self.next_window = usize::from(rec[0]) % WINDOWS;
@@ -380,6 +383,14 @@ impl Store {
         self.copy = None;
         self.dump = None;
         self.initialized = true;
+    }
+
+    /// Whether a record is due at `now_ms` (the caller then gives the
+    /// values to [`Store::step`])
+    pub fn due(&self, now_ms: u64) -> bool {
+        self.initialized
+            && (now_ms.saturating_sub(self.last_ms[0]) >= SUMMARY_PERIOD_MS
+                || now_ms.saturating_sub(self.last_ms[1]) >= DETAIL_PERIOD_MS)
     }
 
     /// A mode change or fault: the next sixty-second record carries it
@@ -450,7 +461,9 @@ impl Store {
                 break;
             }
             let ring = self.read_slot(StoreId::Detail, from % RING_SLOTS, flash);
-            if let (Some(r), Some(slot)) = (ring.filter(|r| decode_seq(StoreId::Detail, r) == Some(from)), self.window_slot(w, from)) {
+            if let (Some(r), Some(slot)) =
+                (ring.filter(|r| decode_seq(StoreId::Detail, r) == Some(from)), self.window_slot(w, from))
+            {
                 self.write_slot(StoreId::Detail, slot, &r, flash);
             }
             from += 1;
@@ -463,10 +476,12 @@ impl Store {
         let check = |r: [u8; RECORD_LEN]| (decode_seq(store, &r) == Some(seq)).then_some(r);
         match store {
             StoreId::Summary => self.read_slot(store, seq % SUMMARY_SLOTS, flash).and_then(check),
-            StoreId::Detail => self
-                .read_slot(store, seq % RING_SLOTS, flash)
-                .and_then(check)
-                .or_else(|| (0..WINDOWS).find_map(|w| self.window_slot(w, seq)).and_then(|s| self.read_slot(store, s, flash)).and_then(check)),
+            StoreId::Detail => self.read_slot(store, seq % RING_SLOTS, flash).and_then(check).or_else(|| {
+                (0..WINDOWS)
+                    .find_map(|w| self.window_slot(w, seq))
+                    .and_then(|s| self.read_slot(store, s, flash))
+                    .and_then(check)
+            }),
         }
     }
 
@@ -718,9 +733,11 @@ mod tests {
     fn write_failures_are_counted_and_nothing_runs_before_init() {
         let mut f = Fram::new();
         let mut s = Store::new(0, 1, 2);
+        assert!(!s.due(u64::MAX));
         s.step(1_000_000, &hk(0), &Extra::default(), &mut f);
         assert_eq!(s.counts(), [0, 0]);
         s.init(0, &mut f);
+        assert!(!s.due(DETAIL_PERIOD_MS - 1) && s.due(DETAIL_PERIOD_MS));
         f.fail = true;
         s.note_event(EVENT_MODE);
         let _ = run(&mut s, &mut f, 0, 5);

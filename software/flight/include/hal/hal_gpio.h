@@ -37,16 +37,29 @@ typedef enum {
     GPIO_PIN_ALERT         = 8,   /**< EPS alert input */
     GPIO_PIN_DEPLOY_SENSE  = 9,   /**< Separation (deployment) switch sense input */
     GPIO_PIN_UMBILICAL_SENSE = 10, /**< GSE umbilical present (high); pulled low in flight */
-    GPIO_PIN_ANTENNA_BURN  = 11,  /**< Unused since the AntS (deployed over I2C, deployment.h); held low */
-    GPIO_PIN_SOLAR_BURN    = 12,  /**< Solar-wing burn driver A (first resistor of each wing) */
+    GPIO_PIN_ANTENNA_BURN  = 11,  /**< Wing 2 resistor A (PB9; was the antenna burn: the AntS deploys over I2C) */
+    GPIO_PIN_SOLAR_BURN    = 12,  /**< Wing 1 resistor A (PB10) */
     GPIO_PIN_ANTENNA_SENSE = 13,  /**< Antenna deployed sense input */
     GPIO_PIN_SOLAR_SENSE   = 14,  /**< Solar array deployed sense input */
     GPIO_PIN_TX_PWR_SEL    = 15,  /**< Downlink power select: low 0.5 W, high 1 W */
     GPIO_PIN_XPDR_EN       = 16,  /**< FM transponder enable: heartbeat (hal_gpio_heartbeat), never a level */
     GPIO_PIN_GNSS_EN       = 17,  /**< GNSS receiver load switch (current-limited, latch-up trip) */
-    GPIO_PIN_SOLAR_BURN_B  = 18,  /**< Solar-wing burn driver B (second resistor of each wing) */
-    GPIO_PIN_COUNT         = 19
+    GPIO_PIN_SOLAR_BURN_B  = 18,  /**< Wing 1 resistor B (PE6) */
+    /* Logical pins added at CDR; their STM32 pins are to be allocated by
+     * the OBC board design (the firmware refuses them until then) */
+    GPIO_PIN_EOL_ARM       = 19,  /**< EPS end-of-life charge disconnect: arm latch (rising edge sets it), passivation.h */
+    GPIO_PIN_EOL_FIRE      = 20,  /**< EPS end-of-life charge disconnect: fire (level, in series with the latch) */
+    GPIO_PIN_RX_CD         = 21,  /**< Input: command receiver carrier detect (high on a carrier), receiver.h */
+    GPIO_PIN_RX_FAULT      = 22,  /**< Input: command receiver health, high on a fault (open reads healthy), receiver.h */
+    GPIO_PIN_BURN_W2B      = 23,  /**< Wing 2 resistor B */
+    GPIO_PIN_LOCK_CLR      = 24,  /**< EPS recharge-lockout clear pulse (with an I2C unlock), eps_lockout.h */
+    GPIO_PIN_COUNT         = 25
 } HalGpioPin_t;
+
+/** The four wing burn lines, one resistor at a time (deployment.h) */
+#define GPIO_PIN_BURN_W1A GPIO_PIN_SOLAR_BURN
+#define GPIO_PIN_BURN_W1B GPIO_PIN_SOLAR_BURN_B
+#define GPIO_PIN_BURN_W2A GPIO_PIN_ANTENNA_BURN
 
 /**
  * @brief GPIO direction

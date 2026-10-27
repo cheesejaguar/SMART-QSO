@@ -154,18 +154,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-247 RIDs: severity 1: 28, severity 2: 138, severity 3: 81.
+254 RIDs: severity 1: 29, severity 2: 141, severity 3: 84.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 94 | 116 |
-| Closed by chair decision | 33 | 31 |
-| Verification item | 31 | 30 |
+| Closed by design change | 94 | 123 |
+| Closed by chair decision | 34 | 33 |
+| Verification item | 32 | 31 |
 | Decision point (dated) | 11 | 11 |
-| Implementation | 53 | 34 |
+| Implementation | 58 | 31 |
 
-Open implementation RIDs: SE-01, RF-04, RF-21, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, EPS-14, THM-02, THM-08, THM-15, AV-01, AV-02, AV-03, AV-05, AV-06, AV-07, AV-09, AV-10, FSW-05, FSW-07, FSW-09, RAD-02, GNC-04, RFB-03, RFB-04, EPSB-01, EPSB-03, EPSB-06.
+Open implementation RIDs: SE-01, RF-04, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, THM-02, THM-08, THM-15, AV-03, AV-06, AV-07, FSW-05, FSW-07, FSW-09, RAD-02, RFB-03, RFB-04, EPSB-01, EPSB-03, EPSB-06, OBCB-01, OBCB-02, OBCB-03, OBCB-04, OBCB-05.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -277,7 +277,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RF-18 | 3 | CTCSS under Doppler not analysed | CA | Closed by analysis | LBA §4.4; VI-RF-05 |
 | RF-19 | 2 | Budget inputs need hardware | VI | Verification item | VI-RF-01, 03, 08, 09, 10 |
 | RF-20 | 3 | Self-generated EMI into the receivers | VI | Verification item | VI-RF-07 |
-| RF-21 | 3 | Repeat-path readbacks not wired to the OBC | IMP | Implementation | OBC pins and telemetry for TONE_OK, XPDR_KEY, PTT |
+| RF-21 | 3 | Repeat-path readbacks not wired to the OBC | IMP | Closed by design change | Readbacks wired on the RF board (W4 J1-8/9/10) and the OBC (PC9, PG12, PC7) |
 | RF-22 | 3 | SIL link model simplified | IMP | Implementation | sqso-sil env/link.rs to LBA v3.0 |
 
 #### Ground segment (GND)
@@ -415,7 +415,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | EPS-11 | 2 | Overcharge had two firmware-set controls | CD | Closed by design change | Secondary 4.35 V protector (SQSO-BSA-001 H1); V-BSA-2 |
 | EPS-12 | 2 | No latched recharge lockout | CD | Closed by design change | EPS_DESIGN §3.3; clear command IMP |
 | EPS-13 | 3 | String TVS below cold Voc; wire derating | CD | Closed by design change | SMBJ7.0A; 24 AWG |
-| EPS-14 | 3 | GNSS_EN proposed on PE4 (XPDR_EN) | IMP | Implementation | Pin assignment |
+| EPS-14 | 3 | GNSS_EN proposed on PE4 (XPDR_EN) | IMP | Closed by design change | GNSS_EN PE5, XPDR_EN PE4 (SQSO-ICX-001) |
 | EPS-15 | 2 | Jetson and PA share one 5 V buck | CD | Closed by design change | Separate PA buck (EPS_DESIGN); drawing S2 IMP |
 | EPS-16 | 2 | Switch voltage ratings and trip levels wrong | CD | Closed by design change | EPS_DESIGN §5; PDU 1.1 |
 | EPS-17 | 2 | Charger had no power path | CD | Closed by design change | EPS-F004 |
@@ -460,16 +460,16 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| AV-01 | 2 | No OBC schematic; firmware pin map provisional and in conflict with OBC_DESIGN | IMP | Implementation | OBC board schematic and master pin allocation (round 2 design) |
-| AV-02 | 3 | No external supervisor; orphan watchdog-kick line | IMP | Implementation | External supervisor in the OBC board design |
+| AV-01 | 2 | No OBC schematic; firmware pin map provisional and in conflict with OBC_DESIGN | IMP | Closed by design change | OBC board build-to design SQSO-OBC-BRD-001 (356 parts, ERC 0) and the master pin allocation SQSO-ICX-001: every pin one function |
+| AV-02 | 3 | No external supervisor; orphan watchdog-kick line | IMP | Closed by design change | TPS3850H33-Q1 window-watchdog supervisor (5.6 s to 33-45 s window), backup to the 30 s internal watchdog; kick in flight software |
 | AV-03 | 1 | No driver or pins for the gyro, magnetometer, sun sensors, magnetorquers; no sensor-rail latch-up switch | IMP | Implementation | Pins and hardware in the OBC board design; drivers in the flight software |
 | AV-04 | 2 | GNSS chain missing | CD | Closed by design change | LPUART1 PG7/PG8, GNSS_EN PE5, gnss_schedule.rs; receiver trip VI AV-V8 |
-| AV-05 | 2 | No TONE_OK or XPDR_KEY readbacks | IMP | Implementation | With RF-21 |
+| AV-05 | 2 | No TONE_OK or XPDR_KEY readbacks | IMP | Closed by design change | TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 (timer capture) with pull-downs (SQSO-ICX-001) |
 | AV-06 | 2 | One software state bit drives both Jetson switches, no readback | IMP | Implementation | Independent lines with readback (OBC board design); PAYLOAD_DESIGN 1.1 §11.1 |
 | AV-07 | 2 | No SRAM parity handler, TMR or scrubbing | IMP | Implementation | SRAM2 parity with NMI handler; CRC of critical state (flight software round 2) |
 | AV-08 | 2 | OBC and radio rail latch-up trips not specified | IMP | Closed by design change | Current-limited auto-retry rails: OBC 0.15 A, radio 0.12 A, sensors 0.30 A, GNSS 0.20 A, EPS controller 75 mA, AntS 1.37 A, PA 0.99 A (SQSO-EPS-BRD-001) |
-| AV-09 | 2 | Idle USART1 TX can back-power the unpowered Jetson | IMP | Implementation | Back-power protection in the OBC board design |
-| AV-10 | 3 | No mission clock across resets | IMP | Implementation | RTC on the always-on rail (OBC board design) |
+| AV-09 | 2 | Idle USART1 TX can back-power the unpowered Jetson | IMP | Closed by design change | UART through SN74LVC1T45-Q1 buffers powered from the carrier's 3.3 V: high impedance when the carrier is off |
+| AV-10 | 3 | No mission clock across resets | IMP | Closed by design change | RV-3028-C7 RTC on the always-on rail, its own I2C bus; time-stamps every reset |
 | AV-11 | 1 | XPDR_EN was a level | CD | Closed by design change | 100 Hz heartbeat, 60 ms lease, TIM7 on PE4; test_xpdr_heartbeat.c; SIL radio |
 
 #### Flight software (FSW)
@@ -503,7 +503,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | GNC-01 | 1 | Magnetometer sampled with the coils on | CD | Closed by design change | 900 ms on / 50 ms settle window; coupling in the Monte Carlo |
 | GNC-02 | 1 | Computed inertia: Iyy/Izz 1.03-1.04 and products tilt the axis | CD | Closed by design change | Full tensor in the law and the SIL; 8°/s, k_n 3·10⁻⁴ |
 | GNC-03 | 2 | Flexible 2 m antenna tapes not modelled | VI | Verification item | ADCS_DESIGN §11.5 |
-| GNC-04 | 2 | Magnetometer not selected, no driver | IMP | Implementation | Selection in the OBC board design; driver in the flight software |
+| GNC-04 | 2 | Magnetometer not selected, no driver | IMP | Closed by chair decision | Magnetometer: PNI RM3100 on the OBC board, bought-module footprint as fallback (chair accepts OBC_BOARD_DESIGN §24 C1); driver in the flight software |
 | GNC-05 | 2 | Spin axis and inertia selectable for one wing | CD | Closed by design change | ADCS_SET_GEOMETRY 0x24; SRS-F094 |
 | GNC-06 | 3 | Rod remanence not modelled | VI | Verification item | AV-V4 |
 <!-- RID-LOG-END -->

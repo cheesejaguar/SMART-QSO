@@ -35,9 +35,9 @@ use crate::c::{fault_type, rc, severity};
 use crate::jetson_link::{JetsonMsg, JetsonRx};
 use crate::sensors::Sensor;
 use crate::{
-    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, fault_mgmt, gse_provision,
-    jetson_link, mission_data, ops_state, payload_guard, rf_control, rf_silence, sensors, state_machine, system_state,
-    uart_comm, uplink, watchdog_mgr,
+    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, eps_lockout, fault_mgmt,
+    gse_provision, hk_store, jetson_link, mission_data, ops_state, passivation, payload_guard, receiver, rf_control,
+    rf_silence, sensors, state_machine, system_state, uart_comm, uplink, watchdog_mgr,
 };
 
 /// `ADC_RESOLUTION_12BIT`, `ADC_REF_VDD` (hal_adc.h)
@@ -116,6 +116,9 @@ pub const VERSION: &str = "0.2.0-dev";
 pub const SIMULATION_TICKS: u64 = exec::SIMULATION_TICKS;
 /// `BEACON_MEAS_MAX_AGE_MS`
 const BEACON_MEAS_MAX_AGE_MS: u64 = 60_000;
+/// The critical persisted state is checked against its records this often,
+/// ms (AV-07)
+const VERIFY_INTERVAL_MS: u64 = 60_000;
 
 /// GNSS_REQUEST received (the command handler sets it, the next pass acts)
 static GNSS_REQUESTED: AtomicBool = AtomicBool::new(false);
@@ -281,6 +284,12 @@ pub struct Executive {
     detumble_commanded: bool,
     beacon_seq: u16,
     jetson_rx: JetsonRx,
+    /// The operating state and fault-log count at the last pass (stored
+    /// housekeeping events)
+    last_state: u32,
+    last_fault_count: usize,
+    /// When the critical state was last checked against its records, ms
+    last_verify_ms: u64,
 }
 
 impl Executive {
@@ -311,6 +320,9 @@ impl Executive {
         detumble_commanded: false,
         beacon_seq: 0,
         jetson_rx: JetsonRx::EMPTY,
+        last_state: STATE_BOOT,
+        last_fault_count: 0,
+        last_verify_ms: 0,
     };
 
     /// Bring the system up from [`Executive::BOOT`]; false (after reporting
@@ -386,7 +398,13 @@ impl Executive {
         self.last_contact_tick_ms = self.program_start_ms;
         self.last_power_ms = self.program_start_ms;
         self.last_adcs_ms = self.program_start_ms;
+        self.last_verify_ms = self.program_start_ms;
+        self.last_fault_count = fault_mgmt::fault_log_get_count();
         self.telemetry_interval_ms = uart_comm::uart_get_telemetry_interval();
+        // Stored housekeeping: the newest records of each store
+        let _ = hk_store::hk_store_init();
+        receiver::receiver_init();
+        eps_lockout::eps_lockout_init();
         true
     }
 
@@ -415,6 +433,10 @@ impl Executive {
     /// [`Executive::run_payload_schedule`]).
     fn init_mode_manager(&mut self) -> bool {
         let _ = beacon::beacon_init(); // templates until the Jetson's text passes the filter
+        // Beacon interval jitter (RF-04), seeded differently at each boot
+        #[allow(clippy::cast_possible_truncation)] // any 32 bits will do as a seed
+        let seed = mission_data::mission_data_get_reset_count() ^ (crate::c::now_ms() as u32).rotate_left(16);
+        beacon::beacon_set_jitter(sqso_fsw::beacon::JITTER_MS, seed);
         payload_guard::payload_guard_init();
         if adcs_control::adcs_init() != rc::OK {
             eprint(format_args!("[SYSTEM] ADCS init failed"));
@@ -502,6 +524,9 @@ impl Executive {
         self.update_beacon_measurements(now);
         self.run_beacon(now);
         self.run_housekeeping(now, state);
+        run_acks(now);
+        run_dump(now);
+        self.run_store(now, state);
         downlink::downlink_poll();
         self.run_gnss(now, state);
         self.run_transponder(now, state);
@@ -512,6 +537,7 @@ impl Executive {
         // SAFETY: NULL: no response wanted
         let _ = unsafe { uplink::uplink_poll(null_mut()) };
         let _ = gse_provision::gse_poll();
+        self.run_safety_checks(now);
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_COMM);
 
         // Loss-of-contact, RF-silence and deployment timers
@@ -874,7 +900,11 @@ impl Executive {
         // SAFETY: eps is a live EpsControlState_t
         let radio_on = unsafe { eps_control::eps_get_state(&mut eps) } == rc::OK && eps.radio_enabled;
         let inputs = transponder::Inputs {
-            permitted: radio_on && rf_control::rf_control_tx_permitted(),
+            // The loss-of-contact inhibit stops the transponder even while
+            // the beacon is kept for a failed receiver (REL-04)
+            permitted: radio_on
+                && rf_control::rf_control_tx_permitted()
+                && !contact_monitor::contact_monitor_inhibited(),
             allowed: ops_state::ops_xpdr_allowed() && !self.gnss.session_on(),
             active: state == STATE_ACTIVE,
             sunlit: self.power.sunlit,
@@ -1000,7 +1030,9 @@ impl Executive {
                 soc: Some(self.power.soc),
                 vbatt_v: eps.map(|t| t.vbatt_v),
                 ibatt_a: eps.map(|t| t.ibatt_a),
-                array_w: eps.map(|t| t.vsolar_v * t.isolar_a),
+                // The array current is measured at the bus (the solar INA228
+                // on the battery side of the trackers): power = VBATT x ISOLAR
+                array_w: eps.map(|t| t.vbatt_v * t.isolar_a),
                 tbatt_c: eps.map(|t| t.tbatt_c),
                 tobc_c: finite(adc_or_nan(ADC_CHANNEL_TEMP_MCU)),
                 tpa_c: finite(adc_or_nan(ADC_CHANNEL_TX_TEMP)),
@@ -1024,7 +1056,61 @@ impl Executive {
                     .valid
                     .then(|| (now.saturating_sub(self.gnss_rx.fix.rx_ms) / 1000, self.gnss_rx.fix.sats)),
                 gnss_sessions: (self.gnss.sessions, self.gnss.fixes),
+                passivation: passivation::passivation_phase(),
+                rx: (receiver::receiver_cycles(), receiver::receiver_failed()),
+                contacts: cmd_handler::contacts(),
+                stored: stored_counts(),
             }
+        }
+    }
+
+    /// Stored housekeeping (`hk_store.h`, DB-01): an event on a mode change
+    /// or a new fault at ERROR or worse; the values when a record is due
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_store(&mut self, now: u64, state: u32) {
+        if state != self.last_state {
+            self.last_state = state;
+            hk_store::hk_store_note_event(sqso_fsw::hk_store::EVENT_MODE);
+        }
+        let faults = fault_mgmt::fault_log_get_count();
+        if faults != self.last_fault_count {
+            let mut last = Entry::ZERO;
+            // SAFETY: last is a live FaultLogEntry_t
+            let have = unsafe { fault_mgmt::fault_log_get_last(&mut last) } == rc::OK;
+            if faults > self.last_fault_count && have && u32::from(last.severity) >= severity::ERROR {
+                hk_store::hk_store_note_event(sqso_fsw::hk_store::EVENT_FAULT);
+            }
+            self.last_fault_count = faults;
+        }
+        if hk_store::due(now) {
+            let hk = self.housekeeping(now, state);
+            let extra = sqso_fsw::hk_store::Extra {
+                heater: self.heater.on,
+                payload: eps_control::eps_is_payload_enabled(),
+                contact_inhibit: contact_monitor::contact_monitor_inhibited(),
+                passivated: passivation::passivation_passivated(),
+            };
+            hk_store::set_sample(&hk, &extra);
+        }
+        hk_store::hk_store_step(now);
+    }
+
+    /// The end-of-life sequence, the receiver's supervision, the lockout
+    /// pulse and, every minute, the check of the critical persisted state
+    /// against its records (AV-07)
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_safety_checks(&mut self, now: u64) {
+        passivation::passivation_tick(self.power.sunlit);
+        let mut dl = downlink::DownlinkStatus::default();
+        // SAFETY: dl is a live DownlinkStatus_t
+        let _ = unsafe { downlink::downlink_get_status(&mut dl) };
+        receiver::receiver_step(dl.keyed || self.transponder.enabled);
+        eps_lockout::eps_lockout_poll();
+        if now.wrapping_sub(self.last_verify_ms) >= VERIFY_INTERVAL_MS {
+            self.last_verify_ms = now;
+            rf_control::rf_control_verify();
+            ops_state::ops_state_verify();
+            passivation::passivation_verify();
         }
     }
 
@@ -1094,6 +1180,62 @@ fn adc_or_nan(channel: u32) -> f64 {
     if unsafe { crate::c::hal_adc_read_voltage(channel, &mut value) } == rc::OK { value } else { f64::NAN }
 }
 
+/// The next record number of each store (HK1 `ST`)
+fn stored_counts() -> [u32; 2] {
+    let (mut a, mut b) = (0u32, 0u32);
+    // SAFETY: both are live u32
+    let _ = unsafe { hk_store::hk_store_counts(&mut a, &mut b) };
+    [a, b]
+}
+
+/// A UI frame CQ <- KK6GDB-11 carrying `info`, handed to the downlink: its
+/// result (`BUSY`: try again next pass)
+fn send_ui(info: &[u8]) -> i32 {
+    let mut frame = [0u8; ax25::MAX_FRAME_LEN];
+    let dest = Station { call: "CQ", ssid: 0 };
+    let src = Station { call: sqso_protocol::station::CALLSIGN, ssid: sqso_protocol::station::SSID };
+    let Ok(len) = ax25::encode_ui(dest, src, info, false, &mut frame) else { return rc::INVALID };
+    // SAFETY: frame holds len bytes
+    unsafe { downlink::downlink_transmit(frame.as_ptr(), len) }
+}
+
+/// The command acknowledgements (GND-03), one a pass
+#[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+fn run_acks(now: u64) {
+    let Some(ack) = cmd_handler::next_ack(now) else { return };
+    let mut info = [0u8; sqso_fsw::ack::MAX_LEN];
+    let n = sqso_fsw::ack::format(&ack, &mut info);
+    let text = info.get(..n).unwrap_or(&[]);
+    match send_ui(text) {
+        rc::BUSY => {} // the downlink is sending: next pass
+        sent => {
+            if sent == rc::OK {
+                crate::c::console_parts(&[b"[ACK] TX: ", text]);
+            }
+            cmd_handler::ack_sent();
+        }
+    }
+}
+
+/// A stored-housekeeping dump frame (DUMP_TLM) when one is due
+#[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+fn run_dump(now: u64) {
+    let mut info = [0u8; sqso_fsw::hk_store::DUMP_INFO_MAX];
+    // SAFETY: info is a live buffer of its length
+    let n = unsafe { hk_store::hk_store_dump_peek(now, info.as_mut_ptr(), info.len()) };
+    if n == 0 {
+        return;
+    }
+    match send_ui(info.get(..n).unwrap_or(&[])) {
+        rc::BUSY => {}
+        rc::OK => hk_store::hk_store_dump_commit(now),
+        _ => {
+            crate::c::console(format_args!("[HKD] Dump stopped: downlink not permitted"));
+            hk_store::hk_store_dump_stop();
+        }
+    }
+}
+
 /// The state machine's state (BOOT if it cannot be read)
 fn sm_state() -> u32 {
     let mut state = STATE_BOOT;
@@ -1105,6 +1247,8 @@ fn sm_state() -> u32 {
 fn init_rf_and_telecommand() {
     let _ = rf_silence::rf_silence_init();
     let _ = contact_monitor::contact_monitor_init();
+    // A passivated spacecraft's inhibit is set before the lines are driven
+    let _ = passivation::passivation_init();
     let _ = rf_control::rf_control_init();
     if downlink::downlink_init() != rc::OK {
         eprint(format_args!("[SYSTEM] Downlink init failed"));

@@ -274,4 +274,12 @@ RIDS = [
     ("EPSB-04", 3, "Tracker efficiency 90.9-92.3 % against EPS-F002's 92 %", "VI", "EM measurement V-EPS; generation effect < 2 %, inside the power margins"),
     ("EPSB-05", 3, "ITV4030 fuses rated from −10 °C, below the board's −30 °C allowable", "VI", "V-EPS-8 qualification"),
     ("EPSB-06", 3, "Cross-document consistency after the EPS board (B2, diagram README, radiation trip table, BSA H8a, ICD-001, EMC E6/E8, IARU uplink windows)", "IMP", "Documentation consistency pass"),
+    # ---- Raised by the OBC board design (OBCB) ----
+    ("OBCB-01", 1, "PAYLOAD_EN on PB4: the JTAG pull-up at reset switches the Jetson rail on at every OBC reset", "IMP", "Move to PB2 (SQSO-ICX-001); firmware pin map"),
+    ("OBCB-02", 2, "Twenty-five firmware pin changes and new drivers (gyros, magnetometer, sun-sensor ADC, coils on TIM1/TIM15, RTC, supervisor kick)", "IMP", "Flight software round 3"),
+    ("OBCB-03", 2, "Gyro module needs 14 mm above the OBC; the stack gives 11.4 mm", "IMP", "Mechanical: raise the carrier or bracket the gyro"),
+    ("OBCB-04", 2, "No carrier board design for the Jetson (its 3.3 V I/O rail, VBAT input)", "IMP", "Jetson carrier build-to design"),
+    ("OBCB-05", 3, "Magnetorquers draw 1.16-1.3 W in detumble; not in the power analysis", "IMP", "Documentation consistency: POWER_BUDGET_ANALYSIS LEOP case"),
+    ("OBCB-06", 3, "OBC-rail fault that does not trip SW10 goes undetected", "CH", "Accepted: the external supervisor and the internal watchdog cover a hung OBC; an EPS-side heartbeat check is a fabrication-phase option"),
+    ("OBCB-07", 3, "Gyro supply margin 3.195 V against 3.15 V minimum", "VI", "V-OBC measurement on the EM; the 3V3_AO ±2 % set point (EPS) holds it"),
 ]

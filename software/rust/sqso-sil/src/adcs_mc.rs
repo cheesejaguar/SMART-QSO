@@ -54,10 +54,11 @@ const WINGS_S: f64 = 1800.0;
 /// Magnetorquer drive at full dipole on all three axes, W
 const MTQ_FULL_W: f64 = 0.30;
 
-/// The stowed inertia tensor (layout B, rods, MEV, AntS and wings stowed;
-/// `docs/environment/MASS_BUDGET.md` v3.0 §6.1), kg·m²
+/// The stowed inertia tensor (the CAD of `docs/environment/MASS_BUDGET.md`
+/// v3.1 §6.1, AntS and wings stowed, the mean of CBE and MEV as for the
+/// deployed tensor), kg·m²
 pub const STOWED: Inertia =
-    Inertia { xx: 0.003_210, yy: 0.003_487, zz: 0.003_208, xy: -0.000_027, xz: -0.000_034, yz: -0.000_028 };
+    Inertia { xx: 0.002_914, yy: 0.003_310_5, zz: 0.003_033, xy: 0.000_001, xz: 0.0, yz: 0.000_029 };
 
 /// A rigid body with a full inertia tensor (products included; the mission
 /// simulation's `Attitude` is diagonal): attitude body → ECI, body rate
@@ -808,7 +809,10 @@ mod tests {
             y.step(1.0, V3::ZERO);
             worst = worst.max(y.w.angle(V3::Y).to_degrees());
         }
-        assert!(worst > 10.0, "a spin about +Y with products wobbles: {worst}");
+        // It cones about the major axis, 0.5° from +Y with the CAD tensor
+        // (MASS_BUDGET v3.1): the rate leaves +Y by about twice that
+        let tilt = V3::new(a.x, a.y, a.z).angle(V3::Y).to_degrees();
+        assert!(tilt > 0.3 && worst > 1.5 * tilt, "a spin about +Y with products wobbles: {worst} (tilt {tilt})");
         // The wings swing out: momentum kept
         let mut d = Body::new(Quat::default(), V3::new(0.01, 0.02, 0.03), &STOWED);
         let h = d.momentum(d.w);

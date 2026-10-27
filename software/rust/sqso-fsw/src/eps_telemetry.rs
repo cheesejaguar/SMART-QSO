@@ -42,6 +42,24 @@ mod reg {
     pub const IBUS: usize = 0x32;
 }
 
+/// The recharge lockout (RID EPS-12; `docs/hardware/EPS_DESIGN.md` §3.3):
+/// after any cell has been below 2.0 V the EPS latches its charge path off
+/// until the ground clears it, which takes both an unlock write over I2C
+/// and a pulse on the separate `LOCK_CLR` line (`EPS_BOARD_DESIGN.md`)
+pub mod lockout {
+    /// The unlock register (an addition to SMART-QSO-ICD-001 §4.6, for the
+    /// EPS controller's firmware)
+    pub const REG_UNLOCK: u8 = 0x7D;
+    /// The unlock value
+    pub const UNLOCK_KEY: u8 = 0xC5;
+    /// `CHG_INHIBIT` (0x7A) bit of the latched lockout (also an addition)
+    pub const CHG_INHIBIT_LOCKOUT: u8 = 0x20;
+    /// `LOCK_CLR` pulse, ms (the EPS needs at least 100 ms)
+    pub const PULSE_MS: u64 = 150;
+    /// EPS_CLEAR_LOCKOUT's argument
+    pub const CODE: [u8; 4] = *b"CHG!";
+}
+
 /// A plausible 4S pack voltage, V: below it the block is not a live
 /// controller (a blank or absent device reads 0)
 pub const VBATT_PLAUSIBLE_V: (f64, f64) = (9.0, 17.6);

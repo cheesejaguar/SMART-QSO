@@ -55,6 +55,14 @@ pub extern "C" fn ops_set_commissioning_hold(hold: bool) -> i32 {
     }
 }
 
+/// Check the RAM copy against the record (AV-07); a disagreement is logged
+#[unsafe(no_mangle)]
+pub extern "C" fn ops_state_verify() {
+    if OPS.with(|o| o.verify(&mut HalFlash)) == Some(true) {
+        c::log(fault_type::INIT, severity::ERROR, c"Operations state check: RAM copy disagreed, merged", 0.0);
+    }
+}
+
 /// The ADCS geometry preset (ADCS_SET_GEOMETRY; 0 if it cannot be read)
 pub fn ops_adcs_geometry() -> u8 {
     OPS.with(|o| o.adcs_geometry()).unwrap_or(0)
@@ -103,6 +111,7 @@ mod tests {
         assert_eq!(OPS.with(|_| ops_state_init()), Some(rc::BUSY));
         assert_eq!(OPS.with(|_| ops_adcs_geometry()), Some(0));
         assert_eq!(OPS.with(|_| ops_set_adcs_geometry(1)), Some(rc::BUSY));
+        assert_eq!(OPS.with(|_| ops_state_verify()), Some(()));
         assert_eq!(ops_set_adcs_geometry(9), rc::INVALID);
     }
 }

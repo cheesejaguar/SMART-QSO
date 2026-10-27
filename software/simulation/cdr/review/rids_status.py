@@ -29,5 +29,13 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "STR-10": ("CD", "Stowed protrusion 6.10 mm nominal, 6.38 mm worst case with the 0.5 mm panel recess (MECHANICAL_DESIGN B); VI-STR-08"),
     "STR-11": ("CD", "−Z face recessed 1.5 mm: AntS 1.25 mm inside the rail ends (MECHANICAL_DESIGN); frame RFQ"),
     "SE-12": ("CA", "Shell FE model (56,258 DOF): first mode 170 Hz, lowest margin +0.72 (STRUCTURAL_ANALYSIS B); materials list SQSO-MAT-001 Rev B"),
+    "AV-01": ("CD", "OBC board build-to design SQSO-OBC-BRD-001 (356 parts, ERC 0) and the master pin allocation SQSO-ICX-001: every pin one function"),
+    "AV-02": ("CD", "TPS3850H33-Q1 window-watchdog supervisor (5.6 s to 33-45 s window), backup to the 30 s internal watchdog; kick in flight software"),
+    "AV-05": ("CD", "TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 (timer capture) with pull-downs (SQSO-ICX-001)"),
+    "AV-09": ("CD", "UART through SN74LVC1T45-Q1 buffers powered from the carrier's 3.3 V: high impedance when the carrier is off"),
+    "AV-10": ("CD", "RV-3028-C7 RTC on the always-on rail, its own I2C bus; time-stamps every reset"),
+    "RF-21": ("CD", "Readbacks wired on the RF board (W4 J1-8/9/10) and the OBC (PC9, PG12, PC7)"),
+    "EPS-14": ("CD", "GNSS_EN PE5, XPDR_EN PE4 (SQSO-ICX-001)"),
+    "GNC-04": ("CH", "Magnetometer: PNI RM3100 on the OBC board, bought-module footprint as fallback (chair accepts OBC_BOARD_DESIGN §24 C1); driver in the flight software"),
     "SE-10": ("CD", "SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined"),
 }

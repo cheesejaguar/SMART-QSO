@@ -34,9 +34,14 @@
 //! | `MR` | magnetometer samples rejected (coils on) | — |
 //! | `GF` | GNSS: age of the latest fix/satellites used | s/— |
 //! | `GS` | GNSS sessions run/with a fix | — |
+//! | `PS` | passivation (`passivation.h`: 0 idle, 1 armed, 2 firing, 3 passivated) | — |
+//! | `RX` | receiver recovery cycles since boot/known failed 1/0 (`receiver.h`) | —/— |
+//! | `CN` | authenticated commands counted as contact since boot (with `CS`, the loss-of-contact count, GND-03) | — |
+//! | `ST` | stored housekeeping: next five-minute/sixty-second record number (`hk_store.h`, DUMP_TLM) | — |
 //!
-//! At most [`MAX_LEN`] bytes, about 1.3 s on the air at 1200 bps.
+//! At most [`MAX_LEN`] bytes, about 1.9 s on the air at 1200 bps.
 //!
+//! @requirement SRS-F126 The housekeeping frame shall carry the loss-of-contact count and the commands counted as contact
 //! @requirement SRS-F085 The software shall downlink a housekeeping frame every fifth beacon and on command, carrying temperatures, battery current and voltage, array power, deployment, RF-silence, boot and reset, fault-log head, body rates, contact timeout and GNSS fix age
 
 use core::fmt::Write;
@@ -44,7 +49,7 @@ use core::fmt::Write;
 /// The information field's first bytes
 pub const PREFIX: &str = "HK1";
 /// Longest information field, bytes
-pub const MAX_LEN: usize = 200;
+pub const MAX_LEN: usize = 250;
 /// One frame every this many beacons (and on GET_HOUSEKEEPING)
 pub const EVERY_BEACONS: u32 = 5;
 /// Gap after the beacon before the frame, ms (the downlink sends one frame
@@ -109,6 +114,14 @@ pub struct Housekeeping {
     pub gnss_fix: Option<(u64, u8)>,
     /// GNSS sessions run and with a fix
     pub gnss_sessions: (u32, u32),
+    /// Passivation phase (`PassivationPhase_t`)
+    pub passivation: u32,
+    /// Receiver recovery cycles since boot, and known failed
+    pub rx: (u32, bool),
+    /// Authenticated commands counted as contact since boot
+    pub contacts: u32,
+    /// Stored housekeeping: next five-minute and sixty-second record numbers
+    pub stored: [u32; 2],
 }
 
 struct Out<'a> {
@@ -143,6 +156,12 @@ fn put(w: &mut Out<'_>, key: &str, v: Option<i32>) -> core::fmt::Result {
 
 fn flag(b: bool) -> u8 {
     u8::from(b)
+}
+
+/// The fields added at CDR: passivation, receiver, contacts, stored records
+fn tail(w: &mut Out<'_>, hk: &Housekeeping) -> core::fmt::Result {
+    let [summary, detail] = hk.stored;
+    write!(w, "PS={} RX={}/{} CN={} ST={summary}/{detail}", hk.passivation, hk.rx.0, flag(hk.rx.1), hk.contacts)
 }
 
 /// Write the information field into `out`; its length (0 if it does not fit)
@@ -201,7 +220,8 @@ pub fn format(hk: &Housekeeping, out: &mut [u8]) -> usize {
         Some((age, sats)) => write!(w, "GF={age}/{sats} "),
         None => w.write_str("GF=- "),
     })
-    .and_then(|()| write!(w, "GS={}/{}", hk.gnss_sessions.0, hk.gnss_sessions.1))
+    .and_then(|()| write!(w, "GS={}/{} ", hk.gnss_sessions.0, hk.gnss_sessions.1))
+    .and_then(|()| tail(&mut w, hk))
     .is_ok();
     if ok { w.len } else { 0 }
 }
@@ -289,13 +309,18 @@ mod tests {
             adcs_mode: 2,
             gnss_fix: Some((1200, 7)),
             gnss_sessions: (5, 4),
+            passivation: 1,
+            rx: (2, false),
+            contacts: 3,
+            stored: [12, 60],
             ..Housekeeping::default()
         };
         let t = text(&hk);
         assert_eq!(
             t,
             "HK1 N=7 UP=3600 BOOT=3 RST=2 MODE=3 HOLD=1 XP=0 TX=1 SOC=873 VB=15812 IB=-120 PA=2410 TB=123 TO=215 \
-             TP=301 TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4"
+             TP=301 TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 \
+             PS=1 RX=2/0 CN=3 ST=12/60"
         );
         assert!(t.len() <= MAX_LEN);
         assert!(t.is_ascii());
@@ -333,6 +358,10 @@ mod tests {
             mag_rejected: 4_000_000_000,
             gnss_fix: Some((99_999_999, 24)),
             gnss_sessions: (99_999, 99_999),
+            passivation: 3,
+            rx: (99_999, true),
+            contacts: 99_999,
+            stored: [u32::MAX, u32::MAX],
             ..Housekeeping::default()
         };
         assert!(text(&hk).len() <= MAX_LEN, "{}", text(&hk).len());

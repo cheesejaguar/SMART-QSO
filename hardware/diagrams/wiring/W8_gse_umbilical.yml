@@ -1,10 +1,13 @@
-# SQSO-HW-DIAG-001 W8: GSE umbilical (access port) to the OBC. Integration only; not connected in flight.
-# The plug jumpers UMBILICAL_SENSE (PB8) to GND so the software knows the umbilical is present
-# (software/rust/firmware/src/gpio.rs). USART3 is the console and the only path for loading telecommand keys
-# (docs/BASELINE_PARAMETERS.md 7). 2.54 mm header per SQSO-HAR-001 3.1 (debug). Battery charging through the
-# access port is not documented (TBD). Pinout proposed, TBR.
+# SQSO-HW-DIAG-001 W8: GSE umbilical (access port) to the OBC, version 2 (2026-10-27; SQSO-ICX-001 §3.6,
+# SQSO-OBC-BRD-001 §11). Integration only; not connected in flight. Key loading and the console are on USART3 (PD8/PD9);
+# the flight software accepts key provisioning only with UMBILICAL_SENSE (PB8) high (SQSO-ICD-013 9.2), so the GSE plug
+# jumpers pin 9 to pin 1 (VTREF). Version 1 said the plug tied pin 9 to GND, which contradicts the firmware (pull-down,
+# present = high). Pin 5, a ground in version 1, is now WDT_DIS: the GSE pulls it high to disable the external window
+# watchdog (TPS3850 SET0) for debugging with a halted core; it takes effect at the next supervisor reset (power cycle).
+# Battery charging is not on this connector: it is the EPS access-port connector J13 (UMB_CHG, PACK_N, UMB_VMON,
+# UMB_SHUT; harness W11 proposed by SQSO-EPS-BRD-001), reached through the same access window.
 metadata:
-  title: W8 GSE umbilical (SQSO-HW-DIAG-001, proposed, TBR)
+  title: W8 GSE umbilical v2 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.6)
 
 options:
   fontname: Helvetica
@@ -13,14 +16,14 @@ options:
 
 connectors:
   J_ACCESS:
-    type: 2.54 mm shrouded header
-    subtype: 2x5, access port
-    notes: "OBC board via the structure's access window: PA13, PA14, NRST, PD8, PD9, PB8"
-    pinlabels: &w8 [VTREF 3V3_AO, SWDIO, GND, SWCLK, GND, NRST, USART3_TX, USART3_RX, UMBILICAL_SENSE, GND]
+    type: Samtec TST-105-01-L-D
+    subtype: 2x5, 2.54 mm shrouded
+    notes: "OBC J9 through the structure's access window: PA13, PA14, NRST, PD8, PD9, PB8, TPS3850 SET0"
+    pinlabels: &w8 [VTREF (3V3_OBC via 100 Ohm), SWDIO, GND, SWCLK, WDT_DIS, NRST, USART3_TX (OBC out), USART3_RX (OBC in), UMBILICAL_SENSE, GND]
   P_GSE:
     type: IDC receptacle
-    subtype: 2x5
-    notes: "GSE cable: SWD probe and 3.3 V USB-UART; pins 9 and 10 jumpered in the plug"
+    subtype: 2x5, 2.54 mm
+    notes: "GSE cable: SWD probe (VTREF sense only) and a 3.3 V USB-UART referenced to VTREF; pin 9 jumpered to pin 1; WDT_DIS switch to VTREF"
     pinlabels: *w8
 
 cables:
@@ -29,8 +32,9 @@ cables:
     category: bundle
     gauge: 28 AWG
     length: 1.0
-    colors: [RD, BU, BK, YE, BK, WH, GN, OG, VT, BK]
-    notes: "Ground support only; remove before flight with the RBF pin"
+    wirecount: 10
+    colors: [RD, BU, BK, YE, PK, WH, GN, OG, VT, BK]
+    notes: "Ground support only; removed before flight with the RBF pin. The GSE UART adapter must be powered from VTREF (its RX line otherwise back-powers an unpowered OBC: 10 k series on the OBC limits it to 0.3 mA)"
 
 connections:
   - - J_ACCESS: [1-10]

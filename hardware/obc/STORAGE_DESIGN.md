@@ -2,9 +2,9 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-OBC-002
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.6
+**Date:** 2026-10-27
+**Status:** Draft (pins of §3.4 updated to the build-to design SQSO-OBC-BRD-001)
 
 ---
 
@@ -109,12 +109,16 @@ MCU (STM32L476)                    FRAM (FM25V20A)
 
 | Signal | MCU Pin | Notes |
 |--------|---------|-------|
-| SCK | PA5 | SPI clock (20 MHz max) |
-| MOSI | PA7 | Master out |
-| MISO | PA6 | Master in |
-| CS# | PA4 | Chip select (active low) |
-| WP# | PC0 | Write protect (held high) |
-| HOLD# | PC1 | Hold (held high) |
+| SCK | PG2 (SPI1 AF5) | SPI clock, 20 MHz (33 Ω series) |
+| MOSI | PG4 (SPI1 AF5) | Master out |
+| MISO | PG3 (SPI1 AF5) | Master in |
+| CS# | PG5 | Chip select (active low), 10 kΩ pull-up |
+| WP# | PE0 | Write protect (held high), 10 kΩ pull-up |
+| HOLD# | PE1 | Hold (held high), 10 kΩ pull-up |
+
+Pins as allocated by SQSO-ICX-001 §4 and the board design SQSO-OBC-BRD-001 §7 (1.6). Until 1.5 this table gave PA4–PA7
+and PC0/PC1; the firmware uses PA4–PA7 with WP#/HOLD# on PE0/PE1 and moves to PG2–PG5 (SQSO-ICX-001 §6 row 3), which
+frees four ADC1 inputs. The MCU is the STM32L4R5ZIT6 (the diagram above names the superseded STM32L476).
 
 ---
 
@@ -415,3 +419,4 @@ The interface is defined in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTIC
 | 1.3 | 2026-10-15 | Loss-of-contact records (256 B, carved from the event log) |
 | 1.4 | 2026-10-15 | RF-silence record (128 B, carved from the event log) |
 | 1.5 | 2026-10-15 | Deployment record (128 B, carved from the event log) |
+| 1.6 | 2026-10-27 | Header version aligned with the history (was 1.0 after 1.5). §3.4 FRAM pins from the master pin allocation SQSO-ICX-001 (SPI1 on PG2–PG5, WP# PE0, HOLD# PE1) |

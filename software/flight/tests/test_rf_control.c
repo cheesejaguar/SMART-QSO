@@ -236,6 +236,35 @@ static void test_tx_on_not_persisted(void **state)
     assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
 }
 
+/** AV-07: the RAM copy is checked against the record, toward TX-OFF */
+static void test_verify_toward_tx_off(void **state)
+{
+    (void)state;
+    rf_control_verify(); /* blank record, permitted: agree */
+    assert_true(rf_control_tx_permitted());
+    assert_int_equal(rf_control_tx_off(), SMART_QSO_OK);
+    hal_sim_flash_fail_writes(true);
+    assert_int_equal(rf_control_tx_on(), SMART_QSO_ERROR_IO); /* RAM on, record off */
+    hal_sim_flash_fail_writes(false);
+    assert_true(rf_control_tx_permitted());
+    rf_control_verify();
+    assert_false(rf_control_tx_permitted());
+    assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
+    assert_last_fault("RF state check: RAM copy disagreed, TX-OFF");
+}
+
+/** The receiver cycle removes radio power; nothing lifts passivation */
+static void test_cycle_and_passivation_inhibits(void **state)
+{
+    (void)state;
+    rf_control_set_inhibit(RF_INHIBIT_RX_CYCLE, true);
+    assert_false(hal_gpio_get(GPIO_PIN_RADIO_EN));
+    assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
+    rf_control_set_inhibit(RF_INHIBIT_RX_CYCLE, false);
+    assert_true(hal_gpio_get(GPIO_PIN_RADIO_EN));
+    assert_true(rf_control_tx_permitted());
+}
+
 /*===========================================================================*/
 /* Test Suite                                                                 */
 /*===========================================================================*/
@@ -256,6 +285,8 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_power_level_persists_and_validates, setup_blank_nvm, teardown),
         cmocka_unit_test_setup_teardown(test_unreadable_record_inhibits, setup_blank_nvm, teardown),
         cmocka_unit_test_setup_teardown(test_tx_on_not_persisted, setup_blank_nvm, teardown),
+        cmocka_unit_test_setup_teardown(test_verify_toward_tx_off, setup_blank_nvm, teardown),
+        cmocka_unit_test_setup_teardown(test_cycle_and_passivation_inhibits, setup_blank_nvm, teardown),
     };
 
     return cmocka_run_group_tests_name("RF Control (TX-OFF) Tests", tests, NULL, NULL);

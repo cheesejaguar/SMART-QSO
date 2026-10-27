@@ -16,14 +16,16 @@ pub struct Config {
     pub seed: u64,
     /// Integration and key load (bench), UTC as (y, m, d)
     pub integration_date: (i32, u32, u32),
-    /// Deployment from the dispenser, UTC (y, m, d, h) (BASELINE §3: 2028-06-01)
+    /// Deployment from the dispenser, UTC (y, m, d, h) (BASELINE §3: the
+    /// planning launch, the last Transporter flight of 2028, about 2028-11)
     pub deploy_utc: (i32, u32, u32, f64),
-    /// Deployment altitude, km (BASELINE §3: target ≤ 500)
+    /// Deployment altitude, km (BASELINE §3: target 475 km, 465–485 km)
     pub altitude_km: f64,
     /// Local time of the ascending node, h (Transporter SSO: descending
     /// node 10:30, so ascending 22:30)
     pub ltan_h: f64,
-    /// Pack state of charge at integration (BATTERY_DESIGN storage charge)
+    /// Pack state of charge at integration (BASELINE §4: 60 % ± 5 % at the
+    /// integrator, about 47 days before launch)
     pub integration_soc: f64,
     /// Storage temperature between integration and deployment, °C
     pub storage_temp_c: f64,
@@ -80,6 +82,15 @@ pub struct Config {
     /// gyro, BASELINE §8), bmi088 (the backup, calibrated), bmi088_uncal,
     /// adis16505)
     pub gyro: String,
+    /// Contingency: the command receiver fails for good this many days after
+    /// deployment (0: never): no frames, no carrier detect, its health line
+    /// high (REL-04)
+    pub rx_failed_day: f64,
+    /// Single-event functional interrupts that hang the command receiver
+    /// until its power is cycled (FSW-09)
+    pub rx_sefi: bool,
+    /// Days between the ground's dumps of stored housekeeping (0: none)
+    pub dump_every_days: f64,
 }
 
 impl Default for Config {
@@ -87,9 +98,10 @@ impl Default for Config {
         Config {
             scenario: "full".into(),
             seed: 20_280_601,
-            integration_date: (2028, 4, 15),
-            deploy_utc: (2028, 6, 1, 6.0),
-            altitude_km: 500.0,
+            // Storage from the integrator's final charge, L-47 d (BASELINE §4)
+            integration_date: (2028, 9, 15),
+            deploy_utc: (2028, 11, 1, 6.0),
+            altitude_km: 475.0,
             ltan_h: 22.5,
             integration_soc: 0.60,
             storage_temp_c: 20.0,
@@ -116,6 +128,9 @@ impl Default for Config {
             payload_stuck_on: false,
             array_years: 0.0,
             gyro: "mg370".into(),
+            rx_failed_day: 0.0,
+            rx_sefi: true,
+            dump_every_days: 1.0,
         }
     }
 }
@@ -184,6 +199,9 @@ impl Config {
             "wings_failed" => self.wings_failed = b()?,
             "payload_stuck_on" => self.payload_stuck_on = b()?,
             "array_years" => self.array_years = f()?,
+            "rx_failed_day" => self.rx_failed_day = f()?,
+            "rx_sefi" => self.rx_sefi = b()?,
+            "dump_every_days" => self.dump_every_days = f()?,
             "gyro" => {
                 if crate::adcs_mc::gyro_preset(v).is_none() {
                     return Err(format!("unknown gyro {v}"));
@@ -232,6 +250,9 @@ impl Config {
             ("payload_stuck_on", self.payload_stuck_on.to_string()),
             ("array_years", self.array_years.to_string()),
             ("gyro", format!("\"{}\"", self.gyro)),
+            ("rx_failed_day", self.rx_failed_day.to_string()),
+            ("rx_sefi", self.rx_sefi.to_string()),
+            ("dump_every_days", self.dump_every_days.to_string()),
         ];
         for (i, (k, v)) in fields.iter().enumerate() {
             let _ = write!(s, "  \"{k}\": {v}");
@@ -251,6 +272,10 @@ mod tests {
         assert!(Config::scenario("nope").is_none());
         let mut c = Config::scenario("smoke").unwrap();
         assert_eq!(c.mission_days, 1.0);
+        // BASELINE Rev D: 475 km, planning launch 2028-11, storage L-47 d at 60 %
+        assert_eq!((c.altitude_km, c.deploy_utc.1, c.integration_soc), (475.0, 11, 0.60));
+        let days = crate::env::time::from_utc(2028, 11, 1, 6, 0, 0.0) - crate::env::time::from_utc(2028, 9, 15, 6, 0, 0.0);
+        assert_eq!(days / 86_400.0, 47.0);
         c.set("altitude_km=450").unwrap();
         assert_eq!(c.altitude_km, 450.0);
         assert!(c.set("bogus=1").is_err());

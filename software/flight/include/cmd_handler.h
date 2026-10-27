@@ -200,6 +200,23 @@ SmartQsoResult_t cmd_register_handler(uint8_t cmd_id, CmdHandlerFunc_t handler);
  */
 const char *cmd_get_name(uint8_t cmd_id);
 
+/**
+ * @brief The oldest command acknowledgement waiting for the downlink
+ *
+ * After each authenticated command whose counter was spent (it counted as
+ * contact) the executive downlinks "ack KK6GDB-11: C=<counter> R=<result>
+ * N=<days since contact>" (GND-03; SQSO-ICD-005 §5.5). Forged, replayed and
+ * keyless frames get none.
+ *
+ * @return false if none is waiting
+ *
+ * @requirement SRS-F125 Acknowledgement frame after each authenticated command
+ */
+bool cmd_ack_pending(uint32_t *counter, uint32_t *result, uint32_t *days);
+
+/** Authenticated commands counted as contact since boot (HK1 CN) */
+uint32_t cmd_contact_count(void);
+
 #ifdef __cplusplus
 }
 #endif

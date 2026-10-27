@@ -3,15 +3,21 @@
 //! with its own deployment controller (SQSO-HW-DIAG-001 S5, W7;
 //! `docs/hardware/BUILD_VS_BUY.md` §2.6; CDR findings STR-15, STR-16).
 //!
-//! **Wings.** Each wing's hold-down line has two burn resistors, on two
-//! drivers: driver A (`SOLAR_BURN`) feeds the first resistor of both
-//! wings, driver B (`SOLAR_BURN_B`) the second. A line parts once either of
-//! its resistors has delivered that resistor's release energy, which varies
-//! from unit to unit and needs more in the cold (the wing's own
-//! temperature). A resistor draws its current for as long as its driver is
-//! on, whether or not its line has parted: the coil stays in circuit. The
-//! driver limits each resistor's current. The two wings' deployed-state
-//! switches are in series: the sense reads deployed only when both are.
+//! **Wings.** Each wing's hold-down line has two burn resistors, each on
+//! its own line and driver (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`
+//! §5: BURN_W1A, W1B, W2A, W2B; CDR EPS board design): four lines, burned
+//! one at a time by the flight software. A driver is a 0.80 A current
+//! limiter fed from the 7.04 V burn buck behind SW6 (DEPLOY_EN), with a
+//! TPL5111 one-shot that ends a burn [`ONE_SHOT_S`] after the line rises.
+//! A line parts once either of its resistors has delivered that resistor's
+//! release energy, which varies from unit to unit and needs more in the
+//! cold (the wing's own temperature). A resistor draws its current for as
+//! long as its driver is on, whether or not its line has parted. The pack
+//! supplies the buck: [`BURN_BUCK_V`] × the drivers' current over the
+//! pack voltage and [`BURN_BUCK_EFF`], at most [`BURN_BUCK_LIMIT_A`] on the
+//! buck's side (a four-driver software fault). The two wings'
+//! deployed-state switches are in series: the sense reads deployed only
+//! when both are.
 //!
 //! **Antenna.** The AntS deploys its four tape elements itself, one at a
 //! time, when the OBC has armed it and asked for an automatic deployment
@@ -23,6 +29,15 @@ use crate::env::math::Rng;
 
 /// Burn resistor, Ω (`hardware/rf/ANTENNA_DESIGN.md`: about 5 Ω, to be measured)
 pub const BURN_OHMS: f64 = 5.0;
+/// The burn buck's output, V (EPS_BOARD_DESIGN §5: U17)
+pub const BURN_BUCK_V: f64 = 7.04;
+/// Its efficiency at 0.8 A (an assumption that gives the board's 0.51 A
+/// at the pack for one burn at 12.8 V)
+pub const BURN_BUCK_EFF: f64 = 0.86;
+/// Its current limit, A
+pub const BURN_BUCK_LIMIT_A: f64 = 2.8;
+/// The driver's one-shot: a burn ends this long after its line rises, s
+pub const ONE_SHOT_S: f64 = 12.0;
 /// Per-resistor current with the S5 current limit, A (to be set with the power reviewer)
 pub const BURN_LIMIT_A: f64 = 0.8;
 /// Mean release energy at 20 °C, J (a nichrome coil on a Dyneema line)
@@ -59,13 +74,15 @@ pub struct Wing {
     pub burn_s: f64,
 }
 
-/// The two wings and their two drivers
+/// The two wings and their four drivers
 #[derive(Clone, Copy, Debug)]
 pub struct Wings {
     /// W1 and W2
     pub elements: [Wing; 2],
-    /// Each driver was on in the last step
-    pub was_burning: [bool; 2],
+    /// Each driver ([wing][resistor]) was commanded in the last step
+    pub was_burning: [[bool; 2]; 2],
+    /// How long each driver has been on since its line rose, s
+    on_s: [[f64; 2]; 2],
 }
 
 impl Wings {
@@ -77,7 +94,7 @@ impl Wings {
             deployed: false,
             burn_s: 0.0,
         };
-        Wings { elements: [w("wing W1"), w("wing W2")], was_burning: [false; 2] }
+        Wings { elements: [w("wing W1"), w("wing W2")], was_burning: [[false; 2]; 2], on_s: [[0.0; 2]; 2] }
     }
 
     /// Both deployed (the series sense chain is closed)
@@ -85,30 +102,36 @@ impl Wings {
         self.elements.iter().all(|e| e.deployed)
     }
 
-    /// One step with the drivers (A, B) as driven; the current drawn, A
-    fn step(&mut self, dt: f64, drivers: [bool; 2], vbat: f64, temps_c: [f64; 2], limit: Option<f64>) -> f64 {
-        let per = limit.map_or(vbat / BURN_OHMS, |l| l.min(vbat / BURN_OHMS));
-        // Every resistor on a driver that is on draws current, parted or not
-        let on = drivers.iter().filter(|&&d| d).count() as f64;
-        let current = per * on * self.elements.len() as f64;
-        for (w, temp_c) in self.elements.iter_mut().zip(temps_c) {
-            for (r, &driven) in drivers.iter().enumerate() {
+    /// One step with the lines ([wing][resistor]) as driven; the current
+    /// the drivers draw from the burn buck, A
+    fn step(&mut self, dt: f64, lines: [[bool; 2]; 2], temps_c: [f64; 2], limit: Option<f64>) -> f64 {
+        let per = limit.map_or(BURN_BUCK_V / BURN_OHMS, |l| l.min(BURN_BUCK_V / BURN_OHMS));
+        let mut current = 0.0;
+        for (k, (w, temp_c)) in self.elements.iter_mut().zip(temps_c).enumerate() {
+            let mut any = false;
+            for r in 0..2 {
+                let line = lines[k][r];
+                self.on_s[k][r] = if line { self.on_s[k][r] + dt } else { 0.0 };
+                // The one-shot ends the burn 12 s after the line rose
+                let driven = line && self.on_s[k][r] <= ONE_SHOT_S;
                 if driven {
+                    any = true;
+                    current += per;
                     w.heat_j[r] += per * per * BURN_OHMS * dt;
                     let need = w.release_j[r] * (1.0 + COLD_PER_C * (20.0 - temp_c).max(0.0));
                     if !w.deployed && w.heat_j[r] >= need {
                         w.deployed = true;
                     }
-                } else if self.was_burning[r] {
+                } else if self.was_burning[k][r] {
                     w.heat_j[r] *= HEAT_RETAINED;
                 }
+                self.was_burning[k][r] = driven;
             }
-            if drivers.iter().any(|&d| d) && !w.deployed {
+            if any && !w.deployed {
                 w.burn_s += dt;
             }
         }
-        self.was_burning = drivers;
-        current
+        current.min(BURN_BUCK_LIMIT_A)
     }
 }
 
@@ -213,8 +236,10 @@ pub struct Deployables {
     pub wings: Wings,
     /// Per-resistor current limit of the burn driver, A (`None`: direct drive)
     pub limit_a: Option<f64>,
-    /// Burn current drawn now, A
+    /// Burn current drawn from the pack now, A
     pub current_a: f64,
+    /// Most wing resistors burning at once
+    pub max_wing_lines: usize,
 }
 
 /// What the OBC drives in one step
@@ -222,10 +247,8 @@ pub struct Deployables {
 pub struct Commands {
     /// The master arm (`DEPLOY_EN`): the wing drivers need it
     pub armed: bool,
-    /// Wing driver A
-    pub wing_a: bool,
-    /// Wing driver B
-    pub wing_b: bool,
+    /// The wing lines, [wing][resistor]: W1A, W1B; W2A, W2B
+    pub wing: [[bool; 2]; 2],
     /// The AntS is armed (I2C)
     pub ants_armed: bool,
     /// The AntS deployment's per-element limit, s (0: none)
@@ -235,14 +258,18 @@ pub struct Commands {
 impl Deployables {
     /// Stowed in the dispenser
     pub fn new(rng: &mut Rng, limit_a: Option<f64>) -> Deployables {
-        Deployables { separated: false, ants: Ants::new(rng), wings: Wings::new(rng), limit_a, current_a: 0.0 }
+        Deployables { separated: false, ants: Ants::new(rng), wings: Wings::new(rng), limit_a, current_a: 0.0, max_wing_lines: 0 }
     }
 
     /// Advance with the OBC's lines and commands; the burn current drawn
     /// from the pack, A. `wing_c` are the wings' temperatures, `ants_c` the
     /// antenna face's
     pub fn step(&mut self, dt: f64, cmd: Commands, vbat: f64, wing_c: [f64; 2], ants_c: f64) -> f64 {
-        let w = self.wings.step(dt, [cmd.armed && cmd.wing_a, cmd.armed && cmd.wing_b], vbat, wing_c, self.limit_a);
+        let lines = cmd.wing.map(|w| w.map(|l| cmd.armed && l));
+        let on = lines.iter().flatten().filter(|l| **l).count();
+        self.max_wing_lines = self.max_wing_lines.max(on);
+        let buck_a = self.wings.step(dt, lines, wing_c, self.limit_a);
+        let w = buck_a * BURN_BUCK_V / (vbat.max(1.0) * BURN_BUCK_EFF);
         let a = self.ants.step(dt, cmd.ants_armed, cmd.ants_limit_s, vbat, ants_c);
         self.current_a = a + w;
         self.current_a
@@ -265,66 +292,80 @@ mod tests {
 
     const WARM: [f64; 2] = [10.0, 10.0];
 
-    fn wings(a: bool, b: bool) -> Commands {
-        Commands { armed: true, wing_a: a, wing_b: b, ..Commands::default() }
+    fn wing_line(w: usize, r: usize) -> Commands {
+        let mut c = Commands { armed: true, ..Commands::default() };
+        c.wing[w][r] = true;
+        c
     }
 
     #[test]
-    fn an_eight_second_limited_burn_deploys_both_wings_on_either_driver() {
-        for (a, b) in [(true, false), (false, true)] {
+    fn an_eight_second_burn_on_either_resistor_deploys_its_wing() {
+        for r in 0..2 {
             let mut rng = Rng::new(3);
             let mut d = Deployables::new(&mut rng, Some(BURN_LIMIT_A));
-            for _ in 0..80 {
-                d.step(0.1, wings(a, b), 15.0, WARM, 10.0);
+            for w in 0..2 {
+                for _ in 0..80 {
+                    d.step(0.1, wing_line(w, r), 15.0, WARM, 10.0);
+                }
+                assert!(d.wings.elements[w].deployed, "wing {w} resistor {r}");
             }
-            assert!(d.wings_deployed(), "{a} {b}");
+            assert!(d.wings_deployed());
             assert!(!d.antennas_deployed());
+            assert_eq!(d.max_wing_lines, 1);
         }
     }
 
     #[test]
-    fn a_parted_line_still_draws_its_resistors_current() {
+    fn one_burn_draws_about_half_an_amp_from_the_pack() {
         let mut rng = Rng::new(3);
         let mut d = Deployables::new(&mut rng, Some(BURN_LIMIT_A));
-        let first = d.step(0.1, wings(true, false), 15.0, WARM, 10.0);
-        for _ in 0..200 {
-            d.step(0.1, wings(true, false), 15.0, WARM, 10.0);
+        let at_12v8 = d.step(0.1, wing_line(0, 0), 12.8, WARM, 10.0);
+        assert!((at_12v8 - 0.51).abs() < 0.01, "{at_12v8}");
+        // A parted line still draws its resistor's current
+        for _ in 0..90 {
+            d.step(0.1, wing_line(0, 0), 15.0, WARM, 10.0);
         }
-        assert!(d.wings_deployed());
-        let after = d.step(0.1, wings(true, false), 15.0, WARM, 10.0);
-        assert!((after - first).abs() < 1e-12 && (after - 2.0 * BURN_LIMIT_A).abs() < 1e-12, "{first} {after}");
-        // Both drivers: four resistors
-        assert!((d.step(0.1, wings(true, true), 15.0, WARM, 10.0) - 4.0 * BURN_LIMIT_A).abs() < 1e-12);
+        assert!(d.wings.elements[0].deployed);
+        assert!(d.step(0.1, wing_line(0, 0), 15.0, WARM, 10.0) > 0.4);
+        // The one-shot ends it 12 s after the line rose
+        for _ in 0..40 {
+            d.step(0.1, wing_line(0, 0), 15.0, WARM, 10.0);
+        }
+        assert_eq!(d.step(0.1, wing_line(0, 0), 15.0, WARM, 10.0), 0.0);
+        // A four-driver fault is held by the buck's limit
+        let all = Commands { armed: true, wing: [[true; 2]; 2], ..Commands::default() };
+        let mut rng = Rng::new(3);
+        let mut f = Deployables::new(&mut rng, Some(BURN_LIMIT_A));
+        let i = f.step(0.1, all, 12.8, WARM, 10.0);
+        assert!(i < 2.0 && i > 1.5, "{i}");
+        assert_eq!(f.max_wing_lines, 4);
     }
 
     #[test]
-    fn the_cold_wing_needs_more_and_direct_drive_exceeds_the_fuse() {
+    fn the_cold_wing_needs_more() {
         let mut rng = Rng::new(3);
         let mut cold = Deployables::new(&mut rng, Some(BURN_LIMIT_A));
         let mut rng = Rng::new(3);
         let mut warm = Deployables::new(&mut rng, Some(BURN_LIMIT_A));
         let (mut t_cold, mut t_warm) = (0, 0);
-        for k in 0..400 {
-            if !cold.wings_deployed() {
-                cold.step(0.1, wings(true, false), 15.0, [-40.0, -40.0], 10.0);
+        for k in 0..110 {
+            if !cold.wings.elements[0].deployed {
+                cold.step(0.1, wing_line(0, 0), 15.0, [-40.0, -40.0], 10.0);
                 t_cold = k;
             }
-            if !warm.wings_deployed() {
-                warm.step(0.1, wings(true, false), 15.0, [20.0, 20.0], 10.0);
+            if !warm.wings.elements[0].deployed {
+                warm.step(0.1, wing_line(0, 0), 15.0, [20.0, 20.0], 10.0);
                 t_warm = k;
             }
         }
         assert!(t_cold > t_warm, "{t_cold} {t_warm}");
-        let mut rng = Rng::new(3);
-        let mut d = Deployables::new(&mut rng, None);
-        assert!(d.step(0.1, wings(true, true), 14.4, WARM, 20.0) > 5.0);
     }
 
     #[test]
     fn nothing_burns_without_the_arm_or_a_command() {
         let mut rng = Rng::new(3);
         let mut d = Deployables::new(&mut rng, Some(BURN_LIMIT_A));
-        let unarmed = Commands { armed: false, wing_a: true, wing_b: true, ..Commands::default() };
+        let unarmed = Commands { armed: false, wing: [[true; 2]; 2], ..Commands::default() };
         for _ in 0..100 {
             assert_eq!(d.step(0.1, unarmed, 15.0, WARM, 20.0), 0.0);
         }

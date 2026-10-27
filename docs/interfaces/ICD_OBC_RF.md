@@ -1,10 +1,10 @@
 # Interface Control Document: OBC to RF Subsystem
 
 **Document ID**: SQSO-ICD-003
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR. The OBC side is as built in the flight software and firmware (not run on hardware); the RF side is the design of `docs/hardware/RF_DESIGN.md` v2.0, whose parts are not yet selected. Pin numbers are provisional until the OBC schematic (`software/rust/firmware/src/gpio.rs`).
+**Status**: CDR. Both sides are build-to designs: the OBC board SQSO-OBC-BRD-001 (`hardware/electrical/obc/OBC_BOARD_DESIGN.md` §13) with the master pin allocation SQSO-ICX-001 (`hardware/electrical/INTERCONNECT.md`), and the RF board SQSO-RF-BRD-001 (`hardware/electrical/rf/RF_BOARD_DESIGN.md` §4). Not built or measured. The firmware's pins are unchanged for this interface except the three new readback inputs.
 
 ## 1. Purpose
 
@@ -22,6 +22,9 @@ the baseline: the flight software was built to a KISS TNC on a UART (change requ
 |----------|-------|
 | SQSO-BL-001 Rev D | Baseline parameters (§7 governs RF values) |
 | SMART-QSO-RF-001 v2.0 | RF subsystem design (`docs/hardware/RF_DESIGN.md`) |
+| SQSO-RF-BRD-001 A | RF board build-to design (`hardware/electrical/rf/RF_BOARD_DESIGN.md`) |
+| SQSO-OBC-BRD-001 A | OBC board build-to design (`hardware/electrical/obc/OBC_BOARD_DESIGN.md`) |
+| SQSO-ICX-001 A | Spacecraft electrical interconnect and master pin allocation (`hardware/electrical/INTERCONNECT.md`) |
 | SQSO-RF-TX-001 | RF transmitter design (`hardware/rf/TRANSMITTER_DESIGN.md`) |
 | SQSO-ICD-013 | Telecommand authentication and TX-OFF (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`) |
 | SMART-QSO-ICD-006 | Beacon format (`docs/BEACON_SPEC.md`) |
@@ -42,7 +45,9 @@ the baseline: the flight software was built to a KISS TNC on a UART (change requ
  TX_TEMP    PA0  <--- PA temperature (analog) -----  NTC / TMP36-class sensor
  TX_FWD     PC0  <--- forward power (analog) ------  -20 dB coupler + RMS detector
  TX_REV     PC1  <--- reflected power (analog) ----  coupler reverse port
- (TONE_OK, XPDR_KEY, PTT_EXCITER readbacks: allocated on the RF board, OBC inputs not yet assigned; §4.3)
+ TONE_OK    PC9  <--- CTCSS 67.0 Hz decoded -------  TNC MCU (CMX138A tone status)
+ XPDR_KEY   PG12 <--- repeat path keyed ----------  EN_OK . TONE_OK . NOT_TOT
+ PTT_EXC    PC7  <--- transmitter keyed (TIM8_CH2)-  TX_PERMIT_HW . (TNC_PTT + XPDR_KEY)
 ```
 
 The OBC does not modulate, demodulate, run HDLC or the CTCSS decoder. The TNC and the repeat path are hardware on the
@@ -52,43 +57,50 @@ RF board, so no flight software is in the audio path (BUILD_VS_BUY §3.2).
 
 ### 4.1 Connector
 
-One board-to-board or harness connector, OBC J-RF to RF J1, ≤ 150 mm, with signal grounds interleaved; shield to
-chassis at the OBC end. Part and pin-out: open until the OBC and RF schematics (both not yet drawn). The table below is
-the signal list the connector must carry.
+Harness W4A version 2: Samtec FTSH-107-01-L-DV-K (14 positions, 1.27 mm) at both ends, OBC J2 to RF J1, 28 AWG,
+0.06 m, three signal grounds interleaved and an analog return on pin 14. RADIO_EN and RF_TX_EN switch the RF rails on
+the EPS (W3 pins 10 and 14); the rails reach the RF board on W4B (EPS J19 to RF J2, Molex Pico-Clasp 6, 24 AWG:
+RADIO_3V3 on pin 1, PA_5V on pins 3–4). Pin numbers below are J1/J2 positions.
 
 ### 4.2 Signals
 
-| Signal | Dir. | MCU pin (provisional) | Type, levels | Default and fail-safe | Driven by |
-|--------|------|-----------------------|--------------|-----------------------|-----------|
-| GND (×3) | — | — | Signal return | — | — |
-| TNC_TXD (OBC → TNC) | OBC→RF | PD5 (USART2 TX) | 3.3 V CMOS UART, 9600 baud, 8N1 | Idle high | `hal_radio_transmit()`, `software/rust/firmware/src/radio.rs` |
-| TNC_RXD (TNC → OBC) | RF→OBC | PD6 (USART2 RX) | 3.3 V CMOS UART | — | TNC |
-| RADIO_EN | OBC→RF | PB5 | 3.3 V, high = radio powered | **Low at reset** (push-pull low from boot; RF-side pull-down) | `rf_silence` (low for 45 min after deployment), then always high (ICD-013 §6.3) |
-| RF_TX_EN | OBC→RF | PA3 | 3.3 V, high = PA supply on | **Low at reset**; RF-side pull-down, so a reset or unpowered OBC leaves the PA off | `rf_control`: high only when TX-OFF, loss-of-contact and RF-silence inhibits are all clear (ICD-013 §6) |
-| TX_PWR_SEL | OBC→RF | PE3 | 3.3 V, low = 0.5 W, high = 1 W | Low at reset (0.5 W) | `downlink.h`: the commanded level (`SET_POWER`), capped at 0.5 W after a VSWR event |
-| XPDR_EN | OBC→RF | PE4 | 3.3 V square wave, 100 Hz (`HAL_GPIO_HEARTBEAT_HZ`); the RF board's retriggerable monostable (≈ 50 ms) gives EN_OK | Low at reset (high-Z then low); **a level held high is "disabled"** | `hal_gpio_heartbeat()` with a lease renewed each main-loop pass (`software/rust/firmware/src/heartbeat.rs`) while `sqso_fsw::transponder` permits |
-| TX_TEMP | RF→OBC | PA0 (ADC1 IN5) | 0–2.5 V, 10 mV/°C, 500 mV at 0 °C (TMP36-class) | — | `downlink_poll()`: hold above 70 °C, resume below 60 °C |
-| TX_FWD | RF→OBC | PC0 (ADC1 IN1) | 0–2.5 V, square law, 2.5 V at 1 W | — | `downlink_poll()` |
-| TX_REV | RF→OBC | PC1 (ADC1 IN2) | as TX_FWD | — | VSWR 3:1 (reflected > ¼ forward) on 3 samples: cap 0.5 W; at 0.5 W, stop 10 min |
+| J pin | Signal | Dir. | MCU pin | Type, levels | Default and fail-safe | OBC-side parts | RF-side parts |
+|------:|--------|------|---------|--------------|-----------------------|----------------|---------------|
+| 1, 4, 7 | GND | — | — | Signal return | — | — | — |
+| 2 | TNC_RXD (OBC → TNC) | OBC→RF | PD5 (USART2 TX) | 3.3 V CMOS UART, 9600 baud, 8N1 | Idle high; high-Z at OBC reset | 100 Ω series, ESD | 1 kΩ series into the TNC MCU (5 V tolerant) |
+| 3 | TNC_TXD (TNC → OBC) | RF→OBC | PD6 (USART2 RX) | 3.1 V CMOS UART | — | 10 kΩ series (back-power limit), 100 kΩ pull-up | 100 Ω series |
+| 5 | TX_PWR_SEL | OBC→RF | PE3 | 3.3 V, low = 0.5 W, high = 1 W | **Low at reset** (RF 100 kΩ pull-down) | 100 Ω | 1 kΩ + 100 kΩ |
+| 6 | XPDR_EN | OBC→RF | PE4 | 100 Hz square wave (`HAL_GPIO_HEARTBEAT_HZ`, TIM7 interrupt); the RF board's retriggerable monostable (U401, 46.8–58.0 ms) gives EN_OK | Low at reset; **a level held high is "disabled"** | 100 Ω | 1 kΩ + 100 kΩ pull-down |
+| 8 | TONE_OK | RF→OBC | **PC9** (EXTI9) | 3.1 V CMOS push-pull through 1 kΩ; high = CTCSS 67.0 Hz decoded | low with the TNC in reset or the radio off | 10 kΩ series, **100 kΩ pull-down** | 1 kΩ, 100 kΩ pull-down |
+| 9 | XPDR_KEY | RF→OBC | **PG12** (EXTI12) | as TONE_OK; high = repeat path keyed (EN_OK · TONE_OK · NOT_TOT) | low with the radio off | 10 kΩ, 100 kΩ pull-down | 1 kΩ |
+| 10 | PTT_EXCITER | RF→OBC | **PC7** (TIM8_CH2 input capture) | as TONE_OK; high = transmitter keyed (beacon or repeat, TX permitted) | low with the radio off | 10 kΩ, 100 kΩ pull-down | 1 kΩ |
+| 11 | TX_TEMP | RF→OBC | PA0 (ADC1 IN5) | 0.3–1.7 V, 10 mV/°C, 500 mV at 0 °C | — | 10 kΩ series, 10 nF | 1 kΩ / 100 nF |
+| 12 | TX_FWD | RF→OBC | PC0 (ADC1 IN1) | 0–2.5 V, P = 0.16 V² W (2.5 V at 1 W) | — | 10 kΩ, 10 nF | 1 kΩ / 100 nF |
+| 13 | TX_REV | RF→OBC | PC1 (ADC1 IN2) | as TX_FWD; 1.25 V at 3:1 and 1 W | — | 10 kΩ, 10 nF | 1 kΩ / 100 nF |
+| 14 | AGND | — | — | monitor return | — | — | — |
+| (W3-10) | RADIO_EN | OBC→EPS | PB5 | 3.3 V, high = SW2 (radio rail) on | **Low at reset** (EPS 100 kΩ) | 100 Ω | — |
+| (W3-14) | RF_TX_EN | OBC→EPS | PA3 | 3.3 V, high = SW3 (PA rail) on | **Low at reset**; EPS pull-down mandatory, so a reset or unpowered OBC leaves the PA off | 100 Ω | — (the RF board derives TX_PERMIT_HW from PA_5V) |
 
-The ADC scalings are those in `software/rust/firmware/src/adc.rs` and stay open (flagged for review in the code) until the detector
-and sensor parts are selected.
+Readback levels: V_DIG 3.10 V ± 1.5 %, VOH ≥ 2.9 V at the 1 kΩ, against the STM32's VIH 2.31 V (0.6 V margin). The
+OBC-side 10 kΩ series resistors limit the current into an unpowered OBC (the radio stays on while the OBC is power
+cycled): together with the EPS lines, ≤ 2.2 mA (SQSO-OBC-BRD-001 §16). The ADC scalings are those of
+`software/rust/firmware/src/adc.rs` and now match the RF board's detector and sensor (RF board §7.6).
 
-### 4.3 Readbacks (allocated, not yet wired to the OBC)
+### 4.3 Readbacks (wired, RIDs RF-21 and AV-05)
 
-BUILD_VS_BUY §3.2 gives the RF board three status outputs: TONE_OK (CTCSS valid), XPDR_KEY (repeat path keyed) and
-PTT_EXCITER. The flight software measures keyed time on TX_FWD today. These three should be wired to spare OBC inputs
-so that the transponder statistics and the key-down timer can be verified in flight (closure: the OBC schematic
-assigns pins; the firmware reads them).
+TONE_OK, XPDR_KEY and PTT_EXCITER are wired to the OBC (§4.2, J pins 8–10). The firmware reads TONE_OK and XPDR_KEY
+into the transponder statistics (EXTI on each edge, or a poll each pass) and measures PTT_EXCITER's keyed time by
+input capture on TIM8_CH2, replacing the frame-length estimate of §5.3 and giving the 25 % duty and 5 s key-down
+checks a measurement. Reading them is flight-software work (SQSO-ICX-001 §6 row 18).
 
 ### 4.4 Power
 
 | Rail | Source | Switched by | Load |
 |------|--------|-------------|------|
-| Radio (receiver, TNC, exciter, repeat path) | EPS 3.3 V / 5 V regulated | RADIO_EN load switch (on the RF board) | ≤ 0.15 W receiving; ≤ 30 mW repeat path |
-| PA | Battery-derived rail (14.4 V nominal through a regulator, or a dedicated PA regulator) | RF_TX_EN load switch | ≈ 1.5 W keyed at 0.5 W RF, ≈ 2.7 W at 1 W |
+| RADIO_3V3 (receiver, TNC, exciter, repeat path) | EPS 3V3_AO through SW2 (TPS2553-Q1), W4B pin 1 | RADIO_EN (PB5) | 31 mA typical, 38 mA worst receiving; + 7–9 mA repeat path; + 44–51 mA keyed |
+| PA_5V | EPS 5V_PA buck through SW3 (TPS2553-Q1, trip ≈ 1 A), W4B pins 3–4 | RF_TX_EN (PA3) AND the EPS load shed | 0.352 A at 0.5 W RF, 0.469 A at 1 W |
 
-Power-up order: RADIO_EN high, ≥ 10 ms, then the OBC sends the KISS parameter commands (§5.2) before the first frame
+Power-up order: RADIO_EN high, receiver ready ≤ 50 ms later (RF board §15 item 12), then the OBC sends the KISS parameter commands (§5.2) before the first frame
 (the firmware sends them before every frame, because the radio may have been off).
 
 ## 5. Logical Interface
@@ -141,7 +153,9 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | Time on air of a 110-byte beacon | ≈ 1.2 s (TXDELAY 0.3 s + 1,060 bits at 1200 bps) | SIL: 1.22 s average |
 | RF_TX_EN low to RF off at the antenna | ≤ 1 ms (load switch) | VI-RF-12 |
 | XPDR_EN edges stop to repeat path unkeyed | ≤ 100 ms (monostable 50 ms + gate) | VI-RF-11 |
-| RADIO_EN high to receiver ready | ≤ 100 ms | Receiver selection |
+| RADIO_EN high to receiver ready | ≤ 50 ms (TNC MCU boot ≈ 5 ms, CC1200 set-up ≈ 10 ms, TCXO ≤ 2 ms) | SQSO-RF-BRD-001 §15 item 12 |
+| XPDR_EN last edge to EN_OK low | 46.8–58.0 ms (stalled main loop: ≤ 60 ms lease + ≤ 58 ms = 118 ms) | SQSO-RF-BRD-001 §8.1 |
+| Readback valid after RADIO_EN | with the receiver ready (≤ 50 ms) | §4.2 |
 
 ## 7. Verification
 
@@ -157,10 +171,11 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 
 | Item | Closure |
 |------|---------|
-| Connector part and pin-out | OBC and RF schematics |
-| Readback pins for TONE_OK, XPDR_KEY, PTT_EXCITER | OBC schematic, firmware |
-| ADC scaling of TX_TEMP, TX_FWD, TX_REV | Part selection (RF_DESIGN §9) |
-| TNC part | RF_DESIGN §9 |
+| Connector part and pin-out | **Closed**: W4A v2, FTSH-107 at both ends (§4.1, §4.2; SQSO-ICX-001 §3.2) |
+| Readback pins for TONE_OK, XPDR_KEY, PTT_EXCITER | **Closed in hardware**: PC9, PG12, PC7 (§4.3); the firmware reading them is open (flight-software change, SQSO-ICX-001 §6) |
+| ADC scaling of TX_TEMP, TX_FWD, TX_REV | **Closed**: the RF board's detector and sensor match `adc.rs` (RF board §7.6) |
+| TNC part | **Closed**: TNC MCU on the RF board (SQSO-RF-BRD-001 §13) |
+| VI-RF-11 "unkeys within 100 ms" vs the 118 ms stalled-loop case | open, for the chair: measure from the last edge, or shorten the lease to ≤ 40 ms (RF board §15 item 13) |
 
 ## 9. Revision History
 
@@ -170,3 +185,4 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | 1.1 | 2026-10-16 | SMART-QSO Team | Beacon Format ICD cited by its own number, SMART-QSO-ICD-006 (finding PI-17) |
 | 1.1, note | 2026-10-24 | SMART-QSO Team | RF_TX_EN row names the Rust file that replaced `rf_control.c` |
 | 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten to the interface as built: KISS TNC on USART2 (CR-2026-005), RADIO_EN, RF_TX_EN, TX_PWR_SEL, the XPDR_EN heartbeat, the transmitter monitors; KISS parameters; timing; readbacks allocated; verification. The Si4463 SPI command set, 9600 bps GFSK and 145.825 MHz are removed |
+| 2.1 | 2026-10-27 | CDR design completion (OBC board, SQSO-OBC-BRD-001) | §3 readbacks drawn; §4.1 connector W4A v2 (FTSH-107, 14 positions) and W4B; §4.2 pin-by-pin with the OBC and RF parts, readback levels, OBC series resistors; §4.3 readbacks wired to PC9, PG12, PC7 (RIDs RF-21, AV-05); §4.4 rails from the EPS board; §6 receiver ready ≤ 50 ms, EN_OK timing; §8 open items closed or carried; from SQSO-RF-BRD-001 §4 |

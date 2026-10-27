@@ -104,7 +104,9 @@ bool rf_control_tx_permitted(void);
  */
 typedef enum {
     RF_INHIBIT_CONTACT    = 0x01U, /**< Loss of contact (contact_monitor.h): transmitters off */
-    RF_INHIBIT_RF_SILENCE = 0x02U  /**< Post-deployment silence (rf_silence.h): whole radio off */
+    RF_INHIBIT_RF_SILENCE = 0x02U, /**< Post-deployment silence (rf_silence.h): whole radio off */
+    RF_INHIBIT_PASSIVATED = 0x04U, /**< End-of-life passivation (passivation.h): transmitters off for good, never lifted */
+    RF_INHIBIT_RX_CYCLE   = 0x08U  /**< Receiver recovery power cycle (receiver.h): whole radio off */
 } RfInhibit_t;
 
 /**
@@ -112,11 +114,24 @@ typedef enum {
  *
  * Transmission is permitted only when the TX-OFF latch and every automatic
  * inhibit are clear; clearing one never clears another. Only
- * RF_INHIBIT_RF_SILENCE also removes radio power (GPIO_PIN_RADIO_EN), so the
- * telecommand receiver stays on under TX-OFF and loss of contact. May be
- * called before rf_control_init(); the lines are driven once initialized.
+ * RF_INHIBIT_RF_SILENCE and RF_INHIBIT_RX_CYCLE also remove radio power
+ * (GPIO_PIN_RADIO_EN), so the telecommand receiver stays on under TX-OFF,
+ * loss of contact and passivation. RF_INHIBIT_PASSIVATED is never lifted.
+ * May be called before rf_control_init(); the lines are driven once
+ * initialized.
  */
 void rf_control_set_inhibit(RfInhibit_t source, bool active);
+
+/**
+ * @brief Check the RAM copy of the TX-OFF latch against its record (AV-07)
+ *
+ * Called every minute. A record saying TX-OFF, or one that cannot be
+ * read, inhibits; a TX-OFF in RAM that the record does not hold is
+ * persisted. Each disagreement is logged.
+ *
+ * @requirement SRS-F133 Periodic check of the critical persisted state against its CRC-protected records
+ */
+void rf_control_verify(void);
 
 /**
  * @brief Select the downlink power level and persist it

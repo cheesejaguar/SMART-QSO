@@ -19,7 +19,7 @@ use crate::c::rc;
 use crate::cell::Global;
 use crate::{os, ptr, time};
 
-const GPIO_PIN_COUNT: usize = 19;
+const GPIO_PIN_COUNT: usize = 25;
 const GPIO_DIR_INPUT: u32 = 0;
 const GPIO_DIR_OUTPUT: u32 = 1;
 /// `GPIO_PIN_XPDR_EN`, the heartbeat pin
@@ -31,7 +31,7 @@ const UART_PORT_COUNT: usize = 3;
 const UART_PORT_DEBUG: u32 = 1;
 const SPI_BUS_COUNT: usize = 2;
 const ADC_CHANNEL_COUNT: usize = 10;
-const FLASH_REGION_COUNT: usize = 12;
+const FLASH_REGION_COUNT: usize = 16;
 const RADIO_MAX_FRAME: usize = 330;
 const WDT_DEFAULT_TIMEOUT_MS: u32 = 30_000;
 const WDT_MIN_TIMEOUT_MS: u32 = 1000;
@@ -56,18 +56,22 @@ const ADC_VALUES: [f64; ADC_CHANNEL_COUNT] = [7.8, -0.5, 9.2, 0.45, 5.0, 35.0, 2
 
 /// Region sizes, bytes, in `HalFlashRegion_t` order
 const FLASH_SIZES: [usize; FLASH_REGION_COUNT] = [
-    512,  // MISSION_DATA
-    256,  // EPS_CONFIG
-    512,  // SENSOR_CONFIG
-    4096, // FAULT_LOG
-    1024, // BACKUP
-    512,  // STATE (SystemState_t)
-    768,  // AUTH (key table: CMD_AUTH_NVM_SIZE, six two-slot records)
-    256,  // RF_CONTROL (TX latch and power-level records)
-    256,  // CONTACT (loss-of-contact counter and timeout records)
-    128,  // RF_SILENCE (post-deployment silence record)
-    128,  // DEPLOYMENT (deployment sequence record)
-    128,  // OPS (commissioning hold and transponder enable record)
+    512,                               // MISSION_DATA
+    256,                               // EPS_CONFIG
+    512,                               // SENSOR_CONFIG
+    4096,                              // FAULT_LOG
+    1024,                              // BACKUP
+    512,                               // STATE (SystemState_t)
+    768,                               // AUTH (key table: CMD_AUTH_NVM_SIZE, six two-slot records)
+    256,                               // RF_CONTROL (TX latch and power-level records)
+    256,                               // CONTACT (loss-of-contact counter and timeout records)
+    128,                               // RF_SILENCE (post-deployment silence record)
+    128,                               // DEPLOYMENT (deployment sequence record)
+    128,                               // OPS (commissioning hold and transponder enable record)
+    sqso_fsw::hk_store::SUMMARY_BYTES, // HK_SUMMARY (five-minute housekeeping records)
+    65_536,                            // HK_DETAIL (sixty-second records: ring and event windows)
+    256,                               // HK_INDEX (the event-window table)
+    128,                               // EOL (passivation record)
 ];
 const FLASH_TOTAL: usize = {
     let mut total = 0;

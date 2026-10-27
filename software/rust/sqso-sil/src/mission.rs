@@ -40,8 +40,14 @@ const OBC_W: f64 = 0.165;
 const ADCS_SENSORS_W: f64 = 0.12;
 /// Magnetorquer drive at full dipole (all three coils), W
 const MTQ_FULL_W: f64 = 0.30;
-/// Battery heater, W (BASELINE §5)
-const HEATER_W: f64 = 0.5;
+/// Battery heater, Ω (BASELINE §8: about 207 Ω, 0.72–1.30 W across the
+/// bus; THM-15): its power is V²/R at the pack voltage
+const HEATER_OHMS: f64 = 207.0;
+/// The end-of-life disconnect's heater, Ω (EPS_DESIGN §7: 20–50 Ω)
+const EOL_HEATER_OHMS: f64 = 35.0;
+/// The thermal cut-off opens after this long on its heater, s (an
+/// assumption inside the flight software's 60 s minimum hold)
+const EOL_OPEN_S: f64 = 30.0;
 /// Status LED, W
 const LED_W: f64 = 0.005;
 /// Mass, kg (BASELINE §4: lifetime analyses use 1.6 kg)
@@ -225,8 +231,19 @@ pub struct Mission {
     latched_up: bool,
     /// How long the present latch-up has lasted, s
     latched_s: f64,
-    /// The flight software was told to send TX-OFF at end of life
-    eol_tx_off_sent: bool,
+    /// Where the end-of-life plan is
+    eol: ops::Eol,
+    /// The EPS's end-of-life arm latch is set (an `EOL_ARM` rising edge)
+    eol_latch: bool,
+    /// `EOL_ARM` at the last step
+    eol_arm_prev: bool,
+    /// The disconnect's heater has been on this long, s
+    eol_heat_s: f64,
+    /// The command receiver is hung (a single-event functional interrupt)
+    /// since this time, s after deployment
+    rx_hung_since: Option<f64>,
+    /// The day of the last stored-housekeeping dump the ground asked for
+    last_dump_day: i64,
     /// Where the commissioning plan is
     commissioning: ops::Commissioning,
     /// How long the GNSS receiver has been powered, s
@@ -339,7 +356,12 @@ impl Mission {
             contact_timeout_set: false,
             latched_up: false,
             latched_s: 0.0,
-            eol_tx_off_sent: false,
+            eol: ops::Eol::Arm,
+            eol_latch: false,
+            eol_arm_prev: false,
+            eol_heat_s: 0.0,
+            rx_hung_since: None,
+            last_dump_day: -1,
             commissioning: ops::Commissioning::Housekeeping,
             gnss_on_s: 0.0,
             last_sample: Sample::default(),
@@ -448,8 +470,12 @@ impl Mission {
         }
         l.w_3v3 += self.radio.dc_w.min(crate::hw::radio::RX_W);
         l.w_5v += (self.radio.dc_w - crate::hw::radio::RX_W).max(0.0);
+        let vbat = self.eps.telemetry.vbatt_v.max(self.eps.pack.ocv());
         if p(pin::HEATER_EN) {
-            l.w_vbat += HEATER_W;
+            l.w_vbat += vbat * vbat / HEATER_OHMS;
+        }
+        if self.eol_heater_on() {
+            l.w_vbat += vbat * vbat / EOL_HEATER_OHMS;
         }
         l.w_payload = if self.latched_up { crate::jetson::IDLE_W + LATCHUP_EXTRA_W } else { self.jetson.power_w() };
         l.burn_a = self.deploy.current_a;
@@ -459,7 +485,50 @@ impl Mission {
     fn fine_needed(&self) -> bool {
         self.radio.busy()
             || self.deploy.current_a > 0.0
-            || (self.fsw.running() && (self.fsw.pin(pin::ANTENNA_BURN) || self.fsw.pin(pin::SOLAR_BURN)))
+            || (self.fsw.running() && pin::WING_LINES.iter().flatten().any(|&n| self.fsw.pin(n)))
+    }
+
+    /// The disconnect's heater conducts: the arm latch set and both series
+    /// switches closed, the charge path not yet open
+    fn eol_heater_on(&self) -> bool {
+        self.eol_latch && !self.eps.passivated && self.fsw.pin(pin::EOL_ARM) && self.fsw.pin(pin::EOL_FIRE)
+    }
+
+    /// The EPS's end-of-life charge disconnect (EPS_DESIGN §7): the arm
+    /// latch sets on an `EOL_ARM` rising edge; with it set and `EOL_FIRE`
+    /// high the thermal cut-off's heater warms, and after [`EOL_OPEN_S`] the
+    /// charge path opens for good. This is the only way the simulation
+    /// passivates: through the flight software's two lines
+    fn eol_hardware(&mut self, dt: f64) {
+        let arm = self.fsw.pin(pin::EOL_ARM);
+        if arm && !self.eol_arm_prev {
+            self.eol_latch = true;
+        }
+        self.eol_arm_prev = arm;
+        if self.eol_heater_on() {
+            self.eol_heat_s += dt;
+            if self.eol_heat_s >= EOL_OPEN_S {
+                self.passivate();
+            }
+        }
+        if self.fsw.running() {
+            self.fsw.set_eps_eol_state(self.eol_latch, self.eps.passivated);
+        }
+    }
+
+    /// The command receiver: carrier detect from the users' carriers and the
+    /// ground's frames, its health line, a hang (single-event functional
+    /// interrupt) that only a power cycle clears, and a failure for good
+    fn receiver(&mut self, radio_on: bool) {
+        let failed = self.cfg.rx_failed_day > 0.0 && self.rel() >= self.cfg.rx_failed_day * 86_400.0;
+        if !radio_on && let Some(since) = self.rx_hung_since.take() {
+            self.totals.rx_recovered += 1;
+            self.totals.rx_hang_max_s = self.totals.rx_hang_max_s.max(self.rel() - since);
+            self.event("seu", &format!("receiver power-cycled: recovered after {:.1} h", (self.rel() - since) / 3600.0));
+        }
+        let working = radio_on && self.rx_hung_since.is_none() && !failed;
+        self.fsw.drive(pin::RX_CD, working && self.carrier);
+        self.fsw.drive(pin::RX_FAULT, failed);
     }
 
     /// One step of `dt` s in orbit
@@ -582,14 +651,8 @@ impl Mission {
 
         // Hardware the flight software drives
         let p = |n| self.fsw.pin(n);
-        let (radio_on, pa_on, hi, armed, ant, sol) = (
-            p(pin::RADIO_EN),
-            p(pin::RF_TX_EN),
-            p(pin::TX_PWR_SEL),
-            p(pin::DEPLOY_EN),
-            p(pin::SOLAR_BURN_B),
-            p(pin::SOLAR_BURN),
-        );
+        let (radio_on, pa_on, hi, armed) = (p(pin::RADIO_EN), p(pin::RF_TX_EN), p(pin::TX_PWR_SEL), p(pin::DEPLOY_EN));
+        let wing = pin::WING_LINES.map(|w| w.map(p));
         let jet_rail = (p(pin::PAYLOAD_EN) && p(pin::JETSON_PWR)) || (self.cfg.payload_stuck_on && self.rel() > 0.0);
         // The transponder enable is the heartbeat detector's, not the pin's level
         self.gnss_receiver(dt, r);
@@ -598,9 +661,9 @@ impl Mission {
         self.radio.xpdr = xpdr_en && self.carrier;
         self.radio.step(dt, radio_on, pa_on, hi, self.deploy.antennas_deployed());
         let was_burning = self.deploy.current_a > 0.0;
-        // The wings' two drivers (`ant` is driver B here) and the AntS on I2C
+        // The wings' four lines and the AntS on I2C
         let (ants_armed, ants_limit_s) = self.fsw.ants_command();
-        let cmd = deploy::Commands { armed, wing_a: sol, wing_b: ant, ants_armed, ants_limit_s };
+        let cmd = deploy::Commands { armed, wing, ants_armed, ants_limit_s };
         let wing_c = [self.thermal.temp_c(thermal::W1), self.thermal.temp_c(thermal::W2)];
         let _ = self.deploy.step(dt, cmd, e.vbat, wing_c, self.thermal.temp_c(thermal::MZ));
         if self.fsw.running() {
@@ -613,7 +676,11 @@ impl Mission {
             self.event(
                 "deploy",
                 &format!(
-                    "burn on (wing driver A {sol}, B {ant}, AntS {}), {:.2} A",
+                    "burn on (wing lines W1A {} W1B {} W2A {} W2B {}, AntS {}), {:.2} A",
+                    wing[0][0],
+                    wing[0][1],
+                    wing[1][0],
+                    wing[1][1],
                     ants_limit_s > 0,
                     self.deploy.current_a
                 ),
@@ -641,6 +708,8 @@ impl Mission {
             }
         }
         self.jetson.step(dt, jet_rail && !self.latched_up, self.thermal.jetson_c());
+        self.eol_hardware(dt);
+        self.receiver(radio_on);
 
         // Single-event effects
         if self.cfg.radiation {
@@ -649,6 +718,11 @@ impl Mission {
             if ev.obc_reset && self.fsw.running() {
                 self.event("seu", "single-event functional interrupt: OBC reset");
                 self.boot(ResetCause::Software);
+            }
+            if ev.rx_sefi && self.cfg.rx_sefi && radio_on && self.rx_hung_since.is_none() {
+                self.rx_hung_since = Some(self.rel());
+                self.totals.rx_hangs += 1;
+                self.event("seu", "command receiver hung (single-event functional interrupt)");
             }
             if ev.jetson_latchup && jet_rail && !self.latched_up {
                 self.latched_up = true;
@@ -716,7 +790,24 @@ impl Mission {
             }
             return;
         }
-        if p.commands > 0 || p.heard == 0 {
+        // PASSIVATE_EXECUTE follows PASSIVATE_ARM in the same pass, with the
+        // recovery key, until the arm's window closes
+        if let ops::Eol::Execute(from, until) = self.eol {
+            let rel = self.rel();
+            if rel >= until {
+                self.eol = ops::Eol::Arm;
+            } else if rel >= from {
+                let what = "PASSIVATE_EXECUTE (end of life, recovery key)";
+                self.eol = if self.send_command(i, el, range, r, cmd::PASSIVATE_EXECUTE, &[], what) {
+                    self.event("phase", "end-of-life passivation commanded");
+                    ops::Eol::Done
+                } else {
+                    ops::Eol::Execute(rel + 30.0, until)
+                };
+            }
+            return;
+        }
+        if p.commands > 0 || p.heard == 0 || self.eol == ops::Eol::Done {
             return;
         }
         let day = (self.rel() / 86_400.0).floor() as i64;
@@ -727,12 +818,23 @@ impl Mission {
             && (self.cfg.contact_outage_start_day..self.cfg.contact_outage_start_day + self.cfg.contact_outage_days)
                 .contains(&(self.rel() / 86_400.0));
         let eol = self.rel() >= self.cfg.mission_days * 86_400.0;
-        if outage || (self.commands_today.1 >= self.cfg.contacts_per_day && !eol) || self.eol_tx_off_sent {
+        if outage || (self.commands_today.1 >= self.cfg.contacts_per_day && !eol) {
             return;
         }
+        let dump_due = self.commissioning == ops::Commissioning::Done
+            && self.cfg.dump_every_days > 0.0
+            && day != self.last_dump_day
+            && (day as f64 / self.cfg.dump_every_days).fract() == 0.0;
         let (id, args, what): (u8, Vec<u8>, &str) = if eol && self.cfg.passivate_at_eol {
-            self.eol_tx_off_sent = true;
-            (cmd::TX_DISABLE, vec![], "TX_DISABLE (end of life)")
+            (cmd::PASSIVATE_ARM, ops::EOL_CODE.to_vec(), "PASSIVATE_ARM (end of life)")
+        } else if dump_due && self.totals.store_next.is_some() {
+            // The newest 4 h of five-minute records the last HK1 showed
+            self.last_dump_day = day;
+            let first = self.totals.store_next.unwrap_or(0).saturating_sub(48);
+            let mut a = vec![0u8];
+            a.extend_from_slice(&first.to_be_bytes());
+            a.extend_from_slice(&48u16.to_be_bytes());
+            (cmd::DUMP_TLM, a, "DUMP_TLM (the newest 48 five-minute records)")
         } else if self.commissioning == ops::Commissioning::Housekeeping {
             (cmd::GET_HOUSEKEEPING, vec![], "GET_HOUSEKEEPING (commissioning)")
         } else if self.commissioning == ops::Commissioning::TxOffTest {
@@ -746,12 +848,10 @@ impl Mission {
             (cmd::GET_STATUS, vec![], "GET_STATUS")
         };
         let delivered = self.send_command(i, el, range, r, id, &args, what);
-        if what == "TX_DISABLE (end of life)" {
-            if delivered {
-                self.passivate();
-            } else {
-                self.eol_tx_off_sent = false; // try again next pass
-            }
+        if id == cmd::PASSIVATE_ARM && delivered {
+            let rel = self.rel();
+            // EXECUTE 10 s later, within the 600 s window
+            self.eol = ops::Eol::Execute(rel + 10.0, rel + 590.0);
         }
     }
 
@@ -765,7 +865,8 @@ impl Mission {
         if let Some(p) = self.passes[i].as_mut() {
             p.commands += 1;
         }
-        let rx_on = self.fsw.running() && self.fsw.pin(pin::RADIO_EN);
+        let failed = self.cfg.rx_failed_day > 0.0 && self.rel() >= self.cfg.rx_failed_day * 86_400.0;
+        let rx_on = self.fsw.running() && self.fsw.pin(pin::RADIO_EN) && self.rx_hung_since.is_none() && !failed;
         let gain = self.sc_gain_dbi(link::UHF_AXIS_BODY, i, r);
         let margin = link::uplink(&self.stations[i].radio, gain, range, el, link::REQ_CN0_DATA_DBHZ).margin_db;
         let ok = rx_on && self.rng.uniform() < link::frame_success_prob(margin, (frame.len() * 8) as u32);
@@ -848,7 +949,11 @@ impl Mission {
     fn passivate(&mut self) {
         self.eps.passivated = true;
         self.totals.passivated_s = Some(self.rel());
-        self.event("passivation", "EOL passivation latch fired: array disconnected, transmitters off (TX-OFF latched)");
+        self.totals.passivation_by_command = self.eol == ops::Eol::Done;
+        self.event(
+            "passivation",
+            "EOL charge disconnect opened by EOL_ARM then EOL_FIRE: array disconnected, transmitters off for good",
+        );
     }
 
     fn on_frame(&mut self, f: &[u8], snap: &Snapshot, r: V3) {
@@ -867,14 +972,33 @@ impl Mission {
         if b.as_ref().is_some_and(|b| b.ai) {
             self.totals.ai_frames += 1;
         }
-        if let Some(last) = self.last_frame_s
+        let kind = b.as_ref().map(|b| b.kind).unwrap_or_default();
+        match kind {
+            ops::FrameKind::Ack => self.totals.acks += 1,
+            ops::FrameKind::Dump => {
+                self.totals.dump_frames += 1;
+                self.totals.dump_records += u64::from(f.get(f.iter().position(|b| b & 1 == 1).unwrap_or(0) + 7).copied().unwrap_or(0));
+            }
+            ops::FrameKind::Housekeeping | ops::FrameKind::Beacon => {}
+        }
+        if kind == ops::FrameKind::Housekeeping
+            && let Some(st) = b.as_ref().and_then(|b| b.text.split(' ').find_map(|w| w.strip_prefix("ST=")))
+            && let Some(next) = st.split('/').next().and_then(|v| v.parse::<u32>().ok())
+        {
+            self.totals.store_next = Some(next);
+        }
+        // The beacon gap counts beacons only
+        if kind == ops::FrameKind::Beacon
+            && let Some(last) = self.last_frame_s
             && snap.tx_permitted
             && !snap.rf_silence
             && !snap.contact_inhibit
         {
             self.totals.max_beacon_gap_s = self.totals.max_beacon_gap_s.max(rel - last);
         }
-        self.last_frame_s = Some(rel);
+        if kind == ops::FrameKind::Beacon {
+            self.last_frame_s = Some(rel);
+        }
         // Who heard it
         let tx_w = if self.fsw.pin(pin::TX_PWR_SEL) { link::TX_MAX_W } else { link::TX_NOMINAL_W };
         let radiating = self.fsw.pin(pin::RF_TX_EN) && self.fsw.pin(pin::RADIO_EN);
@@ -1159,12 +1283,13 @@ impl Mission {
         self.totals.eol_alt_km = self.orbit.mean_altitude_m() / 1000.0;
         self.totals.capacity_end_ah = self.eps.pack.capacity_ah();
         self.totals.tid_krad = self.rad.dose_rad / 1000.0;
+        self.totals.wing_lines_max = self.deploy.max_wing_lines;
     }
 
     /// The orbit alone, without the spacecraft working, to re-entry
     fn decay(&mut self, out: &Path) -> std::io::Result<()> {
         let mut table = Table::create(out, "decay.csv", &["t_s", "alt_km"])?;
-        let area = 0.028; // wings deployed, tumbling average (BASELINE §3)
+        let area = 0.0247; // wings deployed, NASA-STD-8719.14C average (BASELINE §3)
         let dt = 86_400.0;
         while !self.orbit.reentered() {
             let alt = self.orbit.mean_altitude_m();
@@ -1226,6 +1351,9 @@ pub fn run(cfg: &Config, out: &Path) -> std::io::Result<usize> {
         ("eol_altitude_km", format!("{:.1}", m.totals.eol_alt_km)),
         ("tid_krad", format!("{:.2}", m.totals.tid_krad)),
         ("downlink_keyed_s", format!("{:.0}", m.radio.stats.keyed_s)),
+        ("acks_radiated", m.totals.acks.to_string()),
+        ("dump_frames", m.totals.dump_frames.to_string()),
+        ("rx_hangs", m.totals.rx_hangs.to_string()),
     ];
     std::fs::write(out.join("summary.json"), checks::summary_json(&checks, &m.totals, &extra))?;
     m.logs.flush();

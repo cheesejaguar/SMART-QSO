@@ -20,12 +20,15 @@
  *    out is fault-logged and the sequence goes on to the next; it ends
  *    COMPLETE only if both deployed, otherwise FAILED.
  *  - Wings: two burn resistors per wing on separate drivers, used on
- *    alternate attempts: GPIO_PIN_SOLAR_BURN (attempts 1 and 3) and
- *    GPIO_PIN_SOLAR_BURN_B (attempt 2); sensed by GPIO_PIN_SOLAR_SENSE.
+ *    alternate attempts, one resistor at a time: wing 1 then wing 2 on
+ *    GPIO_PIN_BURN_W1A and GPIO_PIN_BURN_W2A (attempts 1 and 3), on
+ *    GPIO_PIN_BURN_W1B and GPIO_PIN_BURN_W2B (attempt 2), 8 s each;
+ *    sensed by GPIO_PIN_SOLAR_SENSE.
  *  - Antenna: the ISIS AntS, armed and deployed over I2C bus 0 by its own
  *    controller (automatic sequential deployment of its four elements) and
  *    sensed by every element's switch in its status word; three hardware
- *    inhibits sit on its supply. GPIO_PIN_ANTENNA_BURN is not driven.
+ *    inhibits sit on its supply. GPIO_PIN_ANTENNA_BURN is wing 2's
+ *    resistor A (GPIO_PIN_BURN_W2A).
  *  - A burn needs the master arm (GPIO_PIN_DEPLOY_EN) and the element's line.
  *    The attempt is persisted before the line is driven, and nothing fires
  *    if that fails. Attempts are DEPLOYMENT_RETRY_DELAY_MS apart.
@@ -234,6 +237,17 @@ const char *deployment_state_name(DeploymentState_t state);
  * @brief Check if all deployments complete
  */
 bool deployment_all_complete(void);
+
+/**
+ * @brief Whether the wings did not deploy: their attempts spent, not
+ *        confirmed, and the wing sense line reading stowed
+ *
+ * The mode manager then holds IDLE (EPS-10). DEPLOY_RETRY of the wings
+ * gives fresh attempts and clears it.
+ *
+ * @requirement SRS-F128 The software shall hold the mode at IDLE while the wings read not deployed after their attempts
+ */
+bool deployment_wings_failed(void);
 
 /**
  * @brief Persist the sequence state

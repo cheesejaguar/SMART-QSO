@@ -232,11 +232,13 @@ pub unsafe extern "C" fn beacon_transmit(content: *const Content) -> i32 {
 /// Record that a beacon was sent at `now_ms`
 #[unsafe(no_mangle)]
 pub extern "C" fn beacon_mark_transmitted(now_ms: u64) {
-    let _ = BEACON.with(|b| {
-        if b.initialized {
-            b.state.last_beacon_ms = now_ms;
-        }
-    });
+    let _ = BEACON.with(|b| b.mark_transmitted(now_ms));
+}
+
+/// Jitter each interval by a uniform draw in ±`max_ms` (RF-04)
+#[unsafe(no_mangle)]
+pub extern "C" fn beacon_set_jitter(max_ms: u32, seed: u32) {
+    let _ = BEACON.with(|b| b.set_jitter(max_ms, seed));
 }
 
 /// The module state

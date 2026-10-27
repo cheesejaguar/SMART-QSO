@@ -689,10 +689,36 @@ static void test_authenticated_get_status(void **state)
 /* Test Suite                                                                 */
 /*===========================================================================*/
 
+/** GND-03: an acknowledgement after each command that counted as contact,
+ *  none for a forged frame; N is 0 after a contact */
+static void test_acknowledgement_after_authenticated_commands(void **state)
+{
+    (void)state;
+    uint32_t counter = 0U, result = 0U, days = 99U;
+    uint8_t forged[sizeof(GET_STATUS_CTR1)];
+    uint32_t contacts = cmd_contact_count();
+    assert_int_equal(cmd_handler_init(), SMART_QSO_OK);
+    provision_test_key();
+    assert_false(cmd_ack_pending(&counter, &result, &days));
+    memcpy(forged, GET_STATUS_CTR1, sizeof(forged));
+    forged[sizeof(forged) - 1U] ^= 0x01U;
+    assert_int_equal(send(CMD_SYS_GET_STATUS, forged, sizeof(forged)), CMD_RESULT_AUTH_FAIL);
+    assert_false(cmd_ack_pending(&counter, &result, &days));
+    assert_int_equal(send(CMD_SYS_GET_STATUS, GET_STATUS_CTR1, sizeof(GET_STATUS_CTR1)), CMD_RESULT_SUCCESS);
+    assert_true(cmd_ack_pending(&counter, &result, &days));
+    assert_int_equal(counter, 1U);
+    assert_int_equal(result, CMD_RESULT_SUCCESS);
+    assert_int_equal(days, 0U);
+    assert_int_equal(cmd_contact_count(), 1U);
+    (void)contacts;
+    assert_false(cmd_ack_pending(NULL, &result, &days));
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_frame_matches_ground_tool),
+        cmocka_unit_test_setup_teardown(test_acknowledgement_after_authenticated_commands, setup, teardown),
         cmocka_unit_test_setup_teardown(test_authenticated_tx_disable_silences, setup, teardown),
         cmocka_unit_test_setup_teardown(test_authenticated_tx_enable_restores, setup, teardown),
         cmocka_unit_test_setup_teardown(test_replayed_tx_enable_cannot_undo_tx_off, setup, teardown),

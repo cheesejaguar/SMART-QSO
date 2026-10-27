@@ -1,9 +1,12 @@
 //! `deployment.h`: the deployment wait and burn sequence
 //! (`sqso_fsw::deployment`), on the GPIO and flash HAL, the reset cause,
-//! the separation switch and the flight log. The wings burn on two drivers
-//! (`GPIO_PIN_SOLAR_BURN`, `GPIO_PIN_SOLAR_BURN_B`); the antenna is the
-//! ISIS AntS, armed and deployed over I2C, sensed by its own element
-//! switches (`ants.rs`). `GPIO_PIN_ANTENNA_BURN` is no longer driven high.
+//! the separation switch and the flight log. Each wing resistor has its own
+//! line: wing 1 A `GPIO_PIN_BURN_W1A` (= `GPIO_PIN_SOLAR_BURN`, PB10),
+//! wing 1 B `GPIO_PIN_BURN_W1B` (= `GPIO_PIN_SOLAR_BURN_B`, PE6), wing 2 A
+//! `GPIO_PIN_BURN_W2A` (= `GPIO_PIN_ANTENNA_BURN`, PB9) and wing 2 B
+//! `GPIO_PIN_BURN_W2B` (logical, its STM32 pin to be allocated), one at a
+//! time; the antenna is the ISIS AntS, armed and deployed over I2C, sensed
+//! by its own element switches (`ants.rs`).
 //!
 //! @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
 
@@ -21,8 +24,11 @@ use crate::{ptr, rf_silence, separation_switch};
 pub(crate) const FLASH_REGION_DEPLOYMENT: u32 = 10;
 /// `GPIO_PIN_DEPLOY_EN`
 pub(crate) const GPIO_PIN_DEPLOY_EN: u32 = 4;
-/// `GPIO_PIN_ANTENNA_BURN`
+/// `GPIO_PIN_ANTENNA_BURN`, now `GPIO_PIN_BURN_W2A` (wing 2, resistor A)
 pub(crate) const GPIO_PIN_ANTENNA_BURN: u32 = 11;
+/// `GPIO_PIN_BURN_W2B` (wing 2, resistor B; logical pin, its STM32 pin
+/// is the OBC board's to allocate)
+pub(crate) const GPIO_PIN_BURN_W2B: u32 = 23;
 /// `GPIO_PIN_SOLAR_BURN`
 pub(crate) const GPIO_PIN_SOLAR_BURN: u32 = 12;
 /// `GPIO_PIN_SOLAR_BURN_B`
@@ -67,7 +73,9 @@ impl fmt::Write for Message {
 /// flight log and the fault log take the messages
 impl DeployIo for HalFlash {
     fn configure_outputs(&mut self) {
-        for pin in [GPIO_PIN_DEPLOY_EN, GPIO_PIN_ANTENNA_BURN, GPIO_PIN_SOLAR_BURN, GPIO_PIN_SOLAR_BURN_B] {
+        for pin in
+            [GPIO_PIN_DEPLOY_EN, GPIO_PIN_ANTENNA_BURN, GPIO_PIN_SOLAR_BURN, GPIO_PIN_SOLAR_BURN_B, GPIO_PIN_BURN_W2B]
+        {
             gpio_config(pin, GPIO_DIR_OUTPUT);
         }
     }
@@ -81,9 +89,11 @@ impl DeployIo for HalFlash {
     fn set(&mut self, line: Line, on: bool) {
         match line {
             Line::Arm => gpio_set(GPIO_PIN_DEPLOY_EN, on),
-            Line::Burn(Element::SolarPanel) => gpio_set(GPIO_PIN_SOLAR_BURN, on),
-            Line::WingBurnB => gpio_set(GPIO_PIN_SOLAR_BURN_B, on),
-            Line::Burn(Element::Antenna) => {
+            Line::Wing(0, 0) => gpio_set(GPIO_PIN_SOLAR_BURN, on),
+            Line::Wing(0, _) => gpio_set(GPIO_PIN_SOLAR_BURN_B, on),
+            Line::Wing(_, 0) => gpio_set(GPIO_PIN_ANTENNA_BURN, on),
+            Line::Wing(_, _) => gpio_set(GPIO_PIN_BURN_W2B, on),
+            Line::Ants => {
                 // A refused write shows as an element not sensed: the
                 // sequence retries
                 let _ = crate::ants::command(on);
@@ -216,6 +226,16 @@ pub extern "C" fn deployment_state_name(state: u32) -> *const c_char {
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_all_complete() -> bool {
     DEPLOY.with(|d| d.all_complete()).unwrap_or(false)
+}
+
+/// Whether the wings' attempts are spent with the wings not deployed and
+/// their sense line reading stowed (EPS-10: the mode is held at IDLE; busy
+/// reads as failed, the safe answer)
+#[unsafe(no_mangle)]
+pub extern "C" fn deployment_wings_failed() -> bool {
+    // SAFETY: plain value (the HAL)
+    let sensed = unsafe { c::hal_gpio_get(GPIO_PIN_SOLAR_SENSE) };
+    DEPLOY.with(|d| d.wings_exhausted()).unwrap_or(true) && !sensed
 }
 
 /// Persist the sequence state

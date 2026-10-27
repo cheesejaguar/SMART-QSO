@@ -193,6 +193,8 @@ impl Passivation {
     /// (by the record or by the EPS) sets the inhibit at once, and an
     /// unfinished fire starts again
     pub fn init<IO: PassivationIo>(&mut self, now_ms: u64, io: &mut IO) {
+        // A reset forgets everything but the record
+        *self = Passivation::new(self.region);
         let mut rec = [0u8; 4];
         match nvm::load(io, self.region, 0, RECORD_MAGIC, &mut rec) {
             Ok(RecordStatus::Valid) => {
@@ -325,6 +327,27 @@ impl Passivation {
 
     fn fire_min_served(&self, now_ms: u64) -> bool {
         matches!(self.fire, Some(Step::Fire(since)) if now_ms.saturating_sub(since) >= FIRE_MIN_MS)
+    }
+
+    /// Check the RAM copy against the record (AV-07): passivated in either
+    /// is passivated in both, and the inhibit is applied again
+    pub fn verify<IO: PassivationIo>(&mut self, io: &mut IO) {
+        if !self.initialized {
+            return;
+        }
+        let mut rec = [0u8; 4];
+        let stored = nvm::load(io, self.region, 0, RECORD_MAGIC, &mut rec) == Ok(RecordStatus::Valid)
+            && rec[0] & FLAG_PASSIVATED != 0;
+        if stored && !self.passivated {
+            self.passivated = true;
+            self.fire_done = rec[0] & FLAG_FIRE_DONE != 0;
+            io.report(Report::Passivated);
+        } else if self.passivated && !stored {
+            self.save(io);
+        }
+        if self.passivated {
+            io.inhibit();
+        }
     }
 
     /// Where the sequence is
@@ -590,6 +613,31 @@ mod tests {
         assert_eq!(p.execute(0, &mut io), Ok(()));
         assert!(io.log.contains(&Report::NotPersisted));
         assert!(p.passivated() && io.inhibited);
+    }
+
+    #[test]
+    fn verify_restores_passivation_from_either_copy() {
+        let mut io = Bench::default();
+        let mut p = Passivation::new(REGION);
+        p.verify(&mut io);
+        assert!(!io.inhibited, "before init: nothing");
+        p.init(0, &mut io);
+        p.verify(&mut io);
+        assert!(!io.inhibited && io.log.is_empty());
+        let mut q = executed(&mut io, 1000);
+        q.passivated = false; // a RAM upset
+        io.inhibited = false;
+        q.verify(&mut io);
+        assert!(q.passivated() && io.inhibited);
+        assert_eq!(io.log.last(), Some(&Report::Passivated));
+        // The record lost, RAM passivated: written again
+        let mut io2 = Bench::default();
+        let mut r = fresh(&mut io2);
+        r.passivated = true;
+        r.verify(&mut io2);
+        let mut after = fresh(&mut io2);
+        assert!(after.passivated());
+        after.verify(&mut io2);
     }
 
     #[test]

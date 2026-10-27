@@ -226,8 +226,9 @@ pub struct Telemetry {
 pub enum Line {
     /// The master arm (`GPIO_PIN_DEPLOY_EN`)
     Arm,
-    /// The antenna's deployment: the AntS controller's (I2C)
-    Burn(Element),
+    /// The antenna's deployment: the AntS controller's arm and automatic
+    /// deployment (I2C)
+    Ants,
     /// A wing's burn resistor: wing (0 is W1, 1 is W2) and resistor
     /// (0 A, 1 B): `GPIO_PIN_BURN_W1A`, `_W1B`, `_W2A`, `_W2B`
     Wing(u8, u8),
@@ -341,7 +342,7 @@ impl Deployment {
     /// Master arm off first, then every element line
     fn burn_off<IO: DeployIo>(io: &mut IO) {
         io.set(Line::Arm, false);
-        io.set(Line::Burn(Element::Antenna), false);
+        io.set(Line::Ants, false);
         for line in WING_LINES {
             io.set(line, false);
         }
@@ -356,7 +357,7 @@ impl Deployment {
     const fn burn_line(e: Element, attempt: u8) -> Line {
         match e {
             Element::SolarPanel => Line::Wing(0, Self::resistor(attempt)),
-            Element::Antenna => Line::Burn(e),
+            Element::Antenna => Line::Ants,
         }
     }
 
@@ -823,7 +824,8 @@ mod tests {
                         self.persisted_at_burn = (ok == Ok(RecordStatus::Valid)).then_some(rec[2]);
                     }
                 }
-                Line::Burn(e) => {
+                Line::Ants => {
+                    let e = Element::Antenna;
                     self.burn[e as usize] = on;
                     if on {
                         let mut rec = [0u8; 8];

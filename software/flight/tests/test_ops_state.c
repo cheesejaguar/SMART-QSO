@@ -35,6 +35,8 @@
 #include "cmd_dictionary.h"
 #include "system_state.h"
 #include "deployment.h"
+#include "hal/hal_sim.h"
+#include "hal/hal_gpio.h"
 
 static int setup(void **state)
 {
@@ -169,6 +171,54 @@ static void test_the_telecommands(void **state)
     assert_int_equal(exec1((uint8_t)CMD_SYS_GET_HOUSEKEEPING, 0U, 0U), CMD_RESULT_SUCCESS);
 }
 
+/** AV-07: the RAM copy merged toward held and stopped */
+static void test_verify_merges_toward_safe(void **state)
+{
+    (void)state;
+    assert_int_equal(ops_state_init(), SMART_QSO_OK);
+    ops_state_verify();
+    assert_false(ops_commissioning_hold());
+    assert_int_equal(ops_set_commissioning_hold(true), SMART_QSO_OK);
+    hal_sim_flash_fail_writes(true);
+    assert_int_equal(ops_set_commissioning_hold(false), SMART_QSO_ERROR_IO); /* RAM released, record held */
+    hal_sim_flash_fail_writes(false);
+    assert_false(ops_commissioning_hold());
+    ops_state_verify();
+    assert_true(ops_commissioning_hold());
+    assert_int_equal(ops_set_commissioning_hold(false), SMART_QSO_OK);
+}
+
+/** EPS-10: wings spent and not deployed hold the mode at IDLE */
+static void test_failed_wings_hold_idle(void **state)
+{
+    (void)state;
+    SmContext_t ctx;
+    SmResult_t result = SM_RESULT_OK;
+    memset(&ctx, 0, sizeof(ctx));
+    assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
+    assert_int_equal(hal_flash_erase(FLASH_REGION_DEPLOYMENT), SMART_QSO_OK);
+    assert_int_equal(ops_state_init(), SMART_QSO_OK);
+    hal_sim_set_reset_cause(HAL_RESET_POWER_ON);
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, false); /* released */
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
+    assert_true(deployment_init());
+    assert_false(deployment_wings_failed());
+    for (uint32_t t = 0U; t < (30U * 60U) + (4U * 51U * 60U); t++) {
+        deployment_tick(1000U);
+    }
+    assert_true(deployment_wings_failed());
+    assert_int_equal(sm_init(&ctx, STATE_IDLE), SMART_QSO_OK);
+    assert_int_equal(sm_process_event(&ctx, EVENT_GROUND_CMD_ACTIVE, &result), SMART_QSO_OK);
+    assert_int_equal(result, SM_RESULT_GUARD_FAILED);
+    assert_int_equal(ctx.current_state, STATE_IDLE);
+    /* The sense line reading deployed lifts it */
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+    assert_false(deployment_wings_failed());
+    assert_int_equal(sm_process_event(&ctx, EVENT_GROUND_CMD_ACTIVE, &result), SMART_QSO_OK);
+    assert_int_equal(result, SM_RESULT_OK);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
@@ -178,6 +228,8 @@ int main(void)
         cmocka_unit_test_setup(test_corrupt_record_holds, setup),
         cmocka_unit_test_setup(test_transponder_disable_persists, setup),
         cmocka_unit_test_setup(test_the_telecommands, setup),
+        cmocka_unit_test_setup(test_verify_merges_toward_safe, setup),
+        cmocka_unit_test_setup(test_failed_wings_hold_idle, setup),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

@@ -47,6 +47,10 @@ typedef enum {
     FLASH_REGION_RF_SILENCE     = 9,   /**< Post-deployment RF-silence state */
     FLASH_REGION_DEPLOYMENT     = 10,  /**< Deployment sequence state */
     FLASH_REGION_OPS            = 11,  /**< Operations record: commissioning hold, transponder enable (ops_state.h) */
+    FLASH_REGION_HK_SUMMARY     = 12,  /**< Five-minute housekeeping records, 90,112 B (hk_store.h) */
+    FLASH_REGION_HK_DETAIL      = 13,  /**< Sixty-second housekeeping records, ring and event windows, 64 KB (hk_store.h) */
+    FLASH_REGION_HK_INDEX       = 14,  /**< Housekeeping event-window table (hk_store.h) */
+    FLASH_REGION_EOL            = 15,  /**< End-of-life passivation record (passivation.h) */
     FLASH_REGION_COUNT
 } HalFlashRegion_t;
 

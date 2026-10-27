@@ -62,6 +62,10 @@ impl RfIo for HalFlash {
             Report::TxOffNotPersisted => (fault_type::COMMAND, severity::WARNING, c"TX-OFF applied, not persisted"),
             Report::TxEnabled => (fault_type::COMMAND, severity::INFO, c"TX enabled"),
             Report::TxEnabledNotPersisted => (fault_type::COMMAND, severity::INFO, c"TX enabled, not persisted"),
+            Report::ScrubInhibited => {
+                (fault_type::INIT, severity::ERROR, c"RF state check: RAM copy disagreed, TX-OFF")
+            }
+            Report::ScrubRepersisted => (fault_type::INIT, severity::WARNING, c"RF state check: TX-OFF re-persisted"),
         };
         c::log(ty, sev, text, 0.0);
     }
@@ -114,11 +118,17 @@ pub extern "C" fn rf_control_set_inhibit(source: u32, active: bool) {
         // Busy (a nested call): an inhibit is never lost
         if active {
             gpio_set(GPIO_PIN_RF_TX_EN, false);
-            if source & rf_control::INHIBIT_RF_SILENCE != 0 {
+            if source & rf_control::RADIO_OFF != 0 {
                 gpio_set(GPIO_PIN_RADIO_EN, false);
             }
         }
     });
+}
+
+/// Check the RAM copy of the latch against its record (AV-07)
+#[unsafe(no_mangle)]
+pub extern "C" fn rf_control_verify() {
+    let _ = RF.with(|rf| rf.verify(&mut HalFlash));
 }
 
 /// Select the downlink power level (`RfPowerLevel_t`) and persist it

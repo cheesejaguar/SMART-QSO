@@ -8,6 +8,7 @@
 //! export too).
 //!
 //! @requirement SYS-205 Cease transmissions after N days without an authenticated telecommand
+//! @requirement SRS-F117 With the command receiver known failed, the loss-of-contact inhibit shall not silence the beacon
 
 use sqso_fsw::contact_monitor::{ContactIo, ContactMonitor, Error, Report, TIMEOUT_DEFAULT_DAYS};
 use sqso_fsw::rf_control::INHIBIT_CONTACT;
@@ -23,8 +24,12 @@ static MONITOR: Global<ContactMonitor> = Global::new(ContactMonitor::new(FLASH_R
 
 /// rf_control takes the inhibit, the fault log takes the reports
 impl ContactIo for HalFlash {
+    /// The inhibit goes to every transmitter, except while the command
+    /// receiver is known failed (REL-04, SRS-F117): then it does not reach
+    /// `rf_control`, so the beacon keeps going; the transponder still
+    /// stops on [`contact_monitor_inhibited`], and TX-OFF still works
     fn set_inhibit(&mut self, active: bool) {
-        rf_control::rf_control_set_inhibit(INHIBIT_CONTACT, active);
+        rf_control::rf_control_set_inhibit(INHIBIT_CONTACT, active && !crate::receiver::receiver_failed());
     }
 
     fn report(&mut self, report: Report) {
