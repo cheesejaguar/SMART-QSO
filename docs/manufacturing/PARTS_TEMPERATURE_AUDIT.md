@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MFG-003
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Status:** CDR round 3 (RID P3T-01). EEE parts engineer's audit for the chair; the board designers own the BOMs and
 make the changes listed in §6
@@ -28,9 +28,9 @@ RF5110G, LIS3MDL, W25Q128 and others) name no flight part and are not audited.
 | Access-port board A3 | 6 | 3 | 0 | 1 | 2 | 0 |
 | RF board | 127 | 35 | 84 | 3 | 5 | 0 |
 | Jetson carrier (incl. the module A1 and SSD A2) | 56 | 23 | 26 | 4 | 3 | 1 |
-| Harness connectors, cable, wire, splices | 11 | 5 | 3 | 3 | 0 | 0 |
+| Harness connectors, cable, wire, splices (revision C: part numbers of SQSO-HAR-001 §15 P-3/P-4) | 11 | 7 | 4 | 0 | 0 | 0 |
 | Bought items (EEE_PARTS_LIST §2A.6, §6.4) | 6 | 3 | 1 | 2 | 0 | 3 |
-| **Total** | **443** | **162** | **249** | **20** | **12** | **5** |
+| **Total** | **443** | **164** | **250** | **17** | **12** | **5** |
 
 "Non-compliant" lines have a known rating that misses −40 °C or +70 °C. "Not confirmed" lines have no rating that can
 be attributed to the part as written: either no part number exists yet, or the part number as written is not an
@@ -143,9 +143,7 @@ The CSV holds every line with its range, determination, source and notes. Per bo
 | Jetson carrier | J2 (15) | "501331-0607 class, Au" | No part number | **2035560607** (Pico-Clasp 6, gold 0.38 µm; as RF J2): −40 … +105 °C (Digi-Key) |
 | Jetson carrier | J3 (16) | "501331-0207 class, Au" | No part number | **2035560207** (Pico-Clasp 2, gold 0.38 µm): −40 … +105 °C (Digi-Key) |
 | Jetson carrier | R1 (23) | ERJ-6RQF1R00V | Not found; ERJ-6RQ writes 1 Ω as 1R0 | **ERJ-6RQF1R0V**, 0805: −55 … +155 °C (Digi-Key, Active) |
-| Harness | H7 | W10E MMCX plug, "the 1.13 mm version" | No part number | Harness/RF designer to name the Molex 73414-series plug for 1.13 mm cable: Molex MMCX series −55 … +165 °C (Molex 987650-3243) |
-| Harness | H9 | W10E 1.13 mm micro-coax | No part number | RF designer to select a 1.13 mm FEP/PFA-jacketed, silver-plated-copper cable rated at least −55 … +125 °C, as the W10 cable (Taoglas PRT.001221: −55 … +125 °C) |
-| Harness | H11 | AS81824/1 splices (W6C, W7A/W7B, W7C) | No part number; no low-temperature figure in the AS81824 scope | **TE Raychem D-436-3x MiniSeal** (QPL SAE-AS81824/1), size per gauge: −55 … +150 °C (Farnell listing of D-436-37) |
+| Harness | H11 | M81824/1-1 (TE D-436-36), named by SQSO-HAR-001 §15 P-3 | Temperature not the issue: the crimp splicer is **tin-plated** (ASTM B545; TE drawing D-436-36/-37/-38 Rev F, 2016-08-19), prohibited by SQSO-MFG-002 §2A.8 | **TE Raychem D-200-82** (TE P/N D17660-000), same M81824/1-1 size, nickel-plated barrel: −55 … +200 °C (Bürklin listing; TE D-200 data sheet). 28 AWG is below the 0.15 mm² minimum of the size: harness designer (SQSO-MFG-002 G §2A.8). Revision C: H7 and H9 are now named (Molex 73415-2261, −55 … +165 °C, Digi-Key; Multicomp Pro MINI-1.13, −55 … +155 °C, data sheet V1.0) and verified |
 | Bought | B4 | Panasonic NCR18650GA (alternative cell, EEE_PARTS_LIST §6.4) | Not read: not used by the battery design | Delete the alternative, or record its specification before any PI choice |
 | Bought | B6 | Body panels and wings | Vendor not selected | Vendor's qualification range at least −56 … +93 °C at selection (THERMAL_DESIGN §1.1, V-THM-4) |
 
@@ -180,7 +178,7 @@ The CSV holds every line with its range, determination, source and notes. Per bo
 2. R1: ERJ-6RQF1R00V → ERJ-6RQF1R0V.
 3. A1: no change; unit allowable and V-THM-8 as in §4.
 
-**Harness (SQSO-HAR-001)**: name the W10E plug and cable (H7, H9) and the splices (H11, D-436-3x); reject any SFSD
+**Harness (SQSO-HAR-001)**: W10E plug 73415-2261 and cable MINI-1.13 are compliant (H7, H9); splices D-200-82 instead of the tin-barrel D-436-36 (H11), and resolve the 28 AWG range; reject any SFSD
 (PVC, −10 … +80 °C) substitute for SFSDT at receiving inspection.
 
 **Bought assemblies**: ISIS AntS statement and allowable; CR0002 −40 °C rating or qualification; panel vendor range.
@@ -296,14 +294,14 @@ EEE_PARTS_LIST F §2A.2, §2A.6, §2A.8, §2A.9 and §6.4. Item 4 stays with the
 | Bosch BST-BMI088-DS000-19 rev 1.9; PNI RM3100 product page | OBC U11, magnetometer board |
 | Tai-Saw TA2209A approval sheet Rev 1.0 (2017); ADI AD8361 data sheet (mirror); Lite-On LTST-C191KRKT data sheet (via Future) | RF U201, U701, OBC D1 |
 | NVIDIA DS-11105-001 v1.5 (Dec 2024); Swissbit N-2600 fact sheet Rev 1.04; Heilind listing of TE 2309407-2; Henkel GAP PAD TGP 3500ULM data sheet | Jetson carrier |
-| Taoglas 1.37 mm micro-coax 001221 specification; TE Raychem M22759/33 data sheets; Farnell listing of TE D-436-37 | Harness |
+| Taoglas 1.37 mm micro-coax 001221 specification; TE Raychem M22759/33 data sheets; Farnell listing of TE D-436-37; TE drawing D-436-36/-37/-38 Rev F; TE D-200 data sheet and Bürklin D17660-000 listing; Digi-Key 0734152261, 0430300003, 5011939000; Multicomp Pro MINI-1.13 data sheet V1.0 | Harness |
 | ISIS antenna systems brochure V2R, AntS electrical model data sheet, ISIS-ANTS-DSH-0001 v4.0; SatNow piNAV-NG listing; Samsung INR18650-35E specification v1.1; CubeSpace Gen 2 actuators brochure 2023 | Bought items |
 
 ## 12. Vendor Actions for the Bought Items (dated, before the EM order 2027-01-15)
 
 | Item | Action | Owner | Due | Fallback if not obtained by the due date |
 |------|--------|-------|-----|------------------------------------------|
-| **V-1** ISIS AntS (THERMAL_DESIGN §1.1 row; VI-STR-13) | Obtain ISIS-ANTS-DSH-0001 v4.0 and a written ISIS statement covering (a) operation of the controller and of the thermal-knife release at −40 °C, (b) unpowered survival at −40 °C and at +70 °C, (c) the hot operating limit against +60 °C. **What the analysis predicts:** the AntS is outside the structure on the −Z face (black anodize, α 0.88, ε 0.85) and is **not a node** of the thermal network (SQSO-THA-001 2.3 §3). At its release, which follows the wing burns in the first orbit (separation + ≈ 31 min, in eclipse after the dispenser cold soak; MECHANISMS_ANALYSIS §7.1), the nearest predicted nodes are −30.2 °C (frame-side hinge) to −40.6 °C (stowed wing), −40.2 … −50.6 °C with the 10 °C margin (SQSO-THA-001 §4.3); in orbit the body panels span −22.7 … +51.5 °C (−32.7 … +61.5 °C with the margin, §5). Both ends are therefore expected outside the −20 … +60 °C qualified range. The thermal analyst adds an AntS node (−Z face, elements and controller) and reports its first-orbit and orbit extremes | Mechanical lead (PI until named), AntS procurement; thermal analyst for the node | Statement and data sheet 2026-12-15; AntS node 2026-12-15 | (1) Power the AntS controller only for deployment and status reads, and move the AntS deployment out of the first eclipse to a sunlit window in which the AntS node (or the −Z face) is above the ISIS-stated minimum, with the per-orbit retries kept (`sqso_fsw::deployment` timing change by the FSW lead; the unpowered rating −50 … +85 °C then covers the eclipses); (2) add an AntS cold deployment at the ISIS minimum and an unpowered cold soak at −40 °C to the deployment test of ETP §3.8 (VI-STR-13 "deployment at the minimum predicted temperature"); (3) if ISIS states neither, a different deployable antenna is a chair decision before the EM order |
+| **V-1** ISIS AntS (THERMAL_DESIGN §1.1 row; VI-STR-13) | Obtain ISIS-ANTS-DSH-0001 v4.0 and a written ISIS statement covering (a) operation of the controller and of the thermal-knife release at −40 °C, (b) unpowered survival to −57 °C (the first-orbit minimum with the 10 °C margin, SQSO-THA-001 2.4 §4.4) and at +70 °C, (c) the hot operating limit against +60 °C, (d) the AntS temperature telemetry over I²C (command, resolution, accuracy, and that it may be read with the controller powered only for the read), on which the deployment gate (decision C-18) relies. **Update (THERMAL_ANALYSIS 2.4 §4.4):** the AntS node now exists: −44.0 °C at an ungated release after an eclipse separation, first-orbit minimum −47.0 °C (−57.0 °C with the margin); the deployment is gated on the AntS temperature (C-18). The original note follows. **What the analysis predicts:** the AntS is outside the structure on the −Z face (black anodize, α 0.88, ε 0.85) and is **not a node** of the thermal network (SQSO-THA-001 2.3 §3). At its release, which follows the wing burns in the first orbit (separation + ≈ 31 min, in eclipse after the dispenser cold soak; MECHANISMS_ANALYSIS §7.1), the nearest predicted nodes are −30.2 °C (frame-side hinge) to −40.6 °C (stowed wing), −40.2 … −50.6 °C with the 10 °C margin (SQSO-THA-001 §4.3); in orbit the body panels span −22.7 … +51.5 °C (−32.7 … +61.5 °C with the margin, §5). Both ends are therefore expected outside the −20 … +60 °C qualified range. The thermal analyst adds an AntS node (−Z face, elements and controller) and reports its first-orbit and orbit extremes | Mechanical lead (PI until named), AntS procurement; thermal analyst for the node | Statement and data sheet 2026-12-15; AntS node 2026-12-15 | (1) Power the AntS controller only for deployment and status reads, and move the AntS deployment out of the first eclipse to a sunlit window in which the AntS node (or the −Z face) is above the ISIS-stated minimum, with the per-orbit retries kept (`sqso_fsw::deployment` timing change by the FSW lead; the unpowered rating −50 … +85 °C then covers the eclipses); (2) add an AntS cold deployment at the ISIS minimum and an unpowered cold soak at −40 °C to the deployment test of ETP §3.8 (VI-STR-13 "deployment at the minimum predicted temperature"); (3) if ISIS states neither, a different deployable antenna is a chair decision before the EM order |
 | **V-2** CubeSpace CR0002 rods (THERMAL_DESIGN §1.1 row) | Obtain the CR0002 option sheet/ICD with its operating and survival range; request a −40 °C rating (operating, cold start) | GNC lead (PI until named) | 2026-12-15 | Qualify the rods by test: one flight-lot rod, unpowered soak and powered cold start at −40 °C, 3 cycles −40 … +70 °C, coil resistance, insulation resistance to the core and dipole moment at −40 °C and +70 °C, visual for potting cracks (on the EM, before the FM order); the test is planned and the rod ordered by 2027-01-15. If the rod fails, select a rod with a published −40 °C rating (chair decision) |
 | **V-3** Panasonic NCR18650GA (EEE_PARTS_LIST §6.4 alternative) | Record the cell specification's charge, discharge and storage ranges, or delete the alternative | EPS designer (PI until named), PI decision on the cell | 2026-11-30 | Delete the alternative: the battery design, the battery safety assessment and the thermal analysis all use the INR18650-35E (charge 0 … +45 °C, discharge −10 … +60 °C) |
 | **V-4** Body panels and wings (THERMAL_DESIGN §1.1; V-THM-4) | At vendor selection, obtain the qualified range of the panels (cells, panel PCB, thermistors, pigtails and their connectors): at least −56 … +93 °C for ≥ 11,000 cycles | EPS designer (PI until named), panel procurement | 2027-01-15 | Qualification by test of one EM panel and one wing over −56 … +93 °C (cycle count per V-THM-4) before the FM order, at the project's cost; a vendor whose range is narrower is not selected |
@@ -316,3 +314,4 @@ EEE_PARTS_LIST F §2A.2, §2A.6, §2A.8, §2A.9 and §6.4. Item 4 stays with the
 |-----|------|-------------|--------|
 | A | 2026-10-27 | Initial issue (CDR round 3, RID P3T-01): part-by-part temperature audit of the six flight-board BOMs, the harness connectors and wire and the bought items; 443 lines; non-compliant and not-confirmed lines with replacements; line data in `PARTS_TEMPERATURE_AUDIT.csv` | EEE parts engineer, CDR round 3 |
 | B | 2026-10-27 | Chair action: §12 dated vendor actions for the bought items (AntS with the analysis predictions, CR0002, NCR18650GA, panels, RD01MUS3, piNAV-NG) with owners, due dates and fallbacks; §10 items 1–3 applied to THERMAL_DESIGN 1.6, THERMAL_ANALYSIS 2.3 and EEE_PARTS_LIST F | EEE parts engineer, CDR round 3 |
+| C | 2026-10-27 | Harness rows from SQSO-HAR-001 §15 P-3/P-4: H2 501193-9000 and H4 43030-0003 decoded (Pico-Clasp, Micro-Fit series), H7 73415-2261 and H9 MINI-1.13 verified; H11 D-436-36 rejected (tin barrel), D-200-82 instead; totals 164 verified, 250 decoded, 17 not confirmed. Board lines not re-audited after the designers' BOM changes | EEE parts engineer, CDR round 3 |

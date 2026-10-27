@@ -183,16 +183,16 @@ ratings, outgassing data).
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
-| Closed by analysis | 25 | 25 |
-| Closed by design change | 101 | 235 |
+| Closed by analysis | 25 | 27 |
+| Closed by design change | 101 | 238 |
 | Closed by chair decision | 42 | 35 |
-| Verification item | 46 | 29 |
-| Decision point (dated) | 15 | 32 |
-| Implementation | 161 | 34 |
+| Verification item | 46 | 30 |
+| Decision point (dated) | 15 | 34 |
+| Implementation | 161 | 26 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 84 new findings; 44 of the reopened and 62 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 84 new findings; 44 of the reopened and 70 of the new are since closed.
 
-Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, P3T-01, P3T-02, P3T-03, P3T-04, P3T-05, P3T-06, P3T-07, P3T-08, SMA-B20, P3T-09.
+Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, SMA-B20, P3T-09.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -724,14 +724,14 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| P3T-01 | 2 | BOM temperature grades not verified part by part: the RF crystal Y451 was a −20…+70 °C option against the −40 °C first-orbit case | IMP | Implementation | Y451 replaced by ABLS-…-L4-T (−55…+125 °C); parts temperature-grade audit of every flight BOM line |
-| P3T-02 | 1 | EPS end-of-life fuses F1/F3 ITV4030L1412NR rated −10…+65 °C against the −40…+70 °C flight range (SQSO-MFG-003 §4) | IMP | Implementation | Design change or flight-lot qualification at −40/+70 °C |
-| P3T-03 | 2 | Bought items below the test range: ISIS AntS qualified −20…+60 °C, CubeSpace CR0002 rods −20…+80 °C (cold start −35 °C); NCR18650GA alternative cell and panel vendor ranges unconfirmed | IMP | Implementation | Vendor statements or qualification by test, with fallbacks |
-| P3T-04 | 2 | RF PA Q601 RD01MUS3 has no rated minimum operating temperature (storage −40 °C) | IMP | Implementation | Vendor statement and EM characterisation at −40 °C |
-| P3T-05 | 2 | Fourteen BOM part numbers do not exist or are incomplete (OBC C23–C26 C0G 470 nF, A3 J1, RF L106/L605, carrier J1–J3/R1, EPS RS11 and others) and ordering codes are wrong (Samtec TFM "-S", tin Pico-Clasp 501334/501331, ERA-3 1 MΩ) | IMP | Implementation | Orderable part numbers on every line |
-| P3T-06 | 3 | BFP640F LNA has a last-time-buy of 2027-05-15 | IMP | Implementation | Lifetime buy or successor |
-| P3T-07 | 3 | X7R capacitance change at −40 °C (up to −15 %) not in the timing worst cases (EPS integrators, OBC C_RETRY) | IMP | Implementation | Worst cases re-derived |
-| P3T-08 | 3 | 156 parts are rated exactly −40 °C, with zero margin to the first-orbit cold case | IMP | Implementation | Covered by the thermal predictions and the test margin |
+| P3T-01 | 2 | BOM temperature grades not verified part by part: the RF crystal Y451 was a −20…+70 °C option against the −40 °C first-orbit case | IMP | Closed by analysis | Parts temperature-grade audit of all 443 flight BOM lines against −40…+70 °C (SQSO-MFG-003 B, with CSV): 162 verified, 249 decoded, 20 not confirmed and fixed, 5 non-compliant, each dispositioned in P3T-02 to P3T-09; Y451 ABLS-L4-T; EEE_PARTS_LIST F §2A.9 lists every part below −40/+70 °C with its coverage |
+| P3T-02 | 1 | EPS end-of-life fuses F1/F3 ITV4030L1412NR rated −10…+65 °C against the −40…+70 °C flight range (SQSO-MFG-003 §4) | IMP | Closed by design change | F3 and the BQ771806 moved to the battery sense board (fires only with charge current, refused below +1.1 °C at the pack, so always inside −10…+65 °C; S&MA: H1 still two-fault tolerant, a cold F3 overcharge needs three faults); F1 fired only with the EPS board ≥ 0 °C and in sunlight, waiting at most 6 h of each attempt (SMA-B20); current carrying below −10 °C: V-EPS-8 flight-lot test, 6 samples, 2 A for 1 h at −40 °C and +70 °C plus 5 cycles at 1.5 A, pass no opening and resistance change ≤ 10 %, trigger at 10.5/16.8 V at 0/+25/+65 °C in < 1 min, before FM integration (EPS_BOARD_DESIGN G, BATTERY_DESIGN 2.10) |
+| P3T-03 | 2 | Bought items below the test range: ISIS AntS qualified −20…+60 °C, CubeSpace CR0002 rods −20…+80 °C (cold start −35 °C); NCR18650GA alternative cell and panel vendor ranges unconfirmed | IMP | Decision point (dated) | Vendor actions SQSO-MFG-003 B §12 with owner, date and fallback: V-1 ISIS AntS statement to −57 °C unpowered and its temperature telemetry (mechanical lead, 2026-12-15; fallback another antenna, chair decision before the EM order); V-2 CR0002 −40 °C rating (GNC lead, 2026-12-15; fallback flight-lot rod qualified at −40…+70 °C, ordered by 2027-01-15); V-3 NCR18650GA ranges (EPS designer/PI, 2026-11-30; fallback delete the alternative); V-4 panel vendor −56…+93 °C (EPS designer, 2027-01-15; fallback EM panel and wing qualification); V-6 piNAV-NG ranges (GNC lead, 2026-12-15; fallback receiver powered only above −30 °C) |
+| P3T-04 | 2 | RF PA Q601 RD01MUS3 has no rated minimum operating temperature (storage −40 °C) | IMP | Verification item | VI-RFB-14: Mitsubishi statement of the minimum operating case temperature (RF lead, before the EM order 2027-01-15) and EM PA characterisation at −40 °C and +70 °C: output power within RF-P003 under the loop, DC power at 0.5 W ≤ 1.1 × room, no oscillation or spurious above −60 dBc 1–1000 MHz into 3:1 at all phases, bias settled ≤ 100 ms, 3f ≤ −70 dBc, 10 cold starts after a 4 h −40 °C soak; fallbacks keying only above −30 °C, then a CMX901-class PA with a board revision (RF_BOARD_DESIGN F §7.2) |
+| P3T-05 | 2 | Fourteen BOM part numbers do not exist or are incomplete (OBC C23–C26 C0G 470 nF, A3 J1, RF L106/L605, carrier J1–J3/R1, EPS RS11 and others) and ordering codes are wrong (Samtec TFM "-S", tin Pico-Clasp 501334/501331, ERA-3 1 MΩ) | IMP | Closed by design change | Every flagged line orderable: EPS 1N4148WQ-7-F, ERJ-3EKF10R0V, ERA-6AEB105V/3653V on 0805, WSL2010R5000FEA, 3-digit ERA E24 codes, TFM-120-02-L-D-A; OBC C23–C26 → 4 × (2 × 220 nF C0G C1210C224J3GACAUTO) with the TPS3850 window re-derived (29.3 s minimum, IWDG reload 3200), D4, A3 J1 M83513/25-C01NN, gold Pico-Clasp 203556, TFM -L; RF L106 0603HP-18NXGLU re-tuned (FL1 0.73 dB, noise 552–603 K inside 650 K), L605 0807SQ-10NGLC, J1 TFM-108-01-L-D-RA; carrier J1 0430450402, J2/J3 2035560607/0207, R1 ERJ-6RQF1R0V; harness 501193-9000, 43030-0003, 73415-2261, MINI-1.13, M81824/1-1; ERC clean on every board; Samtec plating confirmations in VI-RFB-12 and V-HAR-3 |
+| P3T-06 | 3 | BFP640F LNA has a last-time-buy of 2027-05-15 | IMP | Decision point (dated) | BFP640F lifetime buy of 60 pieces from one date code (EM 2, FM 2, spares 6, radiation and DPA 20, process and tuning 30) ordered by 2027-03-31, before the 2027-05-15 last-time-buy, dry-pack storage; owner RF lead with procurement (RF_BOARD_DESIGN F) |
+| P3T-07 | 3 | X7R capacitance change at −40 °C (up to −15 %) not in the timing worst cases (EPS integrators, OBC C_RETRY) | IMP | Closed by design change | X7R −15 % at −40 °C in every timing worst case: EPS deploy-switch gate filters 47 → 68 nF (12.8 ms worst against 10 ms), radio/GNSS retry R_FAULT 150 kΩ (≥ 1.26 s against 1 s), load-shed delay 3.7–5.5 s (V-EPS-7 over temperature), integrators −25/+10 % measured by V-EPS-1 extended to −40 °C; OBC C_RETRY with R_FAULT 220 kΩ (0.18–0.33 s against 0.1 s; sensors used ≥ 0.6 s after an enable), V-OBC-5 at −40 °C |
+| P3T-08 | 3 | 156 parts are rated exactly −40 °C, with zero margin to the first-orbit cold case | IMP | Closed by analysis | Parts rated −40 °C have +1.4 to +2.4 °C to the first-orbit prediction after the 10 °C margin (OBC/EPS −27.6 °C, RF −28.6 °C, THERMAL_ANALYSIS 2.4 §6) and their full rating elsewhere; the first-orbit −40 °C allowable is GEVS deviation 8 (CR-2026-017, THM-04); V-THM-8 and the −40 °C qualification cycles test them at their rating |
 | P3T-09 | 1 | AntS released at S+31 min after an eclipse separation is at −44 °C against its −20 °C qualified minimum; unpowered first-orbit minimum −57 °C with margin against the −50 °C storage limit (THERMAL_ANALYSIS 2.4 §4.4) | IMP | Implementation | Temperature-gated deployment (C-18); ISIS statement to −57 °C |
 <!-- RID-LOG-END -->
 

@@ -187,6 +187,26 @@ HZ_OWNER = {"COAX_P": "coax_W10", "COAX_M": "coax_W10", "COAXU_P": "coax_W10", "
             "COAXF_P": "coax_W10", "COAXF_M": "coax_W10", "W4AZ": "ribbon_W4A", "AP_A3": "access_port",
             "TB": "TB_tabs"}
 
+# Splice envelopes (SQSO-HAR-001 2.0 amended, 15 item M-11): M81824/1-1 (TE D-436-36), installed about 2.6 mm across
+# and 29 mm long, no more than two side by side, staggered by one splice length, tied within 10 mm of both ends.
+# (harness, ref): [(axis, centre, start)], each a cylinder of SPL_R from start to start + SPL_L along the axis.
+SPL_R, SPL_L = 1.3, 29.0
+SPLICES = {
+    # X-rod pair under the EPS, in the 3.2 mm layer between the zone Z1 connector envelope and the deck
+    ("W6C", "ROD-X"): [("y", (x, 0.0, -14.0), 7.5) for x in (-28.55, -25.85)],
+    # Y-rod pair at the (+X,+Y) bundle's -Y face, up from z -30
+    ("W6C", "ROD-Y"): [("z", (46.9, y, 0.0), -30.0) for y in (25.4, 28.1)],
+    # Z-rod pair in the -X wall gap MXC (3.0 mm)
+    ("W6C", "ROD-Z"): [("z", (-46.9, y, 0.0), -15.0) for y in (8.4, 11.1)],
+    # deployed-state sensor pairs in the hinge-side strips, clear of the TB tabs on the shear panels
+    ("W7A", "HS-W1"): [("z", (46.7, y, 0.0), -40.0) for y in (35.9, 38.6)],
+    ("W7B", "HS-W2"): [("z", (-46.7, y, 0.0), -40.0) for y in (35.9, 38.6)],
+    # W7C's eight in the -Z end-frame window, between the AntS and the cells (z -47.5 ... -44.9): two lanes two
+    # abreast along the +-Y edges of the frame cut-out, two stagger positions each (x -32 ... -3 and +1 ... +30),
+    # tied to the end frame at both ends and at the 4 mm gap
+    ("W7C", "ANTS"): [("x", (0.0, y, -46.2), x0) for y in (-33.4, -30.7, 30.7, 33.4) for x0 in (-32.0, 1.0)],
+}
+
 
 def harness_distribution():
     """Harness mass (g CBE) by zone and MEL row from the harness design (SQSO-HAR-001 2.0 sec. 11): each wire's mass
@@ -213,6 +233,8 @@ def harness_distribution():
             if w["route"] == "W10E":
                 w10e_z[zn] += m * l / L
         for ref, pin, zn in ((w["from_ref"], w["from_pin"], segs[0][0]), (w["to_ref"], w["to_pin"], segs[-1][0])):
+            if HAR.family(ref) == "SPL":                # splices in their own envelopes (M-11)
+                zn = f"SPL_{w['harness']}_{ref}"
             ends.setdefault((w["harness"], ref), [zn, set()])[1].add(pin)
     conn_z = defaultdict(float)
     for (h, ref), (zn, pins) in ends.items():
@@ -222,7 +244,8 @@ def harness_distribution():
         else:
             m = fam[2] + fam[3] * len(pins) if (fam[2] or fam[3]) else 0.0
         zm[zn]["31" if ref in ("GNSS-RF", "PATCH") else HAR.MEL_ROW.get(h, "32")] += m
-        conn_z[zn] += m
+        if not zn.startswith("SPL_"):                  # splices are tied to structure, not carried by a board
+            conn_z[zn] += m
     harness_distribution.connectors = dict(conn_z)           # connector halves by zone (for the FE ties)
     wt, w1t = sum(wire_z.values()), sum(w1_z.values())
     for k, g in res["extras"].items():
@@ -266,6 +289,12 @@ def harness_zone_parts(parts: List[Part], add):
             pt = named[HZ_OWNER[zn]]
             for r, g in v.items():
                 pt.mel[r] = pt.mel.get(r, 0.0) + g
+            continue
+        if zn.startswith("SPL_"):
+            h, ref = zn[4:].split("_", 1)
+            env = fuse(*[C(ax, c, SPL_R, a0, a0 + SPL_L) for ax, c, a0 in SPLICES[(h, ref)]])
+            add(Part(f"hz_{zn}", "harness", dict(v), env, color=COL["harness"],
+                     note=f"{len(SPLICES[(h, ref)])} splice(s) M81824/1-1, {h} at {ref}, 2.6 x 29 mm each (M-11)"))
             continue
         x0, x1, y0, y1, z0, z1, _ax, desc = HAR.ZONES[zn]
         if zn.startswith("U_"):                 # under the 2.0 mm EPS: top at its bottom-parts envelope (request H-11)
@@ -1064,6 +1093,25 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
          dict(zones_mm=zd[:4], wing_sweep_mm=round(wsw, 2)),
          ">= 1.0 to each harness zone; > 0.3 to the sweep (the seat angle bears on the shear panel by design)",
          bool(zd) and zd[0][0] >= 1.0 and wsw > 0.3)
+    # splice envelopes (M-11): nearest solid outside the harness, the AntS, the stowed wings and the wing sweep
+    spl = [pt for pt in parts if pt.name.startswith("hz_SPL_")]
+    solid = [pt for pt in parts if pt.group not in ("harness", "dist") and not pt.ghost]
+    wsw_all = [fuse(*[wp.stowed.rotate(ax0, ax1, ang) for wp in wingparts]) for ang in (0, 10, 30, 45, 60, 90)]
+    wsw_m = [mirror_x(w) for w in wsw_all]
+    ants = byname["AntS_housing"].stowed
+    sres, sok = {}, True
+    for sp in spl:
+        eb = sp.stowed.BoundingBox()
+        near = sorted((round(min_dist(sp.stowed, q.stowed), 2), q.name) for q in solid
+                      if not (q.stowed.BoundingBox().xmin > eb.xmax + 5 or q.stowed.BoundingBox().xmax < eb.xmin - 5
+                              or q.stowed.BoundingBox().ymin > eb.ymax + 5 or q.stowed.BoundingBox().ymax < eb.ymin - 5
+                              or q.stowed.BoundingBox().zmin > eb.zmax + 5 or q.stowed.BoundingBox().zmax < eb.zmin - 5))
+        wing_st = min(min_dist(sp.stowed, w) for w in (wsw_all if eb.xmax > 0 else []) + (wsw_m if eb.xmin < 0 else []))
+        sres[sp.name] = dict(nearest=near[:2], ants_mm=round(min_dist(sp.stowed, ants), 2),
+                             wing_sweep_mm=round(wing_st, 2))
+        sok = sok and bool(near) and near[0][0] >= 0.2
+    item("SPL-1", "Splice envelopes M81824/1-1 (M-11): no interference; >= 0.2 mm to every solid outside the harness",
+         sres, ">= 0.2 mm (tie-down within 10 mm of both ends)", sok)
     # AntS tapes vs wings
     zt = z_planes(p)["mz_out"] - p["ants_t"] / 2.0
     band_top = zt + p["tape_w"] / 2.0

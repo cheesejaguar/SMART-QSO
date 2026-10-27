@@ -32,6 +32,24 @@
 //!  - Blank or corrupt record: start over with zero attempts (reported);
 //!    sense lines skip anything already deployed.
 //!
+//! **The AntS temperature gate** (decision C-18, THERMAL_ANALYSIS 2.4
+//! §4.4): the AntS is qualified for operation only from −20 °C, and an
+//! ungated release at separation + 31 min after an eclipse separation finds
+//! it at −44 °C. Before each antenna attempt the sequence powers the AntS
+//! controller (the master arm, which is its supply SW8), lets it start for
+//! [`ANTS_START_MS`], and reads its own temperature
+//! (`ants::CMD_TEMPERATURE`). Below [`ANTS_MIN_TEMP_C`] (−20 °C plus 3 °C of
+//! sensor tolerance), or with no valid answer, the attempt is deferred: the
+//! controller is powered down again and the sequence waits the
+//! [`RETRY_DELAY_MS`] slot without spending an attempt. After
+//! [`ANTS_MAX_DEFERRALS`] deferrals (about 25 h, 16 orbits: the
+//! wings-stowed, β = 0 contingency, in which the AntS never warms enough)
+//! it deploys whatever the temperature. DEPLOY_RETRY with its force flag
+//! deploys the antenna at once. The deferrals are persisted with the
+//! sequence; they and the last temperature are in HK1 `AD`. The 30-minute
+//! wait and the wings-first order are unchanged.
+//!
+//! @requirement SRS-F166 AntS deployment only at an AntS temperature of at least −17 °C; colder or unknown defers to the next 50-minute slot without spending an attempt, at most 30 times, then deploys; DEPLOY_RETRY with the force flag deploys at once
 //! @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
 //! @requirement SRS-F088 The software shall space deployment attempts 50 minutes apart and accept a telecommand to retry an element with fresh attempts
 
@@ -65,11 +83,23 @@ pub const MAX_RETRIES: u8 = 3;
 /// two attempts 50 or 44.6 minutes apart can share one), when the burn
 /// wire and the hold-down are warm and the array helps the battery (LV-07)
 pub const RETRY_DELAY_MS: u32 = 50 * 60 * 1000;
+/// The AntS is deployed only at or above this temperature, °C (its −20 °C
+/// qualified minimum plus 3 °C of sensor tolerance; decision C-18)
+pub const ANTS_MIN_TEMP_C: f64 = -17.0;
+/// Deferrals after which the AntS deploys whatever its temperature (30
+/// slots of 50 min, about 25 h, 16 orbits)
+pub const ANTS_MAX_DEFERRALS: u8 = 30;
+/// The AntS controller is powered this long before its temperature is
+/// read, ms (its start-up; to be confirmed with the ISIS ICD, V-1)
+pub const ANTS_START_MS: u32 = 1_000;
 /// Wait-count persistence interval, s
 pub const PERSIST_INTERVAL_S: u32 = 60;
 
-/// Record ("DEPL"): state | attempts (2) | flags | wait seconds (4)
+/// Record ("DEPL"): state | attempts (2) | flags | wait seconds (4) |
+/// AntS deferrals
 pub const RECORD_MAGIC: u32 = 0x4445_504C;
+/// The record's length, bytes
+pub const RECORD_LEN: usize = 9;
 const FLAG_ANTENNA_DEPLOYED: u8 = 0x01;
 const FLAG_SOLAR_DEPLOYED: u8 = 0x02;
 const FLAG_ENABLED: u8 = 0x04;
@@ -257,6 +287,9 @@ pub enum Report {
     NotPersisted,
     /// Boot: the record could not be read; starting over
     Unreadable,
+    /// An AntS attempt deferred: its temperature below
+    /// [`ANTS_MIN_TEMP_C`] or unknown
+    AntsDeferred,
 }
 
 /// The lines, sense inputs, separation switch, flash and logs
@@ -271,6 +304,9 @@ pub trait DeployIo: Flash {
     fn sensed(&mut self, element: Element) -> bool;
     /// Whether the separation switches read stowed
     fn stowed(&mut self) -> bool;
+    /// The AntS's own temperature, °C, with its controller powered
+    /// (`None`: no valid answer)
+    fn ants_temperature_c(&mut self) -> Option<f64>;
     /// Write a flight-log line
     fn log(&mut self, level: Level, message: fmt::Arguments<'_>);
     /// Log a fault
@@ -294,6 +330,14 @@ pub struct Deployment {
     persist_fault_logged: bool,
     /// Wing 2's resistor is burning (the second half of a wing attempt)
     second_wing: bool,
+    /// AntS attempts deferred for its temperature (persisted)
+    ants_deferrals: u8,
+    /// The AntS's last temperature reading, °C (`None`: none valid)
+    ants_temp_c: Option<f64>,
+    /// An attempt is deferred: the slot's wait runs
+    ants_deferred: bool,
+    /// The ground forced the antenna's deployment (DEPLOY_RETRY's flag)
+    ants_forced: bool,
     initialized: bool,
 }
 
@@ -321,6 +365,10 @@ impl Deployment {
             sep_remainder_ms: 0,
             persist_fault_logged: false,
             second_wing: false,
+            ants_deferrals: 0,
+            ants_temp_c: None,
+            ants_deferred: false,
+            ants_forced: false,
             initialized: false,
         }
     }
@@ -384,14 +432,14 @@ impl Deployment {
         u8::try_from(self.state as u32).unwrap_or(u8::MAX)
     }
 
-    fn record(&self) -> [u8; 8] {
+    fn record(&self) -> [u8; RECORD_LEN] {
         let [antenna, solar] = &self.elements;
         let flags = (if antenna.deployed { FLAG_ANTENNA_DEPLOYED } else { 0 })
             | (if solar.deployed { FLAG_SOLAR_DEPLOYED } else { 0 })
             | (if self.deployment_enabled { FLAG_ENABLED } else { 0 })
             | (if self.separation_detected { FLAG_SEPARATED } else { 0 });
         let [w0, w1, w2, w3] = self.wait_elapsed_s.to_le_bytes();
-        [self.state_byte(), antenna.attempt_count, solar.attempt_count, flags, w0, w1, w2, w3]
+        [self.state_byte(), antenna.attempt_count, solar.attempt_count, flags, w0, w1, w2, w3, self.ants_deferrals]
     }
 
     fn save<F: Flash>(&mut self, flash: &mut F) -> bool {
@@ -426,6 +474,9 @@ impl Deployment {
         self.elements = [ElementStatus::default(); 2];
         self.separation_detected = false;
         self.deployment_enabled = true;
+        self.ants_deferrals = 0;
+        self.ants_deferred = false;
+        self.ants_forced = false;
         self.restart_wait(io);
     }
 
@@ -458,6 +509,9 @@ impl Deployment {
             let _ = self.save(io);
             return;
         }
+        if e == Element::Antenna && !self.ants_gate(io) {
+            return;
+        }
 
         // Persist the attempt (and the burning state) before driving the
         // line, so a reset can never repeat a burn; if it cannot be
@@ -483,6 +537,40 @@ impl Deployment {
         let attempt = self.element(e).attempt_count;
         self.burn_on(io, e, attempt);
         io.log(Level::Info, format_args!("Element {} burn attempt {}", e as u32, attempt));
+    }
+
+    /// The AntS temperature gate before an antenna attempt: whether the
+    /// attempt goes ahead now (forced, warm enough, or the deferrals
+    /// spent); otherwise the controller is being started, or the attempt is
+    /// deferred to the next slot without spending it
+    fn ants_gate<IO: DeployIo>(&mut self, io: &mut IO) -> bool {
+        if self.ants_forced {
+            return true;
+        }
+        if self.ants_deferred {
+            if self.state_elapsed_ms < RETRY_DELAY_MS {
+                return false;
+            }
+            self.ants_deferred = false;
+            self.state_elapsed_ms = 0;
+        }
+        // Power the controller (its supply is the master arm) and let it start
+        io.set(Line::Arm, true);
+        if self.state_elapsed_ms < ANTS_START_MS {
+            return false;
+        }
+        let t = io.ants_temperature_c().filter(|t| t.is_finite());
+        self.ants_temp_c = t;
+        if t.is_some_and(|t| t >= ANTS_MIN_TEMP_C) || self.ants_deferrals >= ANTS_MAX_DEFERRALS {
+            return true;
+        }
+        self.ants_deferrals = self.ants_deferrals.saturating_add(1);
+        Self::burn_off(io);
+        self.ants_deferred = true;
+        self.state_elapsed_ms = 0;
+        let _ = self.save(io);
+        io.report(Report::AntsDeferred);
+        false
     }
 
     fn process_active<IO: DeployIo>(&mut self, io: &mut IO, e: Element, verify: State) {
@@ -532,11 +620,12 @@ impl Deployment {
     /// Resume from a valid record. ARMED starts fresh; COMPLETE and FAILED
     /// are kept; other states resume unless power was lost (the wait
     /// restarts); a burn interrupted by a reset goes to verification.
-    fn restore(&mut self, rec: &[u8; 8], state: State, reset: Reset) {
-        let [_, antenna_attempts, solar_attempts, flags, w0, w1, w2, w3] = *rec;
+    fn restore(&mut self, rec: &[u8; RECORD_LEN], state: State, reset: Reset) {
+        let [_, antenna_attempts, solar_attempts, flags, w0, w1, w2, w3, deferrals] = *rec;
         if state == State::Armed {
             return; // the sequence starts fresh at this boot
         }
+        self.ants_deferrals = deferrals;
         let [antenna, solar] = &mut self.elements;
         for (el, attempts) in [(antenna, antenna_attempts), (solar, solar_attempts)] {
             el.attempt_count = attempts;
@@ -580,7 +669,7 @@ impl Deployment {
         self.sep_remainder_ms = 0;
         self.persist_fault_logged = false;
 
-        let mut rec = [0u8; 8];
+        let mut rec = [0u8; RECORD_LEN];
         let loaded = nvm::load(io, self.region, 0, RECORD_MAGIC, &mut rec);
         let [state_raw, ..] = rec;
         match (loaded, State::from_raw(u32::from(state_raw))) {
@@ -675,6 +764,15 @@ impl Deployment {
     /// Retry an element (ground command): refused until the wait has been
     /// served (CDS 2.4.4) and during a burn
     pub fn force_retry<IO: DeployIo>(&mut self, e: Element, io: &mut IO) -> bool {
+        self.retry(e, false, io)
+    }
+
+    /// [`Deployment::force_retry`]; with `force` (the antenna only) the
+    /// AntS temperature gate is passed by: the antenna deploys at once
+    pub fn retry<IO: DeployIo>(&mut self, e: Element, force: bool, io: &mut IO) -> bool {
+        if force && e != Element::Antenna {
+            return false;
+        }
         match self.state {
             State::Inhibited | State::Waiting | State::Armed | State::AntennaActive | State::SolarActive => {
                 return false;
@@ -689,6 +787,10 @@ impl Deployment {
         let el = self.element_mut(e);
         el.attempt_count = 0;
         el.deployed = false;
+        if e == Element::Antenna {
+            self.ants_forced = force;
+            self.ants_deferred = false;
+        }
         self.enter_state(io, e.pending());
         let _ = self.save(io);
         io.log(Level::Info, format_args!("Forced retry for element {}", e as u32));
@@ -732,6 +834,12 @@ impl Deployment {
         let wings = self.element(Element::SolarPanel);
         let wing_phase = matches!(self.state, State::SolarPending | State::SolarActive | State::SolarVerify);
         !wings.deployed && wings.attempt_count >= MAX_RETRIES && !wing_phase
+    }
+
+    /// The AntS temperature gate: deferrals, and the last temperature, °C
+    /// (`None`: none valid)
+    pub const fn ants_gate_status(&self) -> (u8, Option<f64>) {
+        (self.ants_deferrals, self.ants_temp_c)
     }
 
     /// Telemetry
@@ -821,7 +929,7 @@ mod tests {
                     let n = self.wing.iter().flatten().filter(|b| **b).count();
                     self.wing_max = self.wing_max.max(n);
                     if on {
-                        let mut rec = [0u8; 8];
+                        let mut rec = [0u8; RECORD_LEN];
                         let ok = nvm::load(&mut self.flash, 10, 0, RECORD_MAGIC, &mut rec);
                         self.persisted_at_burn = (ok == Ok(RecordStatus::Valid)).then_some(rec[2]);
                     }
@@ -830,7 +938,7 @@ mod tests {
                     let e = Element::Antenna;
                     self.burn[e as usize] = on;
                     if on {
-                        let mut rec = [0u8; 8];
+                        let mut rec = [0u8; RECORD_LEN];
                         let ok = nvm::load(&mut self.flash, 10, 0, RECORD_MAGIC, &mut rec);
                         self.persisted_at_burn = (ok == Ok(RecordStatus::Valid)).then_some(rec[1 + e as usize]);
                     }
