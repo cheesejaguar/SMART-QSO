@@ -511,11 +511,12 @@ def charge_control():
 # ================================================================================================= 4 pack, AFE, protection
 def pack_and_protection():
     # series pack line: BAT_TOP - F2 - RT1 - F3 (secondary-protector fuse) - gauge shunt - AFE FETs - PACK_P
-    p = place(TF, "F2", "5A", "0451005.MRL", "Littelfuse", "Nano2 451 (2-SMD)", "5 A, 125 V AC/DC, 50 A at 125 V (300 A at 32 VDC per datasheet)",
-              "1.31 A / (5 A x 0.90 at 60 C) = 29 %", "pack fuse, non-resettable", "Sn plated end caps; coat", "Digi-Key: Active")
+    p = place(TF, "F2", "5A", "FM12A72V5.0A", "AEM / MIL-PRF-23419/12 QPL", "FM12 solid-body SMD", "5 A, 72 VDC, interrupt 1000 A at 72 VDC (MIL-PRF-23419/12), cold 13.5-22.5 mOhm",
+              "1.40 A / (5 A x 0.80 at 60 C, assumed) = 35 %; 2.0 A fault case 50 %", "pack fuse, non-resettable; same part as F0 on the battery sense board",
+              "per MIL-PRF-23419/12 (Au or SnPb terminations: order the non-tin finish)", "NASA NEPP NPSL list: FM12A72V5.0A (cold resistance); interrupt rating from the slash sheet")
     conn(p, {"A": "BAT_TOP", "B": "N_F2"})
     p = place(TPTC, "RT1", "2.6A", "2920L260/33DR", "Littelfuse", "2920", "PPTC hold 2.6 A, trip 5.0 A, 33 V, 40 A",
-              "1.31 A / 1.92 A hold at 60 C = 68 %", "pack PTC", "Sn; coat", "Digi-Key: Active")
+              "1.40 A / 1.92 A hold at 60 C = 73 %", "pack PTC", "Sn; coat", "Digi-Key: Active")
     conn(p, {"A": "N_F2", "B": "N_RT1"})
     p = place(S_ITV, "F3", "ITV 12A", "ITV4030L1412NR", "Littelfuse", "4030 (3-terminal SMD)",
               "12 A, 36 VDC, 50 A break, heater 11.2-20 Ohm, triggerable 10.5-19.6 V",

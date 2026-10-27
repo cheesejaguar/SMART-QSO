@@ -124,7 +124,8 @@ pub extern "C" fn passivation_tick(sunlit: bool) {
 /// Check the RAM copy against the record (AV-07)
 #[unsafe(no_mangle)]
 pub extern "C" fn passivation_verify() {
-    let _ = EOL.with(|p| p.verify(&mut HalFlash));
+    let now = c::now_ms();
+    let _ = EOL.with(|p| p.verify(now, &mut HalFlash));
 }
 
 /// The next final-report frame, if one is due now (1 to 3; 0: none)

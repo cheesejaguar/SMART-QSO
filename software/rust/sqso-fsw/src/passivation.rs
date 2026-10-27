@@ -405,8 +405,9 @@ impl Passivation {
 
     /// Check the RAM copy against the record (AV-07): committed or silenced
     /// in either is so in both, and the inhibit is applied again once
-    /// silenced
-    pub fn verify<IO: PassivationIo>(&mut self, io: &mut IO) {
+    /// silenced; a committed record carries on where it is (the fire again,
+    /// or the final report again once the fire is done)
+    pub fn verify<IO: PassivationIo>(&mut self, now_ms: u64, io: &mut IO) {
         if !self.initialized {
             return;
         }
@@ -423,6 +424,8 @@ impl Passivation {
             self.set_flags(stored);
             if !self.fire_done && self.fire.is_none() {
                 self.fire = Some(Step::WaitSun);
+            } else if self.fire_done && self.report.is_none() {
+                self.report = Some((now_ms, 0));
             }
         } else if ram & !stored != 0 {
             self.save(io);
@@ -764,17 +767,17 @@ mod tests {
     fn verify_restores_passivation_from_either_copy() {
         let mut io = Bench::default();
         let mut p = Passivation::new(REGION);
-        p.verify(&mut io);
+        p.verify(0, &mut io);
         assert!(!io.inhibited, "before init: nothing");
         p.init(0, &mut io);
-        p.verify(&mut io);
+        p.verify(0, &mut io);
         assert!(!io.inhibited);
         assert!(io.log.is_empty());
         // Committed on record, a RAM upset forgot it: carried on
         let mut q = executed(&mut io, 1000);
         q.committed = false;
         q.fire = None;
-        q.verify(&mut io);
+        q.verify(0, &mut io);
         assert!(q.committed());
         assert!(q.fire.is_some());
         assert!(!io.inhibited);
@@ -786,7 +789,7 @@ mod tests {
         assert!(io.inhibited);
         q.silenced = false;
         io.inhibited = false;
-        q.verify(&mut io);
+        q.verify(0, &mut io);
         assert!(q.passivated());
         assert!(io.inhibited);
         assert_eq!(io.log.last(), Some(&Report::Passivated));
@@ -794,7 +797,7 @@ mod tests {
         let mut io2 = Bench::default();
         let mut r = fresh(&mut io2);
         r.committed = true;
-        r.verify(&mut io2);
+        r.verify(0, &mut io2);
         let after = fresh(&mut io2);
         assert!(after.committed());
         // A version-1 record (TX-OFF first) reads as silenced
@@ -831,16 +834,19 @@ mod tests {
         nvm::save(&mut io, REGION, 0, RECORD_MAGIC, &[flags, VERSION, 1, 0]).unwrap();
         let mut q = Passivation::new(REGION);
         q.initialized = true;
-        q.verify(&mut io);
+        q.verify(0, &mut io);
         assert!(q.committed());
         assert!(q.fire.is_none());
         assert_eq!(q.phase(0), Phase::Reporting);
+        assert_eq!(q.take_report(0), Some(1), "the final report again");
+        q.tick(REPORT_WINDOW_MS, SUN, &mut io);
+        assert!(q.passivated());
         // Committed on record while a fire is already running in RAM: kept
         let mut io = Bench::default();
         let mut r = executed(&mut io, 1000);
         r.committed = false;
         let running = r.fire;
-        r.verify(&mut io);
+        r.verify(0, &mut io);
         assert_eq!(r.fire, running);
     }
 

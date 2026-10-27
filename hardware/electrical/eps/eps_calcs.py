@@ -174,7 +174,12 @@ def protection():
     i_burn_peak = i_burn_pack + i_legit["hk"] + i_legit["heater"] + i_legit["mtq"]
     i_burn_mtq_lim = i_burn_peak - i_legit["mtq"] + MTQ_BRIDGE_LIMIT_A
     i_burn_buck_lim = 2.8 * 7.04 / (0.88 * 11.2)           # all four on: LMR43620 peak limit 2.8 A min holds the buck output
-    fuse_rerate_60 = 0.90                                  # Nano2 451 rerating at 60 degC (datasheet temperature rerating)
+    fuse_rerate_60 = 0.80                                  # FM12 (MIL-PRF-23419/12) at 60 degC: assumed, to confirm on the slash sheet
+    # prospective short-circuit current at BAT_TOP (fault right after F0): cells at a lower-bound 10 mOhm each (about a
+    # third of the INR18650-35E's typical DC resistance), welded interconnects neglected, F0 at its 13.5 mOhm minimum
+    r_cell_min, r_f0_min, r_tap_fuse_min = 0.010, 0.0135, 0.225
+    i_psc = VBAT_MAX / (NCELL * r_cell_min + r_f0_min)
+    i_psc_tap = VBAT_MAX / (NCELL * r_cell_min + r_tap_fuse_min)
     ptc_hold_60 = 2.6 * 0.74                               # 2920L hold current rerating at 60 degC
     ptc_hold_60_ = 2.6 * 0.74
     rows = [("Largest legitimate pack current (Jetson at the 12 W guard + PA 1 W + housekeeping + heater + magnetorquers "
@@ -188,8 +193,13 @@ def protection():
             (f"Same with the coil bridges at their hardware limit ({MTQ_BRIDGE_LIMIT_A:.2f} A)", f"{i_burn_mtq_lim:.2f} A", "chair limit 1.0 A"),
             ("All four burn drivers on (software fault): burn buck in its 2.8 A current limit", f"{i_burn_buck_lim:.2f} A", "hardware cap"),
             ("AFE OCD1 (40 mV on 10 mOhm, 500 ms)", f"{ocd:.1f} A ({ocd_lo:.1f}-{ocd_hi:.1f})", f"{ocd_lo / i_max_legit:.1f}x the largest load; below F2"),
-            ("AFE SCD (100 mV, 15 us)", f"{scd:.0f} A", "cell short-circuit current 80-100 A"),
-            ("F2 0451005.MRL 5 A at 60 degC (x0.90 rerating)", f"{5 * fuse_rerate_60:.1f} A", f"largest load {i_max_legit / (5 * fuse_rerate_60):.0%} of the rerated rating (rule 50 %)"),
+            ("AFE SCD (100 mV, 15 us)", f"{scd:.0f} A", "prospective short-circuit current 80-100 A typical, <= 314 A bound (below)"),
+            ("F0 (sense board) and F2: FM12A72V5.0A 5 A at 60 degC (x0.80 rerating, assumed)", f"{5 * fuse_rerate_60:.1f} A",
+             f"largest load {i_max_legit / (5 * fuse_rerate_60):.0%}, four-driver fault {i_burn_buck_lim / (5 * fuse_rerate_60):.0%} of the rerated rating (rule 50 %)"),
+            ("Prospective short-circuit current at BAT_TOP (16.8 V, 4 x 10 mOhm cells, F0 13.5 mOhm)", f"{i_psc:.0f} A",
+             f"FM12 interrupt 1000 A at 72 VDC: {1000 / i_psc:.1f}x (a Nano2 451, 300 A at 32 VDC, would have {300 / i_psc:.2f}x)"),
+            ("Prospective current in a tap short (one FM12A72V3/4A tap fuse, 0.225 Ohm min, four cells)", f"{i_psc_tap:.0f} A",
+             f"FM12 interrupt 1000 A: {1000 / i_psc_tap:.0f}x (a 0466 chip fuse, 50 A at 63 V, would be exceeded)"),
             ("RT1 2920L260/33DR hold at 60 degC", f"{ptc_hold_60:.2f} A", f"{i_max_legit / ptc_hold_60:.0%} of hold"),
             ("F3 ITV4030L1412NR 12 A (secondary-protector fuse) at 60 degC (10 A)", "10 A", f"{i_max_legit / 10:.0%}")]
     table("4. Pack currents and protection coordination", ["Item", "Value", "Margin"], rows)

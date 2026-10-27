@@ -45,6 +45,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(HERE, "..", ".."))
 sys.path.insert(0, os.path.join(REPO, "software", "simulation", "cdr", "structures"))
 import mass_properties as mp  # noqa: E402  (the MEL: MASS_BUDGET v3.0 section 3.1)
+sys.path.insert(0, os.path.join(REPO, "hardware", "harness"))
+import harness_calcs as HAR  # noqa: E402  (SQSO-HAR-001 2.0: zones, routes, wire list; standard library only)
 
 # ======================================================================================================
 # Parameters (mm).  Every dimension the checks use is here.
@@ -173,6 +175,89 @@ def wing_stowed_x(p=P):
                 wb1=wb1, ws1=ws1, wf1=wf1, line=wf1 + p["line_h"])
 
 
+def shear_slots():
+    """Grommeted 6 x 4 mm body-panel pigtail slots in the shear panels, z -12 ... -8 (SQSO-HAR-001 2.0 M-2)."""
+    return [("px", (48.0, 50.0, -33.0, -27.0, -12.0, -8.0)), ("mx", (-50.0, -48.0, -15.0, -9.0, -12.0, -8.0)),
+            ("py", (-33.0, -27.0, 48.0, 50.0, -12.0, -8.0)), ("my", (-33.0, -27.0, -50.0, -48.0, -12.0, -8.0))]
+
+
+HZ_OWNER = {"COAX_P": "coax_W10", "COAX_M": "coax_W10", "COAXU_P": "coax_W10", "COAXU_M": "coax_W10",
+            "COAXF_P": "coax_W10", "COAXF_M": "coax_W10", "W4AZ": "ribbon_W4A", "AP_A3": "access_port",
+            "TB": "TB_tabs"}
+
+
+def harness_distribution():
+    """Harness mass (g CBE) by zone and MEL row from the harness design (SQSO-HAR-001 2.0 sec. 11): each wire's mass
+    along its route in proportion to segment length, connector halves at the route ends, A3 in its envelope, the tabs
+    on the shear panels, sleeves and ties in proportion to the wire."""
+    from collections import defaultdict
+    res = HAR.compute()
+    zm = defaultdict(lambda: defaultdict(float))
+    wire_z = defaultdict(float)
+    w1_z = defaultdict(float)
+    ends = {}
+    for w in res["wires"]:
+        gpm = HAR.COAX[w["awg"]][1] if w["awg"] in HAR.COAX else HAR.WIRE[int(w["awg"])][1]
+        m = gpm * w["length_mm"] / 1000.0
+        row = "31" if w["route"] == "W10E" else HAR.MEL_ROW.get(w["harness"], "32")
+        segs = [sg for sg in HAR.segments(res["routes"][w["route"]]) if sg[3] > 0]
+        L = sum(sg[3] for sg in segs)
+        for zn, _, _, l in segs:
+            zm[zn][row] += m * l / L
+            wire_z[zn] += m * l / L
+            if w["harness"] == "W1":
+                w1_z[zn] += m * l / L
+        for ref, pin, zn in ((w["from_ref"], w["from_pin"], segs[0][0]), (w["to_ref"], w["to_pin"], segs[-1][0])):
+            ends.setdefault((w["harness"], ref), [zn, set()])[1].add(pin)
+    for (h, ref), (zn, pins) in ends.items():
+        fam = HAR.FAMILY[HAR.family(ref)]
+        if HAR.family(ref) == "MMCX":
+            m = fam[2] * len(pins) if ref.startswith(("RF-", "GNSS", "PATCH", "ANTS")) else 0.0
+        else:
+            m = fam[2] + fam[3] * len(pins) if (fam[2] or fam[3]) else 0.0
+        zm[zn]["31" if ref in ("GNSS-RF", "PATCH") else HAR.MEL_ROW.get(h, "32")] += m
+    wt, w1t = sum(wire_z.values()), sum(w1_z.values())
+    for k, g in res["extras"].items():
+        if k.startswith("access-port"):
+            zm["AP_A3"]["32"] += g
+        elif k.startswith("termination tabs"):
+            zm["TB"]["32"] += g
+        elif k.startswith("PTFE over-sleeve"):
+            for zn, v in w1_z.items():
+                zm[zn]["32"] += g * v / w1t
+        else:
+            for zn, v in wire_z.items():
+                zm[zn]["32"] += g * v / wt
+    return {zn: dict(v) for zn, v in zm.items()}, res["m_row"]
+
+
+def harness_zone_parts(parts: List[Part], add):
+    """Zone parts (hz_*) and the harness masses of coax_W10, ribbon_W4A, access_port and TB_tabs, scaled so that
+    rows 26, 31 and 32 equal the MEL (row 31's balance beyond W10E, the GNSS cable allocation, rides on W10E's
+    zones)."""
+    zm, _ = harness_distribution()
+    rows = mel_rows()
+    named = {pt.name: pt for pt in parts}
+    for r in ("26", "31", "32"):
+        tot = sum(v.get(r, 0.0) for v in zm.values())
+        if tot <= 0:
+            continue
+        other = sum(pt.mel.get(r, 0.0) for pt in parts if pt.name not in HZ_OWNER.values() and pt.mel.get(r, 0) > 0)
+        k = (rows[r].cbe_g - other) / tot
+        for v in zm.values():
+            if r in v:
+                v[r] *= k
+    for zn, v in sorted(zm.items()):
+        if zn in HZ_OWNER:
+            pt = named[HZ_OWNER[zn]]
+            for r, g in v.items():
+                pt.mel[r] = pt.mel.get(r, 0.0) + g
+            continue
+        x0, x1, y0, y1, z0, z1, _ax, desc = HAR.ZONES[zn]
+        add(Part(f"hz_{zn}", "harness", dict(v), B(x0, x1, y0, y1, z0, z1), color=COL["harness"],
+                 note=f"harness zone {zn}: {desc} (SQSO-HAR-001 2.0 7.1)"))
+
+
 def build_parts(p=P) -> List[Part]:
     zp = z_planes(p)
     hw = p["W"] / 2.0
@@ -208,7 +293,8 @@ def build_parts(p=P) -> List[Part]:
              note="-Z end frame, outer face recessed 1.5 mm for the AntS (STR-11)"))
     pz = B(-inner, inner, -inner, inner, zp["pz_in"], zp["pz_out"])
     a2h = [C("z", (p["mag_x"] + (x - 24.0), p["mag_y"] + (y - 27.0), 0), 1.1, 40, 60) for x, y in p["a2_screws"]]
-    pz = cut(pz, B(-15, 15, -15, 15, -60, 60), *colholes, *sw_holes, *a2h)
+    pz = cut(pz, B(-15, 15, -15, 15, -60, 60), *colholes, *sw_holes, *a2h,
+             C("z", (-36.0, 36.0, 0), 1.0, 40, 60))                    # PZ sun-sensor leads (SQSO-HAR-001 M-5)
     add(Part("endplate_pz", "frame", {"1": -1}, pz, color=COL["frame"]))
     wx = wing_stowed_x(p)
     for ax, s in (("x", 1), ("x", -1), ("y", 1), ("y", -1)):
@@ -217,6 +303,14 @@ def build_parts(p=P) -> List[Part]:
             sh = B(lo, hi, -(hw - a), hw - a, zp["mz_out"], zp["pz_out"])
         else:
             sh = B(-(hw - a), hw - a, lo, hi, zp["mz_out"], zp["pz_out"])
+        tag_ = f"{'p' if s > 0 else 'm'}{ax}"
+        sh = cut(sh, *[B(*sl) for t_, sl in shear_slots() if t_ == tag_])
+        if ax == "x":                                      # wing-flex tail to TB-W1 / TB-W2 (SQSO-HAR-001 M-4)
+            sh = cut(sh, B(lo - 0.1, hi + 0.1, 36.5, 38.0, -40.0, -37.2))
+        if tag_ == "mx":                                   # -Z sun-sensor leads (M-5)
+            sh = cut(sh, C("x", (0, 28.0, -45.5), 0.9, lo - 0.1, hi + 0.1))
+        if tag_ == "my":                                   # A3 Micro-D 21 (M-3)
+            sh = cut(sh, B(-31.2, -8.8, lo - 0.1, hi + 0.1, -45.6, -39.2))
         add(Part(f"shear_{'p' if s > 0 else 'm'}{ax}", "frame", {"1": -1}, sh, color=COL["frame"],
                  note="side shear panel (frame secondary structure), outer face 0.5 mm below the rail plane"))
 
@@ -238,11 +332,12 @@ def build_parts(p=P) -> List[Part]:
                B(p["rbf_x"] - 5, p["rbf_x"] + 5, *fy(inner, 41.5), p["rbf_z"] - 3.5, p["rbf_z"] + 3.5))
     add(Part("RBF", "inhibit", {"4": 4.0}, rbf, color=COL["mech"],
              note="RBF pin head 4 mm above the -Y panel substrate; switch body inside"))
-    port = fuse(B(p["port_x"] - 9, p["port_x"] + 9, *fy(wx["bp1"] + 0.5, wx["bp1"]), p["port_z"] - 3.5,
-                  p["port_z"] + 2.5),
-                B(p["port_x"] - 9, p["port_x"] + 9, *fy(inner, 41.5), p["port_z"] - 3.5, p["port_z"] + 2.5))
-    add(Part("access_port", "inhibit", {"32": 2.0}, port, color=COL["mech"],
-             note="umbilical / charge connector (Micro-D 9 class), location open (LVR-068 Nova access window)"))
+    port = fuse(B(-35.0, -5.0, *fy(48.4, 41.5), -46.8, -38.0),                         # A3 with W8A, W11 ends
+                B(-31.0, -9.0, *fy(wx["bp1"], 48.4), -45.4, -39.4))                      # Micro-D 21 shell, flush
+    add(Part("access_port", "harness", {"32": 6.0}, port, color=COL["mech"],
+             note="access-port board A3 and its Micro-D 21 (SQSO-HAR-001 2.0 3.2, M-3): envelope x -35 ... -5, "
+                  "z -46.8 ... -38; face flush with the -Y body-panel substrate in a 30 x 8.8 mm window "
+                  "(location against the Nova access window LVR-068 open)"))
 
     # ---------------- body panels (row 6) -----------------------------------------------------------------
     bh = p["bp_h"] / 2.0
@@ -258,14 +353,15 @@ def build_parts(p=P) -> List[Part]:
             cells = B(clo, chi, -cyh, cyh, czc - czh, czc + czh)
             notches = [B(lo - 1, hi + 1, 36.0, bw + 1, z0, z1) for z0, z1 in notch_z]
             holes = [C("x", (0, p["holddown_y"], p["holddown_z"]), 1.75, lo - 1, hi + 1)]
+            if s < 0:
+                holes.append(C("x", (0, 28.0, -45.5), 0.9, lo - 1, hi + 1))       # -Z sun-sensor leads (M-5)
             sub = cut(sub, *notches, *holes)
         else:
             sub = B(-bw, bw, lo, hi, -bh, bh)
             cells = B(-cyh, cyh, clo, chi, czc - czh, czc + czh)
             if s == p["rbf_face"]:
                 sub = cut(sub, C("y", (p["rbf_x"], 0, p["rbf_z"]), 4.2, lo - 1, hi + 1),
-                          B(p["port_x"] - 9.2, p["port_x"] + 9.2, lo - 1, hi + 1, p["port_z"] - 3.7,
-                            p["port_z"] + 2.7))
+                          B(-35.2, -4.8, lo - 1, hi + 1, -47.0, -37.8))          # A3 window (M-3)
         tag = f"{'p' if s > 0 else 'm'}{ax}"
         add(Part(f"body_panel_{tag}", "panel", {"6": 32.8}, sub, color=COL["panel"]))
         add(Part(f"body_cells_{tag}", "panel", {"6": 7.2}, cells, color=COL["cell"],
@@ -297,7 +393,7 @@ def build_parts(p=P) -> List[Part]:
                 C("z", (hx, hy, 0), kr, 43.6, 44.6)]
         hinge = fuse(*ears)
         springs = fuse(C("z", (hx, hy, 0), sr, -47.6, -40.1), C("z", (hx, hy, 0), sr, 44.8, 48.4))
-        flex = fuse(C("z", (hx, hy, 0), sr, -39.9, -37.3), B(wx["shear_out"], hx, 37.0, 37.5, -39.5, -37.7))
+        flex = fuse(C("z", (hx, hy, 0), sr, -39.9, -37.3), B(wx["shear_in"] - 0.3, hx, 37.0, 37.5, -39.5, -37.7))
         post = C("x", (0, p["holddown_y"], p["holddown_z"]), 1.5, wx["bp1"], wx["wf1"])
         sensor = B(wx["bp1"], wx["wb1"] - 0.2, 33.5, 36.3, kz[0][0], kz[0][1])
         burn = B(wx["shear_in"] - 2.0, wx["shear_in"], -41.0, -34.0, -45.0, -35.5)
@@ -317,7 +413,7 @@ def build_parts(p=P) -> List[Part]:
             (f"{tag}_snubber", "wing", {rows[1]: 1.0}, snub, True, COL["mech"],
              "PTFE-faced silicone snubber, +Z free corner"),
             (f"{tag}_hinges", "wing", {rows[1]: 6.0}, hinge, False, COL["mech"],
-             "440C pin (MoS2) in Ti-6Al-4V bushings: frame ears at -Z and +Z, +Z wing knuckle"),
+             "A286 pin (MoS2) in Ti-6Al-4V bushings: frame ears at -Z and +Z, +Z wing knuckle"),
             (f"{tag}_springs", "wing", {rows[1]: 1.0}, springs, False, COL["rod"],
              "17-7PH CH900 torsion springs OD 4.0: primary 0.470 mm x 15.4 coils below the wing, secondary "
              "0.343 mm x 9.5 coils at +Z, 55 deg preload (hinge.py)"),
@@ -526,9 +622,9 @@ def build_parts(p=P) -> List[Part]:
     add(Part("heat_spreader", "stack", {"23": 66.6, "5": 15.0}, spreader, color=COL["al"],
              note="Al 6061 80 x 60 x 5 mm with 3 mm flanges bolted (4 x M2.5) to the +-X shear panels; pedestal 22 x 22 x "
                   "0.75 mm over the SoC lid (flatness 0.05 mm) and a 0.5 mm second face over the DRAM and regulators"))
-    rf_notch = B(37.0, 60, -60, -26.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 8.0)       # shield notch for J1 (RF C16)
+    rf_notch = B(30.0, 60, -60, -26.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 8.0)       # shield notch for J1 (RF D 4.3)
     rf_notch2 = B(-60, -30.0, -28.0, -16.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 8.0)   # shield notch for J3/J4
-    rf_conn = [B(38.5, 43.5, -39.8, -27.2, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0),
+    rf_conn = [B(29.5, 43.6, -39.8, -27.2, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0),
                B(-46, -31.0, 16.0, 28.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0),
                B(-46, -31.0, -28.0, -16.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0),
                B(-31.5, -20.5, -47.0, -41.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0)]
@@ -586,12 +682,9 @@ def build_parts(p=P) -> List[Part]:
                                                                      zp["pz_in"]), color=COL["gnss"]))
 
     # ---------------- harness and distributed allocations (rows 26, 31, 32, 33, 34, 35) -------------------
-    hch = [B(45.4 if sx > 0 else -48.4, 48.4 if sx > 0 else -45.4, 24.0 if sy > 0 else -33.9,
-             33.9 if sy > 0 else -24.0, zp["mz_in"], zp["pz_in"]) for sx, sy in ((1, 1), (-1, 1), (-1, -1))]
-    # (+X, -Y) bundle (ICX E12, amended): y -24.0 ... -33.9 below z -26 (the Y rod's -Y end reaches y -23.5 at
-    # z -38.2 ... -27.6), y -20.5 ... -27.0 above it (0.5 mm from the spreader flange at y -20), leaving
-    # y -28.5 ... -38.5 of the +X wall gap to the W4A ribbon from OBC J2 to RF J1
-    hch.append(fuse(B(45.4, 48.4, -33.9, -24.0, zp["mz_in"], -26.0), B(45.4, 48.4, -27.0, -20.5, -26.0, zp["pz_in"])))
+    # SQSO-HAR-001 2.0 (M-1, M-6): the harness is carried on its own zones (hardware/harness/harness_calcs.py
+    # ZONES), each with the mass of the wire, connector halves, sleeves and ties routed through it
+    # (routes.csv, wire_list.csv); the corner bundles of Version B are four of these zones.
     # W10 coax (RF board C 4.3): 1.37 mm cables from the MMCX jacks J3-J6 over the -X board edge, down the -X wall gap
     # (70 cm pair y +20 ... +24, 2 m pair y -20 ... -24), inboard under the battery end caps and through the -Z end frame
     coax = []
@@ -599,26 +692,64 @@ def build_parts(p=P) -> List[Part]:
         coax += [B(-48.4, -45.4, y0, y1, zp["mz_in"], P["z_rf"] + pt + 6.0),
                  B(-45.4, -33.6, y0, y1, zp["mz_in"], zp["mz_in"] + 1.4),
                  B(-35.0, -33.6, y0, y1, zp["mz_out"], zp["mz_in"])]
-    add(Part("coax_W10", "harness", {"32": 3.0}, fuse(*coax), color=COL["harness"],
+    add(Part("coax_W10", "harness", {"32": 0.0}, fuse(*coax), color=COL["harness"],
              note="W10: four 1.37 mm coax, right-angle MMCX plugs, 7 mm bend radius (RF board C 4.3)"))
     mmcx = [B(-45.1, -31.5, 16.5, 27.5, P["z_rf"] + pt, P["z_rf"] + pt + 6.0),
             B(-45.1, -31.5, -27.5, -16.5, P["z_rf"] + pt, P["z_rf"] + pt + 6.0)]
     add(Part("RF_J3_J6_MMCX", "stack", {"18": 0.0}, fuse(*mmcx), color=COL["comp"],
              note="MMCX jacks Molex 73415-1473 J3/J4 (2 m) at (-34.5, -19/-25), J5/J6 (70 cm) at (-34.5, +19/+25), mated"))
-    add(Part("harness_channels", "harness", {"32": 74.0, "31": 20.0, "26": 3.0}, fuse(*hch),
-             color=COL["harness"], note="four bundles in the +-X wall gaps (the +X -Y one narrowed to 3 x 6.5 mm above z -26)"))
     j2z = P["z_obc"] + pt
-    w4a = fuse(B(47.4, 48.4, -38.5, -28.5, j2z + 8.0, P["z_rf"] + pt + 9.0),          # flat, vertical in the gap
-               B(43.0, 48.4, -38.5, -28.5, P["z_rf"] + pt + 8.0, P["z_rf"] + pt + 9.0),   # over J1 to the gap
-               B(43.0, 48.4, -38.5, -28.5, j2z + 7.0, j2z + 8.0))                       # from OBC J2 to the gap
-    add(Part("ribbon_W4A", "harness", {"32": 1.0}, w4a, color=COL["harness"],
-             note="W4A FTSH-108 ribbon, 10 mm wide, OBC J2 (+41, -33.5) to RF J1 (+41, -33.5) in the +X wall gap"))
+    w4a = fuse(B(43.1, 48.3, -38.5, -28.5, j2z + 3.1, j2z + 4.4),                     # from OBC J2's plug back
+               B(47.0, 48.3, -38.5, -28.5, j2z + 3.1, P["z_rf"] + pt + 4.6),           # flat on the +X shear panel
+               B(43.1, 48.3, -38.5, -28.5, P["z_rf"] + pt + 3.3, P["z_rf"] + pt + 4.6))  # into RF J1's plug back
+    add(Part("ribbon_W4A", "harness", {"32": 0.0}, w4a, color=COL["harness"],
+             note="W4A: flat SFSDT discrete-wire assembly (1.32 mm), right-angle TFM-108 at OBC J2 and RF J1, "
+                  "no fold over J1 (SQSO-HAR-001 2.0 M-8)"))
     add(Part("OBC_J2_mated", "stack", {"17": 0.0}, B(39.0, 43.0, -39.3, -27.7, j2z, j2z + 8.0), color=COL["comp"],
              note="OBC J2 FTSH-108 with its ribbon socket, mated-height allocation 8 mm (open: Samtec drawing)"))
-    add(Part("RF_J1_mated", "stack", {"18": 0.0}, B(39.0, 43.0, -39.3, -27.7, P["z_rf"] + pt, P["z_rf"] + pt + 8.0),
-             color=COL["comp"], note="RF J1 FTSH-108 mated, in the shield notch x > 37, y < -26 (allocation 8 mm)"))
+    add(Part("RF_J1_mated", "stack", {"18": 0.0}, B(30.0, 43.1, -39.3, -27.7, P["z_rf"] + pt, P["z_rf"] + pt + 7.0),
+             color=COL["comp"], note="RF J1 Samtec TFM-108 right-angle with its SFSDT plug, cable toward +X, in the "
+                                     "shield notch x > +30, y < -26 (RF_BOARD_DESIGN D 4.3)"))
     add(Part("RF_J2_mated", "stack", {"18": 0.0}, B(-31.0, -21.0, -46.5, -41.5, P["z_rf"] + pt, P["z_rf"] + pt + 6.0),
              color=COL["comp"], note="RF J2 Pico-Clasp 6 vertical, mated, at (-26, -44) (allocation 6 mm)"))
+    # EPS bottom-side connector envelope (SQSO-HAR-001 10.1, E-1): zones Z1-Z5 and J3 at the +X edge, 9.0 mm
+    Z = HAR.ZONES
+    zc = [B(Z[n][0], Z[n][1], Z[n][2], Z[n][3], -12.0, -4.05)
+          for n in ("U_MXPY", "U_MXMY", "U_MXMY2", "U_PXPY", "U_PXMY", "U_PXMY2", "U_PY", "U_PYN")]
+    zc.append(B(33.0, 45.0, -15.5, 15.5, -12.0, -4.05))
+    add(Part("EPS_bottom_connectors", "harness", {"12": 0.0}, fuse(*zc), color=COL["comp"],
+             note="EPS bottom-side harness connectors, mated with the wire bend, 9.0 mm below the substrate "
+                  "(z -3.0 ... -12.0; the 1 mm parts layer is the EPS_parts envelope) in zones Z1-Z5 and J3 at +X"))
+    # termination tabs TB-W1 / TB-W2 on the +-X shear panels (M-4)
+    tb = B(wx["shear_in"] - 0.3, wx["shear_in"], 32.0, 42.0, -37.0, -31.0)
+    add(Part("TB_tabs", "harness", {"32": 0.0}, fuse(tb, mirror_x(tb)), color=COL["harness"],
+             note="TB-W1 / TB-W2: polyimide 6 x 10 mm termination tabs bonded to the shear panels, hinge-flex tails "
+                  "through 1.5 x 2.8 mm slots below them"))
+    # grommets in the four 6 x 4 mm body-panel pigtail slots (M-2)
+    gr = []
+    for t_, (x0, x1, y0, y1, z0, z1) in shear_slots():
+        if t_ in ("px", "mx"):
+            x0, x1 = (wx["shear_in"], wx["shear_out"]) if t_ == "px" else (-wx["shear_out"], -wx["shear_in"])
+            gr.append(cut(B(x0, x1, y0, y1, z0, z1), B(x0 - 1, x1 + 1, y0 + 0.75, y1 - 0.75, z0 + 0.75, z1 - 0.75)))
+        else:
+            y0, y1 = (wx["shear_in"], wx["shear_out"]) if t_ == "py" else (-wx["shear_out"], -wx["shear_in"])
+            gr.append(cut(B(x0, x1, y0, y1, z0, z1), B(x0 + 0.75, x1 - 0.75, y0 - 1, y1 + 1, z0 + 0.75, z1 - 0.75)))
+    add(Part("slot_grommets", "harness", {"32": 0.0}, fuse(*gr), color=COL["harness"],
+             note="silicone or PTFE edge grommets in the 6 x 4 mm shear-panel slots (mass in the harness lacing)"))
+    # +-Z sun sensors (SQSO-HAR-001 M-5): PZ on the +Z end frame; MZ beside the AntS on the -X body panel's
+    # -Z end zone, looking -Z past the AntS housing edge
+    pzs = fuse(B(-39.0, -33.0, 33.0, 39.0, zp["pz_out"], zp["pz_out"] + 0.8),
+               B(-37.0, -35.0, 35.0, 37.0, zp["pz_out"] + 0.8, zp["pz_out"] + 1.5))
+    add(Part("sun_sensor_PZ", "adcs", {"26": 0.2}, pzs, color=COL["comp"],
+             note="+Z photodiode on a 6 x 6 x 0.8 mm carrier at (-36, +36) on the +Z end frame, leads through a "
+                  "2 mm hole (W6D)"))
+    mzs = fuse(B(-wx["bp1"] - 0.8, -wx["bp1"], 25.0, 31.0, -49.3, -45.5),
+               B(-wx["bp1"] - 3.0, -wx["bp1"], 25.0, 31.0, -49.3, -48.5),
+               B(-wx["bp1"] - 2.5, -wx["bp1"] - 0.5, 27.0, 29.0, -50.0, -49.3))
+    add(Part("sun_sensor_MZ", "adcs", {"26": 0.2}, mzs, color=COL["comp"],
+             note="-Z photodiode facing -Z on an L-carrier bonded to the -X body panel's -Z end zone at y +28, "
+                  "outboard of the AntS footprint (face at z -50.0, x -52.6); leads through the panels (W6D)"))
+    harness_zone_parts(parts, add)
     add(Part("fasteners_staking_distributed", "dist", {"34": 24.0 if p["car_frame"] else 25.0, "35": 10.0},
              B(-45, 45, -47.9, 47.9, zp["mz_in"], zp["pz_in"]), ghost=True, color=COL["comp"],
              note="fasteners, inserts, staking and conformal coat, smeared over the stack volume"))
@@ -844,6 +975,7 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
 
     # interference: pairwise common volume, stowed and deployed
     if interference:
+        byg = {pt.name: pt.group for pt in real}
         for state in ("stowed", "deployed"):
             shapes = [(pt.name, pt.deployed if (state == "deployed" and pt.deployed is not None) else pt.stowed)
                       for pt in real]
@@ -858,6 +990,8 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
                         continue
                     n += 1
                     pair = {shapes[i][0], shapes[j][0]}
+                    if all(byg[q] == "harness" for q in pair) and not pair & {"coax_W10", "ribbon_W4A"}:
+                        continue        # harness zones, A3, tabs and connector envelopes meet where wires end
                     if state == "stowed" and "AntS_housing" in pair and any(q.startswith("AntS_") and
                                                                             q.endswith("_element") for q in pair):
                         continue        # the stowed tapes are wound inside the housing by design
