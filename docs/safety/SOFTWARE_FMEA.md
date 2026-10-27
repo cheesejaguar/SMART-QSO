@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-FMEA-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8739.8B (software safety analysis), MIL-STD-1629A
 
@@ -165,6 +165,8 @@ RPN = Severity x Occurrence x Detection
 
 ## 12. Summary Statistics
 
+*Revision A counts on the inverted scales; superseded by §14.1 (on the corrected RPN′ no mode reaches 50).*
+
 ### 12.1 Failure Mode Count by Module
 
 | Module | Total FMs | RPN > 50 | RPN > 100 |
@@ -194,6 +196,8 @@ RPN = Severity x Occurrence x Detection
 ---
 
 ## 13. Conclusions and Recommendations
+
+*Revision A conclusions; items 1–3 rest on the inverted scales and are superseded by §14.*
 
 1. **No failure modes exceed RPN of 100** - No immediate critical actions required
 2. **14 failure modes exceed RPN of 50** - Require monitoring and planned mitigation
@@ -257,7 +261,7 @@ Each Rev A failure-mode group and each mode the CDR added, with what detects it,
 | ADCS-FM-001 detumble timeout | 285 min timer (`adcs.rs`) | fault, ADCS IDLE, re-commanded to DETUMBLE | Rust unit tests, `test_adcs`; Monte Carlo (ADCS_DESIGN §11.4) |
 | ADCS-FM-002/005 polarity, instability | rate telemetry (`W` in housekeeping) | none on board beyond the timeout; ground | Monte Carlo; HIL open |
 | Magnetometer sampled with the coils on (new) | sample time against the coil burst (`CoilTiming`) | sample rejected and counted (`MR`), first one logged; detumble without gyro not completed on a stale rate | Rust unit tests; Monte Carlo `no_window_detected` (every sample rejected, detumble times out, no false completion) |
-| Gyro absent or failed (new) | `Option` rate | magnetometer rate, nutation gain 1·10⁻⁴ | Monte Carlo `no_gyro` (17° mean) |
+| Gyro absent or failed (new) | `Option` rate | magnetometer rate, nutation gain 1·10⁻⁴ | Monte Carlo `no_gyro` (20° mean at 8°/s, ADCS_DESIGN 1.9 §11.4) |
 | BCN-FM beacon not sent or too frequent | downlink duty and key-down limits (`downlink`) | frame refused; template on Jetson failure | `test_downlink`, `test_beacon`; SIL `beacon-gap`, `duty`, `keydown` |
 | Transponder enabled when forbidden (new) | gates every pass (`transponder.rs`, safety-critical since Rev C) | heartbeat stops (lease 40 ms); the radio board drops the enable in ≤ 90 ms; a stalled loop or a reset stops it too | `test_xpdr_heartbeat`; SIL `xpdr-forbidden` 0 s; coverage gate 100 % lines and conditions |
 | UART-FM Jetson link | line CRC and parser (`jetson_link`) | NACK, template beacon | `test_jetson_link`, `test_uart_comm` |
@@ -273,7 +277,7 @@ Each Rev A failure-mode group and each mode the CDR added, with what detects it,
 | Receiver failed for good (new) | a recovery cycle made, the health line in fault, the loss-of-contact timeout expired (SRS-F116) | the loss-of-contact inhibit no longer silences the beacon; the transponder stays off; TX-OFF and passivation still work (REL-04, SRS-F117) | `test_receiver`; SIL contingency `rx_failed_day=20` (`rx-failed-beacon`) |
 | SRAM upset in live state | SRAM2 parity on read (every static); flash double-bit ECC; the TX-OFF, operations and passivation records checked against RAM every 60 s | NMI: cause recorded, immediate reset, cause logged at the next boot; a disagreeing RAM copy settled toward the safe side (AV-07, SRS-F132, SRS-F133). The stack (SRAM3) is not covered | `test_rf_control`, `test_ops_state`, `test_passivation` (the checks); NMI path: fault injection on the EM (RAD-V6) open |
 | Passivation commanded by mistake or by an attacker (new) | two commands, two keys (operational, then recovery within 600 s) | the arm lapses; the execute alone is refused (SRS-F110) | `test_passivation` |
-| Passivation fire interrupted (eclipse, reset) (new) | sunlight and the fire time; the record and the EPS EOL_STATE at boot | both lines dropped, the fire repeated at the next sunlight, at most 3 attempts; transmitters off for good from the execute (SRS-F111, SRS-F112) | `test_passivation`; SIL end-of-life plan |
+| Passivation fire interrupted (eclipse, reset) (new) | sunlight and the fire time; the record and the EPS EOL_STATE at boot | both lines dropped, the fire repeated at the next sunlight, at most 3 attempts; then the final report and TX-OFF latched for good, whether or not the fire was confirmed (SQSO-ICD-013 §6.4 order; SRS-F111, SRS-F112) | `test_passivation`; SIL end-of-life plan |
 | EPS recharge lockout latched (new) | EPS status | cleared only by EPS_CLEAR_LOCKOUT (`CHG!`): the I2C unlock and a LOCK_CLR pulse ≥ 100 ms (EPS-12, SRS-F129) | `test_receiver` (lockout clear) |
 
 ---
@@ -285,3 +289,4 @@ Each Rev A failure-mode group and each mode the CDR added, with what detects it,
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | §14 new: the three rating scales are inverted so the RPN ranks benign modes highest (RID FSW-08), corrected RPN′ with the ten highest; FDIR coverage of the as-built flight software for every Rev A group and the modes added at CDR. Ratings unchanged | SMART-QSO Team (CDR avionics review) |
 | C | 2026-10-27 | §14.2: the receiver recovery and failed-receiver rows (FSW-09, REL-04), SRAM upsets (AV-07), the wings-failed IDLE hold (EPS-10), passivation and the recharge-lockout clear (REG-01, EPS-06, EPS-12), as implemented in the flight software round 2; the transponder row with the 40 ms lease. Ratings unchanged | SMART-QSO Team (CDR flight software, round 2) |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): §12 and §13 marked as superseded by §14.1; §14.2 the no-gyro Monte Carlo at 8°/s (20° mean, was 17°) and the passivation order of SQSO-ICD-013 §6.4 (TX-OFF after the final report, not from the execute). Ratings unchanged | Documentation audit |

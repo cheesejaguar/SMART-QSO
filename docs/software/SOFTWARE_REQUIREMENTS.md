@@ -351,8 +351,10 @@ D3. If either rejects it, it is removed before launch: one condition in `softwar
 
 The downlink interface (SRS-I023) is a PI decision, CR-2026-005 (`docs/project/CHANGE_REQUEST_LOG.md`): a KISS TNC on
 USART2, shared with the uplink receiver, adds the FCS, modulates (SRS-I022, AFSK 1200 in the TNC) and keys the
-transmitter. Implemented in `software/rust/sqso-fsw/src/downlink.rs` and `software/flight/include/downlink.h`; the
-TNC and transmitter are not selected, so SRS-I022 and the thresholds (TBR-SRS-003) are verified on hardware.
+transmitter. Implemented in `software/rust/sqso-fsw/src/downlink.rs` and `software/flight/include/downlink.h`. The
+TNC and transmitter are selected and designed on the RF board (`hardware/electrical/rf/RF_BOARD_DESIGN.md`,
+SQSO-RF-BRD-001 Rev F: the TNC on an STM32L431, a separate Class C firmware item; the LMX2571 exciter; the TX_FWD,
+TX_REV and TX_TEMP monitors) but not built, so SRS-I022 and the thresholds (TBR-SRS-003) are verified on the EM.
 
 ---
 
@@ -463,7 +465,7 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | TBD-SRS-002 | Uplink command set definition | CDR |
 | TBR-SRS-001 | Watchdog timeout value (currently 30s) | PDR |
 | TBR-SRS-002 | SRS-F040 ("all fault conditions") cannot be tested; PI ratifies, amends or rejects the proposed wording beneath §3.5 (finding VV-16) | TBD |
-| TBR-SRS-003 | Downlink values to confirm with the selected TNC and transmitter (SRS-I025 to SRS-I027, `downlink.h`): duty 25 %, TXDELAY 300 ms, VSWR 3:1 on 3 samples, 70/60 °C, 0.1 W output present, the monitor scaling (`firmware/src/adc.rs`) | EM transmitter test |
+| TBR-SRS-003 | Downlink values to confirm by measurement on the EM RF board (SQSO-RF-BRD-001 F selects the TNC, exciter, PA and monitors; SRS-I025 to SRS-I027, `downlink.h`): duty 25 %, TXDELAY 300 ms, VSWR 3:1 on 3 samples, 70/60 °C, 0.1 W output present, the monitor scaling (`firmware/src/adc.rs`, matching the board's AD8361 and TMP235 scalings) | EM transmitter test |
 
 ---
 

@@ -1,16 +1,21 @@
 # SMART-QSO Telemetry Dictionary
 
 **Document ID**: SQSO-TLM-001
-**Version**: 1.6
+**Version**: 1.7
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft for CDR. §4 is the telemetry the flight software sends; §2 and §3 are the 2026-01 frame, which the flight software does not send. No independent CDR has been held (BASELINE Rev E §1)
 
 ## 1. Purpose
 
 This document defines all telemetry parameters for the SMART-QSO mission. It serves as the authoritative reference for telemetry interpretation.
 
 ## 2. Telemetry Frame Structure
+
+> **Superseded (documentation audit, 2026-10-27).** The 64-byte 0xAA55 frame of §2 and the parameter table of §3
+> (a single-cell battery of 2.5–4.2 V, a 2 W power level, a 3.3 V bus) are the 2026-01 design and are not sent. The
+> downlink is the beacon tail, HK1, HK2, the `GNS` frame, the acknowledgement and the stored records of §4
+> (SQSO-ICD-005 §5). §2 and §3 are kept as the record until this document is rewritten.
 
 ### 2.1 Frame Format
 
@@ -180,7 +185,7 @@ Every telemetry value is a measurement. A field with no measurement, or one olde
 sent as `-`, for example `SOC=- BV=-`. Decoders must treat `-` as "not measured", never as zero. `QSO` is `-` until a QSO
 detector exists. `RF` is the radio power switch state as the EPS reports it.
 
-Example: `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=8.1 SUN=1 RF=1 QSO=-`
+Example: `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=15.8 SUN=1 RF=1 QSO=-`
 
 The text before ` | ` passes the content filter (`BEACON_SPEC.md` section 6). It never contains `|` or digits other than
 `73`, `1U` and the call sign, so the telemetry fields cannot be spoofed by the text.
@@ -334,11 +339,11 @@ criterion. STORAGE_DESIGN §3.4.2 keeps the map unchanged.
 
 | Parameter | RED_LOW | YEL_LOW | YEL_HIGH | RED_HIGH |
 |-----------|---------|---------|----------|----------|
-| BATT_V | 3000 | 3200 | 4100 | 4200 |
+| HK1 `VB` (pack, mV; 4S, BASELINE §5) | 11200 (BMS cut-off, 2.8 V/cell) | 13600 (hardware load shed) | 16400 (end of charge, 4.10 V/cell) | 17000 (cell over-voltage protection, 4.25 V/cell) |
 | BATT_SOC | 15 | 25 | - | - |
 | OBC_TEMP | -350 | -200 | 700 | 800 |
 | BATT_TEMP | -50 | 0 | 400 | 450 |
-| JETSON_TEMP | -150 | -100 | 600 | 700 |
+| JETSON_TEMP (HK1 `TJ`, heat spreader) | -150 (power-on gate −15 °C) | -100 | 400 (+40 °C in a batch) | 700 (+70 °C stuck-on limit; SYS-603 Rev G) |
 
 ### 5.2 Limit Actions
 
@@ -361,7 +366,7 @@ criterion. STORAGE_DESIGN §3.4.2 keeps the map unchanged.
   "uptime": 86400,
   "state": "ACTIVE",
   "battery": {
-    "voltage": 3.85,
+    "voltage": 15.6,
     "current": 0.3,
     "soc": 78
   },
@@ -383,7 +388,7 @@ criterion. STORAGE_DESIGN §3.4.2 keeps the map unchanged.
 
 ```csv
 timestamp,seq,state,batt_v,batt_i,batt_soc,obc_temp,batt_temp,jetson_temp
-2026-01-02T12:34:56Z,12345,ACTIVE,3.85,0.3,78,25.0,22.0,45.0
+2026-01-02T12:34:56Z,12345,ACTIVE,15.6,0.3,78,25.0,22.0,45.0
 ```
 
 ## 7. Telemetry Archival
@@ -415,3 +420,4 @@ SQSO_SUMMARY_YYYYMM.csv
 | 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | §4.4 HK1 `PS` with the fire's reasons (the EPS board ≥ 0 °C condition bounded at 6 h, RID SMA-B20); HK1 `AD`, the AntS temperature gate (decision C-18); §4.4.1 HK2 `CI`, the EPS controller's CHG_INHIBIT with bit 6 NTC1 implausible |
 | 1.5 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §4.4 a housekeeping text longer than a frame is sent in frames of whole fields with the tag and sequence repeated (SIL finding SIL-40: HK1 had gone out empty past 250 bytes); §4.6 why the stored records carry no GNSS position (RID SMA-15) |
 | 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fifth part) | §4.4.1 HK2 `SL` selector decisions and abstentions per head (RID SMA-15), `GE` geometry preset and `SN` body sun vector (decision C-21), `TS` and `RL` listed; `JB` lines are accepted lines (decision C-20); HK2 text up to 573 bytes, cut into frames of whole fields; §4.4.2 every GNS and acknowledgement field has a fixed width, no frame is empty, PDOP ≤ 99.9 (RID P3F-A-05) |
+| 1.7 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status; §2–§3 marked superseded by §4 (the 2026-01 frame is not sent); §4.3 example BV=15.8 (was 8.1, a 2S value); §5.1 battery-voltage limits for the 4S pack in HK1 `VB` mV and Jetson spreader limits from BASELINE §6 (were single-cell 3.0–4.2 V and 60/70 °C); §6 decoder examples 15.6 V |

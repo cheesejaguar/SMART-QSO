@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-002
-**Revision:** H
+**Revision:** I
 **Date:** 2026-10-27
 **Reference:** NPR 7123.1D (tailored, `docs/project/CDR_CRITERIA_MATRIX.md` §2); `docs/BASELINE_PARAMETERS.md` Rev E (amended)
 
@@ -56,10 +56,14 @@ SMART-QSO is a 1U CubeSat consisting of:
 
 | Mode | Description | Power |
 |------|-------------|-------|
-| SAFE | Minimum operations, beacon only | <1W |
-| IDLE | Normal standby, monitoring | <2W |
-| ACTIVE | Full operations, no AI | <4W |
-| BURST | AI inference active | <10W |
+| SAFE | Minimum operations, beacon every 180 s | 0.79 W |
+| IDLE | Normal standby, monitoring, beacon every 120 s | 1.18 W |
+| ACTIVE | Transponder (duty ≤ 25 %) and Jetson bursts (duty ≤ 5 % tumbling, ≤ 10 % sun-pointed), beacon every 60 s | 2.50 W sun-pointed, 1.82 W tumbling at the duty limits; a Jetson burst adds ≤ 8 W while it runs |
+| EMERGENCY | Beacon shed below 15 % SOC | 0.72 W |
+
+Power values are orbit averages with the heater, from `docs/BASELINE_PARAMETERS.md` §5 (SQSO-PBA-001). The flight
+software modes are BOOT, SAFE, DETUMBLE, IDLE, ACTIVE and EMERGENCY (`software/rust/sqso-fsw/src/mode.rs`); a Jetson
+burst runs within ACTIVE, not as a mode of its own (it was listed as BURST, < 10 W, until Rev H).
 
 ---
 
@@ -120,7 +124,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 
 | ID | Requirement | Parent | Verification |
 |----|-------------|--------|--------------|
-| SYS-100 | The EPS shall deliver at least 2.23 W orbit-average power to the bus at end of life while tumbling: the 1.86 W tumbling load of BASELINE §5 plus the 20 % margin requirement (1.86 × 1.2) *(was 2 W; 2.16 W at the 1.80 W load in Rev E; 2.21 W in Rev G; 2.23 W after the RF board's synthesizer regulator raised the transponder allocation to 1.85 W DC, CR-2026-009: met by the simulated 2.48 W, +12 %)* | MRD-050 | A,T |
+| SYS-100 | The EPS shall deliver at least 2.23 W orbit-average power to the bus at end of life while tumbling: the 1.86 W tumbling load of BASELINE §5 plus the 20 % margin requirement (1.86 × 1.2) *(was 2 W; 2.16 W at the 1.80 W load in Rev E; 2.21 W in Rev G; 2.23 W after the RF board's synthesizer regulator raised the transponder allocation to 1.85 W DC, CR-2026-009: met by the simulated 2.48 W, +11 %, BASELINE §5)* | MRD-050 | A,T |
 | SYS-101 | The EPS shall incorporate body-mounted and/or deployable solar arrays | MRD-050 | I |
 | SYS-102 | The EPS shall track maximum power point | MRD-050 | T |
 | SYS-103 | Solar array output shall support battery charging plus loads in sunlight | MRD-050 | A,T |
@@ -249,7 +253,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 |----|-------------|--------|--------------|
 | SYS-420 | The ADCS shall detumble the spacecraft from body rates of up to 10 deg/s within 3 orbits (BASELINE §8, decision D9) *(was below 5 deg/s within 7 days; CDR review 2026-10-27; exit condition TBR-MRD-005)* | MRD-060 | A,T |
 | SYS-421 | The ADCS shall implement B-dot detumble control | MRD-060 | D |
-| SYS-422 | The ADCS shall achieve spin-stabilized coarse sun-pointing of +Y at 8 deg/s, with +Y within 15° of the Sun for at least 90 % of sunlit time (BASELINE §8; Monte Carlo of the flight code with the layout-B inertia: 99.6 %; 6 deg/s until BASELINE Rev E) *(was "gravity gradient or sun-pointing"; CDR review 2026-10-27)* | MRD-062 | A,T |
+| SYS-422 | The ADCS shall achieve spin-stabilized coarse sun-pointing of +Y at 8 deg/s such that pointing costs at most 5 % of sunlit generation and the Sun is within 30° of +Y for at least 95 % of sunlit time, in every Monte Carlo trial with the face-photodiode and Earth-albedo sun-sensor model (ADCS-P002; decision C-23; ADCS_DESIGN 1.9 §11.6: 2.0 % and 100 %, worst trial 3.2 %, up to the 7 mA·m² residual-dipole limit of C-24) *(was +Y within 15° for ≥ 90 % of sunlit time, not met with the photodiodes and albedo: 74 %; CR-2026-019)* | MRD-062 | A,T |
 
 ---
 
@@ -261,7 +265,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 |----|-------------|--------|--------------|
 | SYS-500 | The AI payload shall use NVIDIA Jetson Orin Nano or equivalent | MRD-040 | I |
 | SYS-501 | The AI payload peak power shall not exceed 8 W at the carrier input, in the 7 W module power mode (BASELINE §6) *(was 10 W; CDR review 2026-10-27)* | MRD-053 | T |
-| SYS-502 | The AI payload shall be unpowered between bursts, and each burst shall last no more than 120 s including boot, in sunlight at SOC ≥ 55 % (BASELINE §6); the AI payload idle power shall not exceed 5 W *(burst limits added at the CDR review, 2026-10-27)* | MRD-053 | T |
+| SYS-502 | The AI payload shall be unpowered between bursts, and each burst shall last no more than 10 minutes including boot, followed by at least 100 minutes off, in sunlight at SOC ≥ 55 % (BASELINE §6; the burst definition of SYS-512 and decision C-20); the AI payload idle power shall not exceed 5 W *(burst limits added at the CDR review, 2026-10-27; 120 s until Rev H, superseded by C-20)* | MRD-053 | T |
 | SYS-503 | The AI payload shall be power-gated by OBC command | MRD-052 | D |
 | SYS-504 | The AI payload shall operate within thermal limits passively | MRD-001 | A,T |
 
@@ -284,7 +288,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 | SYS-522 | AI failure shall not affect other spacecraft functions | MRD-034 | D |
 | SYS-523 | The OBC shall automatically power-cycle AI payload on repeated failures | MRD-034 | D |
 
-**Proposed (PI to ratify), SYS-522, TBR-SYS-004:** "If the Jetson hangs, latches up, fails to boot, sends malformed data or none, or loses power during a burst, the OBC shall power it off no later than 120 s after power-on, or at the per-rail current limit if that comes first. The OBC, EPS, telecommand receiver and telemetry beacon shall keep operating, and the transponder shall continue on the OBC's fixed schedule: no OBC reset, no missed beacon, and telecommands accepted throughout." Verification: Test (in place of Demonstration). Inject each failure at least three times on the flatsat or engineering model. The 120 s burst limit and the OBC-enforced per-rail current and temperature limits are in `docs/BASELINE_PARAMETERS.md` §6.
+**Proposed (PI to ratify), SYS-522, TBR-SYS-004:** "If the Jetson hangs, latches up, fails to boot, sends malformed data or none, or loses power during a burst, the OBC shall power it off no later than 10 minutes after power-on (the burst limit of SYS-502), or at the per-rail current limit if that comes first. The OBC, EPS, telecommand receiver and telemetry beacon shall keep operating, and the transponder shall continue on the OBC's fixed schedule: no OBC reset, no missed beacon, and telecommands accepted throughout." Verification: Test (in place of Demonstration). Inject each failure at least three times on the flatsat or engineering model. The 10-minute burst limit and the OBC-enforced per-rail current and temperature limits are in `docs/BASELINE_PARAMETERS.md` §6.
 
 ---
 
@@ -463,3 +467,5 @@ from this document by `software/simulation/cdr/pm/gen_vcrm.py`.
 | H | 2026-10-27 | CDR round 3, flight software fifth part (decision C-20, CR-2026-018) | SYS-512: one burst definition (a power-on of at most 10 min and 3.6 kJ at the carrier input) and the 0.1 Wh metric per accepted beacon line, counted on accepted lines (was 120 s bursts and a p95 per beacon) |
 | H, amended | 2026-10-27 | Decision C-23 (RID P3F-G-07): SYS-401 magnetometer bias and noise, SYS-402 six-face photodiodes, SYS-403 photodiode response (no sun-vector accuracy), new SYS-404 gyro bias in use |
 | H, amended (2) | 2026-10-27 | Decision C-20 carried into SYS-510: energy per accepted beacon line over the VI-02 bursts (was a p95 per beacon); round-4 verification P3F-G-03 |
+| H, amended (3) | 2026-10-27 | Decision C-23 carried into SYS-422 (pointing for power: ≤ 5 % loss, ≥ 95 % within 30°; CR-2026-019) |
+| I | 2026-10-27 | Documentation audit (post-CDR 2026): §4.2 modes and powers from BASELINE §5 (was SAFE < 1 W, IDLE < 2 W, ACTIVE < 4 W and a BURST mode < 10 W, against SYS-501's 8 W); SYS-100 margin +11 % (BASELINE §5; was +12 %); SYS-502 burst ≤ 10 min with ≥ 100 min off, and the proposed SYS-522 wording, per BASELINE §6 and C-20 (were 120 s, contradicting SYS-512 Rev H); SYS-422 pointing restated per C-23 as in BASELINE §8 and ADCS-P002 (was 15°/90 %, which C-23 replaced) | Documentation audit |

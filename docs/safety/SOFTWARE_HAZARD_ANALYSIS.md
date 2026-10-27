@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SHA-001
-**Revision:** I
+**Revision:** J
 **Date:** 2026-10-27
 **Classification:** Class D Mission
 **Reference:** NASA-STD-8739.8B (replaced NASA-STD-8719.13, cancelled 2020)
@@ -160,8 +160,8 @@ This analysis covers all flight software components:
 | C-003-4 | CRC verification test suite | Test |
 | C-003-5 | Text length and ASCII validation | Test |
 
-**Verification Status:** Complete
-**Closure Status:** Closed
+**Verification Status:** Partial (host tests; closure needs cited verification per control, §6)
+**Closure Status:** Open (reopened)
 
 ---
 
@@ -219,12 +219,12 @@ This analysis covers all flight software components:
 | Control ID | Control Description | Verification |
 |------------|---------------------|-------------|
 | C-005-1 | CRC32 protection on all persisted data | Test |
-| C-005-2 | Triple redundant storage with voting | Test |
+| C-005-2 | Two-slot records with CRC-32 (`nvm`) and the FRAM mirror (SRS-F160); the Revision A "triple redundant storage with voting" is not the design | Test |
 | C-005-3 | Default values on CRC failure | Test |
 | C-005-4 | Atomic write operations | Analysis |
 
-**Verification Status:** Complete
-**Closure Status:** Closed
+**Verification Status:** Partial (host tests; closure needs cited verification per control, §6)
+**Closure Status:** Open (reopened)
 
 ---
 
@@ -283,7 +283,7 @@ This analysis covers all flight software components:
 **Controls:**
 | Control ID | Control Description | Verification |
 |------------|---------------------|-------------|
-| C-007-1 | Hardware deployment inhibit (RBF pin) | Inspection |
+| C-007-1 | Hardware deployment inhibits DS1–DS3 (the RBF pin is a ground item and not counted; BASELINE §4) | Inspection |
 | C-007-2 | Deployment switch required for arming | Test |
 | C-007-3 | 30-minute minimum timer (configurable) | Test |
 | C-007-4 | Multiple deployment attempts with backoff | Test |
@@ -318,11 +318,11 @@ This analysis covers all flight software components:
 |------------|---------------------|-------------|
 | C-008-1 | Watchdog forces safe mode on timeout | Test |
 | C-008-2 | Safe mode is default power-on state | Test |
-| C-008-3 | Hardware-level safe mode (beacon only) | Test |
+| C-008-3 | Hardware protections independent of the software: the hardware load shed at 13.6 V and the external supervisor reset (SRS-F146). There is no hardware beacon (TNC-F020) | Test |
 | C-008-4 | Multiple fault triggers for safe mode | Test |
 
-**Verification Status:** Complete
-**Closure Status:** Closed
+**Verification Status:** Partial (host tests; closure needs cited verification per control, §6)
+**Closure Status:** Open (reopened)
 
 ---
 
@@ -352,11 +352,11 @@ A hazard is considered closed when:
 
 | Action ID | Description | Owner | Due Date | Status |
 |-----------|-------------|-------|----------|--------|
-| A-001 | Complete EPS control fault injection tests | SW Lead | TBD | Open |
-| A-002 | Complete ADCS algorithm verification | SW Lead | TBD | Open |
-| A-003 | Verify watchdog operation on flight hardware | SW Lead | TBD | Open |
-| A-004 | Complete Jetson power management tests | Payload Lead | TBD | Open |
-| A-005 | Verify deployment timer on flight hardware | SW Lead | TBD | Open |
+| A-001 | Complete EPS control fault injection tests | SW Lead | EM integration and flatsat, by 2027-07-27 (`mission/SCHEDULE.md` EM_INT) | Open |
+| A-002 | Complete ADCS algorithm verification (HIL on the flatsat) | SW Lead | EM integration, by 2027-07-27 (EM_INT) | Open |
+| A-003 | Verify watchdog operation on flight hardware | SW Lead | EM target by 2027-07-27 (EM_INT); FM functional by 2028-02-22 (FM_FUNC) | Open |
+| A-004 | Complete Jetson power management tests | Payload Lead | EM tests VI-01, VI-02, by 2027-09-21 (EM_TEST) | Open |
+| A-005 | Verify deployment timer on flight hardware | SW Lead | FM functional, by 2028-02-22 (FM_FUNC) | Open |
 
 ---
 
@@ -603,6 +603,7 @@ behind DS1–DS3, and a disabled tracker costs power, not safety.
 | G | 2026-10-27 | §2 scope and new §9.8: the board firmware items (finding P3A-03). SW-HAZ-014 (TNC emission outside its limits) and SW-HAZ-015 (TNC telecommand path and receiver evidence), SW-HAZ-016 (EPS controller and the battery hazard controls) and SW-HAZ-017 (EPS controller end-of-life key, bus and supervisor), each with causes, controls and verification from SQSO-SRS-TNC-001 A and SQSO-SRS-EPSC-001 A; the SWE-205 determination for both items; recommended control C-014-9 (the OBC watches PTT_EXCITER); §9.7 summary | SMART-QSO Team (CDR round 3, software systems) |
 | H | 2026-10-27 | §9.8.1 C-014-9 implemented in the OBC (SRS-F168: TX-OFF when PTT_EXCITER stays high 6 s with no frame and the repeat path idle); §9.6 C-19 the transmitter hold while the AntS is pending (SRS-F167); §10 SW-HAZ-014 status | SMART-QSO Team (CDR flight software, round 3, fourth part) |
 | I | 2026-10-27 | §9.8.1 C-014-9: the repeat path explains the keying only with the heartbeat issued and within one over (130 s); unexplained keying counted across overs (RID P3F-A-02, BF-RF-33); §9.6 SMA-B02 separation kept across resets; C-18 cap release in sunlight, schedule fallback after unknown readings, persisted slot and force flag, AntS read only while powered (P3F-G-02, P3F-A-04, P3F-A-01) | SMART-QSO Team (CDR flight software, round 3, fifth part) |
+| J | 2026-10-27 | Documentation audit (post-CDR 2026): §5.3, §5.5 and §5.8 statuses made to agree with §6 (reopened, open); C-005-2 the storage as built; C-007-1 the counted inhibits DS1–DS3; C-008-3 no hardware beacon exists (TNC-F020); §8 due dates from `mission/SCHEDULE.md` Rev E (were TBD) | Documentation audit |
 
 ---
 

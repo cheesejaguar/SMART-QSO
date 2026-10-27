@@ -36,7 +36,7 @@ logged here; the Git history records them.
 | CR-2026-016 | 2026-10-27 | I | EPS-F012 (`docs/hardware/EPS_DESIGN.md`); BSA H3b count basis; ICD-001 1.6 | Hardware load shed covers the Jetson rail only (the PA is no longer shed); F0B a diverse fuse (MIL-PRF-23419/8, Littelfuse) | Proposed by the design review; PI decision required by 2027-01-12 | Implemented in the design (SQSO-EPS-BRD-001 E) |
 | CR-2026-017 | 2026-10-27 | I | SYS-600, SYS-601 (`docs/requirements/SYSTEM_REQUIREMENTS.md` §11); THERMAL_DESIGN §1.1; ETP §3.4 and §9 deviation 8; BASELINE §8 thermal row | Per-unit allowable flight temperatures from the parts' ratings (−30 °C cold for every board, −40 °C for the first orbit after separation, tested at its AFT without the 10 °C margin: GEVS deviation); heater 0.70 W at 12.0 V (207 Ω; was 0.72 W) | Proposed by the design review (RID THM-04); PI decision required by 2027-01-12 | Implemented in THERMAL_DESIGN 1.5, ETP D (amended), SYSTEM_REQUIREMENTS G (proposed), SQSO-THA-001 2.2; BASELINE §8 pending the PI |
 | CR-2026-018 | 2026-10-27 | I | SYS-512, VI-02, MSC E-02, SRS-F151; BASELINE §6 AI-model row; SYS-510 | One Smart Beacon burst definition (≤ 10 min, ≤ 3.6 kJ) and the 0.1 Wh metric per accepted beacon line (decision C-20) | Approved by the review chair (C-20); PI ratification DA-01 by 2027-01-12 | Implemented in SRS-F151, SYS-510, SYS-512 (REQ-002 H), ETP E VI-02, MSC 2.3, BASELINE §6 |
-| CR-2026-019 | 2026-10-27 | I | ADCS-P002/F003/P003 (`docs/hardware/ADCS_DESIGN.md` 1.9); SYS-401 to SYS-404; MRD-061 (Rev G); BASELINE §5 generation and §8 ADCS row; ETP residual-dipole limit; SQSO-PBA-001 2.5; first-beacon timing (CONOPS, MISSION_TIMELINE, ICD-013) | Pointing requirement restated for power and sun-vector knowledge withdrawn (C-22, C-23); residual-dipole limit 10 → 7 mA·m² (C-24); temperature-gated AntS deployment and transmitter hold until it deploys (C-18, C-19) | Approved by the review chair (C-18, C-19, C-22 to C-24); PI ratification DA-01 by 2027-01-12 | Implemented in ADCS_DESIGN 1.9, REQ-002 H (amended), MRD Rev G, BASELINE §5 and §8, ETP, PBA 2.5, SRS 1.12 |
+| CR-2026-019 | 2026-10-27 | I | ADCS-P002/F003/P003 (`docs/hardware/ADCS_DESIGN.md` 1.9); SYS-401 to SYS-404, SYS-422; MRD-061 (Rev G); BASELINE §5 generation and §8 ADCS row; ETP residual-dipole limit; SQSO-PBA-001 2.5; first-beacon timing (CONOPS, MISSION_TIMELINE, ICD-013) | Pointing requirement restated for power and sun-vector knowledge withdrawn (C-22, C-23); residual-dipole limit 10 → 7 mA·m² (C-24); temperature-gated AntS deployment and transmitter hold until it deploys (C-18, C-19) | Approved by the review chair (C-18, C-19, C-22 to C-24); PI ratification DA-01 by 2027-01-12 | Implemented in ADCS_DESIGN 1.9, REQ-002 H (amended), MRD Rev G, BASELINE §5 and §8, ETP, PBA 2.5, SRS 1.12 |
 
 ## 3. Change Requests
 
@@ -1156,7 +1156,7 @@ Submitter: CDR chair (rounds 3 and 4; RIDs P3T-09, P3F-G-02, P3F-G-07, P4-02)
 
 1. Configuration Item Affected:
    ADCS-F002, F003, P002, P003 (withdrawn), P007 (docs/hardware/ADCS_DESIGN.md 1.9);
-   SYS-401 to SYS-404 (docs/requirements/SYSTEM_REQUIREMENTS.md H, amended);
+   SYS-401 to SYS-404 and SYS-422 (docs/requirements/SYSTEM_REQUIREMENTS.md H, amended);
    MRD-061 (docs/requirements/MISSION_REQUIREMENTS.md Rev G);
    BASELINE §5 generation rows and §8 ADCS row; ETP residual-dipole limit;
    SQSO-PBA-001 2.5; SRS-F165, F167, F169, F171; CONOPS, MISSION_TIMELINE,

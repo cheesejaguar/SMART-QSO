@@ -315,7 +315,7 @@ after power-good. Until then the interface is not verified for power-off isolati
 measure the carrier's 3.3 V rail; pass below 0.3 V). The design now takes the first option on both boards: U28/U29
 SN74LVC1T45 on the OBC, powered from JET_3V3 (SQSO-ICX-001 §3.3), and the carrier's translators (§10.2); V-OBC-9 is the test.
 
-## 10. Carrier Interface as Designed (SQSO-JET-BRD-001 A)
+## 10. Carrier Interface as Designed (SQSO-JET-BRD-001; first issue A, current F)
 
 The carrier board is designed (`hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`). Where §2, §3, §5.2 and §9 disagree
 with this section, this section governs.
@@ -384,7 +384,7 @@ JETSON_PWR PA2; corrected in place, panel item P3E-05); this table governs: the 
 
 1. Jetson Orin Nano Developer Kit Carrier Board Specification
 1a. NVIDIA DS-11105-001 v1.5, Jetson Orin Nano Series Modules Data Sheet (December 2024)
-1b. SQSO-JET-BRD-001 A, Jetson Orin Nano Carrier Board Design (`hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`)
+1b. SQSO-JET-BRD-001 F, Jetson Orin Nano Carrier Board Design (`hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`)
 2. STM32L4 Reference Manual (RM0351)
 3. SMART-QSO System Requirements Specification
 4. AX.25 Link Access Protocol for Amateur Packet Radio

@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SSP-001
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 **Classification:** Class D payload (NPR 8705.4B, proposed); software Class C (NPR 7150.2D)
 **Governing Standards:** NASA-STD-8739.8B (replaces NASA-STD-8719.13, cancelled 2020), NPR 7150.2D
@@ -74,8 +74,8 @@ Per NPR 7150.2D Appendix D and NASA-STD-8739.8B:
 | E | No safety impact | Ground software, Simulation |
 
 Note (2026-10-25). The letters A to E in §5.1, §5.2 and §8.2 are this plan's criticality scale. They are not NPR 7150.2D
-software classes: the flight software is Class C (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). Whether the
-software is safety-critical under NASA-STD-8739.8 is still to be determined (SDP §3.2).
+software classes: the flight software is Class C (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). The safety-critical
+components under NASA-STD-8739.8B are determined in SDP §3.2 (§8.2 here).
 
 ### 5.2 SMART-QSO Software Criticality
 
@@ -110,7 +110,7 @@ software is safety-critical under NASA-STD-8739.8 is still to be determined (SDP
 
 | ID | Requirement | Verification |
 |----|-------------|-------------|
-| FSR-001 | Upon loss of OBC, beacon shall continue in hardware-timer mode | Test |
+| FSR-001 | *Withdrawn (documentation audit, 2026-10-27): the design has no beacon without the OBC; the TNC sends only frames the OBC gives it (TNC-F020).* Upon loss of the OBC, the supervisor reset and the EPS controller's OBC power cycle shall restore it (SRS-F146, SRS-F162) | Test |
 | FSR-002 | Upon loss of Jetson, OBC shall continue with template beacons | Test |
 | FSR-003 | Upon low battery, system shall shed loads in priority order | Test |
 | FSR-004 | Upon thermal limit, Jetson shall throttle or shutdown | Test |
@@ -250,8 +250,8 @@ Safety waivers require:
 
 | Waiver ID | Description | Rationale | Status |
 |-----------|-------------|-----------|--------|
-| W-001 | Use of COTS Jetson without radiation testing | Class D mission, graceful degradation to OBC | Approved |
-| W-002 | Single-string OBC (no redundancy) | CubeSat mass/volume constraints, watchdog recovery | Approved |
+| W-001 | Use of COTS Jetson without radiation testing | Class D mission, graceful degradation to OBC | Proposed; no approval recorded |
+| W-002 | Single-string OBC (no redundancy) | CubeSat mass/volume constraints, watchdog recovery | Proposed; no approval recorded |
 
 ## 11. Safety Metrics
 
@@ -297,6 +297,7 @@ All personnel working on safety-critical software shall complete:
 | C, note | 2026-10-25 | §2 scope: no RTOS is the baseline (CR-2026-002). §5: the criticality letters are not NPR 7150.2D classes (software Class C, SDP §3.1). Header: payload Class D (NPR 8705.4B) and NASA-STD-8739.8B. §8.2: the safety-critical components and SWE-219 (MC/DC; CR-2026-003) with measured coverage | SMART-QSO Team |
 | D | 2026-10-27 | §8.2 CDR status: coverage after the CDR changes, the four hazards added to the hazard analysis, `transponder.rs` and `ops_state.rs` recommended as safety-critical (RID FSW-05), SWE-220 not measured (RID FSW-06) | SMART-QSO Team (CDR avionics review) |
 | E | 2026-10-27 | §8.2: `transponder.rs` and `ops_state.rs` (both crates) on the safety-critical list and through the gate (FSW-05); coverage of the round-2 flight software | SMART-QSO Team (CDR flight software, round 2) |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026): §5.1 note, the safety-critical determination is made (SDP §3.2); FSR-001 hardware-timer beacon withdrawn (no beacon without the OBC, TNC-F020), restated as OBC recovery; §10.2 waivers W-001 and W-002 shown as proposed (no approval is recorded) | Documentation audit |
 
 ---
 
