@@ -339,13 +339,15 @@ part("U804", "Schmitt buffer", "TX_PERMIT_HW", "SN74LVC1G17DBVR", "Texas Instrum
                                  (4, "Y", O, "TX_PERMIT_HW"), (5, "VCC", PI, "+3V1_DIG")],
      "input 2.58 V max on 3.1 V VCC", "High when PA_5V > ~3.6 V (VT+ 1.8 V max x 2). Finish NiPdAu|SN",
      "TI orderable addendum read: Active")
-part("U805", "Load switch 2 A", "exciter rail", "TPS22918DBVR", "Texas Instruments", "SOT-23-6",
-     "5.5 V, 2 A, -40..105 C", [(1, "VIN", PI, "+3V3_RAD"), (2, "GND", PI, "GND"), (3, "ON", I, "PA_SENSE_B"),
-                                (4, "CT", P, "LMX_CT"), (5, "QOD", P, "+3V3_LMX"), (6, "VOUT", PO, "+3V3_LMX")],
-     ST.get("TPS22918_LMX", {}).get("stress", ""),
-     "Powers LMX2571 only while PA_5V is present (second, independent TX-permit path). Finish NiPdAu|SN",
+part("U805", "LDO 300 mA low noise", "3.3 V (V_LMX)", "TPS7A2033PDQNR", "Texas Instruments", "X2SON-4 1x1 mm",
+     "300 mA, 6.0 V in max", [(1, "OUT", PO, "+3V3_LMX"), (2, "GND", PI, "GND"), (3, "EN", I, "PA_SENSE_B"),
+                              (4, "IN", PI, "+5V_PA"), (5, "PAD", P, "GND")],
+     ST.get("TPS7A2033_LMX", {}).get("stress", "") + "; " + ST.get("TPS7A2033_LMX", {}).get("thermal", ""),
+     "LMX2571's own regulator (Version E, FMEA SMA-B16; was a TPS22918 load switch from +3V3_RAD): 3.25-3.35 V "
+     "independent of 3V3_AO; input is +5V_PA, so it exists only with PA_5V, and EN on the independent divider "
+     "R805/R806 keeps the second TX-permit path. Same part as U803",
      "TI orderable addendum read: Active")
-C("C818", "1nF", "LMX_CT", "GND", 3.4, kind="C0G", notes="slew ~ 0.7 ms")
+C("C818", "1uF", "+5V_PA", "GND", 5.15, notes="U805 input")
 C("C819", "10uF", "+3V3_LMX", "GND", 3.4, pkg="0805")
 C("C820", "100nF", "+3V3_LMX", "GND", 3.4)
 
@@ -889,7 +891,7 @@ def write_bom():
 
 WAIVERS += [
     "Rails (+3V3_RAD, +3V0_RX, +3V1_DIG, +3V1_AUD, +5V_PA, +5V_PA_A, +3V3_PA, +3V3_LMX, GND) are marked as driven "
-    "(drive = POWER): they are fed from the connector J2 through ferrite beads, LDOs or the TPS22918, which the "
+    "(drive = POWER): they are fed from the connector J2 through ferrite beads or LDOs, which the "
     "pin-type check cannot follow.",
     "Pins marked NC are intentionally unconnected: unused MCU GPIO (configured analog/pull-down in firmware), CC1200 "
     "GPIO3/XOSC_Q2/NC16, LMX2571 RFoutRx/Fin/FLout1-2/CPoutExt/NC, CMX138A TXENA/SYSCLK/MOD/DISCN2/AUXDAC/RXENA, "

@@ -82,7 +82,7 @@ put("mtq_bs_margin_high", 1.000 - t_bs * 1.03, "s", "backstop below the 1000 ms 
 put("mtq_end_of_burst", 1e-3 + 80e-3 * it_hi / VBAT_MIN, "s", "nSLEEP low to zero coil current: tSLEEP 1 ms + L*I/V decay against VM (L 80 mH bound)")
 
 # ------------------------------------------------------------------------------------------------ 2 supervisor
-C_CWD = 5 * 100e-9      # 5 x 100 nF C0G +/-5 %
+C_CWD = 470e-9          # two parallel strings of two 470 nF C0G in series (SMA-B08): 470 nF, +/-5 %
 twdu = put("wd_twdu_typ", 77.4 * C_CWD * 1e6 + 0.055, "s", "TPS3850 eq. 6: tWDU = 77.4 x C(uF) + 0.055")
 twdu_min = put("wd_twdu_min", 0.905 * (77.4 * C_CWD * 0.95 * 1e6 + 0.055), "s", "0.905 x, C -5 %")
 twdu_max = put("wd_twdu_max", 1.095 * (77.4 * C_CWD * 1.05 * 1e6 + 0.055), "s", "1.095 x, C +5 %")
@@ -94,6 +94,12 @@ LSI_MIN, LSI_MAX = 29.5e3, 34.0e3   # STM32L4 LSI spread (ASSUMED datasheet clas
 put("iwdg_t_min", 3750 * 256 / LSI_MAX, "s", "IWDG reload 3750, prescaler 256, at the fastest LSI")
 iwdg_max = put("iwdg_t_max", 3750 * 256 / LSI_MIN, "s", "IWDG reload 3750 at the slowest LSI")
 put("wd_vs_iwdg", twdu_min - iwdg_max, "s", "external upper bound minus the IWDG's longest: the IWDG acts first")
+for tag, cw in (("one_short", 470e-9 + 235e-9), ("one_open", 235e-9)):
+    put(f"wd_{tag}_twdu_min", 0.905 * (77.4 * cw * 0.95 * 1e6 + 0.055), "s", f"CWD {cw * 1e9:.0f} nF after one capacitor {tag.split('_')[1]}")
+    put(f"wd_{tag}_twdu_max", 1.095 * (77.4 * cw * 1.05 * 1e6 + 0.055), "s", "upper bound, max")
+    put(f"wd_{tag}_twdl_max", 0.125 * 1.095 * (77.4 * cw * 1.05 * 1e6 + 0.055), "s", "lower bound, max (must stay below the 10 s kick)")
+put("iwdg_3500_min", 3500 * 256 / 34e3, "s", "recommended IWDG reload 3500 / 256 at LSI 34 kHz")
+put("iwdg_3500_max", 3500 * 256 / 29.5e3, "s", "at LSI 29.5 kHz: below the supervisor's 31.3 s minimum")
 put("wd_uv", 3.30 * 0.93, "V", "TPS3850H33: UV 7 % (3.069 V nominal, +/-0.8 %)")
 put("wd_ov", 3.30 * 1.07, "V", "OV 7 % (3.531 V)")
 put("wd_trst", 0.200, "s", "CRST open: 170-230 ms")
@@ -110,9 +116,9 @@ put("rtc_drift_worst_day", 3.5e-6 * 86400, "s/day", "+/-3.5 ppm over -40..+85 C 
 
 # ------------------------------------------------------------------------------------------------ 4 sensor rails
 put("snsw_limit", (0.050, 0.075, 0.100), "A", "TPS2553-Q1 ILIM tied to IN: 50 / 75 / 100 mA")
-LOADS = {"gyro": 0.016 * 1.6, "imu2": 0.005 * 1.6, "sns": 0.0005 + 0.0006 + 0.0004 + 0.0015 + 0.012}
+LOADS = {"gyro": 0.016 * 1.6, "imu2": 0.005 * 1.6, "sns": 0.0006 + 0.0004 + 0.0015 + 0.012, "mag": 0.0005 * 1.6 + 0.0015}
 for k, v in LOADS.items():
-    put(f"snsw_{k}_load", v, "A", "normal maximum (gyro and IMU2: typ x 1.6; sns: RM3100, ADS7138, TIAs, TCA9517, 12 mA photocurrent)")
+    put(f"snsw_{k}_load", v, "A", "normal maximum (gyro and IMU2: typ x 1.6; sns: ADS7138, TIAs, TCA9517 U14, 12 mA photocurrent; mag: RM3100 x 1.6, TCA9517 U34)")
     put(f"snsw_{k}_margin", 0.050 / v, "", "minimum limit over the normal maximum (>= 1.35 for no false trips)")
 put("snsw_retry_off", 0.6 * 100e3 * 2.2e-6, "s", "off time after a trip: 0.6 x 100 k x 2.2 uF (>= 0.1 s: RADIATION_ANALYSIS 5.3)")
 v_gyro_min = put("gyro_vcc_min", V3_NOM * (1 - V3_TOL) - 0.034 * 0.085 - 0.034 * 0.013 - 0.026 * 0.085 - 0.026 * 0.003, "V",
@@ -221,7 +227,7 @@ OBC = {"STM32L4R5 at 80 MHz, peripherals on (allocation; DS12023 not read)": 20e
 i_obc = put("i_3v3_obc", sum(OBC.values()), "A", "3V3_OBC worst normal; EPS SW10 trips at 0.130 A min")
 put("i_3v3_obc_items", OBC, "A")
 put("i_3v3_obc_margin", 0.130 / i_obc, "", "trip over load")
-i_adcs = put("i_3v3_adcs", LOADS["gyro"] + LOADS["imu2"] + LOADS["sns"], "A", "3V3_ADCS worst with the backup gyro on; SW4 trips at 0.265 A min")
+i_adcs = put("i_3v3_adcs", LOADS["gyro"] + LOADS["imu2"] + LOADS["sns"] + LOADS["mag"], "A", "3V3_ADCS worst with the backup gyro on; SW4 trips at 0.265 A min")
 put("p_obc", i_obc * V3_NOM, "W", "OBC board from 3V3_OBC")
 put("p_sensors", (0.016 + 0.0005 + 0.0006 + 0.0004 + 0.0015 + 0.004) * V3_NOM, "W", "sensors normal: gyro, mag, ADC, TIAs, buffer, 4 mA photocurrent average")
 put("c_bulk_3v3", 22e-6 + 10e-6 + 4.7e-6 + 30 * 0.1e-6, "F", "3V3_OBC capacitance on the OBC")
@@ -229,7 +235,11 @@ put("t_inrush", (22e-6 + 10e-6 + 4.7e-6 + 3e-6) * 3.3 / 0.130, "s", "charge time
 
 # ------------------------------------------------------------------------------------------------ 9 buses
 CB = 120e-12
-put("i2c2_tr", 0.8473 * 2.2e3 * CB, "s", "I2C2 rise time, 2.2 k, 120 pF (EPS + W3 + AntS buffer): <= 300 ns for 400 kHz")
+put("i2c2_tr", 0.8473 * 2.35e3 * CB, "s", "I2C2 rise time, two 4.7 k in parallel (2.35 k), 120 pF: <= 300 ns for 400 kHz")
+put("i2c2_tr_one", 0.8473 * 4.7e3 * CB, "s", "I2C2 rise time with one pull-up open (4.7 k): <= 1000 ns for 100 kHz")
+put("i2c3_tr", 0.8473 * 2.35e3 * 80e-12, "s", "I2C3 (AntS) rise time, 2.35 k, 80 pF (W3 + EPS U80 A side)")
+put("i2c3_tr_one", 0.8473 * 4.7e3 * 80e-12, "s", "I2C3 with one pull-up open: <= 1000 ns for 100 kHz")
+put("tx_temp_pd_err", 11e3 / 1e6, "", "TX_TEMP reading low by 11 k / 1 M (1.1 %) with the 1 M open-line pull-down on PA0")
 put("i2c2_iol", 3.3 / 2.2e3, "A", "sink current at VOL (<= 3 mA)")
 put("i2c4_tr", 0.8473 * 2.2e3 * 50e-12, "s", "I2C4 OBC side, 50 pF")
 put("i2c4b_tr", 0.8473 * 4.7e3 * (0.10 * 100e-12 + 25e-12), "s",

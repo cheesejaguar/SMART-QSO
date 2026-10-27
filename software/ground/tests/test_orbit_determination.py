@@ -40,12 +40,12 @@ TOOLS = Path(__file__).resolve().parents[1] / "tools"
 # --- GNSS state frame ---------------------------------------------------------
 
 class TestGnssFrame:
-    FRAME = "GNS N=12 WK=1022 TOW=345600000 X=-1033480 Y=7901295 Z=6380357 VX=-3225637 VY=-2872451 VZ=5531924 Q=1 SV=7 PD=18"
+    FRAME = "GNS N=12 WK=1022 TOW=345600000 X=-1033480 Y=5901295 Z=3380357 VX=-3225637 VY=-2872451 VZ=5531924 Q=1 SV=7 PD=18"
 
     def test_parse(self):
         fix = parse_gnss_frame(self.FRAME)
         assert fix.week == 1022 and fix.tow_ms == 345600000
-        assert fix.r_ecef_m == (-1033480, 7901295, 6380357)
+        assert fix.r_ecef_m == (-1033480, 5901295, 3380357)
         assert fix.v_ecef_ms == pytest.approx((-3225.637, -2872.451, 5531.924))
         assert (fix.quality, fix.sats, fix.pdop, fix.seq) == (1, 7, 1.8, 12)
         assert fix.problems() == []
@@ -105,7 +105,7 @@ class TestGnssFrame:
         ]) + "\n")
         received, errors = read_archive([archive])
         assert len(received) == 3  # with FCS, info field, without FCS; not N0CALL, not HK1
-        assert all(r.fix.r_ecef_m == (-1033480, 7901295, 6380357) for r in received)
+        assert all(r.fix.r_ecef_m == (-1033480, 5901295, 3380357) for r in received)
         assert received[0].station == "A" and received[0].rx_unix == pytest.approx(EPOCH + 600)
         assert len(errors) == 1 and "TOW" in errors[0]
 

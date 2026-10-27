@@ -599,11 +599,22 @@ The TNC emits RX_ALIVE only while all of the following hold; any failure stops t
 | 3 | Synthesizer locked, reference running | Lock status in RX and XOSC stable; CLKEN_CFM sample interrupts at 12.5 kHz ± 5 % (none for > 100 ms in RX = fault) |
 | 4 | Configuration intact | The 10 s scrub re-writes any register mismatch (logged); a mismatch that persists after 3 re-writes = fault |
 | 5 | TNC itself healthy | RX_ALIVE is toggled from the main loop, not an interrupt; an independent-watchdog reset stops the pulses for the reset and re-initialisation (about 50 ms) |
+| 6 | (E, SMA-B11) Front end not deaf | Every 60 s the TNC takes the 10th percentile of the in-channel RSSI (carriers excluded) as the noise floor. It compares that with the floor calibrated at acceptance, a table over three temperatures from TVAC, indexed by the MCU's internal temperature sensor. A floor more than **5 dB below** the calibrated value for 3 consecutive windows is a fault. A rise is not: terrestrial interference raises the floor. Computed (`rf_calcs.py` §18): a dead or unbiased LNA or an open SAW lowers the floor by 9.6 dB (typical SAW) or 7.8 dB (worst SAW), because the CC1200's own noise remains. That leaves 2.8 dB margin to detection and about 3 dB against false alarms with ±2 dB of temperature drift. **Not covered:** an open antenna, cable or balun ahead of FL1. It replaces a 290 K source by a terminating loss at about 290 K, so the floor does not change; the board has no 435 MHz test-tone source to inject (the 40 MHz TCXO's 11th harmonic is at 440 MHz, outside the channel). Those faults remain with RX_CD carrier counts and the SRS-F115 silence rule |
 
 RX_FAULT is high for about 0.5 s after RADIO_EN rises (no pulses yet): the OBC ignores it for 1 s after switching
 RADIO_EN on. A fault clears when the pulses resume (after the TNC re-initialises the CC1200, or after the OBC's
-RADIO_EN power cycle). RX_FAULT says nothing about the antenna, LNA or filter (a deaf front end with a healthy CC1200
-reads not fault): RX_CD carrier counts and the 24 h silence rule of SRS-F115 cover those.
+RADIO_EN power cycle). Through Version D, RX_FAULT said nothing about the front end. From E, criterion 6 covers the
+LNA, SAW and match; the antenna-side opens are still covered only by RX_CD carrier counts and the 24 h silence rule
+of SRS-F115.
+
+**Other receiver-path checks (E, SMA-B11).** These are for the flight software (SRS-F115 to F117) and the TNC
+firmware (§13):
+
+| Check | Definition | Fault it finds |
+|-------|------------|----------------|
+| OBC–TNC loop query | Every 10 min the OBC sends a KISS SetHardware frame (command 0x06) with the sub-command STATUS (0x01). The TNC answers within 100 ms with a SetHardware frame, sub-command 0x81: firmware version, the six criteria bits, the noise floor and its calibrated value (dBm), carrier-sense count, frames decoded, uptime. No valid answer for 24 h with RADIO_EN on is a receiver-path fault for SRS-F116 | An open or failed TNC_RXD or TNC_TXD wire (W4A pins 2, 3), a USART fault, or a TNC that pulses RX_ALIVE but no longer serves KISS. Both directions are tested |
+| RX_CD continuously high | RX_CD high in every sample for more than 1 h. Possible causes: strong in-band interference, a carrier-sense threshold lost from the CC1200 (cleared by the scrub within 10 s unless the register cell is stuck), GPIO2 or U480 stuck high, or an open J1-15 pull-down with the OBC input floating high (the OBC's pull-down prevents this) | It is not evidence of a working receiver. It must not clear "known failed" or postpone the 24 h recovery cycle. The TNC reports the carrier-sense count and the noise floor in the STATUS answer, so the ground can tell interference (raised floor) from a stuck line (normal floor, carrier-sense count frozen) |
+| RX_FAULT power-on self-test | The TNC emits no RX_ALIVE pulse earlier than 100 ms after its reset. The OBC reads RX_FAULT 10–90 ms after RADIO_EN rises and expects it **high**: U481 is untriggered and U482 inverts, as soon as +3V1_DIG is up, about 1 ms. It then expects it low within 1.5 s | Low at 10–90 ms means the line is open, U482 is stuck low or an OBC input has failed: flag RX_FAULT as unusable, and the receiver evidence then rests on the loop query and RX_CD |
 
 ## 9. Antenna Interface
 
@@ -738,8 +749,16 @@ Not flight software of the OBC, but software on the spacecraft (Class C per the 
 (parameters of ICD-003 §5.2, FULLDUPLEX 1); HDLC with FCS-16, NRZI, bit stuffing; AFSK 1200 demodulator (correlator,
 as LBA §3) on the CC1200 CFM samples at 12.5 kS/s; AFSK modulator (DAC1 sine table at 50 kS/s) with TXDELAY/TXTAIL;
 repeat audio to DAC2 (DC removal, 1 sample latency); (B) RX_ALIVE pulses every 100 ms from the main loop only while
-the five receiver-health criteria of §8.6 hold, and CC1200 GPIO2 configured as carrier sense with the calibrated
-threshold; CC1200, LMX2571 and CMX138A configuration with read-back
+the receiver-health criteria of §8.6 hold, and CC1200 GPIO2 configured as carrier sense with the calibrated
+threshold. Added in E (SMA-B11):
+- **TNC-FW-NF:** criterion 6, the noise-floor check. The 10th-percentile in-channel RSSI over 60 s is compared with
+  the calibrated temperature table held in flash. More than 5 dB below it for 3 windows stops RX_ALIVE.
+- **TNC-FW-STAT:** the KISS SetHardware STATUS query/answer of §8.6, answered within 100 ms.
+- **TNC-FW-POR:** no RX_ALIVE pulse earlier than 100 ms after reset, for the OBC's power-on self-test of RX_FAULT.
+- **TNC-FW-CAL:** the calibration procedure for the floor table (acceptance and TVAC, antenna port terminated in 50 Ω
+  at the chamber temperature).
+
+The other duties are: CC1200, LMX2571 and CMX138A configuration with read-back
 scrubbing; TONE_OK relay from CMX138A IRQN; frequency trims from flash; independent watchdog. It can reuse the
 `sqso-protocol` KISS and AX.25 code (`no_std`, Rust). Its requirements and tests belong in
 `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` (for the chair).
@@ -756,7 +775,7 @@ scrubbing; TONE_OK relay from CMX138A IRQN; frequency trims from flash; independ
 | VI-RFB-06 | LPF on the board: ≥ 55 dB at 2f and ≥ 75 dB at 3f measured; leakage floor ≤ −90 dBc | §7.4, RF-07 | EM |
 | VI-RFB-07 | Key-down timer 120 ± 5 s over −20 to +60 °C after trim | RF-F008 | EM, thermal |
 | VI-RFB-08 | TX permit: with PA_5V removed, no emission > −60 dBm at J3/J4 with TNC_PTT and XPDR_KEY forced high; with U406 output forced high and PA_5V removed, the same | §8.5, VI-RF-12 | EM |
-| VI-RFB-10 | Receiver supervision: RX_CD follows a carrier 3 dB above the threshold and stays low on noise (< 1 false alarm per hour); RX_FAULT goes high 0.36–0.62 s after each injected fault of §8.6 (CC1200 held in reset, SPI line open, TCXO removed, TNC halted) and low after recovery; with RADIO_3V3 off both lines read low at the OBC and no current flows into the board | RID RFB-07, SRS-F115–F117 | EM |
+| VI-RFB-10 | Receiver supervision: RX_CD follows a carrier 3 dB above the threshold and stays low on noise (< 1 false alarm per hour); RX_FAULT goes high 0.36–0.62 s after each injected fault of §8.6 (CC1200 held in reset, SPI line open, TCXO removed, TNC halted) and low after recovery; with RADIO_3V3 off both lines read low at the OBC and no current flows into the board. (E, SMA-B11) Also: LNA bias removed and SAW output shorted give RX_FAULT within 4 min (criterion 6) with no false fault over −20 … +60 °C and with a +6 dB interference floor; the floor calibration table recorded; the STATUS loop query answered within 100 ms, and an opened TNC_TXD or TNC_RXD detected by its absence; RX_FAULT high 10–90 ms after RADIO_EN rises and no RX_ALIVE before 100 ms; RX_CD forced high for > 1 h does not clear "known failed" (with the flight software, FMEA V-BFM-05) | RID RFB-07, SRS-F115–F117, SQSO-FMEA-003 SMA-B11 | EM, flatsat |
 | VI-RFB-11 | Magnetic cleanliness (C16): with the RF board in the stack and A2 fitted (or a reference fluxgate at the A2 sensor position), the field step between transmitter off and keyed at 1 W is < 15 nT on each axis, and the RF board's static field at the sensor (board in and out, as received and after a 5 mT exposure on each axis) is recorded for the ADCS calibration; first-article inspection of the shield for permeability (no attraction to a 0.1 T test magnet) | OBC item C16, OBC_BOARD_DESIGN §9.4 | EM |
 | VI-RFB-12 | Mated heights and footprints from the manufacturers' drawings, **due 2026-11-13 (before layout starts)**: J1 Samtec TFM-108-01-S-D-RA with the SFSDT socket (≤ 7.0 mm, plug's back at x ≤ +43.1; tail finish; with SQSO-HAR-001 V-HAR-3), J2 Molex 203556-0607 (gold; the 6-circuit code, lock style and mating with 501330-0600) with its housing (8.0 mm), J3–J6 Molex 73415-1473 (SD-73415-147-001) with the 73414-0351 plug (6.0 mm; cable axis z +39.4); confirm 73415-1473 is non-magnetic with no nickel underplate and the plug's plating; the 1.37 mm cable's attenuation (≤ 1.33 dB/m at 436 MHz hot), inner conductor (silver-plated copper), minimum static bend radius ≤ 5 mm (candidate Taoglas PRT.001221: 4 mm, 1.6 dB/m at 1 GHz) and outgassing (E595 of the FEP and the Cu-plastic tape) | §4.3, §10, OBC item C16 | Analysis (drawings) **Owner: RF lead** (J1 jointly with the harness designer for V-HAR-3); **due 2026-11-13**, before layout starts. |
 | VI-RFB-13 | AntS RF interface against the ISIS ICD: connector type (MMCX jack assumed), number of ports (four, or two if ISIS phases the pairs), their positions on the AntS's inner face, and the clearance of the mated right-angle plugs under the battery (z −48.5 … −42.2 under the cells, −48.5 … −44.9 under the clamp end caps); then the cable cut lengths. Also: fit check of the four cables in the −X wall-gap bands on the EM structure; return loss port to antenna ≥ 13.6 dB with the AntS replaced by 50 Ω loads | ANT-3, ANT-8; §4.3 | Analysis (ICD), EM **Owner: RF lead.** The ISIS AntS RFQ, asking for the 1U–3U ICD (connector type, port count and positions, whether ISIS phases the pairs), goes out by **2026-11-06**; the ICD check closes 10 working days after the RFQ response and in any case before the EM COTS buys start (**2027-01-15**, SCHEDULE EM_LL). The EM fit and return-loss parts are done at the EM. |

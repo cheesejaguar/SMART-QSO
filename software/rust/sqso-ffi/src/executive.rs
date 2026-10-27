@@ -93,7 +93,6 @@ const DEPLOY_STATE_ARMED: u32 = 10;
 const GPIO_PIN_HEATER_EN: u32 = 3;
 const GPIO_PIN_XPDR_EN: u32 = 16;
 const GPIO_PIN_GNSS_EN: u32 = 17;
-const GPIO_PIN_SOLAR_SENSE: u32 = 14;
 // hal_uart.h
 const UART_PORT_GNSS: u32 = 2;
 /// The GNSS receiver's NMEA rate (piNAV-NG default assumed; its ICD sets it)
@@ -1345,7 +1344,7 @@ impl Executive {
                 deploy: (
                     deployment::deployment_get_state(),
                     crate::ants::status().map(|a| a.deployed_mask()),
-                    crate::c::hal_gpio_get(GPIO_PIN_SOLAR_SENSE),
+                    deployment::wings_sensed(),
                 ),
                 rf_silence: (rf_silence::rf_silence_get_state(), rf_silence::rf_silence_elapsed_seconds()),
                 contact_timeout_d: contact_monitor::contact_monitor_get_timeout_days(),

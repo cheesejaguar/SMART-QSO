@@ -155,22 +155,22 @@
   "note": "nSLEEP low to zero coil current: tSLEEP 1 ms + L*I/V decay against VM (L 80 mH bound)"
  },
  "wd_twdu_typ": {
-  "value": 38.754999999999995,
+  "value": 36.433,
   "unit": "s",
   "note": "TPS3850 eq. 6: tWDU = 77.4 x C(uF) + 0.055"
  },
  "wd_twdu_min": {
-  "value": 33.3221,
+  "value": 31.3257605,
   "unit": "s",
   "note": "0.905 x, C -5 %"
  },
  "wd_twdu_max": {
-  "value": 44.55555,
+  "value": 41.885830500000004,
   "unit": "s",
   "note": "1.095 x, C +5 %"
  },
  "wd_twdl_max": {
-  "value": 5.56944375,
+  "value": 5.2357288125000006,
   "unit": "s",
   "note": "SET0 = SET1 = 0: lower boundary 1/8 of tWDU"
  },
@@ -180,12 +180,12 @@
   "note": "flight software WDI falling edge every 10 s while every task has checked in"
  },
  "wd_margin_low": {
-  "value": 1.79551144582437,
+  "value": 1.9099537730307148,
   "unit": "",
   "note": "kick interval over the lower boundary"
  },
  "wd_margin_high": {
-  "value": 3.33221,
+  "value": 3.13257605,
   "unit": "",
   "note": "upper boundary over the kick interval"
  },
@@ -200,9 +200,49 @@
   "note": "IWDG reload 3750 at the slowest LSI"
  },
  "wd_vs_iwdg": {
-  "value": 0.7797271186440682,
+  "value": -1.2166123813559295,
   "unit": "s",
   "note": "external upper bound minus the IWDG's longest: the IWDG acts first"
+ },
+ "wd_one_short_twdu_min": {
+  "value": 46.96375325000001,
+  "unit": "s",
+  "note": "CWD 705 nF after one capacitor short"
+ },
+ "wd_one_short_twdu_max": {
+  "value": 62.798633250000016,
+  "unit": "s",
+  "note": "upper bound, max"
+ },
+ "wd_one_short_twdl_max": {
+  "value": 7.849829156250002,
+  "unit": "s",
+  "note": "lower bound, max (must stay below the 10 s kick)"
+ },
+ "wd_one_open_twdu_min": {
+  "value": 15.68776775,
+  "unit": "s",
+  "note": "CWD 235 nF after one capacitor open"
+ },
+ "wd_one_open_twdu_max": {
+  "value": 20.973027750000004,
+  "unit": "s",
+  "note": "upper bound, max"
+ },
+ "wd_one_open_twdl_max": {
+  "value": 2.6216284687500004,
+  "unit": "s",
+  "note": "lower bound, max (must stay below the 10 s kick)"
+ },
+ "iwdg_3500_min": {
+  "value": 26.352941176470587,
+  "unit": "s",
+  "note": "recommended IWDG reload 3500 / 256 at LSI 34 kHz"
+ },
+ "iwdg_3500_max": {
+  "value": 30.372881355932204,
+  "unit": "s",
+  "note": "at LSI 29.5 kHz: below the supervisor's 31.3 s minimum"
  },
  "wd_uv": {
   "value": 3.069,
@@ -261,7 +301,7 @@
  "snsw_gyro_load": {
   "value": 0.0256,
   "unit": "A",
-  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: RM3100, ADS7138, TIAs, TCA9517, 12 mA photocurrent)"
+  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: ADS7138, TIAs, TCA9517 U14, 12 mA photocurrent; mag: RM3100 x 1.6, TCA9517 U34)"
  },
  "snsw_gyro_margin": {
   "value": 1.953125,
@@ -271,7 +311,7 @@
  "snsw_imu2_load": {
   "value": 0.008,
   "unit": "A",
-  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: RM3100, ADS7138, TIAs, TCA9517, 12 mA photocurrent)"
+  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: ADS7138, TIAs, TCA9517 U14, 12 mA photocurrent; mag: RM3100 x 1.6, TCA9517 U34)"
  },
  "snsw_imu2_margin": {
   "value": 6.25,
@@ -279,12 +319,22 @@
   "note": "minimum limit over the normal maximum (>= 1.35 for no false trips)"
  },
  "snsw_sns_load": {
-  "value": 0.015,
+  "value": 0.0145,
   "unit": "A",
-  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: RM3100, ADS7138, TIAs, TCA9517, 12 mA photocurrent)"
+  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: ADS7138, TIAs, TCA9517 U14, 12 mA photocurrent; mag: RM3100 x 1.6, TCA9517 U34)"
  },
  "snsw_sns_margin": {
-  "value": 3.3333333333333335,
+  "value": 3.4482758620689657,
+  "unit": "",
+  "note": "minimum limit over the normal maximum (>= 1.35 for no false trips)"
+ },
+ "snsw_mag_load": {
+  "value": 0.0023,
+  "unit": "A",
+  "note": "normal maximum (gyro and IMU2: typ x 1.6; sns: ADS7138, TIAs, TCA9517 U14, 12 mA photocurrent; mag: RM3100 x 1.6, TCA9517 U34)"
+ },
+ "snsw_mag_margin": {
+  "value": 21.73913043478261,
   "unit": "",
   "note": "minimum limit over the normal maximum (>= 1.35 for no false trips)"
  },
@@ -567,7 +617,7 @@
   "note": "trip over load"
  },
  "i_3v3_adcs": {
-  "value": 0.048600000000000004,
+  "value": 0.0504,
   "unit": "A",
   "note": "3V3_ADCS worst with the backup gyro on; SW4 trips at 0.265 A min"
  },
@@ -592,9 +642,29 @@
   "note": "charge time at the SW10 minimum limit (< 8 ms FAULT deglitch: no trip at power-up)"
  },
  "i2c2_tr": {
-  "value": 2.2368720000000002e-07,
+  "value": 2.389386e-07,
   "unit": "s",
-  "note": "I2C2 rise time, 2.2 k, 120 pF (EPS + W3 + AntS buffer): <= 300 ns for 400 kHz"
+  "note": "I2C2 rise time, two 4.7 k in parallel (2.35 k), 120 pF: <= 300 ns for 400 kHz"
+ },
+ "i2c2_tr_one": {
+  "value": 4.778772e-07,
+  "unit": "s",
+  "note": "I2C2 rise time with one pull-up open (4.7 k): <= 1000 ns for 100 kHz"
+ },
+ "i2c3_tr": {
+  "value": 1.5929240000000002e-07,
+  "unit": "s",
+  "note": "I2C3 (AntS) rise time, 2.35 k, 80 pF (W3 + EPS U80 A side)"
+ },
+ "i2c3_tr_one": {
+  "value": 3.1858480000000003e-07,
+  "unit": "s",
+  "note": "I2C3 with one pull-up open: <= 1000 ns for 100 kHz"
+ },
+ "tx_temp_pd_err": {
+  "value": 0.011,
+  "unit": "",
+  "note": "TX_TEMP reading low by 11 k / 1 M (1.1 %) with the 1 M open-line pull-down on PA0"
  },
  "i2c2_iol": {
   "value": 0.0014999999999999998,

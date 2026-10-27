@@ -35,8 +35,17 @@ pub(crate) const GPIO_PIN_SOLAR_BURN: u32 = 12;
 pub(crate) const GPIO_PIN_SOLAR_BURN_B: u32 = 18;
 /// `GPIO_PIN_ANTENNA_SENSE`
 pub(crate) const GPIO_PIN_ANTENNA_SENSE: u32 = 13;
-/// `GPIO_PIN_SOLAR_SENSE`
+/// `GPIO_PIN_SOLAR_SENSE`: both wings' hinge switches in series, the EPS's
+/// 10 kΩ + 1 kΩ pull-up; **low = both wings deployed** (SQSO-ICX-001 §3.1
+/// pin 20). No internal pull: a pull-down would override the pull-up
 pub(crate) const GPIO_PIN_SOLAR_SENSE: u32 = 14;
+const GPIO_PULL_NONE: u32 = 0;
+
+/// Whether SOLAR_SENSE reads both wings deployed (the line low)
+pub(crate) fn wings_sensed() -> bool {
+    // SAFETY: plain value (the HAL)
+    !unsafe { c::hal_gpio_get(GPIO_PIN_SOLAR_SENSE) }
+}
 /// `FAULT_TYPE_DEPLOYMENT`
 pub(crate) const FAULT_TYPE_DEPLOYMENT: u32 = 21;
 /// `LOG_LEVEL_DEBUG`
@@ -82,7 +91,8 @@ impl DeployIo for HalFlash {
 
     fn configure_inputs(&mut self) {
         gpio_config(GPIO_PIN_ANTENNA_SENSE, GPIO_DIR_INPUT);
-        gpio_config(GPIO_PIN_SOLAR_SENSE, GPIO_DIR_INPUT);
+        // SAFETY: plain values (the HAL): input, no pull (the EPS's pull-up)
+        let _ = unsafe { c::hal_gpio_config(GPIO_PIN_SOLAR_SENSE, GPIO_DIR_INPUT, GPIO_PULL_NONE) };
         separation_switch::separation_switch_init();
     }
 
@@ -103,8 +113,7 @@ impl DeployIo for HalFlash {
 
     fn sensed(&mut self, element: Element) -> bool {
         match element {
-            // SAFETY: plain value
-            Element::SolarPanel => unsafe { c::hal_gpio_get(GPIO_PIN_SOLAR_SENSE) },
+            Element::SolarPanel => wings_sensed(),
             Element::Antenna => crate::ants::status().is_some_and(|s| s.all_deployed()),
         }
     }
@@ -233,9 +242,7 @@ pub extern "C" fn deployment_all_complete() -> bool {
 /// reads as failed, the safe answer)
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_wings_failed() -> bool {
-    // SAFETY: plain value (the HAL)
-    let sensed = unsafe { c::hal_gpio_get(GPIO_PIN_SOLAR_SENSE) };
-    DEPLOY.with(|d| d.wings_exhausted()).unwrap_or(true) && !sensed
+    DEPLOY.with(|d| d.wings_exhausted()).unwrap_or(true) && !wings_sensed()
 }
 
 /// Persist the sequence state

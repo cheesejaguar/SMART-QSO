@@ -1,12 +1,12 @@
 SMART-QSO RF board (SQSO-RF-BRD-001) - SKiDL 3.0.0 electrical rule check
-Parts: 330 placed (300 fitted, orderable), nets: 194
+Parts: 330 placed (300 fitted, orderable), nets: 193
 
 ERC INFO: No errors or warnings found while running ERC.
 
 Result: 0 error(s), 0 warning(s)
 
 Intentional waivers:
-  W1. Rails (+3V3_RAD, +3V0_RX, +3V1_DIG, +3V1_AUD, +5V_PA, +5V_PA_A, +3V3_PA, +3V3_LMX, GND) are marked as driven (drive = POWER): they are fed from the connector J2 through ferrite beads, LDOs or the TPS22918, which the pin-type check cannot follow.
+  W1. Rails (+3V3_RAD, +3V0_RX, +3V1_DIG, +3V1_AUD, +5V_PA, +5V_PA_A, +3V3_PA, +3V3_LMX, GND) are marked as driven (drive = POWER): they are fed from the connector J2 through ferrite beads or LDOs, which the pin-type check cannot follow.
   W2. Pins marked NC are intentionally unconnected: unused MCU GPIO (configured analog/pull-down in firmware), CC1200 GPIO3/XOSC_Q2/NC16, LMX2571 RFoutRx/Fin/FLout1-2/CPoutExt/NC, CMX138A TXENA/SYSCLK/MOD/DISCN2/AUXDAC/RXENA, HC4060 unused Q outputs, RD01MUS3 NC pins, TCXO pin 1, LVC1G17/LVC1GU04/LVC1G04 NC, LVC2G04 2Y (U407), SWO pad.
   W3. RX_CD and RX_FAULT (J1-15, J1-16) are driven only while RADIO_3V3 is on; with the board unpowered the LVC outputs (Ioff) sit at 0 V and the 100 k pull-downs (and the OBC's) give 'no carrier' and 'not fault'.
   W4. SPI_MISO has two tri-state drivers (CC1200 SO, CMX138A RDATA): selected by their chip selects; CC1200 GPIO1 is set high-impedance in IOCFG1 so it does not drive when CSn is high.

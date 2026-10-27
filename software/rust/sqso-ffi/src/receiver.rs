@@ -25,7 +25,9 @@ pub(crate) const GPIO_PIN_RX_CD: u32 = 21;
 /// `GPIO_PIN_RX_FAULT`
 pub(crate) const GPIO_PIN_RX_FAULT: u32 = 22;
 const GPIO_DIR_INPUT: u32 = 0;
-const GPIO_PULL_DOWN: u32 = 2;
+/// No internal pull: the OBC board's 100 kΩ pull-downs hold the lines; an
+/// internal pull-down too would load the RF board's drive through its 10 kΩ
+const GPIO_PULL_NONE: u32 = 0;
 
 struct State {
     rx: Receiver,
@@ -47,7 +49,7 @@ fn valid_frames() -> u32 {
 pub extern "C" fn receiver_init() {
     for pin in [GPIO_PIN_RX_CD, GPIO_PIN_RX_FAULT] {
         // SAFETY: plain values (the HAL)
-        let _ = unsafe { c::hal_gpio_config(pin, GPIO_DIR_INPUT, GPIO_PULL_DOWN) };
+        let _ = unsafe { c::hal_gpio_config(pin, GPIO_DIR_INPUT, GPIO_PULL_NONE) };
     }
     let now = c::now_ms();
     let frames = valid_frames();
