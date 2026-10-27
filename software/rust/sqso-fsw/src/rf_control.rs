@@ -301,6 +301,10 @@ mod tests {
         /// and the rest fail: a device that drops off the bus mid-check
         drops_after_write: bool,
         reads_left: Option<u32>,
+        /// Each write is read back as written once, then lost (the device
+        /// resets before it reaches the array): the contents before it return
+        loses_writes: bool,
+        before: Option<MemFlash<512>>,
         lines: Option<(bool, bool)>,
         reports: [Option<Report>; 8],
         count: usize,
@@ -314,6 +318,8 @@ mod tests {
                 drop_writes: false,
                 drops_after_write: false,
                 reads_left: None,
+                loses_writes: false,
+                before: None,
                 lines: None,
                 reports: [None; 8],
                 count: 0,
@@ -330,7 +336,11 @@ mod tests {
                 return Err(FlashError(-5));
             }
             self.reads_left = self.reads_left.map(|n| n - 1);
-            self.flash.read(r, o, b)
+            let got = self.flash.read(r, o, b);
+            if let Some(before) = self.before.take() {
+                self.flash = before;
+            }
+            got
         }
         fn write(&mut self, r: u32, o: u32, d: &[u8]) -> Result<(), FlashError> {
             if self.drop_writes {
@@ -338,6 +348,9 @@ mod tests {
             }
             if self.drops_after_write {
                 self.reads_left = Some(1);
+            }
+            if self.loses_writes {
+                self.before = Some(self.flash.clone());
             }
             self.flash.write(r, o, d)
         }
@@ -400,6 +413,13 @@ mod tests {
         assert!(rf.permitted(), "the RAM copy holds");
         io.drops_after_write = false;
         io.reads_left = None;
+        assert!(rf.check(&mut io, true));
+        // Written and verified, then lost: the record read is the older latch
+        io.loses_writes = true;
+        assert_eq!(rf.tx_off(&mut io), Ok(()));
+        assert!(!rf.check(&mut io, true), "the record holds TX permitted, the RAM TX-OFF");
+        assert!(!rf.permitted(), "the RAM copy holds");
+        io.loses_writes = false;
         assert!(rf.check(&mut io, true));
         // Not initialized: nothing to check
         let mut fresh = RfControl::new(7);

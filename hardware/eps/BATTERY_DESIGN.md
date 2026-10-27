@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-BAT-001
-**Version:** 2.8
+**Version:** 2.9
 **Date:** 2026-10-27
 **Status:** Battery definition and cycle-life analysis for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-08). **Analysis, not measured; no cell has been bought or tested.**
 
@@ -157,7 +157,7 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 
 - Primary: **TI BQ76952** (thresholds in OTP, high-side CHG/DSG FETs, coulomb counter, SUV permanent fail at 2.00 V that
   sets the latched recharge lockout), on the EPS board (SQSO-EPS-BRD-001 §5.4, §6.1)
-- Secondary over-voltage: **TI BQ771806** (4.35 V fixed) blowing a Littelfuse ITV4030L1412NR three-terminal fuse in the pack line
+- Secondary over-voltage: **TI BQ771806** (4.35 V fixed) blowing a Littelfuse ITV4030L1412NR three-terminal fuse F3 in the pack line, **both on the battery sense board** (Version 2.9; §7.2)
 - Hardware comparators on NTC1: charge window +1.1…+44.0 °C, heater cutout +40 °C, pack over-temperature +60 °C
 - Fuel gauge: TI INA228 coulomb counter on the OBC's I2C (0x44)
 
@@ -290,6 +290,14 @@ pin for it yet (RID EPS-06).
     (SQSO-EPS-BRD-001 E, RID SMA-B03: an open tap is held between its neighbours, 4.2 µA from the pack). Balancing ≈ 9 mA (was 18 mA): the 50 mV balance
     window is unchanged and the pack's expected spread is corrected in a few charge cycles; measurement error from the
     AFE's input current ≤ 0.2 mV; a blown tap fuse or open chain shows as an open cell input (AFE open-wire check)
+  - **Secondary over-voltage protector on the sense board** (Version 2.9, SQSO-EPS-BRD-001 F §6.1; RIDs MFG-003 item 1,
+    SMA-B03): BQ771806DPJR with its own taps at the cell tabs (1 kΩ + 0.1 µF each, no wire shared with the AFE's
+    taps), supply from BAT_TOP after F0B through 100 Ω and a 2 × 1 µF 50 V series pair, ground at the cell-1 negative;
+    output 47 k/100 k and an 8.2 V zener (BZX84-C8V2) to Q16 (PMV40UN2), which pulls the heater of **F3**
+    (ITV4030L1412NR, in BAT_TOP after F0B, before the W1 pads) to the cell-1 negative: 15–27 W, F3 opens in < 1 min.
+    F3 rated −10 … +65 °C: on the pack it must blow only when charging, which the hardware refuses below +1.1 °C; it
+    carries below −10 °C only in the first orbit after a cold soak (pack −10 … −16 °C) and is qualified for that and
+    the ±70 °C margins by V-EPS-8. Drain unchanged (≤ 2.4 µA, in SQSO-EPS-BRD-001 §6.6)
   - Sense board (the pack's 15 g interconnect board): FR-4, conformal coated; F0A, F0B, F0N, FT0–FT4 and the 15 tap
     resistors under the coating; the fuses' 72 VDC rating is 4.3× the 16.8 V pack (voltage rule 50 %); terminations in
     the non-tin finish of the slash sheet
@@ -384,3 +392,4 @@ lot uniformity OCV < 1 %, mass < 2 %, capacity < 5 %, resistance < 15 %).
 | 2.6 | 2026-10-27 | CDR design (EPS board): sense-board fuses changed for breaking capacity: F0 (and the EPS's F2) FM12A72V5.0A, tap fuses FT0–FT4 FM12A72V3/4A (MIL-PRF-23419/12, 1000 A interrupt) against a 314 A / 63 A prospective-current bound (§5.1, §7.2) |
 | 2.7 | 2026-10-27 | CDR design (EPS board): round-3 panel (RID P3E-02): BAT_TOP fuses F0A + F0B and BAT_BOT fuse F0N (FM12A72V5.0A) on the sense board; tap current-limiting chains 3 × 68.1 Ω moved to the sense board (balancing ≈ 9 mA); software-fault pack current 2.0 A (§4.1, §5.1, §7.2) |
 | 2.8 | 2026-10-27 | CDR design (EPS board): F0B a diverse part (FM08A125V5A, Littelfuse, MIL-PRF-23419/8) so the two positive-leg fuses are independent by design (SQSO-FMEA-003); the EPS's open-tap ladder noted (§5.1, §7.2); §7.1 cell retention replaced by the mechanical retention of SQSO-MECH-CAD-001 §4.6 (no adhesive or potting) |
+| 2.9 | 2026-10-27 | CDR design (EPS board): the secondary over-voltage protector BQ771806, its heater driver and F3 move onto the battery sense board (own taps; F3 at the pack's temperature, blowing only inside its rating; SQSO-MFG-003 item 1) (§4.2, §7.2) |

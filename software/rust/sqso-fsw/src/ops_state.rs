@@ -276,6 +276,29 @@ mod tests {
         }
     }
 
+    /// Each write is read back as written once, then lost (the device resets
+    /// before it reaches the array): the contents before it return
+    struct LosesWrites {
+        f: MemFlash<256>,
+        before: Option<MemFlash<256>>,
+    }
+    impl Flash for LosesWrites {
+        fn read(&mut self, r: u32, o: u32, b: &mut [u8]) -> Result<(), FlashError> {
+            let got = self.f.read(r, o, b);
+            if let Some(before) = self.before.take() {
+                self.f = before;
+            }
+            got
+        }
+        fn write(&mut self, r: u32, o: u32, d: &[u8]) -> Result<(), FlashError> {
+            self.before = Some(self.f.clone());
+            self.f.write(r, o, d)
+        }
+        fn erase(&mut self, r: u32) -> Result<(), FlashError> {
+            self.f.erase(r)
+        }
+    }
+
     /// The degraded mode without the FRAM (RID SMA-B10): the RAM record
     /// holds while the FRAM is dead; an upset (its CRC no longer matches)
     /// sets the hold and stops the transponder; the check reports whether
@@ -304,6 +327,11 @@ mod tests {
         // Written and verified, then the device drops off before the check reads it
         let mut drops = DropsOff { f: f.clone(), reads_left: None };
         assert_eq!(s.check(&mut drops, true), (false, false));
+        // Written and verified, then lost: the record read is the older one
+        let mut loses = LosesWrites { f: f.clone(), before: None };
+        assert_eq!(s.set_adcs_geometry(1, &mut loses), Ok(()));
+        assert_eq!(s.check(&mut loses, true), (false, false));
+        assert_eq!(s.adcs_geometry, 1, "the RAM copy holds");
         // Written, not read back as written
         let mut ig = Ignoring(f.clone());
         let _ = s.set_xpdr_enabled(true, &mut ig);

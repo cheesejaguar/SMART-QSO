@@ -80,12 +80,12 @@ W10 have stated minimums (thermal; RF loss budget). Each end's 15 mm is the stri
 
 | Family | Harness-side parts | Board side | Used on |
 |--------|--------------------|-----------|---------|
-| Pico-Clasp 1.0 mm | 501330-0N00 housing, 501334 crimp terminal, **gold** (Molex lists 0.38 and 0.76 µm gold versions; the board headers' tin suffixes change to the gold code) | 501331-xx vertical SMT header, gold | EPS J2, J4–J9, J12, J14–J17, J19–J21; OBC J3–J8, J10; RF J2; carrier J2; A2 J1 |
-| Micro-Fit 3.0 | 43025-0N00 receptacle, 43030 crimp terminal, gold | **43045 right-angle** dual-row header, gold (43045-0800 is the 8-way right-angle header; a mated vertical Micro-Fit with its wire bend does not fit the 12.1 mm under the EPS or under the RF board above the carrier) | EPS J1, J10, J11, J13, J18; carrier J1 |
+| Pico-Clasp 1.0 mm | 501330-0N00 housing, **501193-9000** crimp terminal: gold, 0.76 µm on the mating area, 28–32 AWG (501193-8000, 0.38 µm, is the alternative). **501334 is the tin terminal and is not used** (Molex 501330 housing listing; SQSO-MFG-003 §9). Molex's PCN effective 2025-02-28 changed the supplier and plating process of 501193-7000/-8000/-9000, so receiving inspection checks the gold thickness on each lot. The board headers' tin suffixes change to the gold code | 501331-xx vertical SMT header, gold | EPS J2, J4–J9, J12, J14–J17, J19–J21; OBC J3–J8, J10; RF J2; carrier J2; A2 J1 |
+| Micro-Fit 3.0 | 43025-0N00 receptacle, **43030-0003** crimp terminal: select gold, 0.762 µm minimum on the mating area, tin on the crimp, 20–24 AWG, insulation ≤ 1.85 mm. 43030-0002 (0.38 µm gold) is the alternative; the series' tin terminals are not used | **43045 right-angle** dual-row header, gold (43045-0800 is the 8-way right-angle header; a mated vertical Micro-Fit with its wire bend does not fit the 12.1 mm under the EPS or under the RF board above the carrier) | EPS J1, J10, J11, J13, J18; carrier J1 |
 | Samtec Tiger Eye 1.27 mm | **SFSDT** PTFE discrete-wire socket assembly, latched | **TFM** header, gold (TFM-1xx-01-S-D-RA right-angle on the OBC and RF boards; vertical TFM on the EPS bottom side) | W3 (EPS J3, OBC J1), W4A (OBC J2, RF J1), W8A (OBC J9) |
-| MMCX | Molex 73414-0351 right-angle crimp plug, 1.37 mm cable (RF board C §4.3); the 1.13 mm version for W10E | Molex 73415-1473 jack; receiver and patch ports | W10, W10E |
+| MMCX | W10: Molex 73414-0351 right-angle crimp plug for 1.37 mm cable (RF board C §4.3). W10E: Molex **73415-2261** right-angle crimp plug for 1.13 mm (and 1.32 mm) cable; gold-plated brass body, gold-plated BeCu contact, PTFE insulator; −55 … +165 °C (Molex MMCX literature 987650-3243) | Molex 73415-1473 jack; receiver and patch ports | W10, W10E |
 | Micro-D | — (flight side is the board receptacle) | MIL-DTL-83513-class 21-way socket receptacle on A3, gold | Access port (W8A, W11) |
-| Splice | SAE AS81824/1 crimp splice, permanently insulated, under heat shrink, staggered, tied down within 10 mm | — | W6C at the rod leads, W7A/W7B at the deployed-state sensor leads, W7C at the AntS pigtail |
+| Splice | **TE Raychem D-436-36 MiniSeal** in-line crimp splice. It is qualified as M81824/1-1, the number to order, which superseded D-436-36. 26–20 AWG, 304–1510 CMA. Plated copper barrel with meltable sealing inserts in a transparent heat-shrink sleeve; −55 … +150 °C (SQSO-MFG-003 H11). The installed splice is about 2.6 mm across and 29 mm long; the splices are staggered, each tied down within 10 mm on both sides. A 28 AWG conductor (19/40, 183 CMA) is folded back once to 366 CMA before it enters the barrel; this is qualified in V-HAR-2. The barrel finish is confirmed on the TE drawing at order (EEE_PARTS_LIST §2A.8: no tin barrel) | — | W6C at the rod leads, W7A/W7B at the deployed-state sensor leads, W7C at the AntS pigtail |
 
 ### 3.2 Access-port board A3
 
@@ -171,8 +171,8 @@ Gauge rules forced by the terminals:
 
 | Connector family | Wire range | Consequence |
 |------------------|-----------|-------------|
-| Molex Pico-Clasp 501330 housing, 501334 terminal | **28–32 AWG**, insulation ≤ 0.80 mm | Every Pico-Clasp wire is 28 AWG. W2 (was 26 AWG), W4B (24), W6B and W6C (26), W7C (26), W9A and W9B (26) change |
-| Molex Micro-Fit 3.0 43025 receptacle, 43030 terminal | 20–24 AWG, insulation ≤ 1.85 mm | 24 AWG (22 for the pack leads). The thin-wall insulation (0.99–1.14 mm) must hold in the insulation grip: crimp qualification V-HAR-2, with a 0.15 mm PTFE build-up sleeve where it does not |
+| Molex Pico-Clasp 501330 housing, 501193-9000 gold terminal | **28–32 AWG**, insulation ≤ 0.80 mm (confirmed on the 501193 drawing in V-HAR-2) | Every Pico-Clasp wire is 28 AWG. W2 (was 26 AWG), W4B (24), W6B and W6C (26), W7C (26), W9A and W9B (26) change |
+| Molex Micro-Fit 3.0 43025 receptacle, 43030-0003 gold terminal | 20–24 AWG, insulation ≤ 1.85 mm | 24 AWG (22 for the pack leads). The thin-wall insulation (0.99–1.14 mm) must hold in the insulation grip: crimp qualification V-HAR-2, with a 0.15 mm PTFE build-up sleeve where it does not |
 | Samtec SFSDT (discrete-wire assembly for TFM headers) | 30 AWG PTFE | W3, W4A, W8A |
 
 No single wire fits both a Micro-Fit and a Pico-Clasp terminal, so **a harness has one family at both ends**: EPS J19
@@ -448,7 +448,7 @@ plan area (limit 80 %). J10's plug points toward +X, so W7A's burn pairs leave s
 | MMCX (W10, W10E) | 6.0 mm (RF board C §4.3) | Snap-on; cable tied within 15 mm of the plug (rotation) |
 | Micro-D 21 on A3 | Envelope x −35 … −5, z −46.8 … −38 (8.8 mm); A3 30 × 8.8 mm | Receptacle on the −Y shear panel by two self-locking Ti jackposts into the flange's threaded inserts (GSE jackscrews in their outer thread); A3 soldered to the PCB tails, no fastener of its own; 2216 witness and staking beads only; W8A and W11 in plated holes at the two ends, staked within 10 mm |
 | Solder ends (pads, TB, burn boards, switches, A3) | — | Wire staked within 10 mm; service loop of one re-termination |
-| Splices (rods, sensors, AntS) | 1.6 × 10 mm, staggered | Tied down on both sides within 10 mm |
+| Splices (rods, sensors, AntS) | D-436-36 installed about 2.6 mm across and 29 mm long; staggered by one splice length, no more than two side by side | Tied down on both sides within 10 mm; placed where the harness has left its bundle: Z-rod pair in MXC (3.0 mm gap), X-rod pair under the EPS, Y-rod pair at the (+X,+Y) bundle's face at z −30, sensor pairs below the hinge-side strips at the hinge doublers, W7C's eight on the AntS side of the end-frame cut-out (request M-11) |
 
 ### 10.3 Tie-down points
 
@@ -549,7 +549,7 @@ is the nickel underplate of A2's own connector.
 | ID | Item | Method | Pass | When |
 |----|------|--------|------|------|
 | V-HAR-1 | Continuity, isolation, dielectric withstanding of every harness against the wire list | Test (harness tester) | §13 | Each harness, before integration |
-| V-HAR-2 | Crimp qualification: Pico-Clasp 501334 at 28 AWG, Micro-Fit 43030 at 22 and 24 AWG thin-wall (insulation grip; build-up sleeve if needed), Samtec SFSDT, AS81824/1 splices | Test | NASA-STD-8739.4A pull values; cross-sections | Before the EM harness build |
+| V-HAR-2 | Crimp qualification: Pico-Clasp 501193-9000 at 28 AWG, Micro-Fit 43030-0003 at 22 and 24 AWG thin-wall (insulation grip; build-up sleeve if needed), Samtec SFSDT, M81824/1-1 (D-436-36) splices at 24 AWG and at 28 AWG with the conductor folded back, MMCX 73414-0351 and 73415-2261 on their cables; gold thickness of each terminal lot | Test | NASA-STD-8739.4A pull values; cross-sections | Before the EM harness build |
 | V-HAR-3 | Mated heights and footprints of every connector with its wire dress (Pico-Clasp 8.0 mm, Micro-Fit RA 9.0 mm and 23 mm, TFM RA 7.0 mm with the plug's back at x ≤ ±43.1, Micro-D envelope) | Inspection on the Molex/Samtec drawings, then measurement on the EM boards | Within the allocations of §10 | EM board layout (with VI-MCAD-01) |
 | V-HAR-4 | Fit check on the EM structure: every harness in its zones, the coax bands and A2's 20 mm zone free, no harness in the wing or tape sweeps, slots and deck openings protected, tie points as §10.3, no harness tie on the EPS other than connector strain relief (C-15) | Inspection, photographs, measured route lengths | No contact with rods, flanges, columns; lengths within the wire list's service allowance | EM integration |
 | V-HAR-5 | Harness mass | Weigh each harness and A3 | Total ≤ 85.6 g × 1.25; row-32 content ≤ 100 g | EM and flight builds |
@@ -558,7 +558,7 @@ is the nickel underplate of A2's own connector.
 | V-HAR-8 | Field step at A2 with the PA keyed at 1 W and the Jetson switched | Test (flatsat, with AV-V4/VI-RFB-11) | ≤ 1 nT from the harness | Flatsat |
 | V-HAR-9 | Single-point ground: with EPS H1 lifted, GND to frame with every harness, the AntS and the patch installed | Test | ≥ 1 MΩ at 50 VDC | Integration |
 | V-HAR-10 | Bend radii against NASA-STD-8739.4A and §2.2, including W10's 7 mm bend against the procured cable's minimum | Inspection | Every bend at or above its minimum | EM harness build |
-| V-HAR-11 | Outgassing: E595 data of every harness material (wire, SFSDT, housings, lacing tape, 2216, Arathane 5750, sleeving); bake-out of the finished harnesses | Analysis, test | TML ≤ 1.0 %, CVCM ≤ 0.10 % | Before flight integration |
+| V-HAR-11 | Outgassing: E595 data of every harness material (wire, SFSDT, housings, splice sleeves, the W10E cable, lacing tape, 2216, Arathane 5750, sleeving); bake-out of the finished harnesses | Analysis, test | TML ≤ 1.0 %, CVCM ≤ 0.10 % | Before flight integration |
 | V-HAR-12 | Sun-sensor channel noise with the EPS trackers at full power (unshielded W6D) | Test (flatsat) | ≤ 1 LSB (1.3 µA) rms | Flatsat |
 | V-HAR-13 | Continuity and connector retention after protoflight vibration | Test | No intermittent > 1 µs (event detector on W1, W5A, W4B), no backed-out contact | Environmental test |
 
