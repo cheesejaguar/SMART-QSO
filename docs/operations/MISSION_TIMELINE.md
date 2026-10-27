@@ -35,7 +35,7 @@ separation cases.
 | LEOP | Separation (S) | First authenticated command executed and TX-OFF proven | S to ≈ S+1 d |
 | Commissioning | LEOP end | Commissioning review, `SET_CONTACT_TIMEOUT` 14 days | Days 1–14 |
 | Primary operations | Day 14 | 2 years (design life); minimum 12 months | |
-| End of life | Day 730 | Passivation (TX-OFF, charge path cut; `docs/operations/END_OF_LIFE_PLAN.md` §3); re-entry within 5 years of mission end (ODAR Draft D: 2.8–3.7 years after it from 475 km; the simulation's own decay model: 2.0 years) | |
+| End of life | Day 730 | Passivation (TX-OFF, charge path cut; `docs/operations/END_OF_LIFE_PLAN.md` §3); re-entry within 5 years of mission end (ODAR Draft D §6.2: 2.8–3.7 years after it from 475 km, 4.8–5.7 years after deployment, which governs; the mission simulation's decay model, SIL G: 2.55 years after it, 4.55 years after deployment, `docs/test/SIL_MISSION_SIMULATION.md` §7) | |
 
 ## 3. Delivery, integration and storage
 
@@ -80,7 +80,7 @@ lines, flight software round 2); pass statistics from `leop_passes.py` at the sa
 | S+0.15 s | Switches release: power-on reset; the OBC boots; RF-silence and deployment counts start at 0 (both were ARMED); BOOT → DETUMBLE; the commissioning hold is set | OBC, EPS, sensors | 0.42 W | 58.3 %, 15.1 V, 20 °C | — |
 | S+121 s | **B-dot detumble starts** (no magnetorquer output before 120 s, SpaceX UG v11 §3.3.4; RID LV-02 closed) | + magnetorquers | 0.42–0.46 W in the simulation (its torquer model); the board design draws 1.16–1.3 W while detumbling (POWER_BUDGET_ANALYSIS §8.6) | 58.3 % | — |
 | S+0 to S+28.8 min worst | Darkness if separated in eclipse: 33.3 % of the separation cases; 5.2–28.8 min (median 16.9) until first sunlight. Reference case: first sun at S+21 min | — | 0.43 W | Reference 0.15 Wh before first sun; worst 0.20 Wh (0.4 %) at the simulated load, 1.46 Wh (2.9 points) with the board's torquer power and a cold pack (POWER_BUDGET_ANALYSIS §8.6) | — |
-| S+14.8 min | Detumbled: rate across +Y below 0.5°/s (simulation; Monte Carlo slowest capture 1.3 h, 1.6 h from a 50°/s tip-off, BASELINE Rev E §8) | | | | — |
+| S+14.8 min | Detumbled: rate across +Y below 0.5°/s (simulation; Monte Carlo slowest in-specification capture 1.8 h, tip-off σ 10°/s up to 30°/s, 1.7 h with the BMI088; BASELINE Rev E §8, ADCS_DESIGN 1.9 §11.4) | | | | — |
 | S+19.2 min | DETUMBLE → **IDLE**; the commissioning hold keeps it there: no ACTIVE, no Jetson, no transponder until `COMMISSIONING_RELEASE` (RID LV-01 closed) | | 0.42 W | 58.0 % | — |
 | S+21 min onward | Body cells charging (≈ 2.5–2.8 W from the body before the wings) | | | rising | — |
 | S+30:00 | Deployment wait served (CDS §2.4.4); 33.3 % of the cases are in eclipse at this moment (§8.1) | | | 58.5 % | — |
@@ -134,7 +134,7 @@ when sunlit and SOC ≥ 55 %; beacon every 60 s (ACTIVE), 120 s (IDLE), 180 s (S
 once in each 14-day loss-of-contact period; ephemeris after every pass until cataloged, then by the plan of
 SQSO-REG-015. End of life at day 730 (minimum 12 months): final beacon, TX-OFF, permanent charge-path disconnect;
 re-entry no later than 5 years after the end of the mission (FCC; the 25-year figure of version 1.0 is withdrawn).
-The simulation's full two-year mission (Rev E defaults) passivates at day 730 at 444.9 km and re-enters 2.0 years later, 4.0 years after deployment; its decay model is faster than the ODAR estimator's (2.8–3.7 years after the mission from 475 km, ODAR Draft D §6.2), which governs.
+The simulation's full two-year mission (SIL G) passivates at day 730.1 and re-enters 2.55 years after the design life, 4.55 years after deployment (`docs/test/SIL_MISSION_SIMULATION.md` §7); its decay model is faster than the ODAR estimator's (2.8–3.7 years after the mission, 4.8–5.7 years after deployment from 475 km, ODAR Draft D §6.2), which governs.
 
 ## 8. Contingencies, checked
 
@@ -251,4 +251,4 @@ the simulation's 15° contact mask are conservative.
 | 2.4 | 2026-10-27 | CDR design (EPS board) | §3 shipped SoC aligned with SQSO-BSA-001 D §6 (≤ 30 % by air per the IATA 2026 guidance for PI 967; 60 % by road) |
 | 2.5 | 2026-10-27 | CDR round 3, launch and operations (finding P3A-07) | §8.1 deployment retries 50 min apart as coded (`RETRY_DELAY_MS`; was "60 s apart", all in one eclipse); §8.5 the RF silence latched after completion (LV-15; was "restarts after completion"); §8.6 `GET_HOUSEKEEPING` for the blind command; §8.7 the RV-3028 mission clock is fitted but unpowered in storage (the conclusion holds); §6 step numbers aligned with SQSO-COMM-001 2.1 (C-7 commissioning release, C-9 GNSS, C-10 validation, C-11 review); §5 S+45:00 row: the GNSS receiver unpowered before 45 min, the first GNSS session moving to ≥ 45 min (P3A-01, SYS-224 Rev G) |
 | 2.6 | 2026-10-27 | CDR flight software, round 3, fourth part (decision C-19) | §5 S+45:00 and §8.2: the first beacon waits for the AntS sequence's end (SRS-F167); the AntS-deferred case (`ants_cold`, first beacon S+81.2 min) and the wings-failed case (first beacon S+3.0 h); §8.3 the AntS hold at S+24 h |
-| 2.7 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §8.2, §8.6 the C-18 cap case at S+25.8 h with the release after 20 min of sun and the unreadable-temperature path (P3F-G-02; was about S+27 h); §6 C-5 pointing criterion of decision C-23 and preset 0 (C-21) (was +Y within 4°); C-8 energy per accepted beacon 0.065 Wh (SIL G; was 0.036 Wh); §5 Monte Carlo capture times from BASELINE §8; §3 and §9 the designed storage drain and the defined integration SOC; §9 the stations 13 km apart and DA-10, the ground ephemeris chain implemented (LV-04 closed; only the VI-LV-13 demonstration open); §8.2 LBA v3.5 |
+| 2.7 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §8.2, §8.6 the C-18 cap case at S+25.8 h with the release after 20 min of sun and the unreadable-temperature path (P3F-G-02; was about S+27 h); §6 C-5 pointing criterion of decision C-23 and preset 0 (C-21) (was +Y within 4°); C-8 energy per accepted beacon 0.065 Wh (SIL G; was 0.036 Wh); §5 Monte Carlo capture 1.8 h from BASELINE §8 (was 1.2 h, 2.1 h from 50°/s); §2, §7 re-entry from SIL G (4.55 years after deployment; was 4.0) beside ODAR Draft D (4.8–5.7 years); §3 and §9 the designed storage drain and the defined integration SOC; §9 the stations 13 km apart and DA-10, the ground ephemeris chain implemented (LV-04 closed; only the VI-LV-13 demonstration open); §8.2 LBA v3.5 |

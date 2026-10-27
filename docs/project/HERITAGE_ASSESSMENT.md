@@ -104,7 +104,8 @@ records in `docs/project/TECHNOLOGY_READINESS_ASSESSMENT.md` (SQSO-TRA-001), to 
 - **Differences.** CubeSpace CR0002 rods (> 0.2 A·m²; air-core coils the alternate) and spin-stabilized coarse
   sun-pointing of +Y at 8°/s (BASELINE §8).
 - **Not covered.** Detumble and capture on the real spacecraft: the Monte Carlo of the flight code gives a slowest
-  capture of 1.3 h from 10°/s (BASELINE §8); hardware-in-the-loop and flight are still to come.
+  in-specification capture of 1.8 h (tip-off σ 10°/s, up to 30°/s;
+  `docs/hardware/ADCS_DESIGN.md` 1.9 §11.4); hardware-in-the-loop and flight are still to come.
 
 ### 4.5 Software
 
