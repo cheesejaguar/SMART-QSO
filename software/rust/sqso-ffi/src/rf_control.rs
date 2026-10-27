@@ -131,6 +131,12 @@ pub extern "C" fn rf_control_verify() {
     let _ = RF.with(|rf| rf.verify(&mut HalFlash));
 }
 
+/// The one-minute check, in the degraded mode without the FRAM against the
+/// latch's CRC (RID SMA-B10); whether the record was read (busy: not)
+pub(crate) fn check(degraded: bool) -> bool {
+    RF.with(|rf| rf.check(&mut HalFlash, degraded)).unwrap_or(false)
+}
+
 /// Select the downlink power level (`RfPowerLevel_t`) and persist it
 #[unsafe(no_mangle)]
 pub extern "C" fn rf_control_set_power_level(level: u32) -> i32 {

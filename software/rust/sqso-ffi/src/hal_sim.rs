@@ -151,6 +151,8 @@ struct Flash {
     initialized: bool,
     data: [u8; FLASH_TOTAL],
     fail_writes: bool,
+    /// Every read fails (a dead FRAM, RID SMA-B10)
+    fail_reads: bool,
     /// Writes left before writes fail (-1 = off)
     writes_before_fail: i32,
 }
@@ -316,6 +318,7 @@ static SIM: Global<Sim> = Global::new(Sim {
         initialized: false,
         data: [0; FLASH_TOTAL],
         fail_writes: false,
+        fail_reads: false,
         writes_before_fail: -1,
     },
     radio: Radio::EMPTY,
@@ -1257,6 +1260,9 @@ pub unsafe extern "C" fn hal_flash_read(region: u32, offset: u32, data: *mut u8,
             return rc::ERROR;
         }
         let Some(data) = data else { return rc::NULL_PTR };
+        if s.flash.fail_reads {
+            return rc::IO;
+        }
         match span(&mut s.flash, region, offset, data.len()) {
             Ok(stored) => {
                 data.copy_from_slice(stored);
@@ -1506,6 +1512,12 @@ pub extern "C" fn hal_wdt_set_warning_callback(
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_sim_flash_fail_writes(fail: bool) {
     sim((), |s| s.flash.fail_writes = fail);
+}
+
+/// Make every flash read fail (true) or work again (false)
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_flash_fail_reads(fail: bool) {
+    sim((), |s| s.flash.fail_reads = fail);
 }
 
 /// Flash writes fail after `writes` more succeed (-1: never)

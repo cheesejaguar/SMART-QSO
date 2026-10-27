@@ -33,6 +33,8 @@ pub enum Command {
     GetHousekeeping = 0x09,
     /// Downlink stored housekeeping: store (0 five-minute records, 1 sixty-second records), first record sequence (4 bytes big-endian), count (2 bytes big-endian, at most 600; 0 stops a dump); paced within the downlink duty limit
     DumpTlm = 0x0A,
+    /// Run without the FRAM (argument: the ASCII code FRM!): accepted only once the FRAM has been declared failed (HK1 FR=1); the RAM copies of the TX-OFF latch and the operations record, under CRC, become authoritative until the FRAM reads back again or the next reset (then send FRAM_BYPASS, TX_ENABLE and COMMISSIONING_RELEASE again)
+    FramBypass = 0x0B,
     /// Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE
     EpsSetMode = 0x10,
     /// Get EPS telemetry
@@ -77,7 +79,7 @@ pub enum Command {
 
 impl Command {
     /// Every command, in ID order
-    pub const ALL: [Command; 30] = [
+    pub const ALL: [Command; 31] = [
         Command::Nop,
         Command::Reset,
         Command::SetMode,
@@ -88,6 +90,7 @@ impl Command {
         Command::CommissioningRelease,
         Command::GetHousekeeping,
         Command::DumpTlm,
+        Command::FramBypass,
         Command::EpsSetMode,
         Command::EpsGetTelemetry,
         Command::EpsClearLockout,
@@ -123,6 +126,7 @@ impl Command {
             0x08 => Some(Command::CommissioningRelease),
             0x09 => Some(Command::GetHousekeeping),
             0x0A => Some(Command::DumpTlm),
+            0x0B => Some(Command::FramBypass),
             0x10 => Some(Command::EpsSetMode),
             0x13 => Some(Command::EpsGetTelemetry),
             0x14 => Some(Command::EpsClearLockout),
@@ -173,6 +177,7 @@ impl Command {
             Command::CommissioningRelease => c"COMMISSIONING_RELEASE",
             Command::GetHousekeeping => c"GET_HOUSEKEEPING",
             Command::DumpTlm => c"DUMP_TLM",
+            Command::FramBypass => c"FRAM_BYPASS",
             Command::EpsSetMode => c"EPS_SET_MODE",
             Command::EpsGetTelemetry => c"EPS_GET_TELEMETRY",
             Command::EpsClearLockout => c"EPS_CLEAR_LOCKOUT",
@@ -209,6 +214,7 @@ impl Command {
             Command::CommissioningRelease => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::GetHousekeeping => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::DumpTlm => CommandSpec { min_args: 7, max_args: 7, key: KeyClass::Operational, without_key: false },
+            Command::FramBypass => CommandSpec { min_args: 4, max_args: 4, key: KeyClass::Operational, without_key: false },
             Command::EpsSetMode => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
             Command::EpsGetTelemetry => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::EpsClearLockout => CommandSpec { min_args: 4, max_args: 4, key: KeyClass::Operational, without_key: false },
@@ -245,6 +251,7 @@ impl Command {
             Command::CommissioningRelease => "Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven)",
             Command::GetHousekeeping => "Downlink a housekeeping frame (HK1) at the next opportunity",
             Command::DumpTlm => "Downlink stored housekeeping: store (0 five-minute records, 1 sixty-second records), first record sequence (4 bytes big-endian), count (2 bytes big-endian, at most 600; 0 stops a dump); paced within the downlink duty limit",
+            Command::FramBypass => "Run without the FRAM (argument: the ASCII code FRM!): accepted only once the FRAM has been declared failed (HK1 FR=1); the RAM copies of the TX-OFF latch and the operations record, under CRC, become authoritative until the FRAM reads back again or the next reset (then send FRAM_BYPASS, TX_ENABLE and COMMISSIONING_RELEASE again)",
             Command::EpsSetMode => "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE",
             Command::EpsGetTelemetry => "Get EPS telemetry",
             Command::EpsClearLockout => "Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history",

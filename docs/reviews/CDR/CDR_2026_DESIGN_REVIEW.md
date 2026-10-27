@@ -110,13 +110,13 @@ L-2 M licences and ephemeris demonstration).
 
 | Quantity | Requirement | Predicted | Margin | Source |
 |----------|-------------|-----------|--------|--------|
-| Mass | ≤ 2.00 kg (design), 2.5 kg Nova | MEV 1.748 kg (with the C-13 ballast) | +14.4 % (+43.0 % to the Nova) | MASS_BUDGET 3.1 |
-| CG, stowed | ±20 mm | (+0.1, −0.3, −1.3) mm CBE (CAD, with the harness distribution) | > 18 mm | MECHANICAL_DESIGN |
-| Deployed inertia | Iyy ≥ 1.03 × max, axis within 5° of +Y | 1.055 / 1.046 (CBE / MEV, four AntS elements, C-13 ballast, harness distribution), 1.0° / 1.0°; ≥ 1.03 to 3.1 mm placement scatter | Met | MECHANICAL_DESIGN §5 |
-| First mode, stowed | > 40 Hz | 169 Hz (FE, deck with harness), ≈ 140 Hz (analytic) | × 3.5–4.2 | STRUCTURAL_ANALYSIS B |
-| Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +1.00 in the design case; +0.84 in the rail-ends-only bounding case | Positive | STRUCTURAL_ANALYSIS B |
-| PCB fatigue (Steinberg) | MS ≥ 0 | +0.08 (2.0 mm carrier) to +0.37, EPS +0.23 with the harness tied to the deck (C-15) | Positive | STRUCTURAL_ANALYSIS B |
-| Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel | +0.14 cold, +0.13 one spring out | Positive | MECHANISMS_ANALYSIS B §4A |
+| Mass | ≤ 2.00 kg (design), 2.5 kg Nova | MEV 1.754 kg (ballast, harness distribution, cell retention) | +14.0 % (+42.5 % to the Nova) | MASS_BUDGET 3.1 |
+| CG, stowed | ±20 mm | (+0.1, −0.4, −1.4) mm CBE (CAD) | > 18 mm | MECHANICAL_DESIGN |
+| Deployed inertia | Iyy ≥ 1.03 × max, axis within 5° of +Y | 1.056 / 1.047 (CBE / MEV, four AntS elements, C-13 ballast, harness), 1.2° / 0.7°; MEV 5th percentile 1.037 at 2 mm placement scatter | Met | MECHANICAL_DESIGN §5 |
+| First mode, stowed | > 40 Hz | 170 Hz CBE / 162 Hz MEV (FE, 2.0 mm EPS, rod on the −X wall), ≈ 140 Hz (analytic) | × 3.5–4.2 | STRUCTURAL_ANALYSIS B |
+| Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +0.96 (+0.85 at MEV masses) | Positive | STRUCTURAL_ANALYSIS B |
+| PCB fatigue (Steinberg) | MS ≥ 0 | +0.42 to +0.71 at CBE, +0.14 to +0.50 at MEV (2.0 mm EPS and carrier) | Positive | STRUCTURAL_ANALYSIS B |
+| Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel, at −55 °C | +0.08 (one spring out +0.07); release-energy ratio 1.90 with the 10 s burn (C-17) | Positive; resistive torque below −40 °C verified at −55 °C (VI-MECH-01..03) | MECHANISMS_ANALYSIS E |
 | Power, EOL, sun-pointed | ≥ 20 % | 3.92 W against the bottom-up ACTIVE load 2.50 W with the heater (2.26 W allocation) | +54 % (+73 % on the allocation; about +51 % with RF board E's transponder draw) | POWER_BUDGET_ANALYSIS 2.2 §6; BASELINE §5 |
 | Power, EOL, tumbling | ≥ 20 % | 2.48 W against the bottom-up ACTIVE load 1.82 W with the heater (1.86 W allocation) | +34 % (+33 % on the allocation; about +29 % with RF board E's transponder draw) | POWER_BUDGET_ANALYSIS 2.2 §6; BASELINE §5 |
 | Depth of discharge | ≤ 10 % per eclipse | ≤ 3.7 % as flown (SIL D, 475 km); 2.8 % worst contingency (PBA 2.2) | × 2.7 | SIL_MISSION_SIMULATION D §7; POWER_BUDGET_ANALYSIS 2.2 |
@@ -151,6 +151,7 @@ L-2 M licences and ephemeris demonstration).
 | C-14 | Telecommand stations radiate ≥ 64 dBm EIRP above 10° elevation: ≥ 100 W PEP into ≥ 15.5 dBic outside the 47 CFR 2.106 US270 areas (variant A), ≤ 50 W PEP at the transmitter output into a ≥ 17.8 dBic stacked pair inside them (variant B); commands only above 10° | RF-23 |
 | C-15 | Harness wire under the EPS tied to the deck straps and shear panels; only connector strain-relief ties on the EPS board (EPS Steinberg +0.23, −0.52 otherwise) | MCAD-11 |
 | C-16 | Battery-lead shorts: the two positive-leg fuses are made diverse (different part type and manufacturer, each able to clear the 314 A fault alone) so they are independent controls, with F0N in the negative leg the third: BSA H3b 2-fault tolerant. (Originally counted two same-part fuses from different lots; revised after the board FMEA counted them as one.) NRCSD safety-engineer concurrence for the ISS backup path | EPSB-10, P3E-02 |
+| C-17 | Burn 10 s per resistor (was 8 s): at the bounding −55 °C the 8 s burn gives a release-energy ratio of only 1.52 against 1.5; 10 s gives 1.90 inside the 12 s hardware one-shot | P3S-01 |
 
 ## 5. Design completion (round 2)
 
@@ -177,20 +178,20 @@ ratings, outgassing data).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-372 RIDs: severity 1: 30, severity 2: 194, severity 3: 148.
+375 RIDs: severity 1: 30, severity 2: 195, severity 3: 150.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 100 | 204 |
+| Closed by design change | 100 | 216 |
 | Closed by chair decision | 42 | 34 |
-| Verification item | 45 | 27 |
-| Decision point (dated) | 13 | 29 |
-| Implementation | 147 | 53 |
+| Verification item | 46 | 28 |
+| Decision point (dated) | 15 | 32 |
+| Implementation | 147 | 40 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 66 new findings; 34 of the reopened and 39 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 69 new findings; 39 of the reopened and 47 of the new are since closed.
 
-Open implementation RIDs: LV-04, SE-21, SE-22, GND-04, SMA-15, STR-04, STR-08, STR-13, STR-26, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, MCAD-12, OBCB-01, OBCB-02, P3E-10, P3S-01, P3S-02, P3S-04, P3S-07, P3S-08, P3S-09, P3S-11, P3S-12, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B01, SMA-B02, SMA-B03, SMA-B04, SMA-B05, SMA-B06, SMA-B09, SMA-B10, SMA-B11, SMA-B12, SMA-B13, SMA-B15, SMA-B17, SMA-B19.
+Open implementation RIDs: LV-04, SE-21, SE-22, GND-04, SMA-15, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3E-10, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B01, SMA-B02, SMA-B03, SMA-B04, SMA-B05, SMA-B06, SMA-B09, SMA-B10, SMA-B11, SMA-B12, SMA-B13, SMA-B15, SMA-B17, SMA-B19.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -421,16 +422,16 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | STR-01 | 1 | Deployed inertia: +Y not a robust major axis; antenna along ±Y defeats sun pointing | CH | Closed by design change | BASELINE §4 mass properties; CAD layout: Iyy/max 1.056 CBE, 1.047 MEV, axis 0.6° / 1.1° from +Y (SQSO-MECH-CAD-001); full tensor in the flight law |
 | STR-02 | 2 | MEL rebuilt; baseline obsolete; coils trip D8 | CH | Closed by chair decision | BASELINE §4 Mass: CR0002 rods, CBE 1.49 kg, MEV 1.73 kg, +15.9 % |
 | STR-03 | 3 | CG never computed | CA | Closed by analysis | MASS_BUDGET v3.0 §5 |
-| STR-04 | 2 | Bifilar MOI ±5 % cannot verify the Iyy/Izz difference | CH | Implementation | Reopened in round 3: Inertia measurement accuracy (±2 % trifilar) too coarse for the 1.6 % ratio margin and the products |
+| STR-04 | 2 | Bifilar MOI ±5 % cannot verify the Iyy/Izz difference | CH | Closed by design change | One accuracy in VI-LV-02, VI-STR-01, VI-MCAD-03 and ETP §3.7: spin-balance, MOI ±0.5 %, products ±1×10⁻⁵ kg·m², CG ±0.1 mm; pass deployed ratio − 0.010 ≥ 1.03, measured tilt ≤ 2.4° |
 | STR-05 | 2 | PCB fatigue negative on four corner supports | CD | Closed by design change | Two centre supports at (0, ±21) mm: Steinberg margins +0.09 to +0.36 (STRUCTURAL_ANALYSIS B); VI-STR-02 |
 | STR-06 | 2 | Stack 45 Hz if cantilevered | CD | Closed by design change | Tied to both end frames: 289 Hz (SA §5) |
 | STR-07 | 2 | Jetson module held only by SODIMM latches | CD | Closed by design change | Clamp and staking (SA §8); VI-STR-02 |
-| STR-08 | 2 | Battery isolator preload loss; cell retention | CD | Implementation | Reopened in round 3: Battery cell retention undefined (bonded, potted or clamped) |
+| STR-08 | 2 | Battery isolator preload loss; cell retention | CD | Closed by design change | Mechanical cell retention, no adhesive or potting: G-10CR locator plates, disc-spring stack per cell at 140 N, vents open; MEL row 37 5.0 g; MS_sep +0.19 at 142 g (MECHANICAL_DESIGN §4.6); VI-MCAD-10 |
 | STR-09 | 2 | Vent area fails CDS §2.1.9 | CD | Closed by design change | ≥ 22.3 mm² (SA §11); VI-STR-09 |
 | STR-10 | 2 | Stowed wing 6.1 mm against 6.5 mm | VI | Closed by design change | Stowed protrusion 6.10 mm nominal, 6.38 mm worst case with the 0.5 mm panel recess (MECHANICAL_DESIGN B); VI-STR-08 |
 | STR-11 | 2 | AntS and GNSS patch against the ±Z standoffs | CH | Closed by design change | −Z face recessed 1.5 mm: AntS 1.25 mm inside the rail ends (MECHANICAL_DESIGN); frame RFQ |
 | STR-12 | 2 | Two switches against three inhibits; springs undefined | CD | Closed by design change | Three switches (STRUCTURAL_DESIGN §5.2-§5.3) |
-| STR-13 | 2 | No wing spring, sensor or jumper specification; no torque margin | CA | Implementation | Reopened in round 3: STRUCTURAL_DESIGN still specifies the Version A hinge; cold point not bounding |
+| STR-13 | 2 | No wing spring, sensor or jumper specification; no torque margin | CA | Closed by design change | STRUCTURAL_DESIGN 1.5 §6.2 Version B hinge; cold point −55 °C (MECHANISMS_ANALYSIS E) |
 | STR-14 | 2 | End-of-travel shock on the cells | CD | Closed by design change | Soft stop ≤ 0.3 N·m (MECH §5); VI-STR-05 |
 | STR-15 | 2 | Wing burn energy marginal at −40 °C; AntS not modelled | IMP | Closed by design change | 8 s burn at 0.8 A, two resistors per wing on drivers A (PB10) and B (PE6), alternate attempts; SIL deploy.rs fixed and AntS modelled; VI-STR-06, VI-STR-13 |
 | STR-16 | 2 | AntS tapes pass 4-6 mm below the stowed wings | IMP | Closed by design change | Wings first, then the AntS (SRS-F089); 37.8 mm nominal clearance (SQSO-MECH-CAD-001); stuck-wing case VI with the ISIS ICD |
@@ -443,7 +444,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | STR-23 | 3 | STRUCTURE.md wrong | CD | Closed by design change | STRUCTURE.md B |
 | STR-24 | 3 | README listed the removed drag device | CD | Closed by design change | README B |
 | STR-25 | 2 | Battery leads too short; no hinge-crossing rules | CD | Closed by design change | HARNESS_DESIGN 1.1 |
-| STR-26 | 2 | Structural design mass properties stale | CD | Implementation | Reopened in round 3: STRUCTURAL_DESIGN stale against the CAD, FE and MEL |
+| STR-26 | 2 | Structural design mass properties stale | CD | Closed by design change | STRUCTURAL_DESIGN 1.5 aligned to MECHANICAL_DESIGN, STRUCTURAL_ANALYSIS and MEL 3.1 |
 | STR-27 | 2 | One wing deployed: major axis 12.5° off +Y | IMP | Implementation | Reopened in round 3: One-wing ADCS presets use the reference-layout tensors, not the CAD |
 | STR-28 | 3 | Flexible modes against spin and ADCS bandwidth | CA | Closed by analysis | MECH §9 |
 
@@ -462,7 +463,10 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | MCAD-09 | 2 | With all four AntS elements the deployed inertia ratio is 1.045 / 1.037 (CBE / MEV): 0.007 above the 1.03 requirement, gone at 1.5-2 mm placement scatter | CH | Closed by chair decision | Chair C-13: 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames in the baseline (ratio about 1.057 / 1.048); trimmed at integration (VI-MCAD-03) |
 | MCAD-10 | 3 | A286 hinge pins are softer than 440C and gall on titanium if the MoS₂ film wears through (friction 0.26 zeroes the torque margin) | VI | Verification item | VI-MECH-03: pin friction and galling with A286 over the deployment and test cycles |
 | MCAD-11 | 2 | EPS fatigue margin depends on where the ~25 g of harness under the EPS is tied: −0.52 if tied to the EPS | CH | Closed by chair decision | Chair C-15: wire tied to the deck straps and shear panels, only connector strain relief on the EPS (+0.23); harness design §10 and workmanship |
-| MCAD-12 | 3 | MZ sun sensor beside the AntS: the −X 2 m tape exit may overlap the diode's lowest 0.5 mm; deck displacement 0.46 mm (3σ) against the GNSS receiver's random qualification | VI | Implementation | Reopened in round 3: GNSS receiver qualification check without owner, criterion or date; deck response at the mounts not extracted |
+| MCAD-12 | 3 | MZ sun sensor beside the AntS: the −X 2 m tape exit may overlap the diode's lowest 0.5 mm; deck displacement 0.46 mm (3σ) against the GNSS receiver's random qualification | VI | Decision point (dated) | With MCAD-13: GNSS mount response extracted (36 Grms, 0.21 mm); qualification spectrum by 2027-01-15 (GNC lead) |
+| MCAD-13 | 2 | Deck responds at up to 36 Grms (3σ 109 g) at the GNSS receiver mounts; SkyFox publishes no random qualification level; the CR0002 rod clip response 204 g | DP | Decision point (dated) | GNC lead obtains the piNAV-NG and CR0002 qualification spectra by 2027-01-15; criterion: vendor spectrum envelopes the FE response +3 dB; fallback defined: stiffen the deck (≈ +10 g) or isolate the receiver |
+| MCAD-14 | 3 | DS2 as a DPDT switch fits the Ø4.7 mm bore only with a body ≤ Ø4.5 mm, not confirmed to exist | DP | Decision point (dated) | Switch RFQ (mechanical lead, 2026-12-31) asks for both a ≤ Ø4.5 mm DPDT and the fallback (a second SPDT in a +Z standoff, EPS designer) |
+| MCAD-15 | 3 | Worst-case 246 N axial load on each cell rim needs the cell maker's limit | VI | Verification item | VI-MCAD-10: preload 140 ± 10 N per cell; OCV and impedance unchanged, no can damage after protoflight random; cell-maker rim limit as a data item before the EM order |
 
 #### Electrical power (EPS)
 
@@ -680,18 +684,18 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| P3S-01 | 2 | Mechanism cold design and test point (−40 °C) warmer than the predicted stowed-wing temperature | IMP | Implementation | Bounding temperature; margins and test temperatures |
-| P3S-02 | 2 | Board fatigue computed at CBE mass only | IMP | Implementation | Run at MEV |
+| P3S-01 | 2 | Mechanism cold design and test point (−40 °C) warmer than the predicted stowed-wing temperature | IMP | Closed by design change | Mechanisms at −55 °C: torque margin +0.08 (one spring out +0.07), springs +0.12/+0.04 yield; burn 10 s (C-17) gives release-energy ratio 1.90; VI-STR-04/-05/-06, VI-MECH-01..03 at −55 °C; hinge.py T_COLD for the thermal analyst's hinge temperature |
+| P3S-02 | 2 | Board fatigue computed at CBE mass only | IMP | Closed by design change | Steinberg at MEV masses: EPS board 2.0 mm (D-14): +0.14 to +0.50 at MEV, +0.42 to +0.71 at CBE; strength +0.96 (MEV +0.85); first mode 170 / 162 Hz |
 | P3S-03 | 2 | EPS board layout guidance lacks the centre supports and the Z-rod notch | IMP | Closed by design change | EPS board outline: centre supports at (0, ±21) mm with Ø7 mm copper-free rings, Z-rod notch x < −35.5, \|y\| < 6.5 with 1 mm keep-out (EPS_BOARD_DESIGN D) |
-| P3S-04 | 2 | No humidity control or ground cycle budget for the MoS2 hinges | IMP | Implementation | Ground-ops limits and cycle budget |
+| P3S-04 | 2 | No humidity control or ground cycle budget for the MoS2 hinges | IMP | Closed by design change | MoS2 hinge controls: ≤ 40 % RH or dry N2, cycle budget ≤ 30 / ≤ 10, film inspection (MECHANISMS_ANALYSIS E §5A; ETP D §3.8) |
 | P3S-05 | 3 | Report §3.3 strength and battery-temperature rows optimistic | IMP | Closed by design change | Report §3.3: strength +1.00 design / +0.84 bounding; battery temperature rows at 12.0 V, 0.10 W/K and wings stowed |
 | P3S-06 | 3 | Launch mass deliverables stale | IMP | Closed by design change | LVR-004/005/025/026 at the CAD and MEL 3.1 (1.75 ± 0.26 kg); ICD-010 G |
-| P3S-07 | 3 | Stale mechanical text (mechanisms, MEL rows, FSW inertia) | IMP | Implementation | Update |
-| P3S-08 | 3 | VI-STR-10 has two pass criteria | IMP | Implementation | One criterion |
-| P3S-09 | 3 | Placement Monte Carlo and the C-15 bounding case not reproducible from scripts | IMP | Implementation | Add scripts |
+| P3S-07 | 3 | Stale mechanical text (mechanisms, MEL rows, FSW inertia) | IMP | Closed by design change | MECHANISMS §1, §6-§8, MASS_BUDGET §6.2, mass_properties.py FSW and SIL constants updated |
+| P3S-08 | 3 | VI-STR-10 has two pass criteria | IMP | Closed by design change | VI-STR-10 one criterion: flight order ≥ 10 mm from both deployed wings; contingency ≥ 5 mm from a stowed wing (CAD 6.5 mm) |
+| P3S-09 | 3 | Placement Monte Carlo and the C-15 bounding case not reproducible from scripts | IMP | Closed by design change | placement_mc.py reproduces §5.4; FE case design_harness_on_EPS (+0.38 with the 2.0 mm EPS) |
 | P3S-10 | 3 | Thermal-vacuum cycle count and margin conflict between documents | IMP | Closed by design change | ETP D §3.4 one thermal-vacuum definition; SYS-707 Rev G; V-THM-6 restated in the VI register |
-| P3S-11 | 3 | Trim masses not specified non-magnetic | IMP | Implementation | W-Ni-Cu or pure W |
-| P3S-12 | 3 | Z rod clipped to two structures at the deck's peak response; clip loads not computed | IMP | Implementation | Compute or tie to one structure |
+| P3S-11 | 3 | Trim masses not specified non-magnetic | IMP | Closed by design change | Trim masses W-Ni-Cu (ASTM B777, non-magnetic binder) or pure W (D-9, MATERIALS_LIST) |
+| P3S-12 | 3 | Z rod clipped to two structures at the deck's peak response; clip loads not computed | IMP | Closed by design change | Z rod tied to the −X shear panel only (two clips, 19 N at 3σ, MS > +30); deck 247 Hz; deck and clip accelerometers in VI-STR-02, VI-MCAD-04 |
 | P3S-13 | 3 | RID evidence numbers superseded | IMP | Implementation | Regenerate |
 
 #### Round 3: launch, RF, ground, regulatory (P3A)

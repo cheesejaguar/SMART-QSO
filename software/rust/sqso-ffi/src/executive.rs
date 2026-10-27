@@ -44,7 +44,7 @@ use crate::c::{fault_type, rc, severity};
 use crate::jetson_link::{JetsonMsg, JetsonRx};
 use crate::sensors::Sensor;
 use crate::{
-    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, eps_lockout, fault_mgmt,
+    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, eps_lockout, fault_mgmt, fram_health,
     gse_provision, hk_store, jetson_link, mission_data, ops_state, passivation, payload_guard, receiver, rf_control,
     rf_silence, sensors, separation_switch, state_machine, system_state, uart_comm, uplink, watchdog_mgr,
 };
@@ -468,6 +468,7 @@ impl Executive {
         // The commissioning hold and transponder enable, before anything
         // can ask for ACTIVE
         let _ = ops_state::ops_state_init();
+        fram_health::fram_health_init();
         if fault_mgmt::fault_mgmt_init() != rc::OK {
             eprint(format_args!("[SYSTEM] Fault management init failed"));
         }
@@ -1415,9 +1416,7 @@ impl Executive {
         if now.wrapping_sub(self.last_verify_ms) >= VERIFY_INTERVAL_MS {
             self.last_verify_ms = now;
             self.check_clock();
-            rf_control::rf_control_verify();
-            ops_state::ops_state_verify();
-            passivation::passivation_verify();
+            fram_health::fram_health_check();
         }
     }
 

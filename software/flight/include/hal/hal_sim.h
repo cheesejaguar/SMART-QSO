@@ -33,6 +33,12 @@ extern "C" {
 void hal_sim_flash_fail_writes(bool fail);
 
 /**
+ * @brief Make every subsequent hal_flash_read() fail with SMART_QSO_ERROR_IO
+ *        (a dead FRAM), or work again
+ */
+void hal_sim_flash_fail_reads(bool fail);
+
+/**
  * @brief Let the next writes succeed, then fail every later write
  *
  * Simulates power loss part-way through a multi-write update.

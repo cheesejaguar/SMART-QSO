@@ -331,8 +331,8 @@ def connectors():
     pins = ["3V3_OBC", "3V3_OBC", "GND", "GND", "I2C2_SCL", "I2C2_SDA", "GND", "EPS_ALERT_N", "PAYLOAD_EN", "RADIO_EN",
             "ADCS_EN", "HEATER_EN", "DEPLOY_EN", "RF_TX_EN", "GNSS_EN", "DEPLOY_SENSE", "BURN_W2A", "BURN_W1A",
             "VJET_RB", "SOLAR_SENSE", "GND", "VBATT_SNS", "IBATT_SNS", "VSOLAR_SNS", "ISOLAR_SNS", "VBUS_SNS",
-            "GND", "GND", "JETSON_PWR", "BURN_W1B", "BURN_W2B", "EOL_ARM", "EOL_FIRE", "LOCK_CLR", "GND", "VBAT_MTQ",
-            "VSW1_RB", "3V3_RTC", "VBAT_MTQ", "GND"]
+            "GND", "ANTS_I2C_SCL", "JETSON_PWR", "BURN_W1B", "BURN_W2B", "EOL_ARM", "EOL_FIRE", "LOCK_CLR", "GND", "VBAT_MTQ",
+            "VSW1_RB", "3V3_RTC", "VBAT_MTQ", "ANTS_I2C_SDA"]
     j = place(CONN("TFM_2x20", 40), "J3", "OBC", "TFM-120-02-S-D-A", "Samtec", "Tiger Eye TFM 1.27 mm 2x20 vertical SMT, bottom side",
               "Samtec rating per contact (SFSDT 30 AWG: 0.5 A derated, SQSO-HAR-001)",
               "3V3_OBC 0.18 A and VBAT_MTQ 0.40 A (SW11 limit max) on 2 pins each",
@@ -355,8 +355,10 @@ def connectors():
         j = mfit(6, ref, f"BURN {w}", "0.88 A: 18 %", f"{hz}: R_A+, R_A-, R_B+, R_B-, sense in, sense out", zone,
                  "Digi-Key 0430450602: Active (R/A, Au 30 uin)")
         conn(j, {"P1": "V_BURN", "P2": f"BRET_{w}A", "P3": "V_BURN", "P4": f"BRET_{w}B", "P5": s_in, "P6": s_out})
-    j = pico(6, "J12", "AntS", "0.61 A AntS peak on two contacts: 31 %", "W7C: AntS supply and I2C (SQSO-HAR-001 pinout)", "Z5")
-    conn(j, {"P1": "3V3_ANTS", "P2": "3V3_ANTS", "P3": "GND", "P4": "GND", "P5": "ANTS_SDA", "P6": "ANTS_SCL"})
+    j = pico(8, "J12", "AntS", "0.61 A AntS peak on two contacts: 31 %", "W7C: AntS supply and I2C, side A on 5-6 and side B "
+             "(0x32) on 7-8 if the AntS variant brings its second bus out separately (SQSO-ICX-001 E15)", "Z5")
+    conn(j, {"P1": "3V3_ANTS", "P2": "3V3_ANTS", "P3": "GND", "P4": "GND", "P5": "ANTS_SDA", "P6": "ANTS_SCL",
+             "P7": "ANTS_SDA_B", "P8": "ANTS_SCL_B"})
     j = mfit(6, "J13", "UMBILICAL", "0.5 A charge: 10 %", "W11 to the access-port board A3: charge in, return, pack monitor, AFE shutdown",
              "Z5", "Digi-Key 0430450602: Active (R/A, Au 30 uin)")
     conn(j, {"P1": "UMB_CHG", "P2": "UMB_CHG", "P3": "PACK_N", "P4": "PACK_N", "P5": "UMB_VMON", "P6": "UMB_SHUT"})
@@ -864,7 +866,7 @@ def rails_and_switches():
            ("U23", "SW3", "RF_TX_EN", "5V_PA", "5V_PA_U", 26.1e3, "RS13", "5V_PA_SW", 0.050, "4.7u"),
            ("U24", "SW4", "ADCS_EN", "3V3_AO", "3V3_ADCS_U", 88.7e3, "RS14", "3V3_ADCS", 0.100, "4.7u"),
            ("U25", "SW7", "GNSS_EN", "3V3_AO", "3V3_GNSS_U", 133e3, "RS15", "3V3_GNSS", 0.100, "22u"),
-           ("U26", "SW8", "ANTS_EN", "3V3_AO", "3V3_ANTS_U", 18.7e3, "RS16", "3V3_ANTS", 0.050, "4.7u"),
+           ("U26", "SW8", "ANTS_SW_EN", "3V3_AO", "3V3_ANTS_U", 18.7e3, "RS16", "3V3_ANTS", 0.050, "4.7u"),
            ("U27", "SW9", "3V3_AO", "3V3_AO", "3V3_MCU", None, None, None, None, "4.7u"),
            ("U38", "SW10", "3V3_AO", "3V3_AO", "3V3_OBC", 178e3, None, None, None, "4.7u")]
     for ref, sw, en, vin, vout, rlim, rsref, rail, rsh, cret in sws:
@@ -887,20 +889,28 @@ def rails_and_switches():
         C("1u", vout, "GND", 25)
         if rsh:
             RSH(rsh, vout, rail, f"WSLP0805R{int(rsh * 1000):03d}0FEA", "0805", 0.25, note=f"{rail} current (INA3221)", ref=rsref)
-        if en not in ("3V3_AO", "RF_TX_EN", "ANTS_EN"):
+        if en not in ("3V3_AO", "RF_TX_EN", "ANTS_SW_EN"):
             R(100e3, en, "GND", note="pull-down: off at reset")
     # SW3 enable = RF_TX_EN only (hardware TX-OFF); the PA is not shed (RID SMA-B05: a spurious shed would hold the
     # transmitter off with no override; a stuck PA is energy-positive, SQSO-PBA-001 8.4)
     R(100e3, "RF_TX_EN", "GND", note="mandatory pull-down (hardware TX-OFF)")
     # SW8 enable = DEPLOY_EN OR the EPS controller's ANTS_EN_MCU (RID SMA-B06); SW8 is downstream of DS1-DS3
     ic(S_G1, "U81", "SN74LVC1G32-Q1", "SN74LVC1G32QDCKRQ1", "TI", "SC70-5 (DCK)", "OR",
-       {"A": "DEPLOY_EN", "B": "ANTS_EN_MCU", "GND": "GND", "Y": "ANTS_EN", "VCC": "3V3_AO"}, finish="NiPdAu|Sn",
+       {"A": "DEPLOY_EN", "B": "ANTS_EN_MCU", "GND": "GND", "Y": "ANTS_SW_EN", "VCC": "3V3_AO"}, finish="NiPdAu|Sn",
        notes="AntS supply: OBC DEPLOY_EN or EPS-controller ANTS_PWR")
     C("100n", "3V3_AO", "GND")
     R(100e3, "ANTS_EN_MCU", "GND", note="off at controller reset")
     # OBC heartbeat supervision: the EPS controller power-cycles the OBC rail by pulling SW10's EN low (RID SMA-B09)
-    Q("2N7002BK", "Q42", "OBC_CYCLE", "GND", "SW10_EN", note="OBC rail power cycle (EPS controller, heartbeat timeout)")
+    # OBC_CYCLE powers a TPL5111 one-shot (as the burn lines do): one 1.95 s pulse per rising edge, so a controller stuck
+    # with the line high cannot hold the OBC off
     R(100e3, "OBC_CYCLE", "GND", note="off at controller reset")
+    C("100n", "OBC_CYCLE", "GND")
+    ic(S_TPL5111, "U82", "TPL5111", "TPL5111DDCR", "TI", "SOT-23-6 (DDC)", "one-shot 1.95 s",
+       {"VDD": "OBC_CYCLE", "GND": "GND", "DELAY": "OBCY_DLY", "DONE": "GND", "DRVN": "OBCY_DRV", "ONESHOT": "GND"},
+       checked="TI addendum: Active (industrial)", notes="SW10 power-cycle pulse (tIP 2.0 s)")
+    R(6.81e3, "OBCY_DLY", "GND", note="tIP 2.0 s (data-sheet table 6.79 k)")
+    R(100e3, "OBCY_DRV", "GND")
+    Q("2N7002BK", "Q42", "OBCY_DRV", "GND", "SW10_EN", note="OBC rail power cycle (EPS controller, heartbeat timeout)")
     C("22u", "3V3_MCU", "GND", 16, "1210", vop=3.3)
 
 
@@ -948,9 +958,17 @@ def burn_drivers():
     C("100n", "SOLAR_SENSE", "GND")
     # AntS I2C buffer (enabled only while the AntS is powered)
     ic(S_TCA9517, "U80", "TCA9517-Q1", "TCA9517DGKRQ1", "TI", "VSSOP-8 (DGK)", "I2C repeater, high-Z when unpowered, AEC-Q100",
-       {"VCCA": "3V3_AO", "SCLA": "I2C2_SCL", "SDAA": "I2C2_SDA", "GND": "GND", "EN": "ANTS_EN", "SDAB": "ANTS_SDA",
-        "SCLB": "ANTS_SCL", "VCCB": "3V3_ANTS"}, finish="NiPdAu|NiPdAuAg", notes="OBC I2C2 to the AntS")
-    R(10e3, "3V3_ANTS", "ANTS_EN")
+       {"VCCA": "3V3_AO", "SCLA": "ANTS_I2C_SCL", "SDAA": "ANTS_I2C_SDA", "GND": "GND", "EN": "U80_EN", "SDAB": "ANTS_SDA",
+        "SCLB": "ANTS_SCL", "VCCB": "3V3_ANTS"}, finish="NiPdAu|NiPdAuAg",
+       notes="OBC I2C3 (J3-28 SCL, J3-40 SDA; pull-ups on the OBC only) to the AntS, sides A 0x31 and B 0x32")
+    R(10e3, "3V3_ANTS", "U80_EN")
+    # AntS side B: joined to the buffered bus by two 0 Ohm jumpers (fit if the variant brings side B out on its own pins;
+    # if side B shares side A's lines, the jumpers and J12-7/8 stay unused): SQSO-ICX-001 E15
+    for a_, b_ in (("ANTS_SDA_B", "ANTS_SDA"), ("ANTS_SCL_B", "ANTS_SCL")):
+        p = place(TR, None, "0", "ERJ-3GEY0R00V", "Panasonic", "Resistor_SMD:R_0603", "0 Ohm jumper, 1 A", "",
+                  "AntS side B jumper (fit per the AntS ICD)", "Sn over Ni (matte); re-tin or coat", "series code")
+        link(a_, p["A"])
+        link(b_, p["B"])
     R(4.7e3, "3V3_ANTS", "ANTS_SDA")
     R(4.7e3, "3V3_ANTS", "ANTS_SCL")
     C("100n", "3V3_ANTS", "GND")
@@ -1181,7 +1199,7 @@ def build():
     hw_logic()
     telemetry_and_mcu()
     import re
-    pat = re.compile(r"^(S_(W[12][FB]|P[XY]|M[XY])|T[1-4]_(IN|L)|BXP_W[12][AB]|OVP_VDD|SET_REQ|RST_REQ|3V3_BK|5V_BK|"
+    pat = re.compile(r"^(S_(W[12][FB]|P[XY]|M[XY])|T[1-4]_(IN|L)|BXP_W[12][AB]|OVP_VDD|SET_REQ|RST_REQ|OBC_CYCLE|3V3_BK|5V_BK|"
                      r"3V3_RADIO_U|5V_PA_U|3V3_ADCS_U|3V3_GNSS_U|3V3_ANTS_U|HTR_.*|UMB_.*|N_F2|N_RT1|FET_CD)$")
     for name, n in _nets.items():
         if name in POWER_NETS or pat.match(name):

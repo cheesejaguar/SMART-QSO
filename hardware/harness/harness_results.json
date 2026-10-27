@@ -507,16 +507,16 @@
   "W3-03": {
    "I_allow_A": 0.65,
    "N": 40,
-   "contact_ratio": 0.013,
-   "i_max_A": 0.059,
-   "ratio": 0.091
+   "contact_ratio": 0.02,
+   "i_max_A": 0.088,
+   "ratio": 0.135
   },
   "W3-04": {
    "I_allow_A": 0.65,
    "N": 40,
-   "contact_ratio": 0.013,
-   "i_max_A": 0.059,
-   "ratio": 0.091
+   "contact_ratio": 0.02,
+   "i_max_A": 0.088,
+   "ratio": 0.135
   },
   "W3-05": {
    "I_allow_A": 0.65,
@@ -535,9 +535,9 @@
   "W3-07": {
    "I_allow_A": 0.65,
    "N": 40,
-   "contact_ratio": 0.013,
-   "i_max_A": 0.059,
-   "ratio": 0.091
+   "contact_ratio": 0.042,
+   "i_max_A": 0.2,
+   "ratio": 0.308
   },
   "W3-08": {
    "I_allow_A": 0.65,
@@ -682,9 +682,9 @@
   "W3-28": {
    "I_allow_A": 0.65,
    "N": 40,
-   "contact_ratio": 0.028,
-   "i_max_A": 0.134,
-   "ratio": 0.206
+   "contact_ratio": 0.001,
+   "i_max_A": 0.003,
+   "ratio": 0.005
   },
   "W3-29": {
    "I_allow_A": 0.65,
@@ -731,9 +731,9 @@
   "W3-35": {
    "I_allow_A": 0.65,
    "N": 40,
-   "contact_ratio": 0.028,
-   "i_max_A": 0.134,
-   "ratio": 0.206
+   "contact_ratio": 0.042,
+   "i_max_A": 0.2,
+   "ratio": 0.308
   },
   "W3-36": {
    "I_allow_A": 0.65,
@@ -766,9 +766,9 @@
   "W3-40": {
    "I_allow_A": 0.65,
    "N": 40,
-   "contact_ratio": 0.028,
-   "i_max_A": 0.134,
-   "ratio": 0.206
+   "contact_ratio": 0.001,
+   "i_max_A": 0.003,
+   "ratio": 0.005
   },
   "W4A-01": {
    "I_allow_A": 0.65,
@@ -2318,8 +2318,8 @@
   },
   "OBC3V3": {
    "I_A": 0.04,
-   "R_loop_ohm": 0.05523,
-   "drop_V": 0.00221,
+   "R_loop_ohm": 0.06628,
+   "drop_V": 0.00265,
    "harness": [
     "W3"
    ],
@@ -2364,7 +2364,7 @@
     "W6E"
    ],
    "limit_V": 0.066,
-   "source": "RM3100"
+   "source": "RM3100 on 3V3_MAG (U35)"
   },
   "STR_MX": {
    "I_A": 0.55,
@@ -2448,8 +2448,8 @@
   },
   "VMTQ": {
    "I_A": 0.104,
-   "R_loop_ohm": 0.05523,
-   "drop_V": 0.00574,
+   "R_loop_ohm": 0.06628,
+   "drop_V": 0.00689,
    "harness": [
     "W3"
    ],
@@ -3298,7 +3298,7 @@
    "zone": "UB_MXC"
   },
   "U_C": {
-   "allow_mm2": 95.265,
+   "allow_mm2": 91.785,
    "area_mm2": 10.459,
    "band": "",
    "harnesses": [
@@ -3307,7 +3307,7 @@
     "W7B",
     "W7C"
    ],
-   "ratio": 0.11,
+   "ratio": 0.114,
    "wires": 18,
    "zone": "U_C"
   },
@@ -3324,7 +3324,7 @@
    "zone": "U_J3U"
   },
   "U_MXMY": {
-   "allow_mm2": 151.11,
+   "allow_mm2": 145.59,
    "area_mm2": 20.419,
    "band": "",
    "harnesses": [
@@ -3337,12 +3337,12 @@
     "W7B",
     "W7C"
    ],
-   "ratio": 0.135,
+   "ratio": 0.14,
    "wires": 38,
    "zone": "U_MXMY"
   },
   "U_MXMY2": {
-   "allow_mm2": 101.835,
+   "allow_mm2": 98.115,
    "area_mm2": 7.629,
    "band": "",
    "harnesses": [
@@ -3350,12 +3350,12 @@
     "W2MY",
     "W6D"
    ],
-   "ratio": 0.075,
+   "ratio": 0.078,
    "wires": 13,
    "zone": "U_MXMY2"
   },
   "U_MXPY": {
-   "allow_mm2": 128.115,
+   "allow_mm2": 123.435,
    "area_mm2": 22.894,
    "band": "",
    "harnesses": [
@@ -3367,12 +3367,12 @@
     "W6D",
     "W7B"
    ],
-   "ratio": 0.179,
+   "ratio": 0.185,
    "wires": 43,
    "zone": "U_MXPY"
   },
   "U_PXMY": {
-   "allow_mm2": 85.41,
+   "allow_mm2": 82.29,
    "area_mm2": 7.884,
    "band": "",
    "harnesses": [
@@ -3382,23 +3382,23 @@
     "W6D",
     "W9A"
    ],
-   "ratio": 0.092,
+   "ratio": 0.096,
    "wires": 17,
    "zone": "U_PXMY"
   },
   "U_PXMY2": {
-   "allow_mm2": 36.135,
+   "allow_mm2": 34.815,
    "area_mm2": 1.72,
    "band": "",
    "harnesses": [
     "W12D"
    ],
-   "ratio": 0.048,
+   "ratio": 0.049,
    "wires": 4,
    "zone": "U_PXMY2"
   },
   "U_PXPY": {
-   "allow_mm2": 128.115,
+   "allow_mm2": 123.435,
    "area_mm2": 14.08,
    "band": "",
    "harnesses": [
@@ -3410,12 +3410,12 @@
     "W9A",
     "W9B"
    ],
-   "ratio": 0.11,
+   "ratio": 0.114,
    "wires": 28,
    "zone": "U_PXPY"
   },
   "U_PY": {
-   "allow_mm2": 75.555,
+   "allow_mm2": 72.795,
    "area_mm2": 10.64,
    "band": "",
    "harnesses": [
@@ -3423,18 +3423,18 @@
     "W2W2",
     "W7C"
    ],
-   "ratio": 0.141,
+   "ratio": 0.146,
    "wires": 20,
    "zone": "U_PY"
   },
   "U_PYN": {
-   "allow_mm2": 108.405,
+   "allow_mm2": 104.445,
    "area_mm2": 3.441,
    "band": "",
    "harnesses": [
     "W2W2"
    ],
-   "ratio": 0.032,
+   "ratio": 0.033,
    "wires": 8,
    "zone": "U_PYN"
   },

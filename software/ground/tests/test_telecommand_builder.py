@@ -8,6 +8,7 @@ either side that breaks interoperability fails both suites.
 The key is the TEST-ONLY key 00 01 .. 1F. It is never a flight key.
 """
 
+import json
 import os
 import sys
 import unittest
@@ -127,12 +128,13 @@ class TestAx25(unittest.TestCase):
 
 
 class TestDictionary(unittest.TestCase):
-    """The ground dictionary matches the flight cmd_args_spec() exactly."""
+    """The ground dictionary matches the flight dictionary exactly
+    (software/flight/command_dictionary.json, which generates both sides)."""
 
     FLIGHT = {
-        0x00: (0, 0), 0x01: (0, 0), 0x02: (1, 1), 0x03: (0, 0), 0x05: (0, 0), 0x06: (1, 1), 0x07: (2, 2),
-        0x10: (1, 1), 0x13: (0, 0), 0x21: (0, 0), 0x23: (0, 0),
-        0x30: (2, 2), 0x31: (0, 0), 0x32: (0, 0), 0x33: (1, 1), 0x40: (0, 0), 0x41: (0, 0),
+        int(c["id"], 16): (c["min_args"], c["max_args"])
+        for c in json.loads((Path(__file__).resolve().parents[2] / "flight" / "command_dictionary.json")
+                            .read_text())["commands"]
     }
 
     def test_matches_flight(self):

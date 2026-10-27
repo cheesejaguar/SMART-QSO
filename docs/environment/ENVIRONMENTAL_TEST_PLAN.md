@@ -211,14 +211,17 @@ SYS-905); MIL-STD-461G RE102/CE102 at the spacecraft level are not required (GEV
 ### 3.7 Mass properties [SYS-002, SYS-003, SYS-901]
 
 Mass to ± 1 g; centre of gravity in X, Y and Z to ± 1 mm by three-point load-cell or knife-edge measurement, against
-CDS Rev 14.1 Table 2 (± 2 cm each axis) and the integrator's limit; moments of inertia by bifilar or trifilar pendulum
-to ± 10 %, for the ADCS Monte Carlo re-run that decision D9 requires. Measured on the EM (pathfinder) and the FM before
+CDS Rev 14.1 Table 2 (± 2 cm each axis) and the integrator's limit; moments and products of inertia on a spin-balance
+instrument to ± 0.5 % (moments) and ± 1 × 10⁻⁵ kg·m² (products), CG to ± 0.1 mm, with the uncertainty carried into the pass
+criteria (deployed ratio − 0.010 ≥ 1.03; measured tilt ≤ 2.4°), for the ADCS Monte Carlo re-run that decision D9
+requires and the ballast trim (VI-MCAD-03, VI-STR-01, VI-LV-02; RID STR-04). Measured on the EM (pathfinder) and the FM before
 and after the environmental campaign.
 
 ### 3.8 Deployment tests [SYS-220, SYS-221, SYS-709]
 
 Both antennas and both solar wings, from the flight burn-wire circuit, at the minimum battery voltage of the end-of-life
-state of charge, at ambient and at the hot (+60 °C) and cold (−30 °C) operational test temperatures, with the 30-minute
+state of charge, at ambient and at the hot (+60 °C) and cold (−55 °C, the bounding stowed-wing temperature at the burn
+with margin, RID P3S-01) test temperatures, with the 10 s burn per resistor (decision C-17), with the 30-minute
 deployment timer (SYS-221) started from deployment-switch release. Pass: full deployment within the timer window,
 deployment telemetry agrees with the observed state, burn time within the design value with at least 2× margin at
 cold. The EM does at least five deployments per mechanism (life and re-stow practice).
@@ -228,6 +231,16 @@ notes that some providers treat a deployment as a configuration change that inva
 deployment tests therefore run **before** the protoflight vibration (§4), followed by a re-stow per the vendor
 procedure and an inspection. After vibration and TVAC, only burn-wire continuity and stowed-state telemetry are
 checked, unless the integrator approves a post-environment deployment in writing (TP-ENV-005).
+
+**MoS₂-filmed hinges (RID P3S-04; MECHANISMS_ANALYSIS E §5A).** Filmed hinge parts and the spacecraft after hinge
+installation are stored and handled at ≤ 40 % RH (+15…+25 °C) or under dry-N₂ purge (dew point ≤ −20 °C) in sealed bags
+with desiccant and a humidity indicator; cumulative exposure above 50 % RH ≤ 100 h per hinge, logged. Hinge torque and
+deployment tests run in vacuum or dry N₂ (≤ 10 % RH); room air only at ≤ 40 % RH, and those cycles count double. Ground
+cycle budget: ≤ 30 full-travel cycles per flight hinge, ≤ 10 after the final film inspection; every cycle and every
+rotation over 20° logged. Film inspection at receipt, after EM qualification cycles, after protoflight random and before
+the final stow: 10× visual (no bare metal, film loss or galling), friction at +20 °C in dry N₂ with μ ≤ 0.10, and
+thickness 0.5–1.0 µm plus adhesion on each batch's witness coupons. Any exceedance or reject: re-film or replace and
+repeat VI-MECH-03.
 
 ### 3.9 Magnetic properties [SYS-083]
 
@@ -374,3 +387,4 @@ days of float, 0.5 weeks more than the GOLD Rule 1.06 margin (`mission/SCHEDULE.
 | C | 2026-10-27 | CDR review (PM/SE/V&V). Rewritten: protoflight defined correctly (GEVS-B Table 2.2-2); source precedence; EM and FM articles; random vibration at the GEVS-B Appendix B envelope of MPE + 3 dB and workmanship (8.18 Grms); sine signature; shock by analysis with VI-07; TVAC levels with GEVS margins and the battery cap, 8 cycles plus 4 board cycles; bake-out +60 °C 6 h; EMC tailored per GEVS-B Appendix B; mass properties with inertia; deployment tests hot and cold before vibration (CDS §3.5.2); magnetic; end-to-end, DITL and HIL; FM flow; EM/FM matrix; facilities and cost; verification items VI-01 to VI-10; deviations. Scripts `software/simulation/cdr/pm/test_levels.py`, `test_cost.py` | CDR review, PM/SE/V&V |
 | C.2 | 2026-10-27 | CDR 2026 consistency pass: V-EMC-6 burn steps 0.75 A and 2.0 A from the EPS board (SQSO-EPS-BRD-001 §9; SQSO-EMC-001 B) | CDR documentation review |
 | D | 2026-10-27 | CDR round 3 (VV-07, VV-08, REL-01, P3P-03, P3E-07, P3S-10, SE-07): §3.3 shock: the UG v11 MPE exceeds the vibe-equivalent SRS, so the RFQ asks for the attenuated Nova MPE and an EM shock test is planned and costed if VI-07 needs it (deviation 7); §3.4 one TVAC definition, the SpaceX ± 5 °C / 20-cycle advice mapped onto it; new §3.11 reliability programme (VI-11 ≥ 500 h EM flatsat, VI-12 ≥ 200 h FM burn-in); §5 matrix; §6 EM test dates from SQSO-SCH-001 D; §7 cost $42k–130k with the battery abuse tests in the ROM; VI-01 criterion for SYS-603 Rev G; deviations 1–3 and 7 to the PI by CR-2026-013 | CDR round 3, systems and programmatics |
+| D, amended | 2026-10-27 | CDR round 3 (STR-04, P3S-01, P3S-04): §3.7 spin-balance mass properties to ± 0.5 % / ± 1 × 10⁻⁵ kg·m²; §3.8 cold deployment at −55 °C with the 10 s burn (C-17); MoS₂ hinge humidity, cycle budget and film inspection | Design review chair |

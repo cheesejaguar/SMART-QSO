@@ -83,6 +83,7 @@ pub mod eps_lockout;
 pub mod executive;
 pub mod fault_mgmt;
 pub mod flight_log;
+pub mod fram_health;
 pub mod gnss;
 pub mod gse_provision;
 #[cfg(not(target_os = "none"))]

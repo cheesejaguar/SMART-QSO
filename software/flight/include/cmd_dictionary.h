@@ -32,6 +32,7 @@ typedef enum {
     CMD_SYS_COMMISSIONING_RELEASE = 0x08, /**< COMMISSIONING_RELEASE: Release the commissioning hold set by ARM_FLIGHT: ACTIVE, the payload and the transponder become possible (send after TX-OFF has been proven) */
     CMD_SYS_GET_HOUSEKEEPING = 0x09, /**< GET_HOUSEKEEPING: Downlink a housekeeping frame (HK1) at the next opportunity */
     CMD_SYS_DUMP_TLM = 0x0A, /**< DUMP_TLM: Downlink stored housekeeping: store (0 five-minute records, 1 sixty-second records), first record sequence (4 bytes big-endian), count (2 bytes big-endian, at most 600; 0 stops a dump); paced within the downlink duty limit */
+    CMD_SYS_FRAM_BYPASS = 0x0B, /**< FRAM_BYPASS: Run without the FRAM (argument: the ASCII code FRM!): accepted only once the FRAM has been declared failed (HK1 FR=1); the RAM copies of the TX-OFF latch and the operations record, under CRC, become authoritative until the FRAM reads back again or the next reset (then send FRAM_BYPASS, TX_ENABLE and COMMISSIONING_RELEASE again) */
     CMD_EPS_SET_MODE = 0x10, /**< EPS_SET_MODE: Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE */
     CMD_EPS_GET_TELEMETRY = 0x13, /**< EPS_GET_TELEMETRY: Get EPS telemetry */
     CMD_EPS_CLEAR_LOCKOUT = 0x14, /**< EPS_CLEAR_LOCKOUT: Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history */
@@ -55,7 +56,7 @@ typedef enum {
 } CmdId_t;
 
 /** Number of commands in the dictionary */
-#define CMD_DICTIONARY_COUNT 30U
+#define CMD_DICTIONARY_COUNT 31U
 
 /** Which telecommand key authenticates a command */
 typedef enum {

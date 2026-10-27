@@ -74,6 +74,7 @@ pub mod fault_log;
 pub mod fixed;
 pub mod flight_log;
 pub mod fmath;
+pub mod fram_health;
 pub mod gnss;
 pub mod gnss_frame;
 pub mod gnss_schedule;

@@ -58,9 +58,18 @@ pub extern "C" fn ops_set_commissioning_hold(hold: bool) -> i32 {
 /// Check the RAM copy against the record (AV-07); a disagreement is logged
 #[unsafe(no_mangle)]
 pub extern "C" fn ops_state_verify() {
-    if OPS.with(|o| o.verify(&mut HalFlash)) == Some(true) {
+    let _ = check(false);
+}
+
+/// The one-minute check, in the degraded mode without the FRAM against the
+/// record's CRC (RID SMA-B10); a disagreement is logged; whether the record
+/// was read (busy: not)
+pub(crate) fn check(degraded: bool) -> bool {
+    let Some((disagreed, read)) = OPS.with(|o| o.check(&mut HalFlash, degraded)) else { return false };
+    if disagreed {
         c::log(fault_type::INIT, severity::ERROR, c"Operations state check: RAM copy disagreed, merged", 0.0);
     }
+    read
 }
 
 /// The ADCS geometry preset (ADCS_SET_GEOMETRY; 0 if it cannot be read)

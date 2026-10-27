@@ -21,6 +21,7 @@
 //! @requirement SYS-204 Cease emissions on telecommand; stay ceased across resets (97.207(b))
 //! @requirement SYS-224 No RF signal earlier than 45 minutes after deployment
 
+use crate::fram_health::Shadow;
 use crate::nvm::{self, Flash, RecordStatus};
 
 /// Persisted latch record ("RFTX")
@@ -102,12 +103,14 @@ pub struct RfControl {
     /// the lines are first driven
     auto_inhibits: u32,
     power_level: u32,
+    /// The latch's CRC as last set (the degraded mode's check, SMA-B10)
+    shadow: Option<Shadow>,
 }
 
 impl RfControl {
     /// Before init: not permitted, no automatic inhibit, 0.5 W
     pub const fn new(region: u32) -> Self {
-        RfControl { region, initialized: false, inhibited: true, auto_inhibits: 0, power_level: POWER_0W5 }
+        RfControl { region, initialized: false, inhibited: true, auto_inhibits: 0, power_level: POWER_0W5, shadow: None }
     }
 
     /// (radio power, transmitter enable) for the current inhibits
@@ -123,6 +126,15 @@ impl RfControl {
 
     fn persist<IO: RfIo>(&self, io: &mut IO, word: u32) -> Result<(), Error> {
         nvm::save(io, self.region, 0, RECORD_MAGIC, &word.to_le_bytes()).map_err(|_| Error::Io)
+    }
+
+    fn latch_word(&self) -> u32 {
+        if self.inhibited { STATE_INHIBITED } else { STATE_PERMITTED }
+    }
+
+    /// Record the latch's CRC (every change of the latch)
+    fn mark(&mut self) {
+        self.shadow = Some(Shadow::of(&self.latch_word().to_le_bytes()));
     }
 
     /// Load the latch and the power level, then drive the lines
@@ -141,6 +153,7 @@ impl RfControl {
             }
             Ok(RecordStatus::Valid) => u32::from_le_bytes(word) != STATE_PERMITTED,
         };
+        self.mark();
         self.drive(io);
 
         // Power level: 0.5 W unless a valid record says otherwise
@@ -156,6 +169,7 @@ impl RfControl {
     /// leave it on) and latch the inhibit
     pub fn tx_off<IO: RfIo>(&mut self, io: &mut IO) -> Result<(), Error> {
         self.inhibited = true;
+        self.mark();
         self.drive(io);
         let result = self.persist(io, STATE_INHIBITED);
         io.report(if result.is_ok() { Report::TxOffLatched } else { Report::TxOffNotPersisted });
@@ -166,6 +180,7 @@ impl RfControl {
     pub fn tx_on<IO: RfIo>(&mut self, io: &mut IO) -> Result<(), Error> {
         let result = self.persist(io, STATE_PERMITTED);
         self.inhibited = false;
+        self.mark();
         self.drive(io);
         io.report(if result.is_ok() { Report::TxEnabled } else { Report::TxEnabledNotPersisted });
         result
@@ -194,11 +209,35 @@ impl RfControl {
     /// toward TX-OFF: a record saying TX-OFF (or one that cannot be read)
     /// inhibits; a RAM TX-OFF the record does not hold is persisted
     pub fn verify<IO: RfIo>(&mut self, io: &mut IO) {
+        let _ = self.check(io, false);
+    }
+
+    /// [`RfControl::verify`], or in the degraded mode without the FRAM
+    /// (`degraded`, RID SMA-B10): the RAM latch against its CRC (a
+    /// mismatch, an upset, latches TX-OFF), then written and read back.
+    /// Whether the record was read (in the degraded mode: written and read
+    /// back)
+    pub fn check<IO: RfIo>(&mut self, io: &mut IO, degraded: bool) -> bool {
         if !self.initialized {
-            return;
+            return true;
+        }
+        if degraded {
+            if !self.shadow.is_some_and(|sh| sh.holds(&self.latch_word().to_le_bytes())) {
+                self.inhibited = true;
+                self.mark();
+                self.drive(io);
+                io.report(Report::ScrubInhibited);
+            }
+            let word = self.latch_word();
+            let written = self.persist(io, word).is_ok();
+            let mut back = [0u8; 4];
+            let read = nvm::load(io, self.region, 0, RECORD_MAGIC, &mut back) == Ok(RecordStatus::Valid);
+            return written && read && u32::from_le_bytes(back) == word;
         }
         let mut word = [0u8; 4];
-        let stored_off = match nvm::load(io, self.region, 0, RECORD_MAGIC, &mut word) {
+        let loaded = nvm::load(io, self.region, 0, RECORD_MAGIC, &mut word);
+        let read = matches!(loaded, Ok(RecordStatus::Valid | RecordStatus::Blank));
+        let stored_off = match loaded {
             Ok(RecordStatus::Valid) => u32::from_le_bytes(word) != STATE_PERMITTED,
             Ok(RecordStatus::Blank) => false,
             Ok(RecordStatus::Corrupt) | Err(_) => true,
@@ -206,6 +245,7 @@ impl RfControl {
         match (stored_off, self.inhibited) {
             (true, false) => {
                 self.inhibited = true;
+                self.mark();
                 self.drive(io);
                 io.report(Report::ScrubInhibited);
             }
@@ -215,6 +255,7 @@ impl RfControl {
             }
             (true, true) | (false, false) => {}
         }
+        read
     }
 
     /// The automatic inhibit bits in force

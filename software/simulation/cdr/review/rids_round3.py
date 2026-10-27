@@ -123,9 +123,25 @@ NEW: list[tuple[str, int, str, str, str]] = [
     ("SMA-B16", 3, "Synthesizer shares the PA rail regulator", "IMP", "Own regulator (RF)"),
     ("SMA-B17", 3, "A shorted tracker output diode cannot be isolated", "IMP", "Per-tracker disable by the controller (EPS)"),
     ("SMA-B18", 3, "Magnetometer shares a switch and bus segment", "IMP", "Own switch and segment (OBC)"),
-    ("SMA-B19", 2, "One failed PA-temperature reading silences the downlink", "IMP", "Plausibility check and a pull-down (flight software, OBC)"),]
+    ("SMA-B19", 2, "One failed PA-temperature reading silences the downlink", "IMP", "Plausibility check and a pull-down (flight software, OBC)"),    ("MCAD-13", 2, "Deck responds at up to 36 Grms (3σ 109 g) at the GNSS receiver mounts; SkyFox publishes no random qualification level; the CR0002 rod clip response 204 g", "DP", "GNC lead obtains the piNAV-NG and CR0002 qualification spectra by 2027-01-15; criterion: vendor spectrum envelopes the FE response +3 dB; fallback defined: stiffen the deck (≈ +10 g) or isolate the receiver"),
+    ("MCAD-14", 3, "DS2 as a DPDT switch fits the Ø4.7 mm bore only with a body ≤ Ø4.5 mm, not confirmed to exist", "DP", "Switch RFQ (mechanical lead, 2026-12-31) asks for both a ≤ Ø4.5 mm DPDT and the fallback (a second SPDT in a +Z standoff, EPS designer)"),
+    ("MCAD-15", 3, "Worst-case 246 N axial load on each cell rim needs the cell maker's limit", "VI", "VI-MCAD-10: preload 140 ± 10 N per cell; OCV and impedance unchanged, no can damage after protoflight random; cell-maker rim limit as a data item before the EM order"),
+]
 
 FINAL3: dict[str, tuple[str, str]] = {
+    "STR-04": ("CD", "One accuracy in VI-LV-02, VI-STR-01, VI-MCAD-03 and ETP §3.7: spin-balance, MOI ±0.5 %, products ±1×10⁻⁵ kg·m², CG ±0.1 mm; pass deployed ratio − 0.010 ≥ 1.03, measured tilt ≤ 2.4°"),
+    "STR-08": ("CD", "Mechanical cell retention, no adhesive or potting: G-10CR locator plates, disc-spring stack per cell at 140 N, vents open; MEL row 37 5.0 g; MS_sep +0.19 at 142 g (MECHANICAL_DESIGN §4.6); VI-MCAD-10"),
+    "STR-13": ("CD", "STRUCTURAL_DESIGN 1.5 §6.2 Version B hinge; cold point −55 °C (MECHANISMS_ANALYSIS E)"),
+    "STR-26": ("CD", "STRUCTURAL_DESIGN 1.5 aligned to MECHANICAL_DESIGN, STRUCTURAL_ANALYSIS and MEL 3.1"),
+    "P3S-01": ("CD", "Mechanisms at −55 °C: torque margin +0.08 (one spring out +0.07), springs +0.12/+0.04 yield; burn 10 s (C-17) gives release-energy ratio 1.90; VI-STR-04/-05/-06, VI-MECH-01..03 at −55 °C; hinge.py T_COLD for the thermal analyst's hinge temperature"),
+    "P3S-02": ("CD", "Steinberg at MEV masses: EPS board 2.0 mm (D-14): +0.14 to +0.50 at MEV, +0.42 to +0.71 at CBE; strength +0.96 (MEV +0.85); first mode 170 / 162 Hz"),
+    "P3S-04": ("CD", "MoS2 hinge controls: ≤ 40 % RH or dry N2, cycle budget ≤ 30 / ≤ 10, film inspection (MECHANISMS_ANALYSIS E §5A; ETP D §3.8)"),
+    "P3S-07": ("CD", "MECHANISMS §1, §6-§8, MASS_BUDGET §6.2, mass_properties.py FSW and SIL constants updated"),
+    "P3S-08": ("CD", "VI-STR-10 one criterion: flight order ≥ 10 mm from both deployed wings; contingency ≥ 5 mm from a stowed wing (CAD 6.5 mm)"),
+    "P3S-09": ("CD", "placement_mc.py reproduces §5.4; FE case design_harness_on_EPS (+0.38 with the 2.0 mm EPS)"),
+    "P3S-11": ("CD", "Trim masses W-Ni-Cu (ASTM B777, non-magnetic binder) or pure W (D-9, MATERIALS_LIST)"),
+    "P3S-12": ("CD", "Z rod tied to the −X shear panel only (two clips, 19 N at 3σ, MS > +30); deck 247 Hz; deck and clip accelerometers in VI-STR-02, VI-MCAD-04"),
+    "MCAD-12": ("DP", "With MCAD-13: GNSS mount response extracted (36 Grms, 0.21 mm); qualification spectrum by 2027-01-15 (GNC lead)"),
     "SMA-B07": ("CD", "I2C2 and I2C3 with two 4.7 kΩ pull-ups in parallel per line, each able to work alone; 100 kHz (OBC_BOARD_DESIGN D §23.1)"),
     "SMA-B08": ("CD", "TPS3850 timing capacitor as two parallel strings of two 470 nF C0G in series: one short or open keeps the 10 s kick inside the window; V-OBC-1 tests both"),
     "SMA-B14": ("CD", "NRST no longer leaves the OBC: J9/A3 pin 6 is RST_REQ (active high) through a 2N7002BK; a short cannot hold reset (OBC_BOARD_DESIGN D)"),
