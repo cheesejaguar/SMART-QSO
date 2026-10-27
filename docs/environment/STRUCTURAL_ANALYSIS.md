@@ -234,7 +234,9 @@ battery-mount tension P_tL includes the rocking moment of the pack (CG 12 mm abo
 **Design (STR-08):** G-10CR (MIL-I-24768/27 GEE-F) shouldered isolators, 4 × Ti-6Al-4V M2.5 with MoS₂ at
 **0.20 N·m ± 10 %**, a disc spring (rated ≥ 600 N flat) under each head, a Ti or A286 washer whose outer diameter exceeds
 the bracket hole so that the screw captures the bracket if the polymer fails (the all-metallic fail-safe of UG §5.4), and
-the screw heads staked. PEEK is acceptable only below 0.15 N·m (its long-term bearing stress at 0.30 N·m, 24 MPa, exceeds
+the screw heads staked. The disc spring and the washer bear on the bushing shoulder, never on the bracket, so the
+bushings also keep the pack isolated from the frame electrically (≥ 1 MΩ at 50 VDC, `hardware/eps/BATTERY_DESIGN.md`
+§5.2); the fail-safe capture only makes metal contact after a bushing has failed. PEEK is acceptable only below 0.15 N·m (its long-term bearing stress at 0.30 N·m, 24 MPa, exceeds
 the ≈ 20 MPa creep allowance). The joint is separation-critical (a gapped battery bracket rattles and loses stiffness):
 FSsep 1.25 × FF 1.15. Preload retention is verified by test (VI-STR-03), because Table 1 requires test-derived relaxation
 for joints with non-metallic parts.

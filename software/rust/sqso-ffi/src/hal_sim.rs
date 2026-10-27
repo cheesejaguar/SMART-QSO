@@ -19,7 +19,7 @@ use crate::c::rc;
 use crate::cell::Global;
 use crate::{os, ptr, time};
 
-const GPIO_PIN_COUNT: usize = 18;
+const GPIO_PIN_COUNT: usize = 19;
 const GPIO_DIR_INPUT: u32 = 0;
 const GPIO_DIR_OUTPUT: u32 = 1;
 /// `GPIO_PIN_XPDR_EN`, the heartbeat pin
@@ -41,6 +41,9 @@ const RESET_POWER_ON: u32 = 0;
 const I2C_ADDR_EPS_CONTROLLER: u8 = 0x48;
 const I2C_ADDR_BATTERY_MONITOR: u8 = 0x55;
 const I2C_ADDR_SOLAR_MONITOR: u8 = 0x40;
+/// The ISIS AntS controller (`sqso_fsw::ants`): one-byte commands latch
+/// their register to 1; the status (0xC3, 2 bytes) reads stowed until set
+const I2C_ADDR_ANTS: u8 = sqso_fsw::ants::ADDRESS;
 
 const UART_RX_SIZE: usize = 512;
 const RADIO_QUEUE: usize = 4;
@@ -202,7 +205,7 @@ struct Sim {
     /// (`None`: it has not run since `hal_gpio_init()`)
     heartbeat: Option<(u64, u64)>,
     i2c_initialized: [bool; I2C_BUS_COUNT],
-    i2c: [I2cDevice; 3],
+    i2c: [I2cDevice; 4],
     uart_initialized: [bool; UART_PORT_COUNT],
     uart_rx: [Fifo<UART_RX_SIZE>; UART_PORT_COUNT],
     spi_initialized: [bool; SPI_BUS_COUNT],
@@ -229,6 +232,7 @@ static SIM: Global<Sim> = Global::new(Sim {
         I2cDevice { addr: I2C_ADDR_EPS_CONTROLLER, registers: [0; 256] },
         I2cDevice { addr: I2C_ADDR_BATTERY_MONITOR, registers: [0; 256] },
         I2cDevice { addr: I2C_ADDR_SOLAR_MONITOR, registers: [0; 256] },
+        I2cDevice { addr: I2C_ADDR_ANTS, registers: [0; 256] },
     ],
     uart_initialized: [false; UART_PORT_COUNT],
     uart_rx: [Fifo::EMPTY, Fifo::EMPTY, Fifo::EMPTY],
@@ -433,6 +437,14 @@ pub extern "C" fn hal_i2c_init(bus: u32, _speed: u32) -> i32 {
                 dev.registers[0x01] = 0x01; // MODE: IDLE
                 dev.registers[0x16] = 75; // SOC: 75 %
             }
+            if dev.addr == I2C_ADDR_ANTS {
+                // Every element stowed, not armed
+                let stowed = sqso_fsw::ants::Status::decode([0x88, 0x88]).encode();
+                let at = usize::from(sqso_fsw::ants::CMD_STATUS);
+                if let Some(r) = dev.registers.get_mut(at..at + 2) {
+                    r.copy_from_slice(&stowed);
+                }
+            }
         }
         if let Some(init) = s.i2c_initialized.get_mut(bus) {
             *init = true;
@@ -461,6 +473,12 @@ pub unsafe extern "C" fn hal_i2c_write(bus: u32, addr: u8, data: *const u8, len:
         }
         let Some([reg, values @ ..]) = data else { return rc::NULL_PTR };
         let Some(dev) = device(s, addr) else { return rc::ERROR };
+        if values.is_empty() && dev.addr == I2C_ADDR_ANTS {
+            // A command without arguments: latched for the test or the SIL
+            if let Some(r) = dev.registers.get_mut(usize::from(*reg)) {
+                *r = 1;
+            }
+        }
         let mut reg = *reg;
         for &v in values {
             if let Some(r) = dev.registers.get_mut(usize::from(reg)) {

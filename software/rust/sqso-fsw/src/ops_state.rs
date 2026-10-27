@@ -200,10 +200,11 @@ mod tests {
         let _ = s.init(&mut f);
         assert_eq!(s.set_hold(false, &mut f), Ok(()));
         // Corrupt both slots behind their magic
+        let slot_size = u32::try_from(SLOT_SIZE).unwrap();
         for slot in 0..2u32 {
             let mut b = [0u8; 1];
-            f.read(REGION, slot * SLOT_SIZE as u32 + 12, &mut b).unwrap();
-            f.write(REGION, slot * SLOT_SIZE as u32 + 12, &[b[0] ^ 0xFF]).unwrap();
+            f.read(REGION, slot * slot_size + 8, &mut b).unwrap();
+            f.write(REGION, slot * slot_size + 8, &[b[0] ^ 0xFF]).unwrap();
         }
         let mut r = OpsState::new(REGION);
         assert_eq!(r.init(&mut f), Loaded::Corrupt);

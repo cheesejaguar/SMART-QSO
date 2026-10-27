@@ -61,6 +61,7 @@
 #![allow(clippy::missing_safety_doc)] // every export documents its pointer contract in its C header
 
 pub mod adcs_control;
+pub mod ants;
 pub mod assert_handler;
 pub mod ax25;
 pub mod beacon;

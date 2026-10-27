@@ -51,6 +51,8 @@ pub mod pin {
     pub const XPDR_EN: u32 = 16;
     /// GNSS receiver load switch (output)
     pub const GNSS_EN: u32 = 17;
+    /// Solar-wing burn driver B (output)
+    pub const SOLAR_BURN_B: u32 = 18;
 }
 
 /// `hal_adc.h` channels

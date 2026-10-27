@@ -43,6 +43,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing, clippy::panic))]
 
 pub mod adcs;
+pub mod ants;
 pub mod assert_handler;
 pub mod beacon;
 pub mod contact_monitor;

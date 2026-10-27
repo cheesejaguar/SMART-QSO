@@ -157,7 +157,7 @@ fn bring_up() {
     // Enable and burn lines low first
     gpio::install(
         p.PB4, p.PB5, p.PB6, p.PD2, p.PA1, p.PD3, p.PA2, p.PA3, p.PB7, p.PE2, p.PB8, p.PB9, p.PB10, p.PB11, p.PB12,
-        p.PE3, p.PE4, p.PE5,
+        p.PE3, p.PE4, p.PE5, p.PE6,
     );
     // The XPDR_EN heartbeat's timer (stopped, pin low, until the first lease)
     heartbeat::install();

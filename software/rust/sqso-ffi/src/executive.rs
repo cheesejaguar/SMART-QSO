@@ -8,6 +8,7 @@
 //!
 //! @requirement SRS-F001 Initialize all subsystems within 30 seconds of power-on
 //! @requirement SRS-P001 Main control loop executes within 20 ms
+//! @requirement SRS-F086 The software shall command no magnetorquer output until 120 s after separation
 
 use core::ffi::{CStr, c_char};
 use core::fmt::{self, Write};
@@ -824,8 +825,7 @@ impl Executive {
             return;
         }
         self.last_adcs_ms = now;
-        if !eps_control::eps_is_adcs_enabled() || !deployment::deployment_is_separated() || !separation_delay_served()
-        {
+        if !eps_control::eps_is_adcs_enabled() || !deployment::deployment_is_separated() || !separation_delay_served() {
             let _ = adcs_control::adcs_disable_mtq();
             return;
         }
@@ -913,7 +913,7 @@ impl Executive {
                 let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_GNSS_EN, false) };
                 // SAFETY: plain value (the HAL)
                 let _ = unsafe { crate::c::hal_uart_flush(UART_PORT_GNSS) };
-                crate::c::console(format_args!("[GNSS] Session off: {outcome:?}"));
+                crate::c::console(format_args!("[GNSS] Session off: {}", outcome.text()));
                 if self.gnss.no_fix_fault() {
                     add_fault(fault_type::INIT, severity::WARNING, c"GNSS: no fix in three sessions", self.power.soc);
                 }
@@ -928,8 +928,7 @@ impl Executive {
         for _ in 0..8 {
             let mut got = 0usize;
             // SAFETY: chunk is a live buffer of 64 bytes; got a live size_t
-            let read =
-                unsafe { crate::c::hal_uart_read(UART_PORT_GNSS, chunk.as_mut_ptr(), chunk.len(), 0, &mut got) };
+            let read = unsafe { crate::c::hal_uart_read(UART_PORT_GNSS, chunk.as_mut_ptr(), chunk.len(), 0, &mut got) };
             if read != rc::OK || got == 0 {
                 break;
             }

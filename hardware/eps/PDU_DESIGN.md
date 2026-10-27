@@ -105,7 +105,7 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 
 | Point | Warning (software) | Trip (hardware) | Action |
 |-------|--------------------|-----------------|--------|
-| Battery | 2.5 A | BMS over-current 5 A; short-circuit trip ≤ 200 µs | Discharge FET opens |
+| Battery | 2.5 A | BMS over-current 4 A for 0.5 s (below the 5 A fuse); short-circuit trip ≤ 200 µs | Discharge FET opens |
 | Jetson (VBAT) | 8 W for 2 s (`payload_guard.rs`) | eFuse 1.2 A; guard 12 W | Rail off, latched |
 | 5V_PA | — | SW3 1.0 A | Rail off |
 | Low-voltage load shed | — | VBAT < 13.6 V for 5 s | SW1 and SW3 off (EPS_DESIGN §6) |

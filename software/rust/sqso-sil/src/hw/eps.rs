@@ -8,7 +8,10 @@
 //! - the EOL passivation latch: once fired, the array is disconnected for
 //!   good and the loads drain the pack;
 //! - the BMS: cuts the discharge path at 2.8 V a cell (the bus, and the
-//!   OBC, go dark) and reconnects at 3.0 V; cuts at 5 A;
+//!   OBC, go dark) and reconnects at 3.0 V; cuts at 4 A, below the 5 A pack
+//!   fuse so the resettable protection acts first (`docs/hardware/EPS_DESIGN.md`
+//!   v2.0 §5; the largest load, all four burn resistors at their 0.8 A limit
+//!   by a software fault, is 3.3 A);
 //! - the 3V3_AO and 5 V bucks and the load switches;
 //! - the controller's telemetry (SMART-QSO-ICD-001 §4.2) with a coulomb-
 //!   counting fuel gauge that learns the capacity at each full charge.
@@ -33,8 +36,8 @@ pub const CHARGE_WINDOW_C: (f64, f64) = (0.0, 45.0);
 pub const UV_CUT_V: f64 = 2.8;
 /// Reconnect after an under-voltage cut-off, V a cell (open circuit)
 pub const UV_RECONNECT_V: f64 = 3.0;
-/// BMS over-current cut-off, A
-pub const OC_A: f64 = 5.0;
+/// BMS over-current cut-off, A (below the 5 A pack fuse)
+pub const OC_A: f64 = 4.0;
 /// 3V3_AO buck efficiency at its light load
 pub const BUCK_3V3_EFF: f64 = 0.85;
 /// 5 V buck efficiency

@@ -125,16 +125,18 @@ impl Write for Out<'_> {
     }
 }
 
-/// An optional scaled value: the rounded integer, or `-`
-struct Opt(Option<f64>, f64);
+/// An optional scaled value: the rounded integer, or `-` (no `Display`
+/// impl: a formatter callback would be an indirect call the stack analysis
+/// must resolve, `scripts/stack_usage.py`)
+fn opt(v: Option<f64>, scale: f64) -> Option<i32> {
+    #[allow(clippy::cast_possible_truncation)] // clamped to i32
+    v.filter(|v| v.is_finite()).map(|v| crate::fmath::round(v * scale).clamp(-2.0e9, 2.0e9) as i32)
+}
 
-impl core::fmt::Display for Opt {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self.0.filter(|v| v.is_finite()) {
-            #[allow(clippy::cast_possible_truncation)] // clamped to i32
-            Some(v) => write!(f, "{}", crate::fmath::round(v * self.1).clamp(-2.0e9, 2.0e9) as i32),
-            None => f.write_str("-"),
-        }
+fn put(w: &mut Out<'_>, key: &str, v: Option<i32>) -> core::fmt::Result {
+    match v {
+        Some(v) => write!(w, "{key}={v} "),
+        None => write!(w, "{key}=- "),
     }
 }
 
@@ -148,8 +150,7 @@ pub fn format(hk: &Housekeeping, out: &mut [u8]) -> usize {
     let mut w = Out { buf: out.get_mut(..room).unwrap_or(&mut []), len: 0 };
     let ok = write!(
         w,
-        "{PREFIX} N={} UP={} BOOT={} RST={} MODE={} HOLD={} XP={} TX={} SOC={} VB={} IB={} PA={} TB={} TO={} TP={} TJ={} \
-         DEP={}/{}/{} RFS={}/{} CT={} CS={} FC={} ",
+        "{PREFIX} N={} UP={} BOOT={} RST={} MODE={} HOLD={} XP={} TX={} ",
         hk.seq,
         hk.uptime_s,
         hk.boots,
@@ -158,23 +159,29 @@ pub fn format(hk: &Housekeeping, out: &mut [u8]) -> usize {
         flag(hk.hold),
         flag(hk.xpdr),
         flag(hk.tx_permitted),
-        Opt(hk.soc, 1000.0),
-        Opt(hk.vbatt_v, 1000.0),
-        Opt(hk.ibatt_a, 1000.0),
-        Opt(hk.array_w, 1000.0),
-        Opt(hk.tbatt_c, 10.0),
-        Opt(hk.tobc_c, 10.0),
-        Opt(hk.tpa_c, 10.0),
-        Opt(hk.tjet_c, 10.0),
-        hk.deploy.0,
-        flag(hk.deploy.1),
-        flag(hk.deploy.2),
-        hk.rf_silence.0,
-        hk.rf_silence.1,
-        hk.contact_timeout_d,
-        hk.since_contact_s / 3600,
-        hk.fault_count,
     )
+    .and_then(|()| put(&mut w, "SOC", opt(hk.soc, 1000.0)))
+    .and_then(|()| put(&mut w, "VB", opt(hk.vbatt_v, 1000.0)))
+    .and_then(|()| put(&mut w, "IB", opt(hk.ibatt_a, 1000.0)))
+    .and_then(|()| put(&mut w, "PA", opt(hk.array_w, 1000.0)))
+    .and_then(|()| put(&mut w, "TB", opt(hk.tbatt_c, 10.0)))
+    .and_then(|()| put(&mut w, "TO", opt(hk.tobc_c, 10.0)))
+    .and_then(|()| put(&mut w, "TP", opt(hk.tpa_c, 10.0)))
+    .and_then(|()| put(&mut w, "TJ", opt(hk.tjet_c, 10.0)))
+    .and_then(|()| {
+        write!(
+            w,
+            "DEP={}/{}/{} RFS={}/{} CT={} CS={} FC={} ",
+            hk.deploy.0,
+            flag(hk.deploy.1),
+            flag(hk.deploy.2),
+            hk.rf_silence.0,
+            hk.rf_silence.1,
+            hk.contact_timeout_d,
+            hk.since_contact_s / 3600,
+            hk.fault_count,
+        )
+    })
     .and_then(|()| match hk.last_fault {
         Some((t, s)) => write!(w, "FL={t}/{s} "),
         None => w.write_str("FL=- "),

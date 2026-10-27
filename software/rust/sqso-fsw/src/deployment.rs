@@ -1,6 +1,19 @@
 //! Deployment sequence: the 30-minute wait, burn wires, persistence and
 //! reset rules (`deployment.h`).
 //!
+//! Order and hardware (CDR, STR-15, STR-16, LV-07): **the solar wings
+//! first, then the antenna**: the bought ISIS AntS's tape elements pass
+//! 4–6 mm below the stowed wings. Each wing has two burn resistors on
+//! separate drivers (driver A: `Line::Burn(SolarPanel)`, driver B:
+//! `Line::WingBurnB`), used on alternate attempts, so one failed driver or
+//! resistor costs one attempt, not the wings. The antenna element is the
+//! AntS: its "burn line" is the AntS controller's arm and automatic
+//! deployment over I2C (`ants.rs`, mapped by the caller), and its sense is
+//! every tape element's switch. An element whose attempts run out is
+//! reported and the sequence goes on to the next one, so failed wings do
+//! not leave the antenna stowed; the sequence ends COMPLETE only if both
+//! deployed, otherwise FAILED.
+//!
 //! Timing uses elapsed ticks, not absolute timestamps, and the sequence is
 //! persisted so resets neither shorten the 30-minute wait nor repeat burns:
 //!  - 30-minute wait (CDS 2.4.4): a reset that lost power restarts it (a
@@ -17,6 +30,7 @@
 //!    sense lines skip anything already deployed.
 //!
 //! @requirement SYS-221 Deployables wait 30 minutes after separation; switch toggle resets the timer
+//! @requirement SRS-F088 The software shall space deployment attempts 50 minutes apart and accept a telecommand to retry an element with fresh attempts
 
 use core::ffi::CStr;
 use core::fmt;
@@ -29,10 +43,13 @@ use crate::rf_silence::Reset;
 pub const WAIT_TIME_MS: u32 = 30 * 60 * 1000;
 /// Wait after separation, s
 pub const WAIT_TIME_S: u32 = WAIT_TIME_MS / 1000;
-/// Antenna burn time, ms
-pub const ANTENNA_BURN_TIME_MS: u32 = 3000;
-/// Solar-panel burn time, ms
-pub const SOLAR_BURN_TIME_MS: u32 = 5000;
+/// Antenna deployment window, ms: the AntS deploys its four elements in
+/// turn, each for at most `ants::ELEMENT_LIMIT_S`, then the OBC cancels and
+/// disarms it
+pub const ANTENNA_BURN_TIME_MS: u32 = 45_000;
+/// Solar-wing burn time, ms (STR-15: 8 s at the 0.5–1 A per resistor the
+/// burn driver allows)
+pub const SOLAR_BURN_TIME_MS: u32 = 8000;
 /// Attempts per element, across resets
 pub const MAX_RETRIES: u8 = 3;
 /// Wait before retrying an unconfirmed deployment, ms: 50 minutes, so the
@@ -155,12 +172,6 @@ impl Element {
         }
     }
 
-    const fn next(self) -> State {
-        match self {
-            Element::Antenna => State::SolarPending,
-            Element::SolarPanel => State::Complete,
-        }
-    }
 
     const fn pending(self) -> State {
         match self {
@@ -211,8 +222,11 @@ pub struct Telemetry {
 pub enum Line {
     /// The master arm (`GPIO_PIN_DEPLOY_EN`)
     Arm,
-    /// An element's burn wire
+    /// An element's burn: the wings' driver A (`GPIO_PIN_SOLAR_BURN`), or
+    /// for the antenna the AntS controller's deployment (I2C)
     Burn(Element),
+    /// The wings' second resistors, on driver B (`GPIO_PIN_SOLAR_BURN_B`)
+    WingBurnB,
 }
 
 /// Flight-log level
@@ -314,17 +328,37 @@ impl Deployment {
         }
     }
 
-    /// Master arm off first, then both element lines
+    /// Master arm off first, then every element line
     fn burn_off<IO: DeployIo>(io: &mut IO) {
         io.set(Line::Arm, false);
         io.set(Line::Burn(Element::Antenna), false);
         io.set(Line::Burn(Element::SolarPanel), false);
+        io.set(Line::WingBurnB, false);
+    }
+
+    /// The line an attempt uses: the wings alternate driver A (attempts 1
+    /// and 3) and driver B (attempt 2)
+    const fn burn_line(e: Element, attempt: u8) -> Line {
+        match e {
+            Element::SolarPanel if attempt.is_multiple_of(2) => Line::WingBurnB,
+            Element::SolarPanel | Element::Antenna => Line::Burn(e),
+        }
     }
 
     /// Element line first, then the master arm: both are needed to burn
-    fn burn_on<IO: DeployIo>(io: &mut IO, e: Element) {
-        io.set(Line::Burn(e), true);
+    fn burn_on<IO: DeployIo>(io: &mut IO, e: Element, attempt: u8) {
+        io.set(Self::burn_line(e, attempt), true);
         io.set(Line::Arm, true);
+    }
+
+    /// The state after element `e` is done (deployed or out of attempts):
+    /// the antenna after the wings; at the end COMPLETE if both deployed
+    fn after(&self, e: Element) -> State {
+        match e {
+            Element::SolarPanel => State::AntennaPending,
+            Element::Antenna if self.all_complete() => State::Complete,
+            Element::Antenna => State::Failed,
+        }
     }
 
     fn state_byte(&self) -> u8 {
@@ -381,7 +415,8 @@ impl Deployment {
         let el = self.element_mut(e);
         el.deployed = true;
         el.deploy_time_s = since;
-        self.enter_state(io, e.next());
+        let next = self.after(e);
+        self.enter_state(io, next);
         let _ = self.save(io);
         io.log(Level::Info, format_args!("Element {} deployed", e as u32));
     }
@@ -396,8 +431,11 @@ impl Deployment {
             return;
         }
         if self.element(e).attempt_count >= MAX_RETRIES {
+            // Reported, and on to the next element (failed wings must not
+            // leave the antenna stowed)
             io.report(Report::Failed(e));
-            self.enter_state(io, State::Failed);
+            let next = self.after(e);
+            self.enter_state(io, next);
             let _ = self.save(io);
             return;
         }
@@ -423,8 +461,9 @@ impl Deployment {
             return;
         }
 
-        Self::burn_on(io, e);
-        io.log(Level::Info, format_args!("Element {} burn attempt {}", e as u32, self.element(e).attempt_count));
+        let attempt = self.element(e).attempt_count;
+        Self::burn_on(io, e, attempt);
+        io.log(Level::Info, format_args!("Element {} burn attempt {}", e as u32, attempt));
     }
 
     fn process_active<IO: DeployIo>(&mut self, io: &mut IO, e: Element, verify: State) {
@@ -453,9 +492,9 @@ impl Deployment {
         self.unpersisted_s = self.unpersisted_s.saturating_add(seconds);
 
         if self.wait_elapsed_s >= WAIT_TIME_S && self.deployment_enabled {
-            self.enter_state(io, State::AntennaPending);
+            self.enter_state(io, State::SolarPending);
             let _ = self.save(io);
-            io.log(Level::Info, format_args!("Wait complete, starting antenna deploy"));
+            io.log(Level::Info, format_args!("Wait complete, starting wing deploy"));
         } else if self.unpersisted_s >= PERSIST_INTERVAL_S {
             let _ = self.save(io);
         } else {
@@ -686,6 +725,8 @@ mod tests {
         flash: MemFlash<256>,
         arm: bool,
         burn: [bool; 2],
+        /// The wings' driver B
+        burn_b: bool,
         sense: [bool; 2],
         stowed: bool,
         /// Attempts in the persisted record when each burn line went high
@@ -737,6 +778,14 @@ mod tests {
         fn set(&mut self, line: Line, on: bool) {
             match line {
                 Line::Arm => self.arm = on,
+                Line::WingBurnB => {
+                    self.burn_b = on;
+                    if on {
+                        let mut rec = [0u8; 8];
+                        let ok = nvm::load(&mut self.flash, 10, 0, RECORD_MAGIC, &mut rec);
+                        self.persisted_at_burn = (ok == Ok(RecordStatus::Valid)).then_some(rec[2]);
+                    }
+                }
                 Line::Burn(e) => {
                     self.burn[e as usize] = on;
                     if on {
@@ -769,6 +818,7 @@ mod tests {
                 flash: MemFlash::new(),
                 arm: false,
                 burn: [false; 2],
+                burn_b: false,
                 sense: [false; 2],
                 stowed: false,
                 persisted_at_burn: None,
@@ -777,11 +827,12 @@ mod tests {
                 text: Text { buf: [0; 4096], len: 0 },
             }
         }
+        /// Burning on any of the element's drivers
         fn burning(&self, e: Element) -> bool {
-            self.arm && self.burn[e as usize]
+            self.arm && (self.burn[e as usize] || (e == Element::SolarPanel && self.burn_b))
         }
         fn no_burn(&self) -> bool {
-            !self.arm && self.burn == [false; 2]
+            !self.arm && self.burn == [false; 2] && !self.burn_b
         }
     }
 
@@ -816,16 +867,20 @@ mod tests {
         assert!(io.no_burn());
         d.tick(SECOND_MS, &mut io);
         d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::Antenna) && !io.burn[1]);
+        // The wings first (STR-16), on driver A
+        assert!(io.burning(Element::SolarPanel) && io.burn[1] && !io.burn_b && !io.burn[0]);
+        advance(&mut d, &mut io, SOLAR_BURN_TIME_MS, SECOND_MS);
+        assert!(io.no_burn());
+        assert_eq!(d.state(), State::SolarVerify);
+        io.sense[1] = true;
+        d.tick(SECOND_MS, &mut io);
+        assert_eq!(d.state(), State::AntennaPending);
+        d.tick(SECOND_MS, &mut io);
+        assert!(io.burning(Element::Antenna) && !io.burn[1] && !io.burn_b);
         advance(&mut d, &mut io, ANTENNA_BURN_TIME_MS, SECOND_MS);
         assert!(io.no_burn());
         assert_eq!(d.state(), State::AntennaVerify);
         io.sense[0] = true;
-        d.tick(SECOND_MS, &mut io);
-        d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::SolarPanel) && !io.burn[0]);
-        advance(&mut d, &mut io, SOLAR_BURN_TIME_MS, SECOND_MS);
-        io.sense[1] = true;
         d.tick(SECOND_MS, &mut io);
         assert_eq!(d.state(), State::Complete);
         assert!(d.all_complete());
@@ -846,26 +901,26 @@ mod tests {
         d.tick(SECOND_MS, &mut io);
         d.tick(SECOND_MS, &mut io);
         assert!(io.no_burn());
-        assert_eq!(d.element_status(Element::Antenna).attempt_count, 0);
+        assert_eq!(d.element_status(Element::SolarPanel).attempt_count, 0);
         assert_eq!((io.reports, io.last), (1, Some(Report::NotPersisted)));
-        assert_eq!(d.state(), State::AntennaPending);
+        assert_eq!(d.state(), State::SolarPending);
         io.flash.writes_left = None;
         d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::Antenna));
+        assert!(io.burning(Element::SolarPanel));
         assert_eq!(io.persisted_at_burn, Some(1));
     }
 
     #[test]
     fn already_deployed_is_never_fired() {
         let mut io = Bench::new();
-        io.sense[0] = true;
+        io.sense[1] = true;
         let mut d = boot(&mut io, Reset::PowerLost);
         wait_out(&mut d, &mut io);
         d.tick(SECOND_MS, &mut io);
         d.tick(SECOND_MS, &mut io);
-        assert!(!io.burn[0]);
-        assert!(io.burning(Element::SolarPanel));
-        assert_eq!(d.element_status(Element::Antenna).attempt_count, 0);
+        assert!(!io.burn[1] && !io.burn_b);
+        assert!(io.burning(Element::Antenna));
+        assert_eq!(d.element_status(Element::SolarPanel).attempt_count, 0);
     }
 
     #[test]
@@ -900,10 +955,20 @@ mod tests {
         wait_out(&mut d, &mut io);
         d.tick(SECOND_MS, &mut io);
         d.tick(SECOND_MS, &mut io);
+        assert!(io.burning(Element::SolarPanel));
+        let d = boot(&mut io, Reset::PowerKept);
+        assert!(io.no_burn());
+        assert_eq!(d.element_status(Element::SolarPanel).attempt_count, 1);
+        assert_eq!(d.state(), State::SolarVerify);
+        // And the antenna's burn too
+        let mut io = Bench::new();
+        io.sense[1] = true;
+        let mut d = boot(&mut io, Reset::PowerLost);
+        wait_out(&mut d, &mut io);
+        advance(&mut d, &mut io, 3 * SECOND_MS, SECOND_MS);
         assert!(io.burning(Element::Antenna));
         let d = boot(&mut io, Reset::PowerKept);
         assert!(io.no_burn());
-        assert_eq!(d.element_status(Element::Antenna).attempt_count, 1);
         assert_eq!(d.state(), State::AntennaVerify);
     }
 
@@ -916,7 +981,7 @@ mod tests {
             wait_out(&mut d, &mut io);
             for _ in 0..120 {
                 d.tick(SECOND_MS, &mut io);
-                if io.burning(Element::Antenna) {
+                if io.burning(Element::SolarPanel) {
                     burns += 1;
                     break;
                 }
@@ -925,7 +990,7 @@ mod tests {
             assert!(io.no_burn());
         }
         assert_eq!(burns, MAX_RETRIES);
-        assert_eq!(d.element_status(Element::Antenna).attempt_count, MAX_RETRIES);
+        assert_eq!(d.element_status(Element::SolarPanel).attempt_count, MAX_RETRIES);
     }
 
     #[test]
@@ -956,7 +1021,7 @@ mod tests {
         wait_out(&mut d, &mut io);
         d.tick(SECOND_MS, &mut io);
         d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::Antenna));
+        assert!(io.burning(Element::SolarPanel));
     }
 
     #[test]
@@ -992,17 +1057,38 @@ mod tests {
         assert!(d.set_enabled(true, &mut io));
         d.tick(SECOND_MS, &mut io);
         d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::Antenna));
+        assert!(io.burning(Element::SolarPanel));
 
-        for _ in 0..20 {
-            advance(&mut d, &mut io, 2 * MINUTE_MS, SECOND_MS);
-        }
+        // Three wing attempts RETRY_DELAY_MS apart (LV-07), reported, then
+        // the antenna anyway: failed wings must not leave it stowed
+        advance(&mut d, &mut io, 3 * RETRY_DELAY_MS + 2 * MINUTE_MS, SECOND_MS);
+        assert_eq!(d.element_status(Element::SolarPanel).attempt_count, MAX_RETRIES);
+        assert!(matches!(d.state(), State::AntennaActive | State::AntennaVerify), "{:?}", d.state());
+        let reports = io.reports;
+        advance(&mut d, &mut io, 3 * RETRY_DELAY_MS + 2 * MINUTE_MS, SECOND_MS);
         assert_eq!(d.state(), State::Failed);
         assert_eq!(io.last, Some(Report::Failed(Element::Antenna)));
-        assert!(d.force_retry(Element::Antenna, &mut io));
-        assert_eq!(d.state(), State::AntennaPending);
+        assert!(io.reports > reports);
+        assert!(d.force_retry(Element::SolarPanel, &mut io));
+        assert_eq!(d.state(), State::SolarPending);
         d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::Antenna));
+        assert!(io.burning(Element::SolarPanel));
+        assert!(!d.force_retry(Element::Antenna, &mut io), "not during a burn");
+    }
+
+    /// Wings that never sense deployed and an antenna that does: the
+    /// antenna is still deployed, and the sequence ends FAILED, not COMPLETE
+    #[test]
+    fn failed_wings_then_a_deployed_antenna_end_failed() {
+        let mut io = Bench::new();
+        let mut d = boot(&mut io, Reset::PowerLost);
+        wait_out(&mut d, &mut io);
+        advance(&mut d, &mut io, 3 * RETRY_DELAY_MS + 2 * MINUTE_MS, SECOND_MS);
+        assert_eq!(io.last, Some(Report::Failed(Element::SolarPanel)));
+        io.sense[0] = true;
+        advance(&mut d, &mut io, 2 * SECOND_MS, SECOND_MS);
+        assert_eq!(d.state(), State::Failed);
+        assert!(d.element_status(Element::Antenna).deployed && !d.all_complete());
     }
 
     #[test]
@@ -1030,22 +1116,25 @@ mod tests {
     /// Mutation check: what a reset restores. The deployed flags (solar as
     /// well as antenna), the attempted flags and the separation flag come
     /// back from the record, in COMPLETE as in a resumed sequence.
+    /// Mutation check: what a reset restores. The deployed flags (solar as
+    /// well as antenna), the attempted flags and the separation flag come
+    /// back from the record, in COMPLETE as in a resumed sequence.
     #[test]
     fn reset_restores_flags_attempts_and_separation() {
-        // Antenna out, solar not yet: both flags must survive a reset apart
+        // Wings out, antenna not yet: both flags must survive a reset apart
         let mut io = Bench::new();
-        io.sense[0] = true;
+        io.sense[1] = true;
         let mut d = boot(&mut io, Reset::PowerLost);
         wait_out(&mut d, &mut io);
         d.tick(SECOND_MS, &mut io);
         d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::SolarPanel));
-        io.sense[0] = false; // the sense line no longer confirms it
+        assert!(io.burning(Element::Antenna));
+        io.sense[1] = false; // the sense line no longer confirms it
         let d = boot(&mut io, Reset::PowerKept);
         let (antenna, solar) = (d.element_status(Element::Antenna), d.element_status(Element::SolarPanel));
-        assert!(antenna.deployed && !antenna.deploy_attempted);
-        assert!(!solar.deployed && solar.deploy_attempted);
-        assert_eq!(solar.attempt_count, 1);
+        assert!(solar.deployed && !solar.deploy_attempted);
+        assert!(!antenna.deployed && antenna.deploy_attempted);
+        assert_eq!(antenna.attempt_count, 1);
         assert!(d.is_separated());
 
         // COMPLETE: both deployed flags and the separation flag are kept
@@ -1104,29 +1193,39 @@ mod tests {
 
     /// A solar panel not sensed after its burn is retried after the retry
     /// delay, with the attempt counted, and is not fired again before it
+    /// Wings not sensed after their burn are retried after the retry delay,
+    /// on the other driver (B), with the attempt counted, and not fired
+    /// again before it
     #[test]
     fn solar_panel_not_sensed_is_retried_after_the_delay() {
         let mut io = Bench::new();
-        io.sense[0] = true;
         let mut d = boot(&mut io, Reset::PowerLost);
         wait_out(&mut d, &mut io);
         d.tick(SECOND_MS, &mut io);
         d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::SolarPanel));
+        assert!(io.burning(Element::SolarPanel) && io.burn[1] && !io.burn_b);
         advance(&mut d, &mut io, SOLAR_BURN_TIME_MS, SECOND_MS);
         assert_eq!(d.state(), State::SolarVerify);
-        advance(&mut d, &mut io, RETRY_DELAY_MS - SECOND_MS, SECOND_MS);
+        advance(&mut d, &mut io, RETRY_DELAY_MS - 2 * SECOND_MS, SECOND_MS);
         assert_eq!(d.state(), State::SolarVerify);
         assert!(io.no_burn());
-        d.tick(SECOND_MS, &mut io);
+        while d.state() == State::SolarVerify {
+            d.tick(SECOND_MS, &mut io);
+        }
         assert_eq!(d.state(), State::SolarPending);
         assert!(io.no_burn());
         d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::SolarPanel) && !io.burn[0]);
+        assert!(io.burning(Element::SolarPanel) && io.burn_b && !io.burn[1] && !io.burn[0], "driver B");
         assert_eq!(d.element_status(Element::SolarPanel).attempt_count, 2);
         assert_eq!(io.persisted_at_burn, Some(2));
+        // The third attempt is on driver A again
+        advance(&mut d, &mut io, SOLAR_BURN_TIME_MS + RETRY_DELAY_MS + SECOND_MS, SECOND_MS);
+        assert!(io.burning(Element::SolarPanel) && io.burn[1] && !io.burn_b, "driver A");
+        assert_eq!(d.element_status(Element::SolarPanel).attempt_count, 3);
     }
 
+    /// Inhibited by command during verification: the retry waits in
+    /// PENDING without burning or spending an attempt until enabled again
     /// Inhibited by command during verification: the retry waits in
     /// PENDING without burning or spending an attempt until enabled again
     #[test]
@@ -1136,40 +1235,42 @@ mod tests {
         wait_out(&mut d, &mut io);
         d.tick(SECOND_MS, &mut io);
         d.tick(SECOND_MS, &mut io);
-        advance(&mut d, &mut io, ANTENNA_BURN_TIME_MS, SECOND_MS);
-        assert_eq!(d.state(), State::AntennaVerify);
+        advance(&mut d, &mut io, SOLAR_BURN_TIME_MS, SECOND_MS);
+        assert_eq!(d.state(), State::SolarVerify);
         assert!(d.set_enabled(false, &mut io));
         advance(&mut d, &mut io, RETRY_DELAY_MS + 10 * MINUTE_MS, SECOND_MS);
-        assert_eq!(d.state(), State::AntennaPending);
-        assert!(io.no_burn());
-        assert_eq!(d.element_status(Element::Antenna).attempt_count, 1);
-        // The sense line still confirms a deployment while inhibited
-        io.sense[0] = true;
-        d.tick(SECOND_MS, &mut io);
         assert_eq!(d.state(), State::SolarPending);
+        assert!(io.no_burn());
+        assert_eq!(d.element_status(Element::SolarPanel).attempt_count, 1);
+        // The sense line still confirms a deployment while inhibited
+        io.sense[1] = true;
+        d.tick(SECOND_MS, &mut io);
+        assert_eq!(d.state(), State::AntennaPending);
         advance(&mut d, &mut io, 10 * MINUTE_MS, SECOND_MS);
         assert!(io.no_burn());
         assert!(d.set_enabled(true, &mut io));
         d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::SolarPanel));
+        assert!(io.burning(Element::Antenna));
     }
 
+    /// A resumed record that already marks the element deployed is never
+    /// fired, even with the sense line not confirming it
     /// A resumed record that already marks the element deployed is never
     /// fired, even with the sense line not confirming it
     #[test]
     fn stored_deployed_flag_is_never_fired() {
         let mut io = Bench::new();
-        let flags = FLAG_ANTENNA_DEPLOYED | FLAG_ENABLED | FLAG_SEPARATED;
-        let rec = [State::AntennaPending as u8, 0, 0, flags, 0x08, 0x07, 0, 0];
+        let flags = FLAG_SOLAR_DEPLOYED | FLAG_ENABLED | FLAG_SEPARATED;
+        let rec = [State::SolarPending as u8, 0, 0, flags, 0x08, 0x07, 0, 0];
         nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &rec).unwrap();
         let mut d = boot(&mut io, Reset::PowerKept);
-        assert_eq!(d.state(), State::AntennaPending);
-        d.tick(SECOND_MS, &mut io);
         assert_eq!(d.state(), State::SolarPending);
+        d.tick(SECOND_MS, &mut io);
+        assert_eq!(d.state(), State::AntennaPending);
         assert!(io.no_burn());
         d.tick(SECOND_MS, &mut io);
-        assert!(io.burning(Element::SolarPanel) && !io.burn[0]);
-        assert_eq!(d.element_status(Element::Antenna).attempt_count, 0);
+        assert!(io.burning(Element::Antenna) && !io.burn[1] && !io.burn_b);
+        assert_eq!(d.element_status(Element::SolarPanel).attempt_count, 0);
     }
 
     /// A stowed switch clears a stored wait count even in INHIBITED (a

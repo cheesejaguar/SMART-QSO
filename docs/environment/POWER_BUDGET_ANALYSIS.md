@@ -193,7 +193,7 @@ SOC ≥ 56.7 %, DoD 3.3 %. The same EPS-10 rule applies.
 ### 8.5 Cold-soak deployment
 
 With the whole spacecraft at −20 °C at separation, the deployment burn (1.6 A at 30 min) leaves the bus at ≥ 12.2 V
-at the 58 % delivery SOC (EMC_ANALYSIS §4) and the charge regulator refuses charge for the first 1.35 h (pack below
+at the ≈ 58 % deployment SOC (EMC_ANALYSIS §4; one wing at a time, EPS_DESIGN §5.1, leaves ≈ 13.4 V) and the charge regulator refuses charge for the first 1.5 h (pack below
 0 °C). The pack must leave the dispenser with ≥ 40 % SOC (BATTERY_SAFETY_ASSESSMENT §6).
 
 ## 9. The tumbling margin (BASELINE §5 "under review")

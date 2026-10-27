@@ -46,14 +46,15 @@ the ISS (loss of the vehicle or crew); **critical** on orbit after deployment (l
 |---|--------------|-------|------------------------|-------|-----------------|----------|
 | H1 | Overcharge (charger fault, cell imbalance) | On orbit; ground charging | (1) BCR constant-voltage regulation at 4.10 V/cell; (2) BMS AFE cell over-voltage at 4.25 V opens the CHG FET (hardware comparator, thresholds written at power-up); (3) **independent secondary over-voltage protector** at 4.35 V/cell with a fixed factory threshold, blowing a three-terminal fuse in the charge path (to be added: EPS-11) | 3 | **2** (with (3)); 1 today | ISS: 2; rideshare: 1 while charging is inhibited at launch |
 | H1a | Overcharge at launch | Integrated, powered off | Charging cannot occur: the array is dark in a closed dispenser, DS2 opens the pack return; (1)–(3) above | — | — | Inhibits (§5) |
-| H2 | Over-discharge, then recharge of a damaged cell | On orbit | (1) Flight-software mode thresholds (SAFE 25 %, EMERGENCY 15 %); (2) BMS AFE under-voltage 2.8 V/cell opens the DSG FET; (3) BCR charge lockout below 2.0 V/cell and pre-charge at 0.1 A below 3.0 V (to be specified: EPS-12); (4) independent hardware low-voltage disconnect of the payload and PA rails at 3.4 V/cell (to be added: EPS-09) | 4 | 2 with (3) and (4) | 1 (critical) |
-| H3 | External short (harness, connector, board) | All | (1) Non-resettable pack fuse F2, 5 A, breaking capacity ≥ 100 A at 32 VDC (cell short-circuit current ≈ 80–100 A); (2) BMS AFE short-circuit discharge trip (≤ 200 µs); (3) resettable PTC RT1; plus insulation (DFMR: pack-to-frame isolation ≥ 1 MΩ, both poles) | 3 | 2 | ISS: 2 |
+| H2 | Over-discharge, then recharge of a damaged cell | On orbit | (1) Flight-software mode thresholds (SAFE 25 %, EMERGENCY 15 %); (2) BMS AFE under-voltage 2.8 V/cell opens the DSG FET; (3) **latched recharge lockout**: any cell below 2.0 V/cell sets a non-volatile flag that holds the charger off and the CHG FET open until an authenticated ground command clears it (the bus runs on the array through the power path meanwhile); pre-charge at 0.1 A below 3.0 V (EPS_DESIGN v2.0 §3.3; RID SMA-06 / EPS-12); (4) independent hardware low-voltage disconnect of the payload and PA rails at 3.4 V/cell (to be added: EPS-09) | 4 | 2 with (3) and (4) | 1 (critical) |
+| H3 | External short (harness, connector, board) | All | (1) Non-resettable pack fuse F2, 5 A, breaking capacity ≥ 100 A at 32 VDC (cell short-circuit current ≈ 80–100 A); (2) BMS AFE over-current 4 A for 0.5 s and short-circuit trip (≤ 200 µs), set below F2 so that the resettable trip acts first; (3) resettable PTC RT1; plus insulation (DFMR: pack-to-frame isolation ≥ 1 MΩ, both poles) | 3 | 2 | ISS: 2 |
 | H3a | Short inside the pack upstream of F2 (bussing, insulation, cell-to-holder) | All | DFMR: insulated bussing, cell wraps intact, insulating sleeves at the clamp, inspection, isolation test, vibration screening | — | DFMR | DFMR accepted by JSC 20793 §4.1.2 |
 | H4 | Internal cell short (manufacturing defect, plating) | All | DFMR: one screened lot (§4), no charging below 0 °C (H5), C/9 charge rate, vibration screening, mechanical retention | — | DFMR | DFMR |
 | H5 | Charging below 0 °C (lithium plating) | On orbit | (1) BCR temperature input (TS pin, hardware) from NTC1 inhibits charge outside 0 … +45 °C; (2) flight software inhibits charge on NTC2; (3) heater holds ≥ +4 °C (THERMAL_ANALYSIS §6.1, with the recommended +5/+9 °C set points) | 3 | 2 | 1 (critical) |
 | H6 | Over-temperature (stuck heater, stuck load, hot dispenser) | All | (1) Heater thermostat in software; (2) series hardware cutout at +40 °C in the heater circuit; (3) heater fuse or current limit; (4) pack over-temperature at +60 °C opening both FETs through a hardware comparator on an NTC (the BQ76920-class AFE has no autonomous over-temperature trip); charge inhibited above +45 °C (H5). No low-temperature discharge cut-off (EPS-08) | 4 | 2 for heater faults; dispenser soak is an environment (THERMAL_ANALYSIS §6.7) | 1 |
 | H7 | Electrolyte leakage or venting | All | DFMR: hermetic 18650 cans with vent and CID; mechanical retention; vacuum leak check (mass change) | — | DFMR | DFMR |
 | H8 | Mechanical damage (vibration, handling) | Ground, launch | Clamp design and vibration test at protoflight levels with functional checks; handling procedure | — | DFMR | DFMR |
+| H8a | Deployment burn over-current (direct drive ≈ 5.8 A on one line would open F2: mission loss, not a safety hazard) | LEOP | (1) Current-limited driver per resistor (0.8 A); (2) one line at a time in software; (3) 12 s hardware on-time limit; (4) BMS 4 A trip below F2 (EPS_DESIGN v2.0 §5.1) | 4 | 2 for the fuse | Mission (RID SMA-05) |
 | H9 | Stored energy after end of life (debris) | EOL | (1) Non-resettable charge-path disconnect F1, armed and fired by two independent signals; (2) loads drain the pack to the BMS under-voltage cut | 2 | 1 | 97.207(g)(1)(iii) |
 
 **Findings.** Two hazard causes do not have the tolerance the backup path needs: overcharge (H1) has two
@@ -82,11 +83,13 @@ Per JSC 20793 Rev D §4.2.3 and §6.4.3.3, and the BATTERY_DESIGN §9 tests, for
 
 ## 5. Inhibits and the battery
 
-The pack sits upstream of the deployment switches. The only circuits powered at launch are the BMS AFE (CDS
-2.3.1.2), which must be in its lowest-power state (BQ76920 class: ship mode), and the secondary protector. The
+The pack sits upstream of the three deployment switches DS1, DS2 and DS3 (DS3 added at CDR, EPS_DESIGN v2.0 §8). The
+only circuits powered at launch are the BMS AFE (CDS 2.3.1.2), which must be in its lowest-power state (BQ76920
+class: ship mode), and the secondary protector: ≤ 20 µA in all (LVR-051/071, `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`),
+1.3 % of the pack in 90 days. The
 inhibit chains are in `docs/hardware/EPS_DESIGN.md` §8. Two battery-specific points:
 
-1. The pack's negative is switched by DS2. A short from the pack's negative to the frame would bypass DS2. The
+1. The pack's negative is switched by DS2 (DS1 and DS3 are in VBAT+). A short from the pack's negative to the frame would bypass DS2. The
    isolated mount (BUILD_VS_BUY §4) helps; specify ≥ 1 MΩ from each pole to the frame at 50 VDC and test it after
    vibration (V-BSA-4).
 2. SpaceX requires the inhibit test during random vibration with the batteries in their flight charge state (UG v11
@@ -97,9 +100,9 @@ inhibit chains are in `docs/hardware/EPS_DESIGN.md` §8. Two battery-specific po
 | Phase | State of charge | Reason |
 |-------|-----------------|--------|
 | Cell and pack storage before integration | 40–60 % (OCV 3.65–3.75 V/cell), 10–25 °C, re-charged to that band every 3 months | Calendar ageing grows with SOC and temperature; keeps margin over self-discharge |
-| Integration and the inhibit test in vibration | **50 ± 10 %** (≈ 3.70 V/cell, 14.8 V) | Flight state for UG v11 §6.7.7 |
-| Delivery to the integrator (up to ≈ 90 days in processing, UG v11 Table 4-12) | 50 ± 10 % at delivery; ≥ 40 % at deployment | Energy for LEOP: the simulation leaves the dispenser at 58 % from 60 % and needs ≈ 6 Wh (12 %) for a cold first two orbits without charge (THERMAL_ANALYSIS §4) |
-| Air transport of the spacecraft (UN3481, battery contained in equipment) | ≤ 50 %; the IATA 30 % limit applies only to batteries shipped alone (UN3480) | Lower severity; confirm with the carrier and the IATA Dangerous Goods Regulations edition in force |
+| Integration and the inhibit test in vibration | **60 ± 5 %** (≈ 3.80 V/cell, 15.2 V), as LVR-051/071 of `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` | Flight state for UG v11 §6.7.7; the value the mission simulation uses (`integration_soc` 0.60) |
+| Delivery to the integrator (up to ≈ 90 days in processing, UG v11 Table 4-12) | 60 ± 5 % at delivery; ≥ 40 % at deployment (self-discharge ≈ 4.5 % and the ≤ 20 µA drain 1.3 % in 90 days leave ≈ 49–60 %) | Energy for LEOP: the simulation leaves the dispenser at 58 % from 60 % and needs ≈ 6 Wh (12 %) for a cold first two orbits without charge (THERMAL_ANALYSIS §4) |
+| Air transport of the spacecraft (UN3481, battery contained in equipment) | ≤ 65 % (the integration state); the IATA 30 % limit applies only to batteries shipped alone (UN3480) | Lower severity; confirm with the carrier and the IATA Dangerous Goods Regulations edition in force |
 | On orbit | Charged to 4.10 V/cell (≈ 91 % of the rated capacity) | D8 |
 
 Never charge above 4.10 V/cell on the ground except in the cell capacity screen (step 3 of §4, cells not yet in a
@@ -132,7 +135,7 @@ accredited laboratory. Budget ≈ $8–15k and 6–8 weeks (no quote yet).
 | V-BSA-3 | Pack acceptance on the flight pack (§4 step 8) | §4 criteria | JSC 20793 §6.4.3.3 | FM |
 | V-BSA-4 | Pack-to-frame isolation, both poles, after vibration | ≥ 1 MΩ at 50 VDC | H3a, §5 item 1 | EM, FM |
 | V-BSA-5 | UN 38.3 battery tests (§8) | All tests passed, test summary issued | 49 CFR 173.185 | Before first shipment of a pack |
-| V-BSA-6 | Inhibit test during random vibration at the flight SOC (§6) | No power-up, no RF (UG v11 §6.7.7) | SYS-704 | FM protoflight vibration |
+| V-BSA-6 | Inhibit test during random vibration at the flight SOC (60 ± 5 %, §6), each of DS1, DS2, DS3 checked | No power-up, no RF (UG v11 §6.7.7) | SYS-704 | FM protoflight vibration |
 | V-BSA-7 | EOL disconnect: arm and fire on the EM; no single fault fires it | F1 opens only with both signals; non-resettable | H9, 97.207(g) | EM |
 | V-BSA-8 | LEO-profile cycling of flight-lot cells at 4.10 V (BATTERY_DESIGN §9.3) | Fade per cycle within the §3.3 assumption | D8 | EM phase, ≥ 3 months |
 
@@ -140,4 +143,4 @@ accredited laboratory. Budget ≈ $8–15k and 6–8 weeks (no quote yet).
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
-| A | 2026-10-27 | CDR review, EPS/thermal | Initial issue: hazards, controls and fault tolerance, screening, inhibits, state of charge, 4.10 V set point, UN 38.3 |
+| A | 2026-10-27 | CDR review, EPS/thermal | Initial issue: hazards, controls and fault tolerance, screening, inhibits, state of charge, 4.10 V set point, UN 38.3; after the safety review: latched recharge lockout, BMS 4 A below the fuse, deployment burn current (H8a), DS3, integration SOC 60 ± 5 % as LVR-051/071 |

@@ -33,6 +33,8 @@
 //! transponder enabled, and a pin stuck high or low is "off".
 //!
 //! @requirement SRS-F016 Enforce power budget limits per mode
+//! @requirement SRS-F080 The software shall enable the FM transponder only while transmission is permitted, the radio is powered, the ground allows it, the mode is ACTIVE, the array is sunlit, the SOC is at least 55 %, the PA is cool and the keyed time is under 25 %
+//! @requirement SRS-F081 The software shall drive the transponder enable XPDR_EN as a heartbeat renewed by every main-loop pass while the transponder gates hold
 
 use crate::mode::SOC_PAYLOAD;
 

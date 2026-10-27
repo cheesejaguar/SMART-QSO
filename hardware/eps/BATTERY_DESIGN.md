@@ -147,7 +147,7 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 | Balance Threshold | 50 mV | Version 1.0 |
 | Overcharge Protection | ≤ 4.25 V per cell | BASELINE §5 |
 | Overdischarge Protection | 2.8 V per cell | Above the 2.65 V cut-off of the cell specification's cycle test |
-| Overcurrent Protection | 5 A; short-circuit trip ≤ 200 µs | Below the cell's 8 A continuous limit; peak load 1.8 A (burn wires plus housekeeping, SQSO-PBA-001 v2.0 §5) |
+| Overcurrent Protection | 4 A for 0.5 s; short-circuit trip ≤ 200 µs | Below the 5 A pack fuse (the resettable trip acts first) and the cell's 8 A continuous limit; largest legitimate load 1.8 A, largest software-fault load 3.3 A (all four burn resistors at 0.8 A; EPS_DESIGN v2.0 §5.1; SQSO-PBA-001 v2.0 §5) |
 | Secondary over-voltage protector | 4.35 V/cell, fixed threshold, blows a three-terminal fuse in the charge path | Second, dissimilar overcharge control (SQSO-BSA-001 §3, H1; RID EPS-11) |
 | Charge temperature window | Charge inhibited below 0 °C and above +45 °C, in hardware at the charge regulator's TS input | Cell specification; BASELINE §5; SYS-602 |
 | Pack over-temperature | Both FETs open above +60 °C (hardware comparator) | Cell specification |
@@ -317,7 +317,7 @@ lot uniformity OCV < 1 %, mass < 2 %, capacity < 5 %, resistance < 15 %).
 | Launch Provider | Battery safety requirements (planned) |
 | IEC 62133 | Safety requirements (planned) |
 | JSC 20793 Rev D | Only if the ISS/NRCSD backup is used; assessment in SQSO-BSA-001 |
-| SpaceX Rideshare Payload User's Guide v11 | §6.7.7 inhibit test at the flight state of charge (50 ± 10 %, SQSO-BSA-001 §6); §7.6 powered off at launch |
+| SpaceX Rideshare Payload User's Guide v11 | §6.7.7 inhibit test at the flight state of charge (60 ± 5 %, SQSO-BSA-001 §6; LVR-051); §7.6 powered off at launch |
 
 ### 10.2 Open Decisions
 

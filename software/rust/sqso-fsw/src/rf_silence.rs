@@ -20,6 +20,7 @@
 //! resets it for flight; ARMED does not count while powered.
 //!
 //! @requirement SYS-224 No RF signal earlier than 45 minutes after deployment; switch toggle resets the timer
+//! @requirement SRS-F087 The software shall latch the served 45-minute RF silence, so that a sense line reading stowed afterwards does not restart it
 
 use crate::contact_monitor::carry_seconds;
 use crate::nvm::{self, Flash, RecordStatus};

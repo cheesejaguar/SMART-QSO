@@ -38,7 +38,7 @@ the end-of-life charge disconnect, and reports its telemetry to the OBC (SMART-Q
 | EPS-F006 | 3V3_AO rail, always on (OBC, FRAM, receiver path, ADCS sensors) | T | §4 |
 | EPS-F007 | Switched rails with the current limits of §5, every switch off at reset (pull-down) | T | §5 |
 | EPS-F008 | Hardware TX-OFF: the PA supply switch (SW3) removed by RF_TX_EN low, independent of the AI payload (BASELINE §7) | T | §5, §8.1 |
-| EPS-F009 | At least three independent physical inhibits each for RF and for every deployable (CDS 2.3.7, 2.3.8); timers and the RBF do not count | I, T | §8 |
+| EPS-F009 | At least three independent physical inhibits each for RF and for every deployable (CDS 2.3.7, 2.3.8); timers and the RBF do not count | I, T | §8: DS1, DS2 and DS3 (DS3 added at CDR) |
 | EPS-F010 | Non-resettable end-of-life charge-path disconnect (47 CFR 97.207(g)(1)(iii)), fired only by two independent signals | T | §7 |
 | EPS-F011 | Battery protection with the fault tolerance of SQSO-BSA-001 §3 | A, T | §6 |
 | EPS-F012 | Independent hardware low-voltage disconnect of the payload and PA rails | T | Added at CDR (§6, RID EPS-09) |
@@ -87,7 +87,10 @@ RID EPS-13). The regulator must:
 2. inhibit charging outside 0 … +45 °C from NTC1 on the pack, in hardware (TS input), while still supplying the loads
    from the array (power path, EPS-F004): with charging refused at sunrise in the cold (THERMAL_ANALYSIS §4) the
    spacecraft must not run on the pack in sunlight;
-3. pre-charge at ≤ 0.1 A below 3.0 V/cell and refuse to charge below 2.0 V/cell (SQSO-BSA-001 H2);
+3. pre-charge at ≤ 0.1 A below 3.0 V/cell; and if any cell has been below 2.0 V, **latch the charge path off**
+   (charger disabled and CHG FET open) in a non-volatile flag that only an authenticated ground command clears, after
+   the ground has reviewed the cell history (RID SMA-06 / EPS-12; SQSO-BSA-001 H2). The power path (item 2) keeps the
+   bus up from the array in sunlight, so the OBC and receiver can take that command with the pack locked out;
 4. report input voltage and current per tracker.
 
 Candidates (not yet selected; each to be checked against the radiation, temperature and derating rules): a
@@ -121,15 +124,44 @@ converter's under-voltage lock-out is set at 10.8 V falling (rule E8) so the BMS
 | SW3 | 5V_PA | RF_TX_EN (PA3) | PA | 0.30 A | 0.54 A | 1.0 A | TPS22918 | Hardware TX-OFF; pull-down mandatory; RF inhibit 3 (§8.1) |
 | SW4 | 3V3_AO | ADCS_EN (PB6) | Sensors, gyro, magnetorquer drivers | 0.04 A | 0.13 A | 0.3 A | TPS22918 | |
 | SW5 | VBAT | HEATER_EN (PD2) | Battery heater ≈ 200 Ω, two elements | 0.07 A | 0.08 A (16.4 V) | **0.15 A** (was 0.5 A on S2) plus a series fuse 0.25 A and the +40 °C cutout | High-side ≥ 25 V | 1 W at 14.4 V; 0.95 W at 14.0 V (THERMAL_ANALYSIS §2.3) |
-| SW6 | VBAT | DEPLOY_EN (PA1) | Burn-wire drivers | 0 | 1.6 A for ≤ 10 s | 2.0 A, plus a per-resistor limit of 0.8 A (finding F7) | High-side ≥ 25 V | Deployable inhibit (§8.2) |
+| SW6 | VBAT | DEPLOY_EN (PA1) | Burn-wire drivers | 0 | 0.88 A per resistor, one resistor at a time; 3.4 A worst fault | 3.6 A (above the worst software-fault burn load of 3.36 A, below the BMS 4 A and F2), plus 0.8 A per-resistor limit and a 12 s hardware on-time limit (§5.1) | High-side ≥ 25 V | Deployable inhibit (§8.2) |
 | SW7 | 3V3_AO | GNSS_EN (pin open: PE4 is XPDR_EN in the firmware, RID EPS-14) | GNSS receiver | 0.04 A | 0.1 A | 0.15 A with latch-up trip | TPS22918 | |
 
 TPS22918-class switches are rated 5.5 V: they may switch only the 3.3 V and 5 V rails. Every VBAT switch needs a part
 rated ≥ 25 V (derating 16.8 V to ≤ 70 % of the rating, EEE-INST-002).
 
+### 5.1 Deployment drivers and peak battery current
+
+The burn resistors are ≈ 5 Ω. Driven straight from VBAT, each draws 2.9–3.3 A, and the two in parallel on one line
+(S5) about 5.8 A, above the 5 A pack fuse: the first wing deployment would open F2 and end the mission (RID SMA-05).
+The CDR design:
+
+- **One current-limited driver per burn resistor**, 0.8 A ± 10 % (a linear limit or a constant-current sink; finding
+  F7), the value the mission simulation uses (`sqso-sil/src/hw/deploy.rs`: `BURN_OHMS` 5.0, `BURN_LIMIT_A` 0.8; peak
+  battery current in its runs 1.63 A with one line burning).
+- **One driver per wing** (W1, W2) instead of one for both (RID REL-03: the shared driver's common cause gives
+  P(both wings stowed) ≈ 1.6 %, separate drivers ≈ 0.1 %). This needs a second wing burn line in the pin map (for the
+  chair; PB10 serves one today). The antenna knives are the AntS's own (§8.3).
+- **Hardware on-time limit**: a monostable on each driver's enable, 12 s (the simulated burns release in ≤ 4 s;
+  thermal-knife practice is ≤ 10 s), re-armed only by a falling edge of DEPLOY_EN. A stuck OBC line then cannot burn
+  for more than 12 s per cycle.
+- The flight software burns the lines one at a time (antennas, then W1, then W2).
+
+| Deployment case | Burn current | Plus housekeeping and heater | Peak at the pack | Against BMS 4 A / fuse 5 A |
+|-----------------|--------------|------------------------------|------------------|----------------------------|
+| One wing (W1 or W2), normal sequence | 0.8 A (0.88 A at +10 %) | 0.13 A | **1.0 A** | 4.0× / 5.0× |
+| AntS antennas (its own controller; to be confirmed from the AntS ICD) | ≤ 1.6 A allocation | 0.13 A | ≤ 1.7 A | 2.3× / 2.9× |
+| Both wings together (software fault) | 1.76 A | 0.13 A | 1.9 A | 2.1× / 2.6× |
+| Everything at once (software fault: both wings and AntS) | 3.36 A | 0.13 A | **3.5 A** | 1.14× / 1.4×: the BMS trips before the fuse would |
+| One current limiter failed short, one wing | 3.3 A (16.4 V / 5 Ω) | 0.13 A | 3.4 A | Below both; the on-time limit ends it in 12 s |
+| Two limiters failed short (two failures) | 6.6 A | — | 6.7 A | BMS trips (resettable); the fuse is the backup |
+
+The simulation's 1.63 A (one line of two resistors at 0.8 A) and this table agree. Bus voltage during a single-wing
+burn at a cold pack (−20 °C, 55 % SOC) is ≈ 13.4 V (15.04 V less 1.0 A through the cold pack's 1.67 Ω; EMC_ANALYSIS §4).
+
 **Pack protection** (details SQSO-BSA-001 §3): F2, non-resettable 5 A, breaking capacity ≥ 100 A at 32 VDC; RT1 PTC
 hold 2.5 A, trip ≤ 5 A (PDU_DESIGN 1.0's 8 A trip equalled the cell's continuous limit); BMS AFE (BQ76920 class)
-cell OV 4.25 V, UV 2.8 V, over-current 5 A, short-circuit trip; secondary OV protector at 4.35 V with a
+cell OV 4.25 V, UV 2.8 V, over-current 4 A for 0.5 s (below F2, so the resettable trip acts first), short-circuit trip; secondary OV protector at 4.35 V with a
 three-terminal fuse (RID EPS-11); pack over-temperature +60 °C on a hardware comparator; no low-temperature discharge
 cut-off (RID EPS-08: a −10 °C cut-off would keep the bus dark after a cold deployment, THERMAL_ANALYSIS §6.7).
 
@@ -177,20 +209,26 @@ single command or software fault, removes more than one of them.
 
 ### 8.1 RF (2 m PA radiating)
 
+The drawings (S1) have two deployment switches and a "third inhibit" left open (finding F5). The CDR design adds a
+**third deployment switch DS3** (RID SMA-01 / EPS-04, adopted with the safety, launch and RF reviewers): a separate
+switch on a third rail standoff driving a second high-side FET in VBAT+, with a second contact that holds every
+tracker's enable low. Each switch drives its own FET gate (§8.4).
+
 | # | Element | Type | Breaks | Independent of the others because |
 |---|---------|------|--------|-----------------------------------|
 | — | F2, RT1, BMS FETs | Protection | Pack | Closed in normal storage: not inhibits |
 | — | RBF pin | GSE | Pack and array | Not counted |
-| **1** | **DS2**, deployment switch in the pack return (PACK− to GND) | Mechanical, actuated by the dispenser | Pack only | Separate switch on its own rail standoff and wiring, in the negative leg |
-| **2** | **DS1**, deployment switch in VBAT+ | Mechanical, actuated by the dispenser | Pack and array | Separate switch on a diagonally opposite rail, positive leg: a single harness fault cannot bridge both legs; a single shift of the spacecraft in the dispenser cannot release switches on opposite rails |
-| **3** | **SW3**, PA supply switch (RF_TX_EN, PA3) | Load switch, pull-down, off with the OBC unpowered and at every reset | Pack and array | A separate device; with DS1 and DS2 open it has no power to be commanded with; it needs a software command after both have closed |
-| — | SW2 (RADIO_EN), hardware TX permit into the PTT gate (BUILD_VS_BUY §3.2), 45-min RF timer | Series but on the same controller as SW3, or a timer | — | Not counted |
+| **1** | **DS2** → low-side FET in the pack return (PACK− to GND) | Mechanical separation signal | Pack | Own switch, rail, gate drive and wiring, in the negative leg |
+| **2** | **DS1** → high-side FET in VBAT+ | Mechanical separation signal | Pack and array | Own switch on a diagonally opposite rail, positive leg |
+| **3** | **DS3** → second high-side FET in VBAT+, and the trackers' enables | Mechanical separation signal | Pack and array (the only switch that also stops the array charging the pack and the MPPTs running) | Own switch on a third rail; its FET and DS1's are separate parts with separate gate drives, and their wiring is routed apart so one short cannot bridge both |
+| (4) | SW3, PA supply switch (RF_TX_EN, PA3), off at reset | Load switch | Pack and array | Needs a software command after all three switches have closed; counted only as margin |
+| — | SW2 (RADIO_EN), hardware TX permit into the PTT gate (BUILD_VS_BUY §3.2), 45-min RF timer | Same controller as SW3, or a timer | — | Not counted |
 
-**Three independent RF inhibits for the pack.** For the **array** only DS1 and SW3 are in the path: its return is the
-system ground, which DS2 does not switch (S1). In the dispenser the array is dark, but SpaceX requires the payload to
-be "isolated from sources of power" by the mechanical separation signal (UG v11 §6.7.7), and the ground inhibit test
-may be lit. **RID EPS-04:** route each tracker's enable through a third deployment-switch contact (DS3, or the second
-pole of DS2), so that the array path also has three. 
+**Three independent inhibits for the pack and for the array, all from the mechanical separation signal** (UG v11
+§6.7.7: "inhibited from a mechanical separation signal, and not because of other factors such as software delays"),
+with SW3 as a fourth. Common cause between the three switches: they are released together by design at ejection; an
+early release needs the spacecraft to move off three rails at once, so they sit on three different rails. The same
+three switches give the NRCSD backup its ground-leg inhibit.
 
 ### 8.2 Deployables (solar wings; burn wires on SW6)
 
@@ -198,17 +236,19 @@ pole of DS2), so that the array path also has three.
 |---|---------|--------|
 | **1** | DS2 | Pack |
 | **2** | DS1 | Pack and array |
-| **3** | SW6 (DEPLOY_EN, PA1, high side) and Q2 (SOLAR_BURN, PB10, low side) | Both; counted as one, because one OBC drives both lines |
+| **3** | DS3 | Pack and array |
+| (4) | SW6 (DEPLOY_EN, PA1, high side) and the wing's low-side driver (one per wing, §5.1) | Both; counted as one, because one OBC drives both lines |
+| — | Hardware on-time limit (§5.1), 30-minute timer | Not counted (timers) |
 
-Three independent inhibits for the pack, two for the array (EPS-04 fixes it). The 30-minute timer (CDS 2.4.4) is in
-the software and does not count.
+Three independent inhibits, plus the OBC-driven pair. The 30-minute timer (CDS 2.4.4) is in the software and does not
+count.
 
 ### 8.3 Antennas (ISIS AntS, bought)
 
 BUILD_VS_BUY §2.6 buys the ISIS AntS with its own release controller (two microcontrollers, an ARM command, thermal
-knives). S5 and W7 still draw the antenna burn on the OBC's ANTENNA_BURN driver. With AntS the chain is DS2, DS1, the
-AntS supply switch (SW6 or a dedicated switch), and the AntS's own ARM switch: three or four, depending on how its
-supply enters. **RID EPS-07:** redraw S5/W7 for AntS and confirm from the AntS ICD which internal switches are
+knives). S5 and W7 still draw the antenna burn on the OBC's ANTENNA_BURN driver. With AntS the chain is DS2, DS1, DS3, the
+AntS supply switch (SW6 or a dedicated switch), and the AntS's own ARM switch: at least three independent, as long as
+the AntS supply is taken downstream of the three switches. **RID EPS-07:** redraw S5/W7 for AntS and confirm from the AntS ICD which internal switches are
 physical devices between its supply and its knives.
 
 ### 8.4 Requirements on the switches
@@ -219,6 +259,8 @@ physical devices between its supply and its knives.
 - Toggling any deployment switch resets the timers (CDS 2.3.2.4): the OBC loses power, and the timers restart at
   boot.
 - Pack-to-frame isolation ≥ 1 MΩ on both poles (a pack-negative-to-frame short would bypass DS2; SQSO-BSA-001 §5).
+- Storage drain with the switches actuated ≤ 20 µA in all (LVR-051/071 of `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`):
+  the BMS AFE in ship mode (≤ 1 µA), the secondary protector (≈ 1 µA), the gate-drive pull-ups ≤ 5 µA.
 
 ## 9. Telemetry
 
@@ -249,7 +291,7 @@ passivation-latch states, and the heater current.
 | EPS-R003 | Wing deployment failure | L | H | SAFE and IDLE close on 1.47 W (SQSO-PBA-001 §8.1); EPS-10 mode rule |
 | EPS-R004 | Stuck-on payload | L | H | Two switches on two lines and the hardware load shed (§6) |
 | EPS-R005 | Single-event latch-up in the EPS controller | L | M | Watchdog; the BMS and the load shed do not depend on it |
-| EPS-R006 | Hot dispenser soak above +60 °C on the pack | M | M | Integrator analysis (V-THM-5); delivery SOC 50 % |
+| EPS-R006 | Hot dispenser soak above +60 °C on the pack | M | M | Integrator analysis (V-THM-5); delivery SOC 60 ± 5 % (LVR-051) |
 
 ---
 
@@ -261,4 +303,4 @@ passivation-latch states, and the heater current.
 | 1.1 | 2026-10-16 | SMART-QSO Team | §8.2 test IDs aligned with the procedure files (finding VV-18) |
 | 1.2 | 2026-10-16 | Funding audit | Generation, solar cells and BOM aligned with SOLAR_ARRAY_DESIGN v2.0 (TB-14); battery DoD, sizing and charge-temperature rules aligned with BASELINE §5 and BATTERY_DESIGN v2.0 (TB-08) |
 | 1.3 | 2026-10-16 | SMART-QSO Team | §2.4 vibration: interim SpaceX UG v11 level of TP-ENV-002 (≥ 5.57 Grms MPE), replacing 14.1 Grms (finding LA-05) |
-| 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten for the built 4S EPS: string layout and four trackers, bus and rails, load switches with limits and derating, protection, hardware load shed, end-of-life disconnect, inhibit chains with their independence; the module-based design of 1.x withdrawn |
+| 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten (including, after the safety and reliability review: third deployment switch DS3, one current-limited burn driver per wing with a hardware on-time limit and the peak-current table, latched recharge lockout, BMS over-current 4 A below the 5 A fuse) — for the built 4S EPS: string layout and four trackers, bus and rails, load switches with limits and derating, protection, hardware load shed, end-of-life disconnect, inhibit chains with their independence; the module-based design of 1.x withdrawn |

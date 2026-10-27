@@ -61,6 +61,17 @@ pub enum Outcome {
     Stopped,
 }
 
+impl Outcome {
+    /// For the console
+    pub const fn text(self) -> &'static str {
+        match self {
+            Outcome::Fix => "fix",
+            Outcome::NoFix => "no fix",
+            Outcome::Stopped => "stopped by the gates",
+        }
+    }
+}
+
 /// What a pass changed
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Action {
@@ -195,6 +206,8 @@ mod tests {
         assert_eq!(s.step(t + 109_999, &later), Action::None);
         assert_eq!(s.step(t + 110_000, &later), Action::PowerOff(Outcome::Fix));
         assert_eq!((s.sessions, s.fixes, s.no_fix_run), (1, 1, 0));
+        assert!(!Outcome::Fix.text().is_empty() && !Outcome::NoFix.text().is_empty());
+        assert!(!Outcome::Stopped.text().is_empty());
         // Next one an orbit later (LEOP); a fix older than the session does not count
         let old = Inputs { fix_ms: Some(t + 80_000), ..GO };
         assert_eq!(s.step(t + 110_000 + LEOP_PERIOD_MS - 1, &old), Action::None);

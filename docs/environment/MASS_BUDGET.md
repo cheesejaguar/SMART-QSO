@@ -32,7 +32,9 @@ after the COTS buys still has < 10 % mass margin"); the rod option is above it.
 
 The mass is no longer the problem it was in Version 2.0 (0–4 % margin). The new problem is the **inertia**: with the
 wings and the AntS antennas deployed, +Y (the spin axis of the sun-pointing law) is only 0.5–4 % larger than +Z, and the
-ADCS Monte Carlo inputs do not hold. §6 gives the numbers, the corrected values and the layout that recovers them.
+ADCS Monte Carlo inputs do not hold. §6 gives the numbers, the corrected values and the layout that recovers them. A
+2 m antenna element along ±Y, as the antenna design's recommended options B and C have, makes +Y the intermediate axis
+and the sun-pointing fails (52–60 % of sunlit time within 15°): §6.4, item 6.
 
 ### 1.1 Changes from Version 2.0
 

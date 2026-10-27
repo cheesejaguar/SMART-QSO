@@ -27,6 +27,10 @@
 //! telemetry and in the Monte Carlo. The burst's dipole is the commanded
 //! one scaled by the period over the on-time (saturated), so the impulse
 //! per cycle is the one the control law asked for.
+//!
+//! @requirement SRS-F090 The software shall use a magnetometer sample only when the magnetorquers have been off for at least 50 ms, discard and count any other sample
+//! @requirement SRS-F091 The software shall command each magnetorquer burst for 900 ms of the 1 s control period, with the dipole scaled by the period over the on-time
+//! @requirement SRS-F092 The software shall not complete a detumble on a magnetometer rate estimate that a discarded sample left stale
 
 use crate::fmath::sqrt;
 

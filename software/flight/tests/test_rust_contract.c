@@ -393,7 +393,7 @@ static void test_dictionary_table_matches_header(void **state)
     (void)state;
     assert_int_equal(g_cmd_dictionary_count, CMD_DICTIONARY_COUNT);
     assert_int_equal(g_cmd_dictionary[0].cmd_id, CMD_SYS_NOP);
-    assert_int_equal(g_cmd_dictionary[CMD_DICTIONARY_COUNT - 1U].cmd_id, CMD_PLD_DISABLE);
+    assert_int_equal(g_cmd_dictionary[CMD_DICTIONARY_COUNT - 1U].cmd_id, CMD_GNSS_REQUEST);
     assert_string_equal(cmd_get_name(CMD_COMM_TX_DISABLE), "TX_DISABLE");
 }
 

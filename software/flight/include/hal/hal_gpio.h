@@ -37,14 +37,15 @@ typedef enum {
     GPIO_PIN_ALERT         = 8,   /**< EPS alert input */
     GPIO_PIN_DEPLOY_SENSE  = 9,   /**< Separation (deployment) switch sense input */
     GPIO_PIN_UMBILICAL_SENSE = 10, /**< GSE umbilical present (high); pulled low in flight */
-    GPIO_PIN_ANTENNA_BURN  = 11,  /**< Antenna burn-wire enable */
-    GPIO_PIN_SOLAR_BURN    = 12,  /**< Solar-array burn-wire enable */
+    GPIO_PIN_ANTENNA_BURN  = 11,  /**< Unused since the AntS (deployed over I2C, deployment.h); held low */
+    GPIO_PIN_SOLAR_BURN    = 12,  /**< Solar-wing burn driver A (first resistor of each wing) */
     GPIO_PIN_ANTENNA_SENSE = 13,  /**< Antenna deployed sense input */
     GPIO_PIN_SOLAR_SENSE   = 14,  /**< Solar array deployed sense input */
     GPIO_PIN_TX_PWR_SEL    = 15,  /**< Downlink power select: low 0.5 W, high 1 W */
     GPIO_PIN_XPDR_EN       = 16,  /**< FM transponder enable: heartbeat (hal_gpio_heartbeat), never a level */
     GPIO_PIN_GNSS_EN       = 17,  /**< GNSS receiver load switch (current-limited, latch-up trip) */
-    GPIO_PIN_COUNT         = 18
+    GPIO_PIN_SOLAR_BURN_B  = 18,  /**< Solar-wing burn driver B (second resistor of each wing) */
+    GPIO_PIN_COUNT         = 19
 } HalGpioPin_t;
 
 /**

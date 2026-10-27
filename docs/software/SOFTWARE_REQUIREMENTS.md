@@ -1,13 +1,14 @@
 # Software Requirements Specification (SRS)
 
 **Document Number**: SMART-QSO-SRS-001
-**Version**: 1.5
-**Date**: 2026-10-25
+**Version**: 1.6
+**Date**: 2026-10-27
 **Status**: Preliminary
 
 **Governing Standards**:
 - NPR 7123.1 Rev E - NASA Systems Engineering Processes and Requirements
-- NPR 7150.2 Rev B - NASA Software Engineering Requirements
+- NPR 7150.2D - NASA Software Engineering Requirements (Class C; requirement mapping in `docs/software/NPR7150_COMPLIANCE_MATRIX.md`)
+- NASA-STD-8739.8B - Software Assurance and Software Safety
 
 ---
 
@@ -158,6 +159,48 @@ Requirements are identified as:
 | SRS-F072 | The software shall validate sensor readings against limits | T | High |
 | SRS-F073 | The software shall include telemetry in beacon transmissions | T | High |
 
+### 3.9 Transponder and Commissioning
+
+Added at CDR (2026-10-27) for the duty-gated FM transponder (BASELINE §2, D4), the launch reviewer's findings LV-01,
+LV-02, LV-04, LV-07, LV-14, LV-15 and LV-27, and the CDR avionics review. Verification: the named C suites, Rust unit
+tests and the mission simulation (`software/rust/sqso-sil`).
+
+| ID | Requirement | Verification | Priority |
+|----|-------------|--------------|----------|
+| SRS-F080 | The software shall enable the FM transponder only while transmission is permitted, the radio is powered, the ground allows it, the mode is ACTIVE, the array is sunlit, the SOC is at least 55 %, the PA is below 70 °C (resuming at 60 °C) and the keyed time is under 25 % of the last 100 minutes | T | High |
+| SRS-F081 | The software shall drive the transponder enable XPDR_EN as a heartbeat renewed by every main-loop pass while the transponder gates hold, with a lease of at most 60 ms, so that the radio board's 50 ms monostable drops the transponder within 110 ms of the last pass; a level on the pin shall not enable it | T | High |
+| SRS-F082 | The software shall hold the mode at IDLE, the payload and the transponder off from ARM_FLIGHT until an authenticated commissioning release telecommand, across resets, and shall hold after an unreadable operations record | T | High |
+| SRS-F083 | The software shall let the ground stop and allow the transponder by telecommand, persisted across resets, without changing its other gates | T | Medium |
+| SRS-F084 | The software shall power the GNSS receiver for sessions, every orbit in launch and early operations then four a day, keep the latest fix with its time and quality, and start a session on command; a session shall run only with the Jetson off and the SOC at least 40 %, and shall hold the transponder off | T | Medium |
+| SRS-F085 | The software shall downlink a housekeeping frame every fifth beacon and on command, carrying temperatures, battery current and voltage, array power, deployment, RF-silence, boot and reset, fault-log head, body rates, contact timeout and GNSS fix age, through the downlink's inhibits and duty limit | T | High |
+| SRS-F086 | The software shall command no magnetorquer output until 120 s after separation (SpaceX Rideshare User's Guide v11 §3.3.4) | T | High |
+| SRS-F087 | The software shall latch the served 45-minute RF silence, so that a sense line reading stowed afterwards does not restart it | T | High |
+| SRS-F088 | The software shall space deployment attempts 50 minutes apart and accept a telecommand to retry an element with fresh attempts once the 30-minute wait is served | T | Medium |
+
+### 3.10 Attitude Determination and Control
+
+| ID | Requirement | Verification | Priority |
+|----|-------------|--------------|----------|
+| SRS-F090 | The software shall use a magnetometer sample only when the magnetorquers have been off for at least 50 ms, discard and count any other sample, and log the first discarded sample after init as a fault | T | High |
+| SRS-F091 | The software shall command each magnetorquer burst for 900 ms of the 1 s control period, with the dipole scaled by the period over the on-time and saturated at 0.2 A·m², so the delivered impulse is the control law's | T | High |
+| SRS-F092 | The software shall not complete a detumble on a magnetometer rate estimate that a discarded sample left stale | T | High |
+| SRS-F093 | The software shall run B-dot detumble (gain 10⁴ A·m²·s/T) and spin-stabilized sun pointing of +Y at 6°/s with the gains of BASELINE §8 at 1 Hz, and treat a detumble lasting over 285 minutes as a fault | T, A | High |
+
+### 3.11 OBC Selector (flight AI, decision D5)
+
+Design: `docs/payload/OBC_SELECTOR_DESIGN.md` (SQSO-PAY-SEL-001). Not implemented at CDR (fabrication-phase task).
+
+| ID | Requirement | Verification | Priority |
+|----|-------------|--------------|----------|
+| SRS-F100 | The software shall select the beacon template, propose the transponder bucket and propose the power-mode preference with the OBC selector of SQSO-PAY-SEL-001, or abstain to the fixed rules | T | Medium |
+| SRS-F101 | The selector shall choose only among the pre-approved templates, and every value in a beacon shall come from measurements | T, I | High |
+| SRS-F102 | The selector's proposals shall only restrict the transponder gates and the mode manager, never extend them | T, A | High |
+| SRS-F103 | The flight inference shall reproduce the trained model bit for bit on the shared test vectors | T | Medium |
+| SRS-F104 | The combined decision shall never be less conservative than the fixed rules, for any inputs and any valid model table | T | High |
+| SRS-F105 | A head shall abstain when a feature is stale, missing or outside its training range, or the calibrated confidence is below its threshold | T | Medium |
+| SRS-F106 | A model table that fails its CRC, version or schema check shall disable the selector for the boot and be logged, and parsing any table shall be bounded and free of panics | T | Medium |
+| SRS-F107 | A selector decision shall take at most 0.2 ms and 10 µJ on the STM32L4R5, and the mission simulation with the selector shall show no check worse than with the fixed rules | T, A | Medium |
+
 ---
 
 ## 4. Performance Requirements
@@ -259,12 +302,12 @@ TNC and transmitter are not selected, so SRS-I022 and the thresholds (TBR-SRS-00
 
 ### 8.1 Design Constraints
 
-| ID | Constraint |
-|----|------------|
-| SRS-C001 | OBC code shall be written in Rust (2024 edition) or in C conforming to the C11 standard |
-| SRS-C002 | No dynamic memory allocation after initialization |
-| SRS-C003 | Stack size shall not exceed 8 KB |
-| SRS-C004 | Total code size shall not exceed 256 KB |
+| ID | Constraint | Verification |
+|----|------------|--------------|
+| SRS-C001 | OBC code shall be written in Rust (2024 edition) or in C conforming to the C11 standard | I (build configuration; CI toolchain pin) |
+| SRS-C002 | No dynamic memory allocation after initialization | T (ctest `no_dynamic_memory`; CI symbol check of the image) |
+| SRS-C003 | Stack size shall not exceed 8 KB | A (`scripts/stack_usage.py` on the image, CI gate), T (HIL-044, MPU guard) |
+| SRS-C004 | Total code size shall not exceed 256 KB | I (`arm-none-eabi-size` of the release image at each release) |
 
 **Implementation status of the design constraints (2026-10-25).** Since 2026-10-24 the OBC flight software is Rust
 (`software/rust/README.md`). On the OBC there is no RTOS: the image runs on the Embassy executor
@@ -280,11 +323,11 @@ change request CR-2026-001, `docs/project/CHANGE_REQUEST_LOG.md`).
 
 ### 8.2 External Constraints
 
-| ID | Constraint |
-|----|------------|
-| SRS-C010 | Beacon transmissions shall comply with amateur radio regulations |
-| SRS-C011 | RF transmissions shall not occur until deployment timer expires |
-| SRS-C012 | Callsign shall be included in all RF transmissions |
+| ID | Constraint | Verification |
+|----|------------|--------------|
+| SRS-C010 | Beacon transmissions shall comply with amateur radio regulations | I (`docs/BEACON_SPEC.md` §6 against 47 CFR 97), T (content-filter vectors) |
+| SRS-C011 | RF transmissions shall not occur until deployment timer expires | T (C suites `test_rf_silence`, `test_downlink`; SIL check `rf-silence`) |
+| SRS-C012 | Callsign shall be included in all RF transmissions | T (C suites `test_beacon_format`, `test_downlink`), I |
 
 ---
 
@@ -337,3 +380,4 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | 1.3 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: implementation status of SRS-C001 to SRS-C004 beneath §8.1 (SRS-C001 not met as written; PI decision); §2.1 OBC runs on the Embassy executor, not FreeRTOS. No requirement text changed |
 | 1.4 | 2026-10-25 | SMART-QSO Team | SRS-C001 amended by PI decision to Rust (2024 edition) or C11 (was C11 only; CR-2026-001). Status beneath §8.1: SRS-C001 met; SRS-C003 met by analysis (static worst case 4,892 B, CI gate; hardware measurement pending) |
 | 1.5 | 2026-10-25 | SMART-QSO Team | SRS-I023 to SRS-I027 added: the downlink transmitter interface, permission at hand-over, key-down and duty limits, power selection, transmitter protection (CR-2026-005) |
+| 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight-software review) | §3.9 transponder and commissioning (SRS-F080 to SRS-F088: gates, XPDR_EN heartbeat, commissioning hold, ground transponder enable, GNSS sessions, housekeeping frame, 120 s magnetorquer delay, RF-silence latch, deployment retries); §3.10 ADCS (SRS-F090 to SRS-F093: magnetometer window, coil burst, stale rate, control laws); §3.11 OBC selector (SRS-F100 to SRS-F107); verification methods for SRS-C001 to SRS-C012; governing standard NPR 7150.2D and NASA-STD-8739.8B (was NPR 7150.2 Rev B) |

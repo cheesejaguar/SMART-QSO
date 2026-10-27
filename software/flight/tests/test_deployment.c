@@ -423,9 +423,8 @@ static void test_force_retry_after_failure(void **state)
 {
     (void)state;
     wait_out();
-    for (uint32_t i = 0U; i < 20U; i++) {
-        advance(2U * MINUTE_MS, SECOND_MS);
-    }
+    /* Three attempts DEPLOYMENT_RETRY_DELAY_MS apart (spread over the orbit, LV-07) */
+    advance((3U * DEPLOYMENT_RETRY_DELAY_MS) + (2U * MINUTE_MS), SECOND_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_FAILED);
     assert_true(deployment_force_retry(DEPLOY_ELEMENT_ANTENNA));
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_ANTENNA_PENDING);
@@ -442,9 +441,8 @@ static void test_solar_failure_reported(void **state)
 
     hal_sim_gpio_drive_input(GPIO_PIN_ANTENNA_SENSE, true);
     wait_out();
-    for (uint32_t i = 0U; i < 20U; i++) {
-        advance(2U * MINUTE_MS, SECOND_MS);
-    }
+    /* Three attempts DEPLOYMENT_RETRY_DELAY_MS apart (spread over the orbit, LV-07) */
+    advance((3U * DEPLOYMENT_RETRY_DELAY_MS) + (2U * MINUTE_MS), SECOND_MS);
     assert_int_equal(deployment_get_state(), DEPLOY_STATE_FAILED);
     assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), DEPLOYMENT_MAX_RETRIES);
     assert_no_burn();
