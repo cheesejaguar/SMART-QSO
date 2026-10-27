@@ -103,10 +103,10 @@ centre, +Z along the rails, −Z inserted first).
 | −15.5 … −5.0 | X rod at (0, +36); GNSS receiver at (+5, −20) | Deck |
 | −4.0 … +3.6 | EPS board (substrate −3.0 … −1.4) | Columns, centre supports at (0, ±21) |
 | +4.0 … +9.6 | OBC (substrate +5.0 … +6.6), parts ≤ 3 mm top / 1 mm bottom (envelope) | Columns, centre supports at (0, ±21) |
-| +6.6 … +20.6 | M-G370PDT0 in socket X1 at (−20, +27.5), 14.0 mm high, standing through the carrier window (§4.3) | Socket and two screws on the OBC |
-| +15.0 … +21.6 | Jetson carrier (substrate +18.0 … +19.6), 27 × 27 mm window at x −33.5 … −6.5, y +14.0 … +41.0, Al window frame 2.5 × 3.0 mm below it (z +15.0 … +18.0) | Columns, centre supports at (0, ±21) |
-| +19.6 … +27.8 | SO-DIMM on the −Y edge, Jetson module centred at (0, −6), clamp at both short edges, TIM | Carrier |
-| +27.8 … +32.8 | Heat spreader 80 × 60 × 5 mm at (0, −3), flanges 3 mm to the ±X shear panels (y −20 … +20) | 3 × M2.5 per side with a thermal gasket, to the shear panels |
+| +6.6 … +20.6 | M-G370PDT0 in socket X1 at (−20, +30.5), 14.0 mm high, standing through the carrier window (§4.3) | Socket and two screws on the OBC |
+| +15.0 … +21.6 | Jetson carrier (substrate +18.0 … +19.6), 27 × 27 mm window at x −33.5 … −6.5, y +17.0 … +44.0, Al window frame 2.5 × 3.0 mm below it (z +15.0 … +18.0) | Columns, centre supports at (0, ±21) |
+| +19.6 … +27.8 | SO-DIMM on the −Y edge (4.0 mm stack), Jetson module centred at (0, −6) on two steel standoffs MP2/MP3 at (±31.3, +12.6); SoC lid 20 × 20 mm at (0, −6); gap pads (1.0 mm on the SoC, 2.0 mm on the DRAM and regulators, 25 % deflection); clamp bars at both short edges | SO-DIMM and standoffs on the carrier (§4.5) |
+| +27.05 … +32.8 | Heat spreader 80 × 60 × 5 mm at (0, −3) with a 22 × 22 × 0.75 mm pedestal over the SoC lid and a 0.5 mm second face over the DRAM and regulators (§4.5), flanges 3 mm to the ±X shear panels (y −20 … +20) | 3 × M2.5 per side with a thermal gasket, to the shear panels |
 | +33.3 … +43.4 | RF board (substrate +34.8 … +36.4) with an 84 × 54 × 7 mm shield; ≤ 2 mm parts outside it | Columns, centre support (0, 0) to the spreader |
 | +40.4 … +48.4 | Magnetometer at (+24, +27); GNSS patch adapter at (0, 0) | +Z end frame |
 | +48.4 … +50.0 | +Z end frame, 1.6 mm, 30 × 30 mm cut-out | Rails |
@@ -133,7 +133,7 @@ upper stack.
 | D-8 | Torquer deck as a 1.0 mm Al skeleton (7.8 g; 9 g with clips from MEL row 5) for the X rod and the GNSS receiver; Y and Z rods beside the battery | The 47 mm rods and the receiver have no other place in the 94.5 mm between the end frames; MCAD-02 |
 | D-9 | Two 5 g trim-mass positions on the +Z end frame at y = ±45 mm | §5.4 |
 | D-10 | No deployed-position latch; damped silicone stop (ζ ≥ 0.3); MoS₂ pins; legs 5 mm long | SQSO-MECH-001 B §4A–§5A |
-| D-11 | Gyro (M-G370PDT0 in socket X1) at (−20, +27.5) on the OBC, standing 14.0 mm through a 27 × 27 mm window in the Jetson carrier, framed by a 2.5 × 3.0 mm Al stiffener on the carrier's bottom face; carrier and stack heights unchanged | OBC item C3: 14 mm needed, 11.4 mm available; the two options proposed do not fit (§4.3) |
+| D-11 | Gyro (M-G370PDT0 in socket X1) at (−20, +30.5) on the OBC, standing 14.0 mm through a 27 × 27 mm window in the Jetson carrier, framed by a 2.5 × 3.0 mm Al stiffener on the carrier's bottom face; carrier and stack heights unchanged | OBC item C3: 14 mm needed, 11.4 mm available; the two options proposed do not fit (§4.3) |
 
 ### 4.3 Gyro Mounting (OBC Item C3)
 
@@ -146,14 +146,16 @@ with a 0.1 m ribbon. Neither fits layout B; a third arrangement does, and is ado
 |--------|---------------------------------------|----------------------------|-----------------------|----------------------------------------|--------|
 | (1) Raise the carrier, module, spreader and RF board 3 mm | Needs 3.0 mm (2.6 mm with zero clearance at the gyro). Free above the stack: 1.0 mm (RF shield top to the GNSS patch adapter) and 2.0 mm (RF parts to the magnetometer); below the OBC: 1.0 mm (EPS bottom parts to the X rod), 2.5 mm (to the GNSS receiver) and 1.4 mm (deck to the battery sense board). Raised 3 mm, the RF board overlaps the patch adapter by 2.0 mm and the magnetometer by 1.0 mm; lowering the EPS and OBC instead runs into the X rod after 1.0 mm. The 3.0 mm exists only with every one of these gaps at zero, or with a notched RF shield, a shorter patch adapter and an EPS keep-out over the rod | Unchanged (board-mounted) | Unchanged (gyro on the OBC) | CG z +0.6 mm; Iyy/max 1.072 / 1.063, axis 0.9° / 2.3° (better ratio: the upper stack moves away from the CG) | **Does not fit** without three other designs changing |
 | (2) Frame bracket and a 0.1 m FFSD-10-D ribbon to an FTSH header at X1 | The module with a mated ribbon socket is as tall as on its socket (about 14 mm), so the bracket needs a free 24 × 24 × 15.5 mm volume (module, connector, 1.5 mm bracket). A voxel search of the CAD (1 mm grid, every solid) finds none in layout B in any orientation; the largest 24 × 24 footprint is 13.9 mm high, through a lightening hole of the torquer deck between the battery sense board and the EPS, with no room for the bracket. The ribbon would also have to pass the EPS board through the 3.3 mm ±X wall gaps | A machined bracket on the frame could be held to about 0.1° (better than a board) | The deck is the softest internal structure (195 Hz, §8.2); a frame bracket elsewhere does not exist | On the deck: CG z −0.16 mm; axis 1.3° / 3.1° (the gyro moves 24 mm toward −Z, adding Iyz) | **Does not fit** |
-| **(3) Gyro on its socket on the OBC, through a 27 × 27 mm window in the Jetson carrier, framed by a 2.2 g Al stiffener (adopted)** | No stack height change. Gyro at (−20, +27.5) mm, top at z +20.6; the window (x −33.5 … −6.5, y +14.0 … +41.0) clears it by 1.5 mm on every side; 2.1 mm to the Jetson module's underside parts (y ≤ +14) and 3.0 mm below the module board; 5.1 mm to the centre support at (0, +21). A socketed height up to 16.5 mm still leaves 0.5 mm below the module board | As the OBC board: socket on a 1.6 mm board on six supports (§4.3.1) | The OBC board's response (below) | CG z +0.01 mm; Iyy/max 1.056 / 1.047, axis 0.4° / 1.4° | **Fits** (check OBC-C3, `results.json`); carrier Steinberg margin kept by the frame |
+| **(3) Gyro on its socket on the OBC, through a 27 × 27 mm window in the Jetson carrier, framed by a 2.2 g Al stiffener (adopted)** | No stack height change. Gyro at (−20, +30.5) mm, top at z +20.6; the window (x −33.5 … −6.5, y +17.0 … +44.0) clears it by 1.5 mm on every side; 2.0 mm beside the Jetson module's far edge (y +16.5) and 3.6 mm from its underside parts; 3.4 mm from the module standoff MP2 at (−31.3, +12.6), whose pad sets the window's −Y edge (§4.5); 5.1 mm to the centre support at (0, +21). Nothing is above the gyro below the spreader (z +27.8): a socketed height up to 20 mm still clears it | As the OBC board: socket on a 1.6 mm board on six supports (§4.3.1) | The OBC board's response (below) | CG z +0.01 mm; Iyy/max 1.056 / 1.047, axis 0.4° / 1.4° | **Fits** (check OBC-C3, `results.json`); carrier Steinberg margin kept by the frame |
 
 **What the carrier gives up.** 729 mm² (8 %) of the carrier's 8,646 mm², in its +Y, −X quadrant outside the module
 footprint, and 2.2 g of FR-4, which the Al frame replaces (row 21 split 14 g substrate, 23.8 g parts, 2.2 g frame: no MEL
-change). The window keeps a 6.9 mm web to the board edge, 3.0 mm to the
-centre support's keep-out (Ø7 mm) and 3.3 mm to the corner column's. The carrier is not yet designed (the
-Jetson integration design §2 still shows an 80 × 50 mm board), so the window is an outline requirement, not a change to
-a layout. FE (§8.5): the window alone takes the carrier's Steinberg margin from +0.08 (same mesh, no window) to
+change). The window keeps a 3.9 mm web to the board edge (the frame comes to 1.4 mm of it), 3.0 mm to the
+centre support's keep-out (Ø7 mm) and 3.0 mm to the corner column's. It was first placed at y +14.0 … +41.0; the
+carrier design (SQSO-JET-BRD-001, item M1) puts the module standoff MP2 at the module's far-edge hole, (−31.3, +12.6)
+mm by the module outline, whose Ø5.1 mm spacer and pad need board to y ≈ +16, so window and gyro moved 3 mm toward +Y.
+The window lies in the carrier's −X power zone of its +Y strip (J1 at the −X edge); the carrier designer is placing
+those parts round it. FE (§8.5): the window alone takes the carrier's Steinberg margin from +0.08 (same mesh, no window) to
 **−0.05**: it cuts the board between the corner column (−40, +43) and the centre support (0, +21). A 2.0 mm carrier
 recovers only +0.08 (the allowable falls as the board thickens). The design therefore frames the window: Al 6061,
 2.5 mm wide × 3.0 mm high, on the carrier's bottom face (z +15.0 … +18.0, 5.4 mm above the OBC's 3 mm parts envelope,
@@ -200,12 +202,33 @@ the CAD gives them:
 | Outline, holes: PC/104 90.17 × 95.89 mm, four Ø3.18 mm holes, the two centre supports at (0, ±21), Ø6.4 mm copper keep-outs, one GND-bonded hole matching the EPS's | Same positions as the CAD; the CAD keeps Ø7 mm free of parts on both sides. The single frame bond must be at the same corner column on the EPS and the OBC, and the other columns and supports must not touch copper (the Al spacers are conductive) | Consistent |
 | Stack-up 6 layers, 1.6 mm | The FE and the Steinberg margins use 1.6 mm (OBC +0.14 with the two supports; §8.5) | Consistent |
 | Heights | Top side ≤ 3 mm (envelope) except X1; up to 9.4 mm is free under the carrier's 1 mm bottom-side envelope with 1 mm clearance (7.4 mm under the window frame). **Bottom side ≤ 1.0 mm**: the EPS's 5 mm top envelope leaves 0.4 mm below it | Constraint for the layout |
-| X1 (gyro) "near the board centre on the spin-axis side" | At (−20, +27.5) mm, 24 × 24 mm, under the carrier window of §4.3; the board centre is under the Jetson module and the centre supports | Placed |
+| X1 (gyro) "near the board centre on the spin-axis side" | At (−20, +30.5) mm, 24 × 24 mm, under the carrier window of §4.3; the board centre is under the Jetson module and the centre supports | Placed |
 | J1 on the edge facing the EPS's J3 (W3, 40-way ribbon, about 26 mm wide) | J1 cannot be on the bottom side (1.0 mm), and a mated FTSH/ribbon socket on the EPS top side does not fit under the OBC (6.4 mm between the substrates; mated height open, Samtec drawing). The ribbon can only leave the stack in the ±X wall gaps (3.3 mm, x ±45.4 … ±48.4; the ±Y gaps are 0.55 mm): J1 and J3 at the same ±X edge, at |y| < 24 mm (the harness bundles occupy |y| = 24 … 34), on the +X edge to stay clear of the Z rod (x −46.8 … −36.2, |y| < 5.3, up to z +3.0) | Constraint for the OBC and EPS layouts |
 | J2 "on the +Z-facing edge toward the RF board" (W4A, FTSH-107, about 9 mm wide) | J2 on the top side; the ribbon passes the carrier and the spreader in a ±X wall gap at |y| = 34 … 44 mm (the spreader flanges fill |y| < 20 at z +29.8 … +32.8, the harness bundles |y| = 24 … 34) | Constraint for the OBC and RF layouts |
 | DRV8876s and J7 (rod leads) on the −X edge nearest the Z rod's top | The Z rod ends at z +3.0 under the OBC at (−41.5, 0), 1.0 mm below the OBC's bottom-side envelope: J7 on the top side or outside the rod footprint (x −46.8 … −36.2, |y| < 5.3) | Constraint for the layout |
 | RM3100 (U15, L1–L3) in the (+X, −Y) corner; no ferromagnetic parts within 20 mm and no unpaired current within 30 mm | Inside the OBC the rule is the OBC's. In the stack, within 20 mm of that corner (about (+33, −38, +7)): the carrier's bottom-side parts 10 mm above, the SO-DIMM connector (about 14 mm, its latches) and the Jetson module's corner (about 18 mm); the battery cans are 31 mm away. **The rule therefore extends to the carrier**: no ferromagnetic parts and no unpaired high-current traces (the Jetson input, up to the 5 V burst current) within 20–30 mm of (+33, −38) on either side of the carrier; the SO-DIMM connector's latches non-magnetic or the RM3100 moved toward +Y | New interface item for the carrier and the OBC (§11) |
 | Magnetometer to the rods (ADCS: 60–85 mm at the +Z position of §4.1) | From that corner: 43 mm to the end of the Y rod (+42, −23.5, −32.9), 77 mm to the X rod, 84 mm to the Z rod. A dipole field falls as 1/r³, so the Y rod's remanent field at the sensor is 2.7–7.7 times what it is at the +Z module position; of the four corners this one is the farthest from the rods (the others are 20–34 mm from the X or Z rod) | For the chair and the ADCS owner with OBC item C1 (AV-V4 decides) |
+
+### 4.5 Jetson Module Mounting and Thermal Interface (Carrier Item M1)
+
+The carrier design (SQSO-JET-BRD-001 A §14, §18, item M1) asks the mechanical design for the spreader pedestal, the
+module standoffs, the clamp-force path and a flush fastener at (0, −21). Modelled in `model.py` and checked (JET-M1):
+
+| Item | Design | Check |
+|------|--------|-------|
+| SoC lid and parts (envelopes until the NVIDIA STEP model is used) | SoC lid 20 × 20 × 1.5 mm at the module centre (0, −6) (the carrier design's 4.0 cm² lid allocation); DRAM and regulators 1.0 mm high over 40 × 28 mm round it | — |
+| Gap pads | 1.0 mm on the SoC lid, 2.0 mm on the DRAM and regulators, both at 25 % deflection (0.75 / 1.5 mm installed) | MEL row 22 (pads about 5 g of the 10 g interface allocation) |
+| Spreader pedestal | 22 × 22 × 0.75 mm boss machined on the spreader's lower face over the SoC lid (z +27.05 … +27.8), and a 0.5 mm second face over the DRAM and regulators; flatness ≤ 0.05 mm, parallel to the flange plane within 0.05 mm, Ra ≤ 1.6 µm (drawing notes) | 1.8 g of Al: 66.6 g against row 23's 65.0 g CBE, inside its growth allowance (MASS_BUDGET v3.1 §1.2) |
+| Pad deflection and shims | The gap from the pedestal to the lid is a chain of the SO-DIMM stack (4.0 mm), the module board (1.2 mm, ±10 %), the lid height, the carrier's place in the stack and the flange plane: about ±0.24 mm RSS (allocations), against the 0.25 mm nominal compression of the SoC pad. **Shim the spreader flanges at integration** to the gap measured with the module clamped (the carrier design's 15–35 % deflection band), recorded with a pressure film (V-JET-7) | VI-MCAD-06 |
+| Module standoffs MP2/MP3 | Würth 9774040360R steel SMT spacers, M3 × 4.0 mm, at the module's far-edge holes: (±31.3, +12.6) mm in the CAD (3.5 mm from the module's sides and 3.9 mm from its far edge; **to be checked against the NVIDIA module drawing**); module underside envelope relieved round them | 1.85 mm from the gyro window; the steel spacers are 51 mm from the RM3100 corner of §4.4 (beyond its 20 mm rule) |
+| Clamp force | ≤ 38 N (28 N SoC pad, 10 N others; 48 % of the 80 N module limit), from the spreader through the pads into the module, the SO-DIMM and the two standoffs, then the carrier and its supports. The spreader, bolted at both flanges, deflects about 0.01 mm under it (5 mm plate over 80 mm): negligible against the 0.05 mm flatness | V-JET-7 (force ≤ 40 N) |
+| Fastener at (0, −21) under the module | Low-head M2 A286 screw (ISO 7380 button head, Ø3.5 × 1.1 mm) on the carrier's top face, top at z +20.7: **1.4 mm below the module's underside envelope** (z +22.1), 7.5 mm from the SO-DIMM, 36 mm from the gyro window. A countersunk head in the 1.6 mm board would leave a 0.4 mm land under a structural support and is not used | JET-M1; VI-MCAD-06 (module underside from the NVIDIA STEP model) |
+| Carrier top-side heights outside the module | Under the spreader (y < +27): ≤ 7.7 mm (0.5 mm below it); beyond it: ≤ 13.2 mm (0.5 mm below the RF board's bottom envelope) | For the carrier layout |
+
+**Thermal path.** Junction to spreader 1.09–1.16 K/W (carrier design §14: θjc 0.30 K/W allocated, the pad over 4.0 cm²,
+spreading 0.10 K/W) against the THM-10 allowable of 5.7 K/W; spreader to frame 1.10 W/K (0.91 K/W, §6.10): junction to
+frame about 2.0–2.1 K/W, or about 15 K above the frame at 7 W. Both are estimates (contact conductances, θjc and the lid
+area are allocations); V-JET-7 measures the first, the EM thermal balance (TB-07) the second.
 
 ## 5. Mass Properties
 
@@ -414,7 +437,8 @@ gap. Wire counts and connector positions are the harness design's (`hardware/har
 
 ### 6.10 Jetson Heat Path
 
-Geometry: SoC → TIM pad (40 × 28 mm, 0.5 mm, 3 W/m·K: 6.7 W/K) → spreader (5 mm Al, 60 mm wide, ≈ 40 mm to each flange
+Geometry: SoC lid → 1.0 mm gap pad → spreader pedestal (§4.5; the carrier design's junction-to-spreader estimate is
+1.09–1.16 K/W against the 5.7 K/W THM-10 allowable, verified by V-JET-7) → spreader (5 mm Al, 60 mm wide, ≈ 40 mm to each flange
 root: 1.25 W/K per side) → flange (3 × 40 × 8.5 mm: 2.36 W/K per side) → bolted joint to the 1.0 mm shear panel. With bare
 Al–Al contact and 2 × M2.5 per side (h ≈ 2,000 W/m²·K over 40 × 8.5 mm) the path to the frame is **0.66 W/K**; with a
 thermal gasket and 3 × M2.5 per side (h ≈ 10,000) **1.10 W/K**, which meets the ≥ 1 W/K of BASELINE §6. Estimate only
@@ -639,17 +663,17 @@ Findings from the FE:
    (magnetometer above at (+24, +27)); bottom-side keep-outs Ø7 mm at the columns and at (0, 0).
 5. **EPS, OBC and carrier boards:** PC/104 outline 90.17 × 95.89 mm; holes at (±40, ±43); centre supports at (0, +21)
    and (0, −21) (Ø7 mm keep-outs both sides); EPS notch x < −35.5, |y| < 6.5 mm for the Z rod; OBC: M-G370PDT0 at
-   (−20, +27.5), through the carrier window (item 9); carrier: SO-DIMM on the −Y edge, module centred at y = −6,
+   (−20, +30.5), through the carrier window (item 9); carrier: SO-DIMM on the −Y edge, module centred at y = −6,
    no top-side parts within the module footprint.
 6. **ADCS:** rod positions and the flight inertia constant (§5.4); the magnetometer at the +Z end, 60–85 mm from the rods.
    If OBC item C1 moves it to the RM3100 in the OBC's (+X, −Y) corner, it is 43 mm from the Y rod's end (§4.4).
 7. **RBF and access port** on −Y at x = ±20, z = −43 mm, to be matched to the Nova access window (LVR-068).
 8. **MASS_BUDGET** (done here, v3.1) and **STRUCTURAL_ANALYSIS** (done here, B).
-9. **Jetson carrier (OBC item C3, D-11):** 27 × 27 mm window at x −33.5 … −6.5, y +14.0 … +41.0 mm, no copper or parts
+9. **Jetson carrier (OBC item C3, D-11):** 27 × 27 mm window at x −33.5 … −6.5, y +17.0 … +44.0 mm, no copper or parts
    within 0.5 mm of the frame footprint (2.5 mm round the window, bottom side, 3.0 mm high); the frame is bonded and held by
    four M2 screws at its corners (not modelled); no ferromagnetic parts and no unpaired high-current traces within
    20–30 mm of (+33, −38) mm on either side of the carrier (the RM3100 below it, §4.4); bottom-side parts ≤ 1 mm.
-10. **OBC board (SQSO-OBC-BRD-001 §21):** X1 at (−20, +27.5) mm; bottom-side parts ≤ 1.0 mm; top-side parts ≤ 3 mm
+10. **OBC board (SQSO-OBC-BRD-001 §21):** X1 at (−20, +30.5) mm; bottom-side parts ≤ 1.0 mm; top-side parts ≤ 3 mm
     except X1 (up to 9.4 mm is free, 7.4 mm under the carrier's window frame); J1 and the EPS's J3 at the same +X edge with the W3 ribbon in the +X wall gap at
     |y| < 24 mm; J2 on the top side with W4A in a ±X wall gap at |y| = 34 … 44 mm; J7 on the top side or clear of the
     Z rod's footprint (§4.4).
@@ -663,6 +687,7 @@ Findings from the FE:
 | VI-MCAD-02 | First-article measurement of the stowed protrusions (CMM or the CIFP method) | ≤ 6.5 mm everywhere; hinge springs ≤ 6.38 mm (wound OD ≤ 4.00 mm over the full travel) | STR-10 (with VI-STR-08) | Flight unit |
 | VI-MCAD-03 | Mass, CG and full inertia tensor of the stowed flight unit (six-orientation pendulum or spin balance), trim masses set, deployed tensor from the CAD with the weighed wings | Iyy ≥ 1.03 × max(Ixx, Izz), major axis ≤ 5° from +Y | BASELINE §4 (with VI-STR-01) | Flight unit before environmental test |
 | VI-MCAD-05 | Gyro sensing-axis alignment on the integrated flight stack (rate table about the three body axes, or an alignment cube on the module) | Each axis known to ≤ 0.1° (cross-axis error ≤ 0.014°/s at the 8°/s spin); matrix delivered to the flight software | §4.3.1; SENSOR_DESIGN §4.1 | Flight unit |
+| VI-MCAD-06 | Jetson module stack at integration: module drawing and STEP model against the standoff positions and the (0, −21) fastener; pedestal-to-lid gap measured with the module clamped, flanges shimmed; pressure film | Standoffs on the module holes; ≥ 1.0 mm from the fastener head to the module's underside parts; SoC pad deflection 15–35 %, force ≤ 40 N | §4.5; SQSO-JET-BRD-001 §14, V-JET-7 | EM, then flight |
 | VI-MCAD-04 | EM low-level sine survey (0.25 g, 20–2000 Hz, three axes) with accelerometers on the wings, deck, each board centre and the battery; FE updated to the measured modes | First mode > 40 Hz; FE modes within 15 % (else the FE is correlated before the flight margins are reused) | §8 (with VI-STR-02, VI-LV-03) | EM |
 | VI-STR-04 (amended, SQSO-MECH-001 B) | Hinge torque test of each wing (EM, then flight) with the flight-design flex at −40, +20 and +60 °C in vacuum, each spring removed in turn | Flex torque ≤ 0.50 mN·m at −40 °C (zero margin at 0.64); TM ≥ 0 with the 5017B qualification-test factors; one spring out ≥ 0 | STR-13, MCAD-01 | EM |
 | VI-MECH-01, VI-MECH-02 (SQSO-MECH-001 B) | Spring lot: torque–angle at −40/+20/+60 °C and relaxation (30 days at the stowed angle, +60 °C); flex: 50 deployment cycles at −40 °C, continuity and insulation monitored | Rate and torque within ±10 %, relaxation ≤ 5 %, no set; flex: no open or short, torque ≤ 0.50 mN·m | MCAD-01 | Spring lot; EM |
@@ -682,4 +707,4 @@ Findings from the FE:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | Mechanical design (CDR design completion) | Initial issue: parametric CAD of layout B with MEL masses; mass properties and principal-axis balancing; CDS envelope, tolerance-stack, standoff, interference, sweep and clearance checks; STEP (full and outer mould line) and SVG drawings; beam-shell FE model with modes, effective masses, quasi-static and random stresses and margins; L-8 M deliverable statement; RIDs SE-01 (mechanical), SE-12, STR-01, STR-10, STR-11, STR-16; findings MCAD-01 to MCAD-03 |
-| B | 2026-10-27 | Mechanical design (CDR design completion) | Chair follow-up: wing hinge designed (two OD 4.0 mm torsion springs, clock-spring flex in the −Z knuckle, damped stop, no latch; `hinge.py`), MCAD-01 and STR-13 closed by design with verification items; protrusion stack now governed by the springs (6.10 / 6.38 mm); skeleton torquer deck and row-5 re-split (MCAD-02 closed by reallocation); two centre supports at (0, ±21) mm adopted (chair decision) with 1.6 mm boards; Jetson to y = −6 mm; gyro (OBC item C3) through a framed window in the carrier (§4.3, D-11) after the carrier raise and the bracket were shown not to fit, OBC placement constraints recorded (§4.4), gyro alignment item VI-MCAD-05; Steinberg allowable made thickness-dependent (2.0 mm reserve +0.41 to +0.58); mass properties, interference and FE results recomputed |
+| B | 2026-10-27 | Mechanical design (CDR design completion) | Chair follow-up: wing hinge designed (two OD 4.0 mm torsion springs, clock-spring flex in the −Z knuckle, damped stop, no latch; `hinge.py`), MCAD-01 and STR-13 closed by design with verification items; protrusion stack now governed by the springs (6.10 / 6.38 mm); skeleton torquer deck and row-5 re-split (MCAD-02 closed by reallocation); two centre supports at (0, ±21) mm adopted (chair decision) with 1.6 mm boards; Jetson to y = −6 mm; Jetson carrier item M1 (spreader pedestal, gap pads, module standoffs, (0, −21) fastener, shims and thermal path; §4.5, VI-MCAD-06; gyro and window moved 3 mm toward +Y to clear the module standoff); gyro (OBC item C3) through a framed window in the carrier (§4.3, D-11) after the carrier raise and the bracket were shown not to fit, OBC placement constraints recorded (§4.4), gyro alignment item VI-MCAD-05; Steinberg allowable made thickness-dependent (2.0 mm reserve +0.41 to +0.58); mass properties, interference and FE results recomputed |
