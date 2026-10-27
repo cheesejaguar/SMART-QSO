@@ -225,9 +225,10 @@ def inhibits():
     # storage drain with the switches actuated (AFE in SHUTDOWN)
     drain = [("BQ76952 SHUTDOWN (incl. TS2 wake source)", 1.0, 3.1), ("BQ771806 secondary protector", 1.0, 2.0),
              ("BQ771806 cell inputs (4 x < 0.1 uA)", 0.1, 0.4), ("Q16 secondary-fuse FET leakage (PMV40UN2, 25 degC / 60 degC)", 0.05, 1.0),
-             ("Q23 wake FET + DS2 gate network (contacts open)", 0.0, 0.1), ("Pack TVS D25 isolated by the open AFE FETs", 0.0, 0.0),
+             ("Q23 wake FET + DS2 gate network (contacts open)", 0.0, 0.1), ("Pack TVS D14 isolated by the open AFE FETs", 0.0, 0.0),
              ("AFE FETs Q1/Q2 off-state leakage to PACK_P (nothing returns)", 0.0, 0.0),
-             ("Cell-tap filter capacitors (ceramic leakage, 9 x 0.1 uF)", 0.01, 0.1)]
+             ("Cell-tap filter capacitors (ceramic leakage, 9 x 0.1 uF)", 0.01, 0.1),
+             ("SMF24A TVS on UMB_VMON (access-port board A3, OBC item C18) through R 100 k from BAT_F", 0.1, 1.0)]
     tot_typ = sum(d[1] for d in drain)
     tot_max = sum(d[2] for d in drain)
     drain.append(("**Total**", round(tot_typ, 2), round(tot_max, 2)))
@@ -235,6 +236,10 @@ def inhibits():
           ["Element", "Typical (uA)", "Worst (uA)"], drain)
     print(f"\nWorst {tot_max:.1f} uA = {tot_max / 20:.0%} of the 20 uA limit; 90 days at worst drain = {tot_max * 1e-3 * 90 * 24:.1f} mAh "
           f"({tot_max * 1e-6 * 90 * 24 / 3.45:.2%} of 3.45 Ah).")
+    q47 = tot_max * 1e-3 * 47 * 24
+    print(f"Margin {20 - tot_max:.1f} uA. Integration to separation (BASELINE section 4: 60 +/- 5 % SOC at L-47 d, >= 40 % at "
+          f"separation): {q47:.1f} mAh in 47 days at the worst drain = {q47 / 3450:.2%} SOC, so >= {55 - q47 / 34.5:.1f} % SOC "
+          "before the cells' own self-discharge (a cell property, outside this budget: 15 points of margin remain for it).")
     R["inhibits"] = dict(drain_typ_ua=tot_typ, drain_max_ua=tot_max, t_on_ms=t_on * 1e3)
 
 

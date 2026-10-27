@@ -32,7 +32,7 @@ v2.0), `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0), `docs/environ
 | Worst-case board dissipation | **1.33 W** sunlit ACTIVE at maximum array power with Jetson, PA and magnetorquers on; 0.37 W in eclipse; **3.77 W for ≤ 12 s** during a burn; orbit average ≈ 0.49 W (§16) |
 | Hottest parts | burn-driver FET Q24–Q27 (3.0 W for 12 s, Tj 92 °C); burn buck U17 (0.95 W, 12 s, Tj 93 °C); tracker U4 (0.21 W, Tj 66 °C); D9–D12 (0.12 W); SW1 U20 (0.17 W); 5V_PA buck U16 (0.15 W); all with the board at +60 °C |
 | Worst stresses | DS2 FET Vgs 73 % (7.3 V / 10 V); BQ771806 VDD 70 % (17.4 V / 25 V); PTC at 73 % of its 60 °C hold; INA3221 heater channel 65 % (16.8 V / 26 V); all within the §2.3 limits (§15) |
-| Storage drain, switches actuated | **2.2 µA typical, 6.7 µA worst** (limit 20 µA; §6.6) |
+| Storage drain, switches actuated | **2.3 µA typical, 7.7 µA worst** (limit 20 µA; §6.6; incl. the access-port board's UMB_VMON TVS) |
 | Peak pack current, one burn | **0.75 A** with the magnetorquers at 1.16 W (0.67 A without; 0.90 A with the coil bridges at their hardware limit; chair limit 1.0 A); four drivers at once (software fault) held to 2.0 A by the burn buck's limit |
 | Tracker efficiency (analysis) | 90.9–92.3 % (EPS-F002 asks ≥ 92 %: **marginal**, §4.3) |
 
@@ -314,9 +314,13 @@ UMB_SHUT → AFE RST_SHUT (held high > 1 s by the GSE puts the AFE in SHUTDOWN f
 | Q23 wake FET + DS2 gate network (contacts open) | 0.0 | 0.1 |
 | Pack TVS D14, CV and VBATT dividers: isolated by the open AFE FETs | 0.0 | 0.0 |
 | Cell-tap filter capacitors (ceramic leakage, 9 × 0.1 µF) | 0.01 | 0.1 |
-| **Total** | **2.2** | **6.7** |
+| SMF24A TVS on UMB_VMON on the access-port board A3 (OBC item C18), fed from BAT_F through the EPS's 100 kΩ (W11 stays attached in flight; worst case its return is PACK_N, inside the pack loop) | 0.1 | 1.0 |
+| **Total** | **2.3** | **7.7** |
 
-90 days at the worst drain: 14.5 mAh (0.42 % of 3.45 Ah). The AFE enters SHUTDOWN on the GSE command after the
+Worst 7.7 µA = 38 % of the 20 µA limit (margin 12.3 µA). From the final charge at L-47 d (60 ± 5 % SOC,
+BASELINE §4) to separation: 8.7 mAh, 0.25 % SOC, so ≥ 54.7 % before the cells' own self-discharge (a cell property
+outside this budget), against ≥ 40 % required. 90 days at the worst drain: 16.6 mAh (0.48 % of 3.45 Ah). The 1 µA
+through 100 kΩ moves UMB_VMON by 0.1 V (the GSE reading is not affected at its 1 % accuracy). No fix is needed. The AFE enters SHUTDOWN on the GSE command after the
 final charge (UMB_SHUT) and stays there until DS2's release or the array's light wakes it; in SHUTDOWN its FETs are open,
 which also isolates PACK_P (not counted as an inhibit).
 

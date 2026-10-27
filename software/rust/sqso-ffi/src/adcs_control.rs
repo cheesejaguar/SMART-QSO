@@ -658,3 +658,118 @@ pub extern "C" fn adcs_disable_mtq() -> i32 {
         None => rc::BUSY,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fault_mgmt::tests::serial;
+
+    fn be(v: &[f64], scale: f64) -> Vec<u8> {
+        #[allow(clippy::cast_possible_truncation)] // test values
+        v.iter().flat_map(|x| ((x * scale).round() as i32).to_be_bytes()).collect()
+    }
+
+    /// ADCS_SET_GYRO_ALIGN and ADCS_SET_MAG_BIAS: validated, persisted in
+    /// FLASH_REGION_ADCS_CAL, loaded at init; a record that cannot be
+    /// written leaves the RAM copy; an erased region is the identity
+    #[test]
+    fn calibration_commands_persist_and_validate() {
+        let _serial = serial();
+        assert_eq!(crate::hal_sim::hal_flash_init(), rc::OK);
+        assert_eq!(crate::hal_sim::hal_flash_erase(pins::FLASH_REGION_ADCS_CAL), rc::OK);
+        assert_eq!(adcs_init(), rc::OK);
+        assert_eq!(calibration(), Calibration::IDENTITY);
+
+        let (c, s) = (0.999_95_f64, 0.01_f64);
+        let m = [c, -s, 0.0, s, c, 0.0, 0.0, 0.0, 1.0];
+        assert_eq!(gyro_alignment_command(&be(&m, 1e6)[..35]), rc::INVALID, "length");
+        let twice = [2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0];
+        assert_eq!(gyro_alignment_command(&be(&twice, 1e6)), rc::INVALID, "not a rotation");
+        assert_eq!(gyro_alignment_command(&be(&m, 1e6)), rc::OK);
+        let close = |a: f64, b: f64| (a - b).abs() < 1e-6;
+        assert!(close(calibration().gyro[0][1], -s));
+        assert!(close(calibration().gyro[1][0], s));
+
+        assert_eq!(mag_bias_command(&[]), rc::INVALID, "no state");
+        assert_eq!(mag_bias_command(&[3, 0, 0]), rc::INVALID, "length");
+        let mut bias = vec![3u8];
+        bias.extend(be(&[1000.0, -2000.0, 500.0], 1.0));
+        let mut bad_state = bias.clone();
+        bad_state[0] = 8;
+        assert_eq!(mag_bias_command(&bad_state), rc::INVALID, "eight states");
+        let mut big = vec![1u8];
+        big.extend(be(&[60_000.0, 0.0, 0.0], 1.0));
+        assert_eq!(mag_bias_command(&big), rc::INVALID, "beyond 50 uT");
+        assert_eq!(mag_bias_command(&bias), rc::OK);
+        let b = calibration().mag_bias[3];
+        assert!(close(b.x, 1.0));
+        assert!(close(b.y, -2.0));
+        assert!(close(b.z, 0.5));
+
+        // Persisted: init loads both records
+        let before = calibration();
+        let _ = ADCS.with(|a| a.adcs.calibration = Calibration::IDENTITY);
+        assert_eq!(adcs_init(), rc::OK);
+        assert_eq!(calibration(), before);
+
+        // The record cannot be written: refused, the RAM copy unchanged
+        crate::hal_sim::hal_sim_flash_fail_writes(true);
+        assert_eq!(set_gyro_alignment([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]), rc::IO);
+        assert_eq!(set_mag_bias(0, Vec3::new(1.0, 1.0, 1.0)), rc::IO);
+        crate::hal_sim::hal_sim_flash_fail_writes(false);
+        assert_eq!(calibration(), before);
+
+        // In use (a nested call): busy
+        let nested = ADCS.with(|_| (set_gyro_alignment(before.gyro), set_mag_bias(0, Vec3::new(0.0, 0.0, 0.0))));
+        assert_eq!(nested, Some((rc::BUSY, rc::BUSY)));
+
+        assert_eq!(crate::hal_sim::hal_flash_erase(pins::FLASH_REGION_ADCS_CAL), rc::OK);
+        assert_eq!(adcs_init(), rc::OK);
+        assert_eq!(calibration(), Calibration::IDENTITY, "erased: identity and zeros");
+    }
+
+    /// The bridges' fault and off-timer lines: counted and logged once per
+    /// episode
+    #[test]
+    fn bridge_faults_are_counted_per_episode() {
+        let _serial = serial();
+        assert_eq!(crate::hal_sim::hal_gpio_init(), rc::OK);
+        assert_eq!(adcs_init(), rc::OK);
+        let (f0, e0) = mtq_faults();
+        crate::hal_sim::hal_sim_gpio_drive_input(pins::MTQ_FAULT_N, false);
+        check_bridges();
+        check_bridges();
+        assert_eq!(mtq_faults(), (f0 + 1, e0));
+        crate::hal_sim::hal_sim_gpio_drive_input(pins::MTQ_FAULT_N, true);
+        crate::hal_sim::hal_sim_gpio_drive_input(pins::MTQ_EXPIRED, true);
+        check_bridges();
+        check_bridges();
+        assert_eq!(mtq_faults(), (f0 + 1, e0 + 1));
+        crate::hal_sim::hal_sim_gpio_drive_input(pins::MTQ_EXPIRED, false);
+        crate::hal_sim::hal_sim_gpio_drive_input(pins::MTQ_FAULT_N, false);
+        check_bridges();
+        assert_eq!(mtq_faults(), (f0 + 2, e0 + 1), "a second episode");
+        crate::hal_sim::hal_sim_gpio_drive_input(pins::MTQ_FAULT_N, true);
+        check_bridges();
+        assert_eq!(ADCS.with(|_| check_bridges()), Some(()), "busy: nothing");
+    }
+
+    /// The magnetometer is not used while the Jetson is powered or the
+    /// exciter keyed
+    #[test]
+    fn the_magnetometer_is_gated() {
+        let _serial = serial();
+        assert_eq!(crate::hal_sim::hal_gpio_init(), rc::OK);
+        assert_eq!(adcs_init(), rc::OK);
+        let before = mag_gated();
+        crate::hal_sim::hal_sim_gpio_drive_input(pins::JET_PG, true);
+        let _ = adcs_update(c::now_ms());
+        crate::hal_sim::hal_sim_gpio_drive_input(pins::JET_PG, false);
+        crate::hal_sim::hal_sim_gpio_drive_input(pins::PTT_EXC, true);
+        let _ = adcs_update(c::now_ms() + 1000);
+        crate::hal_sim::hal_sim_gpio_drive_input(pins::PTT_EXC, false);
+        assert_eq!(mag_gated(), before + 2);
+        let _ = adcs_update(c::now_ms() + 2000);
+        assert_eq!(mag_gated(), before + 2, "neither: used");
+    }
+}
