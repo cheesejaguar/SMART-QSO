@@ -41,7 +41,7 @@ Rules applied to the allocation:
    XPDR_EN PE4.
 4. **No back-power.** No OBC output drives a board or sensor whose supply may be off unless it passes a part with
    Ioff/VCC isolation powered from that supply (§5); lines from boards that stay powered while the OBC is off carry
-   series resistance that limits the current into the unpowered OBC to 2.2 mA in total (OBC_BOARD_DESIGN §12).
+   series resistance that limits the current into the unpowered OBC to 2.7 mA in total (OBC_BOARD_DESIGN §16).
 5. **Wire gauge** per SQSO-HAR-001 §5.2 with 50 % derating: 28 AWG carries ≤ 0.25 A, 26 AWG ≤ 0.5 A, 24 AWG ≤ 1 A,
    22 AWG ≤ 2 A, 20 AWG ≤ 3 A.
 
@@ -52,7 +52,7 @@ Rules applied to the allocation:
 | W1 | Battery pack | EPS J1, J2 | pack ±, NTC1, heater; cell taps, NTC2 | Micro-Fit 2×4, Pico-Clasp 6 | 20 AWG (EPS) |
 | W2 | Panels and wings | EPS J4–J9 | strings, panel NTCs | Pico-Clasp 5/8 | 24 AWG (EPS) |
 | **W3** v2 | **EPS J3** | **OBC J1** | 3V3_OBC, I2C2, 15 enables, 4 burn lines, passivation, lockout clear, sense and analog lines, readbacks, VBAT_MTQ, 3V3_RTC (§3.1) | Samtec FTSH-120-01-L-DV-K both ends, FFSD-20-D ribbon | 28 AWG |
-| W4A v2 | OBC J2 | RF J1 | KISS UART, TX_PWR_SEL, XPDR_EN, three readbacks, three monitors (§3.2) | FTSH-107-01-L-DV-K both ends | 28 AWG |
+| W4A v3 | OBC J2 | RF J1 | KISS UART, TX_PWR_SEL, XPDR_EN, three readbacks, three monitors, RX_CD, RX_FAULT (§3.2) | FTSH-108-01-L-DV-K both ends | 28 AWG |
 | W4B v2 | EPS J19 | RF J2 | RADIO_3V3 (SW2), PA_5V (SW3) | Micro-Fit 2×3 / Pico-Clasp 6 | 24 AWG |
 | **W5** v3 | EPS J18; OBC J3 | Jetson carrier | VBAT_JET (W5A); USART1, the carrier's 3.3 V and the spreader NTC (W5B, 6 pins, E10) (§3.3) | Micro-Fit 2×2; Pico-Clasp 6 | 22 AWG; 28 AWG |
 | **W6** v3 | EPS J20; OBC J7, J8, J10 | OBC J6; rods; panel photodiodes; magnetometer board A2 | 3V3_ADCS (W6B), three CR0002 rods (W6C), six sun sensors (W6D), magnetometer (W6E, 3V3_SNS, I2C, DRDY) (§3.4) | Pico-Clasp 2 / 6 / 14 / 6 | 26 / 26 / 28 AWG shielded / 28 AWG |
@@ -65,7 +65,7 @@ Rules applied to the allocation:
 The OBC and EPS boards are PC/104 boards in one stack with no stack connector (SQSO-EPS-BRD-001 §1); W3 is a ribbon
 between their FTSH headers, which sit on the same +X edge at |y| < 24 mm so the ribbon passes the +X wall gap
 (MECHANICAL_DESIGN §4.4). Every other harness leaves the stack in the ±X wall gaps (bundles at |y| = 24–34 mm; W4A at
-|y| = 34–44 mm). The gyro module (Epson M-G370PDT0) plugs into socket X1 on the OBC at (−20, +27.5) mm and stands
+|y| = 34–44 mm). The gyro module (Epson M-G370PDT0) plugs into socket X1 on the OBC at (−20, +30.5) mm and stands
 through a window in the Jetson carrier; the backup gyro, the sun-sensor amplifiers and the magnetorquer drivers are on
 the OBC board; the RM3100 magnetometer is on a small board (A2) at the +Z end frame on harness W6E (SQSO-OBC-BRD-001
 §9.4). There is no ADCS board and no ADCS stack connector.
@@ -114,7 +114,7 @@ Direction is seen from the OBC (out = OBC drives). "Reset" is the line's state w
 Wire currents: 3V3_OBC 0.088 A per wire at the SW10 trip (35 % of 0.25 A); VBAT_MTQ 0.115 A per wire at the bridges'
 limit (46 %); all others < 5 mA.
 
-### 3.2 W4A: OBC J2 ↔ RF J1 (14 positions, 28 AWG, 0.06 m); W4B power EPS J19 ↔ RF J2
+### 3.2 W4A: OBC J2 ↔ RF J1 (16 positions, 28 AWG, 0.06 m); W4B power EPS J19 ↔ RF J2
 
 From SQSO-RF-BRD-001 §4.1 (the RF side) and the OBC board (the OBC side). RF→OBC digital lines are 3.1 V CMOS
 push-pull: VOH ≥ 2.9 V against the STM32's VIH 2.31 V.
@@ -133,6 +133,8 @@ push-pull: VOH ≥ 2.9 V against the STM32's VIH 2.31 V.
 | 12 | TX_FWD | analog in | 0–2.5 V, P = 0.16 V² W | — | PC0 ADC1_IN1 (10 kΩ, 10 nF) | 1 kΩ / 100 nF |
 | 13 | TX_REV | analog in | as TX_FWD | — | PC1 ADC1_IN2 (10 kΩ, 10 nF) | 1 kΩ / 100 nF |
 | 14 | AGND | — | monitor return | — | GND | — |
+| 15 | RX_CD | in | high = receiver carrier detect (not TONE_OK) | low (OBC 100 kΩ pull-down) | **PG0** EXTI0 (10 kΩ, 100 kΩ pull-down) | 1 kΩ, push-pull from V_DIG (**new, version 3**; RF designer to provide) |
+| 16 | RX_FAULT | in | high = receiver fault | **low = healthy** when unwired, open or the radio off (OBC 100 kΩ pull-down) | **PF13** EXTI13 (10 kΩ, 100 kΩ pull-down) | 1 kΩ, push-pull from V_DIG (**new, version 3**; RF designer to provide) |
 
 RADIO_EN and RF_TX_EN switch the RF board's rails on the EPS (W3 pins 10, 14) and reach the RF board as power on W4B
 (RADIO_3V3 J2-1, PA_5V J2-3/4, 24 AWG). The readbacks are valid while RADIO_3V3 is on and read low through the OBC's
@@ -311,10 +313,10 @@ Generated from `hardware/electrical/obc/obc_pinmap.csv`. Dir: O out, I in, A ana
 | 22 | PF10 | GYRO_RB | GPIO in | I | low with GYRO_EN high = latch-up trip | analog (high-Z) | U5 EN node (100 k) |
 | 49 | PF11 | IMU2_RB | GPIO in | I | as GYRO_RB | analog (high-Z) | U6 EN node (100 k) |
 | 50 | PF12 | SNS_RB | GPIO in | I | as GYRO_RB | analog (high-Z) | U7 EN node (100 k) |
-| 53 | PF13 | - | spare | - |  | analog (high-Z) |  |
+| 53 | PF13 | RX_FAULT | GPIO in, EXTI13 | I | 3.1 V CMOS, high = receiver fault | analog (high-Z); 100 k pull-down (unwired or radio off reads healthy) | J2-16 RF board (10 k series; new, FSW round 2) |
 | 54 | PF14 | - | spare | - |  | analog (high-Z) |  |
 | 55 | PF15 | - | spare | - |  | analog (high-Z) |  |
-| 56 | PG0 | - | spare | - |  | analog (high-Z) |  |
+| 56 | PG0 | RX_CD | GPIO in, EXTI0 | I | 3.1 V CMOS, high = receiver carrier detect | analog (high-Z); 100 k pull-down | J2-15 RF board (10 k series; new, FSW round 2) |
 | 57 | PG1 | EOL_FIRE | GPIO out | O | 3.3 V, high = fire (>= 60 s) | analog (high-Z); EPS 100 k pull-down | J1-33 EPS (new) |
 | 87 | PG2 | FRAM_SCK | SPI1_SCK AF5 | O | 3.3 V, 20 MHz mode 0 | analog (high-Z) | U3 (moved from PA5) |
 | 88 | PG3 | FRAM_MISO | SPI1_MISO AF5 | I | 3.3 V | analog (high-Z) | U3 (moved from PA6) |
@@ -382,8 +384,9 @@ Generated from `hardware/electrical/obc/obc_pinmap.csv`. Dir: O out, I in, A ana
   off; the ADS7138 inputs are all used and depend on the switched sensor rail.
 - Alternate functions checked against ST's pin database for the STM32L4R5ZITx LQFP144 (stm32-data, the source of the
   embassy-stm32 metadata the firmware is built with): every peripheral above is on a pin and AF the part offers.
-- Spare (15 pins, analog mode): PA11, PA12, PA15 (JTDI), PB4 (NJTRST), PB11, PC13, PD7, PF2, PF13, PF14, PF15,
-  PG0, PG9, PG10, PH1. PB3 (SWO) goes to a test point only.
+- Spare (13 pins, analog mode): PA11, PA12, PA15 (JTDI), PB4 (NJTRST), PB11, PC13, PD7, PF2, PF14, PF15, PG9, PG10,
+  PH1. Version B gave PG0 and PF13 to RX_CD and RX_FAULT. EXTI lines in use: 0 (RX_CD), 2, 6, 7, 9, 10, 11, 12,
+  13 (RX_FAULT), 14, 15; free: 1, 3, 4, 5, 8. PB3 (SWO) goes to a test point only.
 
 ## 5. Domain Crossings and Back-Power
 
@@ -396,7 +399,7 @@ Generated from `hardware/electrical/obc/obc_pinmap.csv`. Dir: O out, I in, A ana
 | MCU → RM3100 (board A2, W6E), ADS7138 (I2C4, DRDY) | U14 TCA9517-Q1, U33 SN74LVC1T45-Q1, B side on 3V3_SNS | switched sensor rail |
 | Jetson spreader NTC | passive, biased from VDDA on the OBC | readable whether the carrier is on or off; no carrier supply involved |
 | MCU → EPS | EPS gates on 3V3_AO (always on) | the EPS is powered whenever the OBC is |
-| EPS, RF → unpowered OBC | series resistors (10 kΩ digital, 1–10 kΩ analog) | ≤ 2.2 mA into the OBC's clamps with every line high (OBC_BOARD_DESIGN §12) |
+| EPS, RF → unpowered OBC | series resistors (10 kΩ digital, 1–10 kΩ analog) | ≤ 2.7 mA into the OBC's clamps with every line high (OBC_BOARD_DESIGN §16) |
 | MCU → RF board | RF inputs: 1 kΩ series, Ioff gates | the radio is off only in the RF-silence window; RF board §4.1 |
 | RTC domain (3V3_AO) ↔ MCU | EVI from NRST through 100 kΩ; CLKOUT through 1 MΩ; I2C open drain | the clock runs while the OBC is off |
 
@@ -435,7 +438,8 @@ design.
 | 25 | USART1 back-power (ICD-002 §9 alternative) | — | no firmware action | hardware isolation (§5) |
 | 26 | JETSON_PWR | PA2 | **PA8** (Version B) | PA2 becomes ADC1_IN7 for the Jetson spreader NTC; port A kept |
 | 27 | Jetson spreader temperature | none (the guard uses the Jetson's report) | **PT_NTC on PA2 (ADC1_IN7)**: R = 10.0 kΩ × V/(VDDA − V); β 3976 K (to confirm from the TE curve) | carrier interface E10; the 70 °C guard and the −15 °C power-on gate need it with the carrier off |
-| 28 | Unchanged | — | RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, LED PD3, RF_TX_EN PA3, EPS_ALERT_N PB7, DEPLOY_SENSE PE2, UMBILICAL_SENSE PB8, SOLAR_SENSE PB12, TX_PWR_SEL PE3, XPDR_EN PE4 (TIM7), GNSS_EN PE5, USART1/2/3, LPUART1, I2C2, I2C4, SPI3 pins, FRAM WP#/HOLD#, the nine existing ADC channels | — |
+| 28 | RX_CD, RX_FAULT (new RF board inputs, flight-software round 2) | none | **RX_CD PG0** (EXTI0, high = carrier detect), **RX_FAULT PF13** (EXTI13, high = fault; reads low = healthy with the line open or the radio off) | W4A version 3 pins 15, 16; qualify both with RADIO_EN |
+| 29 | Unchanged | — | RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, LED PD3, RF_TX_EN PA3, EPS_ALERT_N PB7, DEPLOY_SENSE PE2, UMBILICAL_SENSE PB8, SOLAR_SENSE PB12, TX_PWR_SEL PE3, XPDR_EN PE4 (TIM7), GNSS_EN PE5, USART1/2/3, LPUART1, I2C2, I2C4, SPI3 pins, FRAM WP#/HOLD#, the nine existing ADC channels | — |
 
 New `HalGpioPin_t` entries implied (names suggested; indices are the flight software's choice): BURN_W2A (replacing
 ANTENNA_BURN), BURN_W2B, EOL_ARM, EOL_FIRE, LOCK_CLR, GYRO_EN, IMU2_EN, SNS_EN, GYRO_RB, IMU2_RB, SNS_RB, GYRO_RST_N,
@@ -459,6 +463,7 @@ second CS in `hal_spi`.
 | E10 | Jetson carrier (from the carrier) | W5B 6 pins, spreader NTC on pins 5–6: **taken** (OBC J3, PA2) | spreader temperature with the carrier off |
 | E11 | Jetson carrier | the 20–30 mm magnetic keep-out around (+33, −38) asked by MECHANICAL_DESIGN §4.4 is **withdrawn**: the magnetometer leaves the OBC (SQSO-OBC-BRD-001 §9.4) | — |
 | E12 | Mechanical / harness | magnetometer board A2 (24 × 24 mm, ≈ 3 g with harness) at the +Z end frame slot of the CAD (+24, +27) mm, or (+24, −27) if the mass properties can be re-trimmed (0.51 against 0.83 µT per mA·m² of rod remanence); 20 mm non-ferromagnetic zone around it (the RF shield's top, the patch adapter, the trim masses and fasteners non-magnetic); harness W6E through a ±X wall gap; W8A internal access-port harness | §9.4 of the OBC board |
+| E13 | RF board (SQSO-RF-BRD-001 §4.1) | W4A version 3: RF J1 becomes FTSH-108-01-L-DV-K (16 positions; pins 1–14 unchanged); pin 15 RX_CD (high = receiver carrier detect), pin 16 RX_FAULT (high = receiver fault), both 3.1 V push-pull through 1 kΩ like TONE_OK, no RF-side pull-up on RX_FAULT; W4 wiring source to version 3; J1 placed in the (+X, −Y) corner to meet OBC J2 (SQSO-OBC-BRD-001 §21) | flight-software round 2 |
 | E10 | RF (SQSO-RF-BRD-001) | none: the OBC side of J1 is as the RF board asks (pull-downs fitted on the OBC) | — |
 
 ## 8. Verification Items (interconnect)
@@ -467,7 +472,7 @@ second CS in `hal_spi`.
 |----|------|--------|------|------|
 | V-ICX-1 | Pin-to-pin continuity and isolation of W3, W4A, W5B, W6, W8, W9 against this document | Test (harness tester) | every pin as §3, isolation ≥ 100 MΩ at 50 V | each harness, before integration |
 | V-ICX-2 | Reset states: hold the OBC in reset and unpowered; measure every EPS enable, burn, passivation, RF_TX_EN, XPDR_EN, TX_PWR_SEL | Test | each < 0.4 V (low) at the far board | flatsat |
-| V-ICX-3 | Back-power: OBC rail off, every other board on, readbacks forced high | Test | 3V3_OBC < 0.5 V; current into the OBC ≤ 2.5 mA | flatsat |
+| V-ICX-3 | Back-power: OBC rail off, every other board on, readbacks forced high | Test | 3V3_OBC < 0.5 V; current into the OBC ≤ 3.0 mA | flatsat |
 | V-ICX-4 | Carrier and receiver isolation: Jetson carrier off with USART1 active; GNSS off with LPUART1 active | Test | carrier 3.3 V rail < 0.3 V (ICD-002 §9); receiver VIN < 0.3 V | flatsat |
 | V-ICX-5 | Firmware pin map against §4.1 | Inspection of `gpio.rs`/`main.rs` after the flight-software change, and a GPIO walk on the EM | every pin as §4.1 | EM software release |
 
@@ -476,4 +481,4 @@ second CS in `hal_spi`.
 | Version | Date | Description |
 |---------|------|-------------|
 | A | 2026-10-27 | First issue: master pin allocation of the STM32L4R5ZIT6, the board-to-board signal lists for W3, W4, W5, W6, W8, W9, domain crossings, the firmware change list and the interface changes for the EPS and the Jetson carrier (CDR design completion, OBC board SQSO-OBC-BRD-001) |
-| B | 2026-10-27 | Carrier interface E10 taken (W5B 6 pins, spreader NTC on PA2 ADC1_IN7; JETSON_PWR PA2 → PA8); magnetometer moved to board A2 at +Z (W6E); W8A internal access-port harness and J9 as FTSH-105; stack routing rules of MECHANICAL_DESIGN §4.4; changes 26–27 for the flight software; E10–E12 |
+| B | 2026-10-27 | Carrier interface E10 taken (W5B 6 pins, spreader NTC on PA2 ADC1_IN7; JETSON_PWR PA2 → PA8); magnetometer moved to board A2 at +Z (W6E); W8A internal access-port harness and J9 as FTSH-105; stack routing rules of MECHANICAL_DESIGN §4.4; changes 26–28 for the flight software (28: RX_CD PG0, RX_FAULT PF13 on W4A v3 pins 15–16, FTSH-108); EOL_ARM PF4, EOL_FIRE PG1, BURN_W2B PE7, LOCK_CLR PF5 confirmed low at reset; gyro at (−20, +30.5); back-power total 2.7 mA; E10–E13 |

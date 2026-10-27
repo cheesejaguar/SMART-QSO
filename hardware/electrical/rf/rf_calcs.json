@@ -607,15 +607,20 @@
     "load": "LMX2571 switched rail, power-down (CE low, 0.9 mA) while TX is permitted",
     "typ": 0.9,
     "worst": 1.2
+   },
+   {
+    "load": "Receiver supervision: LVC1G123 RX-health monostable 0.28 mA, LVC1G17/LVC1G04, pull-downs",
+    "typ": 0.3,
+    "worst": 0.45
    }
   ],
-  "receive_typ_mA": 31.45,
-  "receive_worst_mA": 38.02,
-  "receive_typ_W": 0.1038,
-  "receive_worst_W": 0.1292,
+  "receive_typ_mA": 31.75,
+  "receive_worst_mA": 38.47,
+  "receive_typ_W": 0.1048,
+  "receive_worst_W": 0.1308,
   "allocation_W": 0.15,
-  "margin_typ": 0.308,
-  "margin_worst": 0.138,
+  "margin_typ": 0.301,
+  "margin_worst": 0.128,
   "repeat_path": [
    {
     "load": "CMX138A receive mode (7.0 mA typ; 8.5 mA tx-mode figure as worst)",
@@ -636,7 +641,7 @@
   "repeat_typ_W": 0.0244,
   "repeat_worst_W": 0.0313,
   "repeat_allocation_W": 0.03,
-  "receive_plus_repeat_worst_W": 0.1605,
+  "receive_plus_repeat_worst_W": 0.162,
   "rail_min_at_board_V": 3.189
  },
  "timing": {
@@ -681,6 +686,18 @@
    "fastlock_spec_ms": 1.5,
    "apc_ramp_ms": 1.0,
    "txdelay_ms": 300.0
+  },
+  "rx_health": {
+   "Rext_ohm": 470000.0,
+   "Cext_F": 1e-06,
+   "tw_nom_s": 0.47,
+   "tw_range_s": [
+    0.356,
+    0.574
+   ],
+   "pulse_period_s": 0.1,
+   "fault_after_last_pulse_s_max": 0.62,
+   "note": "K 1.00-1.10; X7R -15 %/+10 % (temperature, 3 V bias), R 1 %; ~10 % for 0.25 uA leakage x 470 k on the low side; RX_FAULT asserts 0.36-0.62 s after the last RX_ALIVE pulse"
   },
   "heartbeat_to_unkey_ms_max": 59.1
  },

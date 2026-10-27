@@ -29,8 +29,8 @@ numpy/scipy). Outputs are in the same directory: `results.json`, `fem_results.js
 | Wing sweep (0–90°) | 0.35 mm minimum clearance (at 45°, wing back cells to body-panel coverglass) | > 0.3 mm allowance | §6.6 |
 | AntS tapes to the stowed wings (STR-16) | 6.5 mm (tape band to the wing's −Z edge, wing shortened and moved +3 mm); 0.5 mm with the 98 mm wing centred; deployed 2 m tape to the deployed wing 37.8 mm | ≥ 10 mm or wings first | §6.7 |
 | Wing hinge and deployment springs (MCAD-01, STR-13) | Version A springs do not fit; **Version B design fits**: two 17-7PH torsion springs on the hinge axis (primary below the wing, secondary at +Z), clock-spring flex at R 1.0–1.6 mm. Torque margin (5017B, analysis factors) **+0.14** at the cold end of travel, one spring out +0.13; spring stress MS +0.12 / **+0.04** (yield); damped soft stop 0.157 N·m (214 µε); no latch, holding margin +17 | TM ≥ 0 (5017B Eq. 4-1); Table 4; DDMR 14, 53; ≤ 0.3 N·m (STR-14) | §6.8; SQSO-MECH-001 B |
-| Mass, CG | 1,492.7 g CBE / 1,725.9 g MEV (= MEL; row 5 re-split for the skeleton deck, MCAD-02); stowed CG (+0.4, −0.2, −1.9) mm CBE | ≤ 2.00 kg; ±20 mm (5 mm baseline) | §5 |
-| Deployed inertia (STR-01) | Iyy/max(Ixx, Izz) **1.056 CBE / 1.047 MEV**; major axis **0.6° / 1.2°** from +Y | ≥ 1.03; ≤ 5° (BASELINE §4) | §5 |
+| Mass, CG | 1,494.3 g CBE / 1,727.7 g MEV (= MEL, row 23 at 66.6 g with the SoC pedestal; row 5 re-split for the skeleton deck, MCAD-02); stowed CG (+0.4, −0.2, −1.8) mm CBE | ≤ 2.00 kg; ±20 mm (5 mm baseline) | §5 |
+| Deployed inertia (STR-01) | Iyy/max(Ixx, Izz) **1.056 CBE / 1.047 MEV**; major axis **0.5° / 1.3°** from +Y | ≥ 1.03; ≤ 5° (BASELINE §4) | §5 |
 | First natural frequency, stowed (FE) | **170 Hz** (stowed wings, out of plane); deck 195, carrier 327, RF 385, EPS 445, OBC 574, battery 1,287 Hz | > 40 Hz (UG v11 §4.1.1) | §8.2 |
 | Margins of safety at the design limit load (larger of the quasi-static 10 g / 17 g and the 3σ random response at 8.18 Grms), NASA-STD-5001B protoflight factors | All positive. Lowest: **+0.72** yield (−Z end frame at the battery isolators), +1.29 (end frames at the rail corners), +1.68 (centre support), +2.17 (rails), +2.44 (stack columns); G-10CR isolator +4.6 (FS 2.0) | MS ≥ 0 | §8.5 |
 | PCB fatigue (Steinberg, FE relative displacement, 3σ at 8.18 Grms) | **+0.09 to +0.36** with the two centre supports (D-7, adopted with 1.6 mm boards) and the gyro window framed (D-11); −0.08 (EPS) and −0.29 (carrier) with one | MS ≥ 0 | §8.5 |
@@ -218,7 +218,7 @@ module standoffs, the clamp-force path and a flush fastener at (0, −21). Model
 |------|--------|-------|
 | SoC lid and parts (envelopes until the NVIDIA STEP model is used) | SoC lid 20 × 20 × 1.5 mm at the module centre (0, −6) (the carrier design's 4.0 cm² lid allocation); DRAM and regulators 1.0 mm high over 40 × 28 mm round it | — |
 | Gap pads | 1.0 mm on the SoC lid, 2.0 mm on the DRAM and regulators, both at 25 % deflection (0.75 / 1.5 mm installed) | MEL row 22 (pads about 5 g of the 10 g interface allocation) |
-| Spreader pedestal | 22 × 22 × 0.75 mm boss machined on the spreader's lower face over the SoC lid (z +27.05 … +27.8), and a 0.5 mm second face over the DRAM and regulators; flatness ≤ 0.05 mm, parallel to the flange plane within 0.05 mm, Ra ≤ 1.6 µm (drawing notes) | 1.8 g of Al: 66.6 g against row 23's 65.0 g CBE, inside its growth allowance (MASS_BUDGET v3.1 §1.2) |
+| Spreader pedestal | 22 × 22 × 0.75 mm boss machined on the spreader's lower face over the SoC lid (z +27.05 … +27.8), and a 0.5 mm second face over the DRAM and regulators; flatness ≤ 0.05 mm, parallel to the flange plane within 0.05 mm, Ra ≤ 1.6 µm (drawing notes) | 1.8 g of Al: MEL row 23 raised from 65.0 to 66.6 g CBE (chair; MASS_BUDGET v3.1 §1.2) |
 | Pad deflection and shims | The gap from the pedestal to the lid is a chain of the SO-DIMM stack (4.0 mm), the module board (1.2 mm, ±10 %), the lid height, the carrier's place in the stack and the flange plane: about ±0.24 mm RSS (allocations), against the 0.25 mm nominal compression of the SoC pad. **Shim the spreader flanges at integration** to the gap measured with the module clamped (the carrier design's 15–35 % deflection band), recorded with a pressure film (V-JET-7) | VI-MCAD-06 |
 | Module standoffs MP2/MP3 | Würth 9774040360R steel SMT spacers, M3 × 4.0 mm, at the module's far-edge holes: (±31.3, +12.6) mm in the CAD (3.5 mm from the module's sides and 3.9 mm from its far edge; **to be checked against the NVIDIA module drawing**); module underside envelope relieved round them | 1.85 mm from the gyro window; the steel spacers are 51 mm from the RM3100 corner of §4.4 (beyond its 20 mm rule) |
 | Clamp force | ≤ 38 N (28 N SoC pad, 10 N others; 48 % of the 80 N module limit), from the spreader through the pads into the module, the SO-DIMM and the two standoffs, then the carrier and its supports. The spreader, bolted at both flanges, deflects about 0.01 mm under it (5 mm plate over 80 mm): negligible against the 0.05 mm flatness | V-JET-7 (force ≤ 40 N) |
@@ -234,8 +234,8 @@ area are allocations); V-JET-7 measures the first, the EM thermal balance (TB-07
 
 ### 5.1 Mass
 
-Every MEL row (MASS_BUDGET v3.0 §3.1, rods option) is carried by named solids; the CAD total is the MEL total: **1,492.7 g
-CBE, 1,725.9 g MEV**, margin +15.9 % to 2.00 kg. By group (CBE): stack 436.0 g, battery 267.0 g, body panels 160.0 g,
+Every MEL row (MASS_BUDGET v3.1 §3.1, rods option) is carried by named solids; the CAD total is the MEL total: **1,494.3 g
+CBE, 1,727.7 g MEV**, margin +15.8 % to 2.00 kg (row 23 raised to 66.6 g for the SoC pedestal, §4.5). By group (CBE): stack 437.6 g, battery 267.0 g, body panels 160.0 g,
 frame 128.0 g (row 1 plus brackets and deck), wings 110.2 g, harness 105.0 g, AntS 85.0 g, ADCS 79.5 g, distributed
 55.0 g, GNSS 52.0 g, inhibits 15.0 g.
 
@@ -251,19 +251,19 @@ allocation, flanges unchanged), the MEV becomes 1,729.7 g and the margin to 2.00
 
 | Case | CG (mm) | Ixx | Iyy | Izz | Ixy | Ixz | Iyz | Iyy/max(Ixx, Izz) | Major axis from +Y |
 |------|---------|-----|-----|-----|-----|-----|-----|-------------------|--------------------|
-| Stowed, CBE | (+0.43, −0.16, −1.86) | 2.714 | 3.077 | 2.803 | +0.003 | +0.001 | +0.027 | 1.098 | 5.6° |
-| Stowed, MEV | (+0.47, −0.22, −0.72) | 3.131 | 3.554 | 3.281 | +0.002 | −0.000 | +0.032 | 1.083 | 6.6° |
-| **Deployed, CBE** | (+0.84, +2.11, −1.86) | **2.778** | **3.961** | **3.752** | +0.005 | +0.032 | −0.002 | **1.056** | **0.6°** |
-| **Deployed, MEV** | (+0.84, +1.96, −0.72) | **3.203** | **4.521** | **4.320** | +0.005 | +0.033 | +0.004 | **1.047** | **1.2°** |
-| W1 deployed only, CBE | (+2.06, +0.92, −1.86) | 2.744 | 3.660 | 3.417 | −0.159 | +0.021 | +0.008 | 1.071 | 9.6° |
-| Antennas out, wings stowed, CBE | (+0.84, −0.27, −1.86) | 2.706 | 3.370 | 3.089 | +0.002 | +0.032 | +0.019 | 1.091 | 3.8° |
-| Deployed, CBE, MEL hybrid antennas (2 m ±X, 70 cm ±Y) | (+0.43, +2.11, −1.86) | 2.816 | 4.214 | 4.043 | +0.004 | +0.001 | −0.002 | 1.042 | 0.7° |
-| Deployed, MEV, MEL hybrid antennas | (+0.47, +1.96, −0.72) | 3.243 | 4.790 | 4.629 | +0.003 | −0.000 | +0.004 | 1.035 | 1.5° |
+| Stowed, CBE | (+0.43, −0.16, −1.82) | 2.716 | 3.080 | 2.805 | +0.003 | +0.001 | +0.027 | 1.098 | 5.6° |
+| Stowed, MEV | (+0.47, −0.23, −0.68) | 3.133 | 3.557 | 3.283 | +0.002 | −0.000 | +0.032 | 1.083 | 6.6° |
+| **Deployed, CBE** | (+0.84, +2.10, −1.82) | **2.780** | **3.963** | **3.753** | +0.005 | +0.032 | −0.002 | **1.056** | **0.5°** |
+| **Deployed, MEV** | (+0.84, +1.95, −0.68) | **3.205** | **4.524** | **4.322** | +0.005 | +0.033 | +0.004 | **1.047** | **1.3°** |
+| W1 deployed only, CBE | (+2.06, +0.91, −1.82) | 2.746 | 3.663 | 3.419 | −0.159 | +0.021 | +0.009 | 1.071 | 9.6° |
+| Antennas out, wings stowed, CBE | (+0.84, −0.27, −1.82) | 2.708 | 3.373 | 3.090 | +0.002 | +0.032 | +0.019 | 1.091 | 3.8° |
+| Deployed, CBE, MEL hybrid antennas (2 m ±X, 70 cm ±Y) | (+0.43, +2.10, −1.82) | 2.819 | 4.217 | 4.044 | +0.004 | +0.001 | −0.002 | 1.043 | 0.6° |
+| Deployed, MEV, MEL hybrid antennas | (+0.47, +1.95, −0.68) | 3.245 | 4.792 | 4.631 | +0.003 | −0.000 | +0.004 | 1.035 | 1.6° |
 
-Against MASS_BUDGET v3.0 §5–§6 (reference layout B): the stowed CG is 3 mm higher in Z (−1.9 against −4.7 mm: the CAD
+Against MASS_BUDGET v3.0 §5–§6 (reference layout B): the stowed CG is 3 mm higher in Z (−1.8 against −4.7 mm: the CAD
 battery centre is −32.9 mm, not −35, and the boards sit higher), the deployed moments are 3 % lower on every axis, and
 the ratio agrees (hybrid antennas: 1.043 CAD against 1.041; option A: 1.056 against 1.054). The difference that matters
-is the principal axis: 0.6–1.5° here against 13–15° there (§5.3). The baseline requirement (Iyy ≥ 1.03 × max, axis
+is the principal axis: 0.5–1.6° here against 13–15° there (§5.3). The baseline requirement (Iyy ≥ 1.03 × max, axis
 within 5°) is **met** at CBE and MEV for the full deployment; with one wing out the axis is 9.6° off (as in MECHANISMS_ANALYSIS §8, a degraded
 mode), and with the antennas out and both wings stowed 3.8°.
 
@@ -279,7 +279,7 @@ springs, flex cup and skeleton deck (a more negative y made it worse).
 ### 5.4 Sensitivity and Trim
 
 A placement Monte Carlo (every internal part moved by an independent Gaussian error σ per axis, 2,000 trials) gives the
-axis within 5° in 99.3 % / 96.6 % of trials (CBE / MEV) at σ = 1 mm, 86.3 % / 76.4 % at 2 mm, and 42.7 % / 37.9 % at
+axis within 5° in 99.5 % / 96.4 % of trials (CBE / MEV) at σ = 1 mm, 86.7 % / 76.1 % at 2 mm, and 42.8 % / 37.7 % at
 5 mm (95th-percentile tilt 3.6° / 4.7° at 1 mm); the 5th-percentile ratio is 1.045 / 1.037 at 2 mm and 1.027 / 1.020 at
 5 mm, so it stays ≥ 1.03 to about σ = 3 mm. The requirement therefore needs drawing-controlled positions and a
 measured flight unit. Provision D-9: two 5 g trim masses at (0, ±45, +44) mm on the +Z end frame; each changes Iyz by
@@ -467,8 +467,9 @@ drawing tool at drawing release.
 
 Boundary condition, as in the dispenser: every rail node fixed in x and y (the guide rails), the rail-end nodes fixed in z
 (pusher plate and door), rotations free. Sensitivity: the eight rail ends fixed only (§8.6). Mesh: 10,664 nodes, 9,878
-shells, 226 beams, 59,268 degrees of freedom; FE mass 1,490.7 g against the CAD and MEL CBE of 1,492.7 g (the 2 g are
-non-structural masses of parts outside the meshed groups). MEV masses are not run (+15.6 % mass
+shells, 226 beams, 59,268 degrees of freedom; FE mass 1,490.7 g against the CAD and MEL CBE of 1,492.7 g at the time of the run (the 2 g are
+non-structural masses of parts outside the meshed groups); the later +1.6 g of row 23 (spreader pedestal, 0.1 % of the
+mass, on a part with MS +6.7) was not re-run. MEV masses are not run (+15.6 % mass
 lowers the frequencies by about 7 %; the responses scale with the mass at the same acceleration).
 
 Element verification (`fem.py --selftest-only`), same element code and mesh density:
@@ -633,7 +634,7 @@ Findings from the FE:
 |-----|--------|----------|
 | SE-01 (mechanical part) | **Mechanical build-to design at envelope level: done.** Parametric CAD of every MEL item, interference-free, with STEP and layout drawings; the remaining steps to a manufacturing package are listed in §7 and §12 | This document; `model.py`; STEP; SVG |
 | SE-12 | **Structural model: closed by analysis.** Verified beam-shell FE model (§8.1), modes with effective mass, quasi-static and random stresses with NASA-STD-5001B factors, Steinberg margins | §8; `fem.py`; SQSO-SA-001 B §5A |
-| STR-01 (check) | **Confirmed and closed by design**: CAD gives Iyy/max 1.056 / 1.047 and the major axis within 0.6° / 1.2° of +Y (the reference layout gave 13–15°, outside the 5° baseline); placement sensitivity and the trim provision are verification items (VI-MCAD-03) | §5 |
+| STR-01 (check) | **Confirmed and closed by design**: CAD gives Iyy/max 1.056 / 1.047 and the major axis within 0.5° / 1.3° of +Y (the reference layout gave 13–15°, outside the 5° baseline); placement sensitivity and the trim provision are verification items (VI-MCAD-03) | §5 |
 | STR-10 | **Closed by design** (Version B): hinge springs 6.10 mm nominal, 6.38 mm worst case, 6.25 mm RSS against 6.5 (D-2 recess, frame-located springs and post); spring OD ≤ 4.00 mm on the drawing; VI-MCAD-02 | §6.2 |
 | STR-11 | **Closed by design** (frame RFQ: −Z face recessed ≥ 0.8 mm; 1.5 mm modelled): 1.25 mm nominal, 0.90 mm worst case | §6.3 |
 | STR-16 | **Closed for the nominal sequence** (wings first: 37.8 mm); **verification item** for the wing-stuck contingency (6.5 mm against 10 mm) and the ISIS sweep | §6.7 |

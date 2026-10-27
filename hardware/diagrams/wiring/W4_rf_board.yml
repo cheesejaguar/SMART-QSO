@@ -1,12 +1,16 @@
-# SQSO-HW-DIAG-001 W4: OBC and EPS to the RF board, version 2 (2026-10-27, RF board design SQSO-RF-BRD-001 §4).
+# SQSO-HW-DIAG-001 W4: OBC and EPS to the RF board, version 3 (2026-10-27, RF board design SQSO-RF-BRD-001 B §4).
 # Replaces SQSO-HAR-001 H4 (proposed): H4 carries +5V and one RF_EN, but the RF board needs the always-on RADIO rail
 # (SW2), the PA rail (SW3, switched by RF_TX_EN and the hardware TX-OFF), the KISS UART, the power select, the
 # XPDR_EN heartbeat, the three transponder readbacks (RID RF-21) and three monitor voltages. RF_TX_EN switches SW3 on
 # the EPS, so it travels in W3, not here; the RF board derives its hardware TX permit from the presence of the PA rail.
 # Version 2: 14-position signal connector (was 10): XPDR_EN added (it was missing), TONE_OK, XPDR_KEY and PTT_EXCITER
 # readbacks added. The OBC-side connector and the STM32 pins for the three readbacks are allocated by the OBC designer.
+# Version 3 (2026-10-27, RID RFB-07): 16 positions (FTSH-108). J1-15 RX_CD (receiver carrier sense, active high) and
+# J1-16 RX_FAULT (receiver health, active high = fault) for the receiver supervision of SRS-F115 to F117. Both 3.1 V
+# CMOS through 1 k with 100 k pull-downs on the RF board: an unpowered board or an unwired line reads "no carrier" and
+# "not fault"; the OBC inputs must use pull-downs (not pull-ups) so that nothing back-powers the RF board.
 metadata:
-  title: W4 OBC and EPS to RF board v2 (SQSO-HW-DIAG-001; RF side per SQSO-RF-BRD-001)
+  title: W4 OBC and EPS to RF board v3 (SQSO-HW-DIAG-001; RF side per SQSO-RF-BRD-001 B)
 
 options:
   fontname: Helvetica
@@ -15,13 +19,13 @@ options:
 
 connectors:
   J_OBC_RF:
-    type: Samtec FTSH-107-01-L-DV-K
-    subtype: 14 pos, 1.27 mm
-    notes: "OBC board: PD5, PD6, PE3, PE4, PA0, PC0, PC1; three readback inputs (pins 8-10) to be allocated by the OBC designer (RID RF-21 / AV-05)"
-    pinlabels: &w4sig [GND, USART2_TX PD5 (OBC to TNC), USART2_RX PD6 (TNC to OBC), GND, TX_PWR_SEL PE3, XPDR_EN PE4 (100 Hz), GND, TONE_OK (OBC input), XPDR_KEY (OBC input), PTT_EXCITER (OBC input), TX_TEMP PA0, TX_FWD PC0, TX_REV PC1, AGND]
+    type: Samtec FTSH-108-01-L-DV-K
+    subtype: 16 pos, 1.27 mm
+    notes: "OBC board: PD5, PD6, PE3, PE4, PA0, PC0, PC1; five RF-board inputs (pins 8-10 readbacks, RID RF-21 / AV-05; pins 15-16 receiver supervision, RID RFB-07) to be allocated by the OBC designer"
+    pinlabels: &w4sig [GND, USART2_TX PD5 (OBC to TNC), USART2_RX PD6 (TNC to OBC), GND, TX_PWR_SEL PE3, XPDR_EN PE4 (100 Hz), GND, TONE_OK (OBC input), XPDR_KEY (OBC input), PTT_EXCITER (OBC input), TX_TEMP PA0, TX_FWD PC0, TX_REV PC1, AGND, RX_CD (OBC input), RX_FAULT (OBC input)]
   J_RF_OBC:
-    type: Samtec FTSH-107-01-L-DV-K
-    subtype: 14 pos, 1.27 mm
+    type: Samtec FTSH-108-01-L-DV-K
+    subtype: 16 pos, 1.27 mm
     notes: RF board J1
     pinlabels: *w4sig
   J_EPS_RF:
@@ -40,8 +44,8 @@ cables:
     category: bundle
     gauge: 28 AWG
     length: 0.06
-    colors: [BK, GN, YE, BK, WH, VT, BK, OG, OG, OG, BN, BN, BN, GY]
-    notes: "3.3 V logic both ends (RF side 3.1 V CMOS, 1 k series on the readbacks). Monitors 0-2.5 V into ADC1. TX_PWR_SEL low 0.5 W, high 1 W. XPDR_EN: 100 Hz heartbeat, 100 k pull-down on the RF board"
+    colors: [BK, GN, YE, BK, WH, VT, BK, OG, OG, OG, BN, BN, BN, GY, BU, PK]
+    notes: "3.3 V logic both ends (RF side 3.1 V CMOS, 1 k series on the readbacks). Monitors 0-2.5 V into ADC1. TX_PWR_SEL low 0.5 W, high 1 W. XPDR_EN: 100 Hz heartbeat, 100 k pull-down on the RF board. RX_CD, RX_FAULT active high, 100 k pull-downs (not fault when unpowered)"
   W4B:
     category: bundle
     gauge: 24 AWG
@@ -50,9 +54,9 @@ cables:
     notes: "RADIO rail 3.3 V: 31 mA typ, 38 mA worst receiving, +51 mA while keyed (exciter). PA rail 5 V: 0.35 A at 0.5 W RF, 0.47 A at 1 W, two contacts"
 
 connections:
-  - - J_OBC_RF: [1-14]
-    - W4A: [1-14]
-    - J_RF_OBC: [1-14]
+  - - J_OBC_RF: [1-16]
+    - W4A: [1-16]
+    - J_RF_OBC: [1-16]
   - - J_EPS_RF: [1-6]
     - W4B: [1-6]
     - J_RF_PWR: [1-6]

@@ -154,14 +154,14 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-279 RIDs: severity 1: 29, severity 2: 154, severity 3: 96.
+280 RIDs: severity 1: 29, severity 2: 154, severity 3: 97.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
 | Closed by design change | 97 | 151 |
 | Closed by chair decision | 36 | 35 |
-| Verification item | 36 | 35 |
+| Verification item | 37 | 36 |
 | Decision point (dated) | 13 | 13 |
 | Implementation | 72 | 20 |
 
@@ -570,6 +570,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | JETB-08 | 3 | NVIDIA screens the module at 2 Grms only; flight level is 8.18 Grms | VI | Verification item | V-JET-8: random vibration of the populated carrier at protoflight level, functional test before and after |
 | JETB-09 | 2 | If the module's VDD_IN pins are at the SO-DIMM +X end, the 1.4 A burst current passes 12 mm from the RM3100 (order 10 µT) | IMP | Implementation | Chair: the flight software does not use the magnetometer for actuation while JET_PG is high; hardware location per the OBC designer (MCAD-06); VDD_IN end from the NVIDIA drawing (JETB-06) |
 | JETB-10 | 3 | SO-DIMM latch material unknown (TE); carrier magnetic signature unmeasured | VI | Verification item | V-JET-9: magnetic screening of the populated carrier, unpowered and during a burst; non-ferromagnetic or latch-less socket |
+| JETB-12 | 3 | Mated heights of the carrier's J1 and J2 not yet read from the Molex drawings (limits 13.2 mm and 7.7 mm) | VI | Verification item | Check against the Molex drawings before carrier layout; fallback right-angle Micro-Fit for J1, J2 moved to y ≥ +27.5 |
 <!-- RID-LOG-END -->
 
 ## 7. Verdict

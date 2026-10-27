@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 06:53 AM")
+    (date "10/27/2026 08:49 AM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -1530,6 +1530,54 @@
         (tstamps "/"))
       (component_classes)
       (tstamps "45452e75-9f05-5dd1-a8a8-014e7d80b1f6"))
+    (comp
+      (ref "C480")
+      (value "1uF")
+      (description "")
+      (footprint "C_0603")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "C_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "C480")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "C"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "2ac8aae0-4207-52a6-a709-60b867cdf6be"))
+    (comp
+      (ref "C481")
+      (value "100nF")
+      (description "")
+      (footprint "C_0603")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "C_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "C481")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "C"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "48cd736d-c3ee-596d-be61-1ff65a01dfbc"))
     (comp
       (ref "C501")
       (value "10uF")
@@ -3502,12 +3550,12 @@
       (ref "J1")
       (value "OBC-RF signals (W4A)")
       (description "")
-      (footprint "FTSH-107-01-L-DV-K")
+      (footprint "FTSH-108-01-L-DV-K")
       (fields
         (field
           (name "Description"))
         (field
-          (name "Footprint") "FTSH-107-01-L-DV-K")
+          (name "Footprint") "FTSH-108-01-L-DV-K")
         (field
           (name "Datasheet"))
         (field
@@ -3516,7 +3564,7 @@
           (name "SKiDL Line") "design.py:67"))
       (libsource
         (lib "NO_LIB")
-        (part "Conn 14p 1.27 mm"))
+        (part "Conn 16p 1.27 mm"))
       (sheetpath
         (names "/")
         (tstamps "/"))
@@ -5299,6 +5347,150 @@
       (component_classes)
       (tstamps "21acaeef-afc0-52cd-91a9-e2570632b9b2"))
     (comp
+      (ref "R480")
+      (value "1.00k")
+      (description "")
+      (footprint "R_0603")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "R480")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "8adb1c58-163c-5549-aa30-e8d80fc42d1a"))
+    (comp
+      (ref "R481")
+      (value "100k")
+      (description "")
+      (footprint "R_0603")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "R481")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "10facab6-72c0-5dfa-9cc6-32df21939a8f"))
+    (comp
+      (ref "R482")
+      (value "470k")
+      (description "")
+      (footprint "R_0603")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "R482")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "325b8de5-8a01-5866-9216-6e9c81cdfcc5"))
+    (comp
+      (ref "R483")
+      (value "100k")
+      (description "")
+      (footprint "R_0603")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "R483")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "ade2169f-3d88-5611-b21a-35367d179078"))
+    (comp
+      (ref "R484")
+      (value "1.00k")
+      (description "")
+      (footprint "R_0603")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "R484")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "6868f20d-a6fb-535e-9bb3-15c859bb67ef"))
+    (comp
+      (ref "R485")
+      (value "100k")
+      (description "")
+      (footprint "R_0603")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "R_0603")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "R485")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "R"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "e939a3ef-583e-5b61-ab81-aebe99ad4ad1"))
+    (comp
       (ref "R501")
       (value "1.00k")
       (description "")
@@ -6619,6 +6811,78 @@
       (component_classes)
       (tstamps "e766c6f0-e24d-585d-a534-6c3d7f456b7d"))
     (comp
+      (ref "TP23")
+      (value "RX_CD")
+      (description "")
+      (footprint "TP_1.0mm")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "TP_1.0mm")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "TP23")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "Test pad"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "c535e947-6e9a-5501-8daa-451830a3c301"))
+    (comp
+      (ref "TP24")
+      (value "RX_FAULT")
+      (description "")
+      (footprint "TP_1.0mm")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "TP_1.0mm")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "TP24")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "Test pad"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "8b537fdb-fa14-5cc2-919f-f77550e2b9f5"))
+    (comp
+      (ref "TP25")
+      (value "RX_ALIVE")
+      (description "")
+      (footprint "TP_1.0mm")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "TP_1.0mm")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "TP25")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "Test pad"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "ba62cd7f-cc29-5610-a768-3d5a3f363d3f"))
+    (comp
       (ref "TP3")
       (value "+3V1_DIG")
       (description "")
@@ -7170,6 +7434,78 @@
         (tstamps "/"))
       (component_classes)
       (tstamps "626f6efe-3e5d-5b72-bb27-90f1c7d146d7"))
+    (comp
+      (ref "U480")
+      (value "RX_CD buffer")
+      (description "")
+      (footprint "SOT-23-5")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "SOT-23-5")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "U480")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "Schmitt buffer"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "40c2b750-ee17-5d00-88c4-b4fc75e9fed1"))
+    (comp
+      (ref "U481")
+      (value "SN74LVC1G123")
+      (description "")
+      (footprint "SSOP-8 (DCT)")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "SSOP-8 (DCT)")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "U481")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "Retriggerable monostable (RX health)"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "7dff29ea-3996-59ff-969a-d36404b0885e"))
+    (comp
+      (ref "U482")
+      (value "RX_FAULT")
+      (description "")
+      (footprint "SOT-23-5")
+      (fields
+        (field
+          (name "Description"))
+        (field
+          (name "Footprint") "SOT-23-5")
+        (field
+          (name "Datasheet"))
+        (field
+          (name "SKiDL Tag") "U482")
+        (field
+          (name "SKiDL Line") "design.py:67"))
+      (libsource
+        (lib "NO_LIB")
+        (part "Inverter"))
+      (sheetpath
+        (names "/")
+        (tstamps "/"))
+      (component_classes)
+      (tstamps "8826f2ae-fe34-5a7d-81fc-f950765ab24e"))
     (comp
       (ref "U501")
       (value "PCM1808")
@@ -7804,6 +8140,10 @@
         (pin "1")
         (pintype "PASSIVE"))
       (node
+        (ref "C481")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
         (ref "C720")
         (pin "1")
         (pintype "PASSIVE"))
@@ -7849,6 +8189,10 @@
         (pintype "PASSIVE"))
       (node
         (ref "R462")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R482")
         (pin "2")
         (pintype "PASSIVE"))
       (node
@@ -7922,6 +8266,18 @@
       (node
         (ref "U454")
         (pin "2")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U480")
+        (pin "5")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U481")
+        (pin "8")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U482")
+        (pin "5")
         (pintype "POWER-IN"))
       (node
         (ref "U720")
@@ -8430,6 +8786,10 @@
       (node
         (ref "U310")
         (pin "22")
+        (pintype "INPUT"))
+      (node
+        (ref "U480")
+        (pin "2")
         (pintype "INPUT")))
     (net
       (code 22)
@@ -9204,6 +9564,10 @@
         (pin "2")
         (pintype "PASSIVE"))
       (node
+        (ref "C481")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
         (ref "C501")
         (pin "2")
         (pintype "PASSIVE"))
@@ -9636,6 +10000,18 @@
         (pin "2")
         (pintype "PASSIVE"))
       (node
+        (ref "R481")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R483")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R485")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
         (ref "R506")
         (pin "2")
         (pintype "PASSIVE"))
@@ -9821,6 +10197,22 @@
         (pintype "POWER-IN"))
       (node
         (ref "U454")
+        (pin "3")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U480")
+        (pin "3")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U481")
+        (pin "1")
+        (pintype "INPUT"))
+      (node
+        (ref "U481")
+        (pin "4")
+        (pintype "POWER-IN"))
+      (node
+        (ref "U482")
         (pin "3")
         (pintype "POWER-IN"))
       (node
@@ -10958,6 +11350,10 @@
       (node
         (ref "U401")
         (pin "3")
+        (pintype "INPUT"))
+      (node
+        (ref "U481")
+        (pin "3")
         (pintype "INPUT")))
     (net
       (code 129)
@@ -11201,6 +11597,130 @@
         (pintype "INPUT")))
     (net
       (code 144)
+      (name "RXH_C")
+      (class "Default")
+      (node
+        (ref "C480")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U481")
+        (pin "6")
+        (pintype "PASSIVE")))
+    (net
+      (code 145)
+      (name "RXH_RC")
+      (class "Default")
+      (node
+        (ref "C480")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R482")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U481")
+        (pin "7")
+        (pintype "PASSIVE")))
+    (net
+      (code 146)
+      (name "RX_ALIVE")
+      (class "Default")
+      (node
+        (ref "R483")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "TP25")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U310")
+        (pin "43")
+        (pintype "OUTPUT"))
+      (node
+        (ref "U481")
+        (pin "2")
+        (pintype "INPUT")))
+    (net
+      (code 147)
+      (name "RX_CD")
+      (class "Default")
+      (node
+        (ref "R480")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "TP23")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U480")
+        (pin "4")
+        (pintype "OUTPUT")))
+    (net
+      (code 148)
+      (name "RX_CD_J")
+      (class "Default")
+      (node
+        (ref "J1")
+        (pin "15")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R480")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R481")
+        (pin "1")
+        (pintype "PASSIVE")))
+    (net
+      (code 149)
+      (name "RX_FAULT")
+      (class "Default")
+      (node
+        (ref "R484")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "TP24")
+        (pin "1")
+        (pintype "PASSIVE"))
+      (node
+        (ref "U482")
+        (pin "4")
+        (pintype "OUTPUT")))
+    (net
+      (code 150)
+      (name "RX_FAULT_J")
+      (class "Default")
+      (node
+        (ref "J1")
+        (pin "16")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R484")
+        (pin "2")
+        (pintype "PASSIVE"))
+      (node
+        (ref "R485")
+        (pin "1")
+        (pintype "PASSIVE")))
+    (net
+      (code 151)
+      (name "RX_OK")
+      (class "Default")
+      (node
+        (ref "U481")
+        (pin "5")
+        (pintype "OUTPUT"))
+      (node
+        (ref "U482")
+        (pin "2")
+        (pintype "INPUT")))
+    (net
+      (code 152)
       (name "SAW_OUT")
       (class "Default")
       (node
@@ -11216,7 +11736,7 @@
         (pin "6")
         (pintype "PASSIVE")))
     (net
-      (code 145)
+      (code 153)
       (name "SCKI_G")
       (class "Default")
       (node
@@ -11228,7 +11748,7 @@
         (pin "4")
         (pintype "TRISTATE")))
     (net
-      (code 146)
+      (code 154)
       (name "SPI_MISO")
       (class "Default")
       (node
@@ -11244,7 +11764,7 @@
         (pin "5")
         (pintype "TRISTATE")))
     (net
-      (code 147)
+      (code 155)
       (name "SPI_MOSI")
       (class "Default")
       (node
@@ -11264,7 +11784,7 @@
         (pin "3")
         (pintype "INPUT")))
     (net
-      (code 148)
+      (code 156)
       (name "SPI_SCK")
       (class "Default")
       (node
@@ -11284,7 +11804,7 @@
         (pin "1")
         (pintype "INPUT")))
     (net
-      (code 149)
+      (code 157)
       (name "SWCLK")
       (class "Default")
       (node
@@ -11296,7 +11816,7 @@
         (pin "37")
         (pintype "INPUT")))
     (net
-      (code 150)
+      (code 158)
       (name "SWDIO")
       (class "Default")
       (node
@@ -11308,7 +11828,7 @@
         (pin "34")
         (pintype "BIDIRECTIONAL")))
     (net
-      (code 151)
+      (code 159)
       (name "TCXO_OUT")
       (class "Default")
       (node
@@ -11324,7 +11844,7 @@
         (pin "3")
         (pintype "OUTPUT")))
     (net
-      (code 152)
+      (code 160)
       (name "TMP_V")
       (class "Default")
       (node
@@ -11336,7 +11856,7 @@
         (pin "2")
         (pintype "OUTPUT")))
     (net
-      (code 153)
+      (code 161)
       (name "TNC_AF")
       (class "Default")
       (node
@@ -11352,7 +11872,7 @@
         (pin "6")
         (pintype "PASSIVE")))
     (net
-      (code 154)
+      (code 162)
       (name "TNC_AF_RAW")
       (class "Default")
       (node
@@ -11364,7 +11884,7 @@
         (pin "14")
         (pintype "OUTPUT")))
     (net
-      (code 155)
+      (code 163)
       (name "TNC_PTT")
       (class "Default")
       (node
@@ -11384,7 +11904,7 @@
         (pin "1")
         (pintype "INPUT")))
     (net
-      (code 156)
+      (code 164)
       (name "TNC_SK1")
       (class "Default")
       (node
@@ -11400,7 +11920,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 157)
+      (code 165)
       (name "TNC_SK2")
       (class "Default")
       (node
@@ -11416,7 +11936,7 @@
         (pin "5")
         (pintype "INPUT")))
     (net
-      (code 158)
+      (code 166)
       (name "TONE_N")
       (class "Default")
       (node
@@ -11428,7 +11948,7 @@
         (pin "12")
         (pintype "INPUT")))
     (net
-      (code 159)
+      (code 167)
       (name "TONE_OK")
       (class "Default")
       (node
@@ -11456,7 +11976,7 @@
         (pin "3")
         (pintype "INPUT")))
     (net
-      (code 160)
+      (code 168)
       (name "TONE_OK_RB")
       (class "Default")
       (node
@@ -11468,7 +11988,7 @@
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 161)
+      (code 169)
       (name "TOT_Q14")
       (class "Default")
       (node
@@ -11484,7 +12004,7 @@
         (pin "3")
         (pintype "OUTPUT")))
     (net
-      (code 162)
+      (code 170)
       (name "TP_DBG_RX")
       (class "Default")
       (node
@@ -11496,7 +12016,7 @@
         (pin "31")
         (pintype "INPUT")))
     (net
-      (code 163)
+      (code 171)
       (name "TP_DBG_TX")
       (class "Default")
       (node
@@ -11508,7 +12028,7 @@
         (pin "30")
         (pintype "OUTPUT")))
     (net
-      (code 164)
+      (code 172)
       (name "TP_MCU_PA0")
       (class "Default")
       (node
@@ -11520,7 +12040,7 @@
         (pin "10")
         (pintype "BIDIRECTIONAL")))
     (net
-      (code 165)
+      (code 173)
       (name "TX_AUDIO_DIG")
       (class "Default")
       (node
@@ -11536,7 +12056,7 @@
         (pin "5")
         (pintype "PASSIVE")))
     (net
-      (code 166)
+      (code 174)
       (name "TX_FWD")
       (class "Default")
       (node
@@ -11556,7 +12076,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 167)
+      (code 175)
       (name "TX_PERMIT_HW")
       (class "Default")
       (node
@@ -11576,7 +12096,7 @@
         (pin "4")
         (pintype "OUTPUT")))
     (net
-      (code 168)
+      (code 176)
       (name "TX_PWR_SEL_F")
       (class "Default")
       (node
@@ -11592,7 +12112,7 @@
         (pin "1")
         (pintype "INPUT")))
     (net
-      (code 169)
+      (code 177)
       (name "TX_PWR_SEL_J")
       (class "Default")
       (node
@@ -11604,7 +12124,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 170)
+      (code 178)
       (name "TX_REV")
       (class "Default")
       (node
@@ -11620,7 +12140,7 @@
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 171)
+      (code 179)
       (name "TX_TEMP")
       (class "Default")
       (node
@@ -11636,7 +12156,7 @@
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 172)
+      (code 180)
       (name "UART_OBC_TX")
       (class "Default")
       (node
@@ -11648,7 +12168,7 @@
         (pin "13")
         (pintype "INPUT")))
     (net
-      (code 173)
+      (code 181)
       (name "UART_OBC_TX_J")
       (class "Default")
       (node
@@ -11660,7 +12180,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 174)
+      (code 182)
       (name "UART_TNC_TX")
       (class "Default")
       (node
@@ -11672,7 +12192,7 @@
         (pin "12")
         (pintype "OUTPUT")))
     (net
-      (code 175)
+      (code 183)
       (name "UART_TNC_TX_J")
       (class "Default")
       (node
@@ -11684,7 +12204,7 @@
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 176)
+      (code 184)
       (name "UHF_A")
       (class "Default")
       (node
@@ -11708,7 +12228,7 @@
         (pin "2")
         (pintype "PASSIVE")))
     (net
-      (code 177)
+      (code 185)
       (name "UHF_B")
       (class "Default")
       (node
@@ -11728,7 +12248,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 178)
+      (code 186)
       (name "UHF_SE")
       (class "Default")
       (node
@@ -11752,7 +12272,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 179)
+      (code 187)
       (name "VHF_A")
       (class "Default")
       (node
@@ -11776,7 +12296,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 180)
+      (code 188)
       (name "VHF_B")
       (class "Default")
       (node
@@ -11796,7 +12316,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 181)
+      (code 189)
       (name "VHF_SE")
       (class "Default")
       (node
@@ -11816,7 +12336,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 182)
+      (code 190)
       (name "V_DIG_FB")
       (class "Default")
       (node
@@ -11832,7 +12352,7 @@
         (pin "4")
         (pintype "INPUT")))
     (net
-      (code 183)
+      (code 191)
       (name "XPDR_EN_F")
       (class "Default")
       (node
@@ -11848,7 +12368,7 @@
         (pin "2")
         (pintype "INPUT")))
     (net
-      (code 184)
+      (code 192)
       (name "XPDR_EN_J")
       (class "Default")
       (node
@@ -11860,7 +12380,7 @@
         (pin "1")
         (pintype "PASSIVE")))
     (net
-      (code 185)
+      (code 193)
       (name "XPDR_KEY")
       (class "Default")
       (node
@@ -11888,7 +12408,7 @@
         (pin "4")
         (pintype "INPUT")))
     (net
-      (code 186)
+      (code 194)
       (name "XPDR_KEY_RB")
       (class "Default")
       (node

@@ -31,7 +31,7 @@ SQSO-RF-BRD-001 §4.1 (the other ends of every interface); `docs/manufacturing/E
 | Item | Value |
 |------|-------|
 | Board | PC/104 90.17 × 95.89 mm, 6 layers, in the OBC/EPS stack (W3 ribbon to the EPS, no stack connector) |
-| Placements / BOM lines / nets | OBC 347 / 69 / 249; magnetometer board A2 15 / 9 / 19 (generated); ERC: no errors, no warnings (five waivers on the OBC, two on A2) |
+| Placements / BOM lines / nets | OBC 351 / 69 / 253; magnetometer board A2 15 / 9 / 19 (generated); ERC: no errors, no warnings (five waivers on the OBC, two on A2) |
 | Processor | STM32L4R5ZIT6 (LQFP-144) at 80 MHz from an 8 MHz XO (HSE bypass); LSE 32.768 kHz crystal |
 | Memory | FM25V20A 2 Mbit SPI FRAM (no external flash: §7) |
 | Supervisor | TPS3850H33-Q1: 3.3 V UV/OV (± 7 %) and a window watchdog, 5.6–33.3 s window, kicked every 10 s, wired to NRST (RID AV-02) |
@@ -57,6 +57,7 @@ SQSO-RF-BRD-001 §4.1 (the other ends of every interface); `docs/manufacturing/E
 | External supervisor independent of the MCU | RID AV-02 | TPS3850H33-Q1 with its own oscillator, on NRST | §6 |
 | Gyro, backup gyro, magnetometer, sun sensors, three-axis coil drive, switched sensor rail | RID AV-03, ICD-004 §12 | §9, §10 | §9–§10 |
 | Repeat-path readbacks | RIDs RF-21, AV-05 | TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 (capture) | §13 |
+| Receiver status inputs | flight-software round 2 | RX_CD PG0 (EXTI0), RX_FAULT PF13 (EXTI13, low = healthy when open) on W4A v3 pins 15–16 | §13 |
 | PAYLOAD_EN and JETSON_PWR independent, with readback | RID AV-06, PAYLOAD_DESIGN §11.1 | ports B and A; three readbacks | §11 |
 | No back-powering of the unpowered Jetson | RID AV-09, ICD-002 §9 | SN74LVC1T45-Q1 pair powered from the carrier | §11 |
 | Mission clock across resets | RID AV-10 | RV-3028-C7 on 3V3_AO | §8 |
@@ -140,7 +141,7 @@ termination except the connector mating faces and X1.
   bias 0.28 mA at 70 °C, the rest 2.1 mA;
   `obc_calcs.json` i_3v3_obc_items). The MCU figure is an allocation: ST's datasheet DS12023 could not be reached from
   this session (§25); the EM power test (V-OBC-12) replaces it.
-- **Unused pins**: 15 spare pins (SQSO-ICX-001 §4.4) go to analog mode in the firmware; PB3 (SWO) reaches a test point.
+- **Unused pins**: 13 spare pins (SQSO-ICX-001 §4.4) go to analog mode in the firmware; PB3 (SWO) reaches a test point.
 
 ## 5. Clocks
 
@@ -516,14 +517,18 @@ zero with GNSS_EN low"). GNSS_PG (3V3_GNSS through 10 kΩ → PG15) shows an SW7
 
 ## 13. RF Board Interface (RIDs RF-21, AV-05)
 
-J2 (FTSH-107, W4A version 2) is the OBC side of the RF board's J1 (SQSO-RF-BRD-001 §4.1). Outputs (PD5 USART2_TX,
+J2 (FTSH-108, 16 positions, W4A version 3; version A had FTSH-107) is the OBC side of the RF board's J1
+(SQSO-RF-BRD-001 §4.1; pins 1–14 as there, pins 15–16 new). Outputs (PD5 USART2_TX,
 PE3 TX_PWR_SEL, PE4 XPDR_EN) leave through 100 Ω; the RF board adds 1 kΩ and 100 kΩ pull-downs. Inputs from the RF
 board, which stays powered when the OBC is power-cycled, carry 10 kΩ series resistors to limit the current into an
 unpowered OBC: PD6 USART2_RX (100 kΩ pull-up), and the three readbacks with the **100 kΩ pull-downs the RF board asks
 for**: **TONE_OK → PC9** (EXTI9), **XPDR_KEY → PG12** (EXTI12), **PTT_EXCITER → PC7 (TIM8_CH2 input capture**, so the
-firmware measures keyed time instead of estimating it from the frame length, ICD-003 §5.3). The monitors TX_TEMP (PA0),
+firmware measures keyed time instead of estimating it from the frame length, ICD-003 §5.3), and, new in Version B for
+the flight software, **RX_CD → PG0** (EXTI0, high = receiver carrier detect; J2-15) and **RX_FAULT → PF13** (EXTI13,
+high = receiver fault; J2-16): both through 10 kΩ with 100 kΩ pull-downs, so RX_FAULT reads healthy with the line
+open or the radio unpowered, as the flight software asked. The RF board drives them like TONE_OK (interface item E13). The monitors TX_TEMP (PA0),
 TX_FWD (PC0), TX_REV (PC1) take 10 kΩ series and 10 nF at the pin (the RF board's 100 nF is the sampling reservoir).
-Three TPD4E05U06-Q1 at J2.
+Three TPD4E05U06-Q1 at J2 (the two new lines use their spare channels).
 
 ## 14. EPS Interface, Deployment and Passivation Lines
 
@@ -556,7 +561,7 @@ EPS's J13 (W11), not on this board.
 | Latch-up, sensors | U5–U7 (§9.1) |
 | Latch-up, GNSS, Jetson | EPS SW7, U19; isolation keeps the OBC from feeding a latched part through its I/O |
 | Back-power into a switched-off sensor, carrier or receiver | VCC-isolating translators (U9, U10, U12–U14, U28–U33) |
-| Back-power into an unpowered OBC | series resistors on every line from the EPS and RF boards: **2.2 mA worst case in total** with every readback high (about 0.8 mA typical), far below latch-up holding currents; `obc_calcs.json` backpower_lines |
+| Back-power into an unpowered OBC | series resistors on every line from the EPS and RF boards: **2.7 mA worst case in total** with every readback high (about 0.8 mA typical), far below latch-up holding currents; `obc_calcs.json` backpower_lines |
 
 ## 17. Power and Thermal
 
@@ -626,7 +631,7 @@ stress, finish and how its MPN was checked. Summary of the active parts:
 | Translators | TI TXU0304QPWRQ1 ×2, TXU0204QPWRQ1 ×2, SN74LVC1T45QDCKRQ1 ×6, TCA9517DGKRQ1 | AEC-Q100 | Active | no data |
 | ESD | TI TPD4E05U06QDQARQ1 ×17 (+1 on A2), TPD1E05U06QDPYRQ1 ×2 | AEC-Q101 | Active | — |
 | Passives | Murata GCM (AEC-Q200), Panasonic ERJ-3EKF / ERA-3AEB (AEC-Q200), Vishay CRCW-e3 | automotive | series codes checked, values not | — |
-| Connectors | Samtec FTSH-120/107/105, CLM-110; Molex Pico-Clasp 501331 | — | Samtec not checked; Pico-Clasp series Active (EPS board), the 14-position part by pattern | — |
+| Connectors | Samtec FTSH-120/108/105, CLM-110; Molex Pico-Clasp 501331 | — | Samtec not checked; Pico-Clasp series Active (EPS board), the 14-position part by pattern | — |
 
 No radiation data was found for any of these parts except the M-G370's TID. All are covered by the latch-up trips of
 §16 and by RAD-V3 lot-sample testing (EEE_PARTS_LIST §2A.4). TID: the board sits mid-stack (RADIATION_ANALYSIS §4:
@@ -653,7 +658,7 @@ Version A's guidance conflicted with them it has been changed (marked "Version B
 | Heights (Version B) | **Bottom side (L6) ≤ 1.0 mm**: only 0402/0603 resistors and capacitors (≤ 0.95 mm; no 0603 MLCC thicker than 0.9 mm), the TPD4E05U06 (USON, 0.55 mm) and TPD1E05U06 (X1SON) arrays and test pads; everything else on the top side (SOT-23, SOT-563, 1206/1210 capacitors, SMF/SMBJ diodes, the LQFP, HTSSOP, SOIC, LGA and every connector). **Top side ≤ 3.0 mm** except X1 and the connectors; up to 9.4 mm is free under the carrier (its 1 mm bottom-side envelope plus 1 mm clearance) and 7.4 mm under the carrier's window frame (x −36 … −4, y +14.5 … +46.5): the mated connectors J1–J10 (header, plug and cable bend) must fit within these, checked at layout against the Samtec and Molex drawings (§25) |
 | X1 (gyro) | Socket centred at **(−20, +30.5)**, footprint x −32 … −8, y +18.5 … +42.5, square to the board axes (in-plane rotation within ± 0.3°, MECHANICAL_DESIGN §4.3.1); the module's two screw holes plated and isolated from GND; no top-side part inside the window frame's footprint taller than 3 mm; BMI088 U11 and TMP235 U20 within 15 mm of X1 |
 | J1 (W3 to the EPS, 40-way) | **Top side, on the +X edge, pin field along Y within \|y\| < 24 mm** (centred at y = 0 recommended), the same edge and y range as the EPS's J3 (for the EPS layout): the ribbon's only path is the +X wall gap (x +45.4 … +48.4) between the harness bundles at \|y\| = 24 … 34; the −X edge is ruled out by the Z rod |
-| J2 (W4A to the RF board, FTSH-107) | **Top side**, ribbon up through a ±X wall gap at \|y\| = 34 … 44 mm (the spreader flanges fill \|y\| < 20 above the carrier, the bundles \|y\| = 24 … 34). Recommended: the +X edge in the (+X, −Y) corner freed by the magnetometer move, pin field along Y as close to y −34 as the (+40, −43) column keep-out allows (the Ø 7 mm keep-out reaches y −39.5 inboard of x +43.5); if the 9 mm ribbon cannot then stay at \|y\| ≥ 34 in the gap, the harness design takes the −Y bundle to \|y\| ≤ 31 there or folds the ribbon 45° (for the harness and RF designers: the RF board's J1 at the same corner) |
+| J2 (W4A to the RF board) | **Top side** (FTSH-108, pin field about 10 mm), ribbon up through a ±X wall gap at \|y\| = 34 … 44 mm (the spreader flanges fill \|y\| < 20 above the carrier, the bundles \|y\| = 24 … 34). Recommended: the +X edge in the (+X, −Y) corner freed by the magnetometer move, pin field along Y as close to y −34 as the (+40, −43) column keep-out allows (the Ø 7 mm keep-out reaches y −39.5 inboard of x +43.5); if the 10 mm ribbon cannot then stay at \|y\| ≥ 34 in the gap, the harness design takes the −Y bundle to \|y\| ≤ 31 there or folds the ribbon 45° (for the harness and RF designers: the RF board's J1 at the same corner) |
 | J3 (W5B to the carrier) and J10 (W6E to board A2) | Top side, +X edge, y +24 … +34 (beside the (+X, +Y) bundle; the carrier's J2 is at its +X edge, y ≈ +28) |
 | J4, J5 (GNSS) | Top side, +X edge between J1 and J2 (the receiver is at (+5, −20) on the deck; W9A and W9B in the (+X, −Y) bundle) |
 | J6, J7, J8 and the DRV8876s | −X half. **J7 on the top side** (Version B) and outside the Z rod's footprint (x −46.8 … −36.2, \|y\| < 5.3; the rod ends at z +3.0, 1 mm below the OBC's bottom envelope): J7 at y −12 … −22 on the −X edge, the three DRV8876s within 20 mm of it; J6 (3V3_ADCS) and J8 (sun sensors) at the −X edge in y −24 … −34 / +24 … +34 beside the bundles |
@@ -688,7 +693,7 @@ Version A's guidance conflicted with them it has been changed (marked "Version B
 | V-OBC-12 | Power: 3V3_OBC at 80 MHz, all peripherals active; 3V3_ADCS with each sensor | ≤ 25 mA; ≤ 49 mA | §17 | OBC EM |
 | V-OBC-13 | Thermal vacuum of the OBC EM at −20…+60 °C with the coils driven | all functions; DRV8876 case ≤ 70 °C | §17 | OBC EM |
 | V-OBC-14 | ESD: IEC 61000-4-2 ± 8 kV contact at each connector pin (unpowered) | no damage; functional | §16 | OBC EM (one unit) |
-| V-OBC-15 | Back-power into the unpowered OBC (= V-ICX-3) | ≤ 2.5 mA, 3V3_OBC < 0.5 V | §16 | flatsat |
+| V-OBC-15 | Back-power into the unpowered OBC (= V-ICX-3) | ≤ 3.0 mA, 3V3_OBC < 0.5 V | §16 | flatsat |
 | V-OBC-16 | Gyro random vibration and shock: OBC EM with a flight-lot M-G370 on X1 (screws thread-locked, staked), random at the FE-predicted module levels (≥ 22.2 / 25.0 / 21.7 Grms in axis) for the protoflight duration, shock to the launch SRS; header continuity monitored | before/after on a rate table: bias change ≤ 0.01 °/s, scale factor change ≤ 0.2 %, noise within 10 %, no DIAG_STAT flags or SPI errors; no continuity interruption > 1 µs | §9.2; with VI-STR-02 | OBC EM |
 | V-OBC-17 | Spreader NTC: carrier off and on, RT1 (or a decade box) at −40, −15, 25, 70, 95 °C equivalents; open and short at J3 | reading within ± 0.5 K of the reference at −15 and 70 °C; open reads < −50 °C, short > 150 °C; reading unchanged with the carrier off | §11.3, E10 | flatsat with the carrier |
 
@@ -697,7 +702,7 @@ Version A's guidance conflicted with them it has been changed (marked "Version B
 | RID | Status | Evidence |
 |-----|--------|----------|
 | SE-01 (OBC share) | **Closed for the OBC board**: schematic with selected parts, netlist, BOM, ERC, calculations, layout rules | this document; `design.py`, `obc_board.net`, `obc_board_bom.csv`, `obc_board_erc.log`, `obc_calcs.py`. Layout and the EM build remain (V-OBC-*) |
-| AV-01 | **Closed** (design); firmware change open | SQSO-ICX-001 B §4 (every pin, one function), §6 (27 changes for the flight software) |
+| AV-01 | **Closed** (design); firmware change open | SQSO-ICX-001 B §4 (every pin, one function), §6 (28 changes for the flight software) |
 | AV-02 | **Closed** (design); flight-software kick open | §6: TPS3850H33-Q1, window 5.6–33.3 s, kick every 10 s; V-OBC-1, -2 |
 | AV-03 | **Pins and hardware closed**; drivers are flight software; the magnetometer's rod coupling is verified by AV-V4 | §9 (magnetometer on board A2, §9.4), §10; ICX §6 rows 10–17; V-OBC-5 to -8, -11, -16 |
 | AV-05 / RF-21 | **Closed** (pins and circuits); firmware reading them open | §13: PC9, PG12, PC7 (capture) |
@@ -768,4 +773,4 @@ changes in SQSO-ICX-001 §6. In addition:
 | Version | Date | Description |
 |---------|------|-------------|
 | A | 2026-10-27 | First issue (CDR design completion): OBC board schematic as code with parts, netlist, BOM, ERC and calculations; supervisor (AV-02), mission clock (AV-10), on-board ADCS sensors and coil drive (AV-03), Jetson isolation and switch readbacks (AV-09, AV-06), repeat-path readbacks (RF-21, AV-05); master pin allocation in SQSO-ICX-001 |
-| B | 2026-10-27 | Chair follow-up: carrier interface E10 taken (W5B 6 pins; spreader NTC on PA2 ADC1_IN7 with a 10.0 kΩ 0.1 % bias, §11.3; JETSON_PWR PA2 → PA8); stack placement constraints of MECHANICAL_DESIGN §4.3–§4.4 in §21 (gyro at (−20, +30.5), bottom side ≤ 1.0 mm, J1/J2/J7 edges and sides, no OBC frame bond); magnetometer re-assessed and moved to board A2 at the +Z end frame (§9.4; carrier keep-out withdrawn; AV-V4 residual and gating); gyro vibration against the Epson rating (§9.2, V-OBC-16); J9 FTSH-105 on internal harness W8A; V-OBC-16, -17; C3 closed, C12–C17 |
+| B | 2026-10-27 | Chair follow-up: carrier interface E10 taken (W5B 6 pins; spreader NTC on PA2 ADC1_IN7 with a 10.0 kΩ 0.1 % bias, §11.3; JETSON_PWR PA2 → PA8); stack placement constraints of MECHANICAL_DESIGN §4.3–§4.4 in §21 (gyro at (−20, +30.5), bottom side ≤ 1.0 mm, J1/J2/J7 edges and sides, no OBC frame bond); magnetometer re-assessed and moved to board A2 at the +Z end frame (§9.4; carrier keep-out withdrawn; AV-V4 residual and gating); gyro vibration against the Epson rating (§9.2, V-OBC-16); J9 FTSH-105 on internal harness W8A; RX_CD (PG0) and RX_FAULT (PF13) from the RF board on J2 (FTSH-108, W4A v3; back-power total 2.7 mA); V-OBC-16, -17; C3 closed, C12–C17 |

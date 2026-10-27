@@ -1,10 +1,10 @@
 # Interface Control Document: OBC to RF Subsystem
 
 **Document ID**: SQSO-ICD-003
-**Version**: 2.1
+**Version**: 2.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR. Both sides are build-to designs: the OBC board SQSO-OBC-BRD-001 (`hardware/electrical/obc/OBC_BOARD_DESIGN.md` §13) with the master pin allocation SQSO-ICX-001 (`hardware/electrical/INTERCONNECT.md`), and the RF board SQSO-RF-BRD-001 (`hardware/electrical/rf/RF_BOARD_DESIGN.md` §4). Not built or measured. The firmware's pins are unchanged for this interface except the three new readback inputs.
+**Status**: CDR. Both sides are build-to designs: the OBC board SQSO-OBC-BRD-001 (`hardware/electrical/obc/OBC_BOARD_DESIGN.md` §13) with the master pin allocation SQSO-ICX-001 (`hardware/electrical/INTERCONNECT.md`), and the RF board SQSO-RF-BRD-001 (`hardware/electrical/rf/RF_BOARD_DESIGN.md` §4). Not built or measured. The firmware's pins are unchanged for this interface except the three readback inputs and (version 2.2) the receiver status inputs RX_CD and RX_FAULT.
 
 ## 1. Purpose
 
@@ -57,8 +57,9 @@ RF board, so no flight software is in the audio path (BUILD_VS_BUY §3.2).
 
 ### 4.1 Connector
 
-Harness W4A version 2: Samtec FTSH-107-01-L-DV-K (14 positions, 1.27 mm) at both ends, OBC J2 to RF J1, 28 AWG,
-0.06 m, three signal grounds interleaved and an analog return on pin 14. RADIO_EN and RF_TX_EN switch the RF rails on
+Harness W4A version 3: Samtec FTSH-108-01-L-DV-K (16 positions, 1.27 mm) at both ends, OBC J2 to RF J1, 28 AWG,
+0.06 m, three signal grounds interleaved and an analog return on pin 14; pins 15–16 (RX_CD, RX_FAULT) are new in
+version 3 (version 2: FTSH-107, 14 positions; pins 1–14 unchanged). RADIO_EN and RF_TX_EN switch the RF rails on
 the EPS (W3 pins 10 and 14); the rails reach the RF board on W4B (EPS J19 to RF J2, Molex Pico-Clasp 6, 24 AWG:
 RADIO_3V3 on pin 1, PA_5V on pins 3–4). Pin numbers below are J1/J2 positions.
 
@@ -78,12 +79,14 @@ RADIO_3V3 on pin 1, PA_5V on pins 3–4). Pin numbers below are J1/J2 positions.
 | 12 | TX_FWD | RF→OBC | PC0 (ADC1 IN1) | 0–2.5 V, P = 0.16 V² W (2.5 V at 1 W) | — | 10 kΩ, 10 nF | 1 kΩ / 100 nF |
 | 13 | TX_REV | RF→OBC | PC1 (ADC1 IN2) | as TX_FWD; 1.25 V at 3:1 and 1 W | — | 10 kΩ, 10 nF | 1 kΩ / 100 nF |
 | 14 | AGND | — | — | monitor return | — | — | — |
+| 15 | RX_CD | RF→OBC | **PG0** (EXTI0) | as TONE_OK; **high = receiver carrier detect** (RF carrier above the receiver's carrier-sense threshold, with or without CTCSS; TONE_OK is the tone decode, not this) | low with the radio off | 10 kΩ series, **100 kΩ pull-down** | 1 kΩ (push-pull from V_DIG) |
+| 16 | RX_FAULT | RF→OBC | **PF13** (EXTI13) | as TONE_OK; **high = receiver fault** (the RF designer defines the conditions, e.g. synthesizer unlocked or receiver not configured) | **low = healthy when the line is unwired, open or the radio unpowered** | 10 kΩ series, **100 kΩ pull-down** | 1 kΩ (push-pull from V_DIG); no pull-up on the RF side |
 | (W3-10) | RADIO_EN | OBC→EPS | PB5 | 3.3 V, high = SW2 (radio rail) on | **Low at reset** (EPS 100 kΩ) | 100 Ω | — |
 | (W3-14) | RF_TX_EN | OBC→EPS | PA3 | 3.3 V, high = SW3 (PA rail) on | **Low at reset**; EPS pull-down mandatory, so a reset or unpowered OBC leaves the PA off | 100 Ω | — (the RF board derives TX_PERMIT_HW from PA_5V) |
 
 Readback levels: V_DIG 3.10 V ± 1.5 %, VOH ≥ 2.9 V at the 1 kΩ, against the STM32's VIH 2.31 V (0.6 V margin). The
 OBC-side 10 kΩ series resistors limit the current into an unpowered OBC (the radio stays on while the OBC is power
-cycled): together with the EPS lines, ≤ 2.2 mA (SQSO-OBC-BRD-001 §16). The ADC scalings are those of
+cycled): together with the EPS lines, ≤ 2.7 mA (SQSO-OBC-BRD-001 §16). The ADC scalings are those of
 `software/rust/firmware/src/adc.rs` and now match the RF board's detector and sensor (RF board §7.6).
 
 ### 4.3 Readbacks (wired, RIDs RF-21 and AV-05)
@@ -92,6 +95,12 @@ TONE_OK, XPDR_KEY and PTT_EXCITER are wired to the OBC (§4.2, J pins 8–10). T
 into the transponder statistics (EXTI on each edge, or a poll each pass) and measures PTT_EXCITER's keyed time by
 input capture on TIM8_CH2, replacing the frame-length estimate of §5.3 and giving the 25 % duty and 5 s key-down
 checks a measurement. Reading them is flight-software work (SQSO-ICX-001 §6 row 18).
+
+RX_CD and RX_FAULT (version 2.2, flight-software request) report the receiver: RX_CD on EXTI0 for channel-busy
+detection and receive statistics, RX_FAULT on EXTI13 for receiver health. Both read low with the radio off, so the
+firmware qualifies them with RADIO_EN; RX_FAULT therefore reads "healthy" with the radio off or the line open, as
+requested, and a broken wire is not detected by the line itself (the KISS link and the receive statistics show a dead
+receiver). SQSO-ICX-001 §6 row 28.
 
 ### 4.4 Power
 
@@ -166,12 +175,14 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | Heartbeat | Stop, stall, halt the OBC with XPDR_EN running | Repeat path unkeys ≤ 100 ms (VI-RF-11) | EM |
 | Monitors | Calibrate TX_FWD, TX_REV against a power meter; TX_TEMP against a thermocouple | ±0.5 dB, ±2 °C | EM |
 | Power select | TX_PWR_SEL low/high | 27.0 / 30.0 ± 0.5 dBm (VI-RF-02) | EM |
+| Receiver status | Unmodulated carrier on and off at the receive sensitivity + 3 dB; RX_FAULT forced on the RF EM; W4A pin 16 open; radio off | RX_CD follows the carrier; RX_FAULT high only when forced; low (healthy) with the pin open or the radio off | EM |
 
 ## 8. Open Items
 
 | Item | Closure |
 |------|---------|
-| Connector part and pin-out | **Closed**: W4A v2, FTSH-107 at both ends (§4.1, §4.2; SQSO-ICX-001 §3.2) |
+| Connector part and pin-out | **Closed**: W4A v3, FTSH-108 at both ends (§4.1, §4.2; SQSO-ICX-001 §3.2) |
+| RX_CD and RX_FAULT on the RF board | OBC side allocated (PG0, PF13; W4A pins 15, 16); the RF board's drivers, carrier-sense threshold and fault conditions are the RF designer's (SQSO-RF-BRD-001 §4.1) |
 | Readback pins for TONE_OK, XPDR_KEY, PTT_EXCITER | **Closed in hardware**: PC9, PG12, PC7 (§4.3); the firmware reading them is open (flight-software change, SQSO-ICX-001 §6) |
 | ADC scaling of TX_TEMP, TX_FWD, TX_REV | **Closed**: the RF board's detector and sensor match `adc.rs` (RF board §7.6) |
 | TNC part | **Closed**: TNC MCU on the RF board (SQSO-RF-BRD-001 §13) |
@@ -186,3 +197,4 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | 1.1, note | 2026-10-24 | SMART-QSO Team | RF_TX_EN row names the Rust file that replaced `rf_control.c` |
 | 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten to the interface as built: KISS TNC on USART2 (CR-2026-005), RADIO_EN, RF_TX_EN, TX_PWR_SEL, the XPDR_EN heartbeat, the transmitter monitors; KISS parameters; timing; readbacks allocated; verification. The Si4463 SPI command set, 9600 bps GFSK and 145.825 MHz are removed |
 | 2.1 | 2026-10-27 | CDR design completion (OBC board, SQSO-OBC-BRD-001) | §3 readbacks drawn; §4.1 connector W4A v2 (FTSH-107, 14 positions) and W4B; §4.2 pin-by-pin with the OBC and RF parts, readback levels, OBC series resistors; §4.3 readbacks wired to PC9, PG12, PC7 (RIDs RF-21, AV-05); §4.4 rails from the EPS board; §6 receiver ready ≤ 50 ms, EN_OK timing; §8 open items closed or carried; from SQSO-RF-BRD-001 §4 |
+| 2.2 | 2026-10-27 | CDR design completion, flight-software round 2 | §4.1 W4A version 3 (FTSH-108, 16 positions); §4.2 RX_CD (pin 15, PG0 EXTI0) and RX_FAULT (pin 16, PF13 EXTI13, low = healthy), back-power total 2.7 mA; §4.3 their use; §7 receiver-status test; §8 |

@@ -157,7 +157,8 @@ VI-LV-03).
 
 Model (SQSO-MECH-CAD-001 §8.1): MITC4 shells for the end frames, side shear panels, boards, deck, spreader and stowed
 wings; beams for the rails, stack columns, centre supports, isolators and clamp ears; the battery as a rigid body;
-every MEL mass where the CAD puts it (1,492.7 g); rails held laterally along their length and axially at their ends;
+every MEL mass where the CAD puts it (1,492.7 g; the later +1.6 g of MEL row 23 for the spreader pedestal was not
+re-run, 0.1 % of the mass); rails held laterally along their length and axially at their ends;
 59,268 degrees of freedom; 450 modes to 3.7 kHz. Element verification against closed-form plate, membrane and beam
 cases: within 1.5 %.
 
