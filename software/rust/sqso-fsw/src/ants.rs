@@ -18,6 +18,10 @@
 
 /// The controller's 7-bit address (side A)
 pub const ADDRESS: u8 = 0x31;
+/// The AntS's second, redundant controller (side B): the retry path when
+/// side A does not acknowledge or the elements stay stowed (SQSO-ICX-001 D
+/// §6 row 30, RID SMA-B07)
+pub const ADDRESS_B: u8 = 0x32;
 /// Arm the deployment system
 pub const CMD_ARM: u8 = 0xAD;
 /// Disarm it

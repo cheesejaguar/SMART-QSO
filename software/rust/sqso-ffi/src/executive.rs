@@ -54,9 +54,10 @@ use crate::{hw, pins};
 const ADC_RESOLUTION_12BIT: u32 = 12;
 const ADC_REF_VDD: u32 = 2;
 /// I2C buses (hal_i2c.h): 0 the EPS and power monitors, 1 the ADCS
-/// sensors, 2 the mission clock; standard mode (SMART-QSO-ICD-001 §2.3,
-/// SQSO-OBC-BRD-001 B §8, §9.4)
-const I2C_BUSES: [u32; 3] = [0, 1, 2];
+/// sensors, 2 the mission clock, 3 the AntS; standard mode, 100 kHz on
+/// all (SMART-QSO-ICD-001 §2.3, SQSO-OBC-BRD-001 B §8, §9.4; SQSO-ICX-001 D
+/// §6 row 31)
+const I2C_BUSES: [u32; 4] = [0, 1, 2, 3];
 const I2C_SPEED_HZ: u32 = 100_000;
 
 // watchdog_mgr.h task ids

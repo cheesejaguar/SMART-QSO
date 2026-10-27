@@ -8,7 +8,8 @@
 # contact would carry 0.61 A, above 50 % of its 1 A rating), down the -X centre strip, under the battery end cap and
 # through the -Z end-frame cut-out, spliced to the AntS pigtail. W12A-C: one harness per deployment switch, each on its
 # own rail and route (DS1 +X+Y at -Z, DS2 -X-Y at -Z, DS3 +X-Y at +Z); DS2 is two-pole (DPDT): its second pole holds
-# TRK_EN low when stowed (third array inhibit, EPS_BOARD_DESIGN D 6.2), so W12B has five wires; W12D the two-pole RBF.
+# the tracker clamp Q40 on when stowed (third array inhibit, active high, EPS_BOARD_DESIGN E 6.2), so W12B has five
+# wires; W12C two (DS3's NO dropped); W12D the two-pole RBF (pole B active high to Q41). AntS side B on W7C pins 7-8.
 metadata:
   title: W7 Deployables and inhibits v3 (SQSO-HW-DIAG-001; SQSO-EPS-BRD-001; SQSO-HAR-001 2.0)
 
@@ -44,15 +45,15 @@ connectors:
     type: wing W2 deployed-state sensor lead, AS81824/1 splice
     pinlabels: [in, out]
   J12:
-    type: Pico-Clasp 501330-0600, gold terminals (EPS J12 as Pico-Clasp 6, was 4)
-    subtype: 6 pos
-    notes: "EPS J12 (zone Z5): AntS supply (SW8, DEPLOY_EN) and I2C (U80 B side)"
-    pinlabels: [3V3_ANTS, 3V3_ANTS, GND, GND, ANTS_SDA, ANTS_SCL]
+    type: Pico-Clasp 8 pos, gold terminals (EPS J12, was 4)
+    subtype: 8 pos
+    notes: "EPS J12 (zone Z5): AntS supply, I2C side A (U80 B side) and side B 0x32 through 0 ohm jumpers (SQSO-ICX-001 E15)"
+    pinlabels: [3V3_ANTS, 3V3_ANTS, GND, GND, ANTS_SDA, ANTS_SCL, ANTS_SDA_B, ANTS_SCL_B]
   ANTS:
     type: ISIS AntS pigtail, AS81824/1 splices
     subtype: own controller, redundant thermal knives
     notes: "through the -Z end-frame cut-out at (-31, -16); pinout from the AntS ICD"
-    pinlabels: [VCC 3V3, VCC 3V3, GND, GND, SDA, SCL]
+    pinlabels: [VCC 3V3, VCC 3V3, GND, GND, SDA A, SCL A, SDA B, SCL B]
   J15:
     type: Pico-Clasp 501330-0300, gold terminals
     subtype: 3 pos (pin 3 not used)
@@ -64,24 +65,24 @@ connectors:
   J16:
     type: Pico-Clasp 5 pos, gold terminals
     subtype: 5 pos (pin 3 not connected on the EPS)
-    notes: "EPS J16 (zone Z2): pole 1 pack-return FET drive (PACK domain), pole 2 array inhibit (TRK_EN), EPS_BOARD_DESIGN D 6.2"
-    pinlabels: [DS2_C, S2N, NO1 (NC on EPS), GND, TRK_EN]
+    notes: "EPS J16 (zone Z2): pole 1 pack-return FET drive (PACK domain); pole 2 array inhibit, active high: C2 VCTL via 10 k, NO2 to the gate of tracker clamp Q40 (EPS_BOARD_DESIGN E 6.2, SMA-B13). Fallback: pins 4-5 to a second SPDT DS2B in the +Z standoff of the same rail"
+    pinlabels: [DS2_C, S2N, NO1 (NC on EPS), DS2_C2 (VCTL), TCL_A_W (clamp gate)]
   DS2:
     type: deployment switch DS2, two-pole (DPDT) (rail -X-Y, -Z), solder terminals
     pinlabels: [C1, NC1, NO1, C2, NO2]
   J17:
     type: Pico-Clasp 501330-0300, gold terminals
-    subtype: 3 pos
+    subtype: 3 pos (pin 3 not used, Version E)
     notes: EPS J17 (zone Z4)
-    pinlabels: [GND, S3N, TRK_EN]
+    pinlabels: [GND, S3N]
   DS3:
     type: deployment switch DS3 (rail +X-Y, +Z), solder terminals
-    pinlabels: [C, NC, 'NO']
+    pinlabels: [C, NC]
   J14:
     type: Pico-Clasp 501330-0400, gold terminals
     subtype: 4 pos
     notes: EPS J14 (zone Z4, -Y edge)
-    pinlabels: [S2N, S2R, TRK_EN, GND]
+    pinlabels: [S2N, S2R, TCL_B_W (clamp gate), RBF_C2 (VCTL)]
   RBF:
     type: RBF switch, two poles, solder terminals
     notes: "(+20, -45, -43), -Y access window"
@@ -109,8 +110,8 @@ cables:
   W7C:
     gauge: 28 AWG
     length: 0.155
-    colors: [RD, RD, BK, BK, BU, YE]
-    notes: "M22759/33-28; pairs 1+3, 2+4, 5+6; 0.61 A peak on two wires per pole (34 %), 37 mV"
+    colors: [RD, RD, BK, BK, BU, YE, VT, GY]
+    notes: "M22759/33-28; pairs 1+3, 2+4, 5+6 (side A), 7+8 (side B); 0.61 A peak on two wires per pole (34 %), 37 mV"
   W12A:
     gauge: 28 AWG
     length: 0.09
@@ -119,18 +120,18 @@ cables:
   W12B:
     gauge: 28 AWG
     length: 0.10
-    colors: [WH, BU, GY, BK, GN]
-    notes: "pole 1 triple (1, 2, 3; 3 spare) and pole 2 pair (4, 5) twisted; microamperes"
+    colors: [WH, BU, GY, OG, GN]
+    notes: "pole 1 triple (1, 2, 3; 3 spare) and pole 2 pair (4, 5) twisted; microamperes; pole 2 active high (a chafe to the frame cannot disable the trackers)"
   W12C:
     gauge: 28 AWG
     length: 0.11
-    colors: [BK, BU, GN]
-    notes: "+X wall gap at y -39.5 ... -45.5 (beside W4A), from the +Z rail end down to the EPS"
+    colors: [BK, BU]
+    notes: "DS3's NO wire dropped (EPS Version E); +X wall gap at y -39.5 ... -45.5 (beside W4A), from the +Z rail end down to the EPS"
   W12D:
     gauge: 28 AWG
     length: 0.085
-    colors: [BU, WH, GN, BK]
-    notes: "-Y wall strip and the -Y deck slot; pole A in DS2's drive, pole B clamps TRK_EN"
+    colors: [BU, WH, GN, OG]
+    notes: "-Y wall strip and the -Y deck slot; pole A in DS2's drive; pole B carries VCTL to the gate of tracker clamp Q41 with the pin in (active high)"
 
 connections:
   - - J10: [1-4]
@@ -145,18 +146,18 @@ connections:
   - - J11: [5-6]
     - W7B_S: [1-2]
     - HS_W2: [1-2]
-  - - J12: [1-6]
-    - W7C: [1-6]
-    - ANTS: [1-6]
+  - - J12: [1-8]
+    - W7C: [1-8]
+    - ANTS: [1-8]
   - - J15: [1-2]
     - W12A: [1-2]
     - DS1: [1-2]
   - - J16: [1-5]
     - W12B: [1-5]
     - DS2: [1-5]
-  - - J17: [1-3]
-    - W12C: [1-3]
-    - DS3: [1-3]
+  - - J17: [1-2]
+    - W12C: [1-2]
+    - DS3: [1-2]
   - - J14: [1-4]
     - W12D: [1-4]
     - RBF: [1-4]

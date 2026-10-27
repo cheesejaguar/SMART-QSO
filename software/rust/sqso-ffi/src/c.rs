@@ -94,6 +94,7 @@ unsafe extern "C" {
     #[cfg_attr(not(target_os = "none"), allow(dead_code))]
     pub(crate) fn hal_flash_region_size(region: u32) -> usize;
     pub(crate) fn hal_flash_read(region: u32, offset: u32, data: *mut u8, len: usize) -> i32;
+    pub(crate) fn hal_flash_read_mirror(region: u32, offset: u32, data: *mut u8, len: usize) -> i32;
     pub(crate) fn hal_flash_write(region: u32, offset: u32, data: *const u8, len: usize) -> i32;
     pub(crate) fn hal_flash_erase(region: u32) -> i32;
     pub(crate) fn hal_adc_init(resolution: u32, reference: u32) -> i32;
@@ -279,6 +280,14 @@ impl sqso_fsw::nvm::Flash for HalFlash {
     fn read(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), sqso_fsw::nvm::FlashError> {
         // SAFETY: buf is a valid writable slice of buf.len() bytes
         match unsafe { hal_flash_read(region, offset, buf.as_mut_ptr(), buf.len()) } {
+            rc::OK => Ok(()),
+            code => Err(sqso_fsw::nvm::FlashError(code)),
+        }
+    }
+
+    fn read_mirror(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), sqso_fsw::nvm::FlashError> {
+        // SAFETY: buf is a valid writable slice of buf.len() bytes
+        match unsafe { hal_flash_read_mirror(region, offset, buf.as_mut_ptr(), buf.len()) } {
             rc::OK => Ok(()),
             code => Err(sqso_fsw::nvm::FlashError(code)),
         }

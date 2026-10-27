@@ -325,6 +325,59 @@ mod tests {
         assert_eq!(load(&mut f, 0, 0, MAGIC, &mut out), Ok(RecordStatus::Corrupt));
     }
 
+    /// Two FRAMs: every write to both, reads from the first unless it is
+    /// dead, the mirror from the second
+    struct Pair {
+        a: MemFlash<256>,
+        b: MemFlash<256>,
+        a_dead: bool,
+    }
+
+    impl Flash for Pair {
+        fn read(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), FlashError> {
+            if self.a_dead { Err(FlashError(-7)) } else { self.a.read(region, offset, buf) }
+        }
+
+        fn write(&mut self, region: u32, offset: u32, data: &[u8]) -> Result<(), FlashError> {
+            let b = self.b.write(region, offset, data);
+            if self.a_dead { b } else { self.a.write(region, offset, data).and(b) }
+        }
+
+        fn erase(&mut self, region: u32) -> Result<(), FlashError> {
+            self.b.erase(region).and(self.a.erase(region))
+        }
+
+        fn read_mirror(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), FlashError> {
+            self.b.read(region, offset, buf)
+        }
+    }
+
+    #[test]
+    fn the_mirror_serves_a_failed_or_corrupt_first_fram() {
+        let mut f = Pair { a: MemFlash::new(), b: MemFlash::new(), a_dead: false };
+        let mut out = [0u8; 8];
+        save(&mut f, 0, 0, MAGIC, &[1; 8]).unwrap();
+        save(&mut f, 0, 0, MAGIC, &[2; 8]).unwrap();
+        // Both copies of the first FRAM corrupt: the mirror's newest
+        f.a.bytes[9] ^= 0xFF;
+        f.a.bytes[SLOT_SIZE + 9] ^= 0xFF;
+        assert_eq!(load(&mut f, 0, 0, MAGIC, &mut out), Ok(RecordStatus::Valid));
+        assert_eq!(out, [2; 8]);
+        // The first FRAM dead: loads and saves go on through the mirror
+        f.a_dead = true;
+        assert_eq!(load(&mut f, 0, 0, MAGIC, &mut out), Ok(RecordStatus::Valid));
+        save(&mut f, 0, 0, MAGIC, &[3; 8]).unwrap();
+        assert_eq!(load(&mut f, 0, 0, MAGIC, &mut out), Ok(RecordStatus::Valid));
+        assert_eq!(out, [3; 8]);
+        // Both dead: the first FRAM's error
+        f.b.writes_left = Some(0);
+        assert!(save(&mut f, 0, 0, MAGIC, &[4; 8]).is_err());
+        let mut none = MemFlash::<256>::new();
+        assert_eq!(none.read_mirror(0, 0, &mut out), Err(FlashError(-1)));
+        assert!(Mirror(&mut none).write(0, 0, &[0]).is_err());
+        assert!(Mirror(&mut none).erase(0).is_err());
+    }
+
     #[test]
     fn sequence_wrap_is_newer() {
         assert!(newer(0, u32::MAX));

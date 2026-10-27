@@ -36,7 +36,7 @@ from typing import List, Optional, Sequence, Tuple
 import numpy as np
 
 import orbit_frames as fr
-from ephemeris_products import FRAMES, OemMeta, fit_tle, iso, write_oem
+from ephemeris_products import FRAMES, OemMeta, fit_tle, iso, read_oem, write_oem
 from gnss_frame import DEFAULT_PDOP, TAI_UTC_S, Received, fix_time_unix, read_archive, resolve_week
 from orbit_determination import (DRAG_FORECAST_SIGMA, FitError, ForceModel, GravityField, Observation,
                                  fit_orbit, predict, quality_flag)
@@ -173,7 +173,8 @@ def run(argv: Optional[Sequence[str]] = None) -> int:
         f"Force model: {model.describe()}; model error floor {floor:.0f} m per axis",
         f"Position 1-sigma (3D): {sig[0] / 1000:.2f} km at start, {sigma_24h / 1000:.2f} km at last fix + 24 h, "
         f"{sig[-1] / 1000:.2f} km at stop; includes a {opts.drag_forecast:.0%} drag forecast uncertainty",
-        f"Contact: {opts.originator} (licensee); DUT1 = {opts.dut1 if opts.dut1 is not None else 'not used'} s",
+        f"Contact: {opts.originator} (licensee); "
+        + (f"DUT1 {opts.dut1} s (IERS Bulletin A)" if opts.dut1 is not None else "DUT1 not needed (Earth-fixed frame)"),
     ]
     files = {}
     try:
@@ -182,6 +183,10 @@ def run(argv: Optional[Sequence[str]] = None) -> int:
                         dut1_s=opts.dut1, tai_utc_s=opts.tai_utc, cov_every=opts.cov_every)
     except ValueError as exc:
         print(f"error: {exc}", file=sys.stderr)
+        return EXIT_FAIL
+    check = read_oem(oem)  # the file reads back with every keyword the upload needs
+    if len(check.times) != len(grid) or not np.all(np.isfinite(check.states)):
+        print(f"error: {oem} does not read back", file=sys.stderr)
         return EXIT_FAIL
     files["oem"] = str(oem)
 

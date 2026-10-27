@@ -9,6 +9,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 #include <setjmp.h>
 #include <cmocka.h>
 
@@ -25,6 +26,7 @@ static int setup(void **state)
 {
     (void)state;
     hal_sim_flash_fail_reads(false);
+    hal_sim_flash_fail_mirror_reads(false);
     hal_sim_flash_fail_writes(false);
     assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
     assert_int_equal(hal_flash_init(), SMART_QSO_OK);
@@ -40,6 +42,7 @@ static int teardown(void **state)
 {
     (void)state;
     hal_sim_flash_fail_reads(false);
+    hal_sim_flash_fail_mirror_reads(false);
     return 0;
 }
 
@@ -51,9 +54,16 @@ static uint8_t fr_state(void)
     return st;
 }
 
+/** Both FRAMs dead (or the shared SPI line stuck) */
+static void dead(bool fail)
+{
+    hal_sim_flash_fail_reads(fail);
+    hal_sim_flash_fail_mirror_reads(fail);
+}
+
 static void fail_until_declared(void)
 {
-    hal_sim_flash_fail_reads(true);
+    dead(true);
     for (uint32_t i = 0U; i < (FRAM_FAILURES_TO_DECLARE - 1U); i++) {
         fram_health_check();
         assert_int_equal(fr_state(), FRAM_STATE_OK);
@@ -121,7 +131,7 @@ static void test_recovery_ends_the_mode(void **state)
     fail_until_declared();
     assert_int_equal(fram_bypass(k_code, sizeof(k_code)), SMART_QSO_OK);
     assert_int_equal(rf_control_tx_on(), SMART_QSO_OK);
-    hal_sim_flash_fail_reads(false);
+    dead(false);
     for (uint32_t i = 0U; i < (FRAM_READS_TO_RECOVER - 1U); i++) {
         fram_health_check();
         assert_int_equal(fr_state(), FRAM_STATE_DEGRADED);
@@ -134,12 +144,40 @@ static void test_recovery_ends_the_mode(void **state)
     assert_true(rf_control_tx_permitted());
 }
 
+/** The second FRAM (U36): with the first one dead or upset, the records
+ *  come from the mirror and nothing degrades */
+static void test_the_mirror_serves(void **state)
+{
+    (void)state;
+    assert_int_equal(rf_control_tx_off(), SMART_QSO_OK);
+    hal_sim_flash_fail_reads(true);
+    for (int i = 0; i < 5; i++) {
+        fram_health_check();
+    }
+    assert_int_equal(fr_state(), FRAM_STATE_OK);
+    assert_int_equal(rf_control_init(), SMART_QSO_OK);
+    assert_false(rf_control_tx_permitted());          /* TX-OFF from the mirror */
+    assert_int_equal(rf_control_tx_on(), SMART_QSO_OK); /* saved through the mirror */
+    assert_int_equal(rf_control_init(), SMART_QSO_OK);
+    assert_true(rf_control_tx_permitted());
+    hal_sim_flash_fail_reads(false);
+    /* An upset of the first FRAM's copies only */
+    for (uint32_t off = 0U; off < 64U; off++) {
+        hal_sim_flash_corrupt_primary(FLASH_REGION_RF_CONTROL, off);
+    }
+    assert_int_equal(rf_control_init(), SMART_QSO_OK);
+    assert_true(rf_control_tx_permitted());
+    fram_health_check();
+    assert_int_equal(fr_state(), FRAM_STATE_OK);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup_teardown(test_dead_fram_keeps_the_safe_default, setup, teardown),
         cmocka_unit_test_setup_teardown(test_bypass_runs_from_ram, setup, teardown),
         cmocka_unit_test_setup_teardown(test_recovery_ends_the_mode, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_the_mirror_serves, setup, teardown),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

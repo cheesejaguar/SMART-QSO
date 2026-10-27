@@ -10,8 +10,8 @@
 //! PB4, the earlier pin, is NJTRST with a pull-up that switched SW1 on at
 //! every reset: RID OBCB-01), DEPLOY_EN is PF3, JETSON_PWR is PA8.
 //!
-//! Logical pins without a GPIO here: `GPIO_PIN_ANTENNA_SENSE` (13; PB11 is
-//! spare since the AntS reports over I2C: reads low, cannot be driven) and
+//! Logical pins without a GPIO here: `GPIO_PIN_ANTENNA_SENSE` (13: the AntS
+//! reports over I2C; PB11 is now LPUART1_TX: reads low, cannot be driven) and
 //! `GPIO_PIN_PTT_EXC` (42; PC7 belongs to the TIM8 capture, `capture.rs`,
 //! and its level is read from the port's input register there).
 
@@ -139,7 +139,7 @@ pub(crate) fn install_board(
         pin(pb8, Boot::Input(Pull::Down)), // 10 UMBILICAL_SENSE
         out(pb9),                          // 11 BURN_W2A
         out(pb10),                         // 12 BURN_W1A
-        None,                              // 13 ANTENNA_SENSE: not wired (PB11 spare)
+        None,                              // 13 ANTENNA_SENSE: not wired (PB11 is LPUART1_TX)
         input(pb12),                       // 14 SOLAR_SENSE
         out(pe3),                          // 15 TX_PWR_SEL
         out(pe4),                          // 16 XPDR_EN (heartbeat.rs)

@@ -184,12 +184,13 @@ fn bring_up() {
     capture::install(p.TIM3, p.TIM8, (p.PC6, p.PC7, p.PC8));
 
     // FRAM: SPI1 mode 0 at 20 MHz on PG2 SCK / PG3 MISO / PG4 MOSI, CS# PG5
-    // (SQSO-ICX-001 B §6 row 3); WP# and HOLD# high on PE0/PE1
+    // (SQSO-ICX-001 B §6 row 3) and the mirror U36 on CS# PD7 (D §6 row 32);
+    // WP# and HOLD# high on PE0/PE1
     let mut fram_cfg = embassy_stm32::spi::Config::default();
     fram_cfg.frequency = Hertz(20_000_000);
     fram::install(
         Spi::new_blocking(p.SPI1, p.PG2, p.PG4, p.PG3, fram_cfg),
-        Output::new(p.PG5, Level::High, Speed::VeryHigh),
+        [Output::new(p.PG5, Level::High, Speed::VeryHigh), Output::new(p.PD7, Level::High, Speed::VeryHigh)],
         Output::new(p.PE0, Level::High, Speed::Low),
         Output::new(p.PE1, Level::High, Speed::Low),
     );
@@ -209,15 +210,17 @@ fn bring_up() {
         I2c::new_blocking(p.I2C2, p.PF1, p.PF0, i2c_cfg),
         I2c::new_blocking(p.I2C4, p.PD12, p.PD13, i2c_cfg),
         I2c::new_blocking(p.I2C1, p.PG14, p.PG13, i2c_cfg),
+        I2c::new_blocking(p.I2C3, p.PG7, p.PB4, i2c_cfg),
     );
 
     // The Jetson (USART1, 8N2), the console (USART3), the TNC (USART2) and
-    // the GNSS receiver's NMEA (LPUART1 PG8 RX / PG7 TX, 9600 baud)
+    // the GNSS receiver's NMEA (LPUART1 PG8 RX / PB11 TX, AF8, 9600 baud:
+    // PG7 is I2C3's SCL, SQSO-ICX-001 D §6 row 29)
     let (Ok(jetson), Ok(debug), Ok(tnc), Ok(gnss)) = (
         BufferedUart::new(p.USART1, p.PA10, p.PA9, JETSON_TX.take(), JETSON_RX.take(), Irqs, uart_jetson()),
         BufferedUart::new(p.USART3, p.PD9, p.PD8, DEBUG_TX.take(), DEBUG_RX.take(), Irqs, uart(115_200)),
         BufferedUart::new(p.USART2, p.PD6, p.PD5, RADIO_TX.take(), RADIO_RX.take(), Irqs, uart(9600)),
-        BufferedUart::new(p.LPUART1, p.PG8, p.PG7, GNSS_TX.take(), GNSS_RX.take(), Irqs, uart(9600)),
+        BufferedUart::new(p.LPUART1, p.PG8, p.PB11, GNSS_TX.take(), GNSS_RX.take(), Irqs, uart(9600)),
     ) else {
         halt()
     };

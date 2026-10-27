@@ -79,7 +79,24 @@ SmartQsoResult_t hal_flash_read(HalFlashRegion_t region, uint32_t offset,
                                  uint8_t *data, size_t len);
 
 /**
- * @brief Write data to flash
+ * @brief Read data from the second FRAM (U36, SPI1 CS# PD7), the mirror
+ *        every hal_flash_write() also reaches (SQSO-ICX-001 D §6 row 32,
+ *        RID SMA-B10). The records' loader reads it when the first FRAM
+ *        fails or gives no copy that passes its CRC.
+ *
+ * @param region Flash region
+ * @param offset Offset within region
+ * @param data   Buffer to store read data
+ * @param len    Number of bytes to read
+ * @return SMART_QSO_OK on success; SMART_QSO_ERROR_IO when the mirror
+ *         does not answer
+ */
+SmartQsoResult_t hal_flash_read_mirror(HalFlashRegion_t region, uint32_t offset,
+                                        uint8_t *data, size_t len);
+
+/**
+ * @brief Write data to flash: both FRAMs (the first and the mirror);
+ *        SMART_QSO_OK when at least one took it
  *
  * @param region Flash region
  * @param offset Offset within region

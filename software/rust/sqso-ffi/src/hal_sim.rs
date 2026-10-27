@@ -29,7 +29,7 @@ const GPIO_DIR_OUTPUT: u32 = 1;
 const GPIO_PIN_XPDR_EN: u32 = 16;
 /// `HAL_GPIO_HEARTBEAT_HZ`: the wave's half period, µs
 const HEARTBEAT_HALF_PERIOD_US: u64 = 1_000_000 / (2 * 100);
-const I2C_BUS_COUNT: usize = 3;
+const I2C_BUS_COUNT: usize = 4;
 const UART_PORT_COUNT: usize = 3;
 const UART_PORT_DEBUG: u32 = 1;
 const SPI_BUS_COUNT: usize = 3;
@@ -620,6 +620,8 @@ fn ants_command(registers: &mut [u8; I2C_REG_BYTES], reg: u8, no_args: bool) {
 }
 
 fn device(s: &mut Sim, addr: u8) -> Option<&mut I2cDevice> {
+    // The AntS's two controllers drive the same antenna
+    let addr = if addr == sqso_fsw::ants::ADDRESS_B { I2C_ADDR_ANTS } else { addr };
     s.i2c.iter_mut().find(|d| d.addr == addr)
 }
 

@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-GND-001
-**Revision:** G
+**Revision:** H
 **Date:** 2026-10-27
 **Status:** CDR design. **No telecommand station is agreed** (BASELINE §1, decision D1); the sites below are candidates
 for analysis, not partners. Link values: SQSO-LBA-001 v3.5. Interface: SQSO-ICD-005 v2.4. Telecommand: SQSO-ICD-013.
@@ -31,8 +31,8 @@ link budget. Revision C replaces it.
 | GND-R3 | 70 cm power within 47 CFR 97.313 and 2.106 US270: **50 W PEP within 240 km of Beale AFB, within 160 km of Clear SFS** and in the other listed areas, unless authorized case by case (FCC field office with the military area frequency coordinator), or under 97.313(f) (≤ 611 W ERP, 1 kW EIRP, with the antenna's lower half-power point above 10°). At such a site the station is variant B: **≤ 50 W PEP at the transmitter output** (the limit applies to the transmitter's PEP, not to EIRP; to be confirmed in the FCC consultation, SQSO-REG-004 §6 Q6) into ≥ 17.8 dBic, which meets GND-R2 without an authorization (§3.1) | 47 CFR (eCFR 2026-10-01) |
 | GND-R4 | RF exposure evaluation per 47 CFR 1.1310 for each telecommand antenna at its maximum power (§3.1a: in the main beam for the general population at continuous carrier, 13.3 m at the 2.5 kW requirement, 15.8 m for variant A at its minimum, 3.5 kW; 14.4 m for the variant B example, 2.95 kW) | 47 CFR 1.1307(b), 97.13(c) |
 | GND-R5 | Doppler pre-correction of the uplink to ±1 kHz, **including the spacecraft receiver's frequency offset estimated from the measured downlink**: the downlink and the receiver share one TCXO (up to 2.1 ppm after 2 years, 0.9 kHz at 435.5 MHz), so the downlink's measured offset from nominal, with the predicted Doppler removed, scaled by f_up / f_down, is applied to the uplink before the first command of each pass (RID RFB-05; SQSO-RF-BRD-001 §6.5); tracking to ±5° (variant A, and the 2 m antenna of both), **±2° for the variant B 70 cm array** (rotator, calibration and orbit prediction together; 0.3 dB pointing allowance, SQSO-LBA-001 v3.5 §6.1) | SQSO-LBA-001 §4.4, §6.1 |
-| GND-R6 | Operational key held offline at rest; recovery key with a second custodian at a different site; no key on a networked machine | SQSO-ICD-013 §9 |
-| GND-R7 | Counters per SQSO-ICD-013 §5.2; with two stations, a shared sequence or UTC-derived counters (§5.2.1) | SQSO-ICD-013 |
+| GND-R6 | Operational keys held offline at rest; no key on a networked machine. **Each telecommand station's operational-key custodian holds a copy of the active operational key and of the spare operational keys**, so the station can command alone before and after a rotation; copies carried by hand on encrypted media and listed in the key custody register; revoked copies zeroized by every custodian. Recovery key with its own custodian at another site, not copied to the stations (SQSO-ICD-013 §5.2.1, key custody) | SQSO-ICD-013 §5.2.1, §9 |
+| GND-R7 | Counters per SQSO-ICD-013 §5.2: with two or more stations, **UTC-derived counters** (§5.2.1, adopted; `telecommand_builder.py --counter-from-utc`), each station with its own station index (§8) and its own counter file; no shared counter file. The station clock synchronised with a maximum error ≤ 0.5 s, or the tool refuses | SQSO-ICD-013 §5.2.1 |
 | GND-R8 | An authenticated contact at least once a day in routine operations, and an alarm if no contact has been confirmed for 5 days (the inhibit is at 14) | §5 |
 | GND-R9 | A `TX_DISABLE` sent within one pass of an FCC order; 24-hour contact for the licensee | 97.207(b) |
 | GND-R10 | Every decoded frame archived with time, station and frequency; data public | 97.113; IARU form 5.5 |
@@ -56,7 +56,7 @@ link budget. Revision C replaces it.
 | Tracking and Doppler | Gpredict or equivalent with Hamlib | | — |
 | Telecommand software | `software/ground/tools/telecommand_builder.py` (frames byte-identical to the flight vectors) | | — |
 | Key handling | Operational key on an offline laptop or a hardware token, mode 600, never on the station computer; frames built offline and carried over (or the builder runs on the offline machine with the station computer as a dumb KISS relay) | | $300 |
-| Time | GNSS-disciplined clock or NTP checked against GNSS, ±1 s (UTC-derived counters, telecommand timing) | | $150 |
+| Time | GNSS-disciplined clock or NTP checked against GNSS; the kernel's maximum error ≤ 0.5 s (UTC-derived counters, GND-R7; the builder refuses otherwise) | | $150 |
 | Coax | 70 cm: LMR-600 class, ≤ 20 m, **≤ 1.0 dB** at 435 MHz with connectors and the sequencer relay; 2 m: LMR-400 class | | $450 |
 | Power | UPS ≥ 30 min | | $200 |
 | **Total per station, variant A** | | | **≈ $6,650** (≈ $4,900 before C-14) |
@@ -193,7 +193,7 @@ Findings:
 1. **One station cannot hold N = 14 days**: a single 3–21-day equipment outage trips the inhibit in more than half of
    missions. Two independent stations bring it below 1 %. This is the quantitative case for GND-R1.
 2. **Common-mode ground failure dominates with two stations** (25 %): the shared counter file, a single operational
-   key holder, one licensee. Mitigations: UTC-derived counters (SQSO-ICD-013 §5.2.1), a copy of the operational key
+   key holder, one licensee. Mitigations: UTC-derived counters (SQSO-ICD-013 §5.2.1, adopted and implemented), a copy of the operational key
    with each station's custodian, a backup control operator for the licensee, the spare kit of §3.3. A trip is not a
    loss: the receiver stays on and the next authenticated command lifts the inhibit, but the transponder and beacon
    are silent until then.
@@ -244,7 +244,7 @@ orbit: TLE (Space-Track/CelesTrak) and GNSS fixes (D6) --> orbit determination -
 | Dashboard | Last beacon, telemetry plots, pass predictions (published), beacon text (AI or template) |
 | Alerts | No beacon heard by any station for 6 h after commissioning; mode SAFE or EMERGENCY; no confirmed contact for 5 days (GND-R8) |
 | Archive | Raw frames permanent; SatNOGS audio is held by SatNOGS |
-| Orbit | GNSS-derived ephemeris pipeline is a D6 action (BASELINE §6); TLEs as contingency |
+| Orbit | GNSS fixes from the archive to batch least-squares orbit determination, CCSDS OEM with covariance and TLE, quality flag (`software/ground/tools/ephemeris_tool.py`; SQSO-GND-002, with the 24 h first-ephemeris procedure); third-party orbit determination as contingency |
 
 Data volumes are in `docs/environment/DATA_BUDGET.md` (SQSO-DB-001 v2.0).
 
@@ -254,11 +254,13 @@ Data volumes are in `docs/environment/DATA_BUDGET.md` (SQSO-DB-001 v2.0).
 |------|-----|-------|
 | Licensee | KK6GDB | Signs filings; designates stations; 24-hour contact (GND-R9) |
 | Control operators | ≥ 2 per station, licensed | Named before the IARU request |
-| Operational-key custodians | One per telecommand station | GND-R6 |
-| Recovery-key custodian | A person other than the operational custodians, at another site | SQSO-ICD-013 §9 |
+| Ground segment lead | One person | Owns the orbit determination and the operator ephemeris (SQSO-GND-002): the tool, its configuration, the 24 h procedure and the uploads |
+| Station index | 0 the licensee's station, 1 the second designated station, 2 a third station, 3 a backup kit in place of a withdrawn station | Assigned by the licensee with each designation; in the station's `station.json` (SQSO-ICD-013 §5.2.1) |
+| Operational-key custodians | One per telecommand station, each with copies of the active and spare operational keys | GND-R6 |
+| Recovery-key custodian | A person other than the operational custodians, at another site | SQSO-ICD-013 §9; keeps the key custody register |
 | Database and dashboard maintainer | One person | |
 
-Procedures: `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` (SQSO-GSOM-001 v1.1).
+Procedures: `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` (SQSO-GSOM-001 v1.6); orbit determination and ephemeris: `docs/ground/ORBIT_DETERMINATION_AND_EPHEMERIS.md` (SQSO-GND-002).
 
 ## 9. Verification
 
@@ -267,7 +269,7 @@ Procedures: `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` (SQSO-GSOM-001 v1.
 | VI-GND-01 | Station transmit chain into a dummy load: power, deviation, Doppler control, sequencing | Variant A: **≥ 100 W PEP at the antenna feed** (and within the amplifier's rating); variant B: **≤ 50 W PEP at the transmitter output** (US270) and the feed loss ≤ 0.5 dB; ±3.0 ± 0.3 kHz deviation; frequency within ±200 Hz of command; exciter keyed ≥ 30 ms after the amplifier, no keying below 10° elevation; 2 m noise floor rise ≤ 0.5 dB while transmitting | Each station, before LEOP |
 | VI-GND-02 | Site noise survey: 2 m noise at 5–20° elevation in 8 azimuths | T_sys ≤ 500 K (GND-R11) | Before a site is designated |
 | VI-GND-03 | End-to-end with the EM over an attenuated cable link with Doppler applied | Beacons decoded, commands (including `TX_DISABLE`) accepted at the SQSO-LBA-001 levels | EM |
-| VI-GND-04 | Two-station counter exercise (shared or UTC-derived): 50 commands alternating stations against the EM | All accepted; no counter reused | EM |
+| VI-GND-04 | Two-station UTC-counter and key-custody exercise against the EM (SQSO-ICD-013 §5.2.1): two station set-ups with independent clocks, each with its own copy of the test operational key and its own counter file; 50 commands alternating, including two in the same second, a replayed frame, a frame built before the other station's later command, one clock 30 s off (with `--newest-ack`) and one unsynchronised clock. Simulated first in `software/ground/tests/test_utc_counters.py` | Every valid command acknowledged `R=0`; the replayed and stale frames rejected without consuming a counter; both bad clocks refused by the tool; no counter reused; each custodian's key copy shown valid by an acknowledged `NOP` | EM |
 | VI-GND-05 | RF exposure evaluation per 47 CFR 1.1310 at the station's maximum EIRP (§3.1a) | Documented distances met: no occupied area in the main beam within the station's distance (15.8 m variant A, 14.4 m variant B example, at continuous carrier), or a documented duty limit | Each station |
 | VI-GND-06 | Pass rehearsal (LEOP): 5 simulated passes with the SIL or the EM | Commands sent and verified within the pass timeline of SQSO-ICD-005 §7.1 | Before launch |
 | VI-GND-07 | Station EIRP at 70 cm: the antenna gain by a sun-noise measurement (Y-factor on the Sun against cold sky, with the day's 10.7 cm solar flux scaled to 435 MHz) or on a calibrated antenna range, with the calibrated power at the feed of VI-GND-01 | EIRP toward the spacecraft, after the pointing allowance (0.33 dB variant A, 0.21 dB variant B), **≥ 64 dBm**: variant A ≥ 15.5 dBic with ≥ 100 W at the feed; variant B ≥ 17.8 dBic with ≤ 50 W PEP at the transmitter | Each station, before designation |
@@ -279,8 +281,8 @@ Procedures: `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` (SQSO-GSOM-001 v1.
 |------|---------|
 | No telecommand station agreed (GND-R1) | Licensee: written agreements by 2027-01-05 (REGULATORY_ROADMAP F13) |
 | Command response and contact count on the downlink (finding GND-03) | **Closed**: acknowledgement and HK1 `CT`, `CS`, `CN` (flight software round 2) |
-| UTC-derived counters in the ground tool | Ground-software change |
-| Key custody plan | Licensee, with the agreements |
+| UTC-derived counters in the ground tool | **Done** (GND-04): `telecommand_builder.py --counter-from-utc`; VI-GND-04 on the EM |
+| Key custody plan | Rule written (GND-R6, SQSO-ICD-013 §5.2.1); custodians named by the licensee with the agreements |
 | SatNOGS decoder | Before launch |
 
 ---
@@ -297,3 +299,4 @@ Procedures: `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` (SQSO-GSOM-001 v1.
 | E | 2026-10-27 | Decision C-14: telecommand at ≥ 100 W PEP at the antenna feed and commands only above 10° (GND-R2); station transmit chain with a class AB ≥ 150 W amplifier, sequencer and PTT gate, 1.0 dB feed, 70 cm rejection on the 2 m preamplifier (§3.1, §3.1a); US270 areas (Beale for the Bay Area, Clear SFS for Fairbanks) and the 50 W / 17.5 dBic alternative (GND-R3); RF exposure evaluation at 2.5 kW EIRP (GND-R4, §3.1a); station cost ≈ $6,650; cadence at the 10° rule (§5) | CDR S&MA analysis |
 | F | 2026-10-27 | C-14 restated as an EIRP requirement (≥ 64 dBm toward the spacecraft above 10°): variant A (≥ 100 W PEP into ≥ 15.5 dBic, outside US270) and variant B (≤ 50 W PEP into ≥ 17.5 dBic: stacked pair, 15° beam, ±2° rotator, same-sense circular feed, ≤ 0.5 dB hardline, ≈ $7,350) (GND-R2, GND-R3, GND-R5, §3.1); RF exposure distances per variant (§3.1a: 15.8 m variant A, 14.4 m variant B); degraded mode (amplifier out) above 12°; variant per candidate site (§3.3) | CDR S&MA analysis |
 | G | 2026-10-27 | CDR round 3 (findings P3A-04, P3A-05, P3A-07): variant B is ≤ 50 W PEP at the transmitter output (US270 limits the transmitter's PEP) into ≥ 17.8 dBic (at 17.5 dBic the minimum gave 63.8 dBm, under 64 dBm; GND-R2, GND-R3, §3.1); GND-R5 the uplink corrected for the receiver offset estimated from the measured downlink (RFB-05); VI-GND-01 ≥ 100 W at the feed (was 100 W ± 0.5 dB); VI-GND-07 station EIRP (sun-noise or calibrated range) and VI-GND-08 pointing ±2° (variant B); §5 item 5 and §10: command acknowledgement and contact count on the downlink (GND-03 done); link values SQSO-LBA-001 v3.5 | CDR round 3, launch and operations |
+| H | 2026-10-27 | CDR round 3 (RIDs GND-04, LV-04): UTC-derived counters adopted (GND-R7; station index, §8), key custody with a copy of the operational keys at each station (GND-R6), clock maximum error ≤ 0.5 s (§3.1); VI-GND-04 the two-station UTC-counter and custody exercise; §7 orbit determination and ephemeris (SQSO-GND-002); ground segment lead role; §10 | CDR round 3, ground software |

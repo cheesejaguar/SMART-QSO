@@ -105,9 +105,9 @@ MAC input = "SQSO-TC-v1" | cmd_id (1 B) | N (1 B) | counter (4 B, BE) | args (N 
 
 ### 5.2 Ground
 
-1. **Counter files.** Every frame uses a new counter, and counters never go backwards. Keep one counter file per key: one for the active operational key and one for the recovery key. Start a new operational counter file after each rotation.
-2. **Reserve first.** `telecommand_builder.py --counter-file` writes and fsyncs the counter before producing the frame. A crash can skip a counter but never reuse one.
-3. **All telecommand stations must draw counters from one shared sequence per key.** The onboard window is strictly monotonic, so splitting the counter range between stations does not work.
+1. **Counter files.** Every frame uses a new counter, and counters never go backwards. Each station keeps one counter file per key: one for the active operational key and one for the recovery key. Start a new operational counter file after each rotation. With UTC-derived counters (§5.2.1) the file holds the last counter that station reserved; it is that station's own and is never copied to another station.
+2. **Reserve first.** `telecommand_builder.py` writes and fsyncs the counter before producing the frame (`--counter-file`, and `--counter-from-utc` with it). A crash can skip a counter but never reuse one.
+3. **One sequence per key, two ways to draw it.** The onboard rule is strictly monotonic per key (§5.1 rule 1), so splitting a counter range between stations does not work. With **two or more telecommand stations, every station derives its counters from UTC (§5.2.1)**; no counter file is shared, so each station can command alone (SQSO-GND-001 GND-R1). A single station working alone (integration, the EM, a station before the second is designated) may draw from one counter file (`--counter-file`). Once a UTC-derived counter has been accepted for a key, file counters for that key are below the onboard last counter and are rejected: the two are never mixed for one key.
 4. **Lost frames.** If a frame is lost, send the next command with a new counter. Never re-send a frame with the same counter.
 5. **Doppler.** Telecommand stations pre-correct the uplink to within ±1 kHz of the spacecraft receiver frequency.
    Uncorrected, the 435 MHz Doppler (up to ±10.4 kHz) takes the signal outside the receiver's ±7.5 kHz filter and
@@ -117,28 +117,76 @@ MAC input = "SQSO-TC-v1" | cmd_id (1 B) | N (1 B) | counter (4 B, BE) | args (N 
    measured offset from nominal, with the predicted Doppler removed, scaled by f_up / f_down, is applied to the
    uplink (SQSO-GND-001 GND-R5).
 
-#### 5.2.1 Two or more stations: counters from UTC (proposed)
+#### 5.2.1 Two or more stations: counters from UTC (adopted)
 
-Rule 3 above makes every station depend on one shared counter file, which is a single point of failure for the
-loss-of-contact inhibit: the contact analysis (SQSO-GND-001 §5) shows that common-mode ground outages, not the link,
-dominate the risk of tripping the 14-day inhibit. The onboard rule needs only that each accepted counter exceed the
-last, so the stations can derive counters from time instead of sharing a file:
+Adopted 2026-10-27 (RID GND-04). A shared counter file would be a single point of failure for the loss-of-contact
+inhibit: the contact analysis (SQSO-GND-001 §5) shows that common-mode ground outages, not the link, dominate the risk
+of tripping the 14-day inhibit. The onboard rule needs only that each accepted counter exceed the last, so the
+stations derive counters from time:
 
 ```
-counter = 4 × (UTC seconds since 2028-01-01T00:00:00Z) + station_index      (station_index 0–3)
+counter = 4 × (whole UTC seconds since 2028-01-01T00:00:00Z) + station_index      (station_index 0–3)
 ```
+
+**Station index.** Assigned by the licensee with the designation of each telecommand station (SQSO-GND-001 §8), held
+in the station's configuration file (`{"station": "<call>", "station_index": N}`, `--station-config`), never the
+same for two stations. Index 3 is kept for a backup kit brought into service in place of a station, which then takes
+that station's index only after the station is withdrawn in writing.
+
+**Properties.**
 
 - Strictly increasing across stations as long as their clocks agree to better than the time between two stations'
-  commands (passes from different sites are hours apart; GNSS or NTP time to ±1 s is ample). Two stations in the same
-  second differ in the low bits.
-- 2³² / 4 s is 34 years, so the counter cannot run out in the mission; the exhaustion rule (§5.1 rule 2) is untouched.
-- A station whose clock runs fast burns counter space ahead of the others; its commands still pass, and the others'
-  are rejected (`AUTH_FAIL`, counter not consumed) until real time catches up, which shows at once in the result.
-  The station checks its clock against GNSS before each pass.
-- No flight-software change. Ground-tool change: `telecommand_builder.py --counter-from-utc --station-index N`, still
-  reserving (writing and fsyncing) the value before building the frame (rule 2). For the chair: `software/ground` is
-  outside this document.
-- After `KEY_ROTATE` the new key starts at 0, so UTC-derived counters are immediately valid.
+  commands (passes from different sites are hours apart; within one second the station indices differ in the low
+  two bits).
+- 2³² / 4 s is 34 years, so the counter cannot run out in the mission (2028-11 + 5 years is below 0x30000000); the
+  exhaustion rule (§5.1 rule 2) is untouched.
+- **Compatible with the flight software as it is.** `KeyTable::verify` and `KeyTable::commit`
+  (`software/rust/sqso-fsw/src/keys.rs`) accept a frame when its tag verifies, its counter is at most 0xFFFFFFFE and
+  strictly greater than the last accepted for the key that authenticated it; a rejected frame does not consume its
+  counter. A sequence drawn by several stations from UTC is therefore accepted exactly like one strictly increasing
+  sequence. Checked by `software/ground/tests/test_utc_counters.py` against a model of that rule with an independent
+  HMAC: 50 commands alternating between two stations whose clocks are 0.4 s apart, all accepted; replays and frames
+  sent out of build order rejected. No flight-software change.
+- After `KEY_ROTATE` the new key starts at 0, so UTC-derived counters are valid at once; counters drawn from a file
+  before the switch are smaller than any UTC-derived counter.
+
+**Ground tool** (`telecommand_builder.py --counter-from-utc --station-config station.json --counter-file <this
+station's file for the key>`, implemented):
+
+| Guard | Rule |
+|-------|------|
+| Clock synchronised | Refused, with no counter reserved, unless the operating system reports the clock synchronised (kernel `adjtimex`: not `TIME_ERROR`, `STA_UNSYNC` clear) with a maximum error ≤ 0.5 s (`--max-clock-error-ms`); two stations then disagree by ≤ 1 s. Station time: GNSS-disciplined, or NTP checked against GNSS (SQSO-GND-001 §3.1) |
+| Monotonic | The counter is greater than the last this station reserved and than the newest counter heard in an acknowledgement (`ack ... C=`, SQSO-ICD-005 §5.5) from any station (`--newest-ack`). Within 2 s the tool waits for its clock to pass; beyond that it refuses and says by how much and whose counter is ahead (this station's clock stepped back, or another station's clock was fast) |
+| Own file | A counter file holding another station index's counter is refused |
+| Reserve first | Written and fsynced before the frame is built (rule 2) |
+| Before the epoch | Refused. EM and integration tests with test keys before 2028 use `--test-counter-epoch` (never with flight keys) |
+
+**Station rules.**
+
+1. Before each commanding pass: clock checked against GNSS; the newest acknowledged counter taken from the mission
+   database (any station) and passed with `--newest-ack`.
+2. Frames are built no earlier than the end of the last commanding pass of any other station, and sent in the order
+   built. A frame built before another station's later accepted command is rejected onboard as a replay
+   (`AUTH_FAIL`, counter not consumed); rebuild it.
+3. A station whose acknowledged counters decode (counter div 4) to a time more than 1 s from the UTC of its sending
+   stops commanding until its clock is corrected; its counters burn ahead of real time and the other stations' frames
+   are rejected until real time passes them.
+
+**Key custody (each station able to command alone; SQSO-GND-001 GND-R6, §9.1).** Each designated telecommand
+station's operational-key custodian holds a copy of the active operational key and of the spare operational keys
+(slots 0–3), so the station can command alone before and after a `KEY_ROTATE`; the copies are on the station's
+offline key machine or hardware token, mode 600, never on a networked machine, carried between sites only by hand
+on encrypted removable media, and listed in the key custody register (custodian, key ID and slot, date received).
+The recovery key is held by its own custodian at a site other than the station custodians'; it is not copied to the
+stations. A revoked key's copies are zeroized by every custodian, who confirms it in the register. A copy lost or
+exposed at any station is treated as a compromise of that key: `KEY_ROTATE` with the recovery key (§9.3).
+
+**Verification.** VI-GND-04 (SQSO-GND-001 §9), on the EM before launch: two station set-ups with independent clocks,
+each with its own copy of the test operational key and its own counter file, 50 commands alternating, including two
+in the same second, a replayed frame, a frame built before the other station's later command, one clock offset by
+30 s (refused by the tool from `--newest-ack`) and one unsynchronised clock (refused); pass: every valid command
+acknowledged with `R=0`, the replayed and stale frames rejected without consuming a counter, no counter reused; each
+custodian's key copy shown valid by a `NOP` acknowledged from that station.
 
 ## 6. TX-OFF
 

@@ -22,14 +22,14 @@ wires); the board build-to designs [EPS_BOARD_DESIGN.md](../electrical/eps/EPS_B
 
 | Item | Result | Section |
 |------|--------|---------|
-| Harnesses | W1–W12 and the coax W10 (four 1.37 mm cables) and W10E (GNSS, 1.13 mm): **209 conductors** (204 wires, 20.1 m; five coax, 1.1 m), every one in `hardware/harness/wire_list.csv` with its signal, both ends, gauge, type, twist group, currents, route and length | §4, §6 |
+| Harnesses | W1–W12 and the coax W10 (four 1.37 mm cables) and W10E (GNSS, 1.13 mm): **210 conductors** (205 wires, 20.3 m; five coax, 1.1 m), every one in `hardware/harness/wire_list.csv` with its signal, both ends, gauge, type, twist group, currents, route and length | §4, §6 |
 | Gauges | Set by the terminals: **28 AWG on every Pico-Clasp** (its crimp takes 28–32 AWG; the 24 and 26 AWG the interconnect and the WireViz sources gave W2, W4B, W6B, W6C, W7C and W9 cannot be crimped), 24 AWG on Micro-Fit (20–24 AWG), 22 AWG only for the pack leads, 30 AWG in the Samtec discrete-wire assemblies | §5.2 |
 | Ampacity (EEE-INST-002 W1, bundle factor) | Worst normal case 60 % (W4B PA return at the SW3 limit); 81 % for W7C at the AntS switch's current limit (a fault, 8 ms per 0.28 s); pack leads 48 % at 2.0 A | §9.1 |
 | Voltage drops | Pack 35 mV at 2.0 A, Jetson 43 mV at 1.4 A, PA 36 mV at 1 W, burn lines 44 mV (wing 1, 0.050 Ω loop) and 34 mV (wing 2), AntS 37 mV at 0.61 A: all within their limits | §9.2 |
 | Band B (deck to EPS) over-fill | **Resolved by routing, not by more space**: the EPS-only harnesses (W1, W2, W7, W11, W12) terminate on connectors on the EPS bottom side and reach them through the open volume under the EPS, the skeleton deck's openings, inboard strips beside the battery end caps, hinge-side strips and shear-panel slots; of them only W7A's two burn pairs use a corner bundle, the (+X,−Y) one the interconnect kept for them. Band-B fill of the corner bundles: **(+X,+Y) 4.3, (−X,+Y) 5.2, (−X,−Y) 9.1, (+X,−Y) 3.1 mm²** (24, 29, 51 and 26 % of the allowance) | §8 |
 | Highest fill anywhere | 65 % (hinge-side strip HS(+X)), 61 % (W4A on the shear panel); corner bundles 51 % at most | §8 |
-| CAD check | Every one of the 58 harness zones checked by boolean intersection against every solid of the CAD: **no interference**; coax bands carry coax only; magnetometer zone carries W6E only | §7.3 |
-| Mass | **84.9 g CBE** in all: 76.1 g in MEL row 32 (80.0 g CBE: −3.9 g), 6.6 g of ADCS sensor cables in row 26 (5.0 g with brackets: +1.6 g), 2.3 g of GNSS coax in row 31 | §11 |
+| CAD check | Every one of the 59 harness zones checked by boolean intersection against every solid of the CAD: **no interference**; coax bands carry coax only; magnetometer zone carries W6E only | §7.3 |
+| Mass | **85.6 g CBE** in all: 76.7 g in MEL row 32 (80.0 g CBE: −3.3 g), 6.6 g of ADCS sensor cables in row 26 (5.0 g with brackets: +1.6 g), 2.3 g of GNSS coax in row 31 | §11 |
 | Changes needed elsewhere | 35 items for the EPS, OBC, RF, carrier, battery, mechanical, interconnect, materials and parts documents (connectors on the EPS bottom side, two EPS connector changes, gold finishes, Samtec TFM/SFSDT for the PVC ribbons, CAD zones and slots, a larger access-port envelope, isolated antenna mounts) | §15 |
 
 The interconnect estimated 53 mm² of EPS-only harness against about 45 mm² left in band B (SQSO-ICX-001 B §2.1).
@@ -125,14 +125,14 @@ copper connection: the shell bonds to the frame through the panel only. The 2 ×
 | W6D | OBC J8 (Pico-Clasp 14) | Six photodiodes | 12 | 28 AWG, six unshielded pairs | 0.095–0.245 | (−X,+Y) bundle trunk, branches under the EPS |
 | W6E | OBC J10 (Pico-Clasp 6) | Magnetometer board A2 J1 | 6 | 28 AWG, three pairs | 0.090 | (+X,+Y) bundle D–E, step-over TE_PXPY |
 | W7A, W7B | EPS J10, J11 (Micro-Fit 2×3) | Burn boards (wing 1, 2) and deployed-state sensors | 2 × 6 | 24 AWG pairs | burn 0.150, 0.090; sense 0.095, 0.155 | W7A burn: +X wall gap below the EPS, (+X,−Y) bundle B–A, corner strip; W7B burn: deck opening, inboard strip, corner strip; sense: hinge-side strips |
-| W7C | EPS J12 (Pico-Clasp 6) | AntS pigtail (splices) | 6 | 28 AWG, three pairs | 0.155 | −X centre strip beside the battery, under the end cap, end-frame cut-out |
+| W7C | EPS J12 (Pico-Clasp 8) | AntS pigtail (splices) | 8 | 28 AWG, four pairs (side B 0x32 on pins 7–8) | 0.155 | −X centre strip beside the battery, under the end cap, end-frame cut-out |
 | W8A | OBC J9 (TFM-105 RA) | Access-port board A3 (solder) | 10 | 30 AWG SFSDT single-ended | 0.145 | (−X,−Y) bundle D–A, corner strip, −Y shear panel |
 | W9A | OBC J5 (Pico-Clasp 6) | GNSS receiver | 6 | 28 AWG, three pairs | 0.145 | (+X,+Y) bundle D–B, under EPS J3 |
 | W9B | EPS J21 (Pico-Clasp 2) | OBC J4 (Pico-Clasp 2) | 2 | 28 AWG pair | 0.085 | (+X,+Y) bundle B–D |
 | W10 | RF J3–J6 (MMCX) | AntS ports | 4 coax | 1.37 mm micro-coax | 0.220 | −X coax bands (RF board C §4.3) |
 | W10E | GNSS receiver RF port | GNSS patch | 1 coax | 1.13 mm micro-coax | 0.195 | (+X,−Y) bundle upper section B–E, over the RF shield |
 | W11 | EPS J13 (Micro-Fit 2×3) | A3 (solder) | 6 | 24 AWG | 0.175 | Under the EPS, −Y deck slot, −Y wall strip |
-| W12A, W12B, W12C | EPS J15, J17 (Pico-Clasp 3), J16 (Pico-Clasp 5) | Deployment switches DS1, DS2 (two-pole), DS3 | 2, 5, 3 | 28 AWG | 0.090, 0.100, 0.110 | Each on its own rail and its own route (§7.2) |
+| W12A, W12B, W12C | EPS J15, J17 (Pico-Clasp 3; J17-3 not used from EPS Version E), J16 (Pico-Clasp 5) | Deployment switches DS1, DS2 (two-pole), DS3 | 2, 5, 2 | 28 AWG | 0.090, 0.100, 0.110 | Each on its own rail and its own route (§7.2) |
 | W12D | EPS J14 (Pico-Clasp 4) | RBF switch | 4 | 28 AWG, two pairs | 0.085 | −Y wall strip, −Y deck slot |
 
 W12 is the number this document gives the inhibit-switch and RBF harnesses that SQSO-EPS-BRD-001 §6.2 defines ("one
@@ -177,7 +177,7 @@ Gauge rules forced by the terminals:
 
 No single wire fits both a Micro-Fit and a Pico-Clasp terminal, so **a harness has one family at both ends**: EPS J19
 (W4B, Micro-Fit to the RF board's Pico-Clasp J2) becomes a Pico-Clasp 6 with the RF J2 pinout, and EPS J12 (W7C) a
-Pico-Clasp 6 with two contacts per supply pole (one Pico-Clasp contact would carry the AntS's 0.61 A, above 50 % of its
+Pico-Clasp 8 with two contacts per supply pole (one Pico-Clasp contact would carry the AntS's 0.61 A, above 50 % of its
 1 A rating). Recovery proposed by SQSO-ICX-001 B §2.1 for the pack leads (22 AWG instead of 20) is adopted: 1.2 A per
 wire worst case (2.0 A pack current with a 60/40 split) against 2.50 A derated, 35 mV drop.
 
@@ -193,7 +193,7 @@ wire worst case (2.0 A pack current with a 60/40 split) against 2.50 A derated, 
 
 ## 6. Wire List
 
-The complete list is `hardware/harness/wire_list.csv` (209 rows). The power and special conductors:
+The complete list is `hardware/harness/wire_list.csv` (210 rows). The power and special conductors:
 
 | Harness | Pins (from → to) | Signal | AWG | Twist | I normal / max per wire (A) | Notes |
 |---------|------------------|--------|----:|-------|----------------------------|-------|
@@ -215,13 +215,13 @@ The complete list is `hardware/harness/wire_list.csv` (209 rows). The power and 
 | W6E | J10-n → A2 J1-n (§3.4) | 3V3_MAG (U35, MAG_EN PF14), GND, SDA_M, SCL_M, DRDY, GND | 28 | (1, 2), (3, 6), (4, 5) | < 2 mA | |
 | W7A/W7B | J10/J11-1, 2 / 3, 4 → burn resistor A / B | V_BURN, BRET | 24 | pair per resistor | 0.88 for 12 s | One resistor at a time |
 | W7A/W7B | J10/J11-5, 6 → sensor leads | Hinge sense (both wings in series) | 24 | pair | µA | |
-| W7C | J12-1, 2 / 3, 4 / 5, 6 → AntS | 3V3_ANTS, GND, SDA, SCL | 28 | 1+3, 2+4, 5+6 | 0.305 / 0.733 | Peak 0.61 A, SW8 limit 1.47 A. AntS side B (0x32): if the AntS ICD brings it out on its own I2C pins (SQSO-ICX-001 D E15), W7C gains SDA_B/SCL_B as a 28 AWG pair (J12 a Pico-Clasp 8, U80 a second channel): UB_MXC 41 → 55 %, every other zone + ≤ 2 %; if side B shares the bus, no change |
+| W7C | J12-1, 2 / 3, 4 / 5, 6 / 7, 8 → AntS | 3V3_ANTS, GND, SDA, SCL (side A 0x31), SDA_B, SCL_B (side B 0x32) | 28 | 1+3, 2+4, 5+6, 7+8 | 0.305 / 0.733 | Peak 0.61 A, SW8 limit 1.47 A. Side B is populated (EPS_BOARD_DESIGN E J12, SQSO-ICX-001 E15): J12-7/8 reach U80's bus through two 0 Ω jumpers on the EPS, fitted only if the AntS variant brings side B out separately; the two wires are built in every harness (spliced to the pigtail's side-B leads, or insulated and tied back if the variant shares the bus). UB_MXC 41 → 55 %, every other zone + ≤ 2 % |
 | W8A | J9-1 … 10 → A3 P1 … 7, 12, 13, 14 | SWD, RST_REQ (active high), console, sense, WDT_DIS | 30 | flat | < 10 mA | §3.2 pin map |
 | W9A | J5-n → receiver (§3.5) | 3V3_GNSS, GND, RXD, TXD, 1PPS, GND | 28 | (1, 2), (3, 6), (4, 5) | 0.10 / 0.232 | Receiver contacts must take 28 AWG |
 | W9B | J21-1, 2 → J4-1, 2 | 3V3_GNSS, GND | 28 | pair | 0.10 / 0.232 | |
 | W11 | J13-1, 2 / 3, 4 / 5 / 6 → A3 P20, 21 / 10, 11 / 9 / 19 | UMB_CHG, PACK_N, UMB_VMON, UMB_SHUT | 24 | 1+3, 2+4 | 0.25 / 0.50 | |
-| W12A–C | J15-1, 2 → DS1 (C, NC); J16-1 … 5 → DS2 (C1, NC1, NO1, C2, NO2); J17-1 … 3 → DS3 (C, NC, NO) | DS1_C/S1N; DS2_C/S2N/spare, GND/TRK_EN; GND/S3N/TRK_EN | 28 | pair; triple + pair; triple | µA (1.7 mA into a frame short) | DS2's pole 2 is the third array inhibit (TRK_EN low when stowed, EPS_BOARD_DESIGN D §6.2); J16-3 (NO1) is not connected on the EPS and wired as a spare; J15-3 not used |
-| W12D | J14-1 … 4 → RBF A1, A2, B1, B2 | S2N, S2R, TRK_EN, GND | 28 | two pairs | µA | |
+| W12A–C | J15-1, 2 → DS1 (C, NC); J16-1 … 5 → DS2 (C1, NC1, NO1, C2, NO2); J17-1, 2 → DS3 (C, NC) | DS1_C/S1N; DS2_C/S2N/spare, DS2_C2/TCL_A_W; GND/S3N | 28 | pair; triple + pair; pair | µA (1.7 mA into a frame short) | DS2's pole 2 drives the tracker clamp Q40, **active high** (EPS_BOARD_DESIGN E §6.2, SMA-B13): C2 is VCTL through 10 k, NO2 (closed when stowed) carries it to Q40's gate, so a wire chafed to the frame turns the clamp off and cannot disable the trackers; TRK_EN never leaves the EPS. J16-3 (NO1) is not connected on the EPS and wired as a spare. DS3's NO wire is dropped (J17-3 not used from Version E); J15-3 not used |
+| W12D | J14-1 … 4 → RBF A1, A2, B1, B2 | S2N, S2R (pole A, in DS2's drive); TCL_B_W, RBF_C2 (pole B) | 28 | two pairs | µA | Pole B drives the second tracker clamp Q41, active high: B2 is VCTL, B1 (closed with the pin in) carries it to Q41's gate (EPS_BOARD_DESIGN E §6.2) |
 | W10 | RF J3, J4 → 2 m ±X; J5, J6 → 70 cm ±Y | RF | coax 1.37 | — | 1 W | Pairs matched within 2 mm |
 | W10E | Receiver RF → patch | GNSS L1, antenna bias | coax 1.13 | — | bias | |
 
@@ -242,6 +242,7 @@ OBC), D +6.6 … +18 (OBC to carrier), E +18 … +48.4 (carrier to the +Z end fr
 | MXC | −X wall gap, y +7.0 … +19.5, z −16 … +18 | Between the Z rod (\|y\| ≤ 5.25) and the 70 cm coax band: W6C leaves OBC J7 (y +12 … +22) without crossing the band |
 | PXC_B | +X wall gap, \|y\| < 20, z −26 … −9 | Open below the EPS (the Y rod ends at z −27.65): W7A's burn pairs from J10 to the (+X,−Y) bundle |
 | PXMY2 | +X wall gap, y −45.5 … −39.5, z −12 … +44.5 | DS3 leads beside W4A |
+| MXMY2 | −X wall gap, y −45.5 … −39.5, z −12 … +44.5 | DS2B fallback leads (W12B-04/05 if DS2B is fitted, §7.2; not populated in the baseline) |
 | HS_PX, HS_MX | ±X wall gap, y +34.5 … +39.5, z −42 … −5 | Hinge-side strips: wing harnesses, sensor pairs, DS1 |
 | S_MXMY, S_MXC | x −45 … −36 beside the −X battery end cap, z −34 … −17 (S_MXC to −45) | Inboard strips below the deck |
 | CS_PXMY, CS_MXMY | x ±(43.2 … 46.4), y −46.8 … −34, z −44.5 … −34 | Corner strips to the burn boards, DS2, W8A |
@@ -281,6 +282,13 @@ OBC), D +6.6 … +18 (OBC to carrier), E +18 … +48.4 (carrier to the +Z end fr
   **W12B** (DS2, rail −X−Y, −Z) up the (−X,−Y) corner strip and inboard strip; **W12C** (DS3, rail +X−Y, +Z) down the
   +X wall gap at y −39.5 … −45.5 beside W4A; **W12D** (RBF) along the −Y wall strip. The three inhibit harnesses share
   no zone with each other (SQSO-EPS-BRD-001 §6.3 independence).
+- **DS2B fallback** (switch RFQ, EPS_BOARD_DESIGN E §6.2; not in the baseline build): if no DPDT fits the standoff
+  bore, DS2 stays single-pole and a second SPDT, DS2B, sits in the +Z standoff of the same (−X,−Y) rail. W12B-04/05
+  (VCTL feed and clamp gate) then go to DS2B's C and NO (NC unused) instead of DS2's pole 2: from J16 up the (−X,−Y)
+  bundle (bands B–E) and the −X wall strip MXMY2 (y −45.5 … −39.5, CAD-checked clear) to the +Z end of the rail
+  (0.11 m per wire instead of 0.10 m). J16, the wire count and the EPS are unchanged; the (−X,−Y) bundle goes
+  from 9.1 to 10.0 mm² of 17.8 (56 %) in bands B–D and 5.7 to 6.6 (37 %) in E; the mass changes by less than 0.1 g. DS2B shares no zone
+  with W12A or W12C.
 - **W6C** leaves OBC J7 into the −X centre path MXC. The **Z-rod pair** is spliced in that gap at (y +10, z +12) to the
   rod's lead, which leaves the rod's top end (z +3) over its outer face at \|y\| ≈ 4.5. The **X-rod pair** goes under the
   EPS to the rod's −X end at (−23.5, +36, −10). The **Y-rod pair** goes under the EPS through the crossing U_X
@@ -303,12 +311,12 @@ OBC), D +6.6 … +18 (OBC to carrier), E +18 … +48.4 (carrier to the +Z end fr
 ### 7.3 Clearances (CAD check, `harness_calcs.py --cad`)
 
 Every zone box intersected with every solid of `hardware/mechanical/model.py` (stowed, ghost allocations excluded):
-**no interference in any of the 58 zones**. Nearest solids: the corner bundles 0.1 mm to the shear panels and to the
+**no interference in any of the 59 zones**. Nearest solids: the corner bundles 0.1 mm to the shear panels and to the
 W1/W2 burn boards; PXMY_UP 0.5 mm from the +X spreader flange (y −20); MXC 1.75 mm from the Z rod, 0.5 mm from the coax
 band; PXC_B 1.65 mm above the Y rod; the bundles at \|y\| ≥ 24 are 0.5 mm from the Y rod's ends; U_X 1.1 mm to the
 centre support and 1.25 mm to the X rod; U_C 0.75 mm to the Z rod; the hinge-side strips stop on the hinge doublers
 (z −42) and LI_DS1 passes them 0.1 mm outboard; CS_MXMY 0.25 mm from DS2, 0.3 mm from the column spacer; TE_PXPY ends
-0.28 mm from A2 (W6E's own end), TE_PXMY2 0.39 mm from the patch adapter (W10E's end); the zones under the EPS stop at
+0.28 mm from A2 (W6E's own end), TE_PXMY2 0.39 mm from the patch adapter (W10E's end); PXMY2 and MXMY2 0.1 mm from their rails and shear panels; the zones under the EPS stop at
 the EPS's bottom-side envelope and 0.5 mm above the deck. The coax bands carry W10 only. Inside the 20 mm zone round A2
 only W6E runs (the (+X,+Y) bundle in band E holds W6E and the bottom 6 mm of W5B); the next harnesses are W10E (36 mm,
 coax), W4B (37 mm) and the PZ pair (47 mm). AP_A3 replaces the CAD's access-port part (request M-3).
@@ -327,7 +335,7 @@ coax), W4B (37 mm) and the PZ pair (47 mm). AP_A3 replaces the CAD's access-port
 ### 8.2 Other zones (fill against 60 % of the zone's section)
 
 HS_PX 5.8 / 9.0 mm² (65 %: W2W1, W7A sense, W12A); HS_MX 5.0 / 9.0 (55 %); W4AZ 5.5 / 9.0 (61 %); YB_MY 3.4 / 6.5
-(53 %); UB_MXC 2.6 / 6.3 (41 %); CS_MXMY 7.4 / 20.2 (37 %); PG_* 3.0 / 9.6 (31 %); U_X 5.2 / 21.6 (24 %); W3Z 13.7 /
+(53 %); UB_MXC 3.4 / 6.3 (55 %, W7C with side B); CS_MXMY 7.4 / 20.2 (37 %); PG_* 3.0 / 9.6 (31 %); U_X 5.2 / 21.6 (24 %); W3Z 13.7 /
 61.2 (22 %); every zone under the EPS ≤ 19 %; full table in the script's output. The coax's own passages under the
 battery end cap and through the end frame are 88 % full (two 1.37 mm cables in 1.4 mm of height): the RF design's,
 unchanged.
@@ -418,7 +426,7 @@ substrate (bottom face z −3.4, MECHANICAL_DESIGN D-14) and the deck (z −15.5
 | Z2 | −44 … −21, −40 … −7 and −36.5 … −21, −46 … −40 | J5 (W2MX), J7 (W2MY), J11 (W7B, Micro-Fit 2×3 RA), J16 (W12B, Pico-Clasp 5), J18 (W5A, Micro-Fit 2×2 RA), J19 (W4B) | 632 of 852 (74 %) |
 | Z3 | +24.5 … +44, +6 … +40 (less J3) | J8 (W2W1), J10 (W7A, Micro-Fit 2×3 RA), J15 (W12A), J21 (W9B, +X edge, +Y side) | 375 of 558 (67 %) |
 | Z4 | +31 … +44, −40 … −16 and +31 … +36.5, −46 … −40 | J4 (W2PX), J17 (W12C); J14 (W12D) at the −Y edge | 94 of 345 (27 %) |
-| Z5 | −20 … +24, +6 … +17.5 (and −20 … −3.5 to +25) | J9 (W2W2), J12 (W7C), J13 (W11, Micro-Fit 2×3 RA) | 366 of 630 (58 %) |
+| Z5 | −20 … +24, +6 … +17.5 (and −20 … −3.5 to +25) | J9 (W2W2), J12 (W7C, Pico-Clasp 8), J13 (W11, Micro-Fit 2×3 RA) | 375 of 630 (60 %) |
 | +X edge | +33 … +45, \|y\| < 15.5 | J3 (W3, TFM-120 vertical, SFSDT) | dedicated |
 
 Footprint allocations (to confirm on the Molex and Samtec drawings, V-HAR-3): Micro-Fit 2×N right-angle with plug and
@@ -475,18 +483,18 @@ or tape sweep) and leave the vent paths between stack levels open (the zones und
 
 | Item | Mass (g CBE) |
 |------|-------------:|
-| Wire, M22759/33 and SFSDT (204 conductors, 20.1 m) | 32.2 |
+| Wire, M22759/33 and SFSDT (205 conductors, 20.3 m) | 32.4 |
 | Coax: W10 (4 × 0.22 m) 3.5 g, W10E 0.5 g | 4.0 |
-| Harness-side connector halves and splices (Pico-Clasp, Micro-Fit, SFSDT; ten MMCX plugs 9.0 g) | 27.6 |
+| Harness-side connector halves and splices (Pico-Clasp, Micro-Fit, SFSDT; ten MMCX plugs 9.0 g) | 28.0 |
 | Access-port board A3 (30 × 8.8 mm) with the Micro-D 21 and its ESD parts | 5.8 |
 | Termination tabs, pack-lead over-sleeve, identification sleeves | 4.9 |
 | Lacing and tie-down dots (104 points) | 10.4 |
-| **Total** | **84.9** |
+| **Total** | **85.6** |
 
 Against the MEL (`docs/environment/MASS_BUDGET.md` §3.1, not edited): **row 32** (harness, 80.0 g CBE, 100.0 g MEV)
-holds 76.1 g of this, **−3.9 g** CBE; the ADCS sensor cables W6B–W6E (6.6 g) are row 26's (5.0 g CBE with the sensor
+holds 76.7 g of this, **−3.3 g** CBE; the ADCS sensor cables W6B–W6E (6.6 g) are row 26's (5.0 g CBE with the sensor
 brackets): **+1.6 g** before the brackets; the GNSS coax W10E and its plugs (2.3 g) are part of row 31 (26.0 g with the
-patch adapter and bracket). Net against rows 32 and 26 together: 82.7 g against 85.0 g, −2.3 g. The hinge flex
+patch adapter and bracket). Net against rows 32 and 26 together: 83.3 g against 85.0 g, −1.7 g. The hinge flex
 jumpers are in rows 10/11 (2 g each) as the CAD carries them, although row 32's title names them.
 
 The mass distribution changes: about 22 g (15 g of wire and the 7 g of the EPS-side connector halves) now lies under
@@ -544,7 +552,7 @@ is the nickel underplate of A2's own connector.
 | V-HAR-2 | Crimp qualification: Pico-Clasp 501334 at 28 AWG, Micro-Fit 43030 at 22 and 24 AWG thin-wall (insulation grip; build-up sleeve if needed), Samtec SFSDT, AS81824/1 splices | Test | NASA-STD-8739.4A pull values; cross-sections | Before the EM harness build |
 | V-HAR-3 | Mated heights and footprints of every connector with its wire dress (Pico-Clasp 8.0 mm, Micro-Fit RA 9.0 mm and 23 mm, TFM RA 7.0 mm with the plug's back at x ≤ ±43.1, Micro-D envelope) | Inspection on the Molex/Samtec drawings, then measurement on the EM boards | Within the allocations of §10 | EM board layout (with VI-MCAD-01) |
 | V-HAR-4 | Fit check on the EM structure: every harness in its zones, the coax bands and A2's 20 mm zone free, no harness in the wing or tape sweeps, slots and deck openings protected, tie points as §10.3, no harness tie on the EPS other than connector strain relief (C-15) | Inspection, photographs, measured route lengths | No contact with rods, flanges, columns; lengths within the wire list's service allowance | EM integration |
-| V-HAR-5 | Harness mass | Weigh each harness and A3 | Total ≤ 84.9 g × 1.25; row-32 content ≤ 100 g | EM and flight builds |
+| V-HAR-5 | Harness mass | Weigh each harness and A3 | Total ≤ 85.6 g × 1.25; row-32 content ≤ 100 g | EM and flight builds |
 | V-HAR-6 | Loop resistance of the power circuits (four-wire) | Test | §9.2 values within +20 % | V-HAR-1 |
 | V-HAR-7 | W1 conductance as part of the battery mount | Test (battery mount thermal test) | ≤ 0.008 W/K for the leads | EM thermal balance |
 | V-HAR-8 | Field step at A2 with the PA keyed at 1 W and the Jetson switched | Test (flatsat, with AV-V4/VI-RFB-11) | ≤ 1 nT from the harness | Flatsat |
@@ -561,7 +569,7 @@ is the nickel underplate of A2's own connector.
 | E-1 | EPS (SQSO-EPS-BRD-001 §13.1, §17) | Every harness connector on the **bottom side** in zones Z1–Z5 and the +X edge (§10.1); bottom-side envelope 9.0 mm (z −3.4 … −12.4, EPS 2.0 mm) in those zones | The top side has 5 mm under the OBC |
 | E-2 | EPS | J1, J10, J11, J13, J18 as **right-angle** Micro-Fit 3.0 headers (43045-0800/-0600/-0400 class), gold | 12.1 mm under the EPS; tin prohibited |
 | E-3 | EPS | **J19 → Pico-Clasp 6**, pinout of RF J2: 1 RADIO_3V3, 2 GND, 3, 4 PA_5V, 5, 6 GND | No wire fits a Micro-Fit and a Pico-Clasp terminal |
-| E-4 | EPS | **J12 → Pico-Clasp 6**: 1, 2 3V3_ANTS; 3, 4 GND; 5 SDA; 6 SCL | One contact would carry 0.61 A (> 50 % of 1 A) |
+| E-4 | EPS | **J12 → Pico-Clasp 8**: 1, 2 3V3_ANTS; 3, 4 GND; 5 SDA; 6 SCL; 7 SDA_B, 8 SCL_B (AntS side B 0x32 through 0 Ω jumpers): **done** (EPS_BOARD_DESIGN E §13.1) | One contact would carry 0.61 A (> 50 % of 1 A) |
 | E-5 | EPS | J3 → Samtec TFM-120 vertical (SFSDT), bottom side, +X edge, \|y\| < 15.5 | PVC FFSD ribbon; mated height under the OBC |
 | E-6 | EPS | PACK-domain corner at (−X, +Y), zone Z1 (J1, J2) | W1 route |
 | E-7 | EPS | All Pico-Clasp and Micro-Fit headers in the gold finish (BOM finish column) | EEE_PARTS_LIST §2A.3 item 5 |
@@ -584,7 +592,7 @@ is the nickel underplate of A2's own connector.
 | M-7 | Mechanical | Deck openings DX_* and the −Y slot stay open as harness pass-throughs, edges protected: **done** (MECHANICAL_DESIGN B §6.11, D-12) | Routing |
 | M-8 | Mechanical | W4A as a flat discrete-wire assembly in the gap without the fold over RF J1 (`ribbon_W4A`); §6.9 text: W6E 0.09 m (was 0.25 m), battery leads not in the −X bundle: **done** (MECHANICAL_DESIGN B §6.11, D-12) | Right-angle TFM |
 | M-9 | Mechanical | AntS and GNSS patch mounts DC-isolated from the frame (≥ 1 MΩ), as A2 is: **done** (MECHANICAL_DESIGN B §6.11, D-12, D-13) | Single-point ground |
-| M-10 | Mechanical / frame RFQ | **DS2 becomes a two-pole (DPDT) deployment switch** (pole 1: pack-return FET drive; pole 2: C2 to GND, NO2 to TRK_EN, the third array inhibit, EPS_BOARD_DESIGN D §6.2): the frame vendor's switch provision in the (−X,−Y) −Z rail standoff must take a DPDT switch (body in the Ø4.7 mm bore, actuated flush with the standoff end) and five leads (W12B: 28 AWG, out of the switch's inner end into the corner strip CS_MXMY) | W12B five wires |
+| M-10 | Mechanical / frame RFQ | **DS2 becomes a two-pole (DPDT) deployment switch** (pole 1: pack-return FET drive; pole 2: C2 = VCTL through 10 k, NO2 to the gate of the tracker clamp Q40, active high, EPS_BOARD_DESIGN E §6.2, SMA-B13): the frame vendor's switch provision in the (−X,−Y) −Z rail standoff must take a DPDT switch (body in the Ø4.7 mm bore, ≤ Ø4.5 mm, actuated flush with the standoff end) and five leads (W12B: 28 AWG, out of the switch's inner end into the corner strip CS_MXMY). **RFQ fallback, quoted alongside:** a second SPDT DS2B in the +Z standoff of the same rail, its C and NO wired to J16-4/5 (NC unused), its two leads out of the standoff's inner end into the −X wall strip MXMY2 (§7.2) | W12B five wires; DS2B routing |
 | I-1 | Interconnect (SQSO-ICX-001 §1 rule 5, header line) | Rule 5's values are version 1.2's: the wire derating of SQSO-HAR-001 2.0 §5.2 is EEE-INST-002 with the bundle factor, and the gauge follows the terminal; governing baseline Rev E | §5.2 |
 | I-2 | Interconnect §3.1–§3.6 notes | W3, W4A: SFSDT 30 AWG on TFM; W4B, W6B, W6C, W9: 28 AWG; W5A: 24 AWG; W6D: no shield, J8-13/14 unused; §3.6: the bulkhead is A3's Micro-D 21 (pin map §3.2) | §5 |
 | I-3 | Interconnect | A revision row for the §2 table and §2.1 rewritten by this design (ICX owner) | §2, §2.1 edited here |
@@ -592,7 +600,7 @@ is the nickel underplate of A2's own connector.
 | P-1 | `docs/manufacturing/EEE_PARTS_LIST.md` | Connector finishes gold: Pico-Clasp, Micro-Fit, Samtec TFM/SFSDT, MMCX, Micro-D: **done** (Rev E §2A.8) | §2A.3 item 5 |
 | P-2 | `docs/compliance/MATERIALS_LIST.md` | Wire M22759/33 (ETFE), SFSDT PTFE, MIL-T-43435 lacing tape, Scotch-Weld 2216 (staking only), Arathane 5750, PTFE sleeving, connector housings: E595 data per part number: **done** (Rev D §5, §7, §8; gaps to V-HAR-11) | V-HAR-11 |
 | D-1 | Diagrams (`hardware/diagrams/README.md` §2) | W7 now draws W12A–W12D, W8 draws W11 and A3; the "main sources" column cites SQSO-HAR-001 2.0 instead of H1 and H8: **done** (Rev C §2, §3) | Drawings updated here |
-| D-2 | MEL (`docs/environment/MASS_BUDGET.md`) | Row 32 note: harness design 76.1 g (−3.9 g); row 26 sensor cables 6.6 g (+1.6 g before brackets) | §11 |
+| D-2 | MEL (`docs/environment/MASS_BUDGET.md`) | Row 32 note: harness design 76.7 g (−3.3 g); row 26 sensor cables 6.6 g (+1.6 g before brackets) | §11 |
 
 ## Revision History
 
@@ -601,4 +609,4 @@ is the nickel underplate of A2's own connector.
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-27 | CDR structures review (STR-25), mechanical routing only: battery flying leads ≥ 100 mm with no stack connector (§4.1); routing zones F and G and the mechanical routing rules (hinge flex jumper, back-wired strings, deployment-sweep clearance, isolated battery, cable ties per UG v11 §5.2.3, envelope, vent paths) (§6.2, §6.3); hinge crossing (§8.1); mass note against the MEL (§9) |
 | 1.2 | 2026-10-27 | CDR 2026 consistency pass: note in §4 that SQSO-ICX-001 and the board designs (harnesses W1–W10) supersede the H1–H6 and H8 contents, W11 proposed (finding F15 of SQSO-HW-DIAG-001) |
-| 2.0 | 2026-10-27 | Rewritten as the build-to harness design (RID SE-19), with the chair's follow-ups of the same day (A3 30 × 8.8 mm per SQSO-OBC-BRD-001 C §15.1; W1 fused at the pack by F0A, F0B, F0N and FT0–FT4 per BATTERY_DESIGN 2.7; DS2 two-pole and W12B five wires per EPS_BOARD_DESIGN D §6.2): the H1–H8 definitions and the superseded notice removed; wire list of W1–W12, W10 and W10E (209 conductors) in `hardware/harness/wire_list.csv`, routes in `hardware/harness/routes.csv`, calculations in `hardware/harness/harness_calcs.py`; gauges from the terminal ranges, AS22759/33 wire, EEE-INST-002 derating; band-B over-fill resolved by routing the EPS-only harnesses under the EPS (connectors on the EPS bottom side), W6D unshielded, pack leads 22 AWG; Samtec TFM/SFSDT replaces the PVC ribbons; access-port board A3 with one Micro-D 21; gold finishes; CAD check of 58 zones; mass 84.3 g; EMC; V-HAR-1 to V-HAR-13; changes for the other documents (§15); WireViz W1–W10 updated |
+| 2.0 | 2026-10-27 | Rewritten as the build-to harness design (RID SE-19), with the chair's follow-ups of the same day (A3 30 × 8.8 mm per SQSO-OBC-BRD-001 C §15.1; W1 fused at the pack by F0A, F0B, F0N and FT0–FT4 per BATTERY_DESIGN 2.7; DS2 two-pole and W12B five wires per EPS_BOARD_DESIGN D §6.2; EPS_BOARD_DESIGN E, SMA-B13 and SQSO-ICX-001 E15: active-high tracker-clamp wires on W12B-04/05 and W12D-03/04, DS3's NO wire dropped, J12 a Pico-Clasp 8 with AntS side B on W7C-07/08, the DS2B fallback route): the H1–H8 definitions and the superseded notice removed; wire list of W1–W12, W10 and W10E (210 conductors) in `hardware/harness/wire_list.csv`, routes in `hardware/harness/routes.csv`, calculations in `hardware/harness/harness_calcs.py`; gauges from the terminal ranges, AS22759/33 wire, EEE-INST-002 derating; band-B over-fill resolved by routing the EPS-only harnesses under the EPS (connectors on the EPS bottom side), W6D unshielded, pack leads 22 AWG; Samtec TFM/SFSDT replaces the PVC ribbons; access-port board A3 with one Micro-D 21; gold finishes; CAD check of 59 zones; mass 85.6 g; EMC; V-HAR-1 to V-HAR-13; changes for the other documents (§15); WireViz W1–W10 updated |

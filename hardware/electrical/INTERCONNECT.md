@@ -65,12 +65,12 @@ connector on the EPS bottom side.
 | W4B v4 | EPS J19 | RF J2 at (−26, −44) | RADIO_3V3 (SW2), PA_5V (SW3), each with its return as a twisted pair | Pico-Clasp 6 both ends (EPS J19 was Micro-Fit 2×3) | 28 AWG twisted pairs; 0.145 m |
 | **W5** v4 | EPS J18; OBC J3 | Jetson carrier J1; J2 | VBAT_JET (W5A); USART1, the carrier's 3.3 V and the spreader NTC (W5B, 6 pins, E10) (§3.3) | Micro-Fit 2×2 (right-angle at the carrier); Pico-Clasp 6 | 24 AWG quad, 0.105 m; 28 AWG, 0.06 m |
 | **W6** v4 | EPS J20; OBC J7, J8, J10 | OBC J6; rods (splices); photodiodes; magnetometer board A2 | 3V3_ADCS (W6B), three CR0002 rods (W6C), six sun sensors (W6D, unshielded pairs), magnetometer (W6E) (§3.4) | Pico-Clasp 2 / 6 / 12 / 6 (J8 12-way from Version C) | 28 AWG; W6B 0.075, W6C 0.05–0.205, W6D 0.095–0.245, W6E 0.09 m |
-| W7 v3 | EPS J10, J11, J12 | wing burn boards, deployed-state sensors, AntS | burn resistors, hinge sense, AntS 3.3 V and I2C | Micro-Fit 2×3; Pico-Clasp 6 (J12 was 4) | 24 AWG; W7C 28 AWG; 0.09–0.155 m |
+| W7 v3 | EPS J10, J11, J12 | wing burn boards, deployed-state sensors, AntS | burn resistors, hinge sense, AntS 3.3 V and I2C | Micro-Fit 2×3; Pico-Clasp 8 (J12 was 4; pins 7–8 AntS side B) | 24 AWG; W7C 28 AWG; 0.09–0.155 m |
 | **W8** v4 | OBC J9 → access-port board A3 (W8A, internal) → GSE (W8B) | GSE | SWD, NRST, console, umbilical sense, watchdog disable (§3.6) | TFM-105 right-angle on the OBC, SFSDT soldered to A3; Micro-D 21 socket on A3 | 30 AWG; 0.145 m |
 | **W9** v3 | EPS J21 → OBC J4; OBC J5 | GNSS receiver | 3V3_GNSS through the OBC; LPUART1, 1PPS (§3.5) | Pico-Clasp 2 / 6 | 28 AWG; 0.085, 0.145 m |
 | W10 | RF J3–J6; GNSS receiver (W10E) | AntS; GNSS patch | 2 m and 70 cm coax; GNSS L1 | MMCX (RF board C §4.3) | 1.37 mm coax 0.22 m; 1.13 mm coax 0.195 m |
 | W11 | EPS J13 | access-port board A3 | charge input, pack monitor, AFE shutdown | Micro-Fit 2×3; soldered to A3 | 24 AWG; 0.175 m |
-| W12 | EPS J15, J16, J17; J14 | DS1, DS2, DS3; RBF | the three deployment-switch inhibits, each on its own rail and route; the two-pole RBF | Pico-Clasp 3 / 4 | 28 AWG; 0.085–0.11 m |
+| W12 | EPS J15, J16, J17; J14 | DS1, DS2, DS3; RBF | the three deployment-switch inhibits, each on its own rail and route; the two-pole RBF (DS2 and RBF pole B drive the active-high tracker clamps) | Pico-Clasp 3 (J15, J17), 5 (J16), 4 (J14) | 28 AWG; 0.085–0.11 m |
 
 The OBC and EPS boards are PC/104 boards in one stack with no stack connector (SQSO-EPS-BRD-001 §1); W3 is a flat
 discrete-wire assembly between their TFM headers, which sit on the same +X edge at |y| < 24 mm so W3 passes the +X wall

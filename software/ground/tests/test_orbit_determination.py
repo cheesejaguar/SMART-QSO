@@ -331,7 +331,7 @@ class TestFirstEphemerisSparse:
     """The 24 h deadline with only the licensee's station: GNSS_REQUEST on
     four passes in two pass groups 12 h apart, three records each, no
     velocity, the built-in 4 x 4 field; the archive also holds a duplicate,
-    a dead-reckoned record and a 2 km outlier. Stated accuracy: 3D error
+    a dead-reckoned record and an outlier. Stated accuracy: 3D error
     <= 5 km at + 24 h, covariance realistic as above, quality GOOD or FAIR."""
 
     def test_quality_and_editing(self, sparse):

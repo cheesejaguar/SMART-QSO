@@ -1,7 +1,7 @@
 # SMART-QSO Ground Station Operations Manual
 
 **Document ID**: SQSO-GSOM-001
-**Version**: 1.5
+**Version**: 1.6
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft for the designated telecommand stations (none agreed yet; `docs/ground/GROUND_STATION_DESIGN.md` Rev F). Frequencies are planning values until the IARU letter. Command procedures follow SQSO-ICD-013, which governs.
@@ -45,7 +45,7 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
 | LNA | SSB SP-2000 | Low noise amplifier |
 | Radio | Icom IC-9700 class, satellite (full-duplex) mode | Transceiver |
 | Offline key machine | Laptop without network, or hardware token | Holds the operational key; builds command frames (SQSO-ICD-013 §9) |
-| Time reference | GNSS or NTP checked against GNSS | ±1 s (UTC-derived counters, SQSO-ICD-013 §5.2.1) |
+| Time reference | GNSS-disciplined, or NTP checked against GNSS | Kernel maximum error ≤ 0.5 s: the builder refuses UTC-derived counters otherwise (SQSO-ICD-013 §5.2.1) |
 | TNC | Direwolf (software) | Packet modem |
 | Computer | Linux workstation | Control & decode |
 
@@ -56,6 +56,8 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
 | Gpredict | 2.2.1+ | Tracking & Doppler |
 | Direwolf | 1.7+ | TNC/KISS interface |
 | smart-qso-ground | 1.0.0 | Beacon decoder |
+| `telecommand_builder.py` | this repository | Authenticated frames, UTC-derived counters (offline key machine) |
+| `ephemeris_tool.py` | this repository | Orbit determination from the GNSS frames: CCSDS OEM, TLE, quality flag (SQSO-GND-002) |
 | Hamlib | 4.5+ | Radio control |
 
 ## 3. Pre-Pass Checklist
@@ -124,8 +126,11 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
        never more; deviation ±3.0 kHz (VI-GND-01)
      □ Verify the sequencer's PTT gate refuses to key below 10° (rotator parked at 0°: no keying)
      □ Verify PTT interface connected
-     □ Verify station clock against GNSS (±1 s)
-     □ Command frames for this pass built on the offline key machine, counters reserved (SQSO-ICD-013 §5.2)
+     □ Verify station clock against GNSS; kernel synchronised, maximum error ≤ 0.5 s
+       (`chronyc tracking` or `timedatectl`); the builder refuses otherwise
+     □ Uplink frequency offset from the last measured downlink offset entered (§7.4)
+     □ Command frames for this pass built on the offline key machine with UTC-derived counters after the
+       other station's last commanding pass, with the newest acknowledged counter (§7.2)
 
 □ 10. Final verification
       □ Audio levels nominal
@@ -247,6 +252,33 @@ At LOS (elevation < 0°):
      □ Upload to mission database
 ```
 
+### 5.3 Orbit Determination and Ephemeris (after every pass until catalogued)
+
+The ground segment lead runs this after every pass until the 18th SDS has catalogued the object, and at least every
+24 h; afterwards at least daily (SQSO-GND-002 §7). The first upload is due **24 h after first contact** (T0: the first
+beacon decoded by any station; SpaceX Rideshare UG v11 §9.5.7.2).
+
+```
+□ 1. Export the GNSS state frames of the last 48 h from the mission database (all stations, SatNOGS) to JSON lines
+□ 2. Run the orbit determination (EGM2008 file on the orbit-determination machine):
+     $ python ephemeris_tool.py --frames gnss_48h.jsonl --out-dir eph/ \
+           --gravity-file EGM2008.gfc --gravity-degree 12 --object-id <intl designator> --norad-id <cat. no.>
+     (add --frame EME2000 --dut1 <UT1-UTC from IERS Bulletin A> if EME2000 is asked for)
+□ 3. Read the quality flag (printed, and in *_report.json):
+     GOOD / FAIR  → step 4
+     POOR (files NOT-FOR-UPLOAD_*, exit 2) or FAIL (exit 3) → do not upload; GNSS_REQUEST (0x60) on the next
+                    commanding pass of either station; ask SatNOGS for priority
+□ 4. Check: radius ≈ 6,850 km, period ≈ 94 min, first epoch after the last fix, the 1-sigma at +24 h in the report
+□ 5. First upload only: licensee approves
+□ 6. Upload the .oem to Space-Track and to SpaceX Space Traffic Coordination; send the .tle to the integrator and
+     the 18th SDS; log the upload (time, file, flag)
+□ 7. T0 + 12 h without GOOD/FAIR: GNSS_REQUEST on every commanding pass, second station and SatNOGS priority
+     T0 + 18 h without GOOD/FAIR: licensee invokes the third-party orbit determination (contingency)
+```
+
+During each commanding pass of the first days, send `GNSS_REQUEST` (0x60) right after the first command is
+acknowledged: the session (cold start about 80 s, then 30 s) ends inside the pass and its frame is downlinked.
+
 ## 6. Telemetry Monitoring
 
 ### 6.1 Real-Time Display
@@ -307,49 +339,99 @@ The telemetry display shows current spacecraft health:
 ```
 COMMAND EXECUTION PROCEDURE
 
-1. PREPARE (offline machine, before the pass)
-   □ Read the counter file for the active key (or compute UTC-derived counters, ICD-013 §5.2.1)
-   □ Build each frame: telecommand_builder.py <CMD> --key-file <op.key> --counter-file <file> --kiss
-   □ The builder reserves (writes and fsyncs) the counter BEFORE producing the frame
-   □ Copy the frames (not the key) to the station computer
+1. PREPARE (offline key machine, before the pass)
+   □ Clock checked against GNSS (kernel maximum error ≤ 0.5 s; the builder refuses otherwise)
+   □ Newest acknowledged counter C (any station) read from the mission database
+   □ Build no earlier than the end of the other station's last commanding pass, then each frame with a
+     UTC-derived counter (SQSO-ICD-013 §5.2.1; station index from this station's station.json):
+       telecommand_builder.py <CMD> [--args <hex>] --key-file <op.key> --counter-file <this station's op.ctr> \
+           --counter-from-utc --station-config station.json --newest-ack <C> --ax25 KK6GDB-11 <your call> --kiss
+   □ The builder reserves (writes and fsyncs) each counter BEFORE producing the frame; two frames in one second
+     make it wait a second
+   □ If it refuses ("clock not synchronised", "N s behind ..."): do not work around it; fix the clock, or
+     agree with the other station whose clock was fast (§8.4)
+   □ Copy the frames (not the key) to the station computer; keep them in build order
 
 2. WAIT FOR CONFIRMATION THE SPACECRAFT IS HEARD
    □ At least one beacon decoded this pass (it confirms the spacecraft is not silent and the Doppler is right)
-   □ **Elevation above 10°** (decision C-14: commands are sent only above 10°, with 100 W at the feed; +8.3 dB
-     worst-case margin at 10°, SQSO-LBA-001 v3.4 §6.1). **Degraded mode** (variant A with the amplifier out of service):
-     above 12° only. Never key below 10°, even for TX_DISABLE: wait for the elevation
+   □ Uplink frequency offset from this pass's downlink applied (§7.4)
+   □ **Elevation above 10°** (decision C-14: commands are sent only above 10°, at ≥ 64 dBm EIRP toward the
+     spacecraft; +8.3 dB worst-case margin at 10°, SQSO-LBA-001 §6.1). **Degraded mode** (variant A with the
+     amplifier out of service): above 12° only. Never key below 10°, even for TX_DISABLE: wait for the elevation.
+     The PTT gate refuses below 10° in hardware
 
 3. TRANSMIT
-   □ Send one frame through the KISS port (Dire Wolf keys the radio)
-   □ Note the counter used
+   □ Send the frames one at a time, in the order built, through the KISS port (Dire Wolf keys the radio)
+   □ Note the counter of each
 
 4. VERIFY
-   □ Wait for the next beacon (<= 60 s in ACTIVE): check the field the command changes (M=, RF=)
-   □ There is no command acknowledgement frame (SQSO-ICD-005 v2.0 §5.5). If no change is seen and
-     the command is safe to repeat, rebuild it with a NEW counter and send again (up to 4 attempts)
+   □ Acknowledgement: "ack KK6GDB-11: C=<counter> R=<result> N=<days>" (SQSO-ICD-005 §5.5) within the next
+     beacon interval: C is your counter, R=0 success, N=0 confirms the contact was counted
+   □ Then the field the command changes (beacon M=, RF=; HK1 fields, §7.3)
+   □ No acknowledgement: rebuild with a NEW counter and send again (up to 4 attempts a pass)
    □ NEVER re-send a frame that has already been sent (its counter is spent or will be rejected)
 
 5. DOCUMENT
-   □ Log: UTC, command, counter, key ID, attempts, effect seen
-   □ Upload the log and the frames heard to the mission database
+   □ Log: UTC, command, counter, key ID, attempts, acknowledgement (C, R, N), effect seen, uplink offset used
+   □ Upload the log and the frames heard to the mission database (the newest C is what the other station needs)
 ```
 
 ### 7.3 Command List Quick Reference
 
-From SQSO-ICD-013 §7 (the dictionary `software/flight/command_dictionary.json` governs):
+The dictionary `software/flight/command_dictionary.json` governs (SQSO-ICD-013 §7); `telecommand_builder.py --list`
+prints it. Arguments are hex for `--args`; multi-byte values big-endian. Every command except the keyless
+`TX_DISABLE` is acknowledged when its counter is committed.
 
-| Command | ID | Args | Key | Effect seen in the beacon |
-|---------|----|------|-----|---------------------------|
-| NOP | 0x00 | — | operational | None (counts as contact for the loss-of-contact timer) |
-| SET_MODE | 0x02 | 1 byte: 0 SAFE, 1 IDLE, 2 ACTIVE | operational | `M=`; SAFE → ACTIVE needs IDLE first |
-| GET_STATUS | 0x03 | — | operational | None on the downlink today (response discarded) |
-| SET_CONTACT_TIMEOUT | 0x07 | 2 bytes, days 1–90 | operational | None; set 14 days at the end of commissioning |
-| SET_BEACON | 0x30 | 2 bytes, seconds 10–120 | operational | Beacon interval |
+| Command | ID | Args (bytes: meaning) | Key | Effect seen |
+|---------|----|-----------------------|-----|-------------|
+| NOP | 0x00 | — | operational | Acknowledgement only (counts as contact: `N=0`) |
+| RESET | 0x01 | — | operational | Logged onboard only (no hardware reset yet) |
+| SET_MODE | 0x02 | 1: 0 SAFE, 1 IDLE, 2 ACTIVE | operational | Beacon `M=`; SAFE → ACTIVE needs IDLE first |
+| GET_STATUS | 0x03 | — | operational | Acknowledgement; the response is not downlinked (use 0x09) |
+| CLEAR_FAULTS | 0x05 | — | operational | HK1 `FC=` |
+| KEY_ROTATE | 0x06 | 1: spare slot 0–3 | **recovery** | None in the beacon; next commands use the new key and a new counter file (UTC counters valid at once) |
+| SET_CONTACT_TIMEOUT | 0x07 | 2: days 1–90 | operational | HK1 `CT=`; 14 days at the end of commissioning |
+| COMMISSIONING_RELEASE | 0x08 | — | operational | HK1 `HOLD=0`; send only after TX-OFF has been proven |
+| GET_HOUSEKEEPING | 0x09 | — | operational | An HK1 frame (then HK2) at the next opportunity |
+| DUMP_TLM | 0x0A | 7: store (0 five-minute, 1 sixty-second), first record (4), count (2, ≤ 600; 0 stops) | operational | `HKD` frames, at most one every 12 s (SQSO-ICD-005 §5.6) |
+| FRAM_BYPASS | 0x0B | 4: `46524D21` (`FRM!`) | operational | Accepted only after HK1 `FR=1` (FRAM declared failed); after a reset send FRAM_BYPASS, TX_ENABLE, COMMISSIONING_RELEASE again |
+| EPS_SET_MODE | 0x10 | 1: 0 SAFE, 1 IDLE, 2 ACTIVE | operational | Power mode |
+| EPS_GET_TELEMETRY | 0x13 | — | operational | Acknowledgement; the response is not downlinked |
+| EPS_CLEAR_LOCKOUT | 0x14 | 4: `43484721` (`CHG!`) | operational | Recharge resumes (HK1 `IB=` positive in sunlight); only after the ground has reviewed the cell history |
+| ADCS_DETUMBLE | 0x21 | — | operational | HK1 `AM=`, `W=` |
+| ADCS_GET_ATTITUDE | 0x23 | — | operational | Acknowledgement; the response is not downlinked |
+| ADCS_SET_GEOMETRY | 0x24 | 1: 0 both wings, 1 W1 only, 2 W2 only, 3 no wing | operational | Persisted; spin axis and inertia used by the control (HK1 `W=` settles) |
+| ADCS_SET_GYRO_ALIGN | 0x25 | 36: nine elements row by row, signed 32-bit, units 1e-6 | operational | Persisted (VI-MCAD-05); refused (`R=2`) unless every element is within 1.1 and the determinant within 0.05 of 1 |
+| ADCS_SET_MAG_BIAS | 0x26 | 13: rod state 0–7, then X, Y, Z signed 32-bit nT | operational | Persisted (AV-V4); each within 50 µT |
+| SET_BEACON | 0x30 | 2: seconds 10–120 | operational | Beacon interval |
 | TX_ENABLE | 0x31 | — | operational | Beacons resume (`RF=1`) |
-| **TX_DISABLE** | **0x32** | — | **any key; none if no key is usable** | **All emissions stop** |
-| SET_POWER | 0x33 | 1 byte: 0 = 0.5 W, 1 = 1 W | operational | Signal level |
-| KEY_ROTATE | 0x06 | 1 byte, spare slot 0–3 | **recovery** | None (next command must use the new key, counter from 0) |
+| **TX_DISABLE** | **0x32** | — | **any key; none if no key is usable** | **All emissions stop** (no acknowledgement) |
+| SET_POWER | 0x33 | 1: 0 = 0.5 W, 1 = 1 W | operational | Signal level |
+| XPDR_ENABLE | 0x34 | — | operational | Transponder allowed (persisted): HK1 `XP=1` when its power and duty gates allow |
+| XPDR_DISABLE | 0x35 | — | operational | Transponder off (persisted): HK1 `XP=0`; beacon and telecommand unaffected |
 | PLD_ENABLE / PLD_DISABLE | 0x40 / 0x41 | — | operational | AI text in the beacon |
+| DEPLOY_RETRY | 0x50 | 1: 0 antenna, 1 solar wings | operational | HK1 `DEP=`; refused during the 30-minute wait and during a burn |
+| GNSS_REQUEST | 0x60 | — | operational | A receiver session now (gates permitting): HK1 `GS=`, `GF=` and the GNSS state frame after the fix (§5.3) |
+| PASSIVATE_ARM | 0x70 | 4: `454F4C21` (`EOL!`) | operational | HK1 `PS=1` for 600 s; nothing is driven |
+| PASSIVATE_EXECUTE | 0x71 | — | **recovery** | Within 600 s of the arm: `PS=2`, three final reports a minute apart, then silent for good (**irreversible**; two-person rule, §7.1) |
+
+### 7.4 Uplink Frequency Offset (TCXO ageing, RID RFB-05)
+
+The spacecraft's receiver and downlink share one TCXO: up to 2.1 ppm off after 2 years, 0.9 kHz at 435.5 MHz, more
+than the ±1 kHz the uplink must hit with the Doppler also corrected (SQSO-ICD-013 §5.2 rule 5). Estimate it from the
+downlink on every commanding pass, before the first command:
+
+```
+□ 1. With the 2 m Doppler correction on (current elements), measure the beacon's residual offset from the
+     nominal downlink on 3 or more beacons spread over the pass (SDR waterfall or the transceiver's
+     centre-tuning reading, ±20 Hz): Δf_down = f_measured − (f_nominal + predicted Doppler)
+□ 2. Average them: an error in the elements shifts the early and late beacons in opposite directions
+□ 3. Uplink offset Δf_up = Δf_down × f_up / f_down (435.5 / 145.9 = 2.985): same sign, since one reference
+     drives both (e.g. +250 Hz on 2 m → +746 Hz on 70 cm)
+□ 4. Transmit at f_up_nominal + Δf_up, with the 70 cm Doppler pre-correction on top
+□ 5. |Δf_down| > 0.4 kHz (2.7 ppm, beyond the 2-year worst case): re-measure; still so, report it
+□ 6. Log Δf_down each pass: the trend is the TCXO's ageing (VI-RF-14 (d) on the first passes)
+```
 
 ## 8. Troubleshooting
 

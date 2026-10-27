@@ -132,6 +132,8 @@ pub enum ResetCause {
 const UART_PORT_DEBUG: u32 = 1;
 /// I2C bus of the EPS controller
 const EPS_BUS: u32 = 0;
+/// I2C3: the AntS alone (SQSO-ICX-001 D §6 row 30)
+const ANTS_BUS: u32 = 3;
 /// Time from reset to the executive's first instruction (boot ROM, clock
 /// set-up, C runtime): the target's time base reads about this at start
 pub const BOOT_TIME_US: u64 = 150_000;
@@ -343,7 +345,7 @@ impl Fsw {
         let read = |reg: u8| {
             let mut v = 0u8;
             // SAFETY: reg and v are live (the simulated HAL)
-            let ok = unsafe { hal_sim::hal_i2c_write_read(EPS_BUS, sqso_fsw::ants::ADDRESS, &reg, 1, &mut v, 1) } == 0;
+            let ok = unsafe { hal_sim::hal_i2c_write_read(ANTS_BUS, sqso_fsw::ants::ADDRESS, &reg, 1, &mut v, 1) } == 0;
             if ok { v } else { 0 }
         };
         if !self.running() {
@@ -375,7 +377,7 @@ impl Fsw {
     pub fn set_ants_status(&self, status: [u8; 2]) {
         let regs = [sqso_fsw::ants::CMD_STATUS, status[0], status[1]];
         // SAFETY: regs is a live buffer of its length
-        let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, sqso_fsw::ants::ADDRESS, regs.as_ptr(), regs.len()) };
+        let _ = unsafe { hal_sim::hal_i2c_write(ANTS_BUS, sqso_fsw::ants::ADDRESS, regs.as_ptr(), regs.len()) };
     }
 
     /// NMEA bytes from the GNSS receiver (`UART_PORT_GNSS`)

@@ -1,6 +1,11 @@
 //! `hal_flash.h`: the non-volatile memory is an FM25V20A FRAM (256 KB) on
 //! SPI1 (PG2 SCK / PG3 MISO / PG4 MOSI, CS# PG5, AF5; WP# PE0, HOLD# PE1;
-//! SQSO-ICX-001 B §6 row 3, `hardware/obc/STORAGE_DESIGN.md` §3.4). FRAM writes take effect at once
+//! SQSO-ICX-001 B §6 row 3, `hardware/obc/STORAGE_DESIGN.md` §3.4), and its
+//! mirror U36 on the same bus, CS# PD7 (SQSO-ICX-001 D §6 row 32, RID
+//! SMA-B10; its WP#/HOLD# pulled up on the board). Every write goes to both;
+//! reads come from the first unless it is absent or fails, and
+//! `hal_flash_read_mirror` reads U36 for the records' loader, which turns to
+//! it when the first FRAM gives no copy that passes its CRC. FRAM writes take effect at once
 //! and need no erase, so a region "erase" writes 0xFF over it, matching the
 //! simulation.
 //!
@@ -72,44 +77,71 @@ const _: () = {
 
 pub(crate) struct Fram {
     spi: Spi<'static, Blocking, Master>,
-    cs: Output<'static>,
+    /// CS# of U3 (the first FRAM) and of U36 (the mirror)
+    cs: [Output<'static>; 2],
     /// WP# and HOLD#, held high (writes enabled, never held)
     _wp: Output<'static>,
     _hold: Output<'static>,
-    present: bool,
+    /// Each device answered with its ID at init
+    present: [bool; 2],
 }
+
+/// The first FRAM and the mirror
+const PRIMARY: usize = 0;
+const MIRROR: usize = 1;
 
 static FRAM: Shared<Fram> = Shared::new();
 
 pub(crate) fn install(
     spi: Spi<'static, Blocking, Master>,
-    cs: Output<'static>,
+    cs: [Output<'static>; 2],
     wp: Output<'static>,
     hold: Output<'static>,
 ) {
-    FRAM.install(Fram { spi, cs, _wp: wp, _hold: hold, present: false });
+    FRAM.install(Fram { spi, cs, _wp: wp, _hold: hold, present: [false; 2] });
 }
 
 impl Fram {
     /// One transaction: `command` (opcode and address), then `data` out or in
-    fn transact(&mut self, command: &[u8], out: &[u8], into: &mut [u8]) -> bool {
-        self.cs.set_low();
+    fn transact(&mut self, dev: usize, command: &[u8], out: &[u8], into: &mut [u8]) -> bool {
+        let Some(cs) = self.cs.get_mut(dev) else { return false };
+        cs.set_low();
         let ok = self.spi.blocking_write(command).is_ok()
             && (out.is_empty() || self.spi.blocking_write(out).is_ok())
             && (into.is_empty() || self.spi.blocking_read(into).is_ok());
-        self.cs.set_high();
+        if let Some(cs) = self.cs.get_mut(dev) {
+            cs.set_high();
+        }
         ok
     }
 
-    fn read(&mut self, addr: u32, into: &mut [u8]) -> bool {
-        let [_, a2, a1, a0] = addr.to_be_bytes();
-        self.transact(&[READ, a2, a1, a0], &[], into)
+    fn present(&self, dev: usize) -> bool {
+        self.present.get(dev).copied().unwrap_or(false)
     }
 
-    fn write(&mut self, addr: u32, data: &[u8]) -> bool {
+    fn read_dev(&mut self, dev: usize, addr: u32, into: &mut [u8]) -> bool {
+        let [_, a2, a1, a0] = addr.to_be_bytes();
+        self.present(dev) && self.transact(dev, &[READ, a2, a1, a0], &[], into)
+    }
+
+    fn write_dev(&mut self, dev: usize, addr: u32, data: &[u8]) -> bool {
         let [_, a2, a1, a0] = addr.to_be_bytes();
         // WREN is cleared by every write, so it precedes each one
-        self.transact(&[WREN], &[], &mut []) && self.transact(&[WRITE, a2, a1, a0], data, &mut [])
+        self.present(dev)
+            && self.transact(dev, &[WREN], &[], &mut [])
+            && self.transact(dev, &[WRITE, a2, a1, a0], data, &mut [])
+    }
+
+    /// The first FRAM, or the mirror if the first is absent or fails
+    fn read(&mut self, addr: u32, into: &mut [u8]) -> bool {
+        self.read_dev(PRIMARY, addr, into) || self.read_dev(MIRROR, addr, into)
+    }
+
+    /// Both FRAMs; whether at least one took it
+    fn write(&mut self, addr: u32, data: &[u8]) -> bool {
+        let first = self.write_dev(PRIMARY, addr, data);
+        let mirror = self.write_dev(MIRROR, addr, data);
+        first || mirror
     }
 }
 
@@ -124,17 +156,22 @@ fn span(region: u32, offset: u32, len: usize) -> Result<u32, i32> {
 }
 
 fn with_present(f: impl FnOnce(&mut Fram) -> i32) -> i32 {
-    FRAM.with(|m| if m.present { f(m) } else { rc::ERROR }).unwrap_or(rc::BUSY)
+    FRAM.with(|m| if m.present(PRIMARY) || m.present(MIRROR) { f(m) } else { rc::ERROR }).unwrap_or(rc::BUSY)
 }
 
-/// Check the FRAM answers with its device ID; the regions are unusable
-/// (SMART_QSO_ERROR_IO, so the flight software fails safe) if not
+/// Check each FRAM answers with its device ID; the regions are unusable
+/// (SMART_QSO_ERROR_IO, so the flight software fails safe) if neither does
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_flash_init() -> i32 {
     FRAM.with(|m| {
-        let mut id = [0u8; 9];
-        m.present = m.transact(&[RDID], &[], &mut id) && id == DEVICE_ID;
-        if m.present { rc::OK } else { rc::IO }
+        for dev in [PRIMARY, MIRROR] {
+            let mut id = [0u8; 9];
+            let ok = m.transact(dev, &[RDID], &[], &mut id) && id == DEVICE_ID;
+            if let Some(p) = m.present.get_mut(dev) {
+                *p = ok;
+            }
+        }
+        if m.present(PRIMARY) || m.present(MIRROR) { rc::OK } else { rc::IO }
     })
     .unwrap_or(rc::BUSY)
 }
@@ -151,7 +188,19 @@ pub unsafe extern "C" fn hal_flash_read(region: u32, offset: u32, data: *mut u8,
     with_present(|m| if m.read(addr, data) { rc::OK } else { rc::IO })
 }
 
-/// Store bytes
+/// Read stored bytes from the mirror (U36)
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn hal_flash_read_mirror(region: u32, offset: u32, data: *mut u8, len: usize) -> i32 {
+    // SAFETY: the C contract: data points to len writable bytes
+    let Some(data) = (unsafe { rc::bytes_mut(data, len) }) else { return rc::NULL_PTR };
+    let addr = match span(region, offset, data.len()) {
+        Ok(a) => a,
+        Err(e) => return e,
+    };
+    with_present(|m| if m.read_dev(MIRROR, addr, data) { rc::OK } else { rc::IO })
+}
+
+/// Store bytes (both FRAMs)
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn hal_flash_write(region: u32, offset: u32, data: *const u8, len: usize) -> i32 {
     // SAFETY: the C contract: data points to len bytes

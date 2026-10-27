@@ -37,6 +37,9 @@ pub const MAX_FAILURES: u32 = 3;
 pub const SNS_SETTLE_MS: u64 = 20;
 /// A failed magnetometer or sun-sensor ADC is tried again after this, ms
 pub const SNS_RETRY_MS: u64 = 10_000;
+/// Latch-up-protected rails: gyro (U5), BMI088 (U6), sun sensors (U7),
+/// magnetometer (U35)
+pub const RAILS: usize = 4;
 
 /// The pins the sensors use (`hal_gpio.h`)
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -45,14 +48,19 @@ pub enum Pin {
     GyroEn,
     /// `GPIO_PIN_IMU2_EN`
     Imu2En,
-    /// `GPIO_PIN_SNS_EN`
+    /// `GPIO_PIN_SNS_EN`: the sun sensors (and their ADC)
     SnsEn,
+    /// `GPIO_PIN_MAG_EN`: the magnetometer's own switch (PF14, SQSO-ICX-001
+    /// D §6 row 33, RID SMA-B18)
+    MagEn,
     /// `GPIO_PIN_GYRO_RB`
     GyroRb,
     /// `GPIO_PIN_IMU2_RB`
     Imu2Rb,
     /// `GPIO_PIN_SNS_RB`
     SnsRb,
+    /// `GPIO_PIN_MAG_RB` (PF15)
+    MagRb,
     /// `GPIO_PIN_GYRO_RST_N`
     GyroRstN,
     /// `GPIO_PIN_GYRO_DRDY`
@@ -88,8 +96,8 @@ pub struct Devices<'a, M, G, A, I, P> {
 /// What changed this pass, for the fault log
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Events {
-    /// A rail tripped: gyro, BMI088, sensors
-    pub tripped: [bool; 3],
+    /// A rail tripped: gyro, BMI088, sun sensors, magnetometer
+    pub tripped: [bool; RAILS],
     /// The M-G370 failed (its rail is being cycled)
     pub mg370_failed: Option<mg370::Failure>,
     /// The BMI088 failed
@@ -129,15 +137,17 @@ pub struct Sensors {
     /// Failures of the gyro in use
     pub failures: u32,
     /// Trips counted: gyro, BMI088, sensors
-    pub trips: [u32; 3],
+    pub trips: [u32; RAILS],
     /// A rail held off for a power cycle until this time, ms (gyro rail)
     gyro_off_until: Option<u64>,
     /// The sensor rail has been up since, ms (`None`: off or tripped)
     sns_up_since: Option<u64>,
+    /// The magnetometer's rail has been up since, ms
+    mag_up_since: Option<u64>,
     /// The magnetometer and sun ADC were last tried, ms
     sns_tried_ms: Option<u64>,
     /// A trip seen on each rail at the last pass
-    tripped: [bool; 3],
+    tripped: [bool; RAILS],
     /// When the magnetometer was last triggered, ms
     mag_trigger_ms: Option<u64>,
 }
@@ -172,11 +182,12 @@ impl Sensors {
             sun_ready: false,
             gyro: Gyro::Primary,
             failures: 0,
-            trips: [0; 3],
+            trips: [0; RAILS],
             gyro_off_until: None,
             sns_up_since: None,
+            mag_up_since: None,
             sns_tried_ms: None,
-            tripped: [false; 3],
+            tripped: [false; RAILS],
             mag_trigger_ms: None,
         }
     }
@@ -200,11 +211,12 @@ impl Sensors {
             powered && self.gyro == Gyro::Primary && !cycling,
             powered && self.gyro == Gyro::Backup && !cycling,
             powered,
+            powered,
         ];
-        let pins_en = [Pin::GyroEn, Pin::Imu2En, Pin::SnsEn];
-        let pins_rb = [Pin::GyroRb, Pin::Imu2Rb, Pin::SnsRb];
-        let mut up = [false; 3];
-        for i in 0..3 {
+        let pins_en = [Pin::GyroEn, Pin::Imu2En, Pin::SnsEn, Pin::MagEn];
+        let pins_rb = [Pin::GyroRb, Pin::Imu2Rb, Pin::SnsRb, Pin::MagRb];
+        let mut up = [false; RAILS];
+        for i in 0..RAILS {
             let (Some(&on), Some(&en), Some(&rb)) = (rails.get(i), pins_en.get(i), pins_rb.get(i)) else { continue };
             d.pins.set(en, on);
             let trip = on && !d.pins.get(rb);
@@ -219,12 +231,12 @@ impl Sensors {
                 *u = on && !trip;
             }
         }
-        let [gyro_up, imu2_up, sns_up] = up;
+        let [gyro_up, imu2_up, sns_up, mag_up] = up;
         let pins = &mut *d.pins;
         self.mg370.step(now_ms, gyro_up, d.mg370, &mut |low| pins.set(Pin::GyroRstN, !low));
         self.bmi088.step(now_ms, imu2_up, d.bmi_gyro, d.bmi_accel);
         self.gyro_health(now_ms, &mut ev);
-        self.sensor_rail(now_ms, sns_up, d.i2c, &mut ev);
+        self.sensor_rail(now_ms, sns_up, mag_up, d.i2c, &mut ev);
         ev
     }
 
@@ -262,26 +274,36 @@ impl Sensors {
         }
     }
 
-    fn sensor_rail(&mut self, now_ms: u64, up: bool, i2c: &mut impl I2cBus, ev: &mut Events) {
-        if !up {
-            self.sns_up_since = None;
-            self.mag = Rm3100::new();
-            self.sun_ready = false;
+    fn sensor_rail(&mut self, now_ms: u64, sns_up: bool, mag_up: bool, i2c: &mut impl I2cBus, ev: &mut Events) {
+        // A rail down: its part restarts, and is tried as soon as the rail
+        // is back and settled
+        if !mag_up && self.mag_up_since.take().is_some() {
             self.sns_tried_ms = None;
-            return;
         }
-        let since = *self.sns_up_since.get_or_insert(now_ms);
-        let settled = now_ms.saturating_sub(since) >= SNS_SETTLE_MS;
+        if !mag_up {
+            self.mag = Rm3100::new();
+        }
+        if !sns_up && self.sns_up_since.take().is_some() {
+            self.sns_tried_ms = None;
+        }
+        if !sns_up {
+            self.sun_ready = false;
+        }
+        let settled = |since: Option<u64>| since.is_some_and(|t| now_ms.saturating_sub(t) >= SNS_SETTLE_MS);
+        let mag_since = if mag_up { Some(*self.mag_up_since.get_or_insert(now_ms)) } else { None };
+        let sun_since = if sns_up { Some(*self.sns_up_since.get_or_insert(now_ms)) } else { None };
+        let want_mag = settled(mag_since) && !self.mag.ready;
+        let want_sun = settled(sun_since) && !self.sun_ready;
         let retry = self.sns_tried_ms.is_none_or(|t| now_ms.saturating_sub(t) >= SNS_RETRY_MS);
-        if settled && retry && !(self.mag.ready && self.sun_ready) {
+        if retry && (want_mag || want_sun) {
             self.sns_tried_ms = Some(now_ms);
-            if !self.mag.ready {
+            if want_mag {
                 let _ = self.mag.init(i2c);
             }
-            if !self.sun_ready {
+            if want_sun {
                 self.sun_ready = ads7138::init(i2c);
             }
-            ev.sns_failed = !(self.mag.ready && self.sun_ready);
+            ev.sns_failed = (want_mag && !self.mag.ready) || (want_sun && !self.sun_ready);
         }
         if self.mag.failed && self.sns_tried_ms.is_some_and(|t| now_ms.saturating_sub(t) >= SNS_RETRY_MS) {
             self.mag = Rm3100::new();
@@ -368,8 +390,8 @@ mod tests {
 
     #[derive(Default)]
     struct Board {
-        en: [bool; 3],
-        trip: [bool; 3],
+        en: [bool; RAILS],
+        trip: [bool; RAILS],
         rst_low: bool,
         drdy: bool,
     }
@@ -380,6 +402,7 @@ mod tests {
                 Pin::GyroEn => self.en[0] = high,
                 Pin::Imu2En => self.en[1] = high,
                 Pin::SnsEn => self.en[2] = high,
+                Pin::MagEn => self.en[3] = high,
                 Pin::GyroRstN => self.rst_low = !high,
                 _ => {}
             }
@@ -389,6 +412,7 @@ mod tests {
                 Pin::GyroRb => self.en[0] && !self.trip[0],
                 Pin::Imu2Rb => self.en[1] && !self.trip[1],
                 Pin::SnsRb => self.en[2] && !self.trip[2],
+                Pin::MagRb => self.en[3] && !self.trip[3],
                 Pin::GyroDrdy | Pin::Imu2Drdy | Pin::MagDrdy => self.drdy,
                 _ => false,
             }
@@ -428,7 +452,7 @@ mod tests {
                     pins: &mut self.pins,
                 };
                 let e = s.step(t, powered, &mut d);
-                for i in 0..3 {
+                for i in 0..RAILS {
                     all.tripped[i] |= e.tripped[i];
                 }
                 all.to_backup |= e.to_backup;
@@ -457,7 +481,7 @@ mod tests {
         let (mut b, mut s) = (Bench::new(), Sensors::new());
         let e = b.run(&mut s, 0, 2_000, true);
         assert_eq!(e, Events::default());
-        assert_eq!(b.pins.en, [true, false, true], "the backup gyro is cold");
+        assert_eq!(b.pins.en, [true, false, true, true], "the backup gyro is cold");
         assert_eq!(s.mg370.state, mg370::State::Running);
         assert!(s.mag.ready);
         assert!(s.sun_ready);
@@ -471,7 +495,7 @@ mod tests {
         assert!(r.board.is_some());
         // The rail off: everything off
         b.run(&mut s, 2_000, 2_040, false);
-        assert_eq!(b.pins.en, [false; 3]);
+        assert_eq!(b.pins.en, [false; RAILS]);
         assert!(b.pins.rst_low);
         assert!(!s.mag.ready);
     }
@@ -480,14 +504,26 @@ mod tests {
     fn a_trip_is_counted_and_the_parts_restart() {
         let (mut b, mut s) = (Bench::new(), Sensors::new());
         b.run(&mut s, 0, 2_000, true);
-        b.pins.trip = [true, false, true];
+        b.pins.trip = [true, false, true, false];
         let e = b.run(&mut s, 2_000, 2_140, true);
-        assert_eq!(e.tripped, [true, false, true]);
-        assert_eq!(s.trips, [1, 0, 1]);
+        assert_eq!(e.tripped, [true, false, true, false]);
+        assert_eq!(s.trips, [1, 0, 1, 0]);
         assert_eq!(s.mg370.state, mg370::State::Off);
-        b.pins.trip = [false; 3];
+        assert!(s.mag.ready, "the magnetometer has its own switch (SMA-B18)");
+        b.pins.trip = [false; RAILS];
         b.run(&mut s, 2_140, 4_500, true);
         assert_eq!(s.mg370.state, mg370::State::Running, "back after the retry");
+        assert!(s.mag.ready);
+        // The magnetometer's switch trips: the magnetometer restarts, the
+        // sun sensors stay
+        b.pins.trip = [false, false, false, true];
+        let e = b.run(&mut s, 4_500, 4_640, true);
+        assert_eq!(e.tripped, [false, false, false, true]);
+        assert_eq!(s.trips, [1, 0, 1, 1]);
+        assert!(!s.mag.ready);
+        assert!(s.sun_ready);
+        b.pins.trip = [false; RAILS];
+        b.run(&mut s, 4_640, 20_000, true);
         assert!(s.mag.ready);
     }
 

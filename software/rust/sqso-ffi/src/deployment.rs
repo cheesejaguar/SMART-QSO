@@ -146,6 +146,7 @@ impl DeployIo for HalFlash {
 /// Boot: burn lines low, load the sequence, apply the reset-cause rules
 #[unsafe(no_mangle)]
 pub extern "C" fn deployment_init() -> bool {
+    crate::ants::reset();
     let cause = rf_silence::reset();
     DEPLOY.with(|d| d.init(cause, &mut HalFlash)).is_some()
 }

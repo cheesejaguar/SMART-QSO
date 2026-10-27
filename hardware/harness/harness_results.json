@@ -100,42 +100,42 @@
   },
   "W11-01": {
    "I_allow_A": 1.65,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.167,
    "i_max_A": 0.5,
    "ratio": 0.303
   },
   "W11-02": {
    "I_allow_A": 1.65,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.167,
    "i_max_A": 0.5,
    "ratio": 0.303
   },
   "W11-03": {
    "I_allow_A": 1.65,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.167,
    "i_max_A": 0.5,
    "ratio": 0.303
   },
   "W11-04": {
    "I_allow_A": 1.65,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.167,
    "i_max_A": 0.5,
    "ratio": 0.303
   },
   "W11-05": {
    "I_allow_A": 1.65,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.0,
    "i_max_A": 0.0002,
    "ratio": 0.0
   },
   "W11-06": {
    "I_allow_A": 1.65,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.001,
    "i_max_A": 0.001,
    "ratio": 0.001
@@ -156,56 +156,49 @@
   },
   "W12B-01": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.0,
    "i_max_A": 0.0017,
    "ratio": 0.002
   },
   "W12B-02": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.0,
    "i_max_A": 0.0017,
    "ratio": 0.002
   },
   "W12B-03": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.0,
    "i_max_A": 0.0017,
    "ratio": 0.002
   },
   "W12B-04": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.0,
    "i_max_A": 0.0017,
    "ratio": 0.002
   },
   "W12B-05": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.0,
    "i_max_A": 0.0017,
    "ratio": 0.002
   },
   "W12C-01": {
    "I_allow_A": 0.9,
-   "N": 17,
+   "N": 16,
    "contact_ratio": 0.0,
    "i_max_A": 0.0017,
    "ratio": 0.002
   },
   "W12C-02": {
    "I_allow_A": 0.9,
-   "N": 17,
-   "contact_ratio": 0.0,
-   "i_max_A": 0.0017,
-   "ratio": 0.002
-  },
-  "W12C-03": {
-   "I_allow_A": 0.9,
-   "N": 17,
+   "N": 16,
    "contact_ratio": 0.0,
    "i_max_A": 0.0017,
    "ratio": 0.002
@@ -240,35 +233,35 @@
   },
   "W2MX-01": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.55,
    "i_max_A": 0.33,
    "ratio": 0.367
   },
   "W2MX-02": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.55,
    "i_max_A": 0.33,
    "ratio": 0.367
   },
   "W2MX-03": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.55,
    "i_max_A": 0.33,
    "ratio": 0.367
   },
   "W2MX-04": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.55,
    "i_max_A": 0.33,
    "ratio": 0.367
   },
   "W2MX-05": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.001,
    "i_max_A": 0.0003,
    "ratio": 0.0
@@ -310,35 +303,35 @@
   },
   "W2PX-01": {
    "I_allow_A": 0.9,
-   "N": 17,
+   "N": 16,
    "contact_ratio": 0.55,
    "i_max_A": 0.33,
    "ratio": 0.367
   },
   "W2PX-02": {
    "I_allow_A": 0.9,
-   "N": 17,
+   "N": 16,
    "contact_ratio": 0.55,
    "i_max_A": 0.33,
    "ratio": 0.367
   },
   "W2PX-03": {
    "I_allow_A": 0.9,
-   "N": 17,
+   "N": 16,
    "contact_ratio": 0.55,
    "i_max_A": 0.33,
    "ratio": 0.367
   },
   "W2PX-04": {
    "I_allow_A": 0.9,
-   "N": 17,
+   "N": 16,
    "contact_ratio": 0.55,
    "i_max_A": 0.33,
    "ratio": 0.367
   },
   "W2PX-05": {
    "I_allow_A": 0.9,
-   "N": 17,
+   "N": 16,
    "contact_ratio": 0.001,
    "i_max_A": 0.0003,
    "ratio": 0.0
@@ -884,70 +877,70 @@
   },
   "W4B-01": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.178,
    "i_max_A": 0.141,
    "ratio": 0.157
   },
   "W4B-02": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.47,
    "i_max_A": 0.536,
    "ratio": 0.596
   },
   "W4B-03": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.47,
    "i_max_A": 0.536,
    "ratio": 0.596
   },
   "W4B-04": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.47,
    "i_max_A": 0.536,
    "ratio": 0.596
   },
   "W4B-05": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.47,
    "i_max_A": 0.536,
    "ratio": 0.596
   },
   "W4B-06": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.178,
    "i_max_A": 0.141,
    "ratio": 0.157
   },
   "W5A-01": {
    "I_allow_A": 1.65,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.467,
    "i_max_A": 0.84,
    "ratio": 0.509
   },
   "W5A-02": {
    "I_allow_A": 1.65,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.467,
    "i_max_A": 0.84,
    "ratio": 0.509
   },
   "W5A-03": {
    "I_allow_A": 1.65,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.467,
    "i_max_A": 0.84,
    "ratio": 0.509
   },
   "W5A-04": {
    "I_allow_A": 1.65,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.467,
    "i_max_A": 0.84,
    "ratio": 0.509
@@ -1262,42 +1255,56 @@
   },
   "W7C-01": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.61,
    "i_max_A": 0.733,
    "ratio": 0.814
   },
   "W7C-02": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.61,
    "i_max_A": 0.733,
    "ratio": 0.814
   },
   "W7C-03": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.61,
    "i_max_A": 0.733,
    "ratio": 0.814
   },
   "W7C-04": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.61,
    "i_max_A": 0.733,
    "ratio": 0.814
   },
   "W7C-05": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
    "contact_ratio": 0.002,
    "i_max_A": 0.003,
    "ratio": 0.003
   },
   "W7C-06": {
    "I_allow_A": 0.9,
-   "N": 38,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.003,
+   "ratio": 0.003
+  },
+  "W7C-07": {
+   "I_allow_A": 0.9,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.003,
+   "ratio": 0.003
+  },
+  "W7C-08": {
+   "I_allow_A": 0.9,
+   "N": 40,
    "contact_ratio": 0.002,
    "i_max_A": 0.003,
    "ratio": 0.003
@@ -1436,7 +1443,7 @@
    "(-X,+Y)": 5.16,
    "(-X,-Y)": 9.08
   },
-  "eps_only_demand_mm2": 41.7,
+  "eps_only_demand_mm2": 42.5,
   "left_after_routed_mm2": 45.6
  },
  "cad": {
@@ -1723,6 +1730,19 @@
     [
      0.0,
      "endplate_pz"
+    ]
+   ]
+  },
+  "MXMY2": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "rail_mm"
+    ],
+    [
+     0.1,
+     "shear_mx"
     ]
    ]
   },
@@ -2510,8 +2530,8 @@
     "J12",
     "J13"
    ],
-   "footprint_mm2": 366.0,
-   "ratio": 0.58
+   "footprint_mm2": 375.0,
+   "ratio": 0.6
   }
  },
  "fills": {
@@ -2663,13 +2683,13 @@
   },
   "DX_MXC/B": {
    "allow_mm2": 36.0,
-   "area_mm2": 2.581,
+   "area_mm2": 3.441,
    "band": "B",
    "harnesses": [
     "W7C"
    ],
-   "ratio": 0.072,
-   "wires": 6,
+   "ratio": 0.096,
+   "wires": 8,
    "zone": "DX_MXC"
   },
   "DX_MXMY/B": {
@@ -2697,13 +2717,13 @@
   },
   "EF_MXC/A": {
    "allow_mm2": 29.4,
-   "area_mm2": 2.581,
+   "area_mm2": 3.441,
    "band": "A",
    "harnesses": [
     "W7C"
    ],
-   "ratio": 0.088,
-   "wires": 6,
+   "ratio": 0.117,
+   "wires": 8,
    "zone": "EF_MXC"
   },
   "HS_MX/A": {
@@ -2992,46 +3012,46 @@
   },
   "PXMY2/B": {
    "allow_mm2": 10.8,
-   "area_mm2": 1.29,
+   "area_mm2": 0.86,
    "band": "B",
    "harnesses": [
     "W12C"
    ],
-   "ratio": 0.119,
-   "wires": 3,
+   "ratio": 0.08,
+   "wires": 2,
    "zone": "PXMY2"
   },
   "PXMY2/C": {
    "allow_mm2": 10.8,
-   "area_mm2": 1.29,
+   "area_mm2": 0.86,
    "band": "C",
    "harnesses": [
     "W12C"
    ],
-   "ratio": 0.119,
-   "wires": 3,
+   "ratio": 0.08,
+   "wires": 2,
    "zone": "PXMY2"
   },
   "PXMY2/D": {
    "allow_mm2": 10.8,
-   "area_mm2": 1.29,
+   "area_mm2": 0.86,
    "band": "D",
    "harnesses": [
     "W12C"
    ],
-   "ratio": 0.119,
-   "wires": 3,
+   "ratio": 0.08,
+   "wires": 2,
    "zone": "PXMY2"
   },
   "PXMY2/E": {
    "allow_mm2": 10.8,
-   "area_mm2": 1.29,
+   "area_mm2": 0.86,
    "band": "E",
    "harnesses": [
     "W12C"
    ],
-   "ratio": 0.119,
-   "wires": 3,
+   "ratio": 0.08,
+   "wires": 2,
    "zone": "PXMY2"
   },
   "PXMY_LO/A": {
@@ -3176,24 +3196,24 @@
   },
   "S_MXC/A": {
    "allow_mm2": 64.8,
-   "area_mm2": 2.581,
+   "area_mm2": 3.441,
    "band": "A",
    "harnesses": [
     "W7C"
    ],
-   "ratio": 0.04,
-   "wires": 6,
+   "ratio": 0.053,
+   "wires": 8,
    "zone": "S_MXC"
   },
   "S_MXC/B": {
    "allow_mm2": 64.8,
-   "area_mm2": 2.581,
+   "area_mm2": 3.441,
    "band": "B",
    "harnesses": [
     "W7C"
    ],
-   "ratio": 0.04,
-   "wires": 6,
+   "ratio": 0.053,
+   "wires": 8,
    "zone": "S_MXC"
   },
   "S_MXMY/A": {
@@ -3288,18 +3308,18 @@
   },
   "UB_MXC": {
    "allow_mm2": 6.3,
-   "area_mm2": 2.581,
+   "area_mm2": 3.441,
    "band": "",
    "harnesses": [
     "W7C"
    ],
-   "ratio": 0.41,
-   "wires": 6,
+   "ratio": 0.546,
+   "wires": 8,
    "zone": "UB_MXC"
   },
   "U_C": {
    "allow_mm2": 91.785,
-   "area_mm2": 10.459,
+   "area_mm2": 11.319,
    "band": "",
    "harnesses": [
     "W11",
@@ -3307,8 +3327,8 @@
     "W7B",
     "W7C"
    ],
-   "ratio": 0.114,
-   "wires": 18,
+   "ratio": 0.123,
+   "wires": 20,
    "zone": "U_C"
   },
   "U_J3U": {
@@ -3325,7 +3345,7 @@
   },
   "U_MXMY": {
    "allow_mm2": 145.59,
-   "area_mm2": 20.419,
+   "area_mm2": 21.28,
    "band": "",
    "harnesses": [
     "W11",
@@ -3337,8 +3357,8 @@
     "W7B",
     "W7C"
    ],
-   "ratio": 0.14,
-   "wires": 38,
+   "ratio": 0.146,
+   "wires": 40,
    "zone": "U_MXMY"
   },
   "U_MXMY2": {
@@ -3373,7 +3393,7 @@
   },
   "U_PXMY": {
    "allow_mm2": 82.29,
-   "area_mm2": 7.884,
+   "area_mm2": 7.454,
    "band": "",
    "harnesses": [
     "W10",
@@ -3382,8 +3402,8 @@
     "W6D",
     "W9A"
    ],
-   "ratio": 0.096,
-   "wires": 17,
+   "ratio": 0.091,
+   "wires": 16,
    "zone": "U_PXMY"
   },
   "U_PXMY2": {
@@ -3416,15 +3436,15 @@
   },
   "U_PY": {
    "allow_mm2": 72.795,
-   "area_mm2": 10.64,
+   "area_mm2": 11.5,
    "band": "",
    "harnesses": [
     "W11",
     "W2W2",
     "W7C"
    ],
-   "ratio": 0.146,
-   "wires": 20,
+   "ratio": 0.158,
+   "wires": 22,
    "zone": "U_PY"
   },
   "U_PYN": {
@@ -3577,7 +3597,6 @@
   "W12B-05": 100.0,
   "W12C-01": 110.0,
   "W12C-02": 110.0,
-  "W12C-03": 110.0,
   "W12D-01": 85.0,
   "W12D-02": 85.0,
   "W12D-03": 85.0,
@@ -3734,6 +3753,8 @@
   "W7C-04": 155.0,
   "W7C-05": 155.0,
   "W7C-06": 155.0,
+  "W7C-07": 155.0,
+  "W7C-08": 155.0,
   "W8A-01": 145.0,
   "W8A-02": 145.0,
   "W8A-03": 145.0,
@@ -3761,7 +3782,7 @@
   "by_mel_row": {
    "26": 6.6,
    "31": 2.3,
-   "32": 76.1
+   "32": 76.7
   },
   "extras": {
    "PTFE over-sleeve on the four pack leads": 0.3,
@@ -3797,8 +3818,8 @@
     "wire_g": 0.68
    },
    "W12C": {
-    "conn_g": 0.14,
-    "wire_g": 0.45
+    "conn_g": 0.1,
+    "wire_g": 0.3
    },
    "W12D": {
     "conn_g": 0.17,
@@ -3873,8 +3894,8 @@
     "wire_g": 2.0
    },
    "W7C": {
-    "conn_g": 0.84,
-    "wire_g": 1.26
+    "conn_g": 1.21,
+    "wire_g": 1.67
    },
    "W8A": {
     "conn_g": 0.7,
@@ -3889,7 +3910,7 @@
     "wire_g": 0.23
    }
   },
-  "total": 84.9
+  "total": 85.6
  },
  "problems": []
 }

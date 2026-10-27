@@ -1,5 +1,5 @@
 //! `hal_uart.h`: the Jetson link (USART1, PA9 TX / PA10 RX), the debug
-//! console (USART3, PD8 TX / PD9 RX) and the GNSS receiver (LPUART1, PG7 TX /
+//! console (USART3, PD8 TX / PD9 RX) and the GNSS receiver (LPUART1, PB11 TX /
 //! PG8 RX), interrupt-driven with receive buffers
 //! so bytes arriving between main-loop passes are kept. Pins TBR (gpio.rs).
 

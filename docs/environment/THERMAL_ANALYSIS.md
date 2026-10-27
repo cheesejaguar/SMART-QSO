@@ -1,7 +1,7 @@
 # SMART-QSO Thermal Analysis
 
 **Document ID**: SQSO-THA-001
-**Version**: 2.1
+**Version**: 2.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis (uncorrelated model). Replaces version 1.0, which analysed a 400 km ISS orbit and an Apollo4

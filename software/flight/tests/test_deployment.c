@@ -31,7 +31,7 @@
 #define MINUTE_MS   (60U * 1000U)
 
 /* The ISIS AntS controller (software/rust/sqso-fsw/src/ants.rs) */
-#define ANTS_BUS        0U
+#define ANTS_BUS        3U   /* I2C3: the AntS alone (SQSO-ICX-001 D §6 row 30) */
 #define ANTS_ADDR       0x31U
 #define ANTS_ARM        0xADU
 #define ANTS_DEPLOY     0xA5U

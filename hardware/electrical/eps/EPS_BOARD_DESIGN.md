@@ -137,7 +137,7 @@ BAT54 diodes by three loops (wired minimum): its own **MPPT loop** (TLV9002 inte
 default 4.40 V with the EPS controller's DAC high-impedance, 3.3–5.4 V under the controller's perturb-and-observe through
 75 kΩ from its SAC DAC), and the shared **CV** and **CC** loops (§5). The internal FB divider (129 k / 10.0 k) is only an
 output clamp at 17.08 V nominal (16.70–17.46 V with the ±2 % internal reference), set above the CV loop so the precision
-loop always governs. Enables: TRK_EN, pulled up from VCTL and held low by DS3's NO contact and the RBF's pole B.
+loop always governs. Enables: TRK_EN, pulled up from VCTL and held low by the active-high clamp FETs Q40 (driven from DS2's second pole) and Q41 (driven from the RBF's pole B), so a switch wire chafed to the frame removes a clamp rather than disabling the trackers (SMA-B13); TRK_EN never leaves the board.
 
 ### 4.3 Efficiency
 
@@ -586,7 +586,8 @@ wire bend stay within 9.0 mm.
 | J12 | Pico-Clasp 8, 2035560807 (Version E) | 1, 2 3V3_ANTS; 3, 4 GND; 5 SDA (side A); 6 SCL (side A); 7 SDA_B, 8 SCL_B (AntS side B 0x32, through 0 Ω jumpers to the same buffered bus, fitted only if the variant brings side B out separately) | W7C (+2 wires if side B is separate: for the harness designer) | Z5 |
 | J13 | Micro-Fit 3.0 2×3 R/A, 0430450602 | umbilical: charge ×2, return ×2, pack monitor, AFE shutdown | W11 (to the access-port board A3) | Z5 |
 | J14 | Pico-Clasp 4, 2035560407 | RBF (two poles) | W12D | Z4, −Y edge |
-| J15–J17 | Pico-Clasp 3, 2035560307 | DS1, DS2, DS3 (C, NC, NO) | W12A, W12B, W12C (one per switch, each on its own rail) | J15 Z3, J16 Z2, J17 Z4 |
+| J15, J17 | Pico-Clasp 3, 2035560307 | DS1, DS3 (C, NC, NO; J17-3 unused since SMA-B13) | W12A, W12C (one per switch, each on its own rail) | J15 Z3, J17 Z4 |
+| J16 | Pico-Clasp 5, 2035560507 | DS2 two-pole: pole 1 C1, NC1, NO1 (spare); pole 2 C2 (VCTL through 10 k) and NO2 (TCL_A_W to the Q40 clamp gate, active high) | W12B | Z2 |
 | J18 | Micro-Fit 3.0 2×2 R/A, 0430450402 | VBAT_JET ×2, GND ×2 | W5A (24 AWG) | Z2 |
 | J19 | Pico-Clasp 6, 2035560607 | pinout of RF J2: 1 3V3_RADIO, 2 GND, 3, 4 5V_PA_SW, 5, 6 GND | W4B (28 AWG pairs) | Z2 |
 | J20, J21 | Pico-Clasp 2, 2035560207 | ADCS sensor 3.3 V, GNSS 3.3 V | W6B to OBC J6; W9B to OBC J4 (SQSO-ICX-001 B §2.1); the OBC's GNSS translators take their receiver side from J21's rail | J20 Z1 (−X edge, +Y side); J21 Z3 (**+X edge, +Y side**) |

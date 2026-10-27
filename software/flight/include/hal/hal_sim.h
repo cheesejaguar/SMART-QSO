@@ -33,10 +33,22 @@ extern "C" {
 void hal_sim_flash_fail_writes(bool fail);
 
 /**
- * @brief Make every subsequent hal_flash_read() fail with SMART_QSO_ERROR_IO
- *        (a dead FRAM), or work again
+ * @brief Make every subsequent hal_flash_read() of the first FRAM fail with
+ *        SMART_QSO_ERROR_IO (a dead FRAM), or work again
  */
 void hal_sim_flash_fail_reads(bool fail);
+
+/**
+ * @brief Make every read of the second FRAM (the mirror,
+ *        hal_flash_read_mirror()) fail, or work again
+ */
+void hal_sim_flash_fail_mirror_reads(bool fail);
+
+/**
+ * @brief Flip bits of one byte of the first FRAM only (an upset the mirror
+ *        does not share)
+ */
+void hal_sim_flash_corrupt_primary(uint32_t region, uint32_t offset);
 
 /**
  * @brief Let the next writes succeed, then fail every later write
