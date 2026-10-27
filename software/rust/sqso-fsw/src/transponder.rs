@@ -53,9 +53,14 @@ pub const KEYED_FWD_W: f64 = 0.1;
 /// The `XPDR_EN` heartbeat's frequency, Hz (a hardware timer toggles the
 /// pin every half period: BUILD_VS_BUY §3.2, ≈ 100 Hz)
 pub const HEARTBEAT_HZ: u32 = 100;
-/// How long one renewal keeps the heartbeat running, ms: three passes of
-/// the 20 ms main loop, so one late pass does not drop the transponder
-pub const HEARTBEAT_LEASE_MS: u32 = 60;
+/// How long one renewal keeps the heartbeat running, ms: two passes of the
+/// 20 ms main loop, which is one period of the loop at its worst case (the
+/// 20 ms wait plus a pass at the 20 ms budget of SRS-P001). A later pass
+/// still renews it before the monostable drops (the gap it leaves is
+/// bridged by [`EN_HOLD_MS`] for passes up to about 65 ms), while a stalled
+/// loop drops the transponder within [`STALL_DROPOUT_MS`] (90 ms, inside
+/// the 100 ms of VI-RF-11; CDR RF board review)
+pub const HEARTBEAT_LEASE_MS: u32 = 40;
 /// The radio board's retriggerable monostable (SN74LVC1G123), ms: the
 /// enable falls this long after the last heartbeat edge. Hardware, not
 /// software; here so the tests and the mission simulation use one value
@@ -67,12 +72,13 @@ pub const STALL_DROPOUT_MS: u32 = HEARTBEAT_LEASE_MS + EN_HOLD_MS;
 /// The main loop's period, ms
 #[allow(clippy::cast_possible_truncation)] // 20
 const LOOP_MS: u32 = crate::executive::TICK_MS as u32;
-// The lease outlasts one late pass of the loop, not three
-const _: () = assert!(HEARTBEAT_LEASE_MS > 2 * LOOP_MS && HEARTBEAT_LEASE_MS <= 3 * LOOP_MS);
+// The lease covers one worst-case loop period (the wait plus a pass at its
+// budget), not three
+const _: () = assert!(HEARTBEAT_LEASE_MS >= 2 * LOOP_MS && HEARTBEAT_LEASE_MS < 3 * LOOP_MS);
 // The monostable spans several heartbeat periods (no drop-out while the
-// wave runs), and a stalled loop stops the transponder within 110 ms
+// wave runs), and a stalled loop stops the transponder within 90 ms (VI-RF-11: 100 ms)
 const _: () = assert!(EN_HOLD_MS >= 4 * (1000 / HEARTBEAT_HZ));
-const _: () = assert!(STALL_DROPOUT_MS <= 110);
+const _: () = assert!(STALL_DROPOUT_MS <= 90);
 
 /// The window in buckets (5 minutes each)
 const BUCKETS: usize = 20;

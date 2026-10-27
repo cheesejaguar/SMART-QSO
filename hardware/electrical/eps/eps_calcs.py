@@ -226,7 +226,7 @@ def switches():
     def tps2553(rk):
         return 23950 / rk ** 0.977 / 1e3, 25230 / rk ** 1.016 / 1e3, 22980 / rk ** 0.94 / 1e3
     rows = []
-    for sw, load, rk in (("SW2 RADIO (3V3_AO)", 0.10, 88.7), ("SW3 PA (5V_PA)", 0.54, 26.1), ("SW4 ADCS (3V3_AO)", 0.13, 88.7),
+    for sw, load, rk in (("SW2 RADIO (3V3_AO)", 0.038, 226.0), ("SW3 PA (5V_PA)", 0.54, 26.1), ("SW4 ADCS (3V3_AO)", 0.13, 88.7),
                          ("SW7 GNSS (3V3_AO)", 0.10, 133.0), ("SW8 AntS (3V3_AO)", 0.61, 18.7), ("SW9 EPS controller (3V3_AO)", 0.012, None),
                          ("SW10 OBC 3V3 (3V3_AO)", 0.040, 178.0)):
         if rk is None:

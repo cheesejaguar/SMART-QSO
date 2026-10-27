@@ -787,7 +787,7 @@ def rails_and_switches():
     # (ref, switch, enable source, input rail, switch output, R_ILIM, shunt ref, rail after the shunt, shunt, C_RETRY)
     # trips against RADIATION_ANALYSIS Rev C 5.3 (RID AV-08): limit in microseconds, FAULT after 8 ms removes the rail,
     # off time 0.6 x R_FAULT x C_RETRY (EN threshold), fast turn-off through the BAT54 when the enable goes low
-    sws = [("U22", "SW2", "RADIO_EN", "3V3_AO", "3V3_RADIO_U", 88.7e3, "RS12", "3V3_RADIO", 0.100, "22u"),
+    sws = [("U22", "SW2", "RADIO_EN", "3V3_AO", "3V3_RADIO_U", 226e3, "RS12", "3V3_RADIO", 0.100, "22u"),
            ("U23", "SW3", "SW3_IN", "5V_PA", "5V_PA_U", 26.1e3, "RS13", "5V_PA_SW", 0.050, "4.7u"),
            ("U24", "SW4", "ADCS_EN", "3V3_AO", "3V3_ADCS_U", 88.7e3, "RS14", "3V3_ADCS", 0.100, "4.7u"),
            ("U25", "SW7", "GNSS_EN", "3V3_AO", "3V3_GNSS_U", 133e3, "RS15", "3V3_GNSS", 0.100, "22u"),

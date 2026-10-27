@@ -125,7 +125,7 @@ converter's under-voltage lock-out is set at 10.8 V falling (rule E8) so the BMS
 | Switch | Rail in | Enable (firmware pin) | Load | Nominal | Peak | Limit / trip | Part (SQSO-EPS-BRD-001) | Notes |
 |--------|---------|-----------------------|------|---------|------|--------------|-------------------------|-------|
 | SW1 + U19 | VBAT | PAYLOAD_EN (PB4) on SW1 (AND load shed); JETSON_PWR (PA2) on U19 | Jetson carrier | 0.62 A | 0.93 A (guard) | SW1 2.0 A; U19 eFuse 1.20 A (1.10–1.30) latch-off; flight-software guard 8 W for 2 s and 12 W (`payload_guard.rs`) first | TPS1H100B-Q1 (U20); TPS16630 (U19) | Two different parts on two lines; EPS-F012 shed acts on SW1 |
-| SW2 | 3V3_AO | RADIO_EN (PB5) | Receiver, TNC, exciter | 0.05 A | 0.1 A | 0.30 A, retry 1.3 s | TPS2553-Q1 (U22) | Off only in the RF-silence window (97.207(b)) |
+| SW2 | 3V3_AO | RADIO_EN (PB5) | Receiver, synthesizer, TNC, exciter (SQSO-RF-BRD-001) | 0.038 A | 0.05 A | 0.12 A (0.10–0.14), retry 1.3 s; software trip on the INA3221 reading | TPS2553-Q1 (U22) | Off only in the RF-silence window (97.207(b)) |
 | SW3 | 5V_PA | RF_TX_EN (PA3) AND load shed | PA | 0.30 A | 0.54 A | 0.99 A, retry 0.28 s | TPS2553-Q1 (U23) | Hardware TX-OFF; pull-down mandatory |
 | SW4 | 3V3_AO | ADCS_EN (PB6) | Sensors, gyro, magnetorquer drivers | 0.04 A | 0.13 A | 0.30 A, retry 0.28 s | TPS2553-Q1 (U24) | A sensor latch-up is masked by the coils (AV-03) |
 | SW5 | VBAT | HEATER_EN (PD2) | Battery heater 207 Ω | 0.07 A | 0.08 A (16.4 V) | 0.148 A, F4 0.25 A, 40 °C cutout Q22 in series | TPS1H000-Q1 (U21) | 0.70–1.30 W across the bus |

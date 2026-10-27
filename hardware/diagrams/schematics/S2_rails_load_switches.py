@@ -48,7 +48,7 @@ ROWS = [
     # (ref, name, input, enable net (pin), output net, limit / note)
     ("SW1 U20 + U19", "PAYLOAD", "VBAT", "PAYLOAD_EN (PB4) AND SHED_N", "VBAT_JET",
      "TPS1H100B 2.0 A; eFuse TPS16630 1.20 A latch-off on JETSON_PWR (PA2)"),
-    ("SW2 U22", "RADIO", "3V3_AO", "RADIO_EN (PB5)", "3V3_RADIO", "TPS2553 0.30 A, retry 1.3 s"),
+    ("SW2 U22", "RADIO", "3V3_AO", "RADIO_EN (PB5)", "3V3_RADIO", "TPS2553 0.12 A, retry 1.3 s"),
     ("SW3 U23", "PA", "5V_PA", "RF_TX_EN (PA3) AND SHED_N", "5V_PA_SW", "TPS2553 0.99 A; hardware TX-OFF"),
     ("SW4 U24", "ADCS", "3V3_AO", "ADCS_EN (PB6)", "3V3_ADCS", "TPS2553 0.30 A, retry 0.28 s"),
     ("SW5 U21", "HEATER", "VBAT", "HEATER_EN (PD2)", "HTR_P", "TPS1H000 0.148 A + F4 0.25 A + Q22 40 C cutout"),
