@@ -89,8 +89,8 @@ Hold requires:
 |-----------|--------|
 | SOC < 55 % | No ACTIVE entry, no Jetson, no transponder (ACTIVE allowed at ≥ 55 % in sunlight) |
 | SOC < 40 % | ACTIVE → IDLE |
-| SOC < 25 % | Transition to SAFE mode |
-| SOC < 15 % | SAFE → EMERGENCY (beacon shed); back to SAFE at 25 %, to IDLE above 40 % |
+| SOC < 25% | Transition to SAFE mode |
+| SOC < 15% | Absolute minimum: SAFE → EMERGENCY (beacon shed); back to SAFE at 25 %, to IDLE above 40 % |
 
 Rationale: the mode thresholds of BASELINE §5 (`eps_control.h`, `sm_power_event()`); depth of discharge ≤ 10 % per eclipse nominal, ≤ 30 % contingency (SYS-112).
 

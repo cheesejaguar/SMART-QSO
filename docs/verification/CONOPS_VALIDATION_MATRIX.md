@@ -1,10 +1,14 @@
 # SMART-QSO ConOps Validation Matrix
 
 **Document ID**: SQSO-CVM-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft (no CDR has been held; no scenario has been run)
+
+> **Plan, not a record.** No scenario below has been run: no hardware exists and the flight software runs only on the
+> host and in the mission simulation (`docs/BASELINE_PARAMETERS.md` §1). Every check box, status and signature is blank.
+> Values follow `mission/CONOPS.md` and `docs/BASELINE_PARAMETERS.md` Rev E (amended); where a scenario differs, they govern.
 
 ## 1. Purpose
 
@@ -62,13 +66,13 @@ The SMART-QSO ConOps (mission/CONOPS.md) defines five mission phases:
 
 | Step | Action | Expected | Pass |
 |------|--------|----------|------|
-| 1 | Initialize with tumble rates | Rates > 5°/s | [ ] |
-| 2 | Enable detumble mode | B-dot active | [ ] |
+| 1 | Initialize with tumble rates | Rates up to 10°/s per axis (SYS-420) | [ ] |
+| 2 | Enable detumble mode | B-dot active, first coil command after 120 s (SRS-F086) | [ ] |
 | 3 | Monitor rate reduction | Rates decreasing | [ ] |
-| 4 | Wait for stabilization | Rates < 1°/s | [ ] |
+| 4 | Wait for stabilization | Rates < 0.5°/s (`DETUMBLE_RATE_THRESHOLD`) | [ ] |
 | 5 | Verify power consumption | Within budget | [ ] |
 
-**Success Criteria**: Tumble rates reduced to <1°/s within 2 orbits (simulated)
+**Success Criteria**: Detumbled from 10°/s within 3 orbits (SYS-420; MRD-060)
 
 #### VAL-LEOP-003: Initial Beacon Verification
 
@@ -76,14 +80,14 @@ The SMART-QSO ConOps (mission/CONOPS.md) defines five mission phases:
 
 | Step | Action | Expected | Pass |
 |------|--------|----------|------|
-| 1 | Boot to SAFE mode | MODE = SAFE | [ ] |
-| 2 | Transition to LEOP mode | MODE = LEOP | [ ] |
+| 1 | Boot after a simulated separation | MODE = DETUMBLE; no RF for 45 min, nor until the AntS reports deployed (SYS-224; C-19) | [ ] |
+| 2 | End of the RF silence | MODE = IDLE (SAFE if the SOC is below 25 %) | [ ] |
 | 3 | Enable beacon | Beacon active | [ ] |
-| 4 | Time 5 consecutive beacons | Period = 120s ± 5s | [ ] |
+| 4 | Time 5 consecutive beacons | Period = 120 s ± 5 s in IDLE (180 s in SAFE) | [ ] |
 | 5 | Decode beacon content | Template only | [ ] |
 | 6 | Verify callsign | Correct ID | [ ] |
 
-**Success Criteria**: Beacon period 120s ± 5s, template content only
+**Success Criteria**: Beacon period 120 s ± 5 s in IDLE, template content only
 
 #### VAL-LEOP-005: Ground Reception Verification
 
@@ -108,7 +112,7 @@ The SMART-QSO ConOps (mission/CONOPS.md) defines five mission phases:
 |----------------|---------------------|--------|
 | Characterize power/thermal | VAL-COM-001 | [ ] |
 | Calibrate solar/battery telemetry | VAL-COM-002 | [ ] |
-| Exercise DVFS profiles | VAL-COM-003 | [ ] |
+| Jetson power-on and burst tests within the OBC limits | VAL-COM-003 | [ ] |
 | Validate thermal margins | VAL-COM-004 | [ ] |
 | Beacon conformance check | VAL-COM-005 | [ ] |
 | Set adaptive cadence schedule | VAL-COM-006 | [ ] |
@@ -121,28 +125,28 @@ The SMART-QSO ConOps (mission/CONOPS.md) defines five mission phases:
 
 | Step | Action | Expected | Pass |
 |------|--------|----------|------|
-| 1 | Measure SAFE power | <0.2W | [ ] |
-| 2 | Measure IDLE power | <0.4W | [ ] |
-| 3 | Measure ACTIVE power | <0.8W | [ ] |
-| 4 | Measure AI burst power | <7W | [ ] |
+| 1 | Measure SAFE power | 0.79 W (BASELINE §5) | [ ] |
+| 2 | Measure IDLE power | 1.18 W | [ ] |
+| 3 | Measure ACTIVE power | 2.50 W sun-pointed, 1.82 W tumbling at the duty limits | [ ] |
+| 4 | Measure Jetson burst power | ≤ 8 W at the carrier input (SYS-501) | [ ] |
 | 5 | Verify power budget | Positive margin | [ ] |
 
 **Success Criteria**: All power measurements within budget
 
-#### VAL-COM-003: DVFS Profile Verification
+#### VAL-COM-003: Jetson Burst Verification
 
-**Objective**: Verify Jetson DVFS operation
+**Objective**: Verify Jetson bursts within the OBC limits (the 7 W power mode is the only flight mode, BASELINE §6)
 
 | Step | Action | Expected | Pass |
 |------|--------|----------|------|
 | 1 | Enable Jetson | Power on | [ ] |
-| 2 | Set DVFS profile LOW | Clocks reduced | [ ] |
-| 3 | Measure power | <3W | [ ] |
-| 4 | Set DVFS profile MEDIUM | Clocks medium | [ ] |
-| 5 | Measure power | <5W | [ ] |
+| 2 | Verify the 7 W power mode | Mode reported; no other mode selectable | [ ] |
+| 3 | Measure power | ≤ 8 W at the carrier input | [ ] |
+| 4 | Run one burst | One power-on ≤ 10 min and ≤ 3.6 kJ (SYS-512) | [ ] |
+| 5 | Energy per accepted line | ≤ 0.1 Wh over ≥ 10 bursts in commissioning (decision C-20) | [ ] |
 | 6 | Verify thermal | Within limits | [ ] |
 
-**Success Criteria**: DVFS profiles control power as designed
+**Success Criteria**: Bursts stay within the BASELINE §6 limits; fallback to templates with the Jetson off
 
 #### VAL-COM-005: Beacon Conformance
 
@@ -151,10 +155,10 @@ The SMART-QSO ConOps (mission/CONOPS.md) defines five mission phases:
 | Step | Action | Expected | Pass |
 |------|--------|----------|------|
 | 1 | Transmit beacon | RF output | [ ] |
-| 2 | Measure frequency | 145.XXX ± 1kHz | [ ] |
-| 3 | Measure deviation | 3.5 kHz ± 10% | [ ] |
-| 4 | Measure bandwidth | <16 kHz | [ ] |
-| 5 | Measure cadence | 60-120s | [ ] |
+| 2 | Measure frequency | IARU-coordinated frequency ± 5 kHz (SYS-206) | [ ] |
+| 3 | Measure deviation | 3.0 kHz ± 10% (10K4F2D) | [ ] |
+| 4 | Measure bandwidth | ≤ 10.4 kHz | [ ] |
+| 5 | Measure cadence | 60 / 120 / 180 s in ACTIVE / IDLE / SAFE (SYS-211) | [ ] |
 | 6 | Verify callsign | Per regulations | [ ] |
 
 **Success Criteria**: All RF parameters within IARU limits
@@ -182,7 +186,7 @@ The SMART-QSO ConOps (mission/CONOPS.md) defines five mission phases:
 |------|--------|----------|------|
 | 1 | Set SOC = 80% | Above threshold | [ ] |
 | 2 | Set sunlit condition | Sun flag set | [ ] |
-| 3 | Request beacon | AI content | [ ] |
+| 3 | Request beacon | Template chosen by the OBC selector (flight baseline, D5); Jetson lines only if the gated experiment is enabled | [ ] |
 | 4 | Reduce SOC to 25% | Below threshold | [ ] |
 | 5 | Request beacon | Template content | [ ] |
 | 6 | Verify cadence change | Period increased | [ ] |
@@ -201,9 +205,9 @@ The SMART-QSO ConOps (mission/CONOPS.md) defines five mission phases:
 | 4 | Request AI generation | Text generated | [ ] |
 | 5 | Format beacon | AX.25 frame | [ ] |
 | 6 | Transmit and decode | Content valid | [ ] |
-| 7 | Verify duty cycle | <10% | [ ] |
+| 7 | Verify duty cycle | ≤ 5 % tumbling, ≤ 10 % sun-pointed; each burst ≤ 10 min, then ≥ 100 min off (BASELINE §5, §6) | [ ] |
 
-**Success Criteria**: AI-generated beacon received and decoded
+**Success Criteria**: AI-generated beacon (gated experiment) received and decoded, after the content filter (BEACON_SPEC §6)
 
 #### VAL-NOM-004: Eclipse Behavior
 
@@ -226,8 +230,8 @@ The SMART-QSO ConOps (mission/CONOPS.md) defines five mission phases:
 
 | Transition | Trigger | Validation Scenario |
 |------------|---------|---------------------|
-| Launch-Safe → Detumble | Deploy switch | VAL-MODE-001 |
-| Detumble → Commissioning | Rates stable | VAL-MODE-002 |
+| Launch-Safe → Detumble | Deploy switch release | VAL-MODE-001 |
+| Detumble → IDLE under the commissioning hold | Rates stable | VAL-MODE-002 |
 | Commissioning → Nominal-Idle | Checkout complete | VAL-MODE-003 |
 | Nominal-Idle ↔ Nominal-Active | Power available | VAL-MODE-004 |
 | Any → Safe-Mode | Fault detected | VAL-MODE-005 |
@@ -241,9 +245,9 @@ The SMART-QSO ConOps (mission/CONOPS.md) defines five mission phases:
 | Step | Action | Expected | Pass |
 |------|--------|----------|------|
 | 1 | Boot with switch pressed | Launch-Safe mode | [ ] |
-| 2 | Release switch | 30-min timer starts | [ ] |
-| 3 | Wait 30 minutes | Transition to Detumble | [ ] |
-| 4 | Verify beacon | Begins after delay | [ ] |
+| 2 | Release switch | OBC boots to DETUMBLE; 30-min deployment and 45-min RF-silence timers start; no actuation before 120 s | [ ] |
+| 3 | Wait 30 minutes | Wings deploy, then the AntS (temperature gate, C-18) | [ ] |
+| 4 | Verify beacon | First beacon no earlier than 45 min and after the AntS reports deployed (C-19) | [ ] |
 
 **Success Criteria**: Correct deployment sequence timing
 
@@ -281,7 +285,7 @@ The SMART-QSO ConOps (mission/CONOPS.md) defines five mission phases:
 | Step | Action | Expected | Pass |
 |------|--------|----------|------|
 | 1 | Disable ADCS actuators | No control | [ ] |
-| 2 | Verify mode | → SAFE | [ ] |
+| 2 | Verify mode | Mode by SOC; tumbling generation 2.48 W EOL (BASELINE §5) | [ ] |
 | 3 | Monitor beacon | Continues | [ ] |
 | 4 | Verify power | Still positive | [ ] |
 
@@ -351,7 +355,7 @@ QA: ___________ Date: ___
 |------------|----------------|
 | VAL-LEOP-003 | TP-SYS-001 |
 | VAL-NOM-003 | E2E-003 |
-| VAL-MODE-005 | TP-FLATSAT-005 |
+| VAL-MODE-005 | TP-FLATSAT-001 §6.4 |
 | VAL-CON-002 | TP-EPS-002 |
 
 ## 11. Revision History
@@ -359,3 +363,4 @@ QA: ___________ Date: ___
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status "CDR Baseline" replaced, plan banner; values from CONOPS and BASELINE Rev E: mode powers (were 0.2/0.4/0.8/7 W), detumble 10°/s in 3 orbits, first beacon after the 45-min silence and the AntS, no LEOP mode, 7 W Jetson mode with the C-20 burst (was DVFS LOW/MEDIUM), deviation 3.0 kHz, cadences 60/120/180 s, template beacon baseline; TP-FLATSAT-005 (not written) replaced by TP-FLATSAT-001 §6.4 |

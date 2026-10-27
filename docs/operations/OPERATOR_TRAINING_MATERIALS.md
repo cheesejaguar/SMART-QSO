@@ -1,15 +1,17 @@
 # SMART-QSO Operator Training Materials
 
 **Document ID**: SQSO-OTM-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft training material; no training has been held. `docs/BASELINE_PARAMETERS.md` governs every value
 
-> **Funding audit notice (2026-10-16, finding PI-14).** The spacecraft figures in Module 1 (7 W solar, 7 Wh battery,
-> Apollo4, 1.2 kg, 0.35 W average, 0.5–2 W, 7.4–8.4 V battery telemetry) predate the baseline. Until this document is
-> revised, use `docs/BASELINE_PARAMETERS.md`: 4S1P ≈ 50 Wh battery (14.4 V nominal), 16-cell array, STM32L4R5ZI OBC,
-> 0.5 W nominal and 1 W maximum transmit power; mass in `docs/environment/MASS_BUDGET.md`.
+> **Funding audit notice (2026-10-16, finding PI-14), updated by the documentation audit (2026-10-27).** The spacecraft
+> figures, telemetry tables and orbit of Modules 1–5 were corrected to the baseline in Version 1.1: 4S1P ≈ 50 Wh
+> battery (14.4 V nominal), 16-cell array, STM32L4R5ZI OBC, 0.5 W nominal and 1 W maximum, 475 km SSO. The block diagrams
+> are schematic. For telemetry use `docs/operations/TELEMETRY_DICTIONARY.md` §4 (beacon tail, HK1, HK2), for commands
+> `docs/operations/COMMAND_DICTIONARY.md` §1.1, for procedures `docs/operations/COMMISSIONING_PLAN.md` and
+> `docs/operations/CONTINGENCY_PROCEDURES.md`.
 
 ## 1. Purpose
 
@@ -59,7 +61,7 @@ SMART-QSO SPACECRAFT ARCHITECTURE
 │                     │  (AI)       │                         │
 │                     └─────────────┘                         │
 │                                                             │
-│   Mass: 1.2 kg        Power: 0.35W avg      Life: 2 years  │
+│   Mass: CBE 1.52 kg   Load: 1.86-2.26 W     Life: 2 years  │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -67,11 +69,11 @@ SMART-QSO SPACECRAFT ARCHITECTURE
 
 | Subsystem | Function | Key Parameters |
 |-----------|----------|----------------|
-| EPS | Power generation/storage | 7W solar, 7Wh battery |
+| EPS | Power generation/storage | 16 cells, 2.48 W tumbling / 3.84 W sun-pointed EOL orbit average; 4S1P ≈ 50 Wh battery |
 | OBC | Command and control | STM32L4R5ZI MCU; Rust flight software on the Embassy executor, no RTOS (BASELINE §6, 2026-10-25) |
-| RF | Communications | 145/435 MHz, 0.5-2W |
-| AI Payload | Beacon generation | Jetson Orin Nano, TinyLM |
-| ADCS | Attitude sensing | Magnetometer, sun sensors |
+| RF | Communications | FM transponder and 1200 bps beacon, 145.8–146.0 MHz down, 435 MHz up; 0.5 W nominal, 1 W maximum |
+| AI | Template selector on the OBC (flight baseline); Jetson text (gated experiment) | Jetson Orin Nano 8 GB, 7 W mode; SmolLM2-360M or Qwen3-0.6B (D5) |
+| ADCS | Detumble and spin-stabilised sun-pointing (+Y at 8°/s) | Magnetometer, sun sensors, M-G370 gyro, CR0002 rods |
 
 ### 2.4 Ground Segment
 
@@ -144,17 +146,17 @@ Solar Arrays (6x)      Battery Pack          Power Distribution
 └────────┘            └────────┘            └────────────┘
     │                      │                       │
     ▼                      ▼                       ▼
- 7W BOL               2x18650               3.3V, 5V rails
- 5.6W EOL             7 Wh                  Load switches
+ 16 cells             4S1P 18650            3.3V, 5V_PA rails
+ 2.48-3.84 W EOL      ≈ 50 Wh               Load switches
 ```
 
 **Key Telemetry Points**:
 
 | Parameter | Nominal Range | Warning | Critical |
 |-----------|---------------|---------|----------|
-| Battery Voltage | 7.4-8.4V | <7.0V | <6.0V |
+| Battery Voltage (pack) | 13.6-16.4 V | <13.6 V (load shed) | <11.2 V (BMS cut-off) |
 | Battery Current | ±500mA | ±1A | ±2A |
-| SOC | 30-100% | <30% | <20% |
+| SOC | 40-100% | <40% (ACTIVE → IDLE) | <25% (SAFE) |
 | Solar Current | 0-1A | N/A | N/A |
 | 3.3V Rail | 3.2-3.4V | <3.1V | <3.0V |
 | 5V Rail | 4.9-5.1V | <4.8V | <4.7V |
@@ -210,7 +212,7 @@ OBC ARCHITECTURE
 | Fault | Detection | Response |
 |-------|-----------|----------|
 | Watchdog timeout | Main loop hung: no IWDG refresh for 30 s | Reset, increment counter |
-| Low battery | SOC <20% | Transition to SAFE |
+| Low battery | SOC <25% | Transition to SAFE (EMERGENCY below 15 %) |
 | Over-temperature | Temp >50°C | Throttle, then SAFE |
 | Stage stalled | A stage misses 3 check-ins in a row (checked every 1 s) | Stall logged, state saved; IWDG not refreshed, so the OBC resets within 30 s |
 
@@ -226,14 +228,14 @@ AI PAYLOAD OPERATION
 ┌──────────────────────────────────────────────────────────┐
 │              Jetson Orin Nano                            │
 │  ┌──────────────────────────────────────────────────┐   │
-│  │           TinyLM Model (~1 MB INT8)              │   │
+│  │  SmolLM2-360M or Qwen3-0.6B, INT4 (experiment)   │   │
 │  │  ┌────────────┐  ┌────────────┐  ┌────────────┐ │   │
 │  │  │  Context   │─►│  Inference │─►│   Output   │ │   │
 │  │  │  (TLM)     │  │  (TensorRT)│  │  (Beacon)  │ │   │
 │  │  └────────────┘  └────────────┘  └────────────┘ │   │
 │  └──────────────────────────────────────────────────┘   │
 │                                                          │
-│  Duty Cycle: ≤10%     Power: 5-7W     Startup: ~10s    │
+│  Burst ≤10 min, ≤3.6 kJ; ≥100 min off; ≤8 W input      │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -265,12 +267,12 @@ AI Available?
 
 | Parameter | Value |
 |-----------|-------|
-| Downlink Frequency | 145.XXX MHz (VHF) |
-| Uplink Frequency | 435.XXX MHz (UHF) |
-| TX Power | 0.5-2W (selectable) |
-| Modulation | AFSK 1200 / GFSK 9600 |
-| Protocol | AX.25 |
-| Beacon Period | 60-120 seconds |
+| Downlink Frequency | One IARU-coordinated frequency in 145.800–146.000 MHz (not 145.825) |
+| Uplink Frequency | One IARU-coordinated frequency requested in 435.222–435.778 MHz, else 436.222–436.500 MHz |
+| TX Power | 0.5 W nominal, 1 W maximum (`SET_POWER`) |
+| Modulation | FM transponder (16K0F3E); 1200 bps AFSK (10K4F2D) |
+| Protocol | AX.25 UI |
+| Beacon Period | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (±5 s jitter) |
 
 **Beacon Structure**:
 ```
@@ -282,7 +284,7 @@ AX.25 BEACON FRAME
 └─────────┴─────────┴─────────┴─────────┴─────────────────┘
 
 Information Field:
->CALLSIGN: [Telemetry] [AI Message or Template]
+de KK6GDB-11: <text> | T=… M=… SOC=… BV=… SUN=… RF=… QSO=…   (BEACON_SPEC §3)
 ```
 
 ### 3.6 Module 2 Assessment Questions
@@ -333,15 +335,15 @@ SlotTime: 10ms
 ### 4.3 Pass Planning
 
 **Orbit Parameters**:
-- Altitude: ~400 km
-- Inclination: 51.6°
-- Period: ~92 minutes
-- Passes per day: 4-6 visible
+- Altitude: 475 km target, 465–485 km (BASELINE §3)
+- Inclination: ≈ 97.3° (sun-synchronous, LTAN 22:30)
+- Period: 94.1 minutes
+- Passes per day: about 3.8 above 5° from the Bay Area, 3.0 reaching 10° (SQSO-MTL-001 §10)
 
 **Pass Planning Procedure**:
 1. Load current TLE from Space-Track
 2. Predict passes for next 24 hours
-3. Identify passes with elevation >20°
+3. Identify passes reaching 10° (commanding; 12° in the degraded station mode, decision C-14)
 4. Schedule priority operations for best passes
 5. Prepare command scripts if needed
 6. Brief team on pass plan
@@ -433,8 +435,8 @@ Byte N+1:  Checksum (XOR)
 
 | Parameter | Green | Yellow | Red |
 |-----------|-------|--------|-----|
-| BATT_V | >7.4V | 7.0-7.4V | <7.0V |
-| SOC | >30% | 20-30% | <20% |
+| VB (pack) | >13.6 V | 11.2-13.6 V | <11.2 V |
+| SOC | >40% | 25-40% | <25% |
 | TEMP_OBC | 0-45°C | -10-0°C or 45-55°C | <-10°C or >55°C |
 | TEMP_BATT | 0-40°C | -5-0°C or 40-45°C | <-5°C or >45°C |
 
@@ -617,15 +619,15 @@ STATUS: [Open/Investigating/Resolved/Closed]
 **Procedure**:
 1. [ ] Collect and review all telemetry
 2. [ ] Identify trigger cause from telemetry
-3. [ ] Verify battery SOC >30%
-4. [ ] If ready, command IDLE mode
+3. [ ] Verify battery SOC >40%
+4. [ ] If ready, command IDLE mode (`SET_MODE` 1)
 5. [ ] Monitor for 2+ orbits
 6. [ ] If stable, command ACTIVE mode
 7. [ ] Document root cause
 
 ### 8.4 E-003: Battery Emergency
 
-**Symptoms**: SOC <20% or voltage <7.0V
+**Symptoms**: SOC <25% (SAFE) or <15% (EMERGENCY, no beacon), or pack voltage <13.6 V (load shed)
 
 **Procedure**:
 1. [ ] Confirm spacecraft in SAFE mode
@@ -645,3 +647,4 @@ STATUS: [Open/Investigating/Resolved/Closed]
 | 1.0a | 2026-10-16 | Funding audit | Notice: Module 1 spacecraft figures superseded by BASELINE_PARAMETERS (PI-14) |
 | 1.0, note | 2026-10-24 | SMART-QSO Team | OBC row updated: STM32L4R5ZI, Rust on the Embassy executor. The diagrams in §2 and §4 still show the superseded Apollo4 and FreeRTOS tasks; `docs/BASELINE_PARAMETERS.md` and `software/flight/docs/RTOS_ARCHITECTURE.md` govern |
 | 1.0, note | 2026-10-25 | SMART-QSO Team | Embassy executor, no RTOS, is the baseline (BASELINE §6, CR-2026-002): OBC in the §2.3 and §3.3 diagrams (part, memory, one task, 30 s IWDG) and the watchdog and stage-stall faults in §3.3 |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): Module 1–5 values to BASELINE Rev E (4S ≈ 50 Wh battery and pack-voltage limits, 16-cell array, mass, 0.5/1 W, frequencies, beacon intervals, 475 km SSO, SOC thresholds 40/25/15 %, the D5 models and burst rules); commanding from 10°; notice updated; status (no training held) |

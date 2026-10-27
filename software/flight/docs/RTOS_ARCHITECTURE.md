@@ -62,7 +62,7 @@ Reasons, from the design as built:
 | MCU | STM32L4R5ZI (Cortex-M4F) |
 | Core clock | 80 MHz: 4 MHz MSI through the PLL, M = 1, N = 40, R = 2; AHB and APB at the core clock (`clocks()` in `software/rust/firmware/src/main.rs`) |
 | Rust target | `thumbv7em-none-eabihf` |
-| Image (release) | text 207,284 B, data 26,400 B, bss 17,052 B (2026-10-27, round 3, third part); worst-case stack 6,332 B of 8 KB; vector table at 0x08000000; initial SP 0x20040000 (the top of SRAM2); entry `Reset` |
+| Image (release) | text 211,604 B, data 27,192 B, bss 17,052 B (2026-10-27, after round 3, fifth part; `software/flight/docs/MEMORY_POLICY.md` §3.2); worst-case stack 5,812 B of 8 KB; vector table at 0x08000000; initial SP 0x20040000 (the top of SRAM2); entry `Reset` |
 
 ---
 
@@ -161,7 +161,7 @@ C test suites exercise it. The executive does not use it: the main loop runs its
 | Heap | None. No crate uses `alloc`; the image links no heap (CI checks for `malloc`, `free`, `_sbrk`) |
 | Task storage | Static, in the executor (`embassy-executor`) |
 | UART buffers | Static `ConstStaticCell` arrays (§5) |
-| Stack | One stack (cortex-m-rt), from the initial SP 0x20040000 downward in SRAM2, 8 KB budget with an MPU guard below it. Worst case 6,332 B by static analysis (`software/flight/docs/MEMORY_POLICY.md` §6.2); not measured on hardware |
+| Stack | One stack (cortex-m-rt), from the initial SP 0x20040000 downward in SRAM2, 8 KB budget with an MPU guard below it. Worst case 5,812 B by static analysis (`software/flight/docs/MEMORY_POLICY.md` §6.2); not measured on hardware |
 
 `software/flight/docs/MEMORY_POLICY.md` has the policy.
 
@@ -226,7 +226,7 @@ Between passes the task waits on `Timer::after_millis(20)`, and the executor put
 | B | 2026-10-24 | Rewritten for the design as built: no RTOS; the Embassy executor with one task, interrupt-driven UARTs and the time driver; the stages of a pass and their watchdog supervision; timing. The FreeRTOS design of Revision A, never implemented, kept as a history note (§13) | SMART-QSO Team |
 | C | 2026-10-27 | Stack worst case 5,444 B (was 5,004 B) after the CDR flight-software changes | SMART-QSO Team (CDR avionics review) |
 | D | 2026-10-27 | Flight software round 3: image sizes, initial SP 0x20040000 (the stack in SRAM2, RID AV-13), worst-case stack 6,236 B | SMART-QSO Team |
-| E | 2026-10-27 | Documentation audit (post-CDR 2026): embassy-stm32 features as in `firmware/Cargo.toml` (TIM2 time driver); LPUART1, TIM7 and NMI interrupts; §4.2 stages as in `Executive::step()` (ADCS, heater, burst schedule, housekeeping, GNSS, transponder, safety checks); §7 stack 6,332 B as §3.2; §10 the MPU stack guard (was "not detected") | SMART-QSO Team |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): embassy-stm32 features as in `firmware/Cargo.toml` (TIM2 time driver); LPUART1, TIM7 and NMI interrupts; §4.2 stages as in `Executive::step()` (ADCS, heater, burst schedule, housekeeping, GNSS, transponder, safety checks); §3.2 and §7 image and stack of the current tree (MEMORY_POLICY I); §10 the MPU stack guard (was "not detected") | SMART-QSO Team |
 | B, note | 2026-10-25 | §3.1: the Embassy executor with no RTOS is the baseline (BASELINE §6, OBC-F001, CR-2026-002) | SMART-QSO Team |
 
 ---

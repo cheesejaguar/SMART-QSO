@@ -104,7 +104,7 @@ L-2 M licences and ephemeris demonstration).
 | ≤ 30 d | Object claimed with the 18th SDS | REG-015 |
 | 2 years | Operations: transponder duty-gated (sunlit, SOC ≥ 55 %, ≤ 25 % of an orbit) | SIL full mission |
 | End of mission | Two-step passivation command early in a sunlit pass: arm (operational key), execute (recovery key); the one-shot charge disconnect fires while the transmitter still reports, a final frame carries the disconnect and fuse state, then TX-OFF is latched | ICD-013 §6.4; END_OF_LIFE_PLAN |
-| ≤ 5 years after | Re-entry by natural decay with the wings deployed | ODAR Draft D §6 (4.8–5.7 years after deployment at 475 km, nominal and conservative); the SIL's simpler decay gives 4.0 years (SE-20) |
+| ≤ 5 years after | Re-entry by natural decay with the wings deployed | ODAR Draft D §6 (4.8–5.7 years after deployment at 475 km, nominal and conservative); the SIL's simpler decay gives 4.55 years (SQSO-SIL-001 G §7; SE-20) |
 
 ### 3.3 Margins at this review
 
