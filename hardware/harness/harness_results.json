@@ -60,36 +60,36 @@
    "I_allow_A": 0.9,
    "N": 43,
    "contact_ratio": 0.036,
-   "i_max_A": 0.05,
-   "ratio": 0.056
+   "i_max_A": 0.75,
+   "ratio": 0.833
   },
   "W1-10": {
    "I_allow_A": 0.9,
    "N": 43,
    "contact_ratio": 0.036,
-   "i_max_A": 0.05,
-   "ratio": 0.056
+   "i_max_A": 0.75,
+   "ratio": 0.833
   },
   "W1-11": {
    "I_allow_A": 0.9,
    "N": 43,
    "contact_ratio": 0.036,
-   "i_max_A": 0.05,
-   "ratio": 0.056
+   "i_max_A": 0.75,
+   "ratio": 0.833
   },
   "W1-12": {
    "I_allow_A": 0.9,
    "N": 43,
    "contact_ratio": 0.036,
-   "i_max_A": 0.05,
-   "ratio": 0.056
+   "i_max_A": 0.75,
+   "ratio": 0.833
   },
   "W1-13": {
    "I_allow_A": 0.9,
    "N": 43,
    "contact_ratio": 0.036,
-   "i_max_A": 0.05,
-   "ratio": 0.056
+   "i_max_A": 0.75,
+   "ratio": 0.833
   },
   "W1-14": {
    "I_allow_A": 0.9,

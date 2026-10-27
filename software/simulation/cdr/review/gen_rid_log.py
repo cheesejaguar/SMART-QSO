@@ -19,6 +19,9 @@ sys.path.insert(0, str(HERE))
 
 from rids_round1 import RIDS  # noqa: E402
 from rids_status import CLOSURE  # noqa: E402
+from rids_round3 import FINAL3, NEW, REOPEN  # noqa: E402
+
+RIDS = RIDS + NEW
 
 REPO = HERE.parents[3]
 REPORT = REPO / "docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md"
@@ -41,12 +44,19 @@ GROUPS = [
     ("AV", "Avionics"), ("FSW", "Flight software"), ("RAD", "Radiation"), ("GNC", "Guidance, navigation and control"),
     ("RFB", "RF board (round 2)"), ("EPSB", "EPS board (round 2)"), ("OBCB", "OBC board (round 2)"),
     ("JETB", "Jetson carrier board (round 2)"),
+    ("P3P", "Round 3: programmatics, SE, V&V"), ("P3E", "Round 3: power, safety, EMC"),
+    ("P3S", "Round 3: structures, mechanisms, thermal"), ("P3A", "Round 3: launch, RF, ground, regulatory"),
+    ("P3F", "Round 3: avionics, flight software, GN&C"),
 ]
 
 
 def final(rid):
     """(disposition, evidence) after round 2: an implementation RID takes its closure."""
     rid_id, _sev, _title, disp, evidence = rid
+    if rid_id in FINAL3:
+        return FINAL3[rid_id]
+    if rid_id in REOPEN:
+        return "IMP", "Reopened in round 3: " + REOPEN[rid_id]
     if rid_id in CLOSURE:
         return CLOSURE[rid_id]
     return disp, evidence
@@ -64,7 +74,7 @@ def render() -> tuple[str, str]:
     dupes = sorted({r[0] for r in RIDS if [x[0] for x in RIDS].count(r[0]) > 1})
     if dupes:
         raise SystemExit(f"duplicate RIDs: {dupes}")
-    unknown = sorted(set(CLOSURE) - {r[0] for r in RIDS})
+    unknown = sorted((set(CLOSURE) | set(REOPEN) | set(FINAL3)) - {r[0] for r in RIDS})
     if unknown:
         raise SystemExit(f"closures for unknown RIDs: {unknown}")
     rows = []
@@ -93,6 +103,13 @@ def render() -> tuple[str, str]:
     for key in ["CA", "CD", "CH", "VI", "DP", "IMP"]:
         lines.append(f"| {NAMES[key]} | {first[key]} | {last[key]} |")
     lines.append("")
+    reopened = sorted(REOPEN)
+    lines.append(
+        f"Round 3 (independent closure verification) reopened {len(reopened)} RIDs and raised {len(NEW)} new findings; "
+        f"{sum(1 for r in reopened if r in FINAL3)} of the reopened and "
+        f"{sum(1 for n in NEW if n[0] in FINAL3)} of the new are since closed."
+    )
+    lines.append("")
     lines.append(
         "Open implementation RIDs: " + (", ".join(open_imp) if open_imp else "none") + "."
     )
@@ -106,6 +123,10 @@ def splice(text: str, tag: str, body: str) -> str:
 
 
 def main() -> int:
+    args = sys.argv[1:]
+    if any(a not in ("--check",) for a in args):
+        print(__doc__)
+        return 0 if args in (["--help"], ["-h"]) else 2
     summary, log = render()
     text = REPORT.read_text(encoding="utf-8")
     new = splice(splice(text, "RID-SUMMARY", summary), "RID-LOG", log)

@@ -843,11 +843,15 @@ mod tests {
         assert!(q.passivated());
         // Committed and the fire done on record while the report already
         // runs in RAM: the report carries on where it is
+        let mut io = Bench::default();
+        nvm::save(&mut io, REGION, 0, RECORD_MAGIC, &[flags, VERSION, 1, 0]).unwrap();
         let mut q = Passivation::new(REGION);
         q.initialized = true;
         q.fire_done = true;
         q.report = Some((0, 2));
         q.verify(0, &mut io);
+        assert!(q.committed(), "carried on from the record");
+        assert!(!q.passivated());
         assert_eq!(q.report, Some((0, 2)));
         // Committed on record while a fire is already running in RAM: kept
         let mut io = Bench::default();

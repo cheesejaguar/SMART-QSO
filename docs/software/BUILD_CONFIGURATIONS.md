@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SW-008
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
@@ -45,9 +45,9 @@ Rust release profile (`software/rust/Cargo.toml`; the firmware's `software/rust/
 `debug-assertions = false`. The toolchain is pinned by `software/rust/rust-toolchain.toml` (1.97.0, target
 `thumbv7em-none-eabihf`).
 
-Image (release, 2026-10-25): text 115,876 B, data 19,764 B, bss 16,496 B. Vector table at 0x08000000, initial SP
-0x200A0000, entry `Reset`. Linked with cortex-m-rt's `link.x` and the `memory.x` of embassy-stm32 (2 MB flash, 640 KB
-RAM). CI checks the entry point, the vector table, the initial SP, the presence of the flight symbols, and the absence
+Image (release, 2026-10-27, flight software round 3): text 190,532 B, data 24,776 B, bss 17,012 B. Vector table at
+0x08000000, initial SP 0x20040000, entry `Reset`. Linked with cortex-m-rt's `link.x` and the firmware's own `memory.x`
+(2 MB flash; RAM SRAM2 alone, 64 KB with parity, holding the statics and the 8 KB stack). CI checks the entry point, the vector table, the initial SP, the presence of the flight symbols, and the absence
 of `malloc`, `free`, `_sbrk` and `printf` (job STM32L4 Cross-Compile (library)).
 
 ---
@@ -407,4 +407,5 @@ Each flight release includes:
 | B | 2026-10-16 | Document number changed from SQSO-SW-007, which `software/flight/docs/LOOP_BOUNDS.md` also carries, to SQSO-SW-008 (finding PI-17). No content change | SMART-QSO Team |
 | C | 2026-10-24 | The flight software is Rust: §2.1 the build configurations as built (CMake options, cargo builds, Rust release profile, image and its CI checks); notes on §7 to §10 where the Revision A plan (C cross build, FreeRTOS, memory split, artifacts) no longer applies | SMART-QSO Team |
 | D | 2026-10-27 | Stack worst case 5,444 B (was 5,004 B) after the CDR flight-software changes | SMART-QSO Team (CDR avionics review) |
+| E | 2026-10-27 | Flight software round 3: the image of the round-3 build (text 190,532 B), the firmware's own `memory.x` with RAM in SRAM2 alone, initial SP 0x20040000 (RID AV-13) | SMART-QSO Team |
 | C, note | 2026-10-25 | §8.2 and §8.3: the Embassy executor with no RTOS is the baseline (BASELINE §6, CR-2026-002) | SMART-QSO Team |

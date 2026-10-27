@@ -22,6 +22,7 @@ Sections
   14 part stress and derating (NASA EEE-INST-002 / project 50 % rule, EEE_PARTS_LIST Rev C §12)
   15 magnetic cleanliness at the magnetometer on board A2 (OBC item C16): keep-out radius, PA current field
   16 antenna ports (Version C): MMCX connectors and 1.37 mm cables to the AntS, route length, loss and return loss
+  17 shield-can vents (Version D amended): leakage of a 1.5 mm vent and the cavities' volume-to-vent-area ratio
 
 Usage: python3 rf_calcs.py [--mc 4000] [--quiet]
 Needs numpy only.
@@ -952,6 +953,32 @@ def rf_ports(p):
     return out
 
 
+# ------------------------------------------------------------- 17 shield-can vents (D amended, P3A-06)
+def shield_vents():
+    """One 1.5 mm vent per cavity lid (STRUCTURAL_ANALYSIS §11). Leakage of a small round hole in a thin wall:
+    aperture term 20 log(lambda / 2d) plus the below-cutoff waveguide term of the lid thickness, 32 dB per diameter
+    of depth (TE11, f << fc). Venting: CDS §2.1.9 V/A < 50.8 m."""
+    c = 299792458.0
+    d, t = 1.5e-3, 0.20e-3
+    fc = 1.841 * c / (math.pi * d)
+    out = {"hole_d_mm": 1.5, "lid_t_mm": 0.2, "te11_cutoff_GHz": round(fc / 1e9, 0), "attenuation_dB": {}}
+    for name, f in (("146 MHz", 145.9e6), ("437 MHz (H3)", 437.7e6), ("2.4 GHz", 2.4e9)):
+        lam = c / f
+        out["attenuation_dB"][name] = {"aperture": round(20 * math.log10(lam / (2 * d)), 1),
+                                       "depth": round(32.0 * t / d, 1),
+                                       "total": round(20 * math.log10(lam / (2 * d)) + 32.0 * t / d, 1)}
+    a = math.pi * (d * 1e3 / 2) ** 2
+    cav = {"receive": 37 * 22 * 7, "transmit": 37 * 32 * 7 - 12 * 12 * 7, "digital": 47 * 54 * 7 - 12 * 14 * 7}
+    out["vent_area_mm2"] = round(a, 2)
+    out["V_over_A_m"] = {k: round(v / a / 1e3, 1) for k, v in cav.items()}
+    out["V_over_A_limit_m"] = 50.8
+    # hole path from the PA (1 W) to the LNA input region at 146 MHz: out of one can and into the other
+    a146 = out["attenuation_dB"]["146 MHz"]["total"]
+    out["pa_to_lna_via_two_vents_dB"] = round(2 * a146 + 20.0, 0)   # + 20 dB free-space/near-field coupling [assumed]
+    out["pa_to_lna_requirement_dB"] = 85.0
+    return out
+
+
 # --------------------------------------------------------------------------------------------- main
 def main():
     ap = argparse.ArgumentParser()
@@ -992,6 +1019,7 @@ def main():
     res["clocks"] = clocks(p)
     res["stresses"] = stresses(p, res["pa"], res["lpf"])
     res["magnetics"] = magnetics(res["pa"])
+    res["shield_vents"] = shield_vents()
     tx_loss = res["rf_ports"]["2m"]["port_to_antenna_worst_dB"]
     res["rf_ports"]["tx_1W_port_dBm_nominal_low_high"] = [r["pmax_port_dBm"] for r in res["pa"]["psat"]]
     res["rf_ports"]["tx_1W_at_antenna_dBm_nominal_low_high"] = [round(r["pmax_port_dBm"] - tx_loss, 2)

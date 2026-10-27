@@ -3,7 +3,8 @@
 # no stack connector) up through a deck opening to EPS J1 / J2 on the EPS bottom side in connector zone Z1 (-X, +Y),
 # with a service loop under the EPS: every wire 0.12 m, which keeps the leads' conductance at or below the 0.008 W/K the
 # thermal design carries. Pack leads 22 AWG (two per pole, 1.2 A worst per wire against 2.5 A derated), behind the
-# sense-board fuse F0 (5 A, BAT_TOP) and ahead of the EPS fuse F2; cell taps behind FT0-FT4 (0.5 A). PTFE over-sleeve,
+# sense-board fuse F0 (FM12A72V5.0A, 5 A, BAT_TOP) and ahead of the EPS fuse F2; cell taps behind FT0-FT4 (FM12A72V3/4A,
+# 0.75 A: 83 % of 0.90 A derated 28 AWG). PTFE over-sleeve,
 # twisted quad, no metal clamps. Micro-Fit terminals take 20-24 AWG, Pico-Clasp 28-32 AWG.
 metadata:
   title: W1 Battery pack to EPS v3 (SQSO-HW-DIAG-001; SQSO-HAR-001 2.0)
@@ -45,7 +46,7 @@ cables:
     gauge: 28 AWG
     length: 0.12
     colors: [BK, BN, RD, OG, YE, WH]
-    notes: "M22759/33-28; sense only (balancing 18 mA)"
+    notes: "M22759/33-28; sense only (balancing 18 mA); taps fused 0.75 A at the pack"
 
 connections:
   - - BATT: [1-4]

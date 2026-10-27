@@ -1085,5 +1085,36 @@
    "keyed_minus_unkeyed_change": 15.0,
    "note": "RM3100 noise 15 nT at 200 cycle counts (OBC_BOARD_DESIGN \u00a79.4); the change on keying is what calibration cannot remove"
   }
+ },
+ "shield_vents": {
+  "hole_d_mm": 1.5,
+  "lid_t_mm": 0.2,
+  "te11_cutoff_GHz": 117.0,
+  "attenuation_dB": {
+   "146 MHz": {
+    "aperture": 56.7,
+    "depth": 4.3,
+    "total": 61.0
+   },
+   "437 MHz (H3)": {
+    "aperture": 47.2,
+    "depth": 4.3,
+    "total": 51.4
+   },
+   "2.4 GHz": {
+    "aperture": 32.4,
+    "depth": 4.3,
+    "total": 36.7
+   }
+  },
+  "vent_area_mm2": 1.77,
+  "V_over_A_m": {
+   "receive": 3.2,
+   "transmit": 4.1,
+   "digital": 9.4
+  },
+  "V_over_A_limit_m": 50.8,
+  "pa_to_lna_via_two_vents_dB": 142.0,
+  "pa_to_lna_requirement_dB": 85.0
  }
 }

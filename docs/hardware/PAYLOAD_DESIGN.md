@@ -665,8 +665,8 @@ Sections 6, 7 and 10 above are the 2026-01 preliminary design. Where they disagr
 
 | Switch | Line (provisional pin) | Part (`docs/hardware/EPS_DESIGN.md` v2.0) | Acts on | Opened by |
 |--------|------------------------|---------------------------------------------|---------|-----------|
-| SW1, PDU high-side switch | `PAYLOAD_EN` (PB4) | TPS1H100 class, ≥ 25 V | VBAT to the carrier | flight software; hardware low-voltage disconnect (EPS-F012) |
-| U3, carrier eFuse | `JETSON_PWR` (PA2) | TPS25947 class, 1.2 A, latch-off, ≤ 1 ms | carrier converter input | flight software; its own current limit (latch-up) |
+| SW1, PDU high-side switch | `PAYLOAD_EN` (PB2; was PB4, SQSO-ICX-001) | TPS1H100 class, ≥ 25 V | VBAT to the carrier | flight software; hardware low-voltage disconnect (EPS-F012) |
+| U3, carrier eFuse (the EPS board's U19, §12) | `JETSON_PWR` (PA8; was PA2, SQSO-ICX-001) | TPS25947 class, 1.2 A, latch-off, ≤ 1 ms | carrier converter input | flight software; its own current limit (latch-up) |
 
 *Independence.* The two are different parts on different lines, so one stuck-on switch leaves the other able to cut
 the rail; this is what keeps the bus alive with a stuck Jetson (BUILD_VS_BUY §7.3: with both switches failed the pack
@@ -777,4 +777,4 @@ Raw Text Data → Tokenization → Model Training → Quantization → TensorRT 
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §11 new: two series switches and their independence (RID AV-06), latch-up and over-power trips, thermal limits, fallback; §6, §7 and §10 marked as preliminary where §11 governs |
-| 1.2 | 2026-10-27 | Payload carrier design (CDR design completion) | §12 new: carrier board SQSO-JET-BRD-001 summary and the corrections it makes (5 V-only module input, storage, 1.8 V UART and 8N2, 7 W mode and the 6.5 W cap for TB-13, power-good, commanded switch-off, thermal interface, spreader thermistor) |
+| 1.2 | 2026-10-27 | Payload carrier design (CDR design completion) | §12 new: carrier board SQSO-JET-BRD-001 summary and the corrections it makes (5 V-only module input, storage, 1.8 V UART and 8N2, 7 W mode and the 6.5 W cap for TB-13, power-good, commanded switch-off, thermal interface, spreader thermistor) (amended: §11.1 pins PB2 and PA8 per SQSO-ICX-001, panel item P3E-05) |

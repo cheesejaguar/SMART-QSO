@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SHA-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Classification:** Class D Mission
 **Reference:** NASA-STD-8719.13
@@ -429,7 +429,7 @@ emission, a load or a mode that the fixed rules forbid, or composes a beacon wit
 **Status:** design complete; not implemented (fabrication phase). Not safety-critical if C-012-1 is shown by the
 property test, because no selector output can then do anything the rules forbid.
 
-### 9.5 SW-HAZ-013: End-of-Life Passivation Commanded Wrongly or Not Completed (Revision C)
+### 9.5 SW-HAZ-013: End-of-Life Passivation Commanded Wrongly or Not Completed (Revision C; order changed in D)
 
 **Hazard:** the irreversible charge disconnect (SQSO-EPS-BRD-001 §7) fires when not intended (by a software fault, a
 replayed or forged command, or one key compromised), ending the mission; or a commanded passivation leaves a
@@ -441,11 +441,14 @@ charge path). **Likelihood:** Improbable (E) with the controls.
 |---------|-------------|--------------|
 | C-013-1 | Two commands under two keys: PASSIVATE_ARM (operational key, `EOL!`) then PASSIVATE_EXECUTE (recovery key) within 600 s; the execute alone, a lapsed arm or a wrong code does nothing (SRS-F110) | T: `test_passivation`, Rust unit tests |
 | C-013-2 | Two separate OBC outputs in series in the EPS (EOL_ARM's edge sets a latch, EOL_FIRE a level held ≥ 60 s in sunlight), both low at reset and pulled down on the EPS board: no single stuck line, glitch or reset fires it (SRS-F111) | T: `test_passivation`; V-EPS-8 on the EM |
-| C-013-3 | TX-OFF latched and the passivation record persisted before the fire; the passivation inhibit is never lifted; after a reset the record or the EPS EOL_STATE restores it (SRS-F112) | T: `test_passivation`, `test_rf_control`; SIL end-of-life plan |
+| C-013-3 | The passivation record persisted before the fire; the fire while still transmitting, then the final report (three HK1/HK2 pairs over 3 min with EOL_STATE, the fuse state and the attempts), then TX-OFF and the passivation inhibit, **whether the fire was confirmed or not** (Revision D, RID REG-12: TX-OFF used to come first, so the ground could not see the result); the inhibit is never lifted; after a reset the record or the EPS EOL_STATE restores it, a fire resumes within its 3 attempts and an unfinished report is sent again before TX-OFF (SRS-F111, SRS-F112, SRS-F155) | T: `test_passivation` (the report frames and TX-OFF at 180 s, the unconfirmed fire), the Rust unit tests, both crates' `passivation.rs` at 100 % line and condition coverage; SIL end-of-life plan |
+| C-013-4 | The emissions cease within 180 s of the end of the fire, whatever the fire, the EPS or the record does: a line that cannot be driven, a record that cannot be written or an EPS that never confirms all lead to the report and then TX-OFF (Revision D) | T: `test_passivation`, `sqso-ffi` unit test `hal_failures_are_reported` |
 
-**Status:** verified on the host; the pins are not yet allocated on the STM32 (logical pins 19 and 20), so the image
-cannot fire it until they are; EM test open. Not on the safety-critical list (it protects the mission, not people);
-the chair and the PI may decide otherwise.
+**Status:** verified on the host; the pins are allocated (EOL_ARM PF4, EOL_FIRE PG1, SQSO-ICX-001 B §6) and driven by
+the image; EM test open. Since Revision D the passivation (`sqso-fsw/src/passivation.rs`, `sqso-ffi/src/passivation.rs`)
+is on the safety-critical coverage list (`software/flight/scripts/safety_coverage.py`): with TX-OFF after the final
+report, the sequence is itself an RF transmit inhibit (SH-008), the same class as `rf_control`. For the PI's
+concurrence with the SDP §3.2 list.
 
 ### 9.6 Summary of the Additions
 
@@ -455,7 +458,7 @@ the chair and the PI may decide otherwise.
 | SW-HAZ-010 | RF inhibit failure, beacon and downlink | Critical | Improbable | Low | Open (EM tests) |
 | SW-HAZ-011 | Commissioning hold lost or bypassed | Major | Remote | Low | Verified on host |
 | SW-HAZ-012 | OBC selector extends a gate | Major | Improbable | Low | Design only |
-| SW-HAZ-013 | End-of-life passivation commanded wrongly or not completed | Critical (mission) | Improbable | Low | Open (EM test V-EPS-8; pins to allocate) |
+| SW-HAZ-013 | End-of-life passivation commanded wrongly or not completed | Critical (mission) | Improbable | Low | Open (EM test V-EPS-8) |
 
 ---
 
@@ -466,6 +469,7 @@ the chair and the PI may decide otherwise.
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | §9 new: SW-HAZ-009 (transponder emission, XPDR_EN heartbeat), SW-HAZ-010 (RF inhibits, the SDP's open action), SW-HAZ-011 (commissioning hold), SW-HAZ-012 (OBC selector); recommendation to add `transponder.rs` and `ops_state.rs` to the safety-critical list (RID FSW-05) | SMART-QSO Team (CDR avionics review) |
 | C | 2026-10-27 | §9: C-009-1 lease 40 ms and drop within 90 ms; `transponder.rs` and `ops_state.rs` on the safety-critical list (FSW-05); C-010-4 the REL-04 exception (beacon kept with the receiver known failed); §9.5 new: SW-HAZ-013 end-of-life passivation (REG-01, EPS-06); the summary is §9.6 | SMART-QSO Team (CDR flight software, round 2) |
+| D | 2026-10-27 | §9.5 SW-HAZ-013: the passivation order of RID REG-12 (the fire while transmitting, the final report, then TX-OFF, also after an unconfirmed fire), control C-013-4 (the emissions cease whatever fails), the pins allocated, `passivation.rs` (both crates) on the safety-critical list | SMART-QSO Team (CDR flight software, round 3) |
 
 ---
 

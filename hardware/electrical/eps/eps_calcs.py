@@ -250,7 +250,16 @@ def inhibits():
     print(f"Margin {20 - tot_max:.1f} uA. Integration to separation (BASELINE section 4: 60 +/- 5 % SOC at L-47 d, >= 40 % at "
           f"separation): {q47:.1f} mAh in 47 days at the worst drain = {q47 / 3450:.2%} SOC, so >= {55 - q47 / 34.5:.1f} % SOC "
           "before the cells' own self-discharge (a cell property, outside this budget: 15 points of margin remain for it).")
-    R["inhibits"] = dict(drain_typ_ua=tot_typ, drain_max_ua=tot_max, t_on_ms=t_on * 1e3)
+    # array path with the trackers disabled (TRK_EN low: DS2 pole 2 or DS3 stowed): the boost passes the string through
+    # its inductor and diode; no-load diode drop 0.15 V (PMEG40T30ER at uA), ideal diode FET ~0 V
+    v_pass = STRING_VOC_MAX - 0.15
+    en_rise_min = 1.16                                   # LMR43620 EN rising threshold minimum (data sheet)
+    starts = [("U15 3V3_AO", 750e3), ("U16 5V_PA, U17 V_BURN", 887e3)]
+    print(f"\nArray pass-through with the trackers disabled: <= {v_pass:.2f} V (Voc {STRING_VOC_MAX} V at -45 degC BOL less "
+          "0.15 V). Lowest converter start: " + "; ".join(f"{n} {en_rise_min * (rt + 100e3) / 100e3:.1f} V" for n, rt in starts) +
+          f"; eFuse U19 UVLO 12 V; every load switch needs an enable from 3V3_AO or the OBC, both unpowered. Margin "
+          f">= {en_rise_min * 8.5 - v_pass:.1f} V: no rail, no RF, no deployment with any two of DS1-DS3 failed closed.")
+    R["inhibits"] = dict(drain_typ_ua=tot_typ, drain_max_ua=tot_max, t_on_ms=t_on * 1e3, v_pass=v_pass)
 
 
 # ================================================================ 6 load switches and converters
@@ -469,7 +478,7 @@ def thermal():
         ("Q4+Q5 DS1/DS3 P-FETs at 1.3 A", 1.3 ** 2 * 0.016 * 2, None, 1.0, 15.0),
         ("Q6+Q7 DS2 N-FETs at 1.3 A", 1.3 ** 2 * 0.006 * 2, None, 1.5, 15.0),
         ("Shunts (AFE, gauge, array) at 1.3 A", 1.3 ** 2 * 0.020 + 0.5 ** 2 * 0.020, None, 30.0, 20.0),
-        ("U1 BQ76952 (NORMAL, balancing one cell 18 mA)", 0.016 * 0.3 + 4.1 * 0.018 * 0.5, None, 29.3, 15.0),
+        ("U1 BQ76952 (NORMAL, balancing one cell 9 mA)", 0.016 * 0.3 + 4.1 * 0.009 * 0.5, None, 29.3, 15.0),
         ("U21 heater switch (TPS1H000) at 79 mA", 0.079 ** 2 * 1.6, None, 30.0, 15.0),
         ("U39 SW11 MTQ switch (TPS1H000) at the bridges' 0.23 A limit", MTQ_BRIDGE_LIMIT_A ** 2 * 1.6, None, 30.0, 15.0),
         ("Q16 F3 heater FET at 1.55 A (one event, < 1 min)", 0.0, (1.55 ** 2 * 0.066, 60.0), 60.0, 20.0),

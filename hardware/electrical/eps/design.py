@@ -362,8 +362,13 @@ def connectors():
     conn(j, {"P1": "UMB_CHG", "P2": "UMB_CHG", "P3": "PACK_N", "P4": "PACK_N", "P5": "UMB_VMON", "P6": "UMB_SHUT"})
     j = pico(4, "J14", "RBF", "uA", "W12D: RBF switch, two poles: A opens DS2's drive, B clamps the tracker enables", "Z4 (-Y edge)")
     conn(j, {"P1": "S2N", "P2": "S2R", "P3": "TRK_EN", "P4": "GND"})
+    # DS2 is a two-pole switch (DPDT): pole 1 (C, NC) drives the pack-return FETs from the PACK domain; pole 2 (C2 at
+    # GND, NO2 closed when stowed) holds the tracker enables low, independently of DS3, so the array path has three
+    # inhibits (DS1 Q4, DS3 Q5, DS2 pole 2 TRK_EN; RID P3E-01)
+    j = pico(5, "J16", "DS2", "uA", "W12B: DS2 deployment switch, two poles: 1 C, 2 NC (pack-return FET drive, PACK domain), "
+             "3 NO1 not used, 4 C2 (GND), 5 NO2 (TRK_EN, closed when stowed); own harness on its own rail", "Z2")
+    conn(j, {"P1": "DS2_C", "P2": "S2N", "P3": None, "P4": "GND", "P5": "TRK_EN"})
     for ref, ds, c, nc, no, hz, zone in (("J15", "DS1", "DS1_C", "S1N", None, "W12A", "Z3"),
-                                         ("J16", "DS2", "DS2_C", "S2N", None, "W12B", "Z2"),
                                          ("J17", "DS3", "GND", "S3N", "TRK_EN", "W12C", "Z4")):
         j = pico(3, ref, ds, "uA", f"{hz}: {ds} deployment switch (C, NC = closed when released, NO = closed when stowed); "
                  "own harness on its own rail", zone)
@@ -547,9 +552,11 @@ def pack_and_protection():
     C("100n", "AFE_SRP", "AFE_SRN")
     C("100n", "AFE_SRP", "BAT_BOT")
     C("100n", "AFE_SRN", "BAT_BOT")
-    # cell taps -> AFE (100 Ohm + 0.1 uF; internal balancing ~18 mA)
+    # cell taps -> AFE: the current-limiting tap resistors (3 x 68.1 Ohm 2512 per tap, with a 0.75 A fuse) are on the
+    # battery sense board (BATTERY_DESIGN 7.2: a short in the W1 tap wires is limited there); 10 Ohm + 0.1 uF here
+    # (local damping); internal balancing ~9 mA through the 2 x 214 Ohm loop
     for tap, vc in (("TAP0", "VC0"), ("TAP1", "VC1"), ("TAP2", "VC2"), ("TAP3", "VC15"), ("TAP4", "VC16")):
-        R(100, tap, f"AFE_{vc}", note="cell-tap filter / balance resistor")
+        R(10, tap, f"AFE_{vc}", note="cell-tap local filter (204 Ohm limiting chain on the sense board)")
     C("100n", "AFE_VC0", "BAT_BOT")
     C("100n", "AFE_VC1", "AFE_VC0")
     C("100n", "AFE_VC2", "AFE_VC1")
@@ -683,8 +690,15 @@ def eol():
     ic(S_SCH, "U60", "SN74LVC1G17-Q1", "SN74LVC1G17QDCKRQ1", "TI", "SC70-5 (DCK)", "Schmitt buffer",
        {"NC": None, "A": "EOL_ARM_F", "GND": "GND", "Y": "EOL_ARM_CK", "VCC": "3V3_AO"}, finish="NiPdAu|Sn")
     C("100n", "3V3_AO", "GND")
+    # arm needs two independent sources: the OBC's EOL_ARM line AND the EPS controller's EOL_KEY, which the controller
+    # raises only after a keyed two-write I2C sequence (ICD extended registers); fire is the OBC's EOL_FIRE (RID P3E-11)
+    ic(S_G1, "U64", "SN74LVC1G08-Q1", "SN74LVC1G08QDCKRQ1", "TI", "SC70-5 (DCK)", "AND",
+       {"A": "EOL_ARM_CK", "B": "EOL_KEY", "GND": "GND", "Y": "EOL_ARM_G", "VCC": "3V3_AO"}, finish="NiPdAu|Sn",
+       notes="EOL arm: OBC EOL_ARM AND EPS-controller EOL_KEY")
+    C("100n", "3V3_AO", "GND")
+    R(100e3, "EOL_KEY", "GND", note="low at controller reset or power loss")
     ic(S_FF, "U61", "SN74LVC2G74-Q1", "SN74LVC2G74QDCURQ1", "TI", "VSSOP-8 (DCU)", "D flip-flop with preset/clear",
-       {"CLK": "EOL_ARM_CK", "D": "3V3_AO", "QN": None, "GND": "GND", "Q": "EOL_ARMED", "CLRN": "EOL_POR",
+       {"CLK": "EOL_ARM_G", "D": "3V3_AO", "QN": None, "GND": "GND", "Q": "EOL_ARMED", "CLRN": "EOL_POR",
         "PREN": "3V3_AO", "VCC": "3V3_AO"}, notes="EOL arm latch, cleared at power-up")
     C("100n", "3V3_AO", "GND")
     R(1e6, "3V3_AO", "EOL_POR")
@@ -785,7 +799,13 @@ def rails_and_switches():
         R(1.00e6, net, rb, tol=0.1, note=f"{rb} 1:6 (OBC ADC, J3)")
         R(200e3, rb, "GND", tol=0.1)
         C("100n", rb, "GND")
-    R(10e3, "JETSON_PWR", "EF_SHDN")
+    # the hardware load shed also removes the eFuse's enable, so it covers SW1 and U19 each failed closed (RID P3E-06)
+    ic(S_G1, "U65", "SN74LVC1G08-Q1", "SN74LVC1G08QDCKRQ1", "TI", "SC70-5 (DCK)", "AND",
+       {"A": "JETSON_PWR", "B": "SHED_N", "GND": "GND", "Y": "JET_EN_G", "VCC": "3V3_AO"}, finish="NiPdAu|Sn",
+       notes="load shed gate for the Jetson eFuse U19")
+    C("100n", "3V3_AO", "GND")
+    R(100e3, "JETSON_PWR", "GND", note="pull-down: off at reset")
+    R(10e3, "JET_EN_G", "EF_SHDN")
     R(100e3, "EF_SHDN", "GND")
     C("4.7u", "VBAT_JET", "GND", 50, "1210", vop=16.8)
     # SW5 HEATER (TPS1H000, 0.148 A) -> F4 -> shunt -> J1 HTR+; HTR- -> Q22 (40 C cutout) -> GND
@@ -1071,7 +1091,7 @@ def telemetry_and_mcu():
         "P2_0": "AFE_ALERT_X", "P2_1": "PERMIT_RB", "P2_2": "WIN_OK_RB", "P2_3": "SHED_RB", "P2_4": "EOL_ARMED_RB",
         "P2_5": "FLT_SW1", "P2_6": "FLT_EFUSE", "P2_7": "FLT_SW5", "P3_0": "FLT_SW2", "P3_2": "FLT_SW3", "P3_3": "FLT_SW4",
         "P3_4": "FLT_SW7", "P3_6": "FLT_SW8", "P3_7": "FLT_SW6", "P4_5": "FLT_SW11",
-        "P4_0": "LOCK_SET_MCU", "P4_1": "UNLOCK_MCU", "P4_4": "MCU_INT_N",
+        "P4_2": "EOL_KEY", "P4_0": "LOCK_SET_MCU", "P4_1": "UNLOCK_MCU", "P4_4": "MCU_INT_N",
         "TEST": "MCU_TEST", "RSTN": "MCU_RSTN", "DVCC": "3V3_MCU", "DVSS": "GND"})
     ic(S_MSP, "U37", "MSP430FR2355", "MSP430FR2355TPTR", "TI", "LQFP-48 (PT) 7x7", "16-bit FRAM MCU, 12-bit ADC, 4 SAC op-amp/DAC, -40..105 C",
        msp, notes="EPS controller: ICD register block 0x00-0x88, MPPT set points, telemetry; no safety function depends on it",

@@ -589,34 +589,38 @@ mod tests {
         forget();
     }
 
-    /// The INA228s: their readings replace the controller's pack voltage and
-    /// current and the array current; an implausible pack voltage is not
-    /// used; a monitor that does not configure is tried again after
-    /// [`MONITOR_RETRY_MS`]; a failed IMON_JET read keeps the last value
-    #[test]
-    fn the_monitors_override_the_controller_and_are_retried() {
-        use core::sync::atomic::Ordering;
-        use sqso_fsw::ina228::{self, ARRAY, PACK, Reading};
-        let _serial = serial();
-        let put = |addr: u8, reg: u8, bytes: &[u8]| {
-            let mut b = [0u8; 4];
-            b[0] = reg;
-            if let Some(dst) = b.get_mut(1..=bytes.len()) {
-                dst.copy_from_slice(bytes);
-            }
-            // SAFETY: b holds 1 + bytes.len() bytes
-            unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, addr, b.as_ptr(), 1 + bytes.len()) }
-        };
-        let gauge = |m: ina228::Monitor, vbus_v: f64, current_a: f64| {
-            let (v, i, _) = m.encode(&Reading { vbus_v, current_a, ..Reading::default() });
-            assert_eq!(put(m.address, ina228::reg::VBUS, &v), rc::OK);
-            assert_eq!(put(m.address, ina228::reg::CURRENT, &i), rc::OK);
-        };
-        let read = || {
-            let _ = TELEMETRY.with(|t| t.read = false);
-            eps_telemetry().map(|t| (t.vbatt_v, t.ibatt_a, t.isolar_a, t.ijet_a))
-        };
-        let near = |a: f64, b: f64| (a - b).abs() < 1e-3;
+    /// Write registers of a simulated device on the EPS bus
+    fn put(addr: u8, reg: u8, bytes: &[u8]) -> i32 {
+        let mut b = [0u8; 4];
+        b[0] = reg;
+        if let Some(dst) = b.get_mut(1..=bytes.len()) {
+            dst.copy_from_slice(bytes);
+        }
+        // SAFETY: b holds 1 + bytes.len() bytes
+        unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, addr, b.as_ptr(), 1 + bytes.len()) }
+    }
+
+    /// An INA228's bus voltage and current
+    fn gauge(m: sqso_fsw::ina228::Monitor, vbus_v: f64, current_a: f64) {
+        use sqso_fsw::ina228::{Reading, reg};
+        let (v, i, _) = m.encode(&Reading { vbus_v, current_a, ..Reading::default() });
+        assert_eq!(put(m.address, reg::VBUS, &v), rc::OK);
+        assert_eq!(put(m.address, reg::CURRENT, &i), rc::OK);
+    }
+
+    /// The telemetry read afresh: pack voltage, pack current, array current, Jetson current
+    fn read_measured() -> Option<(f64, f64, f64, f64)> {
+        let _ = TELEMETRY.with(|t| t.read = false);
+        eps_telemetry().map(|t| (t.vbatt_v, t.ibatt_a, t.isolar_a, t.ijet_a))
+    }
+
+    fn near(a: f64, b: f64) -> bool {
+        (a - b).abs() < 1e-3
+    }
+
+    /// The controller's block (15.0 V, 0.1 A, array 0.2 A), IMON_JET, the
+    /// monitors not configured
+    fn monitors_setup() {
         assert_eq!(crate::hal_sim::hal_i2c_init(EPS_I2C_BUS, 100_000), rc::OK);
         let mut block = [0u8; eps_telemetry::BLOCK_LEN];
         let controller = Telemetry { vbatt_v: 15.0, ibatt_a: 0.1, isolar_a: 0.2, ..Telemetry::default() };
@@ -628,9 +632,22 @@ mod tests {
             unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
         assert_eq!(put(eps_telemetry::ADDRESS, eps_telemetry::IMON_JET, &[0x40, 0x00]), rc::OK);
         let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None });
+    }
+
+    /// The INA228s: their readings replace the controller's pack voltage and
+    /// current and the array current; an implausible pack voltage is not
+    /// used; a monitor that does not configure is tried again after
+    /// [`MONITOR_RETRY_MS`]; a failed IMON_JET read keeps the last value
+    #[test]
+    fn the_monitors_override_the_controller_and_are_retried() {
+        use core::sync::atomic::Ordering;
+        use sqso_fsw::ina228::{self, ARRAY, PACK};
+        let _serial = serial();
+        monitors_setup();
         gauge(PACK, 14.2, -0.3);
         gauge(ARRAY, 14.2, 0.8);
 
+        let read = read_measured;
         let (v, i, a, jet) = read().unwrap_or((f64::NAN, f64::NAN, f64::NAN, f64::NAN));
         assert!(near(v, 14.2), "the INA228s' readings: {v} {i} {a}");
         assert!(near(i, -0.3), "the INA228s' readings: {v} {i} {a}");

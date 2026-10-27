@@ -1,7 +1,7 @@
 # Attitude Determination and Control Subsystem (ADCS) Design Document
 
 **Document Number**: SMART-QSO-ADCS-001
-**Version**: 1.5
+**Version**: 1.6
 **Date**: 2026-10-27
 **Status**: Preliminary Design
 
@@ -702,41 +702,49 @@ normal) and 4.51 W instead of 4.64 W: the flight software keeps +Y and lets the 
 field and the stronger damping acts on the error. The software therefore uses 1·10⁻⁴ when there is no gyro
 (`NUTATION_GAIN_NO_GYRO`): mean 17°, 47 % within 15°, 4.42 W, as before.
 
-*Robustness at the flight gains (8°/s, 3·10⁻⁴; replaces BUILD_VS_BUY §6.4 at 6°/s):*
+*Robustness at the flight gains (8°/s, 3·10⁻⁴; replaces BUILD_VS_BUY §6.4 at 6°/s).* Re-run on 2026-10-27 (flight
+software round 3, Version 1.6) with the final CAD tensors (MECHANICAL_DESIGN B §5, MASS_BUDGET v3.1 §6.1 and §6.5: CBE
+1,513.9 g, MEV 1,747.8 g, the C-13 ballast as re-placed), the flight software's `INERTIA` and `Inertia::DEPLOYED`
+their mean, the default plant that mean with its products, and the round-3 flight software (the coil drive of
+SQSO-OBC-BRD-001 §10 for the coil power). The earlier version of this table (mean 4.0°, coils 29 mW for the M-G370)
+predates the CAD tensor; the simulation of 2026-10-27 before round 3 already gave 1.8° and 5 mW, so the change is the
+plant, not the round-3 software. The sweep above is not re-run:
 
 | Case | Not detumbled | Slowest capture | Mean | Worst p95 | Within 15° | Worst eclipse exit | Generation mean / worst trial | Coils |
 |------|---------------|-----------------|------|-----------|------------|--------------------|-------------------------------|-------|
-| M-G370PDT0 | 0 | 1.2 h | 4.0° | 10.3° | 99.6 % | 33° | 4.64 / 4.48 W | 29 mW |
-| BMI088, calibrated (0.1°/s) | 0 | 1.7 h | 4.0° | 10.2° | 99.6 % | 34° | 4.64 / 4.48 W | 29 mW |
-| BMI088, bias 0.2°/s | 0 | 2.4 h | 4.5° | 15.0° | 99.5 % | 36° | 4.64 / 4.47 W | 29 mW |
-| BMI088, bias 0.3°/s | 0 (3 timeouts) | 14.2 h | 9.0° | 160° | 94.5 % | 156° | 4.54 / 2.77 W | 28 mW |
-| BMI088, bias 0.5°/s | 0 (12 timeouts) | 41.9 h | 30° | 165° | 70 % | 172° | 4.08 / 2.52 W | 23 mW |
-| BMI088 uncalibrated (1°/s) | 2 (30 timeouts) | — | 69° | 165° | 24 % | 178° | 3.24 / 2.35 W | 10 mW |
-| No gyro (magnetometer rate, k_n 1·10⁻⁴) | 0 | 1.2 h | 17° | 47° | 47 % | 48° | 4.42 / 4.12 W | 18 mW |
-| Tip-off σ 3.33°/s (dispenser) | 0 | 1.0 h | 4.1° | 10.3° | 99.6 % | 33° | 4.64 / 4.48 W | 29 mW |
-| Tip-off σ 10°/s, up to 30°/s | 0 | 1.8 h | 4.1° | 10.6° | 99.6 % | 34° | 4.64 / 4.49 W | 29 mW |
-| Tip-off σ 30°/s, up to 50°/s | 0 | 2.1 h | 4.1° | 10.3° | 99.6 % | 33° | 4.64 / 4.49 W | 29 mW |
-| Residual dipole 10 mA·m² | 0 | 3.2 h | 6.1° | 20.6° | 97.3 % | 51° | 4.62 / 4.46 W | 29 mW |
-| Residual dipole 20 mA·m² | 0 (4 timeouts) | 10.2 h | 10.5° | 45° | 78 % | 69° | 4.56 / 4.20 W | 29 mW |
-| Residual dipole 50 mA·m² | 0 (21 timeouts) | 32.6 h | 36° | 170° | 33 % | 166° | 3.96 / 2.59 W | 31 mW |
-| Magnetometer 200 nT, sun sensors 10° | 0 | 1.2 h | 4.1° | 9.8° | 99.6 % | 35° | 4.64 / 4.49 W | 29 mW |
-| Iyy/Izz 1.000 | 0 | 1.2 h | 6.9° | 70° | 93 % | 93° | 4.58 / 4.37 W | 32 mW |
-| Iyy/Izz 1.050 | 0 | 1.3 h | 3.8° | 9.2° | 99.8 % | 25° | 4.64 / 4.49 W | 27 mW |
-| MASS_BUDGET CBE tensor | 0 | 1.6 h | 4.0° | 9.9° | 99.8 % | 31° | 4.64 / 4.49 W | 27 mW |
-| MASS_BUDGET MEV tensor | 0 | 1.2 h | 4.0° | 10.0° | 100 % | 31° | 4.64 / 4.49 W | 29 mW |
-| Coupling 0 / 3·10⁻⁴ T per A·m² | 0 | 1.2 h | 4.0° | 10.3° | 99.6 % | 32° | 4.64 / 4.48 W | 29 mW |
-| Coils on through the sample, software unaware (gyro) | 0 | 1.2 h | 4.2° | 11.3° | 99.6 % | 35° | 4.64 / 4.48 W | 29 mW |
-| Same, no gyro | 0 (27 timeouts) | 5.1 h | 72° | 163° | 9 % | 177° | 3.08 / 2.31 W | 126 mW |
+| M-G370PDT0 | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
+| BMI088, calibrated (0.1°/s) | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 10° | 4.65 / 4.50 W | 7 mW |
+| BMI088, bias 0.2°/s | 0 | 1.3 h | 2.5° | 9.8° | 100 % | 10° | 4.65 / 4.50 W | 10 mW |
+| BMI088, bias 0.3°/s | 0 (1 timeouts) | 2.9 h | 5.4° | 148° | 97.5 % | 151° | 4.59 / 2.52 W | 14 mW |
+| BMI088, bias 0.5°/s | 0 (15 timeouts) | 21.4 h | 29° | 166° | 72.6 % | 169° | 4.12 / 2.52 W | 12 mW |
+| BMI088 uncalibrated (1°/s) | 1 (31 timeouts) | 1.2 h | 72° | 166° | 23.9 % | 176° | 3.19 / 2.49 W | 4 mW |
+| No gyro (magnetometer rate, k_n 1·10⁻⁴) | 0 | 1.2 h | 20° | 56° | 40.9 % | 32° | 4.33 / 3.86 W | 11 mW |
+| Tip-off σ 3.33°/s (dispenser) | 0 | 1.0 h | 1.8° | 7.3° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
+| Tip-off σ 10°/s, up to 30°/s | 0 | 1.5 h | 1.8° | 7.3° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
+| Tip-off σ 30°/s, up to 50°/s | 0 | 1.7 h | 1.8° | 7.3° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
+| Residual dipole 10 mA·m² | 0 | 4.0 h | 4.8° | 21° | 98.0 % | 29° | 4.63 / 4.46 W | 7 mW |
+| Residual dipole 20 mA·m² | 0 (3 timeouts) | 10.2 h | 9.6° | 45° | 80.8 % | 58° | 4.57 / 4.21 W | 10 mW |
+| Residual dipole 50 mA·m² | 0 (25 timeouts) | 32.5 h | 38° | 170° | 33.0 % | 164° | 3.95 / 2.62 W | 19 mW |
+| Magnetometer 200 nT, sun sensors 10° | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 10° | 4.65 / 4.50 W | 8 mW |
+| Iyy/Izz 1.000 | 0 | 1.2 h | 24° | 163° | 76.2 % | 178° | 4.32 / 3.64 W | 9 mW |
+| Iyy/Izz 1.005 | 0 | 1.2 h | 2.0° | 7.8° | 99.9 % | 30° | 4.65 / 4.49 W | 7 mW |
+| Iyy/Izz 1.020 | 0 | 1.3 h | 1.9° | 7.4° | 100 % | 10° | 4.65 / 4.50 W | 7 mW |
+| Iyy/Izz 1.050 | 0 | 1.2 h | 1.8° | 7.2° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
+| **CAD tensor, CBE (1,513.9 g)** | 0 | 1.2 h | 1.8° | 7.1° | 100 % | 11° | 4.65 / 4.50 W | 6 mW |
+| **CAD tensor, MEV (1,747.8 g)** | 0 | 1.1 h | 1.8° | 6.7° | 100 % | 8° | 4.65 / 4.50 W | 7 mW |
+| Coupling 0 / 3·10⁻⁴ T per A·m² | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
+| Coils on through the sample, software unaware (gyro) | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 10° | 4.65 / 4.50 W | 6 mW |
+| Same, no gyro | 0 (27 timeouts) | 5.1 h | 68° | 167° | 11.5 % | 174° | 3.15 / 2.41 W | 126 mW |
 
 *One wing (STR-27).* Generation is the measure; with one wing the +Y angle and the generation disagree because the
 remaining wing is off the centre line:
 
 | Deployed | Preset | Mean (+Y) | Within 15° | Generation mean / worst | Rate across the axis | Coils |
 |----------|--------|-----------|------------|-------------------------|----------------------|-------|
-| W1 only | 0 (+Y) | 10.2° | 89 % | 3.09 / 2.99 W | 1.82°/s | 62 mW |
-| W1 only | **1** | 12.9° | 93 % | **3.23 / 3.11 W** | 0.15°/s | 5 mW |
-| W2 only | 0 (+Y) | 6.4° | 99.5 % | 3.12 / 3.02 W | 1.68°/s | 47 mW |
-| W2 only | **2** | 13.3° | 86 % | **3.17 / 3.04 W** | 0.16°/s | 5 mW |
+| W1 only | 0 (+Y) | 10° | 89.6 % | 3.09 / 2.99 W | 1.81°/s | 62 mW |
+| W1 only | **1** | 13° | 93.2 % | 3.23 / 3.11 W | 0.15°/s | 5 mW |
+| W2 only | 0 (+Y) | 6.3° | 99.5 % | 3.12 / 3.02 W | 1.67°/s | 47 mW |
+| W2 only | **2** | 13° | 86.1 % | 3.17 / 3.04 W | 0.16°/s | 5 mW |
 | None | 0 (+Y) | 2.7° | 100 % | 1.62 / 1.57 W | 0.71°/s | 16 mW |
 | None | 3 | 6.3° | 100 % | 1.61 / 1.56 W | 0.15°/s | 4 mW |
 
@@ -753,8 +761,9 @@ default is as good. The ground should send the matching preset after a confirmed
 - CR0002 remanence and hysteresis are not modelled; the rod's recoil after the burst may need a settle longer than
   50 ms. Measure on the EM; the window is a constant (`MAG_SETTLE_MS`).
 - The baseline (BASELINE §8) states 6°/s; the flight constant is now 8°/s. The chair updates the baseline.
-- The magnetometer, the sun-sensor ADC channels, the gyro SPI driver and the coil PWM driver do not exist in the
-  firmware (RID AV-03); the Monte Carlo runs the flight law against datasheet sensor models.
+- The magnetometer, sun-sensor ADC, gyro and coil drivers are built against the data sheets and tested with
+  register-level mocks (flight software round 3, SQSO-ICD-004 1.3 §12.1); none has run on hardware (RID AV-03). The
+  Monte Carlo runs the flight law against datasheet sensor models.
 
 ---
 
@@ -817,3 +826,4 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 | 1.3 | 2026-10-26 | SMART-QSO Team | From the mission simulation: detumble within 3 orbits (F001, P001, §5.3); spin-stabilized sun pointing of +Y (F002, §4.2.1, §5.1, App. A) |
 | 1.4 | 2026-10-26 | SMART-QSO Team | From the ADCS Monte Carlo (BUILD_VS_BUY §6): B-dot gain 10⁴ (§4.1); spin hold, 6°/s spin, nutation gain 10⁻⁴ and the capture criterion (§4.2.1, §5) |
 | 1.5 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §11 new: magnetometer window and coil burst, layout B full inertia tensor, geometry presets by telecommand, Monte Carlo re-run (8°/s, k_n 3·10⁻⁴ with gyro, 1·10⁻⁴ without; one-wing cases); §4.2.1 law with the full tensor; §3.2.1 magnetometer not selected; §3.3.1 CR0002 rods; §6.1 L293D unusable at 3.3 V |
+| 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §11.4 robustness and one-wing tables re-run with the final CAD tensors (CBE 1,513.9 g, MEV 1,747.8 g; the flight constant `INERTIA` their mean, (3.0565, 4.4675, 4.2525) × 10⁻³ kg·m² with Ixy +13.2, Ixz −12.9, Iyz +0.05 × 10⁻⁶): the plant rows 1.8° mean, 100 % within 15°, capture within 1.2 h; Iyy/Izz 1.000 now 76 % within 15° (the products of the final CAD); §11.5 the drivers exist (built against the data sheets, not run on hardware) |

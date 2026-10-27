@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-006
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 **Reference:** JPL D-60411 (Power of Ten), NPR 7150.2
 
@@ -37,24 +37,26 @@ embassy-stm32 generates, feature `memory-x`), with the cortex-m-rt `link.x`:
 |--------|-------|------|-------|
 | Flash | 0x08000000 | 2 MB (dual bank) | Vector table, code, constants, `.data` initial values |
 | SRAM1 | 0x20000000 | 192 KB | Not linked. The NMI's cause record (12 B at 0x2002FFF0, §10.3), which survives a reset |
-| SRAM2 | 0x20030000 | 64 KB, parity | `.data`, `.bss` and `.uninit`: every static, the executor's task and the flight software's state (40,668 B on 2026-10-27). The link fails if they outgrow SRAM2 (`ASSERT` in `memory.x`) |
-| SRAM3 | 0x20040000 | 384 KB | The 8 KB stack, which grows down from 0x200A0000; the rest unused |
+| SRAM2 | 0x20030000 | 64 KB, parity | `.data`, `.bss` and `.uninit` at its start: every static, the executor's task and the flight software's state (41,788 B on 2026-10-27, round 3); the 8 KB stack at its top, growing down from 0x20040000 (since Revision F, RID AV-13). The link fails if the statics, the 32-byte guard and the stack outgrow SRAM2 (`ASSERT` in `memory.x`) |
+| SRAM3 | 0x20040000 | 384 KB | Not used |
 | FRAM (FM25V20A, SPI1) | external | 256 KB | Non-volatile records (§8) |
 
-The linked RAM region is SRAM2 and SRAM3 (0x20030000, 448 KB), so the initial SP stays 0x200A0000. Revision A split
+The linked RAM region is SRAM2 alone (0x20030000, 64 KB), so the initial SP is 0x20040000 (it was 0x200A0000 with
+SRAM2 and SRAM3 linked; the CI image check pins the new value). Revision A split
 SRAM into regions for "critical data (TMR)" and "buffers, logs", and listed a backup SRAM; nothing uses backup SRAM.
 
 ### 3.2 Memory Budget
 
-Measured from the release image (2026-10-27, `arm-none-eabi-size`; CI job STM32L4 Cross-Compile (library) prints the same):
+Measured from the release image (2026-10-27, flight software round 3, `arm-none-eabi-size`; CI job STM32L4 Cross-Compile
+(library) prints the same):
 
 | Category | Used | Available | Margin |
 |----------|------|-----------|--------|
-| Code and constants (text) | 160,004 B | 2 MB flash (SRS-C004: 256 KB) | 92 % (38 % of SRS-C004) |
-| Initialized data (data) | 23,768 B | (in SRAM2; initial values in flash) | — |
-| Zeroed data (bss) | 16,900 B | (in SRAM2) | — |
-| Static RAM (data + bss) | 40,668 B | 64 KB SRAM2 | 38 % |
-| Stack | Worst case 6,004 B (static analysis, §6.2) | 8 KB budget below 0x200A0000 (SRS-C003) | 27 % |
+| Code and constants (text) | 190,532 B | 2 MB flash (SRS-C004: 256 KB) | 91 % (27 % of SRS-C004) |
+| Initialized data (data) | 24,776 B | (in SRAM2; initial values in flash) | — |
+| Zeroed data (bss) | 17,012 B | (in SRAM2) | — |
+| Static RAM (data + bss) | 41,788 B | 64 KB SRAM2, less the 8 KB stack and its 32-byte guard (57,312 B) | 27 % (15,524 B free between the statics and the guard) |
+| Stack | Worst case 6,236 B (static analysis, §6.2) | 8 KB budget below 0x20040000, in SRAM2 (SRS-C003) | 24 % |
 | Heap | None | — | — |
 
 ---
@@ -119,11 +121,11 @@ SRS-C003: the stack shall not exceed 8 KB.
 
 ### 6.1 Stack Allocation
 
-There is one stack (cortex-m-rt), from the initial SP 0x200A0000 downward. The executor runs one task, and the
-interrupt handlers use the same stack. The Embassy task's state (the async main function's locals held across an
-`await`, including the executive's state) is static, in `.bss`, not on the stack. The budget is the 8 KB below the
-initial SP, 0x2009E000 to 0x2009FFFF; the static data end at `_stack_end` (0x20008DA8 on 2026-10-25), about 600 KB
-lower.
+There is one stack (cortex-m-rt), from the initial SP 0x20040000 (the top of SRAM2) downward. The executor runs one
+task, and the interrupt handlers use the same stack. The Embassy task's state (the async main function's locals held
+across an `await`, including the executive's state) is static, in `.bss`, not on the stack. The budget is the 8 KB
+below the initial SP, 0x2003E000 to 0x2003FFFF; the static data end at `_stack_end` (0x2003A33C on 2026-10-27), 15,524 B
+below the guard.
 
 ### 6.2 Worst Case (static analysis)
 
@@ -141,6 +143,7 @@ analysis counts it.
 | 2026-10-25, downlink (CR-2026-005) | 5,004 B (thread 3,480 B, handlers 1,524 B) | 61.1 % | The same path; `beacon_transmit` also holds the frame's copy for the TNC (696 B frame) |
 | 2026-10-27, CDR flight-software changes | 5,444 B (thread 3,920 B, handlers 1,524 B) | 66.5 % | `Executive::step` → `run_housekeeping` (1,144 B: the HK1 text, its AX.25 frame and the housekeeping record) → a sensor read → a panic in the fault path, nested once |
 | 2026-10-27, CDR flight software round 2 | 6,004 B (thread 4,448 B, handlers 1,556 B) | 73.3 % | The same path (`run_housekeeping` 968 B, `housekeeping` 688 B, `sensors_get_by_id` 656 B, then the fault path); the handlers add the NMI (148 B, §10.3) at its own priority level |
+| 2026-10-27, CDR flight software round 3 | 6,236 B | 76.1 % | The same path (`housekeeping` 712 B with the HK2 counters); the stack now in SRAM2 |
 
 The first run gave 12,820 B. The code changed to bring it down: core's exact float formatting (a 2 KB frame) replaced
 by `sqso_fsw::fixed`; the fault path's console line built without `core::fmt`; large locals moved out of the async main
@@ -150,7 +153,7 @@ only the first panic.
 ### 6.3 Stack Protection
 
 At boot (`software/rust/firmware/src/stack.rs`) an MPU region with no access covers the 32 bytes below the budget
-(0x2009DFE0). A stack that outgrows 8 KB faults there: MemManage escalates to HardFault, whose handler spins until the
+(0x2003DFE0). A stack that outgrows 8 KB faults there: MemManage escalates to HardFault, whose handler spins until the
 independent watchdog resets the processor. Without it the stack would run on toward the static data.
 
 ### 6.4 Stack Monitoring
@@ -200,8 +203,9 @@ the addresses of `hardware/obc/STORAGE_DESIGN.md` §3.3 (`software/rust/firmware
 | HK_SUMMARY | 0x20700 | 90,112 B | Five-minute housekeeping records: ring of 2,048 (7.1 days), 44 B each with its CRC-32 |
 | HK_INDEX | 0x36700 | 256 B | The event-window table; two-slot record |
 | EOL | 0x36800 | 128 B | The passivation record; two-slot record (`passivation.h`) |
+| ADCS_CAL | 0x36880 | 256 B | The gyro alignment matrix (offset 0, magic `GYAL`) and the magnetometer bias per polarity state (offset 128, magic `MGBS`); two-slot records, CRC-32 (SRS-F142, SRS-F144) |
 
-The last five are in the extended storage of STORAGE_DESIGN §3.3 (0x20000 to 0x3FFFF) and its telemetry buffer;
+The last six are in the extended storage of STORAGE_DESIGN §3.3 (0x20000 to 0x3FFFF) and its telemetry buffer;
 `software/rust/firmware/src/fram.rs` checks at compile time that no two regions overlap and that each fits the part.
 STORAGE_DESIGN §3.3 does not list them yet (for its owner).
 
@@ -256,14 +260,14 @@ static is read at least once a minute by the main loop, which is not proven for 
 
 `software/rust/firmware/src/parity.rs` (SRS-F132):
 
-- **Placement.** Every static (§3.1) is in SRAM2, the STM32L4R5's only RAM with parity (one bit per byte, checked on
+- **Placement.** Every static and the stack (§3.1) are in SRAM2, the STM32L4R5's only RAM with parity (one bit per byte, checked on
   every read).
 - **Erase.** `__pre_init`, before cortex-m-rt initializes RAM, erases SRAM2 by hardware (SYSCFG_SCSR.SRAM2ER after the
   SYSCFG_SKR key), so no byte is read with the random parity of power-on. It uses registers only (no stack, no static).
 - **Enable.** Parity is on when the option bit `SRAM2_PE` is 0. **The flight software never writes option bytes**
   (an interrupted option-byte write can leave the part unbootable): `SRAM2_PE` = 0 is set when the board is programmed,
-  with the other option bytes, and the board programming procedure must say so (with STM32CubeProgrammer:
-  `-ob SRAM2_PE=0`). Every boot that finds it off logs "SRAM2 parity off (option bit SRAM2_PE)".
+  with the other option bytes, by the board programming procedure (`docs/development/RELEASE_PROCEDURE.md` §5.3.1,
+  STM32CubeProgrammer `-ob SRAM2_PE=0`); the boot console and HK2 `PE` report the state (SRS-F154). Every boot that finds it off logs "SRAM2 parity off (option bit SRAM2_PE)".
 - **NMI.** An SRAM2 parity error (SYSCFG_CFGR2.SPF), a flash double-bit ECC error (FLASH_ECCR.ECCD, with its address)
   or a clock-security failure raises the NMI. The handler records the cause in SRAM1 (tag, cause, complement, address:
   outside the linked RAM, so neither erased nor zeroed at boot) and resets at once (`SCB::sys_reset`), without the 30 s
@@ -286,15 +290,14 @@ a disagreement toward the safe side (SRS-F133):
 
 ### 10.5 Not Mitigated
 
-- **SRAM3 and the stack.** The 8 KB stack is in SRAM3, which has no parity: an upset in a live frame goes undetected
-  unless it hangs a stage (the watchdog) or corrupts a value a range check rejects. The stack holds a pass's temporaries,
-  most of them rewritten every 20 ms. Moving the stack into SRAM2 as well (40.7 + 8 KB fit in 64 KB) changes the initial
-  SP that the CI image check pins (0x200A0000, `.github/workflows/flight-software-ci.yml`): a change for the CI's owner.
+- **The stack (closed in Revision F, RID AV-13).** Until Revision E the 8 KB stack was in SRAM3, without parity. It is
+  now at the top of SRAM2 (initial SP 0x20040000, pinned by `.github/workflows/flight-software-ci.yml`): every live
+  byte of RAM has parity once `SRAM2_PE` is set (`docs/development/RELEASE_PROCEDURE.md` §5.3.1).
 - **Detection only.** Parity detects a single flipped bit per byte, not two; it corrects nothing. The response is a
   reset, which loses the RAM state that is not in FRAM (the beacon schedule, the downlink queue, the counters since
   boot). A byte is checked only when it is read: an upset in a static read rarely is found late.
 - **Between two checks.** A RAM copy of a persisted record that is wrong but has valid parity (a software fault, or an
-  upset in SRAM3 during a copy) lasts up to 60 s before §10.4 finds it.
+  upset during a copy) lasts up to 60 s before §10.4 finds it.
 - **Registers.** The core's registers, the peripherals' registers (GPIO, timers, DMA) and the FPU state have no
   protection; the watchdog and the safe default levels at reset are the mitigation.
 - **Flash.** A double-bit ECC error in the code that the reset path itself executes resets again: a boot loop that only
@@ -334,3 +337,4 @@ a disagreement toward the safe side (SRS-F133):
 | C | 2026-10-25 | §6 for SRS-C003: the worst case by static analysis (4,892 B of 8 KB, a CI gate), the MPU stack guard and the painted budget, now implemented | SMART-QSO Team |
 | D | 2026-10-27 | Worst-case stack 5,444 B of 8 KB (66.5 %) after the CDR flight-software changes; the housekeeping stage is the deepest frame | SMART-QSO Team (CDR avionics review) |
 | E | 2026-10-27 | §3.1 the firmware's own `memory.x`: statics in SRAM2 (parity), the stack in SRAM3, SRAM1 unlinked; §3.2 budget of the CDR round-2 image; §6.2 worst case 6,004 B; §8.1 regions HK_DETAIL, OPS, HK_SUMMARY, HK_INDEX and EOL; §10 SRAM2 parity and the NMI handler, the periodic check of the persisted state and what is not mitigated (RID AV-07) | SMART-QSO Team (CDR flight software, round 2) |
+| F | 2026-10-27 | §3.1 the stack moved into SRAM2 (initial SP 0x20040000; RID AV-13), SRAM3 unused; §3.2 budget of the round-3 image; §6 worst case 6,236 B, the budget and guard addresses; §8.1 region ADCS_CAL; §10.3 the programming procedure sets `SRAM2_PE`; §10.5 the stack no longer unprotected | SMART-QSO Team (CDR flight software, round 3) |

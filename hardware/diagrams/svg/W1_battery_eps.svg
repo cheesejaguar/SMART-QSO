@@ -221,97 +221,97 @@
 <!-- W1&#45;28 -->
 <g id="node6" class="node">
 <title>W1&#45;28</title>
-<polygon fill="#ffffff" stroke="black" points="1879.5,-257 1552.5,-257 1552.5,0 1879.5,0 1879.5,-257"/>
-<polygon fill="none" stroke="black" points="1553,-233.5 1553,-256.5 1880,-256.5 1880,-233.5 1553,-233.5"/>
+<polygon fill="#ffffff" stroke="black" points="1987.5,-257 1444.5,-257 1444.5,0 1987.5,0 1987.5,-257"/>
+<polygon fill="none" stroke="black" points="1445,-233.5 1445,-256.5 1988,-256.5 1988,-233.5 1445,-233.5"/>
 <text text-anchor="start" x="1693.5" y="-241.3" font-family="Helvetica,sans-Serif" font-size="14.00">W1&#45;28</text>
-<polygon fill="none" stroke="black" points="1553,-210.5 1553,-233.5 1639,-233.5 1639,-210.5 1553,-210.5"/>
-<text text-anchor="start" x="1587" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">6x</text>
-<polygon fill="none" stroke="black" points="1639,-210.5 1639,-233.5 1763,-233.5 1763,-210.5 1639,-210.5"/>
+<polygon fill="none" stroke="black" points="1445,-210.5 1445,-233.5 1603,-233.5 1603,-210.5 1445,-210.5"/>
+<text text-anchor="start" x="1515" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">6x</text>
+<polygon fill="none" stroke="black" points="1603,-210.5 1603,-233.5 1799,-233.5 1799,-210.5 1603,-210.5"/>
 <text text-anchor="start" x="1673" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">28 AWG</text>
-<polygon fill="none" stroke="black" points="1763,-210.5 1763,-233.5 1880,-233.5 1880,-210.5 1763,-210.5"/>
-<text text-anchor="start" x="1796.5" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">0.12 m</text>
-<text text-anchor="start" x="1613" y="-197.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
-<text text-anchor="start" x="1572.5" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:9:TAP0</text>
+<polygon fill="none" stroke="black" points="1799,-210.5 1799,-233.5 1988,-233.5 1988,-210.5 1799,-210.5"/>
+<text text-anchor="start" x="1868.5" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">0.12 m</text>
+<text text-anchor="start" x="1541" y="-197.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
+<text text-anchor="start" x="1500.5" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:9:TAP0</text>
 <text text-anchor="start" x="1694.5" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;1:BK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="1798.5" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:1:TAP0</text>
-<polygon fill="#000000" stroke="transparent" points="1553,-170.5 1553,-172.5 1880,-172.5 1880,-170.5 1553,-170.5"/>
-<polygon fill="#000000" stroke="transparent" points="1553,-168.5 1553,-170.5 1880,-170.5 1880,-168.5 1553,-168.5"/>
-<polygon fill="#000000" stroke="transparent" points="1553,-166.5 1553,-168.5 1880,-168.5 1880,-166.5 1553,-166.5"/>
-<text text-anchor="start" x="1568" y="-153.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:10:TAP1</text>
+<text text-anchor="start" x="1870.5" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:1:TAP0</text>
+<polygon fill="#000000" stroke="transparent" points="1445,-170.5 1445,-172.5 1988,-172.5 1988,-170.5 1445,-170.5"/>
+<polygon fill="#000000" stroke="transparent" points="1445,-168.5 1445,-170.5 1988,-170.5 1988,-168.5 1445,-168.5"/>
+<polygon fill="#000000" stroke="transparent" points="1445,-166.5 1445,-168.5 1988,-168.5 1988,-166.5 1445,-166.5"/>
+<text text-anchor="start" x="1496" y="-153.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:10:TAP1</text>
 <text text-anchor="start" x="1693.5" y="-153.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;2:BN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="1798.5" y="-153.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:2:TAP1</text>
-<polygon fill="#000000" stroke="transparent" points="1553,-145.5 1553,-147.5 1880,-147.5 1880,-145.5 1553,-145.5"/>
-<polygon fill="#895956" stroke="transparent" points="1553,-143.5 1553,-145.5 1880,-145.5 1880,-143.5 1553,-143.5"/>
-<polygon fill="#000000" stroke="transparent" points="1553,-141.5 1553,-143.5 1880,-143.5 1880,-141.5 1553,-141.5"/>
-<text text-anchor="start" x="1568" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:11:TAP2</text>
+<text text-anchor="start" x="1870.5" y="-153.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:2:TAP1</text>
+<polygon fill="#000000" stroke="transparent" points="1445,-145.5 1445,-147.5 1988,-147.5 1988,-145.5 1445,-145.5"/>
+<polygon fill="#895956" stroke="transparent" points="1445,-143.5 1445,-145.5 1988,-145.5 1988,-143.5 1445,-143.5"/>
+<polygon fill="#000000" stroke="transparent" points="1445,-141.5 1445,-143.5 1988,-143.5 1988,-141.5 1445,-141.5"/>
+<text text-anchor="start" x="1496" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:11:TAP2</text>
 <text text-anchor="start" x="1693.5" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;3:RD &#160;&#160;&#160;</text>
-<text text-anchor="start" x="1798.5" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:3:TAP2</text>
-<polygon fill="#000000" stroke="transparent" points="1553,-120.5 1553,-122.5 1880,-122.5 1880,-120.5 1553,-120.5"/>
-<polygon fill="#ff0000" stroke="transparent" points="1553,-118.5 1553,-120.5 1880,-120.5 1880,-118.5 1553,-118.5"/>
-<polygon fill="#000000" stroke="transparent" points="1553,-116.5 1553,-118.5 1880,-118.5 1880,-116.5 1553,-116.5"/>
-<text text-anchor="start" x="1568" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:12:TAP3</text>
+<text text-anchor="start" x="1870.5" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:3:TAP2</text>
+<polygon fill="#000000" stroke="transparent" points="1445,-120.5 1445,-122.5 1988,-122.5 1988,-120.5 1445,-120.5"/>
+<polygon fill="#ff0000" stroke="transparent" points="1445,-118.5 1445,-120.5 1988,-120.5 1988,-118.5 1445,-118.5"/>
+<polygon fill="#000000" stroke="transparent" points="1445,-116.5 1445,-118.5 1988,-118.5 1988,-116.5 1445,-116.5"/>
+<text text-anchor="start" x="1496" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:12:TAP3</text>
 <text text-anchor="start" x="1693" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;4:OG &#160;&#160;&#160;</text>
-<text text-anchor="start" x="1798.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:4:TAP3</text>
-<polygon fill="#000000" stroke="transparent" points="1553,-95.5 1553,-97.5 1880,-97.5 1880,-95.5 1553,-95.5"/>
-<polygon fill="#ff8000" stroke="transparent" points="1553,-93.5 1553,-95.5 1880,-95.5 1880,-93.5 1553,-93.5"/>
-<polygon fill="#000000" stroke="transparent" points="1553,-91.5 1553,-93.5 1880,-93.5 1880,-91.5 1553,-91.5"/>
-<text text-anchor="start" x="1568" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:13:TAP4</text>
+<text text-anchor="start" x="1870.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:4:TAP3</text>
+<polygon fill="#000000" stroke="transparent" points="1445,-95.5 1445,-97.5 1988,-97.5 1988,-95.5 1445,-95.5"/>
+<polygon fill="#ff8000" stroke="transparent" points="1445,-93.5 1445,-95.5 1988,-95.5 1988,-93.5 1445,-93.5"/>
+<polygon fill="#000000" stroke="transparent" points="1445,-91.5 1445,-93.5 1988,-93.5 1988,-91.5 1445,-91.5"/>
+<text text-anchor="start" x="1496" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:13:TAP4</text>
 <text text-anchor="start" x="1695" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;5:YE &#160;&#160;&#160;</text>
-<text text-anchor="start" x="1798.5" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:5:TAP4</text>
-<polygon fill="#000000" stroke="transparent" points="1553,-70.5 1553,-72.5 1880,-72.5 1880,-70.5 1553,-70.5"/>
-<polygon fill="#ffff00" stroke="transparent" points="1553,-68.5 1553,-70.5 1880,-70.5 1880,-68.5 1553,-68.5"/>
-<polygon fill="#000000" stroke="transparent" points="1553,-66.5 1553,-68.5 1880,-68.5 1880,-66.5 1553,-66.5"/>
-<text text-anchor="start" x="1567" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:14:NTC2</text>
+<text text-anchor="start" x="1870.5" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:5:TAP4</text>
+<polygon fill="#000000" stroke="transparent" points="1445,-70.5 1445,-72.5 1988,-72.5 1988,-70.5 1445,-70.5"/>
+<polygon fill="#ffff00" stroke="transparent" points="1445,-68.5 1445,-70.5 1988,-70.5 1988,-68.5 1445,-68.5"/>
+<polygon fill="#000000" stroke="transparent" points="1445,-66.5 1445,-68.5 1988,-68.5 1988,-66.5 1445,-66.5"/>
+<text text-anchor="start" x="1495" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">BATT:14:NTC2</text>
 <text text-anchor="start" x="1691.5" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;6:WH &#160;&#160;&#160;</text>
-<text text-anchor="start" x="1797.5" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:6:NTC2</text>
-<polygon fill="#000000" stroke="transparent" points="1553,-45.5 1553,-47.5 1880,-47.5 1880,-45.5 1553,-45.5"/>
-<polygon fill="#ffffff" stroke="transparent" points="1553,-43.5 1553,-45.5 1880,-45.5 1880,-43.5 1553,-43.5"/>
-<polygon fill="#000000" stroke="transparent" points="1553,-41.5 1553,-43.5 1880,-43.5 1880,-41.5 1553,-41.5"/>
-<text text-anchor="start" x="1613" y="-28.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
-<polygon fill="none" stroke="black" points="1553,0.5 1553,-22.5 1880,-22.5 1880,0.5 1553,0.5"/>
-<text text-anchor="start" x="1557" y="-7.3" font-family="Helvetica,sans-Serif" font-size="14.00">M22759/33&#45;28; sense only (balancing 18 mA)</text>
+<text text-anchor="start" x="1869.5" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">J2:6:NTC2</text>
+<polygon fill="#000000" stroke="transparent" points="1445,-45.5 1445,-47.5 1988,-47.5 1988,-45.5 1445,-45.5"/>
+<polygon fill="#ffffff" stroke="transparent" points="1445,-43.5 1445,-45.5 1988,-45.5 1988,-43.5 1445,-43.5"/>
+<polygon fill="#000000" stroke="transparent" points="1445,-41.5 1445,-43.5 1988,-43.5 1988,-41.5 1445,-41.5"/>
+<text text-anchor="start" x="1541" y="-28.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
+<polygon fill="none" stroke="black" points="1445,0.5 1445,-22.5 1988,-22.5 1988,0.5 1445,0.5"/>
+<text text-anchor="start" x="1449" y="-7.3" font-family="Helvetica,sans-Serif" font-size="14.00">M22759/33&#45;28; sense only (balancing 18 mA); taps fused 0.75 A at the pack</text>
 </g>
 <!-- BATT&#45;&#45;W1&#45;28 -->
 <g id="edge17" class="edge">
 <title>BATT:e&#45;&#45;W1&#45;28:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-301.5C936.11,-302.37 950.01,-281.96 1015.59,-267.54 1251.78,-217.92 1308.34,-168 1552,-167.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-303.5C937.76,-303.5 951.66,-283.09 1016,-269.5 1253.1,-219.42 1309.67,-169.5 1552,-169.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-305.5C939.41,-304.63 953.31,-284.22 1016.41,-271.46 1254.43,-220.92 1310.99,-171 1552,-171.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-301.5C936.16,-302.3 950.38,-283.34 1015.54,-267.55 1204.58,-223.62 1247.07,-168.28 1444,-167.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-303.5C937.76,-303.5 951.98,-284.54 1016,-269.5 1206.17,-224.83 1248.65,-169.5 1444,-169.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-305.5C939.36,-304.7 953.58,-285.74 1016.46,-271.45 1207.76,-226.05 1250.24,-170.72 1444,-171.5"/>
 </g>
 <!-- BATT&#45;&#45;W1&#45;28 -->
 <g id="edge19" class="edge">
 <title>BATT:e&#45;&#45;W1&#45;28:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-278.5C1178.4,-279.65 1241.98,-143.65 1552,-142.5"/>
-<path fill="none" stroke="#895956" stroke-width="2" d="M872,-280.5C1180.21,-280.5 1243.79,-144.5 1552,-144.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-282.5C1182.02,-281.35 1245.6,-145.35 1552,-146.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-278.5C1131.43,-279.82 1180.81,-143.82 1444,-142.5"/>
+<path fill="none" stroke="#895956" stroke-width="2" d="M872,-280.5C1133.31,-280.5 1182.69,-144.5 1444,-144.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-282.5C1135.19,-281.18 1184.57,-145.18 1444,-146.5"/>
 </g>
 <!-- BATT&#45;&#45;W1&#45;28 -->
 <g id="edge21" class="edge">
 <title>BATT:e&#45;&#45;W1&#45;28:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-255.5C1178.56,-256.67 1241.8,-118.67 1552,-117.5"/>
-<path fill="none" stroke="#ff0000" stroke-width="2" d="M872,-257.5C1180.38,-257.5 1243.62,-119.5 1552,-119.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-259.5C1182.2,-258.33 1245.44,-120.33 1552,-121.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-255.5C1131.63,-256.83 1180.6,-118.83 1444,-117.5"/>
+<path fill="none" stroke="#ff0000" stroke-width="2" d="M872,-257.5C1133.52,-257.5 1182.48,-119.5 1444,-119.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-259.5C1135.4,-258.17 1184.37,-120.17 1444,-121.5"/>
 </g>
 <!-- BATT&#45;&#45;W1&#45;28 -->
 <g id="edge23" class="edge">
 <title>BATT:e&#45;&#45;W1&#45;28:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-232.5C1178.74,-233.68 1241.61,-93.68 1552,-92.5"/>
-<path fill="none" stroke="#ff8000" stroke-width="2" d="M872,-234.5C1180.56,-234.5 1243.44,-94.5 1552,-94.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-236.5C1182.39,-235.32 1245.26,-95.32 1552,-96.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-232.5C1131.84,-233.84 1180.38,-93.84 1444,-92.5"/>
+<path fill="none" stroke="#ff8000" stroke-width="2" d="M872,-234.5C1133.73,-234.5 1182.27,-94.5 1444,-94.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-236.5C1135.62,-235.16 1184.16,-95.16 1444,-96.5"/>
 </g>
 <!-- BATT&#45;&#45;W1&#45;28 -->
 <g id="edge25" class="edge">
 <title>BATT:e&#45;&#45;W1&#45;28:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-209.5C1178.91,-210.69 1241.43,-68.69 1552,-67.5"/>
-<path fill="none" stroke="#ffff00" stroke-width="2" d="M872,-211.5C1180.74,-211.5 1243.26,-69.5 1552,-69.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-213.5C1182.57,-212.31 1245.09,-70.31 1552,-71.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-209.5C1132.04,-210.86 1180.17,-68.86 1444,-67.5"/>
+<path fill="none" stroke="#ffff00" stroke-width="2" d="M872,-211.5C1133.94,-211.5 1182.06,-69.5 1444,-69.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-213.5C1135.83,-212.14 1183.96,-70.14 1444,-71.5"/>
 </g>
 <!-- BATT&#45;&#45;W1&#45;28 -->
 <g id="edge27" class="edge">
 <title>BATT:e&#45;&#45;W1&#45;28:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-186.5C1179.09,-187.71 1241.24,-43.71 1552,-42.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M872,-188.5C1180.92,-188.5 1243.08,-44.5 1552,-44.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M872,-190.5C1182.76,-189.29 1244.91,-45.29 1552,-46.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-186.5C1132.26,-187.87 1179.95,-43.87 1444,-42.5"/>
+<path fill="none" stroke="#ffffff" stroke-width="2" d="M872,-188.5C1134.15,-188.5 1181.85,-44.5 1444,-44.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M872,-190.5C1136.05,-189.13 1183.74,-45.13 1444,-46.5"/>
 </g>
 <!-- J1 -->
 <g id="node2" class="node">
@@ -458,44 +458,44 @@
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge18" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-167.5C2204.24,-167.5 2285.06,-163.5 2608.5,-163.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-169.5C2204.34,-169.5 2285.16,-165.5 2608.5,-165.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-171.5C2204.44,-171.5 2285.26,-167.5 2608.5,-167.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-167.5C2264.22,-167.5 2333.04,-163.5 2608.5,-163.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-169.5C2264.34,-169.5 2333.16,-165.5 2608.5,-165.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-171.5C2264.46,-171.5 2333.28,-167.5 2608.5,-167.5"/>
 </g>
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge20" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-142.5C2204.29,-142.5 2285.12,-140.5 2608.5,-140.5"/>
-<path fill="none" stroke="#895956" stroke-width="2" d="M1881,-144.5C2204.33,-144.5 2285.17,-142.5 2608.5,-142.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-146.5C2204.38,-146.5 2285.21,-144.5 2608.5,-144.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-142.5C2264.28,-142.5 2333.11,-140.5 2608.5,-140.5"/>
+<path fill="none" stroke="#895956" stroke-width="2" d="M1989,-144.5C2264.33,-144.5 2333.17,-142.5 2608.5,-142.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-146.5C2264.39,-146.5 2333.22,-144.5 2608.5,-144.5"/>
 </g>
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge22" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-117.5C2204.31,-117.5 2285.14,-116.5 2608.5,-116.5"/>
-<path fill="none" stroke="#ff0000" stroke-width="2" d="M1881,-119.5C2204.33,-119.5 2285.17,-118.5 2608.5,-118.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-121.5C2204.36,-121.5 2285.19,-120.5 2608.5,-120.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-117.5C2264.3,-117.5 2333.14,-116.5 2608.5,-116.5"/>
+<path fill="none" stroke="#ff0000" stroke-width="2" d="M1989,-119.5C2264.33,-119.5 2333.17,-118.5 2608.5,-118.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-121.5C2264.36,-121.5 2333.2,-120.5 2608.5,-120.5"/>
 </g>
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge24" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-92.5C2204.36,-92.5 2285.19,-93.5 2608.5,-93.5"/>
-<path fill="none" stroke="#ff8000" stroke-width="2" d="M1881,-94.5C2204.33,-94.5 2285.17,-95.5 2608.5,-95.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-96.5C2204.31,-96.5 2285.14,-97.5 2608.5,-97.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-92.5C2264.36,-92.5 2333.2,-93.5 2608.5,-93.5"/>
+<path fill="none" stroke="#ff8000" stroke-width="2" d="M1989,-94.5C2264.33,-94.5 2333.17,-95.5 2608.5,-95.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-96.5C2264.3,-96.5 2333.14,-97.5 2608.5,-97.5"/>
 </g>
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge26" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-67.5C2204.41,-67.5 2285.24,-70.5 2608.5,-70.5"/>
-<path fill="none" stroke="#ffff00" stroke-width="2" d="M1881,-69.5C2204.34,-69.5 2285.16,-72.5 2608.5,-72.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-71.5C2204.26,-71.5 2285.09,-74.5 2608.5,-74.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-67.5C2264.42,-67.5 2333.25,-70.5 2608.5,-70.5"/>
+<path fill="none" stroke="#ffff00" stroke-width="2" d="M1989,-69.5C2264.34,-69.5 2333.16,-72.5 2608.5,-72.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-71.5C2264.25,-71.5 2333.08,-74.5 2608.5,-74.5"/>
 </g>
 <!-- W1&#45;28&#45;&#45;J2 -->
 <g id="edge28" class="edge">
 <title>W1&#45;28:e&#45;&#45;J2:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-42.5C2204.46,-42.5 2285.28,-47.5 2608.5,-47.5"/>
-<path fill="none" stroke="#ffffff" stroke-width="2" d="M1881,-44.5C2204.34,-44.5 2285.16,-49.5 2608.5,-49.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M1881,-46.5C2204.22,-46.5 2285.04,-51.5 2608.5,-51.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-42.5C2264.49,-42.51 2333.3,-47.51 2608.5,-47.5"/>
+<path fill="none" stroke="#ffffff" stroke-width="2" d="M1989,-44.5C2264.34,-44.5 2333.16,-49.5 2608.5,-49.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M1989,-46.5C2264.2,-46.49 2333.01,-51.49 2608.5,-51.5"/>
 </g>
 </g>
 </svg>

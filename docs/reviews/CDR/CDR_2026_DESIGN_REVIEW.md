@@ -77,12 +77,13 @@ review action is open.
 | Contract | Signed by 2027-06-30, with the altitude clause | 475 km target, 485 km hard cap, no-penalty rebooking |
 | Planning launch | The last Transporter of 2028 (about 2028-11-01) | June 2028 misses the integrator's protoflight milestone (§4) |
 | Flight-model delivery | About L-50 d | To the integrator; final charge to 60 % ± 5 %, key load, ARM_FLIGHT, RBF out, integration into the Nova at L-47 d; no access afterwards |
-| Orbit | 475 km circular SSO, LTAN 22:30 | FCC five-year rule with P ≥ 0.98 (ODAR Draft B) |
+| Orbit | 475 km circular SSO, LTAN 22:30 | FCC five-year rule with P ≥ 0.997 under the planned-end reading (ODAR Draft D); 460 km if an early failure ends the mission |
 | Backup | ISS via Voyager NRCSD, 400–420 km | Contract needed 12 months before launch, so no earlier than about 2028-09 if triggered on 2027-09-30; design deltas in SQSO-LVR-001 §7 |
 | Contingency | Rocket Lab Electron with a third-party dispenser | Export licence lead time 6+ months |
 
-The requirements the launch puts on the spacecraft (114 rows, each with its source paragraph, design feature,
-verification and status) are in `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` (SQSO-LVR-001 Rev B), with the dated
+The requirements the launch puts on the spacecraft (86 requirement rows, LVR-001 to LVR-114, each with its source
+paragraph, design feature, verification and status, and 18 verification items) are in
+`docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` (SQSO-LVR-001), with the dated
 deliverables (L-8 M CAD and mass properties, L-6 M safety letters, L-5 M orbit selection, L-4 M protoflight complete,
 L-2 M licences and ephemeris demonstration).
 
@@ -90,20 +91,20 @@ L-2 M licences and ephemeris demonstration).
 
 | Time | Event | Evidence |
 |------|-------|----------|
-| L-47 d to L | Unpowered in the Nova, three deployment switches held open, ≤ 20 µA drain; SOC 60 % → ≥ 58 % | LVR-071; storage model |
+| L-47 d to L | Unpowered in the Nova, three deployment switches held open; drain 7.7 µA worst (limit 20 µA); SOC 60 % → ≥ 59.7 % before cell self-discharge (≥ 57.7 % even at the 20 µA limit) | LVR-071; EPS_BOARD_DESIGN §6.6 |
 | S (separation) | Switches close; the OBC boots; EXOpod ejection 1.10–1.48 m/s, tip-off < 10°/s per axis | LV analysis |
 | S + 0–120 s | No actuation (UG v11 §3.3.4); timers running | SRS-F086; SIL first coil command at 121 s |
 | S + 120 s | B-dot detumble starts (magnetometer sampled 50 ms after a 900 ms coil burst) | ADCS_DESIGN 1.5 |
-| S + 30 min | Wings deployed (two resistors per wing, 0.8 A, 8 s), then the AntS over I²C; 33 % of cases burn in eclipse | SIL: wings 30.2 min, antennas 30.6 min |
+| S + 30 min | Wings deployed (one resistor at a time on four independent 0.8 A lines, 8 s each; the second resistor of a wing only if the first fails), then the AntS over I²C; 33 % of cases burn in eclipse | SIL: wings 30.2 min, antennas 30.6 min |
 | S + 45 min | RF silence ends and is latched; receiver on; first beacon in IDLE (template, 120 s) | SIL 45.0 min |
 | S + ≈ 1 h | Detumbled; spin-stabilized sun pointing of +Y at 8°/s | SIL 0.2 h, first Sun acquisition 22–36 min; Monte Carlo ≤ 2.1 h |
-| S + 0.7–12.2 h | First pass over the Bay Area (median 5.2 h); first commanding pass median 6.3 h | Pass analysis |
+| S + 0.7–13.7 h | First pass over the Bay Area (median 5.3 h, at most 12.1 h); first commanding pass median 6.4 h (at most 13.7 h) | MISSION_TIMELINE 2.3 |
 | ≤ 24 h after first contact | First operator ephemeris from the onboard GNSS fixes | UG v11 §9.5.7.2 |
 | Day 1–14 | Commissioning: telecommand checkout from each station, TX-OFF proven, housekeeping dump, power and thermal characterised, then COMMISSIONING_RELEASE; transponder and Jetson only after the release | `docs/operations/COMMISSIONING_PLAN.md`; SIL release at day 1.5 |
 | ≤ 30 d | Object claimed with the 18th SDS | REG-015 |
 | 2 years | Operations: transponder duty-gated (sunlit, SOC ≥ 55 %, ≤ 25 % of an orbit) | SIL full mission |
-| End of mission | Two-step passivation command: TX-OFF, then the one-shot charge disconnect | ICD-013 §6.4 |
-| ≤ 5 years after | Re-entry by natural decay with the wings deployed | ODAR Draft C §6; SIL re-entry 2.02 years after the mission (4.02 after deployment) |
+| End of mission | Two-step passivation command early in a sunlit pass: arm (operational key), execute (recovery key); the one-shot charge disconnect fires while the transmitter still reports, a final frame carries the disconnect and fuse state, then TX-OFF is latched | ICD-013 §6.4; END_OF_LIFE_PLAN |
+| ≤ 5 years after | Re-entry by natural decay with the wings deployed | ODAR Draft D §6 (4.8–5.7 years after deployment at 475 km, nominal and conservative); the SIL's simpler decay gives 4.0 years (SE-20) |
 
 ### 3.3 Margins at this review
 
@@ -113,22 +114,22 @@ L-2 M licences and ephemeris demonstration).
 | CG, stowed | ±20 mm | (+0.1, −0.3, −1.3) mm CBE (CAD, with the harness distribution) | > 18 mm | MECHANICAL_DESIGN |
 | Deployed inertia | Iyy ≥ 1.03 × max, axis within 5° of +Y | 1.055 / 1.046 (CBE / MEV, four AntS elements, C-13 ballast, harness distribution), 1.0° / 1.0°; ≥ 1.03 to 3.1 mm placement scatter | Met | MECHANICAL_DESIGN §5 |
 | First mode, stowed | > 40 Hz | 169 Hz (FE, deck with harness), ≈ 140 Hz (analytic) | × 3.5–4.2 | STRUCTURAL_ANALYSIS B |
-| Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +1.00 (FE, eight cases) | Positive | STRUCTURAL_ANALYSIS B |
+| Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +1.00 in the design case; +0.84 in the rail-ends-only bounding case | Positive | STRUCTURAL_ANALYSIS B |
 | PCB fatigue (Steinberg) | MS ≥ 0 | +0.08 (2.0 mm carrier) to +0.37, EPS +0.23 with the harness tied to the deck (C-15) | Positive | STRUCTURAL_ANALYSIS B |
 | Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel | +0.14 cold, +0.13 one spring out | Positive | MECHANISMS_ANALYSIS B §4A |
-| Power, EOL, sun-pointed | ≥ 20 % | 3.92 W against 2.24 W (allocation) | +75 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.2 |
-| Power, EOL, tumbling | ≥ 20 % | 2.48 W against 1.84 W (allocation) | +35 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.2 |
+| Power, EOL, sun-pointed | ≥ 20 % | 3.92 W against the bottom-up ACTIVE load 2.50 W with the heater (2.24 W allocation) | +54 % (+75 % on the allocation) | POWER_BUDGET_ANALYSIS 2.2 §6; BASELINE §5 |
+| Power, EOL, tumbling | ≥ 20 % | 2.48 W against the bottom-up ACTIVE load 1.82 W with the heater (1.84 W allocation) | +34 % (+35 % on the allocation) | POWER_BUDGET_ANALYSIS 2.2 §6; BASELINE §5 |
 | Depth of discharge | ≤ 10 % per eclipse | ≤ 3.7 % as flown (SIL D, 475 km); 2.8 % worst contingency (PBA 2.2) | × 2.7 | SIL_MISSION_SIMULATION D §7; POWER_BUDGET_ANALYSIS 2.2 |
-| Battery temperature | 0 to +45 °C charging | ≥ +4.4 °C with +5/+9 °C set points | — | THERMAL_ANALYSIS 2.0 |
+| Battery temperature | 0 to +45 °C charging | ≥ +4.4 °C at 14.0 V; +3.7 °C at the 12.0 V floor; +1.2 °C with a 0.10 W/K mount; −1.1 °C with the wings stowed (charging then inhibited in hardware) | Met in operation; stowed-wing case THM-03 | THERMAL_ANALYSIS |
 | Beacon link, 5° | ≥ 6 dB (median gain) | +7.9 dB | +1.9 dB | LINK_BUDGET 3.2 |
 | Telecommand link, 10° | 6 dB with interference allowance | +8.8 to +9.5 dB (variants B, A), receiver as designed, 10th-percentile gain, 0.3 dB pointing (+7.0 to +7.7 dB at 5°) | ≥ +2.8 dB | LINK_BUDGET 3.4 (C-14) |
 | Sun pointing | ±15° | mean 1.8°, p95 3.5°, 99.98 % within 15° (SIL); Monte Carlo 100 % of sunlit time | Met | SIL_MISSION_SIMULATION D §7; BUILD_VS_BUY §6 |
 | Detumble | ≤ 3 orbits | ≤ 2.1 h (≤ 1.4 orbits) | × 2.1 | BUILD_VS_BUY §6 |
 | Total dose, 2 mm Al | design 10 krad, margin ≥ 2 | 5.25 krad at 500 km | × 1.90 → ≥ 2.1 mm required | RADIATION_ANALYSIS C |
 | Orbital lifetime | ≤ 5 yr after mission, P ≥ 0.9 | P ≥ 0.997 at 475–485 km (planned-end reading); wings-failed probability 0.29 % | Met; fallback 460 km | ODAR Draft D |
-| Casualty risk | ≤ 1:10,000 | No fragment > 15 J (nominal); 1:47,000 worst sensitivity | Met | ODAR Draft B |
-| Reliability | (goals 0.95 / 0.80 / 0.60) | 0.75 / 0.61 / 0.51 (L1 / L2 / L3) | Accepted Class D risk (REL-01) | RELIABILITY 2.1 |
-| Schedule float | ≥ 6.6 weeks to the integrator milestone | +130 days for 2028-11 | Met | SCHEDULE |
+| Casualty risk | ≤ 1:10,000 | No fragment > 15 J (nominal); 1:47,000 worst sensitivity | Met | ODAR Draft D |
+| Reliability | (goals 0.95 / 0.80 / 0.60) | 0.75 / 0.61 / 0.51 (L1 / L2 / L3); 0.86 / 0.71 / 0.59 with the burn-in and flatsat programme | PI acceptance (REL-01) | RELIABILITY 2.1 |
+| Schedule float | ≥ 10.2 weeks (72 d) to the integrator milestone for 2028-11 | +130 days | Met | SCHEDULE; `schedule_cpm.py` |
 
 ## 4. Chair decisions
 
@@ -175,18 +176,20 @@ ratings, outgassing data).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-306 RIDs: severity 1: 29, severity 2: 165, severity 3: 112.
+353 RIDs: severity 1: 29, severity 2: 183, severity 3: 141.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
-| Closed by analysis | 25 | 26 |
-| Closed by design change | 100 | 166 |
-| Closed by chair decision | 42 | 41 |
-| Verification item | 45 | 44 |
-| Decision point (dated) | 13 | 13 |
-| Implementation | 81 | 16 |
+| Closed by analysis | 25 | 24 |
+| Closed by design change | 100 | 155 |
+| Closed by chair decision | 42 | 33 |
+| Verification item | 45 | 31 |
+| Decision point (dated) | 13 | 7 |
+| Implementation | 128 | 103 |
 
-Open implementation RIDs: SE-21, REG-12, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 47 new findings; 0 of the reopened and 4 of the new are since closed.
+
+Open implementation RIDs: LV-04, LV-09, LV-11, LV-13, PM-03, PM-04, SE-03, SE-05, SE-07, SE-09, SE-14, SE-21, SE-22, VV-06, VV-07, VV-08, RF-05, RF-07, RF-13, GND-04, REG-10, REG-11, REG-12, ODA-02, SMA-09, SMA-15, REL-01, STR-04, STR-08, STR-13, STR-26, STR-27, EPS-02, EPS-04, EPS-09, EPS-23, THM-03, THM-04, THM-07, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, MCAD-03, RFB-10, EPSB-01, EPSB-04, EPSB-10, JETB-11, JETB-01, JETB-03, JETB-09, JETB-10, JETB-12, JETB-13, MCAD-12, OBCB-01, OBCB-02, P3P-01, P3P-02, P3P-03, P3P-04, P3P-05, P3P-06, P3P-08, P3P-09, P3P-10, P3P-11, P3P-13, P3E-01, P3E-02, P3E-03, P3E-04, P3E-05, P3E-06, P3E-07, P3E-08, P3E-09, P3E-10, P3E-11, P3E-12, P3E-13, P3S-01, P3S-02, P3S-03, P3S-04, P3S-06, P3S-07, P3S-08, P3S-09, P3S-10, P3S-11, P3S-12, P3S-13, P3A-01, P3A-02, P3A-03, P3A-04, P3A-07, P3A-09, P3A-10.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -200,16 +203,16 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | LV-01 | 1 | No commissioning hold: ACTIVE, Jetson and transponder on at S+52.8 min before any ground contact | IMP | Closed by design change | Commissioning hold: FRAM region 11, COMMISSIONING_RELEASE 0x08; test_ops_state.c; SIL release at 132,811 s |
 | LV-02 | 2 | Magnetorquers driven 1 s after separation; UG v11 §3.3.4 allows none before 120 s | IMP | Closed by design change | No magnetorquer output before 120 s (SRS-F086); SIL first coil command at 121 s |
 | LV-03 | 3 | Hard-body radius not reported | CA | Closed by analysis | 0.55 m to the VHF tip, report 0.6 m (leop_feasibility.py §7; LVR-065) |
-| LV-04 | 2 | No GNSS ephemeris chain (gnss.rs never called; no schedule, telemetry or ground OD) | IMP | Closed by design change | gnss_schedule.rs: sessions at boot, every 95 min in LEOP, then 6 h; fix in HK1; GNSS_REQUEST 0x60; ground OD VI-LV-13 |
+| LV-04 | 2 | No GNSS ephemeris chain (gnss.rs never called; no schedule, telemetry or ground OD) | IMP | Implementation | Reopened in round 3: The GNSS fix never reaches the ground; no orbit-determination or ephemeris tool |
 | LV-05 | 1 | No inhibit schematic: third RF and deployable inhibit not designed | CD | Closed by design change | EPS_DESIGN 2.0 §8: DS1-DS3 on three rails (with SMA-01, EPS-04, RF-14) |
 | LV-06 | 2 | Integration SOC stated five ways; no storage limit or drain specification | CH | Closed by chair decision | BASELINE §4 Integration and storage row: 60 % ± 5 %, ≥ 40 % at separation, ≤ 20 µA |
 | LV-07 | 2 | A failed deployable cannot be retried from the ground; AntS is I2C-commanded, not a GPIO burn | IMP | Closed by design change | DEPLOY_RETRY 0x50, retries 50 min apart; AntS over I2C (ICD_OBC_ADCS §12.3) |
 | LV-08 | 2 | Santa Clara and NASA Ames are 12 km apart: not geographically separated | CH | Closed by chair decision | BASELINE §1: two stations ≥ 1,000 km apart (with GND-01) |
-| LV-09 | 2 | No contracting entity for the launch services agreement, cross-waivers, insurance, export | DP | Decision point (dated) | Legal entity named by 2026-12-31 (BASELINE §1; SQSO-OAP-001 DP-1) |
+| LV-09 | 2 | No contracting entity for the launch services agreement, cross-waivers, insurance, export | DP | Implementation | Reopened in round 3: DP-1 has no owner |
 | LV-10 | 2 | Mission-analysis inputs due at L-8 M with no hardware | CH | Closed by chair decision | Planning launch 2028-11 (BASELINE §3); L-8 M = 2028-03-01 (SQSO-LVR-001 §9) |
-| LV-11 | 3 | Launch ICD carried unmeasured values, wrong deployers and dates | CD | Closed by design change | SQSO-ICD-010 Rev E |
+| LV-11 | 3 | Launch ICD carried unmeasured values, wrong deployers and dates | CD | Implementation | Reopened in round 3: Launch provider ICD carries superseded mass, inertia, inhibits and levels |
 | LV-12 | 2 | CDS matrix misstated CDS 14.1 | CD | Closed by design change | SQSO-CDS-001 Rev B, clause by clause |
-| LV-13 | 2 | Mission timeline and commissioning plan described another spacecraft | CD | Closed by design change | SQSO-MTL-001 2.0; SQSO-COMM-001 2.0 |
+| LV-13 | 2 | Mission timeline and commissioning plan described another spacecraft | CD | Implementation | Reopened in round 3: Commissioning plan predates round 2 |
 | LV-14 | 2 | Commands for commissioning do not exist (transponder on/off, GNSS fix, deployment retry) | IMP | Closed by design change | XPDR_ENABLE 0x34, XPDR_DISABLE 0x35, GNSS_REQUEST 0x60, DEPLOY_RETRY 0x50 |
 | LV-15 | 2 | RF silence restarts whenever the sense line reads stowed, even after completion | IMP | Closed by design change | RF silence latched once complete (SRS-F087; test_rf_silence.c) |
 | LV-16 | 2 | NRCSD backup changes the design and cannot meet mid-2028 | CH | Closed by chair decision | BASELINE §3 Backup row; SQSO-OAP-001 §3; SQSO-LVR-001 §7 |
@@ -233,8 +236,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | PM-01 | 1 | No independent SRR or PDR: this panel cannot be a CDR board | CH | Closed by chair decision | Review report §1: an engineering assessment against the CDR criteria; independent PDR and CDR scheduled (mission/SCHEDULE.md) |
 | PM-02 | 3 | Review conduct: agenda, reviewers, dispositions | CH | Closed by chair decision | This report: panel, agenda, RID log, dispositions |
-| PM-03 | 2 | Wrong standards cited across the project documents | CD | Closed by design change | PM-owned documents corrected |
-| PM-04 | 2 | No configuration baselines, tags or controlled change process in use | CD | Closed by design change | CM plan 1.1; CR-2026-007; gen_vcrm.py --check |
+| PM-03 | 2 | Wrong standards cited across the project documents | CD | Implementation | Reopened in round 3: Wrong standard citations remain (NPR 7150.2 Rev B, NPR 7123.1 Rev E, cancelled NASA-STD-8719.13) |
+| PM-04 | 2 | No configuration baselines, tags or controlled change process in use | CD | Implementation | Reopened in round 3: Generated-record checks not in CI; Class I changes without CRs; CR-007/-008 not approved by the PI |
 | PM-05 | 1 | June 2028 misses the integrator's protoflight milestone by 21 days | CH | Closed by chair decision | BASELINE §3 Launch date: planning 2028-11 (+130 d float) |
 | PM-06 | 2 | Cost ROM inconsistent with the schedule and the test plan | CH | Closed by chair decision | LIFECYCLE_COST_ROM update (I&T $35-101k, legal entity and insurance, CAD/FEM, FY shift) |
 | PM-07 | 2 | Risk register lacked scores, owners, schedule and funding risks | CD | Closed by design change | SQSO-RISK-001 Rev B, R21-R24 |
@@ -247,18 +250,18 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | SE-01 | 1 | No detailed (build-to) design: schematics with parts, layouts, mechanical CAD, structural model | IMP | Closed by design change | Build-to design at schematic level: EPS, OBC, RF, Jetson carrier, magnetometer A2 and access-port A3 boards (SKiDL netlists, BOMs, ERC 0), interconnect SQSO-ICX-001, harness SQSO-HAR-001 2.0, CAD with 94+ parts and interference checks, shell FE model; PCB layouts per SE-24 |
 | SE-02 | 2 | Flow-down missing from CDS, Part 97, NASA-STD-8719.14C and the provider | CD | Closed by design change | MRD-084..099; SYS-080..089, 703..709, 713, 900..919; LVR traced |
-| SE-03 | 2 | Requirement values contradicted the baseline | CD | Closed by design change | MRD and 19 SYS requirements changed; CR-2026-007 |
+| SE-03 | 2 | Requirement values contradicted the baseline | CD | Implementation | Reopened in round 3: CR-2026-007 omits the system requirements; SYS-100 at 1.80 W against the 1.84 W allocation |
 | SE-04 | 2 | Seven requirements need the PI's ratified wording | DP | Decision point (dated) | Ratify TBR-MRD-002..005 and TBR-SYS-002..004 by the PDR (2027-01-12) |
-| SE-05 | 1 | No integrator ICD and no IARU letter | DP | Decision point (dated) | RFQs by 2026-12-31; IARU request 2027-01-26 (SQSO-LVR-001 §9) |
+| SE-05 | 1 | No integrator ICD and no IARU letter | DP | Implementation | Reopened in round 3: Decision point without an owner; IARU letter date conflicts |
 | SE-06 | 3 | TBD/TBR targets were 'TBD' | CD | Closed by design change | Dates set |
-| SE-07 | 1 | Margins below requirement: power, mass, Jetson heat path | CA | Closed by analysis | Power +35 %/+79 % (PBA v2.0); mass +15.9 % (MB v3.0); Jetson ≤ 39 °C at 0.44 W/K (THA v2.0) |
+| SE-07 | 1 | Margins below requirement: power, mass, Jetson heat path | CA | Implementation | Reopened in round 3: SYS-603 and BASELINE §6 still require ≥ 1 W/K Jetson heat path against a 0.44 W/K design |
 | SE-08 | 2 | No hardware FMEA, single-point-failure list, system hazard analysis | CD | Closed by design change | SQSO-FMEA-002; SQSO-SDP-002 1.0 |
-| SE-09 | 2 | No technology readiness assessment for the Jetson in 1U and the custom transponder | VI | Verification item | VI-01, VI-02 exit criteria (EM) |
+| SE-09 | 2 | No technology readiness assessment for the Jetson in 1U and the custom transponder | VI | Implementation | Reopened in round 3: No technology readiness assessment |
 | SE-10 | 2 | NPR 7150.2D mapping missing; SRS-F081 cited but undefined | IMP | Closed by design change | SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined |
 | SE-11 | 3 | No system security plan | IMP | Closed by design change | SQSO-SEC-001 Space System Protection and Security Plan (NASA-STD-1006A as practice) |
 | SE-12 | 2 | No structural model; materials list incomplete | CA | Closed by analysis | Shell FE model (56,258 DOF): first mode 170 Hz, lowest margin +0.72 (STRUCTURAL_ANALYSIS B); materials list SQSO-MAT-001 Rev B |
 | SE-13 | 3 | SYS-112 stated without the nominal 10 % | CD | Closed by design change | SYS-112 |
-| SE-14 | 2 | NASA DAS not run | VI | Verification item | ODA-02: DAS 3.2.6 run 2027-02 |
+| SE-14 | 2 | NASA DAS not run | VI | Implementation | Reopened in round 3: DAS reproduction is not a hardware verification; no owner or criterion |
 | SE-15 | 2 | End-of-life plan describes a drag device and the 25-year rule | IMP | Closed by design change | END_OF_LIFE_PLAN C rewritten: end criteria, 0x70/0x71 passivation step by step with go/no-go from HK1 and the ack, cases where it cannot be commanded, post-space notification, ODAR Draft D lifetimes |
 | SE-16 | 2 | Analyses computed at superseded values: ODAR wings-failed case, link and data frame statistics at 6 °/s, power year runs at 500 km / 2028-06, burn transients with two resistors, the mission timeline LEOP table | IMP | Closed by analysis | Re-run at Rev E: ODAR Draft D (wings-failed 0.29 %, P 0.997), EMC C, LBA 3.2, DATA_BUDGET 2.1, GND D, PBA 2.2 (tumbling 2.48 W, +34 %), MISSION_TIMELINE 2.2 LEOP from the SIL, RELIABILITY 2.1 (0.75 / 0.61 / 0.51); scripts updated |
 | SE-17 | 3 | Harness design H1-H6 predates the interconnect | CD | Closed by design change | HARNESS_DESIGN 1.2 marked superseded by SQSO-ICX-001 and W1-W10 |
@@ -266,7 +269,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-19 | 2 | No current harness design: the old harness document predates the interconnect, and the deck-to-EPS band is over-full by about 8 mm² of wire | IMP | Closed by design change | Harness design SQSO-HAR-001 2.0: 206 conductors, routes against the CAD (58 zones, no interference), EEE-INST-002 derating (worst 60 % normal), drops ≤ 44 mV, corner-bundle fill ≤ 51 % (band B resolved by routing the EPS-only harnesses under the EPS), mass 84.5 g, single-point ground; V-HAR-1 to V-HAR-13 |
 | SE-20 | 3 | SIL decay re-enters 4.0 years after deployment; the ODAR estimator gives 4.8-5.7 years | CH | Closed by chair decision | The ODAR (NRLMSIS, NASA-STD-8719.14C cross-sections) governs lifetime compliance; the SIL decay is indicative; aligned if cheap (flight software round 3) |
 | SE-21 | 3 | SIL deploys both wings from one resistor and models 0.04 W of coil power in detumble (board: 1.16-1.3 W) | IMP | Implementation | SIL deployment per-wing restraint and coil-drive power (flight software round 3) |
-| SE-22 | 2 | Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG | IMP | Closed by design change | Every SQSO-HAR-001 2.0 §15 item done: gold finishes on all boards and in EEE_PARTS_LIST E, Samtec TFM/SFSDT PTFE assemblies replace the PVC ribbons, gauges from the terminal ranges, EPS bottom-side connectors, pack fuse F0, access-port board A3, CAD zones; harness re-check against the CAD clear (58 zones), WireViz 43 cables match |
+| SE-22 | 2 | Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG | IMP | Implementation | Reopened in round 3: Stale gauges and ratings remain in several documents |
 | SE-23 | 3 | No published E595 outgassing values found for the harness wire, PTFE assemblies, sleeving, lacing tape or connector housings; Pico-Clasp gold suffix not found | VI | Verification item | V-HAR-11 (E595 per part number or test, bake-out) and V-HAR-3 (vendor drawings, gold part numbers) before the EM order (MATERIALS_LIST D §7-§8, EEE_PARTS_LIST E §2A.8) |
 | SE-24 | 2 | No PCB layouts: the boards are at schematic, BOM, placement-constraint and stack-up level | CH | Closed by chair decision | Layout is the scheduled next design step (SCHEDULE: EM PCB layout and design-rule review 2027-01-12 to 2027-03-09, after the independent PDR), held to the placement, keep-out, stack-up and impedance constraints recorded in the board designs; the independent CDR (2027-08-03) reviews the layouts |
 
@@ -279,9 +282,9 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | VV-03 | 2 | No test facilities identified or costed | CA | Closed by analysis | ETP §7; test_cost.py |
 | VV-04 | 3 | Two V&V plans | CD | Closed by design change | V&V plan 1.3; mission/VNV_PLAN.md pointer |
 | VV-05 | 1 | No EM development tests before the CDR | VI | Verification item | VI-01..06, VI-09 on the EM, 2027-06 to 2027-08 |
-| VV-06 | 2 | Deploying after protoflight vibration conflicts with CDS §3.5.2 | CD | Closed by design change | ETP §3.8; TP-ENV-005 1.1 |
-| VV-07 | 2 | Shock waiver cannot be assumed | VI | Verification item | VI-07 |
-| VV-08 | 2 | TVAC hot plateaus capped at +60 °C by the battery | VI | Verification item | VI-03 and a deviation (ETP §9) |
+| VV-06 | 2 | Deploying after protoflight vibration conflicts with CDS §3.5.2 | CD | Implementation | Reopened in round 3: VI-LV-17 still requires flight-unit deployment after environmental test |
+| VV-07 | 2 | Shock waiver cannot be assumed | VI | Implementation | Reopened in round 3: Launch shock not tested in the LVR; UG shock exceeds the vibration-equivalent SRS; no shock test costed |
+| VV-08 | 2 | TVAC hot plateaus capped at +60 °C by the battery | VI | Implementation | Reopened in round 3: ETP deviations not recorded as change requests |
 | VV-09 | 3 | Integration plan undated | CD | Closed by design change | SQSO-INT-001 Rev B |
 
 #### RF link and hardware (RF)
@@ -292,15 +295,15 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RF-02 | 2 | Telecommand at 25 W short of 6 dB | CD | Closed by design change | Stations at 50 W PEP: +5.3 dB at 10° (SQSO-GND-001 Rev C) |
 | RF-03 | 2 | Antenna element orientation against the spin unspecified | CH | Closed by chair decision | BASELINE §7: 2 m elements along ±X (with STR-01) |
 | RF-04 | 3 | 60 s beacon interval equals the spin period: losses repeat | IMP | Closed by design change | Beacon interval jittered ±5 s, mean unchanged (SRS-F127; test_beacon) |
-| RF-05 | 3 | SYS-222 gain requirement unachievable with a monopole | CH | Closed by chair decision | SYS-222 replaced by the pass-weighted gain requirement (RF-P013) |
+| RF-05 | 3 | SYS-222 gain requirement unachievable with a monopole | CH | Implementation | Reopened in round 3: SYS-222 still requires omnidirectional coverage |
 | RF-06 | 2 | Downlink 3rd harmonic inside the uplink segment | CH | Closed by chair decision | BASELINE §7 Uplink 435.000-437.300 MHz |
-| RF-07 | 2 | 60 dB 3rd-harmonic suppression costs 3.2 dB | CH | Closed by chair decision | BASELINE §7: ≥ 70 dB at the antenna port; VI-RF-04, VI-RF-06 |
+| RF-07 | 2 | 60 dB 3rd-harmonic suppression costs 3.2 dB | CH | Implementation | Reopened in round 3: SYS-203 still requires 60 dB third-harmonic suppression against 70 dB |
 | RF-08 | 2 | No receive-filter requirement | CD | Closed by design change | RF-P007; VI-RF-06 |
 | RF-09 | 3 | Spurious limits inconsistent | CH | Closed by chair decision | SYS-203 to 47 CFR 97.307(e) |
 | RF-10 | 3 | Deviation ±3.5 kHz against the filed emission | CD | Closed by design change | TRANSMITTER_DESIGN 1.3 §5.2; VI-RF-15 |
 | RF-11 | 2 | TCXO ±2.5 ppm too wide for telecommand | CD | Closed by design change | RF-P005 ±1.0 ppm; VI-RF-14 |
 | RF-12 | 1 | RF hardware not selected or designed | IMP | Closed by design change | RF board build-to design: SQSO-RF-BRD-001 (316 parts, ERC 0 errors, BOM with stresses); EM tests VI-RFB-01..09 |
-| RF-13 | 2 | TX-OFF independence over-claimed in filings | CD | Closed by design change | IARU v40 A.2; FCC pre-space A.1; VI-RF-12 |
+| RF-13 | 2 | TX-OFF independence over-claimed in filings | CD | Implementation | Reopened in round 3: IARU request item 7.8 contains two untrue statements |
 | RF-14 | 2 | RF inhibits not shown to be physical | CD | Closed by design change | EPS_DESIGN 2.0 §8.1 |
 | RF-15 | 2 | Stale RF documents | CD | Closed by design change | RF_DESIGN 2.0; ICD-003 2.0; ICD-005 2.0; ANTENNA 2.0 |
 | RF-16 | 3 | Output low-pass filter never analysed | CA | Closed by analysis | LBA §7; VI-RF-04 |
@@ -319,7 +322,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | GND-01 | 1 | No telecommand station agreed | DP | Decision point (dated) | Written agreements for ≥ 2 stations ≥ 1,000 km apart by 2027-01-05 (BASELINE §1) |
 | GND-02 | 2 | Ground design incomplete (70 cm TX, keys, time, power) | CD | Closed by design change | SQSO-GND-001 Rev C |
 | GND-03 | 2 | No command response or contact count in the downlink | IMP | Closed by design change | Acknowledgement after each counted command; HK1 adds CN, PS, RX, ST (SRS-F125, F126); SIL 1,370 acks |
-| GND-04 | 2 | Shared counter file is a common-mode failure | CD | Closed by design change | UTC-derived counters (ICD-013 v0.7 §5.2.1) |
+| GND-04 | 2 | Shared counter file is a common-mode failure | CD | Implementation | Reopened in round 3: UTC-derived counters not adopted or implemented: two stations cannot each command alone |
 | GND-05 | 2 | Bay Area within 240 km of Beale AFB: 50 W PEP limit | CD | Closed by design change | GND-R3; FCC consultation item |
 | GND-06 | 3 | Operations manual did not match the dictionary | CD | Closed by design change | SQSO-GSOM-001 1.1 |
 | GND-07 | 3 | SatNOGS capability assumed | CA | Closed by analysis | LBA; SatNOGS station census |
@@ -338,9 +341,9 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | REG-07 | 3 | Stale status in spectrum and IARU documents | CD | Closed by design change | SPECTRUM_LICENSE Rev C; IARU_COORDINATION Rev D |
 | REG-08 | 3 | NOAA consultation not sent | DP | Decision point (dated) | PI by 2026-11-30 |
 | REG-09 | 2 | 30-day pre-space rule against the dates | CD | Closed by design change | File early 2027-01-19, replace after contract (SQSO-LVR-001 §9) |
-| REG-10 | 3 | FCC consultation agenda lacks RF questions | CH | Closed by chair decision | Consultation agenda in REGULATORY_ROADMAP |
-| REG-11 | 2 | Beacon kept on with a known-failed receiver: a transmitter that telecommand cannot turn off | DP | Decision point (dated) | Declared in the IARU request item 7.9 and put to the FCC consultation (decision D3) by the licensee with the pre-space notification, 2027-01-19; if rejected, one condition in contact_monitor.rs removes it |
-| REG-12 | 2 | Passivation cannot be confirmed from the ground: TX-OFF is latched before the charge disconnect fires, and HK1 has no EOL_STATE or fuse field | IMP | Implementation | Fire first, report EOL_STATE and the fuse state in a final frame, then latch TX-OFF (flight software round 3; END_OF_LIFE_PLAN C, EOL-1) |
+| REG-10 | 3 | FCC consultation agenda lacks RF questions | CH | Implementation | Reopened in round 3: No FCC consultation agenda |
+| REG-11 | 2 | Beacon kept on with a known-failed receiver: a transmitter that telecommand cannot turn off | DP | Implementation | Reopened in round 3: IARU item 7.9 does not declare the beacon-continues behaviour |
+| REG-12 | 2 | Passivation cannot be confirmed from the ground: TX-OFF is latched before the charge disconnect fires, and HK1 has no EOL_STATE or fuse field | IMP | Implementation | Reopened in round 3: Documents still describe TX-OFF before the fire; passivation timing in a sunlit pass not required |
 
 #### Data budget (DB)
 
@@ -354,7 +357,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
 | ODA-01 | 1 | 525 km cap and 500 km target fail the FCC 5-year rule | CH | Closed by chair decision | BASELINE §3: 475 km target, 485 km cap; fallback 460 km; MRD-013 |
-| ODA-02 | 2 | NASA DAS not run | VI | Verification item | DAS 3.2.6, 2027-02 |
+| ODA-02 | 2 | NASA DAS not run | VI | Implementation | Reopened in round 3: DAS needs a NASA software agreement and must precede the early pre-space filing |
 | ODA-03 | 2 | ODAR inputs and claims wrong | CA | Closed by analysis | ODAR Draft B §2, §6 |
 | ODA-04 | 2 | Baseline lifetime table used 0.028 m² and 1.6 kg only | CH | Closed by chair decision | BASELINE §3 table from ODAR Draft B §6.2 |
 | ODA-05 | 2 | Whether an early failure ends the mission | DP | Decision point (dated) | FCC consultation before 2027-01-19; fallback band in BASELINE §3 |
@@ -372,7 +375,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SMA-06 | 2 | No recharge lockout after deep over-discharge | CD | Closed by design change | EPS_DESIGN §3.3; clear command IMP |
 | SMA-07 | 2 | Cell screening below JSC 20793 practice | VI | Verification item | V-BSA-1, V-BSA-3 |
 | SMA-08 | 2 | Pack UN 38.3 and hazardous-materials declaration | VI | Verification item | VI-SAF-09 / V-BSA-5 |
-| SMA-09 | 3 | SSCMAN 91-710 and ISS safety documents not obtained | DP | Decision point (dated) | Through the integrator at contract (2027-06-30) |
+| SMA-09 | 3 | SSCMAN 91-710 and ISS safety documents not obtained | DP | Implementation | Reopened in round 3: Decision point without a project owner |
 | SMA-10 | 3 | Integration SOC inconsistent | CD | Closed by design change | 60 % ± 5 % everywhere (EPS-20) |
 | SMA-11 | 2 | Pure tin and other prohibited materials | CD | Closed by design change | EEE_PARTS_LIST Rev C §2A.3 |
 | SMA-12 | 2 | EEE list: unsourced radiation claims, stale parts | CD | Closed by design change | SQSO-MFG-002 Rev C |
@@ -385,7 +388,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| REL-01 | 2 | Reliability goals unsupported and not met | CH | Closed by chair decision | Accept 0.75/0.60/0.50 as Class D risk; test programme (≥ 500 h flatsat, ≥ 200 h burn-in) to reach 0.86/0.70/0.58 |
+| REL-01 | 2 | Reliability goals unsupported and not met | CH | Implementation | Reopened in round 3: Figures stale; acceptance is a PI decision; the reliability test programme is not in the plans |
 | REL-02 | 2 | Reliability document errors | CD | Closed by design change | SQSO-REL-001 2.0 |
 | REL-03 | 2 | One burn driver for both wings | CD | Closed by design change | EPS_DESIGN 2.0 §5.1: one driver per resistor, two resistors per wing |
 | REL-04 | 2 | Failed receiver plus the loss-of-contact inhibit silences the beacon | IMP | Closed by design change | Beacon continues when the receiver is known failed (recovery tried, health line in fault, contact timeout expired); transponder off; SIL contingency 26.5 days, longest gap 66 s (SRS-F116, F117); regulatory acceptance REG-11; health line RFB-07 |
@@ -398,16 +401,16 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | STR-01 | 1 | Deployed inertia: +Y not a robust major axis; antenna along ±Y defeats sun pointing | CH | Closed by design change | BASELINE §4 mass properties; CAD layout: Iyy/max 1.056 CBE, 1.047 MEV, axis 0.6° / 1.1° from +Y (SQSO-MECH-CAD-001); full tensor in the flight law |
 | STR-02 | 2 | MEL rebuilt; baseline obsolete; coils trip D8 | CH | Closed by chair decision | BASELINE §4 Mass: CR0002 rods, CBE 1.49 kg, MEV 1.73 kg, +15.9 % |
 | STR-03 | 3 | CG never computed | CA | Closed by analysis | MASS_BUDGET v3.0 §5 |
-| STR-04 | 2 | Bifilar MOI ±5 % cannot verify the Iyy/Izz difference | CH | Closed by chair decision | VI-LV-02 trifilar ±2 % (SQSO-LVR-001 Rev B); VI-STR-01 |
+| STR-04 | 2 | Bifilar MOI ±5 % cannot verify the Iyy/Izz difference | CH | Implementation | Reopened in round 3: Inertia measurement accuracy (±2 % trifilar) too coarse for the 1.6 % ratio margin and the products |
 | STR-05 | 2 | PCB fatigue negative on four corner supports | CD | Closed by design change | Two centre supports at (0, ±21) mm: Steinberg margins +0.09 to +0.36 (STRUCTURAL_ANALYSIS B); VI-STR-02 |
 | STR-06 | 2 | Stack 45 Hz if cantilevered | CD | Closed by design change | Tied to both end frames: 289 Hz (SA §5) |
 | STR-07 | 2 | Jetson module held only by SODIMM latches | CD | Closed by design change | Clamp and staking (SA §8); VI-STR-02 |
-| STR-08 | 2 | Battery isolator preload loss; cell retention | CD | Closed by design change | Disc spring etc. (SA §9); BATTERY_DESIGN §7.1 cell retention change by chair |
+| STR-08 | 2 | Battery isolator preload loss; cell retention | CD | Implementation | Reopened in round 3: Battery cell retention undefined (bonded, potted or clamped) |
 | STR-09 | 2 | Vent area fails CDS §2.1.9 | CD | Closed by design change | ≥ 22.3 mm² (SA §11); VI-STR-09 |
 | STR-10 | 2 | Stowed wing 6.1 mm against 6.5 mm | VI | Closed by design change | Stowed protrusion 6.10 mm nominal, 6.38 mm worst case with the 0.5 mm panel recess (MECHANICAL_DESIGN B); VI-STR-08 |
 | STR-11 | 2 | AntS and GNSS patch against the ±Z standoffs | CH | Closed by design change | −Z face recessed 1.5 mm: AntS 1.25 mm inside the rail ends (MECHANICAL_DESIGN); frame RFQ |
 | STR-12 | 2 | Two switches against three inhibits; springs undefined | CD | Closed by design change | Three switches (STRUCTURAL_DESIGN §5.2-§5.3) |
-| STR-13 | 2 | No wing spring, sensor or jumper specification; no torque margin | CA | Closed by analysis | MECH §3-§4; VI-STR-04 |
+| STR-13 | 2 | No wing spring, sensor or jumper specification; no torque margin | CA | Implementation | Reopened in round 3: STRUCTURAL_DESIGN still specifies the Version A hinge; cold point not bounding |
 | STR-14 | 2 | End-of-travel shock on the cells | CD | Closed by design change | Soft stop ≤ 0.3 N·m (MECH §5); VI-STR-05 |
 | STR-15 | 2 | Wing burn energy marginal at −40 °C; AntS not modelled | IMP | Closed by design change | 8 s burn at 0.8 A, two resistors per wing on drivers A (PB10) and B (PE6), alternate attempts; SIL deploy.rs fixed and AntS modelled; VI-STR-06, VI-STR-13 |
 | STR-16 | 2 | AntS tapes pass 4-6 mm below the stowed wings | IMP | Closed by design change | Wings first, then the AntS (SRS-F089); 37.8 mm nominal clearance (SQSO-MECH-CAD-001); stuck-wing case VI with the ISIS ICD |
@@ -420,8 +423,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | STR-23 | 3 | STRUCTURE.md wrong | CD | Closed by design change | STRUCTURE.md B |
 | STR-24 | 3 | README listed the removed drag device | CD | Closed by design change | README B |
 | STR-25 | 2 | Battery leads too short; no hinge-crossing rules | CD | Closed by design change | HARNESS_DESIGN 1.1 |
-| STR-26 | 2 | Structural design mass properties stale | CD | Closed by design change | STRUCTURAL_DESIGN 1.3 |
-| STR-27 | 2 | One wing deployed: major axis 12.5° off +Y | IMP | Closed by design change | ADCS_SET_GEOMETRY 0x24, presets 0-3, persisted; one-wing Monte Carlo (BUILD_VS_BUY §6.4) |
+| STR-26 | 2 | Structural design mass properties stale | CD | Implementation | Reopened in round 3: STRUCTURAL_DESIGN stale against the CAD, FE and MEL |
+| STR-27 | 2 | One wing deployed: major axis 12.5° off +Y | IMP | Implementation | Reopened in round 3: One-wing ADCS presets use the reference-layout tensors, not the CAD |
 | STR-28 | 3 | Flexible modes against spin and ADCS bandwidth | CA | Closed by analysis | MECH §9 |
 
 #### Mechanical CAD and FE (MCAD)
@@ -430,7 +433,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | MCAD-01 | 2 | Wing torsion springs do not fit the hinge envelope; flex bend radius 1.25 mm | IMP | Closed by design change | Two coaxial 17-7PH torsion springs, clock-spring flex, damped stop: end-of-travel torque margin +0.14 cold (+0.13 one spring out) (MECHANISMS_ANALYSIS B §4A); VI-STR-04, VI-MECH-01, VI-MECH-02 |
 | MCAD-02 | 3 | Torquer deck 23 g against 6 g in the MEL | IMP | Closed by design change | Deck 1.0 mm skeleton 9 g; MEL row 5 re-split, total unchanged (MASS_BUDGET 3.1) |
-| MCAD-03 | 3 | Sweep clearance 0.35 mm needs the body cells offset 1 mm | DP | Decision point (dated) | Panel vendor RFQ |
+| MCAD-03 | 3 | Sweep clearance 0.35 mm needs the body cells offset 1 mm | DP | Implementation | Reopened in round 3: Decision point without owner or date |
 | MCAD-04 | 2 | Gyro module 14 mm tall cannot fit under the carrier; raising the carrier or a bracket do not fit layout B | CD | Closed by design change | Gyro on the OBC through a 27 × 27 mm carrier window with a 2.2 g frame: 1.5 mm clearance, carrier Steinberg +0.09, inertia ratio 1.056 / 1.047, axis 0.4° / 1.4° (MECHANICAL_DESIGN §4.3, D-11) |
 | MCAD-05 | 2 | Board-mounted gyro is 0.6-1.0° off the body axes: 0.7° uses the whole 0.1 °/s bias budget at 8 °/s | VI | Verification item | VI-MCAD-05: measure the gyro axes to ≤ 0.1° on the flight stack; correction matrix to the flight software |
 | MCAD-06 | 3 | RM3100 43 mm from the Y rod end and 10 mm below carrier parts | IMP | Closed by design change | RM3100 on its own board A2 in the +Z end-frame slot (+24, +27): rod coupling 830 nT per mA·m² (was 1194), nearest rod end 54.7 mm, 63 mm from the Jetson input; 20 mm non-ferromagnetic zone; AV-V4 with per-polarity calibration (SQSO-OBC-BRD-001 B) |
@@ -439,21 +442,21 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | MCAD-09 | 2 | With all four AntS elements the deployed inertia ratio is 1.045 / 1.037 (CBE / MEV): 0.007 above the 1.03 requirement, gone at 1.5-2 mm placement scatter | CH | Closed by chair decision | Chair C-13: 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames in the baseline (ratio about 1.057 / 1.048); trimmed at integration (VI-MCAD-03) |
 | MCAD-10 | 3 | A286 hinge pins are softer than 440C and gall on titanium if the MoS₂ film wears through (friction 0.26 zeroes the torque margin) | VI | Verification item | VI-MECH-03: pin friction and galling with A286 over the deployment and test cycles |
 | MCAD-11 | 2 | EPS fatigue margin depends on where the ~25 g of harness under the EPS is tied: −0.52 if tied to the EPS | CH | Closed by chair decision | Chair C-15: wire tied to the deck straps and shear panels, only connector strain relief on the EPS (+0.23); harness design §10 and workmanship |
-| MCAD-12 | 3 | MZ sun sensor beside the AntS: the −X 2 m tape exit may overlap the diode's lowest 0.5 mm; deck displacement 0.46 mm (3σ) against the GNSS receiver's random qualification | VI | Verification item | VI-MCAD-09 against the ISIS AntS ICD; GNSS receiver random-vibration qualification review (STRUCTURAL_ANALYSIS finding 3) before the EM |
+| MCAD-12 | 3 | MZ sun sensor beside the AntS: the −X 2 m tape exit may overlap the diode's lowest 0.5 mm; deck displacement 0.46 mm (3σ) against the GNSS receiver's random qualification | VI | Implementation | Reopened in round 3: GNSS receiver qualification check without owner, criterion or date; deck response at the mounts not extracted |
 
 #### Electrical power (EPS)
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
 | EPS-01 | 1 | No power closure at CDR | CA | Closed by analysis | SQSO-PBA-001 v2.0 |
-| EPS-02 | 2 | Baseline tumbling margin '+19 %' open | CH | Closed by chair decision | BASELINE §5: 2.43/3.93 W, +35 %/+79 % |
+| EPS-02 | 2 | Baseline tumbling margin '+19 %' open | CH | Implementation | Reopened in round 3: Evidence quotes superseded power figures |
 | EPS-03 | 2 | EPS documents described a 2S module EPS | CD | Closed by design change | EPS_DESIGN 2.0; PDU 1.1; EPS_ELECTRICAL 1.1; ICD-001 1.1 |
-| EPS-04 | 1 | Third inhibit not designed (array path) | CD | Closed by design change | EPS_DESIGN §8 DS3; drawings S1/B2/W7 IMP |
+| EPS-04 | 1 | Third inhibit not designed (array path) | CD | Implementation | Reopened in round 3: Solar array path has two independent inhibits, not three |
 | EPS-05 | 2 | Deployment-switch rating unspecified | CD | Closed by design change | §8.4 RC-filtered FET gates |
 | EPS-06 | 2 | End-of-life charge disconnect has no hardware design, command or pins | IMP | Closed by design change | One-shot disconnect F1 with EOL_FIRE and EOL_ARM latch (SQSO-EPS-BRD-001 §7), PF4 and PG1 (SQSO-ICX-001), commands with REG-01; V-EPS-8 |
 | EPS-07 | 2 | Drawings drive the antennas from the OBC though AntS is bought | IMP | Closed by design change | S5 and W7 redrawn for the AntS: supply after DS1-DS3, switched by DEPLOY_EN, I2C through a TCA9517 (SQSO-EPS-BRD-001) |
 | EPS-08 | 2 | BMS low-temperature discharge cut-off would keep the bus dark | CD | Closed by design change | BATTERY_DESIGN 2.2 §4.1 |
-| EPS-09 | 2 | Stuck-on Jetson drains the pack | CD | Closed by design change | Hardware load shed below 13.6 V (EPS_DESIGN §6) |
+| EPS-09 | 2 | Stuck-on Jetson drains the pack | CD | Implementation | Reopened in round 3: Load shed gates only SW1: does not cover both series Jetson switches failed closed |
 | EPS-10 | 3 | ACTIVE with wings stowed closes only through the SOC gate | IMP | Closed by design change | IDLE held while the wings are spent and not deployed (SRS-F128; test_ops_state) |
 | EPS-11 | 2 | Overcharge had two firmware-set controls | CD | Closed by design change | Secondary 4.35 V protector (SQSO-BSA-001 H1); V-BSA-2 |
 | EPS-12 | 2 | No latched recharge lockout | CD | Closed by design change | EPS_CLEAR_LOCKOUT 0x14: I2C unlock then LOCK_CLR 150 ms (SRS-F129); V-EPS-9 |
@@ -467,7 +470,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | EPS-20 | 3 | Integration SOC inconsistent | CD | Closed by design change | 60 % ± 5 % |
 | EPS-21 | 3 | SIL document states a 5 A BMS trip | CH | Closed by chair decision | SQSO-SIL-001 §3: 4 A |
 | EPS-22 | 2 | UN 38.3 and JSC 20793 screening not planned | VI | Verification item | V-BSA-1, V-BSA-5 |
-| EPS-23 | 3 | Battery failure tolerance per SSCMAN 91-710 Vol. 3 not read | DP | Decision point (dated) | Integrator at contract; design already two-fault tolerant for overcharge and short |
+| EPS-23 | 3 | Battery failure tolerance per SSCMAN 91-710 Vol. 3 not read | DP | Implementation | Reopened in round 3: Decision point without owner or date; two-fault tolerance for an external short not supported |
 
 #### Thermal (THM)
 
@@ -475,11 +478,11 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | THM-01 | 1 | Thermal analysis used the wrong orbit and had no model | CA | Closed by analysis | SQSO-THA-001 v2.0 |
 | THM-02 | 2 | Heater set points leave too little margin to 0 °C | IMP | Closed by design change | Heater on below +5 °C, off above +9 °C (SRS-F130) |
-| THM-03 | 3 | Wings stowed at β = 0 saturates the heater | VI | Verification item | V-THM-1 |
-| THM-04 | 2 | SYS-600/601 cannot be met by the boards with margin | CH | Closed by chair decision | Per-unit allowable flight temperatures (THERMAL_DESIGN 1.3 §1.1; BASELINE §8) |
+| THM-03 | 3 | Wings stowed at β = 0 saturates the heater | VI | Implementation | Reopened in round 3: 100 % heater duty with the wings stowed not resolved by test correlation |
+| THM-04 | 2 | SYS-600/601 cannot be met by the boards with margin | CH | Implementation | Reopened in round 3: SYS-600/601 unchanged; LEOP cold case below allowables with the 10 °C margin |
 | THM-05 | 2 | Wing cell qualification range unknown | VI | Verification item | V-THM-4 (−56 to +93 °C) |
 | THM-06 | 2 | Cold dispenser soak at the −10 °C discharge limit | VI | Verification item | V-THM-5 |
-| THM-07 | 1 | Hot dispenser soak > +60 °C after 2.4 h | VI | Verification item | V-THM-5 with the integrator's dispenser analysis |
+| THM-07 | 1 | Hot dispenser soak > +60 °C after 2.4 h | VI | Implementation | Reopened in round 3: Rests on the integrator's analysis: decision point without owner or fallback |
 | THM-08 | 3 | No minimum Jetson power-on temperature | IMP | Closed by design change | Jetson not powered below −15 °C (SRS-F131) |
 | THM-09 | 2 | Battery node had no radiative coupling | CD | Closed by design change | sqso-sil env/thermal.rs |
 | THM-10 | 2 | Jetson junction-to-spreader resistance unknown | VI | Verification item | V-THM-3 |
@@ -568,7 +571,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RFB-06 | 3 | Radio rail trip 0.25 A cannot see a 38 mA latch-up; LMX2571 margin at ±3 % rail | IMP | Closed by design change | Radio trip 0.12 A with current telemetry; 3V3_AO ±2 % (≥ 3.22 V at the RF connector) (SQSO-EPS-BRD-001) |
 | RFB-08 | 3 | Magnetometer A2 is 4 mm above the RF board: shield, lids, ferrites, crystals and the PA loop near it | CD | Closed by design change | No part within 20 mm of A2, no ferromagnetic part within 40 mm; nickel-silver shield, soldered lids; PA supply paired on layers 4/5 and routed 80-87 mm away (0.5 nT keyed step) (SQSO-RF-BRD-001 B §10.1); VI-RFB-11 |
 | RFB-09 | 2 | SMA end-launch connectors J3-J6 with mated plugs and cable bends do not fit the 3.3 mm gap to the side walls | IMP | Closed by design change | MMCX jacks (Molex 73415-1473, brass/BeCu, gold) at the −X edge; 1.37 mm coax with silver-plated copper inner conductor down the −X wall gap at \|y\| 20-24 mm; port-to-antenna 0.44 dB (146 MHz) and 0.62 dB (436 MHz); uplink system noise 548-598 K inside 650 K (SQSO-RF-BRD-001 C §4.3, §16) |
-| RFB-10 | 3 | AntS RF port type and the connector mated heights not confirmed from the ISIS ICD and the Molex/Samtec drawings | VI | Verification item | VI-RFB-12 (drawings, plating, cable attenuation and inner conductor) by 2026-11-13, before layout; VI-RFB-13 against the ISIS ICD (only the AntS-end plug changes if it differs) |
+| RFB-10 | 3 | AntS RF port type and the connector mated heights not confirmed from the ISIS ICD and the Molex/Samtec drawings | VI | Implementation | Reopened in round 3: Vendor-document checks are decision points without owners and dates |
 | RFB-11 | 2 | CAD models two AntS elements; the AntS and the RF board use four (2 m along ±X, 70 cm along ±Y): the deployed inertia ratio must be re-checked | IMP | Closed by design change | Four AntS elements in the CAD; with the C-13 ballast the deployed ratio is 1.056 / 1.047, ≥ 1.03 with growth to 3.2 mm placement scatter (MECHANICAL_DESIGN B §5) |
 | RFB-12 | 3 | W10 coax top bend 7 mm is 5.1 × OD, below the 6 × OD workmanship rule | CH | Closed by chair decision | Accepted by analysis: formed once and tied, 1.75 × the Taoglas PRT.001221 minimum static radius (4 mm), no RF effect at 436 MHz; conditions: procured cable minimum static radius ≤ 5 mm (VI-RFB-12), bend inspection (V-HAR-10), return loss after forming and vibration (VI-RFB-13) |
 
@@ -579,13 +582,13 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | EPSB-01 | 2 | Firmware fires driver A on both wings at once: 1.25 A at the pack | IMP | Implementation | Chair: four independent burn lines, one resistor at a time (0.67 A); flight software and SIL |
 | EPSB-02 | 3 | Uplink must avoid the synchronised converters' harmonics | CH | Closed by chair decision | BASELINE §7 Uplink: 435.222-435.778 MHz, else 436.222-436.500 MHz |
 | EPSB-03 | 2 | EPS controller (MSP430FR2355) firmware is a new configuration item | IMP | Closed by design change | EPS controller firmware a Class C item (SDP 1.4 §3.4) |
-| EPSB-04 | 3 | Tracker efficiency 90.9-92.3 % against EPS-F002's 92 % | VI | Verification item | EM measurement V-EPS; generation effect < 2 %, inside the power margins |
+| EPSB-04 | 3 | Tracker efficiency 90.9-92.3 % against EPS-F002's 92 % | VI | Implementation | Reopened in round 3: MPPT efficiency requirement and pass criteria disagree (92 % vs 90 %) |
 | EPSB-05 | 3 | ITV4030 fuses rated from −10 °C, below the board's −30 °C allowable | VI | Verification item | V-EPS-8 qualification |
 | EPSB-06 | 3 | Cross-document consistency after the EPS board (B2, diagram README, radiation trip table, BSA H8a, ICD-001, EMC E6/E8, IARU uplink windows) | IMP | Closed by design change | Consistency pass: B1-B4 redrawn with DS3, diagram findings F1-F17 dispositioned, RADIATION D §5.3 trips, BSA B H8a, ICD-001 1.2, EMC B §5.1 (E6, E8), IARU request A.3 windows; SVGs rendered |
 | EPSB-07 | 3 | No magnetorquer current monitor on the EPS board | CH | Closed by chair decision | Coil current is the sum of the OBC's MTQ_X/Y/Z_I channels; SW11 (TPS1H000A, 0.361 A, auto-retry) protects VBAT_MTQ (SQSO-EPS-BRD-001 B) |
 | EPSB-08 | 2 | Pack leads unfused (80-314 A short-circuit current); the Nano2 fuses' breaking capacity below the worst-case current | CD | Closed by design change | F0 added at the cell-4 tab, F0 and F2 MIL-PRF-23419/12 FM12A72V5.0A (1000 A interrupt, 3.2× the 314 A bound), tap fuses FM12A72V3/4A (BATTERY_DESIGN 2.6, EPS_BOARD_DESIGN C §6.1, BSA C H3/H3a/H3b) |
 | EPSB-09 | 3 | FM12 interrupt rating, 60 °C rerating and termination code, and the SMF24A leakage, not read from the vendor data sheets | VI | Verification item | Procurement data review before the EM order (with V-HAR-3); storage drain 7.7 µA worst against 20 µA leaves margin for a 10× leakage error |
-| EPSB-10 | 3 | Shorts in the pack leads and cell taps (BSA H3b) are controlled by one fuse plus construction, not two-fault tolerant | CH | Closed by chair decision | Accepted as design-for-minimum-risk: double insulation, 0.12 m leads, no metal clamps, harness hipot (V-HAR-1), F0 and FT0-FT4 (BSA C H3b); consistent with JSC 20793 Rev D for a 50 Wh pack |
+| EPSB-10 | 3 | Shorts in the pack leads and cell taps (BSA H3b) are controlled by one fuse plus construction, not two-fault tolerant | CH | Implementation | Reopened in round 3: JSC 20793 Rev D does not accept design for minimum risk for wiring; a negative-leg fuse is practical |
 
 #### OBC board (round 2) (OBCB)
 
@@ -615,9 +618,76 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | JETB-07 | 3 | Some carrier part numbers confirmed only from distributor listings | VI | Verification item | BOM verification against manufacturer data before the EM order (MFG-002 receiving inspection) |
 | JETB-08 | 3 | NVIDIA screens the module at 2 Grms only; flight level is 8.18 Grms | VI | Verification item | V-JET-8: random vibration of the populated carrier at protoflight level, functional test before and after |
 | JETB-09 | 2 | If the module's VDD_IN pins are at the SO-DIMM +X end, the 1.4 A burst current passes 12 mm from the RM3100 (order 10 µT) | IMP | Implementation | Chair: the flight software does not use the magnetometer for actuation while JET_PG is high; hardware location per the OBC designer (MCAD-06); VDD_IN end from the NVIDIA drawing (JETB-06) |
-| JETB-10 | 3 | SO-DIMM latch material unknown (TE); carrier magnetic signature unmeasured | VI | Verification item | V-JET-9: magnetic screening of the populated carrier, unpowered and during a burst; non-ferromagnetic or latch-less socket |
-| JETB-12 | 3 | Mated heights of the carrier's J1 and J2 not yet read from the Molex drawings (limits 13.2 mm and 7.7 mm) | VI | Verification item | Check against the Molex drawings before carrier layout; fallback right-angle Micro-Fit for J1, J2 moved to y ≥ +27.5 |
-| JETB-13 | 3 | Spreader thermistor curve from a third-party Steinhart-Hart fit of the 10K3A material, not TE's table | VI | Verification item | Calibrate the flight thermistor at three points (−15, +25, +70 °C) in the EM thermal test; TE table requested |
+| JETB-10 | 3 | SO-DIMM latch material unknown (TE); carrier magnetic signature unmeasured | VI | Implementation | Reopened in round 3: V-JET-9 pass criterion not a number |
+| JETB-12 | 3 | Mated heights of the carrier's J1 and J2 not yet read from the Molex drawings (limits 13.2 mm and 7.7 mm) | VI | Implementation | Reopened in round 3: Reading vendor drawings is not a hardware verification; fallback already taken |
+| JETB-13 | 3 | Spreader thermistor curve from a third-party Steinhart-Hart fit of the 10K3A material, not TE's table | VI | Implementation | Reopened in round 3: No calibration accuracy; the flight thermistor is not on the EM |
+
+#### Round 3: programmatics, SE, V&V (P3P)
+
+| RID | Sev | Finding | Round 1 | Final disposition | Evidence |
+|-----|-----|---------|---------|-------------------|----------|
+| P3P-01 | 2 | No single register of verification items; dated pre-layout items not in the schedule | IMP | Implementation | Generated VI register checked in CI |
+| P3P-02 | 2 | Class I changes made without change requests; CR-007/-008 lack PI approval | IMP | Implementation | CRs raised; PI ratification as a dated decision point |
+| P3P-03 | 2 | Reliability test programme (flatsat, FM burn-in) not in the ETP, schedule or VCRM | IMP | Implementation | Add to the plans or re-run the model without it |
+| P3P-04 | 2 | Hardware FMEA not updated for the round-2 boards | IMP | Implementation | Board-level FMEA |
+| P3P-05 | 2 | Independent PDR has no board or owner; layout duration predates the design | IMP | Implementation | PDR board decision point; layout re-estimated |
+| P3P-06 | 3 | Criteria matrix, VCRM §6, hardware readiness, risk register and CPM not updated after design completion | IMP | Implementation | Rev B of each |
+| P3P-08 | 3 | Cost inconsistencies (launch cost row, custom boards, PCB fabrication, reviews, shock and EMC tests) | IMP | Implementation | Update BASELINE row and ROM basis |
+| P3P-09 | 3 | Life-cycle cost estimate outside document control | IMP | Implementation | Register it |
+| P3P-10 | 3 | Date conflicts: early FCC filing, IARU letter, JETB-06 vs layout | IMP | Implementation | Reconcile in the CPM |
+| P3P-11 | 3 | CR-2026-008 mass not propagated to LVR and orbital access plan | IMP | Implementation | Update |
+| P3P-13 | 3 | Stale TBR-CDS-005 (switch contact form now defined) | IMP | Implementation | Close |
+
+#### Round 3: power, safety, EMC (P3E)
+
+| RID | Sev | Finding | Round 1 | Final disposition | Evidence |
+|-----|-----|---------|---------|-------------------|----------|
+| P3E-01 | 2 | Solar array path has only two independent inhibits | IMP | Implementation | Third independent array inhibit |
+| P3E-02 | 2 | External-short fault tolerance overstated (RT1 cannot break 314 A; F0 and F2 are one part type) | IMP | Implementation | Negative-leg fuse; restated hazards |
+| P3E-03 | 2 | Battery case incomplete against JSC 20793 Rev D (Catastrophic class; abuse tests for a custom pack) | IMP | Implementation | Classification and abuse-test programme |
+| P3E-04 | 2 | Launch compliance documents contradict the closed inhibit design | IMP | Implementation | LVR E, CDS C |
+| P3E-05 | 2 | JETSON_PWR pin inconsistent across documents (PA2 vs PA8) | IMP | Implementation | Align to SQSO-ICX-001 |
+| P3E-06 | 3 | Load-shed coverage mis-stated | IMP | Implementation | Restate or shed U19 |
+| P3E-07 | 2 | Reliability programme absent from the test plan (with P3P-03) | IMP | Implementation | With P3P-03 |
+| P3E-08 | 3 | Power margin bookkeeping mixes formulas; SYS-100 and EPS-F001 at 1.80 W | IMP | Implementation | Correct |
+| P3E-09 | 3 | MPPT efficiency requirement and pass criteria disagree | IMP | Implementation | One value by CR |
+| P3E-10 | 3 | Stale harness gauges and fuse values in EPS and harness documents | IMP | Implementation | Correct |
+| P3E-11 | 3 | End-of-life arm and fire both from one processor | IMP | Implementation | Independent arm path |
+| P3E-12 | 3 | Shipping state of charge inconsistent (65 % vs 30 %) | IMP | Implementation | Align to IATA DGR |
+| P3E-13 | 3 | Record inconsistencies (BMS part, stuck-on Jetson hours, cold-burn bus voltage, SIL F1 heater, third harmonic) | IMP | Implementation | Correct |
+
+#### Round 3: structures, mechanisms, thermal (P3S)
+
+| RID | Sev | Finding | Round 1 | Final disposition | Evidence |
+|-----|-----|---------|---------|-------------------|----------|
+| P3S-01 | 2 | Mechanism cold design and test point (−40 °C) warmer than the predicted stowed-wing temperature | IMP | Implementation | Bounding temperature; margins and test temperatures |
+| P3S-02 | 2 | Board fatigue computed at CBE mass only | IMP | Implementation | Run at MEV |
+| P3S-03 | 2 | EPS board layout guidance lacks the centre supports and the Z-rod notch | IMP | Implementation | Add |
+| P3S-04 | 2 | No humidity control or ground cycle budget for the MoS2 hinges | IMP | Implementation | Ground-ops limits and cycle budget |
+| P3S-05 | 3 | Report §3.3 strength and battery-temperature rows optimistic | IMP | Closed by design change | Report §3.3: strength +1.00 design / +0.84 bounding; battery temperature rows at 12.0 V, 0.10 W/K and wings stowed |
+| P3S-06 | 3 | Launch mass deliverables stale | IMP | Implementation | Update to the CAD and MEL 3.1 |
+| P3S-07 | 3 | Stale mechanical text (mechanisms, MEL rows, FSW inertia) | IMP | Implementation | Update |
+| P3S-08 | 3 | VI-STR-10 has two pass criteria | IMP | Implementation | One criterion |
+| P3S-09 | 3 | Placement Monte Carlo and the C-15 bounding case not reproducible from scripts | IMP | Implementation | Add scripts |
+| P3S-10 | 3 | Thermal-vacuum cycle count and margin conflict between documents | IMP | Implementation | Reconcile |
+| P3S-11 | 3 | Trim masses not specified non-magnetic | IMP | Implementation | W-Ni-Cu or pure W |
+| P3S-12 | 3 | Z rod clipped to two structures at the deck's peak response; clip loads not computed | IMP | Implementation | Compute or tie to one structure |
+| P3S-13 | 3 | RID evidence numbers superseded | IMP | Implementation | Regenerate |
+
+#### Round 3: launch, RF, ground, regulatory (P3A)
+
+| RID | Sev | Finding | Round 1 | Final disposition | Evidence |
+|-----|-----|---------|---------|-------------------|----------|
+| P3A-01 | 2 | GNSS receiver powered inside the 45-minute RF silence | IMP | Implementation | First session ≥ 45 min |
+| P3A-02 | 2 | Launch-compliance documents show pre-round-2 status | IMP | Implementation | LVR E, CDS C, OAP D |
+| P3A-03 | 2 | RF-board TNC firmware has no task, owner, requirements or hazard entry | IMP | Implementation | Schedule, owner, requirements, hazard |
+| P3A-04 | 3 | Telecommand variant B at its minimum is 0.2 dB under 64 dBm; station gain and pointing unverified | IMP | Implementation | Variant B ≥ 17.8 dBic; VIs |
+| P3A-05 | 3 | TCXO ageing decision not flowed down | IMP | Closed by design change | RF-P005: ±1.0 ppm over temperature, ≤ ±3.0 ppm total over 2 years with ageing; ground scales the measured beacon offset by 435.5/145.9; VI-RF-14 (a)-(d) incl. offset estimation within ±20 Hz (RF_DESIGN 2.3) |
+| P3A-06 | 3 | RF shield cans not vented | IMP | Closed by design change | One Ø1.5 mm vent per shield lid (SH2-SH4), V/A 3.2-9.4 m against 50.8 m; hole leakage ≥ 37 dB at 2.4 GHz, PA-to-LNA via vents ≈ 142 dB against 85 dB (RF_BOARD_DESIGN D §10) |
+| P3A-07 | 3 | Operations texts contradict the design | IMP | Implementation | Update |
+| P3A-08 | 3 | Report §3.1-§3.3 numbers do not follow from their sources | IMP | Closed by design change | Report §3.1-§3.3 corrected: ODAR Draft D P 0.997, 86 LVR rows, storage SOC from the 7.7 µA drain, burn sequence, pass statistics (MISSION_TIMELINE 2.3), fire-first passivation, ODAR lifetimes |
+| P3A-09 | 3 | 485 km cap not defined against injection dispersion; no 460 km quote | IMP | Implementation | Contract definition |
+| P3A-10 | 3 | SIL link model at the pre-C-14 station and wrong 70 cm tape axis | IMP | Implementation | Move the SIL to LBA 3.4 |
 <!-- RID-LOG-END -->
 
 ## 7. Verdict

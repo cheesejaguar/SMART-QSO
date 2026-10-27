@@ -82,12 +82,12 @@ pub const SUN_AXIS: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 /// Spin rate about [`SUN_AXIS`] in SUNPOINT, rad/s (8 deg/s). Chosen at CDR
 /// (STR-01) with the full inertia tensor of layout B over Iyy/Izz 1.00 to
 /// 1.05 (`docs/hardware/ADCS_DESIGN.md` §11.4,
-/// `software/simulation/cdr/avionics/adcs_mc_cdr.sh`). Re-run with the CAD
-/// tensor of [`Inertia::DEPLOYED`] (2026-10-27, 40 trials of 2 days): at
-/// least 99.8 % of the sunlit time within 15° from Iyy/Izz 1.005 up (mean
-/// Sun angle 1.8° to 2.1°, the coils 5 to 6 mW), but 73 % at 1.000, where
-/// the CAD's small Iyz leaves the Y and Z axes nearly degenerate (the
-/// reference layout's Iyz gave 93 % there); the CAD value is 1.051
+/// `software/simulation/cdr/avionics/adcs_mc_cdr.sh`). Re-run with the final
+/// CAD tensor of [`Inertia::DEPLOYED`] (2026-10-27, flight software round 3,
+/// 40 trials of 2 days): at least 99.9 % of the sunlit time within 15° from
+/// Iyy/Izz 1.005 up (mean Sun angle 1.8° to 2.0°, the coils 6 to 7 mW), and
+/// the CBE and MEV plants 100 % (1.8°); but 76 % at 1.000, where the Y and Z
+/// axes are degenerate; the CAD value is 1.051
 pub const SPIN_RATE: f64 = 0.1396;
 /// Moments of inertia about the body axes with the wings and the AntS
 /// deployed, kg m^2: the CAD of `docs/environment/MASS_BUDGET.md` v3.1
@@ -186,8 +186,14 @@ impl Inertia {
     /// tensor's off-diagonal elements −Σm·x·y and so on: the mean of the CAD
     /// CBE (Ixy +12.6, Ixz −8.9, Iyz −3.0) and MEV (+13.7, −16.9, +3.1) ×
     /// 10⁻⁶ kg m², MASS_BUDGET v3.1 §6.1)
-    pub const DEPLOYED: Inertia =
-        Inertia { xx: 0.003_056_5, yy: 0.004_467_5, zz: 0.004_252_5, xy: 0.000_013_15, xz: -0.000_012_9, yz: 0.000_000_05 };
+    pub const DEPLOYED: Inertia = Inertia {
+        xx: 0.003_056_5,
+        yy: 0.004_467_5,
+        zz: 0.004_252_5,
+        xy: 0.000_013_15,
+        xz: -0.000_012_9,
+        yz: 0.000_000_05,
+    };
     /// Only wing W1 (+X hinge) deployed
     pub const WING_1_ONLY: Inertia =
         Inertia { xx: 0.003_081, yy: 0.004_214, zz: 0.004_012, xy: -0.000_242, xz: -0.000_041, yz: -0.000_035 };

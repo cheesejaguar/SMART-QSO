@@ -1,7 +1,7 @@
 # Software Development Plan (SDP)
 
 **Document Number**: SMART-QSO-SDP-001
-**Version**: 1.4
+**Version**: 1.5
 **Date**: 2026-10-27
 **Status**: Draft
 
@@ -138,7 +138,7 @@ mission-critical, not safety-critical.
 
 | Safety-critical component | Hazard | Rust (`software/rust`) | Line / condition coverage, measured (2026-10-25); exempt lines |
 |---------------------------|--------|------------------------|-----------------------------------------|
-| EPS control, battery protection | SW-HAZ-001 | `sqso-fsw/src/eps.rs`, `sqso-ffi/src/eps_control.rs` | 100 % / 100 %; 99.5 % / 96.7 %, 2 exempt |
+| EPS control, battery protection | SW-HAZ-001 | `sqso-fsw/src/eps.rs`, `sqso-ffi/src/eps_control.rs` | 100 % / 100 %; 99.7 % / 98.9 %, 2 exempt (2026-10-27, round 3: the INA228 monitors, IMON_JET and the 10 ms PAYLOAD_EN release added) |
 | Watchdog supervision | SW-HAZ-004 | `sqso-fsw/src/watchdog.rs`, `sqso-ffi/src/watchdog_mgr.rs`, `firmware/src/wdt.rs` | 100 % / 100 %; 99.3 % / 96.9 %, 2 exempt; target only |
 | Deployment timer and sequence | SW-HAZ-007 | `sqso-fsw/src/deployment.rs`, `sqso-ffi/src/deployment.rs` | 99.7 % / 100 %, 1 exempt; 100 % / 100 % |
 | Safe-mode entry, fault response | SW-HAZ-008 | `sqso-fsw/src/mode.rs`, `sqso-ffi/src/state_machine.rs`, `sqso-fsw/src/fault_log.rs`, `sqso-ffi/src/fault_mgmt.rs`, `sqso-fsw/src/assert_handler.rs`, `sqso-ffi/src/assert_handler.rs` | 100 % / 100 %; 100 % / 100 %; 98.8 % / 78.6 %, 4 exempt; 100 % / 100 %; 99.1 % / 95.0 %, 2 exempt; 100 % / 93.8 %, 1 exempt |
@@ -146,6 +146,7 @@ mission-critical, not safety-critical.
 | RF transmit inhibit (TX-OFF latch, post-deployment silence, loss of contact, separation switch) | SH-008 | `sqso-fsw/src/rf_control.rs`, `sqso-fsw/src/rf_silence.rs`, `sqso-fsw/src/contact_monitor.rs` and their `sqso-ffi` wrappers, `sqso-ffi/src/separation_switch.rs` | 100 % / 100 % each; wrappers 100 % / 100 % (`contact_monitor` and `separation_switch` have no conditions) |
 | Downlink gate (the same inhibits checked again when a frame is handed to the TNC; key-down and duty limits; transmitter protection), added 2026-10-25 | SH-008 | `sqso-fsw/src/downlink.rs`, `sqso-ffi/src/downlink.rs` | 100 % / 100 %; 100 % / 100 % |
 | FM transponder gates and XPDR_EN heartbeat lease; the commissioning hold and the transponder-enable record (RID FSW-05), added 2026-10-27 | SH-008 | `sqso-fsw/src/transponder.rs`, `sqso-fsw/src/ops_state.rs`, `sqso-ffi/src/ops_state.rs` (the transponder has no `sqso-ffi` module: the executive drives it) | 98.8 % / 94.4 %, 3 exempt; 100 % / 100 %; 100 % / 100 % (2026-10-27) |
+| End-of-life passivation: the TX-OFF and the passivation inhibit after the final report (RID REG-12), added 2026-10-27 (flight software round 3; for the PI's concurrence) | SW-HAZ-013, SH-008 | `sqso-fsw/src/passivation.rs`, `sqso-ffi/src/passivation.rs` | 100 % / 100 %; 100 % / 100 % (2026-10-27) |
 
 Coverage is from the C suites and the Rust unit tests together, measured with `-Zcoverage-options=condition` on the
 pinned nightly (`software/flight/scripts/rust_coverage.sh`); "condition" counts each condition of a decision taken both
@@ -530,3 +531,4 @@ See `docs/verification/VERIFICATION_MATRIX.md` for complete VCRM.
 | 1.2 | 2026-10-25 | SMART-QSO Team | §3.2 safety-critical components determined by the NASA-STD-8739.8B §4.2 criteria from the hazard analysis, with their coverage; SWE-219 not met, tailoring request CR-2026-003. §3.3 tailoring for Class C, branch coverage now gated. §3.1 software classification determined against NPR 7150.2D Appendix D: Class C for flight software, ground software used in operations and verification software, Class D for research and analysis tools (findings PI-18, VV-12); §2.3 table to match; §3.2 cites NASA-STD-8739.8 and records that the safety-criticality statement disagrees with the hazard analysis and safety documents (open). Header cites NPR 7150.2D. §12.1: Embassy executor in place of RTOS concepts (BASELINE §6, CR-2026-002) |
 | 1.3 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §3.1 and §3.3 point to the Appendix C compliance matrix (SQSO-FSW-012), which replaces the "still to do" |
 | 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §2.3, §3.1 and new §3.4: the RF board TNC firmware (STM32L431) and the EPS controller firmware (MSP430FR2355) as Class C software items, with scope, requirements to write and verification; §3.2: the transponder gates and the operations record (`sqso-fsw/src/transponder.rs`, `sqso-fsw/src/ops_state.rs`, `sqso-ffi/src/ops_state.rs`) added to the safety-critical list (RID FSW-05, SRS-Q013), coverage re-measured |
+| 1.5 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §3.2: the end-of-life passivation (`passivation.rs`, both crates) added to the safety-critical list (its TX-OFF now follows the final report, RID REG-12; SQSO-SHA-001 D), coverage re-measured; no configuration item added (the payload platform configuration is part of the payload software, `software/payload/`) |

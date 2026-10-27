@@ -7,11 +7,11 @@ W1,W1-05,NTC1,BATT,NTC1,EPS-J1,5,24,M22759/33,W1-P1,WH,0.0003,0.0003,W1_J1,,,120
 W1,W1-06,NTC1_RTN (GND),BATT,NTC1R,EPS-J1,6,24,M22759/33,W1-P1,GY,0.0003,0.0003,W1_J1,,,120,
 W1,W1-07,HTR_P,BATT,HTR+,EPS-J1,7,24,M22759/33,W1-P2,VT,0.079,0.17,W1_J1,HEATER,+,120,
 W1,W1-08,HTR_N,BATT,HTR-,EPS-J1,8,24,M22759/33,W1-P2,BK,0.079,0.17,W1_J1,HEATER,-,120,
-W1,W1-09,TAP0 (cell 1-),BATT,TAP0,EPS-J2,1,28,M22759/33,W1-T,BK,0.018,0.05,W1_J2,,,120,tap lines behind FT0-FT4 (0.5 A, sense board); balancing 18 mA
-W1,W1-10,TAP1,BATT,TAP1,EPS-J2,2,28,M22759/33,W1-T,BN,0.018,0.05,W1_J2,,,120,tap lines behind FT0-FT4 (0.5 A, sense board); balancing 18 mA
-W1,W1-11,TAP2,BATT,TAP2,EPS-J2,3,28,M22759/33,W1-T,RD,0.018,0.05,W1_J2,,,120,tap lines behind FT0-FT4 (0.5 A, sense board); balancing 18 mA
-W1,W1-12,TAP3,BATT,TAP3,EPS-J2,4,28,M22759/33,W1-T,OG,0.018,0.05,W1_J2,,,120,tap lines behind FT0-FT4 (0.5 A, sense board); balancing 18 mA
-W1,W1-13,TAP4 (cell 4+),BATT,TAP4,EPS-J2,5,28,M22759/33,W1-T,YE,0.018,0.05,W1_J2,,,120,tap lines behind FT0-FT4 (0.5 A, sense board); balancing 18 mA
+W1,W1-09,TAP0 (cell 1-),BATT,TAP0,EPS-J2,1,28,M22759/33,W1-T,BK,0.018,0.75,W1_J2,,,120,tap lines behind FT0-FT4 (FM12A72V3/4A 0.75 A, sense board): i_max is the fuse rating; balancing 18 mA
+W1,W1-10,TAP1,BATT,TAP1,EPS-J2,2,28,M22759/33,W1-T,BN,0.018,0.75,W1_J2,,,120,tap lines behind FT0-FT4 (FM12A72V3/4A 0.75 A, sense board): i_max is the fuse rating; balancing 18 mA
+W1,W1-11,TAP2,BATT,TAP2,EPS-J2,3,28,M22759/33,W1-T,RD,0.018,0.75,W1_J2,,,120,tap lines behind FT0-FT4 (FM12A72V3/4A 0.75 A, sense board): i_max is the fuse rating; balancing 18 mA
+W1,W1-12,TAP3,BATT,TAP3,EPS-J2,4,28,M22759/33,W1-T,OG,0.018,0.75,W1_J2,,,120,tap lines behind FT0-FT4 (FM12A72V3/4A 0.75 A, sense board): i_max is the fuse rating; balancing 18 mA
+W1,W1-13,TAP4 (cell 4+),BATT,TAP4,EPS-J2,5,28,M22759/33,W1-T,YE,0.018,0.75,W1_J2,,,120,tap lines behind FT0-FT4 (FM12A72V3/4A 0.75 A, sense board): i_max is the fuse rating; balancing 18 mA
 W1,W1-14,NTC2,BATT,NTC2,EPS-J2,6,28,M22759/33,W1-T,WH,0.0003,0.0003,W1_J2,,,120,
 W2PX,W2PX-01,S_PX,PNL-PX,SA+,EPS-J4,1,28,M22759/33,W2PX-1,RD,0.275,0.33,W2PX,STR_PX,+,0,
 W2PX,W2PX-02,S_PX,PNL-PX,SA+,EPS-J4,2,28,M22759/33,W2PX-2,RD,0.275,0.33,W2PX,STR_PX,+,0,

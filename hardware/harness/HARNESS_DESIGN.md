@@ -195,11 +195,11 @@ The complete list is `hardware/harness/wire_list.csv` (206 rows). The power and 
 
 | Harness | Pins (from → to) | Signal | AWG | Twist | I normal / max per wire (A) | Notes |
 |---------|------------------|--------|----:|-------|----------------------------|-------|
-| W1 | BATT P1, P2 → J1-1, 2 | BAT_TOP | 22 | quad 1+3, 2+4 | 0.70 / 1.20 | Behind F0 (5 A) at the pack, ahead of F2: PTFE over-sleeve, no metal clamps |
+| W1 | BATT P1, P2 → J1-1, 2 | BAT_TOP | 22 | quad 1+3, 2+4 | 0.70 / 1.20 | Behind F0 (FM12A72V5.0A, 5 A) at the pack, ahead of F2: PTFE over-sleeve, no metal clamps |
 | W1 | BATT N3, N4 → J1-3, 4 | BAT_BOT | 22 | quad | 0.70 / 1.20 | |
 | W1 | NTC1, NTC1R → J1-5, 6 | NTC1, its own return (GND) | 24 | pair | < 1 mA | |
 | W1 | HTR± → J1-7, 8 | Heater | 24 | pair | 0.079 / 0.170 | |
-| W1 | TAP0–TAP4, NTC2 → J2-1 … 6 | Cell taps, NTC2 | 28 | bundle | 0.018 / 0.05 | Taps behind FT0–FT4 (0.5 A) at the pack |
+| W1 | TAP0–TAP4, NTC2 → J2-1 … 6 | Cell taps, NTC2 | 28 | bundle | 0.018 / 0.75 (taps) | Taps behind FT0–FT4 (FM12A72V3/4A, 0.75 A) at the pack; 0.75 A is the wire-list maximum |
 | W2PX/MX/PY/MY | SA+, SA+, SA−, SA−, TEMP → J4–J7-1 … 5 | String, returns, panel NTC | 28 | 1+3, 2+4 (+5) | 0.275 / 0.33 | Back-wired strings (residual dipole) |
 | W2W1/W2W2 | TB T1 … T8 → J8/J9-1 … 8 | Front ×2, back ×2, GND ×3, TEMP | 28 | (1, 2, 5), (3, 4, 6), (7, 8) | + 0.275 / 0.33; returns 0.367 / 0.44 | |
 | W3 | J3-n → J1-n, n = 1 … 40 (SQSO-ICX-001 §3.1) | 3V3_OBC (1, 2), VBAT_MTQ (36, 39), GND (3, 4, 7, 28, 35, 40), 32 signals | 30 | flat | 3V3_OBC 0.088, VBAT_MTQ 0.20, returns ≤ 0.13 | Straight through |
@@ -357,6 +357,7 @@ interconnect allocated) and W10E: 3.1 of 11.7 mm²; nothing moves to the (+X,+Y)
 | Harness | Wire | I max (A) | N | Derated (A) | Ratio | Contact (normal current / 50 % rating) |
 |---------|------|----------:|--:|------------:|------:|---------------------------------------:|
 | W1 | BAT_TOP 22 AWG | 1.20 | 43 | 2.50 | 48 % | 47 % (Micro-Fit) |
+| W1 | Cell tap 28 AWG (FT0–FT4 rating) | 0.75 | 43 | 0.90 | 83 % | 4 % at the 18 mA balancing current |
 | W2 body | S_face 28 AWG | 0.33 | 43 | 0.90 | 37 % | 55 % |
 | W2 wings | GND return 28 AWG | 0.44 | 43 | 0.90 | 49 % | 73 % |
 | W3 | VBAT_MTQ 30 AWG | 0.20 | 40 | 0.65 | 31 % | 4 % |
@@ -371,14 +372,17 @@ interconnect allocated) and W10E: 3.1 of 11.7 mm²; nothing moves to the (+X,+Y)
 
 Maximum currents are the switch limits or trips (fault cases, limited in microseconds and removed after 8 ms by the
 TPS2553 auto-retry) except W1 (2.0 A, four burn drivers on, with a 60/40 split between the paired wires) and W5A
-(1.4 A design current, 20 % split allowance). **W1 is fused at the pack** (BATTERY_DESIGN 2.5 §7.2): F0 (Littelfuse
-0451005.MRL, 5 A, in BAT_TOP within 10 mm of the cell-4 tab on the sense board, in series with the EPS's F2) clears a
-short in the pack leads or at J1, and FT0–FT4 (0.5 A, one per cell tap at the sense board) clear a short in a tap wire.
-Each fuse is at or below the rating of the wire it protects: 5 A against 5.0 A for one 22 AWG pack lead alone (the
-pole has two) and 0.5 A against 0.90 A for a bundled 28 AWG tap wire. The unfused length is the few millimetres from
-the cell tabs to F0 and FT0–FT4 on the sense board; the construction controls stay (PTFE over-sleeve on the pack leads,
-routing away from edges, no metal clamps, hipot V-HAR-1). F0's breaking capacity against the cell short-circuit current
-is the EPS designer's check.
+(1.4 A design current, 20 % split allowance). **W1 is fused at the pack** (BATTERY_DESIGN 2.6 §5.1, §7.2): F0
+(FM12A72V5.0A, MIL-PRF-23419/12 solid-body fuse, 5 A, 72 VDC, 1000 A interrupt, in BAT_TOP within 10 mm of the cell-4
+tab on the sense board, in series with the EPS's F2 of the same type) clears a short in the pack leads or at J1, and
+FT0–FT4 (FM12A72V3/4A, 0.75 A, 72 VDC, 1000 A interrupt, one per cell tap at the sense board) clear a short in a tap
+wire. Each fuse is at or below the derated rating of the wire it protects: 5 A against 5.0 A for one 22 AWG pack lead
+alone (the pole has two, 2.50 A derated each in the bundle: a pole carries 5.0 A), and **0.75 A against 0.90 A for a
+bundled 28 AWG tap wire (83 %)**; the wire list carries 0.75 A as the tap wires' maximum current, so the script checks
+it (W1-09 … W1-13). The unfused length is the few millimetres from the cell tabs to F0 and FT0–FT4 on the sense board;
+the construction controls stay (PTFE over-sleeve on the pack leads, routing away from edges, no metal clamps, hipot
+V-HAR-1). The interrupt rating against the cell short-circuit current is in BATTERY_DESIGN 2.6 §7.2; if the EPS
+designer adds a BAT_BOT fuse at cell 1, the BAT_BOT leads are checked against it the same way.
 
 ### 9.2 Voltage drop (design current, conductor at +60 °C, Pico-Clasp 20 mΩ, Micro-Fit 10 mΩ, Samtec 20 mΩ per contact)
 
@@ -567,7 +571,7 @@ is the nickel underplate of A2's own connector.
 | R-2 | RF | W4B: 28 AWG twisted pairs (was 24 AWG) | Pico-Clasp range |
 | R-3 | RF §4.3 | W10 1.37 mm coax top bend R 7 mm is 5.1 × OD, below the 6 × OD workmanship rule for flexible coax: confirm with the procured cable's minimum static radius or accept by analysis | §10.4 |
 | J-1 | Carrier (SQSO-JET-BRD-001 §18, BOM) | J1 → **right-angle** Micro-Fit 2×2 (43045-0400 class), gold, plug from −X; J2 gold; keep x +42 … +45.4, y +26 … +31 above the carrier free for W5B | Vertical mated J1 and its bend reach the RF board's bottom envelope |
-| B-1 | Battery (`hardware/eps/BATTERY_DESIGN.md` §7.2) | Pack leads 22 AWG (was 20), all leads 0.12 m from the sense board, PTFE over-sleeve; a fuse on the sense board: **done** in BATTERY_DESIGN 2.5 (F0 5 A in BAT_TOP, FT0–FT4 0.5 A in the taps; breaking capacity checked by the EPS designer) | §5.2, §9.1 |
+| B-1 | Battery (`hardware/eps/BATTERY_DESIGN.md` §7.2) | Pack leads 22 AWG (was 20), all leads 0.12 m from the sense board, PTFE over-sleeve; a fuse on the sense board: **done** in BATTERY_DESIGN 2.6 (F0 FM12A72V5.0A 5 A in BAT_TOP, FT0–FT4 FM12A72V3/4A 0.75 A in the taps, 1000 A interrupt) | §5.2, §9.1 |
 | M-1 | Mechanical (SQSO-MECH-CAD-001 §6.9, `model.py`) | Model the harness zones of §7.1 (under the EPS, inboard and corner strips, hinge-side strips, MXC, PXC_B, PXMY2, step-overs) and the EPS bottom-side connector envelope: **done** (MECHANICAL_DESIGN B §6.11, D-12) | CAD holds the routes |
 | M-2 | Mechanical / frame RFQ | Four grommeted 6 × 4 mm slots in the shear panels at (+48.5, −30, −10), (−48.5, −12, −10), (−30, +48.5, −10), (−30, −48.5, −10): **done** (MECHANICAL_DESIGN B §6.11, D-12) | Body-panel pigtails |
 | M-3 | Mechanical | Access-port envelope 30 × 7 × 8.8 mm (x −35 … −5, z −46.8 … −38) for A3 and the Micro-D 21, and the −Y body-panel window to match (the −Z end zone has no cells): **done** (MECHANICAL_DESIGN B §6.11, D-12) | One GSE connector for W8 and W11 |
@@ -593,4 +597,4 @@ is the nickel underplate of A2's own connector.
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-27 | CDR structures review (STR-25), mechanical routing only: battery flying leads ≥ 100 mm with no stack connector (§4.1); routing zones F and G and the mechanical routing rules (hinge flex jumper, back-wired strings, deployment-sweep clearance, isolated battery, cable ties per UG v11 §5.2.3, envelope, vent paths) (§6.2, §6.3); hinge crossing (§8.1); mass note against the MEL (§9) |
 | 1.2 | 2026-10-27 | CDR 2026 consistency pass: note in §4 that SQSO-ICX-001 and the board designs (harnesses W1–W10) supersede the H1–H6 and H8 contents, W11 proposed (finding F15 of SQSO-HW-DIAG-001) |
-| 2.0 | 2026-10-27 | Rewritten as the build-to harness design (RID SE-19), with the chair's follow-ups of the same day (A3 30 × 8.8 mm per SQSO-OBC-BRD-001 C §15.1; W1 fused at the pack by F0 and FT0–FT4 per BATTERY_DESIGN 2.5): the H1–H8 definitions and the superseded notice removed; wire list of W1–W12, W10 and W10E (206 conductors) in `hardware/harness/wire_list.csv`, routes in `hardware/harness/routes.csv`, calculations in `hardware/harness/harness_calcs.py`; gauges from the terminal ranges, AS22759/33 wire, EEE-INST-002 derating; band-B over-fill resolved by routing the EPS-only harnesses under the EPS (connectors on the EPS bottom side), W6D unshielded, pack leads 22 AWG; Samtec TFM/SFSDT replaces the PVC ribbons; access-port board A3 with one Micro-D 21; gold finishes; CAD check of 58 zones; mass 84.3 g; EMC; V-HAR-1 to V-HAR-13; changes for the other documents (§15); WireViz W1–W10 updated |
+| 2.0 | 2026-10-27 | Rewritten as the build-to harness design (RID SE-19), with the chair's follow-ups of the same day (A3 30 × 8.8 mm per SQSO-OBC-BRD-001 C §15.1; W1 fused at the pack by F0 and FT0–FT4 per BATTERY_DESIGN 2.6): the H1–H8 definitions and the superseded notice removed; wire list of W1–W12, W10 and W10E (206 conductors) in `hardware/harness/wire_list.csv`, routes in `hardware/harness/routes.csv`, calculations in `hardware/harness/harness_calcs.py`; gauges from the terminal ranges, AS22759/33 wire, EEE-INST-002 derating; band-B over-fill resolved by routing the EPS-only harnesses under the EPS (connectors on the EPS bottom side), W6D unshielded, pack leads 22 AWG; Samtec TFM/SFSDT replaces the PVC ribbons; access-port board A3 with one Micro-D 21; gold finishes; CAD check of 58 zones; mass 84.3 g; EMC; V-HAR-1 to V-HAR-13; changes for the other documents (§15); WireViz W1–W10 updated |

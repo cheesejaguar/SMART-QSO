@@ -853,7 +853,11 @@ MECH += [
     dict(ref="SH2 SH3 SH4", qty=3, value="shield lids (receive, transmit, digital cavity)",
          mpn="made to drawing (RF board layout)", mfr="shield vendor (open)", pkg="solder-mounted lid",
          notes=SHIELD_MAT + ". Soldered to the frame: no shield clips, no steel spring fingers. EM only: lids "
-               "held by the frame's own nickel-silver dimples for FL1 and match tuning"),
+               "held by the frame's own nickel-silver dimples for FL1 and match tuning. One vent hole dia 1.5 mm "
+               "+0.1/-0 per lid (STRUCTURAL_ANALYSIS §11, P3A-06; V/A 3.2/4.1/9.4 m): receive lid over the "
+               "CC1200/TCXO end, >= 15 mm from FL1 and the LNA input; transmit lid over the LMX2571/PCM1808 end, "
+               ">= 15 mm from the PA, LPF and sense line; digital lid anywhere outside the J1 notch. Hole leakage "
+               "61/51/37 dB at 146 MHz/437 MHz/2.4 GHz (rf_calcs §17); kept clear of conformal coat and solder"),
 ]
 
 

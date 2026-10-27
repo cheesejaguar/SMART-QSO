@@ -1,7 +1,7 @@
 # SMART-QSO Thermal Analysis
 
 **Document ID**: SQSO-THA-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis (uncorrelated model). Replaces version 1.0, which analysed a 400 km ISS orbit and an Apollo4
@@ -53,7 +53,7 @@ the cold case against the design (1 W heater, ≈ 0.03 W/K mount; BUILD_VS_BUY �
 | Solar flux | 1414 W/m² | 1322 W/m² | 1316–1414 W/m² by date | Perihelion / aphelion |
 | Albedo | 0.35 | 0.25 | 0.30 | Typical high-inclination LEO design values (Gilmore, *Spacecraft Thermal Control Handbook*, ch. 2) |
 | Earth IR | 258 W/m² | 218 W/m² | 237 W/m² | as above |
-| Orbit | 500 km SSO. Bounding hot: dawn–dusk (β ≈ 74°, no eclipse), the BASELINE §8 definition. Real hot: LTAN 21:30 in January (β 40°, 32 min eclipse) | β ≈ 0 (36.0 min eclipse); real cold: LTAN 23:30 in June (β 6°) | LTAN 22:30, β 16–26° | BASELINE §3, §8; LTAN ±1 h from the launch provider |
+| Orbit | 475 km SSO (Version 2.1, BASELINE Rev E; 500 km in 2.0), deployment 2028-11-01. Bounding hot: dawn–dusk (β ≈ 74°, no eclipse), the BASELINE §8 definition. Real hot: LTAN 21:30 in January (β 40°, 32 min eclipse) | β ≈ 0 (36.0 min eclipse); real cold: LTAN 23:30 in June (β 6°) | LTAN 22:30, β 16–26° | BASELINE §3, §8; LTAN ±1 h from the launch provider |
 
 The baseline orbit (LTAN 22:30 ± 1 h) never reaches the BASELINE §8 hot case: β stays between 2° and 41° over a year
 (`POWER_BUDGET_ANALYSIS.md` §3), and every orbit has an eclipse of 32–36 min. The no-eclipse hot case is therefore a
@@ -143,6 +143,71 @@ time; the battery stayed below −10 °C for 53 min, first rose above 0 °C afte
 2.3 h at LTAN 23:30), and the OBC reached −22.9 °C (−23.3 °C at LTAN 23:30). From −15 °C: 40 min below −10 °C,
 1.15 h below 0 °C. The same run from +55 °C (a hot soak) kept the pack above the 45 °C charge limit for 0.8 h; the
 bus stayed up in every case (lowest recorded pack voltage 14.65 V).
+
+### 4.1 Re-run at 475 km (Version 2.1)
+
+The cases of §4 re-run at the BASELINE Rev E deployment altitude, 475 km (465–485 km acceptable), with the launch
+planning date 2028-11-01 (the seasonal cases fall in the first year after it: January, March and June 2029), the heater
+set points of the flight software (+5/+9 °C, SRS-F130; §4 ran several cases at +2/+6 °C) and one new case, L3: the
+deployment itself on 2028-11-01 at LTAN 22:30 from the 2 h cold soak (`software/rust/sqso-sil/src/env/thermal.rs`
+`cdr_thermal_cases`, flight software round 3; tabulated by `thermal_cases.py`). Last orbit of each case; minimum …
+maximum, °C; the margin column is the worst of every node against §3 after the 10 °C uncertainty.
+
+| Case | β (°) | Eclipse (min) | Battery | OBC/EPS | RF (PA) | Jetson | Body | Wings | Heater duty | Worst margin after 10 °C |
+|---|---|---|---|---|---|---|---|---|---|---|
+| H1 hot bounding, no eclipse, bursts, 0.44 W/K | -73.8 | 0.0 | 28.4 … 29.0 | 28.9 … 31.4 | 29.1 … 31.4 | 28.2 … 33.6 | 22.8 … 38.2 | 67.4 … 75.3 | 0 % | -0.3 (wing hot) |
+| H2 hot bounding, no eclipse, 600 s batch, 0.44 W/K | -73.8 | 0.0 | 28.0 … 29.2 | 27.7 … 32.2 | 28.1 … 32.5 | 26.3 … 39.3 | 21.8 … 39.3 | 64.1 … 75.4 | 0 % | -0.4 (wing hot) |
+| H3 hot bounding, no eclipse, 600 s batch, 1.0 W/K | -73.8 | 0.0 | 28.0 … 29.2 | 27.6 … 32.0 | 28.0 … 32.4 | 26.0 … 35.6 | 22.2 … 38.4 | 64.2 … 75.4 | 0 % | -0.4 (wing hot) |
+| H4 hot bounding, no eclipse, bursts, 1.0 W/K | -73.8 | 0.0 | 28.4 … 29.0 | 28.9 … 31.3 | 29.1 … 31.5 | 27.3 … 32.8 | 23.2 … 37.7 | 67.3 … 75.3 | 0 % | -0.3 (wing hot) |
+| H5 hot real, LTAN 21:30 Jan, bursts, 0.44 W/K | 40.0 | 32.7 | 8.8 … 15.2 | -0.5 … 24.8 | -1.1 … 25.0 | -0.5 … 26.4 | -7.2 … 32.5 | -32.7 … 83.1 | 0 % | -8.1 (wing hot) |
+| H7 hot bounding, Jetson stuck on 8 W, 0.44 W/K | -73.6 | 0.0 | 43.7 … 44.3 | 46.0 … 48.4 | 44.4 … 46.8 | 58.6 … 60.9 | 38.3 … 51.7 | 62.8 … 67.4 | 0 % | -20.9 (Jetson hot) |
+| H8 hot bounding, Jetson stuck on 8 W, 1.0 W/K | -73.6 | 0.0 | 43.5 … 44.1 | 45.3 … 47.7 | 44.2 … 46.6 | 49.5 … 52.0 | 38.5 … 51.1 | 62.7 … 67.4 | 0 % | -12.0 (Jetson hot) |
+| H9 hot bounding, heater stuck on 1.37 W (16.4 V), no cutout | -73.6 | 0.0 | 49.2 … 49.8 | 31.6 … 34.0 | 31.4 … 33.7 | 30.2 … 35.6 | 25.0 … 40.0 | 65.8 … 72.9 | 100 % | -14.8 (battery hot) |
+| H6 hot bounding, black battery (eps 0.85) | -73.8 | 0.0 | 27.9 … 29.0 | 29.0 … 31.4 | 29.2 … 31.4 | 28.3 … 33.6 | 22.9 … 38.1 | 67.4 … 75.3 | 0 % | -0.3 (wing hot) |
+| C1 cold, beta 0, SAFE tumbling, heater 1.0 W | -3.4 | 36.1 | 5.0 … 12.7 | -8.3 … 20.0 | -8.4 … 20.1 | -8.3 … 19.4 | -14.2 … 26.9 | -40.4 … 37.2 | 22 % | -10.4 (wing cold) |
+| C2 cold, beta 0, SAFE tumbling, heater 0.72 W (12.0 V) | -3.4 | 36.1 | 5.0 … 12.5 | -8.3 … 19.9 | -8.5 … 20.1 | -8.4 … 19.4 | -14.2 … 26.8 | -40.5 … 37.1 | 28 % | -10.5 (wing cold) |
+| C3 cold, beta 0, SAFE tumbling, heater 0.5 W | -3.4 | 36.1 | 4.9 … 12.2 | -8.4 … 19.8 | -8.6 … 20.0 | -8.5 … 19.3 | -14.3 … 26.8 | -40.5 … 36.8 | 34 % | -10.5 (wing cold) |
+| C4 cold, beta 0, SAFE spin-pointed, heater 1.0 W | -3.4 | 36.1 | 4.6 … 10.2 | -11.2 … 13.5 | -11.4 … 13.5 | -11.5 … 12.9 | -16.3 … 22.5 | -39.0 … 78.2 | 44 % | -9.0 (wing cold) |
+| C5 cold, beta 0, EMERGENCY tumbling, heater 0.72 W | -3.4 | 36.1 | 5.0 … 12.5 | -8.3 … 19.9 | -8.5 … 20.0 | -8.4 … 19.4 | -14.3 … 26.8 | -40.5 … 37.1 | 28 % | -10.5 (wing cold) |
+| C6 cold, beta 0, SAFE tumbling, wings stowed, 0.72 W | -3.4 | 36.1 | 4.2 … 9.7 | -9.6 … 12.7 | -9.8 … 12.7 | -9.8 … 12.0 | -15.0 … 19.7 | -24.6 … 22.1 | 52 % | +0.2 (RF cold) |
+| C7 cold, beta 0, SAFE tumbling, black battery, 0.72 W | -3.4 | 36.1 | 3.2 … 14.5 | -7.6 … 19.6 | -7.7 … 19.7 | -7.7 … 19.0 | -13.3 … 26.4 | -40.2 … 36.9 | 40 % | -10.2 (wing cold) |
+| C8 cold, beta 0, SAFE tumbling, mount 0.10 W/K, 0.72 W | -3.4 | 36.1 | 3.1 … 14.2 | -7.6 … 19.6 | -7.7 … 19.7 | -7.7 … 19.0 | -13.3 … 26.4 | -40.2 … 36.9 | 41 % | -10.2 (wing cold) |
+| C9 cold, beta 0, SAFE spin-pointed, heater failed off | -3.4 | 36.1 | -2.6 … 3.5 | -12.4 … 12.4 | -12.5 … 12.6 | -12.5 … 12.0 | -17.4 … 21.5 | -39.4 … 80.2 | 100 % | -9.4 (wing cold) |
+| C11 cold, beta 0, SAFE spin-pointed, heater 0.72 W (12.0 V) | -3.4 | 36.1 | 3.7 … 9.8 | -11.3 … 13.3 | -11.6 … 13.4 | -11.6 … 12.7 | -16.4 … 22.3 | -39.0 … 78.8 | 54 % | -9.0 (wing cold) |
+| C12 cold, beta 0, SAFE spin-pointed, heater 0.5 W | -3.4 | 36.1 | 2.6 … 9.3 | -11.5 … 13.1 | -11.7 … 13.2 | -11.7 … 12.5 | -16.6 … 22.1 | -39.1 … 79.3 | 66 % | -9.1 (wing cold) |
+| C13 cold, beta 0, EMERGENCY spin-pointed, heater 0.72 W | -3.4 | 36.1 | 3.7 … 9.8 | -11.4 … 13.3 | -11.6 … 13.3 | -11.6 … 12.7 | -16.5 … 22.3 | -39.0 … 78.8 | 54 % | -9.0 (wing cold) |
+| C14 cold, beta 0, SAFE spin-pointed, wings stowed, 0.72 W | -3.4 | 36.1 | -1.1 … 3.2 | -18.1 … -0.3 | -18.5 … -0.4 | -18.6 … -1.1 | -22.5 … 7.5 | -31.4 … -14.3 | 100 % | -8.5 (RF cold) |
+| C15 cold, beta 0, SAFE spin-pointed, mount 0.10 W/K, 0.72 W | -3.4 | 36.1 | 0.2 … 10.1 | -10.7 … 13.0 | -10.8 … 13.1 | -10.8 … 12.5 | -15.5 … 21.9 | -38.8 … 78.8 | 65 % | -8.8 (wing cold) |
+| C16 cold, beta 0, SAFE spin-pointed, wings stowed, 0.95 W (14.0 V) | -3.4 | 36.1 | 2.7 … 6.9 | -17.5 … 0.1 | -17.9 … -0.1 | -18.0 … -0.7 | -21.9 … 7.6 | -30.9 … -14.0 | 100 % | -7.9 (RF cold) |
+| C17 cold, beta 0, SAFE spin-pointed, wings stowed, 1.09 W (180 ohm, 14.0 V) | -3.4 | 36.1 | 3.2 … 8.0 | -17.4 … -0.1 | -17.8 … -0.3 | -18.0 … -0.9 | -21.9 … 7.3 | -30.9 … -14.1 | 100 % | -7.8 (RF cold) |
+| C20 cold, beta 0, wings stowed, 0.95 W, set points +5/+9 C | -3.4 | 36.1 | 2.7 … 6.9 | -17.5 … 0.1 | -17.9 … -0.1 | -18.0 … -0.7 | -21.9 … 7.6 | -30.9 … -14.0 | 100 % | -7.9 (RF cold) |
+| C21 cold, beta 0, mount 0.10 W/K, 0.95 W, set points +5/+9 C | -3.4 | 36.1 | 1.3 … 10.6 | -10.5 … 13.3 | -10.6 … 13.4 | -10.6 … 12.7 | -15.3 … 22.2 | -38.7 … 78.4 | 58 % | -8.7 (wing cold) |
+| C22 cold, beta 0, nominal, 0.95 W, set points +5/+9 C | -3.4 | 36.1 | 4.4 … 10.1 | -11.2 … 13.4 | -11.5 … 13.5 | -11.5 … 12.8 | -16.4 … 22.4 | -39.0 … 78.3 | 45 % | -9.0 (wing cold) |
+| C23 cold, beta 0, nominal mount 0.03 W/K, 0.95 W, set points +5/+9 C | -3.4 | 36.1 | 4.9 … 10.0 | -11.5 … 13.4 | -11.7 … 13.5 | -11.7 … 12.8 | -16.6 … 22.4 | -39.1 … 78.3 | 40 % | -9.1 (wing cold) |
+| C24 cold, beta 0, SAFE tumbling, 1.30 W (16.4 V), set points +5/+9 C | -3.4 | 36.1 | 5.0 … 12.8 | -8.2 … 20.0 | -8.4 … 20.2 | -8.3 … 19.5 | -14.2 … 26.9 | -40.4 … 37.4 | 18 % | -10.4 (wing cold) |
+| C25 cold, beta 0, SAFE spin-pointed, 1.30 W (16.4 V), set points +5/+9 C | -3.4 | 36.1 | 5.0 … 10.2 | -11.2 … 13.6 | -11.4 … 13.7 | -11.4 … 13.0 | -16.3 … 22.6 | -38.9 … 79.3 | 35 % | -8.9 (wing cold) |
+| C18 cold, beta 0, SAFE spin-pointed, mount 0.10 W/K, 0.95 W | -3.4 | 36.1 | 1.3 … 10.6 | -10.5 … 13.3 | -10.6 … 13.4 | -10.6 … 12.7 | -15.3 … 22.2 | -38.7 … 78.4 | 58 % | -8.7 (wing cold) |
+| C19 cold, beta 0, SAFE spin-pointed, mount 0.10 W/K, 1.09 W | -3.4 | 36.1 | 1.9 … 10.8 | -10.4 … 13.4 | -10.5 … 13.5 | -10.6 … 12.8 | -15.2 … 22.3 | -38.7 … 78.1 | 55 % | -8.7 (wing cold) |
+| C10 cold real, LTAN 23:30 June, SAFE tumbling, 0.72 W | 5.8 | 35.9 | 5.0 … 11.6 | -7.4 … 21.3 | -7.5 … 21.6 | -7.4 … 20.9 | -13.5 … 28.2 | -39.6 … 47.0 | 0 % | -9.6 (wing cold) |
+| L1 LEOP from cold soak, heater 1.0 W | -1.9 | 36.1 | -8.9 … 4.3 | -17.4 … 3.3 | -17.6 … 2.7 | -17.6 … 1.6 | -22.3 … 10.4 | -45.2 … 33.8 | 100 % | -15.2 (wing cold); battery ≥ 0 °C after 33 min |
+| L2 LEOP from cold soak, heater 0.5 W | -1.9 | 36.1 | -8.9 … -1.5 | -17.4 … 3.5 | -17.6 … 3.0 | -17.6 … 1.9 | -22.6 … 10.2 | -45.3 … 34.8 | 100 % | -15.3 (wing cold) |
+| L3 LEOP real, 2028-11-01 LTAN 22:30, from cold soak, heater 1.0 W | 19.6 | 35.3 | -8.9 … 9.9 | -24.0 … 19.4 | -24.8 … 19.0 | -25.1 … 18.1 | -29.1 … 22.1 | -45.4 … 45.0 | 83 % | -15.4 (wing cold); battery ≥ 0 °C after 58 min |
+
+Extremes at 475 km, against 500 km (§4):
+
+| Node | Hot bounding (H1–H6) | Failure hot (H7 Jetson stuck on, H9 heater stuck on) | Cold, wings deployed (C1–C25 nominal set) | Wings stowed (C6, C14, C16, C17, C20) | LEOP from the cold soak (L1–L3) |
+|------|----------------------|------------------------------------------------------|-------------------------------------------|----------------------------------------|----------------------------------|
+| Battery | 27.9 … 29.2 (was 27.7 … 28.9) | 44.3 (H7); 49.8 (H9; was 49.5) | +3.7 at 0.72 W spin-pointed (C11); +0.2 with a 0.10 W/K mount (C15); −2.6 heater failed (C9; was −2.8) | −1.1 at 0.72 W (C14; was −1.3); +2.7 at 0.95 W (C16, C20) | −8.9 at the start; 0 °C after 33 min (L1) and 58 min (L3) |
+| OBC/EPS | 32.2 (H2; was 31.9) | 48.4 (H7; was 48.1) | −11.5 (C12; was −11.9) | −18.1 (C14; was −18.3) | −17.4 (L1); **−24.0 (L3)** |
+| RF (PA) | 32.5 (H2; was 32.2) | 46.8 (H7; was 46.5) | −11.7 (C12; was −12.0) | −18.5 (C14; was −18.6) | −17.6 (L1); **−24.8 (L3)** |
+| Jetson | 39.3 (H2; was 39.0) | 60.9 (H7; was 60.6) | −11.7 (C12; was −12.0) | −18.6 (C14; was −18.8) | −17.6 (L1); **−25.1 (L3)** |
+
+The lower altitude changes the orbit-average results by 0.2–0.4 °C (a slightly larger Earth view and a shorter
+orbit). The verdicts of §1 and §5 stand. The new deployment case L3 is the coldest for the boards: −24 °C on the OBC
+and −25 °C on the RF board and the Jetson during the first orbit after a 2 h cold soak, below SYS-600
+(−20 °C operating) and inside the part ratings (−40 °C); it agrees with the mission simulation's −22.9 °C from a
+−20 °C spacecraft (§4). The battery leaves the cell's 0 °C charge limit 58 min after deployment (L1, β = 0: 33 min).
+RID THM-06 (deployment within 2 h of the soak) covers it.
 
 ## 5. Margins
 
@@ -284,3 +349,4 @@ The full RID table is in the CDR reviewer report; the thermal RIDs closed or ope
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten for the baseline orbit and hardware on the simulation's 12-node network (battery radiation added): hot, cold, dispenser and LEOP cases with margins (finding TB-07) |
+| 2.1 | 2026-10-27 | CDR flight software, round 3 | §4.1 new: the cases re-run at 475 km (BASELINE Rev E) with the 2028-11-01 launch date and the +5/+9 °C set points, and the deployment case L3 (2028-11-01, LTAN 22:30, from the cold soak: boards −24 to −25 °C); §2.2 orbit row |

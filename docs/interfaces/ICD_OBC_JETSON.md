@@ -299,7 +299,7 @@ Sections 2, 3 and 6.3 are the 2026-01 preliminary interface. Where they disagree
 | Item | As built (flight software and provisional firmware pin map) | Was |
 |------|--------------------------------------------------------------|-----|
 | Link | USART1, PA9 TX / PA10 RX, 115200 8N1, 3.3 V CMOS, interrupt-driven receive buffer (`firmware/src/uart.rs`) | same |
-| Power | VBAT through SW1 (`PAYLOAD_EN`, PB4) and the eFuse U3 (`JETSON_PWR`, PA2), then the carrier's own converter (`docs/hardware/EPS_DESIGN.md` v2.0) | 5 V EPS rail and a Power Enable pin on the connector |
+| Power | VBAT through SW1 (`PAYLOAD_EN`, PB2) and the EPS eFuse U19 (`JETSON_PWR`, PA8) (SQSO-ICX-001; corrected in place from the provisional PB4 / PA2: PB4 resets as NJTRST with a pull-up, and PA2 is now the spreader-thermistor ADC input PT_NTC), then the carrier's own converter (`docs/hardware/EPS_DESIGN.md` v2.0) | 5 V EPS rail and a Power Enable pin on the connector |
 | Power limit | 8 W carrier input in operation; software trips at 12 W (one sample) and > 8 W (two samples); eFuse 1.2 A | 15 W peak |
 | Connector pin 4 | not a power enable: the switches are on the EPS side. Use it as a second ground or the carrier's power-good to the OBC (open) | Power Enable |
 | Switch-on | gates of BASELINE §5 and the commissioning hold, then both switches together; the OBC waits for STATUS before BEACON_REQ | EPS 5 V, then enable after 100 ms |
@@ -361,8 +361,8 @@ Flight-software changes F1–F3 of the carrier design §19 are for the chair.
 
 ### 10.5 Flight Software Side as Built (flight software round 3)
 
-Implemented in `software/rust/` (round 3; not run on hardware). Where §9 gives the provisional pins (PAYLOAD_EN PB4,
-JETSON_PWR PA2), this table governs: the firmware follows the master allocation SQSO-ICX-001 B §4 and §6.
+Implemented in `software/rust/` (round 3; not run on hardware). §9 first gave the provisional pins (PAYLOAD_EN PB4,
+JETSON_PWR PA2; corrected in place, panel item P3E-05); this table governs: the firmware follows the master allocation SQSO-ICX-001 B §4 and §6.
 
 | Item | As built |
 |------|----------|
@@ -398,4 +398,4 @@ JETSON_PWR PA2), this table governs: the firmware follows the master allocation 
 | 1.1 | 2026-10-15 | Funding audit | §4 made exact (line rules, 512-byte limit, STATUS_REQ, STATUS fields, BEACON_RSP text, NACK reasons, golden lines) and implemented on both sides (SW-24) |
 | 1.2 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §9 new: interface as built (power through SW1 and U3 from VBAT, 8 W limit, connector pin 4, switch-on/off, fallback); back-powering through the idle TX line (RID AV-09) |
 | 1.3 | 2026-10-27 | Payload carrier design (CDR design completion) | §10 new: carrier connectors (W5B 6 pins with the spreader thermistor, change E10), 5 V-only module input, 1.8 V UART translated on the carrier, OBC transmits 8N2, JET_3V3 as power-good, timing, commanded switch-off with SHUTDOWN and JET_3V3 (supersedes the §9 switch-off row) |
-| 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §10.5 new: the flight-software side as built: 8N2, PAYLOAD_EN PB2 and JETSON_PWR PA8, JET_PG, the commanded switch-off with SHUTDOWN, power-good faults, switch readbacks, JPC from IMON_JET, the spreader thermistor, the burst energy gate, magnetometer gating, the module's platform configuration (RIDs JETB-01 to JETB-04, AV-06) |
+| 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §10.5 new: the flight-software side as built: 8N2, PAYLOAD_EN PB2 and JETSON_PWR PA8, JET_PG, the commanded switch-off with SHUTDOWN, power-good faults, switch readbacks, JPC from IMON_JET, the spreader thermistor, the burst energy gate, magnetometer gating, the module's platform configuration (RIDs JETB-01 to JETB-04, AV-06) (amended: §9 power row pins corrected to PAYLOAD_EN PB2, JETSON_PWR PA8, eFuse U19, panel item P3E-05) |

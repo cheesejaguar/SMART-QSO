@@ -16,7 +16,8 @@ below the wing (-Z) and the wing end zones carry the knuckles: -Z primary spring
   * Torque margin: 5017B Eq. 4-1, TM = T_avail / (FSv Tv + FSf Tf + FSa Ta) - 1, Table 1 "theory or analysis"
     factors 3.00 / 1.50 / 1.25 (and the qualification-test factors 2.50 / 1.35 / 1.15 for reference); worst case per
     DDMR 9: minimum spring torque (-10 % tolerance, -5 % relaxation, modulus at temperature) against maximum
-    resistance at the same temperature and point of travel; -40 C and +60 C.
+    resistance at the same temperature and point of travel; cold -55 C (the bounding LEOP stowed-wing temperature,
+    -45 C predicted less the 10 C thermal margin, P3S-01; -40 C kept for comparison) and +60 C.
   * Deployment dynamics: the planar free-floating two-body model of software/simulation/cdr/structures/mechanisms.py
     (imported) with this spring, the damped soft stop and the CAD wing properties.
 
@@ -37,7 +38,7 @@ import mechanisms as MECH  # noqa: E402
 E_W, FTY, FTU = 200e9, 1500e6, 2000e6          # 17-7PH CH900 wire
 FS_Y, FS_U = 1.5, 1.65                          # 5017B Table 4 (springs), as SQSO-MECH-001
 TOL, RELAX = 0.10, 0.05
-TEMP_E = {"cold": +0.018, "hot": -0.012}        # modulus change at -40 / +60 C (SQSO-MECH-001)
+TEMP_E = {"cold": +0.018, "hot": -0.012}        # modulus change at -40 / +60 C (SQSO-MECH-001), set by use_cold()
 OD_MAX = 4.0e-3                                 # envelope (radius 2.0 mm about the hinge axis)
 L_PRIMARY, L_SECOND = 7.5e-3, 3.6e-3            # free spring-body lengths on the axis (-Z, +Z)
 PIN_R, LEG_ARM = 0.75e-3, 5.0e-3                # pin radius, spring-leg arm to its anchor (legs 5 mm long)
@@ -54,6 +55,21 @@ LINE = (0.20e-3, 0.20e-3, 0.20e-3, 0.20e-3)     # cut hold-down line drag
 OTHER_PIN = 0.05e-3                             # +Z knuckle bearing, unloaded in orbit
 T_F = 0.10e-3                                   # tumbling 50 deg/s inertial torque (fixed)
 FS = {"analysis": (3.00, 1.50, 1.25), "qual_test": (2.50, 1.35, 1.15)}
+# cold-end values by temperature (C): spring modulus +0.03 %/C below +20 C; MoS2 friction, flex and snubber torques
+# raised below -40 C by allowance (polyimide and silicone stiffen; no film data below -40 C: VI-MECH-03 measures it)
+COLD = {-40: dict(E=+0.018, mu=0.15, flex=0.50e-3, snub=0.20e-3),
+        -55: dict(E=+0.0225, mu=0.16, flex=0.55e-3, snub=0.25e-3)}
+T_COLD = -55
+
+
+def use_cold(t_c):
+    """Set the cold-case values for temperature t_c (C)."""
+    global FLEX, SNUB
+    c = COLD[t_c]
+    TEMP_E["cold"] = c["E"]
+    MU["cold"] = c["mu"]
+    FLEX = (c["flex"], FLEX[1], c["flex"], FLEX[3])
+    SNUB = (c["snub"], SNUB[1], 0.0, 0.0)
 
 
 class Spring:
@@ -214,6 +230,19 @@ def main():
     ap.add_argument("--json", default=os.path.join(HERE, "hinge_results.json"))
     args = ap.parse_args()
     R = {}
+    # the -40 C case of the earlier issues, for comparison (P3S-01)
+    use_cold(-40)
+    sp40 = [Spring(0.470e-3, L_PRIMARY, math.radians(55.0)), Spring(0.343e-3, L_SECOND, math.radians(55.0))]
+    R["cold_-40C_reference"] = dict(TM_analysis=margins(sp40, "analysis"), TM_qual=margins(sp40, "qual_test"),
+                                    springs=[spring_report(x) for x in sp40])
+    use_cold(T_COLD)
+    R["cold_case_C"] = T_COLD
+    R["cold_values"] = COLD[T_COLD]
+    # burn-wire release energy at the cold bound (the mechanisms.py model; STR-15: >= 1.5 x 3-sigma)
+    R["burn_release"] = {f"{t:+.0f}C_{b:.0f}s": MECH.burn_release(float(t), b) for t in (-40, T_COLD) for b in (5.0, 8.0, 10.0)}
+    for k, v in R["burn_release"].items():
+        print(f"burn {k}: {v['E_attempt_J']:.1f} J, 3-sigma need {v['need_3sigma_J']:.1f} J, ratio {v['ratio_3sigma']:.2f}, "
+              f"first {v['p_first']*100:.2f} %, fail-all {v['p_fail_all']*100:.4f} %")
     # reference: SQSO-MECH-001 A springs (do not fit) for comparison
     best = design_search()
     score, d, th0, d2, tm, ms, one = best
