@@ -17,7 +17,7 @@
 | 4.3-1a, 4.3-1b | Released debris in LEO | None released | — | Compliant |
 | 4.3-2 | Debris near GEO | N/A | — | N/A |
 | 4.4-1 | Accidental explosion < 0.001 | **1.4 × 10⁻⁴** over a 10-year bound | ×7 | Compliant by analysis (§4) |
-| 4.4-2 | Passivation design | Option 2 (energy controlled by the battery protections) met by design; option 1 (two-key passivation telecommand, TELECOMMAND_AUTHENTICATION v0.7 §6.4, then the SYS-800 charge disconnect) **designed, not implemented** | — | Compliant via option 2; option 1 open (§4) |
+| 4.4-2 | Passivation design | Option 2 (energy controlled by the battery protections) met by design; option 1 (two-key passivation telecommand, SQSO-ICD-013 v0.8 §6.4, then the one-shot charge disconnect F1 of SQSO-EPS-BRD-001 §7) implemented in the flight software and designed in the EPS, **not yet run on hardware** (V-EPS-8) | — | Compliant via option 2; option 1 to be verified on the EM (§4) |
 | 4.4-3, 4.4-4 | Planned breakups | None | — | N/A |
 | 4.5-1 | Collision with objects ≥ 10 cm < 0.001 | **≤ 1.2 × 10⁻⁴** (worst case: 525 km, 2.0 kg, wings failed, F10.7 = 70) | ×8 | Compliant by analysis **[DAS]** (§5) |
 | 4.5-2 | Small-debris impact preventing disposal < 0.01 | Disposal is passive; no function is needed after wing deployment at T + 30 min | — | Compliant by design (§5) |
@@ -121,17 +121,18 @@ to release debris or break up the spacecraft.
 - **Option 2 is met by design:** a 50 Wh pack of four sealed 18650 cells, with over-voltage, under-voltage, over-current,
   short-circuit and temperature protections in hardware, cannot release debris by the analysis above even if never
   passivated (the 10-year bound already assumes no passivation half the time).
-- **Option 1, the FCC's "permanent discharge state" (97.207(g)(1)(iii)), is the baseline (BASELINE §5, SYS-800) but
-  is designed, not implemented.** No passivation telecommand exists in the flight software, and the mission simulation
-  models the latch; the EPS has only a placeholder (fuse F1 in schematic S1, its part still to be defined, no
-  arming circuit). The proposed design is `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` v0.7 §6.4:
-  1. `PASSIVATE_ARM` (0x34), authenticated with the **operational key**, argument `EOL!`;
-  2. `PASSIVATE_EXECUTE` (0x35), authenticated with the **recovery key**, within 600 s of the arm in the same contact
-     (two keys from two custodians: a two-person rule for an irreversible act); refused in the first 365 days unless a
-     ground-set flag allows it;
-  3. on execute: the `TX_DISABLE` latch first, then the SYS-800 non-resettable charge-path disconnect (F1, armed and
-     fired by two independent signals per SQSO-BSA-001 H9, V-BSA-7); the loads stay on and drain the pack to the BMS
-     under-voltage cut-off, after which the receiver goes dark.
+- **Option 1, the FCC's "permanent discharge state" (97.207(g)(1)(iii)), is the baseline (BASELINE §5, SYS-800).**
+  The telecommands are implemented in the flight software and tested in the host simulation
+  (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` v0.8 §6.4; `test_passivation`); the EPS disconnect is designed
+  (SQSO-EPS-BRD-001 §7); neither has run on hardware (V-EPS-8 on the EM). The sequence
+  (`docs/operations/END_OF_LIFE_PLAN.md` Rev C §3):
+  1. `PASSIVATE_ARM` (0x70), authenticated with the **operational key**, argument `EOL!`, arms for 600 s;
+  2. `PASSIVATE_EXECUTE` (0x71), authenticated with the **offline recovery key**, within those 600 s (two keys from two
+     custodians: a two-person rule for an irreversible act); no first-year lockout;
+  3. on execute: the TX-OFF latch and a passivation inhibit that nothing clears, then, in sunlight, the non-resettable
+     charge-path disconnect (fuse F1 between the solar-array trackers and the pack, fired only through both EOL_ARM
+     and EOL_FIRE); the loads stay on and drain the pack to the BMS under-voltage cut-off, after which the receiver
+     goes dark.
 - **The passivation command is the 4.4-2 control.** The autonomous backup (M = 180 days after the loss-of-contact
   inhibit, BASELINE §7, proposed, not implemented) is **not needed** for 4.4-2: it would act only when the bus works but
   no command can be received (receiver or key failure, about 5 % of missions in the reliability model), and in that case
@@ -372,7 +373,7 @@ N/A.
 |---|------|-------|
 | 1 | Obtain NASA DAS 3.2.6 (NASA Software Catalog usage agreement) and reproduce §4–§7 with the controlled MEL | S&MA |
 | 2 | Put the deployment band and cap (decided: 465–485 km, 485 km cap, BASELINE Rev E §3; RID ODA-01) in the launch contract | PI, launch |
-| 3 | Implement the passivation telecommands (0x34/0x35, TELECOMMAND_AUTHENTICATION §6.4), the non-resettable charge-path disconnect (F1, two independent signals) and the recharge lockout; correct the pre-space notification's passivation statement until then | EPS, FSW, licensee |
+| 3 | Passivation: telecommands implemented (0x70/0x71, SQSO-ICD-013 v0.8 §6.4); charge-path disconnect designed (F1, two independent signals, SQSO-EPS-BRD-001 §7); run V-EPS-8 on the EM, add the recharge lockout, and update the pre-space notification's passivation statement after the EM test | EPS, FSW, licensee |
 | 4 | Ask the FCC (D3 consultation) which reading of "completion of the mission" applies to a failed spacecraft | Licensee |
 | 5 | Replace the cycle-26 assumption with the NOAA/NASA prediction when issued; DAS uses its own solar-flux table | S&MA |
 | 6 | Separate burn drivers for the two wings: designed, one driver per resistor on four lines (SQSO-EPS-BRD-001 §9); §6.4 re-run in Draft D (wings-failed 0.29 %, of which 0.2 % is the shared burn supply SW6/U17); confirm the shared-supply allocation with the EPS board FMEA | EPS, S&MA |
@@ -387,4 +388,4 @@ N/A.
 | Draft A.1 | 2026-10-16 | §2 notes the re-issued mass budget (TB-06) |
 | Draft B | 2026-10-27 | CDR S&MA review: average cross-sections by the 8719.14C method (wings deployed 0.0247 m², not 0.028); masses 1.6/1.8/2.0 kg; NOAA-anchored nominal and conservative solar projections; FCC 5-year compliance by altitude and its probability with early failure; 525 km cap and 500 km target found non-compliant, 465–485 km recommended; 4.4-1 fault tree (1.4 × 10⁻⁴); 4.5-1 from the public catalogue (≤ 1.2 × 10⁻⁴); re-entry demise model with the Ti-6Al-4V and stainless parts (no fragment > 15 J nominal; 1:47,000 worst); "no titanium" and the 30-year-after-launch limit withdrawn |
 | Draft C | 2026-10-27 | CDR 2026 consistency pass: compliance summary and orbit row at the baseline 475 km target and 485 km cap (BASELINE Rev E, which adopted §6.5); one burn driver per resistor as designed (4.6-4, open items 2 and 6). Analysis values unchanged |
-| Draft D | 2026-10-27 | CDR S&MA re-run at the Rev E baseline (RID SE-16): deployment 2028-11-01 (was 2028-06-01), masses 1.6 / 1.85 / 2.0 kg (was 1.8 kg bound) and CBE 1.49 kg for the shortest life, 465 and 485 km rows (§6.2, §5); §6.4 with the four-line deployment: wings-failed 0.29 % (was 1.6 %), reading B P = 0.997 at 475–485 km (was 0.98), reading A cap 460 km (was 470 km); §2 mass from MASS_BUDGET v3.0; 4.6-1a, 4.6-4, 4.6-5 and open item 6 |
+| Draft D | 2026-10-27 | CDR S&MA re-run at the Rev E baseline (RID SE-16): deployment 2028-11-01 (was 2028-06-01), masses 1.6 / 1.85 / 2.0 kg (was 1.8 kg bound) and CBE 1.49 kg for the shortest life, 465 and 485 km rows (§6.2, §5); §6.4 with the four-line deployment: wings-failed 0.29 % (was 1.6 %), reading B P = 0.997 at 475–485 km (was 0.98), reading A cap 460 km (was 470 km); §2 mass from MASS_BUDGET v3.0; 4.6-1a, 4.6-4, 4.6-5 and open item 6; §4 4.4-2 and open item 3 brought to SQSO-ICD-013 v0.8 (passivation implemented as 0x70/0x71, no first-year lockout) |

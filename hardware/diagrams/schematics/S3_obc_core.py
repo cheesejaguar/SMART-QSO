@@ -1,4 +1,4 @@
-"""S3 OBC core, version 3 (2026-10-27; JETSON_PWR on PA8, spreader NTC on PA2): STM32L4R5ZIT6 with its supply, clocks, supervisor, FRAM, mission clock and
+"""S3 OBC core, version 3 (2026-10-27; JETSON_PWR on PA8, spreader NTC on PA2, RX_CD PG0, RX_FAULT PF13): STM32L4R5ZIT6 with its supply, clocks, supervisor, FRAM, mission clock and
 access port, drawn from the build-to design SQSO-OBC-BRD-001 (hardware/electrical/obc/design.py, the netlist source).
 Every MCU pin is the master allocation of SQSO-ICX-001 (hardware/electrical/INTERCONNECT.md 4); the sheet groups the
 signal pins by destination. Version 1 drew the firmware's provisional map with a TMP117 and proposed UART4 pins.
@@ -22,7 +22,7 @@ RIGHT = [
     ("PC2", "VBATT_SNS"), ("PC3", "IBATT_SNS"), ("PC4", "VSOLAR_SNS"), ("PC5", "ISOLAR_SNS"), ("PB0", "VBUS_SNS"),
     ("PA1", "VSW1_RB"), ("PA7", "VJET_RB"), ("PA2", "PT_NTC <- J3-5 (S7, S9)"),
     ("PD5", "USART2_TX (TNC)"), ("PD6", "USART2_RX (TNC)"), ("PE3", "TX_PWR_SEL"), ("PE4", "XPDR_EN (TIM7)"),
-    ("PC9", "TONE_OK"), ("PG12", "XPDR_KEY"), ("PC7", "PTT_EXC_RB (TIM8_CH2)"), ("PA0", "TX_TEMP"), ("PC0", "TX_FWD"),
+    ("PC9", "TONE_OK"), ("PG12", "XPDR_KEY"), ("PC7", "PTT_EXC_RB (TIM8_CH2)"), ("PG0", "RX_CD"), ("PF13", "RX_FAULT"), ("PA0", "TX_TEMP"), ("PC0", "TX_FWD"),
     ("PC1", "TX_REV"),
     ("PA9", "USART1_TX -> S7"), ("PA10", "USART1_RX <- S7"), ("PG6", "JET_PG <- S7"),
     ("PG7", "LPUART1_TX -> S8"), ("PG8", "LPUART1_RX <- S8"), ("PC6", "GNSS_PPS (TIM3_CH1) <- S8"), ("PG15", "GNSS_PG <- S8"),
@@ -36,7 +36,7 @@ LEFT = ["VDD x9", "VDDIO2 x2", "VDDUSB", "VBAT", "VDDA", "VREF+", "NRST", "PH3-B
 
 PS = 0.6
 mcu = sch.ic("U1\nSTM32L4R5ZIT6\nLQFP-144\n\n80 MHz (8 MHz XO, PLL)\n2 MB flash, 640 KB SRAM\nIWDG 30 s on LSI\n"
-             "16 spare pins: analog", left=list(reversed(LEFT)), right=[p for p, _ in reversed(RIGHT)],
+             "13 spare pins: analog", left=list(reversed(LEFT)), right=[p for p, _ in reversed(RIGHT)],
              bottom=["VSS x11", "VSSA, VREF-"], pinspacing=PS, size=(8.0, PS * (len(RIGHT) + 1)), spread=("left", "bottom"))
 d += mcu.at((0, 0))
 for p, net in RIGHT:
