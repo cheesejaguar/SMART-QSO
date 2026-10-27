@@ -380,7 +380,8 @@ left during a measurement are the rods' non-repeatable remanence, which is what 
 (0x20); AVDD and DVDD together on 3V3_SNS (10 µF + 100 nF). On the OBC: 3V3_SNS from U7, I2C4 through U14 TCA9517-Q1
 (enabled only while 3V3_SNS is up, 4.7 kΩ pull-ups on the sensor side), DRDY back through U33 SN74LVC1T45-Q1 to PD11,
 J10 (Pico-Clasp 6: 3V3_SNS, GND, SDA, SCL, DRDY, GND) with an ESD array and a 100 kΩ pull-down on DRDY. Harness W6E,
-0.25 m of 28 AWG, through a ±X wall gap: sensor-side rise time 199 ns (4.7 kΩ, about 50 pF), inside 300 ns for
+0.10 m of 28 AWG up the (+X, +Y) bundle (about 0.06 m routed plus a service loop; excess stowed below z +20, away from
+A2): sensor-side rise time 139 ns (4.7 kΩ, about 35 pF), inside 300 ns for
 400 kHz; 100 kHz recommended. Layout rules for A2: §21.
 
 
@@ -737,7 +738,7 @@ changes in SQSO-ICX-001 §6. In addition:
 | C10 | OBC rail fault that does not trip SW10 is undetected | chair / EPS | optional: EPS controller watches an OBC heartbeat register and power-cycles SW10 |
 | C11 | hardware/diagrams README findings F2, F3, F8, F9, F10, F13, F14, F16 (OBC part) are answered by SQSO-OBC-BRD-001 / SQSO-ICX-001 | chair (SQSO-HW-DIAG-001) | mark them |
 | C12 | Epson vibration and shock qualification data for the M-G370 family (the data sheet gives only 1000 g shock) | procurement / OBC | request from Epson; V-OBC-16 regardless |
-| C13 | MECHANICAL_DESIGN §4.1, §4.4, §6.9 | mechanical designer | magnetometer slot (+24, +27) holds board A2 (24 × 24 × 8 mm, ≈ 2 g plus harness), non-magnetic fasteners; the §4.4 rows "RM3100 in the (+X, −Y) corner" and "magnetometer to the rods" replaced by §9.4 of this document (carrier keep-out withdrawn); the 20 mm non-ferromagnetic zone round A2 (RF shield lid and clips, patch-adapter fasteners, trim masses at y ± 45, end-frame fasteners); harness W6E (0.25 m) and W8A (0.15 m) in the bundles; the connector envelope exceptions of §21 (heights); OBC frame bond: none (§21) |
+| C13 | MECHANICAL_DESIGN §4.1, §4.4, §6.9 | mechanical designer | magnetometer slot (+24, +27) holds board A2 (24 × 24 × 8 mm, ≈ 2 g plus harness), non-magnetic fasteners; the §4.4 rows "RM3100 in the (+X, −Y) corner" and "magnetometer to the rods" replaced by §9.4 of this document (carrier keep-out withdrawn); the 20 mm non-ferromagnetic zone round A2 (RF shield lid and clips, patch-adapter fasteners, trim masses at y ± 45, end-frame fasteners); harness W6E (0.10 m) and W8A (0.15 m) in the bundles, excess stowed below z +20; the connector envelope exceptions of §21 (heights); OBC frame bond: none (§21) |
 | C14 | Rod remanence | ADCS owner / procurement | ask CubeSpace for the CR0002 remanence; ≤ 0.18 mA·m² per rod needs no flight-software calibration at the +Z slot (§9.4) |
 | C15 | Magnetometer gating | chair / flight software | the magnetometer is not used for actuation while JET_PG or PTT_EXCITER is high (logged only); per-polarity-state bias table if AV-V4 needs it (SQSO-ICX-001 §6 row 12) |
 | C16 | RF board | RF designer | no ferromagnetic top-side parts or shield clips within 20 mm of (+24, +27) (A2 is 4 mm above the RF board's parts there); PA supply and return paired; J1 of the RF board in the (+X, −Y) corner to meet the OBC's J2 ribbon (§21) |

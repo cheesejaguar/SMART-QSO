@@ -20,6 +20,7 @@ Sections
   12 isolation budget: the 2 m fundamental at the 70 cm LNA
   13 clock harmonics against the uplink band
   14 part stress and derating (NASA EEE-INST-002 / project 50 % rule, EEE_PARTS_LIST Rev C §12)
+  15 magnetic cleanliness at the magnetometer on board A2 (OBC item C16): keep-out radius, PA current field
 
 Usage: python3 rf_calcs.py [--mc 4000] [--quiet]
 Needs numpy only.
@@ -659,6 +660,70 @@ def timing():
     return out
 
 
+# ------------------------------------------------------------------------------- 15 magnetic cleanliness (C16)
+def _biot_savart(path, current, z, sensor, step=0.1):
+    """Field (T) at sensor (mm) of a current (A) along a polyline path [(x, y), ...] (mm) at height z (mm)."""
+    mu0_4pi = 1e-7
+    b = np.zeros(3)
+    s = np.array(sensor, dtype=float)
+    for (x0, y0), (x1, y1) in zip(path[:-1], path[1:]):
+        a, c = np.array([x0, y0, z], float), np.array([x1, y1, z], float)
+        n = max(2, int(np.linalg.norm(c - a) / step))
+        t = (np.arange(n) + 0.5) / n
+        pts = a + np.outer(t, c - a)
+        dl = (c - a) / n * 1e-3
+        r = (s - pts) * 1e-3
+        rn = np.linalg.norm(r, axis=1)[:, None]
+        b += mu0_4pi * current * np.sum(np.cross(dl, r) / rn ** 3, axis=0)
+    return b
+
+
+def magnetics(pa):
+    """Geometry in the stack frame of MECHANICAL_DESIGN §4.1 (mm): RF board substrate z +34.8 ... +36.4, top side up;
+    board A2 (RM3100) at (+24, +27), z +40.4 ... +48.4, sensor centre taken at z +44 (OBC_BOARD_DESIGN §9.4)."""
+    sensor = (24.0, 27.0, 44.0)
+    a2_bottom = 40.4
+    top, part_h = 36.4, 2.0
+    out = {"sensor_mm": sensor, "A2_bottom_z_mm": a2_bottom}
+    # plan radius on the RF board that keeps every part >= 20 mm (3D) from the nearest point of A2 above (24, 27)
+    out["plan_radius_for_20mm_3D_mm"] = {"board_surface": round(math.sqrt(20 ** 2 - (a2_bottom - top) ** 2), 1),
+                                         "top_of_2mm_parts": round(math.sqrt(20 ** 2 - (a2_bottom - top - part_h) ** 2), 1),
+                                         "adopted_plan_radius_mm": 20.0}
+    # shield: 84 x 54 x 7 mm at y -40 ... +14 (MECHANICAL_DESIGN §11 item 4): nearest point of wall and lid
+    near = (24.0, 14.0, top + 7.0)
+    out["shield_nearest_to_sensor_mm"] = round(math.dist(near, sensor), 1)
+    # dipole scale: 1 uA.m2 remanent moment, on axis (worst orientation)
+    out["field_nT_per_uAm2_on_axis"] = {f"{r} mm": round(1e-7 * 2 * 1e-6 / (r * 1e-3) ** 3 * 1e9, 1)
+                                        for r in (13, 20, 30, 40, 60)}
+    # PA supply current (1 W level) from J2 to the PA: J2 at (-26, -44) on the -Y strip, FB803, +5V_PA on L4, the
+    # drain feeds L602/L604 and Q601 at (-32, -30); return on L5 under the supply (paired) or detoured (unpaired)
+    i = pa["levels"]["1 W"]["i_5v_A"]
+    supply = [(-26.0, -44.0), (-26.0, -36.0), (-32.0, -30.0)]
+    z_l4, z_l5 = 35.3, 35.0          # L4/L5 0.30 mm apart (stack-up rule of §10)
+    paired = _biot_savart(supply, i, z_l4, sensor) + _biot_savart(supply[::-1], i, z_l5, sensor)
+    detour = [(-32.0, -30.0), (-12.0, -30.0), (-12.0, -44.0), (-26.0, -44.0)]
+    unpaired = _biot_savart(supply, i, z_l4, sensor) + _biot_savart(detour, i, z_l5, sensor)
+    drain = [(-32.0, -24.0), (-32.0, -30.0)]          # L604 to Q601 on L1, return in the L2 plane 0.2 mm below
+    drain_b = _biot_savart(drain, i, top, sensor) + _biot_savart(drain[::-1], i, top - 0.2, sensor)
+    # the same paired run if it had been routed past the magnetometer (20 mm in plan from (24, 27))
+    near_run = [(4.0, 27.0), (4.0, 7.0)]
+    near_b = _biot_savart(near_run, i, z_l4, sensor) + _biot_savart(near_run[::-1], i, z_l5, sensor)
+    single_wire_20mm = 2e-7 * i / 0.020
+    out["pa_current_A_at_1W"] = i
+    out["pa_field_at_sensor_nT"] = {
+        "paired_supply_return_L4_L5": round(np.linalg.norm(paired) * 1e9, 2),
+        "drain_loop_L1_L2": round(np.linalg.norm(drain_b) * 1e9, 2),
+        "unpaired_return_detour_20x14mm": round(np.linalg.norm(unpaired) * 1e9, 1),
+        "paired_but_routed_20mm_from_sensor": round(np.linalg.norm(near_b) * 1e9, 1),
+        "single_unpaired_wire_at_20mm": round(single_wire_20mm * 1e9, 0),
+    }
+    out["pa_distance_to_sensor_mm"] = {"J2": round(math.dist((-26, -44, top), sensor), 1),
+                                       "Q601": round(math.dist((-32, -30, top), sensor), 1)}
+    out["targets_nT"] = {"keyed_minus_unkeyed_change": 15.0, "note": "RM3100 noise 15 nT at 200 cycle counts "
+                         "(OBC_BOARD_DESIGN §9.4); the change on keying is what calibration cannot remove"}
+    return out
+
+
 # ----------------------------------------------------------------------------------------- 9 deviation
 def deviation(p):
     fpd = 40e6
@@ -860,10 +925,11 @@ def main():
     }
     res["clocks"] = clocks(p)
     res["stresses"] = stresses(p, res["pa"], res["lpf"])
+    res["magnetics"] = magnetics(res["pa"])
     (HERE / "rf_calcs.json").write_text(json.dumps(res, indent=1, default=float) + "\n")
     if not a.quiet:
         for k in ("fl1", "receiver", "lpf", "harmonics", "pa", "rx_power", "timing", "deviation", "detectors",
-                  "reference", "isolation"):
+                  "reference", "isolation", "magnetics"):
             print(f"== {k}")
             print(json.dumps(res[k], indent=1, default=float))
         print("== desense (2.2 MHz rows)")

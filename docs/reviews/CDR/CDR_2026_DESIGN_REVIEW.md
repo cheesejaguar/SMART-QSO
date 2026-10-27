@@ -109,9 +109,9 @@ L-2 M licences and ephemeris demonstration).
 
 | Quantity | Requirement | Predicted | Margin | Source |
 |----------|-------------|-----------|--------|--------|
-| Mass | ≤ 2.00 kg (design), 2.5 kg Nova | MEV 1.73 kg | +15.9 % | MASS_BUDGET 3.1 |
-| CG, stowed | ±20 mm | (+0.4, −0.3, −1.7) mm (CAD) | > 18 mm | MECHANICAL_DESIGN |
-| Deployed inertia | Iyy ≥ 1.03 × max, axis within 5° of +Y | 1.047–1.057, 0.3–1.3° | Met | MECHANICAL_DESIGN |
+| Mass | ≤ 2.00 kg (design), 2.5 kg Nova | MEV 1.728 kg | +15.8 % (+44.7 % to the Nova) | MASS_BUDGET 3.1 |
+| CG, stowed | ±20 mm | (+0.4, −0.1, −1.8) mm CBE, (+0.5, −0.2, −0.7) mm MEV (CAD) | > 18 mm | MECHANICAL_DESIGN |
+| Deployed inertia | Iyy ≥ 1.03 × max, axis within 5° of +Y | 1.056 / 1.047 (CBE / MEV), 0.6° / 1.1° | Met | MECHANICAL_DESIGN |
 | First mode, stowed | > 40 Hz | 170 Hz (FE), ≈ 140 Hz (analytic) | × 3.5–4.2 | STRUCTURAL_ANALYSIS B |
 | Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +0.72 (local peak) | Positive | STRUCTURAL_ANALYSIS B |
 | PCB fatigue (Steinberg) | MS ≥ 0 | +0.09 to +0.36 with two supports | Positive | STRUCTURAL_ANALYSIS B |
@@ -154,18 +154,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-283 RIDs: severity 1: 29, severity 2: 155, severity 3: 99.
+285 RIDs: severity 1: 29, severity 2: 155, severity 3: 101.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 97 | 154 |
+| Closed by design change | 98 | 155 |
 | Closed by chair decision | 36 | 35 |
 | Verification item | 40 | 39 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 72 | 17 |
+| Implementation | 73 | 18 |
 
-Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-05, JETB-09, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-05, JETB-09, MCAD-08, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -366,7 +366,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| STR-01 | 1 | Deployed inertia: +Y not a robust major axis; antenna along ±Y defeats sun pointing | CH | Closed by design change | BASELINE §4 mass properties; CAD layout: Iyy/max 1.057 CBE, 1.047 MEV, axis within 1.3° (SQSO-MECH-CAD-001); full tensor in the flight law |
+| STR-01 | 1 | Deployed inertia: +Y not a robust major axis; antenna along ±Y defeats sun pointing | CH | Closed by design change | BASELINE §4 mass properties; CAD layout: Iyy/max 1.056 CBE, 1.047 MEV, axis 0.6° / 1.1° from +Y (SQSO-MECH-CAD-001); full tensor in the flight law |
 | STR-02 | 2 | MEL rebuilt; baseline obsolete; coils trip D8 | CH | Closed by chair decision | BASELINE §4 Mass: CR0002 rods, CBE 1.49 kg, MEV 1.73 kg, +15.9 % |
 | STR-03 | 3 | CG never computed | CA | Closed by analysis | MASS_BUDGET v3.0 §5 |
 | STR-04 | 2 | Bifilar MOI ±5 % cannot verify the Iyy/Izz difference | CH | Closed by chair decision | VI-LV-02 trifilar ±2 % (SQSO-LVR-001 Rev B); VI-STR-01 |
@@ -405,6 +405,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | MCAD-04 | 2 | Gyro module 14 mm tall cannot fit under the carrier; raising the carrier or a bracket do not fit layout B | CD | Closed by design change | Gyro on the OBC through a 27 × 27 mm carrier window with a 2.2 g frame: 1.5 mm clearance, carrier Steinberg +0.09, inertia ratio 1.056 / 1.047, axis 0.4° / 1.4° (MECHANICAL_DESIGN §4.3, D-11) |
 | MCAD-05 | 2 | Board-mounted gyro is 0.6-1.0° off the body axes: 0.7° uses the whole 0.1 °/s bias budget at 8 °/s | VI | Verification item | VI-MCAD-05: measure the gyro axes to ≤ 0.1° on the flight stack; correction matrix to the flight software |
 | MCAD-06 | 3 | RM3100 43 mm from the Y rod end and 10 mm below carrier parts | IMP | Closed by design change | RM3100 on its own board A2 in the +Z end-frame slot (+24, +27): rod coupling 830 nT per mA·m² (was 1194), nearest rod end 54.7 mm, 63 mm from the Jetson input; 20 mm non-ferromagnetic zone; AV-V4 with per-polarity calibration (SQSO-OBC-BRD-001 B) |
+| MCAD-07 | 3 | Magnetometer board A2 needs a 20 mm non-ferromagnetic zone (shield lid, column stud, fasteners, trim mass, W1 hinge pins, cell interconnects) | CD | Closed by design change | Materials specified (MECHANICAL_DESIGN §4.3.3, D-9); hinge spring, MP3 and carrier MP1 accepted as fixed biases; VI-MCAD-07 measures the zone and the bias |
+| MCAD-08 | 3 | Window-frame screws: 0.45 mm walls at the proposed positions; frame adhesive weakens above 60 °C | IMP | Implementation | Screws moved to tapped pads (walls 1.0-1.2 mm); adhesive chosen for the carrier hot case or the bond shown non-structural; FE re-run with the titanium column stud |
 
 #### Electrical power (EPS)
 

@@ -38,6 +38,7 @@ cables:
     category: bundle
     gauge: 28 AWG
     length: 0.15
+    notes: "about 0.10 m routed plus service loop; excess stowed below z +20, away from A2"
     wirecount: 10
     colors: [RD, BU, BK, YE, PK, WH, GN, OG, VT, BK]
     notes: "internal, flown; through a wall gap to the access window"

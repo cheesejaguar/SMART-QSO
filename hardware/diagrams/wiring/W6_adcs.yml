@@ -87,7 +87,8 @@ cables:
   W6E:
     category: bundle
     gauge: 28 AWG
-    length: 0.25
+    length: 0.10
+    notes: "(+X, +Y) bundle, about 0.06 m routed plus service loop; excess stowed below z +20, away from A2"
     wirecount: 6
     colors: [RD, BK, BU, YE, WH, BK]
     notes: "OBC to the +Z end frame through a wall gap; SDA and SCL each twisted with a ground; I2C at 100 kHz; under 2 mA"

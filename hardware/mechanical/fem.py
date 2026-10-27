@@ -635,7 +635,7 @@ class SC:
 
 
 def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_car=1.6, deck_E=0.35,
-                     spider_r=2.6, car_window=True, car_frame=True) -> SC:
+                     spider_r=2.6, car_window=True, car_frame=True, ti_column=(1, 1)) -> SC:
     sys.path.insert(0, HERE)
     import model as CAD
     P = CAD.P
@@ -763,14 +763,20 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
     rE = MAT["A286"]["E"] / MAT["Al6061"]["E"]
     colsec = sec_mm(dict(A=A_hex + rE * A_st, Iy=I_hex + rE * I_st, Iz=I_hex + rE * I_st, J=J_hex, cy=2.89, cz=2.89))
     colsec["share_al"] = I_hex / (I_hex + rE * I_st)
+    rT = MAT["Ti64"]["E"] / MAT["Al6061"]["E"]     # Ti-6Al-4V stud at the column next to board A2 (MECHANICAL_DESIGN 4.4)
+    colsec_ti = sec_mm(dict(A=A_hex + rT * A_st, Iy=I_hex + rT * I_st, Iz=I_hex + rT * I_st, J=J_hex, cy=2.89, cz=2.89))
+    ti_beams = []
     zc = [zmz, -40.0, -32.9, -24.5, zb["deck"], zb["EPS"], zb["OBC"], zb["carrier"], 24.4, 30.0, zb["RF"], 42.4, zpz]
     col_ids = {}
     for sx in (1, -1):
         for sy in (1, -1):
             ids = []
             for k in range(len(zc) - 1):
-                e, nd = beam("columns", (sx * 40, sy * 43, zc[k]), (sx * 40, sy * 43, zc[k + 1]), "Al6061", colsec,
-                             v=(1, 0, 0), kEI=1 / 3, kEA=1.0)
+                ti = ti_column is not None and (sx, sy) == tuple(ti_column)
+                e, nd = beam("columns", (sx * 40, sy * 43, zc[k]), (sx * 40, sy * 43, zc[k + 1]), "Al6061",
+                             colsec_ti if ti else colsec, v=(1, 0, 0), kEI=1 / 3, kEA=1.0)
+                if ti:
+                    ti_beams += e
                 ids += nd if not ids else nd[1:]
             col_ids[(sx, sy)] = ids
     zcs = [zb["deck"], zb["EPS"], zb["OBC"], zb["carrier"], 24.5, zsp]
@@ -969,12 +975,12 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
                                               md.xyz[i][1] / mm <= cw[3] + 1e-6 for i in md.shells[k]["n"])]
     gyro_nodes = sorted({i for k in gy for i in md.shells[k]["n"]})
     nsm_to(gy, mass["gyro_MG370"], "gyro on OBC")
-    car_m = mass["Jetson_carrier"] + mass["Jetson_carrier_parts"]      # the window frame is the beams' own mass
+    car_m = mass["Jetson_carrier"] + mass["Jetson_carrier_parts"] + mass.get("carrier_frame_screws", 0.0)      # the window frame is the beams' own mass
     nsm_to(groups["carrier"], car_m - shell_struct_mass(groups["carrier"]) * 1e3, "carrier board")
     jy = P["jet_y"]
     modk = [k for k in groups["carrier"] if all(-34.8 - 1e-6 <= md.xyz[i][0] / mm <= 34.8 + 1e-6 and jy - 26.5 - 1e-6
                                                  <= md.xyz[i][1] / mm <= jy + 22.5 + 1e-6 for i in md.shells[k]["n"])]
-    nsm_to(modk, mass["Jetson_module"] + mass["Jetson_TIM_clamp"] + mass["SODIMM_connector"],
+    nsm_to(modk, mass["Jetson_module"] + mass["Jetson_TIM_clamp"] + mass["SODIMM_connector"] + mass.get("module_standoffs", 0.0),
            "Jetson module, clamp, SODIMM on the carrier")
     nsm_to(groups["RF"], mass["RF"] + mass["RF_parts"] - shell_struct_mass(groups["RF"]) * 1e3, "RF board")
     set_density(groups["spreader"], mass["heat_spreader"], "spreader + flanges")
@@ -990,7 +996,8 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
               "shear_x")
     lump_near((mass["rod_Z"] + mass["rod_clips"] / 3) / 2, [(-41.5, 0, -16)], "Z rod (deck clip)", "deck")
     lump_near((mass["rod_Z"] + mass["rod_clips"] / 3) / 2, [(-W2, 0, -39)], "Z rod (wall clip)", "shear_x")
-    lump_near(mass["magnetometer"], [(24, 27, zpz)], "magnetometer", "endplate_pz")
+    lump_near(sum(mass[n] for n in mass if n.startswith("magnetometer")), [(24, 27, zpz)], "magnetometer board A2",
+              "endplate_pz")
     lump_near(mass["GNSS_patch"] + mass["GNSS_patch_adapter"], [(sx * 15, sy * 15, zpz) for sx in (1, -1)
                                                                for sy in (1, -1)], "GNSS patch + adapter", "endplate_pz")
     for nm, (x, y, z) in (("DS1", (46, 46, -56.75)), ("DS2", (-46, -46, -56.75)), ("DS3", (46, -46, 56.75)),
@@ -1032,7 +1039,7 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
         supports[g_] = [md.node(x * mm, y * mm, z * mm) for x, y in pts]
         bnodes[g_] = sorted({i for k in groups[g_] for i in md.shells[k]["n"]})
     special = dict(spiders=spider_count, iso_beams=iso_beams, ear_beams=ear_beams, battery_master=master, battery_mass=m_tot,
-                   battery_I=Ic, colsec=colsec, isosec=isosec, wing_shells=wing_shells, mass_total_cad=sum(mass.values()),
+                   battery_I=Ic, colsec=colsec, isosec=isosec, ti_col_beams=ti_beams, wing_shells=wing_shells, mass_total_cad=sum(mass.values()),
                    gyro_nodes=gyro_nodes, board_t=special_t,
                    window_edge_nodes=sorted({i for k in groups["carrier"] for i in md.shells[k]["n"]
                                              if cw[0] - 5.1 <= md.xyz[i][0] / mm <= cw[1] + 5.1
@@ -1300,7 +1307,12 @@ def stresses(res, verbose=True):
     report("stack columns, Al hex spacer (at the end frames and boards)", [("beam", k) for k in sc.bgroups["columns"]],
            al["Fty"], al["Ftu"], 1.25, 1.40, factor=1.0,
            note="stress from the softened (x 1/3) member's moment on the full section; spacer share")
-    report("stack columns, A286 stud thread root", [("beam", k) for k in sc.bgroups["columns"]],
+    tib = set(sc.special.get("ti_col_beams", []))
+    if tib:
+        report("stack column (+40, +43), Ti-6Al-4V stud thread root", [("beam", k) for k in sorted(tib)],
+               MAT["Ti64"]["Fty"], MAT["Ti64"]["Ftu"], 1.25, 1.40, factor=(MAT["Ti64"]["E"] / al["E"]) * (1.195 / 2.89),
+               note="stud stress = (E_Ti/E_Al)(c_stud/c_hex) x spacer stress (same curvature)")
+    report("stack columns, A286 stud thread root", [("beam", k) for k in sc.bgroups["columns"] if k not in tib],
            MAT["A286"]["Fty"], MAT["A286"]["Ftu"], 1.25, 1.40,
            factor=(MAT["A286"]["E"] / al["E"]) * (1.195 / 2.89),
            note="stud stress = (E_A286/E_Al)(c_stud/c_hex) x spacer stress (same curvature)")

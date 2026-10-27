@@ -1,22 +1,23 @@
 # SMART-QSO Data Budget
 
 **Document ID**: SQSO-DB-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR analysis (finding TB-12). Values from BASELINE §8, BEACON_SPEC, the flight software as built, the mission simulation (14-day commissioning run, 2026-10-27) and SQSO-LBA-001 v3.0 / SQSO-GND-001 Rev C. Not measured.
+**Status**: CDR analysis (finding TB-12). Values from BASELINE Rev E §8, BEACON_SPEC, the flight software as built (round 2: stored housekeeping and `DUMP_TLM`), the mission simulation (two-year `full` run at the Rev E baseline, 2026-10-27) and SQSO-LBA-001 v3.2 / SQSO-GND-001 Rev D (475 km, 8°/s). Not measured.
 
 ## 1. Purpose and Summary
 
 Version 1.0 counted broadcast beacons against one station's pass capacity, generated 1.2 MB/day of housekeeping against
-252 KB/day of capacity, and allocated 632 KB of flash partitions on a 512 KB part (TB-12). This version separates the
-three budgets that matter:
+252 KB/day of capacity, and allocated 632 KB of flash partitions on a 512 KB part (TB-12). Version 2.0 separated the
+budgets and found stored housekeeping missing; Version 2.1 puts in the flight software's store and dump as built.
 
 | Budget | Requirement | Result | Verdict |
 |--------|-------------|--------|---------|
-| Broadcast telemetry (the beacon) | Beacon every 60 s ACTIVE / 120 s IDLE / 180 s SAFE (BASELINE §8) | 1,431 frames/day, 157 kB/day broadcast, 2.0 % transmitter duty | Met |
-| Telemetry received by the mission | Health visible every day | ≈ 27 beacons/day at one telecommand station, ≈ 53 at two, up to ≈ 490 by SatNOGS | Met for health monitoring |
-| Stored housekeeping (BASELINE §8: "housekeeping stored every 60 s; ≥ 7 days onboard storage") | 7 days of 60 s records | **Not implemented**: no onboard storage of housekeeping and **no telecommand to downlink stored data**. As specified, 7 days need 444 kB; the FRAM telemetry areas hold 192 KB (3.0 days); a one-station dump capacity of ≈ 44 kB/day is below the 63 kB/day generated | **Not met** (finding DB-01) |
+| Broadcast telemetry (the beacon) | Beacon every 60 s ACTIVE / 120 s IDLE / 180 s SAFE (BASELINE §8) | ≈ 1,430 beacons and ≈ 285 HK1 frames a day; 1,725 frames/day radiated in all, 2.7 % transmitter duty | Met |
+| Telemetry received by the mission | Health visible every day | ≈ 26 beacons and 5 HK1 frames a day at one telecommand station (≈ 4 kB), ≈ 51 and 10 at two, up to ≈ 490 beacons by SatNOGS | Met for health monitoring |
+| Stored housekeeping (BASELINE §8: summarized every 5 minutes, ≥ 7 days onboard; 60 s records around faults and mode changes) | 7 days of five-minute records, retrievable by telecommand | FRAM store of 2,048 five-minute records (**7.1 days**) and 1,489 sixty-second records; `DUMP_TLM` (0x0A) | Met by design (flight software, SIL); verify on the EM |
+| Daily dump | The ground can follow the five-minute record stream | The whole stream (288 records/day) needs 72 dump frames, 14.4 min of commanding passes: **72 % of one station's**, 36 % of two stations'. The SIL plan dumps the newest 48 records a day (17 % of the stream) | Met with two stations; one station only with most of its commanding time |
 | Uplink | Commands per pass | ≤ 6 verified commands per pass at the beacon rate; capacity far above need | Met |
 
 ## 2. Broadcast Telemetry
@@ -26,66 +27,92 @@ three budgets that matter:
 | Item | Value | Source |
 |------|-------|--------|
 | Information field | `de KK6GDB-11: <text ≤ 176> \| T=.. M=.. SOC=.. BV=.. SUN=.. RF=.. QSO=..`; typical 110 bytes, at most 256 | BEACON_SPEC §3 |
+| Housekeeping frame | Every fifth beacon is followed, 5 s later, by an HK1 frame: `KEY=value` pairs, at most 250 bytes | `docs/operations/TELEMETRY_DICTIONARY.md` §4.4 |
 | Frame on air | 16-byte header + information + 2-byte FCS + flags, ≈ 3 % bit stuffing, 300 ms TXDELAY | SQSO-ICD-003 §5.2 |
-| Time on air, typical | 1.2 s (1.22 s average in the simulation) | SIL commissioning run: 20,036 frames, 24,585 s keyed in 14 days |
-| Frames per day | **1,431** (ACTIVE 99 % of the time) | SIL |
-| Keyed time | 1,756 s/day (2.0 %) | SIL |
-| Broadcast volume | 1,431 × 110 B = **157 kB/day** | |
+| Beacon interval | 60 / 120 / 180 s with a uniform ±5 s jitter on each interval (RID RF-04) | SQSO-ICD-005 v2.1 §5.3 |
+| Frames per day | **1,725** radiated over the two-year run (1,259,310 in 730 days): ≈ 1,430 beacons, ≈ 285 HK1 frames, 1.9 acknowledgements and 11.9 dump frames | SIL `full` run |
+| Keyed time | 2,372 s/day (**2.7 %**; 1.38 s a frame on average) | SIL `full` run |
+| Broadcast volume | ≈ 1,430 × 110 B + 285 × ≤ 250 B ≈ **157 kB + ≤ 71 kB a day** | |
 
 The beacon is broadcast: every station under the footprint receives the same frames, so the broadcast volume is not a
 capacity budget. What the mission sees is set by the receive network (§3).
 
 ### 2.2 AI text
 
-At most one Jetson text per request, carried in the beacon's text field (BEACON_SPEC §5); in the simulation 3,342 of
-20,036 beacons (17 %) carried AI text. It adds nothing to the volume: the text field is there either way.
+At most one Jetson text per request, carried in the beacon's text field (BEACON_SPEC §5); in the two-year simulation
+173,082 of the frames (≈ 14 % of the beacons) carried AI text. It adds nothing to the volume: the text field is there
+either way.
 
 ## 3. Telemetry Received
 
-| Receiver | Passes/day ≥ 5° | Contact | Beacons in view/day | Frames decoded | Beacons/day received | Information/day |
-|----------|-----------------|---------|---------------------|----------------|----------------------|-----------------|
-| One telecommand station (Santa Clara, class A) | 3.85 | 27.7 min | 27.7 | 95.6 % (6°/s, 60 s) | **26.5** | 2.9 kB |
-| Two telecommand stations (Santa Clara + a second site ≥ 1,500 km away) | 7.7 | 55 min | 55 | ≈ 96 % | **≈ 53** | 5.8 kB |
-| SatNOGS: 253 2 m stations active in the last 7 days, 53 directional (frame success 0.6 assumed) and 200 omni (0.31, SQSO-LBA-001 §5.3) | | Visible to ≥ 1 station 52 % of the time | 745 | 35 % of all beacons decoded by at least one station if every station observes | **≤ 494** (upper bound; SatNOGS observations must be scheduled) | ≤ 54 kB |
+Passes and frame success at 475 km, LTAN 22:30, spin 8°/s (SQSO-LBA-001 v3.2 §5; SQSO-GND-001 Rev D §4); 98.2 % of
+frames decoded at a class A station with the beacon jitter as built.
 
-Network figures: `software/simulation/cdr/rf/pass_geometry_mc.py` functions against the station list of
-`network.satnogs.org/api/stations` (retrieved 2026-10-27), 3 days, 10 s steps.
+| Receiver | Passes/day ≥ 5° | Contact | Beacons in view/day | Frames decoded | Beacons + HK1/day received | Information/day |
+|----------|-----------------|---------|---------------------|----------------|-----------------------------|-----------------|
+| One telecommand station (Santa Clara, class A) | 3.77 | 26.1 min | 26.1 | 98.2 % | **25.6 + 5.1** | 2.8 + ≤ 1.3 kB |
+| Two telecommand stations (Santa Clara + Blacksburg, 3,640 km apart) | 7.55 | 51.9 min (union) | 51.9 | ≈ 98 % | **≈ 51 + 10** | 5.6 + ≤ 2.6 kB |
+| SatNOGS: 253 2 m stations active in the last 7 days, 49 directional (frame success 0.6 assumed) and 204 omni (0.35, SQSO-LBA-001 §5.3) | | Visible to ≥ 1 station 50 % of the time | 717 | 34 % of all beacons decoded by at least one station if every station observes | **≤ 488** beacons (upper bound; SatNOGS observations must be scheduled) | ≤ 54 kB |
+
+Network figures: `software/simulation/cdr/rf/pass_geometry_mc.py` (orbit, station geometry) against the station list
+of `network.satnogs.org/api/stations` (retrieved 2026-10-27), 3 days from 2028-11-01, 10 s steps, 5° mask (Version 2.0,
+at 500 km: 52 %, 745 in view, ≤ 494).
 
 Each beacon carries the whole health picture (mode, SOC, battery voltage, sunlit, RF state). Received beacons at one
-station every ≈ 12 h (the longest pass gap, 11.4 h) are enough to follow the spacecraft's state; SatNOGS fills the
+station every ≈ 13 h (the longest pass gap, 12.9 h) are enough to follow the spacecraft's state; SatNOGS fills the
 gaps.
 
 ## 4. Stored Housekeeping
 
-### 4.1 What the baseline asks and what exists
+### 4.1 The store as built (flight software round 2; SRS-F120 to SRS-F122)
 
-| Item | State |
+| Item | Value |
 |------|-------|
-| Requirement | Housekeeping stored every 60 s; ≥ 7 days onboard storage (BASELINE §8) |
-| Record | `tlm_generate_housekeeping()`: 14-byte header + 26-byte payload + 4-byte CRC = **44 bytes** (`software/rust/sqso-fsw/src/telemetry.rs`) |
-| Storage | **None.** The executive does not store housekeeping records (`software/rust/sqso-ffi/src/executive.rs`) |
-| Retrieval | **None.** The command dictionary (SQSO-ICD-013 §7) has no "dump stored telemetry" command; `PLD_REQUEST_DATA` (0x43) has no handler, and command responses are not downlinked (SQSO-ICD-005 v2.0 §5.5) |
+| Record | 44 bytes: store id, version, sequence, uptime, boot count, mode, flags, SOC, battery voltage and current, array power, four temperatures, hours since contact, fault count and newest fault, body rate, ADCS mode, deployment state, CRC-32 (SQSO-ICD-005 v2.1 §5.6; `software/rust/sqso-fsw/src/hk_store.rs`) |
+| Five-minute store | 2,048 records × 44 B = **90,112 B**: the last **7.1 days** (BASELINE §8 asks ≥ 7 days) |
+| Sixty-second store | 1,489 records = **65,516 B**: the last 409 records (6.8 h) plus the 6 h around each of the last three faults or mode changes (three windows of 360 records, 3 h either side) |
+| Index | 256 B |
+| FRAM used | 155,884 B of the 192 KB telemetry areas (`hardware/obc/STORAGE_DESIGN.md` §3.3): 79 % |
+| Generated | Five-minute: 288 records/day = 12.7 kB/day. Sixty-second: 1,440 records/day = 63.4 kB/day, of which only the rolling 6.8 h and the event windows are kept |
+| Retrieval | `DUMP_TLM` (0x0A, operational key): store, first record, count (≤ 600; 0 stops a dump). Four records a frame, **one frame every 12 s at most**, after the beacon and HK1 frames and through the same inhibits and duty limit (SQSO-ICD-013 §7) |
+| Dump frame | `HKD` header (3 B), store, record count, 4 × 44 B: **181 B** information field, **≈ 1.6 s on air** at 1200 bps |
+| Acknowledgement | Each authenticated command counted as contact is acknowledged: `ack KK6GDB-11: C=… R=… N=…`, **< 48 B** (SQSO-ICD-005 v2.1 §5.5) |
 
-### 4.2 Sizing if it is implemented
+### 4.2 Daily downlink budget
 
-| Quantity | Value |
-|----------|-------|
-| Generated | 1,440 records/day × 44 B = **63.4 kB/day** |
-| 7 days | **444 kB** |
-| FRAM areas (`hardware/obc/STORAGE_DESIGN.md` §3.3: telemetry buffer 64 KB + extended 128 KB) | 192 KB = **3.0 days** at 44 B; 7 days would need records ≤ 19 B |
-| STM32L4R5 internal flash | 2 MB, of which 116 kB is code (`software/flight/docs/MEMORY_POLICY.md`): a 512 KB ring holds 8.3 days; 46 MB written over 2 years is ≈ 90 erase cycles a sector (rated 10,000) |
-| Dump rate | 200-byte frames at 1.8 s each (1.5 s data + 0.3 s TXDELAY), within the 25 % duty limit (`DOWNLINK_DUTY_PERCENT`): 108 s keyed in a 7.2 min pass → 60 frames → **≈ 11.5 kB per pass** after the beacons |
-| Dump capacity, one station | 3.85 passes × 11.5 kB ≈ **44 kB/day = 70 % of what is generated** |
-| Dump capacity, two stations | ≈ 88 kB/day = 139 % (margin +39 %) |
-| Power | 0.5 W RF ≈ 1.5 W DC for 108 s a pass: 0.045 Wh a pass |
-| Conflict | Dump frames and the transponder share the transmitter; a dump displaces about 108 s of transponder time a pass |
+A dump is started by a command, so it runs on commanding passes (maximum elevation ≥ 15°): at Santa Clara 2.43 a day
+with 20.1 minutes above 5° in all (SQSO-GND-001 Rev D §3.3; `software/simulation/cdr/launch/leop_passes.py`). At one
+frame every 12 s that is **100 dump frames, 400 records a day** at most from one station (about 40 frames, 160
+records, in a typical 8-minute pass); a single `DUMP_TLM` of 600 records (150 frames, 30 minutes) spans several passes.
 
-### 4.3 Recommendation (for the chair: BASELINE §8 and flight software)
+| Dump plan | Records/day | Frames/day | Pass time | Keyed | Information | Transmitter energy (1.76 W DC) | Share of one station's commanding time |
+|-----------|-------------|------------|-----------|-------|-------------|-------------------------------|----------------------------------------|
+| SIL plan: newest 48 records a day (from the HK1 `ST=` field) | 48 (4 h of five-minute records) | 12 | 2.4 min | 19 s | 2.2 kB | 0.009 Wh | 12 % |
+| The whole five-minute stream | 288 | 72 | 14.4 min | 115 s | 13.0 kB | 0.056 Wh | **72 %** (36 % with two stations) |
+| One event window from the sixty-second store, on demand | 360 | 90 | 18 min | 144 s | 16.3 kB | 0.070 Wh | 90 % for a day |
+| Whole sixty-second store (rare) | 1,489 | 373 | 75 min | 597 s | 67.5 kB | 0.29 Wh | ≈ 3.7 days of one station |
 
-Either (a) amend BASELINE §8 to "housekeeping summarized every 5 minutes, ≥ 7 days onboard (88 kB); 60 s records
-for the 6 hours around any fault or mode change", which one station can dump in under a day; or (b) keep 60 s and
-allocate a 512 KB internal-flash ring, with two telecommand stations dumping. In both cases add a `DUMP_TLM` telecommand
-(start record, count), plain-text or published binary frames (97.113(a)(4)), within the downlink duty limit.
+| Daily downlink at one station (SIL plan) | Frames | Information |
+|------------------------------------------|--------|-------------|
+| Beacons received | 25.6 | 2.8 kB |
+| HK1 frames received | 5.1 | ≤ 1.3 kB |
+| Dump frames | 12 | 2.2 kB |
+| Acknowledgements (≈ 2 commands a day: the routine contact and the dump) | ≈ 2 | < 0.1 kB |
+| **Total** | **≈ 45** | **≈ 6.4 kB** |
+
+Over the two-year simulation the plan produced 8,664 dump frames (34,656 records, 11.9 frames a day) and 1,370
+acknowledgements. Following every five-minute record needs 72 frames a day, which one station can receive only by
+spending most of its commanding time on dumps; with the two stations of BASELINE §1 it takes about a third of their
+time. Recommended plan (for the operations owner): with two stations, dump the whole five-minute stream daily; with
+one, dump the newest 48–96 records a day and fetch the event windows after each fault.
+
+### 4.3 Conflicts and limits
+
+| Item | Value |
+|------|-------|
+| Duty | A dump keys 1.6 s in each 12 s (13 %); with the beacon and HK1 frames it stays inside the 25 % duty limit (`DOWNLINK_DUTY_PERCENT`) |
+| Transponder | Dump frames and the transponder share the transmitter; a dump displaces about 13 % of the transponder time while it runs (115 s a day for the whole five-minute stream) |
+| Storage wear | FRAM, rated 10¹⁴ writes: no wear limit |
 
 ## 5. Uplink
 
@@ -101,7 +128,7 @@ allocate a 512 KB internal-flash ring, with two telecommand stations dumping. In
 | Path | Latency |
 |------|---------|
 | Measurement to beacon | ≤ 60 s (values older than 60 s are sent as `-`) |
-| Beacon to a station | Next pass: ≤ 11.4 h at one station, ≤ 9.8 h at two |
+| Beacon to a station | Next pass: ≤ 12.9 h at one station, ≤ 9.7 h at two |
 | Station to the mission database | After each pass (≤ 1 h); SatNOGS polled hourly |
 | Command to effect | < 1 s onboard; confirmed in the next beacon (≤ 60 s) |
 
@@ -109,9 +136,9 @@ allocate a 512 KB internal-flash ring, with two telecommand stations dumping. In
 
 | Item | Method | When |
 |------|--------|------|
-| Beacon cadence and size | SIL (done: 1,431 frames/day, 1.22 s average); EM on the target | EM |
+| Beacon cadence and size | SIL (done: 1,725 frames/day in the two-year run, 1.38 s average); EM on the target | EM |
 | Received beacons per day | Commissioning: count frames in the database by source | Commissioning |
-| Stored housekeeping and dump | Not implemented: test after the change request | After the change |
+| Stored housekeeping and dump | Flight software (`hk_store.rs`, `DUMP_TLM`) and the SIL's daily dump; EM test of a 600-record dump over several passes | EM |
 
 ## 8. Revision History
 
@@ -119,3 +146,4 @@ allocate a 512 KB internal-flash ring, with two telecommand stations dumping. In
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten (TB-12): broadcast, received and stored budgets separated; SIL frame counts; SatNOGS network estimate from the live station list; stored housekeeping found not implemented and without a downlink path, and its sizing against FRAM, internal flash and dump capacity; uplink and latency |
+| 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Received telemetry at 475 km and 8°/s (3.77 passes, 26.1 min a day; 98.2 % of frames with the beacon jitter as built; SatNOGS ≤ 488 a day); broadcast counts from the two-year SIL run (1,725 frames a day, 2.7 % duty); §4 rewritten to the flight software's store (2,048 five-minute records, 7.1 days; 1,489 sixty-second records; 256 B index) and `DUMP_TLM` (≤ 600 records, 4 a frame, one frame per 12 s, 181 B); daily downlink budget recomputed: the whole five-minute stream needs 72 % of one station's commanding time; the stored-housekeeping verdict is now met by design |

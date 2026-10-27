@@ -2,10 +2,10 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-GND-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Status:** CDR design. **No telecommand station is agreed** (BASELINE §1, decision D1); the sites below are candidates
-for analysis, not partners. Link values: SQSO-LBA-001 v3.0. Interface: SQSO-ICD-005 v2.0. Telecommand: SQSO-ICD-013.
+for analysis, not partners. Link values: SQSO-LBA-001 v3.2. Interface: SQSO-ICD-005 v2.0. Telecommand: SQSO-ICD-013.
 
 ---
 
@@ -58,8 +58,8 @@ link budget. Revision C replaces it.
 | Power | UPS ≥ 30 min | | $200 |
 | **Total per station** | | | **≈ $4,900** |
 
-**Budget at these values (SQSO-LBA-001):** beacon +7.6 dB at 5° (median gain); telecommand at 25 W +7.5 dB at 5°
-(median gain, +6 dB interference) and +2.3 dB at 10° (10th-percentile gain); at 50 W +5.3 dB at 10°. The 50 W
+**Budget at these values (SQSO-LBA-001 v3.2, 475 km):** beacon +7.9 dB at 5° (median gain); telecommand at 25 W +7.8 dB
+at 5° (median gain, +6 dB interference) and +2.6 dB at 10° (10th-percentile gain); at 50 W +5.6 dB at 10°. The 50 W
 setting is the baseline for both stations (GND-R3 allows it everywhere in the United States).
 
 ### 3.2 Site criteria
@@ -76,12 +76,12 @@ setting is the baseline for both stations (GND-R3 allows it everywhere in the Un
 
 | Site | Status | Distance from Santa Clara | Passes/day ≥ 5° | Minutes/day | Commanding passes/day (≥ 15°) | Notes |
 |------|--------|---------------------------|-----------------|-------------|-------------------------------|-------|
-| Santa Clara, CA (licensee area; Santa Clara University prospective) | Prospective | — | 3.85 | 27.7 | 2.5 | Within 240 km of Beale AFB (≈ 204 km): 50 W PEP (GND-R3) |
-| Blacksburg, VA (example of an East Coast university site) | Example | 3,640 km | 3.83 | 27.6 | 2.5 | Passes 3 h earlier in UTC; union with Santa Clara 54.7 min/day, longest gap 9.8 h |
-| Fairbanks, AK | Example | 3,500 km | 9.3 | 61.0 | 5.1 | High-latitude: most passes a day; auroral scintillation at VHF/UHF (SQSO-LBA-001 §2.3); union 87.3 min/day, gap 9.7 h |
-| Honolulu, HI | Example | 3,880 km | 3.23 | 23.3 | 2.1 | Independent of every mainland hazard; union gap 9.8 h |
-| Boulder, CO | Example | 1,470 km | 4.02 | 28.9 | | 53 % of its visibility overlaps Santa Clara's; gap not reduced (11.3 h) |
-| San Diego, CA | Example | 660 km | 3.63 | 26.2 | | Too close: 81 % overlap; same seismic region; south of 37°10′ N, so 50 W PEP (US270) |
+| Santa Clara, CA (licensee area; Santa Clara University prospective) | Prospective | — | 3.77 | 26.1 | 2.4 | Within 240 km of Beale AFB (≈ 204 km): 50 W PEP (GND-R3) |
+| Blacksburg, VA (example of an East Coast university site) | Example | 3,640 km | 3.78 | 26.0 | 2.4 | Passes 3 h earlier in UTC; union with Santa Clara 51.9 min/day, longest gap 9.7 h |
+| Fairbanks, AK | Example | 3,500 km | 8.7 | 56.3 | 4.9 | High-latitude: most passes a day; auroral scintillation at VHF/UHF (SQSO-LBA-001 §2.3); union 81.6 min/day, gap 9.6 h |
+| Honolulu, HI | Example | 3,880 km | 3.18 | 22.0 | 2.1 | Independent of every mainland hazard; union gap 9.8 h |
+| Boulder, CO | Example | 1,470 km | 3.95 | 27.3 | | 51 % of its visibility overlaps Santa Clara's; gap not reduced (11.3 h) |
+| San Diego, CA | Example | 660 km | 3.55 | 24.7 | | Too close: 80 % overlap; same seismic region; south of 37°10′ N, so 50 W PEP (US270) |
 
 **Recommendation:** the second station at least 1,500 km from the Bay Area and outside California (East Coast or
 Midwest university club, or Alaska). NASA Ames, the other prospective partner, is 13 km from Santa Clara and would not
@@ -90,17 +90,18 @@ storage, keys not loaded) is cheap insurance against the common-mode outages of 
 
 ## 4. Coverage
 
-`software/simulation/cdr/rf/pass_geometry_mc.py`, 60 days from 2028-06-01, 500 km, 97.4°, LTAN 22:30:
+`software/simulation/cdr/rf/pass_geometry_mc.py`, 60 days from 2028-11-01, 475 km, 97.4°, LTAN 22:30 (BASELINE Rev E §3):
 
 | Santa Clara | ≥ 0° | ≥ 5° | ≥ 10° | ≥ 20° | ≥ 25° |
 |-------------|------|------|-------|-------|-------|
-| Passes per day | 4.90 | 3.85 | 3.12 | 2.05 | 1.73 |
-| Mean duration | 9.0 min | 7.2 min | 5.7 min | 3.9 min | 3.2 min |
-| Minutes per day | 44.0 | 27.7 | 17.8 | 7.9 | 5.5 |
-| Median maximum elevation | 15.5° | 21.6° | 27.7° | 41.3° | 45.5° |
+| Passes per day | 4.82 | 3.77 | 2.98 | 1.98 | 1.68 |
+| Mean duration | 8.7 min | 6.9 min | 5.6 min | 3.7 min | 3.0 min |
+| Minutes per day | 41.9 | 26.1 | 16.6 | 7.3 | 5.1 |
+| Median maximum elevation | 15.2° | 21.5° | 27.9° | 41.1° | 46.1° |
 
 Passes come in two groups a day, near 10:30 and 22:30 local time (the descending and ascending nodes), so the longest
-gap at one mid-latitude station is 11.4 h; two stations three time zones apart cut it to 9.8 h. The orbit gives every
+gap at one mid-latitude station is 11.4–12.9 h (Blacksburg, Santa Clara); two stations three time zones apart cut it to
+9.7 h. The orbit gives every
 point on the Earth at least two passes a day above 5° (proposed MRD-012).
 
 ## 5. Contact Cadence and the Loss-of-Contact Timers
@@ -113,17 +114,17 @@ year lasting 1–30 days.
 
 | Stations | Routine contact | P(14-day inhibit trips at least once in 2 years), independent outages only | Same, with common-mode outages | P(30-day trips) | Longest wait for a commanding pass (TX-OFF after an FCC order) |
 |----------|-----------------|------|------|------|------|
-| Santa Clara only | daily | 56 % | 66 % | 0.6–0.8 % | 13.1 h |
-| Santa Clara + Blacksburg | daily | **0.8 %** | 26 % | 0–0.4 % | 9.9 h |
-| Santa Clara + Blacksburg | every 7 days | 2.2 % | 31 % | 0–4.6 % | 9.9 h |
-| Santa Clara + Fairbanks | daily | 1.0 % | 25 % | 0–0.2 % | 11.4 h |
-| Santa Clara + Honolulu | daily | 0.7 % | 23 % | 0–0.2 % | 10.0 h |
+| Santa Clara only | daily | 56 % | 67 % | 1.2–1.8 % | 13.0 h |
+| Santa Clara + Blacksburg | daily | **0.6 %** | 25 % | 0–1.0 % | 9.9 h |
+| Santa Clara + Blacksburg | every 7 days | 2.5 % | 29 % | 0–6.2 % | 9.9 h |
+| Santa Clara + Fairbanks | daily | 0.5 % | 25 % | 0 % | 11.3 h |
+| Santa Clara + Honolulu | daily | 0.8 % | 26 % | 0–0.4 % | 11.5 h |
 
 Findings:
 
 1. **One station cannot hold N = 14 days**: a single 3–21-day equipment outage trips the inhibit in more than half of
    missions. Two independent stations bring it below 1 %. This is the quantitative case for GND-R1.
-2. **Common-mode ground failure dominates with two stations** (26 %): the shared counter file, a single operational
+2. **Common-mode ground failure dominates with two stations** (25 %): the shared counter file, a single operational
    key holder, one licensee. Mitigations: UTC-derived counters (SQSO-ICD-013 §5.2.1), a copy of the operational key
    with each station's custodian, a backup control operator for the licensee, the spare kit of §3.3. A trip is not a
    loss: the receiver stays on and the next authenticated command lifts the inhibit, but the transponder and beacon
@@ -220,3 +221,4 @@ Procedures: `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` (SQSO-GSOM-001 v1.
 | A.1 | 2026-10-16 | §3.3 and §6 point to the re-issued link budget (TB-05) | Funding audit |
 | B | 2026-10-16 | §4.2 SatNOGS frequency: the IARU-coordinated frequency (SYS-200) | SMART-QSO Team |
 | C | 2026-10-27 | Rewritten at the CDR: telecommand station design with the 70 cm transmit chain, keys, time and power limits (US270, 97.313(f)); site criteria and candidate sites with coverage; contact-cadence analysis against the 14- and 30-day timers; SatNOGS network as measured; mission data flow; roles; verification items VI-GND-01 to -06. The superseded link budget and the receive-only design are removed | CDR review, communications panel |
+| D | 2026-10-27 | Coverage (§3.3, §4) and contact cadence (§5) re-run at the Rev E baseline orbit, 475 km from 2028-11-01 (was 500 km from 2028-06-01): Santa Clara 3.77 passes and 26.1 min a day (was 3.85, 27.7); one station trips the 14-day inhibit in 56–67 % of missions, two independent stations in 0.6 % (was 0.8 %); longest wait for TX-OFF 13.0 h with one station, 9.9 h with two (RID SE-16) | CDR S&MA analysis |

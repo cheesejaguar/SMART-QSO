@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-ANT-001
-**Version:** 2.1
+**Version:** 2.2
 **Date:** 2026-10-27
 **Status:** CDR. Antenna bought (ISIS AntS 1U–3U, `docs/hardware/BUILD_VS_BUY.md` §2.6); configuration recommended here, to be confirmed by RFQ and a PI decision. Not measured.
 
@@ -49,9 +49,9 @@ evaluated three options along 60 days of passes:
 
 | Option | 2 m elements | Fading | Beacon frames decoded, reference station | Handheld Yagi | Meets ANT-2? |
 |--------|--------------|--------|------------------------------------------|---------------|--------------|
-| A | One, along ±X (across the spin) | Null sweeps the sky twice a revolution: 6.4 fades below −10 dBi per pass, 6 s each | 95.6 % | 50 % | Median yes (−2.3 dBi); 10th percentile −9.3 dBi at low elevation, marginal |
-| **B** | One, along **+Y** (the spin axis) | No spin modulation; null toward the Sun and away from it: 0.19 fades per pass, about 80 s each | 100 % | 56 % | Yes at low elevation (−5.5 dBi); −11.9 dBi at 30–45° (marginal) |
-| **C** | Two, along ±X and ±Y, quadrature through a 90° hybrid | Never below −6 dBi | 100 % | 70 % | **Yes** (−3.6 dBi 10th percentile) |
+| A | One, along ±X (across the spin) | Null sweeps the sky twice a revolution: at 8°/s 8.3 fades below −10 dBi per pass, 5 s each | 96.6 % (98.2 % with the ±5 s beacon jitter as built) | 49 % | Median yes (−2.2 dBi); 10th percentile −9.2 dBi at low elevation, marginal |
+| **B** | One, along **+Y** (the spin axis) | No spin modulation; null toward the Sun and away from it: 0.23 fades per pass, about 80 s each | 100 % | 58 % | Yes at low elevation (−6.3 dBi); −12.8 dBi at 30–45° (marginal) |
+| **C** | Two, along ±X and ±Y, quadrature through a 90° hybrid | Never below −6 dBi | 100 % | 72 % | **Yes** (−3.6 dBi 10th percentile) |
 
 **Baseline (BASELINE Rev D §4, §7, chair decision with STR-01):** two 2 m elements along +X and −X (across the spin
 axis, keeping +Y the major axis of inertia) and two 70 cm elements along +Y and −Y, each pair fed in antiphase as a
@@ -126,3 +126,4 @@ the losses for handheld stations (SQSO-LBA-001 §5.3, finding 2).
 | 1.0 | 2026-01-02 | Initial (custom 2 m monopole, 145.825 MHz) |
 | 2.0 | 2026-10-27 | CDR review (communications panel): ISIS AntS 1U–3U as bought (BUILD_VS_BUY §2.6); 70 cm element added; configuration options against the 6°/s spin with their fading and frame statistics (SQSO-LBA-001 §5), option C recommended, B as fall-back; requirements ANT-1 to ANT-8; RFQ questions; verification items. The custom design and 145.825 MHz are removed |
 | 2.1 | 2026-10-27 | CDR design completion, RF board | Baseline configuration recorded (2 m pair ±X, 70 cm pair ±Y, antiphase); §4.1 feed interface to the RF board (lattice baluns, matched coax, static bleed, isolation); RFQ question 1 restated |
+| 2.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Option table re-run at 8°/s and 475 km (SQSO-LBA-001 v3.2 §5) |

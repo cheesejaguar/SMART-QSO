@@ -46,6 +46,10 @@ BOM: list[dict] = []
 PINMAP: dict[str, dict[str, list[int]]] = {}
 WAIVERS: list[str] = []
 
+# Magnetic cleanliness (OBC item C16, RF_BOARD_DESIGN §10.1): magnetometer board A2 above (+24, +27) mm
+MAG_FAR = "ferromagnetic (place >= 40 mm from (+24, +27), zone M2)"
+MECH: list[dict] = []   # mechanical items (no pins): written to the BOM after the electrical parts
+
 RAILS = ["GND", "RADIO_3V3_IN", "+3V3_RAD", "+3V0_RX", "+3V1_DIG", "+3V1_AUD", "PA_5V_IN", "+5V_PA", "+5V_PA_A",
          "+3V3_PA", "+3V3_LMX"]
 
@@ -175,7 +179,8 @@ def L(ref, value, a, b, family="0603HP", i_work=0.01, notes="", dnp=False):
 
 def FB(ref, a, b, i_work, mpn="BLM18PG221SN1D", notes=""):
     return two(ref, "FB", "220R@100MHz", a, b, mpn, "Murata", "FB_0603", "1.4 A, 0.10 ohm max DCR",
-               f"{i_work:.3f} A / 1.4 A = {i_work / 1.4 * 100:.0f} %", (notes + "; " if notes else "") + TIN,
+               f"{i_work:.3f} A / 1.4 A = {i_work / 1.4 * 100:.0f} %",
+               (notes + "; " if notes else "") + "ferrite: " + MAG_FAR + "; " + TIN,
                "series datasheet read")
 
 
@@ -245,13 +250,17 @@ part("J1", "Conn 16p 1.27 mm", "OBC-RF signals (W4A)", "FTSH-108-01-L-DV-K", "Sa
       (8, "TONE_OK", P, "TONE_OK_RB"), (9, "XPDR_KEY", P, "XPDR_KEY_RB"), (10, "PTT_EXC", P, "PTT_EXC_RB"),
       (11, "TX_TEMP", P, "TX_TEMP"), (12, "TX_FWD", P, "TX_FWD"), (13, "TX_REV", P, "TX_REV"), (14, "AGND", P, "GND"),
       (15, "RX_CD", P, "RX_CD_J"), (16, "RX_FAULT", P, "RX_FAULT_J")],
-     "signal currents < 5 mA (< 1 %)", "W4 v3 pinout (16 positions: v2 had 14, v1 10; RX_CD and RX_FAULT added, RID RFB-07). Tails matte tin over Ni: re-tin; gold contacts",
+     "signal currents < 5 mA (< 1 %)", "W4 v3 pinout (16 positions: v2 had 14, v1 10; RX_CD and RX_FAULT added, RID RFB-07). Tails matte tin over Ni: re-tin; gold contacts. "
+     "Placement (C16): top side, (+X, -Y) corner at the +X edge, pin field along Y centred about (+41.0, -33.5), "
+     "clear of the (+40, -43) column keep-out; the shield's corner is notched for it (§10)",
      "Samtec series page not read in this session; MPN from the existing W4 harness family")
 part("J2", "Conn 6p 1.00 mm Pico-Clasp", "EPS-RF power (W4B)", "501331-0607", "Molex", "Pico-Clasp 1x6 vertical SMT",
      "1.0 A/contact, 50 V", [(1, "RADIO_3V3", PO, "RADIO_3V3_IN"), (2, "GND2", P, "GND"), (3, "PA_5V_A", PO, "PA_5V_IN"),
                              (4, "PA_5V_B", P, "PA_5V_IN"), (5, "GND5", P, "GND"), (6, "GND6", P, "GND")],
      ST.get("connector_PA_contacts", {}).get("stress", "") + " (two contacts)",
-     "Header P/N family to confirm with the harness drawing; tin contacts -> re-tin tails",
+     "Header P/N family to confirm with the harness drawing; tin contacts -> re-tin tails. Placement (C16): top side "
+     "on the -Y edge strip outside the shield at about (-26, -44), next to the PA, so the PA current path "
+     "(J2-FB803-L602/L604-Q601) stays >= 60 mm from (+24, +27); PA_5V and its GND contacts adjacent, routed as a pair",
      "not checked (Molex site not reached)")
 for j, net, lbl in (("J3", "VHF_A", "2 m element +X"), ("J4", "VHF_B", "2 m element -X"),
                     ("J5", "UHF_A", "70 cm element +Y"), ("J6", "UHF_B", "70 cm element -Y")):
@@ -372,7 +381,7 @@ part("U201", "SAW filter 435 MHz", "TA2209A", "TA2209A", "Tai-Saw Technology", "
      [(1, "G1", P, "GND"), (2, "IN", P, "LNA_OUT"), (3, "G3", P, "GND"), (4, "G4", P, "GND"), (5, "G5", P, "GND"),
       (6, "OUT", P, "SAW_OUT"), (7, "G7", P, "GND"), (8, "G8", P, "GND")],
      "max input -37 dBm (2 m fundamental after FL1 and LNA) vs +10 dBm", "Passband 433-437 MHz; >= 45 dB at 10-385 "
-     "and 485-1000 MHz; TCF -36 ppm/K", "approval sheet read (2017); production status not confirmed")
+     "and 485-1000 MHz; TCF -36 ppm/K. Metal lid: treat as " + MAG_FAR, "approval sheet read (2017); production status not confirmed")
 # SAW (single-ended) to CC1200 differential LNA input; starting values, final from TI's CC1200 420-470 MHz reference
 L("L203", "22nH", "SAW_OUT", "CC_LNA_P", notes="RX balun (starting value; replace by the TI reference design values)")
 C("C206", "5.6pF", "CC_LNA_P", "GND", 1.0, rf=True)
@@ -414,7 +423,8 @@ part("Y301", "TCXO 40 MHz clipped sine", "40.000 MHz +-0.5 ppm", "TG2016SMN 40.0
      "2.0 x 1.6 mm 4-pad", "2.8-3.3 V, -40..+85 C, +-0.5 ppm",
      [(1, "NC_VC", P, None), (2, "GND", PI, "GND"), (3, "OUT", O, "TCXO_OUT"), (4, "VCC", PI, "+3V0_RX")],
      "1.5 mA", "One reference for CC1200, LMX2571 and PCM1808. Pad assignment to confirm against the Epson sheet; "
-     "40 MHz code inferred from the family naming (26 and 38.4 MHz codes listed by distributors)",
+     "40 MHz code inferred from the family naming (26 and 38.4 MHz codes listed by distributors). Metal lid: treat as "
+     + MAG_FAR,
      "family listed by distributors (Future, Mouser); 40 MHz code not confirmed")
 C("C301", "100nF", "+3V0_RX", "GND", 3.05, notes="TCXO decoupling")
 C("C302", "1nF", "TCXO_OUT", "CLK_SQ_IN", 3.05, kind="C0G")
@@ -601,7 +611,8 @@ C("C461", "100nF", "+3V1_DIG", "GND", 3.15, notes="CMX138A DVDD")
 part("Y451", "Crystal 3.6864 MHz", "3.6864 MHz", "ABLS-3.6864MHZ-B4-T", "Abracon", "HC-49/US SMD",
      "+-30 ppm, CL 18 pF", [(1, "X1", P, "CMX_X1"), (2, "X2", P, "CMX_X2")], "drive < 100 uW",
      "CLKSEL low = 3.6864 MHz default; harmonics 434.995 and 438.682 MHz bracket the uplink band (6.144 MHz rejected: "
-     "71st harmonic 436.224 MHz). Temperature grade (-40..85 C variant) to confirm", "not checked")
+     "71st harmonic 436.224 MHz). Temperature grade (-40..85 C variant) to confirm. Can: treat as " + MAG_FAR,
+     "not checked")
 C("C462", "22pF", "CMX_X1", "GND", 3.15, kind="C0G")
 C("C463", "22pF", "CMX_X2", "GND", 3.15, kind="C0G")
 R("R459", "10.0k", "CMX_IRQN", "+3V1_DIG", 3.15, notes="IRQN pull-up (open drain)")
@@ -818,6 +829,20 @@ for tp, net in (("TP1", "+3V3_RAD"), ("TP2", "+3V0_RX"), ("TP3", "+3V1_DIG"), ("
     part(tp, "Test pad", net, "pad 1.0 mm (no part)", "-", "TP_1.0mm", "-", [(1, "TP", P, net)], "-",
          "test pad", "n/a")
 
+# ====================================================================================== mechanical (no pins)
+SHIELD_MAT = ("nickel-silver CuNi18Zn20 (EN CW409J, UNS C75200), 0.20 mm, unplated: non-magnetic (relative "
+              "permeability about 1.0); not tin-plated steel, no nickel plating, no tin (EEE_PARTS_LIST §2A.3)")
+MECH += [
+    dict(ref="SH1", qty=1, value="shield frame 84 x 54 x 7 mm, three cavities, (+X, -Y) corner notch for J1",
+         mpn="made to drawing (RF board layout)", mfr="shield vendor (open)", pkg="SMT frame, solder tabs every 5 mm",
+         notes=SHIELD_MAT + ". Wall and lid reach 13 mm from the magnetometer (§10.1)"),
+    dict(ref="SH2 SH3 SH4", qty=3, value="shield lids (receive, transmit, digital cavity)",
+         mpn="made to drawing (RF board layout)", mfr="shield vendor (open)", pkg="solder-mounted lid",
+         notes=SHIELD_MAT + ". Soldered to the frame: no shield clips, no steel spring fingers. EM only: lids "
+               "held by the frame's own nickel-silver dimples for FL1 and match tuning"),
+]
+
+
 # ============================================================================================ outputs
 def write_bom():
     groups: "OrderedDict[tuple, list]" = OrderedDict()
@@ -837,6 +862,9 @@ def write_bom():
             qty = 0 if b["dnp"] else len(items)
             notes = b["notes"] + ("; DNP" if b["dnp"] else "")
             w.writerow([refs, qty, b["value"], b["mpn"], b["mfr"], b["pkg"], b["rating"], b["stress"], notes, b["status"]])
+        for m in MECH:
+            w.writerow([m["ref"], m["qty"], m["value"], m["mpn"], m["mfr"], m["pkg"], "-", "-", m["notes"],
+                        "mechanical item, drawing open"])
     return len(BOM), sum(1 for b in BOM if not b["dnp"] and b["mpn"] not in ("pad 1.0 mm (no part)",)
                          and not b["mpn"].startswith("PCB feature") and not b["mpn"].startswith("footprint only"))
 
@@ -893,7 +921,8 @@ def main():
             (HERE / junk).unlink()
         except FileNotFoundError:
             pass
-    print(f"parts {n_parts} (fitted {n_fitted}), nets {len(NETS)}, ERC errors {len(errors)}, warnings {len(warnings)}")
+    print(f"parts {n_parts} (fitted {n_fitted}), mechanical items {sum(m['qty'] for m in MECH)}, nets {len(NETS)}, "
+          f"ERC errors {len(errors)}, warnings {len(warnings)}")
     for ln in errors + warnings:
         print(ln)
     return 0 if not errors else 1

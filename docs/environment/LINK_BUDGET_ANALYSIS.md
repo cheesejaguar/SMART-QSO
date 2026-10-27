@@ -38,7 +38,7 @@ Every number is reproduced by the scripts in `software/simulation/cdr/rf/` (§9)
 | Telecommand, median gain, interference +6 dB | 25 W, 5° | +7.8 dB | Met |
 | Transponder usable (12 dB SINAD end to end) | 5 W handheld + handheld Yagi up, handheld Yagi down | 20 dB at 5°, 27 dB at 20° | Met from 5° |
 | Transponder usable for a handheld with a whip, both ways | 5 W, whip, −3 dBi | 1.8 dB at 5°, 14.9 dB at 20°, 26 dB at zenith | Usable from about 17° (12 dB SINAD) |
-| Beacon pass decoded, 8°/s spin, element across the spin axis | station A, 0.5 W, 60 days of passes at 475 km | 99.6 % of passes, 96.6 % of frames (98.2 % with ±5 s beacon-interval jitter) | Met |
+| Beacon pass decoded, 8°/s spin, element across the spin axis | station A, 0.5 W, 60 days of passes at 475 km | 99.6 % of passes, 98.2 % of frames with the ±5 s beacon-interval jitter as built (96.6 % without) | Met |
 
 **Verdict.** The 2 m beacon closes with the required margin to a reference station from 5° at 0.5 W. The telecommand
 uplink at 25 W does not hold a 6 dB margin at 10° once a 6 dB terrestrial-interference allowance and the antenna's
@@ -348,8 +348,8 @@ Findings:
    phases instead of repeating one. At 6°/s (60 s period) successive beacons went out at the same phase, and a station
    that lost one beacon to the null tended to lose the next. Station A's frames rise from 96.3 % (6°/s, same orbit)
    to 96.6 %; ±5 s of random jitter on each interval still recovers another 1.6 points (98.2 %), and 67 s gives 97.5 %.
-   The recommended flight-software change stands (RID RF-04; `sqso_fsw::beacon` is outside this document): a uniform
-   ±5 s jitter on each beacon interval. It keeps the beacon power line of BASELINE §5. The mission simulation's
+   The flight software now applies that jitter (a uniform ±5 s on each beacon interval; RID RF-04, SQSO-ICD-005 v2.1
+   §5.3), so **98.2 % is the as-built figure**. It keeps the beacon power line of BASELINE §5. The mission simulation's
    passes-heard figures at 6°/s and 2°/s (`docs/test/SIL_MISSION_SIMULATION.md`) predate the 8°/s baseline.
 2. **Weak stations are limited by polarization, not by the spin.** For linear ground antennas the frame loss is
    dominated by linear-to-linear polarization fades; the spin rate changes it by no more than the sampling scatter. The
@@ -554,4 +554,4 @@ python3 desense_emc.py --out desense.json           # §7
 | 2.0 | 2026-10-16 | Funding audit (TB-05) | Re-issued at the baseline orbit, frequencies and power: noise floor corrected; antenna pattern and ground stations stated; telecommand and transponder links added |
 | 3.0 | 2026-10-27 | CDR review, communications panel | CDR re-issue (BASELINE §7, TB-05): simulated demodulator thresholds; pass-sampled pattern with the 6°/s spin and three element options; handheld, mobile and SatNOGS stations; transponder SINAD end to end; Doppler, CTCSS; desense, filter and intermodulation analysis; telecommand at 25 W found short of the proposed 6 dB at 10°; verification items VI-RF-01 to VI-RF-10 |
 | 3.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: altitude row (500 km analysed; baseline 475 km target, 485 km cap), uplink request windows (§2, §7.1) and the 8°/s spin of BASELINE Rev E noted against the 6°/s pass analysis (§1); 525 km rows labelled as a bound. Analysis values unchanged |
-| 3.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Re-run at the Rev E baseline: every budget at 475 km with the 485 km cap as the bound (was 500 km, with 525 km); pass and fading analysis (§4.4, §5) at 8°/s (6°/s compared) from 2028-11-01. Beacon margin at 5° +7.9 dB (was +7.6), +0.9 dB at the 10th-percentile gain (was +0.6); telecommand +2.6 dB at 10° (was +2.3); station A 96.6 % of frames at 60 s, 98.2 % with ±5 s jitter (was 95.6 % and 97.2 % at 6°/s); fades 5 s every 22.5 s; Doppler ±3.49 / ±10.42 kHz |
+| 3.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Re-run at the Rev E baseline: every budget at 475 km with the 485 km cap as the bound (was 500 km, with 525 km); pass and fading analysis (§4.4, §5) at 8°/s (6°/s compared) from 2028-11-01. Beacon margin at 5° +7.9 dB (was +7.6), +0.9 dB at the 10th-percentile gain (was +0.6); telecommand +2.6 dB at 10° (was +2.3); station A 98.2 % of frames with the ±5 s jitter as built, 96.6 % without (was 97.2 % and 95.6 % at 6°/s); fades 5 s every 22.5 s; Doppler ±3.49 / ±10.42 kHz |

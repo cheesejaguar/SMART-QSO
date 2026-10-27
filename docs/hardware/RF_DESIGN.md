@@ -1,7 +1,7 @@
 # Radio Frequency (RF) Subsystem Design Document
 
 **Document Number**: SMART-QSO-RF-001
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Status**: CDR design description. The architecture, interfaces and requirements are defined here; the build-to board design with selected parts is [RF_BOARD_DESIGN.md](../../hardware/electrical/rf/RF_BOARD_DESIGN.md) (SQSO-RF-BRD-001 A), not yet built or measured (§9). Values follow [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) §7, which governs.
 
@@ -194,9 +194,9 @@ release, deployment switches, I²C. Configuration choice (finding RF-03): with t
 
 | Option | Result (SQSO-LBA-001 §5) | Recommendation |
 |--------|--------------------------|----------------|
-| One 2 m tape across the spin axis (±X) | 6.4 fades below −10 dBi per pass, 6 s each; 95.6 % of beacon frames at station A | Not preferred |
-| One 2 m tape along the spin axis (+Y) | No spin modulation; 0.2 long fades per pass; 100 % of frames at station A | **Baseline if one 2 m tape** |
-| Two 2 m tapes, X and Y, quadrature hybrid | Never below −6 dBi; 100 % at A, 70 % (from 50 %) at a handheld Yagi | **Preferred if the AntS can carry two 2 m and one or two 70 cm tapes with phasing** (RFQ question) |
+| One 2 m tape across the spin axis (±X) | At 8°/s, 8.3 fades below −10 dBi per pass, 5 s each; 96.6 % of beacon frames at station A (98.2 % with the beacon jitter as built) | Not preferred |
+| One 2 m tape along the spin axis (+Y) | No spin modulation; 0.23 long fades per pass; 100 % of frames at station A | **Baseline if one 2 m tape** |
+| Two 2 m tapes, X and Y, quadrature hybrid | Never below −6 dBi; 100 % at A, 72 % (from 49 %) at a handheld Yagi | **Preferred if the AntS can carry two 2 m and one or two 70 cm tapes with phasing** (RFQ question) |
 
 The 70 cm element follows the same rule (along +Y, or crossed). The wings (normal +Y) sit near the elements and will
 distort the pattern; the EM pattern measurement with wings deployed is VI-RF-01.
@@ -282,3 +282,4 @@ the netlist, the BOM and the ERC log). What it leaves open:
 | 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten for the baseline U/v transponder: receiver, TNC, transmitter, repeat path and `XPDR_EN`, TX-OFF and inhibits, AntS configuration options from the spin analysis; requirements RF-F001–F008, RF-P001–P015; findings for the baseline; verification items VI-RF-11 to VI-RF-16; what is not yet selected. The beacon-only design, its link budget and the AX.25 appendices are removed (BEACON_SPEC and SQSO-LBA-001 govern) |
 | 2.1 | 2026-10-27 | CDR design completion, RF board | Parts selected and the board designed (SQSO-RF-BRD-001): §3 "as designed" notes (receiver CC1200 with the audio from the TNC MCU, LMX2571/PCM1808 exciter, RD01MUS3 PA, filters), §3.4 heartbeat lease and board gate, §4 power from the design, §9 replaced by what remains open; RF-P007 split into before-LNA and before-receiver-IC parts, RF-P010 and RF-P015 annotated with the design values, RF-P012 timing restated (200 ms typical, 260 ms maximum) |
 | 2.2 | 2026-10-27 | CDR 2026 consistency | RF-P002: uplink ≥ 0.9 MHz below 3 × f_down (was 2 MHz), from the RF board's desense result; the requested windows |
+| 2.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Element-option rows at 8°/s and 475 km (SQSO-LBA-001 v3.2 §5) |

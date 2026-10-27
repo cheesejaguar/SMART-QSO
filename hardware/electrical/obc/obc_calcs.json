@@ -607,9 +607,9 @@
   "note": "I2C4 OBC side, 50 pF"
  },
  "i2c4b_tr": {
-  "value": 1.9911550000000003e-07,
+  "value": 1.3938085000000003e-07,
   "unit": "s",
-  "note": "I2C4 sensor side (4.7 k): W6E 0.25 m at 100 pF/m plus 25 pF of parts and ESD on both boards; <= 300 ns at 400 kHz"
+  "note": "I2C4 sensor side (4.7 k): W6E 0.10 m at 100 pF/m plus 25 pF of parts and ESD on both boards; <= 300 ns at 400 kHz"
  },
  "i2c1_tr": {
   "value": 1.194693e-07,

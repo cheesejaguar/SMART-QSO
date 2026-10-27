@@ -232,8 +232,8 @@ CB = 120e-12
 put("i2c2_tr", 0.8473 * 2.2e3 * CB, "s", "I2C2 rise time, 2.2 k, 120 pF (EPS + W3 + AntS buffer): <= 300 ns for 400 kHz")
 put("i2c2_iol", 3.3 / 2.2e3, "A", "sink current at VOL (<= 3 mA)")
 put("i2c4_tr", 0.8473 * 2.2e3 * 50e-12, "s", "I2C4 OBC side, 50 pF")
-put("i2c4b_tr", 0.8473 * 4.7e3 * (0.25 * 100e-12 + 25e-12), "s",
-    "I2C4 sensor side (4.7 k): W6E 0.25 m at 100 pF/m plus 25 pF of parts and ESD on both boards; <= 300 ns at 400 kHz")
+put("i2c4b_tr", 0.8473 * 4.7e3 * (0.10 * 100e-12 + 25e-12), "s",
+    "I2C4 sensor side (4.7 k): W6E 0.10 m at 100 pF/m plus 25 pF of parts and ESD on both boards; <= 300 ns at 400 kHz")
 put("i2c1_tr", 0.8473 * 4.7e3 * 30e-12, "s", "I2C1 to the RTC, 4.7 k, 30 pF (100 kHz)")
 
 # ------------------------------------------------------------------------------------------------ 10 harness

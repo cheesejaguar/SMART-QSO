@@ -107,11 +107,17 @@ def run(out: Path, passes_dir: Path | None) -> dict:
 
     # 2. Separation to first sunlight, burns
     load_pre_rf_w = 0.426       # SIL commissioning run, mean load before the burns (timeseries.csv)
-    dark_max_min = 34.5         # leop_passes.py: longest darkness after separation (separation at eclipse entry)
-    burn_a = 1.60               # SIL: two current-limited resistors (0.8 A each) on one burn line
-    v_batt = 15.1               # SIL pack voltage at 58 % SOC
-    burn_s_nominal = 3.0 + 5.0  # deployment.rs: antenna 3 s, wings 5 s
-    burn_s_worst = 3 * 3.0 + 3 * 5.0   # MAX_RETRIES = 3 per element
+    dark_max_min = 28.8         # leop_passes.py at 475 km from 2028-11-01: longest darkness after separation
+    # Wing burns (SQSO-EPS-BRD-001 §9, BASELINE Rev E §4): two resistors per wing on four independent lines, one
+    # resistor at a time, 0.8 A driver fed from the 7.0 V burn buck: 0.51 A at the pack for the burn itself, 0.67 A
+    # with housekeeping and heater, 0.75 A with the magnetorquers; 8 s per resistor, 12 s hardware on-time limit.
+    # The ISIS AntS burns its own thermal knives from 3V3_ANTS after the wings (not included here).
+    burn_a = 0.51               # pack current of one burn (the driver's share)
+    burn_pack_a = 0.67          # peak pack current with housekeeping and heater
+    burn_pack_worst_a = 0.75    # with the magnetorquers at 1.16 W
+    v_batt = 15.1               # pack voltage at 58 % SOC
+    burn_s_nominal = 2 * 8.0    # resistor A of each wing, 8 s
+    burn_s_worst = 4 * 12.0     # both resistors of both wings at the 12 s one-shot limit
     e_dark_wh = load_pre_rf_w * dark_max_min / 60.0
     e_burn_nom_wh = burn_a * v_batt * burn_s_nominal / 3600.0
     e_burn_worst_wh = burn_a * v_batt * burn_s_worst / 3600.0
@@ -119,9 +125,9 @@ def run(out: Path, passes_dir: Path | None) -> dict:
     res["leop_energy"] = {
         "pre_rf_load_w": load_pre_rf_w, "darkness_max_min": dark_max_min,
         "energy_dark_wh": round(e_dark_wh, 3), "soc_drop_dark_pct": round(100 * e_dark_wh / pack_wh, 2),
-        "burn_current_a": burn_a, "burn_c_rate": round(burn_a / CAP_AH, 2),
-        "burn_plus_housekeeping_a": round(burn_a + load_pre_rf_w / v_batt, 2),
-        "high_discharge_alarm_a": 2.5, "bms_overcurrent_a": 5.0,
+        "burn_current_a": burn_a, "burn_pack_peak_a": burn_pack_a, "burn_pack_worst_a": burn_pack_worst_a,
+        "burn_c_rate": round(burn_pack_worst_a / CAP_AH, 2),
+        "high_discharge_alarm_a": 2.5, "bms_overcurrent_a": 4.0,
         "energy_burns_nominal_wh": round(e_burn_nom_wh, 4), "energy_burns_all_retries_wh": round(e_burn_worst_wh, 4),
         "soc_drop_burns_all_retries_pct": round(100 * e_burn_worst_wh / pack_wh, 3),
         "pack_wh": round(pack_wh, 1),

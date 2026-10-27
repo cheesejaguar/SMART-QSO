@@ -171,7 +171,8 @@ W5A 2 × 22 AWG per pole (0.47 A per wire at the guard trip, 23 % of 2 A). W5B 2
 | W6E J10-5 | MG_DRDY | 3.3 V, high = conversion done | U33 → PD11 (EXTI11) | RM3100 DRDY |
 
 W6B, W6C 26 AWG (W6C twisted pairs, 25 % of 0.5 A at the hardware limit; W6B 68 % at the SW4 trip, transient);
-W6D 28 AWG twisted pairs under one shield. W6E 28 AWG, about 0.25 m from the OBC through a ±X wall gap to the +Z end frame.
+W6D 28 AWG twisted pairs under one shield. W6E 28 AWG, 0.10 m (about 0.06 m routed up the (+X, +Y) bundle, MECHANICAL_DESIGN §6.9, plus a service loop) to the
++Z end frame; any excess is stowed below z +20, away from A2.
 
 ### 3.5 W9: GNSS receiver (SkyFox piNAV-NG/FM)
 
@@ -190,7 +191,7 @@ W6D 28 AWG twisted pairs under one shield. W6E 28 AWG, about 0.25 m from the OBC
 ### 3.6 W8: GSE access port (OBC J9) and the charging path
 
 The access window is on the −Y face in the −Z end zone (MECHANICAL_DESIGN §6.4), 48 mm below the OBC: OBC J9
-(Samtec FTSH-105, top side) connects through an internal harness W8A (28 AWG, about 0.15 m, through a ±X wall gap) to a
+(Samtec FTSH-105, top side) connects through an internal harness W8A (28 AWG, 0.15 m: about 0.10 m routed plus a service loop, excess stowed below z +20, away from A2) to a
 2 × 5 2.54 mm bulkhead header at the window (harness designer's part), into which the GSE cable W8B plugs. The pin
 numbers below hold at both ends of W8A.
 

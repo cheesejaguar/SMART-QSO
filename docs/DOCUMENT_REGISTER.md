@@ -44,7 +44,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-CS-001 | Coding Standards | `docs/development/CODING_STANDARDS.md` | B | Draft |
 | SQSO-DEV-004 | Commit Message Standard | `docs/development/COMMIT_MESSAGES.md` | A | Draft |
 | SQSO-DEV-005 | Software Release Procedure | `docs/development/RELEASE_PROCEDURE.md` | D | Draft |
-| SQSO-DB-001 | SMART-QSO Data Budget | `docs/environment/DATA_BUDGET.md` | 2.0 | Draft |
+| SQSO-DB-001 | SMART-QSO Data Budget | `docs/environment/DATA_BUDGET.md` | 2.1 | Draft |
 | SQSO-ETP-001 | Environmental Test Plan | `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` | C.2 | Draft |
 | SQSO-LBA-001 | SMART-QSO Link Budget Analysis | `docs/environment/LINK_BUDGET_ANALYSIS.md` | 3.2 | Draft |
 | SQSO-MB-001 | SMART-QSO Mass Budget | `docs/environment/MASS_BUDGET.md` | 3.1 | Draft |
@@ -57,8 +57,8 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-ENV-002 | Radiation Environment Analysis | `docs/environment/RADIATION_ANALYSIS.md` | D | Draft |
 | SQSO-REL-001 | SMART-QSO Reliability Analysis | `docs/environment/RELIABILITY_ANALYSIS.md` | 2.1 | Draft |
 | SQSO-THA-001 | SMART-QSO Thermal Analysis | `docs/environment/THERMAL_ANALYSIS.md` | 2.0 | Draft |
-| SQSO-GND-001 | Ground Station Design | `docs/ground/GROUND_STATION_DESIGN.md` | C | Draft |
-| SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.2 | Draft |
+| SQSO-GND-001 | Ground Station Design | `docs/ground/GROUND_STATION_DESIGN.md` | D | Draft |
+| SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.3 | Draft |
 | SMART-QSO-ADCS-001 | Attitude Determination and Control Subsystem (ADCS) Design Document | `docs/hardware/ADCS_DESIGN.md` | 1.5 | Draft |
 | SQSO-BVB-001 | Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery | `docs/hardware/BUILD_VS_BUY.md` | B | Draft; vendor data from public pages, no quotes |
 | SMART-QSO-EPS-001 | Electrical Power Subsystem (EPS) Design Document | `docs/hardware/EPS_DESIGN.md` | 2.2 | Draft |
@@ -66,7 +66,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-BOM-001 | SMART-QSO Parts List / Bill of Materials | `docs/hardware/PARTS_LIST.md` | 1.1 | Draft |
 | SMART-QSO-PAYLOAD-001 | AI Payload (Jetson Orin Nano) Design Document | `docs/hardware/PAYLOAD_DESIGN.md` | 1.2 | Draft |
 | SQSO-PAY-SEL-001 | OBC Selector and Transponder Scheduler: Detailed Design | `docs/payload/OBC_SELECTOR_DESIGN.md` | A | Draft; designed, not implemented |
-| SMART-QSO-RF-001 | Radio Frequency (RF) Subsystem Design Document | `docs/hardware/RF_DESIGN.md` | 2.2 | Draft; architecture superseded by the baseline (its notice) |
+| SMART-QSO-RF-001 | Radio Frequency (RF) Subsystem Design Document | `docs/hardware/RF_DESIGN.md` | 2.3 | Draft; architecture superseded by the baseline (its notice) |
 | SQSO-INT-005 | Anomaly Resolution Procedure | `docs/integration/ANOMALY_RESOLUTION.md` | A | Draft |
 | SQSO-ASM-001 | SMART-QSO Assembly Procedure | `docs/integration/ASSEMBLY_PROCEDURE.md` | 1.0 | Draft |
 | SQSO-CCP-001 | SMART-QSO Contamination Control Plan | `docs/integration/CONTAMINATION_CONTROL_PLAN.md` | 2.0 | Draft |
@@ -79,7 +79,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SMART-QSO-ICD-001 | Interface Control Document: OBC-EPS | `docs/interfaces/ICD_OBC_EPS.md` | 1.3 | Draft |
 | SMART-QSO-ICD-002 | Interface Control Document: OBC-Jetson | `docs/interfaces/ICD_OBC_JETSON.md` | 1.3 | Draft |
 | SQSO-ICD-003 | Interface Control Document: OBC to RF Subsystem | `docs/interfaces/ICD_OBC_RF.md` | 2.2 | Draft |
-| SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 2.2 | Draft |
+| SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 2.3 | Draft |
 | SQSO-ICD-000 | Interface Control Document - Master | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | C | Draft |
 | SQSO-IVP-001 | SMART-QSO Interface Verification Plan | `docs/interfaces/INTERFACE_VERIFICATION_PLAN.md` | 1.0 | Draft |
 | SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.8 | Draft |
@@ -88,7 +88,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-WKS-001 | SMART-QSO Workmanship Standards | `docs/manufacturing/WORKMANSHIP_STANDARDS.md` | 1.1 | Draft |
 | SQSO-MSC-001 | SMART-QSO Mission Success Criteria | `docs/mission/MISSION_SUCCESS_CRITERIA.md` | 2.1 | Draft |
 | SQSO-LVR-001 | Launch Vehicle and Dispenser Requirements Flow-Down | `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` | D | Draft; from published provider documents, no mission ICD yet |
-| SQSO-SCH-001 | Integrated Master Schedule | `mission/SCHEDULE.md` | B | Draft; planning estimates |
+| SQSO-SCH-001 | Integrated Master Schedule | `mission/SCHEDULE.md` | C | Draft; planning estimates |
 | SQSO-RISK-001 | Risk Register | `mission/RISK_REGISTER.md` | D | Living document |
 | SQSO-AR-001 | SMART-QSO Anomaly Report Template | `docs/operations/ANOMALY_REPORT_TEMPLATE.md` | 1.0 | Template |
 | SQSO-ARP-001 | SMART-QSO As-Run Procedure Template | `docs/operations/AS_RUN_PROCEDURE_TEMPLATE.md` | 1.0 | Template |
@@ -116,14 +116,14 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-PM-001 | Project Plan | `docs/project/PROJECT_PLAN.md` | B | Draft |
 | SQSO-PM-002 | CDR Governing Framework, Tailoring and Criteria Compliance Matrix | `docs/project/CDR_CRITERIA_MATRIX.md` | A | Draft |
 | SMART-QSO-SEMP-001 | Systems Engineering Management Plan (SEMP) | `docs/project/SEMP.md` | 2.1 | Draft |
-| SQSO-REG-001 | IARU Satellite Frequency Coordination — Status | `docs/regulatory/IARU_COORDINATION.md` | E | Draft |
+| SQSO-REG-001 | IARU Satellite Frequency Coordination — Status | `docs/regulatory/IARU_COORDINATION.md` | F | Draft |
 | SQSO-REG-003 | Licensing Pathway Determination | `docs/regulatory/LICENSING_PATHWAY_DETERMINATION.md` | B.1 | Draft |
 | SQSO-REG-004 | Regulatory and Launch-Authorization Roadmap | `docs/regulatory/REGULATORY_ROADMAP.md` | C | Draft |
 | SQSO-REG-002 | Spectrum Authorization Status | `docs/regulatory/SPECTRUM_LICENSE.md` | D | Draft |
 | SQSO-REG-012 | Export Control Classification Memorandum | `docs/regulatory/filings/EXPORT_CLASSIFICATION_MEMO.md` | B | Draft; to be confirmed by export counsel (its header) |
 | SQSO-REG-014 | FCC Part 97 In-Space and Post-Space Notifications (Templates) | `docs/regulatory/filings/FCC_97-207_IN_SPACE_AND_POST_SPACE_NOTIFICATIONS.md` | A.2 | Template; not filed |
 | SQSO-REG-013 | FCC Part 97 Pre-Space Notification (Draft) | `docs/regulatory/filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md` | A.2 | Draft; not filed |
-| SQSO-REG-010 | IARU Amateur Satellite Frequency Coordination Request — Draft (form v40 layout) | `docs/regulatory/filings/IARU_COORDINATION_REQUEST_v40.md` | A.3 | Draft; not submitted |
+| SQSO-REG-010 | IARU Amateur Satellite Frequency Coordination Request — Draft (form v40 layout) | `docs/regulatory/filings/IARU_COORDINATION_REQUEST_v40.md` | A.4 | Draft; not submitted |
 | SQSO-REG-017 | ITU Appendix 4 Data Sheet (Advance Publication / Notification) | `docs/regulatory/filings/ITU_APPENDIX4_DATA.md` | A.2 | Draft |
 | SQSO-REG-016 | Launch Provider Deliverables Package | `docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md` | C | Draft |
 | SQSO-REG-011 | NOAA Commercial Remote Sensing — License Applicability Determination | `docs/regulatory/filings/NOAA_REMOTE_SENSING_DETERMINATION.md` | A.1 | Draft |
@@ -236,7 +236,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-OBC-002 | Storage Design Document | `hardware/obc/STORAGE_DESIGN.md` | 1.7 | Draft |
 | SQSO-PAY-JET-001 | Jetson Orin Nano Integration Design Document | `hardware/payload-jetson/INTEGRATION_DESIGN.md` | 1.1 | Draft |
 | SQSO-JET-002 | Jetson Payload Power Management | `hardware/payload-jetson/POWER_MANAGEMENT.md` | 1.1 | Draft |
-| SQSO-RF-ANT-001 | Antenna Design Document | `hardware/rf/ANTENNA_DESIGN.md` | 2.1 | Draft |
+| SQSO-RF-ANT-001 | Antenna Design Document | `hardware/rf/ANTENNA_DESIGN.md` | 2.2 | Draft |
 | SQSO-RF-003 | RF Electrical Design Specification | `hardware/rf/RF_ELECTRICAL_DESIGN.md` | 1.2 | Draft |
 | SQSO-RF-TX-001 | RF Transmitter Design Document | `hardware/rf/TRANSMITTER_DESIGN.md` | 1.4 | Draft |
 | SQSO-STR-001 | Structural Design Document | `hardware/structure/STRUCTURAL_DESIGN.md` | 1.4 | Draft |

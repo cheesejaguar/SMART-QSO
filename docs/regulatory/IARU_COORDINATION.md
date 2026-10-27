@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-001
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 
 ---
@@ -31,7 +31,7 @@ misrepresentation to the IARU, and it has been withdrawn:
 | Primary downlink 145.825 MHz | 145.825 MHz carries ARISS/ISS packet and APRS digipeater traffic. The v40 draft asks the panel to assign a frequency in 145.800–146.000 MHz. |
 | FCC Part 97 "Application pending"; NTIA "Coordination in progress" | Nothing was filed. Part 97 uses notifications, not a license application, and NTIA does not apply. |
 | "First Beacon: Launch + 30 minutes" | Violates the CDS Rev 14.1 §2.4.5 rule of no transmission earlier than **45 minutes** after deployment. |
-| Link margin 14 dB with −145 dB path loss | Superseded by `docs/environment/LINK_BUDGET_ANALYSIS.md` v3.0 (analysis at 500 km, which bounds the 475 km baseline target from the long-range side): the 1200 bps beacon at 0.5 W closes from 5° elevation with +7.6 dB at the median spacecraft gain and +0.6 dB at the 10th-percentile gain; telecommand at 25 W has +2.3 dB at 10° in the worst case taken (10th-percentile gain, +6 dB interference) and +7.5 dB at 5° at the median gain. Free-space loss at 145.9 MHz is 142.1 dB at 5° and 129.7 dB overhead. |
+| Link margin 14 dB with −145 dB path loss | Superseded by `docs/environment/LINK_BUDGET_ANALYSIS.md` v3.2 (analysis at the 475 km baseline target; the 485 km cap costs 0.1 dB): the 1200 bps beacon at 0.5 W closes from 5° elevation with +7.9 dB at the median spacecraft gain and +0.9 dB at the 10th-percentile gain; telecommand at 25 W has +2.6 dB at 10° in the worst case taken (10th-percentile gain, +6 dB interference) and +7.8 dB at 5° at the median gain. Free-space loss at 145.9 MHz is 141.8 dB at 5° and 129.3 dB overhead. |
 
 ---
 
@@ -44,3 +44,4 @@ misrepresentation to the IARU, and it has been withdrawn:
 | C | 2026-10-16 | Link-margin correction cites the re-issued link budget (SQSO-LBA-001 v2.0) | Funding audit (TB-05) |
 | D | 2026-10-27 | Header revision brought up to the history (it said B after Rev C). Status: licensee designated, stations not; submission date, expected duration and frequency ranges; link margins to SQSO-LBA-001 v3.0 | CDR review, communications panel |
 | E | 2026-10-27 | CDR 2026 consistency pass: uplink request 435.222–435.778 MHz, else 436.222–436.500 MHz (BASELINE Rev E §7); link-budget altitude note | CDR documentation review |
+| F | 2026-10-27 | Link-margin row from SQSO-LBA-001 v3.2 at 475 km (RID SE-16) |

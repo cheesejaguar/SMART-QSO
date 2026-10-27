@@ -975,5 +975,42 @@
    "ratio": 0.52,
    "rule": "<= 0.80"
   }
+ },
+ "magnetics": {
+  "sensor_mm": [
+   24.0,
+   27.0,
+   44.0
+  ],
+  "A2_bottom_z_mm": 40.4,
+  "plan_radius_for_20mm_3D_mm": {
+   "board_surface": 19.6,
+   "top_of_2mm_parts": 19.9,
+   "adopted_plan_radius_mm": 20.0
+  },
+  "shield_nearest_to_sensor_mm": 13.0,
+  "field_nT_per_uAm2_on_axis": {
+   "13 mm": 91.0,
+   "20 mm": 25.0,
+   "30 mm": 7.4,
+   "40 mm": 3.1,
+   "60 mm": 0.9
+  },
+  "pa_current_A_at_1W": 0.469,
+  "pa_field_at_sensor_nT": {
+   "paired_supply_return_L4_L5": 0.39,
+   "drain_loop_L1_L2": 0.12,
+   "unpaired_return_detour_20x14mm": 22.0,
+   "paired_but_routed_20mm_from_sensor": 22.0,
+   "single_unpaired_wire_at_20mm": 4690.0
+  },
+  "pa_distance_to_sensor_mm": {
+   "J2": 87.2,
+   "Q601": 80.3
+  },
+  "targets_nT": {
+   "keyed_minus_unkeyed_change": 15.0,
+   "note": "RM3100 noise 15 nT at 200 cycle counts (OBC_BOARD_DESIGN \u00a79.4); the change on keying is what calibration cannot remove"
+  }
  }
 }

@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat, 2026-10-27 to a 2028 Launch
 
 **Document ID**: SQSO-SCH-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: Planning baseline from a critical-path model. No vendor quote, laboratory booking, integrator schedule or
 funding commitment exists yet; each is an assumption below. Update at least every 30 days (finding PI-12).
@@ -96,13 +96,13 @@ per year to the start of I&T and 2 months per year from the start of I&T to the 
 
 | Scenario (`schedule_cpm.py` options) | Protoflight campaign ends | Float to the binding deadline | Against the GOLD margin |
 |--------------------------------------|---------------------------|-------------------------------|-------------------------|
-| Baseline: launch 2028-06-01, EM funds 2027-01-15, FM long leads at the CDR | 2028-02-22 | **−21 d** | −9.6 weeks |
-| Same, FM long leads ordered at risk at the PDR (`--fm-at-risk`) | 2028-02-08 | −7 d | −7.8 weeks |
-| Same, EM funds 2027-02-15 | 2028-03-20 | −48 d | −13.1 weeks |
+| Launch 2028-06-01 (`--launch 2028-06-01`; the former planning date), EM funds 2027-01-15, FM long leads at the CDR | 2028-02-22 | **−21 d** | −9.6 weeks |
+| Same, FM long leads ordered at risk at the PDR (`--launch 2028-06-01 --fm-at-risk`) | 2028-02-08 | −7 d | −7.8 weeks |
+| Same, EM funds 2027-02-15 (`--launch 2028-06-01 --em-funds 2027-02-15`) | 2028-03-20 | −48 d | −13.1 weeks |
 | Launch 2028-07-01 | 2028-02-22 | +8 d | −6.1 weeks |
 | Launch 2028-08-01 | 2028-02-22 | +39 d | −2.4 weeks |
 | Launch 2028-09-01 | 2028-02-22 | +69 d | **meets** (9.9 against 8.7 weeks) |
-| **Launch 2028-11-01** | 2028-02-22 | **+130 d** | **meets** (18.6 against 10.2 weeks) |
+| **Baseline: launch 2028-11-01** (no options) | 2028-02-22 | **+130 d** | **meets** (18.6 against 10.2 weeks) |
 | Launch 2028-11-01, EM funds 2027-03-15 | 2028-03-20 | +75 d | meets (10.7 against 9.5 weeks) |
 | Launch 2028-11-01, FM and launch funds 2027-09-30 | 2028-04-13 | +79 d | meets, but the contract misses the D7 deadline |
 
@@ -162,3 +162,4 @@ per year to the start of I&T and 2 months per year from the start of I&T to the 
 | — | before 2026-10-27 | Relative "Month −9 to Month 0" schedule (no ID) | SMART-QSO Team |
 | A | 2026-10-27 | Replaced by a dated critical-path schedule from `software/simulation/cdr/pm/schedule_cpm.py`, with the integrator deliverable dates of SQSO-LVR-001 §9 as deadlines, float, scenarios and the regulatory timing (CDR review, PM/SE/V&V; finding PI-12) | CDR review, PM/SE/V&V |
 | B | 2026-10-27 | CDR 2026 consistency pass: planning launch 2028-11-01 (BASELINE Rev E §3, CR-2026-007) in the §1 key dates (L-relative dates from `schedule_cpm.py --launch 2028-11-01`); finding 2 marked adopted. Floats unchanged | CDR documentation review |
+| C | 2026-10-27 | `schedule_cpm.py` defaults to the 2028-11-01 planning launch (was 2028-06-01); the §3 scenario table labels the June rows with their options (RID SE-16). Dates and floats unchanged | CDR S&MA analysis |

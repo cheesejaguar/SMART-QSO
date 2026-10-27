@@ -1,7 +1,7 @@
 # Interface Control Document: Space-to-Ground
 
 **Document ID**: SQSO-ICD-005
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR. RF values follow BASELINE §7; frequencies are planning values until the IARU coordination letter.
@@ -67,13 +67,13 @@ baseline, and Version 2.0 replaces it.
 | Doppler correction | **Telecommand: pre-correct to ±1 kHz** (uncorrected 10 kHz does not decode). Users: 5 kHz steps across the pass | SQSO-LBA-001 §3.2, §4.4 |
 | Polarization | Any; the spacecraft element is linear | |
 
-### 4.3 Link summary (SQSO-LBA-001 v3.0; analysis)
+### 4.3 Link summary (SQSO-LBA-001 v3.2, 475 km; analysis)
 
 | Link | Case | Margin or SINAD |
 |------|------|-----------------|
-| Beacon, 0.5 W, reference station (12 dBic, 500 K) | 5°, median / 10th-percentile spacecraft gain | +7.6 dB / +0.6 dB |
-| Telecommand, 25 W, 14 dBic | 10°, 10th-percentile gain, +6 dB interference | +2.3 dB (+5.3 dB at 50 W) |
-| Transponder, handheld Yagis both ends | 5° / 20° | 19 dB / 26 dB SINAD |
+| Beacon, 0.5 W, reference station (12 dBic, 500 K) | 5°, median / 10th-percentile spacecraft gain | +7.9 dB / +0.9 dB |
+| Telecommand, 25 W, 14 dBic | 10°, 10th-percentile gain, +6 dB interference | +2.6 dB (+5.6 dB at 50 W) |
+| Transponder, handheld Yagis both ends | 5° / 20° | 20 dB / 27 dB SINAD |
 | Transponder, handheld whips both ends | 20° / zenith | 14 dB / 26 dB SINAD |
 
 ## 5. Protocol Interface
@@ -215,8 +215,8 @@ minutes of dump at the maximum rate; the mission simulation's plan asks for the 
 
 ### 7.2 Pass statistics (SQSO-GND-001 §4)
 
-Santa Clara, 500 km SSO (the pass analysis; at the 475 km baseline target passes are slightly shorter): 3.85 passes a day above 5°, 7.2 min average, 28 minutes a day; 2.5 a day above 15°. Longest
-gap between passes 11.4 h.
+Santa Clara, 475 km SSO (the baseline target; SQSO-GND-001 Rev D §4): 3.77 passes a day above 5°, 6.9 min average, 26 minutes a day; 2.4 a day above 15°. Longest
+gap between passes 12.9 h.
 
 ## 8. Security and Amateur-Radio Compliance
 
@@ -255,3 +255,4 @@ gap between passes 11.4 h.
 | 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten to the baseline: 1200 bps AFSK UI frames only, frequency ranges, linear polarization, power, Doppler rules, KK6GDB-11, beacon schedule per BASELINE §8, the binary beacon and response formats and connected mode removed, ground-station obligations, telecommand pass, link summary from SQSO-LBA-001 v3.0 |
 | 2.1 | 2026-10-27 | CDR flight software, round 2 | §5.3 the ±5 s beacon jitter as implemented (RF-04) and the HK1 contact fields; §5.5 the command acknowledgement as implemented (GND-03; was a proposal); §5.6 new: stored housekeeping, DUMP_TLM frames and the 44-byte record (DB-01); §7.1 commands checked by their acknowledgement |
 | 2.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: uplink request windows from BASELINE Rev E §7 (§2, §4); pass-analysis altitude noted |
+| 2.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §4.3 link summary from SQSO-LBA-001 v3.2 and §7.2 pass statistics from SQSO-GND-001 Rev D, both at 475 km (were 500 km) |

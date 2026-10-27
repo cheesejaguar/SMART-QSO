@@ -13,7 +13,7 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "LV-14": ("CD", "XPDR_ENABLE 0x34, XPDR_DISABLE 0x35, GNSS_REQUEST 0x60, DEPLOY_RETRY 0x50"),
     "LV-15": ("CD", "RF silence latched once complete (SRS-F087; test_rf_silence.c)"),
     "LV-27": ("CD", "HK1 housekeeping frame every fifth beacon and on GET_HOUSEKEEPING 0x09"),
-    "STR-01": ("CD", "BASELINE §4 mass properties; CAD layout: Iyy/max 1.057 CBE, 1.047 MEV, axis within 1.3° (SQSO-MECH-CAD-001); full tensor in the flight law"),
+    "STR-01": ("CD", "BASELINE §4 mass properties; CAD layout: Iyy/max 1.056 CBE, 1.047 MEV, axis 0.6° / 1.1° from +Y (SQSO-MECH-CAD-001); full tensor in the flight law"),
     "STR-15": ("CD", "8 s burn at 0.8 A, two resistors per wing on drivers A (PB10) and B (PE6), alternate attempts; SIL deploy.rs fixed and AntS modelled; VI-STR-06, VI-STR-13"),
     "STR-16": ("CD", "Wings first, then the AntS (SRS-F089); 37.8 mm nominal clearance (SQSO-MECH-CAD-001); stuck-wing case VI with the ISIS ICD"),
     "STR-27": ("CD", "ADCS_SET_GEOMETRY 0x24, presets 0-3, persisted; one-wing Monte Carlo (BUILD_VS_BUY §6.4)"),

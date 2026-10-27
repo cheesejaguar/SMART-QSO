@@ -43,7 +43,8 @@ the AX.25 beacon and the FM repeat path, a KISS TNC on USART2, and the hardware 
 | Repeat path, `XPDR_EN` | LVC1G123 monostable (49.7 ms), CMX138A CTCSS decode and audio filter, HC4060 120 s timer, LVC1G11 AND, TMUX1101 mute, TMUX1219 select, TX permit in the PTT gate | Unkeys ≤ 59 ms after the last heartbeat edge; key-down timer 120 ± 4.6 s |
 | Power | Receive section on RADIO_3V3 (SW2) | 0.105 W typical, 0.131 W worst (allocation 0.15 W); repeat path +24 mW (allocation 30 mW) |
 | Receiver supervision (B) | RX_CD (CC1200 carrier sense) and RX_FAULT (hardware monostable on the TNC's health pulses) to the OBC on J1-15/16 | RX_FAULT asserts 0.36–0.62 s after the last health pulse; unpowered board reads not fault |
-| Parts | 330 placed, 300 fitted and orderable, 194 nets | ERC: 0 errors, 0 warnings, 7 waivers |
+| Magnetic cleanliness (B, amended: OBC item C16) | Magnetometer board A2 above (+24, +27): no part within 20 mm, no ferrite or ferromagnetic lid within 40 mm, nickel-silver shield with soldered lids (no clips), PA supply and return paired on L4/L5 and kept ≥ 60 mm away; J1 in the (+X, −Y) corner, J2 by the PA (§10.1) | PA current field at the sensor 0.4 nT at 1 W (22 nT if unpaired or routed past the sensor); RM3100 noise 15 nT |
+| Parts | 330 placed, 300 fitted and orderable, 194 nets; 4 mechanical items (shield frame and three lids) | ERC: 0 errors, 0 warnings, 7 waivers |
 
 Three findings change the earlier documents and are reported for the chair (§15):
 
@@ -118,6 +119,11 @@ Three findings change the earlier documents and are reported for the chair (§15
 
 ### 4.1 J1, OBC signals (W4 version 3, Samtec FTSH-108-01-L-DV-K, 16 positions)
 
+Placement (OBC item C16): top side, in the board's (+X, −Y) corner at the +X edge, pin field along Y centred at about
+(+41.0, −33.5) mm (y −39.3 … −27.7), clear of the Ø 7 mm keep-out of the (+40, −43) column, so the W4A ribbon meets
+the OBC's J2 through the +X wall gap at the same corner (OBC_BOARD_DESIGN §21). The shield frame is notched at that
+corner (x > +37.0, y < −26.0) to make room (§10). J1 is 63 mm from the magnetometer.
+
 | J1 pin | Signal | Direction | Level, RF-board circuit | OBC side |
 |--------|--------|-----------|-------------------------|----------|
 | 1, 4, 7 | GND | — | — | — |
@@ -141,6 +147,11 @@ read low through the board's 100 kΩ pull-downs (J1-15/16) and the OBC's own pul
 configured by mistake as an output safe (3.3 mA).
 
 ### 4.2 J2, power (W4B, Molex Pico-Clasp 6)
+
+Placement (C16): top side on the −Y edge strip outside the shield, at about (−26, −44) mm, next to the PA in the
+(−X, −Y) corner, so the PA's 0.47 A runs from J2 to Q601 in about 16 mm and stays 80 mm or more from the magnetometer
+(§10.1). PA_5V (pins 3, 4) and its returns (pins 2, 5) are adjacent contacts; the W4B harness twists each PA_5V wire
+with a GND wire.
 
 | J2 pin | Rail | Source (EPS_DESIGN 2.0 §4) | Load on this board |
 |--------|------|----------------------------|--------------------|
@@ -494,17 +505,39 @@ flight-like body (VI-RF-17). If ISIS supplies the phasing on the AntS, the board
 
 | Item | Rule |
 |------|------|
-| Outline and mounting | PC/104 form 90.17 × 95.89 mm, 1.6 mm, four stack columns Ø 5.8 mm at (±40.0, ±43.0) mm from the board centre, at z = +34.8 mm in layout B (values of the CDR mechanical model, to be confirmed against its drawing); board centre support per [STRUCTURAL_ANALYSIS.md](../../../docs/environment/STRUCTURAL_ANALYSIS.md) (PCB fatigue). Component height ≤ 7 mm under the 84 × 60 × 7 mm shield frame the mechanical model carries |
-| Stack-up | 6 layers, 1.6 mm, high-Tg FR-4 (IS410 or 370HR class): L1 RF and components (35 µm), 0.20 mm prepreg, L2 solid ground, L3 signals, L4 power planes split by domain (+3V0_RX, +3V1_DIG, +5V_PA, +3V3_PA), L5 solid ground, L6 components (digital). 50 Ω microstrip on L1: 0.37 mm (εr 4.2, h 0.20 mm; confirm with the fabricator's field solver); coplanar ground with via fence |
-| Placement | Three shielded cavities on L1 under one frame with internal walls: (a) receive: J5/J6, balun, FL1, LNA, SAW, CC1200, TCXO; (b) transmit: LMX2571, PA, match, LPF, sense line, VHF balun, J3/J4; (c) digital/audio: MCU, CMX138A, logic. FL1 input and output on opposite sides of a cavity wall. PA and LPF at the −X/−Y corner, close to a mounting column (heat path); receive cavity at the opposite corner; ≥ 25 mm between the PA output and the LNA input |
+| Outline and mounting | PC/104 form 90.17 × 95.89 mm, 1.6 mm, four stack columns Ø 5.8 mm at (±40.0, ±43.0) mm from the board centre, at z = +34.8 mm in layout B (values of the CDR mechanical model, to be confirmed against its drawing); board centre support per [STRUCTURAL_ANALYSIS.md](../../../docs/environment/STRUCTURAL_ANALYSIS.md) (PCB fatigue). Component height ≤ 7 mm under the 84 × 54 × 7 mm shield frame at x −42 … +42, y −40 … +14 mm that the mechanical model carries ([MECHANICAL_DESIGN.md](../../mechanical/MECHANICAL_DESIGN.md) §11 item 4), notched at the (+X, −Y) corner for J1 (x > +37.0, y < −26.0); ≤ 2 mm outside it except J1 and J2 |
+| Stack-up | 6 layers, 1.6 mm, high-Tg FR-4 (IS410 or 370HR class): L1 RF and components (35 µm), 0.20 mm prepreg, L2 solid ground, L3 signals, L4 power planes split by domain (+3V0_RX, +3V1_DIG, +5V_PA, +3V3_PA), L5 solid ground (L4–L5 dielectric ≤ 0.30 mm: the PA supply on L4 and its return on L5 form the pair of §10.1), L6 components (digital). 50 Ω microstrip on L1: 0.37 mm (εr 4.2, h 0.20 mm; confirm with the fabricator's field solver); coplanar ground with via fence |
+| Placement (B, amended for C16) | Three shielded cavities on L1 under one frame with internal walls: (a) receive, at the frame's (−X, +Y) end (x −42 … −5, y −8 … +14): J5/J6, balun, FL1, LNA, SAW, CC1200, TCXO, with the SAW and TCXO at x ≤ −15 (≥ 40 mm from the magnetometer); (b) transmit, at the (−X, −Y) end (x −42 … −5, y −40 … −8): LMX2571, PCM1808, PA, match, LPF, sense line, VHF balun, J3/J4; PA and LPF at the (−X, −Y) corner, close to the (−40, −43) column (heat path); (c) digital/audio, the +X half (x −5 … +42) less the J1 notch: MCU, CMX138A, logic, with the 3.6864 MHz crystal Y451 and FB802 at y ≤ −15. Nothing in zone M1 (§10.1), which takes the frame's strip y > +7 between x +9 and +39. FL1 input and output on opposite sides of a cavity wall; ≥ 25 mm between the PA output and the LNA input (LPF and sense line toward −Y, LNA input at y ≥ +2). Connectors: J1 (+X, −Y) corner (§4.1), J2 at (−26, −44) (§4.2) |
 | Isolation | ≥ 85 dB at 146 MHz from the PA output to the LNA input (§6.3); harmonic leakage around the LPF ≤ −90 dBc (§7.4). Shield walls soldered every ≤ 5 mm (λ/20 at 3 GHz is 5 mm), via fence every 2 mm along RF traces and walls |
-| Shields | Nickel-silver or copper-alloy, not tin-plated (EEE_PARTS_LIST §2A.3 item 5; no ferromagnetic steel near the magnetometer), 0.2 mm, 7 mm high, solder-mounted lids |
-| Magnetics | Magnetometer location in the mechanical model (24, 27) mm: no ferrite beads, no ferrite-core inductors and no PA current loop within 25 mm of it; route the PA supply and return as a pair; air-core inductors in the RF paths |
+| Shields (BOM SH1–SH4) | **Nickel-silver CuNi18Zn20 (EN CW409J, UNS C75200), 0.20 mm, unplated**, frame and all three lids. Not tin-plated steel (ferromagnetic, and tin is excluded by EEE_PARTS_LIST §2A.3 item 5), and no nickel plating (electroplated nickel is ferromagnetic). Lids soldered to the frame: **no shield clips** and no steel spring fingers. On the EM only, lids may be held by the frame's own nickel-silver dimples during FL1 and match tuning. 7 mm high |
+| Magnetics | Zones M1 and M2 and the current rules of §10.1 (magnetometer board A2 above (+24, +27)); air-core or ceramic-core inductors only (Coilcraft 0603HP and 1812SMS) |
 | RF rules | No ground splits under RF; no RF trace over a plane edge; inductors of the LPF at right angles to their neighbours, ≥ 3 mm apart; trap capacitors at the inductor pads; TCXO trace ≤ 10 mm with ground guard; the 5.000 MHz I2S lines and SPI inside the digital cavity, away from the receive cavity |
 | Thermal | Q601 exposed pad on ≥ 25 × 25 mm of copper on L1, ≥ 16 vias (0.3 mm) to L2 and L5, 2 oz on L2/L5 under the PA; TMP235 within 5 mm of Q601 on the same pour. Total keyed dissipation 1.26–1.38 W (§11) |
 | Creepage, voltage | Highest voltage: 24 V peak RF at the LPF nodes at 1 W into 3:1; 5.15 V DC. IPC-2221 B4 (coated) ≤ 30 V: 0.13 mm; use ≥ 0.2 mm. No corona: well below the Paschen minimum (≈ 300 V) |
 | Test points | TP1–TP22 (rails, EN_OK, TONE_OK, NOT_TOT, XPDR_KEY, PTT_EXC, TX_PERMIT_HW, repeat audio, TX audio, lock detect, Vgg, APC reference, debug UART, timer oscillator); SWD on a Tag-Connect TC2030 footprint; U.FL test pads (DNP) at the LPF input and FL1 output for EM characterization |
 | Conformal coat | After test: coat everything except connectors and the trap capacitors' tuning area (or coat after final tuning); it is also the tin-whisker mitigation for the QFN and DSBGA parts that cannot be re-tinned |
+
+### 10.1 Magnetic cleanliness (B, amended: OBC item C16)
+
+The magnetometer (PNI RM3100) is on board A2 at (+24, +27) mm in the +Z end-frame slot, z +40.4 … +48.4 (sensor
+centre taken at z +44, OBC_BOARD_DESIGN §9.4). That is 4.0 mm above this board's top surface and 2.0 mm above its
+2 mm parts outside the shield. Numbers from `rf_calcs.py` §15:
+
+| Zone or source | Rule | Basis |
+|----------------|------|-------|
+| **M1**: 20 mm in plan round (+24, +27), both sides | **No part of any kind.** Allowed: copper, vias, solder mask, the shield wall and lid | 20 mm in plan keeps every part ≥ 20 mm (3D) from A2's underside (19.6 mm suffices at the board surface, 19.9 mm at 2 mm parts). M1 cuts across the frame's +Y wall, between x +9 and +39, for y > +7 |
+| **M2**: 20–40 mm in plan | No ferromagnetic part: ferrite beads, ferrite or iron-powder cores, metal-lidded crystals, TCXOs and SAWs (Kovar or alloy-42 lids), steel cans, nickel-plated or magnetic-stainless hardware or connector bodies. Ordinary chip passives and copper-lead-frame ICs are allowed | A remanent moment of 1 µA·m² gives 25 nT on axis at 20 mm, 7.4 nT at 30 mm, 3.1 nT at 40 mm and 0.9 nT at 60 mm (1/r³) |
+| Ferromagnetic parts on this board | FB801–FB804 (ferrite), Y301 TCXO, U201 SAW and Y451 crystal (metal lids or can): all placed ≥ 40 mm away (§10 placement). The BOM notes each one | as above |
+| Shield (SH1–SH4) | Nickel-silver, unplated, soldered lids, no clips (§10). The nearest wall and lid edge are 13.0 mm from the sensor, inside M1's radius, so only a non-magnetic shield is acceptable | At 13 mm, 1 µA·m² would give 91 nT |
+| Inductors | All RF and drain inductors are Coilcraft 0603HP (ceramic core) or 1812SMS (air core): no magnetic core on the board | — |
+| Connectors | J1 (Samtec, phosphor bronze, gold over a nickel underplate) at 63 mm; J2 (Molex) at 87 mm; SMAs J3–J6 at the −X edge, ≥ 50 mm, brass bodies (not stainless steel) | Underplate nickel is microns thick. At these distances it is below 1 nT per µA·m² |
+| PA current, 0.469 A at 1 W | Supply and return as a pair: +5V_PA on L4 over its return on L5 (≤ 0.30 mm apart) from J2 to the drain feeds, and the drain loop on L1 over the L2 plane. The whole path, J2 → FB803 → L602/L604 → Q601, stays in the (−X, −Y) corner, ≥ 60 mm from (+24, +27). No PA current in any other layer pair, and no split in L5 under the run | At the sensor, paired on this route: **0.39 nT** (L4/L5) + 0.12 nT (drain loop). Unpaired with the return detoured round a 20 × 14 mm loop: 22 nT. Paired but routed 20 mm from the sensor: 22 nT. A single unpaired wire at 20 mm: 4.7 µT |
+| Other rails | RADIO_3V3 (≤ 0.09 A) and the LDO outputs over their own ground plane (L2/L5 solid); none routed through M1 | Pairing as above; currents 5× smaller than the PA's |
+
+The field that matters most is the step between transmitter off and keyed, because calibration does not remove a
+field that switches with the transmitter. The target is below the RM3100's 15 nT noise; the computed step is 0.5 nT.
+Static fields from remanence are a constant bias, removed by the on-orbit calibration. They are kept small by M1
+and M2 and are measured (VI-RFB-11).
 
 ## 11. Thermal Model Inputs
 
@@ -587,6 +620,7 @@ scrubbing; TONE_OK relay from CMX138A IRQN; frequency trims from flash; independ
 | VI-RFB-07 | Key-down timer 120 ± 5 s over −20 to +60 °C after trim | RF-F008 | EM, thermal |
 | VI-RFB-08 | TX permit: with PA_5V removed, no emission > −60 dBm at J3/J4 with TNC_PTT and XPDR_KEY forced high; with U406 output forced high and PA_5V removed, the same | §8.5, VI-RF-12 | EM |
 | VI-RFB-10 | Receiver supervision: RX_CD follows a carrier 3 dB above the threshold and stays low on noise (< 1 false alarm per hour); RX_FAULT goes high 0.36–0.62 s after each injected fault of §8.6 (CC1200 held in reset, SPI line open, TCXO removed, TNC halted) and low after recovery; with RADIO_3V3 off both lines read low at the OBC and no current flows into the board | RID RFB-07, SRS-F115–F117 | EM |
+| VI-RFB-11 | Magnetic cleanliness (C16): with the RF board in the stack and A2 fitted (or a reference fluxgate at the A2 sensor position), the field step between transmitter off and keyed at 1 W is < 15 nT on each axis, and the RF board's static field at the sensor (board in and out, as received and after a 5 mT exposure on each axis) is recorded for the ADCS calibration; first-article inspection of the shield for permeability (no attraction to a 0.1 T test magnet) | OBC item C16, OBC_BOARD_DESIGN §9.4 | EM |
 | VI-RFB-09 | Sense-line coupling and directivity (≥ 15 dB); detector calibration ±0.5 dB −20 to +60 °C | §7.6 | EM |
 
 VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 still apply.
@@ -608,6 +642,8 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | 11 | ±1.0 ppm over 2 years needs a re-trim | Chair, AV | Optional KISS SetHardware frequency-trim command, or ground-side correction |
 | 12 | ICD-003 §4.2/§4.3/§6/§8: readbacks wired, TONE_OK etc. levels, RADIO_EN-to-ready ≤ 50 ms (MCU boot ≈ 5 ms, CC1200 set-up ≈ 10 ms, TCXO ≤ 2 ms), connector part, ADC scalings confirmed | Chair (ICD owner) | Update from §4 |
 | 13 | VI-RF-11 "unkeys within 100 ms in every case": a stalled main loop takes up to 118 ms (60 ms lease + 58 ms) | AV / chair | Measure from the last edge (≤ 59 ms), or shorten the lease to ≤ 40 ms |
+| 14 | (B, amended) C16 layout constraints: J1 top side at (+41.0, −33.5) with the pin field along Y; J2 top side at (−26, −44); shield frame notched at x > +37.0, y < −26.0; top-side connectors exceed the 2 mm outside-shield envelope (mated heights open, Samtec and Molex drawings); zone M1 on the RF board | Mechanical designer, harness designer (W4A, W4B) | Carry the notch and the two connector envelopes in the CAD model; W4A ribbon from J1 into the +X wall gap at y −28 … −39 (it shares the bundle band y −24 … −34 with the harness: fold 45° or move the −Y bundle, as in OBC_BOARD_DESIGN §21); W4B twisted PA_5V/GND pairs |
+| 15 | (B, amended) RF connector type versus the 3.3 mm ±X wall gaps: an SMA end-launch jack with its mated plug and RG-316 bend does not fit inside a 3.3 mm gap | Mechanical designer, RF designer | Open: either vertical top-side connectors (MMCX or SMP class, gold, non-magnetic) with the coax leaving upward, or the SMAs at the −Y edge into a cable channel; to settle with the AntS interface (RFQ) before layout |
 
 ## 16. Not Verified
 
@@ -622,6 +658,9 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 - CC1200 receive balun and loop-capacitor values: starting values; copy TI's 420–470 MHz reference design.
 - TCXO aging (not on the listings reached).
 - AntS interface (connector type, whether ISIS supplies the phasing): RFQ.
+- Magnetic moments of the parts (lids, cans, ferrites, MLCC nickel) are not known: §10.1 uses distance rules and a
+  dipole scale, and the PA current field is a Biot–Savart model of the planned route, not a layout extraction
+  (VI-RFB-11).
 
 ---
 
@@ -631,3 +670,4 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR design completion, RF board | Initial issue: build-to design of the RF board (receiver, TNC, exciter, PA, filters, repeat path and `XPDR_EN` gate, monitors, antenna interface), schematic as code with parts, netlist, BOM, ERC, calculations, layout rules |
 | B | 2026-10-27 | CDR design completion, RF board (RID RFB-07) | Receiver supervision lines to the OBC: RX_CD (CC1200 carrier sense, J1-15) and RX_FAULT (hardware health monostable on the TNC's RX_ALIVE pulses, J1-16), fault criteria (§8.6), TNC firmware duties (§13), VI-RFB-10; J1/W4 16 positions (W4 v3); power, part counts and ERC re-run; BASELINE cited at Rev E |
+| B (amended) | 2026-10-27 | CDR design completion, RF board (OBC item C16) | Magnetometer moved to board A2 above (+24, +27): magnetic-cleanliness rules (§10.1: zone M1 with no parts, zone M2 with no ferromagnetic parts, PA supply and return paired on L4/L5 and kept in the (−X, −Y) corner, field computed in `rf_calcs.py` §15); shield specified as unplated nickel-silver with soldered lids and no clips (BOM SH1–SH4); cavities re-placed (receive cavity to the frame's (−X, +Y) end); J1 in the (+X, −Y) corner with a shield notch, J2 by the PA; VI-RFB-11; §15 items 14 and 15 (connector envelopes, coax connectors versus the wall gaps) |

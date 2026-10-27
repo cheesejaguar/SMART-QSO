@@ -77,6 +77,11 @@ P: Dict[str, float] = dict(
     # SoC lid 20 x 20 mm (4.0 cm2 allocation) at the module centre, spreader pedestal over it
     mod_hole=(31.3, 18.6), mod_so_d=5.1, soc_w=20.0, ped_w=22.0, pad_soc=0.75, pad_other=1.5,
     car_frame_w=2.5, car_frame_h=3.0,       # Al 6061 stiffening frame round the window, carrier bottom side
+    # frame screws H10-H13 (carrier design 18.1, amended): M2 A286 from the top into 3.8 x 5.0 mm tapped pads on the side bars
+    frame_screws=((-35.5, 24.0), (-35.5, 36.0), (-4.5, 30.0), (-4.5, 42.0)), frame_pad=(3.8, 5.0),
+    # magnetometer board A2 (OBC item C13): 24 x 24 x 1.6 mm, back face on the +Z end frame, parts (Sen-Z-f 5.75 mm) below;
+    # three Ti M2 screws through the end frame at the corners clear of the GNSS patch footprint
+    a2_w=24.0, a2_t=1.6, a2_parts=5.75, a2_screws=((33.5, 17.5), (14.5, 36.5), (33.5, 36.5)),
     # stack levels: substrate bottom z
     z_eps=-3.0, z_obc=5.0, z_car=18.0, z_rf=34.8,
     # magnetometer and RF shield (positions chosen to balance Iyz, MECHANICAL_DESIGN section 5)
@@ -202,7 +207,8 @@ def build_parts(p=P) -> List[Part]:
     add(Part("endplate_mz", "frame", {"1": -1}, mz, color=COL["frame"],
              note="-Z end frame, outer face recessed 1.5 mm for the AntS (STR-11)"))
     pz = B(-inner, inner, -inner, inner, zp["pz_in"], zp["pz_out"])
-    pz = cut(pz, B(-15, 15, -15, 15, -60, 60), *colholes, *sw_holes)
+    a2h = [C("z", (p["mag_x"] + (x - 24.0), p["mag_y"] + (y - 27.0), 0), 1.1, 40, 60) for x, y in p["a2_screws"]]
+    pz = cut(pz, B(-15, 15, -15, 15, -60, 60), *colholes, *sw_holes, *a2h)
     add(Part("endplate_pz", "frame", {"1": -1}, pz, color=COL["frame"]))
     wx = wing_stowed_x(p)
     for ax, s in (("x", 1), ("x", -1), ("y", 1), ("y", -1)):
@@ -452,15 +458,32 @@ def build_parts(p=P) -> List[Part]:
     jy = p["jet_y"]
     car_top = cut(B(-px + 1, px - 1, -py + 1, jy - 27.0, z + pt, z + pt + 2.0), *koz)
     car_bot = cut(B(-px + 1, px - 1, -py + 1, py - 1, z - 1.0, z), win, *koz, cs, cs2)
-    add(Part("Jetson_carrier", "stack", {"21": 14.0}, cut(B(-px, px, -py, py, z, z + pt), *colholes, win),
+    add(Part("Jetson_carrier", "stack", {"21": 14.0}, cut(B(-px, px, -py, py, z, z + pt), *colholes, win,
+                                                          *[C("z", (x_, y_, 0), 1.1, z - 1, z + pt + 1)
+                                                            for x_, y_ in p["frame_screws"]]),
              color=COL["pcb"], note="custom carrier; centre supports; 27 x 27 mm window for the gyro (C3)"))
     fw, fh = p["car_frame_w"], p["car_frame_h"]
     wx0, wx1, wy0, wy1 = p["car_win"]
     wframe = cut(B(wx0 - fw, wx1 + fw, wy0 - fw, wy1 + fw, z - fh, z), B(wx0, wx1, wy0, wy1, z - fh - 1, z + 1))
-    car_bot = cut(car_bot, B(wx0 - fw - 0.5, wx1 + fw + 0.5, wy0 - fw - 0.5, wy1 + fw + 0.5, z - 2, z + 0.1))
+    pdw, pdl = p["frame_pad"]
+    pads, sh_f, sh_c, heads = [], [], [], []
+    for sx_, sy_ in p["frame_screws"]:
+        if sx_ < (wx0 + wx1) / 2:                                   # left bar: pad grows outward (-X)
+            pads.append(B(wx0 - pdw, wx0, sy_ - pdl / 2, sy_ + pdl / 2, z - fh, z))
+        else:
+            pads.append(B(wx1, wx1 + pdw, sy_ - pdl / 2, sy_ + pdl / 2, z - fh, z))
+        sh_f.append(C("z", (sx_, sy_, 0), 1.0, z - fh - 1, z + 3))
+        sh_c.append(C("z", (sx_, sy_, 0), 1.1, z - 1, z + pt + 1))
+        heads.append(fuse(C("z", (sx_, sy_, 0), 1.75, z + pt, z + pt + 1.1), C("z", (sx_, sy_, 0), 0.99, z - fh + 0.2, z + pt)))
+    wframe = cut(fuse(wframe, *pads), *sh_f)
+    car_bot = cut(car_bot, B(wx0 - fw - 0.5, wx1 + fw + 0.5, wy0 - fw - 0.5, wy1 + fw + 0.5, z - 2, z + 0.1),
+                  *[B(b.BoundingBox().xmin - 0.5, b.BoundingBox().xmax + 0.5, b.BoundingBox().ymin - 0.5,
+                      b.BoundingBox().ymax + 0.5, z - 2, z + 0.1) for b in pads])
     add(Part("Jetson_carrier_parts", "stack", {"21": 23.0}, fuse(car_top, car_bot), color=COL["comp"]))
     add(Part("carrier_window_frame", "stack", {"21": 2.2}, wframe, color=COL["al"],
-             note="Al 6061 frame 2.5 x 3.0 mm bonded and screwed round the gyro window, carrier bottom side (D-11)"))
+             note="Al 6061 frame 2.5 x 3.0 mm bonded round the gyro window, carrier bottom side (D-11), four tapped pads"))
+    add(Part("carrier_frame_screws", "stack", {"34": 1.0}, fuse(*heads), color=COL["rod"],
+             note="H10-H13: M2 A286 ISO 7380 button-head screws into the frame pads (3 mm engagement)"))
     zs = z + pt
     add(Part("SODIMM_connector", "stack", {"21": 0.0, "22": 2.0}, B(-36, 36, jy - 26.5, jy - 22.5, zs, zs + 4.0),
              color=COL["comp"], note="260-pin SO-DIMM, 4 mm stack height (allocation)"))
@@ -524,9 +547,20 @@ def build_parts(p=P) -> List[Part]:
 
     # ---------------- +Z face: magnetometer, GNSS patch, patch connector ----------------------------------
     mxy = (p["mag_x"], p["mag_y"])
-    add(Part("magnetometer", "adcs", {"24": 10.0, "26": 2.0},
-             B(mxy[0] - 12.5, mxy[0] + 12.5, mxy[1] - 12.5, mxy[1] + 12.5, zp["pz_in"] - 8.0, zp["pz_in"]),
-             color=COL["comp"], note="M315 / MM200 / Lodestone class, 25 x 25 x 8 mm allocation"))
+    aw, at_, ap = p["a2_w"] / 2.0, p["a2_t"], p["a2_parts"]
+    za = zp["pz_in"]
+    a2s = [(mxy[0] + (x - 24.0), mxy[1] + (y - 27.0)) for x, y in p["a2_screws"]]
+    a2b = cut(B(mxy[0] - aw, mxy[0] + aw, mxy[1] - aw, mxy[1] + aw, za - at_, za), *[C("z", (x, y, 0), 1.1, 0, 60) for x, y in a2s])
+    a2p = cut(B(mxy[0] - aw + 1, mxy[0] + aw - 1, mxy[1] - aw + 1, mxy[1] + aw - 1, za - at_ - ap, za - at_),
+              *[C("z", (x, y, 0), 2.6, 0, 60) for x, y in a2s])
+    add(Part("magnetometer", "adcs", {"24": 2.0}, a2b, color=COL["pcb"],
+             note="board A2 (OBC item C13): 24 x 24 x 1.6 mm, 2 layers, back face on the +Z end frame (isolated: no frame bond)"))
+    add(Part("magnetometer_parts", "adcs", {"24": 7.5, "26": 2.0}, a2p, color=COL["comp"],
+             note="RM3100: MagI2C, Sen-XY-f 6.0 x 2.1 x 2.2, Sen-Z-f 3.0 x 3.0 x 5.75 mm (PNI); J1 toward the +X wall gap"))
+    a2f = [fuse(C("z", (x, y, 0), 1.75, zp["pz_out"], zp["pz_out"] + 1.3), C("z", (x, y, 0), 1.0, za - at_ - 1.6, zp["pz_out"]),
+                C("z", (x, y, 0), 2.0, za - at_ - 1.6, za - at_)) for x, y in a2s]
+    add(Part("magnetometer_fasteners", "adcs", {"24": 0.5}, fuse(*a2f), color=COL["al"],
+             note="3 x M2 Ti-6Al-4V screws (heads on the +Z face, outside the GNSS patch), brass nuts, polyimide washers"))
     pw = p["patch_w"] / 2.0
     add(Part("GNSS_patch", "gnss", {"30": 20.0}, B(-pw, pw, -pw, pw, zp["pz_out"], zp["pz_out"] + p["patch_t"]),
              color=COL["gnss"], note="Spacemanic ZENITH V3a 50 x 50 mm; thickness allocation 5 mm"))
@@ -538,7 +572,7 @@ def build_parts(p=P) -> List[Part]:
              33.9 if sy > 0 else -24.0, zp["mz_in"], zp["pz_in"]) for sx in (1, -1) for sy in (1, -1)]
     add(Part("harness_channels", "harness", {"32": 78.0, "31": 20.0, "26": 3.0}, fuse(*hch),
              color=COL["harness"], note="four 3 x 9.9 mm bundles in the +-X wall gaps; coax of the GNSS patch"))
-    add(Part("fasteners_staking_distributed", "dist", {"34": 25.0, "35": 10.0},
+    add(Part("fasteners_staking_distributed", "dist", {"34": 24.0, "35": 10.0},
              B(-45, 45, -47.9, 47.9, zp["mz_in"], zp["pz_in"]), ghost=True, color=COL["comp"],
              note="fasteners, inserts, staking and conformal coat, smeared over the stack volume"))
     add(Part("thermal_distributed", "dist", {"33": 20.0}, B(-45, 45, -47.9, 47.9, -16.5, zp["pz_in"]), ghost=True,
@@ -856,6 +890,36 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
     head_top = p["z_car"] + p["pcb_t"] + 1.1
     mod_under = p["z_car"] + p["pcb_t"] + 4.0 - 1.5
     head_to_win = math.hypot(max(wx0 - 1.75, 0, -1.75 - wx1), (wy0 - (p["cs2_y"] + 1.75)))
+    # magnetometer board A2 (OBC item C13): fit in the +Z slot and the 20 mm non-ferromagnetic zone
+    a2 = fuse(byname["magnetometer"].stowed, byname["magnetometer_parts"].stowed)
+    a2bb = a2.BoundingBox()
+    near = {}
+    for pt in parts:
+        if pt.ghost or pt.name.startswith("magnetometer") or pt.moves in ("ANT",):
+            continue
+        b = pt.stowed.BoundingBox()
+        if b.xmin > a2bb.xmax + 20 or b.xmax < a2bb.xmin - 20 or b.ymin > a2bb.ymax + 20 or b.ymax < a2bb.ymin - 20 \
+                or b.zmin > a2bb.zmax + 20 or b.zmax < a2bb.zmin - 20:
+            continue
+        d = min_dist(a2, pt.stowed)
+        if d <= 20.0:
+            near[pt.name] = round(d, 2)
+    item("MAG-A2", "Magnetometer board A2 in the +Z slot (8 mm): Sen-Z-f 5.75 mm plus the 1.6 mm board; clearances",
+         dict(bottom_z=a2bb.zmin, slot_bottom_z=z_planes(p)["pz_in"] - 8.0, rf_parts_mm=near.get("RF_parts"),
+              within_20mm=near), "inside the slot; >= 1.0 mm to every part but its mounting face", a2bb.zmin >= z_planes(p)["pz_in"] - 8.0
+         and min(v for k, v in near.items() if k != "endplate_pz") >= 1.0, note="every part listed within 20 mm must be non-ferromagnetic (MECHANICAL_DESIGN 4.4)")
+    fs = byname["carrier_frame_screws"].stowed
+    fcl = {n: round(min_dist(fs, byname[n].stowed), 2) for n in ("module_standoffs", "centre_supports", "stack_columns",
+                                                                    "Jetson_module", "gyro_MG370")}
+    walls = []
+    wx0_, wx1_ = p["car_win"][0], p["car_win"][1]
+    for sx_, sy_ in p["frame_screws"]:
+        inner = (wx0_ - (sx_ + 0.8)) if sx_ < (wx0_ + wx1_) / 2 else ((sx_ - 0.8) - wx1_)
+        outer = p["frame_pad"][0] - p["car_frame_w"] + p["car_frame_w"] - abs(sx_ - (wx0_ if sx_ < (wx0_ + wx1_) / 2 else wx1_)) - 0.8
+        walls.append((round(inner, 2), round(outer, 2)))
+    item("JET-H10", "Window-frame screws H10-H13 (M2, tap drill 1.6 mm) in their pads, clear of MP2, the supports and the module",
+         dict(positions=p["frame_screws"], walls_inner_outer_mm=walls, clearances_mm=fcl), "walls >= 1.0 mm; >= 0.5 mm",
+         min(min(w) for w in walls) >= 1.0 and min(fcl.values()) >= 0.5)
     item("JET-M1", "Spreader pedestal, module standoffs and the (0, -21) fastener clear of the gyro window and the module",
          dict(standoff_to_window_mm=so_edge, pedestal_to_window_mm=ped_to_win, fastener_head_to_window_mm=head_to_win,
               fastener_head_top_z=head_top, module_underside_parts_z=mod_under, head_to_module_parts_mm=mod_under - head_top),

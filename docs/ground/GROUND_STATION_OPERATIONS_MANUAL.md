@@ -1,10 +1,10 @@
 # SMART-QSO Ground Station Operations Manual
 
 **Document ID**: SQSO-GSOM-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR draft for the designated telecommand stations (none agreed yet; `docs/ground/GROUND_STATION_DESIGN.md` Rev C). Frequencies are planning values until the IARU letter. Command procedures follow SQSO-ICD-013, which governs.
+**Status**: CDR draft for the designated telecommand stations (none agreed yet; `docs/ground/GROUND_STATION_DESIGN.md` Rev D). Frequencies are planning values until the IARU letter. Command procedures follow SQSO-ICD-013, which governs.
 
 ## 1. Purpose
 
@@ -364,7 +364,7 @@ IF ALL OK:
 - Check Doppler: the downlink is within ±3.5 kHz of nominal; search ±5 kHz
 - Check the loss-of-contact state: if no authenticated contact for 14 days the spacecraft is silent but still
   listening: send an authenticated NOP
-- The spin (8°/s, BASELINE §8) puts the antenna null on the station for about 4.5 s every 22.5 s: expect gaps
+- The spin (8°/s, BASELINE §8) puts the antenna null on the station for about 5 s (95th percentile 6 s) every 22.5 s: expect gaps
 ```
 
 ### 8.2 Weak Signal
@@ -430,7 +430,7 @@ See CP-001 in Contingency Procedures document.
 1. The licensee informs both telecommand stations at once (24-hour contact).
 2. On the next pass of either station: build `TX_DISABLE` with the next counter; if no key is usable, send the keyless
    `TX_DISABLE` (SQSO-ICD-013 §6). Repeat each pass (new counters) until no beacon is heard on two passes.
-3. Longest wait for a commanding pass: 13.1 h with one station, 9.9 h with two (GROUND_STATION_DESIGN §5).
+3. Longest wait for a commanding pass: 13.0 h with one station, 9.9 h with two (GROUND_STATION_DESIGN Rev D §5).
 4. The licensee files the post-space notification within 24 hours of the termination (97.207(g)(3)).
 
 ### 9.2 Spacecraft Emergency
@@ -492,3 +492,4 @@ If telemetry indicates emergency:
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | CDR review (communications panel) | Equipment (offline key machine, time reference, 50 W PEP limit); radio set-up with Doppler rules; command procedure rewritten for authenticated commands and counters; quick reference from the command dictionary; troubleshooting for Doppler, spin fades and the loss-of-contact inhibit; FCC cease-transmission procedure; frequency card |
 | 1.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: spin 8°/s and its fade period (BASELINE Rev E §8) |
+| 1.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Fade length from SQSO-LBA-001 v3.2 §5.2 (5 s every 22.5 s at 8°/s); TX-OFF wait 13.0 h from SQSO-GND-001 Rev D §5 (475 km) |

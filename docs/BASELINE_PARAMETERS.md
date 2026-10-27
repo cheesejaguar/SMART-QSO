@@ -81,7 +81,7 @@ HF-13), so the wings-deployed columns govern the P ≥ 0.9 test.
 | Parameter | Baseline |
 |-----------|----------|
 | Form factor | 1U, 100 × 100 × 113.5 mm (CDS Rev 14.1) |
-| Mass | CBE **1.49 kg** with CubeSpace CR0002 rods (selected; 1.57 kg with air-core coils); MEV **1.73 kg**, maturity-based growth 15.6 % by the AIAA S-120A-2015 method (`docs/environment/MASS_BUDGET.md` v3.0). Design limit **2.00 kg** (SYS-002; CDS Rev 14.1): margin **+15.9 %**. Dispenser limits: EXOpod Nova 1U 2.5 kg; NRCSD backup 2.40 kg. Lifetime analyses use 1.6 kg, with **1.85 kg** as the bound |
+| Mass | CBE **1.49 kg** (1,494 g) with CubeSpace CR0002 rods (selected; 1.58 kg with air-core coils); MEV **1.73 kg** (1,728 g), maturity-based growth 15.6 % by the AIAA S-120A-2015 method (`docs/environment/MASS_BUDGET.md` v3.1, with the CAD heat-spreader pedestal). Design limit **2.00 kg** (SYS-002; CDS Rev 14.1): margin **+15.8 %**. Dispenser limits: EXOpod Nova 1U 2.5 kg; NRCSD backup 2.40 kg. Lifetime analyses use 1.6 kg, with **1.85 kg** as the bound |
 | Mass properties | Stowed CG within 5 mm of the geometric centre (limit ±20 mm; computed (−0.8, −0.7, −4.7) mm). Deployed inertia (wings and antennas out): **Iyy ≥ 1.03 × max(Ixx, Izz)**, design target 1.05, major principal axis within 5° of +Y. Layout: battery at the −Z end of the stack, RF at +Z, AntS 2 m elements along ±X (`docs/environment/MASS_BUDGET.md` §6; `docs/environment/STRUCTURAL_ANALYSIS.md`) |
 | Mass basis | Bottom-up MEL with the build-versus-buy selections (`docs/hardware/BUILD_VS_BUY.md`); the prior 1.2 kg and 1.69 kg figures are superseded (TB-06) |
 | Deployables | VHF antenna, UHF antenna, two solar wings |

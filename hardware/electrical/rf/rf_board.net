@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 08:49 AM")
+    (date "10/27/2026 08:59 AM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -57,7 +57,7 @@
         (field
           (name "SKiDL Tag") "C101")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -81,7 +81,7 @@
         (field
           (name "SKiDL Tag") "C102")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -105,7 +105,7 @@
         (field
           (name "SKiDL Tag") "C103")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -129,7 +129,7 @@
         (field
           (name "SKiDL Tag") "C104")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -153,7 +153,7 @@
         (field
           (name "SKiDL Tag") "C105")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -177,7 +177,7 @@
         (field
           (name "SKiDL Tag") "C106")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -201,7 +201,7 @@
         (field
           (name "SKiDL Tag") "C107")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -225,7 +225,7 @@
         (field
           (name "SKiDL Tag") "C108")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -249,7 +249,7 @@
         (field
           (name "SKiDL Tag") "C201")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -273,7 +273,7 @@
         (field
           (name "SKiDL Tag") "C202")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -297,7 +297,7 @@
         (field
           (name "SKiDL Tag") "C203")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -321,7 +321,7 @@
         (field
           (name "SKiDL Tag") "C204")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -345,7 +345,7 @@
         (field
           (name "SKiDL Tag") "C205")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -369,7 +369,7 @@
         (field
           (name "SKiDL Tag") "C206")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -393,7 +393,7 @@
         (field
           (name "SKiDL Tag") "C207")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -417,7 +417,7 @@
         (field
           (name "SKiDL Tag") "C208")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -441,7 +441,7 @@
         (field
           (name "SKiDL Tag") "C209")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -465,7 +465,7 @@
         (field
           (name "SKiDL Tag") "C210")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -489,7 +489,7 @@
         (field
           (name "SKiDL Tag") "C211")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -513,7 +513,7 @@
         (field
           (name "SKiDL Tag") "C212")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -537,7 +537,7 @@
         (field
           (name "SKiDL Tag") "C213")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -561,7 +561,7 @@
         (field
           (name "SKiDL Tag") "C220")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -585,7 +585,7 @@
         (field
           (name "SKiDL Tag") "C221")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -609,7 +609,7 @@
         (field
           (name "SKiDL Tag") "C222")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -633,7 +633,7 @@
         (field
           (name "SKiDL Tag") "C223")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -657,7 +657,7 @@
         (field
           (name "SKiDL Tag") "C224")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -681,7 +681,7 @@
         (field
           (name "SKiDL Tag") "C225")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -705,7 +705,7 @@
         (field
           (name "SKiDL Tag") "C226")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -729,7 +729,7 @@
         (field
           (name "SKiDL Tag") "C227")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -753,7 +753,7 @@
         (field
           (name "SKiDL Tag") "C228")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -777,7 +777,7 @@
         (field
           (name "SKiDL Tag") "C229")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -801,7 +801,7 @@
         (field
           (name "SKiDL Tag") "C301")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -825,7 +825,7 @@
         (field
           (name "SKiDL Tag") "C302")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -849,7 +849,7 @@
         (field
           (name "SKiDL Tag") "C303")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -873,7 +873,7 @@
         (field
           (name "SKiDL Tag") "C311")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -897,7 +897,7 @@
         (field
           (name "SKiDL Tag") "C312")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -921,7 +921,7 @@
         (field
           (name "SKiDL Tag") "C313")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -945,7 +945,7 @@
         (field
           (name "SKiDL Tag") "C314")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -969,7 +969,7 @@
         (field
           (name "SKiDL Tag") "C315")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -993,7 +993,7 @@
         (field
           (name "SKiDL Tag") "C316")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1017,7 +1017,7 @@
         (field
           (name "SKiDL Tag") "C401")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1041,7 +1041,7 @@
         (field
           (name "SKiDL Tag") "C402")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1065,7 +1065,7 @@
         (field
           (name "SKiDL Tag") "C403")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1089,7 +1089,7 @@
         (field
           (name "SKiDL Tag") "C404")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1113,7 +1113,7 @@
         (field
           (name "SKiDL Tag") "C405")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1137,7 +1137,7 @@
         (field
           (name "SKiDL Tag") "C406")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1161,7 +1161,7 @@
         (field
           (name "SKiDL Tag") "C451")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1185,7 +1185,7 @@
         (field
           (name "SKiDL Tag") "C452")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1209,7 +1209,7 @@
         (field
           (name "SKiDL Tag") "C453")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1233,7 +1233,7 @@
         (field
           (name "SKiDL Tag") "C454")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1257,7 +1257,7 @@
         (field
           (name "SKiDL Tag") "C455")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1281,7 +1281,7 @@
         (field
           (name "SKiDL Tag") "C456")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1305,7 +1305,7 @@
         (field
           (name "SKiDL Tag") "C457")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1329,7 +1329,7 @@
         (field
           (name "SKiDL Tag") "C458")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1353,7 +1353,7 @@
         (field
           (name "SKiDL Tag") "C459")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1377,7 +1377,7 @@
         (field
           (name "SKiDL Tag") "C460")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1401,7 +1401,7 @@
         (field
           (name "SKiDL Tag") "C461")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1425,7 +1425,7 @@
         (field
           (name "SKiDL Tag") "C462")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1449,7 +1449,7 @@
         (field
           (name "SKiDL Tag") "C463")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1473,7 +1473,7 @@
         (field
           (name "SKiDL Tag") "C464")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1497,7 +1497,7 @@
         (field
           (name "SKiDL Tag") "C465")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1521,7 +1521,7 @@
         (field
           (name "SKiDL Tag") "C466")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1545,7 +1545,7 @@
         (field
           (name "SKiDL Tag") "C480")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1569,7 +1569,7 @@
         (field
           (name "SKiDL Tag") "C481")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1593,7 +1593,7 @@
         (field
           (name "SKiDL Tag") "C501")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1617,7 +1617,7 @@
         (field
           (name "SKiDL Tag") "C502")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1641,7 +1641,7 @@
         (field
           (name "SKiDL Tag") "C503")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1665,7 +1665,7 @@
         (field
           (name "SKiDL Tag") "C504")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1689,7 +1689,7 @@
         (field
           (name "SKiDL Tag") "C510")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1713,7 +1713,7 @@
         (field
           (name "SKiDL Tag") "C511")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1737,7 +1737,7 @@
         (field
           (name "SKiDL Tag") "C512")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1761,7 +1761,7 @@
         (field
           (name "SKiDL Tag") "C513")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1785,7 +1785,7 @@
         (field
           (name "SKiDL Tag") "C514")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1809,7 +1809,7 @@
         (field
           (name "SKiDL Tag") "C515")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1833,7 +1833,7 @@
         (field
           (name "SKiDL Tag") "C516")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1857,7 +1857,7 @@
         (field
           (name "SKiDL Tag") "C517")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1881,7 +1881,7 @@
         (field
           (name "SKiDL Tag") "C518")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1905,7 +1905,7 @@
         (field
           (name "SKiDL Tag") "C519")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1929,7 +1929,7 @@
         (field
           (name "SKiDL Tag") "C520")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1953,7 +1953,7 @@
         (field
           (name "SKiDL Tag") "C521")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -1977,7 +1977,7 @@
         (field
           (name "SKiDL Tag") "C522")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2001,7 +2001,7 @@
         (field
           (name "SKiDL Tag") "C523")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2025,7 +2025,7 @@
         (field
           (name "SKiDL Tag") "C601")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2049,7 +2049,7 @@
         (field
           (name "SKiDL Tag") "C602")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2073,7 +2073,7 @@
         (field
           (name "SKiDL Tag") "C603")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2097,7 +2097,7 @@
         (field
           (name "SKiDL Tag") "C604")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2121,7 +2121,7 @@
         (field
           (name "SKiDL Tag") "C605")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2145,7 +2145,7 @@
         (field
           (name "SKiDL Tag") "C606")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2169,7 +2169,7 @@
         (field
           (name "SKiDL Tag") "C607")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2193,7 +2193,7 @@
         (field
           (name "SKiDL Tag") "C608")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2217,7 +2217,7 @@
         (field
           (name "SKiDL Tag") "C609")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2241,7 +2241,7 @@
         (field
           (name "SKiDL Tag") "C610")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2265,7 +2265,7 @@
         (field
           (name "SKiDL Tag") "C611")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2289,7 +2289,7 @@
         (field
           (name "SKiDL Tag") "C612")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2313,7 +2313,7 @@
         (field
           (name "SKiDL Tag") "C613")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2337,7 +2337,7 @@
         (field
           (name "SKiDL Tag") "C614")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2361,7 +2361,7 @@
         (field
           (name "SKiDL Tag") "C615")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2385,7 +2385,7 @@
         (field
           (name "SKiDL Tag") "C616")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2409,7 +2409,7 @@
         (field
           (name "SKiDL Tag") "C617")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2433,7 +2433,7 @@
         (field
           (name "SKiDL Tag") "C618")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2457,7 +2457,7 @@
         (field
           (name "SKiDL Tag") "C619")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2481,7 +2481,7 @@
         (field
           (name "SKiDL Tag") "C620")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2505,7 +2505,7 @@
         (field
           (name "SKiDL Tag") "C621")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2529,7 +2529,7 @@
         (field
           (name "SKiDL Tag") "C622")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2553,7 +2553,7 @@
         (field
           (name "SKiDL Tag") "C701")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2577,7 +2577,7 @@
         (field
           (name "SKiDL Tag") "C702")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2601,7 +2601,7 @@
         (field
           (name "SKiDL Tag") "C703")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2625,7 +2625,7 @@
         (field
           (name "SKiDL Tag") "C705")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2649,7 +2649,7 @@
         (field
           (name "SKiDL Tag") "C711")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2673,7 +2673,7 @@
         (field
           (name "SKiDL Tag") "C712")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2697,7 +2697,7 @@
         (field
           (name "SKiDL Tag") "C713")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2721,7 +2721,7 @@
         (field
           (name "SKiDL Tag") "C715")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2745,7 +2745,7 @@
         (field
           (name "SKiDL Tag") "C720")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2769,7 +2769,7 @@
         (field
           (name "SKiDL Tag") "C721")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2793,7 +2793,7 @@
         (field
           (name "SKiDL Tag") "C730")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2817,7 +2817,7 @@
         (field
           (name "SKiDL Tag") "C731")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2841,7 +2841,7 @@
         (field
           (name "SKiDL Tag") "C732")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2865,7 +2865,7 @@
         (field
           (name "SKiDL Tag") "C733")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2889,7 +2889,7 @@
         (field
           (name "SKiDL Tag") "C734")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2913,7 +2913,7 @@
         (field
           (name "SKiDL Tag") "C735")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2937,7 +2937,7 @@
         (field
           (name "SKiDL Tag") "C801")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2961,7 +2961,7 @@
         (field
           (name "SKiDL Tag") "C802")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -2985,7 +2985,7 @@
         (field
           (name "SKiDL Tag") "C803")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3009,7 +3009,7 @@
         (field
           (name "SKiDL Tag") "C804")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3033,7 +3033,7 @@
         (field
           (name "SKiDL Tag") "C805")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3057,7 +3057,7 @@
         (field
           (name "SKiDL Tag") "C806")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3081,7 +3081,7 @@
         (field
           (name "SKiDL Tag") "C807")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3105,7 +3105,7 @@
         (field
           (name "SKiDL Tag") "C808")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3129,7 +3129,7 @@
         (field
           (name "SKiDL Tag") "C809")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3153,7 +3153,7 @@
         (field
           (name "SKiDL Tag") "C810")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3177,7 +3177,7 @@
         (field
           (name "SKiDL Tag") "C811")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3201,7 +3201,7 @@
         (field
           (name "SKiDL Tag") "C812")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3225,7 +3225,7 @@
         (field
           (name "SKiDL Tag") "C813")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3249,7 +3249,7 @@
         (field
           (name "SKiDL Tag") "C814")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3273,7 +3273,7 @@
         (field
           (name "SKiDL Tag") "C815")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3297,7 +3297,7 @@
         (field
           (name "SKiDL Tag") "C816")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3321,7 +3321,7 @@
         (field
           (name "SKiDL Tag") "C817")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3345,7 +3345,7 @@
         (field
           (name "SKiDL Tag") "C818")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3369,7 +3369,7 @@
         (field
           (name "SKiDL Tag") "C819")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3393,7 +3393,7 @@
         (field
           (name "SKiDL Tag") "C820")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "C"))
@@ -3417,7 +3417,7 @@
         (field
           (name "SKiDL Tag") "CPL601")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Printed sense-line coupler (PCB structure)"))
@@ -3441,7 +3441,7 @@
         (field
           (name "SKiDL Tag") "D401")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Switching diode"))
@@ -3465,7 +3465,7 @@
         (field
           (name "SKiDL Tag") "FB801")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "FB"))
@@ -3489,7 +3489,7 @@
         (field
           (name "SKiDL Tag") "FB802")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "FB"))
@@ -3513,7 +3513,7 @@
         (field
           (name "SKiDL Tag") "FB803")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "FB"))
@@ -3537,7 +3537,7 @@
         (field
           (name "SKiDL Tag") "FB804")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "FB"))
@@ -3561,7 +3561,7 @@
         (field
           (name "SKiDL Tag") "J1")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Conn 16p 1.27 mm"))
@@ -3585,7 +3585,7 @@
         (field
           (name "SKiDL Tag") "J2")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Conn 6p 1.00 mm Pico-Clasp"))
@@ -3609,7 +3609,7 @@
         (field
           (name "SKiDL Tag") "J3")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SMA jack end launch"))
@@ -3633,7 +3633,7 @@
         (field
           (name "SKiDL Tag") "J4")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SMA jack end launch"))
@@ -3657,7 +3657,7 @@
         (field
           (name "SKiDL Tag") "J5")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SMA jack end launch"))
@@ -3681,7 +3681,7 @@
         (field
           (name "SKiDL Tag") "J6")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SMA jack end launch"))
@@ -3705,7 +3705,7 @@
         (field
           (name "SKiDL Tag") "J7")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SWD pads (Tag-Connect TC2030)"))
@@ -3729,7 +3729,7 @@
         (field
           (name "SKiDL Tag") "L101")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3753,7 +3753,7 @@
         (field
           (name "SKiDL Tag") "L102")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3777,7 +3777,7 @@
         (field
           (name "SKiDL Tag") "L103")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3801,7 +3801,7 @@
         (field
           (name "SKiDL Tag") "L104")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3825,7 +3825,7 @@
         (field
           (name "SKiDL Tag") "L105")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3849,7 +3849,7 @@
         (field
           (name "SKiDL Tag") "L106")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3873,7 +3873,7 @@
         (field
           (name "SKiDL Tag") "L201")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3897,7 +3897,7 @@
         (field
           (name "SKiDL Tag") "L202")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3921,7 +3921,7 @@
         (field
           (name "SKiDL Tag") "L203")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3945,7 +3945,7 @@
         (field
           (name "SKiDL Tag") "L204")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3969,7 +3969,7 @@
         (field
           (name "SKiDL Tag") "L205")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -3993,7 +3993,7 @@
         (field
           (name "SKiDL Tag") "L206")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4017,7 +4017,7 @@
         (field
           (name "SKiDL Tag") "L601")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4041,7 +4041,7 @@
         (field
           (name "SKiDL Tag") "L602")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4065,7 +4065,7 @@
         (field
           (name "SKiDL Tag") "L603")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4089,7 +4089,7 @@
         (field
           (name "SKiDL Tag") "L604")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4113,7 +4113,7 @@
         (field
           (name "SKiDL Tag") "L605")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4137,7 +4137,7 @@
         (field
           (name "SKiDL Tag") "L606")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4161,7 +4161,7 @@
         (field
           (name "SKiDL Tag") "L607")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4185,7 +4185,7 @@
         (field
           (name "SKiDL Tag") "L608")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4209,7 +4209,7 @@
         (field
           (name "SKiDL Tag") "L609")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4233,7 +4233,7 @@
         (field
           (name "SKiDL Tag") "L610")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4257,7 +4257,7 @@
         (field
           (name "SKiDL Tag") "L611")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "L"))
@@ -4281,7 +4281,7 @@
         (field
           (name "SKiDL Tag") "Q201")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SiGe RF transistor"))
@@ -4305,7 +4305,7 @@
         (field
           (name "SKiDL Tag") "Q601")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "2-stage Si RF MOSFET"))
@@ -4329,7 +4329,7 @@
         (field
           (name "SKiDL Tag") "R101")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4353,7 +4353,7 @@
         (field
           (name "SKiDL Tag") "R102")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4377,7 +4377,7 @@
         (field
           (name "SKiDL Tag") "R103")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4401,7 +4401,7 @@
         (field
           (name "SKiDL Tag") "R201")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4425,7 +4425,7 @@
         (field
           (name "SKiDL Tag") "R202")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4449,7 +4449,7 @@
         (field
           (name "SKiDL Tag") "R203")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4473,7 +4473,7 @@
         (field
           (name "SKiDL Tag") "R204")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4497,7 +4497,7 @@
         (field
           (name "SKiDL Tag") "R205")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4521,7 +4521,7 @@
         (field
           (name "SKiDL Tag") "R301")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4545,7 +4545,7 @@
         (field
           (name "SKiDL Tag") "R302")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4569,7 +4569,7 @@
         (field
           (name "SKiDL Tag") "R303")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4593,7 +4593,7 @@
         (field
           (name "SKiDL Tag") "R304")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4617,7 +4617,7 @@
         (field
           (name "SKiDL Tag") "R305")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4641,7 +4641,7 @@
         (field
           (name "SKiDL Tag") "R306")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4665,7 +4665,7 @@
         (field
           (name "SKiDL Tag") "R307")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4689,7 +4689,7 @@
         (field
           (name "SKiDL Tag") "R401")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4713,7 +4713,7 @@
         (field
           (name "SKiDL Tag") "R402")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4737,7 +4737,7 @@
         (field
           (name "SKiDL Tag") "R403")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4761,7 +4761,7 @@
         (field
           (name "SKiDL Tag") "R404")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4785,7 +4785,7 @@
         (field
           (name "SKiDL Tag") "R405")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4809,7 +4809,7 @@
         (field
           (name "SKiDL Tag") "R406")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4833,7 +4833,7 @@
         (field
           (name "SKiDL Tag") "R407")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4857,7 +4857,7 @@
         (field
           (name "SKiDL Tag") "R408")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4881,7 +4881,7 @@
         (field
           (name "SKiDL Tag") "R409")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4905,7 +4905,7 @@
         (field
           (name "SKiDL Tag") "R410")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4929,7 +4929,7 @@
         (field
           (name "SKiDL Tag") "R411")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4953,7 +4953,7 @@
         (field
           (name "SKiDL Tag") "R412")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -4977,7 +4977,7 @@
         (field
           (name "SKiDL Tag") "R413")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5001,7 +5001,7 @@
         (field
           (name "SKiDL Tag") "R414")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5025,7 +5025,7 @@
         (field
           (name "SKiDL Tag") "R451")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5049,7 +5049,7 @@
         (field
           (name "SKiDL Tag") "R452")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5073,7 +5073,7 @@
         (field
           (name "SKiDL Tag") "R453")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5097,7 +5097,7 @@
         (field
           (name "SKiDL Tag") "R454")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5121,7 +5121,7 @@
         (field
           (name "SKiDL Tag") "R455")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5145,7 +5145,7 @@
         (field
           (name "SKiDL Tag") "R456")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5169,7 +5169,7 @@
         (field
           (name "SKiDL Tag") "R457")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5193,7 +5193,7 @@
         (field
           (name "SKiDL Tag") "R458")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5217,7 +5217,7 @@
         (field
           (name "SKiDL Tag") "R459")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5241,7 +5241,7 @@
         (field
           (name "SKiDL Tag") "R460")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5265,7 +5265,7 @@
         (field
           (name "SKiDL Tag") "R461")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5289,7 +5289,7 @@
         (field
           (name "SKiDL Tag") "R462")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5313,7 +5313,7 @@
         (field
           (name "SKiDL Tag") "R463")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5337,7 +5337,7 @@
         (field
           (name "SKiDL Tag") "R464")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5361,7 +5361,7 @@
         (field
           (name "SKiDL Tag") "R480")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5385,7 +5385,7 @@
         (field
           (name "SKiDL Tag") "R481")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5409,7 +5409,7 @@
         (field
           (name "SKiDL Tag") "R482")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5433,7 +5433,7 @@
         (field
           (name "SKiDL Tag") "R483")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5457,7 +5457,7 @@
         (field
           (name "SKiDL Tag") "R484")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5481,7 +5481,7 @@
         (field
           (name "SKiDL Tag") "R485")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5505,7 +5505,7 @@
         (field
           (name "SKiDL Tag") "R501")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5529,7 +5529,7 @@
         (field
           (name "SKiDL Tag") "R502")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5553,7 +5553,7 @@
         (field
           (name "SKiDL Tag") "R503")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5577,7 +5577,7 @@
         (field
           (name "SKiDL Tag") "R504")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5601,7 +5601,7 @@
         (field
           (name "SKiDL Tag") "R505")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5625,7 +5625,7 @@
         (field
           (name "SKiDL Tag") "R506")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5649,7 +5649,7 @@
         (field
           (name "SKiDL Tag") "R507")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5673,7 +5673,7 @@
         (field
           (name "SKiDL Tag") "R508")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5697,7 +5697,7 @@
         (field
           (name "SKiDL Tag") "R601")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5721,7 +5721,7 @@
         (field
           (name "SKiDL Tag") "R602")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5745,7 +5745,7 @@
         (field
           (name "SKiDL Tag") "R603")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5769,7 +5769,7 @@
         (field
           (name "SKiDL Tag") "R604")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5793,7 +5793,7 @@
         (field
           (name "SKiDL Tag") "R605")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5817,7 +5817,7 @@
         (field
           (name "SKiDL Tag") "R606")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5841,7 +5841,7 @@
         (field
           (name "SKiDL Tag") "R607")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5865,7 +5865,7 @@
         (field
           (name "SKiDL Tag") "R608")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5889,7 +5889,7 @@
         (field
           (name "SKiDL Tag") "R609")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5913,7 +5913,7 @@
         (field
           (name "SKiDL Tag") "R610")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5937,7 +5937,7 @@
         (field
           (name "SKiDL Tag") "R701")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5961,7 +5961,7 @@
         (field
           (name "SKiDL Tag") "R702")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -5985,7 +5985,7 @@
         (field
           (name "SKiDL Tag") "R703")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6009,7 +6009,7 @@
         (field
           (name "SKiDL Tag") "R704")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6033,7 +6033,7 @@
         (field
           (name "SKiDL Tag") "R705")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6057,7 +6057,7 @@
         (field
           (name "SKiDL Tag") "R711")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6081,7 +6081,7 @@
         (field
           (name "SKiDL Tag") "R712")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6105,7 +6105,7 @@
         (field
           (name "SKiDL Tag") "R713")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6129,7 +6129,7 @@
         (field
           (name "SKiDL Tag") "R714")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6153,7 +6153,7 @@
         (field
           (name "SKiDL Tag") "R715")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6177,7 +6177,7 @@
         (field
           (name "SKiDL Tag") "R720")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6201,7 +6201,7 @@
         (field
           (name "SKiDL Tag") "R730")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6225,7 +6225,7 @@
         (field
           (name "SKiDL Tag") "R731")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6249,7 +6249,7 @@
         (field
           (name "SKiDL Tag") "R732")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6273,7 +6273,7 @@
         (field
           (name "SKiDL Tag") "R733")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6297,7 +6297,7 @@
         (field
           (name "SKiDL Tag") "R734")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6321,7 +6321,7 @@
         (field
           (name "SKiDL Tag") "R801")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6345,7 +6345,7 @@
         (field
           (name "SKiDL Tag") "R802")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6369,7 +6369,7 @@
         (field
           (name "SKiDL Tag") "R803")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6393,7 +6393,7 @@
         (field
           (name "SKiDL Tag") "R804")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6417,7 +6417,7 @@
         (field
           (name "SKiDL Tag") "R805")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6441,7 +6441,7 @@
         (field
           (name "SKiDL Tag") "R806")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "R"))
@@ -6465,7 +6465,7 @@
         (field
           (name "SKiDL Tag") "TP1")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6489,7 +6489,7 @@
         (field
           (name "SKiDL Tag") "TP10")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6513,7 +6513,7 @@
         (field
           (name "SKiDL Tag") "TP11")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6537,7 +6537,7 @@
         (field
           (name "SKiDL Tag") "TP12")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6561,7 +6561,7 @@
         (field
           (name "SKiDL Tag") "TP13")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6585,7 +6585,7 @@
         (field
           (name "SKiDL Tag") "TP14")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6609,7 +6609,7 @@
         (field
           (name "SKiDL Tag") "TP15")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6633,7 +6633,7 @@
         (field
           (name "SKiDL Tag") "TP16")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6657,7 +6657,7 @@
         (field
           (name "SKiDL Tag") "TP17")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6681,7 +6681,7 @@
         (field
           (name "SKiDL Tag") "TP18")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6705,7 +6705,7 @@
         (field
           (name "SKiDL Tag") "TP19")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6729,7 +6729,7 @@
         (field
           (name "SKiDL Tag") "TP2")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6753,7 +6753,7 @@
         (field
           (name "SKiDL Tag") "TP20")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6777,7 +6777,7 @@
         (field
           (name "SKiDL Tag") "TP21")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6801,7 +6801,7 @@
         (field
           (name "SKiDL Tag") "TP22")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6825,7 +6825,7 @@
         (field
           (name "SKiDL Tag") "TP23")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6849,7 +6849,7 @@
         (field
           (name "SKiDL Tag") "TP24")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6873,7 +6873,7 @@
         (field
           (name "SKiDL Tag") "TP25")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6897,7 +6897,7 @@
         (field
           (name "SKiDL Tag") "TP3")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6921,7 +6921,7 @@
         (field
           (name "SKiDL Tag") "TP4")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6945,7 +6945,7 @@
         (field
           (name "SKiDL Tag") "TP5")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6969,7 +6969,7 @@
         (field
           (name "SKiDL Tag") "TP6")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -6993,7 +6993,7 @@
         (field
           (name "SKiDL Tag") "TP7")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -7017,7 +7017,7 @@
         (field
           (name "SKiDL Tag") "TP8")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -7041,7 +7041,7 @@
         (field
           (name "SKiDL Tag") "TP9")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Test pad"))
@@ -7065,7 +7065,7 @@
         (field
           (name "SKiDL Tag") "U201")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SAW filter 435 MHz"))
@@ -7089,7 +7089,7 @@
         (field
           (name "SKiDL Tag") "U202")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Narrowband receiver (TRX used RX-only)"))
@@ -7113,7 +7113,7 @@
         (field
           (name "SKiDL Tag") "U301")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Unbuffered inverter (squarer)"))
@@ -7137,7 +7137,7 @@
         (field
           (name "SKiDL Tag") "U302")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Buffer with OE (SCKI gate)"))
@@ -7161,7 +7161,7 @@
         (field
           (name "SKiDL Tag") "U310")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "MCU Cortex-M4 80 MHz, 256 KB flash"))
@@ -7185,7 +7185,7 @@
         (field
           (name "SKiDL Tag") "U401")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Retriggerable monostable"))
@@ -7209,7 +7209,7 @@
         (field
           (name "SKiDL Tag") "U402")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Dual inverter"))
@@ -7233,7 +7233,7 @@
         (field
           (name "SKiDL Tag") "U403")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "14-stage counter with oscillator"))
@@ -7257,7 +7257,7 @@
         (field
           (name "SKiDL Tag") "U404")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "3-input AND"))
@@ -7281,7 +7281,7 @@
         (field
           (name "SKiDL Tag") "U405")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "2-input OR"))
@@ -7305,7 +7305,7 @@
         (field
           (name "SKiDL Tag") "U406")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "2-input AND"))
@@ -7329,7 +7329,7 @@
         (field
           (name "SKiDL Tag") "U407")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Dual inverter"))
@@ -7353,7 +7353,7 @@
         (field
           (name "SKiDL Tag") "U451")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Dual op-amp RRIO"))
@@ -7377,7 +7377,7 @@
         (field
           (name "SKiDL Tag") "U452")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Audio and sub-audio processor"))
@@ -7401,7 +7401,7 @@
         (field
           (name "SKiDL Tag") "U453")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SPST switch (mute)"))
@@ -7425,7 +7425,7 @@
         (field
           (name "SKiDL Tag") "U454")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SPDT switch (2:1 audio select)"))
@@ -7449,7 +7449,7 @@
         (field
           (name "SKiDL Tag") "U480")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Schmitt buffer"))
@@ -7473,7 +7473,7 @@
         (field
           (name "SKiDL Tag") "U481")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Retriggerable monostable (RX health)"))
@@ -7497,7 +7497,7 @@
         (field
           (name "SKiDL Tag") "U482")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Inverter"))
@@ -7521,7 +7521,7 @@
         (field
           (name "SKiDL Tag") "U501")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Audio ADC 24-bit"))
@@ -7545,7 +7545,7 @@
         (field
           (name "SKiDL Tag") "U502")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Synthesizer with FSK/analog FM"))
@@ -7569,7 +7569,7 @@
         (field
           (name "SKiDL Tag") "U503")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Triple buffer (MICROWIRE crossing)"))
@@ -7593,7 +7593,7 @@
         (field
           (name "SKiDL Tag") "U701")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "TruPwr RMS detector"))
@@ -7617,7 +7617,7 @@
         (field
           (name "SKiDL Tag") "U711")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "TruPwr RMS detector"))
@@ -7641,7 +7641,7 @@
         (field
           (name "SKiDL Tag") "U720")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Temperature sensor 10 mV/C"))
@@ -7665,7 +7665,7 @@
         (field
           (name "SKiDL Tag") "U730")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Voltage reference 2.5 V"))
@@ -7689,7 +7689,7 @@
         (field
           (name "SKiDL Tag") "U731")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SPST switch (power select)"))
@@ -7713,7 +7713,7 @@
         (field
           (name "SKiDL Tag") "U732")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "SPST switch (PA off)"))
@@ -7737,7 +7737,7 @@
         (field
           (name "SKiDL Tag") "U733")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "2-input AND (PA enable)"))
@@ -7761,7 +7761,7 @@
         (field
           (name "SKiDL Tag") "U734")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Dual inverter (PA domain)"))
@@ -7785,7 +7785,7 @@
         (field
           (name "SKiDL Tag") "U735")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Op-amp RRIO (APC integrator)"))
@@ -7809,7 +7809,7 @@
         (field
           (name "SKiDL Tag") "U801")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "LDO 300 mA low noise"))
@@ -7833,7 +7833,7 @@
         (field
           (name "SKiDL Tag") "U802")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "LDO 150 mA adjustable"))
@@ -7857,7 +7857,7 @@
         (field
           (name "SKiDL Tag") "U803")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "LDO 300 mA low noise"))
@@ -7881,7 +7881,7 @@
         (field
           (name "SKiDL Tag") "U804")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Schmitt buffer"))
@@ -7905,7 +7905,7 @@
         (field
           (name "SKiDL Tag") "U805")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Load switch 2 A"))
@@ -7929,7 +7929,7 @@
         (field
           (name "SKiDL Tag") "Y301")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "TCXO 40 MHz clipped sine"))
@@ -7953,7 +7953,7 @@
         (field
           (name "SKiDL Tag") "Y451")
         (field
-          (name "SKiDL Line") "design.py:67"))
+          (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
         (part "Crystal 3.6864 MHz"))

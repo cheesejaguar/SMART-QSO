@@ -16,8 +16,8 @@ Margin rule: GSFC-STD-1000 (GOLD Rules) Rule 1.06 funded schedule margin, as use
 shipment, 1 week per month from shipment to launch. (Text not retrieved in this review; the
 rule is applied as commonly stated.)
 
-    python3 software/simulation/cdr/pm/schedule_cpm.py                 # baseline (launch 2028-06-01)
-    python3 software/simulation/cdr/pm/schedule_cpm.py --launch 2028-11-01
+    python3 software/simulation/cdr/pm/schedule_cpm.py                 # baseline (launch 2028-11-01, BASELINE Rev E §3)
+    python3 software/simulation/cdr/pm/schedule_cpm.py --launch 2028-06-01   # the former planning date
     python3 software/simulation/cdr/pm/schedule_cpm.py --fm-at-risk    # FM long leads ordered at PDR
     python3 software/simulation/cdr/pm/schedule_cpm.py --em-funds 2027-03-01   # funding sensitivity
 """
@@ -60,7 +60,7 @@ def months_before(launch: date, m: float) -> date:
 
 
 def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date = date(2027, 5, 31),
-          launch: date = date(2028, 6, 1)) -> List[Task]:
+          launch: date = date(2028, 11, 1)) -> List[Task]:
     d = date
     l8, l6, l4, l35 = (months_before(launch, m) for m in (8, 6, 4, 3.5))
     fm_pred = ("PDR", "FUND_FM") if fm_at_risk else ("CDR", "FUND_FM")
@@ -174,7 +174,7 @@ def months(a: date, b: date) -> float:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--launch", default="2028-06-01", help="target launch date (default %(default)s)")
+    ap.add_argument("--launch", default="2028-11-01", help="target launch date (default %(default)s)")
     ap.add_argument("--delivery-days", type=int, default=50,
                     help="delivery to integrator before launch (LAUNCH_VEHICLE_REQUIREMENTS §9: L-50 d)")
     ap.add_argument("--fm-at-risk", action="store_true", help="order FM long leads at PDR, not CDR")
