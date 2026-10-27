@@ -154,14 +154,14 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-282 RIDs: severity 1: 29, severity 2: 155, severity 3: 98.
+283 RIDs: severity 1: 29, severity 2: 155, severity 3: 99.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
 | Closed by design change | 97 | 154 |
 | Closed by chair decision | 36 | 35 |
-| Verification item | 39 | 38 |
+| Verification item | 40 | 39 |
 | Decision point (dated) | 13 | 13 |
 | Implementation | 72 | 17 |
 
@@ -573,6 +573,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | JETB-09 | 2 | If the module's VDD_IN pins are at the SO-DIMM +X end, the 1.4 A burst current passes 12 mm from the RM3100 (order 10 µT) | IMP | Implementation | Chair: the flight software does not use the magnetometer for actuation while JET_PG is high; hardware location per the OBC designer (MCAD-06); VDD_IN end from the NVIDIA drawing (JETB-06) |
 | JETB-10 | 3 | SO-DIMM latch material unknown (TE); carrier magnetic signature unmeasured | VI | Verification item | V-JET-9: magnetic screening of the populated carrier, unpowered and during a burst; non-ferromagnetic or latch-less socket |
 | JETB-12 | 3 | Mated heights of the carrier's J1 and J2 not yet read from the Molex drawings (limits 13.2 mm and 7.7 mm) | VI | Verification item | Check against the Molex drawings before carrier layout; fallback right-angle Micro-Fit for J1, J2 moved to y ≥ +27.5 |
+| JETB-13 | 3 | Spreader thermistor curve from a third-party Steinhart-Hart fit of the 10K3A material, not TE's table | VI | Verification item | Calibrate the flight thermistor at three points (−15, +25, +70 °C) in the EM thermal test; TE table requested |
 <!-- RID-LOG-END -->
 
 ## 7. Verdict

@@ -390,7 +390,8 @@ for t_gen, lines in ((150, 10), (570, 10)):
 # x -33.5..-6.5, y +17.0..+44.0 (moved +3 mm, MECHANICAL_DESIGN 4.5, 11 item 12) with its bottom-side Al frame 2.5 mm
 # wide + 0.5 mm copper/part pull-back: keep-out x -36.5..-3.5, y +14.0..+47.0 on both sides (frame screws H10-H13);
 # top-side heights (MECHANICAL_DESIGN 4.5): <= 7.7 mm under the spreader (x -40..+40, y -33..+27), <= 13.2 mm elsewhere;
-# magnetometer RM3100 below (+33, -38): no parts within 20 mm, no ferromagnetic parts or unpaired current within 30 mm.
+# magnetometer: the version-B keep-out round (+33, -38) is withdrawn (RM3100 moved to board A2 at (+24, +27) in the
+# +Z end-frame slot, OBC item E11); the column below gives the in-plane distance to the old corner for reference only.
 BX, BY = 90.17 / 2, 95.89 / 2
 HOLES = [((40, 43), 3.2), ((-40, 43), 3.2), ((-40, -43), 3.2), ((40, -43), 3.2), ((0, 21), 3.5), ((0, -21), 3.5)]
 WIN_KO = (-34.0, -6.0, 16.5, 44.5)      # top side and inner layers: window + 0.5 mm
@@ -451,10 +452,7 @@ for name, (x, y), (w, h), magnetic, exempt, hgt in PLACE:
         if rect_point_dist(r, (hx, hy)) < rad and exempt != "module":
             issues.append(f"keep-out ({hx}, {hy})")
     dmag = rect_point_dist(r, MAG)
-    if dmag < 20 and exempt != "socket":
-        issues.append("inside 20 mm of the magnetometer")
-    if magnetic and dmag < 30 and exempt != "socket":
-        issues.append("magnetic/current part inside 30 mm")
+    # (magnetometer keep-out withdrawn in version D: no check)
     hlim = 7.7 if rect_overlap(r, SPREADER) else 13.2
     if exempt not in ("socket", "module") and hgt > hlim:
         issues.append(f"height {hgt} > {hlim} mm")
@@ -462,7 +460,7 @@ for name, (x, y), (w, h), magnetic, exempt, hgt in PLACE:
     rows.append((name, f"({x:.1f}, {y:.1f})", f"{dmag:.1f}", f"{rect_point_dist(r, GYRO):.1f}", f"{hgt} / {hlim}",
                  "; ".join(issues) or "clear"))
 table("14. Placement check (zones of section 18; window, heights and magnetic keep-out of MECHANICAL_DESIGN 4.3-4.5)",
-      ["Item", "Centre (mm)", "To the RM3100 (mm)", "To the gyro centre (mm)", "Height / limit (mm)", "Result"], rows)
+      ["Item", "Centre (mm)", "To the old RM3100 corner (mm)", "To the gyro centre (mm)", "Height / limit (mm)", "Result"], rows)
 # frame screws against the module standoffs, the centre support, the column and the board edge
 SCREWS = [(-34.75, 24.0), (-5.25, 24.0), (-34.75, 45.25), (-5.25, 45.25)]
 clr = []
@@ -470,7 +468,7 @@ for sx, sy in SCREWS:
     c = [math.hypot(sx - hx, sy - hy) - rad - 1.75 for (hx, hy), rad in HOLES] + \
         [math.hypot(sx + 31.3, sy - 12.6) - 2.5 - 1.75, BY - sy - 1.75]
     clr.append(min(c))
-print(f"\nPlacement conflicts: {bad} (the SO-DIMM's +X end inside 20 mm is the stated exemption: non-magnetic latch).")
+print(f"\nPlacement conflicts: {bad}.")
 print("Frame screws H10-H13 " + ", ".join(f"({x}, {y})" for x, y in SCREWS) +
       f": smallest clearance of a 3.5 mm button head to a keep-out, MP2 or the edge {min(clr):.2f} mm.")
 OUT["placement_conflicts"] = bad
@@ -478,12 +476,12 @@ OUT["placement_conflicts"] = bad
 # field of the burst current at the magnetometer: a go-and-return pair, B = mu0 I d / (2 pi r^2)
 MU0 = 4e-7 * math.pi
 rows = []
-for name, i, d, r in (("VBAT_IN pair J1 -> U1 (planes, 0.2 mm)", 0.54, 0.2e-3, 0.031),
-                      ("VDD_IN plane pair to the SO-DIMM, pins at the -X end", 1.41, 0.2e-3, 0.070),
-                      ("VDD_IN at the SO-DIMM pins if they are at the +X end (pins 241-260, d about 5 mm)", 1.41, 5e-3, 0.012)):
+for name, i, d, r in (("VBAT_IN pair J1 -> U1 (planes, 0.2 mm)", 0.54, 0.2e-3, 0.075),
+                      ("VDD_IN plane pair to the SO-DIMM", 1.41, 0.2e-3, 0.063),
+                      ("module input through the SO-DIMM pins (pins 241-260, d about 5 mm), either end", 1.41, 5e-3, 0.063)):
     b = MU0 * i * d / (2 * math.pi * r ** 2)
     rows.append((name, f"{i:.2f} A", f"{r * 1e3:.0f} mm", f"{b * 1e9:.0f} nT"))
-table("15. Static field of the burst current at the RM3100 (line-pair estimate, upper bound)", ["Path", "I", "r", "B"], rows)
+table("15. Static field of the burst current at the RM3100 on A2, (+24, +27), 63 mm (line-pair estimate, upper bound)", ["Path", "I", "r", "B"], rows)
 
 # ------------------------------------------------------------------------------------------------ 13 RT1 conversion
 # TE GA10K3MCD1: 10 kOhm at 25 C, beta 25/85 3976 K, -40..125 C, +/-0.2 C 0..70 C (TE data sheet, per its listing).
