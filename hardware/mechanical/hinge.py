@@ -41,7 +41,11 @@ TEMP_E = {"cold": +0.018, "hot": -0.012}        # modulus change at -40 / +60 C 
 OD_MAX = 4.0e-3                                 # envelope (radius 2.0 mm about the hinge axis)
 L_PRIMARY, L_SECOND = 7.5e-3, 3.6e-3            # free spring-body lengths on the axis (-Z, +Z)
 PIN_R, LEG_ARM = 0.75e-3, 5.0e-3                # pin radius, spring-leg arm to its anchor (legs 5 mm long)
-MU = {"cold": 0.15, "hot": 0.12}                # sputtered MoS2 on a 440C pin in a Ti-6Al-4V bushing: design values
+MU = {"cold": 0.15, "hot": 0.12}                # sputtered MoS2 film on an A286 pin in a Ti-6Al-4V bushing: design values
+# hinge pin: A286 (AMS 5732, aged; non-ferromagnetic, MECHANICAL_DESIGN 4.4; was 440C), the film sets the friction
+PIN = dict(material="A286", Ftu=1103e6, Fty=758e6, Fsu=0.6 * 1103e6, hardness="HRC 30-35")
+R_STOP = 4.0e-3                                  # stop contact radius from the hinge axis (CAD: about 4.5 mm)
+GAP_ARM = 0.6e-3                                 # pin bending arm across the ear-knuckle interface
                                                 # 3-7 x the vacuum typical (0.02-0.05); VI-STR-04 measures them
 # resistive torques independent of the spring (per wing, N m): (stowed cold, stowed hot, deployed cold, deployed hot)
 FLEX = (0.50e-3, 0.35e-3, 0.50e-3, 0.35e-3)     # clock-spring flex, 2 layers, heat-set (allocation; elastic 0.1)
@@ -182,6 +186,29 @@ def latch_trade(springs, dyn):
                 holding_margin=hold_min / (3.0 * 0.06e-3) - 1, wing_inertia_about_hinge=i_h)
 
 
+def pin_strength(dyn, launch_normal_3s=3.85, launch_qs=2.29):
+    """A286 hinge pin, d = 1.5 mm: shear and bending at the end-of-travel impact on the damped stop and at launch
+    (hinge normal loads of the FE, fem_results.json), NASA-STD-5001B 1.25 / 1.40 with a 1.15 fitting factor."""
+    t_stop = max(v["T_stop_max"] for v in dyn.values())
+    F_stop = t_stop / R_STOP
+    R_pin = 1.5 * F_stop                            # reaction incl. the wing's momentum change (conservative)
+    R_launch = launch_normal_3s + launch_qs        # upper bound: QS and random added
+    out = {}
+    d = 2 * PIN_R
+    A = math.pi * d ** 2 / 4
+    Z = math.pi * d ** 3 / 32
+    for case, Rf in (("end-of-travel impact", R_pin), ("launch, hinge normal", R_launch)):
+        tau = Rf / A
+        sig = Rf * GAP_ARM / Z
+        vm = math.sqrt(sig ** 2 + 3 * tau ** 2)
+        out[case] = dict(load_N=Rf, shear_MPa=tau / 1e6, bending_MPa=sig / 1e6, von_mises_MPa=vm / 1e6,
+                         MS_yield=PIN["Fty"] / (1.25 * 1.15 * vm) - 1, MS_ult=PIN["Ftu"] / (1.40 * 1.15 * vm) - 1,
+                         MS_shear_ult=PIN["Fsu"] / (1.40 * 1.15 * tau) - 1)
+    out["stop_torque_Nm"] = t_stop
+    out["bushing_bearing_MPa"] = R_pin / (d * 1.0e-3) / 1e6   # 1.0 mm bearing length (shortest knuckle)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", default=os.path.join(HERE, "hinge_results.json"))
@@ -221,6 +248,8 @@ def main():
                   f"body peak {v['body_rate_max_dps']:.0f} deg/s")
     R["flex"] = flex_torque()
     print("\nflex:", {k: v for k, v in R["flex"].items()})
+    R["pin_strength_A286"] = pin_strength(dyn)
+    print("pin (A286):", R["pin_strength_A286"])
     R["latch_trade"] = latch_trade(sp, dyn)
     print("latch trade:", R["latch_trade"])
     # the SQSO-MECH-001 A spring for the record

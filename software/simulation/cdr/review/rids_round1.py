@@ -279,6 +279,8 @@ RIDS = [
     ("RFB-06", 3, "Radio rail trip 0.25 A cannot see a 38 mA latch-up; LMX2571 margin at ±3 % rail", "IMP", "EPS board: SW2 trip ≈ 0.12 A; 3V3_AO ±2 %"),
     ("RFB-08", 3, "Magnetometer A2 is 4 mm above the RF board: shield, lids, ferrites, crystals and the PA loop near it", "CD", "No part within 20 mm of A2, no ferromagnetic part within 40 mm; nickel-silver shield, soldered lids; PA supply paired on layers 4/5 and routed 80-87 mm away (0.5 nT keyed step) (SQSO-RF-BRD-001 B §10.1); VI-RFB-11"),
     ("RFB-09", 2, "SMA end-launch connectors J3-J6 with mated plugs and cable bends do not fit the 3.3 mm gap to the side walls", "IMP", "Connector and routing chosen with the CAD and the AntS interface before layout"),
+    ("RFB-10", 3, "AntS RF port type and the connector mated heights not confirmed from the ISIS ICD and the Molex/Samtec drawings", "VI", "VI-RFB-12 (drawings, plating, cable attenuation and inner conductor) by 2026-11-13, before layout; VI-RFB-13 against the ISIS ICD (only the AntS-end plug changes if it differs)"),
+    ("RFB-11", 2, "CAD models two AntS elements; the AntS and the RF board use four (2 m along ±X, 70 cm along ±Y): the deployed inertia ratio must be re-checked", "IMP", "Mechanical CAD: four elements, mass properties with growth"),
     # ---- Raised by the EPS board design (EPSB) ----
     ("EPSB-01", 2, "Firmware fires driver A on both wings at once: 1.25 A at the pack", "IMP", "Chair: four independent burn lines, one resistor at a time (0.67 A); flight software and SIL"),
     ("EPSB-02", 3, "Uplink must avoid the synchronised converters' harmonics", "CH", "BASELINE §7 Uplink: 435.222-435.778 MHz, else 436.222-436.500 MHz"),

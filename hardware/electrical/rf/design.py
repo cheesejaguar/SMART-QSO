@@ -262,13 +262,20 @@ part("J2", "Conn 6p 1.00 mm Pico-Clasp", "EPS-RF power (W4B)", "501331-0607", "M
      "on the -Y edge strip outside the shield at about (-26, -44), next to the PA, so the PA current path "
      "(J2-FB803-L602/L604-Q601) stays >= 60 mm from (+24, +27); PA_5V and its GND contacts adjacent, routed as a pair",
      "not checked (Molex site not reached)")
-for j, net, lbl in (("J3", "VHF_A", "2 m element +X"), ("J4", "VHF_B", "2 m element -X"),
-                    ("J5", "UHF_A", "70 cm element +Y"), ("J6", "UHF_B", "70 cm element -Y")):
-    part(j, "SMA jack end launch", lbl, "132322", "Amphenol RF", "SMA edge launch 1.57 mm",
-         "50 ohm, DC-18 GHz, >= 10 W at 150 MHz", [(1, "SIG", P, net), (2, "G1", P, "GND"), (3, "G2", P, "GND"),
-                                                    (4, "G3", P, "GND"), (5, "G4", P, "GND")],
-         "1 W (VHF) / receive (UHF): < 10 %", "Gold-plated contact and body required (no tin, ANT-8 passive intermodulation); "
-         "to the AntS coax (W10 v2). Finish and P/N to confirm", "not checked")
+for j, net, lbl, xy in (("J3", "VHF_A", "2 m element +X", "(-34.5, -19.0)"),
+                        ("J4", "VHF_B", "2 m element -X", "(-34.5, -25.0)"),
+                        ("J5", "UHF_A", "70 cm element +Y", "(-34.5, +19.0)"),
+                        ("J6", "UHF_B", "70 cm element -Y", "(-34.5, +25.0)")):
+    part(j, "MMCX jack straight PCB", lbl, "73415-1473", "Molex", "MMCX vertical jack, through-hole (4 ground legs)",
+         "50 ohm, DC-6 GHz, 170 Vrms, -55..+165 C, 500 cycles", [(1, "SIG", P, net), (2, "G1", P, "GND"),
+                                                                 (3, "G2", P, "GND"), (4, "G3", P, "GND"),
+                                                                 (5, "G4", P, "GND")],
+         "1 W at 146 MHz (0.5 W per element) / receive: < 10 %",
+         f"Top side at {xy} mm, outside the shield (J3/J4 in the frame's -X notch); right-angle plug exits -X into the "
+         "-X wall gap (RF_BOARD_DESIGN §4.3). Brass body and beryllium-copper contact, gold, listed non-magnetic (ANT-8; "
+         "OBC item C16). Legs trimmed to <= 1.0 mm below the 1.6 mm board. Mates the W10 v3 cable plug",
+         "distributor listing read 2026-10-27 (Active, non-magnetic, Au over brass/BeCu); drawing SD-73415-147-001 "
+         "not read (VI-RFB-12)")
 part("J7", "SWD pads (Tag-Connect TC2030)", "TNC MCU programming", "footprint only (TC2030-IDC-NL cable)",
      "Tag-Connect", "TC2030-NL footprint", "-", [(1, "VDD", P, "+3V1_DIG"), (2, "SWDIO", P, "SWDIO"),
                                                  (3, "NRST", P, "MCU_NRST"), (4, "SWCLK", P, "SWCLK"), (5, "GND", P, "GND"),
@@ -833,7 +840,8 @@ for tp, net in (("TP1", "+3V3_RAD"), ("TP2", "+3V0_RX"), ("TP3", "+3V1_DIG"), ("
 SHIELD_MAT = ("nickel-silver CuNi18Zn20 (EN CW409J, UNS C75200), 0.20 mm, unplated: non-magnetic (relative "
               "permeability about 1.0); not tin-plated steel, no nickel plating, no tin (EEE_PARTS_LIST §2A.3)")
 MECH += [
-    dict(ref="SH1", qty=1, value="shield frame 84 x 54 x 7 mm, three cavities, (+X, -Y) corner notch for J1",
+    dict(ref="SH1", qty=1, value="shield frame 84 x 54 x 7 mm, three cavities, notches: (+X, -Y) corner for J1, -X edge "
+                                    "(x < -30.0, y -28.0 ... -16.0) for J3/J4",
          mpn="made to drawing (RF board layout)", mfr="shield vendor (open)", pkg="SMT frame, solder tabs every 5 mm",
          notes=SHIELD_MAT + ". Wall and lid reach 13 mm from the magnetometer (§10.1)"),
     dict(ref="SH2 SH3 SH4", qty=3, value="shield lids (receive, transmit, digital cavity)",

@@ -650,7 +650,7 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
     W2 = 49.0
     xr = 47.33                     # rail centroid (L 8.5 x 8.5 x 1.5): 2.67 mm in from the outer faces
     zmz, zpz = -47.7, 49.2         # end-plate mid-planes (CDS frame: -Z outer face -48.5 recessed, +Z outer +50)
-    zb = dict(deck=-16.0, EPS=P["z_eps"] + 0.8, OBC=P["z_obc"] + 0.8, carrier=P["z_car"] + 0.8, RF=P["z_rf"] + 0.8)
+    zb = dict(deck=-16.0, EPS=P["z_eps"] + 0.8, OBC=P["z_obc"] + 0.8, carrier=P["z_car"] + t_car / 2, RF=P["z_rf"] + 0.8)
     special_t = dict(EPS=t_eps, OBC=1.6, carrier=t_car, RF=1.6, deck=1.0)
     zsp = 30.3
     wxm = 53.6                     # wing substrate mid-plane (x)
@@ -1380,15 +1380,17 @@ def stresses(res, verbose=True):
     return res
 
 
+# design (SQSO-MECH-CAD-001 B, D-11 as amended): gyro window in a 2.0 mm carrier, no frame; Ti stud at (+40, +43)
+_D = dict(bc="rails", snubber="soft", cs2="eps", t_car=2.0, car_frame=False)
 CASES = {
-    "design": dict(bc="rails", snubber="soft", cs2="eps"),
-    "single_centre_support": dict(bc="rails", snubber="soft"),
-    "design_2.0mm_EPS_carrier": dict(bc="rails", snubber="soft", cs2="eps", t_eps=2.0, t_car=2.0),
-    "design_second_holddown": dict(bc="rails", snubber="hard", cs2="eps"),
-    "design_rail_ends_only": dict(bc="ends", snubber="soft", cs2="eps"),
-    "design_no_carrier_window": dict(bc="rails", snubber="soft", cs2="eps", car_window=False),
-    "design_window_no_frame": dict(bc="rails", snubber="soft", cs2="eps", car_frame=False),
-    "design_window_2.0mm_carrier_no_frame": dict(bc="rails", snubber="soft", cs2="eps", t_car=2.0, car_frame=False),
+    "design": dict(_D),
+    "single_centre_support": dict(_D, cs2=False),
+    "design_2.0mm_EPS_carrier": dict(_D, t_eps=2.0),
+    "design_second_holddown": dict(_D, snubber="hard"),
+    "design_rail_ends_only": dict(_D, bc="ends"),
+    "alt_1.6mm_carrier_framed_window": dict(_D, t_car=1.6, car_frame=True),
+    "alt_1.6mm_carrier_window_no_frame": dict(_D, t_car=1.6),
+    "reference_1.6mm_carrier_no_window": dict(_D, t_car=1.6, car_window=False),
 }
 NMODES = 450
 

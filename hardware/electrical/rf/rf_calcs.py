@@ -21,6 +21,7 @@ Sections
   13 clock harmonics against the uplink band
   14 part stress and derating (NASA EEE-INST-002 / project 50 % rule, EEE_PARTS_LIST Rev C §12)
   15 magnetic cleanliness at the magnetometer on board A2 (OBC item C16): keep-out radius, PA current field
+  16 antenna ports (Version C): MMCX connectors and 1.37 mm cables to the AntS, route length, loss and return loss
 
 Usage: python3 rf_calcs.py [--mc 4000] [--quiet]
 Needs numpy only.
@@ -48,7 +49,13 @@ INPUTS = {
     "cn0_voice_12db_sinad": 47.4, "cn0_tc_90pct": 53.0, "cn0_afsk_corr": 52.9,
     "ant_iso_437_db": 15.0, "ant_iso_146_db": 25.0,
     # ---- receive chain (part data; see RF_BOARD_DESIGN §3)
-    "coax_uhf_db": 0.25,           # RG-316, 0.22 m at 436 MHz (0.9 dB/m) plus two connectors 0.05 dB (W10 v2)
+    "coax_uhf_db": 0.25,           # W10 v2 value (RG-316); replaced in main() by section 16 (W10 v3)
+    # ---- antenna cables W10 v3 (section 16): 1.37 mm micro-coax, MMCX at both ends. Attenuation of the 1.37 mm
+    #      class assumed 2.6 dB/m at 2.4 GHz, scaled by sqrt(f), +20 % at +60 C [to confirm with the cable data sheet]
+    "cab137_db_per_m_2g4": 2.6, "cab_hot_factor": 1.20, "cab_len_m": 0.22,
+    "mmcx_il_db_per_sqrtGHz": 0.10,   # per mated pair (MMCX class: 0.1 x sqrt(f GHz) dB max)
+    "mmcx_vswr": 1.12,                # Molex MMCX series, DC-2.5 GHz
+    "cab_vswr": 1.10,                 # cable termination, each end [assumption]
     "balun_uhf_db": 0.30,          # lumped lattice balun, Q 60 inductors (computed below as a check)
     "lna_nf_db": 0.80,             # BFP640F at 6 mA: NFmin 0.55 dB at 450 MHz (Infineon datasheet) + 0.25 dB match loss
     "lna_gain_db": 18.0,
@@ -888,6 +895,49 @@ def stresses(p, pa, lpf):
     return s
 
 
+# ------------------------------------------------------------------------- 16 antenna ports (Version C)
+def rf_ports(p):
+    """Board MMCX jacks J3-J6 to the AntS MMCX ports (W10 v3). Route in the stack frame of MECHANICAL_DESIGN §4.1 (mm):
+    plug exit at x -39.9, z +39.4; bend R 7 over the board edge into the -X wall gap (x -45.4 ... -48.4) at
+    |y| = 20.2 ... 23.8; down the gap to z -39.2; bend R 7 inboard to z -46.2 above the -Z end frame; on to the AntS
+    port (position open, ISIS ICD)."""
+    r_bend = 7.0                                     # >= 5 x OD of the 1.37 mm cable (static)
+    arc = math.pi / 2 * r_bend
+    seg = {"plug_and_exit": 5.0, "top_bend": round(arc, 1), "wall_gap_z_+32.4_to_-39.2": 71.6,
+           "bottom_bend": round(arc, 1), "AntS_plug": 5.0}
+    fixed = sum(seg.values())
+    out = {"route_mm": seg, "end_frame_to_AntS_port_mm": [5.0, 75.0],
+           "length_needed_mm": [round(fixed + 5.0), round(fixed + 75.0)], "length_budgeted_m": p["cab_len_m"],
+           "bend_radius_mm": r_bend, "cable_od_mm": 1.37,
+           "band_fill": "two cables per band side by side: 2 x 1.37 = 2.74 mm of the 4.0 mm band (y 20.0 ... 24.0), "
+                        "1.37 of the 3.3 mm gap depth"}
+
+    def gamma(vswr):
+        return (vswr - 1) / (vswr + 1)
+
+    def ml(g):
+        return -10 * math.log10(1 - g ** 2)
+    for band, f in (("2m", 145.9e6), ("70cm", 436.0e6)):
+        a = p["cab137_db_per_m_2g4"] * math.sqrt(f / 2.4e9) * p["cab_hot_factor"]
+        cab = a * p["cab_len_m"]
+        con = 2 * p["mmcx_il_db_per_sqrtGHz"] * math.sqrt(f / 1e9)
+        g_c, g_k = gamma(p["mmcx_vswr"]), gamma(p["cab_vswr"])
+        g_worst = 2 * g_c + 2 * g_k                  # four reflections adding in phase
+        g_rss = math.sqrt(2 * g_c ** 2 + 2 * g_k ** 2)
+        out[band] = {"cable_dB_per_m_hot": round(a, 2), "cable_dB": round(cab, 2), "connectors_dB": round(con, 2),
+                     "return_loss_worst_dB": round(-20 * math.log10(g_worst), 1),
+                     "return_loss_rss_dB": round(-20 * math.log10(g_rss), 1),
+                     "mismatch_loss_worst_dB": round(ml(g_worst), 3), "mismatch_loss_rss_dB": round(ml(g_rss), 3),
+                     "port_to_antenna_worst_dB": round(cab + con + ml(g_worst), 2)}
+    # SQSO-LBA-001 §2.4 carries 1.0 dB "filter, cable and connector loss" after the transmitter power. This board
+    # sets its power at the board port (APC on the detector after the LPF), so that term is the port-to-antenna loss
+    out["lba_tx_loss_term_dB"] = 1.0
+    out["tx_margin_vs_lba_dB"] = round(1.0 - out["2m"]["port_to_antenna_worst_dB"], 2)
+    out["rx_coax_dB_used_in_section_1"] = out["70cm"]["port_to_antenna_worst_dB"]
+    out["previous_W10_v2_value_dB"] = 0.25
+    return out
+
+
 # --------------------------------------------------------------------------------------------- main
 def main():
     ap = argparse.ArgumentParser()
@@ -899,6 +949,8 @@ def main():
     res = {"inputs": {k: (v if not isinstance(v, dict) else {str(x): y for x, y in v.items()}) for k, v in p.items()}}
     res["fl1"] = design_fl1(p, a.mc, rng)
     p["_fl1_il_worst_db"] = res["fl1"]["worst"]["il_dB"]
+    res["rf_ports"] = rf_ports(p)
+    p["coax_uhf_db"] = res["rf_ports"]["70cm"]["port_to_antenna_worst_dB"]
     res["receiver"] = receiver(p)
     res["lpf"] = design_lpf(p, a.mc, rng)
     res["harmonics"] = harmonics(p, res["lpf"])
@@ -926,10 +978,14 @@ def main():
     res["clocks"] = clocks(p)
     res["stresses"] = stresses(p, res["pa"], res["lpf"])
     res["magnetics"] = magnetics(res["pa"])
+    tx_loss = res["rf_ports"]["2m"]["port_to_antenna_worst_dB"]
+    res["rf_ports"]["tx_1W_port_dBm_nominal_low_high"] = [r["pmax_port_dBm"] for r in res["pa"]["psat"]]
+    res["rf_ports"]["tx_1W_at_antenna_dBm_nominal_low_high"] = [round(r["pmax_port_dBm"] - tx_loss, 2)
+                                                           for r in res["pa"]["psat"]]
     (HERE / "rf_calcs.json").write_text(json.dumps(res, indent=1, default=float) + "\n")
     if not a.quiet:
         for k in ("fl1", "receiver", "lpf", "harmonics", "pa", "rx_power", "timing", "deviation", "detectors",
-                  "reference", "isolation", "magnetics"):
+                  "reference", "isolation", "magnetics", "rf_ports"):
             print(f"== {k}")
             print(json.dumps(res[k], indent=1, default=float))
         print("== desense (2.2 MHz rows)")

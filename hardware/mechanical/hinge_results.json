@@ -406,6 +406,28 @@
   "copper_strain_amplitude": 0.0005448717948717948,
   "ipc2223_flex_to_install_min_radius_mm": 0.816
  },
+ "pin_strength_A286": {
+  "end-of-travel impact": {
+   "load_N": 59.14542314270589,
+   "shear_MPa": 33.46946294906107,
+   "bending_MPa": 107.1022814369954,
+   "von_mises_MPa": 121.78470158154136,
+   "MS_yield": 3.329807775347124,
+   "MS_ult": 4.625445222634609,
+   "MS_shear_ult": 11.28152065800176
+  },
+  "launch, hinge normal": {
+   "load_N": 6.140000000000001,
+   "shear_MPa": 3.4745292465217332,
+   "bending_MPa": 11.118493588869546,
+   "von_mises_MPa": 12.642703830294288,
+   "MS_yield": 40.70819429959017,
+   "MS_ult": 53.18881727342626,
+   "MS_shear_ult": 117.30549448752406
+  },
+  "stop_torque_Nm": 0.15772112838054902,
+  "bushing_bearing_MPa": 39.43028209513725
+ },
  "latch_trade": {
   "stop_peak_Nm": 0.15772112838054902,
   "restitution_energy": 0.13862672840980345,

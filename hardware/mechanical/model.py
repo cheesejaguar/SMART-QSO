@@ -83,7 +83,7 @@ P: Dict[str, float] = dict(
     # three Ti M2 screws through the end frame at the corners clear of the GNSS patch footprint
     a2_w=24.0, a2_t=1.6, a2_parts=5.75, a2_screws=((33.5, 17.5), (14.5, 36.5), (33.5, 36.5)),
     # stack levels: substrate bottom z
-    z_eps=-3.0, z_obc=5.0, z_car=18.0, z_rf=34.8,
+    z_eps=-3.0, z_obc=5.0, z_car=17.6, z_rf=34.8, car_t=2.0, car_frame=False,
     # magnetometer and RF shield (positions chosen to balance Iyz, MECHANICAL_DESIGN section 5)
     mag_x=24.0, mag_y=27.0, shield_y0=-40.0, shield_y1=14.0,
     rbf_x=20.0, rbf_z=-43.0, port_x=-20.0, port_z=-43.0, rbf_face=-1.0,
@@ -450,41 +450,47 @@ def build_parts(p=P) -> List[Part]:
     gyro_box = B(p["gyro_x"] - gw, p["gyro_x"] + gw, p["gyro_y"] - gw, p["gyro_y"] + gw, P["z_obc"] + pt,
                  P["z_obc"] + pt + p["gyro_h"])
     win = B(*p["car_win"], P["z_car"] - 3.0, P["z_car"] + 3.0)
-    board("OBC", P["z_obc"], 1.0, 3.0, {"17": 45.0}, comp_cut=(cs, cs2, gyro_box), note="OBC STM32L4R5ZI, BMI088")
+    board("OBC", P["z_obc"], 1.0, 3.0, {"17": 45.0}, comp_cut=(cs, cs2, gyro_box, B(38.5, 43.5, -39.8, -27.2, 0, 20)),
+          note="OBC STM32L4R5ZI, BMI088")
     add(Part("gyro_MG370", "adcs", {"25": 10.0}, gyro_box,
              color=COL["comp"], note="Epson M-G370PDT0 24 x 24 x 10 mm in socket X1 (14.0 mm above the OBC), "
                                         "through the carrier window"))
     z = P["z_car"]
+    pc = p["car_t"]                                   # carrier substrate (2.0 mm from SQSO-MECH-CAD-001 B, D-11)
     jy = p["jet_y"]
-    car_top = cut(B(-px + 1, px - 1, -py + 1, jy - 27.0, z + pt, z + pt + 2.0), *koz)
+    car_top = cut(B(-px + 1, px - 1, -py + 1, jy - 27.0, z + pc, z + pc + 2.0), *koz)
     car_bot = cut(B(-px + 1, px - 1, -py + 1, py - 1, z - 1.0, z), win, *koz, cs, cs2)
-    add(Part("Jetson_carrier", "stack", {"21": 14.0}, cut(B(-px, px, -py, py, z, z + pt), *colholes, win,
-                                                          *[C("z", (x_, y_, 0), 1.1, z - 1, z + pt + 1)
-                                                            for x_, y_ in p["frame_screws"]]),
-             color=COL["pcb"], note="custom carrier; centre supports; 27 x 27 mm window for the gyro (C3)"))
-    fw, fh = p["car_frame_w"], p["car_frame_h"]
-    wx0, wx1, wy0, wy1 = p["car_win"]
-    wframe = cut(B(wx0 - fw, wx1 + fw, wy0 - fw, wy1 + fw, z - fh, z), B(wx0, wx1, wy0, wy1, z - fh - 1, z + 1))
-    pdw, pdl = p["frame_pad"]
-    pads, sh_f, sh_c, heads = [], [], [], []
-    for sx_, sy_ in p["frame_screws"]:
-        if sx_ < (wx0 + wx1) / 2:                                   # left bar: pad grows outward (-X)
-            pads.append(B(wx0 - pdw, wx0, sy_ - pdl / 2, sy_ + pdl / 2, z - fh, z))
-        else:
-            pads.append(B(wx1, wx1 + pdw, sy_ - pdl / 2, sy_ + pdl / 2, z - fh, z))
-        sh_f.append(C("z", (sx_, sy_, 0), 1.0, z - fh - 1, z + 3))
-        sh_c.append(C("z", (sx_, sy_, 0), 1.1, z - 1, z + pt + 1))
-        heads.append(fuse(C("z", (sx_, sy_, 0), 1.75, z + pt, z + pt + 1.1), C("z", (sx_, sy_, 0), 0.99, z - fh + 0.2, z + pt)))
-    wframe = cut(fuse(wframe, *pads), *sh_f)
-    car_bot = cut(car_bot, B(wx0 - fw - 0.5, wx1 + fw + 0.5, wy0 - fw - 0.5, wy1 + fw + 0.5, z - 2, z + 0.1),
-                  *[B(b.BoundingBox().xmin - 0.5, b.BoundingBox().xmax + 0.5, b.BoundingBox().ymin - 0.5,
-                      b.BoundingBox().ymax + 0.5, z - 2, z + 0.1) for b in pads])
-    add(Part("Jetson_carrier_parts", "stack", {"21": 23.0}, fuse(car_top, car_bot), color=COL["comp"]))
-    add(Part("carrier_window_frame", "stack", {"21": 2.2}, wframe, color=COL["al"],
-             note="Al 6061 frame 2.5 x 3.0 mm bonded round the gyro window, carrier bottom side (D-11), four tapped pads"))
-    add(Part("carrier_frame_screws", "stack", {"34": 1.0}, fuse(*heads), color=COL["rod"],
-             note="H10-H13: M2 A286 ISO 7380 button-head screws into the frame pads (3 mm engagement)"))
-    zs = z + pt
+    frame = p["car_frame"]
+    add(Part("Jetson_carrier", "stack", {"21": 14.0}, cut(B(-px, px, -py, py, z, z + pc), *colholes, win,
+                                                          *([C("z", (x_, y_, 0), 1.1, z - 1, z + pc + 1)
+                                                             for x_, y_ in p["frame_screws"]] if frame else [])),
+             color=COL["pcb"], note=f"custom carrier, {pc:.1f} mm; centre supports; 27 x 27 mm window for the gyro (C3)"))
+    if frame:                                         # alternative of D-11 (not the design): Al frame and screws
+        fw, fh = p["car_frame_w"], p["car_frame_h"]
+        wx0, wx1, wy0, wy1 = p["car_win"]
+        wframe = cut(B(wx0 - fw, wx1 + fw, wy0 - fw, wy1 + fw, z - fh, z), B(wx0, wx1, wy0, wy1, z - fh - 1, z + 1))
+        pdw, pdl = p["frame_pad"]
+        pads, sh_f, heads = [], [], []
+        for sx_, sy_ in p["frame_screws"]:
+            if sx_ < (wx0 + wx1) / 2:
+                pads.append(B(wx0 - pdw, wx0, sy_ - pdl / 2, sy_ + pdl / 2, z - fh, z))
+            else:
+                pads.append(B(wx1, wx1 + pdw, sy_ - pdl / 2, sy_ + pdl / 2, z - fh, z))
+            sh_f.append(C("z", (sx_, sy_, 0), 1.0, z - fh - 1, z + 3))
+            heads.append(fuse(C("z", (sx_, sy_, 0), 1.75, z + pc, z + pc + 1.1),
+                              C("z", (sx_, sy_, 0), 0.99, z - fh + 0.2, z + pc)))
+        wframe = cut(fuse(wframe, *pads), *sh_f)
+        car_bot = cut(car_bot, B(wx0 - fw - 0.5, wx1 + fw + 0.5, wy0 - fw - 0.5, wy1 + fw + 0.5, z - 2, z + 0.1),
+                      *[B(b.BoundingBox().xmin - 0.5, b.BoundingBox().xmax + 0.5, b.BoundingBox().ymin - 0.5,
+                          b.BoundingBox().ymax + 0.5, z - 2, z + 0.1) for b in pads])
+        add(Part("Jetson_carrier_parts", "stack", {"21": 23.0}, fuse(car_top, car_bot), color=COL["comp"]))
+        add(Part("carrier_window_frame", "stack", {"21": 2.2}, wframe, color=COL["al"],
+                 note="Al 6061 frame 2.5 x 3.0 mm bonded round the gyro window, carrier bottom side, four tapped pads"))
+        add(Part("carrier_frame_screws", "stack", {"34": 1.0}, fuse(*heads), color=COL["rod"],
+                 note="H10-H13: M2 A286 ISO 7380 button-head screws into the frame pads (3 mm engagement)"))
+    else:
+        add(Part("Jetson_carrier_parts", "stack", {"21": 25.2}, fuse(car_top, car_bot), color=COL["comp"]))
+    zs = z + pc
     add(Part("SODIMM_connector", "stack", {"21": 0.0, "22": 2.0}, B(-36, 36, jy - 26.5, jy - 22.5, zs, zs + 4.0),
              color=COL["comp"], note="260-pin SO-DIMM, 4 mm stack height (allocation)"))
     zm = zs + 4.0
@@ -520,23 +526,27 @@ def build_parts(p=P) -> List[Part]:
     add(Part("heat_spreader", "stack", {"23": 66.6, "5": 15.0}, spreader, color=COL["al"],
              note="Al 6061 80 x 60 x 5 mm with 3 mm flanges bolted (4 x M2.5) to the +-X shear panels; pedestal 22 x 22 x "
                   "0.75 mm over the SoC lid (flatness 0.05 mm) and a 0.5 mm second face over the DRAM and regulators"))
-    rf_top = fuse(B(-42, 42, P["shield_y0"], P["shield_y1"], P["z_rf"] + pt, P["z_rf"] + pt + 7.0),
+    rf_notch = B(37.0, 60, -60, -26.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 8.0)       # shield notch for J1 (RF C16)
+    rf_conn = [B(38.5, 43.5, -39.8, -27.2, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0),
+               B(-31.5, -20.5, -47.0, -41.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0)]
+    rf_top = fuse(cut(B(-42, 42, P["shield_y0"], P["shield_y1"], P["z_rf"] + pt, P["z_rf"] + pt + 7.0), rf_notch),
                   B(-px + 1, px - 1, P["shield_y1"], py - 1, P["z_rf"] + pt, P["z_rf"] + pt + 2.0),
                   B(-px + 1, px - 1, -py + 1, P["shield_y0"], P["z_rf"] + pt, P["z_rf"] + pt + 2.0))
+    rf_top = cut(rf_top, *rf_conn)
     board("RF", P["z_rf"], 1.5, 0.0, {"18": 120.0}, comp_cut=(cs_rf,), top_shape=rf_top,
           note="RF board with shield 84 x 60 x 7 mm (stiffener); keep-out <= 2 mm under the magnetometer")
     # centre supports and columns (row 34)
-    levels = [-15.5, P["z_eps"], P["z_eps"] + pt, P["z_obc"], P["z_obc"] + pt, P["z_car"], P["z_car"] + pt, zsp]
+    levels = [-15.5, P["z_eps"], P["z_eps"] + pt, P["z_obc"], P["z_obc"] + pt, P["z_car"], P["z_car"] + p["car_t"], zsp]
     cseg = [C("z", (p["cs_x"], p["cs_y"], 0), p["col_d"] / 2, levels[i], levels[i + 1]) for i in (0, 2, 4, 6)]
     cseg.append(C("z", (0, 0, 0), p["col_d"] / 2, zsp + 5.0, P["z_rf"]))
     cseg += [C("z", (p["cs_x"], p["cs2_y"], 0), p["col_d"] / 2, levels[i], levels[i + 1]) for i in (2, 4)]
     # (0, -21) under the Jetson module: low-head M2 fastener on the carrier's top face (M1), head Ø3.5 x 1.1 mm (ISO 7380)
-    cseg.append(C("z", (p["cs_x"], p["cs2_y"], 0), 1.75, P["z_car"] + pt, P["z_car"] + pt + 1.1))
+    cseg.append(C("z", (p["cs_x"], p["cs2_y"], 0), 1.75, P["z_car"] + p["car_t"], P["z_car"] + p["car_t"] + 1.1))
     add(Part("centre_supports", "stack", {"34": 2.0}, fuse(*cseg), color=COL["al"],
              note="centre supports (STR-05): (0, +21) deck-EPS-OBC-carrier-spreader, (0, -21) EPS-OBC-carrier, "
                   "(0, 0) spreader-RF"))
     stops = [zp["mz_in"], -16.5, -15.5, P["z_eps"], P["z_eps"] + pt, P["z_obc"], P["z_obc"] + pt, P["z_car"],
-             P["z_car"] + pt, P["z_rf"], P["z_rf"] + pt, zp["pz_in"]]
+             P["z_car"] + p["car_t"], P["z_rf"], P["z_rf"] + pt, zp["pz_in"]]
     cols = []
     for sx in (1, -1):
         for sy in (1, -1):
@@ -569,10 +579,26 @@ def build_parts(p=P) -> List[Part]:
 
     # ---------------- harness and distributed allocations (rows 26, 31, 32, 33, 34, 35) -------------------
     hch = [B(45.4 if sx > 0 else -48.4, 48.4 if sx > 0 else -45.4, 24.0 if sy > 0 else -33.9,
-             33.9 if sy > 0 else -24.0, zp["mz_in"], zp["pz_in"]) for sx in (1, -1) for sy in (1, -1)]
-    add(Part("harness_channels", "harness", {"32": 78.0, "31": 20.0, "26": 3.0}, fuse(*hch),
-             color=COL["harness"], note="four 3 x 9.9 mm bundles in the +-X wall gaps; coax of the GNSS patch"))
-    add(Part("fasteners_staking_distributed", "dist", {"34": 24.0, "35": 10.0},
+             33.9 if sy > 0 else -24.0, zp["mz_in"], zp["pz_in"]) for sx, sy in ((1, 1), (-1, 1), (-1, -1))]
+    # (+X, -Y) bundle (ICX E12, amended): y -24.0 ... -33.9 below z -26 (the Y rod's -Y end reaches y -23.5 at
+    # z -38.2 ... -27.6), y -20.5 ... -27.0 above it (0.5 mm from the spreader flange at y -20), leaving
+    # y -28.5 ... -38.5 of the +X wall gap to the W4A ribbon from OBC J2 to RF J1
+    hch.append(fuse(B(45.4, 48.4, -33.9, -24.0, zp["mz_in"], -26.0), B(45.4, 48.4, -27.0, -20.5, -26.0, zp["pz_in"])))
+    add(Part("harness_channels", "harness", {"32": 77.0, "31": 20.0, "26": 3.0}, fuse(*hch),
+             color=COL["harness"], note="four bundles in the +-X wall gaps (the +X -Y one narrowed to 3 x 6.5 mm above z -26)"))
+    j2z = P["z_obc"] + pt
+    w4a = fuse(B(47.4, 48.4, -38.5, -28.5, j2z + 8.0, P["z_rf"] + pt + 9.0),          # flat, vertical in the gap
+               B(43.0, 48.4, -38.5, -28.5, P["z_rf"] + pt + 8.0, P["z_rf"] + pt + 9.0),   # over J1 to the gap
+               B(43.0, 48.4, -38.5, -28.5, j2z + 7.0, j2z + 8.0))                       # from OBC J2 to the gap
+    add(Part("ribbon_W4A", "harness", {"32": 1.0}, w4a, color=COL["harness"],
+             note="W4A FTSH-108 ribbon, 10 mm wide, OBC J2 (+41, -33.5) to RF J1 (+41, -33.5) in the +X wall gap"))
+    add(Part("OBC_J2_mated", "stack", {"17": 0.0}, B(39.0, 43.0, -39.3, -27.7, j2z, j2z + 8.0), color=COL["comp"],
+             note="OBC J2 FTSH-108 with its ribbon socket, mated-height allocation 8 mm (open: Samtec drawing)"))
+    add(Part("RF_J1_mated", "stack", {"18": 0.0}, B(39.0, 43.0, -39.3, -27.7, P["z_rf"] + pt, P["z_rf"] + pt + 8.0),
+             color=COL["comp"], note="RF J1 FTSH-108 mated, in the shield notch x > 37, y < -26 (allocation 8 mm)"))
+    add(Part("RF_J2_mated", "stack", {"18": 0.0}, B(-31.0, -21.0, -46.5, -41.5, P["z_rf"] + pt, P["z_rf"] + pt + 6.0),
+             color=COL["comp"], note="RF J2 Pico-Clasp 6 vertical, mated, at (-26, -44) (allocation 6 mm)"))
+    add(Part("fasteners_staking_distributed", "dist", {"34": 24.0 if p["car_frame"] else 25.0, "35": 10.0},
              B(-45, 45, -47.9, 47.9, zp["mz_in"], zp["pz_in"]), ghost=True, color=COL["comp"],
              note="fasteners, inserts, staking and conformal coat, smeared over the stack volume"))
     add(Part("thermal_distributed", "dist", {"33": 20.0}, B(-45, 45, -47.9, 47.9, -16.5, zp["pz_in"]), ghost=True,
@@ -873,8 +899,8 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
     # gyro in its socket through the carrier window (OBC_BOARD_DESIGN 9.2 and 24 C3)
     gyb = byname["gyro_MG370"].stowed
     gcl = {n: min_dist(gyb, byname[n].stowed) for n in ("Jetson_carrier", "Jetson_carrier_parts", "carrier_window_frame",
-                                                         "Jetson_module",
-                                                         "SODIMM_connector", "centre_supports", "stack_columns")}
+                                                         "Jetson_module", "SODIMM_connector", "centre_supports",
+                                                         "stack_columns") if n in byname}
     gbb = gyb.BoundingBox()
     item("OBC-C3", "M-G370PDT0 in socket X1 (14.0 mm above the OBC top face) clear of the carrier, the Jetson module "
          "and the supports", dict(top_z=gbb.zmax, above_obc_mm=p["gyro_h"], carrier_bottom_z=p["z_car"],
@@ -884,11 +910,11 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
     wx0, wx1, wy0, wy1 = p["car_win"]
     hx, hy = p["mod_hole"]
     jy = p["jet_y"]
-    win_box = B(wx0, wx1, wy0, wy1, p["z_car"], p["z_car"] + p["pcb_t"])
+    win_box = B(wx0, wx1, wy0, wy1, p["z_car"], p["z_car"] + p["car_t"])
     so_edge = min(abs(wy0 - (jy + hy + p["mod_so_d"] / 2)), 99.0)
     ped_to_win = min_dist(B(-p["ped_w"] / 2, p["ped_w"] / 2, jy - p["ped_w"] / 2, jy + p["ped_w"] / 2, 27.0, 27.8), win_box)
-    head_top = p["z_car"] + p["pcb_t"] + 1.1
-    mod_under = p["z_car"] + p["pcb_t"] + 4.0 - 1.5
+    head_top = p["z_car"] + p["car_t"] + 1.1
+    mod_under = p["z_car"] + p["car_t"] + 4.0 - 1.5
     head_to_win = math.hypot(max(wx0 - 1.75, 0, -1.75 - wx1), (wy0 - (p["cs2_y"] + 1.75)))
     # magnetometer board A2 (OBC item C13): fit in the +Z slot and the 20 mm non-ferromagnetic zone
     a2 = fuse(byname["magnetometer"].stowed, byname["magnetometer_parts"].stowed)
@@ -908,18 +934,19 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
          dict(bottom_z=a2bb.zmin, slot_bottom_z=z_planes(p)["pz_in"] - 8.0, rf_parts_mm=near.get("RF_parts"),
               within_20mm=near), "inside the slot; >= 1.0 mm to every part but its mounting face", a2bb.zmin >= z_planes(p)["pz_in"] - 8.0
          and min(v for k, v in near.items() if k != "endplate_pz") >= 1.0, note="every part listed within 20 mm must be non-ferromagnetic (MECHANICAL_DESIGN 4.4)")
-    fs = byname["carrier_frame_screws"].stowed
-    fcl = {n: round(min_dist(fs, byname[n].stowed), 2) for n in ("module_standoffs", "centre_supports", "stack_columns",
-                                                                    "Jetson_module", "gyro_MG370")}
-    walls = []
-    wx0_, wx1_ = p["car_win"][0], p["car_win"][1]
-    for sx_, sy_ in p["frame_screws"]:
-        inner = (wx0_ - (sx_ + 0.8)) if sx_ < (wx0_ + wx1_) / 2 else ((sx_ - 0.8) - wx1_)
-        outer = p["frame_pad"][0] - p["car_frame_w"] + p["car_frame_w"] - abs(sx_ - (wx0_ if sx_ < (wx0_ + wx1_) / 2 else wx1_)) - 0.8
-        walls.append((round(inner, 2), round(outer, 2)))
-    item("JET-H10", "Window-frame screws H10-H13 (M2, tap drill 1.6 mm) in their pads, clear of MP2, the supports and the module",
-         dict(positions=p["frame_screws"], walls_inner_outer_mm=walls, clearances_mm=fcl), "walls >= 1.0 mm; >= 0.5 mm",
-         min(min(w) for w in walls) >= 1.0 and min(fcl.values()) >= 0.5)
+    if "carrier_frame_screws" in byname:
+        fs = byname["carrier_frame_screws"].stowed
+        fcl = {n: round(min_dist(fs, byname[n].stowed), 2) for n in ("module_standoffs", "centre_supports", "stack_columns",
+                                                                        "Jetson_module", "gyro_MG370")}
+        walls = []
+        wx0_, wx1_ = p["car_win"][0], p["car_win"][1]
+        for sx_, sy_ in p["frame_screws"]:
+            inner = (wx0_ - (sx_ + 0.8)) if sx_ < (wx0_ + wx1_) / 2 else ((sx_ - 0.8) - wx1_)
+            outer = p["frame_pad"][0] - p["car_frame_w"] + p["car_frame_w"] - abs(sx_ - (wx0_ if sx_ < (wx0_ + wx1_) / 2 else wx1_)) - 0.8
+            walls.append((round(inner, 2), round(outer, 2)))
+        item("JET-H10", "Window-frame screws H10-H13 (M2, tap drill 1.6 mm) in their pads, clear of MP2, the supports and the module",
+             dict(positions=p["frame_screws"], walls_inner_outer_mm=walls, clearances_mm=fcl), "walls >= 1.0 mm; >= 0.5 mm",
+             min(min(w) for w in walls) >= 1.0 and min(fcl.values()) >= 0.5)
     item("JET-M1", "Spreader pedestal, module standoffs and the (0, -21) fastener clear of the gyro window and the module",
          dict(standoff_to_window_mm=so_edge, pedestal_to_window_mm=ped_to_win, fastener_head_to_window_mm=head_to_win,
               fastener_head_top_z=head_top, module_underside_parts_z=mod_under, head_to_module_parts_mm=mod_under - head_top),

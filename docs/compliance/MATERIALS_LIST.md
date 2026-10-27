@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MAT-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Reference:** CDS Rev 14.1 §2.1.7; SpaceX Rideshare Payload User's Guide v11 (Aug 2026) §5.3, Table 5-5, §6.7.12, Table 6-7; NASA-STD-6016C with Change 1 (2023-11-15), tailored for Class D (`docs/project/MISSION_ASSURANCE_PLAN.md` §7); ASTM E595-15(2021)
 **Status:** CDR draft. **Not compliant yet:** one known non-compliant material, several values without a source, and the terminal finishes of the EEE parts not surveyed. Revision A's "48 of 48 compliant, 100 %" had no sources and is withdrawn
@@ -55,7 +55,15 @@ Not assessed here.
 | **Battery-mount isolator bushings** | **G-10CR** (MIL-I-24768/27, preferred) | **0.35 / 0.02** | NASA GSFC outgassing database, as quoted in BUILD_VS_BUY §4.3 | Compliant |
 | Alternative bushings | **PEEK 450G** (Victrex) | **0.26 / 0.00** | NASA GSFC outgassing database, as quoted in BUILD_VS_BUY §4.3 | Compliant |
 | Rejected bushing material | Vespel SP-1 | Fails TML | BUILD_VS_BUY §4.3 | Not used |
-| Hinge pins, springs | 300-series stainless | Metal | — | Compliant |
+| Wing hinge pins (SQSO-MECH-001 D §3A, §5A) | **A286** (AMS 5732, passivated, not cadmium-plated), non-ferromagnetic (magnetometer zone) | Metal | — | Compliant |
+| Hinge lubricant | Sputtered MoS₂ on the pin; burnished, binder-free MoS₂ in the bore | Inorganic dry film, no binder | — | Compliant (no organic content); VI-MECH-03 for friction and wear |
+| Hinge bushings and frame ears | Ti-6Al-4V bushings; Al 6061-T6 ears | Metal | — | Compliant |
+| Deployment springs | 17-7PH CH900 wire (SQSO-MECH-001 §3A) | Metal | — | Compliant (ferromagnetic: the W1 secondary spring is an accepted fixed bias for the magnetometer, SQSO-MECH-CAD-001 §4.4) |
+| End-of-travel stop and snubber | Damped silicone bumper; PTFE-faced silicone snubber | **Not yet sourced** | Vendor | **Open**: E595 data of the silicone grade (space-grade, e.g. a low-volatility RTV, certificate required) |
+| Magnetometer board A2 fasteners (SQSO-MECH-CAD-001 §4.4) | Ti-6Al-4V M2 screws, phosphor-bronze (C51000) nuts, polyimide washers | Metal; polyimide film | — | Compliant (metals); polyimide washer TML is water-dominated (use RML per UG v11) |
+| Stack column stud at (+40, +43) | Ti-6Al-4V M3 (non-ferromagnetic zone), Ti or phosphor-bronze nut | Metal | — | Compliant |
+| Trim masses (D-9) | Tungsten or phosphor bronze (not steel) | Metal | — | Compliant |
+| Gyro window in the Jetson carrier | **No bonded frame**: the window is in a 2.0 mm carrier board (SQSO-MECH-CAD-001 §4.3.3); no structural adhesive is used | — | — | Not applicable |
 | Wing restraint line | Dyneema or Vectran cord (panel vendor's choice) | Not yet sourced | Vendor | **Open**: vendor E595 data |
 
 ## 4. Printed Circuit Boards and Solder
@@ -157,3 +165,4 @@ finishes) of SQSO-SDP-002.
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | CDR S&MA review: requirements from CDS 2.1.7 and UG v11 §5.3 / Table 5-5 (containerized exemption and what it does not cover); prohibited materials applied to the design (cadmium-plated fasteners, zinc plating, mercury, pure-tin finishes, with mitigation); every value given a source or marked open; isolated-mount materials (G-10CR, PEEK 450G, Ti-6Al-4V screws, VDA tape) added; Loctite 242, nylon ties and SAC305 found non-compliant; Gap Pad 3000 and 2216 values corrected; cell can corrected to steel; "100 % compliant" withdrawn | CDR S&MA review |
+| C | 2026-10-27 | Hinge pins A286 with MoS₂ (was 300-series), springs 17-7PH, bushings, stop and snubber silicone (open), magnetometer-zone fasteners, Ti column stud, trim masses; gyro window without a bonded frame (no structural adhesive) | Mechanical design (SQSO-MECH-CAD-001) |

@@ -1,7 +1,7 @@
 # SMART-QSO Mechanisms Analysis
 
 **Document ID**: SQSO-MECH-001
-**Version**: C
+**Version**: D
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR issue. Analysis of the two solar-wing hinges and hold-downs and of the bought ISIS AntS antenna system;
@@ -151,7 +151,7 @@ from the rail edge). Free length on the axis: z −49.0 … −37.3 mm at −Z (
 
 | Element | Design | Location (z, mm) |
 |---------|--------|------------------|
-| Pin | 440C Ø1.5 mm, sputtered MoS₂, in Ti-6Al-4V bushings | Through the whole hinge line |
+| Pin | **A286** (AMS 5732, aged; Version D, was 440C) Ø1.5 mm, sputtered MoS₂ on the pin and a burnished, binder-free MoS₂ film in the bore, in Ti-6Al-4V bushings. A286 is non-ferromagnetic: the W1 hinge is within 20 mm of the magnetometer board A2 (SQSO-MECH-CAD-001 §4.4); W2 uses the same pins | Through the whole hinge line |
 | −Z frame ear | Al 6061 bracket, leaf bolted through the body-panel notch to the ±X shear panel; carries the pin and the primary spring's frame leg | −49.0 … −47.6 |
 | **Primary spring** | 17-7PH CH900, wire **0.470 mm** (0.0185 in), OD 4.0 mm, mean Ø3.53 mm (index 7.5), **15.0 coils**, 7.5 mm long; legs 5 mm long anchored in the frame ear and in the wing's −Z end zone | −47.6 … −40.1 |
 | −Z wing knuckle | Clock-spring flex cup (OD 4.0 mm, inner radius 1.6 mm; hub radius 1.0 mm on the pin) | −39.9 … −37.3 |
@@ -237,6 +237,17 @@ springs instead hold the wing on the stop with at least 3.35 mN·m (minimum, hot
 50°/s tumble: holding margin per DDMR 14 (FS_v 3.0, incidental friction excluded) **+17**; with one spring out
 (primary failed) the secondary alone holds 1.0 mN·m: margin +4.6. The rebound (13°) settles within two cycles of the
 damped stop.
+
+**Hinge pin strength (Version D, A286; `hinge.py`, `pin_strength`).** The damped stop's peak torque (0.158 N·m) at a
+4.0 mm contact radius (CAD: about 4.5 mm) gives 39 N at the stop; with 1.5 × for the wing's momentum change, 59 N on one
+pin end. Ø1.5 mm A286 (Ftu 1,103, Fty 758, Fsu 662 MPa) in shear and in bending over a 0.6 mm arm at the ear–knuckle
+interface: 33 MPa shear, 107 MPa bending, 122 MPa von Mises: **MS +3.3 yield, +4.6 ultimate** (5001B 1.25 / 1.40 with a
+1.15 fitting factor), +11 in shear. At launch the FE hinge load (2.3 N quasi-static plus 3.85 N 3σ, added) gives MS
+> +40. Bearing on the Ti-6Al-4V bushing over a 1.0 mm length: 39 MPa. The torque margins of §4A are unchanged: μ is the
+MoS₂ film's (0.15 cold, 0.12 hot), not the pin alloy's. What changes is the film's substrate: A286 (HRC 30–35) is softer
+than 440C (HRC 58), so the sputtered film wears faster, and unlubricated A286 on Ti-6Al-4V galls (μ about 0.4–0.5,
+above the 0.26 at which the end-of-travel margin reaches zero). Hence the film in the bore as well as on the pin, and
+VI-MECH-03.
 
 ## 6. Burn-Wire Release
 
@@ -335,6 +346,7 @@ stable only about the major axis of inertia. That is why the inertia ratio of MA
 | VI-STR-04 | Hinge torque test of each wing (EM, then flight): spring torque over the travel, pin friction and clock-spring flex torque at −40, +20 and +60 °C in vacuum, each spring removed in turn | TM ≥ 0 with the 5017B Table 1 qualification-test factors (EM) and acceptance factors (flight, DDMR 11); one-spring-out ≥ 0; flex torque ≤ 0.50 mN·m at −40 °C (zero margin at 0.64) | §4A, STR-13 | EM; flight acceptance |
 | VI-MECH-01 | Spring-lot test: torque–angle of 5 springs of each type at −40/+20/+60 °C; stress relaxation held at the stowed angle for 30 days at +60 °C; then 50 cycles | Rate and torque within ±10 %; relaxation ≤ 5 %; no set after cycling | §3A (A.2.5.1) | Before EM assembly |
 | VI-MECH-02 | Clock-spring flex: 50 deployment cycles at −40 °C with continuity and insulation monitored; torque logged | No open or short; torque ≤ 0.50 mN·m | §3A | EM |
+| VI-MECH-03 | A286 pin with MoS₂ in the Ti-6Al-4V bushing: friction torque at −40 / +20 / +60 °C in vacuum before and after 50 deployment cycles and after protoflight random; bore and pin inspected | μ ≤ 0.15 cold throughout (zero margin at 0.26); no galling or film breakthrough | §5A (pin), §4A | EM |
 | VI-STR-05 | Deployment test, gravity off-loaded, high-speed video and an accelerometer on the wing, at ambient and at −40 °C and +60 °C; EL images of the cells before and after; repeated after protoflight random (TP-ENV-005) | Deploys within 5 s; stop torque ≤ 0.3 N·m; no cell cracks; rebound settles within 2 s | §5, STR-14 | EM (qual), flight after vibration |
 | VI-STR-06 | Burn-wire characterisation: ≥ 30 coupons of the flight line, resistor and preload at −40 °C and +20 °C in vacuum; then the flight energy setting | Flight energy per attempt ≥ 1.5 × (mean + 3σ) of the release energy at the minimum predicted temperature − 10 °C | §6, STR-15 | EM |
 | VI-STR-07 | Hold-down line: proof test of each flight line at 1.2 × limit (5001B Table 6) and a 30-day creep test at the preload | No failure; preload loss ≤ 30 % | STRUCTURAL_ANALYSIS §7, STR-17 | EM; each flight line |
@@ -347,3 +359,4 @@ stable only about the major axis of inertia. That is why the inertia ratio of MA
 | A | 2026-10-27 | CDR structures review | Initial issue: wing torque margins (NASA-STD-5017B), spring sizing, deployment dynamics and end-of-travel shock, burn-wire energy, AntS interface and clocking, partial deployment, flexible modes, verification items |
 | B | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001, MCAD-01) | Version A springs and R ≥ 5 mm flex shown not to fit the CDS envelope at the hinge line; new hinge (§3A): primary spring on the axis below the wing, secondary at +Z, MoS₂ pins, clock-spring flex at R 1.0–1.6 mm, PTFE-faced snubber, damped soft stop, no latch; torque margins recomputed (§4A: +0.14 cold end of travel, one spring out +0.13, springs +0.12 / +0.04 on yield); dynamics, stop and hold (§5A); VI-STR-04 amended, VI-MECH-01 and -02 added (`hardware/mechanical/hinge.py`) |
 | C | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: spin 8°/s (BASELINE Rev E §8) in the hinge-load statements and the frequency table (spin 0.022 Hz, nutation ≈ 0.004 Hz, scaled with the spin); hold-down drivers and the burn pack current from the EPS board (one 0.8 A driver per resistor, 0.67 A at the pack; SQSO-EPS-BRD-001 §9) |
+| D | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001, magnetometer zone) | Hinge pins 440C → A286 (non-ferromagnetic, 20 mm zone round the magnetometer board A2) with sputtered MoS₂ on the pin and burnished binder-free MoS₂ in the bore; pin strength at the end-of-travel impact and at launch (§5A: MS +3.3 yield, +4.6 ultimate); torque margins unchanged; VI-MECH-03 (friction and galling with the A286 pin) |

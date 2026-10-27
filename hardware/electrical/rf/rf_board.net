@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 08:59 AM")
+    (date "10/27/2026 09:14 AM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -3598,12 +3598,12 @@
       (ref "J3")
       (value "2 m element +X")
       (description "")
-      (footprint "SMA edge launch 1.57 mm")
+      (footprint "MMCX vertical jack, through-hole (4 ground legs)")
       (fields
         (field
           (name "Description"))
         (field
-          (name "Footprint") "SMA edge launch 1.57 mm")
+          (name "Footprint") "MMCX vertical jack, through-hole (4 ground legs)")
         (field
           (name "Datasheet"))
         (field
@@ -3612,7 +3612,7 @@
           (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
-        (part "SMA jack end launch"))
+        (part "MMCX jack straight PCB"))
       (sheetpath
         (names "/")
         (tstamps "/"))
@@ -3622,12 +3622,12 @@
       (ref "J4")
       (value "2 m element -X")
       (description "")
-      (footprint "SMA edge launch 1.57 mm")
+      (footprint "MMCX vertical jack, through-hole (4 ground legs)")
       (fields
         (field
           (name "Description"))
         (field
-          (name "Footprint") "SMA edge launch 1.57 mm")
+          (name "Footprint") "MMCX vertical jack, through-hole (4 ground legs)")
         (field
           (name "Datasheet"))
         (field
@@ -3636,7 +3636,7 @@
           (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
-        (part "SMA jack end launch"))
+        (part "MMCX jack straight PCB"))
       (sheetpath
         (names "/")
         (tstamps "/"))
@@ -3646,12 +3646,12 @@
       (ref "J5")
       (value "70 cm element +Y")
       (description "")
-      (footprint "SMA edge launch 1.57 mm")
+      (footprint "MMCX vertical jack, through-hole (4 ground legs)")
       (fields
         (field
           (name "Description"))
         (field
-          (name "Footprint") "SMA edge launch 1.57 mm")
+          (name "Footprint") "MMCX vertical jack, through-hole (4 ground legs)")
         (field
           (name "Datasheet"))
         (field
@@ -3660,7 +3660,7 @@
           (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
-        (part "SMA jack end launch"))
+        (part "MMCX jack straight PCB"))
       (sheetpath
         (names "/")
         (tstamps "/"))
@@ -3670,12 +3670,12 @@
       (ref "J6")
       (value "70 cm element -Y")
       (description "")
-      (footprint "SMA edge launch 1.57 mm")
+      (footprint "MMCX vertical jack, through-hole (4 ground legs)")
       (fields
         (field
           (name "Description"))
         (field
-          (name "Footprint") "SMA edge launch 1.57 mm")
+          (name "Footprint") "MMCX vertical jack, through-hole (4 ground legs)")
         (field
           (name "Datasheet"))
         (field
@@ -3684,7 +3684,7 @@
           (name "SKiDL Line") "design.py:71"))
       (libsource
         (lib "NO_LIB")
-        (part "SMA jack end launch"))
+        (part "MMCX jack straight PCB"))
       (sheetpath
         (names "/")
         (tstamps "/"))

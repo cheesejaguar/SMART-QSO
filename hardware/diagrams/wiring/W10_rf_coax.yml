@@ -1,13 +1,19 @@
-# SQSO-HW-DIAG-001 W10: RF coaxial cables (SQSO-HAR-001 H7), version 2 (2026-10-27, RF board design SQSO-RF-BRD-001
-# §7). The ISIS AntS carries two 2 m tape monopoles (along +X and -X) and two 70 cm tape monopoles (along +Y and -Y)
-# (docs/BASELINE_PARAMETERS.md §4, §7). Each pair is fed in antiphase from a lumped lattice balun on the RF board, so the
-# pair works as a dipole: four antenna cables, matched in length within 2 mm in each pair (0.5 deg at 146 MHz, 1.5 deg
-# at 436 MHz). If ISIS supplies the phasing on the AntS (RFQ question), one cable per band and the board's balun is
-# depopulated (R103, R608 fitted). Layout B (MASS_BUDGET §6): RF board at +Z, AntS outside -Z, so the cables run
-# about 0.22 m along a frame corner, away from the 2 m element bases (EMC rule E7). The GNSS patch cable is unchanged
-# (D6, connector open until the receiver ICD).
+# SQSO-HW-DIAG-001 W10: RF coaxial cables (SQSO-HAR-001 H7), version 3 (2026-10-27, RF board design SQSO-RF-BRD-001
+# Version C §4.3). The ISIS AntS carries two 2 m tape monopoles (along +X and -X) and two 70 cm tape monopoles (along
+# +Y and -Y) (docs/BASELINE_PARAMETERS.md §4, §7). Each pair is fed in antiphase from a lumped lattice balun on the RF
+# board, so the pair works as a dipole: four antenna cables, matched in length within 2 mm in each pair (0.5 deg at
+# 146 MHz, 1.5 deg at 436 MHz). If ISIS supplies the phasing on the AntS (RFQ question), one cable per band and the
+# board's balun is depopulated (R103, R608 fitted).
+# Version 3: SMA end-launch (v2) does not fit the 3.3 mm wall gaps. Board side: Molex 73415-1473 MMCX straight jacks
+# on the RF board's top side at the -X edge; cables: 1.37 mm micro-coax with Molex 73414-0351 right-angle MMCX plugs at
+# both ends. AntS side: MMCX jacks assumed (ISIS antenna brochure lists MMCX female RF ports; the 1U/3U ICD was not
+# available: VI-RFB-13). Route (stack frame, mm): over the RF board's -X edge (bend R 7), down the -X wall gap
+# (x -45.4 ... -48.4) in the bands y +20.0 ... +24.0 (70 cm pair) and y -20.0 ... -24.0 (2 m pair), between the
+# spreader flanges (|y| <= 20) and the harness bundles (|y| >= 24), to z -39.2; bend R 7 inboard above the -Z end
+# frame (z -46.2) to the AntS ports. Needed 109-179 mm depending on the AntS port position; 0.22 m budgeted, cut to the
+# measured route with the pairs matched. The GNSS patch cable is unchanged (D6, connector open until the receiver ICD).
 metadata:
-  title: W10 RF coaxial cables v2 (SQSO-HW-DIAG-001; RF side per SQSO-RF-BRD-001)
+  title: W10 RF coaxial cables v3 (SQSO-HW-DIAG-001; RF side per SQSO-RF-BRD-001 C)
 
 options:
   fontname: Helvetica
@@ -16,35 +22,35 @@ options:
 
 connectors:
   J_VHF_A:
-    type: SMA jack, end launch, gold
-    notes: "RF board J3, 2 m balun output A (after the LPF and the sense line)"
+    type: MMCX jack, Molex 73415-1473 (non-magnetic, Au)
+    notes: "RF board J3 at (-34.5, -19.0), 2 m balun output A (after the LPF and the sense line)"
     pinlabels: [RF, GND]
   J_VHF_B:
-    type: SMA jack, end launch, gold
-    notes: "RF board J4, 2 m balun output B (antiphase)"
+    type: MMCX jack, Molex 73415-1473 (non-magnetic, Au)
+    notes: "RF board J4 at (-34.5, -25.0), 2 m balun output B (antiphase)"
     pinlabels: [RF, GND]
   ANT_VHF_PX:
-    type: AntS feed (per ISIS ICD)
+    type: AntS RF port, MMCX jack assumed (ISIS ICD, VI-RFB-13)
     notes: 2 m tape monopole along +X
     pinlabels: [ELEMENT, BODY]
   ANT_VHF_MX:
-    type: AntS feed (per ISIS ICD)
+    type: AntS RF port, MMCX jack assumed (ISIS ICD, VI-RFB-13)
     notes: 2 m tape monopole along -X
     pinlabels: [ELEMENT, BODY]
   J_UHF_A:
-    type: SMA jack, end launch, gold
-    notes: "RF board J5, 70 cm balun A (ahead of the RX filter FL1)"
+    type: MMCX jack, Molex 73415-1473 (non-magnetic, Au)
+    notes: "RF board J5 at (-34.5, +19.0), 70 cm balun A (ahead of the RX filter FL1)"
     pinlabels: [RF, GND]
   J_UHF_B:
-    type: SMA jack, end launch, gold
-    notes: "RF board J6, 70 cm balun B (antiphase)"
+    type: MMCX jack, Molex 73415-1473 (non-magnetic, Au)
+    notes: "RF board J6 at (-34.5, +25.0), 70 cm balun B (antiphase)"
     pinlabels: [RF, GND]
   ANT_UHF_PY:
-    type: AntS feed (per ISIS ICD)
+    type: AntS RF port, MMCX jack assumed (ISIS ICD, VI-RFB-13)
     notes: 70 cm tape monopole along +Y
     pinlabels: [ELEMENT, BODY]
   ANT_UHF_MY:
-    type: AntS feed (per ISIS ICD)
+    type: AntS RF port, MMCX jack assumed (ISIS ICD, VI-RFB-13)
     notes: 70 cm tape monopole along -Y
     pinlabels: [ELEMENT, BODY]
   J_GNSS_RF:
@@ -58,29 +64,29 @@ connectors:
 
 cables:
   C_VHF_A:
-    type: RG-316
+    type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
     length: 0.22
-    notes: "50 Ohm, 0.11 dB at 146 MHz; length matched to C_VHF_B within 2 mm; 1 W"
+    notes: "50 Ohm, silver-plated copper inner (no copper-clad steel, ANT-8), FEP/PFA jacket; 0.44 dB port to antenna at 146 MHz worst (cable, plugs, mismatch); 1 W; -X gap band y -20 ... -24; matched to C_VHF_B within 2 mm"
   C_VHF_B:
-    type: RG-316
+    type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
     length: 0.22
-    notes: "50 Ohm, matched to C_VHF_A"
+    notes: "50 Ohm, matched to C_VHF_A; same band"
   C_UHF_A:
-    type: RG-316
+    type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
     length: 0.22
-    notes: "50 Ohm, 0.25 dB at 436 MHz incl. connectors; matched to C_UHF_B within 2 mm"
+    notes: "50 Ohm, 0.62 dB port to antenna at 436 MHz worst (cable, plugs, mismatch); -X gap band y +20 ... +24; matched to C_UHF_B within 2 mm"
   C_UHF_B:
-    type: RG-316
+    type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
     length: 0.22
-    notes: "50 Ohm, matched to C_UHF_A"
+    notes: "50 Ohm, matched to C_UHF_A; same band"
   C_GNSS:
     type: 1.13 mm micro-coax (open)
     wirecount: 1

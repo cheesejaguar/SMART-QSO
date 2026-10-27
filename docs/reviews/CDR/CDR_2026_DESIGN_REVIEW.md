@@ -154,18 +154,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-287 RIDs: severity 1: 29, severity 2: 156, severity 3: 102.
+289 RIDs: severity 1: 29, severity 2: 157, severity 3: 103.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 99 | 157 |
+| Closed by design change | 99 | 158 |
 | Closed by chair decision | 36 | 35 |
-| Verification item | 40 | 39 |
+| Verification item | 41 | 40 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 74 | 18 |
+| Implementation | 75 | 18 |
 
-Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, GNC-07, GNC-08, RFB-09, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, MCAD-08, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, GNC-07, GNC-08, RFB-11, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, MCAD-08, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -533,7 +533,9 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RFB-05 | 3 | TCXO two-year ageing up to 2.1 ppm | CH | Closed by chair decision | Ground corrects the uplink from the measured downlink offset (same reference); no new command |
 | RFB-06 | 3 | Radio rail trip 0.25 A cannot see a 38 mA latch-up; LMX2571 margin at ±3 % rail | IMP | Closed by design change | Radio trip 0.12 A with current telemetry; 3V3_AO ±2 % (≥ 3.22 V at the RF connector) (SQSO-EPS-BRD-001) |
 | RFB-08 | 3 | Magnetometer A2 is 4 mm above the RF board: shield, lids, ferrites, crystals and the PA loop near it | CD | Closed by design change | No part within 20 mm of A2, no ferromagnetic part within 40 mm; nickel-silver shield, soldered lids; PA supply paired on layers 4/5 and routed 80-87 mm away (0.5 nT keyed step) (SQSO-RF-BRD-001 B §10.1); VI-RFB-11 |
-| RFB-09 | 2 | SMA end-launch connectors J3-J6 with mated plugs and cable bends do not fit the 3.3 mm gap to the side walls | IMP | Implementation | Connector and routing chosen with the CAD and the AntS interface before layout |
+| RFB-09 | 2 | SMA end-launch connectors J3-J6 with mated plugs and cable bends do not fit the 3.3 mm gap to the side walls | IMP | Closed by design change | MMCX jacks (Molex 73415-1473, brass/BeCu, gold) at the −X edge; 1.37 mm coax with silver-plated copper inner conductor down the −X wall gap at \|y\| 20-24 mm; port-to-antenna 0.44 dB (146 MHz) and 0.62 dB (436 MHz); uplink system noise 548-598 K inside 650 K (SQSO-RF-BRD-001 C §4.3, §16) |
+| RFB-10 | 3 | AntS RF port type and the connector mated heights not confirmed from the ISIS ICD and the Molex/Samtec drawings | VI | Verification item | VI-RFB-12 (drawings, plating, cable attenuation and inner conductor) by 2026-11-13, before layout; VI-RFB-13 against the ISIS ICD (only the AntS-end plug changes if it differs) |
+| RFB-11 | 2 | CAD models two AntS elements; the AntS and the RF board use four (2 m along ±X, 70 cm along ±Y): the deployed inertia ratio must be re-checked | IMP | Implementation | Mechanical CAD: four elements, mass properties with growth |
 
 #### EPS board (round 2) (EPSB)
 

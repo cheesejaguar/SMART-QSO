@@ -20,6 +20,12 @@
   "ant_iso_437_db": 15.0,
   "ant_iso_146_db": 25.0,
   "coax_uhf_db": 0.25,
+  "cab137_db_per_m_2g4": 2.6,
+  "cab_hot_factor": 1.2,
+  "cab_len_m": 0.22,
+  "mmcx_il_db_per_sqrtGHz": 0.1,
+  "mmcx_vswr": 1.12,
+  "cab_vswr": 1.1,
   "balun_uhf_db": 0.3,
   "lna_nf_db": 0.8,
   "lna_gain_db": 18.0,
@@ -96,30 +102,85 @@
    "att_144_146_dB": 136.2
   }
  },
+ "rf_ports": {
+  "route_mm": {
+   "plug_and_exit": 5.0,
+   "top_bend": 11.0,
+   "wall_gap_z_+32.4_to_-39.2": 71.6,
+   "bottom_bend": 11.0,
+   "AntS_plug": 5.0
+  },
+  "end_frame_to_AntS_port_mm": [
+   5.0,
+   75.0
+  ],
+  "length_needed_mm": [
+   109,
+   179
+  ],
+  "length_budgeted_m": 0.22,
+  "bend_radius_mm": 7.0,
+  "cable_od_mm": 1.37,
+  "band_fill": "two cables per band side by side: 2 x 1.37 = 2.74 mm of the 4.0 mm band (y 20.0 ... 24.0), 1.37 of the 3.3 mm gap depth",
+  "2m": {
+   "cable_dB_per_m_hot": 0.77,
+   "cable_dB": 0.17,
+   "connectors_dB": 0.08,
+   "return_loss_worst_dB": 13.6,
+   "return_loss_rss_dB": 19.6,
+   "mismatch_loss_worst_dB": 0.193,
+   "mismatch_loss_rss_dB": 0.048,
+   "port_to_antenna_worst_dB": 0.44
+  },
+  "70cm": {
+   "cable_dB_per_m_hot": 1.33,
+   "cable_dB": 0.29,
+   "connectors_dB": 0.13,
+   "return_loss_worst_dB": 13.6,
+   "return_loss_rss_dB": 19.6,
+   "mismatch_loss_worst_dB": 0.193,
+   "mismatch_loss_rss_dB": 0.048,
+   "port_to_antenna_worst_dB": 0.62
+  },
+  "lba_tx_loss_term_dB": 1.0,
+  "tx_margin_vs_lba_dB": 0.56,
+  "rx_coax_dB_used_in_section_1": 0.62,
+  "previous_W10_v2_value_dB": 0.25,
+  "tx_1W_port_dBm_nominal_low_high": [
+   29.84,
+   29.53,
+   30.14
+  ],
+  "tx_1W_at_antenna_dBm_nominal_low_high": [
+   29.4,
+   29.09,
+   29.7
+  ]
+ },
  "receiver": {
   "typ": {
    "Te_board_K": 185.1,
    "NF_board_dB": 2.14,
-   "Te_ant_K": 213.2,
-   "NF_ant_dB": 2.39,
-   "Tsys_290K_source_K": 503.2,
-   "sens_12dB_SINAD_dBm": -122.2,
-   "sens_TC_90pct_dBm": -116.6,
-   "Tsys_with_350K_allowance_K": 853.2,
-   "margin_vs_1000K_dB": 0.69,
-   "margin_vs_650K_req_dB": 1.11
+   "Te_ant_K": 258.0,
+   "NF_ant_dB": 2.76,
+   "Tsys_290K_source_K": 548.0,
+   "sens_12dB_SINAD_dBm": -121.8,
+   "sens_TC_90pct_dBm": -116.2,
+   "Tsys_with_350K_allowance_K": 898.0,
+   "margin_vs_1000K_dB": 0.47,
+   "margin_vs_650K_req_dB": 0.74
   },
   "worst": {
    "Te_board_K": 228.7,
    "NF_board_dB": 2.53,
-   "Te_ant_K": 259.5,
-   "NF_ant_dB": 2.78,
-   "Tsys_290K_source_K": 549.5,
-   "sens_12dB_SINAD_dBm": -121.8,
-   "sens_TC_90pct_dBm": -116.2,
-   "Tsys_with_350K_allowance_K": 899.5,
-   "margin_vs_1000K_dB": 0.46,
-   "margin_vs_650K_req_dB": 0.73
+   "Te_ant_K": 308.3,
+   "NF_ant_dB": 3.15,
+   "Tsys_290K_source_K": 598.3,
+   "sens_12dB_SINAD_dBm": -121.4,
+   "sens_TC_90pct_dBm": -115.8,
+   "Tsys_with_350K_allowance_K": 948.3,
+   "margin_vs_1000K_dB": 0.23,
+   "margin_vs_650K_req_dB": 0.36
   }
  },
  "lpf": {
