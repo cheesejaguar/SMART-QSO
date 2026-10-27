@@ -261,7 +261,7 @@ def inhibits():
     print(f"Margin {20 - tot_max:.1f} uA. Integration to separation (BASELINE section 4: 60 +/- 5 % SOC at L-47 d, >= 40 % at "
           f"separation): {q47:.1f} mAh in 47 days at the worst drain = {q47 / 3450:.2%} SOC, so >= {55 - q47 / 34.5:.1f} % SOC "
           "before the cells' own self-discharge (a cell property, outside this budget: 15 points of margin remain for it).")
-    # array path with the trackers disabled (TRK_EN low: DS2 pole 2 or DS3 stowed): the boost passes the string through
+    # array path with the trackers disabled (TRK_EN low: DS2 pole 2 stowed through Q40, or the RBF in through Q41): the boost passes the string through
     # its inductor and diode; no-load diode drop 0.15 V (PMEG40T30ER at uA), ideal diode FET ~0 V
     v_pass = STRING_VOC_MAX - 0.15
     en_rise_min = 1.16                                   # LMR43620 EN rising threshold minimum (data sheet)
