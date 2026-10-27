@@ -1,6 +1,9 @@
 # NASA Standards and Regulatory Compliance Matrix
 ## SMART-QSO 1U CubeSat (proposed Class D, NPR 8705.4B)
 
+> **Historical record (2026-10-14, Rev C 2026-10-25).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. Later work it does not show: the NPR 7150.2D Appendix C matrix (`docs/software/NPR7150_COMPLIANCE_MATRIX.md`, draft) and the framework assessment of `docs/project/CDR_CRITERIA_MATRIX.md` §1. Still good for: the applicability and current revision of each standard and regulation.
+
 **Document Number:** SQSO-AUD-003
 **Revision:** C
 **Date:** 2026-10-25

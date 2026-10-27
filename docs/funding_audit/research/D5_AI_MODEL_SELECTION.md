@@ -1,5 +1,8 @@
 # D5 research: onboard AI model selection by energy per beacon
 
+> **Historical record (2026-10-15).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. Still good for: the model survey and energy reasoning behind decision D5.
+
 > Research input to decision D5, prepared 2026-10-15 and imported unchanged into the repository. Where it mentions working files (raw downloads, extracted texts, scripts) or says no repository files were modified, it refers to the research session; those files were not kept. How the decision was taken and applied is recorded in `docs/BASELINE_PARAMETERS.md` section 9.
 
 

@@ -644,7 +644,7 @@ def illustration() -> tuple[str, str]:
     ax = ('<g class="axes"><text x="-322" y="172">Seen from the sun side (+Y) and below: +Z up, +X right</text></g>')
     legend = "".join(f"<li><span class=\"badge-n\" aria-hidden=\"true\">{n}</span> {esc(t)}</li>"
                      for n, _, _, t in callouts)
-    svg = (f'<svg class="sc-illus" viewBox="-330 -175 660 360" role="img" aria-labelledby="illus-t illus-d">'
+    svg = (f'<svg class="sc-illus" viewBox="-330 -135 660 318" role="img" aria-labelledby="illus-t illus-d">'
            f'<title id="illus-t">SMART-QSO with its wings and antennas deployed</title>'
            f'<desc id="illus-d">A 1U cube seen from the sun side and slightly below. Two solar wings stand out '
            f'to the left and right from hinges at the edges of the side faces; from the antenna unit on the bottom '

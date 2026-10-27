@@ -12,16 +12,16 @@ format), `rf_board_bom.csv` (BOM), `rf_board_erc.log` (electrical rule check), `
 `rf_calcs.json` (every calculated value in this document). Block drawing: `hardware/diagrams/schematics/S4_rf_board.py`
 (version 2); harnesses `hardware/diagrams/wiring/W4_rf_board.yml` (version 3) and `W10_rf_coax.yml` (version 3).
 
-**Governing documents**: [RF_DESIGN.md](../../../docs/hardware/RF_DESIGN.md) (SMART-QSO-RF-001 2.4),
-[TRANSMITTER_DESIGN.md](../../rf/TRANSMITTER_DESIGN.md) (SQSO-RF-TX-001 1.6),
-[RF_ELECTRICAL_DESIGN.md](../../rf/RF_ELECTRICAL_DESIGN.md) (SQSO-RF-003 1.3),
-[ANTENNA_DESIGN.md](../../rf/ANTENNA_DESIGN.md) (SQSO-RF-ANT-001 2.3),
+**Governing documents**: [RF_DESIGN.md](../../../docs/hardware/RF_DESIGN.md) (SMART-QSO-RF-001),
+[TRANSMITTER_DESIGN.md](../../rf/TRANSMITTER_DESIGN.md) (SQSO-RF-TX-001),
+[RF_ELECTRICAL_DESIGN.md](../../rf/RF_ELECTRICAL_DESIGN.md) (SQSO-RF-003),
+[ANTENNA_DESIGN.md](../../rf/ANTENNA_DESIGN.md) (SQSO-RF-ANT-001),
 [BUILD_VS_BUY.md](../../../docs/hardware/BUILD_VS_BUY.md) §3, [ICD_OBC_RF.md](../../../docs/interfaces/ICD_OBC_RF.md)
-(SQSO-ICD-003 2.3), [LINK_BUDGET_ANALYSIS.md](../../../docs/environment/LINK_BUDGET_ANALYSIS.md) (SQSO-LBA-001 3.5),
-[EPS_DESIGN.md](../../../docs/hardware/EPS_DESIGN.md) 2.5 and the EPS board [EPS_BOARD_DESIGN.md](../eps/EPS_BOARD_DESIGN.md) (SQSO-EPS-BRD-001),
+(SQSO-ICD-003), [LINK_BUDGET_ANALYSIS.md](../../../docs/environment/LINK_BUDGET_ANALYSIS.md) (SQSO-LBA-001),
+[EPS_DESIGN.md](../../../docs/hardware/EPS_DESIGN.md) and the EPS board [EPS_BOARD_DESIGN.md](../eps/EPS_BOARD_DESIGN.md) (SQSO-EPS-BRD-001),
 [INTERCONNECT.md](../INTERCONNECT.md) (SQSO-ICX-001), [HARNESS_DESIGN.md](../../harness/HARNESS_DESIGN.md) (SQSO-HAR-001 2.0), [EMC_ANALYSIS.md](../../../docs/environment/EMC_ANALYSIS.md),
-[THERMAL_ANALYSIS.md](../../../docs/environment/THERMAL_ANALYSIS.md) v2.5,
-[EEE_PARTS_LIST.md](../../../docs/manufacturing/EEE_PARTS_LIST.md) Rev G. Derating: NASA EEE-INST-002 Level 3 as
+[THERMAL_ANALYSIS.md](../../../docs/environment/THERMAL_ANALYSIS.md),
+[EEE_PARTS_LIST.md](../../../docs/manufacturing/EEE_PARTS_LIST.md) (Revisions of the cited documents: `docs/DOCUMENT_REGISTER.md`.) Derating: NASA EEE-INST-002 Level 3 as
 adapted in EEE_PARTS_LIST §12 (resistors 50 % power, MLCC 50 % voltage, transistors 50 % power and current,
 regulators 70 % current, IC junction ≤ 80 % of maximum; FET RF peak drain voltage ≤ 75 % of V(BR)DSS).
 
@@ -958,4 +958,4 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | E (amended) | 2026-10-27 | CDR thermal (THM-04) | Y451 to ABLS-3.6864MHZ-L4-T (−55 … +125 °C, ±30/±50 ppm) for the −40 °C first-orbit board cold case; was ABLS-3.6864MHZ-B4-T (−20 … +70 °C); harmonic plan rechecked at ±80 ppm (§12) |
 | F | 2026-10-27 | CDR parts temperature audit (SQSO-MFG-003) | Q601 cold-operation path (Mitsubishi statement before 2027-01-15, EM characterisation at −40 °C VI-RFB-14, TX_TEMP keying limit or CMX901 as fallbacks, §7.2); L106 20 nH → 0603HP-18NXGLU (FL1 0.73 dB worst, return loss ≥ 19.1 dB, 144–146 MHz ≥ 134 dB; T_sys 552–603 K, §6.1–§6.2); L605 → 0807SQ-10NGLC (10.2 nH, longer land pattern); BFP640F lifetime buy (60 pieces by 2027-03-31, §12); J1 plating code -L (TFM-108-01-L-D-RA); test temperature ranges −40 … +70 °C (VI-RFB-07, -09, -10, VI-RFB-15) |
 | F (amended) | 2026-10-27 | TNC firmware SRS (SQSO-SRS-TNC-001) | §7.7: LMX2571 verification uses the existing MUXout readback (SDO_LD_SEL), only while PTT is low because LMX_LD gates PA_EN; the data sheet does not state that writes are accepted with CE low, so the design writes after CE high and 100 µs, ending with R0 FCAL_EN = 1; the residual is a locked-frequency upset during a transmission, bounded to ≤ 5 s by keyed rewrites; the CC1200 is not isolated by TX-OFF (RADIO_3V3 stays): its PA pin has no RF path, and the firmware bounds (minimum PA, no STX, 1 s MARCSTATE check) keep any leakage below −60 dBm, estimated, VI-RFB-16; TNC-FW-LMX in §13 |
-| G | 2026-10-27 | Documentation audit (post-CDR 2026) | Governing documents to their current revisions (RF_DESIGN 2.4, TRANSMITTER_DESIGN 1.6, ICD-003 2.3, LBA 3.5, EPS_DESIGN 2.5 with the EPS board, THA 2.5, EEE_PARTS_LIST G); §2 uplink and transponder-DC rows to BASELINE Rev E (windows 435.222–435.778 / 436.222–436.500 MHz; 1.85 W allocation); §4.1 OBC pins as allocated in SQSO-ICX-001 §3.2 (were "to be allocated"); §4.2 SW2/SW3 limits of the EPS board and the gold Pico-Clasp terminal 501193-9000 (501334 is tin); §7.3 tumbling margin +27 % (PBA 2.5); §8.5 the PA is no longer in the EPS load shed (SMA-B05); §15 items 1, 2, 4, 5, 6, 8 marked done. No circuit change |
+| G | 2026-10-27 | Documentation audit (post-CDR 2026) | Governing documents cited by ID (revisions in the register; several were cited at superseded revisions), with the EPS board, the interconnect and the harness design added; §2 uplink and transponder-DC rows to BASELINE Rev E (windows 435.222–435.778 / 436.222–436.500 MHz; 1.85 W allocation); §4.1 OBC pins as allocated in SQSO-ICX-001 §3.2 (were "to be allocated"); §4.2 SW2/SW3 limits of the EPS board and the gold Pico-Clasp terminal 501193-9000 (501334 is tin); §7.3 tumbling margin +27 % (PBA 2.5); §8.5 the PA is no longer in the EPS load shed (SMA-B05); §15 items 1, 2, 4, 5, 6, 8 marked done. No circuit change |

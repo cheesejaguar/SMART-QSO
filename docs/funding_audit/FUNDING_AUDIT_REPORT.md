@@ -1,5 +1,8 @@
 # SMART-QSO Funding Audit Report
 
+> **Historical record (2026-10-14, Rev B 2026-10-15).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. Since then the launch plan moved to a 475 km target with a 485 km cap and about 2028-11 (BASELINE Rev E §3), decisions D8 and D9 were taken, and the CDR 2026 design review (an engineering assessment by AI reviewers, not an independent board) closed with no review action open. Still good for: the verdict and the staged funding recommendation as they stood on 2026-10-15, and the integrity findings behind them.
+
 **Document Number:** SQSO-AUD-001
 **Revision:** B
 **Date:** 2026-10-15

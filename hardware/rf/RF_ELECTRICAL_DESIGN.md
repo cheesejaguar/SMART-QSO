@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-003
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-10-27
 **Status:** Layout and fabrication guidelines for the RF board. Electrical requirements are in `docs/hardware/RF_DESIGN.md` v2.0 §2, which governs where this document differs (corrected in Version 1.1). Version 1.2: the schematic, parts and layout rules of record are `hardware/electrical/rf/RF_BOARD_DESIGN.md` (SQSO-RF-BRD-001), which supersedes §3–§10 of this document where they differ; the tables below are corrected to it.
 
@@ -31,7 +31,7 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| Frequency | One IARU-coordinated frequency in 435.000–437.300 MHz | RF-P002 |
+| Frequency | One IARU-coordinated frequency, requested in 435.222–435.778 MHz or else 436.222–436.500 MHz, inside the board's 435.050–436.500 MHz band (BASELINE §7) | RF-P002 |
 | Sensitivity | 12 dB SINAD at ≤ −122 dBm (C/N₀ 47.4 dB-Hz with T_sys 650 K) | RF-P006, RF-P011 |
 | Selectivity | ≥ 60 dB at ±25 kHz | RF-P010 |
 | RX filter | ≥ 60 dB at 144–146 MHz; ≥ 40 dB at 250–330 and 560–620 MHz; ≤ 1.5 dB in band | RF-P007 |
@@ -345,3 +345,4 @@ Total:      1.6 mm
 | 1.1 | 2026-10-27 | CDR review (communications panel): transmitter and receiver specifications to RF_DESIGN v2.0 (no 2 W level, 97.307(e) spurious, 3rd harmonic ≤ −70 dBc, ±1.0 ppm, receiver sensitivity, selectivity and RX filter); no T/R switch (full duplex on separate antennas); thermal at 1 W; interface lines per SQSO-ICD-003 v2.0 |
 | 1.2 | 2026-10-27 | CDR design completion, RF board | Tables corrected to the board design SQSO-RF-BRD-001: synthesizer, modulator, PA, filter, key components, board size (PC/104), 6-layer FR-4 stack-up, connectors, shield material (no tin-plated steel), dissipation |
 | 1.3 | 2026-10-27 | CDR design completion, RF board | §6.1 RF connectors to SQSO-RF-BRD-001 C §4.3: MMCX jacks (Molex 73415-1473) with positions, 1.37 mm cables with MMCX plugs (W10 v3), replacing SMA end launch |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026) | §2.2 uplink frequency to the BASELINE Rev E windows (was 435.000–437.300 MHz) |

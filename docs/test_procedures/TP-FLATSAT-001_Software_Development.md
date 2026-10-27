@@ -40,8 +40,8 @@ This procedure defines the software development and verification testing on the 
 | Equipment | Specification |
 |-----------|---------------|
 | Flatsat boards | EM boards when built (EPS, OBC with the STM32L4R5ZI, RF, magnetometer board A2, Jetson carrier); development boards until then (`docs/integration/FLATSAT_CONFIGURATION.md`) |
-| Power supply | 0-12V, 5A (battery simulation) |
-| Solar simulator | 0-6V, 3A programmable |
+| Power supply | 4S pack simulator, 11.2–16.4 V (14.4 V nominal, charged to 16.4 V; `docs/BASELINE_PARAMETERS.md` §5), 5 A |
+| Solar array simulator | Per string 3.5–6.3 V, up to 1.1 A, programmable (the trackers' range, V-EPS-1) |
 | Serial interface | USB-UART adapters (multiple) |
 | Logic analyzer | 8+ channels |
 | Development PC | Rust toolchain (`software/rust/rust-toolchain.toml`), probe-rs or ST-Link, serial terminal |
@@ -52,7 +52,7 @@ This procedure defines the software development and verification testing on the 
 
 - [ ] Flatsat assembled per FLATSAT_CONFIGURATION.md
 - [ ] All subsystem boards functional (standalone tests complete)
-- [ ] Flight software compiled for flatsat target
+- [ ] Flight software built for the STM32L4R5ZI (`cd software/rust/firmware && cargo build --release`; Embassy executor, no RTOS; `software/rust/README.md`)
 - [ ] Debug UART enabled in software configuration
 - [ ] Regression test suite ready
 
@@ -66,7 +66,7 @@ This procedure defines the software development and verification testing on the 
 |------|--------|----------|-----|
 | 1 | Power on flatsat | All boards powered | |
 | 2 | Connect debug UART to PC | Serial terminal ready | |
-| 3 | Load flight software to OBC | Flash successful | |
+| 3 | Load the firmware image to the OBC over SWD (TP-OBC-002) | Flash successful | |
 | 4 | Reset OBC | Boot banner appears | |
 | 5 | Verify boot sequence | All init messages OK | |
 | 6 | Verify nominal telemetry | Valid values | |

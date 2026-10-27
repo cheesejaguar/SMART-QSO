@@ -14,7 +14,7 @@ wires); the board build-to designs [EPS_BOARD_DESIGN.md](../electrical/eps/EPS_B
 [CARRIER_BOARD_DESIGN.md](../electrical/jetson/CARRIER_BOARD_DESIGN.md) (SQSO-JET-BRD-001 F); the CAD
 [MECHANICAL_DESIGN.md](../mechanical/MECHANICAL_DESIGN.md) (SQSO-MECH-CAD-001 C, §4.1 stack, §6.9 bundle routes,
 `hardware/mechanical/model.py`); `docs/environment/MASS_BUDGET.md` (MEL rows 26, 31, 32);
-`docs/compliance/MATERIALS_LIST.md`; `docs/manufacturing/EEE_PARTS_LIST.md` §2A.3 (finishes).
+`docs/compliance/MATERIALS_LIST.md`; `docs/manufacturing/EEE_PARTS_LIST.md` §2A.3 (finishes). Revisions of the cited documents: `docs/DOCUMENT_REGISTER.md`.
 
 ---
 
@@ -391,7 +391,7 @@ interconnect allocated) and W10E: 3.1 of 11.7 mm²; nothing moves to the (+X,+Y)
 
 Maximum currents are the switch limits or trips (fault cases, limited in microseconds and removed after 8 ms by the
 TPS2553 auto-retry) except W1 (2.0 A, four burn drivers on, with a 60/40 split between the paired wires) and W5A
-(1.4 A design current, 20 % split allowance). **W1 is fused at the pack** (BATTERY_DESIGN 2.10 §5.1, §7.2), every
+(1.4 A design current, 20 % split allowance). **W1 is fused at the pack** (BATTERY_DESIGN §5.1, §7.2), every
 fuse 5 A on the sense board: **F0A** (MIL-PRF-23419/12 FM12A72V5.0A, 72 VDC, 1000 A interrupt, the EPS's F2 part) and **F0B**
 (MIL-PRF-23419/8 FM08A125V5A, the diverse second fuse) in series in BAT_TOP within 10 mm of the cell-4 tab, and **F0N**
 (FM12A72V5.0A) in BAT_BOT at the cell-1 negative. A short in either pole's leads, at J1, or from a lead to the frame is cleared at the pack. Each fuse is at or
@@ -400,7 +400,7 @@ alike (each pole has two leads, 2.50 A derated each in the bundle). The **cell t
 current-limiting chain and a fuse FT0–FT4 (FM12A72V3/4A, 0.75 A) on the sense board: a tap short in W1 is limited to
 ≤ 82 mA by the chain, 9 % of the 0.90 A derated rating of a bundled 28 AWG tap wire, with the fuse below that rating
 too (0.75 A, 83 %); the wire list carries 82 mA as the tap wires' maximum (W1-09 … W1-13), so the script checks it.
-**Secondary over-voltage protection (BATTERY_DESIGN 2.10 §4.2, §7.2; EPS_BOARD_DESIGN F).** The BQ771806, its heater
+**Secondary over-voltage protection (BATTERY_DESIGN §4.2, §7.2; EPS_BOARD_DESIGN F).** The BQ771806, its heater
 driver Q16, the 8.2 V zener and F3 (ITV4030L1412NR, in BAT_TOP after F0B, before the W1 pads) are on the sense board.
 The protector reads the cells through its own taps at the cell tabs, and F3's heater current (15–27 W for < 1 min) closes
 on the sense board to the cell-1 negative. No protector or heater current passes through W1. W1 keeps its 14
@@ -408,7 +408,7 @@ conductors, gauges and pin-out (J1 Micro-Fit 2×4, J2 Pico-Clasp 6, unchanged in
 change is that F3 now sits in series ahead of the pack leads; F0A, F0B and F0N stay the protective devices for the leads.
 The unfused length is the few millimetres from the cell tabs to the fuses and resistors on the sense board; the
 construction controls stay (PTFE over-sleeve on the pack leads, routing away from edges, no metal clamps, hipot
-V-HAR-1). The interrupt rating against the cell short-circuit current is in BATTERY_DESIGN 2.10 §7.2.
+V-HAR-1). The interrupt rating against the cell short-circuit current is in BATTERY_DESIGN §7.2.
 
 ### 9.2 Voltage drop (design current, conductor at +60 °C, Pico-Clasp 20 mΩ, Micro-Fit 10 mΩ, Samtec 20 mΩ per contact)
 
@@ -636,4 +636,4 @@ sensor leads only). The table keeps each request as it was made.
 | 1.1 | 2026-10-27 | CDR structures review (STR-25), mechanical routing only: battery flying leads ≥ 100 mm with no stack connector (§4.1); routing zones F and G and the mechanical routing rules (hinge flex jumper, back-wired strings, deployment-sweep clearance, isolated battery, cable ties per UG v11 §5.2.3, envelope, vent paths) (§6.2, §6.3); hinge crossing (§8.1); mass note against the MEL (§9) |
 | 1.2 | 2026-10-27 | CDR 2026 consistency pass: note in §4 that SQSO-ICX-001 and the board designs (harnesses W1–W10) supersede the H1–H6 and H8 contents, W11 proposed (finding F15 of SQSO-HW-DIAG-001) |
 | 2.0 | 2026-10-27 | Rewritten as the build-to harness design (RID SE-19), with the chair's follow-ups of the same day (A3 30 × 8.8 mm per SQSO-OBC-BRD-001 C §15.1; W1 fused at the pack by F0A, F0B, F0N and FT0–FT4 per BATTERY_DESIGN 2.7; DS2 two-pole and W12B five wires per EPS_BOARD_DESIGN D §6.2; EPS_BOARD_DESIGN E, SMA-B13 and SQSO-ICX-001 E15: active-high tracker-clamp wires on W12B-04/05 and W12D-03/04, DS3's NO wire dropped, J12 a Pico-Clasp 8 with AntS side B on W7C-07/08, the DS2B fallback route; the parts temperature audit SQSO-MFG-003: gold terminals 501193-9000 and 43030-0003, W10E plug 73415-2261 and cable MINI-1.13, splice D-200-82 (D17660-000, nickel barrel, deviation HAR-DEV-1; D-436-36 rejected for its tin barrel) on the 24 AWG sensor leads only, solder termination tabs TB-RX/RY/RZ and TB-ANT for the 28 AWG W6C and W7C, total 85.6 g; M-11 placements settled (HS_MX widened, W2W2 in the (−X,+Y) bundle, SPL_PX and TB_ANT zones, TB-RY on the +X shear panel, TB-ANT on a G-10CR carrier; 61 zones CAD-clear); BATTERY_DESIGN 2.9 and EPS_BOARD_DESIGN F: BQ771806 and F3 on the sense board, W1 unchanged): the H1–H8 definitions and the superseded notice removed; wire list of W1–W12, W10 and W10E (210 conductors) in `hardware/harness/wire_list.csv`, routes in `hardware/harness/routes.csv`, calculations in `hardware/harness/harness_calcs.py`; gauges from the terminal ranges, AS22759/33 wire, EEE-INST-002 derating; band-B over-fill resolved by routing the EPS-only harnesses under the EPS (connectors on the EPS bottom side), W6D unshielded, pack leads 22 AWG; Samtec TFM/SFSDT replaces the PVC ribbons; access-port board A3 with one Micro-D 21; gold finishes; CAD check of 61 zones; mass 90.5 g; EMC; V-HAR-1 to V-HAR-13; changes for the other documents (§15); WireViz W1–W10 updated |
-| 2.1 | 2026-10-27 | Documentation audit (post-CDR 2026): governing documents to their current revisions; §3.1 board-side Pico-Clasp headers are the gold 203556 parts and the Samtec plating code -L (SQSO-MFG-003); §4 and §6 OBC J8 a 12-way part; §10.3 and §11 105 tie points and 10.5 g (`harness_results.json`; total unchanged at 85.6 g); §10.3 EPS Steinberg margins with the 2.0 mm EPS; BATTERY_DESIGN cited at 2.10; §15 status of the requests. No wire, route or gauge changed |
+| 2.1 | 2026-10-27 | Documentation audit (post-CDR 2026): governing documents to their current revisions; §3.1 board-side Pico-Clasp headers are the gold 203556 parts and the Samtec plating code -L (SQSO-MFG-003); §4 and §6 OBC J8 a 12-way part; §10.3 and §11 105 tie points and 10.5 g (`harness_results.json`; total unchanged at 85.6 g); §10.3 EPS Steinberg margins with the 2.0 mm EPS; BATTERY_DESIGN cited without its superseded revision numbers; §15 status of the requests. No wire, route or gauge changed |

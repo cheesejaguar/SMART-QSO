@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-015
-**Revision:** C
+**Revision:** C.1
 **Date:** 2026-10-27
 **Status:** Plan. Registrations are not started.
 **Supports:** 47 CFR 97.207(g)(1)(iv)(A)(5) (conjunction-warning certification) and (g)(1)(v) (trackability, identification, 18 SDS registration, ephemeris sharing)
@@ -46,8 +46,8 @@ The launch contract requires forward-predicted GNSS-based ephemerides with covar
 SpaceX Space Traffic Coordination:
 
 - the first within 24 h of first contact (best practice: within 3 h of deployment). For the baseline orbit the first
-  pass over the Bay Area stations above 5° comes 0.7–12.2 h after separation (median 5.2 h), so the first ephemeris is
-  due 24.7–36.2 h after separation; the 3 h best practice is not reachable from the Bay Area alone
+  pass over the Bay Area stations above 5° comes 0.7–12.1 h after separation (median 5.3 h), so the first ephemeris is
+  due 24.7–36.1 h after separation (median 29.3 h; SQSO-MTL-001 §5, §10); the 3 h best practice is not reachable from the Bay Area alone
   (`software/simulation/cdr/launch/leop_passes.py`, 576 separation cases);
 - then after every pass and at least every 24 h until the 18 SDS has cataloged the object;
 - best practice afterwards is three times a day.
@@ -78,7 +78,7 @@ segment lead; the 24 h procedure is SQSO-GND-002 §7.
 The UG says that failing to demonstrate the capability may mean mandatory rebooking (§9.5.7.2). Until the chain is
 demonstrated end to end on hardware before integration (verification item VI-LV-13 in
 `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`), plan on the third-party contingency, contracted before integration
-(RID LV-04).
+(RID LV-04 is closed by the software chain; VI-LV-13 remains).
 
 ## 4. Conjunction Response (97.207(g)(1)(iv)(A)(5))
 
@@ -122,3 +122,4 @@ Tiangong band (~380–390 km). Design and operational strategies to disclose:
 | A | 2026-10-14 | Initial plan (funding audit) |
 | B | 2026-10-15 | §3a operator ephemeris from the GNSS receiver (decision D6) |
 | C | 2026-10-27 | CDR launch review: registrations R5–R8 (ISS coordination, public operator contact, claim within 30 days, hard-body radius) from SpaceX UG v11 §3.3.4 and §9.5.7; first-ephemeris deadline from the pass analysis; status of the GNSS chain (not implemented) |
+| C.1 | 2026-10-27 | Documentation audit (post-CDR 2026): §3a first-pass and first-ephemeris statistics from SQSO-MTL-001 2.7 at 475 km (were 12.2 h, median 5.2 h); LV-04 closed, VI-LV-13 open |

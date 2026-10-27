@@ -1,5 +1,8 @@
 # Funding Audit (2026-10-14)
 
+> **Historical record (2026-10-14).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. Still good for: the audit as it stood, the findings register and the decision research D2–D7.
+
 Independent audit of the SMART-QSO program for prospective funders. Start with the report.
 
 | Document | Contents |

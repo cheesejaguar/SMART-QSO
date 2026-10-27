@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-AUTO-001
-**Revision:** B
-**Date:** 2026-10-24
+**Revision:** C
+**Date:** 2026-10-27
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -29,7 +29,19 @@ baseline. Where they disagree, `docs/BASELINE_PARAMETERS.md` governs. The autono
 | Downlink transmitter protection | `software/rust/sqso-fsw/src/downlink.rs` | A bad antenna match (VSWR above 3:1) lowers the power to 0.5 W, then stops the downlink for 10 minutes; an over-temperature transmitter is held until it cools (SRS-I027) |
 | Jetson power management (§5.1) | `software/rust/sqso-fsw/src/payload_guard.rs`, `software/rust/sqso-fsw/src/eps.rs` (payload enable rule) | The OBC's own measurements decide (SW-16) |
 | AI fallback and content filtering (§5.2, §5.3) | `software/rust/sqso-fsw/src/beacon.rs` (templates unless filtered Jetson text), `software/rust/sqso-protocol/src/filter.rs` | The Jetson runs the same filter through `sqso_protocol` |
+| Transponder scheduling | `software/rust/sqso-fsw/src/transponder.rs` (gates: sunlit, SOC ≥ 55 %, duty ≤ 25 %; the `XPDR_EN` heartbeat) | BASELINE §5; the OBC selector that would propose a schedule is designed, not implemented (`docs/payload/OBC_SELECTOR_DESIGN.md`) |
+| Jetson bursts | `software/rust/sqso-fsw/src/payload_schedule.rs` | Each power-on ≤ 10 min including boot, then ≥ 100 min off (BASELINE §6) |
+| Commissioning hold, end-of-life passivation | `software/rust/sqso-fsw/src/ops_state.rs`, `software/rust/sqso-fsw/src/passivation.rs` | ACTIVE, payload and transponder only after `COMMISSIONING_RELEASE`; passivation by `PASSIVATE_ARM` and `PASSIVATE_EXECUTE` |
 | Activity scheduling (§6) | `software/rust/sqso-fsw/src/scheduler.rs` exists, but the executive does not use it. The main loop runs its stages in a fixed order (`software/flight/docs/RTOS_ARCHITECTURE.md` §4.2) | — |
+
+Sections 3 to 10 are the Revision A design. Besides the C sketches, these do not match the software or the baseline:
+the mode thresholds of §3.1 (baseline: ACTIVE at SOC ≥ 55 %, IDLE below 40 %, SAFE below 25 %, EMERGENCY below
+15 %; BASELINE §5); sun-pointing of +Z in §3.2 (baseline: spin-stabilized +Y at 8 °/s; BASELINE §8); "T+30min" in §4.1
+(deployables ≥ 30 min, no RF before 45 min; BASELINE §4); the commands of §7.1 and §9.2 (`DISABLE_AUTONOMY`,
+`FORCE_MODE`, `SET_SAFE_SOC`, `SET_AI_DUTY` and the others do not exist: the dictionary is
+`software/flight/command_dictionary.json`; `SET_BEACON` takes 10 to 120 s); the 50 % TX duty limit of §9.1 (transponder
+duty ≤ 25 %, BASELINE §5); and the 20 % AI duty of §9.2 (Jetson ≤ 5 % tumbling, ≤ 10 % sun-pointed). There is no
+ground-pass prediction and no time-tagged command store.
 
 ## 2. Autonomy Philosophy
 
@@ -433,3 +445,4 @@ void log_autonomous_decision(
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-24 | §1.1: where each autonomous function is implemented in the Rust flight software; the C sketches are marked as the Revision A design | SMART-QSO Team |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): §1.1 transponder, Jetson burst, commissioning and passivation rows; the Revision A values of §3 to §10 that disagree with the baseline and the command dictionary listed | SMART-QSO Team |

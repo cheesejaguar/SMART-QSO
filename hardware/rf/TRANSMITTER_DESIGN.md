@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-TX-001
-**Version:** 1.6
+**Version:** 1.7
 **Date:** 2026-10-27
 **Status:** CDR Baseline
 
@@ -10,7 +10,7 @@
 
 ## 1. Overview
 
-This document defines the 2 m transmitter of the SMART-QSO 1U CubeSat. It carries the AX.25 beacon (through the KISS TNC) and the FM transponder downlink (through the repeat path), time-shared (`docs/hardware/RF_DESIGN.md` v2.0 §3). Values follow BASELINE §7; the link budget is SQSO-LBA-001 v3.0. Version 1.3 (CDR) removes the 2 W level, sets the deviation, stability and harmonic requirements, and records the filter analysis. Version 1.4 records the selected design: the build-to schematic, parts and calculations are in `hardware/electrical/rf/RF_BOARD_DESIGN.md` (SQSO-RF-BRD-001), which governs where the two differ.
+This document defines the 2 m transmitter of the SMART-QSO 1U CubeSat. It carries the AX.25 beacon (through the KISS TNC) and the FM transponder downlink (through the repeat path), time-shared (`docs/hardware/RF_DESIGN.md` v2.5 §3). Values follow BASELINE §7; the link budget is SQSO-LBA-001 v3.0. Version 1.3 (CDR) removes the 2 W level, sets the deviation, stability and harmonic requirements, and records the filter analysis. Version 1.4 records the selected design: the build-to schematic, parts and calculations are in `hardware/electrical/rf/RF_BOARD_DESIGN.md` (SQSO-RF-BRD-001), which governs where the two differ.
 
 ### 1.1 Design Requirements
 
@@ -135,7 +135,7 @@ synthesizer at least as quiet as its assumption; the LMX2571 is 17 dB quieter at
 | Output Power | 0.5 W nominal (27 dBm) |
 | Power Range | 0.5 W / 1 W selectable; no 2 W level (BASELINE §7) |
 | Gain | 15-20 dB |
-| Efficiency | Requirement ≥ 33 % overall at 0.5 W RF including the exciter (≤ 1.5 W DC, BASELINE §5). **Design: 28.4 % (1.76 W DC)**, 41 % at the 1 W setting (2.34 W); finding for the chair (SQSO-RF-BRD-001 §7.3) |
+| Efficiency | Allocation ≤ 1.85 W DC at 0.5 W RF including the exciter (BASELINE §5; was ≤ 1.5 W, ≥ 33 %). **Design: 27 % (1.84 W DC, Version E of the board: LMX2571 on its own LDO)**, about 40 % at the 1 W setting (2.42 W) (SQSO-RF-BRD-001 §1, §7.3) |
 | Supply | Through the RF_TX_EN load switch (SQSO-ICD-003 §4.4) |
 | Current | Set by the selected PA |
 
@@ -143,8 +143,8 @@ synthesizer at least as quiet as its assumption; the LMX2571 is 17 dB quieter at
 
 | Setting | Power | Current |
 |---------|-------|---------|
-| Low (TX_PWR_SEL low) | 0.5 W (27 dBm) | 1.76 W DC (0.35 A at 5 V) |
-| High (TX_PWR_SEL high) | 1.0 W (30 dBm); 29.5–30.1 dBm over the 5 V ± 3 % rail | 2.34 W DC (0.47 A) |
+| Low (TX_PWR_SEL low) | 0.5 W (27 dBm) | 1.84 W DC (0.37 A at 5 V) |
+| High (TX_PWR_SEL high) | 1.0 W (30 dBm); 29.5–30.1 dBm over the 5 V ± 3 % rail | 2.42 W DC (0.48 A) |
 
 Power is held by a closed loop: an integrator compares TX_FWD with 2.500 V (1 W) or 1.767 V (0.5 W) from a ±0.05 %
 reference and drives the common gate bias; it ramps the PA in ≈ 1 ms.
@@ -253,8 +253,10 @@ Monte Carlo model: L ±2 %, C ±2 % or ±0.1 pF, inductor Q 80–150 at 146 MHz,
 As built (2026-10-25, CR-2026-005): the OBC software is `software/flight/include/downlink.h`. It hands a frame to the
 TNC only while transmission is permitted, one frame at a time, at most 5 s on the air and 25 % of the time; selects
 TX_PWR; and acts on the monitors as §8.2 and §6.3 ask: VSWR above 3:1 reduces the power to 0.5 W, then stops the
-downlink for 10 minutes; above 70 °C it holds the downlink until 60 °C. The values are TBR-SRS-003 until the
-transmitter and TNC are selected.
+downlink for 10 minutes; above 70 °C it holds the downlink until 60 °C. The transmitter and the TNC are now selected
+in the RF board design SQSO-RF-BRD-001 F (LMX2571 and PCM1808 exciter, RD01MUS3 PA, STM32L431 TNC with its own
+firmware item, §3.1); the values stay under the existing review item TBR-SRS-003 of `docs/TBD_REGISTER.md` until
+they are confirmed on the RF board EM (VI-RFB-01, VI-RFB-04).
 
 XPDR_EN (2026-10-26, from the mission simulation, `docs/test/SIL_MISSION_SIMULATION.md`): the interface had no
 way for the OBC to gate the transponder, so the power closure's transponder line (BASELINE §5: sunlit, SOC ≥ 55 %,
@@ -386,3 +388,4 @@ transmitters below 30 MHz and does not apply.)
 | 1.4 | 2026-10-27 | CDR design completion, RF board | Selected design (SQSO-RF-BRD-001): LMX2571 + PCM1808 exciter, RD01MUS3 PA with APC, 40 MHz reference, elliptic LPF with harmonic traps (replaces the §7.3 ladder), sense-line detectors; §10.1 XPDR_EN as implemented (100 Hz square wave on PE4 from TIM7 with a 60 ms lease; board monostable ≈ 50 ms with pull-down; a held level is disabled); DC power 1.76 W at 0.5 W RF recorded against the 1.5 W allocation |
 | 1.5 | 2026-10-27 | CDR design completion, RF board | §13 antenna interface to SQSO-RF-BRD-001 C §4.3 and W10 v3: MMCX jacks (Molex 73415-1473) and 1.37 mm cables with MMCX plugs replace SMA and RG-316 (the 3.3 mm wall gaps); loss port to antenna 0.44 dB worst |
 | 1.6 | 2026-10-27 | CDR parts temperature audit (SQSO-MFG-003) | Frequency-stability rows to RF-P005 as amended (RFB-05) and the −40 … +70 °C verification range |
+| 1.7 | 2026-10-27 | Documentation audit (post-CDR 2026) | §10.1: transmitter and TNC selected in SQSO-RF-BRD-001 F (was "until … selected"); RF_DESIGN cited at 2.5; §6.1–§6.2 DC power to SQSO-RF-BRD-001 Version E (1.84 W at 0.5 W RF, 2.42 W at 1 W; were 1.76 / 2.34 W) and the 1.85 W allocation of BASELINE §5 |
