@@ -9,7 +9,16 @@ high-energy 18650. Harness and fuse: 30 mOhm. The steps are the largest the load
 * Jetson power-on to 8 W on the 5 V rail (buck 90 %): 0.62 A at 14.4 V
 * Jetson latch-up to the guard's 12 W trip: 0.93 A
 * PA keyed at 1 W RF (2.7 W DC, buck 90 %): 0.21 A
-* Burn wires, two resistors limited to 0.8 A each: 1.6 A, plus 0.1 A housekeeping
+* Wing deployment burn, one resistor at a time (SQSO-EPS-BRD-001 §9; four independent burn
+  lines PB10, PE6, PB9, PE7; 0.8 A driver fed from the 7.0 V burn buck, 8 s nominal, 12 s
+  hardware on-time limit). Pack current: 0.67 A nominal (burn 0.51 A with housekeeping and
+  heater), 0.75 A worst case (magnetorquers at 1.16 W as well), 1.0 A the chair's limit
+  (it also covers 0.90 A with the coil bridges at their hardware limit). The RC pair is
+  counted fully for the burn, which is conservative for an 8-12 s step.
+* Bound: all four burn drivers on (a software fault), held to 2.0 A at the pack by the
+  burn buck's current limit.
+
+The two-resistor 1.7 A burn of earlier revisions is no longer a design case.
 
 It prints the bus voltage at the end of each step against the BMS under-voltage cut
 (2.8 V/cell, 11.2 V), the flight software's low-battery level (12.0 V) and the
@@ -50,7 +59,11 @@ def pack_r(temp_c, soc, long_step):
 
 def main():
     steps = [("Jetson on, 8 W", 0.62, True), ("Jetson latch-up, 12 W", 0.93, False),
-             ("PA keyed, 1 W RF", 0.21, False), ("Burn wires, 1.6 A + 0.1 A", 1.7, True)]
+             ("PA keyed, 1 W RF", 0.21, False),
+             ("Burn, one resistor, 0.67 A (nominal)", 0.67, True),
+             ("Burn, one resistor, 0.75 A (worst case)", 0.75, True),
+             ("Burn at the 1.0 A limit", 1.0, True),
+             ("Four drivers (fault), 2.0 A (buck limit)", 2.0, True)]
     print("| Pack | SOC | OCV (V) | R pack (Ω, short / long) | " + " | ".join(s[0] for s in steps) + " |")
     print("|---|---|---|---|" + "---|" * len(steps))
     for temp in (25.0, 0.0, -10.0, -20.0):
@@ -67,6 +80,24 @@ def main():
     dv_cold = 0.21 * pack_r(0.0, 0.25, False)
     print(f"\nPA keying step on the bus: {dv * 1000:.0f} mV at 25 °C and 90 % SOC, {dv_cold * 1000:.0f} mV at 0 °C and 25 % "
           "(the 200 mV ripple criterion is for ripple; the step is below it in every case listed)")
+    # Lowest SOC at which a burn keeps the bus above each level, by pack temperature
+    print("\nLowest state of charge (%) at which the burn keeps the bus at or above 12.0 V / 11.2 V:")
+    print("| Pack | 0.67 A | 0.75 A | 1.0 A | 2.0 A (fault) |")
+    print("|---|---|---|---|---|")
+    for temp in (25.0, 0.0, -10.0, -16.0, -20.0):
+        cells = []
+        for amps in (0.67, 0.75, 1.0, 2.0):
+            out = []
+            for level in (12.0, 11.2):
+                soc_min = None
+                for k in range(0, 101):
+                    soc = k / 100.0
+                    if CELLS * interp(soc, SOC_TAB, OCV_TAB) - amps * pack_r(temp, soc, True) >= level:
+                        soc_min = k
+                        break
+                out.append("—" if soc_min is None else f"{soc_min}")
+            cells.append(" / ".join(out))
+        print(f"| {temp:+.0f} °C | " + " | ".join(cells) + " |")
 
 
 if __name__ == "__main__":

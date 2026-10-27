@@ -1,13 +1,13 @@
 LQFP144 pin,port pin,net,function,dir,level,default at reset,connector / board
 34,PA0,TX_TEMP,ADC1_IN5,A,0.3-1.7 V,analog (high-Z),"J2-11 RF board (10 k series, 10 nF)"
 35,PA1,VSW1_RB,ADC1_IN6,A,0-2.8 V (VBAT_SW1 / 6),analog (high-Z),J1-37 EPS (new; was DEPLOY_EN)
-36,PA2,JETSON_PWR,GPIO out,O,"3.3 V, high = eFuse U19 on",analog (high-Z); EPS 100 k pull-down,J1-29 EPS
+36,PA2,PT_NTC,ADC1_IN7,A,"VDDA x R/(10.0 k + R): 2.93 V at -15 C, 0.49 V at 70 C",analog (high-Z),"J3-5 Jetson spreader NTC (new, E10; was JETSON_PWR)"
 37,PA3,RF_TX_EN,GPIO out,O,"3.3 V, high = PA rail (TX-OFF low)",analog (high-Z); EPS 100 k pull-down,J1-14 EPS
 40,PA4,MTQ_X_I,ADC1_IN9,A,10 mV/mA (IPROPI),analog (high-Z),U22 X bridge (was FRAM CS#)
 41,PA5,MTQ_Y_I,ADC1_IN10,A,10 mV/mA,analog (high-Z),U23 Y bridge (was SPI1 SCK)
 42,PA6,MTQ_Z_I,ADC1_IN11,A,10 mV/mA,analog (high-Z),U24 Z bridge (was SPI1 MISO)
 43,PA7,VJET_RB,ADC1_IN12,A,0-2.8 V (VBAT_JET / 6),analog (high-Z),J1-19 EPS (new; was SPI1 MOSI)
-100,PA8,-,spare,-,,analog (high-Z),TP
+100,PA8,JETSON_PWR,GPIO out,O,"3.3 V, high = eFuse U19 on",analog (high-Z); EPS 100 k pull-down,J1-29 EPS (moved from PA2)
 101,PA9,USART1_TX,USART1_TX AF7,O,3.3 V UART 115200,analog (high-Z),U28 -> J3-2 Jetson
 102,PA10,USART1_RX,USART1_RX AF7,I,3.3 V UART,analog (high-Z); 100 k pull-up,U29 <- J3-3 Jetson
 103,PA11,-,spare (USB DM unused),-,,analog (high-Z),
@@ -58,9 +58,9 @@ LQFP144 pin,port pin,net,function,dir,level,default at reset,connector / board
 77,PD8,USART3_TX,USART3_TX AF7,O,3.3 V UART 115200,analog (high-Z),J9-7 access port
 78,PD9,USART3_RX,USART3_RX AF7,I,3.3 V UART,analog (high-Z); 100 k pull-up,J9-8 access port (10 k series)
 79,PD10,GYRO_DRDY,"GPIO in, EXTI10",I,3.3 V,analog (high-Z); 100 k pull-down,U10 <- M-G370 DRDY
-80,PD11,MAG_DRDY,"GPIO in, EXTI11",I,3.3 V,analog (high-Z); 100 k pull-down,U14b <- RM3100 DRDY
-81,PD12,I2C4_SCL,I2C4_SCL AF4,B,"open drain, 2.2 k",analog (high-Z),"U14 -> RM3100, ADS7138"
-82,PD13,I2C4_SDA,I2C4_SDA AF4,B,"open drain, 2.2 k",analog (high-Z),"U14 -> RM3100, ADS7138"
+80,PD11,MAG_DRDY,"GPIO in, EXTI11",I,3.3 V,analog (high-Z); 100 k pull-down,U33 <- J10-5 magnetometer board (RM3100 DRDY)
+81,PD12,I2C4_SCL,I2C4_SCL AF4,B,"open drain, 2.2 k",analog (high-Z),U14 -> ADS7138; J10 -> RM3100 board
+82,PD13,I2C4_SDA,I2C4_SDA AF4,B,"open drain, 2.2 k",analog (high-Z),U14 -> ADS7138; J10 -> RM3100 board
 85,PD14,GYRO_RST_N,GPIO out,O,"3.3 V, low = reset (>= 100 ms)",analog (high-Z); 100 k pull-down,U10 -> M-G370 /RST
 86,PD15,IMU2_DRDY,"GPIO in, EXTI15",I,3.3 V,analog (high-Z); 100 k pull-down,U13 <- BMI088 INT3
 141,PE0,FRAM_WP_N,GPIO out,O,"3.3 V, high = writes allowed",analog (high-Z); 10 k pull-up,U3

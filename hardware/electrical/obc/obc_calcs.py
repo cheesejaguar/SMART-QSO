@@ -128,6 +128,68 @@ put("css_lsb", 3.3 / 4096 / RF_TIA, "A", "ADS7138 12-bit LSB in photocurrent")
 put("css_angle_res", math.degrees(math.acos(1 - 3.3 / 4096 / (ISC_MAX * RF_TIA))), "deg", "angle step at normal incidence from 1 LSB (cosine)")
 put("css_p_rf", ISC_MAX ** 2 * RF_TIA, "W", "feedback resistor power at 4 mA (0.1 W part)", stress="10 mW / 100 mW = 10 %")
 
+# ------------------------------------------------------------------------------------------------ 5b Jetson spreader NTC (E10)
+B_NTC, R25 = 3976.0, 10.0e3      # TE GA10K3MCD1, curve 3 (beta 25/85 = 3976 K, ASSUMED from the TE curve family), 10 k at 25 C
+RB = 10.0e3                      # bias from VDDA, 0.1 %
+
+
+def r_ntc(tc):
+    return R25 * math.exp(B_NTC * (1 / (tc + 273.15) - 1 / 298.15))
+
+
+def v_ntc(tc, vref=3.3):
+    r = r_ntc(tc)
+    return vref * r / (RB + r)
+
+
+for tc, tag in ((-15, "m15"), (25, "25"), (70, "70"), (-40, "m40"), (95, "95")):
+    put(f"ntc_r_{tag}", r_ntc(tc), "ohm", f"RT1 at {tc} C")
+    put(f"ntc_v_{tag}", v_ntc(tc), "V", f"PA2 at {tc} C (VDDA 3.3 V; the reading is ratiometric)")
+for tc, tag in ((-15, "m15"), (70, "70")):
+    dv = (v_ntc(tc + 0.5) - v_ntc(tc - 0.5))
+    put(f"ntc_slope_{tag}", dv, "V/K", f"sensitivity at {tc} C")
+    put(f"ntc_lsb_{tag}", 3.3 / 4096 / abs(dv), "K/LSB", f"12-bit resolution at {tc} C")
+    # 0.1 % bias + 1 % NTC resistance (about +/-0.2 C class interchangeability over 0-70 C) + ADC +/-4 LSB
+    r = r_ntc(tc)
+    dr = abs(B_NTC * r / (tc + 273.15) ** 2)
+    err = math.sqrt((0.001 * r / dr) ** 2 + (0.01 * r / dr) ** 2 + (4 * 3.3 / 4096 / abs(dv)) ** 2)
+    put(f"ntc_err_{tag}", err, "K", f"error RSS at {tc} C (bias 0.1 %, NTC 1 %, ADC 4 LSB)")
+put("ntc_p_bias_max", 1e3 * max((3.3 ** 2 * RB / (RB + r_ntc(t)) ** 2) for t in (-40, 25, 70, 95)), "mW",
+    "bias resistor power, worst (at 95 C)")
+put("ntc_self_heat", 1e3 * (v_ntc(70) ** 2 / r_ntc(70)), "mW", "NTC dissipation at 70 C (bonded: < 0.1 K rise at about 3 mW/K)")
+
+# ------------------------------------------------------------------------------------------------ 5c rod remanence at the magnetometer
+MU0_4PI = 1e-7
+ROD_L = 0.047
+RODS = {"X": ((0.0, 0.036, -0.010), (1, 0, 0)), "Y": ((0.042, 0.0, -0.033), (0, 1, 0)),
+        "Z": ((-0.0415, 0.0, -0.0205), (0, 0, 1))}      # MECHANICAL_DESIGN 4.1 (centres; Z rod -44 ... +3)
+
+
+def rod_field(p, m=1e-3):
+    """|B| in nT from each rod for a remanent dipole m (A.m2), rod as two magnetic charges at its ends."""
+    out = {}
+    for k, (c, a) in RODS.items():
+        q = m / ROD_L
+        b = [0.0, 0.0, 0.0]
+        for sgn in (1, -1):
+            e = [c[i] + sgn * a[i] * ROD_L / 2 for i in range(3)]
+            r = [p[i] - e[i] for i in range(3)]
+            d = math.sqrt(sum(x * x for x in r))
+            for i in range(3):
+                b[i] += sgn * MU0_4PI * q * r[i] / d ** 3
+        out[k] = math.sqrt(sum(x * x for x in b)) * 1e9
+    return out
+
+
+MAG_POS = {"obc_corner": (0.033, -0.038, 0.007), "obc_best": (0.002, -0.042, 0.007),
+           "plusz_cad": (0.024, 0.027, 0.044), "plusz_mirror": (0.024, -0.027, 0.044)}
+for tag, pos in MAG_POS.items():
+    f = rod_field(pos)
+    put(f"mag_rod_{tag}", {k: round(v, 0) for k, v in f.items()}, "nT per mA.m2", f"rod field at {pos} m per 1 mA.m2 of remanence")
+    put(f"mag_rod_{tag}_sum", sum(f.values()), "nT per mA.m2", "sum of the three rods (worst alignment)")
+    put(f"mag_mr_allow_{tag}", 300.0 / (2 * sum(f.values())), "mA.m2",
+        "per-rod remanence whose polarity reversal (2 m_r) changes the field by the Monte Carlo's 300 nT bias")
+
 # ------------------------------------------------------------------------------------------------ 6 readback dividers
 for v in (VBAT_MIN, VBAT_NOM, VBAT_MAX, VBAT_ABS):
     put(f"rb_{v}", v * 200e3 / 1.2e6, "V", f"VSW1_RB / VJET_RB at {v} V (1 M / 200 k, EPS side)")

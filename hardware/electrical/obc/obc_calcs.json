@@ -329,6 +329,172 @@
   "note": "feedback resistor power at 4 mA (0.1 W part)",
   "stress": "10 mW / 100 mW = 10 %"
  },
+ "ntc_r_m15": {
+  "value": 78957.82664220121,
+  "unit": "ohm",
+  "note": "RT1 at -15 C"
+ },
+ "ntc_v_m15": {
+  "value": 2.9290376997098875,
+  "unit": "V",
+  "note": "PA2 at -15 C (VDDA 3.3 V; the reading is ratiometric)"
+ },
+ "ntc_r_25": {
+  "value": 10000.0,
+  "unit": "ohm",
+  "note": "RT1 at 25 C"
+ },
+ "ntc_v_25": {
+  "value": 1.65,
+  "unit": "V",
+  "note": "PA2 at 25 C (VDDA 3.3 V; the reading is ratiometric)"
+ },
+ "ntc_r_70": {
+  "value": 1739.8264780153124,
+  "unit": "ohm",
+  "note": "RT1 at 70 C"
+ },
+ "ntc_v_70": {
+  "value": 0.48905555701374837,
+  "unit": "V",
+  "note": "PA2 at 70 C (VDDA 3.3 V; the reading is ratiometric)"
+ },
+ "ntc_r_m40": {
+  "value": 411749.37370353186,
+  "unit": "ohm",
+  "note": "RT1 at -40 C"
+ },
+ "ntc_v_m40": {
+  "value": 3.2217544777595863,
+  "unit": "V",
+  "note": "PA2 at -40 C (VDDA 3.3 V; the reading is ratiometric)"
+ },
+ "ntc_r_95": {
+  "value": 792.1230152225979,
+  "unit": "ohm",
+  "note": "RT1 at 95 C"
+ },
+ "ntc_v_95": {
+  "value": 0.2422142470529147,
+  "unit": "V",
+  "note": "PA2 at 95 C (VDDA 3.3 V; the reading is ratiometric)"
+ },
+ "ntc_slope_m15": {
+  "value": -0.01964495067819838,
+  "unit": "V/K",
+  "note": "sensitivity at -15 C"
+ },
+ "ntc_lsb_m15": {
+  "value": 0.04101125402132527,
+  "unit": "K/LSB",
+  "note": "12-bit resolution at -15 C"
+ },
+ "ntc_err_m15": {
+  "value": 0.2351266543085803,
+  "unit": "K",
+  "note": "error RSS at -15 C (bias 0.1 %, NTC 1 %, ADC 4 LSB)"
+ },
+ "ntc_slope_70": {
+  "value": -0.01406657392481242,
+  "unit": "V/K",
+  "note": "sensitivity at 70 C"
+ },
+ "ntc_lsb_70": {
+  "value": 0.057275074002125476,
+  "unit": "K/LSB",
+  "note": "12-bit resolution at 70 C"
+ },
+ "ntc_err_70": {
+  "value": 0.3755966619279865,
+  "unit": "K",
+  "note": "error RSS at 70 C (bias 0.1 %, NTC 1 %, ADC 4 LSB)"
+ },
+ "ntc_p_bias_max": {
+  "value": 0.9350053710926172,
+  "unit": "mW",
+  "note": "bias resistor power, worst (at 95 C)"
+ },
+ "ntc_self_heat": {
+  "value": 0.13747080002993417,
+  "unit": "mW",
+  "note": "NTC dissipation at 70 C (bonded: < 0.1 K rise at about 3 mW/K)"
+ },
+ "mag_rod_obc_corner": {
+  "value": {
+   "X": 196.0,
+   "Y": 846.0,
+   "Z": 152.0
+  },
+  "unit": "nT per mA.m2",
+  "note": "rod field at (0.033, -0.038, 0.007) m per 1 mA.m2 of remanence"
+ },
+ "mag_rod_obc_corner_sum": {
+  "value": 1193.8706958069536,
+  "unit": "nT per mA.m2",
+  "note": "sum of the three rods (worst alignment)"
+ },
+ "mag_mr_allow_obc_corner": {
+  "value": 0.1256417470726283,
+  "unit": "mA.m2",
+  "note": "per-rod remanence whose polarity reversal (2 m_r) changes the field by the Monte Carlo's 300 nT bias"
+ },
+ "mag_rod_obc_best": {
+  "value": {
+   "X": 174.0,
+   "Y": 386.0,
+   "Z": 366.0
+  },
+  "unit": "nT per mA.m2",
+  "note": "rod field at (0.002, -0.042, 0.007) m per 1 mA.m2 of remanence"
+ },
+ "mag_rod_obc_best_sum": {
+  "value": 925.8814439880679,
+  "unit": "nT per mA.m2",
+  "note": "sum of the three rods (worst alignment)"
+ },
+ "mag_mr_allow_obc_best": {
+  "value": 0.16200778293374363,
+  "unit": "mA.m2",
+  "note": "per-rod remanence whose polarity reversal (2 m_r) changes the field by the Monte Carlo's 300 nT bias"
+ },
+ "mag_rod_plusz_cad": {
+  "value": {
+   "X": 480.0,
+   "Y": 178.0,
+   "Z": 173.0
+  },
+  "unit": "nT per mA.m2",
+  "note": "rod field at (0.024, 0.027, 0.044) m per 1 mA.m2 of remanence"
+ },
+ "mag_rod_plusz_cad_sum": {
+  "value": 830.4111847393713,
+  "unit": "nT per mA.m2",
+  "note": "sum of the three rods (worst alignment)"
+ },
+ "mag_mr_allow_plusz_cad": {
+  "value": 0.18063340518116727,
+  "unit": "mA.m2",
+  "note": "per-rod remanence whose polarity reversal (2 m_r) changes the field by the Monte Carlo's 300 nT bias"
+ },
+ "mag_rod_plusz_mirror": {
+  "value": {
+   "X": 156.0,
+   "Y": 178.0,
+   "Z": 173.0
+  },
+  "unit": "nT per mA.m2",
+  "note": "rod field at (0.024, -0.027, 0.044) m per 1 mA.m2 of remanence"
+ },
+ "mag_rod_plusz_mirror_sum": {
+  "value": 506.8026174019471,
+  "unit": "nT per mA.m2",
+  "note": "sum of the three rods (worst alignment)"
+ },
+ "mag_mr_allow_plusz_mirror": {
+  "value": 0.2959732149154124,
+  "unit": "mA.m2",
+  "note": "per-rod remanence whose polarity reversal (2 m_r) changes the field by the Monte Carlo's 300 nT bias"
+ },
  "rb_11.2": {
   "value": 1.8666666666666667,
   "unit": "V",

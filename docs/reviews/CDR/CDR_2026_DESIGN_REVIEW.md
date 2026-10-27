@@ -154,18 +154,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-270 RIDs: severity 1: 29, severity 2: 148, severity 3: 93.
+272 RIDs: severity 1: 29, severity 2: 149, severity 3: 94.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
 | Closed by design change | 97 | 131 |
 | Closed by chair decision | 36 | 35 |
-| Verification item | 35 | 34 |
+| Verification item | 36 | 35 |
 | Decision point (dated) | 12 | 12 |
-| Implementation | 65 | 33 |
+| Implementation | 66 | 34 |
 
-Open implementation RIDs: SE-01, SE-15, SE-16, RF-04, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, THM-02, THM-08, THM-15, AV-03, AV-07, FSW-05, FSW-07, FSW-09, RAD-02, RFB-03, RFB-04, EPSB-01, EPSB-03, JETB-01, JETB-02, JETB-03, JETB-05, MCAD-06, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-15, SE-16, RF-04, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-10, THM-02, THM-08, THM-15, AV-03, AV-07, FSW-05, FSW-07, FSW-09, RAD-02, RFB-03, RFB-04, EPSB-01, EPSB-03, JETB-01, JETB-02, JETB-03, JETB-05, JETB-09, MCAD-06, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -561,6 +561,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | JETB-06 | 3 | NVIDIA Product and Thermal Design Guides not obtained: POWER_EN to SYS_RESET* timing, PCIe AC-coupling, FORCE_RECOVERY*, routing, lid θjc | DP | Decision point (dated) | Payload lead obtains DG-10931-001 and TDG-11127-001 through an NVIDIA developer account by 2027-02-01, before carrier layout |
 | JETB-07 | 3 | Some carrier part numbers confirmed only from distributor listings | VI | Verification item | BOM verification against manufacturer data before the EM order (MFG-002 receiving inspection) |
 | JETB-08 | 3 | NVIDIA screens the module at 2 Grms only; flight level is 8.18 Grms | VI | Verification item | V-JET-8: random vibration of the populated carrier at protoflight level, functional test before and after |
+| JETB-09 | 2 | If the module's VDD_IN pins are at the SO-DIMM +X end, the 1.4 A burst current passes 12 mm from the RM3100 (order 10 µT) | IMP | Implementation | Chair: the flight software does not use the magnetometer for actuation while JET_PG is high; hardware location per the OBC designer (MCAD-06); VDD_IN end from the NVIDIA drawing (JETB-06) |
+| JETB-10 | 3 | SO-DIMM latch material unknown (TE); carrier magnetic signature unmeasured | VI | Verification item | V-JET-9: magnetic screening of the populated carrier, unpowered and during a burst; non-ferromagnetic or latch-less socket |
 <!-- RID-LOG-END -->
 
 ## 7. Verdict

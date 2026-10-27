@@ -1,0 +1,10 @@
+Reference,Qty,Value,MPN,Manufacturer,Package,Rating,Derated stress,Notes,Terminal finish / tin mitigation,MPN check
+C1,1,10u,GCM31CR71E106KA64L,Murata,Capacitor_SMD:C_1206,25 V X7R AEC-Q200,3.3 V / 25 V = 13% of rated V,RM3100 (PNI reference: 10 uF + 0.1 uF),Sn over Ni (matte): re-tin or coat,series code
+C2,1,100n,GCM188R71H104KA57D,Murata,Capacitor_SMD:C_0603,50 V X7R AEC-Q200,3.3 V / 50 V = 7% of rated V,RM3100,Sn over Ni (matte): re-tin or coat,series code
+D1,1,TPD4E05U06-Q1,TPD4E05U06QDQARQ1,TI,USON-10 (DQA),"4-ch ESD, 5.5 V VRWM, 0.5 pF, IEC 61000-4-2 12 kV, AEC-Q101",,ESD at J1 (harness end),NiPdAu,TI orderable addendum read: Active
+J1,1,TO OBC J10,5013310607,Molex,Pico-Clasp 1.0 mm 6 pos SMT,1 A/contact,< 5 mA,"W12 from OBC J10: 3V3_SNS, GND, SDA, SCL, DRDY, GND",Sn,Digi-Key: Active (EPS board)
+L1 L2,2,Sen-XY-f,13104,PNI Sensor,PNI sensor coil,"magneto-inductive sensor coil, -40..85 C",,"X axis coil between XINP and XINN, oriented to the body X axis; Y axis coil between YINP and YINN, oriented to the body Y axis",Sn,PNI Doc 1017252 R07 read
+L3,1,Sen-Z-f,13101,PNI Sensor,PNI sensor coil,"magneto-inductive sensor coil, -40..85 C",,"Z axis coil between ZINP and ZINN, oriented to the body Z axis",Sn,PNI Doc 1017252 R07 read
+R1 R2 R3 R4 R5 R6,6,121,ERJ-3EKF1210V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V, AEC-Q200",< 10 % of rated power,R_bias XN; R_bias XP (PNI table 3-1); R_bias YN; R_bias YP (PNI table 3-1); R_bias ZN; R_bias ZP (PNI table 3-1),Sn over Ni (matte): re-tin or coat (EEE_PARTS_LIST 2A.3),series code
+R7,1,33k,ERJ-3EKF3302V,Panasonic,Resistor_SMD:R_0603,"1 %, 100 ppm/K, 0.1 W, 75 V, AEC-Q200",< 10 % of rated power,REXT 33 k: 180 kHz clock (PNI table 3-1),Sn over Ni (matte): re-tin or coat (EEE_PARTS_LIST 2A.3),series code
+U1,1,RM3100 MagI2C,13156,PNI Sensor,MLF-28 (PNI MagI2C),"magneto-inductive ASIC, 2.0-3.6 V, I2C 0x20, 13 nT at 200 cycles, -40..85 C",,flight magnetometer (SQSO-OBC-BRD-001 9.4); single-shot conversions in the coils-off window,Sn (QFN): conformal coat,"PNI Doc 1017252 R07 read (pinout, reference schematic fig. 4-2)"

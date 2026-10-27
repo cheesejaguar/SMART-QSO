@@ -1,7 +1,7 @@
 # Jetson Orin Nano Carrier Board Design
 
 **Document ID**: SQSO-JET-BRD-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Status**: CDR design completion (RID SE-01, carrier part). Schematic captured as code with selected parts, netlist,
 BOM, ERC and calculations. Not built; PCB layout not started (section 18 is the layout input).
@@ -36,8 +36,9 @@ Files: `design.py` (SKiDL 3.0 schematic), `jetson_calcs.py` (every calculation b
 | 7 W mode (TB-13) | Exists only in the **original** flash configuration (`jetson-orin-nano-devkit`, nvpmodel ID 1: 4 cores ≤ 960 MHz, 2 TPC ≤ 408 MHz, EMC 2133 MHz); the Super configuration has 15 W, 25 W, MAXN_SUPER (JLG). The design assumes the original configuration with 7 W as the default mode |
 | Thermal interface | Gap pad from the SoC lid to a spreader pedestal (no thermal transfer plate on this module): junction-to-spreader **0.9–1.2 K/W estimated** against the 5.7 K/W THM-10 allowable; clamp force ≤ 38 N (48 % of the 80 N module limit) |
 | EMC | CE102 differential-mode estimate ≥ 37 dB under the MIL-STD-461G basic curve; all carrier converters on one crystal clock at 1.000 MHz (the EPS frequency plan): no harmonic within 200 kHz of either uplink window. L1 cannot be protected from the module's own 38.4 MHz reference (41st harmonic 1.02 MHz below L1, EMC-04): GNSS sessions stay with the Jetson off |
-| Parts | 137 placements, 51 BOM lines, plus the module, the SSD and 4 mechanical items; 12 ICs (10 TI AEC-Q100, TPS25947 and SN74LVC1G74 industrial); all stresses within EEE-INST-002 / 50 % rules (§17) |
+| Parts | 137 placements, 51 BOM lines, plus the module, the SSD and 5 mechanical items; 12 ICs (10 TI AEC-Q100, TPS25947 and SN74LVC1G74 industrial); all stresses within EEE-INST-002 / 50 % rules (§17) |
 | Carrier dissipation | 0.72 W at 7 W module power (U1 0.28 W, 3.3 V side 0.38 W of which the SSD 0.30 W, U2 0.06 W); hottest junction 70 °C at a 60 °C board |
+| Gyro window, magnetometer (B) | 27 × 27 mm window for the OBC's M-G370 gyro with its bottom-side Al frame (MECHANICAL_DESIGN §4.3, D-11) and the RM3100 keep-out (§4.4): the power train moved to the −Y strip and the −X column, the I/O parts to the +X edge; 0 placement conflicts (`jetson_calcs.py` table 14); no inductor, steel standoff or oscillator within 30 mm of the magnetometer. **Open:** which end of the SO-DIMM carries VDD_IN (pins 251–260); at the +X end the module's input current would sit 12 mm from the RM3100 (§18.2) |
 | Not met or not verifiable | 8 W at the full 7 W budget (no margin: cap the module); hold-up after an uncommanded power cut 0.11 ms (the normal shutdown must be commanded, §7.4); DG/TDG values (sequence timing, AC-coupling location, SoC lid area and θjc) |
 
 ## 1. Requirements and Where They Are Met
@@ -383,16 +384,36 @@ is rated by standoff, not derated).
 | Item | Rule |
 |------|------|
 | Outline and mounting | PC/104 90.17 × 95.89 mm; four Ø3.18 mm holes at (±40, ±43) and the centre supports at (0, ±21), all with Ø6.4 mm (Ø7 mm at the supports) copper-free rings, **isolated from GND** (the single frame bond is on the EPS board, EPS-BRD §17) |
-| Module | SO-DIMM J4 (TE 2309407-2, 4.0 mm stack) on the −Y edge, module centred at (0, −6): module footprint x ±34.8, y −28.5 … +16.5; **no top-side parts inside it** (MECHANICAL_DESIGN §11 item 5); two standoffs MP2/MP3 at the module's far-edge holes. The (0, −21) support lies under the module: flush or countersunk fastener on the top side; check the module's underside parts against the NVIDIA STEP model (for the mechanical designer) |
-| Zones (top side) | +Y strip (y +17.5 … +47.9): power at −X (J1 at the −X edge, y ≈ +30, near the harness gap at y 24–34; L1, damper, U1/L2, U2, U3/L3, Y1, U4, U5); M.2 J5 and the card at +X (connector x +1.5 … +10, y +25 … +47; card end at x ≈ +36 clear of the (+40, +43) hole by 4.7 mm). J2 (Pico-Clasp 6) at the −X edge, y ≈ +38; J3 near the spreader edge; U7–U12 and D2 between J2 and the SO-DIMM's −X end; J6 debug in the −Y strip (y −35 … −47) |
-| Bottom side | parts ≤ 1.0 mm only (the OBC is 1.4 mm below); keep-out above the OBC's M-G370PDT0 at (−20, +22) |
-| VDD_IN | L4 plane from U2 to J4 pins 251–260 (place U2 at the VDD_IN end of J4), ≥ 10 mm wide; 6 × 22 µF at the pins, not under the module |
+| Module | SO-DIMM J4 (TE 2309407-2, 4.0 mm stack) on the −Y edge, module centred at (0, −6): module footprint x ±34.8, y −28.5 … +16.5; **no top-side parts inside it** (MECHANICAL_DESIGN §11 item 5); two standoffs MP2/MP3 at the module's far-edge holes. The module's +Y edge overhangs the gyro window by 2.5 mm (y +14.0 … +16.5), 3.0 mm above the gyro (§18.1). The (0, −21) support lies under the module: flush or countersunk fastener on the top side; check the module's underside parts against the NVIDIA STEP model (for the mechanical designer) |
+| Zones (top side, version B) | **Z1, +Y strip right of the window** (x −3.5 … +45, y +17.5 … +47.9): M.2 J5 and the card (connector x +1.5 … +10, card to x ≈ +36, y +25 … +47; 4.3 mm from the (0, +21) support, 5.7 mm from the (+40, +43) column), MP1; below the card (y +19.5 … +22.5) U7, U6, U9, U8 and the 3V3_SSD bulk; at the +X edge J2 (y ≈ +28, beside the harness gap at y 24–34), J3 (y ≈ +19.5), D2, U10/U11. **Z2, −X column** (x −45.1 … −37, y −35 … +30, outside the module footprint and the frame keep-out): U2 and the VDD_IN bulk at the bottom (if the VDD_IN pins are at the −X end), J6 debug, U3/L3, Y1, U12, U4, U5. **Z3, −Y strip** (y −47.9 … −35, x −36.8 … +3, stopping 30 mm short of the magnetometer): J1 (near the −Y harness gap), D1, C_F1, L1, damper, U1, L2, U1 output caps. Centres and checks: `jetson_calcs.py` table 14 (0 conflicts). Routing between the zones goes on inner layers under the module footprint or in the 3.9 mm band above the window (y +44 … +47.9); nothing crosses the window |
+| Bottom side | parts ≤ 1.0 mm only (the OBC is 1.4 mm below); none inside the frame keep-out (x −36.5 … −3.5, y +11.0 … +44.0) or within 20 mm of (+33, −38) |
+| VDD_IN | L4 plane over the L5 ground (a paired path) from U2 to J4 pins 251–260, ≥ 10 mm wide. If pins 251–260 are at the −X end: U2 and 6 × 22 µF in Z2 at the pins. If they are at the +X end: U2 and the bulk stay at x ≤ +13 on the −Y strip (20 mm outside the magnetometer circle) and the plane pair runs to the pins; see §18.2 |
 | Stack-up | 6 layers, 1.6 mm, FR-4 Tg ≥ 170 °C (polyimide preferred for TVAC), 1 oz: L1 parts/signals, L2 GND (solid), L3 PCIe/USB striplines, L4 power (VDD_IN, 3V3 islands, VBAT_F trace), L5 GND (solid), L6 parts ≤ 1 mm; IPC-6012 Class 3/A |
 | Controlled impedance | PCIe TX/RX and REFCLK 85 Ω differential ±10 %, intra-pair skew ≤ 0.15 mm, ≤ 40 mm, ground-referenced on L2/L5, AC caps within 10 mm of J5; USB0 90 Ω differential to J6 (DG values to be confirmed, V-JET-2) |
 | Thermal | U1 and U2 thermal pads with ≥ 9 × 0.3 mm vias to L2/L5; ≥ 4 cm² copper around U1; direct (no thermal relief) connections on VDD_IN and VBAT_F |
 | Creepage | ≤ 18.4 V on the board: ≥ 0.2 mm everywhere (IPC-2221B B4 for conformal-coated external conductors) |
 | Test points | VBAT_F, 5V_BUCK, VDD_IN, 3V3_PRE, 3V3_IO, 3V3_SSD, 1V8_IO, POWER_EN, SYS_RESET*, SHUTDOWN_REQ*, SD_LATCHED, U2_ILM (current monitor, 1.33 kΩ), SYNC_CLK, MODULE_ID, MOD_SLEEP*, GND × 2 |
 | Coating and staking | Arathane 5750 conformal coat except J4/J5 contact areas and the pad faces; stake L1–L3, Y1, J1, J2, J3, the M.2 card end and the module far edge |
+
+### 18.1 Gyro window (MECHANICAL_DESIGN §4.3, D-11; version B)
+
+| Item | Rule |
+|------|------|
+| Cut-out | 27 × 27 mm, x −33.5 … −6.5, y +14.0 … +41.0 (stack coordinates), routed, no copper within 0.5 mm of the frame footprint on any layer |
+| Frame | Al 6061, 2.5 mm wide × 3.0 mm high, on the bottom face round the window (z +15.0 … +18.0), bonded and held by four M2 screws at its corners: isolated holes H10–H13 at (−34.75, +12.25), (−5.25, +12.25), (−34.75, +42.75), (−5.25, +42.75); top-side Ø5 mm keep-out round each for the screw heads |
+| Keep-out | x −36.5 … −3.5, y +11.0 … +44.0 on both sides: no parts, no copper, no routing (planes are cut back there too). The window is 1.5 mm clear of the gyro on every side; the gyro top (z +20.6) stands 1.0 mm above the carrier top face, 3.0 mm below the module board |
+| What it displaced | Version A put the whole power train in this area (+Y, −X): moved to Z2 and Z3. J2 moved from the −X edge to the +X edge (both harness gaps at y 24–34 are reachable; W5B length unchanged at 0.10 m, to be confirmed by the harness design) |
+| Clear of it | SO-DIMM (y ≤ −27), module (above it, overhang 2.5 mm), M.2 connector and card (x ≥ +1.5: 5.0 mm), converters and connectors (table 14), centre support (0, +21) (3.0 mm, per the mechanical design) |
+
+### 18.2 Magnetometer keep-out (RM3100 under (+33, −38); MECHANICAL_DESIGN §4.4, §11 item 9; version B)
+
+| Rule | Carrier implementation |
+|------|------------------------|
+| No parts within 20 mm (either side) | nothing of the carrier's own inside the circle; the only items there are the SO-DIMM's +X end (3 mm) and the module's corner, which cannot move |
+| No ferromagnetic parts within 30 mm | inductors L1, L2, L3 at 48.5, 30.8, 79 mm; Y1 (metal lid) 87 mm; steel SMT standoffs MP1–MP3 at ≥ 48 mm; J1, J2, J3, J5, J6 have copper-alloy contacts and no steel shells. Passives' nickel barrier layers are treated as negligible, as on the OBC |
+| SO-DIMM latch and hold-downs (3 mm from the corner) | must be non-ferromagnetic (copper alloy, plastic) or latch-less: the module is retained by its two screws, the latch is not needed. TE's latch material is not published in what I could reach: confirm, or select a variant, before ordering (V-JET-9) |
+| No unpaired high-current path within 30 mm | VBAT_IN and VDD_IN run as plane pairs (L4 over L5, 0.2 mm); the converter hot loops are ≥ 31 mm away. Line-pair upper bounds at the RM3100 (`jetson_calcs.py` table 15): VBAT_IN 22 nT, VDD_IN plane pair 12 nT with the module pins at the −X end |
+| The module's own input | **if pins 251–260 are at the +X end**, the module's 1.4 A input enters 12 mm from the magnetometer through pins whose return (241–250) is about 5 mm away: of order 10 µT by the same estimate, which no carrier layout can pair out. The pin-1 end must be read from the NVIDIA module drawing; if it is the +X end, the RM3100 moves toward +Y on the OBC (the mechanical design's alternative), or the ADCS calibrates the burst offset against IMON_JET (for the chair and the OBC/ADCS owners) |
 
 ## 19. Interface Changes (for the chair)
 
@@ -404,7 +425,8 @@ is rated by standoff, not derated).
 | F2 | flight software (`eps_control.rs`, payload schedule) | end each burst with `SHUTDOWN`, wait for JET_PG to fall (≤ 5 s, then cut anyway), then JETSON_PWR low and PAYLOAD_EN 10 ms later; treat an unexpected JET_PG fall with the rail commanded on as a payload fault and cut both lines | §7.4; reverses ICD-002 1.2 §9 |
 | F3 | flight software (`sensors.yaml`, EPS driver) | bind JPC to the EPS controller's IMON_JET register (U19 IMON, 0.84 V/A) | §12 |
 | F4 | payload software (`software/payload`) | at boot: `curr1_max` = 1300 mA on INA3221 channel 1 (VDD_IN 6.5 W cap); nvpmodel default ID 1 (7 W) in `/etc/nvpmodel.conf`; device tree PCIe C4 x1 Gen2; carrier board config derived from `jetson-orin-nano-devkit` (not `-super`), no carrier EEPROM | §2, §10, §13; TB-13 |
-| M1 | mechanical | spreader pedestal over the SoC and second face over DRAM/regulators; flatness and shim per §14; module standoff positions and the (0, −21) fastener under the module | §14, §18 |
+| M1 | mechanical | spreader pedestal over the SoC and second face over DRAM/regulators; flatness and shim per §14; module standoff positions and the (0, −21) fastener under the module; window frame screw positions H10–H13 as assumed in §18.1 | §14, §18 |
+| M2 | OBC, ADCS, mechanical | confirm from the NVIDIA module drawing which SO-DIMM end carries VDD_IN (pins 251–260); if +X, move the RM3100 toward +Y or calibrate the burst offset against IMON_JET; SO-DIMM latch non-ferromagnetic | §18.2 |
 
 ## 20. Verification Items
 
@@ -419,6 +441,7 @@ is rated by standoff, not derated).
 | V-JET-7 | Junction-to-spreader resistance at 7 W (module sensors vs RT1) and clamp force (pressure film) | ≤ 5.7 K/W (design 1.2); force ≤ 40 N | THM-10 (V-THM-3) | EM thermal |
 | V-JET-8 | Random vibration of the populated carrier (module, card, spreader) at protoflight level | no resonance shift > 5 %, functional after, no fretting at J4/J5 | DS Table 5-5 is 2 Grms only | EM vibration |
 | V-EMC-1 | CE102 at the carrier input; near-field scan | as SQSO-EMC-001 §6 | §15 | carrier EM |
+| V-JET-9 | Magnetic screening: populated carrier with the module, unpowered and at a 7 W burst, field at the RM3100 position on the OBC (and the SO-DIMM latch checked with a permeability probe) | static and burst-induced field below the limit the ADCS owner sets from the RM3100 noise (15–30 nT); the nT/A coefficient against IMON_JET recorded for calibration | §18.2 | EM, with the OBC |
 
 ## 21. RID Status
 
@@ -440,6 +463,7 @@ is rated by standoff, not derated).
   GCM1885C1H222JA16D, GCM1885C1H332JA16D (series codes), TE 2309407-2 and 1-2199230-4 (distributor listings only),
   Würth standoffs, TE GA10K3MCD1, Bergquist GAP PAD 3500ULM. The TI parts were checked on ti.com product pages
   (orderable lists); the Swissbit N2600 on its fact sheet and a Mouser listing.
+- Which end of the SO-DIMM carries VDD_IN (pins 251–260) and the latch material of TE 2309407-2 (§18.2).
 - No power figures for the Swissbit N2600; the 0.30 W average and 2.0 W peak are allocations.
 - The U1 efficiency model is fitted to two data-sheet points; the 93 % bound is shown alongside it.
 - M.2 lane naming: host transmit is connected to the card's PERp0/PERn0 (pins 43/41) and the card's PETp0/PETn0 (49/47)
@@ -451,3 +475,4 @@ is rated by standoff, not derated).
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | A | 2026-10-27 | Payload carrier design (CDR design completion) | First issue: carrier schematic as code with parts (VBAT input filter, 5 V buck and VDD_IN eFuse, sequencing and shutdown latch, switched I/O rails, UART translators, NVMe storage, debug header), netlist, BOM, ERC, calculations, layout input, interface changes and verification items |
+| B | 2026-10-27 | Payload carrier design (chair follow-up) | Gyro window and frame of MECHANICAL_DESIGN §4.3 (D-11): §18.1, frame screw holes H10–H13 and the frame MP5 in the design files; RM3100 magnetic keep-out of §4.4: §18.2; placement re-zoned (power to the −Y strip and −X column, I/O to the +X edge) with a placement check (`jetson_calcs.py` tables 14–15); M2, V-JET-9 |

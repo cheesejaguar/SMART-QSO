@@ -290,13 +290,14 @@ HZ = "analog (high-Z)"
 # --- port A
 pm("PA0", "TX_TEMP", "ADC1_IN5", "A", "0.3-1.7 V", HZ, "J2-11 RF board (10 k series, 10 nF)")
 pm("PA1", "VSW1_RB", "ADC1_IN6", "A", "0-2.8 V (VBAT_SW1 / 6)", HZ, "J1-37 EPS (new; was DEPLOY_EN)")
-pm("PA2", "JETSON_PWR", "GPIO out", "O", "3.3 V, high = eFuse U19 on", HZ + "; EPS 100 k pull-down", "J1-29 EPS")
+pm("PA2", "PT_NTC", "ADC1_IN7", "A", "VDDA x R/(10.0 k + R): 2.93 V at -15 C, 0.49 V at 70 C", HZ,
+   "J3-5 Jetson spreader NTC (new, E10; was JETSON_PWR)")
 pm("PA3", "RF_TX_EN", "GPIO out", "O", "3.3 V, high = PA rail (TX-OFF low)", HZ + "; EPS 100 k pull-down", "J1-14 EPS")
 pm("PA4", "MTQ_X_I", "ADC1_IN9", "A", "10 mV/mA (IPROPI)", HZ, "U22 X bridge (was FRAM CS#)")
 pm("PA5", "MTQ_Y_I", "ADC1_IN10", "A", "10 mV/mA", HZ, "U23 Y bridge (was SPI1 SCK)")
 pm("PA6", "MTQ_Z_I", "ADC1_IN11", "A", "10 mV/mA", HZ, "U24 Z bridge (was SPI1 MISO)")
 pm("PA7", "VJET_RB", "ADC1_IN12", "A", "0-2.8 V (VBAT_JET / 6)", HZ, "J1-19 EPS (new; was SPI1 MOSI)")
-pm("PA8", None, "spare", "-", "", HZ, "TP")
+pm("PA8", "JETSON_PWR", "GPIO out", "O", "3.3 V, high = eFuse U19 on", HZ + "; EPS 100 k pull-down", "J1-29 EPS (moved from PA2)")
 pm("PA9", "USART1_TX", "USART1_TX AF7", "O", "3.3 V UART 115200", HZ, "U28 -> J3-2 Jetson")
 pm("PA10", "USART1_RX", "USART1_RX AF7", "I", "3.3 V UART", HZ + "; 100 k pull-up", "U29 <- J3-3 Jetson")
 pm("PA11", None, "spare (USB DM unused)", "-", "", HZ, "")
@@ -350,9 +351,9 @@ pm("PD7", None, "spare", "-", "", HZ, "")
 pm("PD8", "USART3_TX", "USART3_TX AF7", "O", "3.3 V UART 115200", HZ, "J9-7 access port")
 pm("PD9", "USART3_RX", "USART3_RX AF7", "I", "3.3 V UART", HZ + "; 100 k pull-up", "J9-8 access port (10 k series)")
 pm("PD10", "GYRO_DRDY", "GPIO in, EXTI10", "I", "3.3 V", HZ + "; 100 k pull-down", "U10 <- M-G370 DRDY")
-pm("PD11", "MAG_DRDY", "GPIO in, EXTI11", "I", "3.3 V", HZ + "; 100 k pull-down", "U14b <- RM3100 DRDY")
-pm("PD12", "I2C4_SCL", "I2C4_SCL AF4", "B", "open drain, 2.2 k", HZ, "U14 -> RM3100, ADS7138")
-pm("PD13", "I2C4_SDA", "I2C4_SDA AF4", "B", "open drain, 2.2 k", HZ, "U14 -> RM3100, ADS7138")
+pm("PD11", "MAG_DRDY", "GPIO in, EXTI11", "I", "3.3 V", HZ + "; 100 k pull-down", "U33 <- J10-5 magnetometer board (RM3100 DRDY)")
+pm("PD12", "I2C4_SCL", "I2C4_SCL AF4", "B", "open drain, 2.2 k", HZ, "U14 -> ADS7138; J10 -> RM3100 board")
+pm("PD13", "I2C4_SDA", "I2C4_SDA AF4", "B", "open drain, 2.2 k", HZ, "U14 -> ADS7138; J10 -> RM3100 board")
 pm("PD14", "GYRO_RST_N", "GPIO out", "O", "3.3 V, low = reset (>= 100 ms)", HZ + "; 100 k pull-down", "U10 -> M-G370 /RST")
 pm("PD15", "IMU2_DRDY", "GPIO in, EXTI15", "I", "3.3 V", HZ + "; 100 k pull-down", "U13 <- BMI088 INT3")
 # --- port E
@@ -623,7 +624,7 @@ def sns():
     # I2C4 into the SNS domain
     ic(S_TCA9517, "U14", "TCA9517-Q1", "TCA9517DGKRQ1", "TI", "VSSOP-8 (DGK)", "I2C repeater, high-Z when unpowered, AEC-Q100",
        {"VCCA": "3V3_OBC", "SCLA": "I2C4_SCL", "SDAA": "I2C4_SDA", "GND": "GND", "EN": "SNS_I2C_EN", "SDAB": "SDA_S",
-        "SCLB": "SCL_S", "VCCB": "3V3_SNS"}, notes="I2C4 to the SNS domain (RM3100 0x20, ADS7138 0x10)",
+        "SCLB": "SCL_S", "VCCB": "3V3_SNS"}, notes="I2C4 to the SNS domain (ADS7138 0x10; RM3100 0x20 on the magnetometer board via J10)",
        checked="TI orderable addendum read: Active (EPS board)")
     R(10e3, "3V3_SNS", "SNS_I2C_EN", note="repeater enabled only while 3V3_SNS is up")
     R(2.2e3, "3V3_OBC", "I2C4_SCL", note="I2C4 A-side pull-up")
@@ -634,34 +635,15 @@ def sns():
     C("100n", "3V3_SNS", "GND", note="U14 VCCB")
     ic(S_LVC1T45, "U33", "SN74LVC1T45-Q1", "SN74LVC1T45QDCKRQ1", "TI", "SC70-6 (DCK)", "1-bit translator, Ioff, VCC isolation, AEC-Q100",
        {"VCCA": "3V3_OBC", "GND": "GND", "A": "MAG_DRDY", "B": "MG_DRDY", "DIR": "GND", "VCCB": "3V3_SNS"},
-       notes="RM3100 DRDY to the MCU (B to A)")
+       notes="RM3100 DRDY (J10-5) to the MCU (B to A)")
     R(100e3, "MAG_DRDY", "GND", note="defined while isolated")
-    # magnetometer (RM3100 suite: MagI2C 13156, two Sen-XY-f 13104, one Sen-Z-f 13101)
-    ic(S_MAGI2C, "U15", "RM3100 MagI2C", "13156", "PNI Sensor", "MLF-28 (PNI MagI2C)",
-       "magneto-inductive ASIC, 2.0-3.6 V, I2C 0x20, 13 nT at 200 cycles, -40..85 C",
-       {"SDA": "SDA_S", "RES2": "GND", "SA0": "GND", "AVDD": "3V3_SNS", "AVSS": "GND", "ZDRVP": "MZ_DP", "ZINP": "MZ_IP",
-        "ZINN": "MZ_IN", "ZDRVN": "MZ_DN", "YDRVP": "MY_DP", "YINP": "MY_IP", "YINN": "MY_IN", "YDRVN": "MY_DN",
-        "DVDD14": "3V3_SNS", "XDRVP": "MX_DP", "XINP": "MX_IP", "XINN": "MX_IN", "XDRVN": "MX_DN", "DVSS": "GND",
-        "RES20": "GND", "NC21": None, "I2CEN": "3V3_SNS", "DRDY": "MG_DRDY", "NC24": None, "REXT": "MG_REXT",
-        "DVDD26": "3V3_SNS", "SCL": "SCL_S", "SA1": "GND"},
-       notes="flight magnetometer on the OBC (selection: OBC_BOARD_DESIGN 7.3); single-shot conversions in the coils-off window",
-       finish="Sn (QFN): conformal coat", checked="PNI Doc 1017252 R07 read (pinout, reference schematic fig. 4-2)")
-    for ax, mpn, val in (("X", "13104", "Sen-XY-f"), ("Y", "13104", "Sen-XY-f"), ("Z", "13101", "Sen-Z-f")):
-        p = place(TCOIL, f"L{ 'XYZ'.index(ax) + 1}", val, mpn, "PNI Sensor", "PNI sensor coil", "magneto-inductive sensor coil, -40..85 C",
-                  "", f"{ax} axis coil between {ax}INP and {ax}INN", "Sn", "PNI Doc 1017252 R07 read")
-        link(f"M{ax}_IP", p["A"])
-        link(f"M{ax}_IN", p["B"])
-        R(121, f"M{ax}_DP", f"M{ax}_IP", note=f"R_bias {ax}P (PNI table 3-1)")
-        R(121, f"M{ax}_IN", f"M{ax}_DN", note=f"R_bias {ax}N")
-    R(33e3, "MG_REXT", "GND", note="REXT 33 k: 180 kHz clock (PNI table 3-1)")
-    C("10u", "3V3_SNS", "GND", 25, "1206", note="RM3100 (PNI reference: 10 uF + 0.1 uF)")
-    C("100n", "3V3_SNS", "GND", note="RM3100")
-    # external magnetometer option (module alternative), DNP
-    j = place(CONN("PicoClasp_4", 4), "J10", "EXT MAG", "5013310407", "Molex", "Pico-Clasp 1.0 mm 4 pos SMT",
-              "1 A/contact", "< 15 mA", "alternate: bought magnetometer module (M315/MM200 class) on I2C4 SNS side", "Sn",
-              "Digi-Key: Active (EPS board)", dnp=True)
-    conn(j, {"P1": "3V3_SNS", "P2": "GND", "P3": "SDA_S", "P4": "SCL_S"})
-    esd4("D20", ["3V3_SNS", "SDA_S", "SCL_S", None], "J10 external magnetometer")
+    # magnetometer: PNI RM3100 on the magnetometer board (A2, mag_board()) at the +Z end frame, on J10 / harness W12
+    j = place(CONN("PicoClasp_6", 6), "J10", "MAGNETOMETER", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT",
+              "1 A/contact", "< 5 mA", "W12 to the magnetometer board A2 (RM3100) at the +Z end frame: 3V3_SNS, GND, SDA, SCL, DRDY, GND",
+              "Sn", "Digi-Key: Active (EPS board)")
+    conn(j, {"P1": "3V3_SNS", "P2": "GND", "P3": "SDA_S", "P4": "SCL_S", "P5": "MG_DRDY", "P6": "GND"})
+    R(100e3, "MG_DRDY", "GND", note="DRDY defined with the harness unplugged")
+    esd4("D20", ["3V3_SNS", "SDA_S", "SCL_S", "MG_DRDY"], "J10 magnetometer harness")
     # sun-sensor front end: six TIAs into ADS7138
     faces = ["PX", "MX", "PY", "MY", "PZ", "MZ"]
     for k in range(3):
@@ -781,10 +763,16 @@ def jetson_link():
     C("100n", "JET_3V3", "GND", note="U28/U29 VCCB")
     R(10e3, "JET_3V3", "JET_PG", note="carrier power-good readback (RID AV-06)")
     R(100e3, "JET_PG", "GND", note="low with the carrier off")
-    j = place(CONN("PicoClasp_4", 4), "J3", "JETSON UART", "5013310407", "Molex", "Pico-Clasp 1.0 mm 4 pos SMT", "1 A/contact",
-              "< 5 mA", "W5B: GND, OBC TX, OBC RX, carrier 3.3 V (replaces JST-SH, finding F14)", "Sn", "Digi-Key: Active (EPS board)")
-    conn(j, {"P1": "GND", "P2": "JET_RXD", "P3": "JET_TXD", "P4": "JET_3V3"})
-    esd4("D23", ["JET_RXD", "JET_TXD", "JET_3V3", None], "J3 Jetson")
+    j = place(CONN("PicoClasp_6", 6), "J3", "JETSON", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
+              "< 5 mA", "W5B (6 pins, E10): GND, OBC TX, OBC RX, carrier 3.3 V, spreader NTC, NTC return", "Sn",
+              "Digi-Key: Active (EPS board)")
+    conn(j, {"P1": "GND", "P2": "JET_RXD", "P3": "JET_TXD", "P4": "JET_3V3", "P5": "PT_NTC_J", "P6": "GND"})
+    esd4("D23", ["JET_RXD", "JET_TXD", "JET_3V3", "PT_NTC_J"], "J3 Jetson")
+    # spreader thermistor RT1 (TE GA10K3MCD1, on the carrier, never powered by it): ratiometric to VDDA (the ADC reference)
+    R(10e3, "VDDA", "PT_NTC_J", tol=0.1, note=f"NTC bias 10.0 k 0.1 % from VDDA: {cv('ntc_v_m15', '{:.2f}')} V at -15 C, "
+      f"{cv('ntc_v_70', '{:.2f}')} V at 70 C", stress=f"{cv('ntc_p_bias_max', '{:.1f}')} mW of 100 mW")
+    R(1e3, "PT_NTC_J", "PT_NTC", note="ADC series")
+    C("100n", "PT_NTC", "GND", note="NTC reservoir and filter (1.6 kHz)")
 
 
 def gnss_link():
@@ -897,8 +885,9 @@ def board_misc():
 
 
 def access_port():
-    j = place(CONN("TST_2x5", 10), "J9", "ACCESS PORT", "TST-105-01-L-D", "Samtec", "2.54 mm 2x5 shrouded", "3 A/contact",
-              "signals", "W8: SWD, NRST, console, umbilical sense, watchdog disable (ground only)", "Au", "not checked")
+    j = place(CONN("FTSH_2x5", 10), "J9", "ACCESS PORT", "FTSH-105-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x5 SMT", "2.4 A/contact",
+              "signals", "W8A internal harness to the access-window bulkhead (SWD, NRST, console, umbilical sense, watchdog disable)",
+              "Au 10 uin", "not checked")
     conn(j, {"P1": "3V3_VTREF", "P2": "SWDIO_J", "P3": "GND", "P4": "SWCLK_J", "P5": "WDT_DIS_J", "P6": "NRST_J",
              "P7": "USART3_TX_J", "P8": "USART3_RX_J", "P9": "UMB_J", "P10": "GND"})
     R(100, "3V3_OBC", "3V3_VTREF", note="VTREF for the probe; the GSE plug also ties pin 9 to it")
@@ -957,6 +946,10 @@ def build():
     adcs_power()
     board_misc()
     access_port()
+    finish_refs()
+
+
+def finish_refs():
     for name, n in _nets.items():
         if name in POWER_NETS:
             n.drive = POWER
@@ -978,12 +971,41 @@ def build():
         used[pre].add(nxt[pre])
 
 
+def mag_board():
+    """Magnetometer board A2 (SQSO-OBC-BRD-001 9.4): PNI RM3100 on a 24 x 24 mm two-layer board at the +Z end frame,
+    on harness W12 from OBC J10. Power, latch-up switch (U7) and bus isolation (U14, U33) stay on the OBC."""
+    j = place(CONN("PicoClasp_6", 6), "J1", "TO OBC J10", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact",
+              "< 5 mA", "W12 from OBC J10: 3V3_SNS, GND, SDA, SCL, DRDY, GND", "Sn", "Digi-Key: Active (EPS board)")
+    conn(j, {"P1": "3V3_SNS", "P2": "GND", "P3": "SDA_S", "P4": "SCL_S", "P5": "MG_DRDY", "P6": "GND"})
+    esd4("D1", ["3V3_SNS", "SDA_S", "SCL_S", "MG_DRDY"], "J1 (harness end)")
+    ic(S_MAGI2C, "U1", "RM3100 MagI2C", "13156", "PNI Sensor", "MLF-28 (PNI MagI2C)",
+       "magneto-inductive ASIC, 2.0-3.6 V, I2C 0x20, 13 nT at 200 cycles, -40..85 C",
+       {"SDA": "SDA_S", "RES2": "GND", "SA0": "GND", "AVDD": "3V3_SNS", "AVSS": "GND", "ZDRVP": "MZ_DP", "ZINP": "MZ_IP",
+        "ZINN": "MZ_IN", "ZDRVN": "MZ_DN", "YDRVP": "MY_DP", "YINP": "MY_IP", "YINN": "MY_IN", "YDRVN": "MY_DN",
+        "DVDD14": "3V3_SNS", "XDRVP": "MX_DP", "XINP": "MX_IP", "XINN": "MX_IN", "XDRVN": "MX_DN", "DVSS": "GND",
+        "RES20": "GND", "NC21": None, "I2CEN": "3V3_SNS", "DRDY": "MG_DRDY", "NC24": None, "REXT": "MG_REXT",
+        "DVDD26": "3V3_SNS", "SCL": "SCL_S", "SA1": "GND"},
+       notes="flight magnetometer (SQSO-OBC-BRD-001 9.4); single-shot conversions in the coils-off window",
+       finish="Sn (QFN): conformal coat", checked="PNI Doc 1017252 R07 read (pinout, reference schematic fig. 4-2)")
+    for ax, mpn, val in (("X", "13104", "Sen-XY-f"), ("Y", "13104", "Sen-XY-f"), ("Z", "13101", "Sen-Z-f")):
+        p = place(TCOIL, f"L{'XYZ'.index(ax) + 1}", val, mpn, "PNI Sensor", "PNI sensor coil", "magneto-inductive sensor coil, -40..85 C",
+                  "", f"{ax} axis coil between {ax}INP and {ax}INN, oriented to the body {ax} axis", "Sn", "PNI Doc 1017252 R07 read")
+        link(f"M{ax}_IP", p["A"])
+        link(f"M{ax}_IN", p["B"])
+        R(121, f"M{ax}_DP", f"M{ax}_IP", note=f"R_bias {ax}P (PNI table 3-1)")
+        R(121, f"M{ax}_IN", f"M{ax}_DN", note=f"R_bias {ax}N")
+    R(33e3, "MG_REXT", "GND", note="REXT 33 k: 180 kHz clock (PNI table 3-1)")
+    C("10u", "3V3_SNS", "GND", 25, "1206", note="RM3100 (PNI reference: 10 uF + 0.1 uF)")
+    C("100n", "3V3_SNS", "GND", note="RM3100")
+    finish_refs()
+
+
 def refkey(r):
     m = re.match(r"([A-Z]+)(\d+)", r)
     return (m.group(1), int(m.group(2))) if m else (r, 0)
 
 
-def outputs():
+def outputs(stem="obc_board", docid="SQSO-OBC-BRD-001", pinmap=True):
     circ = builtins.default_circuit
     buf = io.StringIO()
     h = logging.StreamHandler(buf)
@@ -992,19 +1014,22 @@ def outputs():
     lg.addHandler(h)
     ERC()
     lg.removeHandler(h)
-    with open(os.path.join(HERE, "obc_board_erc.log"), "w") as f:
-        f.write("SQSO-OBC-BRD-001 electrical rule check (SKiDL 3.0 ERC), generated by design.py\n\n")
+    with open(os.path.join(HERE, f"{stem}_erc.log"), "w") as f:
+        f.write(f"{docid} electrical rule check (SKiDL 3.0 ERC), generated by design.py\n\n")
         f.write(buf.getvalue() or "No ERC messages.\n")
-        f.write("\nWaivers (intentional modelling choices, reviewed):\n"
+        f.write("\nWaivers (intentional modelling choices, reviewed):\n" + (
                 "W1  STM32L4R5ZIT6 port pins are typed PASSIVE: each pin's direction is set by the firmware (obc_pinmap.csv).\n"
                 "W2  Rails entering through connectors or switches (3V3_OBC, 3V3_ADCS, 3V3_RTC, VBAT_MTQ, JET_3V3, 3V3_GNSS,\n"
                 "    VDDA, 3V3_VTREF and the TPS2553 outputs) are declared driven (net.drive = POWER).\n"
                 "W3  Pins marked NOCONNECT are open on purpose: datasheet NC pins, unused M-G370 SOUT/GPIO2, BMI088 INT1/2/4,\n"
                 "    unused HC4060 stages, ADS7138 ALERT, RV-3028 INT, unused ESD channels and the MCU spare pins.\n"
                 "W4  TPS3850 RESET and WDO, and the three DRV8876 nFAULT outputs, are open drain wired-OR by design.\n"
-                "W5  NRST is bidirectional: the MCU drives it low on internal resets; the supervisor's outputs are open drain.\n")
-    generate_netlist(file_=os.path.join(HERE, "obc_board.net"), tool=KICAD8)
-    with open(os.path.join(HERE, "obc_board_nets.csv"), "w", newline="") as f:
+                "W5  NRST is bidirectional: the MCU drives it low on internal resets; the supervisor's outputs are open drain.\n"
+                if pinmap else
+                "W1  3V3_SNS enters on J1 from the OBC's latch-up switch U7 and is declared driven (net.drive = POWER).\n"
+                "W2  MagI2C NC pins 21 and 24 are open (PNI table 4-1).\n"))
+    generate_netlist(file_=os.path.join(HERE, f"{stem}.net"), tool=KICAD8)
+    with open(os.path.join(HERE, f"{stem}_nets.csv"), "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["net", "pins"])
         for net in sorted(circ.nets, key=lambda n: n.name):
@@ -1025,12 +1050,12 @@ def outputs():
         rows.append([" ".join(refs), len(refs), value + (" (DNP)" if dnp else ""), mpn, info["mfr"], info["pkg"],
                      info["rating"], "; ".join(stresses)[:400], "; ".join(notes)[:400], info["finish"], info["checked"]])
     rows.sort(key=lambda r: refkey(r[0].split()[0]))
-    with open(os.path.join(HERE, "obc_board_bom.csv"), "w", newline="") as f:
+    with open(os.path.join(HERE, f"{stem}_bom.csv"), "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["Reference", "Qty", "Value", "MPN", "Manufacturer", "Package", "Rating", "Derated stress", "Notes",
                     "Terminal finish / tin mitigation", "MPN check"])
         w.writerows(rows)
-    with open(os.path.join(HERE, "obc_pinmap.csv"), "w", newline="") as f:
+    with open(os.path.join(HERE, "obc_pinmap.csv"), "w", newline="") if pinmap else io.StringIO() as f:
         w = csv.writer(f)
         w.writerow(["LQFP144 pin", "port pin", "net", "function", "dir", "level", "default at reset", "connector / board"])
         num = {tok.split(":")[1]: tok.split(":")[0] for tok in LQFP144.split()}
@@ -1040,11 +1065,19 @@ def outputs():
         if os.path.exists(os.path.join(HERE, junk)):
             os.remove(os.path.join(HERE, junk))
     total = sum(r[1] for r in rows)
-    print(f"parts: {total} placements, {len(rows)} BOM lines, {len([n for n in circ.nets if n.pins])} nets, "
-          f"{len(PINMAP)} MCU signal pins mapped, {len(SPARES)} spare")
+    print(f"{stem}: {total} placements, {len(rows)} BOM lines, {len([n for n in circ.nets if n.pins])} nets"
+          + (f", {len(PINMAP)} MCU signal pins mapped, {len(SPARES)} spare" if pinmap else ""))
 
 
 if __name__ == "__main__":
     os.chdir(HERE)
     build()
     outputs()
+    # the magnetometer board (A2) as its own netlist, BOM and ERC
+    skidl.reset()
+    _nets.clear()
+    BOMINFO.clear()
+    AUTOREF.clear()
+    set_default_tool(SKIDL)
+    mag_board()
+    outputs("mag_board", "SQSO-OBC-BRD-001 A2 (magnetometer board)", pinmap=False)
