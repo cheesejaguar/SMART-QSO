@@ -54,10 +54,14 @@ pub struct Loads {
     pub w_3v3: f64,
     /// On the 5 V rail other than the payload (PA), W
     pub w_5v: f64,
-    /// The payload (Jetson) on the 5 V rail, W
+    /// The payload (Jetson) at its carrier's input, W: VBAT through SW1 and
+    /// the eFuse U19 (SQSO-EPS-BRD-001 B; the carrier makes its own 5 V)
     pub w_payload: f64,
     /// Straight from the pack (heater), W
     pub w_vbat: f64,
+    /// Of `w_vbat`, the magnetorquers' (SW11), W: dissipated in the rods
+    /// and bridges, not the battery
+    pub w_mtq: f64,
     /// Burn-wire current straight from the pack, A
     pub burn_a: f64,
 }
@@ -156,7 +160,7 @@ impl Eps {
     pub fn step(&mut self, dt: f64, array_mpp_w: f64, array_v: f64, loads: &Loads, batt_c: f64) -> EpsOut {
         let mut out = EpsOut { array_mpp_w, ..EpsOut::default() };
         let available = if self.passivated { 0.0 } else { array_mpp_w * (1.0 - DIODE_LOSS) * MPPT_EFF };
-        let bus_load = loads.w_3v3 / BUCK_3V3_EFF + (loads.w_5v + loads.w_payload) / BUCK_5V_EFF + loads.w_vbat;
+        let bus_load = loads.w_3v3 / BUCK_3V3_EFF + loads.w_5v / BUCK_5V_EFF + loads.w_payload + loads.w_vbat;
         let bus_load = if self.uv_cut { 0.0 } else { bus_load + QUIESCENT_W };
         let ocv = self.pack.ocv();
         let cell_ocv = ocv / CELLS;
@@ -211,7 +215,7 @@ impl Eps {
         };
         out.loss_w = out.array_w * (1.0 - MPPT_EFF)
             + loads.w_3v3 * (1.0 / BUCK_3V3_EFF - 1.0)
-            + (loads.w_5v + loads.w_payload) * (1.0 / BUCK_5V_EFF - 1.0)
+            + loads.w_5v * (1.0 / BUCK_5V_EFF - 1.0)
             + QUIESCENT_W;
         out.pack_heat_w = self.pack.heat_w(i);
         self.gauge_step(dt, i, cell_ocv);
@@ -262,7 +266,9 @@ impl Eps {
             vsolar_v: if out.array_mpp_w > 0.05 { array_v } else { 0.2 },
             isolar_a: if array_v > 0.5 { out.array_w / array_v } else { 0.0 },
             vbus_v: if self.uv_cut { 0.0 } else { 5.02 },
-            ibus_a: loads.w_payload / 5.02,
+            ibus_a: loads.w_5v / 5.02,
+            // The Jetson's rail is at VBAT (the eFuse U19's IMON, IMON_JET)
+            ijet_a: loads.w_payload / out.vbat.max(1.0),
         }
     }
 }

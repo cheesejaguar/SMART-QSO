@@ -12,133 +12,133 @@
 <!-- J_EPS_JET -->
 <g id="node1" class="node">
 <title>J_EPS_JET</title>
-<polygon fill="#ffffff" stroke="black" points="743,-175 364,-175 364,-14 743,-14 743,-175"/>
-<polygon fill="none" stroke="black" points="364.5,-151.5 364.5,-174.5 743.5,-174.5 743.5,-151.5 364.5,-151.5"/>
-<text text-anchor="start" x="520.5" y="-159.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET</text>
-<polygon fill="none" stroke="black" points="364.5,-128.5 364.5,-151.5 651.5,-151.5 651.5,-128.5 364.5,-128.5"/>
-<text text-anchor="start" x="368.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">Molex Micro&#45;Fit 3.0 header 0430450412</text>
-<polygon fill="none" stroke="black" points="651.5,-128.5 651.5,-151.5 698.5,-151.5 698.5,-128.5 651.5,-128.5"/>
-<text text-anchor="start" x="655.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4 pos</text>
-<polygon fill="none" stroke="black" points="698.5,-128.5 698.5,-151.5 743.5,-151.5 743.5,-128.5 698.5,-128.5"/>
-<text text-anchor="start" x="702.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4&#45;pin</text>
-<polygon fill="none" stroke="black" points="364.5,-105.5 364.5,-128.5 581.5,-128.5 581.5,-105.5 364.5,-105.5"/>
-<text text-anchor="start" x="440.5" y="-113.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_JET</text>
-<polygon fill="none" stroke="black" points="581.5,-105.5 581.5,-128.5 743.5,-128.5 743.5,-105.5 581.5,-105.5"/>
-<text text-anchor="start" x="657.5" y="-113.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
-<polygon fill="none" stroke="black" points="364.5,-82.5 364.5,-105.5 581.5,-105.5 581.5,-82.5 364.5,-82.5"/>
-<text text-anchor="start" x="440.5" y="-90.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_JET</text>
-<polygon fill="none" stroke="black" points="581.5,-82.5 581.5,-105.5 743.5,-105.5 743.5,-82.5 581.5,-82.5"/>
-<text text-anchor="start" x="657.5" y="-90.3" font-family="Helvetica,sans-Serif" font-size="14.00">2</text>
-<polygon fill="none" stroke="black" points="364.5,-59.5 364.5,-82.5 581.5,-82.5 581.5,-59.5 364.5,-59.5"/>
-<text text-anchor="start" x="457" y="-67.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="581.5,-59.5 581.5,-82.5 743.5,-82.5 743.5,-59.5 581.5,-59.5"/>
-<text text-anchor="start" x="657.5" y="-67.3" font-family="Helvetica,sans-Serif" font-size="14.00">3</text>
-<polygon fill="none" stroke="black" points="364.5,-36.5 364.5,-59.5 581.5,-59.5 581.5,-36.5 364.5,-36.5"/>
-<text text-anchor="start" x="457" y="-44.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="581.5,-36.5 581.5,-59.5 743.5,-59.5 743.5,-36.5 581.5,-36.5"/>
-<text text-anchor="start" x="657.5" y="-44.3" font-family="Helvetica,sans-Serif" font-size="14.00">4</text>
-<polygon fill="none" stroke="black" points="364.5,-13.5 364.5,-36.5 743.5,-36.5 743.5,-13.5 364.5,-13.5"/>
-<text text-anchor="start" x="378" y="-21.3" font-family="Helvetica,sans-Serif" font-size="14.00">EPS J18: VBAT_JET behind SW1 and the eFuse U19</text>
+<polygon fill="#ffffff" stroke="black" points="916.5,-175 190.5,-175 190.5,-14 916.5,-14 916.5,-175"/>
+<polygon fill="none" stroke="black" points="190.5,-151.5 190.5,-174.5 916.5,-174.5 916.5,-151.5 190.5,-151.5"/>
+<text text-anchor="start" x="520" y="-159.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET</text>
+<polygon fill="none" stroke="black" points="190.5,-128.5 190.5,-151.5 680.5,-151.5 680.5,-128.5 190.5,-128.5"/>
+<text text-anchor="start" x="230.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">Micro&#45;Fit 3.0 receptacle 43025&#45;0400, gold 43030 terminals</text>
+<polygon fill="none" stroke="black" points="680.5,-128.5 680.5,-151.5 799.5,-151.5 799.5,-128.5 680.5,-128.5"/>
+<text text-anchor="start" x="720.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4 pos</text>
+<polygon fill="none" stroke="black" points="799.5,-128.5 799.5,-151.5 916.5,-151.5 916.5,-128.5 799.5,-128.5"/>
+<text text-anchor="start" x="839.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4&#45;pin</text>
+<polygon fill="none" stroke="black" points="190.5,-105.5 190.5,-128.5 581.5,-128.5 581.5,-105.5 190.5,-105.5"/>
+<text text-anchor="start" x="353.5" y="-113.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_JET</text>
+<polygon fill="none" stroke="black" points="581.5,-105.5 581.5,-128.5 916.5,-128.5 916.5,-105.5 581.5,-105.5"/>
+<text text-anchor="start" x="744" y="-113.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
+<polygon fill="none" stroke="black" points="190.5,-82.5 190.5,-105.5 581.5,-105.5 581.5,-82.5 190.5,-82.5"/>
+<text text-anchor="start" x="353.5" y="-90.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_JET</text>
+<polygon fill="none" stroke="black" points="581.5,-82.5 581.5,-105.5 916.5,-105.5 916.5,-82.5 581.5,-82.5"/>
+<text text-anchor="start" x="744" y="-90.3" font-family="Helvetica,sans-Serif" font-size="14.00">2</text>
+<polygon fill="none" stroke="black" points="190.5,-59.5 190.5,-82.5 581.5,-82.5 581.5,-59.5 190.5,-59.5"/>
+<text text-anchor="start" x="370" y="-67.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="581.5,-59.5 581.5,-82.5 916.5,-82.5 916.5,-59.5 581.5,-59.5"/>
+<text text-anchor="start" x="744" y="-67.3" font-family="Helvetica,sans-Serif" font-size="14.00">3</text>
+<polygon fill="none" stroke="black" points="190.5,-36.5 190.5,-59.5 581.5,-59.5 581.5,-36.5 190.5,-36.5"/>
+<text text-anchor="start" x="370" y="-44.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="581.5,-36.5 581.5,-59.5 916.5,-59.5 916.5,-36.5 581.5,-36.5"/>
+<text text-anchor="start" x="744" y="-44.3" font-family="Helvetica,sans-Serif" font-size="14.00">4</text>
+<polygon fill="none" stroke="black" points="190.5,-13.5 190.5,-36.5 916.5,-36.5 916.5,-13.5 190.5,-13.5"/>
+<text text-anchor="start" x="194.5" y="-21.3" font-family="Helvetica,sans-Serif" font-size="14.00">EPS J18 (right&#45;angle gold header, EPS bottom side, zone Z2): VBAT_JET behind SW1 and the eFuse U19</text>
 </g>
 <!-- W5A -->
 <g id="node5" class="node">
 <title>W5A</title>
-<polygon fill="#ffffff" stroke="black" stroke-dasharray="5,2" points="2264,-207 1477,-207 1477,0 2264,0 2264,-207"/>
-<polygon fill="none" stroke="black" points="1477.5,-183.5 1477.5,-206.5 2264.5,-206.5 2264.5,-183.5 1477.5,-183.5"/>
-<text text-anchor="start" x="1854.5" y="-191.3" font-family="Helvetica,sans-Serif" font-size="14.00">W5A</text>
-<polygon fill="none" stroke="black" points="1477.5,-160.5 1477.5,-183.5 1719.5,-183.5 1719.5,-160.5 1477.5,-160.5"/>
-<text text-anchor="start" x="1589.5" y="-168.3" font-family="Helvetica,sans-Serif" font-size="14.00">4x</text>
-<polygon fill="none" stroke="black" points="1719.5,-160.5 1719.5,-183.5 1999.5,-183.5 1999.5,-160.5 1719.5,-160.5"/>
-<text text-anchor="start" x="1831.5" y="-168.3" font-family="Helvetica,sans-Serif" font-size="14.00">22 AWG</text>
-<polygon fill="none" stroke="black" points="1999.5,-160.5 1999.5,-183.5 2264.5,-183.5 2264.5,-160.5 1999.5,-160.5"/>
-<text text-anchor="start" x="2111.5" y="-168.3" font-family="Helvetica,sans-Serif" font-size="14.00">0.1 m</text>
-<text text-anchor="start" x="1620" y="-147.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
-<text text-anchor="start" x="1548.5" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET:1:VBAT_JET</text>
-<text text-anchor="start" x="1838" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;RD &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2040" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_PWR:1:VBAT_JET</text>
-<polygon fill="#000000" stroke="transparent" points="1477.5,-120.5 1477.5,-122.5 2264.5,-122.5 2264.5,-120.5 1477.5,-120.5"/>
-<polygon fill="#ff0000" stroke="transparent" points="1477.5,-118.5 1477.5,-120.5 2264.5,-120.5 2264.5,-118.5 1477.5,-118.5"/>
-<polygon fill="#000000" stroke="transparent" points="1477.5,-116.5 1477.5,-118.5 2264.5,-118.5 2264.5,-116.5 1477.5,-116.5"/>
-<text text-anchor="start" x="1548.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET:2:VBAT_JET</text>
-<text text-anchor="start" x="1838" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;RD &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2040" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_PWR:2:VBAT_JET</text>
-<polygon fill="#000000" stroke="transparent" points="1477.5,-95.5 1477.5,-97.5 2264.5,-97.5 2264.5,-95.5 1477.5,-95.5"/>
-<polygon fill="#ff0000" stroke="transparent" points="1477.5,-93.5 1477.5,-95.5 2264.5,-95.5 2264.5,-93.5 1477.5,-93.5"/>
-<polygon fill="#000000" stroke="transparent" points="1477.5,-91.5 1477.5,-93.5 2264.5,-93.5 2264.5,-91.5 1477.5,-91.5"/>
-<text text-anchor="start" x="1565" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET:3:GND</text>
-<text text-anchor="start" x="1838.5" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2056.5" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_PWR:3:GND</text>
-<polygon fill="#000000" stroke="transparent" points="1477.5,-70.5 1477.5,-72.5 2264.5,-72.5 2264.5,-70.5 1477.5,-70.5"/>
-<polygon fill="#000000" stroke="transparent" points="1477.5,-68.5 1477.5,-70.5 2264.5,-70.5 2264.5,-68.5 1477.5,-68.5"/>
-<polygon fill="#000000" stroke="transparent" points="1477.5,-66.5 1477.5,-68.5 2264.5,-68.5 2264.5,-66.5 1477.5,-66.5"/>
-<text text-anchor="start" x="1565" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET:4:GND</text>
-<text text-anchor="start" x="1838.5" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2056.5" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_PWR:4:GND</text>
-<polygon fill="#000000" stroke="transparent" points="1477.5,-45.5 1477.5,-47.5 2264.5,-47.5 2264.5,-45.5 1477.5,-45.5"/>
-<polygon fill="#000000" stroke="transparent" points="1477.5,-43.5 1477.5,-45.5 2264.5,-45.5 2264.5,-43.5 1477.5,-43.5"/>
-<polygon fill="#000000" stroke="transparent" points="1477.5,-41.5 1477.5,-43.5 2264.5,-43.5 2264.5,-41.5 1477.5,-41.5"/>
-<text text-anchor="start" x="1620" y="-28.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
-<polygon fill="none" stroke="black" points="1477.5,0.5 1477.5,-22.5 2264.5,-22.5 2264.5,0.5 1477.5,0.5"/>
-<text text-anchor="start" x="1481.5" y="-7.3" font-family="Helvetica,sans-Serif" font-size="14.00">2 x 22 AWG per pole: 0.93 A over two wires at the 12 W guard, 22 AWG derated 2 A (SQSO&#45;HAR&#45;001 5.2): 23 %</text>
+<polygon fill="#ffffff" stroke="black" stroke-dasharray="5,2" points="2169.5,-207 1571.5,-207 1571.5,0 2169.5,0 2169.5,-207"/>
+<polygon fill="none" stroke="black" points="1571.5,-183.5 1571.5,-206.5 2169.5,-206.5 2169.5,-183.5 1571.5,-183.5"/>
+<text text-anchor="start" x="1854" y="-191.3" font-family="Helvetica,sans-Serif" font-size="14.00">W5A</text>
+<polygon fill="none" stroke="black" points="1571.5,-160.5 1571.5,-183.5 1744.5,-183.5 1744.5,-160.5 1571.5,-160.5"/>
+<text text-anchor="start" x="1649" y="-168.3" font-family="Helvetica,sans-Serif" font-size="14.00">4x</text>
+<polygon fill="none" stroke="black" points="1744.5,-160.5 1744.5,-183.5 1955.5,-183.5 1955.5,-160.5 1744.5,-160.5"/>
+<text text-anchor="start" x="1822" y="-168.3" font-family="Helvetica,sans-Serif" font-size="14.00">24 AWG</text>
+<polygon fill="none" stroke="black" points="1955.5,-160.5 1955.5,-183.5 2169.5,-183.5 2169.5,-160.5 1955.5,-160.5"/>
+<text text-anchor="start" x="2033" y="-168.3" font-family="Helvetica,sans-Serif" font-size="14.00">0.105 m</text>
+<text text-anchor="start" x="1682.5" y="-147.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
+<text text-anchor="start" x="1611" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET:1:VBAT_JET</text>
+<text text-anchor="start" x="1837.5" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;RD &#160;&#160;&#160;</text>
+<text text-anchor="start" x="1976.5" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_PWR:1:VBAT_JET</text>
+<polygon fill="#000000" stroke="transparent" points="1571.5,-120.5 1571.5,-122.5 2169.5,-122.5 2169.5,-120.5 1571.5,-120.5"/>
+<polygon fill="#ff0000" stroke="transparent" points="1571.5,-118.5 1571.5,-120.5 2169.5,-120.5 2169.5,-118.5 1571.5,-118.5"/>
+<polygon fill="#000000" stroke="transparent" points="1571.5,-116.5 1571.5,-118.5 2169.5,-118.5 2169.5,-116.5 1571.5,-116.5"/>
+<text text-anchor="start" x="1611" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET:2:VBAT_JET</text>
+<text text-anchor="start" x="1837.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;RD &#160;&#160;&#160;</text>
+<text text-anchor="start" x="1976.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_PWR:2:VBAT_JET</text>
+<polygon fill="#000000" stroke="transparent" points="1571.5,-95.5 1571.5,-97.5 2169.5,-97.5 2169.5,-95.5 1571.5,-95.5"/>
+<polygon fill="#ff0000" stroke="transparent" points="1571.5,-93.5 1571.5,-95.5 2169.5,-95.5 2169.5,-93.5 1571.5,-93.5"/>
+<polygon fill="#000000" stroke="transparent" points="1571.5,-91.5 1571.5,-93.5 2169.5,-93.5 2169.5,-91.5 1571.5,-91.5"/>
+<text text-anchor="start" x="1627.5" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET:3:GND</text>
+<text text-anchor="start" x="1838" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
+<text text-anchor="start" x="1993" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_PWR:3:GND</text>
+<polygon fill="#000000" stroke="transparent" points="1571.5,-70.5 1571.5,-72.5 2169.5,-72.5 2169.5,-70.5 1571.5,-70.5"/>
+<polygon fill="#000000" stroke="transparent" points="1571.5,-68.5 1571.5,-70.5 2169.5,-70.5 2169.5,-68.5 1571.5,-68.5"/>
+<polygon fill="#000000" stroke="transparent" points="1571.5,-66.5 1571.5,-68.5 2169.5,-68.5 2169.5,-66.5 1571.5,-66.5"/>
+<text text-anchor="start" x="1627.5" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS_JET:4:GND</text>
+<text text-anchor="start" x="1838" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
+<text text-anchor="start" x="1993" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_PWR:4:GND</text>
+<polygon fill="#000000" stroke="transparent" points="1571.5,-45.5 1571.5,-47.5 2169.5,-47.5 2169.5,-45.5 1571.5,-45.5"/>
+<polygon fill="#000000" stroke="transparent" points="1571.5,-43.5 1571.5,-45.5 2169.5,-45.5 2169.5,-43.5 1571.5,-43.5"/>
+<polygon fill="#000000" stroke="transparent" points="1571.5,-41.5 1571.5,-43.5 2169.5,-43.5 2169.5,-41.5 1571.5,-41.5"/>
+<text text-anchor="start" x="1682.5" y="-28.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
+<polygon fill="none" stroke="black" points="1571.5,0.5 1571.5,-22.5 2169.5,-22.5 2169.5,0.5 1571.5,0.5"/>
+<text text-anchor="start" x="1575.5" y="-7.3" font-family="Helvetica,sans-Serif" font-size="14.00">M22759/33&#45;24, twisted quad (1+3, 2+4); 1.4 A design current on two wires per pole</text>
 </g>
 <!-- J_EPS_JET&#45;&#45;W5A -->
 <g id="edge1" class="edge">
 <title>J_EPS_JET:e&#45;&#45;W5A:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M744.5,-115.5C1069.88,-115.5 1151.21,-117.5 1476.5,-117.5"/>
-<path fill="none" stroke="#ff0000" stroke-width="2" d="M744.5,-117.5C1069.83,-117.5 1151.17,-119.5 1476.5,-119.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M744.5,-119.5C1069.79,-119.5 1151.12,-121.5 1476.5,-121.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M917.5,-115.5C1207.78,-115.5 1280.33,-117.5 1570.5,-117.5"/>
+<path fill="none" stroke="#ff0000" stroke-width="2" d="M917.5,-117.5C1207.72,-117.5 1280.28,-119.5 1570.5,-119.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M917.5,-119.5C1207.67,-119.5 1280.22,-121.5 1570.5,-121.5"/>
 </g>
 <!-- J_EPS_JET&#45;&#45;W5A -->
 <g id="edge3" class="edge">
 <title>J_EPS_JET:e&#45;&#45;W5A:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M744.5,-91.5C1069.86,-91.5 1151.19,-92.5 1476.5,-92.5"/>
-<path fill="none" stroke="#ff0000" stroke-width="2" d="M744.5,-93.5C1069.83,-93.5 1151.17,-94.5 1476.5,-94.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M744.5,-95.5C1069.81,-95.5 1151.14,-96.5 1476.5,-96.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M917.5,-91.5C1207.75,-91.5 1280.31,-92.5 1570.5,-92.5"/>
+<path fill="none" stroke="#ff0000" stroke-width="2" d="M917.5,-93.5C1207.72,-93.5 1280.28,-94.5 1570.5,-94.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M917.5,-95.5C1207.69,-95.5 1280.25,-96.5 1570.5,-96.5"/>
 </g>
 <!-- J_EPS_JET&#45;&#45;W5A -->
 <g id="edge5" class="edge">
 <title>J_EPS_JET:e&#45;&#45;W5A:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M744.5,-68.5C1069.81,-68.5 1151.14,-67.5 1476.5,-67.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M744.5,-70.5C1069.83,-70.5 1151.17,-69.5 1476.5,-69.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M744.5,-72.5C1069.86,-72.5 1151.19,-71.5 1476.5,-71.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M917.5,-68.5C1207.69,-68.5 1280.25,-67.5 1570.5,-67.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M917.5,-70.5C1207.72,-70.5 1280.28,-69.5 1570.5,-69.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M917.5,-72.5C1207.75,-72.5 1280.31,-71.5 1570.5,-71.5"/>
 </g>
 <!-- J_EPS_JET&#45;&#45;W5A -->
 <g id="edge7" class="edge">
 <title>J_EPS_JET:e&#45;&#45;W5A:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M744.5,-45.5C1069.76,-45.5 1151.09,-42.5 1476.5,-42.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M744.5,-47.5C1069.84,-47.5 1151.16,-44.5 1476.5,-44.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M744.5,-49.5C1069.91,-49.5 1151.24,-46.5 1476.5,-46.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M917.5,-45.5C1207.64,-45.5 1280.19,-42.5 1570.5,-42.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M917.5,-47.5C1207.73,-47.5 1280.27,-44.5 1570.5,-44.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M917.5,-49.5C1207.81,-49.5 1280.36,-46.5 1570.5,-46.5"/>
 </g>
 <!-- J_JET_PWR -->
 <g id="node2" class="node">
 <title>J_JET_PWR</title>
-<polygon fill="#ffffff" stroke="black" points="3325,-175 2822,-175 2822,-14 3325,-14 3325,-175"/>
-<polygon fill="none" stroke="black" points="2822.5,-151.5 2822.5,-174.5 3325.5,-174.5 3325.5,-151.5 2822.5,-151.5"/>
+<polygon fill="#ffffff" stroke="black" points="3462,-175 2685,-175 2685,-14 3462,-14 3462,-175"/>
+<polygon fill="none" stroke="black" points="2685.5,-151.5 2685.5,-174.5 3462.5,-174.5 3462.5,-151.5 2685.5,-151.5"/>
 <text text-anchor="start" x="3038" y="-159.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_PWR</text>
-<polygon fill="none" stroke="black" points="2822.5,-128.5 2822.5,-151.5 3151.5,-151.5 3151.5,-128.5 2822.5,-128.5"/>
-<text text-anchor="start" x="2847.5" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">Molex Micro&#45;Fit 3.0 header 0430450412</text>
-<polygon fill="none" stroke="black" points="3151.5,-128.5 3151.5,-151.5 3239.5,-151.5 3239.5,-128.5 3151.5,-128.5"/>
-<text text-anchor="start" x="3176" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4 pos</text>
-<polygon fill="none" stroke="black" points="3239.5,-128.5 3239.5,-151.5 3325.5,-151.5 3325.5,-128.5 3239.5,-128.5"/>
-<text text-anchor="start" x="3264" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4&#45;pin</text>
-<polygon fill="none" stroke="black" points="2822.5,-105.5 2822.5,-128.5 3046.5,-128.5 3046.5,-105.5 2822.5,-105.5"/>
-<text text-anchor="start" x="2929.5" y="-113.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
-<polygon fill="none" stroke="black" points="3046.5,-105.5 3046.5,-128.5 3325.5,-128.5 3325.5,-105.5 3046.5,-105.5"/>
-<text text-anchor="start" x="3153.5" y="-113.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_JET</text>
-<polygon fill="none" stroke="black" points="2822.5,-82.5 2822.5,-105.5 3046.5,-105.5 3046.5,-82.5 2822.5,-82.5"/>
-<text text-anchor="start" x="2929.5" y="-90.3" font-family="Helvetica,sans-Serif" font-size="14.00">2</text>
-<polygon fill="none" stroke="black" points="3046.5,-82.5 3046.5,-105.5 3325.5,-105.5 3325.5,-82.5 3046.5,-82.5"/>
-<text text-anchor="start" x="3153.5" y="-90.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_JET</text>
-<polygon fill="none" stroke="black" points="2822.5,-59.5 2822.5,-82.5 3046.5,-82.5 3046.5,-59.5 2822.5,-59.5"/>
-<text text-anchor="start" x="2929.5" y="-67.3" font-family="Helvetica,sans-Serif" font-size="14.00">3</text>
-<polygon fill="none" stroke="black" points="3046.5,-59.5 3046.5,-82.5 3325.5,-82.5 3325.5,-59.5 3046.5,-59.5"/>
-<text text-anchor="start" x="3170" y="-67.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="2822.5,-36.5 2822.5,-59.5 3046.5,-59.5 3046.5,-36.5 2822.5,-36.5"/>
-<text text-anchor="start" x="2929.5" y="-44.3" font-family="Helvetica,sans-Serif" font-size="14.00">4</text>
-<polygon fill="none" stroke="black" points="3046.5,-36.5 3046.5,-59.5 3325.5,-59.5 3325.5,-36.5 3046.5,-36.5"/>
-<text text-anchor="start" x="3170" y="-44.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="2822.5,-13.5 2822.5,-36.5 3325.5,-36.5 3325.5,-13.5 2822.5,-13.5"/>
-<text text-anchor="start" x="2826.5" y="-21.3" font-family="Helvetica,sans-Serif" font-size="14.00">carrier J1: DC input 11.2&#45;16.4 V; TVS2200, LC filter, LM61440 5 V buck</text>
+<polygon fill="none" stroke="black" points="2685.5,-128.5 2685.5,-151.5 3192.5,-151.5 3192.5,-128.5 2685.5,-128.5"/>
+<text text-anchor="start" x="2734" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">Micro&#45;Fit 3.0 receptacle 43025&#45;0400, gold 43030 terminals</text>
+<polygon fill="none" stroke="black" points="3192.5,-128.5 3192.5,-151.5 3328.5,-151.5 3328.5,-128.5 3192.5,-128.5"/>
+<text text-anchor="start" x="3241" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4 pos</text>
+<polygon fill="none" stroke="black" points="3328.5,-128.5 3328.5,-151.5 3462.5,-151.5 3462.5,-128.5 3328.5,-128.5"/>
+<text text-anchor="start" x="3377" y="-136.3" font-family="Helvetica,sans-Serif" font-size="14.00">4&#45;pin</text>
+<polygon fill="none" stroke="black" points="2685.5,-105.5 2685.5,-128.5 3046.5,-128.5 3046.5,-105.5 2685.5,-105.5"/>
+<text text-anchor="start" x="2861" y="-113.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
+<polygon fill="none" stroke="black" points="3046.5,-105.5 3046.5,-128.5 3462.5,-128.5 3462.5,-105.5 3046.5,-105.5"/>
+<text text-anchor="start" x="3222" y="-113.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_JET</text>
+<polygon fill="none" stroke="black" points="2685.5,-82.5 2685.5,-105.5 3046.5,-105.5 3046.5,-82.5 2685.5,-82.5"/>
+<text text-anchor="start" x="2861" y="-90.3" font-family="Helvetica,sans-Serif" font-size="14.00">2</text>
+<polygon fill="none" stroke="black" points="3046.5,-82.5 3046.5,-105.5 3462.5,-105.5 3462.5,-82.5 3046.5,-82.5"/>
+<text text-anchor="start" x="3222" y="-90.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_JET</text>
+<polygon fill="none" stroke="black" points="2685.5,-59.5 2685.5,-82.5 3046.5,-82.5 3046.5,-59.5 2685.5,-59.5"/>
+<text text-anchor="start" x="2861" y="-67.3" font-family="Helvetica,sans-Serif" font-size="14.00">3</text>
+<polygon fill="none" stroke="black" points="3046.5,-59.5 3046.5,-82.5 3462.5,-82.5 3462.5,-59.5 3046.5,-59.5"/>
+<text text-anchor="start" x="3238.5" y="-67.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="2685.5,-36.5 2685.5,-59.5 3046.5,-59.5 3046.5,-36.5 2685.5,-36.5"/>
+<text text-anchor="start" x="2861" y="-44.3" font-family="Helvetica,sans-Serif" font-size="14.00">4</text>
+<polygon fill="none" stroke="black" points="3046.5,-36.5 3046.5,-59.5 3462.5,-59.5 3462.5,-36.5 3046.5,-36.5"/>
+<text text-anchor="start" x="3238.5" y="-44.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="2685.5,-13.5 2685.5,-36.5 3462.5,-36.5 3462.5,-13.5 2685.5,-13.5"/>
+<text text-anchor="start" x="2689.5" y="-21.3" font-family="Helvetica,sans-Serif" font-size="14.00">carrier J1 (right&#45;angle gold header, plug from &#45;X): DC input 11.2&#45;16.4 V; TVS2200, LC filter, LM61440 5 V buck</text>
 </g>
 <!-- J_OBC_JET -->
 <g id="node3" class="node">
@@ -185,12 +185,12 @@
 <polygon fill="#ffffff" stroke="black" stroke-dasharray="5,2" points="2490,-488 1251,-488 1251,-231 2490,-231 2490,-488"/>
 <polygon fill="none" stroke="black" points="1251.5,-464.5 1251.5,-487.5 2490.5,-487.5 2490.5,-464.5 1251.5,-464.5"/>
 <text text-anchor="start" x="1854.5" y="-472.3" font-family="Helvetica,sans-Serif" font-size="14.00">W5B</text>
-<polygon fill="none" stroke="black" points="1251.5,-441.5 1251.5,-464.5 1644.5,-464.5 1644.5,-441.5 1251.5,-441.5"/>
-<text text-anchor="start" x="1439" y="-449.3" font-family="Helvetica,sans-Serif" font-size="14.00">6x</text>
-<polygon fill="none" stroke="black" points="1644.5,-441.5 1644.5,-464.5 2075.5,-464.5 2075.5,-441.5 1644.5,-441.5"/>
-<text text-anchor="start" x="1832" y="-449.3" font-family="Helvetica,sans-Serif" font-size="14.00">28 AWG</text>
-<polygon fill="none" stroke="black" points="2075.5,-441.5 2075.5,-464.5 2490.5,-464.5 2490.5,-441.5 2075.5,-441.5"/>
-<text text-anchor="start" x="2262.5" y="-449.3" font-family="Helvetica,sans-Serif" font-size="14.00">0.1 m</text>
+<polygon fill="none" stroke="black" points="1251.5,-441.5 1251.5,-464.5 1641.5,-464.5 1641.5,-441.5 1251.5,-441.5"/>
+<text text-anchor="start" x="1437.5" y="-449.3" font-family="Helvetica,sans-Serif" font-size="14.00">6x</text>
+<polygon fill="none" stroke="black" points="1641.5,-441.5 1641.5,-464.5 2069.5,-464.5 2069.5,-441.5 1641.5,-441.5"/>
+<text text-anchor="start" x="1827.5" y="-449.3" font-family="Helvetica,sans-Serif" font-size="14.00">28 AWG</text>
+<polygon fill="none" stroke="black" points="2069.5,-441.5 2069.5,-464.5 2490.5,-464.5 2490.5,-441.5 2069.5,-441.5"/>
+<text text-anchor="start" x="2255" y="-449.3" font-family="Helvetica,sans-Serif" font-size="14.00">0.06 m</text>
 <text text-anchor="start" x="1486" y="-428.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
 <text text-anchor="start" x="1429.5" y="-409.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC_JET:1:GND</text>
 <text text-anchor="start" x="1837.5" y="-409.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
@@ -316,30 +316,30 @@
 <!-- W5A&#45;&#45;J_JET_PWR -->
 <g id="edge2" class="edge">
 <title>W5A:e&#45;&#45;J_JET_PWR:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2265.5,-117.5C2512.55,-117.5 2574.32,-115.5 2821.5,-115.5"/>
-<path fill="none" stroke="#ff0000" stroke-width="2" d="M2265.5,-119.5C2512.61,-119.5 2574.39,-117.5 2821.5,-117.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2265.5,-121.5C2512.68,-121.5 2574.45,-119.5 2821.5,-119.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2170.5,-117.5C2398.88,-117.5 2455.98,-115.5 2684.5,-115.5"/>
+<path fill="none" stroke="#ff0000" stroke-width="2" d="M2170.5,-119.5C2398.95,-119.5 2456.05,-117.5 2684.5,-117.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2170.5,-121.5C2399.02,-121.5 2456.12,-119.5 2684.5,-119.5"/>
 </g>
 <!-- W5A&#45;&#45;J_JET_PWR -->
 <g id="edge4" class="edge">
 <title>W5A:e&#45;&#45;J_JET_PWR:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2265.5,-92.5C2512.58,-92.5 2574.36,-91.5 2821.5,-91.5"/>
-<path fill="none" stroke="#ff0000" stroke-width="2" d="M2265.5,-94.5C2512.61,-94.5 2574.39,-93.5 2821.5,-93.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2265.5,-96.5C2512.64,-96.5 2574.42,-95.5 2821.5,-95.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2170.5,-92.5C2398.91,-92.5 2456.02,-91.5 2684.5,-91.5"/>
+<path fill="none" stroke="#ff0000" stroke-width="2" d="M2170.5,-94.5C2398.94,-94.5 2456.06,-93.5 2684.5,-93.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2170.5,-96.5C2398.98,-96.5 2456.09,-95.5 2684.5,-95.5"/>
 </g>
 <!-- W5A&#45;&#45;J_JET_PWR -->
 <g id="edge6" class="edge">
 <title>W5A:e&#45;&#45;J_JET_PWR:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2265.5,-67.5C2512.64,-67.5 2574.42,-68.5 2821.5,-68.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2265.5,-69.5C2512.61,-69.5 2574.39,-70.5 2821.5,-70.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2265.5,-71.5C2512.58,-71.5 2574.36,-72.5 2821.5,-72.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2170.5,-67.5C2398.98,-67.5 2456.09,-68.5 2684.5,-68.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2170.5,-69.5C2398.94,-69.5 2456.06,-70.5 2684.5,-70.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2170.5,-71.5C2398.91,-71.5 2456.02,-72.5 2684.5,-72.5"/>
 </g>
 <!-- W5A&#45;&#45;J_JET_PWR -->
 <g id="edge8" class="edge">
 <title>W5A:e&#45;&#45;J_JET_PWR:w</title>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2265.5,-42.5C2512.71,-42.5 2574.48,-45.5 2821.5,-45.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2265.5,-44.5C2512.61,-44.5 2574.39,-47.5 2821.5,-47.5"/>
-<path fill="none" stroke="#000000" stroke-width="2" d="M2265.5,-46.5C2512.52,-46.5 2574.29,-49.5 2821.5,-49.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2170.5,-42.5C2399.05,-42.5 2456.16,-45.5 2684.5,-45.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2170.5,-44.5C2398.95,-44.5 2456.05,-47.5 2684.5,-47.5"/>
+<path fill="none" stroke="#000000" stroke-width="2" d="M2170.5,-46.5C2398.84,-46.5 2455.95,-49.5 2684.5,-49.5"/>
 </g>
 <!-- W5B&#45;&#45;J_JET_UART -->
 <g id="edge10" class="edge">

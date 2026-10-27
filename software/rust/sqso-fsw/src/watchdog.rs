@@ -8,8 +8,59 @@
 //! [`Watchdog::check_task`] reports a stall and the caller logs it and saves
 //! state.
 //!
+//! The external supervisor (TPS3850H33-Q1, SQSO-OBC-BRD-001 B §6, RID
+//! AV-02) is kicked on the same condition: [`Supervisor`] gives its WDI
+//! line a falling edge every [`KICK_INTERVAL_MS`] while every task checks
+//! in, never sooner (the supervisor's window treats an edge within 5.6 s
+//! of the previous one as a fault), the first one 10 s after boot. A
+//! stalled task stops both refreshes; the internal watchdog (28–33 s) acts
+//! before the supervisor (33–45 s), which is the backstop for a dead LSI, an
+//! upset internal watchdog or a loop that refreshes too fast.
+//!
 //! @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
 //! @requirement SRS-F051 Save state before watchdog reset
+//! @requirement SRS-F146 External supervisor kick: a WDI falling edge every 10 s, only while every task has checked in
+
+/// WDI falling edges this far apart, ms (the supervisor's window: at most
+/// 5.6 s minimum, at least 33.3 s maximum)
+pub const KICK_INTERVAL_MS: u64 = 10_000;
+
+/// The WDI line of the external supervisor
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct Supervisor {
+    /// The line is high (a falling edge comes at the next healthy pass)
+    high: bool,
+    /// The last falling edge, ms (boot: the count starts at `start`)
+    last_edge_ms: u64,
+    /// Falling edges given
+    pub kicks: u32,
+}
+
+impl Supervisor {
+    /// The line low; the first edge [`KICK_INTERVAL_MS`] after `now_ms`
+    pub const fn new(now_ms: u64) -> Supervisor {
+        Supervisor { high: false, last_edge_ms: now_ms, kicks: 0 }
+    }
+
+    /// One refresh opportunity (`healthy`: every task checked in): the
+    /// level WDI must have now, if it changes
+    pub fn step(&mut self, now_ms: u64, healthy: bool) -> Option<bool> {
+        if !healthy {
+            return None;
+        }
+        if self.high {
+            self.high = false;
+            self.last_edge_ms = now_ms;
+            self.kicks = self.kicks.wrapping_add(1);
+            return Some(false);
+        }
+        if now_ms.saturating_sub(self.last_edge_ms) >= KICK_INTERVAL_MS {
+            self.high = true;
+            return Some(true);
+        }
+        None
+    }
+}
 
 /// Task slots (`WDT_MAX_TASKS`)
 pub const MAX_TASKS: usize = 8;
@@ -260,6 +311,21 @@ pub fn stall_message<const N: usize>(name: &[u8]) -> [u8; N] {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn supervisor_edges_every_ten_seconds_only_while_healthy() {
+        let mut s = Supervisor::new(1000);
+        assert_eq!(s.step(10_999, true), None, "the first edge 10 s after boot");
+        assert_eq!(s.step(11_000, true), Some(true));
+        assert_eq!(s.step(11_020, false), None, "a stall: no edge, the line stays high");
+        assert_eq!(s.step(11_040, true), Some(false));
+        assert_eq!(s.kicks, 1);
+        assert_eq!(s.step(20_000, true), None, "never within 10 s of the last edge");
+        assert_eq!(s.step(21_040, true), Some(true));
+        assert_eq!(s.step(21_060, true), Some(false));
+        assert_eq!(s.step(60_000, false), None, "stalled: the supervisor resets the OBC");
+        assert_eq!(Supervisor::default(), Supervisor::new(0));
+    }
 
     #[test]
     fn registration() {

@@ -230,7 +230,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-EPS-003 | EPS Electrical Design Specification | `hardware/eps/EPS_ELECTRICAL_DESIGN.md` | 1.3 | Draft |
 | SQSO-EPS-PDU-001 | Power Distribution Unit (PDU) Design Document | `hardware/eps/PDU_DESIGN.md` | 1.3 | Draft |
 | SQSO-EPS-SA-001 | Solar Array Design Document | `hardware/eps/SOLAR_ARRAY_DESIGN.md` | 2.1 | Draft |
-| SQSO-HAR-001 | Harness and Interconnect Design Document | `hardware/harness/HARNESS_DESIGN.md` | 1.2 | Draft |
+| SQSO-HAR-001 | Harness Design (wire list, routing, fill, derating, mass) | `hardware/harness/HARNESS_DESIGN.md` | 2.0 | Draft; CDR build-to harness design, not yet built |
 | SQSO-CDH-OBC-001 | On-Board Computer (OBC) Design Document | `hardware/obc/OBC_DESIGN.md` | 1.7 | Draft |
 | SQSO-OBC-003 | OBC Electrical Design Specification | `hardware/obc/OBC_ELECTRICAL_DESIGN.md` | 1.1 | Draft |
 | SQSO-OBC-002 | Storage Design Document | `hardware/obc/STORAGE_DESIGN.md` | 1.7 | Draft |

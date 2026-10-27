@@ -65,6 +65,12 @@ pub mod pin {
     pub const BURN_W2B: u32 = 23;
     /// EPS recharge-lockout clear pulse (output)
     pub const LOCK_CLR: u32 = 24;
+    /// Transponder repeat keyed (input)
+    pub const XPDR_KEY: u32 = 41;
+    /// Exciter keyed, PTT_EXCITER (input)
+    pub const PTT_EXC: u32 = 42;
+    /// The Jetson carrier's power-good (input)
+    pub const JET_PG: u32 = 43;
     /// The wing lines, [wing][resistor]
     pub const WING_LINES: [[u32; 2]; 2] = [[SOLAR_BURN, SOLAR_BURN_B], [ANTENNA_BURN, BURN_W2B]];
 }
@@ -91,6 +97,22 @@ pub mod adc {
     pub const TX_FWD: u32 = 8;
     /// Reflected power, W
     pub const TX_REV: u32 = 9;
+    /// The Jetson spreader thermistor, pin V (ratiometric)
+    pub const PT_NTC: u32 = 11;
+}
+
+/// The pin voltage of the spreader thermistor at `t_c` (10K3A curve, the
+/// OBC's 10.0 kΩ bias from VDDA = 3.3 V): the inverse of
+/// `sqso_fsw::sensors::spreader_temperature`
+pub fn ntc_volts(t_c: f64) -> f64 {
+    use sqso_fsw::sensors::spreader::{BIAS_OHMS, SH_A, SH_B, SH_C};
+    // C L^3 + B L + (A - 1/T) = 0 for L = ln R (Cardano: one real root)
+    let p = SH_B / SH_C;
+    let q = (SH_A - 1.0 / (t_c + 273.15)) / SH_C;
+    let d = (q * q / 4.0 + p * p * p / 27.0).sqrt();
+    let l = (-q / 2.0 + d).cbrt() + (-q / 2.0 - d).cbrt();
+    let r = l.exp();
+    3.3 * r / (BIAS_OHMS + r)
 }
 
 /// Why the OBC (re)started (`HalResetCause_t`)
@@ -259,6 +281,28 @@ impl Fsw {
         regs[1..].copy_from_slice(&block);
         // SAFETY: regs is a live buffer of its length
         let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
+        // IMON_JET, mA, LSB first
+        let ma = (t.ijet_a * 1000.0).round().clamp(0.0, 65_535.0) as u16;
+        let [lo, hi] = ma.to_le_bytes();
+        let imon = [eps_telemetry::IMON_JET, lo, hi];
+        // SAFETY: imon is a live buffer of its length
+        let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, eps_telemetry::ADDRESS, imon.as_ptr(), imon.len()) };
+        // The two INA228s, read by the OBC directly: the pack gauge (VBUS the
+        // pack, CURRENT the pack's) and the array monitor (its current)
+        use sqso_fsw::ina228::{self, ARRAY, PACK, Reading};
+        let write = |addr: u8, reg: u8, bytes: &[u8]| {
+            let mut b = [0u8; 4];
+            b[0] = reg;
+            b[1..1 + bytes.len()].copy_from_slice(bytes);
+            // SAFETY: b holds 1 + bytes.len() bytes
+            let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, addr, b.as_ptr(), 1 + bytes.len()) };
+        };
+        for (m, current) in [(PACK, t.ibatt_a), (ARRAY, t.isolar_a)] {
+            let (v, i, d) = m.encode(&Reading { vbus_v: t.vbatt_v, current_a: current, die_c: t.tbatt_c, ..Reading::default() });
+            write(m.address, ina228::reg::VBUS, &v);
+            write(m.address, ina228::reg::CURRENT, &i);
+            write(m.address, ina228::reg::DIETEMP, &d.to_be_bytes());
+        }
     }
 
     /// An ADC input, in its own unit
@@ -310,7 +354,8 @@ impl Fsw {
     /// The EPS controller's `EOL_STATE` register (0x7C: bit 0 armed, bit 1
     /// fired, the charge path open)
     pub fn set_eps_eol_state(&self, armed: bool, fired: bool) {
-        let regs = [0x7C, u8::from(armed) | (u8::from(fired) << 1)];
+        // Bit 2: the fuse F1 intact (until it opens)
+        let regs = [0x7C, u8::from(armed) | (u8::from(fired) << 1) | (u8::from(!fired) << 2)];
         // SAFETY: regs is a live buffer of its length
         let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
     }
@@ -384,11 +429,15 @@ impl Fsw {
         }
     }
 
-    /// The commanded dipole as a fraction of the coils' maximum (drive power)
-    pub fn adcs_dipole_fraction(&self) -> f64 {
-        let d = self.adcs_dipole();
-        ((d.x.abs() + d.y.abs() + d.z.abs()) / (3.0 * sqso_fsw::adcs::MAX_DIPOLE)).min(1.0)
+    /// The burst's dipole, A·m², and whether the coils are driven this period
+    pub fn adcs_burst(&self) -> (crate::env::math::V3, bool) {
+        let mut st = sqso_fsw::adcs::Adcs::new().state;
+        // SAFETY: st is a live AdcsState_t
+        let ok = self.running() && unsafe { sqso_ffi::adcs_control::adcs_get_state(&mut st) } == 0;
+        let on = ok && st.mtq.enabled;
+        (crate::env::math::V3::new(st.mtq.dipole.x, st.mtq.dipole.y, st.mtq.dipole.z), on)
     }
+
 
     /// The flight software's own view of itself
     pub fn snapshot(&self) -> Snapshot {

@@ -1,12 +1,15 @@
-# SQSO-HW-DIAG-001 W7: EPS deployment drivers to the solar-wing hold-downs and to the ISIS AntS. Updated 2026-10-27 to
-# the EPS board design SQSO-EPS-BRD-001 (RIDs EPS-07, EPS-18, REL-03, SMA-05): two burn resistors per wing, each on its
-# own 0.8 A current-limited driver with a 12 s hardware one-shot (four drivers, Q24-Q27), supplied from the 7.0 V burn
-# buck behind SW6 (DEPLOY_EN) and the three deployment-switch inhibits; the wings' hinge switches in series (both
-# deployed = SOLAR_SENSE low). The AntS deploys itself (I2C arm and automatic deployment): it takes 3.3 V from SW8
-# (DEPLOY_EN) downstream of DS1-DS3 and I2C2 through the TCA9517 buffer U80. AntS pinout to be confirmed from the AntS
-# ICD delivered with the unit (ISIS-ANTS-DSH-0001 could not be retrieved).
+# SQSO-HW-DIAG-001 W7: deployables and inhibits, version 3 (2026-10-27, harness design SQSO-HAR-001 2.0; EPS side per
+# SQSO-EPS-BRD-001 9, 6.2, 13.1). Two burn resistors per wing on their own 0.8 A drivers (12 s hardware one-shot) from
+# EPS J10 (wing W1) and J11 (wing W2), both right-angle Micro-Fit on the EPS bottom side. Wing 2: the burn pairs drop
+# through a deck opening and the inboard strip beside the battery end cap to the burn board at the -Y free corner; wing
+# 1: along the +X wall gap below the EPS and down the (+X, -Y) bundle; the sense pairs go down the hinge-side strips to
+# the wings' deployed-state sensors (both wings in series). The AntS
+# (W7C) takes 3.3 V from SW8 and I2C2 from EPS J12, which becomes a Pico-Clasp 6 with two contacts per supply pole (one
+# contact would carry 0.61 A, above 50 % of its 1 A rating), down the -X centre strip, under the battery end cap and
+# through the -Z end-frame cut-out, spliced to the AntS pigtail. W12A-C: one harness per deployment switch, each on its
+# own rail and route (DS1 +X+Y at -Z, DS2 -X-Y at -Z, DS3 +X-Y at +Z); W12D the two-pole RBF switch.
 metadata:
-  title: W7 Deployables, burn and sense (SQSO-HW-DIAG-001, SQSO-EPS-BRD-001)
+  title: W7 Deployables and inhibits v3 (SQSO-HW-DIAG-001; SQSO-EPS-BRD-001; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -15,63 +18,143 @@ options:
 
 connectors:
   J10:
-    type: Molex Micro-Fit 3.0 header 0430450612
+    type: Micro-Fit 3.0 receptacle 43025-0600, gold 43030 terminals
     subtype: 6 pos, 2 rows
-    notes: "EPS J10, wing W1: drivers Q24 (W1A, BURN_W1A PB10) and Q25 (W1B, BURN_W1B PE6)"
+    notes: "EPS J10 (zone Z3), wing W1: drivers Q24 (W1A, BURN_W1A PB10) and Q25 (W1B, BURN_W1B PE6)"
     pinlabels: [V_BURN, BRET_W1A, V_BURN, BRET_W1B, SA_SENSE_PU, SA_SENSE_MID]
-  WING1:
-    type: wing W1 hold-down (bought with the panels)
-    subtype: two burn resistors on one restraint line, hinge switch
-    notes: "about 5 Ohm each (to be measured); the driver regulates 0.8 A for 4-6.9 Ohm"
-    pinlabels: [R_W1A a, R_W1A b, R_W1B a, R_W1B b, SW_W1 in, SW_W1 out]
+  BB_W1:
+    type: wing W1 burn board (two burn resistors), solder pads
+    notes: "(+47.5, -37.5, -40); about 5 Ohm each"
+    pinlabels: [R_W1A a, R_W1A b, R_W1B a, R_W1B b]
+  HS_W1:
+    type: wing W1 deployed-state sensor lead, AS81824/1 splice
+    notes: hinge-side strip at z -39
+    pinlabels: [in, out]
   J11:
-    type: Molex Micro-Fit 3.0 header 0430450612
+    type: Micro-Fit 3.0 receptacle 43025-0600, gold 43030 terminals
     subtype: 6 pos, 2 rows
-    notes: "EPS J11, wing W2: drivers Q26 (W2A, BURN_W2A PB9) and Q27 (W2B, BURN_W2B PE7)"
+    notes: "EPS J11 (zone Z2), wing W2: drivers Q26 (W2A, BURN_W2A PB9) and Q27 (W2B, BURN_W2B PE7)"
     pinlabels: [V_BURN, BRET_W2A, V_BURN, BRET_W2B, SA_SENSE_MID, GND]
-  WING2:
-    type: wing W2 hold-down (bought with the panels)
-    subtype: two burn resistors on one restraint line, hinge switch
-    notes: closed when deployed
-    pinlabels: [R_W2A a, R_W2A b, R_W2B a, R_W2B b, SW_W2 in, SW_W2 out]
+  BB_W2:
+    type: wing W2 burn board (two burn resistors), solder pads
+    notes: "(-47.5, -37.5, -40)"
+    pinlabels: [R_W2A a, R_W2A b, R_W2B a, R_W2B b]
+  HS_W2:
+    type: wing W2 deployed-state sensor lead, AS81824/1 splice
+    pinlabels: [in, out]
   J12:
-    type: Molex Pico-Clasp header 5013310407
-    subtype: 4 pos
-    notes: "EPS J12: AntS supply (SW8, DEPLOY_EN) and I2C (U80 B side)"
-    pinlabels: [3V3_ANTS, GND, ANTS_SDA, ANTS_SCL]
+    type: Pico-Clasp 501330-0600, gold terminals (EPS J12 as Pico-Clasp 6, was 4)
+    subtype: 6 pos
+    notes: "EPS J12 (zone Z5): AntS supply (SW8, DEPLOY_EN) and I2C (U80 B side)"
+    pinlabels: [3V3_ANTS, 3V3_ANTS, GND, GND, ANTS_SDA, ANTS_SCL]
   ANTS:
-    type: ISIS AntS 1U-3U (bought)
+    type: ISIS AntS pigtail, AS81824/1 splices
     subtype: own controller, redundant thermal knives
-    notes: "pinout from the AntS ICD (open)"
-    pinlabels: [VCC 3V3, GND, SDA, SCL]
+    notes: "through the -Z end-frame cut-out at (-31, -16); pinout from the AntS ICD"
+    pinlabels: [VCC 3V3, VCC 3V3, GND, GND, SDA, SCL]
+  J15:
+    type: Pico-Clasp 501330-0300, gold terminals
+    subtype: 3 pos (pin 3 not used)
+    notes: EPS J15 (zone Z3)
+    pinlabels: [DS1_C, S1N]
+  DS1:
+    type: deployment switch DS1 (rail +X+Y, -Z), solder terminals
+    pinlabels: [C, NC]
+  J16:
+    type: Pico-Clasp 501330-0300, gold terminals
+    subtype: 3 pos (pin 3 not used)
+    notes: EPS J16 (zone Z2)
+    pinlabels: [DS2_C, S2N]
+  DS2:
+    type: deployment switch DS2 (rail -X-Y, -Z), solder terminals
+    pinlabels: [C, NC]
+  J17:
+    type: Pico-Clasp 501330-0300, gold terminals
+    subtype: 3 pos
+    notes: EPS J17 (zone Z4)
+    pinlabels: [GND, S3N, TRK_EN]
+  DS3:
+    type: deployment switch DS3 (rail +X-Y, +Z), solder terminals
+    pinlabels: [C, NC, 'NO']
+  J14:
+    type: Pico-Clasp 501330-0400, gold terminals
+    subtype: 4 pos
+    notes: EPS J14 (zone Z4, -Y edge)
+    pinlabels: [S2N, S2R, TRK_EN, GND]
+  RBF:
+    type: RBF switch, two poles, solder terminals
+    notes: "(+20, -45, -43), -Y access window"
+    pinlabels: [A1, A2, B1, B2]
 
 cables:
-  W7A:
-    category: bundle
-    gauge: 24 AWG
-    length: 0.12
-    colors: [VT, BK, VT, BK, OG, OG]
-    notes: "Burn pairs twisted; 0.88 A for ≤ 12 s on 24 AWG (1 A derated). Sense pair 28 AWG would do"
-  W7B:
-    category: bundle
+  W7A_B:
     gauge: 24 AWG
     length: 0.15
-    colors: [VT, BK, VT, BK, OG, BK]
-    notes: "Length set with the wing layout"
+    colors: [VT, BK, VT, BK]
+    notes: "M22759/33-24 (Micro-Fit minimum); pairs twisted; 0.88 A for 12 s, one resistor at a time; under the EPS, along the +X wall gap below the EPS (within 20 mm of y = 0) and down the (+X, -Y) bundle to the burn board; loop 50 mohm, 44 mV"
+  W7A_S:
+    gauge: 24 AWG
+    length: 0.095
+    colors: [OG, BN]
+    notes: "sense pair, twisted, down the +X hinge-side strip"
+  W7B_B:
+    gauge: 24 AWG
+    length: 0.09
+    colors: [VT, BK, VT, BK]
+  W7B_S:
+    gauge: 24 AWG
+    length: 0.155
+    colors: [OG, BN]
   W7C:
-    category: bundle
-    gauge: 26 AWG
+    gauge: 28 AWG
+    length: 0.155
+    colors: [RD, RD, BK, BK, BU, YE]
+    notes: "M22759/33-28; pairs 1+3, 2+4, 5+6; 0.61 A peak on two wires per pole (34 %), 37 mV"
+  W12A:
+    gauge: 28 AWG
+    length: 0.09
+    colors: [WH, BU]
+    notes: "twisted pair; microamperes; 10 k at the EPS end limits a short to the frame to 1.7 mA"
+  W12B:
+    gauge: 28 AWG
     length: 0.10
-    colors: [RD, BK, BU, YE]
-    notes: "AntS: 0.61 A peak at 3.3 V (below 2 W); I2C twisted with GND"
+    colors: [WH, BU]
+  W12C:
+    gauge: 28 AWG
+    length: 0.11
+    colors: [BK, BU, GN]
+    notes: "+X wall gap at y -39.5 ... -45.5 (beside W4A), from the +Z rail end down to the EPS"
+  W12D:
+    gauge: 28 AWG
+    length: 0.085
+    colors: [BU, WH, GN, BK]
+    notes: "-Y wall strip and the -Y deck slot; pole A in DS2's drive, pole B clamps TRK_EN"
 
 connections:
-  - - J10: [1-6]
-    - W7A: [1-6]
-    - WING1: [1-6]
-  - - J11: [1-6]
-    - W7B: [1-6]
-    - WING2: [1-6]
-  - - J12: [1-4]
-    - W7C: [1-4]
-    - ANTS: [1-4]
+  - - J10: [1-4]
+    - W7A_B: [1-4]
+    - BB_W1: [1-4]
+  - - J10: [5-6]
+    - W7A_S: [1-2]
+    - HS_W1: [1-2]
+  - - J11: [1-4]
+    - W7B_B: [1-4]
+    - BB_W2: [1-4]
+  - - J11: [5-6]
+    - W7B_S: [1-2]
+    - HS_W2: [1-2]
+  - - J12: [1-6]
+    - W7C: [1-6]
+    - ANTS: [1-6]
+  - - J15: [1-2]
+    - W12A: [1-2]
+    - DS1: [1-2]
+  - - J16: [1-2]
+    - W12B: [1-2]
+    - DS2: [1-2]
+  - - J17: [1-3]
+    - W12C: [1-3]
+    - DS3: [1-3]
+  - - J14: [1-4]
+    - W12D: [1-4]
+    - RBF: [1-4]

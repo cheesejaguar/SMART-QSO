@@ -1,12 +1,12 @@
-# SQSO-HW-DIAG-001 W6: ADCS harnesses, version 3 (2026-10-27; SQSO-ICX-001 §3.4, SQSO-OBC-BRD-001 §9-§10). There is no
-# separate ADCS board: the gyro (Epson M-G370PDT0 in socket X1), the BMI088 backup, the
-# sun-sensor amplifiers and the three DRV8876 magnetorquer H-bridges are on the OBC board (RID AV-03). W6 now carries:
-# W6B the 3V3_ADCS rail from EPS SW4 (ADCS_EN PB6, 0.30 A trip) into the OBC's three latch-up-protected sensor switches;
-# W6C the three CubeSpace CR0002 rods; W6D the six panel photodiodes. The magnetorquer supply VBAT_MTQ comes over W3.
-# Version 1's FTSH board-to-board connector and the DRV8833 inputs are deleted. Version 3: the RM3100 magnetometer moves
-# to board A2 at the +Z end frame on W6E (OBC J10 to A2 J1), away from the rods (OBC board 9.4).
+# SQSO-HW-DIAG-001 W6: ADCS harnesses, version 4 (2026-10-27; SQSO-ICX-001 3.4, SQSO-OBC-BRD-001 9-10, harness design
+# SQSO-HAR-001 2.0). There is no ADCS board: W6B carries 3V3_ADCS from EPS SW4 to OBC J6; W6C the three CubeSpace
+# CR0002 rods from OBC J7 (spliced to the rods' own leads, SAE AS81824/1, at a tie-down); W6D the six sun-sensor
+# photodiodes from OBC J8, as six unshielded twisted pairs (version 3 had an overall shield: removed, DC photocurrents
+# of at most 4 mA into a 619 ohm transimpedance stage, pins J8-13/14 unused); W6E the magnetometer board A2 at the +Z
+# end frame. All 28 AWG M22759/33 (Pico-Clasp takes 28-32 AWG). W6C leaves J7 into the -X wall gap at y +7 ... +19.5
+# (between the Z rod and the 70 cm coax band) instead of the (-X, +Y) bundle, so it never crosses the coax band.
 metadata:
-  title: W6 ADCS v3 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.4)
+  title: W6 ADCS v4 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.4; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -15,83 +15,116 @@ options:
 
 connectors:
   J_EPS_ADCS:
-    type: Molex Pico-Clasp 5013310207
+    type: Pico-Clasp 501330-0200, gold terminals
     subtype: 2 pos
-    notes: "EPS J20: SW4 3V3_ADCS (ADCS_EN PB6), 0.265-0.339 A trip"
+    notes: "EPS J20 (bottom side, zone Z1): SW4 3V3_ADCS (ADCS_EN PB6), 0.265-0.339 A trip"
     pinlabels: &w6pwr [3V3_ADCS, GND]
   J_OBC_ADCS:
-    type: Molex Pico-Clasp 5013310207
+    type: Pico-Clasp 501330-0200, gold terminals
     subtype: 2 pos
     notes: "OBC J6: into U5 (gyro), U6 (BMI088), U7 (magnetometer, sun sensors)"
     pinlabels: *w6pwr
   J_OBC_MTQ:
-    type: Molex Pico-Clasp 5013310607
+    type: Pico-Clasp 501330-0600, gold terminals
     subtype: 6 pos
     notes: "OBC J7: DRV8876 U22 (X), U23 (Y), U24 (Z) OUT1/OUT2"
     pinlabels: [X+, X-, Y+, Y-, Z+, Z-]
   ROD_X:
-    type: CubeSpace CR0002 rod (X)
-    subtype: Molex Pico-Lock lead (rod side, per the CubeSpace ICD)
+    type: CubeSpace CR0002 rod X lead (-X end)
+    subtype: AS81824/1 splice at (-27, +36, -10)
     pinlabels: [+, '-']
   ROD_Y:
-    type: CubeSpace CR0002 rod (Y)
-    subtype: Molex Pico-Lock lead
+    type: CubeSpace CR0002 rod Y lead (+Y end)
+    subtype: AS81824/1 splice in the (+X, +Y) bundle at z -30
     pinlabels: [+, '-']
   ROD_Z:
-    type: CubeSpace CR0002 rod (Z)
-    subtype: Molex Pico-Lock lead
+    type: CubeSpace CR0002 rod Z lead (top end, z +3)
+    subtype: AS81824/1 splice in the -X wall gap at (y +10, z +12)
     pinlabels: [+, '-']
   J_OBC_SS:
-    type: Molex Pico-Clasp 5013311407
+    type: Pico-Clasp 501330-1400, gold terminals
     subtype: 14 pos
-    notes: "OBC J8: cathodes to the TLV9002 transimpedance inputs, anodes to ground; pins 13, 14 shield drains"
-    pinlabels: [PX_K, PX_A, MX_K, MX_A, PY_K, PY_A, MY_K, MY_A, PZ_K, PZ_A, MZ_K, MZ_A, SHIELD_1, SHIELD_2]
-  PANELS:
-    type: panel photodiodes (bought with the panels, BUILD_VS_BUY 2.3)
-    subtype: x6, short-circuit current at most 4.0 mA at AM0 normal incidence (requirement on the panel vendor)
-    pinlabels: [PX_K, PX_A, MX_K, MX_A, PY_K, PY_A, MY_K, MY_A, PZ_K, PZ_A, MZ_K, MZ_A, SHIELD_1, SHIELD_2]
+    notes: "OBC J8: cathodes to the TLV9002 transimpedance inputs, anodes to ground; 13, 14 not used"
+    pinlabels: [PX_K, PX_A, MX_K, MX_A, PY_K, PY_A, MY_K, MY_A, PZ_K, PZ_A, MZ_K, MZ_A, NC, NC]
+  CSS_PX:
+    type: +X panel photodiode (in the W2PX pigtail slot at y -30)
+    pinlabels: [K, A]
+  CSS_MX:
+    type: -X panel photodiode
+    pinlabels: [K, A]
+  CSS_PY:
+    type: +Y panel photodiode
+    pinlabels: [K, A]
+  CSS_MY:
+    type: -Y panel photodiode
+    pinlabels: [K, A]
+  CSS_PZ:
+    type: +Z photodiode termination at (-36, +36, +48)
+    pinlabels: [K, A]
+  CSS_MZ:
+    type: -Z photodiode termination at (-45, +37, -43.5)
+    pinlabels: [K, A]
   J_OBC_MAG:
-    type: Molex Pico-Clasp 5013310607
+    type: Pico-Clasp 501330-0600, gold terminals
     subtype: 6 pos
     notes: "OBC J10: 3V3_SNS from U7, I2C4 SNS side via U14, DRDY via U33 to PD11"
     pinlabels: &w6mag [3V3_SNS, GND, SDA_S, SCL_S, MG_DRDY, GND]
   J_MAG:
-    type: Molex Pico-Clasp 5013310607
+    type: Pico-Clasp 501330-0600, gold terminals
     subtype: 6 pos
-    notes: "magnetometer board A2 J1 (RM3100 at 0x20), +Z end frame"
+    notes: "magnetometer board A2 J1 (RM3100 at 0x20), +Z end frame; entered from +X over the RF board"
     pinlabels: *w6mag
 
 cables:
   W6B:
-    category: bundle
-    gauge: 26 AWG
-    length: 0.08
-    wirecount: 2
+    gauge: 28 AWG
+    length: 0.075
     colors: [RD, BK]
-    notes: "0.049 A worst normal (backup gyro on); 0.339 A at the SW4 trip: 68 % of the 26 AWG derated 0.5 A"
-  W6C:
-    category: bundle
-    gauge: 26 AWG
-    length: 0.10
-    wirecount: 6
-    colors: [RD, BK, RD, BK, RD, BK]
-    notes: "three twisted pairs; 0.087 A at 0.2 A.m2, 0.126 A at the bridges' hardware limit (25 % of 0.5 A). Route away from the RM3100 corner of the OBC (SQSO-OBC-BRD-001 14)"
-  W6D:
-    category: bundle
+    notes: "twisted pair; 0.049 A worst normal, 0.339 A at the SW4 trip (38 % of 0.90 A derated)"
+  W6C_X:
     gauge: 28 AWG
-    length: 0.12
-    wirecount: 14
-    colors: [WH, BK, WH, BK, WH, BK, WH, BK, WH, BK, WH, BK, GY, GY]
-    shield: true
-    notes: "six twisted pairs in one shield, drains to OBC ground at J8 only; photocurrent at most 4 mA"
+    length: 0.11
+    colors: [RD, BK]
+    notes: "twisted pair; 0.087 A at 0.2 A.m2, 0.126 A at the bridge limit"
+  W6C_Y:
+    gauge: 28 AWG
+    length: 0.205
+    colors: [RD, BK]
+    notes: "twisted pair; -X wall gap, under the EPS across U_X (y +25 ... +29.5), down the (+X, +Y) bundle to the rod's +Y end"
+  W6C_Z:
+    gauge: 28 AWG
+    length: 0.05
+    colors: [RD, BK]
+  W6D_PX:
+    gauge: 28 AWG
+    length: 0.245
+    colors: [WH, BK]
+    notes: "six unshielded twisted pairs from one trunk down the (-X, +Y) bundle, branching under the EPS; at most 5.25 mA"
+  W6D_MX:
+    gauge: 28 AWG
+    length: 0.145
+    colors: [WH, BK]
+  W6D_PY:
+    gauge: 28 AWG
+    length: 0.105
+    colors: [WH, BK]
+  W6D_MY:
+    gauge: 28 AWG
+    length: 0.175
+    colors: [WH, BK]
+  W6D_PZ:
+    gauge: 28 AWG
+    length: 0.095
+    colors: [WH, BK]
+  W6D_MZ:
+    gauge: 28 AWG
+    length: 0.115
+    colors: [WH, BK]
   W6E:
-    category: bundle
     gauge: 28 AWG
-    length: 0.10
-    notes: "(+X, +Y) bundle, about 0.06 m routed plus service loop; excess stowed below z +20, away from A2"
-    wirecount: 6
+    length: 0.09
     colors: [RD, BK, BU, YE, WH, BK]
-    notes: "OBC to the +Z end frame through a wall gap; SDA and SCL each twisted with a ground; I2C at 100 kHz; under 2 mA"
+    notes: "(+X, +Y) bundle, 0.055 m routed; pairs (1, 2), (3, 6), (4, 5); the service loop stowed below z +20, away from A2; I2C at 100 kHz; under 2 mA"
 
 connections:
   - - J_OBC_MAG: [1-6]
@@ -101,14 +134,29 @@ connections:
     - W6B: [1-2]
     - J_OBC_ADCS: [1-2]
   - - J_OBC_MTQ: [1-2]
-    - W6C: [1-2]
+    - W6C_X: [1-2]
     - ROD_X: [1-2]
   - - J_OBC_MTQ: [3-4]
-    - W6C: [3-4]
+    - W6C_Y: [1-2]
     - ROD_Y: [1-2]
   - - J_OBC_MTQ: [5-6]
-    - W6C: [5-6]
+    - W6C_Z: [1-2]
     - ROD_Z: [1-2]
-  - - J_OBC_SS: [1-14]
-    - W6D: [1-14]
-    - PANELS: [1-14]
+  - - J_OBC_SS: [1-2]
+    - W6D_PX: [1-2]
+    - CSS_PX: [1-2]
+  - - J_OBC_SS: [3-4]
+    - W6D_MX: [1-2]
+    - CSS_MX: [1-2]
+  - - J_OBC_SS: [5-6]
+    - W6D_PY: [1-2]
+    - CSS_PY: [1-2]
+  - - J_OBC_SS: [7-8]
+    - W6D_MY: [1-2]
+    - CSS_MY: [1-2]
+  - - J_OBC_SS: [9-10]
+    - W6D_PZ: [1-2]
+    - CSS_PZ: [1-2]
+  - - J_OBC_SS: [11-12]
+    - W6D_MZ: [1-2]
+    - CSS_MZ: [1-2]

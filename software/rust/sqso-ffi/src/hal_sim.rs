@@ -92,9 +92,25 @@ const FLASH_TOTAL: usize = {
     total
 };
 
+/// A register file. The INA228s' registers are wider than a byte, so for
+/// them register r is the bytes from 5r ([`word_device`]); the others are
+/// byte registers
 struct I2cDevice {
     addr: u8,
-    registers: [u8; 256],
+    registers: [u8; I2C_REG_BYTES],
+}
+
+/// Bytes of a simulated device's register file (64 five-byte INA228 registers)
+const I2C_REG_BYTES: usize = 320;
+
+/// The INA228s: five bytes a register
+fn word_device(addr: u8) -> bool {
+    addr == I2C_ADDR_BATTERY_MONITOR || addr == I2C_ADDR_SOLAR_MONITOR
+}
+
+/// Where register `reg` of the device at `addr` starts
+fn reg_offset(addr: u8, reg: u8) -> usize {
+    if word_device(addr) { usize::from(reg) * 5 } else { usize::from(reg) }
 }
 
 /// A receive FIFO
@@ -248,10 +264,10 @@ static SIM: Global<Sim> = Global::new(Sim {
     heartbeat: None,
     i2c_initialized: [false; I2C_BUS_COUNT],
     i2c: [
-        I2cDevice { addr: I2C_ADDR_EPS_CONTROLLER, registers: [0; 256] },
-        I2cDevice { addr: I2C_ADDR_BATTERY_MONITOR, registers: [0; 256] },
-        I2cDevice { addr: I2C_ADDR_SOLAR_MONITOR, registers: [0; 256] },
-        I2cDevice { addr: I2C_ADDR_ANTS, registers: [0; 256] },
+        I2cDevice { addr: I2C_ADDR_EPS_CONTROLLER, registers: [0; I2C_REG_BYTES] },
+        I2cDevice { addr: I2C_ADDR_BATTERY_MONITOR, registers: [0; I2C_REG_BYTES] },
+        I2cDevice { addr: I2C_ADDR_SOLAR_MONITOR, registers: [0; I2C_REG_BYTES] },
+        I2cDevice { addr: I2C_ADDR_ANTS, registers: [0; I2C_REG_BYTES] },
     ],
     uart_initialized: [false; UART_PORT_COUNT],
     uart_rx: [Fifo::EMPTY, Fifo::EMPTY, Fifo::EMPTY],
@@ -461,7 +477,18 @@ pub extern "C" fn hal_i2c_init(bus: u32, _speed: u32) -> i32 {
     let Some(bus) = index(bus, I2C_BUS_COUNT) else { return rc::INVALID };
     sim(rc::BUSY, |s| {
         for dev in &mut s.i2c {
-            dev.registers = [0; 256];
+            dev.registers = [0; I2C_REG_BYTES];
+            if word_device(dev.addr) {
+                use sqso_fsw::ina228::{reg, DEVICE_ID, MANUFACTURER_ID};
+                let mut put = |r: u8, v: u16| {
+                    let at = reg_offset(dev.addr, r);
+                    if let Some(w) = dev.registers.get_mut(at..at + 2) {
+                        w.copy_from_slice(&v.to_be_bytes());
+                    }
+                };
+                put(reg::MANUFACTURER_ID, MANUFACTURER_ID);
+                put(reg::DEVICE_ID, (DEVICE_ID << 4) | 1);
+            }
             if dev.addr == I2C_ADDR_EPS_CONTROLLER {
                 dev.registers[0x00] = 0x43; // STATUS: charging, sunlit
                 dev.registers[0x01] = 0x01; // MODE: IDLE
@@ -486,7 +513,7 @@ pub extern "C" fn hal_i2c_init(bus: u32, _speed: u32) -> i32 {
 /// The simulated AntS's command latches: a command without arguments sets
 /// its register to 1; arm and disarm clear each other, and so do a
 /// deployment (its time limit in 0xA5) and cancel
-fn ants_command(registers: &mut [u8; 256], reg: u8, no_args: bool) {
+fn ants_command(registers: &mut [u8; I2C_REG_BYTES], reg: u8, no_args: bool) {
     use sqso_fsw::ants::{CMD_ARM, CMD_AUTO_DEPLOY, CMD_CANCEL, CMD_DISARM};
     let mut set = |r: u8, v: u8| {
         if let Some(slot) = registers.get_mut(usize::from(r)) {
@@ -528,12 +555,14 @@ pub unsafe extern "C" fn hal_i2c_write(bus: u32, addr: u8, data: *const u8, len:
         if dev.addr == I2C_ADDR_ANTS {
             ants_command(&mut dev.registers, *reg, values.is_empty());
         }
-        let mut reg = *reg;
+        let start = reg_offset(dev.addr, *reg);
+        let mut at = start;
         for &v in values {
-            if let Some(r) = dev.registers.get_mut(usize::from(reg)) {
+            if let Some(r) = dev.registers.get_mut(at) {
                 *r = v;
             }
-            reg = reg.wrapping_add(1);
+            // Byte registers wrap at 0xFF, as before
+            at = if word_device(dev.addr) { at + 1 } else { (at + 1) & 0xFF };
         }
         rc::OK
     })
@@ -577,7 +606,7 @@ pub unsafe extern "C" fn hal_i2c_write_read(
         let Some([reg, ..]) = write else { return rc::NULL_PTR };
         let Some(dev) = device(s, addr) else { return rc::ERROR };
         let Some(read) = read else { return rc::NULL_PTR };
-        let start = usize::from(*reg);
+        let start = reg_offset(dev.addr, *reg);
         match dev.registers.get(start..start + read.len()) {
             Some(regs) => {
                 read.copy_from_slice(regs);

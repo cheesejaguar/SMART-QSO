@@ -33,6 +33,19 @@
 //! @requirement SRS-F092 The software shall not complete a detumble on a magnetometer rate estimate that a discarded sample left stale
 //! @requirement SRS-F093 The software shall run B-dot detumble and spin-stabilized sun pointing of +Y at 8 deg/s at 1 Hz, and treat a detumble lasting over 285 minutes as a fault
 //! @requirement SRS-F094 The software shall let the ground select the spin axis and inertia tensor from the presets by telecommand, and refuse any other preset
+//! @requirement SRS-F142 Gyro alignment correction: a persisted 3×3 matrix applied to the gyro rates, identity by default, set by telecommand
+//! @requirement SRS-F143 No magnetometer sample used for actuation while the Jetson carrier (JET_PG) or the exciter (PTT_EXCITER) is on
+//! @requirement SRS-F144 Magnetometer bias per polarity state of the three rods, zeros by default, set by telecommand
+//!
+//! **Calibration and gating (RID GNC-08).** The gyro rates pass through the
+//! alignment matrix of VI-MCAD-05 ([`Calibration::gyro`], identity until
+//! the ground sets it); the magnetometer reading has the bias of the rods'
+//! polarity state subtracted ([`Calibration::mag_bias`], one vector for
+//! each of the 2³ states of [`crate::mtq::polarity`], zeros until AV-V4
+//! measures them). A sample taken while the Jetson carrier is powered
+//! (`JET_PG`) or the exciter keyed (`PTT_EXCITER`) is counted
+//! ([`Adcs::mag_gated`]) and not used: no rate estimate from it and the
+//! coils off for that cycle; the spin holds the attitude meanwhile.
 
 use crate::fmath::sqrt;
 
@@ -580,6 +593,130 @@ pub fn read_sun_sensors(data: &mut SunSensorData, sun: Vec3, now_ms: u64) {
     data.raw = [raw; SUN_SENSOR_COUNT];
 }
 
+/// Largest element of a gyro alignment matrix accepted (a misalignment
+/// correction is close to the identity)
+pub const GYRO_ALIGN_MAX: f64 = 1.1;
+/// The determinant of an accepted alignment matrix is within this of 1
+pub const GYRO_ALIGN_DET_TOL: f64 = 0.05;
+/// Largest magnetometer bias component accepted, µT
+pub const MAG_BIAS_MAX_UT: f64 = 50.0;
+/// Polarity states of the three rods
+pub const POLARITY_STATES: usize = 8;
+
+/// The ADCS's ground-set calibration (persisted by `sqso-ffi`)
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Calibration {
+    /// Gyro alignment: body rate = `gyro` × sensor rate (rows)
+    pub gyro: [[f64; 3]; 3],
+    /// Magnetometer bias per polarity state, µT (subtracted)
+    pub mag_bias: [Vec3; POLARITY_STATES],
+}
+
+impl Default for Calibration {
+    fn default() -> Self {
+        Calibration::IDENTITY
+    }
+}
+
+impl Calibration {
+    /// Identity alignment, zero biases
+    pub const IDENTITY: Calibration =
+        Calibration { gyro: [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], mag_bias: [Vec3::ZERO; POLARITY_STATES] };
+
+    /// The aligned rate
+    pub fn gyro_apply(&self, w: Vec3) -> Vec3 {
+        let [a, b, c] = self.gyro;
+        let row = |r: [f64; 3]| r[0] * w.x + r[1] * w.y + r[2] * w.z;
+        Vec3::new(row(a), row(b), row(c))
+    }
+
+    /// The field with the bias of polarity `state` removed
+    pub fn mag_apply(&self, field: Vec3, state: u8) -> Vec3 {
+        let b = self.mag_bias.get(usize::from(state & 0x07)).copied().unwrap_or(Vec3::ZERO);
+        Vec3::new(field.x - b.x, field.y - b.y, field.z - b.z)
+    }
+
+    /// Whether a matrix is acceptable as a misalignment correction: every
+    /// element finite and within ±[`GYRO_ALIGN_MAX`], determinant within
+    /// [`GYRO_ALIGN_DET_TOL`] of 1
+    pub fn gyro_valid(m: &[[f64; 3]; 3]) -> bool {
+        let [[a, b, c], [d, e, f], [g, h, i]] = *m;
+        let det = a * (e * i - f * h) - b * (d * i - f * g) + c * (d * h - e * g);
+        m.iter().flatten().all(|v| v.is_finite() && v.abs() <= GYRO_ALIGN_MAX) && (det - 1.0).abs() <= GYRO_ALIGN_DET_TOL
+    }
+
+    /// Whether a bias is acceptable: finite, each component within
+    /// ±[`MAG_BIAS_MAX_UT`]
+    pub fn bias_valid(b: &Vec3) -> bool {
+        [b.x, b.y, b.z].iter().all(|v| v.is_finite() && v.abs() <= MAG_BIAS_MAX_UT)
+    }
+
+    /// The gyro record: nine `f32`, big-endian (36 bytes)
+    pub fn gyro_record(&self) -> [u8; 36] {
+        let mut out = [0u8; 36];
+        #[allow(clippy::cast_possible_truncation)] // stored as f32 (1e-7 relative)
+        for (dst, v) in out.chunks_exact_mut(4).zip(self.gyro.iter().flatten()) {
+            dst.copy_from_slice(&(*v as f32).to_be_bytes());
+        }
+        out
+    }
+
+    /// A gyro record's matrix, if valid
+    pub fn gyro_from_record(rec: &[u8; 36]) -> Option<[[f64; 3]; 3]> {
+        let mut v = [0.0f64; 9];
+        for (dst, src) in v.iter_mut().zip(rec.chunks_exact(4)) {
+            *dst = f64::from(f32::from_be_bytes([*src.first()?, *src.get(1)?, *src.get(2)?, *src.get(3)?]));
+        }
+        let [a, b, c, d, e, f, g, h, i] = v;
+        let m = [[a, b, c], [d, e, f], [g, h, i]];
+        Calibration::gyro_valid(&m).then_some(m)
+    }
+
+    /// The bias record: 8 × 3 `i16` in units of 10 nT, big-endian (48 bytes)
+    pub fn bias_record(&self) -> [u8; 48] {
+        let mut out = [0u8; 48];
+        let comps = self.mag_bias.iter().flat_map(|b| [b.x, b.y, b.z]);
+        for (dst, v) in out.chunks_exact_mut(2).zip(comps) {
+            #[allow(clippy::cast_possible_truncation)] // within ±5000 by bias_valid
+            let q = crate::fmath::round(v * 100.0).clamp(-32_768.0, 32_767.0) as i16;
+            dst.copy_from_slice(&q.to_be_bytes());
+        }
+        out
+    }
+
+    /// A bias record's table, if every entry is valid
+    pub fn bias_from_record(rec: &[u8; 48]) -> Option<[Vec3; POLARITY_STATES]> {
+        let mut c = [0.0f64; 24];
+        for (dst, src) in c.iter_mut().zip(rec.chunks_exact(2)) {
+            *dst = f64::from(i16::from_be_bytes([*src.first()?, *src.get(1)?])) / 100.0;
+        }
+        let mut t = [Vec3::ZERO; POLARITY_STATES];
+        for (b, v) in t.iter_mut().zip(c.chunks_exact(3)) {
+            *b = Vec3::new(*v.first()?, *v.get(1)?, *v.get(2)?);
+        }
+        t.iter().all(Calibration::bias_valid).then_some(t)
+    }
+}
+
+/// One cycle's sensor readings and gates
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Reading {
+    /// Magnetometer, sensor = body axes, µT (before the bias correction)
+    pub field: Vec3,
+    /// Sun vector, its length the intensity
+    pub sun: Vec3,
+    /// Gyro, sensor axes, rad/s (before the alignment), if there is one
+    pub gyro: Option<Vec3>,
+    /// The Jetson carrier is powered or the exciter keyed: the sample is
+    /// not used for actuation
+    pub gated: bool,
+    /// The coil-current readbacks were not zero at the sample
+    pub coils_driven: bool,
+    /// No magnetometer reading this cycle (the part not answering): no
+    /// actuation either
+    pub mag_missing: bool,
+}
+
 /// What a control cycle did that the caller reports
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Cycle {
@@ -590,6 +727,9 @@ pub struct Cycle {
     /// The magnetometer sample was taken with the coils on or not yet
     /// settled, and was not used
     pub mag_rejected: bool,
+    /// The sample was taken with the Jetson on or the exciter keyed, and
+    /// not used for actuation (coils off this cycle)
+    pub mag_gated: bool,
 }
 
 /// A mode change
@@ -634,6 +774,12 @@ pub struct Adcs {
     /// Magnetometer samples discarded because the coils were on or had not
     /// settled
     pub mag_rejected: u32,
+    /// Samples taken while gated (Jetson on, exciter keyed), not used
+    pub mag_gated: u32,
+    /// Gyro alignment and magnetometer biases
+    pub calibration: Calibration,
+    /// The rods' polarity state ([`crate::mtq::polarity`])
+    pub polarity: u8,
 }
 
 impl Adcs {
@@ -668,6 +814,9 @@ impl Adcs {
             geometry: Geometry::FLIGHT,
             coils_off_ms: None,
             mag_rejected: 0,
+            mag_gated: 0,
+            calibration: Calibration::IDENTITY,
+            polarity: 0,
         }
     }
 
@@ -677,9 +826,10 @@ impl Adcs {
         self.coils_off_ms.is_none_or(|off| read_ms >= off.saturating_add(self.timing.settle_ms))
     }
 
-    /// `adcs_init()`: IDLE, coils off, everything cleared
+    /// `adcs_init()`: IDLE, coils off, everything cleared but the
+    /// calibration
     pub fn init(&mut self) {
-        *self = Adcs { initialized: true, ..Adcs::new() };
+        *self = Adcs { initialized: true, calibration: self.calibration, ..Adcs::new() };
     }
 
     /// The mode (SAFE before init)
@@ -779,19 +929,36 @@ impl Adcs {
         sun: Vec3,
         gyro: Option<Vec3>,
     ) -> Option<Cycle> {
+        self.update_cycle(now_ms, read_ms, &Reading { field, sun, gyro, ..Reading::default() })
+    }
+
+    /// One control cycle on `r`: the calibration applied, then as
+    /// [`Adcs::update_with_gyro`]; a gated sample is not used and the coils
+    /// stay off for the cycle
+    pub fn update_cycle(&mut self, now_ms: u64, read_ms: u64, r: &Reading) -> Option<Cycle> {
         if !self.initialized {
             return None;
         }
-        self.gyro = gyro;
+        self.gyro = r.gyro.map(|w| self.calibration.gyro_apply(w));
         let mut cycle = Cycle::default();
-        read_magnetometer(&mut self.state.mag, field, read_ms);
-        if !self.coils_quiet(read_ms) {
+        let mut hold = false;
+        read_magnetometer(&mut self.state.mag, self.calibration.mag_apply(r.field, self.polarity), read_ms);
+        if r.mag_missing {
+            self.state.mag.valid = false;
+            hold = true;
+        } else if !self.coils_quiet(read_ms) || r.coils_driven {
             // Taken in the coils' own field: not used (no B-dot, no rate
             // estimate this cycle)
             self.state.mag.valid = false;
             self.mag_rejected = self.mag_rejected.wrapping_add(1);
             cycle.mag_rejected = true;
+        } else if r.gated {
+            self.state.mag.valid = false;
+            self.mag_gated = self.mag_gated.wrapping_add(1);
+            cycle.mag_gated = true;
+            hold = true;
         }
+        let sun = r.sun;
         read_sun_sensors(&mut self.state.sun, sun, read_ms);
         self.estimate_rate(now_ms);
 
@@ -821,7 +988,7 @@ impl Adcs {
             _ => {} // ECLIPSE without sun, SAFE, IDLE: no active control
         }
 
-        if self.state.mode == mode::DETUMBLE || self.state.mode == mode::SUNPOINT {
+        if (self.state.mode == mode::DETUMBLE || self.state.mode == mode::SUNPOINT) && !hold {
             let burst = self.timing.burst(&dipole);
             self.apply_burst(&burst, now_ms);
         } else {
@@ -863,6 +1030,7 @@ impl Adcs {
     /// them off [`CoilTiming::on_ms`] later
     pub fn apply_burst(&mut self, dipole: &Vec3, now_ms: u64) {
         self.apply_dipole(dipole);
+        self.polarity = crate::mtq::polarity(self.polarity, &crate::mtq::drive(dipole, crate::mtq::VM_DEFAULT_V));
         self.coils_off_ms = Some(now_ms.saturating_add(self.timing.on_ms));
     }
 
@@ -1401,5 +1569,60 @@ mod tests {
         assert_eq!((t.mag_x, t.mag_y, t.mag_z), (123, -45, 67));
         assert_eq!((t.sun_x, t.sun_y, t.sun_z), (28, 42, 85));
         assert_eq!((t.mode, t.sun_visible), (u8::try_from(mode::SUNPOINT).unwrap(), 1));
+    }
+
+    #[test]
+    fn calibration_records_and_limits() {
+        let mut c = Calibration::IDENTITY;
+        assert_eq!(Calibration::default(), c);
+        assert!(Calibration::gyro_valid(&c.gyro));
+        // A 0.1° rotation about Z
+        let (sn, cs) = (0.1f64.to_radians().sin(), 0.1f64.to_radians().cos());
+        c.gyro = [[cs, -sn, 0.0], [sn, cs, 0.0], [0.0, 0.0, 1.0]];
+        let w = c.gyro_apply(Vec3::new(1.0, 0.0, 0.0));
+        assert!((w.y - sn).abs() < 1e-15 && (w.x - cs).abs() < 1e-15);
+        let back = Calibration::gyro_from_record(&c.gyro_record()).unwrap();
+        for (a, b) in back.iter().flatten().zip(c.gyro.iter().flatten()) {
+            assert!((a - b).abs() < 1e-7);
+        }
+        assert!(!Calibration::gyro_valid(&[[2.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.5]]), "element too big");
+        assert!(!Calibration::gyro_valid(&[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.9]]), "determinant");
+        assert!(!Calibration::gyro_valid(&[[f64::NAN, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]));
+        assert_eq!(Calibration::gyro_from_record(&[0u8; 36]), None);
+        c.mag_bias[5] = Vec3::new(0.25, -1.5, 49.99);
+        let t = Calibration::bias_from_record(&c.bias_record()).unwrap();
+        assert_eq!(t[5], Vec3::new(0.25, -1.5, 49.99));
+        assert_eq!(c.mag_apply(Vec3::new(30.0, 0.0, 40.0), 5), Vec3::new(29.75, 1.5, 40.0 - 49.99));
+        assert!(!Calibration::bias_valid(&Vec3::new(0.0, 51.0, 0.0)));
+        let mut rec = c.bias_record();
+        rec[0..2].copy_from_slice(&6000i16.to_be_bytes()); // 60 µT
+        assert_eq!(Calibration::bias_from_record(&rec), None);
+    }
+
+    #[test]
+    fn a_gated_sample_is_counted_and_the_coils_stay_off() {
+        let mut a = Adcs::new();
+        a.init();
+        a.calibration.mag_bias[0] = Vec3::new(1.0, 0.0, 0.0);
+        let _ = a.set_mode(mode::DETUMBLE, 1);
+        let r = Reading { field: Vec3::new(30.0, 0.0, 40.0), sun: Vec3::new(1.0, 0.0, 0.0), ..Reading::default() };
+        let c = a.update_cycle(1000, 1000, &r).unwrap();
+        assert!(!c.mag_gated && a.state.mag.valid);
+        assert_eq!(a.state.mag.field, Vec3::new(29.0, 0.0, 40.0), "bias of state 0 removed");
+        let c = a.update_cycle(2000, 2000, &Reading { gated: true, field: Vec3::new(31.0, 1.0, 40.0), ..r }).unwrap();
+        assert!(c.mag_gated && !a.state.mag.valid);
+        assert_eq!(a.mag_gated, 1);
+        assert!(!a.state.mtq.enabled, "coils off in a gated cycle");
+        let c = a.update_cycle(3000, 3000, &Reading { coils_driven: true, ..r }).unwrap();
+        assert!(c.mag_rejected && !c.mag_gated, "coil current at the sample: rejected");
+        let c = a.update_cycle(3500, 3500, &Reading { mag_missing: true, ..r }).unwrap();
+        assert!(!c.mag_rejected && !a.state.mag.valid && !a.state.mtq.enabled, "no magnetometer: no actuation");
+        // The gyro passes through the alignment
+        a.calibration.gyro = [[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]];
+        let _ = a.update_cycle(4000, 4000, &Reading { gyro: Some(Vec3::new(0.1, 0.0, 0.0)), ..r });
+        assert_eq!(a.gyro, Some(Vec3::new(0.0, 0.1, 0.0)));
+        // The calibration survives init
+        a.init();
+        assert_eq!(a.calibration.gyro[0], [0.0, 1.0, 0.0]);
     }
 }

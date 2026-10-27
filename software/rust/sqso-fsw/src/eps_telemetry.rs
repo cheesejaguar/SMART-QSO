@@ -83,8 +83,23 @@ pub struct Telemetry {
     pub isolar_a: f64,
     /// 5 V payload bus voltage, V
     pub vbus_v: f64,
-    /// 5 V payload bus current, A (the Jetson's rail, §3.1)
+    /// 5 V payload bus current, A
     pub ibus_a: f64,
+    /// The Jetson rail's current at VBAT, A: the eFuse U19's IMON on the
+    /// controller's ADC (`IMON_JET`, [`IMON_JET`]; 0 when not read)
+    pub ijet_a: f64,
+}
+
+/// The controller's `IMON_JET` register (an addition to SMART-QSO-ICD-001
+/// §4.6): the Jetson eFuse current, mA, 16-bit unsigned, LSB first
+pub const IMON_JET: u8 = 0x8A;
+/// The `EOL_STATE` register: bit 0 armed, 1 fired (charge path open), 2 the
+/// fuse F1 intact (SMART-QSO-ICD-001 §4.6)
+pub const EOL_STATE: u8 = 0x7C;
+
+/// `IMON_JET`'s two bytes, A
+pub fn imon_jet_a(b: [u8; 2]) -> f64 {
+    f64::from(u16::from_le_bytes(b)) / 1000.0
 }
 
 impl Telemetry {
@@ -124,6 +139,7 @@ pub fn decode(block: &[u8]) -> Option<Telemetry> {
         isolar_a: ma(reg::ISOLAR)?,
         vbus_v: mv(reg::VBUS)?,
         ibus_a: ma(reg::IBUS)?,
+        ijet_a: 0.0,
     };
     let plausible = t.vbatt_v >= VBATT_PLAUSIBLE_V.0 && t.vbatt_v <= VBATT_PLAUSIBLE_V.1;
     (soc <= 100 && plausible).then_some(t)
@@ -177,6 +193,7 @@ mod tests {
             isolar_a: 0.4,
             vbus_v: 5.01,
             ibus_a: 1.25,
+            ijet_a: 0.0,
         }
     }
 
@@ -229,5 +246,10 @@ mod tests {
         encode(&t, &mut block);
         assert_eq!(i16::from_le_bytes([block[0x12], block[0x13]]), i16::MAX);
         assert_eq!(block[0x16], 100);
+    }
+
+    #[test]
+    fn imon_jet_is_milliamperes_lsb_first() {
+        assert_eq!(imon_jet_a([0xF4, 0x01]), 0.5);
     }
 }

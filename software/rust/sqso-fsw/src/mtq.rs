@@ -26,6 +26,8 @@ pub const ROD_OHMS: f64 = 51.0;
 pub const VM_DEFAULT_V: f64 = 14.4;
 /// Coil supply range the duty is computed for, V (the pack's)
 pub const VM_RANGE_V: (f64, f64) = (11.2, 16.8);
+/// The bridges' PWM frequency, Hz (`HAL_MTQ_PWM_HZ`)
+pub const PWM_HZ: u32 = 40_000;
 /// Duty full scale (`HAL_MTQ_DUTY_FULL`)
 pub const DUTY_FULL: u16 = 1000;
 /// A coil current above this at the magnetometer sample means the coils

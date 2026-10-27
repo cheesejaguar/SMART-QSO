@@ -38,8 +38,14 @@ use crate::recorder::{Logs, Table};
 const OBC_W: f64 = 0.165;
 /// ADCS sensors with the ADCS rail on, W
 const ADCS_SENSORS_W: f64 = 0.12;
-/// Magnetorquer drive at full dipole (all three coils), W
-const MTQ_FULL_W: f64 = 0.30;
+/// The rods and their drive (SQSO-OBC-BRD-001 B §10): the CR0002's gain,
+/// A·m² per A, its resistance, Ω, the bridges' efficiency and their awake
+/// current with MTQ_ARM high (three DRV8876, 3 mA each), A. The coils run
+/// from VBAT (SW11): the supply power is I² R / efficiency per rod
+const ROD_GAIN: f64 = 2.3;
+const ROD_OHMS: f64 = 51.0;
+const BRIDGE_EFF: f64 = 0.97;
+const BRIDGES_AWAKE_A: f64 = 0.009;
 /// Battery heater, Ω (BASELINE §8: about 207 Ω, 0.72–1.30 W across the
 /// bus; THM-15): its power is V²/R at the pack voltage
 const HEATER_OHMS: f64 = 207.0;
@@ -243,6 +249,9 @@ pub struct Mission {
     eol_latch: bool,
     /// `EOL_ARM` at the last step
     eol_arm_prev: bool,
+    /// The four wing lines driven at the last step, and each wing deployed
+    wing_lines_prev: [[bool; 2]; 2],
+    wing_deployed_prev: [bool; 2],
     /// The disconnect's heater has been on this long, s
     eol_heat_s: f64,
     /// The command receiver is hung (a single-event functional interrupt)
@@ -367,6 +376,8 @@ impl Mission {
             eol: ops::Eol::Arm,
             eol_latch: false,
             eol_arm_prev: false,
+            wing_lines_prev: [[false; 2]; 2],
+            wing_deployed_prev: [false; 2],
             eol_heat_s: 0.0,
             rx_hung_since: None,
             last_dump_day: -1,
@@ -474,7 +485,7 @@ impl Mission {
             l.w_3v3 += LED_W;
         }
         if p(pin::ADCS_EN) {
-            l.w_3v3 += ADCS_SENSORS_W + MTQ_FULL_W * self.fsw.adcs_dipole_fraction();
+            l.w_3v3 += ADCS_SENSORS_W;
         }
         l.w_3v3 += self.radio.dc_w.min(crate::hw::radio::RX_W);
         l.w_5v += (self.radio.dc_w - crate::hw::radio::RX_W).max(0.0);
@@ -482,12 +493,29 @@ impl Mission {
         if p(pin::HEATER_EN) {
             l.w_vbat += vbat * vbat / HEATER_OHMS;
         }
+        if p(pin::ADCS_EN) {
+            l.w_mtq = self.mtq_w(vbat);
+            l.w_vbat += l.w_mtq;
+        }
         if self.eol_heater_on() {
             l.w_vbat += vbat * vbat / EOL_HEATER_OHMS;
         }
         l.w_payload = if self.latched_up { crate::jetson::IDLE_W + LATCHUP_EXTRA_W } else { self.jetson.power_w() };
         l.burn_a = self.deploy.current_a;
         l
+    }
+
+    /// The coils' supply power, W, averaged over the control period: each
+    /// rod's I² R through the bridge for the burst's 900 ms, and the bridges
+    /// awake while MTQ_ARM is high
+    fn mtq_w(&self, vbat: f64) -> f64 {
+        let (d, on) = self.fsw.adcs_burst();
+        if !on {
+            return 0.0;
+        }
+        let rod = |m: f64| (m.abs() / ROD_GAIN).powi(2) * ROD_OHMS / BRIDGE_EFF;
+        let frac = sqso_fsw::adcs::MTQ_ON_MS as f64 / sqso_fsw::adcs::CONTROL_PERIOD_MS as f64;
+        (rod(d.x) + rod(d.y) + rod(d.z) + BRIDGES_AWAKE_A * vbat) * frac
     }
 
     fn fine_needed(&self) -> bool {
@@ -609,8 +637,8 @@ impl Mission {
         let mut inp = ThermalInputs::new(sun_b, illum, flux, nadir_b, r.norm(), cos_zeta);
         inp.wings_deployed = wings;
         inp.elec_w = thermal::elec_from_strings(&strings);
-        inp.internal_w[thermal::BAT] = e.pack_heat_w + loads.w_vbat;
-        inp.internal_w[thermal::OBC] = loads.w_3v3 - self.radio.dc_w.min(crate::hw::radio::RX_W) + e.loss_w;
+        inp.internal_w[thermal::BAT] = e.pack_heat_w + loads.w_vbat - loads.w_mtq;
+        inp.internal_w[thermal::OBC] = loads.w_3v3 - self.radio.dc_w.min(crate::hw::radio::RX_W) + e.loss_w + loads.w_mtq;
         inp.internal_w[thermal::RF] = self.radio.pa_heat_w + self.radio.dc_w.min(crate::hw::radio::RX_W);
         inp.internal_w[thermal::JET] = loads.w_payload;
         self.thermal.step(dt, &inp);
@@ -634,13 +662,21 @@ impl Mission {
         self.fsw.set_adc(adc::ISOLAR, tel.isolar_a);
         self.fsw.set_adc(adc::VBUS, tel.vbus_v);
         self.fsw.set_adc(adc::TEMP_MCU, self.thermal.obc_c() + 4.0);
-        self.fsw.set_adc(adc::TEMP_BOARD, self.thermal.jetson_c());
+        // The OBC's TMP235, and the Jetson spreader's thermistor (biased by
+        // the OBC: readable with the carrier off)
+        self.fsw.set_adc(adc::TEMP_BOARD, self.thermal.obc_c());
+        self.fsw.set_adc(adc::PT_NTC, crate::fsw::ntc_volts(self.thermal.jetson_c()));
         self.fsw.set_adc(adc::TX_TEMP, self.thermal.rf_c());
         self.fsw.set_adc(adc::TX_FWD, self.radio.fwd_w);
         self.fsw.set_adc(adc::TX_REV, self.radio.rev_w);
         self.fsw.drive(pin::ANTENNA_SENSE, self.deploy.antennas_deployed());
         self.fsw.drive(pin::SOLAR_SENSE, self.deploy.wings_deployed());
-        let mag_meas = self.sensors.magnetometer(&mut self.sensor_rng, b_b);
+        let mut mag_meas = self.sensors.magnetometer(&mut self.sensor_rng, b_b);
+        if self.jetson.power_good() {
+            // The module's input current at the magnetometer (JETB-09); the
+            // flight software does not use these samples (JET_PG gate)
+            mag_meas = mag_meas + V3::new(crate::jetson::MAG_FIELD_T, 0.0, 0.0);
+        }
         let sun_meas = self.sensors.sun_sensors(&mut self.sensor_rng, sun_b, illum);
         let gyro_meas = self.sensors.gyro(&mut self.sensor_rng, self.att.w, dt);
         self.fsw.set_adcs_sensors(mag_meas, sun_meas, gyro_meas);
@@ -701,6 +737,24 @@ impl Mission {
             self.totals.antennas_s = Some(self.rel());
             self.event("deploy", "every AntS antenna element deployed");
         }
+        // Each wing line's burn and each wing's release, in order (the four
+        // lines, one resistor at a time; the hinge switches are in series,
+        // so SOLAR_SENSE reads deployed only with both wings out)
+        let names = [["W1A", "W1B"], ["W2A", "W2B"]];
+        for (w, wl) in wing.iter().enumerate() {
+            for (r, &on) in wl.iter().enumerate() {
+                if on && armed && !self.wing_lines_prev[w][r] {
+                    self.event("deploy", &format!("wing line {} on", names[w][r]));
+                }
+                self.wing_lines_prev[w][r] = on && armed;
+            }
+            let out = self.deploy.wings.elements[w].deployed;
+            if out && !self.wing_deployed_prev[w] {
+                let burned = self.deploy.wings.elements[w].burn_s;
+                self.event("deploy", &format!("{} released after {burned:.1} s of burn", self.deploy.wings.elements[w].name));
+            }
+            self.wing_deployed_prev[w] = out;
+        }
         if self.totals.wings_s.is_none() && self.deploy.wings_deployed() {
             self.totals.wings_s = Some(self.rel());
             self.event("deploy", "both solar wings deployed");
@@ -719,6 +773,9 @@ impl Mission {
             }
         }
         self.jetson.step(dt, jet_rail && !self.latched_up, self.thermal.jetson_c());
+        self.fsw.drive(pin::JET_PG, self.jetson.power_good());
+        self.fsw.drive(pin::PTT_EXC, self.radio.keyed());
+        self.fsw.drive(pin::XPDR_KEY, self.radio.xpdr_keyed);
         self.eol_hardware(dt);
         self.receiver(radio_on);
 

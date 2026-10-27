@@ -9,6 +9,12 @@
 //! @requirement SRS-F001 Initialize all subsystems within 30 seconds of power-on
 //! @requirement SRS-P001 Main control loop executes within 20 ms
 //! @requirement SRS-F086 The software shall command no magnetorquer output until 120 s after separation
+//! @requirement SRS-F148 Jetson switch-off: SHUTDOWN, JET_PG fall within 5 s, then JETSON_PWR and PAYLOAD_EN 10 ms apart
+//! @requirement SRS-F149 Jetson power-good and switch readbacks: an unexpected JET_PG fall cuts the rail; a readback that disagrees with its command is a fault
+//! @requirement SRS-F151 A Jetson burst ends when its energy reaches 360 J per line of a full batch
+//! @requirement SRS-F153 A repeated condition shall be logged at its onset and its clearance (with the number of checks), not at every check
+//! @requirement SRS-F154 Boot telemetry reports the SRAM2 parity state
+//! @requirement SRS-F156 The second housekeeping frame (HK2) carries the counters of the mission success criteria
 
 use core::ffi::{CStr, c_char};
 use core::fmt::{self, Write};
@@ -16,6 +22,8 @@ use core::ptr::{null, null_mut};
 use core::sync::atomic::{AtomicBool, Ordering};
 
 use sqso_fsw::beacon::{Content, Measurements, TLM_BV, TLM_SOC, TLM_SUN};
+use sqso_fsw::condition::{Change, Condition};
+use sqso_fsw::jetson_power::{self, JetsonPower};
 use sqso_fsw::eps::EpsState;
 use sqso_fsw::executive::{self as exec, PowerModel};
 use sqso_fsw::fault_log::Entry;
@@ -34,6 +42,7 @@ use sqso_protocol::jetson::{LINE_MAX, TEXT_MAX};
 use crate::c::{fault_type, rc, severity};
 use crate::jetson_link::{JetsonMsg, JetsonRx};
 use crate::sensors::Sensor;
+use crate::{hw, pins};
 use crate::{
     adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, eps_lockout, fault_mgmt,
     gse_provision, hk_store, jetson_link, mission_data, ops_state, passivation, payload_guard, receiver, rf_control,
@@ -43,9 +52,10 @@ use crate::{
 /// `ADC_RESOLUTION_12BIT`, `ADC_REF_VDD` (hal_adc.h)
 const ADC_RESOLUTION_12BIT: u32 = 12;
 const ADC_REF_VDD: u32 = 2;
-/// I2C buses (hal_i2c.h): 0 is the EPS and power monitors, 1 the ADCS;
-/// standard mode (SMART-QSO-ICD-001 §2.3)
-const I2C_BUSES: [u32; 2] = [0, 1];
+/// I2C buses (hal_i2c.h): 0 the EPS and power monitors, 1 the ADCS
+/// sensors, 2 the mission clock; standard mode (SMART-QSO-ICD-001 §2.3,
+/// SQSO-OBC-BRD-001 B §8, §9.4)
+const I2C_BUSES: [u32; 3] = [0, 1, 2];
 const I2C_SPEED_HZ: u32 = 100_000;
 
 // watchdog_mgr.h task ids
@@ -124,6 +134,48 @@ const VERIFY_INTERVAL_MS: u64 = 60_000;
 static GNSS_REQUESTED: AtomicBool = AtomicBool::new(false);
 /// GET_HOUSEKEEPING received
 static HK_REQUESTED: AtomicBool = AtomicBool::new(false);
+/// SRAM2 parity as the firmware found it at boot: 0 not known (the host
+/// build), 1 off, 2 on
+static PARITY: core::sync::atomic::AtomicU8 = core::sync::atomic::AtomicU8::new(0);
+
+/// The firmware's report of SRAM2 parity (option bit SRAM2_PE) at boot:
+/// announced on the console and carried in HK2 (`PE`, RID AV-12)
+pub fn set_parity_state(on: bool) {
+    PARITY.store(if on { 2 } else { 1 }, Ordering::Relaxed);
+    crate::c::console(format_args!("[SYSTEM] SRAM2 parity {}", if on { "on" } else { "OFF (option bit SRAM2_PE)" }));
+}
+
+/// A repeated condition of the health check (`sqso_fsw::condition`)
+#[derive(Clone, Copy)]
+enum Health {
+    Thermal = 0,
+    Bus = 1,
+    Soc = 2,
+    Uart = 3,
+    Sw1Readback = 4,
+    EfuseReadback = 5,
+    SpreaderFault = 6,
+    GnssRail = 7,
+    Clock = 8,
+    HardLimit = 9,
+}
+const HEALTH_CONDITIONS: usize = 10;
+/// The MCU clock against the mission clock's 1 Hz: a larger error is a
+/// fault (a PLL or oscillator failure), ppm
+const CLOCK_LIMIT_PPM: f64 = 20_000.0;
+/// GNSS_PG is checked this long after GNSS_EN switches on, ms
+const GNSS_PG_SETTLE_MS: u64 = 1_000;
+/// The Jetson's rail with the payload off is past its burst limit after
+/// this, ms (the batch's time limit and the switch-off wait)
+const BURST_LIMIT_MS: u64 = payload_schedule::BATCH_TIMEOUT_MS + jetson_power::SHUTDOWN_WAIT_MS + 1_000;
+/// `HalSpiConfig_t`
+#[repr(C)]
+struct HalSpiConfig {
+    clock_hz: u32,
+    mode: u32,
+    bits_per_word: u8,
+    msb_first: bool,
+}
 
 /// GNSS_REQUEST: a receiver session at the next pass the gates allow
 pub(crate) fn request_gnss_session() {
@@ -290,6 +342,26 @@ pub struct Executive {
     last_fault_count: usize,
     /// When the critical state was last checked against its records, ms
     last_verify_ms: u64,
+    /// The Jetson's switch-off and power-good
+    jetson: JetsonPower,
+    /// The repeated conditions, logged at onset and clearance
+    health: [Condition; HEALTH_CONDITIONS],
+    /// Hard-limit violations since boot (MSC L2-05)
+    hard_limits: u32,
+    /// The second housekeeping frame is due at this time, ms
+    hk2_due: Option<u64>,
+    /// Transponder enables and repeat-keyed time since boot (XPDR_KEY), ms
+    xpdr_enables: u32,
+    xpdr_keyed_ms: u64,
+    /// The previous pass, ms, and the time since it
+    last_pass_ms: u64,
+    pass_dt_ms: u64,
+    /// GNSS_EN high since, ms
+    gnss_on_since: Option<u64>,
+    /// The mission clock at boot (target)
+    rtc: Option<sqso_fsw::rv3028::Boot>,
+    /// The MCU clock against the mission clock, ppm (latest)
+    clock_ppm: Option<f64>,
 }
 
 impl Executive {
@@ -323,6 +395,17 @@ impl Executive {
         last_state: STATE_BOOT,
         last_fault_count: 0,
         last_verify_ms: 0,
+        jetson: JetsonPower::new(),
+        health: [Condition::new(); HEALTH_CONDITIONS],
+        hard_limits: 0,
+        hk2_due: None,
+        xpdr_enables: 0,
+        xpdr_keyed_ms: 0,
+        last_pass_ms: 0,
+        pass_dt_ms: 0,
+        gnss_on_since: None,
+        rtc: None,
+        clock_ppm: None,
     };
 
     /// Bring the system up from [`Executive::BOOT`]; false (after reporting
@@ -367,6 +450,8 @@ impl Executive {
                 eprint(format_args!("[SYSTEM] I2C bus {bus} init failed"));
             }
         }
+        init_spi_buses();
+        self.rtc = read_mission_clock();
         let _ = deployment::deployment_init();
         // The commissioning hold and transponder enable, before anything
         // can ask for ACTIVE
@@ -399,13 +484,47 @@ impl Executive {
         self.last_power_ms = self.program_start_ms;
         self.last_adcs_ms = self.program_start_ms;
         self.last_verify_ms = self.program_start_ms;
+        self.last_pass_ms = self.program_start_ms;
+        hw::configure(pins::JET_PG, false);
+        hw::configure(pins::GNSS_PG, false);
+        hw::configure(pins::XPDR_KEY, false);
+        hw::configure(pins::TONE_OK, false);
+        hw::configure(pins::PTT_EXC, false);
         self.last_fault_count = fault_mgmt::fault_log_get_count();
         self.telemetry_interval_ms = uart_comm::uart_get_telemetry_interval();
         // Stored housekeeping: the newest records of each store
         let _ = hk_store::hk_store_init();
         receiver::receiver_init();
         eps_lockout::eps_lockout_init();
+        self.report_mission_clock();
         true
+    }
+
+    /// Log the mission clock's view of the reset just past (now that the
+    /// fault log is up)
+    fn report_mission_clock(&self) {
+        match self.rtc {
+            Some(b) => {
+                let at = b.reset_unix_s.unwrap_or(0);
+                crate::c::console(format_args!(
+                    "[RTC] UNIX {} reset at {} ({} stamped){}",
+                    b.unix_s,
+                    at,
+                    b.reset_count,
+                    if b.lost_power { ", clock lost power" } else { "" }
+                ));
+                if b.lost_power {
+                    add_fault(fault_type::INIT, severity::WARNING, c"Mission clock lost power: time not valid", 0.0);
+                }
+                if !b.clkout_1hz {
+                    add_fault(fault_type::INIT, severity::WARNING, c"Mission clock CLKOUT not 1 Hz (EEPROM)", 0.0);
+                }
+            }
+            None if cfg!(target_os = "none") => {
+                add_fault(fault_type::INIT, severity::WARNING, c"Mission clock (RV-3028) not answering", 0.0);
+            }
+            None => {}
+        }
     }
 
     /// Mission data, EPS and sensors (sensors.yaml on the host, else the defaults)
@@ -486,6 +605,8 @@ impl Executive {
 
         self.monitor_system_health();
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_MAIN_LOOP);
+        eps_control::eps_payload_tick(now);
+        self.count_keyed_time(now);
 
         // Attitude and the battery heater
         let state = sm_state();
@@ -514,10 +635,11 @@ impl Executive {
         let _ = sensors::sensors_poll(now);
 
         // Jetson replies (beacon text, status), the OBC's payload limits, then
-        // the batch schedule
+        // the batch schedule and the switch-off
         self.poll_jetson();
         self.guard_payload(now);
         self.run_payload_schedule(now, state);
+        self.supervise_jetson(now, state);
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_PAYLOAD);
 
         // Beacon (stays silent while TX-OFF, contact or RF-silence inhibits)
@@ -529,6 +651,7 @@ impl Executive {
         self.run_store(now, state);
         downlink::downlink_poll();
         self.run_gnss(now, state);
+        self.check_gnss_rail(now);
         self.run_transponder(now, state);
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_BEACON);
 
@@ -602,6 +725,9 @@ impl Executive {
         self.last_health_check_ms = now;
         let soc = self.power.soc;
 
+        // Each condition is logged at its onset and its clearance (FSW-14);
+        // the responses (the thermal event, the UART restart) run at every check
+        let mut hot = false;
         for i in 0..sensors::sensors_get_count() {
             let mut sensor = Sensor::ZERO;
             // SAFETY: sensor is a live Sensor_t
@@ -609,29 +735,33 @@ impl Executive {
                 && field(&sensor.type_) == b"eps_temperature"
                 && sensor.last_value > exec::HEALTH_TEMP_LIMIT_C
             {
-                add_fault(FAULT_TYPE_HEALTH_THERMAL, severity::WARNING, c"High temperature in health check", soc);
+                hot = true;
                 sm_event(EVENT_THERMAL_FAULT);
             }
         }
+        self.condition(Health::Thermal, hot, FAULT_TYPE_HEALTH_THERMAL, severity::WARNING, c"High temperature in health check");
 
         // Bus regulation, on the measured value (SW-16)
-        if let Some(bus_v) = fresh_sensor(c"BUSV", now, exec::HEALTH_CHECK_INTERVAL_MS)
-            && !eps_control::eps_bus_voltage_ok(bus_v)
-        {
-            add_fault(FAULT_TYPE_VOLTAGE_RANGE, severity::ERROR, c"Bus voltage out of range", soc);
-        }
+        let bus_bad = fresh_sensor(c"BUSV", now, exec::HEALTH_CHECK_INTERVAL_MS)
+            .is_some_and(|bus_v| !eps_control::eps_bus_voltage_ok(bus_v));
+        self.condition(Health::Bus, bus_bad, FAULT_TYPE_VOLTAGE_RANGE, severity::ERROR, c"Bus voltage out of range");
 
         // Mode change for low power happens in update_mission_state
-        if soc < exec::HEALTH_SOC_LOW {
-            add_fault(FAULT_TYPE_HEALTH_POWER, severity::WARNING, c"Low SOC in health check", soc);
-        }
+        self.condition(Health::Soc, soc < exec::HEALTH_SOC_LOW, FAULT_TYPE_HEALTH_POWER, severity::WARNING, c"Low SOC in health check");
 
-        if eps_control::eps_is_payload_enabled() && !uart_comm::uart_is_initialized() {
-            add_fault(FAULT_TYPE_HEALTH_COMM, severity::WARNING, c"UART communication lost with payload", soc);
+        let uart_lost = eps_control::eps_is_payload_enabled() && !uart_comm::uart_is_initialized();
+        self.condition(Health::Uart, uart_lost, FAULT_TYPE_HEALTH_COMM, severity::WARNING, c"UART communication lost with payload");
+        if uart_lost {
             let _ = uart_comm::uart_init();
         }
 
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_HEALTH);
+    }
+
+    /// One check of a repeated condition: logged at onset and clearance
+    fn condition(&mut self, which: Health, present: bool, kind: u32, sev: u32, text: &CStr) {
+        let change = self.health.get_mut(which as usize).map_or(Change::None, |c| c.check(present));
+        crate::c::log_condition(change, kind, sev, text, self.power.soc);
     }
 
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
@@ -737,13 +867,19 @@ impl Executive {
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn guard_payload(&mut self, now: u64) {
         let mut sample = Sample::default();
-        if let (Some(bus_v), Some(amps)) =
-            (fresh_sensor(c"BUSV", now, TELEMETRY_TIMEOUT_MS), fresh_sensor(c"JPC", now, TELEMETRY_TIMEOUT_MS))
+        // The rail's power at its own voltage (VJET_RB, the eFuse output)
+        // and current (JPC, the eFuse's IMON): SQSO-JET-BRD-001 §12
+        let rail_v = hw::adc(pins::ADC_VJET_RB);
+        if let Some(amps) = fresh_sensor(c"JPC", now, TELEMETRY_TIMEOUT_MS)
+            && rail_v.is_finite()
         {
             sample.power_valid = true;
-            sample.input_w = bus_v * amps;
+            sample.input_w = rail_v * amps;
         }
-        if let Some(t) = fresh_sensor(c"PT", now, TELEMETRY_TIMEOUT_MS) {
+        let fault = sensors::spreader_fault();
+        payload_guard::payload_guard_set_spreader_fault(fault);
+        self.condition(Health::SpreaderFault, fault, FAULT_TYPE_HEALTH_THERMAL, severity::ERROR, c"Jetson spreader thermistor fault: power-on inhibited");
+        if let Some(t) = fresh_sensor(c"PT", now, TELEMETRY_TIMEOUT_MS).filter(|t| t.is_finite()) {
             sample.spreader_valid = true;
             sample.spreader_c = t;
         }
@@ -753,6 +889,12 @@ impl Executive {
         {
             sample.junction_valid = true;
             sample.junction_c = f64::from(self.jetson_temp_c);
+            if fault && !sample.spreader_valid {
+                // The thermistor failed with the Jetson on: its own report
+                // stands in for the spreader (SQSO-OBC-BRD-001 B §11.3)
+                sample.spreader_valid = true;
+                sample.spreader_c = sample.junction_c;
+            }
         }
 
         // SAFETY: sample is a live PayloadSample_t
@@ -852,6 +994,9 @@ impl Executive {
             }
             return;
         }
+        // The board's sensors every pass: rails, bring-up, the
+        // magnetometer's trigger in the coils-off window (target)
+        adcs_control::adcs_poll(now, eps_control::eps_is_adcs_enabled() && deployment::deployment_is_separated());
         if now.wrapping_sub(self.last_adcs_ms) < ADCS_PERIOD_MS {
             return;
         }
@@ -917,7 +1062,10 @@ impl Executive {
         let _ = unsafe { crate::c::hal_gpio_heartbeat(GPIO_PIN_XPDR_EN, self.transponder.heartbeat_lease_ms()) };
         match change {
             transponder::Change::None => {}
-            transponder::Change::On => crate::c::console(format_args!("[XPDR] Transponder on")),
+            transponder::Change::On => {
+                self.xpdr_enables = self.xpdr_enables.wrapping_add(1);
+                crate::c::console(format_args!("[XPDR] Transponder on"));
+            }
             transponder::Change::Off(why) => crate::c::console(format_args!("[XPDR] Transponder off: {}", why.text())),
         }
     }
@@ -978,8 +1126,11 @@ impl Executive {
     /// downlink (which enforces the inhibits and the duty limit)
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn run_housekeeping(&mut self, now: u64, state: u32) {
-        if HK_REQUESTED.swap(false, Ordering::Relaxed) {
+        if HK_REQUESTED.swap(false, Ordering::Relaxed) || passivation::passivation_take_report() > 0 {
             self.hk.request(now);
+        }
+        if self.hk2_due.is_some_and(|t| now >= t) {
+            self.send_hk2(now);
         }
         if !self.hk.due(now) {
             return;
@@ -1001,9 +1152,75 @@ impl Executive {
                 if sent == rc::OK {
                     crate::c::console_parts(&[b"[HK] TX: ", info.get(..n).unwrap_or(&[])]);
                 }
+                self.hk2_due = Some(now.saturating_add(housekeeping::AFTER_BEACON_MS));
                 self.hk.sent();
             }
         }
+    }
+
+    /// The second housekeeping frame (HK2), after HK1
+    #[inline(never)] // its buffers are not in run_housekeeping's frame (SRS-C003)
+    fn send_hk2(&mut self, now: u64) {
+        let hk = self.housekeeping2();
+        let mut info = [0u8; housekeeping::MAX_LEN];
+        let n = housekeeping::format2(&hk, &mut info);
+        match send_ui(info.get(..n).unwrap_or(&[])) {
+            rc::BUSY => {} // the downlink is sending: next pass
+            sent => {
+                if sent == rc::OK {
+                    crate::c::console_parts(&[b"[HK] TX: ", info.get(..n).unwrap_or(&[])]);
+                }
+                self.hk2_due = None;
+            }
+        }
+        let _ = now;
+    }
+
+    /// The second frame's values now
+    fn housekeeping2(&self) -> housekeeping::Housekeeping2 {
+        let mut cs = cmd_handler::CmdStats::default();
+        // SAFETY: cs is a live CmdStats_t
+        let _ = unsafe { cmd_handler::cmd_get_stats(&mut cs) };
+        let mut ws = sqso_fsw::watchdog::Stats::default();
+        // SAFETY: ws is a live WdtStats_t
+        let _ = unsafe { watchdog_mgr::wdt_mgr_get_stats(&mut ws) };
+        let array = eps_control::eps_telemetry().map(|t| t.isolar_a);
+        let (gyro, trips) = adcs_control::sensor_status();
+        let (energy, lines) = self.schedule.last_burst;
+        // SAFETY: plain value (the HAL)
+        let exciter_ms = unsafe { crate::c::hal_capture_high_ms(pins::CAPTURE_PTT_EXC) };
+        let ms_s = |ms: u64| u32::try_from(ms / 1000).unwrap_or(u32::MAX);
+        housekeeping::Housekeeping2 {
+            seq: self.hk.seq.wrapping_sub(1),
+            commands: (cs.total_executed, cs.total_rejected, cs.auth_failures),
+            wdt_resets: ws.resets_caused,
+            xpdr: (self.xpdr_enables, ms_s(self.xpdr_keyed_ms), exciter_ms / 1000),
+            array_a: array,
+            hard_limit: self.hard_limits,
+            bursts: (self.schedule.bursts, energy, lines, self.schedule.gate_ends),
+            jetson: (self.jetson.clean, self.jetson.timed_out, self.jetson.faults, self.readback_faults()),
+            eol: (passivation::eol_state(), passivation::passivation_attempts()),
+            rtc: (mission_clock_now(), self.rtc.and_then(|b| b.reset_unix_s)),
+            clock_ppm: self.clock_ppm,
+            trips,
+            gyro: (gyro, adcs_control::mag_gated()),
+            mtq_faults: adcs_control::mtq_faults(),
+            parity: match PARITY.load(Ordering::Relaxed) {
+                1 => Some(false),
+                2 => Some(true),
+                _ => None,
+            },
+        }
+    }
+
+    /// Switch readback episodes now in progress
+    fn readback_faults(&self) -> u32 {
+        [Health::Sw1Readback, Health::EfuseReadback]
+            .iter()
+            .filter(|h| self.health.get(**h as usize).is_some_and(Condition::active))
+            .count()
+            .try_into()
+            .unwrap_or(0)
     }
 
     /// The housekeeping values now
@@ -1108,10 +1325,22 @@ impl Executive {
         eps_lockout::eps_lockout_poll();
         if now.wrapping_sub(self.last_verify_ms) >= VERIFY_INTERVAL_MS {
             self.last_verify_ms = now;
+            self.check_clock();
             rf_control::rf_control_verify();
             ops_state::ops_state_verify();
             passivation::passivation_verify();
         }
+    }
+
+    /// The MCU's clock against the mission clock's 1 Hz (RV-3028 CLKOUT,
+    /// TIM3 CH3): every minute, logged when off by more than 2 %
+    fn check_clock(&mut self) {
+        let mut period = 0u32;
+        // SAFETY: period is a live u32 (the HAL)
+        let got = unsafe { crate::c::hal_capture_period_us(pins::CAPTURE_RTC_1HZ, &mut period) } == rc::OK;
+        self.clock_ppm = got.then(|| f64::from(period) - 1.0e6);
+        let bad = self.clock_ppm.is_some_and(|p| p.abs() > CLOCK_LIMIT_PPM);
+        self.condition(Health::Clock, bad, fault_type::INIT, severity::ERROR, c"MCU clock off the mission clock by more than 2 %");
     }
 
     /// With the EPS controller answering, the Jetson in batches
@@ -1125,17 +1354,96 @@ impl Executive {
             return;
         }
         let on = eps_control::eps_is_payload_enabled();
+        // The burst's energy at the carrier input: the rail's voltage times
+        // its current (JETB-11; the energy gate, BASELINE §6)
+        let dt_ms = self.pass_dt_ms;
+        if on && let Some(t) = eps_control::eps_telemetry() {
+            #[allow(clippy::cast_precision_loss)] // a pass is milliseconds long
+            let dt_s = dt_ms as f64 / 1000.0;
+            self.schedule.add_energy(hw::adc(pins::ADC_VJET_RB) * t.ijet_a * dt_s);
+        }
         match self.schedule.step(now, on, state == STATE_ACTIVE, self.ai_cached) {
             Action::None => {}
             Action::PowerOn => {
                 crate::c::console(format_args!("[PAYLOAD] Batch: Jetson on"));
                 let _ = eps_control::eps_control_payload(true, self.power.soc);
             }
+            Action::PowerOff if self.jetson.shutting_down() => {} // under way
             Action::PowerOff => {
-                crate::c::console(format_args!("[PAYLOAD] Batch done: {} lines cached", self.ai_cached));
-                let _ = eps_control::eps_control_payload(false, self.power.soc);
+                let (energy, lines) = self.schedule.last_burst;
+                crate::c::console(format_args!(
+                    "[PAYLOAD] Batch done: {} lines cached, {} J",
+                    lines,
+                    Fixed::new(energy, 0)
+                ));
+                if self.jetson.request_off(now) == jetson_power::Action::SendShutdown {
+                    send_shutdown();
+                } else {
+                    let _ = eps_control::eps_control_payload(false, self.power.soc);
+                }
             }
         }
+    }
+
+    /// The Jetson's switch-off and power-good, and its switch readbacks
+    /// (SQSO-JET-BRD-001 §7.4, SMART-QSO-ICD-002 1.3 §10.4; RIDs JETB-03,
+    /// AV-06); the hard limits of the payload (MSC L2-05)
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn supervise_jetson(&mut self, now: u64, state: u32) {
+        let on = eps_control::eps_is_payload_enabled();
+        let action = self.jetson.step(now, on, hw::level(pins::JET_PG));
+        let soc = self.power.soc;
+        match action {
+            jetson_power::Action::None | jetson_power::Action::SendShutdown => {}
+            jetson_power::Action::PowerOff => {
+                let _ = eps_control::eps_control_payload(false, soc);
+            }
+            jetson_power::Action::FaultPgFell => {
+                add_fault(fault_type::POWER, severity::ERROR, c"Jetson power-good fell: payload fault, rail off", soc);
+                let _ = eps_control::eps_control_payload(false, soc);
+            }
+            jetson_power::Action::FaultNoPg => {
+                add_fault(fault_type::POWER, severity::ERROR, c"Jetson power-good never rose: rail off", soc);
+                let _ = eps_control::eps_control_payload(false, soc);
+            }
+        }
+        let rb = self.jetson.readback(
+            now,
+            hw::level(pins::PAYLOAD_EN),
+            hw::level(pins::JETSON_PWR),
+            hw::adc(pins::ADC_VSW1_RB),
+            hw::adc(pins::ADC_VJET_RB),
+        );
+        self.condition(Health::Sw1Readback, rb.sw1_bad, fault_type::POWER, severity::ERROR, c"Jetson switch SW1 readback disagrees with PAYLOAD_EN");
+        self.condition(Health::EfuseReadback, rb.efuse_bad, fault_type::POWER, severity::ERROR, c"Jetson eFuse readback disagrees with JETSON_PWR");
+        // Hard limits: the Jetson on only in ACTIVE, sunlit, SOC >= 55 %,
+        // and not past its burst limit (the switch-off excepted)
+        let long = self.schedule.batch_start_ms.is_some_and(|t| now.saturating_sub(t) > BURST_LIMIT_MS);
+        let outside = state != STATE_ACTIVE || !self.power.sunlit || self.power.soc < sqso_fsw::mode::SOC_PAYLOAD;
+        let violated = on && !self.jetson.shutting_down() && eps_control::eps_telemetry().is_some() && (outside || long);
+        if self.health.get(Health::HardLimit as usize).is_some_and(|c| !c.active()) && violated {
+            self.hard_limits = self.hard_limits.wrapping_add(1);
+        }
+        self.condition(Health::HardLimit, violated, fault_type::POWER, severity::ERROR, c"Payload hard limit violated");
+    }
+
+    /// The repeat path's keyed time (XPDR_KEY, sampled each pass)
+    fn count_keyed_time(&mut self, now: u64) {
+        let dt = now.saturating_sub(self.last_pass_ms);
+        self.pass_dt_ms = dt;
+        if hw::level(pins::XPDR_KEY) {
+            self.xpdr_keyed_ms = self.xpdr_keyed_ms.saturating_add(dt);
+        }
+        self.last_pass_ms = now;
+    }
+
+    /// A GNSS rail trip: GNSS_EN high and its power-good low (SW7)
+    fn check_gnss_rail(&mut self, now: u64) {
+        let en = hw::level(pins::GNSS_EN);
+        self.gnss_on_since = if en { Some(self.gnss_on_since.unwrap_or(now)) } else { None };
+        let settled = self.gnss_on_since.is_some_and(|t| now.saturating_sub(t) >= GNSS_PG_SETTLE_MS);
+        let tripped = settled && !hw::level(pins::GNSS_PG);
+        self.condition(Health::GnssRail, tripped, fault_type::INIT, severity::WARNING, c"GNSS rail tripped (GNSS_PG low)");
     }
 
     /// Save everything and close the Jetson link
@@ -1171,6 +1479,41 @@ fn separation_delay_served() -> bool {
         DEPLOY_STATE_WAITING => deployment::deployment_wait_elapsed_s() >= MTQ_SEPARATION_DELAY_S,
         _ => true,
     }
+}
+
+/// `SHUTDOWN,BURST_END` to the Jetson: the normal end of a burst
+fn send_shutdown() {
+    let mut line = [0u8; 32];
+    let n = sqso_protocol::jetson::shutdown("BURST_END", &mut line).unwrap_or(0);
+    send_line(line.get(..n).unwrap_or(&[]), "shutdown");
+}
+
+/// Configure the three SPI buses (hal_spi.h): the BMI088's gyro and
+/// accelerometer at 5 MHz, mode 0; the M-G370 at 1 MHz, mode 3
+fn init_spi_buses() {
+    let cfg = [(pins::SPI_BMI088_GYRO, 5_000_000, 0), (pins::SPI_MG370, 1_000_000, 3), (pins::SPI_BMI088_ACCEL, 5_000_000, 0)];
+    for (bus, clock_hz, mode) in cfg {
+        let c = HalSpiConfig { clock_hz, mode, bits_per_word: 8, msb_first: true };
+        // SAFETY: c is a live HalSpiConfig_t
+        if unsafe { crate::c::hal_spi_init(bus, (&raw const c).cast()) } != rc::OK {
+            eprint(format_args!("[SYSTEM] SPI bus {bus} init failed"));
+        }
+    }
+}
+
+/// The mission clock at boot: the reset's stamp, the stamp re-armed
+/// (target; the host has no clock)
+fn read_mission_clock() -> Option<sqso_fsw::rv3028::Boot> {
+    if cfg!(target_os = "none") {
+        sqso_fsw::rv3028::boot(&mut hw::HalI2c(pins::I2C_RTC)).ok()
+    } else {
+        None
+    }
+}
+
+/// The mission clock's UNIX time now (target)
+fn mission_clock_now() -> Option<u32> {
+    if cfg!(target_os = "none") { sqso_fsw::rv3028::now(&mut hw::HalI2c(pins::I2C_RTC)).ok() } else { None }
 }
 
 /// One ADC channel, volts (or its unit); not a number if the read fails

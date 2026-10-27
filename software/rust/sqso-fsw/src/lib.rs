@@ -43,8 +43,11 @@
 //! - [`ack`]: the command acknowledgement frame (`cmd_handler.h`)
 //! - [`bus`]: the SPI and I2C traits the device drivers use
 //! - [`mg370`], [`bmi088`], [`rm3100`], [`ads7138`]: the ADCS sensors' drivers
+//! - [`adcs_sensors`]: the sensors' rails, bring-up and cold-spare gyro
 //! - [`mtq`]: the magnetorquer drive (duty, direction, polarity state)
 //! - [`rv3028`]: the mission clock (reset time stamps)
+//! - [`condition`]: a repeated condition logged at onset and clearance
+//! - [`jetson_power`]: the Jetson's switch-off, power-good and switch readbacks
 //! - [`ina228`]: the EPS's pack and array power monitors
 
 #![no_std]
@@ -53,12 +56,14 @@
 
 pub mod ack;
 pub mod adcs;
+pub mod adcs_sensors;
 pub mod ads7138;
 pub mod ants;
 pub mod assert_handler;
 pub mod beacon;
 pub mod bmi088;
 pub mod bus;
+pub mod condition;
 pub mod contact_monitor;
 pub mod deployment;
 pub mod downlink;
@@ -74,6 +79,7 @@ pub mod gnss_schedule;
 pub mod heater;
 pub mod hk_store;
 pub mod housekeeping;
+pub mod jetson_power;
 pub mod ina228;
 pub mod keys;
 pub mod mg370;

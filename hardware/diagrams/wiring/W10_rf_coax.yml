@@ -12,8 +12,14 @@
 # spreader flanges (|y| <= 20) and the harness bundles (|y| >= 24), to z -39.2; bend R 7 inboard above the -Z end
 # frame (z -46.2) to the AntS ports. Needed 109-179 mm depending on the AntS port position; 0.22 m budgeted, cut to the
 # measured route with the pairs matched. The GNSS patch cable is unchanged (D6, connector open until the receiver ICD).
+# Harness design (SQSO-HAR-001 2.0, 2026-10-27): the coax bands are kept free of every other harness (checked by
+# hardware/harness/harness_calcs.py). Cable designators carry the route (W10_M_A, _B = 2 m pair; W10_P_A, _B = 70 cm pair,
+# W10E = GNSS). W10E, the GNSS antenna cable: 1.13 mm micro-coax (silver-plated copper, FEP), 0.195 m, from the
+# receiver's RF port on the deck up the (+X, -Y) bundle's upper section and over the RF shield to the patch at the +Z
+# end frame, at least 35 mm from magnetometer board A2; connectors MMCX right-angle assumed at both ends until the
+# receiver and patch interface documents are in hand.
 metadata:
-  title: W10 RF coaxial cables v3 (SQSO-HW-DIAG-001; RF side per SQSO-RF-BRD-001 C)
+  title: W10 RF coaxial cables v4 (SQSO-HW-DIAG-001; SQSO-RF-BRD-001 C; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -54,73 +60,74 @@ connectors:
     notes: 70 cm tape monopole along -Y
     pinlabels: [ELEMENT, BODY]
   J_GNSS_RF:
-    type: U.FL or MMCX (open)
-    notes: "GNSS receiver RF in; active antenna bias from the receiver (open)"
+    type: GNSS receiver RF port (MMCX assumed; SkyFox interface document)
+    notes: "receiver on the deck at (+5, -20); active antenna bias from the receiver"
     pinlabels: [RF, GND]
   ANT_GNSS:
-    type: GNSS L1 patch (open)
-    notes: zenith face
+    type: GNSS L1 patch Spacemanic ZENITH V3a (MMCX assumed)
+    notes: +Z face, through the patch adapter at (0, 0)
     pinlabels: [RF, GND]
 
 cables:
-  C_VHF_A:
+  W10_M_A:
     type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
     length: 0.22
-    notes: "50 Ohm, silver-plated copper inner (no copper-clad steel, ANT-8), FEP/PFA jacket; 0.44 dB port to antenna at 146 MHz worst (cable, plugs, mismatch); 1 W; -X gap band y -20 ... -24; matched to C_VHF_B within 2 mm"
-  C_VHF_B:
+    notes: "50 Ohm, silver-plated copper inner (no copper-clad steel, ANT-8), FEP/PFA jacket; 0.44 dB port to antenna at 146 MHz worst (cable, plugs, mismatch); 1 W; -X gap band y -20 ... -24; matched to W10_M_B within 2 mm"
+  W10_M_B:
     type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
     length: 0.22
-    notes: "50 Ohm, matched to C_VHF_A; same band"
-  C_UHF_A:
+    notes: "50 Ohm, matched to W10_M_A; same band"
+  W10_P_A:
     type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
     length: 0.22
-    notes: "50 Ohm, 0.62 dB port to antenna at 436 MHz worst (cable, plugs, mismatch); -X gap band y +20 ... +24; matched to C_UHF_B within 2 mm"
-  C_UHF_B:
+    notes: "50 Ohm, 0.62 dB port to antenna at 436 MHz worst (cable, plugs, mismatch); -X gap band y +20 ... +24; matched to W10_P_B within 2 mm"
+  W10_P_B:
     type: 1.37 mm micro-coax, Molex 73414-0351 R/A MMCX plug both ends
     wirecount: 1
     shield: true
     length: 0.22
-    notes: "50 Ohm, matched to C_UHF_A; same band"
-  C_GNSS:
-    type: 1.13 mm micro-coax (open)
+    notes: "50 Ohm, matched to W10_P_A; same band"
+  W10E:
+    type: 1.13 mm micro-coax, MMCX right-angle plugs
     wirecount: 1
     shield: true
-    length: 0.10
+    length: 0.195
+    notes: "silver-plated copper, FEP; carries the active-antenna bias; about 0.5 dB at 1575 MHz (allocation)"
 
 connections:
   - - J_VHF_A: [1]
-    - C_VHF_A: [1]
+    - W10_M_A: [1]
     - ANT_VHF_PX: [1]
   - - J_VHF_A: [2]
-    - C_VHF_A: [s]
+    - W10_M_A: [s]
     - ANT_VHF_PX: [2]
   - - J_VHF_B: [1]
-    - C_VHF_B: [1]
+    - W10_M_B: [1]
     - ANT_VHF_MX: [1]
   - - J_VHF_B: [2]
-    - C_VHF_B: [s]
+    - W10_M_B: [s]
     - ANT_VHF_MX: [2]
   - - J_UHF_A: [1]
-    - C_UHF_A: [1]
+    - W10_P_A: [1]
     - ANT_UHF_PY: [1]
   - - J_UHF_A: [2]
-    - C_UHF_A: [s]
+    - W10_P_A: [s]
     - ANT_UHF_PY: [2]
   - - J_UHF_B: [1]
-    - C_UHF_B: [1]
+    - W10_P_B: [1]
     - ANT_UHF_MY: [1]
   - - J_UHF_B: [2]
-    - C_UHF_B: [s]
+    - W10_P_B: [s]
     - ANT_UHF_MY: [2]
   - - J_GNSS_RF: [1]
-    - C_GNSS: [1]
+    - W10E: [1]
     - ANT_GNSS: [1]
   - - J_GNSS_RF: [2]
-    - C_GNSS: [s]
+    - W10E: [s]
     - ANT_GNSS: [2]

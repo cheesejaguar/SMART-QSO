@@ -47,61 +47,77 @@ Rules applied to the allocation:
 
 ## 2. Boards, Connectors and Harnesses
 
-| Harness | From (board, connector) | To (board, connector) | Contents | Connector parts | Gauge |
-|---------|-------------------------|-----------------------|----------|-----------------|-------|
-| W1 | Battery pack | EPS J1, J2 | pack ±, NTC1, heater; cell taps, NTC2 | Micro-Fit 2×4, Pico-Clasp 6 | 20 AWG (EPS) |
-| W2 | Panels and wings | EPS J4–J9 | strings, panel NTCs | Pico-Clasp 5/8 | 24 AWG (EPS) |
-| **W3** v2 | **EPS J3** | **OBC J1** | 3V3_OBC, I2C2, 15 enables, 4 burn lines, passivation, lockout clear, sense and analog lines, readbacks, VBAT_MTQ, 3V3_RTC (§3.1) | Samtec FTSH-120-01-L-DV-K both ends, FFSD-20-D ribbon | 28 AWG |
-| W4A v3 | OBC J2 | RF J1 | KISS UART, TX_PWR_SEL, XPDR_EN, three readbacks, three monitors, RX_CD, RX_FAULT (§3.2) | FTSH-108-01-L-DV-K both ends | 28 AWG |
-| W4B v3 | EPS J19 | RF J2 at (−26, −44) | RADIO_3V3 (SW2), PA_5V (SW3), each with its return as a twisted pair | Micro-Fit 2×3 / Pico-Clasp 6 | 24 AWG twisted pairs |
-| **W5** v3 | EPS J18; OBC J3 | Jetson carrier | VBAT_JET (W5A); USART1, the carrier's 3.3 V and the spreader NTC (W5B, 6 pins, E10) (§3.3) | Micro-Fit 2×2; Pico-Clasp 6 | 22 AWG; 28 AWG |
-| **W6** v3 | EPS J20; OBC J7, J8, J10 | OBC J6; rods; panel photodiodes; magnetometer board A2 | 3V3_ADCS (W6B), three CR0002 rods (W6C), six sun sensors (W6D), magnetometer (W6E, 3V3_SNS, I2C, DRDY) (§3.4) | Pico-Clasp 2 / 6 / 14 / 6 | 26 / 26 / 28 AWG shielded / 28 AWG |
-| W7 | EPS J10, J11, J12 | wing hold-downs, AntS | burn resistors, hinge switch, AntS 3.3 V and I2C | Micro-Fit 2×3, Pico-Clasp 4 | 24 AWG (EPS) |
-| **W8** v3 | OBC J9 → access-window bulkhead (W8A, internal) → GSE (W8B) | GSE | SWD, NRST, console, umbilical sense, watchdog disable (§3.6) | Samtec FTSH-105 on the OBC; 2×5 2.54 mm bulkhead at the window | 28 AWG |
-| **W9** v2 | EPS J21 → OBC J4; OBC J5 | GNSS receiver | 3V3_GNSS through the OBC; LPUART1, 1PPS (§3.5) | Pico-Clasp 2 / 6 | 26 AWG |
-| W10 | RF J3–J6 | AntS | 2 m and 70 cm coax | SMA | coax (RF) |
-| W11 (proposed by the EPS board) | EPS J13 | GSE (access window) | charge input, pack monitor, AFE shutdown | Micro-Fit 2×3 | 20 AWG (EPS) |
+Harness design: [HARNESS_DESIGN.md](../harness/HARNESS_DESIGN.md) (SQSO-HAR-001 2.0, wire list
+`hardware/harness/wire_list.csv`). Every wire M22759/33 (ETFE, silver-coated high-strength copper alloy) unless stated;
+the gauge follows the terminal (Pico-Clasp 28–32 AWG, Micro-Fit 20–24 AWG); every contact gold; every EPS harness
+connector on the EPS bottom side.
 
-The OBC and EPS boards are PC/104 boards in one stack with no stack connector (SQSO-EPS-BRD-001 §1); W3 is a ribbon
-between their FTSH headers, which sit on the same +X edge at |y| < 24 mm so the ribbon passes the +X wall gap
-(MECHANICAL_DESIGN §4.4). Every other harness leaves the stack in the ±X wall gaps (bundles at |y| = 24–34 mm, except the
+| Harness | From (board, connector) | To (board, connector) | Contents | Connector parts | Gauge, length |
+|---------|-------------------------|-----------------------|----------|-----------------|---------------|
+| W1 | Battery sense-board pads (flying leads) | EPS J1, J2 | pack ±, NTC1, heater; cell taps, NTC2 | Micro-Fit 2×4 (right-angle header), Pico-Clasp 6 | 22 AWG pack leads, 24 AWG NTC1 and heater, 28 AWG taps; 0.12 m |
+| W2 | Body panels; wing hinge-flex tabs TB-W1, TB-W2 | EPS J4–J7; J8, J9 | strings, panel NTCs | Pico-Clasp 5 / 8 | 28 AWG, two wires per pole; 0.04–0.125 m |
+| **W3** v3 | **EPS J3** (bottom side) | **OBC J1** | 3V3_OBC, I2C2, 15 enables, 4 burn lines, passivation, lockout clear, sense and analog lines, readbacks, VBAT_MTQ, 3V3_RTC (§3.1) | Samtec TFM-120 (vertical on the EPS, right-angle on the OBC) with an SFSDT PTFE discrete-wire assembly (the FFSD ribbon is PVC) | 30 AWG; 0.065 m |
+| W4A v4 | OBC J2 | RF J1 | KISS UART, TX_PWR_SEL, XPDR_EN, three readbacks, three monitors, RX_CD, RX_FAULT (§3.2) | TFM-108 right-angle both ends, SFSDT | 30 AWG; 0.075 m |
+| W4B v4 | EPS J19 | RF J2 at (−26, −44) | RADIO_3V3 (SW2), PA_5V (SW3), each with its return as a twisted pair | Pico-Clasp 6 both ends (EPS J19 was Micro-Fit 2×3) | 28 AWG twisted pairs; 0.145 m |
+| **W5** v4 | EPS J18; OBC J3 | Jetson carrier J1; J2 | VBAT_JET (W5A); USART1, the carrier's 3.3 V and the spreader NTC (W5B, 6 pins, E10) (§3.3) | Micro-Fit 2×2 (right-angle at the carrier); Pico-Clasp 6 | 24 AWG quad, 0.105 m; 28 AWG, 0.06 m |
+| **W6** v4 | EPS J20; OBC J7, J8, J10 | OBC J6; rods (splices); photodiodes; magnetometer board A2 | 3V3_ADCS (W6B), three CR0002 rods (W6C), six sun sensors (W6D, unshielded pairs), magnetometer (W6E) (§3.4) | Pico-Clasp 2 / 6 / 14 / 6 | 28 AWG; W6B 0.075, W6C 0.05–0.205, W6D 0.095–0.245, W6E 0.09 m |
+| W7 v3 | EPS J10, J11, J12 | wing burn boards, deployed-state sensors, AntS | burn resistors, hinge sense, AntS 3.3 V and I2C | Micro-Fit 2×3; Pico-Clasp 6 (J12 was 4) | 24 AWG; W7C 28 AWG; 0.09–0.155 m |
+| **W8** v4 | OBC J9 → access-port board A3 (W8A, internal) → GSE (W8B) | GSE | SWD, NRST, console, umbilical sense, watchdog disable (§3.6) | TFM-105 right-angle on the OBC, SFSDT soldered to A3; Micro-D 21 socket on A3 | 30 AWG; 0.145 m |
+| **W9** v3 | EPS J21 → OBC J4; OBC J5 | GNSS receiver | 3V3_GNSS through the OBC; LPUART1, 1PPS (§3.5) | Pico-Clasp 2 / 6 | 28 AWG; 0.085, 0.145 m |
+| W10 | RF J3–J6; GNSS receiver (W10E) | AntS; GNSS patch | 2 m and 70 cm coax; GNSS L1 | MMCX (RF board C §4.3) | 1.37 mm coax 0.22 m; 1.13 mm coax 0.195 m |
+| W11 | EPS J13 | access-port board A3 | charge input, pack monitor, AFE shutdown | Micro-Fit 2×3; soldered to A3 | 24 AWG; 0.175 m |
+| W12 | EPS J15, J16, J17; J14 | DS1, DS2, DS3; RBF | the three deployment-switch inhibits, each on its own rail and route; the two-pole RBF | Pico-Clasp 3 / 4 | 28 AWG; 0.085–0.11 m |
+
+The OBC and EPS boards are PC/104 boards in one stack with no stack connector (SQSO-EPS-BRD-001 §1); W3 is a flat
+discrete-wire assembly between their TFM headers, which sit on the same +X edge at |y| < 24 mm so W3 passes the +X wall
+gap (MECHANICAL_DESIGN §4.4); the right-angle headers on the OBC and RF boards send their cables toward the wall gap,
+with the mated plug's back at most 2.0 mm inside the board edge (x ≤ ±43.1) for the 4.0 mm bend (SQSO-HAR-001 2.0
+§10.2). Every other harness leaves the stack in the ±X wall gaps (bundles at |y| = 24–34 mm, except the
 (+X, −Y) bundle, below). **W4A** runs flat and vertical, without a fold, in the +X wall gap at y −28.5 … −38.5 mm,
 from OBC J2 straight up to RF J1 at (+41.0, −33.5) (SQSO-RF-BRD-001 B §15 item 14; both pin fields along Y at the
-same x and y). It runs flat on the +X shear panel. The (+X, −Y) bundle cannot move clear of it over its whole height (the
+same x and y). It runs flat on the +X shear panel, with no bend over the top of RF J1. The (+X, −Y) bundle cannot move clear of it over its whole height (the
 Y rod's −Y end and the +X spreader flange are in the way, MECHANICAL_DESIGN §6.9): it keeps y −24.0 … −33.9 below
-z −26 and runs at **y −20.5 … −27.0, a 3 × 6.5 mm section (66 % of a bundle), above z −26**, 1.5 mm from W4A. A 45°
-fold of the ribbon was rejected (two ribbon thicknesses and a crease in the 3.3 mm gap). The bundle contents are
-allocated in §2.1. The gyro module (Epson M-G370PDT0) plugs into socket X1 on the OBC at (−20, +30.5) mm and stands
+z −26 and runs at **y −20.5 … −27.0, a 3 × 6.5 mm section (66 % of a bundle), above z −26**, 1.5 mm from W4A. The
+bundle contents are allocated in §2.1. The gyro module (Epson M-G370PDT0) plugs into socket X1 on the OBC at (−20, +30.5) mm and stands
 through a window in the Jetson carrier; the backup gyro, the sun-sensor amplifiers and the magnetorquer drivers are on
 the OBC board; the RM3100 magnetometer is on a small board (A2) at the +Z end frame on harness W6E (SQSO-OBC-BRD-001
 §9.4). There is no ADCS board and no ADCS stack connector.
 
-### 2.1 Harness bundle allocation (Version B)
+### 2.1 Harness routing and bundle fill (harness design SQSO-HAR-001 2.0)
 
-Four bundles in the ±X wall gaps (MECHANICAL_DESIGN §6.9). Allowance: 60 % of the section filled with wire (18 mm² in a
-3 × 10 mm bundle, 11.7 mm² in the 3 × 6.5 mm (+X, −Y) section above z −26). Wire areas for thin-wall ETFE (28 / 26 / 24
-/ 22 / 20 AWG: 0.49 / 0.62 / 0.85 / 1.17 / 1.58 mm²). Segments: B deck to EPS (z −26 … −1), C EPS to OBC (−1 … +6.6),
-D OBC to carrier (+6.6 … +18), E carrier to the +Z end frame (+18 … +48). Fills are of the harnesses with an OBC end
-(this document); the EPS-only harnesses (W1, W2, W7, W11) take the remainder, placed and counted by the harness design.
+Four bundles in the ±X wall gaps (MECHANICAL_DESIGN §6.9), x ±(45.4 … 48.4), y ±(24.0 … 33.9), with the (+X, −Y) one at
+y −20.5 … −27.0 above z −26. Allowance: 60 % of the section filled with wire (17.8 mm² in a 3.0 × 9.9 mm bundle, 11.7
+mm² in the 3 × 6.5 mm section). Height bands: A beside the battery (z −46.9 … −26), B deck to EPS (−26 … −1), C EPS to
+OBC (−1 … +6.6), D OBC to carrier (+6.6 … +18), E carrier to the +Z end frame (+18 … +48.4). Wire areas at the maximum
+M22759/33 diameter (30 / 28 / 24 / 22 AWG: 0.34 / 0.43 / 0.77 / 1.02 mm²). The fills below are computed from the wire
+list and the routes by `hardware/harness/harness_calcs.py` and govern; every routing zone is checked against the CAD
+solids (no interference).
 
-| Bundle | Harnesses with an OBC end (segments) | ICX fill per segment | Left for the EPS-only harnesses | Version B change |
-|--------|--------------------------------------|----------------------|---------------------------------|------------------|
-| (+X, +Y), y +24 … +34 | W5B (D), W6E (D, E), **W9A** OBC J5 → receiver (C, B, then on the deck to (+5, −20)), **W9B** EPS J21 → OBC J4 (C) | B 3.7, C 5.0, D 5.9, E 2.9 mm² (21–33 %) | 12–15 mm² per segment: the wing-1 (+X) harness of W2 from the +Y hinge end, and whatever leaves the (+X, −Y) bundle | **W9A, W9B move here** from (+X, −Y); OBC J4/J5 to the +X edge at y +14 … +24, EPS J21 to its +X edge, +Y side (for the EPS designer) |
-| (+X, −Y), y −20.5 … −27.0 above z −26; −24.0 … −33.9 below | none (W4A is on the shear panel beside it, not in the bundle) | 0 | **11.7 mm² above z −26**, 18 below: W7 to the wing-1 hold-down at the −Y free corner (it has to be on this side); nothing else above z −26 | GNSS lines moved out; any other EPS-only wires the harness design had here move to (+X, +Y) |
-| (−X, −Y), y −24 … −34 | W4B EPS J19 → RF J2 (C, D, E), W5A EPS J18 → carrier J1 (C, D), W8A OBC J9 → access bulkhead (C, B, A) | C 14.7 (82 %), D 9.8, E 5.1, B 4.9 mm² | B 13.1 mm²: W7 to the wing-2 hold-down; W11 (6 × 20 AWG, 9.5 mm²) fits only with W7 at ≤ 3.6 mm², otherwise W11 goes down the (+X, −Y) bundle below z −26 after crossing on the EPS | none for the ICX harnesses (mechanical routes kept) |
-| (−X, +Y), y +24 … +34 | W6B EPS J20 → OBC J6 (C), W6C rod pairs from J7 (C, B; the Z-rod pair goes direct to the rod's top at z +3), W6D sun-sensor trunk to J8 (C, B; about 9.6 mm² shielded) | C 13.3 (74 %), B 12.1 mm² | B 5.9 mm²: the battery flying leads (W1, about 16 mm² as 8 × 20 AWG and 6 × 26 AWG) do not fit here whole; see below | **W6B, W6C, W6D here**; OBC J7 moves to the −X edge at y +12 … +22 (still outside the Z rod footprint), J6 and J8 to y +24 … +34 |
+| Bundle | Harnesses (bands) | A | B | C | D | E (mm²) |
+|--------|-------------------|---|---|---|---|---------|
+| (+X, +Y) | W5B (D, E), W6E (D, E), W9A (D, C, B, then under the EPS to the receiver), W9B (B–D), W6C Y-rod pair (B, A) | 0.9 | 4.3 | 3.4 | 8.6 | 5.2 |
+| (−X, +Y) | W6B (B–D), W6D trunk (B–D), its PZ pair (E) and MZ pair (A) | 0.9 | 5.2 | 5.2 | 6.0 | 0.9 |
+| (−X, −Y) | W4B (B–E), W5A (B–D), W8A (D–A) | 3.4 | 9.1 | 9.1 | 9.1 | 5.7 |
+| (+X, −Y) | W7A burn pairs (B, A, to the wing-1 hold-down), W10E GNSS coax (B–E) | 3.1 | 3.1 of 11.7 | 1.0 | 1.0 | 1.0 |
 
-The X-rod pair of W6C leaves the bundle at the deck (z −16) for the X rod at (0, +36); the Y-rod pair continues to the
-−Z end and crosses to the Y rod's +Y end at (+42, +23.5, −33) under the battery (2 mm air gap) or along the deck: the
-route is the harness and mechanical designers' (VI-MCAD-08). These are allocations from connector pin counts; the
-harness design's wire list governs and must keep every segment within its allowance.
+Largest fill 51 % ((−X, −Y), bands B–D). **Band B is no longer over-full**: the EPS-only harnesses do not use the
+bundles. Every EPS harness connector is on the EPS bottom side (the 5 mm top side under the OBC cannot take a mated
+connector and its wire bend), in five zones between the EPS and the deck (12.5 mm high, outside the GNSS receiver, the
+X rod, the Z rod, the columns and the centre supports), and the EPS-only harnesses reach them through the open volume
+under the EPS, the skeleton deck's openings, inboard strips beside the battery end caps, hinge-side strips at
+y +34.5 … +39.5 in the ±X wall gaps, shear-panel slots at z −10 for the body panels and a −Y wall strip; only W7A's
+burn pairs use a corner bundle, the (+X, −Y) one. With the gauges the terminals force, the EPS-only harnesses W1, W2,
+W7, W11 would need 41.7 mm² in band B against 45.6 mm² the bundles leave (the estimate here was 53 against 45); routed
+inboard they need none of it. Both recoveries proposed here are adopted: W6D as six unshielded twisted 28 AWG pairs and
+the W1 pack leads in 22 AWG (1.2 A per wire worst case against 2.5 A derated).
 
-**Segment B (deck to EPS) is the tight one.** After the ICX harnesses, the four bundles leave about 45 mm² there
-(14.3 + 11.7 + 13.1 + 5.9); an estimate of the EPS-only harnesses passing it is about 53 mm² (W1 16, the two wing
-harnesses of W2 about 17, W7 about 10, W11 9.5). Two changes recover about 7 mm² and are recommended to the harness
-design: W6D as six twisted 28 AWG pairs without the overall shield (5.9 instead of 9.6 mm²; DC photocurrents of a
-few milliamperes, drains not needed) and the W1 pack leads in 22 AWG (≤ 2 A per §1 rule 5; 9.4 instead of 12.6 mm²)
-if the pack current allows; the rest is the harness design's to confirm with its wire list (item E12).
+**W6C** leaves OBC J7 (−X edge, y +12 … +22) into the −X wall gap at y +7 … +19.5, between the Z rod and the 70 cm coax
+band, so it never crosses the band (the (−X, +Y) bundle at y ≥ 24 is on the far side of it). The Z-rod pair is spliced
+there to the lead from the rod's top; the X-rod pair goes under the EPS to the rod's −X end; the **Y-rod pair** goes
+under the EPS through the gap between the (0, +21) centre support (1.1 mm) and the X rod (1.25 mm) at y +25 … +29.5, then
+down the (+X, +Y) bundle to z −30, where it is spliced to the lead from the rod's +Y end at (+42, +23.5, −32.9): 0.205 m.
+The route under the battery (2 mm air gap, used by the W10 coax) was rejected. The two −X coax bands carry the W10
+coax only.
 
 ## 3. Board-to-Board Signal Lists
 

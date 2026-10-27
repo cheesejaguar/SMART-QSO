@@ -1,6 +1,13 @@
-//! `hal_spi.h`: bus 0 is SPI2 (the RF transceiver; PB13 SCK / PB14 MISO /
-//! PB15 MOSI, chip select PD0), bus 1 is SPI3 (PC10 / PC11 / PC12, chip
-//! select PD1). Pins TBR (gpio.rs). The FRAM has its own bus (fram.rs).
+//! `hal_spi.h` (SQSO-ICX-001 B §4.3): a logical bus is one device.
+//!
+//! - bus 0: SPI2 (PB13 SCK / PB14 MISO / PB15 MOSI), chip select PD0: the
+//!   BMI088's gyro;
+//! - bus 1: SPI3 (PC10 / PC11 / PC12), chip select PD1: the Epson
+//!   M-G370PDT0 (mode 3, at most 1 MHz in burst mode);
+//! - bus 2: SPI2 again, chip select PD4: the BMI088's accelerometer.
+//!
+//! Buses 0 and 2 share SPI2: each keeps its own configuration, applied when
+//! its chip select is asserted. The FRAM has its own bus (fram.rs).
 
 use embassy_stm32::gpio::Output;
 use embassy_stm32::mode::Blocking;
@@ -20,28 +27,47 @@ pub struct HalSpiConfig {
     msb_first: bool,
 }
 
-pub(crate) struct Bus {
+/// One SPI peripheral with the chip selects of its devices
+pub(crate) struct Bus<const N: usize> {
     spi: Spi<'static, Blocking, Master>,
-    cs: Output<'static>,
-    ready: bool,
+    cs: [Output<'static>; N],
+    config: [Option<spi::Config>; N],
 }
 
-static BUSES: [Shared<Bus>; 2] = [Shared::new(), Shared::new()];
+static SPI2: Shared<Bus<2>> = Shared::new();
+static SPI3: Shared<Bus<1>> = Shared::new();
 
 pub(crate) fn install(
-    rf: (Spi<'static, Blocking, Master>, Output<'static>),
-    aux: (Spi<'static, Blocking, Master>, Output<'static>),
+    spi2: Spi<'static, Blocking, Master>,
+    spi2_cs: [Output<'static>; 2],
+    spi3: Spi<'static, Blocking, Master>,
+    spi3_cs: Output<'static>,
 ) {
-    let [a, b] = &BUSES;
-    a.install(Bus { spi: rf.0, cs: rf.1, ready: false });
-    b.install(Bus { spi: aux.0, cs: aux.1, ready: false });
+    SPI2.install(Bus { spi: spi2, cs: spi2_cs, config: [None; 2] });
+    SPI3.install(Bus { spi: spi3, cs: [spi3_cs], config: [None] });
 }
 
-fn with_bus(bus: u32, f: impl FnOnce(&mut Bus) -> i32) -> i32 {
-    match usize::try_from(bus).ok().and_then(|b| BUSES.get(b)) {
-        Some(shared) => shared.with(f).unwrap_or(rc::BUSY),
-        None => rc::INVALID,
-    }
+/// Run `f` on logical bus `bus`: its peripheral, chip select and
+/// configuration
+fn with_bus(
+    bus: u32,
+    f: impl FnOnce(&mut Spi<'static, Blocking, Master>, &mut Output<'static>, &mut Option<spi::Config>) -> i32,
+) -> i32 {
+    let found = match bus {
+        0 | 2 => {
+            let i = usize::from(bus == 2);
+            SPI2.with(|b| match (b.cs.get_mut(i), b.config.get_mut(i)) {
+                (Some(cs), Some(cfg)) => f(&mut b.spi, cs, cfg),
+                _ => rc::INVALID,
+            })
+        }
+        1 => SPI3.with(|b| match (b.cs.get_mut(0), b.config.get_mut(0)) {
+            (Some(cs), Some(cfg)) => f(&mut b.spi, cs, cfg),
+            _ => rc::INVALID,
+        }),
+        _ => return rc::INVALID,
+    };
+    found.unwrap_or(rc::BUSY)
 }
 
 fn result(r: Result<(), spi::Error>) -> i32 {
@@ -63,16 +89,16 @@ pub unsafe extern "C" fn hal_spi_init(bus: u32, config: *const HalSpiConfig) -> 
         3 => spi::MODE_3,
         _ => return rc::INVALID,
     };
-    with_bus(bus, |b| {
-        let mut cfg = spi::Config::default();
-        cfg.frequency = Hertz(c.clock_hz);
-        cfg.mode = mode;
-        cfg.bit_order = if c.msb_first { BitOrder::MsbFirst } else { BitOrder::LsbFirst };
-        if b.spi.set_config(&cfg).is_err() {
+    let mut new = spi::Config::default();
+    new.frequency = Hertz(c.clock_hz);
+    new.mode = mode;
+    new.bit_order = if c.msb_first { BitOrder::MsbFirst } else { BitOrder::LsbFirst };
+    with_bus(bus, |s, cs, cfg| {
+        if s.set_config(&new).is_err() {
             return rc::INVALID;
         }
-        b.cs.set_high();
-        b.ready = true;
+        cs.set_high();
+        *cfg = Some(new);
         rc::OK
     })
 }
@@ -82,14 +108,14 @@ pub unsafe extern "C" fn hal_spi_init(bus: u32, config: *const HalSpiConfig) -> 
 pub unsafe extern "C" fn hal_spi_transfer(bus: u32, tx_data: *const u8, rx_data: *mut u8, len: usize) -> i32 {
     // SAFETY: the C contract: each is NULL or points to len bytes
     let (tx, rx) = unsafe { (rc::bytes(tx_data, len), rc::bytes_mut(rx_data, len)) };
-    with_bus(bus, |b| {
-        if !b.ready {
+    with_bus(bus, |s, _, cfg| {
+        if cfg.is_none() {
             return rc::ERROR;
         }
         match (tx, rx) {
-            (Some(tx), Some(rx)) => result(b.spi.blocking_transfer(rx, tx)),
-            (Some(tx), None) => result(b.spi.blocking_write(tx)),
-            (None, Some(rx)) => result(b.spi.blocking_read(rx)),
+            (Some(tx), Some(rx)) => result(s.blocking_transfer(rx, tx)),
+            (Some(tx), None) => result(s.blocking_write(tx)),
+            (None, Some(rx)) => result(s.blocking_read(rx)),
             (None, None) => rc::NULL_PTR,
         }
     })
@@ -109,11 +135,15 @@ pub unsafe extern "C" fn hal_spi_read(bus: u32, data: *mut u8, len: usize) -> i3
     unsafe { hal_spi_transfer(bus, core::ptr::null(), data, len) }
 }
 
-/// Select the device (chip select low)
+/// Select the device: its configuration on the peripheral, chip select low
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_spi_cs_assert(bus: u32) -> i32 {
-    with_bus(bus, |b| {
-        b.cs.set_low();
+    with_bus(bus, |s, cs, cfg| {
+        let Some(c) = cfg else { return rc::ERROR };
+        if s.set_config(c).is_err() {
+            return rc::INVALID;
+        }
+        cs.set_low();
         rc::OK
     })
 }
@@ -121,8 +151,8 @@ pub extern "C" fn hal_spi_cs_assert(bus: u32) -> i32 {
 /// Deselect the device
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_spi_cs_deassert(bus: u32) -> i32 {
-    with_bus(bus, |b| {
-        b.cs.set_high();
+    with_bus(bus, |_, cs, _| {
+        cs.set_high();
         rc::OK
     })
 }

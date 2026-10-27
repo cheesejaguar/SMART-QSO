@@ -10,8 +10,12 @@
 # to six wires so the spreader thermistor RT1 (10 kOhm NTC, on the heat spreader, leads to carrier J3) reaches an OBC
 # ADC channel through the carrier without being powered by it (pins 5 and 6, twisted pair).
 # OBC side (SQSO-OBC-BRD-001 B 11.3): 10.0 kOhm 0.1 % bias from VDDA, read on PA2 (ADC1_IN7) through 1 kOhm / 100 nF.
+# Harness design (SQSO-HAR-001 2.0, 2026-10-27): W5A 24 AWG (the Micro-Fit minimum; 1.4 A design current, 0.70 A per
+# wire, 51 % of 1.65 A derated at N = 35, 43 mV), 0.105 m up the (-X, -Y) bundle and along the carrier's -Y strip to a
+# right-angle carrier J1 (a vertical mated Micro-Fit and its wire bend reach the RF board's bottom envelope); W5B 28 AWG,
+# 0.06 m up the (+X, +Y) bundle.
 metadata:
-  title: W5 EPS and OBC to Jetson carrier v3 (SQSO-HW-DIAG-001; SQSO-JET-BRD-001 19)
+  title: W5 EPS and OBC to Jetson carrier v4 (SQSO-HW-DIAG-001; SQSO-JET-BRD-001 19; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -20,14 +24,14 @@ options:
 
 connectors:
   J_EPS_JET:
-    type: Molex Micro-Fit 3.0 header 0430450412
+    type: Micro-Fit 3.0 receptacle 43025-0400, gold 43030 terminals
     subtype: 4 pos
-    notes: "EPS J18: VBAT_JET behind SW1 and the eFuse U19"
+    notes: "EPS J18 (right-angle gold header, EPS bottom side, zone Z2): VBAT_JET behind SW1 and the eFuse U19"
     pinlabels: &w5pwr [VBAT_JET, VBAT_JET, GND, GND]
   J_JET_PWR:
-    type: Molex Micro-Fit 3.0 header 0430450412
+    type: Micro-Fit 3.0 receptacle 43025-0400, gold 43030 terminals
     subtype: 4 pos
-    notes: "carrier J1: DC input 11.2-16.4 V; TVS2200, LC filter, LM61440 5 V buck"
+    notes: "carrier J1 (right-angle gold header, plug from -X): DC input 11.2-16.4 V; TVS2200, LC filter, LM61440 5 V buck"
     pinlabels: *w5pwr
   J_OBC_JET:
     type: Molex Pico-Clasp 5013310607
@@ -43,15 +47,15 @@ connectors:
 cables:
   W5A:
     category: bundle
-    gauge: 22 AWG
-    length: 0.10
+    gauge: 24 AWG
+    length: 0.105
     wirecount: 4
     colors: [RD, RD, BK, BK]
-    notes: "2 x 22 AWG per pole: 0.93 A over two wires at the 12 W guard, 22 AWG derated 2 A (SQSO-HAR-001 5.2): 23 %"
+    notes: "M22759/33-24, twisted quad (1+3, 2+4); 1.4 A design current on two wires per pole"
   W5B:
     category: bundle
     gauge: 28 AWG
-    length: 0.10
+    length: 0.06
     wirecount: 6
     colors: [BK, GN, YE, OG, WH, BU]
     notes: "115200 baud, OBC transmits 8N2 (DS-11105-001 2.10.4), SMART-QSO-ICD-002 framing; signals twisted with ground; PT_NTC/PT_RTN a twisted pair. Signal currents under 5 mA"

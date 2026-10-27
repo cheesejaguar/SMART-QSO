@@ -2,11 +2,14 @@
 //! (`sqso_fsw::receiver`) on the GPIO HAL, the uplink statistics and
 //! `rf_control`.
 //!
-//! Inputs: `GPIO_PIN_RX_CD` (carrier detect, high on a carrier) and
-//! `GPIO_PIN_RX_FAULT` (the receiver's health line, high on a fault), the
-//! logical pins of `hal_gpio.h` (their STM32 pins are the OBC board's to
-//! allocate; the radio board's microcontroller drives them); valid frames
+//! Inputs: `GPIO_PIN_RX_CD` (PG0, carrier detect, high on a carrier) and
+//! `GPIO_PIN_RX_FAULT` (PF13, the receiver's health line, high on a fault),
+//! from the radio board (SQSO-RF-BRD-001 B §4.1), both qualified with
+//! `GPIO_PIN_RADIO_EN` and the fault line ignored for 1 s after it switches
+//! on (`sqso_fsw::receiver::Receiver::qualify`, RID RFB-07); valid frames
 //! from `uplink_get_stats()`. A recovery cycle is `RF_INHIBIT_RX_CYCLE`.
+//!
+//! @requirement SRS-F152 RX_CD and RX_FAULT qualified with RADIO_EN; RX_FAULT ignored for 1 s after RADIO_EN switches on
 //!
 //! @requirement SRS-F115 Hung-receiver recovery by a brief power cycle, never during a pass
 //! @requirement SRS-F116 Evidence that the command receiver has failed
@@ -60,13 +63,16 @@ pub extern "C" fn receiver_step(keyed: bool) {
     let now = c::now_ms();
     let frames = valid_frames();
     // SAFETY: plain values (the HAL)
-    let (carrier, fault) = unsafe { (c::hal_gpio_get(GPIO_PIN_RX_CD), c::hal_gpio_get(GPIO_PIN_RX_FAULT)) };
+    let (carrier, fault, radio_en) = unsafe {
+        (c::hal_gpio_get(GPIO_PIN_RX_CD), c::hal_gpio_get(GPIO_PIN_RX_FAULT), c::hal_gpio_get(crate::pins::RADIO_EN))
+    };
     let powered = !crate::rf_silence::rf_silence_active();
     let contact_lost = crate::contact_monitor::contact_monitor_inhibited();
     let action = RX.with(|s| {
         let frame = frames != s.valid_frames;
         s.valid_frames = frames;
-        let inputs = Inputs { powered: powered && !s.rx.cycling(), frame, carrier, fault, keyed, contact_lost };
+        let raw = Inputs { powered: powered && !s.rx.cycling(), frame, carrier, fault, keyed, contact_lost, radio_en };
+        let inputs = s.rx.qualify(now, &raw);
         let was_failed = s.rx.failed();
         let action = s.rx.step(now, &inputs);
         (action, !was_failed && s.rx.failed())

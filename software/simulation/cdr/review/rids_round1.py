@@ -78,6 +78,7 @@ RIDS = [
     ("SE-19", 2, "No current harness design: the old harness document predates the interconnect, and the deck-to-EPS band is over-full by about 8 mm² of wire", "IMP", "Harness design: wire list with gauges, ampacity and drop, bundle fills per band, routing against the CAD, mass (SQSO-HAR-001 2.0)"),
     ("SE-20", 3, "SIL decay re-enters 4.0 years after deployment; the ODAR estimator gives 4.8-5.7 years", "CH", "The ODAR (NRLMSIS, NASA-STD-8719.14C cross-sections) governs lifetime compliance; the SIL decay is indicative; aligned if cheap (flight software round 3)"),
     ("SE-21", 3, "SIL deploys both wings from one resistor and models 0.04 W of coil power in detumble (board: 1.16-1.3 W)", "IMP", "SIL deployment per-wing restraint and coil-drive power (flight software round 3)"),
+    ("SE-22", 2, "Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG", "IMP", "Gold finishes on every board and harness, Samtec TFM/SFSDT PTFE assemblies, gauges from the terminal ranges (SQSO-HAR-001 2.0 §15: E-, O-, R-, J-, B-, S-, M-, I-, P-, D- items)"),
     ("VV-01", 1, "Protoflight defined backwards; vibration below the workmanship floor; TVAC ±5 °C 4 cycles; no bake-out", "CD", "ETP Rev C; TP-ENV-002 E; TP-ENV-003 D; BASELINE §8"),
     ("VV-02", 1, "Verification matrix had undefined IDs and unevidenced 'Complete'", "CD", "VCRM Rev C (gen_vcrm.py)"),
     ("VV-03", 2, "No test facilities identified or costed", "CA", "ETP §7; test_cost.py"),

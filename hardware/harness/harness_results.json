@@ -1,0 +1,3871 @@
+{
+ "ampacity": {
+  "W1-01": {
+   "I_allow_A": 2.5,
+   "N": 43,
+   "contact_ratio": 0.467,
+   "i_max_A": 1.2,
+   "ratio": 0.48
+  },
+  "W1-02": {
+   "I_allow_A": 2.5,
+   "N": 43,
+   "contact_ratio": 0.467,
+   "i_max_A": 1.2,
+   "ratio": 0.48
+  },
+  "W1-03": {
+   "I_allow_A": 2.5,
+   "N": 43,
+   "contact_ratio": 0.467,
+   "i_max_A": 1.2,
+   "ratio": 0.48
+  },
+  "W1-04": {
+   "I_allow_A": 2.5,
+   "N": 43,
+   "contact_ratio": 0.467,
+   "i_max_A": 1.2,
+   "ratio": 0.48
+  },
+  "W1-05": {
+   "I_allow_A": 1.65,
+   "N": 43,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W1-06": {
+   "I_allow_A": 1.65,
+   "N": 43,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W1-07": {
+   "I_allow_A": 1.65,
+   "N": 43,
+   "contact_ratio": 0.053,
+   "i_max_A": 0.17,
+   "ratio": 0.103
+  },
+  "W1-08": {
+   "I_allow_A": 1.65,
+   "N": 43,
+   "contact_ratio": 0.053,
+   "i_max_A": 0.17,
+   "ratio": 0.103
+  },
+  "W1-09": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.036,
+   "i_max_A": 0.05,
+   "ratio": 0.056
+  },
+  "W1-10": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.036,
+   "i_max_A": 0.05,
+   "ratio": 0.056
+  },
+  "W1-11": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.036,
+   "i_max_A": 0.05,
+   "ratio": 0.056
+  },
+  "W1-12": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.036,
+   "i_max_A": 0.05,
+   "ratio": 0.056
+  },
+  "W1-13": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.036,
+   "i_max_A": 0.05,
+   "ratio": 0.056
+  },
+  "W1-14": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.001,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W11-01": {
+   "I_allow_A": 1.65,
+   "N": 35,
+   "contact_ratio": 0.167,
+   "i_max_A": 0.5,
+   "ratio": 0.303
+  },
+  "W11-02": {
+   "I_allow_A": 1.65,
+   "N": 35,
+   "contact_ratio": 0.167,
+   "i_max_A": 0.5,
+   "ratio": 0.303
+  },
+  "W11-03": {
+   "I_allow_A": 1.65,
+   "N": 35,
+   "contact_ratio": 0.167,
+   "i_max_A": 0.5,
+   "ratio": 0.303
+  },
+  "W11-04": {
+   "I_allow_A": 1.65,
+   "N": 35,
+   "contact_ratio": 0.167,
+   "i_max_A": 0.5,
+   "ratio": 0.303
+  },
+  "W11-05": {
+   "I_allow_A": 1.65,
+   "N": 35,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0002,
+   "ratio": 0.0
+  },
+  "W11-06": {
+   "I_allow_A": 1.65,
+   "N": 35,
+   "contact_ratio": 0.001,
+   "i_max_A": 0.001,
+   "ratio": 0.001
+  },
+  "W12A-01": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.002
+  },
+  "W12A-02": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.002
+  },
+  "W12B-01": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.002
+  },
+  "W12B-02": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.002
+  },
+  "W12C-01": {
+   "I_allow_A": 0.9,
+   "N": 17,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.002
+  },
+  "W12C-02": {
+   "I_allow_A": 0.9,
+   "N": 17,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.002
+  },
+  "W12C-03": {
+   "I_allow_A": 0.9,
+   "N": 17,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.002
+  },
+  "W12D-01": {
+   "I_allow_A": 1.221,
+   "N": 10,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.001
+  },
+  "W12D-02": {
+   "I_allow_A": 1.221,
+   "N": 10,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.001
+  },
+  "W12D-03": {
+   "I_allow_A": 1.221,
+   "N": 10,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.001
+  },
+  "W12D-04": {
+   "I_allow_A": 1.221,
+   "N": 10,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0017,
+   "ratio": 0.001
+  },
+  "W2MX-01": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2MX-02": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2MX-03": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2MX-04": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2MX-05": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.001,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W2MY-01": {
+   "I_allow_A": 1.029,
+   "N": 13,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.321
+  },
+  "W2MY-02": {
+   "I_allow_A": 1.029,
+   "N": 13,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.321
+  },
+  "W2MY-03": {
+   "I_allow_A": 1.029,
+   "N": 13,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.321
+  },
+  "W2MY-04": {
+   "I_allow_A": 1.029,
+   "N": 13,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.321
+  },
+  "W2MY-05": {
+   "I_allow_A": 1.029,
+   "N": 13,
+   "contact_ratio": 0.001,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W2PX-01": {
+   "I_allow_A": 0.9,
+   "N": 17,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2PX-02": {
+   "I_allow_A": 0.9,
+   "N": 17,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2PX-03": {
+   "I_allow_A": 0.9,
+   "N": 17,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2PX-04": {
+   "I_allow_A": 0.9,
+   "N": 17,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2PX-05": {
+   "I_allow_A": 0.9,
+   "N": 17,
+   "contact_ratio": 0.001,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W2PY-01": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2PY-02": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2PY-03": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2PY-04": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2PY-05": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.001,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W2W1-01": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2W1-02": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2W1-03": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2W1-04": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2W1-05": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.734,
+   "i_max_A": 0.44,
+   "ratio": 0.489
+  },
+  "W2W1-06": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.734,
+   "i_max_A": 0.44,
+   "ratio": 0.489
+  },
+  "W2W1-07": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.734,
+   "i_max_A": 0.44,
+   "ratio": 0.489
+  },
+  "W2W1-08": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.001,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W2W2-01": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2W2-02": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2W2-03": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2W2-04": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.55,
+   "i_max_A": 0.33,
+   "ratio": 0.367
+  },
+  "W2W2-05": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.734,
+   "i_max_A": 0.44,
+   "ratio": 0.489
+  },
+  "W2W2-06": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.734,
+   "i_max_A": 0.44,
+   "ratio": 0.489
+  },
+  "W2W2-07": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.734,
+   "i_max_A": 0.44,
+   "ratio": 0.489
+  },
+  "W2W2-08": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.001,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W3-01": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.02,
+   "i_max_A": 0.088,
+   "ratio": 0.135
+  },
+  "W3-02": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.02,
+   "i_max_A": 0.088,
+   "ratio": 0.135
+  },
+  "W3-03": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.013,
+   "i_max_A": 0.059,
+   "ratio": 0.091
+  },
+  "W3-04": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.013,
+   "i_max_A": 0.059,
+   "ratio": 0.091
+  },
+  "W3-05": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-06": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-07": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.013,
+   "i_max_A": 0.059,
+   "ratio": 0.091
+  },
+  "W3-08": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-09": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-10": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-11": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-12": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-13": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-14": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-15": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-16": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-17": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-18": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-19": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-20": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-21": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-22": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-23": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-24": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-25": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-26": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-27": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-28": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.028,
+   "i_max_A": 0.134,
+   "ratio": 0.206
+  },
+  "W3-29": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-30": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-31": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-32": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-33": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-34": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-35": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.028,
+   "i_max_A": 0.134,
+   "ratio": 0.206
+  },
+  "W3-36": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.042,
+   "i_max_A": 0.2,
+   "ratio": 0.308
+  },
+  "W3-37": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-38": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W3-39": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.042,
+   "i_max_A": 0.2,
+   "ratio": 0.308
+  },
+  "W3-40": {
+   "I_allow_A": 0.65,
+   "N": 40,
+   "contact_ratio": 0.028,
+   "i_max_A": 0.134,
+   "ratio": 0.206
+  },
+  "W4A-01": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-02": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-03": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-04": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-05": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-06": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-07": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-08": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-09": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-10": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-11": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-12": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-13": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-14": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-15": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4A-16": {
+   "I_allow_A": 0.65,
+   "N": 16,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.008
+  },
+  "W4B-01": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.178,
+   "i_max_A": 0.141,
+   "ratio": 0.157
+  },
+  "W4B-02": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.47,
+   "i_max_A": 0.536,
+   "ratio": 0.596
+  },
+  "W4B-03": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.47,
+   "i_max_A": 0.536,
+   "ratio": 0.596
+  },
+  "W4B-04": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.47,
+   "i_max_A": 0.536,
+   "ratio": 0.596
+  },
+  "W4B-05": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.47,
+   "i_max_A": 0.536,
+   "ratio": 0.596
+  },
+  "W4B-06": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.178,
+   "i_max_A": 0.141,
+   "ratio": 0.157
+  },
+  "W5A-01": {
+   "I_allow_A": 1.65,
+   "N": 35,
+   "contact_ratio": 0.467,
+   "i_max_A": 0.84,
+   "ratio": 0.509
+  },
+  "W5A-02": {
+   "I_allow_A": 1.65,
+   "N": 35,
+   "contact_ratio": 0.467,
+   "i_max_A": 0.84,
+   "ratio": 0.509
+  },
+  "W5A-03": {
+   "I_allow_A": 1.65,
+   "N": 35,
+   "contact_ratio": 0.467,
+   "i_max_A": 0.84,
+   "ratio": 0.509
+  },
+  "W5A-04": {
+   "I_allow_A": 1.65,
+   "N": 35,
+   "contact_ratio": 0.467,
+   "i_max_A": 0.84,
+   "ratio": 0.509
+  },
+  "W5B-01": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W5B-02": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W5B-03": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W5B-04": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W5B-05": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W5B-06": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W6B-01": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.098,
+   "i_max_A": 0.339,
+   "ratio": 0.377
+  },
+  "W6B-02": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.098,
+   "i_max_A": 0.339,
+   "ratio": 0.377
+  },
+  "W6C-01": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.174,
+   "i_max_A": 0.126,
+   "ratio": 0.14
+  },
+  "W6C-02": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.174,
+   "i_max_A": 0.126,
+   "ratio": 0.14
+  },
+  "W6C-03": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.174,
+   "i_max_A": 0.126,
+   "ratio": 0.14
+  },
+  "W6C-04": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.174,
+   "i_max_A": 0.126,
+   "ratio": 0.14
+  },
+  "W6C-05": {
+   "I_allow_A": 1.479,
+   "N": 6,
+   "contact_ratio": 0.174,
+   "i_max_A": 0.126,
+   "ratio": 0.085
+  },
+  "W6C-06": {
+   "I_allow_A": 1.479,
+   "N": 6,
+   "contact_ratio": 0.174,
+   "i_max_A": 0.126,
+   "ratio": 0.085
+  },
+  "W6D-01": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.006
+  },
+  "W6D-02": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.006
+  },
+  "W6D-03": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.006
+  },
+  "W6D-04": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.006
+  },
+  "W6D-05": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.006
+  },
+  "W6D-06": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.006
+  },
+  "W6D-07": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.006
+  },
+  "W6D-08": {
+   "I_allow_A": 0.9,
+   "N": 43,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.006
+  },
+  "W6D-09": {
+   "I_allow_A": 0.964,
+   "N": 14,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.005
+  },
+  "W6D-10": {
+   "I_allow_A": 0.964,
+   "N": 14,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.005
+  },
+  "W6D-11": {
+   "I_allow_A": 0.964,
+   "N": 14,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.005
+  },
+  "W6D-12": {
+   "I_allow_A": 0.964,
+   "N": 14,
+   "contact_ratio": 0.008,
+   "i_max_A": 0.00525,
+   "ratio": 0.005
+  },
+  "W6E-01": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.1,
+   "ratio": 0.111
+  },
+  "W6E-02": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.1,
+   "ratio": 0.111
+  },
+  "W6E-03": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W6E-04": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W6E-05": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W6E-06": {
+   "I_allow_A": 0.9,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W7A-01": {
+   "I_allow_A": 1.65,
+   "N": 28,
+   "contact_ratio": 0.587,
+   "i_max_A": 0.88,
+   "ratio": 0.533
+  },
+  "W7A-02": {
+   "I_allow_A": 1.65,
+   "N": 28,
+   "contact_ratio": 0.587,
+   "i_max_A": 0.88,
+   "ratio": 0.533
+  },
+  "W7A-03": {
+   "I_allow_A": 1.65,
+   "N": 28,
+   "contact_ratio": 0.587,
+   "i_max_A": 0.88,
+   "ratio": 0.533
+  },
+  "W7A-04": {
+   "I_allow_A": 1.65,
+   "N": 28,
+   "contact_ratio": 0.587,
+   "i_max_A": 0.88,
+   "ratio": 0.533
+  },
+  "W7A-05": {
+   "I_allow_A": 1.65,
+   "N": 28,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W7A-06": {
+   "I_allow_A": 1.65,
+   "N": 28,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W7B-01": {
+   "I_allow_A": 1.65,
+   "N": 16,
+   "contact_ratio": 0.587,
+   "i_max_A": 0.88,
+   "ratio": 0.533
+  },
+  "W7B-02": {
+   "I_allow_A": 1.65,
+   "N": 16,
+   "contact_ratio": 0.587,
+   "i_max_A": 0.88,
+   "ratio": 0.533
+  },
+  "W7B-03": {
+   "I_allow_A": 1.65,
+   "N": 16,
+   "contact_ratio": 0.587,
+   "i_max_A": 0.88,
+   "ratio": 0.533
+  },
+  "W7B-04": {
+   "I_allow_A": 1.65,
+   "N": 16,
+   "contact_ratio": 0.587,
+   "i_max_A": 0.88,
+   "ratio": 0.533
+  },
+  "W7B-05": {
+   "I_allow_A": 1.65,
+   "N": 43,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W7B-06": {
+   "I_allow_A": 1.65,
+   "N": 43,
+   "contact_ratio": 0.0,
+   "i_max_A": 0.0003,
+   "ratio": 0.0
+  },
+  "W7C-01": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.61,
+   "i_max_A": 0.733,
+   "ratio": 0.814
+  },
+  "W7C-02": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.61,
+   "i_max_A": 0.733,
+   "ratio": 0.814
+  },
+  "W7C-03": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.61,
+   "i_max_A": 0.733,
+   "ratio": 0.814
+  },
+  "W7C-04": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.61,
+   "i_max_A": 0.733,
+   "ratio": 0.814
+  },
+  "W7C-05": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.003,
+   "ratio": 0.003
+  },
+  "W7C-06": {
+   "I_allow_A": 0.9,
+   "N": 35,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.003,
+   "ratio": 0.003
+  },
+  "W8A-01": {
+   "I_allow_A": 0.65,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.01,
+   "ratio": 0.015
+  },
+  "W8A-02": {
+   "I_allow_A": 0.65,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.01,
+   "ratio": 0.015
+  },
+  "W8A-03": {
+   "I_allow_A": 0.65,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.01,
+   "ratio": 0.015
+  },
+  "W8A-04": {
+   "I_allow_A": 0.65,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.01,
+   "ratio": 0.015
+  },
+  "W8A-05": {
+   "I_allow_A": 0.65,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.01,
+   "ratio": 0.015
+  },
+  "W8A-06": {
+   "I_allow_A": 0.65,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.01,
+   "ratio": 0.015
+  },
+  "W8A-07": {
+   "I_allow_A": 0.65,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.01,
+   "ratio": 0.015
+  },
+  "W8A-08": {
+   "I_allow_A": 0.65,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.01,
+   "ratio": 0.015
+  },
+  "W8A-09": {
+   "I_allow_A": 0.65,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.01,
+   "ratio": 0.015
+  },
+  "W8A-10": {
+   "I_allow_A": 0.65,
+   "N": 20,
+   "contact_ratio": 0.002,
+   "i_max_A": 0.01,
+   "ratio": 0.015
+  },
+  "W9A-01": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.2,
+   "i_max_A": 0.232,
+   "ratio": 0.258
+  },
+  "W9A-02": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.2,
+   "i_max_A": 0.232,
+   "ratio": 0.258
+  },
+  "W9A-03": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.004,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W9A-04": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.004,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W9A-05": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.004,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W9A-06": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.004,
+   "i_max_A": 0.005,
+   "ratio": 0.006
+  },
+  "W9B-01": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.2,
+   "i_max_A": 0.232,
+   "ratio": 0.258
+  },
+  "W9B-02": {
+   "I_allow_A": 0.9,
+   "N": 28,
+   "contact_ratio": 0.2,
+   "i_max_A": 0.232,
+   "ratio": 0.258
+  }
+ },
+ "band_B": {
+  "corner_fill_mm2": {
+   "(+X,+Y)": 4.3,
+   "(+X,-Y)": 1.0,
+   "(-X,+Y)": 5.16,
+   "(-X,-Y)": 9.08
+  },
+  "eps_only_demand_mm2": 41.7,
+  "left_after_routed_mm2": 45.6
+ },
+ "cad": {
+  "AP_A3": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "endplate_mz"
+    ],
+    [
+     0.1,
+     "shear_my"
+    ]
+   ]
+  },
+  "CARP": {
+   "interferes": [],
+   "nearest": [
+    [
+     2.01,
+     "heat_spreader"
+    ],
+    [
+     2.1,
+     "Jetson_carrier"
+    ]
+   ]
+  },
+  "CAR_MXMY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "Jetson_carrier_parts"
+    ],
+    [
+     0.1,
+     "stack_columns"
+    ]
+   ]
+  },
+  "COAXF_M": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "AntS_housing"
+    ],
+    [
+     0.0,
+     "endplate_mz"
+    ]
+   ]
+  },
+  "COAXF_P": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "AntS_housing"
+    ],
+    [
+     0.0,
+     "endplate_mz"
+    ]
+   ]
+  },
+  "COAXU_M": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "endplate_mz"
+    ],
+    [
+     0.6,
+     "battery_clamp"
+    ]
+   ]
+  },
+  "COAXU_P": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "endplate_mz"
+    ],
+    [
+     0.6,
+     "battery_clamp"
+    ]
+   ]
+  },
+  "COAX_M": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "endplate_mz"
+    ],
+    [
+     0.0,
+     "heat_spreader"
+    ]
+   ]
+  },
+  "COAX_P": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "endplate_mz"
+    ],
+    [
+     0.0,
+     "heat_spreader"
+    ]
+   ]
+  },
+  "CS_MXMY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "W2_burn_board"
+    ],
+    [
+     0.25,
+     "DS2"
+    ]
+   ]
+  },
+  "CS_PXMY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "W1_burn_board"
+    ],
+    [
+     0.3,
+     "stack_columns"
+    ]
+   ]
+  },
+  "DS_MY_M": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.3,
+     "torquer_deck"
+    ],
+    [
+     2.64,
+     "battery_sense_board"
+    ]
+   ]
+  },
+  "DS_MY_P": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.3,
+     "torquer_deck"
+    ],
+    [
+     1.0,
+     "GNSS_receiver"
+    ]
+   ]
+  },
+  "DX_MXC": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.5,
+     "torquer_deck"
+    ],
+    [
+     1.98,
+     "battery_sense_board"
+    ]
+   ]
+  },
+  "DX_MXMY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.5,
+     "torquer_deck"
+    ],
+    [
+     1.98,
+     "battery_sense_board"
+    ]
+   ]
+  },
+  "DX_MXPY": {
+   "interferes": [],
+   "nearest": [
+    [
+     1.3,
+     "battery_sense_board"
+    ],
+    [
+     4.12,
+     "torquer_deck"
+    ]
+   ]
+  },
+  "EF_MXC": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "AntS_housing"
+    ],
+    [
+     0.0,
+     "endplate_mz"
+    ]
+   ]
+  },
+  "HS_MX": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "W2_hinge_doubler_0"
+    ],
+    [
+     0.1,
+     "shear_mx"
+    ]
+   ]
+  },
+  "HS_PX": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "W1_hinge_doubler_0"
+    ],
+    [
+     0.1,
+     "shear_px"
+    ]
+   ]
+  },
+  "LI_DS1": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "W1_hinge_doubler_0"
+    ],
+    [
+     0.35,
+     "DS1"
+    ]
+   ]
+  },
+  "MXC": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "shear_mx"
+    ],
+    [
+     0.31,
+     "EPS"
+    ]
+   ]
+  },
+  "MXMY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "endplate_mz"
+    ],
+    [
+     0.0,
+     "endplate_pz"
+    ]
+   ]
+  },
+  "MXPY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "endplate_mz"
+    ],
+    [
+     0.0,
+     "endplate_pz"
+    ]
+   ]
+  },
+  "MZT": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "W2_hinge_doubler_0"
+    ],
+    [
+     1.1,
+     "shear_mx"
+    ]
+   ]
+  },
+  "PG_MX": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "shear_mx"
+    ],
+    [
+     1.1,
+     "body_panel_mx"
+    ]
+   ]
+  },
+  "PG_MY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "shear_my"
+    ],
+    [
+     1.1,
+     "body_panel_my"
+    ]
+   ]
+  },
+  "PG_PX": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "shear_px"
+    ],
+    [
+     1.1,
+     "body_panel_px"
+    ]
+   ]
+  },
+  "PG_PY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "shear_py"
+    ],
+    [
+     1.1,
+     "body_panel_py"
+    ]
+   ]
+  },
+  "PXC_B": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "shear_px"
+    ],
+    [
+     0.4,
+     "torquer_deck"
+    ]
+   ]
+  },
+  "PXMY2": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "rail_pm"
+    ],
+    [
+     0.1,
+     "shear_px"
+    ]
+   ]
+  },
+  "PXMY_LO": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "endplate_mz"
+    ],
+    [
+     0.1,
+     "W1_burn_board"
+    ]
+   ]
+  },
+  "PXMY_UP": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "endplate_pz"
+    ],
+    [
+     0.1,
+     "shear_px"
+    ]
+   ]
+  },
+  "PXPY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "endplate_mz"
+    ],
+    [
+     0.0,
+     "endplate_pz"
+    ]
+   ]
+  },
+  "PX_J45": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.0,
+     "Jetson_carrier_parts"
+    ],
+    [
+     0.0,
+     "OBC_parts"
+    ]
+   ]
+  },
+  "S_MXC": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.5,
+     "battery_clamp"
+    ],
+    [
+     0.5,
+     "torquer_deck"
+    ]
+   ]
+  },
+  "S_MXMY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.5,
+     "battery_clamp"
+    ],
+    [
+     0.5,
+     "torquer_deck"
+    ]
+   ]
+  },
+  "TE_MXMY1": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.2,
+     "RF_parts"
+    ],
+    [
+     0.2,
+     "endplate_pz"
+    ]
+   ]
+  },
+  "TE_MXMY2": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.2,
+     "RF_parts"
+    ],
+    [
+     0.2,
+     "endplate_pz"
+    ]
+   ]
+  },
+  "TE_MXPY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.2,
+     "endplate_pz"
+    ],
+    [
+     1.2,
+     "RF_J3_J6_MMCX"
+    ]
+   ]
+  },
+  "TE_PXMY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.2,
+     "RF_parts"
+    ],
+    [
+     1.4,
+     "endplate_pz"
+    ]
+   ]
+  },
+  "TE_PXMY2": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.2,
+     "RF_parts"
+    ],
+    [
+     0.39,
+     "GNSS_patch_adapter"
+    ]
+   ]
+  },
+  "TE_PXPY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.28,
+     "magnetometer"
+    ],
+    [
+     1.2,
+     "magnetometer_parts"
+    ]
+   ]
+  },
+  "UB_MXC": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.2,
+     "battery_clamp"
+    ],
+    [
+     0.3,
+     "endplate_mz"
+    ]
+   ]
+  },
+  "U_C": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.05,
+     "EPS_parts"
+    ],
+    [
+     0.5,
+     "torquer_deck"
+    ]
+   ]
+  },
+  "U_J3U": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.5,
+     "torquer_deck"
+    ],
+    [
+     2.9,
+     "battery_sense_board"
+    ]
+   ]
+  },
+  "U_MXMY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.05,
+     "EPS_parts"
+    ],
+    [
+     0.1,
+     "stack_columns"
+    ]
+   ]
+  },
+  "U_MXMY2": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.05,
+     "EPS_parts"
+    ],
+    [
+     0.5,
+     "torquer_deck"
+    ]
+   ]
+  },
+  "U_MXPY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.05,
+     "EPS_parts"
+    ],
+    [
+     0.1,
+     "stack_columns"
+    ]
+   ]
+  },
+  "U_PXMY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.05,
+     "EPS_parts"
+    ],
+    [
+     0.1,
+     "stack_columns"
+    ]
+   ]
+  },
+  "U_PXMY2": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.05,
+     "EPS_parts"
+    ],
+    [
+     0.5,
+     "torquer_deck"
+    ]
+   ]
+  },
+  "U_PXPY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.05,
+     "EPS_parts"
+    ],
+    [
+     0.1,
+     "stack_columns"
+    ]
+   ]
+  },
+  "U_PY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.05,
+     "EPS_parts"
+    ],
+    [
+     0.5,
+     "torquer_deck"
+    ]
+   ]
+  },
+  "U_PYN": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.05,
+     "EPS_parts"
+    ],
+    [
+     0.5,
+     "torquer_deck"
+    ]
+   ]
+  },
+  "U_X": {
+   "interferes": [],
+   "nearest": [
+    [
+     1.1,
+     "centre_supports"
+    ],
+    [
+     1.25,
+     "rod_X"
+    ]
+   ]
+  },
+  "W3Z": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "shear_px"
+    ],
+    [
+     0.31,
+     "EPS"
+    ]
+   ]
+  },
+  "W4AZ": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "shear_px"
+    ],
+    [
+     1.1,
+     "body_panel_px"
+    ]
+   ]
+  },
+  "YB_MY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "rail_mm"
+    ],
+    [
+     0.1,
+     "shear_my"
+    ]
+   ]
+  },
+  "YW_MY": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.5,
+     "shear_my"
+    ],
+    [
+     0.5,
+     "torquer_deck"
+    ]
+   ]
+  }
+ },
+ "drops": {
+  "ADCS3V3": {
+   "I_A": 0.049,
+   "R_loop_ohm": 0.11807,
+   "drop_V": 0.00579,
+   "harness": [
+    "W6B"
+   ],
+   "limit_V": 0.066,
+   "source": "sensor rail worst normal (SQSO-ICX-001 3.4)"
+  },
+  "ANTS3V3": {
+   "I_A": 0.61,
+   "R_loop_ohm": 0.06134,
+   "drop_V": 0.03741,
+   "harness": [
+    "W7C"
+   ],
+   "limit_V": 0.066,
+   "source": "AntS deployment peak (SQSO-EPS-BRD-001 8.3); 2 % of 3.3 V"
+  },
+  "BURN_W1A": {
+   "I_A": 0.88,
+   "R_loop_ohm": 0.05013,
+   "drop_V": 0.04412,
+   "harness": [
+    "W7A"
+   ],
+   "limit_V": 0.088,
+   "source": "0.8 A + 10 %; loop <= 0.10 ohm, 1.4 % of the driver's 6.9 ohm compliance"
+  },
+  "BURN_W1B": {
+   "I_A": 0.88,
+   "R_loop_ohm": 0.05013,
+   "drop_V": 0.04412,
+   "harness": [
+    "W7A"
+   ],
+   "limit_V": 0.088,
+   "source": "as W1A"
+  },
+  "BURN_W2A": {
+   "I_A": 0.88,
+   "R_loop_ohm": 0.03808,
+   "drop_V": 0.03351,
+   "harness": [
+    "W7B"
+   ],
+   "limit_V": 0.088,
+   "source": "as W1A"
+  },
+  "BURN_W2B": {
+   "I_A": 0.88,
+   "R_loop_ohm": 0.03808,
+   "drop_V": 0.03351,
+   "harness": [
+    "W7B"
+   ],
+   "limit_V": 0.088,
+   "source": "as W1A"
+  },
+  "GNSS3V3_A": {
+   "I_A": 0.1,
+   "R_loop_ohm": 0.1536,
+   "drop_V": 0.01536,
+   "harness": [
+    "W9A"
+   ],
+   "limit_V": 0.033,
+   "source": "receiver peak; W9A and W9B in series share 66 mV"
+  },
+  "GNSS3V3_B": {
+   "I_A": 0.1,
+   "R_loop_ohm": 0.12314,
+   "drop_V": 0.01231,
+   "harness": [
+    "W9B"
+   ],
+   "limit_V": 0.033,
+   "source": "as W9A"
+  },
+  "HEATER": {
+   "I_A": 0.079,
+   "R_loop_ohm": 0.04411,
+   "drop_V": 0.00348,
+   "harness": [
+    "W1"
+   ],
+   "limit_V": 0.1,
+   "source": "heater 207 ohm at 16.4 V (SQSO-EPS-BRD-001 10)"
+  },
+  "MTQ_X": {
+   "I_A": 0.087,
+   "R_loop_ohm": 0.09983,
+   "drop_V": 0.00869,
+   "harness": [
+    "W6C"
+   ],
+   "limit_V": 0.1,
+   "source": "rod at 0.2 A.m2 (SQSO-OBC-BRD-001 10.1)"
+  },
+  "MTQ_Y": {
+   "I_A": 0.087,
+   "R_loop_ohm": 0.14805,
+   "drop_V": 0.01288,
+   "harness": [
+    "W6C"
+   ],
+   "limit_V": 0.1,
+   "source": "as X"
+  },
+  "MTQ_Z": {
+   "I_A": 0.087,
+   "R_loop_ohm": 0.06938,
+   "drop_V": 0.00604,
+   "harness": [
+    "W6C"
+   ],
+   "limit_V": 0.1,
+   "source": "as X"
+  },
+  "OBC3V3": {
+   "I_A": 0.04,
+   "R_loop_ohm": 0.05523,
+   "drop_V": 0.00221,
+   "harness": [
+    "W3"
+   ],
+   "limit_V": 0.033,
+   "source": "OBC peak (SQSO-EPS-BRD-001 8.3); 1 % of 3.3 V"
+  },
+  "PA5V": {
+   "I_A": 0.469,
+   "R_loop_ohm": 0.0768,
+   "drop_V": 0.03602,
+   "harness": [
+    "W4B"
+   ],
+   "limit_V": 0.1,
+   "source": "PA at 1 W (SQSO-RF-BRD-001 4.2); 2 % of 5 V"
+  },
+  "PACK": {
+   "I_A": 2.0,
+   "R_loop_ohm": 0.01758,
+   "drop_V": 0.03517,
+   "harness": [
+    "W1"
+   ],
+   "limit_V": 0.1,
+   "source": "all four burn drivers on, burn buck limit (SQSO-EPS-BRD-001 6.1); 1.71 A SW11 case"
+  },
+  "RADIO3V3": {
+   "I_A": 0.089,
+   "R_loop_ohm": 0.1536,
+   "drop_V": 0.01367,
+   "harness": [
+    "W4B"
+   ],
+   "limit_V": 0.066,
+   "source": "receiver 38 mA + exciter 51 mA keyed (SQSO-RF-BRD-001 4.2); 2 % of 3.3 V"
+  },
+  "SNS3V3": {
+   "I_A": 0.001,
+   "R_loop_ohm": 0.12568,
+   "drop_V": 0.00013,
+   "harness": [
+    "W6E"
+   ],
+   "limit_V": 0.066,
+   "source": "RM3100"
+  },
+  "STR_MX": {
+   "I_A": 0.55,
+   "R_loop_ohm": 0.03269,
+   "drop_V": 0.01798,
+   "harness": [
+    "W2MX"
+   ],
+   "limit_V": 0.048,
+   "source": "as PX"
+  },
+  "STR_MY": {
+   "I_A": 0.55,
+   "R_loop_ohm": 0.03015,
+   "drop_V": 0.01658,
+   "harness": [
+    "W2MY"
+   ],
+   "limit_V": 0.048,
+   "source": "as PX"
+  },
+  "STR_PX": {
+   "I_A": 0.55,
+   "R_loop_ohm": 0.03142,
+   "drop_V": 0.01728,
+   "harness": [
+    "W2PX"
+   ],
+   "limit_V": 0.048,
+   "source": "string Isc; 1 % of the 4.8 V Vmp"
+  },
+  "STR_PY": {
+   "I_A": 0.55,
+   "R_loop_ohm": 0.03142,
+   "drop_V": 0.01728,
+   "harness": [
+    "W2PY"
+   ],
+   "limit_V": 0.048,
+   "source": "as PX"
+  },
+  "STR_W1": {
+   "I_A": 1.1,
+   "R_loop_ohm": 0.02277,
+   "drop_V": 0.02505,
+   "harness": [
+    "W2W1"
+   ],
+   "limit_V": 0.048,
+   "source": "front and back strings, three shared returns"
+  },
+  "STR_W2": {
+   "I_A": 1.1,
+   "R_loop_ohm": 0.03017,
+   "drop_V": 0.03319,
+   "harness": [
+    "W2W2"
+   ],
+   "limit_V": 0.048,
+   "source": "as W1"
+  },
+  "UMBCHG": {
+   "I_A": 0.5,
+   "R_loop_ohm": 0.02758,
+   "drop_V": 0.01379,
+   "harness": [
+    "W11"
+   ],
+   "limit_V": 0.1,
+   "source": "ground charge current (F5 1 A)"
+  },
+  "VJET": {
+   "I_A": 1.4,
+   "R_loop_ohm": 0.03055,
+   "drop_V": 0.04277,
+   "harness": [
+    "W5A"
+   ],
+   "limit_V": 0.1,
+   "source": "Jetson carrier input, design current 1.4 A (EPS U19 trip 1.10-1.30 A)"
+  },
+  "VMTQ": {
+   "I_A": 0.104,
+   "R_loop_ohm": 0.05523,
+   "drop_V": 0.00574,
+   "harness": [
+    "W3"
+   ],
+   "limit_V": 0.1,
+   "source": "three rods at 1.16 W, 11.2 V (SQSO-EPS-BRD-001 8.3)"
+  }
+ },
+ "eps_connector_zones": {
+  "Z1": {
+   "area_mm2": 643.5,
+   "connectors": [
+    "J1",
+    "J2",
+    "J6",
+    "J20"
+   ],
+   "footprint_mm2": 444.0,
+   "ratio": 0.69
+  },
+  "Z2": {
+   "area_mm2": 852.0,
+   "connectors": [
+    "J5",
+    "J7",
+    "J11",
+    "J16",
+    "J18",
+    "J19"
+   ],
+   "footprint_mm2": 622.5,
+   "ratio": 0.73
+  },
+  "Z3": {
+   "area_mm2": 558.5,
+   "connectors": [
+    "J8",
+    "J10",
+    "J15",
+    "J21"
+   ],
+   "footprint_mm2": 375.0,
+   "ratio": 0.67
+  },
+  "Z4": {
+   "area_mm2": 345.0,
+   "connectors": [
+    "J4",
+    "J14",
+    "J17"
+   ],
+   "footprint_mm2": 94.5,
+   "ratio": 0.27
+  },
+  "Z5": {
+   "area_mm2": 629.75,
+   "connectors": [
+    "J9",
+    "J12",
+    "J13"
+   ],
+   "footprint_mm2": 366.0,
+   "ratio": 0.58
+  }
+ },
+ "fills": {
+  "AP_A3": {
+   "allow_mm2": 36.432,
+   "area_mm2": 8.04,
+   "band": "",
+   "harnesses": [
+    "W11",
+    "W8A"
+   ],
+   "ratio": 0.221,
+   "wires": 16,
+   "zone": "AP_A3"
+  },
+  "CARP": {
+   "allow_mm2": 17.7,
+   "area_mm2": 2.581,
+   "band": "",
+   "harnesses": [
+    "W5B"
+   ],
+   "ratio": 0.146,
+   "wires": 6,
+   "zone": "CARP"
+  },
+  "CAR_MXMY": {
+   "allow_mm2": 20.808,
+   "area_mm2": 3.079,
+   "band": "",
+   "harnesses": [
+    "W5A"
+   ],
+   "ratio": 0.148,
+   "wires": 4,
+   "zone": "CAR_MXMY"
+  },
+  "COAXF_M": {
+   "allow_mm2": 3.36,
+   "area_mm2": 2.948,
+   "band": "",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.877,
+   "wires": 2,
+   "zone": "COAXF_M"
+  },
+  "COAXF_P": {
+   "allow_mm2": 3.36,
+   "area_mm2": 2.948,
+   "band": "",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.877,
+   "wires": 2,
+   "zone": "COAXF_P"
+  },
+  "COAXU_M": {
+   "allow_mm2": 3.36,
+   "area_mm2": 2.948,
+   "band": "",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.877,
+   "wires": 2,
+   "zone": "COAXU_M"
+  },
+  "COAXU_P": {
+   "allow_mm2": 3.36,
+   "area_mm2": 2.948,
+   "band": "",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.877,
+   "wires": 2,
+   "zone": "COAXU_P"
+  },
+  "COAX_M": {
+   "allow_mm2": 7.2,
+   "area_mm2": 2.948,
+   "band": "",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.409,
+   "wires": 2,
+   "zone": "COAX_M"
+  },
+  "COAX_P": {
+   "allow_mm2": 7.2,
+   "area_mm2": 2.948,
+   "band": "",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.409,
+   "wires": 2,
+   "zone": "COAX_P"
+  },
+  "CS_MXMY": {
+   "allow_mm2": 20.16,
+   "area_mm2": 7.36,
+   "band": "",
+   "harnesses": [
+    "W12B",
+    "W7B",
+    "W8A"
+   ],
+   "ratio": 0.365,
+   "wires": 16,
+   "zone": "CS_MXMY"
+  },
+  "CS_PXMY": {
+   "allow_mm2": 20.16,
+   "area_mm2": 3.079,
+   "band": "",
+   "harnesses": [
+    "W7A"
+   ],
+   "ratio": 0.153,
+   "wires": 4,
+   "zone": "CS_PXMY"
+  },
+  "DS_MY_M/B": {
+   "allow_mm2": 15.18,
+   "area_mm2": 4.619,
+   "band": "B",
+   "harnesses": [
+    "W11"
+   ],
+   "ratio": 0.304,
+   "wires": 6,
+   "zone": "DS_MY_M"
+  },
+  "DS_MY_P/B": {
+   "allow_mm2": 4.83,
+   "area_mm2": 1.72,
+   "band": "B",
+   "harnesses": [
+    "W12D"
+   ],
+   "ratio": 0.356,
+   "wires": 4,
+   "zone": "DS_MY_P"
+  },
+  "DX_MXC/B": {
+   "allow_mm2": 36.0,
+   "area_mm2": 2.581,
+   "band": "B",
+   "harnesses": [
+    "W7C"
+   ],
+   "ratio": 0.072,
+   "wires": 6,
+   "zone": "DX_MXC"
+  },
+  "DX_MXMY/B": {
+   "allow_mm2": 28.5,
+   "area_mm2": 3.939,
+   "band": "B",
+   "harnesses": [
+    "W12B",
+    "W7B"
+   ],
+   "ratio": 0.138,
+   "wires": 6,
+   "zone": "DX_MXMY"
+  },
+  "DX_MXPY/B": {
+   "allow_mm2": 57.6,
+   "area_mm2": 9.742,
+   "band": "B",
+   "harnesses": [
+    "W1"
+   ],
+   "ratio": 0.169,
+   "wires": 14,
+   "zone": "DX_MXPY"
+  },
+  "EF_MXC/A": {
+   "allow_mm2": 29.4,
+   "area_mm2": 2.581,
+   "band": "A",
+   "harnesses": [
+    "W7C"
+   ],
+   "ratio": 0.088,
+   "wires": 6,
+   "zone": "EF_MXC"
+  },
+  "HS_MX/A": {
+   "allow_mm2": 9.0,
+   "area_mm2": 4.98,
+   "band": "A",
+   "harnesses": [
+    "W2W2",
+    "W7B"
+   ],
+   "ratio": 0.553,
+   "wires": 10,
+   "zone": "HS_MX"
+  },
+  "HS_MX/B": {
+   "allow_mm2": 9.0,
+   "area_mm2": 4.98,
+   "band": "B",
+   "harnesses": [
+    "W2W2",
+    "W7B"
+   ],
+   "ratio": 0.553,
+   "wires": 10,
+   "zone": "HS_MX"
+  },
+  "HS_PX/A": {
+   "allow_mm2": 9.0,
+   "area_mm2": 5.84,
+   "band": "A",
+   "harnesses": [
+    "W12A",
+    "W2W1",
+    "W7A"
+   ],
+   "ratio": 0.649,
+   "wires": 12,
+   "zone": "HS_PX"
+  },
+  "HS_PX/B": {
+   "allow_mm2": 9.0,
+   "area_mm2": 5.84,
+   "band": "B",
+   "harnesses": [
+    "W12A",
+    "W2W1",
+    "W7A"
+   ],
+   "ratio": 0.649,
+   "wires": 12,
+   "zone": "HS_PX"
+  },
+  "LI_DS1": {
+   "allow_mm2": 3.0,
+   "area_mm2": 0.86,
+   "band": "",
+   "harnesses": [
+    "W12A"
+   ],
+   "ratio": 0.287,
+   "wires": 2,
+   "zone": "LI_DS1"
+  },
+  "MXC/B": {
+   "allow_mm2": 22.5,
+   "area_mm2": 1.72,
+   "band": "B",
+   "harnesses": [
+    "W6C"
+   ],
+   "ratio": 0.076,
+   "wires": 4,
+   "zone": "MXC"
+  },
+  "MXC/C": {
+   "allow_mm2": 22.5,
+   "area_mm2": 1.72,
+   "band": "C",
+   "harnesses": [
+    "W6C"
+   ],
+   "ratio": 0.076,
+   "wires": 4,
+   "zone": "MXC"
+  },
+  "MXC/D": {
+   "allow_mm2": 22.5,
+   "area_mm2": 2.581,
+   "band": "D",
+   "harnesses": [
+    "W6C"
+   ],
+   "ratio": 0.115,
+   "wires": 6,
+   "zone": "MXC"
+  },
+  "MXMY/A": {
+   "allow_mm2": 17.82,
+   "area_mm2": 3.421,
+   "band": "A",
+   "harnesses": [
+    "W8A"
+   ],
+   "ratio": 0.192,
+   "wires": 10,
+   "zone": "MXMY"
+  },
+  "MXMY/B": {
+   "allow_mm2": 17.82,
+   "area_mm2": 9.081,
+   "band": "B",
+   "harnesses": [
+    "W4B",
+    "W5A",
+    "W8A"
+   ],
+   "ratio": 0.51,
+   "wires": 20,
+   "zone": "MXMY"
+  },
+  "MXMY/C": {
+   "allow_mm2": 17.82,
+   "area_mm2": 9.081,
+   "band": "C",
+   "harnesses": [
+    "W4B",
+    "W5A",
+    "W8A"
+   ],
+   "ratio": 0.51,
+   "wires": 20,
+   "zone": "MXMY"
+  },
+  "MXMY/D": {
+   "allow_mm2": 17.82,
+   "area_mm2": 9.081,
+   "band": "D",
+   "harnesses": [
+    "W4B",
+    "W5A",
+    "W8A"
+   ],
+   "ratio": 0.51,
+   "wires": 20,
+   "zone": "MXMY"
+  },
+  "MXMY/E": {
+   "allow_mm2": 17.82,
+   "area_mm2": 5.66,
+   "band": "E",
+   "harnesses": [
+    "W4B",
+    "W5A"
+   ],
+   "ratio": 0.318,
+   "wires": 10,
+   "zone": "MXMY"
+  },
+  "MXPY/A": {
+   "allow_mm2": 17.82,
+   "area_mm2": 0.86,
+   "band": "A",
+   "harnesses": [
+    "W6D"
+   ],
+   "ratio": 0.048,
+   "wires": 2,
+   "zone": "MXPY"
+  },
+  "MXPY/B": {
+   "allow_mm2": 17.82,
+   "area_mm2": 5.161,
+   "band": "B",
+   "harnesses": [
+    "W6B",
+    "W6D"
+   ],
+   "ratio": 0.29,
+   "wires": 12,
+   "zone": "MXPY"
+  },
+  "MXPY/C": {
+   "allow_mm2": 17.82,
+   "area_mm2": 5.161,
+   "band": "C",
+   "harnesses": [
+    "W6B",
+    "W6D"
+   ],
+   "ratio": 0.29,
+   "wires": 12,
+   "zone": "MXPY"
+  },
+  "MXPY/D": {
+   "allow_mm2": 17.82,
+   "area_mm2": 6.021,
+   "band": "D",
+   "harnesses": [
+    "W6B",
+    "W6D"
+   ],
+   "ratio": 0.338,
+   "wires": 14,
+   "zone": "MXPY"
+  },
+  "MXPY/E": {
+   "allow_mm2": 17.82,
+   "area_mm2": 0.86,
+   "band": "E",
+   "harnesses": [
+    "W6D"
+   ],
+   "ratio": 0.048,
+   "wires": 2,
+   "zone": "MXPY"
+  },
+  "MZT": {
+   "allow_mm2": 7.38,
+   "area_mm2": 0.86,
+   "band": "",
+   "harnesses": [
+    "W6D"
+   ],
+   "ratio": 0.117,
+   "wires": 2,
+   "zone": "MZT"
+  },
+  "PG_MX": {
+   "allow_mm2": 9.6,
+   "area_mm2": 3.011,
+   "band": "",
+   "harnesses": [
+    "W2MX",
+    "W6D"
+   ],
+   "ratio": 0.314,
+   "wires": 7,
+   "zone": "PG_MX"
+  },
+  "PG_MY": {
+   "allow_mm2": 9.6,
+   "area_mm2": 3.011,
+   "band": "",
+   "harnesses": [
+    "W2MY",
+    "W6D"
+   ],
+   "ratio": 0.314,
+   "wires": 7,
+   "zone": "PG_MY"
+  },
+  "PG_PX": {
+   "allow_mm2": 9.6,
+   "area_mm2": 3.011,
+   "band": "",
+   "harnesses": [
+    "W2PX",
+    "W6D"
+   ],
+   "ratio": 0.314,
+   "wires": 7,
+   "zone": "PG_PX"
+  },
+  "PG_PY": {
+   "allow_mm2": 9.6,
+   "area_mm2": 3.011,
+   "band": "",
+   "harnesses": [
+    "W2PY",
+    "W6D"
+   ],
+   "ratio": 0.314,
+   "wires": 7,
+   "zone": "PG_PY"
+  },
+  "PXC_B": {
+   "allow_mm2": 30.6,
+   "area_mm2": 3.079,
+   "band": "",
+   "harnesses": [
+    "W7A"
+   ],
+   "ratio": 0.101,
+   "wires": 4,
+   "zone": "PXC_B"
+  },
+  "PXMY2/B": {
+   "allow_mm2": 10.8,
+   "area_mm2": 1.29,
+   "band": "B",
+   "harnesses": [
+    "W12C"
+   ],
+   "ratio": 0.119,
+   "wires": 3,
+   "zone": "PXMY2"
+  },
+  "PXMY2/C": {
+   "allow_mm2": 10.8,
+   "area_mm2": 1.29,
+   "band": "C",
+   "harnesses": [
+    "W12C"
+   ],
+   "ratio": 0.119,
+   "wires": 3,
+   "zone": "PXMY2"
+  },
+  "PXMY2/D": {
+   "allow_mm2": 10.8,
+   "area_mm2": 1.29,
+   "band": "D",
+   "harnesses": [
+    "W12C"
+   ],
+   "ratio": 0.119,
+   "wires": 3,
+   "zone": "PXMY2"
+  },
+  "PXMY2/E": {
+   "allow_mm2": 10.8,
+   "area_mm2": 1.29,
+   "band": "E",
+   "harnesses": [
+    "W12C"
+   ],
+   "ratio": 0.119,
+   "wires": 3,
+   "zone": "PXMY2"
+  },
+  "PXMY_LO/A": {
+   "allow_mm2": 17.82,
+   "area_mm2": 3.079,
+   "band": "A",
+   "harnesses": [
+    "W7A"
+   ],
+   "ratio": 0.173,
+   "wires": 4,
+   "zone": "PXMY_LO"
+  },
+  "PXMY_LO/B": {
+   "allow_mm2": 17.82,
+   "area_mm2": 3.079,
+   "band": "B",
+   "harnesses": [
+    "W7A"
+   ],
+   "ratio": 0.173,
+   "wires": 4,
+   "zone": "PXMY_LO"
+  },
+  "PXMY_UP/B": {
+   "allow_mm2": 11.7,
+   "area_mm2": 4.082,
+   "band": "B",
+   "harnesses": [
+    "W10",
+    "W7A"
+   ],
+   "ratio": 0.349,
+   "wires": 5,
+   "zone": "PXMY_UP"
+  },
+  "PXMY_UP/C": {
+   "allow_mm2": 11.7,
+   "area_mm2": 1.003,
+   "band": "C",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.086,
+   "wires": 1,
+   "zone": "PXMY_UP"
+  },
+  "PXMY_UP/D": {
+   "allow_mm2": 11.7,
+   "area_mm2": 1.003,
+   "band": "D",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.086,
+   "wires": 1,
+   "zone": "PXMY_UP"
+  },
+  "PXMY_UP/E": {
+   "allow_mm2": 11.7,
+   "area_mm2": 1.003,
+   "band": "E",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.086,
+   "wires": 1,
+   "zone": "PXMY_UP"
+  },
+  "PXPY/A": {
+   "allow_mm2": 17.82,
+   "area_mm2": 0.86,
+   "band": "A",
+   "harnesses": [
+    "W6C"
+   ],
+   "ratio": 0.048,
+   "wires": 2,
+   "zone": "PXPY"
+  },
+  "PXPY/B": {
+   "allow_mm2": 17.82,
+   "area_mm2": 4.301,
+   "band": "B",
+   "harnesses": [
+    "W6C",
+    "W9A",
+    "W9B"
+   ],
+   "ratio": 0.241,
+   "wires": 10,
+   "zone": "PXPY"
+  },
+  "PXPY/C": {
+   "allow_mm2": 17.82,
+   "area_mm2": 3.441,
+   "band": "C",
+   "harnesses": [
+    "W9A",
+    "W9B"
+   ],
+   "ratio": 0.193,
+   "wires": 8,
+   "zone": "PXPY"
+  },
+  "PXPY/D": {
+   "allow_mm2": 17.82,
+   "area_mm2": 8.602,
+   "band": "D",
+   "harnesses": [
+    "W5B",
+    "W6E",
+    "W9A",
+    "W9B"
+   ],
+   "ratio": 0.483,
+   "wires": 20,
+   "zone": "PXPY"
+  },
+  "PXPY/E": {
+   "allow_mm2": 17.82,
+   "area_mm2": 5.161,
+   "band": "E",
+   "harnesses": [
+    "W5B",
+    "W6E"
+   ],
+   "ratio": 0.29,
+   "wires": 12,
+   "zone": "PXPY"
+  },
+  "PX_J45": {
+   "allow_mm2": 26.88,
+   "area_mm2": 0.86,
+   "band": "",
+   "harnesses": [
+    "W9B"
+   ],
+   "ratio": 0.032,
+   "wires": 2,
+   "zone": "PX_J45"
+  },
+  "S_MXC/A": {
+   "allow_mm2": 64.8,
+   "area_mm2": 2.581,
+   "band": "A",
+   "harnesses": [
+    "W7C"
+   ],
+   "ratio": 0.04,
+   "wires": 6,
+   "zone": "S_MXC"
+  },
+  "S_MXC/B": {
+   "allow_mm2": 64.8,
+   "area_mm2": 2.581,
+   "band": "B",
+   "harnesses": [
+    "W7C"
+   ],
+   "ratio": 0.04,
+   "wires": 6,
+   "zone": "S_MXC"
+  },
+  "S_MXMY/A": {
+   "allow_mm2": 51.3,
+   "area_mm2": 3.939,
+   "band": "A",
+   "harnesses": [
+    "W12B",
+    "W7B"
+   ],
+   "ratio": 0.077,
+   "wires": 6,
+   "zone": "S_MXMY"
+  },
+  "S_MXMY/B": {
+   "allow_mm2": 51.3,
+   "area_mm2": 3.939,
+   "band": "B",
+   "harnesses": [
+    "W12B",
+    "W7B"
+   ],
+   "ratio": 0.077,
+   "wires": 6,
+   "zone": "S_MXMY"
+  },
+  "TE_MXMY1": {
+   "allow_mm2": 11.04,
+   "area_mm2": 2.581,
+   "band": "",
+   "harnesses": [
+    "W4B"
+   ],
+   "ratio": 0.234,
+   "wires": 6,
+   "zone": "TE_MXMY1"
+  },
+  "TE_MXMY2": {
+   "allow_mm2": 11.04,
+   "area_mm2": 2.581,
+   "band": "",
+   "harnesses": [
+    "W4B"
+   ],
+   "ratio": 0.234,
+   "wires": 6,
+   "zone": "TE_MXMY2"
+  },
+  "TE_MXPY": {
+   "allow_mm2": 33.12,
+   "area_mm2": 0.86,
+   "band": "",
+   "harnesses": [
+    "W6D"
+   ],
+   "ratio": 0.026,
+   "wires": 2,
+   "zone": "TE_MXPY"
+  },
+  "TE_PXMY": {
+   "allow_mm2": 8.16,
+   "area_mm2": 1.003,
+   "band": "",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.123,
+   "wires": 1,
+   "zone": "TE_PXMY"
+  },
+  "TE_PXMY2": {
+   "allow_mm2": 8.16,
+   "area_mm2": 1.003,
+   "band": "",
+   "harnesses": [
+    "W10"
+   ],
+   "ratio": 0.123,
+   "wires": 1,
+   "zone": "TE_PXMY2"
+  },
+  "TE_PXPY": {
+   "allow_mm2": 9.0,
+   "area_mm2": 2.581,
+   "band": "",
+   "harnesses": [
+    "W6E"
+   ],
+   "ratio": 0.287,
+   "wires": 6,
+   "zone": "TE_PXPY"
+  },
+  "UB_MXC": {
+   "allow_mm2": 6.3,
+   "area_mm2": 2.581,
+   "band": "",
+   "harnesses": [
+    "W7C"
+   ],
+   "ratio": 0.41,
+   "wires": 6,
+   "zone": "UB_MXC"
+  },
+  "U_C": {
+   "allow_mm2": 95.265,
+   "area_mm2": 10.459,
+   "band": "",
+   "harnesses": [
+    "W11",
+    "W6D",
+    "W7B",
+    "W7C"
+   ],
+   "ratio": 0.11,
+   "wires": 18,
+   "zone": "U_C"
+  },
+  "U_J3U": {
+   "allow_mm2": 16.5,
+   "area_mm2": 3.441,
+   "band": "",
+   "harnesses": [
+    "W6D",
+    "W9A"
+   ],
+   "ratio": 0.209,
+   "wires": 8,
+   "zone": "U_J3U"
+  },
+  "U_MXMY": {
+   "allow_mm2": 151.11,
+   "area_mm2": 19.129,
+   "band": "",
+   "harnesses": [
+    "W11",
+    "W12B",
+    "W2MX",
+    "W4B",
+    "W5A",
+    "W6D",
+    "W7B",
+    "W7C"
+   ],
+   "ratio": 0.127,
+   "wires": 35,
+   "zone": "U_MXMY"
+  },
+  "U_MXMY2": {
+   "allow_mm2": 101.835,
+   "area_mm2": 7.629,
+   "band": "",
+   "harnesses": [
+    "W11",
+    "W2MY",
+    "W6D"
+   ],
+   "ratio": 0.075,
+   "wires": 13,
+   "zone": "U_MXMY2"
+  },
+  "U_MXPY": {
+   "allow_mm2": 128.115,
+   "area_mm2": 22.894,
+   "band": "",
+   "harnesses": [
+    "W1",
+    "W2PY",
+    "W2W2",
+    "W6B",
+    "W6C",
+    "W6D",
+    "W7B"
+   ],
+   "ratio": 0.179,
+   "wires": 43,
+   "zone": "U_MXPY"
+  },
+  "U_PXMY": {
+   "allow_mm2": 85.41,
+   "area_mm2": 7.884,
+   "band": "",
+   "harnesses": [
+    "W10",
+    "W12C",
+    "W2PX",
+    "W6D",
+    "W9A"
+   ],
+   "ratio": 0.092,
+   "wires": 17,
+   "zone": "U_PXMY"
+  },
+  "U_PXMY2": {
+   "allow_mm2": 36.135,
+   "area_mm2": 1.72,
+   "band": "",
+   "harnesses": [
+    "W12D"
+   ],
+   "ratio": 0.048,
+   "wires": 4,
+   "zone": "U_PXMY2"
+  },
+  "U_PXPY": {
+   "allow_mm2": 128.115,
+   "area_mm2": 14.08,
+   "band": "",
+   "harnesses": [
+    "W12A",
+    "W2W1",
+    "W6C",
+    "W6D",
+    "W7A",
+    "W9A",
+    "W9B"
+   ],
+   "ratio": 0.11,
+   "wires": 28,
+   "zone": "U_PXPY"
+  },
+  "U_PY": {
+   "allow_mm2": 75.555,
+   "area_mm2": 10.64,
+   "band": "",
+   "harnesses": [
+    "W11",
+    "W2W2",
+    "W7C"
+   ],
+   "ratio": 0.141,
+   "wires": 20,
+   "zone": "U_PY"
+  },
+  "U_PYN": {
+   "allow_mm2": 108.405,
+   "area_mm2": 3.441,
+   "band": "",
+   "harnesses": [
+    "W2W2"
+   ],
+   "ratio": 0.032,
+   "wires": 8,
+   "zone": "U_PYN"
+  },
+  "U_X": {
+   "allow_mm2": 21.6,
+   "area_mm2": 5.161,
+   "band": "",
+   "harnesses": [
+    "W2W2",
+    "W6C",
+    "W6D"
+   ],
+   "ratio": 0.239,
+   "wires": 12,
+   "zone": "U_X"
+  },
+  "W3Z/B": {
+   "allow_mm2": 61.2,
+   "area_mm2": 13.685,
+   "band": "B",
+   "harnesses": [
+    "W3"
+   ],
+   "ratio": 0.224,
+   "wires": 40,
+   "zone": "W3Z"
+  },
+  "W3Z/C": {
+   "allow_mm2": 61.2,
+   "area_mm2": 13.685,
+   "band": "C",
+   "harnesses": [
+    "W3"
+   ],
+   "ratio": 0.224,
+   "wires": 40,
+   "zone": "W3Z"
+  },
+  "W3Z/D": {
+   "allow_mm2": 61.2,
+   "area_mm2": 13.685,
+   "band": "D",
+   "harnesses": [
+    "W3"
+   ],
+   "ratio": 0.224,
+   "wires": 40,
+   "zone": "W3Z"
+  },
+  "W4AZ/D": {
+   "allow_mm2": 9.0,
+   "area_mm2": 5.474,
+   "band": "D",
+   "harnesses": [
+    "W4A"
+   ],
+   "ratio": 0.608,
+   "wires": 16,
+   "zone": "W4AZ"
+  },
+  "W4AZ/E": {
+   "allow_mm2": 9.0,
+   "area_mm2": 5.474,
+   "band": "E",
+   "harnesses": [
+    "W4A"
+   ],
+   "ratio": 0.608,
+   "wires": 16,
+   "zone": "W4AZ"
+  },
+  "YB_MY": {
+   "allow_mm2": 6.48,
+   "area_mm2": 3.421,
+   "band": "",
+   "harnesses": [
+    "W8A"
+   ],
+   "ratio": 0.528,
+   "wires": 10,
+   "zone": "YB_MY"
+  },
+  "YW_MY/A": {
+   "allow_mm2": 294.0,
+   "area_mm2": 6.339,
+   "band": "A",
+   "harnesses": [
+    "W11",
+    "W12D"
+   ],
+   "ratio": 0.022,
+   "wires": 10,
+   "zone": "YW_MY"
+  },
+  "YW_MY/B": {
+   "allow_mm2": 294.0,
+   "area_mm2": 6.339,
+   "band": "B",
+   "harnesses": [
+    "W11",
+    "W12D"
+   ],
+   "ratio": 0.022,
+   "wires": 10,
+   "zone": "YW_MY"
+  }
+ },
+ "lengths_mm": {
+  "W1-01": 120.0,
+  "W1-02": 120.0,
+  "W1-03": 120.0,
+  "W1-04": 120.0,
+  "W1-05": 120.0,
+  "W1-06": 120.0,
+  "W1-07": 120.0,
+  "W1-08": 120.0,
+  "W1-09": 120.0,
+  "W1-10": 120.0,
+  "W1-11": 120.0,
+  "W1-12": 120.0,
+  "W1-13": 120.0,
+  "W1-14": 120.0,
+  "W10-01": 220.0,
+  "W10-02": 220.0,
+  "W10-03": 220.0,
+  "W10-04": 220.0,
+  "W10-05": 195.0,
+  "W11-01": 175.0,
+  "W11-02": 175.0,
+  "W11-03": 175.0,
+  "W11-04": 175.0,
+  "W11-05": 175.0,
+  "W11-06": 175.0,
+  "W12A-01": 90.0,
+  "W12A-02": 90.0,
+  "W12B-01": 100.0,
+  "W12B-02": 100.0,
+  "W12C-01": 110.0,
+  "W12C-02": 110.0,
+  "W12C-03": 110.0,
+  "W12D-01": 85.0,
+  "W12D-02": 85.0,
+  "W12D-03": 85.0,
+  "W12D-04": 85.0,
+  "W2MX-01": 50.0,
+  "W2MX-02": 50.0,
+  "W2MX-03": 50.0,
+  "W2MX-04": 50.0,
+  "W2MX-05": 50.0,
+  "W2MY-01": 40.0,
+  "W2MY-02": 40.0,
+  "W2MY-03": 40.0,
+  "W2MY-04": 40.0,
+  "W2MY-05": 40.0,
+  "W2PX-01": 45.0,
+  "W2PX-02": 45.0,
+  "W2PX-03": 45.0,
+  "W2PX-04": 45.0,
+  "W2PX-05": 45.0,
+  "W2PY-01": 45.0,
+  "W2PY-02": 45.0,
+  "W2PY-03": 45.0,
+  "W2PY-04": 45.0,
+  "W2PY-05": 45.0,
+  "W2W1-01": 75.0,
+  "W2W1-02": 75.0,
+  "W2W1-03": 75.0,
+  "W2W1-04": 75.0,
+  "W2W1-05": 75.0,
+  "W2W1-06": 75.0,
+  "W2W1-07": 75.0,
+  "W2W1-08": 75.0,
+  "W2W2-01": 125.0,
+  "W2W2-02": 125.0,
+  "W2W2-03": 125.0,
+  "W2W2-04": 125.0,
+  "W2W2-05": 125.0,
+  "W2W2-06": 125.0,
+  "W2W2-07": 125.0,
+  "W2W2-08": 125.0,
+  "W3-01": 65.0,
+  "W3-02": 65.0,
+  "W3-03": 65.0,
+  "W3-04": 65.0,
+  "W3-05": 65.0,
+  "W3-06": 65.0,
+  "W3-07": 65.0,
+  "W3-08": 65.0,
+  "W3-09": 65.0,
+  "W3-10": 65.0,
+  "W3-11": 65.0,
+  "W3-12": 65.0,
+  "W3-13": 65.0,
+  "W3-14": 65.0,
+  "W3-15": 65.0,
+  "W3-16": 65.0,
+  "W3-17": 65.0,
+  "W3-18": 65.0,
+  "W3-19": 65.0,
+  "W3-20": 65.0,
+  "W3-21": 65.0,
+  "W3-22": 65.0,
+  "W3-23": 65.0,
+  "W3-24": 65.0,
+  "W3-25": 65.0,
+  "W3-26": 65.0,
+  "W3-27": 65.0,
+  "W3-28": 65.0,
+  "W3-29": 65.0,
+  "W3-30": 65.0,
+  "W3-31": 65.0,
+  "W3-32": 65.0,
+  "W3-33": 65.0,
+  "W3-34": 65.0,
+  "W3-35": 65.0,
+  "W3-36": 65.0,
+  "W3-37": 65.0,
+  "W3-38": 65.0,
+  "W3-39": 65.0,
+  "W3-40": 65.0,
+  "W4A-01": 75.0,
+  "W4A-02": 75.0,
+  "W4A-03": 75.0,
+  "W4A-04": 75.0,
+  "W4A-05": 75.0,
+  "W4A-06": 75.0,
+  "W4A-07": 75.0,
+  "W4A-08": 75.0,
+  "W4A-09": 75.0,
+  "W4A-10": 75.0,
+  "W4A-11": 75.0,
+  "W4A-12": 75.0,
+  "W4A-13": 75.0,
+  "W4A-14": 75.0,
+  "W4A-15": 75.0,
+  "W4A-16": 75.0,
+  "W4B-01": 145.0,
+  "W4B-02": 145.0,
+  "W4B-03": 145.0,
+  "W4B-04": 145.0,
+  "W4B-05": 145.0,
+  "W4B-06": 145.0,
+  "W5A-01": 105.0,
+  "W5A-02": 105.0,
+  "W5A-03": 105.0,
+  "W5A-04": 105.0,
+  "W5B-01": 60.0,
+  "W5B-02": 60.0,
+  "W5B-03": 60.0,
+  "W5B-04": 60.0,
+  "W5B-05": 60.0,
+  "W5B-06": 60.0,
+  "W6B-01": 75.0,
+  "W6B-02": 75.0,
+  "W6C-01": 110.0,
+  "W6C-02": 110.0,
+  "W6C-03": 205.0,
+  "W6C-04": 205.0,
+  "W6C-05": 50.0,
+  "W6C-06": 50.0,
+  "W6D-01": 245.0,
+  "W6D-02": 245.0,
+  "W6D-03": 145.0,
+  "W6D-04": 145.0,
+  "W6D-05": 105.0,
+  "W6D-06": 105.0,
+  "W6D-07": 175.0,
+  "W6D-08": 175.0,
+  "W6D-09": 95.0,
+  "W6D-10": 95.0,
+  "W6D-11": 115.0,
+  "W6D-12": 115.0,
+  "W6E-01": 90.0,
+  "W6E-02": 90.0,
+  "W6E-03": 90.0,
+  "W6E-04": 90.0,
+  "W6E-05": 90.0,
+  "W6E-06": 90.0,
+  "W7A-01": 150.0,
+  "W7A-02": 150.0,
+  "W7A-03": 150.0,
+  "W7A-04": 150.0,
+  "W7A-05": 95.0,
+  "W7A-06": 95.0,
+  "W7B-01": 90.0,
+  "W7B-02": 90.0,
+  "W7B-03": 90.0,
+  "W7B-04": 90.0,
+  "W7B-05": 155.0,
+  "W7B-06": 155.0,
+  "W7C-01": 155.0,
+  "W7C-02": 155.0,
+  "W7C-03": 155.0,
+  "W7C-04": 155.0,
+  "W7C-05": 155.0,
+  "W7C-06": 155.0,
+  "W8A-01": 145.0,
+  "W8A-02": 145.0,
+  "W8A-03": 145.0,
+  "W8A-04": 145.0,
+  "W8A-05": 145.0,
+  "W8A-06": 145.0,
+  "W8A-07": 145.0,
+  "W8A-08": 145.0,
+  "W8A-09": 145.0,
+  "W8A-10": 145.0,
+  "W9A-01": 145.0,
+  "W9A-02": 145.0,
+  "W9A-03": 145.0,
+  "W9A-04": 145.0,
+  "W9A-05": 145.0,
+  "W9A-06": 145.0,
+  "W9B-01": 85.0,
+  "W9B-02": 85.0
+ },
+ "magnetometer_nT": {
+  "EPS J19 end": 0.47,
+  "RF J2 end": 0.72
+ },
+ "mass_g": {
+  "by_mel_row": {
+   "26": 6.6,
+   "31": 2.3,
+   "32": 75.6
+  },
+  "extras": {
+   "PTFE over-sleeve on the four pack leads": 0.3,
+   "access-port board A3 (FR-4 30 x 12 x 1.6 mm, Micro-D 21 socket receptacle, two M2 Ti screws, staking)": 6.0,
+   "heat shrink and identification sleeves (one per wire end)": 4.1,
+   "lacing tape spot ties and Scotch-Weld 2216 tie-down dots (104 points x 0.10 g)": 10.4,
+   "termination tabs TB-W1, TB-W2 (polyimide, 6 x 10 mm, bonded)": 0.4
+  },
+  "mel_cbe": {
+   "26": 5.0,
+   "31": 26.0,
+   "32": 80.0
+  },
+  "per_harness": {
+   "W1": {
+    "conn_g": 1.24,
+    "wire_g": 4.48
+   },
+   "W10": {
+    "conn_g": 9.0,
+    "wire_g": 4.05
+   },
+   "W11": {
+    "conn_g": 0.8,
+    "wire_g": 3.13
+   },
+   "W12A": {
+    "conn_g": 0.1,
+    "wire_g": 0.24
+   },
+   "W12B": {
+    "conn_g": 0.1,
+    "wire_g": 0.27
+   },
+   "W12C": {
+    "conn_g": 0.14,
+    "wire_g": 0.45
+   },
+   "W12D": {
+    "conn_g": 0.17,
+    "wire_g": 0.46
+   },
+   "W2MX": {
+    "conn_g": 0.21,
+    "wire_g": 0.34
+   },
+   "W2MY": {
+    "conn_g": 0.21,
+    "wire_g": 0.27
+   },
+   "W2PX": {
+    "conn_g": 0.21,
+    "wire_g": 0.3
+   },
+   "W2PY": {
+    "conn_g": 0.21,
+    "wire_g": 0.3
+   },
+   "W2W1": {
+    "conn_g": 0.31,
+    "wire_g": 0.81
+   },
+   "W2W2": {
+    "conn_g": 0.31,
+    "wire_g": 1.35
+   },
+   "W3": {
+    "conn_g": 3.8,
+    "wire_g": 2.55
+   },
+   "W4A": {
+    "conn_g": 1.88,
+    "wire_g": 1.18
+   },
+   "W4B": {
+    "conn_g": 0.48,
+    "wire_g": 1.17
+   },
+   "W5A": {
+    "conn_g": 1.2,
+    "wire_g": 1.25
+   },
+   "W5B": {
+    "conn_g": 0.48,
+    "wire_g": 0.49
+   },
+   "W6B": {
+    "conn_g": 0.2,
+    "wire_g": 0.2
+   },
+   "W6C": {
+    "conn_g": 1.14,
+    "wire_g": 0.99
+   },
+   "W6D": {
+    "conn_g": 0.45,
+    "wire_g": 2.38
+   },
+   "W6E": {
+    "conn_g": 0.48,
+    "wire_g": 0.73
+   },
+   "W7A": {
+    "conn_g": 1.1,
+    "wire_g": 2.35
+   },
+   "W7B": {
+    "conn_g": 1.1,
+    "wire_g": 2.0
+   },
+   "W7C": {
+    "conn_g": 0.84,
+    "wire_g": 1.26
+   },
+   "W8A": {
+    "conn_g": 0.7,
+    "wire_g": 1.42
+   },
+   "W9A": {
+    "conn_g": 0.5,
+    "wire_g": 1.17
+   },
+   "W9B": {
+    "conn_g": 0.2,
+    "wire_g": 0.23
+   }
+  },
+  "total": 84.5
+ },
+ "problems": []
+}

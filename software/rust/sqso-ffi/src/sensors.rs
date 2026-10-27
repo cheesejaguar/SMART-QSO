@@ -13,6 +13,15 @@
 //! a C caller can still call it on a copy. Readers, the EPS and the fault
 //! log are called with no sensor state borrowed.
 //!
+//! The payload spreader temperature (`PT`) is the OBC's own thermistor on
+//! `ADC_CHANNEL_PT_NTC` (`sqso_fsw::sensors::spreader_temperature`): an
+//! open or shorted thermistor reads NaN and raises the spreader sensor
+//! fault ([`spreader_fault`]), which inhibits the Jetson's power-on. The
+//! battery alarms are logged at onset and clearance (`sqso_fsw::condition`,
+//! RID FSW-14), not at every reading.
+//!
+//! @requirement SRS-F150 Spreader thermistor: R = 10.0 kΩ N / (4095 − N), Steinhart–Hart 10K3A; outside 0.10–3.25 V a sensor fault that inhibits the Jetson's power-on
+//! @requirement SRS-F153 A repeated condition shall be logged at its onset and its clearance (with the number of checks), not at every check
 //! @requirement SRS-F070 Collect telemetry from all sensors
 //! @requirement SRS-F071 Sample sensors at configurable rates
 //! @requirement SRS-F072 Validate sensor readings against limits
@@ -24,9 +33,13 @@ use sqso_fsw::sensors::{
     TEXT_LEN, TYPE_LEN, UNITS_LEN, Value, ValueType, until_nul,
 };
 
+use core::sync::atomic::{AtomicBool, Ordering};
+
+use sqso_fsw::condition::Condition;
+
 use crate::c::{self, rc, severity};
 use crate::cell::Global;
-use crate::{eps_control, fault_mgmt, ptr};
+use crate::{eps_control, fault_mgmt, hw, pins, ptr};
 use sqso_fsw::eps_telemetry::Telemetry;
 
 #[cfg(not(target_os = "none"))]
@@ -115,6 +128,27 @@ static SENSORS: Global<Sensors> = Global::new(Sensors {
 /// First reading of the elapsed timer (0: none yet)
 static TIMER_START_MS: Global<u64> = Global::new(0);
 
+/// The battery alarms' latches: low voltage, high discharge current
+static ALARMS: Global<[Condition; 2]> = Global::new([Condition::new(); 2]);
+
+/// The spreader thermistor reads outside its valid range
+static SPREADER_FAULT: AtomicBool = AtomicBool::new(false);
+
+/// Whether the spreader thermistor is faulted (open or shorted) at its
+/// latest reading
+pub fn spreader_fault() -> bool {
+    SPREADER_FAULT.load(Ordering::Relaxed)
+}
+
+/// The spreader temperature from the OBC's thermistor, °C; NaN (and the
+/// sensor fault) outside the valid range
+fn spreader_c() -> f64 {
+    let t = hw::adc_raw(pins::ADC_PT_NTC)
+        .and_then(|raw| sensors::spreader_temperature(raw, hw::adc(pins::ADC_PT_NTC)));
+    SPREADER_FAULT.store(t.is_none(), Ordering::Relaxed);
+    t.unwrap_or(f64::NAN)
+}
+
 fn with<R>(busy: R, f: impl FnOnce(&mut Sensors) -> R) -> R {
     SENSORS.with(f).unwrap_or(busy)
 }
@@ -153,17 +187,6 @@ fn rnd_unit() -> f64 {
     f64::from(x) / f64::from(u32::MAX)
 }
 
-/// `ADC_CHANNEL_TEMP_BOARD` (hal_adc.h): the OBC's thermistor on the
-/// payload heat spreader
-const ADC_CHANNEL_TEMP_BOARD: u32 = 6;
-
-/// The OBC thermistor, °C (the ADC converts it, hal_adc.h)
-fn board_thermistor_c() -> Option<f64> {
-    let mut celsius = 0.0;
-    // SAFETY: celsius is a live double (the HAL)
-    (unsafe { c::hal_adc_read_voltage(ADC_CHANNEL_TEMP_BOARD, &mut celsius) } == rc::OK).then_some(celsius)
-}
-
 /// A reading
 #[derive(Clone, Copy)]
 enum Reading {
@@ -182,9 +205,7 @@ fn eps_numeric(kind: Kind, channel: &[u8], measured: Option<&Telemetry>, env: &E
         (Kind::EpsCurrent, Some(t)) => sensors::measured_current(channel, t),
         (Kind::EpsCurrent, None) => sensors::eps_current(channel, env, &mut noise),
         (Kind::EpsTemperature, Some(t)) => plain(t.tbatt_c),
-        (Kind::PayloadTemperature, Some(_)) => {
-            plain(board_thermistor_c().unwrap_or_else(|| sensors::payload_temperature(env, &mut noise)))
-        }
+        (Kind::PayloadTemperature, Some(_)) => plain(spreader_c()),
         (Kind::PayloadTemperature, None) => plain(sensors::payload_temperature(env, &mut noise)),
         _ => plain(sensors::eps_temperature(env, &mut noise)),
     }
@@ -231,14 +252,25 @@ fn read(kind: Kind, channel: &[u8]) -> Reading {
             return Reading::Text(sensors::hex2(bits));
         }
     };
-    match numeric.alarm {
-        Some(Alarm::LowBatteryVoltage) => {
-            c::log(FAULT_VOLTAGE_LOW, severity::ERROR, c"Low battery voltage detected", soc);
+    // Each alarm is checked by the reading that can raise it
+    let checks = match (kind, channel) {
+        (Kind::EpsVoltage, b"battery") => Some(0),
+        (Kind::EpsCurrent, b"battery_discharge") => Some(1),
+        _ => None,
+    };
+    if let Some(i) = checks {
+        let present = match i {
+            0 => numeric.alarm == Some(Alarm::LowBatteryVoltage),
+            _ => numeric.alarm == Some(Alarm::HighDischargeCurrent),
+        };
+        let change = ALARMS.with(|a| a.get_mut(i).map(|cnd| cnd.check(present))).flatten();
+        if let Some(change) = change {
+            if i == 0 {
+                c::log_condition(change, FAULT_VOLTAGE_LOW, severity::ERROR, c"Low battery voltage detected", soc);
+            } else {
+                c::log_condition(change, FAULT_CURRENT_HIGH, severity::ERROR, c"Excessive battery discharge current", soc);
+            }
         }
-        Some(Alarm::HighDischargeCurrent) => {
-            c::log(FAULT_CURRENT_HIGH, severity::ERROR, c"Excessive battery discharge current", soc);
-        }
-        None => {}
     }
     Reading::Numeric(numeric.value)
 }

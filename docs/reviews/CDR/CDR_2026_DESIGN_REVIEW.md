@@ -156,18 +156,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-297 RIDs: severity 1: 29, severity 2: 161, severity 3: 107.
+298 RIDs: severity 1: 29, severity 2: 162, severity 3: 107.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 26 |
-| Closed by design change | 99 | 162 |
+| Closed by design change | 99 | 163 |
 | Closed by chair decision | 38 | 37 |
 | Verification item | 42 | 41 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 80 | 18 |
+| Implementation | 81 | 18 |
 
-Open implementation RIDs: SE-01, SE-19, SE-21, REG-12, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-21, SE-22, REG-12, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -244,9 +244,10 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-16 | 2 | Analyses computed at superseded values: ODAR wings-failed case, link and data frame statistics at 6 °/s, power year runs at 500 km / 2028-06, burn transients with two resistors, the mission timeline LEOP table | IMP | Closed by analysis | Re-run at Rev E: ODAR Draft D (wings-failed 0.29 %, P 0.997), EMC C, LBA 3.2, DATA_BUDGET 2.1, GND D, PBA 2.2 (tumbling 2.48 W, +34 %), MISSION_TIMELINE 2.2 LEOP from the SIL, RELIABILITY 2.1 (0.75 / 0.61 / 0.51); scripts updated |
 | SE-17 | 3 | Harness design H1-H6 predates the interconnect | CD | Closed by design change | HARNESS_DESIGN 1.2 marked superseded by SQSO-ICX-001 and W1-W10 |
 | SE-18 | 3 | Baseline §7 claimed the uplink windows are ≥ 2 MHz below 3 × f_down; 436.222-436.500 MHz is 0.9 MHz below | CD | Closed by design change | BASELINE §7 and RF-P002 restated: ≥ 0.9 MHz, desense ≤ 0.44 dB even 100 kHz from 3f (SQSO-RF-BRD-001 §7.5) |
-| SE-19 | 2 | No current harness design: the old harness document predates the interconnect, and the deck-to-EPS band is over-full by about 8 mm² of wire | IMP | Implementation | Harness design: wire list with gauges, ampacity and drop, bundle fills per band, routing against the CAD, mass (SQSO-HAR-001 2.0) |
+| SE-19 | 2 | No current harness design: the old harness document predates the interconnect, and the deck-to-EPS band is over-full by about 8 mm² of wire | IMP | Closed by design change | Harness design SQSO-HAR-001 2.0: 206 conductors, routes against the CAD (58 zones, no interference), EEE-INST-002 derating (worst 60 % normal), drops ≤ 44 mV, corner-bundle fill ≤ 51 % (band B resolved by routing the EPS-only harnesses under the EPS), mass 84.5 g, single-point ground; V-HAR-1 to V-HAR-13 |
 | SE-20 | 3 | SIL decay re-enters 4.0 years after deployment; the ODAR estimator gives 4.8-5.7 years | CH | Closed by chair decision | The ODAR (NRLMSIS, NASA-STD-8719.14C cross-sections) governs lifetime compliance; the SIL decay is indicative; aligned if cheap (flight software round 3) |
 | SE-21 | 3 | SIL deploys both wings from one resistor and models 0.04 W of coil power in detumble (board: 1.16-1.3 W) | IMP | Implementation | SIL deployment per-wing restraint and coil-drive power (flight software round 3) |
+| SE-22 | 2 | Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG | IMP | Implementation | Gold finishes on every board and harness, Samtec TFM/SFSDT PTFE assemblies, gauges from the terminal ranges (SQSO-HAR-001 2.0 §15: E-, O-, R-, J-, B-, S-, M-, I-, P-, D- items) |
 
 #### Verification and validation (VV)
 

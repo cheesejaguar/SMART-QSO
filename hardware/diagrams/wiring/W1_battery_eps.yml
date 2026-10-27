@@ -1,10 +1,11 @@
-# SQSO-HW-DIAG-001 W1: battery pack to EPS (SQSO-HAR-001 H1, extended for 4S). Updated 2026-10-27 to the EPS board
-# design SQSO-EPS-BRD-001 (hardware/electrical/eps/EPS_BOARD_DESIGN.md): power on a 2x4 Micro-Fit (two contacts per
-# pole), NTC1 with its own return (the EPS's hardware charge-window and over-temperature comparators, ground domain),
-# the heater pair (207 Ohm film, 40 degC cutout on the EPS), and a 6-way tap connector carrying the five cell taps and
-# NTC2 (the AFE's thermistor, returned to the cell-1 negative tap at the pack). Flying leads >= 100 mm, no stack connector.
+# SQSO-HW-DIAG-001 W1: battery pack to EPS, version 3 (2026-10-27, harness design SQSO-HAR-001 2.0,
+# hardware/harness/wire_list.csv). Flying leads from the battery interconnect and sense board (no connector at the pack,
+# no stack connector) up through a deck opening to EPS J1 / J2 on the EPS bottom side in connector zone Z1 (-X, +Y),
+# with a service loop under the EPS: every wire 0.12 m, which keeps the leads' conductance at or below the 0.008 W/K the
+# thermal design carries. Pack leads 22 AWG (two per pole, 1.2 A worst per wire against 2.5 A derated), upstream of the
+# EPS fuse F2: PTFE over-sleeve, twisted quad, no metal clamps. Micro-Fit terminals take 20-24 AWG, Pico-Clasp 28-32 AWG.
 metadata:
-  title: W1 Battery pack to EPS (SQSO-HW-DIAG-001, SQSO-EPS-BRD-001)
+  title: W1 Battery pack to EPS v3 (SQSO-HW-DIAG-001; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -12,54 +13,46 @@ options:
   color_mode: SHORT
 
 connectors:
-  P1:
-    type: Molex Micro-Fit 3.0 receptacle 43025-0800
-    subtype: 8 pos, 2 rows
-    notes: battery side
-    pinlabels: [BAT_TOP, BAT_TOP, BAT_BOT, BAT_BOT, NTC1, NTC1_RTN, HTR+, HTR-]
+  BATT:
+    type: battery sense board solder pads (flying leads)
+    subtype: staked within 10 mm of the pads
+    notes: pack side; NTC2 returns to TAP0 inside the pack
+    pinlabels: [BAT_TOP, BAT_TOP, BAT_BOT, BAT_BOT, NTC1, NTC1_RTN, HTR+, HTR-, TAP0, TAP1, TAP2, TAP3, TAP4, NTC2]
   J1:
-    type: Molex Micro-Fit 3.0 header 0430450812
+    type: Micro-Fit 3.0 receptacle 43025-0800, gold 43030 terminals
     subtype: 8 pos, 2 rows
-    notes: EPS board J1
+    notes: "EPS J1, right-angle gold header on the EPS bottom side, zone Z1 (PACK domain corner)"
     pinlabels: [BAT_TOP, BAT_TOP, BAT_BOT, BAT_BOT, NTC1, NTC1_RTN (GND), HTR_P, HTR_N]
-  P2:
-    type: Molex Pico-Clasp receptacle 501330-0600
-    subtype: 6 pos
-    notes: battery side, cell taps and NTC2
-    pinlabels: [TAP0 (cell 1-), TAP1, TAP2, TAP3, TAP4 (cell 4+), NTC2]
   J2:
-    type: Molex Pico-Clasp header 5013310607
+    type: Pico-Clasp receptacle 501330-0600, gold 501334 terminals
     subtype: 6 pos
-    notes: EPS board J2 to AFE U1 (100 Ohm + 0.1 uF) and secondary protector U2 (1 kOhm + 0.1 uF)
+    notes: EPS J2 to AFE U1 and secondary protector U2
     pinlabels: [TAP0, TAP1, TAP2, TAP3, TAP4, NTC2]
 
 cables:
-  C1:
-    category: bundle
-    gauge: 20 AWG
-    length: 0.10
+  W1-22:
+    gauge: 22 AWG
+    length: 0.12
     colors: [RD, RD, BK, BK]
-    notes: PTFE; 2 wires per pole, 3 A each derated (SQSO-HAR-001 5.2); 1.3 A worst load, 5 A fuse F2
-  C2:
-    category: bundle
-    gauge: 26 AWG
-    length: 0.10
-    colors: [WH, GY, VT, BU]
-    notes: NTC1 pair (own return, isolated from the cells) twisted; heater pair twisted, 79 mA at 16.4 V
-  C3:
-    category: bundle
+    notes: "M22759/33-22; two wires per pole, twisted quad (1+3, 2+4); 2.0 A worst-case pack current (four burn drivers), 1.2 A per wire with a 60/40 split, 2.5 A derated (EEE-INST-002, N = 43); 35 mV at 2.0 A"
+  W1-24:
+    gauge: 24 AWG
+    length: 0.12
+    colors: [WH, GY, VT, BK]
+    notes: "M22759/33-24 (Micro-Fit minimum); NTC1 pair (own return) twisted; heater pair twisted, 79 mA (SW5 limit 0.17 A)"
+  W1-28:
     gauge: 28 AWG
-    length: 0.10
+    length: 0.12
     colors: [BK, BN, RD, OG, YE, WH]
-    notes: sense only; NTC2 returns to TAP0 inside the pack
+    notes: "M22759/33-28; sense only (balancing 18 mA)"
 
 connections:
-  - - P1: [1-4]
-    - C1: [1-4]
+  - - BATT: [1-4]
+    - W1-22: [1-4]
     - J1: [1-4]
-  - - P1: [5-8]
-    - C2: [1-4]
+  - - BATT: [5-8]
+    - W1-24: [1-4]
     - J1: [5-8]
-  - - P2: [1-6]
-    - C3: [1-6]
+  - - BATT: [9-14]
+    - W1-28: [1-6]
     - J2: [1-6]

@@ -5,8 +5,11 @@
 # their receiver-side supply from the receiver's own rail: a switched-off receiver is never back-powered, and the OBC
 # reads the rail on PG15 (GNSS_PG). 1PPS goes to TIM3_CH1 (PC6). The receiver-side pin order is per the SkyFox interface
 # document (not yet received: closure at the EM purchase; the wire functions below do not change).
+# Version 3 (2026-10-27, harness design SQSO-HAR-001 2.0): 28 AWG (Pico-Clasp takes 28-32 AWG; the 26 AWG of version 2
+# cannot be crimped), both harnesses in the (+X, +Y) bundle; W9A continues under the EPS, beneath J3, to the receiver's
+# +X edge on the deck. 0.232 A at the SW7 trip: 26 % of 0.90 A derated; 28 mV for W9B and W9A in series at 0.10 A.
 metadata:
-  title: W9 GNSS receiver v2 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.5)
+  title: W9 GNSS receiver v3 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.5; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -15,17 +18,17 @@ options:
 
 connectors:
   J_EPS_GNSS:
-    type: Molex Pico-Clasp 5013310207
+    type: Pico-Clasp 501330-0200, gold terminals
     subtype: 2 pos
-    notes: "EPS J21: SW7 3V3_GNSS (GNSS_EN PE5)"
+    notes: "EPS J21 (bottom side, +X edge, +Y side, zone Z3): SW7 3V3_GNSS (GNSS_EN PE5)"
     pinlabels: &w9pwr [3V3_GNSS, GND]
   J_OBC_GPWR:
-    type: Molex Pico-Clasp 5013310207
+    type: Pico-Clasp 501330-0200, gold terminals
     subtype: 2 pos
     notes: "OBC J4: 3V3_GNSS in (passes to J5-1)"
     pinlabels: *w9pwr
   J_OBC_GNSS:
-    type: Molex Pico-Clasp 5013310607
+    type: Pico-Clasp 501330-0600, gold terminals
     subtype: 6 pos
     notes: "OBC J5: PG7 via U30, PG8 via U31, PC6 via U32"
     pinlabels: &w9sig [3V3_GNSS, GND, RXD (OBC TX), TXD (OBC RX), 1PPS, GND]
@@ -38,18 +41,18 @@ connectors:
 cables:
   W9B:
     category: bundle
-    gauge: 26 AWG
-    length: 0.08
+    gauge: 28 AWG
+    length: 0.085
     wirecount: 2
     colors: [RD, BK]
-    notes: "0.10 A peak receiver; 0.232 A at the SW7 trip: 46 % of the 26 AWG derated 0.5 A"
+    notes: "M22759/33-28, twisted pair; 0.10 A peak receiver, 0.232 A at the SW7 trip"
   W9A:
     category: bundle
-    gauge: 26 AWG
-    length: 0.10
+    gauge: 28 AWG
+    length: 0.145
     wirecount: 6
     colors: [RD, BK, GN, YE, WH, BK]
-    notes: "power pair 26 AWG as W9B; signals under 5 mA"
+    notes: "M22759/33-28; pairs (1, 2), (3, 6), (4, 5); the receiver-side contacts must take 28 AWG (SkyFox interface document at the EM purchase)"
 
 connections:
   - - J_EPS_GNSS: [1-2]

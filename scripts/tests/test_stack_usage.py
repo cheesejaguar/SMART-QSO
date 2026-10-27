@@ -30,6 +30,8 @@ def insn(mnemonic, operands=""):
     ("add", "sp, #72", 0),
     ("ldr.w", "fp, [sp], #4", 0),
     ("ldmia.w", "sp, {r0, r1, r2}", 0),      # no writeback: SP unchanged
+    ("vstmia", "sp, {d0-d2}", 0),            # an FPU store to the frame: SP unchanged
+    ("vldmia", "sp, {d8-d9}", 0),
     ("str", "r0, [sp, #4]", 0),
     ("add", "r0, sp, #8", 0),
     ("mov", "r7, sp", 0),
@@ -43,6 +45,7 @@ def test_stack_pointer_effects(mnemonic, operands, pushed):
     ("sub.w", "sp, sp, r3"),
     ("msr", "MSP, r0"),
     ("ldr", "sp, [r0]"),
+    ("vstmia", "sp!, {d0-d2}"),
 ])
 def test_unknown_stack_pointer_writes_stop_the_analysis(mnemonic, operands):
     with pytest.raises(AnalysisError):

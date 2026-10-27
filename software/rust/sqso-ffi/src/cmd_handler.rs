@@ -471,6 +471,12 @@ fn dispatch(command: Command, cmd: &CmdCommand, response: &mut CmdResponse) -> u
             result::SUCCESS
         }
         Command::AdcsSetGeometry => ok_invalid_or_fail(crate::ops_state::ops_set_adcs_geometry(cmd.payload[0])),
+        Command::AdcsSetGyroAlign => {
+            ok_invalid_or_fail(crate::adcs_control::gyro_alignment_command(cmd.payload.get(..36).unwrap_or(&[])))
+        }
+        Command::AdcsSetMagBias => {
+            ok_invalid_or_fail(crate::adcs_control::mag_bias_command(cmd.payload.get(..13).unwrap_or(&[])))
+        }
         Command::DumpTlm => {
             let p = &cmd.payload;
             let first = u32::from_be_bytes([p[1], p[2], p[3], p[4]]);

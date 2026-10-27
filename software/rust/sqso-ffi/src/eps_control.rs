@@ -13,7 +13,21 @@
 //! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
 //! export too).
 //!
+//! The telemetry is the controller's register block (0x48), its `IMON_JET`
+//! register (the Jetson rail's current, which the sensor `JPC` reads), and,
+//! when they answer, the two INA228 monitors read directly over the same bus
+//! (the pack gauge at 0x44, the array monitor at 0x40; RID EPSB): their
+//! pack voltage, pack current and array current replace the controller's,
+//! so the OBC's power figures do not depend on the controller's firmware.
+//!
+//! The Jetson's two switches go off in order (SQSO-OBC-BRD-001 B §11.2,
+//! SMART-QSO-ICD-002 1.3 §10.4): JETSON_PWR at once, PAYLOAD_EN
+//! `sqso_fsw::jetson_power::PAYLOAD_EN_DELAY_MS` later
+//! ([`eps_payload_tick`], every pass).
+//!
 //! @requirement SRS-F011 Control power to subsystems via load switches
+//! @requirement SRS-F147 Pack and array power monitors read directly by the OBC
+//! @requirement SRS-F148 Jetson switch-off: SHUTDOWN, JET_PG fall within 5 s, then JETSON_PWR and PAYLOAD_EN 10 ms apart
 //! @requirement SRS-F012 Implement power modes SAFE, IDLE, ACTIVE
 //! @requirement SRS-F016 Enforce power budget limits per mode
 
@@ -71,16 +85,93 @@ static PAYLOAD_HELD: AtomicBool = AtomicBool::new(false);
 
 static TELEMETRY: Global<TelemetryCache> = Global::new(TelemetryCache { read_ms: 0, read: false, telemetry: None });
 
+/// PAYLOAD_EN goes low at this time, ms (after JETSON_PWR)
+static PAYLOAD_EN_RELEASE: Global<Option<u64>> = Global::new(None);
+
+/// The INA228 monitors: configured, and when they were last tried, ms
+struct Monitors {
+    ready: [bool; 2],
+    tried_ms: Option<u64>,
+}
+
+static MONITORS: Global<Monitors> = Global::new(Monitors { ready: [false; 2], tried_ms: None });
+/// An INA228 that did not configure is tried again after this long, ms
+const MONITOR_RETRY_MS: u64 = 60_000;
+
 /// Drive the payload and ADCS load-switch enables (and the Jetson power
 /// gate with the payload's) from the EPS state: the switches follow the
-/// state, so a reset that restores the state restores the switches
+/// state, so a reset that restores the state restores the switches. A
+/// payload switch-off drops JETSON_PWR now and PAYLOAD_EN 10 ms later
+/// ([`eps_payload_tick`])
 fn drive_load_pins(state: &EpsState) {
+    let now = c::now_ms();
+    // SAFETY: plain value (the HAL)
+    let payload_high = unsafe { c::hal_gpio_get(GPIO_PIN_PAYLOAD_EN) };
+    let delay_off = !state.payload_enabled && payload_high;
+    let _ = PAYLOAD_EN_RELEASE.with(|r| {
+        *r = if delay_off {
+            Some(r.unwrap_or(now.saturating_add(sqso_fsw::jetson_power::PAYLOAD_EN_DELAY_MS)))
+        } else {
+            None
+        };
+    });
     // SAFETY: plain values (the HAL); a pin that is not configured is refused
     unsafe {
-        let _ = c::hal_gpio_set(GPIO_PIN_PAYLOAD_EN, state.payload_enabled);
         let _ = c::hal_gpio_set(GPIO_PIN_JETSON_PWR, state.payload_enabled);
+        if !delay_off {
+            let _ = c::hal_gpio_set(GPIO_PIN_PAYLOAD_EN, state.payload_enabled);
+        }
         let _ = c::hal_gpio_set(GPIO_PIN_ADCS_EN, state.adcs_enabled);
     }
+}
+
+/// Every pass: PAYLOAD_EN low once its delay after JETSON_PWR has run
+pub fn eps_payload_tick(now_ms: u64) {
+    let due = PAYLOAD_EN_RELEASE
+        .with(|r| {
+            let due = r.is_some_and(|t| now_ms >= t);
+            if due {
+                *r = None;
+            }
+            due
+        })
+        .unwrap_or(false);
+    if due && !eps_is_payload_enabled() {
+        // SAFETY: plain values (the HAL)
+        let _ = unsafe { c::hal_gpio_set(GPIO_PIN_PAYLOAD_EN, false) };
+    }
+}
+
+/// The INA228s' readings over the controller's (configuring them first,
+/// and again after a failure every [`MONITOR_RETRY_MS`])
+fn apply_monitors(t: &mut Telemetry, now: u64) {
+    use sqso_fsw::ina228::{ARRAY, PACK};
+    let mut bus = crate::hw::HalI2c(EPS_I2C_BUS);
+    let retry = MONITORS
+        .with(|m| {
+            let due = m.ready != [true; 2] && m.tried_ms.is_none_or(|t0| now.saturating_sub(t0) >= MONITOR_RETRY_MS);
+            if due {
+                m.tried_ms = Some(now);
+            }
+            due
+        })
+        .unwrap_or(false);
+    let mut ready = MONITORS.with(|m| m.ready).unwrap_or([false; 2]);
+    if retry {
+        ready = [ready[0] || PACK.init(&mut bus), ready[1] || ARRAY.init(&mut bus)];
+    }
+    let pack = ready[0].then(|| PACK.reading(&mut bus).ok()).flatten();
+    let array = ready[1].then(|| ARRAY.reading(&mut bus).ok()).flatten();
+    if let Some(p) = pack.filter(|p| {
+        p.vbus_v >= eps_telemetry::VBATT_PLAUSIBLE_V.0 && p.vbus_v <= eps_telemetry::VBATT_PLAUSIBLE_V.1
+    }) {
+        t.vbatt_v = p.vbus_v;
+        t.ibatt_a = p.current_a;
+    }
+    if let Some(a) = array {
+        t.isolar_a = a.current_a;
+    }
+    let _ = MONITORS.with(|m| m.ready = [pack.is_some(), array.is_some()]);
 }
 
 /// The load-switch pins, as outputs, to the EPS state
@@ -111,7 +202,18 @@ pub fn eps_telemetry() -> Option<Telemetry> {
     let ok = unsafe {
         c::hal_i2c_write_read(EPS_I2C_BUS, eps_telemetry::ADDRESS, start.as_ptr(), 1, block.as_mut_ptr(), block.len())
     } == rc::OK;
-    let telemetry = if ok { eps_telemetry::decode(&block) } else { None };
+    let mut telemetry = if ok { eps_telemetry::decode(&block) } else { None };
+    if let Some(t) = telemetry.as_mut() {
+        let reg = [eps_telemetry::IMON_JET];
+        let mut imon = [0u8; 2];
+        // SAFETY: both are live buffers (the HAL)
+        if unsafe { c::hal_i2c_write_read(EPS_I2C_BUS, eps_telemetry::ADDRESS, reg.as_ptr(), 1, imon.as_mut_ptr(), 2) }
+            == rc::OK
+        {
+            t.ijet_a = eps_telemetry::imon_jet_a(imon);
+        }
+        apply_monitors(t, now);
+    }
     let _ = TELEMETRY.with(|t| {
         t.read_ms = now;
         t.read = true;

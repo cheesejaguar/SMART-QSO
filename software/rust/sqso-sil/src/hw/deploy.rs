@@ -420,4 +420,20 @@ mod tests {
         }
         assert!(d.antennas_deployed());
     }
+
+    #[test]
+    fn each_wing_has_its_own_restraint_and_the_switches_are_in_series() {
+        let mut rng = Rng::new(5);
+        let mut d = Deployables::new(&mut rng, Some(BURN_LIMIT_A));
+        for _ in 0..80 {
+            d.step(0.1, wing_line(0, 0), 15.0, WARM, 10.0);
+        }
+        assert!(d.wings.elements[0].deployed, "W1A releases wing 1");
+        assert!(!d.wings.elements[1].deployed, "and only wing 1");
+        assert!(!d.wings_deployed(), "the series sense needs both");
+        for _ in 0..80 {
+            d.step(0.1, wing_line(1, 0), 15.0, WARM, 10.0);
+        }
+        assert!(d.wings.elements[1].deployed && d.wings_deployed(), "W2A releases wing 2");
+    }
 }

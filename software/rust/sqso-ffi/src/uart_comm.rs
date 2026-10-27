@@ -267,7 +267,9 @@ mod port {
         let hal = super::HalUartConfig {
             baud_rate: u32::try_from(super::settings::line_baud(config.baudrate)).unwrap_or(115_200),
             data_bits: 8,
-            stop_bits: 1,
+            // The module's receiver needs two stop bits (SMART-QSO-ICD-002
+            // 1.3 §10.2, NVIDIA DS-11105-001 §2.10.4; RID JETB-03): 8N2
+            stop_bits: 2,
             parity: 0,
         };
         // SAFETY: hal is a live HalUartConfig_t

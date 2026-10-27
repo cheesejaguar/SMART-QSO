@@ -170,7 +170,9 @@ pub const fn availability(command: Command) -> Availability {
         | C::XpdrEnable
         | C::DeployRetry
         | C::GnssRequest
-        | C::AdcsSetGeometry => Availability::Normal,
+        | C::AdcsSetGeometry
+        | C::AdcsSetGyroAlign
+        | C::AdcsSetMagBias => Availability::Normal,
     }
 }
 

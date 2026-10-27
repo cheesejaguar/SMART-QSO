@@ -6,8 +6,8 @@
 //! - an MPU region with no access just below the 8 KB under the initial SP,
 //!   so a stack that outgrows its budget faults (MemManage escalates to
 //!   HardFault, whose handler spins until the independent watchdog resets
-//!   the processor) instead of running on, unseen, toward the static data
-//!   about 600 KB below;
+//!   the processor) instead of running on, unseen, into the static data
+//!   just below it (both are in SRAM2, `memory.x`);
 //! - the budget painted with [`PAINT`], so a debug probe can read how much
 //!   of it was ever used: the stack high-water check of the hardware tests
 //!   (HIL-044, `software/flight/tests/hil/HIL_TEST_PLAN.md`).

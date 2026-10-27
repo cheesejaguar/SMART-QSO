@@ -4,14 +4,16 @@
 //! - `memory.x` links `.data`, `.bss` and `.uninit` (every static of the
 //!   flight software, the executor's task included) at the start of SRAM2,
 //!   the STM32L4R5's only RAM with parity (one bit per byte); the link fails
-//!   if they outgrow its 64 KB. The stack stays at the top of SRAM3.
+//!   if they outgrow its 64 KB with the stack. The 8 KB stack is at the top
+//!   of SRAM2 too (RID AV-13), so every live byte has parity.
 //! - [`__pre_init`](self) erases SRAM2 by hardware (SYSCFG_SCSR.SRAM2ER)
 //!   before cortex-m-rt initializes RAM, so no byte is ever read with the
 //!   random parity of power-on.
 //! - Parity is on when the option bit `SRAM2_PE` is 0. It is set when the
-//!   board is programmed (`software/flight/docs/MEMORY_POLICY.md` §10: the flight
-//!   software never writes option bytes); [`report`] logs every boot that
-//!   finds it off.
+//!   board is programmed (`software/flight/docs/MEMORY_POLICY.md` §10 and
+//!   `docs/development/RELEASE_PROCEDURE.md` §6: the flight software never
+//!   writes option bytes); [`report`] gives the state to the boot telemetry
+//!   (the console and HK2 `PE`) and logs every boot that finds it off.
 //! - The NMI (an SRAM2 parity error, a flash double-bit ECC error or a
 //!   clock-security failure) records its cause in SRAM1, outside the linked
 //!   RAM (not erased, not zeroed), and resets the processor at once. The next
@@ -20,6 +22,7 @@
 //!   every minute (SRS-F133).
 //!
 //! @requirement SRS-F132 SRAM2 parity and flash ECC errors: an NMI that resets at once, the cause logged at the next boot
+//! @requirement SRS-F154 Boot telemetry reports the SRAM2 parity state
 
 use embassy_stm32::pac;
 
@@ -98,7 +101,10 @@ pub(crate) fn report() {
     if let Some(text) = text {
         log(SEVERITY_CRITICAL, text);
     }
-    if !parity_on() {
+    let on = parity_on();
+    // Boot telemetry (RID AV-12): the console line and HK2 `PE`
+    sqso_ffi::executive::set_parity_state(on);
+    if !on {
         log(SEVERITY_WARNING, c"SRAM2 parity off (option bit SRAM2_PE)");
     }
 }

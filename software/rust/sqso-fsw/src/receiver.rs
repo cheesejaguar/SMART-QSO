@@ -28,9 +28,19 @@
 //! The silence and the cycle are counted from boot (RAM): after a reset the
 //! exception waits for a new recovery cycle, [`SILENCE_MS`] later.
 //!
+//! **Inputs (RID RFB-07).** `RX_CD` and `RX_FAULT` come from the radio
+//! board, which the OBC powers through `RADIO_EN`: both are qualified with
+//! it (a line from an unpowered board means nothing), and `RX_FAULT` is
+//! ignored for [`FAULT_BLANK_MS`] after `RADIO_EN` switches on, while the
+//! receiver starts (its TNC heartbeat monostable reads "fault" until the
+//! first pulses).
+//!
+//! @requirement SRS-F152 RX_CD and RX_FAULT qualified with RADIO_EN; RX_FAULT ignored for 1 s after RADIO_EN switches on
 //! @requirement SRS-F115 Hung-receiver recovery by a brief power cycle, never during a pass
 //! @requirement SRS-F116 Evidence that the command receiver has failed
 
+/// `RX_FAULT` is ignored this long after `RADIO_EN` switches on, ms
+pub const FAULT_BLANK_MS: u64 = 1_000;
 /// No activity for this long, the rail on, before a recovery cycle, ms
 pub const SILENCE_MS: u64 = 24 * 3_600_000;
 /// No recovery cycle within this long of the last activity, ms (a pass is
@@ -57,6 +67,8 @@ pub struct Inputs {
     pub keyed: bool,
     /// The loss-of-contact timeout has expired (the contact monitor)
     pub contact_lost: bool,
+    /// `RADIO_EN` is high (the radio board powered)
+    pub radio_en: bool,
 }
 
 /// What the caller must do
@@ -85,6 +97,8 @@ pub struct Receiver {
     pub cycles: u32,
     /// Known failed (REL-04 evidence)
     failed: bool,
+    /// `RADIO_EN` high since this time, ms
+    radio_on_since: Option<u64>,
 }
 
 impl Receiver {
@@ -97,7 +111,17 @@ impl Receiver {
             off_since: None,
             cycles: 0,
             failed: false,
+            radio_on_since: None,
         }
+    }
+
+    /// The inputs qualified with `RADIO_EN`: no carrier and no fault from
+    /// an unpowered radio board, and no fault in its first
+    /// [`FAULT_BLANK_MS`]
+    pub fn qualify(&mut self, now_ms: u64, i: &Inputs) -> Inputs {
+        self.radio_on_since = if i.radio_en { Some(self.radio_on_since.unwrap_or(now_ms)) } else { None };
+        let started = self.radio_on_since.is_some_and(|t| now_ms.saturating_sub(t) >= FAULT_BLANK_MS);
+        Inputs { carrier: i.carrier && i.radio_en, fault: i.fault && started, ..*i }
     }
 
     /// One pass
@@ -156,7 +180,21 @@ mod tests {
     const DAY: u64 = 24 * H;
 
     fn quiet() -> Inputs {
-        Inputs { powered: true, ..Inputs::default() }
+        Inputs { powered: true, radio_en: true, ..Inputs::default() }
+    }
+
+    #[test]
+    fn the_lines_are_qualified_with_radio_en() {
+        let mut r = Receiver::new(0);
+        let lines = Inputs { carrier: true, fault: true, ..quiet() };
+        let off = r.qualify(0, &Inputs { radio_en: false, ..lines });
+        assert!(!off.carrier && !off.fault, "unpowered board");
+        let q = r.qualify(100, &lines);
+        assert!(q.carrier && !q.fault, "fault blanked while the receiver starts");
+        assert!(!r.qualify(100 + FAULT_BLANK_MS - 1, &lines).fault);
+        assert!(r.qualify(100 + FAULT_BLANK_MS, &lines).fault);
+        let _ = r.qualify(2000, &Inputs { radio_en: false, ..lines });
+        assert!(!r.qualify(2020, &lines).fault, "blanked again after a switch-on");
     }
 
     #[test]

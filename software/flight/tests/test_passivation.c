@@ -8,16 +8,21 @@
  *
  * - PASSIVATE_EXECUTE alone does nothing; PASSIVATE_ARM needs its code;
  * - the arm lapses after 600 s;
- * - execute: TX-OFF latched first, then (in sunlight) EOL_ARM, then
- *   EOL_FIRE held at least 60 s, then both low;
+ * - execute: the record first, then (in sunlight) EOL_ARM, then EOL_FIRE
+ *   held at least 60 s, then both low, all while the transmitter is still
+ *   permitted (RID REG-12);
+ * - then the final report: three frames, 60 s apart; TX-OFF 180 s after the
+ *   first; a fire the EPS never confirms is tried three times, reported,
+ *   and silenced all the same;
  * - after that no telecommand and no reset lets a transmitter on; the
  *   receiver stays powered;
  * - end to end, ARM with the operational key and EXECUTE with the recovery
  *   key; EXECUTE with the operational key is refused.
  *
  * @requirement SRS-F110 Two-step authenticated end-of-life passivation
- * @requirement SRS-F111 Passivation order: TX-OFF, record, charge disconnect through two series lines
+ * @requirement SRS-F111 Passivation order: record, charge disconnect through two series lines while transmitting, final report, then TX-OFF
  * @requirement SRS-F112 Transmitters off for good after passivation
+ * @requirement SRS-F155 The final passivation report: three frames over three minutes carrying EOL_STATE, the fuse state and the attempts, before TX-OFF
  */
 
 #include <stdarg.h>
@@ -98,14 +103,16 @@ static void test_execute_order_and_for_good(void **state)
     eps_eol_state(0U);
     assert_int_equal(passivation_arm(ARM_CODE, sizeof(ARM_CODE)), SMART_QSO_OK);
     assert_int_equal(passivation_execute(), SMART_QSO_OK);
-    assert_false(rf_control_tx_permitted());
-    assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
-    assert_true(hal_gpio_get(GPIO_PIN_RADIO_EN)); /* the receiver stays on */
-    passivation_tick(false);                      /* eclipse: nothing fired */
+    assert_int_equal(passivation_phase(), PASSIVATION_FIRING);
+    assert_true(rf_control_tx_permitted()); /* still transmitting during the fire */
+    assert_true(hal_gpio_get(GPIO_PIN_RADIO_EN));
+    assert_int_equal(passivation_take_report(), 0U);
+    passivation_tick(false); /* eclipse: nothing fired */
     assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM));
     passivation_tick(true);
     assert_true(hal_gpio_get(GPIO_PIN_EOL_ARM));
     assert_false(hal_gpio_get(GPIO_PIN_EOL_FIRE));
+    assert_int_equal(passivation_attempts(), 1U);
     smart_qso_sim_advance_ms(200U);
     passivation_tick(true);
     assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
@@ -113,11 +120,39 @@ static void test_execute_order_and_for_good(void **state)
     smart_qso_sim_advance_ms(PASSIVATION_FIRE_MIN_MS - 1U);
     passivation_tick(true);
     assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
+    assert_true(rf_control_tx_permitted());
     smart_qso_sim_advance_ms(1U);
     passivation_tick(true);
     assert_false(hal_gpio_get(GPIO_PIN_EOL_FIRE));
     assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM));
+
+    /* The final report: three frames 60 s apart, still on the air */
+    assert_int_equal(passivation_phase(), PASSIVATION_REPORTING);
+    assert_true(rf_control_tx_permitted());
+    assert_false(passivation_passivated());
+    assert_int_equal(passivation_take_report(), 1U);
+    assert_int_equal(passivation_take_report(), 0U);
+    smart_qso_sim_advance_ms(PASSIVATION_REPORT_INTERVAL_MS - 1U);
+    assert_int_equal(passivation_take_report(), 0U);
+    smart_qso_sim_advance_ms(1U);
+    assert_int_equal(passivation_take_report(), 2U);
+    smart_qso_sim_advance_ms(PASSIVATION_REPORT_INTERVAL_MS);
+    passivation_tick(true);
+    assert_int_equal(passivation_take_report(), 3U);
+    assert_true(rf_control_tx_permitted());
+    smart_qso_sim_advance_ms(PASSIVATION_REPORT_WINDOW_MS - (2U * PASSIVATION_REPORT_INTERVAL_MS) - 1U);
+    passivation_tick(true);
+    assert_int_equal(passivation_take_report(), 0U);
+    assert_true(rf_control_tx_permitted());
+    smart_qso_sim_advance_ms(1U);
+    passivation_tick(true);
+
+    /* Then TX-OFF and the inhibit */
     assert_int_equal(passivation_phase(), PASSIVATION_PASSIVATED);
+    assert_true(passivation_passivated());
+    assert_false(rf_control_tx_permitted());
+    assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
+    assert_true(hal_gpio_get(GPIO_PIN_RADIO_EN)); /* the receiver stays on */
 
     /* No command, no reset turns a transmitter on again */
     assert_int_equal(rf_control_tx_on(), SMART_QSO_OK);
@@ -131,6 +166,41 @@ static void test_execute_order_and_for_good(void **state)
     assert_int_equal(passivation_arm(ARM_CODE, sizeof(ARM_CODE)), SMART_QSO_ERROR);
     passivation_verify();
     assert_true(passivation_passivated());
+}
+
+/** A fire the EPS never confirms: three attempts, the report, then silence
+ * (runs last: the inhibit of the test before stays in RAM) */
+static void test_unconfirmed_fire_is_reported_then_silenced(void **state)
+{
+    (void)state;
+    eps_eol_state(0U);
+    assert_int_equal(passivation_arm(ARM_CODE, sizeof(ARM_CODE)), SMART_QSO_OK);
+    assert_int_equal(passivation_execute(), SMART_QSO_OK);
+    for (uint8_t attempt = 1U; attempt <= PASSIVATION_MAX_FIRE_ATTEMPTS; attempt++) {
+        passivation_tick(true);
+        assert_int_equal(passivation_attempts(), attempt);
+        assert_true(hal_gpio_get(GPIO_PIN_EOL_ARM));
+        smart_qso_sim_advance_ms(200U);
+        passivation_tick(true);
+        assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
+        smart_qso_sim_advance_ms(PASSIVATION_FIRE_MAX_MS - 1U);
+        passivation_tick(true);
+        assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
+        smart_qso_sim_advance_ms(1U);
+        passivation_tick(true);
+        assert_false(hal_gpio_get(GPIO_PIN_EOL_FIRE));
+        assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM));
+    }
+    assert_int_equal(passivation_phase(), PASSIVATION_REPORTING);
+    passivation_tick(true);
+    assert_int_equal(passivation_attempts(), PASSIVATION_MAX_FIRE_ATTEMPTS); /* no fourth */
+    assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM));
+    assert_int_equal(passivation_take_report(), 1U);
+    smart_qso_sim_advance_ms(PASSIVATION_REPORT_WINDOW_MS);
+    passivation_tick(true);
+    assert_int_equal(passivation_phase(), PASSIVATION_PASSIVATED);
+    assert_false(rf_control_tx_permitted());
+    assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
 }
 
 static CmdResponse_t s_rsp;
@@ -179,10 +249,10 @@ static void test_two_keys_end_to_end(void **state)
     assert_true(rf_control_tx_permitted());
     assert_int_equal(send(op, (uint8_t)CMD_EOL_PASSIVATE_EXECUTE, 3U, NULL, 0U), CMD_RESULT_AUTH_FAIL);
     assert_int_equal(send(rec, (uint8_t)CMD_EOL_PASSIVATE_EXECUTE, 2U, NULL, 0U), CMD_RESULT_SUCCESS);
-    assert_false(rf_control_tx_permitted());
-    assert_int_equal(send(op, (uint8_t)CMD_COMM_TX_ENABLE, 3U, NULL, 0U), CMD_RESULT_SUCCESS);
-    assert_false(rf_control_tx_permitted()); /* passivated for good */
+    assert_int_equal(passivation_phase(), PASSIVATION_FIRING);
+    assert_true(rf_control_tx_permitted()); /* on the air until the final report */
     assert_int_equal(send(rec, (uint8_t)CMD_EOL_PASSIVATE_EXECUTE, 3U, NULL, 0U), CMD_RESULT_NOT_ALLOWED);
+    assert_int_equal(send(op, (uint8_t)CMD_EOL_PASSIVATE_ARM, 3U, ARM_CODE, 4U), CMD_RESULT_NOT_ALLOWED);
 }
 
 /** What the Rust library assumes about the CDR additions to the headers */
@@ -230,6 +300,7 @@ int main(void)
          * and only a power cycle clears the RAM that holds it */
         cmocka_unit_test_setup(test_two_keys_end_to_end, setup),
         cmocka_unit_test_setup(test_execute_order_and_for_good, setup),
+        cmocka_unit_test_setup(test_unconfirmed_fire_is_reported_then_silenced, setup),
         cmocka_unit_test(test_contract_400),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);

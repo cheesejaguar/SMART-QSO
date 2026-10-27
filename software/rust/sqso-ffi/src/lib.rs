@@ -115,6 +115,7 @@ pub mod watchdog_mgr;
 
 mod c;
 mod cell;
+mod hw;
 #[cfg(not(target_os = "none"))]
 mod os;
 mod pins;

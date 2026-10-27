@@ -16,7 +16,13 @@
 //! As with the hot limit before a trip, only a known reading blocks; the
 //! spreader thermistor is the OBC's own and its loss is a sensor fault.
 //!
+//! The spreader thermistor read outside its valid range is a sensor fault
+//! ([`Guard::set_spreader_fault`], RID JETB-02): no power-on while it lasts
+//! (the gate fails safe); a rail already on is then supervised on the
+//! Jetson's own junction report (the executive's fallback).
+//!
 //! @requirement SRS-F131 The software shall not power the Jetson while its heat spreader reads below −15 °C
+//! @requirement SRS-F150 Spreader thermistor: R = 10.0 kΩ N / (4095 − N), Steinhart–Hart 10K3A; outside 0.10–3.25 V a sensor fault that inhibits the Jetson's power-on
 
 use core::ffi::CStr;
 
@@ -125,6 +131,7 @@ pub struct Guard {
     tripped: bool,
     trip_ms: u64,
     trips: u32,
+    spreader_fault: bool,
 }
 
 fn age_ok(then_ms: u64, now_ms: u64) -> bool {
@@ -145,7 +152,13 @@ impl Guard {
             tripped: false,
             trip_ms: 0,
             trips: 0,
+            spreader_fault: false,
         }
+    }
+
+    /// The spreader thermistor is (or is no longer) faulted
+    pub fn set_spreader_fault(&mut self, fault: bool) {
+        self.spreader_fault = fault;
     }
 
     fn in_cooldown(&self, now_ms: u64) -> bool {
@@ -234,7 +247,7 @@ impl Guard {
     /// module not known to be colder than [`MIN_POWER_ON_C`]
     pub fn may_power_on(&self, now_ms: u64) -> bool {
         let spreader_recent = self.spreader_seen && age_ok(self.spreader_seen_ms, now_ms);
-        self.may_enable(now_ms) && !(spreader_recent && self.spreader_c < MIN_POWER_ON_C)
+        self.may_enable(now_ms) && !(spreader_recent && self.spreader_c < MIN_POWER_ON_C) && !self.spreader_fault
     }
 
     /// Trips since initialization
@@ -398,5 +411,16 @@ mod tests {
         assert_eq!(g.step(Some(&sample(LATCHUP_INPUT_W, 50.0)), true, T0 + COOLDOWN_MS + 1), Outcome::Latchup);
         assert_eq!(g.trip_count(), 2);
         assert_eq!(Guard::new().trip_count(), 0);
+    }
+
+    #[test]
+    fn a_faulted_spreader_thermistor_inhibits_the_power_on() {
+        let mut g = Guard::new();
+        assert!(g.may_power_on(T0));
+        g.set_spreader_fault(true);
+        assert!(!g.may_power_on(T0), "fails safe");
+        assert!(g.may_enable(T0), "the ACTIVE guard is not the power-on gate");
+        g.set_spreader_fault(false);
+        assert!(g.may_power_on(T0));
     }
 }

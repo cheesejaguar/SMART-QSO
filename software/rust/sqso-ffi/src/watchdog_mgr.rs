@@ -12,13 +12,21 @@
 //! (`software/flight/scripts/safety_coverage.py` counts the unit tests'
 //! export too).
 //!
+//! The external supervisor (TPS3850, `GPIO_PIN_WDI` PG11; RID AV-02) is
+//! kicked on the same condition: a falling edge every 10 s while no task is
+//! stalled (`sqso_fsw::watchdog::Supervisor`), from the start of the
+//! hardware watchdog on.
+//!
 //! @requirement SRS-F050 Kick hardware watchdog at least every 30 seconds
 //! @requirement SRS-F051 Save state before watchdog reset
+//! @requirement SRS-F146 External supervisor kick: a WDI falling edge every 10 s, only while every task has checked in
 
 use core::ffi::{c_char, c_void};
 
 use sqso_fsw::fault_log::DESC_LEN;
-use sqso_fsw::watchdog::{self as wdt, HW_TIMEOUT_MS, MAX_TASKS, NAME_LEN, Stats, TaskEntry, Watchdog, WdtError};
+use sqso_fsw::watchdog::{
+    self as wdt, HW_TIMEOUT_MS, MAX_TASKS, NAME_LEN, Stats, Supervisor, TaskEntry, Watchdog, WdtError,
+};
 
 use crate::c::{self, fault_type, rc, severity};
 use crate::cell::Global;
@@ -43,9 +51,12 @@ unsafe extern "C" {
 struct Module {
     wdt: Watchdog,
     callback: Option<PreResetCallback>,
+    /// The external supervisor's WDI line
+    supervisor: Supervisor,
 }
 
-static WDT: Global<Module> = Global::new(Module { wdt: Watchdog::new(), callback: None });
+static WDT: Global<Module> =
+    Global::new(Module { wdt: Watchdog::new(), callback: None, supervisor: Supervisor::new(0) });
 
 fn callback() -> Option<PreResetCallback> {
     WDT.with(|m| m.callback).flatten()
@@ -118,7 +129,9 @@ pub extern "C" fn wdt_mgr_start() -> i32 {
         let _ = WDT.with(|m| {
             m.wdt.stats.hw_wdt_running = true;
             m.wdt.last_task_check_ms = now;
+            m.supervisor = Supervisor::new(now);
         });
+        crate::hw::configure(crate::pins::WDI, true);
     }
     result
 }
@@ -133,11 +146,21 @@ pub extern "C" fn wdt_mgr_kick() {
         check_task_watchdogs(now);
     }
     // A stalled task lets the hardware reset the OBC (SW-15)
-    if WDT.with(|m| m.wdt.any_stalled()) == Some(false) {
+    let healthy = WDT.with(|m| m.wdt.any_stalled()) == Some(false);
+    if healthy {
         // SAFETY: no arguments
         unsafe { hal_wdt_kick() };
         let _ = WDT.with(|m| m.wdt.count_kick());
     }
+    // The external supervisor, on the same condition
+    if let Some(Some(level)) = WDT.with(|m| m.supervisor.step(now, healthy)) {
+        crate::hw::set(crate::pins::WDI, level);
+    }
+}
+
+/// Falling edges given to the external supervisor since the start
+pub fn wdt_mgr_supervisor_kicks() -> u32 {
+    WDT.with(|m| m.supervisor.kicks).unwrap_or(0)
 }
 
 /// Register a task (name cut to 15 characters)

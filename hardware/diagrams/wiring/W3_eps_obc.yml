@@ -7,8 +7,13 @@
 # (for the EPS designer, SQSO-OBC-BRD-001 §15): VJET_RB (19) and VSW1_RB (37) Jetson switch readbacks (RID AV-06),
 # VBAT_MTQ (36, 39) magnetorquer supply, 3V3_RTC (38) always-on supply of the mission clock (RID AV-10).
 # Behind the connector the OBC moved PAYLOAD_EN from PB4 to PB2 and DEPLOY_EN from PA1 to PF3 (connector pins unchanged).
+# Version 3 (2026-10-27, harness design SQSO-HAR-001 2.0): the FFSD IDC ribbon (PVC insulation, 30 AWG tin-plated
+# copper, -40 to +105 C) is not flight material (MATERIALS_LIST rejects PVC); W3 becomes a Samtec SFSDT discrete-wire
+# assembly (PTFE, 30 AWG, latched) on Samtec TFM headers: EPS J3 vertical on the EPS bottom side, OBC J1 right-angle on
+# the OBC top side with the cable leaving toward +X (change requests to the EPS and OBC designs). Laid flat (two
+# layers) in the +X wall gap at |y| < 17 mm; 0.065 m.
 metadata:
-  title: W3 EPS to OBC v2 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.1)
+  title: W3 EPS to OBC v3 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.1; SQSO-HAR-001 2.0)
 
 options:
   fontname: Helvetica
@@ -17,30 +22,30 @@ options:
 
 connectors:
   J_EPS:
-    type: Samtec FTSH-120-01-L-DV-K
-    subtype: 40 pos, 1.27 mm, 2 rows
-    notes: EPS board J3
+    type: Samtec TFM-120 vertical (was FTSH-120), SFSDT socket
+    subtype: 40 pos, 1.27 mm, 2 rows, latched
+    notes: EPS board J3, bottom side, +X edge
     pinlabels: &w3pins [3V3_OBC, 3V3_OBC, GND, GND, I2C2_SCL PF1, I2C2_SDA PF0, GND, EPS_ALERT_N PB7, PAYLOAD_EN PB2,
                 RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, DEPLOY_EN PF3, RF_TX_EN PA3, GNSS_EN PE5, DEPLOY_SENSE PE2,
                 BURN_W2A PB9, BURN_W1A PB10, VJET_RB PA7, SOLAR_SENSE PB12, AGND, VBATT_SNS PC2, IBATT_SNS PC3,
                 VSOLAR_SNS PC4, ISOLAR_SNS PC5, VBUS_SNS PB0, AGND, GND, JETSON_PWR PA2, BURN_W1B PE6, BURN_W2B PE7,
                 EOL_ARM PF4, EOL_FIRE PG1, LOCK_CLR PF5, GND, VBAT_MTQ, VSW1_RB PA1, 3V3_RTC, VBAT_MTQ, GND]
   J_OBC:
-    type: Samtec FTSH-120-01-L-DV-K
-    subtype: 40 pos, 1.27 mm, 2 rows
-    notes: "OBC board J1 (STM32L4R5ZIT6 pins as labelled)"
+    type: Samtec TFM-120 right-angle (was FTSH-120), SFSDT socket
+    subtype: 40 pos, 1.27 mm, 2 rows, latched
+    notes: "OBC board J1, top side, +X edge, cable toward +X (STM32L4R5ZIT6 pins as labelled)"
     pinlabels: *w3pins
 
 cables:
   W3:
-    type: Samtec FFSD-20-D 1.27 mm IDC ribbon, 28 AWG
+    type: Samtec SFSDT discrete-wire assembly, PTFE, 30 AWG
     category: bundle
-    gauge: 28 AWG
-    length: 0.06
+    gauge: 30 AWG
+    length: 0.065
     wirecount: 40
     colors: [RD, RD, BK, BK, YE, BU, BK, WH, GN, GN, GN, GN, GN, GN, GN, OG, VT, VT, BN, OG, GY, BN, BN, BN, BN, BN, GY, BK,
              GN, VT, VT, PK, PK, PK, BK, RD, BN, OG, RD, BK]
-    notes: "28 AWG derated 0.25 A (SQSO-HAR-001 5.2): 3V3_OBC 0.088 A per wire at the SW10 trip (35 %); VBAT_MTQ 0.115 A per wire with all three H-bridges at their current limit (46 %). AGND joins GND at one point on the EPS. Every OBC output is high-impedance at OBC reset and held low by 100 k on the EPS. EOL_ARM and EOL_FIRE sit on different MCU ports (F, G) and different cable rows"
+    notes: "EEE-INST-002 derating, N = 40: 30 AWG carries 0.65 A per wire; 3V3_OBC 0.088 A per wire at the SW10 trip (14 %), VBAT_MTQ 0.20 A per wire at the SW11 limit (31 %). AGND joins GND at one point on the EPS. Every OBC output is high-impedance at OBC reset and held low by 100 k on the EPS. EOL_ARM and EOL_FIRE sit on different MCU ports (F, G) and different cable rows"
 
 connections:
   - - J_EPS: [1-40]

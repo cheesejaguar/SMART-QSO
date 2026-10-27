@@ -38,6 +38,8 @@ typedef enum {
     CMD_ADCS_DETUMBLE = 0x21, /**< ADCS_DETUMBLE: Start detumble */
     CMD_ADCS_GET_ATTITUDE = 0x23, /**< ADCS_GET_ATTITUDE: Get attitude */
     CMD_ADCS_SET_GEOMETRY = 0x24, /**< ADCS_SET_GEOMETRY: Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing */
+    CMD_ADCS_SET_GYRO_ALIGN = 0x25, /**< ADCS_SET_GYRO_ALIGN: Gyro alignment matrix (VI-MCAD-05; persisted): nine elements row by row, each a signed 32-bit big-endian integer in units of 1e-6; refused unless every element is within 1.1 and the determinant within 0.05 of 1 */
+    CMD_ADCS_SET_MAG_BIAS = 0x26, /**< ADCS_SET_MAG_BIAS: Magnetometer bias of one rod polarity state (AV-V4; persisted): the state 0-7 (bit n set: rod n last driven positive), then X, Y, Z as signed 32-bit big-endian nT, each within 50 uT */
     CMD_COMM_SET_BEACON = 0x30, /**< SET_BEACON: Set beacon interval, seconds big-endian, 10 to 120 */
     CMD_COMM_TX_ENABLE = 0x31, /**< TX_ENABLE: Clear the latched TX-OFF */
     CMD_COMM_TX_DISABLE = 0x32, /**< TX_DISABLE: Latch TX-OFF in every state (47 CFR 97.207(b)) */
@@ -49,11 +51,11 @@ typedef enum {
     CMD_DEPLOY_RETRY = 0x50, /**< DEPLOY_RETRY: Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn) */
     CMD_GNSS_REQUEST = 0x60, /**< GNSS_REQUEST: Start a GNSS receiver session now (its power gates still apply) */
     CMD_EOL_PASSIVATE_ARM = 0x70, /**< PASSIVATE_ARM: Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven */
-    CMD_EOL_PASSIVATE_EXECUTE = 0x71, /**< PASSIVATE_EXECUTE: Within 600 s of PASSIVATE_ARM: latch TX-OFF, fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE) and keep every transmitter off for good (recovery key only; irreversible) */
+    CMD_EOL_PASSIVATE_EXECUTE = 0x71, /**< PASSIVATE_EXECUTE: Within 600 s of PASSIVATE_ARM: fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE, in sunlight, up to 3 attempts) while still transmitting, downlink three final reports a minute apart (EOL_STATE, fuse, attempts), then latch TX-OFF and keep every transmitter off for good (recovery key only; irreversible) */
 } CmdId_t;
 
 /** Number of commands in the dictionary */
-#define CMD_DICTIONARY_COUNT 28U
+#define CMD_DICTIONARY_COUNT 30U
 
 /** Which telecommand key authenticates a command */
 typedef enum {

@@ -41,6 +41,28 @@
 //!
 //! At most [`MAX_LEN`] bytes, about 1.9 s on the air at 1200 bps.
 //!
+//! **`HK2`** follows each `HK1`, [`AFTER_BEACON_MS`] later: the counters the
+//! mission success criteria need (SQSO-MSC-001 2.1 §7, RID SMA-15) and the
+//! OBC board's supervision (round 3), the same format ([`Housekeeping2`]):
+//!
+//! | Key | Value | Unit |
+//! |-----|-------|------|
+//! | `N` | the HK1 sequence it follows | — |
+//! | `CA` | telecommands executed/refused/failed authentication since boot | — |
+//! | `WD` | resets by the watchdog (kept across resets) | — |
+//! | `XE` | transponder enables since boot/repeat keyed (XPDR_KEY)/exciter keyed (PTT_EXCITER) | —/s/s |
+//! | `IA` | array current (INA228 at 0x40, else ISOLAR) | mA |
+//! | `HL` | hard-limit violations since boot (Jetson on outside ACTIVE, sunlight or SOC ≥ 55 %, or past its burst limit) | — |
+//! | `JB` | Jetson bursts since boot/last burst's energy/its lines/bursts ended by the energy gate | —/J/—/— |
+//! | `JP` | Jetson switch-offs clean/cut after the wait/power-good faults/readback faults | — |
+//! | `EOL` | EPS `EOL_STATE` (bit 0 armed, 1 fired, 2 fuse intact; `-` no answer)/fire attempts | —/— |
+//! | `RT` | mission clock (RV-3028) UNIX time/the last reset's stamp | s/s |
+//! | `CK` | the MCU clock against the mission clock's 1 Hz | ppm |
+//! | `TR` | latch-up trips of the gyro, BMI088 and sensor rails since boot | — |
+//! | `GY` | gyro in use (0 M-G370, 1 BMI088, 2 none)/magnetometer samples gated (Jetson, exciter) | —/— |
+//! | `MF` | magnetorquer bridge faults/off-timer expiries seen | — |
+//! | `PE` | SRAM2 parity on 1/0 (`-` not known: the host build) | — |
+//!
 //! @requirement SRS-F126 The housekeeping frame shall carry the loss-of-contact count and the commands counted as contact
 //! @requirement SRS-F085 The software shall downlink a housekeeping frame every fifth beacon and on command, carrying temperatures, battery current and voltage, array power, deployment, RF-silence, boot and reset, fault-log head, body rates, contact timeout and GNSS fix age
 
@@ -122,6 +144,41 @@ pub struct Housekeeping {
     pub contacts: u32,
     /// Stored housekeeping: next five-minute and sixty-second record numbers
     pub stored: [u32; 2],
+}
+
+/// The second frame's values (`None`: not measured)
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Housekeeping2 {
+    /// The HK1 sequence it follows
+    pub seq: u16,
+    /// Telecommands executed, refused, failed authentication
+    pub commands: (u32, u32, u32),
+    /// Watchdog resets
+    pub wdt_resets: u32,
+    /// Transponder enables, repeat keyed s, exciter keyed s
+    pub xpdr: (u32, u32, u32),
+    /// Array current, A
+    pub array_a: Option<f64>,
+    /// Hard-limit violations
+    pub hard_limit: u32,
+    /// Jetson bursts, last energy J, last lines, gate ends
+    pub bursts: (u32, f64, usize, u32),
+    /// Jetson switch-offs clean, timed out, power-good faults, readback faults
+    pub jetson: (u32, u32, u32, u32),
+    /// EPS EOL_STATE, fire attempts
+    pub eol: (Option<u8>, u8),
+    /// Mission clock now and the last reset's stamp, UNIX s
+    pub rtc: (Option<u32>, Option<u32>),
+    /// MCU clock against the mission clock, ppm
+    pub clock_ppm: Option<f64>,
+    /// Rail trips: gyro, BMI088, sensors
+    pub trips: [u32; 3],
+    /// Gyro in use (0, 1, 2), samples gated
+    pub gyro: (u8, u32),
+    /// Bridge faults and off-timer expiries
+    pub mtq_faults: (u32, u32),
+    /// SRAM2 parity on
+    pub parity: Option<bool>,
 }
 
 struct Out<'a> {
@@ -222,6 +279,48 @@ pub fn format(hk: &Housekeeping, out: &mut [u8]) -> usize {
     })
     .and_then(|()| write!(w, "GS={}/{} ", hk.gnss_sessions.0, hk.gnss_sessions.1))
     .and_then(|()| tail(&mut w, hk))
+    .is_ok();
+    if ok { w.len } else { 0 }
+}
+
+fn opt_u(w: &mut Out<'_>, v: Option<u32>) -> core::fmt::Result {
+    match v {
+        Some(v) => write!(w, "{v}"),
+        None => w.write_str("-"),
+    }
+}
+
+/// The second frame (`HK2`) into `out`; its length (0 if it does not fit)
+pub fn format2(hk: &Housekeeping2, out: &mut [u8]) -> usize {
+    let room = out.len().min(MAX_LEN);
+    let mut w = Out { buf: out.get_mut(..room).unwrap_or(&mut []), len: 0 };
+    let (bursts, energy, lines, gate) = hk.bursts;
+    let ok = write!(
+        w,
+        "HK2 N={} CA={}/{}/{} WD={} XE={}/{}/{} ",
+        hk.seq, hk.commands.0, hk.commands.1, hk.commands.2, hk.wdt_resets, hk.xpdr.0, hk.xpdr.1, hk.xpdr.2
+    )
+    .and_then(|()| put(&mut w, "IA", opt(hk.array_a, 1000.0)))
+    .and_then(|()| {
+        write!(w, "HL={} JB={bursts}/", hk.hard_limit)?;
+        opt_u(&mut w, opt(Some(energy), 1.0).and_then(|v| u32::try_from(v).ok()))?;
+        write!(w, "/{lines}/{gate} JP={}/{}/{}/{} EOL=", hk.jetson.0, hk.jetson.1, hk.jetson.2, hk.jetson.3)
+    })
+    .and_then(|()| opt_u(&mut w, hk.eol.0.map(u32::from)))
+    .and_then(|()| write!(w, "/{} RT=", hk.eol.1))
+    .and_then(|()| opt_u(&mut w, hk.rtc.0))
+    .and_then(|()| w.write_str("/"))
+    .and_then(|()| opt_u(&mut w, hk.rtc.1))
+    .and_then(|()| w.write_str(" "))
+    .and_then(|()| put(&mut w, "CK", opt(hk.clock_ppm, 1.0)))
+    .and_then(|()| {
+        write!(
+            w,
+            "TR={}/{}/{} GY={}/{} MF={}/{} PE=",
+            hk.trips[0], hk.trips[1], hk.trips[2], hk.gyro.0, hk.gyro.1, hk.mtq_faults.0, hk.mtq_faults.1
+        )
+    })
+    .and_then(|()| opt_u(&mut w, hk.parity.map(u32::from)))
     .is_ok();
     if ok { w.len } else { 0 }
 }
@@ -367,6 +466,58 @@ mod tests {
         assert!(text(&hk).len() <= MAX_LEN, "{}", text(&hk).len());
         let mut small = [0u8; 20];
         assert_eq!(format(&hk, &mut small), 0);
+    }
+
+    fn text2(hk: &Housekeeping2) -> std::string::String {
+        let mut b = [0u8; 256];
+        let n = format2(hk, &mut b);
+        std::string::String::from_utf8(b[..n].to_vec()).unwrap()
+    }
+
+    #[test]
+    fn the_second_frame() {
+        let hk = Housekeeping2 {
+            seq: 7,
+            commands: (12, 3, 1),
+            wdt_resets: 2,
+            xpdr: (4, 3600, 4100),
+            array_a: Some(0.412),
+            bursts: (6, 1210.4, 10, 0),
+            jetson: (5, 1, 0, 0),
+            eol: (Some(0x04), 0),
+            rtc: (Some(1_900_000_000), None),
+            clock_ppm: Some(-12.4),
+            trips: [1, 0, 0],
+            gyro: (0, 37),
+            parity: Some(true),
+            ..Housekeeping2::default()
+        };
+        assert_eq!(
+            text2(&hk),
+            "HK2 N=7 CA=12/3/1 WD=2 XE=4/3600/4100 IA=412 HL=0 JB=6/1210/10/0 JP=5/1/0/0 EOL=4/0 \
+             RT=1900000000/- CK=-12 TR=1/0/0 GY=0/37 MF=0/0 PE=1"
+        );
+        let worst = Housekeeping2 {
+            seq: u16::MAX,
+            commands: (u32::MAX, u32::MAX, u32::MAX),
+            wdt_resets: u32::MAX,
+            xpdr: (u32::MAX, u32::MAX, u32::MAX),
+            array_a: Some(-2.6),
+            hard_limit: u32::MAX,
+            bursts: (u32::MAX, 4.0e9, usize::MAX, u32::MAX),
+            jetson: (u32::MAX, u32::MAX, u32::MAX, u32::MAX),
+            eol: (Some(255), 255),
+            rtc: (Some(u32::MAX), Some(u32::MAX)),
+            clock_ppm: Some(-1.0e6),
+            trips: [u32::MAX; 3],
+            gyro: (2, u32::MAX),
+            mtq_faults: (u32::MAX, u32::MAX),
+            parity: Some(false),
+        };
+        assert!(text2(&worst).len() <= MAX_LEN, "{}", text2(&worst).len());
+        let none = text2(&Housekeeping2::default());
+        assert!(none.contains("IA=- ") && none.contains("EOL=-/0") && none.ends_with("PE=-"), "{none}");
+        assert_eq!(format2(&worst, &mut [0u8; 20]), 0);
     }
 
     #[test]

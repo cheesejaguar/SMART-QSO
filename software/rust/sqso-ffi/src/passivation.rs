@@ -2,18 +2,20 @@
 //! (`sqso_fsw::passivation`) on the GPIO, flash and I2C HAL and
 //! `rf_control`.
 //!
-//! The two lines of the EPS's charge disconnect are the logical pins
-//! `GPIO_PIN_EOL_ARM` and `GPIO_PIN_EOL_FIRE` (`hal_gpio.h`; their STM32
-//! pins are the OBC board's to allocate). The EPS controller's `EOL_STATE`
-//! register (0x7C, SMART-QSO-ICD-001 §4.6: bit 1 fired, charge path open)
-//! confirms the disconnect.
+//! The two lines of the EPS's charge disconnect are `GPIO_PIN_EOL_ARM` (PF4)
+//! and `GPIO_PIN_EOL_FIRE` (PG1). The EPS controller's `EOL_STATE` register
+//! (0x7C, SMART-QSO-ICD-001 §4.6: bit 0 armed, bit 1 fired (charge path
+//! open), bit 2 fuse intact) confirms the disconnect and goes into the final
+//! report (`HK2`), which the executive sends when [`passivation_take_report`]
+//! says so; TX-OFF follows it (RID REG-12).
 //!
 //! Coverage: only a nested call finds `EOL` in use (busy: `Global::with`
 //! gives `None`): the answers are then the safe ones (passivated reads as
 //! passivated only if it was; commands refused as busy).
 //!
 //! @requirement SRS-F110 Two-step authenticated end-of-life passivation
-//! @requirement SRS-F111 Passivation order: TX-OFF, record, charge disconnect through two series lines
+//! @requirement SRS-F111 Passivation order: record, charge disconnect through two series lines while transmitting, final report, then TX-OFF
+//! @requirement SRS-F155 The final passivation report: three frames over three minutes carrying EOL_STATE, the fuse state and the attempts, before TX-OFF
 //! @requirement SRS-F112 Transmitters off for good after passivation
 
 use sqso_fsw::passivation::{Line, Passivation, PassivationIo, Refusal, Report};
@@ -57,24 +59,21 @@ impl PassivationIo for HalFlash {
     }
 
     fn charge_path_open(&mut self) -> Option<bool> {
-        let reg = [REG_EOL_STATE];
-        let mut v = [0u8];
-        // SAFETY: both are live one-byte buffers
-        let read = unsafe { c::hal_i2c_write_read(EPS_BUS, EPS_ADDRESS, reg.as_ptr(), 1, v.as_mut_ptr(), 1) };
-        (read == rc::OK).then_some(v[0] & EOL_FIRED != 0)
+        eol_state().map(|v| v & EOL_FIRED != 0)
     }
 
     fn report(&mut self, report: Report) {
         let (sev, text) = match report {
             Report::Armed => (severity::WARNING, c"Passivation armed (600 s)"),
             Report::Lapsed => (severity::INFO, c"Passivation arm lapsed"),
-            Report::Executed => (severity::CRITICAL, c"Passivation executed: TX-OFF, charge disconnect"),
+            Report::Executed => (severity::CRITICAL, c"Passivation executed: charge disconnect firing"),
             Report::NotPersisted => (severity::ERROR, c"Passivation record not persisted"),
             Report::LineUnavailable => (severity::ERROR, c"Passivation line cannot be driven"),
             Report::ChargePathOpen => (severity::CRITICAL, c"Passivation: EPS reports charge path open"),
             Report::NotConfirmed => (severity::ERROR, c"Passivation fire ended, not confirmed by EPS"),
             Report::Unreadable => (severity::ERROR, c"Passivation record unreadable"),
             Report::Passivated => (severity::INFO, c"Passivated: transmitters inhibited"),
+            Report::Silenced => (severity::CRITICAL, c"Passivation reported: TX-OFF, transmitters off for good"),
         };
         c::log(fault_type::COMMAND, sev, text, 0.0);
     }
@@ -128,14 +127,36 @@ pub extern "C" fn passivation_verify() {
     let _ = EOL.with(|p| p.verify(&mut HalFlash));
 }
 
-/// `PassivationPhase_t`: 0 idle, 1 armed, 2 firing, 3 passivated
+/// The next final-report frame, if one is due now (1 to 3; 0: none)
+#[unsafe(no_mangle)]
+pub extern "C" fn passivation_take_report() -> u8 {
+    let now = c::now_ms();
+    EOL.with(|p| p.take_report(now)).flatten().unwrap_or(0)
+}
+
+/// The fire attempts so far
+#[unsafe(no_mangle)]
+pub extern "C" fn passivation_attempts() -> u8 {
+    EOL.with(|p| p.attempts()).unwrap_or(0)
+}
+
+/// The EPS controller's `EOL_STATE` (`None`: no answer)
+pub fn eol_state() -> Option<u8> {
+    let reg = [REG_EOL_STATE];
+    let mut v = [0u8];
+    // SAFETY: both are live one-byte buffers
+    let read = unsafe { c::hal_i2c_write_read(EPS_BUS, EPS_ADDRESS, reg.as_ptr(), 1, v.as_mut_ptr(), 1) };
+    (read == rc::OK).then_some(v[0])
+}
+
+/// `PassivationPhase_t`: 0 idle, 1 armed, 2 firing, 3 passivated, 4 reporting
 #[unsafe(no_mangle)]
 pub extern "C" fn passivation_phase() -> u32 {
     let now = c::now_ms();
     EOL.with(|p| p.phase(now) as u32).unwrap_or(0)
 }
 
-/// Whether the spacecraft is passivated
+/// Whether the spacecraft is passivated (silenced: transmitters off for good)
 #[unsafe(no_mangle)]
 pub extern "C" fn passivation_passivated() -> bool {
     EOL.with(|p| p.passivated()).unwrap_or(false)
@@ -160,6 +181,7 @@ mod tests {
             )
         });
         assert_eq!(nested, Some((rc::BUSY, rc::BUSY, rc::BUSY, 0, false)));
+        assert_eq!(EOL.with(|_| (passivation_take_report(), passivation_attempts())), Some((0, 0)));
         let _ = EOL.with(|_| {
             passivation_tick(true);
             passivation_verify();

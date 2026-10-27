@@ -96,6 +96,17 @@ uint32_t payload_guard_trip_count(void);
 /** Fault-log text for a result */
 const char *payload_guard_reason(PayloadGuardResult_t result);
 
+/**
+ * @brief The spreader thermistor is (or is no longer) faulted
+ *
+ * Outside 0.10-3.25 V the OBC's spreader thermistor is open or shorted
+ * (SQSO-OBC-BRD-001 B §11.3): payload_guard_may_power_on() refuses while
+ * the fault lasts (the gate fails safe).
+ *
+ * @requirement SRS-F150 Spreader thermistor sensor fault inhibits the Jetson's power-on
+ */
+void payload_guard_set_spreader_fault(bool fault);
+
 #ifdef __cplusplus
 }
 #endif

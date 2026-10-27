@@ -36,6 +36,8 @@ COMMANDS: Dict[str, CommandSpec] = {
     "ADCS_DETUMBLE": CommandSpec(0x21, 0, 0, "operational", "Start detumble", without_key=False),
     "ADCS_GET_ATTITUDE": CommandSpec(0x23, 0, 0, "operational", "Get attitude", without_key=False),
     "ADCS_SET_GEOMETRY": CommandSpec(0x24, 1, 1, "operational", "Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing", without_key=False),
+    "ADCS_SET_GYRO_ALIGN": CommandSpec(0x25, 36, 36, "operational", "Gyro alignment matrix (VI-MCAD-05; persisted): nine elements row by row, each a signed 32-bit big-endian integer in units of 1e-6; refused unless every element is within 1.1 and the determinant within 0.05 of 1", without_key=False),
+    "ADCS_SET_MAG_BIAS": CommandSpec(0x26, 13, 13, "operational", "Magnetometer bias of one rod polarity state (AV-V4; persisted): the state 0-7 (bit n set: rod n last driven positive), then X, Y, Z as signed 32-bit big-endian nT, each within 50 uT", without_key=False),
     "SET_BEACON": CommandSpec(0x30, 2, 2, "operational", "Set beacon interval, seconds big-endian, 10 to 120", without_key=False),
     "TX_ENABLE": CommandSpec(0x31, 0, 0, "operational", "Clear the latched TX-OFF", without_key=False),
     "TX_DISABLE": CommandSpec(0x32, 0, 0, "any", "Latch TX-OFF in every state (47 CFR 97.207(b))", without_key=True),
@@ -47,5 +49,5 @@ COMMANDS: Dict[str, CommandSpec] = {
     "DEPLOY_RETRY": CommandSpec(0x50, 1, 1, "operational", "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)", without_key=False),
     "GNSS_REQUEST": CommandSpec(0x60, 0, 0, "operational", "Start a GNSS receiver session now (its power gates still apply)", without_key=False),
     "PASSIVATE_ARM": CommandSpec(0x70, 4, 4, "operational", "Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven", without_key=False),
-    "PASSIVATE_EXECUTE": CommandSpec(0x71, 0, 0, "recovery", "Within 600 s of PASSIVATE_ARM: latch TX-OFF, fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE) and keep every transmitter off for good (recovery key only; irreversible)", without_key=False),
+    "PASSIVATE_EXECUTE": CommandSpec(0x71, 0, 0, "recovery", "Within 600 s of PASSIVATE_ARM: fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE, in sunlight, up to 3 attempts) while still transmitting, downlink three final reports a minute apart (EOL_STATE, fuse, attempts), then latch TX-OFF and keep every transmitter off for good (recovery key only; irreversible)", without_key=False),
 }

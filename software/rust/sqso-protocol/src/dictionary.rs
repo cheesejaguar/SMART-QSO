@@ -45,6 +45,10 @@ pub enum Command {
     AdcsGetAttitude = 0x23,
     /// Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing
     AdcsSetGeometry = 0x24,
+    /// Gyro alignment matrix (VI-MCAD-05; persisted): nine elements row by row, each a signed 32-bit big-endian integer in units of 1e-6; refused unless every element is within 1.1 and the determinant within 0.05 of 1
+    AdcsSetGyroAlign = 0x25,
+    /// Magnetometer bias of one rod polarity state (AV-V4; persisted): the state 0-7 (bit n set: rod n last driven positive), then X, Y, Z as signed 32-bit big-endian nT, each within 50 uT
+    AdcsSetMagBias = 0x26,
     /// Set beacon interval, seconds big-endian, 10 to 120
     SetBeacon = 0x30,
     /// Clear the latched TX-OFF
@@ -67,13 +71,13 @@ pub enum Command {
     GnssRequest = 0x60,
     /// Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven
     PassivateArm = 0x70,
-    /// Within 600 s of PASSIVATE_ARM: latch TX-OFF, fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE) and keep every transmitter off for good (recovery key only; irreversible)
+    /// Within 600 s of PASSIVATE_ARM: fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE, in sunlight, up to 3 attempts) while still transmitting, downlink three final reports a minute apart (EOL_STATE, fuse, attempts), then latch TX-OFF and keep every transmitter off for good (recovery key only; irreversible)
     PassivateExecute = 0x71,
 }
 
 impl Command {
     /// Every command, in ID order
-    pub const ALL: [Command; 28] = [
+    pub const ALL: [Command; 30] = [
         Command::Nop,
         Command::Reset,
         Command::SetMode,
@@ -90,6 +94,8 @@ impl Command {
         Command::AdcsDetumble,
         Command::AdcsGetAttitude,
         Command::AdcsSetGeometry,
+        Command::AdcsSetGyroAlign,
+        Command::AdcsSetMagBias,
         Command::SetBeacon,
         Command::TxEnable,
         Command::TxDisable,
@@ -123,6 +129,8 @@ impl Command {
             0x21 => Some(Command::AdcsDetumble),
             0x23 => Some(Command::AdcsGetAttitude),
             0x24 => Some(Command::AdcsSetGeometry),
+            0x25 => Some(Command::AdcsSetGyroAlign),
+            0x26 => Some(Command::AdcsSetMagBias),
             0x30 => Some(Command::SetBeacon),
             0x31 => Some(Command::TxEnable),
             0x32 => Some(Command::TxDisable),
@@ -171,6 +179,8 @@ impl Command {
             Command::AdcsDetumble => c"ADCS_DETUMBLE",
             Command::AdcsGetAttitude => c"ADCS_GET_ATTITUDE",
             Command::AdcsSetGeometry => c"ADCS_SET_GEOMETRY",
+            Command::AdcsSetGyroAlign => c"ADCS_SET_GYRO_ALIGN",
+            Command::AdcsSetMagBias => c"ADCS_SET_MAG_BIAS",
             Command::SetBeacon => c"SET_BEACON",
             Command::TxEnable => c"TX_ENABLE",
             Command::TxDisable => c"TX_DISABLE",
@@ -205,6 +215,8 @@ impl Command {
             Command::AdcsDetumble => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::AdcsGetAttitude => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::AdcsSetGeometry => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
+            Command::AdcsSetGyroAlign => CommandSpec { min_args: 36, max_args: 36, key: KeyClass::Operational, without_key: false },
+            Command::AdcsSetMagBias => CommandSpec { min_args: 13, max_args: 13, key: KeyClass::Operational, without_key: false },
             Command::SetBeacon => CommandSpec { min_args: 2, max_args: 2, key: KeyClass::Operational, without_key: false },
             Command::TxEnable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::TxDisable => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Any, without_key: true },
@@ -239,6 +251,8 @@ impl Command {
             Command::AdcsDetumble => "Start detumble",
             Command::AdcsGetAttitude => "Get attitude",
             Command::AdcsSetGeometry => "Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing",
+            Command::AdcsSetGyroAlign => "Gyro alignment matrix (VI-MCAD-05; persisted): nine elements row by row, each a signed 32-bit big-endian integer in units of 1e-6; refused unless every element is within 1.1 and the determinant within 0.05 of 1",
+            Command::AdcsSetMagBias => "Magnetometer bias of one rod polarity state (AV-V4; persisted): the state 0-7 (bit n set: rod n last driven positive), then X, Y, Z as signed 32-bit big-endian nT, each within 50 uT",
             Command::SetBeacon => "Set beacon interval, seconds big-endian, 10 to 120",
             Command::TxEnable => "Clear the latched TX-OFF",
             Command::TxDisable => "Latch TX-OFF in every state (47 CFR 97.207(b))",
@@ -250,7 +264,7 @@ impl Command {
             Command::DeployRetry => "Retry a deployment element with fresh attempts: 0 antenna, 1 solar wings (refused during the 30-minute wait and during a burn)",
             Command::GnssRequest => "Start a GNSS receiver session now (its power gates still apply)",
             Command::PassivateArm => "Arm end-of-life passivation for 600 s (argument: the ASCII code EOL!); nothing is driven",
-            Command::PassivateExecute => "Within 600 s of PASSIVATE_ARM: latch TX-OFF, fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE) and keep every transmitter off for good (recovery key only; irreversible)",
+            Command::PassivateExecute => "Within 600 s of PASSIVATE_ARM: fire the EPS one-shot charge disconnect (EOL_ARM then EOL_FIRE, in sunlight, up to 3 attempts) while still transmitting, downlink three final reports a minute apart (EOL_STATE, fuse, attempts), then latch TX-OFF and keep every transmitter off for good (recovery key only; irreversible)",
         }
     }
 }
