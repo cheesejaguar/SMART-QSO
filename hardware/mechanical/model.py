@@ -187,8 +187,9 @@ HZ_OWNER = {"COAX_P": "coax_W10", "COAX_M": "coax_W10", "COAXU_P": "coax_W10", "
             "COAXF_P": "coax_W10", "COAXF_M": "coax_W10", "W4AZ": "ribbon_W4A", "AP_A3": "access_port",
             "TB": "TB_tabs"}
 
-# Splice envelopes (SQSO-HAR-001 2.0 amended, 15 item M-11): M81824/1-1 (TE D-436-36), installed about 2.6 mm across
-# and 29 mm long, no more than two side by side, staggered by one splice length, tied within 10 mm of both ends.
+# Splice envelopes (SQSO-HAR-001 2.0 amended, 15 item M-11): sized for the TE D-436-36 (M81824/1-1), installed about 2.6 mm across
+# and 29 mm long, 0.46 g (the larger candidate: the nickel-barrel TE D-200-82 that replaces it is to be sized by the
+# harness design); no more than two side by side, staggered by one splice length, tied within 10 mm of both ends.
 # (harness, ref): [(axis, centre, start)], each a cylinder of SPL_R from start to start + SPL_L along the axis.
 SPL_R, SPL_L = 1.3, 29.0
 SPLICES = {
@@ -294,7 +295,7 @@ def harness_zone_parts(parts: List[Part], add):
             h, ref = zn[4:].split("_", 1)
             env = fuse(*[C(ax, c, SPL_R, a0, a0 + SPL_L) for ax, c, a0 in SPLICES[(h, ref)]])
             add(Part(f"hz_{zn}", "harness", dict(v), env, color=COL["harness"],
-                     note=f"{len(SPLICES[(h, ref)])} splice(s) M81824/1-1, {h} at {ref}, 2.6 x 29 mm each (M-11)"))
+                     note=f"{len(SPLICES[(h, ref)])} splice(s), {h} at {ref}: envelope 2.6 x 29 mm each (D-436-36 size; D-200-82 to confirm, M-11)"))
             continue
         x0, x1, y0, y1, z0, z1, _ax, desc = HAR.ZONES[zn]
         if zn.startswith("U_"):                 # under the 2.0 mm EPS: top at its bottom-parts envelope (request H-11)
@@ -1110,7 +1111,7 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
         sres[sp.name] = dict(nearest=near[:2], ants_mm=round(min_dist(sp.stowed, ants), 2),
                              wing_sweep_mm=round(wing_st, 2))
         sok = sok and bool(near) and near[0][0] >= 0.2
-    item("SPL-1", "Splice envelopes M81824/1-1 (M-11): no interference; >= 0.2 mm to every solid outside the harness",
+    item("SPL-1", "Splice envelopes (D-436-36 size, M-11): no interference; >= 0.2 mm to every solid outside the harness",
          sres, ">= 0.2 mm (tie-down within 10 mm of both ends)", sok)
     # AntS tapes vs wings
     zt = z_planes(p)["mz_out"] - p["ants_t"] / 2.0
