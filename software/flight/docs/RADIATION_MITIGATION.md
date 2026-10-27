@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-RAD-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Reference:** NASA-HDBK-4002A
 
@@ -348,20 +348,20 @@ typedef struct __attribute__((packed)) {
 | Proton SEU rate | SAA passage events |
 | Latchup threshold | Current trip events |
 
-## 11. As-built Status (Revision B, 2026-10-27)
+## 11. As-built Status (Revision C, 2026-10-27)
 
 | Rev A mitigation | Section | As built in the Rust flight software | Status |
 |------------------|---------|--------------------------------------|--------|
-| SRAM EDAC / parity on critical data | 3.1 | Not configured. The STM32L4R5's SRAM2 has hardware parity, but the live state is not placed there and no parity-error handler (NMI) is written | Open, RID AV-07 |
-| TMR of critical variables | 3.2 | Not implemented. The critical states (TX-OFF, RF silence, deployment, commissioning hold) are persisted in FRAM records with CRC and two slots, and re-read at every boot | Tailored: persistence plus reboot instead of TMR; open for live state between boots (AV-07) |
-| Memory scrubbing | 3.3 | Not implemented | Not needed for FRAM; for SRAM, part of AV-07 |
-| Flash ECC, image CRC | 4.1–4.3 | Flash ECC corrects single-bit errors in hardware; no ECC-error handler and no periodic image CRC check | Open (AV-07) |
+| SRAM EDAC / parity on critical data | 3.1 | Every static (the live state) linked in SRAM2, the parity RAM; SRAM2 erased before use; a parity error raises the NMI, which records the cause and resets at once; the cause is logged at the next boot (`software/rust/firmware/src/parity.rs`, SRS-F132; MEMORY_POLICY §10.3). Parity itself is enabled by the option bit `SRAM2_PE`, set when the board is programmed (logged at every boot if off). The stack in SRAM3 has no parity | Implemented (AV-07); not run on hardware (RAD-V6) |
+| TMR of critical variables | 3.2 | Not implemented. The critical states (TX-OFF, RF silence, deployment, commissioning hold, passivation) are persisted in FRAM records with CRC and two slots, re-read at every boot, and the TX-OFF latch, the operations record and the passivation record are checked against their RAM copy every 60 s, settling toward the safe side (SRS-F133, MEMORY_POLICY §10.4) | Tailored: persistence, parity and the periodic check instead of TMR (AV-07) |
+| Memory scrubbing | 3.3 | Not implemented: parity detects an upset when the byte is read (MEMORY_POLICY §10.2, §10.5) | Not needed for FRAM; for SRAM, tailored (AV-07) |
+| Flash ECC, image CRC | 4.1–4.3 | Flash ECC corrects single-bit errors in hardware; a double-bit error raises the NMI, which records the address and resets at once (as for parity); no periodic image CRC check | Implemented for ECC (AV-07); image CRC open |
 | Multi-level watchdog | 5 | IWDG 30 s, refreshed only when every stage of the pass has checked in (`software/rust/sqso-ffi/src/watchdog_mgr.rs`); no window watchdog, no external supervisor | Implemented; external supervisor open (AV-02) |
 | Safe mode | 6 | Mode manager with SAFE and EMERGENCY (`software/rust/sqso-ffi/src/state_machine.rs`) | Implemented |
 | SAA handling | 7 | Not implemented | Not needed: the upset rates of RADIATION_ANALYSIS §5 do not justify it |
 | Latch-up current monitoring | 8 | Software guard on the Jetson rail only (`payload_guard`, 12 W single sample); hardware eFuse on the Jetson carrier (EPS design); the GNSS receiver is powered only for sessions of ≤ 5 min; no trip specified for the OBC, radio and sensor rails | Partial (AV-03, AV-04, AV-08) |
 | Command validation | 9.2 | HMAC-SHA-256 authentication with a persisted replay counter (`cmd_auth`), length and range checks per command, a checksum on the frame | Implemented (stronger than Rev A's CRC and sequence number) |
-| Receiver SEFI recovery | — | Not implemented | Open, RID FSW-09 |
+| Receiver SEFI recovery | — | After 24 h without a valid frame or a carrier, the radio is power-cycled (RADIO_EN off 2 s), never in a pass, logged (`software/rust/sqso-fsw/src/receiver.rs`, SRS-F115); the mission simulation models receiver SEFIs (one per 120 days) and checks each is cleared within 26 h | Implemented (FSW-09); the carrier-detect and health inputs need OBC pins and RF-board lines |
 | Fault-injection tests | 10.1 | Host tests of every persisted record's corruption (C suites); no RAM bit-flip injection on target | Open (RADIATION_ANALYSIS RAD-V6) |
 
 ---
@@ -372,3 +372,4 @@ typedef struct __attribute__((packed)) {
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | Status note: §2–§10 are Rev A design intent, not as built; §11 as-built status of each mitigation against the Rust flight software and `docs/environment/RADIATION_ANALYSIS.md` Rev C (RIDs AV-02, AV-03, AV-04, AV-07, AV-08, FSW-09) | SMART-QSO Team (CDR avionics review) |
+| C | 2026-10-27 | §11: SRAM2 parity and the NMI handler, flash ECC handling, the periodic check of the persisted state (AV-07) and the receiver recovery (FSW-09) as implemented in the flight software round 2 | SMART-QSO Team (CDR flight software, round 2) |

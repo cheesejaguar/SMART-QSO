@@ -1,7 +1,7 @@
 # Launch Vehicle and Dispenser Requirements Flow-Down
 
 **Document ID**: SQSO-LVR-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: Draft for CDR. No launch contract exists: every requirement below is flowed from the published provider
 documents, not from an agreed mission ICD. The mission ICD will supersede it where it differs.
@@ -144,7 +144,7 @@ Read against the 2018 IDD (the only revision found). Rows marked **Δ** are desi
 
 | ID | Requirement | Source | Primary-path design | Delta |
 |----|-------------|--------|---------------------|-------|
-| LVR-100 | Mass ≤ 2.40 kg (1U); CG ±2 cm | IDD §4.1.2, Table 4.1.2-1 | Predicted 1.92–2.00 kg: 16.7–20 % margin | None |
+| LVR-100 | Mass ≤ 2.40 kg (1U); CG ±2 cm | IDD §4.1.2, Table 4.1.2-1 | MEV 1.73 kg (BASELINE §4): 28 % margin; CG within 5 mm | None |
 | LVR-101 | **≥ 3 deployment switches**, each an independent inhibit on the main power system, ≤ 3 N each, ≤ 9 N total, captive | IDD §4.1.4 | Two switches | **Δ** third switch. Recommended for the primary as well (LV-05) |
 | LVR-102 | **Ground-leg inhibit** between the battery negative and ground | IDD §4.2.1(3) | Not in the design | **Δ** |
 | LVR-103 | **No system operating and the main power system not energized for ≥ 30 min** after deployment (timer with fault tolerance) | IDD §4.2.1(2) | The OBC boots at separation (CDS §2.4.5.1 allows it) | **Δ** a hardware delay before the bus is energized, or an exception in the ICA |
@@ -216,5 +216,6 @@ contract.
 
 | Version | Date | Description |
 |---------|------|-------------|
+| C | 2026-10-27 | CDR 2026 consistency pass: LVR-100 mass margin from BASELINE Rev E §4 (MEV 1.73 kg; it still quoted the MEL v2.0 prediction) |
 | B | 2026-10-27 | Chair's reconciliation after the design review: mass and mass properties from MASS_BUDGET v3.0 (LVR-005, 026, 027); protoflight vibration at 8.18 Grms and thermal-vacuum levels from ETP Rev C (LVR-044, 050, VI-LV-04, VI-LV-08); trifilar MOI (VI-LV-02); disposal from the 475/485 km band (LVR-087); deliverable schedule moved to L = 2028-11-01 with the early FCC filing and the IARU date (§9) |
 | A | 2026-10-27 | Initial flow-down for the CDR from SpaceX UG v11 (Aug 2026), CDS Rev 14.1, EXOpod Nova UM Rev 1.2, EXOpod UM Rev 6.0 and the NRCSD IDD (2018); verification items VI-LV-01 to VI-LV-18; analyses in `software/simulation/cdr/launch/` |

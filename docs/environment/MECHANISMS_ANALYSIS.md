@@ -1,7 +1,7 @@
 # SMART-QSO Mechanisms Analysis
 
 **Document ID**: SQSO-MECH-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR issue. Analysis of the two solar-wing hinges and hold-downs and of the bought ISIS AntS antenna system;
@@ -20,7 +20,7 @@ in `hardware/mechanical/hinge_results.json`). Mass properties: `docs/environment
 | Version B spring stress (5017B Table 4, mission-critical 1.5 / 1.65 at the maximum torque) | Primary +0.12 / +0.36; secondary **+0.04** / +0.27 (891 and 958 MPa, 59–64 % of the 1,500 MPa allowable: above the 50 % that A.2.5.1 recommends against relaxation, hence VI-MECH-01) | §3A |
 | Version A torque margin (springs that do not fit, withdrawn) | +0.29 (one spring out +0.88) | §4 |
 | Same with a contact (plunger) deployed-state switch at the stop | **−0.54**: the deployed sensor must be non-contact | §4 |
-| Holding margin on the stop (tumbling at 50°/s; spin 6°/s puts no torque on the hinge) | +46 | §4.4 |
+| Holding margin on the stop (tumbling at 50°/s; spin 8°/s puts no torque on the hinge) | +46 | §4.4 |
 | Deployment time | 0.16 s from release to the stop (requirement < 5 s, `hardware/eps/SOLAR_ARRAY_DESIGN.md` §8.1) | §5 |
 | End-of-travel shock (Version B spring) | 13.7 rad/s at the stop: **0.157 N·m with the damped soft stop (2 N·m/rad, ζ 0.3): 214 µε at the wing root, rebound 13°**; 0.62 N·m (853 µε, rebound 50°) with a metal stop; deployment 0.21 s | §5A |
 | Deployed-position latch | **No latch**: a latch pin (Ø0.8 mm) would see 974 MPa in shear at the rebound impact (allowable 662 MPa) and its drag lowers the end-of-travel margin to +0.07. The springs hold the wing on the damped stop: holding margin +17 (DDMR 14) | §5A |
@@ -60,7 +60,7 @@ MoS₂-coated pins, a PTFE-faced snubber and a heat-set clock-spring flex (§4A)
 |-----------|--------------------------------------------------------|
 | Wing hinge | Two hinges per wing on the ±X/+Y edge (axis parallel to Z, at x = ±54.0, y = +39.5 mm), 300-series pins Ø1.5 mm in Al knuckles with a dry-film lubricant; a torsion spring at each hinge; a hard stop at 90° with a soft (silicone, low-outgassing) bumper; no latch, the spring preload holds the wing on the stop |
 | Torsion springs | 17-7PH CH900 wire Ø0.55 mm, mean coil Ø4 mm, ≈ 22 coils, rate 3.2 mN·m/rad; 10.0 mN·m stowed (180° wind-up), 5.0 mN·m at the stop (90°); loaded in the winding direction. Bending stress at 10 mN·m: 674 MPa (Wahl factor 1.1) against ≈ 1,500 MPa (supplier allowable, to confirm): MS +0.48 on yield with the mission-critical factor 1.5, +0.80 on ultimate with 1.65 (5017B Table 4). 34 % of the wire strength at the stowed load keeps stress relaxation low (A.2.5.1) |
-| Hold-down and release | One line per wing over the free edge (Vectran or Dyneema, 200 N break, 30 N preload), cut by **two** burn resistors on separate drivers (the documents have one resistor per wing on a shared line, `deploy.rs`; SOLAR_ARRAY_DESIGN §8.2 calls for two circuits); both line ends captured after the cut (no debris, CDS §2.1.1) |
+| Hold-down and release | One line per wing over the free edge (Vectran or Dyneema, 200 N break, 30 N preload), cut by **two** burn resistors on separate drivers (adopted: four independent 0.8 A drivers, one per resistor, burned one at a time, `hardware/electrical/eps/EPS_BOARD_DESIGN.md` §9 and BASELINE Rev E §4; the first issue found one resistor per wing on a shared line in `deploy.rs`); both line ends captured after the cut (no debris, CDS §2.1.1) |
 | Deployed-state sensor | **Non-contact** (reed switch and magnet, or Hall sensor) at the stop: a plunger switch at the stop costs the margin (§4.3). Stowed-state contact switches released by the wing are acceptable (they push the wing out) |
 | Inhibits | Three independent physical inhibits between the battery and every burn resistor (BASELINE §4, CDS §2.3.8); deployment no earlier than 30 min after switch release (CDS §2.4.4; `sqso_fsw::deployment`) |
 | Antenna system | ISIS AntS 1U–3U, monopole/hybrid configuration: two 2 m and two 70 cm tape-spring elements (VHF ≤ 55 cm, UHF ≤ 17 cm per ISIS) in the plane of the −Z face; vendor release (redundant thermal knives, I²C controller, < 2 W at 3.3 V, < 3 s above +15 °C per ISIS brochures); the elements carry their own strain energy |
@@ -106,7 +106,7 @@ pressed in the stowed state and released by the wing.
 
 ### 4.4 Holding Margin on the Stop (DDMR 14)
 
-The spin about +Y (6°/s) produces centrifugal forces along the wing span, through the hinge line: no hinge torque.
+The spin about +Y (8°/s) produces centrifugal forces along the wing span, through the hinge line: no hinge torque.
 Tumbling about X at 50°/s produces ≈ 0.06 mN·m; magnetorquer torques produce < 0.001 mN·m. Holding margin with FS_v 3.0:
 8.45 / (3 × 0.06) − 1 = **+46**. The wing never leaves its stop in orbit, so its dynamics are those of the stop
 (21–74 Hz, §9).
@@ -260,8 +260,10 @@ temperature at T + 30 min.
 deployment temperature less 10 °C (the thermal uncertainty margin of BASELINE §8), demonstrated by a release
 characterisation of ≥ 30 coupons of the flight line, resistor and preload at −40 °C and +20 °C (VI-STR-06). With the
 simulation's model this needs **8 s** (`SOLAR_BURN_TIME_MS` = 8000) or 1.0 A per resistor (25 J in 5 s); for the chair,
-because the constant is in `sqso_fsw::deployment`. Pack current for the wing pair is 1.6 A for 5–8 s (0.10–0.15 Wh for
-three attempts); 1.0 A per resistor is 2.0 A, inside the 5 A pack fuse.
+because the constant is in `sqso_fsw::deployment`. With the EPS board's drivers (0.8 A per resistor from a 7.0 V burn buck, one resistor at a
+time for 8 s) the pack carries 0.51 A for the burn, 0.67 A with housekeeping and heater, 0.75 A with the magnetorquers
+(`hardware/electrical/eps/EPS_BOARD_DESIGN.md` §9); 25.6 J into a 5 Ω resistor per 8 s burn. 1.0 A per resistor would
+need the driver set point changed.
 
 Model fidelity (for the chair, owner of `sqso-sil`): `deploy.rs` (1) drops a resistor's current to zero once its line has
 parted, but the resistor stays in circuit unless it burns open, so retries draw more current than modelled; (2) takes
@@ -316,8 +318,8 @@ qualification item (VI-STR-13). Consequences for this design:
 | Deployed wing bending (cantilever) | 83 Hz |
 | Wing rotation if it left the stop (spring only, 6.4 mN·m/rad per wing) | 1.2 Hz; not reached in orbit (holding margin +46, §4.4) |
 | AntS VHF tape, 0.5 m (curved / flat direction) | ≈ 4 / ≈ 0.4 Hz |
-| Spin (6°/s) | 0.017 Hz |
-| Nutation (deployed, layout B) | ≈ 0.003 Hz |
+| Spin (8°/s, BASELINE Rev E §8) | 0.022 Hz |
+| Nutation (deployed, layout B) | ≈ 0.004 Hz |
 | Control law bandwidth (momentum gain 0.005 s⁻¹) | ≈ 0.0008 Hz |
 | Control and sampling rate | 1 Hz (coil on 900 ms, off for the magnetometer sample) |
 
@@ -344,3 +346,4 @@ stable only about the major axis of inertia. That is why the inertia ratio of MA
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR structures review | Initial issue: wing torque margins (NASA-STD-5017B), spring sizing, deployment dynamics and end-of-travel shock, burn-wire energy, AntS interface and clocking, partial deployment, flexible modes, verification items |
 | B | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001, MCAD-01) | Version A springs and R ≥ 5 mm flex shown not to fit the CDS envelope at the hinge line; new hinge (§3A): primary spring on the axis below the wing, secondary at +Z, MoS₂ pins, clock-spring flex at R 1.0–1.6 mm, PTFE-faced snubber, damped soft stop, no latch; torque margins recomputed (§4A: +0.14 cold end of travel, one spring out +0.13, springs +0.12 / +0.04 on yield); dynamics, stop and hold (§5A); VI-STR-04 amended, VI-MECH-01 and -02 added (`hardware/mechanical/hinge.py`) |
+| C | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: spin 8°/s (BASELINE Rev E §8) in the hinge-load statements and the frequency table (spin 0.022 Hz, nutation ≈ 0.004 Hz, scaled with the spin); hold-down drivers and the burn pack current from the EPS board (one 0.8 A driver per resistor, 0.67 A at the pack; SQSO-EPS-BRD-001 §9) |

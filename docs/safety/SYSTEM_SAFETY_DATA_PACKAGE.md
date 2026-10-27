@@ -1,7 +1,7 @@
 # SMART-QSO System Safety Data Package
 
 **Document ID**: SQSO-SDP-002
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: **CDR draft. System hazard analysis complete at the level of the CDR design; no hazard is closed.** Every
@@ -25,8 +25,8 @@ the verification evidence its row names.
 | Result | Value | Basis |
 |--------|-------|-------|
 | Hazards analysed | 16 (§5); HR-01, HR-02, HR-03, HR-05, HR-06 and HR-16 are catastrophic in at least one phase | §4 method |
-| Catastrophic hazard causes meeting their required tolerance **as designed** | External short (two-fault tolerant below the fuse); structural release and materials (design for minimum risk, analysis and test open). **Not met:** RF before 45 min and premature deployment (one inhibit short of three); overcharge (single-fault tolerant until the secondary protector EPS-11 is added); internal short after deep discharge (no recharge lockout) | §6 |
-| Gaps that block the safety review | (1) third RF and deployable inhibit not designed (S1 shows a dashed "Inhibit 3" with its placement open); (2) the shared wing burn line draws ≈ 5.8 A against the 5 A pack fuse and BMS trip, with no hardware on-time limit; (3) no recharge lockout after a deep over-discharge and no dissimilar secondary over-voltage protector (EPS-11, EPS-12); (4) cell lot acceptance below JSC 20793 practice in BATTERY_DESIGN (SQSO-BSA-001 §4 fixes it); (5) UN 38.3 status of a one-off pack for shipping | §6, §12 RIDs |
+| Catastrophic hazard causes meeting their required tolerance **as designed** | External short (two-fault tolerant below the fuse); structural release and materials (design for minimum risk, analysis and test open). Since the EPS board build-to design (SQSO-EPS-BRD-001 Version B, 2026-10-27) also RF before 45 min and premature deployment (three inhibits DS1–DS3), overcharge (secondary protector) and internal short after deep discharge (recharge lockout), as designed; none verified | §6 |
+| Gaps that block the safety review | (1) and (2) of the first issue are closed by design: the third inhibit DS3 (SQSO-EPS-BRD-001 §6.2) and four 0.8 A burn drivers, one per resistor, with a 12 s hardware one-shot (SQSO-EPS-BRD-001 §9); (3) closed by design: recharge lockout K1 and the BQ771806 secondary protector (SQSO-EPS-BRD-001 §5.4, §6.1; EPS-11, EPS-12); open: (4) cell lot acceptance below JSC 20793 practice in BATTERY_DESIGN (SQSO-BSA-001 §4 fixes it); (5) UN 38.3 status of a one-off pack for shipping | §6, §12 RIDs |
 | RF exposure to personnel | 1 W at 145.9 MHz is exempt from routine evaluation beyond **0.65 m** (47 CFR 1.1307(b)(3)(i)(C)); radiating tests at ≥ 1 m or into a load | HR-09 |
 | Accidental-explosion probability on orbit | **1.4 × 10⁻⁴** (< 10⁻³; NASA-STD-8719.14C Req. 4.4-1), 9 × 10⁻⁵ of it from over-discharge then recharge, which a recharge lockout removes | ODAR §4; `software/simulation/cdr/sma/explosion_probability.py` |
 
@@ -82,26 +82,27 @@ test fixtures) and these phases:
 
 ### 3.2 Inhibit architecture as designed at CDR
 
-From `hardware/diagrams/schematics/S1_eps_power_path.py` and `S5_burn_wire.py`:
+From the EPS board build-to design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`, SQSO-EPS-BRD-001 Version B §3, §6, §9) and
+`hardware/diagrams/schematics/S1_eps_power_path.py`, `S5_burn_wire.py` (the first issue drew the earlier S1, with two
+switches and a dashed third inhibit):
 
 ```
-BATT+ ─ F2 5 A fuse ─ RT1 PTC ─ RBF (ground only) ─ DS1 (rail switch, VBAT+) ─ [Inhibit 3: not designed] ─ VBAT bus
-BATT− (BMS CHG/DSG FETs) ─ DS2 (rail switch, return) ─ bus return
-VBAT bus ─ OBC ─ TX_EN (PA supply switch, after the 45 min software timer) ─ PA ─ VHF antenna
-VBAT bus ─ SW6 DEPLOY_EN (high side) ─ 2 × 5 Ω burn resistors in parallel ─ Q low-side NMOS ─ return   (one driver for both wings; one for the antennas)
-Charge path: solar strings ─ MPPT ─ BATT+ (upstream of DS1/DS2; F1 end-of-life passivation fuse, part not yet defined)
+BAT_TOP ─ F2 5 A fuse ─ RT1 PTC ─ F3 (secondary protector) ─ AFE CHG/DSG FETs ─ PACK_P ─ Q4 (DS1) ─ Q5 (DS3) ─ VBAT bus
+BAT_BOT ─ PACK_N ─ Q6 + Q7 back to back (DS2) ─ GND                  RBF: in series with DS2's drive (ground only, not counted)
+VBAT bus ─ 5V_PA buck ─ SW3 (RF_TX_EN AND hardware load shed; after the 45 min software timer) ─ PA ─ VHF antenna
+VBAT bus ─ SW6 DEPLOY_EN ─ 7.0 V burn buck ─ 4 drivers, 0.8 A each, one per burn resistor, 12 s one-shot ─ return
+VBAT bus ─ SW8 DEPLOY_EN ─ 3V3_ANTS ─ AntS (its ARM command and thermal knives)
+Charge path: solar strings ─ trackers (TRK_EN held low by DS3's NO contact) ─ F1 EOL fuse ─ PACK_P (upstream of DS1/DS3)
 ```
 
 | Path | Physical inhibits that count (CDS §2.3.7–2.3.8) | Do not count | Required | Gap |
 |------|---------------------------------------------------|--------------|----------|-----|
-| Battery → RF transmitter | DS1, DS2 | RBF (removed at integration), 45 min timer, TX_EN (commanded by the same OBC that runs the timer) | ≥ 3 | **1 missing** |
-| Battery → each burn-wire | DS1, DS2; SW6 + Q count as **one** (both driven by the one OBC, so a single OBC fault can close both) | RBF, 30 min timer | ≥ 3 | **1 missing** unless the third rail switch is added |
+| Battery → RF transmitter | DS1, DS2, DS3 | RBF (removed at integration), 45 min timer, SW3/RF_TX_EN (commanded by the same OBC that runs the timer) | ≥ 3 | none as designed (VI-LV-06 open) |
+| Array → RF transmitter | DS1, DS3 in the bus; DS3 also holds the trackers off; DS2 opens the return | as above | ≥ 3 | none as designed |
+| Battery → each burn resistor and the AntS | DS1, DS2, DS3; SW6/SW8 and the driver count as **one** (both driven by the one OBC) | RBF, 30 min timer | ≥ 3 | none as designed (VI-LV-06 open) |
 
-**Recommended design (for the chair; EPS and structures owners):** a third independent deployment switch, DS3, on a
-different rail end from DS1/DS2, in series with DS1 on VBAT+ (or on the return), as the documents for the NRCSD backup
-already suggest (LAUNCH_PROVIDER_DELIVERABLES row 2.3.7). DS1–DS3 then give three independent mechanical inhibits to
-every load, RF and deployables alike; SW6/Q and TX_EN remain as additional, uncounted controls. The inhibit-by-inhibit
-test VI-LV-06 verifies it.
+Each switch is on its own rail and harness, drives a FET gate through a ≥ 10 ms RC filter, and no single failure removes
+more than one of the three (SQSO-EPS-BRD-001 §6.3; BASELINE §4). The inhibit-by-inhibit test VI-LV-06 (with V-EPS-3) verifies it.
 
 ## 4. Method
 
@@ -128,8 +129,8 @@ test VI-LV-06 verifies it.
 |-------|-------|
 | Phases, severity | P1–P4 **Critical** (facility, personnel near the cell, co-payloads in the dispenser); P6 **Catastrophic** (crewed cabin) |
 | Causes | (a) Overcharge: charger regulation fails high; BMS over-voltage fails; (b) external short: harness chafe or pinch at the isolated mount, conductive debris, test error at the GSE; (c) internal short: latent cell defect, mechanical damage, lithium plating from charging below 0 °C, copper dissolution after deep over-discharge and recharge; (d) over-temperature: heater stuck on, Jetson or burn-wire heating, test chamber fault; (e) cell-to-cell propagation after one cell vents |
-| Controls | The battery hazard causes, controls and their tolerance are analysed in detail in the EPS review's [BATTERY_SAFETY_ASSESSMENT.md](../environment/BATTERY_SAFETY_ASSESSMENT.md) (SQSO-BSA-001, H1–H9); this report carries the system view and agrees with it. **(a) overcharge:** C1 charger CV at 4.10 V/cell (D8); C2 BMS (BQ76920 class) per-cell over-voltage ≤ 4.25 V opening the CHG FET; C3 a **dissimilar secondary protector** (4.35 V/cell, fixed threshold, three-terminal fuse), which is **not yet in the design** (RID EPS-11; BATTERY_DESIGN's "hardware comparator" is the BMS AFE itself, so C1 and C2 both depend on firmware-written settings); cell CID is a further, uncounted barrier. **(b) external short:** C4 non-resettable 5 A pack fuse F2; C5 PTC RT1; C6 BMS short-circuit trip (< 10 µs); C7 cell-tap leads through 1 kΩ (S1) so a tap-harness short is current-limited; insulated, staked harness; insulated tools and the GSE charger fused at ≤ 1 A. **(c) internal short:** C8 cell lot acceptance (§7.1; VI-SAF-03); C9 charge inhibited in hardware outside 0–45 °C (SYS-602); C10 **recharge lockout after any cell < 2.0 V (not in the design: RID EPS-12, which SMA-06 supports)** and the independent hardware low-voltage load disconnect (EPS-09); vibration of the pack at qualification levels. **(d) over-temperature:** C11 heater hardware cut-out at ≈ +40 °C plus a fuse; C12 Jetson bursts only with OBC-enforced current and temperature trips; C13 burn-wire on-time limited in hardware (**not in the design: RID SMA-05**). **(e) propagation:** pack mounted in an aluminium clamp with spacing; vent path out of the pack enclosure (VI-LV-12) |
-| Fault tolerance | (a) **single-fault tolerant today; two-fault tolerant with C3** (EPS-11) if C1–C3 are independent (different ICs, sense lines and supply); (b) two-fault tolerant downstream of F2; upstream of F2 only C7 (single) → DFMR by insulation and staking; (c) DFMR (screening, temperature inhibit), with C10 missing; (d) two-fault for the heater (thermostat, cut-out, fuse); single for the burn line until C13 exists; (e) not analysed |
+| Controls | The battery hazard causes, controls and their tolerance are analysed in detail in the EPS review's [BATTERY_SAFETY_ASSESSMENT.md](../environment/BATTERY_SAFETY_ASSESSMENT.md) (SQSO-BSA-001, H1–H9); this report carries the system view and agrees with it. **(a) overcharge:** C1 charger CV at 4.10 V/cell (D8); C2 BMS AFE (BQ76952, OTP thresholds) per-cell over-voltage ≤ 4.25 V opening the CHG FET; C3 a **dissimilar secondary protector** (BQ771806, 4.35 V/cell, fixed threshold, blowing the three-terminal fuse F3), **designed** (SQSO-EPS-BRD-001 §6.1; RID EPS-11); cell CID is a further, uncounted barrier. **(b) external short:** C4 non-resettable 5 A pack fuse F2; C5 PTC RT1; C6 BMS short-circuit trip (< 10 µs); C7 cell-tap leads through 1 kΩ (S1) so a tap-harness short is current-limited; insulated, staked harness; insulated tools and the GSE charger fused at ≤ 1 A. **(c) internal short:** C8 cell lot acceptance (§7.1; VI-SAF-03); C9 charge inhibited in hardware outside 0–45 °C (SYS-602); C10 **recharge lockout after any cell < 2.0 V (designed: latching relay K1, two-signal clear, SQSO-EPS-BRD-001 §5.4; RID EPS-12, SMA-06)** and the independent hardware low-voltage load disconnect (designed, SQSO-EPS-BRD-001 §8.4; EPS-09); vibration of the pack at qualification levels. **(d) over-temperature:** C11 heater hardware cut-out at ≈ +40 °C plus a fuse; C12 Jetson bursts only with OBC-enforced current and temperature trips; C13 burn-wire on-time limited in hardware (**designed**: 12 s one-shot per driver, 0.8 A per resistor, SQSO-EPS-BRD-001 §9; RID SMA-05). **(e) propagation:** pack mounted in an aluminium clamp with spacing; vent path out of the pack enclosure (VI-LV-12) |
+| Fault tolerance | (a) **two-fault tolerant as designed** with C3, if C1–C3 are independent (different ICs, sense lines and supply; VI-SAF-02); (b) two-fault tolerant downstream of F2; upstream of F2 only C7 (single) → DFMR by insulation and staking; (c) DFMR (screening, temperature inhibit, C10); (d) two-fault for the heater (thermostat, cut-out, fuse); single-fault for the burn line with C13; (e) not analysed |
 | Verification | V-BSA-1 cell lot screening, V-BSA-2 protection trip tests, V-BSA-3 pack acceptance, V-BSA-4 pack-to-frame isolation (SQSO-BSA-001 §9); VI-SAF-02 independence review of C1–C3 on the EPS schematic; VI-LV-11 (cell screening and pack acceptance, LVR-070, LVR-073); VI-LV-14 (battery-side drain ≤ 20 µA); VI-SAF-04 burn-line current and on-time test |
 | Status | **Open.** C3, C10 and C13 missing from the design |
 
@@ -139,10 +140,10 @@ test VI-LV-06 verifies it.
 |-------|-------|
 | Phases, severity | P3–P5 **Catastrophic** (treated so by CDS §2.3.7: interference with launch-vehicle or range systems, co-payload receivers); P1 marginal (test staff, see HR-09) |
 | Causes | Inhibit switch welded or bypassed; switch bounce in vibration powering the bus; software timer fault; OBC fault commanding TX_EN; RBF used as an inhibit |
-| Controls | C1 DS1; C2 DS2; C3 **DS3 (proposed, §3.2)**; uncounted: 45 min RF-silence timer with the radio unpowered (`rf_silence.rs`), TX_EN hardware PA switch, RBF on the ground; no open-air RF checkout during integration (UG v11 §9.5.2) |
-| Fault tolerance | **Single-fault tolerant as designed** (two counted inhibits). Two-fault tolerant with DS3 |
+| Controls | C1 DS1; C2 DS2; C3 **DS3 (designed, §3.2)**; uncounted: 45 min RF-silence timer with the radio unpowered (`rf_silence.rs`), TX_EN hardware PA switch, RBF on the ground; no open-air RF checkout during integration (UG v11 §9.5.2) |
+| Fault tolerance | **Two-fault tolerant as designed** (three counted inhibits, DS1–DS3) |
 | Verification | VI-LV-06 inhibit-by-inhibit test; VI-LV-04 power-inhibit monitoring during random vibration with the battery at flight SOC and RBF out (UG v11 §6.7.7); VI-LV-07 timer test; VI-LV-05 switch toggle resets |
-| Status | **Open (design gap: DS3)** |
+| Status | **Open** (designed; verification VI-LV-06, VI-LV-04 open) |
 
 ### HR-03 Premature deployment of a wing or antenna
 
@@ -150,8 +151,8 @@ test VI-LV-06 verifies it.
 |-------|-------|
 | Phases, severity | P3–P4 **Catastrophic** in a shared dispenser (a deployed appendage can jam the door or a neighbouring CubeSat's ejection, or strike a co-payload; CDS §2.3.8; UG v11 §5.7 "passive deployment of secondary appendages … not allowed"); P1 marginal (pinch, eye injury from a tape element) |
 | Causes | Burn circuit energized (inhibit failure as HR-02); restraint line creep or cut by a sharp edge in vibration; hinge spring overcomes a slack line; AntS release fault |
-| Controls | C1–C3 DS1, DS2, DS3 (proposed) in the burn supply; C4 SW6 + Q (one counted control, see §3.2); C5 restraint line pre-tension and edge radii in the hold-down design; C6 AntS's own redundant release; 30 min timer (CDS §2.4.4; UG v11 §3.3.4 requires ≥ 120 s) not counted |
-| Fault tolerance | Electrical: single-fault tolerant as designed, two-fault with DS3. Mechanical release under vibration: DFMR (line strength factor ≥ 2 on the spring load; vibration test) |
+| Controls | C1–C3 DS1, DS2, DS3 (designed) in the burn supply; C4 SW6 + driver (one counted control, see §3.2); C5 restraint line pre-tension and edge radii in the hold-down design; C6 AntS's own redundant release; 30 min timer (CDS §2.4.4; UG v11 §3.3.4 requires ≥ 120 s) not counted |
+| Fault tolerance | Electrical: two-fault tolerant as designed (DS1–DS3). Mechanical release under vibration: DFMR (line strength factor ≥ 2 on the spring load; vibration test) |
 | Verification | VI-LV-06 (burn lines); VI-LV-04 (stowed through random vibration, inspected after); VI-SAF-05 restraint-line tension and strength test; VI-LV-17 post-environment deployment |
 | Status | **Open** |
 
@@ -263,12 +264,12 @@ Catastrophic (battery and materials in a crewed volume). See Appendix B.
 
 | Hazard | Severity (worst phase) | Required | Achieved as designed | With the recommended changes |
 |--------|------------------------|----------|----------------------|------------------------------|
-| HR-01a Overcharge | Catastrophic (P6) / Critical | 2-FT | **1-FT** (C1, C2) | 2-FT with the secondary protector (EPS-11), if independent (VI-SAF-02) |
+| HR-01a Overcharge | Catastrophic (P6) / Critical | 2-FT | 2-FT (C1–C3; the secondary protector designed, EPS-11), if independent (VI-SAF-02) | Same |
 | HR-01b External short | Catastrophic (P6) / Critical | 2-FT | 2-FT below F2; DFMR above | Same |
-| HR-01c Internal short | Catastrophic (P6) / Critical | DFMR | DFMR without the recharge lockout | DFMR with C10 and JSC-20793-style screening |
-| HR-01d Over-temperature | Critical | 1-FT | Heater 2-FT; burn line **0-FT** (no on-time limit, and its current exceeds the fuse) | 1-FT with C13 |
-| HR-02 RF before 45 min | Catastrophic | 2-FT (3 inhibits) | **1-FT** | 2-FT with DS3 |
-| HR-03 Premature deployment | Catastrophic | 2-FT (3 inhibits) | **1-FT** | 2-FT with DS3 |
+| HR-01c Internal short | Catastrophic (P6) / Critical | DFMR | DFMR with the recharge lockout C10 (designed) | DFMR with JSC-20793-style screening |
+| HR-01d Over-temperature | Critical | 1-FT | Heater 2-FT; burn line 1-FT (C13: 12 s one-shot, 0.8 A per resistor, 0.67 A at the pack) | Same |
+| HR-02 RF before 45 min | Catastrophic | 2-FT (3 inhibits) | 2-FT (DS1–DS3 designed) | Same |
+| HR-03 Premature deployment | Catastrophic | 2-FT (3 inhibits) | 2-FT (DS1–DS3 designed) | Same |
 | HR-05 Structural release | Catastrophic | DFMR | DFMR (analysis and test open) | DFMR |
 | HR-06 Materials (P6) | Catastrophic | DFMR | DFMR (data incomplete) | DFMR |
 | HR-14 Venting | Critical | DFMR | DFMR (analysis open) | DFMR |
@@ -299,9 +300,9 @@ These are in addition to the VI-LV items of SQSO-LVR-001 §10.
   inside 0–45 °C.
 - **Launch-site charging.** UG v11 Appendix D scenario A (no charging after stand-alone operations): the pack must stay
   flight-ready for ≥ 45 days encapsulated (LVR-071).
-- **Missing design elements** (RIDs SMA-05, SMA-06; EPS-09, EPS-11, EPS-12 of SQSO-BSA-001): burn-line current and
+- **Design elements missing at the first issue, now designed** (SQSO-EPS-BRD-001; RIDs SMA-05, SMA-06; EPS-09, EPS-11, EPS-12 of SQSO-BSA-001): burn-line current and
   on-time limit; dissimilar secondary over-voltage protector; recharge lockout after deep over-discharge; hardware
-  low-voltage load disconnect; and the end-of-life charge-path disconnect (F1 in S1, part not yet defined), which is a debris
+  low-voltage load disconnect; and the end-of-life charge-path disconnect (F1, ITV4030 three-terminal fuse fired only by EOL_ARM and EOL_FIRE), which is a debris
   requirement (ODAR §4) rather than a launch-safety one. Its command sequence is designed, not implemented:
   PASSIVATE_ARM (0x34, operational key), then PASSIVATE_EXECUTE (0x35, recovery key) within 600 s, which latches TX-OFF
   first and then fires the SYS-800 disconnect (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` v0.7 §6.4). It cannot
@@ -337,9 +338,9 @@ battery and Jetson limits) and never for launch safety.
 
 | RID | Severity | Finding | Required action | Disposition |
 |-----|----------|---------|-----------------|-------------|
-| SMA-01 | 1 | Third RF and deployable inhibit not designed (S1 shows a dashed "Inhibit 3" with its placement open); SW6 and Q are one OBC-dependent control | Add DS3 (§3.2) | For the chair (EPS/structures) |
-| SMA-05 | 1 | The two parallel 5 Ω wing burn resistors on one driver draw ≈ 5.8 A at 14.4 V, above the 5 A pack fuse F2 and the 5 A BMS trip; no hardware on-time limit | Current limit 0.5–1 A per resistor (S5 F7) and a hardware on-time cut-off; VI-SAF-04 | For the chair (EPS) |
-| SMA-06 | 2 | No recharge lockout after a cell falls below ≈ 2.0 V (the precharge mode charges any cell under 3.0 V); it is the largest term of the explosion probability (ODAR §4) | Latched charge lockout (same as EPS-12), cleared only by ground command | For the chair (EPS) |
+| SMA-01 | 1 | Third RF and deployable inhibit not designed (S1 shows a dashed "Inhibit 3" with its placement open); SW6 and Q are one OBC-dependent control | Add DS3 (§3.2) | Closed by design (SQSO-EPS-BRD-001 §6.2; BASELINE Rev E §4); VI-LV-06 open |
+| SMA-05 | 1 | The two parallel 5 Ω wing burn resistors on one driver draw ≈ 5.8 A at 14.4 V, above the 5 A pack fuse F2 and the 5 A BMS trip; no hardware on-time limit | Current limit 0.5–1 A per resistor (S5 F7) and a hardware on-time cut-off; VI-SAF-04 | Closed by design (0.8 A per resistor, 12 s one-shot, four drivers, SQSO-EPS-BRD-001 §9); VI-SAF-04 open |
+| SMA-06 | 2 | No recharge lockout after a cell falls below ≈ 2.0 V (the precharge mode charges any cell under 3.0 V); it is the largest term of the explosion probability (ODAR §4) | Latched charge lockout (same as EPS-12), cleared only by ground command | Closed in hardware (SQSO-EPS-BRD-001 §5.4); clear command for the flight software |
 | SMA-07 | 2 | Cell screening in BATTERY_DESIGN §9.1 has no vibration, vacuum, self-discharge or lot statistics | Adopt SQSO-BSA-001 §4 (V-BSA-1, -3) | Verification item |
 | SMA-08 | 2 | Pack UN 38.3 status and the 49 CFR 172.101 declaration | VI-SAF-09 (V-BSA-5) | Verification item |
 | SMA-10 | 3 | Integration SOC differs between documents: 60 % ± 5 % (LVR-051, LVR-071) and 50 % ± 10 % (SQSO-BSA-001 §6) | One value in the battery program and the launch requirements | For the chair |
@@ -374,3 +375,4 @@ vehicle and is handled inside the ISS, so the crew is exposed and the safety pro
 |---------|------|--------|-------------|
 | 0.1 | 2026-10-16 | SMART-QSO Team | Skeleton created (funding audit VV-20), structured on SpaceX Rideshare Payload User's Guide v11 as the interim provider |
 | 1.0 | 2026-10-27 | CDR S&MA review | System hazard analysis: energy-source inventory, inhibit architecture against CDS 2.3.7–2.3.8 from schematics S1 and S5, 16 hazard reports with causes, controls, fault tolerance and verification, fault-tolerance summary, VI-SAF-01–09, battery program, ground operations, ISS backup appendix; UG v11 sections cited from the guide; LVR-070–073 reflected (HR-01, HR-14, HR-15) |
+| 1.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §1 result rows, §3.2 inhibit architecture (three deployment switches DS1–DS3 on three rails, four burn drivers, EOL fuse F1), HR-01 controls (secondary protector, recharge lockout, burn on-time limit designed), HR-02/HR-03 tolerance and the §6 summary, and the dispositions of SMA-01, SMA-05, SMA-06, all from SQSO-EPS-BRD-001 Version B; no hazard closed (verification open) |

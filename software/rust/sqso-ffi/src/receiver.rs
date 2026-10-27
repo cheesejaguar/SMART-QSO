@@ -62,18 +62,11 @@ pub extern "C" fn receiver_step(keyed: bool) {
     // SAFETY: plain values (the HAL)
     let (carrier, fault) = unsafe { (c::hal_gpio_get(GPIO_PIN_RX_CD), c::hal_gpio_get(GPIO_PIN_RX_FAULT)) };
     let powered = !crate::rf_silence::rf_silence_active();
-    let timeout_ms = u64::from(crate::contact_monitor::contact_monitor_get_timeout_days()) * 86_400_000;
+    let contact_lost = crate::contact_monitor::contact_monitor_inhibited();
     let action = RX.with(|s| {
         let frame = frames != s.valid_frames;
         s.valid_frames = frames;
-        let inputs = Inputs {
-            powered: powered && !s.rx.cycling(),
-            frame,
-            carrier,
-            fault,
-            keyed,
-            contact_timeout_ms: timeout_ms,
-        };
+        let inputs = Inputs { powered: powered && !s.rx.cycling(), frame, carrier, fault, keyed, contact_lost };
         let was_failed = s.rx.failed();
         let action = s.rx.step(now, &inputs);
         (action, !was_failed && s.rx.failed())

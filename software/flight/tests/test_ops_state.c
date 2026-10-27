@@ -186,6 +186,13 @@ static void test_verify_merges_toward_safe(void **state)
     ops_state_verify();
     assert_true(ops_commissioning_hold());
     assert_int_equal(ops_set_commissioning_hold(false), SMART_QSO_OK);
+    /* The other records refuse with IO too when FRAM cannot be written */
+    assert_int_equal(sys_state_init(), SMART_QSO_OK);
+    assert_int_equal(cmd_handler_init(), SMART_QSO_OK);
+    hal_sim_flash_fail_writes(true);
+    assert_int_equal(ops_set_xpdr_enabled(true), SMART_QSO_ERROR_IO);
+    assert_int_equal(exec1((uint8_t)CMD_ADCS_SET_GEOMETRY, 1U, 1U), CMD_RESULT_EXEC_FAIL);
+    hal_sim_flash_fail_writes(false);
 }
 
 /** EPS-10: wings spent and not deployed hold the mode at IDLE */

@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat, 2026-10-27 to a 2028 Launch
 
 **Document ID**: SQSO-SCH-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Status**: Planning baseline from a critical-path model. No vendor quote, laboratory booking, integrator schedule or
 funding commitment exists yet; each is an assumption below. Update at least every 30 days (finding PI-12).
@@ -27,20 +27,20 @@ and an already-held PDR and CDR; neither exists (BASELINE §1).
 | FM and launch funding committed; launch deposit | **2027-05-31 (assumption)** | Risk R11: funding decision by Q2 2027 |
 | Launch contract signed (launch-vehicle determination) | 2027-05-31, deadline **2027-06-30** | Decision D7 |
 | Independent CDR (Table G-7) with EM test data | 2027-08-03 | §3 |
-| Planning launch | **2028-06-01** (Transporter-class rideshare) | BASELINE §3; the date of the lifetime analysis and the SIL |
-| Mission-analysis inputs: CAD, dynamic model, mass properties ± 15 %, webforms | L − 8 months = **2027-10-01** | LVR-003, LVR-005 (UG v11 Table G-3) |
-| Hazardous-systems declaration, 91-710 letter | L − 6 months = 2027-12-01 | LVR-008 |
-| Protoflight environmental campaign complete | **L − 4 months = 2028-02-01** | LVR §9 (UG v11 Fig. 1-2) |
-| Environmental verification report, final mass properties ± 5 % | **L − 3.5 months = 2028-02-15** | LVR-007 |
-| Delivery to the integrator | L − 50 days = 2028-04-12 | LVR §9 (date set by the mission ICD) |
-| Final charge and integration into the dispenser; no access afterwards | L − 47 days = 2028-04-15 | LVR §9 |
+| Planning launch | **2028-11-01**, the last Transporter-class rideshare of 2028 (was 2028-06-01, now only an opportunity) | BASELINE Rev E §3 (CR-2026-007), from finding 2 of §3; the SIL's deployment date |
+| Mission-analysis inputs: CAD, dynamic model, mass properties ± 15 %, webforms | L − 8 months = **2028-03-01** (2027-10-01 for June) | LVR-003, LVR-005 (UG v11 Table G-3) |
+| Hazardous-systems declaration, 91-710 letter | L − 6 months = 2028-05-01 | LVR-008 |
+| Protoflight environmental campaign complete | **L − 4 months = 2028-07-01** (2028-02-01 for June) | LVR §9 (UG v11 Fig. 1-2) |
+| Environmental verification report, final mass properties ± 5 % | **L − 3.5 months = 2028-07-17** | LVR-007 |
+| Delivery to the integrator | L − 50 days = 2028-09-12 | LVR §9 (date set by the mission ICD) |
+| Final charge and integration into the dispenser; no access afterwards | L − 47 days = 2028-09-15 | LVR §9 |
 
 The binding deadline is the **end of the protoflight campaign at L − 4 months**, not the delivery date.
 
 ## 2. Schedule
 
-Early dates (the same for any launch date) and total float to the binding deadlines, for the June 2028 planning launch
-and for a November 2028 launch. Negative float (bold) means the task cannot finish in time on the June date.
+Early dates (the same for any launch date) and total float to the binding deadlines, for the June 2028 date (the
+planning launch until BASELINE Rev E) and for the November 2028 planning launch. Negative float (bold) means the task cannot finish in time on the June date.
 
 | ID | Task | Duration | Early start | Early finish | Float, L = 2028-06-01 | Float, L = 2028-11-01 |
 |----|------|----------|-------------|--------------|-----------------------|-----------------------|
@@ -116,7 +116,7 @@ per year to the start of I&T and 2 months per year from the start of I&T to the 
 2. **The earliest launch that meets the GOLD margin is about 2028-09; a launch around 2028-11 has 18.6 weeks of float
    and absorbs a two-month slip in EM funding.** Recommendation to the PI and the chair: **baseline the last 2028
    rideshare (about 2028-11) for planning and funding**, write the June date out of the RFQs, and use the D7 contract's
-   rebooking clause (BASELINE §3) only for a further slip.
+   rebooking clause (BASELINE §3) only for a further slip. *Adopted by the chair: BASELINE Rev E §3 (CR-2026-007).*
 3. The administrative deadlines have almost no float: the legal entity (DP-1) by 2026-12-31 has 9 days, the RFQs 2
    days, and the contract 30 days to the D7 deadline. They do not move with the launch date.
 4. **Regulatory timing**: the FCC pre-space notification is due within **30 days of launch-vehicle determination**
@@ -161,3 +161,4 @@ per year to the start of I&T and 2 months per year from the start of I&T to the 
 |---------|------|-------------|--------|
 | — | before 2026-10-27 | Relative "Month −9 to Month 0" schedule (no ID) | SMART-QSO Team |
 | A | 2026-10-27 | Replaced by a dated critical-path schedule from `software/simulation/cdr/pm/schedule_cpm.py`, with the integrator deliverable dates of SQSO-LVR-001 §9 as deadlines, float, scenarios and the regulatory timing (CDR review, PM/SE/V&V; finding PI-12) | CDR review, PM/SE/V&V |
+| B | 2026-10-27 | CDR 2026 consistency pass: planning launch 2028-11-01 (BASELINE Rev E §3, CR-2026-007) in the §1 key dates (L-relative dates from `schedule_cpm.py --launch 2028-11-01`); finding 2 marked adopted. Floats unchanged | CDR documentation review |

@@ -2,10 +2,10 @@
 ## SMART-QSO Amateur Space Station
 
 **Document Number:** SQSO-REG-014
-**Revision:** A.1
+**Revision:** A.2
 **Date:** 2026-10-27
 **Status:** Templates. Complete and file at the times shown. Fields in `[brackets]` are fill-ins.
-**Rule:** 47 CFR 97.207(g)(2) and (g)(3) (eCFR version of 2026-10-01, unchanged). Planned dates: in-space by **2028-06-08** for a 2028-06-01 launch; post-space by **2030-09-01** for an end of transmissions on 2030-06-01 (REGULATORY_ROADMAP Rev B §3)
+**Rule:** 47 CFR 97.207(g)(2) and (g)(3) (eCFR version of 2026-10-01, unchanged). Planned dates: in-space by **2028-11-08** for the 2028-11-01 planning launch; post-space by **2031-02-01** for an end of transmissions on 2030-11-01 (REGULATORY_ROADMAP Rev C §3; BASELINE Rev E §3)
 
 | Notification | Deadline (rule text) |
 |--------------|----------------------|
@@ -64,3 +64,4 @@ procedure (`docs/operations/COMMISSIONING_PLAN.md`).
 |-----|------|-------------|
 | A | 2026-10-14 | Initial templates (funding audit) |
 | A.1 | 2026-10-27 | CDR review (communications panel): rule currency, planned dates, termination methods limited to what is implemented |
+| A.2 | 2026-10-27 | CDR 2026 consistency pass: planned dates for the 2028-11-01 planning launch (BASELINE Rev E §3) |

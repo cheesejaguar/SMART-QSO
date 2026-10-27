@@ -1,7 +1,7 @@
 # Systems Engineering Management Plan (SEMP)
 
 **Document Number**: SMART-QSO-SEMP-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Status**: Draft
 
@@ -41,10 +41,10 @@ design precedents only, surveyed with sources in `docs/project/HERITAGE_ASSESSME
 | OBC | STM32L4R5ZI, Rust flight software on the Embassy executor, no RTOS (BASELINE §6; CR-2026-002) |
 | AI payload | Jetson Orin Nano 8 GB module on a custom carrier, 7 W mode, ≤ 8 W input, bursts ≤ 120 s; flight baseline AI is the OBC-resident template selector (D5) |
 | RF | Single-channel FM transponder, uplink 435-438 MHz (70 cm), downlink 145.800-146.000 MHz (2 m); 1200 bps AFSK AX.25 beacon; 0.5 W nominal, 1 W maximum; HMAC-authenticated telecommand with hardware TX-OFF (BASELINE §7). Version 1.0 said "UHF downlink, VHF optional": wrong |
-| ADCS | Active: 3-axis magnetorquers, magnetometer, sun sensors, MEMS gyro (Epson M-G370PDT0); B-dot detumble; spin-stabilised coarse sun-pointing of +Y at 6°/s (BASELINE §8, D9). Version 1.0 said "passive magnetic": wrong |
+| ADCS | Active: 3-axis magnetorquers, magnetometer, sun sensors, MEMS gyro (Epson M-G370PDT0); B-dot detumble; spin-stabilised coarse sun-pointing of +Y at 8°/s (BASELINE §8, D9). Version 1.0 said "passive magnetic": wrong |
 | EPS | 16 triple-junction cells (body plus two deployable wings), 4S1P INR18650-35E ≈ 50 Wh charged to 4.10 V/cell (D8), custom EPS (ISIS ICEPS2 alternate) |
 | GNSS | SkyFox piNAV-NG/FM, duty-cycled (D6) |
-| Disposal | Passive drag, wings deployed; ≤ 525 km deployment; FCC 5-year rule |
+| Disposal | Passive drag, wings deployed; 465–485 km deployment, not above 485 km (BASELINE §3); FCC 5-year rule |
 
 ### 2.2 Key technical decisions
 
@@ -200,3 +200,4 @@ Interface changes go through the change request log; interface verification is p
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | Funding audit | TPM table cites the controlled analyses (link margin: TB-05; mass: TB-06; power generation: TB-14) |
 | 2.0 | 2026-10-27 | CDR review, PM/SE/V&V | Reference framework NPR 7123.1D (not "Rev E"), not mandatory; NASA Ames "heritage approach" claim removed; architecture to BASELINE Rev D (STM32L4R5ZI and Embassy, not Apollo4; active ADCS, not passive; VHF downlink and UHF uplink, not "UHF downlink"); NPR 7123.1D process tailoring; reviews per the CDR criteria matrix; TPMs re-stated against requirements with margins (three not met); protoflight definition corrected; baselines aligned with the CM plan; interface list with document IDs; dated metrics |
+| 2.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: ADCS spin 8°/s (BASELINE Rev E §8); disposal altitude 465–485 km (BASELINE Rev E §3) |

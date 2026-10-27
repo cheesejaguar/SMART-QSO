@@ -1,9 +1,19 @@
 # End-of-Life Plan
 ## SMART-QSO CubeSat Mission
 
+> **CDR 2026 consistency notice (2026-10-27): §3 to §10 are stale; do not use them.** This revision predates the
+> baseline. It assumes a deployable drag device (removed from the baseline: the solar wings stay deployed as the drag
+> area, BASELINE §3), a 400–500 km orbit (now 475 km target, 465–485 km, not above 485 km), a 25-year rule (the FCC
+> rule is re-entry within 5 years of mission end, 47 CFR 97.207(g)(1)(vii)(D)(1)) and 47 CFR Part 25. The governing
+> sources for end of life are: disposal and re-entry, `docs/regulatory/filings/ODAR_SMART-QSO.md` §4–§6;
+> passivation, BASELINE §5 (charge path permanently disconnected, transmitters off, battery left discharging), the
+> passivation telecommands of `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` §6.4 and the non-resettable charge
+> disconnect F1, fired only by both EOL_ARM (PF4) and EOL_FIRE (PG1) (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`
+> §7). The plan is to be rewritten from them.
+
 **Document Number:** SQSO-EOL-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-27
 **Reference:** NASA-STD-8719.14A, FCC 47 CFR 25.114
 
 ---
@@ -294,3 +304,4 @@ If passivation incomplete:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | CDR 2026 consistency pass: notice that §3–§10 are stale (drag device, 400–500 km, 25-year rule) with the governing sources (ODAR, BASELINE Rev E §3, §5, the EOL disconnect of SQSO-EPS-BRD-001 §7) | CDR documentation review |

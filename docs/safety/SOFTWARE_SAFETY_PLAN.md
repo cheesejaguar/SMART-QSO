@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SSP-001
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Classification:** Class D payload (NPR 8705.4B, proposed); software Class C (NPR 7150.2D)
 **Governing Standards:** NASA-STD-8739.8B (replaces NASA-STD-8719.13, cancelled 2020), NPR 7150.2D
@@ -186,8 +186,11 @@ Status (2026-10-27, CDR): Rust lines 94.2 % and branches and conditions 80.9 % o
 safety-critical files pass the per-file gate with 0 problems after the CDR changes to `rf_silence.rs`, `deployment.rs`
 and `state_machine.rs`. The CDR added four hazards (`docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` Rev B §9: transponder
 emission, RF inhibits, commissioning hold, OBC selector). Their controls in `transponder.rs` and `ops_state.rs` meet
-the NASA-STD-8739.8B §4.2 criteria and are recommended for the safety-critical list (RID FSW-05; `transponder.rs` is
-at 98.8 % lines and 90.9 % conditions and needs tests before it can join). NPR 7150.2D SWE-220 (cyclomatic complexity
+the NASA-STD-8739.8B §4.2 criteria and joined the safety-critical list on 2026-10-27 (RID FSW-05, SRS-Q013).
+
+Status (2026-10-27, CDR flight software round 2): Rust lines 94.3 % and branches and conditions 81.4 % over the flight
+crates; the 26 safety-critical files (`sqso-fsw/src/transponder.rs`, `sqso-fsw/src/ops_state.rs` and
+`sqso-ffi/src/ops_state.rs` added) pass the per-file gate with 0 problems and 15 reviewed `COVERAGE-EXEMPT` lines. NPR 7150.2D SWE-220 (cyclomatic complexity
 ≤ 15 for safety-critical components) is not yet measured for the Rust (RID FSW-06,
 `docs/software/NPR7150_COMPLIANCE_MATRIX.md`). Also required:
 - Fault injection testing for all identified fault conditions
@@ -294,6 +297,7 @@ All personnel working on safety-critical software shall complete:
 | C | 2026-10-24 | The OBC flight software is Rust: §2 scope; §8.2 coverage status (line coverage gated, branch not measured); §9.2 process controls as implemented for the Rust | SMART-QSO Team |
 | C, note | 2026-10-25 | §2 scope: no RTOS is the baseline (CR-2026-002). §5: the criticality letters are not NPR 7150.2D classes (software Class C, SDP §3.1). Header: payload Class D (NPR 8705.4B) and NASA-STD-8739.8B. §8.2: the safety-critical components and SWE-219 (MC/DC; CR-2026-003) with measured coverage | SMART-QSO Team |
 | D | 2026-10-27 | §8.2 CDR status: coverage after the CDR changes, the four hazards added to the hazard analysis, `transponder.rs` and `ops_state.rs` recommended as safety-critical (RID FSW-05), SWE-220 not measured (RID FSW-06) | SMART-QSO Team (CDR avionics review) |
+| E | 2026-10-27 | §8.2: `transponder.rs` and `ops_state.rs` (both crates) on the safety-critical list and through the gate (FSW-05); coverage of the round-2 flight software | SMART-QSO Team (CDR flight software, round 2) |
 
 ---
 

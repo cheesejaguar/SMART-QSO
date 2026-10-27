@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-016
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Status:** Checklist. Every item is **open**; no hardware exists yet.
 **Applies to:** the primary path of the [orbital access plan](../../ORBITAL_ACCESS.md) (SpaceX Transporter-class rideshare through Exolaunch, EXOpod Nova) and, where noted, the NRCSD backup. The dated deliverable schedule with sources is [SQSO-LVR-001 §9](../../mission/LAUNCH_VEHICLE_REQUIREMENTS.md); the requirement flow-down with verification is the rest of that document. The integrator's mission ICD **supersedes** this list where it differs.
@@ -16,7 +16,7 @@ Delivered to the integrator (Exolaunch), which forwards them to SpaceX, unless t
 | Kickoff | Technical points of contact; TAA questionnaire or Export Compliance Agreement | [Export memo](EXPORT_CLASSIFICATION_MEMO.md); counsel | Open (contracting entity: RID LV-09) |
 | L-8 M | Configuration webform (Appendix H constituent details); CAD (Appendix C); dynamic model and worksheet (Appendix B); mass properties ± 15 %; separation verification analysis; transmitter verification webform; electrical pinout webform (none: no LV interface); environmental test approach and schedule | MASS_BUDGET v2.0; `software/simulation/cdr/launch/leop_feasibility.py` (ejection velocity, turn-on delay) | Open (no CAD, no FEM) |
 | L-6 M | Spacecraft Declaration of Hazardous Systems; SSCMAN 91-710 compliance letter; FAA payload review template; FAA cross-waivers | `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` (skeleton) | Open |
-| L-5 M | Orbit selection webform (≤ 525 km) | BASELINE §3 | Open |
+| L-5 M | Orbit selection webform (≤ 485 km; target 475 km) | BASELINE §3 | Open |
 | L-3.5 M | Mass properties ± 5 %; environmental verification report (SpaceX template), including test-like-you-fly exceptions and any "advised" tests not done (shock) | `LAUNCH_VEHICLE_REQUIREMENTS.md` §8 | Open |
 | L-2 M | TPL additional insureds; payload insurer details and waivers of subrogation; badging; Ground Operating Plan and hazardous procedures (if any at the site); licence copies; Appendix F licensing certification letter (before shipment); launch-site training; 18th SDS coordination; as-measured mass | §3 below | Open |
 | Launch campaign | Encapsulation readiness and launch readiness certificates (Appendix D, scenario A: no charging; SOC 60 % at integration) | `docs/operations/LAUNCH_SITE_OPS.md` | Open |
@@ -102,3 +102,4 @@ Providers, and for ISS deployment NASA JSC-20793, require more than CDS 2.3.6. P
 |-----|------|-------------|
 | A | 2026-10-14 | Initial checklist (funding audit) |
 | B | 2026-10-27 | CDR launch review: §0 SpaceX Statement-of-Work deliverables from UG v11 Appendix G with sources and status; the 120 s rule, prohibited materials, hard-body radius and ephemeris rows; inhibit row restated (no schematic); shipping state of charge; the dated schedule is SQSO-LVR-001 §9 |
+| C | 2026-10-27 | CDR 2026 consistency pass: orbit selection ≤ 485 km (BASELINE Rev E §3) |

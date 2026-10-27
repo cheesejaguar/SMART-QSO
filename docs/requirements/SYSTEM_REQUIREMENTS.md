@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-002
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 **Reference:** NPR 7123.1D (tailored, `docs/project/CDR_CRITERIA_MATRIX.md` §2); `docs/BASELINE_PARAMETERS.md` Rev D
 
@@ -94,7 +94,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 |----|-------------|--------|--------------|
 | SYS-010 | The spacecraft shall be designed for a 2-year operational life, with a minimum mission of 12 months (BASELINE §2) *(was a 12-month life until Rev D; CDR review 2026-10-27)* | MRD-001 | A |
 | SYS-011 | All components shall be derated per EEE-INST-002 guidelines | MRD-001 | A |
-| SYS-012 | The spacecraft shall survive 11,200 orbital thermal cycles (2 years at about 15.3 orbits a day at 450-500 km) *(was 10,000, below the 2-year count; CDR review 2026-10-27)* | MRD-001 | A |
+| SYS-012 | The spacecraft shall survive 11,200 orbital thermal cycles (2 years at about 15.3 orbits a day at 465-485 km) *(was 10,000, below the 2-year count; CDR review 2026-10-27)* | MRD-001 | A |
 | SYS-013 | The spacecraft shall survive the radiation environment for mission duration | MRD-001 | A |
 
 ### 5.3 Reliability Requirements
@@ -244,7 +244,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 |----|-------------|--------|--------------|
 | SYS-420 | The ADCS shall detumble the spacecraft from body rates of up to 10 deg/s within 3 orbits (BASELINE §8, decision D9) *(was below 5 deg/s within 7 days; CDR review 2026-10-27; exit condition TBR-MRD-005)* | MRD-060 | A,T |
 | SYS-421 | The ADCS shall implement B-dot detumble control | MRD-060 | D |
-| SYS-422 | The ADCS shall achieve spin-stabilized coarse sun-pointing of +Y at 6 deg/s, with +Y within 15° of the Sun for at least 90 % of sunlit time (BASELINE §8; Monte Carlo of the flight code: 100 %) *(was "gravity gradient or sun-pointing"; CDR review 2026-10-27)* | MRD-062 | A,T |
+| SYS-422 | The ADCS shall achieve spin-stabilized coarse sun-pointing of +Y at 8 deg/s, with +Y within 15° of the Sun for at least 90 % of sunlit time (BASELINE §8; Monte Carlo of the flight code with the layout-B inertia: 99.6 %; 6 deg/s until BASELINE Rev E) *(was "gravity gradient or sun-pointing"; CDR review 2026-10-27)* | MRD-062 | A,T |
 
 ---
 
@@ -357,7 +357,7 @@ connect them to the system requirements. The signed integrator ICD (decision D7)
 | SYS-904 | The spacecraft shall provide a forward-predicted, GNSS-based ephemeris with covariance within 24 hours of first contact, and then at least every 24 hours until it is catalogued (SpaceX UG v11 §9.5.7.2; BASELINE §6, decision D6) [Provider: LVR-089, LVR-091] | MRD-098 | D |
 | SYS-905 | The spacecraft shall be compatible with the launch environment's EMI: it is unpowered in the dispenser, so compatibility is shown by the inhibits (SYS-085, SYS-704) and by the integrator's EMISM requirement [Provider: LVR-053, LVR-054, LVR-061, LVR-062] | MRD-098 | A |
 | SYS-906 | The developer shall deliver the integrator's required documents: ICD verification matrix, environmental test reports, materials list with ASTM E595 data, hazard declaration, battery data, mass-properties report, export statement and proof of the FCC filing (`docs/regulatory/filings/LAUNCH_PROVIDER_DELIVERABLES.md`) [Provider: LVR-002 to LVR-012, LVR-014, LVR-015, LVR-082] | MRD-099 | I |
-| SYS-907 | The deployment altitude in the contract shall be at most 500 km target and 525 km hard cap, with no-penalty rebooking if the assigned flight offers nothing at or below the cap (BASELINE §3, D7) | MRD-013 | I |
+| SYS-907 | The deployment altitude in the contract shall be at most 475 km target and 485 km hard cap, with no-penalty rebooking if the assigned flight offers nothing at or below the cap (BASELINE §3, D7) | MRD-013 | I |
 | SYS-908 | No hazardous material, pressure system or energy source other than the battery and the burn-wire release shall be carried, and the hazard declaration shall be accepted by the integrator (range safety via AFSPCMAN/SSCMAN 91-710) [Provider: LVR-008, LVR-072, LVR-083] | MRD-080 | I |
 | SYS-909 | After delivery, the spacecraft shall need no access, charging or software load until launch, and shall tolerate storage in the dispenser at the integrator's specified state of charge for the stated duration [Provider: LVR-051, LVR-052, LVR-071, LVR-074; at least 45 days in the dispenser without charging] | MRD-098 | A |
 | SYS-910 | If the NRCSD (ISS) backup is used, the battery shall meet JSC 20793 Rev D and the NRCSD IDD Rev A, and the spacecraft shall meet the NRCSD 2.40 kg limit (BASELINE §3) [conditional: ISS path only; Provider: LVR-100 to LVR-114] | MRD-080 | I,T |
@@ -453,3 +453,4 @@ from this document by `software/simulation/cdr/pm/gen_vcrm.py`.
 | C | 2026-10-16 | Frequency accuracy renumbered SYS-206 (SYS-204 was defined twice; SYS-204 stays TX-OFF). SYS-211 amended to the BASELINE §8 beacon intervals, PI to ratify (finding VV-06) | SMART-QSO Team |
 | D | 2026-10-16 | SYS-700 amended from GEVS protoflight levels to the launch provider's levels, interim SpaceX Rideshare User's Guide v11 as used by TP-ENV-002, PI to ratify; ID kept (findings LA-05, VV-06) | SMART-QSO Team |
 | E | 2026-10-27 | CDR review (PM/SE/V&V). Aligned with `docs/BASELINE_PARAMETERS.md` Rev D: SYS-002 (dispenser limit), SYS-003 (per axis), SYS-010, SYS-012, SYS-100, SYS-111, SYS-203 (46 dB and 60 dB), SYS-420, SYS-422, SYS-112 (10 % nominal), SYS-501, SYS-502, SYS-510, SYS-512, SYS-513, SYS-603, SYS-701, SYS-702, SYS-712. Added CDS Rev 14.1 flow-down SYS-080 to SYS-089 (§5.1a), launch-environment verification SYS-703 to SYS-709 (§12.3), EMC SYS-713 (§12.4), and launch-provider, integrator and regulatory requirements SYS-900 to SYS-919 (§13a), traced to the launch reviewer's LVR-001 to LVR-114 (SQSO-LVR-001). TBD/TBR target dates set. Change request to be logged by the chair (CR-2026-007) | CDR review, PM/SE/V&V |
+| F | 2026-10-27 | CDR 2026 consistency pass: SYS-012 (465-485 km), SYS-422 (8 deg/s spin), SYS-907 (475 km target, 485 km cap) from `docs/BASELINE_PARAMETERS.md` Rev E (CR-2026-007) | CDR documentation review |

@@ -1,7 +1,7 @@
 # Software Requirements Specification (SRS)
 
 **Document Number**: SMART-QSO-SRS-001
-**Version**: 1.6
+**Version**: 1.7
 **Date**: 2026-10-27
 **Status**: Preliminary
 
@@ -168,7 +168,7 @@ tests and the mission simulation (`software/rust/sqso-sil`).
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
 | SRS-F080 | The software shall enable the FM transponder only while transmission is permitted, the radio is powered, the ground allows it, the mode is ACTIVE, the array is sunlit, the SOC is at least 55 %, the PA is below 70 °C (resuming at 60 °C) and the keyed time is under 25 % of the last 100 minutes | T | High |
-| SRS-F081 | The software shall drive the transponder enable XPDR_EN as a heartbeat renewed by every main-loop pass while the transponder gates hold, with a lease of at most 60 ms, so that the radio board's 50 ms monostable drops the transponder within 110 ms of the last pass; a level on the pin shall not enable it | T | High |
+| SRS-F081 | The software shall drive the transponder enable XPDR_EN as a heartbeat renewed by every main-loop pass while the transponder gates hold, with a lease of at most 40 ms, so that the radio board's 50 ms monostable drops the transponder within 90 ms of the last pass; a level on the pin shall not enable it | T | High |
 | SRS-F082 | The software shall hold the mode at IDLE, the payload and the transponder off from ARM_FLIGHT until an authenticated commissioning release telecommand, across resets, and shall hold after an unreadable operations record | T | High |
 | SRS-F083 | The software shall let the ground stop and allow the transponder by telecommand, persisted across resets, without changing its other gates | T | Medium |
 | SRS-F084 | The software shall power the GNSS receiver for sessions, every orbit in launch and early operations then four a day, keep the latest fix with its time and quality, and start a session on command; a session shall run only with the Jetson off and the SOC at least 40 %, and shall hold the transponder off | T | Medium |
@@ -176,7 +176,7 @@ tests and the mission simulation (`software/rust/sqso-sil`).
 | SRS-F086 | The software shall command no magnetorquer output until 120 s after separation (SpaceX Rideshare User's Guide v11 §3.3.4) | T | High |
 | SRS-F087 | The software shall latch the served 45-minute RF silence, so that a sense line reading stowed afterwards does not restart it | T | High |
 | SRS-F088 | The software shall space deployment attempts 50 minutes apart and accept a telecommand to retry an element with fresh attempts once the 30-minute wait is served | T | Medium |
-| SRS-F089 | The software shall deploy the solar wings first, each wing burning its two resistors on separate drivers in turn, and then the antennas through the bought AntS controller over I2C (arm, deploy, cancel, disarm), reading each antenna element's deployment switch from the AntS status and reporting the deployed elements in housekeeping | T | High |
+| SRS-F089 | The software shall deploy the solar wings first, one burn resistor at a time on four independent lines (wing 1 resistor A, then wing 2 resistor A, the retries on the B resistors, never two at once), and then the antennas through the bought AntS controller over I2C (arm, deploy, cancel, disarm), reading each antenna element's deployment switch from the AntS status and reporting the deployed elements in housekeeping | T | High |
 
 ### 3.10 Attitude Determination and Control
 
@@ -202,6 +202,55 @@ Design: `docs/payload/OBC_SELECTOR_DESIGN.md` (SQSO-PAY-SEL-001). Not implemente
 | SRS-F105 | A head shall abstain when a feature is stale, missing or outside its training range, or the calibrated confidence is below its threshold | T | Medium |
 | SRS-F106 | A model table that fails its CRC, version or schema check shall disable the selector for the boot and be logged, and parsing any table shall be bounded and free of panics | T | Medium |
 | SRS-F107 | A selector decision shall take at most 0.2 ms and 10 µJ on the STM32L4R5, and the mission simulation with the selector shall show no check worse than with the fixed rules | T, A | Medium |
+
+### 3.12 End of Life, Stored Housekeeping, Contact and Robustness (CDR round 2)
+
+Added at CDR (2026-10-27, flight software round 2) for the review items REG-01, EPS-06, FSW-07 and SMA-13 (end-of-life
+passivation), DB-01 (stored housekeeping), GND-03 (command acknowledgement and contact count), RF-04 (beacon jitter),
+REL-04 (beacon with a failed receiver), FSW-09 (receiver recovery), EPS-10 (wings not deployed), EPS-12 (recharge lockout),
+THM-02 and THM-08 (thermal thresholds) and AV-07 (memory upsets), with the EPS board (SQSO-EPS-BRD-001). Command codes:
+`software/flight/command_dictionary.json` (SQSO-ICD-013 §7). Verification: the named C suites (`test_passivation`,
+`test_hk_store`, `test_receiver`, `test_cmd_handler`, `test_beacon`, `test_deployment`, `test_ops_state`, `test_rf_control`,
+`test_payload_guard`), the Rust unit tests of the modules that carry each tag, and the mission simulation
+(`software/rust/sqso-sil`, the checks of SQSO-SIL-001 §5).
+
+| ID | Requirement | Verification | Priority |
+|----|-------------|--------------|----------|
+| SRS-F110 | The software shall passivate only on two authenticated telecommands: PASSIVATE_ARM (0x70) with the operational key and the argument `EOL!`, then PASSIVATE_EXECUTE (0x71) with the recovery key within 600 s of the arm; an execute without a live arm shall be refused, and an arm not executed within 600 s shall lapse | T | High |
+| SRS-F111 | On PASSIVATE_EXECUTE the software shall, in this order, latch TX-OFF, persist the passivation record, and fire the EPS one-shot charge disconnect through two separate outputs in series: EOL_ARM (its rising edge sets the EPS arm latch), then 200 ms later EOL_FIRE, a level held at least 60 s and at most 120 s and only in sunlight (an eclipse before 60 s drops both and the fire is repeated at the next sunlight, at most 3 attempts); it shall confirm the disconnect from the EPS EOL_STATE register and leave both outputs low | T | High |
+| SRS-F112 | After passivation the software shall keep every transmitter off for good, across resets, whatever the telecommand: the passivation inhibit shall never be lifted, and a passivation the EPS reports done shall count as done without the record | T | High |
+| SRS-F115 | Hung-receiver recovery by a brief power cycle, never during a pass: the software shall power-cycle the radio (RF_TX_EN low, then RADIO_EN low for 2 s) when the command receiver has had neither a valid frame nor a carrier for 24 h with its rail on, never while the downlink or the transponder is keyed or within 15 min of a carrier, at most once per 24 h of silence, and log each cycle | T | High |
+| SRS-F116 | Evidence that the command receiver has failed: the software shall hold the receiver known failed only when a recovery cycle was made in the current silence (after an OBC reset, a new one), the receiver's health line reports a fault and the loss-of-contact timeout has expired (the persisted count of the contact monitor); a valid frame, a carrier or a healthy line shall clear it | T | High |
+| SRS-F117 | With the command receiver known failed, the loss-of-contact inhibit shall not silence the beacon; TX-OFF, the RF silence and passivation shall still silence it, and the transponder shall stay off | T, A | High |
+| SRS-F120 | Five-minute housekeeping records for at least 7 days in FRAM: the software shall store a 44-byte record under CRC every 5 minutes in a ring of 2,048 records (7.1 days, 90,112 B), numbered across resets | T | High |
+| SRS-F121 | Sixty-second records for the 6 h around each fault and mode change: the software shall store a record every 60 s in a ring of 409 records (6.8 h) and copy the 3 h before and the 3 h after each fault and mode change into one of three event windows | T | Medium |
+| SRS-F122 | DUMP_TLM downlinks a range of stored records within the downlink duty limit: on DUMP_TLM (0x0A, operational key; store, first record, count of at most 600, a count of 0 stops a dump) the software shall downlink the records, four to a frame, at most one frame every 12 s, through the downlink's inhibits and duty limit | T, A | Medium |
+| SRS-F125 | Acknowledgement frame after each authenticated command: after each command it counts as contact the software shall downlink `ack KK6GDB-11: C=<counter> R=<result> N=<days since the previous contact>` through the downlink's inhibits, within 30 s or not at all | T | Medium |
+| SRS-F126 | The housekeeping frame shall carry the loss-of-contact count (days since contact) and the commands counted as contact since boot (`CN=`), with the passivation phase (`PS=`), the receiver recovery cycles and known-failed flag (`RX=`) and the stored-record counts (`ST=`) | T | Medium |
+| SRS-F127 | The software shall jitter each beacon interval by up to 5 s either way, keeping the mean interval of each mode | T | Medium |
+| SRS-F128 | The software shall hold the mode at IDLE while the wings read not deployed after their attempts are spent; a DEPLOY_RETRY of the wings shall release the hold | T | High |
+| SRS-F129 | The software shall clear the EPS's latched recharge lockout only on an authenticated command with its code (EPS_CLEAR_LOCKOUT, 0x14, operational key, argument `CHG!`), by an I2C unlock (key 0xC5 to register 0x7D of the EPS controller) and a LOCK_CLR pulse of at least 100 ms, logged | T | High |
+| SRS-F130 | The software shall switch the battery heater on below +5 °C and off above +9 °C | T | High |
+| SRS-F131 | The software shall not power the Jetson while its heat spreader reads below −15 °C (a valid reading of the last minute) | T | High |
+| SRS-F132 | SRAM2 parity and flash ECC errors: an NMI that resets at once, the cause logged at the next boot. The image shall link its static data in SRAM2, erase SRAM2 before using it, and log every boot that finds SRAM2 parity disabled | T, I | Medium |
+| SRS-F133 | Periodic check of the critical persisted state against its CRC-protected records: every 60 s the software shall re-read the TX-OFF latch, the operations record and the passivation record and settle a disagreement with the RAM copy toward the safe side (TX-OFF, held, transponder stopped, passivated), logged | T | Medium |
+
+**REL-04 against 47 CFR 97.207(b) and decision D3 (SRS-F117).** 97.207(b) requires the space station to be capable of
+ceasing transmissions by telecommand when the FCC orders it. The loss-of-contact inhibit of D3 (N = 30 days, 14 after
+commissioning) answers IARU coordination item 7.9 (what stops the transmitters if command contact is lost): when no
+authenticated command has arrived for N days, the software cannot show that the ground could still stop it, so it stops.
+With a receiver that has failed, the capability of 97.207(b) is lost whatever the software does; the inhibit cannot give it
+back, and silencing the beacon then removes the only evidence of the spacecraft's state and of the failure. The exception is
+therefore limited to the case where the evidence shows a receiver hardware failure rather than a ground that is silent:
+all three conditions of SRS-F116 (a recovery cycle made, the health line in fault, the N days expired). After an OBC
+reset the exception waits for a new recovery cycle (24 h of silence), so the beacon can be silent for up to a day after
+each reset in that state. Only the
+beacon and the housekeeping frames continue (at their duty cycle, through the downlink's duty limit); the transponder stays
+off (its gate includes the inhibit), TX-OFF still latches if a command gets through, passivation still ends all
+transmission, and a valid frame or carrier ends the exception. The exception keeps a transmitter on that cannot be turned
+off by telecommand: it is to be declared in the IARU coordination request (item 7.9) and put to the FCC consultation of
+D3. If either rejects it, it is removed before launch: one condition in `software/rust/sqso-ffi/src/contact_monitor.rs`
+(the inhibit then applies whatever the receiver state; `test_receiver` changes with it).
 
 ---
 
@@ -277,6 +326,7 @@ TNC and transmitter are not selected, so SRS-I022 and the thresholds (TBR-SRS-00
 | SRS-Q010 | The software shall be modular with defined interfaces | I | High |
 | SRS-Q011 | Code coverage shall exceed 80% for unit tests | A | High |
 | SRS-Q012 | All public functions shall have Doxygen documentation | I | Medium |
+| SRS-Q013 | The safety-critical components of SOFTWARE_DEVELOPMENT_PLAN §3.2, the FM transponder control and the operations record included, shall have every line run and every condition outcome taken by the tests; a line no test can reach shall be marked as such and reviewed | A | High |
 
 ### 6.3 Portability
 
@@ -306,10 +356,15 @@ TNC and transmitter are not selected, so SRS-I022 and the thresholds (TBR-SRS-00
 
 | ID | Constraint | Verification |
 |----|------------|--------------|
-| SRS-C001 | OBC code shall be written in Rust (2024 edition) or in C conforming to the C11 standard | I (build configuration; CI toolchain pin) |
-| SRS-C002 | No dynamic memory allocation after initialization | T (ctest `no_dynamic_memory`; CI symbol check of the image) |
-| SRS-C003 | Stack size shall not exceed 8 KB | A (`scripts/stack_usage.py` on the image, CI gate), T (HIL-044, MPU guard) |
-| SRS-C004 | Total code size shall not exceed 256 KB | I (`arm-none-eabi-size` of the release image at each release) |
+| SRS-C001 | OBC code shall be written in Rust (2024 edition) or in C conforming to the C11 standard | I |
+| SRS-C002 | No dynamic memory allocation after initialization | T |
+| SRS-C003 | Stack size shall not exceed 8 KB | A, T |
+| SRS-C004 | Total code size shall not exceed 256 KB | I |
+
+How each constraint is verified: SRS-C001 by inspection of the build configuration and the CI toolchain pin; SRS-C002 by
+the ctest `no_dynamic_memory` and CI's symbol check of the image; SRS-C003 by analysis (`scripts/stack_usage.py` on the
+image, a CI gate) and test (HIL-044, the MPU guard); SRS-C004 by inspection (`arm-none-eabi-size` of the release image at
+each release).
 
 **Implementation status of the design constraints (2026-10-25).** Since 2026-10-24 the OBC flight software is Rust
 (`software/rust/README.md`). On the OBC there is no RTOS: the image runs on the Embassy executor
@@ -320,16 +375,20 @@ change request CR-2026-001, `docs/project/CHANGE_REQUEST_LOG.md`).
 |----|--------|
 | SRS-C001 | Met. The flight code is Rust (2024 edition), written to `docs/development/CODING_STANDARDS.md` §11. The C is `software/flight/src/flight_log_fmt.c` (C11, the printf-style flight-log shim, not linked into the image) and the C test suites |
 | SRS-C002 | Met: no dynamic allocation at any time. Checked by the ctest `no_dynamic_memory` and by CI's check that the image links no `malloc`, `free` or `_sbrk` (`software/flight/docs/MEMORY_POLICY.md`) |
-| SRS-C003 | Met by analysis: worst case 5,444 B of 8,192 B (66.5 %, 2026-10-27), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
-| SRS-C004 | Release image text 115,876 B (2026-10-25, CI job STM32L4 Cross-Compile (library)), below 256 KB. Checked at each release (`docs/development/RELEASE_PROCEDURE.md` §5.3); not a CI gate |
+| SRS-C003 | Met by analysis: worst case 6,004 B of 8,192 B (73.3 %, 2026-10-27, after the CDR round-2 changes and the NMI handler), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
+| SRS-C004 | Release image text 160,004 B (2026-10-27, the CDR round-2 image; 115,876 B on 2026-10-25), below 256 KB (62 %). Checked at each release (`docs/development/RELEASE_PROCEDURE.md` §5.3); not a CI gate |
 
 ### 8.2 External Constraints
 
 | ID | Constraint | Verification |
 |----|------------|--------------|
-| SRS-C010 | Beacon transmissions shall comply with amateur radio regulations | I (`docs/BEACON_SPEC.md` §6 against 47 CFR 97), T (content-filter vectors) |
-| SRS-C011 | RF transmissions shall not occur until deployment timer expires | T (C suites `test_rf_silence`, `test_downlink`; SIL check `rf-silence`) |
-| SRS-C012 | Callsign shall be included in all RF transmissions | T (C suites `test_beacon_format`, `test_downlink`), I |
+| SRS-C010 | Beacon transmissions shall comply with amateur radio regulations | I, T |
+| SRS-C011 | RF transmissions shall not occur until deployment timer expires | T |
+| SRS-C012 | Callsign shall be included in all RF transmissions | T, I |
+
+How each is verified: SRS-C010 by inspection (`docs/BEACON_SPEC.md` §6 against 47 CFR 97) and test (the content-filter
+vectors); SRS-C011 by test (C suites `test_rf_silence`, `test_downlink`; SIL check `rf-silence`); SRS-C012 by test (C
+suites `test_beacon_format`, `test_downlink`) and inspection.
 
 ---
 
@@ -383,3 +442,4 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | 1.4 | 2026-10-25 | SMART-QSO Team | SRS-C001 amended by PI decision to Rust (2024 edition) or C11 (was C11 only; CR-2026-001). Status beneath §8.1: SRS-C001 met; SRS-C003 met by analysis (static worst case 4,892 B, CI gate; hardware measurement pending) |
 | 1.5 | 2026-10-25 | SMART-QSO Team | SRS-I023 to SRS-I027 added: the downlink transmitter interface, permission at hand-over, key-down and duty limits, power selection, transmitter protection (CR-2026-005) |
 | 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight-software review) | §3.9 transponder and commissioning (SRS-F080 to SRS-F088: gates, XPDR_EN heartbeat, commissioning hold, ground transponder enable, GNSS sessions, housekeeping frame, 120 s magnetorquer delay, RF-silence latch, deployment retries, SRS-F089 wings first and AntS over I2C); §3.10 ADCS (SRS-F090 to SRS-F094: magnetometer window, coil burst, stale rate, control laws at 8°/s, geometry presets by telecommand); §3.11 OBC selector (SRS-F100 to SRS-F107); verification methods for SRS-C001 to SRS-C012; governing standard NPR 7150.2D and NASA-STD-8739.8B (was NPR 7150.2 Rev B) |
+| 1.7 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §3.12 added: end-of-life passivation (SRS-F110 to SRS-F112), receiver recovery and REL-04 (SRS-F115 to SRS-F117, with the 97.207(b) and D3 reasoning), stored housekeeping and DUMP_TLM (SRS-F120 to SRS-F122), command acknowledgement and contact count (SRS-F125, SRS-F126), beacon jitter (SRS-F127), wings-failed IDLE hold (SRS-F128), recharge-lockout clear (SRS-F129), heater +5/+9 °C (SRS-F130), Jetson cold inhibit −15 °C (SRS-F131), SRAM2 parity and NMI (SRS-F132), periodic check of persisted state (SRS-F133); SRS-Q013 safety-critical coverage; SRS-F081 lease at most 40 ms, drop within 90 ms (was 60 and 110 ms); SRS-F089 four burn lines, one resistor at a time; §8 constraint verification column reduced to the method codes, the detail moved beneath the tables; SRS-C003 status 6,004 B; SRS-C004 status 160,004 B |

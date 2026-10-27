@@ -1,7 +1,7 @@
 # SMART-QSO System (Hardware) FMEA and Critical Items List
 
 **Document ID**: SQSO-FMEA-002
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft, functional and hardware level, from the CDR design (BASELINE Rev D, `docs/hardware/BUILD_VS_BUY.md`,
@@ -106,7 +106,8 @@ failures, not wear-out, dominate.
 Two single points are **not** accepted, because they are cheap to remove:
 
 1. **HF-13**, one burn driver for both wings: a second driver removes the common cause that dominates the wings-failed
-   probability (1.6 % with it, ≈ 0.1 % without).
+   probability (1.6 % with it, ≈ 0.1 % without). *Removed by design 2026-10-27: one driver per burn resistor on four
+   independent lines (`hardware/electrical/eps/EPS_BOARD_DESIGN.md` §9, RID REL-03).*
 2. **HF-21 with D3**: a failed receiver silences the beacon after N days. A rule that keeps the beacon when the
    receiver is known failed (no carrier detected for N days, not merely no valid command) would keep L1/L2 beacon
    service; it is a regulatory question for the FCC consultation (D3), raised to the chair.
@@ -116,3 +117,4 @@ Two single points are **not** accepted, because they are cheap to remove:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR S&MA review | Initial issue: 38-item hardware FMEA, critical items list, single-point acceptance |
+| B | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: HF-13 removed by the EPS board design (one driver per resistor, SQSO-EPS-BRD-001 §9) |

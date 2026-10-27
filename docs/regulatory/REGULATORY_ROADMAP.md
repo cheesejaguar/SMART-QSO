@@ -2,12 +2,12 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-004
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Status:** Plan. **No regulatory filing has been made as of this date.**
 **Governing determination:** [LICENSING_PATHWAY_DETERMINATION.md](LICENSING_PATHWAY_DETERMINATION.md) (Part 97)
 **Schedule source:** `mission/SCHEDULE.md` (PDR 2027-01-12, launch contract by 2027-06-30, dispenser integration about
-2028-04-17, launch 2028-06-01). Where that schedule moves, the dates below move with it by the rules in §2.
+2028-09-15, planning launch 2028-11-01, BASELINE Rev E §3). Where that schedule moves, the dates below move with it by the rules in §2.
 
 ---
 
@@ -37,15 +37,15 @@
 | Rule changes after 2024 | **None to 97.207 or 97.211.** The last amendment of 97.207 is the five-year post-mission disposal rule (Orbital Debris Second Report and Order; 89 FR 65217, 2024-08-09), effective **2024-09-09** for 97.207(g)(1)(vii)(D)(1). Part 97 changes since (89 FR 100838, 2024-12-13; Delete, Delete, Delete, 90 FR 57698, 2025-12-12, effective 2026-02-10; WRC-15 implementation, 91 FR 1405, 2026-01-14, effective 2026-02-13) touch 97.27, 97.29, 97.301–97.315 (60 m, 5.9 GHz, VEC and licensing housekeeping), not space stations. An FCC orbital-debris record refresh (DA 24-412, 89 FR 46052, 2024-05-28) is still open: check before filing | federalregister.gov and eCFR version history, retrieved 2026-10-27 |
 | 70 cm transmit power near military radars | 47 CFR 2.106 US270: 50 W PEP within 240 km of Beale AFB (39°08′ N, 121°26′ W) and other listed sites; 97.313(f): earth and telecommand stations may use up to 611 W ERP in 435–438 MHz if the antenna's lower half-power point stays above 10° elevation | eCFR 2026-10-01 |
 | IARU coordination | Panel meets every two to three weeks (iaru.org). **Measured:** the 39 coordinations completed between 2025-08 and 2026-10 on the IARU status pages took a **median of 57 days**, 90th percentile about **112 days**, with outliers of 264–398 days (resubmissions, disputes) (`iaru.amsat-uk.org`, retrieved 2026-10-27). The IARU instructions recommend submitting "right after you have done your preliminary Design Review" and ask for the API/A number, or the date API data went to the administration | IARU instructions (rev 38); IARU status pages |
-| ITU API | RR 9.1: not earlier than 7 years and **preferably not later than 2 years** before bringing into use (BIU mid-2028 means mid-2026: already late, which is allowed). API special section published about 2–3 months after the Bureau receives it (IARU instructions; ITU now targets about 2 months). Under Resolution 32 (WRC-19, short-duration missions, ≤ 3 years' validity, ≤ 10 satellites), the notification may go with the API and is treated as received 4 months after the API is published; the 3-year validity cannot be extended | ITU-R small-satellite pages; RR |
+| ITU API | RR 9.1: not earlier than 7 years and **preferably not later than 2 years** before bringing into use (BIU late 2028 means late 2026: already late, which is allowed). API special section published about 2–3 months after the Bureau receives it (IARU instructions; ITU now targets about 2 months). Under Resolution 32 (WRC-19, short-duration missions, ≤ 3 years' validity, ≤ 10 satellites), the notification may go with the API and is treated as received 4 months after the API is published; the 3-year validity cannot be extended | ITU-R small-satellite pages; RR |
 | NOAA | Informal consultation under 15 CFR 960.5(a); no statutory deadline. Allow 1–3 months | 15 CFR 960 |
 | Export | Counsel opinion or CCATS 1–3 months; a TAA for a foreign integrator 3–6 months | Export memo §3 |
 | Five-year disposal | Re-entry no later than 5 years after completion of the mission | 97.207(g)(1)(vii)(D)(1) |
 
 ## 3. Dated Plan, 2026-10 to Launch
 
-Dates assume the `mission/SCHEDULE.md` baseline. "I" is dispenser integration (about 2028-04-17), "L" launch
-(2028-06-01).
+Dates assume the `mission/SCHEDULE.md` baseline. "I" is dispenser integration (about 2028-09-15), "L" launch
+(2028-11-01, the planning launch of BASELINE Rev E §3; it was 2028-06-01).
 
 | Date (no later than) | Action | Filing | Owner | Depends on |
 |----------------------|--------|--------|-------|------------|
@@ -67,13 +67,13 @@ Dates assume the `mission/SCHEDULE.md` baseline. "I" is dispenser integration (a
 | 2027-09-30 | ISS/NRCSD backup decision (D7); if taken, replacement F2 and an IARU revision for the 51.6° orbit | F5, F1 | PI | |
 | 2027-10-18 | Export counsel opinion; TAA in place if the integrator is foreign | F9 | PI | |
 | 2027-12-15 | Space-Track registration and conjunction-response certification | F10 | Ops lead | Owned by SPACE_SAFETY plan |
-| **2028-01-18** (I − 90 days) | **Last date for any replacement pre-space notification** | F5 | Licensee | |
-| 2028-03-14 to 2028-04-02 | Provider deliverables with proof of F1, F2, F4, F9 | F11, F12 | PI | |
-| L = 2028-06-01; first transmission L + 45 min | Launch; RF silence 45 min | — | | |
-| **2028-06-08** (first transmission + 7 days) | **In-space notification** | F6 | Licensee | |
-| 2030-06-01 (end of the 2-year design life) | TX-OFF and passivation by telecommand | — | Ops | Passivation command (SQSO-ICD-013 §6.4, proposed) |
-| **2030-09-01** (termination + 3 months; 24 h if FCC-ordered) | **Post-space notification** | F7 | Licensee | |
-| ≤ 2035-06-01 | Re-entry (5 years after mission end; 3.0–3.1 years predicted at 500 km) | — | | ODAR |
+| **2028-06-17** (I − 90 days) | **Last date for any replacement pre-space notification** | F5 | Licensee | |
+| 2028-08-14 to 2028-09-02 | Provider deliverables with proof of F1, F2, F4, F9 | F11, F12 | PI | |
+| L = 2028-11-01; first transmission L + 45 min | Launch; RF silence 45 min | — | | |
+| **2028-11-08** (first transmission + 7 days) | **In-space notification** | F6 | Licensee | |
+| 2030-11-01 (end of the 2-year design life) | TX-OFF and passivation by telecommand | — | Ops | Passivation command (SQSO-ICD-013 §6.4, proposed) |
+| **2031-02-01** (termination + 3 months; 24 h if FCC-ordered) | **Post-space notification** | F7 | Licensee | |
+| ≤ 2035-11-01 | Re-entry (5 years after mission end; 2.9–3.8 years after it predicted at 475 km with the wings deployed, nominal and conservative, 1.6–1.8 kg, BASELINE §3) | — | | ODAR |
 
 **Critical-path observations.**
 
@@ -81,7 +81,7 @@ Dates assume the `mission/SCHEDULE.md` baseline. "I" is dispenser integration (a
    are not agreed by 2027-01-05, every filing slips with them.
 2. **The 30-day rule and the IARU letter no longer conflict** with the measured IARU lead time: a letter is likely by
    May 2027, before the contract. Filing F2 early and replacing it within 30 days of the contract covers either order.
-3. **The 90-day backstop (2028-01-18)** is 10 weeks before delivery. A frequency or orbit change after it cannot be
+3. **The 90-day backstop (2028-06-17)** is about 12 weeks before delivery (2028-09-12). A frequency or orbit change after it cannot be
    filed in time: freeze both at the replacement F2.
 4. **Short-duration-mission filing (Res. 32)** fits a 2-year mission but cannot be extended past 3 years. Ask the FCC to
    file under the standard API/notification path if an extended mission is wanted (`ITU_APPENDIX4_DATA.md` §F).
@@ -106,3 +106,4 @@ operations lead owns F6, F7 and F10. The licensee owns F13.
 |-----|------|-------------|
 | A | 2026-10-14 | Initial roadmap (funding audit) |
 | B | 2026-10-27 | CDR review (communications panel): rules re-checked against the eCFR of 2026-10-01 and the Federal Register (no change to 97.207/97.211 since the 2024-09-09 five-year rule); 47 CFR 2.106 US270 and 97.313(f) added; measured IARU lead time (median 57 days); ITU API timing and Res. 32; F13 (telecommand-station designation); dated plan from 2026-10 to the post-space notification |
+| C | 2026-10-27 | CDR 2026 consistency pass: §3 launch-dependent dates for the planning launch 2028-11-01 and integration 2028-09-15 (BASELINE Rev E §3, `mission/SCHEDULE.md` Rev B): I − 90 days 2028-06-17, provider deliverables, in-space 2028-11-08, end of life 2030-11-01, post-space 2031-02-01, re-entry at 475 km |

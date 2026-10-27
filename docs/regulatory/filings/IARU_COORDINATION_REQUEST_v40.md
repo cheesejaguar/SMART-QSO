@@ -2,7 +2,7 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-REG-010
-**Revision:** A.2 (draft, not submitted)
+**Revision:** A.3 (draft, not submitted)
 **Date:** 2026-10-27
 **Form:** IARU *Amateur Satellite Frequency Coordination Request* **v40** (effective 15 May 2020; "earlier versions will no longer be accepted" — https://www.iaru.org/reference/satellites/, page updated 26 Jul 2026)
 **Submit to:** satcoord@iaru.org, by the **prospective space station licensee**, as a .doc/.pdf named `smartqso_req YYMMDD` (form checklist item 1). Large files go by URL (checklist item 2).
@@ -50,10 +50,10 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **5.10 EIRP:** +26 dBm at 0.5 W and +29 dBm at 1 W maximum (1 dB line loss, 0 dBi peak antenna) **(BL)**
 - **5.11 ITU emission designators:** 16K0F3E (transponder), 10K4F2D (telemetry)
 - **5.12 Common description:** FM voice transponder; 1200 bps AFSK (Bell 202) AX.25 UI frames on FM
-- **5.13 Antenna:** ISIS AntS deployable tape elements, ~0 dBi peak; one 2 m element along the spin axis, or two orthogonal 2 m elements in quadrature (final configuration `[ ]`; `hardware/rf/ANTENNA_DESIGN.md` §3). Spacecraft spins at 6°/s about the Sun-pointing axis (5.25), so the pattern null moves slowly across the sky
+- **5.13 Antenna:** ISIS AntS deployable tape elements, ~0 dBi peak; quarter-wave 2 m elements along ±X, across the spin axis **(BL)** (`hardware/rf/ANTENNA_DESIGN.md` §3). Spacecraft spins at 8°/s about the Sun-pointing axis (5.25), so the pattern null moves slowly across the sky
 
 **Receiving (Earth-to-space):**
-- **5.14 Requested receive frequency and function:** One frequency in **435.000–437.300 MHz** (clear of the downlink's 3rd harmonic), preferably at least 2 MHz below 3 × the coordinated downlink: FM transponder uplink (CTCSS 67.0 Hz) and telecommand
+- **5.14 Requested receive frequency and function:** One frequency in **435.222–435.778 MHz**, or if none is available there, in **436.222–436.500 MHz** **(BL)**: FM transponder uplink (CTCSS 67.0 Hz) and telecommand. These windows are where the spacecraft's own receiver works best: the receive SAW filter's temperature drift and the receiver clock's harmonic at 435.000 MHz limit the band to 435.050–436.500 MHz, and the power-system converters, synchronised to 1.000 MHz, leave the uplink clear by at least 200 kHz only inside these windows. Both lie below the downlink's 3rd harmonic (437.4–438.0 MHz); within them we ask for a frequency at least 2 MHz below 3 × the coordinated downlink where one is available (5.8)
 - **5.15 Tuning range / step:** `[per radio datasheet]`
 - **5.16 / 5.17 Emissions:** 16K0F3E (user uplink); 10K4F2D 1200 bps AFSK/FM (telecommand)
 - **5.18 Receiver noise temperature:** 1,000 K system at the antenna port, budgeted (requirement ≤ 650 K for the receiver with a 290 K source; `docs/hardware/RF_DESIGN.md` RF-P006)
@@ -63,7 +63,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **5.22 Physical structure:** 1U CubeSat 100 × 100 × 113.5 mm, mass `[ ]` kg **(BL)**; deployable VHF (and UHF) monopoles; `[body-mounted / deployable]` solar panels **(BL)**. Drawings: `[repository URL]/hardware/structure/`
 - **5.23 Functional description:** OBC (STM32L4R5ZI MCU, flight software in Rust, no RTOS); EPS with a 4S Li-ion battery (≈ 50 Wh); U/v FM transponder built from the 435 MHz telecommand receiver and the 2 m transmitter, gated in hardware (CTCSS, OBC heartbeat, 120 s key-down timer); KISS TNC for the beacon and telecommand; magnetorquer ADCS; GNSS receiver; AI payload (NVIDIA Jetson Orin Nano, power-gated, burst-only). URL: `[repo]/docs/hardware/RF_DESIGN.md`, `[repo]/docs/ARCHITECTURE.md`
 - **5.24 Power budget:** `[orbit-average generation / consumption by mode]` **(BL)**. URL: `[repo]/docs/environment/POWER_BUDGET_ANALYSIS.md`
-- **5.25 Attitude stabilization:** Magnetorquer B-dot detumble, then spin-stabilized coarse Sun-pointing: +Y (the solar-wing normal) on the Sun, spinning at 6°/s. No precision pointing.
+- **5.25 Attitude stabilization:** Magnetorquer B-dot detumble, then spin-stabilized coarse Sun-pointing: +Y (the solar-wing normal) on the Sun, spinning at 8°/s. No precision pointing.
 - **5.26 Service area:** Worldwide
 
 ### 6. Encryption of downlink
@@ -91,8 +91,8 @@ Transfer each answer below into the corresponding numbered box of the official v
 ### 9. Launch plans
 - **9.1 Launch agency:** `[integrator]` on SpaceX Transporter `[n]` **(BL)**; backup ISS/NRCSD
 - **9.2 Launch location:** Vandenberg SFB, California `[confirm]`
-- **9.3 Expected launch date:** `[2028]`
-- **9.4–9.7 Orbit:** apogee/perigee `[475–500]` km (not above 525 km), inclination `[~97.4°]`, period `[93.6–95.1]` min; descending node about 10:30 local time
+- **9.3 Expected launch date:** `[about 2028-11]` (planning date: the last Transporter flight of 2028) **(BL)**
+- **9.4–9.7 Orbit:** apogee/perigee `[475]` km target, 465–485 km (not above 485 km) **(BL)**, inclination `[~97.4°]`, period `[93.9–94.3]` min; descending node about 10:30 local time
 - **9.8 Other amateur satellites on the same launch:** `[if known]`
 
 ### 10. Typical transmitting earth station
@@ -139,3 +139,4 @@ Transfer each answer below into the corresponding numbered box of the official v
 | A.1, note | 2026-10-24 | Item 5.23: dated note that the OBC software has no RTOS (correct before submission) |
 | A.1, note | 2026-10-25 | Item 5.23: the note gives the rebaselined text (no RTOS; BASELINE §6, CR-2026-002). Not submitted |
 | A.2 | 2026-10-27 | CDR review (communications panel): licensee call sign; uplink range 435.000–437.300 MHz and the harmonic request (5.8, 5.14); EIRP; antenna and attitude (5.13, 5.25); receiver noise temperature and antenna (5.18, 5.19); 5.23 functional description rebaselined; link-budget items to SQSO-LBA-001 v3.0 (7.6, 8.4, 10.2, 11.2); 7.8 rewritten to describe the single command path accurately (the "second, independent path" did not exist). Not submitted |
+| A.3 | 2026-10-27 | CDR 2026 consistency pass: uplink request 435.222–435.778 MHz, else 436.222–436.500 MHz, with the reason (5.14; BASELINE Rev E §7); 2 m elements along ±X and spin 8°/s (5.13, 5.25); launch about 2028-11 and orbit 475 km target, 465–485 km, period 93.9–94.3 min (9.3–9.7). Not submitted |

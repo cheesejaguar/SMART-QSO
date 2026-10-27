@@ -18,14 +18,15 @@
 //! [`SILENCE_MS`] of silence, so at most one cycle a day is spent.
 //!
 //! **Failed for good (REL-04).** The receiver is *known failed* when, all at
-//! once: the radio rail is powered; there has been no activity for longer
-//! than the loss-of-contact timeout; the receiver's own health line reports
-//! a fault (`RX_FAULT` high: synthesizer out of lock or supply out of its
-//! window); and at least one recovery cycle has been tried in that silence.
-//! The health line is active high so that a missing or open line reads
-//! "healthy", and the exception below can never come from a wiring fault.
-//! Any activity clears it. The silence is counted from boot (RAM): a reset
-//! restarts it, which delays the exception (the conservative direction).
+//! once: the radio rail is powered; the loss-of-contact timeout has expired
+//! (the contact monitor's count, persisted in FRAM, so a reset does not
+//! restart it); the receiver's own health line reports a fault (`RX_FAULT`
+//! high: synthesizer out of lock or supply out of its window); and at least
+//! one recovery cycle has been tried in the current silence. The health line
+//! is active high so that a missing or open line reads "healthy", and the
+//! exception can never come from a wiring fault. Any activity clears it.
+//! The silence and the cycle are counted from boot (RAM): after a reset the
+//! exception waits for a new recovery cycle, [`SILENCE_MS`] later.
 //!
 //! @requirement SRS-F115 Hung-receiver recovery by a brief power cycle, never during a pass
 //! @requirement SRS-F116 Evidence that the command receiver has failed
@@ -54,8 +55,8 @@ pub struct Inputs {
     pub fault: bool,
     /// The downlink or the transponder is keyed
     pub keyed: bool,
-    /// The loss-of-contact timeout, ms
-    pub contact_timeout_ms: u64,
+    /// The loss-of-contact timeout has expired (the contact monitor)
+    pub contact_lost: bool,
 }
 
 /// What the caller must do
@@ -119,7 +120,7 @@ impl Receiver {
             return Action::None;
         }
         let silent = now_ms.saturating_sub(self.last_activity_ms);
-        self.failed = self.cycled_in_silence && i.fault && silent > i.contact_timeout_ms;
+        self.failed = self.cycled_in_silence && i.fault && i.contact_lost;
         let since_cycle = self.last_cycle_ms.map_or(u64::MAX, |t| now_ms.saturating_sub(t));
         if silent >= SILENCE_MS && since_cycle >= SILENCE_MS && !i.keyed {
             self.last_cycle_ms = Some(now_ms);
@@ -155,7 +156,7 @@ mod tests {
     const DAY: u64 = 24 * H;
 
     fn quiet() -> Inputs {
-        Inputs { powered: true, contact_timeout_ms: 30 * DAY, ..Inputs::default() }
+        Inputs { powered: true, ..Inputs::default() }
     }
 
     #[test]
@@ -193,23 +194,29 @@ mod tests {
     #[test]
     fn known_failed_needs_every_piece_of_evidence() {
         let mut r = Receiver::new(0);
-        let timeout = 2 * DAY;
-        let q = Inputs { contact_timeout_ms: timeout, ..quiet() };
+        let q = quiet();
         let bad = Inputs { fault: true, ..q };
         assert_eq!(r.step(SILENCE_MS, &bad), Action::PowerOff);
         let _ = r.step(SILENCE_MS + CYCLE_OFF_MS, &bad);
-        assert!(!r.failed(), "silence not yet past the contact timeout");
+        assert!(!r.failed(), "contact not yet lost");
         // Keyed from here on, so that no second cycle starts
-        let _ = r.step(timeout + 1, &Inputs { keyed: true, ..q });
+        let t = 2 * DAY;
+        let _ = r.step(t + 1, &Inputs { keyed: true, contact_lost: true, ..q });
         assert!(!r.failed(), "health line good");
-        let _ = r.step(timeout + 2, &Inputs { keyed: true, ..bad });
+        let _ = r.step(t + 2, &Inputs { keyed: true, contact_lost: true, ..bad });
         assert!(r.failed());
-        let _ = r.step(timeout + 3, &Inputs { carrier: true, ..bad });
+        let _ = r.step(t + 3, &Inputs { carrier: true, contact_lost: true, ..bad });
         assert!(!r.failed(), "a carrier clears it");
-        // No cycle tried in this silence: not failed
-        let mut r = Receiver::new(0);
-        let _ = r.step(timeout + 10, &Inputs { keyed: true, ..bad });
+        // No cycle tried in this silence (a reset): not failed, until one is
+        let mut r = Receiver::new(t);
+        let lost = Inputs { contact_lost: true, ..bad };
+        let _ = r.step(t + 10, &Inputs { keyed: true, ..lost });
         assert!(!r.failed());
+        assert_eq!(r.step(t + SILENCE_MS, &lost), Action::PowerOff);
+        assert!(!r.failed(), "the cycle is under way");
+        assert_eq!(r.step(t + SILENCE_MS + CYCLE_OFF_MS, &lost), Action::PowerOn);
+        let _ = r.step(t + SILENCE_MS + CYCLE_OFF_MS + 1, &lost);
+        assert!(r.failed(), "known failed a day after the reset");
         assert_eq!(Receiver::default(), Receiver::new(0));
     }
 }

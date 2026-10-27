@@ -208,10 +208,13 @@ impl Transponder {
         while now_ms.saturating_sub(self.bucket_start_ms) >= BUCKET_MS {
             self.bucket_start_ms += BUCKET_MS;
             self.bucket = (self.bucket + 1) % BUCKETS;
+            // COVERAGE-EXEMPT: bucket < BUCKETS (kept so by the modulo), so the slot exists
             if let Some(b) = self.buckets.get_mut(self.bucket) {
                 *b = 0;
+                // COVERAGE-EXEMPT: (the brace below) the missing-slot path, as above
             }
         }
+        // COVERAGE-EXEMPT: (the missing slot) bucket < BUCKETS, as above; both outcomes of keyed are taken
         if keyed && let Some(b) = self.buckets.get_mut(self.bucket) {
             let elapsed = u32::try_from(now_ms.saturating_sub(last)).unwrap_or(u32::MAX);
             *b = b.saturating_add(elapsed);
@@ -277,6 +280,21 @@ mod tests {
 
     const GO: Inputs =
         Inputs { permitted: true, allowed: true, active: true, sunlit: true, soc: 0.8, pa_c: 30.0, fwd_w: 0.0 };
+
+    #[test]
+    fn every_reason_has_a_text() {
+        for r in [
+            Reason::NotPermitted,
+            Reason::NotAllowed,
+            Reason::NotActive,
+            Reason::Eclipse,
+            Reason::LowSoc,
+            Reason::PaTemperature,
+            Reason::Duty,
+        ] {
+            assert!(!r.text().is_empty(), "{r:?}");
+        }
+    }
 
     #[test]
     fn on_when_every_gate_holds_off_with_the_first_that_fails() {

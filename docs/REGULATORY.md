@@ -7,7 +7,7 @@
 |-------|----------|----------|
 | Service / licensing | FCC Part 97 amateur-satellite service under licensee KK6GDB (station KK6GDB-11), subject to the conditions in the pathway determination (no compensated operations, no data sales, open formats) | [LICENSING_PATHWAY_DETERMINATION.md](regulatory/LICENSING_PATHWAY_DETERMINATION.md) |
 | Filings and deadlines | IARU request (recent coordinations took a median of 57 days, 90th percentile about 4 months); FCC pre-space notification within 30 days after launch-vehicle determination and no later than 90 days before integration (47 CFR 97.207(g)(1); unchanged since the five-year disposal rule took effect on 2024-09-09); in-space notification within 7 days after first transmission; post-space within 3 months (24 hours if FCC-ordered). Dated plan to the 2028 launch | [REGULATORY_ROADMAP.md](regulatory/REGULATORY_ROADMAP.md) |
-| Frequencies | Downlink 145.800–146.000 MHz; uplink 435.000–437.300 MHz (clear of the downlink's 3rd harmonic); both to be coordinated by the IARU | [RF_PLAN.md](RF_PLAN.md) |
+| Frequencies | Downlink 145.800–146.000 MHz; uplink requested in 435.222–435.778 MHz, or else 436.222–436.500 MHz (clear of the downlink's 3rd harmonic); both to be coordinated by the IARU | [RF_PLAN.md](RF_PLAN.md) |
 | Transmissions in the clear | All downlink content is plain text or published formats (97.113(a)(4), RR 25.2A). Only telecommand is authenticated, not encrypted (97.211(b)) | [IARU request §6–7](regulatory/filings/IARU_COORDINATION_REQUEST_v40.md) |
 | Cessation of emissions | Telecommand TX-OFF (97.207(b), RR 22.1): implemented and tested in the flight software; the hardware path is designed and not yet built | [TELECOMMAND_AUTHENTICATION.md](interfaces/TELECOMMAND_AUTHENTICATION.md) §6 |
 | Telecommand stations | At least two designated, geographically separated stations (decision D1): **none agreed yet**. The Bay Area site is within 240 km of Beale AFB, so 70 cm transmissions there are limited to 50 W PEP unless 47 CFR 97.313(f) is used | [GROUND_STATION_DESIGN.md](ground/GROUND_STATION_DESIGN.md) |
@@ -22,3 +22,4 @@ cessation-of-emissions rule and contradicted the transponder mission, so it has 
 |------|--------|
 | 2026-10-14 | Funding audit rewrite |
 | 2026-10-27 | CDR review: TX-OFF status, filing lead times, telecommand stations and the Beale AFB power limit, uplink range, export note |
+| 2026-10-27 | CDR 2026 consistency pass: uplink request windows (BASELINE Rev E §7) |

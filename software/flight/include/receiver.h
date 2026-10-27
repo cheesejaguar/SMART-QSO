@@ -11,9 +11,10 @@
  * the transponder is keyed, never within 15 minutes of activity (a pass in
  * progress), at most once per silence of RECEIVER_SILENCE_MS.
  *
- * Known failed (REL-04): the radio powered, no activity for longer than the
- * loss-of-contact timeout, the receiver's health line GPIO_PIN_RX_FAULT
- * high, and a recovery cycle tried in that silence. Any activity clears
+ * Known failed (REL-04): the radio powered, the loss-of-contact timeout
+ * expired (contact_monitor_inhibited(), persisted across resets), the
+ * receiver's health line GPIO_PIN_RX_FAULT high, and a recovery cycle tried
+ * in the current silence (after a reset, a new one). Any activity clears
  * it. While it holds, the loss-of-contact inhibit does not silence the
  * beacon (contact_monitor.h); the transponder stays off.
  *

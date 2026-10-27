@@ -54,7 +54,7 @@ SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsys
 
 #### 2.1.1 CubeSat Standard Compliance
 - **Form Factor**: 1U CubeSat (100mm × 100mm × 113.5mm)
-- **Mass**: ≤ 2.00 kg limit, MEV ≤ 1.75 kg (BASELINE §4: 2.00 kg, CDS Rev 14.1; the 1.33 kg figure is CDS Rev 13)
+- **Mass**: ≤ 2.00 kg design limit; CBE 1.49 kg, MEV 1.73 kg, margin +15.9 % (BASELINE §4, `docs/environment/MASS_BUDGET.md` v3.0; CDS Rev 14.1; the 1.33 kg figure is CDS Rev 13)
 - **Material**: Aluminum 6061-T6 with thermal treatment
 - **Deployment Interface**: NanoRacks CubeSat Deployer (NRCSD) compliant
 
@@ -602,9 +602,10 @@ SMART-QSO's success will establish new benchmarks for AI integration in small sa
 
 ---
 
-*Document Version: 1.0*  
+*Document Version: 1.1*  
 *Updated 2026-10-24: the OBC software is Rust on the Embassy executor, not FreeRTOS (§2.6.1, §3.1.1, §1.1 figure)*  
 *Updated 2026-10-25: the baseline is the Embassy executor with no RTOS (BASELINE §6, CR-2026-002; §2.6.1, §3.1.1)*  
+*Updated 2026-10-27 (version 1.1, CDR 2026 consistency pass): §2.1.1 mass from BASELINE Rev E §4*  
 *Date: [Current Date]*  
 *Prepared by: [Name]*  
 *Technical Review: [Name]*  

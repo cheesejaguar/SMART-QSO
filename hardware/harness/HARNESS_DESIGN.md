@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-HAR-001
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-27
 **Status:** Draft. Version 1.1 changes the mechanical routing only (§4.1 length, §6, §8, §9 note), from the CDR structures review; the electrical definitions are unchanged
 
@@ -73,6 +73,15 @@ This document defines the electrical harness and interconnect design for the SMA
 ---
 
 ## 4. Harness Definitions
+
+> **CDR 2026 consistency note (2026-10-27).** The harness contents and pinouts of the board build-to designs supersede
+> §4.1–§4.6 and §4.8: the board-to-board signal lists and the master pin allocation are
+> `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001 §2–§3), and the harness drawings are W1–W10 in
+> `hardware/diagrams/wiring/`. W3 (40-way FTSH ribbon) replaces H2, W4A/W4B replace H4, W5A/W5B replace H3 and H6
+> (VBAT_JET, not 5 V; Pico-Clasp, not JST-SH), W6B–W6D replace H5 (there is no ADCS board), W1 adds the cell-tap and
+> NTC2 connector J2, W7 carries four burn resistors on J10/J11, W9 is the GNSS harness and W11, the umbilical charging
+> harness, is proposed and not yet drawn (SQSO-EPS-BRD-001 §6.5). The three deployment switches DS1–DS3 each have their own three-wire harness on their
+> own rail (SQSO-EPS-BRD-001 §6.2). Where the tables below differ, SQSO-ICX-001 and the board designs govern.
 
 ### 4.1 H1 - Battery to EPS
 
@@ -389,3 +398,4 @@ harness, wing flex jumpers or switch harness.
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-27 | CDR structures review (STR-25), mechanical routing only: battery flying leads ≥ 100 mm with no stack connector (§4.1); routing zones F and G and the mechanical routing rules (hinge flex jumper, back-wired strings, deployment-sweep clearance, isolated battery, cable ties per UG v11 §5.2.3, envelope, vent paths) (§6.2, §6.3); hinge crossing (§8.1); mass note against the MEL (§9) |
+| 1.2 | 2026-10-27 | CDR 2026 consistency pass: note in §4 that SQSO-ICX-001 and the board designs (harnesses W1–W10) supersede the H1–H6 and H8 contents, W11 proposed (finding F15 of SQSO-HW-DIAG-001) |

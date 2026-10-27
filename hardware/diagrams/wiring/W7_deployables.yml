@@ -51,7 +51,7 @@ cables:
     gauge: 24 AWG
     length: 0.12
     colors: [VT, BK, VT, BK, OG, OG]
-    notes: "Burn pairs twisted; 0.88 A for <= 12 s on 24 AWG (1 A derated). Sense pair 28 AWG would do"
+    notes: "Burn pairs twisted; 0.88 A for ≤ 12 s on 24 AWG (1 A derated). Sense pair 28 AWG would do"
   W7B:
     category: bundle
     gauge: 24 AWG
@@ -63,7 +63,7 @@ cables:
     gauge: 26 AWG
     length: 0.10
     colors: [RD, BK, BU, YE]
-    notes: "AntS: 0.61 A peak at 3.3 V (< 2 W); I2C twisted with GND"
+    notes: "AntS: 0.61 A peak at 3.3 V (below 2 W); I2C twisted with GND"
 
 connections:
   - - J10: [1-6]

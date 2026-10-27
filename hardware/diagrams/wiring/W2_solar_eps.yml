@@ -21,7 +21,7 @@ connectors:
     type: Molex Pico-Clasp header 5013310507
     subtype: 5 pos
     notes: EPS J4 PX / J5 MX / J6 PY / J7 MY
-    pinlabels: [S_<face>, S_<face>, GND, GND, TPNL_<face>]
+    pinlabels: [S_face, S_face, GND, GND, TPNL_face]
   PW:
     type: Molex Pico-Clasp receptacle 501330-0800
     subtype: 8 pos
@@ -31,7 +31,7 @@ connectors:
     type: Molex Pico-Clasp header 5013310807
     subtype: 8 pos
     notes: EPS J8 W1 / J9 W2
-    pinlabels: [S_<w>F, S_<w>F, S_<w>B, S_<w>B, GND, GND, GND, TPNL_<w>]
+    pinlabels: [S_wF, S_wF, S_wB, S_wB, GND, GND, GND, TPNL_w]
 
 cables:
   CB:
@@ -39,7 +39,7 @@ cables:
     gauge: 26 AWG
     length: 0.10
     colors: [RD, RD, BK, BK, WH]
-    notes: "2 cells in series, Isc <= 0.55 A; Pico-Clasp crimps take 26-32 AWG, so each pole is two 26 AWG wires on two contacts (0.28 A each, 0.5 A derated; EPS-13)"
+    notes: "2 cells in series, Isc ≤ 0.55 A; Pico-Clasp crimps take 26-32 AWG, so each pole is two 26 AWG wires on two contacts (0.28 A each, 0.5 A derated; EPS-13)"
   CW:
     category: bundle
     gauge: 26 AWG

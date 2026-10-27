@@ -226,6 +226,8 @@ pub struct Mission {
     /// Keyed seconds in each of the last 60 s (duty check)
     keyed_hist: std::collections::VecDeque<(f64, f64)>,
     last_frame_s: Option<f64>,
+    /// The last beacon while the receiver was known failed, s
+    rx_failed_last_beacon_s: Option<f64>,
     /// When the body rate first stayed below the detumble threshold
     below_rate_since: Option<f64>,
     /// Commands sent today, and the day
@@ -349,12 +351,14 @@ impl Mission {
                 tobc_max: f64::NEG_INFINITY,
                 tpa_max: f64::NEG_INFINITY,
                 tjetson_max: f64::NEG_INFINITY,
+                rx_failure_modelled: cfg.rx_failed_day > 0.0,
                 ..Totals::default()
             },
             prev: Snapshot::default(),
             last_record_s: f64::NEG_INFINITY,
             keyed_hist: Default::default(),
             last_frame_s: None,
+            rx_failed_last_beacon_s: None,
             below_rate_since: None,
             commands_today: (-1, 0),
             contact_timeout_set: false,
@@ -1024,6 +1028,18 @@ impl Mission {
         {
             self.totals.max_beacon_gap_s = self.totals.max_beacon_gap_s.max(rel - last);
         }
+        // REL-04: the beacons go on with the receiver known failed, the
+        // loss-of-contact inhibit notwithstanding
+        if kind == ops::FrameKind::Beacon && snap.rx_failed {
+            self.totals.rx_failed_beacons += 1;
+            if let Some(last) = self.rx_failed_last_beacon_s
+                && snap.tx_permitted
+                && !snap.rf_silence
+            {
+                self.totals.rx_failed_beacon_gap_s = self.totals.rx_failed_beacon_gap_s.max(rel - last);
+            }
+            self.rx_failed_last_beacon_s = Some(rel);
+        }
         if kind == ops::FrameKind::Beacon {
             self.last_frame_s = Some(rel);
         }
@@ -1149,6 +1165,7 @@ impl Mission {
     }
 
     fn totals_add(&mut self, s: &Sample, snap: &Snapshot, dt: f64) {
+        let rx_failure_on = self.cfg.rx_failed_day > 0.0 && self.rel() >= self.cfg.rx_failed_day * 86_400.0;
         let t = &mut self.totals;
         t.mission_s += dt;
         if s.obc_on {
@@ -1176,6 +1193,17 @@ impl Mission {
         }
         if snap.contact_inhibit {
             t.contact_inhibit_s += dt;
+        }
+        if snap.rx_failed {
+            t.rx_known_failed_s += dt;
+            if s.xpdr_keyed {
+                t.rx_failed_xpdr_s += dt;
+            }
+        } else {
+            self.rx_failed_last_beacon_s = None;
+            if snap.contact_inhibit && rx_failure_on {
+                t.rx_failed_pending_s += dt;
+            }
         }
         // The transponder: its gates, and the demand it served
         if s.xpdr_on {
@@ -1383,6 +1411,8 @@ pub fn run(cfg: &Config, out: &Path) -> std::io::Result<usize> {
         ("acks_radiated", m.totals.acks.to_string()),
         ("dump_frames", m.totals.dump_frames.to_string()),
         ("rx_hangs", m.totals.rx_hangs.to_string()),
+        ("rx_known_failed_s", format!("{:.0}", m.totals.rx_known_failed_s)),
+        ("rx_failed_beacons", m.totals.rx_failed_beacons.to_string()),
     ];
     std::fs::write(out.join("summary.json"), checks::summary_json(&checks, &m.totals, &extra))?;
     m.logs.flush();

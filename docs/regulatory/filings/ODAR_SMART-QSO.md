@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-REG-018 (supersedes SQSO-ODAR-001, `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md`)
-**Revision:** Draft B
+**Revision:** Draft C
 **Date:** 2026-10-27
 **Format:** NASA-STD-8719.14C (approved 2021-11-05) Appendix A.1, in the section order of the NASA Small Spacecraft Technology Program *ODAR & End of Mission Plan Instructional Guide* (spacecraft Sections 1–8; launch-vehicle Sections 9–14 are the launch provider's)
 **Regulatory use:** basis for the orbital-debris disclosures in the FCC pre-space notification, 47 CFR 97.207(g)(1)(i)–(vii) ([draft](FCC_97-207_PRE_SPACE_NOTIFICATION.md))
@@ -22,8 +22,8 @@
 | 4.5-1 | Collision with objects ≥ 10 cm < 0.001 | **≤ 1.2 × 10⁻⁴** (worst case: 525 km, 2.0 kg, wings failed, F10.7 = 70) | ×8 | Compliant by analysis **[DAS]** (§5) |
 | 4.5-2 | Small-debris impact preventing disposal < 0.01 | Disposal is passive; no function is needed after wing deployment at T + 30 min | — | Compliant by design (§5) |
 | 4.6-1a | Natural re-entry ≤ 25 yr after mission, **conservative solar projection** | ≤ 13 yr post-mission at ≤ 485 km in every case; **fails at 525 km** for ≥ 1.8 kg with wings failed under the F10.7 = 70 bound (27.3–30.5 yr) | — | Compliant at ≤ 500 km (§6) |
-| 4.6-4 | Disposal reliability ≥ 0.9 | Passive; P(both wings fail) = 0.016; compliant if the wings-deployed case meets the rule | — | See FCC row |
-| **47 CFR 97.207(g)(1)(vii)(D)(1)** | **Re-entry ≤ 5 yr after mission completion, P ≥ 0.9** | **Not robustly met at the baseline 500 km target**: compliant only with the nominal solar projection and only if the mission is not cut short; **fails at the 525 km cap** in every case modelled | — | **Non-compliant at the baseline cap; compliant at ≤ 485 km (planned-mission reading) or ≤ 465–470 km (early failure counted as mission end)** (§6) |
+| 4.6-4 | Disposal reliability ≥ 0.9 | Passive; P(both wings fail) ≈ 0.001 with one burn driver per resistor, as designed (0.016 with one driver shared by both wings, the design analysed in §6.4); compliant if the wings-deployed case meets the rule | — | See FCC row |
+| **47 CFR 97.207(g)(1)(vii)(D)(1)** | **Re-entry ≤ 5 yr after mission completion, P ≥ 0.9** | **Not robustly met at the former 500 km target**: compliant only with the nominal solar projection and only if the mission is not cut short; **fails at the former 525 km cap** in every case modelled | — | **Compliant at the baseline 475 km target and 485 km cap** (BASELINE Rev E §3, adopted from §6.5) under the planned-mission reading; ≤ 465–470 km if an early failure counts as mission end (§6) |
 | 4.7-1 / 97.207(g)(1)(vii)(D)(2) | Casualty risk < 1:10,000, fragments > 15 J | **No surviving fragment > 15 J** with nominal heating; worst sensitivity (heating halved, whole cells modelled as steel) **1:47,000** | ≥ ×4.7 | Compliant by analysis **[DAS]** (§7) |
 | 4.8-1 | Tethers | None | — | N/A |
 | 97.207(g)(1)(v) | Trackability | Smallest dimension 10 cm (1U), presumed trackable | — | Compliant |
@@ -40,7 +40,7 @@
 | Milestones | No independent PDR or CDR yet; this is the CDR draft · launch NET 2028 |
 | Launch vehicle and site | SpaceX Falcon 9 Transporter rideshare via a 1U integrator, Vandenberg SFB (baseline, D7); backup ISS deployment via the Voyager NRCSD |
 | Deployment | Ejected from a CubeSat dispenser at 0.3–1.0 m/s into a circular SSO |
-| Orbit | Circular, inclination ≈ 97.4°; baseline target ≤ 500 km, cap 525 km (BASELINE §3); **this report recommends a 465–485 km band (§6.5)** |
+| Orbit | Circular, inclination ≈ 97.4°; **target 475 km, 465–485 km, not above 485 km** (BASELINE Rev E §3, which adopted the band this report recommends in §6.5; it was ≤ 500 km target, 525 km cap) |
 | Mission duration | 2 years design life (12 months minimum) |
 | Interaction with other spacecraft | Shared SSO altitude band; no proximity operations; no manoeuvring capability; conjunction data via 18 SDS / Space-Track (`SPACE_SAFETY_REGISTRATION_AND_CONJUNCTION_PLAN.md`) |
 
@@ -275,15 +275,15 @@ not stated in the rule text; it is a question for the FCC consultation already p
    wings-deployed case meets the rule up to 2.0 kg (488 km limit) and the nominal wings-failed case up to 2.0 kg
    (485 km), so P ≥ 0.98 under reading B. If the FCC adopts reading A, the cap becomes **470 km** (P ≥ 0.99 nominal;
    0.70 conservative) and the floor stays at 465 km for the 2-year design life. This is a change to BASELINE §3 and
-   MRD-013, raised to the chair (RID ODA-01).
+   MRD-013, raised to the chair (RID ODA-01); **adopted** in BASELINE Rev E and MRD-013 Rev E (CR-2026-007).
 4. If no integrator offers ≤ 485 km (SpaceX's drop-off menu on open 2027 flights is 500–600 km, BASELINE §3), the
    options are: an orbital transfer vehicle drop-off at the band (integrators with OTVs were in the D7 request list);
    adding drag area (a deployable drag device was removed from the baseline; it would need to roughly double the
    average area to make 525 km compliant); or the ISS backup (compliant, but Level 3 unachievable).
 
 **4.6-2, 4.6-3:** N/A. **4.6-4 (≥ 0.9):** the passive disposal needs only the wings, and the wings-deployed case meets
-the rule in the recommended band; P(both wings fail) = 0.016. A second burn driver (one per wing) reduces it to ≈ 0.001
-(SQSO-FMEA-002 HF-13). **4.6-5 summary:** natural decay from 465–485 km in about 4–6 years nominal; uncontrolled re-entry.
+the rule in the recommended band; P(both wings fail) = 0.016 with one burn driver for both wings. The design now has one
+driver per burn resistor (four lines; SQSO-EPS-BRD-001 §9), which reduces it to ≈ 0.001 (SQSO-FMEA-002 HF-13). **4.6-5 summary:** natural decay from 465–485 km in about 4–6 years nominal; uncontrolled re-entry.
 
 ## 7. Re-entry Hazards (Req. 4.7-1) and Hazardous Materials
 
@@ -344,11 +344,11 @@ N/A.
 | # | Item | Owner |
 |---|------|-------|
 | 1 | Obtain NASA DAS 3.2.6 (NASA Software Catalog usage agreement) and reproduce §4–§7 with the controlled MEL | S&MA |
-| 2 | Decide the deployment band and cap (RID ODA-01) and put it in the launch contract | PI, launch |
+| 2 | Put the deployment band and cap (decided: 465–485 km, 485 km cap, BASELINE Rev E §3; RID ODA-01) in the launch contract | PI, launch |
 | 3 | Implement the passivation telecommands (0x34/0x35, TELECOMMAND_AUTHENTICATION §6.4), the non-resettable charge-path disconnect (F1, two independent signals) and the recharge lockout; correct the pre-space notification's passivation statement until then | EPS, FSW, licensee |
 | 4 | Ask the FCC (D3 consultation) which reading of "completion of the mission" applies to a failed spacecraft | Licensee |
 | 5 | Replace the cycle-26 assumption with the NOAA/NASA prediction when issued; DAS uses its own solar-flux table | S&MA |
-| 6 | Separate burn drivers for the two wings (lowers the wings-failed probability from 1.6 % to ≈ 0.1 %) | EPS |
+| 6 | Separate burn drivers for the two wings (lowers the wings-failed probability from 1.6 % to ≈ 0.1 %): designed, one driver per resistor (SQSO-EPS-BRD-001 §9); re-run §6.4 with ≈ 0.1 % | EPS, S&MA |
 
 ---
 
@@ -359,3 +359,4 @@ N/A.
 | Draft A | 2026-10-14 | New ODAR (funding audit); supersedes SQSO-ODAR-001 Rev A |
 | Draft A.1 | 2026-10-16 | §2 notes the re-issued mass budget (TB-06) |
 | Draft B | 2026-10-27 | CDR S&MA review: average cross-sections by the 8719.14C method (wings deployed 0.0247 m², not 0.028); masses 1.6/1.8/2.0 kg; NOAA-anchored nominal and conservative solar projections; FCC 5-year compliance by altitude and its probability with early failure; 525 km cap and 500 km target found non-compliant, 465–485 km recommended; 4.4-1 fault tree (1.4 × 10⁻⁴); 4.5-1 from the public catalogue (≤ 1.2 × 10⁻⁴); re-entry demise model with the Ti-6Al-4V and stainless parts (no fragment > 15 J nominal; 1:47,000 worst); "no titanium" and the 30-year-after-launch limit withdrawn |
+| Draft C | 2026-10-27 | CDR 2026 consistency pass: compliance summary and orbit row at the baseline 475 km target and 485 km cap (BASELINE Rev E, which adopted §6.5); one burn driver per resistor as designed (4.6-4, open items 2 and 6). Analysis values unchanged |

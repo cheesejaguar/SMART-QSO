@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-002
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 
 ---
@@ -23,7 +23,7 @@ Federal sponsor.
 | Function | Band | Frequency | Emission | Authority |
 |----------|------|-----------|----------|-----------|
 | FM transponder downlink + AX.25 telemetry beacon | 144–146 MHz (IARU satellite sub-band 145.800–146.000 MHz) | To be coordinated by IARU. **Not 145.825 MHz** (ARISS/APRS packet) | 16K0F3E / 10K4F2D | 47 CFR 97.207(c)(2) |
-| FM transponder uplink + authenticated telecommand | 435–438 MHz; requested in 435.000–437.300 MHz (clear of the downlink's 3rd harmonic) | To be coordinated by IARU | 16K0F3E / 10K4F2D | 47 CFR 97.207(c)(2), 97.209(b)(2), 97.211(c)(2) |
+| FM transponder uplink + authenticated telecommand | 435–438 MHz; requested in 435.222–435.778 MHz, or else 436.222–436.500 MHz (BASELINE §7; clear of the downlink's 3rd harmonic) | To be coordinated by IARU | 16K0F3E / 10K4F2D | 47 CFR 97.207(c)(2), 97.209(b)(2), 97.211(c)(2) |
 
 Technical data: [ITU_APPENDIX4_DATA.md](filings/ITU_APPENDIX4_DATA.md). Baseline values: [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md).
 
@@ -71,3 +71,4 @@ evaluation (controlled and uncontrolled exposure distances) as part of the stati
 | A | 2026-01-02 | Initial release (withdrawn) | SMART-QSO Team |
 | B | 2026-10-14 | Rewritten after funding audit: amateur-only frequency plan, actual status, withdrawn claims listed | Funding audit |
 | C | 2026-10-27 | Licensee designated (D1); telecommand stations status; uplink range; planned filing dates; ground-station RF exposure note | CDR review, communications panel |
+| D | 2026-10-27 | CDR 2026 consistency pass: uplink request windows from BASELINE Rev E §7 | CDR documentation review |

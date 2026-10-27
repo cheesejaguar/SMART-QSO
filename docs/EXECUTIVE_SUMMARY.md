@@ -1,8 +1,8 @@
 # SMART-QSO Executive Summary
 
 **Document ID**: SQSO-ES-001
-**Version**: 2.0
-**Date**: 2026-10-14
+**Version**: 2.2
+**Date**: 2026-10-27
 **Classification**: Unclassified — open-source project
 **Status**: Design-phase baseline (pre-PDR in substance). See the [funding audit](funding_audit/FUNDING_AUDIT_REPORT.md).
 
@@ -26,14 +26,14 @@ a conventional transponder and template beacon.
 | Feature | Baseline |
 |---------|----------|
 | Form factor | 1U CubeSat, 100 × 100 × 113.5 mm (CDS Rev 14.1) |
-| Mass | Limit 2.00 kg or the dispenser limit. BASELINE §4: CBE ≈ 1.51 kg, MEV ≤ 1.75 kg. The bottom-up [mass budget](environment/MASS_BUDGET.md) v2.0 gives CBE 1.69 kg and a predicted 1.92–2.00 kg, leaving 0–4 % margin; PI decision pending |
-| Power | 16 triple-junction cells (body + two deployable wings): ≈ 2.4 W EOL orbit average tumbling, ≈ 3.6 W sun-pointed (audit estimate, BASELINE §5); 2.14 W tumbling once self-shadowing is included ([array analysis](../hardware/eps/SOLAR_ARRAY_DESIGN.md) §9) |
+| Mass | Design limit 2.00 kg or the dispenser limit (EXOpod Nova 1U 2.5 kg). CBE 1.49 kg, MEV 1.73 kg, margin +15.9 % (BASELINE §4; [mass budget](environment/MASS_BUDGET.md) v3.0) |
+| Power | 16 triple-junction cells (body + two deployable wings): 2.43 W EOL orbit average delivered tumbling, 3.93 W sun-pointed (mission simulation, BASELINE §5; [power budget](environment/POWER_BUDGET_ANALYSIS.md) v2.0); 2.14 W isotropic-tumble bound ([array analysis](../hardware/eps/SOLAR_ARRAY_DESIGN.md) §9) |
 | Battery | 4S1P Li-ion 18650, ≈ 50 Wh; eclipse depth of discharge 1.3–2.0 % against a 10 % limit ([battery design](../hardware/eps/BATTERY_DESIGN.md) §3) |
 | Flight computer | STM32L4R5ZI; Rust flight software on the Embassy executor, no RTOS (BASELINE §6, rebaselined 2026-10-25). It runs as a host simulation, and the image has not run on hardware |
-| AI payload | Jetson Orin Nano 8 GB module, 7 W mode, bursts ≤ 120 s, duty ≤ 5–10 %; model to be selected by measured energy |
-| Radio | Downlink 145.800–146.000 MHz and uplink 435–438 MHz (IARU to coordinate); ≤ 1 W; FM transponder plus 1200 bps AX.25 beacon; authenticated telecommand with a hardware TX-OFF path |
+| AI payload | Jetson Orin Nano 8 GB module, 7 W mode, power-on ≤ 10 min per burst then ≥ 100 min off, duty ≤ 5–10 %; flight baseline is a template selector on the OBC, Jetson text a gated experiment (BASELINE §6, D5) |
+| Radio | Downlink 145.800–146.000 MHz and uplink requested in 435.222–435.778 MHz, else 436.222–436.500 MHz (IARU to coordinate; BASELINE §7); ≤ 1 W; FM transponder plus 1200 bps AX.25 beacon; authenticated telecommand with a hardware TX-OFF path |
 | Link | 1200 bps beacon at 0.5 W closes from 5° elevation with +7.7 dB for a 12 dBic station (+4.7 dB in the conservative antenna-pattern case); analysis, [link budget](environment/LINK_BUDGET_ANALYSIS.md) v2.0 |
-| Orbit | Sun-synchronous, ≤ 500 km deployment (525 km maximum); commercial rideshare in 2028 (ISS deployment as backup) |
+| Orbit | Sun-synchronous, 475 km target, 465–485 km, not above 485 km; Falcon 9 Transporter-class rideshare through Exolaunch, planning launch about 2028-11 (ISS deployment as backup) (BASELINE §3) |
 | Design life | 2 years (12 months minimum); passive re-entry within the FCC 5-year rule |
 
 ## Program Status (as of 2026-10-14)
@@ -102,3 +102,4 @@ outreach tools ([SDP](software/SOFTWARE_DEVELOPMENT_PLAN.md) §3.1). No standard
 | 2.1 | 2026-10-16 | Funding audit | Link, mass, power and battery rows cite the re-issued budgets (TB-05, TB-06, TB-08, TB-14, PI-14); power margins updated to BASELINE Rev B |
 | 2.1, note | 2026-10-24 | SMART-QSO Team | Flight computer and flight software rows: the flight software is Rust on the Embassy executor (BASELINE §6 note); test counts and coverage of 2026-10-24 |
 | 2.1, note | 2026-10-25 | SMART-QSO Team | Flight computer row: Embassy executor, no RTOS, is the baseline (CR-2026-002); software classification NPR 7150.2D Class C (SDP §3.1) |
+| 2.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: mass, power, AI burst, uplink and orbit rows from BASELINE Rev E (§3–§7) |

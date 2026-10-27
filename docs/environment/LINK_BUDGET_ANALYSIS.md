@@ -1,7 +1,7 @@
 # SMART-QSO Link Budget Analysis
 
 **Document ID**: SQSO-LBA-001
-**Version**: 3.0
+**Version**: 3.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Controlled link budget for the baseline in [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) (§3, §7, §8). CDR re-issue (finding TB-05). **Analysis, not measured.** Every other document that quotes a link margin cites this one.
@@ -15,7 +15,10 @@ BASELINE §7 asks for. Against Version 2.0 it adds:
 - the demodulator thresholds from a baseband simulation of the actual waveforms, replacing the assumed "12 dB C/N"
   (§3);
 - the antenna pattern sampled along real passes, with the spacecraft spinning at 6°/s about +Y on the Sun (BASELINE §8,
-  D9), for three element orientations, and the resulting fading, frame loss and pass statistics (§5);
+  D9, as it was when the analysis was run), for three element orientations, and the resulting fading, frame loss and
+  pass statistics (§5). BASELINE Rev E raised the spin to 8°/s: the time in a fade is unchanged (§5), the fades become
+  4.5 s every 22.5 s instead of 6 s every 30 s, and the 60 s beacon interval no longer equals the spin period (45 s);
+  the frame statistics of §5 are to be re-run at 8°/s;
 - handheld and mobile user stations, the SINAD a transponder user hears, and the end-to-end transponder link (§4.3,
   §6.3);
 - Doppler effects on AFSK decoding, CTCSS access and telecommand (§4.4);
@@ -30,7 +33,7 @@ Every number is reproduced by the scripts in `software/simulation/cdr/rf/` (§9)
 |----------------------|------|--------|---------|
 | Beacon downlink margin > 6 dB threshold, > 10 dB goal (`docs/project/SEMP.md` TPM) | 0.5 W, 5° elevation, reference station A (12 dBic, 500 K), median spacecraft gain toward the station (−3 dBi) | **+7.6 dB** (+10.6 dB at 1 W); goal met from 12° | Met (threshold) |
 | Same, 10th-percentile spacecraft gain (−10 dBi) | 0.5 W, 5° | **+0.6 dB** (+3.6 dB at 1 W; +5.9 dB at 20°) | Closes, below threshold |
-| Beacon at the 525 km altitude cap | 0.5 W, 5°, −3 / −10 dBi | +7.3 / +0.3 dB | Met / closes |
+| Beacon at 525 km (the former altitude cap; a bound) | 0.5 W, 5°, −3 / −10 dBi | +7.3 / +0.3 dB | Met / closes |
 | Beacon to a portable station (5 dBi Yagi, no Doppler correction) | 0.5 W, −3 dBi | −4.5 dB at 5°, +0.9 dB at 20°, +5.7 dB at 45° | Usable from about 20°, at 1 W from about 10° |
 | Beacon to a SatNOGS omni station (0 dBic, 1,000 K) | 0.5 W, −3 dBi | −7.4 dB at 5°, +0.3 dB at 30°, +5.5 dB at zenith | Usable above about 30° only |
 | Telecommand uplink margin ≥ 6 dB (proposed here, §1.2) at 10° | 25 W, 14 dBic, −10 dBi spacecraft gain, +6 dB terrestrial interference | **+2.3 dB** at 10°, +5.8 dB at 20°; +8.3 dB at 10° without interference | **Not met at 10°**; met at 20°, or at 10° with 50 W (§6.1) |
@@ -72,7 +75,7 @@ threshold (52.9 dB-Hz with implementation loss) is within 0.1 dB of the assumed 
 
 | Parameter | Value | Basis |
 |-----------|-------|-------|
-| Altitude | 500 km target, 525 km cap | BASELINE §3 |
+| Altitude | 500 km (analysed). The baseline is now a 475 km target, 465–485 km, 485 km cap (BASELINE Rev E §3): the slant ranges are shorter, so the margins here are conservative by about 0.3 dB at 5° | BASELINE §3 |
 | Orbit | Circular SSO, i ≈ 97.4°, LTAN 22:30 (descending node 10:30) | BASELINE §3; SIL default |
 | Period, speed | 94.6 min, 7.61 km/s | 2π√(a³/μ), √(μ/a) |
 | Slant range | d = √((Rₑ+h)² − (Rₑ cos E)²) − Rₑ sin E | Rₑ = 6,378 km |
@@ -91,7 +94,7 @@ threshold (52.9 dB-Hz with implementation loss) is within 0.1 dB of the assumed 
 |------|--------------------|------|----------|-----------|
 | Downlink: beacon | 145.9 MHz | 145.800–146.000 MHz, not 145.825 MHz (BASELINE §7) | 10K4F2D: AFSK Bell 202 on FM | ±3.0 kHz peak (Bn = 2·2.2 + 2·3.0 = 10.4 kHz) |
 | Downlink: transponder | same transmitter | same | 16K0F3E | ±5.0 kHz peak, 3 kHz audio |
-| Uplink: transponder | 435.5 MHz | 435.000–437.300 MHz (the part of 435–438 MHz clear of 3 × f_down for any downlink in the segment, §7.1) | 16K0F3E + CTCSS 67.0 Hz | ±5.0 kHz |
+| Uplink: transponder | 435.5 MHz | requested in 435.222–435.778 MHz, or else 436.222–436.500 MHz (BASELINE Rev E §7), inside 435.000–437.300 MHz, the part of 435–438 MHz clear of 3 × f_down for any downlink in the segment (§7.1) | 16K0F3E + CTCSS 67.0 Hz | ±5.0 kHz |
 | Uplink: telecommand | same receiver | same | 10K4F2D | ±3.0 kHz |
 
 The free-space loss changes by less than 0.1 dB across either band, so the margins hold for any coordinated frequency.
@@ -226,7 +229,7 @@ Margin                          +7.6 dB
 | W | 1 W, −3 dBi | −8.4 | −6.7 | −3.1 | −0.8 | +1.7 | +4.4 |
 | D (rubber duck) | 1 W, −3 dBi | −14.4 | −12.7 | −9.1 | −6.8 | −4.3 | −1.6 |
 
-**At the 525 km cap**, station A, 5°: +7.3 dB (−3 dBi), +0.3 dB (−10 dBi).
+**At 525 km** (the former cap, a bound), station A, 5°: +7.3 dB (−3 dBi), +0.3 dB (−10 dBi).
 
 **Station A noise sensitivity** (0.5 W, −3 dBi, 5°):
 
@@ -443,8 +446,8 @@ handheld Yagis from 5°, and for whips from about 19° (the requirement is 30°)
 If 3 × f_down fell in the uplink channel, the harmonic would need 152 dB of suppression to stay 10 dB below the
 receiver noise: unachievable. **The frequency plan is the protection:** the uplink must be at least 50 kHz from
 3 × f_down (half the harmonic's 36 kHz, half the 15 kHz receiver filter, a 25 kHz guard), and for any downlink in the
-segment that means **uplink in 435.000–437.300 MHz**. The IARU request should state this (it currently says "away
-from 3 × f_downlink").
+segment that means **uplink in 435.000–437.300 MHz**. The IARU request states the narrower windows of BASELINE §7
+(435.222–435.778 MHz, or else 436.222–436.500 MHz), which lie inside this range.
 
 ### 7.2 Output filter
 
@@ -544,3 +547,4 @@ python3 desense_emc.py --out desense.json           # §7
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 2.0 | 2026-10-16 | Funding audit (TB-05) | Re-issued at the baseline orbit, frequencies and power: noise floor corrected; antenna pattern and ground stations stated; telecommand and transponder links added |
 | 3.0 | 2026-10-27 | CDR review, communications panel | CDR re-issue (BASELINE §7, TB-05): simulated demodulator thresholds; pass-sampled pattern with the 6°/s spin and three element options; handheld, mobile and SatNOGS stations; transponder SINAD end to end; Doppler, CTCSS; desense, filter and intermodulation analysis; telecommand at 25 W found short of the proposed 6 dB at 10°; verification items VI-RF-01 to VI-RF-10 |
+| 3.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: altitude row (500 km analysed; baseline 475 km target, 485 km cap), uplink request windows (§2, §7.1) and the 8°/s spin of BASELINE Rev E noted against the 6°/s pass analysis (§1); 525 km rows labelled as a bound. Analysis values unchanged |

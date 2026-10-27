@@ -58,7 +58,7 @@ const MTQ_FULL_W: f64 = 0.30;
 /// v3.1 §6.1, AntS and wings stowed, the mean of CBE and MEV as for the
 /// deployed tensor), kg·m²
 pub const STOWED: Inertia =
-    Inertia { xx: 0.002_914, yy: 0.003_310_5, zz: 0.003_033, xy: 0.000_001, xz: 0.0, yz: 0.000_029 };
+    Inertia { xx: 0.002_923, yy: 0.003_315_5, zz: 0.003_041, xy: 0.000_000_5, xz: -0.000_000_5, yz: 0.000_031 };
 
 /// A rigid body with a full inertia tensor (products included; the mission
 /// simulation's `Attitude` is diagonal): attitude body → ECI, body rate
@@ -809,7 +809,7 @@ mod tests {
             y.step(1.0, V3::ZERO);
             worst = worst.max(y.w.angle(V3::Y).to_degrees());
         }
-        // It cones about the major axis, 0.5° from +Y with the CAD tensor
+        // It cones about the major axis, 0.7° from +Y with the CAD tensor
         // (MASS_BUDGET v3.1): the rate leaves +Y by about twice that
         let tilt = V3::new(a.x, a.y, a.z).angle(V3::Y).to_degrees();
         assert!(tilt > 0.3 && worst > 1.5 * tilt, "a spin about +Y with products wobbles: {worst} (tilt {tilt})");

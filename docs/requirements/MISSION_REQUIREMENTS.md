@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-001
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Reference:** NPR 7123.1D (tailored, `docs/project/CDR_CRITERIA_MATRIX.md` §2); `docs/BASELINE_PARAMETERS.md` Rev D
 
@@ -75,9 +75,9 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
 | MRD-010 | The mission shall operate in Low Earth Orbit (LEO) | A | Critical |
-| MRD-011 | The nominal orbit altitude at deployment shall be 450-500 km, circular and sun-synchronous (inclination about 97.4°), so that the nominal orbital lifetime with the wings deployed (2.3 years at 450 km, `docs/BASELINE_PARAMETERS.md` §3) exceeds the 2-year design life *(was 400-500 km until Rev C: at 400 km the lifetime is shorter than the design life, finding TB-03)* | A | Critical |
+| MRD-011 | The nominal orbit altitude at deployment shall be 465-485 km (target 475 km), circular and sun-synchronous (inclination about 97.4°), so that the nominal orbital lifetime with the wings deployed (4.9 years at 475 km, 1.6 kg, `docs/BASELINE_PARAMETERS.md` §3) exceeds the 2-year design life *(was 400-500 km until Rev C: at 400 km the lifetime is shorter than the design life, finding TB-03; 450-500 km until Rev E, CR-2026-007)* | A | Critical |
 | MRD-012 | The orbit inclination shall support global amateur radio coverage | A | High |
-| MRD-013 | The deployment altitude shall not exceed 500 km unless NASA DAS shows MRD-003 is met with the solar wings undeployed, and shall not exceed 525 km in any case. *(Added by the funding audit, 2026-10-14; see `docs/BASELINE_PARAMETERS.md` §3.)* | A | Critical |
+| MRD-013 | The deployment altitude shall not exceed 485 km, so that MRD-003 is met with P ≥ 0.9 under the conservative solar projection (ODAR Draft B §6.4–§6.5). *(Added by the funding audit, 2026-10-14, as 500 km with a 525 km cap; 485 km from Rev E, CR-2026-007; see `docs/BASELINE_PARAMETERS.md` §3.)* | A | Critical |
 
 **Proposed (PI to ratify), MRD-012, TBR-MRD-002:** "The orbit shall give every point on the Earth's surface at least two passes a day with a maximum elevation of at least 5°." Verification: Analysis. Propagate the baseline orbit (circular, sun-synchronous, ≈ 97.4°; `docs/BASELINE_PARAMETERS.md` §3) at 450 km and at the 525 km cap for 30 days and count, on a 5° latitude-longitude grid, the passes that reach 5° elevation, where the baseline beacon link closes (baseline §7). The ISS backup orbit (51.6°) reaches only about ±67° latitude and would not meet this wording.
 
@@ -245,3 +245,4 @@ SpaceX Rideshare Payload User's Guide v11 is the interim provider document.
 | B | 2026-10-16 | §8 TBD/TBR IDs made unique to this document: TBD-001, TBD-002 and TBR-001 became TBD-MRD-001, TBD-MRD-002 and TBR-MRD-001. TBR-MRD-001 closed by decision D5 (`docs/BASELINE_PARAMETERS.md` §9) (finding VV-17). Proposed testable wording, for the PI to ratify, beneath MRD-012, MRD-043, MRD-045 and MRD-060; requirement text unchanged; tracked as TBR-MRD-002 to TBR-MRD-005 (finding VV-16) | SMART-QSO Team |
 | C | 2026-10-16 | §4.3 Extended success criterion reworded: federated learning is ground-side research only, not in the flight baseline (BASELINE §2); keeping or dropping the criterion is the PI's decision (finding PI-13) | SMART-QSO Team |
 | D | 2026-10-27 | CDR review (PM/SE/V&V). Values aligned with `docs/BASELINE_PARAMETERS.md` Rev D: MRD-001 (2-year design life, 12-month minimum), MRD-011 (450-500 km SSO), MRD-031 (single-channel FM), MRD-051 (36-minute eclipse), MRD-060 (10°/s within 3 orbits; method A,T). Added MRD-084 to MRD-099 from NASA-STD-8719.14C, CDS Rev 14.1, 47 CFR 97.113/97.207/97.211 and the launch provider (§5.11). Applicable documents updated (NPR 7123.1D; NPR 7120.5 replaced by 7120.8A as reference). TBD/TBR target dates set. Change request to be logged by the chair (CR-2026-007) | CDR review, PM/SE/V&V |
+| E | 2026-10-27 | CDR 2026 consistency pass: MRD-011 465-485 km (target 475 km) and MRD-013 cap 485 km from `docs/BASELINE_PARAMETERS.md` Rev E §3 (CR-2026-007) | CDR documentation review |

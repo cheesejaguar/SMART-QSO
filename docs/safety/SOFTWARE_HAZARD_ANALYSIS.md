@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SHA-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Classification:** Class D Mission
 **Reference:** NASA-STD-8719.13
@@ -375,12 +375,15 @@ pin high; a gate is evaluated on stale data.
 
 | Control | Description | Verification |
 |---------|-------------|--------------|
-| C-009-1 | `XPDR_EN` is a heartbeat, never a level; the radio board's 50 ms monostable drops the transponder within 110 ms of the last main-loop pass; a stalled loop, a halted MCU and a reset all stop it (SRS-F081, `firmware/src/heartbeat.rs`) | T: `test_xpdr_heartbeat` (6 tests); SIL radio model treats a stopped heartbeat as off within 50 ms; EM: scope test of a halted MCU (open) |
+| C-009-1 | `XPDR_EN` is a heartbeat, never a level, with a lease of 40 ms; the radio board's 50 ms monostable drops the transponder within 90 ms of the last main-loop pass; a stalled loop, a halted MCU and a reset all stop it (SRS-F081, `firmware/src/heartbeat.rs`) | T: `test_xpdr_heartbeat` (6 tests); SIL radio model treats a stopped heartbeat as off within 50 ms; EM: scope test of a halted MCU (open) |
 | C-009-2 | Every gate in `transponder.rs` (permitted, powered, allowed, ACTIVE, sunlit, SOC, PA temperature, duty) must hold on every pass; any failing one stops the heartbeat (SRS-F080) | T: Rust unit tests; SIL checks `xpdr-forbidden` (0 s) and `xpdr-gates` (0.01 %) |
 | C-009-3 | Hardware: `RF_TX_EN` and the RF inhibit switches are in series with the transponder's PA supply (BASELINE §4) | I, T at the EM (RF reviewer) |
 
-**Status:** open until C-009-1's EM test and C-009-3. Recommended to add `transponder.rs` to the safety-critical list
-(RID FSW-05; it measured 98.8 % lines and 90.9 % conditions on 2026-10-27, short of the 100 % the list requires).
+**Status:** open until C-009-1's EM test and C-009-3. `transponder.rs` is on the safety-critical list since
+2026-10-27 (RID FSW-05, SDP §3.2, SRS-Q013) and passes the per-file gate: 98.8 % lines and 94.4 % conditions measured,
+the rest three reviewed `COVERAGE-EXEMPT` lines (a window slot that always exists). Since Revision C the transponder's
+`permitted` input also requires the loss-of-contact inhibit to be clear, so the REL-04 exception below never lets the
+transponder radiate.
 
 ### 9.2 SW-HAZ-010: RF Inhibit Failure (Beacon and Telemetry Downlink)
 
@@ -392,7 +395,7 @@ loss-of-contact inhibit. **Severity:** Critical (2). **Likelihood:** Improbable 
 | C-010-1 | TX-OFF latch persisted before it acts, honoured across resets (`rf_control`) | T: `test_rf_control`, `test_cmd_handler` |
 | C-010-2 | 45-minute silence after separation, latched once served so that a stowed sense reading later cannot restart or skip it (SRS-F087, `rf_silence`) | T: `test_rf_silence`; SIL `rf-silence` 45.0 min |
 | C-010-3 | The downlink gate re-checks every inhibit when a frame is handed to the TNC (`downlink`); the housekeeping frame goes through the same gate (SRS-F085) | T: `test_downlink`; SIL `forbidden-tx` 0 |
-| C-010-4 | Loss-of-contact inhibit after N days (`contact_monitor`) | T: `test_contact_monitor`; SIL `contact` |
+| C-010-4 | Loss-of-contact inhibit after N days (`contact_monitor`). **Exception (REL-04, Revision C):** with the command receiver known failed (a recovery cycle made, its health line in fault, the N days expired; SRS-F116), the inhibit no longer silences the beacon and housekeeping frames; the transponder stays off; TX-OFF, the RF silence and passivation still silence everything. Rationale and the regulatory question: SRS §3.12 (to be declared in the IARU request, item 7.9, and put to the FCC consultation, D3) | T: `test_contact_monitor`, `test_receiver`; SIL `contact`, `rx-failed-beacon` (contingency `rx_failed_day=20`) |
 
 All four components are on the safety-critical list with 100 % line and condition coverage. **Status:** controls
 verified on the host; open for the EM.
@@ -409,7 +412,7 @@ a Jetson load on an uncharacterised power system. **Severity:** Major (3). **Lik
 | C-011-2 | While held: the mode manager's guard refuses ACTIVE from every event; `PLD_ENABLE` is refused; the transponder's `allowed` input is false | T: `test_ops_state`; SIL commissioning: transponder and payload first on after the release (day 1.5) |
 | C-011-3 | No magnetorquer output until 120 s after separation (SRS-F086) | SIL: first coil command at 121 s |
 
-**Status:** verified on the host. Recommended to add `ops_state.rs` (both crates) to the safety-critical list (FSW-05).
+**Status:** verified on the host. `ops_state.rs` (both crates) is on the safety-critical list since 2026-10-27 (FSW-05) at 100 % lines and conditions. Since Revision C the operations record is also checked against its RAM copy every 60 s and merged toward held (SRS-F133), and the mode is held at IDLE when the wings are not deployed after their attempts (EPS-10, SRS-F128).
 
 ### 9.4 SW-HAZ-012: OBC Selector Extends a Gate
 
@@ -426,7 +429,25 @@ emission, a load or a mode that the fixed rules forbid, or composes a beacon wit
 **Status:** design complete; not implemented (fabrication phase). Not safety-critical if C-012-1 is shown by the
 property test, because no selector output can then do anything the rules forbid.
 
-### 9.5 Summary of the Additions
+### 9.5 SW-HAZ-013: End-of-Life Passivation Commanded Wrongly or Not Completed (Revision C)
+
+**Hazard:** the irreversible charge disconnect (SQSO-EPS-BRD-001 §7) fires when not intended (by a software fault, a
+replayed or forged command, or one key compromised), ending the mission; or a commanded passivation leaves a
+transmitter able to radiate or the charge path closed (the pre-space notification's end-of-life statement,
+97.207(g)(1)(iii)). **Severity:** Critical (2) for the mission (no hazard to people: the fuse is on the pack's own
+charge path). **Likelihood:** Improbable (E) with the controls.
+
+| Control | Description | Verification |
+|---------|-------------|--------------|
+| C-013-1 | Two commands under two keys: PASSIVATE_ARM (operational key, `EOL!`) then PASSIVATE_EXECUTE (recovery key) within 600 s; the execute alone, a lapsed arm or a wrong code does nothing (SRS-F110) | T: `test_passivation`, Rust unit tests |
+| C-013-2 | Two separate OBC outputs in series in the EPS (EOL_ARM's edge sets a latch, EOL_FIRE a level held ≥ 60 s in sunlight), both low at reset and pulled down on the EPS board: no single stuck line, glitch or reset fires it (SRS-F111) | T: `test_passivation`; V-EPS-8 on the EM |
+| C-013-3 | TX-OFF latched and the passivation record persisted before the fire; the passivation inhibit is never lifted; after a reset the record or the EPS EOL_STATE restores it (SRS-F112) | T: `test_passivation`, `test_rf_control`; SIL end-of-life plan |
+
+**Status:** verified on the host; the pins are not yet allocated on the STM32 (logical pins 19 and 20), so the image
+cannot fire it until they are; EM test open. Not on the safety-critical list (it protects the mission, not people);
+the chair and the PI may decide otherwise.
+
+### 9.6 Summary of the Additions
 
 | Hazard ID | Description | Severity | Likelihood | Risk | Status |
 |-----------|-------------|----------|------------|------|--------|
@@ -434,6 +455,7 @@ property test, because no selector output can then do anything the rules forbid.
 | SW-HAZ-010 | RF inhibit failure, beacon and downlink | Critical | Improbable | Low | Open (EM tests) |
 | SW-HAZ-011 | Commissioning hold lost or bypassed | Major | Remote | Low | Verified on host |
 | SW-HAZ-012 | OBC selector extends a gate | Major | Improbable | Low | Design only |
+| SW-HAZ-013 | End-of-life passivation commanded wrongly or not completed | Critical (mission) | Improbable | Low | Open (EM test V-EPS-8; pins to allocate) |
 
 ---
 
@@ -443,6 +465,7 @@ property test, because no selector output can then do anything the rules forbid.
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | §9 new: SW-HAZ-009 (transponder emission, XPDR_EN heartbeat), SW-HAZ-010 (RF inhibits, the SDP's open action), SW-HAZ-011 (commissioning hold), SW-HAZ-012 (OBC selector); recommendation to add `transponder.rs` and `ops_state.rs` to the safety-critical list (RID FSW-05) | SMART-QSO Team (CDR avionics review) |
+| C | 2026-10-27 | §9: C-009-1 lease 40 ms and drop within 90 ms; `transponder.rs` and `ops_state.rs` on the safety-critical list (FSW-05); C-010-4 the REL-04 exception (beacon kept with the receiver known failed); §9.5 new: SW-HAZ-013 end-of-life passivation (REG-01, EPS-06); the summary is §9.6 | SMART-QSO Team (CDR flight software, round 2) |
 
 ---
 

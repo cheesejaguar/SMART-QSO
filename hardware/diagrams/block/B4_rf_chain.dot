@@ -1,73 +1,79 @@
-// SQSO-HW-DIAG-001 B4: RF chain. Values from hardware/rf/TRANSMITTER_DESIGN.md (§7 LPF, §8 monitors, §10.1 OBC
-// interface), hardware/rf/RF_ELECTRICAL_DESIGN.md (LNA, switch), hardware/rf/ANTENNA_DESIGN.md,
-// docs/hardware/PARTS_LIST.md (SAW) and docs/BASELINE_PARAMETERS.md §7 (frequencies, power, separate antennas).
+// SQSO-HW-DIAG-001 B4: RF chain. Values from the RF board build-to design (hardware/electrical/rf/RF_BOARD_DESIGN.md,
+// SQSO-RF-BRD-001 §1, §3, §4, §6-§8), pins from hardware/electrical/INTERCONNECT.md (SQSO-ICX-001 §3.2) and
+// docs/BASELINE_PARAMETERS.md §7 (frequencies, power, separate antennas, uplink request windows).
 // Purple = RF, grey = audio / baseband, blue = data, dashed green = control, red = power, brown = analog monitor.
 digraph B4 {
   graph [rankdir=LR, fontname="Helvetica", fontsize=12, nodesep=0.35, ranksep=0.45, newrank=true,
-         label="B4  RF chain   (SQSO-HW-DIAG-001, preliminary: dashed = part not selected)\npurple RF · grey audio / baseband · blue data · dashed green control · red power · brown analog monitor",
+         label="B4  RF chain   (SQSO-HW-DIAG-001 Rev B; RF board SQSO-RF-BRD-001)\npurple RF · grey audio / baseband · blue data · dashed green control · red power · brown analog monitor",
          labelloc=t, labeljust=l];
   node  [shape=box, style="rounded,filled", fillcolor="#f3e5f5", fontname="Helvetica", fontsize=10];
   edge  [fontname="Helvetica", fontsize=8, penwidth=1.3];
 
   subgraph cluster_up {
-    label="Uplink 435–438 MHz (one coordinated channel, away from 3 × f_down)"; style=rounded; color="#6a1b9a"; fontcolor="#6a1b9a";
-    ANTU [label="70 cm λ/4 monopole\n≈ 0.17 m SS tape, deployable", shape=box, peripheries=2, fillcolor="#ede7f6"];
-    SAW  [label="SAW band-pass\nMurata SF2098B, 435 MHz\n(TBR: part list)"];
-    LNA  [label="LNA BGA725\n(alt. SPF5189Z)\n≈ 0.1 W"];
-    RX   [label="UHF FM receiver (TBD)\nalways on (RADIO rail)\n16K0F3E / 10K4F2D", style="rounded,dashed,filled"];
-    ANTU -> SAW -> LNA -> RX [color="#6a1b9a"];
+    label="Uplink: one coordinated channel, requested in 435.222-435.778 MHz, else 436.222-436.500 MHz (BASELINE §7)"; style=rounded; color="#6a1b9a"; fontcolor="#6a1b9a";
+    ANTU [label="70 cm λ/4 monopole\nISIS AntS tape, deployable", shape=box, peripheries=2, fillcolor="#ede7f6"];
+    FL1  [label="FL1 7th-order high-pass\nthree 146 MHz traps\n≥ 60 dB at 144-146 MHz"];
+    LNA  [label="LNA BFP640F\n6 mA"];
+    SAW  [label="SAW band-pass\nTai-Saw TA2209A\n433-437 MHz"];
+    RX   [label="TI CC1200 receive-only\nanalog FM (CFM)\nalways on (RADIO rail)"];
+    ANTU -> FL1 -> LNA -> SAW -> RX [color="#6a1b9a"];
   }
 
   subgraph cluster_bb {
     label="Baseband"; style=rounded; color="#616161"; fontcolor="#616161";
-    TNC  [label="KISS TNC (TBD)\n1200 bps AFSK, full duplex\nadds FCS, modulates, keys", style="rounded,dashed,filled", fillcolor="#f5f5f5"];
-    XPDR [label="Transponder audio path (TBD)\nsquelch-gated repeat\nno control line defined (finding F11)", style="rounded,dashed,filled", fillcolor="#f5f5f5"];
-    MUX  [label="TX audio / PTT arbiter (TBD)\nTNC frames vs transponder audio\n(finding F11)", style="rounded,dashed,filled", fillcolor="#f5f5f5"];
+    TNC  [label="KISS TNC STM32L431\n1200 bps AFSK, HDLC, full duplex\nrelays repeat audio (DAC2)", fillcolor="#f5f5f5"];
+    XPDR [label="Repeat path (hardware gates)\nCMX138A CTCSS 67.0 Hz decode\nLVC1G123 heartbeat monostable on XPDR_EN\nHC4060 120 s key-down timer", fillcolor="#f5f5f5"];
+    MUX  [label="TX audio select and PTT\nTMUX1101 mute · TMUX1219 select\nPTT = (XPDR_KEY OR TNC_PTT) AND TX permit", fillcolor="#f5f5f5"];
   }
-  RX  -> TNC  [color="#757575", label="discriminator audio"];
-  RX  -> XPDR [color="#757575", label="audio + squelch"];
+  RX  -> TNC  [color="#757575", label="demodulator samples"];
+  TNC -> XPDR [color="#757575", label="repeat audio"];
   TNC -> MUX  [color="#757575", label="AFSK + PTT"];
-  XPDR -> MUX [color="#757575", label="audio + PTT"];
+  XPDR -> MUX [color="#757575", label="audio + XPDR_KEY"];
 
   subgraph cluster_down {
-    label="Downlink 145.800–146.000 MHz (not 145.825)"; style=rounded; color="#6a1b9a"; fontcolor="#6a1b9a";
-    TX   [label="VHF FM exciter (TBD)\nDRA818V / Radiometrix TX2M or eq.", style="rounded,dashed,filled"];
-    PA   [label="PA (TBD)\n0.5 W nom. / 1 W max\nTX_PWR_SEL: low 0.5 W, high 1 W", style="rounded,dashed,filled"];
-    CPL  [label="Directional coupler\n−20 dB, fwd + rev ports"];
-    LPF  [label="7-pole Chebyshev LPF\nf_c 160 MHz, > 50 dB at 2f\n(baseline target ≥ 60 dB at 3f)"];
-    ANTV [label="2 m λ/4 monopole\n≈ 0.5 m SS tape, deployable", shape=box, peripheries=2, fillcolor="#ede7f6"];
-    TX -> PA -> CPL -> LPF -> ANTV [color="#6a1b9a"];
+    label="Downlink 145.800-146.000 MHz (not 145.825)"; style=rounded; color="#6a1b9a"; fontcolor="#6a1b9a";
+    ADC  [label="PCM1808 audio ADC\nI2S deviation", fillcolor="#f5f5f5"];
+    TX   [label="TI LMX2571 synthesizer\nFM exciter, 40 MHz TCXO"];
+    PA   [label="PA Mitsubishi RD01MUS3, 5.0 V\n0.5 W nom. / 1 W max (APC)\nTX_PWR_SEL: low 0.5 W, high 1 W"];
+    LPF  [label="Match + 7th-order elliptic LPF\ntraps at 2f, 3f\nH3 −90 dBc at the port (≥ 70 dB required)"];
+    ANTV [label="2 m λ/4 monopoles along ±X\nISIS AntS tape, deployable", shape=box, peripheries=2, fillcolor="#ede7f6"];
+    ADC -> TX [color="#757575"];
+    TX -> PA -> LPF -> ANTV [color="#6a1b9a"];
   }
-  MUX -> TX [color="#757575", label="mod audio + key"];
+  MUX -> ADC [color="#757575", label="mod audio"];
+  MUX -> TX  [color="#757575", label="PTT", style=dashed];
 
   subgraph cluster_mon {
     label="Monitors"; style=rounded; color="#8d6e63"; fontcolor="#8d6e63";
-    DETF [label="Fwd detector AD8361 or eq.\n0–3 V → TX_FWD PC0", fillcolor="#efebe9"];
-    DETR [label="Rev detector AD8361 or eq.\n0–3 V → TX_REV PC1\nVSWR > 3:1: 0.5 W, then off 10 min", fillcolor="#efebe9"];
-    TMP  [label="TMP36 on PA\n→ TX_TEMP PA0\n> 70 °C hold until 60 °C", fillcolor="#efebe9"];
+    DETF [label="AD8361 fwd detector\n→ TX_FWD PC0", fillcolor="#efebe9"];
+    DETR [label="AD8361 rev detector\n→ TX_REV PC1", fillcolor="#efebe9"];
+    TMP  [label="TMP235 on the PA\n→ TX_TEMP PA0", fillcolor="#efebe9"];
   }
-  CPL -> DETF [color="#6a1b9a", style=dotted, label="fwd"];
-  CPL -> DETR [color="#6a1b9a", style=dotted, label="rev"];
+  LPF -> DETF [color="#6a1b9a", style=dotted, label="sense line fwd"];
+  LPF -> DETR [color="#6a1b9a", style=dotted, label="rev"];
   PA  -> TMP  [color="#8d6e63", style=dotted, arrowhead=none, label="thermal"];
 
   { rank=same; OBC; SW2; }
-  OBC [label="OBC STM32L4R5ZI\nsqso downlink.h / uplink", fillcolor="#e3f2fd", penwidth=1.6];
-  OBC -> TNC [color="#1565c0", dir=both, label="USART2 9600  PD5 TX · PD6 RX\nKISS: telecommand in, beacon + telemetry out"];
-  OBC -> PA  [color="#2e7d32", style=dashed, label="TX_PWR_SEL PE3"];
+  OBC [label="OBC STM32L4R5ZI\n(W4A, J2 ↔ RF J1)", fillcolor="#e3f2fd", penwidth=1.6];
+  OBC -> TNC  [color="#1565c0", dir=both, label="USART2 9600  PD5 TX · PD6 RX\nKISS: telecommand in, beacon + telemetry out"];
+  OBC -> PA   [color="#2e7d32", style=dashed, label="TX_PWR_SEL PE3"];
+  OBC -> XPDR [color="#2e7d32", style=dashed, label="XPDR_EN PE4\n100 Hz heartbeat (TIM7)"];
+  XPDR -> OBC [color="#ef6c00", constraint=false, label="TONE_OK PC9 · XPDR_KEY PG12"];
+  MUX  -> OBC [color="#ef6c00", constraint=false, label="PTT_EXCITER PC7"];
   DETF -> OBC [color="#8d6e63", constraint=false];
   DETR -> OBC [color="#8d6e63", constraint=false];
   TMP  -> OBC [color="#8d6e63", constraint=false];
 
   subgraph cluster_pwr {
-    label="EPS"; style=rounded; color="#c62828"; fontcolor="#c62828";
-    SW2 [label="SW2 RADIO 3V3 (5 V TBD)\nRADIO_EN PB5", fillcolor="#ffebee"];
-    SW3 [label="SW3 PA 5 V\nRF_TX_EN PA3, pull-down\nhardware TX-OFF · RF inhibits", fillcolor="#ffebee"];
+    label="EPS (W4B, EPS J19 → RF J2)"; style=rounded; color="#c62828"; fontcolor="#c62828";
+    SW2 [label="SW2 RADIO_3V3, 0.12 A trip\nRADIO_EN PB5", fillcolor="#ffebee"];
+    SW3 [label="SW3 PA 5 V, 0.99 A trip\nRF_TX_EN PA3 AND hardware load shed\nhardware TX-OFF · behind DS1-DS3", fillcolor="#ffebee"];
   }
   SW2 -> RX  [color="#c62828"];
   SW2 -> TNC [color="#c62828"];
   SW2 -> TX  [color="#c62828"];
   SW3 -> PA  [color="#c62828", penwidth=2];
+  SW3 -> ADC [color="#c62828"];
   OBC -> SW3 [color="#2e7d32", style=dashed, label="RF_TX_EN PA3"];
   OBC -> SW2 [color="#2e7d32", style=dashed, label="RADIO_EN PB5"];
-
 }

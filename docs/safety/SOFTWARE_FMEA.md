@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-FMEA-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8719.13, MIL-STD-1629A
 
@@ -259,18 +259,22 @@ Each Rev A failure-mode group and each mode the CDR added, with what detects it,
 | Magnetometer sampled with the coils on (new) | sample time against the coil burst (`CoilTiming`) | sample rejected and counted (`MR`), first one logged; detumble without gyro not completed on a stale rate | Rust unit tests; Monte Carlo `no_window_detected` (every sample rejected, detumble times out, no false completion) |
 | Gyro absent or failed (new) | `Option` rate | magnetometer rate, nutation gain 1·10⁻⁴ | Monte Carlo `no_gyro` (17° mean) |
 | BCN-FM beacon not sent or too frequent | downlink duty and key-down limits (`downlink`) | frame refused; template on Jetson failure | `test_downlink`, `test_beacon`; SIL `beacon-gap`, `duty`, `keydown` |
-| Transponder enabled when forbidden (new) | gates every pass (`transponder.rs`) | heartbeat stops; the radio board drops the enable in ≤ 110 ms; a stalled loop or a reset stops it too | `test_xpdr_heartbeat`; SIL `xpdr-forbidden` 0 s |
+| Transponder enabled when forbidden (new) | gates every pass (`transponder.rs`, safety-critical since Rev C) | heartbeat stops (lease 40 ms); the radio board drops the enable in ≤ 90 ms; a stalled loop or a reset stops it too | `test_xpdr_heartbeat`; SIL `xpdr-forbidden` 0 s; coverage gate 100 % lines and conditions |
 | UART-FM Jetson link | line CRC and parser (`jetson_link`) | NACK, template beacon | `test_jetson_link`, `test_uart_comm` |
 | MD-FM storage write/read | two-slot records with CRC (`nvm`) | older slot used; corrupt record reported | `test_nvm_record`, `test_mission_data` |
 | Operations record corrupt (new) | CRC of both slots | **hold** (a lost record must not release a held unit) | `test_ops_state` |
 | WDT-FM watchdog | IWDG 30 s, per-task check-in | reset, cause in the boot record and housekeeping (`RST`) | `test_watchdog_mgr`; target test open |
 | SEN-FM sensor invalid or stale | range and age checks (`sensors`) | value not used (`-` in housekeeping) | `test_sensors` |
 | AI-FM Jetson over-power, over-temperature, hang | `payload_guard`, reply timeout | rail off, cooldown; template beacon | `test_payload_guard`, `test_executive_jetson`; SIL `tjetson`, `ai-energy` |
-| Wing burn driver or resistor failed (new) | wing sense after each attempt | next attempt on the other driver (two resistors per wing, SRS-F089) | `test_deployment` (24 tests) |
+| Wing burn driver or resistor failed (new) | wing sense after each attempt | next attempt on the B resistors (four lines, one resistor at a time, SRS-F089); with every attempt spent and the wings not sensed, the mode is held at IDLE (EPS-10, SRS-F128) until a DEPLOY_RETRY | `test_deployment`, `test_ops_state`; SIL `burn-lines` ≤ 1 |
 | AntS not answering or an element not deployed (new) | AntS status word per element | attempt counted failed, retry 50 min later, DEPLOY_RETRY by the ground | `test_deployment`; SIL smoke (AntS model) |
 | GNSS no fix or latched (new) | no accepted fix in a 300 s session | power off; three in a row logged as a fault; the next session power-cycles it | Rust unit tests (`gnss_schedule`); SIL 73 sessions, all with a fix |
-| Receiver SEFI (telecommand lost) | not detected | none (RID FSW-09: power-cycle `RADIO_EN` after a long silence) | open |
-| SRAM upset in live state | not detected unless a range check or the watchdog catches it | none (RID AV-07) | open |
+| Receiver SEFI (telecommand lost) | 24 h without a valid frame or a carrier (`receiver.rs`) | radio power-cycled for 2 s, never in a pass, logged, at most once a day (FSW-09, SRS-F115) | `test_receiver`, Rust unit tests; SIL `rx-recovery` (SEFIs modelled, each cleared within 26 h) |
+| Receiver failed for good (new) | a recovery cycle made, the health line in fault, the loss-of-contact timeout expired (SRS-F116) | the loss-of-contact inhibit no longer silences the beacon; the transponder stays off; TX-OFF and passivation still work (REL-04, SRS-F117) | `test_receiver`; SIL contingency `rx_failed_day=20` (`rx-failed-beacon`) |
+| SRAM upset in live state | SRAM2 parity on read (every static); flash double-bit ECC; the TX-OFF, operations and passivation records checked against RAM every 60 s | NMI: cause recorded, immediate reset, cause logged at the next boot; a disagreeing RAM copy settled toward the safe side (AV-07, SRS-F132, SRS-F133). The stack (SRAM3) is not covered | `test_rf_control`, `test_ops_state`, `test_passivation` (the checks); NMI path: fault injection on the EM (RAD-V6) open |
+| Passivation commanded by mistake or by an attacker (new) | two commands, two keys (operational, then recovery within 600 s) | the arm lapses; the execute alone is refused (SRS-F110) | `test_passivation` |
+| Passivation fire interrupted (eclipse, reset) (new) | sunlight and the fire time; the record and the EPS EOL_STATE at boot | both lines dropped, the fire repeated at the next sunlight, at most 3 attempts; transmitters off for good from the execute (SRS-F111, SRS-F112) | `test_passivation`; SIL end-of-life plan |
+| EPS recharge lockout latched (new) | EPS status | cleared only by EPS_CLEAR_LOCKOUT (`CHG!`): the I2C unlock and a LOCK_CLR pulse ≥ 100 ms (EPS-12, SRS-F129) | `test_receiver` (lockout clear) |
 
 ---
 
@@ -280,3 +284,4 @@ Each Rev A failure-mode group and each mode the CDR added, with what detects it,
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | §14 new: the three rating scales are inverted so the RPN ranks benign modes highest (RID FSW-08), corrected RPN′ with the ten highest; FDIR coverage of the as-built flight software for every Rev A group and the modes added at CDR. Ratings unchanged | SMART-QSO Team (CDR avionics review) |
+| C | 2026-10-27 | §14.2: the receiver recovery and failed-receiver rows (FSW-09, REL-04), SRAM upsets (AV-07), the wings-failed IDLE hold (EPS-10), passivation and the recharge-lockout clear (REG-01, EPS-06, EPS-12), as implemented in the flight software round 2; the transponder row with the 40 ms lease. Ratings unchanged | SMART-QSO Team (CDR flight software, round 2) |

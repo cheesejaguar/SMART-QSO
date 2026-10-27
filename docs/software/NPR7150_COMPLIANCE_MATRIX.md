@@ -1,11 +1,12 @@
 # NPR 7150.2D Requirements Mapping and Compliance Matrix (Class C)
 
 **Document ID**: SQSO-FSW-012
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Status**: Draft (CDR)
 **Applies to**: the Class C software of `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1 (OBC flight software, Jetson
-payload software, ground software used in operations, the host simulation and test suites)
+payload software, ground software used in operations, the host simulation and test suites, and since Version B the
+firmware of the RF board TNC and of the EPS controller, SDP §3.4)
 **Standards**: NPR 7150.2D (effective 2022-03-08), Appendix C; NASA-STD-8739.8B
 
 ---
@@ -50,13 +51,13 @@ Evidence paths are relative to the repository root.
 | 034 | Acceptance criteria for the software | Partial | SRS verification methods (`docs/software/SOFTWARE_REQUIREMENTS.md`, every row), the SIL pass criteria (`docs/test/SIL_MISSION_SIMULATION.md`); formal acceptance review at TRR |
 | 036 | Software processes established | Met | SDP §4 to §8, CI (`.github/workflows/ci.yml`) |
 | 037 | Software milestones defined | Met | SDP §4.1 |
-| 039 | Acquirer insight into supplier software | N/A | No software supplier; the bought units' firmware (AntS, EPS controller, GNSS receiver) is treated as hardware with an interface, verified at the interface (`docs/interfaces/ICD_OBC_ADCS.md` §12.4) |
+| 039 | Acquirer insight into supplier software | N/A | No software supplier; the bought units' firmware (AntS, GNSS receiver) is treated as hardware with an interface, verified at the interface (`docs/interfaces/ICD_OBC_ADCS.md` §12.4). The EPS controller firmware is not bought: the project writes it (SDP §3.4, §2.4 below) |
 | 040 | Access to software products | Met | Public repository |
 | 042 | Electronic access to source code | Met | Public repository |
 | 022 | Software assurance per NASA-STD-8739.8 | Partial | `docs/safety/SOFTWARE_SAFETY_PLAN.md`, `docs/project/MISSION_ASSURANCE_PLAN.md`; no named software assurance lead (open item C-3) |
 | 141 | IV&V for projects meeting the criteria | N/A | Not a NASA project; no IV&V designation (SDP §3.3) |
 | 131 | IV&V project execution plan | N/A | As SWE-141 |
-| 205 | Determine the safety-critical software | Met | SDP §3.2 (2026-10-25). CDR finding FSW-05: the transponder gate (`sqso-fsw/src/transponder.rs`) and the commissioning hold (`sqso-ffi/src/ops_state.rs`) control RF emission and payload power and should be added to the list (for the chair and the PI) |
+| 205 | Determine the safety-critical software | Met | SDP §3.2 (2026-10-25). CDR finding FSW-05 closed 2026-10-27: the transponder gates (`sqso-fsw/src/transponder.rs`) and the operations record (`sqso-fsw/src/ops_state.rs`, `sqso-ffi/src/ops_state.rs`) are on the list and in the coverage gate (SRS-Q013; PI concurrence to record). The board firmware items are still to be determined (open item C-8) |
 | 023 | Safety-critical software requirements implemented | Met | SRS §3 safety rows; `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` controls |
 | 134 | Safety-critical software: initialisation, inhibits, safe state, prerequisite checks, command validation | Met | Inhibits: `rf_control`, `rf_silence`, `downlink`, `deployment`; command authentication `cmd_auth`; safe-mode entry `state_machine`; tested by the C suites |
 | 219 | 100 % MC/DC coverage of safety-critical components | Tailored | 100 % line and condition coverage per file, CI gate `software/flight/scripts/safety_coverage.py` (CR-2026-003, approved 2026-10-25). Measured 2026-10-27: 23 files, 0 problems |
@@ -139,6 +140,24 @@ Evidence paths are relative to the repository root.
 | 203 | Mandatory assessment of non-conformances | Partial | At reviews |
 | 204 | Process assessments | Not met | Open item with C-3 |
 
+### 2.4 Board Firmware Items (Version B)
+
+The RF board TNC firmware (STM32L431, SQSO-RF-BRD-001 §13) and the EPS controller firmware (MSP430FR2355,
+SQSO-EPS-BRD-001 §12), SDP §3.4. Neither is written. The rows of §2.1 to §2.3 apply to them as to the OBC software; the
+ones whose status differs:
+
+| SWE | Requirement (short) | RF board TNC firmware | EPS controller firmware |
+|-----|---------------------|-----------------------|-------------------------|
+| 020 | Classification | Met: Class C (SDP §3.1) | Met: Class C (SDP §3.1) |
+| 050 | Software requirements | Not met: the list to write is in SDP §3.4 (open item C-7) | Not met: as for the TNC (C-7) |
+| 052 | Bidirectional traceability | Not met: with the requirements (C-7) | Not met (C-7) |
+| 057 | Software architecture | Partial: the functions and what stays in hardware, SQSO-RF-BRD-001 §8 and §13 | Partial: SQSO-EPS-BRD-001 §12 and the ICD register block |
+| 060 | Implement the design | Not met (fabrication phase) | Not met (fabrication phase) |
+| 061 | Coding standards | Partial: `docs/development/CODING_STANDARDS.md` applies if it is Rust (proposed, reusing `sqso-protocol`) | Not met: language not chosen; the standard for it to be named |
+| 066 | Software testing | Not met: host unit tests, VI-RFB-01 and VI-RFB-05, an end-to-end EM test with the OBC (SDP §3.4) | Not met: host unit tests, V-EPS-6, V-EPS-8, V-EPS-9, an interface test with the OBC (SDP §3.4) |
+| 187 | Configuration management of the software items | Not met: an item of its own in the configuration index when created | Not met: as for the TNC |
+| 205 | Safety-critical determination | Not met: from the hazard analysis (C-8) | Not met: from the hazard analysis (C-8) |
+
 ## 3. SRS-C Requirements: Verification Methods
 
 The design constraints of SRS §8.1 have verification methods since SRS v1.6 (T test, A analysis, I inspection):
@@ -147,7 +166,7 @@ The design constraints of SRS §8.1 have verification methods since SRS v1.6 (T 
 |--------------|-------------|-------------------|
 | I: build configuration, CI toolchain pin | SRS-C001 | Met |
 | T: ctest `no_dynamic_memory`, CI symbol check | SRS-C002 | Met |
-| A: `scripts/stack_usage.py` on the image (CI gate); T: HIL-044 | SRS-C003 | Met by analysis: 5,444 B of 8,192 B (66.5 %); hardware pending |
+| A: `scripts/stack_usage.py` on the image (CI gate); T: HIL-044 | SRS-C003 | Met by analysis: 6,004 B of 8,192 B (73.3 %, the CDR round-2 image with the NMI handler); hardware pending |
 | I: image size at each release | SRS-C004 | Met at the last measurement (115,876 B, 2026-10-25); not a CI gate |
 | as in the SRS table | SRS-C005 to SRS-C009 | see SRS §8.1 |
 | I and T: beacon content filter against 47 CFR 97 | SRS-C010 | Met |
@@ -164,9 +183,12 @@ The design constraints of SRS §8.1 have verification methods since SRS v1.6 (T 
 | C-4 | Cyclomatic complexity of the safety-critical Rust files (SWE-220), RID FSW-06 | Measure and gate, or a CR to tailor |
 | C-5 | Requirements volatility (SWE-200) | From the SRS revision history at each release |
 | C-6 | Target-platform testing (SWE-073, -066) | EM and HIL plan |
+| C-7 | Requirements, traceability and tests of the RF board TNC firmware and the EPS controller firmware (SWE-050, -052, -066) | Software lead, before the EM integration |
+| C-8 | Safety-critical determination of the two board firmware items (SWE-205) | Hazard analysis update |
 
 ## Revision History
 
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | SMART-QSO Team (CDR avionics and flight-software review) | Initial: Appendix C mapping for Class C, SRS-C verification status, open items C-1 to C-6 (programmatics finding SE-10) |
+| B | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | The RF board TNC firmware and the EPS controller firmware added as Class C items (§2.4, open items C-7 and C-8); SWE-039 and SWE-205 rows updated (FSW-05 closed: the transponder and the operations record are safety-critical); SRS-C003 at 6,004 B |

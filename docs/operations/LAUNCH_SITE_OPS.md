@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-OPS-004
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Reference:** SpaceX Rideshare Payload User's Guide v11 (Aug 2026) §4.3, §7.6, §9.5, §10; Exolaunch EXOpod Nova User
 Manual Rev 1.2; `docs/ORBITAL_ACCESS.md` §2.3; `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` (SQSO-LVR-001)
@@ -22,7 +22,7 @@ UG §7.6). Where the integrator's mission ICD or integration guide differs, it g
 
 ### 2.1 Campaign Timeline
 
-| Phase | When (planning launch L = 2028-06-01) | Activities |
+| Phase | When (planning launch L = 2028-11-01, BASELINE Rev E §3) | Activities |
 |-------|----------------------------------------|------------|
 | Arrival and setup | ≈ L-50 d | Unpack, GSE setup, receiving inspection, rail measurement (Exolaunch guide) |
 | Pre-integration | L-49 to L-48 d | Functional test on the umbilical (conducted RF into a load only; no open-air RF, UG §9.5.2) |
@@ -288,3 +288,4 @@ UG §7.6). Where the integrator's mission ICD or integration guide differs, it g
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | CDR launch review: integrator-led integration (Exolaunch, EXOpod Nova) replaces team integration at the launch site; final charge to 60 % ± 5 % with the RBF in, key load and `ARM_FLIGHT` last, RBF out before integration, no access afterwards; shipping state of charge; no UTC to set; post-launch times from the simulation | CDR review (LV) |
+| C | 2026-10-27 | CDR 2026 consistency pass: planning launch 2028-11-01 (BASELINE Rev E §3) in §2.1 | CDR documentation review |

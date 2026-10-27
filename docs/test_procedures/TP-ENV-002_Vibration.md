@@ -2,7 +2,7 @@
 ## TP-ENV-002
 
 **Document Number:** TP-ENV-002
-**Revision:** E (interim levels)
+**Revision:** F (interim levels)
 **Date:** 2026-10-27
 **Reference:** SpaceX Rideshare Payload User's Guide, Version 11, August 2026 ("UG v11",
 <https://storage.googleapis.com/rideshare-static/Rideshare_Payload_Users_Guide.pdf>): §4.1.6, Table 4-6, §6.1.2, §6.6,
@@ -122,7 +122,7 @@ Flight unit: 1 minute per axis. Engineering model (pathfinder, `ENVIRONMENTAL_TE
 | Step | Action | Expected Result | Result | P/F |
 |------|--------|-----------------|--------|-----|
 | 1 | Visual inspection | No damage | ______ | |
-| 2 | Mass measurement | Within the current mass list (BASELINE §4: CBE ≈ 1.51 kg, limit 2.00 kg or the dispenser limit) | ______ kg | |
+| 2 | Mass measurement | Within the current mass list (BASELINE §4: CBE 1.49 kg, MEV 1.73 kg, limit 2.00 kg or the dispenser limit) | ______ kg | |
 | 3 | CG measurement | Within 2 cm of the geometric centre (CDS Rev 14.1 Table 2) | ______ cm | |
 | 4 | Functional test | TP-SYS-001 pass | ______ | |
 | 5 | Read and record the OBC boot counter and fault log | Recorded | ______ | |
@@ -258,3 +258,4 @@ original burn wire did not fail in the test. Any other rework needs the integrat
 | C | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
 | D (interim) | 2026-10-16 | §1: SYS-700 now names the launch provider's levels (SQSO-REQ-002 Rev D, PI to ratify), so the note that its GEVS wording needed updating is replaced (finding LA-05) | SMART-QSO Team |
 | E (interim) | 2026-10-27 | CDR review (PM/SE/V&V): protoflight level raised from the MPE (5.57 Grms) to the GEVS-B Appendix B envelope of MPE + 3 dB and workmanship (8.18 Grms), 1 min/axis on the flight unit and 2 min/axis on the EM (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.1); SYS-703 to SYS-705 added; post-test deployment replaced by continuity checks | CDR review, PM/SE/V&V |
+| F (interim) | 2026-10-27 | CDR 2026 consistency pass: mass check values from BASELINE Rev E §4 (CBE 1.49 kg, MEV 1.73 kg) | CDR documentation review |

@@ -41,18 +41,18 @@ The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 
 | HAL | File | What |
 |-----|------|------|
-| `hal_gpio.h` | `gpio.rs` | Provisional pin map. Heater and status LED on PD2/PD3, so that PC2/PC3 can be ADC inputs; deployment sense on PE2 and the downlink power select (`TX_PWR_SEL`) on PE3, so that PA0 can be an ADC input; the transponder enable (`XPDR_EN`) on PE4 |
+| `hal_gpio.h` | `gpio.rs` | Provisional pin map. Heater and status LED on PD2/PD3, so that PC2/PC3 can be ADC inputs; deployment sense on PE2 and the downlink power select (`TX_PWR_SEL`) on PE3, so that PA0 can be an ADC input; the transponder enable (`XPDR_EN`) on PE4; wing burn lines W1A PB10, W1B PE6, W2A PB9; `EPS_ALERT_N` PB7. The logical pins 19 to 24 (EOL_ARM, EOL_FIRE, RX_CD, RX_FAULT, BURN_W2B, LOCK_CLR) have no STM32 pin yet: driving one returns `INVALID`, reading one reads low |
 | `hal_timer.h` | `timer.rs` | Time base from embassy-time (milliseconds since boot) |
 | `hal_wdt.h`, `hal_reset.h` | `wdt.rs` | IWDG; reset cause from the RCC CSR flags |
 | `hal_uart.h` | `uart.rs` | Buffered UARTs: Jetson USART1 (PA9/PA10), debug USART3 (PD8/PD9) |
 | `hal_i2c.h` | `i2c.rs` | I2C2 (EPS, PF1/PF0), I2C4 (ADCS, PD12/PD13) |
 | `hal_spi.h` | `spi.rs` | SPI2 (RF), SPI3 (auxiliary) |
 | `hal_adc.h` | `adc.rs` | ADC1, VDDA measured against VREFINT, MCU temperature from TS_CAL; the downlink monitors TX_TEMP (PA0), TX_FWD (PC0) and TX_REV (PC1), the power ones square-law (an RMS detector); front-end scaling provisional (TBR-SRS-003) |
-| `hal_flash.h` | `fram.rs` | FM25V20A FRAM on SPI1 (PA5/PA6/PA7, CS PA4, WP PE0, HOLD PE1), regions at the `hardware/obc/STORAGE_DESIGN.md` §3.3 addresses; the fault log uses 9,728 B of the event log |
+| `hal_flash.h` | `fram.rs` | FM25V20A FRAM on SPI1 (PA5/PA6/PA7, CS PA4, WP PE0, HOLD PE1), 16 regions at the `hardware/obc/STORAGE_DESIGN.md` §3.3 addresses; the fault log uses 9,728 B of the event log, the stored housekeeping the 64 KB telemetry buffer and 90 KB of the extended storage (`software/flight/docs/MEMORY_POLICY.md` §8.1) |
 | `hal_radio.h` | `radio.rs` | The KISS TNC on USART2 (PD5/PD6, 9600 baud) for both directions (CR-2026-005): received frames decoded by `sqso_protocol::kiss`, with the FCS the TNC removed appended again; downlink frames written after the TNC parameters, from a 1 KB buffer that holds the longest stream, so the write never waits |
 
 Not provided: the HAL's callback timers and the watchdog early-warning callback. Both are refused, as they were in the
-former C port. The release image is 131,032 B of text, 21,964 B of data and 16,600 B of bss. The vector table is at
+former C port. The release image is 160,004 B of text, 23,768 B of data and 16,900 B of bss (2026-10-27); the data and bss are in SRAM2. The vector table is at
 0x08000000, the initial SP is 0x200A0000 and the entry point is `Reset`. No hardware has run it. CI builds the image and
 checks those properties. The ADCS sensor and actuator drivers, and real sensor-table readings on the target, are not
 written because the parts are not selected (`docs/reviews/KNOWN_ISSUES.md` KI-001).
@@ -116,7 +116,7 @@ during it), and where it is now. The C headers kept their names and content. "fs
 | `hal/stm32l4_clock.c` (and `hal/stm32l4_clock.h`) | `clocks()` in `firmware/src/main.rs` (embassy-stm32 RCC configuration) |
 | `hal/stm32l4_startup.c` | cortex-m-rt (vector table, `Reset`) |
 | `hal/stm32l4_syscalls.c` | not needed: the image links no C library |
-| `cmake/arm-none-eabi-stm32l4.cmake`, `cmake/stm32l4r5zi.ld` | `firmware/.cargo/config.toml`, cortex-m-rt `link.x` with the `memory.x` of embassy-stm32 (feature `memory-x`) |
+| `cmake/arm-none-eabi-stm32l4.cmake`, `cmake/stm32l4r5zi.ld` | `firmware/.cargo/config.toml`, cortex-m-rt `link.x` with the firmware's own `memory.x` (statics in SRAM2, the parity RAM; `firmware/src/parity.rs`, RID AV-07) |
 
 Two files that were in the tree until 2026-10-16, `system_init.c` and `yaml_parser.c`, were removed then as dead code and
 were not ported. The ports are commits 36c7b7b, 000fe0a, 4c2f0f7, 636b871, 9e7c95a, af06dbb, df3a9c2 and
@@ -259,9 +259,11 @@ Measured 2026-10-24.
   unchanged against the Rust on the host and under AddressSanitizer and UBSan.
 - **Coverage.** Rust line coverage is 94.8 %, from the C suites plus the 358 Rust unit tests (gate 90 %). Flight-software
   line coverage, C and Rust together, is 94.8 % (gate 80 %). Branch and condition coverage is 81.1 % (gate 80 %). The
-  23 safety-critical files (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2) are at 100 % of lines and conditions,
-  gated file by file, with 12 reviewed `// COVERAGE-EXEMPT:` lines (CR-2026-003, in place of MC/DC).
-- **Stack.** The image's worst case is 5,004 B of the 8 KB budget (SRS-C003; `scripts/stack_usage.py`, 2026-10-25):
+  26 safety-critical files (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2; the transponder and the operations
+  record added on 2026-10-27) are at 100 % of lines and conditions, gated file by file, with 15 reviewed
+  `// COVERAGE-EXEMPT:` lines (CR-2026-003, in place of MC/DC). On 2026-10-27: Rust lines 94.3 %, branches and
+  conditions 81.4 %.
+- **Stack.** The image's worst case is 6,004 B of the 8 KB budget on 2026-10-27 (5,004 B on 2026-10-25, the figures below; SRS-C003; `scripts/stack_usage.py`):
   3,368 B in thread mode plus one handler per priority level. Every frame the script reads from the image agrees with
   LLVM's own `.stack_sizes` (303 functions; the other 34, compiler-builtins and assembly, are read from the image only).
   The call graph has no cycle except the panic handler's single nesting. Not yet measured on hardware (HIL-044).

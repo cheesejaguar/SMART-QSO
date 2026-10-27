@@ -8,7 +8,7 @@
 > `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` (SQSO-LVR-001); the CDS clauses in `CDS_COMPLIANCE_MATRIX.md`.
 
 **Document Number:** SQSO-ICD-010
-**Revision:** E (draft)
+**Revision:** F (draft)
 **Date:** 2026-10-27
 **Reference:** SpaceX Rideshare Payload User's Guide Version 11 (August 2026, current on 2026-10-27); Cal Poly CDS
 Rev 14.1 (2022-02-09); Exolaunch EXOpod Nova User Manual Rev 1.2 (June 2024); Exolaunch EXOpod User Manual Rev 6.0
@@ -140,13 +140,13 @@ and damps shock strongly at high frequency (NOVA §3.5); transfer functions are 
 
 ### 9.1 Schedule
 
-The full deliverable schedule, with dates for the planning launch of 2028-06-01, is SQSO-LVR-001 §9. Key interface
+The full deliverable schedule, with dates for the planning launch of about 2028-11 (BASELINE Rev E §3; 2028-11-01 in `mission/SCHEDULE.md`), is SQSO-LVR-001 §9. Key interface
 events:
 
 | Event | Timing | Notes |
 |-------|--------|-------|
 | Mission analysis inputs (mass ± 15 %, CAD, dynamic model, transmitter webform, test approach) | L-8 M | UG Table G-3 |
-| Orbit selection (≤ 525 km must be offered) | L-5 M | UG Appendix G; BASELINE §3 |
+| Orbit selection (≤ 485 km must be offered; target 475 km) | L-5 M | UG Appendix G; BASELINE §3 |
 | Environmental verification report; mass ± 5 % | L-3.5 M | UG Table G-3 |
 | Licences, 18th SDS registration, Appendix F letter, ephemeris capability | L-2 M | UG §9.5.6, §9.5.7 |
 | Flight model at the integrator | About L-50 d (set by the mission ICD) | — |
@@ -205,3 +205,4 @@ To be named in the contract: mission manager and systems engineer (SMART-QSO), i
 | D (draft) | 2026-10-16 | §4.1 mass from MASS_BUDGET v2.0 (was 1.075 kg, never weighed; TB-06); §5.1 switch type open as TBR-CDS-005 (was "normally open", against "normally closed" in the structural design); §7.1 timer 45 min (SYS-224; was 30 min); §7.2 frequency, power and spurious limits from SYS-200, SYS-201 and SYS-203 (were 145.825 MHz, 2 W, "Per FCC Part 97") | SMART-QSO Team |
 | D, note | 2026-10-24 | RF-silence references name the Rust file that replaced `rf_silence.c` | SMART-QSO Team |
 | E (draft) | 2026-10-27 | CDR launch review: written against the intended chain (SpaceX Transporter from VSFB, Exolaunch, EXOpod Nova 1U slot) with UG v11 confirmed current; requirements moved to SQSO-LVR-001; measured-looking values withdrawn; deployer list (P-POD Mk III, ISIPOD) replaced by the EXOpod Nova; ejection velocity, hard-body radius, turn-on delay and vent area from `software/simulation/cdr/launch/`; the 120 s rule and the prohibited-materials row added; SOC at integration 60 % ± 5 %; "time within 1 s of UTC" withdrawn; delivery schedule from UG Fig. 1-2 and Appendix G instead of L-60/L-14 days | CDR review (LV) |
+| F (draft) | 2026-10-27 | CDR 2026 consistency pass: planning launch about 2028-11 (BASELINE Rev E §3) and orbit selection ≤ 485 km in §9.1 | CDR documentation review |

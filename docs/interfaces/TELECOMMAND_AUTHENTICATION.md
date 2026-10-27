@@ -1,7 +1,7 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.7 (Draft)
+**Version**: 0.8 (Draft)
 **Date**: 2026-10-27
 **Status**: Draft. Implemented and tested in the host simulation. Not yet run on target hardware (Section 10).
 
@@ -195,24 +195,29 @@ No RF signal may be generated or transmitted until 45 minutes after deployment, 
 `rf_control` combines three independent inhibits: the TX-OFF latch, loss of contact, and RF silence. The transmitter is enabled only when all three are clear. Only the silence removes radio power.
 | Target | `contact_monitor_tick()` needs a monotonic time source. `smart_qso_now_ms()` is not implemented on target yet (SW-01) |
 
-### 6.4 End-of-Life Passivation by Telecommand (proposed, not implemented)
+### 6.4 End-of-Life Passivation by Telecommand
 
 BASELINE §5 and the pre-space notification (97.207(g)(1)(iii)) say the battery charge path is permanently
-disconnected at end of life and the transmitters disabled. **No telecommand does this today:** the command dictionary
-(Section 7) has no passivation command; the mission simulation fires a modelled passivation latch when its end-of-life
-`TX_DISABLE` is delivered (`software/rust/sqso-sil/src/mission.rs`), which the flight software does not have. Proposed
-design, for a change request (flight software and EPS are outside this document):
+disconnected at end of life and the transmitters disabled. Implemented 2026-10-27 (review items REG-01, EPS-06, FSW-07,
+SMA-13; SRS-F110 to SRS-F112; `software/rust/sqso-fsw/src/passivation.rs`, `software/rust/sqso-ffi/src/passivation.rs`,
+`passivation.h`), with the EPS hardware of SQSO-EPS-BRD-001 §7 (fuse F1, Q20 in series with the Q21 arm latch). The
+codes 0x34 and 0x35 that Version 0.7 proposed are XPDR_ENABLE and XPDR_DISABLE; the passivation commands are 0x70 and
+0x71.
 
-| Item | Proposal |
-|------|----------|
-| Commands | `PASSIVATE_ARM` (0x34, operational key, 4-byte argument: the ASCII arming code `EOL!`) then `PASSIVATE_EXECUTE` (0x35, **recovery key**, no argument) within 600 s of the arm, in the same contact. Two keys from two custodians: the two-person rule for an irreversible act |
-| Order of execution | `TX_DISABLE` latch first (Section 6), then the EPS non-resettable charge-disconnect (SYS-800, EPS design), then the loads are left on to discharge the pack. The receiver goes dark when the pack is exhausted |
-| Allowed states | Every state except BOOT; refused in the first 365 days after deployment unless the arm argument is `EOL!` and a GSE-set flag allows early passivation (none by default) |
-| Telemetry | The beacon carries `M=PASSIVE` between the arm and the execute; arming times out silently |
-| Verification | Test on the EM with a sacrificial charge-disconnect device; the latch is proven non-resettable by power cycling and by every telecommand |
+| Item | Behaviour |
+|------|-----------|
+| Commands | `PASSIVATE_ARM` (0x70, operational key, 4-byte argument: the ASCII arming code `EOL!`; a wrong code is `INVALID_PARAM`) arms for 600 s and drives nothing. `PASSIVATE_EXECUTE` (0x71, **recovery key**, no argument) within those 600 s executes; without a live arm it is `NOT_ALLOWED` and does nothing. An arm not executed lapses silently (logged). Two keys from two custodians: the two-person rule for an irreversible act |
+| Order of execution | (1) TX-OFF latched (Section 6), and `RF_INHIBIT_PASSIVATED` set, which nothing clears; (2) the passivation record persisted (`FLASH_REGION_EOL`, two-slot CRC-32 record, magic `EOLP`); (3) in sunlight, `EOL_ARM` raised (its rising edge sets the EPS arm latch) and 200 ms later `EOL_FIRE` raised: a level held at least 60 s and at most 120 s, dropped early only once the EPS reports the charge path open. An eclipse before 60 s drops both lines; the fire is repeated at the next sunlight, at most 3 attempts. Both lines end low |
+| Confirmation | The EPS controller's `EOL_STATE` register (0x7C at 0x48: bit 0 armed, bit 1 fired) is read after the fire; an `EOL_STATE` reporting fired counts as passivated even if the record is lost |
+| After reset | The record (or the EPS state) restores the passivated state before anything can transmit; the fire resumes if it did not complete |
+| Allowed states | Every operating state. There is no first-year lockout: the two keys are the protection |
+| Telemetry | The housekeeping frame's `PS=` field: 0 idle, 1 armed, 2 firing, 3 passivated (only 1 can be downlinked: from 2 on nothing transmits) |
+| Pins | `EOL_ARM` and `EOL_FIRE` are the logical pins 19 and 20 of `hal_gpio.h`, low at reset; their STM32 pins are for the OBC designer to allocate (SQSO-EPS-BRD-001 §13.1 proposes PF4 and PG1). Until then the firmware cannot drive them: `PASSIVATE_EXECUTE` still latches TX-OFF and the passivation, and logs that the line is unavailable |
+| Verification | C suite `test_passivation` (two-key sequence, lapse, eclipse, resume after reset, the EPS state), the Rust unit tests of `passivation.rs`, the mission simulation's end-of-life plan (ARM, then EXECUTE 10 s later; the modelled latch fires only through the two lines). On the EM with a sacrificial fuse: V-EPS-8 (SQSO-EPS-BRD-001 §19) |
 
-Until this is implemented, the pre-space notification must not claim passivation by telecommand
-(`docs/regulatory/filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md` Rev A.1, (iii)).
+The pre-space notification may now describe passivation by telecommand
+(`docs/regulatory/filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md` Rev A.1, (iii), for its owner to update), once the
+EM test has been run.
 
 ## 7. Command Dictionary
 
@@ -237,16 +242,27 @@ CI runs the generator with `--check` and fails if any output is stale. `test_eve
 | 0x05 | CLEAR_FAULTS | 0 | operational | |
 | 0x06 | KEY_ROTATE | 1 | **recovery** | Activates spare operational slot 0–3 and revokes the current key (Section 9.3). Allowed in every state |
 | 0x07 | SET_CONTACT_TIMEOUT | 2 | operational | Loss-of-contact timeout in days, big-endian, 1–90 (Section 6.2; default and range are placeholders, D3) |
+| 0x08 | COMMISSIONING_RELEASE | 0 | operational | Releases the commissioning hold set by ARM_FLIGHT |
+| 0x09 | GET_HOUSEKEEPING | 0 | operational | Downlinks a housekeeping frame (HK1) at the next opportunity |
+| 0x0A | DUMP_TLM | 7 | operational | Stored housekeeping: store (0 five-minute, 1 sixty-second), first record (4 bytes, big-endian), count (2 bytes, big-endian, at most 600; 0 stops a dump). Four records a frame, one frame every 12 s at most (SQSO-ICD-005 §5.6) |
 | 0x10 | EPS_SET_MODE | 1 | operational | 0 = SAFE, 1 = IDLE, 2 = ACTIVE |
 | 0x13 | EPS_GET_TELEMETRY | 0 | operational | |
+| 0x14 | EPS_CLEAR_LOCKOUT | 4 | operational | Argument `CHG!`: clears the EPS's latched recharge lockout by the unlock write (0xC5 to register 0x7D at 0x48) and a LOCK_CLR pulse of 150 ms (SRS-F129) |
 | 0x21 | ADCS_DETUMBLE | 0 | operational | |
 | 0x23 | ADCS_GET_ATTITUDE | 0 | operational | |
+| 0x24 | ADCS_SET_GEOMETRY | 1 | operational | Spin axis and inertia preset, persisted: 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing |
 | 0x30 | SET_BEACON | 2 | operational | Interval in seconds, big-endian; 10 to 120 s (SYS-211) |
 | 0x31 | TX_ENABLE | 0 | operational | Clears the TX-OFF latch |
 | 0x32 | TX_DISABLE | 0 | **any**; none if no key is usable | Latches TX-OFF; allowed in every state |
 | 0x33 | SET_POWER | 1 | operational | 0 = 0.5 W, 1 = 1 W (BASELINE §7). Persisted and reported; applying it to the PA is the transmitter driver's job (interface TBD) |
 | 0x40 | PLD_ENABLE | 0 | operational | |
+| 0x34 | XPDR_ENABLE | 0 | operational | Allows the FM transponder (persisted); its gates still apply |
+| 0x35 | XPDR_DISABLE | 0 | operational | Stops the FM transponder (persisted) |
 | 0x41 | PLD_DISABLE | 0 | operational | |
+| 0x50 | DEPLOY_RETRY | 1 | operational | Retries a deployment element with fresh attempts: 0 antenna, 1 solar wings |
+| 0x60 | GNSS_REQUEST | 0 | operational | Starts a GNSS receiver session (its power gates still apply) |
+| 0x70 | PASSIVATE_ARM | 4 | operational | Argument `EOL!`; arms passivation for 600 s, drives nothing (§6.4) |
+| 0x71 | PASSIVATE_EXECUTE | 0 | **recovery** | Within 600 s of the arm: TX-OFF, the passivation record, the EPS charge disconnect (§6.4). Irreversible |
 
 **Not in the dictionary.** These IDs are defined in `cmd_handler.h` but have no handler, so they are refused with `INVALID_CMD` before a counter is consumed:
 
@@ -285,7 +301,7 @@ Every rejection is counted in `CmdStats_t`, and receive statistics are kept in `
 | Item | Rule |
 |------|------|
 | Operational keys | Four slots (`CMD_AUTH_OP_SLOTS`). One is **active**; the others are **spares**. Revoked keys are zeroized and marked revoked, never reused |
-| Recovery key | One key, kept **offline** on the ground. It authenticates only `KEY_ROTATE` and `TX_DISABLE` |
+| Recovery key | One key, kept **offline** on the ground. It authenticates only `KEY_ROTATE`, `TX_DISABLE` and `PASSIVATE_EXECUTE` (the second key of the passivation, §6.4), held by a different custodian from the operational key |
 | Onboard storage | `FLASH_REGION_AUTH`, one two-slot CRC-32 record each (768 B total; layout in `cmd_auth.h`): state record (active slot, operational counter) at 0; recovery record (key, ID, counter) at 128; operational key records (key, ID, status) at 256 + 128 × slot |
 | Generation | 32 bytes each from a cryptographically secure generator (`key_provision.py generate`), one set per spacecraft |
 | Ground storage | Key files of 64 hex characters, mode 600, held only by designated telecommand stations, never committed (`scripts/check_secrets.py` fails CI on key material) |
@@ -366,7 +382,8 @@ Procedure:
 | FRAM driver for `FLASH_REGION_AUTH` and `FLASH_REGION_RF_CONTROL` | Allocated in SQSO-OBC-002 §3.3; simulation HAL only |
 | Station call sign | `KK6GDB-11` (licensee KK6GDB, decision D1) |
 | Designated telecommand stations | **None agreed** (D1); at least two by 2027-01-05 |
-| Passivation telecommand (§6.4) | **Not implemented**; proposed design only |
+| Passivation telecommand (§6.4) | Implemented 2026-10-27 (`test_passivation`, Rust unit tests, SIL end-of-life plan). The EOL_ARM and EOL_FIRE pins are not allocated on the STM32 yet; not run on hardware (V-EPS-8 on the EM) |
+| Command acknowledgement (`ack KK6GDB-11: C= R= N=`, SQSO-ICD-005 §5.5) | Implemented 2026-10-27 (`test_cmd_handler`); sent after each command counted as contact (Section 6.2), through the downlink's inhibits |
 | Counters from UTC for several stations (§5.2.1) | Proposed; ground tool only |
 | Loss-of-contact N and M | N: mechanism implemented; value a placeholder (D3). M (autonomous passivation): **not implemented** |
 | Monotonic time source on target | **Not implemented** (SW-01); the loss-of-contact and RF-silence timers depend on it |
@@ -441,3 +458,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.6 | 2026-10-16 | OBC-to-RF ICD cited by its own number, SQSO-ICD-003 (was SQSO-ICD-005, the Space-to-Ground ICD), and the OBC GPIO table by its new location after the OBC design merge (finding PI-17). No technical change |
 | 0.6, note | 2026-10-24 | The C files named in §6, §7 and §10 were ported to Rust; references now name the Rust files (`software/rust/README.md`). The test suites named are unchanged and run against the Rust. No content change |
 | 0.7 | 2026-10-27 | CDR review (communications panel): telecommand-station status and the 70 cm power limit near Beale AFB (§2); Doppler pre-correction rule (§5.2 rule 5); UTC-derived counters for several stations (§5.2.1, proposed); end-of-life passivation by telecommand (§6.4, proposed: no such command exists, which the pre-space notification must reflect); status rows (§10) |
+| 0.8 | 2026-10-27 | CDR flight software, round 2: end-of-life passivation implemented (§6.4) with the codes 0x70 PASSIVATE_ARM and 0x71 PASSIVATE_EXECUTE (0x34 and 0x35 are XPDR_ENABLE and XPDR_DISABLE); §7 dictionary completed (0x08, 0x09, 0x0A DUMP_TLM, 0x14 EPS_CLEAR_LOCKOUT, 0x24, 0x34, 0x35, 0x50, 0x60, 0x70, 0x71); §9.1 the recovery key also authenticates PASSIVATE_EXECUTE; §10 status rows |

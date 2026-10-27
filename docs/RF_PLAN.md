@@ -8,9 +8,11 @@ Earlier revisions said "Uplink: None (transmit-only payload)". That contradicted
 be authorized: 47 CFR 97.207(b) and ITU RR 22.1 require a telecommand path that can stop all transmissions.
 
 - **Downlink:** one IARU-coordinated frequency in 145.800–146.000 MHz (2 m). Not 145.825 MHz, which carries ARISS/APRS packet
-- **Uplink:** one IARU-coordinated frequency in **435.000–437.300 MHz** (70 cm). The 3rd harmonic of any downlink in the
-  segment falls on 437.400–438.000 MHz, inside 435–438 MHz, so the uplink must stay below 437.300 MHz, and preferably
-  ≥ 2 MHz below 3 × f_down (SQSO-LBA-001 §7)
+- **Uplink:** one IARU-coordinated frequency, requested in **435.222–435.778 MHz, or else 436.222–436.500 MHz** (70 cm; BASELINE §7). The 3rd harmonic of
+  any downlink in the segment falls on 437.400–438.000 MHz, inside 435–438 MHz, so the uplink must stay below
+  437.300 MHz, and preferably ≥ 2 MHz below 3 × f_down (SQSO-LBA-001 §7); the receive SAW and the receiver clock limit
+  it to 435.050–436.500 MHz (SQSO-RF-BRD-001), and the EPS converters' 1.000 MHz harmonics leave these windows clear by
+  ≥ 200 kHz (SQSO-EPS-BRD-001, SQSO-EMC-001)
 - **Modes:**
   - Single-channel FM transponder, U/V (uplink 70 cm, downlink 2 m), CTCSS 67.0 Hz access, duty-gated by power
     (`XPDR_EN` heartbeat, hardware key gate and 120 s key-down timer)
@@ -34,3 +36,4 @@ be authorized: 47 CFR 97.207(b) and ITU RR 22.1 require a telecommand path that 
 |------|--------|
 | 2026-10-14 | Funding audit: uplink and telecommand added; 145.825 MHz excluded |
 | 2026-10-27 | CDR review: uplink range 435.000–437.300 MHz; antenna decided (separate elements, no diplexer); beacon cadence to BASELINE §8; CTCSS tone; jitter recommendation |
+| 2026-10-27 | CDR 2026 consistency pass: uplink request windows 435.222–435.778 MHz, else 436.222–436.500 MHz (BASELINE Rev E §7) |

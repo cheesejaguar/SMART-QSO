@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-BAT-001
-**Version:** 2.3
+**Version:** 2.4
 **Date:** 2026-10-27
 **Status:** Battery definition and cycle-life analysis for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-08). **Analysis, not measured; no cell has been bought or tested.**
 
@@ -190,8 +190,9 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 
 BASELINE §4 requires at least three independent physical inhibits for RF and for each deployable (CDS 2.3.7, 2.3.8);
 the deployment switches are physical inhibits, and the RBF pin and a software timer are not. The inhibit chains and
-their independence are in `docs/hardware/EPS_DESIGN.md` v2.0 §8 (the array path still lacks a third inhibit, RID
-EPS-04). The pack's negative is switched by DS2, so both poles must be isolated from the frame (≥ 1 MΩ at 50 VDC).
+their independence are in `docs/hardware/EPS_DESIGN.md` §8 and `hardware/electrical/eps/EPS_BOARD_DESIGN.md` §6: three
+deployment switches DS1–DS3 on three rails, DS3 also holding the trackers' enables low, so the array path has its third
+inhibit (RID EPS-04). The pack's negative is switched by DS2, so both poles must be isolated from the frame (≥ 1 MΩ at 50 VDC).
 If the ISS/NRCSD backup is used, the JSC 20793 Rev D requirements apply (BASELINE §3); the assessment for both paths
 is `docs/environment/BATTERY_SAFETY_ASSESSMENT.md` (SQSO-BSA-001).
 
@@ -340,3 +341,4 @@ lot uniformity OCV < 1 %, mass < 2 %, capacity < 5 %, resistance < 15 %).
 | 2.1 | 2026-10-26 | Charge set point 4.10 V a cell (D8, §3.1, §4.3, §10.2); isolated mount and 1 W heater (§6.2, §6.3, §7.1; BUILD_VS_BUY §4) |
 | 2.2 | 2026-10-27 | CDR review (EPS): secondary over-voltage protector; no low-temperature discharge cut-off; pack over-temperature in hardware; fuse and PTC ratings (§4.1, §5.1); inhibits and passivation point to EPS_DESIGN v2.0 (§5.2, §5.3); heater set points +5/+9 °C recommended (§6.3); screening per SQSO-BSA-001 (§9.1); compliance (§10.1) |
 | 2.3 | 2026-10-27 | CDR design (EPS board) | BMS parts selected (BQ76952, BQ771806, ITV4030 fuse, INA228 gauge; §4.1, §4.2); heater protection as built (§6.3); cell retention bonded/potted with welded interconnects (§7.1, RID STR-08); W1 wiring (§7.2); SQSO-EPS-BRD-001 |
+| 2.4 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §5.2 inhibit text, the array path has its third inhibit DS3 (SQSO-EPS-BRD-001 §6) |

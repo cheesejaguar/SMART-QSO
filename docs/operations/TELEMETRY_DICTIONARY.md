@@ -1,8 +1,8 @@
 # SMART-QSO Telemetry Dictionary
 
 **Document ID**: SQSO-TLM-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
 
@@ -189,9 +189,61 @@ The text before ` | ` passes the content filter (`BEACON_SPEC.md` section 6). It
 
 | Parameter | Value |
 |-----------|-------|
-| Interval | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (`BEACON_SPEC.md` section 7) |
+| Interval | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (`BEACON_SPEC.md` section 7), each interval jittered by up to ±5 s (uniform, a new draw each beacon; the mean per mode unchanged; SRS-F127) |
 | Duration | ~2 seconds |
 | Frequency | 145.XXX MHz |
+
+### 4.4 Housekeeping Frame (HK1)
+
+Every fifth beacon is followed, 5 s later, by a UI frame whose information field starts `HK1 ` (and one is sent on
+`GET_HOUSEKEEPING`, 0x09). Plain ASCII `KEY=value` pairs, integers only, `-` for a value not measured, at most 250
+bytes (`software/rust/sqso-fsw/src/housekeeping.rs`, SRS-F085, SRS-F126):
+
+| Key | Value | Unit |
+|-----|-------|------|
+| `N` | Frame sequence (wraps at 65536) | |
+| `UP` | Seconds since boot | s |
+| `BOOT` | Resets since the mission data began | |
+| `RST` | Last reset cause (`HalResetCause_t`) | |
+| `MODE` | Operating state (`state_machine.h`) | |
+| `HOLD` | Commissioning hold, 1/0 | |
+| `XP` | Transponder enabled now, 1/0 | |
+| `TX` | Transmission permitted, 1/0 | |
+| `SOC` | State of charge | ‰ |
+| `VB` | Battery voltage | mV |
+| `IB` | Battery current, positive charging | mA |
+| `PA` | Array power (battery voltage × array current, the current measured at the bus) | mW |
+| `TB`, `TO`, `TP`, `TJ` | Battery, OBC, PA, Jetson heat-spreader temperature | 0.1 °C |
+| `DEP` | Deployment state / AntS elements deployed (bit n−1 for element n, 15 all; `-` no answer) / wing sense | |
+| `RFS` | RF-silence state / seconds counted | s |
+| `CT` | Loss-of-contact timeout | days |
+| `CS` | Time since the last authenticated command (the loss-of-contact count) | h |
+| `FC` | Fault-log entries | |
+| `FL` | Newest fault: type / severity (`fault_mgmt.h`) | |
+| `W` | Body rate x / y / z | 0.01 °/s |
+| `AM` | ADCS mode | |
+| `MR` | Magnetometer samples rejected (coils on) | |
+| `GF` | GNSS: age of the latest fix / satellites used | s |
+| `GS` | GNSS sessions run / with a fix | |
+| `PS` | Passivation: 0 idle, 1 armed, 2 firing, 3 passivated (`passivation.h`) | |
+| `RX` | Command-receiver recovery cycles since boot / known failed 1/0 (`receiver.h`) | |
+| `CN` | Authenticated commands counted as contact since boot | |
+| `ST` | Stored housekeeping: next five-minute / sixty-second record number (`DUMP_TLM`) | |
+
+Example: `HK1 N=7 UP=3600 BOOT=3 RST=2 MODE=3 HOLD=1 XP=0 TX=1 SOC=873 VB=15812 IB=-120 PA=2410 TB=123 TO=215 TP=301
+TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 PS=1 RX=2/0 CN=3 ST=12/60`
+(one line on the air).
+
+### 4.5 Command Acknowledgement
+
+After each authenticated command counted as contact: `ack KK6GDB-11: C=<counter> R=<result> N=<days since contact>`
+(SQSO-ICD-005 §5.5, SRS-F125). `R` is the `CmdResult_t` code; `N` = 0 confirms the command was counted as contact.
+
+### 4.6 Stored Housekeeping Records
+
+`DUMP_TLM` (0x0A) downlinks the stored records in binary frames starting `HKD`: 44-byte records every 5 minutes for 7.1
+days and every 60 s for 6.8 h and the 6 h around the last three events. Frame and record layout: SQSO-ICD-005 §5.6
+(SRS-F120 to SRS-F122).
 
 ## 5. Telemetry Limits
 
@@ -274,3 +326,4 @@ SQSO_SUMMARY_YYYYMM.csv
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §4.3 beacon interval jitter; §4.4 the HK1 housekeeping frame with its fields (new: `PS`, `RX`, `CN`, `ST`; `PA` from the bus-side array current); §4.5 the command acknowledgement; §4.6 the stored housekeeping records |

@@ -1,7 +1,7 @@
 # SMART-QSO Power Budget Analysis
 
 **Document ID**: SQSO-PBA-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR power closure (analysis by simulation; nothing measured). Replaces version 1.x, whose array
@@ -28,6 +28,7 @@ the 1.80 W tumbling load plus 20 %).
 | Wings stowed (ADCS working) | 1.47 W | SAFE 1.03 W / IDLE 1.18 W / ACTIVE 2.50 W | +40 % / +23 % / **−42 %** | ACTIVE not sustainable; the SOC gates hold it (§8.1) |
 | Wings stowed and ADCS failed | 1.41 W | SAFE 0.79 W | +76 % | positive |
 | Jetson rail stuck on (both switches failed) | 3.93 W | 9.4 W | **−5.7 W** | Loss of the bus in ≈ 41 h (simulated); needs a hardware load shed (RID EPS-09) |
+| LEOP: detumble with the magnetorquers at 1.3 W, cold pack, heater on (§8.6) | 2.43 W (tumbling EOL, conservative) | 3.03 W while detumbling | first orbit −1.30 Wh; 3-orbit bound −3.44 Wh | SOC ≥ 33 % from the 40 % floor: met |
 
 All modes close with at least 20 % at end of life and at the β extremes of the LTAN 22:30 ± 1 h dispersion, with the
 transponder and the Jetson at their BASELINE duty limits, except ACTIVE with the wings stowed (contingency) and a
@@ -58,7 +59,11 @@ stuck-on Jetson (failure). The battery is never the limit: the deepest discharge
 
 ## 3. Orbit, β angle and eclipse
 
-500 km sun-synchronous, deployment 2028-06-01. The simulated β range over a year and the longest eclipse fraction:
+Simulated at 500 km sun-synchronous with deployment on 2028-06-01, the simulation's orbit when these runs were made.
+The baseline is now a 475 km target (465–485 km) and a planning launch of about 2028-11 (BASELINE Rev E §3), which the
+simulation has since adopted. At 475 km the longest eclipse is about 0.3 % of the orbit longer (≈ 0.5 % less
+generation), well inside the margins of §6; V-PWR-4 re-runs the matrix. The simulated β range over a year and the
+longest eclipse fraction:
 
 | LTAN | β over a year | Longest eclipse | Note |
 |------|---------------|-----------------|------|
@@ -95,7 +100,7 @@ for the body cells), and because it counts albedo (≈ +5 %). The seasonal swing
 
 Device values from the simulation (`sqso-sil/src/mission.rs`, `hw/radio.rs`, `hw/eps.rs`, `jetson.rs`): OBC with FRAM
 and sensors 0.165 W and the receiver 0.15 W on 3V3_AO (buck 85 %), EPS quiescent 0.08 W; ADCS sensors 0.12 W
-(magnetorquers ≈ 0 W in the spin hold, measured in the simulation); PA 1.5 W DC at 0.5 W RF on 5 V (buck 90 %);
+(magnetorquers ≈ 0 W in the spin hold, measured in the simulation; 1.16–1.3 W while detumbling, §8.6); PA 1.5 W DC at 0.5 W RF on 5 V (buck 90 %);
 beacon 1.67 s on air per frame; GNSS at its BASELINE allocation 0.05 W (not modelled in the simulation); Jetson 8 W.
 The transponder and Jetson duty limits are orbit fractions (BASELINE §5).
 
@@ -117,9 +122,14 @@ The bottom-up ACTIVE load is below the BASELINE allocation before the heater (1.
 ADCS) but nothing for the heater, which the BASELINE lists in that line; with the heater the bottom-up loads are
 0.30 W (sun-pointed) and 0.02 W (tumbling) above the allocation.
 
-**Peak currents at the pack** (for fuses and harness, EPS_DESIGN §5): housekeeping 0.05 A; PA keyed at 1 W RF
-0.21 A; Jetson 8 W 0.62 A (12 W latch-up guard trip 0.93 A); heater 0.08 A at 16.4 V; burn wires 1.6 A for ≤ 10 s.
-Worst simultaneous credible: burn + housekeeping + heater ≈ 1.8 A (the Jetson and the transponder are off in LEOP).
+**Peak currents at the pack** (for fuses and harness, EPS_DESIGN §5; SQSO-EPS-BRD-001 §6.1, §9): housekeeping 0.05 A;
+PA keyed at 1 W RF 0.21 A; Jetson 8 W 0.62 A (12 W latch-up guard trip 0.93 A); heater 0.08 A at 16.4 V;
+magnetorquers 0.083 A with three rods saturated at 14.4 V (0.104 A at 11.2 V; 0.23 A at the bridges' hardware limit);
+one burn resistor 0.51 A for ≤ 12 s (0.8 A at the resistor from the 7.0 V burn buck). Worst simultaneous credible, in
+LEOP (the Jetson and the transponder are off): burn + housekeeping + heater 0.67 A, **0.75 A** with the magnetorquers
+detumbling (0.90 A with the bridges at their limit), against the 1.0 A limit for a burn; four drivers on at once (a
+software fault) are held to 2.0 A by the burn buck. Outside LEOP the largest legitimate load is 1.40 A (Jetson at the
+guard, PA at 1 W, housekeeping, heater, magnetorquers).
 
 ## 6. Mode-by-mode closure
 
@@ -192,9 +202,44 @@ SOC ≥ 56.7 %, DoD 3.3 %. The same EPS-10 rule applies.
 
 ### 8.5 Cold-soak deployment
 
-With the whole spacecraft at −20 °C at separation, the deployment burn (1.6 A at 30 min) leaves the bus at ≥ 12.2 V
-at the ≈ 58 % deployment SOC (EMC_ANALYSIS §4; one wing at a time, EPS_DESIGN §5.1, leaves ≈ 13.4 V) and the charge regulator refuses charge for the first 1.5 h (pack below
-0 °C). The pack must leave the dispenser with ≥ 40 % SOC (BATTERY_SAFETY_ASSESSMENT §6).
+With the whole spacecraft at −20 °C at separation, the deployment burn at 30 min (one resistor at a time, 0.75 A at
+the pack with the magnetorquers detumbling) leaves the bus at ≥ 13.8 V at the ≈ 58 % deployment SOC (EMC_ANALYSIS §4;
+12.2 V in the two-resistor bound) and the charge regulator refuses charge for the first 1.5 h (pack below 0 °C). The pack must leave the dispenser with ≥ 40 % SOC (BATTERY_SAFETY_ASSESSMENT §6).
+
+### 8.6 Launch and early operations (separation to the end of detumble)
+
+The year runs of §6–§7 start after LEOP. This case adds the loads that only LEOP has: the B-dot detumble with the
+magnetorquers at full dipole, the burns, and the heater after a cold dispenser soak. The magnetorquers draw
+**1.16 W** with all three rods saturated (0.39 W per rod at 0.2 A·m²) and **1.3 W** with the three bridges awake
+(+0.12 W; `hardware/electrical/obc/OBC_BOARD_DESIGN.md` §10.1, §17); 1.3 W is used throughout. They run from 120 s
+after separation (BASELINE §4) until detumbled: 0.8 h in the mission simulation, 1.4 h in the slowest Monte Carlo
+case, 3 orbits as the requirement and the bound. The Jetson and the transponder are off in LEOP.
+
+| Load at the pack, LEOP | Power | Note |
+|------------------------|-------|------|
+| OBC, EPS, receiver (always on) | 0.45 W | §5 (the receiver is off for the first 45 min: not credited) |
+| ADCS sensors | 0.14 W | §5 |
+| GNSS (every orbit in LEOP) | 0.05 W | allocation |
+| Magnetorquers, detumble | **1.30 W** | new in this revision (was 0 in the LEOP figures) |
+| Heater after the cold soak (207 Ω at ≈ 15 V, on through the first orbit) | 1.09 W | THERMAL_ANALYSIS §4: the pack reaches 0 °C after 33 min with it |
+| Burns: four resistors at most, ≤ 12 s each, 6.1 W each at the pack from the burn buck | 0.08 Wh in all | SQSO-EPS-BRD-001 §9 |
+| AntS deployment, 3V3_ANTS at 0.61 A, ≤ 60 s with retries | 0.04 Wh | |
+| **Total while detumbling** | **3.03 W** (1.94 W without the heater) | |
+
+| Interval | Load energy | Generation delivered | Balance | SOC from 58 % (49.7 Wh pack) |
+|----------|-------------|----------------------|---------|------------------------------|
+| Separation in eclipse, first sun after 34.5 min (worst case), cold pack | 3.03 W × 0.575 h = 1.74 Wh | 0 | −1.74 Wh | −3.5 points (54.5 %) |
+| Same, warm pack (no heater) | 1.94 W × 0.575 h = 1.12 Wh | 0 | −1.12 Wh | −2.3 points |
+| First orbit (1.58 h), detumbled after 1.4 h, cold pack, worst eclipse phasing | 0.64 W × 1.58 h + 1.30 W × 1.37 h + 1.09 W × 1.58 h + 0.12 Wh = 4.63 Wh | 2.43 W × 1.58 h − 0.51 Wh (wings stowed for the first 30 min) = 3.33 Wh, tumbling, EOL value used | −1.30 Wh | −2.6 points (55.4 %) |
+| Bound: detumble over 3 orbits (4.75 h), heater on throughout | 0.64 W × 4.75 h + 1.30 W × 4.72 h + 1.09 W × 4.75 h + 0.12 Wh = 14.47 Wh | 2.43 W × 4.75 h − 0.51 Wh = 11.03 Wh | −3.44 Wh | −6.9 points (51.1 %); from the 40 % separation floor, 33.1 % |
+
+The wings-stowed deficit is (2.43 − 1.41) W × 0.5 h = 0.51 Wh (§4). Generation is taken at the tumbling end-of-life
+value although the array is new and the spacecraft sun-points once detumbled, so every line is conservative. The worst
+LEOP balance, the 3-orbit bound from the 40 % separation floor, leaves 33 % SOC, above the SAFE threshold (25 %) and
+the deepest-discharge limit for a contingency (30 % DoD); the first orbit costs at most 2.6 points. The magnetorquers
+are the largest LEOP load after the heater: without them the first-orbit balance would be +0.48 Wh. The earlier LEOP
+figures (`docs/operations/MISSION_TIMELINE.md` §5: magnetorquers ≤ 0.3 W average; worst case −0.25 Wh before first
+sun) did not carry the detumble power.
 
 ## 9. The tumbling margin (BASELINE §5 "under review")
 
@@ -254,3 +299,4 @@ and delete the "Under review" paragraph below the table.
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | Funding audit | Notice: generation superseded by SOLAR_ARRAY_DESIGN §9 (TB-14); battery §2.2 and §5.4 corrected to BASELINE §5 (TB-08) |
 | 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten: CDR power closure from the mission simulation (year runs at LTAN 21:30/22:30/23:30, BOL and EOL, contingencies), bottom-up mode loads, the tumbling-margin question settled (finding TB-02) |
+| 2.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: LEOP case added (§8.6) with the magnetorquers' 1.16–1.3 W during detumble and its energy balance; peak pack currents from the EPS board (one resistor at a time, 0.75 A with the magnetorquers; §5); cold-soak burn bus voltage (§8.5); §3 note on the 475 km baseline |

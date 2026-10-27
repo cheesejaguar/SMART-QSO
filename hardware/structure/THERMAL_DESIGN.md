@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-THM-001
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-10-27
 **Status:** CDR Baseline. The analysis is `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0); this document holds
 the design (finishes, mount, heater, sensors) and the allowable temperatures
@@ -34,7 +34,7 @@ the per-unit values in the last two columns are proposed to replace them (RID TH
 
 | Parameter | Value |
 |-----------|-------|
-| Altitude | 500 km target, ≤ 525 km (BASELINE §3) |
+| Altitude | 475 km target, 465–485 km, not above 485 km (BASELINE Rev E §3); the thermal cases were run at 500 km, where the eclipse is ≈ 0.3 % of the orbit shorter |
 | Orbit | Sun-synchronous, 97.4°, LTAN 22:30 ± 1 h |
 | Beta angle range | 2.4° … 40.9° over a year across the LTAN dispersion (never eclipse-free) |
 | Eclipse duration | 32–36 minutes |
@@ -269,3 +269,4 @@ inside that range: the test is tailored at the battery with the integrator's agr
 | 1.1 | 2026-10-26 | Battery mount isolated (§4.2, §6.3, §7.2) and heater set points +2/+6 °C (§6.2, §6.3), from the mission simulation |
 | 1.2 | 2026-10-26 | Battery heater 1 W and the mount conductance network (§6.2, §6.3, §7.2; BUILD_VS_BUY §4) |
 | 1.3 | 2026-10-27 | CDR review (thermal): allowable temperatures with proposed per-unit values (§1.1); baseline orbit and environments (§2); conductances (§4.2); cases and results from SQSO-THA-001 v2.0 (§5); heater set points recommended (§6.2); correlation and SpaceX thermal-cycling levels (§9) |
+| 1.4 | 2026-10-27 | CDR 2026 consistency pass: altitude row from BASELINE Rev E §3 (§2.1) |

@@ -1,7 +1,7 @@
 # SMART-QSO Battery Safety Assessment
 
 **Document ID**: SQSO-BSA-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Status**: CDR assessment. No cell has been bought or tested; every control below is a design requirement until its
 verification item (§9) is closed.
@@ -19,7 +19,7 @@ governs the battery-safety content of `hardware/eps/BATTERY_DESIGN.md` and `docs
 | Energy | 49.7 Wh typical (48.2 Wh at minimum capacity) | BATTERY_DESIGN §3.1 |
 | Voltage | 16.4 V at the 4.10 V/cell charge set point (D8); 16.8 V at the cell's 4.20 V maximum; 12.0 V operational floor | BASELINE §5 |
 | Charge | ≤ 0.40 A CC (array-limited, ≈ C/9), CV 4.10 V/cell, 0 … +45 °C only | BASELINE §5; SYS-602 |
-| Discharge | ≤ 2.0 A peak (1.6 A burn plus housekeeping), ≈ 0.1 A in eclipse; cell continuous limit 8 A | POWER_BUDGET_ANALYSIS §5 |
+| Discharge | ≤ 1.7 A peak (Jetson at the 12 W guard, PA at 1 W, housekeeping, heater, magnetorquers, with the magnetorquer switch in its limit); 0.75 A during a burn; ≈ 0.1 A in eclipse; cell continuous limit 8 A | SQSO-EPS-BRD-001 §6.1; POWER_BUDGET_ANALYSIS §5 |
 | Thresholds | 80 Wh (JSC 20793 §5.1.5.1a propagation test), 100 Wh (CDS 2.1.5, FAA carry-on) | — |
 
 The pack is below both energy thresholds: no cell-to-cell propagation test is required by JSC 20793 Rev D §5.1.5.1a.
@@ -44,25 +44,26 @@ the ISS (loss of the vehicle or crew); **critical** on orbit after deployment (l
 
 | # | Hazard cause | Phase | Controls (independent) | Count | Fault tolerance | Required |
 |---|--------------|-------|------------------------|-------|-----------------|----------|
-| H1 | Overcharge (charger fault, cell imbalance) | On orbit; ground charging | (1) BCR constant-voltage regulation at 4.10 V/cell; (2) BMS AFE cell over-voltage at 4.25 V opens the CHG FET (hardware comparator, thresholds written at power-up); (3) **independent secondary over-voltage protector** at 4.35 V/cell with a fixed factory threshold, blowing a three-terminal fuse in the charge path (to be added: EPS-11) | 3 | **2** (with (3)); 1 today | ISS: 2; rideshare: 1 while charging is inhibited at launch |
+| H1 | Overcharge (charger fault, cell imbalance) | On orbit; ground charging | (1) BCR constant-voltage regulation at 4.10 V/cell; (2) BMS AFE cell over-voltage at 4.25 V opens the CHG FET (hardware comparator, thresholds written at power-up); (3) **independent secondary over-voltage protector** at 4.35 V/cell with a fixed factory threshold, blowing a three-terminal fuse in the pack line (BQ771806 + F3, SQSO-EPS-BRD-001 §6.1; RID EPS-11) | 3 | **2** | ISS: 2; rideshare: 1 while charging is inhibited at launch |
 | H1a | Overcharge at launch | Integrated, powered off | Charging cannot occur: the array is dark in a closed dispenser, DS2 opens the pack return; (1)–(3) above | — | — | Inhibits (§5) |
-| H2 | Over-discharge, then recharge of a damaged cell | On orbit | (1) Flight-software mode thresholds (SAFE 25 %, EMERGENCY 15 %); (2) BMS AFE under-voltage 2.8 V/cell opens the DSG FET; (3) **latched recharge lockout**: any cell below 2.0 V/cell sets a non-volatile flag that holds the charger off and the CHG FET open until an authenticated ground command clears it (the bus runs on the array through the power path meanwhile); pre-charge at 0.1 A below 3.0 V (EPS_DESIGN v2.0 §3.3; RID SMA-06 / EPS-12); (4) independent hardware low-voltage disconnect of the payload and PA rails at 3.4 V/cell (to be added: EPS-09) | 4 | 2 with (3) and (4) | 1 (critical) |
+| H2 | Over-discharge, then recharge of a damaged cell | On orbit | (1) Flight-software mode thresholds (SAFE 25 %, EMERGENCY 15 %); (2) BMS AFE under-voltage 2.8 V/cell opens the DSG FET; (3) **latched recharge lockout**: any cell below 2.0 V/cell sets a non-volatile flag that holds the charger off and the CHG FET open until an authenticated ground command clears it (the bus runs on the array through the power path meanwhile); pre-charge at 0.1 A below 3.0 V (EPS_DESIGN v2.0 §3.3; RID SMA-06 / EPS-12); (4) independent hardware low-voltage disconnect of the payload and PA rails at 3.4 V/cell (13.6 V for 5 s, SQSO-EPS-BRD-001 §8.4; RID EPS-09) | 4 | 2 with (3) and (4) | 1 (critical) |
 | H3 | External short (harness, connector, board) | All | (1) Non-resettable pack fuse F2, 5 A, breaking capacity ≥ 100 A at 32 VDC (cell short-circuit current ≈ 80–100 A); (2) BMS AFE over-current 4 A for 0.5 s and short-circuit trip (≤ 200 µs), set below F2 so that the resettable trip acts first; (3) resettable PTC RT1; plus insulation (DFMR: pack-to-frame isolation ≥ 1 MΩ, both poles) | 3 | 2 | ISS: 2 |
 | H3a | Short inside the pack upstream of F2 (bussing, insulation, cell-to-holder) | All | DFMR: insulated bussing, cell wraps intact, insulating sleeves at the clamp, inspection, isolation test, vibration screening | — | DFMR | DFMR accepted by JSC 20793 §4.1.2 |
 | H4 | Internal cell short (manufacturing defect, plating) | All | DFMR: one screened lot (§4), no charging below 0 °C (H5), C/9 charge rate, vibration screening, mechanical retention | — | DFMR | DFMR |
 | H5 | Charging below 0 °C (lithium plating) | On orbit | (1) BCR temperature input (TS pin, hardware) from NTC1 inhibits charge outside 0 … +45 °C; (2) flight software inhibits charge on NTC2; (3) heater holds ≥ +4 °C (THERMAL_ANALYSIS §6.1, with the recommended +5/+9 °C set points) | 3 | 2 | 1 (critical) |
-| H6 | Over-temperature (stuck heater, stuck load, hot dispenser) | All | (1) Heater thermostat in software; (2) series hardware cutout at +40 °C in the heater circuit; (3) heater fuse or current limit; (4) pack over-temperature at +60 °C opening both FETs through a hardware comparator on an NTC (the BQ76920-class AFE has no autonomous over-temperature trip); charge inhibited above +45 °C (H5). No low-temperature discharge cut-off (EPS-08) | 4 | 2 for heater faults; dispenser soak is an environment (THERMAL_ANALYSIS §6.7) | 1 |
+| H6 | Over-temperature (stuck heater, stuck load, hot dispenser) | All | (1) Heater thermostat in software; (2) series hardware cutout at +40 °C in the heater circuit; (3) heater fuse or current limit; (4) pack over-temperature at +60 °C opening both FETs through a hardware comparator on NTC1, with the BQ76952 AFE's own 60 °C discharge trip on NTC2 behind it (SQSO-EPS-BRD-001 §5.3); charge inhibited above +45 °C (H5). No low-temperature discharge cut-off (EPS-08) | 4 | 2 for heater faults; dispenser soak is an environment (THERMAL_ANALYSIS §6.7) | 1 |
 | H7 | Electrolyte leakage or venting | All | DFMR: hermetic 18650 cans with vent and CID; mechanical retention; vacuum leak check (mass change) | — | DFMR | DFMR |
 | H8 | Mechanical damage (vibration, handling) | Ground, launch | Clamp design and vibration test at protoflight levels with functional checks; handling procedure | — | DFMR | DFMR |
-| H8a | Deployment burn over-current (direct drive ≈ 5.8 A on one line would open F2: mission loss, not a safety hazard) | LEOP | (1) Current-limited driver per resistor (0.8 A); (2) one line at a time in software; (3) 12 s hardware on-time limit; (4) BMS 4 A trip below F2 (EPS_DESIGN v2.0 §5.1) | 4 | 2 for the fuse | Mission (RID SMA-05) |
+| H8a | Deployment burn over-current (direct drive ≈ 5.8 A on one line would open F2: mission loss, not a safety hazard) | LEOP | Four independent burn lines, one per resistor (BURN_W1A PB10, BURN_W1B PE6, BURN_W2A PB9, BURN_W2B PE7; SQSO-ICX-001 §3.1), fed from a 7.0 V burn buck: (1) current-limited driver per resistor (0.8 A at the resistor, 0.51 A at the pack); (2) one resistor at a time in software, so the pack carries **0.67 A** nominal with housekeeping and heater, **0.75 A** worst case with the magnetorquers at 1.16 W, against a **1.0 A** limit; (3) 12 s hardware one-shot per driver; (4) burn-buck current limit, which holds even four drivers on at once (a software fault) to 2.0 A at the pack; (5) BMS 4 A trip below F2 (SQSO-EPS-BRD-001 §9, §6.1) | 5 | 2 for the fuse | Mission (RID SMA-05) |
 | H9 | Stored energy after end of life (debris) | EOL | (1) Non-resettable charge-path disconnect F1, armed and fired by two independent signals; (2) loads drain the pack to the BMS under-voltage cut | 2 | 1 | 97.207(g)(1)(iii) |
 
-**Findings.** Two hazard causes do not have the tolerance the backup path needs: overcharge (H1) has two
-controls today, and both depend on settings written by firmware (the BCR set point and the AFE threshold); external
-short (H3) has three. For the SpaceX path at launch the pack cannot be charged and is behind the inhibits, so H1 is
+**Findings.** At the first issue two hazard causes lacked the tolerance the backup path needs: overcharge (H1) had two
+controls, both depending on settings written by firmware (the BCR set point and the AFE threshold); external short
+(H3) has three. The EPS board (SQSO-EPS-BRD-001) now adds the fixed-threshold secondary protector, so H1 has three
+dissimilar controls. For the SpaceX path at launch the pack cannot be charged and is behind the inhibits, so H1 is
 controlled by the inhibits and H3 by the fuse and insulation; the integrator's safety review decides whether one fault
-tolerance is enough there. For the ISS backup, add the dissimilar secondary over-voltage protector with fuse
-(H1 control 3). It is cheap (one IC and one three-terminal fuse) and should go in the baseline whichever path flies
+tolerance is enough there. For the ISS backup, the dissimilar secondary over-voltage protector with fuse
+(H1 control 3) was needed; it is cheap (one IC and one three-terminal fuse) and is in the board design for both paths
 (RID EPS-11).
 
 ## 4. Cell screening and lot acceptance
@@ -84,8 +85,8 @@ Per JSC 20793 Rev D §4.2.3 and §6.4.3.3, and the BATTERY_DESIGN §9 tests, for
 ## 5. Inhibits and the battery
 
 The pack sits upstream of the three deployment switches DS1, DS2 and DS3 (DS3 added at CDR, EPS_DESIGN v2.0 §8). The
-only circuits powered at launch are the BMS AFE (CDS 2.3.1.2), which must be in its lowest-power state (BQ76920
-class: ship mode), and the secondary protector: ≤ 20 µA in all (LVR-051/071, `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`),
+only circuits powered at launch are the BMS AFE (CDS 2.3.1.2), which must be in its lowest-power state (BQ76952
+SHUTDOWN), and the secondary protector: ≤ 20 µA in all (6.7 µA worst designed, SQSO-EPS-BRD-001 §6.6) (LVR-051/071, `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`),
 1.3 % of the pack in 90 days. The
 inhibit chains are in `docs/hardware/EPS_DESIGN.md` §8. Two battery-specific points:
 
@@ -144,3 +145,4 @@ accredited laboratory. Budget ≈ $8–15k and 6–8 weeks (no quote yet).
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR review, EPS/thermal | Initial issue: hazards, controls and fault tolerance, screening, inhibits, state of charge, 4.10 V set point, UN 38.3; after the safety review: latched recharge lockout, BMS 4 A below the fuse, deployment burn current (H8a), DS3, integration SOC 60 ± 5 % as LVR-051/071 |
+| B | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: H8a from the EPS board: four burn lines PB10, PE6, PB9, PE7, one resistor at a time, 0.67 A nominal at the pack (0.75 A worst case, 1.0 A limit), burn-buck fault cap; H1, H2, H6 controls and §5 drain as designed in SQSO-EPS-BRD-001; §1 discharge peak |

@@ -61,26 +61,29 @@ pub const SUN_SENSOR_COUNT: usize = 6;
 pub const ECLIPSE_INTENSITY: f64 = 0.05;
 /// The axis held on the Sun: +Y, the normal of the deployed wings
 /// (hardware/eps/SOLAR_ARRAY_DESIGN.md §8.1). With the CAD tensor of
-/// [`Inertia::DEPLOYED`] the major axis is 0.5° from +Y (it was about 14°
+/// [`Inertia::DEPLOYED`] the major axis is 0.7° from +Y (it was about 14°
 /// with the reference layout's products); the spin is held about +Y by the
 /// nutation damping (Monte Carlo, ADCS_DESIGN §11.4; STR-01).
 /// [`Geometry::PRESETS`] (ADCS_SET_GEOMETRY) selects other axes
 pub const SUN_AXIS: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 /// Spin rate about [`SUN_AXIS`] in SUNPOINT, rad/s (8 deg/s). Chosen at CDR
 /// (STR-01) with the full inertia tensor of layout B over Iyy/Izz 1.00 to
-/// 1.05: with [`NUTATION_GAIN`] it keeps 93 % of the sunlit time within 15°
-/// at Iyy/Izz = 1.00 and at least 99.6 % from 1.005 up (mean Sun angle 3.8°
-/// to 6.9°, the coils 27 to 32 mW; the best compromise of 6 to 10 deg/s;
-/// `docs/hardware/ADCS_DESIGN.md` §11.4, `software/simulation/cdr/avionics/adcs_mc_cdr.sh`)
+/// 1.05 (`docs/hardware/ADCS_DESIGN.md` §11.4,
+/// `software/simulation/cdr/avionics/adcs_mc_cdr.sh`). Re-run with the CAD
+/// tensor of [`Inertia::DEPLOYED`] (2026-10-27, 40 trials of 2 days): at
+/// least 99.8 % of the sunlit time within 15° from Iyy/Izz 1.005 up (mean
+/// Sun angle 1.8° to 2.1°, the coils 5 to 6 mW), but 73 % at 1.000, where
+/// the CAD's small Iyz leaves the Y and Z axes nearly degenerate (the
+/// reference layout's Iyz gave 93 % there); the CAD value is 1.051
 pub const SPIN_RATE: f64 = 0.1396;
 /// Moments of inertia about the body axes with the wings and the AntS
 /// deployed, kg m^2: the CAD of `docs/environment/MASS_BUDGET.md` v3.1 §6.6
 /// (layout B, CubeSpace rods, AntS option A: one 2 m tape along +X, one
 /// 70 cm along −X), the mean of its CBE and MEV rows (§6.1 "CAD, deployed",
-/// as §6.5 directs): Iyy/Izz 1.052. The products are in
+/// as §6.5 directs; §6.5 rounds it to (0.0030, 0.0042, 0.0040)): Iyy/Izz 1.051. The products are in
 /// [`Inertia::DEPLOYED`]. To be replaced by the measured stowed inertia plus
 /// the weighed wings before flight
-pub const INERTIA: Vec3 = Vec3::new(0.002_983_5, 0.004_235_5, 0.004_027_5);
+pub const INERTIA: Vec3 = Vec3::new(0.002_991_5, 0.004_241, 0.004_035);
 /// Momentum gain of the spin law: torque per unit momentum error, 1/s
 pub const MOMENTUM_GAIN: f64 = 0.005;
 /// Nutation damping: torque per rad/s of rate across the spin axis, N m s
@@ -164,10 +167,10 @@ pub struct Inertia {
 
 impl Inertia {
     /// Both wings and the AntS deployed ([`INERTIA`] with its products: the
-    /// mean of the CAD CBE (+0.004, +0.032, −0.001) and MEV (+0.004, +0.033,
-    /// +0.004) × 10⁻³ kg m², MASS_BUDGET v3.1 §6.1)
+    /// mean of the CAD CBE (+0.004, +0.031, −0.001) and MEV (+0.003, +0.032,
+    /// +0.006) × 10⁻³ kg m², MASS_BUDGET v3.1 §6.1)
     pub const DEPLOYED: Inertia =
-        Inertia { xx: 0.002_983_5, yy: 0.004_235_5, zz: 0.004_027_5, xy: 0.000_004, xz: 0.000_032_5, yz: 0.000_001_5 };
+        Inertia { xx: 0.002_991_5, yy: 0.004_241, zz: 0.004_035, xy: 0.000_003_5, xz: 0.000_031_5, yz: 0.000_002_5 };
     /// Only wing W1 (+X hinge) deployed
     pub const WING_1_ONLY: Inertia =
         Inertia { xx: 0.003_081, yy: 0.004_214, zz: 0.004_012, xy: -0.000_242, xz: -0.000_041, yz: -0.000_035 };

@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-STR-001
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-10-27
 **Status:** Draft, CDR issue. Design description of the build-versus-buy structure; the analyses are in
 `docs/environment/STRUCTURAL_ANALYSIS.md` (SQSO-SA-001), `docs/environment/MECHANISMS_ANALYSIS.md` (SQSO-MECH-001) and
@@ -38,7 +38,7 @@ Rev 14.1.
 | Rail surface finish | Ra < 1.6 µm, hard anodized | CDS Rev 14.1 §2.2.6, §2.2.13 |
 | Protrusions on ±X/±Y | ≤ 6.5 mm from the rail plane | CDS Rev 14.1 §2.2.3 |
 | First natural frequency | > 40 Hz (no elastic mode below 40 Hz); design target ≥ 100 Hz for every element | UG v11 §4.1.1; BASELINE §8 |
-| Random vibration | Test at ≥ 5.57 Grms MPE (protoflight, 1 min/axis); designed to MPE + 3 dB (7.86 Grms) | UG v11 §4.1.6 Table 4-6, Table 6-2; STRUCTURAL_ANALYSIS §4.2 |
+| Random vibration | Protoflight test at the envelope of MPE + 3 dB and the GSFC-STD-7000B workmanship spectrum, 8.18 Grms on the interim levels, 1 min/axis (MPE 5.57 Grms; MPE + 3 dB 7.86 Grms) | UG v11 §4.1.6 Table 4-6, Table 6-2; BASELINE §8; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.1; STRUCTURAL_ANALYSIS §4.2 |
 | Quasi-static load | 10 g axial, 17 g lateral (RSS), or the 3σ random response at the item's mode if larger | UG v11 Table 4-1; STRUCTURAL_ANALYSIS §4.3 |
 | Factors of safety | Protoflight: metallic 1.25 yield / 1.40 ultimate; composite and bonded 1.50 (2.00 at discontinuities); softgoods 2.00; joint separation 1.20 (1.25 battery mount) × fitting factor 1.15 | NASA-STD-5001B w/Change 3 Tables 1, 2, 6; NASA-STD-5020B Figure 1 (these exceed UG v11 Table 5-1: 1.10 / 1.25) |
 | Venting | Ventable volume / vent area < 50.8 m: ≥ 22.3 mm² | CDS Rev 14.1 §2.1.9; UG v11 §4.1.8 (≤ 400 m) |
@@ -90,8 +90,12 @@ Rules that the analyses set:
 - **Heavy items at the ±Z ends** (battery at −Z, RF at +Z) and the **AntS VHF elements along ±X**: with the wings and
   antennas deployed this makes +Y the major axis of inertia by 3–4 % (MASS_BUDGET §6). The mid-stack battery of the
   earlier layout gives 0.5–1 %, which degrades the sun-pointing (STR-01).
-- **Board supports:** every board heavier than 50 g has a centre support in addition to the four corner columns
-  (STRUCTURAL_ANALYSIS §8; Steinberg margins −0.03 to −0.48 without it, +0.43 to +1.64 with it).
+- **Board supports (STR-05):** in addition to the four corner columns, the EPS, OBC and Jetson carrier boards have
+  two centre supports at (0, ±21) mm (the −21 mm one from the EPS to the carrier, under the module), and the RF board
+  one at (0, 0) to the heat spreader; boards stay 1.6 mm thick. The board centre itself is not available: the Jetson
+  module covers it on the carrier and a column must pass all three stack boards. FE Steinberg margins +0.09 to +0.36
+  with these supports; one support at (0, +21) mm leaves the −Y half of the EPS and carrier boards at −0.10 and −0.29
+  (STRUCTURAL_ANALYSIS Rev B §8A).
 - **The stack is tied to both end frames** (289 Hz; 45 Hz if cantilevered from one end).
 - **Products of inertia:** keep the rods, the magnetometer and the RBF off the ±Y/±Z diagonals where possible and keep
   the CG within ±2 mm in Z, so that |Iyz| ≤ 1.5 × 10⁻⁵ kg·m² (major axis within 5° of +Y).
@@ -249,8 +253,10 @@ loads and the EXOpod Nova transfer function are requested (STR-22).
 ### 7.3 Random Vibration
 
 UG v11 Table 4-6 MPE, all axes: 20 Hz 0.01, 50–700 Hz 0.015, 800–925 Hz 0.03, 2000 Hz 0.00644 g²/Hz; 5.57 Grms.
-Protoflight test: MPE, 1 minute per axis (UG v11 Table 6-2; `docs/test_procedures/TP-ENV-002_Vibration.md`). Designed
-to MPE + 3 dB (7.86 Grms).
+Protoflight test: the envelope of MPE + 3 dB (7.86 Grms) and the GSFC-STD-7000B workmanship spectrum, 8.18 Grms,
+1 minute per axis (BASELINE §8; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.1;
+`docs/test_procedures/TP-ENV-002_Vibration.md`). Designed to MPE + 3 dB; the FE margins of §7.5 are at the 8.18 Grms
+test level.
 
 **Correction of the earlier profile (Version 1.1).** Version 1.0 gave 20 Hz 0.01, 50 Hz 0.04, 800 Hz 0.04, 2000 Hz
 0.01 g²/Hz and called it 6.8 grms; it integrates to 7.36 Grms. Withdrawn.
@@ -259,12 +265,18 @@ to MPE + 3 dB (7.86 Grms).
 
 | Mode | Frequency | Description |
 |------|-----------|-------------|
-| Stowed wing panel | ≈ 140 Hz | Lowest mode of the stowed spacecraft with the §2.2 rules |
-| RF / EPS / Jetson carrier / OBC boards, with a centre support | 221 / 256 / 260 / 362 Hz | Rayleigh–Ritz plate model |
-| PCB stack, lateral, tied at both ends | 289 Hz | Beam model with a joint knock-down |
-| Battery on G-10CR isolators | ≥ 1,280 Hz lateral | Including a 0.6 joint factor |
+From the shell finite-element model of the mechanical design (STRUCTURAL_ANALYSIS Rev B §5A; `hardware/mechanical/fem.py`),
+with the hand values of STRUCTURAL_ANALYSIS §5 beside them:
 
-Requirement > 40 Hz: met by a factor of 3.5. Verified by the low-level sine sweep before and after random vibration (UG
+| Mode | Frequency (FE) | Hand analysis | Description |
+|------|----------------|---------------|-------------|
+| Stowed wing panel | **170 Hz** | 142 Hz | Lowest mode of the stowed spacecraft (two hinges, the hold-down post, a soft snubber) |
+| Torquer deck | 195 Hz | — | 1.0 mm skeleton added by the mechanical design |
+| Boards with their centre supports (§2.2): Jetson carrier / RF / EPS / OBC | 325 / 385 / 445 / 549 Hz | 221–362 Hz (one support each) | Two supports at (0, ±21) mm; RF one at (0, 0) |
+| PCB stack, lateral, tied at both ends | 329 Hz (X), 398 Hz (Y) | 289 Hz | Beam model with a joint knock-down for the hand value |
+| Battery on G-10CR isolators, lateral / axial | 1,288 / 971 Hz | 1,280 / 1,890 Hz | The FE includes the bending of the −Z end-frame ring |
+
+No mode is below 150 Hz. Requirement > 40 Hz: met by a factor of 4.3. Verified by the low-level sine sweep before and after random vibration (UG
 v11 §6.7.1, Table 6-3; VI-LV-03) and the EM board survey (VI-STR-02).
 
 ### 7.5 Margin Summary
@@ -274,11 +286,12 @@ MS = allowable / (FS × limit stress) − 1.
 | Location | Stress (MPa) | Allowable (MPa) | MS |
 |----------|--------------|-----------------|-----|
 | Rail, axial (own 2 kg + 4 kg neighbour, 10 g) | 6.3 | 241 | +29 |
+| −Z end frame beside the battery isolators (FE, the lowest margin; doubler per STRUCTURAL_ANALYSIS §12) | 111.8 | 241 | +0.72 yield / +0.85 ultimate |
 | Stack spacer root (24.8 g lateral) | 21.2 | 241 | +8.1 (+5.4 at MPE + 3 dB) |
 | Battery isolator, G-10CR, bending | 10.3 | 380 | +17.5 |
 | Battery Ti screw, bending (PEEK case) | 84.5 | 827 | +6.8 |
 | Wing hold-down line (softgood) | 34.9 N | 200 N | +1.87 (+1.71) |
-| PCB boards > 50 g, Steinberg fatigue, with centre support | — | — | +0.43 to +1.64 (+0.01 to +0.87) |
+| PCBs, Steinberg fatigue, FE, two centre supports at (0, ±21) mm (RF one at (0, 0)), 8.18 Grms | — | — | +0.09 to +0.36 (STRUCTURAL_ANALYSIS Rev B §8A) |
 | Battery isolator joint separation, with disc spring | — | — | +2.3 to +7.9 |
 
 ---
@@ -368,3 +381,4 @@ shown to meet TML ≤ 1.0 % and CVCM ≤ 0.1 % (CDS §2.1.7) in the NASA outgass
 | 1.1 | 2026-10-16 | Funding audit TB-15: one launch environment from SpaceX UG v11 (interim provider): first mode > 40 Hz, random vibration 5.57 Grms MPE, quasi-static 10 g / 17 g, factors of safety per Table 5-1. The old profile is shown to integrate to 7.36 Grms, not 6.8. Mode frequencies and margins withdrawn (analysis pending FEM). Rail edge radius ≥ 1 mm per CDS Rev 14.1 §2.2.7. Mass line (§1.1) and §4 mass properties not changed here |
 | 1.2 | 2026-10-16 | §5.2 deployment-switch contact: "normally closed" conflicted with "normally open" in the launch ICD and the CDS matrix, and nothing decides it; now open as TBR-CDS-005 (`docs/compliance/CDS_COMPLIANCE_MATRIX.md` §9) |
 | 1.3 | 2026-10-27 | CDR structures review: bought frame and its RFQ requirements (§2.1); stack order with the battery at −Z and the RF at +Z, centre supports for boards > 50 g, stack tied at both ends, AntS VHF along ±X (§2.2); A-basis allowables and the isolator, spring and line materials (§3); mass properties from MASS_BUDGET v3.0 (§4); three deployment switches and two separation springs, dispenser values removed (§5.2, §5.3); AntS and wing mechanism description (§6); NASA-STD-5001B/5020B factors and the analysis results of SQSO-SA-001 (§7); fastener torques, isolator stack and locking (§8); vent area ≥ 22.3 mm² (§9); tolerance stack and sweep envelopes on the drawings (§10) |
+| 1.4 | 2026-10-27 | CDR 2026 consistency pass: board supports two at (0, ±21) mm (RF one at (0, 0)) per STR-05 as adopted (§2.2); natural frequencies from the shell FE model, first mode 170 Hz (§7.4); FE Steinberg margins +0.09 to +0.36 (§7.5), all from STRUCTURAL_ANALYSIS Rev B; protoflight random level 8.18 Grms per BASELINE §8 (§1.1, §7.3) |

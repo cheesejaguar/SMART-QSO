@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MFG-002
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8739.10 (EEE Parts Assurance Standard, 2017), Level 4 commercial parts with project screening; GSFC EEE-INST-002 (2003, with Addendum 1, 2008) Level 3 as the screening guide; SMD SPD-39 (Class D mission assurance requirements, 2021) and *Guidance for Use of Commercial EEEE Parts in Class D Missions* v1.0 (2024-10-16); NASA/TM-20210018053 (Avionics Radiation Hardness Assurance Guidelines, 2021); SpaceX Rideshare Payload User's Guide v11 Table 5-5. MIL-STD-975 (cancelled) and "NASA Ames SmallSat Heritage" are withdrawn as references
 **Status:** CDR draft. §2A is the parts assurance policy; the part tables (§4–§11) predate the build-versus-buy decisions and are corrected by §2A.6–§2A.7
@@ -480,7 +480,7 @@ finishes and materials.
 
 | Parameter | Value |
 |-----------|-------|
-| Orbit altitude | 465–525 km (BASELINE §3; the ODAR Draft B recommends 465–485 km) |
+| Orbit altitude | 465–485 km, target 475 km (BASELINE Rev E §3); radiation analysed at 500 and 525 km as bounds |
 | Inclination | ≈ 97.4°, sun-synchronous (`docs/BASELINE_PARAMETERS.md` §3) |
 | Mission duration | 2 years design life (BASELINE §2) |
 | Total Ionizing Dose | 5.3 krad(Si) in 2 years behind 2 mm Al at 500 km (RADIATION_ANALYSIS Rev C §4) |
@@ -518,3 +518,4 @@ finishes and materials.
 | A.1 | 2026-10-16 | §6.4 battery pack configuration aligned with BASELINE §5 (PI-14) | Funding audit |
 | B | 2026-10-16 | §13.1 inclination TBD replaced by the baseline value, ≈ 97.4° sun-synchronous (`docs/BASELINE_PARAMETERS.md` §3; finding VV-17) | SMART-QSO Team |
 | C | 2026-10-27 | CDR S&MA review: §2A parts assurance policy (NASA-STD-8739.10 Level 4 with EEE-INST-002 Level 3 screening adapted for Class D; counterfeit avoidance; lot control; board-level screening); tin-whisker and prohibited-finish requirements from UG v11 Table 5-5 (launch RID LV-26); radiation acceptance; parts added by D6, D9 and the CDR designs; unsourced radiation claims withdrawn; §13.1 updated; MIL-STD-975 reference withdrawn | CDR S&MA review |
+| D | 2026-10-27 | CDR 2026 consistency pass: orbit altitude row from BASELINE Rev E §3 | CDR documentation review |

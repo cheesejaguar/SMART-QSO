@@ -2,7 +2,7 @@
 ## TP-SYS-002
 
 **Document Number:** TP-SYS-002
-**Revision:** C
+**Revision:** D
 **Date:** 2026-01-02
 
 **Requirements verified:** MRD-002, SYS-111, SYS-200, SYS-215, SYS-220, SYS-221, SYS-224, SYS-300, SYS-303, SYS-325, SYS-421, SYS-422, SYS-512, SRS-F013, SRS-F052, SRS-Q002
@@ -31,9 +31,9 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 
 | Parameter | Value |
 |-----------|-------|
-| Altitude | 500 km (target; 525 km cap, `docs/BASELINE_PARAMETERS.md` §3) |
+| Altitude | 475 km (target; 465–485 km, 485 km cap, `docs/BASELINE_PARAMETERS.md` §3) |
 | Inclination | ≈ 97.4° (circular SSO, `docs/BASELINE_PARAMETERS.md` §3) |
-| Orbital period | 94.6 minutes (`docs/environment/LINK_BUDGET_ANALYSIS.md` §2.1) |
+| Orbital period | 94.1 minutes at 475 km |
 | Eclipse duration | ~36 minutes (β = 0, the cold case of `docs/BASELINE_PARAMETERS.md` §8) |
 | Sunlit duration | ~59 minutes |
 | Orbits per day | 15.2 |
@@ -229,3 +229,4 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) | SMART-QSO Team |
 | C | 2026-10-16 | Conflicting steps corrected and cited: first beacon not before T+0:45, with a no-emission check from separation (SYS-224; was T+0:32), received at the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); §4.1 step 3 conditional on a completed bench RF silence; SAFE at SOC < 25 % (SRS-F013; was 30 %); simulated orbit SSO ≈ 97.4° (BASELINE §3; was 51.6°, ISS) (finding VV-06) | SMART-QSO Team |
+| D | 2026-10-27 | CDR 2026 consistency pass: simulated orbit at the 475 km baseline target, period 94.1 min (BASELINE Rev E §3) | CDR documentation review |

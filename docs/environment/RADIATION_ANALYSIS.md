@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ENV-002
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Reference:** NASA-HDBK-4002A; NASA PD-ED-1260 (radiation design margin); ECSS-E-ST-10-04C; ECSS-Q-ST-60-15C
 
@@ -23,7 +23,7 @@ measurements (§3.1), scales them to the orbit and the life, and tabulates them.
 
 | Parameter | Value |
 |-----------|-------|
-| Altitude | 500 km target, 525 km cap (`docs/BASELINE_PARAMETERS.md` §3) |
+| Altitude | 475 km target, 465–485 km, not above 485 km (`docs/BASELINE_PARAMETERS.md` §3). The analysis is run at 500 km and 525 km, which bound the baseline from above (the dose falls with altitude) |
 | Inclination | ≈ 97.4° (sun-synchronous; BASELINE §3) |
 | Mission duration | 2 years design life; 12 months minimum (BASELINE §2) |
 | Launch | 2028 (BASELINE §3, D7): the declining phase of solar cycle 25 |
@@ -39,7 +39,7 @@ measurements (§3.1), scales them to the orbit and the life, and tabulates them.
 | T2 | D. L. Thomsen III, *Shields-1 Dosimetry Measurements in Polar Low Earth Orbit*, NASA LaRC, 2022-09-14 (Shields-1, NORAD 43850, 500 km, 85°) | SPENVIS SHIELDOSE-2 (AP-8 MIN / AE-8 MAX) sphere dose behind 1.98 mm Al: 117 rad(Si)/yr protons + 1266 rad(Si)/yr electrons = 1383 rad(Si)/yr. Measured slab dose in orbit (2019, solar minimum): 90.9 ± 2.7 rad/yr behind 1.26 g/cm², 73.6 ± 3.2 behind 3.00 g/cm², 70.0 ± 3.0 behind 6.00 g/cm² | Cross-check of T1 at 2 mm in a polar orbit; GCR term (T4); evidence that the trapped models under-predict thick-shield dose by 2–5× |
 | T3 | NASA, *State-of-the-Art of Small Spacecraft Technology*, ch. 6 (Structures, Materials and Mechanisms), 2021, for the Shields-1 orbit; the King (SOLPRO) curve in T2 | Solar protons, 1 year, 95 % confidence: ≈ 750 rad(Si) behind 0.535 g/cm² (2 mm), ≈ 400 rad(Si) behind 1.26 g/cm² | Solar-proton dose, interpolated exponentially in areal density |
 | T4 | T2: measured dose behind 6 g/cm² less the trapped-proton model there (70.0 − 13.7 rad/yr) | ≈ 56 rad/yr not in the trapped models: galactic cosmic rays and their secondaries | 50 rad(Si)/yr at every depth |
-| T5 | The mission simulation's altitude scaling (`software/rust/sqso-sil/src/env/radiation.rs`) | Trapped dose × exp((h − 500 km)/150 km) | The 525 km cap |
+| T5 | The mission simulation's altitude scaling (`software/rust/sqso-sil/src/env/radiation.rs`) | Trapped dose × exp((h − 500 km)/150 km) | The 525 km bound |
 | P1 | T1's trapped-proton spectra (report `trapped.doc`, AP-8 MAX, 500 km) | Orbit-average integral flux: > 10 MeV 21.5, > 30 MeV 17.4, > 50 MeV 14.8, > 100 MeV 9.28 cm⁻² s⁻¹ | Proton SEE rates (§5) |
 
 SPENVIS itself (AE9/AP9-IRENE with SHIELDOSE-2, or OMERE) could not be run from the review environment; the
@@ -68,7 +68,7 @@ Dose(depth) = [T1 trapped × e^((h − 500)/150) + T3 solar protons + T4 GCR] ×
 | 2.5 | 2,382 | 1,329 | 100 | **3,811** | 2.62 |
 | 3.0 | 1,584 | 1,182 | 100 | **2,866** | 3.49 |
 
-**525 km (the altitude cap), 2 years, solid Al sphere, rad(Si)**
+**525 km (the former altitude cap, kept as a bound), 2 years, solid Al sphere, rad(Si)**
 
 | Depth (mm Al) | Trapped e⁻ + p | Solar protons (95 %) | GCR | Total | Margin of the 10 krad design level |
 |---|---|---|---|---|---|
@@ -186,17 +186,29 @@ The latch-up trip must sit above the load's worst operating current and below th
 faster than the latch-up can damage the part (typically milliseconds to seconds; a rule of thumb is ≤ 10 ms trip,
 ≥ 1 s off).
 
-| Rail | Normal maximum | Trip (proposed) | Trip time | Off time | Element | Status |
-|------|----------------|-----------------|-----------|----------|---------|--------|
-| Jetson (eFuse U3 on `JETSON_PWR`, in series with SW1 on `PAYLOAD_EN`) | 8 W ≈ 0.56 A at 14.4 V | 0.75 A (1.35×) proposed; 1.2 A (2.1×) in `docs/hardware/EPS_DESIGN.md` v2.0 | ≤ 1 ms (hardware) | ≥ 1 s, OBC re-enables | TPS25947-class eFuse, latch-off | Specified by the EPS design at 1.2 A, which a latch-up (amperes) still trips; the software guard (`payload_guard`, 12 W single sample) acts within 1 s as the backup (`docs/hardware/PAYLOAD_DESIGN.md` §11.2) |
-| Gyro M-G370PDT0 | 16 mA at 3.3 V | 40 mA | ≤ 1 ms | ≥ 100 ms | Current-limited load switch | No switch or pin exists (RID AV-03) |
-| GNSS receiver | ≈ 100 mA peak at 3.3 V | 200 mA | ≤ 1 ms | ≥ 1 s | Current-limited load switch on `GNSS_EN` (PE5, provisional) | The flight software powers the receiver only for sessions (`gnss_schedule.rs`, ≤ 5 min), so a latch-up lasts at most one session even without the trip; the trip itself is hardware and not yet specified (RID AV-04) |
-| Magnetometer | ≈ 10 mA | 40 mA | ≤ 1 ms | ≥ 100 ms | Shares the ADCS rail (`ADCS_EN`) | Shared with the coils: a coil drive current masks a sensor latch-up (RID AV-03) |
-| Radio (`RADIO_EN`) | ≈ 0.1 A (receiver, TNC, exciter) | 0.3 A | ≤ 1 ms | ≥ 1 s | Current-limited load switch | Trip not specified (AV-08) |
-| OBC 3.3 V | ≈ 30 mA | 150 mA | ≤ 1 ms | ≥ 100 ms, auto-retry by the EPS | EPS | Not specified (AV-08) |
+The trips are those of the EPS board (`hardware/electrical/eps/EPS_BOARD_DESIGN.md` SQSO-EPS-BRD-001 §8.3) and,
+for the three sensor rails, of the OBC board (`hardware/electrical/obc/OBC_BOARD_DESIGN.md` SQSO-OBC-BRD-001 §9.1).
+Every switch limits the current within 2 µs; a TPS2553-Q1 then removes the rail after its 8 ms fault deglitch and
+retries by itself.
+
+| Rail | Normal maximum | Trip, nominal (min–max) | Trip time | Off time | Element | Status |
+|------|----------------|-------------------------|-----------|----------|---------|--------|
+| Jetson (eFuse U19 on `JETSON_PWR` PA2, in series with SW1 on `PAYLOAD_EN` PB2) | 8 W ≈ 0.62 A at 13 V; 0.93 A at the 12 W software guard | eFuse **1.20 A (1.10–1.30 A)**; SW1 1.99 A (1.71–2.27 A) behind it | ≤ 1 ms (hardware) | latch-off; the OBC re-enables | TPS16630 eFuse; TPS1H100B-Q1 switch | Designed. The 0.75 A first proposed here would sit only 1.34× above the 8 W load at the low bus; a latch-up (amperes) trips 1.20 A. The software guard (`payload_guard`, 12 W single sample, 0.93 A) acts first (`docs/hardware/PAYLOAD_DESIGN.md` §11.2) |
+| OBC 3.3 V (SW10) | 25–40 mA | **0.15 A (0.130–0.176 A)** | ≤ 10 ms | 0.28 s, auto-retry, no command | TPS2553-Q1 U38 | Designed: the power-cycling supervisor the OBC cannot be for itself (AV-08) |
+| EPS controller (SW9) | 12 mA | **75 mA (50–100 mA)** | ≤ 10 ms | 0.28 s, auto-retry | TPS2553-Q1 U27 | Designed; no protection depends on the controller |
+| Radio (`RADIO_EN` PB5, SW2) | 38 mA (receiver, TNC, exciter; SQSO-RF-BRD-001) | **0.12 A (0.102–0.141 A)** | ≤ 10 ms | 1.3 s, auto-retry | TPS2553-Q1 U22 | Designed. The 0.3 A first proposed could not see a latch-up of a 38 mA load; the EPS controller also reports the rail current so the OBC can trip it in software |
+| PA (`RF_TX_EN` PA3, SW3, the TX-OFF switch) | 0.54 A at 1 W RF | **0.99 A (0.918–1.071 A)** | ≤ 10 ms | 0.28 s, auto-retry | TPS2553-Q1 U23 | Designed |
+| ADCS sensors (`ADCS_EN` PB6, SW4 3V3_ADCS) | 49 mA with the backup gyro on | **0.30 A (0.265–0.339 A)**, the backstop for the three rails below | ≤ 10 ms | 0.28 s, auto-retry | TPS2553-Q1 U24 | Designed; since EPS board Version B the coils are no longer on this rail |
+| Gyro M-G370PDT0 (`GYRO_EN` PF6) | 26 mA | 75 mA (50–100 mA) | ≤ 10 ms | 0.13 s, auto-retry | TPS2553-Q1 U5 on the OBC | Designed (AV-03). The 40 mA first proposed is below the part's lowest setting; a latch-up (hundreds of mA) still trips 50 mA |
+| Backup gyro BMI088 (`IMU2_EN` PF7) | 8 mA | 75 mA (50–100 mA) | ≤ 10 ms | 0.13 s, auto-retry | TPS2553-Q1 U6 on the OBC | Designed (AV-03) |
+| Magnetometer RM3100 and sun-sensor front end (`SNS_EN` PF8) | 15 mA | 75 mA (50–100 mA) | ≤ 10 ms | 0.13 s, auto-retry | TPS2553-Q1 U7 on the OBC | Designed (AV-03): no longer shared with the coil drive |
+| Magnetorquer bridges (`ADCS_EN` PB6, SW11 VBAT_MTQ) | 0.104 A at 1.16 W (three rods saturated, 11.2 V); 0.23 A at the bridges' hardware limit | **0.361 A (0.322–0.401 A)** | ≤ 10 ms | 1 s off, 40 ms on, auto-retry | TPS1H000-Q1 U39 | Designed (EPS board Version B) |
+| GNSS receiver (`GNSS_EN` PE5, SW7) | ≈ 100 mA peak | **0.20 A (0.175–0.232 A)** | ≤ 10 ms | 1.3 s, auto-retry | TPS2553-Q1 U25 | Designed (AV-04). The flight software also powers the receiver only for sessions (`gnss_schedule.rs`, ≤ 5 min) |
+| AntS (`DEPLOY_EN` PF3, SW8) | 0.61 A while burning | **1.37 A (1.287–1.465 A)** | ≤ 10 ms | 0.28 s, auto-retry | TPS2553-Q1 U26 | Designed; powered only for deployment |
 
 TB-11's point stands: a 3 A, 100 ms over-current trip on a 2 A load cannot detect a latch-up. The trips above are
-1.35–4× the normal maximum and act in hardware.
+1.6–9× the normal maximum at their nominal setting (the Jetson eFuse 1.9× its 8 W load) and act in hardware. They are verified by RAD-V5 and
+V-EPS-10.
 
 ## 6. Radiation Design Requirements
 
@@ -217,7 +229,7 @@ TB-11's point stands: a 3 A, 100 ms over-current trip on a 2 A load cannot detec
 | SRAM ECC/parity, TMR of critical variables, memory scrubbing | Yes (`software/flight/docs/RADIATION_MITIGATION.md` Rev A) | **No.** No TMR, no scrubbing, no parity configuration in the Rust code | AV-07 |
 | Flash ECC handling | Implied | Hardware corrects single errors; no NMI handler | AV-07 |
 | SAA handling | Yes | No | Not needed: the rates of §5 do not justify it |
-| Per-rail latch-up trips | Required (BASELINE §6) | Software over-current guard for the Jetson only (1 s); no hardware trip defined for any rail | AV-03, AV-04, AV-08, PAYLOAD_DESIGN §11.2 |
+| Per-rail latch-up trips | Required (BASELINE §6) | Designed in hardware on every switched rail (EPS board §8.3, OBC board §9.1; §5.3), with the software guard for the Jetson (1 s) as the first response | Not built: RAD-V5, V-EPS-10 |
 | Receiver recovery from SEFI | Not addressed | No | FSW-09 |
 
 ## 8. Component Radiation Data
@@ -235,11 +247,11 @@ simulation weights its events 30× in the SAA box (`software/rust/sqso-sil/src/e
 
 | ID | Item | Method | Pass criterion | Verifies | When |
 |----|------|--------|----------------|----------|------|
-| RAD-V1 | AE9/AP9-IRENE (V1.5 or later) with SHIELDOSE-2 and a solar-proton model (ESP-PSYCHIC or SAPPHIRE, 95 %) for 500 km and 525 km, 97.4°, 2028-06 + 2 years | SPENVIS or OMERE run, archived | Dose-depth within ±30 % of §4.1 at 1–3 mm, or §4–§6 updated | BASELINE §6 radiation row | Before the parts freeze (fabrication start) |
+| RAD-V1 | AE9/AP9-IRENE (V1.5 or later) with SHIELDOSE-2 and a solar-proton model (ESP-PSYCHIC or SAPPHIRE, 95 %) for 500 km and 525 km, 97.4°, 2028-11 + 2 years | SPENVIS or OMERE run, archived | Dose-depth within ±30 % of §4.1 at 1–3 mm, or §4–§6 updated | BASELINE §6 radiation row | Before the parts freeze (fabrication start) |
 | RAD-V2 | Sector (ray-trace) shielding analysis of each mission-critical part on the CAD model | Analysis (e.g. FASTRAD, NOVICE, or SPENVIS sector shielding) | Each part's 2-year dose × 2 ≤ its TID capability | §6 TID requirement | When the layout is frozen, before the EM build |
 | RAD-V3 | TID lot sample test of the STM32L4R5, FM25V20A, the receiver-path RF parts and the EPS/PDU load switches and regulators, or published lot data | Co-60 test to 20 krad(Si), biased, MIL-STD-883 TM 1019 | Functional with parametrics in limits at 10.5 krad(Si) | §6 | Before the flight build |
 | RAD-V4 | SEE rates with part data: heavy-ion (or 200 MeV proton) SEL screening of the STM32L4R5, FM25V20A, M-G370PDT0 and RF parts, or published data; CREME96 rates | Test or literature; CREME96 | No SEL to LET 37 MeV·cm²/mg, or the part on a switched, tripped rail | §5.3 | Before the flight build |
-| RAD-V5 | Latch-up trip of each switched rail | Test on the EM: inject a step load of 1.5× the trip | Rail off within 1 ms, restored by the OBC, no damage | §5.3 | EM functional test |
+| RAD-V5 | Latch-up trip of each switched rail | Test on the EM: inject a step load of 1.5× the trip | Current limited within 1 ms and the rail off within 10 ms, restored by the auto-retry (the Jetson eFuse by the OBC), no damage (with V-EPS-10) | §5.3 | EM functional test |
 | RAD-V6 | SRAM parity and flash ECC handling | Fault injection on the EM (flip an SRAM2 bit through the debugger; flash ECC test mode) | NMI, fault logged, reset, state reloaded from FRAM | AV-07 | EM software test |
 
 ## 11. Risk Assessment
@@ -262,3 +274,4 @@ simulation weights its events 30× in the SAA box (`software/rust/sqso-sil/src/e
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §2 orbit, design life and launch year from BASELINE §2 and §3 (SSO ≈ 97.4°, 500 km target, 525 km cap; was 51.6°, ISS); note that the §3–§5 values depend on the old orbit and must be re-run (finding TB-03). No analysis values changed | SMART-QSO Team |
 | C | 2026-10-27 | CDR re-run for the baseline orbit and life (TB-03, TB-11): §3 sources (SPENVIS SHIELDOSE-2 AE-8/AP-8 at 500 km, Shields-1 polar LEO model and measurements, King solar protons, GCR from Shields-1), §4 dose-depth for 1–3 mm at 500 and 525 km (5.3 / 5.9 krad behind 2 mm in 2 years; the 10 krad design level is 1.90× / 1.69×, below the stated 2×), part TID, comparison with the mission simulation; §5 SEE rates per part and rail latch-up trips; §6–§7 requirements and as-built mitigation status; §10 verification items RAD-V1–V6. Script `software/simulation/cdr/avionics/radiation_tid_see.py`. Revision B's §3–§5 and §8.1 values withdrawn | SMART-QSO Team (CDR avionics review) |
+| D | 2026-10-27 | CDR 2026 consistency pass: §2 altitude from BASELINE Rev E (475 km target, 485 km cap; 500 and 525 km kept as bounds, §2–§4 labels); §5.3 trips replaced by the EPS board's current-limited rails (SQSO-EPS-BRD-001 §8.3: OBC 0.15 A, radio 0.12 A, sensors 0.30 A, GNSS 0.20 A, EPS controller 75 mA, AntS 1.37 A, PA 0.99 A, VBAT_MTQ 0.361 A, Jetson eFuse 1.20 A) and the OBC board's sensor rails; §7 trip status; RAD-V1 launch 2028-11, RAD-V5 pass criterion | SMART-QSO Team |

@@ -937,6 +937,7 @@ mod tests {
         d.tick(SECOND_MS, &mut io);
         assert_eq!(d.state(), State::Complete);
         assert!(d.all_complete());
+        assert!(!d.wings_exhausted(), "deployed: not EPS-10");
         let t = d.telemetry();
         assert_eq!((t.state, t.antenna_attempts, t.solar_attempts, t.inhibit_active), (8, 1, 1, 0));
         assert!(t.time_since_sep_s >= WAIT_TIME_S);
@@ -1244,8 +1245,6 @@ mod tests {
         assert_eq!(io.text.len, log_len, "no state changes logged");
     }
 
-    /// A solar panel not sensed after its burn is retried after the retry
-    /// delay, with the attempt counted, and is not fired again before it
     /// Wings not sensed after their burn are retried after the retry delay,
     /// on the other driver (B), with the attempt counted, and not fired
     /// again before it
@@ -1286,8 +1285,6 @@ mod tests {
         assert_eq!(io.wing_max, 1);
     }
 
-    /// Inhibited by command during verification: the retry waits in
-    /// PENDING without burning or spending an attempt until enabled again
     /// Inhibited by command during verification: the retry waits in
     /// PENDING without burning or spending an attempt until enabled again
     #[test]

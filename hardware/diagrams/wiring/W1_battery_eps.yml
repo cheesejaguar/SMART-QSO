@@ -30,7 +30,7 @@ connectors:
   J2:
     type: Molex Pico-Clasp header 5013310607
     subtype: 6 pos
-    notes: EPS board J2 -> AFE U1 (100 Ohm + 0.1 uF) and secondary protector U2 (1 kOhm + 0.1 uF)
+    notes: EPS board J2 to AFE U1 (100 Ohm + 0.1 uF) and secondary protector U2 (1 kOhm + 0.1 uF)
     pinlabels: [TAP0, TAP1, TAP2, TAP3, TAP4, NTC2]
 
 cables:

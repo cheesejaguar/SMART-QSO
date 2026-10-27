@@ -1,7 +1,7 @@
 # Orbital Access Plan
 
 **Document ID**: SQSO-OAP-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: Plan for CDR. No launch contract, quote or manifest exists. Prices and dates are planning values.
 **Governing values**: `docs/BASELINE_PARAMETERS.md` §3 (decision D7). Requirement flow-down:
@@ -12,13 +12,14 @@
 ## 1. Recommendation
 
 **Fly on a SpaceX Falcon 9 Transporter-class dedicated SSO rideshare from Vandenberg (SLC-4E), in a 1U slot of an
-Exolaunch EXOpod Nova bought from Exolaunch, with a written drop-off altitude of 500 km and a 525 km hard cap.**
+Exolaunch EXOpod Nova bought from Exolaunch, with a written drop-off altitude target of 475 km and a 485 km hard cap.** Planning launch: the last Transporter flight
+of 2028 (about 2028-11; BASELINE Rev E §3).
 Sign by 2027-06-30. Keep a US-owned price check (SEOPS) and ISISPACE in the same request for quotes. Hold the ISS
 (Voyager NRCSD) route as the backup and Electron from New Zealand as the altitude-controlled contingency; neither is
 worked on until a trigger in §5 fires, except for the design choices of §3.3 that cost little now and keep the
 backup open.
 
-Why: it is the only route that reaches the baseline orbit (500 km SSO, LTAN about 22:30) in 2028 with flight-proven
+Why: it is the only route that reaches the baseline orbit (475 km SSO, 465–485 km, LTAN about 22:30) in 2028 with flight-proven
 1U accommodation, and the one the whole design (power, thermal, lifetime, the simulation) is built for. The
 alternatives each lose something the mission needs: the ISS orbit loses mission-success Level 3 and changes the
 power and thermal cases; Electron has no published 1U route or price and needs an export licence for a foreign
@@ -32,7 +33,7 @@ launch site; CSLI cannot launch before about 2030.
 |------|-----------|----------|------|
 | Launch vehicle | Falcon 9, Transporter-class **dedicated** rideshare (the UG's Transporter-specific EMI limits, Table 4-9, and transmitter turn-on delays, Table 4-10, apply to these missions) | SpaceX UG v11 (Aug 2026) §1.2, §4.1.7.2–§4.1.7.3 | The flight. SpaceX's portal lists only NET 2027-06-01 and 2027-10-01 (SSO, 500–600 km); a 2028 seat comes from an integrator's allocation (D7 research §1) |
 | Launch site | Vandenberg SFB, SLC-4E (SSO). The UG covers CCSFS, KSC and VSFB (§8, §10) | Transporter-17 flew from SLC-4E on 2026-07-07 (D7 research ref. 12) | Confirmed by the flight assignment |
-| Orbit | Circular SSO, 97.4°, target 500 km, cap 525 km; LTAN ≈ 22:30 (descending node 10:30) as in the simulation | BASELINE §3; UG Appendix G (orbit chosen at L-5 M from SpaceX's list) | The altitude list of the assigned flight |
+| Orbit | Circular SSO, 97.4°, target 475 km, 465–485 km, cap 485 km (BASELINE Rev E §3; FCC five-year rule, ODAR Draft B §6.5); LTAN ≈ 22:30 (descending node 10:30) as in the simulation | BASELINE §3; UG Appendix G (orbit chosen at L-5 M from SpaceX's list) | The altitude list of the assigned flight |
 | Integrator | **Exolaunch** (Berlin; EQT acquisition signed 2026-06-18, closing unverified). Price check: ISISPACE (QuadPack). US-owned alternative: SEOPS (1U support unverified) | D7 research §3.2–§3.8 | Quotes |
 | Dispenser | **EXOpod Nova** (8U/12U/16U deployers; the smallest slot is 3U). A 1U flies in a 3U slot with a non-deployable slot adapter, or sharing the slot with other 1U/2U spacecraft (NOVA §2.2, §3.4; EXO Table 7 note). 1U limits: 2.5 kg, COG ±20 mm, protrusions up to 25 mm from the rail (NOVA Tables 1–2). Door released by two redundant magnetic locks; reed switches report door and wagon to the LV; access windows on three sides; no standard umbilical (NOVA §4.2.4, §4.2.5, §5.4). The Nova hardware is advertised as ITAR-free | EXOpod Nova UM Rev 1.2 (June 2024); EXOpod UM Rev 6.0 (2022) | Which slot type (adapter or shared); the Nova's 1U ejection velocity; the integration guide |
 | Price | Integrator 1U slot $85k–150k; all-in $115k–250k; central $150–170k; +15 % contingency on the slot | BASELINE §3; D7 research §6.1 | Written quotes |
@@ -55,7 +56,7 @@ SMART-QSO contracting party  --(FCC Part 97 licence: KK6GDB / KK6GDB-11)-->  FCC
 - **The contracting party is not yet named.** BASELINE §1 lists no host organization. A launch contract with a
   foreign company, the FAA cross-waivers, the insurance declarations and the export compliance agreement need a legal
   entity; the licensee as an individual would carry the liability personally (RID LV-09).
-- **What the contract must say** (D7 research §6.1): the 525 km cap and no-penalty rebooking if the L-5 M orbit list
+- **What the contract must say** (D7 research §6.1): the 485 km cap and no-penalty rebooking if the L-5 M orbit list
   has nothing at or below it; written 1U price and payment milestones; slot type and 1U envelope (113.5 mm, stowed
   wings, RBF and switch positions against the access windows); acceptance of unit-level (containerized) testing in a
   TestPod at the UG v11 levels; integration date and where; the state of charge accepted at integration (60 %, not
@@ -102,7 +103,7 @@ The full list is `LAUNCH_VEHICLE_REQUIREMENTS.md` §7. The NRCSD IDD found on th
 
 ### 3.2 Trigger
 
-No integrator commits in writing to ≤ 525 km by 2027-06-30, or the primary exceeds $250k all-in: start the NRCSD and
+No integrator commits in writing to ≤ 485 km by 2027-06-30, or the primary exceeds $250k all-in: start the NRCSD and
 Electron requests; decide by 2027-09-30 (D7). An ISS decision on 2027-09-30 cannot meet a mid-2028 launch: the IDD
 schedule needs the contract at L-12 M, so the earliest ISS launch is about 2028-09.
 
@@ -126,19 +127,19 @@ programme.
 |---|------|----------|-------|------------|
 | DP-1 | 2026-12-31 | Contracting entity named; RFQs sent to Exolaunch, ISISPACE, SEOPS, one question each to D-Orbit and Maverick | RID LV-09 | The schedule slips day for day |
 | DP-2 | 2027-03-31 | Integrator selected | Written quotes: price, slot type, flight, the last 4–6 Transporter drop-off altitudes, test acceptance, export path, ephemeris position | Extend the RFQ; add Electron |
-| DP-3 | 2027-06-30 | Contract signed with the 525 km cap | DP-2 | Trigger the backup (§3.2) |
+| DP-3 | 2027-06-30 | Contract signed with the 485 km cap | DP-2 | Trigger the backup (§3.2) |
 | DP-4 | 2027-09-30 | Backup decision, if triggered | NRCSD and Electron quotes | — |
-| DP-5 | L-8 M (2027-10-01) | Design frozen for the mission analysis inputs | CDR closed; mass properties ± 15 % | Rebooking |
-| DP-6 | L-5 M (2028-01-01) | Orbit selected from SpaceX's list | List ≤ 525 km | Rebook under the clause |
-| DP-7 | L-4 M (2028-02-01) | Environmental campaign passed | VI-LV-03 to 08 | Rebook |
-| DP-8 | L-2 M (2028-04-01) | Licences in place; ephemeris capability accepted (VI-LV-13) | FCC, IARU, 18th SDS | Rebooking (UG §9.5.7.2) |
+| DP-5 | L-8 M (2028-03-01) | Design frozen for the mission analysis inputs | CDR closed; mass properties ± 15 % | Rebooking |
+| DP-6 | L-5 M (2028-06-01) | Orbit selected from SpaceX's list | List ≤ 485 km | Rebook under the clause |
+| DP-7 | L-4 M (2028-07-01) | Environmental campaign passed | VI-LV-03 to 08 | Rebook |
+| DP-8 | L-2 M (2028-09-01) | Licences in place; ephemeris capability accepted (VI-LV-13) | FCC, IARU, 18th SDS | Rebooking (UG §9.5.7.2) |
 | DP-9 | L-50 d | Flight model shipped | Pre-ship review | Demanifest |
 
 ## 6. Risks
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|------------|--------|------------|
-| No ≤ 525 km option on the assigned flight | Medium (SpaceX posts 500–600 km) | High: FCC five-year case fails with wings failed | Contract clause; Electron contingency; DAS early |
+| No ≤ 485 km option on the assigned flight | Medium (SpaceX posts 500–600 km) | High: FCC five-year case fails with wings failed | Contract clause; Electron contingency; DAS early |
 | 2028 capacity sold out | Medium | High | Sign by 2027-06-30 |
 | Ephemeris requirement not demonstrated (no GNSS chain implemented, RID LV-04) | High today | Mandatory rebooking | Implement and demonstrate by L-2 M, or contract a third party before integration |
 | Schedule: Phase B with no hardware, mission analysis inputs due L-8 M (2027-10) | High | Rebooking | Dated master schedule from L backwards (RID LV-10) |
@@ -153,7 +154,7 @@ and the design delta are in `LAUNCH_VEHICLE_REQUIREMENTS.md` §7.
 | IDD § | Subject | Status |
 |-------|---------|--------|
 | 4.1.1 | Rails and envelope | Open: edge radius 0.5 ± 0.1 mm conflicts with CDS §2.2.7; check the bought frame |
-| 4.1.2 | Mass ≤ 2.40 kg, CG ±2 cm | Met by estimate (1.92–2.00 kg); CG open |
+| 4.1.2 | Mass ≤ 2.40 kg, CG ±2 cm | Met by estimate (MEV 1.73 kg, BASELINE §4); CG met by estimate (computed within 5 mm) |
 | 4.1.3 | RBF or ABF reachable through the +Y access panels | Open (position) |
 | 4.1.4 | Three deployment switches, ≤ 3 N each | Not met (two switches) |
 | 4.1.5 | Deployables restrained by the CubeSat; either face first | Met for restraint; face order open |
@@ -177,3 +178,4 @@ and the design delta are in `LAUNCH_VEHICLE_REQUIREMENTS.md` §7.
 |---------|------|-------------|
 | A | 2026-01-02 | Untracked original: an NRCSD IDD compliance plan, with a funding-audit notice (2026-10-14) marking the ISS route as the backup |
 | B | 2026-10-27 | Document ID SQSO-OAP-001 assigned. Rewritten as the orbital access plan for the CDR: primary path (Falcon 9 Transporter from VSFB SLC-4E, Exolaunch, EXOpod Nova 1U adapter slot), contract chain, flow of the flight model, ISS backup deltas read against the NRCSD IDD (2018 release) instead of unverified section numbers, Electron contingency, decision points DP-1 to DP-9, risks. The old "Compliant" statements against the IDD are replaced by the status table of §7 |
+| C | 2026-10-27 | CDR 2026 consistency pass: drop-off altitude 475 km target and 485 km cap, planning launch about 2028-11 (BASELINE Rev E §3, CR-2026-007); decision points DP-5 to DP-8 for L = 2028-11-01; NRCSD mass row from BASELINE §4 (MEV 1.73 kg) |

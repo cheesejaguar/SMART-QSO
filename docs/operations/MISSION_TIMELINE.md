@@ -1,7 +1,7 @@
 # SMART-QSO Mission Timeline and Event Sequence
 
 **Document ID**: SQSO-MTL-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft for CDR. Times after separation are from the mission simulation and the pass analysis named in §1;
@@ -72,6 +72,16 @@ the trajectory analysis, UG §9.6.9.1).
 Times are from separation S. "Load" is the bus load measured in the simulation; the battery is 58.3 % at S in the
 reference case.
 
+> **CDR 2026 consistency note (2026-10-27).** The table is the simulation run of §1 (500 km, 2028-06-01), made before
+> BASELINE Rev E and the board designs. Where it differs, these govern: **wings first, then the AntS** by its I2C
+> arm/deploy sequence (BASELINE §4); each wing has two resistors on four independent 0.8 A burn lines, burned **one at
+> a time** for 8 s, **0.67 A** at the pack (0.75 A with the magnetorquers), not 1.6 A (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`
+> §9); **no magnetorquer actuation before S+120 s** (BASELINE §4); the magnetorquers draw **1.16–1.3 W** while
+> detumbling, not ≤ 0.3 W (`docs/environment/POWER_BUDGET_ANALYSIS.md` v2.1 §8.6: worst case −1.74 Wh before first sun
+> with a cold pack, not −0.25 Wh); the spin is **8°/s**; the planning launch is 2028-11 and the orbit 475 km. The
+> orbit-1 row's "2.2 W orbit average" does not agree with its "1.85 Wh used" (2.2 W over 95 min is 3.5 Wh); both are to
+> be taken from the re-run.
+
 | Time after S | Event (flight software) | Powered | Load | Battery | Ground |
 |--------------|-------------------------|---------|------|---------|--------|
 | S+0.15 s | Switches release: power-on reset; the OBC boots; RF-silence and deployment counts start at 0 (both were ARMED) | OBC, EPS, sensors | 0.42 W | 58.3 %, 15.1 V, 20 °C | — |
@@ -85,7 +95,7 @@ reference case.
 | S+45:00 | RF silence complete (CDS §2.4.5): radio powered; **first beacon** in IDLE, every 120 s, template text with the telemetry tail, call sign KK6GDB-11 | + receiver (always on), TNC, PA keyed ≈ 1.4 s per frame | 0.64 W | 60.9 % | Community and SatNOGS stations may hear it; Bay Area stations only if a pass is in progress |
 | S+49 min | Detumbled: rate across +Y below 0.5°/s (SIL 0.8 h; Monte Carlo slowest 1.4 h) | | | | — |
 | S+52.8 min | DETUMBLE → IDLE → **ACTIVE**; **Jetson batch powered; FM transponder enabled** (as built, with no ground contact yet: RID LV-01; the ConOps wants the transponder only after telecommand and TX-OFF are proven) | + Jetson (≈ 5 W during a ≤ 10 min batch), transponder enable | 6.3 W during the batch | 61.6 % | — |
-| S+1 orbit (95 min) | Spin-stabilized sun pointing of +Y at 6°/s; generation 7.0 Wh in orbit 1 against 1.85 Wh used | | 2.2 W orbit average | 61.8 % → rising ≈ 8 % per orbit at the 0.40 A charge current | — |
+| S+1 orbit (95 min) | Spin-stabilized sun pointing of +Y (6°/s in this run; 8°/s in BASELINE Rev E); generation 7.0 Wh in orbit 1 against 1.85 Wh used | | 2.2 W orbit average | 61.8 % → rising ≈ 8 % per orbit at the 0.40 A charge current | — |
 | S+1.8 h | First beacon decoded anywhere in the simulation's network (Fairbanks) | | | | Amateur reports start; compare Doppler against the SpaceX state vector |
 | S+0.7 to S+12.2 h (median S+5.2 h) | **First pass over Santa Clara above 5°** after the silence (the first beacon the licensee's station can hear). Reference case: S+11.7 h (7.6°, 4 frames) | | | ≈ 92 % by S+12 h (end of charge at 4.10 V/cell) | Decode, check call sign, mode, SOC, BV, SUN; start the 24 h ephemeris clock (UG §9.5.7.2 counts from first contact) |
 | S+0.7 to S+13.7 h (median S+6.3 h) | **First commanding pass** (≥ 15°) over Santa Clara or Ames. Reference case: S+13.2 h (55°): authenticated `GET_STATUS` executed | | | ≈ 92 % | First command; then `TX_DISABLE` / `TX_ENABLE` to prove TX-OFF (COMMISSIONING_PLAN C-3) |
@@ -107,7 +117,7 @@ between commanding passes is 13.1 h every day. With 2 commanding passes a day (t
 |-----|---------------------------------------------------|-------------|------------------|--------|
 | 0–1 | C-1 acquisition, C-2 first command, C-3 TX-OFF proof | First 2–4 commanding passes | SOC ≈ 92 % from the end of day 0 | Ephemeris every pass and ≥ every 24 h until cataloged; identification by Doppler (SQSO-REG-015 §2) |
 | 1–3 | C-4 health and power characterization (orbit energy balance from the telemetry tail and `EPS_GET_TELEMETRY`) | 2 a day | Generation ≈ 2.6 Wh/orbit drawn against 2.25 Wh used (the regulator curtails the rest at full charge); depth of discharge ≤ 2.1 % per eclipse | Compare with the simulation's orbits.csv |
-| 2–4 | C-5 attitude: `ADCS_GET_ATTITUDE`, spin 6°/s, +Y within ≈ 2–4° of the Sun | 2 a day | | |
+| 2–4 | C-5 attitude: `ADCS_GET_ATTITUDE`, spin 8°/s, +Y within ≈ 4° of the Sun (mean 4.0°, BASELINE §8) | 2 a day | | |
 | 3–5 | C-6 beacon conformance (deviation, bandwidth, cadence, `SET_BEACON`, `SET_POWER`) | 2 a day | | Spectrum recorded at two stations |
 | 5–8 | C-7 transponder: first windows in commanded passes, then autonomous | 2 a day | Transponder keyed ≈ 80 min a day in the simulation; ≤ 14.4 % of an orbit | Public announcement only after C-7 passes |
 | 8–11 | C-8 payload (Jetson) batches and fallback | 2 a day | ≈ 0.036 Wh per accepted beacon | Filter sweep on the ground |
@@ -226,3 +236,4 @@ command pass 15°, for beacon reception 5° (the simulation's values).
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 2.0 | 2026-10-27 | CDR launch and ConOps review | Rewritten from the mission simulation and the pass analysis: delivery to the integrator, integration and storage with the battery drain, launch, a minute-by-minute LEOP with power, energy, battery and ground actions, the commissioning pass budget, contingencies checked by simulation (eclipse, failed deployables, missed passes, low SOC, switch bounce), the design gaps, and the contact schedule for the baseline orbit. Version 1.0 described P-POD deployment, the RF released at 30 min, a 400 km 51.6° orbit, a 25-year disposal rule and commands that do not exist |
+| 2.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §5 note on the changes since the simulation run (wings first, one resistor at a time at 0.67 A, magnetorquers 1.16–1.3 W from S+120 s, 8°/s, 2028-11, 475 km) and the orbit-1 energy figures that disagree; commissioning C-5 spin 8°/s |

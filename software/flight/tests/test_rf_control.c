@@ -251,6 +251,16 @@ static void test_verify_toward_tx_off(void **state)
     assert_false(rf_control_tx_permitted());
     assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
     assert_last_fault("RF state check: RAM copy disagreed, TX-OFF");
+    /* A RAM TX-OFF the record does not hold: persisted */
+    assert_int_equal(rf_control_tx_on(), SMART_QSO_OK);
+    hal_sim_flash_fail_writes(true);
+    (void)rf_control_tx_off(); /* applied, not persisted */
+    hal_sim_flash_fail_writes(false);
+    assert_false(rf_control_tx_permitted());
+    rf_control_verify();
+    assert_last_fault("RF state check: TX-OFF re-persisted");
+    assert_int_equal(rf_control_init(), SMART_QSO_OK); /* a reset keeps it */
+    assert_false(rf_control_tx_permitted());
 }
 
 /** The receiver cycle removes radio power; nothing lifts passivation */

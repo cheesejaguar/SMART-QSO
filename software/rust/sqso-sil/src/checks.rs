@@ -158,6 +158,20 @@ pub struct Totals {
     pub rx_hang_max_s: f64,
     /// Most wing burn lines on at once
     pub wing_lines_max: usize,
+    /// The command receiver fails for good in this run (`rx_failed_day`)
+    pub rx_failure_modelled: bool,
+    /// Time the flight software held the command receiver known failed, s
+    pub rx_known_failed_s: f64,
+    /// Beacons radiated while the receiver was known failed
+    pub rx_failed_beacons: u64,
+    /// Longest gap between beacons while the receiver was known failed and
+    /// transmission permitted, s
+    pub rx_failed_beacon_gap_s: f64,
+    /// Transponder keyed time while the receiver was known failed, s
+    pub rx_failed_xpdr_s: f64,
+    /// Time the loss-of-contact inhibit silenced the beacon after the
+    /// receiver failed, before it was known failed, s
+    pub rx_failed_pending_s: f64,
 }
 
 /// A check's outcome
@@ -570,6 +584,42 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
     c
 }
 
+/// REL-04: a receiver known failed keeps the beacon (the loss-of-contact
+/// inhibit no longer silences it) and never the transponder; a healthy
+/// receiver is never declared failed
+fn rx_failed_check(t: &Totals) -> Check {
+    use Verdict::*;
+    let (value, verdict) = if t.rx_failure_modelled {
+        let kept = t.rx_known_failed_s > 0.0
+            && t.rx_failed_beacons > 0
+            && t.rx_failed_beacon_gap_s <= 600.0
+            && t.rx_failed_xpdr_s == 0.0;
+        (
+            format!(
+                "known failed {:.1} d: {} beacons, longest gap {:.0} s, transponder {:.0} s; silenced {:.1} h before",
+                t.rx_known_failed_s / 86_400.0,
+                t.rx_failed_beacons,
+                t.rx_failed_beacon_gap_s,
+                t.rx_failed_xpdr_s,
+                t.rx_failed_pending_s / 3600.0
+            ),
+            if kept { Pass } else { Anomaly },
+        )
+    } else {
+        (
+            format!("receiver healthy; held failed {:.1} h", t.rx_known_failed_s / 3600.0),
+            if t.rx_known_failed_s == 0.0 { Pass } else { Anomaly },
+        )
+    };
+    check(
+        "rx-failed-beacon",
+        "Receiver failed for good (REL-04): the beacon kept, gaps <= 600 s, the transponder off; never declared failed when healthy",
+        value,
+        "beacon kept, transponder 0 s; or 0 h when healthy",
+        verdict,
+    )
+}
+
 /// The checks added at CDR: one burn line at a time, the receiver's
 /// recovery, acknowledgements and stored-housekeeping dumps
 fn operations_cdr(c: &mut Vec<Check>, t: &Totals) {
@@ -590,6 +640,7 @@ fn operations_cdr(c: &mut Vec<Check>, t: &Totals) {
         "all, each within 26 h",
         if open <= 1 && t.rx_hang_max_s <= 26.0 * 3600.0 { Pass } else { Anomaly },
     ));
+    c.push(rx_failed_check(t));
     let acked = if t.commands_executed > 0 { t.acks as f64 / f64::from(t.commands_executed) } else { 0.0 };
     c.push(check(
         "acks",

@@ -2,7 +2,7 @@
 ## Non-GSO Amateur-Satellite Network "SMART-QSO"
 
 **Document Number:** SQSO-REG-017
-**Revision:** A.1 (draft)
+**Revision:** A.2 (draft)
 **Date:** 2026-10-27
 **Purpose:** Source data for the SpaceCap electronic filing that the FCC submits to the ITU Radiocommunication Bureau
 under RR Articles 9 (advance publication) and 11 (notification), as required for the pre-space notification
@@ -32,8 +32,8 @@ fee of cost recovery" (IARU coordination instructions).
 | Number of orbital planes / satellites per plane | 1 / 1 |
 | Reference body | Earth |
 | Inclination | `[~97.4°]` SSO **(BL)**; backup ISS deployment 51.6° |
-| Apogee / perigee altitude | `[475–500]` km circular, 525 km maximum **(BL)**; backup 400–420 km |
-| Period | `[93.6–95.1]` min (93.6 min at 450 km, 95.1 min at 525 km; 92.6 min at 400 km) |
+| Apogee / perigee altitude | `[475]` km circular target, 465–485 km, 485 km maximum **(BL)**; backup 400–420 km |
+| Period | `[93.9–94.3]` min (94.1 min at 475 km; 92.6 min at 400 km) |
 | Station-keeping | None (no propulsion); altitude decays |
 | Right ascension of ascending node / LTAN | `[per launch]` |
 
@@ -56,7 +56,7 @@ transponder briefly muted; this is simpler and lower-power than a second transmi
 
 | Data | Uplink 1: FM transponder | Uplink 2: telecommand |
 |------|-------------------------|-----------------------|
-| Frequency band | 435–438 MHz (amateur-satellite); assignment requested in 435.000–437.300 MHz, clear of the downlink's 3rd harmonic | same receiver, same frequency |
+| Frequency band | 435–438 MHz (amateur-satellite); assignment requested in 435.222–435.778 MHz, or else 436.222–436.500 MHz (BASELINE §7), clear of the downlink's 3rd harmonic | same receiver, same frequency |
 | Assigned frequency | `[IARU-coordinated, e.g. 435.xxx]` MHz | same |
 | Emission | 16K0F3E with CTCSS access tone 67.0 Hz | 10K4F2D (1200 bps AFSK/FM, authenticated per 97.211(b)) |
 | Receiver noise temperature | 1,000 K (system, Earth-facing, at the antenna port; receiver requirement ≤ 650 K, `docs/hardware/RF_DESIGN.md` RF-P006) | same |
@@ -87,3 +87,4 @@ transponder briefly muted; this is simpler and lower-power than a second transmi
 |-----|------|-------------|
 | A | 2026-10-14 | Initial data sheet (funding audit) |
 | A.1 | 2026-10-27 | CDR review (communications panel): power and EIRP, antenna, uplink range and CTCSS tone, receiver noise temperature, telecommand-station power limits, Res. 32 and API timing |
+| A.2 | 2026-10-27 | CDR 2026 consistency pass: altitude 475 km target, 465–485 km, period 93.9–94.3 min, uplink request windows (BASELINE Rev E §3, §7) |

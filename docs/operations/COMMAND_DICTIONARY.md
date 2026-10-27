@@ -1,14 +1,55 @@
 # SMART-QSO Command Dictionary
 
 **Document ID**: SQSO-CMD-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
 
 ## 1. Purpose
 
 This document defines all commands for the SMART-QSO mission. It serves as the authoritative reference for command generation and verification.
+
+**Governing source (Version 1.1).** The flight command set is generated from `software/flight/command_dictionary.json`
+and documented, with framing and authentication, in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` §3
+to §8, dictionary in §7). Where §2 to §7 below (the Version 1.0 design: a 32-byte frame with a CRC-16, 16-bit opcodes)
+disagree with SQSO-ICD-013, SQSO-ICD-013 governs; those sections are kept for history until this document is rewritten
+to the flight command set. The commands the flight software accepts are summarised in §1.1.
+
+### 1.1 Flight Command Set (from the dictionary, 2026-10-27)
+
+| ID | Name | Args (bytes) | Key | Use |
+|----|------|--------------|-----|-----|
+| 0x00 | NOP | 0 | operational | Contact without effect (resets the loss-of-contact count) |
+| 0x01 | RESET | 0 | operational | Logged only |
+| 0x02 | SET_MODE | 1 | operational | 0 SAFE, 1 IDLE, 2 ACTIVE, through the transition table |
+| 0x03 | GET_STATUS | 0 | operational | Status (not downlinked; use GET_HOUSEKEEPING) |
+| 0x05 | CLEAR_FAULTS | 0 | operational | Clear the fault log |
+| 0x06 | KEY_ROTATE | 1 | recovery | Activate a spare operational key |
+| 0x07 | SET_CONTACT_TIMEOUT | 2 | operational | Loss-of-contact timeout, days (30 at launch, 14 after commissioning) |
+| 0x08 | COMMISSIONING_RELEASE | 0 | operational | Release the commissioning hold |
+| 0x09 | GET_HOUSEKEEPING | 0 | operational | Downlink an HK1 frame |
+| 0x0A | DUMP_TLM | 7 | operational | Downlink stored housekeeping: store, first record, count ≤ 600 (0 stops) |
+| 0x10 | EPS_SET_MODE | 1 | operational | EPS power mode |
+| 0x13 | EPS_GET_TELEMETRY | 0 | operational | EPS telemetry (not downlinked) |
+| 0x14 | EPS_CLEAR_LOCKOUT | 4 | operational | `CHG!`: clear the EPS recharge lockout (after a cell below 2.0 V) |
+| 0x21 | ADCS_DETUMBLE | 0 | operational | Start detumble |
+| 0x23 | ADCS_GET_ATTITUDE | 0 | operational | Attitude (not downlinked) |
+| 0x24 | ADCS_SET_GEOMETRY | 1 | operational | Spin-axis and inertia preset: 0 both wings, 1 W1 only, 2 W2 only, 3 none |
+| 0x30 | SET_BEACON | 2 | operational | Beacon interval, 10 to 120 s |
+| 0x31 | TX_ENABLE | 0 | operational | Clear the TX-OFF latch |
+| 0x32 | TX_DISABLE | 0 | any (none if no key is usable) | Latch TX-OFF (97.207(b)) |
+| 0x33 | SET_POWER | 1 | operational | 0 = 0.5 W, 1 = 1 W |
+| 0x34 | XPDR_ENABLE | 0 | operational | Allow the FM transponder |
+| 0x35 | XPDR_DISABLE | 0 | operational | Stop the FM transponder |
+| 0x40 | PLD_ENABLE | 0 | operational | Enable the payload |
+| 0x41 | PLD_DISABLE | 0 | operational | Disable the payload |
+| 0x50 | DEPLOY_RETRY | 1 | operational | Retry a deployment element: 0 antenna, 1 wings |
+| 0x60 | GNSS_REQUEST | 0 | operational | Start a GNSS session |
+| 0x70 | PASSIVATE_ARM | 4 | operational | `EOL!`: arm end-of-life passivation for 600 s |
+| 0x71 | PASSIVATE_EXECUTE | 0 | recovery | Within 600 s of the arm: passivate (irreversible) |
+
+Each command counted as contact is acknowledged on the downlink (`ack KK6GDB-11: C= R= N=`, SQSO-ICD-005 §5.5).
 
 ## 2. Command Frame Structure
 
@@ -425,6 +466,13 @@ COMMAND EXECUTION SEQUENCE
 
 ### 6.3 Hazardous Command Confirmation
 
+**Flight implementation (Version 1.1).** The one irreversible command is end-of-life passivation, which takes two
+commands under two keys: `PASSIVATE_ARM` (0x70, operational key, argument `EOL!`), then `PASSIVATE_EXECUTE` (0x71,
+recovery key) within 600 s; the arm lapses otherwise (SQSO-ICD-013 §6.4). `EPS_CLEAR_LOCKOUT` (0x14) needs its
+argument `CHG!` and acts only with the EPS controller's unlock. The Version 1.0 scheme below is not implemented.
+
+Version 1.0 scheme (superseded):
+
 Hazardous commands require two-step execution:
 1. Send command with CONFIRM=0
 2. Receive confirmation prompt in beacon
@@ -484,3 +532,4 @@ cmd = create_command("N0CALL", 1, 0x0100)
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §1: SQSO-ICD-013 and the generated dictionary govern; §1.1 the flight command set, with DUMP_TLM (0x0A), EPS_CLEAR_LOCKOUT (0x14), PASSIVATE_ARM (0x70) and PASSIVATE_EXECUTE (0x71) added; §6.3 the two-key passivation. The Version 1.0 sections are kept for history |
