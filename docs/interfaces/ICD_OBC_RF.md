@@ -79,8 +79,8 @@ RADIO_3V3 on pin 1, PA_5V on pins 3–4). Pin numbers below are J1/J2 positions.
 | 12 | TX_FWD | RF→OBC | PC0 (ADC1 IN1) | 0–2.5 V, P = 0.16 V² W (2.5 V at 1 W) | — | 10 kΩ, 10 nF | 1 kΩ / 100 nF |
 | 13 | TX_REV | RF→OBC | PC1 (ADC1 IN2) | as TX_FWD; 1.25 V at 3:1 and 1 W | — | 10 kΩ, 10 nF | 1 kΩ / 100 nF |
 | 14 | AGND | — | — | monitor return | — | — | — |
-| 15 | RX_CD | RF→OBC | **PG0** (EXTI0) | as TONE_OK; **high = receiver carrier detect** (RF carrier above the receiver's carrier-sense threshold, with or without CTCSS; TONE_OK is the tone decode, not this) | low with the radio off | 10 kΩ series, **100 kΩ pull-down** | 1 kΩ (push-pull from V_DIG) |
-| 16 | RX_FAULT | RF→OBC | **PF13** (EXTI13) | as TONE_OK; **high = receiver fault** (the RF designer defines the conditions, e.g. synthesizer unlocked or receiver not configured) | **low = healthy when the line is unwired, open or the radio unpowered** | 10 kΩ series, **100 kΩ pull-down** | 1 kΩ (push-pull from V_DIG); no pull-up on the RF side |
+| 15 | RX_CD | RF→OBC | **PG0** (EXTI0) | as TONE_OK; **high = receiver carrier detect** (RF carrier above the receiver's carrier-sense threshold, with or without CTCSS; TONE_OK is the tone decode, not this) | low with the radio off | 10 kΩ series, **100 kΩ pull-down** | 1 kΩ (push-pull from V_DIG), 100 kΩ pull-down |
+| 16 | RX_FAULT | RF→OBC | **PF13** (EXTI13) | as TONE_OK; **high = receiver fault** (conditions per SQSO-RF-BRD-001 B §4.1) | **low = healthy when the line is unwired, open or the radio unpowered** | 10 kΩ series, **100 kΩ pull-down** | 1 kΩ (push-pull from V_DIG), 100 kΩ pull-down (no pull-up on either side) |
 | (W3-10) | RADIO_EN | OBC→EPS | PB5 | 3.3 V, high = SW2 (radio rail) on | **Low at reset** (EPS 100 kΩ) | 100 Ω | — |
 | (W3-14) | RF_TX_EN | OBC→EPS | PA3 | 3.3 V, high = SW3 (PA rail) on | **Low at reset**; EPS pull-down mandatory, so a reset or unpowered OBC leaves the PA off | 100 Ω | — (the RF board derives TX_PERMIT_HW from PA_5V) |
 
@@ -98,7 +98,7 @@ checks a measurement. Reading them is flight-software work (SQSO-ICX-001 §6 row
 
 RX_CD and RX_FAULT (version 2.2, flight-software request) report the receiver: RX_CD on EXTI0 for channel-busy
 detection and receive statistics, RX_FAULT on EXTI13 for receiver health. Both read low with the radio off, so the
-firmware qualifies them with RADIO_EN; RX_FAULT therefore reads "healthy" with the radio off or the line open, as
+firmware qualifies them with RADIO_EN and ignores RX_FAULT for 1 s after RADIO_EN switches on (receiver start-up); RX_FAULT therefore reads "healthy" with the radio off or the line open, as
 requested, and a broken wire is not detected by the line itself (the KISS link and the receive statistics show a dead
 receiver). SQSO-ICX-001 §6 row 28.
 
@@ -182,7 +182,7 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | Item | Closure |
 |------|---------|
 | Connector part and pin-out | **Closed**: W4A v3, FTSH-108 at both ends (§4.1, §4.2; SQSO-ICX-001 §3.2) |
-| RX_CD and RX_FAULT on the RF board | OBC side allocated (PG0, PF13; W4A pins 15, 16); the RF board's drivers, carrier-sense threshold and fault conditions are the RF designer's (SQSO-RF-BRD-001 §4.1) |
+| RX_CD and RX_FAULT on the RF board | OBC side allocated (PG0, PF13; W4A pins 15, 16); **closed**: SQSO-RF-BRD-001 B §4.1 drives J1-15/16 (FTSH-108) |
 | Readback pins for TONE_OK, XPDR_KEY, PTT_EXCITER | **Closed in hardware**: PC9, PG12, PC7 (§4.3); the firmware reading them is open (flight-software change, SQSO-ICX-001 §6) |
 | ADC scaling of TX_TEMP, TX_FWD, TX_REV | **Closed**: the RF board's detector and sensor match `adc.rs` (RF board §7.6) |
 | TNC part | **Closed**: TNC MCU on the RF board (SQSO-RF-BRD-001 §13) |

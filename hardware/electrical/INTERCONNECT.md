@@ -133,8 +133,8 @@ push-pull: VOH ≥ 2.9 V against the STM32's VIH 2.31 V.
 | 12 | TX_FWD | analog in | 0–2.5 V, P = 0.16 V² W | — | PC0 ADC1_IN1 (10 kΩ, 10 nF) | 1 kΩ / 100 nF |
 | 13 | TX_REV | analog in | as TX_FWD | — | PC1 ADC1_IN2 (10 kΩ, 10 nF) | 1 kΩ / 100 nF |
 | 14 | AGND | — | monitor return | — | GND | — |
-| 15 | RX_CD | in | high = receiver carrier detect (not TONE_OK) | low (OBC 100 kΩ pull-down) | **PG0** EXTI0 (10 kΩ, 100 kΩ pull-down) | 1 kΩ, push-pull from V_DIG (**new, version 3**; RF designer to provide) |
-| 16 | RX_FAULT | in | high = receiver fault | **low = healthy** when unwired, open or the radio off (OBC 100 kΩ pull-down) | **PF13** EXTI13 (10 kΩ, 100 kΩ pull-down) | 1 kΩ, push-pull from V_DIG (**new, version 3**; RF designer to provide) |
+| 15 | RX_CD | in | high = receiver carrier detect (not TONE_OK) | low (OBC 100 kΩ pull-down) | **PG0** EXTI0 (10 kΩ, 100 kΩ pull-down) | 1 kΩ, push-pull from V_DIG, 100 kΩ pull-down (**new, version 3**, SQSO-RF-BRD-001 B §4.1) |
+| 16 | RX_FAULT | in | high = receiver fault | **low = healthy** when unwired, open or the radio off (OBC 100 kΩ pull-down) | **PF13** EXTI13 (10 kΩ, 100 kΩ pull-down) | 1 kΩ, push-pull from V_DIG, 100 kΩ pull-down (**new, version 3**, SQSO-RF-BRD-001 B §4.1) |
 
 RADIO_EN and RF_TX_EN switch the RF board's rails on the EPS (W3 pins 10, 14) and reach the RF board as power on W4B
 (RADIO_3V3 J2-1, PA_5V J2-3/4, 24 AWG). The readbacks are valid while RADIO_3V3 is on and read low through the OBC's
@@ -438,7 +438,7 @@ design.
 | 25 | USART1 back-power (ICD-002 §9 alternative) | — | no firmware action | hardware isolation (§5) |
 | 26 | JETSON_PWR | PA2 | **PA8** (Version B) | PA2 becomes ADC1_IN7 for the Jetson spreader NTC; port A kept |
 | 27 | Jetson spreader temperature | none (the guard uses the Jetson's report) | **PT_NTC on PA2 (ADC1_IN7)**: R = 10.0 kΩ × V/(VDDA − V); β 3976 K (to confirm from the TE curve) | carrier interface E10; the 70 °C guard and the −15 °C power-on gate need it with the carrier off |
-| 28 | RX_CD, RX_FAULT (new RF board inputs, flight-software round 2) | none | **RX_CD PG0** (EXTI0, high = carrier detect), **RX_FAULT PF13** (EXTI13, high = fault; reads low = healthy with the line open or the radio off) | W4A version 3 pins 15, 16; qualify both with RADIO_EN |
+| 28 | RX_CD, RX_FAULT (new RF board inputs, flight-software round 2) | none | **RX_CD PG0** (EXTI0, high = carrier detect), **RX_FAULT PF13** (EXTI13, high = fault; reads low = healthy with the line open or the radio off) | W4A version 3 pins 15, 16; qualify both with RADIO_EN; **ignore RX_FAULT for 1 s after RADIO_EN switches on** (receiver start-up) |
 | 29 | Unchanged | — | RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, LED PD3, RF_TX_EN PA3, EPS_ALERT_N PB7, DEPLOY_SENSE PE2, UMBILICAL_SENSE PB8, SOLAR_SENSE PB12, TX_PWR_SEL PE3, XPDR_EN PE4 (TIM7), GNSS_EN PE5, USART1/2/3, LPUART1, I2C2, I2C4, SPI3 pins, FRAM WP#/HOLD#, the nine existing ADC channels | — |
 
 New `HalGpioPin_t` entries implied (names suggested; indices are the flight software's choice): BURN_W2A (replacing
@@ -463,7 +463,7 @@ second CS in `hal_spi`.
 | E10 | Jetson carrier (from the carrier) | W5B 6 pins, spreader NTC on pins 5–6: **taken** (OBC J3, PA2) | spreader temperature with the carrier off |
 | E11 | Jetson carrier | the 20–30 mm magnetic keep-out around (+33, −38) asked by MECHANICAL_DESIGN §4.4 is **withdrawn**: the magnetometer leaves the OBC (SQSO-OBC-BRD-001 §9.4) | — |
 | E12 | Mechanical / harness | magnetometer board A2 (24 × 24 mm, ≈ 3 g with harness) at the +Z end frame slot of the CAD (+24, +27) mm, or (+24, −27) if the mass properties can be re-trimmed (0.51 against 0.83 µT per mA·m² of rod remanence); 20 mm non-ferromagnetic zone around it (the RF shield's top, the patch adapter, the trim masses and fasteners non-magnetic); harness W6E through a ±X wall gap; W8A internal access-port harness | §9.4 of the OBC board |
-| E13 | RF board (SQSO-RF-BRD-001 §4.1) | W4A version 3: RF J1 becomes FTSH-108-01-L-DV-K (16 positions; pins 1–14 unchanged); pin 15 RX_CD (high = receiver carrier detect), pin 16 RX_FAULT (high = receiver fault), both 3.1 V push-pull through 1 kΩ like TONE_OK, no RF-side pull-up on RX_FAULT; W4 wiring source to version 3; J1 placed in the (+X, −Y) corner to meet OBC J2 (SQSO-OBC-BRD-001 §21) | flight-software round 2 |
+| E13 | RF board (SQSO-RF-BRD-001 §4.1) | W4A version 3: RF J1 becomes FTSH-108-01-L-DV-K (16 positions; pins 1–14 unchanged); pin 15 RX_CD (high = receiver carrier detect), pin 16 RX_FAULT (high = receiver fault), both 3.1 V push-pull through 1 kΩ with 100 kΩ pull-downs on the RF board (taken in SQSO-RF-BRD-001 B §4.1); W4 wiring source to version 3; J1 placed in the (+X, −Y) corner to meet OBC J2 (SQSO-OBC-BRD-001 §21) | flight-software round 2 |
 | E10 | RF (SQSO-RF-BRD-001) | none: the OBC side of J1 is as the RF board asks (pull-downs fitted on the OBC) | — |
 
 ## 8. Verification Items (interconnect)

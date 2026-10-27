@@ -308,4 +308,6 @@ RIDS = [
     ("OBCB-05", 3, "Magnetorquers draw 1.16-1.3 W in detumble; not in the power analysis", "IMP", "Documentation consistency: POWER_BUDGET_ANALYSIS LEOP case"),
     ("OBCB-06", 3, "OBC-rail fault that does not trip SW10 goes undetected", "CH", "Accepted: the external supervisor and the internal watchdog cover a hung OBC; an EPS-side heartbeat check is a fabrication-phase option"),
     ("OBCB-07", 3, "Gyro supply margin 3.195 V against 3.15 V minimum", "VI", "V-OBC measurement on the EM; the 3V3_AO ±2 % set point (EPS) holds it"),
+    ("OBCB-08", 2, "Gyro module has no published random-vibration rating; it sees 22-25 Grms at the module", "VI", "V-OBC-16: random vibration ≥ 22.2 / 25.0 / 21.7 Grms at the module and launch shock, bias change ≤ 0.01 °/s, scale factor ≤ 0.2 %; Epson qualification data requested (OBC item C12); fallback grommets and a flexible jumper"),
+    ("OBCB-09", 3, "Two more lines from the powered radio raise the current into an unpowered OBC to 2.7 mA", "VI", "V-ICX-3 / V-OBC-15 limit ≤ 3.0 mA"),
 ]

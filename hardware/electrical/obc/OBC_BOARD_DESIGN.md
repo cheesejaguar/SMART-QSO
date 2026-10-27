@@ -526,7 +526,8 @@ for**: **TONE_OK → PC9** (EXTI9), **XPDR_KEY → PG12** (EXTI12), **PTT_EXCITE
 firmware measures keyed time instead of estimating it from the frame length, ICD-003 §5.3), and, new in Version B for
 the flight software, **RX_CD → PG0** (EXTI0, high = receiver carrier detect; J2-15) and **RX_FAULT → PF13** (EXTI13,
 high = receiver fault; J2-16): both through 10 kΩ with 100 kΩ pull-downs, so RX_FAULT reads healthy with the line
-open or the radio unpowered, as the flight software asked. The RF board drives them like TONE_OK (interface item E13). The monitors TX_TEMP (PA0),
+open or the radio unpowered, as the flight software asked. The RF board drives them like TONE_OK, with its own 100 kΩ pull-downs (SQSO-RF-BRD-001 B §4.1, item E13); the
+firmware ignores RX_FAULT for 1 s after RADIO_EN switches on. The monitors TX_TEMP (PA0),
 TX_FWD (PC0), TX_REV (PC1) take 10 kΩ series and 10 nF at the pin (the RF board's 100 nF is the sampling reservoir).
 Three TPD4E05U06-Q1 at J2 (the two new lines use their spare channels).
 
