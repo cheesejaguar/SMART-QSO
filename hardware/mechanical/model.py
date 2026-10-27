@@ -69,6 +69,9 @@ P: Dict[str, float] = dict(
     patch_w=50.0, patch_t=5.0,
     # PC/104 boards
     pcb_x=90.17, pcb_y=95.89, pcb_t=1.6, col_x=40.0, col_y=43.0, col_d=5.8, cs_x=0.0, cs_y=21.0, cs2_y=-21.0, jet_y=-6.0,
+    # M-G370PDT0 in its socket X1 on the OBC: 24 x 24 mm, 14.0 mm above the OBC top face (OBC_BOARD_DESIGN 9.2); it
+    # stands through a window in the Jetson carrier (OBC item C3, MECHANICAL_DESIGN 4.2 D-11)
+    gyro_x=-20.0, gyro_y=27.5, gyro_w=24.0, gyro_h=14.0, car_win=(-33.5, -6.5, 14.0, 41.0),
     # stack levels: substrate bottom z
     z_eps=-3.0, z_obc=5.0, z_car=18.0, z_rf=34.8,
     # magnetometer and RF shield (positions chosen to balance Iyz, MECHANICAL_DESIGN section 5)
@@ -432,16 +435,20 @@ def build_parts(p=P) -> List[Part]:
 
     board("EPS", P["z_eps"], 1.0, 5.0, {"12": 90.0}, extra_cut=(zrod_notch,), comp_cut=(cs, cs2),
           note="EPS: MPPT, BMS, PDU, burn drivers; centre support (STR-05); notch for the Z rod")
-    gyro_box = B(-32, -8, 10, 34, P["z_obc"] + pt, P["z_obc"] + pt + 10.0)
+    gw = p["gyro_w"] / 2.0
+    gyro_box = B(p["gyro_x"] - gw, p["gyro_x"] + gw, p["gyro_y"] - gw, p["gyro_y"] + gw, P["z_obc"] + pt,
+                 P["z_obc"] + pt + p["gyro_h"])
+    win = B(*p["car_win"], P["z_car"] - 3.0, P["z_car"] + 3.0)
     board("OBC", P["z_obc"], 1.0, 3.0, {"17": 45.0}, comp_cut=(cs, cs2, gyro_box), note="OBC STM32L4R5ZI, BMI088")
     add(Part("gyro_MG370", "adcs", {"25": 10.0}, gyro_box,
-             color=COL["comp"], note="Epson M-G370PDT0 24 x 24 x 10 mm on the OBC"))
+             color=COL["comp"], note="Epson M-G370PDT0 24 x 24 x 10 mm in socket X1 (14.0 mm above the OBC), "
+                                        "through the carrier window"))
     z = P["z_car"]
     jy = p["jet_y"]
     car_top = cut(B(-px + 1, px - 1, -py + 1, jy - 27.0, z + pt, z + pt + 2.0), *koz)
-    car_bot = cut(B(-px + 1, px - 1, -py + 1, py - 1, z - 1.0, z), B(-33, -7, 9, 35, z - 2, z + 1), *koz, cs, cs2)
-    add(Part("Jetson_carrier", "stack", {"21": 14.0}, cut(B(-px, px, -py, py, z, z + pt), *colholes),
-             color=COL["pcb"], note="custom carrier; centre support; keep-out over the gyro"))
+    car_bot = cut(B(-px + 1, px - 1, -py + 1, py - 1, z - 1.0, z), win, *koz, cs, cs2)
+    add(Part("Jetson_carrier", "stack", {"21": 14.0}, cut(B(-px, px, -py, py, z, z + pt), *colholes, win),
+             color=COL["pcb"], note="custom carrier; centre supports; 27 x 27 mm window for the gyro (C3)"))
     add(Part("Jetson_carrier_parts", "stack", {"21": 26.0}, fuse(car_top, car_bot), color=COL["comp"]))
     zs = z + pt
     add(Part("SODIMM_connector", "stack", {"21": 0.0, "22": 2.0}, B(-36, 36, jy - 26.5, jy - 22.5, zs, zs + 4.0),
@@ -799,6 +806,15 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
         vertical_gap_mm=ear.zmin - band_top, lateral_from_tape_line_mm=p["hinge_y"] - p["spring_r"] - p["tape_y"]),
          ">= 10 mm in at least one direction", (p["hinge_y"] - p["spring_r"] - p["tape_y"]) >= 10.0,
          note="the -Z ear sits 0.5 mm above the tape band but 36.75 mm from the 2 m tape line (y = 0)")
+    # gyro in its socket through the carrier window (OBC_BOARD_DESIGN 9.2 and 24 C3)
+    gyb = byname["gyro_MG370"].stowed
+    gcl = {n: min_dist(gyb, byname[n].stowed) for n in ("Jetson_carrier", "Jetson_carrier_parts", "Jetson_module",
+                                                         "SODIMM_connector", "centre_supports", "stack_columns")}
+    gbb = gyb.BoundingBox()
+    item("OBC-C3", "M-G370PDT0 in socket X1 (14.0 mm above the OBC top face) clear of the carrier, the Jetson module "
+         "and the supports", dict(top_z=gbb.zmax, above_obc_mm=p["gyro_h"], carrier_bottom_z=p["z_car"],
+                                  clearances_mm=gcl), ">= 1.0 mm (3-sigma relative board motion < 0.2 mm)",
+         min(gcl.values()) >= 1.0, note="through a 27 x 27 mm window in the carrier (MECHANICAL_DESIGN D-11)")
     return res
 
 

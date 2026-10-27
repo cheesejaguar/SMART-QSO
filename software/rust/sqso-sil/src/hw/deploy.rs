@@ -104,6 +104,7 @@ impl Wings {
 
     /// One step with the lines ([wing][resistor]) as driven; the current
     /// the drivers draw from the burn buck, A
+    #[allow(clippy::needless_range_loop)] // the resistor index addresses three arrays
     fn step(&mut self, dt: f64, lines: [[bool; 2]; 2], temps_c: [f64; 2], limit: Option<f64>) -> f64 {
         let per = limit.map_or(BURN_BUCK_V / BURN_OHMS, |l| l.min(BURN_BUCK_V / BURN_OHMS));
         let mut current = 0.0;
@@ -258,7 +259,14 @@ pub struct Commands {
 impl Deployables {
     /// Stowed in the dispenser
     pub fn new(rng: &mut Rng, limit_a: Option<f64>) -> Deployables {
-        Deployables { separated: false, ants: Ants::new(rng), wings: Wings::new(rng), limit_a, current_a: 0.0, max_wing_lines: 0 }
+        Deployables {
+            separated: false,
+            ants: Ants::new(rng),
+            wings: Wings::new(rng),
+            limit_a,
+            current_a: 0.0,
+            max_wing_lines: 0,
+        }
     }
 
     /// Advance with the OBC's lines and commands; the burn current drawn

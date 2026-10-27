@@ -280,7 +280,7 @@ The FE gives the 3σ out-of-plane displacement of every board node relative to t
 | RF (support at (0, 0) to the spreader) | +0.25 | **+0.36** | +0.42 |
 
 The centre of the EPS, OBC and carrier boards is not available for a support: the Jetson module (69.6 × 45 mm, centred at
-y = −7 mm to balance the products of inertia) covers it on the carrier, and a column through the stack must pass all
+y = −6 mm to balance the products of inertia) covers it on the carrier, and a column through the stack must pass all
 three boards. One support at y = +21 mm leaves the −Y half of the EPS and carrier boards unsupported (−0.10, −0.29). **The
 design requirement of STR-05 becomes: two supports at (0, ±21) mm on the EPS, OBC and carrier boards (the −21 mm one
 from the EPS to the carrier, under the module), one at (0, 0) on the RF board from the spreader.** Adopted by the chair

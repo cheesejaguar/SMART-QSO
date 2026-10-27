@@ -170,6 +170,10 @@ fn sample_row(s: &Sample) -> Vec<f64> {
 #[derive(Clone, Copy, Debug, Default)]
 struct Pass {
     aos_s: f64,
+    /// Faraday rotation at AOS, rad, and its drift, rad/s (SQSO-LBA-001 v3.0
+    /// §2.3: a random start, 0.5–3 rad over a pass)
+    faraday0: f64,
+    faraday_rate: f64,
     max_elev_deg: f64,
     frames: u32,
     heard: u32,
@@ -524,7 +528,10 @@ impl Mission {
         if !radio_on && let Some(since) = self.rx_hung_since.take() {
             self.totals.rx_recovered += 1;
             self.totals.rx_hang_max_s = self.totals.rx_hang_max_s.max(self.rel() - since);
-            self.event("seu", &format!("receiver power-cycled: recovered after {:.1} h", (self.rel() - since) / 3600.0));
+            self.event(
+                "seu",
+                &format!("receiver power-cycled: recovered after {:.1} h", (self.rel() - since) / 3600.0),
+            );
         }
         let working = radio_on && self.rx_hung_since.is_none() && !failed;
         self.fsw.drive(pin::RX_CD, working && self.carrier);
@@ -747,7 +754,12 @@ impl Mission {
             best = best.max(el_deg);
             let visible = el >= self.stations[i].min_el_rad;
             match (&mut self.passes[i], visible) {
-                (None, true) => self.passes[i] = Some(Pass { aos_s: rel, max_elev_deg: el_deg, ..Pass::default() }),
+                (None, true) => {
+                    let faraday0 = self.rng.uniform() * core::f64::consts::PI;
+                    let faraday_rate = (0.5 + 2.5 * self.rng.uniform()) / 600.0;
+                    self.passes[i] =
+                        Some(Pass { aos_s: rel, faraday0, faraday_rate, max_elev_deg: el_deg, ..Pass::default() })
+                }
                 (Some(p), true) => p.max_elev_deg = p.max_elev_deg.max(el_deg),
                 (Some(p), false) => {
                     let p = *p;
@@ -867,9 +879,10 @@ impl Mission {
         }
         let failed = self.cfg.rx_failed_day > 0.0 && self.rel() >= self.cfg.rx_failed_day * 86_400.0;
         let rx_on = self.fsw.running() && self.fsw.pin(pin::RADIO_EN) && self.rx_hung_since.is_none() && !failed;
-        let gain = self.sc_gain_dbi(link::UHF_AXIS_BODY, i, r);
-        let margin = link::uplink(&self.stations[i].radio, gain, range, el, link::REQ_CN0_DATA_DBHZ).margin_db;
-        let ok = rx_on && self.rng.uniform() < link::frame_success_prob(margin, (frame.len() * 8) as u32);
+        let (gain, pol) = self.sc_link_terms(link::UHF_AXIS_BODY, i, r);
+        let cn0 = link::uplink(&self.stations[i].radio, gain, range, el, pol).cn0_dbhz;
+        let bits = (frame.len() * 8) as u32;
+        let ok = rx_on && self.rng.uniform() < link::frame_success(cn0, link::Demod::Telecommand, bits);
         let delivered = ok && self.fsw.uplink(&frame);
         self.event("command", &format!("{what}: {}", if delivered { "received" } else { "lost" }));
         if delivered {
@@ -895,11 +908,25 @@ impl Mission {
     }
 
     /// The spacecraft antenna's gain toward station `i` (an element along
-    /// `axis` in the body frame), dBi; 20 dB down while it is stowed
-    fn sc_gain_dbi(&self, axis: V3, i: usize, r: V3) -> f64 {
-        let to_station = ground::station_eci(&self.stations[i], self.t) - r;
-        let g = link::sc_gain_dbi(axis, self.att.to_body(to_station.unit()));
-        if self.deploy.antennas_deployed() { g } else { g - 20.0 }
+    /// `axis` in the body frame), dBi, 20 dB down while it is stowed; and the
+    /// polarization loss, dB: 3 dB to a circular station, the geometric
+    /// mismatch with the Faraday rotation to a linear one (its Yagi's
+    /// elements horizontal, across the line of sight)
+    fn sc_link_terms(&self, axis: V3, i: usize, r: V3) -> (f64, f64) {
+        let st = ground::station_eci(&self.stations[i], self.t);
+        let los = (st - r).unit();
+        let g = link::sc_gain_dbi(axis, self.att.to_body(los));
+        let g = if self.deploy.antennas_deployed() { g } else { g - 20.0 };
+        let radio = &self.stations[i].radio;
+        let pol = if radio.circular {
+            link::pol_loss_db(true, 0.0)
+        } else {
+            let element = self.att.q.rotate(axis);
+            let h = st.unit().cross(-los).unit();
+            let far = self.passes[i].map_or(0.0, |p| p.faraday0 + p.faraday_rate * (self.rel() - p.aos_s));
+            link::pol_loss_db(false, link::linear_pol_factor(element, -los, h, far))
+        };
+        (g, pol)
     }
 
     /// EOL passivation after the TX-OFF (47 CFR 97.207(g)): the latch opens
@@ -977,7 +1004,8 @@ impl Mission {
             ops::FrameKind::Ack => self.totals.acks += 1,
             ops::FrameKind::Dump => {
                 self.totals.dump_frames += 1;
-                self.totals.dump_records += u64::from(f.get(f.iter().position(|b| b & 1 == 1).unwrap_or(0) + 7).copied().unwrap_or(0));
+                self.totals.dump_records +=
+                    u64::from(f.get(f.iter().position(|b| b & 1 == 1).unwrap_or(0) + 7).copied().unwrap_or(0));
             }
             ops::FrameKind::Housekeeping | ops::FrameKind::Beacon => {}
         }
@@ -1007,10 +1035,11 @@ impl Mission {
                 continue;
             }
             let (el, _, range) = ground::look(&self.stations[i], r, self.t);
-            let gain = self.sc_gain_dbi(link::VHF_AXIS_BODY, i, r);
-            let margin =
-                link::downlink(tx_w, gain, range, el, &self.stations[i].radio, link::REQ_CN0_DATA_DBHZ).margin_db;
-            let heard = radiating && self.rng.uniform() < link::frame_success_prob(margin, (f.len() * 8) as u32);
+            let (gain, pol) = self.sc_link_terms(link::VHF_AXIS_BODY, i, r);
+            let radio = self.stations[i].radio;
+            let cn0 = link::downlink(tx_w, gain, range, el, &radio, pol).cn0_dbhz;
+            let bits = (f.len() * 8) as u32;
+            let heard = radiating && self.rng.uniform() < link::frame_success(cn0, radio.downlink_demod(), bits);
             if let Some(p) = self.passes[i].as_mut() {
                 p.frames += 1;
                 if heard {

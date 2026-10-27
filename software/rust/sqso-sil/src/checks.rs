@@ -519,7 +519,15 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
             format!("no AI beacons ({:.1} Wh used)", t.jetson_wh)
         },
         "<= 0.1 Wh",
-        if per_beacon <= 0.1 { Pass } else { Anomaly },
+        // Not exercised (no batch yet: the commissioning hold) is no anomaly;
+        // energy spent with no beacon to show for it is
+        if per_beacon <= 0.1 {
+            Pass
+        } else if t.ai_frames == 0 && t.jetson_wh < 0.01 {
+            Warning
+        } else {
+            Anomaly
+        },
     ));
     c.push(check(
         "uptime",

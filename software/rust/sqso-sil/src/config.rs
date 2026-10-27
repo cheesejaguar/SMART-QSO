@@ -274,7 +274,8 @@ mod tests {
         assert_eq!(c.mission_days, 1.0);
         // BASELINE Rev D: 475 km, planning launch 2028-11, storage L-47 d at 60 %
         assert_eq!((c.altitude_km, c.deploy_utc.1, c.integration_soc), (475.0, 11, 0.60));
-        let days = crate::env::time::from_utc(2028, 11, 1, 6, 0, 0.0) - crate::env::time::from_utc(2028, 9, 15, 6, 0, 0.0);
+        let days =
+            crate::env::time::from_utc(2028, 11, 1, 6, 0, 0.0) - crate::env::time::from_utc(2028, 9, 15, 6, 0, 0.0);
         assert_eq!(days / 86_400.0, 47.0);
         c.set("altitude_km=450").unwrap();
         assert_eq!(c.altitude_km, 450.0);

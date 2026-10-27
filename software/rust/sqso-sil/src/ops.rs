@@ -150,8 +150,8 @@ impl Uplink {
     /// carrying the authenticated command `cmd_id` with `args`, under the
     /// operational key, or the recovery key for a recovery-key command
     pub fn frame(&mut self, cmd_id: u8, args: &[u8]) -> Option<Vec<u8>> {
-        let recovery = sqso_protocol::Command::from_id(cmd_id)
-            .is_some_and(|c| c.spec().key == sqso_protocol::KeyClass::Recovery);
+        let recovery =
+            sqso_protocol::Command::from_id(cmd_id).is_some_and(|c| c.spec().key == sqso_protocol::KeyClass::Recovery);
         let (bytes, counter) = if recovery {
             self.recovery_counter += 1;
             (self.recovery, self.recovery_counter)

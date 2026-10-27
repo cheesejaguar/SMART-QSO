@@ -10,7 +10,7 @@
  * - the five-minute ring holds at least 7 days (2,016 records);
  * - an event keeps the 3 h before and after it at 60 s;
  * - DUMP_TLM: an unknown store or a count above 600 is refused; frames
- *   carry at most four records, at most one every 8 s; 0 stops a dump;
+ *   carry at most four records, at most one every 12 s; 0 stops a dump;
  * - the executive's DUMP_TLM handler parses store, first and count.
  *
  * @requirement SRS-F120 Five-minute housekeeping records for at least 7 days in FRAM
@@ -134,10 +134,10 @@ static void test_dump(void **state)
     assert_int_equal(info[4], 4U);
     assert_int_equal(hk_store_dump_peek(s_now, info, 10U), 0U); /* too small */
     hk_store_dump_commit(s_now);
-    assert_int_equal(hk_store_dump_peek(s_now + 7999U, info, sizeof(info)), 0U); /* paced */
-    n = hk_store_dump_peek(s_now + 8000U, info, sizeof(info));
+    assert_int_equal(hk_store_dump_peek(s_now + 11999U, info, sizeof(info)), 0U); /* paced */
+    n = hk_store_dump_peek(s_now + 12000U, info, sizeof(info));
     assert_int_equal(n, 5U + (2U * HK_STORE_RECORD_LEN));
-    hk_store_dump_commit(s_now + 8000U);
+    hk_store_dump_commit(s_now + 12000U);
     assert_false(hk_store_dump_active());
     assert_int_equal(hk_store_dump(HK_STORE_DETAIL, 0U, 100U), SMART_QSO_OK);
     hk_store_dump_stop();

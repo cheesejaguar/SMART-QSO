@@ -7,6 +7,10 @@
 //! The regions sit at the addresses of the memory map, STORAGE_DESIGN §3.3.
 //! The fault log takes 9,728 bytes of the event log (the full log, 100
 //! entries of 96 bytes); the system state takes boot configuration B and C.
+//! The stored housekeeping (`hk_store.h`) takes the 64 KB telemetry buffer
+//! (0x10000, the sixty-second records) and 0x20700–0x366FF of the extended
+//! storage (the five-minute records), its event-window table at 0x36700;
+//! the passivation record is at 0x36800.
 
 use embassy_stm32::gpio::Output;
 use embassy_stm32::mode::Blocking;
@@ -26,19 +30,23 @@ const DEVICE_ID: [u8; 9] = [0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0x7F, 0xC2, 0x25, 0x08
 const CAPACITY: u32 = 256 * 1024;
 
 /// (address, size) per `HalFlashRegion_t`
-const REGIONS: [(u32, usize); 12] = [
-    (0x0_0400, 512),  // MISSION_DATA (mission data A)
-    (0x0_0000, 256),  // EPS_CONFIG (boot configuration A)
-    (0x2_0000, 512),  // SENSOR_CONFIG (extended storage)
-    (0x0_C900, 9728), // FAULT_LOG (event log)
-    (0x2_0200, 1024), // BACKUP (extended storage)
-    (0x0_0100, 512),  // STATE (boot configuration B and C)
-    (0x0_C400, 768),  // AUTH (telecommand key table)
-    (0x0_0300, 256),  // RF_CONTROL (TX-OFF latch, power level)
-    (0x0_C700, 256),  // CONTACT (loss-of-contact records)
-    (0x0_C800, 128),  // RF_SILENCE
-    (0x0_C880, 128),  // DEPLOYMENT
-    (0x2_0600, 128),  // OPS (commissioning hold, transponder enable; extended storage)
+const REGIONS: [(u32, usize); 16] = [
+    (0x0_0400, 512),    // MISSION_DATA (mission data A)
+    (0x0_0000, 256),    // EPS_CONFIG (boot configuration A)
+    (0x2_0000, 512),    // SENSOR_CONFIG (extended storage)
+    (0x0_C900, 9728),   // FAULT_LOG (event log)
+    (0x2_0200, 1024),   // BACKUP (extended storage)
+    (0x0_0100, 512),    // STATE (boot configuration B and C)
+    (0x0_C400, 768),    // AUTH (telecommand key table)
+    (0x0_0300, 256),    // RF_CONTROL (TX-OFF latch, power level)
+    (0x0_C700, 256),    // CONTACT (loss-of-contact records)
+    (0x0_C800, 128),    // RF_SILENCE
+    (0x0_C880, 128),    // DEPLOYMENT
+    (0x2_0600, 128),    // OPS (commissioning hold, transponder enable; extended storage)
+    (0x2_0700, 90_112), // HK_SUMMARY (five-minute housekeeping records; extended storage)
+    (0x1_0000, 65_536), // HK_DETAIL (sixty-second records: the telemetry buffer)
+    (0x3_6700, 256),    // HK_INDEX (event-window table; extended storage)
+    (0x3_6800, 128),    // EOL (passivation record; extended storage)
 ];
 
 const _: () = {

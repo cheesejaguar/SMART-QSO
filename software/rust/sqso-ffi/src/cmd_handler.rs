@@ -186,7 +186,8 @@ pub(crate) fn ack_sent() {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn cmd_ack_pending(counter: *mut u32, result: *mut u32, days: *mut u32) -> bool {
     // SAFETY: the C contract: NULL or a live uint32_t each
-    let (Some(counter), Some(result), Some(days)) = (unsafe { ptr::out(counter) }, unsafe { ptr::out(result) }, unsafe { ptr::out(days) })
+    let (Some(counter), Some(result), Some(days)) =
+        (unsafe { ptr::out(counter) }, unsafe { ptr::out(result) }, unsafe { ptr::out(days) })
     else {
         return false;
     };

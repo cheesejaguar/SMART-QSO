@@ -56,6 +56,10 @@ SAFETY_CRITICAL: Tuple[str, ...] = (
     "sqso-ffi/src/separation_switch.rs",
     # The downlink's gate before the TNC enforces the same inhibits (SH-008)
     "sqso-fsw/src/downlink.rs", "sqso-ffi/src/downlink.rs",
+    # The FM transponder's enable heartbeat and duty limits; the
+    # commissioning hold and the transponder-enable record (RID FSW-05)
+    "sqso-fsw/src/transponder.rs",
+    "sqso-fsw/src/ops_state.rs", "sqso-ffi/src/ops_state.rs",
 )
 
 EXEMPT = re.compile(r"//\s*COVERAGE-EXEMPT:\s*\S")

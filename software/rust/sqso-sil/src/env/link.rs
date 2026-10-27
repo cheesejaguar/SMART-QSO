@@ -92,7 +92,7 @@ const CURVE_CORRECTED: [(f64, f64); 8] = [
     (52.0, -4.4776),
 ];
 const CURVE_UNCORRECTED: [(f64, f64); 10] = [
-    (44.0, -0.3010),
+    (44.0, -core::f64::consts::LOG10_2),
     (46.0, -0.4921),
     (47.0, -0.6882),
     (48.0, -0.9393),
@@ -296,7 +296,13 @@ pub fn uplink(gs: &GroundRadio, sc_gain_dbi: f64, range_m: f64, el_rad: f64, pol
     let loss = fspl_db(UPLINK_HZ, range_m) + atmospheric_loss_db(el_rad) + pol_db;
     let rx = eirp - loss + sc_gain_dbi;
     let cn0 = rx - noise_density_dbm_hz(SC_RX_TSYS_K) - SC_RX_INTERFERENCE_DB;
-    LinkBudget { eirp_dbm: eirp, path_loss_db: loss, rx_dbm: rx, cn0_dbhz: cn0, margin_db: cn0 - REQ_CN0_TELECOMMAND_DBHZ }
+    LinkBudget {
+        eirp_dbm: eirp,
+        path_loss_db: loss,
+        rx_dbm: rx,
+        cn0_dbhz: cn0,
+        margin_db: cn0 - REQ_CN0_TELECOMMAND_DBHZ,
+    }
 }
 
 /// Probability that a frame of `frame_bits` bits is received without error

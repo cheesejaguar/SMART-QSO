@@ -14,7 +14,7 @@
  *
  * Sequence numbers continue across resets (a boot reads every record).
  * DUMP_TLM (0x0A) starts a dump; frames of up to four records go at most one
- * every 8 s through the downlink and its duty limit.
+ * every 12 s through the downlink and its duty limit.
  *
  * @requirement SRS-F120 Five-minute housekeeping records for at least 7 days in FRAM
  * @requirement SRS-F121 Sixty-second records for the 6 h around each fault and mode change

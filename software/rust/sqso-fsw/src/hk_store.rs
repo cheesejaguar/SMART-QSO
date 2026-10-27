@@ -83,9 +83,11 @@ pub const DETAIL_BYTES: usize = DETAIL_SLOTS as usize * RECORD_LEN;
 pub const MAX_DUMP: u16 = 600;
 /// Records a dump frame
 pub const DUMP_PER_FRAME: usize = 4;
-/// At most one dump frame this often, ms (with the 60 s beacon, about
-/// 22 % of the time keyed at most, under the downlink's 25 %)
-pub const DUMP_FRAME_INTERVAL_MS: u64 = 8_000;
+/// At most one dump frame this often, ms: a full frame is about 1.65 s on
+/// the air, so with the 60 s beacon, a housekeeping frame and an
+/// acknowledgement the keyed time stays below 22 % of any 60 s (the
+/// downlink's limit is 25 %)
+pub const DUMP_FRAME_INTERVAL_MS: u64 = 12_000;
 /// A dump frame's information field: `HKD` | store | count | records
 pub const DUMP_PREFIX: &[u8; 3] = b"HKD";
 /// The longest dump information field, bytes

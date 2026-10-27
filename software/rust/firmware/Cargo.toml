@@ -14,7 +14,7 @@ bench = false
 
 [dependencies]
 sqso-ffi = { path = "../sqso-ffi" }
-embassy-stm32 = { version = "0.6", features = ["stm32l4r5zi", "time-driver-any", "memory-x", "rt", "exti", "dual-bank", "unstable-pac"] }
+embassy-stm32 = { version = "0.6", features = ["stm32l4r5zi", "time-driver-any", "rt", "exti", "dual-bank", "unstable-pac"] }
 embassy-executor = { version = "0.10", features = ["platform-cortex-m", "executor-thread"] }
 embassy-time = { version = "0.5", features = ["tick-hz-32_768"] }
 cortex-m = { version = "0.7", features = ["inline-asm", "critical-section-single-core"] }

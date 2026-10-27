@@ -33,9 +33,9 @@ enum Scale {
     SquareLaw(f64),
 }
 
-/// Per channel (TBR)
+/// Per channel (provisional until the OBC and EPS schematics are baselined)
 const FRONT_END: [Scale; CHANNELS] = [
-    Scale::Linear(3.0, 0.0),     // VBATT: 1:3 divider (2S pack, 8.4 V max)
+    Scale::Linear(6.0, 0.0),     // VBATT: 1:6 divider (SQSO-EPS-BRD-001)
     Scale::Linear(2.0, -3.3),    // IBATT: bidirectional sense amplifier, 1.65 V at 0 A, 0.5 V/A
     Scale::Linear(4.0, 0.0),     // VSOLAR: 1:4 divider
     Scale::Linear(1.0, 0.0),     // ISOLAR: 1 V/A sense amplifier

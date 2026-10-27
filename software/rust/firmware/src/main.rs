@@ -23,6 +23,7 @@ mod fram;
 mod gpio;
 mod heartbeat;
 mod i2c;
+mod parity;
 mod radio;
 mod rc;
 mod spi;
@@ -134,6 +135,7 @@ async fn main(_spawner: Spawner) {
     if !flight.start() {
         halt()
     }
+    parity::report();
     loop {
         let pass = timing::now();
         flight.step();

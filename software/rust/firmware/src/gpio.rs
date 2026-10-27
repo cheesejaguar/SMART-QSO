@@ -6,6 +6,17 @@
 //! rest are placeholders until the OBC schematic baselines a pinout. The
 //! heater and status LED moved from PC2/PC3 (the C port's table) to PD2/PD3
 //! so that PC2/PC3 can be ADC inputs (`adc.rs`). See `docs/BASELINE_PARAMETERS.md`.
+//!
+//! The wing burn lines follow `SQSO-EPS-BRD-001` (four lines, one resistor
+//! at a time): W1A PB10 (`GPIO_PIN_SOLAR_BURN`), W1B PE6
+//! (`GPIO_PIN_SOLAR_BURN_B`), W2A PB9 (`GPIO_PIN_ANTENNA_BURN`, freed by the
+//! AntS deployer, which deploys over I2C). `EPS_ALERT_N` is PB7, open drain,
+//! active low, with the pull-up. The logical pins 19–24 of `hal_gpio.h`
+//! (EOL_ARM, EOL_FIRE, RX_CD, RX_FAULT, BURN_W2B, LOCK_CLR) have no STM32
+//! pin until the OBC designer allocates them: here they are outside
+//! [`COUNT`], so driving one returns `INVALID` and reading one reads low.
+//! Every output to the EPS, those included once allocated, is low at reset
+//! ([`Boot::OutputLow`]).
 
 use embassy_stm32::Peri;
 use embassy_stm32::gpio::{Flex, Level, Pin, Pull, Speed};
@@ -60,17 +71,17 @@ pub(crate) fn install(
     led_status: Peri<'static, impl Pin>,      // PD3
     jetson_pwr: Peri<'static, impl Pin>,      // PA2
     rf_tx_en: Peri<'static, impl Pin>,        // PA3
-    alert: Peri<'static, impl Pin>,           // PB7
+    alert: Peri<'static, impl Pin>,           // PB7: EPS_ALERT_N (open drain, active low)
     deploy_sense: Peri<'static, impl Pin>,    // PE2 (PA0 is the TX_TEMP ADC input)
     umbilical_sense: Peri<'static, impl Pin>, // PB8
-    antenna_burn: Peri<'static, impl Pin>,    // PB9
-    solar_burn: Peri<'static, impl Pin>,      // PB10
+    antenna_burn: Peri<'static, impl Pin>,    // PB9: BURN_W2A
+    solar_burn: Peri<'static, impl Pin>,      // PB10: BURN_W1A
     antenna_sense: Peri<'static, impl Pin>,   // PB11
     solar_sense: Peri<'static, impl Pin>,     // PB12
     tx_pwr_sel: Peri<'static, impl Pin>,      // PE3
     xpdr_en: Peri<'static, impl Pin>,         // PE4 (driven by heartbeat.rs)
     gnss_en: Peri<'static, impl Pin>,         // PE5
-    solar_burn_b: Peri<'static, impl Pin>,    // PE6
+    solar_burn_b: Peri<'static, impl Pin>,    // PE6: BURN_W1B
 ) {
     GPIO.install(Gpio {
         pins: [

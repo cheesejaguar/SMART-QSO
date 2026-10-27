@@ -635,7 +635,7 @@ class SC:
 
 
 def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_car=1.6, deck_E=0.35,
-                     spider_r=2.6) -> SC:
+                     spider_r=2.6, car_window=True) -> SC:
     sys.path.insert(0, HERE)
     import model as CAD
     P = CAD.P
@@ -654,9 +654,11 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
     zsp = 30.3
     wxm = 53.6                     # wing substrate mid-plane (x)
     hy, hz0, hz1, hdy, hdz, snz = 38.5, -40.0, 44.85, P["holddown_y"], P["holddown_z"], P["snub_z"]
-    Xm = [-W2, -45.085, -41.5, -40, -38.5, -35.5, -15, 0, 15, 35.5, 38.5, 40, 41.5, 45.085, W2, -24, 24, -12, 12]
+    cw = tuple(P["car_win"])      # carrier window for the gyro (x0, x1, y0, y1), OBC item C3
+    Xm = [-W2, -45.085, -41.5, -40, -38.5, -35.5, -15, 0, 15, 35.5, 38.5, 40, 41.5, 45.085, W2, -24, 24, -12, 12,
+          cw[0], cw[1]]
     Ym = [-W2, -47.945, -43, -41.5, -41.0, -38.5, -34, -31, -21, -20, -15, -6.5, 0, 6.5, 15, 20, 21, 26, 31, 38.5,
-          41.0, 41.5, 43, 47.945, W2, 27, 33]
+          41.0, 41.5, 43, 47.945, W2, 27, 33, cw[2], cw[3]]
     Zm = [-56.75, -50, zmz, -43, hz0, -32.9, zb["deck"], zb["EPS"], zb["OBC"], zb["carrier"], zsp, zb["RF"], hz1,
           snz, 49.0, zpz, 50, 56.75]
     X = fill(Xm, -W2, W2, h); Y = fill(Ym, -W2, W2, h); Z = fill(Zm, -56.75, 56.75, h)
@@ -745,7 +747,7 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
     panel("deck", "z", zb["deck"], (-bx, bx), (-by, by), 1.0, "Al6061", holes=notch)
     panel("EPS", "z", zb["EPS"], (-bx, bx), (-by, by), t_eps, "FR4", holes=notch)
     panel("OBC", "z", zb["OBC"], (-bx, bx), (-by, by), 1.6, "FR4")
-    panel("carrier", "z", zb["carrier"], (-bx, bx), (-by, by), t_car, "FR4")
+    panel("carrier", "z", zb["carrier"], (-bx, bx), (-by, by), t_car, "FR4", holes=[cw] if car_window else ())
     panel("RF", "z", zb["RF"], (-bx, bx), (-by, by), 1.6, "FR4")
     panel("spreader", "z", zsp, (-40, 40), (-34, 26), 5.0, "Al6061")
     panel("spreader", "z", zsp, (40, W2), (-20, 20), 3.0, "Al6061")
@@ -944,8 +946,9 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
     for nm in ("EPS",):
         nsm_to(groups["EPS"], mass["EPS"] + mass["EPS_parts"] - shell_struct_mass(groups["EPS"]) * 1e3, "EPS board")
     nsm_to(groups["OBC"], mass["OBC"] + mass["OBC_parts"] - shell_struct_mass(groups["OBC"]) * 1e3, "OBC board")
-    gy = [k for k in groups["OBC"] if all(-32 - 1e-6 <= md.xyz[i][0] / mm <= -8 + 1e-6 and 10 - 1e-6 <=
-                                              md.xyz[i][1] / mm <= 34 + 1e-6 for i in md.shells[k]["n"])]
+    gy = [k for k in groups["OBC"] if all(cw[0] - 1e-6 <= md.xyz[i][0] / mm <= cw[1] + 1e-6 and cw[2] - 1e-6 <=
+                                              md.xyz[i][1] / mm <= cw[3] + 1e-6 for i in md.shells[k]["n"])]
+    gyro_nodes = sorted({i for k in gy for i in md.shells[k]["n"]})
     nsm_to(gy, mass["gyro_MG370"], "gyro on OBC")
     car_m = mass["Jetson_carrier"] + mass["Jetson_carrier_parts"]
     nsm_to(groups["carrier"], car_m - shell_struct_mass(groups["carrier"]) * 1e3, "carrier board")
@@ -1010,7 +1013,11 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
         supports[g_] = [md.node(x * mm, y * mm, z * mm) for x, y in pts]
         bnodes[g_] = sorted({i for k in groups[g_] for i in md.shells[k]["n"]})
     special = dict(spiders=spider_count, iso_beams=iso_beams, ear_beams=ear_beams, battery_master=master, battery_mass=m_tot,
-                   battery_I=Ic, colsec=colsec, isosec=isosec, wing_shells=wing_shells, mass_total_cad=sum(mass.values()))
+                   battery_I=Ic, colsec=colsec, isosec=isosec, wing_shells=wing_shells, mass_total_cad=sum(mass.values()),
+                   gyro_nodes=gyro_nodes,
+                   window_edge_nodes=sorted({i for k in groups["carrier"] for i in md.shells[k]["n"]
+                                             if cw[0] - 5.1 <= md.xyz[i][0] / mm <= cw[1] + 5.1
+                                             and cw[2] - 5.1 <= md.xyz[i][1] / mm <= cw[3] + 5.1}))
     return SC(md, groups, bgroups, nodegroup, supports, bnodes, special, rep)
 
 
@@ -1217,6 +1224,23 @@ def stresses(res, verbose=True):
         rms_disp[g_] = (float(np.sqrt(var).max()), float(np.sqrt(var[inner]).max()),
                         (np.array(md.xyz[nodes[imax]]) * 1e3).round(1).tolist())
     res["random_modes_to_Hz"] = float(fn.max())
+    # gyro (M-G370PDT0 on the OBC, through the carrier window): absolute acceleration and relative motion
+    gn = sc.special["gyro_nodes"]
+    gacc = {}
+    for ax in range(3):
+        Hq = H * (-sol.gamma[:, ax])[None, :]
+        for d in range(3):
+            rows_ = PhiF[[6 * i + d for i in gn], :].mean(axis=0)
+            T = (1.0 if d == ax else 0.0) - (w ** 2) * (Hq @ rows_)
+            gacc[f"base{'xyz'[ax]}_resp{'xyz'[d]}"] = float(np.sqrt(np.sum(np.abs(T) ** 2 * G * df)) / G0)
+    en = sc.special["window_edge_nodes"]
+    rel3 = 0.0
+    for ax in range(3):
+        for d in range(3):
+            rel = PhiF[[6 * i + d for i in en], :] - PhiF[[6 * i + d for i in gn], :].mean(axis=0)[None, :]
+            var = np.einsum("ij,ij->i", rel @ Cs[ax], rel)
+            rel3 = max(rel3, 3 * float(np.sqrt(np.maximum(var, 0)).max()))
+    res["gyro_random"] = dict(grms=gacc, rel_window_3sigma_mm=rel3 * 1e3, input_grms=grms_test())
     # --- hot spots and margins ---
     groups_shell = {}
     for g_, idx in sc.groups.items():
@@ -1326,6 +1350,8 @@ CASES = {
     "design_2.0mm_EPS_carrier": dict(bc="rails", snubber="soft", cs2="eps", t_eps=2.0, t_car=2.0),
     "design_second_holddown": dict(bc="rails", snubber="hard", cs2="eps"),
     "design_rail_ends_only": dict(bc="ends", snubber="soft", cs2="eps"),
+    "design_no_carrier_window": dict(bc="rails", snubber="soft", cs2="eps", car_window=False),
+    "design_window_2.0mm_carrier": dict(bc="rails", snubber="soft", cs2="eps", t_car=2.0),
 }
 NMODES = 450
 
@@ -1371,6 +1397,7 @@ def main():
                   f"MS {v['MS']:+.2f} / {v['MS_inner']:+.2f} at {v['at_mm']}")
         for k, v in r["holddown"].items():
             print(f"   {k}: normal QS {v['normal_qs_N']:.2f} N, 3s {v['normal_rand3s_N']:.2f} N")
+        print("   gyro random:", {k: round(v, 2) if isinstance(v, float) else v for k, v in r["gyro_random"].items()})
     with open(args.json, "w") as f:
         json.dump(out, f, indent=1, default=lambda x: float(x) if isinstance(x, (np.floating, np.integer)) else str(x))
 
