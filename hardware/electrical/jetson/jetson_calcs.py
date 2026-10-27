@@ -384,5 +384,89 @@ for t_gen, lines in ((150, 10), (570, 10)):
           f"(gate 360 J per accepted line)")
     OUT.setdefault("burst", []).append(dict(t_gen=t_gen, energy_j=e))
 
+# ------------------------------------------------------------------------------------------------ 12 placement checks
+# Stack coordinates (mm), carrier top side unless noted. Outline PC/104 90.17 x 95.89; columns (+-40, +-43) keep-out
+# r 3.2; centre supports (0, +-21) r 3.5; module footprint x +-34.8, y -28.5..+16.5 (no top parts); gyro window
+# x -33.5..-6.5, y +14.0..+41.0 with its bottom-side Al frame 2.5 mm wide + 0.5 mm copper/part pull-back
+# (MECHANICAL_DESIGN 4.3, 11 item 9): keep-out x -36.5..-3.5, y +11.0..+44.0 on both sides (frame screws at its corners);
+# magnetometer RM3100 below (+33, -38): no parts within 20 mm, no ferromagnetic parts or unpaired current within 30 mm.
+BX, BY = 90.17 / 2, 95.89 / 2
+HOLES = [((40, 43), 3.2), ((-40, 43), 3.2), ((-40, -43), 3.2), ((40, -43), 3.2), ((0, 21), 3.5), ((0, -21), 3.5)]
+WIN_KO = (-36.5, -3.5, 11.0, 44.0)
+MODULE = (-34.8, 34.8, -28.5, 16.5)
+MAG = (33.0, -38.0)
+# name, (x, y) centre, (w, h), magnetic (ferromagnetic body or carries burst current), exempt
+PLACE = [
+    ("J4 SO-DIMM socket (its +X latch is the exemption)", (0, -31), (72, 8), True, "socket"),
+    ("J5 M.2 connector + 2230 card", (18.75, 36), (34.5, 22), False, ""),
+    ("MP1 M.2 standoff (steel)", (34, 36), (5, 5), True, ""),
+    ("MP2/MP3 module standoffs (steel), far-edge holes", (31, 12.5), (5, 5), True, "module"),
+    ("J2 Pico-Clasp 6 (W5B)", (41.5, 28), (5, 10.6), False, ""),
+    ("J3 Pico-Clasp 2 (spreader NTC)", (41.5, 19.5), (5, 5), False, ""),
+    ("D2 ESD", (38.5, 23.5), (2.5, 2), False, ""),
+    ("U10/U11 translators", (40.5, 35.5), (6, 2.5), False, ""),
+    ("U7 3V3_IO switch, U6, U9", (12, 21), (12, 3), False, ""),
+    ("U8 3V3_SSD switch and bulk", (26, 21), (14, 3.2), False, ""),
+    ("J1 Micro-Fit 2x2 (W5A)", (-29, -41.5), (10, 10), False, ""),
+    ("D1, C_F1", (-22, -41.5), (3.5, 8), False, ""),
+    ("L1 filter inductor", (-17.5, -41.5), (4, 4), True, ""),
+    ("damper R_D, C_D", (-13, -41.5), (3.5, 8), False, ""),
+    ("U1 LM61440 and input caps", (-8, -41.5), (4.5, 8), True, ""),
+    ("L2 U1 inductor", (-1.0, -42.0), (6.5, 6.5), True, ""),
+    ("U1 output caps 4 x 1206", (-8, -46.2), (9, 2.0), False, ""),
+    ("U2 VDD_IN eFuse and 6 x 22 uF (if the VDD_IN pins are at the -X end)", (-40.5, -27), (6, 15), True, ""),
+    ("J6 debug header", (-41.0, -9), (6, 7.6), False, ""),
+    ("U3 LMR43620, L3 and caps", (-41.0, 3), (6, 13), True, ""),
+    ("Y1 oscillator (metal lid)", (-41.0, 15.5), (5, 7), True, ""),
+    ("U12, U4, U5 and passives", (-41.0, 25), (6, 10), False, ""),
+]
+
+
+def rect_overlap(a, b):
+    return a[0] < b[1] and b[0] < a[1] and a[2] < b[3] and b[2] < a[3]
+
+
+def rect_point_dist(r, p):
+    dx = max(r[0] - p[0], 0, p[0] - r[1])
+    dy = max(r[2] - p[1], 0, p[1] - r[3])
+    return math.hypot(dx, dy)
+
+
+rows, bad = [], 0
+for name, (x, y), (w, h), magnetic, exempt in PLACE:
+    r = (x - w / 2, x + w / 2, y - h / 2, y + h / 2)
+    issues = []
+    if r[0] < -BX + 0.5 or r[1] > BX - 0.5 or r[2] < -BY + 0.5 or r[3] > BY - 0.5:
+        issues.append("outline")
+    if rect_overlap(r, WIN_KO):
+        issues.append("gyro window/frame")
+    if exempt not in ("socket", "module") and rect_overlap(r, MODULE):
+        issues.append("module footprint")
+    for (hx, hy), rad in HOLES:
+        if rect_point_dist(r, (hx, hy)) < rad and exempt != "module":
+            issues.append(f"keep-out ({hx}, {hy})")
+    dmag = rect_point_dist(r, MAG)
+    if dmag < 20 and exempt != "socket":
+        issues.append("inside 20 mm of the magnetometer")
+    if magnetic and dmag < 30 and exempt != "socket":
+        issues.append("magnetic/current part inside 30 mm")
+    bad += bool(issues)
+    rows.append((name, f"({x:.1f}, {y:.1f})", f"{dmag:.1f}", f"{rect_point_dist(r, (-20, 27.5)):.1f}",
+                 "; ".join(issues) or "clear"))
+table("14. Placement check (zones of section 18; window and magnetic keep-out of MECHANICAL_DESIGN 4.3-4.4)",
+      ["Item", "Centre (mm)", "To the RM3100 (mm)", "To the gyro centre (mm)", "Result"], rows)
+print(f"\nPlacement conflicts: {bad} (the SO-DIMM's +X end inside 20 mm is the stated exemption: non-magnetic latch).")
+OUT["placement_conflicts"] = bad
+
+# field of the burst current at the magnetometer: a go-and-return pair, B = mu0 I d / (2 pi r^2)
+MU0 = 4e-7 * math.pi
+rows = []
+for name, i, d, r in (("VBAT_IN pair J1 -> U1 (planes, 0.2 mm)", 0.54, 0.2e-3, 0.031),
+                      ("VDD_IN plane pair to the SO-DIMM, pins at the -X end", 1.41, 0.2e-3, 0.070),
+                      ("VDD_IN at the SO-DIMM pins if they are at the +X end (pins 241-260, d about 5 mm)", 1.41, 5e-3, 0.012)):
+    b = MU0 * i * d / (2 * math.pi * r ** 2)
+    rows.append((name, f"{i:.2f} A", f"{r * 1e3:.0f} mm", f"{b * 1e9:.0f} nT"))
+table("15. Static field of the burst current at the RM3100 (line-pair estimate, upper bound)", ["Path", "I", "r", "B"], rows)
+
 with open(os.path.join(HERE, "jetson_calcs.json"), "w") as f:
     json.dump(OUT, f, indent=1, default=float)
