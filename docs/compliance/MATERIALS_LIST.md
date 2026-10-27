@@ -63,6 +63,7 @@ Not assessed here.
 | Magnetometer board A2 fasteners (SQSO-MECH-CAD-001 §4.4) | Ti-6Al-4V M2 screws, phosphor-bronze (C51000) nuts, polyimide washers | Metal; polyimide film | — | Compliant (metals); polyimide washer TML is water-dominated (use RML per UG v11) |
 | Stack column stud at (+40, +43) | Ti-6Al-4V M3 (non-ferromagnetic zone), Ti or phosphor-bronze nut | Metal | — | Compliant |
 | Trim masses (D-9) | Tungsten or phosphor bronze (not steel) | Metal | — | Compliant |
+| Inertia ballast, 2 × 10 g discs Ø14 × 3.6 mm on the +Z end frame (MEL row 36, chair decision C-13; SQSO-MECH-CAD-001 D-9) | Tungsten heavy alloy W-Ni-Cu, ASTM B777 Class 3 (95 % W, 17.75–18.35 g/cm³) with the non-magnetic Ni-Cu binder (not W-Ni-Fe, which is ferromagnetic; relative permeability ≤ 1.05 to be on the certificate); M2 Ti-6Al-4V screws | Metal | — | Compliant |
 | Gyro window in the Jetson carrier | **No bonded frame**: the window is in a 2.0 mm carrier board (SQSO-MECH-CAD-001 §4.3.3); no structural adhesive is used | — | — | Not applicable |
 | Wing restraint line | Dyneema or Vectran cord (panel vendor's choice) | Not yet sourced | Vendor | **Open**: vendor E595 data |
 
@@ -165,4 +166,4 @@ finishes) of SQSO-SDP-002.
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | CDR S&MA review: requirements from CDS 2.1.7 and UG v11 §5.3 / Table 5-5 (containerized exemption and what it does not cover); prohibited materials applied to the design (cadmium-plated fasteners, zinc plating, mercury, pure-tin finishes, with mitigation); every value given a source or marked open; isolated-mount materials (G-10CR, PEEK 450G, Ti-6Al-4V screws, VDA tape) added; Loctite 242, nylon ties and SAC305 found non-compliant; Gap Pad 3000 and 2216 values corrected; cell can corrected to steel; "100 % compliant" withdrawn | CDR S&MA review |
-| C | 2026-10-27 | Hinge pins A286 with MoS₂ (was 300-series), springs 17-7PH, bushings, stop and snubber silicone (open), magnetometer-zone fasteners, Ti column stud, trim masses; gyro window without a bonded frame (no structural adhesive) | Mechanical design (SQSO-MECH-CAD-001) |
+| C | 2026-10-27 | Hinge pins A286 with MoS₂ (was 300-series), springs 17-7PH, bushings, stop and snubber silicone (open), magnetometer-zone fasteners, Ti column stud, trim masses, W-Ni-Cu inertia ballast (C-13); gyro window without a bonded frame (no structural adhesive) | Mechanical design (SQSO-MECH-CAD-001) |

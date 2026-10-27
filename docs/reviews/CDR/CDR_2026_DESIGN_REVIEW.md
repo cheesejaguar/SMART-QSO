@@ -116,18 +116,18 @@ L-2 M licences and ephemeris demonstration).
 | Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +0.72 (local peak) | Positive | STRUCTURAL_ANALYSIS B |
 | PCB fatigue (Steinberg) | MS ≥ 0 | +0.09 to +0.36 with two supports | Positive | STRUCTURAL_ANALYSIS B |
 | Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel | +0.14 cold, +0.13 one spring out | Positive | MECHANISMS_ANALYSIS B §4A |
-| Power, EOL, sun-pointed | ≥ 20 % | 3.93 W against 2.24 W (allocation) | +75 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.0 |
-| Power, EOL, tumbling | ≥ 20 % | 2.43 W against 1.84 W (allocation) | +32 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.0 |
-| Depth of discharge | ≤ 10 % per eclipse | ≤ 3.7 % as flown (SIL D, 475 km); 4.5 % worst contingency | × 2.2 | SIL_MISSION_SIMULATION D §7 |
+| Power, EOL, sun-pointed | ≥ 20 % | 3.92 W against 2.24 W (allocation) | +75 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.2 |
+| Power, EOL, tumbling | ≥ 20 % | 2.48 W against 1.84 W (allocation) | +35 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.2 |
+| Depth of discharge | ≤ 10 % per eclipse | ≤ 3.7 % as flown (SIL D, 475 km); 2.8 % worst contingency (PBA 2.2) | × 2.7 | SIL_MISSION_SIMULATION D §7; POWER_BUDGET_ANALYSIS 2.2 |
 | Battery temperature | 0 to +45 °C charging | ≥ +4.4 °C with +5/+9 °C set points | — | THERMAL_ANALYSIS 2.0 |
-| Beacon link, 5° | ≥ 6 dB (median gain) | +7.6 dB | +1.6 dB | LINK_BUDGET 3.0 |
+| Beacon link, 5° | ≥ 6 dB (median gain) | +7.9 dB | +1.9 dB | LINK_BUDGET 3.2 |
 | Telecommand link, 10° | 6 dB with interference allowance | +5.3 dB at 50 W PEP (6 dB from 12°) | −0.7 dB at 10° | LINK_BUDGET 3.0 |
 | Sun pointing | ±15° | mean 1.8°, p95 3.5°, 99.98 % within 15° (SIL); Monte Carlo 100 % of sunlit time | Met | SIL_MISSION_SIMULATION D §7; BUILD_VS_BUY §6 |
 | Detumble | ≤ 3 orbits | ≤ 2.1 h (≤ 1.4 orbits) | × 2.1 | BUILD_VS_BUY §6 |
 | Total dose, 2 mm Al | design 10 krad, margin ≥ 2 | 5.25 krad at 500 km | × 1.90 → ≥ 2.1 mm required | RADIATION_ANALYSIS C |
-| Orbital lifetime | ≤ 5 yr after mission, P ≥ 0.9 | P ≥ 0.98 at 475 km (planned-end reading) | Met; fallback 460 km | ODAR Draft B |
+| Orbital lifetime | ≤ 5 yr after mission, P ≥ 0.9 | P ≥ 0.997 at 475–485 km (planned-end reading); wings-failed probability 0.29 % | Met; fallback 460 km | ODAR Draft D |
 | Casualty risk | ≤ 1:10,000 | No fragment > 15 J (nominal); 1:47,000 worst sensitivity | Met | ODAR Draft B |
-| Reliability | (goals 0.95 / 0.80 / 0.60) | 0.75 / 0.60 / 0.50 (L1 / L2 / L3) | Accepted Class D risk (REL-01) | RELIABILITY 2.0 |
+| Reliability | (goals 0.95 / 0.80 / 0.60) | 0.75 / 0.61 / 0.51 (L1 / L2 / L3) | Accepted Class D risk (REL-01) | RELIABILITY 2.1 |
 | Schedule float | ≥ 6.6 weeks to the integrator milestone | +130 days for 2028-11 | Met | SCHEDULE |
 
 ## 4. Chair decisions
@@ -147,6 +147,7 @@ L-2 M licences and ephemeris demonstration).
 | C-11 | Heater set points +5/+9 °C; ≈ 207 Ω heater | THM-02, BUILD_VS_BUY §4.5 |
 | C-12 | Two centre supports on the EPS, OBC and carrier boards | STR-05, MECHANICAL_DESIGN |
 | C-13 | 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames, so the deployed inertia ratio keeps margin with all four AntS elements | MCAD-09, RFB-11 |
+| C-14 | Telecommand stations transmit ≥ 100 W PEP at the antenna feed; commands only above 10° elevation | RF-23 |
 
 ## 5. Design completion (round 2)
 
@@ -155,18 +156,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-293 RIDs: severity 1: 29, severity 2: 159, severity 3: 105.
+297 RIDs: severity 1: 29, severity 2: 161, severity 3: 107.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
-| Closed by analysis | 25 | 25 |
-| Closed by design change | 99 | 159 |
-| Closed by chair decision | 37 | 36 |
+| Closed by analysis | 25 | 26 |
+| Closed by design change | 99 | 160 |
+| Closed by chair decision | 38 | 37 |
 | Verification item | 42 | 41 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 77 | 19 |
+| Implementation | 80 | 20 |
 
-Open implementation RIDs: SE-01, SE-15, SE-16, SE-19, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, RFB-11, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-19, SE-21, RF-23, REG-12, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, RFB-11, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -239,11 +240,13 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-12 | 2 | No structural model; materials list incomplete | CA | Closed by analysis | Shell FE model (56,258 DOF): first mode 170 Hz, lowest margin +0.72 (STRUCTURAL_ANALYSIS B); materials list SQSO-MAT-001 Rev B |
 | SE-13 | 3 | SYS-112 stated without the nominal 10 % | CD | Closed by design change | SYS-112 |
 | SE-14 | 2 | NASA DAS not run | VI | Verification item | ODA-02: DAS 3.2.6 run 2027-02 |
-| SE-15 | 2 | End-of-life plan describes a drag device and the 25-year rule | IMP | Implementation | Rewrite END_OF_LIFE_PLAN to the two-step passivation, wings-deployed decay and the five-year rule (ODAR) |
-| SE-16 | 2 | Analyses computed at superseded values: ODAR wings-failed case, link and data frame statistics at 6 °/s, power year runs at 500 km / 2028-06, burn transients with two resistors, the mission timeline LEOP table | IMP | Implementation | Re-run at the Rev E baseline |
+| SE-15 | 2 | End-of-life plan describes a drag device and the 25-year rule | IMP | Closed by design change | END_OF_LIFE_PLAN C rewritten: end criteria, 0x70/0x71 passivation step by step with go/no-go from HK1 and the ack, cases where it cannot be commanded, post-space notification, ODAR Draft D lifetimes |
+| SE-16 | 2 | Analyses computed at superseded values: ODAR wings-failed case, link and data frame statistics at 6 °/s, power year runs at 500 km / 2028-06, burn transients with two resistors, the mission timeline LEOP table | IMP | Closed by analysis | Re-run at Rev E: ODAR Draft D (wings-failed 0.29 %, P 0.997), EMC C, LBA 3.2, DATA_BUDGET 2.1, GND D, PBA 2.2 (tumbling 2.48 W, +34 %), MISSION_TIMELINE 2.2 LEOP from the SIL, RELIABILITY 2.1 (0.75 / 0.61 / 0.51); scripts updated |
 | SE-17 | 3 | Harness design H1-H6 predates the interconnect | CD | Closed by design change | HARNESS_DESIGN 1.2 marked superseded by SQSO-ICX-001 and W1-W10 |
 | SE-18 | 3 | Baseline §7 claimed the uplink windows are ≥ 2 MHz below 3 × f_down; 436.222-436.500 MHz is 0.9 MHz below | CD | Closed by design change | BASELINE §7 and RF-P002 restated: ≥ 0.9 MHz, desense ≤ 0.44 dB even 100 kHz from 3f (SQSO-RF-BRD-001 §7.5) |
 | SE-19 | 2 | No current harness design: the old harness document predates the interconnect, and the deck-to-EPS band is over-full by about 8 mm² of wire | IMP | Implementation | Harness design: wire list with gauges, ampacity and drop, bundle fills per band, routing against the CAD, mass (SQSO-HAR-001 2.0) |
+| SE-20 | 3 | SIL decay re-enters 4.0 years after deployment; the ODAR estimator gives 4.8-5.7 years | CH | Closed by chair decision | The ODAR (NRLMSIS, NASA-STD-8719.14C cross-sections) governs lifetime compliance; the SIL decay is indicative; aligned if cheap (flight software round 3) |
+| SE-21 | 3 | SIL deploys both wings from one resistor and models 0.04 W of coil power in detumble (board: 1.16-1.3 W) | IMP | Implementation | SIL deployment per-wing restraint and coil-drive power (flight software round 3) |
 
 #### Verification and validation (VV)
 
@@ -285,6 +288,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RF-20 | 3 | Self-generated EMI into the receivers | VI | Verification item | VI-RF-07 |
 | RF-21 | 3 | Repeat-path readbacks not wired to the OBC | IMP | Closed by design change | Readbacks wired on the RF board (W4 J1-8/9/10) and the OBC (PC9, PG12, PC7) |
 | RF-22 | 3 | SIL link model simplified | IMP | Closed by design change | SIL link model to LBA 3.0 |
+| RF-23 | 2 | Telecommand link with the receiver as designed: +3.8 dB at 10° at 50 W PEP against the 6 dB requirement (LB-3) | IMP | Implementation | Chair C-14: stations transmit ≥ 100 W PEP at the feed; commanding above 10°; LBA, ground design and operations manual |
 
 #### Ground segment (GND)
 
@@ -314,6 +318,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | REG-09 | 2 | 30-day pre-space rule against the dates | CD | Closed by design change | File early 2027-01-19, replace after contract (SQSO-LVR-001 §9) |
 | REG-10 | 3 | FCC consultation agenda lacks RF questions | CH | Closed by chair decision | Consultation agenda in REGULATORY_ROADMAP |
 | REG-11 | 2 | Beacon kept on with a known-failed receiver: a transmitter that telecommand cannot turn off | DP | Decision point (dated) | Declared in the IARU request item 7.9 and put to the FCC consultation (decision D3) by the licensee with the pre-space notification, 2027-01-19; if rejected, one condition in contact_monitor.rs removes it |
+| REG-12 | 2 | Passivation cannot be confirmed from the ground: TX-OFF is latched before the charge disconnect fires, and HK1 has no EOL_STATE or fuse field | IMP | Implementation | Fire first, report EOL_STATE and the fuse state in a final frame, then latch TX-OFF (flight software round 3; END_OF_LIFE_PLAN C, EOL-1) |
 
 #### Data budget (DB)
 

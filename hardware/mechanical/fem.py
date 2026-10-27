@@ -1023,6 +1023,7 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
         lump_near(hm / 2, [(s_ * wxm, hy, hz0), (s_ * wxm, hy, hz1)], f"hinges {tag} (wing half)", f"wing_{tag}")
         lump_near(hm / 2, [(s_ * W2, hy, hz0), (s_ * W2, hy, hz1)], f"hinges {tag} (frame half)", "shear_x")
         rest = sum(mass[f"{tag}_{n}"] for n in ("hinge_flex", "holddown_post", "deploy_sensor_stop", "burn_board")) + \
+            mass.get(f"{tag}_springs", 0.0) + \
             sum(mass[n] for n in mass if n.startswith(f"{tag}_hinge_doubler"))
         lump_near(rest, [(s_ * W2, hy, hz0), (s_ * W2, hdy, hdz), (s_ * W2, hy, hz1)], f"wing hardware {tag} on frame",
                   "shear_x")

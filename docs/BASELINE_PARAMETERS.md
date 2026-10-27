@@ -26,7 +26,7 @@ self-consistent baseline.
 | Name | SMART-QSO (Self-Managing Amateur Radio Transponder — QSO) |
 | Licensing regime | FCC Part 97 amateur space station ([pathway determination](regulatory/LICENSING_PATHWAY_DETERMINATION.md)). A paid contract, if one is signed, is carried only by a separate Part 5 station with its own licensee and radio **[D2]** |
 | Space station licensee / call sign | **KK6GDB** (individual amateur licensee); space station identifies as **KK6GDB-11** (`software/flight/include/station_id.h`) **[D1]** |
-| Telecommand stations | **≥ 2 designated amateur stations at least 1,000 km apart, each able to command alone**, with written agreements by **2027-01-05** **[D1]**. One station alone trips the 14-day loss-of-contact inhibit in 56–66 % of simulated missions; two independent stations in 0.8 % (SQSO-LBA-001 v3.0; SQSO-GND-001 Rev C). NASA Ames Research Center and Santa Clara University are prospective partners, but they are 13 km apart and count as one site. Nothing is agreed |
+| Telecommand stations | **≥ 2 designated amateur stations at least 1,000 km apart, each able to command alone**, with written agreements by **2027-01-05** **[D1]**. One station alone trips the 14-day loss-of-contact inhibit in 56–67 % of simulated missions; two independent stations in 0.6 % (SQSO-LBA-001 v3.2; SQSO-GND-001 Rev D). NASA Ames Research Center and Santa Clara University are prospective partners, but they are 13 km apart and count as one site. Nothing is agreed |
 | Host organization | None yet. Needed only for routes that require an institution (for example NASA CSLI eligibility, §3) **[D1]** |
 | Operator compensation | None for operations (Part 97 condition C2) |
 | Project phase | **Phase B (pre-PDR).** No independent PDR or CDR has been held; earlier review records are self-assessments (FINDINGS_REGISTER PI-03, PI-04). The 2026-10-27 design review against the NPR 7123.1D CDR criteria (`docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`) is an engineering assessment, not an independent board; independent PDR and CDR dates are in the integrated master schedule (`mission/SCHEDULE.md`) |
@@ -54,26 +54,28 @@ self-consistent baseline.
 | Launch cost (ROM) | **$115k–250k all-in**, central case about $150–170k: integrator 1U slot $85k–150k (no provider publishes a 1U price) plus $30k–100k program-side (tests, export counsel, logistics, ephemeris service). Add 15 % contingency on the slot for rebooking **[D7, U]** |
 | Altitude protection | SpaceX offers drop-off altitudes from a menu (500–600 km on the open 2027 flights), so the contract must state a **475 km target and 485 km hard cap**, with no-penalty rebooking if the assigned flight offers nothing at or below the cap. Ask each integrator about an orbital-transfer-vehicle drop-off in the band **[D7]** |
 | Orbit | Circular SSO, inclination ≈ 97.4° |
-| Deployment altitude | **Target 475 km; acceptable 465–485 km; not above 485 km** (FCC 5-year rule with P ≥ 0.9 under the conservative solar projection, mission counted to its planned 2 years: P ≥ 0.98; ODAR Draft B §6.4–§6.5). The rule does not say whether an early failure ends the mission; if the FCC counts it so, P at 475 km falls to 0.65–0.73, and the band becomes **460–465 km, target 460 km** (P ≥ 0.99), with the 2-year life at risk in a strong solar cycle (shortest life 2.1 yr at 460 km). Question in the FCC consultation before the first pre-space filing (2027-01-19) |
+| Deployment altitude | **Target 475 km; acceptable 465–485 km; not above 485 km** (FCC 5-year rule with P ≥ 0.9 under the conservative solar projection, mission counted to its planned 2 years: P ≥ 0.997; ODAR Draft D §6.4–§6.5). The rule does not say whether an early failure ends the mission; if the FCC counts it so, P at 475 km falls to 0.67–0.75, and the band becomes **460–465 km, target 460 km** (P ≥ 0.99), with the 2-year life at risk in a strong solar cycle (shortest life 2.5 yr at 460 km at 1.6 kg, 2.3 yr at the 1.49 kg CBE). Question in the FCC consultation before the first pre-space filing (2027-01-19) |
 | Backup | ISS deployment (Voyager NRCSD), 400–420 km, 51.6°, ROM $120k–250k all-in; JSC 20793 battery program is the cost driver. Life 0.7–1.9 yr nominal; mission success Level 3 not achievable. Triggered if no integrator commits in writing to ≤ 485 km by 2027-06-30 or the primary exceeds $250k; decide by 2027-09. The NRCSD needs its contract 12 months before launch, so a 2027-09 decision gives an ISS launch no earlier than about 2028-09. The backup changes the design (SQSO-OAP-001 §3; SQSO-LVR-001 §7): nothing energized for 30 min after deployment, a ground-leg inhibit, rail edge radius 0.5 ± 0.1 mm, random vibration 9.47 Grms hard-mounted, JSC 20793 battery programme **[D7]** |
 | Contingency | Electron rideshare from New Zealand with a third-party 1U dispenser (altitude is a design point; price unknown; export licence). NASA CSLI only as a no-cost long shot: next solicitation 2028, launch about 2030 or later, eligibility needs an institution or nonprofit (§1) **[D7]** |
 | Propulsion / station-keeping | None |
 | Disposal | Passive atmospheric drag; solar wings stay deployed (they are the drag augmentation). **No separate drag device** (removed from baseline; it was never in mass, structure, software or test) |
 
-Orbital lifetime (ODAR Draft B §6.2, `software/simulation/cdr/sma/debris_lifetime.py`; NRLMSIS 2.1; NASA-STD-8719.14C
+Orbital lifetime (ODAR Draft D §6.2, deployment 2028-11-01, `software/simulation/cdr/sma/debris_lifetime.py`; NRLMSIS 2.1; NASA-STD-8719.14C
 cross-section: 0.0247 m² wings deployed, 0.0164 m² wings failed; Cd 2.2; nominal, conservative and bound solar
 projections). Total life in years (life after the 2-year mission in brackets); **bold** exceeds the FCC 5-year rule.
 Must be reproduced in NASA DAS before filing (ODA-02, 2027-02):
 
 | Deployment | Mass | Wings deployed: nominal / conservative / bound | Wings failed: nominal / conservative / bound |
 |------------|------|-----------------------------------------------|---------------------------------------------|
-| 450 km | 1.6 kg | 2.9 (0.9) / 3.5 (1.5) / 3.7 (1.7) | 4.5 (2.5) / 5.1 (3.1) / 5.5 (3.5) |
-| 475 km | 1.6 kg | 4.9 (2.9) / 5.5 (3.5) / 6.3 (4.3) | 6.0 (4.0) / 6.8 (4.8) / **9.5 (7.5)** |
-| 475 km | 1.8 kg | 5.2 (3.2) / 5.8 (3.8) / **7.1 (5.1)** | 6.3 (4.3) / **7.2 (5.2)** / **10.7 (8.7)** |
-| 500 km | 1.8 kg | 6.4 (4.4) / **7.4 (5.4)** / **11.8 (9.8)** | **7.5 (5.5)** / **9.5 (7.5)** / **17.9 (15.9)** |
-| 525 km | 1.8 kg | **7.6 (5.6)** / **9.9 (7.9)** / **19.4 (17.4)** | **9.3 (7.3)** / **16.3 (14.3)** / **29.3 (27.3)** |
+| 450 km | 1.6 kg | 3.2 (1.2) / 3.7 (1.7) / 3.7 (1.7) | 4.5 (2.5) / 5.0 (3.0) / 5.5 (3.5) |
+| 465 km | 1.85 kg | 4.7 (2.7) / 5.2 (3.2) / 5.9 (3.9) | 5.6 (3.6) / 6.4 (4.4) / **8.9 (6.9)** |
+| 475 km | 1.6 kg | 4.8 (2.8) / 5.3 (3.3) / 6.3 (4.3) | 5.7 (3.7) / 6.6 (4.6) / **9.5 (7.5)** |
+| 475 km | 1.85 kg | 5.1 (3.1) / 5.7 (3.7) / **7.3 (5.3)** | 6.1 (4.1) / **7.1 (5.1)** / **10.9 (8.9)** |
+| 485 km | 1.85 kg | 5.6 (3.6) / 6.3 (4.3) / **9.0 (7.0)** | 6.5 (4.5) / **7.9 (5.9)** / **13.5 (11.5)** |
+| 500 km | 1.85 kg | 6.2 (4.2) / **7.3 (5.3)** / **12.2 (10.2)** | **7.3 (5.3)** / **9.6 (7.6)** / **18.3 (16.3)** |
+| 525 km | 1.85 kg | **7.3 (5.3)** / **10.1 (8.1)** / **20.0 (18.0)** | **9.3 (7.3)** / **16.4 (14.4)** / **30.1 (28.1)** |
 
-The wings-failed probability is 0.1 % with one burn driver per wing (1.6 % with one driver for both; SQSO-FMEA-002
+The wings-failed probability is 0.29 % with four independent burn drivers and their shared supply (1.6 % with one driver for both; ODAR Draft D §6.4, SQSO-FMEA-002
 HF-13), so the wings-deployed columns govern the P ≥ 0.9 test.
 
 ## 4. Spacecraft Physical
@@ -96,7 +98,7 @@ HF-13), so the wings-deployed columns govern the P ≥ 0.9 test.
 | Parameter | Baseline |
 |-----------|----------|
 | Solar array | 16 triple-junction cells (~30 %): 2 on each of 4 long body faces, plus 2 deployable 1U-face wings with 2 cells per side **[A, layout to be drawn]** |
-| Generation, EOL orbit average delivered to the bus | **2.43 W tumbling; 3.93 W sun-pointed**; 1.47 W with the wings stowed (mission simulation, worst 30 days of the second year, LTAN 22:30 ± 1 h, β 2.4°–40.9°; `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.0 §4). The isotropic-tumble analysis (2.14 W, SOLAR_ARRAY_DESIGN §9.3, cells at 60 °C, no albedo) is kept as a bound |
+| Generation, EOL orbit average delivered to the bus | **2.48 W tumbling; 3.92 W sun-pointed**; 1.47 W with the wings stowed (mission simulation at 475 km from 2028-11-01, worst 30 days of the second year, LTAN 22:30 ± 1 h; `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.2 §4). The isotropic-tumble analysis (2.14 W, SOLAR_ARRAY_DESIGN §9.3, cells at 60 °C, no albedo) is kept as a bound |
 | Battery | 4S1P Li-ion 18650, ≈ 3.5 Ah, 14.4 V nominal, **≈ 50 Wh** (below the 80 Wh ISS extra-assessment threshold and the 100 Wh FAA note in CDS 2.1.5). Size kept; **charged to 4.10 V/cell (16.4 V), not 4.20 V**, because the pack sits at the end of charge for most of the mission **[D8]** |
 | Depth of discharge | ≤ 10 % nominal per eclipse; ≤ 30 % contingency (SYS-112) |
 | Mode thresholds (SOC) | ACTIVE allowed at ≥ 55 % (sunlit); ACTIVE → IDLE below 40 %; → SAFE below 25 %; SAFE → EMERGENCY (beacon shed) below 15 %; back to SAFE at 25 %, to IDLE above 40 % (`eps_control.h`, `sm_power_event()`) |
@@ -104,10 +106,10 @@ HF-13), so the wings-deployed columns govern the P ≥ 0.9 test.
 | Cell over-voltage protection | ≤ 4.25 V/cell |
 | End-of-life passivation | Battery charge path permanently disconnected (non-resettable), transmitters disabled, battery left in a permanent discharge state (47 CFR 97.207(g)(1)(iii)) |
 
-**Power closure (SQSO-PBA-001 v2.0 §6):** ACTIVE at the duty limits 2.50 W sun-pointed (**+54 %**), 1.82 W tumbling
-(**+31 %**); IDLE 1.18 W; SAFE 0.79 W; EMERGENCY 0.72 W, heater included. Margin ≥ 20 % in every mode at end of life
-and at LTAN 22:30 ± 1 h; SYS-100 (2.16 W) met with 12.5 % to spare. With the RF board's designed transponder draw (1.76 W DC at 0.5 W RF, ≈ 0.065 W more on the orbit average) the ACTIVE margins are +53 % sun-pointed and +29 % tumbling. As flown by the flight software in the mission
-simulation: depth of discharge ≤ 2.1 %, deepest in any contingency 4.5 %. Wings stowed: SAFE and IDLE only (ACTIVE
+**Power closure (SQSO-PBA-001 v2.2 §6):** ACTIVE at the duty limits 2.50 W sun-pointed (**+54 %**), 1.82 W tumbling
+(**+34 %**); IDLE 1.18 W; SAFE 0.79 W; EMERGENCY 0.72 W, heater included. Margin ≥ 20 % in every mode at end of life
+and at LTAN 22:30 ± 1 h; SYS-100 (2.16 W) met with 14.8 % to spare. With the RF board's designed transponder draw (1.76 W DC at 0.5 W RF, ≈ 0.065 W more on the orbit average) the ACTIVE margins are +53 % sun-pointed and +29 % tumbling. As flown by the flight software in the mission
+simulation: depth of discharge ≤ 2.3 % (≤ 3.7 % in the full SIL run), deepest in any contingency 2.8 %. Wings stowed: SAFE and IDLE only (ACTIVE
 would be −42 %). A Jetson rail stuck on is shed in hardware below 13.6 V (EPS_DESIGN §6). The allocations behind the
 original closure:
 
@@ -120,8 +122,8 @@ original closure:
 | FM transponder (0.5 W RF ≈ 1.8 W DC: 1.76 W designed, SQSO-RF-BRD-001), duty ≤ 25 % | 0.44 W | 0.44 W | Sunlit, SOC ≥ 55 %, AI/OBC scheduled |
 | Jetson (≤ 8 W input), duty ≤ 5 % tumbling / ≤ 10 % sun-pointed | 0.40 W | 0.80 W | Sunlit, SOC ≥ 55 %, temperature limits |
 | **Total load** | **1.84 W** | **2.24 W** | |
-| Generation (simulated, EOL) | 2.43 W | 3.93 W | |
-| **Margin** | **+32 %** | **+75 %** | Requirement ≥ 20 % |
+| Generation (simulated, EOL) | 2.48 W | 3.92 W | |
+| **Margin** | **+35 %** | **+75 %** | Requirement ≥ 20 % |
 
 The GNSS line is a flat allocation; the expected steady-state draw is 1–7 mW. Continuous operation (up to 0.32 W) would
 break the tumbling-case margin, so the receiver is always duty-cycled.
@@ -161,7 +163,7 @@ CR-2026-002, `docs/project/CHANGE_REQUEST_LOG.md`).
 | Telecommand authentication | HMAC-SHA-256 (truncated tag) with a persisted monotonic counter per key; required for every command except TX-OFF when no key is usable (97.211(b)). Key table: 4 operational keys (1 active, 3 spares) and an offline recovery key that can rotate to a spare; keys loaded only through the umbilical and never in the repository (SQSO-ICD-013) |
 | Cessation of emissions | TX-OFF removes PA power through a hardware switch; latched in NVM; overrides SAFE-mode beacon; independent of the AI payload (97.207(b), RR 22.1) |
 | Loss of command contact | Transmit inhibit after N days without an authenticated command, receiver on (SQSO-ICD-013 §6.2). **N = 30 days at launch**, set to **14 days** by `SET_CONTACT_TIMEOUT` once commissioning is complete (range 1–90). Proposed, not implemented: autonomous passivation **M = 180 days** after the inhibit, never in the first year. No FCC or IARU rule sets either value; both go to the FCC consultation **[D3]** |
-| Link closure | 1200 bps beacon at 0.5 W to a 12 dBic / 500 K station: **+7.6 dB at 5°** (median spacecraft gain), +0.6 dB (10th percentile). Telecommand at **50 W PEP**, 14 dBic: +5.3 dB at 10° with the 10th-percentile gain and a 6 dB interference allowance. Transponder downlink to a handheld Yagi: 20 / 28 / 32 dB SINAD at 5° / 20° / zenith. Ground stations pre-correct uplink Doppler (±10.4 kHz at 435 MHz) to ±1 kHz (`docs/environment/LINK_BUDGET_ANALYSIS.md` v3.0, analysis) |
+| Link closure | 1200 bps beacon at 0.5 W to a 12 dBic / 500 K station: **+7.9 dB at 5°** (median spacecraft gain), +0.9 dB (10th percentile). Telecommand at **50 W PEP**, 14 dBic: +5.3 dB at 10° with the 10th-percentile gain and a 6 dB interference allowance. Transponder downlink to a handheld Yagi: 20 / 28 / 32 dB SINAD at 5° / 20° / zenith. Ground stations pre-correct uplink Doppler (±10.4 kHz at 435 MHz) to ±1 kHz (`docs/environment/LINK_BUDGET_ANALYSIS.md` v3.0, analysis) |
 
 ## 8. ADCS, Thermal, Data, Environments
 

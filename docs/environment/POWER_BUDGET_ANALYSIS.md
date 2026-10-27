@@ -1,7 +1,7 @@
 # SMART-QSO Power Budget Analysis
 
 **Document ID**: SQSO-PBA-001
-**Version**: 2.1
+**Version**: 2.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR power closure (analysis by simulation; nothing measured). Replaces version 1.x, whose array
@@ -16,24 +16,24 @@ the 1.80 W tumbling load plus 20 %).
 
 | Case (end of life, worst 30 days of a year) | Generation delivered to the bus | Load (mode, at the pack) | Margin | Requirement |
 |---------------------------------------------|---------------------------------|--------------------------|--------|-------------|
-| ACTIVE, sun-pointed, BASELINE duty limits (transponder 25 %, Jetson 10 %) | 3.93 W | 2.50 W | **+54 %** | ≥ 20 %: met |
-| ACTIVE, tumbling (ADCS failed), duty limits (Jetson 5 %) | 2.43 W | 1.82 W | **+31 %** | met |
+| ACTIVE, sun-pointed, BASELINE duty limits (transponder 25 %, Jetson 10 %) | 3.92 W | 2.50 W | **+54 %** | ≥ 20 %: met |
+| ACTIVE, tumbling (ADCS failed), duty limits (Jetson 5 %) | 2.48 W | 1.82 W | **+34 %** | met |
 | ACTIVE, tumbling, isotropic bound (60 °C cells, no albedo) | 2.14 W | 1.82 W | +15 % | not met (bound only, §9) |
-| BASELINE §5 tumbling allocation (1.80 W) | 2.43 W | 1.80 W | **+32 %** (+35 % by the BASELINE method) | met |
-| IDLE, sun-pointed | 3.93 W | 1.18 W | +228 % | met |
-| SAFE (ADCS off, tumbling) | 2.43 W | 0.79 W | +203 % | met |
-| EMERGENCY (beacon shed, tumbling) | 2.43 W | 0.72 W | +230 % | met |
-| SYS-100: 2.16 W EOL tumbling | 2.43 W | — | +12.5 % over the requirement | met |
-| As flown by the flight software, a year at LTAN 23:30, EOL | 3.93 W available, 1.32 W used | — | +182 %; DoD ≤ 2.1 %; SOC ≥ 90.4 % | met |
-| Wings stowed (ADCS working) | 1.47 W | SAFE 1.03 W / IDLE 1.18 W / ACTIVE 2.50 W | +40 % / +23 % / **−42 %** | ACTIVE not sustainable; the SOC gates hold it (§8.1) |
-| Wings stowed and ADCS failed | 1.41 W | SAFE 0.79 W | +76 % | positive |
-| Jetson rail stuck on (both switches failed) | 3.93 W | 9.4 W | **−5.7 W** | Loss of the bus in ≈ 41 h (simulated); needs a hardware load shed (RID EPS-09) |
-| LEOP: detumble with the magnetorquers at 1.3 W, cold pack, heater on (§8.6) | 2.43 W (tumbling EOL, conservative) | 3.03 W while detumbling | first orbit −1.30 Wh; 3-orbit bound −3.44 Wh | SOC ≥ 33 % from the 40 % floor: met |
+| BASELINE §5 tumbling allocation (1.80 W) | 2.48 W | 1.80 W | **+35 %** (+38 % by the BASELINE method) | met |
+| IDLE, sun-pointed | 3.92 W | 1.18 W | +226 % | met |
+| SAFE (ADCS off, tumbling) | 2.48 W | 0.79 W | +208 % | met |
+| EMERGENCY (beacon shed, tumbling) | 2.48 W | 0.72 W | +238 % | met |
+| SYS-100: 2.16 W EOL tumbling | 2.48 W | — | +14.8 % over the requirement | met |
+| As flown by the flight software, a year at LTAN 23:30, EOL | 3.92 W available (worst 30 days), 1.53 W used | — | +142 %; DoD ≤ 2.3 %; SOC ≥ 90.1 % | met |
+| Wings stowed (ADCS working) | 1.53 W | SAFE 1.03 W / IDLE 1.18 W / ACTIVE 2.50 W | +46 % / +27 % / **−40 %** | ACTIVE not sustainable; the flight software holds IDLE (§8.1) |
+| Wings stowed and ADCS failed | 1.53 W | SAFE 0.79 W | +90 % | positive |
+| Jetson rail stuck on (both switches failed) | 2.33 W (14 days, as flown) | 2.38 W | **−4 %** as flown | Simulated: BMS cut-off at 66.6 h, then 233 brown-out cycles in 14 days; the hardware load shed below 13.6 V (RID EPS-09, EPS_DESIGN §6) is not in the simulation |
+| LEOP: detumble with the magnetorquers at 1.3 W, cold pack, heater on (§8.6) | 2.48 W (tumbling EOL, conservative) | 3.03 W while detumbling | first orbit −1.20 Wh; 3-orbit bound −3.14 Wh | SOC ≥ 33.7 % from the 40 % floor: met |
 
 All modes close with at least 20 % at end of life and at the β extremes of the LTAN 22:30 ± 1 h dispersion, with the
 transponder and the Jetson at their BASELINE duty limits, except ACTIVE with the wings stowed (contingency) and a
-stuck-on Jetson (failure). The battery is never the limit: the deepest discharge of any run, failures included, is
-4.5 % per eclipse (limit 10 % nominal, 30 % contingency).
+stuck-on Jetson (failure). The battery is never the limit: the deepest discharge of any contingency run is 2.8 % per
+eclipse (7.1 % with the stuck-on Jetson failure; limit 10 % nominal, 30 % contingency).
 
 ## 2. Method
 
@@ -41,10 +41,11 @@ stuck-on Jetson (failure). The battery is never the limit: the deepest discharge
    and thermal models. Runs: a year at each LTAN of the dispersion (21:30, 22:30, 23:30) with a new array; a year at
    22:30 and 23:30 with the array aged one year at deployment (so the year covers the second year, end of life); a
    year at 23:30, end of life, with the ADCS failed; 14-day runs for the contingencies. Run matrix:
-   `software/simulation/cdr/power_thermal/run_matrix.txt`; analysis: `power_closure.py` beside it. The year and
-   contingency runs used the simulation as of 2026-10-27 before the battery radiation term was added to the thermal
-   model (SQSO-THA-001 §2.1); that term changes the pack temperature by ≤ 0.4 °C and the energy balance by nothing
-   measurable (the 14-day commissioning run with it: delivered 4.18 W, used 1.40 W, 0 anomalies).
+   `software/simulation/cdr/power_thermal/run_matrix.txt`; analysis: `power_closure.py` beside it. Version 2.2 re-ran
+   the whole matrix with the simulation's Rev E defaults and flight software round 2 (475 km from 2028-11-01, LTAN
+   22:30 ± 1 h, 60 % SOC at integration with 47 days of storage, four wing burn lines, the commissioning hold, the
+   battery radiation term of SQSO-THA-001 §2.1); every run reported 0 anomalies except the injected failures' own
+   checks.
 2. **Generation.** The simulation's array power at the maximum power point (strings' terminals, with harness and
    mismatch 0.97, UV 0.97–0.99, radiation, temperature from the thermal model, albedo and shadowing), time-averaged
    over each 30-day window after LEOP. Delivered to the bus: × 0.97 (blocking diodes) × 0.92 (MPPT) = × 0.892, the
@@ -59,19 +60,16 @@ stuck-on Jetson (failure). The battery is never the limit: the deepest discharge
 
 ## 3. Orbit, β angle and eclipse
 
-Simulated at 500 km sun-synchronous with deployment on 2028-06-01, the simulation's orbit when these runs were made.
-The baseline is now a 475 km target (465–485 km) and a planning launch of about 2028-11 (BASELINE Rev E §3), which the
-simulation has since adopted. At 475 km the longest eclipse is about 0.3 % of the orbit longer (≈ 0.5 % less
-generation), well inside the margins of §6; V-PWR-4 re-runs the matrix. The simulated β range over a year and the
-longest eclipse fraction:
+Simulated at 475 km sun-synchronous with deployment on 2028-11-01 (BASELINE Rev E §3). The simulated β range over a
+year and the longest eclipse fraction:
 
 | LTAN | β over a year | Longest eclipse | Note |
 |------|---------------|-----------------|------|
-| 21:30 (−1 h) | 29.2° … 40.9° | 36.4 % (34.4 min) | Hottest; most sun |
-| **22:30 (baseline)** | 16.0° … 26.4° | 37.7 % (35.7 min) | |
-| 23:30 (+1 h) | 2.4° … 11.9° | 38.2 % (36.1 min) | Coldest; least sun |
+| 21:30 (−1 h) | 29.8° … 41.4° | 36.6 % (34.4 min) | Hottest; most sun |
+| **22:30 (baseline)** | 16.7° … 26.8° | 37.9 % (35.7 min) | |
+| 23:30 (+1 h) | 3.1° … 12.4° | 38.5 % (36.2 min) | Coldest; least sun |
 
-β never exceeds 41°, so there is always an eclipse (no eclipse needs β > 68° at 500 km). The BASELINE §8 hot case
+β never exceeds 42°, so there is always an eclipse (no eclipse needs β > 69° at 475 km). The BASELINE §8 hot case
 (no eclipse) is a bound, not an orbit this mission flies. LTAN drift over two years from an inclination injection
 error was not modelled; ±1 h covers the provider's stated dispersion.
 
@@ -81,15 +79,15 @@ Orbit-average array power at the maximum power point (MPP) and delivered to the 
 
 | Run | Year mean MPP | Worst 30-day MPP | **Worst 30-day delivered** | Sunlit mean angle of +Y to the Sun |
 |-----|---------------|------------------|----------------------------|-----------------------------------|
-| Sun-pointed, BOL (year 1), LTAN 21:30 | 4.78 W | 4.71 W | 4.20 W | ≈ 2–3° |
-| Sun-pointed, BOL, LTAN 22:30 | 4.72 W | 4.52 W | 4.03 W | |
-| Sun-pointed, BOL, LTAN 23:30 | 4.71 W | 4.52 W | 4.03 W | |
-| Sun-pointed, EOL (year 2), LTAN 22:30 | 4.58 W | 4.41 W | **3.93 W** | |
-| Sun-pointed, EOL, LTAN 23:30 | 4.57 W | 4.41 W | **3.93 W** | |
-| Tumbling (ADCS failed, free tip-off spin), EOL, LTAN 23:30 | 2.88 W | 2.72 W | **2.43 W** | 90° (random) |
-| Tumbling, EOL, LTAN 22:30, 14 days | 2.72 W | — | 2.43 W | 90° |
-| Wings stowed, EOL, sun-pointing working | 1.65 W | — | 1.47 W | 58° |
-| Wings stowed and ADCS failed, EOL, LTAN 22:30 / 23:30 | 1.58 / 1.63 W | — | 1.41 / 1.45 W | 90° |
+| Sun-pointed, BOL (year 1), LTAN 21:30 | 4.75 W | 4.56 W | 4.07 W | ≈ 2–3° |
+| Sun-pointed, BOL, LTAN 22:30 | 4.70 W | 4.53 W | 4.04 W | |
+| Sun-pointed, BOL, LTAN 23:30 | 4.69 W | 4.52 W | 4.03 W | |
+| Sun-pointed, EOL (year 2), LTAN 22:30 | 4.56 W | 4.41 W | **3.93 W** | |
+| Sun-pointed, EOL, LTAN 23:30 | 4.55 W | 4.40 W | **3.92 W** | |
+| Tumbling (ADCS failed, free tip-off spin), EOL, LTAN 23:30 | 2.87 W | 2.78 W | **2.48 W** | 90° (random) |
+| Tumbling, EOL, LTAN 22:30, 14 days | 2.82 W | — | 2.52 W | 90° |
+| Wings stowed, EOL, sun-pointing working | 1.72 W | — | 1.53 W | 58° |
+| Wings stowed and ADCS failed, EOL, LTAN 22:30 / 23:30 | 1.73 / 1.72 W | — | 1.55 / 1.53 W | 90° |
 
 Against the earlier analysis (SOLAR_ARRAY_DESIGN §9.3, 500 km, β = 0, cells at an assumed 60 °C, no albedo): sun-pointed
 3.59 W and isotropic tumbling 2.14 W after an MPPT of 0.95. The simulation is higher mainly because the thermal model
@@ -137,11 +135,11 @@ End of life, worst 30 days, LTAN dispersion extremes (generation from §4, loads
 
 | Mode | Attitude flown | Generation | Load | Margin |
 |------|----------------|------------|------|--------|
-| EMERGENCY | Tumbling (ADCS off) | 2.43 W (2.14 W bound) | 0.72 W | +230 % (+191 %) |
-| SAFE | Tumbling (ADCS off) | 2.43 W (2.14 W bound) | 0.79 W | +203 % (+167 %) |
-| IDLE | Sun-pointed | 3.93 W | 1.18 W | +228 % |
-| ACTIVE | Sun-pointed | 3.93 W (BOL 4.03 W) | 2.50 W | **+54 %** (BOL +58 %) |
-| ACTIVE | Tumbling (ADCS failed) | 2.43 W (2.14 W bound) | 1.82 W | **+31 %** (+15 % bound) |
+| EMERGENCY | Tumbling (ADCS off) | 2.48 W (2.14 W bound) | 0.72 W | +238 % (+191 %) |
+| SAFE | Tumbling (ADCS off) | 2.48 W (2.14 W bound) | 0.79 W | +208 % (+167 %) |
+| IDLE | Sun-pointed | 3.92 W | 1.18 W | +226 % |
+| ACTIVE | Sun-pointed | 3.92 W (BOL 4.03 W) | 2.50 W | **+54 %** (BOL +58 %) |
+| ACTIVE | Tumbling (ADCS failed) | 2.48 W (2.14 W bound) | 1.82 W | **+34 %** (+15 % bound) |
 
 SAFE and EMERGENCY switch the ADCS off (`sqso_fsw::eps::loads`), so they are closed on the tumbling generation. The
 spin left when the coils stop keeps +Y near the Sun for a while (the residual-dipole torque precesses it by about a
@@ -149,53 +147,53 @@ degree a minute at the 3 mA·m² design value), so this is conservative.
 
 **Heater energy and the recommended set points.** Raising the thermostat from +2/+6 °C to +5/+9 °C (THERMAL_ANALYSIS
 §6.1) costs ≈ 0.1 W orbit average in the cold case; it is included above. The simulation's 0.5 W heater at +2/+6 °C
-averaged 0.17–0.29 W over 30-day windows.
+averaged 0.17–0.29 W over 30-day windows in the earlier runs; the Version 2.2 runs, at +5 °C, keep the battery at
+≥ 4.9 °C with a worst-orbit heater duty of 38–39 % sun-pointed.
 
 ## 7. As flown (flight software in the loop)
 
 The flight software runs the transponder on demand and the Jetson in 10-line batches, well below the duty limits.
-Year runs (operations; heater 0.5 W at +2/+6 °C, the simulation's values):
+Year runs (operations, Rev E defaults, flight software round 2):
 
 | Run | Delivered (year mean) | Used | Margin, worst 30 d | Max DoD | Lowest SOC | Battery | Heater duty, worst orbit | Charge refused |
 |-----|-----------------------|------|--------------------|---------|------------|---------|--------------------------|----------------|
-| BOL, LTAN 21:30 | 4.26 W | 1.35 W | +186 % | 2.1 % | 90.4 % | 0.6 … 9.0 °C | 58 % | 0 s |
-| BOL, LTAN 22:30 | 4.21 W | 1.32 W | +193 % | 2.1 % | 90.4 % | 0.5 … 8.8 °C | 58 % | 0 s |
-| BOL, LTAN 23:30 | 4.20 W | 1.33 W | +188 % | 2.1 % | 90.4 % | 0.4 … 8.8 °C | 57 % | 0 s |
-| EOL, LTAN 22:30 | 4.09 W | 1.31 W | +187 % | 2.1 % | 90.4 % | 0.6 … 8.9 °C | 56 % | 0 s |
-| EOL, LTAN 23:30 | 4.08 W | 1.32 W | +182 % | 2.1 % | 90.4 % | 0.6 … 8.9 °C | 55 % | 0 s |
-| EOL, LTAN 23:30, ADCS failed | 2.57 W | 1.16 W | +102 % | 3.8 % | 88.2 % | 2.5 … 15.1 °C | 0 % | 0 s |
+| BOL, LTAN 21:30 | 4.24 W | 1.57 W | +142 % | 2.3 % | 90.2 % | 4.9 … 10.9 °C | 39 % | 0 s |
+| BOL, LTAN 22:30 | 4.19 W | 1.56 W | +143 % | 2.3 % | 90.1 % | 4.9 … 12.6 °C | 39 % | 0 s |
+| BOL, LTAN 23:30 | 4.18 W | 1.54 W | +148 % | 2.3 % | 90.1 % | 4.9 … 11.6 °C | 38 % | 0 s |
+| EOL, LTAN 22:30 | 4.07 W | 1.55 W | +139 % | 2.3 % | 90.1 % | 4.9 … 12.2 °C | 38 % | 0 s |
+| EOL, LTAN 23:30 | 4.06 W | 1.53 W | +142 % | 2.3 % | 90.1 % | 4.9 … 12.7 °C | 38 % | 0 s |
+| EOL, LTAN 23:30, ADCS failed | 2.56 W | 1.23 W | +86 % | 2.3 % | 90.1 % | 4.9 … 15.1 °C | 20 % | 0 s |
 
-Every run reported 0 anomalies except the injected failure's own check (detumble never completes). The lowest SOC
-(90.4 %) is the 4.10 V/cell set point (D8). The battery's coldest point, +0.4 °C, is the thin heater margin of
-THERMAL_ANALYSIS §6.1, not an energy limit.
+Every run reported 0 anomalies. The lowest SOC (90.1 %) is the 4.10 V/cell set point (D8). Against Version 2.1 the
+as-flown load is 0.2 W higher (1.53–1.57 W against 1.31–1.35 W), mostly the heater at its +5 °C set point and the
+flight software's round-2 functions (daily stored-housekeeping dumps, acknowledgements); the margins remain above
++139 % sun-pointed and +86 % tumbling, and the battery's coldest point rises from +0.4 °C to +4.9 °C.
 
 ## 8. Contingencies
 
 ### 8.1 Wings not deployed
 
-1.47 W delivered with the sun pointing working. SAFE (+40 %) and IDLE (+23 %) close; ACTIVE at the duty limits does
-not (−42 %). In the 14-day run the flight software stayed in ACTIVE and the SOC gate (transponder and Jetson only at
-SOC ≥ 55 %) held the pack between 57 % and 63 %: as-flown margin +7 %, DoD 2.6 %. That is a limit cycle on the ACTIVE
-gate, not a closed budget. In the bounding cold case the heater alone needs 0.95 W at 100 % duty with the wings
-stowed (THERMAL_ANALYSIS C16), which leaves 0.5 W: SAFE closes at 0 %. **Recommendation (RID EPS-10, flight software,
-for the chair):** when the wing sense lines read "not deployed" after the retries, hold the mode at IDLE (transponder
-and Jetson by telecommand only), so that the pack keeps a reserve for the heater.
+1.53 W delivered with the sun pointing working. SAFE (+46 %) and IDLE (+27 %) close; ACTIVE at the duty limits does
+not (−40 %). The flight software now holds IDLE when the wings read not deployed (the rule recommended under RID
+EPS-10): in the 14-day run it never entered ACTIVE, the transponder and the Jetson stayed off, and the as-flown margin
+was +38 % with a lowest SOC of 70.0 % and DoD 2.3 %. In the bounding cold case the heater alone needs 0.95 W at 100 %
+duty with the wings stowed (THERMAL_ANALYSIS C16), which leaves 0.58 W: SAFE (0.52 W before the heater) closes at +10 %.
 
 ### 8.2 ADCS failed (tumbling)
 
-2.43 W delivered (worst 30 days, EOL, LTAN 23:30, β 2.5–12°). ACTIVE at the tumbling duty limits +31 %; as flown
-+102 %; DoD 3.8 %; no heater needed (tumbling keeps the pack at ≥ 2.5 °C).
+2.48 W delivered (worst 30 days, EOL, LTAN 23:30, β 3.2–12.4°). ACTIVE at the tumbling duty limits +34 %; as flown
++86 %; DoD 2.3 %; heater duty ≤ 20 % in the worst orbit (battery 4.9–15.1 °C).
 
 ### 8.3 Wings and ADCS both failed
 
-1.41–1.45 W. SAFE +76 %, EMERGENCY +92 %. As flown (the flight software stayed in ACTIVE on the SOC gate) +3 to +9 %,
-SOC ≥ 56.7 %, DoD 3.3 %. The same EPS-10 rule applies.
+1.53–1.55 W. SAFE +90 %, EMERGENCY +109 %. As flown (IDLE held by the wing rule) +53 to +56 %, SOC ≥ 65.8 %, DoD
+2.8 %.
 
 ### 8.4 Stuck loads
 
 | Stuck load | Power at the pack | Balance in SAFE, EOL | Result |
 |------------|-------------------|----------------------|--------|
-| Jetson rail on (both series switches failed closed) | 8.9 W inferring; ≈ 3.9 W idle | −5.7 W sun-pointed, −7.2 W tumbling (inferring) | Simulated (the module idling, as the flight software never sends it work): SOC 58 % → SAFE at 31.8 h, EMERGENCY at 38.1 h, BMS under-voltage cut at 40.9 h, then 224 brown-out cycles in 14 days. Loss of mission. Mitigation: an independent hardware low-voltage load shed of the payload and PA rails (RID EPS-09) |
+| Jetson rail on (both series switches failed closed) | 8.9 W inferring; ≈ 3.9 W idle | −5.7 W sun-pointed, −7.2 W tumbling (inferring) | Simulated (the module idling, as the flight software never sends it work; as flown −4 % over 14 days): SOC 58 % → SAFE at 56.9 h, EMERGENCY at 64.5 h, BMS under-voltage cut at 66.6 h, then 233 brown-out cycles in 14 days (uptime 55 %). Loss of mission in the simulation, which does not model the hardware load shed below 13.6 V that the EPS now has (RID EPS-09, EPS_DESIGN §6): to be added to the simulation and re-run |
 | Heater on (thermostat and switch failed) | 1.3 W | +0.58 W tumbling; −0.38 W with the wings stowed | Survivable except with stowed wings; the +40 °C cutout limits the temperature (THERMAL_ANALYSIS §6.2) |
 | PA keyed continuously (PTT stuck, 0.5 W RF) | 1.67 W | +0.20 W tumbling | Energy-positive; the 120 s hardware key-down timer (BUILD_VS_BUY §3.2) and TX-OFF are the controls |
 | GNSS continuous (0.125 W typical, 0.32 W worst, BASELINE §5 note) | 0.32 W | ACTIVE tumbling +31 % → +16 % | Within margin only at the typical draw; keep it duty-cycled |
@@ -203,8 +201,8 @@ SOC ≥ 56.7 %, DoD 3.3 %. The same EPS-10 rule applies.
 ### 8.5 Cold-soak deployment
 
 With the whole spacecraft at −20 °C at separation, the deployment burn at 30 min (one resistor at a time, 0.75 A at
-the pack with the magnetorquers detumbling) leaves the bus at ≥ 13.8 V at the ≈ 58 % deployment SOC (EMC_ANALYSIS §4;
-12.2 V in the two-resistor bound) and the charge regulator refuses charge for the first 1.5 h (pack below 0 °C). The pack must leave the dispenser with ≥ 40 % SOC (BATTERY_SAFETY_ASSESSMENT §6).
+the pack with the magnetorquers detumbling) leaves the bus at ≥ 13.8 V at the ≈ 58 % deployment SOC (EMC_ANALYSIS Version C §4;
+11.7 V in the four-driver software fault) and the charge regulator refuses charge for the first 1.5 h (pack below 0 °C). The pack must leave the dispenser with ≥ 40 % SOC (BATTERY_SAFETY_ASSESSMENT §6).
 
 ### 8.6 Launch and early operations (separation to the end of detumble)
 
@@ -228,18 +226,18 @@ case, 3 orbits as the requirement and the bound. The Jetson and the transponder 
 
 | Interval | Load energy | Generation delivered | Balance | SOC from 58 % (49.7 Wh pack) |
 |----------|-------------|----------------------|---------|------------------------------|
-| Separation in eclipse, first sun after 34.5 min (worst case), cold pack | 3.03 W × 0.575 h = 1.74 Wh | 0 | −1.74 Wh | −3.5 points (54.5 %) |
-| Same, warm pack (no heater) | 1.94 W × 0.575 h = 1.12 Wh | 0 | −1.12 Wh | −2.3 points |
-| First orbit (1.58 h), detumbled after 1.4 h, cold pack, worst eclipse phasing | 0.64 W × 1.58 h + 1.30 W × 1.37 h + 1.09 W × 1.58 h + 0.12 Wh = 4.63 Wh | 2.43 W × 1.58 h − 0.51 Wh (wings stowed for the first 30 min) = 3.33 Wh, tumbling, EOL value used | −1.30 Wh | −2.6 points (55.4 %) |
-| Bound: detumble over 3 orbits (4.75 h), heater on throughout | 0.64 W × 4.75 h + 1.30 W × 4.72 h + 1.09 W × 4.75 h + 0.12 Wh = 14.47 Wh | 2.43 W × 4.75 h − 0.51 Wh = 11.03 Wh | −3.44 Wh | −6.9 points (51.1 %); from the 40 % separation floor, 33.1 % |
+| Separation in eclipse, first sun after 28.8 min (worst case at 475 km from 2028-11-01, `leop_passes.py`), cold pack | 3.03 W × 0.48 h = 1.45 Wh | 0 | −1.45 Wh | −2.9 points (55.1 %) |
+| Same, warm pack (no heater) | 1.94 W × 0.48 h = 0.93 Wh | 0 | −0.93 Wh | −1.9 points |
+| First orbit (1.57 h), detumbled after 1.4 h, cold pack, worst eclipse phasing | 0.64 W × 1.57 h + 1.30 W × 1.37 h + 1.09 W × 1.57 h + 0.12 Wh = 4.62 Wh | 2.48 W × 1.57 h − 0.48 Wh (wings stowed for the first 30 min) = 3.42 Wh, tumbling, EOL value used | −1.20 Wh | −2.4 points (55.6 %) |
+| Bound: detumble over 3 orbits (4.70 h), heater on throughout | 0.64 W × 4.70 h + 1.30 W × 4.67 h + 1.09 W × 4.70 h + 0.12 Wh = 14.32 Wh | 2.48 W × 4.70 h − 0.48 Wh = 11.18 Wh | −3.14 Wh | −6.3 points (51.7 %); from the 40 % separation floor, 33.7 % |
 
-The wings-stowed deficit is (2.43 − 1.41) W × 0.5 h = 0.51 Wh (§4). Generation is taken at the tumbling end-of-life
+The wings-stowed deficit is (2.48 − 1.53) W × 0.5 h = 0.48 Wh (§4). Generation is taken at the tumbling end-of-life
 value although the array is new and the spacecraft sun-points once detumbled, so every line is conservative. The worst
-LEOP balance, the 3-orbit bound from the 40 % separation floor, leaves 33 % SOC, above the SAFE threshold (25 %) and
-the deepest-discharge limit for a contingency (30 % DoD); the first orbit costs at most 2.6 points. The magnetorquers
-are the largest LEOP load after the heater: without them the first-orbit balance would be +0.48 Wh. The earlier LEOP
-figures (`docs/operations/MISSION_TIMELINE.md` §5: magnetorquers ≤ 0.3 W average; worst case −0.25 Wh before first
-sun) did not carry the detumble power.
+LEOP balance, the 3-orbit bound from the 40 % separation floor, leaves 34 % SOC, above the SAFE threshold (25 %) and
+the deepest-discharge limit for a contingency (30 % DoD); the first orbit costs at most 2.4 points. The magnetorquers
+are the largest LEOP load after the heater: without them the first-orbit balance would be +0.58 Wh. The mission
+simulation's LEOP (`docs/operations/MISSION_TIMELINE.md` §5: 0.42–0.46 W while detumbling, 0.15 Wh before first sun in
+the reference case) does not carry the board's detumble power; this section bounds it.
 
 ## 9. The tumbling margin (BASELINE §5 "under review")
 
@@ -248,17 +246,17 @@ allocation: +19 %, below the 20 % requirement.
 
 **Answer.** The 2.14 W is a bound built on two assumptions the CDR analyses replace: cells at 60 °C (the thermal
 model gives −15 … +27 °C on the body panels of a tumbling spacecraft, C1) and no albedo. The simulation, with the
-same cell data, shadowing and degradation, gives 2.43 W delivered at end of life in the worst 30 days of a year at the
-coldest LTAN of the dispersion: **+32 % against the 1.80 W allocation** (+35 % by the BASELINE method), +31 % against
-the bottom-up tumbling ACTIVE load with the heater, and 12.5 % above SYS-100's 2.16 W. The requirement is met. The
+same cell data, shadowing and degradation, gives 2.48 W delivered at end of life in the worst 30 days of a year at the
+coldest LTAN of the dispersion (475 km, Version 2.2): **+35 % against the 1.80 W allocation** (+38 % by the BASELINE
+method), +34 % against the bottom-up tumbling ACTIVE load with the heater, and 14.8 % above SYS-100's 2.16 W. The requirement is met. The
 residual risk is the attitude: the simulated tumble is the free spin left by the tip-off; an isotropic tumble at the
 model's temperatures and albedo would give about 2.14 × 1.10 × 1.05 ≈ 2.47 W, consistent with it.
 
 **Recommended BASELINE §5 text (for the chair):**
 
-> | Generation, EOL orbit average delivered to the bus | **2.43 W tumbling; 3.93 W sun-pointed** (mission simulation, worst 30 days of the second year at LTAN 23:30; SQSO-PBA-001 v2.0 §4). The isotropic-tumble analysis (2.14 W, SOLAR_ARRAY_DESIGN §9.3, cells at 60 °C, no albedo) is kept as a bound |
+> | Generation, EOL orbit average delivered to the bus | **2.48 W tumbling; 3.92 W sun-pointed** (mission simulation at 475 km, worst 30 days of the second year at LTAN 23:30; SQSO-PBA-001 v2.2 §4). The isotropic-tumble analysis (2.14 W, SOLAR_ARRAY_DESIGN §9.3, cells at 60 °C, no albedo) is kept as a bound |
 >
-> **Power closure (SQSO-PBA-001 v2.0 §6):** ACTIVE at the duty limits 2.50 W sun-pointed (+54 %), 1.82 W tumbling (+31 %); IDLE 1.18 W; SAFE 0.79 W; EMERGENCY 0.72 W, heater included. Margin ≥ 20 % in every mode at end of life and at LTAN 22:30 ± 1 h. Wings stowed: SAFE and IDLE only.
+> **Power closure (SQSO-PBA-001 v2.2 §6):** ACTIVE at the duty limits 2.50 W sun-pointed (+54 %), 1.82 W tumbling (+34 %); IDLE 1.18 W; SAFE 0.79 W; EMERGENCY 0.72 W, heater included. Margin ≥ 20 % in every mode at end of life and at LTAN 22:30 ± 1 h. Wings stowed: SAFE and IDLE only.
 
 and delete the "Under review" paragraph below the table.
 
@@ -290,7 +288,7 @@ and delete the "Under review" paragraph below the table.
 | EPS-01 | 1 | Power closure not done at CDR; version 1.x used an impossible array | Closed by analysis (this document) |
 | EPS-02 | 2 | BASELINE §5 tumbling margin "+19 % against 20 %" open | Closed by analysis (§9); BASELINE text for the chair |
 | EPS-09 | 2 | A stuck-on Jetson drains the pack in < 2 days; no hardware load shed | For the chair / EPS design (EPS_DESIGN §6) |
-| EPS-10 | 3 | Wings-stowed ACTIVE relies on the SOC gate limit cycle | For the chair (flight software, §8.1) |
+| EPS-10 | 3 | Wings-stowed ACTIVE relies on the SOC gate limit cycle | Flight software holds IDLE with the wings stowed (simulated, §8.1) |
 
 ## 13. Revision History
 
@@ -300,3 +298,4 @@ and delete the "Under review" paragraph below the table.
 | 1.1 | 2026-10-16 | Funding audit | Notice: generation superseded by SOLAR_ARRAY_DESIGN §9 (TB-14); battery §2.2 and §5.4 corrected to BASELINE §5 (TB-08) |
 | 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten: CDR power closure from the mission simulation (year runs at LTAN 21:30/22:30/23:30, BOL and EOL, contingencies), bottom-up mode loads, the tumbling-margin question settled (finding TB-02) |
 | 2.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: LEOP case added (§8.6) with the magnetorquers' 1.16–1.3 W during detumble and its energy balance; peak pack currents from the EPS board (one resistor at a time, 0.75 A with the magnetorquers; §5); cold-soak burn bus voltage (§8.5); §3 note on the 475 km baseline |
+| 2.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Run matrix re-run with the simulation's Rev E defaults and flight software round 2 (475 km, 2028-11-01, four burn lines): EOL generation 3.92 W sun-pointed (was 3.93) and 2.48 W tumbling (was 2.43); margins ACTIVE +54 % / +34 % (was +54 / +31 %), SYS-100 +14.8 %; as-flown year at LTAN 23:30 EOL 1.53 W used, +142 % (was 1.32 W, +182 %), DoD ≤ 2.3 %, battery ≥ 4.9 °C; wings stowed held in IDLE (+38 % as flown); stuck Jetson cut-off at 66.6 h (the hardware shed not simulated); §3 β and eclipse at 475 km; §8.6 LEOP with the 28.8 min worst darkness |
