@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-OPS-005
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Reference:** SpaceX Rideshare Payload User's Guide v11 (Aug 2026); Cal Poly CDS Rev 14.1; Exolaunch EXOpod Nova User
 Manual Rev 1.2; `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` (SQSO-LVR-001); `docs/operations/LAUNCH_SITE_OPS.md`
@@ -224,15 +224,15 @@ The RBF is removed on day I, before the CubeSat enters the slot (§6.1); there i
 | [ ] Beacon decoded successfully | Callsign: ______ | | |
 | [ ] Telemetry nominal | All parameters green | | |
 | [ ] Battery voltage healthy | Voltage: ___ V | | |
-| [ ] Wings deployed (proxy: SOC recovery rate in sun; no deployment telemetry, LV-27) | Consistent: Yes/No | | |
-| [ ] Antennas deployed (proxy: link margin against range) | Consistent: Yes/No | | |
-| [ ] Detumbled and sun acquired (`ADCS_GET_ATTITUDE`) | Flags: __ / __ | | |
+| [ ] Wings and AntS deployed (HK1 `DEP`: AntS elements 15, wing sense; one wing out: COMMISSIONING_PLAN C-5.1) | `DEP` = ______ | | |
+| [ ] AntS temperature gate (HK1 `AD`: deferrals / last temperature; decision C-18) | `AD` = ______ | | |
+| [ ] Detumbled and sun acquired (HK1 `W`, `AM`; `ADCS_GET_ATTITUDE` replies are not downlinked) | `W` = ______ `AM` = __ | | |
 
 ### 9.3 Initial Checkout
 
 | Item | Verification | Signature | Date |
 |------|--------------|-----------|------|
-| [ ] First authenticated command executed (C-2) | `GET_STATUS` response | | |
+| [ ] First authenticated command executed (C-2) | `GET_HOUSEKEEPING` acknowledged `R=0`, HK1 received | | |
 | [ ] TX-OFF proven (C-3) | Silence observed, then `TX_ENABLE` | | |
 | [ ] Onboard time correlated (beacon `T=` against UTC of reception) | Offset: ______ s | | |
 | [ ] Power positive | SOC rising in sun; ≥ 80 % at passes | | |
@@ -285,3 +285,4 @@ The RBF is removed on day I, before the CubeSat enters the slot (§6.1); there i
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | CDR launch review: integrator-led campaign (Exolaunch, EXOpod Nova); integration day I ≈ L-47 d; final charge 60 % ± 5 % with the RBF in, `ARM_FLIGHT` last, RBF out before integration; no post-integration test, umbilical or RBF step; ephemeris, licensing letter, UN 38.3 and drain checks; post-separation items match the flight dictionary and the telemetry that exists | CDR review (LV) |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): §9.2 deployment from HK1 `DEP` and `AD` (was "no deployment telemetry", LV-27 closed), attitude from HK1 `W`/`AM`; §9.3 first command `GET_HOUSEKEEPING` (the `GET_STATUS` reply is not downlinked) | Documentation audit |

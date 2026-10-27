@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-OPS-004
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Reference:** SpaceX Rideshare Payload User's Guide v11 (Aug 2026) §4.3, §7.6, §9.5, §10; Exolaunch EXOpod Nova User
 Manual Rev 1.2; `docs/ORBITAL_ACCESS.md` §2.3; `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` (SQSO-LVR-001)
@@ -245,9 +245,9 @@ UG §7.6). Where the integrator's mission ICD or integration guide differs, it g
 | Event | Expected Time | Verification |
 |-------|---------------|--------------|
 | Separation | S | Integrator report; SpaceX state vector |
-| Antennas and wings deploy | S+30 min | Not observable from the ground in real time |
-| First beacon | S+45 min (first Bay Area pass S+0.7 to S+12.2 h) | Ground station or SatNOGS |
-| Detumbled | S+0.8 h (simulation) | `ADCS_GET_ATTITUDE` at the first commanding pass |
+| Wings deploy, then the AntS | Wings S+30 min; the AntS once its temperature reads ≥ −17 °C (decision C-18; S+30.6 min warm, S+80.7 min after a cold eclipse separation, at worst about S+25.8 h) | HK1 `DEP` and `AD` in the first housekeeping frames heard |
+| First beacon | S+45 min, or when the AntS deploys if later (decision C-19); first Bay Area pass S+0.7 to S+12.1 h (SQSO-MTL-001 §5) | Ground station or SatNOGS |
+| Detumbled | S+0.25 h (simulation; SQSO-MTL-001 §8.4) | HK1 `W` and `AM` at the first pass |
 
 ### 9.2 Pack-Out
 
@@ -289,3 +289,4 @@ UG §7.6). Where the integrator's mission ICD or integration guide differs, it g
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | CDR launch review: integrator-led integration (Exolaunch, EXOpod Nova) replaces team integration at the launch site; final charge to 60 % ± 5 % with the RBF in, key load and `ARM_FLIGHT` last, RBF out before integration, no access afterwards; shipping state of charge; no UTC to set; post-launch times from the simulation | CDR review (LV) |
 | C | 2026-10-27 | CDR 2026 consistency pass: planning launch 2028-11-01 (BASELINE Rev E §3) in §2.1 | CDR documentation review |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): §9.1 the AntS gate and transmitter hold of decisions C-18 and C-19, first pass statistics from SQSO-MTL-001 2.7, deployment and attitude from HK1 (were "not observable" and `ADCS_GET_ATTITUDE`) | Documentation audit |
