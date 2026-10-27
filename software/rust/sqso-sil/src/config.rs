@@ -92,9 +92,11 @@ pub struct Config {
     /// Contingency: the AntS's temperature path fails (every reading
     /// invalid; RID P3F-G-02's schedule fallback)
     pub ants_temp_failed: bool,
-    /// The AntS temperature reading's error, °C (a large negative value
-    /// keeps the gate shut until the 30-deferral cap: RID P3F-G-02)
+    /// The AntS temperature reading's error, °C
     pub ants_temp_offset_c: f64,
+    /// The AntS temperature reading held at this value, °C (a valid cold
+    /// reading keeps the gate shut until the 30-deferral cap: RID P3F-G-02)
+    pub ants_temp_fixed_c: Option<f64>,
     /// Fraction of the Jetson's lines meant to fail the content filter
     /// (decision C-20's sensitivity: 3 %, 10 %, 30 %)
     pub ai_reject_fraction: f64,
@@ -154,6 +156,7 @@ impl Default for Config {
             separation_soak_c: None,
             ants_temp_failed: false,
             ants_temp_offset_c: 0.0,
+            ants_temp_fixed_c: None,
             ai_reject_fraction: crate::jetson::BAD_TEXT_FRACTION,
             eol_heater_ohms: crate::mission::EOL_HEATER_OHMS,
             payload_stuck_on: false,
@@ -169,8 +172,8 @@ impl Default for Config {
 impl Config {
     /// A named scenario: `full` (integration to re-entry), `commissioning`
     /// (the first 14 days), `ants_cold` (the first 14 days after a cold
-    /// soak and an eclipse separation), `ants_cap` (the AntS reading 60 °C
-    /// low: the 30-deferral cap and its release in sunlight, 3 days),
+    /// soak and an eclipse separation), `ants_cap` (the AntS reading a
+    /// steady −30 °C: the 30-deferral cap and its release in sunlight, 3 days),
     /// `ants_notemp` (no valid AntS temperature: the schedule fallback, 3
     /// days), `smoke` (the first day, for CI), `year` (the first year, no
     /// passivation)
@@ -212,7 +215,7 @@ impl Config {
                 c.separate_at_eclipse = true;
                 c.separation_soak_c = Some(-20.0);
                 if name == "ants_cap" {
-                    c.ants_temp_offset_c = -60.0;
+                    c.ants_temp_fixed_c = Some(-30.0);
                 } else {
                     c.ants_temp_failed = true;
                 }
@@ -265,6 +268,7 @@ impl Config {
             "separation_soak_c" => self.separation_soak_c = Some(f()?),
             "ants_temp_failed" => self.ants_temp_failed = b()?,
             "ants_temp_offset_c" => self.ants_temp_offset_c = f()?,
+            "ants_temp_fixed_c" => self.ants_temp_fixed_c = Some(f()?),
             "ai_reject_fraction" => self.ai_reject_fraction = f()?,
             "eol_heater_ohms" => self.eol_heater_ohms = f()?,
             "payload_stuck_on" => self.payload_stuck_on = b()?,
@@ -322,6 +326,7 @@ impl Config {
             ("separation_soak_c", self.separation_soak_c.map_or("null".into(), |t| t.to_string())),
             ("ants_temp_failed", self.ants_temp_failed.to_string()),
             ("ants_temp_offset_c", self.ants_temp_offset_c.to_string()),
+            ("ants_temp_fixed_c", self.ants_temp_fixed_c.map_or("null".into(), |t| t.to_string())),
             ("ai_reject_fraction", self.ai_reject_fraction.to_string()),
             ("eol_heater_ohms", self.eol_heater_ohms.to_string()),
             ("payload_stuck_on", self.payload_stuck_on.to_string()),
@@ -361,7 +366,7 @@ mod tests {
         let cold = Config::scenario("ants_cold").unwrap();
         assert!(cold.separate_at_eclipse && cold.separation_soak_c == Some(-20.0) && cold.mission_days == 14.0);
         let cap = Config::scenario("ants_cap").unwrap();
-        assert!(cap.separate_at_eclipse && cap.ants_temp_offset_c == -60.0 && !cap.ants_temp_failed);
+        assert!(cap.separate_at_eclipse && cap.ants_temp_fixed_c == Some(-30.0) && !cap.ants_temp_failed);
         let notemp = Config::scenario("ants_notemp").unwrap();
         assert!(notemp.ants_temp_failed && notemp.mission_days == 3.0);
         c.set("ants_temp_failed=true").unwrap();

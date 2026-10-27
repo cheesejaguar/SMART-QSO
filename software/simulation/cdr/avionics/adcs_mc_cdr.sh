@@ -23,7 +23,9 @@
 # sqso_adcs_mc header; mag_rejected is the flight software's count of
 # discarded magnetometer samples, mean per trial; know_* the sun-vector knowledge
 # error in sunlight; rate_tilt_x the mean body rate's tilt toward +X; ants_max the
-# worst sunlit angle within 3 h of a late AntS deployment). CARGO_TARGET_DIR is
+# worst sunlit angle within 3 h of a late AntS deployment; within30, pointing_loss
+# and p002_*_failed the C-23 requirement: generation lost to pointing ≤ 5 % and
+# the Sun within 30° ≥ 95 % of sunlit time in every trial). CARGO_TARGET_DIR is
 # honoured.
 set -euo pipefail
 out=${1:?output directory}
@@ -120,5 +122,19 @@ run pd_wing2_geo0        --gyro mg370 --css-model pd --wings w2 --geometry 0
 run pd_wing1_geo1        --gyro mg370 --css-model pd --wings w1 --geometry 1
 run pd_no_wings_geo0     --gyro mg370 --css-model pd --wings none --geometry 0
 run pd_stowed_held_geo0  --gyro mg370 --css-model pd --wings none --ants-h 25 --days 1 --geometry 0
+# Decision C-23 (the pointing requirement restated for power): the worst cases with the photodiodes and albedo
+run pd_gated_dipole_10   --gyro mg370 --css-model pd --gating 1.5,53 --dipole 0.010
+run pd_gated_dipole_5    --gyro mg370 --css-model pd --gating 1.5,53 --dipole 0.005
+run pd_gated_dipole_7    --gyro mg370 --css-model pd --gating 1.5,53 --dipole 0.007
+run pd_wing1_cbe_geo0    --gyro mg370 --css-model pd --wings w1 --geometry 0 --plant 2.818,3.904,3.646,-0.153,-0.018,0.007
+run pd_wing1_mev_geo0    --gyro mg370 --css-model pd --wings w1 --geometry 0 --plant 3.236,4.429,4.176,-0.170,-0.025,0.012
+run pd_wing2_cbe_geo0    --gyro mg370 --css-model pd --wings w2 --geometry 0 --plant 2.818,3.905,3.646,0.174,0.002,0.007
+run pd_wing2_mev_geo0    --gyro mg370 --css-model pd --wings w2 --geometry 0 --plant 3.236,4.430,4.177,0.193,-0.007,0.012
+run pd_wing1_geo0_gated  --gyro mg370 --css-model pd --wings w1 --geometry 0 --gating 1.5,53
+run pd_stowed_ants25_geo0 --gyro mg370 --css-model pd --wings none --ants-h 25 --days 3 --geometry 0
+run pd_ants_3h_gated     --gyro mg370 --css-model pd --ants-h 3.5 --gating 1.5,53
+run pd_plant_cbe         --gyro mg370 --css-model pd --plant 2.853,4.202,3.979,0.0108,-0.0080,-0.0027
+run pd_plant_mev         --gyro mg370 --css-model pd --plant 3.276,4.760,4.546,0.0115,-0.0158,0.0035
+run pd_bmi088_0p2        --gyro bmi088 --gyro-bias 0.2 --css-model pd
 # One-wing identification signatures (C-21)
 "$mc" --wing-id > "$out/wing_id.csv"; echo "wing_id: $(wc -l < "$out/wing_id.csv") rows"

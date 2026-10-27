@@ -536,7 +536,7 @@ pub extern "C" fn adcs_is_detumbled() -> bool {
 pub(crate) fn sun_body() -> Option<[f64; 3]> {
     ADCS.with(|m| {
         let s = &m.adcs.state.sun;
-        (m.adcs.initialized && s.sun_visible).then(|| [s.sun_vector.x, s.sun_vector.y, s.sun_vector.z])
+        (m.adcs.initialized && s.sun_visible).then_some([s.sun_vector.x, s.sun_vector.y, s.sun_vector.z])
     })
     .flatten()
 }

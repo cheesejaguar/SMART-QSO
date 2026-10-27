@@ -1,7 +1,7 @@
 # SMART-QSO Mission Success Criteria
 
 **Document ID**: SQSO-MSC-001
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft for PI approval. Rewritten to the baseline (BASELINE Rev D §2, §6, decision D5); replaces
@@ -77,7 +77,7 @@ the strong-solar-cycle case (`docs/regulatory/filings/ODAR_SMART-QSO.md` Draft B
 | ID | Criterion | Threshold | Measurement |
 |----|-----------|-----------|-------------|
 | E-01 | Jetson burst within limits | ≥ 1 burst completed inside the OBC's current, temperature and 120 s limits | Burst log **[TLM]** |
-| E-02 | Energy per accepted beacon measured | p95 at the carrier input, boot to power-off, over ≥ 10 bursts | Burst energy **[TLM]** |
+| E-02 | Energy per accepted beacon line measured | Total burst energy at the carrier input, boot to power-off, over the lines the content filter accepted, over ≥ 10 bursts of the flight definition (one power-on, ≤ 10 min, ≤ 3.6 kJ; decision C-20) | HK2 `JB` (burst energy, accepted lines) **[TLM]** |
 | E-03 | Generated text flown (only if E-02 ≤ 0.1 Wh and the ground filter sweep passes) | ≥ 50 accepted generated beacons transmitted, zero filter escapes found by the ground re-check | Beacon archive; ground filter |
 
 If E-02 exceeds 0.1 Wh, the experiment ends with a negative result, which is a valid outcome.
@@ -127,3 +127,4 @@ declaration.
 | 2.0 | 2026-10-27 | CDR S&MA review | Rewritten to the baseline: transponder service is the primary objective; L2 no longer gated on AI-generated beacons (D5); the Jetson text experiment has separate criteria; every criterion has a measurement source; telemetry gaps listed; success probabilities from the reliability model |
 | 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §8 from RELIABILITY_ANALYSIS v2.1 (four-line wing deployment): L2 0.61, L3 0.51 (were 0.60, 0.50); halved-early-failure case 0.71 / 0.59 |
 | 2.2 | 2026-10-27 | CDR round 3, systems and programmatics (REL-01) | §8: the PI's acceptance dated (DA-02, 2026-12-15); the reliability programme cited as planned (ETP D §3.11) |
+| 2.3 | 2026-10-27 | CDR round 3, flight software (decision C-20, CR-2026-018) | E-02: energy per accepted beacon line over the accepted lines of ≥ 10 bursts of the flight burst definition (≤ 10 min, ≤ 3.6 kJ), from HK2 `JB` (was a p95 per beacon) |

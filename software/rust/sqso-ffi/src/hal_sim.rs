@@ -369,8 +369,8 @@ pub fn ants_model_powered() -> bool {
 /// The mission simulation's AntS model writes its registers (`regs`: the
 /// register, then the values) whatever its power: it is the device
 pub fn ants_model_write(regs: &[u8]) {
-    let _ = sim((), |s| {
-        if let (Some(dev), Some([reg, values @ ..])) = (device(s, I2C_ADDR_ANTS), Some(regs)) {
+    sim((), |s| {
+        if let (Some(dev), [reg, values @ ..]) = (device(s, I2C_ADDR_ANTS), regs) {
             let mut at = usize::from(*reg);
             for &v in values {
                 if let Some(r) = dev.registers.get_mut(at) {

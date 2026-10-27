@@ -1,8 +1,8 @@
 # Software Test Plan (STP)
 
 **Document Number**: SMART-QSO-STP-001
-**Version**: 1.2
-**Date**: 2026-10-25
+**Version**: 1.3
+**Date**: 2026-10-27
 **Status**: Preliminary
 
 **Governing Standards**:
@@ -517,6 +517,18 @@ All test failures tracked in GitHub Issues:
 
 ---
 
+## 11. Verification Items on Hardware (CDR 2026)
+
+The flight software's own items that need the engineering-model hardware (RIDs AV-03, OBCB-02, SMA-B02, SMA-B10,
+CDR round 3). The VI register (`docs/verification/VI_REGISTER.md`, `scripts/gen_vi_register.py`) collects them.
+
+| VI | Test | Pass criterion | Verifies | When | Owner |
+|----|------|----------------|----------|------|-------|
+| VI-FSW-01 | EM OBC bring-up of the ADCS drivers (TP-FLATSAT-001): `mg370.rs`, `bmi088.rs`, `rm3100.rs`, `ads7138.rs`, `mtq.rs`, `adcs_sensors.rs` on the SQSO-ICX-001 D pins; each part's ID read and self-test run; each coil commanded at 25, 50 and 100 % duty; each sensor rail's switch tripped by a forced short | Every part reads its ID and passes its self-test; coil current within 10 % of the commanded duty; a forced rail trip is latched, logged (HK2 `TR`) and the rail restarted | AV-03; SRS-F140, SRS-F141, SRS-F164 | EM flatsat (TP-FLATSAT-001), 2027-06-01 to 2027-07-27 | Flight software lead (PI until named) |
+| VI-FSW-02 | Pin continuity and bring-up of the firmware pin map (`firmware/src/gpio.rs`, `pins.rs`) against SQSO-ICX-001 D §6 on the EM OBC: every output toggled and read at the far connector, every input driven at the connector and read by the firmware | Every SQSO-ICX-001 D §6 row reads at its pin with its polarity; no unlisted pin driven; the provisional pin map then released | OBCB-02; SRS-F140 to SRS-F152 | EM flatsat (TP-FLATSAT-001), 2027-06-01 to 2027-07-27 | Flight software lead (PI until named) |
+| VI-FSW-03 | DEPLOY_SENSE on the flatsat with the EPS EM: DS2 released, then the line opened (R113 removed, BF-OBC-18) before the deployment sequence ends, then a power-on and a watchdog reset | With the line open after separation, neither the RF silence nor the deployment wait restarts after either reset (HK1 `RFS`, `DEP` advance; HK2 `SEP` latched, stowed readings counted); with the switch stowed on a fresh GSE-ARMED record, both timers hold at zero | SMA-B02; SRS-F159, SRS-F087 | EM flatsat (TP-FLATSAT-001), 2027-06-01 to 2027-07-27 | Flight software lead (PI until named) |
+| VI-FSW-04 | Primary FRAM (U3) removed on the EM OBC, then the degraded-mode telecommand, then U3 refitted | Three failed checks declare the FRAM failed (HK1 `FR`); the mirror's records are used; no TX-OFF loop; the degraded mode needs its code; three good reads after the refit recover | SMA-B10; SRS-F160 | EM flatsat (TP-FLATSAT-001), 2027-06-01 to 2027-07-27 | Flight software lead (PI until named) |
+
 ## Appendix A: Test Tools
 
 | Tool | Version | Purpose |
@@ -568,3 +580,4 @@ Attachments:
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: coverage gates as implemented (line, Rust ≥ 90 %, C and Rust ≥ 80 %; branch not measured); the C suites as the specification, Rust unit tests, fuzzing, contract test, sanitizers; Rust coverage commands and tools |
 | 1.2 | 2026-10-25 | SMART-QSO Team | Branch coverage measured and gated (75 %, 76.3 % measured) in a pinned-nightly build |
+| 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fifth part) | §11 added: the flight software's hardware verification items VI-FSW-01 to VI-FSW-04 (AV-03, OBCB-02, SMA-B02, SMA-B10), for the VI register |

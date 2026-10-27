@@ -205,7 +205,7 @@ fn main() {
         "spin_dps,momentum,nutation,bdot,spin_hold,trials,not_detumbled,det_med_h,det_p95_h,det_max_h,fsw_med_h,fsw_p95_h,fsw_max_h,\
          with_timeout,sun_mean_deg,sun_p95_worst_deg,within15,eclipse_exit_worst_deg,anti,gen_mean_w,gen_worst_w,\
          spin_mean_dps,transverse_dps,mtq_w,mag_rejected,know_mean_deg,know_p95_worst_deg,know_within5_worst,gated_min_day,\
-         rate_tilt_x_mean_deg,rate_tilt_x_min_deg,rate_tilt_x_max_deg,sun_tilt_x_deg,ants_max_worst_deg,id_window_med_min,id_window_min_min"
+         rate_tilt_x_mean_deg,rate_tilt_x_min_deg,rate_tilt_x_max_deg,sun_tilt_x_deg,ants_max_worst_deg,id_window_med_min,id_window_min_min,within30_mean,within30_worst,gen_ideal_w,pointing_loss_mean,pointing_loss_worst,p002_loss_failed,p002_within30_failed"
     );
     for &spin in &spins {
         for &mom in &moms {
@@ -222,7 +222,7 @@ fn main() {
                         };
                         let s = adcs_mc::summarize(&adcs_mc::run(&p, trials, seed, threads));
                         println!(
-                            "{spin},{mom},{nut},{bd},{hold},{},{},{:.2},{:.2},{:.2},{:.2},{:.2},{:.2},{},{:.1},{:.1},{:.3},{:.1},{},{:.3},{:.3},{:.2},{:.3},{:.3},{:.0},{:.2},{:.2},{:.4},{:.1},{:.2},{:.2},{:.2},{:.2},{:.1},{:.1},{:.1}",
+                            "{spin},{mom},{nut},{bd},{hold},{},{},{:.2},{:.2},{:.2},{:.2},{:.2},{:.2},{},{:.1},{:.1},{:.3},{:.1},{},{:.3},{:.3},{:.2},{:.3},{:.3},{:.0},{:.2},{:.2},{:.4},{:.1},{:.2},{:.2},{:.2},{:.2},{:.1},{:.1},{:.1},{:.4},{:.4},{:.3},{:.4},{:.4},{},{}",
                             s.n,
                             s.not_detumbled,
                             s.detumble_h.0,
@@ -253,7 +253,14 @@ fn main() {
                             s.sun_tilt_x_deg,
                             s.ants_max_worst_deg,
                             s.id_window_min.0,
-                            s.id_window_min.1
+                            s.id_window_min.1,
+                            s.within_30.0,
+                            s.within_30.1,
+                            s.gen_ideal_w,
+                            s.pointing_loss.0,
+                            s.pointing_loss.1,
+                            s.p002_failed.0,
+                            s.p002_failed.1
                         );
                     }
                 }

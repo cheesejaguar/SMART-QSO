@@ -580,6 +580,12 @@ pub struct Trial {
     /// Sunlit time with the spin at 6°/s or more and the Sun 20–55° from +Y,
     /// after the wings, min (the window of the identification of [`wing_id`])
     pub id_window_min: f64,
+    /// Steady state, sunlit: share of time with the Sun within 30° of +Y (C-23)
+    pub within_30: f64,
+    /// Steady state: orbit-average array power with +Y held exactly on the Sun, W
+    pub gen_ideal_w: f64,
+    /// Steady state, sunlit: generation lost to the pointing, 1 − Σ P / Σ P(+Y on the Sun) (C-23)
+    pub pointing_loss: f64,
 }
 
 /// A gyro by name: `none`, `bmi088` (calibrated), `bmi088_uncal`, `mg370`,
@@ -811,6 +817,7 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
     let mut angles: Vec<f64> = Vec::new();
     let mut know: Vec<f64> = Vec::new();
     let (mut gated_s, mut rate_sum, mut sun_sum, mut id_s) = (0.0, V3::ZERO, V3::ZERO, 0.0);
+    let (mut gen_ideal_j, mut sun_gen_j, mut sun_ideal_j) = (0.0, 0.0, 0.0);
     let (mut gen_j, mut steady_s, mut spin_sum, mut trans_sq, mut mtq_j) = (0.0, 0.0, 0.0, 0.0, 0.0);
     let mut was_dark = false;
     let mut anti = 0usize;
@@ -975,6 +982,22 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
                 };
                 let p_w: f64 = array.strings(&inp).iter().map(|s| s.pmp).sum();
                 gen_j += p_w * 10.0;
+                // The same instant with +Y exactly on the Sun (the smallest
+                // rotation that brings it there, the Earth turned with it):
+                // the pointing loss of C-23
+                let axis_r = sb.cross(V3::Y);
+                let q = if axis_r.norm() > 1e-9 {
+                    Quat::from_axis_angle(axis_r.unit(), sb.angle(V3::Y))
+                } else {
+                    Quat::default()
+                };
+                let ideal = ArrayInputs { sun_body: V3::Y, nadir_body: q.rotate(inp.nadir_body), ..inp };
+                let p_ideal: f64 = array.strings(&ideal).iter().map(|s| s.pmp).sum();
+                gen_ideal_j += p_ideal * 10.0;
+                if illum > 0.5 {
+                    sun_gen_j += p_w;
+                    sun_ideal_j += p_ideal;
+                }
             }
         }
     }
@@ -985,6 +1008,9 @@ pub fn trial(p: &Params, seed: u64) -> Trial {
         out.sun_angle_p95_deg =
             angles.get(((n * 0.95) as usize).min(angles.len().saturating_sub(1))).copied().unwrap_or(0.0);
         out.within_15 = angles.iter().filter(|&&a| a <= 15.0).count() as f64 / n;
+        out.within_30 = angles.iter().filter(|&&a| a <= 30.0).count() as f64 / n;
+        out.gen_ideal_w = gen_ideal_j / steady_s;
+        out.pointing_loss = if sun_ideal_j > 0.0 { 1.0 - sun_gen_j / sun_ideal_j } else { 0.0 };
         out.anti_share = anti as f64 / n;
         out.gen_w = gen_j / steady_s;
         out.spin_dps = (spin_sum / steady_s).to_degrees();
@@ -1055,6 +1081,14 @@ pub struct Summary {
     pub ants_max_worst_deg: f64,
     /// The identification window: median and least over the trials, min
     pub id_window_min: (f64, f64),
+    /// Share of sunlit time within 30°: mean and the worst trial
+    pub within_30: (f64, f64),
+    /// Orbit-average generation with +Y on the Sun, mean over trials, W
+    pub gen_ideal_w: f64,
+    /// Sunlit pointing loss: mean and the worst trial
+    pub pointing_loss: (f64, f64),
+    /// Trials failing ADCS-P002 (C-23): loss above 5 %, or the Sun within 30° less than 95 % of sunlit time
+    pub p002_failed: (usize, usize),
 }
 
 fn pct(sorted: &[f64], q: f64) -> f64 {
@@ -1102,6 +1136,19 @@ pub fn summarize(trials: &[Trial]) -> Summary {
         ),
         sun_tilt_x_deg: trials.iter().map(|t| t.sun_tilt_x_deg).sum::<f64>() / nf,
         ants_max_worst_deg: trials.iter().map(|t| t.ants_max_deg).fold(0.0, f64::max),
+        within_30: (
+            trials.iter().map(|t| t.within_30).sum::<f64>() / nf,
+            trials.iter().map(|t| t.within_30).fold(1.0, f64::min),
+        ),
+        gen_ideal_w: trials.iter().map(|t| t.gen_ideal_w).sum::<f64>() / nf,
+        pointing_loss: (
+            trials.iter().map(|t| t.pointing_loss).sum::<f64>() / nf,
+            trials.iter().map(|t| t.pointing_loss).fold(0.0, f64::max),
+        ),
+        p002_failed: (
+            trials.iter().filter(|t| t.pointing_loss > 0.05).count(),
+            trials.iter().filter(|t| t.within_30 < 0.95).count(),
+        ),
         id_window_min: {
             let mut w: Vec<f64> = trials.iter().map(|t| t.id_window_min).collect();
             w.sort_by(f64::total_cmp);

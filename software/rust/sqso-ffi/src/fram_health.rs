@@ -33,7 +33,7 @@ pub extern "C" fn fram_health_check() {
     passivation::passivation_verify();
     let Some((before, after)) = HEALTH.with(|h| {
         let before = h.state();
-        h.note(rf_ok && ops_ok);
+        h.note(rf_ok & ops_ok); // both checks ran; either failing is a failed check
         (before, h.state())
     }) else {
         return;
@@ -99,4 +99,30 @@ pub(crate) fn degraded() -> bool {
 /// The state and the failed checks (housekeeping)
 pub(crate) fn status() -> (u8, u32) {
     HEALTH.with(|h| (h.state(), h.failures)).unwrap_or((sqso_fsw::fram_health::STATE_OK, 0))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// A nested call (an interrupt) while the state is in use: the check
+    /// does nothing, the bypass and the status read as busy; a NULL
+    /// argument is refused; the housekeeping status is the module's
+    #[test]
+    fn busy_null_and_status() {
+        let _serial = crate::fault_mgmt::tests::serial();
+        fram_health_init();
+        assert_eq!(status(), (sqso_fsw::fram_health::STATE_OK, 0));
+        // SAFETY: NULL with a length: refused before it is read
+        assert_eq!(unsafe { fram_bypass(core::ptr::null(), 4) }, rc::NULL_PTR);
+        let nested = HEALTH.with(|_| {
+            fram_health_check();
+            // SAFETY: live buffer, then NULL outputs (allowed)
+            let bypass = unsafe { fram_bypass(b"FRM!".as_ptr(), 4) };
+            let st = unsafe { fram_health_status(core::ptr::null_mut(), core::ptr::null_mut()) };
+            (bypass, st, status(), degraded())
+        });
+        assert_eq!(nested, Some((rc::BUSY, rc::BUSY, (sqso_fsw::fram_health::STATE_OK, 0), false)));
+        assert_eq!(status().1, 0, "the nested check counted nothing");
+    }
 }

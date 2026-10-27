@@ -1,7 +1,7 @@
 # SMART-QSO Telemetry Dictionary
 
 **Document ID**: SQSO-TLM-001
-**Version**: 1.5
+**Version**: 1.6
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -255,7 +255,7 @@ criteria need (SQSO-MSC-001 §7, RID SMA-15) and the OBC board's supervision (`h
 | `XE` | Transponder enables since boot / repeater keyed (XPDR_KEY) / exciter keyed (PTT_EXCITER) | — / s / s |
 | `IA` | Array current (INA228 at 0x40, else the EPS controller's) | mA |
 | `HL` | Hard-limit violations since boot (Jetson on outside ACTIVE, sunlight or SOC ≥ 55 %, or past its burst limit) | |
-| `JB` | Jetson bursts since boot / last burst's energy / its lines / bursts ended by the energy gate | — / J / — / — |
+| `JB` | Jetson bursts since boot / last burst's energy at the carrier input / its lines accepted by the content filter / bursts ended by the energy gate (decision C-20: a burst ends when its energy exceeds 360 J for each accepted line plus the one in progress, or at 3.6 kJ or 10 min; SRS-F151) | — / J / — / — |
 | `JP` | Jetson switch-offs clean / cut after the 5 s wait / power-good faults / readback faults | |
 | `EOL` | EPS `EOL_STATE` (as in `PS`; `-` no answer) / fire attempts | |
 | `RT` | Mission clock (RV-3028) UNIX time / the last reset's time stamp | s / s |
@@ -268,6 +268,11 @@ criteria need (SQSO-MSC-001 §7, RID SMA-15) and the OBC board's supervision (`h
 | `PT` | TX_TEMP sensor faulted now 1/0 (the downlink then uses the board temperature + 15 °C) / faults since boot (RID SMA-B19, SRS-F161) | |
 | `SV` | The EPS controller's `EPS_SUPV` (bits 0–3 trackers disabled, bit 4 AntS supply from the controller, bits 5–6 OBC power cycles in 24 h, bit 7 heartbeat supervision stopped; `-` no answer) / heartbeats the controller refused since boot (SRS-F162) | |
 | `CI` | The EPS controller's `CHG_INHIBIT` (0x7A): bit 0 cold, 1 hot, 2 cell over-voltage, 3 BMS fault, 4 secondary protector blown, 5 recharge lockout latched, 6 NTC1 implausible (its window handed to the AFE on NTC2, SQSO-EPS-BRD-001 E §5.3); `-` no answer (SQSO-ICD-001 1.6 §4.6) | |
+| `TS` | The TNC's last STATUS answer: version / criteria / floor / calibrated floor / carrier count / frames / uptime (`-` none yet) | |
+| `RL` | RX_FAULT passed its power-on self-test 1/0 / the STATUS loop query unanswered for a day 1/0 (RID SMA-B11) | |
+| `SL` | The OBC selector (SQSO-PAY-SEL-001 §6.4, SRS-F170, RID SMA-15): table in use 1/0, then decisions / abstentions of H1 (beacon template), H2 (transponder bucket) and H3 (power-mode preference) since boot: seven numbers. 0 everywhere until the selector is implemented (fabrication phase) | |
+| `GE` | ADCS geometry preset in use (ADCS_SET_GEOMETRY 0x24: 0 both wings, 1 W1 only, 2 W2 only, 3 no wing; preset 0 unless the ground has selected another, decision C-21, SRS-F171) | |
+| `SN` | Sun vector in the body frame x / y / z, from the sun sensors (`-` not visible) | 0.001 |
 
 During the final passivation report (SRS-F155) HK1 and HK2 are sent three times, 60 s apart, before TX-OFF.
 
@@ -292,7 +297,7 @@ GNS N=<session> WK=<week> TOW=<ms> X=<m> Y=<m> Z=<m> VX=<mm/s> VY=<mm/s> VZ=<mm/
 | `VDT` | The chord the velocity comes from (the session runs 30 s past its first fix, so normally 20–30 s) | s |
 | `Q` | GGA fix quality with the fix: 1 GPS, 2 differential (the only ones the driver accepts) | |
 | `SV` | Satellites used | |
-| `PD` | PDOP × 10 | |
+| `PD` | PDOP × 10 (at most 999: a fix with PDOP above 99.9 is not plausible and not used, RID P3F-A-05) | |
 | `AGE` | Seconds from the fix to this frame: 0 after the session, larger on the repeat | s |
 
 Example: `GNS N=17 WK=452 TOW=345600000 X=-4349115 Y=4803225 Z=2239564 VX=-4581234 VY=-1912078 VZ=5870431 VDT=30 Q=1
@@ -409,3 +414,4 @@ SQSO_SUMMARY_YYYYMM.csv
 | 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, second part) | §4.4.2 new: the GNSS state frame `GNS` (RID LV-04, SRS-F158); HK1 `FR` (SMA-B10); HK2 `TR` with the magnetometer rail, `SEP`, `PT`, `SV` (SMA-B02, B19, B09) |
 | 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | §4.4 HK1 `PS` with the fire's reasons (the EPS board ≥ 0 °C condition bounded at 6 h, RID SMA-B20); HK1 `AD`, the AntS temperature gate (decision C-18); §4.4.1 HK2 `CI`, the EPS controller's CHG_INHIBIT with bit 6 NTC1 implausible |
 | 1.5 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §4.4 a housekeeping text longer than a frame is sent in frames of whole fields with the tag and sequence repeated (SIL finding SIL-40: HK1 had gone out empty past 250 bytes); §4.6 why the stored records carry no GNSS position (RID SMA-15) |
+| 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fifth part) | §4.4.1 HK2 `SL` selector decisions and abstentions per head (RID SMA-15), `GE` geometry preset and `SN` body sun vector (decision C-21), `TS` and `RL` listed; `JB` lines are accepted lines (decision C-20); HK2 text up to 573 bytes, cut into frames of whole fields; §4.4.2 every GNS and acknowledgement field has a fixed width, no frame is empty, PDOP ≤ 99.9 (RID P3F-A-05) |

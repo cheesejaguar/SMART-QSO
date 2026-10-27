@@ -896,7 +896,8 @@ impl Mission {
             self.fsw.set_ants_status(self.deploy.ants.status(ants_armed));
             // Its controller's own sensor: the AntS node (decision C-18's
             // gate), with the reading's error or a failed path (P3F-G-02)
-            let reading = (!self.cfg.ants_temp_failed).then_some(ants_c + self.cfg.ants_temp_offset_c);
+            let reading = (!self.cfg.ants_temp_failed)
+                .then_some(self.cfg.ants_temp_fixed_c.unwrap_or(ants_c + self.cfg.ants_temp_offset_c));
             self.fsw.set_ants_temperature(reading);
         }
         if self.deploy.current_a > 0.0 && !was_burning {

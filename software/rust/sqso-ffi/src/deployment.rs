@@ -53,6 +53,12 @@ pub(crate) fn wings_sensed() -> bool {
     // SAFETY: plain value (the HAL)
     !unsafe { c::hal_gpio_get(GPIO_PIN_SOLAR_SENSE) }
 }
+/// In sunlight for the AntS gate's releases (RID P3F-G-02): the sun
+/// sensors see the Sun, or the EPS reports the array sunlit
+fn sunlit_now(sun_visible: bool, eps: Option<sqso_fsw::eps_telemetry::Telemetry>) -> bool {
+    sun_visible || eps.is_some_and(|t| t.sunlit())
+}
+
 /// `FAULT_TYPE_DEPLOYMENT`
 pub(crate) const FAULT_TYPE_DEPLOYMENT: u32 = 21;
 /// `LOG_LEVEL_DEBUG`
@@ -134,7 +140,7 @@ impl DeployIo for HalFlash {
     }
 
     fn sunlit(&mut self) -> bool {
-        crate::adcs_control::adcs_sun_visible() || crate::eps_control::eps_telemetry().is_some_and(|t| t.sunlit())
+        sunlit_now(crate::adcs_control::adcs_sun_visible(), crate::eps_control::eps_telemetry())
     }
 
     fn silence_served(&mut self) -> bool {
@@ -158,7 +164,7 @@ impl DeployIo for HalFlash {
             Report::NotPersisted => c"Deployment attempt not persisted: burn withheld",
             Report::Unreadable => c"Deployment record unreadable: starting over",
             Report::AntsDeferred => c"AntS deployment deferred: below -17 C or no temperature",
-            Report::AntsSchedule => c"AntS temperature unknown 3 times: deploying on the analysis schedule",
+            Report::AntsSchedule => c"AntS temperature unknown 3 times: analysis schedule",
         };
         c::log(FAULT_TYPE_DEPLOYMENT, severity::ERROR, text, 0.0);
     }
@@ -358,6 +364,18 @@ mod tests {
         assert!(m.write_str(&"x".repeat(200)).is_ok());
         assert_eq!(m.len, 127);
         assert_eq!(&m.buf[124..], b"xxx\0");
+    }
+
+    /// The sunlight the AntS gate's releases use: the sun sensors or the
+    /// array (RID P3F-G-02)
+    #[test]
+    fn sunlit_from_the_sun_sensors_or_the_array() {
+        use sqso_fsw::eps_telemetry::{Telemetry, status};
+        let lit = Telemetry { status: status::SUNLIT, ..Telemetry::default() };
+        assert!(sunlit_now(true, None));
+        assert!(!sunlit_now(false, None));
+        assert!(sunlit_now(false, Some(lit)));
+        assert!(!sunlit_now(false, Some(Telemetry::default())));
     }
 
     /// The AntS gate's C interface: an unknown element is refused, NULL

@@ -127,7 +127,7 @@ Test Cases (TC-xxx)
 
 | Req ID | Description | Source File | Function/Line | Status |
 |--------|-------------|-------------|---------------|--------|
-| SRS-F001 | Initialize within 30s | main.c | init_system():45 | Implemented |
+| SRS-F001 | Initialize all subsystems within 30 seconds; boot IWDG and supervisor refreshed together at checkpoints | main.c | init_system():45 | Implemented |
 | SRS-F002 | Load config from NVM | mission_data.c | mission_data_init():78 | Implemented |
 | SRS-F003 | Self-test on boot | main.c | perform_self_test():112 | Implemented |
 | SRS-F004 | Increment reset counter | mission_data.c | mission_data_init():85 | Implemented |
@@ -158,7 +158,7 @@ Test Cases (TC-xxx)
 | SRS-F043 | SAFE mode on critical | fault_mgmt.rs (Rust) | fault_handle_critical():156 | Implemented |
 | SRS-F044 | Recovery from SAFE | eps_control.c | eps_attempt_recovery():245 | Partial |
 | SRS-F045 | Fault statistics | fault_mgmt.rs (Rust) | fault_get_stats():189 | Implemented |
-| SRS-F050 | Watchdog kick | main.c | kick_watchdog():45 | Implemented |
+| SRS-F050 | Kick the hardware watchdog at least every 30 seconds, at the supervisor's WDI edges | main.c | kick_watchdog():45 | Implemented |
 | SRS-F051 | Save before reset | main.c | prepare_for_reset():67 | Implemented |
 | SRS-F052 | Detect WDT reset | main.c | detect_reset_cause():89 | Implemented |
 | SRS-F060 | Persist mission data | mission_data.c | mission_data_save():56 | Implemented |

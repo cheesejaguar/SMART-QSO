@@ -683,6 +683,39 @@ static void test_ants_temperature_gate(void **state)
     assert_int_equal(deferrals, 1U);
 }
 
+/** RID P3F-G-02: an AntS whose temperature never reads valid (raw 0) is
+ *  deferred twice, then the analysis schedule replaces the gate: deployed
+ *  after the first 20 min of sun from separation + 69 min (here no sun is
+ *  sensed, so after the wait's bound), hours rather than 25 h */
+static void test_ants_unknown_temperature_schedule(void **state)
+{
+    (void)state;
+    FaultLogEntry_t entry;
+    uint8_t deferrals = 0xFFU;
+    uint8_t raw0[3] = {ANTS_TEMPERATURE, 0U, 0U};
+    assert_int_equal(hal_i2c_write(ANTS_BUS, ANTS_ADDR, raw0, sizeof(raw0)), SMART_QSO_OK);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false); /* the wings out */
+    wait_out();
+    deployment_tick(SECOND_MS);
+    for (unsigned n = 0U; n < (DEPLOYMENT_ANTS_UNKNOWN_LIMIT - 1U); n++) {
+        advance(2U * SECOND_MS, SECOND_MS);
+        assert_no_burn();
+        advance(DEPLOYMENT_RETRY_DELAY_MS, MINUTE_MS);
+    }
+    advance(2U * SECOND_MS, SECOND_MS);
+    assert_no_burn();
+    assert_int_equal(fault_log_get_last(&entry), SMART_QSO_OK);
+    assert_string_equal(entry.description, "AntS temperature unknown 3 times: analysis schedule");
+    assert_true(deployment_ants_gate(&deferrals, NULL));
+    assert_int_equal(deferrals, DEPLOYMENT_ANTS_UNKNOWN_LIMIT - 1U);
+    assert_true(deployment_downlink_held());
+    advance(DEPLOYMENT_ANTS_SUN_WAIT_MS - MINUTE_MS, MINUTE_MS);
+    assert_no_burn();
+    advance(MINUTE_MS + (2U * SECOND_MS), SECOND_MS);
+    assert_true(burning(DEPLOY_ELEMENT_ANTENNA));
+    assert_int_equal(attempts(DEPLOY_ELEMENT_ANTENNA), 1U);
+}
+
 /** Decision C-19: the transmitters are held (RF_INHIBIT_ANTS_PENDING, the
  *  receiver on) from boot, through the wings and the AntS deferrals, until
  *  the attempt at the deferral cap has been made; then the stowed-antenna
@@ -885,6 +918,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_disabled_holds, setup, teardown),
         cmocka_unit_test_setup_teardown(test_force_retry_after_failure, setup, teardown),
         cmocka_unit_test_setup_teardown(test_ants_temperature_gate, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_ants_unknown_temperature_schedule, setup, teardown),
         cmocka_unit_test_setup_teardown(test_downlink_held_while_the_ants_is_pending, setup, teardown),
         cmocka_unit_test_setup_teardown(test_downlink_hold_ends_with_a_deployed_ants, setup, teardown),
         cmocka_unit_test_setup_teardown(test_solar_failure_reported, setup, teardown),

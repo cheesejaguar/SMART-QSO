@@ -478,9 +478,6 @@ impl Executive {
         }
         init_spi_buses();
         self.rtc = read_mission_clock();
-        // The initialisation's checkpoints (SRS-F001, RID P3F-A-03): the boot
-        // IWDG and the supervisor refreshed together once 10 s have passed
-        watchdog_mgr::wdt_mgr_boot_checkpoint();
         let _ = deployment::deployment_init();
         // The commissioning hold and transponder enable, before anything
         // can ask for ACTIVE
@@ -491,17 +488,10 @@ impl Executive {
             eprint(format_args!("[SYSTEM] Fault management init failed"));
         }
 
-        watchdog_mgr::wdt_mgr_boot_checkpoint();
         init_rf_and_telecommand();
-        watchdog_mgr::wdt_mgr_boot_checkpoint();
-        if !self.init_power_and_sensors() {
+        if !self.init_power_and_sensors() || !self.init_mode_manager() {
             return false;
         }
-        watchdog_mgr::wdt_mgr_boot_checkpoint();
-        if !self.init_mode_manager() {
-            return false;
-        }
-        watchdog_mgr::wdt_mgr_boot_checkpoint();
         if !init_watchdog() {
             eprint(format_args!("[SYSTEM] Watchdog init failed"));
             return false;
@@ -567,6 +557,7 @@ impl Executive {
 
     /// Mission data, EPS and sensors (sensors.yaml on the host, else the defaults)
     fn init_power_and_sensors(&mut self) -> bool {
+        watchdog_mgr::wdt_mgr_boot_checkpoint();
         if mission_data::mission_data_init() != rc::OK {
             eprint(format_args!("[SYSTEM] Mission data init failed"));
         }
@@ -589,6 +580,7 @@ impl Executive {
     /// pass and the payload follows the power mode ([`Executive::run_adcs`],
     /// [`Executive::run_payload_schedule`]).
     fn init_mode_manager(&mut self) -> bool {
+        watchdog_mgr::wdt_mgr_boot_checkpoint();
         let _ = beacon::beacon_init(); // templates until the Jetson's text passes the filter
         // Beacon interval jitter (RF-04), seeded differently at each boot
         #[allow(clippy::cast_possible_truncation)] // any 32 bits will do as a seed
@@ -1801,6 +1793,9 @@ fn sm_state() -> u32 {
 }
 
 fn init_rf_and_telecommand() {
+    // The initialisation's checkpoints (SRS-F001, RID P3F-A-03): the boot
+    // IWDG and the supervisor refreshed together once 10 s have passed
+    watchdog_mgr::wdt_mgr_boot_checkpoint();
     let _ = rf_silence::rf_silence_init();
     let _ = contact_monitor::contact_monitor_init();
     // A passivated spacecraft's inhibit is set before the lines are driven

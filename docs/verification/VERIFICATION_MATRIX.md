@@ -81,7 +81,7 @@ current.
 | MRD-052 | D | CI + DITL | continuous; 2028-02 | Mode-gate tests; TP-SYS-002 | Not verified |
 | MRD-053 | D | CI + DITL | continuous; 2028-02 | Jetson gate tests; TP-JETSON-001 | Not verified |
 | MRD-060 | A,T | CDR + ORB | 2027-09-28; after launch | ADCS Monte Carlo of the flight code; HIL closed loop; commissioning | Not verified |
-| MRD-061 | A,T | EMT + CDR | 2027-07 to 2027-09; 2027-09-28 | ADCS Monte Carlo sun-vector knowledge (ADCS_DESIGN §11.6); TP-ADCS-003 §3.1 on the EM | Not verified |
+| MRD-061 | A,T | EMT + CDR | 2027-07 to 2027-09; 2027-09-28 | TP-ADCS-003 §3.1 on the EM (photodiode response, wing shadow, gyro rate); ADCS Monte Carlo with the photodiodes and albedo, ADCS-P002 per trial (ADCS_DESIGN §11.6) | Not verified |
 | MRD-062 | T | CDR + ORB | 2027-09-28; after launch | ADCS Monte Carlo (spin sun-pointing); commissioning | Not verified |
 | MRD-070 | D | DITL | 2028-02 | TP-GS-001 | Not verified |
 | MRD-071 | D | DITL | 2028-02 | TP-GS-001 with the published decoder | Not verified |
@@ -364,6 +364,10 @@ current.
 | SRS-F166 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-F167 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
 | SRS-F168 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F169 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F170 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F171 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F172 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-P001 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
 | SRS-P002 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
 | SRS-P003 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
@@ -554,12 +558,12 @@ current.
 
 | Code | Event | Planned date | Requirements |
 |------|-------|--------------|--------------|
-| CI | Flight-software tests in CI (host) | continuous | 323 |
+| CI | Flight-software tests in CI (host) | continuous | 327 |
 | SIL | Mission simulation, software in the loop (sqso-sil) | 2026-11 to 2027-01 | 6 |
 | PDR | Analysis or inspection presented at the PDR | 2027-01-12 | 8 |
 | REG | Regulatory filing or coordination record | 2027-01 to 2028-06 | 10 |
 | CON | Launch contract and integrator ICD | 2027-05-31 | 8 |
-| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-06 to 2027-07 | 294 |
+| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-06 to 2027-07 | 298 |
 | EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-07 to 2027-09 | 13 |
 | CDR | Analysis or inspection presented at the CDR | 2027-09-28 | 68 |
 | FMI | FM integration and comprehensive functional (TP-INT, TP-SYS-001) | 2027-12 to 2028-02 | 165 |
@@ -572,10 +576,10 @@ current.
 
 | Status | Requirements |
 |--------|--------------|
-| Not verified | 401 |
+| Not verified | 405 |
 | Partial (CI) | 80 |
 | Deleted | 1 |
-| **Total** | **482** |
+| **Total** | **486** |
 
 Methods: A analysis, D demonstration, I inspection, T test, V validation (mission objectives, judged against the success criteria). A method marked * is proposed here because the specification gives none.
 <!-- vcrm:end -->

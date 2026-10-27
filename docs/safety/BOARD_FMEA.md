@@ -1,7 +1,7 @@
 # SMART-QSO Board-Level FMEA of the Build-to Designs
 
 **Document ID**: SQSO-FMEA-003
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft, round 3 (closure panel finding P3P-04, severity 2). Board-level functional and interface FMEA of
@@ -64,7 +64,7 @@ insides of bought units (AntS, GNSS receiver, Jetson module, M-G370 gyro), which
 ## 3. Results
 
 <!-- BEGIN COUNTS (scripts/board_fmea.py) -->
-178 failure modes. By severity: **1**: 24, **2**: 63, **3**: 50, **4**: 41. By criticality: 1: 3, 1R: 21, 2: 58, 2R: 5, 3: 50, 4: 41. Whole-mission single points (SPF Y): **58**; single points for transponder service (SPF L2): 4.
+179 failure modes. By severity: **1**: 24, **2**: 64, **3**: 50, **4**: 41. By criticality: 1: 3, 1R: 21, 2: 59, 2R: 5, 3: 50, 4: 41. Whole-mission single points (SPF Y): **59**; single points for transponder service (SPF L2): 4.
 
 | Board | Modes | Sev 1 | Sev 2 | Sev 3 | Sev 4 | SPF Y | SPF L2 |
 |-------|------:|------:|------:|------:|------:|------:|-------:|
@@ -72,10 +72,10 @@ insides of bought units (AntS, GNSS receiver, Jetson module, M-G370 gyro), which
 | OBC | 29 | 0 | 10 | 8 | 11 | 9 | 1 |
 | A2 | 6 | 1 | 0 | 3 | 2 | 0 | 0 |
 | A3 | 8 | 2 | 1 | 1 | 4 | 1 | 0 |
-| RF | 32 | 0 | 15 | 14 | 3 | 15 | 1 |
+| RF | 33 | 0 | 16 | 14 | 3 | 16 | 1 |
 | JET | 12 | 1 | 0 | 0 | 11 | 0 | 0 |
 | HAR | 19 | 2 | 6 | 5 | 6 | 6 | 1 |
-| **Total** | **178** | 24 | 63 | 50 | 41 | 58 | 4 |
+| **Total** | **179** | 24 | 64 | 50 | 41 | 59 | 4 |
 <!-- END COUNTS -->
 
 **New single points** (whole-mission, not identified in SQSO-FMEA-002 C): 35 rows (36 in Version A; BF-HAR-01 left the list when the EPS took the tap ladder and gave the secondary protector its own taps).
@@ -269,7 +269,7 @@ point, L2 = single point for transponder service. "Rev D" marks rows that rest o
 | BF-OBC-15 | XPDR_EN (PE4, TIM7 heartbeat, lease) | Repeat-path enable | loss of output | No edges: pin stuck, timer stopped | Pin, timer or software | EN_OK low | No repeat: transponder service lost | XPDR_KEY readback | None (single path) | 3 | 3 | L2 | CIL-13; HF-26 |
 | BF-OBC-16 | Heartbeat lease (FSW, 40 ms) | Stops the heartbeat when the gates close | spurious | Lease renewed after the gates close | Upset of the lease counter | Heartbeat continues | Transponder runs outside its schedule until the next gate pass or a watchdog reset | XPDR_KEY in housekeeping | Watchdogs; PA rail gates | 4 | 4 | — |  |
 | BF-OBC-17 | DEPLOY_SENSE (PE2): FSW reading | Separation state for the RF silence and the deployment wait | spurious | Design disagreement: the FSW configures a pull-up and treats high as stowed (separation_switch.rs); the EPS drives the line high when DS2 is released (R113, 1 MΩ source) | Interface error (the FSW's own open item asks for the schematic check) | After separation every pass reads stowed | RF silence and the 30 min deployment wait restart for ever: no deployment, no transmission: loss of mission | None in flight; flatsat test V-BFM-07 | None. SMA-B02 | 2 | 2 | Y | CIL-27; SMA-B02 |
-| BF-OBC-18 | DEPLOY_SENSE path (W3-16, 10 kΩ, R113) | As BF-OBC-17 | open | Line open (after the polarity correction) | Crimp, resistor open | Input floats | Spurious stowed readings restart the timers | Debounce counters | SMA-B02: no timer restart from the sense line once separated | 2 | 2 | Y | CIL-27; SMA-B02 |
+| BF-OBC-18 | DEPLOY_SENSE path (W3-16, 10 kΩ, R113) | As BF-OBC-17 | open | Line open (after the polarity correction) | Crimp, resistor open | Input floats | Spurious stowed readings restart the timers | Debounce counters | SMA-B02: no timer restart from the sense line once separated: within a boot the 10 s latch; across resets the separation flag of a non-ARMED deployment record, or the served RF silence, latches the reading at boot (SRS-F159), so neither the RF silence nor the 30-min wait restarts on an open line | 2 | 2 | Y | CIL-27; SMA-B02 |
 | BF-OBC-19 | Burn lines PB9, PB10, PE6, PE7 | One resistor each | stuck | Line stuck high or low | Pin fault | High: one 12 s burn (one-shot); low: that resistor lost | Wing's other resistor remains | Burn currents | Four lines | 3 | 3 | — | CIL-12 |
 | BF-OBC-20 | I2C2 pull-ups (2.2 kΩ on SCL and SDA, the only pull-ups on the bus) | I2C2 bus levels | open | A pull-up resistor opens | Resistor open, solder joint | Bus line cannot rise | As BF-EPS-50: before the AntS deployment the antennas stay stowed | I2C errors | None. SMA-B07: two parallel pull-ups per line | 2 | 2 | Y | CIL-19; SMA-B07 |
 | BF-OBC-21 | Gyro rails U5, U6; M-G370, BMI088 | Rate sensing | loss of output | Primary gyro or its rail lost | Part failure, SEL (trip and retry) | Fail-over to the BMI088 (SRS-F140) | None if the BMI088 works | Rail readbacks, DIAG_STAT | Cold spare | 4 | 4 | — | HF-28 |
@@ -336,12 +336,13 @@ point, L2 = single point for transponder service. "Rev D" marks rows that rest o
 | BF-RF-24 | Key-down timer HC4060 | 120 s limit | stuck | NOT_TOT stuck high | Part failure | No timeout | A steady tone keeps the repeater keyed while EN_OK holds | PTT_EXCITER input capture | Heartbeat schedule; duty limits | 3 | 3 | — |  |
 | BF-RF-25 | TONE_OK relay (TNC from the CMX138A) | Tone decision | spurious | TONE_OK high without a tone | CMX138A falsing, TNC relay fault | Repeats noise while EN_OK | Energy and channel occupancy, ≤ 120 s per event | TONE_OK, XPDR_KEY | Key-down timer, heartbeat | 3 | 3 | — |  |
 | BF-RF-26 | Select TMUX1219, TNC_PTT path | TNC audio to the exciter for frames | stuck | Select stuck at the repeat input, or TNC_PTT lost | Part failure | TNC audio or PTT never reaches the exciter | No beacon: loss of mission | Frames sent, nothing decoded | None | 2 | 2 | Y | CIL-23 |
-| BF-RF-27 | PTT gate (LVC1G32, LVC1G08), TX permit U804 | PTT_EXCITER | stuck | Gate output stuck low, or U804 stuck low | Part failure | No PTT | No transmission: loss of mission | PTT_EXCITER readback | None | 2 | 2 | Y | CIL-23 |
+| BF-RF-27 | PTT gate (LVC1G32, LVC1G08), TX permit U804 | PTT_EXCITER | stuck | Gate output stuck low, or U804 stuck low (stuck high: BF-RF-33) | Part failure | No PTT | No transmission: loss of mission | PTT_EXCITER readback | None | 2 | 2 | Y | CIL-23 |
 | BF-RF-28 | PTT AND, TX permit U804 | As BF-RF-27 | stuck | Stuck high | Part failure | Permit path 1 lost | Path 2 (U805: exciter unpowered without PA_5V) remains | VI-RFB-08 (ground) | Second permit path | 4 | 4 | — |  |
 | BF-RF-29 | Carrier detect RX_CD (CC1200 GPIO2, U480, threshold) | Carrier evidence for SRS-F115/F116 | stuck | Stuck high: buffer, configuration, threshold below a rising noise floor, or steady terrestrial interference | Part failure, drift, environment | FSW counts a carrier every day | The 24 h recovery cycle is never made and known-failed is cleared: a hung receiver is never cycled and REL-04 never applies; with a receiver hang, loss of mission | RX_CD duty in housekeeping | None. SMA-B11: a continuous carrier is not evidence | 3 | 3 | — | CIL-24; SMA-B11 |
 | BF-RF-30 | Carrier detect RX_CD | As BF-RF-29 | stuck | Stuck low | Part failure | No carrier evidence | Recovery cycles on silence as designed | RX_CD counts zero | SRS-F115 | 4 | 4 | — |  |
 | BF-RF-31 | Receiver health RX_FAULT (U481 monostable on RX_ALIVE, U482) | Evidence of receiver failure | stuck | Stuck low (reads healthy) | Part failure, RX_ALIVE pin | Health line never reports a fault | REL-04 unavailable (latent): with a receiver failure the beacon is silenced after N days | None (healthy is also the open-line state) | None. SMA-B11: RX_FAULT power-on self-test | 3 | 3 | — | CIL-24; SMA-B11 |
 | BF-RF-32 | Receiver health RX_FAULT | As BF-RF-31 | stuck | Stuck high, or a TNC criterion falsely failing | Monostable timing drift, U482, firmware | Health line in fault with a working receiver | After a recovery cycle and N days of a silent ground the beacon continues, which D3 meant to stop; a valid frame clears it | RX= flags in housekeeping | Valid frames clear it | 3 | 3 | — | SRS-F116 |
+| BF-RF-33 | Key gate U-LVC1G11 (XPDR_KEY) or PTT OR gate (LVC1G32) | PTT_EXCITER | stuck | Output stuck high (XPDR_KEY or PTT_EXCITER keyed with no request) | Part failure | Exciter keyed continuously, past the 120 s key-down timer (upstream of the gate) | Uncontrolled carrier (SW-HAZ-014) until the OBC acts; then no downlink: loss of mission | PTT_EXCITER and XPDR_KEY readbacks: the PTT watch (SRS-F168) latches TX-OFF when XPDR_KEY reads high with the heartbeat stopped (1 s) or for more than 130 s, or the exciter is keyed unexplained for 6 s in all | TX-OFF (RF_TX_EN) removes TX_PERMIT_HW; ground TX_ENABLE re-trips while the fault stays (RID P3F-A-02) | 2 | 2 | Y | SW-HAZ-014; P3F-A-02 |
 
 ### 6.6 Jetson carrier (SQSO-JET-BRD-001 E)
 
@@ -416,3 +417,4 @@ point, L2 = single point for transponder service. "Rev D" marks rows that rest o
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR S&MA, round 3 (P3P-04) | Initial issue: board-level FMEA of the EPS (Rev D), battery sense board, OBC, A2, A3, RF, Jetson carrier, interconnect and harness; rows and counts in `BOARD_FMEA_ROWS.csv` and `scripts/board_fmea.py`; expectations for the four EPS changes; findings SMA-B01 to SMA-B19; V-BFM-01 to -08 |
 | B | 2026-10-27 | CDR S&MA, round 3 (coordinator check) | §4.1: secondary protector, Q16 and F3 on the battery sense board (EPS F, BATTERY_DESIGN 2.9) and the F1 fire temperature condition (ICD-001 1.6 §4.6) checked: H1 two-fault tolerance holds, cold overcharge with F3 below −10 °C is a three-fault case; BF-EPS-11, BF-HAR-01 (no longer a single point), BF-EPS-65 revised; BF-EPS-71, -72 added (178 modes); SMA-B20 to SMA-B24 |
+| C | 2026-10-27 | CDR flight software, round 3 (closure-panel findings) | BF-OBC-18: the separation persisted across resets (the deployment record's separation flag or the served RF silence latches DEPLOY_SENSE at boot, SRS-F159; SMA-B02 reopened); BF-RF-33 added, the key gate or PTT OR stuck high, detected by the PTT watch (SRS-F168, P3F-A-02); BF-RF-27 points to it (179 modes) |

@@ -1862,6 +1862,17 @@ mod tests {
         assert!(!d.downlink_held());
         assert_eq!(io.unpowered_reads, 0);
         assert!(io.no_burn());
+        // Inhibited as the verification begins: not read, and retried at
+        // the window's end without powering
+        let mut io = Bench::new();
+        let mut d = at_the_antenna(&mut io);
+        advance(&mut d, &mut io, ANTENNA_BURN_TIME_MS + 2 * SECOND_MS, SECOND_MS);
+        assert_eq!(d.state(), State::AntennaVerify);
+        assert!(d.set_enabled(false, &mut io));
+        io.sense[Element::Antenna as usize] = true;
+        advance(&mut d, &mut io, RETRY_DELAY_MS + MINUTE_MS, SECOND_MS);
+        assert_eq!(d.state(), State::AntennaPending);
+        assert!(io.no_burn() && io.unpowered_reads == 0);
         // Inhibited in ANTENNA_PENDING: neither powered nor read
         let mut io = Bench::new();
         let mut d = at_the_antenna(&mut io);
@@ -2224,6 +2235,16 @@ mod tests {
         advance(&mut d, &mut io, 2 * SECOND_MS, SECOND_MS);
         assert!(io.burning(Element::Antenna) && io.wing == [[false; 2]; 2]);
         assert_eq!(d.element_status(Element::SolarPanel).attempt_count, 0);
+        // A record at ANTENNA_PENDING that already marks the AntS deployed:
+        // finished without powering or reading it
+        let mut io = Bench::new();
+        let flags = FLAG_ANTENNA_DEPLOYED | FLAG_SOLAR_DEPLOYED | FLAG_ENABLED | FLAG_SEPARATED;
+        let rec = [State::AntennaPending as u8, 1, 1, flags, 0x08, 0x07, 0, 0, 0, 0, 0, 0];
+        nvm::save(&mut io.flash, 10, 0, RECORD_MAGIC, &rec).unwrap();
+        let mut d = boot(&mut io, Reset::PowerKept);
+        d.tick(SECOND_MS, &mut io);
+        assert_eq!(d.state(), State::Complete);
+        assert!(io.no_burn() && io.ants_reads == 0);
     }
 
     /// A stowed switch clears a stored wait count even in INHIBITED (a

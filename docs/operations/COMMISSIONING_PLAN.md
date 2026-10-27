@@ -1,7 +1,7 @@
 # SMART-QSO Commissioning Plan
 
 **Document ID**: SQSO-COMM-001
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft for CDR. Commands are the flight dictionary as of flight software round 3
@@ -139,9 +139,25 @@ certification.
 | | |
 |---|---|
 | Entry | C-2 |
-| Commands | `GET_HOUSEKEEPING`; `ADCS_SET_GYRO_ALIGN` (0x25) with the matrix measured on the flight unit (VI-MCAD-05; persisted, refused unless every element is within 1.1 and the determinant within 0.05 of 1); `ADCS_SET_MAG_BIAS` (0x26) per rod polarity state once the on-orbit bias estimate is available (AV-V4; persisted); `ADCS_DETUMBLE` (0x21) only if `W` stays above 0.5°/s across +Y beyond S+5 h; `DEPLOY_RETRY` (0x50: 0 antenna, 1 solar wings) in a sunlit pass if `DEP` reports an element FAILED (refused during the 30-minute wait and during a burn); `ADCS_SET_GEOMETRY` (0x24: 1 wing W1 only, 2 wing W2 only, 3 no wing) if a wing stays stowed after the retries |
+| Commands | `GET_HOUSEKEEPING`; `ADCS_SET_GYRO_ALIGN` (0x25) with the matrix measured on the flight unit (VI-MCAD-05; persisted, refused unless every element is within 1.1 and the determinant within 0.05 of 1); `ADCS_SET_MAG_BIAS` (0x26) per rod polarity state once the on-orbit bias estimate is available (AV-V4; persisted); `ADCS_DETUMBLE` (0x21) only if `W` stays above 0.5°/s across +Y beyond S+5 h; `DEPLOY_RETRY` (0x50: 0 antenna, 1 solar wings) in a sunlit pass if `DEP` reports an element FAILED (refused during the 30-minute wait and during a burn); `ADCS_SET_GEOMETRY` (0x24: 1 wing W1 only, 2 wing W2 only, 3 no wing) only as C-5.1 below decides (decision C-21: with one wing out the spacecraft stays at preset 0 until the identification names the wing) |
 | Proof | `DEP`: deployment COMPLETE, AntS elements 15 (all four), both wing senses deployed; `W` body rates: spin about +Y at about 8°/s, transverse rates below 0.5°/s; `AM` sun-pointing; `SUN=1` through each sunlit pass; `PA` and the SOC recovering at about 8 % per sunlit orbit after a discharge, which needs the wings; beacon signal strength against range consistent with a deployed 2 m monopole (≈ +8 dB margin at 5°, BASELINE §7); HK2 `GY` the gyro in use |
 | Exit | `DEP` complete and the spin stable on 3 consecutive passes; or, with an element failed after its retries, the geometry preset set and the power case of MISSION_TIMELINE §8.2 confirmed |
+
+#### C-5.1 One wing deployed: which one (decision C-21)
+
+SOLAR_SENSE is both hinge switches in series, so with one wing out HK1 `DEP` shows only "not both". The flight software
+then keeps geometry preset 0 (both wings; HK2 `GE=0`, SRS-F171) and never picks a one-wing preset by itself: the wrong
+one-wing preset is the case not analysed, preset 0 costs 2–3 % of the power. Presets 1 and 2 are sent only after this
+procedure names the wing. Numbers from the GN&C engineer (ADCS_DESIGN 1.9 §11.7, Monte Carlo with photodiodes and
+albedo).
+
+| Step | Action | Pass criterion |
+|------|--------|----------------|
+| 1. Entry | `DEP` wing sense not deployed after the wing retries (or `DEPLOY_RETRY` 1 refused to help); `AM` sun-pointing at preset 0 (`GE=0`); spin captured (`W` about 8°/s about +Y) | — |
+| 2. Method B (primary) | Over at least one full sunlit orbit under preset 0, collect HK1 `W` (body rates x/y/z, 0.01 °/s) from every pass and the stored five-minute records (DUMP_TLM); compute the tilt = atan2(mean W_x, mean W_y) | Tilt ≤ −1.5° names **W1** only (expected −3.5 … −3.8°, Monte Carlo trials −4.9 … −3.0°); ≥ +1.5° names **W2** only (expected +3.4°, trials +2.7 … +4.1°); between −1.5° and +1.5° (both wings or neither: expected +0.1°, −0.6 … +0.7°): no one-wing preset, stay at 0. The nearest trial is 1.2° from its threshold, gyro bias included |
+| 3. Method A (secondary, confirmation) | Only during a capture (after a commanded `ADCS_DETUMBLE`, while the Sun is 30–70° off +Y, which lasts a few minutes): a 1 Hz record of `PA` (array power), the sun vector and `W` over 3 turns; fit c + a·cos ωt + b·sin ωt (ω from the gyro's y rate) to the +Z photodiode and to `PA` | Sun 30–70° from +Y; `PA` harmonic amplitude ≥ 0.2 W (≥ 0.41 W expected with one wing, ≤ 0.02 W with both or neither); its lag behind the +Z harmonic within ± 45° of +90° (**W1**) or −90° (**W2**); otherwise repeat. Needs a 1 Hz record the flight software does not yet downlink (HK2 `SN` and `IA` are snapshots per `GET_HOUSEKEEPING`); until that capture exists, method A is a ground analysis of repeated `GET_HOUSEKEEPING` snapshots and does not override method B |
+| 4. Command | `ADCS_SET_GEOMETRY` 1 (W1 named) or 2 (W2 named); HK2 `GE` confirms | `GE` reads the preset sent |
+| 5. Confirm | One day under the new preset: tilt from `W` as in step 2 | Tilt moves to −8.0° (preset 1) or +8.9° (preset 2) within 2°; a wrong preset gives +2.8° (preset 1 sent with W2 out) or −1.9° (preset 2 with W1 out). More than 2° from the preset's axis after a day: send `ADCS_SET_GEOMETRY` 0 and repeat from step 2 |
 
 ### C-6 Beacon conformance
 
@@ -218,3 +234,4 @@ certification.
 | 2.0 | 2026-10-27 | CDR launch and ConOps review | Rewritten step by step (C-0 to C-11) with entry criteria, the commands of the flight dictionary, the telemetry that proves each step and its exit criterion; TX-OFF proof added before the transponder; ephemeris step added; the RF silence is 45 min; the separation SOC and pass statistics from the simulation and the pass analysis. Version 1.0 used commands that do not exist (`JETSON_POWER`, `AI_ENABLE`, `FORCE_FALLBACK`, `ECHO_TEST`, `RELEASE_SAFE`, `SET_TX_POWER`) and assumed a 30-minute RF timer, a > 95 % SOC at deployment and telemetry the downlink does not carry |
 | 2.1 | 2026-10-27 | CDR round 3, launch and operations (RID LV-13) | Brought to the command dictionary of flight software round 3 (30 commands): HK1 and HK2 as the proof of each step (`GET_HOUSEKEEPING` 0x09, `DUMP_TLM` 0x0A), the acknowledgement rule; C-7 is the commissioning release (`COMMISSIONING_RELEASE` 0x08, with `XPDR_DISABLE`/`XPDR_ENABLE` 0x35/0x34 and `PLD_DISABLE` first), so the transponder runs only after the release; deployment retry (`DEPLOY_RETRY` 0x50), `ADCS_SET_GEOMETRY` 0x24, `ADCS_SET_GYRO_ALIGN` 0x25 and `ADCS_SET_MAG_BIAS` 0x26 in C-5; `GNSS_REQUEST` 0x60 in C-9; `EPS_CLEAR_LOCKOUT` 0x14 in C-4; `PASSIVATE_ARM`/`PASSIVATE_EXECUTE` 0x70/0x71 excluded; commanding above 10° (12° in the degraded mode, C-14) and the uplink offset from the measured downlink (RFB-05); pass statistics from SQSO-MTL-001 2.3 (first beacon pass median S+5.3 h, at most S+12.1 h; first commanding pass median S+6.4 h, at most S+13.7 h); the D5 energy gate measured from HK2. Version 2.0 said the transponder started by itself at S+53 min, that there was no housekeeping downlink, deployment retry or GNSS command, that commands went only above 15° and that the dictionary had 17 commands |
 | 2.2 | 2026-10-27 | CDR flight software, round 3, fourth part (decision C-19) | C-1 entry and §8: the first beacon waits for the AntS sequence's end (SRS-F167) |
+| 2.3 | 2026-10-27 | CDR flight software, round 3, fifth part (decision C-21) | C-5.1 added: the one-wing identification (method B from the body-rate tilt, method A from the array-power harmonic), pass criteria from ADCS_DESIGN 1.9 §11.7; preset 0 until the wing is named (SRS-F171, HK2 `GE`) |

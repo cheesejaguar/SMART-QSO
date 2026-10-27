@@ -1,13 +1,13 @@
 # OBC Selector and Transponder Scheduler: Detailed Design
 
 **Document ID**: SQSO-PAY-SEL-001
-**Version**: A
+**Version**: B
 **Date**: 2026-10-27
 **Status**: CDR detailed design; not implemented (fabrication-phase task, §11)
 
 **Parents**: `docs/BASELINE_PARAMETERS.md` §2 and §6 (decision D5); `docs/payload/AI_MODEL_SELECTION.md` (SQSO-AUD-006) §1, §5;
 `docs/BEACON_SPEC.md` §6 (content filter); `software/rust/sqso-fsw/src/transponder.rs` (the gates).
-**Requirements**: SRS-F100 to SRS-F107 (`docs/software/SOFTWARE_REQUIREMENTS.md` §3.11).
+**Requirements**: SRS-F100 to SRS-F107, SRS-F170 (`docs/software/SOFTWARE_REQUIREMENTS.md` §3.11).
 
 ## 1. Purpose and scope
 
@@ -151,6 +151,24 @@ leaf 2 bytes. Traversal is a fixed-depth loop, no recursion.
 - The table carries a version, a schema hash of the feature list (§4) and a CRC-32. If any check fails at boot the
   selector is disabled for the boot and a fault is logged.
 
+### 6.4 Telemetry: decisions and abstentions per head
+
+The mission success criteria count the selector's decisions and abstentions (SQSO-MSC-001 §7; RID SMA-15). The
+selector shall count, per head (H1 beacon template, H2 transponder bucket, H3 power-mode preference), each evaluation
+that produced a decision and each that abstained (§6.3: the fixed rules decided), since boot, and the flight software
+shall report them with the table state in HK2 field `SL` (SRS-F170):
+
+```
+SL=<table in use 1/0>/<H1 decisions>/<H1 abstentions>/<H2 decisions>/<H2 abstentions>/<H3 decisions>/<H3 abstentions>
+```
+
+The counters and the field exist in the flight software now (`software/rust/sqso-fsw/src/selector.rs`,
+`housekeeping.rs`; HK2 stays within its frame split, `docs/operations/TELEMETRY_DICTIONARY.md` §4.4.1): until the
+selector is implemented (§11) the table is absent and every count is 0. The selector's implementation feeds them
+(`Stats::record` at each head's evaluation); the stored five-minute records keep the ground's view across passes
+through the HK2 frames each pass returns. Verification: the HK2 format by unit test now; the counts with the
+selector (§9, the abstention tests, and the mission SIL comparing `SL` with the logged decisions).
+
 ## 7. Training
 
 1. **Data.** At least 200 runs of the mission simulation (`sqso_sil --scenario year`) with random seeds and the
@@ -219,3 +237,4 @@ here is the CDR deliverable.
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | A | 2026-10-27 | SMART-QSO Team (CDR avionics and flight-software review) | Initial issue: selector and transponder-scheduler detailed design (inputs, outputs, model form, abstention, hard limits, budget, training, validation, verification, failure behaviour) |
+| B | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fifth part) | §6.4 added: decisions and abstentions per head in HK2 `SL` (SRS-F170, RID SMA-15 reopened) |

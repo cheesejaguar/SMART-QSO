@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-002
-**Revision:** G
+**Revision:** H
 **Date:** 2026-10-27
 **Reference:** NPR 7123.1D (tailored, `docs/project/CDR_CRITERIA_MATRIX.md` §2); `docs/BASELINE_PARAMETERS.md` Rev E (amended)
 
@@ -270,7 +270,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 |----|-------------|--------|--------------|
 | SYS-510 | The flight-baseline beacon text shall come from the OBC-resident selector choosing among pre-approved templates; the AI payload shall run a TinyLM model for text generation (SmolLM2-360M-Instruct or Qwen3-0.6B, INT4) only as the gated experiment of BASELINE §6, enabled when the measured p95 energy per accepted beacon is ≤ 0.1 Wh (decision D5) *(CDR review 2026-10-27)* | MRD-044 | D |
 | SYS-511 | The AI payload shall receive health data from OBC | MRD-041 | D |
-| SYS-512 | The AI payload shall generate beacon text in batches of at least 10 lines within one burst of no more than 120 s, at no more than 0.1 Wh (360 J) p95 per accepted beacon at the carrier input (BASELINE §6, D5) *(was "within 10 seconds"; CDR review 2026-10-27)* | MRD-044 | T |
+| SYS-512 | The AI payload shall generate beacon text in bursts of one power-on of no more than 10 min and 3.6 kJ at the carrier input, at no more than 0.1 Wh (360 J) of burst energy per accepted beacon line, counted on the lines the content filter accepts (BASELINE §6, D5; decision C-20, CR-2026-018) *(was "batches of at least 10 lines within one burst of no more than 120 s ... p95 per accepted beacon"; CDR round 3, 2026-10-27)* | MRD-044 | T |
 | SYS-513 | Generated text shall be ASCII-only and within length limits, and shall pass the deterministic content filter of `docs/BEACON_SPEC.md` §6 on both the payload and the OBC (no URLs, commercial words, profanity, encoded-looking words, other call signs or numbers) *(filter added at the CDR review, 2026-10-27; 97.113(a)(3)-(4))* | MRD-097 | T |
 | SYS-514 | The AI payload shall report health status to OBC | MRD-045 | D |
 
@@ -459,3 +459,4 @@ from this document by `software/simulation/cdr/pm/gen_vcrm.py`.
 | E | 2026-10-27 | CDR review (PM/SE/V&V). Aligned with `docs/BASELINE_PARAMETERS.md` Rev D: SYS-002 (dispenser limit), SYS-003 (per axis), SYS-010, SYS-012, SYS-100, SYS-111, SYS-203 (46 dB and 60 dB), SYS-420, SYS-422, SYS-112 (10 % nominal), SYS-501, SYS-502, SYS-510, SYS-512, SYS-513, SYS-603, SYS-701, SYS-702, SYS-712. Added CDS Rev 14.1 flow-down SYS-080 to SYS-089 (§5.1a), launch-environment verification SYS-703 to SYS-709 (§12.3), EMC SYS-713 (§12.4), and launch-provider, integrator and regulatory requirements SYS-900 to SYS-919 (§13a), traced to the launch reviewer's LVR-001 to LVR-114 (SQSO-LVR-001). TBD/TBR target dates set. Change request to be logged by the chair (CR-2026-007) | CDR review, PM/SE/V&V |
 | F | 2026-10-27 | CDR 2026 consistency pass: SYS-012 (465-485 km), SYS-422 (8 deg/s spin), SYS-907 (475 km target, 485 km cap) from `docs/BASELINE_PARAMETERS.md` Rev E (CR-2026-007) | CDR documentation review |
 | G | 2026-10-27 | CDR round 3 (proposed; PI decision by 2027-01-12, CR-2026-009 and CR-2026-010): SYS-100 2.23 W (was proposed 2.21 W; transponder allocation 1.85 W DC, RF board E) at the BASELINE §5 1.84 W load (SE-03, P3E-08); SYS-203 third harmonic ≥ 70 dB at the antenna port (RF-07); SYS-222 the RF-P013 pattern statement (RF-05); SYS-224 every RF emitter including the GNSS receiver, and the completion latch (P3A-01, LV-15); SYS-603 a temperature requirement instead of the 1 W/K conductance (SE-07); SYS-707 the integrator's cycle count and the SpaceX range reconciled (P3S-10); applicable baseline Rev E (amended); Rev E and F, which CR-2026-007 omitted, recorded in CR-2026-009; (amended, proposed, CR-2026-017, RID THM-04) SYS-600 and SYS-601 per-unit allowable flight temperatures of THERMAL_DESIGN §1.1 (−30 °C cold for every board, −40 °C for the first orbit after separation with a GEVS test-margin deviation) | CDR round 3, systems and programmatics |
+| H | 2026-10-27 | CDR round 3, flight software fifth part (decision C-20, CR-2026-018) | SYS-512: one burst definition (a power-on of at most 10 min and 3.6 kJ at the carrier input) and the 0.1 Wh metric per accepted beacon line, counted on accepted lines (was 120 s bursts and a p95 per beacon) |

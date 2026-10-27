@@ -2,7 +2,7 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-CRL-001
-**Revision:** H
+**Revision:** I
 **Date:** 2026-10-27
 **Reference:** `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` §4.3 to §4.4, §6.3
 
@@ -1080,6 +1080,73 @@ Submitter: Design review (round 3, thermal; RID THM-04)
 
 ---
 
+### CR-2026-018: one Smart Beacon burst definition and the metric per accepted line (decision C-20)
+
+```
+Change Request Number: CR-2026-018
+Date Submitted: 2026-10-27
+Submitter: Flight software (CDR round 3, fifth part; RID P3F-G-03, decision C-20)
+
+1. Configuration Item Affected:
+   CI ID: SYS-512 (docs/requirements/SYSTEM_REQUIREMENTS.md);
+   VI-02 (docs/environment/ENVIRONMENTAL_TEST_PLAN.md, VI register);
+   SQSO-MSC-001 E-02 (docs/mission/MISSION_SUCCESS_CRITERIA.md);
+   SRS-F151 (docs/software/SOFTWARE_REQUIREMENTS.md); the D5 research
+   record's 960 J burst figure (note added, record kept)
+
+2. Description of Change:
+   - One burst definition, the one the design implements (BASELINE §6,
+     SRS-F151, payload_schedule.rs): a Jetson power-on of at most
+     10 min and at most 3.6 kJ at the carrier input, ended early by
+     the energy gate. SYS-512 and VI-02 said "a burst of no more than
+     120 s", D5 "burst energy ≤ 960 J".
+   - The go/no-go metric: energy per accepted beacon line (a line the
+     content filter accepts) ≤ 0.1 Wh (360 J), counted on accepted
+     lines, not per burst: on the EM over ≥ 30 bursts (VI-02) and in
+     commissioning over ≥ 10 bursts (MSC E-02).
+   - The flight gate counts accepted lines: a burst ends when its
+     energy exceeds 360 J for each accepted line plus the one in
+     progress, or at 3.6 kJ or 10 min (SRS-F151).
+
+3. Reason for Change:
+   RID P3F-G-03: with the design's bursts (SIL mean about 3.2 kJ,
+   about 7 min) VI-02 failed by design, MSC and VI counted bursts
+   differently, and the gate bounded energy per burst rather than per
+   accepted line. Decision C-20 (chair).
+
+4. Impact Assessment:
+   - Technical: none on the hardware; the flight gate ends a burst whose
+     lines are refused or slow. Mission SIL (commissioning, 14 days):
+     per-burst energy p50 3,625 J, p95 3,629 J at the model's input;
+     0.065 Wh per good line at 3 % filter rejection, 0.070 Wh at 10 %,
+     0.090 Wh at 30 % (SQSO-SIL-001 G §7).
+   - Schedule, cost: none.
+   - Risk: the 0.1 Wh is met with 36 % margin at 3 % rejection and
+     10 % at 30 %; the EM measurement (VI-02) decides.
+
+5. Affected Documents:
+   docs/requirements/SYSTEM_REQUIREMENTS.md, docs/environment/ENVIRONMENTAL_TEST_PLAN.md,
+   docs/verification/VI_REGISTER.md (generated), docs/mission/MISSION_SUCCESS_CRITERIA.md,
+   docs/software/SOFTWARE_REQUIREMENTS.md, docs/funding_audit/research/D5_AI_MODEL_SELECTION.md (note).
+
+6. Verification Required:
+   Test: VI-02 on the EM (≥ 30 bursts); unit tests of the gate
+   (payload_schedule.rs); MSC E-02 in commissioning.
+
+7. CCB Decision:
+   [x] Approved: decision C-20 (CDR chair, 2026-10-27).
+
+8. Implementation:
+   Assigned to: Flight software
+   Completed: documents and code 2026-10-27
+
+9. Verification:
+   Verified by: —
+   Date: —
+```
+
+---
+
 ## 4. Revision History
 
 | Rev | Date | Description | Author |
@@ -1092,3 +1159,4 @@ Submitter: Design review (round 3, thermal; RID THM-04)
 | F | 2026-10-27 | CR-2026-009 to CR-2026-015 (CDR round 3: system requirements E/F/G, Jetson heat path, ICDs, safety-critical list, test tailoring, MPPT, launch cost), each proposed by the design review for a PI decision by 2027-01-12; CR-2026-007 and -008 recorded as proposed by the chair, PI ratification required (CM plan §2.2; RID PM-04) | Design review, round 3 |
 | G | 2026-10-27 | CR-2026-016: load shed scope and pack-fuse diversity | SMART-QSO Team |
 | H | 2026-10-27 | CR-2026-017: per-unit allowable flight temperatures (SYS-600/601, THERMAL_DESIGN §1.1), the first-orbit cold case and its GEVS deviation (ETP §9 deviation 8), heater 0.70 W in BASELINE §8; proposed by the design review, PI decision by 2027-01-12 | Design review, round 3 |
+| I | 2026-10-27 | CR-2026-018: one Smart Beacon burst definition (10 min, 3.6 kJ) and the energy metric per accepted line (SYS-512, VI-02, MSC E-02, SRS-F151; decision C-20) | Flight software, round 3 |

@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ETP-001
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Reference:** GSFC-STD-7000B (GEVS, 2021-04-28) including Appendix B (CubeSats); SpaceX Rideshare Payload User's Guide
 v11 (August 2026, "UG v11"); Cal Poly CubeSat Design Specification Rev 14.1 §3; LSP-REQ-317.01 Rev B (CSLI path only)
@@ -248,7 +248,7 @@ repeat VI-MECH-03.
 
 ### 3.9 Magnetic properties [SYS-083]
 
-Residual dipole of the FM, wings deployed and illuminated, in a Helmholtz cage: ≤ 3 mA·m² design, ≤ 10 mA·m² limit
+Residual dipole of the FM, wings deployed and illuminated, in a Helmholtz cage: ≤ 3 mA·m² design, ≤ 7 mA·m² limit (decision C-24: at 10 mA·m² the pointing requirement ADCS-P002 fails in 6 of 40 Monte Carlo trials; a unit above 7 mA·m² is demagnetised or re-harnessed, or gets the albedo-immune +Y sun sensor of C-23)
 (BASELINE §8); field ≤ 0.5 gauss above the Earth's field outside the envelope from any permanent magnet or magnetised
 rod (CDS §2.1.8). If CubeSpace CR0002 rods are bought, their remanence is measured on the EM first.
 
@@ -345,7 +345,7 @@ in the lifecycle ROM WBS 10 (SQSO-AUD-005 Rev F). The custom-battery abuse tests
 | VI | Test | Pass criterion | Verifies | Article, event |
 |----|------|----------------|----------|----------------|
 | VI-01 | Jetson heat path: steady 8 W into the module, then 120 s bursts and a 600 s batch, in vacuum; module, spreader and structure temperatures; conductance and junction-to-spreader resistance derived | Measured values entered in the thermal model; with them SYS-603 is met: spreader ≤ +40 °C in a 600 s batch, junction ≤ 95 °C, spreader ≤ +70 °C stuck on (design 1.10 W/K, 1.09–1.16 K/W) | SYS-603 (Rev G), BASELINE §6 | EM, EMT (2027-07 to 2027-09) |
-| VI-02 | Energy per accepted beacon at the carrier input, boot to power-off, ≥ 30 bursts | p95 ≤ 0.1 Wh (360 J); burst ≤ 120 s | SYS-512, D5 gate | EM, EMT |
+| VI-02 | Energy per accepted beacon line at the carrier input, boot to power-off, ≥ 30 bursts of the flight definition (one power-on, ≤ 10 min, ≤ 3.6 kJ, the energy gate on), counted on the lines the content filter accepts (decision C-20) | Total burst energy over total accepted lines ≤ 0.1 Wh (360 J), and every burst ≤ 10 min and ≤ 3.6 kJ; the per-burst distribution (p50, p95) recorded | SYS-512, D5 gate, SRS-F151 | EM, EMT |
 | VI-03 | EM TVAC, 4 cycles −30/+60 °C, two thermal-balance points | Model correlated within ± 5 °C at the balance points; all functions at each plateau | SYS-600, SYS-601 (closes TBR-TPENV003-001), SYS-504 | EM, EMT |
 | VI-04 | EM random vibration at the §3.1 envelope, 2 min/axis, in the test pod | Sine-signature shifts within §3.2; no structural or workmanship failure; inhibits hold | SYS-703, SYS-704, SYS-705 | EM, EMT |
 | VI-05 | Antenna pattern of the deployed EM, two orthogonal planes, both bands | Agrees with the model within 2 dB; gain ≥ −6 dBi over ≥ 90 % of the sphere (proposed SYS-222 wording) | SYS-222, SYS-223 | EM, EMT |
@@ -392,4 +392,5 @@ days of float, 0.5 weeks more than the GOLD Rule 1.06 margin (`mission/SCHEDULE.
 | C | 2026-10-27 | CDR review (PM/SE/V&V). Rewritten: protoflight defined correctly (GEVS-B Table 2.2-2); source precedence; EM and FM articles; random vibration at the GEVS-B Appendix B envelope of MPE + 3 dB and workmanship (8.18 Grms); sine signature; shock by analysis with VI-07; TVAC levels with GEVS margins and the battery cap, 8 cycles plus 4 board cycles; bake-out +60 °C 6 h; EMC tailored per GEVS-B Appendix B; mass properties with inertia; deployment tests hot and cold before vibration (CDS §3.5.2); magnetic; end-to-end, DITL and HIL; FM flow; EM/FM matrix; facilities and cost; verification items VI-01 to VI-10; deviations. Scripts `software/simulation/cdr/pm/test_levels.py`, `test_cost.py` | CDR review, PM/SE/V&V |
 | C.2 | 2026-10-27 | CDR 2026 consistency pass: V-EMC-6 burn steps 0.75 A and 2.0 A from the EPS board (SQSO-EPS-BRD-001 §9; SQSO-EMC-001 B) | CDR documentation review |
 | D | 2026-10-27 | CDR round 3 (VV-07, VV-08, REL-01, P3P-03, P3E-07, P3S-10, SE-07): §3.3 shock: the UG v11 MPE exceeds the vibe-equivalent SRS, so the RFQ asks for the attenuated Nova MPE and an EM shock test is planned and costed if VI-07 needs it (deviation 7); §3.4 one TVAC definition, the SpaceX ± 5 °C / 20-cycle advice mapped onto it; new §3.11 reliability programme (VI-11 ≥ 500 h EM flatsat, VI-12 ≥ 200 h FM burn-in); §5 matrix; §6 EM test dates from SQSO-SCH-001 D; §7 cost $42k–130k with the battery abuse tests in the ROM; VI-01 criterion for SYS-603 Rev G; deviations 1–3 and 7 to the PI by CR-2026-013 | CDR round 3, systems and programmatics |
+| E | 2026-10-27 | VI-02 to decision C-20 (CR-2026-018): the flight burst definition (≤ 10 min, ≤ 3.6 kJ) and the energy per accepted line over ≥ 30 bursts (was 120 s bursts and a p95 per beacon) | CDR round 3, flight software |
 | D, amended | 2026-10-27 | CDR round 3 (STR-04, P3S-01, P3S-04): §3.7 spin-balance mass properties to ± 0.5 % / ± 1 × 10⁻⁵ kg·m²; §3.8 cold deployment at −55 °C with the 10 s burn (C-17); MoS₂ hinge humidity, cycle budget and film inspection; (THM-04, CR-2026-017) §3.4 cold operational plateau −40 °C (AFT −30 °C − 10 °C) and cold start at −40 °C for the first-orbit extension of the AFT, tested at its AFT without the 10 °C margin (new §9 deviation 8), V-THM-8 on the EM; deviation 4 range −40/+60 °C | Design review chair |

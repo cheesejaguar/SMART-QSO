@@ -45,8 +45,8 @@ SMART-QSO employs a passive/semi-active ADCS approach:
 | ID | Requirement | Verification |
 |----|-------------|--------------|
 | ADCS-F001 | Detumble within 3 orbits from tip-off rates ≤10°/s (BASELINE §8) | Analysis, Test |
-| ADCS-F002 | Achieve spin-stabilized coarse sun pointing of +Y, the deployed array's normal (±15° accuracy in sunlight) | Analysis, Test |
-| ADCS-F003 | Determine the Sun's direction in the body frame from the sun sensors, within ±5° in sunlight (ADCS-P003), and the body rate from the gyro (ADCS-P007); no onboard three-axis attitude estimate (decision C-22, §4.3) | Analysis, Test |
+| ADCS-F002 | Achieve spin-stabilized coarse sun pointing of +Y, the deployed array's normal, judged by the generation it gives (ADCS-P002, decision C-23) | Analysis, Test |
+| ADCS-F003 | Determine the Sun's direction in the body frame from the sun sensors and the body rate from the gyro (ADCS-P007), as the sun-pointing law needs; no onboard three-axis attitude estimate (C-22, §4.3) and no accuracy required of the sun vector (C-23) | Analysis, Test |
 | ADCS-F004 | Operate autonomously without ground commands | Test |
 | ADCS-F005 | Provide attitude telemetry to OBC | Test |
 | ADCS-F006 | Support graceful degradation on sensor failure | Test |
@@ -57,8 +57,8 @@ SMART-QSO employs a passive/semi-active ADCS approach:
 | ID | Requirement | Threshold | Goal |
 |----|-------------|-----------|------|
 | ADCS-P001 | Detumble time | < 3 orbits (285 min) | < 2 orbits |
-| ADCS-P002 | Sun-pointing accuracy | ±15° | ±10° |
-| ADCS-P003 | Sun-vector knowledge in sunlight: angle between the flight software's sun vector and the true one, 95 % of sunlit samples in every Monte Carlo trial (C-22) | ±5° | ±3° |
+| ADCS-P002 | Pointing for power (decision C-23), in every Monte Carlo trial with the face-photodiode and albedo model (§11.6): sunlit-averaged generation lost to the pointing (against +Y held on the Sun) | ≤ 5 %, and the Sun within 30° of +Y for ≥ 95 % of sunlit time | — |
+| ADCS-P003 | Withdrawn (decision C-23): no sun-vector knowledge requirement; the knowledge error is reported in §11.6 (9.8° mean with albedo) | — | — |
 | ADCS-P004 | Peak power consumption | <2W | <1W |
 | ADCS-P005 | Steady-state power | <0.5W | <0.3W |
 | ADCS-P006 | Control bandwidth | >0.01 Hz | >0.02 Hz |
@@ -335,9 +335,10 @@ each, B-dot at 10⁴, the BMI088 gyro model):
 The spin-stabilised sun-pointing law of §4.2.1 uses the sun vector, the field and the body rate, nothing else. There
 is no onboard three-axis attitude estimate, and none is planned: the extended Kalman filter (state q, ω) and the
 TRIAD routine that stood here since Version 1.0 were never implemented (`sqso_fsw::adcs` has no estimator; finding
-P3F-G-07) and are removed from the flight baseline. The knowledge requirement is what the law needs (ADCS-F003):
-the sun vector from the face photodiodes within ±5° in sunlight (ADCS-P003) and the gyro's rate (ADCS-P007). The
-ADCS Monte Carlo measures the first (§11.6).
+P3F-G-07) and are removed from the flight baseline. What the law needs (ADCS-F003) is the sun vector from the face
+photodiodes and the gyro's rate (ADCS-P007, ≤ 0.2°/s: at 0.3°/s the Monte Carlo has detumble timeouts). No accuracy is
+required of the sun vector (decision C-23): the pointing is judged by its power (ADCS-P002), which the Monte Carlo
+measures with the photodiodes and the Earth's albedo (§11.6).
 
 *Note.* TRIAD remains a ground tool: the downlinked sun vector and field, with the GNSS position, the field model and
 the Sun's ephemeris, give the ground a three-axis attitude for the analysis of a pass. It is not flight software
@@ -517,8 +518,8 @@ typedef struct {
 | Requirement | Method | Status |
 |-------------|--------|--------|
 | ADCS-F001 | Analysis, HILS Test | Pending |
-| ADCS-F002 | Analysis, HILS Test | Pending |
-| ADCS-F003 | Analysis (Monte Carlo sun-vector knowledge, §11.6), Test (TP-ADCS-003 §3.1) | Pending: not met with Earth albedo (§11.6) |
+| ADCS-F002 | Analysis (Monte Carlo, photodiodes and albedo: ADCS-P002, §11.6), HILS Test | Pending: met at the 3 mA·m² design dipole; not met at the 10 mA·m² limit (6 of 40 trials, §11.6) |
+| ADCS-F003 | Analysis (Monte Carlo, §11.6), Test (TP-ADCS-003 §3.1: photodiode response, shadow, gyro at the spin rate) | Pending |
 | ADCS-F004 | Demonstration | Pending |
 | ADCS-F005 | Inspection, Test | Pending |
 | ADCS-F006 | Test | Pending |
@@ -763,8 +764,10 @@ tip-off); Iyy/Izz 1.00–1.05 gives 3.8–6.9° and ≥ 93 % (`docs/hardware/ADC
 the flight code with the CAD inertia tensor (MASS_BUDGET 3.2), generic sun-sensor error: mean 1.8°, 100 % of sunlit time
 within 15°, slowest capture 1.3 h (1.6 h from a 50°/s tip-off); Iyy/Izz 1.005–1.05 gives 1.8–2.0° and ≥ 99.9 %, Iyy = Izz
 20° and 80 % (no gain holds it: the mass-properties limit of §4 is the protection); magnetometer gating at the SIL duty
-1.9°; with the face photodiodes and Earth albedo 12° and 74 %, sun-vector knowledge 27° (95th percentile), short of
-ADCS-P003 (`docs/hardware/ADCS_DESIGN.md` 1.9 §11.4, §11.6)". Add: "One wing deployed: preset 0 until the wing is
+1.9°; with the face photodiodes and Earth albedo (the pointing requirement's model, decision C-23) 12° mean, the Sun
+within 30° of +Y for 100 % of sunlit time and 2.0 % of the sunlit generation lost to the pointing (3.2 % in the worst
+trial), meeting ADCS-P002 (≤ 5 %, ≥ 95 % within 30°) up to a 7 mA·m² residual dipole but not at the 10 mA·m² limit
+(7.7 % and 87 % in the worst trial) (`docs/hardware/ADCS_DESIGN.md` 1.9 §11.4, §11.6)". Add: "One wing deployed: preset 0 until the wing is
 identified (decision C-21; ADCS_DESIGN §11.7)".
 
 ### 11.5 Limits and Open Items
@@ -864,7 +867,7 @@ MEV plants move every row by at most 0.4° and 0.01 W. **The wrong one-wing pres
 preset (preset 0 costs 1.6–2.9 %, the wrong preset 3.5–5.6 %). This supports C-21: preset 0 until the wing is
 identified.
 
-*Sun-vector knowledge (C-22, ADCS-P003).* Knowledge columns (mean over trials, the worst trial's 95th percentile, and
+*Sun-vector knowledge (reported, not a requirement: C-23).* Knowledge columns (mean over trials, the worst trial's 95th percentile, and
 the worst trial's share of sunlit samples within 5°), with the pointing they give:
 
 | Sun-sensor model | Knowledge mean | Worst p95 | Within 5°, worst trial | Pointing mean | Worst p95 | Within 15° | Generation mean / worst |
@@ -883,23 +886,52 @@ the worst trial's share of sunlit samples within 5°), with the pointing they gi
 | Photodiodes, no wings (AntS out), preset 0 | 7.0° | 14.0° | 14 % | 7.6° | 16° | 99.5 % | 1.63 / 1.57 W |
 | Photodiodes, wings and AntS stowed, preset 0 | 7.5° | 15.9° | 13 % | 8.4° | 18° | 98.4 % | 1.59 / 1.54 W |
 
-**Finding (for the chair): ADCS-P003 is not met with the face photodiodes once the Earth's albedo is modelled.** The
-knowledge error is then 9.8° on average and 27° at the worst trial's 95th percentile, and the pointing degrades to 12°
-mean with 74 % of sunlit time within 15° (ADCS-P002, ±15°, is then not met either), at a cost of 2 % of the generation
-(4.56 against 4.65 W). Without albedo the same sensors give 1.0° mean and 3.2° worst p95 (100 % within 5°), and the
-pointing is the generic model's. The cause is geometric: in sun-pointing the off-axis component of the sun vector is
-read by the ±X and ±Z photodiodes at 85–90° incidence, a few hundredths of full sun, while the face that looks at the
-sunlit Earth receives up to a quarter of full sun from it; differencing opposite faces cannot remove it, and the spin
-carries the albedo direction round with the Sun's, so no averaging separates them. The deployed wings' shadow on the
-±X photodiodes and the grazing loss matter little (the "no response beyond 85°" row). The generic 5° white error of
-the earlier rows is a test of the control law's tolerance, not a sensor model: its knowledge (3.1° mean, 8.4° worst
-p95) also fails the 95 % criterion, but the control averages it out. Options, for the chair (none is in the flight
-software or the hardware baseline today): (1) an albedo-immune sun sensor on +Y, a two-axis analog or digital sun
-sensor that images the solar disc (a spot or slit sensor rejects diffuse albedo; `hardware/adcs/SENSOR_DESIGN.md`
-§3.1 lists both, not selected); (2) an albedo correction in the flight software, which needs the Earth's direction in
-the body frame and so the three-axis estimate C-22 removes (field model, GNSS position, magnetometer); (3) restate
-ADCS-P003 at what the photodiodes give (27° worst p95) and ADCS-P002 at 74 % of sunlit time within 15°, accepting 2 %
-of the generation. The power and the mission are not at risk in any of them; the requirement as decided is.
+**With the face photodiodes the albedo dominates the sun vector.** The knowledge error is 9.8° on average and 27° at
+the worst trial's 95th percentile, and the pointing settles at 12° mean with 74 % of sunlit time within 15°. Without
+albedo the same sensors give 1.0° mean and 3.2° worst p95, and the pointing is the generic model's. The cause is
+geometric: in sun-pointing the off-axis component of the sun vector is read by the ±X and ±Z photodiodes at 85–90°
+incidence, a few hundredths of full sun, while the face that looks at the sunlit Earth receives up to a quarter of full
+sun from it; differencing opposite faces cannot remove it, and the spin carries the albedo direction round with the
+Sun's, so no averaging separates them. The wings' shadow on the ±X photodiodes and the grazing loss matter little (the
+"no response beyond 85°" row). The generic 5° white error of the earlier rows is a test of the control law's
+tolerance, not a sensor model.
+
+**Decision C-23 (chair, 2026-10-27).** The pointing requirement exists for power, so ADCS-P002 is judged by power, in
+every trial with the photodiode-and-albedo model: the sunlit-averaged generation lost to the pointing at most 5 %
+(against the same instants with +Y held on the Sun, the Earth turned with it, `Trial::pointing_loss`) and the Sun
+within 30° of +Y for at least 95 % of sunlit time (`Trial::within_30`). Sun-vector knowledge is not a requirement
+(ADCS-P003 withdrawn; ADCS-P007, the rate, stays: the controller needs it). If TP-ADCS-003 §3.1 on the EM shows the
+photodiodes worse than this model, the recorded option is an albedo-immune sun sensor on +Y (a slit or digital type,
+`hardware/adcs/SENSOR_DESIGN.md` §3.1). Mean / worst trial, and the trials of 40 that fail (loss, within 30°):
+
+| Case (photodiodes and albedo unless stated) | Loss of sunlit generation | Sun within 30° of +Y | Trials failing | Orbit-average generation (mean / worst trial) |
+|---------------------------------------------|---------------------------|----------------------|----------------|-----------------------------------------------|
+| Both wings, flight | 2.0 % / 3.2 % | 100 % / 100 % | 0 / 0 | 4.56 / 4.41 W (+Y held on the Sun: 4.65 W) |
+| CAD tensor CBE / MEV | 2.3 % / 3.6 % · 1.9 % / 2.9 % | 100 % / 100 % | 0 / 0 | 4.55 / 4.57 W |
+| No response beyond 85° | 2.1 % / 3.2 % | 100 % / 100 % | 0 / 0 | 4.56 W |
+| BMI088, bias 0.2°/s | 2.1 % / 3.5 % | 100 % / 100 % | 0 / 0 | 4.56 W |
+| Gating | 1.8 % / 2.7 % | 100 % / 100 % | 0 / 0 | 4.57 W |
+| AntS 3 h after the wings, gating | 1.8 % / 2.7 % | 100 % / 100 % | 0 / 0 | 4.57 W |
+| Gating, residual dipole 5 mA·m² | 2.1 % / 3.7 % | 100 % / 99.98 % | 0 / 0 | 4.56 / 4.40 W |
+| Gating, residual dipole 7 mA·m² | 2.5 % / 5.0 % | 99.7 % / 96.3 % | 0 / 0 | 4.54 / 4.35 W |
+| **Residual dipole 10 mA·m² (the limit)** | **3.2 % / 7.7 %** | **98.5 % / 86.9 %** | **6 / 6** | 4.50 / 4.27 W |
+| **Gating, residual dipole 10 mA·m²** | **3.3 % / 7.6 %** | **97.9 % / 84.9 %** | **6 / 6** | 4.50 / 4.26 W |
+| W1 only, preset 0 (mean / CBE / MEV) | 0.9 % / 1.6 % | 100 % / 99.97 % | 0 / 0 | 3.11 / 3.01 W (+Y on the Sun: 3.14 W) |
+| W1 only, preset 0, gating | 0.8 % / 1.4 % | 99.6 % / 99.1 % | 0 / 0 | 3.11 W |
+| W2 only, preset 0 (mean / CBE / MEV) | 1.2 % / 2.0 % | 100 % / 99.93 % | 0 / 0 | 3.10 / 2.99 W |
+| W1 only, preset 1 | below +Y on the Sun (−1.3 %) | 100 % / 100 % | 0 / 0 | 3.18 W |
+| Wings and AntS stowed, preset 0; after the AntS at 25 h | below +Y on the Sun (−1.3 %, −0.7 %) | 100 % / 100 % | 0 / 0 | 1.60 / 1.63 W |
+| No gyro (a contingency, not the requirement's case) | 17 % / 23 % | 39 % / 19 % | 40 / 40 | 3.85 W |
+| Generic sun-sensor error, gating, 10 mA·m² (for comparison) | 0.5 % / 1.8 % | 99.9 % / 99.4 % | 0 / 0 | 4.63 W |
+
+**ADCS-P002 is met in every trial at the 3 mA·m² design residual dipole, with gating, with one wing at preset 0 and
+with the wings stowed, and up to 7 mA·m² (worst trial 5.0 % and 96.3 %). It is not met at the 10 mA·m² limit of
+BASELINE §8: 6 of 40 trials fail both parts, the worst by 2.7 points of loss (7.7 % against 5 %) and 10.1 points of
+time within 30° (84.9 % against 95 %, with gating).** The residual-dipole limit consistent with ADCS-P002 is 7 mA·m²
+with the photodiodes (the flight unit's Helmholtz-cage measurement, BASELINE §8, decides it), or an albedo-immune +Y
+sensor restores 10 mA·m² (the generic-error row: 1.8 % and 99.4 %). A negative loss means the attitude the law holds
+gives more than +Y on the Sun would (the stowed wings' outward cells, or the one-wing preset that tilts the Sun
+toward the remaining wing). Without a gyro the photodiodes are unusable for pointing (17 % lost, 39 % within 30°).
 
 ### 11.7 Identifying the Deployed Wing (decision C-21)
 
@@ -1018,4 +1050,4 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 | 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §11.4 robustness and one-wing tables re-run with the final CAD tensors (CBE 1,513.9 g, MEV 1,747.8 g; the flight constant `INERTIA` their mean, (3.0565, 4.4675, 4.2525) × 10⁻³ kg·m² with Ixy +13.2, Ixz −12.9, Iyz +0.05 × 10⁻⁶): the plant rows 1.8° mean, 100 % within 15°, capture within 1.2 h; Iyy/Izz 1.000 now 76 % within 15° (the products of the final CAD); §11.5 the drivers exist (built against the data sheets, not run on hardware) |
 | 1.7 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, second part) | §11.2 the final CAD tensors (deployed mean (3.0645, 4.479, 4.2615) × 10⁻³ with Ixy +11.8, Ixz −15.3, Iyz −1.05 × 10⁻⁶; the CBE and MEV rows; the one-wing and no-wing tensors of STR-27; stowed); §11.3 the presets' axes from the CAD tensors (8.3°, 9.1°, 3.3° from +Y); §11.4 the plant rows and the one-wing table re-run against the CAD plant |
 | 1.8 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §11.2 the tensors of MASS_BUDGET 3.2 §6.5 (deployed (3.064, 4.481, 4.262) × 10⁻³, the presets' major axes 8.4°, 9.1°, 3.6°); §11.4 the M-G370, CAD-plant and preset rows re-run with them (RID GNC-07) |
-| 1.9 | 2026-10-27 | SMART-QSO Team (CDR round 3 closure, GN&C) | Findings P3F-G-04 to -07 and decisions C-21, C-22: §2.1, §2.2 ADCS-F003 and ADCS-P003 restated as sun-vector knowledge within ±5° in sunlight (95 % of sunlit samples in every trial) and ADCS-P007 rate knowledge (≤ 0.2°/s); ADCS-I003, §3.1, §7 no quaternion; §4.3 the EKF/TRIAD removed from the flight baseline (TRIAD kept as a ground tool); §8.1 F003 method and status; §11.2 stowed products and the AntS-stowed tensor; §11.3 preset axes regenerated from the code (8.4°, 9.1°, 3.6°) and the C-21 rule; §11.4 the gain sweep and the robustness table re-run with the current tensors (C-4 rationale revised: no gain holds Iyy = Izz; 8°/s and 3·10⁻⁴ stand on the 1.005–1.05 range), the proposed BASELINE §8 text; §11.6 new: gating, wings stowed with the AntS held 25 h, the AntS 3 h after the wings, one wing at CBE/MEV with the wrong preset, the face-photodiode sun sensors and the sun-vector knowledge (not met with albedo: finding for the chair); §11.7 new: the wing-identification signatures and pass criteria |
+| 1.9 | 2026-10-27 | SMART-QSO Team (CDR round 3 closure, GN&C) | Findings P3F-G-04 to -07 and decisions C-21, C-22, C-23: §2.1, §2.2 ADCS-F002 and ADCS-P002 restated for power (≤ 5 % of the sunlit generation lost to the pointing and the Sun within 30° of +Y ≥ 95 % of sunlit time, every trial, photodiodes and albedo), ADCS-F003 the sun vector and rate the law needs, ADCS-P003 withdrawn, ADCS-P007 rate knowledge (≤ 0.2°/s); ADCS-I003, §3.1, §7 no quaternion; §4.3 the EKF/TRIAD removed from the flight baseline (TRIAD kept as a ground tool); §8.1 F003 method and status; §11.2 stowed products and the AntS-stowed tensor; §11.3 preset axes regenerated from the code (8.4°, 9.1°, 3.6°) and the C-21 rule; §11.4 the gain sweep and the robustness table re-run with the current tensors (C-4 rationale revised: no gain holds Iyy = Izz; 8°/s and 3·10⁻⁴ stand on the 1.005–1.05 range), the proposed BASELINE §8 text; §11.6 new: gating, wings stowed with the AntS held 25 h, the AntS 3 h after the wings, one wing at CBE/MEV with the wrong preset, the face-photodiode sun sensors with albedo, the sun-vector knowledge (reported) and ADCS-P002 per trial (met at 3–7 mA·m², not at the 10 mA·m² limit: 6 of 40 trials); §11.7 new: the wing-identification signatures and pass criteria |
