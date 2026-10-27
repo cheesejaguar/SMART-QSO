@@ -21,166 +21,166 @@
 <text text-anchor="start" x="401" y="-1000.3" font-family="Helvetica,sans-Serif" font-size="14.00">40 pos, 1.27 mm, 2 rows, latched</text>
 <polygon fill="none" stroke="black" points="640,-992.5 640,-1015.5 694,-1015.5 694,-992.5 640,-992.5"/>
 <text text-anchor="start" x="644" y="-1000.3" font-family="Helvetica,sans-Serif" font-size="14.00">40&#45;pin</text>
-<polygon fill="none" stroke="black" points="0,-969.5 0,-992.5 409,-992.5 409,-969.5 0,-969.5"/>
-<text text-anchor="start" x="172" y="-977.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_OBC</text>
-<polygon fill="none" stroke="black" points="409,-969.5 409,-992.5 694,-992.5 694,-969.5 409,-969.5"/>
-<text text-anchor="start" x="546.5" y="-977.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
-<polygon fill="none" stroke="black" points="0,-946.5 0,-969.5 409,-969.5 409,-946.5 0,-946.5"/>
-<text text-anchor="start" x="172" y="-954.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_OBC</text>
-<polygon fill="none" stroke="black" points="409,-946.5 409,-969.5 694,-969.5 694,-946.5 409,-946.5"/>
-<text text-anchor="start" x="546.5" y="-954.3" font-family="Helvetica,sans-Serif" font-size="14.00">2</text>
-<polygon fill="none" stroke="black" points="0,-923.5 0,-946.5 409,-946.5 409,-923.5 0,-923.5"/>
-<text text-anchor="start" x="188.5" y="-931.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="409,-923.5 409,-946.5 694,-946.5 694,-923.5 409,-923.5"/>
-<text text-anchor="start" x="546.5" y="-931.3" font-family="Helvetica,sans-Serif" font-size="14.00">3</text>
-<polygon fill="none" stroke="black" points="0,-900.5 0,-923.5 409,-923.5 409,-900.5 0,-900.5"/>
-<text text-anchor="start" x="188.5" y="-908.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="409,-900.5 409,-923.5 694,-923.5 694,-900.5 409,-900.5"/>
-<text text-anchor="start" x="546.5" y="-908.3" font-family="Helvetica,sans-Serif" font-size="14.00">4</text>
-<polygon fill="none" stroke="black" points="0,-877.5 0,-900.5 409,-900.5 409,-877.5 0,-877.5"/>
-<text text-anchor="start" x="156.5" y="-885.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C2_SCL PF1</text>
-<polygon fill="none" stroke="black" points="409,-877.5 409,-900.5 694,-900.5 694,-877.5 409,-877.5"/>
-<text text-anchor="start" x="546.5" y="-885.3" font-family="Helvetica,sans-Serif" font-size="14.00">5</text>
-<polygon fill="none" stroke="black" points="0,-854.5 0,-877.5 409,-877.5 409,-854.5 0,-854.5"/>
-<text text-anchor="start" x="155" y="-862.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C2_SDA PF0</text>
-<polygon fill="none" stroke="black" points="409,-854.5 409,-877.5 694,-877.5 694,-854.5 409,-854.5"/>
-<text text-anchor="start" x="546.5" y="-862.3" font-family="Helvetica,sans-Serif" font-size="14.00">6</text>
-<polygon fill="none" stroke="black" points="0,-831.5 0,-854.5 409,-854.5 409,-831.5 0,-831.5"/>
-<text text-anchor="start" x="188.5" y="-839.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="409,-831.5 409,-854.5 694,-854.5 694,-831.5 409,-831.5"/>
-<text text-anchor="start" x="546.5" y="-839.3" font-family="Helvetica,sans-Serif" font-size="14.00">7</text>
-<polygon fill="none" stroke="black" points="0,-808.5 0,-831.5 409,-831.5 409,-808.5 0,-808.5"/>
-<text text-anchor="start" x="141.5" y="-816.3" font-family="Helvetica,sans-Serif" font-size="14.00">EPS_ALERT_N PB7</text>
-<polygon fill="none" stroke="black" points="409,-808.5 409,-831.5 694,-831.5 694,-808.5 409,-808.5"/>
-<text text-anchor="start" x="546.5" y="-816.3" font-family="Helvetica,sans-Serif" font-size="14.00">8</text>
-<polygon fill="none" stroke="black" points="0,-785.5 0,-808.5 409,-808.5 409,-785.5 0,-785.5"/>
-<text text-anchor="start" x="144" y="-793.3" font-family="Helvetica,sans-Serif" font-size="14.00">PAYLOAD_EN PB2</text>
-<polygon fill="none" stroke="black" points="409,-785.5 409,-808.5 694,-808.5 694,-785.5 409,-785.5"/>
-<text text-anchor="start" x="546.5" y="-793.3" font-family="Helvetica,sans-Serif" font-size="14.00">9</text>
-<polygon fill="none" stroke="black" points="0,-762.5 0,-785.5 409,-785.5 409,-762.5 0,-762.5"/>
-<text text-anchor="start" x="153" y="-770.3" font-family="Helvetica,sans-Serif" font-size="14.00">RADIO_EN PB5</text>
-<polygon fill="none" stroke="black" points="409,-762.5 409,-785.5 694,-785.5 694,-762.5 409,-762.5"/>
-<text text-anchor="start" x="542" y="-770.3" font-family="Helvetica,sans-Serif" font-size="14.00">10</text>
-<polygon fill="none" stroke="black" points="0,-739.5 0,-762.5 409,-762.5 409,-739.5 0,-739.5"/>
-<text text-anchor="start" x="156" y="-747.3" font-family="Helvetica,sans-Serif" font-size="14.00">ADCS_EN PB6</text>
-<polygon fill="none" stroke="black" points="409,-739.5 409,-762.5 694,-762.5 694,-739.5 409,-739.5"/>
-<text text-anchor="start" x="542" y="-747.3" font-family="Helvetica,sans-Serif" font-size="14.00">11</text>
-<polygon fill="none" stroke="black" points="0,-716.5 0,-739.5 409,-739.5 409,-716.5 0,-716.5"/>
-<text text-anchor="start" x="147.5" y="-724.3" font-family="Helvetica,sans-Serif" font-size="14.00">HEATER_EN PD2</text>
-<polygon fill="none" stroke="black" points="409,-716.5 409,-739.5 694,-739.5 694,-716.5 409,-716.5"/>
-<text text-anchor="start" x="542" y="-724.3" font-family="Helvetica,sans-Serif" font-size="14.00">12</text>
-<polygon fill="none" stroke="black" points="0,-693.5 0,-716.5 409,-716.5 409,-693.5 0,-693.5"/>
-<text text-anchor="start" x="149" y="-701.3" font-family="Helvetica,sans-Serif" font-size="14.00">DEPLOY_EN PF3</text>
-<polygon fill="none" stroke="black" points="409,-693.5 409,-716.5 694,-716.5 694,-693.5 409,-693.5"/>
-<text text-anchor="start" x="542" y="-701.3" font-family="Helvetica,sans-Serif" font-size="14.00">13</text>
-<polygon fill="none" stroke="black" points="0,-670.5 0,-693.5 409,-693.5 409,-670.5 0,-670.5"/>
-<text text-anchor="start" x="154.5" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">RF_TX_EN PA3</text>
-<polygon fill="none" stroke="black" points="409,-670.5 409,-693.5 694,-693.5 694,-670.5 409,-670.5"/>
-<text text-anchor="start" x="542" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">14</text>
-<polygon fill="none" stroke="black" points="0,-647.5 0,-670.5 409,-670.5 409,-647.5 0,-647.5"/>
-<text text-anchor="start" x="156" y="-655.3" font-family="Helvetica,sans-Serif" font-size="14.00">GNSS_EN PE5</text>
-<polygon fill="none" stroke="black" points="409,-647.5 409,-670.5 694,-670.5 694,-647.5 409,-647.5"/>
-<text text-anchor="start" x="542" y="-655.3" font-family="Helvetica,sans-Serif" font-size="14.00">15</text>
-<polygon fill="none" stroke="black" points="0,-624.5 0,-647.5 409,-647.5 409,-624.5 0,-624.5"/>
-<text text-anchor="start" x="135" y="-632.3" font-family="Helvetica,sans-Serif" font-size="14.00">DEPLOY_SENSE PE2</text>
-<polygon fill="none" stroke="black" points="409,-624.5 409,-647.5 694,-647.5 694,-624.5 409,-624.5"/>
-<text text-anchor="start" x="542" y="-632.3" font-family="Helvetica,sans-Serif" font-size="14.00">16</text>
-<polygon fill="none" stroke="black" points="0,-601.5 0,-624.5 409,-624.5 409,-601.5 0,-601.5"/>
-<text text-anchor="start" x="148.5" y="-609.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W2A PB9</text>
-<polygon fill="none" stroke="black" points="409,-601.5 409,-624.5 694,-624.5 694,-601.5 409,-601.5"/>
-<text text-anchor="start" x="542" y="-609.3" font-family="Helvetica,sans-Serif" font-size="14.00">17</text>
-<polygon fill="none" stroke="black" points="0,-578.5 0,-601.5 409,-601.5 409,-578.5 0,-578.5"/>
-<text text-anchor="start" x="144" y="-586.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W1A PB10</text>
-<polygon fill="none" stroke="black" points="409,-578.5 409,-601.5 694,-601.5 694,-578.5 409,-578.5"/>
-<text text-anchor="start" x="542" y="-586.3" font-family="Helvetica,sans-Serif" font-size="14.00">18</text>
-<polygon fill="none" stroke="black" points="0,-555.5 0,-578.5 409,-578.5 409,-555.5 0,-555.5"/>
-<text text-anchor="start" x="160" y="-563.3" font-family="Helvetica,sans-Serif" font-size="14.00">VJET_RB PA7</text>
-<polygon fill="none" stroke="black" points="409,-555.5 409,-578.5 694,-578.5 694,-555.5 409,-555.5"/>
-<text text-anchor="start" x="542" y="-563.3" font-family="Helvetica,sans-Serif" font-size="14.00">19</text>
-<polygon fill="none" stroke="black" points="0,-532.5 0,-555.5 409,-555.5 409,-532.5 0,-532.5"/>
-<text text-anchor="start" x="133.5" y="-540.3" font-family="Helvetica,sans-Serif" font-size="14.00">SOLAR_SENSE PB12</text>
-<polygon fill="none" stroke="black" points="409,-532.5 409,-555.5 694,-555.5 694,-532.5 409,-532.5"/>
-<text text-anchor="start" x="542" y="-540.3" font-family="Helvetica,sans-Serif" font-size="14.00">20</text>
-<polygon fill="none" stroke="black" points="0,-509.5 0,-532.5 409,-532.5 409,-509.5 0,-509.5"/>
-<text text-anchor="start" x="184" y="-517.3" font-family="Helvetica,sans-Serif" font-size="14.00">AGND</text>
-<polygon fill="none" stroke="black" points="409,-509.5 409,-532.5 694,-532.5 694,-509.5 409,-509.5"/>
-<text text-anchor="start" x="542" y="-517.3" font-family="Helvetica,sans-Serif" font-size="14.00">21</text>
-<polygon fill="none" stroke="black" points="0,-486.5 0,-509.5 409,-509.5 409,-486.5 0,-486.5"/>
-<text text-anchor="start" x="148.5" y="-494.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBATT_SNS PC2</text>
-<polygon fill="none" stroke="black" points="409,-486.5 409,-509.5 694,-509.5 694,-486.5 409,-486.5"/>
-<text text-anchor="start" x="542" y="-494.3" font-family="Helvetica,sans-Serif" font-size="14.00">22</text>
-<polygon fill="none" stroke="black" points="0,-463.5 0,-486.5 409,-486.5 409,-463.5 0,-463.5"/>
-<text text-anchor="start" x="151.5" y="-471.3" font-family="Helvetica,sans-Serif" font-size="14.00">IBATT_SNS PC3</text>
-<polygon fill="none" stroke="black" points="409,-463.5 409,-486.5 694,-486.5 694,-463.5 409,-463.5"/>
-<text text-anchor="start" x="542" y="-471.3" font-family="Helvetica,sans-Serif" font-size="14.00">23</text>
-<polygon fill="none" stroke="black" points="0,-440.5 0,-463.5 409,-463.5 409,-440.5 0,-440.5"/>
-<text text-anchor="start" x="142" y="-448.3" font-family="Helvetica,sans-Serif" font-size="14.00">VSOLAR_SNS PC4</text>
-<polygon fill="none" stroke="black" points="409,-440.5 409,-463.5 694,-463.5 694,-440.5 409,-440.5"/>
-<text text-anchor="start" x="542" y="-448.3" font-family="Helvetica,sans-Serif" font-size="14.00">24</text>
-<polygon fill="none" stroke="black" points="0,-417.5 0,-440.5 409,-440.5 409,-417.5 0,-417.5"/>
-<text text-anchor="start" x="144.5" y="-425.3" font-family="Helvetica,sans-Serif" font-size="14.00">ISOLAR_SNS PC5</text>
-<polygon fill="none" stroke="black" points="409,-417.5 409,-440.5 694,-440.5 694,-417.5 409,-417.5"/>
-<text text-anchor="start" x="542" y="-425.3" font-family="Helvetica,sans-Serif" font-size="14.00">25</text>
-<polygon fill="none" stroke="black" points="0,-394.5 0,-417.5 409,-417.5 409,-394.5 0,-394.5"/>
-<text text-anchor="start" x="151.5" y="-402.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBUS_SNS PB0</text>
-<polygon fill="none" stroke="black" points="409,-394.5 409,-417.5 694,-417.5 694,-394.5 409,-394.5"/>
-<text text-anchor="start" x="542" y="-402.3" font-family="Helvetica,sans-Serif" font-size="14.00">26</text>
-<polygon fill="none" stroke="black" points="0,-371.5 0,-394.5 409,-394.5 409,-371.5 0,-371.5"/>
-<text text-anchor="start" x="184" y="-379.3" font-family="Helvetica,sans-Serif" font-size="14.00">AGND</text>
-<polygon fill="none" stroke="black" points="409,-371.5 409,-394.5 694,-394.5 694,-371.5 409,-371.5"/>
-<text text-anchor="start" x="542" y="-379.3" font-family="Helvetica,sans-Serif" font-size="14.00">27</text>
-<polygon fill="none" stroke="black" points="0,-348.5 0,-371.5 409,-371.5 409,-348.5 0,-348.5"/>
-<text text-anchor="start" x="188.5" y="-356.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="409,-348.5 409,-371.5 694,-371.5 694,-348.5 409,-348.5"/>
-<text text-anchor="start" x="542" y="-356.3" font-family="Helvetica,sans-Serif" font-size="14.00">28</text>
-<polygon fill="none" stroke="black" points="0,-325.5 0,-348.5 409,-348.5 409,-325.5 0,-325.5"/>
-<text text-anchor="start" x="143.5" y="-333.3" font-family="Helvetica,sans-Serif" font-size="14.00">JETSON_PWR PA2</text>
-<polygon fill="none" stroke="black" points="409,-325.5 409,-348.5 694,-348.5 694,-325.5 409,-325.5"/>
-<text text-anchor="start" x="542" y="-333.3" font-family="Helvetica,sans-Serif" font-size="14.00">29</text>
-<polygon fill="none" stroke="black" points="0,-302.5 0,-325.5 409,-325.5 409,-302.5 0,-302.5"/>
-<text text-anchor="start" x="149" y="-310.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W1B PE6</text>
-<polygon fill="none" stroke="black" points="409,-302.5 409,-325.5 694,-325.5 694,-302.5 409,-302.5"/>
-<text text-anchor="start" x="542" y="-310.3" font-family="Helvetica,sans-Serif" font-size="14.00">30</text>
-<polygon fill="none" stroke="black" points="0,-279.5 0,-302.5 409,-302.5 409,-279.5 0,-279.5"/>
-<text text-anchor="start" x="149" y="-287.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W2B PE7</text>
-<polygon fill="none" stroke="black" points="409,-279.5 409,-302.5 694,-302.5 694,-279.5 409,-279.5"/>
-<text text-anchor="start" x="542" y="-287.3" font-family="Helvetica,sans-Serif" font-size="14.00">31</text>
-<polygon fill="none" stroke="black" points="0,-256.5 0,-279.5 409,-279.5 409,-256.5 0,-256.5"/>
-<text text-anchor="start" x="156" y="-264.3" font-family="Helvetica,sans-Serif" font-size="14.00">EOL_ARM PF4</text>
-<polygon fill="none" stroke="black" points="409,-256.5 409,-279.5 694,-279.5 694,-256.5 409,-256.5"/>
-<text text-anchor="start" x="542" y="-264.3" font-family="Helvetica,sans-Serif" font-size="14.00">32</text>
-<polygon fill="none" stroke="black" points="0,-233.5 0,-256.5 409,-256.5 409,-233.5 0,-233.5"/>
-<text text-anchor="start" x="155" y="-241.3" font-family="Helvetica,sans-Serif" font-size="14.00">EOL_FIRE PG1</text>
-<polygon fill="none" stroke="black" points="409,-233.5 409,-256.5 694,-256.5 694,-233.5 409,-233.5"/>
-<text text-anchor="start" x="542" y="-241.3" font-family="Helvetica,sans-Serif" font-size="14.00">33</text>
-<polygon fill="none" stroke="black" points="0,-210.5 0,-233.5 409,-233.5 409,-210.5 0,-210.5"/>
-<text text-anchor="start" x="153.5" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">LOCK_CLR PF5</text>
-<polygon fill="none" stroke="black" points="409,-210.5 409,-233.5 694,-233.5 694,-210.5 409,-210.5"/>
-<text text-anchor="start" x="542" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">34</text>
-<polygon fill="none" stroke="black" points="0,-187.5 0,-210.5 409,-210.5 409,-187.5 0,-187.5"/>
-<text text-anchor="start" x="188.5" y="-195.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="409,-187.5 409,-210.5 694,-210.5 694,-187.5 409,-187.5"/>
-<text text-anchor="start" x="542" y="-195.3" font-family="Helvetica,sans-Serif" font-size="14.00">35</text>
-<polygon fill="none" stroke="black" points="0,-164.5 0,-187.5 409,-187.5 409,-164.5 0,-164.5"/>
-<text text-anchor="start" x="167" y="-172.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_MTQ</text>
-<polygon fill="none" stroke="black" points="409,-164.5 409,-187.5 694,-187.5 694,-164.5 409,-164.5"/>
-<text text-anchor="start" x="542" y="-172.3" font-family="Helvetica,sans-Serif" font-size="14.00">36</text>
-<polygon fill="none" stroke="black" points="0,-141.5 0,-164.5 409,-164.5 409,-141.5 0,-141.5"/>
-<text text-anchor="start" x="155" y="-149.3" font-family="Helvetica,sans-Serif" font-size="14.00">VSW1_RB PA1</text>
-<polygon fill="none" stroke="black" points="409,-141.5 409,-164.5 694,-164.5 694,-141.5 409,-141.5"/>
-<text text-anchor="start" x="542" y="-149.3" font-family="Helvetica,sans-Serif" font-size="14.00">37</text>
-<polygon fill="none" stroke="black" points="0,-118.5 0,-141.5 409,-141.5 409,-118.5 0,-118.5"/>
-<text text-anchor="start" x="174" y="-126.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_RTC</text>
-<polygon fill="none" stroke="black" points="409,-118.5 409,-141.5 694,-141.5 694,-118.5 409,-118.5"/>
-<text text-anchor="start" x="542" y="-126.3" font-family="Helvetica,sans-Serif" font-size="14.00">38</text>
-<polygon fill="none" stroke="black" points="0,-95.5 0,-118.5 409,-118.5 409,-95.5 0,-95.5"/>
-<text text-anchor="start" x="167" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_MTQ</text>
-<polygon fill="none" stroke="black" points="409,-95.5 409,-118.5 694,-118.5 694,-95.5 409,-95.5"/>
-<text text-anchor="start" x="542" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">39</text>
-<polygon fill="none" stroke="black" points="0,-72.5 0,-95.5 409,-95.5 409,-72.5 0,-72.5"/>
-<text text-anchor="start" x="188.5" y="-80.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="409,-72.5 409,-95.5 694,-95.5 694,-72.5 409,-72.5"/>
-<text text-anchor="start" x="542" y="-80.3" font-family="Helvetica,sans-Serif" font-size="14.00">40</text>
+<polygon fill="none" stroke="black" points="0,-969.5 0,-992.5 412,-992.5 412,-969.5 0,-969.5"/>
+<text text-anchor="start" x="173.5" y="-977.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_OBC</text>
+<polygon fill="none" stroke="black" points="412,-969.5 412,-992.5 694,-992.5 694,-969.5 412,-969.5"/>
+<text text-anchor="start" x="548" y="-977.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
+<polygon fill="none" stroke="black" points="0,-946.5 0,-969.5 412,-969.5 412,-946.5 0,-946.5"/>
+<text text-anchor="start" x="173.5" y="-954.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_OBC</text>
+<polygon fill="none" stroke="black" points="412,-946.5 412,-969.5 694,-969.5 694,-946.5 412,-946.5"/>
+<text text-anchor="start" x="548" y="-954.3" font-family="Helvetica,sans-Serif" font-size="14.00">2</text>
+<polygon fill="none" stroke="black" points="0,-923.5 0,-946.5 412,-946.5 412,-923.5 0,-923.5"/>
+<text text-anchor="start" x="190" y="-931.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="412,-923.5 412,-946.5 694,-946.5 694,-923.5 412,-923.5"/>
+<text text-anchor="start" x="548" y="-931.3" font-family="Helvetica,sans-Serif" font-size="14.00">3</text>
+<polygon fill="none" stroke="black" points="0,-900.5 0,-923.5 412,-923.5 412,-900.5 0,-900.5"/>
+<text text-anchor="start" x="190" y="-908.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="412,-900.5 412,-923.5 694,-923.5 694,-900.5 412,-900.5"/>
+<text text-anchor="start" x="548" y="-908.3" font-family="Helvetica,sans-Serif" font-size="14.00">4</text>
+<polygon fill="none" stroke="black" points="0,-877.5 0,-900.5 412,-900.5 412,-877.5 0,-877.5"/>
+<text text-anchor="start" x="158" y="-885.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C2_SCL PF1</text>
+<polygon fill="none" stroke="black" points="412,-877.5 412,-900.5 694,-900.5 694,-877.5 412,-877.5"/>
+<text text-anchor="start" x="548" y="-885.3" font-family="Helvetica,sans-Serif" font-size="14.00">5</text>
+<polygon fill="none" stroke="black" points="0,-854.5 0,-877.5 412,-877.5 412,-854.5 0,-854.5"/>
+<text text-anchor="start" x="156.5" y="-862.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C2_SDA PF0</text>
+<polygon fill="none" stroke="black" points="412,-854.5 412,-877.5 694,-877.5 694,-854.5 412,-854.5"/>
+<text text-anchor="start" x="548" y="-862.3" font-family="Helvetica,sans-Serif" font-size="14.00">6</text>
+<polygon fill="none" stroke="black" points="0,-831.5 0,-854.5 412,-854.5 412,-831.5 0,-831.5"/>
+<text text-anchor="start" x="190" y="-839.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="412,-831.5 412,-854.5 694,-854.5 694,-831.5 412,-831.5"/>
+<text text-anchor="start" x="548" y="-839.3" font-family="Helvetica,sans-Serif" font-size="14.00">7</text>
+<polygon fill="none" stroke="black" points="0,-808.5 0,-831.5 412,-831.5 412,-808.5 0,-808.5"/>
+<text text-anchor="start" x="143" y="-816.3" font-family="Helvetica,sans-Serif" font-size="14.00">EPS_ALERT_N PB7</text>
+<polygon fill="none" stroke="black" points="412,-808.5 412,-831.5 694,-831.5 694,-808.5 412,-808.5"/>
+<text text-anchor="start" x="548" y="-816.3" font-family="Helvetica,sans-Serif" font-size="14.00">8</text>
+<polygon fill="none" stroke="black" points="0,-785.5 0,-808.5 412,-808.5 412,-785.5 0,-785.5"/>
+<text text-anchor="start" x="145.5" y="-793.3" font-family="Helvetica,sans-Serif" font-size="14.00">PAYLOAD_EN PB2</text>
+<polygon fill="none" stroke="black" points="412,-785.5 412,-808.5 694,-808.5 694,-785.5 412,-785.5"/>
+<text text-anchor="start" x="548" y="-793.3" font-family="Helvetica,sans-Serif" font-size="14.00">9</text>
+<polygon fill="none" stroke="black" points="0,-762.5 0,-785.5 412,-785.5 412,-762.5 0,-762.5"/>
+<text text-anchor="start" x="154.5" y="-770.3" font-family="Helvetica,sans-Serif" font-size="14.00">RADIO_EN PB5</text>
+<polygon fill="none" stroke="black" points="412,-762.5 412,-785.5 694,-785.5 694,-762.5 412,-762.5"/>
+<text text-anchor="start" x="543.5" y="-770.3" font-family="Helvetica,sans-Serif" font-size="14.00">10</text>
+<polygon fill="none" stroke="black" points="0,-739.5 0,-762.5 412,-762.5 412,-739.5 0,-739.5"/>
+<text text-anchor="start" x="157.5" y="-747.3" font-family="Helvetica,sans-Serif" font-size="14.00">ADCS_EN PB6</text>
+<polygon fill="none" stroke="black" points="412,-739.5 412,-762.5 694,-762.5 694,-739.5 412,-739.5"/>
+<text text-anchor="start" x="543.5" y="-747.3" font-family="Helvetica,sans-Serif" font-size="14.00">11</text>
+<polygon fill="none" stroke="black" points="0,-716.5 0,-739.5 412,-739.5 412,-716.5 0,-716.5"/>
+<text text-anchor="start" x="149" y="-724.3" font-family="Helvetica,sans-Serif" font-size="14.00">HEATER_EN PD2</text>
+<polygon fill="none" stroke="black" points="412,-716.5 412,-739.5 694,-739.5 694,-716.5 412,-716.5"/>
+<text text-anchor="start" x="543.5" y="-724.3" font-family="Helvetica,sans-Serif" font-size="14.00">12</text>
+<polygon fill="none" stroke="black" points="0,-693.5 0,-716.5 412,-716.5 412,-693.5 0,-693.5"/>
+<text text-anchor="start" x="150.5" y="-701.3" font-family="Helvetica,sans-Serif" font-size="14.00">DEPLOY_EN PF3</text>
+<polygon fill="none" stroke="black" points="412,-693.5 412,-716.5 694,-716.5 694,-693.5 412,-693.5"/>
+<text text-anchor="start" x="543.5" y="-701.3" font-family="Helvetica,sans-Serif" font-size="14.00">13</text>
+<polygon fill="none" stroke="black" points="0,-670.5 0,-693.5 412,-693.5 412,-670.5 0,-670.5"/>
+<text text-anchor="start" x="156" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">RF_TX_EN PA3</text>
+<polygon fill="none" stroke="black" points="412,-670.5 412,-693.5 694,-693.5 694,-670.5 412,-670.5"/>
+<text text-anchor="start" x="543.5" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">14</text>
+<polygon fill="none" stroke="black" points="0,-647.5 0,-670.5 412,-670.5 412,-647.5 0,-647.5"/>
+<text text-anchor="start" x="157.5" y="-655.3" font-family="Helvetica,sans-Serif" font-size="14.00">GNSS_EN PE5</text>
+<polygon fill="none" stroke="black" points="412,-647.5 412,-670.5 694,-670.5 694,-647.5 412,-647.5"/>
+<text text-anchor="start" x="543.5" y="-655.3" font-family="Helvetica,sans-Serif" font-size="14.00">15</text>
+<polygon fill="none" stroke="black" points="0,-624.5 0,-647.5 412,-647.5 412,-624.5 0,-624.5"/>
+<text text-anchor="start" x="136.5" y="-632.3" font-family="Helvetica,sans-Serif" font-size="14.00">DEPLOY_SENSE PE2</text>
+<polygon fill="none" stroke="black" points="412,-624.5 412,-647.5 694,-647.5 694,-624.5 412,-624.5"/>
+<text text-anchor="start" x="543.5" y="-632.3" font-family="Helvetica,sans-Serif" font-size="14.00">16</text>
+<polygon fill="none" stroke="black" points="0,-601.5 0,-624.5 412,-624.5 412,-601.5 0,-601.5"/>
+<text text-anchor="start" x="150" y="-609.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W2A PB9</text>
+<polygon fill="none" stroke="black" points="412,-601.5 412,-624.5 694,-624.5 694,-601.5 412,-601.5"/>
+<text text-anchor="start" x="543.5" y="-609.3" font-family="Helvetica,sans-Serif" font-size="14.00">17</text>
+<polygon fill="none" stroke="black" points="0,-578.5 0,-601.5 412,-601.5 412,-578.5 0,-578.5"/>
+<text text-anchor="start" x="145.5" y="-586.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W1A PB10</text>
+<polygon fill="none" stroke="black" points="412,-578.5 412,-601.5 694,-601.5 694,-578.5 412,-578.5"/>
+<text text-anchor="start" x="543.5" y="-586.3" font-family="Helvetica,sans-Serif" font-size="14.00">18</text>
+<polygon fill="none" stroke="black" points="0,-555.5 0,-578.5 412,-578.5 412,-555.5 0,-555.5"/>
+<text text-anchor="start" x="161.5" y="-563.3" font-family="Helvetica,sans-Serif" font-size="14.00">VJET_RB PA7</text>
+<polygon fill="none" stroke="black" points="412,-555.5 412,-578.5 694,-578.5 694,-555.5 412,-555.5"/>
+<text text-anchor="start" x="543.5" y="-563.3" font-family="Helvetica,sans-Serif" font-size="14.00">19</text>
+<polygon fill="none" stroke="black" points="0,-532.5 0,-555.5 412,-555.5 412,-532.5 0,-532.5"/>
+<text text-anchor="start" x="135" y="-540.3" font-family="Helvetica,sans-Serif" font-size="14.00">SOLAR_SENSE PB12</text>
+<polygon fill="none" stroke="black" points="412,-532.5 412,-555.5 694,-555.5 694,-532.5 412,-532.5"/>
+<text text-anchor="start" x="543.5" y="-540.3" font-family="Helvetica,sans-Serif" font-size="14.00">20</text>
+<polygon fill="none" stroke="black" points="0,-509.5 0,-532.5 412,-532.5 412,-509.5 0,-509.5"/>
+<text text-anchor="start" x="185.5" y="-517.3" font-family="Helvetica,sans-Serif" font-size="14.00">AGND</text>
+<polygon fill="none" stroke="black" points="412,-509.5 412,-532.5 694,-532.5 694,-509.5 412,-509.5"/>
+<text text-anchor="start" x="543.5" y="-517.3" font-family="Helvetica,sans-Serif" font-size="14.00">21</text>
+<polygon fill="none" stroke="black" points="0,-486.5 0,-509.5 412,-509.5 412,-486.5 0,-486.5"/>
+<text text-anchor="start" x="150" y="-494.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBATT_SNS PC2</text>
+<polygon fill="none" stroke="black" points="412,-486.5 412,-509.5 694,-509.5 694,-486.5 412,-486.5"/>
+<text text-anchor="start" x="543.5" y="-494.3" font-family="Helvetica,sans-Serif" font-size="14.00">22</text>
+<polygon fill="none" stroke="black" points="0,-463.5 0,-486.5 412,-486.5 412,-463.5 0,-463.5"/>
+<text text-anchor="start" x="153" y="-471.3" font-family="Helvetica,sans-Serif" font-size="14.00">IBATT_SNS PC3</text>
+<polygon fill="none" stroke="black" points="412,-463.5 412,-486.5 694,-486.5 694,-463.5 412,-463.5"/>
+<text text-anchor="start" x="543.5" y="-471.3" font-family="Helvetica,sans-Serif" font-size="14.00">23</text>
+<polygon fill="none" stroke="black" points="0,-440.5 0,-463.5 412,-463.5 412,-440.5 0,-440.5"/>
+<text text-anchor="start" x="143.5" y="-448.3" font-family="Helvetica,sans-Serif" font-size="14.00">VSOLAR_SNS PC4</text>
+<polygon fill="none" stroke="black" points="412,-440.5 412,-463.5 694,-463.5 694,-440.5 412,-440.5"/>
+<text text-anchor="start" x="543.5" y="-448.3" font-family="Helvetica,sans-Serif" font-size="14.00">24</text>
+<polygon fill="none" stroke="black" points="0,-417.5 0,-440.5 412,-440.5 412,-417.5 0,-417.5"/>
+<text text-anchor="start" x="146" y="-425.3" font-family="Helvetica,sans-Serif" font-size="14.00">ISOLAR_SNS PC5</text>
+<polygon fill="none" stroke="black" points="412,-417.5 412,-440.5 694,-440.5 694,-417.5 412,-417.5"/>
+<text text-anchor="start" x="543.5" y="-425.3" font-family="Helvetica,sans-Serif" font-size="14.00">25</text>
+<polygon fill="none" stroke="black" points="0,-394.5 0,-417.5 412,-417.5 412,-394.5 0,-394.5"/>
+<text text-anchor="start" x="153" y="-402.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBUS_SNS PB0</text>
+<polygon fill="none" stroke="black" points="412,-394.5 412,-417.5 694,-417.5 694,-394.5 412,-394.5"/>
+<text text-anchor="start" x="543.5" y="-402.3" font-family="Helvetica,sans-Serif" font-size="14.00">26</text>
+<polygon fill="none" stroke="black" points="0,-371.5 0,-394.5 412,-394.5 412,-371.5 0,-371.5"/>
+<text text-anchor="start" x="185.5" y="-379.3" font-family="Helvetica,sans-Serif" font-size="14.00">AGND</text>
+<polygon fill="none" stroke="black" points="412,-371.5 412,-394.5 694,-394.5 694,-371.5 412,-371.5"/>
+<text text-anchor="start" x="543.5" y="-379.3" font-family="Helvetica,sans-Serif" font-size="14.00">27</text>
+<polygon fill="none" stroke="black" points="0,-348.5 0,-371.5 412,-371.5 412,-348.5 0,-348.5"/>
+<text text-anchor="start" x="133" y="-356.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C3_SCL PG7 (AntS)</text>
+<polygon fill="none" stroke="black" points="412,-348.5 412,-371.5 694,-371.5 694,-348.5 412,-348.5"/>
+<text text-anchor="start" x="543.5" y="-356.3" font-family="Helvetica,sans-Serif" font-size="14.00">28</text>
+<polygon fill="none" stroke="black" points="0,-325.5 0,-348.5 412,-348.5 412,-325.5 0,-325.5"/>
+<text text-anchor="start" x="145" y="-333.3" font-family="Helvetica,sans-Serif" font-size="14.00">JETSON_PWR PA8</text>
+<polygon fill="none" stroke="black" points="412,-325.5 412,-348.5 694,-348.5 694,-325.5 412,-325.5"/>
+<text text-anchor="start" x="543.5" y="-333.3" font-family="Helvetica,sans-Serif" font-size="14.00">29</text>
+<polygon fill="none" stroke="black" points="0,-302.5 0,-325.5 412,-325.5 412,-302.5 0,-302.5"/>
+<text text-anchor="start" x="150.5" y="-310.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W1B PE6</text>
+<polygon fill="none" stroke="black" points="412,-302.5 412,-325.5 694,-325.5 694,-302.5 412,-302.5"/>
+<text text-anchor="start" x="543.5" y="-310.3" font-family="Helvetica,sans-Serif" font-size="14.00">30</text>
+<polygon fill="none" stroke="black" points="0,-279.5 0,-302.5 412,-302.5 412,-279.5 0,-279.5"/>
+<text text-anchor="start" x="150.5" y="-287.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W2B PE7</text>
+<polygon fill="none" stroke="black" points="412,-279.5 412,-302.5 694,-302.5 694,-279.5 412,-279.5"/>
+<text text-anchor="start" x="543.5" y="-287.3" font-family="Helvetica,sans-Serif" font-size="14.00">31</text>
+<polygon fill="none" stroke="black" points="0,-256.5 0,-279.5 412,-279.5 412,-256.5 0,-256.5"/>
+<text text-anchor="start" x="157.5" y="-264.3" font-family="Helvetica,sans-Serif" font-size="14.00">EOL_ARM PF4</text>
+<polygon fill="none" stroke="black" points="412,-256.5 412,-279.5 694,-279.5 694,-256.5 412,-256.5"/>
+<text text-anchor="start" x="543.5" y="-264.3" font-family="Helvetica,sans-Serif" font-size="14.00">32</text>
+<polygon fill="none" stroke="black" points="0,-233.5 0,-256.5 412,-256.5 412,-233.5 0,-233.5"/>
+<text text-anchor="start" x="156.5" y="-241.3" font-family="Helvetica,sans-Serif" font-size="14.00">EOL_FIRE PG1</text>
+<polygon fill="none" stroke="black" points="412,-233.5 412,-256.5 694,-256.5 694,-233.5 412,-233.5"/>
+<text text-anchor="start" x="543.5" y="-241.3" font-family="Helvetica,sans-Serif" font-size="14.00">33</text>
+<polygon fill="none" stroke="black" points="0,-210.5 0,-233.5 412,-233.5 412,-210.5 0,-210.5"/>
+<text text-anchor="start" x="155" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">LOCK_CLR PF5</text>
+<polygon fill="none" stroke="black" points="412,-210.5 412,-233.5 694,-233.5 694,-210.5 412,-210.5"/>
+<text text-anchor="start" x="543.5" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">34</text>
+<polygon fill="none" stroke="black" points="0,-187.5 0,-210.5 412,-210.5 412,-187.5 0,-187.5"/>
+<text text-anchor="start" x="190" y="-195.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="412,-187.5 412,-210.5 694,-210.5 694,-187.5 412,-187.5"/>
+<text text-anchor="start" x="543.5" y="-195.3" font-family="Helvetica,sans-Serif" font-size="14.00">35</text>
+<polygon fill="none" stroke="black" points="0,-164.5 0,-187.5 412,-187.5 412,-164.5 0,-164.5"/>
+<text text-anchor="start" x="168.5" y="-172.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_MTQ</text>
+<polygon fill="none" stroke="black" points="412,-164.5 412,-187.5 694,-187.5 694,-164.5 412,-164.5"/>
+<text text-anchor="start" x="543.5" y="-172.3" font-family="Helvetica,sans-Serif" font-size="14.00">36</text>
+<polygon fill="none" stroke="black" points="0,-141.5 0,-164.5 412,-164.5 412,-141.5 0,-141.5"/>
+<text text-anchor="start" x="156.5" y="-149.3" font-family="Helvetica,sans-Serif" font-size="14.00">VSW1_RB PA1</text>
+<polygon fill="none" stroke="black" points="412,-141.5 412,-164.5 694,-164.5 694,-141.5 412,-141.5"/>
+<text text-anchor="start" x="543.5" y="-149.3" font-family="Helvetica,sans-Serif" font-size="14.00">37</text>
+<polygon fill="none" stroke="black" points="0,-118.5 0,-141.5 412,-141.5 412,-118.5 0,-118.5"/>
+<text text-anchor="start" x="175.5" y="-126.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_RTC</text>
+<polygon fill="none" stroke="black" points="412,-118.5 412,-141.5 694,-141.5 694,-118.5 412,-118.5"/>
+<text text-anchor="start" x="543.5" y="-126.3" font-family="Helvetica,sans-Serif" font-size="14.00">38</text>
+<polygon fill="none" stroke="black" points="0,-95.5 0,-118.5 412,-118.5 412,-95.5 0,-95.5"/>
+<text text-anchor="start" x="168.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_MTQ</text>
+<polygon fill="none" stroke="black" points="412,-95.5 412,-118.5 694,-118.5 694,-95.5 412,-95.5"/>
+<text text-anchor="start" x="543.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">39</text>
+<polygon fill="none" stroke="black" points="0,-72.5 0,-95.5 412,-95.5 412,-72.5 0,-72.5"/>
+<text text-anchor="start" x="132" y="-80.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C3_SDA PB4 (AntS)</text>
+<polygon fill="none" stroke="black" points="412,-72.5 412,-95.5 694,-95.5 694,-72.5 412,-72.5"/>
+<text text-anchor="start" x="543.5" y="-80.3" font-family="Helvetica,sans-Serif" font-size="14.00">40</text>
 <polygon fill="none" stroke="black" points="0,-49.5 0,-72.5 694,-72.5 694,-49.5 0,-49.5"/>
 <text text-anchor="start" x="222" y="-57.3" font-family="Helvetica,sans-Serif" font-size="14.00">EPS board J3, bottom side, +X edge</text>
 </g>
@@ -198,248 +198,248 @@
 <text text-anchor="start" x="2570" y="-1068.3" font-family="Helvetica,sans-Serif" font-size="14.00">30 AWG</text>
 <polygon fill="none" stroke="black" points="2892.5,-1060.5 2892.5,-1083.5 3483.5,-1083.5 3483.5,-1060.5 2892.5,-1060.5"/>
 <text text-anchor="start" x="3158.5" y="-1068.3" font-family="Helvetica,sans-Serif" font-size="14.00">0.065 m</text>
-<text text-anchor="start" x="1300" y="-1047.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
-<text text-anchor="start" x="1242" y="-1028.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:1:3V3_OBC</text>
+<text text-anchor="start" x="1301" y="-1047.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
+<text text-anchor="start" x="1243" y="-1028.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:1:3V3_OBC</text>
 <text text-anchor="start" x="2129" y="-1028.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;RD &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2956" y="-1028.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:1:3V3_OBC</text>
+<text text-anchor="start" x="2955" y="-1028.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:1:3V3_OBC</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-1020.5 838.5,-1022.5 3483.5,-1022.5 3483.5,-1020.5 838.5,-1020.5"/>
 <polygon fill="#ff0000" stroke="transparent" points="838.5,-1018.5 838.5,-1020.5 3483.5,-1020.5 3483.5,-1018.5 838.5,-1018.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-1016.5 838.5,-1018.5 3483.5,-1018.5 3483.5,-1016.5 838.5,-1016.5"/>
-<text text-anchor="start" x="1242" y="-1003.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:2:3V3_OBC</text>
+<text text-anchor="start" x="1243" y="-1003.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:2:3V3_OBC</text>
 <text text-anchor="start" x="2129" y="-1003.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;RD &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2956" y="-1003.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:2:3V3_OBC</text>
+<text text-anchor="start" x="2955" y="-1003.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:2:3V3_OBC</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-995.5 838.5,-997.5 3483.5,-997.5 3483.5,-995.5 838.5,-995.5"/>
 <polygon fill="#ff0000" stroke="transparent" points="838.5,-993.5 838.5,-995.5 3483.5,-995.5 3483.5,-993.5 838.5,-993.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-991.5 838.5,-993.5 3483.5,-993.5 3483.5,-991.5 838.5,-991.5"/>
-<text text-anchor="start" x="1258.5" y="-978.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:3:GND</text>
+<text text-anchor="start" x="1259.5" y="-978.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:3:GND</text>
 <text text-anchor="start" x="2129.5" y="-978.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2972.5" y="-978.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:3:GND</text>
+<text text-anchor="start" x="2971.5" y="-978.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:3:GND</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-970.5 838.5,-972.5 3483.5,-972.5 3483.5,-970.5 838.5,-970.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-968.5 838.5,-970.5 3483.5,-970.5 3483.5,-968.5 838.5,-968.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-966.5 838.5,-968.5 3483.5,-968.5 3483.5,-966.5 838.5,-966.5"/>
-<text text-anchor="start" x="1258.5" y="-953.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:4:GND</text>
+<text text-anchor="start" x="1259.5" y="-953.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:4:GND</text>
 <text text-anchor="start" x="2129.5" y="-953.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2972.5" y="-953.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:4:GND</text>
+<text text-anchor="start" x="2971.5" y="-953.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:4:GND</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-945.5 838.5,-947.5 3483.5,-947.5 3483.5,-945.5 838.5,-945.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-943.5 838.5,-945.5 3483.5,-945.5 3483.5,-943.5 838.5,-943.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-941.5 838.5,-943.5 3483.5,-943.5 3483.5,-941.5 838.5,-941.5"/>
-<text text-anchor="start" x="1227" y="-928.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:5:I2C2_SCL PF1</text>
+<text text-anchor="start" x="1228" y="-928.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:5:I2C2_SCL PF1</text>
 <text text-anchor="start" x="2130.5" y="-928.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;YE &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2940.5" y="-928.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:5:I2C2_SCL PF1</text>
+<text text-anchor="start" x="2939.5" y="-928.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:5:I2C2_SCL PF1</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-920.5 838.5,-922.5 3483.5,-922.5 3483.5,-920.5 838.5,-920.5"/>
 <polygon fill="#ffff00" stroke="transparent" points="838.5,-918.5 838.5,-920.5 3483.5,-920.5 3483.5,-918.5 838.5,-918.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-916.5 838.5,-918.5 3483.5,-918.5 3483.5,-916.5 838.5,-916.5"/>
-<text text-anchor="start" x="1225.5" y="-903.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:6:I2C2_SDA PF0</text>
+<text text-anchor="start" x="1226.5" y="-903.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:6:I2C2_SDA PF0</text>
 <text text-anchor="start" x="2129" y="-903.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BU &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2939" y="-903.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:6:I2C2_SDA PF0</text>
+<text text-anchor="start" x="2938" y="-903.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:6:I2C2_SDA PF0</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-895.5 838.5,-897.5 3483.5,-897.5 3483.5,-895.5 838.5,-895.5"/>
 <polygon fill="#0066ff" stroke="transparent" points="838.5,-893.5 838.5,-895.5 3483.5,-895.5 3483.5,-893.5 838.5,-893.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-891.5 838.5,-893.5 3483.5,-893.5 3483.5,-891.5 838.5,-891.5"/>
-<text text-anchor="start" x="1258.5" y="-878.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:7:GND</text>
+<text text-anchor="start" x="1259.5" y="-878.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:7:GND</text>
 <text text-anchor="start" x="2129.5" y="-878.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2972.5" y="-878.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:7:GND</text>
+<text text-anchor="start" x="2971.5" y="-878.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:7:GND</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-870.5 838.5,-872.5 3483.5,-872.5 3483.5,-870.5 838.5,-870.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-868.5 838.5,-870.5 3483.5,-870.5 3483.5,-868.5 838.5,-868.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-866.5 838.5,-868.5 3483.5,-868.5 3483.5,-866.5 838.5,-866.5"/>
-<text text-anchor="start" x="1212" y="-853.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:8:EPS_ALERT_N PB7</text>
+<text text-anchor="start" x="1213" y="-853.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:8:EPS_ALERT_N PB7</text>
 <text text-anchor="start" x="2127" y="-853.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;WH &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2925.5" y="-853.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:8:EPS_ALERT_N PB7</text>
+<text text-anchor="start" x="2924.5" y="-853.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:8:EPS_ALERT_N PB7</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-845.5 838.5,-847.5 3483.5,-847.5 3483.5,-845.5 838.5,-845.5"/>
 <polygon fill="#ffffff" stroke="transparent" points="838.5,-843.5 838.5,-845.5 3483.5,-845.5 3483.5,-843.5 838.5,-843.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-841.5 838.5,-843.5 3483.5,-843.5 3483.5,-841.5 838.5,-841.5"/>
-<text text-anchor="start" x="1214.5" y="-828.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:9:PAYLOAD_EN PB2</text>
+<text text-anchor="start" x="1215.5" y="-828.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:9:PAYLOAD_EN PB2</text>
 <text text-anchor="start" x="2128.5" y="-828.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;GN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2928" y="-828.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:9:PAYLOAD_EN PB2</text>
+<text text-anchor="start" x="2927" y="-828.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:9:PAYLOAD_EN PB2</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-820.5 838.5,-822.5 3483.5,-822.5 3483.5,-820.5 838.5,-820.5"/>
 <polygon fill="#00ff00" stroke="transparent" points="838.5,-818.5 838.5,-820.5 3483.5,-820.5 3483.5,-818.5 838.5,-818.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-816.5 838.5,-818.5 3483.5,-818.5 3483.5,-816.5 838.5,-816.5"/>
-<text text-anchor="start" x="1218.5" y="-803.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:10:RADIO_EN PB5</text>
+<text text-anchor="start" x="1219.5" y="-803.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:10:RADIO_EN PB5</text>
 <text text-anchor="start" x="2128.5" y="-803.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;GN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2932" y="-803.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:10:RADIO_EN PB5</text>
+<text text-anchor="start" x="2931" y="-803.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:10:RADIO_EN PB5</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-795.5 838.5,-797.5 3483.5,-797.5 3483.5,-795.5 838.5,-795.5"/>
 <polygon fill="#00ff00" stroke="transparent" points="838.5,-793.5 838.5,-795.5 3483.5,-795.5 3483.5,-793.5 838.5,-793.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-791.5 838.5,-793.5 3483.5,-793.5 3483.5,-791.5 838.5,-791.5"/>
-<text text-anchor="start" x="1221.5" y="-778.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:11:ADCS_EN PB6</text>
+<text text-anchor="start" x="1222.5" y="-778.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:11:ADCS_EN PB6</text>
 <text text-anchor="start" x="2128.5" y="-778.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;GN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2935" y="-778.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:11:ADCS_EN PB6</text>
+<text text-anchor="start" x="2934" y="-778.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:11:ADCS_EN PB6</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-770.5 838.5,-772.5 3483.5,-772.5 3483.5,-770.5 838.5,-770.5"/>
 <polygon fill="#00ff00" stroke="transparent" points="838.5,-768.5 838.5,-770.5 3483.5,-770.5 3483.5,-768.5 838.5,-768.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-766.5 838.5,-768.5 3483.5,-768.5 3483.5,-766.5 838.5,-766.5"/>
-<text text-anchor="start" x="1213.5" y="-753.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:12:HEATER_EN PD2</text>
+<text text-anchor="start" x="1214.5" y="-753.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:12:HEATER_EN PD2</text>
 <text text-anchor="start" x="2128.5" y="-753.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;GN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2927" y="-753.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:12:HEATER_EN PD2</text>
+<text text-anchor="start" x="2926" y="-753.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:12:HEATER_EN PD2</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-745.5 838.5,-747.5 3483.5,-747.5 3483.5,-745.5 838.5,-745.5"/>
 <polygon fill="#00ff00" stroke="transparent" points="838.5,-743.5 838.5,-745.5 3483.5,-745.5 3483.5,-743.5 838.5,-743.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-741.5 838.5,-743.5 3483.5,-743.5 3483.5,-741.5 838.5,-741.5"/>
-<text text-anchor="start" x="1215" y="-728.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:13:DEPLOY_EN PF3</text>
+<text text-anchor="start" x="1216" y="-728.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:13:DEPLOY_EN PF3</text>
 <text text-anchor="start" x="2128.5" y="-728.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;GN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2928.5" y="-728.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:13:DEPLOY_EN PF3</text>
+<text text-anchor="start" x="2927.5" y="-728.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:13:DEPLOY_EN PF3</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-720.5 838.5,-722.5 3483.5,-722.5 3483.5,-720.5 838.5,-720.5"/>
 <polygon fill="#00ff00" stroke="transparent" points="838.5,-718.5 838.5,-720.5 3483.5,-720.5 3483.5,-718.5 838.5,-718.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-716.5 838.5,-718.5 3483.5,-718.5 3483.5,-716.5 838.5,-716.5"/>
-<text text-anchor="start" x="1220" y="-703.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:14:RF_TX_EN PA3</text>
+<text text-anchor="start" x="1221" y="-703.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:14:RF_TX_EN PA3</text>
 <text text-anchor="start" x="2128.5" y="-703.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;GN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2933.5" y="-703.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:14:RF_TX_EN PA3</text>
+<text text-anchor="start" x="2932.5" y="-703.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:14:RF_TX_EN PA3</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-695.5 838.5,-697.5 3483.5,-697.5 3483.5,-695.5 838.5,-695.5"/>
 <polygon fill="#00ff00" stroke="transparent" points="838.5,-693.5 838.5,-695.5 3483.5,-695.5 3483.5,-693.5 838.5,-693.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-691.5 838.5,-693.5 3483.5,-693.5 3483.5,-691.5 838.5,-691.5"/>
-<text text-anchor="start" x="1222" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:15:GNSS_EN PE5</text>
+<text text-anchor="start" x="1223" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:15:GNSS_EN PE5</text>
 <text text-anchor="start" x="2128.5" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;GN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2935.5" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:15:GNSS_EN PE5</text>
+<text text-anchor="start" x="2934.5" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:15:GNSS_EN PE5</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-670.5 838.5,-672.5 3483.5,-672.5 3483.5,-670.5 838.5,-670.5"/>
 <polygon fill="#00ff00" stroke="transparent" points="838.5,-668.5 838.5,-670.5 3483.5,-670.5 3483.5,-668.5 838.5,-668.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-666.5 838.5,-668.5 3483.5,-668.5 3483.5,-666.5 838.5,-666.5"/>
-<text text-anchor="start" x="1201" y="-653.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:16:DEPLOY_SENSE PE2</text>
+<text text-anchor="start" x="1202" y="-653.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:16:DEPLOY_SENSE PE2</text>
 <text text-anchor="start" x="2128" y="-653.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;OG &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2914.5" y="-653.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:16:DEPLOY_SENSE PE2</text>
+<text text-anchor="start" x="2913.5" y="-653.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:16:DEPLOY_SENSE PE2</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-645.5 838.5,-647.5 3483.5,-647.5 3483.5,-645.5 838.5,-645.5"/>
 <polygon fill="#ff8000" stroke="transparent" points="838.5,-643.5 838.5,-645.5 3483.5,-645.5 3483.5,-643.5 838.5,-643.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-641.5 838.5,-643.5 3483.5,-643.5 3483.5,-641.5 838.5,-641.5"/>
-<text text-anchor="start" x="1214.5" y="-628.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:17:BURN_W2A PB9</text>
+<text text-anchor="start" x="1215.5" y="-628.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:17:BURN_W2A PB9</text>
 <text text-anchor="start" x="2130" y="-628.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;VT &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2928" y="-628.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:17:BURN_W2A PB9</text>
+<text text-anchor="start" x="2927" y="-628.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:17:BURN_W2A PB9</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-620.5 838.5,-622.5 3483.5,-622.5 3483.5,-620.5 838.5,-620.5"/>
 <polygon fill="#8000ff" stroke="transparent" points="838.5,-618.5 838.5,-620.5 3483.5,-620.5 3483.5,-618.5 838.5,-618.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-616.5 838.5,-618.5 3483.5,-618.5 3483.5,-616.5 838.5,-616.5"/>
-<text text-anchor="start" x="1210" y="-603.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:18:BURN_W1A PB10</text>
+<text text-anchor="start" x="1211" y="-603.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:18:BURN_W1A PB10</text>
 <text text-anchor="start" x="2130" y="-603.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;VT &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2923.5" y="-603.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:18:BURN_W1A PB10</text>
+<text text-anchor="start" x="2922.5" y="-603.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:18:BURN_W1A PB10</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-595.5 838.5,-597.5 3483.5,-597.5 3483.5,-595.5 838.5,-595.5"/>
 <polygon fill="#8000ff" stroke="transparent" points="838.5,-593.5 838.5,-595.5 3483.5,-595.5 3483.5,-593.5 838.5,-593.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-591.5 838.5,-593.5 3483.5,-593.5 3483.5,-591.5 838.5,-591.5"/>
-<text text-anchor="start" x="1225.5" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:19:VJET_RB PA7</text>
+<text text-anchor="start" x="1226.5" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:19:VJET_RB PA7</text>
 <text text-anchor="start" x="2129" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2939.5" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:19:VJET_RB PA7</text>
+<text text-anchor="start" x="2938.5" y="-578.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:19:VJET_RB PA7</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-570.5 838.5,-572.5 3483.5,-572.5 3483.5,-570.5 838.5,-570.5"/>
 <polygon fill="#895956" stroke="transparent" points="838.5,-568.5 838.5,-570.5 3483.5,-570.5 3483.5,-568.5 838.5,-568.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-566.5 838.5,-568.5 3483.5,-568.5 3483.5,-566.5 838.5,-566.5"/>
-<text text-anchor="start" x="1199" y="-553.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:20:SOLAR_SENSE PB12</text>
+<text text-anchor="start" x="1200" y="-553.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:20:SOLAR_SENSE PB12</text>
 <text text-anchor="start" x="2128" y="-553.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;OG &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2912.5" y="-553.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:20:SOLAR_SENSE PB12</text>
+<text text-anchor="start" x="2911.5" y="-553.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:20:SOLAR_SENSE PB12</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-545.5 838.5,-547.5 3483.5,-547.5 3483.5,-545.5 838.5,-545.5"/>
 <polygon fill="#ff8000" stroke="transparent" points="838.5,-543.5 838.5,-545.5 3483.5,-545.5 3483.5,-543.5 838.5,-543.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-541.5 838.5,-543.5 3483.5,-543.5 3483.5,-541.5 838.5,-541.5"/>
-<text text-anchor="start" x="1249.5" y="-528.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:21:AGND</text>
+<text text-anchor="start" x="1250.5" y="-528.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:21:AGND</text>
 <text text-anchor="start" x="2129.5" y="-528.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;GY &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2963.5" y="-528.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:21:AGND</text>
+<text text-anchor="start" x="2962.5" y="-528.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:21:AGND</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-520.5 838.5,-522.5 3483.5,-522.5 3483.5,-520.5 838.5,-520.5"/>
 <polygon fill="#999999" stroke="transparent" points="838.5,-518.5 838.5,-520.5 3483.5,-520.5 3483.5,-518.5 838.5,-518.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-516.5 838.5,-518.5 3483.5,-518.5 3483.5,-516.5 838.5,-516.5"/>
-<text text-anchor="start" x="1214.5" y="-503.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:22:VBATT_SNS PC2</text>
+<text text-anchor="start" x="1215.5" y="-503.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:22:VBATT_SNS PC2</text>
 <text text-anchor="start" x="2129" y="-503.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2928" y="-503.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:22:VBATT_SNS PC2</text>
+<text text-anchor="start" x="2927" y="-503.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:22:VBATT_SNS PC2</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-495.5 838.5,-497.5 3483.5,-497.5 3483.5,-495.5 838.5,-495.5"/>
 <polygon fill="#895956" stroke="transparent" points="838.5,-493.5 838.5,-495.5 3483.5,-495.5 3483.5,-493.5 838.5,-493.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-491.5 838.5,-493.5 3483.5,-493.5 3483.5,-491.5 838.5,-491.5"/>
-<text text-anchor="start" x="1217" y="-478.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:23:IBATT_SNS PC3</text>
+<text text-anchor="start" x="1218" y="-478.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:23:IBATT_SNS PC3</text>
 <text text-anchor="start" x="2129" y="-478.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2930.5" y="-478.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:23:IBATT_SNS PC3</text>
+<text text-anchor="start" x="2929.5" y="-478.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:23:IBATT_SNS PC3</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-470.5 838.5,-472.5 3483.5,-472.5 3483.5,-470.5 838.5,-470.5"/>
 <polygon fill="#895956" stroke="transparent" points="838.5,-468.5 838.5,-470.5 3483.5,-470.5 3483.5,-468.5 838.5,-468.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-466.5 838.5,-468.5 3483.5,-468.5 3483.5,-466.5 838.5,-466.5"/>
-<text text-anchor="start" x="1207.5" y="-453.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:24:VSOLAR_SNS PC4</text>
+<text text-anchor="start" x="1208.5" y="-453.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:24:VSOLAR_SNS PC4</text>
 <text text-anchor="start" x="2129" y="-453.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2921.5" y="-453.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:24:VSOLAR_SNS PC4</text>
+<text text-anchor="start" x="2920.5" y="-453.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:24:VSOLAR_SNS PC4</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-445.5 838.5,-447.5 3483.5,-447.5 3483.5,-445.5 838.5,-445.5"/>
 <polygon fill="#895956" stroke="transparent" points="838.5,-443.5 838.5,-445.5 3483.5,-445.5 3483.5,-443.5 838.5,-443.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-441.5 838.5,-443.5 3483.5,-443.5 3483.5,-441.5 838.5,-441.5"/>
-<text text-anchor="start" x="1210.5" y="-428.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:25:ISOLAR_SNS PC5</text>
+<text text-anchor="start" x="1211.5" y="-428.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:25:ISOLAR_SNS PC5</text>
 <text text-anchor="start" x="2129" y="-428.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2924" y="-428.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:25:ISOLAR_SNS PC5</text>
+<text text-anchor="start" x="2923" y="-428.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:25:ISOLAR_SNS PC5</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-420.5 838.5,-422.5 3483.5,-422.5 3483.5,-420.5 838.5,-420.5"/>
 <polygon fill="#895956" stroke="transparent" points="838.5,-418.5 838.5,-420.5 3483.5,-420.5 3483.5,-418.5 838.5,-418.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-416.5 838.5,-418.5 3483.5,-418.5 3483.5,-416.5 838.5,-416.5"/>
-<text text-anchor="start" x="1217" y="-403.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:26:VBUS_SNS PB0</text>
+<text text-anchor="start" x="1218" y="-403.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:26:VBUS_SNS PB0</text>
 <text text-anchor="start" x="2129" y="-403.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2930.5" y="-403.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:26:VBUS_SNS PB0</text>
+<text text-anchor="start" x="2929.5" y="-403.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:26:VBUS_SNS PB0</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-395.5 838.5,-397.5 3483.5,-397.5 3483.5,-395.5 838.5,-395.5"/>
 <polygon fill="#895956" stroke="transparent" points="838.5,-393.5 838.5,-395.5 3483.5,-395.5 3483.5,-393.5 838.5,-393.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-391.5 838.5,-393.5 3483.5,-393.5 3483.5,-391.5 838.5,-391.5"/>
-<text text-anchor="start" x="1249.5" y="-378.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:27:AGND</text>
+<text text-anchor="start" x="1250.5" y="-378.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:27:AGND</text>
 <text text-anchor="start" x="2129.5" y="-378.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;GY &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2963.5" y="-378.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:27:AGND</text>
+<text text-anchor="start" x="2962.5" y="-378.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:27:AGND</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-370.5 838.5,-372.5 3483.5,-372.5 3483.5,-370.5 838.5,-370.5"/>
 <polygon fill="#999999" stroke="transparent" points="838.5,-368.5 838.5,-370.5 3483.5,-370.5 3483.5,-368.5 838.5,-368.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-366.5 838.5,-368.5 3483.5,-368.5 3483.5,-366.5 838.5,-366.5"/>
-<text text-anchor="start" x="1254" y="-353.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:28:GND</text>
+<text text-anchor="start" x="1198" y="-353.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:28:I2C3_SCL PG7 (AntS)</text>
 <text text-anchor="start" x="2129.5" y="-353.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2968" y="-353.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:28:GND</text>
+<text text-anchor="start" x="2910" y="-353.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:28:I2C3_SCL PG7 (AntS)</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-345.5 838.5,-347.5 3483.5,-347.5 3483.5,-345.5 838.5,-345.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-343.5 838.5,-345.5 3483.5,-345.5 3483.5,-343.5 838.5,-343.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-341.5 838.5,-343.5 3483.5,-343.5 3483.5,-341.5 838.5,-341.5"/>
-<text text-anchor="start" x="1209" y="-328.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:29:JETSON_PWR PA2</text>
+<text text-anchor="start" x="1210" y="-328.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:29:JETSON_PWR PA8</text>
 <text text-anchor="start" x="2128.5" y="-328.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;GN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2923" y="-328.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:29:JETSON_PWR PA2</text>
+<text text-anchor="start" x="2922" y="-328.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:29:JETSON_PWR PA8</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-320.5 838.5,-322.5 3483.5,-322.5 3483.5,-320.5 838.5,-320.5"/>
 <polygon fill="#00ff00" stroke="transparent" points="838.5,-318.5 838.5,-320.5 3483.5,-320.5 3483.5,-318.5 838.5,-318.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-316.5 838.5,-318.5 3483.5,-318.5 3483.5,-316.5 838.5,-316.5"/>
-<text text-anchor="start" x="1215" y="-303.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:30:BURN_W1B PE6</text>
+<text text-anchor="start" x="1216" y="-303.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:30:BURN_W1B PE6</text>
 <text text-anchor="start" x="2130" y="-303.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;VT &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2928.5" y="-303.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:30:BURN_W1B PE6</text>
+<text text-anchor="start" x="2927.5" y="-303.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:30:BURN_W1B PE6</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-295.5 838.5,-297.5 3483.5,-297.5 3483.5,-295.5 838.5,-295.5"/>
 <polygon fill="#8000ff" stroke="transparent" points="838.5,-293.5 838.5,-295.5 3483.5,-295.5 3483.5,-293.5 838.5,-293.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-291.5 838.5,-293.5 3483.5,-293.5 3483.5,-291.5 838.5,-291.5"/>
-<text text-anchor="start" x="1215" y="-278.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:31:BURN_W2B PE7</text>
+<text text-anchor="start" x="1216" y="-278.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:31:BURN_W2B PE7</text>
 <text text-anchor="start" x="2130" y="-278.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;VT &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2928.5" y="-278.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:31:BURN_W2B PE7</text>
+<text text-anchor="start" x="2927.5" y="-278.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:31:BURN_W2B PE7</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-270.5 838.5,-272.5 3483.5,-272.5 3483.5,-270.5 838.5,-270.5"/>
 <polygon fill="#8000ff" stroke="transparent" points="838.5,-268.5 838.5,-270.5 3483.5,-270.5 3483.5,-268.5 838.5,-268.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-266.5 838.5,-268.5 3483.5,-268.5 3483.5,-266.5 838.5,-266.5"/>
-<text text-anchor="start" x="1222" y="-253.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:32:EOL_ARM PF4</text>
+<text text-anchor="start" x="1223" y="-253.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:32:EOL_ARM PF4</text>
 <text text-anchor="start" x="2130.5" y="-253.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;PK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2935.5" y="-253.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:32:EOL_ARM PF4</text>
+<text text-anchor="start" x="2934.5" y="-253.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:32:EOL_ARM PF4</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-245.5 838.5,-247.5 3483.5,-247.5 3483.5,-245.5 838.5,-245.5"/>
 <polygon fill="#ff66cc" stroke="transparent" points="838.5,-243.5 838.5,-245.5 3483.5,-245.5 3483.5,-243.5 838.5,-243.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-241.5 838.5,-243.5 3483.5,-243.5 3483.5,-241.5 838.5,-241.5"/>
-<text text-anchor="start" x="1221" y="-228.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:33:EOL_FIRE PG1</text>
+<text text-anchor="start" x="1222" y="-228.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:33:EOL_FIRE PG1</text>
 <text text-anchor="start" x="2130.5" y="-228.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;PK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2934.5" y="-228.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:33:EOL_FIRE PG1</text>
+<text text-anchor="start" x="2933.5" y="-228.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:33:EOL_FIRE PG1</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-220.5 838.5,-222.5 3483.5,-222.5 3483.5,-220.5 838.5,-220.5"/>
 <polygon fill="#ff66cc" stroke="transparent" points="838.5,-218.5 838.5,-220.5 3483.5,-220.5 3483.5,-218.5 838.5,-218.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-216.5 838.5,-218.5 3483.5,-218.5 3483.5,-216.5 838.5,-216.5"/>
-<text text-anchor="start" x="1219.5" y="-203.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:34:LOCK_CLR PF5</text>
+<text text-anchor="start" x="1220.5" y="-203.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:34:LOCK_CLR PF5</text>
 <text text-anchor="start" x="2130.5" y="-203.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;PK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2933" y="-203.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:34:LOCK_CLR PF5</text>
+<text text-anchor="start" x="2932" y="-203.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:34:LOCK_CLR PF5</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-195.5 838.5,-197.5 3483.5,-197.5 3483.5,-195.5 838.5,-195.5"/>
 <polygon fill="#ff66cc" stroke="transparent" points="838.5,-193.5 838.5,-195.5 3483.5,-195.5 3483.5,-193.5 838.5,-193.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-191.5 838.5,-193.5 3483.5,-193.5 3483.5,-191.5 838.5,-191.5"/>
-<text text-anchor="start" x="1254" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:35:GND</text>
+<text text-anchor="start" x="1255" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:35:GND</text>
 <text text-anchor="start" x="2129.5" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2968" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:35:GND</text>
+<text text-anchor="start" x="2967" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:35:GND</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-170.5 838.5,-172.5 3483.5,-172.5 3483.5,-170.5 838.5,-170.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-168.5 838.5,-170.5 3483.5,-170.5 3483.5,-168.5 838.5,-168.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-166.5 838.5,-168.5 3483.5,-168.5 3483.5,-166.5 838.5,-166.5"/>
-<text text-anchor="start" x="1233" y="-153.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:36:VBAT_MTQ</text>
+<text text-anchor="start" x="1234" y="-153.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:36:VBAT_MTQ</text>
 <text text-anchor="start" x="2129" y="-153.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;RD &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2946.5" y="-153.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:36:VBAT_MTQ</text>
+<text text-anchor="start" x="2945.5" y="-153.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:36:VBAT_MTQ</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-145.5 838.5,-147.5 3483.5,-147.5 3483.5,-145.5 838.5,-145.5"/>
 <polygon fill="#ff0000" stroke="transparent" points="838.5,-143.5 838.5,-145.5 3483.5,-145.5 3483.5,-143.5 838.5,-143.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-141.5 838.5,-143.5 3483.5,-143.5 3483.5,-141.5 838.5,-141.5"/>
-<text text-anchor="start" x="1221" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:37:VSW1_RB PA1</text>
+<text text-anchor="start" x="1222" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:37:VSW1_RB PA1</text>
 <text text-anchor="start" x="2129" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BN &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2934.5" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:37:VSW1_RB PA1</text>
+<text text-anchor="start" x="2933.5" y="-128.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:37:VSW1_RB PA1</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-120.5 838.5,-122.5 3483.5,-122.5 3483.5,-120.5 838.5,-120.5"/>
 <polygon fill="#895956" stroke="transparent" points="838.5,-118.5 838.5,-120.5 3483.5,-120.5 3483.5,-118.5 838.5,-118.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-116.5 838.5,-118.5 3483.5,-118.5 3483.5,-116.5 838.5,-116.5"/>
-<text text-anchor="start" x="1239.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:38:3V3_RTC</text>
+<text text-anchor="start" x="1240.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:38:3V3_RTC</text>
 <text text-anchor="start" x="2128" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;OG &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2953" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:38:3V3_RTC</text>
+<text text-anchor="start" x="2952" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:38:3V3_RTC</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-95.5 838.5,-97.5 3483.5,-97.5 3483.5,-95.5 838.5,-95.5"/>
 <polygon fill="#ff8000" stroke="transparent" points="838.5,-93.5 838.5,-95.5 3483.5,-95.5 3483.5,-93.5 838.5,-93.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-91.5 838.5,-93.5 3483.5,-93.5 3483.5,-91.5 838.5,-91.5"/>
-<text text-anchor="start" x="1233" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:39:VBAT_MTQ</text>
+<text text-anchor="start" x="1234" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:39:VBAT_MTQ</text>
 <text text-anchor="start" x="2129" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;RD &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2946.5" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:39:VBAT_MTQ</text>
+<text text-anchor="start" x="2945.5" y="-78.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:39:VBAT_MTQ</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-70.5 838.5,-72.5 3483.5,-72.5 3483.5,-70.5 838.5,-70.5"/>
 <polygon fill="#ff0000" stroke="transparent" points="838.5,-68.5 838.5,-70.5 3483.5,-70.5 3483.5,-68.5 838.5,-68.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-66.5 838.5,-68.5 3483.5,-68.5 3483.5,-66.5 838.5,-66.5"/>
-<text text-anchor="start" x="1254" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:40:GND</text>
+<text text-anchor="start" x="1197" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_EPS:40:I2C3_SDA PB4 (AntS)</text>
 <text text-anchor="start" x="2129.5" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;BK &#160;&#160;&#160;</text>
-<text text-anchor="start" x="2968" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:40:GND</text>
+<text text-anchor="start" x="2908.5" y="-53.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC:40:I2C3_SDA PB4 (AntS)</text>
 <polygon fill="#000000" stroke="transparent" points="838.5,-45.5 838.5,-47.5 3483.5,-47.5 3483.5,-45.5 838.5,-45.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-43.5 838.5,-45.5 3483.5,-45.5 3483.5,-43.5 838.5,-43.5"/>
 <polygon fill="#000000" stroke="transparent" points="838.5,-41.5 838.5,-43.5 3483.5,-43.5 3483.5,-41.5 838.5,-41.5"/>
-<text text-anchor="start" x="1300" y="-28.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
+<text text-anchor="start" x="1301" y="-28.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
 <polygon fill="none" stroke="black" points="838.5,0.5 838.5,-22.5 3483.5,-22.5 3483.5,0.5 838.5,0.5"/>
 <text text-anchor="start" x="842.5" y="-7.3" font-family="Helvetica,sans-Serif" font-size="14.00">EEE&#45;INST&#45;002 derating, N = 40: 30 AWG carries 0.65 A per wire; 3V3_OBC 0.088 A per wire at the SW10 trip (14 %), VBAT_MTQ 0.20 A per wire at the SW11 limit (31 %). AGND joins GND at one point on the EPS. Every OBC output is high&#45;impedance at OBC reset and held low by 100 k on the EPS. EOL_ARM and EOL_FIRE sit on different MCU ports (F, G) and different cable rows</text>
 </g>
@@ -735,166 +735,166 @@
 <text text-anchor="start" x="4054" y="-1000.3" font-family="Helvetica,sans-Serif" font-size="14.00">40 pos, 1.27 mm, 2 rows, latched</text>
 <polygon fill="none" stroke="black" points="4293,-992.5 4293,-1015.5 4347,-1015.5 4347,-992.5 4293,-992.5"/>
 <text text-anchor="start" x="4297" y="-1000.3" font-family="Helvetica,sans-Serif" font-size="14.00">40&#45;pin</text>
-<polygon fill="none" stroke="black" points="3627,-969.5 3627,-992.5 3926,-992.5 3926,-969.5 3627,-969.5"/>
-<text text-anchor="start" x="3771.5" y="-977.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
-<polygon fill="none" stroke="black" points="3926,-969.5 3926,-992.5 4347,-992.5 4347,-969.5 3926,-969.5"/>
-<text text-anchor="start" x="4104" y="-977.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_OBC</text>
-<polygon fill="none" stroke="black" points="3627,-946.5 3627,-969.5 3926,-969.5 3926,-946.5 3627,-946.5"/>
-<text text-anchor="start" x="3771.5" y="-954.3" font-family="Helvetica,sans-Serif" font-size="14.00">2</text>
-<polygon fill="none" stroke="black" points="3926,-946.5 3926,-969.5 4347,-969.5 4347,-946.5 3926,-946.5"/>
-<text text-anchor="start" x="4104" y="-954.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_OBC</text>
-<polygon fill="none" stroke="black" points="3627,-923.5 3627,-946.5 3926,-946.5 3926,-923.5 3627,-923.5"/>
-<text text-anchor="start" x="3771.5" y="-931.3" font-family="Helvetica,sans-Serif" font-size="14.00">3</text>
-<polygon fill="none" stroke="black" points="3926,-923.5 3926,-946.5 4347,-946.5 4347,-923.5 3926,-923.5"/>
-<text text-anchor="start" x="4120.5" y="-931.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="3627,-900.5 3627,-923.5 3926,-923.5 3926,-900.5 3627,-900.5"/>
-<text text-anchor="start" x="3771.5" y="-908.3" font-family="Helvetica,sans-Serif" font-size="14.00">4</text>
-<polygon fill="none" stroke="black" points="3926,-900.5 3926,-923.5 4347,-923.5 4347,-900.5 3926,-900.5"/>
-<text text-anchor="start" x="4120.5" y="-908.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="3627,-877.5 3627,-900.5 3926,-900.5 3926,-877.5 3627,-877.5"/>
-<text text-anchor="start" x="3771.5" y="-885.3" font-family="Helvetica,sans-Serif" font-size="14.00">5</text>
-<polygon fill="none" stroke="black" points="3926,-877.5 3926,-900.5 4347,-900.5 4347,-877.5 3926,-877.5"/>
-<text text-anchor="start" x="4088.5" y="-885.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C2_SCL PF1</text>
-<polygon fill="none" stroke="black" points="3627,-854.5 3627,-877.5 3926,-877.5 3926,-854.5 3627,-854.5"/>
-<text text-anchor="start" x="3771.5" y="-862.3" font-family="Helvetica,sans-Serif" font-size="14.00">6</text>
-<polygon fill="none" stroke="black" points="3926,-854.5 3926,-877.5 4347,-877.5 4347,-854.5 3926,-854.5"/>
-<text text-anchor="start" x="4087" y="-862.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C2_SDA PF0</text>
-<polygon fill="none" stroke="black" points="3627,-831.5 3627,-854.5 3926,-854.5 3926,-831.5 3627,-831.5"/>
-<text text-anchor="start" x="3771.5" y="-839.3" font-family="Helvetica,sans-Serif" font-size="14.00">7</text>
-<polygon fill="none" stroke="black" points="3926,-831.5 3926,-854.5 4347,-854.5 4347,-831.5 3926,-831.5"/>
-<text text-anchor="start" x="4120.5" y="-839.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="3627,-808.5 3627,-831.5 3926,-831.5 3926,-808.5 3627,-808.5"/>
-<text text-anchor="start" x="3771.5" y="-816.3" font-family="Helvetica,sans-Serif" font-size="14.00">8</text>
-<polygon fill="none" stroke="black" points="3926,-808.5 3926,-831.5 4347,-831.5 4347,-808.5 3926,-808.5"/>
-<text text-anchor="start" x="4073.5" y="-816.3" font-family="Helvetica,sans-Serif" font-size="14.00">EPS_ALERT_N PB7</text>
-<polygon fill="none" stroke="black" points="3627,-785.5 3627,-808.5 3926,-808.5 3926,-785.5 3627,-785.5"/>
-<text text-anchor="start" x="3771.5" y="-793.3" font-family="Helvetica,sans-Serif" font-size="14.00">9</text>
-<polygon fill="none" stroke="black" points="3926,-785.5 3926,-808.5 4347,-808.5 4347,-785.5 3926,-785.5"/>
-<text text-anchor="start" x="4076" y="-793.3" font-family="Helvetica,sans-Serif" font-size="14.00">PAYLOAD_EN PB2</text>
-<polygon fill="none" stroke="black" points="3627,-762.5 3627,-785.5 3926,-785.5 3926,-762.5 3627,-762.5"/>
-<text text-anchor="start" x="3767" y="-770.3" font-family="Helvetica,sans-Serif" font-size="14.00">10</text>
-<polygon fill="none" stroke="black" points="3926,-762.5 3926,-785.5 4347,-785.5 4347,-762.5 3926,-762.5"/>
-<text text-anchor="start" x="4085" y="-770.3" font-family="Helvetica,sans-Serif" font-size="14.00">RADIO_EN PB5</text>
-<polygon fill="none" stroke="black" points="3627,-739.5 3627,-762.5 3926,-762.5 3926,-739.5 3627,-739.5"/>
-<text text-anchor="start" x="3767" y="-747.3" font-family="Helvetica,sans-Serif" font-size="14.00">11</text>
-<polygon fill="none" stroke="black" points="3926,-739.5 3926,-762.5 4347,-762.5 4347,-739.5 3926,-739.5"/>
-<text text-anchor="start" x="4088" y="-747.3" font-family="Helvetica,sans-Serif" font-size="14.00">ADCS_EN PB6</text>
-<polygon fill="none" stroke="black" points="3627,-716.5 3627,-739.5 3926,-739.5 3926,-716.5 3627,-716.5"/>
-<text text-anchor="start" x="3767" y="-724.3" font-family="Helvetica,sans-Serif" font-size="14.00">12</text>
-<polygon fill="none" stroke="black" points="3926,-716.5 3926,-739.5 4347,-739.5 4347,-716.5 3926,-716.5"/>
-<text text-anchor="start" x="4079.5" y="-724.3" font-family="Helvetica,sans-Serif" font-size="14.00">HEATER_EN PD2</text>
-<polygon fill="none" stroke="black" points="3627,-693.5 3627,-716.5 3926,-716.5 3926,-693.5 3627,-693.5"/>
-<text text-anchor="start" x="3767" y="-701.3" font-family="Helvetica,sans-Serif" font-size="14.00">13</text>
-<polygon fill="none" stroke="black" points="3926,-693.5 3926,-716.5 4347,-716.5 4347,-693.5 3926,-693.5"/>
-<text text-anchor="start" x="4081" y="-701.3" font-family="Helvetica,sans-Serif" font-size="14.00">DEPLOY_EN PF3</text>
-<polygon fill="none" stroke="black" points="3627,-670.5 3627,-693.5 3926,-693.5 3926,-670.5 3627,-670.5"/>
-<text text-anchor="start" x="3767" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">14</text>
-<polygon fill="none" stroke="black" points="3926,-670.5 3926,-693.5 4347,-693.5 4347,-670.5 3926,-670.5"/>
-<text text-anchor="start" x="4086.5" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">RF_TX_EN PA3</text>
-<polygon fill="none" stroke="black" points="3627,-647.5 3627,-670.5 3926,-670.5 3926,-647.5 3627,-647.5"/>
-<text text-anchor="start" x="3767" y="-655.3" font-family="Helvetica,sans-Serif" font-size="14.00">15</text>
-<polygon fill="none" stroke="black" points="3926,-647.5 3926,-670.5 4347,-670.5 4347,-647.5 3926,-647.5"/>
-<text text-anchor="start" x="4088" y="-655.3" font-family="Helvetica,sans-Serif" font-size="14.00">GNSS_EN PE5</text>
-<polygon fill="none" stroke="black" points="3627,-624.5 3627,-647.5 3926,-647.5 3926,-624.5 3627,-624.5"/>
-<text text-anchor="start" x="3767" y="-632.3" font-family="Helvetica,sans-Serif" font-size="14.00">16</text>
-<polygon fill="none" stroke="black" points="3926,-624.5 3926,-647.5 4347,-647.5 4347,-624.5 3926,-624.5"/>
-<text text-anchor="start" x="4067" y="-632.3" font-family="Helvetica,sans-Serif" font-size="14.00">DEPLOY_SENSE PE2</text>
-<polygon fill="none" stroke="black" points="3627,-601.5 3627,-624.5 3926,-624.5 3926,-601.5 3627,-601.5"/>
-<text text-anchor="start" x="3767" y="-609.3" font-family="Helvetica,sans-Serif" font-size="14.00">17</text>
-<polygon fill="none" stroke="black" points="3926,-601.5 3926,-624.5 4347,-624.5 4347,-601.5 3926,-601.5"/>
-<text text-anchor="start" x="4080.5" y="-609.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W2A PB9</text>
-<polygon fill="none" stroke="black" points="3627,-578.5 3627,-601.5 3926,-601.5 3926,-578.5 3627,-578.5"/>
-<text text-anchor="start" x="3767" y="-586.3" font-family="Helvetica,sans-Serif" font-size="14.00">18</text>
-<polygon fill="none" stroke="black" points="3926,-578.5 3926,-601.5 4347,-601.5 4347,-578.5 3926,-578.5"/>
-<text text-anchor="start" x="4076" y="-586.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W1A PB10</text>
-<polygon fill="none" stroke="black" points="3627,-555.5 3627,-578.5 3926,-578.5 3926,-555.5 3627,-555.5"/>
-<text text-anchor="start" x="3767" y="-563.3" font-family="Helvetica,sans-Serif" font-size="14.00">19</text>
-<polygon fill="none" stroke="black" points="3926,-555.5 3926,-578.5 4347,-578.5 4347,-555.5 3926,-555.5"/>
-<text text-anchor="start" x="4092" y="-563.3" font-family="Helvetica,sans-Serif" font-size="14.00">VJET_RB PA7</text>
-<polygon fill="none" stroke="black" points="3627,-532.5 3627,-555.5 3926,-555.5 3926,-532.5 3627,-532.5"/>
-<text text-anchor="start" x="3767" y="-540.3" font-family="Helvetica,sans-Serif" font-size="14.00">20</text>
-<polygon fill="none" stroke="black" points="3926,-532.5 3926,-555.5 4347,-555.5 4347,-532.5 3926,-532.5"/>
-<text text-anchor="start" x="4065.5" y="-540.3" font-family="Helvetica,sans-Serif" font-size="14.00">SOLAR_SENSE PB12</text>
-<polygon fill="none" stroke="black" points="3627,-509.5 3627,-532.5 3926,-532.5 3926,-509.5 3627,-509.5"/>
-<text text-anchor="start" x="3767" y="-517.3" font-family="Helvetica,sans-Serif" font-size="14.00">21</text>
-<polygon fill="none" stroke="black" points="3926,-509.5 3926,-532.5 4347,-532.5 4347,-509.5 3926,-509.5"/>
-<text text-anchor="start" x="4116" y="-517.3" font-family="Helvetica,sans-Serif" font-size="14.00">AGND</text>
-<polygon fill="none" stroke="black" points="3627,-486.5 3627,-509.5 3926,-509.5 3926,-486.5 3627,-486.5"/>
-<text text-anchor="start" x="3767" y="-494.3" font-family="Helvetica,sans-Serif" font-size="14.00">22</text>
-<polygon fill="none" stroke="black" points="3926,-486.5 3926,-509.5 4347,-509.5 4347,-486.5 3926,-486.5"/>
-<text text-anchor="start" x="4080.5" y="-494.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBATT_SNS PC2</text>
-<polygon fill="none" stroke="black" points="3627,-463.5 3627,-486.5 3926,-486.5 3926,-463.5 3627,-463.5"/>
-<text text-anchor="start" x="3767" y="-471.3" font-family="Helvetica,sans-Serif" font-size="14.00">23</text>
-<polygon fill="none" stroke="black" points="3926,-463.5 3926,-486.5 4347,-486.5 4347,-463.5 3926,-463.5"/>
-<text text-anchor="start" x="4083.5" y="-471.3" font-family="Helvetica,sans-Serif" font-size="14.00">IBATT_SNS PC3</text>
-<polygon fill="none" stroke="black" points="3627,-440.5 3627,-463.5 3926,-463.5 3926,-440.5 3627,-440.5"/>
-<text text-anchor="start" x="3767" y="-448.3" font-family="Helvetica,sans-Serif" font-size="14.00">24</text>
-<polygon fill="none" stroke="black" points="3926,-440.5 3926,-463.5 4347,-463.5 4347,-440.5 3926,-440.5"/>
-<text text-anchor="start" x="4074" y="-448.3" font-family="Helvetica,sans-Serif" font-size="14.00">VSOLAR_SNS PC4</text>
-<polygon fill="none" stroke="black" points="3627,-417.5 3627,-440.5 3926,-440.5 3926,-417.5 3627,-417.5"/>
-<text text-anchor="start" x="3767" y="-425.3" font-family="Helvetica,sans-Serif" font-size="14.00">25</text>
-<polygon fill="none" stroke="black" points="3926,-417.5 3926,-440.5 4347,-440.5 4347,-417.5 3926,-417.5"/>
-<text text-anchor="start" x="4076.5" y="-425.3" font-family="Helvetica,sans-Serif" font-size="14.00">ISOLAR_SNS PC5</text>
-<polygon fill="none" stroke="black" points="3627,-394.5 3627,-417.5 3926,-417.5 3926,-394.5 3627,-394.5"/>
-<text text-anchor="start" x="3767" y="-402.3" font-family="Helvetica,sans-Serif" font-size="14.00">26</text>
-<polygon fill="none" stroke="black" points="3926,-394.5 3926,-417.5 4347,-417.5 4347,-394.5 3926,-394.5"/>
-<text text-anchor="start" x="4083.5" y="-402.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBUS_SNS PB0</text>
-<polygon fill="none" stroke="black" points="3627,-371.5 3627,-394.5 3926,-394.5 3926,-371.5 3627,-371.5"/>
-<text text-anchor="start" x="3767" y="-379.3" font-family="Helvetica,sans-Serif" font-size="14.00">27</text>
-<polygon fill="none" stroke="black" points="3926,-371.5 3926,-394.5 4347,-394.5 4347,-371.5 3926,-371.5"/>
-<text text-anchor="start" x="4116" y="-379.3" font-family="Helvetica,sans-Serif" font-size="14.00">AGND</text>
-<polygon fill="none" stroke="black" points="3627,-348.5 3627,-371.5 3926,-371.5 3926,-348.5 3627,-348.5"/>
-<text text-anchor="start" x="3767" y="-356.3" font-family="Helvetica,sans-Serif" font-size="14.00">28</text>
-<polygon fill="none" stroke="black" points="3926,-348.5 3926,-371.5 4347,-371.5 4347,-348.5 3926,-348.5"/>
-<text text-anchor="start" x="4120.5" y="-356.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="3627,-325.5 3627,-348.5 3926,-348.5 3926,-325.5 3627,-325.5"/>
-<text text-anchor="start" x="3767" y="-333.3" font-family="Helvetica,sans-Serif" font-size="14.00">29</text>
-<polygon fill="none" stroke="black" points="3926,-325.5 3926,-348.5 4347,-348.5 4347,-325.5 3926,-325.5"/>
-<text text-anchor="start" x="4075.5" y="-333.3" font-family="Helvetica,sans-Serif" font-size="14.00">JETSON_PWR PA2</text>
-<polygon fill="none" stroke="black" points="3627,-302.5 3627,-325.5 3926,-325.5 3926,-302.5 3627,-302.5"/>
-<text text-anchor="start" x="3767" y="-310.3" font-family="Helvetica,sans-Serif" font-size="14.00">30</text>
-<polygon fill="none" stroke="black" points="3926,-302.5 3926,-325.5 4347,-325.5 4347,-302.5 3926,-302.5"/>
-<text text-anchor="start" x="4081" y="-310.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W1B PE6</text>
-<polygon fill="none" stroke="black" points="3627,-279.5 3627,-302.5 3926,-302.5 3926,-279.5 3627,-279.5"/>
-<text text-anchor="start" x="3767" y="-287.3" font-family="Helvetica,sans-Serif" font-size="14.00">31</text>
-<polygon fill="none" stroke="black" points="3926,-279.5 3926,-302.5 4347,-302.5 4347,-279.5 3926,-279.5"/>
-<text text-anchor="start" x="4081" y="-287.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W2B PE7</text>
-<polygon fill="none" stroke="black" points="3627,-256.5 3627,-279.5 3926,-279.5 3926,-256.5 3627,-256.5"/>
-<text text-anchor="start" x="3767" y="-264.3" font-family="Helvetica,sans-Serif" font-size="14.00">32</text>
-<polygon fill="none" stroke="black" points="3926,-256.5 3926,-279.5 4347,-279.5 4347,-256.5 3926,-256.5"/>
-<text text-anchor="start" x="4088" y="-264.3" font-family="Helvetica,sans-Serif" font-size="14.00">EOL_ARM PF4</text>
-<polygon fill="none" stroke="black" points="3627,-233.5 3627,-256.5 3926,-256.5 3926,-233.5 3627,-233.5"/>
-<text text-anchor="start" x="3767" y="-241.3" font-family="Helvetica,sans-Serif" font-size="14.00">33</text>
-<polygon fill="none" stroke="black" points="3926,-233.5 3926,-256.5 4347,-256.5 4347,-233.5 3926,-233.5"/>
-<text text-anchor="start" x="4087" y="-241.3" font-family="Helvetica,sans-Serif" font-size="14.00">EOL_FIRE PG1</text>
-<polygon fill="none" stroke="black" points="3627,-210.5 3627,-233.5 3926,-233.5 3926,-210.5 3627,-210.5"/>
-<text text-anchor="start" x="3767" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">34</text>
-<polygon fill="none" stroke="black" points="3926,-210.5 3926,-233.5 4347,-233.5 4347,-210.5 3926,-210.5"/>
-<text text-anchor="start" x="4085.5" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">LOCK_CLR PF5</text>
-<polygon fill="none" stroke="black" points="3627,-187.5 3627,-210.5 3926,-210.5 3926,-187.5 3627,-187.5"/>
-<text text-anchor="start" x="3767" y="-195.3" font-family="Helvetica,sans-Serif" font-size="14.00">35</text>
-<polygon fill="none" stroke="black" points="3926,-187.5 3926,-210.5 4347,-210.5 4347,-187.5 3926,-187.5"/>
-<text text-anchor="start" x="4120.5" y="-195.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
-<polygon fill="none" stroke="black" points="3627,-164.5 3627,-187.5 3926,-187.5 3926,-164.5 3627,-164.5"/>
-<text text-anchor="start" x="3767" y="-172.3" font-family="Helvetica,sans-Serif" font-size="14.00">36</text>
-<polygon fill="none" stroke="black" points="3926,-164.5 3926,-187.5 4347,-187.5 4347,-164.5 3926,-164.5"/>
-<text text-anchor="start" x="4099" y="-172.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_MTQ</text>
-<polygon fill="none" stroke="black" points="3627,-141.5 3627,-164.5 3926,-164.5 3926,-141.5 3627,-141.5"/>
-<text text-anchor="start" x="3767" y="-149.3" font-family="Helvetica,sans-Serif" font-size="14.00">37</text>
-<polygon fill="none" stroke="black" points="3926,-141.5 3926,-164.5 4347,-164.5 4347,-141.5 3926,-141.5"/>
-<text text-anchor="start" x="4087" y="-149.3" font-family="Helvetica,sans-Serif" font-size="14.00">VSW1_RB PA1</text>
-<polygon fill="none" stroke="black" points="3627,-118.5 3627,-141.5 3926,-141.5 3926,-118.5 3627,-118.5"/>
-<text text-anchor="start" x="3767" y="-126.3" font-family="Helvetica,sans-Serif" font-size="14.00">38</text>
-<polygon fill="none" stroke="black" points="3926,-118.5 3926,-141.5 4347,-141.5 4347,-118.5 3926,-118.5"/>
-<text text-anchor="start" x="4106" y="-126.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_RTC</text>
-<polygon fill="none" stroke="black" points="3627,-95.5 3627,-118.5 3926,-118.5 3926,-95.5 3627,-95.5"/>
-<text text-anchor="start" x="3767" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">39</text>
-<polygon fill="none" stroke="black" points="3926,-95.5 3926,-118.5 4347,-118.5 4347,-95.5 3926,-95.5"/>
-<text text-anchor="start" x="4099" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_MTQ</text>
-<polygon fill="none" stroke="black" points="3627,-72.5 3627,-95.5 3926,-95.5 3926,-72.5 3627,-72.5"/>
-<text text-anchor="start" x="3767" y="-80.3" font-family="Helvetica,sans-Serif" font-size="14.00">40</text>
-<polygon fill="none" stroke="black" points="3926,-72.5 3926,-95.5 4347,-95.5 4347,-72.5 3926,-72.5"/>
-<text text-anchor="start" x="4120.5" y="-80.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="3627,-969.5 3627,-992.5 3923,-992.5 3923,-969.5 3627,-969.5"/>
+<text text-anchor="start" x="3770" y="-977.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
+<polygon fill="none" stroke="black" points="3923,-969.5 3923,-992.5 4347,-992.5 4347,-969.5 3923,-969.5"/>
+<text text-anchor="start" x="4102.5" y="-977.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_OBC</text>
+<polygon fill="none" stroke="black" points="3627,-946.5 3627,-969.5 3923,-969.5 3923,-946.5 3627,-946.5"/>
+<text text-anchor="start" x="3770" y="-954.3" font-family="Helvetica,sans-Serif" font-size="14.00">2</text>
+<polygon fill="none" stroke="black" points="3923,-946.5 3923,-969.5 4347,-969.5 4347,-946.5 3923,-946.5"/>
+<text text-anchor="start" x="4102.5" y="-954.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_OBC</text>
+<polygon fill="none" stroke="black" points="3627,-923.5 3627,-946.5 3923,-946.5 3923,-923.5 3627,-923.5"/>
+<text text-anchor="start" x="3770" y="-931.3" font-family="Helvetica,sans-Serif" font-size="14.00">3</text>
+<polygon fill="none" stroke="black" points="3923,-923.5 3923,-946.5 4347,-946.5 4347,-923.5 3923,-923.5"/>
+<text text-anchor="start" x="4119" y="-931.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="3627,-900.5 3627,-923.5 3923,-923.5 3923,-900.5 3627,-900.5"/>
+<text text-anchor="start" x="3770" y="-908.3" font-family="Helvetica,sans-Serif" font-size="14.00">4</text>
+<polygon fill="none" stroke="black" points="3923,-900.5 3923,-923.5 4347,-923.5 4347,-900.5 3923,-900.5"/>
+<text text-anchor="start" x="4119" y="-908.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="3627,-877.5 3627,-900.5 3923,-900.5 3923,-877.5 3627,-877.5"/>
+<text text-anchor="start" x="3770" y="-885.3" font-family="Helvetica,sans-Serif" font-size="14.00">5</text>
+<polygon fill="none" stroke="black" points="3923,-877.5 3923,-900.5 4347,-900.5 4347,-877.5 3923,-877.5"/>
+<text text-anchor="start" x="4087" y="-885.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C2_SCL PF1</text>
+<polygon fill="none" stroke="black" points="3627,-854.5 3627,-877.5 3923,-877.5 3923,-854.5 3627,-854.5"/>
+<text text-anchor="start" x="3770" y="-862.3" font-family="Helvetica,sans-Serif" font-size="14.00">6</text>
+<polygon fill="none" stroke="black" points="3923,-854.5 3923,-877.5 4347,-877.5 4347,-854.5 3923,-854.5"/>
+<text text-anchor="start" x="4085.5" y="-862.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C2_SDA PF0</text>
+<polygon fill="none" stroke="black" points="3627,-831.5 3627,-854.5 3923,-854.5 3923,-831.5 3627,-831.5"/>
+<text text-anchor="start" x="3770" y="-839.3" font-family="Helvetica,sans-Serif" font-size="14.00">7</text>
+<polygon fill="none" stroke="black" points="3923,-831.5 3923,-854.5 4347,-854.5 4347,-831.5 3923,-831.5"/>
+<text text-anchor="start" x="4119" y="-839.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="3627,-808.5 3627,-831.5 3923,-831.5 3923,-808.5 3627,-808.5"/>
+<text text-anchor="start" x="3770" y="-816.3" font-family="Helvetica,sans-Serif" font-size="14.00">8</text>
+<polygon fill="none" stroke="black" points="3923,-808.5 3923,-831.5 4347,-831.5 4347,-808.5 3923,-808.5"/>
+<text text-anchor="start" x="4072" y="-816.3" font-family="Helvetica,sans-Serif" font-size="14.00">EPS_ALERT_N PB7</text>
+<polygon fill="none" stroke="black" points="3627,-785.5 3627,-808.5 3923,-808.5 3923,-785.5 3627,-785.5"/>
+<text text-anchor="start" x="3770" y="-793.3" font-family="Helvetica,sans-Serif" font-size="14.00">9</text>
+<polygon fill="none" stroke="black" points="3923,-785.5 3923,-808.5 4347,-808.5 4347,-785.5 3923,-785.5"/>
+<text text-anchor="start" x="4074.5" y="-793.3" font-family="Helvetica,sans-Serif" font-size="14.00">PAYLOAD_EN PB2</text>
+<polygon fill="none" stroke="black" points="3627,-762.5 3627,-785.5 3923,-785.5 3923,-762.5 3627,-762.5"/>
+<text text-anchor="start" x="3765.5" y="-770.3" font-family="Helvetica,sans-Serif" font-size="14.00">10</text>
+<polygon fill="none" stroke="black" points="3923,-762.5 3923,-785.5 4347,-785.5 4347,-762.5 3923,-762.5"/>
+<text text-anchor="start" x="4083.5" y="-770.3" font-family="Helvetica,sans-Serif" font-size="14.00">RADIO_EN PB5</text>
+<polygon fill="none" stroke="black" points="3627,-739.5 3627,-762.5 3923,-762.5 3923,-739.5 3627,-739.5"/>
+<text text-anchor="start" x="3765.5" y="-747.3" font-family="Helvetica,sans-Serif" font-size="14.00">11</text>
+<polygon fill="none" stroke="black" points="3923,-739.5 3923,-762.5 4347,-762.5 4347,-739.5 3923,-739.5"/>
+<text text-anchor="start" x="4086.5" y="-747.3" font-family="Helvetica,sans-Serif" font-size="14.00">ADCS_EN PB6</text>
+<polygon fill="none" stroke="black" points="3627,-716.5 3627,-739.5 3923,-739.5 3923,-716.5 3627,-716.5"/>
+<text text-anchor="start" x="3765.5" y="-724.3" font-family="Helvetica,sans-Serif" font-size="14.00">12</text>
+<polygon fill="none" stroke="black" points="3923,-716.5 3923,-739.5 4347,-739.5 4347,-716.5 3923,-716.5"/>
+<text text-anchor="start" x="4078" y="-724.3" font-family="Helvetica,sans-Serif" font-size="14.00">HEATER_EN PD2</text>
+<polygon fill="none" stroke="black" points="3627,-693.5 3627,-716.5 3923,-716.5 3923,-693.5 3627,-693.5"/>
+<text text-anchor="start" x="3765.5" y="-701.3" font-family="Helvetica,sans-Serif" font-size="14.00">13</text>
+<polygon fill="none" stroke="black" points="3923,-693.5 3923,-716.5 4347,-716.5 4347,-693.5 3923,-693.5"/>
+<text text-anchor="start" x="4079.5" y="-701.3" font-family="Helvetica,sans-Serif" font-size="14.00">DEPLOY_EN PF3</text>
+<polygon fill="none" stroke="black" points="3627,-670.5 3627,-693.5 3923,-693.5 3923,-670.5 3627,-670.5"/>
+<text text-anchor="start" x="3765.5" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">14</text>
+<polygon fill="none" stroke="black" points="3923,-670.5 3923,-693.5 4347,-693.5 4347,-670.5 3923,-670.5"/>
+<text text-anchor="start" x="4085" y="-678.3" font-family="Helvetica,sans-Serif" font-size="14.00">RF_TX_EN PA3</text>
+<polygon fill="none" stroke="black" points="3627,-647.5 3627,-670.5 3923,-670.5 3923,-647.5 3627,-647.5"/>
+<text text-anchor="start" x="3765.5" y="-655.3" font-family="Helvetica,sans-Serif" font-size="14.00">15</text>
+<polygon fill="none" stroke="black" points="3923,-647.5 3923,-670.5 4347,-670.5 4347,-647.5 3923,-647.5"/>
+<text text-anchor="start" x="4086.5" y="-655.3" font-family="Helvetica,sans-Serif" font-size="14.00">GNSS_EN PE5</text>
+<polygon fill="none" stroke="black" points="3627,-624.5 3627,-647.5 3923,-647.5 3923,-624.5 3627,-624.5"/>
+<text text-anchor="start" x="3765.5" y="-632.3" font-family="Helvetica,sans-Serif" font-size="14.00">16</text>
+<polygon fill="none" stroke="black" points="3923,-624.5 3923,-647.5 4347,-647.5 4347,-624.5 3923,-624.5"/>
+<text text-anchor="start" x="4065.5" y="-632.3" font-family="Helvetica,sans-Serif" font-size="14.00">DEPLOY_SENSE PE2</text>
+<polygon fill="none" stroke="black" points="3627,-601.5 3627,-624.5 3923,-624.5 3923,-601.5 3627,-601.5"/>
+<text text-anchor="start" x="3765.5" y="-609.3" font-family="Helvetica,sans-Serif" font-size="14.00">17</text>
+<polygon fill="none" stroke="black" points="3923,-601.5 3923,-624.5 4347,-624.5 4347,-601.5 3923,-601.5"/>
+<text text-anchor="start" x="4079" y="-609.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W2A PB9</text>
+<polygon fill="none" stroke="black" points="3627,-578.5 3627,-601.5 3923,-601.5 3923,-578.5 3627,-578.5"/>
+<text text-anchor="start" x="3765.5" y="-586.3" font-family="Helvetica,sans-Serif" font-size="14.00">18</text>
+<polygon fill="none" stroke="black" points="3923,-578.5 3923,-601.5 4347,-601.5 4347,-578.5 3923,-578.5"/>
+<text text-anchor="start" x="4074.5" y="-586.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W1A PB10</text>
+<polygon fill="none" stroke="black" points="3627,-555.5 3627,-578.5 3923,-578.5 3923,-555.5 3627,-555.5"/>
+<text text-anchor="start" x="3765.5" y="-563.3" font-family="Helvetica,sans-Serif" font-size="14.00">19</text>
+<polygon fill="none" stroke="black" points="3923,-555.5 3923,-578.5 4347,-578.5 4347,-555.5 3923,-555.5"/>
+<text text-anchor="start" x="4090.5" y="-563.3" font-family="Helvetica,sans-Serif" font-size="14.00">VJET_RB PA7</text>
+<polygon fill="none" stroke="black" points="3627,-532.5 3627,-555.5 3923,-555.5 3923,-532.5 3627,-532.5"/>
+<text text-anchor="start" x="3765.5" y="-540.3" font-family="Helvetica,sans-Serif" font-size="14.00">20</text>
+<polygon fill="none" stroke="black" points="3923,-532.5 3923,-555.5 4347,-555.5 4347,-532.5 3923,-532.5"/>
+<text text-anchor="start" x="4064" y="-540.3" font-family="Helvetica,sans-Serif" font-size="14.00">SOLAR_SENSE PB12</text>
+<polygon fill="none" stroke="black" points="3627,-509.5 3627,-532.5 3923,-532.5 3923,-509.5 3627,-509.5"/>
+<text text-anchor="start" x="3765.5" y="-517.3" font-family="Helvetica,sans-Serif" font-size="14.00">21</text>
+<polygon fill="none" stroke="black" points="3923,-509.5 3923,-532.5 4347,-532.5 4347,-509.5 3923,-509.5"/>
+<text text-anchor="start" x="4114.5" y="-517.3" font-family="Helvetica,sans-Serif" font-size="14.00">AGND</text>
+<polygon fill="none" stroke="black" points="3627,-486.5 3627,-509.5 3923,-509.5 3923,-486.5 3627,-486.5"/>
+<text text-anchor="start" x="3765.5" y="-494.3" font-family="Helvetica,sans-Serif" font-size="14.00">22</text>
+<polygon fill="none" stroke="black" points="3923,-486.5 3923,-509.5 4347,-509.5 4347,-486.5 3923,-486.5"/>
+<text text-anchor="start" x="4079" y="-494.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBATT_SNS PC2</text>
+<polygon fill="none" stroke="black" points="3627,-463.5 3627,-486.5 3923,-486.5 3923,-463.5 3627,-463.5"/>
+<text text-anchor="start" x="3765.5" y="-471.3" font-family="Helvetica,sans-Serif" font-size="14.00">23</text>
+<polygon fill="none" stroke="black" points="3923,-463.5 3923,-486.5 4347,-486.5 4347,-463.5 3923,-463.5"/>
+<text text-anchor="start" x="4082" y="-471.3" font-family="Helvetica,sans-Serif" font-size="14.00">IBATT_SNS PC3</text>
+<polygon fill="none" stroke="black" points="3627,-440.5 3627,-463.5 3923,-463.5 3923,-440.5 3627,-440.5"/>
+<text text-anchor="start" x="3765.5" y="-448.3" font-family="Helvetica,sans-Serif" font-size="14.00">24</text>
+<polygon fill="none" stroke="black" points="3923,-440.5 3923,-463.5 4347,-463.5 4347,-440.5 3923,-440.5"/>
+<text text-anchor="start" x="4072.5" y="-448.3" font-family="Helvetica,sans-Serif" font-size="14.00">VSOLAR_SNS PC4</text>
+<polygon fill="none" stroke="black" points="3627,-417.5 3627,-440.5 3923,-440.5 3923,-417.5 3627,-417.5"/>
+<text text-anchor="start" x="3765.5" y="-425.3" font-family="Helvetica,sans-Serif" font-size="14.00">25</text>
+<polygon fill="none" stroke="black" points="3923,-417.5 3923,-440.5 4347,-440.5 4347,-417.5 3923,-417.5"/>
+<text text-anchor="start" x="4075" y="-425.3" font-family="Helvetica,sans-Serif" font-size="14.00">ISOLAR_SNS PC5</text>
+<polygon fill="none" stroke="black" points="3627,-394.5 3627,-417.5 3923,-417.5 3923,-394.5 3627,-394.5"/>
+<text text-anchor="start" x="3765.5" y="-402.3" font-family="Helvetica,sans-Serif" font-size="14.00">26</text>
+<polygon fill="none" stroke="black" points="3923,-394.5 3923,-417.5 4347,-417.5 4347,-394.5 3923,-394.5"/>
+<text text-anchor="start" x="4082" y="-402.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBUS_SNS PB0</text>
+<polygon fill="none" stroke="black" points="3627,-371.5 3627,-394.5 3923,-394.5 3923,-371.5 3627,-371.5"/>
+<text text-anchor="start" x="3765.5" y="-379.3" font-family="Helvetica,sans-Serif" font-size="14.00">27</text>
+<polygon fill="none" stroke="black" points="3923,-371.5 3923,-394.5 4347,-394.5 4347,-371.5 3923,-371.5"/>
+<text text-anchor="start" x="4114.5" y="-379.3" font-family="Helvetica,sans-Serif" font-size="14.00">AGND</text>
+<polygon fill="none" stroke="black" points="3627,-348.5 3627,-371.5 3923,-371.5 3923,-348.5 3627,-348.5"/>
+<text text-anchor="start" x="3765.5" y="-356.3" font-family="Helvetica,sans-Serif" font-size="14.00">28</text>
+<polygon fill="none" stroke="black" points="3923,-348.5 3923,-371.5 4347,-371.5 4347,-348.5 3923,-348.5"/>
+<text text-anchor="start" x="4062" y="-356.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C3_SCL PG7 (AntS)</text>
+<polygon fill="none" stroke="black" points="3627,-325.5 3627,-348.5 3923,-348.5 3923,-325.5 3627,-325.5"/>
+<text text-anchor="start" x="3765.5" y="-333.3" font-family="Helvetica,sans-Serif" font-size="14.00">29</text>
+<polygon fill="none" stroke="black" points="3923,-325.5 3923,-348.5 4347,-348.5 4347,-325.5 3923,-325.5"/>
+<text text-anchor="start" x="4074" y="-333.3" font-family="Helvetica,sans-Serif" font-size="14.00">JETSON_PWR PA8</text>
+<polygon fill="none" stroke="black" points="3627,-302.5 3627,-325.5 3923,-325.5 3923,-302.5 3627,-302.5"/>
+<text text-anchor="start" x="3765.5" y="-310.3" font-family="Helvetica,sans-Serif" font-size="14.00">30</text>
+<polygon fill="none" stroke="black" points="3923,-302.5 3923,-325.5 4347,-325.5 4347,-302.5 3923,-302.5"/>
+<text text-anchor="start" x="4079.5" y="-310.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W1B PE6</text>
+<polygon fill="none" stroke="black" points="3627,-279.5 3627,-302.5 3923,-302.5 3923,-279.5 3627,-279.5"/>
+<text text-anchor="start" x="3765.5" y="-287.3" font-family="Helvetica,sans-Serif" font-size="14.00">31</text>
+<polygon fill="none" stroke="black" points="3923,-279.5 3923,-302.5 4347,-302.5 4347,-279.5 3923,-279.5"/>
+<text text-anchor="start" x="4079.5" y="-287.3" font-family="Helvetica,sans-Serif" font-size="14.00">BURN_W2B PE7</text>
+<polygon fill="none" stroke="black" points="3627,-256.5 3627,-279.5 3923,-279.5 3923,-256.5 3627,-256.5"/>
+<text text-anchor="start" x="3765.5" y="-264.3" font-family="Helvetica,sans-Serif" font-size="14.00">32</text>
+<polygon fill="none" stroke="black" points="3923,-256.5 3923,-279.5 4347,-279.5 4347,-256.5 3923,-256.5"/>
+<text text-anchor="start" x="4086.5" y="-264.3" font-family="Helvetica,sans-Serif" font-size="14.00">EOL_ARM PF4</text>
+<polygon fill="none" stroke="black" points="3627,-233.5 3627,-256.5 3923,-256.5 3923,-233.5 3627,-233.5"/>
+<text text-anchor="start" x="3765.5" y="-241.3" font-family="Helvetica,sans-Serif" font-size="14.00">33</text>
+<polygon fill="none" stroke="black" points="3923,-233.5 3923,-256.5 4347,-256.5 4347,-233.5 3923,-233.5"/>
+<text text-anchor="start" x="4085.5" y="-241.3" font-family="Helvetica,sans-Serif" font-size="14.00">EOL_FIRE PG1</text>
+<polygon fill="none" stroke="black" points="3627,-210.5 3627,-233.5 3923,-233.5 3923,-210.5 3627,-210.5"/>
+<text text-anchor="start" x="3765.5" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">34</text>
+<polygon fill="none" stroke="black" points="3923,-210.5 3923,-233.5 4347,-233.5 4347,-210.5 3923,-210.5"/>
+<text text-anchor="start" x="4084" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">LOCK_CLR PF5</text>
+<polygon fill="none" stroke="black" points="3627,-187.5 3627,-210.5 3923,-210.5 3923,-187.5 3627,-187.5"/>
+<text text-anchor="start" x="3765.5" y="-195.3" font-family="Helvetica,sans-Serif" font-size="14.00">35</text>
+<polygon fill="none" stroke="black" points="3923,-187.5 3923,-210.5 4347,-210.5 4347,-187.5 3923,-187.5"/>
+<text text-anchor="start" x="4119" y="-195.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
+<polygon fill="none" stroke="black" points="3627,-164.5 3627,-187.5 3923,-187.5 3923,-164.5 3627,-164.5"/>
+<text text-anchor="start" x="3765.5" y="-172.3" font-family="Helvetica,sans-Serif" font-size="14.00">36</text>
+<polygon fill="none" stroke="black" points="3923,-164.5 3923,-187.5 4347,-187.5 4347,-164.5 3923,-164.5"/>
+<text text-anchor="start" x="4097.5" y="-172.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_MTQ</text>
+<polygon fill="none" stroke="black" points="3627,-141.5 3627,-164.5 3923,-164.5 3923,-141.5 3627,-141.5"/>
+<text text-anchor="start" x="3765.5" y="-149.3" font-family="Helvetica,sans-Serif" font-size="14.00">37</text>
+<polygon fill="none" stroke="black" points="3923,-141.5 3923,-164.5 4347,-164.5 4347,-141.5 3923,-141.5"/>
+<text text-anchor="start" x="4085.5" y="-149.3" font-family="Helvetica,sans-Serif" font-size="14.00">VSW1_RB PA1</text>
+<polygon fill="none" stroke="black" points="3627,-118.5 3627,-141.5 3923,-141.5 3923,-118.5 3627,-118.5"/>
+<text text-anchor="start" x="3765.5" y="-126.3" font-family="Helvetica,sans-Serif" font-size="14.00">38</text>
+<polygon fill="none" stroke="black" points="3923,-118.5 3923,-141.5 4347,-141.5 4347,-118.5 3923,-118.5"/>
+<text text-anchor="start" x="4104.5" y="-126.3" font-family="Helvetica,sans-Serif" font-size="14.00">3V3_RTC</text>
+<polygon fill="none" stroke="black" points="3627,-95.5 3627,-118.5 3923,-118.5 3923,-95.5 3627,-95.5"/>
+<text text-anchor="start" x="3765.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">39</text>
+<polygon fill="none" stroke="black" points="3923,-95.5 3923,-118.5 4347,-118.5 4347,-95.5 3923,-95.5"/>
+<text text-anchor="start" x="4097.5" y="-103.3" font-family="Helvetica,sans-Serif" font-size="14.00">VBAT_MTQ</text>
+<polygon fill="none" stroke="black" points="3627,-72.5 3627,-95.5 3923,-95.5 3923,-72.5 3627,-72.5"/>
+<text text-anchor="start" x="3765.5" y="-80.3" font-family="Helvetica,sans-Serif" font-size="14.00">40</text>
+<polygon fill="none" stroke="black" points="3923,-72.5 3923,-95.5 4347,-95.5 4347,-72.5 3923,-72.5"/>
+<text text-anchor="start" x="4061" y="-80.3" font-family="Helvetica,sans-Serif" font-size="14.00">I2C3_SDA PB4 (AntS)</text>
 <polygon fill="none" stroke="black" points="3627,-49.5 3627,-72.5 4347,-72.5 4347,-49.5 3627,-49.5"/>
 <text text-anchor="start" x="3691" y="-57.3" font-family="Helvetica,sans-Serif" font-size="14.00">OBC board J1, top side, +X edge, cable toward +X (STM32L4R5ZIT6 pins as labelled)</text>
 </g>

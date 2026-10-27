@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 12:13 PM")
+    (date "10/27/2026 12:15 PM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -11400,7 +11400,7 @@
       (class "Default")
       (node
         (ref "D14")
-        (pin "5")
+        (pin "4")
         (pintype "PASSIVE"))
       (node
         (ref "J1")
@@ -11455,8 +11455,8 @@
       (name "BURN_W2B_J")
       (class "Default")
       (node
-        (ref "D15")
-        (pin "1")
+        (ref "D14")
+        (pin "5")
         (pintype "PASSIVE"))
       (node
         (ref "J1")
@@ -11688,7 +11688,7 @@
       (class "Default")
       (node
         (ref "D15")
-        (pin "2")
+        (pin "1")
         (pintype "PASSIVE"))
       (node
         (ref "J1")
@@ -11716,7 +11716,7 @@
       (class "Default")
       (node
         (ref "D15")
-        (pin "4")
+        (pin "2")
         (pintype "PASSIVE"))
       (node
         (ref "J1")
@@ -12496,6 +12496,10 @@
         (pintype "PASSIVE"))
       (node
         (ref "J1")
+        (pin "27")
+        (pintype "PASSIVE"))
+      (node
+        (ref "J1")
         (pin "3")
         (pintype "PASSIVE"))
       (node
@@ -12505,10 +12509,6 @@
       (node
         (ref "J1")
         (pin "4")
-        (pintype "PASSIVE"))
-      (node
-        (ref "J1")
-        (pin "40")
         (pintype "PASSIVE"))
       (node
         (ref "J1")
@@ -13636,7 +13636,7 @@
         (pintype "PASSIVE"))
       (node
         (ref "J1")
-        (pin "27")
+        (pin "28")
         (pintype "PASSIVE"))
       (node
         (ref "R132")
@@ -13655,12 +13655,12 @@
       (name "I2C3_SDA")
       (class "Default")
       (node
-        (ref "D14")
-        (pin "2")
+        (ref "D16")
+        (pin "1")
         (pintype "PASSIVE"))
       (node
         (ref "J1")
-        (pin "28")
+        (pin "40")
         (pintype "PASSIVE"))
       (node
         (ref "R134")
@@ -14028,7 +14028,7 @@
       (class "Default")
       (node
         (ref "D14")
-        (pin "4")
+        (pin "2")
         (pintype "PASSIVE"))
       (node
         (ref "J1")
@@ -14184,7 +14184,7 @@
       (class "Default")
       (node
         (ref "D15")
-        (pin "5")
+        (pin "4")
         (pintype "PASSIVE"))
       (node
         (ref "J1")
@@ -16327,8 +16327,8 @@
       (name "VSW1_RB_J")
       (class "Default")
       (node
-        (ref "D16")
-        (pin "1")
+        (ref "D15")
+        (pin "5")
         (pintype "PASSIVE"))
       (node
         (ref "J1")

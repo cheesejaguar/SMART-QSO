@@ -126,6 +126,10 @@ NEW: list[tuple[str, int, str, str, str]] = [
     ("SMA-B19", 2, "One failed PA-temperature reading silences the downlink", "IMP", "Plausibility check and a pull-down (flight software, OBC)"),]
 
 FINAL3: dict[str, tuple[str, str]] = {
+    "SMA-B07": ("CD", "I2C2 and I2C3 with two 4.7 kΩ pull-ups in parallel per line, each able to work alone; 100 kHz (OBC_BOARD_DESIGN D §23.1)"),
+    "SMA-B08": ("CD", "TPS3850 timing capacitor as two parallel strings of two 470 nF C0G in series: one short or open keeps the 10 s kick inside the window; V-OBC-1 tests both"),
+    "SMA-B14": ("CD", "NRST no longer leaves the OBC: J9/A3 pin 6 is RST_REQ (active high) through a 2N7002BK; a short cannot hold reset (OBC_BOARD_DESIGN D)"),
+    "SMA-B18": ("CD", "Magnetometer on its own switch U35 (MAG_EN PF14, MAG_RB PF15) and I2C4 repeater U34"),
     "SMA-B16": ("CD", "LMX2571 on its own TPS7A2033 3.3 V regulator from the PA rail (3.25 V min, 100 mV margin); TX-OFF still removes it; keyed DC 1.84 W at 0.5 W RF, allocation raised to 1.85 W DC (BASELINE §5, SYS-100 2.23 W) (RF_BOARD_DESIGN E §5)"),
     "PM-03": ("CD", "Citations corrected to NASA-STD-8739.8B, NPR 7123.1D, NPR 7150.2D (TEST_PROCEDURES, REQUIREMENTS_TRACEABILITY, SAFETY_DATA_PACKAGE, SOFTWARE_FMEA, SOFTWARE_SAFETY_PLAN, README, SDP/SRS/STP/SDD/SHA headers)"),
     "PM-04": ("CD", "gen_vcrm, gen_rid_log and gen_vi_register --check in program-checks.yml (CMP 1.2 §4.5); CR-2026-009 to -015; PI ratification of CR-007/-008 as DA-01 (PI, by 2027-01-12)"),

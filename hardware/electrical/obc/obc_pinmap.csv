@@ -19,7 +19,7 @@ LQFP144 pin,port pin,net,function,dir,level,default at reset,connector / board
 47,PB1,TEMP_BOARD,ADC1_IN16,A,"10 mV/C, 0.5 V at 0 C",analog (high-Z),U21 TMP235 on the OBC
 48,PB2,PAYLOAD_EN,GPIO out,O,"3.3 V, high = SW1 on",analog (high-Z); EPS 100 k pull-down,J1-9 EPS (moved from PB4)
 133,PB3,SWO,spare (JTDO/SWO),-,,JTDO,TP only
-134,PB4,I2C3_SDA,I2C3_SDA AF4,B,"open drain, 2 x 4.7 k on the OBC, 100 kHz",NJTRST with its internal pull-up until configured (harmless on an open-drain bus),J1-28 EPS: AntS bus via U80 (SMA-B07)
+134,PB4,I2C3_SDA,I2C3_SDA AF4,B,"open drain, 2 x 4.7 k on the OBC, 100 kHz",NJTRST with its internal pull-up until configured (harmless on an open-drain bus),J1-40 EPS: AntS bus via U80 (SMA-B07)
 135,PB5,RADIO_EN,GPIO out,O,"3.3 V, high = SW2 on",analog (high-Z); EPS 100 k pull-down,J1-10 EPS
 136,PB6,ADCS_EN,GPIO out,O,"3.3 V, high = SW4 + VBAT_MTQ switch on",analog (high-Z); EPS 100 k pull-down,J1-11 EPS
 137,PB7,EPS_ALERT_N,"GPIO in, EXTI7",I,"open drain, active low (EPS 4.7 k)",analog (high-Z); OBC 1 M pull-up (open reads no alert),J1-8 EPS (10 k series)
@@ -102,7 +102,7 @@ LQFP144 pin,port pin,net,function,dir,level,default at reset,connector / board
 89,PG4,FRAM_MOSI,SPI1_MOSI AF5,O,3.3 V,analog (high-Z),U3 (moved from PA7)
 90,PG5,FRAM_CS_N,GPIO out,O,"3.3 V, low = select",analog (high-Z); 10 k pull-up,U3 (moved from PA4)
 91,PG6,JET_PG,"GPIO in, EXTI6",I,high = carrier 3.3 V up,analog (high-Z); 100 k pull-down,J3-4 Jetson (10 k series)
-92,PG7,I2C3_SCL,I2C3_SCL AF4,B,"open drain, 2 x 4.7 k on the OBC, 100 kHz",analog (high-Z),J1-27 EPS: AntS bus via U80 (SMA-B07; LPUART1_TX moved to PB11)
+92,PG7,I2C3_SCL,I2C3_SCL AF4,B,"open drain, 2 x 4.7 k on the OBC, 100 kHz",analog (high-Z),J1-28 EPS: AntS bus via U80 (SMA-B07; LPUART1_TX moved to PB11)
 93,PG8,LPUART1_RX,LPUART1_RX AF8,I,3.3 V UART,analog (high-Z); 100 k pull-up,U31 <- J5-4 GNSS
 124,PG9,-,spare,-,,analog (high-Z),
 125,PG10,-,spare,-,,analog (high-Z),

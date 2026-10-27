@@ -11,7 +11,10 @@
  *   has the value the Rust library assumes;
  * - at reset every output pin of the simulated HAL reads low (no enable,
  *   burn or passivation line high before the software drives it);
- * - the new outputs can be driven and the new inputs read.
+ * - the new outputs can be driven and the new inputs read;
+ * - each sense input is configured with the internal pull its board
+ *   circuit needs (RID SMA-B02): none where the board sets the level
+ *   through a weak source or has its own pull.
  *
  * @requirement SRS-F140 Sensor and actuator drivers on the OBC board's pin allocation
  * @requirement SRS-F155 The final passivation report: three frames over three minutes carrying EOL_STATE, the fuse state and the attempts, before TX-OFF
@@ -25,6 +28,10 @@
 #include <math.h>
 
 #include "passivation.h"
+#include "deployment.h"
+#include "gse_provision.h"
+#include "receiver.h"
+#include "separation_switch.h"
 #include "rust_contract.h"
 #include "hal/hal.h"
 #include "hal/hal_gpio.h"
@@ -150,12 +157,36 @@ static void test_new_lines(void **state)
     assert_false(hal_mtq_active());
 }
 
+/** The internal pulls against the boards (SQSO-ICX-001 B §4.1, the OBC
+ *  pin map, the EPS netlist): DEPLOY_SENSE (EPS 1 MΩ source and 1 MΩ
+ *  pull-down) and SOLAR_SENSE (EPS 10 kΩ + 1 kΩ pull-up) none, as any pull
+ *  would override them; RX_CD and RX_FAULT none (the OBC's 100 kΩ
+ *  pull-downs; an internal one would load the RF board's drive through
+ *  10 kΩ); UMBILICAL_SENSE pull-down (the GSE drives it through 1 kΩ; no
+ *  plug reads absent) */
+static void test_sense_input_pulls(void **state)
+{
+    (void)state;
+    assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
+    assert_int_equal(hal_flash_init(), SMART_QSO_OK);
+    separation_switch_init();
+    (void)deployment_init();
+    receiver_init();
+    (void)gse_init();
+    assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_DEPLOY_SENSE), GPIO_PULL_NONE);
+    assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_SOLAR_SENSE), GPIO_PULL_NONE);
+    assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_RX_CD), GPIO_PULL_NONE);
+    assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_RX_FAULT), GPIO_PULL_NONE);
+    assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_UMBILICAL_SENSE), GPIO_PULL_DOWN);
+}
+
 int main(void)
 {
     const struct CMUnitTest tests[] = {
         cmocka_unit_test(test_contract_450),
         cmocka_unit_test(test_outputs_low_at_reset),
         cmocka_unit_test(test_new_lines),
+        cmocka_unit_test(test_sense_input_pulls),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);
 }

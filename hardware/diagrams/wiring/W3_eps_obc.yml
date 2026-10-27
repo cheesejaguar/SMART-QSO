@@ -12,6 +12,8 @@
 # assembly (PTFE, 30 AWG, latched) on Samtec TFM headers: EPS J3 vertical on the EPS bottom side, OBC J1 right-angle on
 # the OBC top side with the cable leaving toward +X (change requests to the EPS and OBC designs). Laid flat (two
 # layers) in the +X wall gap at |y| < 17 mm; 0.065 m.
+# Version 4 (2026-10-27, SQSO-ICX-001 D, board FMEA SMA-B07): pins 28 and 40 (were GND) carry I2C3 for the AntS (EPS U80
+# A side moves off I2C2); JETSON_PWR label PA8 (since ICX B).
 metadata:
   title: W3 EPS to OBC v3 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.1; SQSO-HAR-001 2.0)
 
@@ -28,8 +30,8 @@ connectors:
     pinlabels: &w3pins [3V3_OBC, 3V3_OBC, GND, GND, I2C2_SCL PF1, I2C2_SDA PF0, GND, EPS_ALERT_N PB7, PAYLOAD_EN PB2,
                 RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, DEPLOY_EN PF3, RF_TX_EN PA3, GNSS_EN PE5, DEPLOY_SENSE PE2,
                 BURN_W2A PB9, BURN_W1A PB10, VJET_RB PA7, SOLAR_SENSE PB12, AGND, VBATT_SNS PC2, IBATT_SNS PC3,
-                VSOLAR_SNS PC4, ISOLAR_SNS PC5, VBUS_SNS PB0, AGND, GND, JETSON_PWR PA2, BURN_W1B PE6, BURN_W2B PE7,
-                EOL_ARM PF4, EOL_FIRE PG1, LOCK_CLR PF5, GND, VBAT_MTQ, VSW1_RB PA1, 3V3_RTC, VBAT_MTQ, GND]
+                VSOLAR_SNS PC4, ISOLAR_SNS PC5, VBUS_SNS PB0, AGND, I2C3_SCL PG7 (AntS), JETSON_PWR PA8, BURN_W1B PE6, BURN_W2B PE7,
+                EOL_ARM PF4, EOL_FIRE PG1, LOCK_CLR PF5, GND, VBAT_MTQ, VSW1_RB PA1, 3V3_RTC, VBAT_MTQ, I2C3_SDA PB4 (AntS)]
   J_OBC:
     type: Samtec TFM-120 right-angle (was FTSH-120), SFSDT socket
     subtype: 40 pos, 1.27 mm, 2 rows, latched

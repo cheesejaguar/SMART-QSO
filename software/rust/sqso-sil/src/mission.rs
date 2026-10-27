@@ -430,7 +430,8 @@ impl Mission {
     /// pack), stowed; the GSE loads the keys and arms the flight sequence
     fn bench(&mut self) {
         self.event("phase", "integration: OBC on the umbilical, key load and ARM_FLIGHT");
-        self.fsw.drive(pin::DEPLOY_SENSE, true);
+        // DEPLOY_SENSE low: DS2 stowed (the EPS drives it high once released)
+        self.fsw.drive(pin::DEPLOY_SENSE, false);
         self.fsw.drive(pin::UMBILICAL_SENSE, true);
         if !self.fsw.boot(ResetCause::PowerOn) {
             self.event("anomaly", "bench boot failed");
@@ -479,7 +480,7 @@ impl Mission {
     /// Separation: the switches release, the pack connects, the OBC boots
     fn separate(&mut self) {
         self.deploy.separated = true;
-        self.fsw.drive(pin::DEPLOY_SENSE, false);
+        self.fsw.drive(pin::DEPLOY_SENSE, true);
         self.event("phase", "separation from the dispenser: switches released, OBC powers up");
         self.boot(ResetCause::PowerOn);
     }
@@ -727,7 +728,8 @@ impl Mission {
         self.fsw.set_adc(adc::TX_FWD, self.radio.fwd_w);
         self.fsw.set_adc(adc::TX_REV, self.radio.rev_w);
         self.fsw.drive(pin::ANTENNA_SENSE, self.deploy.antennas_deployed());
-        self.fsw.drive(pin::SOLAR_SENSE, self.deploy.wings_deployed());
+        // Low = both wings deployed (the hinge switches in series close)
+        self.fsw.drive(pin::SOLAR_SENSE, !self.deploy.wings_deployed());
         let mut mag_meas = self.sensors.magnetometer(&mut self.sensor_rng, b_b);
         if self.jetson.power_good() {
             // The module's input current at the magnetometer (JETB-09); the

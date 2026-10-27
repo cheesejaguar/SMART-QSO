@@ -135,7 +135,7 @@
 <polygon fill="none" stroke="black" points="337,-219.5 337,-242.5 483,-242.5 483,-219.5 337,-219.5"/>
 <text text-anchor="start" x="405" y="-227.3" font-family="Helvetica,sans-Serif" font-size="14.00">6</text>
 <polygon fill="none" stroke="black" points="103,-196.5 103,-219.5 483,-219.5 483,-196.5 103,-196.5"/>
-<text text-anchor="start" x="127.5" y="-204.3" font-family="Helvetica,sans-Serif" font-size="14.00">OBC J5: PG7 via U30, PG8 via U31, PC6 via U32</text>
+<text text-anchor="start" x="123" y="-204.3" font-family="Helvetica,sans-Serif" font-size="14.00">OBC J5: PB11 via U30, PG8 via U31, PC6 via U32</text>
 </g>
 <!-- W9A -->
 <g id="node6" class="node">

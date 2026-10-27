@@ -22,7 +22,7 @@ connectors:
   J_OBC_ADCS:
     type: Pico-Clasp 501330-0200, gold terminals
     subtype: 2 pos
-    notes: "OBC J6: into U5 (gyro), U6 (BMI088), U7 (magnetometer, sun sensors)"
+    notes: "OBC J6: into U5 (gyro), U6 (BMI088), U7 (sun sensors), U35 (magnetometer)"
     pinlabels: *w6pwr
   J_OBC_MTQ:
     type: Pico-Clasp 501330-0600, gold terminals
@@ -67,8 +67,8 @@ connectors:
   J_OBC_MAG:
     type: Pico-Clasp 501330-0600, gold terminals
     subtype: 6 pos
-    notes: "OBC J10: 3V3_SNS from U7, I2C4 SNS side via U14, DRDY via U33 to PD11"
-    pinlabels: &w6mag [3V3_SNS, GND, SDA_S, SCL_S, MG_DRDY, GND]
+    notes: "OBC J10: 3V3_MAG from U35 (MAG_EN PF14), I2C4 segment via U34, DRDY via U33 to PD11 (ICX D, SMA-B18)"
+    pinlabels: &w6mag [3V3_MAG, GND, SDA_M, SCL_M, MG_DRDY, GND]
   J_MAG:
     type: Pico-Clasp 501330-0600, gold terminals
     subtype: 6 pos

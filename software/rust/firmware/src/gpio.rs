@@ -134,7 +134,7 @@ pub(crate) fn install_board(
         out(pd3),                          // 5 LED_STATUS
         out(pa8),                          // 6 JETSON_PWR (eFuse U19)
         out(pa3),                          // 7 RF_TX_EN
-        pin(pb7, Boot::Input(Pull::Up)),   // 8 EPS_ALERT_N (open drain)
+        input(pb7),                        // 8 EPS_ALERT_N (open drain; the EPS 4.7 kΩ pull-up)
         input(pe2),                        // 9 DEPLOY_SENSE
         pin(pb8, Boot::Input(Pull::Down)), // 10 UMBILICAL_SENSE
         out(pb9),                          // 11 BURN_W2A

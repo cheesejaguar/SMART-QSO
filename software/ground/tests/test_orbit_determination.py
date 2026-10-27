@@ -258,7 +258,7 @@ class TestLeopEveryOrbit:
     after each session's fix), gravity to 12 x 12 from an ICGEM file (as with
     EGM2008 in operations). Stated accuracy (SQSO-GND-002 §6): 3D error
     <= 1.5 km at the last fix + 24 h and <= 8 km at + 72 h, error <= 3 sigma
-    from + 6 h on, quality GOOD."""
+    throughout, quality GOOD."""
 
     def test_quality_good(self, leop):
         code, files, _ = leop
@@ -273,8 +273,7 @@ class TestLeopEveryOrbit:
         times, err, sigma = _errors(oem, truth_grid)
         at = lambda h: err[np.argmin(np.abs(times - (last + h * 3600)))]  # noqa: E731
         assert at(24) < 1500.0 and at(72) < 8000.0
-        late = times >= last + 6 * 3600
-        assert np.all(err[late] <= 3 * sigma[late])
+        assert np.all(err <= 3 * sigma)
 
     def test_oem_format(self, leop):
         _, files, last = leop
@@ -343,7 +342,7 @@ class TestFirstEphemerisSparse:
         times, err, sigma = _errors(read_oem(files[".oem"]), truth_grid)
         at24 = np.argmin(np.abs(times - (last + 86400)))
         assert err[at24] < 5000.0
-        assert np.all(err <= 3 * sigma + 50.0)
+        assert np.all(err <= 3 * sigma)
 
     def test_eme2000_needs_dut1(self, sparse):
         _, _, _, archive, tmp = sparse

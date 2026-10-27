@@ -1,7 +1,7 @@
 # SMART-QSO EPS Board: Build-to Design
 
 **Document ID**: SQSO-EPS-BRD-001
-**Version**: D
+**Version**: E
 **Date**: 2026-10-27
 **Status**: CDR build-to electrical design (schematic captured as code, parts selected, ERC clean). No PCB layout, no
 engineering model; every number below is analysis until its verification item (§19) closes.
@@ -27,12 +27,12 @@ v2.0), `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0), `docs/environ
 | Item | Value |
 |------|-------|
 | Board | PC/104 (90.17 × 95.89 mm), 6 layers, in the OBC/EPS stack; battery on flying leads (no stack connector) |
-| Placements / BOM lines / nets | 706 / 153 / 413 (generated counts) |
-| ICs | 75 plus the oscillator (TI unless noted): BQ76952 AFE, BQ771806 secondary protector, 4 × TPS55340-Q1 trackers, 8 × LM74700-Q1 ideal diodes, 3 × LMR43620-Q1 bucks, TPS16630 eFuse, 2 × TPS1H100B-Q1, 2 × TPS1H000-Q1, 7 × TPS2553-Q1, 2 × INA228-Q1, 4 × INA3221-Q1, 3 × INA186-Q1, ADS7138-Q1, MSP430FR2355 EPS controller, ISO1540-Q1, TCA9517-Q1, 2 × REF3425-Q1, TPS70933-Q1, 6 × TPL5111, TLV9002/OPA2991/TLV7042 analog, LVC logic, Epson SG-8018CA oscillator |
+| Placements / BOM lines / nets | 753 / 155 / 438 (generated counts) |
+| ICs | 80 plus the oscillator (TI unless noted): BQ76952 AFE, BQ771806 secondary protector, 4 × TPS55340-Q1 trackers, 8 × LM74700-Q1 ideal diodes, 3 × LMR43620-Q1 bucks, TPS16630 eFuse, 2 × TPS1H100B-Q1, 2 × TPS1H000-Q1, 7 × TPS2553-Q1, 2 × INA228-Q1, 4 × INA3221-Q1, 3 × INA186-Q1, ADS7138-Q1, MSP430FR2355 EPS controller, ISO1540-Q1, TCA9517-Q1, 2 × REF3425-Q1, TPS70933-Q1, 6 × TPL5111, TLV9002/OPA2991/TLV7042 analog, LVC logic, Epson SG-8018CA oscillator |
 | Worst-case board dissipation | **1.33 W** sunlit ACTIVE at maximum array power with Jetson, PA and magnetorquers on; 0.37 W in eclipse; **3.77 W for ≤ 12 s** during a burn; orbit average ≈ 0.49 W (§16) |
 | Hottest parts | burn-driver FET Q24–Q27 (3.0 W for 12 s, Tj 92 °C); burn buck U17 (0.95 W, 12 s, Tj 93 °C); tracker U4 (0.21 W, Tj 66 °C); D9–D12 (0.12 W); SW1 U20 (0.17 W); 5V_PA buck U16 (0.15 W); all with the board at +60 °C |
 | Worst stresses | DS2 FET Vgs 73 % (7.3 V / 10 V); BQ771806 VDD 70 % (17.4 V / 25 V); PTC at 73 % of its 60 °C hold; INA3221 heater channel 65 % (16.8 V / 26 V); all within the §2.3 limits (§15) |
-| Storage drain, switches actuated | **2.3 µA typical, 7.7 µA worst** (limit 20 µA; §6.6; incl. the access-port board's UMB_VMON TVS) |
+| Storage drain, switches actuated | **6.1 µA typical, 11.9 µA worst** (limit 20 µA; §6.6; incl. the access-port board's UMB_VMON TVS) |
 | Peak pack current, one burn | **0.75 A** with the magnetorquers at 1.16 W (0.67 A without; 0.90 A with the coil bridges at their hardware limit; chair limit 1.0 A); four drivers at once (software fault) held to 2.0 A by the burn buck's limit |
 | Tracker efficiency (analysis) | 90.9–92.3 % (EPS-F002 asks ≥ 92 %: **marginal**, §4.3) |
 
@@ -78,7 +78,8 @@ supply 3V3_RTC, the W6B/W9B routing of J20/J21 and the allocated OBC pins (§13.
 | Converter UVLO (EMC rule E8) | 10.8 V falling | 7.5 V (3V3_AO) and 8.7 V (others) falling; 10.5 V and 12.1 V rising | The LMR43620's fixed EN hysteresis makes a 10.8 V fall a 15.1 V start; E8's intent (BMS decides, below 11.2 V) is met (§8.1) |
 | Cell-tap filters (EMC rule E6) | 1 kΩ + 0.1 µF at the AFE | 204 Ω (3 × 68.1 Ω, current limiting) at the battery sense board + 10 Ω + 0.1 µF at the AFE (Version D; internal balancing ≈ 9 mA; Version A–C: 100 Ω at the AFE, balancing at ≈ 18 mA); 1 kΩ + 0.1 µF at the secondary protector | 1 kΩ would cut balancing to ≈ 3 mA; 100 Ω/0.1 µF is a 16 kHz pole, ample against the 145.9 MHz field. **For the EMC owner:** amend E6 |
 | Jetson rail trip | 1.2 A (EPS_DESIGN), 0.75 A proposed (RADIATION_ANALYSIS §5.3) | 1.20 A (1.10–1.30 A) eFuse, OBC guard 0.93 A first | A latch-up (amperes) trips either; 0.75 A would sit 1.34× the 8 W load at the low bus |
-| Tracker efficiency | ≥ 92 % | 90.9–92.3 % (analysis) | See §4.3; the power margins (+31 % tumbling) absorb it |
+| Tracker efficiency | ≥ 92 % | 90.9–92.3 % (analysis) | See §4.3; the power margins (+31 % tumbling) absorb it; CR-2026-014 awaits the PI |
+| Hardware load shed (EPS-F012) | payload and PA | **Jetson only** (Version E) | A spurious permanent shed would hold the PA off with no override (SMA-B05); a stuck-keyed PA is energy-positive; CR to EPS-F012 for the chair |
 | VBAT_MTQ telemetry (Version B) | voltage and current on every rail | SW11 fault readback (FLT_SW11) on the EPS; the current is the sum of the OBC's three coil-current channels (MTQ_X/Y/Z_I, SQSO-ICX-001 §6 row 14); the voltage is VBAT (INA3221) less the switch drop (≤ 0.46 V) | The 12 INA3221 channels, the 8 ADS7138 inputs and the controller's 10 ADC inputs are all in use; a fifth INA3221 has no free address. The OBC measures the load itself |
 
 ### 2.3 Derating standard and part rules
@@ -194,15 +195,23 @@ window sits 1 K inside 0–45 °C, so SYS-602 holds at the tolerance edge. Secon
 UTC 0 °C / OTC 45 °C / OTD 60 °C on NTC2 (TS1), which opens its CHG (and DSG) FET without the comparators; third: the
 flight software on the NTC2 telemetry (SQSO-BSA-001 H5).
 
+**NTC1 plausibility (Version E, RID SMA-B04).** U66 (TLV7042-Q1) flags NTC1 open (ratio > 0.985 of VHW, below
+−55 °C; 15.0 k / 1.00 M) or shorted (ratio < 0.030, above +150 °C; 1.00 M / 30.9 k), outside the −40…+100 °C
+plausible range (0.961…0.090). NTC1_BAD (U67) then hands over: the charge window to the AFE's UTC/OTC on NTC2 (U68:
+WIN_EFF = WIN_OK OR NTC1_BAD feeds K1), the 60 °C BOTHOFF to the AFE's OTD on NTC2 (Q43 holds OT60 low), and the heater
+cutout to the flight software on NTC2, SW5's limit and F4 (U69: Q22 held on). A failed NTC1 or its wire therefore
+neither stops charging for good nor isolates the pack; the controller reads NTC1_BAD (P4.3) and reports it
+(CHG_INHIBIT bit 6).
+
 ### 5.4 Latched recharge lockout (RID EPS-12 / SMA-06)
 
 | Element | Implementation |
 |---------|----------------|
 | Detection | BQ76952 Safety Cell Undervoltage permanent fail (SUV), threshold 2.00 V, delay 5 s, written to OTP at acceptance; the AFE runs in NORMAL/SLEEP on orbit (protections on) so it sees a cell pass 2.0 V while the pack drains |
 | Memory | **K1 Panasonic TQ2SA-L2-3V-Z**, 2-coil latching relay: non-volatile without power, independent of any RAM or OTP |
-| Set | AFE FUSE output (PF) → 100 k/100 k → U56 OR (with the EPS controller's LOCK_SET, which it raises if it reads the PF or a cell < 2.0 V) → U57 TPL5111 one-shot (powered by the request, so one 50 ms pulse per request and on every power-up while it persists) → Q28 → SET coil |
-| Effect | Pole 1 (NC) opens PERMIT → CHG_INHIBIT: CC set point 0 and AFE CHG FET off. Pole 2 (NO) grounds the CC set point directly. Two independent paths; the AFE PF also holds its FETs off until reset. The bus keeps running from the array (§5.2) so the OBC and receiver can take the clear command |
-| Clear | **Only** LOCK_CLR (OBC GPIO, after the authenticated telecommand) **AND** UNLOCK (EPS controller GPIO, written by the OBC over I2C as a second step) → U58 → U59 one-shot → Q29 → RESET coil. No single line, glitch or controller fault clears it |
+| Set | AFE FUSE output (PF) → 100 k/100 k → U56 OR (with the EPS controller's LOCK_SET, which it raises if it reads the PF or a cell < 2.0 V) → U57 TPL5111 one-shot (powered by the request, so one 50 ms pulse per request and on every power-up while it persists) → Q28 and Q30 in series → SET coil (Version E, RID SMA-B12: a single shorted driver FET leaves the coil off) |
+| Effect | Pole 1 (NC, common WIN_EFF) opens PERMIT → CHG_INHIBIT: CC set point 0 and AFE CHG FET off. Pole 2 (NO) grounds the CC set point directly. Two independent paths; the AFE PF also holds its FETs off until reset. The bus keeps running from the array (§5.2) so the OBC and receiver can take the clear command |
+| Clear | **Only** LOCK_CLR (OBC GPIO, after the authenticated telecommand) **AND** UNLOCK (EPS controller GPIO, written by the OBC over I2C as a second step) → U58 → U59 one-shot → Q29 and Q39 in series → RESET coil. No single line, glitch or controller fault clears it |
 | Precharge | Below 3.0 V/cell the AFE charges through Q3 and 200 Ω (≤ 45 mA); at an AFE wake with a cell below 2.0 V, at most 45 mA for the 5 s SUV delay (0.06 mAh) can flow before the PF |
 | Residual risk | Relay change of state by shock (TQ2 functional shock 750 m/s²): locked-out after a shock is safe, unlocked by a shock during a lockout needs a second event; included in V-EPS-9 |
 
@@ -212,26 +221,28 @@ flight software on the NTC2 telemetry (SQSO-BSA-001 H5).
 
 | Item | Value | Margin |
 |---|---|---|
-| Largest legitimate pack current (Jetson at the 12 W guard + PA 1 W + housekeeping + heater + magnetorquers 1.16 W, three rods saturated) | 1.40 A | |
-| Same, coil bridges at their hardware limit (0.23 A: an OBC control fault) | 1.54 A | 80 % of the RT1 hold at 60 °C: no trip |
-| Same, SW11 in its current limit (0.40 A maximum, VBAT_MTQ shorted; auto-retry 4 % duty) | 1.71 A | 89 % of the RT1 hold: no trip |
+| Largest legitimate pack current (Jetson at the 12 W guard + transponder at 1 W RF, 2.42 W DC (RF board E) + housekeeping + heater + magnetorquers 1.16 W, three rods saturated) | 1.36 A | |
+| Same, coil bridges at their hardware limit (0.23 A: an OBC control fault) | 1.51 A | 78 % of the RT1 hold at 60 °C: no trip |
+| Same, SW11 in its current limit (0.40 A maximum, VBAT_MTQ shorted; auto-retry 4 % duty) | 1.68 A | 87 % of the RT1 hold: no trip |
 | Single burn, normal sequence (one resistor, 0.88 A at +10 %) + housekeeping + heater + magnetorquers 1.16 W | 0.75 A | chair limit 1.0 A |
 | Same, coil bridges at their hardware limit (0.23 A) | 0.90 A | chair limit 1.0 A |
+| Burn + transponder keyed at 1 W RF (not concurrent by design: RF silence to 45 min, burn at 30 min) | 0.94 A | chair limit 1.0 A; 1.09 A with the coil bridges also at their fault limit (BMS 4 A) |
 | All four burn drivers on (software fault): burn buck in its 2.8 A current limit | 2.00 A | hardware cap |
 | AFE OCD1 (40 mV on RS7 10 mΩ, 500 ms) | 4.0 A (3.6–4.4) | 2.6× the largest load; below F2 |
 | AFE SCD (100 mV, 15 µs) | 10 A | prospective short-circuit current 80–100 A typical, ≤ 314 A bound (below) |
-| F0A, F0B (battery sense board, in series in BAT_TOP), F0N (sense board, BAT_BOT at cell 1) and F2 (EPS): **FM12A72V5.0A** (MIL-PRF-23419/12), 5 A at 60 °C (× 0.80 rerating, assumed) | 4.0 A | largest load 35 %; four-driver fault 2.0 A 50 % |
-| Prospective short-circuit current, short in W1: 16.8 V / (4 × 10 mΩ cells, a lower bound about a third of the 35E's typical DC resistance, + F0A, F0B, F0N at 13.5 mΩ minimum each) | 209 A | FM12 interrupting rating 1000 A at 72 VDC: 4.8× (314 A, 3.2×, with only one fuse in the loop; a Nano2 451, 300 A at 32 VDC, would have 0.96×) |
+| F0A, F0N (battery sense board) and F2 (EPS): **FM12A72V5.0A** (AEM, MIL-PRF-23419/12); F0B (sense board, BAT_TOP): **FM08A125V5A** (Littelfuse, /8); 5 A at 60 °C (× 0.80 rerating, assumed) | 4.0 A | largest load 34 %; four-driver fault 2.0 A 50 % |
+| Prospective short-circuit current, short in W1: 16.8 V / (4 × 10 mΩ cells, a lower bound about a third of the 35E's typical DC resistance, + F0A, F0N at 13.5 mΩ and F0B at 12.6 mΩ minimum) | 211 A | FM12 (F0A, F0N) 1000 A at 72 VDC: 4.7×; FM08 (F0B) 300 A at 125 VDC: 1.42× |
 | Tap short, tap to frame (one sense-board tap chain 3 × 68.1 Ω 2512 + FM12A72V3/4A tap fuse) | 82 mA | 0.46 W per 1 W resistor; tap to tap 41 mA; the 28 AWG tap wire (0.90 A derated) cannot heat |
-| RT1 2920L260/33DR hold at 60 °C | 1.92 A | 73 % of hold |
+| RT1 2920L260/33DR hold at 60 °C | 1.92 A | 71 % of hold |
 | F3 ITV4030L1412NR 12 A (secondary-protector fuse) at 60 °C (10 A) | 10 A | 14 % |
 
 **W1 is upstream of F2** (SQSO-HAR-001 2.0 §9.1): a BAT_TOP lead shorted to BAT_BOT or to the frame (GND, which
 reaches the pack negative through DS2 once released) would see the cells' short-circuit current with no EPS fuse in
 the loop, and the AFE's SCD opens FETs downstream of such a fault. The battery's sense board (BATTERY_DESIGN 2.7 §7.2)
-therefore carries, all MIL-PRF-23419/12 FM12A72V5.0A: **F0A and F0B** in series in BAT_TOP within 10 mm of the cell-4
-tab (two lots), and **F0N** in BAT_BOT at the cell-1 negative (the interrupter in the grounded negative leg, JSC 20793
-Rev D §5.1.3.1a). Every short loop of the pack (lead to lead, lead to frame, on the EPS board, in a load) passes all
+therefore carries **F0A** (FM12A72V5.0A, AEM, MIL-PRF-23419/12) and **F0B** (**FM08A125V5A**, Littelfuse,
+MIL-PRF-23419/8: a different part type, slash sheet and manufacturer, Version E) in series in BAT_TOP within 10 mm of
+the cell-4 tab, and **F0N** (FM12A72V5.0A) in BAT_BOT at the cell-1 negative (the interrupter in the grounded
+negative leg, JSC 20793 Rev D §5.1.3.1a). Every short loop of the pack (lead to lead, lead to frame, on the EPS board, in a load) passes all
 three; the EPS's F2 adds a fourth for faults downstream of J1. The cell taps carry, at the sense board, a 0.75 A
 FM12A72V3/4A fuse and a **3 × 68.1 Ω 2512 current-limiting chain** each (the AFE's tap filter resistors moved there
 from this board, which keeps 10 Ω + 0.1 µF at the AFE): a tap short in W1 is limited to ≤ 82 mA. The fuses are in
@@ -242,9 +253,13 @@ every fault downstream of its FETs. The W1 leads also keep their construction co
 **External-short fault tolerance (RID P3E-02).** Downstream of the AFE FETs: (1) the positive-leg fuses F0A/F0B/F2,
 (2) the negative-leg fuse F0N, (3) the AFE SCD (10 A, 15 µs) and OCD: three controls, 2-FT, counting the positive-leg
 fuses as one (one part type in one leg). Upstream of the AFE FETs (W1, J1, F2–RT1–F3 copper): (1) F0A, (2) F0B, (3)
-F0N: three interrupting elements in every loop, **2-FT** (chair decision, CDR round 3: F0A and F0B are from different
-lots, each rated for the full fault and able to clear it alone, so they count as two independent controls; the NRCSD
-safety engineer's concurrence is a decision point for the ISS backup path, owner the safety lead). Tap shorts: two current-limiting chains (one per tap end) and the tap
+F0N: three interrupting elements in every loop, **2-FT**. From Version E the two positive-leg fuses are diverse
+(FM12 by AEM, FM08 by Littelfuse), so they are independent controls by design and the count no longer rests on the
+CDR round-3 lot decision (C-16). F0B's interrupt rating is 300 A at 125 VDC (the FM08's commercial equivalent, the
+Littelfuse 265 series); F0A and F0N stay in every loop while intact, so the current F0B must interrupt is ≤ 211 A
+(cells at 10 mΩ, F0A and F0N at 13.5 mΩ, F0B at 12.6 mΩ minimum): 1.42×. It is below the 314 A one-fuse bound, which
+F0B never sees. Its interrupting rating at 16.8 V, its vacuum use (MIL-PRF-23419 §6.1.3 for FM08) and its 60 °C
+rerating are open items for procurement (§21). Tap shorts: two current-limiting chains (one per tap end) and the tap
 fuses: 2-FT. RT1 (40 A) is not counted as an interrupter. The SQSO-BSA-001 D table carries these counts.
 
 **Breaking capacity (Version C).** The Littelfuse Nano2 0451005.MRL of Version A–B is rated 50 A at 125 V AC/DC
@@ -281,10 +296,10 @@ with J1/J2 disconnected (V-BSA-4): on the board, PACK_N joins GND only through D
 
 | Inhibit | Switch (connector) | Element | Gate drive | Breaks |
 |---------|--------------------|---------|-----------|--------|
-| **1 DS2** | J16 pole 1: C via 10 k from BAT_F, NC → S2N; RBF pole A (J14 1-2) in series → S2R | Q6 + Q7 BUK9Y4R4-40E back to back, PACK_N–CS2–GND | S2R → 1.3 M → G2, 1.0 M + 47 nF to CS2; Vgs 4.9–7.3 V | pack (charge and discharge) |
+| **1 DS2** | J16 pole 1: C via 10 k from BAT_F **OR PACK_P** (BAT54C, Version E, RID SMA-B01: with an open pack path the array still releases DS2's FETs, so the bus comes up in sunlight), NC → S2N; RBF pole A (J14 1-2) in series → S2R | Q6 + Q7 BUK9Y4R4-40E back to back, PACK_N–CS2–GND | S2R → 1.3 M → G2, 1.0 M + 47 nF to CS2; Vgs 4.9–7.3 V | pack (charge and discharge) |
 | **2 DS1** | J15: C via 10 k to PACK_N, NC → S1N | Q4 IPD50P04P4L-11 in PACK_P→VB1 | 1.0 M gate–source, 47 nF, 1.0 M to S1N; |Vgs| 5.6–8.4 V | pack and array |
-| **3 DS3** | J17: C → GND, NC → S3N, NO → TRK_EN | Q5 IPD50P04P4L-11 in VB1→VB3; NO contact holds TRK_EN low when stowed | as DS1, returned to GND | pack and array (and the trackers) |
-| **DS2 pole 2** (array, Version D) | J16-4 C2 → GND, J16-5 NO2 → TRK_EN (DS2 is a two-pole switch) | the four trackers' EN (TRK_EN low: boost off) | contact holds TRK_EN low when stowed | the array's boost: the string pass-through (≤ 6.2 V) is below every converter start |
+| **3 DS3** | J17: C → GND, NC → S3N (NO not used from Version E) | Q5 IPD50P04P4L-11 in VB1→VB3 | as DS1, returned to GND | pack and array |
+| **DS2 pole 2** (array) | J16-4 C2 (VCTL via 10 k), J16-5 NO2 → 10 k → gate of Q40 (1 M to GND) (DS2 is a two-pole switch) | Q40 2N7002BK clamps TRK_EN (the four trackers' EN) low | **active high** (Version E, RID SMA-B13): stowed, the contact carries VCTL to Q40's gate; a wire chafed to the frame turns the clamp off and cannot disable the trackers; TRK_EN itself never leaves the board | the array's boost: the string pass-through (≤ 6.2 V) is below every converter start |
 | (4) | — | SW3 (RF), SW6 + driver FET (wings), SW8 + AntS ARM (antennas) | OBC lines, low at reset | margin only |
 
 | Gate network | Network | |Vgs| (rating) | Filter time constant | Current |
@@ -293,24 +308,26 @@ with J1/J2 disconnected (V-BSA-4): on the board, PACK_N joins GND only through D
 | DS2 back-to-back N-FET gate | 1.3 M / 1.0 M, 47 nF | 4.9–7.3 V (73 % of 10 V) | 26.6 ms on / 47.0 ms off | 7.3 µA released, 0 stowed |
 
 **Three inhibits on each source (RID P3E-01).** Pack: DS2 (Q6/Q7, the return), DS1 (Q4), DS3 (Q5). Array: DS1 (Q4)
-and DS3 (Q5) in VTRK → F1 → PACK_P → VBAT, and DS2's second pole holding TRK_EN low (independent of DS3's NO
-contact, which also holds it). With the trackers disabled the boost passes the string through its inductor and
+and DS3 (Q5) in VTRK → F1 → PACK_P → VBAT, and DS2's second pole holding TRK_EN low through the clamp Q40. With the trackers disabled the boost passes the string through its inductor and
 diode: ≤ 6.16 V (Voc 6.31 V at −45 °C BOL less 0.15 V), below the lowest converter start (U15 9.9 V at the EN
 threshold minimum; U16/U17 11.4 V; the eFuse U19 12 V), and every load switch needs an enable from 3V3_AO or the OBC,
 both unpowered: no rail, no RF, no deployment with any two of DS1–DS3 failed closed (`eps_calcs.py` §5a; V-EPS-3).
-DS2 becomes a two-pole (DPDT) switch: W12B carries five wires (for the harness and the frame RFQ).
+DS2 becomes a two-pole (DPDT) switch: W12B carries five wires (for the harness and the frame RFQ); W12C carries two
+(DS3's NO wire is dropped in Version E).
 
 A contact closure must last 11.7 ms before a DS1/DS3 FET begins to conduct at the 11.2 V minimum, so contact chatter in
 vibration cannot power the bus; the switches carry µA only (RID EPS-05). Wiring: each switch on its own rail and its own
 three-wire harness; the 10 kΩ at the board end of DS1's and DS2's common limits a harness short to the frame to ≤ 1.7 mA.
-The RBF (J14) is two-pole: pole A in series with DS2's drive, pole B clamping TRK_EN (not counted). DS2's release also
+The RBF (J14) is two-pole: pole A in series with DS2's drive, pole B (closed with the pin in) carrying VCTL to the
+gate of a second clamp Q41 on TRK_EN, active high like Q40 (not counted; it keeps a bench-lit array from powering
+the bus with the pin in). DS2's release also
 wakes the AFE from SHUTDOWN (Q23 pulls TS2 to VSS); the array's first light wakes it through LD as a second path.
 
 ### 6.3 Independence
 
 No single failure removes more than one of the three (for the array: DS1's FET, DS3's FET, DS2's second pole; the
-TRK_EN node is shared by DS2 pole 2, DS3 NO and the RBF pole B, each of which clamps it to GND, so an open in one
-leaves the others): each has its own switch, rail, harness, gate network and power
+TRK_EN node stays on the board and is clamped by Q40 (DS2 pole 2) and Q41 (RBF pole B), separate FETs with separate
+gate networks; a grounded switch wire removes a clamp, never adds one): each has its own switch, rail, harness, gate network and power
 FET(s); the DS1 and DS3 FETs are separate parts with separate drives returned to different nodes; a DS1/DS3 drive can
 only turn its FET on if DS2 is also closed (their drive current returns through the pack), which makes them harder,
 never easier, to defeat. A failed-short FET removes its own inhibit only. Each switch drives a gate, never the bus
@@ -340,16 +357,17 @@ UMB_SHUT → AFE RST_SHUT (held high > 1 s by the GSE puts the AFE in SHUTDOWN f
 | BQ76952 SHUTDOWN (incl. TS2 wake source) | 1.0 | 3.1 |
 | BQ771806 secondary protector | 1.0 | 2.0 |
 | BQ771806 cell inputs (4 × < 0.1 µA) | 0.1 | 0.4 |
+| Open-tap ladder, 4 × 1.00 MΩ across the cells (Version E, RID SMA-B03) | 3.8 | 4.2 |
 | Q16 secondary-fuse FET leakage (PMV40UN2, 25 °C / 60 °C) | 0.05 | 1.0 |
 | Q23 wake FET + DS2 gate network (contacts open) | 0.0 | 0.1 |
 | Pack TVS D14, CV and VBATT dividers: isolated by the open AFE FETs | 0.0 | 0.0 |
 | Cell-tap filter capacitors (ceramic leakage, 9 × 0.1 µF) | 0.01 | 0.1 |
 | SMF24A TVS on UMB_VMON on the access-port board A3 (OBC item C18), fed from BAT_F through the EPS's 100 kΩ (W11 stays attached in flight; worst case its return is PACK_N, inside the pack loop) | 0.1 | 1.0 |
-| **Total** | **2.3** | **7.7** |
+| **Total** | **6.1** | **11.9** |
 
-Worst 7.7 µA = 38 % of the 20 µA limit (margin 12.3 µA). From the final charge at L-47 d (60 ± 5 % SOC,
-BASELINE §4) to separation: 8.7 mAh, 0.25 % SOC, so ≥ 54.7 % before the cells' own self-discharge (a cell property
-outside this budget), against ≥ 40 % required. 90 days at the worst drain: 16.6 mAh (0.48 % of 3.45 Ah). The 1 µA
+Worst 11.9 µA = 60 % of the 20 µA limit (margin 8.1 µA). From the final charge at L-47 d (60 ± 5 % SOC,
+BASELINE §4) to separation: 13.4 mAh, 0.39 % SOC, so ≥ 54.6 % before the cells' own self-discharge (a cell property
+outside this budget), against ≥ 40 % required. 90 days at the worst drain: 25.7 mAh (0.75 % of 3.45 Ah). The 1 µA
 through 100 kΩ moves UMB_VMON by at most 0.1 V. No fix is needed. The AFE enters SHUTDOWN on the GSE command after the
 final charge (UMB_SHUT) and stays there until DS2's release or the array's light wakes it; in SHUTDOWN its FETs are open,
 which also isolates PACK_P (not counted as an inhibit).
@@ -413,13 +431,13 @@ free-run at ≈ 1 MHz (R_FREQ 46.4 k) and the bucks drop to auto mode: no spread
 
 | Switch | Part | R_ILIM / R_CL | Limit nominal (min–max) | Peak load | Off after a trip | Enable (OBC pin) |
 |---|---|---|---|---|---|---|
-| SW10 OBC 3.3 V | TPS2553-Q1 U38 | 178 k | 0.152 (0.130–0.176) A | 0.040 A | 0.28 s, auto | always (no command) |
+| SW10 OBC 3.3 V | TPS2553-Q1 U38 | 178 k | 0.152 (0.130–0.176) A | 0.040 A | 0.28 s, auto | always (no command); power-cycled by the EPS controller (Q42) after a 120 s OBC heartbeat timeout |
 | SW9 EPS controller | TPS2553-Q1 U27 | ILIM to IN | 0.075 (0.050–0.100) A | 0.012 A | 0.28 s, auto | always |
 | SW2 RADIO | TPS2553-Q1 U22 | 226 k | 0.120 (0.102–0.141) A | 0.038 A (RF board, SQSO-RF-BRD-001) | 1.3 s, auto | RADIO_EN PB5 |
-| SW3 PA (TX-OFF) | TPS2553-Q1 U23 | 26.1 k | 0.989 (0.918–1.071) A | 0.540 A | 0.28 s, auto | RF_TX_EN PA3 AND SHED_N |
+| SW3 PA (TX-OFF) | TPS2553-Q1 U23 | 26.1 k | 0.989 (0.918–1.071) A | 0.485 A at 1 W RF (0.368 A at 0.5 W; RF board E) | 0.28 s, auto | RF_TX_EN PA3 (not shed from Version E) |
 | SW4 ADCS sensors (OBC J6) | TPS2553-Q1 U24 | 88.7 k | 0.299 (0.265–0.339) A | 0.049 A (SQSO-ICX-001 §3.4) | 0.28 s, auto | ADCS_EN PB6 |
 | SW7 GNSS | TPS2553-Q1 U25 | 133 k | 0.202 (0.175–0.232) A | 0.100 A | 1.3 s, auto | GNSS_EN PE5 |
-| SW8 AntS | TPS2553-Q1 U26 | 18.7 k | 1.370 (1.287–1.465) A | 0.610 A | 0.28 s, auto | DEPLOY_EN PF3 |
+| SW8 AntS | TPS2553-Q1 U26 | 18.7 k | 1.370 (1.287–1.465) A | 0.610 A | 0.28 s, auto | DEPLOY_EN PF3 OR the EPS controller's ANTS_EN (U81; ANTS_PWR register) |
 | SW1 PAYLOAD | TPS1H100B-Q1 U20 | 1.24 k | 1.99 (1.71–2.27) A | 0.93 A | thermal cycling | PAYLOAD_EN PB2 AND SHED_N |
 | U19 Jetson eFuse | TPS16630 | 15.0 k | 1.20 (1.10–1.30) A | 0.93 A (12 W guard) | latch-off, OBC re-enables | JETSON_PWR PA8 AND SHED_N |
 | SW6 DEPLOY | TPS1H100B-Q1 U18 | 1.24 k | 1.99 (1.71–2.27) A | 1.25 A | thermal cycling | DEPLOY_EN PF3 |
@@ -452,10 +470,14 @@ LOAD_SHED/fault register.
 | Delay before shedding | 4.9 s (4.75 M × 1.0 µF from 3.1 V to the 1.100 V threshold; 4.2–5.7 s) | 5 s |
 | Release delay | < 1 ms | |
 
-U48A compares VBAT (1.00 M / 221 k, 0.1 %; 4.12 M hysteresis) with REF_A; U48B times 5 s; SHED_N gates SW1 (U51), the Jetson eFuse U19's
-enable (U65, Version D) and SW3 (U52) in hardware, independent of the OBC and the EPS controller: the shed holds with
-either of the Jetson's two series switches failed closed (RID P3E-06), and the PA's SW3 failed closed is the residual
-(the PA draws ≤ 0.55 A only while keyed, and the flight software's TX-OFF and the mode thresholds remain). The heater is not shed (EPS_DESIGN §6).
+U48A compares VBAT (1.00 M / 221 k, 0.1 %; 4.12 M hysteresis) with REF_A; U48B times 5 s; SHED_N gates SW1 (U51) and the Jetson eFuse U19's
+enable (U65, Version D) in hardware, independent of the OBC and the EPS controller: the shed holds with either of the
+Jetson's two series switches failed closed (RID P3E-06). **The PA is not shed from Version E** (RID SMA-B05; U52
+removed): a spurious permanent shed (comparator, reference or timer fault) would otherwise hold the transmitter off
+with no override and end the mission, while a stuck-keyed PA is energy-positive (+0.20 W tumbling, SQSO-PBA-001 §8.4)
+and has its own controls (the 120 s key-down timer, TX-OFF, the mode thresholds). EPS-F012 becomes "payload (Jetson)
+only" (for the chair: a CR to EPS_DESIGN EPS-F012 and BASELINE). A spurious shed of the Jetson costs only the
+experiment. The heater is not shed (EPS_DESIGN §6).
 
 ## 9. Deployment drivers (RIDs SMA-05, REL-03, EPS-18)
 
@@ -481,7 +503,7 @@ Energy into a 5 Ω resistor in the 8 s burn: 25.6 J. Peak pack current: one resi
 with housekeeping and heater, 0.75 A with the magnetorquers at 1.16 W as well (0.90 A with the coil bridges at their
 0.23 A hardware limit); two at once (an A/B-pair line arrangement, §13) 1.25 A; four at once 2.0 A (U17's limit).
 Hinge sense: both wings' switches in series (J10-5/6, J11-5/6), 10 k pull-up, 1 k + 100 nF to SOLAR_SENSE (PB12): low =
-both deployed. **AntS** (RID EPS-07): 3V3_ANTS from SW8 (DEPLOY_EN), downstream of DS1–DS3; I2C2 through the TCA9517-Q1
+both deployed. **AntS** (RID EPS-07): 3V3_ANTS from SW8 (DEPLOY_EN OR the EPS controller's ANTS_EN, Version E: a stuck-low DEPLOY_EN pin cannot prevent the antenna deployment; RID SMA-B06), downstream of DS1–DS3; I2C2 through the TCA9517-Q1
 U80, whose ports are high-impedance while the AntS is unpowered; the AntS's ARM command and thermal knives complete its
 chain (DS2, DS1, DS3, SW8, AntS ARM). Which AntS internal switches are physical devices between its supply and its knives
 is still to be read from the AntS ICD delivered with the unit (open, RFQ item).
@@ -511,7 +533,7 @@ limits on a fault: the switch's current limit, the fuse (switch failed short), t
 | Tracker inputs ×4, bus load, 3V3_AO, 5V_PA, radio, ADCS, GNSS, AntS, heater | U32–U35 INA3221-Q1 (10–500 mΩ shunts) | local bus 0x40–0x43 | EPS controller |
 | Panel NTCs ×6, NTC1, VHW | U36 ADS7138-Q1 | local bus 0x10 | EPS controller |
 | Burn currents ×4, Jetson IMON, F1 intact, V_BURN, VTRK | MSP430 ADC (A0, A4, A6, A7, A8–A11) | — | EPS controller |
-| PERMIT, WIN_OK, SHED_N, EOL armed, all switch faults (incl. FLT_SW11 on P4.5), AFE ALERT | MSP430 GPIO (100 k series) | — | EPS controller |
+| PERMIT, WIN_OK, SHED_N, EOL armed, NTC1_BAD (P4.3), all switch faults (incl. FLT_SW11 on P4.5), AFE ALERT | MSP430 GPIO (100 k series) | — | EPS controller |
 | EPS_ALERT_N (PB7) | open drain, INA228s and controller | 4.7 k pull-up | OBC |
 
 I2C2 (OBC bus) carries 0x31 (AntS, behind U80), 0x40 and 0x44 (INA228), 0x48 (EPS controller); the OBC has no device of its own on this bus (its board temperature is an analog TMP235-Q1,
@@ -525,9 +547,18 @@ chair: not written; Class C, NPR 7150.2D) implements the ICD register block (0x0
 and the §4.6 extended registers), the MPPT perturb-and-observe on the four SAC DACs, SOC from the INA228, the lockout
 SET backup and the UNLOCK step, the **EOL key** (Version D: on the two-write sequence to the EOL_KEY register, first
 0x3C then 0xC3 within 1 s, accepted only while EOL_STATE shows not armed and F1 intact, it raises EOL_KEY (P4.2) for
-10 s and reports it in EOL_STATE bit 3; any other write or a timeout drops it), and the fault and status flags. **No protection depends on it**: if it stops, the DACs
+10 s and reports it in EOL_STATE bit 3; any other write or a timeout drops it), **OBC heartbeat supervision**
+(Version E, RID SMA-B09: the OBC writes 0x5A to OBC_HEARTBEAT 0x8C at least every 10 s; after 120 s without one, and
+at least 300 s after the controller's own start or the last cycle, the controller pulls SW10's EN low for 1 s through
+Q42, power-cycling the OBC; at most 3 cycles in 24 h, then it stops and reports it, and 10 consecutive heartbeats
+reset the count), the **AntS power line** ANTS_EN (P6.0, ANTS_PWR 0x8D), the **per-tracker disables** TDIS_T1–T4
+(P6.2–P6.5, TRK_DISABLE 0x8E, RID SMA-B17: a tracker with a shorted output diode is switched off; its string's
+ideal diode blocks the back-feed), the supervisor status (EPS_SUPV 0x8F) and the fault and status flags.
+**Passivation depends on it** (Version D on, SQSO-FMEA-003): arming F1 needs its EOL_KEY, so a failed controller
+blocks the end-of-life disconnect (it cannot fire it); the controller firmware is Category 3 software for that
+function (SQSO-FMEA-003). **No battery protection depends on it**: if it stops, the DACs
 go high-impedance (MPPT falls back to 4.40 V per string), its lines fall to their pull-downs (no lockout set or
-clear), and the OBC still has the analog lines and the two INA228s. Programming through J22 (Spy-Bi-Wire), ground only.
+clear, no EOL arm, trackers enabled, no OBC power cycle, AntS on DEPLOY_EN alone), and the OBC still has the analog lines and the two INA228s. Programming through J22 (Spy-Bi-Wire), ground only.
 
 ## 13. Interfaces
 
@@ -714,12 +745,12 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | H2 over-discharge then recharge | FSW mode thresholds; AFE CUV 2.80 V; latched lockout K1 (two actuators, two-signal clear); hardware load shed U48 | 4 |
 | H3 external short | positive-leg fuses F0A/F0B/F2; negative-leg fuse F0N; AFE SCD/OCD (RT1 not counted) | 3 (2-FT) downstream of the AFE FETs |
 | H3b short in W1 / taps | F0A, F0B, F0N (209 A ≤ 1000 A); taps: two 204 Ω chains + tap fuses | 3 (2-FT: chair decision, F0A/F0B from two lots counted as independent; NRCSD concurrence for the ISS path, SQSO-BSA-001 D) |
-| H5 cold charging | NTC1 comparators → CC set point 0 and CFETOFF; AFE UTC on NTC2; FSW; heater | 3+ |
+| H5 cold charging | NTC1 comparators → CC set point 0 and CFETOFF (with the NTC1 plausibility hand-over to NTC2); AFE UTC on NTC2; FSW; heater | 3+ |
 | H6 over-temperature | FSW heater control; 40 °C cutout Q22; SW5 limit + F4; AFE OTD and the 60 °C comparator BOTHOFF | 4 |
-| Jetson stuck on (EPS-F012, FMEA note) | load shed on both series switches' enables (U51 → SW1, U65 → U19) | covers either switch failed closed, a stuck enable, software never turning it off; **residual**: both power stages failed closed (two part failures), not shed |
+| Jetson stuck on (EPS-F012, FMEA note) | load shed on both series switches' enables (U51 → SW1, U65 → U19); the PA is not shed (SMA-B05) | covers either switch failed closed, a stuck enable, software never turning it off; **residual**: both power stages failed closed (two part failures), not shed |
 | H8a burn over-current | 0.8 A per driver; one line at a time; 12 s one-shot; U17 limit 2.0 A at the pack; BMS 4 A | 5 |
 | H9 stored energy after EOL | F1 (arm: OBC EOL_ARM AND EPS-controller key; fire: OBC EOL_FIRE) | 1 (+ the loads drain the pack) |
-| RF / deployables at launch | DS1, DS2, DS3 on the pack; DS1, DS3 and DS2 pole 2 (TRK_EN) on the array (+ SW3/SW6/SW8 and the OBC timers) | 3 physical on each source |
+| RF / deployables at launch | DS1, DS2, DS3 on the pack; DS1, DS3 and DS2 pole 2 (Q40 on TRK_EN, active high) on the array (+ SW3/SW6/SW8 and the OBC timers) | 3 physical on each source |
 
 ## 19. Verification items (this board)
 
@@ -736,6 +767,11 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | V-EPS-9 | Lockout: set by an emulated SUV PF and by LOCK_SET; clear needs both lines; shock 750 m/s² in both states | state kept through power loss and shock | SMA-06 | EM |
 | V-EPS-10 | Latch-up trips: 1.5 × trip step on each switched rail incl. SW10 | rail off ≤ 10 ms, back after 0.2–0.4 s or 1–2 s | AV-08, RAD-V5 | EM |
 | V-EPS-13 | SW11 and readbacks: VBAT_MTQ short and 0.3–0.5 A steps; VJET_RB and VSW1_RB with SW1 and U19 switched in turn | limit 0.32–0.40 A, retry 40 ms / 1 s; readback ratio 6.00 ± 0.5 %, < 0.1 V off | E1–E3, AV-06 | EM (with V-ICX-1) |
+| V-EPS-14 | NTC1 plausibility: NTC1 opened, shorted and its wire grounded, at 10 °C and 40 °C pack (decade box) | NTC1_BAD set; charging continues inside the AFE's UTC/OTC on NTC2; no BOTHOFF; heater runs under SW5's limit | SMA-B04 | EPS EM |
+| V-EPS-15 | Array start with an open pack path (F0A, F3 or a pack lead opened; array simulator lit) and the switches released | bus up from the array, OBC boots, DS2's FETs on through the PACK_P diode | SMA-B01 | EPS EM |
+| V-EPS-16 | OBC heartbeat supervision: heartbeats stopped; restored; stopped four times in 24 h | SW10 off 1 s at 120 ± 5 s after the last heartbeat; no cycle within 300 s of a start; at most 3 cycles, then stopped and reported | SMA-B09 | EPS EM |
+| V-EPS-17 | Per-tracker disable and the active-high tracker clamps: each TDIS line; DS2 pole 2 and RBF pole B wires grounded at the far end | the selected tracker stops; a grounded clamp wire leaves the trackers running; stowed DS2 or RBF in holds them off | SMA-B13, SMA-B17 | EPS EM |
+| V-EPS-18 | Lockout coil drivers: each of Q28, Q30, Q29, Q39 shorted in turn | K1 state unchanged; the other coil still operates | SMA-B12 | EPS EM |
 | V-EPS-11 | Frequency plan: spectrum at the 70 cm port with all converters running | no comb line within 200 kHz of the coordinated uplink | E1, V-EMC-3 | EM |
 | V-EPS-12 | Charge window: NTC1 swept with a decade box | inhibit at +1 ± 1 °C and +44 ± 1 °C; heater open at 40 ± 1 °C; BOTHOFF at 60 ± 1 °C | EPS-F003, H5, H6 | EPS EM |
 
@@ -793,6 +829,14 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
     ITV4030 data sheet, electrical characteristics), so 15.6 Ω nominal with both ends checked: 9.8–17.5 W at 14 V,
     inside the 6–35 W firing window (cut < 1 min). 35 Ω would give 5.6 W at 14 V, below the window. The ITV4030's
     interrupting current (Ibreak) is 50 A, which is why F3 and F1 sit behind the FM12 fuses.
+14. F0B (FM08A125V5A, Littelfuse, MIL-PRF-23419/8; axial cartridge on the sense board, staked): interrupt rating
+    at 16.8 V DC (300 A is stated at 125 VDC for the commercial 265 series), the FM08 vacuum note of MIL-PRF-23419
+    §6.1.3 and the 60 °C rerating to be read from the slash sheet and confirmed with Littelfuse at procurement; the
+    current it must interrupt is ≤ 211 A (§6.1). If not confirmed, the alternative diverse part is a second space-grade
+    fuse with ≥ 314 A at 16.8 V DC from a third manufacturer.
+15. The harness design (SQSO-HAR-001) is to take, for Version E: W12B pin 4 is DS2's C2 fed from VCTL through 10 kΩ
+    and pin 5 the Q40 clamp gate (was GND and TRK_EN); W12C drops DS3's NO wire (two wires); W12D pin 3 is the Q41
+    clamp gate and pin 4 RBF pole B's VCTL feed (was TRK_EN and GND). No wire count changes except W12C (−1).
 
 ## 22. Revision History
 
@@ -805,4 +849,5 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | C (amended) | 2026-10-27 | CDR design (EPS board) | Pack fuse breaking capacity: F2 (and F0 on the battery sense board) changed from the Nano2 0451005.MRL (50 A at 125 V, 300 A at 32 VDC) to the MIL-PRF-23419/12 FM12A72V5.0A (1000 A interrupt) against a 314 A prospective-current bound; tap fuses FM12A72V3/4A; storage drain with the access-port board's UMB_VMON TVS 7.7 µA worst (§6.1, §6.6, §14, §21) |
 | D | 2026-10-27 | CDR design (EPS board) | Round-3 panel: array path given its third inhibit (DS2 two-pole, pole 2 holds TRK_EN; pass-through ≤ 6.16 V below every start; V-EPS-3 with two of three switches failed closed; P3E-01); sense-board fuses F0A, F0B (BAT_TOP) and F0N (BAT_BOT), tap resistor chains moved to the sense board (10 Ω left at the AFE), H3/H3b counts restated (P3E-02); EOL arm needs the EPS controller's keyed EOL_KEY AND the OBC's EOL_ARM (U64), software-fault claim corrected (P3E-11); load shed also gates the Jetson eFuse (U65; P3E-06); JETSON_PWR on PA8 (P3E-05); string wire 28 AWG (§4.1, §15); centre supports and Z-rod notch in §17 (P3S-03). Netlist: 706 placements, 153 BOM lines, 413 nets; ERC clean |
 | D (amended) | 2026-10-27 | CDR design (EPS board) | §6.1, §18: H3b 2-fault tolerant on the chair's decision (F0A, F0B from two lots counted as independent), NRCSD concurrence a decision point; EOL_KEY register 0x7E in ICD-001 1.5 §4.6 |
+| E | 2026-10-27 | CDR design (EPS board) | Board FMEA SQSO-FMEA-003 A findings: DS2 drive from BAT_F OR PACK_P (SMA-B01); 1 MΩ open-tap ladder (SMA-B03); NTC1 plausibility with hand-over to NTC2 (SMA-B04); PA out of the load shed (SMA-B05); AntS supply on DEPLOY_EN OR the EPS controller (SMA-B06); OBC heartbeat supervision and SW10 power cycle (SMA-B09); series-redundant lockout coil drivers (SMA-B12); active-high tracker clamps Q40/Q41, DS3 NO dropped (SMA-B13); series-pair capacitors on the pack lines before the AFE FETs, 50 V (SMA-B15; the AFE BAT capacitor was 25 V at 67 %); per-tracker disables (SMA-B17); F0B diverse (FM08A125V5A, Littelfuse); transponder 2.42 W DC at 1 W RF; storage drain 11.9 µA worst. Netlist 753 / 155 / 438, ERC clean |
 | B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |

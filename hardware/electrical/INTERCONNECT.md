@@ -132,7 +132,9 @@ Direction is seen from the OBC (out = OBC drives). "Reset" is the line's state w
 | Pin | Signal | Dir | Level | Reset / OBC off | OBC pin (series part) | EPS function |
 |----:|--------|-----|-------|-----------------|-----------------------|--------------|
 | 1, 2 | 3V3_OBC | power in | 3.3 V ± 3 %, 0.025 A normal | — | VDD (TVS D2, 22 µF) | SW10 TPS2553-Q1, trip 0.130–0.176 A, auto-retry 0.28 s |
-| 3, 4, 7, 28, 35, 40 | GND | — | — | — | GND | — |
+| 3, 4, 7, 35 | GND | — | — | — | GND | — |
+| 28 | I2C3_SCL | bidir | open drain, two 4.7 kΩ in parallel on the OBC (each works alone), 100 kHz | pull-ups unpowered | **PG7** (I2C3, Version D; was GND) | **AntS bus**: EPS U80 TCA9517 A side (moved from I2C2), AntS side A 0x31 and side B 0x32 (SMA-B07) |
+| 40 | I2C3_SDA | bidir | as I2C3_SCL | — | **PB4** (I2C3; was GND) | as I2C3_SCL |
 | 21, 27 | AGND | — | analog return | — | GND (EPS joins AGND to GND at one point) | — |
 | 5 | I2C2_SCL | bidir | open drain, **two 4.7 kΩ in parallel** on the OBC (each works alone), 100 kHz recommended | pull-ups unpowered | PF1 | INA228 0x40, 0x44; controller 0x48 (OBC heartbeat register, SMA-B09). **No AntS** (Version D: on I2C3) |
 | 6 | I2C2_SDA | bidir | as SCL | — | PF0 | as SCL |
@@ -182,7 +184,7 @@ push-pull: VOH ≥ 2.9 V against the STM32's VIH 2.31 V.
 | 8 | TONE_OK | in | high = CTCSS 67.0 Hz decoded | — | **PC9** EXTI9 (10 kΩ, 100 kΩ pull-down) | 1 kΩ (RID RF-21 / AV-05) |
 | 9 | XPDR_KEY | in | high = repeat path keyed | — | **PG12** EXTI12 (10 kΩ, 100 kΩ pull-down) | 1 kΩ |
 | 10 | PTT_EXCITER | in | high = transmitter keyed | — | **PC7** TIM8_CH2 input capture (10 kΩ, 100 kΩ pull-down) | 1 kΩ |
-| 11 | TX_TEMP | analog in | 0.3–1.7 V, 10 mV/°C | — | PA0 ADC1_IN5 (10 kΩ, 10 nF) | 1 kΩ / 100 nF |
+| 11 | TX_TEMP | analog in | 0.3–1.7 V, 10 mV/°C | open: 0 V (= −50 °C, a fault) | PA0 ADC1_IN5 (10 kΩ, 10 nF, **1 MΩ pull-down**, SMA-B19: reads 1.1 % low) | 1 kΩ / 100 nF |
 | 12 | TX_FWD | analog in | 0–2.5 V, P = 0.16 V² W | — | PC0 ADC1_IN1 (10 kΩ, 10 nF) | 1 kΩ / 100 nF |
 | 13 | TX_REV | analog in | as TX_FWD | — | PC1 ADC1_IN2 (10 kΩ, 10 nF) | 1 kΩ / 100 nF |
 | 14 | AGND | — | monitor return | — | GND | — |
@@ -224,8 +226,8 @@ carrier board).
 | W6C J7-5/6 | MTQ_Z_P / N | as X | U24 | rod Z |
 | W6D OBC J8-1/2 … 11/12 | CSS_PX_K/A, MX, PY, MY, PZ, MZ | photocurrent ≤ 4.0 mA (at AM0 normal incidence: requirement on the panel vendor) | U17–U19 TLV9002-Q1 transimpedance (619 Ω) → U16 ADS7138-Q1 AIN0–5 | panel photodiodes, cathode to K |
 | W6D J8-13/14 | not used (Version C: W6D unshielded, no drains) | — | unconnected; J8 may become a Pico-Clasp 12 | — |
-| W6E OBC J10-1/2/6 | 3V3_SNS, GND | 3.3 V, < 1 mA (RM3100) | U7 latch-up switch (50–100 mA) | magnetometer board A2 J1 |
-| W6E J10-3/4 | SDA_S, SCL_S | I2C, 4.7 kΩ on the OBC SNS side, 100 kHz recommended | U14 TCA9517-Q1 (SNS side) | RM3100 at 0x20 |
+| W6E OBC J10-1/2/6 | 3V3_MAG, GND | 3.3 V, < 1 mA (RM3100) | **U35** latch-up switch of its own (50–100 mA; MAG_EN PF14, MAG_RB PF15; Version D, SMA-B18) | magnetometer board A2 J1 |
+| W6E J10-3/4 | SDA_M, SCL_M | I2C, 4.7 kΩ on the OBC side, 100 kHz recommended | **U34** TCA9517-Q1: its own buffered segment of I2C4 (the sun-sensor ADC stays behind U14) | RM3100 at 0x20 |
 | W6E J10-5 | MG_DRDY | 3.3 V, high = conversion done | U33 → PD11 (EXTI11) | RM3100 DRDY |
 
 W6B, W6C 28 AWG pairs (the Pico-Clasp terminal; W6B 38 % of the derated 0.90 A at the SW4 trip, W6C 14 % at the
@@ -238,7 +240,7 @@ near A2.
 |---------------|--------|-----|-------|----------|----------|
 | W9B EPS J21-1/2 → OBC J4-1/2 | 3V3_GNSS, GND | power | 3.3 V, 0.10 A peak, SW7 trip 0.175–0.232 A | through the OBC to J5-1; VCCB of U30–U32; GNSS_PG → PG15 | — |
 | W9A OBC J5-1/2 | 3V3_GNSS, GND | power | as above | — | VIN, GND |
-| W9A J5-3 | GNSS_RXD | out | 3.3 V UART 9600 | PG7 LPUART1_TX → U30 (B side on 3V3_GNSS) | RXD |
+| W9A J5-3 | GNSS_RXD | out | 3.3 V UART 9600 | **PB11** LPUART1_TX (Version D; was PG7) → U30 (B side on 3V3_GNSS) | RXD |
 | W9A J5-4 | GNSS_TXD | in | 3.3 V UART | U31 → PG8 LPUART1_RX (100 kΩ pull-up) | TXD |
 | W9A J5-5 | GNSS_1PPS | in | 3.3 V pulse | U32 → PC6 TIM3_CH1 input capture | 1PPS |
 | W9A J5-6 | GND | — | — | — | GND |
@@ -261,7 +263,7 @@ of Version B is withdrawn (larger than the window). The pin column below is OBC 
 | 3, 10 | GND | — | — | — | 3, 14 |
 | 4 | SWCLK | in | PA14 (22 Ω) | SWD probe | 4 |
 | 5 | WDT_DIS | in | TPS3850 SET0 (10 kΩ; 100 kΩ pull-down) | switch to VTREF: external watchdog disabled after the next supervisor reset | 5 |
-| 6 | NRST | bidir | NRST (100 Ω) | probe reset | 6 |
+| 6 | RST_REQ | in | **reset request, active high** (Version D, SMA-B14): 1 kΩ to the gate of Q1 2N7002BK (100 kΩ gate pull-down), whose drain pulls NRST; a short of this line to ground cannot reset the OBC | the GSE adapter drives it high (from VTREF, through an inverter from the probe's nRESET); the probe can also reset by SYSRESETREQ | 6 |
 | 7 | USART3_TX | out | PD8 (100 Ω) | console, key loading | 7 |
 | 8 | USART3_RX | in | PD9 (10 kΩ, 100 kΩ pull-up) | console | 12 |
 | 9 | UMBILICAL_SENSE | in | PB8 (1 kΩ, 100 kΩ pull-down): high = present | tied to VTREF in the plug | 13 |
@@ -273,6 +275,30 @@ through the EPS's access-port connector J13 (W11: UMB_CHG through F5 and D16 to 
 UMB_VMON through 100 kΩ, AFE shutdown UMB_SHUT; SQSO-EPS-BRD-001 §6.5), reached through the same Micro-D on A3; PACK_N is never joined to GND on A3, and the
 Micro-D shell bonds to the frame only. ESD at the window is on A3 (debug lines to GND, charge lines to PACK_N),
 behind it at OBC J9 and EPS J13. W8B is not flown; W8A and A3 are.
+
+### 3.7 Sense and status inputs: polarity, pull and meaning (Version D, SMA-B02)
+
+Every digital input that reports a state, for the flight software to test against. "Pull" is the OBC's hardware pull;
+**the MCU's internal pulls are off on every one of these pins** (a 40 kΩ internal pull would override the EPS's 1 MΩ
+DEPLOY_SENSE source). "Open" is the reading with the far end unwired, its wire open or its source unpowered.
+
+| Signal | MCU pin | Source and type | High means | Low means | OBC pull | Open / source off reads | Rule for the flight software |
+|--------|---------|-----------------|-----------|-----------|----------|-------------------------|------------------------------|
+| DEPLOY_SENSE | PE2, EXTI2 | EPS: DS2-released node through 1 MΩ (R113), clamped; W3-16; 10 kΩ series | **DS2 released (separated)** | stowed | 10 MΩ pull-down (3.0 V when released) | low (stowed) | The OBC runs only after separation (the switches remove power): once the first RF-silence and deployment waits have started, this line must not restart them; use it as telemetry, or a ≥ 10 s debounced reading before the first wait (SMA-B02, V-BFM-07). `separation_switch.rs` (pull-up, high = stowed) is wrong |
+| SOLAR_SENSE | PB12 | EPS: both hinge switches in series to GND, 10 kΩ + 1 kΩ pull-up on the EPS; W3-20; 10 kΩ | at least one wing not deployed | **both wings deployed** | 1 MΩ pull-up | high (not deployed) | A re-fired burn on a deployed wing is harmless (the line is already cut) |
+| EPS_ALERT_N | PB7, EXTI7 | EPS open drain (INA228 alerts, controller), 4.7 kΩ pull-up on the EPS; W3-8; 10 kΩ | no alert | **alert** | 1 MΩ pull-up | high (no alert) | Read the EPS over I2C2 for the source |
+| UMBILICAL_SENSE | PB8 (no EXTI) | GSE plug ties it to VTREF; A3 Micro-D 13, W8A, J9-9; 1 kΩ | **GSE plug present** (key provisioning allowed) | absent (flight) | 100 kΩ pull-down | low (absent) | Provisioning only while high |
+| JET_PG | PG6, EXTI6 | carrier's JET_3V3 through 10 kΩ; W5B-4 | **carrier 3.3 V I/O rail up** | carrier off | 100 kΩ pull-down | low (off) | Compare with PAYLOAD_EN, JETSON_PWR and VSW1_RB, VJET_RB (AV-06); no magnetometer actuation while high |
+| RX_CD | PG0, EXTI0 | RF board 3.1 V push-pull, 1 kΩ, RF 100 kΩ pull-down; W4A-15; 10 kΩ | **receiver carrier detected** | no carrier | 100 kΩ pull-down | low (no carrier) | Valid only with RADIO_EN high |
+| RX_FAULT | PF13, EXTI13 | as RX_CD; W4A-16 | **receiver fault** | healthy | 100 kΩ pull-down | low (healthy; an open line is not detected by the line itself, SMA-B11) | RADIO_EN high; ignore for 1 s after RADIO_EN switches on |
+| TONE_OK | PC9, EXTI9 | as RX_CD; W4A-8 | CTCSS 67.0 Hz decoded | none | 100 kΩ pull-down | low | RADIO_EN high |
+| XPDR_KEY | PG12, EXTI12 | as RX_CD; W4A-9 | repeat path keyed | not keyed | 100 kΩ pull-down | low | RADIO_EN high |
+| PTT_EXCITER | PC7, TIM8_CH2 capture | as RX_CD; W4A-10 | transmitter keyed | not keyed | 100 kΩ pull-down | low | Keyed-time measurement; no magnetometer actuation while high |
+| MTQ_FAULT_N | PE14, EXTI14 | three DRV8876 nFAULT, open drain, wired-OR (on board) | no fault | **fault** in a bridge (over-current, thermal, VM under-voltage) | 10 kΩ pull-up | high with VBAT_MTQ off (open drain unpowered) | Read with the bridges awake (MTQ_ARM high) |
+| MTQ_EXPIRED | PE15 | U25 CD74HC4060 Q10, push-pull (on board) | **hardware off-timer expired** in this period (the firmware's timer failed) | normal | none (driven) | — | Check at the end of each control period |
+| GYRO_RB, IMU2_RB, SNS_RB, MAG_RB | PF10, PF11, PF12, PF15 | TPS2553 EN node (U5, U6, U7, U35) through 100 kΩ (on board) | rail enabled, not tripped | with the enable high: **latch-up trip** (auto-retry); with it low: off | the enable network's 100 kΩ pull-down | low | Compare with GYRO_EN PF6, IMU2_EN PF7, SNS_EN PF8, MAG_EN PF14 |
+| GNSS_PG | PG15 | 3V3_GNSS through 10 kΩ (on board) | rail up | off or SW7 tripped | 100 kΩ pull-down | low | Compare with GNSS_EN PE5 |
+| GYRO_DRDY, IMU2_DRDY, MAG_DRDY | PD10, PD15, PD11 (EXTI10, 15, 11) | through the rail's translator (on board) | data ready (M-G370 polarity set by MSC_CTRL, BMI088 INT3 as configured, RM3100 high) | — | 100 kΩ pull-down on IMU2_DRDY and MAG_DRDY | low with the rail off | — |
 
 ## 4. Master Pin Allocation: STM32L4R5ZIT6 (LQFP-144)
 
@@ -303,7 +329,7 @@ Generated from `hardware/electrical/obc/obc_pinmap.csv`. Dir: O out, I in, A ana
 | 47 | PB1 | TEMP_BOARD | ADC1_IN16 | A | 10 mV/C, 0.5 V at 0 C | analog (high-Z) | U21 TMP235 on the OBC |
 | 48 | PB2 | PAYLOAD_EN | GPIO out | O | 3.3 V, high = SW1 on | analog (high-Z); EPS 100 k pull-down | J1-9 EPS (moved from PB4) |
 | 133 | PB3 | SWO | spare (JTDO/SWO) | - |  | JTDO | TP only |
-| 134 | PB4 | I2C3_SDA | I2C3_SDA AF4 | B | open drain, 2 x 4.7 k on the OBC, 100 kHz | NJTRST with its internal pull-up until configured (harmless on an open-drain bus) | J1-28 EPS: AntS bus via U80 (SMA-B07) |
+| 134 | PB4 | I2C3_SDA | I2C3_SDA AF4 | B | open drain, 2 x 4.7 k on the OBC, 100 kHz | NJTRST with its internal pull-up until configured (harmless on an open-drain bus) | J1-40 EPS: AntS bus via U80 (SMA-B07) |
 | 135 | PB5 | RADIO_EN | GPIO out | O | 3.3 V, high = SW2 on | analog (high-Z); EPS 100 k pull-down | J1-10 EPS |
 | 136 | PB6 | ADCS_EN | GPIO out | O | 3.3 V, high = SW4 + VBAT_MTQ switch on | analog (high-Z); EPS 100 k pull-down | J1-11 EPS |
 | 137 | PB7 | EPS_ALERT_N | GPIO in, EXTI7 | I | open drain, active low (EPS 4.7 k) | analog (high-Z); OBC 1 M pull-up (open reads no alert) | J1-8 EPS (10 k series) |
@@ -386,7 +412,7 @@ Generated from `hardware/electrical/obc/obc_pinmap.csv`. Dir: O out, I in, A ana
 | 89 | PG4 | FRAM_MOSI | SPI1_MOSI AF5 | O | 3.3 V | analog (high-Z) | U3 (moved from PA7) |
 | 90 | PG5 | FRAM_CS_N | GPIO out | O | 3.3 V, low = select | analog (high-Z); 10 k pull-up | U3 (moved from PA4) |
 | 91 | PG6 | JET_PG | GPIO in, EXTI6 | I | high = carrier 3.3 V up | analog (high-Z); 100 k pull-down | J3-4 Jetson (10 k series) |
-| 92 | PG7 | I2C3_SCL | I2C3_SCL AF4 | B | open drain, 2 x 4.7 k on the OBC, 100 kHz | analog (high-Z) | J1-27 EPS: AntS bus via U80 (SMA-B07; LPUART1_TX moved to PB11) |
+| 92 | PG7 | I2C3_SCL | I2C3_SCL AF4 | B | open drain, 2 x 4.7 k on the OBC, 100 kHz | analog (high-Z) | J1-28 EPS: AntS bus via U80 (SMA-B07; LPUART1_TX moved to PB11) |
 | 93 | PG8 | LPUART1_RX | LPUART1_RX AF8 | I | 3.3 V UART | analog (high-Z); 100 k pull-up | U31 <- J5-4 GNSS |
 | 124 | PG9 | - | spare | - |  | analog (high-Z) |  |
 | 125 | PG10 | - | spare | - |  | analog (high-Z) |  |
@@ -417,24 +443,25 @@ Generated from `hardware/electrical/obc/obc_pinmap.csv`. Dir: O out, I in, A ana
 | Resource | Use | Pins |
 |----------|-----|------|
 | ADC1 (16 external channels) | IN1 TX_FWD, IN2 TX_REV, IN3 VBATT, IN4 IBATT, IN5 TX_TEMP, IN6 VSW1_RB, **IN7 PT_NTC (Jetson spreader)**, IN9–IN11 MTQ_X/Y/Z_I, IN12 VJET_RB, IN13 VSOLAR, IN14 ISOLAR, IN15 VBUS, IN16 TEMP_BOARD; internal: temperature, VREFINT | 15 used; IN8 (PA3) is the RF_TX_EN output |
-| SPI1 | FRAM FM25V20A, 20 MHz mode 0 | PG2/PG3/PG4, CS PG5 |
+| SPI1 | FRAM FM25V20A U3 and its mirror U36 (Version D, SMA-B10), 20 MHz mode 0 | PG2/PG3/PG4, CS PG5 (U3), **PD7** (U36) |
 | SPI2 (`hal_spi` bus 0) | BMI088 (gyro CS PD0, accelerometer CS PD4), ≤ 10 MHz | PB13/PB14/PB15 |
 | SPI3 (`hal_spi` bus 1) | Epson M-G370PDT0, mode 3, ≤ 1 MHz burst | PC10/PC11/PC12, CS PD1 |
 | I2C1 (new `hal_i2c` bus 2) | RV-3028-C7 mission clock, 0x52, 100 kHz | PG14 SCL / PG13 SDA |
-| I2C2 (`hal_i2c` bus 0) | EPS: INA228 0x40, 0x44; controller 0x48; AntS 0x31 | PF1 / PF0 |
-| I2C4 (`hal_i2c` bus 1) | through U14 TCA9517: ADS7138 0x10; RM3100 0x20 on board A2 via J10 | PD12 / PD13 |
+| I2C2 (`hal_i2c` bus 0) | EPS: INA228 0x40, 0x44; controller 0x48 (heartbeat register, SMA-B09); two 4.7 kΩ pull-ups per line; 100 kHz recommended | PF1 / PF0 |
+| I2C3 (new `hal_i2c` bus 3, Version D) | AntS only, through EPS U80: side A 0x31, side B 0x32 (both controllers used, SMA-B07); two 4.7 kΩ pull-ups per line; 100 kHz | PG7 SCL / PB4 SDA |
+| I2C4 (`hal_i2c` bus 1) | two buffered segments: U14 TCA9517 to ADS7138 0x10 (3V3_SNS); U34 TCA9517 to RM3100 0x20 on board A2 via J10 (3V3_MAG, SMA-B18) | PD12 / PD13 |
 | USART1 (`hal_uart` port 0) | Jetson, 115200 | PA9 / PA10 |
 | USART2 (`radio.rs`) | KISS TNC, 9600 | PD5 / PD6 |
 | USART3 (`hal_uart` port 1) | console and key loading | PD8 / PD9 |
-| LPUART1 (`hal_uart` port 2) | GNSS NMEA, 9600 | PG7 / PG8 |
+| LPUART1 (`hal_uart` port 2) | GNSS NMEA, 9600 | **PB11** TX (Version D; was PG7) / PG8 RX |
 | TIM1 CH1–CH3 | magnetorquer PWM, 40 kHz | PE9, PE11, PE13 |
 | TIM15 CH1 | MTQ_ARM, one-pulse 900 ms per control period | PF9 |
 | TIM3 CH1, CH3 | input capture: GNSS 1PPS, RTC 1 Hz | PC6, PC8 |
 | TIM8 CH2 | input capture: PTT_EXCITER keyed time | PC7 |
 | TIM7 | XPDR_EN heartbeat interrupt (no pin function) | PE4 as GPIO |
 | TIM2 | Embassy time driver (`time-driver-any` picks TIM2 today; pin it with `time-driver-tim2`) | none |
-| IWDG | 30 s, LSI | — |
-| EXTI lines | 2 DEPLOY_SENSE, 6 JET_PG, 7 EPS_ALERT_N, 8 UMBILICAL_SENSE, 9 TONE_OK, 10 GYRO_DRDY, 11 MAG_DRDY, 12 XPDR_KEY, 14 MTQ_FAULT_N, 15 IMU2_DRDY (one pin per line number: no collisions) | — |
+| IWDG | reload 3500 / 256 recommended (26.4–30.4 s, below the supervisor's 31.3 s minimum; Version C's 3750 overlaps it by 1.2 s) | — |
+| EXTI lines | 0 RX_CD, 2 DEPLOY_SENSE, 6 JET_PG, 7 EPS_ALERT_N, 9 TONE_OK, 10 GYRO_DRDY, 11 MAG_DRDY, 12 XPDR_KEY, 13 RX_FAULT, 14 MTQ_FAULT_N, 15 IMU2_DRDY (one pin per line number: no collisions; UMBILICAL_SENSE PB8 is polled) | — |
 | HSE (bypass) | 8 MHz XO Y1 | PH0 (PH1 free) |
 | LSE | 32.768 kHz crystal Y2 | PC14 / PC15 |
 
@@ -447,8 +474,9 @@ Generated from `hardware/electrical/obc/obc_pinmap.csv`. Dir: O out, I in, A ana
   off; the ADS7138 inputs are all used and depend on the switched sensor rail.
 - Alternate functions checked against ST's pin database for the STM32L4R5ZITx LQFP144 (stm32-data, the source of the
   embassy-stm32 metadata the firmware is built with): every peripheral above is on a pin and AF the part offers.
-- Spare (13 pins, analog mode): PA11, PA12, PA15 (JTDI), PB4 (NJTRST), PB11, PC13, PD7, PF2, PF14, PF15, PG9, PG10,
-  PH1. Version B gave PG0 and PF13 to RX_CD and RX_FAULT. EXTI lines in use: 0 (RX_CD), 2, 6, 7, 9, 10, 11, 12,
+- Spare (8 pins, analog mode): PA11, PA12, PA15 (JTDI), PC13, PF2, PG9, PG10, PH1. Version B gave PG0 and PF13 to
+  RX_CD and RX_FAULT; Version D gave PB4 and PG7 to I2C3 (LPUART1_TX moved to PB11), PD7 to the second FRAM's CS# and
+  PF14, PF15 to MAG_EN and MAG_RB. EXTI lines in use: 0 (RX_CD), 2, 6, 7, 9, 10, 11, 12,
   13 (RX_FAULT), 14, 15; free: 1, 3, 4, 5, 8. PB3 (SWO) goes to a test point only.
 
 ## 5. Domain Crossings and Back-Power
@@ -459,7 +487,8 @@ Generated from `hardware/electrical/obc/obc_pinmap.csv`. Dir: O out, I in, A ana
 | MCU → GNSS receiver (LPUART1, 1PPS) | U30–U32 SN74LVC1T45-Q1, B side on 3V3_GNSS | same, and a latch-up trip of SW7 is not fed by the UART |
 | MCU → M-G370 (SPI3, /RST, DRDY) | U9 TXU0304-Q1, U10 TXU0204-Q1, B side on 3V3_GYRO | the gyro rail is switched for latch-up recovery |
 | MCU → BMI088 (SPI2, two CS, INT3) | U12 TXU0304-Q1, U13 TXU0204-Q1, B side on 3V3_IMU2 | the backup is a cold spare |
-| MCU → RM3100 (board A2, W6E), ADS7138 (I2C4, DRDY) | U14 TCA9517-Q1, U33 SN74LVC1T45-Q1, B side on 3V3_SNS | switched sensor rail |
+| MCU → ADS7138 (I2C4) | U14 TCA9517-Q1, B side on 3V3_SNS | switched sensor rail |
+| MCU → RM3100 (board A2, W6E; I2C4, DRDY) | U34 TCA9517-Q1, U33 SN74LVC1T45-Q1, B side on 3V3_MAG (U35) | its own switched rail and bus segment (SMA-B18) |
 | Jetson spreader NTC | passive, biased from VDDA on the OBC | readable whether the carrier is on or off; no carrier supply involved |
 | MCU → EPS | EPS gates on 3V3_AO (always on) | the EPS is powered whenever the OBC is |
 | EPS, RF → unpowered OBC | series resistors (10 kΩ digital, 1–10 kΩ analog) | ≤ 2.7 mA into the OBC's clamps with every line high (OBC_BOARD_DESIGN §16) |
@@ -502,7 +531,17 @@ design.
 | 26 | JETSON_PWR | PA2 | **PA8** (Version B) | PA2 becomes ADC1_IN7 for the Jetson spreader NTC; port A kept |
 | 27 | Jetson spreader temperature | none (the guard uses the Jetson's report) | **PT_NTC on PA2 (ADC1_IN7)**: R = 10.0 kΩ × V/(VDDA − V); β 3976 K (to confirm from the TE curve) | carrier interface E10; the 70 °C guard and the −15 °C power-on gate need it with the carrier off |
 | 28 | RX_CD, RX_FAULT (new RF board inputs, flight-software round 2) | none | **RX_CD PG0** (EXTI0, high = carrier detect), **RX_FAULT PF13** (EXTI13, high = fault; reads low = healthy with the line open or the radio off) | W4A version 3 pins 15, 16; qualify both with RADIO_EN; **ignore RX_FAULT for 1 s after RADIO_EN switches on** (receiver start-up) |
-| 29 | Unchanged | — | RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, LED PD3, RF_TX_EN PA3, EPS_ALERT_N PB7, DEPLOY_SENSE PE2, UMBILICAL_SENSE PB8, SOLAR_SENSE PB12, TX_PWR_SEL PE3, XPDR_EN PE4 (TIM7), GNSS_EN PE5, USART1/2/3, LPUART1, I2C2, I2C4, SPI3 pins, FRAM WP#/HOLD#, the nine existing ADC channels | — |
+| 29 | LPUART1_TX (GNSS) | PG7 | **PB11** (AF8) | PG7 becomes I2C3_SCL (Version D) |
+| 30 | AntS bus | AntS on I2C2 (0x31) | **I2C3: PG7 SCL, PB4 SDA (AF4), 100 kHz; side A 0x31 and side B 0x32**, side B as the retry path when side A NACKs or fails to deploy (`ants.rs` addresses side A only) | SMA-B06/B07: the AntS no longer shares I2C2's always-powered devices; PB4's NJTRST pull-up at reset is harmless on an open-drain line |
+| 31 | I2C2 and I2C3 clock | I2C2 400 kHz | **100 kHz** recommended on both: with one of the two parallel pull-ups open the rise time is 478 ns (I2C2) / 319 ns (I2C3) | SMA-B07 |
+| 32 | Second FRAM | none | **U36 on SPI1, CS# PD7**: every record mirrored; read the mirror when U3 fails its CRC or does not answer; WP#/HOLD# of U36 are pulled up, not driven | SMA-B10 (the degraded mode of SQSO-FMEA-003 stays useful for a stuck shared SPI line) |
+| 33 | Magnetometer rail | on SNS_EN with the sun sensors | **MAG_EN PF14** (high = 3V3_MAG on), **MAG_RB PF15** (trip readback); RM3100 through U34 | SMA-B18 |
+| 34 | DEPLOY_SENSE | pull-up, high = stowed (`separation_switch.rs`) | **no internal pull; high = released**; no restart of the RF-silence or deployment waits from this line once they have started | SMA-B02 (§3.7) |
+| 35 | Sense inputs | various | internal pulls off on every input of §3.7; meanings as §3.7 | SMA-B02 |
+| 36 | TX_TEMP plausibility | none | outside −50 … +125 °C (0 V = open line with the new 1 MΩ pull-down) or rising faster than the PA can heat: sensor fault, fall back to the board temperatures with the duty limit; scale × 1.011 for the pull-down | SMA-B19 |
+| 37 | IWDG reload | 3750 / 256 | **3500 / 256** (26.4–30.4 s): the IWDG again acts before the supervisor's 31.3 s minimum | §4.3, SMA-B08 |
+| 38 | EPS heartbeat | none | write the EPS controller's heartbeat register (0x48, I2C2) every 60 s; the controller power-cycles SW10 after 10 min without it (EPS one-shot) | SMA-B09 (EPS side: E14) |
+| 39 | Unchanged | — | RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, LED PD3, RF_TX_EN PA3, EPS_ALERT_N PB7, DEPLOY_SENSE PE2 (pin), UMBILICAL_SENSE PB8, SOLAR_SENSE PB12, TX_PWR_SEL PE3, XPDR_EN PE4 (TIM7), GNSS_EN PE5, USART1/2/3, LPUART1, I2C2, I2C4, SPI3 pins, FRAM WP#/HOLD#, the nine existing ADC channels | — |
 
 New `HalGpioPin_t` entries implied (names suggested; indices are the flight software's choice): BURN_W2A (replacing
 ANTENNA_BURN), BURN_W2B, EOL_ARM, EOL_FIRE, LOCK_CLR, GYRO_EN, IMU2_EN, SNS_EN, GYRO_RB, IMU2_RB, SNS_RB, GYRO_RST_N,
@@ -527,6 +566,9 @@ second CS in `hal_spi`.
 | E11 | Jetson carrier | the 20–30 mm magnetic keep-out around (+33, −38) asked by MECHANICAL_DESIGN §4.4 is **withdrawn**: the magnetometer leaves the OBC (SQSO-OBC-BRD-001 §9.4) | — |
 | E12 | Mechanical / harness | magnetometer board A2 (24 × 24 mm, ≈ 3 g with harness) at the +Z end frame slot of the CAD (+24, +27) mm, or (+24, −27) if the mass properties can be re-trimmed (0.51 against 0.83 µT per mA·m² of rod remanence); 20 mm non-ferromagnetic zone around it (the RF shield's top, the patch adapter, the trim masses and fasteners non-magnetic); harness W6E through a ±X wall gap; W8A internal access-port harness | §9.4 of the OBC board |
 | E13 | RF board (SQSO-RF-BRD-001 §4.1) | W4A version 3: RF J1 becomes a 16-position header (pins 1–14 unchanged; from W4A v4 a Samtec TFM-108 right-angle with SFSDT, SQSO-HAR-001 2.0 R-1); pin 15 RX_CD (high = receiver carrier detect), pin 16 RX_FAULT (high = receiver fault), both 3.1 V push-pull through 1 kΩ with 100 kΩ pull-downs on the RF board (taken in SQSO-RF-BRD-001 B §4.1); W4 wiring source to version 3; J1 placed in the (+X, −Y) corner to meet OBC J2 (SQSO-OBC-BRD-001 §21) | flight-software round 2 |
+| E14 | EPS (SQSO-EPS-BRD-001 §13.2, §14) | W3 pin 28 = I2C3_SCL, pin 40 = I2C3_SDA (were GND): **U80's A side to these two pins**, off I2C2; no pull-ups on the EPS side; I2C2 keeps INA228 0x40, 0x44 and the controller 0x48. Heartbeat (SMA-B09): a controller register the OBC writes every 60 s; after 10 min without a write the controller pulls SW10's EN low through a hardware one-shot limited to one 10 s pulse per 10 min; GND contacts on W3 now 3, 4, 7, 35 and AGND 21, 27 | SMA-B07, SMA-B09 |
+| E15 | EPS / harness (W7C), AntS | wire both AntS controllers: if the AntS variant brings side B (0x32) out on its own I2C pins, W7C and U80 carry it (a second buffer channel); if both share one bus, the address is enough. Confirm in the AntS ICD | SMA-B07 |
+| E16 | Harness (W3, W8), GSE | W3 pins 28 and 40 become signal wires (SFSDT, no gauge change); W8 pin 6 is RST_REQ (active high, reset request): the GSE adapter drives it from VTREF through an inverter from the probe's nRESET | SMA-B07, SMA-B14 |
 | E10 | RF (SQSO-RF-BRD-001) | none: the OBC side of J1 is as the RF board asks (pull-downs fitted on the OBC) | — |
 
 ## 8. Verification Items (interconnect)
@@ -538,6 +580,9 @@ second CS in `hal_spi`.
 | V-ICX-3 | Back-power: OBC rail off, every other board on, readbacks forced high | Test | 3V3_OBC < 0.5 V; current into the OBC ≤ 3.0 mA | flatsat |
 | V-ICX-4 | Carrier and receiver isolation: Jetson carrier off with USART1 active; GNSS off with LPUART1 active | Test | carrier 3.3 V rail < 0.3 V (ICD-002 §9); receiver VIN < 0.3 V | flatsat |
 | V-ICX-5 | Firmware pin map against §4.1 | Inspection of `gpio.rs`/`main.rs` after the flight-software change, and a GPIO walk on the EM | every pin as §4.1 | EM software release |
+| V-ICX-6 | Sense inputs (§3.7): each line driven to both states from its source, then opened, OBC powered; DEPLOY_SENSE with DS2 released (= V-BFM-07) | Test | every reading as §3.7; DEPLOY_SENSE ≥ 2.9 V released, < 0.4 V open | flatsat |
+| V-ICX-7 | Bus independence: each I2C2 device's SDA held low, then I2C3's; one pull-up of each pair removed | Test | the AntS (both sides) answers with I2C2 stuck; each bus works at 100 kHz with one pull-up | flatsat |
+| V-ICX-8 | Access-port reset: RST_REQ shorted to GND at A3; RST_REQ driven high | Test | OBC runs with the short; resets with the request | flatsat |
 
 ## 9. Revision History
 
@@ -546,3 +591,4 @@ second CS in `hal_spi`.
 | A | 2026-10-27 | First issue: master pin allocation of the STM32L4R5ZIT6, the board-to-board signal lists for W3, W4, W5, W6, W8, W9, domain crossings, the firmware change list and the interface changes for the EPS and the Jetson carrier (CDR design completion, OBC board SQSO-OBC-BRD-001) |
 | B | 2026-10-27 | Carrier interface E10 taken (W5B 6 pins, spreader NTC on PA2 ADC1_IN7; JETSON_PWR PA2 → PA8); magnetometer moved to board A2 at +Z (W6E); W8A internal access-port harness and J9 as FTSH-105; stack routing rules of MECHANICAL_DESIGN §4.4; changes 26–28 for the flight software (28: RX_CD PG0, RX_FAULT PF13 on W4A v3 pins 15–16, FTSH-108); EOL_ARM PF4, EOL_FIRE PG1, BURN_W2B PE7, LOCK_CLR PF5 confirmed low at reset; gyro at (−20, +30.5); back-power total 2.7 mA; E10–E13; W4A routing (no fold, flat on the +X shear panel); bundle allocation §2.1 (W9A/W9B to (+X, +Y); W6B/W6C/W6D in (−X, +Y)); W4B twisted pairs |
 | C | 2026-10-27 | Harness design SQSO-HAR-001 2.0 taken in (items I-1 to I-3): §1 rule 5 to the SQSO-HAR-001 2.0 §5.2 derating (EEE-INST-002 with the bundle factor; gauge follows the terminal), governing baseline Rev E; §2 harness table and §2.1 routing and bundle fill rewritten by the harness designer (W1 22 AWG pack leads, W2–W12 connector parts, gauges and lengths, EPS harness connectors on the EPS bottom side, band B resolution, W6C routes), accepted by the ICX owner; §3.1–§3.6 notes: W3, W4A SFSDT 30 AWG on TFM, W4B, W6B, W6C, W9 28 AWG, W5A 24 AWG quad, W6D unshielded (J8-13/14 unused, J8 a Pico-Clasp 12), §3.6 the bulkhead is the access-port board A3's Micro-D 21 (pin map; SQSO-OBC-BRD-001 C §15.1) |
+| D | 2026-10-27 | Board FMEA SQSO-FMEA-003 A findings: §3.7 sense and status input table (polarity, pull, open state, rule; SMA-B02); AntS on its own I2C3 port (PG7/PB4, W3 pins 28 and 40), both AntS controllers, two parallel pull-ups per line on I2C2 and I2C3 (SMA-B06/B07); EPS heartbeat path on I2C2 (SMA-B09); second FRAM CS# PD7 (SMA-B10); RST_REQ in place of NRST at the access port (SMA-B14); magnetometer on its own switch U35 and segment U34, MAG_EN PF14, MAG_RB PF15 (SMA-B18); TX_TEMP 1 MΩ pull-down (SMA-B19); LPUART1_TX PG7 → PB11; IWDG reload 3500 with the redundant CWD (SMA-B08); changes 29–38, E14–E16, V-ICX-6 to -8 |

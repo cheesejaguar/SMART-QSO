@@ -182,15 +182,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 100 | 200 |
+| Closed by design change | 100 | 204 |
 | Closed by chair decision | 42 | 34 |
 | Verification item | 45 | 27 |
 | Decision point (dated) | 13 | 29 |
-| Implementation | 147 | 57 |
+| Implementation | 147 | 53 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 66 new findings; 34 of the reopened and 35 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 66 new findings; 34 of the reopened and 39 of the new are since closed.
 
-Open implementation RIDs: LV-04, SE-21, SE-22, GND-04, SMA-15, STR-04, STR-08, STR-13, STR-26, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, MCAD-12, OBCB-01, OBCB-02, P3E-10, P3S-01, P3S-02, P3S-04, P3S-07, P3S-08, P3S-09, P3S-11, P3S-12, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B01, SMA-B02, SMA-B03, SMA-B04, SMA-B05, SMA-B06, SMA-B07, SMA-B08, SMA-B09, SMA-B10, SMA-B11, SMA-B12, SMA-B13, SMA-B14, SMA-B15, SMA-B17, SMA-B18, SMA-B19.
+Open implementation RIDs: LV-04, SE-21, SE-22, GND-04, SMA-15, STR-04, STR-08, STR-13, STR-26, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, MCAD-12, OBCB-01, OBCB-02, P3E-10, P3S-01, P3S-02, P3S-04, P3S-07, P3S-08, P3S-09, P3S-11, P3S-12, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B01, SMA-B02, SMA-B03, SMA-B04, SMA-B05, SMA-B06, SMA-B09, SMA-B10, SMA-B11, SMA-B12, SMA-B13, SMA-B15, SMA-B17, SMA-B19.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -390,18 +390,18 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SMA-B04 | 2 | A failed NTC1 stops charging for good or isolates the pack | IMP | Implementation | Plausibility comparators hand over to the second thermistor (EPS) |
 | SMA-B05 | 2 | A spurious permanent load shed holds the transmitter off with no override | IMP | Implementation | PA switch out of the shed or an override (EPS) |
 | SMA-B06 | 2 | Antenna deployment depends on one DEPLOY_EN line and the shared EPS I2C bus | IMP | Implementation | AntS powered by DEPLOY_EN OR an EPS-controller line; own I2C port; both AntS controllers (EPS, OBC) |
-| SMA-B07 | 3 | Single pull-up resistors on the OBC's I2C buses | IMP | Implementation | Doubled pull-ups (OBC) |
-| SMA-B08 | 2 | A failed watchdog timing capacitor can hold the OBC in a reset loop | IMP | Implementation | Series-paired capacitors and a test (OBC) |
+| SMA-B07 | 3 | Single pull-up resistors on the OBC's I2C buses | IMP | Closed by design change | I2C2 and I2C3 with two 4.7 kΩ pull-ups in parallel per line, each able to work alone; 100 kHz (OBC_BOARD_DESIGN D §23.1) |
+| SMA-B08 | 2 | A failed watchdog timing capacitor can hold the OBC in a reset loop | IMP | Closed by design change | TPS3850 timing capacitor as two parallel strings of two 470 nF C0G in series: one short or open keeps the 10 s kick inside the window; V-OBC-1 tests both |
 | SMA-B09 | 2 | An OBC fault below the 130 mA trip is detected by nothing | IMP | Implementation | EPS-controller watchdog of an OBC heartbeat power-cycles the OBC (EPS, OBC, flight software) |
 | SMA-B10 | 2 | A dead FRAM forces TX-OFF every 60 s: permanent silence | IMP | Implementation | Commanded degraded mode or a second FRAM (flight software, OBC) |
 | SMA-B11 | 2 | Receiver health line misses a deaf front end and an open TNC wire; RX_CD stuck high blocks recovery | IMP | Implementation | TNC noise-floor check, OBC-TNC loop query, carrier not proof of health, RX_FAULT self-test (RF, flight software) |
 | SMA-B12 | 2 | A shorted lockout coil-driver FET locks out charging permanently | IMP | Implementation | Coils driven from reservoir capacitors (EPS) |
 | SMA-B13 | 3 | DS2's second-pole wire disables all four trackers if it chafes to the frame | IMP | Implementation | Active-high tracker-enable clamps (EPS, harness) |
-| SMA-B14 | 2 | A short on the access port's reset line holds the OBC in reset | IMP | Implementation | NRST off the flight access port or buffered (OBC) |
+| SMA-B14 | 2 | A short on the access port's reset line holds the OBC in reset | IMP | Closed by design change | NRST no longer leaves the OBC: J9/A3 pin 6 is RST_REQ (active high) through a 2N7002BK; a short cannot hold reset (OBC_BOARD_DESIGN D) |
 | SMA-B15 | 3 | Ceramic capacitors on the unfused battery lines can short | IMP | Implementation | Fail-safe capacitors (EPS) |
 | SMA-B16 | 3 | Synthesizer shares the PA rail regulator | IMP | Closed by design change | LMX2571 on its own TPS7A2033 3.3 V regulator from the PA rail (3.25 V min, 100 mV margin); TX-OFF still removes it; keyed DC 1.84 W at 0.5 W RF, allocation raised to 1.85 W DC (BASELINE §5, SYS-100 2.23 W) (RF_BOARD_DESIGN E §5) |
 | SMA-B17 | 3 | A shorted tracker output diode cannot be isolated | IMP | Implementation | Per-tracker disable by the controller (EPS) |
-| SMA-B18 | 3 | Magnetometer shares a switch and bus segment | IMP | Implementation | Own switch and segment (OBC) |
+| SMA-B18 | 3 | Magnetometer shares a switch and bus segment | IMP | Closed by design change | Magnetometer on its own switch U35 (MAG_EN PF14, MAG_RB PF15) and I2C4 repeater U34 |
 | SMA-B19 | 2 | One failed PA-temperature reading silences the downlink | IMP | Implementation | Plausibility check and a pull-down (flight software, OBC) |
 
 #### Reliability (REL)

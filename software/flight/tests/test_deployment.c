@@ -61,8 +61,8 @@ static int setup(void **state)
     hal_sim_flash_fail_writes(false);
     hal_sim_set_reset_cause(HAL_RESET_POWER_ON);
     assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
-    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);   /* released */
-    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+    hal_sim_gpio_drive_input(GPIO_PIN_DEPLOY_SENSE, true);   /* DS2 released: high */
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);    /* wings stowed: the EPS pull-up */
     assert_int_equal(hal_i2c_init(ANTS_BUS, 100000U), SMART_QSO_OK);
     set_antenna_sense(false);
     assert_int_equal(hal_flash_init(), SMART_QSO_OK);
@@ -293,6 +293,31 @@ static void test_wing_retries_alternate_drivers(void **state)
     hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false);
     assert_false(deployment_wings_failed()); /* the sense reads deployed */
     hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+}
+
+/** SOLAR_SENSE (SQSO-ICX-001 §3.1 pin 20): low = both wings deployed, high
+ *  stowed (the EPS's 10 kΩ + 1 kΩ pull-up), and the input has no internal
+ *  pull: a pull-down would decide the level against the pull-up (the
+ *  simulated HAL models that) and read deployed with the wings stowed */
+static void test_solar_sense_polarity_and_no_pull(void **state)
+{
+    (void)state;
+    assert_int_equal(hal_sim_gpio_pull(GPIO_PIN_SOLAR_SENSE), GPIO_PULL_NONE);
+    wait_out();
+    deployment_tick(SECOND_MS);
+    deployment_tick(SECOND_MS);
+    assert_true(only(GPIO_PIN_BURN_W1A));    /* stowed (high): the wings are fired */
+    advance(2U * SOLAR_DEPLOY_BURN_TIME_MS, SECOND_MS);
+    assert_int_equal(deployment_get_state(), DEPLOY_STATE_SOLAR_VERIFY);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, false); /* both hinges closed: low */
+    deployment_tick(SECOND_MS);
+    assert_true(deployment_get_state() != DEPLOY_STATE_SOLAR_VERIFY); /* verified */
+    assert_int_equal(attempts(DEPLOY_ELEMENT_SOLAR_PANEL), 1);
+    assert_int_equal(hal_gpio_config(GPIO_PIN_SOLAR_SENSE, GPIO_DIR_INPUT, GPIO_PULL_DOWN), SMART_QSO_OK);
+    hal_sim_gpio_drive_input(GPIO_PIN_SOLAR_SENSE, true);
+    assert_false(hal_gpio_get(GPIO_PIN_SOLAR_SENSE));         /* the pull wins */
+    assert_int_equal(hal_gpio_config(GPIO_PIN_SOLAR_SENSE, GPIO_DIR_INPUT, GPIO_PULL_NONE), SMART_QSO_OK);
+    assert_true(hal_gpio_get(GPIO_PIN_SOLAR_SENSE));
 }
 
 /** An element whose sense already reads deployed is never fired */
@@ -640,6 +665,7 @@ int main(void)
         cmocka_unit_test_setup_teardown(test_force_retry_cannot_bypass_wait, setup, teardown),
         cmocka_unit_test_setup_teardown(test_full_sequence, setup, teardown),
         cmocka_unit_test_setup_teardown(test_wing_retries_alternate_drivers, setup, teardown),
+        cmocka_unit_test_setup_teardown(test_solar_sense_polarity_and_no_pull, setup, teardown),
         cmocka_unit_test_setup_teardown(test_already_deployed_not_fired, setup, teardown),
         cmocka_unit_test_setup_teardown(test_watchdog_reset_resumes_wait, setup, teardown),
         cmocka_unit_test_setup_teardown(test_power_on_reset_restarts_wait, setup, teardown),

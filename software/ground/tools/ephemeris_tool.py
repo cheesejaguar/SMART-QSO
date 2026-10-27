@@ -44,6 +44,23 @@ from orbit_determination import (DRAG_FORECAST_SIGMA, FitError, ForceModel, Grav
 #: Per-axis position sigma of a fix per unit PDOP, m (piNAV-NG: 10 m 2-sigma
 #: horizontal at PDOP ~2, D6 research §5)
 SIGMA_PER_PDOP_M = 2.5
+#: Force-model error floor per axis, m, added in quadrature to each fix's sigma:
+#: the gravity left out of the field (and the drag variation within the arc)
+#: is correlated along the orbit, not white, so without it the covariance is
+#: too small between and after sparse fixes (simulation: 300-500 m between
+#: sessions with the 4 x 4 field; SQSO-GND-002 §6)
+MODEL_SIGMA_M = ((4, 150.0), (8, 100.0), (12, 60.0))
+MODEL_SIGMA_FINEST_M = 30.0
+
+
+def model_sigma(degree: int) -> float:
+    """Default force-model error floor for a gravity field of this degree."""
+    for limit, sigma in MODEL_SIGMA_M:
+        if degree <= limit:
+            return sigma
+    return MODEL_SIGMA_FINEST_M
+
+
 #: Fixes closer than this belong to one session
 SESSION_GAP_S = 600.0
 EXIT_OK, EXIT_POOR, EXIT_FAIL = 0, 2, 3
@@ -51,8 +68,8 @@ EXIT_OK, EXIT_POOR, EXIT_FAIL = 0, 2, 3
 
 def observations(received: Sequence[Received], sigma_per_pdop: float = SIGMA_PER_PDOP_M,
                  sigma_v: Optional[float] = None, tai_utc_s: float = TAI_UTC_S,
-                 since: Optional[float] = None, until: Optional[float] = None
-                 ) -> Tuple[List[Observation], List[Tuple[str, str]]]:
+                 since: Optional[float] = None, until: Optional[float] = None,
+                 model_sigma_m: float = 0.0) -> Tuple[List[Observation], List[Tuple[str, str]]]:
     """Fit observations from decoded frames, and the frames not used (label, reason)."""
     seen = {}
     rejected = []
@@ -73,7 +90,8 @@ def observations(received: Sequence[Received], sigma_per_pdop: float = SIGMA_PER
             continue
         pdop = fix.pdop or DEFAULT_PDOP
         seen[key] = Observation(
-            t=t, r_itrf=np.array(fix.r_ecef_m, dtype=float), sigma_r=sigma_per_pdop * pdop,
+            t=t, r_itrf=np.array(fix.r_ecef_m, dtype=float),
+            sigma_r=math.hypot(sigma_per_pdop * pdop, model_sigma_m),
             v_itrf=None if fix.v_ecef_ms is None else np.array(fix.v_ecef_ms, dtype=float),
             sigma_v=sigma_v if fix.v_ecef_ms is not None else None, label=label)
     obs = sorted(seen.values(), key=lambda o: o.t)
@@ -104,13 +122,19 @@ def _stamp(unix_s: float) -> str:
 
 def run(argv: Optional[Sequence[str]] = None) -> int:
     opts = _parse_args(argv)
+    if opts.frame == "EME2000" and opts.dut1 is None:
+        print("error: EME2000 needs --dut1 (UT1 - UTC from IERS Bulletin A): up to 450 m of error without it",
+              file=sys.stderr)
+        return EXIT_FAIL
     received, errors = read_archive(opts.frames)
     for err in errors:
         print(f"warning: {err}", file=sys.stderr)
     since = _time_arg(opts.since)
     until = _time_arg(opts.until)
+    degree = opts.gravity_degree if opts.gravity_file else min(opts.gravity_degree, 4)
+    floor = opts.model_sigma if opts.model_sigma is not None else model_sigma(degree)
     obs, refused = observations(received, opts.sigma_per_pdop, opts.sigma_vel if opts.use_velocity else None,
-                                opts.tai_utc, since, until)
+                                opts.tai_utc, since, until, floor)
     if opts.window_h and obs:
         newest = obs[-1].t
         refused += [(o.label, "older than the fit window") for o in obs if o.t < newest - opts.window_h * 3600]
@@ -146,7 +170,7 @@ def run(argv: Optional[Sequence[str]] = None) -> int:
         f"Fit: {len(fit.used)} fixes in {fit.sessions} sessions over {fit.arc_s / 3600:.1f} h, last fix {iso(last)} UTC",
         f"RMS position residual {fit.rms_m:.1f} m per axis; drag scale {fit.drag_scale:.3f} "
         f"+/- {math.sqrt(fit.covariance[6, 6]):.3f} on Cd A/m {model.bc:.4f} m2/kg",
-        f"Force model: {model.describe()}",
+        f"Force model: {model.describe()}; model error floor {floor:.0f} m per axis",
         f"Position 1-sigma (3D): {sig[0] / 1000:.2f} km at start, {sigma_24h / 1000:.2f} km at last fix + 24 h, "
         f"{sig[-1] / 1000:.2f} km at stop; includes a {opts.drag_forecast:.0%} drag forecast uncertainty",
         f"Contact: {opts.originator} (licensee); DUT1 = {opts.dut1 if opts.dut1 is not None else 'not used'} s",
@@ -191,6 +215,7 @@ def run(argv: Optional[Sequence[str]] = None) -> int:
         "converged": fit.converged,
         "iterations": fit.iterations,
         "force_model": model.describe(),
+        "model_sigma_m": floor,
         "sigma_3d_km": {"start": round(sig[0] / 1000, 3), "last_fix_plus_24h": round(sigma_24h / 1000, 3),
                         "stop": round(sig[-1] / 1000, 3)},
         "frame": opts.frame,
@@ -243,6 +268,8 @@ def _parse_args(argv):
     p.add_argument("--until", help="Ignore fixes after this time (ISO UTC)")
     p.add_argument("--window-h", type=float, default=48.0, help="Fit the fixes of the last N hours (0: all)")
     p.add_argument("--sigma-per-pdop", type=float, default=SIGMA_PER_PDOP_M)
+    p.add_argument("--model-sigma", type=float,
+                   help="Force-model error floor per axis, m (default by gravity degree: 150 m to 4, 100 to 8, 60 to 12, 30 above)")
     p.add_argument("--use-velocity", action="store_true", help="Fit the GNSS velocities too (accuracy unconfirmed)")
     p.add_argument("--sigma-vel", type=float, default=0.05, help="Velocity sigma per axis with --use-velocity, m/s")
     p.add_argument("--gravity-file", type=Path, help="ICGEM .gfc gravity field (e.g. EGM2008)")

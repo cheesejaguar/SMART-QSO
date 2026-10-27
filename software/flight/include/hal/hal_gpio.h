@@ -37,7 +37,7 @@ typedef enum {
     GPIO_PIN_JETSON_PWR    = 6,   /**< PA8: Jetson eFuse U19 (JETSON_PWR) */
     GPIO_PIN_RF_TX_EN      = 7,   /**< PA3: transmitter PA rail (RF_TX_EN; low = TX-OFF) */
     GPIO_PIN_ALERT         = 8,   /**< PB7: EPS alert input (open drain, active low) */
-    GPIO_PIN_DEPLOY_SENSE  = 9,   /**< PE2: separation (deployment) switch sense input */
+    GPIO_PIN_DEPLOY_SENSE  = 9,   /**< PE2: separation switch DS2 sense input: high = released (EPS 1 MΩ source), no internal pull, separation_switch.h */
     GPIO_PIN_UMBILICAL_SENSE = 10, /**< PB8: GSE umbilical present (high); pulled low in flight */
     GPIO_PIN_ANTENNA_BURN  = 11,  /**< Wing 2 resistor A (PB9; was the antenna burn: the AntS deploys over I2C) */
     GPIO_PIN_SOLAR_BURN    = 12,  /**< Wing 1 resistor A (PB10) */

@@ -313,7 +313,7 @@ pm("PB0", "VBUS_SNS", "ADC1_IN15", "A", "0-2.5 V (5V_PA / 2)", HZ, "J1-26 EPS")
 pm("PB1", "TEMP_BOARD", "ADC1_IN16", "A", "10 mV/C, 0.5 V at 0 C", HZ, "U21 TMP235 on the OBC")
 pm("PB2", "PAYLOAD_EN", "GPIO out", "O", "3.3 V, high = SW1 on", HZ + "; EPS 100 k pull-down", "J1-9 EPS (moved from PB4)")
 pm("PB3", "SWO", "spare (JTDO/SWO)", "-", "", "JTDO", "TP only")
-pm("PB4", "I2C3_SDA", "I2C3_SDA AF4", "B", "open drain, 2 x 4.7 k on the OBC, 100 kHz", "NJTRST with its internal pull-up until configured (harmless on an open-drain bus)", "J1-28 EPS: AntS bus via U80 (SMA-B07)")
+pm("PB4", "I2C3_SDA", "I2C3_SDA AF4", "B", "open drain, 2 x 4.7 k on the OBC, 100 kHz", "NJTRST with its internal pull-up until configured (harmless on an open-drain bus)", "J1-40 EPS: AntS bus via U80 (SMA-B07)")
 pm("PB5", "RADIO_EN", "GPIO out", "O", "3.3 V, high = SW2 on", HZ + "; EPS 100 k pull-down", "J1-10 EPS")
 pm("PB6", "ADCS_EN", "GPIO out", "O", "3.3 V, high = SW4 + VBAT_MTQ switch on", HZ + "; EPS 100 k pull-down", "J1-11 EPS")
 pm("PB7", "EPS_ALERT_N", "GPIO in, EXTI7", "I", "open drain, active low (EPS 4.7 k)", HZ + "; OBC 1 M pull-up (open reads no alert)", "J1-8 EPS (10 k series)")
@@ -401,7 +401,7 @@ pm("PG3", "FRAM_MISO", "SPI1_MISO AF5", "I", "3.3 V", HZ, "U3 (moved from PA6)")
 pm("PG4", "FRAM_MOSI", "SPI1_MOSI AF5", "O", "3.3 V", HZ, "U3 (moved from PA7)")
 pm("PG5", "FRAM_CS_N", "GPIO out", "O", "3.3 V, low = select", HZ + "; 10 k pull-up", "U3 (moved from PA4)")
 pm("PG6", "JET_PG", "GPIO in, EXTI6", "I", "high = carrier 3.3 V up", HZ + "; 100 k pull-down", "J3-4 Jetson (10 k series)")
-pm("PG7", "I2C3_SCL", "I2C3_SCL AF4", "B", "open drain, 2 x 4.7 k on the OBC, 100 kHz", HZ, "J1-27 EPS: AntS bus via U80 (SMA-B07; LPUART1_TX moved to PB11)")
+pm("PG7", "I2C3_SCL", "I2C3_SCL AF4", "B", "open drain, 2 x 4.7 k on the OBC, 100 kHz", HZ, "J1-28 EPS: AntS bus via U80 (SMA-B07; LPUART1_TX moved to PB11)")
 pm("PG8", "LPUART1_RX", "LPUART1_RX AF8", "I", "3.3 V UART", HZ + "; 100 k pull-up", "U31 <- J5-4 GNSS")
 pm("PG9", None, "spare", "-", "", HZ, "")
 pm("PG10", None, "spare", "-", "", HZ, "")
@@ -861,8 +861,8 @@ def eps_connector():
 J1_PINS = ["3V3_OBC", "3V3_OBC", "GND", "GND", "I2C2_SCL", "I2C2_SDA", "GND", "EPS_ALERT_N_J", "PAYLOAD_EN_J",
            "RADIO_EN_J", "ADCS_EN_J", "HEATER_EN_J", "DEPLOY_EN_J", "RF_TX_EN_J", "GNSS_EN_J", "DEPLOY_SENSE_J",
            "BURN_W2A_J", "BURN_W1A_J", "VJET_RB_J", "SOLAR_SENSE_J", "GND", "VBATT_SNS_J", "IBATT_SNS_J", "VSOLAR_SNS_J",
-           "ISOLAR_SNS_J", "VBUS_SNS_J", "I2C3_SCL", "I2C3_SDA", "JETSON_PWR_J", "BURN_W1B_J", "BURN_W2B_J", "EOL_ARM_J",
-           "EOL_FIRE_J", "LOCK_CLR_J", "GND", "VBAT_MTQ", "VSW1_RB_J", "3V3_RTC", "VBAT_MTQ", "GND"]
+           "ISOLAR_SNS_J", "VBUS_SNS_J", "GND", "I2C3_SCL", "JETSON_PWR_J", "BURN_W1B_J", "BURN_W2B_J", "EOL_ARM_J",
+           "EOL_FIRE_J", "LOCK_CLR_J", "GND", "VBAT_MTQ", "VSW1_RB_J", "3V3_RTC", "VBAT_MTQ", "I2C3_SDA"]
 
 
 def rf_connector():

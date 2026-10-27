@@ -164,7 +164,7 @@ def protection():
     ocd = ocd_mv / 1e3 / rs_afe
     ocd_lo, ocd_hi = (ocd_mv - 4) / 1e3 / rs_afe, (ocd_mv + 4) / 1e3 / rs_afe     # +/-4 mV at 20-56 mV settings
     scd = 0.100 / rs_afe
-    i_legit = dict(jetson=8.0 / 0.95 / 13.4, jetson_guard=12.0 / 0.95 / 13.4, pa=2.7 / 0.88 / 13.4, hk=0.70 / 0.85 / 13.4,
+    i_legit = dict(jetson=8.0 / 0.95 / 13.4, jetson_guard=12.0 / 0.95 / 13.4, pa=2.42 / 0.94 / 13.4, hk=0.70 / 0.85 / 13.4,
                    heater=VBAT_CV / 207.0, mtq=MTQ_DETUMBLE_W / 13.4)
     i_max_legit = i_legit["jetson_guard"] + i_legit["pa"] + i_legit["hk"] + i_legit["heater"] + i_legit["mtq"]
     i_max_mtq_lim = i_max_legit - i_legit["mtq"] + MTQ_BRIDGE_LIMIT_A            # coil bridges at their hardware limit
@@ -179,7 +179,8 @@ def protection():
     # third of the INR18650-35E's typical DC resistance), welded interconnects neglected, F0 at its 13.5 mOhm minimum
     r_cell_min, r_f0_min, r_tap_fuse_min = 0.010, 0.0135, 0.225
     i_psc_one = VBAT_MAX / (NCELL * r_cell_min + r_f0_min)
-    i_psc = VBAT_MAX / (NCELL * r_cell_min + 3 * r_f0_min)          # F0A, F0B (BAT_TOP) and F0N (BAT_BOT) in every loop
+    r_f0b_min = 0.0126                                                # FM08A125V5A cold resistance minimum (NASA NEPP list)
+    i_psc = VBAT_MAX / (NCELL * r_cell_min + 2 * r_f0_min + r_f0b_min)  # F0A, F0B (BAT_TOP) and F0N (BAT_BOT) in every loop
     i_psc_tap = VBAT_MAX / (NCELL * r_cell_min + r_tap_fuse_min)   # without the sense-board tap resistors (not fitted case)
     ptc_hold_60 = 2.6 * 0.74                               # 2920L hold current rerating at 60 degC
     ptc_hold_60_ = 2.6 * 0.74
@@ -192,13 +193,16 @@ def protection():
             ("Single burn, normal sequence (one resistor, 0.88 A at +10 %) + housekeeping + heater + magnetorquers "
              f"{MTQ_DETUMBLE_W:.2f} W", f"{i_burn_peak:.2f} A", "chair limit 1.0 A"),
             (f"Same with the coil bridges at their hardware limit ({MTQ_BRIDGE_LIMIT_A:.2f} A)", f"{i_burn_mtq_lim:.2f} A", "chair limit 1.0 A"),
+            ("Burn + transponder keyed at 1 W RF (2.42 W DC; not concurrent by design: RF silence to 45 min, burn at 30 min)",
+             f"{i_burn_peak + i_legit['pa']:.2f} A", f"{i_burn_mtq_lim + i_legit['pa']:.2f} A with the coil bridges at their limit; BMS 4 A"),
             ("All four burn drivers on (software fault): burn buck in its 2.8 A current limit", f"{i_burn_buck_lim:.2f} A", "hardware cap"),
             ("AFE OCD1 (40 mV on 10 mOhm, 500 ms)", f"{ocd:.1f} A ({ocd_lo:.1f}-{ocd_hi:.1f})", f"{ocd_lo / i_max_legit:.1f}x the largest load; below F2"),
             ("AFE SCD (100 mV, 15 us)", f"{scd:.0f} A", "prospective short-circuit current 80-100 A typical, <= 314 A bound (below)"),
-            ("F0 (sense board) and F2: FM12A72V5.0A 5 A at 60 degC (x0.80 rerating, assumed)", f"{5 * fuse_rerate_60:.1f} A",
+            ("F0A, F0N (sense board) and F2: FM12A72V5.0A (AEM, MIL-PRF-23419/12); F0B: FM08A125V5A (Littelfuse, /8), 5 A at 60 degC (x0.80, assumed)", f"{5 * fuse_rerate_60:.1f} A",
              f"largest load {i_max_legit / (5 * fuse_rerate_60):.0%}, four-driver fault {i_burn_buck_lim / (5 * fuse_rerate_60):.0%} of the rerated rating (rule 50 %)"),
             ("Prospective short-circuit current, short in W1 (16.8 V, 4 x 10 mOhm cells, F0A + F0B + F0N at 13.5 mOhm each)", f"{i_psc:.0f} A",
-             f"FM12 interrupt 1000 A at 72 VDC: {1000 / i_psc:.1f}x; with one fuse in the loop {i_psc_one:.0f} A (a Nano2 451, 300 A at 32 VDC, would have {300 / i_psc_one:.2f}x)"),
+             f"FM12 (F0A, F0N) 1000 A at 72 VDC: {1000 / i_psc:.1f}x; FM08 (F0B) 300 A at 125 VDC: {300 / i_psc:.2f}x (F0A and F0N stay in every loop "
+             f"while intact, so F0B never sees the {i_psc_one:.0f} A one-fuse bound)"),
             ("Tap short, tap to frame (one tap chain 3 x 68.1 Ohm + tap fuse, four cells)", f"{VBAT_MAX / 204.3 * 1e3:.0f} mA",
              f"{(VBAT_MAX / 204.3) ** 2 * 68.1:.2f} W per 2512 1 W resistor ({(VBAT_MAX / 204.3) ** 2 * 68.1:.0%}); the fuse need not open"),
             ("Tap short, tap to tap (two chains)", f"{VBAT_MAX / 408.6 * 1e3:.0f} mA", "28 AWG wire 0.90 A derated: no heating"),
@@ -240,6 +244,7 @@ def inhibits():
              ("Q23 wake FET + DS2 gate network (contacts open)", 0.0, 0.1), ("Pack TVS D14 isolated by the open AFE FETs", 0.0, 0.0),
              ("AFE FETs Q1/Q2 off-state leakage to PACK_P (nothing returns)", 0.0, 0.0),
              ("Cell-tap filter capacitors (ceramic leakage, 9 x 0.1 uF)", 0.01, 0.1),
+             ("Open-tap ladder 4 x 1.00 M across the cells (RID SMA-B03; 15.2 V / 16.8 V)", 3.8, 4.2),
              ("SMF24A TVS on UMB_VMON (access-port board A3, OBC item C18) through R 100 k from BAT_F", 0.1, 1.0)]
     tot_typ = sum(d[1] for d in drain)
     tot_max = sum(d[2] for d in drain)
@@ -269,7 +274,7 @@ def switches():
     def tps2553(rk):
         return 23950 / rk ** 0.977 / 1e3, 25230 / rk ** 1.016 / 1e3, 22980 / rk ** 0.94 / 1e3
     rows = []
-    for sw, load, rk in (("SW2 RADIO (3V3_AO)", 0.038, 226.0), ("SW3 PA (5V_PA)", 0.54, 26.1), ("SW4 ADCS sensors (3V3_AO, OBC J6)", 0.049, 88.7),
+    for sw, load, rk in (("SW2 RADIO (3V3_AO)", 0.038, 226.0), ("SW3 PA (5V_PA), 1 W RF (RF board E)", 0.485, 26.1), ("SW4 ADCS sensors (3V3_AO, OBC J6)", 0.049, 88.7),
                          ("SW7 GNSS (3V3_AO)", 0.10, 133.0), ("SW8 AntS (3V3_AO)", 0.61, 18.7), ("SW9 EPS controller (3V3_AO)", 0.012, None),
                          ("SW10 OBC 3V3 (3V3_AO)", 0.040, 178.0)):
         if rk is None:
@@ -422,7 +427,7 @@ def heater_ntc_shed():
             ("Delay before shedding", f"{t_shed:.1f} s (4.75 M x 1.0 uF from {v0:.1f} V to the 1.100 V threshold)",
              "5 s; X7R +/-15 % and resistor 1 % -> 4.2-5.7 s"),
             ("Release delay", "< 1 ms (BAT54 charges the timing node)", "")]
-    table("8b. Hardware load shed (SW1 Jetson, SW3 PA)", ["Item", "Value", "Requirement"], rows)
+    table("8b. Hardware load shed (SW1 and U19, Jetson; the PA is not shed)", ["Item", "Value", "Requirement"], rows)
     R["shed"] = dict(vth=vth, vth_rise=vth_rise, t_shed=t_shed, ladder=[ra, rb_, rc, rd, re])
 
 

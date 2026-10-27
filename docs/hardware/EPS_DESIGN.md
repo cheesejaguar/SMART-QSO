@@ -1,10 +1,10 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 2.4
+**Version**: 2.5
 **Date**: 2026-10-27
 **Status**: CDR design description; the build-to board design with selected parts, netlist, BOM and ERC is
-`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 D), which governs part-level detail; board-to-board pins: `hardware/electrical/INTERCONNECT.md`
+`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 E), which governs part-level detail; board-to-board pins: `hardware/electrical/INTERCONNECT.md`
 (SQSO-ICX-001)
 
 **Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (§4 inhibits and timers, §5 power, §7 TX-OFF);
@@ -32,7 +32,7 @@ the end-of-life charge disconnect, and reports its telemetry to the OBC (SMART-Q
 
 | ID | Requirement | Verification | Status at CDR |
 |----|-------------|--------------|---------------|
-| EPS-F001 | Deliver to the bus ≥ 2.16 W EOL orbit average tumbling (SYS-100) and ≥ 3.0 W sun-pointed | A, T | Analysis: 2.43 W and 3.93 W (SQSO-PBA-001 §4) |
+| EPS-F001 | Deliver to the bus ≥ 2.23 W EOL orbit average tumbling (SYS-100 Rev G: the 1.86 W load × 1.2, with the 1.85 W transponder allocation of BASELINE §5) and ≥ 3.0 W sun-pointed | A, T | Analysis: 2.48 W tumbling (+11 %) and 3.92 W sun-pointed EOL (SQSO-PBA-001 §4) |
 | EPS-F002 | Track the maximum power point of each string group of §3.2 with ≥ 92 % conversion efficiency over 3.5–6.4 V input | T | TPS55340-Q1 ×4: 90.9–92.3 % by analysis, marginal (SQSO-EPS-BRD-001 §4.3; V-EPS-1) |
 | EPS-F003 | Store ≈ 50 Wh (4S1P INR18650-35E); charge CC ≤ 0.40 A, CV 4.10 V/cell (D8), only between 0 and +45 °C on the pack temperature, in hardware | T | Designed: CV 16.40 V ± 0.44 %, CC 0.394 A, window +1.1…+44.0 °C (BRD-001 §5) |
 | EPS-F004 | Supply the loads from the array while charging is inhibited (power-path regulation of the battery bus) | T | Designed: charge-current set point to 0 A (BRD-001 §5.2) |
@@ -43,7 +43,7 @@ the end-of-life charge disconnect, and reports its telemetry to the OBC (SMART-Q
 | EPS-F009 | At least three independent physical inhibits each for RF and for every deployable (CDS 2.3.7, 2.3.8); timers and the RBF do not count | I, T | §8: DS1, DS2 and DS3 (DS3 added at CDR) |
 | EPS-F010 | Non-resettable end-of-life charge-path disconnect (47 CFR 97.207(g)(1)(iii)), fired only by two independent signals | T | §7 |
 | EPS-F011 | Battery protection with the fault tolerance of SQSO-BSA-001 §3 | A, T | §6 |
-| EPS-F012 | Independent hardware low-voltage disconnect of the payload and PA rails | T | Designed (§6; BRD-001 §8.4) |
+| EPS-F012 | Independent hardware low-voltage disconnect of the payload (Jetson) rail; the PA is not shed (change proposed for the chair's CR, SQSO-EPS-BRD-001 E §8.4: a spurious shed would hold the transmitter off with no override) | T | Designed (§6; BRD-001 §8.4) |
 | EPS-F013 | Telemetry: pack voltage and current, each cell voltage, two pack temperatures, array voltage and current per tracker, rail currents, charge-inhibit cause, switch states and fault flags, passivation state | D | §9 |
 
 ## 3. Solar array input
@@ -129,14 +129,14 @@ in SQSO-EPS-BRD-001 §2.2).
 |--------|---------|-----------------------|------|---------|------|--------------|-------------------------|-------|
 | SW1 + U19 | VBAT | PAYLOAD_EN (PB2) on SW1 (AND load shed); JETSON_PWR (PA8) on U19 (AND load shed) | Jetson carrier | 0.62 A | 0.93 A (guard) | SW1 2.0 A; U19 eFuse 1.20 A (1.10–1.30) latch-off; flight-software guard 8 W for 2 s and 12 W (`payload_guard.rs`) first | TPS1H100B-Q1 (U20); TPS16630 (U19) | Two different parts on two lines; EPS-F012 shed acts on SW1; readbacks VSW1_RB, VJET_RB to the OBC ADC (RID AV-06) |
 | SW2 | 3V3_AO | RADIO_EN (PB5) | Receiver, synthesizer, TNC, exciter (SQSO-RF-BRD-001) | 0.038 A | 0.05 A | 0.12 A (0.10–0.14), retry 1.3 s; software trip on the INA3221 reading | TPS2553-Q1 (U22) | Off only in the RF-silence window (97.207(b)) |
-| SW3 | 5V_PA | RF_TX_EN (PA3) AND load shed | PA | 0.30 A | 0.54 A | 0.99 A, retry 0.28 s | TPS2553-Q1 (U23) | Hardware TX-OFF; pull-down mandatory |
+| SW3 | 5V_PA | RF_TX_EN (PA3) | Transponder (RF board E: 1.84 W DC at 0.5 W RF, 2.42 W at 1 W) | 0.368 A | 0.485 A | 0.99 A (0.92–1.07), retry 0.28 s | TPS2553-Q1 (U23) | Hardware TX-OFF; pull-down mandatory; not shed (Version 2.5) |
 | SW4 | 3V3_AO | ADCS_EN (PB6) | ADCS sensors on the OBC (W6B to OBC J6) | 0.04 A | 0.049 A | 0.30 A, retry 0.28 s | TPS2553-Q1 (U24) | Backstop; the OBC's own sensor switches (50–100 mA) see a sensor latch-up (AV-03) |
 | SW5 | VBAT | HEATER_EN (PD2) | Battery heater 207 Ω | 0.07 A | 0.08 A (16.4 V) | 0.148 A, F4 0.25 A, 40 °C cutout Q22 in series | TPS1H000-Q1 (U21) | 0.70–1.30 W across the bus |
 | SW6 | VBAT | DEPLOY_EN (PF3) | Burn buck U17 → four drivers | 0 | 0.5 A at the pack per burn | 2.0 A; 0.8 A per resistor; 12 s one-shot per driver (§5.1) | TPS1H100B-Q1 (U18) | Deployable control (not counted as an inhibit) |
 | SW7 | 3V3_AO | GNSS_EN (PE5) | GNSS receiver | 0.04 A | 0.1 A | 0.20 A, retry 1.3 s | TPS2553-Q1 (U25) | RID EPS-14 closed by the firmware's PE5 |
-| SW8 | 3V3_AO | DEPLOY_EN (PF3) | ISIS AntS | 0 | 0.61 A | 1.37 A, retry 0.28 s | TPS2553-Q1 (U26) | Downstream of DS1–DS3 (§8.3) |
+| SW8 | 3V3_AO | DEPLOY_EN (PF3) OR the EPS controller's ANTS_EN (ICD-001 ANTS_PWR 0x8D) | ISIS AntS | 0 | 0.61 A | 1.37 A, retry 0.28 s | TPS2553-Q1 (U26) | Downstream of DS1–DS3 (§8.3) |
 | SW9 | 3V3_AO | always | EPS controller | 0.012 A | — | 75 mA, retry 0.28 s | TPS2553-Q1 (U27) | |
-| SW10 | 3V3_AO | always | OBC | 0.04 A | — | 0.15 A, retry 0.28 s | TPS2553-Q1 (U38) | The OBC cannot switch its own rail (RID AV-08); its RTC takes 3V3_RTC (3V3_AO through 1 kΩ, RID AV-10) |
+| SW10 | 3V3_AO | always | OBC | 0.04 A | — | 0.15 A, retry 0.28 s | TPS2553-Q1 (U38) | The OBC cannot switch its own rail (RID AV-08); its RTC takes 3V3_RTC (3V3_AO through 1 kΩ, RID AV-10); power-cycled by the EPS controller after a 120 s OBC heartbeat timeout (ICD-001 OBC_HEARTBEAT 0x8C, ≤ 3 per 24 h) |
 | SW11 | VBAT | ADCS_EN (PB6) | OBC magnetorquer H-bridges (VBAT_MTQ, W3 J3-36/39) | 0.083 A | 0.104 A (1.16 W, three rods saturated); 0.23 A at the bridges' limit | 0.36 A (0.32–0.40), auto-retry 40 ms / 1 s | TPS1H000-Q1 (U39) | SQSO-ICX-001 E3 (≥ 0.25 A, ≤ 0.5 A); current telemetry from the OBC's coil-current channels |
 
 TPS22918-class switches are rated 5.5 V: they may switch only the 3.3 V and 5 V rails. Every VBAT switch needs a part
@@ -194,7 +194,7 @@ cut-off (RID EPS-08: a −10 °C cut-off would keep the bus dark after a cold de
 
 The BMS (BATTERY_DESIGN §4) monitors each cell, balances passively, and opens the CHG and DSG FETs on its thresholds.
 A **hardware low-voltage disconnect** (EPS-F012) opens SW1 and the eFuse U19 (the Jetson's two series switches, each
-through its own AND gate) and SW3 (PA) through an AND into their enables when VBAT falls below 13.6 V (3.4 V/cell) for 5 s, and releases above 14.4 V, independent of the OBC. The heater is
+through its own AND gate into its enable) when VBAT falls below 13.6 V (3.4 V/cell) for 5 s, and releases above 14.4 V, independent of the OBC. The heater is
 not shed: it protects the pack from cold charging and a stuck-on heater is survivable (SQSO-PBA-001 §8.4); the 5 s
 filter rides through the deployment burn (EMC_ANALYSIS §4). It keeps the OBC, the
 receiver and TX-OFF alive with a stuck-on Jetson enable: covered are either switch failed closed, a stuck
@@ -205,7 +205,7 @@ mission simulation and leaves the spacecraft brown-out cycling (SQSO-PBA-001 §8
 threshold (15 % SOC, ≈ 14.0 V at rest) only under load, so in normal operation the software acts first.
 
 **Implemented** (SQSO-EPS-BRD-001 §8.4): TLV7042-Q1 comparator against a 2.500 V reference (13.62 V falling,
-14.42 V rising), 4.9 s RC timer and a second comparator, AND gates in SW1's, U19's and SW3's enables (U51, U65, U52). The BMS is the
+14.42 V rising), 4.9 s RC timer and a second comparator, AND gates in SW1's and U19's enables (U51, U65). The PA's SW3 is not shed from SQSO-EPS-BRD-001 E (RID SMA-B05): a spurious permanent shed would hold the transmitter off with no override, and a stuck-keyed PA is energy-positive (SQSO-PBA-001 §8.4). The BMS is the
 BQ76952 with its thresholds in OTP (BRD-001 §6.1).
 
 ## 7. End-of-life charge disconnect (97.207(g)(1)(iii))
@@ -217,6 +217,7 @@ the bus; the loads then drain the pack to the BMS cut-off and the spacecraft goe
 |---------|---------------|
 | F1 | Three-terminal fuse Littelfuse ITV4030L1412NR (12 A, 36 VDC, heater 11.2–20 Ω, triggerable 10.5–19.6 V) between the trackers' output and PACK_P (SQSO-EPS-BRD-001 §7) |
 | Fire circuit | F1's heater to GND through two series FETs: Q21 from the arm latch U61 (set only while the OBC's EOL_ARM AND the EPS controller's EOL_KEY are both high, cleared at power-up) and Q20 from the OBC's EOL_FIRE; 9.8–24 W, cut < 1 min. EOL_KEY is raised by the EPS controller only on a keyed two-write I2C sequence (ICD-001 extended register), so the arm has a source independent of the OBC's GPIOs (RID P3E-11); commands PASSIVATE_ARM, PASSIVATE_EXECUTE of REG-01 |
+| Dependence | **Passivation depends on the EPS controller** (SQSO-EPS-BRD-001 D on; SQSO-FMEA-003): the arm needs its EOL_KEY, so a failed controller blocks the disconnect (it cannot fire it alone); its firmware is Category 3 software for this function (SQSO-FMEA-003) |
 | Fault tolerance | No single hardware failure (switch short, latch upset) and no single OBC pin-map or GPIO fault fires F1: two series elements, and the arm needs the EPS controller's key as well as the OBC's line. A flight-software fault that executes the whole keyed sequence and both authenticated commands could fire it; the controls against that are the two-command protocol, the key and the controller's checks (SQSO-EPS-BRD-001 §7). A failure to fire leaves the mission's TX-OFF and loss-of-contact inhibit as the controls |
 | Verification | V-BSA-7: EM only (destructive) |
 | Gap | Hardware done (RID EPS-06). OBC pins EOL_ARM PF4, EOL_FIRE PG1 (SQSO-ICX-001); the flight software's commands and state remain, for the chair (BRD-001 §13.2) |
@@ -232,10 +233,11 @@ single command or software fault, removes more than one of them.
 
 The drawings (S1) have two deployment switches and a "third inhibit" left open (finding F5). The CDR design adds a
 **third deployment switch DS3** (RID SMA-01 / EPS-04, adopted with the safety, launch and RF reviewers): a separate
-switch on a third rail standoff driving a second high-side FET in VBAT+, with a second contact that holds every
-tracker's enable low. **DS2 is a two-pole switch** (SQSO-EPS-BRD-001 D, RID P3E-01): its first pole drives the
-pack-return FETs, its second holds the trackers' enables low independently of DS3, so the array also has three
-inhibits. Each switch drives its own FET gate (§8.4).
+switch on a third rail standoff driving a second high-side FET in VBAT+. **DS2 is a two-pole switch**
+(SQSO-EPS-BRD-001 D, RID P3E-01): its first pole drives the pack-return FETs (from the pack OR the array side, BRD E,
+so an open pack path leaves the bus able to start in sunlight), its second holds the trackers' enables low through an
+on-board clamp whose gate the contact drives high (active high, BRD E, RID SMA-B13: a chafed wire to the frame cannot
+disable the trackers), so the array also has three inhibits. Each switch drives its own FET gate (§8.4).
 
 | # | Element | Type | Breaks | Independent of the others because |
 |---|---------|------|--------|-----------------------------------|
@@ -243,7 +245,7 @@ inhibits. Each switch drives its own FET gate (§8.4).
 | — | RBF pin | GSE | Pack and array | Not counted |
 | **1** | **DS2** → low-side FETs in the pack return (PACK− to GND); second pole → the trackers' enables | Mechanical separation signal | Pack (pole 1); array (pole 2: with the boost off the string passes ≤ 6.2 V, below every converter's start at ≥ 9.9 V) | Own switch, rail, gate drive and wiring, in the negative leg; pole 2 is a separate contact in the GND domain |
 | **2** | **DS1** → high-side FET in VBAT+ | Mechanical separation signal | Pack and array | Own switch on a diagonally opposite rail, positive leg |
-| **3** | **DS3** → second high-side FET in VBAT+, and the trackers' enables | Mechanical separation signal | Pack and array (with DS2 pole 2, it stops the MPPTs running) | Own switch on a third rail; its FET and DS1's are separate parts with separate gate drives, and their wiring is routed apart so one short cannot bridge both |
+| **3** | **DS3** → second high-side FET in VBAT+ | Mechanical separation signal | Pack and array | Own switch on a third rail; its FET and DS1's are separate parts with separate gate drives, and their wiring is routed apart so one short cannot bridge both |
 | (4) | SW3, PA supply switch (RF_TX_EN, PA3), off at reset | Load switch | Pack and array | Needs a software command after all three switches have closed; counted only as margin |
 | — | SW2 (RADIO_EN), hardware TX permit into the PTT gate (BUILD_VS_BUY §3.2), 45-min RF timer | Same controller as SW3, or a timer | — | Not counted |
 
@@ -286,7 +288,7 @@ between its supply and its knives.
   crosses from the pack domain, so that no sneak path bypasses DS2 (SQSO-EPS-BRD-001 §6.4); DS2 is two FETs back to
   back so it blocks charge as well as discharge.
 - Storage drain with the switches actuated ≤ 20 µA in all (LVR-051/071 of `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`):
-  designed 2.3 µA typical, 7.7 µA worst with the AFE in SHUTDOWN, including the access-port board's UMB_VMON TVS
+  designed 6.1 µA typical, 11.9 µA worst with the AFE in SHUTDOWN, including the access-port board's UMB_VMON TVS and the open-tap ladder
   (BRD-001 §6.6).
 
 ## 9. Telemetry
@@ -337,3 +339,4 @@ readable without the EPS controller, and the controller's block at 0x48 fed by t
 | 2.2 | 2026-10-27 | CDR design (EPS board) | Interconnect of SQSO-ICX-001 §7 (SQSO-EPS-BRD-001 B): SW11 magnetorquer supply on ADCS_EN, SW4 sensors only, Jetson readbacks, 3V3_RTC, OBC pins PB2 (PAYLOAD_EN), PF3 (DEPLOY_EN), PE7 (BURN_W2B), PF4/PG1 (EOL), burn peak-current row with the magnetorquers |
 | 2.3 | 2026-10-27 | CDR design (EPS board) | Pack fuse F2 (and F0 on the battery sense board) FM12A72V5.0A for breaking capacity; storage drain 7.7 µA worst with the access-port board's TVS (SQSO-EPS-BRD-001 C) |
 | 2.4 | 2026-10-27 | CDR design (EPS board) | Round-3 panel (SQSO-EPS-BRD-001 D): DS2 two-pole, array path with three inhibits (§8.1, §8.2); load shed on both Jetson series switches and the covered failure modes restated (§6); EOL arm with the EPS controller's key, fault-tolerance claim corrected (§7); sense-board fuses F0A/F0B/F0N and fused, current-limited taps (§5); JETSON_PWR PA8; harness table to SQSO-HAR-001 2.0; BMS BQ76952; cold-burn bus voltage per EMC_ANALYSIS C (§4, §5.1) |
+| 2.5 | 2026-10-27 | CDR design (EPS board) | Board FMEA (SQSO-FMEA-003 A) changes in SQSO-EPS-BRD-001 E: PA out of the load shed (EPS-F012 change proposed), AntS supply on DEPLOY_EN OR the EPS controller, OBC heartbeat supervision of SW10, DS2 drive from the pack or the array, active-high tracker clamps (DS3's tracker contact dropped), passivation's dependence on the EPS controller stated (§7); EPS-F001 2.23 W (SYS-100 Rev G) with 2.48 / 3.92 W; transponder 1.84 / 2.42 W DC on SW3 |

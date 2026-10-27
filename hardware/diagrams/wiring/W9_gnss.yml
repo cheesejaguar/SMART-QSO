@@ -1,6 +1,6 @@
 # SQSO-HW-DIAG-001 W9: GNSS receiver (decision D6: SkyFox piNAV-NG/FM), version 2 (2026-10-27; SQSO-ICX-001 §3.5,
 # SQSO-OBC-BRD-001 §10). Version 1 proposed UART4 on PC10/PC11 and GNSS_EN on PE4 (finding F2); the built firmware uses
-# LPUART1 PG7 TX / PG8 RX and GNSS_EN PE5 (RID EPS-14; PE4 is XPDR_EN). The receiver's 3.3 V from EPS SW7 (0.20 A
+# LPUART1 PB11 TX (PG7 until ICX D) / PG8 RX and GNSS_EN PE5 (RID EPS-14; PE4 is XPDR_EN). The receiver's 3.3 V from EPS SW7 (0.20 A
 # latch-up trip) now passes through the OBC (W9B into J4, out on J5), so the OBC's SN74LVC1T45 translators U30-U32 take
 # their receiver-side supply from the receiver's own rail: a switched-off receiver is never back-powered, and the OBC
 # reads the rail on PG15 (GNSS_PG). 1PPS goes to TIM3_CH1 (PC6). The receiver-side pin order is per the SkyFox interface
@@ -30,7 +30,7 @@ connectors:
   J_OBC_GNSS:
     type: Pico-Clasp 501330-0600, gold terminals
     subtype: 6 pos
-    notes: "OBC J5: PG7 via U30, PG8 via U31, PC6 via U32"
+    notes: "OBC J5: PB11 via U30, PG8 via U31, PC6 via U32"
     pinlabels: &w9sig [3V3_GNSS, GND, RXD (OBC TX), TXD (OBC RX), 1PPS, GND]
   J_GNSS:
     type: piNAV-NG/FM interface connector

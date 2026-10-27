@@ -7,6 +7,8 @@
 # soldered to A3. On the Micro-D the charging pins (9-11, 19-21) are separated from the debug pins by unused pins 8 and
 # 18. W8B, the GSE cable, is not flown: its plug ties UMBILICAL_SENSE (13) to VTREF (1). The GSE UART adapter must be
 # powered from VTREF (10 k on the OBC limits back-power to 0.3 mA).
+# Version 5 (2026-10-27, SQSO-ICX-001 D, board FMEA SMA-B14): pin 6 is RST_REQ, an active-high reset request (the OBC's Q1
+# pulls NRST); the GSE adapter drives it high from VTREF through an inverter from the probe's nRESET.
 metadata:
   title: W8 GSE umbilical and W11 charging v4 (SQSO-HW-DIAG-001; SQSO-ICX-001 3.6; SQSO-HAR-001 2.0)
 
@@ -19,8 +21,8 @@ connectors:
   J_OBC_ACC:
     type: Samtec TFM-105 right-angle (was FTSH-105), SFSDT socket
     subtype: 2x5, 1.27 mm, latched
-    notes: "OBC J9, -X edge, y -24 ... -34: PA13, PA14, NRST, PD8, PD9, PB8, TPS3850 SET0"
-    pinlabels: [VTREF (3V3_OBC via 100 Ohm), SWDIO, GND, SWCLK, WDT_DIS, NRST, USART3_TX (OBC out), USART3_RX (OBC in), UMBILICAL_SENSE, GND]
+    notes: "OBC J9, -X edge, y -24 ... -34: PA13, PA14, RST_REQ (Q1 to NRST), PD8, PD9, PB8, TPS3850 SET0"
+    pinlabels: [VTREF (3V3_OBC via 100 Ohm), SWDIO, GND, SWCLK, WDT_DIS, RST_REQ, USART3_TX (OBC out), USART3_RX (OBC in), UMBILICAL_SENSE, GND]
   J_EPS_UMB:
     type: Micro-Fit 3.0 receptacle 43025-0600, gold 43030 terminals
     subtype: 2x3
@@ -30,12 +32,12 @@ connectors:
     type: access-port board A3, Micro-D 21 socket receptacle (MIL-DTL-83513 class), gold
     subtype: 21 pos; 8, 15-18 not used
     notes: "board 30 x 8.8 x 1.6 mm (SQSO-OBC-BRD-001 C 15.1) in the envelope 30 x 7 x 8.8 mm at the -Y window (-20, -50, -43); W8A (pin-1 end) and W11 (other end) soldered in plated holes; ESD/TVS on A3; pin map SQSO-ICX-001 C 3.6"
-    pinlabels: [VTREF, SWDIO, GND, SWCLK, WDT_DIS, NRST, USART3_TX, NC, UMB_VMON, PACK_N, PACK_N, USART3_RX, UMBILICAL_SENSE, GND, NC, NC, NC, NC, UMB_SHUT, UMB_CHG, UMB_CHG]
+    pinlabels: [VTREF, SWDIO, GND, SWCLK, WDT_DIS, RST_REQ, USART3_TX, NC, UMB_VMON, PACK_N, PACK_N, USART3_RX, UMBILICAL_SENSE, GND, NC, NC, NC, NC, UMB_SHUT, UMB_CHG, UMB_CHG]
   P_GSE:
     type: Micro-D 21 pin plug (GSE)
     subtype: 21 pos
     notes: "GSE cable: SWD probe (VTREF sense only), 3.3 V USB-UART referenced to VTREF, pin 13 jumpered to pin 1, WDT_DIS switch to VTREF; charger on 20/21 and 10/11, voltmeter on 9, AFE shutdown on 19"
-    pinlabels: [VTREF, SWDIO, GND, SWCLK, WDT_DIS, NRST, USART3_TX, NC, UMB_VMON, PACK_N, PACK_N, USART3_RX, UMBILICAL_SENSE, GND, NC, NC, NC, NC, UMB_SHUT, UMB_CHG, UMB_CHG]
+    pinlabels: [VTREF, SWDIO, GND, SWCLK, WDT_DIS, RST_REQ, USART3_TX, NC, UMB_VMON, PACK_N, PACK_N, USART3_RX, UMBILICAL_SENSE, GND, NC, NC, NC, NC, UMB_SHUT, UMB_CHG, UMB_CHG]
 
 cables:
   W8A:
