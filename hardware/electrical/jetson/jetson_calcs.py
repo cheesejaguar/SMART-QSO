@@ -424,7 +424,7 @@ PLACE = [  # name, centre, (w, h), magnetic, exempt, height above the board (mm;
     ("J6 debug header (unmated in flight)", (-41.0, -9), (6, 7.6), False, "", 4.7),
     ("U3 LMR43620, L3 and caps", (-41.0, 3), (6, 13), True, "", 3.1),
     ("Y1 oscillator (metal lid)", (-41.0, 15.5), (5, 7), True, "", 1.5),
-    ("U12, U4, U5 and passives", (-41.0, 25), (6, 10), False, "", 1.45),
+    ("U12, U4, U5 and passives", (-41.5, 25), (6, 10), False, "", 1.45),
 ]
 
 

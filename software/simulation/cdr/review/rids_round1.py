@@ -277,6 +277,8 @@ RIDS = [
     ("RFB-04", 3, "Unkey ≤ 118 ms after a stalled main loop against VI-RF-11's 100 ms", "IMP", "Shorten the heartbeat lease to ≤ 40 ms, or define VI-RF-11 from the last edge"),
     ("RFB-05", 3, "TCXO two-year ageing up to 2.1 ppm", "CH", "Ground corrects the uplink from the measured downlink offset (same reference); no new command"),
     ("RFB-06", 3, "Radio rail trip 0.25 A cannot see a 38 mA latch-up; LMX2571 margin at ±3 % rail", "IMP", "EPS board: SW2 trip ≈ 0.12 A; 3V3_AO ±2 %"),
+    ("RFB-08", 3, "Magnetometer A2 is 4 mm above the RF board: shield, lids, ferrites, crystals and the PA loop near it", "CD", "No part within 20 mm of A2, no ferromagnetic part within 40 mm; nickel-silver shield, soldered lids; PA supply paired on layers 4/5 and routed 80-87 mm away (0.5 nT keyed step) (SQSO-RF-BRD-001 B §10.1); VI-RFB-11"),
+    ("RFB-09", 2, "SMA end-launch connectors J3-J6 with mated plugs and cable bends do not fit the 3.3 mm gap to the side walls", "IMP", "Connector and routing chosen with the CAD and the AntS interface before layout"),
     # ---- Raised by the EPS board design (EPSB) ----
     ("EPSB-01", 2, "Firmware fires driver A on both wings at once: 1.25 A at the pack", "IMP", "Chair: four independent burn lines, one resistor at a time (0.67 A); flight software and SIL"),
     ("EPSB-02", 3, "Uplink must avoid the synchronised converters' harmonics", "CH", "BASELINE §7 Uplink: 435.222-435.778 MHz, else 436.222-436.500 MHz"),

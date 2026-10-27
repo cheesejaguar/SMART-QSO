@@ -154,18 +154,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-285 RIDs: severity 1: 29, severity 2: 155, severity 3: 101.
+287 RIDs: severity 1: 29, severity 2: 156, severity 3: 102.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 98 | 155 |
+| Closed by design change | 99 | 156 |
 | Closed by chair decision | 36 | 35 |
 | Verification item | 40 | 39 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 73 | 18 |
+| Implementation | 74 | 19 |
 
-Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-05, JETB-09, MCAD-08, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, GNC-07, GNC-08, RFB-09, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-05, JETB-09, MCAD-08, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -532,6 +532,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RFB-04 | 3 | Unkey ≤ 118 ms after a stalled main loop against VI-RF-11's 100 ms | IMP | Closed by design change | Heartbeat lease 40 ms, drop within 90 ms (SRS-F081); HIL-040 measures the pass time |
 | RFB-05 | 3 | TCXO two-year ageing up to 2.1 ppm | CH | Closed by chair decision | Ground corrects the uplink from the measured downlink offset (same reference); no new command |
 | RFB-06 | 3 | Radio rail trip 0.25 A cannot see a 38 mA latch-up; LMX2571 margin at ±3 % rail | IMP | Closed by design change | Radio trip 0.12 A with current telemetry; 3V3_AO ±2 % (≥ 3.22 V at the RF connector) (SQSO-EPS-BRD-001) |
+| RFB-08 | 3 | Magnetometer A2 is 4 mm above the RF board: shield, lids, ferrites, crystals and the PA loop near it | CD | Closed by design change | No part within 20 mm of A2, no ferromagnetic part within 40 mm; nickel-silver shield, soldered lids; PA supply paired on layers 4/5 and routed 80-87 mm away (0.5 nT keyed step) (SQSO-RF-BRD-001 B §10.1); VI-RFB-11 |
+| RFB-09 | 2 | SMA end-launch connectors J3-J6 with mated plugs and cable bends do not fit the 3.3 mm gap to the side walls | IMP | Implementation | Connector and routing chosen with the CAD and the AntS interface before layout |
 
 #### EPS board (round 2) (EPSB)
 
