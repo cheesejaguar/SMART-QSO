@@ -9,6 +9,7 @@
 # J1-16 RX_FAULT (receiver health, active high = fault) for the receiver supervision of SRS-F115 to F117. Both 3.1 V
 # CMOS through 1 k with 100 k pull-downs on the RF board: an unpowered board or an unwired line reads "no carrier" and
 # "not fault"; the OBC inputs must use pull-downs (not pull-ups) so that nothing back-powers the RF board.
+# OBC side (SQSO-ICX-001 B): RX_CD PG0 (EXTI0), RX_FAULT PF13 (EXTI13); W4B PA_5V and RADIO_3V3 twisted with their returns.
 metadata:
   title: W4 OBC and EPS to RF board v3 (SQSO-HW-DIAG-001; RF side per SQSO-RF-BRD-001 B)
 
@@ -21,8 +22,8 @@ connectors:
   J_OBC_RF:
     type: Samtec FTSH-108-01-L-DV-K
     subtype: 16 pos, 1.27 mm
-    notes: "OBC board: PD5, PD6, PE3, PE4, PA0, PC0, PC1; five RF-board inputs (pins 8-10 readbacks, RID RF-21 / AV-05; pins 15-16 receiver supervision, RID RFB-07) to be allocated by the OBC designer"
-    pinlabels: &w4sig [GND, USART2_TX PD5 (OBC to TNC), USART2_RX PD6 (TNC to OBC), GND, TX_PWR_SEL PE3, XPDR_EN PE4 (100 Hz), GND, TONE_OK (OBC input), XPDR_KEY (OBC input), PTT_EXCITER (OBC input), TX_TEMP PA0, TX_FWD PC0, TX_REV PC1, AGND, RX_CD (OBC input), RX_FAULT (OBC input)]
+    notes: "OBC board J2 at (+41.0, -33.5), below RF J1: PD5, PD6, PE3, PE4, PA0, PC0, PC1; inputs TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 (capture), RX_CD PG0, RX_FAULT PF13, each 10 k series and 100 k pull-down (SQSO-ICX-001 B 3.2)"
+    pinlabels: &w4sig [GND, USART2_TX PD5 (OBC to TNC), USART2_RX PD6 (TNC to OBC), GND, TX_PWR_SEL PE3, XPDR_EN PE4 (100 Hz), GND, TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7, TX_TEMP PA0, TX_FWD PC0, TX_REV PC1, AGND, RX_CD PG0, RX_FAULT PF13]
   J_RF_OBC:
     type: Samtec FTSH-108-01-L-DV-K
     subtype: 16 pos, 1.27 mm
@@ -45,13 +46,13 @@ cables:
     gauge: 28 AWG
     length: 0.06
     colors: [BK, GN, YE, BK, WH, VT, BK, OG, OG, OG, BN, BN, BN, GY, BU, PK]
-    notes: "3.3 V logic both ends (RF side 3.1 V CMOS, 1 k series on the readbacks). Monitors 0-2.5 V into ADC1. TX_PWR_SEL low 0.5 W, high 1 W. XPDR_EN: 100 Hz heartbeat, 100 k pull-down on the RF board. RX_CD, RX_FAULT active high, 100 k pull-downs (not fault when unpowered)"
+    notes: "3.3 V logic both ends (RF side 3.1 V CMOS, 1 k series on the readbacks). Monitors 0-2.5 V into ADC1. TX_PWR_SEL low 0.5 W, high 1 W. XPDR_EN: 100 Hz heartbeat, 100 k pull-down on the RF board. RX_CD, RX_FAULT active high, 100 k pull-downs (not fault when unpowered). Flat and vertical in the +X wall gap at y -28.5 to -38.5, no fold; the (+X, -Y) bundle moves to y -17 to -27"
   W4B:
     category: bundle
     gauge: 24 AWG
     length: 0.08
     colors: [RD, BK, OG, OG, BK, BK]
-    notes: "RADIO rail 3.3 V: 31 mA typ, 38 mA worst receiving, +51 mA while keyed (exciter). PA rail 5 V: 0.35 A at 0.5 W RF, 0.47 A at 1 W, two contacts"
+    notes: "RADIO rail 3.3 V: 31 mA typ, 38 mA worst receiving, +51 mA while keyed (exciter). PA rail 5 V: 0.35 A at 0.5 W RF, 0.47 A at 1 W, two contacts. Twisted pairs: 3 with 2, 4 with 5, 1 with 6 (no loop field at magnetometer A2); RF J2 at (-26, -44)"
 
 connections:
   - - J_OBC_RF: [1-16]

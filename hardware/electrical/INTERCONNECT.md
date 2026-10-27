@@ -53,7 +53,7 @@ Rules applied to the allocation:
 | W2 | Panels and wings | EPS J4–J9 | strings, panel NTCs | Pico-Clasp 5/8 | 24 AWG (EPS) |
 | **W3** v2 | **EPS J3** | **OBC J1** | 3V3_OBC, I2C2, 15 enables, 4 burn lines, passivation, lockout clear, sense and analog lines, readbacks, VBAT_MTQ, 3V3_RTC (§3.1) | Samtec FTSH-120-01-L-DV-K both ends, FFSD-20-D ribbon | 28 AWG |
 | W4A v3 | OBC J2 | RF J1 | KISS UART, TX_PWR_SEL, XPDR_EN, three readbacks, three monitors, RX_CD, RX_FAULT (§3.2) | FTSH-108-01-L-DV-K both ends | 28 AWG |
-| W4B v2 | EPS J19 | RF J2 | RADIO_3V3 (SW2), PA_5V (SW3) | Micro-Fit 2×3 / Pico-Clasp 6 | 24 AWG |
+| W4B v3 | EPS J19 | RF J2 at (−26, −44) | RADIO_3V3 (SW2), PA_5V (SW3), each with its return as a twisted pair | Micro-Fit 2×3 / Pico-Clasp 6 | 24 AWG twisted pairs |
 | **W5** v3 | EPS J18; OBC J3 | Jetson carrier | VBAT_JET (W5A); USART1, the carrier's 3.3 V and the spreader NTC (W5B, 6 pins, E10) (§3.3) | Micro-Fit 2×2; Pico-Clasp 6 | 22 AWG; 28 AWG |
 | **W6** v3 | EPS J20; OBC J7, J8, J10 | OBC J6; rods; panel photodiodes; magnetometer board A2 | 3V3_ADCS (W6B), three CR0002 rods (W6C), six sun sensors (W6D), magnetometer (W6E, 3V3_SNS, I2C, DRDY) (§3.4) | Pico-Clasp 2 / 6 / 14 / 6 | 26 / 26 / 28 AWG shielded / 28 AWG |
 | W7 | EPS J10, J11, J12 | wing hold-downs, AntS | burn resistors, hinge switch, AntS 3.3 V and I2C | Micro-Fit 2×3, Pico-Clasp 4 | 24 AWG (EPS) |
@@ -64,8 +64,13 @@ Rules applied to the allocation:
 
 The OBC and EPS boards are PC/104 boards in one stack with no stack connector (SQSO-EPS-BRD-001 §1); W3 is a ribbon
 between their FTSH headers, which sit on the same +X edge at |y| < 24 mm so the ribbon passes the +X wall gap
-(MECHANICAL_DESIGN §4.4). Every other harness leaves the stack in the ±X wall gaps (bundles at |y| = 24–34 mm; W4A at
-|y| = 34–44 mm). The gyro module (Epson M-G370PDT0) plugs into socket X1 on the OBC at (−20, +30.5) mm and stands
+(MECHANICAL_DESIGN §4.4). Every other harness leaves the stack in the ±X wall gaps (bundles at |y| = 24–34 mm, except the
+(+X, −Y) bundle, below). **W4A** runs flat and vertical, without a fold, in the +X wall gap at y −28.5 … −38.5 mm,
+from OBC J2 straight up to RF J1 at (+41.0, −33.5) (SQSO-RF-BRD-001 B §15 item 14; both pin fields along Y at the
+same x and y). It would overlap the (+X, −Y) bundle band (y −24 … −34), so that bundle moves to **y −17 … −27** over
+its whole height: 3 mm clear of the W3 ribbon (|y| ≤ 14, below the OBC) and 1.5 mm clear of W4A. A 45° fold of the
+ribbon was rejected (two ribbon thicknesses and a crease in the 3.3 mm gap). For the mechanical designer
+(MECHANICAL_DESIGN §6.9, item E12). The gyro module (Epson M-G370PDT0) plugs into socket X1 on the OBC at (−20, +30.5) mm and stands
 through a window in the Jetson carrier; the backup gyro, the sun-sensor amplifiers and the magnetorquer drivers are on
 the OBC board; the RM3100 magnetometer is on a small board (A2) at the +Z end frame on harness W6E (SQSO-OBC-BRD-001
 §9.4). There is no ADCS board and no ADCS stack connector.
@@ -137,7 +142,9 @@ push-pull: VOH ≥ 2.9 V against the STM32's VIH 2.31 V.
 | 16 | RX_FAULT | in | high = receiver fault | **low = healthy** when unwired, open or the radio off (OBC 100 kΩ pull-down) | **PF13** EXTI13 (10 kΩ, 100 kΩ pull-down) | 1 kΩ, push-pull from V_DIG, 100 kΩ pull-down (**new, version 3**, SQSO-RF-BRD-001 B §4.1) |
 
 RADIO_EN and RF_TX_EN switch the RF board's rails on the EPS (W3 pins 10, 14) and reach the RF board as power on W4B
-(RADIO_3V3 J2-1, PA_5V J2-3/4, 24 AWG). The readbacks are valid while RADIO_3V3 is on and read low through the OBC's
+(RADIO_3V3 J2-1, PA_5V J2-3/4, 24 AWG). W4B runs **PA_5V and its returns as twisted pairs** (J2-3 with J2-2,
+J2-4 with J2-5; RADIO_3V3 J2-1 twisted with J2-6) so the 0.47 A PA current adds no loop field at magnetometer A2;
+RF J2 is on the RF board's −Y edge at (−26, −44), by the PA (SQSO-RF-BRD-001 B §4.2). The readbacks are valid while RADIO_3V3 is on and read low through the OBC's
 pull-downs when it is off. The receiver is ready ≤ 50 ms after RADIO_EN (RF board §15 item 12).
 
 ### 3.3 W5: Jetson carrier
@@ -482,4 +489,4 @@ second CS in `hal_spi`.
 | Version | Date | Description |
 |---------|------|-------------|
 | A | 2026-10-27 | First issue: master pin allocation of the STM32L4R5ZIT6, the board-to-board signal lists for W3, W4, W5, W6, W8, W9, domain crossings, the firmware change list and the interface changes for the EPS and the Jetson carrier (CDR design completion, OBC board SQSO-OBC-BRD-001) |
-| B | 2026-10-27 | Carrier interface E10 taken (W5B 6 pins, spreader NTC on PA2 ADC1_IN7; JETSON_PWR PA2 → PA8); magnetometer moved to board A2 at +Z (W6E); W8A internal access-port harness and J9 as FTSH-105; stack routing rules of MECHANICAL_DESIGN §4.4; changes 26–28 for the flight software (28: RX_CD PG0, RX_FAULT PF13 on W4A v3 pins 15–16, FTSH-108); EOL_ARM PF4, EOL_FIRE PG1, BURN_W2B PE7, LOCK_CLR PF5 confirmed low at reset; gyro at (−20, +30.5); back-power total 2.7 mA; E10–E13 |
+| B | 2026-10-27 | Carrier interface E10 taken (W5B 6 pins, spreader NTC on PA2 ADC1_IN7; JETSON_PWR PA2 → PA8); magnetometer moved to board A2 at +Z (W6E); W8A internal access-port harness and J9 as FTSH-105; stack routing rules of MECHANICAL_DESIGN §4.4; changes 26–28 for the flight software (28: RX_CD PG0, RX_FAULT PF13 on W4A v3 pins 15–16, FTSH-108); EOL_ARM PF4, EOL_FIRE PG1, BURN_W2B PE7, LOCK_CLR PF5 confirmed low at reset; gyro at (−20, +30.5); back-power total 2.7 mA; E10–E13; W4A routing (no fold; (+X, −Y) bundle to y −17 … −27) and W4B twisted pairs |
