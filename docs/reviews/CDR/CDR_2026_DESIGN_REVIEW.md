@@ -139,12 +139,12 @@ L-2 M licences and ephemeris demonstration).
 | C-1 | Planning launch the last Transporter of 2028 (about 2028-11); June 2028 an opportunity | PM-05, LV-10 |
 | C-2 | Deployment altitude 475 km target, 465–485 km band, 485 km cap; 460 km if the FCC counts an early failure as the end of the mission | ODA-01, ODA-05 |
 | C-3 | Layout B; AntS 2 m elements along ±X; CR0002 rods; deployed-inertia requirement | STR-01, STR-02, RF-03 |
-| C-4 | Spin 8°/s, nutation damping 3·10⁻⁴ (1·10⁻⁴ without gyro) | GNC-02 |
+| C-4 | Spin 8°/s, nutation damping 3·10⁻⁴ (1·10⁻⁴ without gyro); the round-3 gain sweep (ADCS_DESIGN 1.9 §11.4) keeps it on the Iyy/Izz 1.005–1.05 results, and the protection against a degenerate plant is the Iyy ≥ 1.03 × max mass-properties limit, not the gains | GNC-02, P3F-G-04 |
 | C-5 | Two resistors per wing on their own 0.8 A drivers, 8 s burns, wings before antennas | SMA-05, EPS-18, REL-03, STR-15, STR-16 |
 | C-6 | Three deployment switches DS1–DS3 on three rails | LV-05, SMA-01, EPS-04, RF-14 |
 | C-7 | Integration SOC 60 % ± 5 %, separation ≥ 40 %, drain ≤ 20 µA | LV-06, SMA-10, EPS-20 |
 | C-8 | Telecommand stations ≥ 1,000 km apart, each able to command alone; agreements by 2027-01-05 | LV-08, GND-01 |
-| C-9 | Reliability 0.75 / 0.60 / 0.50 accepted as Class D risk, with the burn-in and flatsat test programme | REL-01 |
+| C-9 | Reliability 0.75 / 0.61 / 0.51 (0.86 / 0.71 / 0.59 with the ≥ 500 h flatsat and ≥ 200 h FM burn-in programme) proposed for acceptance as Class D risk; the acceptance itself is the PI's (DA-02, 2026-12-15) | REL-01 |
 | C-10 | `transponder.rs` and `ops_state.rs` added to the safety-critical list | FSW-05 |
 | C-11 | Heater set points +5/+9 °C; ≈ 207 Ω heater | THM-02, BUILD_VS_BUY §4.5 |
 | C-12 | Two centre supports on the EPS, OBC and carrier boards | STR-05, MECHANICAL_DESIGN |
