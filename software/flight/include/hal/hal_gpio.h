@@ -42,8 +42,9 @@ typedef enum {
     GPIO_PIN_ANTENNA_SENSE = 13,  /**< Antenna deployed sense input */
     GPIO_PIN_SOLAR_SENSE   = 14,  /**< Solar array deployed sense input */
     GPIO_PIN_TX_PWR_SEL    = 15,  /**< Downlink power select: low 0.5 W, high 1 W */
-    GPIO_PIN_XPDR_EN       = 16,  /**< FM transponder enable: repeat CTCSS-gated uplink carriers */
-    GPIO_PIN_COUNT         = 17
+    GPIO_PIN_XPDR_EN       = 16,  /**< FM transponder enable: heartbeat (hal_gpio_heartbeat), never a level */
+    GPIO_PIN_GNSS_EN       = 17,  /**< GNSS receiver load switch (current-limited, latch-up trip) */
+    GPIO_PIN_COUNT         = 18
 } HalGpioPin_t;
 
 /**

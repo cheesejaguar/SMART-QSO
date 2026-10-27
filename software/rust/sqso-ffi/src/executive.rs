@@ -12,17 +12,22 @@
 use core::ffi::{CStr, c_char};
 use core::fmt::{self, Write};
 use core::ptr::{null, null_mut};
+use core::sync::atomic::{AtomicBool, Ordering};
 
 use sqso_fsw::beacon::{Content, Measurements, TLM_BV, TLM_SOC, TLM_SUN};
 use sqso_fsw::eps::EpsState;
 use sqso_fsw::executive::{self as exec, PowerModel};
 use sqso_fsw::fault_log::Entry;
 use sqso_fsw::fixed::Fixed;
+use sqso_fsw::gnss::Receiver;
+use sqso_fsw::gnss_schedule::{self, Sessions};
 use sqso_fsw::heater::{self, Heater};
+use sqso_fsw::housekeeping::{self, Cadence, Housekeeping};
 use sqso_fsw::mission_data::MissionData;
 use sqso_fsw::payload_guard::{Outcome, Sample, TELEMETRY_TIMEOUT_MS};
 use sqso_fsw::payload_schedule::{self, Action, BATCH_LINES, Schedule};
 use sqso_fsw::transponder::{self, Transponder};
+use sqso_protocol::ax25::{self, Station};
 use sqso_protocol::jetson::{LINE_MAX, TEXT_MAX};
 
 use crate::c::{fault_type, rc, severity};
@@ -30,8 +35,8 @@ use crate::jetson_link::{JetsonMsg, JetsonRx};
 use crate::sensors::Sensor;
 use crate::{
     adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, fault_mgmt, gse_provision,
-    jetson_link, mission_data, payload_guard, rf_control, rf_silence, sensors, state_machine, system_state, uart_comm,
-    uplink, watchdog_mgr,
+    jetson_link, mission_data, ops_state, payload_guard, rf_control, rf_silence, sensors, state_machine, system_state,
+    uart_comm, uplink, watchdog_mgr,
 };
 
 /// `ADC_RESOLUTION_12BIT`, `ADC_REF_VDD` (hal_adc.h)
@@ -52,6 +57,7 @@ const WDT_TASK_HEALTH: u32 = 7;
 // state_machine.h
 const STATE_BOOT: u32 = 0;
 const STATE_DETUMBLE: u32 = 2;
+const STATE_IDLE: u32 = 3;
 const STATE_ACTIVE: u32 = 4;
 const EVENT_NONE: u32 = 0;
 const EVENT_BOOT_COMPLETE: u32 = 1;
@@ -63,10 +69,28 @@ const ADCS_MODE_IDLE: u32 = 0;
 const ADCS_MODE_DETUMBLE: u32 = 1;
 /// ADCS control cycle, ms (1 Hz: ADCS_DESIGN §5)
 const ADCS_PERIOD_MS: u64 = 1000;
+/// No magnetorquer output until this long after separation, s (SpaceX
+/// Rideshare Payload User's Guide v11 §3.3.4; LV-02)
+const MTQ_SEPARATION_DELAY_S: u32 = 120;
+// deployment.h states in which the separation delay can still be running
+const DEPLOY_STATE_INHIBITED: u32 = 0;
+const DEPLOY_STATE_WAITING: u32 = 1;
+const DEPLOY_STATE_ARMED: u32 = 10;
 
 // hal_gpio.h
 const GPIO_PIN_HEATER_EN: u32 = 3;
 const GPIO_PIN_XPDR_EN: u32 = 16;
+const GPIO_PIN_GNSS_EN: u32 = 17;
+const GPIO_PIN_ANTENNA_SENSE: u32 = 13;
+const GPIO_PIN_SOLAR_SENSE: u32 = 14;
+// hal_uart.h
+const UART_PORT_GNSS: u32 = 2;
+/// The GNSS receiver's NMEA rate (piNAV-NG default assumed; its ICD sets it)
+const GNSS_BAUD: u32 = 9600;
+/// GNSS sessions need the state of charge at or above the IDLE threshold
+/// (BASELINE §5: above the contingency floor)
+const GNSS_SOC_MIN: f64 = 0.40;
+const ADC_CHANNEL_TEMP_MCU: u32 = 5;
 const GPIO_DIR_OUTPUT: u32 = 1;
 const GPIO_PULL_DOWN: u32 = 2;
 // hal_adc.h: the transmitter's monitors (as the downlink's)
@@ -92,6 +116,30 @@ pub const VERSION: &str = "0.2.0-dev";
 pub const SIMULATION_TICKS: u64 = exec::SIMULATION_TICKS;
 /// `BEACON_MEAS_MAX_AGE_MS`
 const BEACON_MEAS_MAX_AGE_MS: u64 = 60_000;
+
+/// GNSS_REQUEST received (the command handler sets it, the next pass acts)
+static GNSS_REQUESTED: AtomicBool = AtomicBool::new(false);
+/// GET_HOUSEKEEPING received
+static HK_REQUESTED: AtomicBool = AtomicBool::new(false);
+
+/// GNSS_REQUEST: a receiver session at the next pass the gates allow
+pub(crate) fn request_gnss_session() {
+    GNSS_REQUESTED.store(true, Ordering::Relaxed);
+}
+
+/// GET_HOUSEKEEPING: a housekeeping frame after the beacon gap
+pub(crate) fn request_housekeeping() {
+    HK_REQUESTED.store(true, Ordering::Relaxed);
+}
+
+/// `HalUartConfig_t`
+#[repr(C)]
+struct HalUartConfig {
+    baud_rate: u32,
+    data_bits: u8,
+    stop_bits: u8,
+    parity: u32,
+}
 
 /// An error line: stderr on the host, the console on the target
 fn eprint(args: fmt::Arguments<'_>) {
@@ -222,6 +270,11 @@ pub struct Executive {
     heater: Heater,
     /// The FM transponder's gates
     transponder: Transponder,
+    /// GNSS receiver sessions and the NMEA receiver
+    gnss: Sessions,
+    gnss_rx: Receiver,
+    /// The housekeeping frame's cadence
+    hk: Cadence,
     /// When the ADCS last ran its control cycle, ms
     last_adcs_ms: u64,
     /// The ADCS was told to detumble since this boot
@@ -251,6 +304,9 @@ impl Executive {
         schedule: Schedule::new(),
         heater: Heater::new(),
         transponder: Transponder::new(),
+        gnss: Sessions::new(),
+        gnss_rx: Receiver::new(),
+        hk: Cadence::new(),
         last_adcs_ms: 0,
         detumble_commanded: false,
         beacon_seq: 0,
@@ -300,6 +356,9 @@ impl Executive {
             }
         }
         let _ = deployment::deployment_init();
+        // The commissioning hold and transponder enable, before anything
+        // can ask for ACTIVE
+        let _ = ops_state::ops_state_init();
         if fault_mgmt::fault_mgmt_init() != rc::OK {
             eprint(format_args!("[SYSTEM] Fault management init failed"));
         }
@@ -315,6 +374,11 @@ impl Executive {
         if uart_comm::uart_init() != rc::OK {
             eprint(format_args!("[WARN] UART initialization failed, telemetry disabled"));
             add_fault(fault_type::INIT, severity::WARNING, c"UART initialization failed", self.power.soc);
+        }
+        let gnss_uart = HalUartConfig { baud_rate: GNSS_BAUD, data_bits: 8, stop_bits: 1, parity: 0 };
+        // SAFETY: gnss_uart is a live HalUartConfig_t
+        if unsafe { crate::c::hal_uart_init(UART_PORT_GNSS, (&raw const gnss_uart).cast()) } != rc::OK {
+            eprint(format_args!("[SYSTEM] GNSS UART init failed"));
         }
 
         self.last_telemetry_ms = self.program_start_ms;
@@ -355,7 +419,7 @@ impl Executive {
         if adcs_control::adcs_init() != rc::OK {
             eprint(format_args!("[SYSTEM] ADCS init failed"));
         }
-        for pin in [GPIO_PIN_HEATER_EN, GPIO_PIN_XPDR_EN] {
+        for pin in [GPIO_PIN_HEATER_EN, GPIO_PIN_XPDR_EN, GPIO_PIN_GNSS_EN] {
             // SAFETY: plain values (the HAL)
             let _ = unsafe { crate::c::hal_gpio_config(pin, GPIO_DIR_OUTPUT, GPIO_PULL_DOWN) };
         }
@@ -435,7 +499,9 @@ impl Executive {
         // Beacon (stays silent while TX-OFF, contact or RF-silence inhibits)
         self.update_beacon_measurements(now);
         self.run_beacon(now);
+        self.run_housekeeping(now, state);
         downlink::downlink_poll();
+        self.run_gnss(now, state);
         self.run_transponder(now, state);
         let _ = watchdog_mgr::wdt_mgr_checkin(WDT_TASK_BEACON);
 
@@ -710,6 +776,7 @@ impl Executive {
             && unsafe { beacon::beacon_transmit(&content) } == rc::OK
         {
             beacon::beacon_mark_transmitted(now);
+            self.hk.beacon_sent(now);
         }
         self.drop_oldest_text();
     }
@@ -757,7 +824,8 @@ impl Executive {
             return;
         }
         self.last_adcs_ms = now;
-        if !eps_control::eps_is_adcs_enabled() || !deployment::deployment_is_separated() {
+        if !eps_control::eps_is_adcs_enabled() || !deployment::deployment_is_separated() || !separation_delay_served()
+        {
             let _ = adcs_control::adcs_disable_mtq();
             return;
         }
@@ -802,6 +870,7 @@ impl Executive {
         let radio_on = unsafe { eps_control::eps_get_state(&mut eps) } == rc::OK && eps.radio_enabled;
         let inputs = transponder::Inputs {
             permitted: radio_on && rf_control::rf_control_tx_permitted(),
+            allowed: ops_state::ops_xpdr_allowed() && !self.gnss.session_on(),
             active: state == STATE_ACTIVE,
             sunlit: self.power.sunlit,
             soc: self.power.soc,
@@ -815,6 +884,143 @@ impl Executive {
             transponder::Change::None => {}
             transponder::Change::On => crate::c::console(format_args!("[XPDR] Transponder on")),
             transponder::Change::Off(why) => crate::c::console(format_args!("[XPDR] Transponder off: {}", why.text())),
+        }
+    }
+
+    /// GNSS receiver sessions (`sqso_fsw::gnss_schedule`, decision D6): the
+    /// load switch for a session, the receiver's NMEA into the parser while
+    /// it runs. Gates: Jetson off, SOC at least 40 %, not SAFE or EMERGENCY
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_gnss(&mut self, now: u64, state: u32) {
+        if GNSS_REQUESTED.swap(false, Ordering::Relaxed) {
+            self.gnss.request();
+        }
+        let operating = matches!(state, STATE_DETUMBLE | STATE_IDLE | STATE_ACTIVE);
+        let inputs = gnss_schedule::Inputs {
+            leop: ops_state::ops_commissioning_hold(),
+            allowed: operating && !eps_control::eps_is_payload_enabled() && self.power.soc >= GNSS_SOC_MIN,
+            fix_ms: self.gnss_rx.fix.valid.then_some(self.gnss_rx.fix.rx_ms),
+        };
+        match self.gnss.step(now, &inputs) {
+            gnss_schedule::Action::None => {}
+            gnss_schedule::Action::PowerOn => {
+                crate::c::console(format_args!("[GNSS] Session {} on", self.gnss.sessions));
+                // SAFETY: plain values (the HAL)
+                let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_GNSS_EN, true) };
+            }
+            gnss_schedule::Action::PowerOff(outcome) => {
+                // SAFETY: plain values (the HAL)
+                let _ = unsafe { crate::c::hal_gpio_set(GPIO_PIN_GNSS_EN, false) };
+                // SAFETY: plain value (the HAL)
+                let _ = unsafe { crate::c::hal_uart_flush(UART_PORT_GNSS) };
+                crate::c::console(format_args!("[GNSS] Session off: {outcome:?}"));
+                if self.gnss.no_fix_fault() {
+                    add_fault(fault_type::INIT, severity::WARNING, c"GNSS: no fix in three sessions", self.power.soc);
+                }
+            }
+        }
+        if !self.gnss.session_on() {
+            return;
+        }
+        // What arrived since the last pass, at most 512 bytes (at 9600 baud a
+        // 20 ms pass brings about 19)
+        let mut chunk = [0u8; 64];
+        for _ in 0..8 {
+            let mut got = 0usize;
+            // SAFETY: chunk is a live buffer of 64 bytes; got a live size_t
+            let read =
+                unsafe { crate::c::hal_uart_read(UART_PORT_GNSS, chunk.as_mut_ptr(), chunk.len(), 0, &mut got) };
+            if read != rc::OK || got == 0 {
+                break;
+            }
+            for &b in chunk.get(..got).unwrap_or(&[]) {
+                let _ = self.gnss_rx.feed(b, now);
+            }
+        }
+    }
+
+    /// The housekeeping frame (`sqso_fsw::housekeeping`, LV-27): every fifth
+    /// beacon and on GET_HOUSEKEEPING, 5 s after the beacon, through the
+    /// downlink (which enforces the inhibits and the duty limit)
+    #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
+    fn run_housekeeping(&mut self, now: u64, state: u32) {
+        if HK_REQUESTED.swap(false, Ordering::Relaxed) {
+            self.hk.request(now);
+        }
+        if !self.hk.due(now) {
+            return;
+        }
+        let hk = self.housekeeping(now, state);
+        let mut info = [0u8; housekeeping::MAX_LEN];
+        let n = housekeeping::format(&hk, &mut info);
+        let mut frame = [0u8; ax25::MAX_FRAME_LEN];
+        let dest = Station { call: "CQ", ssid: 0 };
+        let src = Station { call: sqso_protocol::station::CALLSIGN, ssid: sqso_protocol::station::SSID };
+        let Ok(len) = ax25::encode_ui(dest, src, info.get(..n).unwrap_or(&[]), false, &mut frame) else {
+            self.hk.sent(); // cannot happen for MAX_LEN bytes; drop it
+            return;
+        };
+        // SAFETY: frame holds len bytes
+        match unsafe { downlink::downlink_transmit(frame.as_ptr(), len) } {
+            rc::BUSY => {} // the downlink is sending: next pass
+            sent => {
+                if sent == rc::OK {
+                    crate::c::console_parts(&[b"[HK] TX: ", info.get(..n).unwrap_or(&[])]);
+                }
+                self.hk.sent();
+            }
+        }
+    }
+
+    /// The housekeeping values now
+    fn housekeeping(&self, now: u64, state: u32) -> Housekeeping {
+        let eps = eps_control::eps_telemetry();
+        let mut last = Entry::ZERO;
+        // SAFETY: last is a live FaultLogEntry_t
+        let have_last = unsafe { fault_mgmt::fault_log_get_last(&mut last) } == rc::OK;
+        let mut adcs = sqso_fsw::adcs::Telemetry::default();
+        // SAFETY: adcs is a live AdcsTelemetry_t
+        let have_adcs = unsafe { adcs_control::adcs_get_telemetry(&mut adcs) } == rc::OK;
+        let finite = |v: f64| v.is_finite().then_some(v);
+        // SAFETY (the block): HAL and module accessors without pointer arguments
+        unsafe {
+            Housekeeping {
+                seq: self.hk.seq,
+                uptime_s: now.wrapping_sub(self.program_start_ms) / 1000,
+                boots: mission_data::mission_data_get_reset_count(),
+                reset_cause: crate::c::hal_reset_cause(),
+                mode: state,
+                hold: ops_state::ops_commissioning_hold(),
+                xpdr: self.transponder.enabled,
+                tx_permitted: rf_control::rf_control_tx_permitted(),
+                soc: Some(self.power.soc),
+                vbatt_v: eps.map(|t| t.vbatt_v),
+                ibatt_a: eps.map(|t| t.ibatt_a),
+                array_w: eps.map(|t| t.vsolar_v * t.isolar_a),
+                tbatt_c: eps.map(|t| t.tbatt_c),
+                tobc_c: finite(adc_or_nan(ADC_CHANNEL_TEMP_MCU)),
+                tpa_c: finite(adc_or_nan(ADC_CHANNEL_TX_TEMP)),
+                tjet_c: fresh_sensor(c"PT", now, BEACON_MEAS_MAX_AGE_MS),
+                deploy: (
+                    deployment::deployment_get_state(),
+                    crate::c::hal_gpio_get(GPIO_PIN_ANTENNA_SENSE),
+                    crate::c::hal_gpio_get(GPIO_PIN_SOLAR_SENSE),
+                ),
+                rf_silence: (rf_silence::rf_silence_get_state(), rf_silence::rf_silence_elapsed_seconds()),
+                contact_timeout_d: contact_monitor::contact_monitor_get_timeout_days(),
+                since_contact_s: contact_monitor::contact_monitor_seconds_since_contact(),
+                fault_count: u32::try_from(fault_mgmt::fault_log_get_count()).unwrap_or(u32::MAX),
+                last_fault: have_last.then_some((last.fault_type, last.severity)),
+                rate_cdps: if have_adcs { [adcs.rate_x, adcs.rate_y, adcs.rate_z] } else { [0; 3] },
+                adcs_mode: adcs.mode,
+                mag_rejected: adcs_control::mag_rejected(),
+                gnss_fix: self
+                    .gnss_rx
+                    .fix
+                    .valid
+                    .then(|| (now.saturating_sub(self.gnss_rx.fix.rx_ms) / 1000, self.gnss_rx.fix.sats)),
+                gnss_sessions: (self.gnss.sessions, self.gnss.fixes),
+            }
         }
     }
 
@@ -865,6 +1071,18 @@ impl Executive {
 /// so the radio lines are never driven high on a boot that must stay silent;
 /// then the latched TX-OFF state (47 CFR 97.207(b)), the key table (with no
 /// key only TX-OFF is accepted), the receiver and the GSE port
+/// Whether 120 s have passed since separation (LV-02): the deployment wait
+/// counts from separation, and every later state is past its 30 minutes. A
+/// power-losing reset during the wait restarts the wait, and this delay with
+/// it (the conservative direction)
+fn separation_delay_served() -> bool {
+    match deployment::deployment_get_state() {
+        DEPLOY_STATE_INHIBITED | DEPLOY_STATE_ARMED => false,
+        DEPLOY_STATE_WAITING => deployment::deployment_wait_elapsed_s() >= MTQ_SEPARATION_DELAY_S,
+        _ => true,
+    }
+}
+
 /// One ADC channel, volts (or its unit); not a number if the read fails
 fn adc_or_nan(channel: u32) -> f64 {
     let mut value = 0.0;

@@ -227,6 +227,10 @@ pub struct Mission {
     latched_s: f64,
     /// The flight software was told to send TX-OFF at end of life
     eol_tx_off_sent: bool,
+    /// Where the commissioning plan is
+    commissioning: ops::Commissioning,
+    /// How long the GNSS receiver has been powered, s
+    gnss_on_s: f64,
     /// Last illumination, for the eclipse records
     last_sample: Sample,
 }
@@ -336,6 +340,8 @@ impl Mission {
             latched_up: false,
             latched_s: 0.0,
             eol_tx_off_sent: false,
+            commissioning: ops::Commissioning::Housekeeping,
+            gnss_on_s: 0.0,
             last_sample: Sample::default(),
         })
     }
@@ -586,6 +592,7 @@ impl Mission {
         );
         let jet_rail = (p(pin::PAYLOAD_EN) && p(pin::JETSON_PWR)) || (self.cfg.payload_stuck_on && self.rel() > 0.0);
         // The transponder enable is the heartbeat detector's, not the pin's level
+        self.gnss_receiver(dt, r);
         let xpdr_en = radio::heartbeat_enable(self.fsw.xpdr_heartbeat());
         self.update_carrier(dt, r);
         self.radio.xpdr = xpdr_en && self.carrier;
@@ -685,6 +692,16 @@ impl Mission {
     /// command a spacecraft they hear, on an orbit they have confirmed)
     fn command_opportunity(&mut self, i: usize, el: f64, range: f64, r: V3) {
         let Some(p) = self.passes[i] else { return };
+        // The end of the TX-OFF test may follow in the same pass, and is sent
+        // even though nothing is heard (the transmitter is off)
+        if let ops::Commissioning::TxOnAfterTest(from) = self.commissioning {
+            if self.rel() >= from
+                && !self.send_command(i, el, range, r, cmd::TX_ENABLE, &[], "TX_ENABLE (end of the TX-OFF test)")
+            {
+                self.commissioning = ops::Commissioning::TxOnAfterTest(self.rel() + 30.0);
+            }
+            return;
+        }
         if p.commands > 0 || p.heard == 0 {
             return;
         }
@@ -702,13 +719,33 @@ impl Mission {
         let (id, args, what): (u8, Vec<u8>, &str) = if eol && self.cfg.passivate_at_eol {
             self.eol_tx_off_sent = true;
             (cmd::TX_DISABLE, vec![], "TX_DISABLE (end of life)")
+        } else if self.commissioning == ops::Commissioning::Housekeeping {
+            (cmd::GET_HOUSEKEEPING, vec![], "GET_HOUSEKEEPING (commissioning)")
+        } else if self.commissioning == ops::Commissioning::TxOffTest {
+            (cmd::TX_DISABLE, vec![], "TX_DISABLE (TX-OFF test)")
+        } else if self.commissioning == ops::Commissioning::Release {
+            (cmd::COMMISSIONING_RELEASE, vec![], "COMMISSIONING_RELEASE")
         } else if !self.contact_timeout_set && self.rel() >= self.cfg.commissioning_days * 86_400.0 {
             self.contact_timeout_set = true;
             (cmd::SET_CONTACT_TIMEOUT, 14u16.to_be_bytes().to_vec(), "SET_CONTACT_TIMEOUT 14 (end of commissioning)")
         } else {
             (cmd::GET_STATUS, vec![], "GET_STATUS")
         };
-        let Some(frame) = self.uplink.frame(id, &args) else { return };
+        let delivered = self.send_command(i, el, range, r, id, &args, what);
+        if what == "TX_DISABLE (end of life)" {
+            if delivered {
+                self.passivate();
+            } else {
+                self.eol_tx_off_sent = false; // try again next pass
+            }
+        }
+    }
+
+    /// Send one telecommand to the spacecraft in station `i`'s pass; whether
+    /// it was received. Advances the commissioning plan on a received one
+    #[allow(clippy::too_many_arguments)]
+    fn send_command(&mut self, i: usize, el: f64, range: f64, r: V3, id: u8, args: &[u8], what: &str) -> bool {
+        let Some(frame) = self.uplink.frame(id, args) else { return false };
         self.totals.commands_sent += 1;
         self.commands_today.1 += 1;
         if let Some(p) = self.passes[i].as_mut() {
@@ -720,11 +757,26 @@ impl Mission {
         let ok = rx_on && self.rng.uniform() < link::frame_success_prob(margin, (frame.len() * 8) as u32);
         let delivered = ok && self.fsw.uplink(&frame);
         self.event("command", &format!("{what}: {}", if delivered { "received" } else { "lost" }));
-        if what.starts_with("TX_DISABLE") && delivered {
-            self.passivate();
-        } else if what.starts_with("TX_DISABLE") {
-            self.eol_tx_off_sent = false; // try again next pass
+        if delivered {
+            self.commissioning = match (self.commissioning, id) {
+                (ops::Commissioning::Housekeeping, cmd::GET_HOUSEKEEPING) => ops::Commissioning::TxOffTest,
+                (ops::Commissioning::TxOffTest, cmd::TX_DISABLE) => {
+                    // The beacon gap the test makes is commanded, not a fault
+                    self.last_frame_s = None;
+                    ops::Commissioning::TxOnAfterTest(self.rel() + ops::TX_OFF_TEST_S)
+                }
+                (ops::Commissioning::TxOnAfterTest(_), cmd::TX_ENABLE) => {
+                    self.last_frame_s = None;
+                    ops::Commissioning::Release
+                }
+                (ops::Commissioning::Release, cmd::COMMISSIONING_RELEASE) => {
+                    self.event("phase", "commissioning hold released by telecommand");
+                    ops::Commissioning::Done
+                }
+                (c, _) => c,
+            };
         }
+        delivered
     }
 
     /// The spacecraft antenna's gain toward station `i` (an element along
@@ -753,6 +805,30 @@ impl Mission {
         } else {
             share > 0.0 && u < dt * share / (OVER_S * (1.0 - share).max(1e-6))
         };
+    }
+
+    /// The GNSS receiver (piNAV-NG, decision D6): powered by the flight
+    /// software's load switch; after an 80 s cold start it sends a GGA with a
+    /// GPS fix and a `$PSLSP` state record of the true position every 10 s
+    fn gnss_receiver(&mut self, dt: f64, r: V3) {
+        if !self.fsw.pin(pin::GNSS_EN) {
+            self.gnss_on_s = 0.0;
+            return;
+        }
+        let before = self.gnss_on_s;
+        self.gnss_on_s += dt;
+        const COLD_START_S: f64 = 80.0;
+        if self.gnss_on_s < COLD_START_S || (before / 10.0).floor() == (self.gnss_on_s / 10.0).floor() {
+            return;
+        }
+        let x = earth::eci_to_ecef(r, self.t);
+        let tow = (self.t + 43_200.0 - 1_198_800.0 + 13.0).rem_euclid(604_800.0); // GPS time of week, near enough
+        let gga = format!("GPGGA,{:06.0},0000.000,N,00000.000,E,1,08,1.1,500000.0,M,0.0,M,,", tow % 86_400.0);
+        let pslsp = format!("PSLSP,{tow:.3},2400,{:.3},{:.3},{:.3},8,1.6", x.x, x.y, x.z);
+        for body in [gga, pslsp] {
+            let sum = body.bytes().fold(0u8, |a, b| a ^ b);
+            let _ = self.fsw.gnss_bytes(format!("${body}*{sum:02X}\r\n").as_bytes());
+        }
     }
 
     fn passivate(&mut self) {

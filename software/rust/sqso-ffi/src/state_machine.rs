@@ -39,8 +39,8 @@ pub struct SmTransition {
 /// mode manager's own events and the ground's SET_MODE alike)
 extern "C" fn guard_active_allowed() -> bool {
     // SAFETY: C accessors without pointer arguments
-    unsafe { c::eps_get_soc() >= mode::SOC_PAYLOAD && c::payload_guard_may_enable(c::now_ms()) }
-        && !crate::ops_state::ops_commissioning_hold()
+    let power = unsafe { c::eps_get_soc() >= mode::SOC_PAYLOAD && c::payload_guard_may_enable(c::now_ms()) };
+    power && !crate::ops_state::ops_commissioning_hold()
 }
 
 fn guard(g: Guard) -> bool {

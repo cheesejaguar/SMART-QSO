@@ -105,7 +105,7 @@ make the emission 11K4F2D, and is corrected there.
 | Free-space loss | 32.45 + 20 log f(MHz) + 20 log d(km) | |
 | Gaseous absorption | Included in the allowance below | ITU-R P.676: ≈ 0.04 dB at zenith at VHF/UHF, ≈ 0.5 dB at 5° |
 | Ionospheric absorption | Included below | ITU-R P.531: < 0.1 dB at 146 MHz at mid latitude outside polar-cap absorption events |
-| Scintillation | Included below (mid latitude) | ITU-R P.531: about 1 dB peak-to-peak at VHF at mid latitude; **equatorial post-sunset and auroral scintillation can exceed 10 dB at 146 MHz** and is not budgeted (a Fairbanks station, §6.1 of `docs/ground/GROUND_STATION_DESIGN.md`, sees auroral events) |
+| Scintillation | Included below (mid latitude) | ITU-R P.531: about 1 dB peak-to-peak at VHF at mid latitude; **equatorial post-sunset and auroral scintillation can exceed 10 dB at 146 MHz** and is not budgeted (a Fairbanks station, `docs/ground/GROUND_STATION_DESIGN.md` §3.3, sees auroral events) |
 | **Total allowance** | **1.0 dB below 20° elevation, 0.5 dB at and above 20°** | |
 | Faraday rotation | Not a loss to a circular station (constant 3 dB, linear to circular). To a linear ground antenna it randomizes the polarization: 2.36 × 10⁴ · B · TEC / f² ≈ 5.5 rad at 146 MHz for 10 TECU and 50 µT (P.531), 0.6 rad at 435.5 MHz, varying by radians during a pass | §5 models it as a random start angle drifting 0.5–3 rad per pass |
 | Polarization mismatch | 3.0 dB fixed in the tables (linear spacecraft element to circular station; and the average for linear to linear). Linear-to-linear fades below the average: the loss exceeds 10 dB 20 % of the time and 16 dB 10 % of the time for a uniformly random angle | §5 computes it per sample |

@@ -50,6 +50,7 @@ bind_interrupts!(struct Irqs {
     USART1 => usart::BufferedInterruptHandler<peripherals::USART1>;
     USART2 => usart::BufferedInterruptHandler<peripherals::USART2>;
     USART3 => usart::BufferedInterruptHandler<peripherals::USART3>;
+    LPUART1 => usart::BufferedInterruptHandler<peripherals::LPUART1>;
 });
 
 /// Main-loop period (the simulation's MAIN_LOOP_SLEEP_NS)
@@ -85,6 +86,8 @@ static JETSON_TX: ConstStaticCell<[u8; 256]> = ConstStaticCell::new([0; 256]);
 static DEBUG_RX: ConstStaticCell<[u8; 64]> = ConstStaticCell::new([0; 64]);
 static DEBUG_TX: ConstStaticCell<[u8; 512]> = ConstStaticCell::new([0; 512]);
 static RADIO_RX: ConstStaticCell<[u8; 1024]> = ConstStaticCell::new([0; 1024]);
+static GNSS_RX: ConstStaticCell<[u8; 256]> = ConstStaticCell::new([0; 256]);
+static GNSS_TX: ConstStaticCell<[u8; 64]> = ConstStaticCell::new([0; 64]);
 /// Holds the longest downlink stream, so `hal_radio_transmit()` never waits
 const RADIO_TX_LEN: usize = 1024;
 const _: () = assert!(RADIO_TX_LEN >= radio::STREAM_MAX);
@@ -154,7 +157,7 @@ fn bring_up() {
     // Enable and burn lines low first
     gpio::install(
         p.PB4, p.PB5, p.PB6, p.PD2, p.PA1, p.PD3, p.PA2, p.PA3, p.PB7, p.PE2, p.PB8, p.PB9, p.PB10, p.PB11, p.PB12,
-        p.PE3, p.PE4,
+        p.PE3, p.PE4, p.PE5,
     );
     // The XPDR_EN heartbeat's timer (stopped, pin low, until the first lease)
     heartbeat::install();
@@ -179,14 +182,17 @@ fn bring_up() {
     let i2c_cfg = embassy_stm32::i2c::Config::default();
     i2c::install(I2c::new_blocking(p.I2C2, p.PF1, p.PF0, i2c_cfg), I2c::new_blocking(p.I2C4, p.PD12, p.PD13, i2c_cfg));
 
-    let (Ok(jetson), Ok(debug), Ok(tnc)) = (
+    // GNSS receiver NMEA on LPUART1 (PG8 RX / PG7 TX, 9600 baud until the
+    // receiver's ICD says otherwise; pins provisional, gpio.rs)
+    let (Ok(jetson), Ok(debug), Ok(tnc), Ok(gnss)) = (
         BufferedUart::new(p.USART1, p.PA10, p.PA9, JETSON_TX.take(), JETSON_RX.take(), Irqs, uart(115_200)),
         BufferedUart::new(p.USART3, p.PD9, p.PD8, DEBUG_TX.take(), DEBUG_RX.take(), Irqs, uart(115_200)),
         BufferedUart::new(p.USART2, p.PD6, p.PD5, RADIO_TX.take(), RADIO_RX.take(), Irqs, uart(9600)),
+        BufferedUart::new(p.LPUART1, p.PG8, p.PG7, GNSS_TX.take(), GNSS_RX.take(), Irqs, uart(9600)),
     ) else {
         halt()
     };
-    uart::install(jetson, debug);
+    uart::install(jetson, debug, gnss);
     radio::install(tnc);
 
     adc::install(

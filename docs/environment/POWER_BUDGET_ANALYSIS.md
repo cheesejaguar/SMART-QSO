@@ -40,7 +40,10 @@ stuck-on Jetson (failure). The battery is never the limit: the deepest discharge
    and thermal models. Runs: a year at each LTAN of the dispersion (21:30, 22:30, 23:30) with a new array; a year at
    22:30 and 23:30 with the array aged one year at deployment (so the year covers the second year, end of life); a
    year at 23:30, end of life, with the ADCS failed; 14-day runs for the contingencies. Run matrix:
-   `software/simulation/cdr/power_thermal/run_matrix.txt`; analysis: `power_closure.py` beside it.
+   `software/simulation/cdr/power_thermal/run_matrix.txt`; analysis: `power_closure.py` beside it. The year and
+   contingency runs used the simulation as of 2026-10-27 before the battery radiation term was added to the thermal
+   model (SQSO-THA-001 §2.1); that term changes the pack temperature by ≤ 0.4 °C and the energy balance by nothing
+   measurable (the 14-day commissioning run with it: delivered 4.18 W, used 1.40 W, 0 anomalies).
 2. **Generation.** The simulation's array power at the maximum power point (strings' terminals, with harness and
    mismatch 0.97, UV 0.97–0.99, radiation, temperature from the thermal model, albedo and shadowing), time-averaged
    over each 30-day window after LEOP. Delivered to the bus: × 0.97 (blocking diodes) × 0.92 (MPPT) = × 0.892, the
@@ -182,7 +185,7 @@ SOC ≥ 56.7 %, DoD 3.3 %. The same EPS-10 rule applies.
 
 | Stuck load | Power at the pack | Balance in SAFE, EOL | Result |
 |------------|-------------------|----------------------|--------|
-| Jetson rail on (both series switches failed closed) | 8.9 W inferring; ≈ 3.9 W idle | −5.7 W sun-pointed, −7.2 W tumbling (inferring) | Simulated (the module idling, as the flight software never sends it work): SOC 58 % → SAFE at 31.8 h, EMERGENCY at 38.1 h, BMS under-voltage cut at 40.9 h, then 224 brown-out cycles in 14 days. Loss of mission. Mitigation: an independent hardware low-voltage load shed of the payload, PA and heater rails (RID EPS-09) |
+| Jetson rail on (both series switches failed closed) | 8.9 W inferring; ≈ 3.9 W idle | −5.7 W sun-pointed, −7.2 W tumbling (inferring) | Simulated (the module idling, as the flight software never sends it work): SOC 58 % → SAFE at 31.8 h, EMERGENCY at 38.1 h, BMS under-voltage cut at 40.9 h, then 224 brown-out cycles in 14 days. Loss of mission. Mitigation: an independent hardware low-voltage load shed of the payload and PA rails (RID EPS-09) |
 | Heater on (thermostat and switch failed) | 1.3 W | +0.58 W tumbling; −0.38 W with the wings stowed | Survivable except with stowed wings; the +40 °C cutout limits the temperature (THERMAL_ANALYSIS §6.2) |
 | PA keyed continuously (PTT stuck, 0.5 W RF) | 1.67 W | +0.20 W tumbling | Energy-positive; the 120 s hardware key-down timer (BUILD_VS_BUY §3.2) and TX-OFF are the controls |
 | GNSS continuous (0.125 W typical, 0.32 W worst, BASELINE §5 note) | 0.32 W | ACTIVE tumbling +31 % → +16 % | Within margin only at the typical draw; keep it duty-cycled |

@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-BAT-001
-**Version:** 2.1
-**Date:** 2026-10-26
+**Version:** 2.2
+**Date:** 2026-10-27
 **Status:** Battery definition and cycle-life analysis for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-08). **Analysis, not measured; no cell has been bought or tested.**
 
 ---
@@ -147,9 +147,11 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 | Balance Threshold | 50 mV | Version 1.0 |
 | Overcharge Protection | ≤ 4.25 V per cell | BASELINE §5 |
 | Overdischarge Protection | 2.8 V per cell | Above the 2.65 V cut-off of the cell specification's cycle test |
-| Overcurrent Protection | 5 A | Below the cell's 8 A continuous limit; loads draw under 1 A **[trip value assumed]** |
-| Charge temperature window | Charge inhibited below 0 °C and above +45 °C | Cell specification; BASELINE §5; SYS-602 |
-| Discharge temperature window | Discharge cutoff below −10 °C and above +60 °C | Cell specification |
+| Overcurrent Protection | 5 A; short-circuit trip ≤ 200 µs | Below the cell's 8 A continuous limit; peak load 1.8 A (burn wires plus housekeeping, SQSO-PBA-001 v2.0 §5) |
+| Secondary over-voltage protector | 4.35 V/cell, fixed threshold, blows a three-terminal fuse in the charge path | Second, dissimilar overcharge control (SQSO-BSA-001 §3, H1; RID EPS-11) |
+| Charge temperature window | Charge inhibited below 0 °C and above +45 °C, in hardware at the charge regulator's TS input | Cell specification; BASELINE §5; SYS-602 |
+| Pack over-temperature | Both FETs open above +60 °C (hardware comparator) | Cell specification |
+| Low-temperature discharge | **No cut-off.** Discharge below −10 °C is outside the cell specification for performance, not a safety hazard; a cut-off at −10 °C would keep the bus dark after a cold deployment (the pack is at −10 °C after a 2 h cold soak, −16 °C after 3 h; SQSO-THA-001 v2.0 §6.7). The flight software limits the burn current instead (RID EPS-08) | CDR review |
 
 ### 4.2 BMS IC Selection
 
@@ -174,8 +176,8 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 
 | Protection | Implementation |
 |------------|----------------|
-| Fuse | Non-resettable pack fuse plus resettable PTC |
-| Overcharge | BMS + hardware comparator |
+| Fuse | Non-resettable pack fuse F2 (5 A, ≥ 100 A breaking at 32 VDC) plus resettable PTC (hold 2.5 A, trip ≤ 5 A) |
+| Overcharge | Charger CV at 4.10 V/cell, BMS AFE at 4.25 V, secondary protector at 4.35 V with fuse (two-fault tolerant; SQSO-BSA-001 §3) |
 | Overdischarge | BMS + hardware comparator |
 | Overcurrent | PTC + electronic switch |
 | Short Circuit | Electronic switch, < 10 µs response |
@@ -184,9 +186,11 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 ### 5.2 Launch Safety (Inhibits)
 
 BASELINE §4 requires at least three independent physical inhibits for RF and for each deployable (CDS 2.3.7, 2.3.8);
-the remove-before-flight pin and the deployment switches are physical inhibits, and a software timer is not. The
-inhibit schematic is open (finding VV-03). If the ISS/NRCSD backup is used, the JSC 20793 battery requirements apply
-(BASELINE §3).
+the deployment switches are physical inhibits, and the RBF pin and a software timer are not. The inhibit chains and
+their independence are in `docs/hardware/EPS_DESIGN.md` v2.0 §8 (the array path still lacks a third inhibit, RID
+EPS-04). The pack's negative is switched by DS2, so both poles must be isolated from the frame (≥ 1 MΩ at 50 VDC).
+If the ISS/NRCSD backup is used, the JSC 20793 Rev D requirements apply (BASELINE §3); the assessment for both paths
+is `docs/environment/BATTERY_SAFETY_ASSESSMENT.md` (SQSO-BSA-001).
 
 ### 5.3 Passivation
 
@@ -195,7 +199,9 @@ End-of-life passivation per BASELINE §5 and 47 CFR 97.207(g)(1)(iii):
 - Disable all transmitters
 - Leave the battery to discharge through the remaining loads to a permanent discharge state
 
-This function does not yet exist in the EPS design or the flight software (ODAR §4).
+The hardware is defined in `docs/hardware/EPS_DESIGN.md` v2.0 §7 (a one-shot thermal cut-off between the trackers and
+BATT+, fired by two independent series switches on two authenticated commands). The flight software has no command or
+pin for it yet (RID EPS-06).
 
 ---
 
@@ -207,7 +213,7 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 |-----------|-------|-------|
 | Charge Enable | 0 °C to +45 °C | Cell specification; BASELINE §5 |
 | Optimal Charge | +10 °C to +30 °C | Version 1.0 design goal |
-| Discharge Enable | −10 °C to +60 °C | Cell specification |
+| Discharge (specification) | −10 °C to +60 °C | Cell specification; no hardware cut-off below −10 °C (§4.1) |
 | High Temp Cutoff | +60 °C | Cell specification |
 
 ### 6.2 Thermal Interface
@@ -223,7 +229,8 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 | Parameter | Value |
 |-----------|-------|
 | Heater Power | ≈ 1 W at 14.4 V (≈ 200 Ω polyimide film, two elements on different cells), with a hardware over-temperature cutout at about +40 °C and a fuse or current limit (BUILD_VS_BUY §4.3, §4.5) |
-| Activation Temp | Above 0 °C; set point from the thermal model (TB-07) |
+| Activation Temp | Flight software today: on below +2 °C, off above +6 °C. Recommended: **+5/+9 °C** (SQSO-THA-001 v2.0 §6.1: the +2 °C point leaves the pack at +0.1 °C in the simulated commissioning and below 0 °C with a 0.10 W/K mount) |
+| Power at the bus extremes | 0.72 W at 12.0 V, 0.95 W at 14.0 V, 1.30 W at 16.4 V; worst cold case duty 43–59 % (below the 70 % of GSFC-STD-7000B §2.6.4.1) except with the wings stowed (100 %) |
 | Thermostat Type | NTC-based control |
 
 ---
@@ -242,7 +249,7 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 ### 7.2 Wiring
 
 - 20 AWG for power paths
-- Fused at cell level
+- Fused at the pack (one string of four: the pack fuse is the cell fuse)
 - Strain relief at all connections
 - Conformal coating on BMS PCB
 
@@ -268,12 +275,16 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 
 ### 9.1 Cell Acceptance
 
+Screening and lot acceptance follow `docs/environment/BATTERY_SAFETY_ASSESSMENT.md` §4 (JSC 20793 Rev D §4.2.3,
+§6.4.3.3: 100 % visual with the wrap removed, mass, OCV retention, AC and DC resistance, capacity; ±3σ screening with
+lot uniformity OCV < 1 %, mass < 2 %, capacity < 5 %, resistance < 15 %).
+
 | Test | Requirement |
 |------|-------------|
-| Capacity | > 95% rated |
-| IR | < 25 mΩ |
-| OCV | 3.6V ± 0.1V |
-| Matching | Capacity and IR matched across the four flight cells |
+| Capacity | ≥ 3,350 mAh (the specification minimum) and within the lot's ±3σ |
+| AC impedance (1 kHz) | < 25 mΩ and within the lot's ±3σ |
+| OCV retention | 30 days at 50 % SOC, within the lot's ±3σ |
+| Matching | Capacity within 1 %, DC resistance within 5 % across the four flight cells |
 
 ### 9.2 Pack-Level Testing
 
@@ -301,11 +312,12 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 
 | Standard | Compliance |
 |----------|------------|
-| UN 38.3 | Transport certification (planned) |
+| UN 38.3 | Cell summary from the manufacturer; pack tests T1–T5 and T7 on a flight-lot pack (SQSO-BSA-001 §8) |
 | NASA-STD-8719.14 | Orbital debris/passivation (§5.3) |
 | Launch Provider | Battery safety requirements (planned) |
 | IEC 62133 | Safety requirements (planned) |
-| JSC 20793 | Only if the ISS/NRCSD backup is used |
+| JSC 20793 Rev D | Only if the ISS/NRCSD backup is used; assessment in SQSO-BSA-001 |
+| SpaceX Rideshare Payload User's Guide v11 | §6.7.7 inhibit test at the flight state of charge (50 ± 10 %, SQSO-BSA-001 §6); §7.6 powered off at launch |
 
 ### 10.2 Open Decisions
 
@@ -322,3 +334,4 @@ This function does not yet exist in the EPS design or the flight software (ODAR 
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 2.0 | 2026-10-16 | Funding audit (TB-08): 4S1P ≈ 50 Wh pack per BASELINE §5; cell data and cycle-life analysis (§3.3); 0–45 °C charge window; permanent charge-path disconnect for passivation |
 | 2.1 | 2026-10-26 | Charge set point 4.10 V a cell (D8, §3.1, §4.3, §10.2); isolated mount and 1 W heater (§6.2, §6.3, §7.1; BUILD_VS_BUY §4) |
+| 2.2 | 2026-10-27 | CDR review (EPS): secondary over-voltage protector; no low-temperature discharge cut-off; pack over-temperature in hardware; fuse and PTC ratings (§4.1, §5.1); inhibits and passivation point to EPS_DESIGN v2.0 (§5.2, §5.3); heater set points +5/+9 °C recommended (§6.3); screening per SQSO-BSA-001 (§9.1); compliance (§10.1) |

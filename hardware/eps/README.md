@@ -1,6 +1,14 @@
 # Electrical Power Subsystem (EPS) Trade Study
 ## COTS Solutions for 1U CubeSat Power Management
 
+> **CDR review notice (2026-10-27): superseded.** The products and prices below were never sourced and several do not
+> exist ("ISIS iEPS-100", "CubeSpace CubePower"; most vendors' packs are 2S, not 4S; `docs/hardware/BUILD_VS_BUY.md`
+> §2.4, §2.8). The recommendation (GomSpace MPPT, ISIS iBMS, GomSpace PDU) is withdrawn. The decision is to **build**
+> the 4S EPS with ISIS ICEPS2 Type B as the alternate (BUILD_VS_BUY §2.4); the design is
+> `docs/hardware/EPS_DESIGN.md` v2.0 and the power closure `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.0 (EOL
+> orbit average 2.43 W tumbling, 3.93 W sun-pointed, not the "≥ 4 W, 8–10 W sunlit" of §1.2). This file is kept as a
+> record.
+
 ### Executive Summary
 
 This trade study evaluates Commercial Off-The-Shelf (COTS) Electrical Power Subsystem solutions for the SMART-QSO 1U CubeSat mission, analyzing design alternatives against mission requirements for power generation, storage, and management. The study concludes that a modular EPS approach combining specialized components provides optimal performance for the mission's power requirements while meeting mass, volume, and reliability constraints.
@@ -361,3 +369,10 @@ The recommended system configuration balances performance requirements with reso
 *Study Lead: [Name]*  
 *Technical Review: [Name]*  
 *Management Approval: [Name]*
+
+### Revision History
+
+| Rev | Date | Description |
+|-----|------|-------------|
+| — | undated | Trade study (unsourced) |
+| 1 | 2026-10-27 | CDR review notice: superseded by BUILD_VS_BUY §2.4 and EPS_DESIGN v2.0 |

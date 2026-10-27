@@ -60,6 +60,10 @@ def main():
     for name, p in rows:
         print(f"| {name} | {p:.1e} |")
     print(f"| **Total** | **{total:.1e}** (requirement < 1e-3, margin x{1e-3/total:.0f}) |")
+    # Without the dissimilar secondary protector (EPS-11): one latent protection fewer
+    oc2 = LAM_CHARGER * LAM_BMS_OV * t_charge ** 2 / 2.0 * P_CID
+    total2 = total - rows[0][1] + oc2
+    print(f"Without the secondary protector: overcharge {oc2:.1e}, total {total2:.1e} (margin x{1e-3/total2:.1f})")
 
 
 if __name__ == "__main__":

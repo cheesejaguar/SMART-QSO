@@ -2,15 +2,15 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-003
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline — **battery and array interfaces superseded** (see notice)
+**Version:** 1.1
+**Date:** 2026-10-27
+**Status:** CDR Baseline — part table corrected to the 4S bus (CDR review, §2–§3); `docs/hardware/EPS_DESIGN.md` v2.0 governs the architecture
 
-> **Funding audit notice (2026-10-16, finding PI-14).** This design assumes a 2S1P battery, a 2-cell charger and six
-> solar channels. The baseline is a 4S1P battery (14.4 V nominal, 16.8 V full, ≈ 50 Wh; `docs/BASELINE_PARAMETERS.md` §5,
-> `hardware/eps/BATTERY_DESIGN.md`) fed by eight 2-cell strings of ≈ 4.2–4.8 V (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.2),
-> so the MPPT must boost and the charger must handle four series cells, with charging inhibited outside 0–45 °C. The
-> part selections in §2.1 must be redone for that configuration.
+> **CDR review (2026-10-27).** The funding-audit notice of 2026-10-16 (2S battery, 2-cell charger, six solar channels
+> superseded) is acted on here: §2.1, §2.2 and §3.2 now carry the 4S configuration of `docs/hardware/EPS_DESIGN.md`
+> v2.0 (eight strings on four trackers, a 4S CC/CV charger with power path at 4.10 V/cell, VBAT-rated switches, a
+> secondary over-voltage protector). Every part is a candidate class, not a selection; the thermal (§7) and EMC (§8)
+> sections are superseded by SQSO-THA-001 v2.0 and SQSO-EMC-001.
 
 ---
 
@@ -26,19 +26,22 @@ This document specifies the electrical design requirements for the SMART-QSO EPS
 
 | Block | Components | Notes |
 |-------|------------|-------|
-| Solar array input | Schottky diodes, TVS | 6 channels, OR'd |
-| MPPT controller | BQ25570 or equiv | Per channel |
-| Battery interface | Connector, fuse | 2S1P Li-ion |
-| Charge controller | BQ25883 or equiv | 2-cell |
+| Solar array input | Blocking diode (or ideal diode) per string, TVS per tracker with standoff ≥ 7 V | 8 strings, 3.5–6.4 V, ≤ 0.55 A each; string Voc reaches 6.31 V at −45 °C |
+| MPPT / charge regulator | 4S buck-boost charger with MPPT, TS input and power path (BQ25798 class) or boost stages into one 4S CC/CV regulator | Four trackers (EPS_DESIGN §3.2); CC ≤ 0.40 A, CV 16.40 V ± 0.5 %; charge only 0 … +45 °C in hardware |
+| Battery interface | Micro-Fit power, Pico-Clasp cell taps, pack fuse F2 5 A, PTC | 4S1P Li-ion |
+| BMS | 4S AFE (BQ76920 class) + secondary OVP (BQ7718 class) with a three-terminal fuse | SQSO-BSA-001 §3 |
+| EOL disconnect | One-shot thermal cut-off with heater, two series fire switches | EPS_DESIGN §7 |
 
 ### 2.2 Power Distribution Section
 
 | Block | Components | Notes |
 |-------|------------|-------|
-| 3.3V regulator | TPS62840 or equiv | High efficiency |
-| 5V regulator | TPS62082 or equiv | For Jetson |
-| Load switches | TPS22918 or equiv | Per load |
-| Current sensing | INA219 or equiv | Per rail |
+| 3V3_AO regulator | Synchronous buck, input ≥ 25 V | Always on |
+| 5V_PA regulator | Synchronous buck, input ≥ 25 V | PA only |
+| Jetson supply | eFuse (TPS25947 class) from VBAT; converter on the carrier | EMC rule E3 |
+| Load switches | TPS22918 on 3.3/5 V; ≥ 25 V high-side switches on VBAT (TPS1H100 class) | EPS_DESIGN §5 |
+| Low-voltage load shed | Comparator with hysteresis, 13.6/14.4 V, 5 s filter, gating SW1 and SW3 | EPS_DESIGN §6 |
+| Current sensing | INA226 or equivalent | Battery, array per tracker, Jetson, PA |
 
 ### 2.3 Control and Telemetry Section
 
@@ -74,18 +77,21 @@ This document specifies the electrical design requirements for the SMART-QSO EPS
 
 ### 3.2 Key Components
 
-| Component | Primary | Alternate | Qty |
-|-----------|---------|-----------|-----|
-| MPPT IC | BQ25570 | SPV1040 | 6 |
-| Battery charger | BQ25883 | LTC4162 | 1 |
-| 3.3V regulator | TPS62840 | LT3042 | 1 |
-| 5V regulator | TPS62082 | LM2775 | 1 |
-| Load switch | TPS22918 | SIP32431 | 6 |
-| Current monitor | INA219 | INA226 | 4 |
-| Temp sensor | TMP117 | ADT7422 | 2 |
+| Component | Candidate class | Alternate | Qty |
+|-----------|-----------------|-----------|-----|
+| MPPT / 4S charger | TI BQ25798 (1–4S, 3.6–24 V input, MPPT, power path) | Boost stages + LTC4162-class 4S charger | 2–4 |
+| BMS AFE | TI BQ76920 | Analog Devices LTC6811-class | 1 |
+| Secondary OVP | TI BQ7718 class (fixed threshold) + three-terminal fuse | — | 1 |
+| 3V3_AO buck | 25 V-input synchronous buck, ≥ 0.6 A | — | 1 |
+| 5V_PA buck | 25 V-input synchronous buck, ≥ 1.2 A | — | 1 |
+| Load switch, 3.3/5 V | TPS22918 | SIP32431 | 4 |
+| Load switch, VBAT | TPS1H100 class | — | 3 |
+| eFuse (Jetson) | TPS25947 class | — | 1 |
+| Current monitor | INA226 | INA219 | 6 |
+| Temp sensor | TMP117 (board), 10 kΩ NTC (pack, two) | ADT7422 | 2 + 2 |
 | GPIO expander | PCA9555 | MCP23017 | 1 |
-| Schottky diode | PMEG3010CEH | STPS2L40U | 12 |
-| TVS diode | SMBJ6.0A | 1SMB5.0AT3G | 8 |
+| Blocking diode | PMEG3010CEH | STPS2L40U | 8 |
+| TVS, string input | SMBJ7.0A (was SMBJ6.0A: below the 6.31 V cold string Voc) | — | 4 |
 
 ### 3.3 Passive Components
 
@@ -308,3 +314,4 @@ Total:             ~1.6mm
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.0a | 2026-10-16 | Funding audit notice: battery and array interfaces superseded by BASELINE §5 (PI-14) |
+| 1.1 | 2026-10-27 | CDR review (EPS): §2.1, §2.2, §3.2 corrected to the 4S design of EPS_DESIGN v2.0 (trackers, 4S charger, secondary OVP, VBAT switches, load shed, EOL disconnect; string TVS 7.0 V); §7–§8 superseded by SQSO-THA-001 v2.0 and SQSO-EMC-001 |

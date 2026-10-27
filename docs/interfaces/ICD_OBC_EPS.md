@@ -1,9 +1,10 @@
 # Interface Control Document: OBC-EPS
 
 **Document Number**: SMART-QSO-ICD-001
-**Version**: 1.0
-**Date**: 2026-01-02
-**Status**: Preliminary
+**Version**: 1.1
+**Date**: 2026-10-27
+**Status**: Preliminary. Electrical values corrected to the 4S EPS of `docs/hardware/EPS_DESIGN.md` v2.0 (CDR review);
+the register block 0x00–0x33 is the one the flight software reads (`sqso_fsw::eps_telemetry`) and is unchanged
 
 ---
 
@@ -28,8 +29,8 @@ This document covers:
 +----------------+                    +------------------+
 |                |      I2C Bus       |                  |
 |      OBC       |<------------------>|       EPS        |
-| (STM32L4/      |     SCL/SDA        |   Board          |
-|  Apollo4)      |                    |                  |
+| (STM32L4R5)    |     SCL/SDA        |   Board          |
+|                |                    |                  |
 |                |     Load Switch    |   +----------+   |
 |                |------------------->|   | Battery  |   |
 |                |     Control GPIO   |   +----------+   |
@@ -73,7 +74,7 @@ This document covers:
 | Mode | Standard/Fast |
 | Clock Speed | 100 kHz (default) |
 | Address Mode | 7-bit |
-| EPS Address | 0x48 |
+| EPS Address | 0x48 (the OBC design's TMP117 also uses 0x48 on I2C2: finding F10 of SQSO-HW-DIAG-001; move the TMP117 to 0x49) |
 | Battery Monitor Address | 0x55 |
 | Solar Monitor Address | 0x40 |
 
@@ -85,19 +86,25 @@ This document covers:
 
 | Rail | Voltage | Current Max | Purpose |
 |------|---------|-------------|---------|
-| 3.3V_OBC | 3.3V ±5% | 200 mA | OBC logic |
-| 5V_BUS | 5.0V ±5% | 3.0 A | Jetson payload |
-| 3.3V_RF | 3.3V ±5% | 500 mA | RF subsystem |
-| VBATT | 6.0-8.4V | 2.0 A | Raw battery |
+| 3V3_AO | 3.3 V ±3 % | 0.30 A (converter ≥ 0.6 A) | OBC, FRAM, receiver path, ADCS, GNSS |
+| 5V_PA | 5.0 V ±3 % | 0.54 A (switch trip 1.0 A) | PA only |
+| VBAT_JET | VBAT through the eFuse | 0.93 A (eFuse 1.2 A) | Jetson carrier |
+| VBAT | 11.2–16.4 V (16.8 V abs max) | 1.8 A peak | Raw battery bus: heater, burn wires, converters |
 
 ### 3.2 Load Switch Control
 
-| Load | GPIO Pin | Active | Max Current |
-|------|----------|--------|-------------|
-| Payload (5V) | LOAD_EN_1 | High | 3.0 A |
-| RF System | LOAD_EN_2 | High | 500 mA |
-| Heater | LOAD_EN_3 | High | 200 mA |
-| ADCS | LOAD_EN_4 | High | 100 mA |
+| Load | Enable (firmware pin) | Active | Max Current |
+|------|-----------------------|--------|-------------|
+| Payload (Jetson) | PAYLOAD_EN (PB4) on SW1 and JETSON_PWR (PA2) on the eFuse | High | 1.2 A at VBAT |
+| Radio (RX, TNC, exciter) | RADIO_EN (PB5) | High | 0.25 A at 3.3 V |
+| PA (hardware TX-OFF) | RF_TX_EN (PA3) | High | 1.0 A at 5 V |
+| ADCS | ADCS_EN (PB6) | High | 0.3 A at 3.3 V |
+| Heater | HEATER_EN (PD2) | High | 0.15 A at VBAT |
+| Deployment | DEPLOY_EN (PA1) | High | 2.0 A at VBAT |
+| GNSS | GNSS_EN (pin to be assigned; PE4 is XPDR_EN) | High | 0.15 A at 3.3 V |
+
+Every enable has a pull-down; SW1 and SW3 are also gated by the EPS's hardware low-voltage load shed
+(EPS_DESIGN §6).
 
 ### 3.3 Power Sequencing
 
@@ -187,6 +194,18 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 
 ---
 
+### 4.6 Extended Registers (added at CDR; the flight software does not read them yet)
+
+| Register | Address | R/W | Size | Description |
+|----------|---------|-----|------|-------------|
+| VCELL1–4 | 0x70–0x77 | R | 4 × 2 | Cell voltages (mV) |
+| TBATT2 | 0x78 | R | 2 | Second pack temperature (0.1 °C) |
+| CHG_INHIBIT | 0x7A | R | 1 | Charge-inhibit cause: bit 0 cold, 1 hot, 2 cell OV, 3 BMS fault, 4 secondary protector blown |
+| LOAD_SHED | 0x7B | R | 1 | Hardware low-voltage load shed active (bit 0), SW1/SW3 fault flags (bits 1–2) |
+| EOL_STATE | 0x7C | R | 1 | Passivation: bit 0 armed, bit 1 fired (charge path open) |
+| PTRACK1–4 | 0x80–0x87 | R | 4 × 2 | Tracker input power (mW) |
+| IHEATER | 0x88 | R | 2 | Heater current (mA) |
+
 ## 5. Data Formats
 
 ### 5.1 Voltage Format
@@ -194,7 +213,7 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 16-bit unsigned, LSB first, units of millivolts (mV)
 
 ```
-Example: VBATT = 0x1F40 = 8000 mV = 8.0V
+Example: VBATT = 0x3A98 = 15000 mV = 15.0 V (4S pack at about 55 % SOC)
 ```
 
 ### 5.2 Current Format
@@ -302,7 +321,7 @@ BV=<vbatt>V,BI=<ibatt>mA,BT=<tbatt>C,SOC=<soc>%,SV=<vsolar>V,SI=<isolar>mA
 
 Example:
 ```
-BV=7.8V,BI=-500mA,BT=22.5C,SOC=68%,SV=9.2V,SI=450mA
+BV=15.6V,BI=-80mA,BT=12.5C,SOC=72%,SV=4.6V,SI=450mA
 ```
 
 ---
@@ -395,3 +414,4 @@ When Alert GPIO is asserted:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-27 | CDR review (EPS) | 4S values: rails, VBAT range, load switches and limits (§3.1, §3.2), examples (§5.1, §7.3); OBC named STM32L4R5; I²C address conflict noted (§2.3); extended registers proposed (§4.6) |

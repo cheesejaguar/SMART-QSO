@@ -2,8 +2,8 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-003
-**Revision:** B
-**Date:** 2026-10-15
+**Revision:** B.1
+**Date:** 2026-10-27
 **Status:** Decisions D1–D3 taken (§8) — not legal advice; confirm with FCC Space Bureau staff before filing
 **Baseline:** [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md)
 
@@ -49,7 +49,7 @@ pre-space notification deadline (see the [Regulatory Roadmap](REGULATORY_ROADMAP
 | C3 | No communications on behalf of an employer, and no sale of services or data. | [R1] 97.113(a)(3); [R4] p.1 | All telemetry, beacon formats and AI outputs are published openly (BEACON_SPEC, ICD_SPACE_GROUND). No exclusive data rights to any funder. |
 | C4 | Nothing transmitted from the spacecraft is encoded to obscure its meaning; decoding information is published. | [R1] 97.113(a)(4); [R5] RR 25.2A; [R4] form §6 | Downlinks are plain AX.25/AFSK or FM. Formats are published before launch (IARU form item 6.1). |
 | C5 | Only telecommand stations designated by the licensee may initiate, modify or terminate spacecraft functions. They may use codes that obscure command content (authentication/encryption of telecommand only). | [R1] 97.3(a)(45), 97.211(a)-(b) | Telecommand uplink is authenticated (HMAC with replay counter) from designated stations only. **Public uplinks, including federated-learning model contributions, are user data, not telecommand.** No public uplink may change spacecraft mode, RF state or power without an authenticated command from a designated station. |
-| C6 | Capability to cease transmissions by telecommand whenever ordered by the FCC; sufficient command stations in place before launch. | [R1] 97.207(b); [R5] RR 22.1, 25.11 | A hardware-enforced TX-OFF command path that does not depend on the AI payload or application software. At least two geographically separate telecommand stations at launch. See IARU request item 7.8/7.9. |
+| C6 | Capability to cease transmissions by telecommand whenever ordered by the FCC; sufficient command stations in place before launch. | [R1] 97.207(b); [R5] RR 22.1, 25.11 | A TX-OFF telecommand, executed by the on-board computer's flight software, which removes PA power through a hardware switch and latches the state; it does not depend on the AI payload or the transponder (`docs/hardware/RF_DESIGN.md` v2.0 §3.5). At least two geographically separate telecommand stations at launch (none agreed yet). See IARU request item 7.8/7.9. |
 | C7 | Operations stay within 144–146 MHz / 435–438 MHz and Part 97 emission standards (no non-amateur TT&C). | [R1] 97.207(c), 97.307 | Federal-band TT&C removed from baseline. |
 | C8 | Orbital debris disclosures meet 97.207(g)(1)(i)–(vii), including re-entry no later than **5 years after mission completion** with ≥ 0.9 disposal success probability, and casualty risk < 1:10,000 (DAS). | [R1] 97.207(g)(1)(vii)(D) | [ODAR](filings/ODAR_SMART-QSO.md). The deployment altitude is selected in the [launch trade](../funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md) so that passive decay closes. |
 
@@ -127,3 +127,4 @@ Is AI beacon text affected if the AI experiment is also a contract deliverable?
 |-----|------|-------------|
 | A | 2026-10-14 | Initial determination (funding audit) |
 | B | 2026-10-15 | Decisions D1–D3 recorded; §7.1 paid-contract terms (D2) |
+| B.1 | 2026-10-27 | C6 describes the TX-OFF path accurately (executed by the OBC flight software through a hardware PA switch; there is no path independent of the OBC); telecommand stations still to be agreed (CDR review, communications panel) |

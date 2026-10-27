@@ -19,7 +19,7 @@ use crate::c::rc;
 use crate::cell::Global;
 use crate::{os, ptr, time};
 
-const GPIO_PIN_COUNT: usize = 17;
+const GPIO_PIN_COUNT: usize = 18;
 const GPIO_DIR_INPUT: u32 = 0;
 const GPIO_DIR_OUTPUT: u32 = 1;
 /// `GPIO_PIN_XPDR_EN`, the heartbeat pin
@@ -27,7 +27,7 @@ const GPIO_PIN_XPDR_EN: u32 = 16;
 /// `HAL_GPIO_HEARTBEAT_HZ`: the wave's half period, µs
 const HEARTBEAT_HALF_PERIOD_US: u64 = 1_000_000 / (2 * 100);
 const I2C_BUS_COUNT: usize = 2;
-const UART_PORT_COUNT: usize = 2;
+const UART_PORT_COUNT: usize = 3;
 const UART_PORT_DEBUG: u32 = 1;
 const SPI_BUS_COUNT: usize = 2;
 const ADC_CHANNEL_COUNT: usize = 10;
@@ -231,7 +231,7 @@ static SIM: Global<Sim> = Global::new(Sim {
         I2cDevice { addr: I2C_ADDR_SOLAR_MONITOR, registers: [0; 256] },
     ],
     uart_initialized: [false; UART_PORT_COUNT],
-    uart_rx: [Fifo::EMPTY, Fifo::EMPTY],
+    uart_rx: [Fifo::EMPTY, Fifo::EMPTY, Fifo::EMPTY],
     spi_initialized: [false; SPI_BUS_COUNT],
     adc_initialized: false,
     adc_values: ADC_VALUES,

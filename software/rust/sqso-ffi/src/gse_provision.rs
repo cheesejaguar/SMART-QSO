@@ -63,7 +63,10 @@ pub unsafe extern "C" fn gse_process_frame(frame: *const u8, len: usize) -> u32 
             let silence = unsafe { c::rf_silence_arm() };
             // SAFETY: no arguments
             let deploy = unsafe { c::deployment_arm() };
-            (gse::op::ARM_FLIGHT, if deploy == rc::OK { silence } else { rc::IO })
+            // And the commissioning hold: no ACTIVE, payload or transponder
+            // until the ground releases it (LV-01)
+            let hold = crate::ops_state::ops_set_commissioning_hold(true);
+            (gse::op::ARM_FLIGHT, if deploy == rc::OK && hold == rc::OK { silence } else { rc::IO })
         }
     };
     let ok = result == rc::OK;

@@ -176,6 +176,11 @@ pub unsafe extern "C" fn adcs_get_telemetry(telemetry: *mut Telemetry) -> i32 {
     }
 }
 
+/// Magnetometer samples rejected since init (coils on or not settled)
+pub fn mag_rejected() -> u32 {
+    ADCS.with(|m| m.adcs.mag_rejected).unwrap_or(0)
+}
+
 /// Whether the detumble completed
 #[unsafe(no_mangle)]
 pub extern "C" fn adcs_is_detumbled() -> bool {

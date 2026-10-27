@@ -11,6 +11,11 @@
 - ITU Radio Regulations Nos. 1.56, 1.57, 22.1, 25.2A, 25.11
 - IARU Amateur Satellite Frequency Coordination Request, form v40
 - Cal Poly CubeSat Design Specification (CDS) Rev 14.1 §2.3.7 (RF inhibits), §2.4.5 (45-minute RF silence)
+- NPR 7123.1D Appendix G (CDR entrance and success criteria, tailored for a Class D CubeSat); GSFC-STD-7000B §2.5
+  (EMC; the self-compatibility tests of VI-RF-06 and VI-RF-07 stand in for its radiated-emissions and susceptibility
+  tests at the receive bands)
+- SpaceX Rideshare Payload User's Guide v11 (interim provider document): payload unpowered and RF silent through
+  launch and deployment; the integrator ICD replaces it when signed
 - Link budget: [LINK_BUDGET_ANALYSIS.md](../environment/LINK_BUDGET_ANALYSIS.md) (SQSO-LBA-001 v3.0)
 - Interfaces: [ICD_OBC_RF.md](../interfaces/ICD_OBC_RF.md) (SQSO-ICD-003 v2.0),
   [TELECOMMAND_AUTHENTICATION.md](../interfaces/TELECOMMAND_AUTHENTICATION.md) (SQSO-ICD-013)

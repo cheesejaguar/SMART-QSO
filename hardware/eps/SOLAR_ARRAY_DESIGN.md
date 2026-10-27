@@ -2,8 +2,8 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-SA-001
-**Version:** 2.0
-**Date:** 2026-10-16
+**Version:** 2.1
+**Date:** 2026-10-27
 **Status:** Controlled array layout and power-versus-attitude table for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-14). **Analysis, not measured.** Other documents that state array power should cite §3 and §9 of this document.
 
 ---
@@ -23,7 +23,7 @@ is 30 cm²; 50 cm² of 30 % cells can deliver at most 1361 W/m² × 0.0050 m² �
 |-------------|-------|--------|
 | EOL orbit-average generation | 2.39 W tumbling, 3.58 W sun-pointed (audit estimate) | BASELINE §5; reproduced and qualified in §9 |
 | Array | 16 triple-junction cells: 2 on each of the 4 long body faces, 2 per side on 2 deployable 1U-face wings | BASELINE §5 |
-| Battery bus | 4S Li-ion, 14.4 V nominal, 16.8 V at 4.20 V/cell | BASELINE §5; `hardware/eps/BATTERY_DESIGN.md` |
+| Battery bus | 4S Li-ion, 14.4 V nominal, 16.4 V at the 4.10 V/cell charge set point (D8), 16.8 V absolute maximum | BASELINE §5; `hardware/eps/BATTERY_DESIGN.md` |
 | Operating temperature | -40°C to +85°C | Cell qualification range to be confirmed with the supplier |
 | Deployment | Body-mounted plus two deployable wings, ≥ 30 min after deployment-switch release | BASELINE §4 |
 | Design life | 2 years on orbit | BASELINE §2 |
@@ -115,7 +115,7 @@ assumes. Antenna locations must be checked against the wings in the mechanical l
 | String Vmp | 4.82 V at BOL and 28 °C; 4.24 V at 5E13 and 60 °C (2 × 2,121.6 mV, §9.1) |
 | String Imp | 0.50 A |
 | String protection | Blocking diode (or ideal-diode switch) per string; bypass diode per cell (on the assembly) |
-| Conversion | The string voltage (≈ 4.2–4.8 V) is below the 12.0–16.8 V battery, so the MPPT stage must boost **[assumption carried to the EPS design]** |
+| Conversion | The string voltage (3.9 V hot EOL to 6.3 V open-circuit at a −45 °C sunrise) is below the 11.2–16.4 V bus: boost trackers, four of them (wing fronts; +Y body; wing backs; ±X and −Y bodies), because a hot wing string and a cooler body string on one tracker lose 2.7–3.9 % (`docs/hardware/EPS_DESIGN.md` v2.0 §3) |
 
 ### 3.3 Total Array Summary
 
@@ -145,7 +145,7 @@ Sections 4–8 and 10 carry Version 1.0 design values that have no source yet, e
 
 ### 4.2 String Wiring
 
-- 26 AWG radiation-resistant wire (PTFE/Kapton)
+- 24 AWG radiation-resistant wire (PTFE/Kapton): a string's Isc reaches 0.55 A (1414 W/m², hot), above the 0.5 A that 26 AWG carries with the 50 % derating of SQSO-HAR-001 §5.2
 - Strain relief at all connection points
 - Harness routing per ICD
 
@@ -193,8 +193,10 @@ Sections 4–8 and 10 carry Version 1.0 design values that have no source yet, e
 | Condition | Temperature | Duration |
 |-----------|-------------|----------|
 | Sunlit peak | +85°C max | Continuous |
-| Sunlit operating, used in §9 | +60°C | **[assumption; replace with the thermal model, TB-07]** |
-| Eclipse | -40°C min | Up to 35.8 min per orbit (β = 0, 500 km) |
+| Predicted, wings (SQSO-THA-001 v2.0 §4) | −45 … +83 °C (cold-soak LEOP to the hottest real orbit, LTAN 21:30) | The panel vendor's qualification must cover −56 … +93 °C (10 °C model margin; RID THM-05) |
+| Predicted, body panels | −23 … +52 °C | |
+| Used in §9 | +60 °C | Conservative against the predictions: the mission simulation, with the thermal model's temperatures, gives about 10 % more (§9.5) |
+| Eclipse | -40°C min | Up to 36.1 min per orbit (β = 2.4°, LTAN 23:30) |
 | Thermal cycling | ≈ 5,560 cycles/yr (one per orbit at 500 km) | 2 years |
 
 ### 7.2 Thermal Expansion
@@ -296,6 +298,16 @@ The "no shadowing" column reproduces BASELINE §5 (2.39 W tumbling, 3.58 W sun-p
 | Both wings stowed, tumbling | 1.20 W | 1.80 W | −34 % | Not met |
 | Both wings stowed, transponder and Jetson off | 1.20 W | 1.00 W (housekeeping 0.70, GNSS 0.05, receiver 0.15, beacon 0.10) | +20 % | Met (at the limit) |
 
+### 9.5 Simulated Generation (CDR)
+
+The mission simulation (`software/rust/sqso-sil`, same cell data, shadowing and degradation, with the thermal model's
+cell temperatures and albedo) gives, at end of life in the worst 30 days of a year, at the string terminals (MPP) and
+delivered to the bus (× 0.97 diode × 0.92 MPPT): sun-pointed 4.41 W / **3.93 W**; free tumble (ADCS failed) 2.72 W /
+**2.43 W**; wings stowed 1.65 W / 1.47 W (`docs/environment/POWER_BUDGET_ANALYSIS.md` v2.0 §4). The §9.3 values
+are bounds: their 60 °C cell temperature is about 10 % pessimistic for the body cells and they omit albedo (≈ 5 %).
+With the simulated values the tumbling margin is +32 % against the 1.80 W allocation, and finding 1 below is closed
+(POWER_BUDGET_ANALYSIS §9).
+
 Findings for the power budget (TB-02), reported rather than changed here:
 
 1. With self-shadowing the tumbling margin falls below the 20 % requirement. Either the tumbling Jetson and transponder
@@ -344,3 +356,4 @@ Findings for the power budget (TB-02), reported rather than changed here:
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 2.0 | 2026-10-16 | Funding audit (TB-14): one array layout (§3.1), cell data from the AZUR SPACE datasheet, power-versus-attitude table with the calculation shown (§9); the 19.4 W all-cells total withdrawn |
+| 2.1 | 2026-10-27 | CDR review (EPS): bus at the 4.10 V/cell set point (§1.1); four trackers (§3.2); 24 AWG string wire (§4.2); predicted panel temperatures (§7.1); simulated generation and the tumbling margin closed (§9.5) |

@@ -370,25 +370,26 @@ def main():
         d_th = (mat["alpha"] - TI64["alpha"]) * dT * clamp_len * k_ser
         creep_strain = 0.002 if "PEEK" in name else 0.0005   # 2-year creep at ~10 MPa: PEEK, G-10CR
         d_cr = creep_strain * clamp_len * k_ser
-        for torque, lab in ((0.20, "0.20 N m"), (0.40, "0.40 N m")):
-            joint(f"Battery isolator {name}, Ti M2.5 {lab}, no disc spring", 2.5e-3, torque, 0.15, 0.25, Fa, True,
-                  dthermal=d_th, creep=d_cr)
-        # with a disc spring (k = 1.5e5 N/m) in the stack: the loss scales with the softer stack
-        k_ser2 = 1 / (1 / k_s + 1 / k_b + 1 / 1.5e5)
-        joint(f"Battery isolator {name}, Ti M2.5 0.40 N m, with disc spring", 2.5e-3, 0.40, 0.15, 0.25, Fa, True,
-              dthermal=d_th * k_ser2 / k_ser, creep=d_cr * k_ser2 / k_ser)
+        K_DISC = 2.0e6     # N/m: an M2.5 disc spring (or two in series) rated >= 600 N flat
+        for torque in (0.12, 0.30):
+            joint(f"Battery isolator {name}, Ti M2.5 {torque:.2f} N m, no disc spring", 2.5e-3, torque, 0.15, 0.25, Fa,
+                  True, dthermal=d_th, creep=d_cr)
+        k_ser2 = 1 / (1 / k_s + 1 / k_b + 1 / K_DISC)
+        for torque in (0.12, 0.30):
+            joint(f"Battery isolator {name}, Ti M2.5 {torque:.2f} N m, with disc spring", 2.5e-3, torque, 0.15, 0.25,
+                  Fa, True, dthermal=d_th * k_ser2 / k_ser, creep=d_cr * k_ser2 / k_ser)
         R.setdefault("isolator_loss", {})[name] = {"k_series": k_ser, "thermal_N": d_th, "creep_N": d_cr,
                                                    "k_series_disc": k_ser2,
                                                    "thermal_N_disc": d_th * k_ser2 / k_ser,
                                                    "creep_N_disc": d_cr * k_ser2 / k_ser}
-        # shoulder bearing at max preload
-        Pmax = 1.05 * 1.25 * 0.40 / (0.15 * 2.5e-3)
-        s = (Pmax + Fa) / bres[name]["A_shoulder"]
-        ms(f"Isolator shoulder bearing ({name}) at max preload + tension", s,
-           mat["Fc"], FS_U_COMPOSITE, "ult")
-        if "PEEK" in name:
-            print(f"    PEEK long-term bearing stress at nominal preload "
-                  f"{0.40/(0.15*2.5e-3)/bres[name]['A_shoulder']/1e6:.1f} MPa vs creep allowable 20 MPa")
+        # shoulder bearing at maximum preload (0.12 N m) plus the tension
+        for torque in (0.12, 0.30):
+            Pmax = 1.05 * 1.25 * torque / (0.15 * 2.5e-3)
+            s_b = (Pmax + Fa) / bres[name]["A_shoulder"]
+            ms(f"Isolator shoulder bearing ({name}), {torque:.2f} N m max preload + tension", s_b,
+               mat["Fc"], FS_U_COMPOSITE, "ult")
+            print(f"    long-term bearing stress at nominal preload {torque/(0.15*2.5e-3)/bres[name]['A_shoulder']/1e6:.1f}"
+                  f" MPa (PEEK creep allowable ~20 MPa)")
     R["joints"] = joints
 
     # 6. venting ---------------------------------------------------------------------------

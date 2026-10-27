@@ -49,6 +49,8 @@ pub mod pin {
     pub const TX_PWR_SEL: u32 = 15;
     /// FM transponder enable (output)
     pub const XPDR_EN: u32 = 16;
+    /// GNSS receiver load switch (output)
+    pub const GNSS_EN: u32 = 17;
 }
 
 /// `hal_adc.h` channels
@@ -266,6 +268,12 @@ impl Fsw {
     pub fn uplink(&self, frame: &[u8]) -> bool {
         // SAFETY: frame is a live slice
         self.running() && unsafe { hal_sim::hal_sim_radio_inject(frame.as_ptr(), frame.len()) } == 0
+    }
+
+    /// NMEA bytes from the GNSS receiver (`UART_PORT_GNSS`)
+    pub fn gnss_bytes(&self, bytes: &[u8]) -> bool {
+        // SAFETY: bytes is a live slice
+        self.running() && unsafe { hal_sim::hal_sim_uart_inject(2, bytes.as_ptr(), bytes.len()) } == 0
     }
 
     /// Bytes arriving on the umbilical (GSE) port

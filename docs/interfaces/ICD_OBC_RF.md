@@ -71,7 +71,7 @@ the signal list the connector must carry.
 | TX_FWD | RF→OBC | PC0 (ADC1 IN1) | 0–2.5 V, square law, 2.5 V at 1 W | — | `downlink_poll()` |
 | TX_REV | RF→OBC | PC1 (ADC1 IN2) | as TX_FWD | — | VSWR 3:1 (reflected > ¼ forward) on 3 samples: cap 0.5 W; at 0.5 W, stop 10 min |
 
-The ADC scalings are those in `software/rust/firmware/src/adc.rs` and stay open (TBR in the code) until the detector
+The ADC scalings are those in `software/rust/firmware/src/adc.rs` and stay open (flagged for review in the code) until the detector
 and sensor parts are selected.
 
 ### 4.3 Readbacks (allocated, not yet wired to the OBC)

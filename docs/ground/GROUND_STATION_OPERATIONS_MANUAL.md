@@ -1,10 +1,10 @@
 # SMART-QSO Ground Station Operations Manual
 
 **Document ID**: SQSO-GSOM-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: CDR draft for the designated telecommand stations (none agreed yet; `docs/ground/GROUND_STATION_DESIGN.md` Rev C). Frequencies are planning values until the IARU letter. Command procedures follow SQSO-ICD-013, which governs.
 
 ## 1. Purpose
 
@@ -38,10 +38,12 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
 | Equipment | Model | Purpose |
 |-----------|-------|---------|
 | VHF Antenna | M2 2MCP22 | 145 MHz receive |
-| UHF Antenna | M2 436CP30 | 435 MHz transmit |
+| UHF Antenna | M2 436CP30 class | 435 MHz transmit (≤ 50 W PEP; 47 CFR 2.106 US270 near Beale AFB) |
 | Rotator | Yaesu G-5500 | Antenna pointing |
 | LNA | SSB SP-2000 | Low noise amplifier |
-| Radio | Icom IC-9700 | Transceiver |
+| Radio | Icom IC-9700 class, satellite (full-duplex) mode | Transceiver |
+| Offline key machine | Laptop without network, or hardware token | Holds the operational key; builds command frames (SQSO-ICD-013 §9) |
+| Time reference | GNSS or NTP checked against GNSS | ±1 s (UTC-derived counters, SQSO-ICD-013 §5.2.1) |
 | TNC | Direwolf (software) | Packet modem |
 | Computer | Linux workstation | Control & decode |
 
@@ -109,14 +111,17 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
 
 ```
 □ 8. Configure receive frequency
-     □ Set to 145.XXX MHz (downlink)
-     □ Enable Doppler correction in Gpredict
+     □ Set to the coordinated downlink (planning value 145.900 MHz, FM wide, 25 kHz filter)
+     □ Enable Doppler correction in Gpredict (±3.5 kHz over the pass)
      □ Verify radio follows Doppler commands
 
 □ 9. Configure transmit (if commanding)
-     □ Set to 435.XXX MHz (uplink)
-     □ Verify TX power setting (50W)
+     □ Set to the coordinated uplink (planning value 435.500 MHz), Doppler pre-correction ON (±10.4 kHz over the
+       pass; the uplink must be within ±1 kHz at the spacecraft or nothing decodes, SQSO-LBA-001 §4.4)
+     □ Verify TX power ≤ 50 W PEP; deviation ±3.0 kHz (VI-GND-01)
      □ Verify PTT interface connected
+     □ Verify station clock against GNSS (±1 s)
+     □ Command frames for this pass built on the offline key machine, counters reserved (SQSO-ICD-013 §5.2)
 
 □ 10. Final verification
       □ Audio levels nominal
@@ -288,53 +293,57 @@ The telemetry display shows current spacecraft health:
 ### 7.1 Command Authorization
 
 **ALL COMMANDS REQUIRE**:
-- [ ] Written authorization from Mission Director
-- [ ] Two certified operators on console
-- [ ] Command procedure reviewed
-- [ ] Backup plan documented
+- [ ] The command on the pass plan approved by the licensee (or a standing plan, for routine `NOP`/`GET_STATUS`)
+- [ ] A licensed control operator at the station (97.211(a))
+- [ ] Frames built from the command dictionary (SQSO-ICD-013 §7) with `telecommand_builder.py`, each with a new counter
+- [ ] For `KEY_ROTATE` or passivation: the recovery-key custodian present (two-person rule)
 
 ### 7.2 Command Procedure
 
 ```
 COMMAND EXECUTION PROCEDURE
 
-1. VERIFY authorization
-   □ Command in authorized list
-   □ Two operators present
-   □ Pass duration sufficient
+1. PREPARE (offline machine, before the pass)
+   □ Read the counter file for the active key (or compute UTC-derived counters, ICD-013 §5.2.1)
+   □ Build each frame: telecommand_builder.py <CMD> --key-file <op.key> --counter-file <file> --kiss
+   □ The builder reserves (writes and fsyncs) the counter BEFORE producing the frame
+   □ Copy the frames (not the key) to the station computer
 
-2. PREPARE command
-   □ Open command interface
-   □ Enter command
-   □ Operator 1: Read back command
-   □ Operator 2: Confirm command
+2. WAIT FOR CONFIRMATION THE SPACECRAFT IS HEARD
+   □ At least one beacon decoded this pass (it confirms the spacecraft is not silent and the Doppler is right)
+   □ Elevation above 15° (10° acceptable at 50 W)
 
 3. TRANSMIT
-   □ Wait for clear beacon gap
-   □ Operator 2: "Ready to transmit"
-   □ Operator 1: "Transmitting [command]"
-   □ Press PTT and send
-   □ Release PTT
+   □ Send one frame through the KISS port (Dire Wolf keys the radio)
+   □ Note the counter used
 
 4. VERIFY
-   □ Wait for next beacon (≤60s)
-   □ Verify command effect in telemetry
-   □ Log result
+   □ Wait for the next beacon (<= 60 s in ACTIVE): check the field the command changes (M=, RF=)
+   □ There is no command acknowledgement frame (SQSO-ICD-005 v2.0 §5.5). If no change is seen and
+     the command is safe to repeat, rebuild it with a NEW counter and send again (up to 4 attempts)
+   □ NEVER re-send a frame that has already been sent (its counter is spent or will be rejected)
 
 5. DOCUMENT
-   □ Record command in log
-   □ Record spacecraft response
-   □ Note any anomalies
+   □ Log: UTC, command, counter, key ID, attempts, effect seen
+   □ Upload the log and the frames heard to the mission database
 ```
 
 ### 7.3 Command List Quick Reference
 
-| Command | Effect | Verification |
-|---------|--------|--------------|
-| SAFE_MODE | Enter safe mode | STATE=SAFE in TLM |
-| RELEASE_SAFE | Exit safe mode | STATE=IDLE/ACTIVE |
-| BEACON_RATE n | Set beacon rate | Beacon interval changes |
-| TX_POWER n | Set TX power | TX_PWR in TLM |
+From SQSO-ICD-013 §7 (the dictionary `software/flight/command_dictionary.json` governs):
+
+| Command | ID | Args | Key | Effect seen in the beacon |
+|---------|----|------|-----|---------------------------|
+| NOP | 0x00 | — | operational | None (counts as contact for the loss-of-contact timer) |
+| SET_MODE | 0x02 | 1 byte: 0 SAFE, 1 IDLE, 2 ACTIVE | operational | `M=`; SAFE → ACTIVE needs IDLE first |
+| GET_STATUS | 0x03 | — | operational | None on the downlink today (response discarded) |
+| SET_CONTACT_TIMEOUT | 0x07 | 2 bytes, days 1–90 | operational | None; set 14 days at the end of commissioning |
+| SET_BEACON | 0x30 | 2 bytes, seconds 10–120 | operational | Beacon interval |
+| TX_ENABLE | 0x31 | — | operational | Beacons resume (`RF=1`) |
+| **TX_DISABLE** | **0x32** | — | **any key; none if no key is usable** | **All emissions stop** |
+| SET_POWER | 0x33 | 1 byte: 0 = 0.5 W, 1 = 1 W | operational | Signal level |
+| KEY_ROTATE | 0x06 | 1 byte, spare slot 0–3 | **recovery** | None (next command must use the new key, counter from 0) |
+| PLD_ENABLE / PLD_DISABLE | 0x40 / 0x41 | — | operational | AI text in the beacon |
 
 ## 8. Troubleshooting
 
@@ -351,9 +360,11 @@ CHECK:
 5. □ Audio path to TNC working?
 
 IF ALL OK:
-- Wait 2 minutes (beacon every 60s)
-- Try wider frequency search (±10 kHz)
-- Check for spacecraft safe mode (lower power)
+- Wait 3 minutes (beacon every 60 s in ACTIVE, 120 s IDLE, 180 s SAFE)
+- Check Doppler: the downlink is within ±3.5 kHz of nominal; search ±5 kHz
+- Check the loss-of-contact state: if no authenticated contact for 14 days the spacecraft is silent but still
+  listening: send an authenticated NOP
+- The spin (6°/s) puts the antenna null on the station for about 6 s every 30 s: expect gaps
 ```
 
 ### 8.2 Weak Signal
@@ -402,9 +413,10 @@ CHECK:
 4. □ Spacecraft in commandable mode?
 
 RETRY:
-- Wait for higher elevation
-- Increase TX power if available
-- Verify spacecraft not in safe mode
+- Check the uplink Doppler correction (must be within ±1 kHz at the spacecraft)
+- Wait for higher elevation; 50 W PEP maximum (US270)
+- Rebuild with a new counter; never re-send a spent frame
+- If AUTH_FAIL is suspected (wrong key slot after a rotation, counter behind): check the counter file and key ID
 ```
 
 ## 9. Emergency Procedures
@@ -412,6 +424,14 @@ RETRY:
 ### 9.1 Loss of Communication
 
 See CP-001 in Contingency Procedures document.
+
+### 9.1a Order to Cease Transmissions (FCC, 97.207(b))
+
+1. The licensee informs both telecommand stations at once (24-hour contact).
+2. On the next pass of either station: build `TX_DISABLE` with the next counter; if no key is usable, send the keyless
+   `TX_DISABLE` (SQSO-ICD-013 §6). Repeat each pass (new counters) until no beacon is heard on two passes.
+3. Longest wait for a commanding pass: 13.1 h with one station, 9.9 h with two (GROUND_STATION_DESIGN §5).
+4. The licensee files the post-space notification within 24 hours of the termination (97.207(g)(3)).
 
 ### 9.2 Spacecraft Emergency
 
@@ -457,8 +477,10 @@ If telemetry indicates emergency:
 │ DOWNLINK (VHF):  145.XXX MHz            │
 │ UPLINK (UHF):    435.XXX MHz            │
 │                                         │
-│ Mode: FM / 1200 baud AFSK              │
-│ Beacon: Every 60 seconds               │
+│ Mode: FM / 1200 baud AFSK, +/-3 kHz     │
+│ Beacon: 60 s ACTIVE, 120 IDLE, 180 SAFE │
+│ Transponder: CTCSS 67.0 Hz              │
+│ Doppler: 2 m +/-3.5 kHz, 70 cm +/-10.4  │
 │ Callsign: KK6GDB-11                    │
 └─────────────────────────────────────────┘
 ```
@@ -468,3 +490,4 @@ If telemetry indicates emergency:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-27 | CDR review (communications panel) | Equipment (offline key machine, time reference, 50 W PEP limit); radio set-up with Doppler rules; command procedure rewritten for authenticated commands and counters; quick reference from the command dictionary; troubleshooting for Doppler, spin fades and the loss-of-contact inhibit; FCC cease-transmission procedure; frequency card |

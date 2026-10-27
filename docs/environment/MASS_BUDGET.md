@@ -267,13 +267,13 @@ optimistic for the tilted principal axes of §6.1.
 | Ratio 1.02 (2.95, 4.22, 4.14) | 1.020 | 2.9° | 10.8° | 100 % | 16° | 4.49 W |
 | Ratio 1.03 | 1.030 | 2.7° | 10.5° | 100 % | 13° | 4.50 W |
 | Ratio 1.03, dipole 10 mA·m² | 1.030 | 7.3° | 30° | 91.7 % | 40° | 4.40 W |
-| Layout B rods CBE (2.95, 4.35, 4.14) | 1.052 | 2.5° | 9.4° | 100 % | 12° | 4.50 W |
-| Layout B rods MEV (3.39, 4.94, 4.73) | 1.043 | 2.4° | 9.2° | 100 % | 11° | 4.50 W |
-| Layout B coils MEV (3.68, 5.23, 5.05) | 1.035 | 2.4° | 8.9° | 100 % | 10° | 4.50 W |
-| Layout B rods CBE, flight `INERTIA` changed to (3.2, 4.6, 4.4) | 1.052 | 2.5° | 9.3° | 100 % | 12° | 4.50 W |
-
-(Layout B rows are from an earlier iteration of layout B with the rods at the −Z end; the final layout B of §6.1 moves the
-rods to z = −19.5 mm and gives 1.041/1.033, between the "ratio 1.03" and "layout B" rows.)
+| **Layout B rods CBE (2.90, 4.31, 4.14)** | 1.041 | 2.6° | 9.9° | 100 % | 12° | 4.50 W |
+| **Layout B rods MEV (3.34, 4.89, 4.73)** | 1.033 | 2.6° | 9.4° | 100 % | 11° | 4.50 W |
+| Layout B coils CBE (3.13, 4.54, 4.41) | 1.030 | 2.7° | 10.1° | 100 % | 12° | 4.50 W |
+| Layout B coils MEV (3.61, 5.15, 5.05) | 1.021 | 2.7° | 9.7° | 100 % | 16° | 4.50 W |
+| Layout B rods MEV, dipole 10 mA·m² | 1.033 | 6.6° | 27° | 93.9 % | 36° | 4.43 W |
+| Layout B rods MEV, tip-off σ 10°/s to 30°/s | 1.033 | 2.6° | 9.4° | 100 % | 11° | 4.50 W |
+| Layout B rods (end-mass variant with rods at −44 mm: 2.95, 4.35, 4.14), flight `INERTIA` changed to (3.2, 4.6, 4.4) | 1.052 | 2.5° | 9.3° | 100 % | 12° | 4.50 W |
 
 Findings:
 
@@ -288,8 +288,8 @@ Findings:
    2.0° mean and 100 % within 15° (worst eclipse exit 31°). That is for the ADCS discipline to evaluate (8°/s is where
    BUILD_VS_BUY §6.3 expected the 1 Hz sun-sensor sampling to start to matter).
 
-Results: `/tmp/.../scratchpad/cdr/str/mc/mc_results*.csv` in the review workspace (not part of the repository); the
-commands are in `software/simulation/cdr/structures/mass_properties.py` (header) and STRUCTURAL_ANALYSIS §8.
+Reproduce with `software/simulation/cdr/structures/adcs_mc_inertia.sh` (it copies the Rust workspace, patches the copy
+and runs every case above; it needs a tree that compiles). The runs above were made on the tree of 2026-10-27 04:45 UTC.
 
 ### 6.5 Corrected Values for the Flight Software and the Simulation (for the chair)
 

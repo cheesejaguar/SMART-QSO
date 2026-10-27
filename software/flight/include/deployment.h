@@ -67,7 +67,7 @@ extern "C" {
 #define DEPLOYMENT_MAX_RETRIES          3U
 
 /** Delay before retrying an unconfirmed deployment (ms) */
-#define DEPLOYMENT_RETRY_DELAY_MS       60000U  /* 1 minute */
+#define DEPLOYMENT_RETRY_DELAY_MS       3000000U  /* 50 minutes: attempts spread over the orbit, one in sunlight (LV-07) */
 
 /** Wait-count persistence interval (s) */
 #define DEPLOYMENT_PERSIST_INTERVAL_S   60U

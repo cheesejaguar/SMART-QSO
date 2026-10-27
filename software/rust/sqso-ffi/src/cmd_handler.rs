@@ -362,11 +362,31 @@ fn dispatch(command: Command, cmd: &CmdCommand, response: &mut CmdResponse) -> u
         }
         Command::SetPower => ok_invalid_or_fail(unsafe { c::rf_control_set_power_level(u32::from(cmd.payload[0])) }),
         Command::PldEnable => {
+            // Not while the commissioning hold is set (LV-01)
+            if crate::ops_state::ops_commissioning_hold() {
+                return result::NOT_ALLOWED;
+            }
             let _ = unsafe { c::sys_set_payload_enabled(true) };
             result::SUCCESS
         }
         Command::PldDisable => {
             let _ = unsafe { c::sys_set_payload_enabled(false) };
+            result::SUCCESS
+        }
+        Command::CommissioningRelease => ok_invalid_or_fail(crate::ops_state::ops_set_commissioning_hold(false)),
+        Command::GetHousekeeping => {
+            crate::executive::request_housekeeping();
+            result::SUCCESS
+        }
+        Command::XpdrEnable => ok_invalid_or_fail(crate::ops_state::ops_set_xpdr_enabled(true)),
+        Command::XpdrDisable => ok_invalid_or_fail(crate::ops_state::ops_set_xpdr_enabled(false)),
+        Command::DeployRetry => match cmd.payload[0] {
+            0 | 1 if crate::deployment::deployment_force_retry(u32::from(cmd.payload[0])) => result::SUCCESS,
+            0 | 1 => result::NOT_ALLOWED,
+            _ => result::INVALID_PARAM,
+        },
+        Command::GnssRequest => {
+            crate::executive::request_gnss_session();
             result::SUCCESS
         }
     }

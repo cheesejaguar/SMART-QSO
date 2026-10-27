@@ -35,8 +35,12 @@ pub const ANTENNA_BURN_TIME_MS: u32 = 3000;
 pub const SOLAR_BURN_TIME_MS: u32 = 5000;
 /// Attempts per element, across resets
 pub const MAX_RETRIES: u8 = 3;
-/// Wait before retrying an unconfirmed deployment, ms
-pub const RETRY_DELAY_MS: u32 = 60_000;
+/// Wait before retrying an unconfirmed deployment, ms: 50 minutes, so the
+/// three attempts fall at different points of the 94.6-minute orbit and
+/// at least one is in sunlight (an eclipse is at most 36 minutes, and no
+/// two attempts 50 or 44.6 minutes apart can share one), when the burn
+/// wire and the hold-down are warm and the array helps the battery (LV-07)
+pub const RETRY_DELAY_MS: u32 = 50 * 60 * 1000;
 /// Wait-count persistence interval, s
 pub const PERSIST_INTERVAL_S: u32 = 60;
 

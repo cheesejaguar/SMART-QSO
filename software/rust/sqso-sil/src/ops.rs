@@ -32,7 +32,43 @@ pub mod cmd {
     pub const TX_DISABLE: u8 = 0x32;
     /// Downlink power level
     pub const SET_POWER: u8 = 0x33;
+    /// Release the commissioning hold (after TX-OFF has been proven)
+    pub const COMMISSIONING_RELEASE: u8 = 0x08;
+    /// Downlink a housekeeping frame
+    pub const GET_HOUSEKEEPING: u8 = 0x09;
+    /// Allow the transponder
+    pub const XPDR_ENABLE: u8 = 0x34;
+    /// Stop the transponder
+    pub const XPDR_DISABLE: u8 = 0x35;
+    /// Retry a deployment element
+    pub const DEPLOY_RETRY: u8 = 0x50;
+    /// Start a GNSS session
+    pub const GNSS_REQUEST: u8 = 0x60;
 }
+
+/// The commissioning plan's commands, in order, one a pass once the
+/// spacecraft is heard (`docs/test/SIL_MISSION_SIMULATION.md`): housekeeping
+/// to see its state, the TX-OFF test (TX_DISABLE, then TX_ENABLE in the same
+/// pass once the beacon has stopped), then the release of the commissioning
+/// hold. The plan advances only on a command the spacecraft received
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Commissioning {
+    /// GET_HOUSEKEEPING
+    Housekeeping,
+    /// TX_DISABLE (the test)
+    TxOffTest,
+    /// TX_ENABLE, from this time (s since separation): [`TX_OFF_TEST_S`]
+    /// after the TX_DISABLE, then every 30 s until received
+    TxOnAfterTest(f64),
+    /// COMMISSIONING_RELEASE
+    Release,
+    /// Done
+    Done,
+}
+
+/// How long the TX-OFF test holds the transmitter off before TX_ENABLE, s
+/// (long enough for a beacon to be missed in the pass)
+pub const TX_OFF_TEST_S: f64 = 150.0;
 
 /// A simulation key: 32 bytes from SplitMix64 of the seed and the slot
 pub fn sim_key(seed: u64, slot: u8) -> [u8; auth::KEY_SIZE] {
