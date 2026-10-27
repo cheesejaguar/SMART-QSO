@@ -107,7 +107,7 @@ mod tests {
     fn the_orbit_minimum_ages_out() {
         let mut h = ColdHold::new();
         h.sample(0, Some(2.0));
-        h.sample(None.unwrap_or(1_000), None);
+        h.sample(1_000, None);
         assert!(h.update(false));
         // An orbit later at +3.5 °C: still held (below the release)
         let mut t = MINUTE_MS;

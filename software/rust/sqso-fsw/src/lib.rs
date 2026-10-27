@@ -63,6 +63,7 @@ pub mod assert_handler;
 pub mod beacon;
 pub mod bmi088;
 pub mod bus;
+pub mod cold_hold;
 pub mod condition;
 pub mod contact_monitor;
 pub mod deployment;

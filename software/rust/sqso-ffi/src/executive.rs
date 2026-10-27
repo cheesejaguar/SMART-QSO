@@ -77,6 +77,9 @@ const EVENT_NONE: u32 = 0;
 const EVENT_BOOT_COMPLETE: u32 = 1;
 const EVENT_DETUMBLE_COMPLETE: u32 = 2;
 const EVENT_THERMAL_FAULT: u32 = 7;
+/// `EVENT_POWER_OK`, `EVENT_POWER_CRITICAL`
+const EVENT_POWER_OK: u32 = 4;
+const EVENT_POWER_CRITICAL: u32 = 6;
 
 // adcs_control.h
 const ADCS_MODE_IDLE: u32 = 0;
@@ -360,6 +363,8 @@ pub struct Executive {
     hard_limits: u32,
     /// The second housekeeping frame is due at this time, ms
     hk2_due: Option<u64>,
+    /// The wings-stowed cold hold (RID THM-03)
+    cold: sqso_fsw::cold_hold::ColdHold,
     /// Transponder enables and repeat-keyed time since boot (XPDR_KEY), ms
     xpdr_enables: u32,
     xpdr_keyed_ms: u64,
@@ -413,6 +418,7 @@ impl Executive {
         health: [Condition::new(); HEALTH_CONDITIONS],
         hard_limits: 0,
         hk2_due: None,
+        cold: sqso_fsw::cold_hold::ColdHold::new(),
         xpdr_enables: 0,
         xpdr_keyed_ms: 0,
         last_pass_ms: 0,
@@ -722,7 +728,9 @@ impl Executive {
         // power mode (SW-14)
         eps_control::eps_update_soc(self.power.soc);
         let event = state_machine::sm_power_event(sm_state(), self.power.soc, self.power.sunlit);
-        if event != EVENT_NONE {
+        let hold = self.cold_hold(now);
+        // Held at SAFE: no automatic return to IDLE (RID THM-03)
+        if event != EVENT_NONE && !(hold && event == EVENT_POWER_OK) {
             sm_event(event);
         }
 
@@ -730,6 +738,28 @@ impl Executive {
         if let Some(wh) = payload_wh {
             let _ = mission_data::mission_data_add_energy(wh);
         }
+    }
+
+    /// The wings-stowed cold hold (RID THM-03): with the wings not deployed
+    /// and the battery's orbit minimum below +3 °C, IDLE and ACTIVE go to
+    /// SAFE (the heater gets the whole surplus); whether the hold is in force
+    fn cold_hold(&mut self, now: u64) -> bool {
+        let was = self.cold.held;
+        self.cold.sample(now, eps_control::eps_telemetry().map(|t| t.tbatt_c));
+        let hold = self.cold.update(deployment::wings_sensed());
+        if hold && !was {
+            add_fault(
+                fault_type::POWER,
+                severity::WARNING,
+                c"Wings stowed, battery orbit minimum below +3 C: held at SAFE (THM-03)",
+                self.power.soc,
+            );
+        }
+        let state = sm_state();
+        if hold && (state == STATE_IDLE || state == STATE_ACTIVE) {
+            sm_event(EVENT_POWER_CRITICAL);
+        }
+        hold
     }
 
     /// Every 10 s: temperatures, bus voltage, SOC and the Jetson link

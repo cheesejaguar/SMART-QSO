@@ -102,8 +102,10 @@ mod tests {
         crate::hal_sim::I2C_FAIL_REG
             .store(u32::from(EPS_ADDRESS) << 8 | u32::from(supv::REG_HEARTBEAT), core::sync::atomic::Ordering::Relaxed);
         step(10 * supv::HEARTBEAT_PERIOD_MS);
-        crate::hal_sim::I2C_FAIL_REG
-            .store(u32::from(EPS_ADDRESS) << 8 | u32::from(supv::REG_TRK_DISABLE), core::sync::atomic::Ordering::Relaxed);
+        crate::hal_sim::I2C_FAIL_REG.store(
+            u32::from(EPS_ADDRESS) << 8 | u32::from(supv::REG_TRK_DISABLE),
+            core::sync::atomic::Ordering::Relaxed,
+        );
         assert_eq!(disable_trackers(1), rc::IO);
         crate::hal_sim::I2C_FAIL_REG.store(0, core::sync::atomic::Ordering::Relaxed);
         assert_eq!(status().1, 1);
