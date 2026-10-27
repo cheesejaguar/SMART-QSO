@@ -369,9 +369,15 @@ def burn():
     print(f"TPL5111 one-shot: R_EXT = {rext / 1e3:.2f} kOhm for tIP {t} s (DRVn high {t - 0.05:.2f} s); fitted with "
           f"11.8 k (0.1 %) in series with 182 Ohm = {11.8 + 0.182:.3f} k. Accuracy: setting 0.6 %, oscillator 0.5 % + 400 ppm/K x 70 K = 2.8 %, resistors 1 % "
           f"-> 12.0 s +/- 0.6 s. Relay pulsers: tIP 100 ms (R_EXT 500 Ohm) -> 50 ms coil pulse.")
-    # wing hold-down energy: 0.8 A^2 x 5 Ohm x 8 s
-    e = 0.8 ** 2 * 5.0 * 8.0
-    print(f"Energy into one 5 Ohm resistor in the 8 s burn: {e:.1f} J (SIL release mean 6 J at 20 degC; MECHANISMS_ANALYSIS ratio 1.67).")
+    # wing hold-down energy: 0.8 A^2 x 5 Ohm x 10 s (chair decision C-17: 10 s per resistor, was 8 s)
+    t_burn = 10.0
+    e = 0.8 ** 2 * 5.0 * t_burn
+    e_pack = 0.67 * 14.0 * t_burn
+    print(f"Energy into one 5 Ohm resistor in the {t_burn:.0f} s burn: {e:.1f} J (SIL release mean 6 J at 20 degC; MECHANISMS_ANALYSIS ratio 1.67); "
+          f"at the pack {e_pack:.0f} J ({e_pack / 3600 * 1e3:.0f} mWh) per resistor, 4 resistors {4 * e_pack / 3600:.2f} Wh. One-shot margin: the "
+          f"hardware limit is 12.0 s +/- 0.6 s, so >= {11.4 - t_burn:.1f} s above the software's {t_burn:.0f} s. The thermal case of section 11 "
+          "already uses 12 s (U17 Tj 93 degC, FET 92 degC). Fuse I2t: 0.75 A for 10 s at the pack (5.6 A2s) against fuses rated 5 A "
+          "continuous: no ageing concern (pulses below the rating).")
     R["burn"] = dict(vset=vset, i=i, err_wc=err_wc, rext=rext)
 
 

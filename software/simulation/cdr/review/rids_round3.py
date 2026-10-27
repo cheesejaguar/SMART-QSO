@@ -129,6 +129,8 @@ NEW: list[tuple[str, int, str, str, str]] = [
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {
+    "P3E-10": ("CD", "Harness and EPS documents at HAR-001 2.0 gauges (pack 22 AWG, strings and taps 28 AWG) and the FM12 fuses; tap shorts limited to 82 mA; zones under the 2.0 mm EPS lowered; harness_calcs --cad --wireviz clean"),
+    "SE-22": ("CD", "All HAR-001 2.0 §15 items done including the round-3 follow-ups (W12B five wires, W3 pins 28/40 I2C3, W8 RST_REQ, zones under the 2.0 mm EPS); gold finishes; checks clean"),
     "STR-04": ("CD", "One accuracy in VI-LV-02, VI-STR-01, VI-MCAD-03 and ETP §3.7: spin-balance, MOI ±0.5 %, products ±1×10⁻⁵ kg·m², CG ±0.1 mm; pass deployed ratio − 0.010 ≥ 1.03, measured tilt ≤ 2.4°"),
     "STR-08": ("CD", "Mechanical cell retention, no adhesive or potting: G-10CR locator plates, disc-spring stack per cell at 140 N, vents open; MEL row 37 5.0 g; MS_sep +0.19 at 142 g (MECHANICAL_DESIGN §4.6); VI-MCAD-10"),
     "STR-13": ("CD", "STRUCTURAL_DESIGN 1.5 §6.2 Version B hinge; cold point −55 °C (MECHANISMS_ANALYSIS E)"),

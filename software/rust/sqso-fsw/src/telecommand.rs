@@ -156,7 +156,9 @@ pub const fn availability(command: Command) -> Availability {
         // EMERGENCY (a failing spacecraft, a deeply discharged pack)
         | C::PassivateArm
         | C::PassivateExecute
-        | C::EpsClearLockout => Availability::Always,
+        | C::EpsClearLockout
+        // A dead FRAM may hold the spacecraft in SAFE (RID SMA-B10)
+        | C::FramBypass => Availability::Always,
         C::SetMode | C::SetBeacon | C::DumpTlm => Availability::AlsoSafe,
         C::Reset => Availability::AlsoEmergency,
         C::ClearFaults

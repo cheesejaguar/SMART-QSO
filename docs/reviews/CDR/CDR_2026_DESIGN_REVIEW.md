@@ -183,15 +183,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 100 | 216 |
+| Closed by design change | 100 | 218 |
 | Closed by chair decision | 42 | 34 |
 | Verification item | 46 | 28 |
 | Decision point (dated) | 15 | 32 |
-| Implementation | 147 | 40 |
+| Implementation | 147 | 38 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 69 new findings; 39 of the reopened and 47 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 69 new findings; 40 of the reopened and 48 of the new are since closed.
 
-Open implementation RIDs: LV-04, SE-21, SE-22, GND-04, SMA-15, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3E-10, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B01, SMA-B02, SMA-B03, SMA-B04, SMA-B05, SMA-B06, SMA-B09, SMA-B10, SMA-B11, SMA-B12, SMA-B13, SMA-B15, SMA-B17, SMA-B19.
+Open implementation RIDs: LV-04, SE-21, GND-04, SMA-15, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B01, SMA-B02, SMA-B03, SMA-B04, SMA-B05, SMA-B06, SMA-B09, SMA-B10, SMA-B11, SMA-B12, SMA-B13, SMA-B15, SMA-B17, SMA-B19.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -271,7 +271,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-19 | 2 | No current harness design: the old harness document predates the interconnect, and the deck-to-EPS band is over-full by about 8 mm² of wire | IMP | Closed by design change | Harness design SQSO-HAR-001 2.0: 206 conductors, routes against the CAD (58 zones, no interference), EEE-INST-002 derating (worst 60 % normal), drops ≤ 44 mV, corner-bundle fill ≤ 51 % (band B resolved by routing the EPS-only harnesses under the EPS), mass 84.5 g, single-point ground; V-HAR-1 to V-HAR-13 |
 | SE-20 | 3 | SIL decay re-enters 4.0 years after deployment; the ODAR estimator gives 4.8-5.7 years | CH | Closed by chair decision | The ODAR (NRLMSIS, NASA-STD-8719.14C cross-sections) governs lifetime compliance; the SIL decay is indicative; aligned if cheap (flight software round 3) |
 | SE-21 | 3 | SIL deploys both wings from one resistor and models 0.04 W of coil power in detumble (board: 1.16-1.3 W) | IMP | Implementation | SIL deployment per-wing restraint and coil-drive power (flight software round 3) |
-| SE-22 | 2 | Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG | IMP | Implementation | Reopened in round 3: Stale gauges and ratings remain in several documents |
+| SE-22 | 2 | Connector contacts specified in tin, which the EEE parts list prohibits; PVC-insulated ribbons; 24/26 AWG on Pico-Clasp crimps that take 28-32 AWG | IMP | Closed by design change | All HAR-001 2.0 §15 items done including the round-3 follow-ups (W12B five wires, W3 pins 28/40 I2C3, W8 RST_REQ, zones under the 2.0 mm EPS); gold finishes; checks clean |
 | SE-23 | 3 | No published E595 outgassing values found for the harness wire, PTFE assemblies, sleeving, lacing tape or connector housings; Pico-Clasp gold suffix not found | VI | Decision point (dated) | With EPSB-09 (DA-18); V-HAR-11 before the EM order |
 | SE-24 | 2 | No PCB layouts: the boards are at schematic, BOM, placement-constraint and stack-up level | CH | Closed by chair decision | Layout is the scheduled next design step (SCHEDULE Rev D: EM PCB layout and design-rule review from 2027-01-12, 27 designer-weeks, 15 calendar weeks with two designers (DA-04), after the independent PDR), held to the placement, keep-out, stack-up and impedance constraints recorded in the board designs; the independent CDR (2027-09-28) reviews the layouts |
 
@@ -675,7 +675,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | P3E-07 | 2 | Reliability programme absent from the test plan (with P3P-03) | IMP | Closed by design change | With P3P-03 |
 | P3E-08 | 3 | Power margin bookkeeping mixes formulas; SYS-100 and EPS-F001 at 1.80 W | IMP | Closed by design change | SYS-100 2.23 W in CR-2026-009; report §3.3 margins against the bottom-up load |
 | P3E-09 | 3 | MPPT efficiency requirement and pass criteria disagree | IMP | Decision point (dated) | CR-2026-014: ≥ 90 % at every point ≥ 1 W per tracker, ≥ 91 % power-weighted, PBA MPPT factor 0.91; PI decision by 2027-01-12 |
-| P3E-10 | 3 | Stale harness gauges and fuse values in EPS and harness documents | IMP | Implementation | Correct |
+| P3E-10 | 3 | Stale harness gauges and fuse values in EPS and harness documents | IMP | Closed by design change | Harness and EPS documents at HAR-001 2.0 gauges (pack 22 AWG, strings and taps 28 AWG) and the FM12 fuses; tap shorts limited to 82 mA; zones under the 2.0 mm EPS lowered; harness_calcs --cad --wireviz clean |
 | P3E-11 | 3 | End-of-life arm and fire both from one processor | IMP | Closed by design change | Arm latch clocked only by OBC EOL_ARM AND the EPS controller's keyed EOL_KEY (U64; register 0x7E, ICD-001 1.5); fire from OBC EOL_FIRE; no single hardware or OBC pin fault fires F1 (EPS_BOARD_DESIGN D §12); flight software sequence in round 3 |
 | P3E-12 | 3 | Shipping state of charge inconsistent (65 % vs 30 %) | IMP | Closed by design change | ≤ 30 % SOC by air (IATA, strongly recommended for PI 967), 60 % integration state by road, final charge 60 ± 5 % at the integrator: BSA D §6, MISSION_TIMELINE 2.4, LAUNCH_PROVIDER_DELIVERABLES D |
 | P3E-13 | 3 | Record inconsistencies (BMS part, stuck-on Jetson hours, cold-burn bus voltage, SIL F1 heater, third harmonic) | IMP | Closed by design change | BQ76952 throughout, stuck-on Jetson 66.6 h, cold-burn bus 14.1-14.4 V at 0.75 A (13.8-14.1 V at 1.0 A), EMC D third harmonic ≥ 70 dB, SIL F1 heater 15.6 Ω nominal (11.2-20.0 Ω) to the flight software |

@@ -147,6 +147,9 @@ pub struct Housekeeping {
     pub contacts: u32,
     /// Stored housekeeping: next five-minute and sixty-second record numbers
     pub stored: [u32; 2],
+    /// The FRAM (`FR`, RID SMA-B10): 0 working, 1 failed, 2 the degraded
+    /// mode; and the failed one-minute checks since boot
+    pub fram: (u8, u32),
 }
 
 /// The second frame's values (`None`: not measured)
@@ -226,7 +229,16 @@ fn tail(w: &mut Out<'_>, hk: &Housekeeping) -> core::fmt::Result {
     let [summary, detail] = hk.stored;
     write!(w, "PS={}/", hk.passivation)?;
     opt_u(w, hk.eol.0.map(u32::from))?;
-    write!(w, "/{} RX={}/{} CN={} ST={summary}/{detail}", hk.eol.1, hk.rx.0, flag(hk.rx.1), hk.contacts)
+    write!(
+        w,
+        "/{} RX={}/{} CN={} ST={summary}/{detail} FR={}/{}",
+        hk.eol.1,
+        hk.rx.0,
+        flag(hk.rx.1),
+        hk.contacts,
+        hk.fram.0,
+        hk.fram.1
+    )
 }
 
 /// Write the information field into `out`; its length (0 if it does not fit)
@@ -429,7 +441,7 @@ mod tests {
             t,
             "HK1 N=7 UP=3600 BOOT=3 RST=2 MODE=3 HOLD=1 XP=0 TX=1 SOC=873 VB=15812 IB=-120 PA=2410 TB=123 TO=215 \
              TP=301 TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 \
-             PS=1/4/0 RX=2/0 CN=3 ST=12/60"
+             PS=1/4/0 RX=2/0 CN=3 ST=12/60 FR=0/0"
         );
         assert!(t.len() <= MAX_LEN);
         assert!(t.is_ascii());
@@ -473,6 +485,7 @@ mod tests {
             rx: (99_999, true),
             contacts: 99_999,
             stored: [u32::MAX, u32::MAX],
+            fram: (2, u32::MAX),
             ..Housekeeping::default()
         };
         assert!(text(&hk).len() <= MAX_LEN, "{}", text(&hk).len());

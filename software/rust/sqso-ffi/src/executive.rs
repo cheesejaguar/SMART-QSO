@@ -44,9 +44,9 @@ use crate::c::{fault_type, rc, severity};
 use crate::jetson_link::{JetsonMsg, JetsonRx};
 use crate::sensors::Sensor;
 use crate::{
-    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, eps_lockout, fault_mgmt, fram_health,
-    gse_provision, hk_store, jetson_link, mission_data, ops_state, passivation, payload_guard, receiver, rf_control,
-    rf_silence, sensors, separation_switch, state_machine, system_state, uart_comm, uplink, watchdog_mgr,
+    adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, eps_lockout, fault_mgmt,
+    fram_health, gse_provision, hk_store, jetson_link, mission_data, ops_state, passivation, payload_guard, receiver,
+    rf_control, rf_silence, sensors, separation_switch, state_machine, system_state, uart_comm, uplink, watchdog_mgr,
 };
 use crate::{hw, pins};
 
@@ -1367,6 +1367,7 @@ impl Executive {
                 rx: (receiver::receiver_cycles(), receiver::receiver_failed()),
                 contacts: cmd_handler::contacts(),
                 stored: stored_counts(),
+                fram: fram_health::status(),
             }
         }
     }

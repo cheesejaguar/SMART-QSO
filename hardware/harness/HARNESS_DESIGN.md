@@ -81,7 +81,7 @@ W10 have stated minimums (thermal; RF loss budget). Each end's 15 mm is the stri
 | Family | Harness-side parts | Board side | Used on |
 |--------|--------------------|-----------|---------|
 | Pico-Clasp 1.0 mm | 501330-0N00 housing, 501334 crimp terminal, **gold** (Molex lists 0.38 and 0.76 µm gold versions; the board headers' tin suffixes change to the gold code) | 501331-xx vertical SMT header, gold | EPS J2, J4–J9, J12, J14–J17, J19–J21; OBC J3–J8, J10; RF J2; carrier J2; A2 J1 |
-| Micro-Fit 3.0 | 43025-0N00 receptacle, 43030 crimp terminal, gold | **43045 right-angle** dual-row header, gold (43045-0800 is the 8-way right-angle header; a mated vertical Micro-Fit with its wire bend does not fit 12.5 mm under the EPS or under the RF board above the carrier) | EPS J1, J10, J11, J13, J18; carrier J1 |
+| Micro-Fit 3.0 | 43025-0N00 receptacle, 43030 crimp terminal, gold | **43045 right-angle** dual-row header, gold (43045-0800 is the 8-way right-angle header; a mated vertical Micro-Fit with its wire bend does not fit the 12.1 mm under the EPS or under the RF board above the carrier) | EPS J1, J10, J11, J13, J18; carrier J1 |
 | Samtec Tiger Eye 1.27 mm | **SFSDT** PTFE discrete-wire socket assembly, latched | **TFM** header, gold (TFM-1xx-01-S-D-RA right-angle on the OBC and RF boards; vertical TFM on the EPS bottom side) | W3 (EPS J3, OBC J1), W4A (OBC J2, RF J1), W8A (OBC J9) |
 | MMCX | Molex 73414-0351 right-angle crimp plug, 1.37 mm cable (RF board C §4.3); the 1.13 mm version for W10E | Molex 73415-1473 jack; receiver and patch ports | W10, W10E |
 | Micro-D | — (flight side is the board receptacle) | MIL-DTL-83513-class 21-way socket receptacle on A3, gold | Access port (W8A, W11) |
@@ -99,9 +99,11 @@ as witness and staking beads (SQSO-OBC-BRD-001 C §15.1, item C19). W8A (debug, 
 plated holes at the **two ends of the board**, W8A at the pin-1 (debug) end and W11 at the other (charge) end, each
 staked within 10 mm with one re-termination service loop; the window therefore carries one GSE connector. A3 also
 carries the window ESD and TVS parts (debug lines to GND, charge lines to PACK_N; OBC C §15.1). Micro-D pin map
-(SQSO-ICX-001 C §3.6; the GSE adapter wires to it): 1 VTREF, 2 SWDIO, 3 GND, 4 SWCLK, 5 WDT_DIS, 6 NRST,
+(SQSO-ICX-001 D §3.6; the GSE adapter wires to it): 1 VTREF, 2 SWDIO, 3 GND, 4 SWCLK, 5 WDT_DIS, 6 RST_REQ,
 7 USART3_TX, 12 USART3_RX, 13 UMBILICAL_SENSE, 14 GND; 9 UMB_VMON, 10–11 PACK_N, 19 UMB_SHUT, 20–21 UMB_CHG; 8 and
-15–18 not connected. The charge cluster (9–11, 19–21) is separated from the debug pins by unused pins 8 and 18, and
+15–18 not connected. **RST_REQ** (pin 6) is an active-high reset request (the OBC's Q1 pulls NRST; a short to
+ground cannot reset the OBC): the GSE adapter drives it high from VTREF through an inverter from the debug probe's
+nRESET output (SQSO-ICX-001 D E16); the probe can also reset by SYSRESETREQ over SWD. The charge cluster (9–11, 19–21) is separated from the debug pins by unused pins 8 and 18, and
 the two copper groups by ≥ 0.5 mm; PACK_N is never joined to GND on A3. The shell and the mounting holes have no
 copper connection: the shell bonds to the frame through the panel only. The 2 × 5 2.54 mm bulkhead of SQSO-ICX-001 B
 §3.6 is withdrawn: its shrouded header (about 20 × 9 mm) is larger than the window.
@@ -202,7 +204,7 @@ The complete list is `hardware/harness/wire_list.csv` (209 rows). The power and 
 | W1 | TAP0–TAP4, NTC2 → J2-1 … 6 | Cell taps, NTC2 | 28 | bundle | 0.009 / 0.082 (taps) | Taps behind 3 × 68.1 Ω and FT0–FT4 (FM12A72V3/4A) at the pack: a tap short is limited to 82 mA, the wire-list maximum |
 | W2PX/MX/PY/MY | SA+, SA+, SA−, SA−, TEMP → J4–J7-1 … 5 | String, returns, panel NTC | 28 | 1+3, 2+4 (+5) | 0.275 / 0.33 | Back-wired strings (residual dipole) |
 | W2W1/W2W2 | TB T1 … T8 → J8/J9-1 … 8 | Front ×2, back ×2, GND ×3, TEMP | 28 | (1, 2, 5), (3, 4, 6), (7, 8) | + 0.275 / 0.33; returns 0.367 / 0.44 | |
-| W3 | J3-n → J1-n, n = 1 … 40 (SQSO-ICX-001 §3.1) | 3V3_OBC (1, 2), VBAT_MTQ (36, 39), GND (3, 4, 7, 28, 35, 40), 32 signals | 30 | flat | 3V3_OBC 0.088, VBAT_MTQ 0.20, returns ≤ 0.13 | Straight through |
+| W3 | J3-n → J1-n, n = 1 … 40 (SQSO-ICX-001 D §3.1) | 3V3_OBC (1, 2), VBAT_MTQ (36, 39), GND (3, 4, 7, 35), AGND (21, 27), I2C3_SCL/SDA for the AntS (28, 40), 32 other signals | 30 | flat; 28, 40 twisted with GND 35 | 3V3_OBC 0.088 (returns 3, 4), VBAT_MTQ 0.20 (returns 7, 35) | Straight through (ICX D E14/E16: 28 and 40 were GND) |
 | W4A | J2-n → J1-n, n = 1 … 16 (§3.2) | Signals and monitors | 30 | flat | < 5 mA | Straight through |
 | W4B | J19-n → J2-n, n = 1 … 6 | 1 RADIO_3V3, 3, 4 PA_5V, 2, 5, 6 GND | 28 | 3+2, 4+5, 1+6 | PA 0.235 / 0.536; radio 0.089 / 0.141 | ≤ 5 mm untwisted at each end |
 | W5A | J18-1 … 4 → carrier J1-1 … 4 | VBAT_JET ×2, GND ×2 | 24 | quad 1+3, 2+4 | 0.70 / 0.84 | 1.4 A design current |
@@ -210,11 +212,11 @@ The complete list is `hardware/harness/wire_list.csv` (209 rows). The power and 
 | W6B | J20-1, 2 → J6-1, 2 | 3V3_ADCS, GND | 28 | pair | 0.049 / 0.339 | |
 | W6C | J7-1 … 6 → rod X, Y, Z (+, −) | MTQ_X/Y/Z_P/N | 28 | three pairs | 0.087 / 0.126 | Splices at the rod leads |
 | W6D | J8-1 … 12 → photodiodes K, A | CSS_PX … MZ | 28 | six pairs, no shield | 0.004 / 0.005 | J8-13, 14 not used |
-| W6E | J10-n → A2 J1-n (§3.4) | 3V3_SNS, GND, SDA, SCL, DRDY, GND | 28 | (1, 2), (3, 6), (4, 5) | < 2 mA | |
+| W6E | J10-n → A2 J1-n (§3.4) | 3V3_MAG (U35, MAG_EN PF14), GND, SDA_M, SCL_M, DRDY, GND | 28 | (1, 2), (3, 6), (4, 5) | < 2 mA | |
 | W7A/W7B | J10/J11-1, 2 / 3, 4 → burn resistor A / B | V_BURN, BRET | 24 | pair per resistor | 0.88 for 12 s | One resistor at a time |
 | W7A/W7B | J10/J11-5, 6 → sensor leads | Hinge sense (both wings in series) | 24 | pair | µA | |
-| W7C | J12-1, 2 / 3, 4 / 5, 6 → AntS | 3V3_ANTS, GND, SDA, SCL | 28 | 1+3, 2+4, 5+6 | 0.305 / 0.733 | Peak 0.61 A, SW8 limit 1.47 A |
-| W8A | J9-1 … 10 → A3 P1 … 7, 12, 13, 14 | SWD, NRST, console, sense, WDT_DIS | 30 | flat | < 10 mA | §3.2 pin map |
+| W7C | J12-1, 2 / 3, 4 / 5, 6 → AntS | 3V3_ANTS, GND, SDA, SCL | 28 | 1+3, 2+4, 5+6 | 0.305 / 0.733 | Peak 0.61 A, SW8 limit 1.47 A. AntS side B (0x32): if the AntS ICD brings it out on its own I2C pins (SQSO-ICX-001 D E15), W7C gains SDA_B/SCL_B as a 28 AWG pair (J12 a Pico-Clasp 8, U80 a second channel): UB_MXC 41 → 55 %, every other zone + ≤ 2 %; if side B shares the bus, no change |
+| W8A | J9-1 … 10 → A3 P1 … 7, 12, 13, 14 | SWD, RST_REQ (active high), console, sense, WDT_DIS | 30 | flat | < 10 mA | §3.2 pin map |
 | W9A | J5-n → receiver (§3.5) | 3V3_GNSS, GND, RXD, TXD, 1PPS, GND | 28 | (1, 2), (3, 6), (4, 5) | 0.10 / 0.232 | Receiver contacts must take 28 AWG |
 | W9B | J21-1, 2 → J4-1, 2 | 3V3_GNSS, GND | 28 | pair | 0.10 / 0.232 | |
 | W11 | J13-1, 2 / 3, 4 / 5 / 6 → A3 P20, 21 / 10, 11 / 9 / 19 | UMB_CHG, PACK_N, UMB_VMON, UMB_SHUT | 24 | 1+3, 2+4 | 0.25 / 0.50 | |
@@ -244,7 +246,7 @@ OBC), D +6.6 … +18 (OBC to carrier), E +18 … +48.4 (carrier to the +Z end fr
 | S_MXMY, S_MXC | x −45 … −36 beside the −X battery end cap, z −34 … −17 (S_MXC to −45) | Inboard strips below the deck |
 | CS_PXMY, CS_MXMY | x ±(43.2 … 46.4), y −46.8 … −34, z −44.5 … −34 | Corner strips to the burn boards, DS2, W8A |
 | UB_MXC, EF_MXC | Under the −X end cap (z −46.6 … −45.1), end-frame cut-out at x −35 … −28 | W7C to the AntS |
-| U_MXPY, U_MXMY(2), U_PXPY, U_PXMY(2), U_PY, U_PYN | Under the EPS, z −15.0 … −4.05, clear of the GNSS receiver, X rod, Z rod, columns and centre supports | EPS connector zones Z1–Z5 and their wire dress |
+| U_MXPY, U_MXMY(2), U_PXPY, U_PXMY(2), U_PY, U_PYN | Under the EPS, z −15.0 … −4.45 (below the 2.0 mm EPS's parts envelope, MECHANICAL_DESIGN D-14), clear of the GNSS receiver, X rod, Z rod, columns and centre supports | EPS connector zones Z1–Z5 and their wire dress |
 | U_X | x −24.5 … +31, y +25 … +29.5, z −14 … −6 | Crossing between the (0, +21) centre support (1.1 mm) and the X rod (1.25 mm) |
 | U_C, U_J3U | x −35.5 … −21, \|y\| < 7; under EPS J3 at z −15 … −12.5 | Crossings past the Z rod and under J3 |
 | PG_PX, PG_MX, PG_PY, PG_MY | At slots (+48.5, −30), (−48.5, −12), (−30, +48.5), (−30, −48.5), z −10 | Body-panel pigtails (W2 and the W6D pair) |
@@ -326,7 +328,7 @@ coax), W4B (37 mm) and the PZ pair (47 mm). AP_A3 replaces the CAD's access-port
 
 HS_PX 5.8 / 9.0 mm² (65 %: W2W1, W7A sense, W12A); HS_MX 5.0 / 9.0 (55 %); W4AZ 5.5 / 9.0 (61 %); YB_MY 3.4 / 6.5
 (53 %); UB_MXC 2.6 / 6.3 (41 %); CS_MXMY 7.4 / 20.2 (37 %); PG_* 3.0 / 9.6 (31 %); U_X 5.2 / 21.6 (24 %); W3Z 13.7 /
-61.2 (22 %); every zone under the EPS ≤ 18 %; full table in the script's output. The coax's own passages under the
+61.2 (22 %); every zone under the EPS ≤ 19 %; full table in the script's output. The coax's own passages under the
 battery end cap and through the end frame are 88 % full (two 1.37 mm cables in 1.4 mm of height): the RF design's,
 unchanged.
 
@@ -337,7 +339,7 @@ unchanged.
 2. **W6D without the overall shield** (proposed by SQSO-ICX-001 B §2.1): six unshielded twisted 28 AWG pairs (5.2 mm²
    instead of 9.6). EMC justification in §12.
 3. **Routing** (the change that gives margin): every EPS-only connector moves to the EPS bottom side, in five zones
-   Z1–Z5 where 12.5 mm of open height lies between the EPS and the deck (§10.1), and every EPS-only harness but W7A's
+   Z1–Z5 where 12.1 mm of open height lies between the EPS and the deck (§10.1), and every EPS-only harness but W7A's
    burn pairs reaches it without a corner bundle: through the deck's openings, the inboard strips beside the −X battery
    end cap (x −45 … −36, which the corner-bundle model did not use), the hinge-side strips at y +34.5 … +39.5,
    shear-panel slots at z −10 and the −Y wall strip. The four corner bundles then carry the harnesses with an OBC end, the Y-rod pair, W10E and
@@ -407,8 +409,8 @@ V-HAR-1). The interrupt rating against the cell short-circuit current is in BATT
 ### 10.1 EPS bottom-side connector zones (request E-1 to the EPS designer)
 
 The EPS top side has 5 mm under the OBC (0.4 mm left above the 5 mm envelope): no mated wire-to-board connector with
-its wire bend fits there, so every EPS harness connector is on the bottom side, where 12.5 mm lies between the EPS
-substrate (z −3.0) and the deck (z −15.5), outside the GNSS receiver (3.5 mm) and the X rod (2.0 mm).
+its wire bend fits there, so every EPS harness connector is on the bottom side, where 12.1 mm lies between the 2.0 mm EPS
+substrate (bottom face z −3.4, MECHANICAL_DESIGN D-14) and the deck (z −15.5), outside the GNSS receiver (3.5 mm) and the X rod (2.0 mm).
 
 | Zone | Area (x, y mm) | Connectors | Mated footprint (mm², allocation) |
 |------|----------------|------------|-----------------------------------|
@@ -420,7 +422,7 @@ substrate (z −3.0) and the deck (z −15.5), outside the GNSS receiver (3.5 mm
 | +X edge | +33 … +45, \|y\| < 15.5 | J3 (W3, TFM-120 vertical, SFSDT) | dedicated |
 
 Footprint allocations (to confirm on the Molex and Samtec drawings, V-HAR-3): Micro-Fit 2×N right-angle with plug and
-wire bend (3.0 N + 3.0) × 23 mm, ≤ 9.0 mm below the substrate (z −12.0, 3.5 mm above the deck); Pico-Clasp 1×N
+wire bend (3.0 N + 3.0) × 23 mm, ≤ 9.0 mm below the substrate (z −12.4, 3.1 mm above the deck); Pico-Clasp 1×N
 vertical (1.0 N + 3.0) × 4.5 mm, ≤ 8.0 mm including the 3 × OD wire bend; computed by the script against each zone's
 plan area (limit 80 %). J10's plug points toward +X, so W7A's burn pairs leave straight into the +X wall gap.
 
@@ -429,7 +431,7 @@ plan area (limit 80 %). J10's plug points toward +X, so W7A's burn pairs leave s
 | End | Allocation (mated, with the wire exit) | Strain relief and retention |
 |-----|----------------------------------------|-----------------------------|
 | Pico-Clasp, OBC top side (J3–J8, J10) | 8.0 mm under the 2.0 mm carrier (9.0 mm free; SQSO-OBC-BRD-001 §21) | Tie point within 15 mm of the housing; Arathane 5750 bead across housing and header after final mating |
-| Pico-Clasp, EPS bottom side | 8.0 mm (z −3.0 … −11.0) | As above |
+| Pico-Clasp, EPS bottom side | 8.0 mm (z −3.4 … −11.4) | As above |
 | Pico-Clasp RF J2 | 8.0 mm (RF board C §4.3), over the shield corner | As above; ≤ 5 mm untwisted at the end (magnetics, §12) |
 | Pico-Clasp carrier J2, A2 J1 | ≤ 7.7 mm (carrier §18, under the spreader edge); A2 J1 entered from +X under the board | As above |
 | Micro-Fit right-angle (EPS J1, J10, J11, J13, J18; carrier J1) | 9.0 mm high, plug and bend 23 mm along the board; carrier J1 top at z +28.6, 4.7 mm below the RF board's bottom envelope | Positive latch; tie point within 15 mm |
@@ -556,8 +558,8 @@ is the nickel underplate of A2's own connector.
 
 | # | Document | Change | Reason |
 |--:|----------|--------|--------|
-| E-1 | EPS (SQSO-EPS-BRD-001 §13.1, §17) | Every harness connector on the **bottom side** in zones Z1–Z5 and the +X edge (§10.1); bottom-side envelope 9.0 mm (z −3 … −12) in those zones | The top side has 5 mm under the OBC |
-| E-2 | EPS | J1, J10, J11, J13, J18 as **right-angle** Micro-Fit 3.0 headers (43045-0800/-0600/-0400 class), gold | 12.5 mm under the EPS; tin prohibited |
+| E-1 | EPS (SQSO-EPS-BRD-001 §13.1, §17) | Every harness connector on the **bottom side** in zones Z1–Z5 and the +X edge (§10.1); bottom-side envelope 9.0 mm (z −3.4 … −12.4, EPS 2.0 mm) in those zones | The top side has 5 mm under the OBC |
+| E-2 | EPS | J1, J10, J11, J13, J18 as **right-angle** Micro-Fit 3.0 headers (43045-0800/-0600/-0400 class), gold | 12.1 mm under the EPS; tin prohibited |
 | E-3 | EPS | **J19 → Pico-Clasp 6**, pinout of RF J2: 1 RADIO_3V3, 2 GND, 3, 4 PA_5V, 5, 6 GND | No wire fits a Micro-Fit and a Pico-Clasp terminal |
 | E-4 | EPS | **J12 → Pico-Clasp 6**: 1, 2 3V3_ANTS; 3, 4 GND; 5 SDA; 6 SCL | One contact would carry 0.61 A (> 50 % of 1 A) |
 | E-5 | EPS | J3 → Samtec TFM-120 vertical (SFSDT), bottom side, +X edge, \|y\| < 15.5 | PVC FFSD ribbon; mated height under the OBC |

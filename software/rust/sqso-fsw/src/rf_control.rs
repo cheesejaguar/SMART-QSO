@@ -110,7 +110,14 @@ pub struct RfControl {
 impl RfControl {
     /// Before init: not permitted, no automatic inhibit, 0.5 W
     pub const fn new(region: u32) -> Self {
-        RfControl { region, initialized: false, inhibited: true, auto_inhibits: 0, power_level: POWER_0W5, shadow: None }
+        RfControl {
+            region,
+            initialized: false,
+            inhibited: true,
+            auto_inhibits: 0,
+            power_level: POWER_0W5,
+            shadow: None,
+        }
     }
 
     /// (radio power, transmitter enable) for the current inhibits

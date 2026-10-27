@@ -70,6 +70,7 @@ static HK: Global<State> = Global::new(State {
         rx: (0, false),
         contacts: 0,
         stored: [0; 2],
+        fram: (0, 0),
     },
     extra: Extra { heater: false, payload: false, contact_inhibit: false, passivated: false },
     peeked: None,
