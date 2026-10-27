@@ -239,6 +239,79 @@ mod tests {
         }
     }
 
+    /// Writes report success and store nothing
+    struct Ignoring(MemFlash<256>);
+    impl Flash for Ignoring {
+        fn read(&mut self, r: u32, o: u32, b: &mut [u8]) -> Result<(), FlashError> {
+            self.0.read(r, o, b)
+        }
+        fn write(&mut self, _: u32, _: u32, _: &[u8]) -> Result<(), FlashError> {
+            Ok(())
+        }
+        fn erase(&mut self, _: u32) -> Result<(), FlashError> {
+            Ok(())
+        }
+    }
+
+    /// After each write one read succeeds (the write's own read-back) and
+    /// the rest fail: a device that drops off the bus mid-check
+    struct DropsOff {
+        f: MemFlash<256>,
+        reads_left: Option<u32>,
+    }
+    impl Flash for DropsOff {
+        fn read(&mut self, r: u32, o: u32, b: &mut [u8]) -> Result<(), FlashError> {
+            if self.reads_left == Some(0) {
+                return Err(FlashError(-7));
+            }
+            self.reads_left = self.reads_left.map(|n| n - 1);
+            self.f.read(r, o, b)
+        }
+        fn write(&mut self, r: u32, o: u32, d: &[u8]) -> Result<(), FlashError> {
+            self.reads_left = Some(1);
+            self.f.write(r, o, d)
+        }
+        fn erase(&mut self, r: u32) -> Result<(), FlashError> {
+            self.f.erase(r)
+        }
+    }
+
+    /// The degraded mode without the FRAM (RID SMA-B10): the RAM record
+    /// holds while the FRAM is dead; an upset (its CRC no longer matches)
+    /// sets the hold and stops the transponder; the check reports whether
+    /// the record was written and read back
+    #[test]
+    fn degraded_check_runs_from_the_ram_copy() {
+        let mut f = MemFlash::<256>::new();
+        let mut s = OpsState::new(REGION);
+        assert_eq!(s.check(&mut f, true), (false, true), "not initialized: nothing to check");
+        let _ = s.init(&mut f);
+        assert_eq!(s.check(&mut f, true), (false, true));
+        // Dead: the release holds in RAM, not outside the degraded mode
+        assert_eq!(s.set_hold(false, &mut Failing), Err(IoError));
+        assert_eq!(s.check(&mut Failing, true), (false, false));
+        assert!(!s.hold());
+        assert_eq!(s.check(&mut Failing, false), (true, false));
+        assert!(s.hold());
+        // An upset of the RAM copy
+        assert_eq!(s.set_hold(false, &mut f), Ok(()));
+        s.adcs_geometry = 2; // changed in RAM without the CRC
+        let (upset, read) = s.check(&mut f, true);
+        assert!(upset);
+        assert!(read);
+        assert!(s.hold());
+        assert!(!s.xpdr_allowed());
+        // Written and verified, then the device drops off before the check reads it
+        let mut drops = DropsOff { f: f.clone(), reads_left: None };
+        assert_eq!(s.check(&mut drops, true), (false, false));
+        // Written, not read back as written
+        let mut ig = Ignoring(f.clone());
+        let _ = s.set_xpdr_enabled(true, &mut ig);
+        s.hold = false;
+        s.shadow = Some(Shadow::of(&s.record()));
+        assert_eq!(s.check(&mut ig, true), (false, false));
+    }
+
     #[test]
     fn free_before_init_and_on_a_blank_record() {
         let mut f = MemFlash::<256>::new();

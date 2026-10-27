@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MFG-002
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8739.10 (EEE Parts Assurance Standard, 2017), Level 4 commercial parts with project screening; GSFC EEE-INST-002 (2003, with Addendum 1, 2008) Level 3 as the screening guide; SMD SPD-39 (Class D mission assurance requirements, 2021) and *Guidance for Use of Commercial EEEE Parts in Class D Missions* v1.0 (2024-10-16); NASA/TM-20210018053 (Avionics Radiation Hardness Assurance Guidelines, 2021); SpaceX Rideshare Payload User's Guide v11 Table 5-5. MIL-STD-975 (cancelled) and "NASA Ames SmallSat Heritage" are withdrawn as references
 **Status:** CDR draft. §2A is the parts assurance policy; the part tables (§4–§11) predate the build-versus-buy decisions and are corrected by §2A.6–§2A.7
@@ -90,8 +90,8 @@ finishes and materials.
 |------|----------|-----------------|-------------|----------------|--------|
 | Epson M-G370PDT0 | Primary gyro | D9 | Mission (ADCS degraded if lost) | TID pass at 5, 10, 20 krad (Epson); no SEL data | Selected |
 | Bosch BMI088 | Backup gyro | D9 | Non-critical while unpowered | None | Selected |
-| TI BQ76920 (class) | 4S BMS AFE | BATTERY_DESIGN §4.2 | Mission and safety | None | Candidate |
-| Secondary over-voltage protector + three-terminal fuse | Dissimilar overcharge control | SQSO-BSA-001 H1 (EPS-11) | Safety | — | Not yet selected |
+| TI BQ76952PFBR (was BQ76920 class) | 4S BMS AFE, −40 … +85 °C | BATTERY_DESIGN §4.2; EPS board BOM | Mission and safety | None | Selected (EPS U1) |
+| TI BQ771806DPJR secondary over-voltage protector + Littelfuse ITV4030L1412NR three-terminal fuse (was 'not yet selected') | Dissimilar overcharge control | SQSO-BSA-001 H1 (EPS-11); EPS board BOM | Safety | — | Selected (EPS U2, F1, F3). **ITV4030 rated −10 … +65 °C**: below the −40 … +70 °C criterion, covered only by V-EPS-8 extended to −40 °C and +70 °C or a design change (§2A.9) |
 | TI SN74LVC1G123 | XPDR_EN heartbeat monostable | BUILD_VS_BUY §3.2 | Mission (transponder) | None | Candidate |
 | TI SN74LVC1G11 | Transponder key gate | BUILD_VS_BUY §3.2 | Mission | None | Candidate |
 | CML CMX138A | CTCSS decode and audio conditioning | BUILD_VS_BUY §3.2 | Mission | None | Candidate |
@@ -124,7 +124,7 @@ below (part numbers recorded with the finish in the FM issue of this list).
 
 | Family | Board side | Harness side | Gold finish | Used on |
 |--------|-----------|--------------|-------------|---------|
-| Molex Pico-Clasp 1.0 mm | 501331-xx vertical SMT header (the BOMs' 5013310207 … 5013311407 are the tin code "-xx07") | 501330-0N00 housing; 501334 crimp terminal (28–32 AWG) | Molex's gold-plated versions (0.38 or 0.76 µm Au, per the Pico-Clasp datasheet 987651-6111): the gold finish code of each header and of the terminal replaces the tin code; 0.76 µm preferred | EPS J2, J4–J9, J12, J14–J17, J19–J21; OBC J3–J8, J10; RF J2; carrier J2, J3; magnetometer board A2 J1 |
+| Molex Pico-Clasp 1.0 mm | 501331-xx vertical SMT header (the BOMs' 5013310207 … 5013311407 are the tin code "-xx07") | 501330-0N00 housing; 501334 crimp terminal (28–32 AWG) is the **tin** terminal; the gold terminal is **501193** (Molex 501330 housing listing; SQSO-MFG-003 §9) | Molex's gold-plated versions (0.38 or 0.76 µm Au, per the Pico-Clasp datasheet 987651-6111): the gold finish code of each header and of the terminal replaces the tin code; 0.76 µm preferred | EPS J2, J4–J9, J12, J14–J17, J19–J21; OBC J3–J8, J10; RF J2; carrier J2, J3; magnetometer board A2 J1 |
 | Molex Micro-Fit 3.0 | 43045 dual-row **right-angle** through-hole header: 43045-0811 (2×4, gold, solder tab); the 2×3 and 2×2 right-angle headers in the same gold finish (the BOMs' 0430450812, -0612, -0412 are vertical, tin) | 43025-0N00 receptacle; 43030 crimp terminal (20–24 AWG) in the gold finish | Selective gold over nickel | EPS J1, J10, J11, J13, J18; carrier J1 |
 | Samtec Tiger Eye 1.27 mm (replaces FTSH + FFSD) | TFM-1xx-01-S-D-RA right-angle (OBC J1, J2, J9; RF J1), vertical TFM-1xx-01-S-D (EPS J3) | SFSDT discrete-wire socket assembly (PTFE wire) | "-S" plating code: 30 µin gold on the contact area | W3 (40), W4A (16), W8A (10) |
 | Samtec FTSH (unmated in flight) | FTSH-105-01-L-DV-K (EPS J22 FTSH-102, carrier J6) | — | "-L": 10 µin gold | Programming headers, GSE only |

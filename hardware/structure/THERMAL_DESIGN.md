@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-THM-001
-**Version:** 1.5
+**Version:** 1.6
 **Date:** 2026-10-27
 **Status:** CDR Baseline. The analysis is `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.2); this document holds
 the design (finishes, mount, heater, sensors) and the allowable temperatures
@@ -25,12 +25,16 @@ demonstrated by a cold start at −40 °C without the 10 °C test margin (ETP §
 
 | Unit | Operating (°C) | Non-operating (°C) | First orbit after separation (°C) | Basis |
 |------|----------------|--------------------|-----------------------------------|-------|
-| OBC/EPS stack, with the ADCS and GNSS units and the magnetometer board | −30 … +50 | −30 … +60 | −40 (operating) | Parts −40 … +85 °C or wider; EPS fuses ITV4030 rated from −10 °C, qualified to −40 °C by V-EPS-8 |
-| RF board | −30 … +50 | −30 … +60 | −40 (operating) | Parts −40 … +85 °C or wider (crystal Y451 in its −40 … +85 °C grade); PA gate 70 °C in software |
-| Jetson carrier | −15 (power-on gate, SRS-F131) … +50 at the spreader | −30 … +60 | −40 (non-operating) | Parts −40 … +85 °C or wider |
+| OBC/EPS stack, with the ADCS and GNSS units and the magnetometer board | −30 … +50 | −30 … +60 | −40 (operating) | Parts −40 … +85 °C or wider, checked line by line (`docs/manufacturing/PARTS_TEMPERATURE_AUDIT.md`, SQSO-MFG-003); exceptions in the rows below (EPS fuses F1/F3, magnetorquer rods) |
+| RF board | −30 … +50 | −30 … +60 | −40 (operating) | Parts −40 … +85 °C or wider (SQSO-MFG-003; crystal Y451 ABLS option L, −55 … +125 °C); exception: the PA Q601 (row below); PA gate 70 °C in software |
+| Jetson carrier | −15 (power-on gate, SRS-F131) … +50 at the spreader | −30 … +60 | −40 (non-operating) | Parts −40 … +80 °C or wider (M.2 connector J5 −40 … +80 °C; SQSO-MFG-003) |
 | Jetson module | −15 (power-on gate) … +50 at the spreader; junction per SYS-603 (≤ 95 guard, 105 data sheet) | −30 … +60 | −40 (non-operating) | Data-sheet junction minimum −25 °C; below it qualified by the EM soak V-THM-8 |
 | Battery | 0 … +45 charging (SYS-602); −10 … +60 discharging | −20 … +60 | as non-operating; heater-controlled | Cell specification (INR18650-35E) |
-| Solar panels and wings | Vendor's qualified range, at least −56 … +93 | as operating | as operating | V-THM-4 |
+| EPS three-terminal fuses F1, F3 (Littelfuse ITV4030L1412NR) | Data sheet −10 … **+65** | No mounted non-operating rating published (packaged storage 0 … +35) | Data sheet −10 | **Below the stack AFT at both ends.** Covered only by qualification by test on the flight lot: V-EPS-8 extended to hold current, blow time and heater trigger at −40 °C and at +70 °C (was −30 °C only), or by a design change of the secondary interrupt (EPS designer); no compliant three-terminal fuse exists in the 4030 footprint (SQSO-MFG-003 §4) |
+| RF power amplifier Q601 (Mitsubishi RD01MUS3) | Data sheet: Tj ≤ +150; **no minimum operating temperature published** | Tstg −40 … +125 | Tstg −40 (no margin) | Covered by a Mitsubishi statement of the minimum operating (case) temperature and a characterisation of the PA (gain, stability, drain current, spurious) at −40 °C on the RF EM before the FM build (SQSO-MFG-003 §5, §12) |
+| ISIS AntS (on the −Z face, outside the structure; bought) | Vendor qualified **−20 … +60** (brochure V2R, electrical-model data sheet); thermal qualification testing −40 … +80 (ISIS-ANTS-DSH-0001 v4.0) | −50 … +85 | Not modelled; release in the first orbit after the wing burns (separation + ≈ 31 min, eclipse) | **Not covered yet.** The thermal network has no AntS node: the nearest predicted nodes at that time are −30.2 °C (frame-side hinge) to −40.6 °C (stowed wing), −40 … −51 °C with the margin (SQSO-THA-001 2.2 §4.3); in orbit the body panels span −22.7 … +51.5 °C (§5 there). Covered by the ISIS statement and the AntS node of SQSO-MFG-003 §12 item V-1, fallback there |
+| Magnetorquer rods X, Y, Z (CubeSpace CR0002; bought) | Family data: thermal vacuum **−20 … +80**, cold/hot start **−35 … +70** (CubeSpace Gen 2 actuators brochure 2023; no CR0002-specific figure) | Not published | Inside the structure; not a node of the thermal network (nearest: OBC/EPS stack −27.6 °C in the first orbit, body panels −22.7 °C minimum in orbit, SQSO-THA-001 2.2) | **Not covered yet.** Covered by a CubeSpace −40 °C rating or a rod qualification by test at −40 °C (SQSO-MFG-003 §12 item V-2) |
+| Solar panels and wings | Vendor's qualified range, at least −56 … +93 | as operating | as operating | V-THM-4; vendor not selected (SQSO-MFG-003 §12 item V-4) |
 | Structure | −40 … +80 | −60 … +100 | — | Unchanged |
 
 ## 2. Orbital Environment
@@ -276,3 +280,4 @@ inside that range: the test is tailored at the battery with the integrator's agr
 | 1.3 | 2026-10-27 | CDR review (thermal): allowable temperatures with proposed per-unit values (§1.1); baseline orbit and environments (§2); conductances (§4.2); cases and results from SQSO-THA-001 v2.0 (§5); heater set points recommended (§6.2); correlation and SpaceX thermal-cycling levels (§9) |
 | 1.4 | 2026-10-27 | CDR 2026 consistency pass: altitude row from BASELINE Rev E §3 (§2.1) |
 | 1.5 | 2026-10-27 | CDR round 3, thermal (RID THM-04, chair disposition): §1.1 per-unit allowable flight temperatures derived from the parts (SQSO-THA-001 2.2 §6.6): −30 °C cold for every board, operating and non-operating, −40 °C for the first orbit after separation; battery and Jetson per the proposed SYS-600/601 (CR-2026-017) |
+| 1.6 | 2026-10-27 | CDR round 3, parts temperature audit (RID P3T-01, SQSO-MFG-003 A): §1.1 bases from the line-by-line audit; rows added for the EPS fuses F1/F3 (−10 … +65 °C, V-EPS-8 extended to −40/+70 °C), the RF PA Q601 (no published minimum), the ISIS AntS (−20 … +60 °C, not modelled) and the CR0002 rods (−20 … +80 °C, cold start −35 °C), each with how it is covered; Y451 basis corrected to option L (EEE parts engineer, chair action) |

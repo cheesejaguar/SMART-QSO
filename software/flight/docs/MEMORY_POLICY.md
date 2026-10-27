@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-006
-**Revision:** F
+**Revision:** G
 **Date:** 2026-10-27
 **Reference:** JPL D-60411 (Power of Ten), NPR 7150.2
 
@@ -39,7 +39,7 @@ embassy-stm32 generates, feature `memory-x`), with the cortex-m-rt `link.x`:
 | SRAM1 | 0x20000000 | 192 KB | Not linked. The NMI's cause record (12 B at 0x2002FFF0, §10.3), which survives a reset |
 | SRAM2 | 0x20030000 | 64 KB, parity | `.data`, `.bss` and `.uninit` at its start: every static, the executor's task and the flight software's state (41,788 B on 2026-10-27, round 3); the 8 KB stack at its top, growing down from 0x20040000 (since Revision F, RID AV-13). The link fails if the statics, the 32-byte guard and the stack outgrow SRAM2 (`ASSERT` in `memory.x`) |
 | SRAM3 | 0x20040000 | 384 KB | Not used |
-| FRAM (FM25V20A, SPI1) | external | 256 KB | Non-volatile records (§8) |
+| FRAM (FM25V20A, SPI1) | external | 256 KB | Non-volatile records (§8), on U3 (CS# PG5) and mirrored on U36 (CS# PD7; SQSO-ICX-001 D §6 row 32, RID SMA-B10) |
 
 The linked RAM region is SRAM2 alone (0x20030000, 64 KB), so the initial SP is 0x20040000 (it was 0x200A0000 with
 SRAM2 and SRAM3 linked; the CI image check pins the new value). Revision A split
@@ -220,6 +220,11 @@ HAL, and the blobs are files.
   (`software/rust/sqso-fsw/src/nvm.rs`), so an interrupted write leaves the previous copy intact.
 - Mission data and the EPS state are saved every 100 main-loop passes and before a watchdog reset.
 - Write failures return an error to the caller.
+- Every write goes to both FRAMs, U3 and its mirror U36 (`fram.rs`, `hal_flash_write`: success when one took it).
+  Reads come from U3; the records' loader (`nvm::load`) turns to the mirror (`hal_flash_read_mirror`) when U3 fails
+  or gives no copy that passes its CRC, and a save picks its slot from the mirror when U3 cannot be read. With both
+  unreadable, the one-minute check declares the FRAM failed after three checks and keeps the safe defaults until the
+  ground's FRAM_BYPASS puts the critical state in RAM under CRC (`fram_health.rs`, SRS-F160).
 
 ---
 
@@ -338,3 +343,4 @@ a disagreement toward the safe side (SRS-F133):
 | D | 2026-10-27 | Worst-case stack 5,444 B of 8 KB (66.5 %) after the CDR flight-software changes; the housekeeping stage is the deepest frame | SMART-QSO Team (CDR avionics review) |
 | E | 2026-10-27 | §3.1 the firmware's own `memory.x`: statics in SRAM2 (parity), the stack in SRAM3, SRAM1 unlinked; §3.2 budget of the CDR round-2 image; §6.2 worst case 6,004 B; §8.1 regions HK_DETAIL, OPS, HK_SUMMARY, HK_INDEX and EOL; §10 SRAM2 parity and the NMI handler, the periodic check of the persisted state and what is not mitigated (RID AV-07) | SMART-QSO Team (CDR flight software, round 2) |
 | F | 2026-10-27 | §3.1 the stack moved into SRAM2 (initial SP 0x20040000; RID AV-13), SRAM3 unused; §3.2 budget of the round-3 image; §6 worst case 6,236 B, the budget and guard addresses; §8.1 region ADCS_CAL; §10.3 the programming procedure sets `SRAM2_PE`; §10.5 the stack no longer unprotected | SMART-QSO Team (CDR flight software, round 3) |
+| G | 2026-10-27 | §3.1 the second FRAM U36 (RID SMA-B10); §8.2 every record mirrored, read from the mirror when the first FRAM fails, the degraded mode without either (SRS-F160); §3.2 and §6 the image and worst-case stack of round 3, second part | SMART-QSO Team (CDR flight software, round 3, second part) |

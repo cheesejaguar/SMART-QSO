@@ -32,8 +32,9 @@
 //!      confirm is tried again, at most [`MAX_FIRE_ATTEMPTS`] times in all
 //!      (across resets too). The EPS reporting the charge path open ends
 //!      the fire whenever it is seen (the array, and with it the sunlight
-//!      the software sees, is gone once it opens); [`FIRE_DEADLINE_MS`]
-//!      without an end goes to the report all the same;
+//!      the software sees, is gone once it opens); an attempt not ended
+//!      within [`FIRE_DEADLINE_MS`] (no sunlight) goes to the report all the
+//!      same;
 //!    - the final report (RID REG-12, finding EOL-1 of the end-of-life
 //!      plan): [`FINAL_REPORTS`] housekeeping frames, [`REPORT_INTERVAL_MS`]
 //!      apart, carrying `EOL_STATE`, the fuse state and the attempts;
@@ -375,9 +376,9 @@ impl Passivation {
         }
         self.attempts = self.attempts.saturating_add(1);
         self.save(io);
-        if self.fire.is_none() {
-            self.fire_from = now_ms;
-        }
+        // Each attempt has its own deadline (an attempt starts with no fire
+        // under way: at the execute, after a reset, after an unconfirmed one)
+        self.fire_from = now_ms;
         self.fire = Some(Step::WaitSun);
     }
 

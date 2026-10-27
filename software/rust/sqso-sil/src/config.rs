@@ -120,7 +120,7 @@ impl Default for Config {
             detail_days: 3.0,
             burn_limit_a: 0.8,
             contacts_per_day: 2,
-            contact_min_elev_deg: 15.0,
+            contact_min_elev_deg: crate::env::link::COMMAND_MIN_ELEV_DEG,
             commissioning_days: 14.0,
             gauge_offset_a: 0.002,
             radiation: true,

@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SHA-001
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Classification:** Class D Mission
 **Reference:** NASA-STD-8739.8B (replaced NASA-STD-8719.13, cancelled 2020)
@@ -440,7 +440,7 @@ charge path). **Likelihood:** Improbable (E) with the controls.
 | Control | Description | Verification |
 |---------|-------------|--------------|
 | C-013-1 | Two commands under two keys: PASSIVATE_ARM (operational key, `EOL!`) then PASSIVATE_EXECUTE (recovery key) within 600 s; the execute alone, a lapsed arm or a wrong code does nothing (SRS-F110) | T: `test_passivation`, Rust unit tests |
-| C-013-2 | Two separate OBC outputs in series in the EPS (EOL_ARM's edge sets a latch, EOL_FIRE a level held ≥ 60 s in sunlight), both low at reset and pulled down on the EPS board: no single stuck line, glitch or reset fires it (SRS-F111) | T: `test_passivation`; V-EPS-8 on the EM |
+| C-013-2 | Two processors and two separate OBC outputs (Revision E, RID P3E-11): PASSIVATE_ARM checks EOL_STATE (not armed, fuse intact), writes the EPS controller's key (0x3C then 0xC3 to EOL_KEY within 1 s), raises EOL_ARM within the key's 10 s and confirms the latch; only then is PASSIVATE_EXECUTE accepted, and EOL_FIRE (a level held ≥ 60 s in sunlight) fires. Neither the OBC alone (no key) nor the controller alone (no EOL_ARM edge, no EOL_FIRE) can fire it; both lines low at reset and pulled down on the EPS board: no single stuck line, glitch, reset or software fault fires it (SRS-F157, SRS-F110, SRS-F111) | T: `test_passivation` (the key sequence, a refused key, an unconfirmed latch), Rust unit tests, the SIL's EPS-controller model; V-EPS-8 on the EM |
 | C-013-3 | The passivation record persisted before the fire; the fire while still transmitting, then the final report (three HK1/HK2 pairs over 3 min with EOL_STATE, the fuse state and the attempts), then TX-OFF and the passivation inhibit, **whether the fire was confirmed or not** (Revision D, RID REG-12: TX-OFF used to come first, so the ground could not see the result); the inhibit is never lifted; after a reset the record or the EPS EOL_STATE restores it, a fire resumes within its 3 attempts and an unfinished report is sent again before TX-OFF (SRS-F111, SRS-F112, SRS-F155) | T: `test_passivation` (the report frames and TX-OFF at 180 s, the unconfirmed fire), the Rust unit tests, both crates' `passivation.rs` at 100 % line and condition coverage; SIL end-of-life plan |
 | C-013-4 | The emissions cease within 180 s of the end of the fire, whatever the fire, the EPS or the record does: a line that cannot be driven, a record that cannot be written or an EPS that never confirms all lead to the report and then TX-OFF (Revision D) | T: `test_passivation`, `sqso-ffi` unit test `hal_failures_are_reported` |
 
@@ -450,7 +450,18 @@ is on the safety-critical coverage list (`software/flight/scripts/safety_coverag
 report, the sequence is itself an RF transmit inhibit (SH-008), the same class as `rf_control`. For the PI's
 concurrence with the SDP §3.2 list.
 
-### 9.6 Summary of the Additions
+### 9.6 Changes from the Board FMEA (Revision E, SQSO-FMEA-003)
+
+| Item | Hazard affected | Change | Verification |
+|------|-----------------|--------|--------------|
+| SMA-B02 | SW-HAZ-007 (deployment timer), SW-HAZ-010 (RF silence) | DEPLOY_SENSE read as the hardware drives it (high = released, no internal pull; the software had a pull-up and high = stowed, which would have restarted the RF silence and the deployment wait for ever); separation latched after 10 s released, after which the line restarts neither timer (an open line cannot hold them); SOLAR_SENSE likewise (low = both wings deployed, no pull: a pull-down would have read deployed with the wings stowed); no internal pull on any sense input (SRS-F159) | T: `test_rf_silence`, `test_deployment`, `test_hal_pins` (the simulated HAL lets a configured pull win over the weak sources, as on the board); V-BFM-07 on the flatsat |
+| SMA-B10 | SW-HAZ-005 (persistence), SW-HAZ-010 | A dead FRAM: every record mirrored to the second FRAM (U36) and read from it when the first fails; with both unreadable the safe defaults stay (TX-OFF, hold), the FRAM is declared failed after three checks, and only an authenticated FRAM_BYPASS makes the CRC-protected RAM copies authoritative (an upset of a RAM copy still settles toward TX-OFF; TX-OFF by command latches at once; a reset returns the defaults) (SRS-F160) | T: `test_fram_health`, the Rust unit tests of `rf_control`, `ops_state`, `fram_health`, `nvm` |
+| SMA-B11 | SW-HAZ-010 (REL-04 exception) | A carrier detect stuck for more than 1 h is not evidence of a working receiver; RX_FAULT's power-on self-test; the TNC STATUS loop query, unanswered for 24 h with the radio on, counts as the receiver's fault (SRS-F115, SRS-F116) | T: `test_receiver`, Rust unit tests |
+| SMA-B19 | SW-HAZ-010 (downlink held for temperature) | A failed TX_TEMP no longer holds the downlink for ever, nor hides a hot PA: an implausible reading (open line, out of range, too fast a rise, far from the board) is a sensor fault and the hold uses the board temperature plus 15 °C (SRS-F161) | T: `test_downlink`, Rust unit tests |
+| SMA-B09 | SW-HAZ-004 (watchdog) | The OBC writes the EPS controller's heartbeat every 30 s; the controller power-cycles the OBC after 600 s without one (at most 3 times a day); the IWDG timeout is 28 s (26.4–30.4 s), below the external supervisor's 31.3 s minimum (SRS-F162) | T: `sqso-ffi` unit test `heartbeat_ants_power_and_trackers`; flatsat with the OBC halted |
+| THM-03 | SW-HAZ-008 (safe mode) | With the wings stowed and the battery's orbit minimum below +3 °C the mode is held at SAFE so the heater gets the whole surplus (SRS-F163) | T: Rust unit tests of `cold_hold` |
+
+### 9.7 Summary of the Additions
 
 | Hazard ID | Description | Severity | Likelihood | Risk | Status |
 |-----------|-------------|----------|------------|------|--------|
@@ -470,6 +481,7 @@ concurrence with the SDP §3.2 list.
 | B | 2026-10-27 | §9 new: SW-HAZ-009 (transponder emission, XPDR_EN heartbeat), SW-HAZ-010 (RF inhibits, the SDP's open action), SW-HAZ-011 (commissioning hold), SW-HAZ-012 (OBC selector); recommendation to add `transponder.rs` and `ops_state.rs` to the safety-critical list (RID FSW-05) | SMART-QSO Team (CDR avionics review) |
 | C | 2026-10-27 | §9: C-009-1 lease 40 ms and drop within 90 ms; `transponder.rs` and `ops_state.rs` on the safety-critical list (FSW-05); C-010-4 the REL-04 exception (beacon kept with the receiver known failed); §9.5 new: SW-HAZ-013 end-of-life passivation (REG-01, EPS-06); the summary is §9.6 | SMART-QSO Team (CDR flight software, round 2) |
 | D | 2026-10-27 | §9.5 SW-HAZ-013: the passivation order of RID REG-12 (the fire while transmitting, the final report, then TX-OFF, also after an unconfirmed fire), control C-013-4 (the emissions cease whatever fails), the pins allocated, `passivation.rs` (both crates) on the safety-critical list | SMART-QSO Team (CDR flight software, round 3) |
+| E | 2026-10-27 | §9.5 C-013-2 the two-processor arm (RID P3E-11, SRS-F157); §9.6 new: the changes from the board FMEA (SMA-B02 sense polarity and separation latch, B10 FRAM mirror and degraded mode, B11 receiver evidence, B19 TX_TEMP plausibility, B09 EPS heartbeat and IWDG timeout) and THM-03 (the wings-stowed cold hold); the summary is §9.7 | SMART-QSO Team (CDR flight software, round 3, second part) |
 
 ---
 

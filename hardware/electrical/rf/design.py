@@ -153,12 +153,12 @@ def L(ref, value, a, b, family="0603HP", i_work=0.01, notes="", dnp=False):
         rating = "air core, Irms >= 2.5 A (series), Q > 100 at 150 MHz"
         irat = 2.5
         pkg = "L_1812SMS"
-    elif family == "0806SQ":
-        mpn = f"0806SQ-{lcode(nh)}GLC"
+    elif family == "0807SQ":
+        mpn = f"0807SQ-{lcode(round(nh))}GLC"      # 0807SQ-10NGLC is 10.2 nH (Coilcraft Doc 617-1)
         mfr = "Coilcraft (Square air core, +-2 %)"
-        rating = "air core, Irms >= 2.5 A (series), Q > 100 at 150 MHz"
-        irat = 2.5
-        pkg = "L_0806SQ"
+        rating = "air core, -40..+125 C, Irms >= 1.6 A assumed (Doc 617-1 to confirm), Q > 100 at 150 MHz"
+        irat = 1.6
+        pkg = "L_0807SQ (Coilcraft Doc 617 land pattern)"
     elif family == "0603HP":
         mpn = f"0603HP-{lcode(nh)}XGLU"
         mfr = "Coilcraft (wire-wound ceramic, +-2 %)"
@@ -744,8 +744,10 @@ lpf = CALC.get("lpf", {})
 me = lpf.get("match_elements", {"La_nH": 10.0, "Ca_pF": 68.0, "Lb_nH": 27.0, "Cb_pF": 27.0})
 le = lpf.get("lpf_elements", {"C1": 20, "L2": 56, "C2t": 2.4, "C3": 27, "L4": 27, "C4t": 11, "C5": 27, "L6": 56,
                               "C6t": 2.4, "C7": 24})
-L("L605", f"{nv(me['La_nH'])}nH", "PA_D2", "PM1", family="0806SQ", i_work=0.55,
-  notes="output match section 1 (7.5 -> 19.4 ohm); value set by load-pull on the EM")
+L("L605", "10.2nH", "PA_D2", "PM1", family="0807SQ", i_work=0.55,
+  notes="output match section 1 (7.5 -> 19.4 ohm); 0807SQ-10NGLC = 10.2 nH, replaces 0806SQ-10N (not a catalogue "
+        "value, SQSO-MFG-003); +2 % on the 10.0 nH design value, inside the load-pull tuning on the EM; longer body: "
+        "Coilcraft 0807SQ land pattern, 3 mm body-to-body spacing rule (§10) checked with it")
 C("C611", f"{nv(me['Ca_pF'])}pF", "PM1", "GND", 15.5, rf=True)
 L("L606", f"{nv(me['Lb_nH'])}nH", "PM1", "PM2", family="1812SMS", i_work=0.35, notes="output match section 2 (19.4 -> 50)")
 C("C612", f"{nv(me['Cb_pF'])}pF", "PM2", "GND", 15.5, rf=True)

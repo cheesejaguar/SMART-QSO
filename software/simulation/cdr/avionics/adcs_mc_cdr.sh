@@ -47,8 +47,8 @@ run major_axis           --gyro mg370 --fsw-axis plant
 # elements, the C-13 ballast, the harness), deployed, CBE 1,513.9 g and MEV
 # 1,747.8 g, about the CG, off-diagonals -sum(m x y) (the flight software
 # keeps the mean of the two: sqso_fsw::adcs::INERTIA, Inertia::DEPLOYED)
-run plant_cbe            --gyro mg370 --plant 2.846,4.190,3.970,0.0126,-0.0089,-0.0030
-run plant_mev            --gyro mg370 --plant 3.267,4.745,4.535,0.0137,-0.0169,0.0031
+run plant_cbe            --gyro mg370 --plant 2.852,4.199,3.977,0.0114,-0.0110,-0.0040
+run plant_mev            --gyro mg370 --plant 3.274,4.756,4.543,0.0122,-0.0196,0.0019
 # One wing or none deployed: the default geometry and the matching preset
 run wing1_geo0           --gyro mg370 --wings w1 --geometry 0
 run wing1_geo1           --gyro mg370 --wings w1 --geometry 1

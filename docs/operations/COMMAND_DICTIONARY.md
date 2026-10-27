@@ -1,7 +1,7 @@
 # SMART-QSO Command Dictionary
 
 **Document ID**: SQSO-CMD-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -30,12 +30,16 @@ to the flight command set. The commands the flight software accepts are summaris
 | 0x08 | COMMISSIONING_RELEASE | 0 | operational | Release the commissioning hold |
 | 0x09 | GET_HOUSEKEEPING | 0 | operational | Downlink an HK1 frame |
 | 0x0A | DUMP_TLM | 7 | operational | Downlink stored housekeeping: store, first record, count ≤ 600 (0 stops) |
+| 0x0B | FRAM_BYPASS | 4 | operational | `FRM!`: run without the FRAM, only once it is declared failed (HK1 `FR=1`); until the FRAM reads back or the next reset (SRS-F160) |
 | 0x10 | EPS_SET_MODE | 1 | operational | EPS power mode |
 | 0x13 | EPS_GET_TELEMETRY | 0 | operational | EPS telemetry (not downlinked) |
 | 0x14 | EPS_CLEAR_LOCKOUT | 4 | operational | `CHG!`: clear the EPS recharge lockout (after a cell below 2.0 V) |
+| 0x15 | EPS_DISABLE_TRACKERS | 1 | operational | Tracker mask (bits 0–3 = T1–T4 off, 0 all on) through the EPS controller's TRK_DISABLE (SRS-F162) |
 | 0x21 | ADCS_DETUMBLE | 0 | operational | Start detumble |
 | 0x23 | ADCS_GET_ATTITUDE | 0 | operational | Attitude (not downlinked) |
 | 0x24 | ADCS_SET_GEOMETRY | 1 | operational | Spin-axis and inertia preset: 0 both wings, 1 W1 only, 2 W2 only, 3 none |
+| 0x25 | ADCS_SET_GYRO_ALIGN | 36 | operational | Gyro alignment matrix, nine signed 32-bit elements × 10⁻⁶ (persisted) |
+| 0x26 | ADCS_SET_MAG_BIAS | 13 | operational | Magnetometer bias of one rod polarity state (persisted) |
 | 0x30 | SET_BEACON | 2 | operational | Beacon interval, 10 to 120 s |
 | 0x31 | TX_ENABLE | 0 | operational | Clear the TX-OFF latch |
 | 0x32 | TX_DISABLE | 0 | any (none if no key is usable) | Latch TX-OFF (97.207(b)) |
@@ -533,3 +537,4 @@ cmd = create_command("N0CALL", 1, 0x0100)
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §1: SQSO-ICD-013 and the generated dictionary govern; §1.1 the flight command set, with DUMP_TLM (0x0A), EPS_CLEAR_LOCKOUT (0x14), PASSIVATE_ARM (0x70) and PASSIVATE_EXECUTE (0x71) added; §6.3 the two-key passivation. The Version 1.0 sections are kept for history |
+| 1.2 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §1.1 FRAM_BYPASS (0x0B), EPS_DISABLE_TRACKERS (0x15), ADCS_SET_GYRO_ALIGN (0x25) and ADCS_SET_MAG_BIAS (0x26) added |

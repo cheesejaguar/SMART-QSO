@@ -1,7 +1,7 @@
 # Attitude Determination and Control Subsystem (ADCS) Design Document
 
 **Document Number**: SMART-QSO-ADCS-001
-**Version**: 1.6
+**Version**: 1.7
 **Date**: 2026-10-27
 **Status**: Preliminary Design
 
@@ -646,33 +646,40 @@ the coils on through the sample and the software unaware, the gyroless case lose
 timeout; with the window enforced but the coils left on (a driver fault), every sample is rejected (43,197 in half a day)
 and the detumble times out as a reported fault instead of a false completion.
 
-### 11.2 Inertia (layout B, STR-01)
+### 11.2 Inertia (layout B, STR-01, STR-27)
 
-`sqso_fsw::adcs::Inertia::DEPLOYED` is the mean of the CBE and MEV tensors of `docs/environment/MASS_BUDGET.md` v3.0
-§6.1, layout B (battery −Z, RF +Z), CR0002 rods, the 2 m AntS elements along ±X, kg·m² × 10⁻³:
+`sqso_fsw::adcs::Inertia` holds the mean of the CBE and MEV tensors of the final CAD (`docs/environment/MASS_BUDGET.md`
+§6.1 and §6.5, CDR round 3: layout B, CubeSpace rods, all four AntS elements, the C-13 ballast as re-placed, the
+harness), kg·m² × 10⁻³ (products × 10⁻³ as well, the tensor's off-diagonal elements):
 
 | Tensor | Ixx | Iyy | Izz | Ixy | Ixz | Iyz | Iyy/Izz | Major axis from +Y |
 |--------|-----|-----|-----|-----|-----|-----|---------|--------------------|
-| Both wings (flight, `DEPLOYED`) | 3.120 | 4.600 | 4.437 | −0.030 | −0.031 | −0.045 | 1.037 | 14.3° |
-| Wing W1 only (`WING_1_ONLY`) | 3.081 | 4.214 | 4.012 | −0.242 | −0.041 | −0.035 | 1.050 | 12.9° |
-| Wing W2 only (`WING_2_ONLY`) | 3.081 | 4.207 | 4.005 | +0.186 | −0.021 | −0.035 | 1.050 | 13.0° |
-| No wings (`NO_WINGS`) | 3.036 | 3.827 | 3.580 | −0.026 | −0.031 | −0.026 | 1.069 | 5.9° |
+| Both wings (flight, `DEPLOYED`, `INERTIA`) | 3.0645 | 4.479 | 4.2615 | +0.0118 | −0.0153 | −0.0011 | 1.051 | 0.6° |
+| Both wings, CBE (1,513.9 g) | 2.852 | 4.199 | 3.977 | +0.0114 | −0.0110 | −0.0040 | 1.056 | — |
+| Both wings, MEV (1,747.8 g) | 3.274 | 4.756 | 4.543 | +0.0122 | −0.0196 | +0.0019 | 1.047 | — |
+| Wing W1 only (`WING_1_ONLY`) | 3.027 | 4.165 | 3.910 | −0.1610 | −0.0248 | +0.0080 | 1.071 | 8.3° |
+| Wing W2 only (`WING_2_ONLY`) | 3.027 | 4.166 | 3.911 | +0.1843 | −0.0058 | +0.0080 | 1.073 | 9.1° |
+| No wings, AntS out (`NO_WINGS`) | 2.985 | 3.856 | 3.560 | +0.0115 | −0.0153 | +0.0171 | 1.084 | 3.3° |
+| Stowed (the mission simulation) | 2.960 | 3.292 | 2.970 | — | — | — | — | — |
 
-The structures reviewer's rounded value (3.2, 4.6, 4.4) agrees within 3 % on each axis. The margin that matters,
-Iyy over Izz, is 3–4 %, not the 10 % the previous constant assumed; the products tilt the major axis 14° from +Y.
-The mission simulation's attitude model now carries the full tensor (`sqso_sil::adcs_mc::Body`).
+The flight constant is the mean of the CAD refresh before the last (2.853, 4.200, 3.978 and 3.276, 4.758, 4.545); the
+last refresh moved the rows by at most 0.002 × 10⁻³, which leaves the constant and the ratios as they are. The margin
+that matters, Iyy over Izz, is 5 %; the products tilt the deployed major axis 0.6° from +Y. The Monte Carlo plant
+carries the full tensor (`sqso_sil::adcs_mc::Body`); the mission simulation's attitude model the diagonal, with the
+one-wing diagonals after a single wing deploys.
 
 ### 11.3 Geometry by Telecommand (STR-27)
 
 `ADCS_SET_GEOMETRY` (0x24, one argument, persisted in the operations record) selects the spin axis and the tensor the
-law uses (`Geometry::PRESETS`, SRS-F094):
+law uses (`Geometry::PRESETS`, SRS-F094); each axis is the major axis of its CAD tensor (checked against the tensor's
+eigenvector to 0.01°):
 
 | Preset | Spin axis â | Tensor | Use |
 |--------|-------------|--------|-----|
 | 0 (default) | +Y | both wings | nominal |
-| 1 | major axis of W1-only, (−0.196, 0.975, −0.105) | W1 only | wing W2 failed to deploy |
-| 2 | major axis of W2-only, (0.159, 0.974, −0.159) | W2 only | wing W1 failed to deploy |
-| 3 | major axis with no wings, (−0.029, 0.995, −0.099) | no wings | neither wing deployed |
+| 1 | major axis of W1-only, (−0.1381, 0.9896, 0.0410), 8.3° from +Y | W1 only | wing W2 failed to deploy |
+| 2 | major axis of W2-only, (0.1557, 0.9875, 0.0247), 9.1° from +Y | W2 only | wing W1 failed to deploy |
+| 3 | major axis with no wings, (0.0121, 0.9983, 0.0568), 3.3° from +Y | no wings | neither wing deployed |
 
 Any other value is refused (INVALID_PARAM). The ground chooses from the deployment telemetry (housekeeping `DEP`).
 
@@ -730,8 +737,8 @@ plant, not the round-3 software. The sweep above is not re-run:
 | Iyy/Izz 1.005 | 0 | 1.2 h | 2.0° | 7.8° | 99.9 % | 30° | 4.65 / 4.49 W | 7 mW |
 | Iyy/Izz 1.020 | 0 | 1.3 h | 1.9° | 7.4° | 100 % | 10° | 4.65 / 4.50 W | 7 mW |
 | Iyy/Izz 1.050 | 0 | 1.2 h | 1.8° | 7.2° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
-| **CAD tensor, CBE (1,513.9 g)** | 0 | 1.2 h | 1.8° | 7.1° | 100 % | 11° | 4.65 / 4.50 W | 6 mW |
-| **CAD tensor, MEV (1,747.8 g)** | 0 | 1.1 h | 1.8° | 6.7° | 100 % | 8° | 4.65 / 4.50 W | 7 mW |
+| **CAD tensor, CBE (1,513.9 g; final refresh)** | 0 | 1.2 h | 1.8° | 7.1° | 100 % | 11° | 4.65 / 4.50 W | 6 mW |
+| **CAD tensor, MEV (1,747.8 g; final refresh)** | 0 | 1.1 h | 1.7° | 6.8° | 100 % | 8° | 4.65 / 4.50 W | 7 mW |
 | Coupling 0 / 3·10⁻⁴ T per A·m² | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 9° | 4.65 / 4.50 W | 6 mW |
 | Coils on through the sample, software unaware (gyro) | 0 | 1.2 h | 1.8° | 7.3° | 100 % | 10° | 4.65 / 4.50 W | 6 mW |
 | Same, no gyro | 0 (27 timeouts) | 5.1 h | 68° | 167° | 11.5 % | 174° | 3.15 / 2.41 W | 126 mW |
@@ -741,16 +748,19 @@ remaining wing is off the centre line:
 
 | Deployed | Preset | Mean (+Y) | Within 15° | Generation mean / worst | Rate across the axis | Coils |
 |----------|--------|-----------|------------|-------------------------|----------------------|-------|
-| W1 only | 0 (+Y) | 10° | 89.6 % | 3.09 / 2.99 W | 1.81°/s | 62 mW |
-| W1 only | **1** | 13° | 93.2 % | 3.23 / 3.11 W | 0.15°/s | 5 mW |
-| W2 only | 0 (+Y) | 6.3° | 99.5 % | 3.12 / 3.02 W | 1.67°/s | 47 mW |
-| W2 only | **2** | 13° | 86.1 % | 3.17 / 3.04 W | 0.16°/s | 5 mW |
-| None | 0 (+Y) | 2.7° | 100 % | 1.62 / 1.57 W | 0.71°/s | 16 mW |
-| None | 3 | 6.3° | 100 % | 1.61 / 1.56 W | 0.15°/s | 4 mW |
+| W1 only | 0 (+Y) | 6.0° | 99.9 % | 3.12 / 3.02 W | 1.28°/s | 45 mW |
+| W1 only | **1** | 8.3° | 99.9 % | 3.17 / 3.06 W | 0.15°/s | 5 mW |
+| W2 only | 0 (+Y) | 7.0° | 99.5 % | 3.11 / 3.01 W | 1.38°/s | 51 mW |
+| W2 only | **2** | 9.3° | 99.9 % | 3.20 / 3.07 W | 0.15°/s | 5 mW |
+| None | 0 (+Y) | 2.0° | 100 % | 1.62 / 1.57 W | 0.40°/s | 9 mW |
+| None | 3 | 3.7° | 100 % | 1.62 / 1.57 W | 0.14°/s | 4 mW |
 
-Every one-wing case captures (slowest 1.3 h) and stays spin-stabilized with either preset. The matching preset gives
-1.6–4.7 % more power and a tenth of the coil power, because it spins about the principal axis; with no wings the
-default is as good. The ground should send the matching preset after a confirmed one-wing deployment.
+Re-run on 2026-10-27 (round 3, second part) against the CAD's one-wing and no-wing tensors (STR-27, the table of
+§11.2; the plant and the preset both carry the mean tensor). Every case captures (slowest 1.35 h) and stays
+spin-stabilized with either preset. The matching preset gives 1.7 % (W1) and 2.9 % (W2) more power and a ninth of the
+coil power, because it spins about the principal axis (the Sun then sits 8–9° off +Y, at the major axis); with no wings
+the default is as good (1.62 W either way). The ground should send the matching preset after a confirmed one-wing
+deployment.
 
 ### 11.5 Limits and Open Items
 
@@ -827,3 +837,4 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 | 1.4 | 2026-10-26 | SMART-QSO Team | From the ADCS Monte Carlo (BUILD_VS_BUY §6): B-dot gain 10⁴ (§4.1); spin hold, 6°/s spin, nutation gain 10⁻⁴ and the capture criterion (§4.2.1, §5) |
 | 1.5 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §11 new: magnetometer window and coil burst, layout B full inertia tensor, geometry presets by telecommand, Monte Carlo re-run (8°/s, k_n 3·10⁻⁴ with gyro, 1·10⁻⁴ without; one-wing cases); §4.2.1 law with the full tensor; §3.2.1 magnetometer not selected; §3.3.1 CR0002 rods; §6.1 L293D unusable at 3.3 V |
 | 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §11.4 robustness and one-wing tables re-run with the final CAD tensors (CBE 1,513.9 g, MEV 1,747.8 g; the flight constant `INERTIA` their mean, (3.0565, 4.4675, 4.2525) × 10⁻³ kg·m² with Ixy +13.2, Ixz −12.9, Iyz +0.05 × 10⁻⁶): the plant rows 1.8° mean, 100 % within 15°, capture within 1.2 h; Iyy/Izz 1.000 now 76 % within 15° (the products of the final CAD); §11.5 the drivers exist (built against the data sheets, not run on hardware) |
+| 1.7 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, second part) | §11.2 the final CAD tensors (deployed mean (3.0645, 4.479, 4.2615) × 10⁻³ with Ixy +11.8, Ixz −15.3, Iyz −1.05 × 10⁻⁶; the CBE and MEV rows; the one-wing and no-wing tensors of STR-27; stowed); §11.3 the presets' axes from the CAD tensors (8.3°, 9.1°, 3.3° from +Y); §11.4 the plant rows and the one-wing table re-run against the CAD plant |

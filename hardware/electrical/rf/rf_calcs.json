@@ -80,27 +80,27 @@
    "L5": 12.0,
    "C5s": 100.0,
    "C6": 6.4,
-   "L7": 20.0
+   "L7": 18.0
   },
   "units": "nH for L, pF for C",
   "nominal": {
-   "il_435_437.3_dB": 0.52,
-   "rl_dB": 30.5,
-   "att_144_146_dB": 143.7,
-   "att_250_330_dB": 6.1,
+   "il_435_437.3_dB": 0.54,
+   "rl_dB": 25.8,
+   "att_144_146_dB": 144.6,
+   "att_250_330_dB": 6.2,
    "att_560_620_dB": 0.3
   },
   "monte_carlo_n": 3000,
   "worst": {
-   "il_dB": 0.7,
-   "rl_dB": 22.1,
-   "att_144_146_dB": 133.2,
+   "il_dB": 0.73,
+   "rl_dB": 19.1,
+   "att_144_146_dB": 134.0,
    "att_250_330_dB": 4.7,
-   "att_560_620_dB": 0.2
+   "att_560_620_dB": 0.3
   },
   "p99": {
-   "il_dB": 0.68,
-   "att_144_146_dB": 136.2
+   "il_dB": 0.71,
+   "att_144_146_dB": 137.1
   }
  },
  "rf_ports": {
@@ -160,28 +160,28 @@
  },
  "receiver": {
   "typ": {
-   "Te_board_K": 185.1,
-   "NF_board_dB": 2.14,
-   "Te_ant_K": 258.0,
-   "NF_ant_dB": 2.76,
-   "Tsys_290K_source_K": 548.0,
+   "Te_board_K": 188.4,
+   "NF_board_dB": 2.17,
+   "Te_ant_K": 261.8,
+   "NF_ant_dB": 2.79,
+   "Tsys_290K_source_K": 551.8,
    "sens_12dB_SINAD_dBm": -121.8,
    "sens_TC_90pct_dBm": -116.2,
-   "Tsys_with_350K_allowance_K": 898.0,
-   "margin_vs_1000K_dB": 0.47,
-   "margin_vs_650K_req_dB": 0.74
+   "Tsys_with_350K_allowance_K": 901.8,
+   "margin_vs_1000K_dB": 0.45,
+   "margin_vs_650K_req_dB": 0.71
   },
   "worst": {
-   "Te_board_K": 228.7,
-   "NF_board_dB": 2.53,
-   "Te_ant_K": 308.3,
-   "NF_ant_dB": 3.15,
-   "Tsys_290K_source_K": 598.3,
+   "Te_board_K": 232.3,
+   "NF_board_dB": 2.56,
+   "Te_ant_K": 312.5,
+   "NF_ant_dB": 3.18,
+   "Tsys_290K_source_K": 602.5,
    "sens_12dB_SINAD_dBm": -121.4,
    "sens_TC_90pct_dBm": -115.8,
-   "Tsys_with_350K_allowance_K": 948.3,
-   "margin_vs_1000K_dB": 0.23,
-   "margin_vs_650K_req_dB": 0.36
+   "Tsys_with_350K_allowance_K": 952.5,
+   "margin_vs_1000K_dB": 0.21,
+   "margin_vs_650K_req_dB": 0.33
   }
  },
  "lpf": {
@@ -828,23 +828,23 @@
  },
  "isolation": {
   "fund_at_uhf_port_dBm": 5.0,
-  "fl1_worst_dB": 133.2,
-  "fund_at_lna_dBm": -128.2,
+  "fl1_worst_dB": 134.0,
+  "fund_at_lna_dBm": -129.0,
   "lba_requirement_at_lna_dBm": -55.0,
-  "fund_at_cc1200_dBm": -155.2,
+  "fund_at_cc1200_dBm": -156.0,
   "cc1200_saturation_dBm": 10.0,
   "cc1200_iip3_dBm": -14.0,
   "board_isolation_required_dB": 85.0,
   "board_isolation_basis": "PA output (+30 dBm) to the LNA input node must stay below -55 dBm, the level the RX filter guarantees; two shield cans, opposite board faces (\u00a79)"
  },
  "rx_filter": {
-  "pre_lna_FL1_plus_balun_loss_worst_dB": 1.0,
+  "pre_lna_FL1_plus_balun_loss_worst_dB": 1.03,
   "requirement_loss_dB": 1.5,
-  "att_144_146_computed_worst_dB": 133.2,
+  "att_144_146_computed_worst_dB": 134.0,
   "att_144_146_specified_dB": 60.0,
   "att_144_146_without_traps_dB": 69.4,
   "att_250_330_total_worst_dB": 49.7,
-  "att_560_620_total_worst_dB": 45.2,
+  "att_560_620_total_worst_dB": 45.3,
   "saw": "TA2209A: >= 45 dB at 10-385 and 485-1000 MHz, 2.1 dB typ / 4.2 dB max at 433-437 MHz, TCF -36 ppm/K (-15.7 kHz/K at 435 MHz)",
   "saw_center_shift_kHz_-30_to_+60C": [
    861.0,

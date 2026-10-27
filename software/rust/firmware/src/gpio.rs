@@ -127,54 +127,54 @@ pub(crate) fn install_board(
     pf15: Peri<'static, impl Pin>,
 ) {
     install([
-        out(pb2),                          // 0 PAYLOAD_EN (SW1)
-        out(pb5),                          // 1 RADIO_EN
-        out(pb6),                          // 2 ADCS_EN
-        out(pd2),                          // 3 HEATER_EN
-        out(pf3),                          // 4 DEPLOY_EN
-        out(pd3),                          // 5 LED_STATUS
-        out(pa8),                          // 6 JETSON_PWR (eFuse U19)
-        out(pa3),                          // 7 RF_TX_EN
-        input(pb7),                        // 8 EPS_ALERT_N (open drain; the EPS 4.7 kΩ pull-up)
-        input(pe2),                        // 9 DEPLOY_SENSE
-        input(pb8),                        // 10 UMBILICAL_SENSE (OBC 100 kΩ pull-down)
-        out(pb9),                          // 11 BURN_W2A
-        out(pb10),                         // 12 BURN_W1A
-        None,                              // 13 ANTENNA_SENSE: not wired (PB11 is LPUART1_TX)
-        input(pb12),                       // 14 SOLAR_SENSE
-        out(pe3),                          // 15 TX_PWR_SEL
-        out(pe4),                          // 16 XPDR_EN (heartbeat.rs)
-        out(pe5),                          // 17 GNSS_EN
-        out(pe6),                          // 18 BURN_W1B
-        out(pf4),                          // 19 EOL_ARM
-        out(pg1),                          // 20 EOL_FIRE
-        input(pg0),                        // 21 RX_CD
-        input(pf13),                       // 22 RX_FAULT
-        out(pe7),                          // 23 BURN_W2B
-        out(pf5),                          // 24 LOCK_CLR
-        out(pf6),                          // 25 GYRO_EN
-        out(pf7),                          // 26 IMU2_EN
-        out(pf8),                          // 27 SNS_EN
-        input(pf10),                       // 28 GYRO_RB
-        input(pf11),                       // 29 IMU2_RB
-        input(pf12),                       // 30 SNS_RB
-        out(pd14),                         // 31 GYRO_RST_N (low: reset)
-        input(pd10),                       // 32 GYRO_DRDY
-        input(pd15),                       // 33 IMU2_DRDY
-        input(pd11),                       // 34 MAG_DRDY
-        out(pe8),                          // 35 MTQ_X_DIR
-        out(pe10),                         // 36 MTQ_Y_DIR
-        out(pe12),                         // 37 MTQ_Z_DIR
-        input(pe14),                       // 38 MTQ_FAULT_N
-        input(pe15),                       // 39 MTQ_EXPIRED
-        input(pc9),                        // 40 TONE_OK
-        input(pg12),                       // 41 XPDR_KEY
-        None,                              // 42 PTT_EXC: PC7 is TIM8's (capture.rs)
-        input(pg6),                        // 43 JET_PG
-        input(pg15),                       // 44 GNSS_PG
-        out(pg11),                         // 45 WDI
-        out(pf14),                         // 46 MAG_EN (U35, 3V3_MAG)
-        input(pf15),                       // 47 MAG_RB
+        out(pb2),    // 0 PAYLOAD_EN (SW1)
+        out(pb5),    // 1 RADIO_EN
+        out(pb6),    // 2 ADCS_EN
+        out(pd2),    // 3 HEATER_EN
+        out(pf3),    // 4 DEPLOY_EN
+        out(pd3),    // 5 LED_STATUS
+        out(pa8),    // 6 JETSON_PWR (eFuse U19)
+        out(pa3),    // 7 RF_TX_EN
+        input(pb7),  // 8 EPS_ALERT_N (open drain; the EPS 4.7 kΩ pull-up)
+        input(pe2),  // 9 DEPLOY_SENSE
+        input(pb8),  // 10 UMBILICAL_SENSE (OBC 100 kΩ pull-down)
+        out(pb9),    // 11 BURN_W2A
+        out(pb10),   // 12 BURN_W1A
+        None,        // 13 ANTENNA_SENSE: not wired (PB11 is LPUART1_TX)
+        input(pb12), // 14 SOLAR_SENSE
+        out(pe3),    // 15 TX_PWR_SEL
+        out(pe4),    // 16 XPDR_EN (heartbeat.rs)
+        out(pe5),    // 17 GNSS_EN
+        out(pe6),    // 18 BURN_W1B
+        out(pf4),    // 19 EOL_ARM
+        out(pg1),    // 20 EOL_FIRE
+        input(pg0),  // 21 RX_CD
+        input(pf13), // 22 RX_FAULT
+        out(pe7),    // 23 BURN_W2B
+        out(pf5),    // 24 LOCK_CLR
+        out(pf6),    // 25 GYRO_EN
+        out(pf7),    // 26 IMU2_EN
+        out(pf8),    // 27 SNS_EN
+        input(pf10), // 28 GYRO_RB
+        input(pf11), // 29 IMU2_RB
+        input(pf12), // 30 SNS_RB
+        out(pd14),   // 31 GYRO_RST_N (low: reset)
+        input(pd10), // 32 GYRO_DRDY
+        input(pd15), // 33 IMU2_DRDY
+        input(pd11), // 34 MAG_DRDY
+        out(pe8),    // 35 MTQ_X_DIR
+        out(pe10),   // 36 MTQ_Y_DIR
+        out(pe12),   // 37 MTQ_Z_DIR
+        input(pe14), // 38 MTQ_FAULT_N
+        input(pe15), // 39 MTQ_EXPIRED
+        input(pc9),  // 40 TONE_OK
+        input(pg12), // 41 XPDR_KEY
+        None,        // 42 PTT_EXC: PC7 is TIM8's (capture.rs)
+        input(pg6),  // 43 JET_PG
+        input(pg15), // 44 GNSS_PG
+        out(pg11),   // 45 WDI
+        out(pf14),   // 46 MAG_EN (U35, 3V3_MAG)
+        input(pf15), // 47 MAG_RB
     ]);
 }
 

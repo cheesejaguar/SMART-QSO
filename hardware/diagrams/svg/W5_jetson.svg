@@ -146,12 +146,12 @@
 <polygon fill="#ffffff" stroke="black" points="1107,-454 0,-454 0,-247 1107,-247 1107,-454"/>
 <polygon fill="none" stroke="black" points="0.5,-430.5 0.5,-453.5 1107.5,-453.5 1107.5,-430.5 0.5,-430.5"/>
 <text text-anchor="start" x="519" y="-438.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC_JET</text>
-<polygon fill="none" stroke="black" points="0.5,-407.5 0.5,-430.5 464.5,-430.5 464.5,-407.5 0.5,-407.5"/>
-<text text-anchor="start" x="126.5" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">Molex Pico&#45;Clasp 5013310607</text>
-<polygon fill="none" stroke="black" points="464.5,-407.5 464.5,-430.5 818.5,-430.5 818.5,-407.5 464.5,-407.5"/>
-<text text-anchor="start" x="590.5" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">6 pos, 1.0 mm</text>
-<polygon fill="none" stroke="black" points="818.5,-407.5 818.5,-430.5 1107.5,-430.5 1107.5,-407.5 818.5,-407.5"/>
-<text text-anchor="start" x="944.5" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">6&#45;pin</text>
+<polygon fill="none" stroke="black" points="0.5,-407.5 0.5,-430.5 494.5,-430.5 494.5,-407.5 0.5,-407.5"/>
+<text text-anchor="start" x="119" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">Molex Pico&#45;Clasp 2035560607 (gold)</text>
+<polygon fill="none" stroke="black" points="494.5,-407.5 494.5,-430.5 833.5,-430.5 833.5,-407.5 494.5,-407.5"/>
+<text text-anchor="start" x="613" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">6 pos, 1.0 mm</text>
+<polygon fill="none" stroke="black" points="833.5,-407.5 833.5,-430.5 1107.5,-430.5 1107.5,-407.5 833.5,-407.5"/>
+<text text-anchor="start" x="952" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">6&#45;pin</text>
 <polygon fill="none" stroke="black" points="0.5,-384.5 0.5,-407.5 633.5,-407.5 633.5,-384.5 0.5,-384.5"/>
 <text text-anchor="start" x="301" y="-392.3" font-family="Helvetica,sans-Serif" font-size="14.00">GND</text>
 <polygon fill="none" stroke="black" points="633.5,-384.5 633.5,-407.5 1107.5,-407.5 1107.5,-384.5 633.5,-384.5"/>
@@ -280,12 +280,12 @@
 <polygon fill="#ffffff" stroke="black" points="3513,-454 2634,-454 2634,-247 3513,-247 3513,-454"/>
 <polygon fill="none" stroke="black" points="2634.5,-430.5 2634.5,-453.5 3513.5,-453.5 3513.5,-430.5 2634.5,-430.5"/>
 <text text-anchor="start" x="3035" y="-438.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_JET_UART</text>
-<polygon fill="none" stroke="black" points="2634.5,-407.5 2634.5,-430.5 3088.5,-430.5 3088.5,-407.5 2634.5,-407.5"/>
-<text text-anchor="start" x="2706.5" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">Molex Pico&#45;Clasp 5013310607 on the carrier</text>
-<polygon fill="none" stroke="black" points="3088.5,-407.5 3088.5,-430.5 3333.5,-430.5 3333.5,-407.5 3088.5,-407.5"/>
-<text text-anchor="start" x="3160" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">6 pos, 1.0 mm</text>
-<polygon fill="none" stroke="black" points="3333.5,-407.5 3333.5,-430.5 3513.5,-430.5 3513.5,-407.5 3333.5,-407.5"/>
-<text text-anchor="start" x="3405" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">6&#45;pin</text>
+<polygon fill="none" stroke="black" points="2634.5,-407.5 2634.5,-430.5 3118.5,-430.5 3118.5,-407.5 2634.5,-407.5"/>
+<text text-anchor="start" x="2699" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">Molex Pico&#45;Clasp 2035560607 (gold) on the carrier</text>
+<polygon fill="none" stroke="black" points="3118.5,-407.5 3118.5,-430.5 3348.5,-430.5 3348.5,-407.5 3118.5,-407.5"/>
+<text text-anchor="start" x="3182.5" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">6 pos, 1.0 mm</text>
+<polygon fill="none" stroke="black" points="3348.5,-407.5 3348.5,-430.5 3513.5,-430.5 3513.5,-407.5 3348.5,-407.5"/>
+<text text-anchor="start" x="3412.5" y="-415.3" font-family="Helvetica,sans-Serif" font-size="14.00">6&#45;pin</text>
 <polygon fill="none" stroke="black" points="2634.5,-384.5 2634.5,-407.5 2995.5,-407.5 2995.5,-384.5 2634.5,-384.5"/>
 <text text-anchor="start" x="2810" y="-392.3" font-family="Helvetica,sans-Serif" font-size="14.00">1</text>
 <polygon fill="none" stroke="black" points="2995.5,-384.5 2995.5,-407.5 3513.5,-407.5 3513.5,-384.5 2995.5,-384.5"/>

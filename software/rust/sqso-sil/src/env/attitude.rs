@@ -58,9 +58,10 @@ const MAX_SUBSTEP_ANGLE: f64 = 0.1;
 /// round 3)
 pub const INERTIA_STOWED: V3 = V3::new(2.960e-3, 3.292e-3, 2.970e-3);
 /// Inertia about the CG, wings and antennas deployed (kg·m², body axes):
-/// the mean of the CAD's CBE (2.853, 4.200, 3.978) and MEV (3.276, 4.758,
-/// 4.545) × 10⁻³ (MASS_BUDGET §6.1 and §6.5, with the C-13 ballast, final
-/// CAD of CDR round 3); Iyy/Izz 1.051. The same diagonal as
+/// the mean of the CAD's CBE (2.852, 4.199, 3.977) and MEV (3.274, 4.756,
+/// 4.543) × 10⁻³ (MASS_BUDGET §6.1 and §6.5, with the C-13 ballast, final
+/// CAD of CDR round 3; the values here are the mean of the refresh before,
+/// within 0.002 × 10⁻³); Iyy/Izz 1.051. The same diagonal as
 /// `sqso_fsw::adcs::INERTIA`
 pub const INERTIA_DEPLOYED: V3 = V3::new(3.0645e-3, 4.479e-3, 4.2615e-3);
 /// One wing deployed (W1 or W2) and the AntS out: the diagonal of the

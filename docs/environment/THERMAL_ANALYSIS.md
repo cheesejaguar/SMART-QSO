@@ -1,7 +1,7 @@
 # SMART-QSO Thermal Analysis
 
 **Document ID**: SQSO-THA-001
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis (uncorrelated model). Replaces version 1.0, which analysed a 400 km ISS orbit and an Apollo4
@@ -87,11 +87,15 @@ also in BASELINE §8 as "0.72–1.30 W"); §4.2 re-runs them at 0.70 W and its v
 | Item | Operating (°C) | Survival / non-operating (°C) | Source | Notes |
 |------|----------------|-------------------------------|--------|-------|
 | Battery (INR18650-35E) | Charge 0 … +45; discharge −10 … +60 | −20 … +60 | Cell specification (`hardware/eps/BATTERY_DESIGN.md` §2.1) | Heater-controlled at the cold end |
-| OBC/EPS stack | −20 … +50 (SYS-600) | −40 … +60 (SYS-601) | SYS-600/601 | Parts: STM32L4R5ZIT6 −40 … +85; BQ76920 −40 … +85; M-G370PDT0 −40 … +85 |
-| RF board, PA | −20 … +50 (SYS-600) | −40 … +60 | SYS-600/601 | The flight software stops the transponder at a PA temperature of 70 °C |
-| Jetson module and spreader | −20 … +50 (SYS-600); −25 … +105 junction | −40 … +60 | SYS-600; NVIDIA DS-11105-001 v1.7 (Tj −25 … +105 °C since v1.3) | The flight software's guard stops at 70 °C on the spreader and 95 °C junction (`payload_guard.rs`) |
+| OBC/EPS stack | −30 … +50; −40 in the first orbit (THERMAL_DESIGN §1.1; proposed SYS-600, CR-2026-017) | −30 … +60; −40 in the first orbit (proposed SYS-601) | THERMAL_DESIGN §1.1; parts audit SQSO-MFG-003 | Parts −40 … +85 or wider, line by line (e.g. STM32L4R5ZIT6 −40 … +85; BQ76952 −40 … +85; M-G370PDT0 −40 … +85); exceptions: EPS fuses F1/F3 and the rods (rows below) |
+| RF board, PA | −30 … +50; −40 in the first orbit | −30 … +60; −40 in the first orbit | THERMAL_DESIGN §1.1; SQSO-MFG-003 | Parts −40 … +85 or wider; PA Q601 has no published minimum (row below). The flight software stops the transponder at a PA temperature of 70 °C |
+| Jetson module and spreader | −15 (power-on gate) … +50 at the spreader; −25 … +105 junction | −30 … +60; −40 in the first orbit (TSTG −40 … +80, V-THM-8) | THERMAL_DESIGN §1.1; NVIDIA DS-11105-001 v1.7 (Tj −25 … +105 °C since v1.3) | The flight software's guard stops at 70 °C on the spreader and 95 °C junction (`payload_guard.rs`) |
 | Body panels, frame | −40 … +80 | −60 … +100 | THERMAL_DESIGN §1.1 | |
 | Wings (cell assemblies) | −40 … +85 | −100 … +100 | SOLAR_ARRAY_DESIGN §1.1 | To be replaced by the panel vendor's qualification range |
+| EPS fuses F1, F3 (ITV4030L1412NR) | −10 … +65 (data sheet) | No mounted rating published | THERMAL_DESIGN §1.1; SQSO-MFG-003 §4 | Below the stack AFT at both ends: V-EPS-8 extended to −40 °C and +70 °C, or a design change |
+| RF PA Q601 (RD01MUS3) | Tj ≤ +150; no published minimum | Tstg −40 … +125 | THERMAL_DESIGN §1.1; SQSO-MFG-003 §5 | Vendor statement and EM characterisation at −40 °C |
+| ISIS AntS (−Z face) | −20 … +60 (vendor qualified) | −50 … +85 | THERMAL_DESIGN §1.1; SQSO-MFG-003 §12 | **Not a node of this network.** At its first-orbit release (after the wing burns, separation + ≈ 31 min, eclipse) the nearest nodes are −30.2 °C (frame-side hinge) to −40.6 °C (stowed wing), §4.3; an AntS node is an action on this analysis (SQSO-MFG-003 §12 item V-1) |
+| Magnetorquer rods (CR0002) | −20 … +80 thermal vacuum, cold start −35 (family data) | Not published | THERMAL_DESIGN §1.1; SQSO-MFG-003 §12 | Not a node; inside the structure near the stack (−27.6 °C first orbit). Vendor rating or qualification at −40 °C |
 
 **Margin rule.** A prediction passes when it is at least 10 °C inside the operating limit (BASELINE §8, before EM
 correlation). After correlation GSFC practice keeps 5 °C between the worst-case predictions and the allowable flight
@@ -560,3 +564,4 @@ The full RID table is in the CDR reviewer report; the thermal RIDs closed or ope
 | 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten for the baseline orbit and hardware on the simulation's 12-node network (battery radiation added): hot, cold, dispenser and LEOP cases with margins (finding TB-07) |
 | 2.1 | 2026-10-27 | CDR flight software, round 3 | §4.1 new: the cases re-run at 475 km (BASELINE Rev E) with the 2028-11-01 launch date and the +5/+9 °C set points, and the deployment case L3 (2028-11-01, LTAN 22:30, from the cold soak: boards −24 to −25 °C); §2.2 orbit row |
 | 2.2 | 2026-10-27 | CDR thermal analyst, round 3 | Panel reopenings P3S-01, THM-03, THM-04: §4.3 new, LEOP with the wings stowed until the burn, separation phase swept, hinge, burn-board and line sub-nodes; burn temperatures for the mechanisms (wing −40.6 °C, hinge −30.2 / −38.8 °C, resistor −29.4 °C at separation + 30 min; inside −55 °C with the margin: P3S-01 closed by analysis); case L4 (boards −27.6 / −28.6 °C, Jetson −28.9 °C); §6.6 per-unit allowables from the board BOMs, design changes evaluated, first-orbit −40 °C extension with a test-margin deviation, SYS-600/601 text for the change request; §6.8 wings-stowed heater sweep and energy balance, contingency accepted; §4.2 heater 0.70 W at 12.0 V (207 Ω; was 0.72 W): C11 +3.6 °C, C15 0.0 °C, C14 −1.5 °C; §1, §2.1, §2.3, §4.1 extremes, §5, §7, §8 updated; V-THM-6 restated to ETP Rev D §3.4; V-THM-8 new |
+| 2.3 | 2026-10-27 | EEE parts engineer (chair action, RID P3T-01) | §3 allowables aligned with THERMAL_DESIGN 1.6 §1.1 (−30 °C AFT, −40 °C first orbit; Jetson −15 °C gate) and the parts audit SQSO-MFG-003 A; rows for the EPS fuses F1/F3, the RF PA Q601, the ISIS AntS (not modelled) and the CR0002 rods; BQ76920 corrected to BQ76952 |

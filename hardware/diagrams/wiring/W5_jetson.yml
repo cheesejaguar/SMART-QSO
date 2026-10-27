@@ -34,12 +34,12 @@ connectors:
     notes: "carrier J1 (right-angle gold header, plug from -X): DC input 11.2-16.4 V; TVS2200, LC filter, LM61440 5 V buck"
     pinlabels: *w5pwr
   J_OBC_JET:
-    type: Molex Pico-Clasp 5013310607
+    type: Molex Pico-Clasp 2035560607 (gold)
     subtype: 6 pos, 1.0 mm
     notes: "OBC J3 (4 to 6 pos, change E10): PA9 TX via U28, PA10 RX via U29, JET_3V3 to PG6 (10 k), PT_NTC to PA2 ADC1_IN7 (10.0 k bias from VDDA), PT_RTN to GND"
     pinlabels: &w5sig [GND, JET_RXD (OBC TX), JET_TXD (OBC RX), JET_3V3 (carrier I/O rail), PT_NTC, PT_RTN]
   J_JET_UART:
-    type: Molex Pico-Clasp 5013310607 on the carrier
+    type: Molex Pico-Clasp 2035560607 (gold) on the carrier
     subtype: 6 pos, 1.0 mm
     notes: "carrier J2: U11 B to module UART1 RXD (pin 205), U10 B from UART1 TXD (pin 203), 3V3_IO via 100 Ohm, NTC pass-through"
     pinlabels: *w5sig

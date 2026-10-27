@@ -55,10 +55,11 @@ const WINGS_S: f64 = 1800.0;
 const MTQ_FULL_W: f64 = 0.30;
 
 /// The stowed inertia tensor (the CAD of `docs/environment/MASS_BUDGET.md`
-/// v3.1 §6.1, AntS and wings stowed, the mean of CBE and MEV as for the
-/// deployed tensor), kg·m²
+/// §6.1, AntS and wings stowed, the mean of CBE and MEV as for the deployed
+/// tensor: the final CAD's diagonal 2.960, 3.292, 2.970 × 10⁻³; the products
+/// of the earlier CAD), kg·m²
 pub const STOWED: Inertia =
-    Inertia { xx: 0.002_923, yy: 0.003_315_5, zz: 0.003_041, xy: 0.000_000_5, xz: -0.000_000_5, yz: 0.000_031 };
+    Inertia { xx: 0.002_960, yy: 0.003_292, zz: 0.002_970, xy: 0.000_000_5, xz: -0.000_000_5, yz: 0.000_031 };
 
 /// A rigid body with a full inertia tensor (products included; the mission
 /// simulation's `Attitude` is diagonal): attitude body → ECI, body rate

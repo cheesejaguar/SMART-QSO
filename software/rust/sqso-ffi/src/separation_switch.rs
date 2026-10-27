@@ -61,3 +61,30 @@ pub unsafe extern "C" fn separation_switch_status(latched: *mut bool, stowed_aft
 pub(crate) fn status() -> (bool, u32) {
     SEPARATION.with(|s| (s.latched, s.stowed_after_latch)).unwrap_or((false, 0))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::fault_mgmt::tests::serial;
+
+    /// A nested call (an interrupt) reads the raw line and reports busy
+    #[test]
+    fn status_and_busy() {
+        let _serial = serial();
+        let _ = crate::hal_sim::hal_gpio_init();
+        separation_switch_init();
+        assert!(!separation_switch_stowed(), "undriven: the simulated EPS drives it released");
+        assert_eq!(status(), (false, 0));
+        let (mut latched, mut after) = (true, 9u32);
+        // SAFETY: live objects
+        assert_eq!(unsafe { separation_switch_status(&mut latched, &mut after) }, c::rc::OK);
+        assert_eq!((latched, after), (false, 0));
+        let nested = SEPARATION.with(|_| {
+            // SAFETY: NULL pointers are allowed
+            (separation_switch_stowed(), status(), unsafe {
+                separation_switch_status(core::ptr::null_mut(), core::ptr::null_mut())
+            })
+        });
+        assert_eq!(nested, Some((false, (false, 0), c::rc::BUSY)));
+    }
+}

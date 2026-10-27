@@ -163,6 +163,13 @@ async fn main(_spawner: Spawner) {
 /// in its frame (SRS-C003)
 static FLIGHT: ConstStaticCell<Executive> = ConstStaticCell::new(Executive::BOOT);
 
+/// SPI1 for the two FRAMs: mode 0 at 20 MHz
+fn fram_spi_config() -> embassy_stm32::spi::Config {
+    let mut cfg = embassy_stm32::spi::Config::default();
+    cfg.frequency = Hertz(20_000_000);
+    cfg
+}
+
 /// Clocks, pins and the HAL's peripherals. Not inlined: the async main
 /// task's frame would carry this one's temporaries for the whole mission
 /// (SRS-C003, `scripts/stack_usage.py`)
@@ -187,10 +194,8 @@ fn bring_up() {
     // FRAM: SPI1 mode 0 at 20 MHz on PG2 SCK / PG3 MISO / PG4 MOSI, CS# PG5
     // (SQSO-ICX-001 B §6 row 3) and the mirror U36 on CS# PD7 (D §6 row 32);
     // WP# and HOLD# high on PE0/PE1
-    let mut fram_cfg = embassy_stm32::spi::Config::default();
-    fram_cfg.frequency = Hertz(20_000_000);
     fram::install(
-        Spi::new_blocking(p.SPI1, p.PG2, p.PG4, p.PG3, fram_cfg),
+        Spi::new_blocking(p.SPI1, p.PG2, p.PG4, p.PG3, fram_spi_config()),
         [Output::new(p.PG5, Level::High, Speed::VeryHigh), Output::new(p.PD7, Level::High, Speed::VeryHigh)],
         Output::new(p.PE0, Level::High, Speed::Low),
         Output::new(p.PE1, Level::High, Speed::Low),
@@ -198,14 +203,14 @@ fn bring_up() {
 
     // The gyros: SPI2 for the BMI088 (gyro CS PD0, accelerometer CS PD4),
     // SPI3 for the M-G370 (CS PD1); configured by hal_spi_init()
-    let spi_cfg = embassy_stm32::spi::Config::default();
     spi::install(
-        Spi::new_blocking(p.SPI2, p.PB13, p.PB15, p.PB14, spi_cfg),
+        Spi::new_blocking(p.SPI2, p.PB13, p.PB15, p.PB14, embassy_stm32::spi::Config::default()),
         [Output::new(p.PD0, Level::High, Speed::High), Output::new(p.PD4, Level::High, Speed::High)],
-        Spi::new_blocking(p.SPI3, p.PC10, p.PC12, p.PC11, spi_cfg),
+        Spi::new_blocking(p.SPI3, p.PC10, p.PC12, p.PC11, embassy_stm32::spi::Config::default()),
         Output::new(p.PD1, Level::High, Speed::High),
     );
 
+    // The buses' clock is set by hal_i2c_init (100 kHz, SQSO-ICX-001 D §6 row 31)
     let i2c_cfg = embassy_stm32::i2c::Config::default();
     i2c::install(
         I2c::new_blocking(p.I2C2, p.PF1, p.PF0, i2c_cfg),

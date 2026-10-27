@@ -56,11 +56,11 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-MECH-001 | SMART-QSO Mechanisms Analysis | `docs/environment/MECHANISMS_ANALYSIS.md` | E | Draft; analysis |
 | SQSO-ENV-002 | Radiation Environment Analysis | `docs/environment/RADIATION_ANALYSIS.md` | D | Draft |
 | SQSO-REL-001 | SMART-QSO Reliability Analysis | `docs/environment/RELIABILITY_ANALYSIS.md` | 2.2 | Draft |
-| SQSO-THA-001 | SMART-QSO Thermal Analysis | `docs/environment/THERMAL_ANALYSIS.md` | 2.2 | Draft |
+| SQSO-THA-001 | SMART-QSO Thermal Analysis | `docs/environment/THERMAL_ANALYSIS.md` | 2.3 | Draft |
 | SQSO-GND-001 | Ground Station Design | `docs/ground/GROUND_STATION_DESIGN.md` | H | Draft |
 | SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.6 | Draft |
 | SQSO-GND-002 | Orbit Determination and Operator Ephemeris | `docs/ground/ORBIT_DETERMINATION_AND_EPHEMERIS.md` | A | Draft; owner: ground segment lead |
-| SMART-QSO-ADCS-001 | Attitude Determination and Control Subsystem (ADCS) Design Document | `docs/hardware/ADCS_DESIGN.md` | 1.6 | Draft |
+| SMART-QSO-ADCS-001 | Attitude Determination and Control Subsystem (ADCS) Design Document | `docs/hardware/ADCS_DESIGN.md` | 1.7 | Draft |
 | SQSO-BVB-001 | Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery | `docs/hardware/BUILD_VS_BUY.md` | C | Draft; vendor data from public pages, no quotes |
 | SMART-QSO-EPS-001 | Electrical Power Subsystem (EPS) Design Document | `docs/hardware/EPS_DESIGN.md` | 2.5 | Draft |
 | SQSO-HDP-001 | SMART-QSO Hardware Development Plan | `docs/hardware/HARDWARE_DEVELOPMENT_PLAN.md` | 1.0 | Draft |
@@ -80,11 +80,12 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SMART-QSO-ICD-001 | Interface Control Document: OBC-EPS | `docs/interfaces/ICD_OBC_EPS.md` | 1.6 | Draft |
 | SMART-QSO-ICD-002 | Interface Control Document: OBC-Jetson | `docs/interfaces/ICD_OBC_JETSON.md` | 1.4 | Draft |
 | SQSO-ICD-003 | Interface Control Document: OBC to RF Subsystem | `docs/interfaces/ICD_OBC_RF.md` | 2.3 | Draft |
-| SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 2.4 | Draft |
+| SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 2.5 | Draft |
 | SQSO-ICD-000 | Interface Control Document - Master | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | C | Draft |
 | SQSO-IVP-001 | SMART-QSO Interface Verification Plan | `docs/interfaces/INTERFACE_VERIFICATION_PLAN.md` | 1.0 | Draft |
-| SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.11 | Draft |
+| SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.12 | Draft |
 | SQSO-MFG-002 | EEE Parts List | `docs/manufacturing/EEE_PARTS_LIST.md` | E | Draft |
+| SQSO-MFG-003 | Parts Temperature-Grade Audit (every flight BOM line, harness and bought items; line data in `PARTS_TEMPERATURE_AUDIT.csv`) | `docs/manufacturing/PARTS_TEMPERATURE_AUDIT.md` | A | Draft; CDR round 3 audit (RID P3T-01), BOM changes for the designers |
 | SQSO-WP-001 | Workmanship Plan | `docs/manufacturing/WORKMANSHIP_PLAN.md` | B | Draft |
 | SQSO-WKS-001 | SMART-QSO Workmanship Standards | `docs/manufacturing/WORKMANSHIP_STANDARDS.md` | 1.1 | Draft |
 | SQSO-MSC-001 | SMART-QSO Mission Success Criteria | `docs/mission/MISSION_SUCCESS_CRITERIA.md` | 2.2 | Draft |
@@ -94,7 +95,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-AR-001 | SMART-QSO Anomaly Report Template | `docs/operations/ANOMALY_REPORT_TEMPLATE.md` | 1.0 | Template |
 | SQSO-ARP-001 | SMART-QSO As-Run Procedure Template | `docs/operations/AS_RUN_PROCEDURE_TEMPLATE.md` | 1.0 | Template |
 | SQSO-OPS-003 | Command and Telemetry Database | `docs/operations/CMD_TLM_DATABASE.md` | A | Draft; command sections superseded (its notice) |
-| SQSO-CMD-001 | SMART-QSO Command Dictionary | `docs/operations/COMMAND_DICTIONARY.md` | 1.1 | Draft |
+| SQSO-CMD-001 | SMART-QSO Command Dictionary | `docs/operations/COMMAND_DICTIONARY.md` | 1.2 | Draft |
 | SQSO-COMM-001 | SMART-QSO Commissioning Plan | `docs/operations/COMMISSIONING_PLAN.md` | 2.1 | Draft |
 | SQSO-CP-001 | SMART-QSO Contingency Procedures | `docs/operations/CONTINGENCY_PROCEDURES.md` | 1.0 | Draft |
 | SQSO-EOL-001 | End-of-Life Plan | `docs/operations/END_OF_LIFE_PLAN.md` | D | Draft |
@@ -164,7 +165,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-SEC-001 | Space System Protection and Security Plan | `docs/safety/SPACE_SYSTEM_PROTECTION_PLAN.md` | A | Draft |
 | SQSO-REV-CDR-002 | Design Review against the NPR 7123.1D CDR Criteria (2026-10-27) | `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md` | A | Draft; engineering assessment by AI reviewers, not an independent board |
 | SQSO-FMEA-001 | Software Failure Mode and Effects Analysis (FMEA) | `docs/safety/SOFTWARE_FMEA.md` | C | Draft |
-| SQSO-SHA-001 | Software Hazard Analysis | `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` | D | Draft |
+| SQSO-SHA-001 | Software Hazard Analysis | `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` | E | Draft |
 | SQSO-SSP-001 | Software Safety Plan | `docs/safety/SOFTWARE_SAFETY_PLAN.md` | E | Draft |
 | SQSO-SW-008 | Build Configurations | `docs/software/BUILD_CONFIGURATIONS.md` | E | Draft |
 | SQSO-SW-006 | Software Configuration Index | `docs/software/CONFIGURATION_INDEX.md` | B | Draft |
@@ -255,14 +256,14 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-EPS-BRD-001 | SMART-QSO EPS Board: Build-to Design | `hardware/electrical/eps/EPS_BOARD_DESIGN.md` | E | Draft; schematic and BOM, not yet fabricated |
 | SQSO-OBC-BRD-001 | SMART-QSO OBC Board: Build-to Design | `hardware/electrical/obc/OBC_BOARD_DESIGN.md` | D | Draft; schematic and BOM, not yet fabricated |
 | SQSO-JET-BRD-001 | Jetson Orin Nano Carrier Board Design | `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` | E | Draft; schematic and BOM, not yet fabricated |
-| SQSO-THM-001 | Thermal Design Document | `hardware/structure/THERMAL_DESIGN.md` | 1.5 | Draft |
+| SQSO-THM-001 | Thermal Design Document | `hardware/structure/THERMAL_DESIGN.md` | 1.6 | Draft |
 | SQSO-FSW-AUTO-001 | Autonomy Design | `software/flight/docs/AUTONOMY_DESIGN.md` | B | Draft |
 | SQSO-FSW-BOOT-001 | Bootloader Requirements | `software/flight/docs/BOOTLOADER_REQUIREMENTS.md` | B | Draft |
 | SQSO-FSW-FDIR-001 | Fault Detection, Isolation, and Recovery Design | `software/flight/docs/FDIR_DESIGN.md` | A | Draft |
 | SQSO-FSW-008 | Include Dependencies | `software/flight/docs/INCLUDE_DEPENDENCIES.md` | B | Draft |
 | SMART-QSO-JPL-POT-001 | JPL Power of Ten Rules Compliance Audit | `software/flight/docs/JPL_POWER_OF_TEN_AUDIT.md` | 1.2 | Draft |
 | SQSO-SW-007 | Loop Bounds Documentation | `software/flight/docs/LOOP_BOUNDS.md` | B | Draft |
-| SQSO-FSW-006 | Memory Allocation Policy | `software/flight/docs/MEMORY_POLICY.md` | F | Draft |
+| SQSO-FSW-006 | Memory Allocation Policy | `software/flight/docs/MEMORY_POLICY.md` | G | Draft |
 | SQSO-FSW-010 | MISRA C:2012 Deviation Log | `software/flight/docs/MISRA_DEVIATIONS.md` | C | Draft |
 | SQSO-FSW-009 | Naming Convention | `software/flight/docs/NAMING_CONVENTION.md` | B | Draft |
 | SQSO-FSW-RAD-001 | Radiation Mitigation Design | `software/flight/docs/RADIATION_MITIGATION.md` | C | Draft |

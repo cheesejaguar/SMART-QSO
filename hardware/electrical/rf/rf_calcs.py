@@ -200,8 +200,8 @@ def snap_cap_pf(c_pf):
 # Inductor series used (values in nH). Coilcraft 1812SMS "Midi Spring" (air core) for the TX filter and match;
 # Coilcraft 0603HP (wire-wound ceramic) for the receive filter. Values are the series' published steps.
 SMS_1812 = [22, 27, 33, 39, 43, 47, 56, 68, 82, 90, 100, 120]
-HP_0603 = [1.6, 1.8, 2.2, 2.7, 3.3, 3.9, 4.3, 4.7, 5.6, 6.8, 7.5, 8.2, 8.7, 9.5, 10, 11, 12, 15, 18, 20, 22, 24, 27,
-           30, 33, 36, 39, 47, 51, 56, 68, 72, 82, 100]
+HP_0603 = [1.6, 1.8, 2.2, 2.7, 3.3, 3.9, 4.3, 4.7, 5.6, 6.8, 7.5, 8.2, 8.7, 9.5, 10, 11, 12, 15, 18, 22, 24, 27,
+           30, 33, 36, 39, 47, 51, 56, 68, 72, 82, 100]   # no 20 nH (Coilcraft Doc 537-2; SQSO-MFG-003, Version F)
 
 
 def snap(v, series):

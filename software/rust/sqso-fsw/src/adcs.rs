@@ -93,10 +93,11 @@ pub const SPIN_RATE: f64 = 0.1396;
 /// deployed, kg m^2: the final CAD of CDR round 3 (`docs/environment/
 /// MASS_BUDGET.md` §6.1; MECHANICAL_DESIGN §5; layout B, CubeSpace rods, all
 /// four AntS elements, the 2 × 10 g ballast of decision C-13 as re-placed,
-/// the harness with its bundles under the EPS), the mean of its CBE (2.853,
-/// 4.200, 3.978 × 10⁻³) and MEV (3.276, 4.758, 4.545 × 10⁻³) rows, as §6.5
-/// directs: Iyy/Izz 1.051 (CBE 1.056, MEV 1.047; the major axis 0.6° from
-/// +Y). The products are in [`Inertia::DEPLOYED`]. To be replaced by the
+/// the harness with its bundles under the EPS), the mean of its CBE (2.852,
+/// 4.199, 3.977 × 10⁻³) and MEV (3.274, 4.756, 4.543 × 10⁻³) rows, as §6.5
+/// directs (the values here are the mean of the previous refresh, 2.853/
+/// 4.200/3.978 and 3.276/4.758/4.545, within 0.002 × 10⁻³ of it): Iyy/Izz
+/// 1.051 (CBE 1.056, MEV 1.047; the major axis 0.6° from +Y). The products are in [`Inertia::DEPLOYED`]. To be replaced by the
 /// measured stowed inertia plus the weighed wings before flight
 pub const INERTIA: Vec3 = Vec3::new(0.003_064_5, 0.004_479, 0.004_261_5);
 /// Momentum gain of the spin law: torque per unit momentum error, 1/s

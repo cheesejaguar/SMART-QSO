@@ -172,6 +172,19 @@ mod tests {
     use super::*;
     use crate::fault_mgmt::tests::serial;
 
+    /// The transmitter temperature's plausibility: a nested call reads the
+    /// sensor as it is; the status for housekeeping
+    #[test]
+    fn pa_temperature_busy_and_status() {
+        let _serial = serial();
+        let raw = adc(ADC_CHANNEL_TX_TEMP);
+        let nested = PA.with(|_| (pa_temp(), pa_sensor_status()));
+        let (t, st) = nested.unwrap_or((f64::NAN, (true, 1)));
+        assert!(t == raw || (t.is_nan() && raw.is_nan()), "busy: the raw reading");
+        assert_eq!(st, (false, 0), "busy: nothing known");
+        let _ = pa_sensor_status();
+    }
+
     #[test]
     fn busy_is_refused() {
         let _serial = serial();

@@ -46,7 +46,7 @@ const ROD_GAIN: f64 = 2.3;
 const ROD_OHMS: f64 = 51.0;
 const BRIDGE_EFF: f64 = 0.97;
 const BRIDGES_AWAKE_A: f64 = 0.009;
-/// Battery heater, Ω (BASELINE §8: about 207 Ω, 0.72–1.30 W across the
+/// Battery heater, Ω (BASELINE §8: about 207 Ω, 0.70 W at 12.0 V to 1.30 W across the
 /// bus; THM-15): its power is V²/R at the pack voltage
 const HEATER_OHMS: f64 = 207.0;
 /// The end-of-life disconnect's heater, Ω: F1 ITV4030L1412NR, 11.2–20.0 Ω
@@ -1214,7 +1214,9 @@ impl Mission {
     /// position as reported, the velocity the flight software derived
     fn gnss_frame(&mut self, text: &str) {
         let field = |k: &str| {
-            text.split(' ').find_map(|w| w.strip_prefix(k).and_then(|v| v.strip_prefix('='))).and_then(|v| v.parse::<f64>().ok())
+            text.split(' ')
+                .find_map(|w| w.strip_prefix(k).and_then(|v| v.strip_prefix('=')))
+                .and_then(|v| v.parse::<f64>().ok())
         };
         self.totals.gnss_frames += 1;
         let (Some(tow), Some(x), Some(y), Some(z)) = (field("TOW"), field("X"), field("Y"), field("Z")) else {

@@ -41,18 +41,28 @@ pub const TX_NOMINAL_W: f64 = 0.5;
 pub const TX_MAX_W: f64 = 1.0;
 /// Spacecraft filter, cable and connector loss (dB).
 pub const SC_LINE_LOSS_DB: f64 = 1.0;
-/// Spacecraft receive system noise temperature (K).
-pub const SC_RX_TSYS_K: f64 = 1000.0;
+/// Spacecraft receive system noise temperature (K): the receiver as
+/// designed, 598 K worst at the antenna terminals (548 K typical), plus the
+/// 350 K in-band interference allowance (LINK_BUDGET_ANALYSIS 3.4 §2.4, §6.4)
+pub const SC_RX_TSYS_K: f64 = 948.0;
+/// The receiver's demodulator implementation loss as designed (the CC1200's
+/// frequency output demodulated in the TNC; an allowance until VI-RFB-01), dB
+pub const SC_RX_IMPLEMENTATION_LOSS_DB: f64 = 2.0;
 /// Terrestrial interference on the 435 MHz receiver, dB (§2.4, §6.1)
 pub const SC_RX_INTERFERENCE_DB: f64 = 6.0;
 /// Peak gain of the spacecraft monopoles (dBi).
 pub const SC_PEAK_GAIN_DBI: f64 = 0.0;
 /// Floor of the pattern null (dBi): filled by the body and wings (§2.4).
 pub const SC_GAIN_FLOOR_DBI: f64 = -20.0;
-/// 2 m element axis in the body frame (+X).
+/// 2 m element axis in the body frame (+X: the AntS's 2 m tapes along ±X,
+/// across the spin axis, LINK_BUDGET_ANALYSIS 3.4 §5.1 "perp").
 pub const VHF_AXIS_BODY: V3 = V3::new(1.0, 0.0, 0.0);
-/// 70 cm element axis in the body frame (−X).
-pub const UHF_AXIS_BODY: V3 = V3::new(-1.0, 0.0, 0.0);
+/// 70 cm element axis in the body frame (+Y: the 70 cm tapes along ±Y, the
+/// spin axis, §5.1 "para").
+pub const UHF_AXIS_BODY: V3 = V3::new(0.0, 1.0, 0.0);
+/// Telecommand only above this elevation, degrees (decision C-14; 12° in
+/// the degraded mode, variant A with its amplifier failed)
+pub const COMMAND_MIN_ELEV_DEG: f64 = 10.0;
 /// Required C/N₀ for the beacon to a Doppler-corrected station (dB-Hz, §3.2).
 pub const REQ_CN0_DATA_DBHZ: f64 = 52.9;
 /// Required C/N₀ for the beacon with 3.5 kHz uncorrected Doppler (dB-Hz).
@@ -174,6 +184,8 @@ pub struct GroundRadio {
     pub tx_line_loss_db: f64,
     /// 70 cm transmit antenna gain (dBi or dBic).
     pub tx_gain_dbi: f64,
+    /// Pointing loss toward the spacecraft (dB).
+    pub tx_pointing_loss_db: f64,
 }
 
 impl GroundRadio {
@@ -183,15 +195,19 @@ impl GroundRadio {
     }
 }
 
-/// Station A: telecommand / well-equipped amateur (§2.5; 50 W PEP, BASELINE §7).
+/// Station A: the telecommand station at decision C-14's minimum (§6.1,
+/// SQSO-GND-001 Rev F §3.1 variant B): 50 W PEP through a 0.5 dB feed into
+/// 17.8 dBic, 64.3 dBm EIRP at boresight, 64.0 dBm toward the spacecraft
+/// after 0.3 dB of pointing (variant A, 100 W into 15.5 dBic, gives more)
 pub const STATION_A: GroundRadio = GroundRadio {
     gain_dbi: 12.0,
     circular: true,
     tsys_k: 500.0,
     doppler_corrected: true,
     tx_w: 50.0,
-    tx_line_loss_db: 1.5,
-    tx_gain_dbi: 14.0,
+    tx_line_loss_db: 0.5,
+    tx_gain_dbi: 17.8,
+    tx_pointing_loss_db: 0.3,
 };
 /// Station B: portable amateur, handheld Yagi (§2.5).
 pub const STATION_B: GroundRadio = GroundRadio {
@@ -202,6 +218,7 @@ pub const STATION_B: GroundRadio = GroundRadio {
     tx_w: 5.0,
     tx_line_loss_db: 0.3,
     tx_gain_dbi: 8.0,
+    tx_pointing_loss_db: 0.0,
 };
 
 /// Free-space path loss (dB).
@@ -292,10 +309,10 @@ pub fn downlink(tx_w: f64, sc_gain_dbi: f64, range_m: f64, el_rad: f64, gs: &Gro
 /// `sc_gain_dbi`, polarization loss `pol_db`), telecommand demodulator,
 /// with the receiver's interference allowance
 pub fn uplink(gs: &GroundRadio, sc_gain_dbi: f64, range_m: f64, el_rad: f64, pol_db: f64) -> LinkBudget {
-    let eirp = dbm(gs.tx_w) - gs.tx_line_loss_db + gs.tx_gain_dbi;
+    let eirp = dbm(gs.tx_w) - gs.tx_line_loss_db + gs.tx_gain_dbi - gs.tx_pointing_loss_db;
     let loss = fspl_db(UPLINK_HZ, range_m) + atmospheric_loss_db(el_rad) + pol_db;
     let rx = eirp - loss + sc_gain_dbi;
-    let cn0 = rx - noise_density_dbm_hz(SC_RX_TSYS_K) - SC_RX_INTERFERENCE_DB;
+    let cn0 = rx - noise_density_dbm_hz(SC_RX_TSYS_K) - SC_RX_INTERFERENCE_DB - SC_RX_IMPLEMENTATION_LOSS_DB;
     LinkBudget {
         eirp_dbm: eirp,
         path_loss_db: loss,
@@ -338,9 +355,11 @@ mod tests {
         assert!((noise_density_dbm_hz(500.0) + 171.6).abs() < 0.05);
     }
 
-    /// SQSO-LBA-001 v3.0 §4.1, §4.2, §6.1: the beacon +7.6 dB at 5° (−3 dBi)
-    /// and +0.6 dB (−10 dBi) at station A; station B −4.5 dB at 5°, +0.9 dB
-    /// at 20°; telecommand at 50 W, 10°, −10 dBi, +6 dB interference +5.3 dB
+    /// SQSO-LBA-001 v3.0 §4.1, §4.2: the beacon +7.6 dB at 5° (−3 dBi) and
+    /// +0.6 dB (−10 dBi) at station A; station B −4.5 dB at 5°, +0.9 dB at
+    /// 20°. Version 3.4 §6.1 (decision C-14) with the receiver as designed
+    /// (§6.4): telecommand at 64.0 dBm toward the spacecraft, 475 km, 10°,
+    /// −10 dBi, +6 dB interference +8.3 dB (+6.5 dB at 5°)
     #[test]
     fn the_v3_budget() {
         let el = 5f64.to_radians();
@@ -351,8 +370,16 @@ mod tests {
         assert!((downlink(0.5, -3.0, slant(5.0), el, &STATION_B, 3.0).margin_db + 4.5).abs() < 0.1);
         let b20 = downlink(0.5, -3.0, slant(20.0), 20f64.to_radians(), &STATION_B, 3.0);
         assert!((b20.margin_db - 0.9).abs() < 0.1, "{}", b20.margin_db);
-        let tc = uplink(&STATION_A, -10.0, slant(10.0), 10f64.to_radians(), 3.0);
-        assert!((tc.margin_db - 5.3).abs() < 0.1, "{}", tc.margin_db);
+        let slant475 = |el_deg: f64| {
+            let (re, h): (f64, f64) = (6378e3, 475e3);
+            let e = el_deg.to_radians();
+            ((re + h).powi(2) - (re * e.cos()).powi(2)).sqrt() - re * e.sin()
+        };
+        let tc = uplink(&STATION_A, -10.0, slant475(10.0), 10f64.to_radians(), 3.0);
+        assert!((tc.eirp_dbm - 64.0).abs() < 0.05, "{}", tc.eirp_dbm);
+        assert!((tc.margin_db - 8.3).abs() < 0.2, "{}", tc.margin_db);
+        let tc5 = uplink(&STATION_A, -10.0, slant475(5.0), 5f64.to_radians(), 3.0);
+        assert!((tc5.margin_db - 6.5).abs() < 0.3, "{}", tc5.margin_db);
     }
 
     #[test]

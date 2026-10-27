@@ -76,9 +76,15 @@ Files: `design.py` (SKiDL 3.0 schematic), `jetson_calcs.py` (every calculation b
 4. **UARTs are 1.8 V CMOS** (Table 2-13), and "external devices must use two stop bits" because the receiver has low
    baud-rate tolerance with one (§2.10.4). The OBC must transmit 8N2 (§9; flight-software change for the chair).
 5. **Mechanics and environment.** 69.6 × 45 mm, 28 g; mounting force on the module PCB ≤ 8.2 kgf (80 N, Table 5-2);
-   Tj −25…105 °C (since v1.3); operating lifetime 5 years 24×7; screening includes 4,000 hard power on/off cycles
+   Tj −25…105 °C (since v1.3), storage −40…+80 °C (Table 5-2); operating lifetime 5 years 24×7; screening includes 4,000 hard power on/off cycles
    (Table 5-5), random vibration only 2 Grms non-operating (the 8.18 Grms protoflight level is beyond NVIDIA's test:
    EM vibration of the populated carrier is a verification item, V-JET-8).
+   **Temperature (parts temperature audit SQSO-MFG-003):** the module's operating minimum (Tj −25 °C) misses the
+   project's −40 °C part rule and has no replacement (payload of record, BASELINE §6). It is governed instead by the
+   unit allowable of THERMAL_DESIGN §1.1: **no power-on below −15 °C on the spreader** (the flight software's gate,
+   SRS-F131; tested at −25 °C, the Tj minimum, with no margin), and **unpowered down to −40 °C qualified by the EM
+   non-operating soak V-THM-8** (the data-sheet storage range reaches −40 °C with zero cold margin). The carrier's own
+   parts are rated −40 °C or lower (audit §3).
 6. **Power modes (JLG r36.4.4).** Orin Nano 8 GB, original configuration: 15 W (ID 0, default) and **7 W (ID 1)**; Super
    configuration: 15 W, 25 W (default), MAXN_SUPER. "MAXN_SUPER … available only when flashing with
    jetson-orin-nano-devkit-super". The module enforces its budget with the on-module INA3221 (channel 1 = VDD_IN) through
@@ -115,7 +121,7 @@ terminations.
 
 | Element | Part | Value | Why |
 |---------|------|-------|-----|
-| Connector J1 | Molex Micro-Fit 3.0 2×2 **right-angle** header, 43045-0400 class, **gold** (mates EPS J18 over W5A; plug from −X; HARNESS_DESIGN 2.0 item J-1) | 2 contacts per pole, 13 % of rating at 1.30 A | a mated vertical J1 with its wire bend reached the RF board's bottom envelope |
+| Connector J1 | Molex Micro-Fit 3.0 2×2 **right-angle** header **0430450402**, 0.76 µm **gold**, −40…+105 °C (as EPS J18; SQSO-MFG-003) (mates EPS J18 over W5A; plug from −X; HARNESS_DESIGN 2.0 item J-1) | 2 contacts per pole, 13 % of rating at 1.30 A | a mated vertical J1 with its wire bend reached the RF board's bottom envelope |
 | D1 | TI TVS2200DRVR | 22 V standoff, 24.6 V breakdown minimum, 28 V clamp at 40 A | sits above the 18.4 V EPS OVP; clamps below the 36 V converter rating; ESD and hot-plug at integration |
 | C_F1 | 4.7 µF/50 V X7R + 100 nF | at J1 | LISN-side shunt of the filter |
 | L1 | Coilcraft XGL4030-472MEC | 4.7 µH, Isat ≈ 4 A | 32 % of Isat at the 1.30 A eFuse maximum |
@@ -474,7 +480,7 @@ oscillator near the old corner, and nothing in it depended on the keep-out excep
 | # | Owner | Change | Reason |
 |---|-------|--------|--------|
 | E9 | carrier (this board) | **Done**: JET_3V3 on J2-4, ≤ 1 mA, = 3V3_IO switched by SYS_RESET* | AV-06, AV-09 |
-| E10 | **taken by the OBC designer**: OBC J3 6-pin, pin 5 thermistor, pin 6 return, ADC on PA2; INTERCONNECT W5B, harness | W5B becomes Pico-Clasp 6 (5013310607): pins 5 PT_NTC, 6 PT_RTN; OBC biases RT1 (10.0 kΩ 0.1 % from its 3.3 V reference) and reads it on one ADC channel (none free today: the OBC designer allocates, e.g. a third ADS7138 input freed or a second ADS7138); `sensors.yaml` PT bound to it | spreader temperature for the guard and the −15 °C power-on gate, readable with the carrier off |
+| E10 | **taken by the OBC designer**: OBC J3 6-pin, pin 5 thermistor, pin 6 return, ADC on PA2; INTERCONNECT W5B, harness | W5B becomes Pico-Clasp 6 (2035560607, gold): pins 5 PT_NTC, 6 PT_RTN; OBC biases RT1 (10.0 kΩ 0.1 % from its 3.3 V reference) and reads it on one ADC channel (none free today: the OBC designer allocates, e.g. a third ADS7138 input freed or a second ADS7138); `sensors.yaml` PT bound to it | spreader temperature for the guard and the −15 °C power-on gate, readable with the carrier off |
 | F1 | flight software (`firmware/src/uart.rs`) | USART1 transmit 2 stop bits (8N2) | DS §2.10.4 |
 | F2 | flight software (`eps_control.rs`, payload schedule) | end each burst with `SHUTDOWN`, wait for JET_PG to fall (≤ 5 s, then cut anyway), then JETSON_PWR low and PAYLOAD_EN 10 ms later; treat an unexpected JET_PG fall with the rail commanded on as a payload fault and cut both lines | §7.4; reverses ICD-002 1.2 §9 |
 | F3 | flight software (`sensors.yaml`, EPS driver) | bind JPC to the EPS controller's IMON_JET register (U19 IMON, 0.84 V/A) | §12 |
@@ -517,8 +523,8 @@ oscillator near the old corner, and nothing in it depended on the keep-out excep
   GCM1885C1H222JA16D, GCM1885C1H332JA16D (series codes), TE 2309407-2 and 1-2199230-4 (distributor listings only),
   Würth standoffs, TE GA10K3MCD1, Bergquist GAP PAD 3500ULM. The TI parts were checked on ti.com product pages
   (orderable lists); the Swissbit N2600 on its fact sheet and a Mouser listing.
-- Gold-plating suffixes of the Molex J1 (43045-0400 class), J2 (501331-0607) and J3 (501331-0207) headers and the
-  Samtec FTSH plating code F (molex.com unreachable; the harness design names the classes only).
+- The Samtec FTSH plating code F (gold contacts and tails). The Molex gold headers are now named by the parts
+  temperature audit (J1 0430450402, J2 2035560607, J3 2035560207; Digi-Key listings, not re-read here).
 - Which end of the SO-DIMM carries VDD_IN (pins 251–260) and the latch material of TE 2309407-2 (§18.2: magnetic-cleanliness items only since version D).
 - TE's own resistance-temperature table for GA10K3MCD1 (§12.1 uses the published 10K3A Steinhart–Hart constants of the same 3976 K curve).
 - No power figures for the Swissbit N2600; the 0.30 W average and 2.0 W peak are allocations.
@@ -535,4 +541,4 @@ oscillator near the old corner, and nothing in it depended on the keep-out excep
 | B | 2026-10-27 | Payload carrier design (chair follow-up) | Gyro window and frame of MECHANICAL_DESIGN §4.3 (D-11): §18.1, frame screw holes H10–H13 and the frame MP5 in the design files; RM3100 magnetic keep-out of §4.4: §18.2; placement re-zoned (power to the −Y strip and −X column, I/O to the +X edge) with a placement check (`jetson_calcs.py` tables 14–15); M2, V-JET-9 |
 | C | 2026-10-27 | Payload carrier design (chair follow-up) | Window moved to y +17.0 … +44.0 (MECHANICAL_DESIGN §4.5, item 12): keep-outs split by side, frame screws H10–H13 moved to the side bars, J3/D2/U10/U11 re-placed; top-side height limits (7.7 / 13.2 mm) added to the placement check; MP2/MP3 at (±31.3, +12.6); BASELINE cited as Rev E |
 | D | 2026-10-27 | Payload carrier design (chair follow-up) | (amended) frame screws H10–H13 moved to the mechanical designer's positions with Ø4.5 mm head and local bottom keep-outs, MP2 assembly notes (§18.1), Z2 logic group nudged 0.5 mm; RM3100 moved to (+24, +27) by the OBC designer (E11): §18.2 keep-out withdrawn, parts kept as placed, SO-DIMM VDD_IN end now a field-magnitude check, M2 closed; E10 taken (OBC J3 6-pin, ADC on PA2); §12.1 RT1 resistance-temperature table (10K3A Steinhart–Hart curve) for the OBC's conversion; RT1 range corrected to −40 … +125 °C |
-| E | 2026-10-27 | Payload carrier design (chair follow-up) | Window frame withdrawn by the mechanical design: H10–H13, MP5, the frame keep-outs and the MP2 frame assembly notes deleted; window + 0.5 mm keep-out on both faces kept; board 2.0 mm (6 layers, stack-up and impedance-controlled widths recomputed, `jetson_calcs.py` table 17); power planes moved to L5 over the L4 ground  (amended: HARNESS_DESIGN 2.0 item J-1: J1 right-angle Micro-Fit 2×2, gold, plug from −X, moved to the −X edge at (−40.3, −21); U2 and the VDD_IN bulk to the −Y strip; J2 gold, moved to (+36.5, +28.5) clear of the W5B volume; J3 gold; J6 plating F; M.2 card shifted 6 mm toward −X; part-to-part overlap check added; §7.3 JETSON_PWR pin corrected to PA8 (P3E-05); M.2 screw: prevailing-torque locking feature and Scotch-Weld 2216 staking instead of a liquid thread-locker) |
+| E | 2026-10-27 | Payload carrier design (chair follow-up) | Window frame withdrawn by the mechanical design: H10–H13, MP5, the frame keep-outs and the MP2 frame assembly notes deleted; window + 0.5 mm keep-out on both faces kept; board 2.0 mm (6 layers, stack-up and impedance-controlled widths recomputed, `jetson_calcs.py` table 17); power planes moved to L5 over the L4 ground  (amended: HARNESS_DESIGN 2.0 item J-1: J1 right-angle Micro-Fit 2×2, gold, plug from −X, moved to the −X edge at (−40.3, −21); U2 and the VDD_IN bulk to the −Y strip; J2 gold, moved to (+36.5, +28.5) clear of the W5B volume; J3 gold; J6 plating F; M.2 card shifted 6 mm toward −X; part-to-part overlap check added; §7.3 JETSON_PWR pin corrected to PA8 (P3E-05); M.2 screw: prevailing-torque locking feature and Scotch-Weld 2216 staking instead of a liquid thread-locker; SQSO-MFG-003 part numbers J1 0430450402, J2 2035560607, J3 2035560207, R1 ERJ-6RQF1R0V; module cold limits stated in §2 item 5) |

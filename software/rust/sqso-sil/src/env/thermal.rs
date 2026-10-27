@@ -1070,39 +1070,41 @@ mod tests {
             c
         };
         cases.push(cold("C1 cold, beta 0, SAFE tumbling, heater 1.0 W", Att::Tumble, Mode::Safe, 1.0));
-        cases.push(cold("C2 cold, beta 0, SAFE tumbling, heater 0.72 W (12.0 V)", Att::Tumble, Mode::Safe, 0.72));
+        // The heater: 207 Ω, 0.70 W at 12.0 V (THERMAL_ANALYSIS 2.2 §4.2; was 0.72 W)
+        const H12: f64 = 12.0 * 12.0 / 207.0;
+        cases.push(cold("C2 cold, beta 0, SAFE tumbling, heater 0.70 W (12.0 V)", Att::Tumble, Mode::Safe, H12));
         cases.push(cold("C3 cold, beta 0, SAFE tumbling, heater 0.5 W", Att::Tumble, Mode::Safe, 0.5));
         cases.push(cold("C4 cold, beta 0, SAFE spin-pointed, heater 1.0 W", Att::SpinPointed, Mode::Safe, 1.0));
-        cases.push(cold("C5 cold, beta 0, EMERGENCY tumbling, heater 0.72 W", Att::Tumble, Mode::Emergency, 0.72));
-        let mut c = cold("C6 cold, beta 0, SAFE tumbling, wings stowed, 0.72 W", Att::Tumble, Mode::Safe, 0.72);
+        cases.push(cold("C5 cold, beta 0, EMERGENCY tumbling, heater 0.70 W", Att::Tumble, Mode::Emergency, H12));
+        let mut c = cold("C6 cold, beta 0, SAFE tumbling, wings stowed, 0.70 W", Att::Tumble, Mode::Safe, H12);
         c.wings = [false, false];
         cases.push(c);
-        let mut c = cold("C7 cold, beta 0, SAFE tumbling, black battery, 0.72 W", Att::Tumble, Mode::Safe, 0.72);
+        let mut c = cold("C7 cold, beta 0, SAFE tumbling, black battery, 0.70 W", Att::Tumble, Mode::Safe, H12);
         c.params.battery_eps = 0.85;
         cases.push(c);
-        let mut c = cold("C8 cold, beta 0, SAFE tumbling, mount 0.10 W/K, 0.72 W", Att::Tumble, Mode::Safe, 0.72);
+        let mut c = cold("C8 cold, beta 0, SAFE tumbling, mount 0.10 W/K, 0.70 W", Att::Tumble, Mode::Safe, H12);
         c.params.battery_mount_w_k = 0.10;
         cases.push(c);
         cases.push(cold("C9 cold, beta 0, SAFE spin-pointed, heater failed off", Att::SpinPointed, Mode::Safe, 0.0));
         cases.push(cold(
-            "C11 cold, beta 0, SAFE spin-pointed, heater 0.72 W (12.0 V)",
+            "C11 cold, beta 0, SAFE spin-pointed, heater 0.70 W (12.0 V)",
             Att::SpinPointed,
             Mode::Safe,
-            0.72,
+            H12,
         ));
         cases.push(cold("C12 cold, beta 0, SAFE spin-pointed, heater 0.5 W", Att::SpinPointed, Mode::Safe, 0.5));
         cases.push(cold(
-            "C13 cold, beta 0, EMERGENCY spin-pointed, heater 0.72 W",
+            "C13 cold, beta 0, EMERGENCY spin-pointed, heater 0.70 W",
             Att::SpinPointed,
             Mode::Emergency,
-            0.72,
+            H12,
         ));
         let mut c =
-            cold("C14 cold, beta 0, SAFE spin-pointed, wings stowed, 0.72 W", Att::SpinPointed, Mode::Safe, 0.72);
+            cold("C14 cold, beta 0, SAFE spin-pointed, wings stowed, 0.70 W", Att::SpinPointed, Mode::Safe, H12);
         c.wings = [false, false];
         cases.push(c);
         let mut c =
-            cold("C15 cold, beta 0, SAFE spin-pointed, mount 0.10 W/K, 0.72 W", Att::SpinPointed, Mode::Safe, 0.72);
+            cold("C15 cold, beta 0, SAFE spin-pointed, mount 0.10 W/K, 0.70 W", Att::SpinPointed, Mode::Safe, H12);
         c.params.battery_mount_w_k = 0.10;
         cases.push(c);
         for (name, w) in [
@@ -1142,10 +1144,10 @@ mod tests {
             cases.push(c);
         }
         let mut c =
-            Case::new("C10 cold real, LTAN 23:30 June, SAFE tumbling, 0.72 W", june, 23.5, Att::Tumble, Mode::Safe);
+            Case::new("C10 cold real, LTAN 23:30 June, SAFE tumbling, 0.70 W", june, 23.5, Att::Tumble, Mode::Safe);
         c.albedo = 0.25;
         c.ir = 218.0;
-        c.heater_w = 0.72;
+        c.heater_w = H12;
         cases.push(c);
         for c in &cases {
             let _ = run_case(c);

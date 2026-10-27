@@ -295,6 +295,12 @@ mod tests {
         flash: MemFlash<512>,
         /// Every flash read fails (a bus error)
         read_fails: bool,
+        /// Writes report success and store nothing (a device that ignores them)
+        drop_writes: bool,
+        /// After each write one read succeeds (the write's own read-back)
+        /// and the rest fail: a device that drops off the bus mid-check
+        drops_after_write: bool,
+        reads_left: Option<u32>,
         lines: Option<(bool, bool)>,
         reports: [Option<Report>; 8],
         count: usize,
@@ -302,7 +308,16 @@ mod tests {
 
     impl Bench {
         fn new() -> Self {
-            Bench { flash: MemFlash::new(), read_fails: false, lines: None, reports: [None; 8], count: 0 }
+            Bench {
+                flash: MemFlash::new(),
+                read_fails: false,
+                drop_writes: false,
+                drops_after_write: false,
+                reads_left: None,
+                lines: None,
+                reports: [None; 8],
+                count: 0,
+            }
         }
         fn last(&self) -> Option<Report> {
             self.count.checked_sub(1).and_then(|i| self.reports[i % 8])
@@ -311,12 +326,19 @@ mod tests {
 
     impl Flash for Bench {
         fn read(&mut self, r: u32, o: u32, b: &mut [u8]) -> Result<(), FlashError> {
-            if self.read_fails {
+            if self.read_fails || self.reads_left == Some(0) {
                 return Err(FlashError(-5));
             }
+            self.reads_left = self.reads_left.map(|n| n - 1);
             self.flash.read(r, o, b)
         }
         fn write(&mut self, r: u32, o: u32, d: &[u8]) -> Result<(), FlashError> {
+            if self.drop_writes {
+                return Ok(());
+            }
+            if self.drops_after_write {
+                self.reads_left = Some(1);
+            }
             self.flash.write(r, o, d)
         }
         fn erase(&mut self, r: u32) -> Result<(), FlashError> {
@@ -338,6 +360,50 @@ mod tests {
         let mut rf = RfControl::new(7);
         rf.init(io);
         rf
+    }
+
+    /// The degraded mode without the FRAM (RID SMA-B10): the RAM latch
+    /// holds while the record cannot be read; an upset of the RAM copy (its
+    /// CRC no longer matches) latches TX-OFF; the check reports whether the
+    /// record was written and read back
+    #[test]
+    fn degraded_check_runs_from_the_ram_copy() {
+        let mut io = Bench::new();
+        let mut rf = booted(&mut io);
+        assert!(rf.check(&mut io, true), "a working FRAM reads back");
+        io.read_fails = true;
+        assert!(!rf.check(&mut io, true));
+        assert!(rf.permitted(), "the RAM copy holds without the FRAM");
+        // Outside the degraded mode the unreadable record forces TX-OFF
+        assert!(!rf.check(&mut io, false));
+        assert!(!rf.permitted());
+        assert_eq!(rf.tx_on(&mut io), Err(Error::Io));
+        assert!(rf.permitted());
+        // An upset of the RAM copy: TX-OFF
+        rf.inhibited = !rf.inhibited;
+        let _ = rf.check(&mut io, true);
+        assert!(!rf.permitted());
+        assert_eq!(io.last(), Some(Report::ScrubInhibited));
+        // Written but not read back as written
+        io.read_fails = false;
+        io.drop_writes = true;
+        assert_eq!(rf.tx_on(&mut io), Err(Error::Io));
+        assert!(!rf.check(&mut io, true), "the record holds an older latch");
+        io.drop_writes = false;
+        io.flash.writes_left = Some(0);
+        assert!(!rf.check(&mut io, true), "the write fails");
+        io.flash.writes_left = None;
+        assert!(rf.check(&mut io, true));
+        // Written and verified, then the device drops off before the check reads it
+        io.drops_after_write = true;
+        assert!(!rf.check(&mut io, true), "written, not read back");
+        assert!(rf.permitted(), "the RAM copy holds");
+        io.drops_after_write = false;
+        io.reads_left = None;
+        assert!(rf.check(&mut io, true));
+        // Not initialized: nothing to check
+        let mut fresh = RfControl::new(7);
+        assert!(fresh.check(&mut io, true));
     }
 
     /// The passivation inhibit stays; the receiver cycle removes radio power
