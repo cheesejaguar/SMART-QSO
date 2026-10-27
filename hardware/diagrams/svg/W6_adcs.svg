@@ -54,12 +54,12 @@
 <polygon fill="#ffffff" stroke="black" stroke-dasharray="5,2" points="1865.5,-257 1048.5,-257 1048.5,0 1865.5,0 1865.5,-257"/>
 <polygon fill="none" stroke="black" points="1049,-233.5 1049,-256.5 1866,-256.5 1866,-233.5 1049,-233.5"/>
 <text text-anchor="start" x="1441.5" y="-241.3" font-family="Helvetica,sans-Serif" font-size="14.00">W6E</text>
-<polygon fill="none" stroke="black" points="1049,-210.5 1049,-233.5 1298,-233.5 1298,-210.5 1049,-210.5"/>
-<text text-anchor="start" x="1164.5" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">6x</text>
-<polygon fill="none" stroke="black" points="1298,-210.5 1298,-233.5 1585,-233.5 1585,-210.5 1298,-210.5"/>
-<text text-anchor="start" x="1413.5" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">28 AWG</text>
-<polygon fill="none" stroke="black" points="1585,-210.5 1585,-233.5 1866,-233.5 1866,-210.5 1585,-210.5"/>
-<text text-anchor="start" x="1700.5" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">0.25 m</text>
+<polygon fill="none" stroke="black" points="1049,-210.5 1049,-233.5 1301,-233.5 1301,-210.5 1049,-210.5"/>
+<text text-anchor="start" x="1166" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">6x</text>
+<polygon fill="none" stroke="black" points="1301,-210.5 1301,-233.5 1591,-233.5 1591,-210.5 1301,-210.5"/>
+<text text-anchor="start" x="1418" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">28 AWG</text>
+<polygon fill="none" stroke="black" points="1591,-210.5 1591,-233.5 1866,-233.5 1866,-210.5 1591,-210.5"/>
+<text text-anchor="start" x="1708" y="-218.3" font-family="Helvetica,sans-Serif" font-size="14.00">0.1 m</text>
 <text text-anchor="start" x="1206" y="-197.3" font-family="Helvetica,sans-Serif" font-size="14.00"> </text>
 <text text-anchor="start" x="1128" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00">J_OBC_MAG:1:3V3_SNS</text>
 <text text-anchor="start" x="1446" y="-178.3" font-family="Helvetica,sans-Serif" font-size="14.00"> &#160;&#160;&#160;&#160;RD &#160;&#160;&#160;</text>

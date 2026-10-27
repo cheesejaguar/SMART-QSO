@@ -521,9 +521,11 @@ def mechanical():
         p.footprint = "MountingHole:MountingHole_3.2mm_M3" if ref <= "H4" else "MountingHole:MountingHole_3.2mm_M3_7mm_keepout"
         p["MH"] += builtins.NC  # isolated from GND: copper-free ring (single frame bond is on the EPS board, H1)
     # gyro window (MECHANICAL_DESIGN 4.3-4.5, D-11): 27 x 27 mm board cut-out x -33.5..-6.5, y +17.0..+44.0; the 2.2 g Al
-    # frame on the bottom face is held by four M2 screws on its side bars: isolated holes; bottom side: no copper or parts
-    # within 0.5 mm of the frame footprint (x -36.5..-3.5, y +14.0..+47.0); top and inner layers: window + 0.5 mm
-    for ref, xy in (("H10", "(-34.75, +24.0)"), ("H11", "(-5.25, +24.0)"), ("H12", "(-34.75, +45.25)"), ("H13", "(-5.25, +45.25)")):
+    # frame on the bottom face is held by four M2 A286 button-head screws from the top into tapped pads on the frame
+    # (positions set by the mechanical designer): isolated holes, O4.5 mm top-side keep-out at each head; bottom side: no
+    # copper or parts within 0.5 mm of the frame footprint (x -36.5..-3.5, y +14.0..+47.0), grown to x -37.8 / -2.2 for
+    # +/-3 mm in y at each screw; top and inner layers: window + 0.5 mm
+    for ref, xy in (("H10", "(-35.5, +24.0)"), ("H11", "(-35.5, +36.0)"), ("H12", "(-4.5, +30.0)"), ("H13", "(-4.5, +42.0)")):
         p = TMH(value="MH")
         p.ref = ref
         p.footprint = "MountingHole:MountingHole_2.2mm_M2"

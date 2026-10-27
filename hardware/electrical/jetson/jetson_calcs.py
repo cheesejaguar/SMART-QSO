@@ -462,15 +462,21 @@ for name, (x, y), (w, h), magnetic, exempt, hgt in PLACE:
 table("14. Placement check (zones of section 18; window, heights and magnetic keep-out of MECHANICAL_DESIGN 4.3-4.5)",
       ["Item", "Centre (mm)", "To the old RM3100 corner (mm)", "To the gyro centre (mm)", "Height / limit (mm)", "Result"], rows)
 # frame screws against the module standoffs, the centre support, the column and the board edge
-SCREWS = [(-34.75, 24.0), (-5.25, 24.0), (-34.75, 45.25), (-5.25, 45.25)]
+SCREWS = [(-35.5, 24.0), (-35.5, 36.0), (-4.5, 30.0), (-4.5, 42.0)]  # MECHANICAL_DESIGN (frame screws, amended)
 clr = []
 for sx, sy in SCREWS:
-    c = [math.hypot(sx - hx, sy - hy) - rad - 1.75 for (hx, hy), rad in HOLES] + \
-        [math.hypot(sx + 31.3, sy - 12.6) - 2.5 - 1.75, BY - sy - 1.75]
+    c = [math.hypot(sx - hx, sy - hy) - rad - 2.25 for (hx, hy), rad in HOLES] + \
+        [math.hypot(sx + 31.3, sy - 12.6) - 2.5 - 2.25, BY - sy - 2.25]
+    head = (sx - 2.25, sx + 2.25, sy - 2.25, sy + 2.25)
+    for name, (x, y), (w, h), *_ in PLACE:
+        r = (x - w / 2, x + w / 2, y - h / 2, y + h / 2)
+        c.append(rect_point_dist(r, (sx, sy)) - 2.25)
     clr.append(min(c))
+# local bottom-side keep-out at each screw (x -37.8 / -2.2, +/-3 mm in y): no part of the placement table is on the bottom
 print(f"\nPlacement conflicts: {bad}.")
 print("Frame screws H10-H13 " + ", ".join(f"({x}, {y})" for x, y in SCREWS) +
-      f": smallest clearance of a 3.5 mm button head to a keep-out, MP2 or the edge {min(clr):.2f} mm.")
+      f": smallest clearance of the 4.5 mm head keep-out to a keep-out, MP2, a placed part or the edge {min(clr):.2f} mm "
+      f"(MP2 is {math.hypot(-35.5 + 31.3, 24.0 - 12.6) - 2.5 - 2.25:.1f} mm from H10: no screw under MP2).")
 OUT["placement_conflicts"] = bad
 
 # field of the burst current at the magnetometer: a go-and-return pair, B = mu0 I d / (2 pi r^2)
