@@ -176,6 +176,7 @@ mod tests {
         for _ in 0..MAX_ERRORS {
             let _ = mag.trigger(&mut bus);
         }
-        assert!(mag.failed && !mag.ready);
+        assert!(mag.failed);
+        assert!(!mag.ready);
     }
 }

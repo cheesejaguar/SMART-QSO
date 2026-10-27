@@ -572,9 +572,11 @@ mod tests {
         assert_eq!(p.arm(b"EOL?", 1000, &mut io), Err(Refusal::BadCode));
         assert_eq!(p.arm(&ARM_CODE, 1000, &mut io), Ok(()));
         assert_eq!(p.phase(1000), Phase::Armed);
-        assert!(io.drives.is_empty() && io.tx_off == 0, "arming drives nothing");
+        assert!(io.drives.is_empty(), "arming drives nothing");
+        assert!(io.tx_off == 0, "arming drives nothing");
         assert_eq!(p.execute(2000, &mut io), Ok(()));
-        assert!(p.committed() && !p.passivated());
+        assert!(p.committed());
+        assert!(!p.passivated());
         assert_eq!(io.tx_off, 0, "still transmitting during the fire");
         assert!(!io.inhibited);
         assert_eq!(p.phase(2000), Phase::Firing);
@@ -597,12 +599,14 @@ mod tests {
         p.tick(t1, SUN, &mut io);
         assert_eq!(io.lines, [false, false]);
         assert_eq!(p.phase(t1), Phase::Reporting);
-        assert!(p.confirmed() && io.tx_off == 0);
+        assert!(p.confirmed());
+        assert!(io.tx_off == 0);
         // Three frames a minute apart, then TX-OFF and the inhibit
         let frames = run_report(&mut p, &mut io, t1);
         assert_eq!(frames, [(t1, 1), (t1 + 60_000, 2), (t1 + 120_000, 3)]);
         assert_eq!(io.tx_off, 1);
-        assert!(io.inhibited && p.passivated());
+        assert!(io.inhibited);
+        assert!(p.passivated());
         assert_eq!(p.phase(u64::MAX), Phase::Passivated);
         assert_eq!(p.attempts(), 1);
         assert_eq!(io.log, [Report::Armed, Report::Executed, Report::ChargePathOpen, Report::Silenced]);
@@ -612,7 +616,9 @@ mod tests {
         // Every boot after: inhibited at once
         let mut io2 = Bench { flash: io.flash, ..Bench::default() };
         let b = fresh(&mut io2);
-        assert!(b.passivated() && io2.inhibited && io2.drives.is_empty());
+        assert!(b.passivated());
+        assert!(io2.inhibited);
+        assert!(io2.drives.is_empty());
         assert_eq!(io2.log, [Report::Passivated]);
     }
 
@@ -627,7 +633,8 @@ mod tests {
         assert_eq!(p.execute(ARM_WINDOW_MS, &mut io), Err(Refusal::NotArmed), "the window is over");
         p.tick(ARM_WINDOW_MS, SUN, &mut io);
         assert_eq!(io.log.last(), Some(&Report::Lapsed));
-        assert!(!p.committed() && io.drives.is_empty());
+        assert!(!p.committed());
+        assert!(io.drives.is_empty());
         // A reset disarms
         assert_eq!(p.arm(&ARM_CODE, 10, &mut io), Ok(()));
         let mut after = fresh(&mut io);
@@ -687,7 +694,9 @@ mod tests {
         assert_eq!(io.tx_off, 0);
         let frames = run_report(&mut p, &mut io, t);
         assert_eq!(frames.len(), usize::from(FINAL_REPORTS));
-        assert!(p.passivated() && io.tx_off == 1 && io.inhibited, "the emissions cease anyway");
+        assert!(p.passivated(), "the emissions cease anyway");
+        assert!(io.tx_off == 1, "the emissions cease anyway");
+        assert!(io.inhibited, "the emissions cease anyway");
     }
 
     #[test]
@@ -715,7 +724,8 @@ mod tests {
         let mut c = fresh(&mut io4);
         assert_eq!(c.phase(0), Phase::Reporting);
         assert_eq!(run_report(&mut c, &mut io4, 0).len(), 3);
-        assert!(c.passivated() && io4.inhibited);
+        assert!(c.passivated());
+        assert!(io4.inhibited);
     }
 
     #[test]
@@ -729,7 +739,8 @@ mod tests {
         assert!(io.log.contains(&Report::LineUnavailable));
         assert_eq!(p.phase(1), Phase::Reporting);
         run_report(&mut p, &mut io, 1);
-        assert!(io.inhibited && io.tx_off == 1);
+        assert!(io.inhibited);
+        assert!(io.tx_off == 1);
         // No pin for the fire switch
         let mut io = Bench { no_fire_pin: true, ..Bench::default() };
         let mut p = fresh(&mut io);
@@ -756,22 +767,27 @@ mod tests {
         assert!(!io.inhibited, "before init: nothing");
         p.init(0, &mut io);
         p.verify(&mut io);
-        assert!(!io.inhibited && io.log.is_empty());
+        assert!(!io.inhibited);
+        assert!(io.log.is_empty());
         // Committed on record, a RAM upset forgot it: carried on
         let mut q = executed(&mut io, 1000);
         q.committed = false;
         q.fire = None;
         q.verify(&mut io);
-        assert!(q.committed() && q.fire.is_some() && !io.inhibited);
+        assert!(q.committed());
+        assert!(q.fire.is_some());
+        assert!(!io.inhibited);
         // Silenced on record, RAM not: silenced and inhibited again
         q.fire = None;
         q.report = Some((0, 3));
         q.tick(REPORT_WINDOW_MS, SUN, &mut io);
-        assert!(q.passivated() && io.inhibited);
+        assert!(q.passivated());
+        assert!(io.inhibited);
         q.silenced = false;
         io.inhibited = false;
         q.verify(&mut io);
-        assert!(q.passivated() && io.inhibited);
+        assert!(q.passivated());
+        assert!(io.inhibited);
         assert_eq!(io.log.last(), Some(&Report::Passivated));
         // The record lost, RAM committed: written again
         let mut io2 = Bench::default();
@@ -784,14 +800,17 @@ mod tests {
         let mut io5 = Bench::default();
         nvm::save(&mut io5, REGION, 0, RECORD_MAGIC, &[FLAG_COMMITTED, 1, 1, 0]).unwrap();
         let old = fresh(&mut io5);
-        assert!(old.passivated() && io5.inhibited);
+        assert!(old.passivated());
+        assert!(io5.inhibited);
     }
 
     #[test]
     fn the_eps_saying_open_is_passivation_even_without_a_record() {
         let mut io = Bench { open: Some(true), ..Bench::default() };
         let p = fresh(&mut io);
-        assert!(p.passivated() && p.confirmed() && io.inhibited);
+        assert!(p.passivated());
+        assert!(p.confirmed());
+        assert!(io.inhibited);
         assert!(io.drives.is_empty());
         // Corrupt record, EPS silent: not passivated, reported
         let mut io = Bench::default();

@@ -1,20 +1,23 @@
 # SMART-QSO OBC Board: Build-to Design
 
 **Document ID**: SQSO-OBC-BRD-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: CDR build-to electrical design for the engineering model (EM): schematic captured as code with selected,
 orderable parts, netlist, BOM, ERC (clean, waivers listed) and calculations. No PCB layout, no hardware; every number
 below is analysis until its verification item (§22) closes. Version B answers the chair's follow-up: the carrier's
 spreader thermistor (E10, §11.3), the stack placement constraints (§21), the magnetometer location (§9.4: moved to a
-small board A2 at the +Z end frame) and the gyro vibration assessment (§9.2).
+small board A2 at the +Z end frame) and the gyro vibration assessment (§9.2). Version C takes the harness design
+(SQSO-HAR-001 2.0 §15 items O-1 to O-3: right-angle Samtec TFM headers, gold Pico-Clasp headers, J8 as a 12-way part)
+and adds the access-port board A3 (§15.1).
 
 **Design files** (this directory): [`design.py`](design.py) (SKiDL 3.0 schematic, the source of truth for parts, nets
 and the MCU pin map), [`obc_board.net`](obc_board.net) (KiCad 8 netlist, generated), [`obc_board_nets.csv`](obc_board_nets.csv)
 (net to pins), [`obc_board_bom.csv`](obc_board_bom.csv) (BOM), [`obc_board_erc.log`](obc_board_erc.log) (ERC),
 [`obc_pinmap.csv`](obc_pinmap.csv) (every STM32 pin), [`mag_board.net`](mag_board.net), [`mag_board_bom.csv`](mag_board_bom.csv),
 [`mag_board_erc.log`](mag_board_erc.log) and [`mag_board_nets.csv`](mag_board_nets.csv) (the magnetometer board A2, built by
-the same script), [`obc_calcs.py`](obc_calcs.py) with its output `obc_calcs.json` (every computed value here). Regenerate: `python3 hardware/electrical/obc/obc_calcs.py`, then
+the same script), [`a3_board.net`](a3_board.net), [`a3_board_bom.csv`](a3_board_bom.csv), [`a3_board_erc.log`](a3_board_erc.log)
+and [`a3_board_nets.csv`](a3_board_nets.csv) (the access-port board A3), [`obc_calcs.py`](obc_calcs.py) with its output `obc_calcs.json` (every computed value here). Regenerate: `python3 hardware/electrical/obc/obc_calcs.py`, then
 `<CAD venv>/bin/python hardware/electrical/obc/design.py`. The master pin allocation and the board-to-board signal
 lists are in [INTERCONNECT.md](../INTERCONNECT.md) (SQSO-ICX-001).
 
@@ -31,7 +34,7 @@ SQSO-RF-BRD-001 §4.1 (the other ends of every interface); `docs/manufacturing/E
 | Item | Value |
 |------|-------|
 | Board | PC/104 90.17 × 95.89 mm, 6 layers, in the OBC/EPS stack (W3 ribbon to the EPS, no stack connector) |
-| Placements / BOM lines / nets | OBC 351 / 69 / 253; magnetometer board A2 15 / 9 / 19 (generated); ERC: no errors, no warnings (five waivers on the OBC, two on A2) |
+| Placements / BOM lines / nets | OBC 351 / 69 / 253; magnetometer board A2 15 / 9 / 19; access-port board A3 8 / 6 / 13 (generated); ERC: no errors, no warnings (five waivers on the OBC, two each on A2 and A3) |
 | Processor | STM32L4R5ZIT6 (LQFP-144) at 80 MHz from an 8 MHz XO (HSE bypass); LSE 32.768 kHz crystal |
 | Memory | FM25V20A 2 Mbit SPI FRAM (no external flash: §7) |
 | Supervisor | TPS3850H33-Q1: 3.3 V UV/OV (± 7 %) and a window watchdog, 5.6–33.3 s window, kicked every 10 s, wired to NRST (RID AV-02) |
@@ -77,7 +80,7 @@ SQSO-RF-BRD-001 §4.1 (the other ends of every interface); `docs/manufacturing/E
 | ADCS board | ADCS_DESIGN §6, W6 v1, S6 | **none**: sensors and coil drivers on the OBC | one board fewer, no stack connector; the 1U stack has no room for a fifth board |
 | Magnetometer | BUILD_VS_BUY §2.7: buy (M315, MM200, Lodestone) | **PNI RM3100 on a 24 × 24 mm board A2 at the +Z end frame** (the CAD's magnetometer slot), on harness W6E from J10; its switch, bus isolation and data-ready buffer stay on the OBC. Version A had it in the OBC's (+X, −Y) corner | §9.4: noise, single-shot timing under the MCU's control, cost, mass; at +Z the rod remanence couples 1.4× less than in the OBC corner and the Jetson's input current is 63 mm away instead of 12 mm |
 | JETSON_PWR pin | SQSO-ICX-001 A: PA2 | **PA8** (still port A) | PA2 (ADC1_IN7) is the only ADC input that can be freed for the spreader NTC (§11.3) |
-| GSE header | W8 v2: TST-105 behind the access window | **FTSH-105 on an internal harness W8A** to a bulkhead at the access window | the OBC sits mid-stack (z +5), not at the −Y access window (§15) |
+| GSE header | W8 v2: TST-105 behind the access window | **TFM-105 right-angle (J9) on an internal harness W8A** to the access-port board A3, whose Micro-D 21 is the one GSE connector at the window (§15.1) | the OBC sits mid-stack (z +5), not at the −Y access window (§15) |
 | Coil driver | ADCS_DESIGN §6.1: DRV8833 on 3.3 V | **DRV8876-Q1 from VBAT** with hardware current regulation | a CR0002 rod (≈ 51 Ω) needs 4.4 V for 0.2 A·m²: 3.3 V gives at most 0.15 A·m² (§10.1) |
 | Coil supply | EPS SW4 3V3_ADCS "sensors, gyro, magnetorquer drivers" | 3V3_ADCS feeds only the sensor switches; **a new EPS switch SW11 (VBAT_MTQ)** feeds the bridges | as above; and a coil current no longer masks a sensor latch-up (RADIATION_ANALYSIS §5.3) |
 | PAYLOAD_EN pin | firmware, EPS §13.2: PB4 | **PB2** | PB4 resets as NJTRST with a pull-up: SW1 on at every reset (§11.2) |
@@ -387,8 +390,8 @@ A2): sensor-side rise time 139 ns (4.7 kΩ, about 35 pF), inside 300 ns for
 
 ### 9.5 Coarse sun sensors
 
-The six panel photodiodes (bought with the panels; BVB §2.3) come in on J8 (W6D, twisted pairs under one shield, drains
-to ground at J8 only). Each cathode drives a zero-bias transimpedance amplifier (TLV9002-Q1, three duals, on 3V3_SNS;
+The six panel photodiodes (bought with the panels; BVB §2.3) come in on J8 (Pico-Clasp 12, W6D: six unshielded twisted
+28 AWG pairs, Version C; SQSO-HAR-001 2.0). Each cathode drives a zero-bias transimpedance amplifier (TLV9002-Q1, three duals, on 3V3_SNS;
 anode to ground): **Vout = Isc × 619 Ω** (0.1 % resistor), Cf 10 nF C0G. The panel vendor must keep the photodiode's
 short-circuit current at AM0 normal incidence at or below 4.0 mA (2.48 V out); the amplifier clips at 5.25 mA (3.25 V).
 Each output reaches the ADS7138-Q1 (U16, 12 bits, I2C 0x10, AVDD = 3V3_SNS as reference) through 1 kΩ / 100 nF.
@@ -518,7 +521,7 @@ zero with GNSS_EN low"). GNSS_PG (3V3_GNSS through 10 kΩ → PG15) shows an SW7
 
 ## 13. RF Board Interface (RIDs RF-21, AV-05)
 
-J2 (FTSH-108, 16 positions, W4A version 3; version A had FTSH-107) is the OBC side of the RF board's J1
+J2 (Samtec TFM-108 right-angle, 16 positions, W4A version 4 with an SFSDT 30 AWG assembly; version A had FTSH-107) is the OBC side of the RF board's J1
 (SQSO-RF-BRD-001 §4.1; pins 1–14 as there, pins 15–16 new). Outputs (PD5 USART2_TX,
 PE3 TX_PWR_SEL, PE4 XPDR_EN) leave through 100 Ω; the RF board adds 1 kΩ and 100 kΩ pull-downs. Inputs from the RF
 board, which stays powered when the OBC is power-cycled, carry 10 kΩ series resistors to limit the current into an
@@ -534,7 +537,7 @@ Three TPD4E05U06-Q1 at J2 (the two new lines use their spare channels).
 
 ## 14. EPS Interface, Deployment and Passivation Lines
 
-J1 (FTSH-120, W3 version 2) mates EPS J3; pin list in SQSO-ICX-001 §3.1. Every OBC output to the EPS goes through
+J1 (Samtec TFM-120 right-angle, W3 version 3: SFSDT 30 AWG to the EPS's vertical TFM-120 J3) mates EPS J3; pin list in SQSO-ICX-001 §3.1. Every OBC output to the EPS goes through
 100 Ω and is high-impedance at reset, held low by the EPS's 100 kΩ. Burn lines: four, one per resistor (BURN_W1A PB10,
 BURN_W1B PE6, BURN_W2A PB9, BURN_W2B **PE7**), each behind the EPS's 12 s one-shot and 0.8 A limit; the master arm
 DEPLOY_EN moves to **PF3** (a different port). Passivation: EOL_ARM **PF4** (rising edge sets the EPS latch) and
@@ -546,19 +549,39 @@ Analog lines through 1 kΩ with 10 nF at the pin. I2C2: the OBC's 2.2 kΩ pull-u
 
 ## 15. GSE Umbilical
 
-J9 (Samtec FTSH-105-01-L-DV-K, 2 × 5, 1.27 mm; pin list SQSO-ICX-001 §3.6) on the OBC's top side, on an internal
-0.15 m harness W8A (W8 version 3) to the access-port bulkhead at the −Y access window in the −Z end zone (the OBC is
-mid-stack at z +5; Version A put a TST-105 "behind the access window", which the stack does not allow): SWD (22 Ω), NRST (100 Ω), USART3 console
-and key loading (TX 100 Ω; RX 10 kΩ, the GSE adapter may be powered while the OBC is not), UMBILICAL_SENSE (1 kΩ,
-100 kΩ pull-down; the plug ties it to VTREF, so key provisioning is possible only with the plug in, SQSO-ICD-013 §9.2)
-and WDT_DIS (§6). VTREF is 3V3_OBC through 100 Ω (sense only). Two TPD4E05U06-Q1 at J9. The charging path is on the
-EPS's J13 (W11), not on this board.
+J9 (Samtec TFM-105-01-S-D-RA, right-angle, 2 × 5, 1.27 mm, gold; pin list SQSO-ICX-001 §3.6) on the OBC's top side at
+the −X edge, its cable toward −X with the mated plug's back at most 2.0 mm inside the edge (x ≥ −43.1), carries W8A
+(10 × 30 AWG Samtec SFSDT, 0.145 m) down the (−X, −Y) bundle to the access-port board A3 at the −Y window (§15.1). On
+this board: SWD (22 Ω), NRST (100 Ω), USART3 console and key loading (TX 100 Ω; RX 10 kΩ, the GSE adapter may be powered
+while the OBC is not), UMBILICAL_SENSE (1 kΩ, 100 kΩ pull-down; the plug ties it to VTREF, so key provisioning is
+possible only with the plug in, SQSO-ICD-013 §9.2) and WDT_DIS (§6). VTREF is 3V3_OBC through 100 Ω (sense only). Two
+TPD4E05U06-Q1 at J9.
+
+### 15.1 Access-port board A3 (new, Version C)
+
+A3 puts one flight connector at the −Y access window for the OBC's debug lines (W8A) and the EPS's charging path (W11,
+SQSO-EPS-BRD-001 §6.5); it is the "harness part" A3 of SQSO-HAR-001 2.0 §3.2, built to this section. Schematic in
+`design.py` (`a3_board()`): 8 placements, 6 BOM lines, 13 nets, ERC clean.
+
+| Item | Design |
+|------|--------|
+| Envelope and board | Inside the CAD envelope x −35 … −5, y 7 mm inboard of the −Y shear panel, z −46.8 … −38 (8.8 mm; MECHANICAL request M-3): board **30 × 8.8 × 1.6 mm**, FR-4, 2 layers, ENIG (SQSO-HAR-001 §3.2 gives 30 × 12 mm, which does not fit the 8.8 mm height: the envelope governs), parallel to the panel |
+| Connector J1 | **Micro-D 21 socket receptacle**, MIL-DTL-83513 class, straight PCB tails, gold contacts (M83513/11 shell C class; dash number to confirm), its mating face through the 18 × 6 mm window; 3 A per contact |
+| Pin map (SQSO-HAR-001 §3.2) | debug: 1 VTREF, 2 SWDIO, 3 GND, 4 SWCLK, 5 WDT_DIS, 6 NRST, 7 USART3_TX, 12 USART3_RX, 13 UMBILICAL_SENSE, 14 GND; charge: 9 UMB_VMON, 10–11 PACK_N, 19 UMB_SHUT, 20–21 UMB_CHG; **8 and 15–18 not connected**, so the charge cluster (9–11, 19–21) is one contact pitch or more from every debug pin |
+| Wires | W8A's ten 30 AWG wires and W11's six 24 AWG wires in plated holes at the two ends of the board (debug at the pin-1 end, charge at the other), soldered and staked within 10 mm; one re-termination service loop |
+| Protection, debug group | two TPD4E05U06-Q1 (D1, D2) on SWDIO, SWCLK, NRST, WDT_DIS, USART3_TX/RX, UMBILICAL_SENSE and VTREF, to GND (the OBC's ground through W8A pins 3 and 10); the series resistors and the second ESD stage are at OBC J9 |
+| Protection, charge group | D3 SMF24A UMB_CHG → PACK_N (24 V VRWM against the 16.8 V charge voltage, 70 %; 38.9 V clamp below the EPS's 40 V VBAT parts; EPS F5 1 A and D16 behind it, so it cannot drain the pack); D4 SMF24A UMB_VMON → PACK_N (the line has the EPS's 100 kΩ from BAT_F; leakage ≤ 1 µA worst at VRWM, far less at 16.8 V: for the EPS storage-drain budget, item C18); D5 TPD1E05U06-Q1 UMB_SHUT → PACK_N |
+| Separation | **PACK_N is never joined to GND on A3** (the EPS's DS2 is the only GND–PACK_N path, SQSO-EPS-BRD-001 §6.4); no copper of the two groups within 0.5 mm of each other (≤ 16.8 V between them with DS2 open); the Micro-D shell and the mounting holes have no copper connection: the shell bonds to the frame through the panel only |
+| Heights | parts on the board's inner face only, ≤ 1.4 mm (USON, X1SON, SOD-123FL), inside the 7 mm depth with the receptacle body and the board |
+| Mounting | two Ti M2 screws through the shear panel, the receptacle flange and A3 (holes on the flange pattern, copper-free), thin nuts with thread-locker on A3's inner face; A3 is held by the connector, which takes the mating force |
+| Current | 0.5 A charge on two contacts per pole (0.25 A each, 8 % of 3 A); signals < 5 mA |
+| Verification | V-OBC-18 (§22) |
 
 ## 16. ESD, Latch-up and Back-Power
 
 | Threat | Protection |
 |--------|------------|
-| ESD at integration on every connector signal | TPD4E05U06-Q1 (IEC 61000-4-2 ± 12 kV contact, 0.5 pF, 5.5 V standoff) at J1 (7), J2 (3), J3 (with the NTC line), J5, J8 (2), J9 (2), J10, and one on board A2 at its J1; TPD1E05U06-Q1 on 3V3_RTC and 3V3_ADCS; SMF5.0A on 3V3_OBC; SMBJ20A on VBAT_MTQ |
+| ESD at integration on every connector signal | TPD4E05U06-Q1 (IEC 61000-4-2 ± 12 kV contact, 0.5 pF, 5.5 V standoff) at J1 (7), J2 (3), J3 (with the NTC line), J5, J8 (2), J9 (2), J10, one on board A2 at its J1 and two on A3 at the window (the charge lines there: SMF24A ×2 and a TPD1E05U06 to PACK_N, §15.1); TPD1E05U06-Q1 on 3V3_RTC and 3V3_ADCS; SMF5.0A on 3V3_OBC; SMBJ20A on VBAT_MTQ |
 | Latch-up, MCU, FRAM, supervisor, logic | EPS SW10 (0.130–0.176 A, 0.28 s off, auto-retry) on the whole 3V3_OBC domain (RID AV-08 closed by the EPS board) |
 | Latch-up, sensors | U5–U7 (§9.1) |
 | Latch-up, GNSS, Jetson | EPS SW7, U19; isolation keeps the OBC from feeding a latched part through its I/O |
@@ -601,7 +624,9 @@ rated −40 °C. Heat sources for the thermal model: three DRV8876 (0.14 W each 
 | NTC bias 10.0 kΩ (0.1 W) | power | 0.94 mW at 95 °C | 100 mW | 1 % | 50 % | yes |
 | R_IPROPI 10 kΩ | power | 0.16 mW | 100 mW | < 1 % | 50 % | yes |
 | VBAT_MTQ divider 1 MΩ | voltage / power | 14 V / 0.2 mW | 75 V / 0.1 W | 19 % / 0.2 % | 80 % / 50 % | yes |
-| FTSH-120 contacts | current | 0.115 A | 2.4 A | 5 % | 50 % | yes |
+| TFM-120 contacts | current | 0.115 A | per Samtec (not read; > 1 A for the series) | < 12 % | 50 % | yes |
+| A3 SMF24A (UMB_CHG, UMB_VMON) | standoff vs 16.8 V | 16.8 V | 24 V | 70 % (TVS: standoff above the maximum) | < 100 % | yes |
+| A3 Micro-D contacts | current | 0.25 A | 3 A | 8 % | 50 % | yes |
 | Pico-Clasp contacts (J3–J8, J10; A2 J1) | current | ≤ 0.34 A (trip) | 1 A | ≤ 34 % | 50 % | yes |
 | W3 28 AWG (VBAT_MTQ) | current | 0.115 A | 0.25 A derated | 46 % | 100 % of derated | yes |
 | W6B 26 AWG (3V3_ADCS) | current | 0.339 A at the SW4 trip | 0.5 A derated | 68 % | 100 % | yes |
@@ -631,9 +656,9 @@ stress, finish and how its MPN was checked. Summary of the active parts:
 | Off-timer | TI CD74HC4060PWR | −55…+125 °C, not AEC (the -Q1 SN74HC4060 is "last time buy") | listed (RF board) | no data |
 | Gates | TI SN74LVC2G04DBVR (not AEC), SN74LVC1G08QDBVRQ1 | −40…+125 °C | Active | no data |
 | Translators | TI TXU0304QPWRQ1 ×2, TXU0204QPWRQ1 ×2, SN74LVC1T45QDCKRQ1 ×6, TCA9517DGKRQ1 | AEC-Q100 | Active | no data |
-| ESD | TI TPD4E05U06QDQARQ1 ×17 (+1 on A2), TPD1E05U06QDPYRQ1 ×2 | AEC-Q101 | Active | — |
+| ESD | TI TPD4E05U06QDQARQ1 ×17 (+1 on A2, +2 on A3), TPD1E05U06QDPYRQ1 ×2 (+1 on A3); Littelfuse SMF24A ×2 on A3 | AEC-Q101 (TI) | Active (TI); SMF24A not checked | — |
 | Passives | Murata GCM (AEC-Q200), Panasonic ERJ-3EKF / ERA-3AEB (AEC-Q200), Vishay CRCW-e3 | automotive | series codes checked, values not | — |
-| Connectors | Samtec FTSH-120/108/105, CLM-110; Molex Pico-Clasp 501331 | — | Samtec not checked; Pico-Clasp series Active (EPS board), the 14-position part by pattern | — |
+| Connectors | Samtec TFM-120/108/105-01-S-D-RA (right-angle, gold), CLM-110; Molex Pico-Clasp 501331 in the gold finish (J8 a 12-way part); Micro-D 21 on A3 | — | Samtec not checked; Pico-Clasp series Active (EPS board), the 14-position part by pattern | — |
 
 No radiation data was found for any of these parts except the M-G370's TID. All are covered by the latch-up trips of
 §16 and by RAD-V3 lot-sample testing (EEE_PARTS_LIST §2A.4). TID: the board sits mid-stack (RADIATION_ANALYSIS §4:
@@ -659,16 +684,17 @@ Version A's guidance conflicted with them it has been changed (marked "Version B
 | Stack-up | 6 layers, 1.6 mm (the FE and Steinberg margins assume 1.6 mm: OBC +0.14), FR-4 Tg ≥ 170 °C (polyimide preferred for TVAC): L1 parts and signals, L2 solid GND, L3 signals, L4 power (3V3_OBC plane, 3V3_ADCS and the three sensor-rail islands, VBAT_MTQ as a 1 mm trace), L5 solid GND, L6 low-profile parts and signals; 1 oz; IPC-6012 Class 3/A |
 | Heights (Version B) | **Bottom side (L6) ≤ 1.0 mm**: only 0402/0603 resistors and capacitors (≤ 0.95 mm; no 0603 MLCC thicker than 0.9 mm), the TPD4E05U06 (USON, 0.55 mm) and TPD1E05U06 (X1SON) arrays and test pads; everything else on the top side (SOT-23, SOT-563, 1206/1210 capacitors, SMF/SMBJ diodes, the LQFP, HTSSOP, SOIC, LGA and every connector). **Top side ≤ 3.0 mm** except X1 and the connectors; **9.0 mm is free under the 2.0 mm carrier** (its 1 mm bottom-side envelope plus 1 mm clearance; the window frame and its 7.4 mm limit are withdrawn). The mated connectors J1–J10 (header, plug and cable bend) take the mechanical allocation of **8.0 mm** (MECHANICAL_DESIGN VI-MCAD-08), 1.0 mm inside the 9.0 mm, to be checked against the Samtec and Molex drawings (§25); X1 passes through the window and needs only its 1.5 mm lateral clearance there |
 | X1 (gyro) | Socket centred at **(−20, +30.5)**, footprint x −32 … −8, y +18.5 … +42.5, square to the board axes (in-plane rotation within ± 0.3°, MECHANICAL_DESIGN §4.3.1); the module's two screw holes plated and isolated from GND; module top z +20.6 in the 2.0 mm carrier's window (1.5 mm lateral clearance, 7.2 mm below the spreader); BMI088 U11 and TMP235 U20 within 15 mm of X1 |
+| J1, J2, J9 headers (Version C) | Samtec **TFM right-angle** (TFM-120, -108, -105) with SFSDT 30 AWG assemblies, cable toward the nearer wall gap, **mated plug's back at most 2.0 mm inside the board edge (x ≤ +43.1 for J1 and J2, x ≥ −43.1 for J9)** for the 4.0 mm bend into the 3 mm gap; ≤ 7.0 mm mated height (SQSO-HAR-001 2.0 §10.2) |
 | J1 (W3 to the EPS, 40-way) | **Top side, on the +X edge, pin field along Y within \|y\| < 24 mm** (centred at y = 0 recommended), the same edge and y range as the EPS's J3 (for the EPS layout): the ribbon's only path is the +X wall gap (x +45.4 … +48.4) between the harness bundles at \|y\| = 24 … 34; the −X edge is ruled out by the Z rod |
-| J2 (W4A to the RF board) | **Top side** (FTSH-108, pin field about 10 mm), ribbon up through a ±X wall gap at \|y\| = 34 … 44 mm (the spreader flanges fill \|y\| < 20 above the carrier, the bundles \|y\| = 24 … 34). **Placed at (+41.0, −33.5), pin field along Y (y −28.5 … −38.5)**, directly below the RF board's J1 at the same x, y (SQSO-RF-BRD-001 B §15 item 14), clear of the (+40, −43) column keep-out: the ribbon runs flat and vertical on the +X shear panel with no fold; above z −26 the (+X, −Y) bundle narrows to y −20.5 … −27.0 beside it (SQSO-ICX-001 §2, §2.1) |
+| J2 (W4A to the RF board) | **Top side** (TFM-108 right-angle, pin field about 10 mm), cable up through a ±X wall gap at \|y\| = 34 … 44 mm (the spreader flanges fill \|y\| < 20 above the carrier, the bundles \|y\| = 24 … 34). **Placed at (+41.0, −33.5), pin field along Y (y −28.5 … −38.5)**, directly below the RF board's J1 at the same x, y (SQSO-RF-BRD-001 B §15 item 14), clear of the (+40, −43) column keep-out: the ribbon runs flat and vertical on the +X shear panel with no fold; above z −26 the (+X, −Y) bundle narrows to y −20.5 … −27.0 beside it (SQSO-ICX-001 §2, §2.1) |
 | J3 (W5B to the carrier) and J10 (W6E to board A2) | Top side, +X edge, y +24 … +34 (beside the (+X, +Y) bundle; the carrier's J2 is at its +X edge, y ≈ +28) |
 | J4, J5 (GNSS) | Top side, **+X edge at y +14 … +24** (between J1 and J3; Version B, moved from the −Y side): W9A and W9B in the (+X, +Y) bundle, W9A then along the deck to the receiver at (+5, −20) (SQSO-ICX-001 §2.1) |
-| J6, J7, J8 and the DRV8876s | −X half. **J7 on the top side** (Version B) and outside the Z rod's footprint (x −46.8 … −36.2, \|y\| < 5.3; the rod ends at z +3.0, 1 mm below the OBC's bottom envelope): **J7 at y +12 … +22 on the −X edge** (moved from −Y with the bundle allocation, SQSO-ICX-001 §2.1), the three DRV8876s within 20 mm of it and outside X1's footprint; J6 (3V3_ADCS) and J8 (sun sensors) at the −X edge, y +24 … +34, beside the (−X, +Y) bundle |
-| J9 (W8A to the access port) | Top side, −X edge at y −24 … −34 (W8A down the (−X, −Y) bundle to the bulkhead at (−20, −50, −43), MECHANICAL_DESIGN §6.9) |
+| J6, J7, J8 and the DRV8876s | −X half. **J7 on the top side** (Version B) and outside the Z rod's footprint (x −46.8 … −36.2, \|y\| < 5.3; the rod ends at z +3.0, 1 mm below the OBC's bottom envelope): **J7 at y +12 … +22 on the −X edge** (moved from −Y with the bundle allocation, SQSO-ICX-001 §2.1), its cable leaving into the −X wall gap at y +7 … +19.5 (**keep that edge strip, x −45.1 … −40, y +7 … +19.5, free of other parts and cables above the board**: SQSO-HAR-001 2.0 O-3, between the Z rod and the 70 cm coax band), the three DRV8876s within 20 mm of it and outside X1's footprint; J6 (3V3_ADCS) and J8 (sun sensors) at the −X edge, y +24 … +34, beside the (−X, +Y) bundle |
+| J9 (W8A to the access port) | Top side, −X edge at y −24 … −34, TFM-105 right-angle (W8A down the (−X, −Y) bundle to A3 at (−20, −50, −43), MECHANICAL_DESIGN §6.9) |
 | Board A2 (magnetometer) | 24 × 24 mm, 2 layers, 1.6 mm, at (+24, +27) on the +Z end frame, z +40.4 … +48.4; Sen-XY-f coils along body X and Y, Sen-Z-f along body Z (PNI figure 4-4); J1 at the edge toward the +X wall gap; **no ferromagnetic part on A2** (Sn-finished parts only, no Ni-barrier connector shells where a non-magnetic one exists, no ferrite, no steel fasteners); 3V3_SNS and its GND return as a paired trace; and the 20 mm keep-out around it in the stack (§9.4) |
 | Magnetic rules on the OBC (Version B) | the magnetometer is no longer on this board; the Version A rules (30 mm from the bridges, 20 mm non-ferromagnetic zone) lapse. Kept: VBAT_MTQ and each coil pair routed go-and-return together (L4/L5, and adjacent pins on J7), so the OBC's coil currents add no dipole of their own |
 | Coil drive | VBAT_MTQ from J1-36/39 to the bridges ≥ 0.5 mm wide on L4 with its GND return on L5; each bridge's VM capacitors within 3 mm; exposed pads with ≥ 9 × 0.3 mm thermal vias to L2/L5 and ≥ 4 cm² copper each |
-| Sun-sensor inputs | TIA inputs guarded, ≤ 15 mm from J8; shield drains to GND at J8 only; ADS7138 analog ground at its pad; no digital traces under the TIAs |
+| Sun-sensor inputs | TIA inputs guarded, ≤ 15 mm from J8; W6D unshielded (no drains); J8 pins in pairs (K, A); ADS7138 analog ground at its pad; no digital traces under the TIAs |
 | Spreader NTC | the 10.0 kΩ bias, the 1 kΩ and the 100 nF within 10 mm of PA2; PT_NTC_J from J3-5 as an analog trace away from the USART1 lines; J3-6 to the analog ground at the MCU's VSSA side |
 | Clocks | Y2 guard ring to GND, no traces beneath on L1–L2; Y1 ≤ 10 mm from PH0 with the 33 Ω at the source; U2, Y1, Y2 within 10 mm of U1 |
 | Back-power and isolation parts | each translator on the boundary of its domain: A side traces from the MCU, B side to the sensor or connector; the sensor-rail islands do not extend under the MCU |
@@ -698,6 +724,7 @@ Version A's guidance conflicted with them it has been changed (marked "Version B
 | V-OBC-15 | Back-power into the unpowered OBC (= V-ICX-3) | ≤ 3.0 mA, 3V3_OBC < 0.5 V | §16 | flatsat |
 | V-OBC-16 | Gyro random vibration and shock: OBC EM with a flight-lot M-G370 on X1 (screws thread-locked, staked), random at the FE-predicted module levels (≥ 22.2 / 25.0 / 21.7 Grms in axis) for the protoflight duration, shock to the launch SRS; header continuity monitored | before/after on a rate table: bias change ≤ 0.01 °/s, scale factor change ≤ 0.2 %, noise within 10 %, no DIAG_STAT flags or SPI errors; no continuity interruption > 1 µs | §9.2; with VI-STR-02 | OBC EM |
 | V-OBC-17 | Spreader NTC: carrier off and on, RT1 (or a decade box) at −40, −15, 25, 70, 95 °C equivalents; open and short at J3 | reading within ± 0.5 K of the reference at −15 and 70 °C; open reads < −50 °C, short > 150 °C; reading unchanged with the carrier off | §11.3, E10 | flatsat with the carrier |
+| V-OBC-18 | Access-port board A3: continuity of every Micro-D pin to its OBC J9 / EPS J13 pin through W8A and W11; isolation GND–PACK_N, debug group to charge group and both to the shell, at 50 V; ESD ± 8 kV contact at each Micro-D pin (unpowered); charge at 0.5 A through the GSE plug | continuity as SQSO-ICX-001 §3.6; isolation ≥ 100 MΩ (GND–PACK_N ≥ 100 kΩ with the EPS connected and DS2 open, V-EPS-4); no damage; charge drop ≤ 50 mV across A3 | §15.1 | flatsat |
 
 ## 23. RID Closure
 
@@ -743,6 +770,8 @@ changes in SQSO-ICX-001 §6. In addition:
 | C15 | Magnetometer gating | chair / flight software | the magnetometer is not used for actuation while JET_PG or PTT_EXCITER is high (logged only); per-polarity-state bias table if AV-V4 needs it (SQSO-ICX-001 §6 row 12) |
 | C16 | RF board | RF designer | no ferromagnetic top-side parts or shield clips within 20 mm of (+24, +27) (A2 is 4 mm above the RF board's parts there); PA supply and return paired; J1 of the RF board in the (+X, −Y) corner to meet the OBC's J2 ribbon (§21) |
 | C17 | Spreader NTC | carrier designer / flight software | E10 taken as proposed; the TE resistance table for GA10K3MCD1 to replace the assumed β = 3976 K in the conversion |
+| C18 | EPS storage drain and the A3 protection | EPS designer | D4 (SMF24A on UMB_VMON) leaks ≤ 1 µA worst at its 24 V standoff (far less at 16.8 V) through the EPS's 100 kΩ from BAT_F: add to the LVR-071 storage-drain budget (≤ 20 µA), or accept |
+| C19 | A3 size | harness and mechanical designers | A3 is 30 × 8.8 mm (the CAD envelope's height), not the 30 × 12 mm of SQSO-HAR-001 2.0 §3.2; mounting by two Ti M2 screws through the panel, the Micro-D flange and A3 |
 
 ## 25. Not Verified and Open
 
@@ -754,7 +783,7 @@ changes in SQSO-ICX-001 §6. In addition:
   unreachable). The drive covers 30–80 Ω; the current limit protects the rod whatever its resistance.
 - **Panel photodiodes** not yet named: Rf assumes ≤ 4.0 mA at AM0.
 - **MPNs not checked** (BOM column): FM25V20A-GTR, SG-8018CA code, CM7V code, Samtec connectors, BLM18AG601SN1D,
-  SMF5.0A, BAT54, 1N4148W-Q, LTST-C191KRKT, Keystone 5015, Pico-Clasp 14-position part number (pattern), the M-G370
+  SMF5.0A, BAT54, 1N4148W-Q, LTST-C191KRKT, Keystone 5015, Pico-Clasp 12-position part number (pattern) and the gold order codes of every Pico-Clasp header, the Samtec TFM right-angle contact ratings and mated heights, the Micro-D 21 slash-sheet dash number, SMF24A, the M-G370
   "PDT0" order code (data sheet read for PDG0).
 - **Hardware off-timer** accuracy (± 3 % after trim) follows the RF board's use of the same CD74HC4060 RC oscillator; to
   be measured (V-OBC-8).
@@ -776,3 +805,4 @@ changes in SQSO-ICX-001 §6. In addition:
 |---------|------|-------------|
 | A | 2026-10-27 | First issue (CDR design completion): OBC board schematic as code with parts, netlist, BOM, ERC and calculations; supervisor (AV-02), mission clock (AV-10), on-board ADCS sensors and coil drive (AV-03), Jetson isolation and switch readbacks (AV-09, AV-06), repeat-path readbacks (RF-21, AV-05); master pin allocation in SQSO-ICX-001 |
 | B | 2026-10-27 | Chair follow-up: carrier interface E10 taken (W5B 6 pins; spreader NTC on PA2 ADC1_IN7 with a 10.0 kΩ 0.1 % bias, §11.3; JETSON_PWR PA2 → PA8); stack placement constraints of MECHANICAL_DESIGN §4.3–§4.4 in §21 (gyro at (−20, +30.5), bottom side ≤ 1.0 mm, J1/J2/J7 edges and sides, no OBC frame bond); magnetometer re-assessed and moved to board A2 at the +Z end frame (§9.4; carrier keep-out withdrawn; AV-V4 residual and gating); gyro vibration against the Epson rating (§9.2, V-OBC-16); J9 FTSH-105 on internal harness W8A; RX_CD (PG0) and RX_FAULT (PF13) from the RF board on J2 (FTSH-108, W4A v3; back-power total 2.7 mA); V-OBC-16, -17; C3 closed, C12–C17 |
+| C | 2026-10-27 | Harness design SQSO-HAR-001 2.0 §15 O-1 to O-3: J1, J2, J9 as Samtec TFM right-angle (TFM-120/-108/-105, gold) with SFSDT 30 AWG, plug's back ≤ 2.0 mm inside the edge; Pico-Clasp headers gold; J8 a Pico-Clasp 12 (W6D unshielded, drains removed); J7 cable strip y +7 … +19.5 kept free; access-port board A3 designed (§15.1: Micro-D 21, debug and charge groups separated, ESD and TVS, netlist, BOM, ERC); V-OBC-18; C18, C19 |

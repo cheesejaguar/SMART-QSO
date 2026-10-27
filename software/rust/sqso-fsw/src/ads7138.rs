@@ -154,7 +154,9 @@ mod tests {
         let r = read(&mut m).unwrap();
         let s = r.sun();
         // 3084 counts = 2.485 V = 4.015 mA: about full sun on +X; half on -Y
-        assert!((s[0] - 1.0).abs() < 0.01 && (s[1] + 0.5).abs() < 0.01 && s[2] == 0.0, "{s:?}");
+        assert!((s[0] - 1.0).abs() < 0.01, "{s:?}");
+        assert!((s[1] + 0.5).abs() < 0.01, "{s:?}");
+        assert!(s[2] == 0.0, "{s:?}");
         assert!((r.sensor_temp_c() - 40.0).abs() < 0.1);
         assert!((r.vbat_mtq() - 7.2).abs() < 0.01);
         assert_eq!(r.volts(99), 0.0);

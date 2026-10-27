@@ -629,7 +629,9 @@ mod tests {
         gauge(ARRAY, 14.2, 0.8);
 
         let Some((v, i, a, jet)) = read() else { panic!("no telemetry") };
-        assert!(near(v, 14.2) && near(i, -0.3) && near(a, 0.8), "the INA228s' readings: {v} {i} {a}");
+        assert!(near(v, 14.2), "the INA228s' readings: {v} {i} {a}");
+        assert!(near(i, -0.3), "the INA228s' readings: {v} {i} {a}");
+        assert!(near(a, 0.8), "the INA228s' readings: {v} {i} {a}");
         assert!(jet > 0.0, "IMON_JET read");
         gauge(PACK, 30.0, 0.0);
         assert!(read().is_some_and(|(v, ..)| near(v, 15.0)), "above the plausible range: the controller's");
@@ -681,10 +683,12 @@ mod tests {
             }
         };
         on(true);
-        assert!(get(GPIO_PIN_PAYLOAD_EN) && get(GPIO_PIN_JETSON_PWR));
+        assert!(get(GPIO_PIN_PAYLOAD_EN));
+        assert!(get(GPIO_PIN_JETSON_PWR));
         let t0 = c::now_ms();
         on(false);
-        assert!(!get(GPIO_PIN_JETSON_PWR) && get(GPIO_PIN_PAYLOAD_EN), "JETSON_PWR first");
+        assert!(!get(GPIO_PIN_JETSON_PWR), "JETSON_PWR first");
+        assert!(get(GPIO_PIN_PAYLOAD_EN), "JETSON_PWR first");
         eps_payload_tick(t0 + sqso_fsw::jetson_power::PAYLOAD_EN_DELAY_MS - 1);
         assert!(get(GPIO_PIN_PAYLOAD_EN), "inside the delay");
         eps_payload_tick(t0 + sqso_fsw::jetson_power::PAYLOAD_EN_DELAY_MS);

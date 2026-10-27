@@ -516,7 +516,9 @@ mod tests {
         };
         assert!(text2(&worst).len() <= MAX_LEN, "{}", text2(&worst).len());
         let none = text2(&Housekeeping2::default());
-        assert!(none.contains("IA=- ") && none.contains("EOL=-/0") && none.ends_with("PE=-"), "{none}");
+        assert!(none.contains("IA=- "), "{none}");
+        assert!(none.contains("EOL=-/0"), "{none}");
+        assert!(none.ends_with("PE=-"), "{none}");
         assert_eq!(format2(&worst, &mut [0u8; 20]), 0);
     }
 

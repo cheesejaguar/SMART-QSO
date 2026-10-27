@@ -198,7 +198,10 @@ mod tests {
             let got = ln(x);
             assert!((got - want).abs() <= 4.0 * f64::EPSILON * want.abs().max(1.0), "{x}: {got} vs {want}");
         }
-        assert!(ln(0.0).is_nan() && ln(-1.0).is_nan() && ln(f64::NAN).is_nan() && ln(5e-324).is_nan());
+        assert!(ln(0.0).is_nan());
+        assert!(ln(-1.0).is_nan());
+        assert!(ln(f64::NAN).is_nan());
+        assert!(ln(5e-324).is_nan());
         assert_eq!(ln(f64::INFINITY), f64::INFINITY);
         assert_eq!(ln(1.0), 0.0);
     }

@@ -170,7 +170,8 @@ mod tests {
             }
         }
         let ended = ended.unwrap();
-        assert!(ended < BATCH_TIMEOUT_MS && (480_000..=500_000).contains(&ended), "{ended}");
+        assert!(ended < BATCH_TIMEOUT_MS, "{ended}");
+        assert!((480_000..=500_000).contains(&ended), "{ended}");
         assert_eq!(s.gate_ends, 1);
         assert_eq!(s.last_burst.1, 3);
         assert!((s.last_burst.0 - 3600.0).abs() < 1.0);

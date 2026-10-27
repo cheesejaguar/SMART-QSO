@@ -1580,7 +1580,8 @@ mod tests {
         let (sn, cs) = (0.1f64.to_radians().sin(), 0.1f64.to_radians().cos());
         c.gyro = [[cs, -sn, 0.0], [sn, cs, 0.0], [0.0, 0.0, 1.0]];
         let w = c.gyro_apply(Vec3::new(1.0, 0.0, 0.0));
-        assert!((w.y - sn).abs() < 1e-15 && (w.x - cs).abs() < 1e-15);
+        assert!((w.y - sn).abs() < 1e-15);
+        assert!((w.x - cs).abs() < 1e-15);
         let back = Calibration::gyro_from_record(&c.gyro_record()).unwrap();
         for (a, b) in back.iter().flatten().zip(c.gyro.iter().flatten()) {
             assert!((a - b).abs() < 1e-7);
@@ -1607,16 +1608,21 @@ mod tests {
         let _ = a.set_mode(mode::DETUMBLE, 1);
         let r = Reading { field: Vec3::new(30.0, 0.0, 40.0), sun: Vec3::new(1.0, 0.0, 0.0), ..Reading::default() };
         let c = a.update_cycle(1000, 1000, &r).unwrap();
-        assert!(!c.mag_gated && a.state.mag.valid);
+        assert!(!c.mag_gated);
+        assert!(a.state.mag.valid);
         assert_eq!(a.state.mag.field, Vec3::new(29.0, 0.0, 40.0), "bias of state 0 removed");
         let c = a.update_cycle(2000, 2000, &Reading { gated: true, field: Vec3::new(31.0, 1.0, 40.0), ..r }).unwrap();
-        assert!(c.mag_gated && !a.state.mag.valid);
+        assert!(c.mag_gated);
+        assert!(!a.state.mag.valid);
         assert_eq!(a.mag_gated, 1);
         assert!(!a.state.mtq.enabled, "coils off in a gated cycle");
         let c = a.update_cycle(3000, 3000, &Reading { coils_driven: true, ..r }).unwrap();
-        assert!(c.mag_rejected && !c.mag_gated, "coil current at the sample: rejected");
+        assert!(c.mag_rejected, "coil current at the sample: rejected");
+        assert!(!c.mag_gated, "coil current at the sample: rejected");
         let c = a.update_cycle(3500, 3500, &Reading { mag_missing: true, ..r }).unwrap();
-        assert!(!c.mag_rejected && !a.state.mag.valid && !a.state.mtq.enabled, "no magnetometer: no actuation");
+        assert!(!c.mag_rejected, "no magnetometer: no actuation");
+        assert!(!a.state.mag.valid, "no magnetometer: no actuation");
+        assert!(!a.state.mtq.enabled, "no magnetometer: no actuation");
         // The gyro passes through the alignment
         a.calibration.gyro = [[0.0, 1.0, 0.0], [1.0, 0.0, 0.0], [0.0, 0.0, 1.0]];
         let _ = a.update_cycle(4000, 4000, &Reading { gyro: Some(Vec3::new(0.1, 0.0, 0.0)), ..r });

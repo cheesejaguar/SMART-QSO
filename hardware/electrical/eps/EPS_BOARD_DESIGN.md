@@ -479,22 +479,28 @@ clear), and the OBC still has the analog lines and the two INA228s. Programming 
 
 ### 13.1 Connectors
 
-| Ref | Part | Function | Harness |
-|-----|------|----------|---------|
-| J1 | Micro-Fit 3.0 2×4, 0430450812 | BAT_TOP ×2, BAT_BOT ×2, NTC1, NTC1 return, heater ± | W1 |
-| J2 | Pico-Clasp 6, 5013310607 | TAP0–TAP4, NTC2 | W1 |
-| J3 | Samtec FTSH-120-01-L-DV-K (40) | OBC, per SQSO-ICX-001 §3.1 | W3 (§13.2) |
-| J4–J7 | Pico-Clasp 5, 5013310507 | body strings PX, MX, PY, MY (2 + 2 contacts, TEMP) | W2 |
-| J8, J9 | Pico-Clasp 8, 5013310807 | wings W1, W2 (front ×2, back ×2, return ×3, TEMP) | W2 |
-| J10, J11 | Micro-Fit 3.0 2×3, 0430450612 | burn resistors A and B, hinge switch | W7 |
-| J12 | Pico-Clasp 4, 5013310407 | AntS 3.3 V, GND, SDA, SCL | W7 |
-| J13 | Micro-Fit 3.0 2×3 | umbilical: charge ×2, return ×2, pack monitor, AFE shutdown | W11 (new, for the chair) |
-| J14 | Pico-Clasp 4 | RBF (two poles) | access port |
-| J15–J17 | Pico-Clasp 3 | DS1, DS2, DS3 (C, NC, NO) | one harness per switch, on its own rail |
-| J18 | Micro-Fit 3.0 2×2, 0430450412 | VBAT_JET ×2, GND ×2 | W5 (change: VBAT, not 5 V) |
-| J19 | Micro-Fit 3.0 2×3 | PA 5 V switched ×2, GND ×3, radio 3.3 V switched | W4 (change) |
-| J20, J21 | Pico-Clasp 2 | ADCS sensor 3.3 V, GNSS 3.3 V | W6B to OBC J6 (J20 at the −X edge, +Y side), W9B to OBC J4 (J21 at the **+X edge, +Y side**, SQSO-ICX-001 B §2.1); there is no ADCS board; the OBC's GNSS translators take their receiver side from this rail |
-| J22 | FTSH 2×2 | EPS controller programming | GSE |
+Every harness connector is on the **bottom side** of the board, in the zones of SQSO-HAR-001 2.0 §10.1 (bottom-side
+envelope 9.0 mm, z −3 … −12; the top side has 5 mm under the OBC); all headers are gold (EEE_PARTS_LIST §2A.3 item 5:
+no tin contacts). Pico-Clasp headers are Molex **203556** (0.38 µm Au mating, mates the 501330 housings with gold
+501334 terminals, 28 AWG); Micro-Fit headers are **43045 right-angle** (0.76 µm Au mating) so the mated plug and its
+wire bend stay within 9.0 mm.
+
+| Ref | Part | Function | Harness | Zone (SQSO-HAR-001 §10.1) |
+|-----|------|----------|---------|---------------------------|
+| J1 | Micro-Fit 3.0 2×4 R/A, 0430450802 | BAT_TOP ×2, BAT_BOT ×2, NTC1, NTC1 return, heater ± | W1 | Z1 (PACK corner, −X +Y) |
+| J2 | Pico-Clasp 6, 2035560607 | TAP0–TAP4, NTC2 | W1 | Z1 |
+| J3 | Samtec TFM-120-02-S-D-A (40, vertical SMT) | OBC, per SQSO-ICX-001 §3.1 | W3 (Samtec SFSDT 30 AWG; §13.2) | +X edge, \|y\| < 15.5 mm |
+| J4–J7 | Pico-Clasp 5, 2035560507 | body strings PX, MX, PY, MY (2 + 2 contacts, TEMP) | W2PX, W2MX, W2PY, W2MY (28 AWG, two wires per pole) | J4 Z4, J5 Z2, J6 Z1, J7 Z2 |
+| J8, J9 | Pico-Clasp 8, 2035560807 | wings W1, W2 (front ×2, back ×2, return ×3, TEMP) | W2W1, W2W2 | J8 Z3, J9 Z5 |
+| J10, J11 | Micro-Fit 3.0 2×3 R/A, 0430450602 | burn resistors A and B, hinge switch | W7A, W7B | J10 Z3 (plug toward +X), J11 Z2 |
+| J12 | Pico-Clasp 6, 2035560607 | 1, 2 3V3_ANTS; 3, 4 GND; 5 SDA; 6 SCL (two contacts per supply pole) | W7C | Z5 |
+| J13 | Micro-Fit 3.0 2×3 R/A, 0430450602 | umbilical: charge ×2, return ×2, pack monitor, AFE shutdown | W11 (to the access-port board A3) | Z5 |
+| J14 | Pico-Clasp 4, 2035560407 | RBF (two poles) | W12D | Z4, −Y edge |
+| J15–J17 | Pico-Clasp 3, 2035560307 | DS1, DS2, DS3 (C, NC, NO) | W12A, W12B, W12C (one per switch, each on its own rail) | J15 Z3, J16 Z2, J17 Z4 |
+| J18 | Micro-Fit 3.0 2×2 R/A, 0430450402 | VBAT_JET ×2, GND ×2 | W5A (24 AWG) | Z2 |
+| J19 | Pico-Clasp 6, 2035560607 | pinout of RF J2: 1 3V3_RADIO, 2 GND, 3, 4 5V_PA_SW, 5, 6 GND | W4B (28 AWG pairs) | Z2 |
+| J20, J21 | Pico-Clasp 2, 2035560207 | ADCS sensor 3.3 V, GNSS 3.3 V | W6B to OBC J6; W9B to OBC J4 (SQSO-ICX-001 B §2.1); the OBC's GNSS translators take their receiver side from J21's rail | J20 Z1 (−X edge, +Y side); J21 Z3 (**+X edge, +Y side**) |
+| J22 | FTSH 2×2 | EPS controller programming | GSE (ground use only) | either side, clear of the zones |
 
 ### 13.2 Control and status lines from the OBC (for the chair and the OBC designer)
 
@@ -631,16 +637,16 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | Item | Requirement |
 |------|-------------|
 | Outline and mounting | PC/104 90.17 × 95.89 mm, four Ø3.18 mm holes at the PC/104 positions, keep-out Ø6.4 mm copper-free ring except the GND-bonded mounting hole H1 (single frame bond, star with AGND at U37); the frame vendor's stack drawing governs (BUILD_VS_BUY §2.2) |
-| Connector edges (harness bundles, SQSO-ICX-001 B §2.1) | J21 (W9B, GNSS 3.3 V) on the **+X edge, +Y side** (y +24 … +34), into the (+X, +Y) bundle; J20 (W6B) on the −X edge, +Y side, into the (−X, +Y) bundle; J18 (W5A) and J19 (W4B) on the −X edge, −Y side, into the (−X, −Y) bundle; the EPS-only connectors (J1, J2, J4–J17) where the harness design's wire list places them within the §2.1 allowances |
+| Connector zones (SQSO-HAR-001 2.0 §10.1) | all harness connectors on the **bottom side** in zones Z1–Z5 and the +X edge per §13.1; bottom-side envelope 9.0 mm (z −3 … −12) in the zones; footprints within the harness design's allocations (≤ 80 % of each zone's area: Z1 69 %, Z2 73 %, Z3 67 %, Z4 27 %, Z5 58 %); J3 at the +X edge within \|y\| < 15.5 mm; J21 on the +X edge, +Y side (W9B, (+X, +Y) bundle); J20 on the −X edge, +Y side; J10's plug toward +X |
 | Stack-up | 6 layers, 1.6 mm, FR-4 Tg ≥ 170 °C (polyimide preferred for TVAC): L1 parts/power (2 oz), L2 GND, L3 power (PACK_P, VBAT, VTRK islands), L4 signals, L5 GND, L6 parts/power (2 oz); IPC-6012 Class 3/A |
-| Domains | PACK domain (U1, U2, Q1–Q3, Q6/Q7, F2/RT1/F3, RS6/RS7, J1/J2 area) in one corner on its own BAT_BOT copper, joined to GND only through Q6/Q7; U50 straddles the boundary; ≥ 1.0 mm gap between BAT_BOT and GND copper |
+| Domains | PACK domain (U1, U2, Q1–Q3, Q6/Q7, F2/RT1/F3, RS6/RS7, J1/J2 area) in the **(−X, +Y) corner, zone Z1** (the W1 route), on its own BAT_BOT copper, joined to GND only through Q6/Q7; U50 straddles the boundary; ≥ 1.0 mm gap between BAT_BOT and GND copper |
 | Power paths | pack line (J1 → F2 → RT1 → F3 → RS6 → Q1/Q2 → PACK_P → Q4 → Q5 → RS8): ≥ 3 mm/A on 2 oz outer layers, ≥ 2 A design current (5 A fuse); Kelvin sense to RS5–RS8 and RS20–RS23 |
-| Converters | each tracker and buck as a tight loop (input cap, switch, diode, output cap) on L1 over solid L2; inductors and switch nodes on the side away from the antennas (rule E2); SYNC traces short, series 100 Ω at the source; no converter within 10 mm of U37's ADC pins or U53/U54 |
+| Converters | each tracker and buck as a tight loop (input cap, switch, diode, output cap) on L1 over solid L2; inductors and switch nodes on the side away from the antennas (rule E2); SYNC traces short, series 100 Ω at the source; no converter within 10 mm of U37's ADC pins or U53/U54; where the layout allows, keep the tracker inductors and switch nodes out of the board area over the bottom-side zones Z1–Z3, which carry the unshielded W6D sun-sensor branches (SQSO-HAR-001 E-9) |
 | Thermal | thermal vias (≥ 9 × 0.3 mm) under U4–U7, U15–U17, U19, U20, Q24–Q27 into L2/L5; the burn FETs and U17 near a mounting hole; ≥ 2 cm² copper per burn FET |
 | Creepage / clearance | ≤ 30 V everywhere: IPC-2221B B4 (coated) ≥ 0.13 mm; use ≥ 0.3 mm between PACK domain and GND copper and around F1/F3 heater pins (fuse opening heat) |
 | Keep-outs | 5 mm around Y1 and the clock dividers from switch nodes; no copper under F1/F3 (heat to the fuse element per Littelfuse land pattern); relay K1 away from inductors (stray field) |
 | Test points | TP1 TRK_EN, TP2 VBAT, TP3 PACK_P, TP4 GND, TP5 3V3_AO, TP6 5V_PA, TP7 SHED_N; add at layout: VCTL, VHW, REF_C, REF_A, SYNC_A/B, V_BURN, each tracker COMP, CTRL_DN, PERMIT, CHG_INHIBIT, EOL_ARMED, BXP_W1A–W2B |
-| Coating | conformal coat (tin-whisker mitigation, EEE_PARTS_LIST §2A.3), keep J1–J22 mating faces, K1 and the test points clear |
+| Coating | conformal coat (tin-whisker mitigation, EEE_PARTS_LIST §2A.3), keep J1–J22 mating faces (gold), K1 and the test points clear |
 | RF | no RF on this board; the PA supply leaves on J19 through RS13 with a 1 µF at the switch and the PA board's own filter |
 
 ## 18. Fault tolerance summary (inputs to SQSO-FMEA-002 and SQSO-BSA-001)

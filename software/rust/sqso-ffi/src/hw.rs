@@ -171,7 +171,8 @@ mod tests {
         HalPins::configure();
         let mut p = HalPins;
         p.set(Pin::GyroEn, true);
-        assert!(p.get(Pin::GyroEn) && p.get(Pin::GyroRb), "the readback follows the enable");
+        assert!(p.get(Pin::GyroEn), "the readback follows the enable");
+        assert!(p.get(Pin::GyroRb), "the readback follows the enable");
         p.set(Pin::GyroEn, false);
         assert!(!p.get(Pin::GyroRb));
         for pin in [Pin::Imu2En, Pin::SnsEn, Pin::Imu2Rb, Pin::SnsRb, Pin::GyroRstN, Pin::GyroDrdy, Pin::Imu2Drdy] {
@@ -185,6 +186,7 @@ mod tests {
         assert_eq!(crate::hal_sim::hal_adc_init(12, 2), rc::OK);
         assert!((adc(pins::ADC_PT_NTC) - 1.65).abs() < 1e-12);
         assert_eq!(adc_raw(pins::ADC_PT_NTC), Some(2047));
-        assert!(adc(99).is_nan() && adc_raw(99).is_none());
+        assert!(adc(99).is_nan());
+        assert!(adc_raw(99).is_none());
     }
 }

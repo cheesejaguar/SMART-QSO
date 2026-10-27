@@ -385,8 +385,10 @@ mod tests {
 
     #[test]
     fn ids_entries_and_stall_state() {
-        assert!(Watchdog::valid_id(0) && Watchdog::valid_id(7));
-        assert!(!Watchdog::valid_id(8) && !Watchdog::valid_id(u32::MAX));
+        assert!(Watchdog::valid_id(0));
+        assert!(Watchdog::valid_id(7));
+        assert!(!Watchdog::valid_id(8));
+        assert!(!Watchdog::valid_id(u32::MAX));
         let mut w = Watchdog::new();
         assert!(w.register(2, b"comm", 1000, 0).is_ok());
         assert_eq!(w.entry(2).map(TaskEntry::name), Some(&b"comm"[..]));
@@ -396,7 +398,8 @@ mod tests {
             let _ = w.check_task(2, s * 1000);
         }
         assert!(w.is_stalled(2));
-        assert!(!w.is_stalled(3) && !w.is_stalled(99));
+        assert!(!w.is_stalled(3));
+        assert!(!w.is_stalled(99));
     }
 
     /// Mutation check: the task check runs once per interval and is
@@ -446,7 +449,8 @@ mod tests {
     fn default_is_uninitialized_and_empty() {
         let w = Watchdog::default();
         assert_eq!(w, Watchdog::new());
-        assert!(!w.initialized && !w.any_stalled());
+        assert!(!w.initialized);
+        assert!(!w.any_stalled());
         assert!(w.tasks.iter().all(|t| !t.active));
         assert_eq!(w.stats, Stats::default());
     }

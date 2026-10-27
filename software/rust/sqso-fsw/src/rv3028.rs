@@ -173,7 +173,8 @@ mod tests {
         assert_eq!(b.unix_s, 1_900_000_000);
         assert_eq!(b.reset_unix_s, Some(1_900_000_000 - 30));
         assert_eq!(b.reset_count, 3);
-        assert!(!b.lost_power && b.clkout_1hz);
+        assert!(!b.lost_power);
+        assert!(b.clkout_1hz);
         assert_eq!(m.regs[usize::from(reg::STATUS)], 0, "EVF cleared");
         assert_eq!(m.regs[usize::from(reg::CONTROL2)], TSE);
         assert_eq!(m.regs[usize::from(reg::EVENT_CONTROL)], TSOW);
@@ -184,7 +185,8 @@ mod tests {
         m.regs[usize::from(reg::CLKOUT)] = 0;
         let b = boot(&mut m).unwrap();
         assert_eq!(b.reset_unix_s, None);
-        assert!(b.lost_power && !b.clkout_1hz);
+        assert!(b.lost_power);
+        assert!(!b.clkout_1hz);
 
         m.regs[usize::from(reg::ID)] = 0x10;
         assert_eq!(boot(&mut m), Err(BusError));

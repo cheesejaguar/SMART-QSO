@@ -466,7 +466,8 @@ mod tests {
         assert_eq!(e, Events::default());
         assert_eq!(b.pins.en, [true, false, true], "the backup gyro is cold");
         assert_eq!(s.mg370.state, mg370::State::Running);
-        assert!(s.mag.ready && s.sun_ready);
+        assert!(s.mag.ready);
+        assert!(s.sun_ready);
         s.trigger_mag(2_000, 1_950, &mut b.bus);
         assert!(s.mag.pending);
         s.trigger_mag(2_010, 1_950, &mut b.bus);
@@ -513,7 +514,8 @@ mod tests {
             assert_eq!(b.read(&mut s).rate, None);
         }
         let e = b.run(&mut s, 20_000, 40_000, true);
-        assert!(e.bmi088_failed.is_some() && e.no_gyro);
+        assert!(e.bmi088_failed.is_some());
+        assert!(e.no_gyro);
         assert_eq!(s.gyro, Gyro::None);
         assert_eq!(b.read(&mut s).rate, None);
     }
@@ -528,7 +530,8 @@ mod tests {
         b.run(&mut s, 100, 5_000, true);
         assert!(!s.mag.ready, "not before the retry time");
         b.run(&mut s, 5_000, 10_100, true);
-        assert!(s.mag.ready && s.sun_ready);
+        assert!(s.mag.ready);
+        assert!(s.sun_ready);
         assert_eq!(b.read(&mut s).field, None, "nothing triggered");
     }
 }

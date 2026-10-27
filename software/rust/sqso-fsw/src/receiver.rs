@@ -188,9 +188,11 @@ mod tests {
         let mut r = Receiver::new(0);
         let lines = Inputs { carrier: true, fault: true, ..quiet() };
         let off = r.qualify(0, &Inputs { radio_en: false, ..lines });
-        assert!(!off.carrier && !off.fault, "unpowered board");
+        assert!(!off.carrier, "unpowered board");
+        assert!(!off.fault, "unpowered board");
         let q = r.qualify(100, &lines);
-        assert!(q.carrier && !q.fault, "fault blanked while the receiver starts");
+        assert!(q.carrier, "fault blanked while the receiver starts");
+        assert!(!q.fault, "fault blanked while the receiver starts");
         assert!(!r.qualify(100 + FAULT_BLANK_MS - 1, &lines).fault);
         assert!(r.qualify(100 + FAULT_BLANK_MS, &lines).fault);
         let _ = r.qualify(2000, &Inputs { radio_en: false, ..lines });
